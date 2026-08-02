@@ -39,9 +39,14 @@ Cuatro tandas de reconocimiento después, esto es lo que se sabe:
   justamente la parte interesante.
 - **No hay red peatonal municipal publicada.** Ni aceras como eje, ni pasos de peatones. Existen
   —están catalogados— pero son de acceso restringido a técnicos municipales. OpenStreetMap sí los
-  tiene: en la misma zona del casco, 115 aceras, 43 pasos de peatones y 26 escaleras.
+  tiene: en la misma zona del casco, 115 aceras, 43 pasos de peatones y 26 escaleras. Usarlo tiene
+  un precio y se ha decidido pagarlo: la ODbL alcanza a las bases de datos derivadas, así que el
+  grafo que salga de ahí nacerá bajo esa licencia, aunque el código siga siendo Apache 2.0.
 - **El transporte está resuelto.** El GTFS del Punto de Acceso Nacional trae bus y tranvía, con
   paradas, horarios y el trazado real de cada línea.
+
+Nada de esto se afirma de memoria: cada cifra de ahí arriba tiene detrás su comando y su respuesta
+cruda, y lo que no se ha llegado a comprobar está declarado como tal, informe por informe.
 
 Los cuatro informes, con sus comandos y sus números:
 
@@ -72,7 +77,7 @@ para la retrospectiva, se pierde. Algunos ejemplos de lo que hay ahí dentro:
 
 ## Cómo comprobar lo que dicen los informes
 
-En [`data/exploracion/`](data/exploracion/) están las respuestas **crudas** de los servidores que
+En la carpeta `data/exploracion/` están las respuestas **crudas** de los servidores que
 sostienen las afirmaciones más fuertes: el catálogo completo de capas, las 11 zonas de medición de
 conectividad, el contraste con OpenStreetMap y la misma calle servida en dos sistemas de
 coordenadas distintos.
