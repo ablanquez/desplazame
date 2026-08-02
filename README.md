@@ -75,6 +75,10 @@ para la retrospectiva, se pierde. Algunos ejemplos de lo que hay ahí dentro:
 - Un `.gitignore` cuyas reglas de claves privadas no protegían nada, porque el comentario al final
   de la línea formaba parte del patrón.
 
+Junto a ella está [`DESPLAZAME-ESTADO.md`](DESPLAZAME-ESTADO.md), la memoria del proyecto: qué se
+ha decidido y con qué motivo, qué miente cada fuente y qué sigue abierto — incluida una tabla de lo
+que se creyó y resultó falso, que no se borra.
+
 ## Cómo comprobar lo que dicen los informes
 
 En la carpeta `data/exploracion/` están las respuestas **crudas** de los servidores que
