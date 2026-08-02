@@ -16,17 +16,24 @@
 
 ## ESTADO ACTUAL — 2 de agosto de 2026
 
-**Fase 0 cerrada por el lado de los datos. Repositorio creado. Cero líneas de código de producto.**
+**Fase 0 cerrada. Repositorio publicado. Cero líneas de código de producto.**
 
 - Cuatro tandas de reconocimiento (0.A – 0.D) cerradas y aprobadas.
-- Tanda 1 (andamiaje) cerrada: 9 commits en local, repositorio público `ablanquez/desplazame`.
+- **Tanda 1 (andamiaje) cerrada y PUBLICADA**: `github.com/ablanquez/desplazame`, público,
+  11 commits, el primero es el andamiaje y no un *Initial commit* de GitHub. 17 crudos publicados
+  de 93 en disco, contados en el remoto.
 - **El bloqueo está roto**: existe red viaria vectorial descargable, con puente de identidad
   exacto contra los 46.150 portales.
-- **Falta decidir**: si entran los horarios, dónde corre el motor, el stack, el alcance v1 del
-  buscador, y el momento oro.
+- ⭐ **Los horarios ENTRAN** (§5), y el motor se reparte: grafo peatonal en el navegador, horarios
+  consultados al servidor.
+- ⭐ **Plan de construcción cerrado: tres hitos** (§9). H1 · El terreno · H2 · La red ·
+  H3 · El reloj.
 
-**Lo siguiente:** cerrar los cabos de §10 y diseñar en papel el paso de *planarizado*, que es el
-primer trabajo real de algoritmia del proyecto.
+**Falta decidir:** el stack (condicionado ya por el reparto del motor), el alcance v1 del
+buscador, y el momento oro.
+
+**Lo siguiente:** diseñar en papel el **planarizado** —primer trabajo real de algoritmia del
+proyecto— y con él abrir H1.
 
 ---
 
@@ -69,6 +76,20 @@ camina 300 m hasta el destino*.
 **El buscador es configurable**: qué transportes acepto (autobús, tranvía, BiZi) y qué se
 minimiza (tiempo, o número de transbordos). Con una regla de producto ya propuesta por Antonio:
 **si algo está a menos de ~400 m, no se propone un salto de transporte.**
+
+### ⭐ La hora de salida es UN CAMPO, no dos modos
+
+Vacío o *"salir ahora"* → calcula desde este instante. Escribes `07:30 del martes` → calcula desde
+ahí. **Un solo motor, un solo parámetro.**
+
+⚠️ **Dos botones serían dos caminos de código, y dos caminos divergen.** Un día el mismo origen y
+destino darían dos rutas distintas en la misma pantalla sin que ninguna estuviera mal. Ley de la
+fuente única.
+
+⚠️ **Y ese botón NO se llama "tiempo real".** Lo que hace es calcular *ahora* según el **horario
+publicado**. El tiempo real sería saber que el 29 viene con seis minutos de retraso, y eso está
+fuera de la v1. Llamarlo así sería la única promesa falsa de la aplicación. Se llama
+**"salir ahora"**.
 
 ### ⭐ Lo que hace que no sea ZetaBus 2
 
@@ -162,7 +183,12 @@ capas se clasificaron sin abrirlas** (clasificación documental, no verificació
 | ⭐ **Motor propio** | Es el diferencial frente a 003. Consumir un motor ajeno devuelve el proyecto al terreno anterior |
 | ⭐ **Nivel 2 de precisión peatonal** (acera y paso de peatones) | Nivel 1 —eje de calzada— acierta la calle y no el lado: no sabe que hay que cruzar. Y el nivel 2 **es lo que hace la demo**: una ruta que te manda al paso de cebra se entiende en veinte segundos |
 | ⭐ **Entra OSM, con su coste** | Es la única forma de tener el nivel 2. Se paga la ODbL sobre la base derivada. **El código sigue siendo Apache 2.0** |
+| ⭐⭐ **LOS HORARIOS ENTRAN** | Sin ellos la app **no sabe qué hora es**: a las 23:40 recomienda un 29 que dejó de pasar a las 22:15. La ruta no está mal — simplemente ignora que existe la noche. Con ellos aparece la escena que define el proyecto: *"el 29 ya no pasa; tienes el búho N4."* ⭐ Y los búhos son **el caso extremo sembrado en la demo**: sin horarios ni siquiera existen, y lo que no está en la demo solo lo sujeta un test |
+| **Lo que cuesta, aceptado con los ojos abiertos** | El nodo deja de ser *un sitio* y pasa a ser *un sitio a una hora*. Aparecen los calendarios —laborable, sábado, domingo, festivo y sus excepciones—, que es donde se esconden los fallos **que el mapa no enseña**. Y sin `calendar.txt`, hay que leer `calendar_dates` fecha a fecha, que no es como lo hace la mayoría |
+| ⭐ **El motor se REPARTE: grafo peatonal en el navegador, horarios en el servidor** | Son dos problemas distintos y no tienen por qué vivir en el mismo sitio. El grafo peatonal es minúsculo (3.644 tramos), es propio, y **es donde está el trabajo que se quiere enseñar**: se puede ver funcionando paso a paso. Las 870.717 filas de horarios no viajan a un navegador: son una tabla que solo se consulta (*dame las salidas del poste 744 después de las 09:41*) |
+| ⚠️ **Y la ley *"el cliente no calcula nada"* se relee, no se aplica en automático** | Nació en 002/003 de que **dos motores divergen**. Aquí no hay dos motores del mismo cálculo: hay un motor de caminos y una consulta de horarios. Aplica su razón, no su letra |
 | **El GTFS se DESCARGA, no se copia de 003** | Copiar el ZIP funciona hoy y crea un dato huérfano que se pudre el 5 de octubre sin avisar |
+| ⭐ **La descarga propia del GTFS entra en el DISEÑO, no como remate** | El feed muere el **05/10/2026**, justo cuando se mira un portfolio después del verano. Con horarios dentro, la app no envejece mal: **se queda muda**. Un portfolio con un proyecto caído es peor que uno con tres |
 | ⭐ **Ley del trasplante** | 004 es independiente. **Se copian DATOS** (ficheros estáticos, que al entrar dejan de ser de 003) y **DECISIONES** (gratis, sin límite). **Nunca MAQUINARIA**: scripts, pipelines, cachés. Copiar maquinaria *parece* independencia y no lo es — el día que 003 cambie, 004 tendrá una copia congelada de algo que ya no es cierto y no lo sabrá |
 | **Repositorio público desde el commit 1** | El historial es parte del producto (§1) |
 | **`data/exploracion/` fuera de git, con 17 excepciones a mano** | Son evidencia de un momento, no fuente; git guarda todas las versiones para siempre. Entran solo los crudos que sostienen las afirmaciones más fuertes — eso convierte *"confía en mi informe"* en *"compruébalo"* |
@@ -252,22 +278,74 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     número.)*
 13. **LA LEY DEL TRASPLANTE:** se copian datos y decisiones; nunca maquinaria. Un órgano se
     trasplanta; la máquina que lo mantenía vivo, no.
+14. ⭐ **A LA BITÁCORA VAN LOS INSTRUMENTOS QUE MIENTEN, NO LOS QUE FALLAN A LA CARA.** Un comando
+    que revienta con su mensaje de error se anuncia solo: no hubo estado incorrecto, no hubo verde
+    falso, no hay nada perecedero que capturar. Anotarlo sería diluir la bitácora — y una bitácora
+    diluida es una que nadie lee. *(Criterio propuesto por el ejecutor y aceptado.)*
 14. **UN GRAFO NO SE PUBLICA.** La topología no existe en el catálogo de ninguna ciudad porque la
     cartografía municipal se publica para pintar mapas, no para calcular rutas. Buscarla es tirar
     peticiones; construirla es el proyecto.
 
 ---
 
-## 9 · Mapa de tandas
+## 9 · Plan de construcción y mapa de tandas
 
-| | Tanda | Estado |
-|---|---|---|
-| **0.A** | Reconocimiento del dataset heredado | ✅ |
-| **0.B** | Reconocimiento de 003_ZETABUS (solo lectura) | ✅ |
-| **0.C** | Fuentes en red del Ayuntamiento | ✅ |
-| **0.D** | Barrido exhaustivo: 178 capas, 709 conjuntos, 11 zonas | ✅ |
-| **1** | Andamiaje: git público, `.gitignore`, hook, README, licencia | ✅ 9 commits |
-| **2** | *(sin definir — depende de §10)* | ⬜ |
+### ⭐⭐ Los tres hitos
+
+**Vocabulario:** una **tanda** es la unidad de trabajo con punto de aprobación. Un **hito** es el
+conjunto de tandas que deja algo **cerrado y demostrable por sí solo**.
+
+| | Hito | Objetivo | Cierra cuando… |
+|---|---|---|---|
+| **H1** | **El terreno** | El grafo peatonal, construido y correcto. Sin transporte ninguno | De un portal a otro **andando**, y la ruta es correcta: por acera, cruzando por donde se cruza, sin atravesar manzanas ni ríos |
+| **H2** | **La red** | Paradas, líneas y transbordos encima del terreno. **Sin reloj** | Sabe que el 29 conecta A con B, y compone a pie + bus + tranvía + BiZi |
+| **H3** | **El reloj** | Horarios, calendarios y búhos | *"El 29 ya no pasa a esta hora; tienes el N4."* Y sabe distinguir laborable, sábado, domingo y festivo |
+
+> ⭐⭐ **LA REGLA QUE JUSTIFICA EL ORDEN: un hito no empieza hasta que el anterior está cerrado y
+> es verificable por sí solo.**
+> Si el reloj entra antes de tiempo, **cada fallo del grafo aparece disfrazado de fallo de
+> horario** y se depura en el sitio equivocado durante semanas. Es la ley de Turnia —*primero lo
+> que no puede fallar, luego lo que se ve*— aplicada a la escala del proyecto entero.
+
+**Transversales — no son un hito, atraviesan los tres:**
+- **La descarga propia del GTFS**, desde el diseño (el feed muere el 05/10/2026).
+- **La interfaz**, que se construye contra lo que el motor YA sabe hacer, nunca por delante.
+
+### H1 · El terreno — sus puntos
+
+Desglosado porque su contenido está fundado en lo que ya se sabe:
+
+1. Descargar `MU1_jerarquia_viaria` completa y la red peatonal de OSM de la ciudad.
+2. ⭐ **Planarizar**: partir cada tramo en sus intersecciones (106 puntos de cruce detectados en
+   la muestra), y usar tolerancia pequeña (~2 m) **solo** para las puntas sueltas.
+3. ⚠️ **Resolver los niveles.** Sin campo de cota, planarizar fusiona pasos elevados con la calle
+   de debajo. La pista está en OSM (`bridge`, `layer`). **Riesgo de corrección nº1.**
+4. Enganchar los 46.150 portales por `codigoVia` — puente exacto, no coincidencia aproximada.
+5. Coser la red municipal (calzada) con la de OSM (acera, paso, escalera), declarando la ODbL.
+6. ⭐ **Verificar conectividad de verdad**: que no queden trozos de ciudad incomunicados. Los
+   puentes sobre el Ebro, el Huerva y el Gállego son los puntos de fallo de mayor impacto — un
+   puente sin coser parte la ciudad en dos y el motor responde *"no hay camino"*.
+
+### H2 y H3 — sin desglosar, y a propósito
+
+Tienen **objetivo y criterio de cierre**, no puntos. Su contenido real depende de lo que salga de
+H1: si el planarizado destapa que la geometría está peor de lo medido —**solo se midió el 4,4 % de
+la red**—, H2 cambia de forma entera.
+
+⚠️ **Desglosarlos hoy sería enumerar sin verificar**, que es exactamente la ley que este proyecto
+acaba de aprender a su costa (§8·3). Y un plan detallado a tres hitos vista es un plan que se
+incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
+
+### Mapa de tandas
+
+| | Tanda | Hito | Estado |
+|---|---|---|---|
+| **0.A** | Reconocimiento del dataset heredado | — | ✅ |
+| **0.B** | Reconocimiento de 003_ZETABUS (solo lectura) | — | ✅ |
+| **0.C** | Fuentes en red del Ayuntamiento | — | ✅ |
+| **0.D** | Barrido exhaustivo: 178 capas, 709 conjuntos, 11 zonas | — | ✅ |
+| **1** | Andamiaje: git público, `.gitignore`, hook, README, licencia | — | ✅ **publicado**, 11 commits |
+| **2** | *(siguiente: el diseño en papel del planarizado)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -297,11 +375,12 @@ commits atómicos. Y dos instrumentos cazados en el proceso (§7 · 15 y 16).
 
 ### ⭐⭐ Los que bloquean el diseño
 
+*(⭐ Cerrados el 2/08: **¿entran los horarios?** → sí. **¿dónde corre el motor?** → repartido.
+Los dos en §5.)*
+
 | Cabo | Qué hay que decidir |
 |---|---|
-| ⭐ **¿Entran los horarios?** | `stop_times.txt` (870.717 filas) viene **dentro del mismo ZIP**: no hay fuente adicional ni dependencia nueva. El coste es **solo de motor**. Sin horarios, el grafo es fijo y a las 3:00 recomienda un autobús que no existe. Con horarios, un nodo deja de ser "la parada A" y pasa a ser "la parada A a las 9:47" — y aparecen algoritmos de tiempo (RAPTOR, CSA) en vez de Dijkstra sobre grafo estático |
-| ⭐ **¿Dónde corre el motor?** | **Depende de la anterior, y ya no es abstracto.** 3.644 tramos son un grafo minúsculo: cabe en un navegador sin despeinarse. Las 870.717 filas de horarios, no. ⚠️ Y la ley *"el cliente no calcula nada"* de 002/003 hay que **releerla, no aplicarla en automático**: nació de que dos motores divergen. Si el navegador es el **único** motor, no hay divergencia y la ley no aplica — aplica su razón, no su letra |
-| **El stack** | Depende de las dos anteriores. Leaflet + OSM se reutiliza de 003 sin restar puntos: el diferencial de 004 está debajo del mapa |
+| **El stack** | Ya condicionado por el reparto del motor: hace falta **algo que sirva consultas de horario**, no solo estático. ⚠️ Y ahí el hosting compartido de Hostinger tiene algo que decir: no es lo mismo servir ficheros que mantener un proceso vivo. *Cuando el hosting y tú discrepéis, gana el hosting.* Leaflet + OSM se reutiliza de 003 sin restar puntos: el diferencial de 004 está debajo del mapa |
 | **El alcance v1 del buscador** | Cada casilla combinable duplica los casos a verificar: cuatro modos son 16 combinaciones, por dos criterios, 32. ⚠️ Y "menos transbordos" y "más rápido" son **objetivos que compiten**: optimizar los dos a la vez no da un óptimo, da un conjunto donde ninguna ruta gana en todo. Se puede resolver con una penalización por transbordo — pero entonces hay que **decir que es una preferencia cableada, no un óptimo** |
 
 ### Los técnicos
