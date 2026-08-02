@@ -1,0 +1,605 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-06-12T12:14:17Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 24303037,
+  "bounds": {
+    "minlat": 41.6445527,
+    "minlon": -0.8777308,
+    "maxlat": 41.6451735,
+    "maxlon": -0.8772249
+  },
+  "nodes": [
+    263310665,
+    3364730541,
+    623406493
+  ],
+  "geometry": [
+    { "lat": 41.6445527, "lon": -0.8772249 },
+    { "lat": 41.6446721, "lon": -0.8773222 },
+    { "lat": 41.6451735, "lon": -0.8777308 }
+  ],
+  "tags": {
+    "cycleway:right": "no",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "-1",
+    "maxspeed": "50",
+    "name": "Avenida de Cesáreo Alierta",
+    "name:etymology:wikidata": "Q5763823",
+    "oneway": "yes",
+    "sidewalk": "no",
+    "surface": "asphalt",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 24313977,
+  "bounds": {
+    "minlat": 41.6445175,
+    "minlon": -0.8778168,
+    "maxlat": 41.6451322,
+    "maxlon": -0.8773114
+  },
+  "nodes": [
+    623406476,
+    263310647
+  ],
+  "geometry": [
+    { "lat": 41.6451322, "lon": -0.8778168 },
+    { "lat": 41.6445175, "lon": -0.8773114 }
+  ],
+  "tags": {
+    "cycleway:right": "no",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "-1",
+    "maxspeed": "50",
+    "name": "Avenida de Cesáreo Alierta",
+    "name:etymology:wikidata": "Q5763823",
+    "oneway": "yes",
+    "sidewalk": "no",
+    "surface": "asphalt",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 48390120,
+  "bounds": {
+    "minlat": 41.6460538,
+    "minlon": -0.8858823,
+    "maxlat": 41.6481381,
+    "maxlon": -0.8777386
+  },
+  "nodes": [
+    614596058,
+    614596059,
+    614596060,
+    614596061,
+    614596062,
+    614596063,
+    1808678184,
+    614596064,
+    5338613423,
+    5268864585,
+    614596065,
+    12304002107,
+    12304002108,
+    614596066,
+    614596067,
+    614596068,
+    268631701
+  ],
+  "geometry": [
+    { "lat": 41.6469073, "lon": -0.8858823 },
+    { "lat": 41.6472664, "lon": -0.8849072 },
+    { "lat": 41.6479820, "lon": -0.8833233 },
+    { "lat": 41.6480944, "lon": -0.8829715 },
+    { "lat": 41.6481381, "lon": -0.8824945 },
+    { "lat": 41.6480977, "lon": -0.8820738 },
+    { "lat": 41.6478164, "lon": -0.8813338 },
+    { "lat": 41.6475821, "lon": -0.8807175 },
+    { "lat": 41.6470895, "lon": -0.8798644 },
+    { "lat": 41.6469716, "lon": -0.8796601 },
+    { "lat": 41.6467338, "lon": -0.8792482 },
+    { "lat": 41.6460640, "lon": -0.8789989 },
+    { "lat": 41.6460538, "lon": -0.8787066 },
+    { "lat": 41.6462540, "lon": -0.8784116 },
+    { "lat": 41.6462719, "lon": -0.8782384 },
+    { "lat": 41.6463012, "lon": -0.8780309 },
+    { "lat": 41.6464975, "lon": -0.8777386 }
+  ],
+  "tags": {
+    "boat": "no",
+    "layer": "-3",
+    "name": "Río Huerva",
+    "name:en": "Huerva River",
+    "name:es": "Río Huerva",
+    "source": "extrapolation",
+    "tunnel": "yes",
+    "waterway": "river",
+    "width": "4"
+  }
+},
+{
+  "type": "way",
+  "id": 96564266,
+  "bounds": {
+    "minlat": 41.6339372,
+    "minlon": -0.8901273,
+    "maxlat": 41.6434004,
+    "maxlon": -0.8700725
+  },
+  "nodes": [
+    4736420953,
+    1118539811,
+    1118539715,
+    1118539682,
+    1118539686,
+    1118539738,
+    1334337819,
+    1118539754,
+    1118539744
+  ],
+  "geometry": [
+    { "lat": 41.6434004, "lon": -0.8901273 },
+    { "lat": 41.6424973, "lon": -0.8868349 },
+    { "lat": 41.6422971, "lon": -0.8863378 },
+    { "lat": 41.6421328, "lon": -0.8860078 },
+    { "lat": 41.6411478, "lon": -0.8840882 },
+    { "lat": 41.6395943, "lon": -0.8810252 },
+    { "lat": 41.6374568, "lon": -0.8768871 },
+    { "lat": 41.6353270, "lon": -0.8727406 },
+    { "lat": 41.6339372, "lon": -0.8700725 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "highspeed": "yes",
+    "layer": "-2",
+    "level": "-1",
+    "name": "Línea Bifurcación Canal Imperial-Bifurcación Moncasi",
+    "official_name": "Bifurcación Canal Imperial a Bifurcación Moncasi",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "passenger_lines": "1",
+    "railway": "rail",
+    "railway:etcs": "2",
+    "railway:preferred_direction": "both",
+    "railway:traffic_mode": "passenger",
+    "ref": "054",
+    "source": "interpolation;Bing;guess",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 167872327,
+  "bounds": {
+    "minlat": 41.6468993,
+    "minlon": -0.8840749,
+    "maxlat": 41.6469555,
+    "maxlon": -0.8839488
+  },
+  "nodes": [
+    614632313,
+    1792213114
+  ],
+  "geometry": [
+    { "lat": 41.6469555, "lon": -0.8839488 },
+    { "lat": 41.6468993, "lon": -0.8840749 }
+  ],
+  "tags": {
+    "highway": "service",
+    "layer": "-1",
+    "maxheight": "2.1",
+    "oneway": "yes",
+    "service": "parking_aisle",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 169448594,
+  "bounds": {
+    "minlat": 41.6463807,
+    "minlon": -0.8804750,
+    "maxlat": 41.6468681,
+    "maxlon": -0.8799874
+  },
+  "nodes": [
+    6654884350,
+    6654884351
+  ],
+  "geometry": [
+    { "lat": 41.6463807, "lon": -0.8804750 },
+    { "lat": 41.6468681, "lon": -0.8799874 }
+  ],
+  "tags": {
+    "highway": "footway",
+    "lit": "yes",
+    "name": "Pasaje Miraflores",
+    "oneway": "no",
+    "opening_hours": "Mo-Fr 07:30-22:00; Sa 07:30-15:00",
+    "surface": "paving_stones",
+    "tunnel": "building_passage"
+  }
+},
+{
+  "type": "way",
+  "id": 182262858,
+  "bounds": {
+    "minlat": 41.6443430,
+    "minlon": -0.8840722,
+    "maxlat": 41.6444988,
+    "maxlon": -0.8837840
+  },
+  "nodes": [
+    1926042114,
+    9761605080
+  ],
+  "geometry": [
+    { "lat": 41.6443430, "lon": -0.8840722 },
+    { "lat": 41.6444988, "lon": -0.8837840 }
+  ],
+  "tags": {
+    "highway": "footway",
+    "lit": "yes",
+    "surface": "paving_stones",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 280782874,
+  "bounds": {
+    "minlat": 41.6412664,
+    "minlon": -0.8759931,
+    "maxlat": 41.6416363,
+    "maxlon": -0.8759897
+  },
+  "nodes": [
+    2848307046,
+    1488574250
+  ],
+  "geometry": [
+    { "lat": 41.6412664, "lon": -0.8759931 },
+    { "lat": 41.6416363, "lon": -0.8759897 }
+  ],
+  "tags": {
+    "access": "private",
+    "bicycle": "no",
+    "highway": "footway",
+    "horse": "no",
+    "motor_vehicle": "no",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 300519846,
+  "bounds": {
+    "minlat": 41.6433668,
+    "minlon": -0.8781908,
+    "maxlat": 41.6435619,
+    "maxlon": -0.8777890
+  },
+  "nodes": [
+    3045917890,
+    9921365483,
+    9921365490,
+    3045917885
+  ],
+  "geometry": [
+    { "lat": 41.6435619, "lon": -0.8777890 },
+    { "lat": 41.6435343, "lon": -0.8778129 },
+    { "lat": 41.6433936, "lon": -0.8781303 },
+    { "lat": 41.6433668, "lon": -0.8781908 }
+  ],
+  "tags": {
+    "highway": "footway",
+    "lit": "yes",
+    "tunnel": "building_passage"
+  }
+},
+{
+  "type": "way",
+  "id": 371816640,
+  "bounds": {
+    "minlat": 41.6411354,
+    "minlon": -0.8757253,
+    "maxlat": 41.6413083,
+    "maxlon": -0.8752986
+  },
+  "nodes": [
+    3753586135,
+    4376597495
+  ],
+  "geometry": [
+    { "lat": 41.6411354, "lon": -0.8757253 },
+    { "lat": 41.6413083, "lon": -0.8752986 }
+  ],
+  "tags": {
+    "bicycle": "no",
+    "foot": "permissive",
+    "highway": "footway",
+    "horse": "no",
+    "layer": "-1",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 388897602,
+  "bounds": {
+    "minlat": 41.6469110,
+    "minlon": -0.8839488,
+    "maxlat": 41.6469555,
+    "maxlon": -0.8839188
+  },
+  "nodes": [
+    3920796306,
+    1792213127,
+    614632313
+  ],
+  "geometry": [
+    { "lat": 41.6469110, "lon": -0.8839448 },
+    { "lat": 41.6469240, "lon": -0.8839188 },
+    { "lat": 41.6469555, "lon": -0.8839488 }
+  ],
+  "tags": {
+    "foot": "no",
+    "highway": "service",
+    "layer": "-1",
+    "maxheight": "2.1",
+    "maxspeed": "10",
+    "oneway": "yes",
+    "service": "parking_aisle",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 480673212,
+  "bounds": {
+    "minlat": 41.6340061,
+    "minlon": -0.8901112,
+    "maxlat": 41.6434625,
+    "maxlon": -0.8700851
+  },
+  "nodes": [
+    4736420955,
+    1334337768,
+    257347138,
+    1334337839,
+    632218383,
+    257347139,
+    1334337776,
+    257347140,
+    9757098103,
+    1334337689,
+    257347141,
+    297493375,
+    257347143
+  ],
+  "geometry": [
+    { "lat": 41.6434625, "lon": -0.8901112 },
+    { "lat": 41.6429842, "lon": -0.8883811 },
+    { "lat": 41.6425281, "lon": -0.8868141 },
+    { "lat": 41.6423639, "lon": -0.8864110 },
+    { "lat": 41.6421801, "lon": -0.8860169 },
+    { "lat": 41.6411789, "lon": -0.8840516 },
+    { "lat": 41.6403921, "lon": -0.8825419 },
+    { "lat": 41.6396117, "lon": -0.8810059 },
+    { "lat": 41.6392659, "lon": -0.8803323 },
+    { "lat": 41.6374847, "lon": -0.8768631 },
+    { "lat": 41.6353560, "lon": -0.8727100 },
+    { "lat": 41.6349703, "lon": -0.8719175 },
+    { "lat": 41.6340061, "lon": -0.8700851 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-2",
+    "level": "-1",
+    "maxspeed": "80",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:preferred_direction": "both",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 649747539,
+  "bounds": {
+    "minlat": 41.6432895,
+    "minlon": -0.8793722,
+    "maxlat": 41.6435065,
+    "maxlon": -0.8788643
+  },
+  "nodes": [
+    6097044507,
+    9921365565,
+    9921365558,
+    3729197853
+  ],
+  "geometry": [
+    { "lat": 41.6432895, "lon": -0.8788643 },
+    { "lat": 41.6432986, "lon": -0.8788856 },
+    { "lat": 41.6434417, "lon": -0.8792206 },
+    { "lat": 41.6435065, "lon": -0.8793722 }
+  ],
+  "tags": {
+    "highway": "pedestrian",
+    "noname": "yes",
+    "tunnel": "building_passage"
+  }
+},
+{
+  "type": "way",
+  "id": 1062586784,
+  "bounds": {
+    "minlat": 41.6444988,
+    "minlon": -0.8837840,
+    "maxlat": 41.6445171,
+    "maxlon": -0.8837502
+  },
+  "nodes": [
+    9761605080,
+    9761605081
+  ],
+  "geometry": [
+    { "lat": 41.6444988, "lon": -0.8837840 },
+    { "lat": 41.6445171, "lon": -0.8837502 }
+  ],
+  "tags": {
+    "handrail": "yes",
+    "highway": "steps",
+    "incline": "down",
+    "lit": "yes",
+    "ramp": "no",
+    "step_count": "6",
+    "surface": "paving_stones",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1124630722,
+  "bounds": {
+    "minlat": 41.6403549,
+    "minlon": -0.8834994,
+    "maxlat": 41.6406521,
+    "maxlon": -0.8830358
+  },
+  "nodes": [
+    10284467802,
+    10284467797,
+    10284467796,
+    10284467805,
+    10284467804
+  ],
+  "geometry": [
+    { "lat": 41.6404683, "lon": -0.8830358 },
+    { "lat": 41.6403549, "lon": -0.8831361 },
+    { "lat": 41.6404820, "lon": -0.8833935 },
+    { "lat": 41.6405342, "lon": -0.8834994 },
+    { "lat": 41.6406521, "lon": -0.8833942 }
+  ],
+  "tags": {
+    "access": "permissive",
+    "check_date": "2022-12-24",
+    "highway": "footway",
+    "name": "Pasaje Ciuvasa",
+    "tunnel": "building_passage"
+  }
+},
+{
+  "type": "way",
+  "id": 1124630723,
+  "bounds": {
+    "minlat": 41.6402957,
+    "minlon": -0.8835513,
+    "maxlat": 41.6404820,
+    "maxlon": -0.8833935
+  },
+  "nodes": [
+    10284467796,
+    10284467803
+  ],
+  "geometry": [
+    { "lat": 41.6404820, "lon": -0.8833935 },
+    { "lat": 41.6402957, "lon": -0.8835513 }
+  ],
+  "tags": {
+    "access": "private",
+    "check_date": "2022-12-24",
+    "highway": "footway",
+    "name": "Pasaje Ciuvasa",
+    "tunnel": "building_passage"
+  }
+},
+{
+  "type": "way",
+  "id": 1297422951,
+  "bounds": {
+    "minlat": 41.6469555,
+    "minlon": -0.8839488,
+    "maxlat": 41.6472200,
+    "maxlon": -0.8834858
+  },
+  "nodes": [
+    614632313,
+    12020757083
+  ],
+  "geometry": [
+    { "lat": 41.6469555, "lon": -0.8839488 },
+    { "lat": 41.6472200, "lon": -0.8834858 }
+  ],
+  "tags": {
+    "foot": "no",
+    "highway": "service",
+    "layer": "-1",
+    "lit": "yes",
+    "maxheight": "2.1",
+    "maxspeed": "10",
+    "oneway": "yes",
+    "service": "parking_aisle",
+    "surface": "concrete",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1486349699,
+  "bounds": {
+    "minlat": 41.6430539,
+    "minlon": -0.8773400,
+    "maxlat": 41.6434153,
+    "maxlon": -0.8773320
+  },
+  "nodes": [
+    13625410795,
+    13625410797
+  ],
+  "geometry": [
+    { "lat": 41.6434153, "lon": -0.8773400 },
+    { "lat": 41.6430539, "lon": -0.8773320 }
+  ],
+  "tags": {
+    "highway": "footway",
+    "tunnel": "building_passage"
+  }
+}
+
+  ]
+}

@@ -1,0 +1,2290 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-08-02T13:54:06Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 23077100,
+  "bounds": {
+    "minlat": 41.6574296,
+    "minlon": -0.9075429,
+    "maxlat": 41.6580658,
+    "maxlon": -0.9049159
+  },
+  "nodes": [
+    1583123500,
+    7589854117,
+    7589854118,
+    4196010007,
+    1577486043
+  ],
+  "geometry": [
+    { "lat": 41.6574296, "lon": -0.9049159 },
+    { "lat": 41.6575473, "lon": -0.9055513 },
+    { "lat": 41.6576515, "lon": -0.9059778 },
+    { "lat": 41.6578148, "lon": -0.9065897 },
+    { "lat": 41.6580658, "lon": -0.9075429 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "service": "siding",
+    "source": "PNOA",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 23751568,
+  "bounds": {
+    "minlat": 41.6493039,
+    "minlon": -0.9053662,
+    "maxlat": 41.6573309,
+    "maxlon": -0.8941117
+  },
+  "nodes": [
+    1118539717,
+    7590249726,
+    7590249725,
+    7590249724,
+    7590249723,
+    7590249722,
+    7590249721,
+    7590249720,
+    7590249719,
+    7590249718,
+    7590249717,
+    7590249716,
+    7590249715,
+    11531571247,
+    7590249714,
+    7590249713,
+    7590249712,
+    7590249711,
+    7590249710,
+    13411147556,
+    7590249709,
+    7590249708,
+    7590249707,
+    7590249706,
+    7590249705,
+    7590249704,
+    7590249703,
+    7589854107,
+    257347126,
+    7589854108
+  ],
+  "geometry": [
+    { "lat": 41.6493039, "lon": -0.8941117 },
+    { "lat": 41.6496526, "lon": -0.8942154 },
+    { "lat": 41.6498386, "lon": -0.8942940 },
+    { "lat": 41.6500583, "lon": -0.8944259 },
+    { "lat": 41.6504467, "lon": -0.8947031 },
+    { "lat": 41.6507976, "lon": -0.8949875 },
+    { "lat": 41.6511488, "lon": -0.8952334 },
+    { "lat": 41.6532435, "lon": -0.8964754 },
+    { "lat": 41.6538311, "lon": -0.8968713 },
+    { "lat": 41.6541739, "lon": -0.8971194 },
+    { "lat": 41.6544456, "lon": -0.8973476 },
+    { "lat": 41.6546289, "lon": -0.8975037 },
+    { "lat": 41.6548510, "lon": -0.8977234 },
+    { "lat": 41.6551010, "lon": -0.8980095 },
+    { "lat": 41.6556008, "lon": -0.8986873 },
+    { "lat": 41.6558598, "lon": -0.8990566 },
+    { "lat": 41.6560763, "lon": -0.8993851 },
+    { "lat": 41.6562594, "lon": -0.8996794 },
+    { "lat": 41.6564264, "lon": -0.8999854 },
+    { "lat": 41.6564493, "lon": -0.9000310 },
+    { "lat": 41.6565651, "lon": -0.9002612 },
+    { "lat": 41.6566832, "lon": -0.9005469 },
+    { "lat": 41.6568034, "lon": -0.9008461 },
+    { "lat": 41.6569038, "lon": -0.9011584 },
+    { "lat": 41.6569629, "lon": -0.9014204 },
+    { "lat": 41.6570304, "lon": -0.9017898 },
+    { "lat": 41.6570761, "lon": -0.9021412 },
+    { "lat": 41.6572056, "lon": -0.9033975 },
+    { "lat": 41.6572550, "lon": -0.9041754 },
+    { "lat": 41.6573309, "lon": -0.9053662 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "highspeed": "yes",
+    "layer": "-2",
+    "maxspeed": "70",
+    "name": "Línea Bifurcación Canal Imperial-Bifurcación Moncasi",
+    "official_name": "Bifurcación Canal Imperial a Bifurcación Moncasi",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:etcs": "2",
+    "railway:preferred_direction": "forward",
+    "railway:traffic_mode": "passenger",
+    "ref": "054",
+    "source": "extrapolation",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 31675733,
+  "bounds": {
+    "minlat": 41.6584062,
+    "minlon": -0.9154021,
+    "maxlat": 41.6600040,
+    "maxlon": -0.9100716
+  },
+  "nodes": [
+    81326543,
+    4672299048,
+    7589854225,
+    7589854224,
+    1583123605,
+    1583123615,
+    1583123624,
+    81326540
+  ],
+  "geometry": [
+    { "lat": 41.6584062, "lon": -0.9100716 },
+    { "lat": 41.6589764, "lon": -0.9120893 },
+    { "lat": 41.6594762, "lon": -0.9138581 },
+    { "lat": 41.6595901, "lon": -0.9142486 },
+    { "lat": 41.6597040, "lon": -0.9146193 },
+    { "lat": 41.6597870, "lon": -0.9148490 },
+    { "lat": 41.6598748, "lon": -0.9150811 },
+    { "lat": 41.6600040, "lon": -0.9154021 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "layer": "-1",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:etcs": "2",
+    "railway:track_ref": "4",
+    "railway:traffic_mode": "passenger",
+    "service": "siding",
+    "tunnel": "yes",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 34999066,
+  "bounds": {
+    "minlat": 41.6595135,
+    "minlon": -0.9137996,
+    "maxlat": 41.6603084,
+    "maxlon": -0.9113534
+  },
+  "nodes": [
+    348772171,
+    3718680393,
+    224101094
+  ],
+  "geometry": [
+    { "lat": 41.6603084, "lon": -0.9137996 },
+    { "lat": 41.6601245, "lon": -0.9135511 },
+    { "lat": 41.6595135, "lon": -0.9113534 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bus": "designated",
+    "highway": "service",
+    "layer": "-2",
+    "oneway": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 96560979,
+  "bounds": {
+    "minlat": 41.6580061,
+    "minlon": -0.9154988,
+    "maxlat": 41.6598111,
+    "maxlon": -0.9099966
+  },
+  "nodes": [
+    1118516749,
+    3118275865,
+    1577478901,
+    1577478899,
+    1577478898,
+    1577478896,
+    1577478893,
+    1577478891,
+    2885077140,
+    4672299046,
+    1118524600
+  ],
+  "geometry": [
+    { "lat": 41.6598111, "lon": -0.9154988 },
+    { "lat": 41.6597425, "lon": -0.9153822 },
+    { "lat": 41.6597100, "lon": -0.9153277 },
+    { "lat": 41.6596135, "lon": -0.9151547 },
+    { "lat": 41.6595265, "lon": -0.9149838 },
+    { "lat": 41.6594253, "lon": -0.9147711 },
+    { "lat": 41.6592967, "lon": -0.9144561 },
+    { "lat": 41.6591508, "lon": -0.9140237 },
+    { "lat": 41.6590272, "lon": -0.9136016 },
+    { "lat": 41.6585445, "lon": -0.9118973 },
+    { "lat": 41.6580061, "lon": -0.9099966 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "layer": "-1",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:etcs": "2",
+    "railway:track_ref": "1",
+    "railway:traffic_mode": "passenger",
+    "service": "siding",
+    "tunnel": "yes",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 144176740,
+  "bounds": {
+    "minlat": 41.6582213,
+    "minlon": -0.9104550,
+    "maxlat": 41.6589064,
+    "maxlon": -0.9081106
+  },
+  "nodes": [
+    1577486044,
+    7589854111,
+    4672299055
+  ],
+  "geometry": [
+    { "lat": 41.6582213, "lon": -0.9081106 },
+    { "lat": 41.6588428, "lon": -0.9102340 },
+    { "lat": 41.6589064, "lon": -0.9104550 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "8",
+    "service": "siding",
+    "source": "interpolation",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 144176741,
+  "bounds": {
+    "minlat": 41.6573649,
+    "minlon": -0.9075856,
+    "maxlat": 41.6579008,
+    "maxlon": -0.9047547
+  },
+  "nodes": [
+    7589854121,
+    7589854232,
+    7589854234,
+    7589854238,
+    7589854237,
+    7589854242,
+    1583123526
+  ],
+  "geometry": [
+    { "lat": 41.6573649, "lon": -0.9047547 },
+    { "lat": 41.6574302, "lon": -0.9053476 },
+    { "lat": 41.6574641, "lon": -0.9056267 },
+    { "lat": 41.6575265, "lon": -0.9060064 },
+    { "lat": 41.6575863, "lon": -0.9063328 },
+    { "lat": 41.6576640, "lon": -0.9066872 },
+    { "lat": 41.6579008, "lon": -0.9075856 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "100",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 144813848,
+  "bounds": {
+    "minlat": 41.6578844,
+    "minlon": -0.9153708,
+    "maxlat": 41.6600734,
+    "maxlon": -0.9079628
+  },
+  "nodes": [
+    3205002244,
+    4672299057,
+    4672299049,
+    1583123614,
+    7589854227,
+    7589854226,
+    7589854221,
+    1583123644,
+    3118043331
+  ],
+  "geometry": [
+    { "lat": 41.6578844, "lon": -0.9079628 },
+    { "lat": 41.6585070, "lon": -0.9101796 },
+    { "lat": 41.6590709, "lon": -0.9121886 },
+    { "lat": 41.6595559, "lon": -0.9139163 },
+    { "lat": 41.6596517, "lon": -0.9142400 },
+    { "lat": 41.6597655, "lon": -0.9146014 },
+    { "lat": 41.6598816, "lon": -0.9149090 },
+    { "lat": 41.6599821, "lon": -0.9151679 },
+    { "lat": 41.6600734, "lon": -0.9153708 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "5",
+    "service": "siding",
+    "source": "Bing",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 144813849,
+  "bounds": {
+    "minlat": 41.6571484,
+    "minlon": -0.9083998,
+    "maxlat": 41.6574813,
+    "maxlon": -0.9056345
+  },
+  "nodes": [
+    7589852769,
+    7589854217,
+    1583123469,
+    7589854215,
+    1583123465,
+    7589854220,
+    1583123463,
+    7589854219,
+    7589854218,
+    7589852775
+  ],
+  "geometry": [
+    { "lat": 41.6574813, "lon": -0.9083998 },
+    { "lat": 41.6573796, "lon": -0.9080408 },
+    { "lat": 41.6572830, "lon": -0.9076317 },
+    { "lat": 41.6572392, "lon": -0.9074056 },
+    { "lat": 41.6571968, "lon": -0.9071325 },
+    { "lat": 41.6571645, "lon": -0.9067660 },
+    { "lat": 41.6571502, "lon": -0.9064740 },
+    { "lat": 41.6571484, "lon": -0.9062372 },
+    { "lat": 41.6571585, "lon": -0.9060019 },
+    { "lat": 41.6572026, "lon": -0.9056345 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "service": "siding",
+    "tunnel": "yes",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 144813856,
+  "bounds": {
+    "minlat": 41.6577153,
+    "minlon": -0.9075628,
+    "maxlat": 41.6579539,
+    "maxlon": -0.9066657
+  },
+  "nodes": [
+    3205002243,
+    3060092524
+  ],
+  "geometry": [
+    { "lat": 41.6579539, "lon": -0.9075628 },
+    { "lat": 41.6577153, "lon": -0.9066657 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "100",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 144813859,
+  "bounds": {
+    "minlat": 41.6573649,
+    "minlon": -0.9076984,
+    "maxlat": 41.6578140,
+    "maxlon": -0.9047547
+  },
+  "nodes": [
+    7589854121,
+    1583123474,
+    7589854235,
+    7589854236,
+    1583123496,
+    1583123506,
+    7589854122,
+    3205002245
+  ],
+  "geometry": [
+    { "lat": 41.6573649, "lon": -0.9047547 },
+    { "lat": 41.6573810, "lon": -0.9052035 },
+    { "lat": 41.6574221, "lon": -0.9056611 },
+    { "lat": 41.6574726, "lon": -0.9060556 },
+    { "lat": 41.6575228, "lon": -0.9063780 },
+    { "lat": 41.6575872, "lon": -0.9067168 },
+    { "lat": 41.6576795, "lon": -0.9071499 },
+    { "lat": 41.6578140, "lon": -0.9076984 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "service": "siding",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 144813862,
+  "bounds": {
+    "minlat": 41.6580985,
+    "minlon": -0.9144458,
+    "maxlat": 41.6598799,
+    "maxlon": -0.9080788
+  },
+  "nodes": [
+    1583123628,
+    1583123618,
+    4672299051,
+    4672299056,
+    3205002242
+  ],
+  "geometry": [
+    { "lat": 41.6598799, "lon": -0.9144458 },
+    { "lat": 41.6597489, "lon": -0.9139868 },
+    { "lat": 41.6592955, "lon": -0.9123635 },
+    { "lat": 41.6587334, "lon": -0.9103515 },
+    { "lat": 41.6580985, "lon": -0.9080788 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "100",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "7",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 144813864,
+  "bounds": {
+    "minlat": 41.6591962,
+    "minlon": -0.9144778,
+    "maxlat": 41.6598273,
+    "maxlon": -0.9122713
+  },
+  "nodes": [
+    4672299050,
+    7589854228,
+    1118516685
+  ],
+  "geometry": [
+    { "lat": 41.6591962, "lon": -0.9122713 },
+    { "lat": 41.6596963, "lon": -0.9140189 },
+    { "lat": 41.6598273, "lon": -0.9144778 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "100",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "6",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 252332118,
+  "bounds": {
+    "minlat": 41.6606629,
+    "minlon": -0.9137374,
+    "maxlat": 41.6608138,
+    "maxlon": -0.9136407
+  },
+  "nodes": [
+    2583917451,
+    12232044505,
+    7477047539
+  ],
+  "geometry": [
+    { "lat": 41.6606629, "lon": -0.9137374 },
+    { "lat": 41.6606970, "lon": -0.9137117 },
+    { "lat": 41.6608138, "lon": -0.9136407 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bus": "designated",
+    "highway": "service",
+    "oneway": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 252332232,
+  "bounds": {
+    "minlat": 41.6599078,
+    "minlon": -0.9142254,
+    "maxlat": 41.6611392,
+    "maxlon": -0.9109114
+  },
+  "nodes": [
+    2583919209,
+    2583919210,
+    2583919211,
+    3718680384,
+    2583919212,
+    2583917455,
+    12232044511,
+    2583917456
+  ],
+  "geometry": [
+    { "lat": 41.6599078, "lon": -0.9110227 },
+    { "lat": 41.6601534, "lon": -0.9109114 },
+    { "lat": 41.6601964, "lon": -0.9109148 },
+    { "lat": 41.6602205, "lon": -0.9109287 },
+    { "lat": 41.6602476, "lon": -0.9109596 },
+    { "lat": 41.6609676, "lon": -0.9135620 },
+    { "lat": 41.6609857, "lon": -0.9136320 },
+    { "lat": 41.6611392, "lon": -0.9142254 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bus": "designated",
+    "highway": "service",
+    "oneway": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 252335736,
+  "bounds": {
+    "minlat": 41.6543017,
+    "minlon": -0.9093968,
+    "maxlat": 41.6598116,
+    "maxlon": -0.8959468
+  },
+  "nodes": [
+    2583932288,
+    2583936550,
+    5630511617,
+    2583936552,
+    2583936554,
+    2583936556,
+    2583936558,
+    2583936560,
+    2583936562,
+    2583936563,
+    2583936564,
+    2583936565,
+    2583936566,
+    4642723753,
+    2583936567,
+    2583936569,
+    2583936571,
+    2583936573,
+    2583936575,
+    2583936578,
+    2583946057,
+    2583936580,
+    2583936582,
+    2583936584,
+    2583946056,
+    2583936585,
+    2583947991
+  ],
+  "geometry": [
+    { "lat": 41.6543017, "lon": -0.8959468 },
+    { "lat": 41.6545328, "lon": -0.8964769 },
+    { "lat": 41.6547416, "lon": -0.8969058 },
+    { "lat": 41.6551800, "lon": -0.8977506 },
+    { "lat": 41.6556335, "lon": -0.8984233 },
+    { "lat": 41.6560507, "lon": -0.8990242 },
+    { "lat": 41.6563271, "lon": -0.8994108 },
+    { "lat": 41.6565194, "lon": -0.8997033 },
+    { "lat": 41.6568141, "lon": -0.9001677 },
+    { "lat": 41.6570229, "lon": -0.9005631 },
+    { "lat": 41.6571921, "lon": -0.9011142 },
+    { "lat": 41.6572985, "lon": -0.9017516 },
+    { "lat": 41.6573858, "lon": -0.9024521 },
+    { "lat": 41.6575151, "lon": -0.9035127 },
+    { "lat": 41.6575463, "lon": -0.9038111 },
+    { "lat": 41.6576142, "lon": -0.9044224 },
+    { "lat": 41.6577010, "lon": -0.9049973 },
+    { "lat": 41.6578554, "lon": -0.9057781 },
+    { "lat": 41.6581499, "lon": -0.9064808 },
+    { "lat": 41.6585244, "lon": -0.9070867 },
+    { "lat": 41.6587208, "lon": -0.9073728 },
+    { "lat": 41.6592854, "lon": -0.9081474 },
+    { "lat": 41.6595071, "lon": -0.9085105 },
+    { "lat": 41.6596273, "lon": -0.9087890 },
+    { "lat": 41.6596952, "lon": -0.9089894 },
+    { "lat": 41.6597511, "lon": -0.9091934 },
+    { "lat": 41.6598116, "lon": -0.9093968 }
+  ],
+  "tags": {
+    "abandoned:construction": "service",
+    "abandoned:highway": "construction",
+    "check_date": "2023-02-28",
+    "layer": "-1",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 296662014,
+  "bounds": {
+    "minlat": 41.6590824,
+    "minlon": -0.9113534,
+    "maxlat": 41.6595135,
+    "maxlon": -0.9098334
+  },
+  "nodes": [
+    224101094,
+    3004695846
+  ],
+  "geometry": [
+    { "lat": 41.6595135, "lon": -0.9113534 },
+    { "lat": 41.6590824, "lon": -0.9098334 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bus": "designated",
+    "highway": "service",
+    "layer": "-2",
+    "oneway": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 306811600,
+  "bounds": {
+    "minlat": 41.6572187,
+    "minlon": -0.9154586,
+    "maxlat": 41.6598937,
+    "maxlon": -0.9041824
+  },
+  "nodes": [
+    1577478902,
+    1577478900,
+    1577478897,
+    7589854102,
+    1577478894,
+    1577478892,
+    1577478890,
+    7589854214,
+    7589854213,
+    7589854212,
+    7589854211,
+    7589854210,
+    7589854209,
+    7589852768,
+    1583123445
+  ],
+  "geometry": [
+    { "lat": 41.6598937, "lon": -0.9154586 },
+    { "lat": 41.6596510, "lon": -0.9150143 },
+    { "lat": 41.6595085, "lon": -0.9147011 },
+    { "lat": 41.6594410, "lon": -0.9145206 },
+    { "lat": 41.6593673, "lon": -0.9143031 },
+    { "lat": 41.6592628, "lon": -0.9139778 },
+    { "lat": 41.6591752, "lon": -0.9136735 },
+    { "lat": 41.6576052, "lon": -0.9081135 },
+    { "lat": 41.6575383, "lon": -0.9078507 },
+    { "lat": 41.6574713, "lon": -0.9075281 },
+    { "lat": 41.6574178, "lon": -0.9071158 },
+    { "lat": 41.6573709, "lon": -0.9066439 },
+    { "lat": 41.6573492, "lon": -0.9063535 },
+    { "lat": 41.6572727, "lon": -0.9051356 },
+    { "lat": 41.6572187, "lon": -0.9041824 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "highspeed": "yes",
+    "layer": "-1",
+    "maxspeed": "70",
+    "name": "Línea Bifurcación Canal Imperial-Bifurcación Moncasi",
+    "official_name": "Bifurcación Canal Imperial a Bifurcación Moncasi",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:traffic_mode": "passenger",
+    "ref": "054",
+    "source": "Bing",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 306988416,
+  "bounds": {
+    "minlat": 41.6595405,
+    "minlon": -0.9153186,
+    "maxlat": 41.6602686,
+    "maxlon": -0.9127478
+  },
+  "nodes": [
+    1118516801,
+    13431277917,
+    7589854243,
+    1118517019,
+    7589854244,
+    3120315129
+  ],
+  "geometry": [
+    { "lat": 41.6595405, "lon": -0.9127478 },
+    { "lat": 41.6597585, "lon": -0.9135706 },
+    { "lat": 41.6599764, "lon": -0.9143934 },
+    { "lat": 41.6600648, "lon": -0.9147099 },
+    { "lat": 41.6601481, "lon": -0.9149824 },
+    { "lat": 41.6602686, "lon": -0.9153186 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "8A",
+    "service": "siding",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 314452250,
+  "bounds": {
+    "minlat": 41.6573309,
+    "minlon": -0.9154223,
+    "maxlat": 41.6599611,
+    "maxlon": -0.9053662
+  },
+  "nodes": [
+    3205001490,
+    1583123629,
+    1583123622,
+    1583123602,
+    1583123598,
+    7589854222,
+    7589854223,
+    4672299047,
+    4672299054,
+    7589854123,
+    7589854093,
+    1583123493,
+    7589854231,
+    1583123470,
+    7589854240,
+    7589854108
+  ],
+  "geometry": [
+    { "lat": 41.6599611, "lon": -0.9154223 },
+    { "lat": 41.6598702, "lon": -0.9152439 },
+    { "lat": 41.6597838, "lon": -0.9150547 },
+    { "lat": 41.6596574, "lon": -0.9147520 },
+    { "lat": 41.6595942, "lon": -0.9145959 },
+    { "lat": 41.6594868, "lon": -0.9142748 },
+    { "lat": 41.6593329, "lon": -0.9137592 },
+    { "lat": 41.6588422, "lon": -0.9120231 },
+    { "lat": 41.6582648, "lon": -0.9099800 },
+    { "lat": 41.6578880, "lon": -0.9086466 },
+    { "lat": 41.6576936, "lon": -0.9079546 },
+    { "lat": 41.6575749, "lon": -0.9074424 },
+    { "lat": 41.6574959, "lon": -0.9070292 },
+    { "lat": 41.6574364, "lon": -0.9066641 },
+    { "lat": 41.6574031, "lon": -0.9063972 },
+    { "lat": 41.6573309, "lon": -0.9053662 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "highspeed": "yes",
+    "layer": "-1",
+    "maxspeed": "70",
+    "name": "Línea Bifurcación Canal Imperial-Bifurcación Moncasi",
+    "official_name": "Bifurcación Canal Imperial a Bifurcación Moncasi",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:track_ref": "3",
+    "railway:traffic_mode": "passenger",
+    "ref": "054",
+    "source": "interpolation;Bing;guess",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 314452513,
+  "bounds": {
+    "minlat": 41.6587861,
+    "minlon": -0.9098334,
+    "maxlat": 41.6590824,
+    "maxlon": -0.9088125
+  },
+  "nodes": [
+    3004695846,
+    3718680385,
+    3205006031,
+    3205006032
+  ],
+  "geometry": [
+    { "lat": 41.6590824, "lon": -0.9098334 },
+    { "lat": 41.6590007, "lon": -0.9096391 },
+    { "lat": 41.6589796, "lon": -0.9094565 },
+    { "lat": 41.6587861, "lon": -0.9088125 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bus": "designated",
+    "highway": "service",
+    "layer": "-1",
+    "oneway": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 368334456,
+  "bounds": {
+    "minlat": 41.6574296,
+    "minlon": -0.9066657,
+    "maxlat": 41.6577153,
+    "maxlon": -0.9049159
+  },
+  "nodes": [
+    3060092524,
+    7589854115,
+    7589854116,
+    7589854119,
+    1583123500
+  ],
+  "geometry": [
+    { "lat": 41.6577153, "lon": -0.9066657 },
+    { "lat": 41.6576214, "lon": -0.9062728 },
+    { "lat": 41.6575473, "lon": -0.9058651 },
+    { "lat": 41.6574992, "lon": -0.9055164 },
+    { "lat": 41.6574296, "lon": -0.9049159 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "100",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 379903198,
+  "bounds": {
+    "minlat": 41.6567163,
+    "minlon": -0.9084724,
+    "maxlat": 41.6567757,
+    "maxlon": -0.9083880
+  },
+  "nodes": [
+    3832529342,
+    3832529343,
+    4182155331,
+    3832529344
+  ],
+  "geometry": [
+    { "lat": 41.6567757, "lon": -0.9083880 },
+    { "lat": 41.6567378, "lon": -0.9084250 },
+    { "lat": 41.6567224, "lon": -0.9084494 },
+    { "lat": 41.6567163, "lon": -0.9084724 }
+  ],
+  "tags": {
+    "highway": "service",
+    "oneway": "yes",
+    "service": "parking_aisle",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 379903199,
+  "bounds": {
+    "minlat": 41.6567946,
+    "minlon": -0.9097046,
+    "maxlat": 41.6569940,
+    "maxlon": -0.9096050
+  },
+  "nodes": [
+    259492665,
+    3832529348
+  ],
+  "geometry": [
+    { "lat": 41.6567946, "lon": -0.9097046 },
+    { "lat": 41.6569940, "lon": -0.9096050 }
+  ],
+  "tags": {
+    "highway": "service",
+    "layer": "-1",
+    "oneway": "yes",
+    "service": "parking_aisle",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 379903200,
+  "bounds": {
+    "minlat": 41.6569940,
+    "minlon": -0.9139052,
+    "maxlat": 41.6581764,
+    "maxlon": -0.9096050
+  },
+  "nodes": [
+    3832529348,
+    3832529347
+  ],
+  "geometry": [
+    { "lat": 41.6569940, "lon": -0.9096050 },
+    { "lat": 41.6581764, "lon": -0.9139052 }
+  ],
+  "tags": {
+    "highway": "service",
+    "layer": "-1",
+    "oneway": "no",
+    "service": "parking_aisle",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 379903201,
+  "bounds": {
+    "minlat": 41.6581764,
+    "minlon": -0.9139052,
+    "maxlat": 41.6584478,
+    "maxlon": -0.9137645
+  },
+  "nodes": [
+    3832529347,
+    3832490280
+  ],
+  "geometry": [
+    { "lat": 41.6581764, "lon": -0.9139052 },
+    { "lat": 41.6584478, "lon": -0.9137645 }
+  ],
+  "tags": {
+    "highway": "service",
+    "oneway": "yes",
+    "service": "parking_aisle",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 379903203,
+  "bounds": {
+    "minlat": 41.6567163,
+    "minlon": -0.9096050,
+    "maxlat": 41.6569940,
+    "maxlon": -0.9084724
+  },
+  "nodes": [
+    3832529344,
+    3832529345,
+    3832529346,
+    3832529348
+  ],
+  "geometry": [
+    { "lat": 41.6567163, "lon": -0.9084724 },
+    { "lat": 41.6567169, "lon": -0.9085460 },
+    { "lat": 41.6567405, "lon": -0.9086830 },
+    { "lat": 41.6569940, "lon": -0.9096050 }
+  ],
+  "tags": {
+    "highway": "service",
+    "layer": "-1",
+    "oneway": "no",
+    "service": "parking_aisle",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 423969928,
+  "bounds": {
+    "minlat": 41.6606054,
+    "minlon": -0.9135097,
+    "maxlat": 41.6607196,
+    "maxlon": -0.9132701
+  },
+  "nodes": [
+    2583821388,
+    2583821389
+  ],
+  "geometry": [
+    { "lat": 41.6607196, "lon": -0.9132701 },
+    { "lat": 41.6606054, "lon": -0.9135097 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bicycle": "no",
+    "bus": "designated",
+    "highway": "service",
+    "lanes": "2",
+    "layer": "-1",
+    "motor_vehicle": "no",
+    "note": "Acceso de Bus",
+    "oneway": "yes",
+    "surface": "asphalt",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 721326444,
+  "bounds": {
+    "minlat": 41.6580343,
+    "minlon": -0.9102482,
+    "maxlat": 41.6586424,
+    "maxlon": -0.9080584
+  },
+  "nodes": [
+    1583123539,
+    1118516947
+  ],
+  "geometry": [
+    { "lat": 41.6580343, "lon": -0.9080584 },
+    { "lat": 41.6586424, "lon": -0.9102482 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "100",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "6",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 799484835,
+  "bounds": {
+    "minlat": 41.6609035,
+    "minlon": -0.9135897,
+    "maxlat": 41.6609676,
+    "maxlon": -0.9135620
+  },
+  "nodes": [
+    11889959513,
+    3718680397,
+    2583917455
+  ],
+  "geometry": [
+    { "lat": 41.6609035, "lon": -0.9135897 },
+    { "lat": 41.6609356, "lon": -0.9135751 },
+    { "lat": 41.6609676, "lon": -0.9135620 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bus": "designated",
+    "highway": "service",
+    "oneway": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 812591727,
+  "bounds": {
+    "minlat": 41.6573309,
+    "minlon": -0.9100716,
+    "maxlat": 41.6584062,
+    "maxlon": -0.9053662
+  },
+  "nodes": [
+    7589854108,
+    7589854233,
+    7589854239,
+    7589854229,
+    3120369429,
+    7589854110,
+    7589854109,
+    5371336875,
+    81326543
+  ],
+  "geometry": [
+    { "lat": 41.6573309, "lon": -0.9053662 },
+    { "lat": 41.6574117, "lon": -0.9060657 },
+    { "lat": 41.6574647, "lon": -0.9064408 },
+    { "lat": 41.6575109, "lon": -0.9067219 },
+    { "lat": 41.6575791, "lon": -0.9070626 },
+    { "lat": 41.6576415, "lon": -0.9073404 },
+    { "lat": 41.6577196, "lon": -0.9076381 },
+    { "lat": 41.6578318, "lon": -0.9080387 },
+    { "lat": 41.6584062, "lon": -0.9100716 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "layer": "-2",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:etcs": "2",
+    "railway:track_ref": "4",
+    "railway:traffic_mode": "passenger",
+    "service": "siding",
+    "source": "extrapolation",
+    "tunnel": "yes",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 812591728,
+  "bounds": {
+    "minlat": 41.6572187,
+    "minlon": -0.9099966,
+    "maxlat": 41.6580061,
+    "maxlon": -0.9041824
+  },
+  "nodes": [
+    1118524600,
+    4672299053,
+    7589854216,
+    7589852778,
+    7589852784,
+    7589852783,
+    7589852782,
+    7589852781,
+    7589852780,
+    7589852779,
+    7589852777,
+    7589852776,
+    1583123445
+  ],
+  "geometry": [
+    { "lat": 41.6580061, "lon": -0.9099966 },
+    { "lat": 41.6579706, "lon": -0.9098715 },
+    { "lat": 41.6575551, "lon": -0.9084073 },
+    { "lat": 41.6574952, "lon": -0.9081557 },
+    { "lat": 41.6574391, "lon": -0.9078768 },
+    { "lat": 41.6573789, "lon": -0.9075335 },
+    { "lat": 41.6573429, "lon": -0.9072223 },
+    { "lat": 41.6573068, "lon": -0.9068254 },
+    { "lat": 41.6572868, "lon": -0.9064928 },
+    { "lat": 41.6572607, "lon": -0.9060207 },
+    { "lat": 41.6572407, "lon": -0.9055299 },
+    { "lat": 41.6572246, "lon": -0.9051302 },
+    { "lat": 41.6572187, "lon": -0.9041824 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "layer": "-2",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:etcs": "2",
+    "railway:track_ref": "1",
+    "railway:traffic_mode": "passenger",
+    "service": "siding",
+    "source": "interpolation;Bing;guess",
+    "tunnel": "yes",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 812591729,
+  "bounds": {
+    "minlat": 41.6493039,
+    "minlon": -0.9041824,
+    "maxlat": 41.6572187,
+    "maxlon": -0.8941117
+  },
+  "nodes": [
+    1583123445,
+    7589852767,
+    7590240380,
+    7590240381,
+    7590240382,
+    7590240383,
+    7590240384,
+    7590249685,
+    7590249686,
+    7590249687,
+    7590249688,
+    7590249689,
+    7590249690,
+    7590249691,
+    11531571248,
+    7590249692,
+    7590249693,
+    7590249694,
+    7590249695,
+    7590249696,
+    7590249697,
+    7590249698,
+    7590249699,
+    7590249700,
+    7590249701,
+    7590249702,
+    6223359806,
+    1118539717
+  ],
+  "geometry": [
+    { "lat": 41.6572187, "lon": -0.9041824 },
+    { "lat": 41.6571655, "lon": -0.9033922 },
+    { "lat": 41.6570407, "lon": -0.9021490 },
+    { "lat": 41.6569952, "lon": -0.9017996 },
+    { "lat": 41.6569282, "lon": -0.9014331 },
+    { "lat": 41.6568700, "lon": -0.9011749 },
+    { "lat": 41.6567710, "lon": -0.9008670 },
+    { "lat": 41.6566517, "lon": -0.9005700 },
+    { "lat": 41.6565344, "lon": -0.9002863 },
+    { "lat": 41.6563969, "lon": -0.9000130 },
+    { "lat": 41.6562310, "lon": -0.8997090 },
+    { "lat": 41.6560490, "lon": -0.8994164 },
+    { "lat": 41.6558332, "lon": -0.8990889 },
+    { "lat": 41.6555755, "lon": -0.8987215 },
+    { "lat": 41.6551201, "lon": -0.8981020 },
+    { "lat": 41.6548198, "lon": -0.8977472 },
+    { "lat": 41.6546077, "lon": -0.8975426 },
+    { "lat": 41.6544264, "lon": -0.8973883 },
+    { "lat": 41.6541558, "lon": -0.8971610 },
+    { "lat": 41.6538145, "lon": -0.8969140 },
+    { "lat": 41.6532281, "lon": -0.8965189 },
+    { "lat": 41.6511332, "lon": -0.8952767 },
+    { "lat": 41.6507799, "lon": -0.8950294 },
+    { "lat": 41.6504289, "lon": -0.8947449 },
+    { "lat": 41.6500425, "lon": -0.8944691 },
+    { "lat": 41.6498258, "lon": -0.8943390 },
+    { "lat": 41.6496432, "lon": -0.8942619 },
+    { "lat": 41.6493039, "lon": -0.8941117 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "highspeed": "yes",
+    "layer": "-2",
+    "maxspeed": "70",
+    "name": "Línea Bifurcación Canal Imperial-Bifurcación Moncasi",
+    "official_name": "Bifurcación Canal Imperial a Bifurcación Moncasi",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:etcs": "2",
+    "railway:traffic_mode": "passenger",
+    "ref": "054",
+    "source": "interpolation;Bing;guess",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 812591732,
+  "bounds": {
+    "minlat": 41.6572844,
+    "minlon": -0.9047547,
+    "maxlat": 41.6573649,
+    "maxlon": -0.9035647
+  },
+  "nodes": [
+    1118539814,
+    7589854121
+  ],
+  "geometry": [
+    { "lat": 41.6572844, "lon": -0.9035647 },
+    { "lat": 41.6573649, "lon": -0.9047547 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "100",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 812591733,
+  "bounds": {
+    "minlat": 41.6572844,
+    "minlon": -0.9049159,
+    "maxlat": 41.6574296,
+    "maxlon": -0.9035647
+  },
+  "nodes": [
+    1118539814,
+    7589854120,
+    1583123500
+  ],
+  "geometry": [
+    { "lat": 41.6572844, "lon": -0.9035647 },
+    { "lat": 41.6573669, "lon": -0.9043309 },
+    { "lat": 41.6574296, "lon": -0.9049159 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "100",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 812591734,
+  "bounds": {
+    "minlat": 41.6581966,
+    "minlon": -0.9135226,
+    "maxlat": 41.6595371,
+    "maxlon": -0.9089821
+  },
+  "nodes": [
+    7589852758,
+    4672299050,
+    7589852757,
+    7589852756,
+    7589852755,
+    7589852758
+  ],
+  "geometry": [
+    { "lat": 41.6595371, "lon": -0.9134827 },
+    { "lat": 41.6591962, "lon": -0.9122713 },
+    { "lat": 41.6582763, "lon": -0.9089821 },
+    { "lat": 41.6581966, "lon": -0.9090220 },
+    { "lat": 41.6594574, "lon": -0.9135226 },
+    { "lat": 41.6595371, "lon": -0.9134827 }
+  ],
+  "tags": {
+    "announcement": "yes",
+    "area": "yes",
+    "bench": "yes",
+    "fixme": "Posición aproximada",
+    "layer": "-1",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "train": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 812591735,
+  "bounds": {
+    "minlat": 41.6583603,
+    "minlon": -0.9134776,
+    "maxlat": 41.6596981,
+    "maxlon": -0.9089359
+  },
+  "nodes": [
+    7589852762,
+    7589852761,
+    7589852760,
+    7589852759,
+    7589852762
+  ],
+  "geometry": [
+    { "lat": 41.6596981, "lon": -0.9134378 },
+    { "lat": 41.6584399, "lon": -0.9089359 },
+    { "lat": 41.6583603, "lon": -0.9089758 },
+    { "lat": 41.6596184, "lon": -0.9134776 },
+    { "lat": 41.6596981, "lon": -0.9134378 }
+  ],
+  "tags": {
+    "area": "yes",
+    "fixme": "Posición aproximada",
+    "layer": "-1",
+    "public_transport": "platform",
+    "railway": "platform",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 812591737,
+  "bounds": {
+    "minlat": 41.6571926,
+    "minlon": -0.9147213,
+    "maxlat": 41.6593163,
+    "maxlon": -0.9051302
+  },
+  "nodes": [
+    7589852776,
+    7589852775,
+    7589852774,
+    7589852773,
+    7589852772,
+    7589852771,
+    7589852770,
+    7589852769,
+    4672299052,
+    4672299045,
+    1583123567,
+    1583123572,
+    1583123574,
+    1583123576
+  ],
+  "geometry": [
+    { "lat": 41.6572246, "lon": -0.9051302 },
+    { "lat": 41.6572026, "lon": -0.9056345 },
+    { "lat": 41.6571926, "lon": -0.9061119 },
+    { "lat": 41.6571986, "lon": -0.9064981 },
+    { "lat": 41.6572266, "lon": -0.9069058 },
+    { "lat": 41.6572667, "lon": -0.9072867 },
+    { "lat": 41.6573208, "lon": -0.9076488 },
+    { "lat": 41.6574813, "lon": -0.9083998 },
+    { "lat": 41.6578775, "lon": -0.9097988 },
+    { "lat": 41.6584490, "lon": -0.9117686 },
+    { "lat": 41.6589544, "lon": -0.9136013 },
+    { "lat": 41.6591125, "lon": -0.9141525 },
+    { "lat": 41.6592069, "lon": -0.9144509 },
+    { "lat": 41.6593163, "lon": -0.9147213 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "50",
+    "gauge": "1435",
+    "layer": "-1",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif AV",
+    "owner:wikidata": "Q115684403",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "service": "siding",
+    "source": "interpolation;Bing;guess",
+    "tunnel": "yes",
+    "voltage": "25000"
+  }
+},
+{
+  "type": "way",
+  "id": 812591738,
+  "bounds": {
+    "minlat": 41.6576473,
+    "minlon": -0.9134270,
+    "maxlat": 41.6589577,
+    "maxlon": -0.9089114
+  },
+  "nodes": [
+    7589854088,
+    7589854087,
+    4672299045,
+    7589854086,
+    7589854085,
+    7589854088
+  ],
+  "geometry": [
+    { "lat": 41.6589577, "lon": -0.9134067 },
+    { "lat": 41.6589176, "lon": -0.9134270 },
+    { "lat": 41.6584490, "lon": -0.9117686 },
+    { "lat": 41.6576473, "lon": -0.9089317 },
+    { "lat": 41.6576875, "lon": -0.9089114 },
+    { "lat": 41.6589577, "lon": -0.9134067 }
+  ],
+  "tags": {
+    "announcement": "yes",
+    "area": "yes",
+    "bench": "yes",
+    "fixme": "Posición aproximada",
+    "layer": "-1",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "tactile_paving": "yes",
+    "train": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 812591739,
+  "bounds": {
+    "minlat": 41.6580418,
+    "minlon": -0.9132294,
+    "maxlat": 41.6593493,
+    "maxlon": -0.9087124
+  },
+  "nodes": [
+    7589854092,
+    7589854091,
+    7589854090,
+    7589854089,
+    7589854092
+  ],
+  "geometry": [
+    { "lat": 41.6593493, "lon": -0.9132091 },
+    { "lat": 41.6593091, "lon": -0.9132294 },
+    { "lat": 41.6580418, "lon": -0.9087327 },
+    { "lat": 41.6580819, "lon": -0.9087124 },
+    { "lat": 41.6593493, "lon": -0.9132091 }
+  ],
+  "tags": {
+    "announcement": "yes",
+    "area": "yes",
+    "bench": "yes",
+    "fixme": "Posición aproximada",
+    "layer": "-1",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "tactile_paving": "yes",
+    "train": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 812591740,
+  "bounds": {
+    "minlat": 41.6579409,
+    "minlon": -0.9132794,
+    "maxlat": 41.6592889,
+    "maxlon": -0.9087425
+  },
+  "nodes": [
+    7589854097,
+    7589854096,
+    7589854095,
+    7589854094,
+    7589854097
+  ],
+  "geometry": [
+    { "lat": 41.6592889, "lon": -0.9132392 },
+    { "lat": 41.6580205, "lon": -0.9087425 },
+    { "lat": 41.6579409, "lon": -0.9087827 },
+    { "lat": 41.6592093, "lon": -0.9132794 },
+    { "lat": 41.6592889, "lon": -0.9132392 }
+  ],
+  "tags": {
+    "announcement": "yes",
+    "area": "yes",
+    "bench": "yes",
+    "fixme": "Posición aproximada",
+    "layer": "-1",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "tactile_paving": "yes",
+    "train": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 812591741,
+  "bounds": {
+    "minlat": 41.6578321,
+    "minlon": -0.9133344,
+    "maxlat": 41.6591802,
+    "maxlon": -0.9087975
+  },
+  "nodes": [
+    7589854101,
+    7589854100,
+    7589854099,
+    7589854098,
+    7589854101
+  ],
+  "geometry": [
+    { "lat": 41.6591802, "lon": -0.9132942 },
+    { "lat": 41.6579117, "lon": -0.9087975 },
+    { "lat": 41.6578321, "lon": -0.9088377 },
+    { "lat": 41.6591006, "lon": -0.9133344 },
+    { "lat": 41.6591802, "lon": -0.9132942 }
+  ],
+  "tags": {
+    "announcement": "yes",
+    "area": "yes",
+    "bench": "yes",
+    "fixme": "Posición aproximada",
+    "height": "0.76",
+    "layer": "-1",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "tactile_paving": "yes",
+    "train": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 812591742,
+  "bounds": {
+    "minlat": 41.6577114,
+    "minlon": -0.9133958,
+    "maxlat": 41.6590594,
+    "maxlon": -0.9088588
+  },
+  "nodes": [
+    7589854106,
+    7589854105,
+    7589854104,
+    7589854103,
+    7589854106
+  ],
+  "geometry": [
+    { "lat": 41.6590594, "lon": -0.9133555 },
+    { "lat": 41.6577910, "lon": -0.9088588 },
+    { "lat": 41.6577114, "lon": -0.9088990 },
+    { "lat": 41.6589799, "lon": -0.9133958 },
+    { "lat": 41.6590594, "lon": -0.9133555 }
+  ],
+  "tags": {
+    "announcement": "yes",
+    "area": "yes",
+    "bench": "yes",
+    "fixme": "Posición aproximada",
+    "layer": "-1",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "tactile_paving": "yes",
+    "train": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 812591744,
+  "bounds": {
+    "minlat": 41.6582673,
+    "minlon": -0.9102340,
+    "maxlat": 41.6588428,
+    "maxlon": -0.9081234
+  },
+  "nodes": [
+    7589854113,
+    7589854112,
+    7589854111
+  ],
+  "geometry": [
+    { "lat": 41.6582673, "lon": -0.9081234 },
+    { "lat": 41.6586635, "lon": -0.9095505 },
+    { "lat": 41.6588428, "lon": -0.9102340 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "9",
+    "service": "siding",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 812591745,
+  "bounds": {
+    "minlat": 41.6578148,
+    "minlon": -0.9075482,
+    "maxlat": 41.6581028,
+    "maxlon": -0.9065897
+  },
+  "nodes": [
+    4196010007,
+    7589854114
+  ],
+  "geometry": [
+    { "lat": 41.6578148, "lon": -0.9065897 },
+    { "lat": 41.6581028, "lon": -0.9075482 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "9",
+    "service": "siding",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 892099948,
+  "bounds": {
+    "minlat": 41.6586424,
+    "minlon": -0.9122713,
+    "maxlat": 41.6591962,
+    "maxlon": -0.9102482
+  },
+  "nodes": [
+    1118516947,
+    4672299050
+  ],
+  "geometry": [
+    { "lat": 41.6586424, "lon": -0.9102482 },
+    { "lat": 41.6591962, "lon": -0.9122713 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "fixme": "Velocidad aproximada",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "100",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "2",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "6",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 892099949,
+  "bounds": {
+    "minlat": 41.6593897,
+    "minlon": -0.9127478,
+    "maxlat": 41.6595405,
+    "maxlon": -0.9122092
+  },
+  "nodes": [
+    1118516724,
+    1118516801
+  ],
+  "geometry": [
+    { "lat": 41.6593897, "lon": -0.9122092 },
+    { "lat": 41.6595405, "lon": -0.9127478 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "8",
+    "service": "siding",
+    "source": "interpolation",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 973009054,
+  "bounds": {
+    "minlat": 41.6589064,
+    "minlon": -0.9122092,
+    "maxlat": 41.6593897,
+    "maxlon": -0.9104550
+  },
+  "nodes": [
+    4672299055,
+    1118516724
+  ],
+  "geometry": [
+    { "lat": 41.6589064, "lon": -0.9104550 },
+    { "lat": 41.6593897, "lon": -0.9122092 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "8",
+    "service": "siding",
+    "source": "interpolation",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 1083482067,
+  "bounds": {
+    "minlat": 41.6575156,
+    "minlon": -0.9066025,
+    "maxlat": 41.6576567,
+    "maxlon": -0.9063627
+  },
+  "nodes": [
+    9929296822,
+    4836584644,
+    9929296823
+  ],
+  "geometry": [
+    { "lat": 41.6576567, "lon": -0.9066025 },
+    { "lat": 41.6576195, "lon": -0.9065387 },
+    { "lat": 41.6575156, "lon": -0.9063627 }
+  ],
+  "tags": {
+    "layer": "-2",
+    "tunnel": "culvert",
+    "waterway": "canal"
+  }
+},
+{
+  "type": "way",
+  "id": 1277680748,
+  "bounds": {
+    "minlat": 41.6595405,
+    "minlon": -0.9149860,
+    "maxlat": 41.6602596,
+    "maxlon": -0.9127478
+  },
+  "nodes": [
+    1118516801,
+    13431277916,
+    11860918638,
+    11860918636,
+    11860918639
+  ],
+  "geometry": [
+    { "lat": 41.6595405, "lon": -0.9127478 },
+    { "lat": 41.6597532, "lon": -0.9132922 },
+    { "lat": 41.6597756, "lon": -0.9133619 },
+    { "lat": 41.6601454, "lon": -0.9147111 },
+    { "lat": 41.6602596, "lon": -0.9149860 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:track_ref": "10",
+    "service": "siding",
+    "source": "interpolation",
+    "tunnel": "yes",
+    "voltage": "3000"
+  }
+},
+{
+  "type": "way",
+  "id": 1321866379,
+  "bounds": {
+    "minlat": 41.6606782,
+    "minlon": -0.9137904,
+    "maxlat": 41.6608325,
+    "maxlon": -0.9137095
+  },
+  "nodes": [
+    12232044506,
+    12232044509,
+    12232044508
+  ],
+  "geometry": [
+    { "lat": 41.6608325, "lon": -0.9137095 },
+    { "lat": 41.6607186, "lon": -0.9137682 },
+    { "lat": 41.6606782, "lon": -0.9137904 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bus": "designated",
+    "highway": "service",
+    "oneway": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1321866381,
+  "bounds": {
+    "minlat": 41.6609234,
+    "minlon": -0.9136624,
+    "maxlat": 41.6609857,
+    "maxlon": -0.9136320
+  },
+  "nodes": [
+    12232044511,
+    7477047566
+  ],
+  "geometry": [
+    { "lat": 41.6609857, "lon": -0.9136320 },
+    { "lat": 41.6609234, "lon": -0.9136624 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bus": "designated",
+    "highway": "service",
+    "oneway": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1368463563,
+  "bounds": {
+    "minlat": 41.6590375,
+    "minlon": -0.9098334,
+    "maxlat": 41.6591355,
+    "maxlon": -0.9095441
+  },
+  "nodes": [
+    3004695846,
+    3004695847,
+    4020479193,
+    11871607665,
+    13436095092
+  ],
+  "geometry": [
+    { "lat": 41.6590824, "lon": -0.9098334 },
+    { "lat": 41.6590375, "lon": -0.9096337 },
+    { "lat": 41.6590558, "lon": -0.9095841 },
+    { "lat": 41.6591001, "lon": -0.9095528 },
+    { "lat": 41.6591355, "lon": -0.9095441 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bus": "designated",
+    "highway": "service",
+    "layer": "-2",
+    "oneway": "yes",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1426174650,
+  "bounds": {
+    "minlat": 41.6574323,
+    "minlon": -0.9023058,
+    "maxlat": 41.6574979,
+    "maxlon": -0.9021786
+  },
+  "nodes": [
+    4836599497,
+    4836599498,
+    13110136163,
+    4836599499,
+    13110136162,
+    13110136161,
+    4836599500
+  ],
+  "geometry": [
+    { "lat": 41.6574323, "lon": -0.9023058 },
+    { "lat": 41.6574399, "lon": -0.9022709 },
+    { "lat": 41.6574464, "lon": -0.9022555 },
+    { "lat": 41.6574548, "lon": -0.9022421 },
+    { "lat": 41.6574692, "lon": -0.9022307 },
+    { "lat": 41.6574839, "lon": -0.9022109 },
+    { "lat": 41.6574979, "lon": -0.9021786 }
+  ],
+  "tags": {
+    "layer": "-1",
+    "tunnel": "culvert",
+    "waterway": "canal"
+  }
+},
+{
+  "type": "way",
+  "id": 1458442308,
+  "bounds": {
+    "minlat": 41.6594295,
+    "minlon": -0.9076436,
+    "maxlat": 41.6594506,
+    "maxlon": -0.9076068
+  },
+  "nodes": [
+    9548253931,
+    13375580960
+  ],
+  "geometry": [
+    { "lat": 41.6594506, "lon": -0.9076068 },
+    { "lat": 41.6594295, "lon": -0.9076436 }
+  ],
+  "tags": {
+    "covered": "yes",
+    "highway": "footway",
+    "layer": "-1",
+    "surface": "paved",
+    "tunnel": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 1470009800,
+  "bounds": {
+    "minlat": 41.6548360,
+    "minlon": -0.9035647,
+    "maxlat": 41.6572844,
+    "maxlon": -0.8975562
+  },
+  "nodes": [
+    7590249756,
+    7590249755,
+    7590249754,
+    7590249753,
+    7590249752,
+    7590249751,
+    7590249750,
+    7590249749,
+    7590249748,
+    7590249747,
+    7590249746,
+    7590249745,
+    7590249744,
+    7590249743,
+    1118539814
+  ],
+  "geometry": [
+    { "lat": 41.6548360, "lon": -0.8975562 },
+    { "lat": 41.6550611, "lon": -0.8978385 },
+    { "lat": 41.6556325, "lon": -0.8986446 },
+    { "lat": 41.6558930, "lon": -0.8990161 },
+    { "lat": 41.6561104, "lon": -0.8993460 },
+    { "lat": 41.6562948, "lon": -0.8996424 },
+    { "lat": 41.6564631, "lon": -0.8999509 },
+    { "lat": 41.6566034, "lon": -0.9002298 },
+    { "lat": 41.6567226, "lon": -0.9005182 },
+    { "lat": 41.6568439, "lon": -0.9008199 },
+    { "lat": 41.6569461, "lon": -0.9011377 },
+    { "lat": 41.6570062, "lon": -0.9014046 },
+    { "lat": 41.6570743, "lon": -0.9017774 },
+    { "lat": 41.6571204, "lon": -0.9021315 },
+    { "lat": 41.6572844, "lon": -0.9035647 }
+  ],
+  "tags": {
+    "electrified": "contact_line",
+    "frequency": "0",
+    "gauge": "1668",
+    "layer": "-1",
+    "maxspeed": "70",
+    "name": "Línea Madrid-Barcelona",
+    "official_name": "Madrid-Chamartín a Barcelona-Estació de França",
+    "operator": "Adif",
+    "operator:wikidata": "Q358752",
+    "owner": "Adif",
+    "owner:wikidata": "Q358752",
+    "passenger_lines": "1",
+    "railway": "rail",
+    "railway:asfa": "yes",
+    "railway:preferred_direction": "both",
+    "ref": "200",
+    "tunnel": "yes",
+    "usage": "main",
+    "voltage": "3000"
+  }
+}
+
+  ]
+}

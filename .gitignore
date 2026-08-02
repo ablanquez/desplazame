@@ -113,6 +113,42 @@ data/exploracion/*
 !data/exploracion/2026-08-02_osm_overpass_delicias_HTTP504-servidor-ocupado.html
 !data/exploracion/2026-08-02_osm_overpass_delicias_HTTP504-intento2.html
 
+#    ── Añadidos por el segundo anexo de niveles ──────────────────────────────
+#
+#    ⚠️ OJO A LA FECHA DEL DATO, que no es la del nombre: estas dos ultimas
+#    ventanas se pidieron a una REPLICA de Overpass y traen datos de MAYO y
+#    JUNIO, no del 2 de agosto. El sello real esta dentro, en
+#    `osm3s.timestamp_osm_base`, y hay hasta tres meses de diferencia entre
+#    ventanas. Una replica es otra fuente (bitacora nº35).
+#
+#    · El control positivo de `tunnel`, y no lo eligio quien escribio la
+#      consulta: el numero esperado (16) salia del volcado completo del dia
+#      anterior. Salieron 15 service + 1 footway. Coincide exactamente:
+!data/exploracion/2026-08-02_osm_overpass_control-positivo-tunnel-delicias.json
+
+#    · El paso inferior de Cesareo Alierta: `primary`, `tunnel=yes`,
+#      `layer=-1`, `maxspeed=50`, y por encima Camino de las Torres tambien a
+#      50. Es la prueba de que la señal municipal de velocidad NO lo caza:
+!data/exploracion/2026-08-02_osm_overpass_alierta-torres_tuneles.json
+
+#    · Las dos ventanas nuevas de 1 km2. Son 1,7 MB y entran igual, porque de
+#      ellas salen los 634 falsos positivos de la regla literal y el 0 de la
+#      regla con sus dos clausulas. Sin ellas ese numero no se puede reproducir:
+!data/exploracion/2026-08-02_osm_overpass_alierta-torres_todas-vias.json
+!data/exploracion/2026-08-02_osm_overpass_pirineos_todas-vias.json
+
+#    · La cuota de la IP, que es lo que pedia el propio 429:
+!data/exploracion/2026-08-02_osm_overpass_api-status.txt
+
+#    · ⭐ DOS errores, no los seis. Criterio: entra uno de cada CLASE.
+#      El 429 porque nombra la causa (`rate_limited`) y es el que refuto la ley
+#      nº32; y UN 504 de sentencia unica, porque es el que demuestra que la
+#      explicacion de ayer —"era la forma de la consulta"— era falsa.
+#      Los otros cuatro 504 tienen el cuerpo IDENTICO y se quedan en local:
+#      repetir la misma evidencia no la refuerza, solo pesa.
+!data/exploracion/2026-08-02_osm_overpass_tunnel_HTTP429-limite-peticiones.html
+!data/exploracion/2026-08-02_osm_overpass_control-tunnel_HTTP504-intento1.html
+
 
 # ── 3. ⚠️ CONTENIDO DE TERCEROS — EXCLUIDO POR DERECHOS, NO POR DESCUIDO ───
 #
