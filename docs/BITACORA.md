@@ -1119,3 +1119,113 @@ las dos "casco" hizo el trabajo que debería haber hecho una resta.
 `2026-08-02_osm_overpass_casco-highway.json`, transformación derivada de
 `2026-08-02_idezar-geoserver_getfeature-Vias-count3-SINsrs.json` y `...-EPSG4326.json`;
 contraste contra `docs/INVENTARIO-FUENTES-ZARAGOZA.md:480,498`
+
+## [2026-08-02] — "The server is probably too busy": tres 504 seguidos que no eran del servidor
+
+**Categoría:** instrumento / red
+**Síntoma:** tres peticiones consecutivas a Overpass devolvieron **HTTP 504** en 8-9 s, con este
+cuerpo:
+
+```
+Error: runtime error: open64: 0 Success /osm3s_osm_base
+Dispatcher_Client::request_read_and_idx::timeout.
+The server is probably too busy to handle your request.
+```
+
+Y una cuarta, a la réplica `overpass.kumi.systems`, se colgó **más de 2 minutos** sin responder.
+Cuatro señales seguidas apuntando a lo mismo: el servicio está caído o saturado.
+**No lo estaba.** La misma pregunta, reescrita, contestó en **1,5 segundos**.
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el propio mensaje de error, que es
+un diagnóstico y viene del servidor.** No es un 500 mudo: es una frase en inglés que nombra la
+causa —*"the server is probably too busy"*— y encima el tiempo de respuesta la respalda: 8-9 s
+esperando y cortando, que es exactamente lo que hace un servicio saturado. Y la réplica colgada
+**confirmaba** la hipótesis. Cuatro observaciones coherentes entre sí, todas falsas.
+La costura de la tanda decía *"si Overpass responde lento o con corte, PARA esa rama, no
+insistas"*. Aplicada al pie de la letra, la tanda se cierra aquí con cero mediciones y un informe
+que dice "Overpass no estaba disponible". **La medición existía y estaba a una petición.**
+**Causa raíz:** la **forma** de la consulta, no su tamaño. Las que fallaron eran **uniones** de
+varias sentencias con filtro de bbox:
+
+```
+FALLA (504 en 8,8 s):   ( way["bridge"](bbox); way["tunnel"](bbox); way["layer"](bbox); );  out geom;
+FUNCIONA (200 en 1,5 s): way["bridge"](bbox);  out geom;            <- 65 KB, 86 elementos
+FUNCIONA (200 en 8,5 s): way["highway"](bbox); out geom;            <- 871 KB, ventana identica
+```
+
+⭐ La prueba de que no era carga: la consulta que **más datos** devolvió (871 KB, todas las vías de
+la misma ventana) pasó sin problema, mientras la que pedía **un subconjunto** de esos mismos datos
+fue rechazada. Si fuera saturación, la grande habría caído antes que la pequeña.
+**Cómo se cazó:** por no aceptar el cuarto fallo. Antes de firmar "servicio no disponible" se
+lanzó una petición **mínima y diagnóstica** —`way["bridge"]` sobre una caja de 400 m con puentes
+conocidos sobre el Ebro—, que además hacía de control positivo. Devolvió 200 con el Puente de
+Piedra dentro. **En ese momento la hipótesis "el servidor está caído" quedó refutada** y sólo
+quedaba mirar la forma de las consultas.
+**Arreglo aplicado:** todas las consultas de la tanda se reescriben como **sentencia única**. Los
+tres cuerpos de error se conservan en `data/exploracion/` con extensión `.html` y `HTTP504` en el
+nombre — ⚠️ **llegaron a guardarse con extensión `.json`**, que es una trampa a seis meses vista:
+un fichero de 695 bytes llamado `...niveles.json` que contiene un `<!DOCTYPE html>` de error.
+Renombrados en el momento.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **un mensaje de error es una afirmación del servidor sobre sí mismo,
+y no está verificada por venir de dentro.** "The server is too busy" se lee como dato y es una
+hipótesis del propio servidor sobre por qué no pudo servir. Y el corolario operativo: **antes de
+declarar un servicio caído, hay que lanzarle la petición más pequeña que se pueda formular.** Si
+contesta, lo que está roto es la pregunta, no el servicio. Esa petición mínima cuesta un segundo y
+es la diferencia entre una tanda con datos y una tanda con excusa.
+⚠️ **Y una segunda, sobre el método:** una costura anti-fallo escrita para proteger a un tercero
+—*"no insistas, es infraestructura comunitaria"*— puede convertirse en la coartada perfecta para
+no medir. La regla es correcta y se mantiene; lo que hay que añadirle es **qué comprobación
+distingue "no insistir" de "rendirse"**.
+**Traza:** `data/exploracion/2026-08-02_osm_overpass_localizar-dianas_HTTP504.html`,
+`..._delicias_HTTP504-servidor-ocupado.html`, `..._delicias_HTTP504-intento2.html` (los fallos);
+`..._control-positivo-puentes-ebro.json` (la refutación);
+`..._delicias-estacion_puentes.json` y `..._delicias-estacion_todas-vias.json` (lo que sí había)
+
+## [2026-08-02] — El control positivo lo elegí yo, con tres nombres fáciles, y por eso pasó
+
+**Categoría:** instrumento / emparejamiento de nombres
+**Síntoma:** para decidir si las vías de servicio de OSM están en el callejero municipal —de eso
+dependía el número de "escapados" de la tanda— normalicé nombres y crucé las dos listas. Salieron
+**NO** para calles que existen en las dos:
+
+```
+OSM                                 municipal                        mi matcher
+Calle de Marcelino Unceta           CALLE UNCETA                     NO   <- FALSO
+Calle Nuestra Señora de Bonaria     CALLE NTRA.SRA.DE BONARIA        NO   <- FALSO
+Calle de Añoa del Busto             CALLE ARZOBISPO AÑOA Y BUSTO     NO   <- FALSO
+Camino del Cascajo                  CAMINO DEL CASCAJO ---SJN        NO   <- FALSO
+Calle Buenos Aires                  CALLE BUENOS AIRES ---SGR        NO   <- FALSO
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **un control positivo de tres
+casos, que pasó 3 de 3 — y los tres los elegí yo.** `CALLE SORIA`, `CARRETERA HUESCA` y
+`CALLE DE LAS ARMAS`: los tres en forma natural, sin abreviatura, sin sufijo, sin inversión y sin
+tratamiento. Es decir, **elegí como control exactamente los casos que mi normalizador ya sabía
+resolver**, porque son los que tenía en la cabeza al escribirlo. El control no midió la capacidad
+del instrumento: midió la coincidencia entre lo que el instrumento hace y lo que yo recordaba.
+Y el verde fue triple, que es peor: tres de tres se lee como cobertura.
+**Causa raíz:** el callejero municipal usa **cuatro convenciones** que OSM no usa, y ninguna estaba
+contemplada: abreviaturas con puntos (`NTRA.SRA.`), **sufijos de barrio rural** (`---CST` Casetas,
+`---SGR` San Gregorio, `---SJN` San Juan de Mozarrifar), omisión del nombre de pila (`UNCETA` por
+`Marcelino Unceta`) y tratamientos añadidos (`ARZOBISPO AÑOA Y BUSTO` por `Añoa del Busto`).
+**Cómo se cazó:** por desconfiar de un resultado, no por una prueba. `Calle de Marcelino Unceta`
+saliendo "NO" chirriaba: es una calle grande de Zaragoza. Al buscar `UNCETA` en crudo aparecieron
+`CALLE UNCETA` y con ella las otras cuatro convenciones.
+**Arreglo aplicado:** ninguno — **no se arregla el matcher, se retira la conclusión.** El anexo
+declara `NO DETERMINABLE` si las vías de servicio están en `MU1_jerarquia_viaria`, y dice qué
+medición lo resuelve (descargar la capa entera y mirar por `codigo`, que es identificador exacto y
+no nombre). Arreglar el normalizador para este uso sería construir el emparejamiento aproximado que
+el diseño acaba de descartar en P0.3.
+⭐ **Y es la confirmación empírica de P0.3**, que hasta ahora se apoyaba en tres ejemplos: el
+emparejamiento municipal↔OSM por nombre tiene **cola larga y cuatro familias de excepción
+distintas**. Ya no es una sospecha razonada: está medido.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **un control positivo que elige quien escribió el instrumento no es un
+control: es un espejo.** Prueba que el instrumento hace lo que su autor cree, que es justo lo que
+no está en duda. El control tiene que salir de **una lista que no la haya hecho el mismo que el
+instrumento** —muestreo al azar del universo real, o casos que aporte otra persona— y **debe
+contener casos que se espera que fallen**. Corolario práctico: si un control positivo pasa al
+primer intento y con todos los casos, hay que sospechar de la selección antes de celebrar el verde.
+**Traza:** `E:\...\vias-zaragoza.json` (3.359 vías, lectura pura),
+`data/exploracion/2026-08-02_osm_overpass_delicias-estacion_todas-vias.json`,
+`..._carretera-huesca_todas-vias.json`
