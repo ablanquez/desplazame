@@ -1680,3 +1680,167 @@ que medirla, sobre todo cuando ahorra trabajo creérsela.
 ⚠️ Y la específica: **antes de descartar una idea, construir su mejor versión, no la más literal.**
 Descarté E1 y llamé a eso descartar E.
 **Traza:** `t10_cruces.py`, `t11_cruces2.py`, `t12_gap.py` (desechables)
+
+---
+
+## [2026-08-02] — ⚠️ CORRIGE LA TANDA 4: los 12 portales de Calle Tomillo estaban a 25,6 m y mi radio era 25
+
+**Categoría:** instrumento / umbral
+**Síntoma:** en la tanda 4 publiqué que `CALLE TOMILLO` era una contradicción irreconciliable entre
+dos métodos —la tanda 3 la daba **100 % cubierta** y sus 12 portales no tenían **nada** de OSM a
+25 m— y la dejé como `CAUSA NO CONFIRMADA`. Resuelta contra el crudo:
+
+```
+Calle Tomillo SI existe en OSM        way 793247786, highway=residential
+el eje municipal esta cubierto        27 de 27 puntos a <=5 m con rumbo compatible (100 %)
+los 12 portales estan a               25,0 - 26,5 m de esa misma calle
+mi radio de la tanda 4 era            25,0 m
+```
+
+**Nadie mentía. El falso positivo era mío, y por un metro.** Barrio SJN, San Juan de Mozarrifar:
+chalets con jardín delantero, donde el portal está en la valla y no en la fachada.
+
+**Alcance del daño, medido:** de las **10 vías** que publiqué en §B1 como *"con portales y nada de
+OSM encima"*, **4 son falsas**:
+
+```
+CALLE TOMILLO             mediana portal->OSM  25,6 m   ⛔ falso positivo
+CAMINO HUEGA                                   41,0 m   ⛔ falso positivo
+CALLE EL CISTER                                44,8 m   ⛔ falso positivo
+PLAZA TENIENTE POLANCO                         36,6 m   ⛔ falso positivo
+─────────────────────────────────────────────────────────────────────
+CALLE CIUDAD TRANSPORTE (A)                    70,0 m   hueco real
+CAMINO DEL MONTON                             102,5 m   hueco real
+CAMINO DEL PASO A SAN LAZARO                  108,0 m   hueco real
+CAMINO TORRE ESCOLAPIOS                       103,2 m   hueco real
+CALLE EL CUARTAL                               81,8 m   hueco real
+CAMINO LA PURISIMA                            142,1 m   hueco real
+```
+
+Y de los **tres "huecos nuevos que la tanda 3 no vio"** que reporté con énfasis, **dos eran míos**:
+Tomillo y Teniente Polanco. Solo `CAMINO DEL PASO A SAN LÁZARO` (108 m) es real.
+
+**Causa raíz:** usé **el mismo radio** para dos preguntas que no son la misma:
+- *"¿a qué calle pertenece este portal?"* — necesita un radio **corto**, o no discrimina.
+- *"¿hay alguna calle aquí?"* — necesita el rango de **lo que físicamente existe**, o inventa huecos.
+
+**⭐⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo: mi mejor argumento metodológico del
+día.** El radio de 25 m salía del **p85 de la distancia de cada portal a su propio eje municipal**, y
+lo defendí por escrito con estas palabras: *"una propiedad física del dato que no depende de OSM y
+por tanto no se puede retocar para que el resultado quede bonito"*. **Es verdad, y aun así estaba
+sesgado.** Un percentil deja fuera su complemento **por construcción** —un p85 descarta el 15 %— y en
+un dato geográfico **ese 15 % no está repartido al azar por la ciudad: son barrios enteros**. Chalets
+con jardín, urbanizaciones, retranqueos. El umbral era inatacable *como número* y sistemáticamente
+injusto *con un tipo de barrio*.
+
+Y dio verde, además, **la contraprueba de desplazamiento** (86,1 / 21,3 / 6,0 %), que ya van tres
+veces que firma un instrumento roto.
+
+**Cómo se cazó:** porque Antonio mandó **resolver el caso concreto antes que la auditoría general**.
+Yo tenía Tomillo delante desde ayer, escrito en el informe como discrepancia, y lo archivé con un
+`CAUSA NO CONFIRMADA` en vez de abrirlo. **`CAUSA NO CONFIRMADA` es una etiqueta honesta cuando no se
+puede saber; es una manera de mirar hacia otro lado cuando sí se puede y no se ha intentado.**
+
+**Arreglo aplicado:** separar los dos umbrales. Para **atribuir** se mantiene R = 25 m (es el que
+mejor separa señal de ruido: con 50 m la contraprueba de desplazamiento sube del 21,3 % al 33,9 % y
+el instrumento empieza a no valer). Para **negar la existencia** de geometría se usa un radio
+generoso y se declara. Barrido, cada fila con su contraprueba entera:
+
+```
+   R      SEÑAL      ⭐ +2 km      vías "sin nada de OSM"
+  25 m    86,1 %      21,3 %              10   ⬅ publicado ayer, 4 de ellas falsas
+  30 m    87,4 %      24,1 %               8
+  40 m    89,1 %      29,5 %               6
+  50 m    89,9 %      33,9 %               4
+```
+
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **elegir un umbral con un percentil del propio dato lo hace neutral
+respecto a la media y sesgado contra la cola** — y en datos geográficos la cola no es ruido, **son
+barrios**. Que un umbral no se pueda ajustar al resultado no significa que sea justo con todo el
+universo: hay que preguntarse **a quién deja fuera el complemento del percentil**, y mirar si esos
+casos tienen algo en común.
+⚠️ Y la operativa, que es la que más va a doler: ⭐⭐ **el umbral que sirve para atribuir no sirve
+para negar.** Afirmar *"este portal es de esta calle"* y afirmar *"aquí no hay ninguna calle"* son
+preguntas de signo contrario y **necesitan umbrales de signo contrario**. Usar el mismo produce
+huecos inventados, que es la peor clase de hallazgo: parece un descubrimiento.
+⚠️ Y la tercera: **un `CAUSA NO CONFIRMADA` con el dato en disco es deuda, no honestidad.**
+**Traza:** `u1_tomillo.py`, `u2_magnitud.py` (desechables); corrige
+`docs/PORTALES-COMO-TESTIGOS.md` §B1 y §B3
+
+---
+
+## [2026-08-02] — Mi métrica "honesta" daba el doble de hueco que la que criticaba, y el 70 % era ruido del instrumento
+
+**Categoría:** métrica / falso hallazgo evitado
+**Síntoma:** auditando el 4,11 % de la tanda 3 encontré una objeción que parecía definitiva. Aquel
+número no cuenta *km sin cobertura*: cuenta **km de vías que están mayoritariamente sin cobertura**,
+porque el criterio era *"≥50 % del eje cubierto"*. Es decir:
+
+```
+una vía de 1.000 m cubierta al 49 %  aporta 1.000 m al hueco  (y le sobran 490 cubiertos)
+una vía de 1.000 m cubierta al 51 %  aporta     0 m al hueco  (y le faltan 490 sin cubrir)
+```
+
+Propuse la métrica que parecía obviamente mejor —**sumar `largo × (1 − cobertura)` vía a vía**— y
+salió esto:
+
+```
+A) criterio de la tanda 3 (km de vías con <50 % cubierto) ....  81,9 km = 4,11 %
+B) km efectivamente no cubiertos .............................. 166,5 km = 8,36 %
+   de los cuales, dentro de calles que SÍ existen en OSM ...... 103,8 km = 62,4 %
+```
+
+**El doble.** Y con una explicación elegante: *"trozos sin mapear dentro de calles que sí están, que
+el criterio del 50 % borra"*. **Estaba a punto de reportarlo como el hallazgo de la tanda**, y la
+costura del briefing lo pedía explícitamente: *"si el número real resulta más del doble, párate y
+avísame destacado"*. Era más del doble, exactamente 2,03×.
+
+**Antes de avisar, clasifiqué esos metros en vez de contarlos.** Cada punto no cubierto, con tres
+hipótesis distinguidas y un testigo independiente (¿hay portales ahí?):
+
+```
+H2  hay OSM al lado pero con OTRO RUMBO (glorieta, curva) .... 57,7 %
+H1  está en un EXTREMO del eje municipal ..................... 14,6 %
+H3b interior, sin OSM y SIN portales ......................... 20,2 %
+⛔ H3 HUECO REAL (interior, sin OSM, CON portales) ...........  7,6 %
+```
+
+**El 72,3 % de mi "hallazgo" era ruido de mi propio instrumento.** El criterio de paralelismo ±30°
+—el que salvó la medición de la tanda 3— falla justo donde el eje municipal va recto y el de OSM
+curva: glorietas, chaflanes, rotondas. Y el eje municipal se prolonga más allá del de OSM en los
+extremos, que es una diferencia de trazado, no un hueco de mapeado.
+
+Aplicada la **misma** clasificación a los dos lados del umbral —barrido completo de las 255,
+muestra de 500 de las 3.104— el recuento queda así:
+
+```
+km de eje sin OSM paralela, bruto ......................... 200,7 km = 10,07 %
+   de ellos ARTEFACTO (otro rumbo o extremo) .............. 139,9 km =  7,02 %
+   sin OSM de verdad ......................................  60,8 km =  3,05 %
+      ... y con testigo de portales (hay ciudad ahí) ......  19,3 km =  0,97 %
+```
+
+**El 4,11 % publicado no era optimista: era ligeramente pesimista.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la crítica al instrumento
+anterior, que era correcta.** El criterio del 50 % efectivamente descarta información y efectivamente
+puede borrar tramos; todo lo que dije de él es cierto. **Tener razón sobre el defecto del método
+ajeno me hizo no auditar el mío**, que compartía el instrumento y por tanto todos sus artefactos —
+solo que sin el umbral del 50 %, que resulta que estaba **amortiguando** el ruido en vez de causarlo.
+Un criterio grosero puede ser más robusto que uno fino construido sobre la misma medición sucia.
+
+**Cómo se cazó:** por la costura. Antonio pedía parar y avisar si el número era el doble; parar para
+avisar me obligó a mirar el número una vez más antes de decirlo en voz alta. **La costura no sirvió
+para lo que estaba puesta —proteger de un hallazgo grave— sino para meter una pausa entre el
+resultado y su publicación.** Ése resultó ser todo su valor, y no es poco.
+
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **una métrica más fina sobre la misma medición no es más exacta: es
+más sensible al ruido de esa medición.** Antes de sustituir un criterio grosero por uno detallado
+hay que preguntarse si el grosero estaba **absorbiendo** error en lugar de introducirlo. Refinar la
+agregación sin refinar el instrumento amplifica sus defectos.
+⚠️ Y la operativa: **un hallazgo que dobla un número publicado se clasifica antes de contarse.**
+"Cuántos" sin "de qué tipo" es una cifra sin veredicto — y una cifra grande y sin veredicto es
+justo la que uno tiene ganas de anunciar.
+**Traza:** `u6_km.py`, `u7_verifica.py`, `u8_final.py` (desechables)
