@@ -1483,3 +1483,200 @@ del que sí manda, porque ese no lo has movido.
 **Traza:** `data/exploracion/2026-08-02_osm_overpass_zaragoza-termino_geometria.json` (55.452 ways,
 34 MB, **no publicado por peso** — ver `docs/COBERTURA-OSM-VS-CALLEJERO.md` §E),
 `2026-08-02_wfs_urbanismo-Vias_completa-4326.json` (3.359 vías)
+
+---
+
+## [2026-08-02] — El nombre no es un identificador, y lo volví a usar como tal: fusioné cinco Plaza de España de OSM en un solo objeto
+
+**Categoría:** instrumento / identidad del objeto
+**Síntoma:** el emparejador por nube de portales (tanda 4) asignaba **el mismo objeto OSM** a cinco
+vías municipales distintas, separadas entre sí por kilómetros:
+
+```
+cod 10800  PLAZA ESPAÑA          (urbana)  -> EMPAREJADA  n= 8  cons 0,50  -> "Plaza de España"
+cod 10840  PLAZA ESPAÑA ---CRT             -> EMPAREJADA  n=11  cons 0,55  -> "Plaza de España"
+cod 10860  PLAZA ESPAÑA ---CST             -> EMPAREJADA  n= 6  cons 1,00  -> "Plaza de España"
+cod 10880  PLAZA ESPAÑA ---GRP             -> EMPAREJADA  n=12  cons 0,83  -> "Plaza de España"
+cod 10920  PLAZA ESPAÑA ---PÑF             -> EMPAREJADA  n= 6  cons 0,83  -> "Plaza de España"
+```
+
+**Causa raíz:** al construir los candidatos agrupé la geometría de OSM **por el valor de `name`**,
+globalmente y sin mirar dónde está cada trozo. OSM tiene **cinco** Plaza de España en el término
+—una por barrio rural—, y mi agrupador las cosió en un único objeto que se extiende 20 km. La nube
+de portales **sí estaba distinguiendo bien**: cada una votaba a su plaza. Era el candidato el que
+no existía como cosa separada. **Es la ley nº36 —*el nombre no es un identificador, es una etiqueta
+que se repite*— aplicada por mí a OSM el día después de descubrirla en el callejero municipal.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la contraprueba de
+desplazamiento entera**, que es la ley mayor de la tanda anterior y la que el método declaraba
+obligatoria:
+
+```
+                                   EMPAREJADA
+señal (portales reales)              86,1 %
+portales +2 km al norte              21,3 %
+nubes teletransportadas al azar       6,0 %
+```
+
+Se hunde limpiamente, 4× y 14×, y **firma un instrumento que tiene dentro una fusión de homónimos.**
+Y la razón de que no lo vea es estructural, no mala suerte: **desplazar 2 km no acerca dos homónimos
+que están a 20 km**. La contraprueba de desplazamiento comprueba que el instrumento sabe *dónde*
+está la cosa; **no comprueba que sepa *cuántas* cosas hay**. Son dos preguntas distintas y yo tenía
+verde solo en la primera.
+
+**Cómo se cazó:** por el banco de pruebas que Antonio dejó puesto en el briefing —*"las ocho PLAZA
+ESPAÑA: ¿la nube las distingue?"*—. **No lo cacé mirando el resultado global, que era bueno:** lo
+cacé porque había un caso concreto y conocido al que estaba obligado a mirarle la cara. El total
+(86,1 %) no habría delatado nunca a 5 vías de 2.731.
+
+**Arreglo aplicado:** el candidato deja de ser un `name` y pasa a ser un **grupo de ways del mismo
+nombre espacialmente encadenados** (unión por nodo compartido o por extremos a ≤150 m). Un nombre
+puede dar varios candidatos; dos plazas homónimas a 20 km son dos objetos.
+**Contraprueba del arreglo:** las tres pasadas se repiten enteras, y las ocho Plaza España tienen
+que salir con ocho objetos OSM distintos.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **una contraprueba de posición no es una contraprueba de identidad.**
+Que el instrumento falle con el dato movido demuestra que usa la geometría; **no demuestra que los
+objetos con los que empareja sean objetos**. Hay que comprobar aparte, y con casos conocidos, que
+dos cosas distintas del mundo no se han convertido en una sola dentro del instrumento.
+⚠️ Y la de andar por casa, que ya va dos veces en dos días: **cada vez que agrupo algo por su
+nombre, tengo que preguntarme cuántos homónimos tiene ese nombre.** En Zaragoza, ocho.
+**Traza:** `t4_nube.py` §A6 (script desechable), `data/exploracion/2026-08-02_osm_overpass_zaragoza-termino_nombres.json`
+
+---
+
+## [2026-08-02] — El 90,4 % del lado de la calle llevaba dentro 120 ways que aciertan sin acertar nada
+
+**Categoría:** instrumento / control
+**Síntoma:** primera medición de si la paridad del número predice el lado de la calle, sobre 1.409
+ways de OSM con ≥6 portales y ambas paridades presentes:
+
+```
+SEÑAL (paridad real)       media 0,975   >=0,90: 90,4 %   =1,00: 81,6 %
+⭐ LÍNEA BASE (barajada)    media 0,706   >=0,90: 12,0 %   =1,00:  9,9 %
+```
+
+Un 90,4 % contra 12,0 %. **Número listo para reportar**, y con su línea base al lado, que es la ley
+nº37 de ayer cumplida al pie de la letra.
+
+**Causa raíz:** en un way donde **todos** los portales caen al mismo lado del eje, la regla *"a cada
+paridad se le asigna su signo mayoritario"* acierta el 100 % **con cualquier asignación de
+paridades**, incluida una barajada. No mide nada: la pregunta no se puede hacer ahí. Había **120
+ways así** dentro del universo, inflando las dos columnas a la vez.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **la línea base barajada**, que es
+justo el control que la ley de ayer declara obligatorio. Dio 12,0 % contra 90,4 % —una separación
+enorme— **y llevaba dentro el mismo artefacto que estaba certificando**. Una línea base construida
+sobre un universo contaminado hereda la contaminación: baraja el dato, no el universo.
+
+**Cómo se cazó:** por la costura del briefing —*"si D2 sale muy bien, sospecha"*—, no por el
+instrumento. Me obligué a preguntar *"¿de qué manera trivial se puede sacar un 1,00 aquí?"* y la
+respuesta apareció en un minuto.
+
+**Arreglo aplicado:** el universo pasa a exigir **ambas paridades Y ambos lados ocupados**: 1.289
+ways de 2.086. Los 120 descartados se enseñan aparte como control del control:
+
+```
+universo válido (1.289 ways)  señal >=0,90: 89,5 %    ⭐ barajado >=0,90:  4,3 %
+los 120 descartados           señal  media 1,000      ⭐ barajado  media 1,000   ← acierto sin mérito
+```
+
+La línea base cae de 12,0 % a **4,3 %**: dos tercios de la "línea base" original eran los propios
+descartados. **El resultado real es más fuerte, no más débil, que el que iba a publicar.**
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **una línea base no limpia un universo mal definido.** Barajar el dato
+comprueba que la señal está en el dato; **no comprueba que la pregunta se pueda hacer en todos los
+casos del universo**. Antes de la línea base va otra pregunta: *¿en cuántos de estos casos la
+respuesta correcta es trivial?* Esos casos salen fuera y se enseñan aparte.
+**Traza:** `t8_lado.py` → `t9_lado2.py` (desechables)
+
+---
+
+## [2026-08-02] — Descarté el verificador de cruces con un argumento falso, y el veredicto salió bien por accidente
+
+**Categoría:** razonamiento / suerte
+**Síntoma:** yo había descartado la idea de sacar los cruces de los portales diciendo que *"no hay
+puertas en un cruce"*. La medición sobre 11.562 cruces conocidos de OSM, en zona urbana, con control
+de puntos que no son cruce:
+
+```
+                                      p25   MEDIANA   p75    p90
+hueco en CRUCES conocidos            10,7    16,3    25,9   39,4
+⭐ CONTROL: puntos que NO son cruce   11,2    21,4    33,8   45,7
+```
+
+**Los cruces tienen MENOS hueco de portales que el tramo medio.** Con umbral de 20 m, la señal avisa
+en el 38,0 % de los cruces y en el 52,9 % de los no-cruces: **razón 0,72**, es decir, apunta en
+dirección contraria.
+
+**Causa raíz de mi error:** en un cruce confluyen **cuatro esquinas**, y las esquinas tienen portal.
+En medio de un tramo hay dos fachadas; en un cruce, cuatro. **Hay más puertas cerca de un cruce que
+en ningún otro sitio de la calle.** Mi premisa era exactamente lo contrario de la realidad.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **el veredicto**. Dije "no sirve" y no
+sirve. Ese argumento habría pasado por bueno indefinidamente **porque la conclusión era correcta** —
+y nadie audita la premisa de una conclusión que le parece bien. **Es el fallo más difícil de ver de
+esta bitácora: no deja síntoma.**
+
+**Y hay un coste concreto, no teórico:** si mi premisa hubiera sido cierta, la primera medición
+—hueco alrededor del punto— habría dado señal. Como era falsa, medí lo que no era y **estuve a punto
+de cerrar el capítulo sin probar la versión que Antonio realmente describió**: el hueco **a lo largo
+de una misma calle**, donde la numeración se interrumpe al pasar la boca de otra. Ésa sí tiene
+señal, medida sobre 14.204 huecos:
+
+```
+hueco de 60-100 m -> cae sobre un cruce el 42,9 %    línea base 27,2 %    razón 1,58
+```
+
+**Real, y aun así insuficiente: 1,58× son 57 % de falsos avisos.** El veredicto final sigue siendo
+"no sirve como guardián", pero ahora está sostenido por el número correcto y no por una premisa
+inventada.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **acertar el veredicto con el argumento equivocado es peor que
+equivocarse**, porque no deja rastro. Cuando descarte una idea, lo que hay que anotar y comprobar no
+es la conclusión: **es la premisa**. Y si la premisa nunca se midió, el descarte es una opinión con
+cara de resultado.
+⚠️ Corolario operativo: **medir la versión de la idea que propuso quien la propuso**, no la que yo
+entendí. Las dos versiones dieron resultados de signo opuesto.
+**Traza:** `t10_cruces.py` → `t11_cruces2.py` → `t12_gap.py` (desechables)
+
+---
+
+## [2026-08-02] — Dije que unir los portales daría un zigzag inservible. Da 1,3 m de error
+
+**Categoría:** predicción refutada
+**Síntoma:** sostuve que generar el eje de una calle uniendo sus portales no podía funcionar —*"los
+portales están en las puertas, no en la calzada; unirlos daría un zigzag de acera a acera y por
+dentro de las manzanas en las curvas"*—. Barrido de 200 calles al azar (semilla `20260802`) contra
+el eje real de OSM:
+
+```
+                              calles   error mediana    p90      máx    | error medio <10 m
+E1  unir TODOS en orden         200         5,9 m     26,4 m   284,8 m  |      78 %
+E2  promediar por paridad       168         1,3 m     17,1 m   126,9 m  |      88 %
+```
+
+**En calles urbanas normales, E2 da decímetros:** Arzobispo Apaolaza 0,2 m, Río Cinca 0,6 m,
+Privilegio de la Unión 0,6 m.
+
+**Causa raíz de mi error:** describí correctamente **E1** —el zigzag existe, p90 de 26 m y un máximo
+de 285 m— y **usé esa objeción para descartar la idea entera**, sin considerar la variante obvia que
+la anula: **separar los dos hilos por paridad y promediarlos**. Cada hilo va por su acera, y la media
+de las dos aceras **es la calzada**. La objeción que puse era, literalmente, la descripción del
+problema que la variante resuelve.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **nada, y ése es el problema.** No
+había medición que refutar porque nunca hice ninguna: la afirmación llevaba desde el diseño sin un
+número al lado, en un proyecto cuya primera regla es que toda afirmación va con su evidencia. Pasó
+el filtro **por ser mía y sonar razonable**.
+
+**Lo honesto, con el contador delante:** E2 solo se puede calcular en **168 de 200 calles (84 %)**,
+y las 32 que quedan fuera **no son al azar** —son las de numeración correlativa o de un solo lado,
+las difíciles—. El 1,3 m está medido sobre el subconjunto fácil.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐ **una objeción a una idea ajena tiene el mismo listón de evidencia que
+una afirmación propia.** *"Esto no puede funcionar porque X"* es una afirmación sobre el mundo y hay
+que medirla, sobre todo cuando ahorra trabajo creérsela.
+⚠️ Y la específica: **antes de descartar una idea, construir su mejor versión, no la más literal.**
+Descarté E1 y llamé a eso descartar E.
+**Traza:** `t10_cruces.py`, `t11_cruces2.py`, `t12_gap.py` (desechables)
