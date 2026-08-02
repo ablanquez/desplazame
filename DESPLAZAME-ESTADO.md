@@ -27,12 +27,18 @@
 - **Las cinco decisiones de diseño, cerradas** (§5 · D1–D5), más **el backtesting elevado a
   principio del proyecto** por Antonio.
 - ⭐⭐ **P0 CERRADA (§5·D0): el grafo se construye sobre OSM.** El dato municipal **verifica, no
-  decide**. Con ello el problema del nivel municipal —que seguía abierto— desaparece.
+  decide**.
+- ⭐⭐ **D0 MEDIDA Y REFORZADA** (tandas 3 y 5): solo el **0,97 %** del callejero está sin mapear en
+  OSM **donde el padrón dice que hay puertas**. El hueco duro son 48 vías, y **23 de ellas no
+  tienen ni un portal** — Valdespartera, Arcosur, Parque Venecia: ahí todavía no hay ciudad.
+- ⭐⭐ **Dos cosas que el diseño daba por imposibles, medidas y posibles** (tanda 4, idea de
+  Antonio): **los portales generan el eje** (1,3 m de error mediano promediando por paridad) y
+  **el lado de la calle sí se puede saber** (89,5 % contra línea base 4,3 %).
 
-**Falta decidir:** el stack · el alcance v1 del buscador · el momento oro.
+**Falta decidir:** el stack · el alcance v1 del buscador · el momento oro · ⭐ **cómo entran en el
+diseño los tres usos nuevos de los portales** (§4).
 
-**Lo siguiente:** medir **cuántas vías del callejero municipal no existen en OSM** (el número que
-dice cuánta ciudad se pierde con D0, y el único cabo que nace de esa decisión). Después, abrir H1.
+**Lo siguiente:** incorporar al diseño de H1 lo que abrieron las tandas 4 y 5, y abrir H1.
 
 ---
 
@@ -168,6 +174,22 @@ trazados de línea · BiZi · carriles bici · geocodificación.
 2. ⚠️ **EL NIVEL.** Sin campo de cota, planarizar inventa cruces. Es el mayor riesgo de
    corrección del proyecto y no está resuelto. La pista está en OSM (`bridge`, `layer`).
 3. **INTEGRAR OSM** para el pie, con su ODbL declarada.
+
+### ⭐⭐ Los portales no son solo destinos: son TESTIGOS
+
+*(Idea de Antonio, tanda 4. Yo los había tratado todo el proyecto como puntos que se enganchan a
+un grafo que viene de otro sitio. Descarté la idea demasiado rápido y hubo que insistir.)*
+
+| Uso | Veredicto | Números |
+|---|---|---|
+| **Emparejar calles sin mirar el nombre** | ✅ **complementario**, no sustituto | Nube 59,0 % · texto 77,3 % · **juntos 85,6 %**. Rescata 279 vías que el texto no toca — erratas de OSM y homónimos. ⚠️ No opina sobre las 1.056 vías con <3 portales |
+| **Medir cobertura sin depender de nombres** | ✅ | Ver el 0,97 % de §5·D0 |
+| **Verificar los cruces** *(el hueco como señal)* | ⛔ **descartado** | 42,9 % contra 27,2 % de azar = **1,58×**, con 57 % de falsos avisos. *Un detector que grita por nada es uno al que se deja de hacer caso* |
+| ⭐⭐ **Decir de qué LADO de la calle está el portal** | ✅ **y el diseño lo daba por imposible** | **89,5 %** de ways con paridad consistente contra **línea base 4,3 %**. Umbral 0,95: cubre el 83,2 % de los ways. ⚠️ En el 16,8 % restante **la app se calla**: decir la acera equivocada es peor que no decirla |
+| ⭐⭐ **GENERAR el eje uniendo portales** | ✅ **y yo dije que no** | Uniendo todos: 5,9 m de error mediano (zigzag, mi objeción era correcta **para esa versión**). **Promediando por paridad: 1,3 m** — decímetros en calles normales. ⚠️ Solo calculable en 168 de 200, **y las 32 que faltan no son al azar**: son las correlativas y las de un solo lado |
+
+⭐ **El caso que lo justifica todo:** `CAMINO LAS MONJAS`. El emparejador de texto eligió
+*Camino de Las Monjas*, **a 278 m** de sus 12 portales. La nube eligió *Barrio Clavería*, **a 5 m**.
 
 ⚠️ **Y dos números que sostienen conclusiones y NO están cerrados**, declarados por el propio
 ejecutor: la conectividad se midió sobre **160 tramos de 3.644 (4,4 %)**, y **117 de las 178
@@ -328,13 +350,17 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 | ⭐⭐ **"Ante un cruce dudoso, no unir por defecto: es el error ruidoso"** | ⚠️ **Falso, y lo firmé YO** con un argumento de asimetría correcto en abstracto. La medición lo tumbó: la jerarquía daba **4 falsos positivos y 0 aciertos** en la zona elegida como control positivo. **La prudencia salía carísima porque el caso que quería proteger casi no existe** (el 97 % de 2.680 cruces son a nivel) |
 | ⭐⭐ **"Con la jerarquía fuera, la regla ya vale"** | ⚠️ **Falso, y también lo firmé YO.** Aplicada a 7.114 cruces habría cortado **634 uniones reales para evitar 2 errores**, y partido la plataforma de Delicias por dentro. Le faltaban dos cláusulas, **y ninguna salió de razonar: las dos salieron de contar** |
 | ⭐ **"El municipal no tiene ninguna señal de desnivel"** | **Falso.** Sí la tiene —salto de `limite_vel`, jerarquía, titularidad—. Pero el paso inferior de Cesáreo Alierta demuestra que **no basta**: mismo límite arriba y abajo, misma familia de vía. Solo lo caza OSM |
+| ⭐⭐ **"Unir los portales para generar el eje daría un zigzag inservible"** | ⚠️ **Falso, y era MÍO.** Describía bien la versión torpe (unir todos: 5,9 m) y la usé para descartar la idea entera **sin considerar la variante que la anula**: cada hilo va por su acera, y **la media de las dos aceras es la calzada — 1,3 m**. Nunca lo medí. *La idea era de Antonio y hubo que insistir* |
+| ⭐⭐ **"De qué lado de la calle está un portal no se puede saber"** (P4.3 del diseño) | ⚠️ **Falso.** 89,5 % de aciertos contra una línea base del 4,3 %. **Abre el nivel 2 completo** |
+| ⭐ **"Hay tres huecos de cobertura nuevos"** | ⚠️ **Dos de los tres eran del propio instrumento.** Un radio de 25,0 m contra portales a 25,0–26,5 m: **por un metro**. De 10 huecos publicados, **4 falsos** |
+| ⭐ **"El 4,11 % puede estar tocado por el sesgo de homónimos"** | ⚠️ **Sospecha MÍA, refutada leyendo el código:** aquel instrumento **no toca los nombres**, así que era inmune. Correcto y **ligeramente pesimista** |
 | ⭐ **"Los 504 de Overpass eran la forma de la consulta"** (ley nº32) | ⚠️ **Refutada al día siguiente por el propio ejecutor**, con el dato en la mano: fallaron también sentencias únicas, y el servidor declaraba slots libres ocho segundos después de un 504. **Causa: `CAUSA NO CONFIRMADA`** — que es `NO CONSTA` con apellido |
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 23 VECES — sin una sola línea de código
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 29 VECES — sin una sola línea de código
 
-**Ocho tandas. Cero código de producto. Veintitrés instrumentos mintiendo.** Ya es una categoría,
+**Once tandas. Cero código de producto. Veintinueve instrumentos mintiendo.** Ya es una categoría,
 no una anécdota — y llegó antes que el proyecto.
 
 | # | Qué mintió |
@@ -362,6 +388,12 @@ no una anécdota — y llegó antes que el proyecto.
 | 21 | ⭐⭐ **CUATRO VENTANAS, TRES FECHAS.** Al caer la instancia principal, dos zonas se pidieron a una réplica: traen datos del 6 y el 31 de mayo, no del 2 de agosto. **El sello de fecha vive tres niveles dentro del JSON y nadie lo mira** |
 | 22 | ⭐ **`layer` NO ES ENTERO:** aparece `-1.5`. Un `int()` lo revienta o lo tira en silencio. Y **`tunnel=building_passage` NO es un túnel**: es un pasaje bajo un edificio y a pie se pasa. Tratarlo como desnivel cortaría un camino real |
 | 23 | ⭐ **UN HTML DE ERROR GUARDADO CON EXTENSIÓN `.json`.** 695 bytes de `<!DOCTYPE html>` con nombre de dato. Cazado y renombrado en el momento — **una bomba a seis meses vista** |
+| 24 | ⭐⭐ **UN INSTRUMENTO QUE MEDÍA DENSIDAD URBANA Y LO LLAMABA COBERTURA.** Con el callejero **movido 2 km al norte**, seguía dando **58 % de cobertura**: en una ciudad, cualquier línea está a 20 m de alguna calle |
+| 25 | ⭐⭐ **Y LO QUE LO CERTIFICABA EN FALSO ERA UN BARRIDO DE SENSIBILIDAD:** 96-99 % con umbrales de 5, 10, 15, 20, 30 y 50 m. Esa estabilidad se lee como robustez —*"da igual el número, luego no depende de él"*— y era lo contrario: **salía lo mismo porque el umbral no era la variable que mandaba** |
+| 26 | ⭐⭐ **UNA CONTRAPRUEBA DE LAXITUD QUE PASÓ 8 DE 8 Y NO VALÍA NADA:** los disparates inventados (`CALLE ZURRIBURRI DEL PAMPANO`) no se parecen a nada. **La laxitud vive en los casi-aciertos**, y lo destapó una muestra al azar: `PLAZA ESPAÑA ---GRP` casando con *Avenida de España*, con **ocho Plaza España en 20 km** |
+| 27 | ⭐⭐ **AGRUPAR OSM POR `name` COSIÓ SIETE PLAZA DE ESPAÑA EN UN OBJETO DE 20 KM**, y cinco vías municipales emparejaron con esa quimera. ⚠️ **La ley 17 incumplida al día siguiente de escribirla.** (OSM tiene además 13 Calle Mayor y 9 Miguel Servet) |
+| 28 | ⭐⭐⭐ **Y LA CONTRAPRUEBA DE DESPLAZAMIENTO DIO VERDE CON ESE FALLO DENTRO** — no por mala suerte: **mover 2 km no acerca dos homónimos que están a 20**. Comprueba que el instrumento sabe **dónde** está una cosa; no que sepa **cuántas** hay. *Lo cazó el banco de pruebas, no el total: 5 vías de 2.731 no mueven un porcentaje* |
+| 29 | ⭐⭐⭐ **UN RADIO DE 25,0 m DECLARANDO UN HUECO QUE NO EXISTÍA, POR UN METRO.** `CALLE TOMILLO` está en OSM; sus portales, a 25,0–26,5 m (chalets con jardín delantero, portal en la valla). **4 de 10 huecos publicados eran falsos.** ⭐ Y lo que lo blindaba era su mejor argumento: *el radio salía del p85 de una propiedad física, no se puede retocar para que quede bonito*. Cierto — **y aun así sesgado** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -432,6 +464,33 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     eligió como control positivo y fue la que tumbó la regla.)*
 23. ⭐ **EL ERROR ACEPTADO A SABIENDAS TIENE QUE SER CONTABLE.** Si no lleva un contador, "lo
     asumimos" es una frase que nadie relee a los tres meses, y el fallo sigue vivo.
+24. ⭐⭐⭐ **UN INSTRUMENTO SE VERIFICA POR EJES, NO POR CASOS.** Son nueve, y hay que enumerarlos
+    aunque no se puedan medir todos: **posición · vecindad · dirección · identidad ·
+    correspondencia · umbral/cola · escala · densidad · agregación.** *Caso real: la contraprueba
+    de desplazamiento pasa el eje POSICIÓN y es CIEGA al eje IDENTIDAD — mover 2 km no acerca dos
+    homónimos que están a 20.* **Un instrumento que solo pasa un eje no está verificado: está
+    verificado en un eje.**
+25. ⛔ **UN BARRIDO DE SENSIBILIDAD NO ES UNA CONTRAPRUEBA.** Recorre el parámetro que sospechas y
+    certifica el instrumento en el eje equivocado. Peor: **su estabilidad se lee como robustez**
+    cuando significa que ese parámetro no es la variable que manda.
+26. ⭐⭐ **LA LAXITUD VIVE EN LOS CASI-ACIERTOS, NO EN LOS DISPARATES.** Un control hecho de
+    absurdos inventados los rechaza todos y no prueba nada. Los casos difíciles salen de una
+    muestra **al azar**, con su semilla declarada.
+27. ⭐⭐ **UN UMBRAL HONESTO NO ES UN UMBRAL CORRECTO.** Un percentil deja fuera su complemento
+    **por construcción**, y en datos geográficos ese 15 % **no está repartido al azar: son barrios
+    enteros**. ⭐ Corolario: **el umbral que sirve para ATRIBUIR no sirve para NEGAR.** Un radio que
+    dice *"esto pertenece aquí"* no puede usarse para decir *"aquí no hay nada"*.
+28. ⭐⭐ **`NO CONSTA` CUANDO NO SE PUEDE SABER; NO CUANDO NO SE HA MIRADO.** *Un `CAUSA NO
+    CONFIRMADA` puesto teniendo el dato en disco no es honestidad: es deuda.*
+29. ⭐⭐ **CLASIFICAR ANTES DE CONTAR.** Un número el doble de grande que el publicado parecía un
+    hallazgo; clasificado, el **72,3 % era ruido del propio instrumento**. Contar sin clasificar
+    convierte el error de medición en descubrimiento.
+30. ⭐⭐ **UNA COSTURA NO TIENE QUE ACERTAR PARA SERVIR.** *La que mandaba parar si el número salía
+    muy distinto no cazó lo que pretendía — pero metió una PAUSA entre el resultado y su
+    publicación, y con eso bastó.* El valor de una costura es el tiempo que compra, no la
+    predicción que hace.
+31. **UNA COBERTURA SIN LÍNEA BASE NO ES UNA MEDICIÓN.** Ningún porcentaje se publica sin su azar
+    al lado.
 
 ---
 
@@ -498,7 +557,10 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **2** | ⭐ El diseño en papel del grafo (912 líneas, 6 preguntas) | **H1** | ✅ |
 | **2.B** | Medir el falso negativo de la regla de nivel (Huesca + Delicias) | **H1** | ✅ **invirtió la decisión** |
 | **2.C** | Cerrar el capítulo del nivel (Alierta + Pirineos + plataforma) | **H1** | ✅ **volvió a invertirla** |
-| **3** | *(siguiente: medir la cobertura de OSM contra las 3.359 vías municipales)* | **H1** | ⬜ |
+| **3** | Cobertura de OSM contra las 3.359 vías municipales | **H1** | ✅ |
+| **4** | ⭐ **Los portales como testigos** (idea de Antonio) | **H1** | ✅ **dos imposibles caídos** |
+| **5** | Auditoría del 4,11 % — ¿es cierto el número publicado? | **H1** | ✅ **el instrumento auditor se encontró a sí mismo** |
+| **6** | *(siguiente: incorporar al diseño lo que abrieron 4 y 5)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -544,6 +606,22 @@ cazados.
 
 ---
 
+### 3 — ¿Cuánta ciudad se pierde con D0? (2/08)
+Barrido completo de las 3.359 vías contra OSM. ⭐ **Y la contraprueba que cambió el método de este
+proyecto: el callejero movido 2 km al norte seguía dando 58 % de cobertura** — el instrumento medía
+densidad urbana, no correspondencia. Instrumento v2 (5 m + paralelismo ±30°): señal 92,2 % contra
+azar 5,0 %. **Veredicto: D0 se sostiene.**
+
+### 4 — Los portales como testigos (2/08)
+⭐⭐ **Idea de Antonio.** Dos cosas que el diseño daba por imposibles resultaron posibles (§4), y
+**dos de mis conclusiones cayeron**. Y un instrumento roto que las contrapruebas firmaron: siete
+Plaza de España cosidas en un objeto de 20 km.
+
+### 5 — ¿Es cierto el 4,11 %? (2/08)
+La auditoría vino a revisar el número de la tanda 3 y **se encontró a sí misma**: el que fallaba
+era el instrumento de la tanda 4, por **un metro**. El 4,11 % era correcto y ligeramente
+pesimista. ⭐ Y sale la tabla de **los nueve ejes por los que un instrumento puede fallar**
+(§8·24), que deja de ser anécdota y pasa a ser checklist.
 ## 10 · Cabos abiertos
 
 ### ⭐⭐ Los que bloquean el diseño
@@ -571,6 +649,13 @@ Los dos en §5.)*
   hipótesis causales fueron refutadas. Vigilar en las descargas de H1.
 - ⚠️ **Fechas de las réplicas.** Comprobar el sello de cada respuesta de OSM: una réplica puede
   servir datos de hace meses.
+- ⭐⭐ **EL EJE ESCALA no está medido en NINGUNA tanda.** Una vía de 50 m tiene **2 puntos**
+  muestreados a paso 25 m, y con 2 puntos un criterio de mayoría es una moneda. Es el hueco
+  declarado de la tabla de nueve ejes (§8·24).
+- ⚠️ **35.555 ways de OSM de 55.452 sin `highway` conocido.** El crudo solo trajo los que tienen
+  `name`. Se cierra cuando toque descargar OSM de verdad en H1 — pide red.
+- ⚠️ **163 de las 2.595 vías "encontradas" (6,3 %) apuntan a un nombre que corresponde a más de un
+  objeto físico.** El texto acertó el nombre y **no dice cuál es**.
 - **944 paradas en el WFS contra 934 en el GTFS.** Sin explicar.
 - **La clave del NAP.** Trámite de Antonio. El feed muere el **05/10/2026**.
 - **Los dos números no cerrados de §4** (4,4 % de la red medida; 117 capas sin abrir).
