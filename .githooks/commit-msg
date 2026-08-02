@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+#
+# ─────────────────────────────────────────────────────────────────────────────
+#  LA BITÁCORA ES OBLIGATORIA EN CADA `fix:`
+#
+#  Un `fix:` es la confesión de que algo estuvo roto. Si el arreglo se commitea
+#  sin dejar constancia de QUÉ pasó y —sobre todo— de QUÉ PRUEBA DIO VERDE
+#  MIENTRAS EL FALLO ESTABA VIVO, ese dato se pierde para siempre: es
+#  perecedero, y a los tres días ya nadie lo recuerda con precisión.
+#
+#  Este guardián NO bloquea a secas. Si falta la entrada, la AUTOGENERA con
+#  todos los campos en NO CONSTA y la deja en el stage: cumplir tiene que ser
+#  fácil, no solo incumplir difícil. `NO CONSTA` es un valor honesto y válido;
+#  inventar, no.
+#
+#  La DECISIÓN viene de Turnia (002), que la tomó primero y la tiene en
+#  producción. El código es propio: copiar el hook habría acoplado 004 a 002 y
+#  heredado sus agujeros — y el suyo depende de `npm test`, que aquí no existe
+#  porque el stack todavía no está decidido.
+#
+#  ⭐ DIFERENCIA CON EL DE TURNIA: aquel comprueba que docs/BITACORA.md esté EN
+#     EL STAGE. Eso deja una puerta abierta: añadir el fichero con un cambio
+#     trivial —una coma, un espacio— lo satisface sin escribir nada. Este
+#     comprueba que el diff en stage AÑADA UNA CABECERA DE ENTRADA NUEVA
+#     (`## [fecha] — título`). Se puede seguir engañando a propósito, claro,
+#     pero ya no por accidente, que es de lo que protege un guardián.
+#
+#  INSTALACIÓN (los hooks NO viajan en git — un guardián que no existe en el
+#  clon del que llega es un guardián que no existe):
+#
+#      git config core.hooksPath .githooks
+#
+#  Sin dependencias: solo git y utilidades POSIX. Nada de node ni npm.
+# ─────────────────────────────────────────────────────────────────────────────
+
+set -u
+
+MSG_FILE="$1"
+SUBJECT="$(head -n 1 "$MSG_FILE")"
+BITACORA="docs/BITACORA.md"
+
+# ¿El asunto es un fix?  Cubre: fix:  fix(ámbito):  fix!:  fix(ámbito)!:
+es_fix() {
+    printf '%s' "$SUBJECT" | grep -qE '^fix(\([^)]+\))?!?:'
+}
+
+# ¿El diff EN STAGE de la bitácora añade una cabecera de entrada nueva?
+# Se mira el contenido añadido (líneas que empiezan por '+'), no la presencia
+# del fichero. Una entrada es una línea '## [' — el formato de la bitácora.
+anade_entrada() {
+    git diff --cached -- "$BITACORA" \
+        | grep -qE '^\+## \['
+}
+
+if es_fix && ! anade_entrada; then
+
+    FECHA="$(date +%F)"
+    TITULO="$(printf '%s' "$SUBJECT" | sed -E 's/^fix(\([^)]+\))?!?:[[:space:]]*//')"
+
+    {
+        printf '\n## [%s] — %s\n' "$FECHA" "$TITULO"
+        printf '**Categoría:** NO CONSTA\n'
+        printf '**Síntoma:** NO CONSTA\n'
+        printf '**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ NO CONSTA\n'
+        printf '**Causa raíz:** NO CONSTA\n'
+        printf '**Cómo se cazó:** NO CONSTA\n'
+        printf '**Arreglo aplicado:** NO CONSTA\n'
+        printf '**Commit:** (este commit)\n'
+        printf '**Ley que sale de aquí:** NO CONSTA\n'
+        printf '**Traza:** NO CONSTA\n'
+    } >> "$BITACORA"
+
+    git add "$BITACORA"
+
+    {
+        echo ''
+        echo '──────────────────────────────────────────────────────────────────'
+        echo '⚠️  COMMIT RECHAZADO: un `fix:` sin entrada en la bitácora.'
+        echo ''
+        echo "    He autogenerado el esqueleto al final de $BITACORA"
+        echo '    (todos los campos en NO CONSTA) y lo he añadido al stage.'
+        echo ''
+        echo '    Rellena lo que sepas y vuelve a commitear. El campo ⭐ es el'
+        echo '    importante y el que se pierde: qué prueba estaba en VERDE'
+        echo '    mientras el fallo ya existía. Si no hubo ninguna, déjalo en'
+        echo '    NO CONSTA — es un valor honesto. Lo que no vale es inventarlo.'
+        echo '──────────────────────────────────────────────────────────────────'
+        echo ''
+    } >&2
+
+    exit 1
+fi
+
+exit 0
