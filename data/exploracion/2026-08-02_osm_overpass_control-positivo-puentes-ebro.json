@@ -1,0 +1,60 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-08-02T13:14:36Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 24025331,
+  "center": {
+    "lat": 41.6571270,
+    "lon": -0.8753993
+  },
+  "tags": {
+    "bicycle": "yes",
+    "bridge": "yes",
+    "emergency": "yes",
+    "foot": "yes",
+    "highway": "living_street",
+    "lanes": "1",
+    "layer": "1",
+    "lit": "yes",
+    "maxspeed": "10",
+    "motor_vehicle": "no",
+    "name": "Puente de Piedra",
+    "name:es": "Puente de Piedra",
+    "name:zh": "圣柱广场",
+    "oneway": "yes",
+    "parking:both": "no",
+    "psv": "yes",
+    "sidewalk": "both",
+    "sidewalk:both:surface": "paving_stones",
+    "surface": "concrete",
+    "tourist_bus": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 421798388,
+  "center": {
+    "lat": 41.6571210,
+    "lon": -0.8754088
+  },
+  "tags": {
+    "area": "yes",
+    "bridge": "yes",
+    "bridge:structure": "arch",
+    "description": "El puente de Piedra y el Pretil de San Lázaro son un conjunto monumental levantado sobre el río Ebro en la ciudad de Zaragoza.\nLongitud: 225 metros.\nNúmero de pilares: 7",
+    "layer": "1",
+    "man_made": "bridge",
+    "name": "Puente de Piedra",
+    "wikidata": "Q2638325"
+  }
+}
+
+  ]
+}

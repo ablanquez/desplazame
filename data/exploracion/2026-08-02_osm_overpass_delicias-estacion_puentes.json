@@ -1,0 +1,2991 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-08-02T13:15:35Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 4766209,
+  "bounds": {
+    "minlat": 41.6598265,
+    "minlon": -0.9136699,
+    "maxlat": 41.6602234,
+    "maxlon": -0.9122618
+  },
+  "nodes": [
+    410495407,
+    2583954462,
+    6283522494
+  ],
+  "geometry": [
+    { "lat": 41.6602234, "lon": -0.9136699 },
+    { "lat": 41.6599756, "lon": -0.9127980 },
+    { "lat": 41.6598265, "lon": -0.9122618 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "use_sidepath",
+    "highway": "residential",
+    "lanes": "2",
+    "layer": "2",
+    "maxspeed": "30",
+    "name": "Calle Miquel Roca i Junyent",
+    "name:etymology:wikidata": "Q9033511",
+    "oneway": "yes",
+    "sidewalk:both": "separate",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 23751567,
+  "bounds": {
+    "minlat": 41.6584322,
+    "minlon": -0.9088767,
+    "maxlat": 41.6595925,
+    "maxlon": -0.9078489
+  },
+  "nodes": [
+    13111120098,
+    4354047274,
+    4354047276,
+    13111137902,
+    257347124,
+    4354047275,
+    1976554016,
+    4354047283,
+    274101253,
+    4354047284,
+    274101254,
+    1976554011,
+    4354047285,
+    274101255,
+    1976554017,
+    4354047277,
+    1976553990,
+    4354047278,
+    4354047286,
+    274101256,
+    274101257,
+    274101258,
+    2885063201,
+    4354047280,
+    274101259,
+    4354047279,
+    274101260,
+    4354047287,
+    274101261,
+    274101266
+  ],
+  "geometry": [
+    { "lat": 41.6584322, "lon": -0.9088121 },
+    { "lat": 41.6584531, "lon": -0.9088241 },
+    { "lat": 41.6584957, "lon": -0.9088471 },
+    { "lat": 41.6585241, "lon": -0.9088579 },
+    { "lat": 41.6585569, "lon": -0.9088665 },
+    { "lat": 41.6586018, "lon": -0.9088747 },
+    { "lat": 41.6586449, "lon": -0.9088767 },
+    { "lat": 41.6586989, "lon": -0.9088753 },
+    { "lat": 41.6587432, "lon": -0.9088685 },
+    { "lat": 41.6587903, "lon": -0.9088537 },
+    { "lat": 41.6588338, "lon": -0.9088331 },
+    { "lat": 41.6588699, "lon": -0.9088132 },
+    { "lat": 41.6589031, "lon": -0.9087863 },
+    { "lat": 41.6589230, "lon": -0.9087588 },
+    { "lat": 41.6589345, "lon": -0.9087435 },
+    { "lat": 41.6589478, "lon": -0.9086885 },
+    { "lat": 41.6589676, "lon": -0.9085908 },
+    { "lat": 41.6589905, "lon": -0.9085110 },
+    { "lat": 41.6590268, "lon": -0.9084212 },
+    { "lat": 41.6590550, "lon": -0.9083645 },
+    { "lat": 41.6590885, "lon": -0.9082965 },
+    { "lat": 41.6591423, "lon": -0.9082190 },
+    { "lat": 41.6592008, "lon": -0.9081522 },
+    { "lat": 41.6592469, "lon": -0.9081031 },
+    { "lat": 41.6592995, "lon": -0.9080553 },
+    { "lat": 41.6593529, "lon": -0.9080162 },
+    { "lat": 41.6594271, "lon": -0.9079765 },
+    { "lat": 41.6594954, "lon": -0.9079509 },
+    { "lat": 41.6595925, "lon": -0.9079115 },
+    { "lat": 41.6595912, "lon": -0.9078489 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "footway",
+    "layer": "3",
+    "surface": "wood"
+  }
+},
+{
+  "type": "way",
+  "id": 27040692,
+  "bounds": {
+    "minlat": 41.6577474,
+    "minlon": -0.9082838,
+    "maxlat": 41.6578677,
+    "maxlon": -0.9074593
+  },
+  "nodes": [
+    296399581,
+    3718541375,
+    4188892834,
+    1324964830,
+    3886988061,
+    3718541376,
+    296403295,
+    4188892835,
+    4196010004,
+    296403296,
+    3886988060,
+    4020472490,
+    30438760
+  ],
+  "geometry": [
+    { "lat": 41.6578677, "lon": -0.9082838 },
+    { "lat": 41.6578417, "lon": -0.9082025 },
+    { "lat": 41.6578161, "lon": -0.9081216 },
+    { "lat": 41.6577925, "lon": -0.9080462 },
+    { "lat": 41.6577711, "lon": -0.9079626 },
+    { "lat": 41.6577563, "lon": -0.9078796 },
+    { "lat": 41.6577474, "lon": -0.9077807 },
+    { "lat": 41.6577475, "lon": -0.9076865 },
+    { "lat": 41.6577485, "lon": -0.9076700 },
+    { "lat": 41.6577525, "lon": -0.9076173 },
+    { "lat": 41.6577622, "lon": -0.9075612 },
+    { "lat": 41.6577753, "lon": -0.9075068 },
+    { "lat": 41.6577910, "lon": -0.9074593 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "no",
+    "highway": "secondary",
+    "lanes": "3",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Avenida de la Ciudad de Soria",
+    "name:etymology:wikidata": "Q12155",
+    "oneway": "yes",
+    "sidewalk": "no",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "wikidata": "Q54551416"
+  }
+},
+{
+  "type": "way",
+  "id": 27040695,
+  "bounds": {
+    "minlat": 41.6569678,
+    "minlon": -0.9090601,
+    "maxlat": 41.6588475,
+    "maxlon": -0.9081088
+  },
+  "nodes": [
+    13530077695,
+    2885063095,
+    296403288,
+    30438364,
+    3604598836,
+    30438349,
+    3604598838,
+    296403291,
+    1930735035,
+    1930735084,
+    296403292,
+    3718700164,
+    30438602,
+    7411458169
+  ],
+  "geometry": [
+    { "lat": 41.6588475, "lon": -0.9090601 },
+    { "lat": 41.6587216, "lon": -0.9090373 },
+    { "lat": 41.6585708, "lon": -0.9089916 },
+    { "lat": 41.6584701, "lon": -0.9089446 },
+    { "lat": 41.6584068, "lon": -0.9089089 },
+    { "lat": 41.6579449, "lon": -0.9086318 },
+    { "lat": 41.6576727, "lon": -0.9084520 },
+    { "lat": 41.6574848, "lon": -0.9083359 },
+    { "lat": 41.6574353, "lon": -0.9082974 },
+    { "lat": 41.6573996, "lon": -0.9082686 },
+    { "lat": 41.6572633, "lon": -0.9082035 },
+    { "lat": 41.6571782, "lon": -0.9081670 },
+    { "lat": 41.6570949, "lon": -0.9081453 },
+    { "lat": 41.6569678, "lon": -0.9081088 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "service",
+    "lanes": "2",
+    "layer": "2",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sorting_name": "Rioja, Calle de la"
+  }
+},
+{
+  "type": "way",
+  "id": 31675267,
+  "bounds": {
+    "minlat": 41.6604501,
+    "minlon": -0.9092253,
+    "maxlat": 41.6604829,
+    "maxlon": -0.9090361
+  },
+  "nodes": [
+    348796017,
+    302889889
+  ],
+  "geometry": [
+    { "lat": 41.6604829, "lon": -0.9090361 },
+    { "lat": 41.6604501, "lon": -0.9092253 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Autovía del Ebro",
+    "name:etymology:wikidata": "Q10965",
+    "oneway": "yes",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 34954313,
+  "bounds": {
+    "minlat": 41.6598874,
+    "minlon": -0.9095032,
+    "maxlat": 41.6603203,
+    "maxlon": -0.9093894
+  },
+  "nodes": [
+    348796056,
+    4020472498,
+    348796075,
+    4020472500,
+    4020472501,
+    348796065,
+    4020472502,
+    296392072
+  ],
+  "geometry": [
+    { "lat": 41.6603203, "lon": -0.9093894 },
+    { "lat": 41.6601892, "lon": -0.9094083 },
+    { "lat": 41.6601358, "lon": -0.9094300 },
+    { "lat": 41.6600693, "lon": -0.9094578 },
+    { "lat": 41.6600205, "lon": -0.9094734 },
+    { "lat": 41.6599770, "lon": -0.9094842 },
+    { "lat": 41.6599274, "lon": -0.9094960 },
+    { "lat": 41.6598874, "lon": -0.9095032 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "cycleway:right": "no",
+    "highway": "secondary",
+    "lanes": "3",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sorting_name": "Rioja, Calle de la",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 49635537,
+  "bounds": {
+    "minlat": 41.6598874,
+    "minlon": -0.9098308,
+    "maxlat": 41.6599811,
+    "maxlon": -0.9095032
+  },
+  "nodes": [
+    296392072,
+    3004641525,
+    2583821382
+  ],
+  "geometry": [
+    { "lat": 41.6598874, "lon": -0.9095032 },
+    { "lat": 41.6599279, "lon": -0.9096412 },
+    { "lat": 41.6599811, "lon": -0.9098308 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "5",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Autovía del Ebro",
+    "name:etymology:wikidata": "Q10965",
+    "oneway": "yes",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 78488917,
+  "bounds": {
+    "minlat": 41.6609915,
+    "minlon": -0.9145881,
+    "maxlat": 41.6611071,
+    "maxlon": -0.9133907
+  },
+  "nodes": [
+    921128143,
+    4613999170,
+    2885019585,
+    4613999168,
+    2885019587,
+    4613999167,
+    1387595177,
+    2885019586,
+    4613999171,
+    2885019584,
+    921128153
+  ],
+  "geometry": [
+    { "lat": 41.6609915, "lon": -0.9133907 },
+    { "lat": 41.6610118, "lon": -0.9135391 },
+    { "lat": 41.6610467, "lon": -0.9136940 },
+    { "lat": 41.6610818, "lon": -0.9138544 },
+    { "lat": 41.6611018, "lon": -0.9139874 },
+    { "lat": 41.6611071, "lon": -0.9141062 },
+    { "lat": 41.6611041, "lon": -0.9142315 },
+    { "lat": 41.6610828, "lon": -0.9143677 },
+    { "lat": 41.6610694, "lon": -0.9144290 },
+    { "lat": 41.6610488, "lon": -0.9144842 },
+    { "lat": 41.6610077, "lon": -0.9145881 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "3",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Calle Miguel Herrero y Rodríguez de Miñón",
+    "name:etymology:wikidata": "Q951258",
+    "oneway": "yes",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 169402109,
+  "bounds": {
+    "minlat": 41.6573289,
+    "minlon": -0.9082838,
+    "maxlat": 41.6578677,
+    "maxlon": -0.9080816
+  },
+  "nodes": [
+    296399581,
+    296399579,
+    4020459093,
+    4020459092,
+    296399577,
+    3718700167,
+    8729350422,
+    296399576
+  ],
+  "geometry": [
+    { "lat": 41.6578677, "lon": -0.9082838 },
+    { "lat": 41.6577337, "lon": -0.9082064 },
+    { "lat": 41.6576641, "lon": -0.9081718 },
+    { "lat": 41.6575993, "lon": -0.9081470 },
+    { "lat": 41.6575217, "lon": -0.9081176 },
+    { "lat": 41.6574674, "lon": -0.9081043 },
+    { "lat": 41.6573979, "lon": -0.9080922 },
+    { "lat": 41.6573289, "lon": -0.9080816 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "bus:lanes": "yes|yes|yes|designated",
+    "highway": "secondary",
+    "lanes": "4",
+    "lanes:bus": "1",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "sorting_name": "Rioja, Calle de la",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 169402110,
+  "bounds": {
+    "minlat": 41.6577910,
+    "minlon": -0.9074593,
+    "maxlat": 41.6582498,
+    "maxlon": -0.9073814
+  },
+  "nodes": [
+    30438760,
+    3718541378,
+    4020472491,
+    1324966583,
+    4020472492,
+    4020472493,
+    156263713,
+    4020472494
+  ],
+  "geometry": [
+    { "lat": 41.6577910, "lon": -0.9074593 },
+    { "lat": 41.6578537, "lon": -0.9074305 },
+    { "lat": 41.6579131, "lon": -0.9074096 },
+    { "lat": 41.6579717, "lon": -0.9073930 },
+    { "lat": 41.6580401, "lon": -0.9073834 },
+    { "lat": 41.6580736, "lon": -0.9073814 },
+    { "lat": 41.6581590, "lon": -0.9073842 },
+    { "lat": 41.6582498, "lon": -0.9073930 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "5",
+    "maxspeed": "50",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sorting_name": "Rioja, Calle de la",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 169402111,
+  "bounds": {
+    "minlat": 41.6580888,
+    "minlon": -0.9088587,
+    "maxlat": 41.6586533,
+    "maxlon": -0.9084262
+  },
+  "nodes": [
+    310415004,
+    310415002,
+    4020472511,
+    7411458170,
+    4196010002,
+    12231874902
+  ],
+  "geometry": [
+    { "lat": 41.6586533, "lon": -0.9088587 },
+    { "lat": 41.6585457, "lon": -0.9087588 },
+    { "lat": 41.6584516, "lon": -0.9086780 },
+    { "lat": 41.6582689, "lon": -0.9085447 },
+    { "lat": 41.6580941, "lon": -0.9084296 },
+    { "lat": 41.6580888, "lon": -0.9084262 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "bus:lanes": "yes|yes|yes|designated",
+    "highway": "secondary",
+    "lanes": "4",
+    "lanes:bus": "1",
+    "maxspeed": "50",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "sorting_name": "Rioja, Calle de la",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes": "left|left;through|through|through"
+  }
+},
+{
+  "type": "way",
+  "id": 170129404,
+  "bounds": {
+    "minlat": 41.6600877,
+    "minlon": -0.9102752,
+    "maxlat": 41.6603203,
+    "maxlon": -0.9093894
+  },
+  "nodes": [
+    348796056,
+    3910813383,
+    302889892,
+    3004641528,
+    302889896,
+    3910791414,
+    3910813382,
+    2885063206,
+    3910791415,
+    296392071
+  ],
+  "geometry": [
+    { "lat": 41.6603203, "lon": -0.9093894 },
+    { "lat": 41.6602545, "lon": -0.9095074 },
+    { "lat": 41.6602018, "lon": -0.9096135 },
+    { "lat": 41.6601532, "lon": -0.9097376 },
+    { "lat": 41.6601351, "lon": -0.9097880 },
+    { "lat": 41.6601137, "lon": -0.9098735 },
+    { "lat": 41.6600985, "lon": -0.9099659 },
+    { "lat": 41.6600915, "lon": -0.9100492 },
+    { "lat": 41.6600877, "lon": -0.9101387 },
+    { "lat": 41.6601028, "lon": -0.9102752 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "5",
+    "layer": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Autovía del Ebro",
+    "name:etymology:wikidata": "Q10965",
+    "oneway": "yes",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 182711216,
+  "bounds": {
+    "minlat": 41.6573289,
+    "minlon": -0.9082686,
+    "maxlat": 41.6573996,
+    "maxlon": -0.9080816
+  },
+  "nodes": [
+    1930735084,
+    3886987653,
+    3886987654,
+    3886987655,
+    296399576
+  ],
+  "geometry": [
+    { "lat": 41.6573996, "lon": -0.9082686 },
+    { "lat": 41.6573649, "lon": -0.9082177 },
+    { "lat": 41.6573486, "lon": -0.9081781 },
+    { "lat": 41.6573368, "lon": -0.9081228 },
+    { "lat": 41.6573289, "lon": -0.9080816 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "service",
+    "layer": "2",
+    "oneway": "yes",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 252300753,
+  "bounds": {
+    "minlat": 41.6598392,
+    "minlon": -0.9106629,
+    "maxlat": 41.6599582,
+    "maxlon": -0.9106056
+  },
+  "nodes": [
+    12690411547,
+    2583811867,
+    4895078276
+  ],
+  "geometry": [
+    { "lat": 41.6599582, "lon": -0.9106056 },
+    { "lat": 41.6599058, "lon": -0.9106308 },
+    { "lat": 41.6598392, "lon": -0.9106629 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "yes",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 252300831,
+  "bounds": {
+    "minlat": 41.6606086,
+    "minlon": -0.9124786,
+    "maxlat": 41.6607568,
+    "maxlon": -0.9124039
+  },
+  "nodes": [
+    12690411556,
+    2583815624,
+    7477047564
+  ],
+  "geometry": [
+    { "lat": 41.6607568, "lon": -0.9124039 },
+    { "lat": 41.6607162, "lon": -0.9124243 },
+    { "lat": 41.6606086, "lon": -0.9124786 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "yes",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 252301964,
+  "bounds": {
+    "minlat": 41.6599658,
+    "minlon": -0.9106180,
+    "maxlat": 41.6600303,
+    "maxlon": -0.9098308
+  },
+  "nodes": [
+    2583821382,
+    3910813380,
+    3910813381,
+    2583821383,
+    3910813379,
+    4895078277,
+    2583821384,
+    4234674525
+  ],
+  "geometry": [
+    { "lat": 41.6599811, "lon": -0.9098308 },
+    { "lat": 41.6599658, "lon": -0.9102468 },
+    { "lat": 41.6599702, "lon": -0.9103236 },
+    { "lat": 41.6599783, "lon": -0.9103944 },
+    { "lat": 41.6599945, "lon": -0.9104784 },
+    { "lat": 41.6600024, "lon": -0.9105101 },
+    { "lat": 41.6600188, "lon": -0.9105765 },
+    { "lat": 41.6600303, "lon": -0.9106180 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bicycle": "no",
+    "bridge": "yes",
+    "bus": "designated",
+    "highway": "service",
+    "layer": "2",
+    "motor_vehicle": "no",
+    "note": "Acceso de Bus",
+    "oneway": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 252382405,
+  "bounds": {
+    "minlat": 41.6595277,
+    "minlon": -0.9078489,
+    "maxlat": 41.6595912,
+    "maxlon": -0.9077597
+  },
+  "nodes": [
+    274101266,
+    9548253932
+  ],
+  "geometry": [
+    { "lat": 41.6595912, "lon": -0.9078489 },
+    { "lat": 41.6595277, "lon": -0.9077597 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "covered": "yes",
+    "highway": "footway",
+    "layer": "1"
+  }
+},
+{
+  "type": "way",
+  "id": 296659189,
+  "bounds": {
+    "minlat": 41.6600853,
+    "minlon": -0.9097817,
+    "maxlat": 41.6602187,
+    "maxlon": -0.9096919
+  },
+  "nodes": [
+    12690411554,
+    3004641528,
+    4188892825
+  ],
+  "geometry": [
+    { "lat": 41.6602187, "lon": -0.9097817 },
+    { "lat": 41.6601532, "lon": -0.9097376 },
+    { "lat": 41.6600853, "lon": -0.9096919 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 296659943,
+  "bounds": {
+    "minlat": 41.6589468,
+    "minlon": -0.9094937,
+    "maxlat": 41.6595872,
+    "maxlon": -0.9091608
+  },
+  "nodes": [
+    296392079,
+    4020472506,
+    13530077694,
+    348796084,
+    13530077693,
+    4020472507,
+    348796186,
+    4020472508,
+    296403298
+  ],
+  "geometry": [
+    { "lat": 41.6595872, "lon": -0.9094937 },
+    { "lat": 41.6595219, "lon": -0.9094762 },
+    { "lat": 41.6594660, "lon": -0.9094577 },
+    { "lat": 41.6594082, "lon": -0.9094326 },
+    { "lat": 41.6593234, "lon": -0.9093911 },
+    { "lat": 41.6592187, "lon": -0.9093300 },
+    { "lat": 41.6590505, "lon": -0.9092264 },
+    { "lat": 41.6589929, "lon": -0.9091909 },
+    { "lat": 41.6589468, "lon": -0.9091608 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "3",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "sorting_name": "Rioja, Calle de la",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 297082679,
+  "bounds": {
+    "minlat": 41.6609915,
+    "minlon": -0.9144968,
+    "maxlat": 41.6613037,
+    "maxlon": -0.9133907
+  },
+  "nodes": [
+    921128143,
+    4613999169,
+    3009146266,
+    156233684
+  ],
+  "geometry": [
+    { "lat": 41.6609915, "lon": -0.9133907 },
+    { "lat": 41.6610974, "lon": -0.9137471 },
+    { "lat": 41.6611912, "lon": -0.9140832 },
+    { "lat": 41.6613037, "lon": -0.9144968 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "2",
+    "layer": "2",
+    "name": "Autovía del Ebro",
+    "name:etymology:wikidata": "Q10965",
+    "oneway": "yes",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 297082680,
+  "bounds": {
+    "minlat": 41.6595872,
+    "minlon": -0.9095115,
+    "maxlat": 41.6598874,
+    "maxlon": -0.9094937
+  },
+  "nodes": [
+    296392072,
+    4020472503,
+    4020472504,
+    1324966765,
+    4020472505,
+    296392079
+  ],
+  "geometry": [
+    { "lat": 41.6598874, "lon": -0.9095032 },
+    { "lat": 41.6597950, "lon": -0.9095109 },
+    { "lat": 41.6597355, "lon": -0.9095115 },
+    { "lat": 41.6596867, "lon": -0.9095087 },
+    { "lat": 41.6596383, "lon": -0.9095025 },
+    { "lat": 41.6595872, "lon": -0.9094937 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "3",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sorting_name": "Rioja, Calle de la",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 367988999,
+  "bounds": {
+    "minlat": 41.6604501,
+    "minlon": -0.9092253,
+    "maxlat": 41.6605332,
+    "maxlon": -0.9091489
+  },
+  "nodes": [
+    11872221089,
+    302889889
+  ],
+  "geometry": [
+    { "lat": 41.6605332, "lon": -0.9091489 },
+    { "lat": 41.6604501, "lon": -0.9092253 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "use_sidepath",
+    "highway": "secondary",
+    "lanes": "3",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Avenida de la Expo 2008",
+    "name:etymology:wikidata": "Q861569",
+    "oneway": "yes",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 367989000,
+  "bounds": {
+    "minlat": 41.6603203,
+    "minlon": -0.9093894,
+    "maxlat": 41.6604501,
+    "maxlon": -0.9092253
+  },
+  "nodes": [
+    302889889,
+    348796056
+  ],
+  "geometry": [
+    { "lat": 41.6604501, "lon": -0.9092253 },
+    { "lat": 41.6603203, "lon": -0.9093894 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "cycleway:right": "separate",
+    "highway": "secondary",
+    "lanes": "3",
+    "layer": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Avenida de la Expo 2008",
+    "name:etymology:wikidata": "Q861569",
+    "oneway": "yes",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 368004934,
+  "bounds": {
+    "minlat": 41.6573287,
+    "minlon": -0.9080816,
+    "maxlat": 41.6574147,
+    "maxlon": -0.9076492
+  },
+  "nodes": [
+    296399576,
+    3718700165,
+    1930735047,
+    4020458885,
+    4020458886,
+    3718700166,
+    4020458887,
+    1930735060
+  ],
+  "geometry": [
+    { "lat": 41.6573289, "lon": -0.9080816 },
+    { "lat": 41.6573287, "lon": -0.9079376 },
+    { "lat": 41.6573379, "lon": -0.9078569 },
+    { "lat": 41.6573478, "lon": -0.9078116 },
+    { "lat": 41.6573611, "lon": -0.9077652 },
+    { "lat": 41.6573776, "lon": -0.9077254 },
+    { "lat": 41.6573974, "lon": -0.9076868 },
+    { "lat": 41.6574147, "lon": -0.9076492 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "service",
+    "layer": "2",
+    "oneway": "yes",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 379903197,
+  "bounds": {
+    "minlat": 41.6569762,
+    "minlon": -0.9082668,
+    "maxlat": 41.6573289,
+    "maxlon": -0.9080816
+  },
+  "nodes": [
+    296399576,
+    3718700164,
+    3832529340
+  ],
+  "geometry": [
+    { "lat": 41.6573289, "lon": -0.9080816 },
+    { "lat": 41.6571782, "lon": -0.9081670 },
+    { "lat": 41.6569762, "lon": -0.9082668 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "service",
+    "layer": "2",
+    "oneway": "yes",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 399312106,
+  "bounds": {
+    "minlat": 41.6576346,
+    "minlon": -0.9076174,
+    "maxlat": 41.6576728,
+    "maxlon": -0.9074585
+  },
+  "nodes": [
+    4020459089,
+    3718700170,
+    9929292616
+  ],
+  "geometry": [
+    { "lat": 41.6576728, "lon": -0.9076174 },
+    { "lat": 41.6576519, "lon": -0.9075304 },
+    { "lat": 41.6576346, "lon": -0.9074585 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "no",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "lit": "yes",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 399312108,
+  "bounds": {
+    "minlat": 41.6574638,
+    "minlon": -0.9081921,
+    "maxlat": 41.6574708,
+    "maxlon": -0.9080226
+  },
+  "nodes": [
+    8729350419,
+    3718700167,
+    4020459090
+  ],
+  "geometry": [
+    { "lat": 41.6574638, "lon": -0.9081921 },
+    { "lat": 41.6574674, "lon": -0.9081043 },
+    { "lat": 41.6574708, "lon": -0.9080226 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "no",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "lit": "yes",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 399312109,
+  "bounds": {
+    "minlat": 41.6574708,
+    "minlon": -0.9080226,
+    "maxlat": 41.6576783,
+    "maxlon": -0.9076174
+  },
+  "nodes": [
+    4020459090,
+    3718700168,
+    3718700169,
+    4020459089
+  ],
+  "geometry": [
+    { "lat": 41.6574708, "lon": -0.9080226 },
+    { "lat": 41.6574761, "lon": -0.9079761 },
+    { "lat": 41.6576783, "lon": -0.9076403 },
+    { "lat": 41.6576728, "lon": -0.9076174 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "traffic_island",
+    "highway": "footway",
+    "lit": "yes",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 399313964,
+  "bounds": {
+    "minlat": 41.6600213,
+    "minlon": -0.9127749,
+    "maxlat": 41.6603488,
+    "maxlon": -0.9126097
+  },
+  "nodes": [
+    4020479191,
+    4020479192
+  ],
+  "geometry": [
+    { "lat": 41.6603488, "lon": -0.9126097 },
+    { "lat": 41.6600213, "lon": -0.9127749 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "footway",
+    "layer": "2"
+  }
+},
+{
+  "type": "way",
+  "id": 417338603,
+  "bounds": {
+    "minlat": 41.6594824,
+    "minlon": -0.9108048,
+    "maxlat": 41.6598151,
+    "maxlon": -0.9106399
+  },
+  "nodes": [
+    12690411546,
+    2885063205,
+    4179001670
+  ],
+  "geometry": [
+    { "lat": 41.6598151, "lon": -0.9106399 },
+    { "lat": 41.6598009, "lon": -0.9106464 },
+    { "lat": 41.6594824, "lon": -0.9108048 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "footway",
+    "layer": "2"
+  }
+},
+{
+  "type": "way",
+  "id": 418476820,
+  "bounds": {
+    "minlat": 41.6590487,
+    "minlon": -0.9097157,
+    "maxlat": 41.6595562,
+    "maxlon": -0.9093452
+  },
+  "nodes": [
+    3004641521,
+    4188892823,
+    4188892822,
+    3004641520,
+    12690411559,
+    4188892826
+  ],
+  "geometry": [
+    { "lat": 41.6595562, "lon": -0.9097157 },
+    { "lat": 41.6595258, "lon": -0.9096596 },
+    { "lat": 41.6594801, "lon": -0.9096115 },
+    { "lat": 41.6594420, "lon": -0.9095820 },
+    { "lat": 41.6590592, "lon": -0.9093515 },
+    { "lat": 41.6590487, "lon": -0.9093452 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway",
+    "layer": "2",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "sorting_name": "Rioja, Calle de la"
+  }
+},
+{
+  "type": "way",
+  "id": 418476821,
+  "bounds": {
+    "minlat": 41.6595722,
+    "minlon": -0.9097082,
+    "maxlat": 41.6596921,
+    "maxlon": -0.9096521
+  },
+  "nodes": [
+    3004641523,
+    3004641522,
+    12690411545
+  ],
+  "geometry": [
+    { "lat": 41.6596921, "lon": -0.9096521 },
+    { "lat": 41.6596311, "lon": -0.9096806 },
+    { "lat": 41.6595722, "lon": -0.9097082 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "no",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 418476822,
+  "bounds": {
+    "minlat": 41.6596921,
+    "minlon": -0.9097050,
+    "maxlat": 41.6598282,
+    "maxlon": -0.9096443
+  },
+  "nodes": [
+    4188892824,
+    3004641524,
+    12690411552,
+    3004641523
+  ],
+  "geometry": [
+    { "lat": 41.6598282, "lon": -0.9096913 },
+    { "lat": 41.6598010, "lon": -0.9097050 },
+    { "lat": 41.6597088, "lon": -0.9096443 },
+    { "lat": 41.6596921, "lon": -0.9096521 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "traffic_island",
+    "highway": "footway",
+    "layer": "2",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 418476823,
+  "bounds": {
+    "minlat": 41.6598282,
+    "minlon": -0.9096913,
+    "maxlat": 41.6599792,
+    "maxlon": -0.9096154
+  },
+  "nodes": [
+    3004641526,
+    3004641525,
+    4188892824
+  ],
+  "geometry": [
+    { "lat": 41.6599792, "lon": -0.9096154 },
+    { "lat": 41.6599279, "lon": -0.9096412 },
+    { "lat": 41.6598282, "lon": -0.9096913 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 418476824,
+  "bounds": {
+    "minlat": 41.6599792,
+    "minlon": -0.9096919,
+    "maxlat": 41.6600853,
+    "maxlon": -0.9096154
+  },
+  "nodes": [
+    4188892825,
+    3004641526
+  ],
+  "geometry": [
+    { "lat": 41.6600853, "lon": -0.9096919 },
+    { "lat": 41.6599792, "lon": -0.9096154 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "traffic_island",
+    "highway": "footway",
+    "layer": "2",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 418476825,
+  "bounds": {
+    "minlat": 41.6589389,
+    "minlon": -0.9093452,
+    "maxlat": 41.6590487,
+    "maxlon": -0.9092882
+  },
+  "nodes": [
+    4188892826,
+    921128148,
+    4188892827
+  ],
+  "geometry": [
+    { "lat": 41.6590487, "lon": -0.9093452 },
+    { "lat": 41.6590066, "lon": -0.9093236 },
+    { "lat": 41.6589389, "lon": -0.9092882 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "no",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 423969927,
+  "bounds": {
+    "minlat": 41.6600303,
+    "minlon": -0.9122280,
+    "maxlat": 41.6604732,
+    "maxlon": -0.9106180
+  },
+  "nodes": [
+    4234674525,
+    2583821385
+  ],
+  "geometry": [
+    { "lat": 41.6600303, "lon": -0.9106180 },
+    { "lat": 41.6604732, "lon": -0.9122280 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bicycle": "no",
+    "bridge": "yes",
+    "bus": "designated",
+    "highway": "service",
+    "layer": "1",
+    "motor_vehicle": "no",
+    "note": "Acceso de Bus",
+    "oneway": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 437593346,
+  "bounds": {
+    "minlat": 41.6589459,
+    "minlon": -0.9089835,
+    "maxlat": 41.6590038,
+    "maxlon": -0.9087831
+  },
+  "nodes": [
+    13111137903,
+    13111137904,
+    4354047282
+  ],
+  "geometry": [
+    { "lat": 41.6589459, "lon": -0.9087831 },
+    { "lat": 41.6589646, "lon": -0.9088479 },
+    { "lat": 41.6590038, "lon": -0.9089835 }
+  ],
+  "tags": {
+    "access": "no",
+    "bridge": "yes",
+    "highway": "footway",
+    "layer": "3",
+    "surface": "wood"
+  }
+},
+{
+  "type": "way",
+  "id": 498024463,
+  "bounds": {
+    "minlat": 41.6598151,
+    "minlon": -0.9106399,
+    "maxlat": 41.6602190,
+    "maxlon": -0.9104050
+  },
+  "nodes": [
+    4895078274,
+    4895078279,
+    4895078277,
+    4895078278,
+    4895078275,
+    12690411546
+  ],
+  "geometry": [
+    { "lat": 41.6602190, "lon": -0.9104050 },
+    { "lat": 41.6601508, "lon": -0.9104378 },
+    { "lat": 41.6600024, "lon": -0.9105101 },
+    { "lat": 41.6598876, "lon": -0.9105655 },
+    { "lat": 41.6598284, "lon": -0.9105947 },
+    { "lat": 41.6598151, "lon": -0.9106399 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "yes",
+    "crossing": "traffic_signals",
+    "crossing:island": "yes",
+    "crossing:markings": "dashes",
+    "cycleway": "crossing",
+    "highway": "cycleway",
+    "layer": "2",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 612765556,
+  "bounds": {
+    "minlat": 41.6614340,
+    "minlon": -0.9071504,
+    "maxlat": 41.6614873,
+    "maxlon": -0.9069794
+  },
+  "nodes": [
+    2353772518,
+    5799789064
+  ],
+  "geometry": [
+    { "lat": 41.6614340, "lon": -0.9069794 },
+    { "lat": 41.6614873, "lon": -0.9071504 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "footway"
+  }
+},
+{
+  "type": "way",
+  "id": 670990754,
+  "bounds": {
+    "minlat": 41.6594268,
+    "minlon": -0.9122618,
+    "maxlat": 41.6598265,
+    "maxlon": -0.9108324
+  },
+  "nodes": [
+    6283522494,
+    30438647,
+    3004641519
+  ],
+  "geometry": [
+    { "lat": 41.6598265, "lon": -0.9122618 },
+    { "lat": 41.6595044, "lon": -0.9111034 },
+    { "lat": 41.6594268, "lon": -0.9108324 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "use_sidepath",
+    "highway": "residential",
+    "lanes": "2",
+    "lanes:psv": "1",
+    "layer": "2",
+    "maxspeed": "30",
+    "name": "Calle Miquel Roca i Junyent",
+    "name:etymology:wikidata": "Q9033511",
+    "oneway": "yes",
+    "sidewalk:both": "separate",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 670990755,
+  "bounds": {
+    "minlat": 41.6589468,
+    "minlon": -0.9108324,
+    "maxlat": 41.6594268,
+    "maxlon": -0.9091608
+  },
+  "nodes": [
+    3004641519,
+    224101137,
+    921128148,
+    1976554019,
+    1976553967,
+    296403298
+  ],
+  "geometry": [
+    { "lat": 41.6594268, "lon": -0.9108324 },
+    { "lat": 41.6590531, "lon": -0.9094804 },
+    { "lat": 41.6590066, "lon": -0.9093236 },
+    { "lat": 41.6589876, "lon": -0.9092653 },
+    { "lat": 41.6589618, "lon": -0.9091963 },
+    { "lat": 41.6589468, "lon": -0.9091608 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "use_sidepath",
+    "highway": "residential",
+    "lanes": "2",
+    "layer": "2",
+    "maxspeed": "30",
+    "name": "Calle Miquel Roca i Junyent",
+    "name:etymology:wikidata": "Q9033511",
+    "oneway": "yes",
+    "sidewalk:both": "separate",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 691286870,
+  "bounds": {
+    "minlat": 41.6595872,
+    "minlon": -0.9141663,
+    "maxlat": 41.6608861,
+    "maxlon": -0.9094937
+  },
+  "nodes": [
+    921128136,
+    2885019577,
+    2583814159,
+    11889959515,
+    2583811867,
+    4895078278,
+    3004641522,
+    296392079
+  ],
+  "geometry": [
+    { "lat": 41.6608861, "lon": -0.9141663 },
+    { "lat": 41.6607208, "lon": -0.9135670 },
+    { "lat": 41.6604355, "lon": -0.9125659 },
+    { "lat": 41.6599688, "lon": -0.9108522 },
+    { "lat": 41.6599058, "lon": -0.9106308 },
+    { "lat": 41.6598876, "lon": -0.9105655 },
+    { "lat": 41.6596311, "lon": -0.9096806 },
+    { "lat": 41.6595872, "lon": -0.9094937 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "use_sidepath",
+    "highway": "primary",
+    "lanes": "4",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Autovía del Ebro",
+    "name:etymology:wikidata": "Q10965",
+    "oneway": "yes",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 792595785,
+  "bounds": {
+    "minlat": 41.6586533,
+    "minlon": -0.9091608,
+    "maxlat": 41.6589468,
+    "maxlon": -0.9088587
+  },
+  "nodes": [
+    296403298,
+    13530077695,
+    224101161,
+    310415004
+  ],
+  "geometry": [
+    { "lat": 41.6589468, "lon": -0.9091608 },
+    { "lat": 41.6588475, "lon": -0.9090601 },
+    { "lat": 41.6587501, "lon": -0.9089559 },
+    { "lat": 41.6586533, "lon": -0.9088587 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "3",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sorting_name": "Rioja, Calle de la",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 792595786,
+  "bounds": {
+    "minlat": 41.6578677,
+    "minlon": -0.9082838,
+    "maxlat": 41.6582432,
+    "maxlon": -0.9082259
+  },
+  "nodes": [
+    3205006036,
+    3205006037,
+    4196010003,
+    3205000047,
+    13530077699,
+    4188892831,
+    296399581
+  ],
+  "geometry": [
+    { "lat": 41.6582432, "lon": -0.9082710 },
+    { "lat": 41.6581190, "lon": -0.9082343 },
+    { "lat": 41.6580677, "lon": -0.9082259 },
+    { "lat": 41.6580204, "lon": -0.9082263 },
+    { "lat": 41.6579758, "lon": -0.9082328 },
+    { "lat": 41.6579346, "lon": -0.9082469 },
+    { "lat": 41.6578677, "lon": -0.9082838 }
+  ],
+  "tags": {
+    "access": "destination",
+    "bridge": "yes",
+    "bus": "designated",
+    "highway": "service",
+    "lanes": "2",
+    "oneway": "yes",
+    "turn:lanes": "left|left;through"
+  }
+},
+{
+  "type": "way",
+  "id": 793515441,
+  "bounds": {
+    "minlat": 41.6601508,
+    "minlon": -0.9133907,
+    "maxlat": 41.6609915,
+    "maxlon": -0.9104378
+  },
+  "nodes": [
+    4895078279,
+    11889959516,
+    4226847236,
+    2583815624,
+    921128143
+  ],
+  "geometry": [
+    { "lat": 41.6601508, "lon": -0.9104378 },
+    { "lat": 41.6601629, "lon": -0.9104817 },
+    { "lat": 41.6601686, "lon": -0.9105016 },
+    { "lat": 41.6607162, "lon": -0.9124243 },
+    { "lat": 41.6609915, "lon": -0.9133907 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "5",
+    "layer": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Autovía del Ebro",
+    "name:etymology:wikidata": "Q10965",
+    "oneway": "yes",
+    "source": "survey",
+    "surface": "asphalt",
+    "turn:lanes": "left|left|left|through|through"
+  }
+},
+{
+  "type": "way",
+  "id": 799484824,
+  "bounds": {
+    "minlat": 41.6603778,
+    "minlon": -0.9125951,
+    "maxlat": 41.6604948,
+    "maxlon": -0.9125360
+  },
+  "nodes": [
+    7477047581,
+    2583814159,
+    12690411555
+  ],
+  "geometry": [
+    { "lat": 41.6604948, "lon": -0.9125360 },
+    { "lat": 41.6604355, "lon": -0.9125659 },
+    { "lat": 41.6603778, "lon": -0.9125951 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "yes",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 799484827,
+  "bounds": {
+    "minlat": 41.6604948,
+    "minlon": -0.9125360,
+    "maxlat": 41.6606086,
+    "maxlon": -0.9124786
+  },
+  "nodes": [
+    7477047564,
+    7477047581
+  ],
+  "geometry": [
+    { "lat": 41.6606086, "lon": -0.9124786 },
+    { "lat": 41.6604948, "lon": -0.9125360 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "traffic_island",
+    "highway": "footway",
+    "layer": "2",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 1083482065,
+  "bounds": {
+    "minlat": 41.6602599,
+    "minlon": -0.9098094,
+    "maxlat": 41.6606019,
+    "maxlon": -0.9092425
+  },
+  "nodes": [
+    12643419694,
+    9929296817,
+    12643419693,
+    9929296818,
+    9929296819,
+    9929296820
+  ],
+  "geometry": [
+    { "lat": 41.6606019, "lon": -0.9092425 },
+    { "lat": 41.6605339, "lon": -0.9093246 },
+    { "lat": 41.6604606, "lon": -0.9094222 },
+    { "lat": 41.6603903, "lon": -0.9095289 },
+    { "lat": 41.6602979, "lon": -0.9097045 },
+    { "lat": 41.6602599, "lon": -0.9098094 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway"
+  }
+},
+{
+  "type": "way",
+  "id": 1145454005,
+  "bounds": {
+    "minlat": 41.6602529,
+    "minlon": -0.9144624,
+    "maxlat": 41.6613769,
+    "maxlon": -0.9104584
+  },
+  "nodes": [
+    560827937,
+    10659856372,
+    10659856373,
+    10659856374,
+    10659856375,
+    10659856376
+  ],
+  "geometry": [
+    { "lat": 41.6613617, "lon": -0.9144624 },
+    { "lat": 41.6613769, "lon": -0.9144576 },
+    { "lat": 41.6609745, "lon": -0.9130288 },
+    { "lat": 41.6607969, "lon": -0.9123836 },
+    { "lat": 41.6604120, "lon": -0.9110241 },
+    { "lat": 41.6602529, "lon": -0.9104584 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "footway",
+    "layer": "2"
+  }
+},
+{
+  "type": "way",
+  "id": 1182205345,
+  "bounds": {
+    "minlat": 41.6602046,
+    "minlon": -0.9104394,
+    "maxlat": 41.6602599,
+    "maxlon": -0.9098094
+  },
+  "nodes": [
+    11889959508,
+    10978575385,
+    10978575383,
+    10978575386,
+    10978575382,
+    10978575387,
+    10978575384,
+    10978575388,
+    9929296820
+  ],
+  "geometry": [
+    { "lat": 41.6602477, "lon": -0.9104394 },
+    { "lat": 41.6602336, "lon": -0.9103797 },
+    { "lat": 41.6602192, "lon": -0.9102998 },
+    { "lat": 41.6602104, "lon": -0.9102127 },
+    { "lat": 41.6602046, "lon": -0.9101217 },
+    { "lat": 41.6602102, "lon": -0.9100418 },
+    { "lat": 41.6602177, "lon": -0.9099631 },
+    { "lat": 41.6602335, "lon": -0.9098817 },
+    { "lat": 41.6602599, "lon": -0.9098094 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway"
+  }
+},
+{
+  "type": "way",
+  "id": 1278777403,
+  "bounds": {
+    "minlat": 41.6593331,
+    "minlon": -0.9094937,
+    "maxlat": 41.6595872,
+    "maxlon": -0.9086985
+  },
+  "nodes": [
+    296392079,
+    354585446,
+    13530077690,
+    13530077691,
+    13530077692,
+    3004646295,
+    675652232
+  ],
+  "geometry": [
+    { "lat": 41.6595872, "lon": -0.9094937 },
+    { "lat": 41.6595652, "lon": -0.9093826 },
+    { "lat": 41.6595096, "lon": -0.9091883 },
+    { "lat": 41.6594564, "lon": -0.9090134 },
+    { "lat": 41.6594094, "lon": -0.9088769 },
+    { "lat": 41.6593720, "lon": -0.9087884 },
+    { "lat": 41.6593331, "lon": -0.9086985 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "cycleway:right": "no",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "3",
+    "layer": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Avenida de la Ciudad de Soria",
+    "name:etymology:wikidata": "Q12155",
+    "oneway": "yes",
+    "sidewalk": "no",
+    "source": "survey",
+    "surface": "asphalt",
+    "wikidata": "Q54551416"
+  }
+},
+{
+  "type": "way",
+  "id": 1278777404,
+  "bounds": {
+    "minlat": 41.6594905,
+    "minlon": -0.9095032,
+    "maxlat": 41.6598874,
+    "maxlon": -0.9084665
+  },
+  "nodes": [
+    410195756,
+    11871671647,
+    4196010000,
+    4196010001,
+    410195757,
+    3009146265,
+    296392072
+  ],
+  "geometry": [
+    { "lat": 41.6594905, "lon": -0.9084665 },
+    { "lat": 41.6595893, "lon": -0.9086265 },
+    { "lat": 41.6596633, "lon": -0.9087960 },
+    { "lat": 41.6597331, "lon": -0.9089762 },
+    { "lat": 41.6597898, "lon": -0.9091471 },
+    { "lat": 41.6598484, "lon": -0.9093533 },
+    { "lat": 41.6598874, "lon": -0.9095032 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "no",
+    "highway": "primary",
+    "lanes": "5",
+    "layer": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Avenida de la Ciudad de Soria",
+    "name:etymology:wikidata": "Q12155",
+    "oneway": "yes",
+    "sidewalk:both": "no",
+    "source": "survey",
+    "surface": "asphalt",
+    "wikidata": "Q54551416"
+  }
+},
+{
+  "type": "way",
+  "id": 1278781195,
+  "bounds": {
+    "minlat": 41.6577910,
+    "minlon": -0.9074593,
+    "maxlat": 41.6578481,
+    "maxlon": -0.9073204
+  },
+  "nodes": [
+    30438760,
+    5122054881,
+    3886987656
+  ],
+  "geometry": [
+    { "lat": 41.6577910, "lon": -0.9074593 },
+    { "lat": 41.6578195, "lon": -0.9073925 },
+    { "lat": 41.6578481, "lon": -0.9073204 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "3",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Avenida de la Ciudad de Soria",
+    "name:etymology:wikidata": "Q12155",
+    "oneway": "yes",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "wikidata": "Q54551416"
+  }
+},
+{
+  "type": "way",
+  "id": 1278781196,
+  "bounds": {
+    "minlat": 41.6567877,
+    "minlon": -0.9080065,
+    "maxlat": 41.6577910,
+    "maxlon": -0.9074593
+  },
+  "nodes": [
+    156263679,
+    4020458883,
+    296399561,
+    4020458884,
+    1930735060,
+    3718700170,
+    30438760
+  ],
+  "geometry": [
+    { "lat": 41.6567877, "lon": -0.9080065 },
+    { "lat": 41.6569212, "lon": -0.9079110 },
+    { "lat": 41.6570438, "lon": -0.9078369 },
+    { "lat": 41.6572734, "lon": -0.9077192 },
+    { "lat": 41.6574147, "lon": -0.9076492 },
+    { "lat": 41.6576519, "lon": -0.9075304 },
+    { "lat": 41.6577910, "lon": -0.9074593 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "maxspeed": "50",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sidewalk": "right",
+    "sorting_name": "Rioja, Calle de la",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1278781197,
+  "bounds": {
+    "minlat": 41.6566770,
+    "minlon": -0.9083030,
+    "maxlat": 41.6573289,
+    "maxlon": -0.9080787
+  },
+  "nodes": [
+    296399576,
+    3718541371,
+    4020458390,
+    296399574,
+    7411458169,
+    4020458389,
+    3718541372,
+    4020458288,
+    30438355
+  ],
+  "geometry": [
+    { "lat": 41.6573289, "lon": -0.9080816 },
+    { "lat": 41.6571609, "lon": -0.9080787 },
+    { "lat": 41.6570969, "lon": -0.9080819 },
+    { "lat": 41.6570235, "lon": -0.9080910 },
+    { "lat": 41.6569678, "lon": -0.9081088 },
+    { "lat": 41.6569476, "lon": -0.9081153 },
+    { "lat": 41.6568767, "lon": -0.9081502 },
+    { "lat": 41.6568139, "lon": -0.9081905 },
+    { "lat": 41.6566770, "lon": -0.9083030 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "lanes": "3",
+    "layer": "2",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "sorting_name": "Rioja, Calle de la",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1278839142,
+  "bounds": {
+    "minlat": 41.6600000,
+    "minlon": -0.9085397,
+    "maxlat": 41.6602703,
+    "maxlon": -0.9084589
+  },
+  "nodes": [
+    274101250,
+    4020472497,
+    3910820941
+  ],
+  "geometry": [
+    { "lat": 41.6600000, "lon": -0.9084589 },
+    { "lat": 41.6602015, "lon": -0.9085126 },
+    { "lat": 41.6602703, "lon": -0.9085397 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "secondary",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Autovía del Ebro",
+    "name:etymology:wikidata": "Q10965",
+    "oneway": "yes",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1278839143,
+  "bounds": {
+    "minlat": 41.6600000,
+    "minlon": -0.9085015,
+    "maxlat": 41.6602753,
+    "maxlon": -0.9084589
+  },
+  "nodes": [
+    274101250,
+    3910820942
+  ],
+  "geometry": [
+    { "lat": 41.6600000, "lon": -0.9084589 },
+    { "lat": 41.6602753, "lon": -0.9085015 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "use_sidepath",
+    "highway": "secondary",
+    "lanes": "3",
+    "layer": "2",
+    "lit": "yes",
+    "maxspeed": "50",
+    "name": "Avenida de la Expo 2008",
+    "name:etymology:wikidata": "Q861569",
+    "oneway": "yes",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "source:maxspeed": "sign",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1280994353,
+  "bounds": {
+    "minlat": 41.6598728,
+    "minlon": -0.9146270,
+    "maxlat": 41.6613921,
+    "maxlon": -0.9104321
+  },
+  "nodes": [
+    11889991788,
+    11889991787,
+    12232044506,
+    7477047539,
+    11889991786,
+    11889991785,
+    11889959513,
+    7477047566,
+    7477047538,
+    7477059687,
+    7477047553,
+    7477059708,
+    11889991779,
+    2885019584,
+    11889959510,
+    11889991778,
+    11889959517,
+    11871799427,
+    11871799426,
+    11889991776,
+    11889991775,
+    11889959508,
+    11889959509,
+    11889959516,
+    11889991774,
+    11889959507,
+    11889959514,
+    11889991773,
+    11889991772,
+    11889991771,
+    11889959515,
+    11889991770,
+    11889991769,
+    11889983568,
+    4020479192,
+    11889983567,
+    11889983566,
+    2583917451,
+    11889991788
+  ],
+  "geometry": [
+    { "lat": 41.6607124, "lon": -0.9139240 },
+    { "lat": 41.6608711, "lon": -0.9138479 },
+    { "lat": 41.6608325, "lon": -0.9137095 },
+    { "lat": 41.6608138, "lon": -0.9136407 },
+    { "lat": 41.6605206, "lon": -0.9125799 },
+    { "lat": 41.6606130, "lon": -0.9125335 },
+    { "lat": 41.6609035, "lon": -0.9135897 },
+    { "lat": 41.6609234, "lon": -0.9136624 },
+    { "lat": 41.6609445, "lon": -0.9137623 },
+    { "lat": 41.6609730, "lon": -0.9139272 },
+    { "lat": 41.6610037, "lon": -0.9141364 },
+    { "lat": 41.6610024, "lon": -0.9142922 },
+    { "lat": 41.6610239, "lon": -0.9143821 },
+    { "lat": 41.6610488, "lon": -0.9144842 },
+    { "lat": 41.6610795, "lon": -0.9146123 },
+    { "lat": 41.6610837, "lon": -0.9146270 },
+    { "lat": 41.6613087, "lon": -0.9145195 },
+    { "lat": 41.6613600, "lon": -0.9144957 },
+    { "lat": 41.6613921, "lon": -0.9144801 },
+    { "lat": 41.6608107, "lon": -0.9124008 },
+    { "lat": 41.6602624, "lon": -0.9104321 },
+    { "lat": 41.6602477, "lon": -0.9104394 },
+    { "lat": 41.6602302, "lon": -0.9104481 },
+    { "lat": 41.6601629, "lon": -0.9104817 },
+    { "lat": 41.6600682, "lon": -0.9105288 },
+    { "lat": 41.6600746, "lon": -0.9105497 },
+    { "lat": 41.6601440, "lon": -0.9108105 },
+    { "lat": 41.6605845, "lon": -0.9124467 },
+    { "lat": 41.6604957, "lon": -0.9124864 },
+    { "lat": 41.6600339, "lon": -0.9108189 },
+    { "lat": 41.6599688, "lon": -0.9108522 },
+    { "lat": 41.6598728, "lon": -0.9109013 },
+    { "lat": 41.6603394, "lon": -0.9125720 },
+    { "lat": 41.6600082, "lon": -0.9127298 },
+    { "lat": 41.6600213, "lon": -0.9127749 },
+    { "lat": 41.6600332, "lon": -0.9128158 },
+    { "lat": 41.6603607, "lon": -0.9126591 },
+    { "lat": 41.6606629, "lon": -0.9137374 },
+    { "lat": 41.6607124, "lon": -0.9139240 }
+  ],
+  "tags": {
+    "bridge": "viaduct",
+    "bridge:structure": "beam",
+    "layer": "2",
+    "man_made": "bridge"
+  }
+},
+{
+  "type": "way",
+  "id": 1280995697,
+  "bounds": {
+    "minlat": 41.6602190,
+    "minlon": -0.9104481,
+    "maxlat": 41.6602302,
+    "maxlon": -0.9104050
+  },
+  "nodes": [
+    11889959509,
+    4895078274
+  ],
+  "geometry": [
+    { "lat": 41.6602302, "lon": -0.9104481 },
+    { "lat": 41.6602190, "lon": -0.9104050 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "cycleway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "concrete"
+  }
+},
+{
+  "type": "way",
+  "id": 1280995698,
+  "bounds": {
+    "minlat": 41.6600746,
+    "minlon": -0.9105497,
+    "maxlat": 41.6602152,
+    "maxlon": -0.9104777
+  },
+  "nodes": [
+    12690411550,
+    4226847236,
+    11889959507
+  ],
+  "geometry": [
+    { "lat": 41.6602152, "lon": -0.9104777 },
+    { "lat": 41.6601686, "lon": -0.9105016 },
+    { "lat": 41.6600746, "lon": -0.9105497 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "yes",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 1280995699,
+  "bounds": {
+    "minlat": 41.6602477,
+    "minlon": -0.9104584,
+    "maxlat": 41.6602529,
+    "maxlon": -0.9104394
+  },
+  "nodes": [
+    10659856376,
+    11889959508
+  ],
+  "geometry": [
+    { "lat": 41.6602529, "lon": -0.9104584 },
+    { "lat": 41.6602477, "lon": -0.9104394 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway",
+    "layer": "2"
+  }
+},
+{
+  "type": "way",
+  "id": 1280995700,
+  "bounds": {
+    "minlat": 41.6602302,
+    "minlon": -0.9146123,
+    "maxlat": 41.6613617,
+    "maxlon": -0.9104481
+  },
+  "nodes": [
+    11889959510,
+    2199467980,
+    156233684,
+    560827937,
+    2885063228,
+    1609409972,
+    1609409929,
+    3004641529,
+    11889959509
+  ],
+  "geometry": [
+    { "lat": 41.6610795, "lon": -0.9146123 },
+    { "lat": 41.6610868, "lon": -0.9146084 },
+    { "lat": 41.6613037, "lon": -0.9144968 },
+    { "lat": 41.6613617, "lon": -0.9144624 },
+    { "lat": 41.6607751, "lon": -0.9123946 },
+    { "lat": 41.6605068, "lon": -0.9114403 },
+    { "lat": 41.6602697, "lon": -0.9105892 },
+    { "lat": 41.6602356, "lon": -0.9104673 },
+    { "lat": 41.6602302, "lon": -0.9104481 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "cycleway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "concrete"
+  }
+},
+{
+  "type": "way",
+  "id": 1280995701,
+  "bounds": {
+    "minlat": 41.6601847,
+    "minlon": -0.9104050,
+    "maxlat": 41.6605834,
+    "maxlon": -0.9092127
+  },
+  "nodes": [
+    4895078274,
+    560827939,
+    1609409909,
+    1609409923,
+    3910791416,
+    1609409924,
+    3004641530,
+    1609409928,
+    3910791417,
+    560827940,
+    12643419695
+  ],
+  "geometry": [
+    { "lat": 41.6602190, "lon": -0.9104050 },
+    { "lat": 41.6602104, "lon": -0.9103738 },
+    { "lat": 41.6601900, "lon": -0.9102499 },
+    { "lat": 41.6601847, "lon": -0.9100985 },
+    { "lat": 41.6601941, "lon": -0.9099731 },
+    { "lat": 41.6602107, "lon": -0.9098671 },
+    { "lat": 41.6602364, "lon": -0.9097936 },
+    { "lat": 41.6602680, "lon": -0.9097032 },
+    { "lat": 41.6603175, "lon": -0.9095975 },
+    { "lat": 41.6604416, "lon": -0.9093988 },
+    { "lat": 41.6605834, "lon": -0.9092127 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "cycleway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "concrete"
+  }
+},
+{
+  "type": "way",
+  "id": 1281602680,
+  "bounds": {
+    "minlat": 41.6600101,
+    "minlon": -0.9083501,
+    "maxlat": 41.6602933,
+    "maxlon": -0.9082781
+  },
+  "nodes": [
+    1619563438,
+    1619563435
+  ],
+  "geometry": [
+    { "lat": 41.6602933, "lon": -0.9083501 },
+    { "lat": 41.6600101, "lon": -0.9082781 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "cycleway",
+    "layer": "2",
+    "surface": "dirt"
+  }
+},
+{
+  "type": "way",
+  "id": 1281602681,
+  "bounds": {
+    "minlat": 41.6600160,
+    "minlon": -0.9083111,
+    "maxlat": 41.6602866,
+    "maxlon": -0.9082407
+  },
+  "nodes": [
+    5165198639,
+    11894339854
+  ],
+  "geometry": [
+    { "lat": 41.6602866, "lon": -0.9083111 },
+    { "lat": 41.6600160, "lon": -0.9082407 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "footway",
+    "layer": "2",
+    "name": "Avenida de la Expo 2008",
+    "name:etymology:wikidata": "Q861569",
+    "surface": "compacted"
+  }
+},
+{
+  "type": "way",
+  "id": 1365427510,
+  "bounds": {
+    "minlat": 41.6578677,
+    "minlon": -0.9084262,
+    "maxlat": 41.6580888,
+    "maxlon": -0.9082838
+  },
+  "nodes": [
+    12231874902,
+    296399581
+  ],
+  "geometry": [
+    { "lat": 41.6580888, "lon": -0.9084262 },
+    { "lat": 41.6578677, "lon": -0.9082838 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "bus:lanes": "yes|yes|yes|designated",
+    "highway": "secondary",
+    "lanes": "4",
+    "lanes:bus": "1",
+    "maxspeed": "50",
+    "name": "Calle de la Rioja",
+    "name:etymology:wikidata": "Q5727",
+    "oneway": "yes",
+    "sidewalk:left": "no",
+    "sidewalk:right": "separate",
+    "sorting_name": "Rioja, Calle de la",
+    "source:maxspeed": "sign",
+    "surface": "asphalt",
+    "turn:lanes": "left|left;through|through|through"
+  }
+},
+{
+  "type": "way",
+  "id": 1368461494,
+  "bounds": {
+    "minlat": 41.6599811,
+    "minlon": -0.9102752,
+    "maxlat": 41.6601028,
+    "maxlon": -0.9098308
+  },
+  "nodes": [
+    2583821382,
+    296392071
+  ],
+  "geometry": [
+    { "lat": 41.6599811, "lon": -0.9098308 },
+    { "lat": 41.6601028, "lon": -0.9102752 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "5",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Autovía del Ebro",
+    "name:etymology:wikidata": "Q10965",
+    "oneway": "yes",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1368461495,
+  "bounds": {
+    "minlat": 41.6601028,
+    "minlon": -0.9104378,
+    "maxlat": 41.6601508,
+    "maxlon": -0.9102752
+  },
+  "nodes": [
+    296392071,
+    4895078279
+  ],
+  "geometry": [
+    { "lat": 41.6601028, "lon": -0.9102752 },
+    { "lat": 41.6601508, "lon": -0.9104378 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "primary",
+    "lanes": "5",
+    "layer": "2",
+    "maxspeed": "50",
+    "name": "Autovía del Ebro",
+    "name:etymology:wikidata": "Q10965",
+    "oneway": "yes",
+    "source": "survey",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269240,
+  "bounds": {
+    "minlat": 41.6595562,
+    "minlon": -0.9146794,
+    "maxlat": 41.6608128,
+    "maxlon": -0.9097157
+  },
+  "nodes": [
+    12686962507,
+    12690411538,
+    12690411539,
+    12690411540,
+    12690411541,
+    12690411542,
+    12690411543,
+    12690411544,
+    12690411558,
+    12690411546,
+    3004641521
+  ],
+  "geometry": [
+    { "lat": 41.6605427, "lon": -0.9146794 },
+    { "lat": 41.6606542, "lon": -0.9146120 },
+    { "lat": 41.6607062, "lon": -0.9145612 },
+    { "lat": 41.6607504, "lon": -0.9144898 },
+    { "lat": 41.6608062, "lon": -0.9143552 },
+    { "lat": 41.6608128, "lon": -0.9142770 },
+    { "lat": 41.6608016, "lon": -0.9141699 },
+    { "lat": 41.6607795, "lon": -0.9140824 },
+    { "lat": 41.6603647, "lon": -0.9126017 },
+    { "lat": 41.6598151, "lon": -0.9106399 },
+    { "lat": 41.6595562, "lon": -0.9097157 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269241,
+  "bounds": {
+    "minlat": 41.6595562,
+    "minlon": -0.9097157,
+    "maxlat": 41.6595722,
+    "maxlon": -0.9097082
+  },
+  "nodes": [
+    12690411545,
+    3004641521
+  ],
+  "geometry": [
+    { "lat": 41.6595722, "lon": -0.9097082 },
+    { "lat": 41.6595562, "lon": -0.9097157 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269242,
+  "bounds": {
+    "minlat": 41.6599806,
+    "minlon": -0.9105949,
+    "maxlat": 41.6600467,
+    "maxlon": -0.9105631
+  },
+  "nodes": [
+    12690411549,
+    2583821384,
+    12690411548
+  ],
+  "geometry": [
+    { "lat": 41.6600467, "lon": -0.9105631 },
+    { "lat": 41.6600188, "lon": -0.9105765 },
+    { "lat": 41.6599806, "lon": -0.9105949 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "button_operated": "yes",
+    "crossing": "traffic_signals",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "asphalt",
+    "traffic_signals:vibration": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269243,
+  "bounds": {
+    "minlat": 41.6599582,
+    "minlon": -0.9106056,
+    "maxlat": 41.6599806,
+    "maxlon": -0.9105949
+  },
+  "nodes": [
+    12690411548,
+    12690411547
+  ],
+  "geometry": [
+    { "lat": 41.6599806, "lon": -0.9105949 },
+    { "lat": 41.6599582, "lon": -0.9106056 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "traffic_island",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269244,
+  "bounds": {
+    "minlat": 41.6600467,
+    "minlon": -0.9105631,
+    "maxlat": 41.6600746,
+    "maxlon": -0.9105497
+  },
+  "nodes": [
+    11889959507,
+    12690411549
+  ],
+  "geometry": [
+    { "lat": 41.6600746, "lon": -0.9105497 },
+    { "lat": 41.6600467, "lon": -0.9105631 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "traffic_island",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269245,
+  "bounds": {
+    "minlat": 41.6602152,
+    "minlon": -0.9104777,
+    "maxlat": 41.6602417,
+    "maxlon": -0.9104641
+  },
+  "nodes": [
+    12690411551,
+    3004641529,
+    12690411550
+  ],
+  "geometry": [
+    { "lat": 41.6602417, "lon": -0.9104641 },
+    { "lat": 41.6602356, "lon": -0.9104673 },
+    { "lat": 41.6602152, "lon": -0.9104777 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "crossing": "uncontrolled",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "concrete"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269246,
+  "bounds": {
+    "minlat": 41.6602417,
+    "minlon": -0.9104641,
+    "maxlat": 41.6602529,
+    "maxlon": -0.9104584
+  },
+  "nodes": [
+    10659856376,
+    12690411551
+  ],
+  "geometry": [
+    { "lat": 41.6602529, "lon": -0.9104584 },
+    { "lat": 41.6602417, "lon": -0.9104641 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269247,
+  "bounds": {
+    "minlat": 41.6598151,
+    "minlon": -0.9106629,
+    "maxlat": 41.6598392,
+    "maxlon": -0.9106399
+  },
+  "nodes": [
+    4895078276,
+    12690411546
+  ],
+  "geometry": [
+    { "lat": 41.6598392, "lon": -0.9106629 },
+    { "lat": 41.6598151, "lon": -0.9106399 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269248,
+  "bounds": {
+    "minlat": 41.6602453,
+    "minlon": -0.9098094,
+    "maxlat": 41.6602599,
+    "maxlon": -0.9097996
+  },
+  "nodes": [
+    9929296820,
+    12690411553
+  ],
+  "geometry": [
+    { "lat": 41.6602599, "lon": -0.9098094 },
+    { "lat": 41.6602453, "lon": -0.9097996 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269249,
+  "bounds": {
+    "minlat": 41.6602187,
+    "minlon": -0.9097996,
+    "maxlat": 41.6602453,
+    "maxlon": -0.9097817
+  },
+  "nodes": [
+    12690411553,
+    3004641530,
+    12690411554
+  ],
+  "geometry": [
+    { "lat": 41.6602453, "lon": -0.9097996 },
+    { "lat": 41.6602364, "lon": -0.9097936 },
+    { "lat": 41.6602187, "lon": -0.9097817 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "crossing": "uncontrolled",
+    "crossing:island": "no",
+    "crossing:markings": "yes",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "lit": "yes",
+    "surface": "concrete"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269250,
+  "bounds": {
+    "minlat": 41.6603488,
+    "minlon": -0.9126097,
+    "maxlat": 41.6603778,
+    "maxlon": -0.9125951
+  },
+  "nodes": [
+    12690411555,
+    12690411558,
+    4020479191
+  ],
+  "geometry": [
+    { "lat": 41.6603778, "lon": -0.9125951 },
+    { "lat": 41.6603647, "lon": -0.9126017 },
+    { "lat": 41.6603488, "lon": -0.9126097 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "footway",
+    "layer": "2"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269251,
+  "bounds": {
+    "minlat": 41.6607568,
+    "minlon": -0.9124039,
+    "maxlat": 41.6607860,
+    "maxlon": -0.9123891
+  },
+  "nodes": [
+    12690411557,
+    2885063228,
+    12690411556
+  ],
+  "geometry": [
+    { "lat": 41.6607860, "lon": -0.9123891 },
+    { "lat": 41.6607751, "lon": -0.9123946 },
+    { "lat": 41.6607568, "lon": -0.9124039 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "crossing": "uncontrolled",
+    "crossing:island": "no",
+    "crossing:markings": "zebra",
+    "footway": "crossing",
+    "highway": "footway",
+    "layer": "2",
+    "surface": "concrete"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269252,
+  "bounds": {
+    "minlat": 41.6607860,
+    "minlon": -0.9123891,
+    "maxlat": 41.6607969,
+    "maxlon": -0.9123836
+  },
+  "nodes": [
+    10659856374,
+    12690411557
+  ],
+  "geometry": [
+    { "lat": 41.6607969, "lon": -0.9123836 },
+    { "lat": 41.6607860, "lon": -0.9123891 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "sidewalk",
+    "highway": "footway",
+    "layer": "2",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 1370269254,
+  "bounds": {
+    "minlat": 41.6576299,
+    "minlon": -0.9074585,
+    "maxlat": 41.6576346,
+    "maxlon": -0.9074391
+  },
+  "nodes": [
+    9929292616,
+    4020458888
+  ],
+  "geometry": [
+    { "lat": 41.6576346, "lon": -0.9074585 },
+    { "lat": 41.6576299, "lon": -0.9074391 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "footway": "crossing",
+    "highway": "footway",
+    "lit": "yes",
+    "surface": "asphalt"
+  }
+},
+{
+  "type": "way",
+  "id": 1426289149,
+  "bounds": {
+    "minlat": 41.6576134,
+    "minlon": -0.9088121,
+    "maxlat": 41.6584322,
+    "maxlon": -0.9082728
+  },
+  "nodes": [
+    257347125,
+    13111120099,
+    13111120100,
+    13111137901,
+    13111120098
+  ],
+  "geometry": [
+    { "lat": 41.6576134, "lon": -0.9082728 },
+    { "lat": 41.6578685, "lon": -0.9084280 },
+    { "lat": 41.6581918, "lon": -0.9086322 },
+    { "lat": 41.6583147, "lon": -0.9087164 },
+    { "lat": 41.6584322, "lon": -0.9088121 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "footway",
+    "layer": "3",
+    "surface": "concrete"
+  }
+},
+{
+  "type": "way",
+  "id": 1426289150,
+  "bounds": {
+    "minlat": 41.6589345,
+    "minlon": -0.9087831,
+    "maxlat": 41.6589459,
+    "maxlon": -0.9087435
+  },
+  "nodes": [
+    1976554017,
+    13111137903
+  ],
+  "geometry": [
+    { "lat": 41.6589345, "lon": -0.9087435 },
+    { "lat": 41.6589459, "lon": -0.9087831 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "highway": "footway",
+    "layer": "3",
+    "surface": "wood"
+  }
+},
+{
+  "type": "way",
+  "id": 1450671101,
+  "bounds": {
+    "minlat": 41.6602234,
+    "minlon": -0.9140454,
+    "maxlat": 41.6603277,
+    "maxlon": -0.9136699
+  },
+  "nodes": [
+    13304649078,
+    410495407
+  ],
+  "geometry": [
+    { "lat": 41.6603277, "lon": -0.9140454 },
+    { "lat": 41.6602234, "lon": -0.9136699 }
+  ],
+  "tags": {
+    "bridge": "yes",
+    "foot": "use_sidepath",
+    "highway": "residential",
+    "lanes": "2",
+    "layer": "2",
+    "maxspeed": "30",
+    "name": "Calle Miquel Roca i Junyent",
+    "name:etymology:wikidata": "Q9033511",
+    "oneway": "yes",
+    "sidewalk:left": "separate",
+    "sidewalk:right": "no",
+    "surface": "asphalt"
+  }
+}
+
+  ]
+}

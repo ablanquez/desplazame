@@ -84,6 +84,35 @@ data/exploracion/*
 !data/exploracion/2026-08-02_idezar-geoserver_getfeature-Vias-count3-SINsrs.json
 !data/exploracion/2026-08-02_idezar-geoserver_getfeature-Vias-count3-EPSG4326.json
 
+#    ── Añadidos por la medición de niveles (anexo H1) ────────────────────────
+#
+#    ⚠️ Se AÑADEN, no sustituyen a nada. Un crudo que cambia deja de poder ser
+#    evidencia de una afirmación fechada, así que los de arriba se quedan como
+#    están para siempre. Estos son ~1,05 MB más.
+#
+#    · El CONTROL POSITIVO, y va primero porque sin él los demás no valen:
+#      demuestra que la consulta encuentra `bridge` donde lo hay (Puente de
+#      Piedra) antes de que ningún cero de este proyecto signifique algo:
+!data/exploracion/2026-08-02_osm_overpass_control-positivo-puentes-ebro.json
+
+#    · Las dos ventanas de 1 km2 exacto sobre las que se mide el falso negativo
+#      de la regla de nivel. De aquí salen los 67 y 10 desniveles, el 0 de
+#      cruces rodada-rodada sin nodo compartido, y los 4 falsos positivos:
+!data/exploracion/2026-08-02_osm_overpass_delicias-estacion_todas-vias.json
+!data/exploracion/2026-08-02_osm_overpass_carretera-huesca_todas-vias.json
+
+#    · Los 112 puentes de Delicias pedidos aparte. Es además la prueba de que
+#      la consulta que devolvía 504 contestaba en 1,5 s reescrita:
+!data/exploracion/2026-08-02_osm_overpass_delicias-estacion_puentes.json
+
+#    · ⭐ Los TRES cuerpos de error 504. Entran a propósito, y son 695 bytes cada
+#      uno: son la evidencia de que un servidor puede afirmar "estoy demasiado
+#      ocupado" siendo falso. Sin ellos, la ley de la bitácora nº32 es una
+#      anécdota contada de memoria:
+!data/exploracion/2026-08-02_osm_overpass_localizar-dianas_HTTP504.html
+!data/exploracion/2026-08-02_osm_overpass_delicias_HTTP504-servidor-ocupado.html
+!data/exploracion/2026-08-02_osm_overpass_delicias_HTTP504-intento2.html
+
 
 # ── 3. ⚠️ CONTENIDO DE TERCEROS — EXCLUIDO POR DERECHOS, NO POR DESCUIDO ───
 #
