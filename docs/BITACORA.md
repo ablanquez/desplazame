@@ -1016,3 +1016,106 @@ quien construya encima hereda el problema sin haberlo elegido. Un campo llamado 
 que una ficha de metadatos.
 **Traza:** `data/exploracion/2026-08-02_wfs_feat5_idezar_base-Carreteras_cartoOSM_2019_Interiores.json`
 (campo `OSM_ID`), `2026-08-02_zaragoza-catalogo_3.json`, `2026-08-02_zaragoza-catalogo_pag*.json`
+
+## [2026-08-02] — Los "106 puntos de cruce" son 89: el mismo cruce contado varias veces
+
+**Categoría:** medición / instrumento
+**Síntoma:** al remedir las intersecciones sobre los mismos 12 crudos de zona para diseñar el
+planarizado, el recuento de pares salió idéntico al del informe —**87**— y el de puntos NO:
+**89 frente a los 106 publicados**. Diecisiete de diferencia (16 %) en un número que ya viaja
+por tres documentos.
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la coincidencia exacta de los 87
+pares.** Los dos números salen de la misma pasada y se imprimieron en la misma línea:
+
+```
+pares de tramos que SE CRUZAN geometricamente : 87 pares   (106 puntos de cruce)
+```
+
+Ver el 87 clavado al remedirlo es la señal más tranquilizadora posible: si el numerador coincide,
+uno da por bueno el paréntesis. Y el segundo verde falso es **la repetición**: el 106 estaba en el
+informe 0.D, en `DESPLAZAME-ESTADO.md` y en el cuerpo del commit `cdf6a65`. Verlo tres veces se
+lee como corroboración cuando las tres copias vienen de la misma pasada sin contrastar.
+**Causa raíz:** la geometría es una polilínea, y un cruce que cae **exactamente sobre un vértice**
+lo encuentran los DOS segmentos que comparten ese vértice. El contador sumaba una unidad por cada
+pareja de segmentos que se cortaba, sin fusionar los puntos repetidos. Comprobado:
+
+```
+puntos SIN deduplicar          : 106      <- el numero publicado
+puntos deduplicados a  0,01 m  :  89
+puntos deduplicados a  0,50 m  :  89      <- estable: no es cuestion del umbral
+distribucion por par           : 85 pares con 1 punto, 2 pares con 2 puntos
+```
+
+**Es el fallo nº10 de esta misma bitácora una escala más abajo.** Allí el mismo *tramo* se contaba
+hasta 8 veces por aparecer en 8 ventanas y se dedujo por `fid`; aquí el mismo *punto* se cuenta
+varias veces por caer en el vértice común de dos segmentos, y nadie lo dedujo por coordenada.
+**Cómo se cazó:** por remedir para otra cosa. No se buscaba: se necesitaba, para el diseño del
+planarizado, saber a qué distancia de un extremo cae cada cruce, y eso obliga a tener la lista de
+puntos y no solo su total.
+**Arreglo aplicado:** ninguno sobre el informe ni sobre el estado — son registro histórico y tienen
+otro escritor. La cifra correcta y su reconciliación quedan en `docs/DISEÑO-H1-GRAFO.md`, que es
+documento nuevo, y **la discrepancia se reporta hacia arriba** para que decida Antonio.
+⚠️ **La conclusión del informe NO cambia:** los 87 pares son correctos y lo que sostienen —que la
+topología está en las intersecciones y no en los extremos— sigue en pie. Lo que cambia es el
+tamaño del trabajo: 89 cortes que planificar, no 106.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **dos números impresos en la misma línea no son dos mediciones: son
+una.** Si uno se verifica y el otro no, el verificado presta su credibilidad al que no lo está, y
+el paréntesis viaja de documento en documento con la autoridad del número de delante. Se verifican
+por separado o no se verifica ninguno. Y su corolario: **un total sin la lista que lo produce no se
+puede auditar** — el 106 era irrefutable mientras fuera solo un total.
+**Traza:** `data/exploracion/2026-08-02_wfs_zona-*_MU1jv.json` (12 ficheros, 160 tramos únicos);
+contraste contra `docs/INVENTARIO-FUENTES-ZARAGOZA.md:310` y `DESPLAZAME-ESTADO.md:165`
+
+## [2026-08-02] — "La misma zona del casco" eran dos rectángulos distintos que solapan un 21 %
+
+**Categoría:** medición / comparación entre fuentes
+**Síntoma:** para responder si hacen falta las dos redes, releí el contraste OSM↔municipal del
+informe 0.D. Dice literalmente *"una sola consulta Overpass acotada a la **misma zona del
+casco**"* y *"54 ways de calzada en OSM frente a 19 tramos municipales **en una ventana
+equivalente**"*. Al ponerlas en los mismos ejes, **no son la misma zona**:
+
+```
+ventana municipal (EPSG:25830) : X 675850..676250   Y 4613850..4614250   400 x 400 m
+ventana OSM  (declarada, 4326) : X 675482..675971   Y 4613674..4614130   489 x 456 m
+SOLAPE                          : 121 x 280 m = 33.832 m2
+   = 21 % de la ventana municipal   y   15 % de la ventana OSM
+```
+
+Prueba directa, sin depender de las cajas: de los **514 vértices** de la geometría municipal del
+casco, dentro de la caja OSM declarada caen **27 (5,3 %)**, y dentro de la extensión real del
+crudo, **86 (16,7 %)**. Las dos ventanas se llaman "casco" y están en el casco, pero **miran a
+sitios distintos**.
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el tamaño y el nombre.** 500×440
+frente a 400×400 es "equivalente" a cualquier ojo, y las dos consultas se llamaron *casco* y
+apuntaban al casco antiguo real. Coinciden el rótulo, el orden de magnitud y el barrio. Lo único
+que no coincide es el sitio, y eso **no se ve en ningún número de los que se imprimieron**: las
+dos ventanas se declararon en sistemas de coordenadas distintos —una en metros UTM, otra en grados
+WGS84— y nunca llegaron a estar en la misma tabla. Nadie las restó porque no había dónde restarlas.
+**Causa raíz:** las dos consultas se escribieron en tandas distintas, cada una en el CRS natural de
+su servicio (el WFS en 25830, Overpass en 4326), y se dio por hecho que apuntaban al mismo
+rectángulo porque las dos se habían elegido "en el casco". Nunca se convirtió una a los ejes de la
+otra.
+**Cómo se cazó:** al intentar comparar densidades para P0 hizo falta recortar OSM a la ventana
+municipal, y para eso hubo que reproyectar. La reproyección se derivó **del par de crudos
+`SINsrs`/`EPSG4326`** —la misma feature servida en metros y en grados—, con control: los 119 puntos
+vuelven a su sitio con error medio 0,29 m y máximo 1,46 m, e ida y vuelta a 0,6 m.
+**Arreglo aplicado:** ninguno sobre el informe (registro histórico, otro escritor). La conclusión
+afectada se rectifica en `docs/DISEÑO-H1-GRAFO.md`: **con estos dos crudos la densidad relativa de
+calzada NO se puede medir**, porque el terreno común son 0,034 km² con 5 tramos municipales. Se
+declara `NO CONSTA` y se dice qué medición lo resolvería (una consulta Overpass sobre exactamente
+la ventana municipal).
+⚠️ **Lo que NO cae:** que OSM tenga 115 aceras, 43 pasos y 26 escaleras y el municipal ninguna de
+las tres. Ese contraste no depende del encuadre: el municipal tiene **cero** en toda la ciudad, y
+cero es cero en cualquier ventana. Lo que cae es solo la frase *"OSM está más subdividido"*.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **dos ventanas descritas en sistemas de coordenadas distintos no se
+pueden comparar hasta que están en el mismo.** Mientras una se escriba en metros y otra en grados,
+la comprobación de que son el mismo sitio no la hace nadie: no hay ninguna operación natural en la
+que ambas coincidan, así que el error no se manifiesta. Y el corolario, que es el caro: **poner el
+mismo rótulo a dos muestras es la forma más barata de que parezcan la misma muestra.** Llamarlas
+las dos "casco" hizo el trabajo que debería haber hecho una resta.
+**Traza:** `data/exploracion/2026-08-02_wfs_zona-casco_MU1jv.json`,
+`2026-08-02_osm_overpass_casco-highway.json`, transformación derivada de
+`2026-08-02_idezar-geoserver_getfeature-Vias-count3-SINsrs.json` y `...-EPSG4326.json`;
+contraste contra `docs/INVENTARIO-FUENTES-ZARAGOZA.md:480,498`
