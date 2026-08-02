@@ -336,7 +336,7 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 |---|---|
 | **"El dataset de portales sirve de grafo"** | Una nube de puntos no es un grafo. Cero aristas en 46.150 registros |
 | **"`vias-zaragoza.json` contiene las vías"** | Ocho campos de nombres. **Ni una coordenada.** Lo destapó el reconocimiento 0.A |
-| ⭐ **"Tenemos lat-lon de todas las paradas de autobús"** | ⚠️ **Falso, y era de Antonio, de memoria.** No estaban en el dataset heredado: estaban en el GTFS que procesa 003. Pilar 2.14 operando |
+| ⭐⭐ **"Tenemos lat-lon de todas las paradas de autobús" → se registró como FALSO** | ⚠️ **Y era CIERTO. El error fue MÍO, dos veces.** Estaban en `00 ZGZ RADAR` (939 paradas + 46 líneas con secuencia de postes), una carpeta que **nadie miró en once tandas porque yo nunca pedí que se mirara**. Se buscó en `01 ZGZ RADAR REACT`, que es otra. *La memoria de Antonio era correcta; el reconocimiento buscó en el sitio equivocado* |
 | ⭐ **"La capa de nombres de 003 es la excepción defendible del trasplante"** | ⚠️ **Falso, y era MÍO.** Lo llamé dato; es la salida de 74 peticiones de raspado con **compromiso escrito de no redistribuir** en el `THIRD-PARTY-NOTICES.md` de 003. Maquinaria con aspecto de dato |
 | ⭐⭐ **"Ninguna capa de viario gana sola: hay que combinar dos"** | ⚠️ **Falso, y era MÍO.** `MU1_jerarquia_viaria` tenía las dos mitades — **y estaba impresa en la tabla A2 del informe anterior, sin abrir.** Construí encima un argumento entero sobre unir geometría con texto, sobre un hueco que no existía |
 | ⭐⭐ **"Un montón de líneas que no se tocan no es una red"** | ⚠️ **Mal destilado, y era MÍO.** La medición era correcta (los extremos no coinciden) y la conclusión falsa: **las calles se cortan por el MEDIO**. Y lo peor: esa ley ya estaba en la guía (nº19 de ZetaBus, *"bien medida, mal apuntada"*) y caímos igual |
@@ -358,9 +358,9 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 29 VECES — sin una sola línea de código
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 33 VECES — sin una sola línea de código
 
-**Once tandas. Cero código de producto. Veintinueve instrumentos mintiendo.** Ya es una categoría,
+**Trece tandas. Cero código de producto. Treinta y tres instrumentos mintiendo.** Ya es una categoría,
 no una anécdota — y llegó antes que el proyecto.
 
 | # | Qué mintió |
@@ -394,6 +394,10 @@ no una anécdota — y llegó antes que el proyecto.
 | 27 | ⭐⭐ **AGRUPAR OSM POR `name` COSIÓ SIETE PLAZA DE ESPAÑA EN UN OBJETO DE 20 KM**, y cinco vías municipales emparejaron con esa quimera. ⚠️ **La ley 17 incumplida al día siguiente de escribirla.** (OSM tiene además 13 Calle Mayor y 9 Miguel Servet) |
 | 28 | ⭐⭐⭐ **Y LA CONTRAPRUEBA DE DESPLAZAMIENTO DIO VERDE CON ESE FALLO DENTRO** — no por mala suerte: **mover 2 km no acerca dos homónimos que están a 20**. Comprueba que el instrumento sabe **dónde** está una cosa; no que sepa **cuántas** hay. *Lo cazó el banco de pruebas, no el total: 5 vías de 2.731 no mueven un porcentaje* |
 | 29 | ⭐⭐⭐ **UN RADIO DE 25,0 m DECLARANDO UN HUECO QUE NO EXISTÍA, POR UN METRO.** `CALLE TOMILLO` está en OSM; sus portales, a 25,0–26,5 m (chalets con jardín delantero, portal en la valla). **4 de 10 huecos publicados eran falsos.** ⭐ Y lo que lo blindaba era su mejor argumento: *el radio salía del p85 de una propiedad física, no se puede retocar para que quede bonito*. Cierto — **y aun así sesgado** |
+| 30 | ⭐⭐⭐ **UN DATO IMPECABLE EN TODOS LOS EJES QUE ESTE PROYECTO SABE COMPROBAR, Y LA TRAMPA EN UNA FRASE EN CASTELLANO.** `200`, JSON válido, `totalCount` cuadrando con `len(result)`, los cuatro campos rellenos… y **15 farmacias "de guardia" de las que solo 8 están abiertas a las 03:40**. Las otras 7 son refuerzo de horario partido. **Un filtro por `tipo=guardia` acierta el 53 %** a esa hora |
+| 31 | ⭐⭐ **UN `200` DE 62 BYTES SIN LA CLAVE `result`.** No es una lista vacía: **el campo no existe**. Un cliente con `?.length ?? 0` obtiene cero y dice *"no hay guardias"* — **imposible en Zaragoza**. Solo se cazó porque el método obligaba a pedir HOY primero: **sin línea base, esos 62 bytes son indistinguibles de un día tranquilo** |
+| 32 | ⭐⭐ **EL `break` EN LA PRIMERA URI DEL ARRAY.** Una farmacia que fuera *horario ampliado* **y** *guardia* perdía la segunda marca: **el "2" era un SUELO, no un total**, y no es recuperable porque el crudo no se persistió. ⭐ Lo blindaba la procedencia más creíble del proyecto —vocabulario SKOS, URI publicada, fecha en el identificador—. **El rigor del emisor no protege de un `break` en el receptor** |
+| 33 | ⭐⭐ **UN CONTADOR QUE DEVOLVÍA LA CONSTANTE `1` POR SU RAMA `else`.** `Counter({1: 314})` tenía todo el aspecto de un barrido completo confirmando una hipótesis. **La estabilidad venía de que no había variable** — hermana directa del barrido de sensibilidad (nº25) |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -491,6 +495,16 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     predicción que hace.
 31. **UNA COBERTURA SIN LÍNEA BASE NO ES UNA MEDICIÓN.** Ningún porcentaje se publica sin su azar
     al lado.
+32. ⭐⭐⭐ **HAY UN DÉCIMO EJE, Y ES EL QUE NINGÚN INSTRUMENTO COMPRUEBA: LA SEMÁNTICA DEL
+    CONTENIDO.** *El dato puede ser perfecto en los nueve ejes y significar otra cosa.* Un campo
+    `tipo=guardia` impecable que mezcla farmacias abiertas 24 h con refuerzos de horario partido:
+    la verdad estaba en una frase en castellano que ningún contador lee.
+33. ⭐⭐ **UN CERO NO ES UNA RESPUESTA CUANDO EL CERO ES IMPOSIBLE.** En Zaragoza siempre hay
+    farmacias de guardia. ⇒ **El cero se trata como FALLO, no como dato.** Y una clave ausente no
+    es una lista vacía: `?.length ?? 0` convierte lo uno en lo otro sin avisar.
+34. ⭐ **UNA LÍNEA BASE NO ES OPCIONAL AL INTERROGAR UNA API.** Sin haber visto qué devuelve una
+    consulta que SÍ funciona, no se puede interpretar ninguna otra: *"no hay resultados"*, *"no
+    entiendo tu petición"* y *"estoy roto"* se parecen todos a un `200` corto.
 
 ---
 
@@ -560,7 +574,9 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **3** | Cobertura de OSM contra las 3.359 vías municipales | **H1** | ✅ |
 | **4** | ⭐ **Los portales como testigos** (idea de Antonio) | **H1** | ✅ **dos imposibles caídos** |
 | **5** | Auditoría del 4,11 % — ¿es cierto el número publicado? | **H1** | ✅ **el instrumento auditor se encontró a sí mismo** |
-| **6** | *(siguiente: incorporar al diseño lo que abrieron 4 y 5)* | **H1** | ⬜ |
+| **6** | Las farmacias: ¿qué hay de verdad en el conjunto heredado? | **H3** | ✅ |
+| **7** | Las guardias (¿calendario o consulta viva?) + `00 ZGZ RADAR` | **H3** | ✅ **es calendario** |
+| **8** | *(siguiente: incorporar al diseño lo que abrieron 4 y 5)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -662,26 +678,94 @@ Los dos en §5.)*
 - **`MU2_señalizacion_horizontal`** —donde vivirían las cebras— publicada pero inaccesible: su
   nombre lleva eñe y el servidor no resuelve el tipo. `NO CONSTA`.
 
-### ⭐ El momento oro — declarado abierto, no olvidado
+### ⭐⭐ EL MOMENTO ORO — CANDIDATO FIRME (tandas 6 y 7)
 
-No hay ninguno declarado, y **es lo único de Fase 0 que no depende de ningún dato**. La guía lo
-exige en Fase 0 por un motivo práctico: si se encuentra al final, la demo puede no contenerlo y ya
-no da tiempo a construirlo.
+> **Son las 03:40. Hay 15 farmacias "de guardia" y solo 8 están abiertas.**
+> **Desplázame te lleva a una de esas 8, y te dice por qué las otras 7 no valen.**
 
-⚠️ **Y probablemente no tenerlo aún sea correcto.** El de ZetaBus no salió de una lluvia de ideas:
-salió de entender que las fuentes mentían. Aquí el motor todavía no ha resuelto una ruta.
-Forzarlo hoy daría una escena de folleto.
+Encaja con todo lo decidido: **necesita el reloj** (H3) · **necesita el motor multimodal** (a esa
+hora casi no hay bus: se va andando o en BiZi) · y **se entiende en veinte segundos sin saber nada
+de grafos**. Ninguna app de rutas lo hace: te llevan a *una* farmacia, no a la que está abierta
+AHORA.
 
-**Dónde vigilarlo** — las tres que ya tienen la forma correcta:
+⚠️ **Y la escena estaba mal planteada al nacer.** Era *"la farmacia de guardia más cercana"* — y
+**un filtro por `tipo=guardia` acierta el 53 % a las 03:40**, porque siete de las quince son
+refuerzo de horario partido (*"de 9:15 a 13:45 y de 17:00 a 21:30"*), cerradas de madrugada.
+⇒ **La pregunta correcta no es *"¿está de guardia?"* sino *"¿su horario cubre AHORA?"*.**
+⭐ Y ahí está el momento oro de verdad: **no es que te lleve a la farmacia — es que distingue lo
+que la fuente mezcla, y lo dice.**
 
-1. **La regla de los 400 metros.** *Pides una ruta y la app te dice que no cojas nada, que andes.*
-   Una app de transporte que a veces te dice que no lo uses es memorable.
-2. **El planarizado uniendo dos calles que no se tocaban.** El momento en que el dato se convierte
-   en red, enseñado.
-3. **La frontera peatonal.** *"Por aquí no sé"* en vez de inventarse una acera. Es la tesis de
-   ZetaBus reapareciendo con otra piel.
+### El dato de guardias — lo que se sabe
 
----
+| | |
+|---|---|
+| **Fuente** | `farmacia.json?tipo=guardia&fecha=DD-MM-YYYY` (sede del Ayuntamiento) |
+| ⭐ **¿Calendario o consulta viva?** | **CALENDARIO.** Acepta fechas futuras, el parámetro se respeta (probado a +1 y +15 días, con `turno` secuencial: catorce días, catorce turnos) ⇒ **se hornea como el GTFS y NO rompe la exclusión del tiempo real** |
+| **Horizonte** | Al menos 15 días. Fechas pasadas: sin datos |
+| ⚠️ **Tope silencioso** | `rows=1000` devuelve `rows: 500` |
+| ⚠️ **El horario ORDINARIO no sirve** | Solo **67 de 314** dicen algo de entre semana; 121 hablan solo del sábado; 126 no dicen nada. **El horario de lunes a viernes no está en ninguna parte** |
+| ⚠️ **Datos personales** | 11 registros llevan nombre de titular en `description`. 004 solo importa `sourceId`, `name`, `lat`, `lon` |
+| ⚠️ **Licencia** | No consta en el metadata de farmacias. Hay que declararla por cuenta propia |
+
+### ⭐⭐ EL HORNO DE HORARIOS — diseño apuntado, construcción en H3
+
+El texto **no es lenguaje libre: es un formulario mal guardado.** 16 redacciones en 188 registros,
+y dos patrones cubren las 15 de guardia de un día. Se parsea con reglas explícitas.
+
+**Qué produce, y esto es lo que lo hace horneable:**
+⛔ **NO devuelve "abierta / cerrada".** Devuelve **TRAMOS HORARIOS**, o el estado *no entendido*.
+Quien decide si está abierta **ahora** es el motor comparando con el reloj. *Si el parser opinara
+sobre "ahora", cada respuesta caducaría en minutos y no se podría hornear.*
+
+**Tres estados de salida, no dos** *(la estructura de 003: no hay nada · no lo sé · no me lo creo)*:
+- **Entendido** → *"abierta ahora, cierra a las 21:30"*
+- ⭐ **No entendido** → **la app lo dice y enseña el texto original**: *"está de guardia; su horario
+  dice «…» y no sé interpretarlo"*
+- **Sin horario** → *"está de guardia, pero no publica horario"*
+
+**Lo que lo hace fiable no es el parser, es lo que lleva alrededor:**
+1. **Contador de cobertura** — cuántas de las 314 entiende. Se publica, y **si baja, algo cambió en
+   el origen**.
+2. **Corpus congelado** — las frases reales de hoy como casos de prueba. Cuando el Ayuntamiento
+   cambie una redacción, **el parser se pone rojo contra el corpus** en vez de fallar en silencio.
+3. ⭐ **Contraprueba de laxitud** — frases que NO debe entender. *Un parser laxo interpreta
+   cualquier cosa y da 100 % de cobertura: el número más tranquilizador y más falso* (ley 26).
+4. **Techo declarado** — qué frases ningún parser resolverá bien, dicho en voz alta.
+
+⚠️ **Dos trampas ya visibles en el dato:**
+- ⭐ **`"Abiertas de 9:15 h. a 9:15 h. del día siguiente"` CRUZA MEDIANOCHE.** Leído sin cuidado
+  dura cero minutos o veinticuatro horas. **Y es justo la frase de las que están abiertas a las
+  cuatro de la mañana: la que más importa es la que más fácil se rompe.**
+- **El horario de guardia y el ordinario son cosas distintas** —uno viene del endpoint por fecha,
+  otro del censo— y **no se mezclan en el mismo campo**.
+
+⛔ **Lo que NUNCA se hace:** inventar el horario de las que no lo publican, ni asumir que una de
+guardia abre 24 h. Ahí el silencio es obligatorio.
+
+### Los POI, como categoría y no como cuarenta integraciones
+
+Farmacias, centros cívicos, equipamientos: **no tocan el motor.** Son nodos que se enganchan al
+grafo igual que un portal; lo único que cambian es el **buscador**. ⇒ Se pueden añadir **casi
+gratis y en cualquier momento**, incluso con el motor ya hecho.
+
+⚠️ **Y por eso NO entran ahora.** El catálogo tiene **709 conjuntos**, y cada uno que entra hay que
+descargarlo, refrescarlo, verificar sus coordenadas, comprobar su licencia y mantenerlo vivo. **Si
+Desplázame acaba con cuarenta capas de puntos, el mantenimiento se come el proyecto y el motor —que
+es lo que se enseña— queda enterrado bajo un catálogo.**
+⇒ **Entran como CATEGORÍA: un esquema común, un cargador, una regla de enganche.** Añadir un
+conjunto nuevo debe costar una línea de configuración, no una tanda.
+
+### `00 ZGZ RADAR` — cabo cerrado
+
+⚠️ **Carpeta que nadie miró en once tandas, porque yo nunca pedí que se mirara.** Contiene **939
+paradas de autobús con lat-lon** y **46 líneas con la secuencia ordenada de postes por sentido**.
+**No hay geometría de calles** (control positivo y negativo pasados) ⇒ **D0 no se toca.**
+
+**Valen como VERIFICADOR, no como fuente**: el GTFS ya trae las paradas, así que su papel es ser un
+segundo par de ojos.
+⛔ **No se copian todavía:** no hay script que los descargue, su propia documentación los llama
+*"JSON maestros ubicados"* y **la licencia no consta**. Es el caso de la capa de nombres de 003 con
+otra piel.
 
 ## 11 · Método y entorno
 
