@@ -16,24 +16,24 @@
 
 ## ESTADO ACTUAL — 2 de agosto de 2026
 
-**Fase 0 cerrada. Repositorio publicado. Cero líneas de código de producto.**
+**Fase 0 cerrada. Repositorio publicado. H1 en diseño. Cero líneas de código de producto.**
 
-- Cuatro tandas de reconocimiento (0.A – 0.D) cerradas y aprobadas.
-- **Tanda 1 (andamiaje) cerrada y PUBLICADA**: `github.com/ablanquez/desplazame`, público,
-  11 commits, el primero es el andamiaje y no un *Initial commit* de GitHub. 17 crudos publicados
-  de 93 en disco, contados en el remoto.
-- **El bloqueo está roto**: existe red viaria vectorial descargable, con puente de identidad
-  exacto contra los 46.150 portales.
-- ⭐ **Los horarios ENTRAN** (§5), y el motor se reparte: grafo peatonal en el navegador, horarios
-  consultados al servidor.
-- ⭐ **Plan de construcción cerrado: tres hitos** (§9). H1 · El terreno · H2 · La red ·
-  H3 · El reloj.
+- Cuatro tandas de reconocimiento (0.A – 0.D) y la tanda 1 (andamiaje) cerradas.
+  `github.com/ablanquez/desplazame`, público, 12 commits.
+- **Tanda 2 · el diseño en papel de H1**: `docs/DISEÑO-H1-GRAFO.md` (912 líneas), seis preguntas
+  respondidas, cinco decisiones elevadas a Antonio.
+- **Tandas 2.B y 2.C · la regla de nivel, medida en cuatro zonas reales** (4 km², 7.114 cruces).
+  ⭐ **Dos veces seguidas la medición ha INVERTIDO una decisión ya firmada**, no la ha confirmado.
+- **Las cinco decisiones de diseño, cerradas** (§5 · D1–D5), más **el backtesting elevado a
+  principio del proyecto** por Antonio.
+- ⚠️ **La regla de nivel está resuelta PARA OSM y sigue abierta para la capa municipal**: toda su
+  solidez viene del nodo compartido, y el dato municipal no tiene ninguno.
 
-**Falta decidir:** el stack (condicionado ya por el reparto del motor), el alcance v1 del
-buscador, y el momento oro.
+**Falta decidir:** ⭐ **si la geometría municipal entra en el grafo o solo aporta atributos**
+(reabre la P0 del diseño y disolvería el problema anterior) · el stack · el alcance v1 del
+buscador · el momento oro.
 
-**Lo siguiente:** diseñar en papel el **planarizado** —primer trabajo real de algoritmia del
-proyecto— y con él abrir H1.
+**Lo siguiente:** cerrar P0. De su respuesta depende si H1 arranca sobre una red o sobre dos.
 
 ---
 
@@ -194,6 +194,71 @@ capas se clasificaron sin abrirlas** (clasificación documental, no verificació
 | **`data/exploracion/` fuera de git, con 17 excepciones a mano** | Son evidencia de un momento, no fuente; git guarda todas las versiones para siempre. Entran solo los crudos que sostienen las afirmaciones más fuertes — eso convierte *"confía en mi informe"* en *"compruébalo"* |
 | **Este documento vive DENTRO del repositorio** | Se versiona, viaja con el proyecto y **es material de portfolio**. Condición: el entorno local (rutas, puertos, claves) **no vive aquí** — a fichero aparte gitignoreado, para que el estado no contenga nada sensible *por construcción*, no por acordarse |
 
+### ⭐⭐ Las cinco decisiones del diseño de H1 (tandas 2 · 2.B · 2.C)
+
+**D1 · La regla de nivel — reescrita dos veces, y las dos por una medición.**
+
+> **UNIR POR DEFECTO. No unir SOLO con evidencia positiva.**
+> **C1 · Precedencia del nodo:** si dos vías **comparten nodo**, se conectan, y ninguna señal lo
+> contradice.
+> **C2 ·** No unir si hay `bridge` / `layer` / `tunnel` de OSM, **o** salto de `limite_vel` ≥50
+> **entre dos vías RODADAS**.
+> **La jerarquía NO vota.** Queda como marca informativa.
+
+Cómo se llegó aquí, porque el camino es la lección:
+- **v1 (propuesta):** *no unir cuando una de las dos vías es rápida.* Elegía el error ruidoso
+  frente al silencioso, y era coherente.
+- ⛔ **La medición la tumbó.** En Carretera de Huesca —la zona que Antonio eligió como *control
+  positivo*, "donde la regla debería acertar sola"— dio **4 falsos positivos y 0 desniveles
+  cazados**. ⭐ **El error conceptual: la jerarquía asume que vía rápida ⇒ cruza por encima. Una
+  travesía es exactamente lo contrario: una vía rápida que cruza A NIVEL.**
+- ⛔ **v2 tampoco valía**, y la parada saltó donde debía: aplicada a 7.114 cruces de 4 km²,
+  **habría cortado 634 uniones REALES para evitar 2 errores** — incluida la plataforma elevada de
+  Delicias **por dentro**, dejando la estación en el aire.
+- ✅ **v3 (la de arriba) corta 0 y caza 113 de 115 desniveles.**
+
+⭐ **Y el porqué de C1 es una ley, no un parche:** *la regla se pensó para la capa municipal, que
+no tiene nodos compartidos. Aplicada a OSM —donde el nodo ES la topología— se vuelve un
+destructor.* Una regla trasplantada de un mundo a otro sin comprobar si el terreno la sostiene.
+⚠️ **Y el porqué de C2:** `06_Peatonal` lleva `limite_vel = 0`, así que una calle peatonal
+cruzando una de 50 da un salto de exactamente 50. **En los 89 cruces de la muestra municipal no
+había ni un par (0,50)**: el fallo estaba ahí y el dato no lo enseñó. Es el 4,4 % cobrándose su
+precio.
+
+**D2 · El error aceptado tiene que ser CONTABLE.** Todo cruce unido **sin evidencia positiva** se
+marca `unido-por-defecto`. Aceptar un error silencioso "a sabiendas" sin contarlo es un cheque en
+blanco: a los tres meses es una frase que nadie relee. El conteo da un número vigilable y una
+lista comprobable sobre el terreno.
+
+**D3 · En los portales manda el `codigoVia`, siempre.** La discordancia (3,5 % medido) **se marca,
+no se corrige**. Corregir por cercanía es reintroducir el emparejamiento aproximado que ya falló
+en el 29,6 %. Coste aceptado: un `codigoVia` mal en origen queda mal para siempre — se heredan
+errores del callejero, no se inventan propios.
+*Matiz: la intersección **sí** afina en qué TRAMO cae el portal (entre qué dos cruces), aunque no
+puede decidir de qué CALLE es.*
+
+**D4 · El aviso de precisión va POR TRAMO**, no al pie de página. ⇒ la precisión es un **campo**
+que nace en el planarizado, sobrevive al motor y llega a la interfaz. Meterlo después sería
+cirugía. ⚠️ Si resulta que la mayor parte de la ciudad cae en el caso malo, el aviso se vuelve
+ruido —*el detector que grita ocho veces por nada*— y entonces **se invierte**: destacar lo bueno
+en vez de advertir lo malo. Se decide con el porcentaje real delante.
+
+**D5 · Tolerancia 2,0 m** para soldar puntas sueltas. Techo duro 5 m (la mediana extremo→línea es
+5,10 m: media calle).
+
+### ⭐⭐ PRINCIPIO DEL PROYECTO: BACKTESTING A SACO
+
+Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
+
+- **Barrido COMPLETO, no muestra.** Los 46.150 portales, los 3.644 tramos, todos los cruces. Nada
+  de *"medí 160 y extrapolo"* — ya ha mordido dos veces.
+- **Cada barrido con su CONTRAPRUEBA.** Sin ella devuelve un número tranquilizador indistinguible
+  de un instrumento roto.
+- **La COLA se mira a mano.** El barrido ordena; los peores 50 los verifica Antonio, que conoce la
+  ciudad. ⚠️ **46.150 casos no se verifican a mano: se verifican con un instrumento, y el
+  instrumento es lo que hay que verificar a mano.**
+- ⭐ **El control positivo NO lo elige quien escribió el instrumento** (§8·17).
+
 ---
 
 ## 6 · ⚠️ Decisiones que se DESHICIERON — no se borran
@@ -213,12 +278,16 @@ capas se clasificaron sin abrirlas** (clasificación documental, no verificació
 | **"El nº total de anclajes BiZi no viene"** | ⚠️ **Falso.** Sí viene, en `anclajes_bicicletas` de la capa WFS. La 0.C solo había mirado el `.geojson` de la sede |
 | **"Las 276 estaciones BiZi pueden incluir fantasmas"** | ⚠️ **Sospecha MÍA, refutada.** 276 únicas, cero duplicados, cero pares a menos de 25 m. Las ~130 públicas son la FASE I; la FASE II añadió 168 |
 | **"El bloqueo se resuelve buscando más en el catálogo"** | **Parcialmente falso.** La topología no existe en ningún catálogo de ninguna ciudad, y buscarla es tirar peticiones. Lo que sí apareció buscando fue la capa que lo cambió todo |
+| ⭐⭐ **"Ante un cruce dudoso, no unir por defecto: es el error ruidoso"** | ⚠️ **Falso, y lo firmé YO** con un argumento de asimetría correcto en abstracto. La medición lo tumbó: la jerarquía daba **4 falsos positivos y 0 aciertos** en la zona elegida como control positivo. **La prudencia salía carísima porque el caso que quería proteger casi no existe** (el 97 % de 2.680 cruces son a nivel) |
+| ⭐⭐ **"Con la jerarquía fuera, la regla ya vale"** | ⚠️ **Falso, y también lo firmé YO.** Aplicada a 7.114 cruces habría cortado **634 uniones reales para evitar 2 errores**, y partido la plataforma de Delicias por dentro. Le faltaban dos cláusulas, **y ninguna salió de razonar: las dos salieron de contar** |
+| ⭐ **"El municipal no tiene ninguna señal de desnivel"** | **Falso.** Sí la tiene —salto de `limite_vel`, jerarquía, titularidad—. Pero el paso inferior de Cesáreo Alierta demuestra que **no basta**: mismo límite arriba y abajo, misma familia de vía. Solo lo caza OSM |
+| ⭐ **"Los 504 de Overpass eran la forma de la consulta"** (ley nº32) | ⚠️ **Refutada al día siguiente por el propio ejecutor**, con el dato en la mano: fallaron también sentencias únicas, y el servidor declaraba slots libres ocho segundos después de un 504. **Causa: `CAUSA NO CONFIRMADA`** — que es `NO CONSTA` con apellido |
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 16 VECES — sin una sola línea de código
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 23 VECES — sin una sola línea de código
 
-**Cinco tandas. Cero código de producto. Dieciséis instrumentos mintiendo.** Ya es una categoría,
+**Ocho tandas. Cero código de producto. Veintitrés instrumentos mintiendo.** Ya es una categoría,
 no una anécdota — y llegó antes que el proyecto.
 
 | # | Qué mintió |
@@ -239,6 +308,13 @@ no una anécdota — y llegó antes que el proyecto.
 | 14 | ⭐⭐ **El barrido de rutas locales dio CERO**, y era falso (escapado roto). El segundo intento tomaba `https:` por una unidad de disco. **Cero es la respuesta más tranquilizadora que existe y es indistinguible de "no he medido nada"** |
 | 15 | ⭐⭐ **`*.pem  # claves privadas`** — el comentario formaba parte del patrón. **Tres reglas inertes, dos de credenciales**, en un fichero que se leía impecable. Sin la contraprueba obligatoria se habría publicado así |
 | 16 | ⭐⭐ **La primera prueba del guardián dio verde sin probar nada:** la bitácora entera estaba en el stage, así que su propio diff satisfacía la comprobación. **La prueba compartía estado con lo probado** |
+| 17 | ⭐⭐ **TRES NÚMEROS PUBLICADOS EN LOS INFORMES, FALSOS** — y los tres colaban porque **venían acompañados de un número verdadero al lado**: los "106 puntos de cruce" son 89 (un cruce sobre un vértice lo contaban los dos segmentos que lo comparten, y los 87 pares SÍ eran correctos); los "4 tramos duplicados" son 2 pares (el 4 contaba extremos, y cuadraba con el 21). **Un número que cuadra con su vecino no está verificado: está apuntalado** |
+| 18 | ⭐⭐ **"LA MISMA ZONA DEL CASCO" ERAN DOS RECTÁNGULOS DISTINTOS.** Solapan un 21 %, y solo el 5,3 % de los vértices municipales caía dentro de la caja de OSM. La frase *"54 ways de OSM frente a 19 tramos municipales en una ventana equivalente"* **comparaba dos sitios.** ⚠️ Lo que salvó la decisión de meter OSM: **cero es cero en cualquier ventana** — 115 aceras y 43 pasos contra ninguno municipal no depende del encuadre |
+| 19 | ⭐⭐ **UN CONTROL POSITIVO QUE ERA UN ESPEJO.** Pasó 3 de 3… y los tres casos los eligió quien escribió el instrumento, en la forma que su propio normalizador ya sabía resolver. Casos reales que fallaban: `CALLE UNCETA` ≠ *Calle de Marcelino Unceta*, `NTRA.SRA.DE BONARIA`, y sufijos rurales `---CST` / `---SGR` |
+| 20 | ⭐ **"THE SERVER IS PROBABLY TOO BUSY" ERA FALSO.** Tres HTTP 504 y una réplica colgada: cuatro señales coherentes diciendo *servicio caído*. La misma ventana devolvió 871 KB sin problema. ⚠️ **Y al día siguiente se refutó también la explicación de recambio.** El mismo servidor dio dos explicaciones distintas del mismo hecho |
+| 21 | ⭐⭐ **CUATRO VENTANAS, TRES FECHAS.** Al caer la instancia principal, dos zonas se pidieron a una réplica: traen datos del 6 y el 31 de mayo, no del 2 de agosto. **El sello de fecha vive tres niveles dentro del JSON y nadie lo mira** |
+| 22 | ⭐ **`layer` NO ES ENTERO:** aparece `-1.5`. Un `int()` lo revienta o lo tira en silencio. Y **`tunnel=building_passage` NO es un túnel**: es un pasaje bajo un edificio y a pie se pasa. Tratarlo como desnivel cortaría un camino real |
+| 23 | ⭐ **UN HTML DE ERROR GUARDADO CON EXTENSIÓN `.json`.** 695 bytes de `<!DOCTYPE html>` con nombre de dato. Cazado y renombrado en el momento — **una bomba a seis meses vista** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -282,9 +358,33 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     que revienta con su mensaje de error se anuncia solo: no hubo estado incorrecto, no hubo verde
     falso, no hay nada perecedero que capturar. Anotarlo sería diluir la bitácora — y una bitácora
     diluida es una que nadie lee. *(Criterio propuesto por el ejecutor y aceptado.)*
-14. **UN GRAFO NO SE PUBLICA.** La topología no existe en el catálogo de ninguna ciudad porque la
+15. **UN GRAFO NO SE PUBLICA.** La topología no existe en el catálogo de ninguna ciudad porque la
     cartografía municipal se publica para pintar mapas, no para calcular rutas. Buscarla es tirar
     peticiones; construirla es el proyecto.
+16. ⭐⭐ **UN NÚMERO QUE CUADRA CON SU VECINO NO ESTÁ VERIFICADO: ESTÁ APUNTALADO.** Tres cifras
+    publicadas eran falsas y las tres colaban por venir acompañadas de una correcta. *(Los 106
+    cruces junto a 87 pares buenos; los 4 duplicados junto a un 21 que cuadraba.)*
+17. ⭐⭐ **UN CONTROL POSITIVO QUE ELIGE QUIEN ESCRIBIÓ EL INSTRUMENTO PRUEBA QUE EL INSTRUMENTO
+    HACE LO QUE SU AUTOR CREE** — que es justo lo que no está en duda. Los controles salen de
+    casos que aporta quien conoce el terreno, o se eligen **al azar** del propio conjunto. Nunca a
+    dedo.
+18. ⭐⭐ **UNA REGLA TRASPLANTADA DE UN MUNDO A OTRO NECESITA COMPROBAR QUE EL TERRENO LA
+    SOSTIENE.** *La regla de nivel se pensó para una capa sin nodos compartidos; aplicada a OSM —
+    donde el nodo ES la topología— se volvió un destructor: 634 uniones reales cortadas para
+    evitar 2 errores.*
+19. ⭐ **UNA INTERVENCIÓN QUE FUNCIONA NO DEMUESTRA POR QUÉ FUNCIONA.** Si al arreglar algo se
+    cambian dos cosas a la vez, el éxito no distingue cuál operaba. *(Y de ahí `CAUSA NO
+    CONFIRMADA`: `NO CONSTA` con apellido, para cuando el fallo no se ha reproducido a voluntad.)*
+20. ⭐ **UN MENSAJE DE ERROR ES UNA AFIRMACIÓN DEL SERVIDOR SOBRE SÍ MISMO, Y NO ESTÁ VERIFICADA
+    POR VENIR DE DENTRO.** *El mismo servidor dio dos explicaciones distintas del mismo hecho.*
+21. ⭐ **UNA RÉPLICA ES OTRA FUENTE.** Cuando la instancia principal cae y la petición viaja a un
+    espejo, el dato puede tener meses. *El sello de fecha vive tres niveles dentro del JSON y nadie
+    lo mira.*
+22. ⭐ **EL VALOR DE UNA DIANA ES LO QUE PUEDE REFUTAR, NO LO QUE PUEDE CONFIRMAR.** Una zona que
+    solo puede darte la razón no es una prueba: es una ceremonia. *(La Carretera de Huesca se
+    eligió como control positivo y fue la que tumbó la regla.)*
+23. ⭐ **EL ERROR ACEPTADO A SABIENDAS TIENE QUE SER CONTABLE.** Si no lleva un contador, "lo
+    asumimos" es una frase que nadie relee a los tres meses, y el fallo sigue vivo.
 
 ---
 
@@ -345,7 +445,10 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **0.C** | Fuentes en red del Ayuntamiento | — | ✅ |
 | **0.D** | Barrido exhaustivo: 178 capas, 709 conjuntos, 11 zonas | — | ✅ |
 | **1** | Andamiaje: git público, `.gitignore`, hook, README, licencia | — | ✅ **publicado**, 11 commits |
-| **2** | *(siguiente: el diseño en papel del planarizado)* | **H1** | ⬜ |
+| **2** | ⭐ El diseño en papel del grafo (912 líneas, 6 preguntas) | **H1** | ✅ |
+| **2.B** | Medir el falso negativo de la regla de nivel (Huesca + Delicias) | **H1** | ✅ **invirtió la decisión** |
+| **2.C** | Cerrar el capítulo del nivel (Alierta + Pirineos + plataforma) | **H1** | ✅ **volvió a invertirla** |
+| **3** | *(siguiente: cerrar P0 — ¿entra la geometría municipal en el grafo?)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -366,8 +469,28 @@ matiz que parecía cambiarlo todo —"geometría sí, topología no"— que resu
 la 0.C, y se confirma que la red peatonal municipal existe pero **no se publica**.
 
 ### 1 — El andamiaje (2/08)
-Barrido de sensibilidad **antes** del `git init`. Identidad verificada contra el disco. Nueve
-commits atómicos. Y dos instrumentos cazados en el proceso (§7 · 15 y 16).
+Barrido de sensibilidad **antes** del `git init`. Identidad verificada contra el disco. Once commits atómicos. Y dos instrumentos cazados en el proceso (§7 · 15 y 16).
+
+### 2 — El diseño en papel del grafo (2/08)
+912 líneas. Seis preguntas respondidas, cinco decisiones elevadas. ⭐ Y de paso, **tres números
+publicados en los informes anteriores desmentidos por remedición** (§7 · 17 y 18). Aparece también
+lo que nadie había medido: el municipal **sí** tiene señales de desnivel, y midiendo extremo contra
+**línea** (no contra extremo) la red está mucho mejor conectada de lo que se creía — 17,2 % ya se
+tocan, mediana 5,10 m.
+
+### 2.B — La regla de nivel, medida (2/08)
+Dianas de conocimiento de campo de Antonio: **Carretera de Huesca** (control positivo) y
+**Avenida Ciudad de Soria / Estación Delicias**. ⭐ **La zona elegida como control positivo fue la
+que tumbó la regla**: 4 falsos positivos, 0 aciertos. Y aparece un caso estructural que el diseño
+no contemplaba: **la plataforma elevada de Delicias**, 90 ways a `layer=2` — el desnivel no como
+excepción puntual, sino como estado normal del terreno.
+
+### 2.C — Cerrar el capítulo del nivel (2/08)
+Dianas nuevas: **Cesáreo Alierta × Camino de las Torres** (paso inferior — la única que podía
+refutar) y **Avenida Pirineos**. ⛔ **La parada saltó donde estaba prevista**: la regla habría
+cortado **634 uniones reales de 7.114 cruces** para evitar 2 errores. Le faltaban dos cláusulas, y
+**las dos salieron de contar, no de razonar**. Resultado: 634 → 0, y 113 de 115 desniveles
+cazados.
 
 ---
 
@@ -380,14 +503,27 @@ Los dos en §5.)*
 
 | Cabo | Qué hay que decidir |
 |---|---|
+| ⭐⭐ **P0 REABIERTA: ¿entra la geometría municipal en el grafo, o solo aporta atributos?** | **Es el cabo que bloquea H1.** La regla de nivel (§5·D1) está resuelta **para OSM** y sigue abierta para el municipal: toda su solidez viene de la **cláusula del nodo compartido**, y la capa municipal **no tiene ni un nodo compartido**. Ahí sigue siendo pura inferencia, y su único criterio —el salto de velocidad— acaba de fallar en el paso inferior de Cesáreo Alierta (mismo límite arriba y abajo). ⇒ **Si el grafo se construye sobre OSM y el municipal solo aporta `codigo` de vía y atributos, el problema del nivel municipal desaparece**: no hay que inferir nada sobre una capa que no se planariza. ⚠️ El coste: enganchar atributos municipales a geometría OSM es emparejamiento aproximado, y ya se han medido **cuatro familias de excepción** en los nombres |
 | **El stack** | Ya condicionado por el reparto del motor: hace falta **algo que sirva consultas de horario**, no solo estático. ⚠️ Y ahí el hosting compartido de Hostinger tiene algo que decir: no es lo mismo servir ficheros que mantener un proceso vivo. *Cuando el hosting y tú discrepéis, gana el hosting.* Leaflet + OSM se reutiliza de 003 sin restar puntos: el diferencial de 004 está debajo del mapa |
 | **El alcance v1 del buscador** | Cada casilla combinable duplica los casos a verificar: cuatro modos son 16 combinaciones, por dos criterios, 32. ⚠️ Y "menos transbordos" y "más rápido" son **objetivos que compiten**: optimizar los dos a la vez no da un óptimo, da un conjunto donde ninguna ruta gana en todo. Se puede resolver con una penalización por transbordo — pero entonces hay que **decir que es una preferencia cableada, no un óptimo** |
 
 ### Los técnicos
 
-- ⚠️ **EL NIVEL.** Planarizar sin campo de cota inventa cruces. Riesgo de corrección nº1.
+- ✅ **EL NIVEL — resuelto para OSM** (§5·D1, tres versiones y dos mediciones). ⚠️ **Abierto para
+  el municipal**: ver P0 arriba.
+- ⚠️ **2 cruces `footway`×`footway` sin marcar** en OSM. Son **escapados REALES**, no inferencias:
+  el grafo peatonal *es* OSM. Medido: 2 de 4.137 = **0,05 %**, y los dos en el mismo punto entre
+  ways de IDs casi consecutivos — **es un defecto, no dos**. No bloquea, pero se cuenta.
+- ⚠️ **La plataforma elevada de Delicias.** La cláusula del nodo compartido la resuelve **en OSM**.
+  ⛔ En la capa municipal, una plataforma elevada es **indistinguible de un cruce**.
+- ⚠️ **`layer` no es entero** (`-1.5`) y **`tunnel=building_passage` no es un túnel**. Dos trampas
+  de formato a manejar explícitamente.
+- ⚠️ **Overpass: `CAUSA NO CONFIRMADA`.** Los 504 no se han reproducido a voluntad, y las dos
+  hipótesis causales fueron refutadas. Vigilar en las descargas de H1.
+- ⚠️ **Fechas de las réplicas.** Comprobar el sello de cada respuesta de OSM: una réplica puede
+  servir datos de hace meses.
 - **944 paradas en el WFS contra 934 en el GTFS.** Sin explicar.
-- **La clave del NAP.** Trámite de Antonio, no depende de nosotros. El feed muere el **05/10/2026**.
+- **La clave del NAP.** Trámite de Antonio. El feed muere el **05/10/2026**.
 - **Los dos números no cerrados de §4** (4,4 % de la red medida; 117 capas sin abrir).
 - **`MU2_señalizacion_horizontal`** —donde vivirían las cebras— publicada pero inaccesible: su
   nombre lleva eñe y el servidor no resuelve el tipo. `NO CONSTA`.
