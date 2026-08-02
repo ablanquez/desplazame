@@ -1229,3 +1229,128 @@ primer intento y con todos los casos, hay que sospechar de la selección antes d
 **Traza:** `E:\...\vias-zaragoza.json` (3.359 vías, lectura pura),
 `data/exploracion/2026-08-02_osm_overpass_delicias-estacion_todas-vias.json`,
 `..._carretera-huesca_todas-vias.json`
+
+## [2026-08-02] — ⚠️ CORRIGE LA Nº32: la causa no era la forma de la consulta, era el límite de peticiones
+
+**Categoría:** instrumento / atribución causal · **corrige la entrada nº32 de esta misma bitácora**
+**Síntoma:** al repetir hoy el mismo trabajo, una consulta de **sentencia única** —la forma que la
+nº32 declaraba buena— devolvió **HTTP 504** con el mismo texto de ayer. Eso ya contradecía la
+explicación. Y al repetir la consulta exacta que acababa de fallar, el servidor cambió de código:
+
+```
+ayer y hoy (504): Dispatcher_Client::request_read_and_idx::timeout
+                  "The server is probably too busy to handle your request."
+hoy       (429): Dispatcher_Client::request_read_and_idx::rate_limited
+                  "Please check /api/status for the quota of your IP address."
+```
+
+**Son el mismo mecanismo**: el despachador reparte *slots por IP*. Si esperas y no hay, contesta
+`timeout` disfrazado de "servidor ocupado"; si te pasas de cuota, contesta `rate_limited`. **Ninguno
+de los dos habla de la consulta.** La causa está en el ritmo de peticiones, no en su forma.
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el experimento que parecía
+decisivo, y lo hice yo.** Ayer reescribí la consulta de unión a sentencia única y **contestó 200 en
+1,5 segundos**. Una intervención, un resultado inmediato, tres fallos previos y dos éxitos
+posteriores: es la forma canónica de una demostración. Y hoy el discriminador —la misma consulta de
+ayer, repetida— volvió a dar **200 en 0,65 s**, confirmándola otra vez.
+
+⚠️ **Pero la intervención cambió DOS cosas a la vez**: la forma de la consulta **y el tiempo
+transcurrido**. La segunda es la que operaba. Los tres fallos de ayer fueron seguidos, en ráfaga;
+los éxitos llegaron después de pararme a leer, escribir y pensar. **Cada vez que "arreglaba" la
+consulta, también había esperado.**
+**Causa raíz de la equivocación:** una correlación de 3 de 3 y un experimento con dos variables sin
+aislar. La hipótesis explicaba todos los datos disponibles, que es exactamente lo que hace una
+hipótesis falsa cuando faltan datos.
+**Cómo se cazó:** porque el servidor cambió de código de error. Con `429` en la mano, `504` dejó de
+ser "servidor ocupado" y pasó a ser "no te ha tocado slot". **No lo cacé razonando: me lo dijo el
+servidor cuando le insistí lo suficiente para cruzar el otro umbral.**
+**⚠️ CAUSA NO CONFIRMADA — y la segunda hipótesis también se cayó, en la misma tanda.**
+
+Con el 429 en la mano pensé que estaba cerrado: `/api/status` dice `Rate limit: 2`, o sea dos
+slots por IP, y una consulta pesada retiene el suyo mientras se sirve. Explicaba la ráfaga de ayer
+y los éxitos tras las pausas. Encajaba entero. **Y también es falso, o al menos insuficiente:**
+
+```
+14:58:25  way["highway"](bbox Alierta); out geom;   -> HTTP 504 timeout   (tras esperar 25 s)
+14:58:33  /api/status                               -> "2 slots available now."
+```
+
+**Ocho segundos después del fallo, el servidor dice que yo tenía los dos slots libres.** Así que
+ese 504 no era mi cuota. Dos hipótesis, las dos coherentes con todo lo observado hasta el momento
+de formularlas, las dos refutadas por el dato siguiente.
+
+**Lo que SÍ está verificado**, y es lo único que se escribe como hecho:
+1. El servicio **alterna** entre servir y rechazar la misma consulta en cuestión de minutos.
+   Probado con el discriminador: 200 en 0,65 s minutos después de tres 504.
+2. `timeout` (504) y `rate_limited` (429) salen los dos **del despachador**, no del análisis de la
+   consulta. Ninguno de los dos habla de lo que se pidió.
+3. Reformular la consulta **no es lo que lo arregla**: sentencias únicas fallan igual.
+4. **Reintentar más tarde sí funciona.** Siempre, en las cuatro ocasiones.
+
+⇒ La causa real queda `CAUSA NO CONFIRMADA`. La conducta correcta no depende de conocerla:
+**reintentar con espera creciente y no diagnosticar.**
+**Arreglo aplicado:** la nº32 **no se borra ni se edita** —es el registro de lo que se creyó y
+cuándo—, se corrige aquí, que es entrada nueva, y se dice qué parte cae y cuál aguanta:
+· ⛔ **CAE** la causa: *"era la forma de la consulta (unión contra sentencia única)"*. Falso.
+· ✅ **AGUANTA**, y más fuerte: *"un mensaje de error es una afirmación del servidor sobre sí mismo
+  y no está verificada por venir de dentro"*. Hoy hay dos frases distintas del mismo servidor sobre
+  el mismo hecho, y la primera —"estoy demasiado ocupado"— era la engañosa.
+· ✅ **AGUANTA** el remedio operativo: lanzar la petición más pequeña antes de declarar nada caído.
+  Funcionó las dos veces, aunque por un motivo distinto del que creí — **liberaba tiempo, no
+  complejidad**.
+· ➕ **SE AÑADE**: espaciar de verdad las peticiones, y leer `/api/status` cuando aparezca un 429.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **una intervención que funciona no demuestra por qué funciona.** Si al
+"arreglar" algo se cambió más de una cosa —y el tiempo transcurrido cuenta como una cosa— el éxito
+no distingue cuál de ellas operaba. Para atribuir causa hay que **volver a provocar el fallo**: si
+no se puede reproducir a voluntad, no hay causa demostrada, hay una historia que encaja.
+⚠️ Y el corolario incómodo: **la nº32 se escribió con la seguridad de haber hecho un experimento.**
+El formato de la bitácora —con su casilla de "causa raíz"— **empuja a rellenarla**, y una casilla
+que hay que rellenar se rellena con la mejor hipótesis disponible aunque no esté probada. A partir
+de ahora, causa no reproducida se escribe **`CAUSA NO CONFIRMADA`**, que es `NO CONSTA` con apellido.
+**Traza:** `data/exploracion/2026-08-02_osm_overpass_tunnel_HTTP429-limite-peticiones.html` (el 429
+que lo destapó), `..._control-tunnel_HTTP504-intento1.html` (sentencia única que falla),
+y los tres 504 de la nº32
+
+## [2026-08-02] — Cuatro ventanas, cuatro fechas: los espejos de Overpass sirven datos de meses distintos
+
+**Categoría:** frescura / fuente
+**Síntoma:** cuando la instancia principal dejó de responder, las dos últimas ventanas se pidieron
+a una réplica (`overpass.private.coffee`). Al imprimir el sello de cada crudo antes de compararlos:
+
+```
+DELICIAS  (principal)  timestamp_osm_base = 2026-08-02T13:16:36Z
+HUESCA    (principal)  timestamp_osm_base = 2026-08-02T13:16:36Z
+ALIERTA tuneles (replica) …………………… = 2026-06-12T12:14:17Z
+ALIERTA vias    (replica) …………………… = 2026-05-31T22:37:44Z
+PIRINEOS        (replica) …………………… = 2026-05-06T03:25:00Z
+```
+
+**Casi tres meses de diferencia entre ventanas que iban a ir en la misma tabla.** Y no es sólo
+principal contra réplica: **dentro de la misma réplica**, dos consultas seguidas devolvieron datos
+de 31 de mayo y de 12 de junio — es un grupo de servidores con retrasos de réplica distintos, y
+te toca uno u otro sin decírtelo.
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el HTTP 200 y el contenido.** Los
+ficheros son válidos, completos, con la geometría correcta y el número de ways plausible para la
+zona. Nada en ellos se ve viejo. El sello vive en `osm3s.timestamp_osm_base`, tres niveles dentro
+del JSON, **y no se mira nunca porque no hace falta para parsear**. Y el segundo verde, que es el
+peor: al cruzar los dos ficheros de Alierta —el de túneles y el de vías, de fechas distintas—
+**coincidieron los 15 túneles, uno a uno**. Una comprobación de consistencia que sale limpia
+refuerza la confianza justo en lo que no ha comprobado: que sean del mismo día.
+**Causa raíz:** el `Announced endpoint` de la principal y las réplicas públicas son máquinas
+distintas con sus propios ciclos de actualización. Nada obliga a que estén al día, y el protocolo
+no lo negocia: se pide y se sirve lo que haya.
+**Cómo se cazó:** por imprimir el sello al cargar cada fichero, que es rutina de este proyecto
+desde la tanda 0.C. No hubo intuición: estaba en la línea de salida del script.
+**Arreglo aplicado:** ninguno sobre los datos —**editar un crudo lo destruye como evidencia**—. El
+anexo declara **la fecha de cada ventana junto a cada cifra**, y advierte de que las comparaciones
+entre zonas cruzan hasta tres meses. Y se comprobó lo único comprobable sin más peticiones: que los
+dos ficheros de Alierta, pese a sus 12 días de diferencia, contienen los mismos 15 túneles.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **el mismo servicio no garantiza el mismo dato: una réplica es otra
+fuente.** Cambiar de espejo para esquivar una caída parece un detalle de infraestructura y es un
+cambio de fuente con su propia fecha. Corolario duro para este proyecto: **el sello de frescura se
+lee y se ESCRIBE AL LADO DE LA CIFRA, no en la sección de método.** Una tabla que compara cuatro
+zonas sin fecha por fila es una tabla que afirma, sin decirlo, que las cuatro son del mismo día.
+**Traza:** `data/exploracion/2026-08-02_osm_overpass_alierta-torres_todas-vias.json`,
+`..._alierta-torres_tuneles.json`, `..._pirineos_todas-vias.json` (réplica) contra
+`..._delicias-estacion_todas-vias.json` y `..._carretera-huesca_todas-vias.json` (principal)
