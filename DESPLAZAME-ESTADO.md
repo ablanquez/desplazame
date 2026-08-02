@@ -26,14 +26,13 @@
   ⭐ **Dos veces seguidas la medición ha INVERTIDO una decisión ya firmada**, no la ha confirmado.
 - **Las cinco decisiones de diseño, cerradas** (§5 · D1–D5), más **el backtesting elevado a
   principio del proyecto** por Antonio.
-- ⚠️ **La regla de nivel está resuelta PARA OSM y sigue abierta para la capa municipal**: toda su
-  solidez viene del nodo compartido, y el dato municipal no tiene ninguno.
+- ⭐⭐ **P0 CERRADA (§5·D0): el grafo se construye sobre OSM.** El dato municipal **verifica, no
+  decide**. Con ello el problema del nivel municipal —que seguía abierto— desaparece.
 
-**Falta decidir:** ⭐ **si la geometría municipal entra en el grafo o solo aporta atributos**
-(reabre la P0 del diseño y disolvería el problema anterior) · el stack · el alcance v1 del
-buscador · el momento oro.
+**Falta decidir:** el stack · el alcance v1 del buscador · el momento oro.
 
-**Lo siguiente:** cerrar P0. De su respuesta depende si H1 arranca sobre una red o sobre dos.
+**Lo siguiente:** medir **cuántas vías del callejero municipal no existen en OSM** (el número que
+dice cuánta ciudad se pierde con D0, y el único cabo que nace de esa decisión). Después, abrir H1.
 
 ---
 
@@ -194,7 +193,55 @@ capas se clasificaron sin abrirlas** (clasificación documental, no verificació
 | **`data/exploracion/` fuera de git, con 17 excepciones a mano** | Son evidencia de un momento, no fuente; git guarda todas las versiones para siempre. Entran solo los crudos que sostienen las afirmaciones más fuertes — eso convierte *"confía en mi informe"* en *"compruébalo"* |
 | **Este documento vive DENTRO del repositorio** | Se versiona, viaja con el proyecto y **es material de portfolio**. Condición: el entorno local (rutas, puertos, claves) **no vive aquí** — a fichero aparte gitignoreado, para que el estado no contenga nada sensible *por construcción*, no por acordarse |
 
-### ⭐⭐ Las cinco decisiones del diseño de H1 (tandas 2 · 2.B · 2.C)
+### ⭐⭐ Las decisiones del diseño de H1 (tandas 2 · 2.B · 2.C)
+
+**D0 · ⭐⭐ EL GRAFO SE CONSTRUYE SOBRE OSM. El dato municipal VERIFICA, no decide.**
+
+> **Geometría:** OpenStreetMap. Nodalizada por diseño, con aceras, pasos de peatones, escaleras,
+> `bridge`, `layer` y `tunnel`.
+> **Atributos:** municipales cuando se puedan transportar, de OSM cuando no — y **declarado de
+> dónde viene cada uno**.
+> **El enganche del portal:** por proximidad sobre la geometría OSM. El `codigoVia` municipal dice
+> si ese enganche es **coherente**. Discordancia ⇒ **se marca y se cuenta**.
+
+⭐ **El porqué:** el problema del nivel estaba resuelto para OSM y abierto para el municipal —toda
+la solidez de D1 viene del nodo compartido, y la capa municipal no tiene ni uno—. Construyendo
+sobre OSM, ese problema **desaparece**: no hay que inferir nada sobre una capa que no se planariza.
+Y el código es **universal**: el mismo motor valdría para otra ciudad.
+
+⚠️ **Lo que se paga, dicho entero:**
+1. **El puente exacto con los portales deja de decidir.** Se cambia un identificador por una
+   proximidad. *(Cuatro familias de excepción ya medidas en los nombres: `CALLE UNCETA` ≠
+   *Marcelino Unceta*, `NTRA.SRA.DE BONARIA`, sufijos rurales `---CST`/`---SGR`.)*
+2. **Los atributos** —sentido, velocidad, peatonalidad— hay que transportarlos por ese mismo
+   emparejamiento. Lo que no case se queda sin ellos o tira de los de OSM, con cobertura irregular.
+3. **La cobertura.** El municipal es el callejero oficial: si una calle existe, está. **Lo que
+   falte en OSM no existe para la app**, y solo lo hemos medido en el barrio mejor mapeado de la
+   ciudad.
+4. **La ODbL se lo come todo.** Con geometría municipal quedaba una puerta entreabierta; con esta
+   decisión el grafo entero es derivado de OSM.
+
+⭐⭐ **LA SALVAGUARDA NO HACE LA CONVERSIÓN MÁS PRECISA: HACE QUE SEPAS CUÁNDO HA FALLADO.** El
+enganche va a fallar en algunos portales con salvaguarda o sin ella. Lo que cambia es tener un
+número y una lista ordenada por gravedad, en vez de un fichero que parece correcto.
+⛔ **Y la salvaguarda MIRA, CUENTA Y AVISA. No arregla.** Si "corrige" el fallo en vez de marcarlo,
+es la corrección por cercanía que ya falló en el 29,6 %, con otro nombre.
+
+⚠️ **Cabo abierto que nace con esta decisión:** cuántas vías del callejero municipal (3.359) **no
+existen** en OSM. Es el número que dice cuánta ciudad se pierde, y **no está medido**. Barrido
+completo, no muestra.
+
+### ⭐ EL CICLO DE PULIDO (decidido por Antonio)
+
+**Dejar fallar → contar → ordenar por gravedad → mirar los peores a mano → lo que sea patrón se
+convierte en REGLA → lo que no, en excepción versionada que se reaplica sola.**
+
+Primero se deja fallar y después se pule. Anticipar cada excepción antes de ver el fallo acaba en
+reglas para casos imaginarios y ninguna para los reales.
+
+⚠️ **Con una ley encima, de Linaje: AGRUPAR ES BORRAR.** Al pulir, la tentación será *"esto son 400
+casos del mismo tipo, los trato juntos"* — y dentro de esos 400 habrá tres que no lo son. **Acotar
+sí; agrupar SOLO lo idéntico.** Los parecidos van juntos para MIRARLOS, nunca para TRATARLOS.
 
 **D1 · La regla de nivel — reescrita dos veces, y las dos por una medición.**
 
@@ -415,13 +462,16 @@ conjunto de tandas que deja algo **cerrado y demostrable por sí solo**.
 
 Desglosado porque su contenido está fundado en lo que ya se sabe:
 
-1. Descargar `MU1_jerarquia_viaria` completa y la red peatonal de OSM de la ciudad.
+1. Descargar la red de OSM de toda la ciudad (geometría base, D0) y `MU1_jerarquia_viaria`
+   completa (atributos y verificación).
 2. ⭐ **Planarizar**: partir cada tramo en sus intersecciones (106 puntos de cruce detectados en
    la muestra), y usar tolerancia pequeña (~2 m) **solo** para las puntas sueltas.
 3. ⚠️ **Resolver los niveles.** Sin campo de cota, planarizar fusiona pasos elevados con la calle
    de debajo. La pista está en OSM (`bridge`, `layer`). **Riesgo de corrección nº1.**
-4. Enganchar los 46.150 portales por `codigoVia` — puente exacto, no coincidencia aproximada.
-5. Coser la red municipal (calzada) con la de OSM (acera, paso, escalera), declarando la ODbL.
+4. Enganchar los 46.150 portales **por proximidad**, con el `codigoVia` como **salvaguarda**:
+   marca y cuenta la discordancia, no la corrige (D0).
+5. Transportar los atributos municipales (sentido, velocidad, peatonalidad) a la geometría OSM,
+   **declarando la procedencia de cada uno** y contando lo que no case. ODbL declarada.
 6. ⭐ **Verificar conectividad de verdad**: que no queden trozos de ciudad incomunicados. Los
    puentes sobre el Ebro, el Huerva y el Gállego son los puntos de fallo de mayor impacto — un
    puente sin coser parte la ciudad en dos y el motor responde *"no hay camino"*.
@@ -448,7 +498,7 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **2** | ⭐ El diseño en papel del grafo (912 líneas, 6 preguntas) | **H1** | ✅ |
 | **2.B** | Medir el falso negativo de la regla de nivel (Huesca + Delicias) | **H1** | ✅ **invirtió la decisión** |
 | **2.C** | Cerrar el capítulo del nivel (Alierta + Pirineos + plataforma) | **H1** | ✅ **volvió a invertirla** |
-| **3** | *(siguiente: cerrar P0 — ¿entra la geometría municipal en el grafo?)* | **H1** | ⬜ |
+| **3** | *(siguiente: medir la cobertura de OSM contra las 3.359 vías municipales)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -503,7 +553,6 @@ Los dos en §5.)*
 
 | Cabo | Qué hay que decidir |
 |---|---|
-| ⭐⭐ **P0 REABIERTA: ¿entra la geometría municipal en el grafo, o solo aporta atributos?** | **Es el cabo que bloquea H1.** La regla de nivel (§5·D1) está resuelta **para OSM** y sigue abierta para el municipal: toda su solidez viene de la **cláusula del nodo compartido**, y la capa municipal **no tiene ni un nodo compartido**. Ahí sigue siendo pura inferencia, y su único criterio —el salto de velocidad— acaba de fallar en el paso inferior de Cesáreo Alierta (mismo límite arriba y abajo). ⇒ **Si el grafo se construye sobre OSM y el municipal solo aporta `codigo` de vía y atributos, el problema del nivel municipal desaparece**: no hay que inferir nada sobre una capa que no se planariza. ⚠️ El coste: enganchar atributos municipales a geometría OSM es emparejamiento aproximado, y ya se han medido **cuatro familias de excepción** en los nombres |
 | **El stack** | Ya condicionado por el reparto del motor: hace falta **algo que sirva consultas de horario**, no solo estático. ⚠️ Y ahí el hosting compartido de Hostinger tiene algo que decir: no es lo mismo servir ficheros que mantener un proceso vivo. *Cuando el hosting y tú discrepéis, gana el hosting.* Leaflet + OSM se reutiliza de 003 sin restar puntos: el diferencial de 004 está debajo del mapa |
 | **El alcance v1 del buscador** | Cada casilla combinable duplica los casos a verificar: cuatro modos son 16 combinaciones, por dos criterios, 32. ⚠️ Y "menos transbordos" y "más rápido" son **objetivos que compiten**: optimizar los dos a la vez no da un óptimo, da un conjunto donde ninguna ruta gana en todo. Se puede resolver con una penalización por transbordo — pero entonces hay que **decir que es una preferencia cableada, no un óptimo** |
 
