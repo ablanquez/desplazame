@@ -1844,3 +1844,157 @@ agregación sin refinar el instrumento amplifica sus defectos.
 "Cuántos" sin "de qué tipo" es una cifra sin veredicto — y una cifra grande y sin veredicto es
 justo la que uno tiene ganas de anunciar.
 **Traza:** `u6_km.py`, `u7_verifica.py`, `u8_final.py` (desechables)
+
+---
+
+## [2026-08-02] — "Dos farmacias de guardia" es un suelo, no un total: el normalizador se queda con la primera URI y tira el resto
+
+**Categoría:** instrumento ajeno / pérdida silenciosa
+**Síntoma:** el conjunto heredado de farmacias trae la única señal de guardia de todo el fichero
+dentro del campo `type`, y con la fecha incrustada en la propia URI:
+
+```
+188 x  http://www.zaragoza.es/sede/portal/skos/vocab/FarmaciaHorarioAmpliado
+124 x  null
+  2 x  http://www.zaragoza.es/sede/portal/skos/vocab/FarmaciaGuardia/2026-05-12
+```
+
+Dos farmacias de guardia el 12 de mayo. **El número es falso por abajo**, y la razón está en el
+normalizador del proyecto de origen (`normalize-farmacia.ts`), cuyo propio comentario lo dice:
+
+```ts
+// type viene como Array<string> con URI SKOS; el normalizador lo absorbe
+function normalizeType(raw: unknown): string | null {
+  ...
+  for (const v of raw) {
+    if (typeof v === "string" && v.trim() !== "") { candidate = v; break; }   // ⬅ break
+  }
+```
+
+**`break` en la primera.** Una farmacia clasificada a la vez como `FarmaciaHorarioAmpliado` y
+`FarmaciaGuardia/2026-05-12` **conserva solo la primera de las dos**, y la marca de guardia
+desaparece sin dejar rastro ni bandera. Las **2** que sobreviven son exactamente las que **no**
+tenían ninguna otra clasificación. ⇒ **`NO CONSTA` cuántas farmacias estaban de guardia ese día.**
+Solo se sabe que **fueron 2 o más**, y que las 188 con horario ampliado son candidatas a haber
+perdido la marca. No se puede acotar sin volver a pedir el crudo, y esta tanda tiene prohibida la
+red.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la procedencia del dato, que es
+la más creíble que se ha visto en este proyecto.** No es un texto libre ni un campo suelto: es una
+**URI de vocabulario controlado SKOS**, publicada por el Ayuntamiento, **con la fecha dentro del
+propio identificador**. Todos los indicios de rigor a la vez. Y la ley nº5 de este proyecto ya
+avisaba —*el aspecto de rigor dice cómo se diseñó, no si se rellenó bien*— pero aquí es peor y más
+sutil: **el campo de origen estaba bien construido y era el CONSUMIDOR el que lo truncaba.** El
+rigor del emisor no protege de un `break` en el receptor.
+
+**Cómo se cazó:** contando valores distintos por campo antes de leer ninguno. `type` tenía **190**
+valores no vacíos y `clasificacion` **188**. Dos de diferencia en dos campos que hablan del mismo
+hecho — que es literalmente la ley nº6 (*cuando una fuente ofrece varios campos para el mismo
+hecho, compáralos entre sí*). **Sin esa comparación, las dos únicas farmacias de guardia del
+fichero habrían pasado por registros incompletos.** De hecho eso es justo lo que dice de ellas su
+propia bandera de calidad: `qualityFlags: ["missing_schedule"]`.
+
+**Arreglo aplicado:** ninguno — el fichero es de otro proyecto y **esta tanda es de solo lectura**.
+Se documenta en `docs/RECONOCIMIENTO-FARMACIAS.md` y **se declara que 004 no debe consumir ese
+campo**: si 004 quiere guardias, las pide al endpoint por fecha (§D del informe).
+**Ley que sale de aquí:** ⭐⭐ **un normalizador que colapsa una lista a un valor único está tomando
+una decisión de negocio disfrazada de limpieza de tipos.** `Array<string> -> string` no es una
+conversión: es **elegir cuál de los hechos sobrevive**, y el que se pierde no deja hueco, deja un
+valor perfectamente válido. ⚠️ Corolario: **cuando un campo de origen es multivalor, el recuento de
+valores distintos del destino ya no puede compararse con el del origen** — y ése era el chequeo.
+**Traza:** `farmacias-zaragoza.json` (314 registros, solo lectura),
+`normalize-farmacia.ts` líneas de `normalizeType`
+
+---
+
+## [2026-08-02] — El campo de horario no contiene el horario: el 64 % de lo que trae solo habla del sábado
+
+**Categoría:** dato ajeno / nombre que promete de más
+**Síntoma:** el conjunto tiene `extendedHoursText`, relleno en **188 de 314**, con **16 redacciones
+distintas**. Clasificado por lo que dice de verdad:
+
+```
+A. dice algo de entre semana ......................  67  (21,3 %)
+B. SOLO habla del sábado (no dice el horario base)  121  (38,5 %)
+C. sin nada .......................................  126  (40,1 %)
+                                                    ────
+                                                    314  ✅
+```
+
+El valor más repetido —**121 de 188, el 64 % de las que traen algo**— es:
+
+```
+"Sábados horario de mañanas de 9:30 a 13:30 h. (Junio,julio y agosto: 9:15 a 13:45 h.)"
+```
+
+**Eso no es el horario de la farmacia: es la excepción del sábado sobre un horario ordinario que la
+fuente no publica en ninguna parte.** De lunes a viernes, en 121 farmacias, **no se sabe a qué hora
+abren ni a qué hora cierran**. Y de las 67 que sí dicen algo de entre semana, el formato es texto
+libre: **47 llevan etiquetas HTML** (`<p>`, `<ul>`, `<li>`), una lleva entidades (`&nbsp;`,
+`&iacute;`), una está entera en mayúsculas y otra empieza *"TODOS LOS DIAS HASTA 21:30 H CIERRE
+MEDIO DIA…"*.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **el recuento de relleno, que es el
+control estándar de este proyecto.** *188 de 314 lo traen, el 59,9 %* — un número decente, con su
+denominador, calculado sobre el campo correcto. **Y no dice absolutamente nada sobre si el
+contenido responde a la pregunta.** Contar cuántos registros traen un campo mide **presencia**;
+para medir **utilidad** hay que leer los valores y clasificarlos, y eso no lo hace ningún contador.
+
+⚠️ **Y el nombre del campo era honesto.** Se llama `extendedHoursText` —*texto de horas
+extendidas*—, no `horario`. **Describe exactamente lo que contiene.** El error habría sido mío al
+leer la lista de campos y traducir mentalmente "campo de horas" por "horario", que es justo lo que
+el método de esta tanda prohibía: *no deduzcas del nombre del campo*. Aquí la trampa iba en la otra
+dirección de lo esperado: **el nombre no prometía de más; era el lector el que iba a leer de más.**
+**Ley que sale de aquí:** ⭐⭐ **un campo relleno al 60 % puede estar respondiendo a una pregunta
+distinta de la que le haces.** Antes de contar cuántos lo traen, hay que clasificar **qué dicen** —
+y publicar las dos cifras juntas, porque *"lo trae el 59,9 %"* y *"responde a mi pregunta el
+21,3 %"* son ambas ciertas y solo una es la que importa.
+**Traza:** `farmacias-zaragoza.json`, campo `extendedHoursText`, barrido completo n=314
+
+---
+
+## [2026-08-02] — `withExtendedHours: 188` no cuenta horarios ampliados: es `314 − missingSchedule` con otro nombre
+
+**Categoría:** metadato / contador que se cuenta a sí mismo
+**Síntoma:** el metadata del conjunto publica dos indicadores de calidad que parecen independientes:
+
+```json
+"missingSchedule": 126,
+"withExtendedHours": 188
+```
+
+**126 + 188 = 314.** Son el mismo hecho contado dos veces, y se puede demostrar en el código que los
+produce (`sync-farmacias-zaragoza.ts` + `normalize-farmacia.ts`):
+
+```ts
+const hasExtendedHours = clasificacion === "HorarioAmpliado" || horarioText !== null;
+const scheduleSource   = horarioText !== null ? "official" : "missing";
+if (scheduleSource === "missing") qualityFlags.push("missing_schedule");
+...
+if (f.qualityFlags.includes("missing_schedule")) missingSchedule++;
+if (f.hasExtendedHours) withExtendedHours++;
+```
+
+`hasExtendedHours` es verdadero si hay texto de horario **o** si la clasificación es
+`HorarioAmpliado`; y en este conjunto **esas dos condiciones coinciden exactamente en las mismas
+188 farmacias** (`clasificacion` vale `HorarioAmpliado` en 188 y `null` en 126, la misma partición).
+La disyunción nunca se activa por su segundo término. Resultado: **`withExtendedHours` es el
+complemento de `missingSchedule`, siempre, por construcción.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **que los dos números sumaran el total
+exacto.** 126 + 188 = 314, contador independiente cuadrando a la primera. En este proyecto eso es
+una señal de salud —*los repartos suman el total o se declara la diferencia*—, y aquí **la suma
+perfecta era el síntoma, no el certificado**: dos indicadores que particionan el universo sin
+solaparse jamás no son dos medidas, **son una medida y su negación**. Es la ley nº16 con otra cara:
+*un número que cuadra con su vecino no está verificado, está apuntalado* — solo que aquí no está ni
+apuntalado, **está duplicado**.
+
+**Consecuencia práctica:** un panel que enseñe *"188 farmacias con horario ampliado"* está diciendo
+*"188 farmacias de las que sabemos algo del horario"*, que es una afirmación mucho más floja. Y
+combinado con el fallo anterior, la afirmación verdadera es: **67 farmacias de 314 (21,3 %) dicen
+algo de su horario entre semana.**
+**Ley que sale de aquí:** ⭐ **dos contadores que suman el total exacto y nunca se solapan no son
+dos mediciones: son una.** Al inventariar metadatos hay que buscar activamente las identidades
+aritméticas entre indicadores —`a + b = n`, `a = n − b`— **antes** de citarlos como evidencias
+separadas, porque presentados juntos dan una sensación de corroboración que no existe.
+**Traza:** `farmacias-zaragoza.metadata.json`, `sync-farmacias-zaragoza.ts` líneas 126-135
