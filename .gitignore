@@ -149,6 +149,28 @@ data/exploracion/*
 !data/exploracion/2026-08-02_osm_overpass_tunnel_HTTP429-limite-peticiones.html
 !data/exploracion/2026-08-02_osm_overpass_control-tunnel_HTTP504-intento1.html
 
+#    ── Añadidos por el barrido de cobertura OSM vs callejero ─────────────────
+#
+#    · El callejero municipal COMPLETO: 3.359 vias con geometria, `codigo`,
+#      `barrio_rural` y tipo. Es el universo entero contra el que se mide, y
+#      pesa 3,3 MB:
+!data/exploracion/2026-08-02_wfs_urbanismo-Vias_completa-4326.json
+
+#    · Los 19.897 nombres de via de OSM en el termino municipal. De aqui salen
+#      los tres cubos del barrido por nombre y las ocho PLAZA ESPAÑA:
+!data/exploracion/2026-08-02_osm_overpass_zaragoza-termino_nombres.json
+
+#    ⛔ Y UNO QUE SE QUEDA FUERA, DICHO EN VOZ ALTA:
+#       2026-08-02_osm_overpass_zaragoza-termino_geometria.json  (34,25 MB)
+#       55.452 ways con geometria. Sostiene el numero principal de la tanda
+#       —el 92,2 % de cobertura contra un azar del 5 %— y aun asi NO entra:
+#       cuadruplicaria el repositorio (4 MB -> 40 MB) con un solo fichero.
+#       ⚠️ Es una perdida REAL de reproducibilidad y es la primera vez en este
+#       proyecto que la evidencia de una afirmacion fuerte no se publica. La
+#       consulta exacta y el sello (2026-08-02T14:36:18Z) quedan escritos en
+#       docs/COBERTURA-OSM-VS-CALLEJERO.md, pero OSM cambia a diario: quien la
+#       repita obtendra otro dato. Se deja constancia en vez de disimularlo.
+
 
 # ── 3. ⚠️ CONTENIDO DE TERCEROS — EXCLUIDO POR DERECHOS, NO POR DESCUIDO ───
 #
