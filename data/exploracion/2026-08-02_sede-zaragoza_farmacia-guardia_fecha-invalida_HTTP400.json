@@ -1,0 +1,1 @@
+{"status":400, "mensaje":"could not execute query; nested exception is org.hibernate.exception.GenericJDBCException: could not execute query"}

@@ -256,3 +256,29 @@ tmp/
 *.rej
 .cache/
 coverage/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-08-02 · TANDA 7 · crudos del endpoint de guardias de farmacia
+#    Se piden a la sede y se archivan en data/exploracion/, pero ⛔ NO SE PUBLICAN:
+#    cada registro lleva title (nombre del titular, persona fisica), telefonos y
+#    en algunos casos email. Publicarlos seria republicar datos personales que
+#    nadie ha decidido publicar.
+#    ⚠️ Es la SEGUNDA vez en este proyecto que la evidencia de una afirmacion
+#       fuerte no se publica. La primera fue por peso (34 MB de geometria OSM);
+#       esta es por dato personal, y a diferencia de aquella NO se puede resolver
+#       comprimiendo: habria que editar el crudo, y editar la evidencia la
+#       destruye (ley 11).
+#    ⇒ Lo que SI se publica es el agregado sin dato personal, dentro del informe:
+#       turnos, sectores, horarios y conteos.
+#    ⛔ Los tres con dato personal NO llevan negacion: quedan fuera por la regla
+#       general `data/exploracion/*`. Se nombran aqui para que conste la decision,
+#       no para excluirlos otra vez.
+#          2026-08-02_sede-zaragoza_farmacia-guardia_fecha-02-08-2026.json  (7,9 KB)
+#          2026-08-02_sede-zaragoza_farmacia-guardia_fecha-03-08-2026.json  (3,9 KB)
+#          2026-08-02_sede-zaragoza_farmacia-guardia_fecha-17-08-2026.json  (4,3 KB)
+#          2026-08-02_sede-zaragoza_farmacia-guardia_cabeceras-hoy.txt      (Set-Cookie de sesion)
+#
+# ✅ Y los DOS que SI entran, porque no llevan ningun dato personal y sostienen
+#    la afirmacion sobre las formas de respuesta del endpoint (bitacora nº48):
+!data/exploracion/2026-08-02_sede-zaragoza_farmacia-guardia_fecha-02-07-2026_VACIA-sin-result.json
+!data/exploracion/2026-08-02_sede-zaragoza_farmacia-guardia_fecha-invalida_HTTP400.json
