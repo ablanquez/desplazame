@@ -1,0 +1,171 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  QUÉ NO ENTRA EN ESTE REPOSITORIO, Y POR QUÉ
+#
+#  Cada exclusión lleva su motivo escrito al lado. Un .gitignore sin motivos es
+#  una lista de prohibiciones que nadie se atreve a tocar porque nadie sabe por
+#  qué están: dentro de seis meses, el que llegue tiene que poder decidir con
+#  criterio si una regla sigue teniendo sentido.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+# ── 1. CREDENCIALES ────────────────────────────────────────────────────────
+#
+#    Se excluyen ANTES de que existan, no después. Hoy este proyecto no tiene
+#    ni un fichero de entorno, pero va a necesitar una NAP_API_KEY para
+#    descargar el GTFS del Punto de Acceso Nacional. El día que se cree, la
+#    regla ya está puesta.
+#
+#    ⭐ El orden importa: si esta regla llega después del primer .env, el
+#       fichero ya está rastreado y .gitignore no lo saca. Excluir a tiempo es
+#       la única forma barata.
+#    ⚠️ Los comentarios van SIEMPRE en su propia línea. Git NO admite
+#       comentarios al final de una regla: se los traga como parte del patrón.
+#       Escrito así, `*.pem  # claves privadas` es un patrón que busca un
+#       fichero llamado literalmente "*.pem  # claves privadas" y no protege
+#       nada. Pasó en este mismo fichero y lo cazó la contraprueba con
+#       `git check-ignore`. Ver docs/BITACORA.md.
+.env
+.env.*
+
+#    La PLANTILLA sí entra: documenta qué variables hacen falta, sin valores.
+!.env.example
+
+#    Claves privadas y certificados.
+#    (ojo: hay ficheros legítimos con extensión .key; si algún día hace falta
+#     uno, se añade su excepción aquí con su motivo)
+*.pem
+*.key
+id_rsa
+id_rsa.*
+*.p12
+*.pfx
+secrets.json
+credentials.json
+
+
+# ── 2. DATOS DE EXPLORACIÓN ────────────────────────────────────────────────
+#
+#    ⭐ LA REGLA: la carpeta entera fuera, salvo lo que se declare abajo.
+#
+#    Motivo: son EVIDENCIA DE UN MOMENTO, no fuente del proyecto. Un
+#    GetCapabilities de agosto de 2026 dentro de un repositorio público se lee
+#    como dato vigente cuando dentro de seis meses ya no lo sea. Y git guarda
+#    todas las versiones para siempre: esto solo crece.
+#
+#    Es la misma decisión que tomó 003 con su GTFS, y por la misma razón: no es
+#    legal, es de frescura.
+data/exploracion/*
+
+#    ⭐ LA EXCEPCIÓN, y es deliberada: estos crudos SÍ entran, porque sostienen
+#    las afirmaciones más fuertes de los informes. Sin ellos, los documentos
+#    dicen "confía en mí"; con ellos, dicen "compruébalo". Son ~694 KB y
+#    convierten cuatro informes en cuatro informes verificables.
+
+#    · Las 178 capas del WFS y su clasificación salen de aquí:
+!data/exploracion/2026-08-02_idezar-geoserver_wfs-getcapabilities.xml
+
+#    · El contraste con OpenStreetMap (115 aceras, 43 pasos de peatones,
+#      26 escaleras, 39,3 % de nodos compartidos) — el veredicto del hueco
+#      peatonal, que es la decisión más cara del proyecto:
+!data/exploracion/2026-08-02_osm_overpass_casco-highway.json
+
+#    · Las 11 zonas de medición de conectividad. Van TODAS y no solo una:
+#      con una zona se reproduce el método, con las once se reproduce la cifra
+#      (21 extremos soldados, 87 pares que se cruzan, 106 puntos de cruce).
+!data/exploracion/2026-08-02_wfs_zona-*_MU1jv.json
+
+#    · La capa que cambió la recomendación: tiene codigo + doble_sent +
+#      limite_vel + plataforma a la vez, lo que refuta la disyuntiva de la 0.C:
+!data/exploracion/2026-08-02_wfs_feat5_movilidad-MU1_jerarquia_viaria.json
+
+#    · La misma feature servida en metros y en grados. Prueba un fallo que ni
+#      revienta, ni avisa, ni se ve: un .json de aspecto normal con coordenadas
+#      UTM mientras todo el mundo asume WGS84:
+!data/exploracion/2026-08-02_idezar-geoserver_getfeature-Vias-count3-SINsrs.json
+!data/exploracion/2026-08-02_idezar-geoserver_getfeature-Vias-count3-EPSG4326.json
+
+
+# ── 3. ⚠️ CONTENIDO DE TERCEROS — EXCLUIDO POR DERECHOS, NO POR DESCUIDO ───
+#
+#    Estos tres ficheros quedarían fuera igualmente por la regla del bloque 2.
+#    Se nombran aquí a propósito, porque si nadie escribe el motivo, alguien
+#    mirará el listado dentro de un año, verá que "faltan" y los añadirá para
+#    completar la colección.
+#
+#    ⭐ NO se excluyen por sensibilidad: no contienen nada secreto. Se excluyen
+#       porque son OBRA DE TERCEROS y republicarlos en un repositorio público
+#       sería redistribuir software y contenido ajenos sin licencia que lo
+#       ampare. Que un fichero sea accesible no significa que sea nuestro para
+#       volver a publicarlo.
+#
+#      · 2026-08-02_idezar_visorComoMoverse_main.js  (1,95 MB)
+#          bundle compilado de una aplicación del Ayuntamiento de Zaragoza
+#      · 2026-08-02_idezar_visorComoMoverse.html
+#          la página de esa misma aplicación
+#      · 2026-08-02_zaragoza_aviso-legal-condiciones.html
+#          página de la sede electrónica, con su copyright — y es, precisamente,
+#          la que regula la reutilización
+#
+#    Se conservan en el disco local como evidencia de la tanda 0.C/0.D. Lo que
+#    se cita de ellos en los informes son extractos breves, que es lo que
+#    permite una cita.
+
+
+# ── 4. DEPENDENCIAS Y ARTEFACTOS DE BUILD ──────────────────────────────────
+#
+#    ⚠️ El stack de este proyecto NO está decidido todavía. Estas reglas se
+#    ponen por adelantado justo por eso: el día que se elija, nadie tendrá que
+#    acordarse de añadirlas, y no habrá una ventana en la que un node_modules
+#    entero pueda colarse en un commit.
+node_modules/
+.pnp
+.pnp.*
+vendor/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+target/
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+*.tsbuildinfo
+
+
+# ── 5. ARTEFACTOS DEL SISTEMA OPERATIVO Y DEL EDITOR ───────────────────────
+#
+#    Ruido de la máquina de quien trabaja. No dice nada del proyecto y ensucia
+#    los diffs de todo el mundo.
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+
+# ── 6. TEMPORALES, LOGS Y COPIAS ───────────────────────────────────────────
+#
+#    Salida de ejecuciones concretas: no es reproducible y no es del proyecto.
+*.log
+npm-debug.log*
+yarn-error.log*
+.tmp/
+tmp/
+*.tmp
+*.bak
+*.orig
+*.rej
+.cache/
+coverage/

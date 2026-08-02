@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  FINALES DE LÍNEA — normalizados a LF en el repositorio.
+#
+#  ⭐ Esto NO es una preferencia de estilo: sale de un fallo real, documentado en
+#     docs/BITACORA.md (tanda 0.B, "Los sha256 del metadata no validan ninguno de
+#     los cuatro ficheros que verifican").
+#
+#     Aquel dataset publicaba el sha256 y el tamaño de sus cuatro ficheros
+#     generados. Ninguno de los cuatro cuadraba con el disco. La causa: el hash
+#     se calculó sobre contenido con LF y los ficheros estaban escritos con CRLF.
+#     La diferencia de bytes era EXACTAMENTE el número de líneas en los cuatro
+#     casos. Un verificador de integridad habría dado fallo sobre datos intactos.
+#
+#     Este proyecto se desarrolla en Windows y va a generar artefactos con
+#     checksum. Fijar el final de línea ahora cuesta una línea; descubrirlo en
+#     septiembre cuesta una tarde y un diff fantasma.
+# ─────────────────────────────────────────────────────────────────────────────
+
+* text=auto eol=lf
+
+# Los crudos de exploración se publican como EVIDENCIA: deben llegar byte a byte
+# como los devolvió el servidor. Si git les tocara los finales de línea, dejarían
+# de ser la respuesta original y su valor probatorio se perdería.
+data/exploracion/** -text
+
+# El hook es un script de shell: LF obligatorio o no arranca en Linux/macOS.
+.githooks/* text eol=lf
