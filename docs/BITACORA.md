@@ -1354,3 +1354,132 @@ zonas sin fecha por fila es una tabla que afirma, sin decirlo, que las cuatro so
 **Traza:** `data/exploracion/2026-08-02_osm_overpass_alierta-torres_todas-vias.json`,
 `..._alierta-torres_tuneles.json`, `..._pirineos_todas-vias.json` (réplica) contra
 `..._delicias-estacion_todas-vias.json` y `..._carretera-huesca_todas-vias.json` (principal)
+
+## [2026-08-02] — Mi contraprueba de laxitud pasó 8 de 8 y no probaba nada: había inventado disparates
+
+**Categoría:** instrumento / control
+**Síntoma:** el emparejador de nombres municipal↔OSM pasó **las dos** contrapruebas que le puse:
+las cuatro familias de excepción conocidas (5 de 6) y **ocho nombres inventados, rechazados 8 de 8**.
+Con los dos verdes en la mano, el emparejador estaba listo. Después, en la **muestra al azar** —15
+vías sacadas del universo real con semilla `20260802`— apareció esto:
+
+```
+PLAZA ESPAÑA ---GRP        ->  EXACTA  ->  "Avenida de España"      ⛔ ni el tipo ni el sitio
+CAMINO DEL CASCAJO ---SJN  ->  EXACTA  ->  "Calle Cascajo"          ⛔ probablemente otra calle
+CALLE BUENOS AIRES ---SGR  ->  EXACTA  ->  "Avenida Buenos Aires"   ⛔ idem
+```
+
+Y al mirar el callejero entero, la razón de fondo:
+
+```
+PLAZA ESPAÑA            (urbana)         41.65167, -0.88129
+PLAZA ESPAÑA ---ALF     (Alfocea)        41.72415, -0.95196
+PLAZA ESPAÑA ---CRT     (Cartuja)        41.60521, -0.82245
+PLAZA ESPAÑA ---CST     (Casetas)        41.71936, -1.02680
+PLAZA ESPAÑA ---GRP     (Garrapinillos)  41.68411, -1.02599
+PLAZA ESPAÑA ---MNZ     (Monzalbarba)    41.70297, -0.96778
+PLAZA ESPAÑA ---PÑF     (Peñaflor)       41.76118, -0.79655
+PLAZA ESPAÑA ---SJN     (S.Juan Mozarrifar) 41.71729, -0.84139
+```
+
+**Ocho plazas distintas con el mismo nombre, repartidas en 20 km.** Ninguna comparación de nombres
+puede distinguirlas, por buena que sea.
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **una contraprueba negativa hecha de
+imposibles.** Inventé `CALLE ZURRIBURRI DEL PAMPANO`, `AVENIDA DEL TRASGO MELIFLUO`, `PLAZA DE LOS
+BATRACIOS SILENTES`… y las ocho fueron rechazadas. **Claro que fueron rechazadas: no se parecen a
+nada.** Un control negativo de disparates mide si el emparejador rechaza lo absurdo, que es lo
+único que no estaba en duda. **La laxitud no vive en los disparates: vive en los CASI-ACIERTOS** —
+`Plaza España` contra `Avenida de España`, dos calles reales, ambas en el dato, a un tipo de vía de
+distancia.
+Y el segundo verde: **la contraprueba de las cuatro familias también pasó**, 5 de 6. Dos controles
+distintos en verde, y el instrumento equivocándose en una tercera clase de error que ninguno de los
+dos miraba.
+**Causa raíz:** el normalizador **descarta el tipo de vía** (`CALLE`, `PLAZA`, `AVENIDA`) para poder
+resolver la familia de los sufijos rurales, y al descartarlo pierde justo lo que separa
+`Plaza España` de `Avenida de España`. Es un intercambio, no un descuido — pero estaba sin declarar
+y sin medir.
+**Cómo se cazó:** por la **muestra al azar**, que es la contraprueba que no elegí yo. De 15 vías,
+tres emparejamientos sospechosos. Ninguna de mis dos contrapruebas los habría enseñado nunca.
+**Arreglo aplicado:** el emparejador se corrige **antes de mirar ningún total** —y se declara que se
+corrigió—: (1) si los tipos de vía difieren, el resultado baja a `DUDOSA`, no cuenta como
+encontrada; (2) toda vía con sufijo rural `---XXX` **exige confirmación geométrica**, porque su
+nombre es homónimo por diseño. Y la contraprueba de laxitud se rehace **con casi-aciertos reales
+sacados del propio dato**, no con inventos.
+⭐ **Consecuencia mayor para la tanda:** el barrido geométrico deja de ser "la otra comprobación" y
+pasa a ser **la comprobación**. Con ocho `PLAZA ESPAÑA` en el término, el nombre no es un
+identificador: es una etiqueta que se repite.
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **un control negativo hecho de imposibles no mide nada.** Si los casos
+que se plantan para que fallen son absurdos, sólo se comprueba que el instrumento no está roto del
+todo. **El control negativo tiene que estar hecho de CASI-ACIERTOS**, y los casi-aciertos hay que
+sacarlos del propio universo —dos registros reales que se parecen— porque son los únicos que
+recorren la frontera donde el instrumento decide. Es la ley nº33 (*el control no lo elige quien
+escribió el instrumento*) llevada un paso más allá: **tampoco lo inventa.**
+**Traza:** `data/exploracion/2026-08-02_wfs_urbanismo-Vias_completa-4326.json` (3.359 vías con
+`barrio_rural`), `2026-08-02_osm_overpass_zaragoza-termino_nombres.json` (19.897 ways con nombre)
+
+## [2026-08-02] — El barrido geométrico daba 98,3 % de cobertura, y con el callejero movido 2 km daba 58 %
+
+**Categoría:** medición / instrumento
+**Síntoma:** para medir cuánta ciudad falta en OSM, el barrido geométrico muestrea cada eje del
+callejero municipal cada 25 m y comprueba si hay algún segmento de OSM a menos de 20 m. Resultado:
+
+```
+vias con >=50 % de su eje cubierto:  3.283 de 3.341  =  98,3 %
+mediana de cobertura por via      :  100 %
+```
+
+Un número redondo, tranquilizador, y **listo para cerrar la decisión D0 con un "OSM cubre el 98 %"**.
+Antes de firmarlo, la contraprueba obligatoria: **desplazar el callejero entero y volver a medir.**
+
+```
+desplazamiento    vias con >=50 % cubierto (de 399)
+sin desplazar               394
+50 m al norte               330
+200 m al norte              294
+2 km al norte           ⛔  231   =  58 %
+```
+
+**Con el callejero municipal movido DOS KILÓMETROS al norte, el 58 % de las vías seguía saliendo
+"cubierta".** El instrumento no medía correspondencia entre calles: medía **densidad urbana**. En
+una ciudad, cualquier línea está a menos de 20 m de alguna calle, apunte a donde apunte.
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la sensibilidad al umbral, que es
+justo la comprobación que uno hace.** Se midió con 5, 10, 15, 20, 30 y 50 m:
+
+```
+5 m -> 96,0 %      10 m -> 97,4 %      15 m -> 97,9 %
+20 m -> 98,3 %     30 m -> 98,8 %      50 m -> 99,3 %
+```
+
+**Estable en todo el rango.** Y la estabilidad se lee como robustez: *"da igual el umbral que
+elija, sale lo mismo, luego el resultado no depende de un número arbitrario"*. Es exactamente al
+revés — salía lo mismo **porque el umbral no era la variable que mandaba**. Un barrido de
+sensibilidad recorre el parámetro que sospechas y **certifica el instrumento en el eje equivocado**.
+**Causa raíz:** el criterio *"hay algo de OSM cerca"* no distingue **la misma calle** de **otra
+calle que pasa cerca**. Sin exigir dirección, una perpendicular a 4 m cuenta igual que la propia
+calle.
+**Cómo se cazó:** por la contraprueba de desplazamiento, que estaba en el método de la tanda y no en
+mi intuición. **No sospeché del número: apliqué el procedimiento.**
+**Arreglo aplicado:** instrumento v2 con **dos** cambios: umbral estrecho (**5 m**) y **exigencia de
+paralelismo** (rumbo dentro de ±30°). Con él, la línea base desplazada se hunde y aparece señal:
+
+```
+                  U=5 m    U=10 m   U=15 m   U=20 m
+sin desplazar     92,2 %   95,2 %   96,2 %   97,0 %
+2 km al norte      5,0 %   11,8 %   18,5 %   30,6 %
+```
+
+⭐ **A 5 m: señal 92,2 %, azar 5,0 %.** A 20 m el azar es 30,6 % y el instrumento vuelve a no valer.
+**El umbral no se eligió por fino: se eligió por dónde la medición separa la señal del ruido.**
+**Commit:** (esta tanda)
+**Ley que sale de aquí:** ⭐⭐ **una cobertura sin línea base no es una medición.** Todo barrido que
+responda *"¿hay X donde esperaba X?"* tiene que ir acompañado del mismo barrido **sobre datos
+deliberadamente equivocados** —desplazados, barajados, invertidos—, y **publicar los dos números
+juntos**. Un 98 % contra un azar del 58 % es un 98 % que no dice nada; un 92 % contra un azar del
+5 % es una medición.
+⚠️ Y la ley menor, que en este proyecto ya va tres veces: **un barrido de sensibilidad no es una
+contraprueba.** Mover el parámetro que sospechas confirma que ese parámetro no manda; no dice nada
+del que sí manda, porque ese no lo has movido.
+**Traza:** `data/exploracion/2026-08-02_osm_overpass_zaragoza-termino_geometria.json` (55.452 ways,
+34 MB, **no publicado por peso** — ver `docs/COBERTURA-OSM-VS-CALLEJERO.md` §E),
+`2026-08-02_wfs_urbanismo-Vias_completa-4326.json` (3.359 vías)
