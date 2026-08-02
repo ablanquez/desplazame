@@ -1998,3 +1998,148 @@ dos mediciones: son una.** Al inventariar metadatos hay que buscar activamente l
 aritméticas entre indicadores —`a + b = n`, `a = n − b`— **antes** de citarlos como evidencias
 separadas, porque presentados juntos dan una sensación de corroboración que no existe.
 **Traza:** `farmacias-zaragoza.metadata.json`, `sync-farmacias-zaragoza.ts` líneas 126-135
+
+---
+
+## [2026-08-02] — ⚠️⚠️ "De guardia" no significa "abierta": 7 de las 15 de hoy cierran a las 21:30
+
+**Categoría:** dato / promesa peligrosa
+**Síntoma:** primera consulta real al endpoint de guardias del Ayuntamiento, hoy domingo 2 de agosto.
+Devuelve **15 farmacias de guardia**. Un cliente ingenuo —y era exactamente el que yo tenía en la
+cabeza al escribir el informe de la tanda 6— pinta esas 15 en el mapa y contesta *"la de guardia más
+cercana está a 1,2 km"*. Al abrir el campo `guardia.horario` de cada una:
+
+```
+turno T-26   x8   "Abiertas de 9:15 h. a 9:15 h. del día siguiente"          ✅ 24 h
+turno 25-B   x7   "Abiertas de 9:15 h. a 13:45 h. y de 17:00 h. a 21:30 h."  ⛔ cerrada a las 03:40
+```
+
+**De las 15 de guardia, solo 8 están abiertas de madrugada.** Las otras 7 son refuerzo de horario
+partido: siguen figurando como *guardia* del día porque lo son —cubren tarde y noche temprana— pero
+a las 03:40 están cerradas.
+
+**Causa raíz:** *estar de guardia* y *estar abierta ahora* son dos hechos distintos, y el endpoint
+los distingue correctamente **dentro de un campo de texto libre** (`horario`), no con una marca. La
+única manera de saberlo es leer la frase. Un consumidor que filtre por `tipo=guardia` y no mire el
+horario **acierta el 53 % de las veces a las tres de la mañana**.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo lo demás.** El endpoint
+respondió `200`, `application/json`, `totalCount: 15` cuadrando con `len(result)`, el parámetro
+`fecha` demostradamente respetado, la `guardia.fecha` interna coincidiendo con la pedida, y los
+cuatro campos del modelo (`fecha`, `turno`, `horario`, `sector`) rellenos en los 15 registros. **Un
+dato impecable en todos los ejes que este proyecto sabe comprobar** — y la trampa estaba en el
+contenido de una frase en castellano.
+
+**Cómo se cazó:** por agrupar por `(turno, horario)` en vez de contar registros. Con `collections.
+Counter` sobre la pareja aparecieron dos grupos donde el `totalCount` enseñaba uno solo. **Contar
+cuántos hay no distingue clases; agrupar por el valor sí.** Es la ley nº29 —*clasificar antes de
+contar*— aplicada a un dato que no era un error de medición sino dos cosas distintas con el mismo
+nombre.
+
+**Consecuencia para 004, por escrito:** la escena de las 03:40 **no puede filtrar por
+`tipo=guardia`**. Tiene que filtrar por *"su horario cubre la hora actual"*, y eso obliga a
+interpretar el texto libre de `guardia.horario`. Si el texto no se entiende, **la app se calla**:
+mandar a alguien de madrugada a una farmacia de refuerzo cerrada es exactamente el daño que esta
+escena tenía que evitar.
+**Ley que sale de aquí:** ⭐⭐ **una categoría del dato de origen no es una promesa al usuario.**
+*"De guardia"* es una clasificación administrativa —turnos, sectores, cuadrantes del Colegio— y
+*"abierta ahora"* es una afirmación física sobre una puerta. Traducir la primera por la segunda es
+la clase de error que no falla en ninguna prueba y falla en la calle.
+**Traza:** `data/exploracion/2026-08-02_sede-zaragoza_farmacia-guardia_fecha-02-08-2026.json`
+(⛔ no publicado: lleva nombres de titular y teléfonos)
+
+---
+
+## [2026-08-02] — La respuesta vacía no trae la clave `result`: 62 bytes que revientan al cliente descuidado
+
+**Categoría:** API / forma de la respuesta
+**Síntoma:** al pedir una fecha pasada (2 de julio), el endpoint contesta **`200 OK`**,
+`Content-Type: application/json`, y **62 bytes enteros**:
+
+```json
+{"totalCount": 0, "start": 0, "rows": 500, "icon": "farmaciaguardia"}
+```
+
+**No hay clave `result`.** No es una lista vacía: **es que el campo no existe**. Un cliente que haga
+`data.result.length` lanza `TypeError` sobre una respuesta con estado 200 y tipo correcto; uno que
+haga `data.result.map(...)` lo mismo; y uno que use `?.length ?? 0` obtiene **0** y lo interpreta
+como *"no hay farmacias de guardia el 2 de julio"* — que es **imposible en la realidad**: en
+Zaragoza siempre hay guardia.
+
+Y la fecha inválida (`99-99-9999`) contesta distinto otra vez: **`400 Bad Request`** con el error
+interno del servidor filtrado en el mensaje:
+
+```json
+{"status":400, "mensaje":"could not execute query; nested exception is
+ org.hibernate.exception.GenericJDBCException: could not execute query"}
+```
+
+⇒ **Tres formas de respuesta para tres situaciones**, y solo la última es un error HTTP:
+
+| situación | HTTP | `result` | interpretación correcta |
+|---|---|---|---|
+| hay guardias | 200 | lista | dato |
+| **fecha sin datos (pasada)** | **200** | **ausente** | ⛔ **indeterminado, NUNCA "no hay"** |
+| fecha inválida | 400 | ausente | error de petición |
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **el código de estado y el
+`Content-Type`.** `200 OK` + `application/json;charset=UTF-8` es la firma de una respuesta sana, y
+es lo que comprueba cualquier chequeo razonable —incluido el `if (!res.ok) return failed` del
+proyecto de origen, que aquí **pasa de largo**—. La única razón por la que ese cliente no se rompe
+es que además valida `Array.isArray(data.result)`: **acierta por una comprobación de forma que
+estaba puesta para otra cosa.**
+
+**Cómo se cazó:** porque el método de la tanda obligaba a **pedir hoy primero**. Sin la línea base
+—15 registros con `result` presente— los 62 bytes del 2 de julio habrían sido indistinguibles de una
+respuesta normal a un día tranquilo. **Es la ley nº31 aplicada a una API: una respuesta sin línea
+base no es una medición.**
+**Ley que sale de aquí:** ⭐⭐ **la ausencia de una clave no es un cero, y un `200` no es un
+éxito.** Al consumir una API hay que enumerar **las formas de respuesta**, no solo los códigos de
+estado: *lista con datos*, *lista vacía*, *clave ausente*, *error HTTP* y *error con cuerpo JSON*
+son cinco casos distintos que exigen cinco tratamientos. Colapsarlos en "ok / no ok" es cómo se
+llega a afirmar en pantalla algo que el servidor nunca dijo.
+**Traza:** `2026-08-02_sede-zaragoza_farmacia-guardia_fecha-02-07-2026_VACIA-sin-result.json` (62 B),
+`…_fecha-invalida_HTTP400.json` (142 B) — los dos sí publicados: no llevan dato personal
+
+---
+
+## [2026-08-02] — Mi contador de URIs devolvía 1 siempre por la rama `else`, y el resultado uniforme parecía una respuesta
+
+**Categoría:** instrumento propio / constante disfrazada de medición
+**Síntoma:** comprobando si el censo del proyecto `00 ZGZ RADAR` guardaba varias URIs por farmacia
+—la pregunta que decide si perdió marcas de guardia como el otro—, escribí:
+
+```python
+collections.Counter(len(r['type']) if isinstance(r.get('type'), list) else 1 for r in d)
+```
+
+Salida: `Counter({1: 314})`. **Los 314 con un solo valor**, leído a bote pronto como *"aquí no hay
+multivalor, este censo no pierde nada"*.
+
+**Causa raíz:** en ese fichero `type` es un **`str`**, no una lista. La condición `isinstance(...,
+list)` es falsa en los 314 registros, así que **la expresión entera devuelve la constante `1`
+trescientas catorce veces**. No midió la longitud de nada: contó cuántos registros hay. El `1` no era
+un resultado, era el literal que yo mismo había escrito dos caracteres antes.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la uniformidad del resultado**,
+que es justo lo que uno busca en una comprobación de forma. `Counter({1: 314})` con el total exacto
+del fichero **tiene todo el aspecto de un barrido completo que confirma una hipótesis**: un solo
+valor, sin dispersión, cuadrando con el denominador. Y la ley nº25 de este proyecto ya avisaba de la
+versión grande de esto —*la estabilidad se lee como robustez*—; aquí es la versión pequeña y más
+tonta: **la estabilidad venía de que no había variable.**
+
+**Cómo se cazó:** por la línea de arriba de la misma salida, que imprimía
+`tipos: {'str': 192, 'NoneType': 122}`. **El diagnóstico estaba a dos renglones del error**, puesto
+por mí, y solo lo vi al leer las dos líneas juntas. Si hubiera imprimido únicamente el contador que
+me interesaba, la conclusión falsa se habría ido al informe.
+**Arreglo aplicado:** ninguno en el código —era un script desechable— pero **el dato que se buscaba
+sí se obtuvo por otra vía**: ese censo trae **7** marcas `FarmaciaGuardia` del 7 de mayo, y el
+endpoint confirma hoy que un día laborable tiene exactamente **7**. Es **evidencia convergente** de
+que el fichero del 12 de mayo, con **2**, perdió marcas — ⚠️ **no es una demostración**: no se puede
+descartar que ese martes hubiera realmente menos.
+**Ley que sale de aquí:** ⭐ **una expresión condicional cuya rama por defecto es una constante
+devuelve esa constante, no una medida** — y un histograma de un solo valor es indistinguible de un
+histograma de la constante que escribiste. ⚠️ Regla operativa: **si un contador sale uniforme,
+comprobar primero que la variable existía**, antes de interpretar la uniformidad como hallazgo.
+**Traza:** script desechable de la tanda 7; el dato correcto salió de contar `FarmaciaGuardia` en el
+texto crudo, con positivo y negativo de control
