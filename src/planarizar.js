@@ -28,11 +28,147 @@ const SALTO_VELOCIDAD = 50;        // D1 · C2
 // Vías por las que NO circula tráfico rodado. Define quién es "rodada" en C2.
 const NO_RODADAS = new Set(['footway', 'path', 'steps', 'pedestrian', 'cycleway',
   'bridleway', 'corridor', 'via_ferrata']);
-// Vías por las que no se puede andar. Se construyen igual (son terreno) pero el
-// enrutador a pie no las usa. Separar "existe" de "se puede pasar" es de D4.
-const PROHIBIDAS_A_PIE = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
 
 const esRodada = (t) => !NO_RODADAS.has(t.highway);
+
+// ═════════════════════════════════════════════════════════════════════════════
+// LA REGLA DE TRANSITABILIDAD  —  sustituye a la lista, por la ley 40
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// ⛔ Lo que había antes era una LISTA: `!PROHIBIDAS_A_PIE.has(highway) && foot!=='no'
+//    && highway!=='construction'`. `construction` entró porque en el casco había 117
+//    y me las encontré de frente; `proposed` no entró porque allí había cero. Y al
+//    planarizar la ciudad aparecieron 178 aristas —13,8 km— de calles sin construir
+//    por las que el motor dejaba andar, 23 de ellas único paso a 82 nodos.
+//    Una lista de los casos que aparecieron no es una regla: es un inventario, y se
+//    queda corta en cuanto cambia la muestra. Ver bitácora nº62.
+//
+// ⭐ Se sustituye por TRES PREGUNTAS INDEPENDIENTES, cada una contestable mirando el
+//    dato y cada una contada por separado:
+//
+//      G1 · ¿EXISTE HOY?            estado de la vía
+//      G2 · ¿ES UNA VÍA POR LA QUE ANDA GENTE?   tipo de vía
+//      G3 · ¿LO PROHÍBE EL DATO?    acceso
+//
+// ⭐⭐ Y G2 es una lista POSITIVA, no negativa, por el coste asimétrico del error:
+//     excluir de más pierde un atajo; incluir de más manda a alguien a un
+//     descampado. Una lista negativa FALLA ABIERTA —un valor nuevo de OSM pasa a
+//     ser andable sin que nadie lo decida—; una positiva FALLA CERRADA y además
+//     `valoresDesconocidos()` los saca por pantalla. Un valor nuevo no puede
+//     colarse en silencio nunca más.
+
+/** Estados del ciclo de vida de OSM: lo que ya no está o todavía no está. */
+const ESTADOS_MUERTOS = ['construction', 'proposed', 'planned', 'razed', 'abandoned',
+  'disused', 'demolished', 'dismantled', 'removed'];
+
+/**
+ * G2 · Tipos de vía por los que anda gente. LISTA POSITIVA.
+ * Incluye el viario ordinario aunque no tenga acera declarada: sin acera se anda
+ * igual, y eso lo dice D4 con `eje-de-calzada`, no este filtro.
+ */
+const VIARIO_ANDABLE = new Set([
+  // peatonal puro
+  'footway', 'path', 'steps', 'pedestrian', 'living_street', 'corridor',
+  // viario ordinario
+  'residential', 'service', 'track', 'unclassified',
+  'tertiary', 'secondary', 'primary',
+  'tertiary_link', 'secondary_link', 'primary_link',
+  // compartidas
+  'cycleway',
+  // ⚠️ el ascensor SÍ se anda —es una conexión vertical real— pero es un paso
+  //    condicional: puede estar averiado o cerrado. Se marca en `condicional()`.
+  'elevator',
+]);
+
+/**
+ * G2 · Lo que NO se anda, y por qué. Está enumerado a propósito aunque la lista
+ * que manda sea la positiva: así `valoresDesconocidos()` distingue "sabemos que
+ * no" de "no lo habíamos visto nunca", que son cosas distintas.
+ */
+const VIARIO_NO_ANDABLE = {
+  motorway: 'autovía · prohibido a pie',
+  motorway_link: 'enlace de autovía · prohibido a pie',
+  trunk: 'vía rápida · prohibido a pie',
+  trunk_link: 'enlace de vía rápida · prohibido a pie',
+  busway: 'calzada reservada a autobuses · no es para andar',
+  raceway: 'circuito · recinto cerrado',
+  services: 'área de servicio de autovía · solo se llega por autovía',
+  rest_area: 'área de descanso de autovía · solo se llega por autovía',
+  construction: 'no existe todavía · en obras',
+  proposed: 'no existe todavía · proyectada',
+  planned: 'no existe todavía · planificada',
+  razed: 'ya no existe',
+  abandoned: 'ya no existe',
+  disused: 'ya no existe',
+};
+
+/**
+ * G1 · ¿Existe hoy la vía?
+ *
+ * ⚠️ La ambigüedad es real y se resolvió MIRANDO LOS DIEZ CASOS, no por regla a
+ *    ciegas. Lo que decide es EL TIPO PRINCIPAL, no cualquier etiqueta suelta:
+ *
+ *    · `highway=construction` / `footway=construction` ⇒ NO EXISTE. El tipo lo
+ *      declara: la vía ES una obra. (4 pasos de peatones en obras del centro.)
+ *    · `disused=yes` como bandera suelta ⇒ NO EXISTE.
+ *    · `construction=residential` SOBRE `highway=residential` ⇒ SÍ EXISTE. Son
+ *      las tres de Calle de Pedro III (El Grande), con `surface=asphalt`,
+ *      `maxspeed=30` y acera separada: la calle está ahí. La etiqueta suelta
+ *      habla de una recalificación, no de un solar.
+ *    · `abandoned:highway=tertiary` SOBRE `highway=track` ⇒ SÍ EXISTE. Los
+ *      prefijos `X:highway` describen OTRO TIEMPO VERBAL de algo que sí está hoy.
+ */
+function existeHoy(t) {
+  if (ESTADOS_MUERTOS.includes(t.highway)) return false;
+  if (ESTADOS_MUERTOS.includes(t.footway)) return false;
+  for (const k of ESTADOS_MUERTOS) if (t[k] === 'yes') return false;
+  return true;
+}
+
+/**
+ * G3 · ¿Lo prohíbe el dato explícitamente?
+ *
+ * ⛔ Solo lo inequívoco: `foot=no` (a pie no) y `access=no` (nadie).
+ *
+ * ⚠️ `foot=use_sidepath` NO entra, y no por gusto: excluirlo quita 3.434 aristas
+ *    y **crea 15 componentes nuevas**. La etiqueta significa "usa la acera de al
+ *    lado", y eso solo es aplicable si la acera de al lado ESTÁ EN EL GRAFO. Que
+ *    aparezcan componentes al aplicarla demuestra que en 15 sitios no está.
+ * ⚠️ `access=private` tampoco: crea 29 componentes. Y además es otra categoría —
+ *    "un sitio por el que no se anda" no es "un sitio por el que se puede pero no
+ *    siempre". Los dos casos quedan medidos y reportados: la decisión no es mía.
+ */
+function prohibidoPorElDato(t) {
+  return t.foot === 'no' || t.access === 'no';
+}
+
+/**
+ * Los valores de `highway` que no están ni en la lista positiva ni en la negativa.
+ * ⭐ Un valor nuevo de OSM cae aquí, NO se anda, y sale por pantalla. Ésa es la
+ *    diferencia entre una regla y una lista.
+ */
+function valoresDesconocidos(ways) {
+  const m = new Map();
+  for (const w of ways) {
+    const h = (w.tags || {}).highway;
+    if (h === undefined) { m.set('(SIN highway)', (m.get('(SIN highway)') || 0) + 1); continue; }
+    if (VIARIO_ANDABLE.has(h) || VIARIO_NO_ANDABLE[h]) continue;
+    m.set(h, (m.get(h) || 0) + 1);
+  }
+  return [...m.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+/** Por qué no se anda por aquí. `null` si sí se anda. Para contar y explicar. */
+function porQueNoSeAnda(t) {
+  if (!existeHoy(t)) return 'no existe hoy';
+  if (!VIARIO_ANDABLE.has(t.highway)) {
+    return VIARIO_NO_ANDABLE[t.highway] || 'valor de highway DESCONOCIDO';
+  }
+  if (prohibidoPorElDato(t)) return t.foot === 'no' ? 'foot=no' : 'access=no';
+  return null;
+}
+
+const transitableAPie = (t) => porQueNoSeAnda(t) === null;
 
 /** ⚠️ float, no int: existe layer="-1.5". Un valor no numérico cuenta como 0. */
 function nivel(t) {
@@ -77,9 +213,6 @@ function precision(t) {
   if (t.sidewalk && !['no', 'none', 'separate'].includes(t.sidewalk)) return 'eje-con-acera-declarada';
   return 'eje-de-calzada';
 }
-
-const transitableAPie = (t) =>
-  !PROHIBIDAS_A_PIE.has(t.highway) && t.foot !== 'no' && t.highway !== 'construction';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -280,4 +413,6 @@ function planarizar(ways, opciones = {}) {
 }
 
 module.exports = { planarizar, decidirCruce, precision, nivel, esPuente, esTunel,
-  velocidad, esRodada, transitableAPie, TOLERANCIA_PUNTA, TECHO_PUNTA };
+  velocidad, esRodada, transitableAPie, porQueNoSeAnda, existeHoy, prohibidoPorElDato,
+  valoresDesconocidos, VIARIO_ANDABLE, VIARIO_NO_ANDABLE, ESTADOS_MUERTOS,
+  TOLERANCIA_PUNTA, TECHO_PUNTA };

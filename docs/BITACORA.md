@@ -2835,3 +2835,63 @@ esta tanda existía: **una zona pequeña no solo tiene menos casos, tiene menos 
 las clases que faltan no dejan hueco visible.** Un cero en el casco no significaba "aquí no pasa":
 significaba "aquí no se ve".
 **Traza:** `src/planarizar.js` (`transitableAPie`), `src/ciudad.js` (B2, clasificación)
+
+---
+
+## [2026-08-03] — Al arreglar `proposed` apareció algo mayor: 24 km con `access=no` por los que también se andaba
+
+**Categoría:** el arreglo destapa lo que el diagnóstico no vio
+**Síntoma:** sustituida la lista por la regla, el delta contra la tanda 10 no salió como esperaba.
+Yo iba a por los 13,8 km de calles proyectadas del fallo nº62, y salió esto:
+
+```
+⭐ LOS 42,57 km QUE DEJAN DE SER ANDABLES, POR MOTIVO:
+     23,95 km   access=no          ⬅ NO estaba en el diagnóstico
+     13,91 km   no existe hoy      ⬅ esto era lo que iba a arreglar
+      1,84 km   área de servicio de autovía
+      1,73 km   circuito
+      1,11 km   área de descanso de autovía
+      0,03 km   calzada reservada a autobuses
+```
+
+**El motivo que yo perseguía era el segundo, no el primero.**
+
+**Causa raíz:** la regla de la tanda 10 comprobaba `t.foot !== 'no'` **y solo eso**. En OSM,
+`foot=no` prohíbe el paso a pie; `access=no` prohíbe el paso **a todo el mundo**, y es más general.
+Un way con `access=no` y sin `foot=no` —que es la forma normal de etiquetar un recinto cerrado—
+**pasaba el filtro entero**. Son 284 aristas y **134 nodos que estaban conectados a la ciudad a
+través de ellas**.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el informe de la tanda 10, que
+contó los `access=private` uno a uno.** Aquel informe publica `ACCESO RESTRINGIDO · access=private
+1.108` en su tabla B6, con su positivo de control y su control negativo. **Miré la familia `access`
+entera para clasificar los pasos condicionales, y no se me ocurrió mirar si el enrutador la
+respetaba.** Contar una cosa y usarla son dos operaciones distintas, y verificar la primera no dice
+nada de la segunda. También dieron verde los ríos, los 32 puentes, las tres contrapruebas y los 10
+cruces conocidos: todos preguntan *¿se puede llegar?*, y la respuesta seguía siendo sí — cruzando
+un recinto cerrado.
+
+**Cómo se cazó:** por **medir el delta por motivo en vez de en total** (§A4). El total, 506 aristas,
+era perfectamente creíble para "quitar las proposed". Fue desglosarlo lo que enseñó que el motivo
+mayoritario no era el que yo estaba arreglando. ⚠️ Y hay un detalle que salva la medida: los metros
+y las aristas cuentan cosas distintas —188 aristas son 13,91 km y 284 son 23,95—, así que **mirar
+solo el conteo de aristas habría dado 188 vs 284, mucho menos llamativo que 14 vs 24 km.**
+
+**⭐ Y un contador independiente que cuadra entre tandas:** quitar solo `proposed` deja la
+componente mayor en 65.851, **exactamente los −82 nodos que predijo la tanda 10** sin haber
+escrito todavía la regla. Dos tandas, dos instrumentos distintos, el mismo número.
+
+**Arreglo aplicado:** `access=no` entra en la puerta G3 junto a `foot=no`. Las dos son
+prohibiciones inequívocas. ⛔ **`access=private` y `foot=use_sidepath` NO entran**, y tampoco por
+gusto: aplicarlas crea **29 y 15 componentes nuevas** respectivamente. Una etiqueta que dice "usa la
+acera de al lado" solo es aplicable si la acera de al lado está en el grafo, y que aparezcan islas
+al aplicarla demuestra que en 15 sitios no está. Quedan medidas y reportadas.
+
+**Ley que sale de aquí:** ⭐⭐ **haber contado una cosa no significa que el motor la respete.** Un
+inventario y un filtro son dos usos del mismo dato, y verificar el inventario no verifica el filtro
+— de hecho da la sensación contraria, porque uno se queda con que "esa familia de etiquetas ya está
+mirada".
+⚠️ Corolario de medida: **un delta se desglosa por motivo antes de darse por bueno**, y en la
+unidad que hace visible la diferencia. En aristas el fallo real era 1,5 veces el buscado; en metros,
+1,7 — y en el total, invisible.
+**Traza:** `src/planarizar.js` (G3), `src/transitabilidad.js` (A4)
