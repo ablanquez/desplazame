@@ -3421,3 +3421,60 @@ es muchísimo más.
 ⚠️ Y la operativa: **cuando escribas un detector, comprueba que encuentra el caso que acabas de
 escribir tú.** Si tu propio fichero no sale en la lista, el detector está roto, no el fichero.
 **Traza:** `src/auditoria-grafo.js` (`RE_CONSTRUIR`, `RE_PLANARIZAR`)
+
+---
+
+## [2026-08-03] — Las bandas estaban copiadas dentro del código y se quedaron viejas: dije "0 de 5" donde eran "3 de 5"
+
+**Categoría:** dos copias del mismo dato / el veredicto contra una regla caducada
+**Síntoma:** el informe de las siete rutas cerraba con esto:
+
+```
+   dentro de la banda de Antonio                0 de 5
+      ⚠️ nº2: 598 m frente a 350–450
+      ⚠️ nº6: 523 m frente a 350–450
+      ⚠️ nº7: 2529 m frente a 1800–2100
+```
+
+Pero `data/pruebas/RUTAS-CONOCIDAS.md` ya estaba en **v2** (commit `e579da2`) y decía **450–550** y
+**2.400–2.600**. Con las bandas buenas, esas tres **entran**: la cuenta real era **3 de 5**, y la nº7
+—la única con distancia medida por GPS— clava 2.529 contra 2.600 medidos, un 2,7 % de diferencia.
+
+**Causa raíz:** `src/rutas-antonio.js` tenía la tabla **transcrita a mano** en un array:
+
+```js
+{ n: 2, o: 'Calle Manifestación 6', d: 'Calle Don Jaime I 17', banda: [350, 450], min: 5, … }
+```
+
+Antonio corrigió el documento; el código no se enteró. **Dos copias del mismo dato divergen, y no es
+una posibilidad teórica: divergieron en menos de un día.**
+
+⭐⭐ **Y había algo peor que la banda vieja: el código no conocía la columna que MANDA en la v2.** La
+v2 hizo del **rodeo** el criterio principal —*ruta ÷ recta no depende de lo rápido que ande nadie*— y
+mi informe ni lo comparaba. Contra el tope de rodeo de Antonio, el resultado es **6 de 6 dentro**.
+⇒ **El informe no solo daba un veredicto equivocado: daba el veredicto de otra pregunta.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **los siete cálculos, todos.** Las
+distancias, los rodeos, los enganches, el Puente de Piedra en la nº1, la esquina de la nº6, las rutas
+de cordura, cero rodeos imposibles. **El motor estaba bien y el veredicto salía en rojo**, porque la
+diana estaba copiada de una versión anterior del documento. Es la tercera vez en este proyecto que el
+sujeto está sano y el instrumento de juicio no: la nº60, la nº68 y ésta.
+
+**Cómo se cazó:** Antonio, comparando el informe contra su propio documento. **Ningún contador podía
+cazarlo**: los dos lados de la comparación estaban dentro del mismo proceso y eran coherentes entre sí.
+
+**Arreglo aplicado:** `src/tabla-rutas.js` lee la tabla del Markdown y devuelve bandas, topes de rodeo,
+rectas declaradas y minutos. El fichero de Antonio **no se toca**. Y como leer Markdown a mano es
+frágil, el parser:
+· **imprime lo que ha entendido**, fila a fila, para poder contrastarlo con el documento;
+· deja en `NO CONSTA` lo que no entiende, **nunca lo rellena**;
+· y **cuadra el número de filas leídas contra el que declara el propio fichero** (`Filas reales: 7`).
+  Si no cuadra, para. Un parser que se come una fila en silencio es peor que no tener parser.
+
+**Ley que sale de aquí:** ⭐⭐ **el criterio de aceptación no se transcribe: se lee de donde vive.** Si
+un dato tiene dueño —y estas bandas lo tienen—, copiarlo al código convierte cada corrección del dueño
+en una divergencia silenciosa.
+⚠️ Y el corolario que casi se me escapa: **cuando el dueño cambia el criterio, no basta con releer los
+números — hay que releer QUÉ COLUMNA MANDA.** Yo habría actualizado las bandas y habría seguido
+ignorando el rodeo.
+**Traza:** `src/tabla-rutas.js` (nuevo), `src/rutas-antonio.js`, `data/pruebas/RUTAS-CONOCIDAS.md` (⛔ sin tocar)

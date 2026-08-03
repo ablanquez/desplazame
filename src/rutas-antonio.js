@@ -1,4 +1,4 @@
-// E5 · ⭐⭐⭐ LAS SIETE RUTAS DE ANTONIO.
+// ⭐⭐⭐ LAS SIETE RUTAS DE ANTONIO.
 //
 // ⭐ Escritas ANTES de que existiera el enganche, a propósito, para que no
 //    pudieran elegirse mirando qué salía bien (ley 17 y ley 22).
@@ -7,19 +7,26 @@
 //    resultados van en el informe, nunca en la tabla de Antonio — ni siquiera
 //    para añadir una columna.
 //
-// ⚠️ Y si alguna falla NO se arregla para que pase. Se averigua por qué, se dice,
-//    y la corrección va como REGLA, no como parche para ese caso.
+// ⛔ Y AHORA LAS BANDAS TAMPOCO SE COPIAN AQUÍ. Estuvieron copiadas, Antonio
+//    publicó la v2 de la tabla, y este fichero siguió comparando contra la v1:
+//    declaró **0 de 5 en banda** cuando la cuenta buena eran 3 de 5. Dos copias
+//    del mismo dato divergen. Se leen con `src/tabla-rutas.js`.
+//
+// ⭐ EL CRITERIO PRINCIPAL DE LA v2 ES EL RODEO, no la distancia: *ruta ÷ recta*
+//    no depende de lo rápido que ande nadie, y la banda de distancia sí (sale de
+//    convertir un tiempo con una velocidad supuesta). La distancia se sigue
+//    reportando, de apoyo.
 //
 //   node src/rutas-antonio.js
 
 'use strict';
 const osm = require('./osm');
 const P = require('./portales');
-const E = require('./enganche');
 const D = require('./direccion');
 const G = require('./grafo');
+const T = require('./tabla-rutas');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
-const { aMetros, aGrados, dist } = require('./geo');
+const { aMetros, dist } = require('./geo');
 
 const log = console.log;
 const di = (k, v) => log(`   ${String(k).padEnd(44)} ${v}`);
@@ -37,177 +44,133 @@ const POI = {
   'C.C. Utrillas': { lat: 41.64014, lon: -0.86815, osm: 'shop=mall "Alcampo Utrillas"  ⚠️ identificado así: es el único centro comercial llamado Utrillas del dato' },
 };
 
-// Las siete, copiadas de `data/pruebas/RUTAS-CONOCIDAS.md` SIN modificarla.
-const RUTAS = [
-  { n: 1, o: 'Avenida Cataluña 78', d: 'Avenida Pablo Gargallo 16', banda: null, min: null,
-    caso: '⭐⭐ CRUZA EL EBRO — y hay tres puentes posibles. No prueba que se cruce: prueba CUÁL elige',
-    nota: 'Antonio cruza por el PUENTE DE PIEDRA' },
-  { n: 2, o: 'Calle Manifestación 6', d: 'Calle Don Jaime I 17', banda: [350, 450], min: 5,
-    caso: 'Casco antiguo: trama irregular. Prueba que el motor NO sale del casco para volver a entrar' },
-  { n: 3, o: 'Cantando Bajo la Lluvia 6', d: 'Hospital Clínico Lozano Blesa', banda: [2900, 3400], min: 40,
-    caso: 'Valdespartera → centro. Enganche donde el mapeado es más flojo y las calles son nuevas' },
-  { n: 4, o: 'Centro Etopía', d: 'Estación Delicias', banda: [350, 450], min: 5,
-    caso: '⭐ LA PLATAFORMA ELEVADA DE DELICIAS — 90 ways a layer=2, donde D1 podría haber aislado la estación' },
-  { n: 5, o: 'Principado de Morea 14', d: 'C.C. Utrillas', banda: [350, 450], min: 5,
-    caso: 'Corto y cotidiano. En 400 m, un error de enganche de 30 m es el 8 %' },
-  { n: 6, o: 'Calle Francisco de Quevedo 1', d: 'Calle Matadero 1', banda: [350, 450], min: 5,
-    caso: '⭐ DOS PORTALES EN ESQUINA (los dos son el nº 1). Ataca la salvaguarda de D3' },
-  { n: 7, o: 'Calle El Coloso 2', d: 'Calle Valle de Zuriza 48', banda: [1800, 2100], min: 25,
-    caso: '⭐⭐ EL DE REPETICIÓN. El único con tiempo real, no estimado — el dato más fiable' },
-];
-
-// ── el motor: ruta entre dos posiciones sobre aristas ────────────────────────
-/**
- * Inserta un punto {arista, seg, t} como nodo temporal. Devuelve el id del nodo.
- * ⭐ Es la consecuencia de P4.5: como el portal NO parte la arista, hay que
- *    insertarlo al vuelo. Son dos nodos por consulta.
- */
-function insertar(g, ady, nodos, p) {
-  const e = g.aristas[p.arista];
-  // distancia a lo largo de la polilínea hasta el punto de enganche
-  let antes = 0;
-  for (let k = 0; k < p.seg; k++) antes += dist(e.pts[k], e.pts[k + 1]);
-  antes += p.t * dist(e.pts[p.seg], e.pts[p.seg + 1]);
-  const resto = Math.max(0, e.largo - antes);
-  const id = nodos.length;
-  nodos.push({ x: p.q[0], y: p.q[1], temporal: true });
-  ady.push([]);
-  const enlaza = (n, w) => { ady[id].push({ n, w, e: p.arista }); ady[n].push({ n: id, w, e: p.arista }); };
-  enlaza(e.a, antes);
-  enlaza(e.b, resto);
-  return id;
+/** Resuelve un texto a un punto sobre el grafo: portal del callejero o POI. */
+function puntoDe(txt, ctx, g) {
+  if (POI[txt]) {
+    const p = POI[txt];
+    const m = aMetros(p.lon, p.lat);
+    const { mejor } = P.engancharUno(m, g.aristas, ctx.eng, () => '', 250);
+    if (!mejor) return null;
+    return { arista: mejor.i, seg: mejor.k, t: mejor.t, q: mejor.q, d: mejor.d,
+      lat: p.lat, lon: p.lon, m, tipo: 'POI', osm: p.osm, estado: 'poi-por-nombre' };
+  }
+  return D.punto(txt, ctx);
 }
 
-function rutaEntre(g, oPortal, dPortal) {
-  const nodos = g.nodos.slice();
-  const ady = g.ady.map((l) => l.slice());
-  const a = insertar(g, ady, nodos, oPortal);
-  const b = insertar(g, ady, nodos, dPortal);
-  const r = G.dijkstra(ady, a);
-  const m = r.dist[b];
-  if (!Number.isFinite(m)) return { encontrada: false };
-  // reconstruir para saber por dónde va
-  const aristas = [];
-  for (let v = b; v !== a; v = r.prev[v]) {
-    if (r.prev[v] === -1) break;
-    aristas.push(r.prevA[v]);
+/** La tabla de metros por tramo — A6: dónde se va el rodeo. */
+function porTramos(pasos, nombreDeWay, tope = 12) {
+  const L = [];
+  const total = pasos.reduce((s, p) => s + p.metros, 0);
+  L.push('   ' + 'm'.padStart(8) + '  ' + '%'.padStart(5) + '  ' + 'highway'.padEnd(14)
+    + 'precisión'.padEnd(24) + 'calle');
+  const ord = pasos.map((p, i) => ({ p, i })).sort((a, b) => b.p.metros - a.p.metros);
+  const mostrados = new Set(ord.slice(0, tope).map((x) => x.i));
+  let ocultos = 0, mOcultos = 0;
+  for (let i = 0; i < pasos.length; i++) {
+    const p = pasos[i];
+    if (!mostrados.has(i)) { ocultos++; mOcultos += p.metros; continue; }
+    L.push('   ' + p.metros.toFixed(1).padStart(8) + '  ' + (100 * p.metros / total).toFixed(1).padStart(5)
+      + '  ' + String(p.highway).padEnd(14) + String(p.precision).padEnd(24)
+      + (nombreDeWay(p.way) || '(sin nombre en OSM)')
+      + (p.condicional ? '   ⚠️ PASO CONDICIONAL' : '') + (p.unidoPorDefecto ? '   ⚠️ D2' : ''));
   }
-  return { encontrada: true, metros: m, aristas: aristas.reverse() };
+  // ⛔ nada se oculta en silencio: si se recorta, se dice cuánto se recorta
+  if (ocultos) L.push('   ' + mOcultos.toFixed(1).padStart(8) + '  ' + (100 * mOcultos / total).toFixed(1).padStart(5)
+    + `  ⟨${ocultos} tramos más, no mostrados⟩`);
+  L.push('   ' + total.toFixed(1).padStart(8) + '  100.0  TOTAL');
+  return L.join('\n');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
 if (require.main === module) {
   const T0 = Date.now();
-  const g = construir(ZONA_TERMINO);
-  const { ways } = osm.cargar(CRUDO);
-  const TAGS = new Map();
-  for (const w of ways) TAGS.set(w.id, w.tags || {});
-  const r = E.enganchar(g, TAGS);
-  const idx = D.construirIndice(r.portales.filter((o) => o.enganchado), r.vias);
-  const eng = P.indexarAristas(g.aristas, (e) => e.pie);
+  const tabla = T.leer();
+  const lectura = T.informe(tabla);
 
-  log('='.repeat(98));
-  log('E5 · ⭐⭐⭐ LAS SIETE RUTAS DE ANTONIO');
-  log('   escritas ANTES de que existiera el enganche, y no se han tocado.');
-  di('grafo · portales enganchados', `${g.aristas.length} aristas · ${r.contadores.enganchados}`);
-  di('vías en el índice de direcciones', idx.size);
+  log('='.repeat(104));
+  log(lectura.texto);
+  if (!lectura.cuadra) { log('   ⛔ PARADA: la lectura de la tabla no cuadra.'); process.exit(1); }
 
-  // ⭐ D6 · el geocodificador, probado con las direcciones REALES de las rutas
-  log('');
-  log('D6 · ⭐ EL GEOCODIFICADOR, con las direcciones reales de las siete');
-  const puntos = {};
-  for (const ru of RUTAS) {
-    for (const cual of ['o', 'd']) {
-      const txt = ru[cual];
-      if (puntos[txt]) continue;
-      if (POI[txt]) {
-        const p = POI[txt];
-        const m = aMetros(p.lon, p.lat);
-        const { mejor } = P.engancharUno(m, g.aristas, eng, () => '', 200);
-        puntos[txt] = mejor ? { arista: mejor.i, seg: mejor.k, t: mejor.t, q: mejor.q, d: mejor.d,
-          lat: p.lat, lon: p.lon, tipo: 'POI', osm: p.osm } : null;
-        log('   ' + txt.padEnd(34) + 'POI  ' + (mejor ? mejor.d.toFixed(1) + ' m a la calle' : '⛔ sin grafo cerca')
-          + '   ' + p.osm.slice(0, 46));
-        continue;
-      }
-      const res = D.resolver(txt, idx);
-      if (res.portal) {
-        const o = res.portal;
-        puntos[txt] = { arista: o.arista, seg: o.seg, t: o.t, q: o.q, d: o.d, lat: o.lat, lon: o.lon,
-          tipo: 'portal', portal: o, estado: res.estado };
-      } else puntos[txt] = null;
-      log('   ' + txt.padEnd(34) + String(res.estado).padEnd(20)
-        + (res.portal ? 'enganche ' + res.portal.d.toFixed(1) + ' m · OSM "' + (res.portal.nombreOsm || '—') + '"'
-          + '  [' + res.portal.codigoVia_estado + '/' + res.portal.consenso_estado + ']' : '⛔')
-        + (res.aviso ? '   ⚠️ ' + res.aviso : ''));
-    }
-  }
+  const conCondicionales = process.argv.includes('--con-condicionales');
+  const g = construir(ZONA_TERMINO, { conCondicionales });
+  const ctx = D.abrir(g, CRUDO);
 
   log('');
-  log('='.repeat(98));
+  log('='.repeat(104));
   log('LAS SIETE, UNA A UNA');
+  di('grafo · portales enganchados', `${g.aristas.length} aristas · ${ctx.enganche.contadores.enganchados}`);
+  di('vías en el índice de direcciones', ctx.indice.size);
+  di('pasos condicionales', conCondicionales ? '⚠️ DENTRO del cálculo' : 'fuera del cálculo');
+
   const resultados = [];
-  for (const ru of RUTAS) {
+  for (const ru of tabla.rutas) {
     log('');
-    log('─'.repeat(98));
+    log('─'.repeat(104));
     log(`RUTA ${ru.n} · ${ru.o}  →  ${ru.d}`);
-    log(`   ${ru.caso}`);
-    if (ru.nota) log(`   nota de Antonio: ${ru.nota}`);
-    const a = puntos[ru.o], b = puntos[ru.d];
-    if (!a || !b) { log('   ⛔ NO SE PUEDE RESOLVER LA DIRECCIÓN'); resultados.push({ ru, ok: false }); continue; }
-    const res = rutaEntre(g, a, b);
-    const recta = dist(aMetros(a.lon, a.lat), aMetros(b.lon, b.lat));
-    if (a.tipo === 'POI') log('   ⚠️ el destino es un EDIFICIO: se rutea a su CENTRO, no a su puerta.');
-    if (b.tipo === 'POI') log('   ⚠️ el destino es un EDIFICIO: se rutea a su CENTRO, no a su puerta. '
-      + 'El enganche está a ' + b.d.toFixed(0) + ' m, y eso es error declarado, no del motor.');
+    if (ru.caso) log(`   ${ru.caso}`);
+    const a = puntoDe(ru.o, ctx, g), b = puntoDe(ru.d, ctx, g);
+    if (!a || !b) { log('   ⛔ NO SE PUEDE RESOLVER LA DIRECCIÓN'); resultados.push({ ru, ok: false, motivo: 'sin-direccion' }); continue; }
+    for (const [q, p] of [['origen', a], ['destino', b]]) {
+      log('   ' + q.padEnd(9) + String(p.estado).padEnd(20) + 'enganche ' + p.d.toFixed(1) + ' m'
+        + (p.tipo === 'POI' ? '   ⚠️ es un EDIFICIO: se rutea a su CENTRO, no a su puerta' : '')
+        + (p.portal ? '   OSM "' + (p.portal.nombreOsm || '—') + '"  [' + p.portal.codigoVia_estado + '/' + p.portal.consenso_estado + ']' : ''));
+    }
+
+    const res = G.rutaEntre(g, a, b);
+    const recta = dist(a.m, b.m);
     if (!res.encontrada) {
       log('   ⛔⛔ NO HAY CAMINO');
-      // ⭐ ¿es por los pasos condicionales? Se comprueba, no se supone.
-      const g2 = construir(ZONA_TERMINO, { conCondicionales: true });
-      const eng2 = P.indexarAristas(g2.aristas, (e) => e.pie);
-      const re = (p) => { const m = aMetros(p.lon, p.lat); const x = P.engancharUno(m, g2.aristas, eng2, () => '', 250).mejor;
-        return x ? { arista: x.i, seg: x.k, t: x.t, q: x.q, d: x.d, lat: p.lat, lon: p.lon } : null; };
-      const r2 = rutaEntre(g2, re(a), re(b));
-      log('      ⭐ con los pasos condicionales ABIERTOS: '
-        + (r2.encontrada ? r2.metros.toFixed(0) + ' m (rodeo ' + (r2.metros / recta).toFixed(2) + ')'
-          + '   ⇒ el destino SOLO es alcanzable por un paso que no siempre está abierto'
-          : 'sigue sin haber camino ⇒ la causa es otra'));
-      resultados.push({ ru, ok: false, motivo: 'sin-camino', recta });
+      resultados.push({ ru, ok: false, motivo: 'sin-camino', recta, a, b });
       continue;
     }
     const rodeo = res.metros / recta;
-    const banda = ru.banda;
-    const dentro = banda ? (res.metros >= banda[0] && res.metros <= banda[1]) : null;
-    di('distancia calculada', res.metros.toFixed(0) + ' m');
-    di('banda declarada por Antonio', banda ? `${banda[0]}–${banda[1]} m  (${ru.min} min)` : 'NO CONSTA');
-    di('línea recta', recta.toFixed(0) + ' m');
-    di('rodeo', rodeo.toFixed(2) + (rodeo < 1 ? '   ⛔⛔ IMPOSIBLE' : ''));
-    di('enganche origen · destino', a.d.toFixed(1) + ' m · ' + b.d.toFixed(1) + ' m');
-    if (banda) di('⇒ ¿dentro de banda?', dentro ? '✅ SÍ' : '⛔ NO  (' + (res.metros < banda[0] ? 'corta' : 'larga') + ' por ' + Math.abs(res.metros - (res.metros < banda[0] ? banda[0] : banda[1])).toFixed(0) + ' m)');
-    // por dónde va: nombres de way en orden, sin repetir
+    const dentroRodeo = ru.rodeoMax === null ? null : rodeo <= ru.rodeoMax;
+    const dentroBanda = ru.banda === null ? null : (res.metros >= ru.banda[0] && res.metros <= ru.banda[1]);
+
+    log('');
+    di('⭐ RODEO (criterio principal)', rodeo.toFixed(2) + '   tope de Antonio '
+      + (ru.rodeoMax === null ? 'NO CONSTA' : '≤ ' + ru.rodeoMax.toFixed(2))
+      + '   ' + (dentroRodeo === null ? '' : dentroRodeo ? '✅ DENTRO' : '⛔ FUERA')
+      + (rodeo < 0.999 ? '   ⛔⛔ IMPOSIBLE' : ''));
+    di('distancia calculada (de apoyo)', res.metros.toFixed(0) + ' m'
+      + '   banda ' + (ru.banda ? `${ru.banda[0]}–${ru.banda[1]} m` : 'NO CONSTA')
+      + '   ' + (dentroBanda === null ? '' : dentroBanda ? '✅ dentro'
+        : '⚠️ ' + (res.metros < ru.banda[0] ? 'corta' : 'larga') + ' por '
+          + Math.abs(res.metros - (res.metros < ru.banda[0] ? ru.banda[0] : ru.banda[1])).toFixed(0) + ' m'));
+    di('línea recta', recta.toFixed(0) + ' m'
+      + (ru.rectaDeclarada ? `   (la tabla declara ${ru.rectaDeclarada} m)` : ''));
+    const cond = res.pasos.filter((p) => p.condicional);
+    if (cond.length) di('⚠️ pasos condicionales en la ruta', cond.length + ' tramos · '
+      + cond.reduce((s, p) => s + p.metros, 0).toFixed(0) + ' m');
+
+    log('');
+    log('   ⭐ A6 · DÓNDE SE VAN LOS METROS');
+    log(porTramos(res.pasos, ctx.nombreDeWay));
+
     const nombres = [];
     for (const ia of res.aristas) {
-      const n = (TAGS.get(g.aristas[ia].way) || {}).name;
+      const n = ctx.nombreDeWay(g.aristas[ia].way);
       if (n && nombres[nombres.length - 1] !== n) nombres.push(n);
     }
     log('   por: ' + (nombres.join(' → ').slice(0, 300) || '(tramos sin nombre)'));
-    resultados.push({ ru, ok: true, metros: res.metros, recta, rodeo, dentro, nombres, aristas: res.aristas, a, b });
+    resultados.push({ ru, ok: true, metros: res.metros, recta, rodeo, dentroRodeo, dentroBanda,
+      nombres, aristas: res.aristas, pasos: res.pasos, a, b, cond });
   }
 
-  // ── las tres preguntas concretas del briefing ──────────────────────────────
+  // ── las tres preguntas concretas ──────────────────────────────────────────
   log('');
-  log('='.repeat(98));
+  log('='.repeat(104));
   log('LAS TRES PREGUNTAS CONCRETAS');
   {
     const r1 = resultados.find((x) => x.ru.n === 1);
     log('');
-    log('⭐ nº1 · ¿POR QUÉ PUENTE CRUZA?');
+    log('⭐ nº1 · ¿POR QUÉ PUENTE CRUZA?  (hay tres posibles)');
     if (r1 && r1.ok) {
       const puentes = r1.nombres.filter((n) => /puente|pasarela/i.test(n));
       di('puentes en la ruta', puentes.join(' · ') || '⚠️ ninguno con nombre');
       di('Antonio cruza por', 'el Puente de Piedra');
       di('⇒', puentes.some((p) => /piedra/i.test(p)) ? '✅ COINCIDE'
-        : '⚠️ NO coincide — hay que mirar: o el coste está mal, o hay un rodeo escondido');
+        : '⚠️ NO coincide — o el coste está mal, o hay un rodeo escondido');
     } else log('   ⛔ la ruta 1 no se resolvió');
 
     const r6 = resultados.find((x) => x.ru.n === 6);
@@ -223,34 +186,40 @@ if (require.main === module) {
       }
       const mal = [r6.a, r6.b].filter((p) => p.portal && p.portal.codigoVia_estado === 'DISCORDA').length;
       di('⇒', mal ? '⚠️ ' + mal + ' de 2 marcados por el código — la salvaguarda ACTÚA y no corrige'
-        : '✅ los dos concuerdan: la esquina no engañó al enganche');
+        : '✅ ninguno discorda: la esquina no engañó al enganche');
     } else log('   ⛔ la ruta 6 no se resolvió');
 
     const r4 = resultados.find((x) => x.ru.n === 4);
     log('');
-    log('⭐ nº4 · ¿LLEGA A DELICIAS SIN RODEO ABSURDO?  (la plataforma elevada, layer=2)');
+    log('⭐ nº4 · ¿LLEGA A DELICIAS?  (la plataforma elevada, layer=2)');
     if (r4 && r4.ok) {
-      di('rodeo', r4.rodeo.toFixed(2));
-      di('⇒', r4.rodeo <= 2 ? '✅ D1 no aisló la estación por dentro'
-        : '⚠️ rodeo alto: hay que mirar si D1 partió la plataforma');
-    } else log('   ⛔ la ruta 4 no se resolvió');
+      di('rodeo · tope', r4.rodeo.toFixed(2) + ' · ≤ ' + r4.ru.rodeoMax);
+      di('⇒', r4.dentroRodeo ? '✅ dentro del tope' : '⚠️ fuera del tope: hay que mirar por dónde');
+    } else log('   ⛔ la ruta 4 no se resolvió: ' + (r4 ? r4.motivo : '?'));
   }
 
-  // ── E6 · cordura ───────────────────────────────────────────────────────────
+  // ── cordura y recuento ─────────────────────────────────────────────────────
   log('');
-  log('='.repeat(98));
-  log('E6 · RUTAS DE CORDURA — ninguna puede ser más corta que la línea recta');
+  log('='.repeat(104));
+  log('CORDURA Y RECUENTO — ninguna ruta puede ser más corta que la línea recta');
   const imposibles = resultados.filter((x) => x.ok && x.rodeo < 0.999);
-  di('rutas resueltas', resultados.filter((x) => x.ok).length + ' de 7');
+  di('rutas resueltas', resultados.filter((x) => x.ok).length + ' de ' + tabla.rutas.length);
   di('⛔ con rodeo < 1 (imposible)', imposibles.length + (imposibles.length ? '  ⛔ EL GRAFO ESTÁ ROTO' : '  ✅'));
+  const conRodeo = resultados.filter((x) => x.ok && x.ru.rodeoMax !== null);
+  di('⭐ DENTRO DEL RODEO ACEPTABLE', conRodeo.filter((x) => x.dentroRodeo).length + ' de ' + conRodeo.length);
+  for (const x of conRodeo.filter((x) => !x.dentroRodeo)) {
+    log('      ⚠️ nº' + x.ru.n + ': rodeo ' + x.rodeo.toFixed(2) + ' frente a ≤ ' + x.ru.rodeoMax);
+  }
   const conBanda = resultados.filter((x) => x.ok && x.ru.banda);
-  di('dentro de la banda de Antonio', conBanda.filter((x) => x.dentro).length + ' de ' + conBanda.length);
-  for (const x of conBanda.filter((x) => !x.dentro)) {
+  di('dentro de la banda de distancia (apoyo)', conBanda.filter((x) => x.dentroBanda).length + ' de ' + conBanda.length);
+  for (const x of conBanda.filter((x) => !x.dentroBanda)) {
     log('      ⚠️ nº' + x.ru.n + ': ' + x.metros.toFixed(0) + ' m frente a ' + x.ru.banda[0] + '–' + x.ru.banda[1]);
   }
+  const conCond = resultados.filter((x) => x.ok && x.cond && x.cond.length);
+  di('rutas que pasan por un paso condicional', conCond.length + (conCond.length ? '  (nº ' + conCond.map((x) => x.ru.n).join(', ') + ')' : ''));
 
   log('');
   di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');
 }
 
-module.exports = { RUTAS, POI, rutaEntre, insertar };
+module.exports = { POI, puntoDe, porTramos };
