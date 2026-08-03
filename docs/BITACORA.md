@@ -3071,3 +3071,123 @@ midiendo, no otra cosa.
 ⚠️ Corolario: **al cambiar la unidad de medida hay que rehacer el control, no solo la medida.** Un
 control heredado se hereda con su unidad pegada.
 **Traza:** `src/informe-portales.js` (D4, línea base), `docs/DISEÑO-H1-ADENDA.md` §A2
+
+---
+
+## [2026-08-03] — Medí la exclusión de los pasos condicionales y no la apliqué. El mismo fallo que la nº63, en la misma tanda
+
+**Categoría:** contar no es aplicar / el fallo repetido
+**Síntoma:** al diagnosticar por qué la ruta 4 de Antonio daba 900 m para 351 m de línea recta, miré
+a qué se enganchaba la estación de Delicias:
+
+```
+Delicias   a 31,1 m   way 437215854 "sin nombre"  [corridor]  comp 0
+```
+
+**Un `highway=corridor`.** Es decir, un pasillo interior — exactamente uno de los 151 ways que yo
+mismo acababa de clasificar como **paso condicional firme** y del que había escrito, con su número
+al lado, *"⭐ EXCLUIR LOS FIRMES: 189 aristas, 44 de ellas articulación, la mayor pierde 127
+nodos"*. **Medido, publicado… y no conectado a nada.** El enrutador seguía usándolos.
+
+**Causa raíz:** `src/informe-condicionales.js` calculaba el impacto de excluirlos construyendo una
+adyacencia **suya, local, para el informe**. El grafo que usan las rutas se construye en
+`src/ruta.js` y no sabía nada de aquello. Dos caminos que salen del mismo dato y solo uno llegaba al
+motor.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el informe de la sección B
+entero, y era correcto.** Las tres vías de búsqueda, el positivo de control del Pasaje Palafox, la
+separación firme/indicio, el recall del 36 % de la vía geométrica, las 44 articulaciones. Todos los
+números ciertos. **Un informe puede ser exacto y no haber cambiado nada.**
+
+⚠️ Y lo peor: **es el mismo fallo que la nº63 de esta misma tanda**, donde `access=no` estaba
+contado en la tabla B6 de la tanda 10 y el enrutador no lo respetaba. Escribí allí la ley *"haber
+contado una cosa no significa que el motor la respete"* y **volví a hacerlo cuatro secciones más
+abajo**. Saber enunciar una ley no es tenerla incorporada.
+
+**Cómo se cazó:** por perseguir un rodeo raro hasta el final en vez de aceptarlo. La ruta 4 daba
+2,57 de rodeo y podía haberlo despachado como "la estación es grande". Mirar **a qué arista concreta
+se enganchaba** fue lo que sacó la palabra `corridor`.
+
+**Arreglo aplicado:** el paso condicional pasa a ser **un CAMPO de la arista** (`e.condicional`),
+como la precisión de D4 — no una exclusión del grafo. Sigue siendo terreno porque existe; lo que
+hace `adyacencia(..., sinCondicionales)` es no dárselo al enrutador. Efecto medido: 189 aristas,
+componentes 170 → 184, la mayor pierde 127 nodos.
+
+⭐ **Y al aplicarlo cambió una respuesta:** la ruta 4 pasó de dar 900 m a decir **NO HAY CAMINO**,
+porque el centro de la estación **solo es alcanzable por un pasillo interior**. Es la respuesta
+correcta a la pregunta que se hizo, y es una respuesta que antes no aparecía.
+
+**Ley que sale de aquí:** ⭐⭐ **un informe que mide el efecto de una decisión no implementa la
+decisión, y los dos se parecen mucho por escrito.** Cuando una sección diga "⇒ se excluyen", el
+cierre no es el número: es **ejecutar el motor y ver que el número aparece también ahí.**
+⚠️ Y la observación incómoda: **enunciar la ley no vacuna contra el fallo.** Entre la nº63 y ésta
+median cuatro secciones y una hora.
+**Traza:** `src/planarizar.js` (`condicional`), `src/grafo.js` (`adyacencia`), `src/ruta.js`
+
+---
+
+## [2026-08-03] — Las siete rutas dieron 0 de 6 en banda, y tres de esas bandas son imposibles de cumplir
+
+**Categoría:** el patrón del fallo es el hallazgo / comparar dos magnitudes distintas
+**Síntoma:** primera ejecución del banco de pruebas de Antonio contra el motor:
+
+```
+dentro de la banda de Antonio    0 de 6
+   ⚠️ nº2: 598 m frente a 350–450
+   ⚠️ nº3: 3.731 m frente a 2.900–3.400
+   ⚠️ nº5: 477 m frente a 350–450
+   ⚠️ nº6: 523 m frente a 350–450
+   ⚠️ nº7: 2.529 m frente a 1.800–2.100
+```
+
+**Cero de seis, y TODAS largas.** Eso no es ruido: un motor con error aleatorio se pasa unas veces y
+se queda corto otras. Un sesgo sistemático apunta a una causa común.
+
+**Causa raíz — y no está en el motor.** La comprobación que la encontró no usa el motor para nada:
+**la línea recta es el mínimo físico absoluto**, y ninguna ruta puede medir menos.
+
+```
+   nº   recta   banda        ¿alcanzable?     km/h que exige la RECTA
+   2     454   350-450      ⛔ IMPOSIBLE      5,4
+   3    3000   2900-3400    ✅ sí             4,5
+   4     351   350-450      ✅ sí             4,2
+   5     348   350-450      ✅ sí             4,2
+   6     484   350-450      ⛔ IMPOSIBLE      5,8
+   7    2380   1800-2100    ⛔ IMPOSIBLE      5,7
+```
+
+**En tres de las seis la línea recta ya supera el tope de la banda.** Ningún motor —ni el mío ni
+ninguno— puede entrar en esas bandas: son geométricamente inalcanzables.
+
+Y la propia tabla explica por qué, en un aviso que escribió Antonio: *"LA DISTANCIA ESPERADA DE ESTA
+TABLA ESTÁ DERIVADA DEL TIEMPO, NO ESTIMADA APARTE. Antonio dio los tiempos; las distancias salen de
+convertirlos a ≈4,5–5 km/h."* ⇒ **La banda no es un dato independiente: es el tiempo multiplicado
+por una velocidad supuesta.** Y la velocidad supuesta se queda corta.
+
+⭐ **El número que lo fija es el nº7**, el único con tiempo real de repetición (25 min medidos):
+solo la línea recta ya obliga a **5,71 km/h**, y por la calle son **6,07**. La banda se calculó
+suponiendo 4,3–5,0.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **todo el motor.** 7 de 7 direcciones
+resueltas, 0 rodeos imposibles, rodeos de 1,06 a 1,37 —la mediana de las rutas de cordura de la
+tanda 10 era 1,16—, el Puente de Piedra elegido correctamente en la nº1 y la esquina de la nº6 sin
+engañar al enganche. **El instrumento funcionaba y el veredicto salía en rojo**, porque se comparaba
+contra una regla que no medía lo mismo.
+
+**Cómo se cazó:** ⭐ por preguntarse, antes de tocar nada, **si la banda era alcanzable en
+absoluto**. Es la misma pregunta de la ley 35 —*¿puede esto pasar sin que nada funcione?*— vuelta
+del revés: *¿puede esto fallar aunque todo funcione?* Y la respuesta se calcula con la línea recta,
+que no depende del motor: **por eso el diagnóstico no es circular.**
+
+**⛔ Lo que NO se ha hecho, a propósito:** no se ha tocado ningún umbral, ni el enganche, ni el
+coste, para que las rutas entren en banda. Y **`RUTAS-CONOCIDAS.md` no se ha modificado** — ni para
+anotar un resultado. La corrección, si la hay, es de la conversión tiempo→distancia, y esa tabla la
+escribe Antonio.
+
+**Ley que sale de aquí:** ⭐⭐ **antes de declarar que una prueba falla, hay que comprobar que la
+prueba se puede aprobar.** Una banda derivada de otro dato por una constante supuesta no es una
+diana: es la misma medición con una hipótesis pegada, y cuando el conjunto entero falla en la misma
+dirección, **el sospechoso es la hipótesis, no el sujeto.**
+⚠️ Corolario práctico: **un fallo unánime y con signo es información sobre el instrumento; un fallo
+repartido lo es sobre el sujeto.**
+**Traza:** `src/rutas-antonio.js`, `data/pruebas/RUTAS-CONOCIDAS.md` (⛔ sin tocar)

@@ -7,13 +7,21 @@
 'use strict';
 const { dist } = require('./geo');
 
-/** Lista de adyacencia. `soloAPie` deja fuera las aristas por donde no se puede andar. */
-function adyacencia(nodos, aristas, soloAPie = true) {
+/**
+ * Lista de adyacencia. `soloAPie` deja fuera las aristas por donde no se puede andar.
+ * ⭐ `sinCondicionales` deja fuera además los PASOS CONDICIONALES: sitios por los
+ *    que se puede andar pero no siempre —un pasaje bajo un edificio, un pasillo
+ *    interior, un ascensor—. Siguen en el grafo porque existen; simplemente el
+ *    enrutador no cuenta con ellos. Decisión de Antonio: se ignoran para calcular,
+ *    pero se marcan y se cuentan.
+ */
+function adyacencia(nodos, aristas, soloAPie = true, sinCondicionales = false) {
   const ady = Array.from({ length: nodos.length }, () => []);
   let usadas = 0;
   for (let i = 0; i < aristas.length; i++) {
     const e = aristas[i];
     if (soloAPie && !e.pie) continue;
+    if (sinCondicionales && e.condicional) continue;
     ady[e.a].push({ n: e.b, w: e.largo, e: i });
     ady[e.b].push({ n: e.a, w: e.largo, e: i });
     usadas++;

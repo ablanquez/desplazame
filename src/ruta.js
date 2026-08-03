@@ -64,7 +64,10 @@ function construir(zona = ZONA_CASCO, opciones = {}) {
   const { sello, ways } = osm.cargar(CRUDO);
   const recorte = osm.proyectar(osm.recortar(ways, zona));
   const { nodos, aristas, contadores, noConectados, porDefecto, puntasLejos } = planarizar(recorte, opciones);
-  const { ady, usadas } = G.adyacencia(nodos, aristas, true);
+  // ⭐ por defecto el enrutador NO usa los pasos condicionales (B4). Se puede
+  //    pedir el grafo con ellos para medir la diferencia, que es lo que hace el
+  //    informe — pero lo que contesta una ruta es esto.
+  const { ady, usadas } = G.adyacencia(nodos, aristas, true, opciones.conCondicionales !== true);
   const comp = G.componentes(nodos, ady);
   return { sello, zona, nodos, aristas, ady, comp, contadores, noConectados, porDefecto,
     puntasLejos, aristasAPie: usadas, areaKm2: osm.areaKm2(zona) };

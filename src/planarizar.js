@@ -20,6 +20,7 @@
 
 'use strict';
 const { dist, corteSegmentos } = require('./geo');
+const { porEtiqueta } = require('./condicionales');
 
 const TOLERANCIA_PUNTA = 2.0;      // D5
 const TECHO_PUNTA = 5.0;           // D5 · techo duro
@@ -315,6 +316,12 @@ function planarizar(ways, opciones = {}) {
   for (let i = 0; i < ways.length; i++) {
     const w = ways[i], t = w.tags || {};
     const pr = precision(t), pie = transitableAPie(t);
+    // ⭐ B4 · el paso condicional EXISTE y se anda: es terreno, y se construye.
+    //    Lo que no hace es estar siempre abierto, así que el enrutador no lo usa.
+    //    Es un CAMPO de la arista, como la precisión de D4 — no una exclusión del
+    //    grafo. Separar "existe" de "se puede pasar ahora" es la misma decisión.
+    const et = porEtiqueta(t);
+    const cond = !!(et && et.firme);
     // posiciones de corte ordenadas a lo largo del way, con extremos incluidos
     const marcas = [{ idx: 0, t: 0, p: w.pts[0], nodo: w.nodes[0] },
       ...cortes[i],
@@ -349,7 +356,7 @@ function planarizar(ways, opciones = {}) {
       if (na === nb) continue;
       aristas.push({
         a: na, b: nb, largo: L, way: w.id, highway: t.highway,
-        precision: pr, pie,
+        precision: pr, pie, condicional: cond,
         unidoPorDefecto: !!(A.defecto || B.defecto),
         pts: puntos,
       });

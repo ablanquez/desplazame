@@ -51,7 +51,15 @@ const TIPOS_VIA = ['calle', 'avenida', 'plaza', 'paseo', 'camino', 'andador', 'r
   'callejon', 'cuesta', 'subida', 'bajada', 'barrio', 'urbanizacion', 'poligono',
   'grupo', 'bulevar', 'autovia', 'autopista', 'senda', 'vereda', 'canal', 'acequia',
   'jardin', 'gran via', 'pasadizo', 'rinconada', 'escalinata', 'galeria', 'monasterio'];
-const ARTICULOS = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y', 'e', 'a', 'al', "d'", 'en']);
+// ⚠️ Artículos y TRATAMIENTOS DE CORTESÍA (`don`, `doña`). Entran porque son una
+//    clase gramatical cerrada, igual que los artículos — no porque hicieran falta
+//    para una dirección concreta. Y se comprobó ANTES de darlos por buenos:
+//    la concordancia del `codigoVia` sube de 25.037 a 25.120 sobre los 46.150
+//    portales. Si solo hubiera arreglado el caso que me hacía falta —"Calle Don
+//    Jaime I", que es la ruta nº2 de Antonio— sería un parche, y estaría
+//    prohibido: es ajustar el instrumento al resultado deseado.
+const ARTICULOS = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y', 'e', 'a', 'al', "d'", 'en',
+  'don', 'dona']);
 
 function sinAcentos(s) {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
