@@ -11,6 +11,15 @@
      error heredado de OSM, el fondo lo confirmará tan contento. Lo que verifica
      es una persona reconociendo calles que ha andado.
 
+  ⭐ A ESCALA DE CIUDAD el grafo tiene 98.774 aristas. Pintarlas todas por varias
+     capas a la vez son cientos de miles de líneas y el navegador se atraganta.
+     La regla del proyecto es clara: SE RECORTA LO QUE SE PINTA, NUNCA EL GRAFO.
+     Aquí eso se hace de dos maneras, y las dos son visibles:
+       · un SELECTOR DE ZONA que filtra qué se pinta;
+       · capas PEREZOSAS: una capa no se construye hasta que se enciende.
+     Y para que el recorte no pueda mentir, el panel de arriba enseña SIEMPRE
+     "pintadas N de M". Un visor que filtra en silencio es peor que no tener visor.
+
   Se abre con doble clic. Necesita internet para Leaflet y para el fondo.
 -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -20,14 +29,16 @@
   html,body{margin:0;height:100%;font:13px/1.45 system-ui,sans-serif}
   #mapa{height:100%}
   .panel{background:#fff;padding:10px 12px;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.35);
-         max-width:290px;max-height:88vh;overflow:auto}
+         max-width:300px;max-height:80vh;overflow:auto}
   .panel h4{margin:.6em 0 .3em;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#444}
   .panel h4:first-child{margin-top:0}
   .sw{display:inline-block;width:22px;height:4px;vertical-align:middle;margin-right:6px;border-radius:2px}
   .pt{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:6px}
   .muted{color:#666}
   .aviso{background:#fff8e1;border-left:3px solid #f0ad00;padding:6px 8px;margin-top:8px;font-size:12px}
+  .cuenta{background:#eef6ff;border-left:3px solid #0969da;padding:6px 8px;font-size:12px;font-weight:600}
   code{background:#f2f2f2;padding:0 3px;border-radius:2px}
+  select{width:100%;padding:4px;margin-top:4px;font:inherit}
   .leaflet-popup-content{font:12px/1.5 ui-monospace,monospace}
 </style>
 <div id="mapa"></div>
@@ -45,111 +56,250 @@ const COLOR_PRECISION = {
   'eje-de-calzada':           '#cf222e',
 };
 // Paleta para las componentes pequeñas. La grande va en gris apagado a propósito:
-// lo que hay que mirar son las 19 islitas, no el 99 % que ya se sabe que está bien.
+// lo que hay que mirar son las islitas, no el 96 % que ya se sabe que está bien.
 const PALETA = ['#e51c23','#ff9800','#259b24','#5677fc','#9c27b0','#00bcd4','#795548',
                 '#ff5722','#8bc34a','#3f51b5','#e91e63','#009688','#cddc39','#673ab7',
                 '#f44336','#03a9f4','#4caf50','#ffc107','#607d8b','#9e9e9e'];
 
+// ── LAS ZONAS DEL SELECTOR ───────────────────────────────────────────────────
+// La primera es la ciudad entera; las demás son las ventanas del eje DENSIDAD.
+const ZONAS = [{ n: 'TODA LA CIUDAD (lento: ~99.000 líneas)', b: G.zona }]
+  .concat((G.zonas || []).map((z) => ({ n: z.n, b: z.b })));
+let zonaIdx = 0;
+
+// ⭐ preferCanvas: con decenas de miles de líneas, un elemento SVG por línea mata
+//    al navegador. Sobre lienzo aguanta. Es una decisión de RENDIMIENTO DEL
+//    DIBUJO, no del grafo: no cambia qué se pinta, solo cómo.
 const zc = G.zona;
-const mapa = L.map('mapa').fitBounds([[zc.sur, zc.oeste], [zc.norte, zc.este]]);
+const mapa = L.map('mapa', { preferCanvas: true })
+  .fitBounds([[zc.sur, zc.oeste], [zc.norte, zc.este]]);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   { maxZoom: 20, attribution: '© OpenStreetMap' }).addTo(mapa);
-// el rectángulo de la zona, para ver de un vistazo QUÉ se ha planarizado y qué no
+// el rectángulo del recorte, para ver de un vistazo QUÉ se ha planarizado y qué no
 L.rectangle([[zc.sur, zc.oeste], [zc.norte, zc.este]],
   { color: '#000', weight: 1, dashArray: '6 4', fill: false, interactive: false }).addTo(mapa);
 
 const ll = (g) => g.map((p) => [p[1], p[0]]);
 const esc = (s) => String(s === null || s === undefined ? '—' : s)
   .replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+const enZona = (lon, lat) => {
+  const b = ZONAS[zonaIdx].b;
+  return lat >= b.sur && lat <= b.norte && lon >= b.oeste && lon <= b.este;
+};
+const aristaEnZona = (a) => { const m = a.g[Math.floor(a.g.length / 2)]; return enZona(m[0], m[1]); };
 
-// ── capa 1 · todas las aristas, color por precisión ─────────────────────────
-const capaPrecision = L.layerGroup();
-for (const a of G.aristas) {
-  L.polyline(ll(a.g), {
-    color: COLOR_PRECISION[a.p] || '#000',
-    weight: a.a ? 3 : 2,
-    opacity: a.a ? 0.85 : 0.35,
-    dashArray: a.a ? null : '3 3',
-  }).bindPopup(
-    `<b>arista ${a.i}</b><br>way OSM <a href="https://www.openstreetmap.org/way/${a.w}" target="_blank">${a.w}</a><br>`
-    + `highway = ${esc(a.h)}<br>precisión (D4) = <b>${esc(a.p)}</b><br>`
-    + `largo = ${a.m} m<br>componente = ${a.c}<br>`
-    + `transitable a pie = ${a.a ? 'sí' : '<b>NO</b>'}<br>`
-    + `unido-por-defecto (D2) = ${a.d ? '<b>SÍ</b>' : 'no'}`
-  ).addTo(capaPrecision);
+// ⭐ EL CONTADOR QUE HACE IMPOSIBLE FILTRAR EN SILENCIO.
+//    Cada capa apunta aquí cuántos elementos ha pintado y cuántos había. El panel
+//    lo enseña. Si una capa se comiera algo, el número lo diría.
+const CUENTA = {};
+const apunta = (capa, pintadas, total) => { CUENTA[capa] = { pintadas, total }; };
+
+// ── las capas, PEREZOSAS: se construyen la primera vez que se encienden ──────
+const constructores = {};
+const construidas = {};
+
+constructores['precision'] = () => {
+  const gr = L.layerGroup();
+  let n = 0;
+  for (const a of G.aristas) {
+    if (!aristaEnZona(a)) continue;
+    n++;
+    L.polyline(ll(a.g), {
+      color: COLOR_PRECISION[a.p] || '#000',
+      weight: a.a ? 3 : 2,
+      opacity: a.a ? 0.85 : 0.35,
+      dashArray: a.a ? null : '3 3',
+    }).bindPopup(
+      `<b>arista ${a.i}</b><br>way OSM <a href="https://www.openstreetmap.org/way/${a.w}" target="_blank">${a.w}</a><br>`
+      + `highway = ${esc(a.h)}<br>precisión (D4) = <b>${esc(a.p)}</b><br>`
+      + `largo = ${a.m} m<br>componente = ${a.c}<br>`
+      + `transitable a pie = ${a.a ? 'sí' : '<b>NO</b>'}<br>`
+      + `unido-por-defecto (D2) = ${a.d ? '<b>SÍ</b>' : 'no'}`
+    ).addTo(gr);
+  }
+  apunta('precision', n, G.aristas.length);
+  return gr;
+};
+
+constructores['componentes'] = () => {
+  const gr = L.layerGroup();
+  const mayor = G.contadores.mayor;
+  let n = 0;
+  for (const a of G.aristas) {
+    if (!aristaEnZona(a)) continue;
+    n++;
+    const esMayor = a.c === mayor;
+    L.polyline(ll(a.g), {
+      color: esMayor ? '#c8c8c8' : PALETA[a.c % PALETA.length],
+      weight: esMayor ? 1.5 : 6,
+      opacity: esMayor ? 0.55 : 1,
+    }).bindPopup(`<b>componente ${a.c}</b> — ${G.componentes[a.c] ? G.componentes[a.c].nodos : '?'} nodos`
+      + `<br>arista ${a.i}, way ${a.w}, ${esc(a.h)}`).addTo(gr);
+  }
+  // un marcador por componente pequeña, para que se vean SIN hacer zoom
+  let m = 0;
+  const primera = {};
+  for (const a of G.aristas) if (a.c !== mayor && primera[a.c] === undefined) primera[a.c] = a;
+  for (const c of G.componentes) {
+    if (c.k === mayor) continue;
+    const a = primera[c.k];
+    if (!a) continue;
+    const p = a.g[0];
+    if (!enZona(p[0], p[1])) continue;
+    m++;
+    L.circleMarker([p[1], p[0]], { radius: 13, color: PALETA[c.k % PALETA.length], weight: 3, fill: false })
+      .bindPopup(`<b>componente ${c.k}</b><br>${c.nodos} nodos<br>way de muestra: ${a.w}`)
+      .addTo(gr);
+  }
+  apunta('componentes', n, G.aristas.length);
+  apunta('islitas', m, G.componentes.length - 1);
+  return gr;
+};
+
+constructores['defecto'] = () => {
+  const gr = L.layerGroup();
+  let n = 0;
+  for (const d of G.porDefecto) {
+    if (!enZona(d.g[0], d.g[1])) continue;
+    n++;
+    L.circleMarker([d.g[1], d.g[0]], { radius: 14, color: '#000', weight: 3, fill: false })
+      .bindPopup(
+        `<b>unido-por-defecto nº${d.n}</b><br>`
+        + `Se unió SIN evidencia de desnivel.<br><br>`
+        + `A: way ${d.wayA} · ${esc(d.hwA)}<br>&nbsp;&nbsp;&nbsp;${esc(d.nombreA)}<br>`
+        + `B: way ${d.wayB} · ${esc(d.hwB)}<br>&nbsp;&nbsp;&nbsp;${esc(d.nombreB)}`
+      ).addTo(gr);
+  }
+  apunta('defecto', n, G.porDefecto.length);
+  return gr;
+};
+
+constructores['noUnidos'] = () => {
+  const gr = L.layerGroup();
+  let n = 0;
+  for (const d of G.noConectados) {
+    if (!enZona(d.g[0], d.g[1])) continue;
+    n++;
+    const col = d.motivo === 'bridge' ? '#d00' : d.motivo === 'tunnel' ? '#093' : '#06c';
+    L.circleMarker([d.g[1], d.g[0]], { radius: 7, color: col, weight: 2,
+      fillColor: col, fillOpacity: 0.35 }).bindPopup(
+      `<b>NO unido nº${d.n}</b> — motivo: <b>${esc(d.motivo)}</b><br><br>`
+      + `A: way ${d.wayA} · ${esc(d.nombreA)}<br>B: way ${d.wayB} · ${esc(d.nombreB)}`
+    ).addTo(gr);
+  }
+  apunta('noUnidos', n, G.noConectados.length);
+  return gr;
+};
+
+constructores['puntas'] = () => {
+  const gr = L.layerGroup();
+  let n = 0;
+  for (const p of G.puntasLejos) {
+    if (!enZona(p.g[0], p.g[1])) continue;
+    n++;
+    L.polyline([[p.g[1], p.g[0]], [p.g2[1], p.g2[0]]],
+      { color: '#ff00aa', weight: 4, dashArray: '4 3' })
+      .bindPopup(`<b>punta sin soldar nº${p.n}</b><br>separación <b>${p.d} m</b><br>`
+        + `D5 suelda hasta 2,0 m; el techo duro es 5,0 m.<br>Ésta queda CONTADA y sin tocar.`)
+      .addTo(gr);
+  }
+  apunta('puntas', n, G.puntasLejos.length);
+  return gr;
+};
+
+// ── capa NUEVA · las ventanas del eje DENSIDAD (C4) ─────────────────────────
+constructores['zonas'] = () => {
+  const gr = L.layerGroup();
+  let n = 0;
+  for (const z of (G.zonas || [])) {
+    n++;
+    L.rectangle([[z.b.sur, z.b.oeste], [z.b.norte, z.b.este]],
+      { color: '#7a0', weight: 2, fill: false, dashArray: '8 5' })
+      .bindPopup(`<b>${esc(z.n)}</b><br>ventana del eje DENSIDAD.<br>`
+        + `⚠️ Es una ventana MÍA para comparar tejidos urbanos,<br>NO un límite administrativo.`)
+      .addTo(gr);
+  }
+  apunta('zonas', n, (G.zonas || []).length);
+  return gr;
+};
+
+// ── capa NUEVA · el límite municipal, que EXPLICA las islitas del borde ─────
+constructores['limite'] = () => {
+  const gr = L.layerGroup();
+  const segs = (G.limite && G.limite.segs) || [];
+  for (const [a, b] of segs) {
+    L.polyline([[a[1], a[0]], [b[1], b[0]]], { color: '#8b00ff', weight: 2, opacity: 0.7 }).addTo(gr);
+  }
+  apunta('limite', segs.length, segs.length);
+  return gr;
+};
+
+const NOMBRES = {
+  precision: '1 · aristas por precisión (D4)',
+  componentes: '2 · componentes conexas',
+  defecto: '3 · unido-por-defecto (D2) — ' + G.porDefecto.length,
+  noUnidos: '4 · NO unidos por evidencia — ' + G.noConectados.length,
+  puntas: '5 · puntas 2–5 m sin soldar — ' + G.puntasLejos.length,
+  zonas: '6 · zonas del eje densidad — ' + ((G.zonas || []).length),
+  limite: '7 · límite municipal (referencia)',
+};
+
+/**
+ * ⭐ Pinta. Devuelve las cuentas, que es lo que hace comprobable este visor:
+ *    se puede ejecutar en Node contra un Leaflet simulado y contar lo que crea.
+ */
+function pintar(activas) {
+  for (const k of Object.keys(construidas)) {
+    if (construidas[k]) { mapa.removeLayer(construidas[k]); delete construidas[k]; delete CUENTA[k]; }
+  }
+  for (const k of activas) {
+    construidas[k] = constructores[k]();
+    construidas[k].addTo(mapa);
+  }
+  if (typeof refrescarPanel === 'function') refrescarPanel();
+  return CUENTA;
 }
 
-// ── capa 2 · componentes ────────────────────────────────────────────────────
-const capaComponentes = L.layerGroup();
-const mayor = G.contadores.mayor;
-for (const a of G.aristas) {
-  const esMayor = a.c === mayor;
-  L.polyline(ll(a.g), {
-    color: esMayor ? '#c8c8c8' : PALETA[a.c % PALETA.length],
-    weight: esMayor ? 1.5 : 6,
-    opacity: esMayor ? 0.55 : 1,
-  }).bindPopup(`<b>componente ${a.c}</b> — ${G.componentes[a.c] ? G.componentes[a.c].nodos : '?'} nodos`
-    + `<br>arista ${a.i}, way ${a.w}, ${esc(a.h)}`).addTo(capaComponentes);
-}
-// un marcador por componente pequeña, para que se vean SIN hacer zoom (C3)
-for (const c of G.componentes) {
-  if (c.k === mayor) continue;
-  const ar = G.aristas.filter((a) => a.c === c.k);
-  if (!ar.length) continue;
-  const p = ar[0].g[0];
-  L.circleMarker([p[1], p[0]], { radius: 13, color: PALETA[c.k % PALETA.length],
-    weight: 3, fill: false })
-    .bindPopup(`<b>componente ${c.k}</b><br>${c.nodos} nodos, ${ar.length} aristas<br>`
-      + `ways: ${[...new Set(ar.map((a) => a.w))].slice(0, 5).join(', ')}`)
-    .addTo(capaComponentes);
-}
+let activas = ['precision', 'defecto'];
 
-// ── capa 3 · los 6 unido-por-defecto (D2) ───────────────────────────────────
-const capaDefecto = L.layerGroup();
-for (const d of G.porDefecto) {
-  L.marker([d.g[1], d.g[0]]).bindPopup(
-    `<b>unido-por-defecto nº${d.n}</b><br>`
-    + `Se unió SIN evidencia de desnivel.<br><br>`
-    + `A: way ${d.wayA} · ${esc(d.hwA)}<br>&nbsp;&nbsp;&nbsp;${esc(d.nombreA)}<br>`
-    + `B: way ${d.wayB} · ${esc(d.hwB)}<br>&nbsp;&nbsp;&nbsp;${esc(d.nombreB)}`
-  ).addTo(capaDefecto);
-  L.circleMarker([d.g[1], d.g[0]], { radius: 16, color: '#000', weight: 3, fill: false })
-    .addTo(capaDefecto);
-}
+// ── el panel de cuentas: arriba a la derecha, siempre visible ────────────────
+let refrescarPanel = null;
+const cuentas = L.control({ position: 'topright' });
+cuentas.onAdd = function () {
+  const d = L.DomUtil.create('div', 'panel');
+  refrescarPanel = () => {
+    const z = ZONAS[zonaIdx];
+    const filas = Object.entries(CUENTA).map(([k, v]) =>
+      `<div>${esc(NOMBRES[k] || k)}: <b>${v.pintadas}</b> de ${v.total}</div>`).join('');
+    d.innerHTML = `
+      <h4>Qué se está pintando</h4>
+      <div class="cuenta">zona: ${esc(z.n)}</div>
+      <select id="selZona">${ZONAS.map((x, i) =>
+        `<option value="${i}"${i === zonaIdx ? ' selected' : ''}>${esc(x.n)}</option>`).join('')}</select>
+      <div style="margin-top:6px" class="muted">${filas || '(ninguna capa encendida)'}</div>
+      <div class="aviso" style="margin-top:6px">⛔ <b>No se ha quitado ni una arista del grafo.</b>
+      Lo que se recorta es <b>cuántas se pintan a la vez</b>. Los números de arriba
+      dicen exactamente qué se está viendo y de cuánto.</div>`;
+    const s = d.querySelector && d.querySelector('#selZona');
+    if (s) s.onchange = (ev) => { zonaIdx = +ev.target.value; pintar(activas); };
+  };
+  refrescarPanel();
+  L.DomEvent.disableClickPropagation(d);
+  return d;
+};
+cuentas.addTo(mapa);
 
-// ── capa 4 · los 43 NO unidos por evidencia ─────────────────────────────────
-const capaNoUnidos = L.layerGroup();
-for (const d of G.noConectados) {
-  const col = d.motivo === 'bridge' ? '#d00' : '#06c';
-  L.circleMarker([d.g[1], d.g[0]], { radius: 7, color: col, weight: 2,
-    fillColor: col, fillOpacity: 0.35 }).bindPopup(
-    `<b>NO unido nº${d.n}</b> — motivo: <b>${esc(d.motivo)}</b><br><br>`
-    + `A: way ${d.wayA} · ${esc(d.nombreA)}<br>B: way ${d.wayB} · ${esc(d.nombreB)}`
-  ).addTo(capaNoUnidos);
-}
+pintar(activas);
 
-// ── capa 5 · las 51 puntas entre 2 y 5 m sin soldar (D5) ────────────────────
-const capaPuntas = L.layerGroup();
-for (const p of G.puntasLejos) {
-  L.polyline([[p.g[1], p.g[0]], [p.g2[1], p.g2[0]]],
-    { color: '#ff00aa', weight: 4, dashArray: '4 3' })
-    .bindPopup(`<b>punta sin soldar nº${p.n}</b><br>separación <b>${p.d} m</b><br>`
-      + `D5 suelda hasta 2,0 m; el techo duro es 5,0 m.<br>Ésta queda CONTADA y sin tocar.`)
-    .addTo(capaPuntas);
-  L.circleMarker([p.g[1], p.g[0]], { radius: 5, color: '#ff00aa', weight: 2, fill: false })
-    .addTo(capaPuntas);
-}
-
-capaPrecision.addTo(mapa);
-capaDefecto.addTo(mapa);
-
-L.control.layers(null, {
-  '1 · aristas por precisión (D4)': capaPrecision,
-  '2 · componentes conexas': capaComponentes,
-  ['3 · unido-por-defecto (D2) — ' + G.porDefecto.length]: capaDefecto,
-  ['4 · NO unidos por evidencia — ' + G.noConectados.length]: capaNoUnidos,
-  ['5 · puntas 2–5 m sin soldar — ' + G.puntasLejos.length]: capaPuntas,
-}, { collapsed: false }).addTo(mapa);
+const control = {};
+for (const k of Object.keys(constructores)) control[NOMBRES[k]] = L.layerGroup();
+L.control.layers(null, control, { collapsed: false }).addTo(mapa);
+mapa.on('overlayadd overlayremove', function (e) {
+  const k = Object.keys(NOMBRES).find((x) => NOMBRES[x] === e.name);
+  if (!k) return;
+  activas = e.type === 'overlayadd' ? activas.concat([k]) : activas.filter((x) => x !== k);
+  pintar(activas);
+});
 
 // ── leyenda: tiene que entenderse SIN haber leído ningún documento ──────────
 const leyenda = L.control({ position: 'bottomleft' });
@@ -158,14 +308,16 @@ leyenda.onAdd = function () {
   d.innerHTML = `
     <h4>Qué es esto</h4>
     <div class="muted">La red que usa el motor para calcular rutas a pie, dibujada
-    encima del mapa. Cada línea es un tramo entre dos cruces.</div>
+    encima del mapa. Cada línea es un tramo entre dos cruces. <b>Es el término
+    municipal entero</b>, no solo el centro.</div>
 
     <h4>Colores de las líneas (capa 1)</h4>
     ${Object.entries(COLOR_PRECISION).map(([k, v]) =>
       `<div><span class="sw" style="background:${v}"></span>${k}</div>`).join('')}
     <div class="muted" style="margin-top:4px">Las tres primeras son las buenas: sabemos
     por dónde se anda de verdad. <b>Rojo</b> = solo tenemos el eje de la calle, sin saber
-    si hay acera ni por dónde se cruza.</div>
+    si hay acera ni por dónde se cruza. <b>En el centro el rojo es el 22 %; en un polígono
+    industrial, el 90 %.</b></div>
     <div class="muted" style="margin-top:4px">Línea <b>de puntos y clarita</b> = existe
     pero <b>no se puede ir a pie</b> (autovía, obras…).</div>
 
@@ -177,15 +329,23 @@ leyenda.onAdd = function () {
       <b>No unido</b> porque el dato dice que están a distinta altura (<code>layer</code>).</div>
     <div style="margin-top:3px"><span class="pt" style="background:#d00"></span>
       <b>No unido</b> porque una es un <b>puente</b>.</div>
+    <div style="margin-top:3px"><span class="pt" style="background:#093"></span>
+      <b>No unido</b> porque una es un <b>túnel</b>.</div>
     <div style="margin-top:3px"><span class="sw" style="background:#ff00aa"></span>
       <b>Puntas sueltas</b>: dos tramos que casi se tocan (entre 2 y 5 m) y que
       <b>no</b> se han unido. Si alguna es una calle que sí continúa, es un fallo.</div>
 
     <h4>Componentes (capa 2)</h4>
     <div class="muted">Trozos de red que <b>no se comunican entre sí</b>. En gris el grande
-    (${G.contadores.tamanoMayor} nodos); <b>de colores las ${G.contadores.componentes - 1}
-    islitas</b>, con un círculo alrededor para encontrarlas.
+    (${G.contadores.tamanoMayor} nodos, el 96 %); <b>de colores las
+    ${G.contadores.componentes - 1} islitas</b>, con un círculo alrededor.
     <b>Si alguna es un sitio por el que se puede llegar andando, es un fallo del grafo.</b></div>
+
+    <h4>Límite municipal (capa 7)</h4>
+    <div class="muted">La línea morada. <b>Casi todas las islitas están pegadas a ella</b>,
+    y no por casualidad: la descarga se pidió por término municipal, así que una calle
+    que entra desde otro pueblo <b>no está</b>. Enciéndela antes de dar por buena
+    cualquier isla del borde.</div>
 
     <div class="aviso">⚠️ <b>El mapa de fondo también es OpenStreetMap</b>, la misma fuente
     con la que se construyó el grafo. Si el grafo hereda un error de OSM, <b>el fondo lo
@@ -194,10 +354,18 @@ leyenda.onAdd = function () {
     <h4>Dato</h4>
     <div class="muted">sello <code>${G.sello}</code><br>
     ${G.contadores.aristas} aristas · ${G.contadores.nodos} nodos ·
-    ${G.contadores.componentes} componentes<br>
-    zona: recuadro de puntos negros</div>`;
+    ${G.contadores.componentes} componentes · ${G.contadores.vertices} vértices<br>
+    recorte: recuadro de puntos negros</div>`;
   L.DomEvent.disableClickPropagation(d);
   return d;
 };
 leyenda.addTo(mapa);
+
+// ⭐ para que la prueba de `src/probar-visor.js` pueda pedir capas y contar.
+//    No es una puerta trasera: es la única manera de comprobar sin navegador que
+//    el visor no filtra en silencio, y deja un test repetible donde el ojo solo
+//    deja una impresión.
+window.VISOR = { pintar, ZONAS, NOMBRES, cuentas: CUENTA,
+  setZona: (i) => { zonaIdx = i; return pintar(activas); },
+  capas: Object.keys(constructores) };
 </script>
