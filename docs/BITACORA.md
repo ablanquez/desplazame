@@ -2492,3 +2492,346 @@ que venía después**.
 ⚠️ Regla operativa inmediata: **después de un commit rechazado, `git status` antes de volver a
 añadir nada.** El rechazo no deja el mundo como estaba.
 **Traza:** `.githooks/commit-msg`, commit `1571f01`
+
+---
+
+## [2026-08-03] — El crudo del "término municipal" traía calles de Costa Rica y de México
+
+**Categoría:** homónimos en la consulta / evidencia que nadie había mirado entera
+**Síntoma:** primera medida del crudo antes de planarizar la ciudad, el bbox del dato:
+
+```
+bbox del dato  S 10.018188  O -98.272155  N 41.981504  E -0.65456
+ancho 18.012,4 km   alto -1.499,7 km
+superficie del bbox 27.013.499,5 km2   (término real: 973,8 km2)
+```
+
+Un "término municipal" de **27 millones de km²** y con el alto **negativo**. Al listar los ways con
+algún vértice fuera de una caja razonable alrededor de Zaragoza salieron **398**, con nombres que no
+dejan lugar a dudas:
+
+```
+way 31806374  highway=primary  name=Carretera San Martín Texmelucan-Tlaxcala
+way 31831535  highway=residential  name=Avenida Zahuapan
+way 31831541  highway=residential  name=Calle Cuauhtémoc
+```
+
+**Causa raíz:** la consulta de la tanda 8 era
+
+```
+area["name"="Zaragoza"]["admin_level"="8"]["boundary"="administrative"]->.a;
+way["highway"](area.a);
+```
+
+`area[...]->.a` **no devuelve un área: devuelve un conjunto de áreas**, y `(area.a)` busca en todas.
+Hay al menos **cuatro municipios llamados Zaragoza con `admin_level=8`** en OSM. Agrupando por celda
+de 1 grado:
+
+```
+ 45.766 ways   41.650, -0.890    Zaragoza (España)
+  2.047 ways   41.686, -1.039    Zaragoza (España, mitad oeste del término)
+    299 ways   10.042, -84.436   Zaragoza (Costa Rica)
+     99 ways   19.320, -98.262   Zaragoza de Puebla (México)
+```
+
+Es **el error nº38 otra vez** —los homónimos que fusionaron siete Plaza de España— pero un nivel más
+arriba: no en mi agrupación de la respuesta, sino **en la pregunta**. Yo escribí la consulta creyendo
+que nombraba un sitio, y nombraba una clase de sitios.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la tanda 8 entera, y su
+verificación completa.** El primer grafo, los 10 cruces conocidos, las tres contrapruebas, el sello,
+la instancia, la comprobación de que no era una réplica. Y sobre todo **el cabo que la tanda 8 dio
+por cerrado**: *"0 ways sin highway, y 28 valores distintos"* — cierto, y calculado sobre un conjunto
+que incluía 398 calles de otro continente. El casco no se enteró **porque el recorte por bbox las
+tiraba**, así que el fallo estaba latente esperando exactamente a esta tanda: la primera que usa el
+crudo entero.
+
+⚠️ Y una segunda cosa dio verde: **`osm.recortar` funcionó perfectamente.** Ninguno de los 398 ways
+está a caballo de la frontera, así que el recorte los elimina limpiamente. La función correcta tapó
+el dato incorrecto.
+
+**Cómo se cazó:** por medir el bbox del dato **antes** de usarlo, en vez de confiar en el nombre del
+fichero. El número que lo delató no fue el de ways —48.211, perfectamente creíble— sino **la
+superficie**, que salió con siete cifras de más. ⚠️ Y el signo otra vez: el alto **negativo** decía
+que había latitudes por debajo del sur del término, no solo por encima.
+
+**Arreglo aplicado:** el crudo **NO se toca** —es evidencia, y la evidencia no se edita—. Se define
+`ZONA_TERMINO` como el bbox del cúmulo español y se recorta con él, con el censo de cúmulos impreso
+al lado para que la exclusión sea **declarada, no silenciosa**. Quedan 47.813 ways.
+
+**⛔ Lo que NO se arregla aquí:** `docs/H1-PRIMER-GRAFO.md` publica *"ways 48.211, todos con tags y
+con geometría"*. Es registro histórico y **no se reescribe**: la corrección va en
+`docs/H1-GRAFO-CIUDAD.md` diciendo qué corrige y por qué. Reportado hacia arriba.
+
+**Ley que sale de aquí:** ⭐⭐ **un filtro por nombre no selecciona un sitio, selecciona todos los
+que se llaman así — y en una consulta geográfica eso no da un error, da un dato más grande.** Toda
+descarga por nombre se audita midiendo **la extensión de lo que llegó**, no su volumen: 398 ways de
+más no se notan en 48.211, pero mueven el bbox 18.000 km.
+⚠️ Corolario: **un recorte posterior puede ocultar un fallo de la descarga durante tandas enteras.**
+El casco tapó esto desde el 3 de agosto por la mañana.
+**Traza:** `src/ruta.js` (`ZONA_TERMINO`), `src/osm.js` (`clusters`), `docs/H1-PRIMER-GRAFO.md:43`
+
+---
+
+## [2026-08-03] — Un rodeo de 0,89: la ruta salía más corta que la línea recta
+
+**Categoría:** el instrumento, no el grafo
+**Síntoma:** en la prueba de puentes, entre los 32 cruces de río apareció éste:
+
+```
+✅ Ronda Hispanidad | Huerva    88 m  (recta 99 m, rodeo 0.89)
+```
+
+**Un rodeo menor que 1 es imposible.** El camino más corto por una red no puede ser más corto que
+la línea recta entre sus dos extremos. Si eso pasa, o el grafo está roto o la medida lo está.
+
+**Causa raíz:** la medida. Yo comparaba la ruta —que va de **nodo enganchado** a **nodo
+enganchado**— contra la recta entre **los extremos del way del puente**. Son cuatro puntos
+distintos: el nodo del grafo más cercano al extremo del puente puede estar 15 m más adentro, y
+entonces la ruta recorre menos distancia que la recta con la que la comparo. **Dos magnitudes que
+no empiezan ni acaban en el mismo sitio.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **la prueba de los ríos entera, que
+es la comprobación más importante del proyecto.** 36 de 36 pares al azar cruzando el Ebro, el Huerva
+y el Gállego, con su semilla, su positivo de control del detector de márgenes y sus rodeos de 1,1 a
+1,4. Todo correcto. Y el mismo instrumento, dos líneas más abajo, imprimía un número imposible sin
+inmutarse — **porque no tenía ninguna comprobación de que el rodeo fuera >= 1.** Un umbral que nadie
+pone no salta.
+
+**Cómo se cazó:** por leerlo. No había guardián: el aviso solo se disparaba con rodeo **alto**, el
+caso que yo esperaba. **El extremo contrario no estaba vigilado porque no se me había ocurrido que
+pudiera pasar**, que es exactamente cuándo pasan las cosas.
+
+**Arreglo aplicado:** la recta se mide **entre los nodos enganchados**, que son los extremos reales
+del camino; y se añade la comprobación explícita `rodeo < 0,999 ⇒ ⛔ IMPOSIBLE`. Con eso el caso
+pasa a 1,00 y el guardián queda puesto para la próxima. Se aplica también a las rutas de cordura
+(C5), donde ahora hay un contador de "rodeos imposibles" que hoy vale 0.
+
+**Ley que sale de aquí:** ⭐⭐ **una comparación entre dos magnitudes exige que empiecen y acaben en
+el mismo sitio, y "casi el mismo sitio" no es el mismo sitio.** Y el corolario operativo: **cuando
+una magnitud tiene una cota física —un rodeo nunca baja de 1, una distancia nunca es negativa—,
+esa cota se comprueba en el código**, porque es gratis y porque es el único aviso que llega cuando
+el fallo está en el sitio donde no se mira.
+**Traza:** `src/verificar-rios.js` (C1b y C5)
+
+---
+
+## [2026-08-03] — Mi "positivo de control" era una coordenada que me había inventado de memoria
+
+**Categoría:** control inventado / rellenar con lo que parece razonable
+**Síntoma:** al estrenar el detector de dentro/fuera del término municipal, siete controles y uno
+en rojo:
+
+```
+✅ Plaza del Pilar (Zaragoza)                       dentro=true   esperado=true
+✅ Villanueva de Gállego (OTRO municipio)           dentro=false  esperado=false
+✅ Utebo (OTRO municipio)                           dentro=false  esperado=false
+⛔ La Muela (OTRO municipio)                        dentro=true   esperado=false
+   ⇒ 6 de 7  ⛔ ROTO
+```
+
+**Causa raíz:** el detector estaba bien. **Lo que estaba mal era mi coordenada.** Escribí
+`-1.030, 41.580` como "La Muela" tirando de memoria, y ese punto cae dentro del término de
+Zaragoza —por ahí está la plataforma logística—. El pueblo de La Muela está bastante más al oeste.
+No comprobé la coordenada contra nada: **la puse porque me sonaba.**
+
+Y eso es justo lo que las reglas de este proyecto prohíben en la primera línea: *si algo no se sabe,
+se dice `NO CONSTA`; nunca se rellena con lo que parece razonable*. Lo prohibido no fue el error de
+memoria: fue **presentar un dato recordado como si fuera un dato comprobado**, y encima usarlo para
+juzgar un instrumento.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** los otros **seis** controles. Y ahí
+está lo venenoso: un panel con 6 de 7 en verde **parece más creíble que uno con 7 de 7**, porque
+tiene pinta de no estar amañado. Estuve a un paso de escribir "el detector falla en un caso" y
+seguir — habría publicado una limitación falsa de un instrumento correcto, y habría desconfiado del
+límite municipal el resto de la tanda.
+
+**Cómo se cazó:** porque el rojo no encajaba. Los otros tres municipios daban `false` limpiamente,
+y no había ninguna razón geométrica para que ese fallara. **La sospecha no vino del número sino de
+su forma:** un detector de polígonos no falla en un punto suelto y acierta en los demás.
+
+**Arreglo aplicado:** se sustituyen los controles por otros que **no dependen de lo que yo crea
+recordar**:
+· cuatro puntos a 5 km **por fuera del bbox del propio término** — están fuera por construcción;
+· dos calles tomadas **del propio crudo por su nombre** (`Calle del Coso`, `Avenida de Navarra`) —
+  están dentro por evidencia;
+· y los municipios vecinos que sí eran correctos.
+Resultado: **8 de 8**, en los dos sentidos.
+
+**Ley que sale de aquí:** ⭐⭐ **un positivo de control no vale si el valor esperado sale de la
+memoria de quien escribe la prueba.** Tiene que salir de otro fichero, de otra consulta o de la
+propia geometría — porque si sale de la cabeza, la prueba no compara el instrumento con la realidad:
+compara el instrumento con mi recuerdo, y cuando discrepan **el sospechoso por defecto es el
+instrumento, que es el inocente.**
+**Traza:** `src/limite.js`, controles de `dentro()`
+
+---
+
+## [2026-08-03] — Un clasificador que llamaba "trozo urbano" a pistas de campo sin nombre
+
+**Categoría:** la etiqueta promete lo que la regla no mide
+**Síntoma:** primera clasificación de las 168 componentes sueltas del grafo de la ciudad:
+
+```
+   83  hueco de mapeado (5-50 m del continente)
+   45  ⚠️ TROZO URBANO GRANDE Y AISLADO — HAY QUE MIRARLO
+   36  islote de mapeado (<200 m, lejos del continente)
+```
+
+**45 trozos urbanos aislados** dispara la costura del briefing —*"si aparece una componente grande y
+urbana que no sea artefacto, PÁRATE Y AVÍSAME DESTACADO"*—. Pero al mirarlos uno a uno:
+
+```
+comp 55 · 24 nodos · 33.150 m · highway=track · nombre: SIN NOMBRE   41.81135, -1.10669
+comp 84 · 17 nodos ·  9.234 m · highway=service,track · SIN NOMBRE   41.53086, -1.14985
+```
+
+Pistas de campo en mitad de la estepa.
+
+**Causa raíz:** la regla que producía esa etiqueta era, literalmente,
+`if (L >= 200 && dCont >= 50) return 'TROZO URBANO GRANDE Y AISLADO'`. **No mira la densidad, ni el
+tipo de vía, ni si hay una sola calle con nombre.** Mide longitud y distancia, y la etiqueta dice
+"urbano". La palabra hacía un trabajo que el código no hacía.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **el número, que era exacto.** Había
+45 componentes que cumplían esa condición, ni una más ni una menos, y el listado, las coordenadas y
+los enlaces a OSM eran todos correctos. **Lo único falso era el nombre de la clase** — y el nombre
+de la clase es lo único que se lee en un resumen. Es el mismo mecanismo del 8,36 % (nº43) y del
+contador que devolvía una constante (nº49): el instrumento no se equivoca al medir, se equivoca al
+decir qué ha medido.
+
+**Cómo se cazó:** porque el briefing obligaba a listar las 20 mayores **una a una** (*agrupar es
+borrar*), y a la tercera línea ya se veía `SIN NOMBRE · highway=track` bajo el epígrafe "urbano".
+Con solo el recuento agregado —"45 trozos urbanos aislados"— habría parado la tanda y avisado en
+rojo de algo que no existe.
+
+**Arreglo aplicado:** "urbano" pasa a medirse: **calles `residential`/`living_street`/`pedestrian`
+con nombre** y densidad de nodos alrededor, ambas impresas al lado de cada componente. Quedan
+**3**, no 45.
+
+**Ley que sale de aquí:** ⭐⭐ **el nombre de una categoría es una afirmación, y hay que
+comprobarlo como cualquier otra.** Antes de publicar una clasificación hay que leer la regla y
+preguntarse *¿mide esto lo que dice la etiqueta?* — porque el lector solo va a leer la etiqueta, y
+un cero o un cuarenta y cinco mal nombrados producen exactamente la decisión equivocada.
+**Traza:** `src/verificar-ciudad.js` (C2, `queEs`)
+
+---
+
+## [2026-08-03] — La regla del borde se tragó a Peñaflor entero: 294 nodos y 317 calles, clasificados como "artefacto"
+
+**Categoría:** un solo eje mezcla qué es una cosa con por qué está así
+**Síntoma:** arreglado el clasificador anterior, apareció esto en el listado:
+
+```
+comp 40 · 294 nodos · 327 aristas · 19.112 m
+     41.76682, -0.88154
+     al continente 57,2 m  ·  al LÍMITE MUNICIPAL 0,01 km  ·  dentro del término
+     densidad máx 21 nodos/150 m  ·  calles con nombre 317
+     highway=residential,path,service   nombre: Calle Entrada | Calle de Abril | Calle de Febrero
+     ⇒ artefacto del límite municipal (<300 m del borde)
+```
+
+**Un pueblo entero del término, con 317 calles con nombre, etiquetado como "artefacto".** Y por
+tanto **no contado** en el contador de componentes urbanas aisladas, que daba 0.
+
+**Causa raíz:** mi clasificador tenía **un solo eje** y las reglas se evaluaban en orden. La primera
+que casaba ganaba, y la de "pegado al límite municipal" iba antes que la de "tejido urbano". El
+resultado: la **causa** de que esté suelto cancelaba **qué es** lo que está suelto.
+
+Y la causa es real —a Peñaflor de Gállego se llega cruzando Villanueva de Gállego, que es otro
+municipio, así que la carretera no está en la descarga—. **Pero que la causa esté explicada no hace
+que el vecino de Peñaflor pueda llegar.** Explicar un agujero no es taparlo.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la costura del briefing, que
+daba 0.** *"Aparece una componente grande y urbana que no sea artefacto del límite municipal →
+PÁRATE Y AVÍSAME DESTACADO"* — y el contador decía `0 ✅ ninguna`. **La costura funcionaba; era su
+definición la que se había comido el caso.** Es el fallo más peligroso de los cuatro de esta tanda,
+porque el instrumento que tenía que gritar estaba diciendo que todo bien.
+
+**Cómo se cazó:** otra vez por listar las 20 mayores **una a una** en vez de fiarme del recuento. La
+línea "317 calles con nombre" bajo la etiqueta "artefacto" no se sostiene ni un segundo.
+
+**Arreglo aplicado:** **dos ejes independientes, y los dos se imprimen**: `QUÉ ES` (tejido urbano ·
+unas pocas calles · pistas sin nombre · islote de geometría) y `POR QUÉ ESTÁ SUELTA` (límite
+municipal · hueco de mapeado · fuera del término · aislada de verdad). Y un tercer dato que hacía
+falta para no confundir un barrio nuestro con el pueblo de al lado: **qué porcentaje de la
+componente cae dentro del término** — con un booleano, la cola de un pueblo vecino que asoma 20 m
+daba el mismo aviso que Peñaflor. Quedan **3** componentes de tejido urbano del término aisladas,
+las tres por el límite municipal, y **se reportan**.
+
+**Ley que sale de aquí:** ⭐⭐ **cuando una clasificación mezcla "qué es" con "por qué está así", la
+explicación se come al hecho — y siempre en la misma dirección: hacia abajo, hacia el "no pasa
+nada".** Los dos ejes van separados y los dos se publican. ⚠️ Corolario, que es la versión dura de
+*agrupar es borrar*: **una clase llamada "artefacto" es una papelera, y todo lo que cae en una
+papelera deja de mirarse.**
+**Traza:** `src/verificar-ciudad.js` (C2, `queEs` y `porQue`), `src/limite.js`
+
+---
+
+## [2026-08-03] — El grafo deja andar por 13,8 km de calles que todavía no existen
+
+**Categoría:** filtro incompleto / lo que el casco no podía enseñar
+**Síntoma:** al clasificar los 114 `unido-por-defecto` de la ciudad, los 8 del grupo más exigente
+—`RODADA × RODADA`, sin ninguna vía peatonal de por medio— resultaron ser esto:
+
+```
+41.66798,-0.84891   (sin nombre) [proposed]  x  (sin nombre) [proposed]
+41.66741,-0.84842   (sin nombre) [proposed]  x  (sin nombre) [proposed]
+41.66651,-0.84885   (sin nombre) [proposed]  x  (sin nombre) [proposed]
+41.66546,-0.84672   Camino Valimaña [residential]  x  (sin nombre) [proposed]
+```
+
+Siete de los ocho son `highway=proposed`: **calles proyectadas, que no están construidas.**
+
+**Causa raíz:** `transitableAPie()` excluye `motorway`/`trunk`, `foot=no` y `highway=construction`.
+**No excluye `proposed`.** Y no por descuido de criterio sino porque **en el casco no había ni una**:
+
+```
+highway            ciudad: aristas / a pie / metros     casco
+proposed              178 /   178 /  13.805 m           0 / 0
+construction          693 /     0 /  49.981 m         117 / 0
+```
+
+`construction` sí se excluyó **porque en el casco había 117 y me las encontré de frente**. El
+criterio que se escribió no fue "las vías que no existen no se andan", que es el general, sino "esta
+vía que me ha salido no se anda", que es el caso particular disfrazado de regla.
+
+**No es cosmético.** Medido sin tocar nada:
+
+```
+aristas proposed transitables a pie: 178
+  de ellas, ARTICULACIONES (único paso): 23
+  si se quitaran: mayor 65.933 -> 65.851  ⇒ 82 nodos se quedarían sin conexión
+```
+
+**23 de ellas son el único paso**, así que hoy el motor puede mandar a alguien por una calle que
+no existe, y **82 nodos están conectados al resto de la ciudad solo a través de una calle
+proyectada.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la tanda 8 entera y su
+comparación con ésta.** El casco daba `construction 117 / 0 a pie` — el filtro funcionando
+perfectamente y publicado como tal. Y en esta tanda dieron verde **los ríos (36 de 36), las tres
+contrapruebas, los 10 cruces conocidos, las 15 rutas de cordura con rodeo entre 1,08 y 1,22 y las
+0 componentes urbanas sin explicar.** Ninguna podía verlo: todas preguntan *¿se puede llegar?*, y
+la respuesta era sí — **por una calle que no está.** Una ruta por una calle inexistente es
+indistinguible de una ruta buena en todos los contadores de red.
+
+**Cómo se cazó:** por clasificar los `unido-por-defecto` **por causa aparente antes de dar el
+número** (ley 29), que es lo que el briefing exigía. El contador agregado decía "114, y por cada
+1.000 aristas sube de 0,84 a 1,15 — no se dispara". Correcto y tranquilizador. **La clase
+`RODADA × RODADA` tenía 8 casos y era la única que en el casco valía 0**: mirarla fue lo que sacó
+la palabra `proposed`.
+
+**⛔ NO ARREGLADO — a propósito.** El briefing de esta tanda lo prohíbe expresamente: *"NO cambies
+las reglas D1–D5. Si crees que alguna falla a esta escala, PÁRATE Y DÍMELO — no la toques. Cambiar
+la regla y la escala a la vez invalida la comparación."* Tocar `transitableAPie` cambiaría el grafo
+y haría incomparable toda la tabla casco-vs-ciudad que es el producto de la tanda. **Queda medido,
+localizado y reportado hacia arriba; lo decide Antonio.**
+
+**Ley que sale de aquí:** ⭐⭐ **un filtro escrito enumerando los casos que aparecieron no es una
+regla: es una lista, y las listas se quedan cortas en cuanto cambia la muestra.** `construction`
+entró porque salió; `proposed` no entró porque no salió. ⚠️ Y el corolario que explica por qué
+esta tanda existía: **una zona pequeña no solo tiene menos casos, tiene menos CLASES de caso — y
+las clases que faltan no dejan hueco visible.** Un cero en el casco no significaba "aquí no pasa":
+significaba "aquí no se ve".
+**Traza:** `src/planarizar.js` (`transitableAPie`), `src/ciudad.js` (B2, clasificación)
