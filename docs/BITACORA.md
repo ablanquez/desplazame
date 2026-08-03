@@ -3597,3 +3597,137 @@ romperlo, y el que lo rompe no se entera.** Lo publicado necesita una prueba que
 frase en un documento.
 ⚠️ Corolario: **`continue` es la forma más barata de convertir un fallo en una línea de informe.**
 **Traza:** `src/verificar.js` (C4d), `docs/H1-PRIMER-GRAFO.md:230-236`
+
+---
+
+## [2026-08-03] — El punto del perímetro más cerca de la calle está al otro lado del edificio: la ruta 3 empeoró 119 m al "arreglarla"
+
+**Categoría:** minimicé la magnitud equivocada
+**Síntoma:** al cambiar el centro del Hospital Clínico por *«el punto de su perímetro más próximo a
+la red»*, que es lo que había que hacer, la ruta **se alargó**:
+
+```
+   [1] al CENTRO del edificio                 3731 m · recta 3000 m · rodeo 1.24
+   [2] al perímetro más cerca de LA CALLE     3850 m · recta 2991 m · rodeo 1.29   ⬅ PEOR
+```
+
+**El arreglo dejó la ruta 119 m más larga y el rodeo peor que antes de arreglarlo.**
+
+**Causa raíz:** ese punto está a **0,0 m** de una calle… **que está al otro lado del hospital**.
+Minimizar la distancia de ENGANCHE no es minimizar lo que anda una persona. Son dos magnitudes
+distintas, y solo una es la pregunta: *"¿cuánto tengo que andar para llegar?"*
+
+⭐ **El signo del error fue la pista** (y por eso se mira antes de buscar la causa): un arreglo que
+empeora el resultado en la dirección contraria a la esperada no suele estar mal implementado — suele
+estar resolviendo otro problema.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la medida de la clase entera.**
+Sobre los 11.857 edificios, el perímetro mejora la distancia al viario en **8,1 m de mediana** y hasta
+114 m en el peor caso. Todos esos números son ciertos. **Un cambio puede mejorar el 100 % de una
+métrica y empeorar el resultado**, si la métrica no es la que importa.
+⚠️ Y se salvó solo porque el briefing exigía publicar el ANTES y el DESPUÉS (D3). Con solo el después,
+3.850 m habría parecido perfectamente razonable.
+
+**Cómo se cazó:** por la comparación antes/después de la ruta 3, que no era opcional.
+
+**Arreglo aplicado:** una tercera regla, y sale de qué SIGNIFICA un destino-edificio: **llegar a un
+edificio es tocar su perímetro por donde antes se llegue.** Se generan hasta 24 puntos de acceso
+candidatos sobre el contorno, se insertan como nodos temporales y **manda el más barato POR RUTA**
+—un solo Dijkstra con varios destinos, no cuesta más—, sumando lo que queda de andar desde la calle
+hasta la fachada.
+
+```
+   [3] ⭐ al perímetro más barato POR RUTA     3705 m · recta 2998 m · rodeo 1.24
+```
+
+⛔ Y para que no sea "ajustar hasta que salga bonito", se publican **las tres lecturas** en todas las
+rutas: la regla se elige por lo que significa el destino, no por el número que produce.
+
+**Ley que sale de aquí:** ⭐⭐ **antes de minimizar algo, comprueba que es la magnitud de la pregunta.**
+"El punto más cercano a la red" y "el punto al que antes se llega" se parecen tanto por escrito que
+uno se cuela por el otro sin que salte nada.
+**Traza:** `src/puerta.js` (`puertaDe`, `candidatos`, `rutaAEdificio`), `src/rutas-antonio.js`
+
+---
+
+## [2026-08-03] — Un POI que no cae dentro de ningún edificio se saltaba el tratamiento en silencio
+
+**Categoría:** silencio falso
+**Síntoma:** en la primera ejecución con puertas, la ruta 5 (C.C. Utrillas) **no imprimía nada** sobre
+el centroide. Las rutas 3 y 4 sí. Parecía que el Utrillas no era un edificio — y lo es.
+
+**Causa raíz:** el bloque que informa estaba dentro de `if (hayPuerta)`. Si ninguno de los dos
+extremos conseguía puerta, no se imprimía **ni el intento ni el motivo**. Un caso no tratado se veía
+exactamente igual que un caso que no aplica.
+
+**Lo que pasaba de verdad, al mirarlo:** el nodo `shop=mall "Alcampo Utrillas"` **no cae dentro de
+ningún polígono de edificio**. El más cercano tiene su centro a 110 m. ⇒ No es un fallo del
+mecanismo: es que **ese centro comercial no está mapeado como edificio en el dato**, y la respuesta
+correcta es quedarse en el punto y decirlo.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **las otras dos**. Delicias y el
+Clínico imprimían su línea de puerta perfectamente, así que el mecanismo "funcionaba". El silencio
+del tercero pasaba por "no aplica".
+
+**Cómo se cazó:** contando las líneas. Cuatro POI en las siete rutas, tres líneas de puerta.
+
+**Arreglo aplicado:** el motivo se imprime **siempre que el extremo sea un POI**, con o sin puerta:
+`⚠️ SIN PUERTA, se queda en el punto: el-punto-no-cae-en-ningun-edificio`.
+
+**Ley que sale de aquí:** ⭐ **un caso no tratado tiene que verse distinto de un caso que no aplica.**
+Si el informe solo habla cuando el mecanismo acierta, su silencio es indistinguible de la ausencia
+del problema.
+**Traza:** `src/rutas-antonio.js`, `src/puerta.js` (`accesoA` → `motivo`)
+
+---
+
+## [2026-08-03] — La estación de Delicias NO necesitaba el pasillo interior: era el centroide. La premisa que justificó una decisión era un artefacto
+
+**Categoría:** conclusión correcta en su literal, premisa equivocada en su uso
+**Síntoma:** con el orden A→B→C→D completo, el contrafactual de las siete rutas sale así:
+
+```
+   nº1 … nº7   el mismo trayecto SIN pasos condicionales   ±0 m   ⇒ no le afectan
+```
+
+**Ninguna de las siete necesita ya un paso condicional.** Y la ruta 4, la de Delicias:
+
+```
+   [1] al CENTRO del edificio                 900 m   (y sin pasos condicionales: NO HAY CAMINO)
+   [3] al perímetro más barato POR RUTA       506 m   (y sin pasos condicionales: 506 m, ±0)
+```
+
+⇒ **Lo que dejaba la estación sin acceso a pie no eran los pasos condicionales: era rutear a su
+centro geométrico**, que está 60 m dentro del edificio y solo se alcanza por dentro.
+
+**Por qué importa:** en la tanda 11 escribí —correctamente en su literal— *"el centro de la estación
+solo es alcanzable por un pasillo interior, y ruteamos al centro de un edificio, no a su puerta"*. La
+frase llevaba el aviso pegado. **Pero el argumento que viajó hacia arriba fue "la primera consecuencia
+real medida de ignorar los pasos condicionales es que la Estación de Delicias queda sin acceso"**, y
+esa parte era un artefacto del centroide.
+
+⛔ **LA DECISIÓN DE ANTONIO SIGUE SIENDO CORRECTA, y por un caso real distinto:** la ruta de cordura
+`Puerta del Carmen → Magdalena` del casco **sí** necesita un paso condicional —cruza el interior del
+**Centro Comercial Independencia El Caracol**— y sin ellos no existe (bitácora nº76). Ahí no hay
+ningún centroide de por medio: son dos coordenadas sueltas.
+⇒ Lo que cambia no es la decisión: es **cuál es su prueba**.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la propia medición de la tanda
+11, entera y exacta.** 900 m con los pasos abiertos, `NO HAY CAMINO` sin ellos, el `highway=corridor`
+identificado por su id de way. Todo cierto. **Lo que estaba mal no era ningún número: era de qué
+creíamos que era prueba.**
+
+**Cómo se cazó:** ⭐ **por el orden impuesto en el briefing.** *"Si se arregla el centroide antes que
+los pasos condicionales, no se sabrá cuál de los dos hizo que Delicias funcione"* (ley 19). Se
+arreglaron en el orden C→D y por eso se puede afirmar cuál operó: **C no lo arregló, D sí.**
+
+**Arreglo aplicado:** ninguno de código. Se reporta hacia arriba y se publica el contrafactual de las
+siete, que es el dato que faltaba.
+
+**Ley que sale de aquí:** ⭐⭐ **un caso que sirve de prueba a una decisión tiene que sobrevivir a que
+se arreglen sus otros defectos.** Delicias tenía dos: el pasillo y el centroide. Mientras el segundo
+siguió vivo, el primero parecía la causa — y la parecía con números correctos.
+⚠️ Operativa: **cuando un caso motive un cambio de regla, hay que preguntar qué MÁS le pasa a ese
+caso** antes de dejar que decida.
+**Traza:** `src/rutas-antonio.js` (contrafactual de las siete), `src/puerta.js`, `docs/H1-PORTALES.md`
+(la conclusión que esto matiza)

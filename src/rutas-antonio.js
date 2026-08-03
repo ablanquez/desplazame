@@ -26,6 +26,7 @@ const D = require('./direccion');
 const G = require('./grafo');
 const T = require('./tabla-rutas');
 const Co = require('./condicionales');
+const Pu = require('./puerta');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 const { aMetros, dist } = require('./geo');
 
@@ -125,11 +126,57 @@ if (require.main === module) {
         + (p.portal ? '   OSM "' + (p.portal.nombreOsm || '—') + '"  [' + p.portal.codigoVia_estado + '/' + p.portal.consenso_estado + ']' : ''));
     }
 
-    const res = G.rutaEntre(g, a, b);
-    const recta = dist(a.m, b.m);
+    // ── D · el destino que es un EDIFICIO se rutea a su PUERTA, no a su centro ──
+    // ⭐ D3 · se calculan LAS DOS, porque el efecto hay que verlo, no anunciarlo:
+    //    al mover el punto cambia la ruta Y cambia la línea recta, así que el
+    //    rodeo se mueve por dos motivos a la vez y sin el antes no se separan.
+    // ⛔ el motivo se dice SIEMPRE que el destino sea un POI, tenga puerta o no.
+    //    En la primera versión, un POI sin edificio se saltaba el tratamiento en
+    //    silencio y parecía que no era un edificio — y el C.C. Utrillas lo es.
+    const aP = a.tipo === 'POI' ? Pu.accesoA(a, g, ctx.eng) : a;
+    const bP = b.tipo === 'POI' ? Pu.accesoA(b, g, ctx.eng) : b;
+    if (a.tipo === 'POI' || b.tipo === 'POI') {
+      log('');
+      log('   ⭐ D · DESTINO EDIFICIO: se rutea al PERÍMETRO, no al centro');
+      for (const [q, p] of [['origen', aP], ['destino', bP]]) {
+        if (p.tipo !== 'POI') continue;
+        if (!p.puerta) { log('   ' + q.padEnd(9) + '⚠️ SIN PUERTA, se queda en el punto: ' + p.motivo); continue; }
+        log('   ' + q.padEnd(9) + `«${p.puerta.nombre || 'edificio sin nombre en OSM'}»  `
+          + `centro a ${p.puerta.dCentro.toFixed(1)} m de la calle → perímetro a ${p.puerta.dPuerta.toFixed(1)} m`);
+      }
+    }
+    const hayPuerta = !!(aP.puerta || bP.puerta);
+
+    const resCentro = G.rutaEntre(g, a, b);
+    const rectaCentro = dist(a.m, b.m);
+    // ⭐ la tercera lectura: la puerta elegida POR RUTA, no por cercanía a la calle
+    let resRuta = null, bR = null;
+    if (bP.puerta) {
+      const poli = Pu.edificioDe(b.m, Co.edificios());
+      const rr = Pu.rutaAEdificio(G, g, aP, poli, ctx.eng);
+      if (rr.encontrada) { resRuta = rr; bR = rr.puerta; }
+    }
+    const res = resRuta || (hayPuerta ? G.rutaEntre(g, aP, bP) : resCentro);
+    const bFin = bR || bP;
+    const recta = resRuta ? dist(aP.m, bR.m) : (hayPuerta ? dist(aP.m, bP.m) : rectaCentro);
+    if (hayPuerta) {
+      const resPer = G.rutaEntre(g, aP, bP);
+      const rectaPer = dist(aP.m, bP.m);
+      di('  [1] al CENTRO del edificio', resCentro.encontrada
+        ? `${resCentro.metros.toFixed(0)} m · recta ${rectaCentro.toFixed(0)} m · rodeo ${(resCentro.metros / rectaCentro).toFixed(2)}`
+        : '⛔ NO HAY CAMINO');
+      di('  [2] al perímetro más cerca de LA CALLE', resPer.encontrada
+        ? `${resPer.metros.toFixed(0)} m · recta ${rectaPer.toFixed(0)} m · rodeo ${(resPer.metros / rectaPer).toFixed(2)}`
+        : '⛔ NO HAY CAMINO');
+      di('  [3] ⭐ al perímetro más barato POR RUTA', resRuta
+        ? `${resRuta.metros.toFixed(0)} m · recta ${recta.toFixed(0)} m · rodeo ${(resRuta.metros / recta).toFixed(2)}`
+          + `   (${resRuta.nCandidatos} puertas candidatas)`
+        : '— (no aplica: el destino no es un edificio)');
+      log('   ⇒ manda [3]: llegar a un edificio es tocar su perímetro por donde antes se llegue.');
+    }
     if (!res.encontrada) {
       log('   ⛔⛔ NO HAY CAMINO');
-      resultados.push({ ru, ok: false, motivo: 'sin-camino', recta, a, b });
+      resultados.push({ ru, ok: false, motivo: 'sin-camino', recta, a: aP, b: bFin });
       continue;
     }
     const rodeo = res.metros / recta;
@@ -149,8 +196,20 @@ if (require.main === module) {
     di('línea recta', recta.toFixed(0) + ' m'
       + (ru.rectaDeclarada ? `   (la tabla declara ${ru.rectaDeclarada} m)` : ''));
     // ── C · ¿usa pasos condicionales? ¿los NECESITA, o son atajo? ────────────
+    // ⭐ se calcula para LAS SIETE, no solo para las que los usan: sin el
+    //    contrafactual no se puede decir "no le afectan", solo "no aparecen".
     const cond = res.pasos.filter((p) => p.condicional);
-    let sinCond = null;
+    const re = (p) => {
+      const x = P.engancharUno(p.m, gSin.aristas, ctxSin.eng, () => '', 350).mejor;
+      return x ? { arista: x.i, seg: x.k, t: x.t, q: x.q, d: x.d, m: p.m } : null;
+    };
+    const a2 = re(aP), b2 = re(bFin);
+    const rSin = (a2 && b2) ? G.rutaEntre(gSin, a2, b2) : { encontrada: false };
+    const sinCond = rSin.encontrada ? rSin.metros : null;
+    di('el mismo trayecto SIN pasos condicionales', rSin.encontrada
+      ? `${rSin.metros.toFixed(0)} m  (${(rSin.metros - res.metros >= 0.5 ? '+' : '')}${(rSin.metros - res.metros).toFixed(0)} m)`
+        + (Math.abs(rSin.metros - res.metros) < 0.5 ? '   ⇒ no le afectan' : '')
+      : '⛔ NO HAY CAMINO   ⇒ LOS NECESITA');
     if (cond.length) {
       di('⚠️ pasos condicionales en la ruta', cond.length + ' tramos · '
         + cond.reduce((s, p) => s + p.metros, 0).toFixed(0) + ' m');
@@ -168,17 +227,9 @@ if (require.main === module) {
       for (const [t, v] of porTexto) {
         log('      ⚠️  ' + t + `   (${v.m.toFixed(0)} m` + (v.n > 1 ? ` en ${v.n} tramos` : '') + ')');
       }
-      // el mismo trayecto SIN ellos: distingue necesidad de atajo
-      const re = (p) => {
-        const x = P.engancharUno(p.m, gSin.aristas, ctxSin.eng, () => '', 350).mejor;
-        return x ? { arista: x.i, seg: x.k, t: x.t, q: x.q, d: x.d, m: p.m } : null;
-      };
-      const a2 = re(a), b2 = re(b);
-      const r2 = (a2 && b2) ? G.rutaEntre(gSin, a2, b2) : { encontrada: false };
-      sinCond = r2.encontrada ? r2.metros : null;
       log('');
-      di('⭐ ¿los NECESITA o son un atajo?', r2.encontrada
-        ? `ATAJO — sin ellos también hay ruta: ${r2.metros.toFixed(0)} m (+${(r2.metros - res.metros).toFixed(0)} m, ${((r2.metros / res.metros - 1) * 100).toFixed(1)} %)`
+      di('⭐ ¿los NECESITA o son un atajo?', rSin.encontrada
+        ? `ATAJO — sin ellos también hay ruta: ${rSin.metros.toFixed(0)} m (+${(rSin.metros - res.metros).toFixed(0)} m, ${((rSin.metros / res.metros - 1) * 100).toFixed(1)} %)`
         : 'LOS NECESITA — sin ellos NO HAY CAMINO');
     }
 
@@ -193,7 +244,7 @@ if (require.main === module) {
     }
     log('   por: ' + (nombres.join(' → ').slice(0, 300) || '(tramos sin nombre)'));
     resultados.push({ ru, ok: true, metros: res.metros, recta, rodeo, dentroRodeo, dentroBanda,
-      nombres, aristas: res.aristas, pasos: res.pasos, a, b, cond });
+      nombres, aristas: res.aristas, pasos: res.pasos, a: aP, b: bFin, cond, sinCond, resCentro, rectaCentro, hayPuerta });
   }
 
   // ── las tres preguntas concretas ──────────────────────────────────────────
