@@ -4095,3 +4095,68 @@ trampa para medir cualquier cosa que dependa de la distancia entre lo emparejado
 de 0,0, se audita antes de creérselo.** Es la tercera comprobación de este proyecto que pasaba por
 construcción (nº82, nº85 y ésta).
 **Traza:** `src/es-puerta.js` (D2), `src/puerta.js` (`muestrearContorno`, `candidatos`)
+
+---
+
+## [2026-08-03] — Medí los tres casos de la puerta con una regla que el motor no usa. El número sobrevivió por geometría, no por método
+
+**Categoría:** medí una cosa y el motor usa otra (la forma del fallo nº68, otra vez)
+**Síntoma:** la tanda 13 cerró D3 —los tres casos conocidos— con esto, y así lo publiqué:
+
+```
+   ⛔ Delicias: el motor rutea a 25,8 m de su entrance=main. NO es una puerta declarada.
+```
+
+Al meter `entrance=*` en el motor (tanda 14), la ruta nº4 de Antonio —Etopía → Delicias— sale
+**exactamente igual antes y después: 506 m, y el punto de llegada se mueve 0,0 m**. Si el motor
+ruteaba a 25,8 m de la puerta y ahora rutea a la puerta, algo tenía que moverse.
+
+**Causa raíz:** el `25,8 m` se midió sobre `puertaDe()`, que es la regla **[2]** —«el punto del
+perímetro más pegado a la calle»—. **El motor no usa [2]. Usa [3]**, el perímetro más barato POR
+RUTA, que depende de por dónde venga el usuario. Son dos puntos distintos del mismo edificio, y el
+informe de la tanda 13 lo decía **en su propia salida, dos pantallas más arriba**:
+
+```
+   ⚠️⚠️ Y AHORA LA PREGUNTA QUE DE VERDAD LE CORRESPONDE AL MOTOR:
+      el motor no elige «el perímetro más cerca de la calle» — elige el más barato
+      POR RUTA, y eso depende del origen.
+```
+
+Lo escribí, lo imprimí, y a continuación medí los tres casos con la regla que acababa de descartar.
+
+**Medido ahora sobre la regla que manda, con 60 orígenes al azar por bandas (semilla declarada):**
+
+```
+   destino REAL del motor ([3]) → entrada declarada más cercana   mediana 25,8 m
+   y caía justo ENCIMA de una (≤ 5 m)                             19 de 60   (31,7 %)
+```
+
+⇒ ⭐ **El 25,8 m era correcto como MEDIANA, y lo era por casualidad**: el trozo de fachada que [3]
+elige suele ser la misma esquina que elige [2]. Pero *«el motor rutea a 25,8 m»* era falso como
+afirmación absoluta — **en un tercio de los orígenes ya ruteaba a la puerta buena**, y desde Etopía
+en concreto ruteaba exactamente a ella. La frase publicada describía un caso que no era el que se
+había medido.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la advertencia correcta, escrita
+por mí, impresa en pantalla y ejecutada.** El bloque que dice «el motor no elige [2]» no solo era
+cierto: era el motivo por el que ese mismo informe degradó la comprobación del 97 % (nº86). Es
+decir, **la misma tanda usó ese razonamiento para tumbar una comprobación y no lo aplicó a la de al
+lado**. Un aviso que se imprime y no se obedece da tanto verde como no tenerlo.
+
+**Cómo se cazó:** por calcular las siete rutas ANTES y DESPUÉS en vez de solo después. La nº4 salió
+`+0 m · el punto se mueve 0,0 m` con nivel `principal`, y eso es una contradicción con lo publicado
+que no se puede leer de otra manera. **Sin el "antes" habría sido una fila más de una tabla limpia.**
+
+**Arreglo aplicado:** A3 ya no llama a `puertaDe()`. Mide sobre `rutaAEdificio()` con orígenes al
+azar por bandas, y publica la mediana Y el porcentaje de orígenes en los que ya se acertaba.
+⚠️ Y de paso se declara la otra mitad, antes de que nadie la celebre: el «ahora acierta el 100 %»
+**es tautológico** —el destino nuevo ES la entrada— y no entra en ningún veredicto. La única línea
+que informa es la del ANTES.
+
+**Ley que sale de aquí:** ⭐⭐ **una advertencia impresa no protege de nada si el siguiente bloque
+no la obedece.** Cuando escribas «esto mide la regla equivocada», lo que sigue no es publicar el
+número con el aviso al lado: es no publicar ese número.
+⚠️ Y la operativa, que ya va dos veces: **mide siempre ANTES y DESPUÉS.** Un «después» solo es una
+tabla; la contradicción vive en la diferencia.
+**Traza:** `src/entrar-por-la-puerta.js` (A3), `src/es-puerta.js` (D3, el que midió [2]),
+`src/rutas-antonio.js` (A4, el antes-y-después que lo destapó)

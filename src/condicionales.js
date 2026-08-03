@@ -212,7 +212,12 @@ function edificios(ruta = CRUDO_EDIFICIOS) {
       if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0];
       if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1];
     }
-    polis.push({ id: w.id, pts, bb: [x0, y0, x1, y1], nombre: (w.tags || {}).name || null });
+    // ⭐ `nodos` viaja con el polígono desde la tanda 14: las entradas `entrance=*`
+    //    se emparejan con su edificio POR ID DE NODO, y sin esta lista habría que
+    //    releer los 11.857 edificios por otro camino. Releer un dato es la forma
+    //    barata de que dos copias divergan (fallos nº63 y nº67).
+    polis.push({ id: w.id, pts, bb: [x0, y0, x1, y1], nombre: (w.tags || {}).name || null,
+      nodos: w.nodes || null });
   }
   _edificios = { sello: d.osm3s && d.osm3s.timestamp_osm_base, polis, idx: indexar(polis) };
   return _edificios;

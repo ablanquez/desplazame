@@ -35,9 +35,26 @@
 //    centro geométrico— y quedarse en uno que puede serlo. **Cuál es la puerta de
 //    verdad: `NO CONSTA` con este dato.**
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ TANDA 14 · Y EL `NO CONSTA` DE ARRIBA SE CIERRA: `entrance=*` SÍ EXISTE
+// ═════════════════════════════════════════════════════════════════════════════
+//   El cero de la tanda 12 era correcto **con su dato** —las tres descargas eran de
+//   WAYS y `entrance` es una etiqueta de NODO—, y la tanda 13 lo pidió bien: hay
+//   **2.085 nodos** con `entrance=*` en el término.
+//
+//   ⇒ DECISIÓN DE ANTONIO: si el dato dice dónde se entra, se entra por ahí.
+//     **principal → cualquiera (con aviso) → perímetro → ⛔ nunca el centroide.**
+//     La clasificación de los valores y el porqué de cada corte están en
+//     `src/entradas.js`, en un sitio y solo en uno.
+//
+//   ⚠️ El perímetro NO se retira: sigue siendo el suelo para el 96,1 % de los
+//      edificios que no traen ninguna entrada. Lo que cambia es que deja de ser la
+//      primera opción cuando hay algo mejor.
+
 'use strict';
 const C = require('./condicionales');
 const P = require('./portales');
+const En = require('./entradas');
 
 /** Centro geométrico de un polígono (media de sus vértices). */
 function centroide(pts) {
@@ -91,12 +108,62 @@ function puertaDe(poli, aristas, idxAristas, maxRadio = 350, paso = 5) {
   return mejor;
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ EL ORDEN DE PREFERENCIA, EN UN SITIO Y SOLO EN UNO
+// ═════════════════════════════════════════════════════════════════════════════
+// ⛔ La tentación es escribir el `if (hay entrada)` en cada consumidor. Eso son
+//    tres copias de una decisión, y dos copias del mismo dato divergen (nº74).
+//    Todo el que quiera saber por dónde se entra a un edificio pasa por aquí.
+//
+// ⚠️ Y el caso que NO se resuelve en silencio: un edificio puede traer una entrada
+//    declarada **que no engancha a la red** (a más de `maxRadio` de cualquier calle
+//    transitable). Ahí se cae al perímetro, pero el motivo sale escrito —
+//    `entrada-declarada-sin-red`— porque «se usó el perímetro» y «se usó el
+//    perímetro porque la puerta buena no llega a ninguna calle» son dos cosas
+//    distintas y solo una es un problema del dato.
+/**
+ * Por dónde se entra a un edificio, con el orden principal → cualquiera → perímetro.
+ * @returns {{nivel, cands:[], aviso:string|null, acc, motivo}}
+ */
+function accesos(poli, aristas, idxAristas, E = null, maxRadio = 350, paso = 5, tope = 24) {
+  const engancha = (m) => {
+    const r = P.engancharUno(m, aristas, idxAristas, () => '', maxRadio).mejor;
+    return r ? { m, arista: r.i, seg: r.k, t: r.t, q: r.q, d: r.d } : null;
+  };
+  if (E && poli.nodos) {
+    const acc = En.deEdificio(poli.nodos, E);
+    const el = En.elegir(acc);
+    if (el.nivel !== 'perimetro') {
+      const cands = el.usar.map((e) => {
+        const c = engancha(e.m);
+        return c ? { ...c, entrada: e } : null;
+      }).filter(Boolean);
+      if (cands.length) {
+        return { nivel: el.nivel, cands, aviso: el.aviso, acc,
+          motivo: el.nivel === 'principal' ? 'entrance=main declarada en OSM'
+            : 'entrance declarada en OSM, pero no la principal' };
+      }
+      return { nivel: 'perimetro', cands: candidatos(poli, aristas, idxAristas, maxRadio, paso, tope),
+        aviso: null, acc, motivo: 'entrada-declarada-sin-red' };
+    }
+    return { nivel: 'perimetro', cands: candidatos(poli, aristas, idxAristas, maxRadio, paso, tope),
+      aviso: null, acc,
+      motivo: acc.descartadas.length
+        ? 'solo hay entradas descartadas (' + [...new Set(acc.descartadas.map((e) => e.tipo))].join(', ') + ')'
+        : 'el edificio no trae ninguna entrada declarada' };
+  }
+  return { nivel: 'perimetro', cands: candidatos(poli, aristas, idxAristas, maxRadio, paso, tope),
+    aviso: null, acc: null, motivo: 'no se han cargado las entradas' };
+}
+
 /**
  * Convierte un punto-destino (lat/lon) en su punto de acceso.
  * Devuelve `{tipo:'centro'}` intacto si el punto no cae dentro de ningún edificio.
  * ⛔ No decide por su cuenta que algo es un edificio: lo comprueba con la geometría.
+ * ⛔ Y NUNCA devuelve el centroide como destino: si no hay edificio, se queda en el
+ *    punto que pidieron, que es otra cosa.
  */
-function accesoA(punto, g, idxAristas, E = null) {
+function accesoA(punto, g, idxAristas, E = null, Ent = null) {
   const m = punto.m;
   const lat = punto.lat, lon = punto.lon;
   if (!C.enVentana(lat, lon)) {
@@ -105,13 +172,21 @@ function accesoA(punto, g, idxAristas, E = null) {
   const Ed = E || C.edificios();
   const poli = edificioDe(m, Ed);
   if (!poli) return { ...punto, puerta: null, motivo: 'el-punto-no-cae-en-ningun-edificio' };
-  const pu = puertaDe(poli, g.aristas, idxAristas);
+  // ⭐ el orden manda también aquí: si hay entrada declarada, el punto de acceso es
+  //    la entrada, no el perímetro. Se elige la de enganche más corto entre las de
+  //    su nivel — cuál sale más barata POR RUTA depende del origen y eso lo decide
+  //    `rutaAEdificio`, que es quien tiene el origen delante.
+  const ac = Ent ? accesos(poli, g.aristas, idxAristas, Ent) : null;
+  const pu = (ac && ac.cands.length)
+    ? ac.cands.slice().sort((x, y) => x.d - y.d)[0]
+    : puertaDe(poli, g.aristas, idxAristas);
   if (!pu) return { ...punto, puerta: null, motivo: 'el-perimetro-no-llega-a-la-red' };
   return {
     ...punto,
     arista: pu.arista, seg: pu.seg, t: pu.t, q: pu.q, d: pu.d, m: pu.m,
-    puerta: { edificio: poli.id, nombre: poli.nombre, m: pu.m, dCentro: punto.d, dPuerta: pu.d },
-    motivo: 'perimetro-mas-proximo-a-la-red',
+    puerta: { edificio: poli.id, nombre: poli.nombre, m: pu.m, dCentro: punto.d, dPuerta: pu.d,
+      nivel: ac ? ac.nivel : 'perimetro', entrada: pu.entrada || null, aviso: ac ? ac.aviso : null },
+    motivo: ac ? ac.motivo : 'perimetro-mas-proximo-a-la-red',
   };
 }
 
@@ -158,9 +233,10 @@ function candidatos(poli, aristas, idxAristas, maxRadio = 350, paso = 5, tope = 
  * Ruta desde `origen` hasta el edificio `poli`, eligiendo la puerta POR RUTA.
  * @returns {{encontrada, metros, pasos, aristas, puerta, candidatos}}
  */
-function rutaAEdificio(G, g, origen, poli, idxAristas) {
-  const cands = candidatos(poli, g.aristas, idxAristas);
-  if (!cands.length) return { encontrada: false, motivo: 'el-perimetro-no-llega-a-la-red' };
+function rutaAEdificio(G, g, origen, poli, idxAristas, Ent = null) {
+  const ac = accesos(poli, g.aristas, idxAristas, Ent);
+  const cands = ac.cands;
+  if (!cands.length) return { encontrada: false, motivo: 'el-perimetro-no-llega-a-la-red', acceso: ac };
   const nodos = g.nodos.slice();
   const ady = g.ady.map((l) => l.slice());
   const o = G.insertar(g.aristas, ady, nodos, origen);
@@ -174,14 +250,15 @@ function rutaAEdificio(G, g, origen, poli, idxAristas) {
     const c = r.dist[ids[i]] + cands[i].d;
     if (c < coste) { coste = c; mejor = i; }
   }
-  if (mejor === -1 || !Number.isFinite(coste)) return { encontrada: false, motivo: 'sin-camino' };
+  if (mejor === -1 || !Number.isFinite(coste)) return { encontrada: false, motivo: 'sin-camino', acceso: ac };
   const res = G.rutaEntre(g, origen, cands[mejor]);
   return { ...res, puerta: cands[mejor], nCandidatos: cands.length,
+    nivel: ac.nivel, aviso: ac.aviso, acceso: ac,
     peorCandidato: Math.max(...cands.map((c, i) => r.dist[ids[i]] + c.d).filter(Number.isFinite)) };
 }
 
 module.exports = { centroide, edificioDe, muestrearContorno, puertaDe, accesoA,
-  candidatos, rutaAEdificio };
+  candidatos, rutaAEdificio, accesos };
 
 // ═════════════════════════════════════════════════════════════════════════════
 // D1 · LA MEDIDA DE LA CLASE — ¿a cuántos afecta, y cuánto?

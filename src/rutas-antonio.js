@@ -27,6 +27,7 @@ const G = require('./grafo');
 const T = require('./tabla-rutas');
 const Co = require('./condicionales');
 const Pu = require('./puerta');
+const En = require('./entradas');
 const Al = require('./alarma');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 const { aMetros, dist } = require('./geo');
@@ -102,6 +103,9 @@ if (require.main === module) {
   const gSin = construir(ZONA_TERMINO, { sinCondicionales: true });
   const ctx = D.abrir(g, CRUDO);
   const ctxSin = { eng: P.indexarAristas(gSin.aristas, (e) => e.pie) };
+  // ⭐ A · las entradas declaradas. La regla de qué se usa y con qué orden vive en
+  //    `src/entradas.js`; aquí solo se pasan.
+  const Ent = En.cargar();
 
   log('');
   log('='.repeat(104));
@@ -134,46 +138,66 @@ if (require.main === module) {
     // ⛔ el motivo se dice SIEMPRE que el destino sea un POI, tenga puerta o no.
     //    En la primera versión, un POI sin edificio se saltaba el tratamiento en
     //    silencio y parecía que no era un edificio — y el C.C. Utrillas lo es.
-    const aP = a.tipo === 'POI' ? Pu.accesoA(a, g, ctx.eng) : a;
-    const bP = b.tipo === 'POI' ? Pu.accesoA(b, g, ctx.eng) : b;
+    // ⭐⭐ TANDA 14 · se calculan LAS DOS versiones del punto de acceso —con y sin
+    //    `entrance=*`— porque el efecto hay que VERLO, no anunciarlo. Es la misma
+    //    razón por la que la tanda 12 calculó centro y perímetro a la vez (ley 19:
+    //    cambiar dos cosas a la vez hace imposible saber cuál operó).
+    const aSin = a.tipo === 'POI' ? Pu.accesoA(a, g, ctx.eng) : a;
+    const bSin = b.tipo === 'POI' ? Pu.accesoA(b, g, ctx.eng) : b;
+    const aP = a.tipo === 'POI' ? Pu.accesoA(a, g, ctx.eng, null, Ent) : a;
+    const bP = b.tipo === 'POI' ? Pu.accesoA(b, g, ctx.eng, null, Ent) : b;
     if (a.tipo === 'POI' || b.tipo === 'POI') {
       log('');
-      log('   ⭐ D · DESTINO EDIFICIO: se rutea al PERÍMETRO, no al centro');
+      log('   ⭐ D · DESTINO EDIFICIO: se rutea a la PUERTA, no al centro');
       for (const [q, p] of [['origen', aP], ['destino', bP]]) {
         if (p.tipo !== 'POI') continue;
         if (!p.puerta) { log('   ' + q.padEnd(9) + '⚠️ SIN PUERTA, se queda en el punto: ' + p.motivo); continue; }
         log('   ' + q.padEnd(9) + `«${p.puerta.nombre || 'edificio sin nombre en OSM'}»  `
-          + `centro a ${p.puerta.dCentro.toFixed(1)} m de la calle → perímetro a ${p.puerta.dPuerta.toFixed(1)} m`);
+          + `centro a ${p.puerta.dCentro.toFixed(1)} m de la calle → puerta a ${p.puerta.dPuerta.toFixed(1)} m`
+          + `   [${p.puerta.nivel}] ${p.motivo}`);
+        if (p.puerta.aviso) log('             ⚠️  ' + p.puerta.aviso);
       }
     }
     const hayPuerta = !!(aP.puerta || bP.puerta);
 
     const resCentro = G.rutaEntre(g, a, b);
     const rectaCentro = dist(a.m, b.m);
-    // ⭐ la tercera lectura: la puerta elegida POR RUTA, no por cercanía a la calle
-    let resRuta = null, bR = null;
+    // ⭐ la cuarta lectura: la ENTRADA DECLARADA, cuando el dato la trae.
+    let resRuta = null, bR = null, resSin = null, bSinR = null;
     if (bP.puerta) {
       const poli = Pu.edificioDe(b.m, Co.edificios());
-      const rr = Pu.rutaAEdificio(G, g, aP, poli, ctx.eng);
+      const r3 = Pu.rutaAEdificio(G, g, aSin, poli, ctx.eng);          // [3] tanda 12
+      if (r3.encontrada) { resSin = r3; bSinR = r3.puerta; }
+      const rr = Pu.rutaAEdificio(G, g, aP, poli, ctx.eng, Ent);       // [4] tanda 14
       if (rr.encontrada) { resRuta = rr; bR = rr.puerta; }
     }
     const res = resRuta || (hayPuerta ? G.rutaEntre(g, aP, bP) : resCentro);
     const bFin = bR || bP;
     const recta = resRuta ? dist(aP.m, bR.m) : (hayPuerta ? dist(aP.m, bP.m) : rectaCentro);
     if (hayPuerta) {
-      const resPer = G.rutaEntre(g, aP, bP);
-      const rectaPer = dist(aP.m, bP.m);
+      const resPer = G.rutaEntre(g, aSin, bSin);
+      const rectaPer = dist(aSin.m, bSin.m);
       di('  [1] al CENTRO del edificio', resCentro.encontrada
         ? `${resCentro.metros.toFixed(0)} m · recta ${rectaCentro.toFixed(0)} m · rodeo ${(resCentro.metros / rectaCentro).toFixed(2)}`
         : '⛔ NO HAY CAMINO');
       di('  [2] al perímetro más cerca de LA CALLE', resPer.encontrada
         ? `${resPer.metros.toFixed(0)} m · recta ${rectaPer.toFixed(0)} m · rodeo ${(resPer.metros / rectaPer).toFixed(2)}`
         : '⛔ NO HAY CAMINO');
-      di('  [3] ⭐ al perímetro más barato POR RUTA', resRuta
-        ? `${resRuta.metros.toFixed(0)} m · recta ${recta.toFixed(0)} m · rodeo ${(resRuta.metros / recta).toFixed(2)}`
-          + `   (${resRuta.nCandidatos} puertas candidatas)`
+      di('  [3] al perímetro más barato POR RUTA (tanda 12)', resSin
+        ? `${resSin.metros.toFixed(0)} m · recta ${dist(aSin.m, bSinR.m).toFixed(0)} m · rodeo ${(resSin.metros / dist(aSin.m, bSinR.m)).toFixed(2)}`
+          + `   (${resSin.nCandidatos} candidatas)`
         : '— (no aplica: el destino no es un edificio)');
-      log('   ⇒ manda [3]: llegar a un edificio es tocar su perímetro por donde antes se llegue.');
+      di('  [4] ⭐⭐ a la ENTRADA DECLARADA (tanda 14)', resRuta
+        ? `${resRuta.metros.toFixed(0)} m · recta ${recta.toFixed(0)} m · rodeo ${(resRuta.metros / recta).toFixed(2)}`
+          + `   [${resRuta.nivel}] ${resRuta.nCandidatos} candidatas`
+        : '— (no aplica)');
+      if (resSin && resRuta) {
+        const dm = resRuta.metros - resSin.metros;
+        const dp = Math.hypot(bSinR.m[0] - bR.m[0], bSinR.m[1] - bR.m[1]);
+        di('  ⇒ [4] frente a [3]', `${dm >= 0 ? '+' : ''}${dm.toFixed(0)} m · el punto de llegada se mueve ${dp.toFixed(1)} m`
+          + (dp < 0.5 ? '   ⇒ no cambia nada' : ''));
+      }
+      log('   ⇒ manda [4] cuando el dato trae entrada; si no, [3]. ⛔ nunca el centro.');
     }
     if (!res.encontrada) {
       // ⛔ antes esto imprimía y seguía, y el proceso terminaba en 0.
@@ -247,7 +271,46 @@ if (require.main === module) {
     }
     log('   por: ' + (nombres.join(' → ').slice(0, 300) || '(tramos sin nombre)'));
     resultados.push({ ru, ok: true, metros: res.metros, recta, rodeo, dentroRodeo, dentroBanda,
-      nombres, aristas: res.aristas, pasos: res.pasos, a: aP, b: bFin, cond, sinCond, resCentro, rectaCentro, hayPuerta });
+      nombres, aristas: res.aristas, pasos: res.pasos, a: aP, b: bFin, cond, sinCond, resCentro, rectaCentro, hayPuerta,
+      resSin, bSinR, aSin, nivel: resRuta ? resRuta.nivel : null });
+  }
+
+  // ── A4 · LAS SIETE, ANTES Y DESPUÉS DE `entrance=*` ───────────────────────
+  // ⭐⭐ ¿Puede esta tabla salir bien sin que nada funcione? SÍ, de una forma: si
+  //    ninguna ruta tocara un edificio con entrada declarada, saldrían siete filas
+  //    idénticas y parecería que «no rompe nada» cuando en realidad no se ha
+  //    probado nada. ⇒ por eso la columna «nivel» sale SIEMPRE, y las filas que no
+  //    aplican se marcan como tales. Cuatro rutas sin POI son el CONTROL NULO de
+  //    esta tabla: tienen que quedar clavadas al metro.
+  log('');
+  log('='.repeat(104));
+  log('A4 · ⭐⭐ LAS SIETE, ANTES Y DESPUÉS DE `entrance=*`');
+  log('   ' + 'nº'.padEnd(4) + 'antes [3]'.padStart(12) + 'ahora [4]'.padStart(12) + 'Δ m'.padStart(9)
+    + 'rodeo'.padStart(9) + 'tope'.padStart(8) + '  nivel        el punto de llegada');
+  {
+    let cambiadas = 0, nulas = 0;
+    for (const x of resultados) {
+      if (!x.ok) { log('   ' + String(x.ru.n).padEnd(4) + '⛔ no resuelta'); continue; }
+      if (!x.resSin || !x.b || !x.bSinR) {
+        nulas++;
+        log('   ' + String(x.ru.n).padEnd(4) + `${x.metros.toFixed(0)} m`.padStart(12) + `${x.metros.toFixed(0)} m`.padStart(12)
+          + '0'.padStart(9) + x.rodeo.toFixed(2).padStart(9)
+          + (x.ru.rodeoMax === null ? 'NO CONSTA' : '≤' + x.ru.rodeoMax.toFixed(2)).padStart(8)
+          + '  —            no hay edificio de por medio ⇒ CONTROL NULO');
+        continue;
+      }
+      const dm = x.metros - x.resSin.metros;
+      const dp = Math.hypot(x.bSinR.m[0] - x.b.m[0], x.bSinR.m[1] - x.b.m[1]);
+      if (dp > 0.5) cambiadas++;
+      log('   ' + String(x.ru.n).padEnd(4) + `${x.resSin.metros.toFixed(0)} m`.padStart(12)
+        + `${x.metros.toFixed(0)} m`.padStart(12) + `${dm >= 0 ? '+' : ''}${dm.toFixed(0)}`.padStart(9)
+        + x.rodeo.toFixed(2).padStart(9)
+        + (x.ru.rodeoMax === null ? 'NO CONSTA' : '≤' + x.ru.rodeoMax.toFixed(2)).padStart(8)
+        + '  ' + String(x.nivel || '—').padEnd(13) + `se mueve ${dp.toFixed(1)} m`);
+    }
+    log('');
+    di('rutas cuyo punto de llegada se mueve', cambiadas);
+    di('⭐ CONTROL NULO · rutas sin edificio, clavadas al metro', nulas);
   }
 
   // ── las tres preguntas concretas ──────────────────────────────────────────
