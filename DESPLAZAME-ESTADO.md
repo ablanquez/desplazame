@@ -58,8 +58,17 @@
 **Falta decidir:** el alcance v1 del buscador · ⭐ **la lista de candidatos aparcados** (§10), que
 no se toca hasta que H1 cierre.
 
-**Lo siguiente:** aplicar `entrance=*` (decisión de Antonio, §5·D6), resolver los cabos de §10, y
-**cerrar H1**.
+- ⭐ **`entrance=*` aplicado** (decisión de Antonio): si el dato dice dónde se entra, se entra por
+  ahí.
+- ⛔ **El cuarto testigo —el orden de los números— probado y DESCARTADO** (§4), con su motivo.
+
+⭐⭐ **H1 ESTÁ TERMINADO EN LO QUE SE PUEDE TERMINAR HOY.** Lo que queda son **cabos declarados**,
+no trabajo pendiente.
+
+**Lo siguiente: la AUDITORÍA DE CIERRE DE H1** — los seis bloques del método de 003 aplicados a un
+hito en vez de a un proyecto entero. **No construye: revisa.**
+
+⚠️ **Y un recordatorio de calendario: el GTFS muere el 05/10/2026**, y H2 depende de él.
 
 ---
 
@@ -346,6 +355,61 @@ Solo el **3,9 %** de los edificios lo trae — pero **donde está, es la puerta 
 principal: una `yes` puede ser puerta de servicio o salida de emergencia)* → punto de perímetro más
 cercano → ⛔ **nunca el centroide**.
 
+### ⛔ EL CUARTO TESTIGO — el orden de los números: probado y DESCARTADO
+
+**Idea de Antonio (tanda 15):** *«Si tengo Paseo Pamplona 5, sé que estará entre el 3 y el 7.»*
+Atacaba justo lo que el ejecutor había declarado imposible: *"solo sé que NO están donde deberían,
+no DÓNDE deberían estar"*. **Con los vecinos, sí se sabe.**
+
+**Y la idea es correcta:** detecta el **70,8 %** de los portales descolocados más de 50 m **cuando
+están solos**, y es **el único testigo que dice dónde debería ir** el portal.
+
+⛔⛔ **Pero falla por dos motivos, y ninguno es de calibración:**
+
+**1 · ES CIEGO POR ARITMÉTICA AL FALLO QUE ARRASTRA VECINOS.**
+
+```
+   desplazamiento     1 solo    3 juntos    5 juntos
+   25 m               29,2 %       0,0 %       0,0 %
+   50 m               70,8 %       0,0 %       0,0 %
+   200 m              95,2 %       0,0 %       0,0 %
+   vía ENTERA a 200 m:  0 portales de 300 vías
+```
+
+*Si mueves el 3, el 5 y el 7 juntos, **el 5 sigue estando entre el 3 y el 7**.* Y el error real
+suele ser *"toda esta calle se fue a la paralela"*, no *"este portal se despistó"*.
+⭐ Lo único que ve es **el borde del bloque** (11,8 % a 50 m) — **y una vía entera mal enganchada no
+tiene bordes.**
+
+**2 · EL NÚMERO DE PORTAL NO IDENTIFICA.** La **Avenida de la Ilustración** —el caso estrella, 267
+portales sin testigo— resultó **MUDA**, y no porque esté bien:
+
+```
+   portales enganchados          1.469
+   números DISTINTOS                22
+   el nº 31 lo comparten           147 portales
+   portales con número único         6
+```
+
+⇒ **El 18,4 % del callejero comparte número dentro de su propia vía.** *(Tercera forma del mismo
+problema: el nombre de calle, el nombre de ciudad, y ahora el número de portal.)*
+
+⭐ **Y de paso explicó los 267 sin testigo de la Ilustración:** 1.469 portales con 22 números es un
+**complejo residencial con viales internos que OSM no nombra** — no falta mapeado: **ahí dentro no
+hay calles con nombre porque son de la comunidad.**
+
+**Veredicto:** *sirve solo en ciertas condiciones, y no se dan donde hacía falta.* Separación máxima
+**×20** frente a los **×251** del tercer testigo; **0 de 7** de los imputables; solo el **60,7 %**
+del callejero es evaluable. ⛔ **Y no rehabilita a los 198.**
+
+⚠️ **La pregunta que queda abierta y que decide todo:** ¿los enganches malos de Zaragoza son
+**calles enteras a la paralela** o **portales sueltos**? De eso depende que este testigo sirva —
+**y con el dato de hoy no se puede saber.**
+
+⚠️ **Y por eso NO se usa para colocar** (D2): la predicción existe (mediana 58 m), pero **interpola
+entre los enganches de los vecinos, y el detector es ciego justo a que los vecinos estén mal.**
+Colocaría bien el aislado y **movería el resto hacia el error de sus vecinos.**
+
 ### ⭐⭐ Los portales no son solo destinos: son TESTIGOS
 
 *(Idea de Antonio, tanda 4. Yo los había tratado todo el proyecto como puntos que se enganchan a
@@ -535,9 +599,9 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 49 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 53 VECES
 
-**Diecinueve tandas. Cuarenta y nueve instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
+**Veintiuna tandas. Cincuenta y tres instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
 no una anécdota — y llegó antes que el proyecto.
 
 | # | Qué mintió |
@@ -591,6 +655,10 @@ no una anécdota — y llegó antes que el proyecto.
 | 47 | ⭐⭐ **EL CÓDIGO IBA POR DETRÁS DEL DOCUMENTO.** `rutas-antonio.js` tenía las bandas **v1** copiadas dentro y publicó *"0 de 5 en banda"* cuando el fichero decía otra cosa: eran **3 de 5 dentro y 2 rozando**. *Dos copias del mismo dato divergen — y ya habían divergido* |
 | 48 | ⭐⭐ **UN CONTADOR DE SÍMBOLOS HABRÍA INFLADO EL PROBLEMA POR DIEZ.** Buscar `⛔` en las salidas dio **10 sospechosos de 18 scripts**; clasificados a mano, **nueve eran prosa o contadores en cero** (`⛔ rodeos imposibles 0 ✅`). **Solo uno era un fallo** |
 | 49 | ⭐⭐⭐ **TRES COMPROBACIONES DEGRADADAS EN TRES TANDAS SEGUIDAS, TODAS POR PASAR POR CONSTRUCCIÓN.** El cuarto testigo del E7 *(un portal es ciego precisamente porque enganchó a una acera sin nombre)*; la de las puertas *(«el 97 % tiene la puerta entre los candidatos» era trivial: las entradas son vértices del polígono y el muestreo mete todos los vértices — la delató una mediana de 0,0 m)*; y la de articulaciones de la tanda 9. **Ya no es casualidad: es un patrón** |
+| 50 | ⭐⭐ **LA TANDA 13 MIDIÓ LAS PUERTAS CON LA REGLA EQUIVOCADA.** Midió `puertaDe()` —el perímetro más pegado a la calle— **y el motor no usa eso**: usa el más barato por ruta. ⭐ **La advertencia estaba impresa en el propio informe dos pantallas más arriba, y el número se publicó igual** *(mismo patrón que las bandas de las rutas)* |
+| 51 | ⭐⭐ **UN 100 % POR CONSTRUCCIÓN.** Tras aplicar `entrance`, Delicias acierta la puerta en el **100 %** de los orígenes — **porque el destino nuevo ES la entrada.** No vale nada, y el ejecutor lo declaró en vez de presumirlo. *Lo que sí informaba era el ANTES: en un tercio de los orígenes el motor ya acertaba* |
+| 52 | ⭐⭐⭐ **UN ARNÉS DE PRUEBA QUE PROBABA OTRA COSA.** El detector del orden de números decía cazar el **44 %** del fallo correlacionado. Falso: el arnés **ordenaba por número y adivinaba el paso**, así que en una vía 1·3·5·7 movía el 1 y el 5 **dejando el 3 quieto** — *la prueba del fallo correlacionado estaba desordenando la vía*. **El 44 % era el detector cazando el destrozo del arnés.** ⭐ Lo delató **el álgebra escrita por el propio ejecutor ocho horas antes**: si la prueba es invariante a trasladar el trío, esa columna tiene que dar 0 |
+| 53 | ⭐ **«QUEDARSE CON EL PRIMERO» NO ES COLAPSAR UN DUPLICADO: ES TIRAR UNA MONEDA.** Primera versión del detector, ante 147 portales llamados «31» en la misma vía |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -746,6 +814,21 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
 50. ⭐ **UN TESTIGO QUE NO PUEDE OPINAR EN TODAS PARTES SOLO VALE DONDE OPINA — y hay que decir
     dónde no.** *El tercer testigo no alcanza al 36,3 %, y no al azar: Garrapinillos 0 %,
     PLAZA 1,6 %.* ⇒ **El veredicto vale para la ciudad urbana, no para el término.**
+51. ⭐⭐⭐ **CUANDO EL NÚMERO CONTRADICE A LA ARITMÉTICA, EL NÚMERO ESTÁ MAL.** *Si una prueba es
+    invariante a trasladar un trío, su columna tiene que dar 0; salía 44 %.* ⇒ **Escribir el
+    álgebra de un instrumento ANTES de ejecutarlo da un juez que no depende de los datos.**
+52. ⭐⭐ **UN ARNÉS DE PRUEBA ES UN INSTRUMENTO, Y MIENTE IGUAL.** *No basta con verificar lo
+    probado: hay que verificar lo que prueba.* **Un arnés roto no da un falso negativo: da un
+    falso POSITIVO convincente**, porque mide su propio destrozo.
+53. ⭐⭐ **UNA REGLA SOBRE IDENTIFICADORES EXIGE QUE EL IDENTIFICADOR IDENTIFIQUE.** *"El 5 está
+    entre el 3 y el 7" necesita que «el 5» sea UN sitio. En la Avenida de la Ilustración hay 1.469
+    portales con 22 números distintos y 147 llamados «31».* ⇒ **Y el 18,4 % del callejero comparte
+    número dentro de su propia vía.** *(Tercera forma del mismo problema: el nombre de calle, el
+    nombre de ciudad, y ahora el número de portal.)*
+54. ⭐⭐ **UN DETECTOR CIEGO POR ARITMÉTICA NO SE ARREGLA CON UN UMBRAL.** *Si mueves el 3, el 5 y
+    el 7 juntos, el 5 sigue estando entre el 3 y el 7: la pregunta se responde igual de bien
+    estando todos mal.* ⇒ **Antes de ajustar nada, preguntarse si el fallo es de calibración o de
+    planteamiento.**
 
 ---
 
@@ -823,7 +906,9 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **11** | ⭐ **Los portales entran en el grafo** + `proposed` fuera | **H1** | ✅ |
 | **12** | Cerrar H1: el grafo equivocado, el centroide, los pasos condicionales | **H1** | ✅ |
 | **13** | ⭐⭐ **El punto ciego** — la capa municipal completa como tercer testigo | **H1** | ✅ **cerrado** |
-| **14** | *(siguiente: `entrance=*` y cierre de H1)* | **H1** | ⬜ |
+| **14** | Los últimos cabos: `entrance=*`, los 198, los 1.592 | **H1** | ✅ |
+| **15** | ⛔ **El orden de los números** — cuarto testigo, probado y descartado | **H1** | ✅ |
+| **16** | *(siguiente: **AUDITORÍA DE CIERRE DE H1**)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -943,6 +1028,21 @@ ciego se cierra: el enganche SÍ acierta** donde nadie vigila.
 declarado: **el veredicto vale para la ciudad urbana, no para el término.**
 ⛔ Y sale un patrón que ya no es anécdota: **tres comprobaciones degradadas en tres tandas
 seguidas, todas por pasar por construcción** (§8·47).
+
+### 14 — Los últimos cabos (3/08)
+`entrance=*` aplicado. ⛔ Y el ejecutor **se pilló a sí mismo**: la tanda 13 midió las puertas con
+una regla que el motor no usa, **con la advertencia impresa dos pantallas más arriba**.
+⭐⭐ Y cae una conclusión mía: **los 198 no son inocentes.**
+⭐ Y los 565 urbanos sin testigo resultan estar **apilados en 28 vías**, no repartidos.
+
+### 15 — El orden de los números (3/08) · ⛔ idea probada y descartada
+**Idea de Antonio**, y correcta: caza el 70,8 % del portal descolocado **cuando está solo**. Pero
+es **ciego por aritmética** al fallo que arrastra vecinos, y **el número de portal no identifica**
+(147 portales llamados «31» en la misma vía).
+⭐ Lo mejor de la tanda no es el veredicto: es que **el arnés de prueba estaba roto y decía 44 %**,
+y lo delató **el álgebra que el propio ejecutor había escrito ocho horas antes**.
+
+**⭐⭐ Con esto, H1 queda terminado en lo que se puede terminar hoy.**
 ## 10 · Cabos abiertos
 
 ### ⭐⭐ Los que bloquean el diseño
@@ -1030,7 +1130,20 @@ hora y a esa distancia el coche es lo razonable.
 - ⚠️ **1.592 portales (3,5 %) sin NINGÚN testigo** — ni con nombre en OSM ni alcanzados por la capa
   municipal. ⚠️ **No todos son descampados**: mediana de 25 vecinos en 300 m, y en la muestra
   aparecen **Avenida de la Ilustración, José Anselmo Clavé y Vía Hispanidad**.
-- ⚠️ **198 portales con la firma de un enganche malo** — *candidatos, no errores*: una acera de
+- ⛔ **198 portales con firma de enganche malo — y NO son inocentes** (tanda 14). Están en sitios
+  donde **el 82,8 % de sus vecinos tampoco reconoce su calle**, frente al 43,3 % normal, **y no lo
+  explica ni la geografía previa ni el tipo de vía**. Solo en **23** se puede señalar el culpable;
+  de los otros **175 solo se sabe que no están donde deberían, no dónde deberían estar**.
+  ⚠️ Esto **matiza** el `SÍ ACIERTA` del punto ciego: el veredicto no se mueve, pero **qué significa
+  aquel 2,7 % sí** — parte parecen errores de verdad, no ruido inevitable.
+- ⚠️ **565 portales sin ningún testigo EN SITIO URBANO** (de 1.592; el resto, polígono y campo).
+  ⭐ **Y no están repartidos: están APILADOS.** 267 son de la **Avenida de la Ilustración**, tres
+  vías juntan el 66,9 %, y en total son **28 vías**. *Un problema concentrado es mucho más barato de
+  cerrar — y mucho más visible para quien ande por ahí.*
+- ⚠️ **269 portales en 19 vías señalados por el orden de los números.** ⚠️ En 6 de las 10 peores,
+  los señalados son **casi todos los portales de la vía** (6 de 6, 4 de 4): **no es un portal
+  descolocado, es la vía entera rara.** Lista revisable: `CALLE RÍO` y `CALLE ARIZA` son las más
+  limpias para mirar.
   avenida ancha produce esa firma sin que nadie se equivoque. Sin verificar a mano.
 - ⚠️ **El punto ciego de Garrapinillos y los polígonos** necesitaría **otra fuente**, y hoy no se
   sabe cuál.
