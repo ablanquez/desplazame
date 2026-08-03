@@ -2441,13 +2441,54 @@ anomalía cerca del límite de una zona hay que medir su distancia al borde — 
 número, porque el mismo grafo sobre una zona mayor daría otro resultado sin haber cambiado nada.
 **Traza:** `src/osm.js` (`recortar`), listado de componentes en `docs/H1-INSPECCION-VISUAL.md`
 
-## [2026-08-03] — al soldar una punta se mueve también la geometría, no solo la identidad
-**Categoría:** NO CONSTA
-**Síntoma:** NO CONSTA
-**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ NO CONSTA
-**Causa raíz:** NO CONSTA
-**Cómo se cazó:** NO CONSTA
-**Arreglo aplicado:** NO CONSTA
-**Commit:** (este commit)
-**Ley que sale de aquí:** NO CONSTA
-**Traza:** NO CONSTA
+---
+
+## [2026-08-03] — El guardián se puso rojo, y al hacerlo contaminó el commit siguiente
+
+**Categoría:** guardián / efecto colateral
+**Síntoma:** el hook `commit-msg` rechazó, correctamente, un `fix:` que no llevaba entrada nueva en
+la bitácora —yo había escrito la entrada nº53 pero **no la había incluido en ESE commit**—. Hasta
+ahí, el guardián haciendo exactamente su trabajo, y por primera vez en el proyecto **sobre un fallo
+real y no sobre una prueba provocada**.
+
+Lo que pasó después:
+
+```
+git add src/planarizar.js src/geo.js && git commit -m "fix(motor): ..."
+   -> RECHAZADO. El hook autogenera un esqueleto en la bitácora Y LO AÑADE AL STAGE.
+git add src/exportar.js src/probar-visor.js && git commit -m "feat(tools): ..."
+   -> ACEPTADO, con CINCO ficheros: los dos míos + planarizar.js + geo.js + BITACORA.md
+```
+
+**El commit siguiente se llevó todo lo que había quedado en el stage**, incluida la bitácora con un
+esqueleto de `NO CONSTA` sin rellenar. Resultado: un commit que dice *"exportador y prueba del
+visor"* y que contiene además **el arreglo de la soldadura de D5** — dos cosas distintas, que es
+justo lo que la regla de commits atómicos existe para impedir.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el propio guardián, que
+funcionó.** Rechazó lo que tenía que rechazar, avisó con su mensaje, y dejó preparado el esqueleto
+para rellenarlo — todo correcto. **El daño no lo hizo fallando, lo hizo acertando**: el rechazo es
+una operación que *modifica el índice de git*, y el índice es estado compartido con la operación
+siguiente. Un guardián que solo dijera "no" habría sido inocuo.
+
+**Causa raíz:** el hook hace `git add docs/BITACORA.md` como parte de su rechazo. Es una comodidad
+razonable —deja el esqueleto listo— pero convierte un rechazo en una **mutación del stage**, y quien
+viene detrás no sabe que el stage ya no está como lo dejó.
+
+**Cómo se cazó:** por leer la salida de `git commit`, que decía `5 files changed` donde yo esperaba
+2. ⚠️ **Estuve a punto de no mirarla**: el commit había salido bien y el mensaje era el que quería.
+*Un resultado bueno despierta menos sospecha que uno malo*, otra vez.
+
+**Arreglo aplicado:** ninguno en el hook —es de la tanda 1 y funciona—, pero **la historia NO se
+reescribe**: la ley del proyecto prohíbe `reset`, `rebase` y `amend` sin pedirlo antes, y un
+historial que enseña lo que pasó vale más que uno limpio. Se corrige hacia adelante: se borra el
+esqueleto vacío, se escribe esta entrada, y **queda dicho que el commit `1571f01` no es atómico y
+por qué**.
+
+**Ley que sale de aquí:** ⭐⭐ **un guardián que modifica el estado que vigila estropea la operación
+siguiente aunque acierte en la suya.** Es la ley nº9 —*la prueba que comparte estado con lo probado
+no prueba nada*— vista desde el otro lado: aquí la prueba no se invalidó a sí misma, **invalidó lo
+que venía después**.
+⚠️ Regla operativa inmediata: **después de un commit rechazado, `git status` antes de volver a
+añadir nada.** El rechazo no deja el mundo como estaba.
+**Traza:** `.githooks/commit-msg`, commit `1571f01`
