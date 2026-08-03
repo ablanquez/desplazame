@@ -2287,3 +2287,167 @@ sola. *Escribir la lección es documentación; ejecutarla es ingeniería.*
 ⚠️ Corolario práctico: **al comparar contra una medición anterior, la zona nueva tiene que CONTENER
 la vieja, y hay que demostrarlo con una aserción, no con la memoria.**
 **Traza:** `src/ruta.js` `ZONA_CASCO` / `ZONA_TANDA3` / `contiene()`, `src/informe.js` C1
+
+---
+
+## [2026-08-03] — El grafo decía "unido" y el dibujo enseñaba dos líneas separadas, en 20 nodos
+
+**Categoría:** coherencia entre topología y geometría
+**Síntoma:** al exportar el grafo para pintarlo, el cuadre obligatorio no cuadró — y falló al revés
+de lo esperado:
+
+```
+aristas   exportado 7175   grafo 7175   ✅
+nodos     exportado 5142   grafo 5121   ⛔  ← el exportado tiene MÁS
+```
+
+Si la causa fuera el redondeo de coordenadas, el exportado tendría **menos** (dos nodos distintos
+cayendo en la misma casilla). Tener 21 de más significa lo contrario: **hay nodos del grafo que
+aparecen en dos sitios**.
+
+**Causa raíz:** D5 suelda las puntas sueltas reescribiendo la **identidad** del nodo
+(`e.a = resolver(e.a)`) y **sin tocar la geometría** (`e.pts`). La arista sigue dibujada donde
+estaba, hasta 2 m del nodo con el que ahora comparte identidad. Medido: **20 nodos con dos
+coordenadas, la peor a 1,90 m**, y 22 soldaduras — cuadra.
+
+```
+nodo 1852: 2 coordenadas, separadas 1,90 m
+nodo 1830: 2 coordenadas, separadas 1,58 m
+```
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todos los contadores de la
+tanda anterior, y son muchos.** 5.121 nodos, 7.175 aristas, 20 componentes, 10 de 10 cruces
+conocidos, las tres contrapruebas en rojo, y las rutas de cordura con su rodeo correcto. **Ninguno
+podía verlo, porque todos preguntan por la topología y el fallo estaba en la geometría.** El grafo
+*funcionaba*: Dijkstra encontraba los caminos, las distancias eran correctas al metro, la
+conectividad era real. Lo único que estaba mal era **dónde se dibujaba**, y eso no lo mide ningún
+contador de red.
+
+**Cómo se cazó:** por el cuadre que el briefing exigía **antes** de enseñarle el visor a nadie —
+*"cuenta las aristas del exportado y compáralas con las 7.175"*. Y no lo cazó el número de aristas,
+que cuadraba: lo cazó el de **nodos**, que era el que yo había dado por rutinario. ⚠️ Y estuve a
+punto de despacharlo con una nota explicando que la diferencia era del redondeo — **una explicación
+plausible, escrita antes de comprobarla**. El signo de la diferencia la desmintió.
+
+**Arreglo aplicado:** al soldar se mueve también el extremo geométrico al nodo destino y **se
+recalcula la longitud** de la arista. Comprobado que solo cambian longitudes: nodos, aristas,
+componentes, cruces y contadores idénticos, y el cuadre pasa a **5.121 = 5.121**.
+
+**Ley que sale de aquí:** ⭐⭐ **un grafo tiene dos verdades —quién se conecta con quién, y dónde
+está cada cosa— y se pueden contradecir sin que nada falle.** Toda operación que cambie la identidad
+de un nodo tiene que mover su geometría, o el dibujo dejará de ser el grafo. ⚠️ Y el corolario que
+justifica esta tanda entera: **los contadores de topología son ciegos a los errores de geometría**,
+así que un grafo verificado solo con contadores está verificado a medias.
+**Traza:** `src/planarizar.js` (soldadura de D5), `src/exportar.js` (el cuadre)
+
+---
+
+## [2026-08-03] — El visor tenía un error de sintaxis y habría abierto en blanco
+
+**Categoría:** instrumento / prueba que no se hizo
+**Síntoma:** al ejecutar la comprobación del visor contra los datos reales:
+
+```
+C4 · ¿EJECUTA EL VISOR CON EL FICHERO REAL?
+   ⛔ EL VISOR REVIENTA: Unexpected token '+'
+```
+
+En el control de capas había escrito una expresión como clave de objeto sin corchetes:
+
+```js
+'3 · unido-por-defecto (D2) — ' + G.porDefecto.length: capaDefecto,     // ⛔ error de sintaxis
+```
+
+**No es un fallo de lógica ni un caso raro: el fichero entero no parsea.** Abierto en un navegador
+habría dado **una página en blanco**, o el mapa de fondo sin una sola línea del grafo encima.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **todo lo anterior de la tanda.** La
+reproyección con 0,080 mm de error, el cuadre de las 7.175 aristas, el peso del fichero, los seis
+`unido-por-defecto` localizados. **El instrumento que iba a mirar todo eso no arrancaba, y nada de
+lo comprobado lo decía** — porque comprobaban el **dato** que el visor iba a pintar, no el visor.
+
+Y hay una trampa fina detrás: **el fallo estaba en el código que construye la leyenda de capas**, es
+decir, en lo más decorativo del fichero. Es exactamente lo que uno no revisa cuando ha escrito bien
+la parte difícil.
+
+**Cómo se cazó:** porque no tengo navegador aquí y no podía escribir *"abre el visor y funciona"*.
+En vez de afirmarlo, monté un **Leaflet simulado** que no dibuja sino que **cuenta**, y ejecuté el
+script del HTML en Node contra él. Reventó a la primera. ⭐ **La limitación —no tener navegador— fue
+lo que produjo la comprobación**: con un navegador delante habría abierto, visto el blanco y
+depurado a ojo, pero no me habría quedado un test repetible.
+
+**Y el mismo montaje sirvió para lo que de verdad importaba:** demostrar que el visor **no filtra en
+silencio**. Cuenta 14.401 polilíneas, exactamente `7.175 × 2 capas + 51 puntas`, y con una arista
+falsa plantada sube a 14.403 y vuelve a 14.401 al quitarla.
+
+**Ley que sale de aquí:** ⭐⭐ **un visor no probado es una promesa, y "lo he escrito con cuidado" no
+es una prueba.** Cuando no se puede ejecutar el instrumento en su entorno real, **se simula el
+entorno y se cuenta lo que produce** — que además deja un test repetible donde el ojo solo deja una
+impresión.
+⚠️ Corolario: **la parte decorativa de un fichero puede tumbarlo entero.** Un error de sintaxis en
+la leyenda mata el mapa igual que uno en el algoritmo.
+**Traza:** `src/probar-visor.js`, `tools/visor-grafo.html`
+
+---
+
+## [2026-08-03] — De las 19 componentes sueltas, la más grande —1.004 m— no era un hueco: era el borde del recorte
+
+**Categoría:** artefacto de encuadre / clasificar antes de contar
+**Síntoma:** el grafo del casco tiene 20 componentes: una con el 99,1 % y 19 islitas. Listadas una a
+una para mirarlas, apareció ésta:
+
+```
+comp 6 · 2 nodos · 1 arista · 1.004 m · cycleway · "Camino de las Torres"
+```
+
+**Un kilómetro de carril bici desconectado del resto de la red.** Con la costura del briefing
+—*"si alguna componente resulta ser grande o urbana, PÁRATE Y AVISA"*— eso es exactamente lo que hay
+que reportar destacado.
+
+**Causa raíz:** no es un hueco del grafo. El recorte a la zona **conserva el way entero si cualquier
+vértice cae dentro**, así que un way largo que entra por un lado y sigue fuera tiene **sus dos
+extremos fuera del bbox** — y por tanto no puede conectar con nada de dentro. Medida la distancia de
+cada componente al borde:
+
+```
+comp  largo    dist. al borde
+   6  1.004 m       5 m   ⬅ artefacto del recorte
+   8    209 m       1 m   ⬅
+   1    204 m       0 m   ⬅
+   3    177 m       0 m   ⬅
+   7     89 m       1 m   ⬅
+  13    134 m     654 m       ← ésta sí es interior
+```
+
+**5 de las 19 tocan el borde**, y son justo las cinco más largas. Las 14 interiores suman poco: la
+mayor es de 134 m.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **el contador de componentes, que era
+correcto.** Hay 20 componentes, de verdad, en el grafo tal como se construyó. El número no mentía:
+mentía **leerlo como "20 trozos de ciudad incomunicados"**. Y era la lectura natural, porque es para
+lo que se puso ese contador.
+
+**Cómo se cazó:** por listar las 19 **una a una** en vez de contarlas — que es lo que el briefing
+exigía y lo que este proyecto lleva por ley (*agrupar es borrar*, *clasificar antes de contar*). Con
+"19 componentes pequeñas" en un informe, la de 1 km habría pasado como una más.
+
+**Y lo que queda dicho, no arreglado:** el recorte por bbox **fabrica componentes falsas en el
+borde**. Hoy no molesta —la zona es un banco de pruebas— pero **al planarizar la ciudad entera el
+efecto desaparece por dentro y se traslada al límite del término**, donde las calles siguen y el
+dato se acaba. Hay que volver a mirarlo entonces.
+**Ley que sale de aquí:** ⭐⭐ **un recorte espacial no produce un trozo de la red: produce una red
+distinta, con fronteras artificiales que se parecen a fallos.** Antes de interpretar cualquier
+anomalía cerca del límite de una zona hay que medir su distancia al borde — y publicarla al lado del
+número, porque el mismo grafo sobre una zona mayor daría otro resultado sin haber cambiado nada.
+**Traza:** `src/osm.js` (`recortar`), listado de componentes en `docs/H1-INSPECCION-VISUAL.md`
+
+## [2026-08-03] — al soldar una punta se mueve también la geometría, no solo la identidad
+**Categoría:** NO CONSTA
+**Síntoma:** NO CONSTA
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ NO CONSTA
+**Causa raíz:** NO CONSTA
+**Cómo se cazó:** NO CONSTA
+**Arreglo aplicado:** NO CONSTA
+**Commit:** (este commit)
+**Ley que sale de aquí:** NO CONSTA
+**Traza:** NO CONSTA

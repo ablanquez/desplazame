@@ -51,6 +51,40 @@ function aMetros(lon, lat) {
   return [x, y];
 }
 
+/**
+ * UTM 30N (metros) -> WGS84/ETRS89 (grados). Inversa de `aMetros`.
+ * ⚠️ Existe porque el grafo se CONSTRUYE en metros y hay que pintarlo en grados.
+ *    La reproyección es un sitio donde se pierde el sentido sin que nada falle:
+ *    un error aquí no revienta, mueve la ciudad. Se comprueba con ida y vuelta.
+ */
+function aGrados(x, y) {
+  const e1 = (1 - Math.sqrt(1 - E2)) / (1 + Math.sqrt(1 - E2));
+  const M = (y - FALSE_N) / K0;
+  const e4 = E2 * E2, e6 = e4 * E2;
+  const mu = M / (A * (1 - E2 / 4 - 3 * e4 / 64 - 5 * e6 / 256));
+  const phi1 = mu
+    + (3 * e1 / 2 - 27 * e1 ** 3 / 32) * Math.sin(2 * mu)
+    + (21 * e1 ** 2 / 16 - 55 * e1 ** 4 / 32) * Math.sin(4 * mu)
+    + (151 * e1 ** 3 / 96) * Math.sin(6 * mu)
+    + (1097 * e1 ** 4 / 512) * Math.sin(8 * mu);
+  const C1 = (E2 / (1 - E2)) * Math.cos(phi1) ** 2;
+  const T1 = Math.tan(phi1) ** 2;
+  const N1 = A / Math.sqrt(1 - E2 * Math.sin(phi1) ** 2);
+  const R1 = A * (1 - E2) / (1 - E2 * Math.sin(phi1) ** 2) ** 1.5;
+  const D = (x - FALSE_E) / (N1 * K0);
+  const ep2 = E2 / (1 - E2);
+  const lat = phi1 - (N1 * Math.tan(phi1) / R1) * (
+    D * D / 2
+    - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * ep2) * D ** 4 / 24
+    + (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * ep2 - 3 * C1 * C1) * D ** 6 / 720
+  );
+  const lon = LON0 + (
+    D - (1 + 2 * T1 + C1) * D ** 3 / 6
+    + (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * ep2 + 24 * T1 * T1) * D ** 5 / 120
+  ) / Math.cos(phi1);
+  return [lon * 180 / Math.PI, lat * 180 / Math.PI];
+}
+
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
 /** Distancia de un punto a un segmento, y el parámetro t del pie de perpendicular. */
@@ -80,4 +114,4 @@ function corteSegmentos(p1, p2, p3, p4, eps = 1e-9) {
   return { p: [p1[0] + t * r[0], p1[1] + t * r[1]], t, u };
 }
 
-module.exports = { aMetros, dist, distPuntoSegmento, corteSegmentos, HUSO };
+module.exports = { aMetros, aGrados, dist, distPuntoSegmento, corteSegmentos, HUSO };

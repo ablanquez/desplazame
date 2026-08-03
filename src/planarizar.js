@@ -130,6 +130,7 @@ function planarizar(ways, opciones = {}) {
 
   const vistos = new Set();
   const noConectados = [];
+  const porDefecto = [];
   for (const lista of rejilla.values()) {
     for (let a = 0; a < lista.length; a++) for (let b = a + 1; b < lista.length; b++) {
       const [i, s] = lista[a], [j, u] = lista[b];
@@ -150,9 +151,15 @@ function planarizar(ways, opciones = {}) {
         cont.unidoPorDefecto++;                                  // D2
         cortes[i].push({ idx: s, t: c.t, p: c.p, nodo: null, defecto: true });
         cortes[j].push({ idx: u, t: c.u, p: c.p, nodo: null, defecto: true });
+        // D2 exige un contador; para poder MIRARLOS hace falta además el sitio.
+        porDefecto.push({ wayA: ways[i].id, wayB: ways[j].id, p: c.p,
+          nombreA: (ways[i].tags || {}).name || null, nombreB: (ways[j].tags || {}).name || null,
+          hwA: (ways[i].tags || {}).highway, hwB: (ways[j].tags || {}).highway });
       } else {
         cont.cortesNoConectados++;
-        noConectados.push({ wayA: ways[i].id, wayB: ways[j].id, motivo: d.motivo, p: c.p });
+        noConectados.push({ wayA: ways[i].id, wayB: ways[j].id, motivo: d.motivo, p: c.p,
+          nombreA: (ways[i].tags || {}).name || null, nombreB: (ways[j].tags || {}).name || null,
+          hwA: (ways[i].tags || {}).highway, hwB: (ways[j].tags || {}).highway });
       }
     }
   }
@@ -230,6 +237,7 @@ function planarizar(ways, opciones = {}) {
     rej2.get(k).push(i);
   }
   const soldadura = new Map();                 // nodo -> nodo destino
+  const puntasLejos = [];                      // 2-5 m: contadas y localizadas, no soldadas
   for (const p of puntas) {
     const n = nodos[p];
     let mejor = null, md = Infinity;
@@ -247,15 +255,28 @@ function planarizar(ways, opciones = {}) {
       cont.distanciasPuntas.push(Math.round(md * 100) / 100);
     } else if (mejor !== null && md <= TECHO_PUNTA) {
       cont.puntasFueraDeTecho++;                // entre 2 y 5 m: NO se sueldan, se cuentan
+      puntasLejos.push({ p: [n.x, n.y], q: [nodos[mejor].x, nodos[mejor].y], d: Math.round(md * 100) / 100 });
     }
   }
   const resolver = (i) => (soldadura.has(i) ? soldadura.get(i) : i);
-  for (const e of aristas) { e.a = resolver(e.a); e.b = resolver(e.b); }
+  // ⚠️ Soldar cambia la IDENTIDAD del nodo; si no se mueve también la GEOMETRÍA,
+  //    el grafo dice "unido" y el dibujo enseña dos líneas separadas hasta 2 m.
+  //    Pasó: 20 nodos con dos coordenadas, la peor a 1,90 m. Lo cazó el exportador
+  //    del visor, no ningún contador. Se mueve el extremo y se recalcula el largo
+  //    —hasta 2 m por arista soldada— para que topología y dibujo digan lo mismo.
+  //    Ver bitácora nº53.
+  for (const e of aristas) {
+    if (soldadura.has(e.a)) { e.a = soldadura.get(e.a); e.pts[0] = [nodos[e.a].x, nodos[e.a].y]; }
+    if (soldadura.has(e.b)) { e.b = soldadura.get(e.b); e.pts[e.pts.length - 1] = [nodos[e.b].x, nodos[e.b].y]; }
+    let L = 0;
+    for (let k = 0; k + 1 < e.pts.length; k++) L += dist(e.pts[k], e.pts[k + 1]);
+    e.largo = L;
+  }
 
   cont.aristas = aristas.length;
   cont.nodos = new Set(aristas.flatMap((e) => [e.a, e.b])).size;
 
-  return { nodos, aristas, contadores: cont, noConectados };
+  return { nodos, aristas, contadores: cont, noConectados, porDefecto, puntasLejos };
 }
 
 module.exports = { planarizar, decidirCruce, precision, nivel, esPuente, esTunel,
