@@ -3971,3 +3971,78 @@ que no coincide con nada no da error, da silencio.
 ⚠️ Y el corolario operativo: **después de un parche automático, ejecuta el fichero.** El `grep` dice
 que el texto está; solo ejecutar dice que funciona.
 **Traza:** `src/verificar-rios.js` (`AL`)
+
+---
+
+## [2026-08-03] — Los "10 puntos peor" del punto ciego eran geografía: los portales ya estaban más lejos de su eje antes de enganchar
+
+**Categoría:** confusor no medido / comparé dos grupos que no eran comparables
+**Síntoma:** la tanda 12 cerró el E7 en `NO CONSTA` apoyándose en esto:
+
+```
+   a ≤ 25 m del eje municipal de SU calle
+     donde OSM SÍ da nombre        55,6 %   (n = 1.419)
+     ⭐⭐ DONDE NADIE VIGILA        44,9 %   (n =   214)
+```
+
+y en que **el confusor de la acera no lo explicaba** (53,5 % frente a 44,0 % dentro del mismo tipo de
+vía). Con la capa municipal completa —3.644 tramos en vez de 197, y **7.245 portales ciegos
+evaluables en vez de 214**— la diferencia no solo se mantiene: **crece a −14,4 puntos.**
+
+**Causa raíz — y no está en el enganche.** Se midió la distancia al eje municipal **desde el portal
+mismo**, antes de que exista ningún enganche:
+
+```
+   grupo                          d(PORTAL→eje)   d(ENGANCHE→eje)   lo que mueve el motor
+   BUENOS conocidos                     23,8 m            21,8 m            -0,8 m
+   SOSPECHOSOS conocidos                34,5 m            33,9 m            -0,6 m
+   ⭐⭐ CIEGOS                            32,7 m            30,6 m            -0,7 m
+```
+
+⭐⭐ **Los ciegos ya estaban 8,9 m más lejos de su propio eje antes de que el motor tocara nada.**
+La posición del portal la pone el Ayuntamiento, no el enganche. ⇒ La comparación en bruto estaba
+midiendo **dónde vive esa gente**, no si el enganche acierta.
+
+Emparejando por distancia previa, la diferencia desaparece:
+
+```
+   d(portal→eje)      BUENOS            CIEGOS       diferencia
+   20–30 m       67,3 % (n=3659)   64,7 % (n=1311)    -2,6 pts
+   30–50 m        4,7 % (n=4229)    6,8 % (n=1997)    +2,1 pts
+```
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el confusor que sí busqué.**
+En la tanda 12 comprobé si la diferencia era «que los ciegos son aceras», separé por tipo de vía y
+la diferencia seguía. Escribí *"y no lo explica el confusor de la acera"* — cierto— **y de ahí salté
+a "luego es real", que no se sigue.** Descartar UN confusor no descarta los demás, y el que faltaba
+era el más gordo: **dónde está el portal.**
+⚠️ Es la tercera vez en tres tandas que me pasa lo mismo con otra cara: la nº82 fue un testigo que
+fallaba por construcción, la nº79 una premisa que era un artefacto, y ésta un confusor no medido.
+
+**Cómo se cazó:** por hacerme la pregunta de B4 —*¿puede este testigo acertar o fallar por
+construcción?*— **antes** de usarlo, en vez de después. El briefing la puso como paso obligatorio
+precisamente porque la tanda 12 la había hecho tarde.
+
+**Arreglo aplicado:** dos medidas nuevas, y el veredicto sale de ellas y no del porcentaje en bruto:
+· **el techo geográfico** — qué parte de lo alcanzable conserva el enganche (106,7 % · 106,0 % ·
+  112,1 %: el motor MEJORA la posición del portal en los tres grupos);
+· ⭐⭐ **el discriminador sin umbral** — cuánto ALEJA el enganche a un portal de su propio eje:
+
+```
+   BUENOS conocidos        0,1 %  alejados >10 m
+   SOSPECHOSOS conocidos  15,8 %                  ⇒ el testigo separa 251×
+   ⭐⭐ CIEGOS               2,7 %                  ⇒ 83 % del camino hacia los BUENOS
+```
+
+⇒ **VEREDICTO: SÍ ACIERTA.** Donde nadie vigila el enganche se comporta como los buenos conocidos y
+no como los sospechosos. Y quedan **198 portales** con la firma de un enganche malo, **con su
+coordenada**, que son candidatos y no errores confirmados: en una avenida ancha con vías de servicio
+la acera está legítimamente a 40 m del eje.
+
+**Ley que sale de aquí:** ⭐⭐ **antes de comparar dos grupos, mide la variable de interés en un
+momento en que el proceso que investigas TODAVÍA NO HA ACTUADO.** Si ya difieren antes, lo que
+comparas después no es el proceso: es la diferencia previa con el proceso encima.
+⚠️ Y la operativa que lo hace barato: **casi siempre existe ese "antes"**. Aquí era la coordenada del
+portal tal como viene del Ayuntamiento, que estaba en el mismo fichero desde la tanda 11.
+**Traza:** `src/municipal.js` (nuevo), `src/cerrar-punto-ciego.js` (nuevo, B4/B7),
+`docs/H1-CIERRE.md` §E7 (el veredicto que esto sustituye)
