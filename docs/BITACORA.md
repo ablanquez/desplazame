@@ -2895,3 +2895,123 @@ mirada".
 unidad que hace visible la diferencia. En aristas el fallo real era 1,5 veces el buscado; en metros,
 1,7 — y en el total, invisible.
 **Traza:** `src/planarizar.js` (G3), `src/transitabilidad.js` (A4)
+
+---
+
+## [2026-08-03] — 179 de los "320 pasos condicionales" eran gasolineras y marquesinas: `covered` significa "tiene techo"
+
+**Categoría:** una etiqueta que significa otra cosa / agrupar es borrar
+**Síntoma:** al ampliar la búsqueda de pasos condicionales, probé a **propagar por nombre** desde
+una etiqueta —si un tramo de "Pasaje X" está etiquetado, el pasaje entero lo es—. Parecía sólido.
+Salieron **393 ways**, y entre ellos:
+
+```
+way 43017944    [primary]    Paseo de Sagasta
+way 24577443    [secondary]  Puente del Tercer Milenio
+way 15801528    [tertiary]   Avenida de César Augusto
+```
+
+El Paseo de Sagasta entero —con sus 60 aceras— clasificado como paso condicional.
+
+**Causa raíz, y son dos.** La primera es la propagación: **compartir nombre con un pasaje no es ser
+el pasaje**. Pero al buscar cuál era el way de Sagasta que disparaba la propagación, apareció la
+segunda, que es peor:
+
+```
+way 301326885  {"covered":"yes","footway":"crossing","highway":"footway",
+                "crossing":"traffic_signals","name":"Paseo de Sagasta", …}
+```
+
+**Un paso de peatones con marquesina.** Y de ahí sale el fallo de fondo: yo había metido
+`covered=yes` en la lista de pasos condicionales, y **`covered` no significa "no siempre abierto":
+significa "tiene techo"**. Mirados los 179:
+
+```
+por highway:  footway 95 · service 65 · steps 7 · pedestrian 3 · secondary 2 · …
+```
+
+Los 65 `service` son **surtidores de gasolinera y un McAuto**. Dos son el Puente del Tercer Milenio,
+que tiene celosía. **Un paso de peatones cubierto no cierra por la noche.**
+
+**⛔ Y corrige un número publicado.** `docs/H1-GRAFO-CIUDAD.md` §B6 da **320 pasos condicionales**
+tras haberlos clasificado —y presumo de haberlos clasificado, porque separé los 1.226
+`access=private` que sí eran otra cosa—. De aquellos 320, **179 son `covered=yes`**. El informe no
+se reescribe: la corrección va en `docs/H1-PORTALES.md`.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la clasificación de la tanda
+10, que es justo donde estaba el error.** Aquel §B6 lleva su positivo de control (`highway=footway`
+→ 21.738 ✅), su control negativo (un tag inventado → 0 ✅) y una separación explícita entre "paso
+condicional" y "acceso restringido" que era **correcta y que me dejó tranquilo**. Separé bien dos
+familias y **no miré dentro de la que me quedé**. Haber acertado una distinción difícil fue lo que
+hizo que no revisara la fácil.
+
+**Cómo se cazó:** por un camino que no iba a esto. Estaba probando la propagación por nombre —que
+resultó ser mala idea— y para entender por qué se llevaba el Paseo de Sagasta tuve que mirar **el
+way concreto** que la disparaba. ⭐ **El fallo lo destapó la depuración de otro fallo**, y solo
+porque fui a ver el caso individual en vez de descartar la propagación por el número.
+
+**Arreglo aplicado:** la búsqueda distingue **FIRME** de **INDICIO**, y solo lo firme se excluye:
+· FIRME: `tunnel=building_passage`, `indoor=yes`, `highway=corridor`, `opening_hours`,
+  `highway=elevator` — todos implican **atravesar algo que tiene dueño y puerta**.
+· INDICIO, se marca y se cuenta pero NO se excluye: `covered=yes`, el nombre, y la geometría.
+Quedan **151 ways excluidos** (189 aristas, 44 de ellas articulación) y 361 marcados.
+
+**Ley que sale de aquí:** ⭐⭐ **una etiqueta no significa lo que su nombre sugiere en tu idioma:
+significa lo que su comunidad decidió que significara.** `covered` describe un techo, no un horario.
+⚠️ Y el corolario que explica por qué se me pasó: **haber separado bien una familia de etiquetas da
+la sensación de haber revisado todas**, y es justo al revés — el esfuerzo se gasta en la frontera
+difícil y el interior de cada grupo se da por bueno.
+**Traza:** `src/condicionales.js` (`porEtiqueta`, firme vs indicio), `docs/H1-GRAFO-CIUDAD.md` §B6
+
+---
+
+## [2026-08-03] — La vía geométrica tiene un 36 % de recall: sirve para señalar, no para cortar
+
+**Categoría:** un instrumento con señal real que no es accionable
+**Síntoma:** la tercera vía de búsqueda —tramos peatonales que atraviesan el polígono de un
+edificio— encontró **173 candidatos que ninguna etiqueta declara**. Ese número, solo, invita a
+excluirlos: son pasos que nadie ha etiquetado.
+
+Pero antes de actuar lo validé contra los que sí están etiquetados, que es la única verdad conocida
+que hay:
+
+```
+etiquetados building_passage, peatonales y en zona   73
+⭐ los detecta la geometría                          26  (36 % de acierto)
+no los detecta                                       47
+   way 107996390   Pasaje del Comercio
+   way 107996393   Pasaje de la Industria
+   way 169448594   Pasaje Miraflores
+```
+
+**Se le escapan dos tercios**, y entre ellos tres galerías comerciales del centro que cualquiera
+reconoce. Y mirando sus aciertos más profundos:
+
+```
+260 m dentro   pedestrian  (sin nombre)             41.65669,-0.90842
+114 m dentro   pedestrian  Plaza Lagos Azules       41.65954,-0.93296
+ 78 m dentro   pedestrian  Plaza Albeta             41.64935,-0.85936
+```
+
+**260 metros "dentro de un edificio" no es un pasaje.** Son plazas y patios de manzana que OSM
+tiene dibujados dentro del polígono del bloque.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **la línea base, que era buena.** La
+vía geométrica marca el 1,20 % de los tramos peatonales del centro y acierta en el 36 % de los
+etiquetados: **29,7 veces el azar**. Esa cifra es correcta y es una señal real — y **es exactamente
+la clase de número con el que se justifica una decisión equivocada**. 29,7× el azar sobre una base
+del 1,2 % sigue dejando la mayoría de los hallazgos sin confirmar.
+
+**Cómo se cazó:** porque el positivo de control se calculó **antes** de usar el resultado, y en la
+dirección incómoda: no *"¿cuántos encuentro?"* sino *"¿cuántos de los que sé que están se me
+escapan?"*. La primera pregunta da 173 y anima; la segunda da 36 % y frena.
+
+**Arreglo aplicado:** la vía geométrica **no excluye ninguna arista**. Marca, cuenta y se publica
+con su recall al lado para que Antonio mire los 173. La salvaguarda mira, cuenta y avisa: no arregla.
+
+**Ley que sale de aquí:** ⭐⭐ **un múltiplo sobre el azar mide que la señal existe, no que sirva
+para decidir.** Con una base del 1 %, 30× el azar sigue siendo 30 % de acierto — y una regla que
+acierta un tercio no puede cortar nada. Antes de actuar sobre un detector hay que preguntarle **qué
+se le escapa**, no cuánto encuentra: el recall se mide contra lo que ya se sabe, y si no hay nada
+conocido contra lo que medirlo, el detector no está validado.
+**Traza:** `src/condicionales.js` (`atraviesaEdificio`, `decidir`)
