@@ -223,6 +223,47 @@ constructores['zonas'] = () => {
   return gr;
 };
 
+// ── capa NUEVA (tanda 11) · LOS PORTALES ENGANCHADOS ────────────────────────
+// ⭐ Coloreados por lo que dicen las DOS salvaguardas. 46.150 casos no se
+//    verifican a mano: se verifican con un instrumento, y lo que hay que mirar a
+//    mano es el instrumento. Esta capa es para mirar LOS PEORES.
+const COLOR_PORTAL = {
+  ok:        '#1a7f37',   // los dos testigos conformes
+  mudo:      '#8a8a8a',   // OSM sin nombre o la nube no opina: no se puede juzgar
+  uno:       '#d4a72c',   // un testigo discorda
+  dos:       '#cf222e',   // LOS DOS discordan  ⬅ los que hay que mirar
+  sin:       '#000000',   // sin enganche
+};
+const clasePortal = (p) => {
+  if (p.d === null) return 'sin';
+  const a = p.cv === 'DISCORDA', b = p.nb === 'DISCORDA';
+  if (a && b) return 'dos';
+  if (a || b) return 'uno';
+  if (p.cv === 'concuerda' && p.nb === 'concuerda') return 'ok';
+  return 'mudo';
+};
+constructores['portales'] = () => {
+  const gr = L.layerGroup();
+  const P = (G.portales && G.portales.puntos) || [];
+  let n = 0;
+  for (const p of P) {
+    if (!enZona(p.g[0], p.g[1])) continue;
+    n++;
+    const c = clasePortal(p);
+    L.circleMarker([p.g[1], p.g[0]], {
+      radius: c === 'dos' || c === 'sin' ? 6 : 3,
+      color: COLOR_PORTAL[c], weight: c === 'dos' || c === 'sin' ? 2 : 1,
+      fillColor: COLOR_PORTAL[c], fillOpacity: 0.7,
+    }).bindPopup(`<b>${esc(p.v)} ${esc(p.num)}</b><br>`
+      + `enganche: ${p.d === null ? '<b>SIN ENGANCHE</b>' : p.d + ' m'}<br>`
+      + `OSM más cercana: ${esc(p.o)}<br>`
+      + `codigoVia: <b>${esc(p.cv)}</b><br>consenso de la nube: <b>${esc(p.nb)}</b><br><br>`
+      + `<i>⛔ la salvaguarda MARCA, no corrige.</i>`).addTo(gr);
+  }
+  apunta('portales', n, P.length);
+  return gr;
+};
+
 // ── capa NUEVA · el límite municipal, que EXPLICA las islitas del borde ─────
 constructores['limite'] = () => {
   const gr = L.layerGroup();
@@ -241,7 +282,8 @@ const NOMBRES = {
   noUnidos: '4 · NO unidos por evidencia — ' + G.noConectados.length,
   puntas: '5 · puntas 2–5 m sin soldar — ' + G.puntasLejos.length,
   zonas: '6 · zonas del eje densidad — ' + ((G.zonas || []).length),
-  limite: '7 · límite municipal (referencia)',
+  portales: '7 · portales enganchados — ' + ((G.portales && G.portales.puntos.length) || 0),
+  limite: '8 · límite municipal (referencia)',
 };
 
 /**
@@ -341,7 +383,22 @@ leyenda.onAdd = function () {
     ${G.contadores.componentes - 1} islitas</b>, con un círculo alrededor.
     <b>Si alguna es un sitio por el que se puede llegar andando, es un fallo del grafo.</b></div>
 
-    <h4>Límite municipal (capa 7)</h4>
+    <h4>Portales (capa 7)</h4>
+    <div><span class="pt" style="background:#1a7f37"></span><b>Verde</b>: los dos testigos
+      —el código municipal y el consenso de sus vecinos— dicen lo mismo.</div>
+    <div style="margin-top:3px"><span class="pt" style="background:#8a8a8a"></span>
+      <b>Gris</b>: no se puede juzgar (la calle de OSM no tiene nombre, o la vía tiene
+      menos de tres portales y la nube no opina).</div>
+    <div style="margin-top:3px"><span class="pt" style="background:#d4a72c"></span>
+      <b>Ámbar</b>: <b>un</b> testigo discorda.</div>
+    <div style="margin-top:3px"><span class="pt" style="background:#cf222e"></span>
+      <b>Rojo</b>: <b>los dos</b> discordan. <b>Son éstos los que hay que mirar.</b></div>
+    <div style="margin-top:3px"><span class="pt" style="background:#000"></span>
+      <b>Negro</b>: sin ninguna calle andable a menos de 120 m.</div>
+    <div class="muted" style="margin-top:4px">⛔ La salvaguarda <b>marca y cuenta; no corrige</b>.
+    Corregir por cercanía es cambiar lo seguro por lo probable.</div>
+
+    <h4>Límite municipal (capa 8)</h4>
     <div class="muted">La línea morada. <b>Casi todas las islitas están pegadas a ella</b>,
     y no por casualidad: la descarga se pidió por término municipal, así que una calle
     que entra desde otro pueblo <b>no está</b>. Enciéndela antes de dar por buena

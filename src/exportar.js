@@ -33,7 +33,7 @@ const SALIDA = path.join(__dirname, '..', 'tools', 'grafo-visor.js');
 const r6 = (v) => Math.round(v * 1e6) / 1e6;
 const pg = (p) => { const g = aGrados(p[0], p[1]); return [r6(g[0]), r6(g[1])]; };
 
-function exportar(zona = ZONA_TERMINO) {
+function exportar(zona = ZONA_TERMINO, opciones = {}) {
   const g = construir(zona);
 
   // ── comprobación de la reproyección, ANTES de escribir ────────────────────
@@ -96,6 +96,11 @@ function exportar(zona = ZONA_TERMINO) {
     // D4 de la tanda 10 · las ventanas del eje DENSIDAD, para ver el reparto por barrio
     zonas: ZONAS.map((z) => ({ n: z.n, b: z.b })),
     limite,
+    // E7 de la tanda 11 · los portales enganchados, coloreados por discordancia.
+    // ⭐ Es la capa que permite MIRAR los peores, que es lo único que 46.150 casos
+    //    admiten: no se verifican a mano, se verifican con un instrumento — y el
+    //    instrumento es lo que hay que verificar a mano.
+    portales: opciones.portales || null,
   };
 
   fs.mkdirSync(path.dirname(SALIDA), { recursive: true });
@@ -105,7 +110,28 @@ function exportar(zona = ZONA_TERMINO) {
 
 if (require.main === module) {
   const zona = process.argv[2] === 'casco' ? ZONA_CASCO : ZONA_TERMINO;
-  const { g, salida, peor, bytes } = exportar(zona);
+  // ⭐ los portales se enganchan aquí, contra el MISMO grafo que se exporta
+  let portales = null;
+  if (process.argv[2] !== 'casco') {
+    const osm2 = require('./osm');
+    const E2 = require('./enganche');
+    const gTmp = construir(zona);
+    const T2 = new Map();
+    for (const w of osm2.cargar(require('./ruta').CRUDO).ways) T2.set(w.id, w.tags || {});
+    const rr = E2.enganchar(gTmp, T2);
+    portales = {
+      contadores: rr.contadores,
+      puntos: rr.portales.map((o) => ({
+        g: [r6(o.lon), r6(o.lat)],
+        d: o.enganchado ? Math.round(o.d * 10) / 10 : null,
+        v: o.via ? o.via.nombre : null,
+        num: o.numero,
+        o: o.nombreOsm,
+        cv: o.codigoVia_estado, nb: o.consenso_estado,
+      })),
+    };
+  }
+  const { g, salida, peor, bytes } = exportar(zona, { portales });
   const c = g.contadores;
   const L = [];
   L.push('='.repeat(88));
@@ -182,6 +208,21 @@ if (require.main === module) {
     L.push('         construcción: se pintan aristas, no nodos sueltos.');
   }
   L.push('');
+  if (salida.portales) {
+    L.push('');
+    L.push('A2b · ⭐ EL CUADRE DE LOS PORTALES — antes de mirar nada (E7)');
+    const p = salida.portales;
+    const fil = [
+      ['portales exportados', p.puntos.length, p.contadores.total],
+      ['  enganchados', p.puntos.filter((x) => x.d !== null).length, p.contadores.enganchados],
+      ['  sin enganche', p.puntos.filter((x) => x.d === null).length, p.contadores.noEnganchados],
+    ];
+    for (const [k, a, b] of fil) {
+      const ok = a === b;
+      if (!ok) todoOk = false;
+      L.push(`   ${k.padEnd(34)} exportado ${String(a).padStart(7)}   enganche ${String(b).padStart(7)}   ${ok ? '✅' : '⛔'}`);
+    }
+  }
   L.push('A3 · ⭐ QUÉ SE DEJA FUERA DEL DIBUJO');
   L.push('   aristas exportadas          ' + salida.aristas.length + ' de ' + c.aristas + '   ⇒ NINGUNA fuera');
   L.push('   vértices exportados         ' + salida.contadores.vertices + '   ⇒ sin simplificar: el dibujo es el grafo');

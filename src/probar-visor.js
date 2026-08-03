@@ -115,7 +115,12 @@ exige('capa 3 · unido-por-defecto (D2)', c.defecto.pintadas, G.porDefecto.lengt
 exige('capa 4 · no unidos por evidencia', c.noUnidos.pintadas, G.noConectados.length);
 exige('capa 5 · puntas 2-5 m sin soldar', c.puntas.pintadas, G.puntasLejos.length);
 exige('capa 6 · zonas del eje densidad', c.zonas.pintadas, G.zonas.length);
-exige('capa 7 · segmentos del límite municipal', c.limite.pintadas, G.limite.segs.length);
+exige('capa 7 · portales enganchados', c.portales.pintadas, G.portales.puntos.length);
+exige('capa 8 · segmentos del límite municipal', c.limite.pintadas, G.limite.segs.length);
+// ⭐ y el cuadre de los portales contra el enganche, que es lo que dice que la
+//    capa pinta LOS 46.150 y no una selección cómoda.
+exige('  de ellos, con enganche', G.portales.puntos.filter((p) => p.d !== null).length, G.portales.contadores.enganchados);
+exige('  de ellos, SIN enganche', G.portales.puntos.filter((p) => p.d === null).length, G.portales.contadores.noEnganchados);
 
 L.push('');
 L.push('C2 · ⭐ EL SELECTOR DE ZONA RECORTA — pero recorta LO PINTADO, no el grafo');
