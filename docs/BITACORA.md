@@ -4046,3 +4046,52 @@ comparas después no es el proceso: es la diferencia previa con el proceso encim
 portal tal como viene del Ayuntamiento, que estaba en el mismo fichero desde la tanda 11.
 **Traza:** `src/municipal.js` (nuevo), `src/cerrar-punto-ciego.js` (nuevo, B4/B7),
 `docs/H1-CIERRE.md` §E7 (el veredicto que esto sustituye)
+
+---
+
+## [2026-08-03] — «El 97 % de los edificios tiene la puerta entre los candidatos». Lo delató una mediana de 0,0 m
+
+**Categoría:** comprobación que pasa por construcción (ley 35)
+**Síntoma:** midiendo si el motor puede llegar a una entrada declarada de OSM:
+
+```
+   edificios con candidatos                          467
+   ⭐ el MEJOR candidato está a    mediana 0.0 m · p90 0.0 m de una entrada declarada
+   ⭐ hay un candidato a ≤ 5 m de una entrada         453 de 467  (97.0 %)
+```
+
+**97 %. Y una mediana de 0,0 metros.** Un resultado redondo justo donde llevo tres tandas encontrando
+problemas.
+
+**Causa raíz:** las entradas se emparejaron con su edificio **por ID DE NODO** —que es lo correcto,
+identidad y no proximidad—, y eso significa que **una entrada declarada ES un vértice del polígono
+del edificio**. Y `muestrearContorno()` mete **todos los vértices** entre los candidatos. ⇒ En
+cualquier edificio cuyo contorno entero quepa en los 24 candidatos, **la entrada es candidata por
+definición**, mida lo que mida el motor.
+
+Medido: **282 de 467 (60,4 %)** tienen todo su contorno dentro de los 24 candidatos.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el emparejamiento por id de nodo,
+que es la parte buena.** Es exacto, no usa tolerancias y resuelve el eje correspondencia como toca. El
+fallo no estaba en cómo se emparejaba: estaba en que **lo que hacía correcto el emparejamiento —que la
+entrada es un nodo del edificio— era justo lo que hacía trivial la pregunta siguiente.**
+
+**Cómo se cazó:** ⭐ **la mediana de 0,0 m.** Un cero exacto en una medida de distancia entre dos cosas
+calculadas por caminos distintos no es un buen resultado: es la firma de que los dos caminos son el
+mismo. **El signo y la escala del error son información** — aquí lo era la ausencia de error.
+
+**Arreglo aplicado:** la comprobación **se degrada** y no entra en el veredicto, con su motivo escrito
+al lado. Se conserva impresa, porque un test descartado con razón es información y borrarlo sería
+fingir que no se probó — igual que el cuarto testigo de la nº82.
+⇒ Lo que sí queda en pie es la medición que **no** es tautológica: la puerta que el motor **ELIGE**
+está a **5,4 m de mediana** de una entrada declarada, frente a **9,3 m** de un punto cualquiera del
+contorno, y dentro de 5 m el **47,3 %** frente al **19,1 %** del azar. Ahí el motor elige UNO de los
+24, y elegir puede fallar.
+
+**Ley que sale de aquí:** ⭐⭐ **cuando emparejes dos cosas por identidad, comprueba qué preguntas
+acabas de volver triviales.** Un emparejamiento exacto es una virtud para medir correspondencia y una
+trampa para medir cualquier cosa que dependa de la distancia entre lo emparejado.
+⚠️ Y la señal práctica, que ya va tres veces: **un resultado por encima del 95 %, o un error mediano
+de 0,0, se audita antes de creérselo.** Es la tercera comprobación de este proyecto que pasaba por
+construcción (nº82, nº85 y ésta).
+**Traza:** `src/es-puerta.js` (D2), `src/puerta.js` (`muestrearContorno`, `candidatos`)
