@@ -27,6 +27,7 @@ const G = require('./grafo');
 const T = require('./tabla-rutas');
 const Co = require('./condicionales');
 const Pu = require('./puerta');
+const Al = require('./alarma');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 const { aMetros, dist } = require('./geo');
 
@@ -175,6 +176,8 @@ if (require.main === module) {
       log('   ⇒ manda [3]: llegar a un edificio es tocar su perímetro por donde antes se llegue.');
     }
     if (!res.encontrada) {
+      // ⛔ antes esto imprimía y seguía, y el proceso terminaba en 0.
+      Al.fallo(`la ruta nº${ru.n} NO TIENE CAMINO: ${ru.o} → ${ru.d}`, { n: ru.n });
       log('   ⛔⛔ NO HAY CAMINO');
       resultados.push({ ru, ok: false, motivo: 'sin-camino', recta, a: aP, b: bFin });
       continue;
@@ -292,12 +295,24 @@ if (require.main === module) {
   log('');
   log('='.repeat(104));
   log('CORDURA Y RECUENTO — ninguna ruta puede ser más corta que la línea recta');
+  // ⛔ IMPOSIBILIDAD FÍSICA: se lanza en el acto, no se cuenta en una tabla.
+  for (const x of resultados) {
+    if (x.ok && x.rodeo < 0.999) {
+      Al.imposible(`la ruta nº${x.ru.n} mide ${x.metros.toFixed(1)} m con una recta de ${x.recta.toFixed(1)} m`,
+        { n: x.ru.n, metros: x.metros, recta: x.recta });
+    }
+  }
   const imposibles = resultados.filter((x) => x.ok && x.rodeo < 0.999);
   di('rutas resueltas', resultados.filter((x) => x.ok).length + ' de ' + tabla.rutas.length);
   di('⛔ con rodeo < 1 (imposible)', imposibles.length + (imposibles.length ? '  ⛔ EL GRAFO ESTÁ ROTO' : '  ✅'));
   const conRodeo = resultados.filter((x) => x.ok && x.ru.rodeoMax !== null);
   di('⭐ DENTRO DEL RODEO ACEPTABLE', conRodeo.filter((x) => x.dentroRodeo).length + ' de ' + conRodeo.length);
   for (const x of conRodeo.filter((x) => !x.dentroRodeo)) {
+    // ⭐ FALLO DE EXPECTATIVA: el banco de pruebas de Antonio es una diana, y una
+    //    diana fallada tiene que salir en rojo. Antes esto era una línea de aviso
+    //    y el proceso terminaba en 0.
+    Al.fallo(`la ruta nº${x.ru.n} se sale del rodeo aceptable: ${x.rodeo.toFixed(2)} frente a ≤ ${x.ru.rodeoMax}`,
+      { n: x.ru.n, rodeo: x.rodeo, tope: x.ru.rodeoMax });
     log('      ⚠️ nº' + x.ru.n + ': rodeo ' + x.rodeo.toFixed(2) + ' frente a ≤ ' + x.ru.rodeoMax);
   }
   const conBanda = resultados.filter((x) => x.ok && x.ru.banda);
@@ -309,6 +324,7 @@ if (require.main === module) {
   di('rutas que pasan por un paso condicional', conCond.length + (conCond.length ? '  (nº ' + conCond.map((x) => x.ru.n).join(', ') + ')' : ''));
 
   log('');
+  log(Al.cierre('BANCO DE PRUEBAS DE ANTONIO'));
   di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');
 }
 

@@ -8,6 +8,8 @@ const { aGrados, dist } = require('./geo');
 const osm = require('./osm');
 const G = require('./grafo');
 const R = require('./rios');
+// ⚠️ se llama AL y no A porque este fichero ya usa `A` para un punto de geometría.
+const AL = require('./alarma');
 
 const SEMILLA = Number(process.argv[2]) || 20260803;   // declarada: sin semilla no hay prueba
 const PARES = 12;                 // pares por río
@@ -102,6 +104,7 @@ for (const [rio, segs] of Object.entries(porRio)) {
       + '   ' + ga[1].toFixed(5) + ',' + ga[0].toFixed(5) + '  →  ' + gb[1].toFixed(5) + ',' + gb[0].toFixed(5));
   }
   di('⇒ pares con camino', `${ok} de ${pares.length}  ${ok === pares.length ? '✅' : '⛔⛔ ORILLA INCOMUNICADA'}`);
+  AL.exige(ok === pares.length, `orilla incomunicada en el ${rio}: solo ${ok} de ${pares.length} pares tienen camino`);
   resumen[rio] = { pares: pares.length, ok, fallos: fallos.length };
 }
 
@@ -161,7 +164,9 @@ for (const [k, p] of [...porNombre.entries()].sort()) {
     if (!Number.isFinite(m)) { estado = '⛔'; det = 'sin camino'; }
     else {
       const rod = m / Math.max(recta, 1);
-      if (rod < 0.999) { estado = '⛔'; det = 'RODEO < 1 — IMPOSIBLE, el grafo o la medida están rotos'; }
+      // ⛔ imposibilidad física: se lanza, no se anota. Seguir midiendo con un
+      //    instrumento que acaba de decir un absurdo no tiene sentido.
+      if (rod < 0.999) AL.imposible(`el puente ${k} da un rodeo de ${rod.toFixed(3)}: menos que su propia línea recta`, { k, rod });
       else { estado = rod <= 3 ? '✅' : '⚠️'; }
       det = det || Math.round(m) + ' m  (recta ' + Math.round(recta) + ' m, rodeo ' + rod.toFixed(2) + ')';
     }
@@ -179,8 +184,12 @@ if (malos.length) {
   }
   const sospechosos = malos.filter((m) => m.pie);
   di('   ⇒ rodeos SIN explicar', sospechosos.length + (sospechosos.length ? '  ⛔ HAY QUE MIRARLOS' : '  ✅ todos son autovías'));
+  for (const s2 of sospechosos) {
+    AL.fallo(`puente transitable a pie con rodeo sin explicar: ${s2.k} · ${s2.det}`);
+  }
 }
 
 L.push('');
+L.push(AL.cierre('VERIFICACIÓN DE RÍOS'));
 di('tiempo total', ((Date.now() - t0) / 1000).toFixed(1) + ' s');
 console.log(L.join('\n'));

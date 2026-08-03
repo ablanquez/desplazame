@@ -15,6 +15,7 @@ const osm = require('./osm');
 const { planarizar } = require('./planarizar');
 const G = require('./grafo');
 const { construir, ZONA_CASCO } = require('./ruta');
+const A = require('./alarma');
 
 const CRUDO_TANDA3 = path.join(__dirname, '..', 'data', 'exploracion',
   '2026-08-02_osm_overpass_casco-highway.json');
@@ -150,7 +151,9 @@ log('   [1] BORRAR UNA UNIÓN A PROPÓSITO -> ¿lo detecta el contador de compon
   log(`       componentes   antes: ${antes.n}      después: ${dsp.n}`);
   log(`       mayor         antes: ${mayorAntes}   después: ${mayorDsp}`);
   log(`       nodos aislados antes: ${antes.aislados}  después: ${dsp.aislados}`);
-  log(`       ⇒ ${dsp.n > antes.n || mayorDsp < mayorAntes ? '✅ ROJO: el contador lo detecta' : '⛔ NO LO DETECTA — el contador no vigila nada'}`);
+  const detecta1 = dsp.n > antes.n || mayorDsp < mayorAntes;
+  log(`       ⇒ ${detecta1 ? '✅ ROJO: el contador lo detecta' : '⛔ NO LO DETECTA — el contador no vigila nada'}`);
+  A.exige(detecta1, 'la contraprueba de borrar una articulación NO se detecta: el contador no vigila nada');
 }
 
 log('');
@@ -172,6 +175,7 @@ log('   [2] FORZAR UN CRUCE FALSO -> ¿aparece como unido-por-defecto?');
   log(`       unido-por-defecto antes: ${antes}   con el cruce plantado: ${despues}`);
   log(`       cruces geométricos antes: ${c.cortesGeometricos}   después: ${r2.contadores.cortesGeometricos}`);
   log(`       ⇒ ${despues > antes ? '✅ ROJO: D2 lo caza y lo cuenta' : '⛔ NO LO CAZA — D2 no cuenta nada'}`);
+  A.exige(despues > antes, 'la contraprueba de D2 NO se detecta: el cruce plantado no mueve el contador');
 
   // y el control complementario: el mismo cruce CON evidencia (uno en layer=1)
   const conEvid = [...recorte,
@@ -181,6 +185,7 @@ log('   [2] FORZAR UN CRUCE FALSO -> ¿aparece como unido-por-defecto?');
   log(`       ⭐ control complementario — el mismo cruce con bridge+layer=1:`);
   log(`          no-conectados antes: ${c.cortesNoConectados}   después: ${r3.contadores.cortesNoConectados}`);
   log(`          ⇒ ${r3.contadores.cortesNoConectados > c.cortesNoConectados ? '✅ D1 lo separa por evidencia positiva' : '⛔ D1 no distingue'}`);
+  A.exige(r3.contadores.cortesNoConectados > c.cortesNoConectados, 'D1 NO distingue el cruce con evidencia positiva');
 }
 
 log('');
@@ -207,8 +212,14 @@ linea('C4d · RUTAS DE CORDURA — ninguna puede ser más corta que la línea re
   ];
   for (const [nombre, a, b, cc, d] of pares) {
     const r = resolver(g, a, b, cc, d);
-    if (!r.encontrada) { log(`   ${nombre.padEnd(32)} ⛔ ${r.motivo}`); continue; }
+    // ⛔⛔ AQUÍ ESTABA EL FALLO QUE COSTÓ DOS TANDAS. Esta línea imprimía el motivo
+    //    y hacía `continue`, y el proceso terminaba en 0. La ruta `Puerta del
+    //    Carmen → Magdalena` estuvo rota desde la tanda 11 con este ⛔ en pantalla.
+    if (!A.exige(r.encontrada, `ruta de cordura SIN RESOLVER: ${nombre} (${r.motivo})`,
+      { nombre, motivo: r.motivo })) { continue; }
     const malo = r.metros < r.lineaRecta;
+    A.exige(!malo, `ruta de cordura más corta que la línea recta: ${nombre} `
+      + `(${r.metros} m frente a ${r.lineaRecta} m)`, { nombre, metros: r.metros, recta: r.lineaRecta });
     log(`   ${nombre.padEnd(32)} ${String(r.metros).padStart(7)} m   recta ${String(r.lineaRecta).padStart(7)} m   rodeo ×${r.rodeo}  ${malo ? '⛔ IMPOSIBLE' : '✅'}`);
     log(`   ${''.padEnd(32)}   enganche O/D ${r.engancheOrigen}/${r.engancheDestino} m · ${r.pasos.length} pasos · ${r.pasosPorDefecto} por defecto · ${r.pasosSinAceraConocida} sin acera conocida`);
   }
@@ -236,3 +247,6 @@ linea('C5 · EL EJE ESCALA — nunca medido en este proyecto');
   const sinPartir = [...part.values()].filter((x) => x === 1).length;
   log(`     ways NO partidos (1 sola arista): ${sinPartir} de ${part.size}  (${(100 * sinPartir / part.size).toFixed(1)} %)`);
 }
+
+log('');
+log(A.cierre('VERIFICACIÓN DEL CASCO'));

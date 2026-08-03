@@ -3868,3 +3868,106 @@ el way al que engancha?».
 ⚠️ Operativa: antes de comparar dos grupos, escribe **cómo se decidió quién está en cada uno** y
 compruébalo contra lo que vas a medir.
 **Traza:** `src/sin-vigilancia.js` (E2b, `acompanado`, `tasaSolo`)
+
+---
+
+## [2026-08-03] — Los verificadores detectaban fallos, los imprimían y salían en 0. El `⛔` era texto
+
+**Categoría:** el guardián que avisa y sigue
+**Síntoma:** la deuda que dejó la tanda 12. `src/verificar.js`, en sus rutas de cordura:
+
+```js
+if (!r.encontrada) { log(`   ${nombre.padEnd(32)} ⛔ ${r.motivo}`); continue; }
+```
+
+**`continue`.** El bucle seguía, el script terminaba, **código de salida 0**. Y con eso la ruta
+`Puerta del Carmen → Magdalena` —publicada en `H1-PRIMER-GRAFO.md` §C4d como correcta— estuvo
+**dos tandas rota** con su `⛔` impreso en pantalla en cada ejecución.
+
+**Causa raíz:** no había ningún mecanismo que ligara *"he detectado un fallo"* con *"el proceso no
+puede terminar en verde"*. Cada script lo resolvía a mano, y a mano significa que **casi ninguno lo
+resolvía**: de los 18 ejecutables, solo cuatro salían con código distinto de 0 en algún camino, y
+`verificar.js` y `verificar-ciudad.js` **no tenían ni un `process.exit`**.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el verificador entero, en verde,
+en las tandas 10, 11 y 12.** Todas sus contrapruebas, los diez cruces, las componentes, el eje
+escala. Y en medio, una línea diciendo que una de las tres rutas de cordura no existía. **El
+instrumento ya lo había detectado: lo que faltaba no era detección, era consecuencia.**
+
+**⚠️ Y la auditoría para encontrarlos tuvo su propia trampa.** Buscar el símbolo `⛔` en la salida da
+**10 sospechosos** sobre 18 scripts. Al clasificar las líneas a mano —clasificar antes de contar—
+**nueve eran prosa o contadores en cero**: `⛔ NO SE TOCA NADA`, `⛔ rodeos imposibles (<1) 0 ✅`,
+`⛔ autovía · prohibido a pie`. **Solo una era un fallo de verdad**, en `rutas-antonio.js`. Un
+contador de símbolos habría inflado el problema por diez.
+
+**Arreglo aplicado:** `src/alarma.js`, con **dos clases que no se tratan igual**:
+· **`imposible()`** — imposibilidad física (rodeo < 1, una suma que no cuadra): **lanza en el acto**.
+  Seguir midiendo con un instrumento que acaba de decir un absurdo no tiene sentido.
+· **`fallo()` / `exige()`** — fallo de expectativa (una ruta de cordura sin resolver, un rodeo fuera
+  del tope de Antonio): **se anota y se sigue**, porque hay que ver TODOS los fallos y no solo el
+  primero — pero **un gancho `process.on('exit')` deja el código en 1**.
+
+⭐ Y eso último es lo que lo hace mecanismo y no disciplina (ley 37): **el gancho se instala solo, al
+primer `fallo()`**. A partir de ahí ningún camino del código puede devolver 0, y no hay que acordarse
+de nada al final.
+
+Enganchado en `verificar.js`, `verificar-ciudad.js`, `verificar-rios.js` y `rutas-antonio.js` — 15
+puntos de detección que antes solo imprimían.
+
+**Contraprueba** (`src/probar-paradas.js`), con los dos tipos y **con positivo de control cada uno**:
+· fallo de expectativa → código 1, **y el script sí llega al final**, y se ven los dos fallos;
+· imposibilidad física → código 1 **y el script no sigue**;
+· ⭐ **el caso real**: se le quitan los pasos condicionales al grafo del casco —que es lo que la rompió
+  en la tanda 11— y `Puerta del Carmen → Magdalena` **sale en rojo**, código 1. Con ellos dentro,
+  1.370,8 m y código 0.
+· y el invariante sobre los 18 scripts: *si la salida declara un fallo, el código no puede ser 0*.
+
+**⚠️ Lo que este arreglo NO cubre, dicho antes de que nadie lo suponga:** un script que detecte algo y
+lo imprima **sin avisar a la alarma** sigue pudiendo salir en verde. Y la auditoría solo ve los fallos
+**que alguien declaró como fallos con el símbolo `⛔`**: una comprobación que falle imprimiendo un
+`⚠️`, o que directamente no exista, es invisible para todo esto.
+
+**Ley que sale de aquí:** ⭐⭐ **un fallo detectado y no consecuente es peor que un fallo no detectado**,
+porque produce la sensación de que hay una red. `continue` es la forma más barata de convertir un
+fallo en una línea de informe.
+**Traza:** `src/alarma.js` (nuevo), `src/probar-paradas.js` (nuevo), `src/auditoria-paradas.js`
+(nuevo), `src/verificar.js`, `src/verificar-ciudad.js`, `src/verificar-rios.js`, `src/rutas-antonio.js`
+
+---
+
+## [2026-08-03] — El invariante nuevo cazó mi propio parche a los diez minutos de existir
+
+**Categoría:** el guardián funcionando en la dirección contraria
+**Síntoma:** primera ejecución del invariante sobre los 18 scripts, con la alarma recién enganchada:
+
+```
+   verificar-rios.js         código 1       sin fallos     ✅
+```
+
+**Código 1 sin declarar ningún fallo.** El invariante que yo había escrito era *"si declara un fallo,
+el código no puede ser 0"*, así que técnicamente lo daba por bueno — pero **la combinación no tiene
+sentido**: si sale en rojo, algo tendría que decir por qué.
+
+**Causa raíz:** mi propio parche. El `require('./alarma')` no se aplicó porque busqué un ancla de
+texto —`const { aMetros, dist, corteSegmentos } = require('./geo')`— que en ese fichero es
+`const { aGrados, dist } = require('./geo')`. **La sustitución falló en silencio y las tres llamadas
+`AL.exige(...)` quedaron sin importar nada.** `ReferenceError: AL is not defined`.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **las otras tres sustituciones del
+mismo parche**, que sí se aplicaron y se ven en el `grep`. Comprobé que las llamadas estaban puestas
+—`grep -n "AL\."` devolvió tres líneas— **y no comprobé que el módulo estuviera importado.** Ver que
+el uso está no es ver que la definición está.
+
+**Cómo se cazó:** la tabla del invariante, en la línea siguiente a haberlo escrito. ⭐ **El guardián
+nuevo cazó al que lo estaba instalando**, que es la mejor prueba de que sirve para algo.
+
+**Arreglo aplicado:** el import, con el ancla correcta. Y de paso: en ese fichero la alarma se llama
+`AL` y no `A` **porque `A` ya es una variable local de geometría** — un choque de nombres que habría
+sido un fallo mucho más difícil de ver que un `ReferenceError`.
+
+**Ley que sale de aquí:** ⭐ **una sustitución de texto que no encuentra su ancla no falla: no hace
+nada.** Es la misma familia que *"los ficheros de configuración se prueban, no se leen"*: un patrón
+que no coincide con nada no da error, da silencio.
+⚠️ Y el corolario operativo: **después de un parche automático, ejecuta el fichero.** El `grep` dice
+que el texto está; solo ejecutar dice que funciona.
+**Traza:** `src/verificar-rios.js` (`AL`)

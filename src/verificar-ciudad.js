@@ -11,6 +11,7 @@ const { aMetros, aGrados, dist } = require('./geo');
 const osm = require('./osm');
 const { planarizar } = require('./planarizar');
 const G = require('./grafo');
+const A = require('./alarma');
 const fs = require('fs');
 const path = require('path');
 
@@ -288,6 +289,7 @@ log('          pequeño — el caso más exigente para el contador, no el más c
   log(`       componentes   antes: ${antes.n}       después: ${dsp.n}`);
   log(`       mayor         antes: ${mA}   después: ${mD}   (pierde ${mA - mD} nodos)`);
   log(`       ⇒ ${dsp.n > antes.n && mD < mA ? '✅ ROJO: el contador lo detecta, y el tamaño de la mayor baja' : '⛔ NO LO DETECTA'}`);
+  A.exige(dsp.n > antes.n && mD < mA, 'contraprueba de borrar una articulación (ciudad): NO se detecta');
 }
 
 log('');
@@ -302,12 +304,14 @@ log('   [2] FORZAR UN CRUCE FALSO -> ¿aparece como unido-por-defecto?');
   const r2 = planarizar([...recorte, inv(999000001, [cx - 50, cy], [cx + 50, cy]), inv(999000002, [cx, cy - 50], [cx, cy + 50])]);
   log(`       unido-por-defecto antes: ${base.unidoPorDefecto}   con el cruce plantado: ${r2.contadores.unidoPorDefecto}`);
   log(`       ⇒ ${r2.contadores.unidoPorDefecto > base.unidoPorDefecto ? '✅ ROJO: D2 lo caza y lo cuenta' : '⛔ NO LO CAZA'}`);
+  A.exige(r2.contadores.unidoPorDefecto > base.unidoPorDefecto, 'contraprueba de D2 (ciudad): el cruce plantado no mueve el contador');
   const r3 = planarizar([...recorte,
     inv(999000003, [cx - 50, cy + 200], [cx + 50, cy + 200]),
     inv(999000004, [cx, cy + 150], [cx, cy + 250], { highway: 'residential', layer: '1', bridge: 'yes' })]);
   log(`       ⭐ control complementario — el mismo cruce con bridge+layer=1:`);
   log(`          no-conectados antes: ${base.cortesNoConectados}   después: ${r3.contadores.cortesNoConectados}`);
   log(`          ⇒ ${r3.contadores.cortesNoConectados > base.cortesNoConectados ? '✅ D1 lo separa por evidencia positiva' : '⛔ D1 no distingue'}`);
+  A.exige(r3.contadores.cortesNoConectados > base.cortesNoConectados, 'D1 (ciudad) NO distingue el cruce con evidencia positiva');
 }
 
 log('');
@@ -327,12 +331,14 @@ log('          no dependen de dónde están las cosas, y entonces no miden geome
   const igual = b.nodos === d.nodos && b.aristas === d.aristas
     && b.cortesGeometricos === d.cortesGeometricos && b.unidoPorDefecto === d.unidoPorDefecto;
   log(`       ⇒ ${igual ? '✅ invariante a la traslación: el planarizado mide FORMA, no coordenadas absolutas' : '⛔ CAMBIA — depende de dónde esté la ciudad, y eso es un fallo'}`);
+  A.exige(igual, 'el planarizado NO es invariante a la traslación: depende de coordenadas absolutas');
   // ⭐ y el contrario, que es el que de verdad puede ponerse rojo: deformar el dato
   const roto = recorte.map((w) => ({ ...w, pts: w.pts.map((p, i) => [p[0] + (i % 2) * 30, p[1]]) }));
   const rr = planarizar(roto);
   log(`       ⭐ contraprueba de la contraprueba — se DEFORMA el dato (zigzag de 30 m):`);
   log(`          aristas ${b.aristas} -> ${rr.contadores.aristas}   cortes ${b.cortesGeometricos} -> ${rr.contadores.cortesGeometricos}`);
   log(`          ⇒ ${rr.contadores.cortesGeometricos !== b.cortesGeometricos ? '✅ el planarizado SÍ reacciona a la geometría: la invarianza de arriba significa algo' : '⛔ no reacciona a nada — la prueba de traslación no probaba nada'}`);
+  A.exige(rr.contadores.cortesGeometricos !== b.cortesGeometricos, 'el planarizado no reacciona a la geometría: la prueba de traslación no probaba nada');
 }
 
 // ── C5 · RUTAS DE CORDURA ────────────────────────────────────────────────────
@@ -371,6 +377,8 @@ log('   ⚠️ una ruta MÁS CORTA que la recta es imposible. Si pasa, el grafo 
   di('con camino', `${ok} de ${filas.length}`);
   di('sin camino', sinCamino);
   di('⛔ rodeos imposibles (<1)', imposible + (imposible === 0 ? '  ✅' : '  ⛔ EL GRAFO ESTÁ ROTO'));
+  // ⛔ un rodeo por debajo de 1 es una IMPOSIBILIDAD FÍSICA: no se anota, se lanza.
+  if (imposible > 0) A.imposible(`${imposible} rutas de cordura miden menos que su línea recta`, { imposible });
   di('rodeo mediano', rodeos.length ? rodeos[Math.floor(rodeos.length / 2)].toFixed(2) : '—');
   di('rodeo peor', rodeos.length ? rodeos[rodeos.length - 1].toFixed(2) : '—');
 }
@@ -403,8 +411,10 @@ log('      del crudo de la TANDA 3 —otro fichero, otra fecha, otra consulta.')
     log(`      nodo OSM ${String(n).padEnd(12)} ${k} ways -> grafo ${String(mejor).padStart(6)} a ${md.toFixed(2)} m  grado total ${gTot} / a pie ${gPie}  ${bien ? '✅' : '⛔'}`);
   }
   log(`   ⇒ ${ok} de ${cands.length} cruces CONSTRUIDOS   (en el casco de la tanda 8: 10 de 10)`);
+  A.exige(ok === cands.length, `solo ${ok} de ${cands.length} cruces conocidos están CONSTRUIDOS (la tanda 8 daba 10 de 10)`);
   log(`   ⇒ ${okPie} de ${cands.length} utilizables A PIE  (en el casco de la tanda 8: 8 de 10)`);
 }
 
 log('');
+log(A.cierre('VERIFICACIÓN DE CIUDAD'));
 di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');
