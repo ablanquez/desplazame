@@ -39,19 +39,68 @@ const FICHEROS = fs.readdirSync(DIR).filter((f) => f.endsWith('.js') && f !== YO
 // ⚠️ Es análisis ESTÁTICO: lee el texto, no ejecuta. Lo que no puede ver es una
 //    zona calculada en tiempo de ejecución — por eso se marca aparte en vez de
 //    darla por buena.
-const RE_CONSTRUIR = /(?:^|[^.\w])construir\s*\(([^)]*)\)/g;
-const RE_PLANARIZAR = /(?:^|[^.\w])(?:P\.)?planarizar\s*\(([^)]*)\)/g;
+// ⚠️ El primer patrón era `(?:^|[^.\w])construir\(` — todo lo precedido por un
+//    punto quedaba fuera para no confundir `G.reconstruir(`. El efecto colateral:
+//    **`R.construir()` con prefijo de módulo era invisible**, y así entraba
+//    `src/probar-guardianes.js`, que es justo el fichero que llama sin zona. Un
+//    guardián con un agujero del tamaño de "poner un prefijo" no es un guardián.
+//    Ahora se admite el prefijo y se excluye `reconstruir` por lo que es.
+const RE_CONSTRUIR = /(?<![\w$])(?:[A-Za-z_$][\w$]*\.)?construir\s*\(([^)]*)\)/g;
+const RE_PLANARIZAR = /(?<![\w$])(?:[A-Za-z_$][\w$]*\.)?planarizar\s*\(([^)]*)\)/g;
+
+// ⭐ La única forma de llamar sin zona sin ponerse rojo: DECIRLO en la misma línea.
+//    Es una regla, no una lista de ficheros exentos — cualquiera puede usarla y
+//    todo el que la use sale listado aparte, así que nunca es invisible. El punto
+//    de toda esta tanda es que la decisión esté ESCRITA; un marcador lo está.
+const MARCA = 'PROVOCACIÓN';
+
+/**
+ * ⭐ Quita comentarios y literales de cadena, dejando los huecos con espacios para
+ *    no mover las posiciones.
+ *
+ * ⚠️ NO es un lujo: este auditor ya se equivocó dos veces por leer texto que
+ *    hablaba de código en vez de código. Primero se denunció a sí mismo (nº70), y
+ *    después denunció a `probar-guardianes.js` NUEVE veces — un fichero cuyo
+ *    trabajo es precisamente EXPLICAR y provocar el fallo, así que menciona
+ *    `construir()` en cada comentario y en cada mensaje.
+ * ⛔ La salida fácil era una lista de ficheros exentos. Eso es una lista, no una
+ *    regla (ley 40): el siguiente fichero que hable de código volvería a saltar.
+ *    La regla es **mirar solo lo que se ejecuta**.
+ */
+function soloCodigo(s) {
+  let out = '', i = 0;
+  const hueco = (t) => t.replace(/[^\n]/g, ' ');
+  while (i < s.length) {
+    const c = s[i], d = s[i + 1];
+    if (c === '/' && d === '/') { const j = s.indexOf('\n', i); const k = j === -1 ? s.length : j; out += hueco(s.slice(i, k)); i = k; continue; }
+    if (c === '/' && d === '*') { const j = s.indexOf('*/', i + 2); const k = j === -1 ? s.length : j + 2; out += hueco(s.slice(i, k)); i = k; continue; }
+    if (c === '"' || c === "'" || c === '`') {
+      let j = i + 1;
+      while (j < s.length && s[j] !== c) { if (s[j] === '\\') j++; j++; }
+      out += hueco(s.slice(i, j + 1)); i = j + 1; continue;
+    }
+    out += c; i++;
+  }
+  return out;
+}
 
 function analizar(nombre) {
-  const txt = fs.readFileSync(path.join(DIR, nombre), 'utf8');
+  const bruto = fs.readFileSync(path.join(DIR, nombre), 'utf8');
+  const txt = soloCodigo(bruto);
   // el propio ruta.js define construir; planarizar.js define planarizar.
   const defineConstruir = /function construir\s*\(/.test(txt);
   const definePlanarizar = /function planarizar\s*\(/.test(txt);
 
+  // la marca se busca en el TEXTO BRUTO: va en un comentario, y `soloCodigo` los borra
+  const lineaDe = (pos) => bruto.slice(0, pos).split('\n').length;
+  const brutoLineas = bruto.split('\n');
+
   const llamadas = [];
   for (const m of txt.matchAll(RE_CONSTRUIR)) {
     if (defineConstruir && /function construir/.test(txt.slice(Math.max(0, m.index - 12), m.index + 12))) continue;
-    llamadas.push({ via: 'construir', arg: m[1].split(',')[0].trim(), pos: m.index });
+    const ln = lineaDe(m.index);
+    llamadas.push({ via: 'construir', arg: m[1].split(',')[0].trim(), pos: m.index, linea: ln,
+      provocacion: (brutoLineas[ln - 1] || '').includes(MARCA) });
   }
   const propias = [];
   for (const m of txt.matchAll(RE_PLANARIZAR)) {
@@ -80,6 +129,7 @@ L.push('   ' + 'fichero'.padEnd(26) + 'obtiene grafo'.padEnd(16) + 'qué zona'.p
 L.push('   ' + '─'.repeat(99));
 
 let sinDeclarar = 0, saltanLaPuerta = [];
+const provocaciones = [];
 const filas = [];
 for (const f of FICHEROS) {
   const a = analizar(f);
@@ -89,6 +139,11 @@ for (const f of FICHEROS) {
   }
   for (const c of a.llamadas) {
     const z = ZONA_DE(c.arg);
+    if (!z.explicita && c.provocacion) {
+      provocaciones.push({ f, linea: c.linea });
+      filas.push({ f, obtiene: 'sí', zona: 'ninguna', expl: '⭐ a propósito', como: `construir()   línea ${c.linea}, declarada` });
+      continue;
+    }
     if (!z.explicita) sinDeclarar++;
     filas.push({ f, obtiene: 'sí', zona: z.z, expl: z.explicita ? 'sí' : '⛔ NO', como: "construir(" + (c.arg || '') + ')' });
   }
@@ -111,6 +166,8 @@ L.push('   ' + '─'.repeat(99));
 L.push('   ficheros analizados                        ' + FICHEROS.length);
 L.push('   ficheros que obtienen un grafo             ' + new Set(filas.filter((r) => r.obtiene === 'sí').map((r) => r.f)).size);
 L.push('   ⛔ llamadas SIN zona explícita              ' + sinDeclarar);
+L.push('   ⭐ llamadas sin zona A PROPÓSITO y declaradas ' + provocaciones.length
+  + (provocaciones.length ? '   (' + provocaciones.map((p) => p.f + ':' + p.linea).join(', ') + ')' : ''));
 L.push('   ⚠️ ficheros que planarizan por su cuenta    ' + saltanLaPuerta.length
   + (saltanLaPuerta.length ? '   (' + saltanLaPuerta.map((s) => s.f).join(', ') + ')' : ''));
 

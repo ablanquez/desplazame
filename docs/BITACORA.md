@@ -3339,3 +3339,85 @@ ruta, y el positivo de control fallaría por falta de camino en vez de por el sa
 con el fallo puesto, y que se ponga VERDE sin él.** La segunda es la que distingue un guardián de una
 alarma estropeada, y es la que casi nunca se escribe.
 **Traza:** `src/probar-guardianes.js` (G4), `src/geo.js` (`aGrados`)
+
+---
+
+## [2026-08-03] — El auditor volvió a contar texto, ahora el de otro fichero: 9 acusaciones donde había 0
+
+**Categoría:** arreglé el caso en la tanda de arreglar la clase
+**Síntoma:** con las tres llamadas sin zona ya corregidas, el auditor **seguía en rojo**:
+
+```
+   ⛔ llamadas SIN zona explícita              9
+   probar-guardianes.js      sí   ⛔ POR DEFECTO   construir()
+```
+
+**Nueve.** Y el acusado era `src/probar-guardianes.js`, un fichero cuyo trabajo consiste precisamente
+en **explicar y provocar** este fallo: menciona `construir()` en casi todos sus comentarios y en casi
+todos sus mensajes de error.
+
+**Causa raíz — y es la misma que la nº70.** El auditor busca el texto `construir(` en el fichero
+entero, sin distinguir **código** de **comentario** ni de **literal de cadena**. Cuando se denunció a
+sí mismo (nº70) lo arreglé **excluyéndose del listado**. Eso no era la causa: era el primer síntoma.
+
+⭐⭐ **Y ahí está lo que duele: es la tanda cuyo encargo literal es "arregla la CLASE, no el caso", y
+yo arreglé el caso.** Escribí en el comentario del propio fichero por qué había pasado, y aun así la
+corrección fue local. **Saber enunciar la ley no basta; hay que aplicarla al arreglo que estás
+escribiendo en ese momento.** Es la misma observación de la nº67, con otro sujeto.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la corrección anterior.** Tras
+excluirse a sí mismo, el auditor dio `3` llamadas sin zona, y las tres eran ciertas y estaban bien
+identificadas. **Un arreglo puede producir el número correcto y no haber tocado la causa** — y en ese
+estado el instrumento parece sano hasta que llega un fichero nuevo.
+
+**Cómo se cazó:** al ejecutarlo después de commitear `probar-guardianes.js`. Un fichero nuevo en `src/`
+fue todo lo que hizo falta, que es exactamente lo que el arreglo local no cubría.
+
+**Arreglo aplicado:** `soloCodigo()` — se borran comentarios y literales de cadena (dejando espacios
+para no mover las posiciones) **antes** de buscar nada. Ahora el auditor mira solo lo que se ejecuta.
+⛔ La salida fácil era una lista de ficheros exentos; eso es una lista, no una regla (ley 40).
+Y para las llamadas sin zona que son **deliberadas** —la que provoca el rojo de G1— hay una regla, no
+una excepción: se admite si la línea lleva la marca `PROVOCACIÓN`, y **todas las que la lleven salen
+listadas aparte con su número de línea**, así que ninguna es invisible.
+
+**Ley que sale de aquí:** ⭐⭐ **el primer síntoma de una clase se disfraza de caso particular, y la
+señal de que lo has arreglado como caso es que la corrección menciona un nombre propio.** Si el
+arreglo contiene el nombre del fichero, del campo o del valor que falló, casi seguro que es un parche.
+**Traza:** `src/auditoria-grafo.js` (`soloCodigo`, `MARCA`)
+
+---
+
+## [2026-08-03] — El guardián tenía un agujero del tamaño de un prefijo: `R.construir()` era invisible
+
+**Categoría:** el patrón que excluye de más
+**Síntoma:** `src/probar-guardianes.js` llama a `R.construir()` **sin zona**, a propósito, para
+provocar el rojo. El auditor no lo veía. Ni ése ni ningún otro:
+
+```
+   probar-guardianes.js   (no aparecía en la tabla)
+```
+
+**Causa raíz:** el patrón era `(?:^|[^.\w])construir\s*\(`. El `[^.\w]` estaba puesto para que
+`G.reconstruir(` no se confundiera con `construir(` — y de paso dejaba fuera **cualquier llamada con
+prefijo de módulo**. `require('./ruta').construir()`, `R.construir()`, `M.construir()`: todas
+invisibles. Un guardián que se esquiva poniendo un punto delante.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el auditor entero, incluido su
+rojo provocado en G2.** La prueba de G2 escribe un fichero de mentira con `construir()` **sin
+prefijo** —porque así lo escribí yo— y el auditor lo cazaba. **El positivo de control cubría
+exactamente la forma que el patrón sí veía**, que es la trampa clásica de un control escrito por el
+autor del instrumento (ley 17).
+
+**Cómo se cazó:** por preguntarme por qué `probar-guardianes.js` no salía en la tabla, si acababa de
+escribirlo y llama sin zona. **La ausencia en una lista es más difícil de ver que un valor raro en
+ella**, y aquí solo se notó porque yo sabía que ese fichero tenía que aparecer.
+
+**Arreglo aplicado:** `(?<![\w$])(?:[A-Za-z_$][\w$]*\.)?construir\s*\(` — se admite el prefijo y se
+excluye `reconstruir` por lo que es (una palabra distinta), no por lo que lleva delante.
+
+**Ley que sale de aquí:** ⭐⭐ **un patrón que excluye para evitar un falso positivo tiene que declarar
+qué más está excluyendo.** `[^.\w]` no decía "no es reconstruir": decía "no lleva punto delante", y eso
+es muchísimo más.
+⚠️ Y la operativa: **cuando escribas un detector, comprueba que encuentra el caso que acabas de
+escribir tú.** Si tu propio fichero no sale en la lista, el detector está roto, no el fichero.
+**Traza:** `src/auditoria-grafo.js` (`RE_CONSTRUIR`, `RE_PLANARIZAR`)

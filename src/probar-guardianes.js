@@ -35,7 +35,7 @@ L.push('');
 L.push('G1 · ⛔ `construir()` SIN ZONA — el valor por defecto que contestaba con el casco');
 {
   let salto = null;
-  try { R.construir(); } catch (e) { salto = e.message; }
+  try { R.construir(); } catch (e) { salto = e.message; }   // PROVOCACIÓN deliberada (ver auditoria-grafo.js)
   exige('rojo: construir() sin argumento', !!salto, salto ? salto.slice(0, 46) + '…' : '');
   let ok = false;
   try { R.construir(R.ZONA_CASCO); ok = true; } catch (e) { ok = false; }
