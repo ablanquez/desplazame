@@ -43,4 +43,48 @@ function areaKm2(bbox) {
   return Math.abs((b[0] - a[0]) * (b[1] - a[1])) / 1e6;
 }
 
-module.exports = { cargar, recortar, proyectar, areaKm2 };
+/**
+ * Censo de cúmulos: agrupa los ways por celda de 1 grado.
+ *
+ * ⚠️ Existe por un fallo, no por elegancia. La consulta de la tanda 8 pedía
+ *    `area["name"="Zaragoza"]["admin_level"="8"]`, y eso NO nombra un sitio:
+ *    nombra una CLASE de sitios. Vinieron cuatro Zaragozas — España, Costa Rica
+ *    y Zaragoza de Puebla (México)—, 398 ways de otro continente escondidos
+ *    dentro de 48.211. No se notan en el volumen; mueven el bbox 18.000 km.
+ *    Ver bitácora nº57.
+ *
+ * ⭐ Se imprime SIEMPRE antes de recortar, para que la exclusión sea declarada
+ *    y no silenciosa. Un recorte que tira dato sin decirlo es una mentira lenta.
+ */
+function clusters(ways) {
+  const m = new Map();
+  for (const w of ways) {
+    const p = w.geometry[0];
+    const k = Math.floor(p.lat) + ',' + Math.floor(p.lon);
+    if (!m.has(k)) m.set(k, { n: 0, lat: 0, lon: 0, ejemplos: [] });
+    const c = m.get(k);
+    c.n++; c.lat += p.lat; c.lon += p.lon;
+    if (c.ejemplos.length < 3 && (w.tags || {}).name) c.ejemplos.push(w.tags.name);
+  }
+  return [...m.values()]
+    .map((c) => ({ ways: c.n, lat: c.lat / c.n, lon: c.lon / c.n, ejemplos: c.ejemplos }))
+    .sort((a, b) => b.ways - a.ways);
+}
+
+/**
+ * Bbox real ocupado por un conjunto de ways. La forma de auditar una descarga:
+ * ⭐ no por su VOLUMEN (48.211 ways es perfectamente creíble) sino por su
+ *    EXTENSIÓN (un término municipal de 27 millones de km² no lo es).
+ */
+function extension(ways) {
+  let sur = 90, norte = -90, oeste = 180, este = -180;
+  for (const w of ways) for (const p of w.geometry) {
+    if (p.lat < sur) sur = p.lat;
+    if (p.lat > norte) norte = p.lat;
+    if (p.lon < oeste) oeste = p.lon;
+    if (p.lon > este) este = p.lon;
+  }
+  return { sur, oeste, norte, este };
+}
+
+module.exports = { cargar, recortar, proyectar, areaKm2, clusters, extension };

@@ -33,10 +33,31 @@ const CRUDO = path.join(__dirname, '..', 'data', 'fuentes',
 //    La contención se comprueba en tiempo de ejecución, no se da por buena.
 const ZONA_CASCO = { sur: 41.648, oeste: -0.8945, norte: 41.6615, este: -0.869 };
 
+// EL TÉRMINO MUNICIPAL COMPLETO.
+//
+// ⛔ NO es el bbox del dato tal como vino. El crudo trae CUATRO Zaragozas
+//    —España, Costa Rica y Zaragoza de Puebla (México)— porque
+//    `area["name"="Zaragoza"]` devuelve un CONJUNTO de áreas, no un área.
+//    Son 398 ways de 48.211: invisibles en el volumen, y mueven el bbox
+//    18.000 km. Ver bitácora nº57.
+//
+// ⭐ Éste es el bbox del cúmulo español, con 50 m de holgura. Ningún way queda
+//    a caballo de esta caja (comprobado: 0), así que el recorte es limpio y no
+//    parte nada por la mitad. La exclusión se IMPRIME en el censo de cúmulos,
+//    no se hace en silencio.
+const ZONA_TERMINO = { sur: 41.4011, oeste: -1.2199, norte: 41.982, este: -0.6541 };
+
 // La ventana del crudo de la tanda 3, para comprobar la contención.
 const ZONA_TANDA3 = { sur: 41.65502, oeste: -0.89354, norte: 41.66034, este: -0.88177 };
 function contiene(a, b) {
   return a.sur <= b.sur && a.oeste <= b.oeste && a.norte >= b.norte && a.este >= b.este;
+}
+
+// ⭐ Ley 37: la contención se comprueba EN EJECUCIÓN, no mirando los números.
+//    Si el término no contuviera al casco, todo lo comparado contra la línea
+//    base de la tanda 8 sería incomparable — y no se notaría.
+if (!contiene(ZONA_TERMINO, ZONA_CASCO) || !contiene(ZONA_TERMINO, ZONA_TANDA3)) {
+  throw new Error('ZONA_TERMINO no contiene al casco: la comparación con la tanda 8 no vale');
 }
 
 function construir(zona = ZONA_CASCO, opciones = {}) {
@@ -106,4 +127,4 @@ if (require.main === module) {
   }, null, 2));
 }
 
-module.exports = { construir, resolver, ZONA_CASCO, ZONA_TANDA3, contiene, CRUDO };
+module.exports = { construir, resolver, ZONA_CASCO, ZONA_TERMINO, ZONA_TANDA3, contiene, CRUDO };
