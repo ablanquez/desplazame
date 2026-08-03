@@ -28,36 +28,9 @@ function rng(semilla) {
   return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
 }
 
-// ── aristas de articulación (Tarjan). Cuántos puntos únicos de fallo tiene la red.
-function puentes(nodos, ady) {
-  const disc = new Int32Array(nodos.length).fill(-1);
-  const low = new Int32Array(nodos.length).fill(0);
-  const res = [];
-  let t = 0;
-  for (let s = 0; s < nodos.length; s++) {
-    if (disc[s] !== -1 || !ady[s].length) continue;
-    const pila = [[s, -1, 0]];
-    disc[s] = low[s] = t++;
-    while (pila.length) {
-      const cima = pila[pila.length - 1];
-      const [v, pe] = cima;
-      if (cima[2] < ady[v].length) {
-        const { n: u, e } = ady[v][cima[2]++];
-        if (e === pe) continue;
-        if (disc[u] === -1) { disc[u] = low[u] = t++; pila.push([u, e, 0]); }
-        else low[v] = Math.min(low[v], disc[u]);
-      } else {
-        pila.pop();
-        if (pila.length) {
-          const p = pila[pila.length - 1][0];
-          low[p] = Math.min(low[p], low[v]);
-          if (low[v] > disc[p]) res.push(cima[1]);
-        }
-      }
-    }
-  }
-  return res;
-}
+// ── aristas de articulación: ahora vive en `grafo.js`, porque la verificación de
+//    la ciudad la necesita también y dos Tarjan son dos verdades. Misma función.
+const puentes = (nodos, ady) => G.articulaciones(nodos, ady);
 
 function contarComponentes(nodos, aristas, sinArista = -1) {
   const ady = Array.from({ length: nodos.length }, () => []);

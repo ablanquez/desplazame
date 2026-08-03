@@ -49,6 +49,47 @@ function componentes(nodos, ady) {
   return { comp, tamanos, n: tamanos.length, aislados };
 }
 
+/**
+ * Aristas de articulación (Tarjan, iterativo): las que al quitarlas parten la red.
+ * Son los puntos únicos de fallo del grafo.
+ *
+ * ⚠️ Estaba dentro de `src/verificar.js`. Se sube aquí sin tocar una línea porque
+ *    la verificación de la ciudad la necesita también, y tener dos Tarjan es tener
+ *    dos verdades. La salida de `verificar.js` se comparó antes y después: idéntica.
+ * ⚠️ Y la trampa que ya mordió (bitácora nº50): una articulación COLGANTE —con un
+ *    extremo de grado 1— no parte nada, deja un nodo huérfano. Quien elija una para
+ *    una contraprueba tiene que filtrarlas, o la prueba pasa por construcción.
+ */
+function articulaciones(nodos, ady) {
+  const disc = new Int32Array(nodos.length).fill(-1);
+  const low = new Int32Array(nodos.length).fill(0);
+  const res = [];
+  let t = 0;
+  for (let s = 0; s < nodos.length; s++) {
+    if (disc[s] !== -1 || !ady[s].length) continue;
+    const pila = [[s, -1, 0]];
+    disc[s] = low[s] = t++;
+    while (pila.length) {
+      const cima = pila[pila.length - 1];
+      const [v, pe] = cima;
+      if (cima[2] < ady[v].length) {
+        const { n: u, e } = ady[v][cima[2]++];
+        if (e === pe) continue;
+        if (disc[u] === -1) { disc[u] = low[u] = t++; pila.push([u, e, 0]); }
+        else low[v] = Math.min(low[v], disc[u]);
+      } else {
+        pila.pop();
+        if (pila.length) {
+          const p = pila[pila.length - 1][0];
+          low[p] = Math.min(low[p], low[v]);
+          if (low[v] > disc[p]) res.push(cima[1]);
+        }
+      }
+    }
+  }
+  return res;
+}
+
 /** Cola de prioridad mínima (montículo binario). Sin dependencias. */
 class Cola {
   constructor() { this.h = []; }
@@ -126,4 +167,4 @@ function reconstruir(nodos, aristas, r, origen, destino) {
   return { metros: Math.round(r.dist[destino] * 10) / 10, pasos, aristas: camino.length };
 }
 
-module.exports = { adyacencia, componentes, dijkstra, nodoMasCercano, reconstruir, Cola };
+module.exports = { adyacencia, componentes, articulaciones, dijkstra, nodoMasCercano, reconstruir, Cola };
