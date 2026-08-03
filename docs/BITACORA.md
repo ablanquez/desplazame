@@ -4257,3 +4257,119 @@ número del que habla.
 conclusión sin ser el dato. **Las dos veces el problema fue confundir lo que se imprime con lo que se
 sabe.**
 **Traza:** `src/candidatos-enganche.js` (B5)
+
+---
+
+## [2026-08-03] — Mi contraprueba del fallo correlacionado estaba rota, y la aritmética que yo mismo había escrito la delató
+
+**Categoría:** el arnés de la contraprueba medía otra cosa que la que decía medir
+**Síntoma:** la prueba clave de la tanda 15 —¿el detector de orden se traga un fallo que arrastra a
+los vecinos?— salió así:
+
+```
+      desplazamiento            1 solo      3 juntos      5 juntos
+      200 m                     93.0 %        44.0 %        39.7 %
+```
+
+**44 %.** Un número perfectamente publicable: *«lo caza en parte, la mitad que cuando se mueve uno
+solo»*. Y falso.
+
+**Causa raíz:** para elegir «el portal y sus vecinos» ordené los portales de la vía por número y
+**adiviné el paso**: si el esquema era par/impar, salté de dos en dos sobre la lista mezclada.
+
+```js
+const paso = base.esquema === 'par/impar' ? 2 : 1;
+for (let k = -1; k <= 1; k++) mover.add(orden[i + k * paso].id);   // ⬅ adivinando
+```
+
+Eso funciona **solo si la vía tiene las dos paridades completas y alternadas**. En una vía de números
+1, 3, 5, 7 la lista ya está en impares, el paso de 2 se salta uno, y **lo que se desplaza no es el
+trío: es el 1 y el 5 dejando el 3 quieto en medio**. O sea que la prueba del fallo correlacionado
+**estaba desordenando la vía**, que es justo lo contrario de lo que quería probar. El 44 % era el
+detector cazando **mi propio destrozo**.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la columna de al lado, y por eso
+colaba.** El desplazamiento de UN portal salía 93 % y era correcto; las dos columnas juntas contaban
+una historia coherente y creíble —«cuantos más se mueven juntos, menos lo ve»— con la pendiente en el
+sentido esperado. **Un resultado equivocado que apunta en la dirección correcta es el más difícil de
+cazar**, porque confirma lo que ya crees.
+
+**Cómo se cazó:** ⭐⭐⭐ **por la teoría que yo mismo había escrito en la cabecera del módulo**, ocho
+horas antes de medir:
+
+> *«La intercalación B es invariante a trasladar el trío entero, porque las tres distancias se mueven
+> igual.»*
+
+Si eso es cierto —y es aritmética, no una opinión—, la columna de «3 juntos» **tiene que dar 0,0 %**,
+no 44 %. **El número contradecía al álgebra, así que el número estaba mal.** Con el arnés arreglado:
+
+```
+      desplazamiento            1 solo      3 juntos      5 juntos
+       25 m                      27.1 %         0.0 %         0.0 %
+       50 m                      66.7 %         0.0 %         0.0 %
+      200 m                      94.5 %         0.0 %         0.0 %
+   y la vía ENTERA desplazada 200 m:   0 portales señalados de 300 vías
+```
+
+**Arreglo aplicado:** el bloque se toma **de la cadena que usa la evaluación**, no de una lista
+ordenada por número con un paso adivinado. Es el mismo objeto en los dos sitios, así que no hay nada
+que adivinar.
+⇒ Y el resultado verdadero **es mucho peor y mucho más útil**: el testigo es **ciego por completo** al
+fallo correlacionado, no «parcialmente ciego». Eso no lo invalida — lo **acota**, que es distinto.
+
+**Ley que sale de aquí:** ⭐⭐ **cuando tengas una predicción algebraica de lo que debe salir,
+compárala con lo que sale ANTES de publicar.** Un contraejemplo aritmético no necesita muestra: si la
+fórmula dice invariante y el dato dice 44 %, no hay nada que discutir sobre el dato.
+⚠️ Y la de andar por casa: **nunca adivines el paso de una secuencia cuando tienes la secuencia
+delante.** El código que la construye ya existía y estaba exportado.
+**Traza:** `src/orden-numeros.js` (`provocar`, A3b), `src/orden.js` (cabecera, la predicción)
+
+---
+
+## [2026-08-03] — Segunda vez en dos tandas: una parada con un umbral que me inventé casi decide sola
+
+**Categoría:** umbral inventado (reincidencia de la nº88, dentro de la tanda siguiente)
+**Síntoma:** la línea base de A3c —barajar los enganches dentro de cada vía— lleva su parada:
+
+```js
+A.exige(100 * ok / n > 40, 'con los enganches barajados el detector apenas señala: no mide orden');
+```
+
+```
+      con los enganches barajados, señala     2113 de 5487  (38.5 %)
+      ⛔ FALLO · con los enganches barajados el detector apenas señala: no mide orden
+```
+
+**38,5 % contra un 40 que puse a ojo.** Rojo por punto y medio. Y el detector **sí mide orden**: la
+tasa real del callejero es del **1,0 %**, o sea que barajar la multiplica por **39**.
+
+**Causa raíz:** el mismo error que la nº88, cometido **la tanda siguiente**, en el mismo proyecto y
+por la misma mano. Escribí un **absoluto** donde el invariante que quería expresar era un
+**cociente**. «Barajar tiene que derrumbar la discriminación» no dice nada sobre el 40 %: dice que la
+tasa barajada tiene que ser muchísimo mayor que la real. Un absoluto exige que yo acierte una cifra a
+ojo; un cociente, no.
+
+**Y por qué el 38,5 % es bajo y aun así correcto:** barajar dentro de una vía deja todos los puntos
+**en la misma calle**. En una vía corta, cambiar los portales de sitio los mueve pocos metros y la
+intercalación aguanta. **Barajar no es lo mismo que descolocar** — y eso lo dice el dato, no yo.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la propia parada**, que hizo
+exactamente su trabajo: se puso roja y obligó a mirar. Lo que estaba mal no era que saltara: era **de
+qué dependía que saltase**. Un guardián que se dispara por el motivo equivocado sigue siendo mejor
+que ninguno, pero es el que más caro sale de creer.
+
+**Cómo se cazó:** por la nº88, escrita **el día anterior**. Su ley decía *«un umbral inventado
+convierte un control positivo en una moneda»*, y al ver el 38,5 contra el 40 la pregunta ya estaba
+hecha.
+
+**Arreglo aplicado:** la parada pasa a ser un **cociente ×10 contra la tasa real**, y el cambio va
+declarado en el código con su motivo. ⛔ Y se comprueba que **no se ha cambiado para que pase**: con
+×10, el 38,5 % actual pasa, pero un 45 % con una tasa real del 30 % **no pasaría** — que es justo lo
+que se quiere vigilar y lo que el absoluto dejaba entrar.
+
+**Ley que sale de aquí:** ⭐⭐ **la mayoría de los invariantes son cocientes disfrazados de
+absolutos.** Si una parada compara un porcentaje con un número que has elegido tú, casi siempre lo
+que querías decir era «mucho mayor que ESTE otro porcentaje del mismo experimento».
+⚠️ Y el dato incómodo: **haber escrito la ley no impidió repetir el fallo.** Lo que lo cazó fue el
+umbral rozando, no la memoria.
+**Traza:** `src/orden-numeros.js` (A3c), `docs/BITACORA.md` nº88
