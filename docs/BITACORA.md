@@ -3015,3 +3015,59 @@ acierta un tercio no puede cortar nada. Antes de actuar sobre un detector hay qu
 se le escapa**, no cuánto encuentra: el recall se mide contra lo que ya se sabe, y si no hay nada
 conocido contra lo que medirlo, el detector no está validado.
 **Traza:** `src/condicionales.js` (`atraviesaEdificio`, `decidir`)
+
+---
+
+## [2026-08-03] — Una línea base que no podía bajar la señal: barajar paridades no baraja nada
+
+**Categoría:** el azar de control no era azar
+**Síntoma:** al remedir el lado de la calle sobre el grafo planarizado, la línea base salió así:
+
+```
+LÍNEA BASE (paridades barajadas) >=0,95   30,5 %
+la señal real >=0,95                      76,0 %
+⇒ 2,5× el azar
+```
+
+**2,5× el azar** es un resultado tibio para una regla que la adenda había medido en **89,5 % contra
+un 4,3 % de base**. Y el número que chirriaba no era la señal: era **la base**, siete veces más
+alta de lo que debería.
+
+**Causa raíz:** la línea base baraja **las paridades de los portales dentro de cada arista**. Sobre
+ways enteros de OSM eso funciona, porque un way lleva portales de los dos lados. **Sobre una arista
+planarizada, no.** Una arista es un tramo corto entre dos cruces, y sus 4 o 5 portales son
+normalmente **todos pares o todos impares** — un solo lado de la calle. Barajar un conjunto
+homogéneo deja el mismo conjunto: el acierto sigue siendo 1,00 hiciera lo que hiciera la baraja.
+
+⇒ **Aquellos 30,5 % no medían el azar: medían cuántas aristas tienen los portales de un solo lado.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **el propio método de la adenda,
+copiado al pie de la letra.** El §A2 dice "paridades barajadas" y da 4,3 %; yo hice exactamente eso.
+Y ahí está lo fino: **la receta era correcta para la unidad en la que se escribió** —ways enteros— y
+dejó de serlo al cambiar la unidad a aristas. La adenda incluso avisaba de que al partir *"la unidad
+de medida cambia"*, y yo lo apliqué a la señal y **no a su control**.
+
+**Cómo se cazó:** por comparar la base con la base anterior, no la señal con la señal. 4,3 % → 30,5 %
+es un salto que ningún cambio de unidad justifica. ⭐ Y el diagnóstico salió de preguntarse **qué
+tendría que romper la baraja para ser una baraja**: si el conjunto es homogéneo, no rompe nada.
+
+**Arreglo aplicado:** la línea base sortea **el LADO de cada portal a cara o cruz**, que es lo que
+de verdad destruye la correspondencia paridad↔lado. Resultado:
+
+```
+⛔ línea base MALA (paridades barajadas)   30,5 %   ⬅ no destruye la señal
+⭐ LÍNEA BASE BUENA (lado a cara o cruz)    4,5 %
+   la señal real >=0,95                    76,0 %
+⇒ 16,9× el azar
+```
+
+⭐ **Y la corrección se confirma sola:** 4,5 % contra el **4,3 %** que midió la adenda por otro
+camino y sobre otra unidad. Dos instrumentos distintos, el mismo azar.
+
+**Ley que sale de aquí:** ⭐⭐ **una línea base es una contraprueba, y se le aplica la misma regla:
+si no puede bajar la señal, no vale.** Antes de publicar un "×N el azar" hay que preguntarle al
+control *¿qué destruye exactamente?* — y comprobar que lo que destruye es la relación que se está
+midiendo, no otra cosa.
+⚠️ Corolario: **al cambiar la unidad de medida hay que rehacer el control, no solo la medida.** Un
+control heredado se hereda con su unidad pegada.
+**Traza:** `src/informe-portales.js` (D4, línea base), `docs/DISEÑO-H1-ADENDA.md` §A2

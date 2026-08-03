@@ -1,0 +1,176 @@
+// D · EL ENGANCHE DE LOS 46.150 PORTALES.
+//
+// ⚠️⚠️ ES EL PASO QUE PUEDE FALLAR SIN ROMPER NADA. Un portal colgado de la calle
+//    equivocada no produce ningún error: produce una ruta perfecta desde el sitio
+//    equivocado, y todos los contadores dan verde. Por eso hay dos salvaguardas
+//    independientes, y por eso ninguna de las dos corrige.
+//
+// ═════════════════════════════════════════════════════════════════════════════
+// P4.5 · ¿SE PARTE LA ARISTA POR CADA PORTAL, O SE GUARDA LA POSICIÓN SOBRE ELLA?
+// ═════════════════════════════════════════════════════════════════════════════
+//   Pregunta abierta del diseño. Se resuelve por **GUARDAR LA POSICIÓN**, y no por
+//   coste —que también— sino por tres consecuencias:
+//
+//   1. ⭐⭐ UN ENGANCHE MALO NO DEBE CORROMPER EL TERRENO. Partir la arista mete
+//      el error DENTRO del grafo: un portal mal enganchado parte una calle por un
+//      sitio que no es, y a partir de ahí el fallo está en el terreno y lo hereda
+//      todo. Guardando la posición, el error se queda en el portal — y una
+//      consulta mala no estropea las demás.
+//   2. ⭐ TODO LO VERIFICADO SIGUE VALIENDO. Partir cambiaría nodos, aristas,
+//      componentes, articulaciones y longitudes, y dejaría incomparables las
+//      tandas 8 y 10 — que son la única línea base que existe.
+//   3. ⭐ ES REVERSIBLE. Cambiar el criterio de enganche mañana no obliga a
+//      reconstruir el grafo: se recalcula una tabla.
+//
+//   El coste: al resolver una ruta hay que insertar origen y destino como nodos
+//   temporales sobre su arista. Son dos nodos por consulta, no 46.150 permanentes.
+//   Y es exactamente la misma separación de D0: el dato municipal no se mezcla con
+//   el terreno, lo verifica.
+//
+// ⛔ NO se copia el geocodificador heredado. Se usa como referencia y se escribe
+//    éste (ley del trasplante). Los portales se leen DONDE ESTÁN, no se copian.
+
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const { aMetros, dist } = require('./geo');
+
+const RUTA_PORTALES = 'E:/PROYECTOS WEB/01 ZGZ RADAR REACT/data/generated/territorio/callejero/ayuntamiento-zaragoza/portales-zaragoza.json';
+const RUTA_VIAS = 'E:/PROYECTOS WEB/01 ZGZ RADAR REACT/data/generated/territorio/callejero/ayuntamiento-zaragoza/vias-zaragoza.json';
+
+// ── normalización de nombres de vía ──────────────────────────────────────────
+// El callejero municipal dice `CALLE DEL COSO`; OSM dice `Calle del Coso`. Y a
+// veces `AVENIDA` frente a `Av.`, o `ANDADOR` frente a nada. Se reduce cada nombre
+// a su NÚCLEO: sin tipo de vía, sin artículos, sin acentos, sin puntuación.
+//
+// ⚠️ Esto NO es un emparejador: es un normalizador. Comparar núcleos dice si dos
+//    nombres son el mismo, no cuál es el más parecido. El emparejamiento aproximado
+//    ya falló en el 29,6 % del dataset heredado, y aquí no se usa.
+const TIPOS_VIA = ['calle', 'avenida', 'plaza', 'paseo', 'camino', 'andador', 'ronda',
+  'via', 'travesia', 'carretera', 'puente', 'pasaje', 'parque', 'glorieta', 'costanilla',
+  'callejon', 'cuesta', 'subida', 'bajada', 'barrio', 'urbanizacion', 'poligono',
+  'grupo', 'bulevar', 'autovia', 'autopista', 'senda', 'vereda', 'canal', 'acequia',
+  'jardin', 'gran via', 'pasadizo', 'rinconada', 'escalinata', 'galeria', 'monasterio'];
+const ARTICULOS = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y', 'e', 'a', 'al', "d'", 'en']);
+
+function sinAcentos(s) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+/** Núcleo comparable de un nombre de vía. Devuelve '' si no queda nada. */
+function nucleo(nombre) {
+  if (!nombre) return '';
+  let s = sinAcentos(String(nombre)).toLowerCase();
+  s = s.replace(/[^a-z0-9ñ ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  // el tipo de vía va al principio; se quita el más largo que case
+  for (const t of TIPOS_VIA.slice().sort((a, b) => b.length - a.length)) {
+    if (s === t) return '';
+    if (s.startsWith(t + ' ')) { s = s.slice(t.length + 1); break; }
+  }
+  const palabras = s.split(' ').filter((p) => p && !ARTICULOS.has(p));
+  return palabras.join(' ');
+}
+
+// ── carga ────────────────────────────────────────────────────────────────────
+
+/** Los 46.150 portales, proyectados a metros. ⛔ Se leen donde están; no se copian. */
+function cargarPortales(ruta = RUTA_PORTALES) {
+  const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
+  return d.map((p) => ({
+    id: p.portalId,
+    codigoVia: String(p.codigoVia),
+    numero: p.numero,
+    n: Number(p.sortNumber),
+    lat: p.coordLat,
+    lon: p.coordLon,
+    m: aMetros(p.coordLon, p.coordLat),
+  }));
+}
+
+/** Las 3.359 vías del callejero municipal, indexadas por `codigoVia`. */
+function cargarVias(ruta = RUTA_VIAS) {
+  const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
+  const m = new Map();
+  for (const v of d) {
+    m.set(String(v.codigoVia), {
+      codigoVia: String(v.codigoVia),
+      nombre: v.nombrePublico || v.nombre,
+      nucleo: nucleo(v.nombrePublico || v.nombre),
+      tipoVia: v.tipoVia,
+      numPortales: v.numPortales,
+    });
+  }
+  return m;
+}
+
+// ── el enganche ──────────────────────────────────────────────────────────────
+
+/** Punto más cercano de un segmento a `p`. Devuelve {d, t, q}. */
+function aSegmento(p, a, b) {
+  const vx = b[0] - a[0], vy = b[1] - a[1];
+  const L2 = vx * vx + vy * vy;
+  let t = L2 ? ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / L2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  const q = [a[0] + t * vx, a[1] + t * vy];
+  return { d: Math.hypot(p[0] - q[0], p[1] - q[1]), t, q };
+}
+
+/** Rejilla de aristas para no comparar todo contra todo. */
+function indexarAristas(aristas, filtro, celda = 100) {
+  const m = new Map();
+  for (let i = 0; i < aristas.length; i++) {
+    if (filtro && !filtro(aristas[i])) continue;
+    const pts = aristas[i].pts;
+    for (let k = 0; k + 1 < pts.length; k++) {
+      const a = pts[k], b = pts[k + 1];
+      const x0 = Math.floor(Math.min(a[0], b[0]) / celda), x1 = Math.floor(Math.max(a[0], b[0]) / celda);
+      const y0 = Math.floor(Math.min(a[1], b[1]) / celda), y1 = Math.floor(Math.max(a[1], b[1]) / celda);
+      for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) {
+        const kk = x + ',' + y;
+        if (!m.has(kk)) m.set(kk, []);
+        m.get(kk).push([i, k]);
+      }
+    }
+  }
+  return { m, celda };
+}
+
+/**
+ * Arista más cercana a un punto, buscando en anillos crecientes.
+ * ⭐ Devuelve TAMBIÉN la segunda mejor de OTRA vía: es lo que permite saber si el
+ *    enganche estaba reñido. Un portal a 4,0 m de una calle y a 4,2 m de otra no
+ *    es un acierto, es un empate — y los empates hay que contarlos aparte.
+ */
+function engancharUno(p, aristas, idx, nombreDe, maxRadio = 120) {
+  const { m, celda } = idx;
+  const cx = Math.floor(p[0] / celda), cy = Math.floor(p[1] / celda);
+  let mejor = null, segunda = null;
+  for (let r = 0; r <= Math.ceil(maxRadio / celda); r++) {
+    for (let x = cx - r; x <= cx + r; x++) for (let y = cy - r; y <= cy + r; y++) {
+      if (r > 0 && Math.abs(x - cx) !== r && Math.abs(y - cy) !== r) continue;
+      for (const [i, k] of (m.get(x + ',' + y) || [])) {
+        const e = aristas[i];
+        const s = aSegmento(p, e.pts[k], e.pts[k + 1]);
+        if (s.d > maxRadio) continue;
+        if (!mejor || s.d < mejor.d) {
+          if (mejor && nombreDe(aristas[mejor.i]) !== nombreDe(e)) segunda = mejor;
+          mejor = { i, k, d: s.d, t: s.t, q: s.q };
+        } else if ((!segunda || s.d < segunda.d) && nombreDe(e) !== nombreDe(aristas[mejor.i])) {
+          segunda = { i, k, d: s.d, t: s.t, q: s.q };
+        }
+      }
+    }
+    // dos anillos más allá del primer acierto, por si el mejor está en diagonal
+    if (mejor && r >= Math.ceil(mejor.d / celda) + 1) break;
+  }
+  return { mejor, segunda };
+}
+
+/** ⭐ D4 · a qué lado del eje cae el punto. +1 / -1 / 0 si está encima. */
+function ladoDe(p, a, b) {
+  const z = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
+  return z > 0 ? 1 : z < 0 ? -1 : 0;
+}
+
+module.exports = { cargarPortales, cargarVias, nucleo, sinAcentos, aSegmento,
+  indexarAristas, engancharUno, ladoDe, RUTA_PORTALES, RUTA_VIAS, TIPOS_VIA };
