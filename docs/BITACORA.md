@@ -2143,3 +2143,147 @@ histograma de la constante que escribiste. ⚠️ Regla operativa: **si un conta
 comprobar primero que la variable existía**, antes de interpretar la uniformidad como hallazgo.
 **Traza:** script desechable de la tanda 7; el dato correcto salió de contar `FarmaciaGuardia` en el
 texto crudo, con positivo y negativo de control
+
+---
+
+## [2026-08-03] — La contraprueba obligatoria no podía ponerse roja: elegía entre 341 aristas que no parten nada
+
+**Categoría:** contraprueba / diseño del test
+**Síntoma:** primera ejecución de la contraprueba C4c[1] del briefing —*borra una unión a
+propósito y comprueba que el contador de componentes lo detecta*—:
+
+```
+aristas de articulación del grafo: 361
+se borra la arista 195 (way 24412443, residential, 17.9 m)
+componentes antes: 18   después: 18
+⇒ ⛔ NO LO DETECTA
+```
+
+**Causa raíz, y son dos capas:**
+1. La arista elegida conectaba un nodo de **grado 1** con el resto. Al borrarla ese nodo no forma
+   una componente nueva: **queda huérfano, sin ninguna arista**. Y de las 361 aristas de
+   articulación, **341 eran así** — colgantes. Elegir al azar entre todas daba un 94 % de
+   probabilidad de caer en una que **no puede partir la red por construcción**.
+2. Y debajo, un fallo real del instrumento vigilado: mi `componentes()` **saltaba en silencio los
+   nodos sin aristas** (`if (ady[s].length === 0) continue`). Había **86 nodos así en el grafo** y
+   ninguno aparecía en ningún contador.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el propio Tarjan, que estaba
+bien.** Las 361 aristas de articulación eran correctas: borrar cualquiera de ellas **sí** desconecta
+algo. El algoritmo no mentía — mentía la **traducción de su salida a la pregunta que yo hacía**.
+*"Aristas cuya eliminación desconecta el grafo"* y *"aristas cuya eliminación crea una componente
+nueva contable"* son conjuntos distintos, y yo los usé como sinónimos.
+
+**Cómo se cazó:** porque el briefing declaraba la contraprueba **obligatoria** y con costura: *"si
+una de las tres NO se pone roja, PARA TODO"*. Se puso verde-por-fallo y hubo que pararse. **Si la
+contraprueba hubiera sido opcional, el rojo falso habría pasado por un verde.**
+
+**Arreglo aplicado:** dos cambios, y los dos declarados en el código.
+- El test elige solo entre **articulaciones INTERNAS** (ambos extremos de grado ≥2): 117 de 458.
+- El contador mide **dos cosas**: número de componentes **y tamaño de la mayor**. Un puente interno
+  mueve la segunda siempre, aunque la primera no cambie.
+- `componentes()` devuelve ahora `aislados` aparte, en vez de ignorarlos.
+
+```
+se borra la arista 3405 (way 672502466, secondary, 43.8 m)
+componentes 20 -> 21     mayor 5016 -> 5014     ✅ ROJO
+```
+
+**Ley que sale de aquí:** ⭐⭐ **una contraprueba que puede pasar por construcción no es una
+contraprueba.** Antes de plantar un fallo hay que preguntarse *"¿de cuántas maneras puede este test
+salir verde sin que el instrumento funcione?"* — y si la respuesta no es cero, el test está mal
+diseñado, no el instrumento.
+⚠️ Corolario: **un contador que ignora casos en silencio es un contador que no puede ponerse rojo
+por esos casos.** El `continue` que salta lo que no encaja es donde se esconden los ceros falsos.
+**Traza:** `src/verificar.js` C4c[1], `src/grafo.js` `componentes()`
+
+---
+
+## [2026-08-03] — Dos crudos de OSM del mismo proyecto, dos formas distintas: `out geom` frente a `out body`
+
+**Categoría:** dato propio / forma no verificada
+**Síntoma:** el control positivo de C4b —*10 cruces conocidos sacados del crudo de la tanda 3*—
+devolvió esto:
+
+```
+candidatos con >=3 ways en el crudo de la tanda 3: 95
+⇒ 0 de 0 cruces conocidos están en el grafo
+```
+
+**95 candidatos y una lista vacía.** El filtro `coord.has(n)` los eliminaba a todos.
+
+**Causa raíz:** el crudo de hoy se pidió con `out geom;` —cada way lleva su geometría embebida en
+`way.geometry`— y el de la tanda 3 se pidió con `out body;`, donde los ways solo traen la **lista de
+ids** en `way.nodes` y **las coordenadas viajan como elementos `node` sueltos** en el mismo array.
+Medido en el fichero:
+
+```
+elementos: 1354   ways: 309 (con nodes: 309, con geometry: 0)   nodes sueltos: 1045
+```
+
+Mi lector buscaba `w.geometry[i]`, que en ese fichero **no existe en ningún way**.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** **que los dos ficheros son JSON de
+Overpass del mismo servidor, del mismo proyecto y con el mismo aspecto por fuera.** Los dos abren
+con `version`, `generator`, `osm3s` y `elements`; los dos parsean sin un aviso; los dos tienen ways
+con `tags` y con `highway`. **La forma que cambia está tres niveles dentro y depende de una palabra
+de la consulta que se escribió hace dos tandas y que no viaja con el fichero.**
+
+**Cómo se cazó:** por el `0 de 0`, que es un cero de los sospechosos —**cero candidatos después de
+haber contado 95**—. Si el filtro hubiera dejado pasar dos o tres, el número habría parecido un
+resultado flojo en vez de un fallo.
+
+**Arreglo aplicado:** leer las coordenadas de los elementos `node` cuando no hay `way.geometry`, con
+el motivo escrito al lado del código.
+**Ley que sale de aquí:** ⭐⭐ **el formato de un crudo no es su forma.** Dos respuestas del mismo
+servicio, en el mismo formato y con las mismas claves de primer nivel, pueden colocar el dato en
+sitios distintos según cómo se pidieran — y **la consulta no viaja dentro del fichero**. Al reusar
+un crudo de otra tanda hay que **abrirlo y mirar dónde está el dato**, no asumir la forma del último
+que se usó.
+⚠️ Y la operativa: **guardar la consulta junto al crudo.** Hoy la sentencia `out` que produjo cada
+fichero solo consta en el informe de su tanda, que es donde nadie la busca seis semanas después.
+**Traza:** `data/exploracion/2026-08-02_osm_overpass_casco-highway.json`, `src/verificar.js` C4b
+
+---
+
+## [2026-08-03] — "La misma zona del casco" volvió a ser dos rectángulos distintos, y el control positivo dio 3 de 10
+
+**Categoría:** encuadre / reincidencia
+**Síntoma:** con el lector arreglado, el control positivo de los 10 cruces conocidos dio **3 de 10**,
+y los siete fallos tenían todos la misma pinta: el nodo del grafo más cercano estaba a **33, 36, 42,
+52, 60 y 96 metros**, con grado 1.
+
+**Causa raíz:** el bbox que elegí para "el casco" y la ventana del crudo de la tanda 3 **no son la
+misma zona**:
+
+```
+mi bbox del casco:  S 41.6480  O -0.8880   N 41.6600  E -0.8690
+bbox del crudo T3:  S 41.65502 O -0.89354  N 41.66034 E -0.88177
+```
+
+El crudo de la tanda 3 se extiende **hasta -0.8935 por el oeste**, y mi zona empezaba en -0.888.
+**Siete de los diez cruces de control caían fuera de mi zona**, así que el "3 de 10" no medía el
+grafo: medía el solape de dos rectángulos. Corregido el encuadre, los mismos diez dan **10 de 10**.
+
+⚠️ **Y no es un fallo nuevo: es el nº18 de esta bitácora, otra vez.** Aquella vez la frase *"la
+misma zona del casco"* comparaba dos rectángulos que solapaban un 21 %; hoy he vuelto a escribir un
+bbox "del casco" a ojo, sin comprobar que contuviera al anterior. **La ley estaba escrita, en este
+mismo fichero, y no evitó nada.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **que el resultado era MALO.** Un
+3 de 10 no se lee como un error de encuadre: se lee como *"el planarizado tiene un problema"*, y
+manda a depurar el planarizado. **Un fallo que apunta a otro sitio es más caro que uno que no
+aparece**, porque consume el tiempo en el sitio equivocado y encima da sensación de estar
+trabajando. Lo que lo delató fue **la forma de los fallos** —todos a decenas de metros y con grado
+1, que es el patrón de "no está en el dato" y no el de "está mal construido"—.
+
+**Arreglo aplicado:** la zona pasa a `S 41.648 O -0.8945 N 41.6615 E -0.869` (3,24 km², antes 2,12),
+elegida para **CONTENER** la ventana de la tanda 3, y con la contención **comprobada en tiempo de
+ejecución** e impresa en el informe de contadores — no dada por buena al escribirla.
+**Ley que sale de aquí:** ⭐⭐ **una ley escrita no protege sin un mecanismo que la ejecute.** La
+nº18 llevaba escrita desde la tanda 2 y volvió a pasar lo mismo en la primera tanda de código; lo
+que lo impide no es recordarla, es **una comprobación de contención dentro del programa**, que falla
+sola. *Escribir la lección es documentación; ejecutarla es ingeniería.*
+⚠️ Corolario práctico: **al comparar contra una medición anterior, la zona nueva tiene que CONTENER
+la vieja, y hay que demostrarlo con una aserción, no con la memoria.**
+**Traza:** `src/ruta.js` `ZONA_CASCO` / `ZONA_TANDA3` / `contiene()`, `src/informe.js` C1
