@@ -45,16 +45,21 @@
 - ⭐⭐ **ZARAGOZA ENTERA PLANARIZADA** (tanda 10): **68.649 nodos, 98.774 aristas**, 6,5 s de
   proceso. ⭐⭐ **LOS RÍOS NO PARTEN EL GRAFO** — 36 de 36 pares sorteados cruzan el Ebro, el Huerva
   y el Gállego. **La costura de mayor impacto del proyecto no se dispara.**
-- ✅ **D1 aguanta a escala de ciudad** (`unido-por-defecto` 0,84 → 1,15 por mil aristas) y **D5 está
-  bien puesta** — las cuatro puntas sin soldar se verificaron a mano y **ninguna era una calle
-  cortada por error**.
+- ✅ **D1 aguanta a escala de ciudad** y **D5 está bien puesta** — las cuatro puntas sin soldar se
+  verificaron a mano y **ninguna era una calle cortada por error**.
+- ⭐⭐ **LOS PORTALES ESTÁN DENTRO** (tandas 11-13). El motor va **de dirección a dirección**, no de
+  coordenada a coordenada.
+- ⭐⭐ **LAS SIETE RUTAS DE ANTONIO: 7 de 7 resueltas · 6 de 7 en rodeo · 0 imposibles.** La nº7 da
+  **2.529 m frente a los 2.600 medidos con GPS** (2,7 %), y la nº1 **cruza por el Puente de
+  Piedra**, como él.
+- ⭐⭐ **EL PUNTO CIEGO, CERRADO** (tanda 13): donde ninguna salvaguarda mira —el 25,9 % de los
+  portales— **el enganche SÍ acierta**.
 
 **Falta decidir:** el alcance v1 del buscador · ⭐ **la lista de candidatos aparcados** (§10), que
 no se toca hasta que H1 cierre.
 
-**Lo siguiente (tanda 11):** ⛔ **excluir las `proposed`** —convirtiendo la lista en regla, no
-añadiendo un valor más—, **ampliar la búsqueda de pasos condicionales**, **inventariar los caminos
-de tierra** (§4), y con el terreno cerrado, **enganchar los 46.150 portales**: el punto 4 de H1.
+**Lo siguiente:** aplicar `entrance=*` (decisión de Antonio, §5·D6), resolver los cabos de §10, y
+**cerrar H1**.
 
 ---
 
@@ -284,6 +289,63 @@ coste dice qué conviene.
 ⚠️ **Hoy no se puede medir bien**: no hay coste ni rutas. **Se inventaría ahora** (cuántas aristas y
 dónde) y se decide cuando el motor calcule — donde `RUTAS-CONOCIDAS.md` lo delatará en un minuto.
 
+### ⭐⭐ EL MOTOR, Y LAS SIETE RUTAS DE ANTONIO (tandas 11-13)
+
+**El grafo va de DIRECCIÓN a DIRECCIÓN.** 46.026 portales enganchados de 46.150 · 2.661 vías en el
+índice de direcciones.
+
+| # | trayecto | calculado | ⭐ rodeo | tope | |
+|---|---|---:|---:|---:|---|
+| 1 | Cataluña 78 → Pablo Gargallo 16 | 3.087 m | 1,17 | ≤1,45 | ✅ **cruza por el Puente de Piedra**, como Antonio |
+| 2 | Manifestación 6 → Don Jaime I 17 | 598 m | 1,32 | ≤1,45 | ✅ |
+| 3 | Cantando Bajo la Lluvia 6 → Clínico | 3.705 m | 1,24 | ≤1,40 | ✅ |
+| 4 | Etopía → Delicias | 506 m | **2,17** | ≤1,60 | ⛔ *la plataforma elevada obliga a rodear — el 2,17 es real* |
+| 5 | Principado de Morea 14 → Utrillas | 477 m | 1,37 | ≤1,45 | ✅ |
+| 6 | Quevedo 1 → Matadero 1 | 523 m | 1,08 | ≤1,45 | ✅ **la esquina no engañó al enganche** |
+| 7 | El Coloso 2 → Valle de Zuriza 48 | 2.529 m | 1,06 | ≤1,20 | ✅ ⭐⭐ **2.529 contra los 2.600 del GPS: 2,7 %** |
+
+**7 de 7 resueltas · 6 de 7 en rodeo · 0 imposibles.**
+
+### ⭐⭐ EL PUNTO CIEGO — cerrado (tanda 13)
+
+**El 25,9 % de los portales engancha a una calle sin nombre en OSM**: ahí el `codigoVia` no puede
+comparar y la nube no opina. **Ninguna salvaguarda mira.** Era el sitio por donde entraría un fallo
+sistemático sin que nada avisara.
+
+**Se resolvió descargando `MU1_jerarquia_viaria` completa** —la capa municipal, **el testigo
+independiente de OSM**, que es exactamente para lo que D0 dice que sirve— y midiendo **cuánto ALEJA
+el enganche al portal de su propio eje**:
+
+```
+                        d(PORTAL→eje)   d(ENGANCHE→eje)   aleja >10 m
+   BUENOS conocidos           23,8 m            21,8 m        0,1 %
+   SOSPECHOSOS conocidos      34,5 m            33,9 m       15,8 %   ⇒ el testigo separa 251×
+   ⭐⭐ CIEGOS                  32,7 m            30,6 m        2,7 %
+```
+
+⇒ ⭐⭐ **VEREDICTO: SÍ ACIERTA.** Donde nadie vigila, el enganche **se comporta como los buenos
+conocidos y no como los sospechosos.** 7.245 casos evaluables frente a los 214 de la tanda 12.
+Línea base 0,0 % · contraprueba de desplazamiento 1,6 % · de identidad 0,3 %.
+
+⭐⭐ **Y el hallazgo que impide la conclusión falsa fácil: el −14,4 en bruto era GEOGRAFÍA.** Los
+ciegos ya estaban **8,9 m más lejos de su eje antes de que el motor tocara nada** — la posición del
+portal la pone el Ayuntamiento. Emparejando por distancia previa: **±2,6 puntos.**
+
+⚠️ **Y su límite, declarado:** el testigo **no alcanza al 36,3 %, y no al azar** — Garrapinillos
+0 %, PLAZA 1,6 %. **El veredicto vale para la ciudad urbana, no para el término.**
+
+### ⭐ LAS PUERTAS — `entrance=*` existe, y se va a usar
+
+`entrance=*` **SÍ está en OSM**: 2.085 nodos, 295 de ellos `main`. *(La tanda 12 dijo `NO CONSTA` y
+era correcto con su dato: pedía ways y esto son nodos. Faltaba pedirlo.)*
+Solo el **3,9 %** de los edificios lo trae — pero **donde está, es la puerta de verdad**.
+⛔ **Delicias: el motor rutea a 25,8 m de su `entrance=main`.** No es una puerta declarada.
+
+⇒ **DECISIÓN DE ANTONIO: si el dato dice dónde se entra, se entra por ahí.**
+**Orden de preferencia:** entrada **principal** → entrada **cualquiera** *(avisando de que no es la
+principal: una `yes` puede ser puerta de servicio o salida de emergencia)* → punto de perímetro más
+cercano → ⛔ **nunca el centroide**.
+
 ### ⭐⭐ Los portales no son solo destinos: son TESTIGOS
 
 *(Idea de Antonio, tanda 4. Yo los había tratado todo el proyecto como puntos que se enganchan a
@@ -463,13 +525,19 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 | ⭐⭐ **"De qué lado de la calle está un portal no se puede saber"** (P4.3 del diseño) | ⚠️ **Falso.** 89,5 % de aciertos contra una línea base del 4,3 %. **Abre el nivel 2 completo** |
 | ⭐ **"Hay tres huecos de cobertura nuevos"** | ⚠️ **Dos de los tres eran del propio instrumento.** Un radio de 25,0 m contra portales a 25,0–26,5 m: **por un metro**. De 10 huecos publicados, **4 falsos** |
 | ⭐ **"El 4,11 % puede estar tocado por el sesgo de homónimos"** | ⚠️ **Sospecha MÍA, refutada leyendo el código:** aquel instrumento **no toca los nombres**, así que era inmune. Correcto y **ligeramente pesimista** |
+| ⭐⭐ **"La Estación de Delicias queda sin acceso, hay que usar los pasos condicionales"** | ⚠️ **Falso, y era MÍO.** Lo que la dejaba sin acceso era **su centroide, 60 m dentro del edificio**. Con la puerta, **ninguna de las siete rutas necesita un paso condicional (±0 m)**. *La decisión de Antonio sigue en pie —el caso que de verdad la justifica apareció solo: la ruta del casco que cruza el C.C. Independencia El Caracol— pero **se decidió con un argumento equivocado y se acertó igual*** |
+| ⭐⭐ **"El contador de pasos condicionales se queda corto: el Pasaje Palafox no está entre los 96"** | ⚠️ **Falso, y era MÍO.** Sus tres ways **sí** llevan `building_passage`. Lo cierto es que **además** tiene la punta sin soldar de 4,94 m |
+| ⭐ **"Las bandas de las siete rutas sirven para comparar"** | ⚠️ **Falso, y era MÍO.** Derivadas de los tiempos con **4,3–5,0 km/h**; Antonio anda a **~6**. Tres bandas eran **físicamente imposibles contra la línea recta**. ⭐ Y el aviso estaba escrito en el propio documento: *poner la advertencia y usar el instrumento igual no es una excepción, es el patrón* |
+| **"Los 512 m del enganche eran por usar el grafo del casco"** | ⚠️ **Solo una de las dos causas.** `resolver()` enganchaba **al nodo**: máximo real 566,6 m. **512 m cabía también en el grafo bueno** |
+| **"`entrance=*` no consta en el dato"** (tanda 12) | ⚠️ **Correcto con su dato, falso en general:** aquellas descargas eran de **ways** y las entradas son **nodos**. Existen: **2.085**. *Faltaba pedirlo* |
+| **"Son 2.006 portales sin ningún testigo"** | ⚠️ **Era una extrapolación.** Contados: **1.879**, y la capa municipal rescata 287 ⇒ **1.592 (3,5 %)** |
 | ⭐ **"Los 504 de Overpass eran la forma de la consulta"** (ley nº32) | ⚠️ **Refutada al día siguiente por el propio ejecutor**, con el dato en la mano: fallaron también sentencias únicas, y el servidor declaraba slots libres ocho segundos después de un 504. **Causa: `CAUSA NO CONFIRMADA`** — que es `NO CONSTA` con apellido |
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 42 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 49 VECES
 
-**Dieciséis tandas. Cuarenta y dos instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
+**Diecinueve tandas. Cuarenta y nueve instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
 no una anécdota — y llegó antes que el proyecto.
 
 | # | Qué mintió |
@@ -516,6 +584,13 @@ no una anécdota — y llegó antes que el proyecto.
 | 40 | ⭐⭐⭐ **EL CRUDO TRAÍA CALLES DE COSTA RICA Y DE MÉXICO.** `area["name"="Zaragoza"]` **no nombra un sitio: nombra una CLASE de sitios.** Cuatro municipios homónimos, 398 ways de 48.211 — invisibles en el volumen, y **mueven el bbox 18.000 km**: superficie declarada 27.013.502 km² contra los 973,8 del término. ⭐ **El fallo suma, no resta**, así que la descarga sigue valiendo. Y el casco lo tapaba porque el recorte los tiraba. *Tercera vez que muerde el homónimo — y ahora contra el nombre de la propia ciudad* |
 | 41 | ⭐⭐⭐ **13,8 KM DE CALLES QUE TODAVÍA NO EXISTEN, Y EL GRAFO DEJA ANDAR POR ELLAS.** 178 aristas `proposed`, **23 de ellas ARTICULACIONES**: 82 nodos cuyo único paso es una calle sin construir. ⭐ Y la causa es la ley: *`transitableAPie()` excluye `construction` porque en el casco había 117 y se los encontró de frente; no excluye `proposed` porque allí había cero.* **Un filtro escrito enumerando los casos que aparecieron no es una regla: es una lista** |
 | 42 | ⭐⭐ **PEÑAFLOR DE GÁLLEGO INCOMUNICADO —294 nodos, 317 calles con nombre— Y EL CONTADOR DE COMPONENTES URBANAS DABA 0.** El clasificador lo etiquetó como *"artefacto del límite"*: **la costura funcionaba y su propia definición se había comido el caso.** ⭐ *Estar pegado al borde es la causa, no una excusa para no contarlo: explicar un agujero no es taparlo* |
+| 43 | ⭐⭐⭐ **UN SCRIPT MIRANDO EL GRAFO EQUIVOCADO, Y NADA AVISABA.** `ruta.js` usaba el grafo del **casco** (5.121 nodos) sobre una dirección del Actur: origen enganchado a **512 m** y **rodeo 0,884 — físicamente imposible**. ⭐ Y mentía con toda naturalidad: sello correcto, JSON válido, avisos coherentes, `encontrada: true`. **Solo el grafo estaba mal.** ⚠️ Lo destapó **una pregunta de curiosidad de Antonio** —*¿por qué pasa por Juslibol?*—, no una verificación: nadie tenía motivo para ejecutar ese script |
+| 44 | ⭐⭐ **Y LOS 512 m TENÍAN DOS CAUSAS.** `resolver()` **enganchaba al NODO, no a la arista**: máximo real **566,6 m**. ⇒ **512 m cabía también en el grafo bueno.** Arreglar solo la zona no habría arreglado nada |
+| 45 | ⭐⭐⭐ **UN GUARDIÁN QUE AVISA EN ROJO Y SIGUE.** Una ruta de cordura estuvo **DOS TANDAS rota**, publicada en `H1-PRIMER-GRAFO.md` §C4d **como correcta**, con el `⛔` impreso en pantalla y el proceso saliendo en 0. ⭐ **Aquí ni siquiera hacía falta escribir la ley: el instrumento ya lo había detectado.** *Un `⛔` impreso no es un fallo: es texto* |
+| 46 | ⭐⭐⭐ **LA PREMISA DE UNA DECISIÓN ERA UN ARTEFACTO.** Se presentó *"la Estación de Delicias queda sin acceso"* como motivo urgente para cambiar la decisión sobre pasos condicionales. **Falso:** lo que la dejaba sin acceso era **su centroide, 60 m dentro del edificio**. Con la puerta, **ninguna de las siete rutas necesita un paso condicional (±0 m)**. ⭐ **Solo se pudo saber porque el orden C→D era obligatorio** — tocándolos a la vez, la conclusión habría sido *"C arregló Delicias"* para siempre |
+| 47 | ⭐⭐ **EL CÓDIGO IBA POR DETRÁS DEL DOCUMENTO.** `rutas-antonio.js` tenía las bandas **v1** copiadas dentro y publicó *"0 de 5 en banda"* cuando el fichero decía otra cosa: eran **3 de 5 dentro y 2 rozando**. *Dos copias del mismo dato divergen — y ya habían divergido* |
+| 48 | ⭐⭐ **UN CONTADOR DE SÍMBOLOS HABRÍA INFLADO EL PROBLEMA POR DIEZ.** Buscar `⛔` en las salidas dio **10 sospechosos de 18 scripts**; clasificados a mano, **nueve eran prosa o contadores en cero** (`⛔ rodeos imposibles 0 ✅`). **Solo uno era un fallo** |
+| 49 | ⭐⭐⭐ **TRES COMPROBACIONES DEGRADADAS EN TRES TANDAS SEGUIDAS, TODAS POR PASAR POR CONSTRUCCIÓN.** El cuarto testigo del E7 *(un portal es ciego precisamente porque enganchó a una acera sin nombre)*; la de las puertas *(«el 97 % tiene la puerta entre los candidatos» era trivial: las entradas son vértices del polígono y el muestreo mete todos los vértices — la delató una mediana de 0,0 m)*; y la de articulaciones de la tanda 9. **Ya no es casualidad: es un patrón** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -648,6 +723,29 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
 43. ⭐ **EL SIGNO DEL ERROR ES INFORMACIÓN, Y HAY QUE MIRARLO ANTES DE BUSCAR LA CAUSA.** *"Es el
     redondeo" era plausible para +21 nodos y era falso; para −10 se demostró midiendo las 11
     colisiones.*
+44. ⭐⭐⭐ **UN `⛔` IMPRESO NO ES UN FALLO: ES TEXTO.** Si el proceso acaba en 0, el fallo **no
+    existe** para nadie que no lea la pantalla entera. ⇒ **Un guardián que avisa y no para es casi
+    peor que no tenerlo**, porque el rojo estaba ahí y nadie lo leyó.
+45. ⭐⭐⭐ **UNA MAGNITUD DERIVADA ARRASTRA EL ERROR DE LA CONSTANTE CON QUE SE DERIVÓ.** Si esa
+    constante no está medida, **no es un dato: es una opinión con unidades.** *(Las bandas de las
+    siete rutas se derivaron de los tiempos suponiendo 4,3–5,0 km/h; Antonio anda a ~6, y tres
+    bandas salieron FÍSICAMENTE IMPOSIBLES contra la línea recta.)*
+46. ⭐⭐⭐ **EL ORDEN DE LOS ARREGLOS ES PARTE DEL EXPERIMENTO.** Arreglar dos cosas a la vez no
+    solo impide saber cuál operó: **puede fabricar una explicación falsa que nadie volverá a
+    cuestionar.** *(Delicias.)*
+47. ⭐⭐ **UNA COMPROBACIÓN QUE NO PUEDE FALLAR NO ES UNA COMPROBACIÓN — y el proyecto ya lleva
+    tres seguidas.** ⇒ **Norma:** antes de escribir cualquier verificación, responder por escrito
+    *"¿puede esto pasar (o fallar) sin que nada funcione?"*. **Si el resultado sale redondo —97 %,
+    3 de 3, mediana 0,0— es la señal.**
+48. ⭐⭐ **UNA DIFERENCIA EN BRUTO NO ES UN EFECTO: PUEDE SER GEOGRAFÍA.** *Los portales ciegos
+    enganchaban 14,4 puntos peor… y ya estaban 8,9 m más lejos de su eje antes de que el motor
+    tocara nada, porque la posición del portal la pone el Ayuntamiento. Emparejando por distancia
+    previa: ±2,6 puntos.* ⇒ **Buscar el confusor antes de publicar el efecto.**
+49. ⭐ **CLASIFICAR ANTES DE CONTAR, TAMBIÉN AL AUDITAR CÓDIGO.** *Buscar `⛔` daba 10 sospechosos;
+    nueve eran prosa o contadores en cero.*
+50. ⭐ **UN TESTIGO QUE NO PUEDE OPINAR EN TODAS PARTES SOLO VALE DONDE OPINA — y hay que decir
+    dónde no.** *El tercer testigo no alcanza al 36,3 %, y no al azar: Garrapinillos 0 %,
+    PLAZA 1,6 %.* ⇒ **El veredicto vale para la ciudad urbana, no para el término.**
 
 ---
 
@@ -722,7 +820,10 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **8** | ⭐ **El primer grafo** — adenda al diseño + planarizado de una zona | **H1** | ✅ **primera tanda con código** |
 | **9** | ⭐ **Mirar el grafo con los ojos** — visor de inspección | **H1** | ✅ |
 | **10** | ⭐⭐ **Zaragoza entera** — 98.774 aristas, los ríos no parten el grafo | **H1** | ✅ |
-| **11** | *(siguiente: `proposed` fuera + enganchar los portales)* | **H1** | ⬜ |
+| **11** | ⭐ **Los portales entran en el grafo** + `proposed` fuera | **H1** | ✅ |
+| **12** | Cerrar H1: el grafo equivocado, el centroide, los pasos condicionales | **H1** | ✅ |
+| **13** | ⭐⭐ **El punto ciego** — la capa municipal completa como tercer testigo | **H1** | ✅ **cerrado** |
+| **14** | *(siguiente: `entrance=*` y cierre de H1)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -822,6 +923,26 @@ escala a la vez invalidaría la comparación—: las `proposed`, los tres barrio
 contador de pasos condicionales se queda corto.
 ⭐ **Y las cuatro puntas sin soldar las verificó Antonio una a una sobre el terreno.** Cuatro de
 cuatro correctas.
+
+### 11 — Los portales entran en el grafo (3/08)
+El punto 4 de H1: **46.026 portales enganchados**, `proposed` fuera (**la lista convertida en
+regla**), pasos condicionales marcados y caminos de tierra inventariados. ⭐ Y las **siete rutas de
+Antonio** se ejecutan por primera vez.
+
+### 12 — Cerrar H1 (3/08)
+⭐⭐ **El hallazgo lo destapó una pregunta de curiosidad de Antonio** —*¿por qué la ruta 7 pasa por
+Juslibol?*—: `ruta.js` miraba el **grafo del casco** y devolvía un **rodeo de 0,884**, físicamente
+imposible, dentro de un JSON impecable. Y tenía **dos causas**, no una.
+⭐ Y el orden obligatorio C→D destapó que **la premisa que justificó una decisión era un
+artefacto**: Delicias no la arreglaron los pasos condicionales, la arregló el centroide.
+
+### 13 — El punto ciego (3/08)
+Se descarga la capa municipal completa como **tercer testigo, independiente de OSM**, y **el punto
+ciego se cierra: el enganche SÍ acierta** donde nadie vigila.
+⭐ Con el confusor localizado y neutralizado —*el −14,4 en bruto era geografía*— y el límite
+declarado: **el veredicto vale para la ciudad urbana, no para el término.**
+⛔ Y sale un patrón que ya no es anécdota: **tres comprobaciones degradadas en tres tandas
+seguidas, todas por pasar por construcción** (§8·47).
 ## 10 · Cabos abiertos
 
 ### ⭐⭐ Los que bloquean el diseño
@@ -906,6 +1027,19 @@ hora y a esa distancia el coche es lo razonable.
   `name`. Se cierra cuando toque descargar OSM de verdad en H1 — pide red.
 - ⚠️ **163 de las 2.595 vías "encontradas" (6,3 %) apuntan a un nombre que corresponde a más de un
   objeto físico.** El texto acertó el nombre y **no dice cuál es**.
+- ⚠️ **1.592 portales (3,5 %) sin NINGÚN testigo** — ni con nombre en OSM ni alcanzados por la capa
+  municipal. ⚠️ **No todos son descampados**: mediana de 25 vecinos en 300 m, y en la muestra
+  aparecen **Avenida de la Ilustración, José Anselmo Clavé y Vía Hispanidad**.
+- ⚠️ **198 portales con la firma de un enganche malo** — *candidatos, no errores*: una acera de
+  avenida ancha produce esa firma sin que nadie se equivoque. Sin verificar a mano.
+- ⚠️ **El punto ciego de Garrapinillos y los polígonos** necesitaría **otra fuente**, y hoy no se
+  sabe cuál.
+- ⚠️ **`H1-PRIMER-GRAFO.md` §C4d publica una ruta que estuvo rota dos tandas** (`Puerta del Carmen
+  → Magdalena`). El documento es registro histórico: **se corrige en documento nuevo, no se
+  reescribe.**
+- ⚠️ **El diseño y la adenda se contradicen** en el enganche de portales: P4.1 dice *"manda el
+  código, SIEMPRE"* y la adenda §A1 dice *"por proximidad"*. **Manda la adenda** (posterior y
+  explícita, y es lo que se ha construido). Pendiente de reconciliar por escrito.
 - **944 paradas en el WFS contra 934 en el GTFS.** Sin explicar.
 - **La clave del NAP.** Trámite de Antonio. El feed muere el **05/10/2026**.
 - **Los dos números no cerrados de §4** (4,4 % de la red medida; 117 capas sin abrir).
