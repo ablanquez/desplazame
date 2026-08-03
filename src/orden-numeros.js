@@ -72,13 +72,26 @@ di('vías con al menos un portal', porVia.size);
   const v = [...porVia.values()].map((l) => l.length).sort((a, b) => a - b);
   di('portales por vía', `mediana ${v[Math.floor(v.length / 2)]} · p90 ${v[Math.floor(v.length * 0.9)]} · máx ${v[v.length - 1]}`);
   log('');
-  log('   ' + 'con al menos'.padEnd(16) + 'vías'.padStart(8) + 'portales cubiertos'.padStart(22) + '  % del callejero');
+  // ⚠️ DOS COLUMNAS, y la diferencia entre ellas es media tanda: lo que hace falta
+  //    NO son 5 portales, son 5 NÚMEROS ÚNICOS. Enseñar solo la primera columna
+  //    daría un 95,9 % de cobertura que no existe.
+  const únicosDe = (l) => { const c = new Map(); for (const o of l) c.set(o.n, (c.get(o.n) || 0) + 1);
+    return l.filter((o) => c.get(o.n) === 1).length; };
+  log('   ' + 'con al menos'.padEnd(16) + 'vías'.padStart(8) + 'portales'.padStart(12) + '  %'
+    + '   ' + '…con NÚMEROS ÚNICOS'.padStart(21) + '  %');
   for (const k of [2, 3, 5, 10, 20, 50]) {
     const vs = [...porVia.values()].filter((l) => l.length >= k);
     const ps = vs.reduce((s, l) => s + l.length, 0);
-    log('   ' + `${k} portales`.padEnd(16) + String(vs.length).padStart(8) + String(ps).padStart(22)
-      + '  ' + pct(ps, portales.length).padStart(7) + (k === O.MIN_CADENA ? '   ⭐ el mínimo que se exige' : ''));
+    const vu = [...porVia.values()].filter((l) => únicosDe(l) >= k);
+    const pu = vu.reduce((s, l) => s + l.length, 0);
+    log('   ' + `${k} portales`.padEnd(16) + String(vs.length).padStart(8) + String(ps).padStart(12)
+      + '  ' + pct(ps, portales.length).padStart(7)
+      + '   ' + `${vu.length} vías · ${pu}`.padStart(21) + '  ' + pct(pu, portales.length).padStart(7)
+      + (k === O.MIN_CADENA ? '   ⭐ el mínimo' : ''));
   }
+  log('   ⚠️ La columna que manda es la de la DERECHA, y aun así **es un techo, no la');
+  log('      cobertura**: la cadena se parte por paridad y cada mitad necesita sus 5, así');
+  log('      que lo que de verdad se evalúa sale más abajo y es bastante menos.');
 }
 log('');
 log('   ⭐ EL MÍNIMO SON ' + O.MIN_CADENA + ' NÚMEROS DISTINTOS POR CADENA, y de dónde sale: con 5 hay');
@@ -349,7 +362,7 @@ log('   (c) ⭐ LÍNEA BASE — se barajan los enganches DENTRO de cada vía');
     'barajar los enganches no dispara el detector ni ×10: no está midiendo orden');
   log('   ⇒ ⚠️ Y por qué NO sale más alto: barajar dentro de una vía deja todos los puntos');
   log('     EN LA MISMA CALLE. En una vía corta, cambiarlos de sitio mueve pocos metros y');
-  log('     la intercalación aguanta. El 38,5 % no es debilidad del detector: es que');
+  log('     la intercalación aguanta. Ese ' + tasaBaraja.toFixed(1) + ' % no es debilidad del detector: es que');
   log('     barajar no es lo mismo que descolocar.');
 }
 
