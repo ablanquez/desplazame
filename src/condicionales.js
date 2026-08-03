@@ -181,5 +181,105 @@ function decidir(hallazgos) {
   return { excluir: firme, marcar: hallazgos.length > 0 };
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// C2 · EL AVISO LLEVA EL NOMBRE DEL SITIO
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐ *"Puede estar cerrado"* no le sirve a nadie. *"Este tramo cruza el interior de
+//    la Estación Zaragoza-Delicias"* sí: **la app no sabe el horario, pero el
+//    usuario muchas veces sí.** Es lo mismo que hizo 003: no *"error"*, sino
+//    *"esto no significa que no haya autobuses, significa que no lo sabemos"*.
+//
+// ⛔ EL NOMBRE SALE DEL DATO O NO SALE. Tres fuentes, en orden de firmeza, y
+//    ninguna inventa: el edificio que atraviesa → el nombre del propio way → nada.
+//    Cuando no hay, el aviso dice *"un edificio"*, que es la verdad.
+//
+// ⚠️ Y hay una cuarta respuesta que no es "no hay nombre": **"no se ha mirado"**.
+//    Los polígonos de edificio solo se descargaron para el centro denso. Fuera de
+//    esa ventana, la ausencia de edificio no significa que no lo cruce.
+
+let _edificios = null;   // caché de proceso: el fichero son 12 MB
+
+/** Carga (una vez) los polígonos CON su nombre, y su rejilla. */
+function edificios(ruta = CRUDO_EDIFICIOS) {
+  if (_edificios) return _edificios;
+  const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
+  const polis = [];
+  for (const w of d.elements) {
+    if (w.type !== 'way' || !w.geometry || w.geometry.length < 4) continue;
+    const pts = w.geometry.map((p) => aMetros(p.lon, p.lat));
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const p of pts) {
+      if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0];
+      if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1];
+    }
+    polis.push({ id: w.id, pts, bb: [x0, y0, x1, y1], nombre: (w.tags || {}).name || null });
+  }
+  _edificios = { sello: d.osm3s && d.osm3s.timestamp_osm_base, polis, idx: indexar(polis) };
+  return _edificios;
+}
+
+const enVentana = (lat, lon) => lat >= ZONA_EDIFICIOS.sur && lat <= ZONA_EDIFICIOS.norte
+  && lon >= ZONA_EDIFICIOS.oeste && lon <= ZONA_EDIFICIOS.este;
+
+/**
+ * Rellena `condEdificio` y `condMirado` en las aristas condicionales.
+ * ⭐ Solo mira las que YA están marcadas por etiqueta —151 ways de 98.774—, así que
+ *    cuesta un pestañeo. No es la vía geométrica de búsqueda (ésa tiene un recall
+ *    del 36 % y por eso no decide nada): aquí el paso ya está identificado y lo
+ *    único que se busca es CÓMO SE LLAMA lo que atraviesa.
+ */
+function nombrar(aristas, aGrados) {
+  let conNombre = 0, sinNombre = 0, fuera = 0;
+  let E = null;
+  for (const e of aristas) {
+    if (!e.condicional) continue;
+    const medio = e.pts[Math.floor(e.pts.length / 2)];
+    const [lon, lat] = aGrados(medio[0], medio[1]);
+    if (!enVentana(lat, lon)) { e.condMirado = false; fuera++; continue; }
+    if (!E) E = edificios();
+    e.condMirado = true;
+    // ⚠️ el polígono que CONTIENE el punto medio del tramo. Se prefiere el que
+    //    tenga nombre: un pasaje suele caer dentro de la manzana y del edificio.
+    const { m, celda } = E.idx;
+    const cx = Math.floor(medio[0] / celda), cy = Math.floor(medio[1] / celda);
+    let elegido = null;
+    for (const i of (m.get(cx + ',' + cy) || [])) {
+      const po = E.polis[i];
+      if (!puntoEnPoligono(medio, po.pts)) continue;
+      if (!elegido || (!elegido.nombre && po.nombre)) elegido = po;
+    }
+    if (elegido) { e.condEdificio = { id: elegido.id, nombre: elegido.nombre }; if (elegido.nombre) conNombre++; else sinNombre++; }
+    else sinNombre++;
+  }
+  return { conNombre, sinNombre, fuera };
+}
+
+/**
+ * El aviso tal como lo vería un usuario. Devuelve null si el tramo no es condicional.
+ * ⛔ Nunca inventa un nombre. Si no lo hay, lo dice.
+ */
+function aviso(e, nombreDeWay) {
+  if (!e.condicional) return null;
+  const nWay = nombreDeWay ? nombreDeWay(e.way) : null;
+  const sitio = (e.condEdificio && e.condEdificio.nombre) ? `«${e.condEdificio.nombre}»`
+    : (nWay ? `«${nWay}»` : null);
+
+  if (e.condVia === 'highway=elevator') {
+    return 'este tramo es un ASCENSOR' + (sitio ? ` de ${sitio}` : '')
+      + ': puede estar parado, o solo funcionar en horario';
+  }
+  let t;
+  if (sitio) t = `este tramo cruza el interior de ${sitio}`;
+  else if (e.condMirado === false) {
+    t = 'este tramo cruza el interior de un edificio ⚠️ (fuera de la ventana de edificios '
+      + 'descargada: no se ha podido mirar cuál)';
+  } else t = 'este tramo cruza el interior de un edificio (sin nombre en OSM)';
+
+  if (e.condHorario) t += `, con horario declarado «${e.condHorario}»`;
+  else t += ', y puede estar cerrado a ciertas horas — la app no sabe su horario';
+  return t;
+}
+
 module.exports = { porEtiqueta, porNombre, decidir, cargarEdificios, indexar, atraviesaEdificio,
-  puntoEnPoligono, PATRON_NOMBRE, ZONA_EDIFICIOS, CRUDO_EDIFICIOS };
+  puntoEnPoligono, edificios, nombrar, aviso, enVentana,
+  PATRON_NOMBRE, ZONA_EDIFICIOS, CRUDO_EDIFICIOS };

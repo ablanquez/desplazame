@@ -317,11 +317,25 @@ function planarizar(ways, opciones = {}) {
     const w = ways[i], t = w.tags || {};
     const pr = precision(t), pie = transitableAPie(t);
     // ⭐ B4 · el paso condicional EXISTE y se anda: es terreno, y se construye.
-    //    Lo que no hace es estar siempre abierto, así que el enrutador no lo usa.
     //    Es un CAMPO de la arista, como la precisión de D4 — no una exclusión del
     //    grafo. Separar "existe" de "se puede pasar ahora" es la misma decisión.
+    //
+    // ⭐⭐ DECISIÓN NUEVA DE ANTONIO (tanda 12): antes se ignoraban para calcular.
+    //    La primera consecuencia real medida fue que **la Estación de Delicias
+    //    quedaba sin acceso a pie**, y eso no es un atajo perdido: es un destino
+    //    mayor inalcanzable. Ahora **se USAN y se AVISA**, porque la app no tiene
+    //    que decidir por el usuario si el edificio está abierto — tiene que
+    //    decirle que no lo sabe. Ignorarlo en silencio es fingir que el camino no
+    //    existe, que es tan falso como fingir que está abierto.
+    //
+    // ⭐ C3 · Y el MOTIVO viaja como campo desde aquí hasta la salida, igual que
+    //    la precisión: sin él el aviso solo podría decir "puede estar cerrado",
+    //    que no le sirve a nadie.
     const et = porEtiqueta(t);
     const cond = !!(et && et.firme);
+    const condVia = cond ? et.via : null;
+    // el horario declarado, TAL CUAL viene en OSM. No se interpreta ni se traduce.
+    const condHorario = cond && t.opening_hours ? t.opening_hours : null;
     // posiciones de corte ordenadas a lo largo del way, con extremos incluidos
     const marcas = [{ idx: 0, t: 0, p: w.pts[0], nodo: w.nodes[0] },
       ...cortes[i],
@@ -356,7 +370,10 @@ function planarizar(ways, opciones = {}) {
       if (na === nb) continue;
       aristas.push({
         a: na, b: nb, largo: L, way: w.id, highway: t.highway,
-        precision: pr, pie, condicional: cond,
+        precision: pr, pie, condicional: cond, condVia, condHorario,
+        // el edificio que atraviesa se rellena después, en `condicionales.nombrar()`:
+        // aquí solo se sabe lo que dicen las etiquetas del propio way.
+        condEdificio: null, condMirado: null,
         unidoPorDefecto: !!(A.defecto || B.defecto),
         pts: puntos,
       });

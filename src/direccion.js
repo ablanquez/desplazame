@@ -88,16 +88,16 @@ function resolver(texto, indice) {
  * ⚠️ Cuesta: engancha los 46.150 portales. Se hace UNA vez por proceso.
  */
 function abrir(g, crudo, opciones = {}) {
-  const osm = require('./osm');
   const E = require('./enganche');
   const Po = require('./portales');
-  const TAGS = opciones.TAGS || new Map();
-  if (!opciones.TAGS) for (const w of osm.cargar(crudo).ways) TAGS.set(w.id, w.tags || {});
+  // ⭐ los nombres vienen del propio grafo, del MISMO recorte que lo produjo. Antes
+  //    esto releía los 37 MB del crudo para sacar exactamente lo mismo.
+  const TAGS = opciones.TAGS || { get: (id) => ({ name: g.nombres.get(id) || null }) };
   const r = E.enganchar(g, TAGS, opciones);
   const indice = construirIndice(r.portales.filter((o) => o.enganchado), r.vias);
   const eng = Po.indexarAristas(g.aristas, (e) => e.pie);
   return { g, TAGS, indice, eng, enganche: r,
-    nombreDeWay: (id) => (TAGS.get(id) || {}).name || null };
+    nombreDeWay: (id) => g.nombres.get(id) || null };
 }
 
 /**

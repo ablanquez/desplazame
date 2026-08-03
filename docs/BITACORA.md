@@ -3478,3 +3478,122 @@ en una divergencia silenciosa.
 números — hay que releer QUÉ COLUMNA MANDA.** Yo habría actualizado las bandas y habría seguido
 ignorando el rodeo.
 **Traza:** `src/tabla-rutas.js` (nuevo), `src/rutas-antonio.js`, `data/pruebas/RUTAS-CONOCIDAS.md` (⛔ sin tocar)
+
+---
+
+## [2026-08-03] — `verificar.js` llevaba una tanda entera contradiciendo al documento publicado, y nadie releyó esa línea
+
+**Categoría:** el instrumento y el documento dejaron de decir lo mismo
+**Síntoma:** al comparar la salida de `src/verificar.js` antes y después de meter los pasos
+condicionales en el cálculo:
+
+```
+antes:   ⇒ soldar las puntas de D5 quitó 2 componentes
+después: ⇒ soldar las puntas de D5 quitó 0 componentes
+```
+
+Y `docs/H1-PRIMER-GRAFO.md`, publicado en la tanda 8, dice literalmente:
+**"⚠️ D5 no quitó ni una componente en esta zona."**
+
+⇒ **El instrumento llevaba desde la tanda 11 contradiciendo al informe publicado**, y el número que
+daba de más era precisamente el que sostendría el argumento contrario.
+
+**Causa raíz:** los dos lados de la resta se construían con **políticas distintas**.
+· la LÍNEA BASE la cuenta `contarComponentes()`, que solo mira `e.pie` — **incluye** los pasos condicionales;
+· el "grafo de hoy" era `g.comp`, que venía de `adyacencia(..., sinCondicionales=true)` — los **excluía**.
+La tanda 11 introdujo `e.condicional` y cambió uno de los dos lados. El otro se quedó como estaba.
+
+⭐ Y hay un giro que lo hacía más difícil de ver: **quitar aristas BAJÓ el número de componentes**
+(22 → 20), que es lo contrario de lo que uno espera. Un nodo que se queda sin ninguna arista deja de
+contar como componente y pasa a `aislados` — la trampa de la nº50, que está escrita en `grafo.js` y
+que aun así volvió a operar.
+
+**Contador independiente, las cuatro combinaciones, para no discutirlo de memoria:**
+
+```
+   D5=0,0 m  condicionales dentro  ->  22 componentes
+   D5=2,0 m  condicionales dentro  ->  22 componentes      ⇒ D5 quita 0
+   D5=0,0 m  condicionales FUERA   ->  20 componentes
+   D5=2,0 m  condicionales FUERA   ->  20 componentes      ⇒ D5 quita 0
+```
+
+⭐ **Con la misma política en los dos lados, la respuesta es 0 en las dos políticas.** El "2" no
+medía D5: medía la diferencia entre las dos políticas.
+⛔ **D5 no está en cuestión.** Lo que estaba mal era la resta.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la verificación entera de la tanda
+11 y la de la 10.** `verificar.js` salía con código 0, todas sus contrapruebas en su sitio, y esta
+línea impresa en medio del informe diciendo lo contrario que el documento. **Un número mal no rompe
+nada si nadie lo compara con nada** — y una línea informativa dentro de un informe largo no la compara
+ningún guardián.
+
+**Cómo se cazó:** por hacer el diff de la salida antes y después de un cambio de decisión, que es una
+costumbre de esta tanda y no una verificación programada. Sin ese diff seguiría ahí.
+
+**Arreglo aplicado:** ninguno específico — **lo arregla la propia decisión de C**, al poner los pasos
+condicionales dentro del cálculo, que es lo que vuelve a igualar los dos lados. Lo que sí queda es
+saber que la igualdad era accidental en las dos direcciones.
+
+**Ley que sale de aquí:** ⭐⭐ **una resta entre dos grafos exige que los dos se hayan construido con
+la misma política, y la política no se ve en el número.** Cuando se añade un filtro nuevo al grafo
+—`pie`, `condicional`, lo que venga— hay que ir a buscar TODAS las líneas base que se comparan contra
+él, porque ninguna se entera sola.
+⚠️ Y la operativa: **cuando un informe publicado y el instrumento vivo digan cosas distintas, gana la
+pregunta, no el número.** Aquí la pregunta era *"¿cuántas componentes quita D5?"*, y ninguno de los dos
+la estaba respondiendo.
+**Traza:** `src/verificar.js` (C4a), `src/ruta.js` (`construir`), `docs/H1-PRIMER-GRAFO.md:155-161`
+
+---
+
+## [2026-08-03] — Una ruta de cordura PUBLICADA como correcta llevaba dos tandas rota, y cruzaba un centro comercial sin decirlo
+
+**Categoría:** regresión silenciosa en algo ya publicado
+**Síntoma:** la tercera de las tres rutas de cordura del casco, en `src/verificar.js`:
+
+```
+   Puerta del Carmen -> Magdalena   ⛔ componentes-distintas
+```
+
+Y `docs/H1-PRIMER-GRAFO.md` §C4d, de la tanda 8, la publica **resuelta y correcta**:
+
+```
+   Puerta del Carmen -> Magdalena  1.334,4 m  recta 1.088,5 m   rodeo ×1,226  ✅
+```
+
+**Una de las tres rutas de cordura publicadas dejó de existir en algún momento entre la tanda 8 y
+hoy, y el informe siguió saliendo en verde.**
+
+**Causa raíz:** la exclusión de los pasos condicionales de la tanda 11. Esa ruta **necesita** uno.
+Al ponerlos dentro del cálculo vuelve a resolverse, y ahora se ve por dónde va:
+
+```
+   way  53856138  indoor=yes  ->  cruza el interior de «Centro Comercial Independencia El Caracol»
+   way 197980340  indoor=yes  ->  cruza el interior de un edificio (sin nombre en OSM)
+   way  53856142  indoor=yes  ->  cruza el interior de un edificio (sin nombre en OSM)
+```
+
+⭐⭐ **Y ahí está la historia entera de esta decisión en tres líneas.** En la tanda 8 el motor mandaba
+a la gente **por dentro de un centro comercial sin decirlo**. En la tanda 11 dejó de mandarlas, pero
+contestando **"no hay camino"**, que es falso. Desde hoy manda y **avisa de que cruza El Caracol**,
+que es lo único de las tres que es verdad.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la propia línea de la ruta.**
+`verificar.js` imprime `⛔ componentes-distintas` y **sigue adelante**: el bucle de las rutas de
+cordura hace `continue`, no falla. El script terminaba con código 0 y la sección se titula *"ninguna
+puede ser más corta que la línea recta"* — que era cierto, porque de tres rutas solo comprobaba dos.
+**Un guardián que solo mira una condición no vigila las demás, y su verde parece completo.**
+
+**Cómo se cazó:** por leer el diff de `verificar.js` al cambiar la política de pasos condicionales.
+⚠️ **No lo cazó nadie durante dos tandas** porque nadie vuelve a leer la salida de un verificador que
+sale en verde, y porque `⛔` dentro de una línea no es lo mismo que un código de salida distinto de 0.
+
+**Arreglo aplicado:** lo repara la decisión de C. Y queda la lección de instrumento: **una ruta de
+cordura que no se resuelve tiene que hacer FALLAR el verificador**, no imprimir un símbolo y seguir.
+⚠️ **NO lo he cambiado en esta tanda** —tocar `verificar.js` mientras se comparan sus salidas es
+cambiar dos cosas a la vez (ley 19)— y queda anotado como pendiente.
+
+**Ley que sale de aquí:** ⭐⭐ **un resultado publicado no se queda quieto: cada regla nueva puede
+romperlo, y el que lo rompe no se entera.** Lo publicado necesita una prueba que lo defienda, no una
+frase en un documento.
+⚠️ Corolario: **`continue` es la forma más barata de convertir un fallo en una línea de informe.**
+**Traza:** `src/verificar.js` (C4d), `docs/H1-PRIMER-GRAFO.md:230-236`

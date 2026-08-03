@@ -13,11 +13,12 @@
 
 'use strict';
 const path = require('path');
-const { aMetros } = require('./geo');
+const { aMetros, aGrados } = require('./geo');
 const osm = require('./osm');
 const { planarizar } = require('./planarizar');
 const G = require('./grafo');
 const P = require('./portales');
+const C = require('./condicionales');
 
 const CRUDO = path.join(__dirname, '..', 'data', 'fuentes',
   '2026-08-03_overpass_zaragoza-highway_geom-y-tags.json');
@@ -88,7 +89,8 @@ function declarar(g, opciones) {
     + `  (${g.areaKm2.toFixed(0)} km²)\n`
     + `⚑ sello=${g.sello}  nodos=${g.contadores.nodos}  aristas=${g.contadores.aristas}`
     + `  a-pie=${g.aristasAPie}  componentes=${g.comp.n}  mayor=${Math.max(...g.comp.tamanos)}`
-    + `  pasos-condicionales=${opciones.conCondicionales === true ? 'DENTRO' : 'fuera'}\n`);
+    + `  pasos-condicionales=${g.condicionales.dentro ? 'DENTRO' : 'fuera'}`
+    + ` (${g.condicionales.aristas} aristas, ${g.condicionales.conNombre} con el sitio identificado)\n`);
 }
 
 function construir(zona, opciones = {}) {
@@ -100,13 +102,29 @@ function construir(zona, opciones = {}) {
   const { sello, ways } = osm.cargar(CRUDO);
   const recorte = osm.proyectar(osm.recortar(ways, zona));
   const { nodos, aristas, contadores, noConectados, porDefecto, puntasLejos } = planarizar(recorte, opciones);
-  // ⭐ por defecto el enrutador NO usa los pasos condicionales (B4). Se puede
-  //    pedir el grafo con ellos para medir la diferencia, que es lo que hace el
-  //    informe — pero lo que contesta una ruta es esto.
-  const { ady, usadas } = G.adyacencia(nodos, aristas, true, opciones.conCondicionales !== true);
+
+  // ⭐⭐ C · LOS PASOS CONDICIONALES ENTRAN EN EL CÁLCULO. Decisión nueva de
+  //    Antonio en la tanda 12: antes se ignoraban «porque son raros», y la primera
+  //    consecuencia real medida fue que la Estación de Delicias quedaba sin acceso
+  //    a pie. Se usan y se AVISA, con el nombre del sitio.
+  // ⛔ Se pueden dejar fuera con `{ sinCondicionales: true }` — para medir la
+  //    diferencia, que es lo que hace el informe. Pero lo que contesta una ruta
+  //    los lleva dentro.
+  const sinCond = opciones.sinCondicionales === true;
+  // el nombre de lo que atraviesa cada paso condicional: campo, no consulta suelta
+  const nombrados = C.nombrar(aristas, aGrados);
+
+  const { ady, usadas } = G.adyacencia(nodos, aristas, true, sinCond);
   const comp = G.componentes(nodos, ady);
+  // ⭐ el nombre de cada way, UNA vez y desde el mismo recorte que produjo el grafo.
+  //    Antes cada consumidor releía los 37 MB del crudo por su cuenta para sacar lo
+  //    mismo — y releer un dato es la forma barata de que dos copias divergan.
+  const nombres = new Map();
+  for (const w of recorte) if (w.tags && w.tags.name) nombres.set(w.id, w.tags.name);
+
   const g = { sello, zona, nodos, aristas, ady, comp, contadores, noConectados, porDefecto,
-    puntasLejos, aristasAPie: usadas, areaKm2: osm.areaKm2(zona) };
+    puntasLejos, aristasAPie: usadas, areaKm2: osm.areaKm2(zona), nombres,
+    condicionales: { ...nombrados, aristas: aristas.filter((e) => e.condicional).length, dentro: !sinCond } };
   declarar(g, opciones);
   return g;
 }
@@ -199,6 +217,16 @@ function resolver(g, latO, lonO, latD, lonD) {
 
   const porDefecto = ruta.pasos.filter((p) => p.unidoPorDefecto).length;
   const conPrecisionBaja = ruta.pasos.filter((p) => p.precision === 'eje-de-calzada').length;
+
+  // ⭐⭐ C2 · el aviso de cada paso condicional, CON EL NOMBRE DEL SITIO, tal como
+  //    lo vería un usuario. Uno por tramo, no uno genérico para toda la ruta: si
+  //    la ruta cruza dos edificios, el usuario tiene derecho a saber cuáles.
+  const nombreDeWay = (id) => (g.nombres && g.nombres.get(id)) || null;
+  for (const p of ruta.pasos) {
+    if (!p.condicional) continue;
+    avisos.push({ tipo: 'paso-condicional', metros: Math.round(p.metros),
+      via: p.condVia, dice: C.aviso(p, nombreDeWay) });
+  }
 
   return {
     encontrada: true,

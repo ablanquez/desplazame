@@ -25,6 +25,7 @@ const P = require('./portales');
 const D = require('./direccion');
 const G = require('./grafo');
 const T = require('./tabla-rutas');
+const Co = require('./condicionales');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 const { aMetros, dist } = require('./geo');
 
@@ -91,16 +92,24 @@ if (require.main === module) {
   log(lectura.texto);
   if (!lectura.cuadra) { log('   ⛔ PARADA: la lectura de la tabla no cuadra.'); process.exit(1); }
 
-  const conCondicionales = process.argv.includes('--con-condicionales');
-  const g = construir(ZONA_TERMINO, { conCondicionales });
+  // ⭐ C · los pasos condicionales van DENTRO del cálculo (decisión de la tanda 12).
+  //    Se construye TAMBIÉN el grafo sin ellos, no por gusto: es la única forma de
+  //    separar "la ruta los usa" de "la ruta los NECESITA", que son dos cosas
+  //    distintas y la ley 23 pide contarlas por separado.
+  const g = construir(ZONA_TERMINO);
+  const gSin = construir(ZONA_TERMINO, { sinCondicionales: true });
   const ctx = D.abrir(g, CRUDO);
+  const ctxSin = { eng: P.indexarAristas(gSin.aristas, (e) => e.pie) };
 
   log('');
   log('='.repeat(104));
   log('LAS SIETE, UNA A UNA');
   di('grafo · portales enganchados', `${g.aristas.length} aristas · ${ctx.enganche.contadores.enganchados}`);
   di('vías en el índice de direcciones', ctx.indice.size);
-  di('pasos condicionales', conCondicionales ? '⚠️ DENTRO del cálculo' : 'fuera del cálculo');
+  di('pasos condicionales', `⚠️ DENTRO del cálculo · ${g.condicionales.aristas} aristas, `
+    + `${g.condicionales.conNombre} con el sitio identificado por nombre`);
+  di('componentes con ellos · sin ellos', `${g.comp.n} · ${gSin.comp.n}`
+    + `   (mayor ${Math.max(...g.comp.tamanos)} · ${Math.max(...gSin.comp.tamanos)})`);
 
   const resultados = [];
   for (const ru of tabla.rutas) {
@@ -139,9 +148,39 @@ if (require.main === module) {
           + Math.abs(res.metros - (res.metros < ru.banda[0] ? ru.banda[0] : ru.banda[1])).toFixed(0) + ' m'));
     di('línea recta', recta.toFixed(0) + ' m'
       + (ru.rectaDeclarada ? `   (la tabla declara ${ru.rectaDeclarada} m)` : ''));
+    // ── C · ¿usa pasos condicionales? ¿los NECESITA, o son atajo? ────────────
     const cond = res.pasos.filter((p) => p.condicional);
-    if (cond.length) di('⚠️ pasos condicionales en la ruta', cond.length + ' tramos · '
-      + cond.reduce((s, p) => s + p.metros, 0).toFixed(0) + ' m');
+    let sinCond = null;
+    if (cond.length) {
+      di('⚠️ pasos condicionales en la ruta', cond.length + ' tramos · '
+        + cond.reduce((s, p) => s + p.metros, 0).toFixed(0) + ' m');
+      log('');
+      log('   ⭐⭐ EL AVISO, TAL COMO LO VERÍA UN USUARIO:');
+      // ⚠️ se agrupan los avisos LITERALMENTE IDÉNTICOS —siete tramos del mismo
+      //    pasillo dicen lo mismo siete veces— y se conserva el recuento y los
+      //    metros. Agrupar lo idéntico no borra nada; agrupar lo parecido, sí.
+      const porTexto = new Map();
+      for (const p of cond) {
+        const t = Co.aviso(p, ctx.nombreDeWay);
+        if (!porTexto.has(t)) porTexto.set(t, { n: 0, m: 0 });
+        const v = porTexto.get(t); v.n++; v.m += p.metros;
+      }
+      for (const [t, v] of porTexto) {
+        log('      ⚠️  ' + t + `   (${v.m.toFixed(0)} m` + (v.n > 1 ? ` en ${v.n} tramos` : '') + ')');
+      }
+      // el mismo trayecto SIN ellos: distingue necesidad de atajo
+      const re = (p) => {
+        const x = P.engancharUno(p.m, gSin.aristas, ctxSin.eng, () => '', 350).mejor;
+        return x ? { arista: x.i, seg: x.k, t: x.t, q: x.q, d: x.d, m: p.m } : null;
+      };
+      const a2 = re(a), b2 = re(b);
+      const r2 = (a2 && b2) ? G.rutaEntre(gSin, a2, b2) : { encontrada: false };
+      sinCond = r2.encontrada ? r2.metros : null;
+      log('');
+      di('⭐ ¿los NECESITA o son un atajo?', r2.encontrada
+        ? `ATAJO — sin ellos también hay ruta: ${r2.metros.toFixed(0)} m (+${(r2.metros - res.metros).toFixed(0)} m, ${((r2.metros / res.metros - 1) * 100).toFixed(1)} %)`
+        : 'LOS NECESITA — sin ellos NO HAY CAMINO');
+    }
 
     log('');
     log('   ⭐ A6 · DÓNDE SE VAN LOS METROS');

@@ -248,6 +248,11 @@ function rutaEntre(g, oP, dP, opciones = {}) {
     } else {
       pasos.push({ way: e.way, highway: e.highway, precision: e.precision,
         unidoPorDefecto: e.unidoPorDefecto, condicional: !!e.condicional,
+        // ⭐ C3 · el motivo y el sitio viajan hasta la salida, igual que la
+        //    precisión de D4. Sin ellos el aviso solo podría decir "puede estar
+        //    cerrado", que no le sirve a nadie.
+        condVia: e.condVia || null, condHorario: e.condHorario || null,
+        condEdificio: e.condEdificio || null, condMirado: e.condMirado,
         metros: m, aristas: 1 });
     }
   }
