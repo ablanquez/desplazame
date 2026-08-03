@@ -282,3 +282,24 @@ coverage/
 #    la afirmacion sobre las formas de respuesta del endpoint (bitacora nº48):
 !data/exploracion/2026-08-02_sede-zaragoza_farmacia-guardia_fecha-02-07-2026_VACIA-sin-result.json
 !data/exploracion/2026-08-02_sede-zaragoza_farmacia-guardia_fecha-invalida_HTTP400.json
+
+# ==============================================================================
+# 2026-08-02 - TANDA 8 - data/fuentes/ : EL DATO DE PRODUCCION
+# ------------------------------------------------------------------------------
+# ⚠️ NO es lo mismo que data/exploracion/, y la diferencia es el CICLO DE VIDA:
+#      data/exploracion/  es EVIDENCIA de un momento. Su valor es NO CAMBIAR.
+#                         Esta CONGELADA. Entra a mano, fichero a fichero.
+#      data/fuentes/      es el dato que el motor CONSUME. Se REFRESCA.
+#                         OSM cambia a diario; el GTFS muere el 05/10/2026.
+#
+# ⛔ Por eso queda entera fuera de git, y NO por licencia: por FRESCURA.
+#    Un dato de produccion versionado es un dato que se pudre sin avisar y que
+#    alguien clona seis meses despues creyendo que esta al dia.
+#    Se regenera con su script; lo que se versiona es EL SCRIPT, no su salida.
+#
+# ⭐ El comentario va en LINEA PROPIA a proposito: un '# ...' al final de una
+#    regla FORMA PARTE DEL PATRON. Ya mordio en la tanda 1 con '*.pem  # claves'
+#    (bitacora nº15: tres reglas inertes, dos de credenciales).
+data/fuentes/
+
+# Y la carpeta de pruebas SI se versiona: la rellena Antonio a mano.
