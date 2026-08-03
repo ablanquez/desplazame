@@ -303,3 +303,10 @@ coverage/
 data/fuentes/
 
 # Y la carpeta de pruebas SI se versiona: la rellena Antonio a mano.
+
+# ── 2026-08-03 · TANDA 9 · el derivado del visor ──────────────────────────────
+#    tools/grafo-visor.js lo genera src/exportar.js a partir del grafo. Es un
+#    DERIVADO: se regenera en un segundo y cambia cada vez que cambia el crudo de
+#    OSM o el planarizado. Versionarlo seria guardar para siempre fotos de un
+#    dato que ya no existe. Lo que se versiona es el exportador y el visor.
+tools/grafo-visor.js

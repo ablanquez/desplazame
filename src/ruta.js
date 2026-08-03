@@ -42,11 +42,11 @@ function contiene(a, b) {
 function construir(zona = ZONA_CASCO, opciones = {}) {
   const { sello, ways } = osm.cargar(CRUDO);
   const recorte = osm.proyectar(osm.recortar(ways, zona));
-  const { nodos, aristas, contadores, noConectados } = planarizar(recorte, opciones);
+  const { nodos, aristas, contadores, noConectados, porDefecto, puntasLejos } = planarizar(recorte, opciones);
   const { ady, usadas } = G.adyacencia(nodos, aristas, true);
   const comp = G.componentes(nodos, ady);
-  return { sello, zona, nodos, aristas, ady, comp, contadores, noConectados,
-    aristasAPie: usadas, areaKm2: osm.areaKm2(zona) };
+  return { sello, zona, nodos, aristas, ady, comp, contadores, noConectados, porDefecto,
+    puntasLejos, aristasAPie: usadas, areaKm2: osm.areaKm2(zona) };
 }
 
 function resolver(g, latO, lonO, latD, lonD) {
