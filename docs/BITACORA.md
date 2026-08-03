@@ -3731,3 +3731,140 @@ siguió vivo, el primero parecía la causa — y la parecía con números correc
 caso** antes de dejar que decida.
 **Traza:** `src/rutas-antonio.js` (contrafactual de las siete), `src/puerta.js`, `docs/H1-PORTALES.md`
 (la conclusión que esto matiza)
+
+---
+
+## [2026-08-03] — El tercer testigo salió por debajo del azar, y el que estaba mal era yo: le hacía la pregunta equivocada
+
+**Categoría:** la prueba no simulaba el problema
+**Síntoma:** el testigo por herencia —*"una acera sin nombre pegada a la Calle Mayor es de la Calle
+Mayor"*— medido contra 4.000 portales con nombre conocido:
+
+```
+   ⭐ acierta el vecino CON NOMBRE MÁS CERCANO   981 de 4000  (24.5 %)
+   línea base (azar entre las vecinas)          1022 de 3930  (26.0 %)
+   ⇒ señal / azar   0.94×
+```
+
+**Por debajo del azar.** Y sin embargo, en las cuatro direcciones de Antonio el mismo testigo acierta
+**4 de 4**, a 0,0 · 5,2 · 4,6 y 2,7 metros.
+
+**Causa raíz:** la prueba ocultaba el nombre **del way entero**, así que pedía *reconstruir un nombre
+que ya no existe en la zona*. El caso real es el contrario: **la acera no tiene nombre, pero la
+calzada de al lado SÍ lo tiene**. ⇒ La prueba era **más difícil que el problema**, no más fácil.
+
+⭐⭐ Y ocultar solo la arista habría sido peor: sus hermanas del mismo way llevan el mismo nombre y
+habrían cantado la respuesta — **la prueba habría pasado por construcción** (ley 35). Las dos
+versiones obvias estaban mal, cada una por un lado.
+
+⇒ **La pregunta que sí se puede responder no es "¿cómo se llama esta acera?" sino "¿está la calle que
+dice el callejero entre las que hay alrededor del enganche?"** — una PRESENCIA, no una adivinanza. Y
+el patrón de verdad ya existía sin fabricarlo: los enganches que la salvaguarda 1 ya marca como
+`concuerda` (buenos) y `DISCORDA` (sospechosos).
+
+```
+   buenos conocidos        61,9 %          sospechosos   21,4 %
+   una calle AL AZAR        0,1 %          ⇒ separa 40,5 puntos · 412× el azar
+```
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **las dos contrapruebas.** La de
+desplazamiento derrumbaba el acierto de 24,5 % a 5,3 % y la de identidad a 0,1 %. **Las dos pasaron
+perfectamente sobre un testigo que no servía para nada**, porque las contrapruebas comprueban que el
+instrumento reacciona a la posición y a la identidad — no que la pregunta sea la correcta.
+
+**Cómo se cazó:** por la incoherencia entre el 24,5 % agregado y el 4 de 4 de las direcciones de
+Antonio. **Dos números del mismo instrumento que no pueden ser los dos ciertos.**
+
+**Arreglo aplicado:** se conserva y se publica el testigo de adivinanza **con su fracaso**, porque el
+fracaso también es un resultado, y se añade el de presencia, que es el que responde.
+
+**Ley que sale de aquí:** ⭐⭐ **una contraprueba valida el instrumento, no la pregunta.** Que un
+número se derrumbe al desplazar y al barajar solo demuestra que mide algo real; puede estar midiendo
+algo real que no sirve.
+⚠️ Y la práctica: **antes de medir, escribe el caso real y comprueba que tu simulación se le parece.**
+La mía borraba un dato que en el caso real está presente.
+**Traza:** `src/sin-vigilancia.js` (`heredar`, `presencia`, E3 / E3b / E4 / E5)
+
+---
+
+## [2026-08-03] — El testigo municipal medía cobertura de la descarga, no acierto del enganche
+
+**Categoría:** el filtro que faltaba convertía un hueco en un error
+**Síntoma:** primer uso de la geometría municipal (`MU1_jerarquia_viaria`) como cuarto testigo:
+distancia del enganche al eje municipal **de su propia calle**:
+
+```
+   mediana 39,5 m · p90 1.031,5 m · p99 3.024,7 m
+   ⭐ a ≤ 25 m del eje de su calle:  885 de 2461  (36,0 %)
+```
+
+**Un p99 de tres kilómetros.** Ningún enganche está a 3 km de su calle: el número era imposible.
+
+**Causa raíz:** la muestra municipal de la tanda 0 se bajó **por zonas** (12 recuadros), no entera —
+197 tramos de los 3.644 de la capa. Un portal de la Avenida X que esté fuera de esos recuadros está a
+kilómetros del **trozo muestreado** de su avenida. ⇒ Se estaba midiendo **dónde llega la descarga**,
+no dónde engancha el portal.
+
+⭐ Lo que sí se comprobó ANTES de usarlo, y menos mal: que el `codigo` municipal **es el mismo código**
+que el `codigoVia` del callejero — 197 de 197 existen en `vias-zaragoza.json`, y donde el tramo trae
+nombre coincide en el 62 % (el resto son nombres nulos y variantes de la A-2). Si eso hubiera fallado,
+todo lo demás habría sido ruido con decimales.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el positivo de control.** El mismo
+test contra un código municipal AL AZAR daba 0,1 %, o sea que el instrumento **sí distinguía la calle
+propia de otra cualquiera**. Un test puede discriminar perfectamente y estar respondiendo a otra
+pregunta.
+
+**Cómo se cazó:** por mirar el p99 antes que la mediana. **El signo y la escala del error son
+información** y se miran antes de buscar la causa: un p99 de 3 km no es un enganche malo, es otra cosa.
+
+**Arreglo aplicado:** se exige que el portal esté en **zona CUBIERTA** — que haya algún tramo
+municipal, del código que sea, a menos de 60 m. Fuera de ahí no se ha mirado, y no se cuenta.
+2.461 → 1.633 portales, mediana 39,5 → 23,1 m, y el resultado pasa a ser interpretable.
+
+**Ley que sale de aquí:** ⭐⭐ **cuando el patrón de referencia es una muestra parcial, "lejos del
+patrón" y "fuera de la muestra" son indistinguibles — y hay que separarlos con una condición de
+cobertura, no con un umbral.** Subir el umbral habría escondido el problema y dado un número bonito.
+**Traza:** `src/sin-vigilancia.js` (E2d, `CUBIERTO`), `data/exploracion/*_MU1jv.json` (⛔ solo lectura)
+
+---
+
+## [2026-08-03] — El consenso por id de way decía que los ciegos están peor, y lo decía por construcción
+
+**Categoría:** contraprueba que no puede no fallar
+**Síntoma:** el cuarto testigo —*¿cuelga este portal del mismo way de OSM que los demás portales de su
+calle, o se ha ido él solo?*—, que tiene la virtud de **no necesitar nombres** y por tanto de poder
+opinar justo donde los dos viejos se callan:
+
+```
+   buenos conocidos        3,1 % SOLOS
+   sospechosos             9,4 % SOLOS
+   ⭐⭐ donde nadie vigila  12,9 % SOLOS      ⇒ peor que los sospechosos
+```
+
+Parecía la respuesta de la tanda: **los ciegos están peor que los ya marcados como sospechosos.**
+
+**Causa raíz — y es de bulto:** un portal está en el grupo "ciego" **precisamente porque enganchó a
+una arista sin nombre**. Sus hermanos de la misma calle que engancharon a la calzada CON nombre están,
+por definición, en otro way. ⇒ **Sale "solo" sin que nadie se haya equivocado.** La pertenencia al
+grupo causa el resultado.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **los dos confusores que sí se me
+ocurrieron**, y los dos quedaron descartados con datos:
+· ¿es que son aceras? — dentro del mismo tipo de vía la diferencia seguía (6,8 % frente a 13,1 %);
+· ¿es que la acera está más troceada? — 0,785 frente a 0,821 ways por portal, casi nada.
+**Descartar dos confusores no descarta el tercero**, y el tercero era el que estaba metido en la
+definición del grupo.
+
+**Cómo se cazó:** por preguntar, como manda la ley 35 pero del revés: *¿puede esto FALLAR aunque todo
+funcione?* La respuesta era sí, y de forma garantizada.
+
+**Arreglo aplicado:** el testigo se **degrada** y no entra en el veredicto. Se publica con su motivo,
+porque un testigo descartado con razón es información y borrarlo sería fingir que no se probó.
+
+**Ley que sale de aquí:** ⭐⭐ **cuando el criterio que define un grupo y el criterio que lo mide
+comparten una variable, el resultado está escrito antes de medirlo.** Aquí los dos eran «¿tiene nombre
+el way al que engancha?».
+⚠️ Operativa: antes de comparar dos grupos, escribe **cómo se decidió quién está en cada uno** y
+compruébalo contra lo que vas a medir.
+**Traza:** `src/sin-vigilancia.js` (E2b, `acompanado`, `tasaSolo`)
