@@ -386,6 +386,15 @@ if (require.main === module) {
   const conCond = resultados.filter((x) => x.ok && x.cond && x.cond.length);
   di('rutas que pasan por un paso condicional', conCond.length + (conCond.length ? '  (nº ' + conCond.map((x) => x.ru.n).join(', ') + ')' : ''));
 
+  // ⭐ `--aristas` · una línea más al final con los índices de arista de cada ruta.
+  //    ⛔ Existe para que NADIE tenga que recalcular las siete por su cuenta: una
+  //    segunda copia del cálculo es exactamente la forma del fallo nº68 (medir una
+  //    cosa y que el motor use otra). Sin el flag, la salida es idéntica byte a byte.
+  if (process.argv.includes('--aristas')) {
+    log('##ARISTAS## ' + JSON.stringify(resultados.filter((x) => x.ok)
+      .map((x) => ({ n: x.ru.n, metros: x.metros, aristas: x.aristas }))));
+  }
+
   log('');
   log(Al.cierre('BANCO DE PRUEBAS DE ANTONIO'));
   di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');

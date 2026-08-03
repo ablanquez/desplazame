@@ -41,19 +41,23 @@ function cargar(ruta = FICHERO) {
   for (const f of d.features) {
     if (!f.geometry) continue;
     const cod = f.properties && f.properties.codigo;
+    const k = cod == null ? null : String(cod);
     const pts = [];
     for (const linea of f.geometry.coordinates) {
       for (const p of linea) {
         // ⚠️ [lon, lat]: comprobado con el bbox, no supuesto por el nombre del CRS.
         const m = aMetros(p[0], p[1]);
         pts.push(m);
-        puntos.push(m);
+        // ⭐ el CÓDIGO viaja con el punto desde la tanda 14. Sin él se puede
+        //    contestar «hay un eje cerca» pero no «es el eje de OTRA calle», y esa
+        //    segunda pregunta es justo la que separa una firma inocente de un
+        //    enganche a la calle equivocada.
+        puntos.push({ m, cod: k });
         if (m[0] < x0) x0 = m[0]; if (m[0] > x1) x1 = m[0];
         if (m[1] < y0) y0 = m[1]; if (m[1] > y1) y1 = m[1];
       }
     }
-    if (cod == null) { sinCodigo++; continue; }
-    const k = String(cod);
+    if (k == null) { sinCodigo++; continue; }
     if (!porCodigo.has(k)) porCodigo.set(k, { pts: [], nombre: null, tipos: new Set() });
     const v = porCodigo.get(k);
     v.pts.push(...pts);
@@ -64,7 +68,7 @@ function cargar(ruta = FICHERO) {
   const celda = 100;
   const rejilla = new Map();
   for (const p of puntos) {
-    const k = Math.floor(p[0] / celda) + ',' + Math.floor(p[1] / celda);
+    const k = Math.floor(p.m[0] / celda) + ',' + Math.floor(p.m[1] / celda);
     if (!rejilla.has(k)) rejilla.set(k, []);
     rejilla.get(k).push(p);
   }
@@ -96,7 +100,7 @@ function cubierto(M, m, radio = 60) {
   for (let x = cx - r; x <= cx + r; x++) {
     for (let y = cy - r; y <= cy + r; y++) {
       for (const p of (M.rejilla.get(x + ',' + y) || [])) {
-        if (Math.hypot(m[0] - p[0], m[1] - p[1]) <= radio) return true;
+        if (Math.hypot(m[0] - p.m[0], m[1] - p.m[1]) <= radio) return true;
       }
     }
   }
@@ -111,12 +115,35 @@ function masCercanoDeCualquiera(M, m, radio = 200) {
   for (let x = cx - r; x <= cx + r; x++) {
     for (let y = cy - r; y <= cy + r; y++) {
       for (const p of (M.rejilla.get(x + ',' + y) || [])) {
-        const d = Math.hypot(m[0] - p[0], m[1] - p[1]);
+        const d = Math.hypot(m[0] - p.m[0], m[1] - p.m[1]);
         if (d < md) { md = d; mejor = p; }
       }
     }
   }
-  return { d: md, p: mejor };
+  return { d: md, p: mejor ? mejor.m : null, cod: mejor ? mejor.cod : null };
 }
 
-module.exports = { cargar, dA, cubierto, masCercanoDeCualquiera, FICHERO };
+/**
+ * ⭐⭐ El eje municipal más cercano **DE OTRA CALLE** que no sea `codigoPropio`.
+ * Es la pregunta que separa «la geometría produce esta firma» de «el enganche está
+ * en la calle equivocada»: estar lejos del eje propio puede ser una acera de
+ * avenida; estar ENCIMA del eje de otra calle no.
+ * @returns {{d:number, cod:string|null}}
+ */
+function masCercanoDeOtra(M, m, codigoPropio, radio = 200) {
+  let md = Infinity, cod = null;
+  const cx = Math.floor(m[0] / M.celda), cy = Math.floor(m[1] / M.celda);
+  const r = Math.ceil(radio / M.celda);
+  for (let x = cx - r; x <= cx + r; x++) {
+    for (let y = cy - r; y <= cy + r; y++) {
+      for (const p of (M.rejilla.get(x + ',' + y) || [])) {
+        if (p.cod === codigoPropio || p.cod == null) continue;
+        const d = Math.hypot(m[0] - p.m[0], m[1] - p.m[1]);
+        if (d < md) { md = d; cod = p.cod; }
+      }
+    }
+  }
+  return { d: md, cod };
+}
+
+module.exports = { cargar, dA, cubierto, masCercanoDeCualquiera, masCercanoDeOtra, FICHERO };
