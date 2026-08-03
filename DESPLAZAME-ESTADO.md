@@ -35,10 +35,21 @@
   Antonio): **los portales generan el eje** (1,3 m de error mediano promediando por paridad) y
   **el lado de la calle sí se puede saber** (89,5 % contra línea base 4,3 %).
 
-**Falta decidir:** el stack · el alcance v1 del buscador · el momento oro · ⭐ **cómo entran en el
-diseño los tres usos nuevos de los portales** (§4).
+- ⭐⭐ **H1 ARRANCADO. EXISTE EL PRIMER GRAFO** (tandas 8 y 9): 3,24 km² del casco, **5.121 nodos,
+  7.175 aristas, 20 componentes con el 99,1 % en la mayor**. Con D1, D2, D4 y D5 aplicados y las
+  tres contrapruebas en rojo.
+- ⭐ **Stack decidido: JavaScript sobre Node, cero dependencias** — coherente con que el grafo
+  peatonal viva en el navegador.
+- ⭐ **Inspección visual hecha** (tanda 9): visor propio, y **el ojo no encontró ningún fallo del
+  grafo**. Sí encontró una categoría que ningún dato iba a enseñar: **los pasos condicionales**.
 
-**Lo siguiente:** incorporar al diseño de H1 lo que abrieron las tandas 4 y 5, y abrir H1.
+**Falta decidir:** el alcance v1 del buscador · ⭐ **la lista de candidatos aparcados** (§10), que
+no se toca hasta que H1 cierre.
+
+**Lo siguiente:** ⭐ **planarizar Zaragoza entera.** Lo hecho es el **0,33 % del término**, y el eje
+**densidad** sigue sin medir: lo que funciona en el casco no garantiza nada de Valdespartera. Y hay
+dos cosas que **solo se ven a escala de ciudad**: si los ríos parten el grafo, y si los contadores
+significan lo mismo con cien mil aristas que con siete mil.
 
 ---
 
@@ -358,9 +369,9 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 33 VECES — sin una sola línea de código
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 39 VECES
 
-**Trece tandas. Cero código de producto. Treinta y tres instrumentos mintiendo.** Ya es una categoría,
+**Quince tandas. Treinta y nueve instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
 no una anécdota — y llegó antes que el proyecto.
 
 | # | Qué mintió |
@@ -398,6 +409,12 @@ no una anécdota — y llegó antes que el proyecto.
 | 31 | ⭐⭐ **UN `200` DE 62 BYTES SIN LA CLAVE `result`.** No es una lista vacía: **el campo no existe**. Un cliente con `?.length ?? 0` obtiene cero y dice *"no hay guardias"* — **imposible en Zaragoza**. Solo se cazó porque el método obligaba a pedir HOY primero: **sin línea base, esos 62 bytes son indistinguibles de un día tranquilo** |
 | 32 | ⭐⭐ **EL `break` EN LA PRIMERA URI DEL ARRAY.** Una farmacia que fuera *horario ampliado* **y** *guardia* perdía la segunda marca: **el "2" era un SUELO, no un total**, y no es recuperable porque el crudo no se persistió. ⭐ Lo blindaba la procedencia más creíble del proyecto —vocabulario SKOS, URI publicada, fecha en el identificador—. **El rigor del emisor no protege de un `break` en el receptor** |
 | 33 | ⭐⭐ **UN CONTADOR QUE DEVOLVÍA LA CONSTANTE `1` POR SU RAMA `else`.** `Counter({1: 314})` tenía todo el aspecto de un barrido completo confirmando una hipótesis. **La estabilidad venía de que no había variable** — hermana directa del barrido de sensibilidad (nº25) |
+| 34 | ⭐⭐⭐ **EL GRAFO DECÍA "UNIDO" Y EL DIBUJO ENSEÑABA DOS LÍNEAS SEPARADAS.** D5 soldaba **la identidad del nodo** y dejaba la geometría donde estaba: **20 nodos existiendo en dos sitios a la vez**, el peor a 1,90 m. ⭐ **Ningún contador de la tanda 8 podía verlo: todos preguntan por la topología y el fallo estaba en la geometría.** Y el signo lo delató — *si fuera redondeo habría MENOS nodos, no más* |
+| 35 | ⭐⭐ **EL VISOR TENÍA UN ERROR DE SINTAXIS Y HABRÍA ABIERTO EN BLANCO.** Lo cazó **no tener navegador**: en vez de escribir *"abre y funciona"*, se montó un Leaflet simulado que **cuenta en vez de dibujar**. ⭐ **La limitación produjo la comprobación** |
+| 36 | ⭐⭐ **UNA CONTRAPRUEBA QUE NO PODÍA PONERSE ROJA.** Elegía al azar entre 458 aristas de articulación y **341 son colgantes**: borrarlas deja un nodo huérfano que el contador saltaba en silencio. *El Tarjan estaba bien; mentía la traducción de su salida a la pregunta* |
+| 37 | ⭐⭐⭐ **UN CONTROL POSITIVO DE 3 DE 10, Y ERA EL ENCUADRE** — siete cruces fuera del bbox. **El error nº18 otra vez, con la ley ya escrita, en la primera tanda de código.** ⭐ Y lo que lo blindaba: **que el resultado fuera MALO.** Un 3 de 10 se lee como *"el planarizado falla"* y manda a depurar el sitio equivocado |
+| 38 | ⚠️ **EL GUARDIÁN ACERTÓ Y ESTROPEÓ EL COMMIT SIGUIENTE.** Rechazó un `fix:` sin bitácora —correcto, y por primera vez sobre un fallo real— pero **su rechazo deja el esqueleto en el stage**, y el commit siguiente se llevó 5 ficheros en vez de 2 |
+| 39 | ⚠️ **Y DOS FALLOS DE LECTURA MÍOS SOBRE EL MAPA**, los dos por el mismo sesgo: tenía una hipótesis —*"hay demasiado azul, el clasificador falla"*— y **leí el mapa para confirmarla**. El azul era zona peatonal, no pasos de peatones; y lo que tomé por *eje-de-calzada* mal clasificado eran **escaleras** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -505,6 +522,19 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
 34. ⭐ **UNA LÍNEA BASE NO ES OPCIONAL AL INTERROGAR UNA API.** Sin haber visto qué devuelve una
     consulta que SÍ funciona, no se puede interpretar ninguna otra: *"no hay resultados"*, *"no
     entiendo tu petición"* y *"estoy roto"* se parecen todos a un `200` corto.
+35. ⭐⭐⭐ **UNA CONTRAPRUEBA QUE PUEDE PASAR POR CONSTRUCCIÓN NO ES UNA CONTRAPRUEBA.** Antes de
+    diseñar una comprobación, la pregunta es: *¿puede esto pasar sin que nada funcione?*
+36. ⭐⭐⭐ **UN RESULTADO DECEPCIONANTE NO DESPIERTA SOSPECHA; UNO BUENO SÍ** — y ése es justo el
+    sesgo peligroso. *Un control positivo de 3 de 10 se lee como "el planarizado falla" y manda a
+    depurar el sitio equivocado, cuando el roto era el encuadre del control.*
+37. ⭐⭐ **UNA LEY ESCRITA NO PROTEGE SIN UN MECANISMO QUE LA EJECUTE.** *El error de encuadre
+    volvió a ocurrir con la ley ya escrita, en la primera tanda de código.* La contención se
+    comprueba **en ejecución**, no de palabra.
+38. ⭐⭐ **HAY FALLOS QUE NINGÚN CONTADOR VE PORQUE PREGUNTAN POR OTRA COSA.** *Todos los contadores
+    del grafo preguntaban por la topología; el fallo estaba en la geometría.* ⇒ **Mirarlo dibujado
+    no es un lujo: es otro eje.**
+39. ⚠️ **UN GUARDIÁN QUE MODIFICA EL ESTADO QUE VIGILA ESTROPEA LA OPERACIÓN SIGUIENTE AUNQUE
+    ACIERTE EN LA SUYA.** ⇒ `git status` después de todo commit rechazado.
 
 ---
 
@@ -576,7 +606,9 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **5** | Auditoría del 4,11 % — ¿es cierto el número publicado? | **H1** | ✅ **el instrumento auditor se encontró a sí mismo** |
 | **6** | Las farmacias: ¿qué hay de verdad en el conjunto heredado? | **H3** | ✅ |
 | **7** | Las guardias (¿calendario o consulta viva?) + `00 ZGZ RADAR` | **H3** | ✅ **es calendario** |
-| **8** | *(siguiente: incorporar al diseño lo que abrieron 4 y 5)* | **H1** | ⬜ |
+| **8** | ⭐ **El primer grafo** — adenda al diseño + planarizado de una zona | **H1** | ✅ **primera tanda con código** |
+| **9** | ⭐ **Mirar el grafo con los ojos** — visor de inspección | **H1** | ✅ |
+| **10** | *(siguiente: planarizar Zaragoza entera)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -638,6 +670,32 @@ La auditoría vino a revisar el número de la tanda 3 y **se encontró a sí mis
 era el instrumento de la tanda 4, por **un metro**. El 4,11 % era correcto y ligeramente
 pesimista. ⭐ Y sale la tabla de **los nueve ejes por los que un instrumento puede fallar**
 (§8·24), que deja de ser anécdota y pasa a ser checklist.
+
+### 6 y 7 — Las farmacias y las guardias (2/08)
+De un comentario de Antonio sale **el momento oro** (§10). Las guardias existían **de rebote** —una
+URI con la fecha incrustada, caducada hacía 82 días— y la fuente real estaba en el código sin
+llamarse nunca. **Es un calendario**, así que se hornea y no rompe la exclusión del tiempo real.
+⭐ Y `00 ZGZ RADAR` —carpeta que nadie miró en once tandas— resultó tener las paradas de autobús:
+**la memoria de Antonio era correcta y el reconocimiento buscó donde yo le dije.**
+
+### 8 — El primer grafo (3/08) · ⭐ PRIMERA TANDA CON CÓDIGO
+3,24 km², 5.121 nodos, 7.175 aristas, 20 componentes con el 99,1 % en la mayor. **Solo 6 uniones
+sin evidencia** en toda la zona —lejísimos del umbral que habría obligado a revisar D1— y de 49
+cruces sin nodo compartido, **43 son desniveles declarados**: *la regla no inventa separaciones,
+lee las que el dato trae*. El **40 % de las aristas son acera o paso de peatones**: el nivel 2
+justificándose solo.
+⭐ Y el eje **ESCALA**, medido por primera vez: **la mitad de las aristas miden menos de 10 m**, y
+la tolerancia de D5 es del mismo orden que 800 de ellas.
+
+### 9 — Mirar el grafo con los ojos (3/08)
+El visor cazó **dos fallos antes de pintar nada** (§7 · 34 y 35). Y en la inspección: **ningún fallo
+del grafo**. Los 6 `unido-por-defecto` correctos —cuatro son el Coso **en obras**, así que *ese
+contador es una foto de agosto, no una propiedad del casco*—; los 43 no unidos aciertan donde
+importa —el Andador de Mario Gaviria pasando **por debajo** del Puente de Piedra—; y de las 19
+islitas, **cinco eran artefactos del borde**, incluida la de 1.004 m que habría disparado la
+costura.
+⭐ Lo que sí salió fue **una categoría entera que ningún dato iba a enseñar**: los pasos
+condicionales (§10).
 ## 10 · Cabos abiertos
 
 ### ⭐⭐ Los que bloquean el diseño
@@ -649,6 +707,56 @@ Los dos en §5.)*
 |---|---|
 | **El stack** | Ya condicionado por el reparto del motor: hace falta **algo que sirva consultas de horario**, no solo estático. ⚠️ Y ahí el hosting compartido de Hostinger tiene algo que decir: no es lo mismo servir ficheros que mantener un proceso vivo. *Cuando el hosting y tú discrepéis, gana el hosting.* Leaflet + OSM se reutiliza de 003 sin restar puntos: el diferencial de 004 está debajo del mapa |
 | **El alcance v1 del buscador** | Cada casilla combinable duplica los casos a verificar: cuatro modos son 16 combinaciones, por dos criterios, 32. ⚠️ Y "menos transbordos" y "más rápido" son **objetivos que compiten**: optimizar los dos a la vez no da un óptimo, da un conjunto donde ninguna ruta gana en todo. Se puede resolver con una penalización por transbordo — pero entonces hay que **decir que es una preferencia cableada, no un óptimo** |
+
+### ⭐⭐ LOS PASOS CONDICIONALES — categoría nueva (tanda 9, hallazgo de Antonio)
+
+Existe un tipo de arista que **el dato no sabe describir**: tramos que **existen físicamente pero
+solo se pueden usar a ciertas horas**.
+
+**El caso que lo destapó:** una de las 19 componentes sueltas es un **pasaje que atraviesa el
+edificio de Las Armas** (Plaza de Mariano de Cavia). El grafo lo tiene, y lo tiene bien — pero
+**ese edificio no siempre está abierto**. Ningún dato lo dice. Y explica de paso por qué la
+componente queda suelta: el pasaje está mapeado y la plaza es un área, no líneas.
+
+⭐ **Lo encontró alguien que sabe que ese edificio cierra. Ningún barrido lo habría visto.**
+
+**La clase, no el caso:** patios de manzana, galerías comerciales, parques que cierran de noche,
+campus. Y **la etiqueta probablemente ya la vimos**: `tunnel=building_passage` salió en la tanda
+2.C y entonces se dijo *"no es un túnel, a pie se pasa"* — **la clase estaba en el dato y no
+supimos leerla.**
+
+⭐ **Es el problema de las farmacias con otra piel:** *"existe"* no es *"está abierto ahora"*.
+
+**DECISIÓN DE ANTONIO:**
+> **Se IGNORAN para calcular rutas.** Un atajo perdido molesta; una puerta cerrada de noche te deja
+> tirado.
+> ⭐ **Pero se MARCAN y se CUENTAN**, como los `unido-por-defecto`. *El error aceptado a sabiendas
+> tiene que ser contable* (ley 23): el error aceptado aquí es *"puede que estemos ignorando atajos
+> que la gente usa"*.
+> Con el grafo completo habrá un número: si son tres, la decisión fue evidente; **si son cuarenta,
+> se reabre y ya no será a ojo.**
+> Ventaja: si mañana se decide avisarlos en vez de ignorarlos, **el marcado ya está** y es un
+> cambio de comportamiento, no una cirugía.
+
+### ⚠️ CANDIDATOS APARCADOS — nada se decide hasta que H1 cierre
+
+Salieron todos en una misma conversación (3/08) y **cada uno es defendible por separado. Juntos son
+otro proyecto.** ⛔ Se aparcan **con nombre y fecha**, que es lo contrario de olvidarlos.
+
+| Candidato | Qué es | Coste | Cuándo |
+|---|---|---|---|
+| ⭐ **Carril bici / red ciclable** | ⚠️ **NO es un extra: es la mitad de un modo YA DECIDIDO.** Una bici no va por la acera ni por las escaleras, y sí por el carril bici y la calzada. **El grafo pasaría a tener dos redes superpuestas con reglas distintas** | Alto, y **no evitable** si BiZi sigue dentro | **H2** |
+| **Hospitales y más POI** | Destinos. **No tocan el motor** | Bajo | Cuando el terreno esté |
+| ⭐ **Modo COCHE** | *"Puedo querer ir en coche a una farmacia de guardia que está lejos"* — y el argumento es bueno: **Google no te dice CUÁL está abierta**, así que pasar al navegador parte la experiencia justo cuando hay prisa | ⚠️ **El más caro.** Sentidos únicos · **giros prohibidos** (el coste depende de por dónde llegaste: cambio de estructura, no un atributo) · medianas · y el aparcamiento. **Y no suma al diferencial: calcular rutas en coche lo hace todo el mundo.** ⚠️ Un modo coche a medias produce rutas que un zaragozano detecta en diez segundos | Hito posterior |
+| **Aparcamientos, zona azul/naranja** | Destinos — **pero solo tienen sentido SI entra el coche** | Bajo | Depende del coche |
+| **Taxi** | ⚠️ **Rompe la estructura del grafo.** Una parada de taxi no es una parada de bus: el bus tiene recorrido fijo, **el taxi va a donde quieras**. No es añadir aristas, es *"desde aquí puedes llegar a cualquier sitio pagando"*. Y su coste depende del tráfico, que no tenemos | Alto y estructural | Sin fecha |
+| **Zonas de bajas emisiones** | ⚠️ **NO CONSTA** que estén publicadas — pueden estar entre las 117 capas clasificadas sin abrir. **Sin coche no cambian ninguna ruta**; con coche son restricción real | Bajo | Depende del coche |
+| **Zonas 30 / pacificadas / plataforma única** | ✅ **Ya las tenemos**: son ATRIBUTOS de `MU1_jerarquia_viaria` (`CALLE_Z30`, `PACIFICADA`, `plataforma`), no capas aparte. A pie casi no cambian nada; servirían como criterio de *comodidad* | Cero | Cuando haya criterio de comodidad |
+
+⚠️ **Y la salida intermedia para la escena de la farmacia lejana, que cuesta poquísimo:** la app
+resuelve **el "cuál"** —qué farmacia está abierta ahora, dónde, a qué distancia— y **si está lejos,
+ofrece abrirla en el navegador del móvil**. No se finge calcular en coche: se reconoce que a esa
+hora y a esa distancia el coche es lo razonable.
 
 ### Los técnicos
 
