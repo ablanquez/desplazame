@@ -4160,3 +4160,100 @@ número con el aviso al lado: es no publicar ese número.
 tabla; la contradicción vive en la diferencia.
 **Traza:** `src/entrar-por-la-puerta.js` (A3), `src/es-puerta.js` (D3, el que midió [2]),
 `src/rutas-antonio.js` (A4, el antes-y-después que lo destapó)
+
+---
+
+## [2026-08-03] — Un guardián que aprueba por 0,1 puntos no es un guardián: es una casualidad
+
+**Categoría:** umbral que elegí yo y que mi propio resultado rozó
+**Síntoma:** el listón de «sitio urbano» de C4 lleva su positivo de control —aplicado a polígono y
+campo tiene que suspenderlos casi enteros— y una parada que lo exige:
+
+```js
+A.exige(vc.length > 0 && 100 * pasan / vc.length < 35, 'el listón de urbanidad aprueba al …');
+```
+
+```
+   ⭐ CONTROL · portales de PLAZA y Garrapinillos que lo pasan   579 de 1659  (34.9 %)
+```
+
+**34,9 % contra un tope de 35.** Verde. Por una décima.
+
+**Causa raíz:** el 35 lo escribí yo, antes de medir —eso está bien— pero **a ojo**, y no salía de
+ningún dato. Un umbral inventado que el resultado roza no distingue «el instrumento funciona» de
+«he tenido suerte»: si el dato hubiera dado 35,1 habría parado el proceso, y si hubiera dado 20
+habría aprobado igual de silenciosamente. **El guardián no estaba midiendo nada, estaba tirando una
+moneda con un sesgo que yo no conocía.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **todo lo demás de C4.** El listón
+sale del p10 de densidad de tres ventanas que `ciudad.js` dibujó en la tanda 9 para el eje densidad,
+sin saber nada de este grupo — o sea que la ley 17 se cumplía de verdad y el número principal (565
+portales urbanos) es bueno. **Lo que fallaba no era el listón: era el guardián que lo vigilaba.**
+
+**Cómo se cazó:** por mirar el número en vez de mirar el ✅. Un 34,9 % debajo de una frase que dice
+*«tiene que suspenderlos casi enteros»* no es un aprobado, lo diga el código lo que diga.
+
+**Arreglo aplicado:** ⛔ **NO se movió el listón.** Mover el umbral hasta que el control salga bonito
+es ajustar el instrumento al resultado, que es lo único que este proyecto no se permite. Se abrió el
+control **por zona**, y ahí estaba la respuesta entera:
+
+```
+   polígono · PLAZA                     0 de  554   ( 0,0 %)
+   rural · Garrapinillos              579 de 1130   (51,2 %)
+```
+
+⇒ El listón **no confunde polígono con ciudad**: aprueba **el casco de un pueblo**, que tiene
+densidad de ciudad porque *es* un sitio donde vive gente. Para la pregunta que se está haciendo
+—*¿alguien pediría una ruta aquí?*— eso es un SÍ. El control no estaba mal: estaba **agregado**, y
+agrupar es borrar.
+
+**Ley que sale de aquí:** ⭐⭐ **un umbral inventado convierte un control positivo en una moneda.**
+Si el número de un control se acerca a su tope, la respuesta no es el tope: es **desagregar**, porque
+un control que roza está escondiendo dos poblaciones con una media.
+⚠️ Y la señal práctica: **mira el número, no el ✅.**
+**Traza:** `src/sin-testigo.js` (C4)
+
+---
+
+## [2026-08-03] — La línea de conclusión decía «ninguno» debajo de una línea que enseñaba uno
+
+**Categoría:** prosa fija debajo de un dato variable
+**Síntoma:** B5 pregunta si alguno de los 198 candidatos cae en las siete rutas de Antonio. Salió:
+
+```
+   ⭐ de los 198 candidatos, en una arista de las siete      1
+      41.65729,-0.90896     PLAZA EL PERIÓDICO DE ARAGÓN    rutas nº 4
+        así que **no hay ninguno verificable contra su banco de pruebas**.
+```
+
+**Uno, listado con su coordenada, y debajo la frase «no hay ninguno».**
+
+**Causa raíz:** un `if` de una línea sin llaves.
+
+```js
+if (!caen.length) log('      ⇒ ninguno. Los trayectos de Antonio no pasan por ningún candidato,');
+log('        así que **no hay ninguno verificable contra su banco de pruebas**.');   // ⬅ SIEMPRE
+```
+
+La primera línea es condicional. La segunda —la que lleva la conclusión— se imprime siempre.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el cálculo, entero y correcto**,
+incluido su positivo de control (108 portales cualesquiera enganchan a esas aristas ⇒ el cruce
+encuentra cosas, así que un 0 habría sido un 0 de verdad). El dato nunca estuvo mal. **Lo que estaba
+mal era la frase que lo interpretaba**, y la frase es lo único que se lee de un informe largo.
+
+**Cómo se cazó:** leyendo la salida entera en vez de buscar el número. Es el único método que caza
+esta clase, y por eso esta clase es cara.
+
+**Arreglo aplicado:** el `else` explícito, y el caso positivo dice lo contrario de lo que decía —
+porque un candidato en un trayecto de Antonio es **el más verificable de todos**: es un sitio por el
+que él anda y del que ya declaró cuánto debería medir. De «no hay ninguno» a «éste es el mejor que
+tenemos» hay dos llaves.
+
+**Ley que sale de aquí:** ⭐ **una conclusión que no depende del dato no es una conclusión: es una
+plantilla.** Si una línea empieza por «⇒» o «así que», tiene que estar dentro del mismo `if` que el
+número del que habla.
+⚠️ Y el eco de la ley 44: allí un `⛔` impreso no era un fallo porque era texto; aquí un texto era la
+conclusión sin ser el dato. **Las dos veces el problema fue confundir lo que se imprime con lo que se
+sabe.**
+**Traza:** `src/candidatos-enganche.js` (B5)
