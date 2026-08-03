@@ -42,14 +42,19 @@
   peatonal viva en el navegador.
 - ⭐ **Inspección visual hecha** (tanda 9): visor propio, y **el ojo no encontró ningún fallo del
   grafo**. Sí encontró una categoría que ningún dato iba a enseñar: **los pasos condicionales**.
+- ⭐⭐ **ZARAGOZA ENTERA PLANARIZADA** (tanda 10): **68.649 nodos, 98.774 aristas**, 6,5 s de
+  proceso. ⭐⭐ **LOS RÍOS NO PARTEN EL GRAFO** — 36 de 36 pares sorteados cruzan el Ebro, el Huerva
+  y el Gállego. **La costura de mayor impacto del proyecto no se dispara.**
+- ✅ **D1 aguanta a escala de ciudad** (`unido-por-defecto` 0,84 → 1,15 por mil aristas) y **D5 está
+  bien puesta** — las cuatro puntas sin soldar se verificaron a mano y **ninguna era una calle
+  cortada por error**.
 
 **Falta decidir:** el alcance v1 del buscador · ⭐ **la lista de candidatos aparcados** (§10), que
 no se toca hasta que H1 cierre.
 
-**Lo siguiente:** ⭐ **planarizar Zaragoza entera.** Lo hecho es el **0,33 % del término**, y el eje
-**densidad** sigue sin medir: lo que funciona en el casco no garantiza nada de Valdespartera. Y hay
-dos cosas que **solo se ven a escala de ciudad**: si los ríos parten el grafo, y si los contadores
-significan lo mismo con cien mil aristas que con siete mil.
+**Lo siguiente (tanda 11):** ⛔ **excluir las `proposed`** —convirtiendo la lista en regla, no
+añadiendo un valor más—, **ampliar la búsqueda de pasos condicionales**, **inventariar los caminos
+de tierra** (§4), y con el terreno cerrado, **enganchar los 46.150 portales**: el punto 4 de H1.
 
 ---
 
@@ -185,6 +190,99 @@ trazados de línea · BiZi · carriles bici · geocodificación.
 2. ⚠️ **EL NIVEL.** Sin campo de cota, planarizar inventa cruces. Es el mayor riesgo de
    corrección del proyecto y no está resuelto. La pista está en OSM (`bridge`, `layer`).
 3. **INTEGRAR OSM** para el pie, con su ODbL declarada.
+
+### ⭐⭐ El grafo de la ciudad (tanda 10) — y lo que dice el eje DENSIDAD
+
+```
+                    CASCO (3,24 km²)      CIUDAD (973,8 km²)
+nodos                      5.121                 68.649    ×13,4
+aristas                    7.175                 98.774    ×13,8   · 6,5 s · 871 MB
+```
+
+| Contador | Casco | Ciudad | Lectura |
+|---|---|---|---|
+| `unido-por-defecto` | 0,84 ‰ | **1,15 ‰** | ✅ **D1 aguanta. No hay cuarta revisión** |
+| Puntas 2-5 m sin soldar | sin pico | **15 % donde el azar daría 17 %** | ✅ **D5 no se queda corta** |
+| `eje-de-calzada` | 22,6 % | **47,2 %** | ⚠️ ver abajo |
+
+⭐⭐ **EL EJE DENSIDAD, medido por primera vez, y explica el 47,2 %:**
+
+```
+casco 22 % · ensanche 28 % · Actur 33 % · Valdespartera 51 %
+Garrapinillos 74 % · Movera 80 % · Malpica 82 % · PLAZA 90 %
+```
+
+**Monótono, sin sorpresas. El planarizado se comporta igual en todas partes: lo que cambia es el
+mapeado de OSM.** En PLAZA hay **0,0 % de acera en 33,7 km²** — y verificado sobre el visor por
+Antonio: **es correcto.** Es un polígono logístico, viales de camiones entre naves. **No hay aceras
+porque no hay peatones.**
+
+⇒ ⭐ **DECISIÓN: D4 se queda como está, NO se invierte el aviso.** El 47,2 % del término no
+significa *"D4 avisará en media ciudad"*: significa que **media ciudad no es ciudad**. El
+porcentaje que hay que vigilar es el de las zonas donde la gente anda —casco 22 %, ensanche 28 %,
+Actur 33 %—, y ahí el aviso aparece en uno de cada tres o cuatro tramos. **Un aviso que suena en
+PLAZA no molesta a nadie.**
+
+### ⭐⭐ Las cuatro puntas sin soldar — verificadas a mano por Antonio
+
+D5 deja sin soldar las puntas de 2 a 5 m y las cuenta. **Las cuatro mayores, una a una:**
+
+| Dónde | Qué era |
+|---|---|
+| `41.65121,-0.88324` | ⭐ **Pasaje Palafox** — galería comercial interior: **paso condicional** |
+| `41.63662,-0.87441` | Mediana ajardinada de Tenor Fieta / rampa de garaje |
+| `41.63544,-0.86487` | **Sendas de un solar** junto al Príncipe Felipe (caminos de tierra informales) |
+| `41.64598,-0.92139` | **Vial interno de recinto cerrado** (IES Ramón Pignatelli) |
+
+⇒ **Cuatro de cuatro, y NINGUNA era una calle cortada por error.**
+⭐ **D5 acierta por el motivo correcto**, no por casualidad: a esa distancia lo que hay son **bordes
+reales** —una verja, un bordillo, una puerta que cierra—. **Si se subiera a 5 m, el grafo empezaría
+a atravesar vallas.** Cabo cerrado.
+
+⚠️ **Y un hallazgo lateral: el Pasaje Palafox NO está entre los 96 `building_passage`.** ⇒ **el
+contador de pasos condicionales se queda corto**: hay pasos que OSM no etiqueta como tales y se
+cuelan en el grafo sin marcar. La búsqueda no puede ser solo por etiqueta — también por nombre
+(*pasaje*, *galería*, *pasadizo*) y por geometría que atraviesa un edificio.
+
+### ⚠️ Los tres barrios rurales incomunicados — y NO se conectan
+
+**Peñaflor de Gállego** (294 nodos, 317 calles con nombre) y otros dos:
+`41.76682,-0.88154` · `41.74134,-1.07744` · `41.57802,-0.95339`
+
+⇒ ⭐ **DECISIÓN: no se amplía la descarga para conectarlos.** Están incomunicados **de verdad**:
+Peñaflor está a 15 km y se llega por carretera. Ampliar añadiría kilómetros de vía interurbana por
+la que nadie anda, y **el grafo diría que se puede ir andando a Peñaflor — una mentira más grande
+que el hueco.** *(Antonio, preguntado si iría andando: "ni loco". Es el argumento del candidato
+"modo coche" en §10.)*
+**Se cuentan y se publican.** Que los barrios rurales del término no estén conectados a pie es
+cierto, y hay que decirlo.
+
+### ⛔ `proposed` — lo medido y NO arreglado, a propósito
+
+**178 aristas · 13,8 km de calles que todavía no existen, y el grafo deja andar por ellas.**
+**23 son articulaciones**: 82 nodos cuyo único paso es una calle sin construir. En el casco había 0.
+
+⇒ **DECISIÓN: se excluyen.** El coste del error es asimétrico —excluirlas pierde un atajo futuro;
+incluirlas manda a alguien a un descampado— y ya hay precedente con `construction`.
+⚠️ **Pero NO se añade `proposed` a la lista: se cambia la lista por una REGLA** (ley 40).
+⭐ **Y hay confirmación desde el otro lado:** Antonio verifica que en Arcosur y Parque Venecia
+*"OSM va incluso por delante"*. Es el mismo hecho visto desde fuera — y encaja con las 23 vías del
+hueco duro sin ni un portal: **el callejero ya bautizó calles a las que aún no hay que asignar
+números.**
+
+### ⚠️ Los caminos que existen pero por los que nadie va — pendiente de contar
+
+Categoría distinta de todas las anteriores: no es de **existencia** (no está construida, hay una
+verja) sino de **cualidad**. *Un camino de tierra entre campos a las once de la noche es
+técnicamente una ruta y prácticamente un despropósito.*
+
+El dato ya lo permite distinguir: `highway=track` / `path`, `surface=dirt`/`gravel`, `lit`.
+⇒ ⭐ **La forma correcta es PENALIZAR, no excluir** — el camino existe y de día puede ser
+razonable, y **en Movera o Garrapinillos el camino ES la calle**. La geometría dice qué hay; el
+coste dice qué conviene.
+⚠️ **Y el coste podría depender de la hora**, pero eso es H3.
+⚠️ **Hoy no se puede medir bien**: no hay coste ni rutas. **Se inventaría ahora** (cuántas aristas y
+dónde) y se decide cuando el motor calcule — donde `RUTAS-CONOCIDAS.md` lo delatará en un minuto.
 
 ### ⭐⭐ Los portales no son solo destinos: son TESTIGOS
 
@@ -369,9 +467,9 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 39 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 42 VECES
 
-**Quince tandas. Treinta y nueve instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
+**Dieciséis tandas. Cuarenta y dos instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
 no una anécdota — y llegó antes que el proyecto.
 
 | # | Qué mintió |
@@ -415,6 +513,9 @@ no una anécdota — y llegó antes que el proyecto.
 | 37 | ⭐⭐⭐ **UN CONTROL POSITIVO DE 3 DE 10, Y ERA EL ENCUADRE** — siete cruces fuera del bbox. **El error nº18 otra vez, con la ley ya escrita, en la primera tanda de código.** ⭐ Y lo que lo blindaba: **que el resultado fuera MALO.** Un 3 de 10 se lee como *"el planarizado falla"* y manda a depurar el sitio equivocado |
 | 38 | ⚠️ **EL GUARDIÁN ACERTÓ Y ESTROPEÓ EL COMMIT SIGUIENTE.** Rechazó un `fix:` sin bitácora —correcto, y por primera vez sobre un fallo real— pero **su rechazo deja el esqueleto en el stage**, y el commit siguiente se llevó 5 ficheros en vez de 2 |
 | 39 | ⚠️ **Y DOS FALLOS DE LECTURA MÍOS SOBRE EL MAPA**, los dos por el mismo sesgo: tenía una hipótesis —*"hay demasiado azul, el clasificador falla"*— y **leí el mapa para confirmarla**. El azul era zona peatonal, no pasos de peatones; y lo que tomé por *eje-de-calzada* mal clasificado eran **escaleras** |
+| 40 | ⭐⭐⭐ **EL CRUDO TRAÍA CALLES DE COSTA RICA Y DE MÉXICO.** `area["name"="Zaragoza"]` **no nombra un sitio: nombra una CLASE de sitios.** Cuatro municipios homónimos, 398 ways de 48.211 — invisibles en el volumen, y **mueven el bbox 18.000 km**: superficie declarada 27.013.502 km² contra los 973,8 del término. ⭐ **El fallo suma, no resta**, así que la descarga sigue valiendo. Y el casco lo tapaba porque el recorte los tiraba. *Tercera vez que muerde el homónimo — y ahora contra el nombre de la propia ciudad* |
+| 41 | ⭐⭐⭐ **13,8 KM DE CALLES QUE TODAVÍA NO EXISTEN, Y EL GRAFO DEJA ANDAR POR ELLAS.** 178 aristas `proposed`, **23 de ellas ARTICULACIONES**: 82 nodos cuyo único paso es una calle sin construir. ⭐ Y la causa es la ley: *`transitableAPie()` excluye `construction` porque en el casco había 117 y se los encontró de frente; no excluye `proposed` porque allí había cero.* **Un filtro escrito enumerando los casos que aparecieron no es una regla: es una lista** |
+| 42 | ⭐⭐ **PEÑAFLOR DE GÁLLEGO INCOMUNICADO —294 nodos, 317 calles con nombre— Y EL CONTADOR DE COMPONENTES URBANAS DABA 0.** El clasificador lo etiquetó como *"artefacto del límite"*: **la costura funcionaba y su propia definición se había comido el caso.** ⭐ *Estar pegado al borde es la causa, no una excusa para no contarlo: explicar un agujero no es taparlo* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -535,6 +636,18 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     no es un lujo: es otro eje.**
 39. ⚠️ **UN GUARDIÁN QUE MODIFICA EL ESTADO QUE VIGILA ESTROPEA LA OPERACIÓN SIGUIENTE AUNQUE
     ACIERTE EN LA SUYA.** ⇒ `git status` después de todo commit rechazado.
+40. ⭐⭐⭐ **UN FILTRO ESCRITO ENUMERANDO LOS CASOS QUE APARECIERON NO ES UNA REGLA: ES UNA LISTA.**
+    Volverá a fallar con el siguiente valor que salga. **Una regla decide por lo que las cosas
+    SIGNIFICAN, no por si están en un `array`.**
+41. ⭐⭐ **UN NOMBRE NO IDENTIFICA UN SITIO NI SIQUIERA CUANDO ES EL DE LA CIUDAD.** *Cuatro
+    Zaragozas en el planeta metieron 398 ways de Costa Rica y México en la descarga.* ⇒ Todo
+    identificador por nombre necesita un **segundo discriminante** (posición, código, extensión).
+42. ⭐⭐ **EXPLICAR UN AGUJERO NO ES TAPARLO.** *Un clasificador que etiqueta un barrio incomunicado
+    como "artefacto del límite" no lo ha resuelto: lo ha excluido del contador.* La causa de un
+    caso no es excusa para no contarlo — **dos ejes, y los dos se publican.**
+43. ⭐ **EL SIGNO DEL ERROR ES INFORMACIÓN, Y HAY QUE MIRARLO ANTES DE BUSCAR LA CAUSA.** *"Es el
+    redondeo" era plausible para +21 nodos y era falso; para −10 se demostró midiendo las 11
+    colisiones.*
 
 ---
 
@@ -608,7 +721,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **7** | Las guardias (¿calendario o consulta viva?) + `00 ZGZ RADAR` | **H3** | ✅ **es calendario** |
 | **8** | ⭐ **El primer grafo** — adenda al diseño + planarizado de una zona | **H1** | ✅ **primera tanda con código** |
 | **9** | ⭐ **Mirar el grafo con los ojos** — visor de inspección | **H1** | ✅ |
-| **10** | *(siguiente: planarizar Zaragoza entera)* | **H1** | ⬜ |
+| **10** | ⭐⭐ **Zaragoza entera** — 98.774 aristas, los ríos no parten el grafo | **H1** | ✅ |
+| **11** | *(siguiente: `proposed` fuera + enganchar los portales)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -696,6 +810,18 @@ islitas, **cinco eran artefactos del borde**, incluida la de 1.004 m que habría
 costura.
 ⭐ Lo que sí salió fue **una categoría entera que ningún dato iba a enseñar**: los pasos
 condicionales (§10).
+
+### 10 — Zaragoza entera (3/08)
+De 3,24 km² a 973,8. **98.774 aristas en 6,5 segundos.** ⭐⭐ **Los ríos NO parten el grafo**: 36 de
+36 pares sorteados (semilla declarada) cruzan el Ebro, el Huerva y el Gállego, y **28 de 32 puentes
+con nombre son cruzables a pie** — los 4 que no son autovías, correctamente excluidas.
+⭐ Y el eje **DENSIDAD**, medido por primera vez, explicó el 47,2 % de `eje-de-calzada` sin que
+hubiera que tocar nada.
+⛔ Tres hallazgos que no se arreglaron en la misma tanda **a propósito** —cambiar la regla y la
+escala a la vez invalidaría la comparación—: las `proposed`, los tres barrios rurales, y que el
+contador de pasos condicionales se queda corto.
+⭐ **Y las cuatro puntas sin soldar las verificó Antonio una a una sobre el terreno.** Cuatro de
+cuatro correctas.
 ## 10 · Cabos abiertos
 
 ### ⭐⭐ Los que bloquean el diseño
