@@ -74,4 +74,44 @@ function resolver(texto, indice) {
     aviso: `el número ${numero} no existe en el callejero; el más cercano es el ${mejor.n}` };
 }
 
-module.exports = { construirIndice, partir, resolver };
+// ═════════════════════════════════════════════════════════════════════════════
+// A5 · LA PUERTA ÚNICA: de un texto a un punto sobre el grafo
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐ Antes había dos: `src/ruta.js` enganchaba coordenadas al nodo más cercano por
+//    su cuenta, y `src/rutas-antonio.js` montaba su propio índice de portales. Dos
+//    caminos de código desde el mismo dato divergen — es la forma exacta de los
+//    fallos nº63 y nº67, donde algo se midió en un sitio y el motor usó otro.
+//    Ahora las dos entradas pasan por aquí.
+
+/**
+ * Abre el contexto de búsqueda sobre un grafo ya construido.
+ * ⚠️ Cuesta: engancha los 46.150 portales. Se hace UNA vez por proceso.
+ */
+function abrir(g, crudo, opciones = {}) {
+  const osm = require('./osm');
+  const E = require('./enganche');
+  const Po = require('./portales');
+  const TAGS = opciones.TAGS || new Map();
+  if (!opciones.TAGS) for (const w of osm.cargar(crudo).ways) TAGS.set(w.id, w.tags || {});
+  const r = E.enganchar(g, TAGS, opciones);
+  const indice = construirIndice(r.portales.filter((o) => o.enganchado), r.vias);
+  const eng = Po.indexarAristas(g.aristas, (e) => e.pie);
+  return { g, TAGS, indice, eng, enganche: r,
+    nombreDeWay: (id) => (TAGS.get(id) || {}).name || null };
+}
+
+/**
+ * Texto -> punto de enganche listo para el motor, o null.
+ * ⭐ Arrastra el ESTADO del geocodificador (`exacto`, `numero-aproximado`, …) y su
+ *    aviso: si el número no existe en el callejero, la respuesta lo dice en vez de
+ *    inventarlo.
+ */
+function punto(texto, ctx) {
+  const res = resolver(texto, ctx.indice);
+  if (!res.portal) return null;
+  const o = res.portal;
+  return { arista: o.arista, seg: o.seg, t: o.t, q: o.q, d: o.d, lat: o.lat, lon: o.lon,
+    m: o.m, tipo: 'portal', portal: o, estado: res.estado, aviso: res.aviso || null };
+}
+
+module.exports = { construirIndice, partir, resolver, abrir, punto };

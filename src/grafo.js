@@ -175,4 +175,93 @@ function reconstruir(nodos, aristas, r, origen, destino) {
   return { metros: Math.round(r.dist[destino] * 10) / 10, pasos, aristas: camino.length };
 }
 
-module.exports = { adyacencia, componentes, articulaciones, dijkstra, nodoMasCercano, reconstruir, Cola };
+// ═══════════════════════════════════════════════════════════════════════════
+// EL MOTOR CON NODOS TEMPORALES — consecuencia directa de P4.5
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚠️ Esto VIVÍA EN `src/rutas-antonio.js`, y ahí era un segundo motor: `ruta.js`
+//    enganchaba al NODO más cercano y las siete rutas de Antonio enganchaban a la
+//    ARISTA más cercana. Dos caminos de código desde el mismo dato, que es
+//    exactamente la forma del fallo nº68 (medir una cosa y que el motor use otra).
+//    Se sube aquí para que haya UN motor. La salida de las siete se comparó antes
+//    y después del traslado.
+//
+// ⭐ Y la diferencia entre enganchar a nodo o a arista NO es cosmética, está
+//    medida sobre los 46.150 portales reales:
+//        a la ARISTA   mediana  5,3 m   p99   65,2 m   máximo 303,1 m
+//        al NODO       mediana 24,4 m   p99  197,3 m   máximo 566,6 m
+//    Enganchar al nodo mete hasta medio kilómetro de error antes de empezar.
+
+/**
+ * Inserta un punto de enganche {arista, seg, t, q} como NODO TEMPORAL, partiendo
+ * la arista solo para esta consulta.
+ * ⭐ Es la consecuencia de P4.5: el portal NO parte la arista en el terreno, así
+ *    que hay que insertarlo al vuelo. Son dos nodos por consulta, no 46.150
+ *    permanentes — y un enganche malo no corrompe el grafo de los demás.
+ */
+function insertar(aristas, ady, nodos, p) {
+  const e = aristas[p.arista];
+  let antes = 0;
+  for (let k = 0; k < p.seg; k++) antes += dist(e.pts[k], e.pts[k + 1]);
+  antes += p.t * dist(e.pts[p.seg], e.pts[p.seg + 1]);
+  const resto = Math.max(0, e.largo - antes);
+  const id = nodos.length;
+  nodos.push({ x: p.q[0], y: p.q[1], temporal: true });
+  ady.push([]);
+  const enlaza = (n, w) => { ady[id].push({ n, w, e: p.arista }); ady[n].push({ n: id, w, e: p.arista }); };
+  enlaza(e.a, antes);
+  enlaza(e.b, resto);
+  return id;
+}
+
+/**
+ * Ruta entre dos puntos de enganche. Devuelve metros, aristas y PASOS.
+ * ⭐ Los metros de cada paso salen de la diferencia de distancias de Dijkstra, no
+ *    de `e.largo`: las aristas de los extremos están PARTIDAS por el nodo temporal
+ *    y su longitud entera no es la que se anda. Sumar `e.largo` daría un total que
+ *    no cuadra con el que devuelve el motor — y cuadrarlo es lo que lo demuestra.
+ */
+function rutaEntre(g, oP, dP, opciones = {}) {
+  const nodos = g.nodos.slice();
+  const ady = g.ady.map((l) => l.slice());
+  const a = insertar(g.aristas, ady, nodos, oP);
+  const b = insertar(g.aristas, ady, nodos, dP);
+  const r = dijkstra(ady, a);
+  const total = r.dist[b];
+  if (!Number.isFinite(total)) return { encontrada: false, motivo: 'sin-camino' };
+
+  const crudos = [];
+  for (let v = b; v !== a; v = r.prev[v]) {
+    if (r.prev[v] === -1) return { encontrada: false, motivo: 'sin-camino' };
+    crudos.push({ ia: r.prevA[v], m: r.dist[v] - r.dist[r.prev[v]] });
+  }
+  crudos.reverse();
+
+  const pasos = [];
+  for (const { ia, m } of crudos) {
+    const e = g.aristas[ia];
+    const u = pasos[pasos.length - 1];
+    // AGRUPAR ES BORRAR: solo se funden tramos IDÉNTICOS en way, precisión, D2 y
+    // condicionalidad. El contador `aristas` deja ver cuántos se fundieron.
+    if (u && u.way === e.way && u.precision === e.precision
+        && u.unidoPorDefecto === e.unidoPorDefecto && u.condicional === !!e.condicional) {
+      u.metros += m; u.aristas++;
+    } else {
+      pasos.push({ way: e.way, highway: e.highway, precision: e.precision,
+        unidoPorDefecto: e.unidoPorDefecto, condicional: !!e.condicional,
+        metros: m, aristas: 1 });
+    }
+  }
+  // ⭐ CUADRE: la suma de los tramos tiene que ser el total del motor. Prueba, no
+  //    explica: si la agrupación pierde o duplica metros, salta aquí.
+  const suma = pasos.reduce((s, p) => s + p.metros, 0);
+  if (Math.abs(suma - total) > 0.01) {
+    throw new Error(`⛔ los metros por tramo no cuadran con el total: ${suma.toFixed(3)} ≠ ${total.toFixed(3)}`);
+  }
+  for (const p of pasos) p.metros = Math.round(p.metros * 10) / 10;
+
+  return { encontrada: true, metros: Math.round(total * 10) / 10,
+    aristas: crudos.map((c) => c.ia), pasos };
+}
+
+module.exports = { adyacencia, componentes, articulaciones, dijkstra, nodoMasCercano,
+  reconstruir, insertar, rutaEntre, Cola };

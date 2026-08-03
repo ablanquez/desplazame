@@ -3191,3 +3191,151 @@ dirección, **el sospechoso es la hipótesis, no el sujeto.**
 ⚠️ Corolario práctico: **un fallo unánime y con signo es información sobre el instrumento; un fallo
 repartido lo es sobre el sujeto.**
 **Traza:** `src/rutas-antonio.js`, `data/pruebas/RUTAS-CONOCIDAS.md` (⛔ sin tocar)
+
+---
+
+## [2026-08-03] — El comando con el que se interroga el motor contestaba con el grafo del casco. Un parámetro por defecto
+
+**Categoría:** silencio falso / la decisión que nadie tomó
+**Síntoma:** Antonio pide a mano una ruta de ciudad con el comando de siempre y le sale esto:
+
+```
+node src/ruta.js 41.6255 -0.8865 41.6516 -0.8797
+   "encontrada": true,   "engancheOrigen": 512,   "rodeo": 0.9x
+```
+
+**Un enganche de 512 metros y un rodeo por debajo de 1 dentro de un JSON que dice `encontrada: true`.**
+Ni una excepción, ni un aviso, ni un código de salida distinto de cero.
+
+**Causa raíz — y no es "ruta.js estaba mal apuntado".** La firma era:
+
+```js
+function construir(zona = ZONA_CASCO, opciones = {}) {
+```
+
+y el CLI llamaba `construir()` a secas. **El grafo del casco antiguo son 3 km²; el término son
+2.989.** Preguntar por Delicias contra el casco no produce un error: produce el nodo del casco más
+cercano, que está medio kilómetro más allá, y a partir de ahí todo es coherente consigo mismo.
+⇒ **La clase del fallo es que un parámetro por defecto es una decisión que nadie tomó y que nadie
+ve.** Había **tres** llamadas apoyadas en ella (`ruta.js`, `informe.js`, `verificar.js`).
+
+⭐⭐ **Y había una SEGUNDA causa, que arreglar la zona no habría tocado:** `resolver()` enganchaba al
+**NODO** más cercano, no a la **ARISTA**. Medido sobre los 46.150 portales reales:
+
+```
+   a la ARISTA   mediana  5,3 m   p90  18,0 m   p99  65,2 m   MÁXIMO 303,1 m
+   al NODO       mediana 24,4 m   p90  62,5 m   p99 197,3 m   MÁXIMO 566,6 m
+```
+
+⇒ **512 m cabía también en el grafo BUENO.** Si solo se hubiera corregido la zona, el síntoma habría
+bajado de frecuencia y habría seguido vivo — que es la peor forma de arreglar algo.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo lo publicado, y con razón.**
+Las siete rutas de la tanda 11 llamaban `construir(ZONA_TERMINO)` explícitamente; `informe.js` y
+`verificar.js` querían el casco de verdad —la salida de `informe.js` es **idéntica byte a byte** antes
+y después de escribir la zona—; el cuadre del visor, los ríos, el límite municipal, las tres
+contrapruebas: todo correcto. **El único que miraba el grafo equivocado era el instrumento hecho para
+depurar el motor**, y por eso no lo cazó ninguna verificación: ninguna lo usaba.
+
+**Cómo se cazó:** ⭐ **una pregunta de curiosidad de Antonio, no una verificación.** Ejecutó el
+comando a mano para ver los metros por tramo. Diecisiete tandas de contrapruebas no lo habían tocado
+porque el fichero que fallaba no estaba en el camino de ninguna.
+
+**Arreglo aplicado:** de clase, no del caso.
+1. `construir()` **exige la zona** y lanza sin ella. No queda valor por defecto que decida por nadie.
+2. **Todo grafo se DECLARA al construirse** por stderr —zona, bbox, sello, nodos, aristas, componentes,
+   pasos condicionales dentro o fuera—, sin escotilla para callarlo. Por stderr para no ensuciar el JSON.
+3. `src/auditoria-grafo.js`: guardián estático que recorre `src/` y **se pone rojo** si alguien
+   obtiene un grafo sin zona a la vista.
+4. El enganche pasa de nodo a **arista**, con `insertar`/`rutaEntre` subidos a `grafo.js`: había **dos
+   motores** (el de `ruta.js` y el de `rutas-antonio.js`) y ahora hay uno.
+5. Dos paradas nuevas: **rodeo físico < 1** y **enganche > 350 m**. Las dos con su rojo provocado en
+   `src/probar-guardianes.js`.
+
+**Ley que sale de aquí:** ⭐⭐ **un valor por defecto en un parámetro que elige el SUJETO de la medición
+no es una comodidad: es una hipótesis silenciosa.** Los parámetros que eligen *cómo* se calcula pueden
+tener defecto; los que eligen *sobre qué* se calcula, no.
+⚠️ Y el corolario que más duele: **las herramientas de depuración no las verifica nadie**, porque son
+las que verifican a las demás. `ruta.js` llevaba desde la tanda 8 sin que ninguna contraprueba pasara
+por él.
+**Traza:** `src/ruta.js` (`construir`, `declarar`, `resolver`, `engancharPunto`), `src/grafo.js`
+(`insertar`, `rutaEntre`), `src/direccion.js` (`abrir`, `punto`), `src/auditoria-grafo.js`,
+`src/probar-guardianes.js`, `src/informe.js`, `src/verificar.js`
+
+---
+
+## [2026-08-03] — El auditor se auditó a sí mismo y se denunció: 7 llamadas sospechosas donde había 3
+
+**Categoría:** el instrumento se cuenta entre los sujetos
+**Síntoma:** primera ejecución de `src/auditoria-grafo.js`, el guardián recién escrito para encontrar
+quién construye el grafo sin declarar la zona:
+
+```
+   ⛔ llamadas SIN zona explícita              7
+   auditoria-grafo.js   sí   ⛔ POR DEFECTO   construir()
+   auditoria-grafo.js   sí   ⚠️ (fragmento de su propia concatenación de cadenas)
+```
+
+**Se acusaba a sí mismo cuatro veces**, y una de las acusaciones era un trozo de su propio código de
+formato.
+
+**Causa raíz:** el auditor busca el texto `construir(` en los ficheros de `src/`, y sus propias
+expresiones regulares y sus mensajes **contienen literalmente ese texto**. Al listar el directorio se
+incluía a sí mismo. Las llamadas reales sin zona eran **3**: `ruta.js`, `informe.js`, `verificar.js`.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el guardián se puso ROJO, que era
+justo lo que se esperaba de él.** Salió con código 1 y una lista de culpables — y tres de los cuatro
+primeros culpables eran él mismo. **Un rojo correcto por un motivo equivocado es indistinguible de un
+rojo correcto** si solo se mira el código de salida.
+
+**Cómo se cazó:** ojo humano, al leer la tabla antes de creerse el número. El nombre
+`auditoria-grafo.js` en la columna de acusados no encaja con nada.
+
+**Arreglo aplicado:** el auditor se excluye del listado (`f !== path.basename(__filename)`), con el
+caso escrito en el comentario para que no vuelva a colarse. 7 → 3.
+
+**Ley que sale de aquí:** ⭐ **un instrumento que se mide a sí mismo infla el numerador con su propio
+cuerpo.** Todo contador que recorre un directorio tiene que declarar si se incluye — y casi siempre la
+respuesta correcta es que no.
+⚠️ Y la de segundo orden: **antes de creerse un rojo, hay que leer a quién señala.** El número de un
+guardián no es su veredicto; su lista, sí.
+**Traza:** `src/auditoria-grafo.js` (`YO`, `FICHEROS`)
+
+---
+
+## [2026-08-03] — El rojo del guardián del imposible físico saltó, pero por otro motivo
+
+**Categoría:** el rojo correcto por la causa equivocada
+**Síntoma:** `src/probar-guardianes.js`, la prueba que planta una arista de 1 m entre dos nodos
+separados 2,7 km para comprobar que el motor **para** ante un rodeo por debajo de 1:
+
+```
+   positivo de control: la ruta real entre ellos     ⛔ no se resolvió
+   rojo: la ruta mide menos que la línea recta       ✅   ⛔ FUERA DEL GRAFO · el origen (undefined, undefined)…
+```
+
+**El ✅ es falso.** El guardián que saltó fue el de A4 (*punto fuera del grafo*), no el de A3
+(*imposible físico*). La prueba del teletransporte **nunca llegó a ejecutarse**.
+
+**Causa raíz:** `aGrados(x, y)` devuelve **`[lon, lat]`**, un array, y yo lo leí como `{lat, lon}`. Las
+dos coordenadas salían `undefined`, así que no había arista a menos de 350 m de "ninguna parte" y el
+guardián de A4 hacía su trabajo perfectamente.
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el propio rojo.** La línea decía
+`✅` porque la prueba era *"¿lanza una excepción?"*, y lanzaba. **Comprobar que algo falla no es
+comprobar que falla por lo que crees.**
+⚠️ Lo que sí funcionó fue el **positivo de control**: la ruta sin sabotaje también salía en rojo, y eso
+es imposible si el instrumento está sano. Sin esa línea, el fallo se habría publicado como un guardián
+verificado.
+
+**Cómo se cazó:** el positivo de control, que estaba puesto precisamente por la ley 2 (*todo cero se
+demuestra con un positivo*). Aquí demostró un rojo, no un cero, pero el mecanismo es el mismo.
+
+**Arreglo aplicado:** desestructurar `const [lon, lat] = aGrados(...)`. Y de paso, los dos nodos del
+sabotaje se eligen ahora **dentro de la componente mayor**: si caen en componentes distintas no hay
+ruta, y el positivo de control fallaría por falta de camino en vez de por el sabotaje.
+
+**Ley que sale de aquí:** ⭐⭐ **un guardián se verifica con DOS pruebas, no con una: que se ponga rojo
+con el fallo puesto, y que se ponga VERDE sin él.** La segunda es la que distingue un guardián de una
+alarma estropeada, y es la que casi nunca se escribe.
+**Traza:** `src/probar-guardianes.js` (G4), `src/geo.js` (`aGrados`)

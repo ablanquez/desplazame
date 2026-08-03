@@ -45,7 +45,10 @@ function contarComponentes(nodos, aristas, sinArista = -1) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-const g = construir();
+// ⛔ ANTES decía `construir()` a secas. El casco es lo correcto aquí —toda esta
+//    verificación se compara contra el crudo de la tanda 3, que es del casco—,
+//    pero lo era por un valor por defecto, no por una decisión escrita.
+const g = construir(ZONA_CASCO);
 const c = g.contadores;
 
 linea('C4a · ¿ES UNA RED?  —  componentes conexas, CON SU LÍNEA BASE');

@@ -5,7 +5,7 @@
 //    ser CONTABLE (ley 23).
 
 'use strict';
-const { construir, ZONA_TANDA3, contiene } = require('./ruta');
+const { construir, ZONA_CASCO, ZONA_TANDA3, contiene } = require('./ruta');
 
 function percentiles(v) {
   if (!v.length) return null;
@@ -71,7 +71,11 @@ function informe(g) {
 }
 
 if (require.main === module) {
-  const g = construir();
+  // ⛔ ANTES decía `construir()` a secas y se llevaba el casco por un valor por
+  //    defecto. Aquí el casco es lo correcto —este informe compara contra la
+  //    ventana de la tanda 3—, pero eso ahora está ESCRITO en vez de heredado.
+  //    Comprobado: la salida es idéntica byte a byte antes y después del cambio.
+  const g = construir(ZONA_CASCO);
   console.log(informe(g));
 }
 module.exports = { informe, percentiles };

@@ -17,6 +17,7 @@ const { aMetros } = require('./geo');
 const osm = require('./osm');
 const { planarizar } = require('./planarizar');
 const G = require('./grafo');
+const P = require('./portales');
 
 const CRUDO = path.join(__dirname, '..', 'data', 'fuentes',
   '2026-08-03_overpass_zaragoza-highway_geom-y-tags.json');
@@ -60,7 +61,42 @@ if (!contiene(ZONA_TERMINO, ZONA_CASCO) || !contiene(ZONA_TERMINO, ZONA_TANDA3))
   throw new Error('ZONA_TERMINO no contiene al casco: la comparación con la tanda 8 no vale');
 }
 
-function construir(zona = ZONA_CASCO, opciones = {}) {
+// ═════════════════════════════════════════════════════════════════════════════
+// A2 · LA PUERTA DEL GRAFO — la zona es OBLIGATORIA, y todo grafo se DECLARA
+// ═════════════════════════════════════════════════════════════════════════════
+// ⛔ Esta función tenía `zona = ZONA_CASCO` por defecto. El comando con el que se
+//    interroga el motor —`node src/ruta.js lat lon lat lon`— llamaba a
+//    `construir()` sin argumento, así que **contestaba rutas de ciudad con el
+//    grafo del casco antiguo y no lo decía**. No fallaba: contestaba.
+//
+// ⭐ El fallo NO es que ruta.js estuviera mal apuntado. El fallo es que un
+//    parámetro por defecto es una decisión que nadie tomó y que nadie ve, y había
+//    tres llamadas apoyadas en ella. Por eso el arreglo es de clase:
+//      1 · sin zona, esto REVIENTA. No hay valor por defecto que decida por nadie.
+//      2 · todo grafo construido se DECLARA por stderr, siempre, sin escotilla.
+//          Va por stderr y no por stdout para no ensuciar el JSON del motor.
+//      3 · `src/auditoria-grafo.js` comprueba que nadie se salte esta puerta.
+//    (1) y (2) no dependen de que nadie se acuerde de nada: eso es la ley 37.
+const ZONAS = { casco: ZONA_CASCO, termino: ZONA_TERMINO };
+const nombreDeZona = (z) => Object.keys(ZONAS).find((k) => ZONAS[k] === z
+  || JSON.stringify(ZONAS[k]) === JSON.stringify(z)) || 'a-medida';
+
+function declarar(g, opciones) {
+  const z = g.zona;
+  process.stderr.write(
+    `⚑ GRAFO · zona=${nombreDeZona(z)}  S ${z.sur} O ${z.oeste} N ${z.norte} E ${z.este}`
+    + `  (${g.areaKm2.toFixed(0)} km²)\n`
+    + `⚑ sello=${g.sello}  nodos=${g.contadores.nodos}  aristas=${g.contadores.aristas}`
+    + `  a-pie=${g.aristasAPie}  componentes=${g.comp.n}  mayor=${Math.max(...g.comp.tamanos)}`
+    + `  pasos-condicionales=${opciones.conCondicionales === true ? 'DENTRO' : 'fuera'}\n`);
+}
+
+function construir(zona, opciones = {}) {
+  if (!zona || ['sur', 'oeste', 'norte', 'este'].some((k) => typeof zona[k] !== 'number')) {
+    throw new Error('⛔ construir() EXIGE la zona explícita. Antes tenía ZONA_CASCO por '
+      + 'defecto y `src/ruta.js` contestaba rutas de ciudad con el grafo del casco sin '
+      + 'decirlo (bitácora nº69). Zonas: ' + Object.keys(ZONAS).join(' · '));
+  }
   const { sello, ways } = osm.cargar(CRUDO);
   const recorte = osm.proyectar(osm.recortar(ways, zona));
   const { nodos, aristas, contadores, noConectados, porDefecto, puntasLejos } = planarizar(recorte, opciones);
@@ -69,32 +105,98 @@ function construir(zona = ZONA_CASCO, opciones = {}) {
   //    informe — pero lo que contesta una ruta es esto.
   const { ady, usadas } = G.adyacencia(nodos, aristas, true, opciones.conCondicionales !== true);
   const comp = G.componentes(nodos, ady);
-  return { sello, zona, nodos, aristas, ady, comp, contadores, noConectados, porDefecto,
+  const g = { sello, zona, nodos, aristas, ady, comp, contadores, noConectados, porDefecto,
     puntasLejos, aristasAPie: usadas, areaKm2: osm.areaKm2(zona) };
+  declarar(g, opciones);
+  return g;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// A4 · EL UMBRAL DE ENGANCHE — de dónde sale, y qué cuesta
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐ MEDIDO, no puesto a ojo. Sobre los 46.150 portales reales del callejero
+//    municipal, la distancia de cada uno a la arista transitable más cercana:
+//        mediana 5,3 m · p90 18,0 m · p99 65,2 m · p99,9 174,6 m · MÁXIMO 303,1 m
+//
+//    ⇒ X = 350 m. El criterio es **no rechazar ninguna dirección real de
+//      Zaragoza**: 350 queda por encima del peor portal que existe (303,1 m), con
+//      holgura. Lo que cuesta: deja pasar cualquier punto hasta 350 m, así que no
+//      es un detector fino, es un tope.
+//    ⇒ Y a 65,2 m (el p99) se AVISA sin parar: por encima de ahí el punto está en
+//      el 1 % peor del callejero, y eso el usuario tiene derecho a saberlo.
+//
+// ⚠️ El caso que lo motivó —un enganche de 512 m— tenía DOS causas, no una: el
+//    grafo equivocado (casco) Y el enganche al NODO en vez de a la arista. Al nodo
+//    el máximo real es 566,6 m, así que 512 m **también cabía en el grafo bueno**.
+//    Arreglar solo la zona habría dejado el segundo vivo.
+const MAX_ENGANCHE_M = 350;
+const AVISO_ENGANCHE_M = 65;
+
+/** Índice de aristas a pie, cacheado en el grafo: construirlo cuesta y se repite. */
+function indice(g) {
+  if (!g._idxAristas) g._idxAristas = P.indexarAristas(g.aristas, (e) => e.pie);
+  return g._idxAristas;
+}
+
+/**
+ * Engancha un punto a la ARISTA transitable más cercana.
+ * ⛔ PARA si no hay ninguna dentro de MAX_ENGANCHE_M. No es un aviso: es que ese
+ *    punto no está en este grafo, y contestar una ruta desde otro sitio sería
+ *    contestar otra pregunta.
+ */
+function engancharPunto(g, lat, lon, etiqueta) {
+  const m = aMetros(lon, lat);
+  const { mejor } = P.engancharUno(m, g.aristas, indice(g), () => '', MAX_ENGANCHE_M);
+  if (!mejor) {
+    throw new Error(`⛔ FUERA DEL GRAFO · el ${etiqueta} (${lat}, ${lon}) no tiene ninguna `
+      + `arista transitable a menos de ${MAX_ENGANCHE_M} m. O el punto está fuera de la zona `
+      + `del grafo (zona=${nombreDeZona(g.zona)}), o ahí no hay calle mapeada. `
+      + `No se contesta una ruta desde otro sitio.`);
+  }
+  return { arista: mejor.i, seg: mejor.k, t: mejor.t, q: mejor.q, d: mejor.d, lat, lon, m };
 }
 
 function resolver(g, latO, lonO, latD, lonD) {
-  const pO = aMetros(lonO, latO), pD = aMetros(lonD, latD);
-  const o = G.nodoMasCercano(g.nodos, g.ady, pO);
-  const d = G.nodoMasCercano(g.nodos, g.ady, pD);
+  const o = engancharPunto(g, latO, lonO, 'origen');
+  const d = engancharPunto(g, latD, lonD, 'destino');
 
   // Lo que NO sabemos se dice, no se calla. Tres estados, no dos.
   const avisos = [];
-  if (o.d > 100) avisos.push({ tipo: 'origen-lejos', metros: Math.round(o.d) });
-  if (d.d > 100) avisos.push({ tipo: 'destino-lejos', metros: Math.round(d.d) });
-  if (o.nodo === -1 || d.nodo === -1) {
-    return { encontrada: false, motivo: 'sin-grafo-cerca', avisos };
-  }
-  if (g.comp.comp[o.nodo] !== g.comp.comp[d.nodo]) {
+  if (o.d > AVISO_ENGANCHE_M) avisos.push({ tipo: 'origen-lejos', metros: Math.round(o.d),
+    dice: `el origen está a ${Math.round(o.d)} m de la calle más cercana (el 99 % del callejero está a menos de ${AVISO_ENGANCHE_M} m)` });
+  if (d.d > AVISO_ENGANCHE_M) avisos.push({ tipo: 'destino-lejos', metros: Math.round(d.d),
+    dice: `el destino está a ${Math.round(d.d)} m de la calle más cercana (el 99 % del callejero está a menos de ${AVISO_ENGANCHE_M} m)` });
+
+  const cO = g.comp.comp[g.aristas[o.arista].a], cD = g.comp.comp[g.aristas[d.arista].a];
+  if (cO !== cD) {
     return { encontrada: false, motivo: 'componentes-distintas', avisos,
-      componenteOrigen: g.comp.comp[o.nodo], componenteDestino: g.comp.comp[d.nodo] };
+      componenteOrigen: cO, componenteDestino: cD };
   }
 
-  const r = G.dijkstra(g.ady, o.nodo);
-  const ruta = G.reconstruir(g.nodos, g.aristas, r, o.nodo, d.nodo);
-  if (!ruta) return { encontrada: false, motivo: 'sin-camino', avisos };
+  const ruta = G.rutaEntre(g, o, d);
+  if (!ruta.encontrada) return { encontrada: false, motivo: ruta.motivo, avisos };
 
-  const recta = Math.hypot(pO[0] - pD[0], pO[1] - pD[1]);
+  // ── las DOS rectas, que no son la misma pregunta ──────────────────────────
+  // `lineaRecta` va entre los puntos PEDIDOS: es la de la tabla de Antonio.
+  // `rectaEnganchada` va entre los puntos donde el motor entra al grafo: es la
+  // única con la que el rodeo tiene sentido físico, porque la ruta empieza y
+  // acaba ahí. Compararlas al revés fue el fallo nº58.
+  const recta = Math.hypot(o.m[0] - d.m[0], o.m[1] - d.m[1]);
+  const rectaEng = Math.hypot(o.q[0] - d.q[0], o.q[1] - d.q[1]);
+  const rodeoFisico = ruta.metros / rectaEng;
+
+  // ⭐ A3 · UN RODEO FÍSICO POR DEBAJO DE 1 ES IMPOSIBLE, NO IMPROBABLE.
+  //    Ninguna ruta sobre el terreno puede medir menos que la línea recta entre
+  //    sus propios extremos. Si sale, el grafo tiene una arista que teletransporta
+  //    o una longitud mal calculada — y devolverlo dentro de un JSON con
+  //    `encontrada: true` es publicar un imposible con cara de resultado.
+  if (rectaEng > 0.01 && rodeoFisico < 0.999) {
+    throw new Error(`⛔⛔ IMPOSIBLE FÍSICO · la ruta mide ${ruta.metros.toFixed(1)} m entre dos `
+      + `puntos separados ${rectaEng.toFixed(1)} m en línea recta (rodeo ${rodeoFisico.toFixed(3)}). `
+      + `El grafo está roto: hay una arista que teletransporta o una longitud mal medida. `
+      + `Esto NO es un aviso.`);
+  }
+
   const porDefecto = ruta.pasos.filter((p) => p.unidoPorDefecto).length;
   const conPrecisionBaja = ruta.pasos.filter((p) => p.precision === 'eje-de-calzada').length;
 
@@ -103,9 +205,11 @@ function resolver(g, latO, lonO, latD, lonD) {
     metros: ruta.metros,
     lineaRecta: Math.round(recta * 10) / 10,
     rodeo: Math.round((ruta.metros / recta) * 1000) / 1000,
+    rectaEnganchada: Math.round(rectaEng * 10) / 10,
+    rodeoFisico: Math.round(rodeoFisico * 1000) / 1000,
     engancheOrigen: Math.round(o.d * 10) / 10,
     engancheDestino: Math.round(d.d * 10) / 10,
-    aristas: ruta.aristas,
+    aristas: ruta.aristas.length,
     // D2 y D4 viajan hasta aquí, que es el punto entero de que nazcan en el planarizado
     pasosPorDefecto: porDefecto,
     pasosSinAceraConocida: conPrecisionBaja,
@@ -115,19 +219,53 @@ function resolver(g, latO, lonO, latD, lonD) {
 }
 
 if (require.main === module) {
-  const a = process.argv.slice(2).map(Number);
-  if (a.length !== 4 || a.some((x) => !Number.isFinite(x))) {
-    console.error('uso: node src/ruta.js <latO> <lonO> <latD> <lonD>');
-    process.exit(2);
+  const arg = process.argv.slice(2);
+  const zonaPedida = ZONAS[arg[0]] ? arg.shift() : 'termino';
+  const USO = 'uso:  node src/ruta.js [casco|termino] <latO> <lonO> <latD> <lonD>\n'
+    + '      node src/ruta.js [casco|termino] "Coso 33" "Calle Alfonso I 10"';
+
+  let coords = null, direcciones = null;
+  if (arg.length === 4 && arg.every((x) => Number.isFinite(Number(x)))) coords = arg.map(Number);
+  else if (arg.length === 2) direcciones = arg;
+  else { console.error(USO); process.exit(2); }
+
+  try {
+    // ⛔ la zona SIEMPRE explícita, también aquí. Por defecto el término, que es
+    //    la ciudad — pero es una elección escrita, no un parámetro invisible.
+    const g = construir(ZONAS[zonaPedida]);
+    let salida;
+
+    if (coords) {
+      salida = resolver(g, coords[0], coords[1], coords[2], coords[3]);
+    } else {
+      // ⭐ A5 · UN SOLO GEOCODIFICADOR. El mismo módulo `direccion.js` que usan las
+      //    siete rutas de Antonio. Dos caminos de código desde el mismo dato
+      //    divergen — es la forma exacta de los fallos nº63 y nº67.
+      const D = require('./direccion');
+      const ctx = D.abrir(g, CRUDO);
+      const a = D.punto(direcciones[0], ctx), b = D.punto(direcciones[1], ctx);
+      for (const [q, p] of [[direcciones[0], a], [direcciones[1], b]]) {
+        if (!p) { console.error(`⛔ no se puede resolver la dirección "${q}"`); process.exit(3); }
+      }
+      salida = { ...resolver(g, a.lat, a.lon, b.lat, b.lon),
+        origen: { consulta: direcciones[0], estado: a.estado, lat: a.lat, lon: a.lon, aviso: a.aviso || null },
+        destino: { consulta: direcciones[1], estado: b.estado, lat: b.lat, lon: b.lon, aviso: b.aviso || null } };
+    }
+
+    console.log(JSON.stringify({
+      sello: g.sello, zona: nombreDeZona(g.zona), bbox: g.zona,
+      grafo: { nodos: g.contadores.nodos, aristas: g.contadores.aristas,
+        componentes: g.comp.n, mayor: Math.max(...g.comp.tamanos) },
+      ...salida,
+    }, null, 2));
+  } catch (e) {
+    // ⭐ A3/A4 · en rojo y con código de salida distinto de 0. Un imposible físico
+    //    o un punto fuera del grafo NO salen dentro de un JSON con encontrada:true.
+    console.error(e.message);
+    process.exit(1);
   }
-  const g = construir();
-  const res = resolver(g, a[0], a[1], a[2], a[3]);
-  console.log(JSON.stringify({
-    sello: g.sello, zona: g.zona,
-    grafo: { nodos: g.contadores.nodos, aristas: g.contadores.aristas,
-      componentes: g.comp.n, mayor: Math.max(...g.comp.tamanos) },
-    ...res,
-  }, null, 2));
 }
 
-module.exports = { construir, resolver, ZONA_CASCO, ZONA_TERMINO, ZONA_TANDA3, contiene, CRUDO };
+module.exports = { construir, resolver, engancharPunto, declarar, nombreDeZona,
+  ZONAS, ZONA_CASCO, ZONA_TERMINO, ZONA_TANDA3, contiene, CRUDO,
+  MAX_ENGANCHE_M, AVISO_ENGANCHE_M };
