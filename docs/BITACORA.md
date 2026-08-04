@@ -4972,3 +4972,70 @@ módulo hay que preguntarse qué es, no cómo se llama.
 valor junto al ✅ convierte a un guardián ciego en, al menos, un testigo.
 
 **Traza:** `src/exportar-nombres.js` (el bloque `d.estado === 'NOMBRADA'`)
+
+---
+
+## [2026-08-04] — Restringí una regla usando una decisión escrita para OTRA pregunta
+
+**Categoría:** aviso falso (una regla que descarta aciertos buenos)
+**Síntoma:** el reconocedor de nombres largos (`«María Zambrano» ⊂ «Poeta María Zambrano»`) se
+escribió aceptando el recorte en cualquier posición. Al probarlo salió esto:
+
+```
+   🔗 UNE   «mayor»  vs  «mayor grp»
+```
+
+Y `src/direccion.js` lleva escrito desde la tanda 6, en un comentario, exactamente lo contrario:
+*«"Calle Mayor" y "Calle Mayor GRP" NO caen en la misma casilla, y eso es correcto: son dos
+calles»*. ⇒ restringí la regla a que el recorte fuera un **sufijo** —el título va delante en
+castellano: «**Poeta** María Zambrano»— y lo que se añade por detrás lo declaré distintivo.
+
+**Y era falso.** La clasificación de lo que la restricción tiraba lo dijo sola:
+
+```
+   3368  la cola es un CÓDIGO DE BARRIO RURAL de 3 letras   ← MVR, MNZ, GRP, SJN, CST, SIS, MNT…
+    102  la cola es «10»
+     47  la cola es «caballero»
+```
+
+**`MAYOR MVR` es la Calle Mayor de Movera.** Es la misma calle que OSM llama «Calle Mayor»: el
+código está ahí porque hay siete Calles Mayores en el término, no porque sean otra calle.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la restricción pasó los cinco
+positivos publicados en la tanda 17** —`león felipe`, `gabriel celaya`, `juan josé rivas`,
+`garcía arista`, `lozano monzón`: los cinco son sufijo—, pasó el control negativo de 20.000 parejas
+al azar con **0 uniones**, y ⛔ **le añadí un `A.exige` que la protegía**
+(`A.exige(!mismaVia('mayor','mayor grp'), …)`). **Escribí un guardián que defendía el error.** Y la
+tabla de resultados salía en verde y con menos casos, que es como se ve una regla «prudente».
+⭐ El único número que chirriaba era el bulto: el acierto del método bajaba de 89,7 % a 80,2 % y la
+concordancia del enganche de 87,8 % a 77,1 %. **Una regla más estricta que pierde diez puntos no es
+prudente: es que está tirando aciertos.**
+
+**Causa raíz:** apliqué la ley 17 —*un umbral heredado de otra pregunta no está elegido para que
+salga bien ésta*— **sin comprobar que la pregunta fuera la misma**. Y no lo era:
+
+· el GEOCODIFICADOR pregunta *«¿qué calle quiere decir este texto?»* — y ahí «Calle Mayor» a secas es
+  **ambigua**: hay siete. Unirlas sería elegir por el usuario.
+· este RECONOCEDOR pregunta *«estos dos nombres, pegados a la MISMA geometría, ¿son la misma
+  calle?»* — y ahí no hay nada que elegir: el portal está a 5 m de esa línea concreta.
+
+**Cómo se cazó:** por clasificar antes de contar (ley 29). El número «3.644 emparejamientos de
+diferencia» no decía nada; agrupar las 196 parejas por **qué palabra sobraba** lo dijo en una línea.
+
+**Arreglo aplicado:** la regla vuelve a ser ancha, la variante de sufijo **se mide entera y se
+publica al lado** con esa clasificación, el `A.exige` que defendía el error se retira, y queda
+escrito en la cabecera del módulo ⛔⛔ **que este reconocedor NUNCA resuelve un texto a una calle**:
+solo compara dos nombres que la geometría ya ha puesto en el mismo sitio. `direccion.js` no se toca.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **heredar una decisión de otra parte del proyecto exige comprobar que
+la PREGUNTA es la misma, no solo que el dato lo sea.** La ley 17 protege de elegir un umbral a
+medida; no autoriza a importar una decisión porque hable de las mismas palabras. Dos módulos pueden
+tener razón a la vez y decir lo contrario.
+⚠️ Y la que más escuece: **escribí un `A.exige` que defendía el error.** Un guardián puesto en el
+mismo momento que la regla no la vigila: la repite. Los guardianes que valen son los que vienen de
+fuera —los cinco positivos de la tanda 17 sí eran de fuera, y por eso no cazaron nada: la regla mala
+también los pasaba—.
+
+**Traza:** `src/nombre-largo.js` (`recorteDe`, `sufijoDe`, B3)
