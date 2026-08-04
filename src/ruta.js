@@ -248,9 +248,15 @@ function resolver(g, latO, lonO, latD, lonD) {
 
 if (require.main === module) {
   const arg = process.argv.slice(2);
+  // ⭐ TANDA 16 · por defecto contesta en TEXTO, porque esto lo lee una persona en
+  //    una terminal. ⛔ El JSON NO se elimina —sirve para otras cosas—: sale con
+  //    `--json`, byte a byte como antes.
+  const quiereJson = arg.includes('--json');
+  for (let i = arg.length - 1; i >= 0; i--) if (arg[i] === '--json' || arg[i] === '--texto') arg.splice(i, 1);
   const zonaPedida = ZONAS[arg[0]] ? arg.shift() : 'termino';
   const USO = 'uso:  node src/ruta.js [casco|termino] <latO> <lonO> <latD> <lonD>\n'
-    + '      node src/ruta.js [casco|termino] "Coso 33" "Calle Alfonso I 10"';
+    + '      node src/ruta.js [casco|termino] "Coso 33" "Calle Alfonso I 10"\n'
+    + '      añade --json para la salida de máquina (la de siempre)';
 
   let coords = null, direcciones = null;
   if (arg.length === 4 && arg.every((x) => Number.isFinite(Number(x)))) coords = arg.map(Number);
@@ -262,9 +268,12 @@ if (require.main === module) {
     //    la ciudad — pero es una elección escrita, no un parámetro invisible.
     const g = construir(ZONAS[zonaPedida]);
     let salida;
+    let etqO = null, etqD = null;
 
     if (coords) {
       salida = resolver(g, coords[0], coords[1], coords[2], coords[3]);
+      etqO = coords[0] + ', ' + coords[1];
+      etqD = coords[2] + ', ' + coords[3];
     } else {
       // ⭐ A5 · UN SOLO GEOCODIFICADOR. El mismo módulo `direccion.js` que usan las
       //    siete rutas de Antonio. Dos caminos de código desde el mismo dato
@@ -278,14 +287,35 @@ if (require.main === module) {
       salida = { ...resolver(g, a.lat, a.lon, b.lat, b.lon),
         origen: { consulta: direcciones[0], estado: a.estado, lat: a.lat, lon: a.lon, aviso: a.aviso || null },
         destino: { consulta: direcciones[1], estado: b.estado, lat: b.lat, lon: b.lon, aviso: b.aviso || null } };
+      etqO = direcciones[0];
+      etqD = direcciones[1];
     }
 
-    console.log(JSON.stringify({
-      sello: g.sello, zona: nombreDeZona(g.zona), bbox: g.zona,
-      grafo: { nodos: g.contadores.nodos, aristas: g.contadores.aristas,
-        componentes: g.comp.n, mayor: Math.max(...g.comp.tamanos) },
-      ...salida,
-    }, null, 2));
+    if (quiereJson) {
+      console.log(JSON.stringify({
+        sello: g.sello, zona: nombreDeZona(g.zona), bbox: g.zona,
+        grafo: { nodos: g.contadores.nodos, aristas: g.contadores.aristas,
+          componentes: g.comp.n, mayor: Math.max(...g.comp.tamanos) },
+        ...salida,
+      }, null, 2));
+    } else {
+      // ⛔ el MISMO redactor que usan las siete rutas y el visor. Una sola forma
+      //    de contar un tramo en todo el proyecto (fuente única).
+      const Rel = require('./relato');
+      const nombreDeWay = (id) => (g.nombres && g.nombres.get(id)) || null;
+      console.log(Rel.texto(salida, { origen: etqO, destino: etqD, nombreDeWay,
+        rodeo: salida.rodeo, engancheOrigen: salida.engancheOrigen,
+        engancheDestino: salida.engancheDestino }));
+      // los avisos que no son de tramo (enganche lejos, dirección dudosa)
+      for (const av of (salida.avisos || [])) {
+        if (av.tipo === 'paso-condicional') continue;   // ya salen tramo a tramo
+        console.log('   ⚠️  ' + av.dice);
+      }
+      for (const [q, p] of [['origen', salida.origen], ['destino', salida.destino]]) {
+        if (p && p.aviso) console.log('   ⚠️  el ' + q + ': ' + p.aviso);
+      }
+      if (!salida.encontrada) process.exitCode = 4;
+    }
   } catch (e) {
     // ⭐ A3/A4 · en rojo y con código de salida distinto de 0. Un imposible físico
     //    o un punto fuera del grafo NO salen dentro de un JSON con encontrada:true.

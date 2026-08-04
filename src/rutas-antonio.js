@@ -28,6 +28,7 @@ const T = require('./tabla-rutas');
 const Co = require('./condicionales');
 const Pu = require('./puerta');
 const En = require('./entradas');
+const Rel = require('./relato');
 const Al = require('./alarma');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 const { aMetros, dist } = require('./geo');
@@ -263,6 +264,25 @@ if (require.main === module) {
     log('');
     log('   ⭐ A6 · DÓNDE SE VAN LOS METROS');
     log(porTramos(res.pasos, ctx.nombreDeWay));
+
+    // ⭐⭐ TANDA 16 · LA RUTA CONTADA, con el MISMO redactor que `ruta.js` y que el
+    //    visor. ⛔ No hay un segundo redactor: si esto y la terminal dijeran cosas
+    //    distintas, una de las dos estaría mintiendo y no se sabría cuál.
+    log('');
+    log('   ⭐⭐ LA RUTA, SALTO A SALTO');
+    log(Rel.texto(res, { origen: ru.o, destino: ru.d, nombreDeWay: ctx.nombreDeWay,
+      rodeo, engancheOrigen: aP.d, engancheDestino: bFin.d })
+      .split('\n').map((x) => '   ' + x).join('\n'));
+    // ⭐ CUADRE ENTRE LAS DOS TABLAS. Arriba está `porTramos` —el desglose de
+    //    metros por arista— y aquí el relato, que agrupa. Los dos leen los mismos
+    //    `res.pasos`, así que no pueden divergir… **mientras alguien no cambie uno
+    //    de los dos.** Esto lo convierte en mecanismo y no en confianza (ley 37).
+    {
+      const sumaRelato = Rel.tramos(res, ctx.nombreDeWay).reduce((s, t) => s + t.metros, 0);
+      const sumaPasos = res.pasos.reduce((s, p) => s + p.metros, 0);
+      Al.exige(Math.abs(sumaRelato - sumaPasos) < 0.5,
+        `la ruta nº${ru.n}: el relato suma ${sumaRelato.toFixed(1)} m y el desglose ${sumaPasos.toFixed(1)} m`);
+    }
 
     const nombres = [];
     for (const ia of res.aristas) {

@@ -230,11 +230,19 @@ function rutaEntre(g, oP, dP, opciones = {}) {
   if (!Number.isFinite(total)) return { encontrada: false, motivo: 'sin-camino' };
 
   const crudos = [];
+  // ⭐ la SECUENCIA DE NODOS se devuelve también, desde la tanda 16. No cambia
+  //    ningún cálculo: es el mismo camino que ya se reconstruye aquí, expuesto.
+  //    Sin ella no se puede dibujar la ruta —hay que saber en qué sentido se
+  //    recorre cada arista y dónde se corta la primera y la última—, y
+  //    reconstruirla fuera sería una segunda copia del camino (fallo nº68).
+  const secuencia = [b];
   for (let v = b; v !== a; v = r.prev[v]) {
     if (r.prev[v] === -1) return { encontrada: false, motivo: 'sin-camino' };
     crudos.push({ ia: r.prevA[v], m: r.dist[v] - r.dist[r.prev[v]] });
+    secuencia.push(r.prev[v]);
   }
   crudos.reverse();
+  secuencia.reverse();
 
   const pasos = [];
   for (const { ia, m } of crudos) {
@@ -265,7 +273,10 @@ function rutaEntre(g, oP, dP, opciones = {}) {
   for (const p of pasos) p.metros = Math.round(p.metros * 10) / 10;
 
   return { encontrada: true, metros: Math.round(total * 10) / 10,
-    aristas: crudos.map((c) => c.ia), pasos };
+    aristas: crudos.map((c) => c.ia), nodos: secuencia,
+    // ⛔ los dos nodos temporales, para que quien dibuje sepa dónde cortar la
+    //    primera y la última arista. Son ids, no puntos: el punto ya lo tiene.
+    nodoOrigen: a, nodoDestino: b, pasos };
 }
 
 module.exports = { adyacencia, componentes, articulaciones, dijkstra, nodoMasCercano,
