@@ -269,6 +269,7 @@ if (require.main === module) {
     const g = construir(ZONAS[zonaPedida]);
     let salida;
     let etqO = null, etqD = null;
+    let ctxDir = null;        // ⭐ el contexto del geocodificador, si lo hubo: trae los portales
 
     if (coords) {
       salida = resolver(g, coords[0], coords[1], coords[2], coords[3]);
@@ -280,6 +281,7 @@ if (require.main === module) {
       //    divergen — es la forma exacta de los fallos nº63 y nº67.
       const D = require('./direccion');
       const ctx = D.abrir(g, CRUDO);
+      ctxDir = ctx;
       const a = D.punto(direcciones[0], ctx), b = D.punto(direcciones[1], ctx);
       for (const [q, p] of [[direcciones[0], a], [direcciones[1], b]]) {
         if (!p) { console.error(`⛔ no se puede resolver la dirección "${q}"`); process.exit(3); }
@@ -303,9 +305,24 @@ if (require.main === module) {
       //    de contar un tramo en todo el proyecto (fuente única).
       const Rel = require('./relato');
       const nombreDeWay = (id) => (g.nombres && g.nombres.get(id)) || null;
+      // ⭐⭐ TANDA 21 · EL MODELO YA NO ES UNA CAPA DE PRUEBA: entra en la ruta que
+      //    escribe una persona en la terminal. Trae los nombres deducidos de los
+      //    portales (marcados) y el papel a pie. ⛔ NO toca el cálculo: `salida` ya
+      //    está resuelta cuando esto se monta.
+      //    ⚠️ Cuesta ~10 s y necesita los portales enganchados, así que solo se
+      //    monta cuando los hay — con `--coords` no se enganchan y se dice.
+      let modeloDeWay = null;
+      if (ctxDir && !process.argv.includes('--sin-modelo')) {
+        try {
+          const Mo = require('./modelo');
+          modeloDeWay = Mo.construirModelo(g, ctxDir.enganche.portales.filter((o) => o.enganchado)).modeloDeWay;
+        } catch (e) {
+          console.error('   ⚠️  sin modelo de vía·forma·papel: ' + e.message);
+        }
+      }
       console.log(Rel.texto(salida, { origen: etqO, destino: etqD, nombreDeWay,
         rodeo: salida.rodeo, engancheOrigen: salida.engancheOrigen,
-        engancheDestino: salida.engancheDestino }));
+        engancheDestino: salida.engancheDestino, modelo: modeloDeWay }));
       // los avisos que no son de tramo (enganche lejos, dirección dudosa)
       for (const av of (salida.avisos || [])) {
         if (av.tipo === 'paso-condicional') continue;   // ya salen tramo a tramo

@@ -35,6 +35,8 @@ const F = require('./forma');
 const A = require('./alarma');
 const osm = require('./osm');
 const AB = require('./asignar-bici');
+const H = require('./heredar-nombre');
+const NL = require('./nombre-largo');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 
 /** Huella del grafo: si alguien lo muta, esto cambia. */
@@ -47,11 +49,92 @@ function hashGrafo(g) {
   return h.digest('hex');
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ TANDA 21 · A · EL MÉTODO DE LOS PORTALES, APLICADO — se acabó la prueba
+// ═════════════════════════════════════════════════════════════════════════════
+//   > *«Tenemos una línea que no tiene nombre de vía, pero por proximidad tiene
+//   >  varios portales con nombre de vía. ¿Conclusión? Tenemos un nombre de vía
+//   >  para esa línea.»* — Antonio
+//
+//   Medido en las tandas 17 y 20 antes de aplicarlo: acierta el 76,7 % por arista
+//   y el 80,9 % por way —**89,7 % y 92,3 % contando el nombre largo** (tanda 21
+//   §B)— contra un azar del 18,5 %, y cubriría **8.289 de las 11.742 puertas** que
+//   hoy cuelgan de líneas sin nombre.
+//
+//   ⛔ **LA UNIDAD ES EL WAY**, y no es una elección de hoy: la tanda 17 §B3b midió
+//     que multiplica la cobertura por 2,4 y sube el acierto 4 puntos, con el mismo
+//     patrón de verdad y los mismos umbrales.
+//   ⛔ **AMBIGUA SIGUE SIENDO UN RESULTADO.** Si los portales no se ponen de
+//     acuerdo (2/3), el way NO se nombra. Elegir a ciegas es inventar.
+//   ⛔ **Y VA MARCADO**: `declarada: false`. El texto tiene que poder decir que ese
+//     nombre no lo declara nadie, lo deducimos nosotros.
+//
+//   ⚠️ EL PASO QUE CASI SE CUELA (bitácora nº101): `heredar-nombre.js` devuelve un
+//     **NÚCLEO NORMALIZADO** (`torre sierras`), no un nombre. Aquí se recupera el
+//     nombre real **del portal que votó**, no de un índice por núcleo: dos vías
+//     pueden compartir núcleo y ser dos calles (ley 41).
+
+/**
+ * ⭐ B dentro de A: dos vías cuyo núcleo es recorte de la otra son la misma calle,
+ * así que sus votos NO deben partirse. Devuelve Map<nucleo, canónico>.
+ * ⚠️ Si un corto cabe en DOS largos distintos, se deja como está (B2).
+ */
+function canonizar(nucleos) {
+  const set = [...new Set(nucleos.filter((x) => x))];
+  const m = new Map();
+  for (const n of set) {
+    const cand = set.filter((k) => k !== n && NL.recorteDe(n, k));
+    m.set(n, cand.length === 1 ? cand[0] : n);
+  }
+  return m;
+}
+
+/**
+ * ⭐ El método de los portales, por WAY. ⛔ No muta nada.
+ * @returns {Map<way, {estado, nucleo, nombre, codigoVia, apoyo, votos}>}
+ */
+function deducirPorWay(g, portales, op = {}) {
+  const grupos = new Map();
+  for (const o of portales) {
+    if (o.arista == null) continue;
+    const w = g.aristas[o.arista].way;
+    if (!grupos.has(w)) grupos.set(w, []);
+    grupos.get(w).push(o);
+  }
+  const out = new Map();
+  for (const [w, lista] of grupos) {
+    const canon = op.sinNombreLargo ? null : canonizar(lista.map((o) => (o.via && o.via.nucleo) || null));
+    const nucleoDe = canon
+      ? (p) => (p.nucleoMunicipal ? (canon.get(p.nucleoMunicipal) || p.nucleoMunicipal) : null)
+      : undefined;
+    const d = H.decidir(lista.map(H.proyectar), nucleoDe);
+    if (d.estado !== 'NOMBRADA') { out.set(w, { estado: d.estado, votos: d.votos }); continue; }
+    // ── A4 · del NÚCLEO al NOMBRE REAL, y del portal que votó ────────────────
+    // ⭐ «si es título grande, se deja el grande»: entre los que votaron, se coge
+    //    el nombre con más palabras — que es el largo del que habla Antonio.
+    const votantes = lista.filter((o) => {
+      const n = (o.via && o.via.nucleo) || null;
+      if (!n) return false;
+      return (canon ? (canon.get(n) || n) : n) === d.nombre;
+    });
+    let mejor = null;
+    for (const o of votantes) {
+      if (!o.via || !o.via.nombre) continue;
+      if (!mejor || NL.palabras(o.via.nucleo).length > NL.palabras(mejor.via.nucleo).length) mejor = o;
+    }
+    if (!mejor) { out.set(w, { estado: 'SIN-NOMBRE-MUNICIPAL', votos: d.votos, nucleo: d.nombre }); continue; }
+    out.set(w, { estado: 'NOMBRADA', nucleo: d.nombre, nombre: mejor.via.nombre,
+      codigoVia: String(mejor.codigoVia), apoyo: d.apoyo, votos: d.votos });
+  }
+  return out;
+}
+
 /**
  * ⭐ El modelo. Devuelve un array paralelo a `g.aristas`. ⛔ No muta `g`.
+ * @param {Map} [deducidas] salida de `deducirPorWay` — la tercera fuente (tanda 21)
  * @returns {Array<{via, forma, papel}>}
  */
-function aplicar(g, tags, tabla, vias) {
+function aplicar(g, tags, tabla, vias, deducidas) {
   const out = new Array(g.aristas.length);
   for (let i = 0; i < g.aristas.length; i++) {
     const e = g.aristas[i];
@@ -80,8 +163,16 @@ function aplicar(g, tags, tabla, vias) {
       const v = vias.get(String(asig.cod));
       if (v) via = { nombre: v.nombre, codigoVia: String(asig.cod), fuente: 'municipal-bici', declarada: true };
     }
-    // ⛔ la tercera fuente —el método de portales de la tanda 17— NO se aplica.
-    //    El campo `fuente` existe para que quepa el día que Antonio lo decida.
+    // ── ⭐⭐ TANDA 21 · LA TERCERA FUENTE, YA APLICADA ────────────────────────
+    // ⛔ Va la ÚLTIMA a propósito: solo habla donde no hay nada declarado. Y va
+    //    marcada `declarada: false`, que es lo que permite al texto decirlo.
+    if (!via && deducidas) {
+      const d = deducidas.get(e.way);
+      if (d && d.estado === 'NOMBRADA') {
+        via = { nombre: d.nombre, codigoVia: d.codigoVia, fuente: 'portales',
+          declarada: false, apoyo: d.apoyo, votos: d.votos };
+      }
+    }
 
     out[i] = { via, forma,
       papel: { pie: F.papel(forma, 'pie'), bici: F.papel(forma, 'bici') },
@@ -141,6 +232,26 @@ function resolverPorWay(g, M) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ FUENTE ÚNICA — el modelo entero se monta EN UN SITIO
+// ═════════════════════════════════════════════════════════════════════════════
+//   Lo usan `ruta.js` (una ruta en la terminal), `rutas-antonio.js` (las siete),
+//   `modelo-rutas.js` (el guardián) y los informes. ⛔ Si cada uno lo montara por
+//   su cuenta, divergirían — que es el fallo nº68 con otro traje.
+//   ⚠️ Cuesta: relee el crudo de OSM y monta la asignación municipal. Una vez por
+//      proceso, y los portales se le pasan YA enganchados.
+function construirModelo(g, portales, op = {}) {
+  const tags = new Map();
+  for (const w of osm.recortar(osm.cargar(CRUDO).ways, g.zona)) tags.set(w.id, w.tags || {});
+  const vias = P.cargarVias();
+  const asig = AB.asignar(g, AB.cargarCapa().lineas, (w) => F.plataforma(tags.get(w)),
+    { idx: AB.indexar(g.aristas) });
+  const deducidas = op.sinPortales ? null : deducirPorWay(g, portales, op);
+  const M = aplicar(g, tags, asig.tabla, vias, deducidas);
+  const deWay = resolverPorWay(g, M);
+  return { M, deWay, deducidas, tags, vias, asig, modeloDeWay: (w) => deWay.get(w) || null };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 if (require.main === module) {
   const log = console.log;
   const di = (k, v) => log(`   ${String(k).padEnd(58)} ${v}`);
@@ -148,17 +259,17 @@ if (require.main === module) {
   const km = (m) => (m >= 1000 ? (m / 1000).toFixed(2) + ' km' : Math.round(m) + ' m');
   const T0 = Date.now();
 
+  const D = require('./direccion');
   const g = construir(ZONA_TERMINO);
   const hAntes = hashGrafo(g);
-  const crudo = osm.cargar(CRUDO);
-  const tags = new Map();
-  for (const w of osm.recortar(crudo.ways, ZONA_TERMINO)) tags.set(w.id, w.tags || {});
-  const vias = P.cargarVias();
+  // ⭐ TANDA 21 · los portales entran en el modelo: son la tercera fuente de nombre
+  const ctx = D.abrir(g, CRUDO);
+  const portalesEng = ctx.enganche.portales.filter((o) => o.enganchado);
+  const mod = construirModelo(g, portalesEng);
+  const { M, tags, vias, asig, deducidas } = mod;
   const capa = AB.cargarCapa();
   const idx = AB.indexar(g.aristas);
   const platDe = (w) => F.plataforma(tags.get(w));
-  const asig = AB.asignar(g, capa.lineas, platDe, { idx });
-  const M = aplicar(g, tags, asig.tabla, vias);
   const hDespues = hashGrafo(g);
 
   log('='.repeat(110));
@@ -355,6 +466,31 @@ if (require.main === module) {
       log('   ' + k.padEnd(26) + String(v.n).padStart(9) + km(v.m).padStart(12) + pct(v.n, M.length).padStart(9));
     }
     const gana = c.get('municipal-bici') || { n: 0 };
+    const port = c.get('portales') || { n: 0, m: 0 };
+    log('');
+    log('   ⭐⭐ TANDA 21 · LA TERCERA FUENTE, YA APLICADA — el método de los portales');
+    di('   aristas que ganan vía DEDUCIDA de los portales', `${port.n}  (${km(port.m)})   ⛔ marcadas `
+      + '`declarada: false`');
+    {
+      const est = new Map();
+      for (const d of deducidas.values()) est.set(d.estado, (est.get(d.estado) || 0) + 1);
+      log('   ' + 'resultado del método, por WAY'.padEnd(34) + 'ways'.padStart(10));
+      for (const [k, v] of [...est.entries()].sort((a, b) => b[1] - a[1])) {
+        log('   ' + String(k).padEnd(34) + String(v).padStart(10));
+      }
+      log('   ⚠️ AMBIGUA es un RESULTADO, no un problema: una acera de esquina tiene portales de');
+      log('      dos calles y no es de ninguna en exclusiva. Ahí NO se nombra.');
+      // ⭐ cuánto aporta B (el nombre largo) DENTRO de A
+      const sinB = deducirPorWay(g, portalesEng, { sinNombreLargo: true });
+      let nB = 0;
+      for (const [w, d] of deducidas) {
+        if (d.estado !== 'NOMBRADA') continue;
+        const s = sinB.get(w);
+        if (!s || s.estado !== 'NOMBRADA') nB++;
+      }
+      di('   ⭐ ways que SOLO se nombran gracias al nombre largo (§B)', nB);
+      global._PORT = { n: port.n, m: port.m, est, nB };
+    }
     log('');
     di('⭐ aristas que GANAN vía (no tenían nombre en OSM)', `${gana.n}   ⚠️ el álgebra de A5 decía 2.632`);
     // ═══════════════════════════════════════════════════════════════════════
@@ -474,4 +610,5 @@ if (require.main === module) {
   di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');
 }
 
-module.exports = { aplicar, hashGrafo, dosPapeles, resolverPorWay, ACUERDO_WAY };
+module.exports = { aplicar, hashGrafo, dosPapeles, resolverPorWay, ACUERDO_WAY,
+  deducirPorWay, canonizar, construirModelo };
