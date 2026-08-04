@@ -61,6 +61,13 @@ no se toca hasta que H1 cierre.
 - ⭐ **`entrance=*` aplicado** (decisión de Antonio): si el dato dice dónde se entra, se entra por
   ahí.
 - ⛔ **El cuarto testigo —el orden de los números— probado y DESCARTADO** (§4), con su motivo.
+- ⭐⭐ **EL MODELO VÍA · FORMA · PAPEL, construido** (§4): una línea es **acera andando y carril
+  bici en bici**, y el papel **se deduce, no se guarda**.
+- ⭐⭐ **LOS NOMBRES, PUESTOS.** De 40.420 líneas con nombre (solo OSM) a **56.864**. Con **dos
+  testigos independientes**: los portales que le dan a una línea, y **la calle que va pegada a lo
+  largo** (idea de Antonio, §4).
+- ⭐ **El itinerario, simplificado**: se agrupa **por vía**, y los cruces cortos que interrumpen la
+  misma calle **desaparecen**. La ruta 7 pasó de **20 pasos a 12**.
 
 ⭐⭐ **H1 ESTÁ TERMINADO EN LO QUE SE PUEDE TERMINAR HOY.** Lo que queda son **cabos declarados**,
 no trabajo pendiente.
@@ -355,6 +362,95 @@ Solo el **3,9 %** de los edificios lo trae — pero **donde está, es la puerta 
 principal: una `yes` puede ser puerta de servicio o salida de emergencia)* → punto de perímetro más
 cercano → ⛔ **nunca el centroide**.
 
+### ⭐⭐ EL MODELO: VÍA · FORMA · PAPEL (tanda 19)
+
+**Idea de Antonio, y corrige una suposición escondida del modelo:**
+> *«Una acera que comparte carril bici es una acera en el contexto de caminar y es un carril bici
+> en el contexto de ir en bici.»*
+
+⇒ **El papel depende del MODO, no de la línea.** Hoy la precisión (D4) era **un solo valor por
+arista**, y eso era falso. **Tres cosas separadas, no una:**
+
+| | | |
+|---|---|---|
+| **LA VÍA** | *Avenida de San Juan de la Peña* | **La misma sea cual sea el modo.** Es el requisito estructural |
+| **LA FORMA** | `plataforma` (9 valores, de OSM) + `ciclista` (6, del municipal) | ⭐ **Dos campos, no uno** — *«acera con carril bici» no es hermano de «acera»: es acera MÁS algo encima* |
+| **EL PAPEL** | *acera* andando · *carril bici* en bici | ⛔ **Se DEDUCE, no se guarda.** Guardar un valor por modo obliga a mantener N coherentes, y divergen |
+
+⭐ **La capa municipal de carriles bici** (`MU2_carriles_bici`, 733 tramos, 333,72 km) declara el
+tipo en el **100 %** y trae `vias_codigo` —**el mismo `codigoVia` de los portales**— también en el
+100 %. **El nombre no hay que adivinarlo: viene con clave.**
+
+⭐⭐ **Y una discrepancia se resolvió SIN TOCAR EL DATO.** El municipal decía *«64 % unidireccional
+CALZADA»* del tramo de la ruta 7 y Antonio había dicho *«a misma cota que acera»*. Preguntado:
+> *«En San Juan de la Peña no está a la misma cota. En Avenida de la Academia General Militar sí.»*
+
+**El tramo pasa por DOS vías con tipos distintos, y él describió una.** ⇒ **El `tipo_carri` es
+fiable en el único sitio con verdad sobre el terreno, y en sus dos valores.** *El dato era correcto
+y la lectura era incompleta.*
+
+⚠️ **Y una contradicción declarada y NO resuelta:** el papel a pie de un carril segregado dirá
+*«esto es para bicis»*, pero **el motor lo sigue usando para andar** porque Antonio confirmó que ahí
+se anda. **Resolverla movería rutas.**
+
+### ⭐⭐ LOS NOMBRES: DOS TESTIGOS INDEPENDIENTES (tandas 21 y 25)
+
+> **«Tenemos una línea que no tiene nombre de vía, pero por proximidad tiene varios portales con
+> nombre de vía. ¿Conclusión? Tenemos un nombre de vía para esa línea.»** — Antonio
+>
+> **«¿No puede comprobar que tiene otra línea en paralelo a nada de distancia que tiene el nombre,
+> y compararlo contra los portales? Si por varios puntos de esa lat-lon se llevan 2-3 metros, será
+> la misma calle.»** — Antonio
+
+⭐ **La clave de la segunda idea: NO es heredar, es COMPARAR DOS TESTIGOS.** *Heredar de la línea
+vecina es peligroso —una acera puede estar entre dos calles—. Cruzar dos fuentes independientes, no.*
+
+```
+   CONCUERDAN · ≥3 portales + calle pegada        802   100,0 %   ⭐
+   ⭐ calle pegada + 1-2 portales que CONFIRMAN    677    99,4 %
+   calle pegada SOLA · ningún portal             5090    91,7 %
+   SOLO PORTALES · ≥3 votos                      2264    86,9 %
+   ⛔ pegada con la mayoría de portales EN CONTRA   87    86,2 %   ⇒ NO se nombra
+```
+
+⇒ ⭐⭐ **Un portal con respaldo paralelo (99,4 %) es más fiable que TRES portales solos (86,9 %).**
+Y **cuando opinan los dos, concuerdan el 94,7 %**; las 29 que discrepan **no se nombran**.
+
+⭐ **Y son independientes de verdad, demostrado:** contra los 198 portales ya conocidos como mal
+enganchados, **la paralela no repitió el error ni una vez** — y habló en 67 de ellos.
+
+⚠️ **Lo que NO funcionó como se esperaba, y es informativo:** *la distancia sola no distingue*. Tu
+calle está a 5,61 m de mediana y **la de al lado a 6,85 m**: se solapan. **Lo que decide es ir
+pegada en TODOS los puntos** — que es literalmente lo que dijo Antonio. Y así **no hizo falta hablar
+de ángulos ni de paralelismo: sale solo.**
+
+```
+   líneas con nombre     40.420 (solo OSM)  →  56.864     ⭐ +16.444
+   líneas sin nombre                        →  41.910
+```
+
+### ⭐ EL ITINERARIO, SIMPLIFICADO (tanda 21)
+
+> **«Si estoy en Avenida San Juan de la Peña, ¿por qué lo repites 300 veces? Se pone una con todos
+> los metros y punto. Si se hace un cruce como es con Calle Juslibol, estás en San Juan de la Peña
+> igual, así que eso me sobra.»** — Antonio
+
+**Se agrupaba por *nombre + tipo + avisos*, así que un cambio de aviso partía la avenida en tres.**
+⇒ **Ahí se había colado un criterio nuestro en una decisión que es del usuario.**
+
+· **Se agrupa por VÍA.** 1,53 km de San Juan de la Peña = **un paso**, con 11 tramos de OSM dentro.
+· **Los cruces cortos que interrumpen la misma calle desaparecen** (umbral: el p99 de la longitud de
+  un paso de peatones en Zaragoza, **13,3 m** — lo que mide cruzar una calle aquí).
+· **Los avisos no se pierden: van DENTRO del paso.**
+⇒ **La ruta 7 pasó de 20 pasos a 12.** Total de las siete: 110 → 82.
+
+⛔ **Y fuera del texto la clasificación administrativa del carril** (*«el Ayuntamiento lo sitúa EN LA
+CALZADA»*): **al que va andando le da igual.** *El dato se queda en el modelo para H2.*
+⭐ **Y no se le dice «carril bici» a un peatón: se le dice ACERA.** *Es el papel del modo equivocado
+—el mismo error, otra piel.*
+✅ **El aviso de que se comparte con bicis SÍ se queda**: sale en **5 de 82 pasos (6,1 %)**, y la
+condición de Antonio era que se mantuviera *«siempre que sea verdad que en muy pocas calles pasa»*.
+
 ### ⛔ EL CUARTO TESTIGO — el orden de los números: probado y DESCARTADO
 
 **Idea de Antonio (tanda 15):** *«Si tengo Paseo Pamplona 5, sé que estará entre el 3 y el 7.»*
@@ -599,9 +695,9 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 53 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 60 VECES
 
-**Veintiuna tandas. Cincuenta y tres instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
+**Veintinueve tandas. Sesenta instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
 no una anécdota — y llegó antes que el proyecto.
 
 | # | Qué mintió |
@@ -659,6 +755,13 @@ no una anécdota — y llegó antes que el proyecto.
 | 51 | ⭐⭐ **UN 100 % POR CONSTRUCCIÓN.** Tras aplicar `entrance`, Delicias acierta la puerta en el **100 %** de los orígenes — **porque el destino nuevo ES la entrada.** No vale nada, y el ejecutor lo declaró en vez de presumirlo. *Lo que sí informaba era el ANTES: en un tercio de los orígenes el motor ya acertaba* |
 | 52 | ⭐⭐⭐ **UN ARNÉS DE PRUEBA QUE PROBABA OTRA COSA.** El detector del orden de números decía cazar el **44 %** del fallo correlacionado. Falso: el arnés **ordenaba por número y adivinaba el paso**, así que en una vía 1·3·5·7 movía el 1 y el 5 **dejando el 3 quieto** — *la prueba del fallo correlacionado estaba desordenando la vía*. **El 44 % era el detector cazando el destrozo del arnés.** ⭐ Lo delató **el álgebra escrita por el propio ejecutor ocho horas antes**: si la prueba es invariante a trasladar el trío, esa columna tiene que dar 0 |
 | 53 | ⭐ **«QUEDARSE CON EL PRIMERO» NO ES COLAPSAR UN DUPLICADO: ES TIRAR UNA MONEDA.** Primera versión del detector, ante 147 portales llamados «31» en la misma vía |
+| 54 | ⭐⭐⭐ **UNA DEPENDENCIA CIRCULAR QUE DEJABA EL MOTOR SIN MODELO — Y AVISABA DESDE HACÍA DOS TANDAS.** `ruta.js` devolvía rutas **sin los nombres deducidos** porque dos ficheros se pedían datos en círculo. El `Warning` de Node salía **en la última línea, después del resultado**, que es donde ya nadie mira. ⭐ Y **el `try/catch` lo tapaba: avisaba y seguía** |
+| 55 | ⭐⭐⭐ **EL MAPA Y EL MOTOR DECÍAN COSAS DISTINTAS DE LA MISMA LÍNEA — 774 casos.** El exportador **copiaba la regla** del redactor en vez de llamarla. ⭐ Y **el primer arreglo tampoco valía**: copiar `deWay` seguía divergiendo en 341 |
+| 56 | ⭐⭐⭐ **TRES CONTADORES DE LA MISMA FUENTE NO SON TRES TESTIGOS.** Visor, arnés y dato decían **44.842** y cuadraban perfectamente: **los tres leían lo mismo, y lo mismo estaba mal** |
+| 57 | ⭐⭐⭐ **EL GROSOR Y LA OPACIDAD SON UNA AFIRMACIÓN.** El rojo se pintó a `2,2/0,9` y el azul a `1,4/0,55` —*«que canten»*— y **doce aceras rojas gruesas tapaban un eje azul fino**: la calle se leía roja teniendo su eje azul |
+| 58 | ⭐⭐ **UN ARNÉS QUE NUNCA LLEGÓ A PROBAR NADA, Y DABA VERDE.** El precargado no cargaba y el proceso moría antes de arrancar — **código 1 y ninguna salida, los dos síntomas exactos del éxito buscado.** ⭐ **Lo cazó el reloj**: siete scripts de 20-60 s terminaban en 14 |
+| 59 | ⭐⭐ **EL SEGUNDO TESTIGO LE QUITÓ EL NOMBRE A 176 LÍNEAS QUE LO TENÍAN** — *«Calle del Valle de Broto»* y *«CALLE VALLE DE BROTO»* **se partían el voto y se anulaban**. ⭐ Lo cazó **un `undefined` al ir a imprimir los dos nombres de cada discrepancia** |
+| 60 | ⚠️ **EL MISMO CICLO DE `module.exports`, REPETIDO EN LA TANDA SIGUIENTE A ARREGLARLO.** *Cazado antes de ejecutarlo, y ahora hay un barrido que lo comprueba en los ocho ficheros* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -829,6 +932,21 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     el 7 juntos, el 5 sigue estando entre el 3 y el 7: la pregunta se responde igual de bien
     estando todos mal.* ⇒ **Antes de ajustar nada, preguntarse si el fallo es de calibración o de
     planteamiento.**
+55. ⭐⭐⭐ **LA COMPROBACIÓN VA CONTRA EL MOTOR, NO CONTRA EL PROPIO FICHERO.** *Tres contadores que
+    leen la misma fuente no son tres testigos: cuadran perfectamente y pueden estar los tres mal.*
+56. ⭐⭐⭐ **NO COPIES LA REGLA: LLAMA A LA FUNCIÓN.** *Copiar la lógica del redactor divergía en
+    774 líneas; copiar una versión mejor seguía divergiendo en 341. Llamar a la misma función lo
+    cerró en cero.*
+57. ⭐⭐⭐ **EL GROSOR Y LA OPACIDAD DE UN DIBUJO SON UNA AFIRMACIÓN.** Pintar «lo que preocupa» más
+    gordo **hace que tape lo demás**, y el ojo lee una conclusión que nadie midió.
+58. ⭐⭐ **UN ARNÉS ROTO NO DA UN FALSO NEGATIVO: DA UN FALSO POSITIVO CONVINCENTE**, porque mide su
+    propio destrozo. ⚠️ **Van CUATRO tandas seguidas con el arnés mintiendo.** ⇒ **La prueba se
+    prueba a sí misma antes de usarse.**
+59. ⭐⭐ **UN AVISO QUE SALE DESPUÉS DEL RESULTADO NO EXISTE.**
+60. ⭐⭐⭐ **DOS TESTIGOS INDEPENDIENTES VALEN MÁS QUE TRES VOTOS DE LA MISMA FUENTE.** *Un portal
+    con respaldo de la calle pegada acierta el 99,4 %; tres portales solos, el 86,9 %.* ⇒ **Y hay
+    que DEMOSTRAR que son independientes**, no suponerlo: la paralela **no repitió ni una vez** el
+    error de los 198 portales ya conocidos como malos, hablando en 67 de ellos.
 
 ---
 
@@ -908,7 +1026,15 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **13** | ⭐⭐ **El punto ciego** — la capa municipal completa como tercer testigo | **H1** | ✅ **cerrado** |
 | **14** | Los últimos cabos: `entrance=*`, los 198, los 1.592 | **H1** | ✅ |
 | **15** | ⛔ **El orden de los números** — cuarto testigo, probado y descartado | **H1** | ✅ |
-| **16** | *(siguiente: **AUDITORÍA DE CIERRE DE H1**)* | **H1** | ⬜ |
+| **16** | ⭐ **Ver las rutas** — texto salto a salto + visor de rutas | **H1** | ✅ **«están las 7 perfectas»** |
+| **17** | Nombrar aceras con los portales — capa de prueba | **H1** | ✅ |
+| **18** | La capa municipal de carriles bici | **H1** | ✅ |
+| **19** | ⭐⭐ **El modelo vía · forma · papel** | **H1** | ✅ |
+| **20** | ¿Dónde falta el nombre, de verdad? | **H1** | ✅ |
+| **21** | ⭐ Poner los nombres y simplificar el itinerario | **H1** | ✅ |
+| **22-24** | El mapa de dos colores, y dos divergencias mapa↔motor | **H1** | ✅ |
+| **25** | ⭐⭐ **La calle que va pegada** — segundo testigo | **H1** | ✅ **+11.267 líneas** |
+| **26** | *(siguiente: pasos de cebra con color propio; luego **AUDITORÍA DE CIERRE**)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -1043,6 +1169,39 @@ es **ciego por aritmética** al fallo que arrastra vecinos, y **el número de po
 y lo delató **el álgebra que el propio ejecutor había escrito ocho horas antes**.
 
 **⭐⭐ Con esto, H1 queda terminado en lo que se puede terminar hoy.**
+
+### 16 — Ver las rutas (4/08) · ⭐⭐ la primera verificación con los ojos
+Texto salto a salto y visor de rutas. **Antonio las miró una a una:** *«están las 7 rutas
+perfectas. Literalmente se me han caído los ojos al suelo.»* Y cerró tres cabos sobre el terreno,
+incluido el carril bici de 1.269 m: *«es carril bici a misma cota que acera, pegado»* ⇒ **la
+calibración de ~6 km/h se sostiene.**
+
+### 17-18 — El método de los portales y la capa de carriles bici (4/08)
+El método se prueba (77 % de acierto) y la capa municipal aparece con **el tipo al 100 % y el
+`codigoVia` al 100 %**.
+
+### 19 — El modelo vía · forma · papel (4/08)
+⭐⭐ **Antonio destapa la suposición escondida:** el papel depende del modo, no de la línea. Y **el
+ejecutor rebate el enunciado con un argumento mejor**: `forma` son dos campos, no uno.
+⭐ **Las siete rutas, idénticas al milímetro.**
+
+### 20-21 — Dónde falta el nombre, y ponerlo (4/08)
+⭐ Antonio **le da la vuelta a la pregunta**: no *«¿cuántas líneas tienen nombre?»* sino
+*«¿tienen nombre las líneas por donde hay PORTALES?»* — y con una definición sin umbral que
+discutir: *donde no hay puntos, no es ciudad consolidada.*
+⭐ Y **el itinerario se simplifica**: la ruta 7, de 20 pasos a 12.
+
+### 22-24 — El mapa de dos colores, y dos divergencias (4/08)
+⭐ Antonio pide **un mapa simple: azul con nombre, rojo sin nombre**. Y mirándolo destapa **dos
+fallos reales**: `ruta.js` corría sin modelo por una dependencia circular, y **el mapa y el motor
+decían cosas distintas de 774 líneas**.
+⚠️ Y una tercera cosa que no era un fallo del dato sino **del dibujo**: el rojo grueso tapaba el
+azul fino.
+
+### 25 — La calle que va pegada (4/08)
+⭐⭐ **Segunda idea de Antonio, y la mejor de las dos:** cruzar los portales con **la calle con
+nombre que va pegada a lo largo**. **+11.267 líneas con nombre**, y el mapa cambia de cara: **el
+continuo urbano queda azul y el rojo se retira a autovías, polígono y campo.**
 ## 10 · Cabos abiertos
 
 ### ⭐⭐ Los que bloquean el diseño
