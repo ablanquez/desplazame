@@ -4737,3 +4737,54 @@ solo cuando acierta.** Ésta falló en las dos celdas y por eso se miró el inst
 predecir no es acertar: es que el desacuerdo obligue a mirar.
 
 **Traza:** `src/donde-falta.js` (B2 · columnas `techo` y `momios`, y las dos `A.exige`)
+
+---
+
+## [2026-08-04] — El contador independiente del visor acusó al visor, y el que contaba mal era él
+
+**Categoría:** aviso falso
+**Síntoma:** `src/probar-visor-nombres.js` monta DOS contadores a propósito —el que el visor
+publica de sí mismo (`CUENTA`) y uno del arnés, que apunta cada objeto que se mete en una capa sin
+pasar por el visor—. En la primera ejecución los dos discreparon en las cinco capas:
+
+```
+   capa                               visor     arnés      dato
+   con-nombre                         41930     45797     41930   ⛔
+   sin-nombre-con-portales             3867      7734      3867   ⛔
+   zonas                                  8      3875         8   ⛔
+```
+
+Leído tal cual: *«el visor pinta más de lo que dice»*. Falso. `45797 − 41930 = 3867`, y `3875 − 8 =
+3867`: **la misma constante en las cinco filas**, que es el número de la capa que estaba encendida
+al arrancar. El arnés contaba una pintada de más en todas.
+
+**Causa raíz:** el helper `medir()` ponía el contador a cero y DESPUÉS llamaba a `V.setZona(0)`.
+`setZona()` no solo fija la zona: **repinta las capas activas**. Así que el cero del arnés se comía
+esa pintada y la sumaba a la que sí se quería medir. El visor no tenía nada que ver.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la contraprueba de la línea falsa
+pasó a medias y se leyó bien**: al meter una línea inventada el arnés subió de 7.734 a 7.736 —**+2**,
+no +1— y el script lo cantó como «la línea falsa no aparece». Es decir, **el rojo correcto por el
+motivo equivocado**. Y a su lado, tres comprobaciones en verde legítimo: el recorte por zona cuadraba
+(193 = 193), el globo del nombre deducido llevaba su aviso, y las tres categorías sumaban 98.774
+clavadas. ⭐ El cuadre del recorte por zona estaba verde **porque ahí sí ponía el cero en el sitio
+bueno** — el mismo fichero, con las dos disciplinas a la vez.
+
+**Cómo se cazó:** por la aritmética de la diferencia, no por el veredicto. Las cinco filas fallaban
+por la MISMA cantidad, y esa cantidad era un número conocido. Un fallo real del visor no habría
+tenido por qué ser constante (ley 51: cuando el número contradice a la aritmética, el número está
+mal).
+
+**Arreglo aplicado:** el cero del arnés se mueve a **justo antes de la única pintada que se quiere
+medir**, después de `setZona()`. Y el porqué queda escrito en el propio helper, porque el orden de
+esas dos líneas no se ve que importe leyéndolas.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un contador independiente necesita su propia disciplina de puesta a
+cero, y esa disciplina es parte del instrumento.** Poner un segundo testigo no reparte la
+responsabilidad: la duplica. Aquí el segundo testigo fue el primero en mentir.
+⚠️ Y la operativa: **cuando varias filas fallan por la MISMA cantidad, el fallo es del que mide.**
+Un error real casi nunca es constante.
+
+**Traza:** `src/probar-visor-nombres.js` (`medir()`)

@@ -316,3 +316,9 @@ tools/grafo-visor.js
 #    arriba: es un DERIVADO, se rehace en doce segundos y cambia con el grafo. Lo
 #    que se versiona es el exportador y el HTML.
 tools/rutas-visor.js
+
+# ── 2026-08-04 · TANDA 20 · el derivado del visor de NOMBRES ──────────────────
+#    tools/nombres-visor.js lo genera src/exportar-nombres.js. Mismo motivo que los
+#    dos de arriba: es un DERIVADO (14 MB), se rehace en trece segundos y cambia
+#    con el grafo y con los portales. Lo que se versiona es el exportador y el HTML.
+tools/nombres-visor.js

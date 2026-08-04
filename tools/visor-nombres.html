@@ -1,0 +1,306 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Desplázame · ¿dónde falta el nombre? (instrumento de inspección)</title>
+<!--
+  ⚠️ ESTO NO ES UNA PANTALLA DE LA APLICACIÓN. Es un instrumento de inspección,
+     como los otros dos visores. Feo es aceptable; confuso, no.
+
+  ⭐⭐ PARA QUÉ EXISTE: un porcentaje dice «el 34 % de las líneas con portales no
+     tiene nombre». NO dice si están repartidas o apiladas — y eso lo cambia todo:
+     3.867 líneas sueltas por la ciudad son un problema; 3.867 en cinco barrios son
+     una tarde. Ya nos pasó: los 565 portales sin testigo parecían dispersos y
+     estaban apilados en 28 vías, con 267 en la Avenida de la Ilustración.
+
+  ⭐⭐ TRES COLORES, NO DOS. Si «sin nombre con portales» y «sin nombre sin
+     portales» se mezclan, el mapa pierde exactamente lo que se viene a ver: las
+     de la periferia y el monte tapan a las de la ciudad.
+
+  ⛔⛔ AQUÍ NO SE APLICA NINGÚN NOMBRE. El «nombre deducido» que sale al pinchar es
+     INFORMATIVO: se calcula con el método de la tanda 17, que sigue siendo capa de
+     prueba. No está escrito en el grafo, no colorea nada y no entra en ninguna
+     cuenta. Va con su aviso en el propio globo.
+
+  ⚠️ EL FONDO NO VERIFICA: SITÚA. El mapa de debajo también es OpenStreetMap, o
+     sea la misma fuente de la que salen los nombres que aquí faltan. **Si a OSM le
+     falta el nombre, al fondo también le falta**, así que el fondo NO puede
+     confirmar ni desmentir nada de lo que este mapa pinta. Lo que verifica es una
+     persona que ha andado esa calle.
+
+  Se abre con doble clic. Necesita internet para Leaflet y para el fondo.
+-->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./nombres-visor.js"></script>
+<style>
+  html,body{margin:0;height:100%;font:13px/1.45 system-ui,sans-serif}
+  #mapa{height:100%}
+  .panel{background:#fff;padding:10px 12px;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.35);
+         max-width:320px;max-height:82vh;overflow:auto}
+  .panel h4{margin:.7em 0 .3em;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#444}
+  .panel h4:first-child{margin-top:0}
+  .sw{display:inline-block;width:24px;height:5px;vertical-align:middle;margin-right:6px;border-radius:2px}
+  .pt{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:6px}
+  .muted{color:#666}
+  .aviso{background:#fff8e1;border-left:3px solid #f0ad00;padding:6px 8px;margin-top:8px;font-size:12px}
+  .prohibido{background:#ffeeee;border-left:3px solid #cf222e;padding:6px 8px;margin-top:8px;font-size:12px}
+  .cuenta{background:#eef6ff;border-left:3px solid #0969da;padding:6px 8px;font-size:12px;font-weight:600}
+  code{background:#f2f2f2;padding:0 3px;border-radius:2px}
+  select{width:100%;padding:4px;margin-top:4px;font:inherit}
+  .leaflet-popup-content{font:12px/1.5 ui-monospace,monospace}
+</style>
+<div id="mapa"></div>
+<script>
+const G = window.NOMBRES;
+if (!G) { document.body.innerHTML = '<p style="padding:2em">⛔ Falta <code>nombres-visor.js</code>. Genéralo con <code>node src/exportar-nombres.js</code></p>'; throw new Error('sin datos'); }
+
+const TX = G.textos;
+const tx = (i) => (i === undefined || i === null || i < 0 ? null : TX[i]);
+
+// ── LOS TRES COLORES ────────────────────────────────────────────────────────
+// ⭐ El del medio es el único que canta. Los otros dos están apagados A PROPÓSITO:
+//    lo que se viene a ver no es lo que ya funciona ni lo que da igual.
+const COLOR = [
+  { k: 'con-nombre',              c: '#4c8fbd', w: 1.2, o: 0.30 },
+  { k: 'sin-nombre-con-portales', c: '#ff1f00', w: 4.0, o: 0.95 },
+  { k: 'sin-nombre-sin-portales', c: '#b9b9b9', w: 1.0, o: 0.22 },
+];
+const COLOR_PORTAL = '#111';
+
+const ZONAS = [{ n: 'TODA LA CIUDAD (lento: ~99.000 líneas)', b: G.zona }]
+  .concat((G.zonas || []).map((z) => ({ n: z.n, b: z.b })));
+let zonaIdx = 0;
+
+const zc = G.zona;
+const mapa = L.map('mapa', { preferCanvas: true })
+  .fitBounds([[zc.sur, zc.oeste], [zc.norte, zc.este]]);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  { maxZoom: 20, attribution: '© OpenStreetMap' }).addTo(mapa);
+
+const ll = (g) => g.map((p) => [p[1], p[0]]);
+const esc = (s) => String(s === null || s === undefined ? '—' : s)
+  .replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+const enZona = (lon, lat) => {
+  const b = ZONAS[zonaIdx].b;
+  return lat >= b.sur && lat <= b.norte && lon >= b.oeste && lon <= b.este;
+};
+const aristaEnZona = (a) => { const m = a.g[Math.floor(a.g.length / 2)]; return enZona(m[0], m[1]); };
+
+// ⭐ EL CONTADOR QUE HACE IMPOSIBLE FILTRAR EN SILENCIO.
+const CUENTA = {};
+const apunta = (capa, pintadas, total) => { CUENTA[capa] = { pintadas, total }; };
+
+// ── el globo de una línea ───────────────────────────────────────────────────
+// ⭐ C4 · qué es, cuántos portales tiene, de qué vía son, y qué nombre TENDRÍA.
+function globo(a) {
+  const cat = G.categorias[a.k];
+  const L = [];
+  L.push(`<b>arista ${a.i}</b> · ${a.m} m`);
+  L.push(`way OSM <a href="https://www.openstreetmap.org/way/${a.w || ''}" target="_blank">${a.w || '—'}</a>`);
+  if (a.k === 0) {
+    L.push(`nombre: <b>${esc(tx(a.n))}</b>`);
+    L.push(`lo dice: <b>${esc(tx(a.f))}</b>`);
+    L.push(`portales colgados: <b>${a.p || 0}</b>`);
+    return L.join('<br>');
+  }
+  L.push(`<b>SIN NOMBRE</b> — ${esc(cat)}`);
+  L.push(`qué es: <b>${esc(tx(a.t))}</b> · precisión (D4) ${esc(tx(a.c))}`);
+  L.push(`portales colgados: <b>${a.p || 0}</b>`);
+  if (a.v && a.v.length) {
+    L.push('esos portales son de:');
+    for (const [n, c] of a.v) L.push(`&nbsp;&nbsp;· ${esc(tx(n))} — ${c} portal${c > 1 ? 'es' : ''}`);
+  }
+  if (a.d) {
+    L.push('<hr style="border:0;border-top:1px solid #ddd">');
+    if (a.d[0] >= 0) {
+      L.push(`⚠️ <b>SI se dedujera</b>, saldría:<br>&nbsp;&nbsp;<b>${esc(tx(a.d[0]))}</b>`
+        + `<br>&nbsp;&nbsp;(${a.d[1]} de ${a.d[2]} portales de acuerdo)`);
+    } else {
+      L.push(`⚠️ <b>NO se podría deducir</b>: ${a.d[2]} portal${a.d[2] === 1 ? '' : 'es'} con nombre municipal`
+        + ` — el método pide 3 y dos tercios de acuerdo.`);
+    }
+    L.push('<i>⛔ INFORMATIVO. Ese nombre NO está aplicado: no está en el grafo, no colorea nada y no entra en ninguna cuenta.</i>');
+  }
+  return L.join('<br>');
+}
+
+// ── las capas, PEREZOSAS ────────────────────────────────────────────────────
+const constructores = {};
+const construidas = {};
+
+const capaDeCategoria = (k) => () => {
+  const gr = L.layerGroup();
+  const est = COLOR[k];
+  let n = 0, total = 0;
+  for (const a of G.aristas) {
+    if (a.k !== k) continue;
+    total++;
+    if (!aristaEnZona(a)) continue;
+    n++;
+    L.polyline(ll(a.g), { color: est.c, weight: est.w, opacity: est.o })
+      .bindPopup(globo(a)).addTo(gr);
+  }
+  apunta(est.k, n, total);
+  return gr;
+};
+COLOR.forEach((c, k) => { constructores[c.k] = capaDeCategoria(k); });
+
+// ── C5 · los PORTALES de las líneas sin nombre: puertas sin calle ───────────
+constructores['portales'] = () => {
+  const gr = L.layerGroup();
+  let n = 0;
+  for (const p of G.portales) {
+    if (!enZona(p.g[0], p.g[1])) continue;
+    n++;
+    L.circleMarker([p.g[1], p.g[0]], { radius: 2.5, color: COLOR_PORTAL, weight: 1,
+      fillColor: COLOR_PORTAL, fillOpacity: 0.8 })
+      .bindPopup(`<b>${esc(tx(p.v))} ${esc(p.n)}</b><br>`
+        + `enganchado a la arista <b>${p.a}</b>, que <b>no tiene nombre</b><br>`
+        + `a ${p.d} m<br><br><i>Aquí hay una puerta y no hay calle que decir.</i>`)
+      .addTo(gr);
+  }
+  apunta('portales', n, G.portales.length);
+  return gr;
+};
+
+// ── las ventanas del eje densidad, como referencia ──────────────────────────
+constructores['zonas'] = () => {
+  const gr = L.layerGroup();
+  for (const z of (G.zonas || [])) {
+    L.rectangle([[z.b.sur, z.b.oeste], [z.b.norte, z.b.este]],
+      { color: '#7a0', weight: 2, fill: false, dashArray: '8 5' })
+      .bindPopup(`<b>${esc(z.n)}</b><br>ventana del eje DENSIDAD.<br>`
+        + `⚠️ Es una ventana NUESTRA para comparar tejidos urbanos,<br>NO un límite administrativo.`)
+      .addTo(gr);
+  }
+  apunta('zonas', (G.zonas || []).length, (G.zonas || []).length);
+  return gr;
+};
+
+const C = G.contadores.cuentas;
+const NOMBRES = {
+  'sin-nombre-con-portales': '⭐ 1 · SIN NOMBRE y CON portales — ' + C['sin-nombre-con-portales'].aristas,
+  'portales': '2 · las puertas de esas líneas — ' + G.contadores.portalesSinCalle,
+  'con-nombre': '3 · con nombre — ' + C['con-nombre'].aristas,
+  'sin-nombre-sin-portales': '4 · sin nombre y sin portales — ' + C['sin-nombre-sin-portales'].aristas,
+  'zonas': '5 · ventanas del eje densidad',
+};
+
+/** ⭐ Pinta. Devuelve las cuentas: es lo que hace comprobable este visor. */
+function pintar(activas) {
+  for (const k of Object.keys(construidas)) {
+    if (construidas[k]) { mapa.removeLayer(construidas[k]); delete construidas[k]; delete CUENTA[k]; }
+  }
+  for (const k of activas) {
+    construidas[k] = constructores[k]();
+    construidas[k].addTo(mapa);
+  }
+  if (typeof refrescarPanel === 'function') refrescarPanel();
+  return CUENTA;
+}
+
+// ⭐ C3 · AL ABRIR, SOLO LAS QUE DUELEN. Es lo que se viene a ver, y encender las
+//    98.774 de golpe las taparía.
+let activas = ['sin-nombre-con-portales'];
+
+let refrescarPanel = null;
+const cuentas = L.control({ position: 'topright' });
+cuentas.onAdd = function () {
+  const d = L.DomUtil.create('div', 'panel');
+  refrescarPanel = () => {
+    const z = ZONAS[zonaIdx];
+    const filas = Object.entries(CUENTA).map(([k, v]) =>
+      `<div>${esc(NOMBRES[k] || k)}: <b>${v.pintadas}</b> de ${v.total}</div>`).join('');
+    d.innerHTML = `
+      <h4>Qué se está pintando</h4>
+      <div class="cuenta">zona: ${esc(z.n)}</div>
+      <select id="selZona">${ZONAS.map((x, i) =>
+        `<option value="${i}"${i === zonaIdx ? ' selected' : ''}>${esc(x.n)}</option>`).join('')}</select>
+      <div style="margin-top:6px" class="muted">${filas || '(ninguna capa encendida)'}</div>
+      <div class="aviso" style="margin-top:6px">⛔ <b>No se ha quitado ni una línea.</b>
+      Lo que se recorta es <b>cuántas se pintan a la vez</b>. Los números de arriba dicen
+      exactamente qué se está viendo y de cuánto.</div>`;
+    const s = d.querySelector && d.querySelector('#selZona');
+    if (s) s.onchange = (ev) => { zonaIdx = +ev.target.value; pintar(activas); };
+  };
+  refrescarPanel();
+  L.DomEvent.disableClickPropagation(d);
+  return d;
+};
+cuentas.addTo(mapa);
+
+pintar(activas);
+
+const control = {};
+for (const k of Object.keys(constructores)) control[NOMBRES[k]] = L.layerGroup();
+L.control.layers(null, control, { collapsed: false }).addTo(mapa);
+mapa.on('overlayadd overlayremove', function (e) {
+  const k = Object.keys(NOMBRES).find((x) => NOMBRES[x] === e.name);
+  if (!k) return;
+  activas = e.type === 'overlayadd' ? activas.concat([k]) : activas.filter((x) => x !== k);
+  pintar(activas);
+});
+
+// ── C6 · la leyenda: tiene que entenderse SIN haber leído ningún documento ───
+const leyenda = L.control({ position: 'bottomleft' });
+leyenda.onAdd = function () {
+  const d = L.DomUtil.create('div', 'panel');
+  const km = (m) => (m / 1000).toFixed(0);
+  d.innerHTML = `
+    <h4>Qué es esto</h4>
+    <div class="muted">La red que usa el motor para andar, pintada según <b>si sabemos
+    cómo se llama esa calle o no</b>. El dato del nombre viene de OpenStreetMap y, en
+    unas pocas, del carril bici municipal.</div>
+
+    <h4>Los tres colores</h4>
+    <div><span class="sw" style="background:${COLOR[1].c}"></span><b>ROJO GORDO —
+      no tiene nombre Y hay portales pegados.</b> <b>Son éstas.</b> Hay puertas
+      dando a esa línea y no sabemos qué calle decir.
+      <br><span class="muted">${C['sin-nombre-con-portales'].aristas} líneas ·
+      ${km(C['sin-nombre-con-portales'].metros)} km ·
+      <b>${G.contadores.portalesSinCalle} puertas</b></span></div>
+    <div style="margin-top:5px"><span class="sw" style="background:${COLOR[0].c}"></span>
+      <b>Azul flojo — tiene nombre.</b> Está apagado a propósito: no es lo que se
+      viene a ver.
+      <br><span class="muted">${C['con-nombre'].aristas} líneas ·
+      ${km(C['con-nombre'].metros)} km</span></div>
+    <div style="margin-top:5px"><span class="sw" style="background:${COLOR[2].c}"></span>
+      <b>Gris casi invisible — no tiene nombre y no hay ninguna puerta.</b> Caminos
+      del monte, viales de polígono, servidumbres. <b>Probablemente dan igual</b>:
+      nadie vive ahí. <span class="muted">Es la idea de Antonio: donde no hay puntos,
+      no es ciudad consolidada.</span>
+      <br><span class="muted">${C['sin-nombre-sin-portales'].aristas} líneas ·
+      ${km(C['sin-nombre-sin-portales'].metros)} km</span></div>
+    <div class="muted" style="margin-top:5px">⚠️ Si los dos últimos se mezclaran, las
+    del monte taparían a las de la ciudad. Por eso son <b>tres</b> colores y no dos.</div>
+
+    <h4>Los puntos negros</h4>
+    <div><span class="pt" style="background:${COLOR_PORTAL}"></span>Cada punto es un
+    <b>portal del padrón municipal</b> enganchado a una línea SIN nombre.
+    <b>Una puerta sin calle que decir.</b> Pincha uno y sale su dirección real.</div>
+
+    <h4>Al pinchar una línea</h4>
+    <div class="muted">Sale qué es, cuántos portales tiene, de qué calle son esos
+    portales, y <b>qué nombre saldría si se dedujera</b>.</div>
+    <div class="prohibido">⛔ Ese nombre deducido es <b>INFORMATIVO</b>. <b>No está
+    aplicado</b>: no está en el grafo, no colorea nada, no entra en ninguna cuenta y
+    ninguna ruta lo usa. Está ahí para poder juzgar si el método merece la pena.</div>
+
+    <div class="aviso">⚠️ <b>El mapa de fondo también es OpenStreetMap</b>, la misma
+    fuente de la que salen —y de la que faltan— estos nombres. <b>Si a OSM le falta el
+    nombre, al fondo le falta igual</b>: el fondo <b>no puede confirmar ni desmentir</b>
+    nada de lo que se pinta aquí. El fondo <b>sitúa</b>; no verifica.</div>
+
+    <h4>Dato</h4>
+    <div class="muted">sello <code>${G.sello}</code><br>
+    ${G.contadores.aristas} líneas · ${G.contadores.portalesEnganchados} portales enganchados<br>
+    generado por <code>${G.generado}</code></div>`;
+  L.DomEvent.disableClickPropagation(d);
+  return d;
+};
+leyenda.addTo(mapa);
+
+// ⭐ para que `src/probar-visor-nombres.js` pueda pedir capas y contar sin navegador.
+window.VISOR = { pintar, ZONAS, NOMBRES, cuentas: CUENTA, globo,
+  setZona: (i) => { zonaIdx = i; return pintar(activas); },
+  capas: Object.keys(constructores) };
+</script>
