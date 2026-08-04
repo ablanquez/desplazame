@@ -1,0 +1,176 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>DESPLÁZAME · visor de RUTAS</title>
+<!--
+  ⭐ INSTRUMENTO DE INSPECCIÓN, no la interfaz de la app.
+     Existe porque las rutas corrían y nadie las había visto dibujadas. Un rodeo de
+     1,06 no dice si te hace cruzar dos veces la misma calle o meterte por un
+     descampado teniendo la acera al lado. Eso solo se ve pintado.
+
+  ⛔ FICHERO APARTE del visor del grafo a propósito: aquél tiene 98.774 aristas en
+     cinco capas, y meterle siete rutas encima lo convierte en una sopa.
+
+  ⛔ NO calcula nada. Pinta lo que `node src/exportar-rutas.js` produjo, y el texto
+     de cada tramo es LITERALMENTE la misma cadena que escupe la terminal — sale
+     de `src/relato.js`, que es la única forma de contar un tramo en este proyecto.
+
+  Se abre con doble clic. Necesita internet solo para el fondo y para Leaflet.
+-->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./rutas-visor.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; font: 13px/1.45 system-ui, sans-serif; }
+  #mapa { position: absolute; inset: 0; }
+  .panel { background: #fff; padding: 9px 11px; border-radius: 4px;
+           box-shadow: 0 1px 6px rgba(0,0,0,.35); max-width: 330px; }
+  .panel h4 { margin: 0 0 6px; font-size: 13px; }
+  .panel .nota { color: #555; font-size: 11px; margin-top: 6px; }
+  .ruta { display: block; margin: 2px 0; cursor: pointer; }
+  .ruta input { vertical-align: middle; margin-right: 5px; }
+  .sw { display: inline-block; width: 22px; height: 4px; vertical-align: middle;
+        margin-right: 5px; border-radius: 2px; }
+  .ficha { font-size: 11px; color: #333; margin: 1px 0 6px 24px; }
+  .mal { color: #b00; font-weight: 600; }
+  .bien { color: #060; }
+  .leyenda span { display: inline-block; margin-right: 8px; }
+  .aviso { background: #fff4d6; border-left: 3px solid #e08c00; padding: 4px 7px;
+           margin-top: 6px; font-size: 11px; }
+  .pop b { display: block; margin-bottom: 3px; }
+  .pop .w { color: #a05000; display: block; margin-top: 4px; }
+</style>
+<div id="mapa"></div>
+<script>
+'use strict';
+const R = window.RUTAS;
+
+const mapa = L.map('mapa', { preferCanvas: true }).setView([41.652, -0.883], 14);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, attribution: '© OpenStreetMap',
+}).addTo(mapa);
+
+// ⛔ Cada ruta en su propio grupo: encenderla y apagarla no puede tocar a las demás.
+const grupos = new Map();
+// contadores, para que el visor pueda decir QUÉ ha pintado y no solo pintarlo
+const CUENTA = { tramos: 0, avisos: 0, marcas: 0, enganches: 0, porRuta: {} };
+
+function popup(ru, t) {
+  let h = '<div class="pop"><b>' + ru.n + ' · ' + t.n + '. ' + t.frase + '</b>'
+    + t.metros + ' m';
+  if (t.ways > 1) h += ' · ' + t.ways + ' tramos de OSM';
+  for (const a of t.avisos) h += '<span class="w">⚠️ ' + a + '</span>';
+  return h + '</div>';
+}
+
+function pintarRuta(ru) {
+  const gr = L.layerGroup();
+  gr._nombre = 'ruta' + ru.n;
+  let nT = 0, nA = 0;
+  if (ru.encontrada) {
+    for (const t of ru.tramos) {
+      // ⚠️ los tramos CON AVISO se ven sin pinchar: más gruesos y punteados.
+      const conAviso = t.condicional || t.precision === 'eje-de-calzada' || t.unidoPorDefecto;
+      const l = L.polyline(t.g, {
+        color: ru.color,
+        weight: conAviso ? 8 : 5,
+        opacity: 0.85,
+        dashArray: t.condicional ? '2 7' : (conAviso ? '10 6' : null),
+      });
+      l.bindPopup(popup(ru, t));
+      l.addTo(gr);
+      nT++;
+      if (conAviso) nA++;
+    }
+    // origen y destino PEDIDOS, y dónde enganchó cada uno
+    for (const [etq, pedido, eng, d] of [
+      ['ORIGEN', ru.origenPedido, ru.origenEnganche, ru.dOrigen],
+      ['DESTINO', ru.destinoPedido, ru.destinoEnganche, ru.dDestino]]) {
+      L.circleMarker(pedido, { radius: 7, color: '#000', weight: 2, fillColor: ru.color, fillOpacity: 1 })
+        .bindPopup('<div class="pop"><b>' + etq + ' de la ruta ' + ru.n + '</b>'
+          + 'punto pedido<span class="w">enganchado a ' + d + ' m</span></div>').addTo(gr);
+      CUENTA.marcas++;
+      // ⭐ la línea entre el punto y su enganche: es lo que enseña un enganche malo
+      //    de un vistazo, y solo se dibuja si de verdad hay separación.
+      if (d > 0.5) {
+        L.polyline([pedido, eng], { color: '#000', weight: 1.5, dashArray: '3 3', opacity: 0.9 }).addTo(gr);
+        L.circleMarker(eng, { radius: 3, color: '#000', weight: 1, fillColor: '#fff', fillOpacity: 1 })
+          .bindPopup('<div class="pop"><b>enganche</b>a ' + d + ' m del punto pedido</div>').addTo(gr);
+        CUENTA.enganches++;
+      }
+    }
+  }
+  CUENTA.tramos += nT;
+  CUENTA.avisos += nA;
+  CUENTA.porRuta[ru.n] = { tramos: nT, avisos: nA,
+    metrosPintados: ru.encontrada ? ru.tramos.reduce((s, t) => s + t.metrosPintados, 0) : 0 };
+  grupos.set(ru.n, gr);
+  return gr;
+}
+
+for (const ru of R.rutas) pintarRuta(ru);
+
+function encender(n, si) {
+  const gr = grupos.get(n);
+  if (!gr) return;
+  if (si) gr.addTo(mapa); else mapa.removeLayer(gr);
+}
+
+// ── el panel: un check por ruta, con su ficha ───────────────────────────────
+const ctl = L.control({ position: 'topright' });
+ctl.onAdd = function () {
+  const d = L.DomUtil.create('div', 'panel');
+  let h = '<h4>Rutas de Antonio</h4>';
+  for (const ru of R.rutas) {
+    const nombre = ru.n + ' · ' + ru.o + ' → ' + ru.d;
+    h += '<label class="ruta"><input type="checkbox" data-n="' + ru.n + '"'
+      + (ru.n === 1 ? ' checked' : '') + '>'
+      + '<span class="sw" style="background:' + (ru.color || '#999') + '"></span>'
+      + nombre + '</label>';
+    if (!ru.encontrada) {
+      h += '<div class="ficha mal">⛔ sin camino: ' + ru.motivo + '</div>';
+      continue;
+    }
+    const dentro = ru.rodeoMax === null ? null : ru.rodeo <= ru.rodeoMax;
+    h += '<div class="ficha">' + ru.metros + ' m · ~' + ru.minutos + ' min · rodeo '
+      + ru.rodeo.toFixed(2)
+      + (ru.rodeoMax === null ? '' : ' <span class="' + (dentro ? 'bien' : 'mal') + '">'
+        + (dentro ? '✅ dentro de ≤' : '⛔ FUERA de ≤') + ru.rodeoMax + '</span>')
+      + '<br>recta ' + ru.recta + ' m · ' + ru.tramos.length + ' tramos'
+      + (ru.banda ? ' · banda ' + ru.banda[0] + '–' + ru.banda[1] + ' m' : '')
+      + '</div>';
+  }
+  h += '<div class="nota leyenda"><b>Cómo se lee</b><br>'
+    + '<span>— línea gruesa punteada: <b>tramo con aviso</b></span>'
+    + '<span>— punteado fino: <b>paso condicional</b></span>'
+    + '<span>— círculo grande: punto pedido</span>'
+    + '<span>— círculo blanco al final de una línea negra: dónde enganchó</span><br>'
+    + 'Pincha cualquier tramo para ver lo mismo que dice la terminal.</div>';
+  h += '<div class="aviso">⚠️ El fondo también es OpenStreetMap, la misma fuente que el '
+    + 'grafo. <b>El fondo sitúa, no verifica</b>: si una calle está mal en OSM, estará '
+    + 'igual de mal en los dos.<br>⚠️ El tiempo es una estimación a ' + R.velocidadKmh
+    + ' km/h calibrada sobre UN trayecto. No es un dato del motor.</div>';
+  d.innerHTML = h;
+  L.DomEvent.disableClickPropagation(d);
+  return d;
+};
+ctl.addTo(mapa);
+
+document.addEventListener('change', (ev) => {
+  const t = ev.target;
+  if (t && t.dataset && t.dataset.n) encender(Number(t.dataset.n), t.checked);
+});
+
+// ⚠️ AL ABRIR, SOLO LA 1. Siete rutas superpuestas en el casco no se distinguen.
+encender(1, true);
+{
+  const r1 = R.rutas.find((x) => x.n === 1 && x.encontrada);
+  if (r1) {
+    const pts = r1.tramos.flatMap((t) => t.g);
+    if (pts.length) mapa.fitBounds(L.polyline(pts).getBounds(), { padding: [40, 40] });
+  }
+}
+
+// ⭐ La ventana de comprobación: `src/probar-visor-rutas.js` ejecuta este mismo
+//    script contra un Leaflet simulado y compara ESTOS contadores con el cálculo.
+window.VISOR = { CUENTA, encender, grupos, pintarRuta, R };
+</script>

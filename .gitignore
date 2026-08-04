@@ -310,3 +310,9 @@ data/fuentes/
 #    OSM o el planarizado. Versionarlo seria guardar para siempre fotos de un
 #    dato que ya no existe. Lo que se versiona es el exportador y el visor.
 tools/grafo-visor.js
+
+# ── 2026-08-04 · TANDA 16 · el derivado del visor de RUTAS ────────────────────
+#    tools/rutas-visor.js lo genera src/exportar-rutas.js. Mismo motivo que el de
+#    arriba: es un DERIVADO, se rehace en doce segundos y cambia con el grafo. Lo
+#    que se versiona es el exportador y el HTML.
+tools/rutas-visor.js
