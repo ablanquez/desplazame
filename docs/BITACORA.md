@@ -4680,3 +4680,60 @@ decía el nombre y el otro decía «sin nombre» — que es lo que decía ayer. 
 mirar el MISMO hecho por dos caminos distintos (arista y way) y notar que no coincidían.
 
 **Traza:** `src/modelo.js` (`resolverPorWay`, `ACUERDO_WAY`), `src/rutas-antonio.js` (`--modelo`)
+
+---
+
+## [2026-08-04] — Comparé dos porcentajes con una razón cuyo TECHO no había calculado
+
+**Categoría:** aviso falso (una medida que no puede detectar lo que se le pide)
+**Síntoma:** B2 compara, dentro de cada `plataforma`, qué porcentaje de líneas lleva nombre con
+portales y sin ellos. La medida que escribí fue la razón cruda `a/b`. Y salió esto:
+
+```
+   plataforma                aristas   con portal  sin portal    razón
+   calzada                     29431       90.2 %      79.4 %    ×1.14   ⬅ "se aplana"
+   plataforma-peatonal         17128       56.1 %      21.2 %    ×2.64
+```
+
+Leído tal cual, dice que **en la calzada la relación no existe** — y la calzada son 2.075 km, un
+tercio de la red. Es falso: `a/b` está acotada por `1/b`. Con un 79,4 % de base, la razón **NO PUEDE
+pasar de ×1,26** ni aunque el efecto fuera absoluto. El ×1,14 no es «casi nada»: es **el 52 % del
+recorrido que la aritmética permite**. En momios sale ×2,38, el segundo efecto más fuerte de la
+tabla.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo lo demás, y con cuadres
+exactos.** Las cuatro celdas de A2 sumando 98.774 clavadas ✅. Los metros sumando 6.499,98 km ✅. La
+contraprueba de autoconfirmación al **100,0 %** con su rojo visto ✅. La curva de radio monótona ✅.
+El positivo de control del casco ✅. La cota dura de A1 ✅. **Un informe entero en verde alrededor de
+una tabla que decía lo contrario de lo que pasaba.**
+⭐ Y peor: la frase de veredicto que iba a escribir —*«la relación sobrevive en 6 de las 9
+plataformas»*— **es plausible, es prudente, y está mal**. No se lee como un fallo; se lee como un
+resultado matizado.
+
+**Causa raíz:** elegí la medida por ser la más fácil de explicar («cuántas veces más a menudo») sin
+calcular su rango. Un cociente de proporciones tiene un techo que depende del denominador, así que
+**la misma medida es sensible en una fila e insensible en otra** — y la tabla las pone en la misma
+columna, invitando a compararlas.
+
+**Cómo se cazó:** por la predicción que había escrito en la cabecera ANTES de ejecutar: *«en `acera`
+se aplana; en `calzada` aguanta»*. **Salió al revés en las dos.** Eso obligó a mirar por qué, y el
+porqué era el techo. ⭐ Sin la predicción escrita, el ×1,14 de `calzada` habría pasado por un
+resultado y no por una pregunta.
+
+**Arreglo aplicado:** la razón cruda **se queda** —no se sustituye, que sería ajustar el instrumento
+al resultado (nº88, nº91)— y se le añaden **dos columnas declaradas como POST-HOC**: el techo `1/b`
+y la razón de momios, que no tiene tope. Con eso el veredicto cambia de «6 de 9» a **«8 de 9»**, y la
+que sigue plana —`paso-de-peatones`, ×0,95— lo está de verdad. ⭐ Y las dos predicciones fallidas
+ponen el script en ROJO (`A.exige`), el mismo trato que `forma.js` se dio en la tanda 19.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **antes de publicar una medida, calcula su RANGO en cada fila donde la
+vas a publicar.** Una medida acotada por el denominador no compara filas: las castiga por tener la
+base alta. Si dos filas de la misma columna no pueden alcanzar el mismo valor máximo, esa columna no
+es un ranking.
+⚠️ Y la segunda, que es la que salvó la tanda: **una predicción escrita antes de ejecutar no vale
+solo cuando acierta.** Ésta falló en las dos celdas y por eso se miró el instrumento. El valor de
+predecir no es acertar: es que el desacuerdo obligue a mirar.
+
+**Traza:** `src/donde-falta.js` (B2 · columnas `techo` y `momios`, y las dos `A.exige`)
