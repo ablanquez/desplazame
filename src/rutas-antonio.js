@@ -115,19 +115,13 @@ if (require.main === module) {
   //    modelo entra por `Rel.texto({modelo})` y solo habla donde OSM se calla.
   let modeloDeWay = null;
   if (process.argv.includes('--modelo')) {
+    // ⭐⭐ FUENTE ÚNICA: el modelo entero lo monta `modelo.js`. Aquí solo se pide.
+    // ⛔ Desde la TANDA 21 incluye la TERCERA fuente de nombre —el método de los
+    //    portales, por way y marcado `declarada: false`—. Sigue sin tocar el
+    //    cálculo: entra por `Rel.texto({modelo})` y solo cambia el TEXTO.
     const Mo = require('./modelo');
-    const AB = require('./asignar-bici');
-    const Fo = require('./forma');
-    const tagsW = new Map();
-    for (const w of osm.recortar(osm.cargar(CRUDO).ways, ZONA_TERMINO)) tagsW.set(w.id, w.tags || {});
-    const asg = AB.asignar(g, AB.cargarCapa().lineas, (w) => Fo.plataforma(tagsW.get(w)),
-      { idx: AB.indexar(g.aristas) });
-    const M = Mo.aplicar(g, tagsW, asg.tabla, P.cargarVias());
-    // ⭐ el modelo es por ARISTA y el relato pregunta por WAY. La resolución vive
-    //    en `modelo.js` (fuente única) y exige 2/3 de los metros con vía.
-    const deWay = Mo.resolverPorWay(g, M);
-    modeloDeWay = (w) => deWay.get(w) || null;
-    process.stderr.write('⚑ MODELO · vía·forma·papel ACTIVO — solo cambia el TEXTO de los tramos sin nombre\n');
+    modeloDeWay = Mo.construirModelo(g, ctx.enganche.portales.filter((o) => o.enganchado)).modeloDeWay;
+    process.stderr.write('⚑ MODELO · vía·forma·papel ACTIVO (con el método de portales) — solo el TEXTO\n');
   }
 
   log('');
@@ -435,6 +429,36 @@ if (require.main === module) {
   if (process.argv.includes('--aristas')) {
     log('##ARISTAS## ' + JSON.stringify(resultados.filter((x) => x.ok)
       .map((x) => ({ n: x.ru.n, metros: x.metros, aristas: x.aristas }))));
+  }
+
+  // ⭐⭐ TANDA 21 · `--pasos` · el desglose que mide C y E, preguntado AQUÍ.
+  // ⛔ Existe por lo mismo que `--aristas`: para que nadie recalcule las siete por
+  //    su cuenta. Lo único que hace es pedirle al MISMO redactor la misma ruta con
+  //    varias configuraciones — la vieja (línea base) y la nueva a varios umbrales.
+  if (process.argv.includes('--pasos')) {
+    const UMBRALES = [0, 7.4, 9.0, 13.3, 20, 30, 50];
+    const salida = resultados.filter((x) => x.ok).map((x) => {
+      const viejo = Rel.tramos(x, ctx.nombreDeWay, modeloDeWay, { viejo: true });
+      const nuevo = Rel.tramos(x, ctx.nombreDeWay, modeloDeWay);
+      const sinModelo = Rel.tramos(x, ctx.nombreDeWay, null);
+      return {
+        n: x.ru.n, metros: x.metros, tramosOsm: x.pasos.length,
+        viejo: viejo.length,
+        soloC: sinModelo.length,           // agrupado por vía pero SIN nombres nuevos
+        nuevo: nuevo.length,
+        curva: UMBRALES.map((u) => Rel.tramos(x, ctx.nombreDeWay, modeloDeWay, { corto: u }).length),
+        umbrales: UMBRALES,
+        conBici: nuevo.filter((t) => t.avisos.some((a) => a.texto === Rel.AVISO_BICIS)).length,
+        metrosBici: Math.round(nuevo.reduce((s, t) =>
+          s + (t.avisos.find((a) => a.texto === Rel.AVISO_BICIS) || { metros: 0 }).metros, 0)),
+        conDeducido: nuevo.filter((t) => t.deducida).length,
+        metrosDeducidos: Math.round(nuevo.filter((t) => t.deducida).reduce((s, t) => s + t.metros, 0)),
+        comidos: nuevo.flatMap((t) => t.comido.map((c) => ({
+          en: t.nombre, nombre: c.nombre, metros: Math.round(c.metros * 10) / 10 }))),
+        pasos: nuevo.map((t) => ({ frase: t.frase, metros: t.metros, ways: t.ways })),
+      };
+    });
+    log('##PASOS## ' + JSON.stringify(salida));
   }
 
   log('');

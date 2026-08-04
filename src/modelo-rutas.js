@@ -84,6 +84,15 @@ log('='.repeat(110));
 log('D · LAS SIETE RUTAS DE ANTONIO — el control que no se rompe');
 log('='.repeat(110));
 
+// ⚠️ TANDA 21 · el modelo se monta con `Mo.construirModelo`, que es lo que usa
+//    `rutas-antonio.js`. ⛔ Si aquí se montara distinto, este guardián estaría
+//    midiendo un modelo que nadie imprime — que es el fallo nº68 con otra ropa.
+const g = construir(ZONA_TERMINO);
+const Dir = require('./direccion');
+const ctxG = Dir.abrir(g, CRUDO);
+const mod = Mo.construirModelo(g, ctxG.enganche.portales.filter((o) => o.enganchado));
+const { M, tags } = mod;
+
 const sin = correr([]);
 const con = correr(['--modelo']);
 
@@ -114,8 +123,12 @@ A.exige(!!sin.aristas && !!con.aristas, 'no se ha podido leer `##ARISTAS##` de a
 {
   log('');
   log('   (3) ⭐ EL TEXTO — la comprobación que de verdad puede fallar, porque `relato.js` SÍ');
-  log('       se ha tocado. Las rutas 1 a 5 no ganan ninguna vía municipal: tienen que salir');
-  log('       IDÉNTICAS. La 6 y la 7 cambian por diseño (decisión 3 de Antonio).');
+  log('       se ha tocado.');
+  log('   ⚠️⚠️ TANDA 21 · LA EXPECTATIVA YA NO SE ESCRIBE A MANO. Hasta hoy decía «solo cambian');
+  log('       la 6 y la 7», y al aplicar el método de portales se puso roja — porque la lista');
+  log('       era mía, no del dato. ⛔ Actualizar la lista habría sido ajustar el instrumento');
+  log('       al resultado. ⇒ **la expectativa se DERIVA**: el texto de una ruta tiene que');
+  log('       cambiar SI Y SOLO SI alguno de los ways que pisa gana vía por el modelo.');
   const bSin = bloques(sin.salida), bCon = bloques(con.salida);
   A.exige(bSin.size === 7 && bCon.size === 7, `no se han extraído los 7 bloques de texto (${bSin.size} / ${bCon.size})`);
   log('');
@@ -128,9 +141,25 @@ A.exige(!!sin.aristas && !!con.aristas, 'no se ha podido leer `##ARISTAS##` de a
       + '   ' + (igual ? 'ninguna vía municipal nueva' : 'gana vía declarada por el Ayuntamiento'));
   }
   log('');
-  di('⭐ rutas cuyo texto cambia', cambian.join(', ') + '   (esperado: 6 y 7)');
-  A.exige(JSON.stringify(cambian) === JSON.stringify([6, 7]),
-    `cambian las rutas ${cambian.join(',')} y solo debían cambiar la 6 y la 7`);
+  // ⭐ la expectativa, DERIVADA del modelo y no de una lista
+  const deben = [];
+  for (const r of con.aristas) {
+    const gana = r.aristas.some((i) => {
+      if (g.nombres.get(g.aristas[i].way)) return false;   // OSM ya lo nombra
+      const d = mod.deWay.get(g.aristas[i].way);
+      return !!(d && d.via && d.via.nombre);
+    });
+    if (gana) deben.push(r.n);
+  }
+  deben.sort((a, b) => a - b);
+  log('');
+  di('⭐ rutas cuyo texto cambia', cambian.join(', '));
+  di('   …y las que DEBEN cambiar según el modelo', deben.join(', '));
+  A.exige(JSON.stringify(cambian) === JSON.stringify(deben),
+    `cambian las rutas ${cambian.join(',')} y el modelo dice que deben cambiar ${deben.join(',')}`);
+  log('   ⇒ ⚠️ Y esto NO pasa por construcción: una ruta que gana vía y NO cambia de texto');
+  log('     significaría que el modelo se monta y no llega al redactor, y una que cambia sin');
+  log('     ganarla, que `relato.js` se ha movido por otra razón. Las dos son fallo.');
   global._BLOQ = { bSin, bCon };
 }
 
@@ -142,11 +171,6 @@ log('='.repeat(110));
 log('   Antonio: «En San Juan de la Peña NO está a la misma cota. En Avenida de la Academia');
 log('   General Militar SÍ.» ⇒ tiene que salir San Juan de la Peña «calzada» y Academia');
 log('   General Militar «acera».');
-const g = construir(ZONA_TERMINO);
-const tags = new Map();
-for (const w of osm.recortar(osm.cargar(CRUDO).ways, ZONA_TERMINO)) tags.set(w.id, w.tags || {});
-const asg = AB.asignar(g, AB.cargarCapa().lineas, (w) => F.plataforma(tags.get(w)), { idx: AB.indexar(g.aristas) });
-const M = Mo.aplicar(g, tags, asg.tabla, P.cargarVias());
 {
   const r7 = con.aristas.find((x) => x.n === 7);
   const WAYS = [354344721, 475881583];
