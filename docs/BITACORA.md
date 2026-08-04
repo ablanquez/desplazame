@@ -4860,3 +4860,61 @@ ninguno comprobaba que el texto fuera cierto.** Una comprobación de invariancia
 comprobación de verdad.
 
 **Traza:** `src/relato.js` (`SUSTANTIVO`, `comoSeAnda`, `tramo`)
+
+---
+
+## [2026-08-04] — El aviso del carril bici se hereda del way igual que el nombre, y un aviso afirma más que un nombre
+
+**Categoría:** aviso falso
+**Síntoma:** el arreglo del texto de esta tanda hace que la ruta nº7 imprima esto:
+
+```
+   4. ◦ Por AVENIDA SAN JUAN DE LA PEÑA (eje de calzada)   760 m
+       ⚠️  el Ayuntamiento sitúa este carril bici EN LA CALZADA, no sobre la acera
+```
+
+⚠️ **Esos 760 m son justo los que NO tienen asignación municipal propia.** Es el rojo declarado de
+la tanda 19 (bitácora nº96): el way 475881583 tiene 794 m asignados a San Juan de la Peña **en un
+trozo disjunto**, y la resolución a way extiende el dato al way entero. Hasta hoy eso solo extendía
+un NOMBRE. Desde hoy extiende también **una afirmación sobre la infraestructura**, y no son lo mismo:
+
+· heredar el nombre dice *«esta línea es de esa avenida»* — plausible, y con su descuento publicado;
+· heredar el aviso dice *«el Ayuntamiento sitúa AQUÍ el carril en la calzada»* — **cita a una fuente
+  sobre unos metros concretos en los que esa fuente no ha dicho nada de esos metros.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el arreglo funcionó exactamente como
+se diseñó, y sus tres comprobaciones pasaron.** Las siete rutas idénticas al decimal ✅; los textos 1
+a 5 byte a byte ✅; la salida sin `--modelo` idéntica a la capturada antes de tocar nada ✅. Y el
+guardián `modelo-rutas.js` siguió en su rojo de siempre —el de nº96— **sin enterarse de que ese mismo
+rojo acababa de encarecerse**: mide que la ruta no se mueva y que el tramo salga bien a nivel de
+arista, no qué afirma el texto.
+⭐ Y la frase se lee mejor que la de ayer: ayer decía «Por el carril bici de…», que era falso para un
+peatón. Hoy dice algo cierto sobre el way y no comprobado sobre el tramo. **Mejoró y se volvió más
+específica al mismo tiempo, y ser más específico es lo que la hace más arriesgada.**
+
+**Causa raíz:** `relato.js` corta por `way` —solo recibe `p.way`, no los índices de arista— así que
+todo lo que imprima de un tramo tiene que salir de una resolución a way. Cuando el modelo solo
+aportaba el nombre, esa limitación tenía un coste conocido y medido (543 m propios contra 1.042
+heredados). Al añadir el aviso, **la misma limitación empezó a transportar un tipo de afirmación más
+fuerte sin que nadie volviera a mirar el coste**.
+
+**Cómo se cazó:** al leer la salida nueva contra lo que la tanda 19 había medido. El número de nº96
+—«los 760 m no tienen asignación propia»— estaba escrito, y la frase nueva hablaba justo de esos
+760 m.
+
+**Arreglo aplicado:** ⛔ **NINGUNO, y es deliberado.** Arreglarlo exige que el redactor distinga
+arista de way, o un umbral de cobertura para el aviso: **las dos cosas son decisiones de modelo, y la
+bitácora nº96 dice literalmente que una decisión que cambia lo que se publica es diseño aunque se
+escriba en la función que imprime.** Escribirla al vuelo hoy sería repetir nº96 con el mismo fichero
+delante. ⇒ se declara, se reporta hacia arriba y decide Antonio.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **cuando un canal empieza a transportar afirmaciones más fuertes, hay
+que volver a medir su coste — aunque el canal no haya cambiado.** El way heredaba nombres con un
+descuento publicado; el mismo way heredando avisos necesita otro descuento, y nadie lo pide porque
+el mecanismo es el de siempre.
+⚠️ Y el corolario: **un texto que cita a una fuente («lo dice el Ayuntamiento») asume una deuda que
+un texto descriptivo no asume.** Nombrar mal es equivocarse; citar mal es atribuir.
+
+**Traza:** `src/relato.js` (`comoSeAnda`), `src/modelo.js` (`resolverPorWay`)
