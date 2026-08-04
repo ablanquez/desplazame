@@ -4546,3 +4546,137 @@ frase lleva un número (1.269 m), **ese número tiene que salir del propio recor
 sale verde igual. **La contraprueba valida el método, no el recorte.**
 
 **Traza:** `src/bici-inventario.js` (C4), `src/rutas-antonio.js --aristas` (sólo se lee)
+
+---
+
+## [2026-08-04] — Declaré una regla de asignación cuyo paso 1 contradecía su paso 2
+
+**Categoría:** regla con un agujero lógico dentro, declarada antes de medir
+**Síntoma:** la contraprueba de desplazamiento se puso roja en una de sus dos unidades:
+
+```
+   unidad                                            REAL       DESPLAZADA 2 km    razón
+   metros municipales asignados        212.43 km (63.7 %)     60.55 km (18.1 %)     ×3.5
+   ⭐ ARISTAS del grafo asignadas                     3557                  1930     ×1.8
+   ⛔ FALLO · las aristas asignadas no se hunden al desplazar (3557 contra 1930)
+```
+
+La capa municipal movida 2 km —donde no describe nada— seguía llevándose **1.930 aristas de las
+3.557**. Y el desglose dijo por qué: **5.180 de sus puntos entraban por `univoca`**.
+
+La regla que yo mismo había escrito decía esto:
+
+> 1 · un solo way → ASIGNADA · univoca
+> 2 · varios → filtro por `tipo_carri`: si dice «acera», solo son candidatas las plataformas de
+>     andar; si dice «calzada», las de rodar.
+
+**El paso 2 dice que un carril sobre acera no puede colgar de una calzada. El paso 1 lo permite si
+resulta que no hay nadie más cerca.** Los dos pasos en la misma pantalla, contradiciéndose.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **las otras tres contrapruebas, y las
+tres son buenas.** Duplicar cada línea municipal: asignación idéntica ✅. Partirla por la mitad:
+idéntica ✅. Intercambiar `acera` por `calzada` en el `tipo_carri`: cambia el **53,9 %** de las
+aristas ✅ —o sea, el filtro del paso 2 SÍ estaba haciendo su trabajo—. Y el patrón de verdad:
+**97,0 % de acierto** sobre 2.841 puntos que de verdad se complicaban. **Cuatro verdes convincentes
+alrededor de un agujero que solo se ve cuando no hay señal.**
+
+**Causa raíz:** escribí el caso unívoco como un **atajo** («si solo hay uno, para qué comprobar
+nada») en vez de como un caso más de la misma regla. Un solo candidato no es una razón para dejar de
+preguntar si ese candidato tiene sentido.
+
+**Cómo se cazó:** la contraprueba de desplazamiento, medida **en las dos unidades**. En metros se
+hundía ×3,5 y habría pasado sin más; el rojo salió en la unidad del resultado —las aristas—, que es
+la que la bitácora nº94 obligó a medir la tanda anterior. **Una ley de hace un día cazando el fallo
+de hoy.**
+⭐ Y luego lo confirmó una segunda medida independiente: sobre las aristas donde OSM SÍ tiene nombre,
+`univoca` coincide con OSM el **34,4 %** frente al **75,3 %** de `tipo` y el **74,1 %** de `margen`.
+**El caso «fácil» era el peor de los tres.**
+
+**Arreglo aplicado:** ⛔ **ninguno.** La regla se queda como se declaró y `asignar-bici.js` sale en
+rojo. Cambiarla después de ver la contraprueba es ajustar el instrumento al resultado, que es el nº88
+y el nº91. Lo que sí se hace es **medir la alternativa entera** —exigir compatibilidad también en el
+caso unívoco— con su propia contraprueba de desplazamiento repetida al completo:
+
+```
+   regla                              metros   aristas   desplazada: metros  aristas  razón
+   DECLARADA (la que se aplica)    212.43 km      3557             60.55 km     1930   ×1.8
+   ⭐ estricta (NO se aplica)       207.30 km      3472             34.14 km     1095   ×3.2
+```
+
+⭐ Y el dato que desactiva el drama: en el dato REAL las dos reglas dan casi lo mismo —**85 aristas de
+diferencia, un 2,4 %**, y el acierto contra OSM sube del 69,0 % al 70,5 %—. El agujero solo se abre
+donde no hay señal. Decide Antonio.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un atajo dentro de una regla es una segunda regla, y hay que
+escribirla como tal.** «Si solo hay un candidato, asigna» parece un caso trivial y es una excepción a
+todo lo que viene después. Antes de dar por buena una regla con pasos, hay que leerla al revés:
+*¿puede el paso 1 dar un resultado que el paso 2 prohibiría?*
+⚠️ Y el corolario operativo: **una contraprueba que pasa en una unidad y falla en otra no es
+ambigua — es que las dos unidades miden cosas distintas**, y hay que publicar las dos.
+
+**Traza:** `src/asignar-bici.js` (paso 1 de `asignar()`), `src/modelo.js` (el termómetro por estado)
+
+---
+
+## [2026-08-04] — Escribí al vuelo la regla que gobierna el número principal, y no estaba en el diseño aprobado
+
+**Categoría:** decisión de última hora fuera del diseño, con efecto en la cifra que se publica
+**Síntoma:** el modelo es **por ARISTA**, pero `Rel.tramos()` corta **por WAY**. Para poder imprimir
+el texto hacía falta resolver cada way a una vía, y eso **no estaba en el diseño que Antonio aprobó**
+—A2 hablaba de aristas—. Lo escribí sobre la marcha dentro de `rutas-antonio.js`, así:
+
+```js
+const cods = new Set(conVia.map((i) => M[i].via.codigoVia));
+if (cods.size === 1) { …nombra… }     // si no, el way no se nombra
+```
+
+Y el resultado fue que **el tramo mejor documentado del proyecto se quedó sin nombre**: el way
+475881583 lleva **794 m de Avenida de San Juan de la Peña y 15 m de Calle Valle de Broto**.
+**Quince metros tumbaban setecientos noventa y cuatro.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el texto salía perfectamente
+plausible.** La ruta 7 imprimía «Por el carril bici de AVENIDA ACADEMIA GENERAL MILITAR · 509 m»
+seguido de «Por un tramo sin nombre · 760 m», y esa segunda línea **es exactamente lo que decía antes
+de la tanda**: no se lee como un fallo, se lee como «aquí el dato no llega». Un fallo que se disfraza
+del estado anterior no lo caza ninguna comparación antes/después.
+⭐ Y todo lo demás en verde: las siete rutas idénticas al decimal, las rutas 1 a 5 con el texto byte a
+byte igual, el hash del grafo sin moverse.
+
+**Causa raíz:** la resolución arista→way es una **decisión de modelo**, no un detalle de impresión, y
+la tomé donde se imprime. Al escribirla en el sitio equivocado, ni pasó por el diseño, ni llevaba
+umbral declarado, ni tenía dónde comprobarse.
+
+**Cómo se cazó:** por mirar el tramo de la ruta 7 a nivel de arista **antes** de creerse el texto. A
+nivel de arista salían las dos vías con sus dos tipos —Academia General Militar «sobre acera» y San
+Juan de la Peña «en calzada», que es literalmente lo que Antonio anduvo—; en el texto solo salía una.
+**La discrepancia entre las dos lecturas fue la señal.**
+
+**Arreglo aplicado:** la resolución se muda a `src/modelo.js` (`resolverPorWay`, fuente única) y el
+listón **no me lo invento**: **2/3 de los metros con vía**, el mismo acuerdo que `heredar-nombre.js`
+fijó en la tanda 17 para la pregunta idéntica —*¿cuándo un conjunto de votos nombra una línea?*—. Un
+umbral heredado de otra pregunta no está elegido para que salga bien ésta (ley 17). Con eso, el way
+se nombra con 794/809 = 98 % de apoyo.
+
+⚠️ **Y el arreglo destapa lo siguiente, que se publica en vez de taparse:** los 760 m que Antonio
+anduvo **no tienen asignación propia** —ahí la regla dice AMBIGUA, y hace bien: el carril y la
+calzada de la misma avenida son dos candidatas compatibles y cercanas—. El way SÍ la tiene, pero **en
+el trozo de al lado: los dos conjuntos de aristas son disjuntos.** ⇒ el texto **hereda** el nombre.
+Por eso el número va con su descuento delante:
+
+```
+   TOTAL            1585 m nombrados      543 con asignación PROPIA      1042 heredados del way
+```
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **si una decisión cambia el número que se publica, es diseño — aunque
+la escribas en la función que imprime.** El sitio donde acaba el código no dice de qué clase es la
+decisión; lo dice si el resultado se mueve al cambiarla.
+⚠️ Y la segunda, que es la que casi cuela: **un fallo que produce exactamente la salida anterior es
+invisible para un antes/después.** Aquí el texto correcto y el texto roto se diferenciaban en que uno
+decía el nombre y el otro decía «sin nombre» — que es lo que decía ayer. La única forma de verlo fue
+mirar el MISMO hecho por dos caminos distintos (arista y way) y notar que no coincidían.
+
+**Traza:** `src/modelo.js` (`resolverPorWay`, `ACUERDO_WAY`), `src/rutas-antonio.js` (`--modelo`)
