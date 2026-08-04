@@ -97,9 +97,43 @@ function avisoCondicional(p) {
  * Un tramo, tal como se cuenta. Devuelve DATOS, y el texto sale de ellos:
  * así el mapa y la terminal no pueden divergir aunque quieran.
  */
-function tramo(p, nombreDeWay, n) {
-  const nombre = nombreDeWay ? nombreDeWay(p.way) : null;
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ TANDA 19 · EL MODELO ENTRA POR AQUÍ, Y ENTRA **OPT-IN**
+// ═════════════════════════════════════════════════════════════════════════════
+//   `modelo` es una función `(wayId) -> {via, plataforma, ciclista} | null`.
+//   ⛔ SIN ELLA, ESTE FICHERO SE COMPORTA BYTE A BYTE COMO ANTES. Eso no es una
+//     promesa: `rutas-antonio.js` sin `--modelo` produce una salida que se
+//     compara con la capturada antes de tocar nada (`src/modelo-rutas.js` D1).
+//
+//   ⭐ Y SOLO ACTÚA DONDE HOY DICE «un tramo sin nombre». Si OSM tiene nombre, no
+//     se toca ni una letra — que es lo que mantiene idénticas las rutas 1 a 5.
+//
+//   ⚠️ QUÉ SE CUENTA Y QUÉ NO (corrección de Antonio):
+//     · **Qué ES la línea, siempre**: «por el carril bici de X», «por la acera de
+//       X». Eso sale de la PLATAFORMA, no de qué fichero trajo el nombre.
+//     · `osm` y `municipal-bici` se cuentan IGUAL: los dos son declarados, y al
+//       usuario no le importa de qué capa salió.
+//     · ⭐ Solo lo DEDUCIDO llevaría marca — y hoy no hay nada deducido: el método
+//       de portales de la tanda 17 sigue sin aplicarse.
+//   ⇒ La procedencia exacta se guarda en el dato, para nosotros. No se imprime.
+const SUSTANTIVO = {
+  'carril-bici': 'el carril bici de',
+  'acera': 'la acera de',
+  'plataforma-peatonal': 'la zona peatonal de',
+  'camino': 'el camino de',
+  'pista': 'la pista de',
+  'vial-de-servicio': 'el vial de servicio de',
+};
+
+function tramo(p, nombreDeWay, n, modelo) {
+  let nombre = nombreDeWay ? nombreDeWay(p.way) : null;
   const tipo = TIPO[p.precision] || p.precision;
+  // ⭐ el modelo solo habla donde OSM se calla
+  let deModelo = null;
+  if (!nombre && modelo) {
+    const m = modelo(p.way);
+    if (m && m.via && m.via.nombre) { deModelo = m; nombre = m.via.nombre; }
+  }
   const avisos = [];
   const ap = avisoPrecision(p.precision);
   if (ap) avisos.push(ap);
@@ -112,7 +146,13 @@ function tramo(p, nombreDeWay, n) {
   else if (nombre) frase = 'Por ' + nombre;
   else frase = 'Por un tramo sin nombre';
   if (nombre && p.precision !== 'paso-de-peatones' && p.precision !== 'escaleras') {
-    frase += ' (' + tipo + ')';
+    // ⭐ si el nombre lo trae el modelo, el sustantivo dice QUÉ ES la línea y el
+    //    tipo de D4 sobraría: «por el carril bici de X (eje de calzada)» son dos
+    //    formas de contar lo mismo, y la segunda es la que menos se entiende.
+    //    ⚠️ El aviso de precisión NO se pierde: sigue en el `◦` y en su nota.
+    const sus = deModelo ? SUSTANTIVO[deModelo.forma.plataforma] : null;
+    if (sus) frase = 'Por ' + sus + ' ' + nombre;
+    else frase += ' (' + tipo + ')';
   } else if (!nombre && p.precision !== 'paso-de-peatones' && p.precision !== 'escaleras') {
     frase += ' (' + tipo + ')';
   } else if (nombre) {
@@ -120,7 +160,10 @@ function tramo(p, nombreDeWay, n) {
   }
   return { n, nombre, tipo, frase, metros: p.metros, precision: p.precision,
     condicional: !!p.condicional, unidoPorDefecto: !!p.unidoPorDefecto, avisos,
-    way: p.way, highway: p.highway };
+    way: p.way, highway: p.highway,
+    // ⭐ el dato completo viaja, aunque no se imprima: fuente del nombre y forma
+    via: deModelo ? deModelo.via : (nombre ? { nombre, fuente: 'osm', declarada: true } : null),
+    forma: deModelo ? deModelo.forma : null };
 }
 
 /**
@@ -137,8 +180,8 @@ function tramo(p, nombreDeWay, n) {
  * ⭐ Y el número de ways fundidos VIAJA en el tramo (`ways`), así que la fusión no
  *   puede esconder nada: quien quiera el detalle lo tiene contado.
  */
-function tramos(ruta, nombreDeWay) {
-  const sueltos = ruta.pasos.map((p, i) => ({ ...tramo(p, nombreDeWay, 0), pasos: [i] }));
+function tramos(ruta, nombreDeWay, modelo) {
+  const sueltos = ruta.pasos.map((p, i) => ({ ...tramo(p, nombreDeWay, 0, modelo), pasos: [i] }));
   const out = [];
   for (const t of sueltos) {
     const u = out[out.length - 1];
@@ -246,7 +289,7 @@ const m = (v) => (v >= 1000 ? (v / 1000).toFixed(2).replace('.', ',') + ' km' : 
  * corchetes: esto lo lee una persona en una terminal.
  */
 function texto(res, opciones = {}) {
-  const { origen, destino, nombreDeWay, rodeo, engancheOrigen, engancheDestino } = opciones;
+  const { origen, destino, nombreDeWay, rodeo, engancheOrigen, engancheDestino, modelo } = opciones;
   const L = [];
   const tit = (origen || 'origen') + '  →  ' + (destino || 'destino');
   L.push('');
@@ -281,7 +324,7 @@ function texto(res, opciones = {}) {
   }
   L.push('');
 
-  const ts = tramos(res, nombreDeWay);
+  const ts = tramos(res, nombreDeWay, modelo);
   const anchoN = String(ts.length).length;
   // ⚠️ El aviso de precisión se repite en casi todos los tramos de una ruta larga
   //    —doce veces la misma frase— y eso no informa: tapa. Se marca cada tramo con

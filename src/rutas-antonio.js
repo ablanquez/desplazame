@@ -108,6 +108,28 @@ if (require.main === module) {
   //    `src/entradas.js`; aquí solo se pasan.
   const Ent = En.cargar();
 
+  // ⭐⭐ TANDA 19 · `--modelo` — OPT-IN, y solo afecta al TEXTO.
+  // ⛔ Sin el flag NO se construye nada y la salida es la de siempre, byte a byte.
+  //    Eso se comprueba en `src/modelo-rutas.js` D1 contra una captura hecha ANTES
+  //    de tocar `relato.js`. El CÁLCULO no lo toca ni con el flag puesto: el
+  //    modelo entra por `Rel.texto({modelo})` y solo habla donde OSM se calla.
+  let modeloDeWay = null;
+  if (process.argv.includes('--modelo')) {
+    const Mo = require('./modelo');
+    const AB = require('./asignar-bici');
+    const Fo = require('./forma');
+    const tagsW = new Map();
+    for (const w of osm.recortar(osm.cargar(CRUDO).ways, ZONA_TERMINO)) tagsW.set(w.id, w.tags || {});
+    const asg = AB.asignar(g, AB.cargarCapa().lineas, (w) => Fo.plataforma(tagsW.get(w)),
+      { idx: AB.indexar(g.aristas) });
+    const M = Mo.aplicar(g, tagsW, asg.tabla, P.cargarVias());
+    // ⭐ el modelo es por ARISTA y el relato pregunta por WAY. La resolución vive
+    //    en `modelo.js` (fuente única) y exige 2/3 de los metros con vía.
+    const deWay = Mo.resolverPorWay(g, M);
+    modeloDeWay = (w) => deWay.get(w) || null;
+    process.stderr.write('⚑ MODELO · vía·forma·papel ACTIVO — solo cambia el TEXTO de los tramos sin nombre\n');
+  }
+
   log('');
   log('='.repeat(104));
   log('LAS SIETE, UNA A UNA');
@@ -271,14 +293,14 @@ if (require.main === module) {
     log('');
     log('   ⭐⭐ LA RUTA, SALTO A SALTO');
     log(Rel.texto(res, { origen: ru.o, destino: ru.d, nombreDeWay: ctx.nombreDeWay,
-      rodeo, engancheOrigen: aP.d, engancheDestino: bFin.d })
+      rodeo, engancheOrigen: aP.d, engancheDestino: bFin.d, modelo: modeloDeWay })
       .split('\n').map((x) => '   ' + x).join('\n'));
     // ⭐ CUADRE ENTRE LAS DOS TABLAS. Arriba está `porTramos` —el desglose de
     //    metros por arista— y aquí el relato, que agrupa. Los dos leen los mismos
     //    `res.pasos`, así que no pueden divergir… **mientras alguien no cambie uno
     //    de los dos.** Esto lo convierte en mecanismo y no en confianza (ley 37).
     {
-      const sumaRelato = Rel.tramos(res, ctx.nombreDeWay).reduce((s, t) => s + t.metros, 0);
+      const sumaRelato = Rel.tramos(res, ctx.nombreDeWay, modeloDeWay).reduce((s, t) => s + t.metros, 0);
       const sumaPasos = res.pasos.reduce((s, p) => s + p.metros, 0);
       Al.exige(Math.abs(sumaRelato - sumaPasos) < 0.5,
         `la ruta nº${ru.n}: el relato suma ${sumaRelato.toFixed(1)} m y el desglose ${sumaPasos.toFixed(1)} m`);

@@ -1,0 +1,282 @@
+// ⭐⭐ TANDA 19 · D · LAS SIETE RUTAS — el control que no se rompe.
+//
+//   node src/modelo-rutas.js
+//
+// ⛔⛔ EL MODELO NO TOCA EL CÁLCULO. Entra por `Rel.texto({modelo})` y solo habla
+//     donde OSM se calla. Esto lo comprueba, no lo promete.
+//
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ «¿PUEDE ESTO PASAR (O FALLAR) SIN QUE NADA FUNCIONE?»
+// ═════════════════════════════════════════════════════════════════════════════
+// D1 · «las siete rutas idénticas» ⚠️ **PUEDE PASAR POR CONSTRUCCIÓN**: si el
+//      modelo no entra en el cálculo, salen idénticas hiciera lo que hiciera. ⇒ se
+//      dice, y se hacen TRES comprobaciones que sí pueden fallar:
+//        (1) las dos ejecuciones —con y sin `--modelo`— tienen que dar la MISMA
+//            lista de aristas y los MISMOS metros con decimal. Si el modelo se
+//            colara en el cálculo, esto lo caza.
+//        (2) los metros contra los PUBLICADOS en la tanda 16, que son un patrón
+//            externo y anterior a esta tanda. Si el grafo se hubiera movido por
+//            cualquier otra razón, esto lo caza.
+//        (3) el TEXTO de las rutas 1 a 5 tiene que ser idéntico entre las dos
+//            ejecuciones. **Ése es el que de verdad puede fallar**, porque
+//            `relato.js` SÍ se ha tocado en esta tanda.
+//      ⚠️ Lo que esto NO comprueba: que la salida sin `--modelo` sea idéntica a la
+//      de ANTES de tocar `relato.js`. Eso se comprobó a mano con `md5sum` contra
+//      una captura hecha antes del primer cambio, y el informe lo dice — pero la
+//      captura vivía fuera del repositorio y no se puede repetir desde aquí.
+//
+// D4 · «cuántos metros sin nombre quedan» ⚠️ se mide sobre las aristas que PISA la
+//      ruta, no sobre los ways enteros (bitácora nº94).
+
+'use strict';
+const { execFileSync } = require('child_process');
+const path = require('path');
+const A = require('./alarma');
+const F = require('./forma');
+const AB = require('./asignar-bici');
+const Mo = require('./modelo');
+const P = require('./portales');
+const osm = require('./osm');
+const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
+
+const log = console.log;
+const di = (k, v) => log(`   ${String(k).padEnd(56)} ${v}`);
+const km = (m) => (m >= 1000 ? (m / 1000).toFixed(2) + ' km' : Math.round(m) + ' m');
+const pct = (a, b) => (b ? (100 * a / b).toFixed(1) + ' %' : '—');
+
+// ⭐ PATRÓN EXTERNO: los metros publicados en `docs/H1-VER-RUTAS.md` (tanda 16),
+//    escritos antes de que esta tanda existiera. No los elijo yo (ley 17).
+const PUBLICADOS = { 1: 3086.9, 2: 598.1, 3: 3704.9, 4: 505.9, 5: 477.4, 6: 523.4, 7: 2528.9 };
+
+/** Ejecuta `rutas-antonio.js` y devuelve {texto, aristas}. */
+function correr(flags) {
+  let salida = '';
+  try {
+    salida = execFileSync(process.execPath, [path.join(__dirname, 'rutas-antonio.js'), '--aristas', ...flags],
+      { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch (e) {
+    // ⚠️ sale en ROJO a propósito: la nº4 tiene el rodeo declarado fuera de banda
+    salida = (e.stdout || '').toString();
+  }
+  const l = salida.split('\n').find((x) => x.startsWith('##ARISTAS##'));
+  return { salida, aristas: l ? JSON.parse(l.slice('##ARISTAS##'.length)) : null };
+}
+
+/** Extrae el bloque «LA RUTA, SALTO A SALTO» de cada ruta. */
+function bloques(salida) {
+  const lineas = salida.split('\n');
+  const out = new Map();
+  let ruta = null, dentro = false, buf = [];
+  for (const x of lineas) {
+    const m = x.match(/^RUTA (\d+) ·/);
+    if (m) { ruta = Number(m[1]); }
+    if (x.includes('LA RUTA, SALTO A SALTO')) { dentro = true; buf = []; continue; }
+    if (dentro) {
+      if (x.includes('⛔ Lo que este motor NO sabe')) { dentro = false; out.set(ruta, buf.join('\n')); continue; }
+      buf.push(x);
+    }
+  }
+  return out;
+}
+
+const T0 = Date.now();
+log('='.repeat(110));
+log('D · LAS SIETE RUTAS DE ANTONIO — el control que no se rompe');
+log('='.repeat(110));
+
+const sin = correr([]);
+const con = correr(['--modelo']);
+
+log('');
+log('D1 · ⭐⭐⭐ ¿ES LA MISMA RUTA?');
+log('   ⚠️ Esto PUEDE PASAR POR CONSTRUCCIÓN: el modelo no entra en el cálculo, así que');
+log('      saldrían idénticas hiciera lo que hiciera. ⇒ van tres comprobaciones que SÍ');
+log('      pueden fallar, y la tercera es la que de verdad arriesga.');
+A.exige(!!sin.aristas && !!con.aristas, 'no se ha podido leer `##ARISTAS##` de alguna de las dos ejecuciones');
+{
+  log('');
+  log('   (1) las dos ejecuciones, ruta por ruta');
+  log('   ' + 'ruta'.padStart(5) + 'metros sin modelo'.padStart(20) + 'metros con modelo'.padStart(20)
+    + 'aristas'.padStart(10) + 'idénticas'.padStart(12) + '   publicado tanda 16');
+  for (const r of sin.aristas) {
+    const c = con.aristas.find((x) => x.n === r.n);
+    const mismasAristas = c && JSON.stringify(c.aristas) === JSON.stringify(r.aristas);
+    const mismosMetros = c && c.metros === r.metros;
+    const pub = PUBLICADOS[r.n];
+    const okPub = Math.abs(r.metros - pub) < 0.05;
+    log('   ' + String(r.n).padStart(5) + r.metros.toFixed(1).padStart(20) + (c ? c.metros.toFixed(1) : '—').padStart(20)
+      + String(r.aristas.length).padStart(10) + (mismasAristas && mismosMetros ? '✅' : '⛔').padStart(12)
+      + '   ' + pub.toFixed(1) + (okPub ? '  ✅' : '  ⛔ SE HA MOVIDO'));
+    A.exige(mismasAristas && mismosMetros, `la ruta nº${r.n} cambia entre las dos ejecuciones: el modelo se ha colado en el cálculo`);
+    A.exige(okPub, `la ruta nº${r.n} da ${r.metros} y la tanda 16 publicó ${pub}`);
+  }
+}
+{
+  log('');
+  log('   (3) ⭐ EL TEXTO — la comprobación que de verdad puede fallar, porque `relato.js` SÍ');
+  log('       se ha tocado. Las rutas 1 a 5 no ganan ninguna vía municipal: tienen que salir');
+  log('       IDÉNTICAS. La 6 y la 7 cambian por diseño (decisión 3 de Antonio).');
+  const bSin = bloques(sin.salida), bCon = bloques(con.salida);
+  A.exige(bSin.size === 7 && bCon.size === 7, `no se han extraído los 7 bloques de texto (${bSin.size} / ${bCon.size})`);
+  log('');
+  log('   ' + 'ruta'.padStart(5) + 'texto'.padStart(16) + '   qué pasa');
+  const cambian = [];
+  for (const n of [...bSin.keys()].sort((a, b) => a - b)) {
+    const igual = bSin.get(n) === bCon.get(n);
+    if (!igual) cambian.push(n);
+    log('   ' + String(n).padStart(5) + (igual ? 'IDÉNTICO' : 'CAMBIA').padStart(16)
+      + '   ' + (igual ? 'ninguna vía municipal nueva' : 'gana vía declarada por el Ayuntamiento'));
+  }
+  log('');
+  di('⭐ rutas cuyo texto cambia', cambian.join(', ') + '   (esperado: 6 y 7)');
+  A.exige(JSON.stringify(cambian) === JSON.stringify([6, 7]),
+    `cambian las rutas ${cambian.join(',')} y solo debían cambiar la 6 y la 7`);
+  global._BLOQ = { bSin, bCon };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+log('');
+log('='.repeat(110));
+log('B5 · ⭐⭐ EL TRAMO DE LA RUTA 7 — el único sitio con verdad sobre el terreno');
+log('='.repeat(110));
+log('   Antonio: «En San Juan de la Peña NO está a la misma cota. En Avenida de la Academia');
+log('   General Militar SÍ.» ⇒ tiene que salir San Juan de la Peña «calzada» y Academia');
+log('   General Militar «acera».');
+const g = construir(ZONA_TERMINO);
+const tags = new Map();
+for (const w of osm.recortar(osm.cargar(CRUDO).ways, ZONA_TERMINO)) tags.set(w.id, w.tags || {});
+const asg = AB.asignar(g, AB.cargarCapa().lineas, (w) => F.plataforma(tags.get(w)), { idx: AB.indexar(g.aristas) });
+const M = Mo.aplicar(g, tags, asg.tabla, P.cargarVias());
+{
+  const r7 = con.aristas.find((x) => x.n === 7);
+  const WAYS = [354344721, 475881583];
+  const idx = r7.aristas.filter((i) => WAYS.includes(g.aristas[i].way));
+  di('aristas de esos dos ways que PISA la ruta nº7', `${idx.length}  (${km(idx.reduce((s, i) => s + g.aristas[i].largo, 0))})`);
+  log('   ⛔ sobre lo que pisa la ruta, no sobre el way entero (bitácora nº94).');
+  log('');
+  const c = new Map();
+  for (const i of idx) {
+    const m = M[i];
+    const k = (m.forma.ciclista || '(sin ciclista)') + '  ·  ' + (m.via ? m.via.nombre : 'SIN VÍA')
+      + '  ·  ' + (m.forma.ciclistaTipo || '—');
+    if (!c.has(k)) c.set(k, { n: 0, m: 0 });
+    const v = c.get(k); v.n++; v.m += g.aristas[i].largo;
+  }
+  log('   ' + 'ciclista · vía · tipo literal del municipal'.padEnd(74) + 'aristas'.padStart(8) + 'metros'.padStart(10));
+  for (const [k, v] of [...c.entries()].sort((a, b) => b[1].m - a[1].m)) {
+    log('   ' + k.slice(0, 73).padEnd(74) + String(v.n).padStart(8) + km(v.m).padStart(10));
+  }
+  const hayAGM = [...c.keys()].some((k) => /ACADEMIA GENERAL MILITAR/.test(k) && /carril-sobre-acera/.test(k));
+  const haySJP = [...c.keys()].some((k) => /SAN JUAN DE LA PEÑA/.test(k) && /carril-en-calzada/.test(k));
+  log('');
+  di('⭐ Academia General Militar sale «sobre acera»', hayAGM ? '✅ sí' : '⛔ NO');
+  di('⭐ San Juan de la Peña sale «en calzada»', haySJP ? '✅ sí' : '⛔ NO — sobre lo que se anda, NO');
+  A.exige(hayAGM && haySJP, 'sobre las aristas que PISA la ruta 7, San Juan de la Peña no sale como «carril en calzada»: los metros que se andan no tienen asignación propia');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⚠️⚠️⚠️ Y AQUÍ ESTÁ EL PORQUÉ, QUE ES EL HALLAZGO DE LA TANDA
+  // ═══════════════════════════════════════════════════════════════════════════
+  log('');
+  log('   ⚠️⚠️ ¿POR QUÉ? — porque el WAY sí lo tiene, pero en OTRO TROZO. Y el texto se lo');
+  log('      presta. Esto hay que verlo entero antes de creerse ninguna frase:');
+  for (const W of WAYS) {
+    const enRuta = r7.aristas.filter((i) => g.aristas[i].way === W);
+    const todas = [];
+    for (let i = 0; i < g.aristas.length; i++) if (g.aristas[i].way === W) todas.push(i);
+    const conVia = todas.filter((i) => M[i].via);
+    const enRutaConVia = enRuta.filter((i) => M[i].via);
+    const solapan = enRuta.filter((i) => conVia.includes(i)).length;
+    log('');
+    log('      way ' + W);
+    di('         aristas del way · las que pisa la ruta', `${todas.length} · ${enRuta.length}`);
+    di('         aristas del way CON asignación municipal', `${conVia.length}  (${km(conVia.reduce((s, i) => s + g.aristas[i].largo, 0))})`);
+    di('         ⭐ …de las que pisa la ruta', `${enRutaConVia.length}  (${km(enRutaConVia.reduce((s, i) => s + g.aristas[i].largo, 0))})`);
+    di('         ⚠️ ¿solapan los dos trozos?', solapan === 0 ? '⛔ NO: son trozos DISJUNTOS del mismo way' : `${solapan} aristas`);
+  }
+  log('');
+  log('   ⇒ ⛔⛔ EL WAY 475881583 TIENE 783 m ASIGNADOS A SAN JUAN DE LA PEÑA **Y NO SON LOS');
+  log('     760 m QUE ANTONIO ANDUVO**: son el trozo de al lado. La regla de resolución a way');
+  log('     (2/3 de los metros con vía) extiende el nombre al way entero, y por eso el texto');
+  log('     dice «el carril bici de Avenida de San Juan de la Peña» en unos metros que NO');
+  log('     tienen asignación propia.');
+  log('   ⚠️ NO es un error de emparejamiento: ahí la asignación sale AMBIGUA —el carril y la');
+  log('     calzada de la misma avenida son dos candidatas compatibles y cercanas— y la regla');
+  log('     hace lo correcto: NO asignar. Lo que discute es si el TEXTO puede heredar del way.');
+  log('   ⛔ Se deja como está y se mide cuánto pesa (abajo). Decide Antonio.');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+log('');
+log('='.repeat(110));
+log('D4 · CUÁNTOS METROS SIN NOMBRE QUEDAN EN LAS SIETE');
+log('='.repeat(110));
+log('   ⛔ Medido sobre las aristas que PISA cada ruta. Y con la vía resuelta a WAY, que es');
+log('      como el texto la usa — no a arista, que daría un número mejor y falso.');
+{
+  const deWay = Mo.resolverPorWay(g, M);
+  const NO = new Set(['paso-de-peatones', 'escaleras']);
+  let tS = 0, tG = 0;
+  log('');
+  log('   ' + 'ruta'.padStart(5) + 'm sin nombre (OSM)'.padStart(22) + 'm que gana vía municipal'.padStart(28) + '%'.padStart(9));
+  for (const r of con.aristas) {
+    const sn = r.aristas.filter((i) => !g.nombres.get(g.aristas[i].way) && !NO.has(g.aristas[i].precision));
+    const gan = sn.filter((i) => deWay.get(g.aristas[i].way));
+    const mS = sn.reduce((s, i) => s + g.aristas[i].largo, 0);
+    const mG = gan.reduce((s, i) => s + g.aristas[i].largo, 0);
+    tS += mS; tG += mG;
+    log('   ' + String(r.n).padStart(5) + mS.toFixed(0).padStart(22) + mG.toFixed(0).padStart(28) + pct(mG, mS).padStart(9));
+  }
+  log('   ' + '─'.repeat(62));
+  log('   ' + 'TOTAL'.padStart(5) + tS.toFixed(0).padStart(22) + tG.toFixed(0).padStart(28) + pct(tG, tS).padStart(9));
+  log('');
+  // ⚠️⚠️ EL DESCUENTO HONESTO: ¿cuántos de esos metros tienen asignación PROPIA?
+  log('');
+  log('   ⚠️⚠️ Y EL DESCUENTO QUE HAY QUE HACERLE A ESE NÚMERO: la vía se resuelve por WAY, así');
+  log('      que un trozo sin asignación propia hereda el nombre del resto de su way.');
+  log('   ' + 'ruta'.padStart(5) + 'm nombrados'.padStart(16) + 'con asignación PROPIA'.padStart(24)
+    + 'heredados del way'.padStart(20));
+  let hP = 0, hH = 0;
+  for (const r of con.aristas) {
+    const sn = r.aristas.filter((i) => !g.nombres.get(g.aristas[i].way) && !NO.has(g.aristas[i].precision));
+    const gan = sn.filter((i) => deWay.get(g.aristas[i].way));
+    const propia = gan.filter((i) => M[i].via);
+    const mG = gan.reduce((s, i) => s + g.aristas[i].largo, 0);
+    const mP = propia.reduce((s, i) => s + g.aristas[i].largo, 0);
+    hP += mP; hH += mG - mP;
+    if (!mG) continue;
+    log('   ' + String(r.n).padStart(5) + mG.toFixed(0).padStart(16) + mP.toFixed(0).padStart(24)
+      + (mG - mP).toFixed(0).padStart(20));
+  }
+  log('   ' + '─'.repeat(64));
+  log('   ' + 'TOTAL'.padStart(5) + (hP + hH).toFixed(0).padStart(16) + hP.toFixed(0).padStart(24) + hH.toFixed(0).padStart(20));
+  log('   ⇒ ⭐ EL NÚMERO CONSERVADOR ES ' + hP.toFixed(0) + ' m (' + pct(hP, tS) + '), no ' + (hP + hH).toFixed(0) + '.');
+  log('     La diferencia son metros que el texto nombra heredando del way. **Ninguno de los');
+  log('     dos está mal; hay que decir cuál se cita.**');
+  log('');
+  log('   ⭐ COMPARACIÓN con lo que había:');
+  log('      · sin nada                     3.851 m sin nombre');
+  log('      · método de portales (tanda 17) 1.159 m nombrados (30,1 %) — ⚠️ DEDUCIDOS');
+  log('      · ⭐ este modelo               ' + tG.toFixed(0) + ' m nombrados (' + pct(tG, tS) + ') — ⭐ DECLARADOS por el Ayuntamiento');
+  log('   ⛔ Y no se suman: el método de portales sigue SIN aplicarse.');
+  global._D4 = { tS, tG };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+log('');
+log('='.repeat(110));
+log('D2 · EL TEXTO, ANTES Y DESPUÉS — solo las dos que cambian');
+log('='.repeat(110));
+{
+  const { bSin, bCon } = global._BLOQ;
+  for (const n of [6, 7]) {
+    log('');
+    log('   ── RUTA Nº' + n + ' · ANTES ' + '─'.repeat(80));
+    log(bSin.get(n).replace(/\n+$/, ''));
+    log('   ── RUTA Nº' + n + ' · DESPUÉS ' + '─'.repeat(78));
+    log(bCon.get(n).replace(/\n+$/, ''));
+  }
+}
+
+log('');
+log(A.cierre('LAS SIETE RUTAS'));
+di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');
