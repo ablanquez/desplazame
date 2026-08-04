@@ -141,6 +141,69 @@ if (require.main === module) {
     A.exige(Math.abs(sumaT - x.metros) < 0.5,
       `la ruta nº${x.n}: los tramos del relato suman ${sumaT.toFixed(1)} m y el motor ${x.metros.toFixed(1)} m`);
   }
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⭐⭐ LO QUE HAY QUE MIRAR — buscado a propósito, no «échale un vistazo»
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⛔ Esto NO arregla nada. Señala. Lo que salga es un hallazgo sobre H1 y lo
+  //    decide Antonio.
+  // ⚠️ ¿Puede pasar sin que nada funcione? Sí, si ninguna ruta tuviera rarezas y
+  //    yo no supiera distinguir «no hay» de «no busco». ⇒ cada búsqueda lleva su
+  //    positivo de control: se dice cuántos casos MIRÓ, no solo cuántos encontró.
+  log('');
+  log('='.repeat(96));
+  log('⭐⭐ RAREZAS BUSCADAS A PROPÓSITO — con su contador de lo mirado');
+  const rar = { repetidas: [], largosSinNombre: [], noPeatonal: [], ceros: [], enganchesLejos: [] };
+  let tramosMirados = 0;
+  for (const x of r.rutas) {
+    if (!x.encontrada) continue;
+    tramosMirados += x.tramos.length;
+    // 1 · ¿vuelve a una calle por la que ya pasó, con otra de por medio?
+    const vistos = new Map();
+    x.tramos.forEach((t, i) => {
+      if (!t.frase.startsWith('Por ') || t.frase.includes('sin nombre')) return;
+      const nom = t.frase.replace(/ \(.*/, '');
+      if (vistos.has(nom) && i - vistos.get(nom) > 1) {
+        // ⚠️ VOLVER A LA MISMA CALLE NO ES UNA RAREZA POR SÍ SOLO: andas por la
+        //    acera, cruzas una bocacalle por un paso de peatones y sigues por la
+        //    misma avenida. Eso sale «repetido» y es lo normal. ⇒ se separa lo
+        //    que hay EN MEDIO: si son cuatro metros de paso de peatones, es un
+        //    cruce; si son ochenta metros por otras calles, es un rodeo.
+        const medio = x.tramos.slice(vistos.get(nom) + 1, i);
+        const mMedio = medio.reduce((s, t) => s + t.metros, 0);
+        const soloCruces = medio.every((t) => t.precision === 'paso-de-peatones' || t.metros < 15);
+        rar.repetidas.push({ n: x.n, nom, i: vistos.get(nom) + 1, j: i + 1,
+          mMedio: Math.round(mMedio), cruce: soloCruces });
+      }
+      vistos.set(nom, i);
+    });
+    // 2 · tramos largos sin nombre
+    for (const t of x.tramos) {
+      if (t.frase.includes('sin nombre') && t.metros >= 100) rar.largosSinNombre.push({ n: x.n, t });
+      if (t.metros === 0) rar.ceros.push({ n: x.n, t });
+    }
+    if (x.dOrigen > 30) rar.enganchesLejos.push({ n: x.n, q: 'origen', d: x.dOrigen, p: x.origenPedido });
+    if (x.dDestino > 30) rar.enganchesLejos.push({ n: x.n, q: 'destino', d: x.dDestino, p: x.destinoPedido });
+  }
+  di('tramos mirados en total', tramosMirados);
+  log('');
+  const sospechosas = rar.repetidas.filter((v) => !v.cruce);
+  di('1 · vuelve a una calle por la que ya pasó', rar.repetidas.length);
+  di('   de ellas, con solo un CRUCE de por medio (normal)', rar.repetidas.length - sospechosas.length);
+  di('   ⭐ de ellas, con un RODEO de por medio', sospechosas.length);
+  for (const v of rar.repetidas) {
+    log(`      ruta ${v.n}: «${v.nom}» en los tramos ${v.i} y ${v.j}   `
+      + `${v.mMedio} m de por medio   ` + (v.cruce ? 'cruce' : '⭐ MIRAR'));
+  }
+  log('   ⚠️ las dos cuentas van juntas a propósito: quedarme solo con la segunda sería');
+  log('      esconder que el criterio de «cruce» lo he puesto yo (paso de peatones o < 15 m).');
+  di('2 · tramos SIN NOMBRE de 100 m o más', rar.largosSinNombre.length);
+  for (const v of rar.largosSinNombre) log(`      ruta ${v.n}: tramo ${v.t.n} · ${v.t.metros} m · ${v.t.tipo}`);
+  di('3 · tramos de 0 m', rar.ceros.length + (rar.ceros.length ? '  (el corte del enganche cae sobre un vértice)' : ''));
+  di('4 · enganches a más de 30 m del punto pedido', rar.enganchesLejos.length);
+  for (const v of rar.enganchesLejos) log(`      ruta ${v.n} · ${v.q}: ${v.d} m   ${v.p[0]},${v.p[1]}`);
+  log('   ⚠️ el 0 de la 4 no es «todos los enganches están bien»: es que ninguno de los');
+  log('      CATORCE extremos de estas siete rutas pasa de 30 m. Catorce no es una muestra.');
+
   log('');
   log(A.cierre('EXPORTACIÓN DE RUTAS'));
   di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');

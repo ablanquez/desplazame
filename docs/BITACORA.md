@@ -4373,3 +4373,63 @@ que querías decir era «mucho mayor que ESTE otro porcentaje del mismo experime
 ⚠️ Y el dato incómodo: **haber escrito la ley no impidió repetir el fallo.** Lo que lo cazó fue el
 umbral rozando, no la memoria.
 **Traza:** `src/orden-numeros.js` (A3c), `docs/BITACORA.md` nº88
+
+---
+
+## [2026-08-04] — «El mapa dice lo mismo que la terminal»: escribí dos veces la misma comprobación imposible de fallar
+
+**Categoría:** comprobación que pasa por construcción (ley 35), dos veces seguidas en el mismo bloque
+**Síntoma:** el visor de rutas y la terminal tienen que contar el tramo con la MISMA cadena. Escribí
+la comprobación, salió verde, y decía esto:
+
+```
+   V4 · EL TEXTO DEL MAPA ES EL TEXTO DE LA TERMINAL
+      tramos con frase del redactor único                  104 de 104
+```
+
+**104 de 104.** Lo que comprobaba era esto:
+
+```js
+const ok = typeof t.frase === 'string' && t.frase.length > 0;
+```
+
+O sea: **«la frase es una cadena y no está vacía»**. Eso lo pasa cualquier texto, incluida una frase
+inventada por el visor. **No comprobaba nada de lo que decía el título.**
+
+**Y el segundo intento fue peor**, porque parecía una comparación de verdad:
+
+```js
+const cuerpo = d2.tramos.map((t) => t.frase).join('\n');
+for (const t of d2.tramos) if (cuerpo.includes(t.frase)) dentro++;
+```
+
+Eso busca cada frase **dentro de la concatenación de esas mismas frases**. Es un espejo: da 100 %
+siempre, con cualquier contenido, aunque el visor redactara en chino. **Escribí un espejo y lo llamé
+comparación.**
+
+**⭐ Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo lo demás del fichero, que sí
+valía.** El simulador de Leaflet estaba verificado con su guion de 8 polilíneas y 2 círculos (ley
+52), el cuadre de metros comparaba contra el motor **recalculado en memoria** —no contra el propio
+fichero— y la contraprueba del tramo falso funcionaba en los dos sentidos. **Cuatro comprobaciones
+buenas alrededor de una vacía**, y la vacía era justo la del título del bloque.
+
+**Cómo se cazó:** por releer la línea de código debajo del ✅ en vez de leer el ✅. La pregunta del
+método —*«¿puede esto pasar sin que nada funcione?»*— la tenía escrita en la cabecera del propio
+fichero, para V0, V1 y V2. **No la apliqué a V4.**
+
+**Arreglo aplicado:** la comprobación de verdad, que sí puede fallar y en dos frentes:
+· **(1)** las frases del fichero que va a leer el navegador contra las del motor **recalculado** —eso
+  caza además un `rutas-visor.js` viejo, que es un fallo real y silencioso—;
+· **(2)** se calcula la ruta nº2 desde el motor, se genera **el texto que vería la terminal**, y se
+  busca dentro **cada frase del fichero del mapa**. 9 de 9.
+· ⭐ y su **positivo de control**: una frase inventada tiene que dar negativo. Si `includes` diera
+  positivo con `'Por Calle Que No Existe De Prueba'`, el 9 de 9 no valdría nada.
+
+**Ley que sale de aquí:** ⭐⭐ **una comparación en la que los dos lados salen del mismo sitio es un
+espejo, no una prueba.** Antes de escribir `A.includes(B)`, pregúntate de dónde viene cada uno: si
+vienen del mismo fichero, del mismo objeto o de la misma función, la respuesta ya está decidida.
+⚠️ Y la operativa: **la pregunta del método se hace por comprobación, no por fichero.** La tenía
+contestada para V0, V1 y V2 en la cabecera, y eso me dio la sensación de tenerla contestada para
+todas.
+**Traza:** `src/probar-visor-rutas.js` (V4), `src/relato.js` (el redactor único que se estaba
+comprobando)
