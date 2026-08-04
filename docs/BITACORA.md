@@ -4788,3 +4788,75 @@ responsabilidad: la duplica. Aquí el segundo testigo fue el primero en mentir.
 Un error real casi nunca es constante.
 
 **Traza:** `src/probar-visor-nombres.js` (`medir()`)
+
+---
+
+## [2026-08-04] — En una ruta A PIE, el texto contaba el papel EN BICI
+
+**Categoría:** aviso falso
+**Síntoma:** la ruta nº7 —a pie, andada por Antonio— imprimía esto:
+
+```
+   2. ◦ Por el carril bici de AVENIDA ACADEMIA GENERAL MILITAR   509 m
+   3. ◦ Por el carril bici de AVENIDA SAN JUAN DE LA PEÑA        760 m
+```
+
+Lo cazó Antonio de un vistazo: *«si vamos andando NO PODEMOS IR POR UN CARRIL BICI. Tendrás que
+decir POR ACERA.»*
+
+⚠️ Y lo grave no es la frase: es **dónde estaba el fallo**. La tanda 19 se hizo entera para separar
+`vía · forma · papel`, con el papel **por modo**, sobre la idea de Antonio —*«una acera que comparte
+carril bici es una acera en el contexto de caminar y es un carril bici en el contexto de ir en
+bici»*—. El modelo la implementaba bien: `F.papel(forma, 'pie')` existía, funcionaba y devolvía lo
+correcto. **Y el redactor no lo usaba.** Tenía su propia tabla, `SUSTANTIVO`, con una entrada
+`'carril-bici': 'el carril bici de'` que no distingue modo ninguno.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la tanda entera, y con nota.** Las
+siete rutas idénticas al decimal y contra lo publicado en la tanda 16 ✅. Los textos 1 a 5 byte a
+byte iguales ✅. El hash del grafo sin moverse ✅. El guardián D1 en verde en sus tres
+comprobaciones ✅.
+⭐⭐ Y peor que verde: **esa frase se publicó como el LOGRO de la tanda.** El informe la enseñaba en
+un antes/después —*«ANTES: Por un tramo sin nombre, 1,27 km · DESPUÉS: Por el carril bici de AVENIDA
+ACADEMIA GENERAL MILITAR, 509 m»*— y la mejora era real: el tramo pasó de anónimo a nombrado. **El
+fallo viajaba dentro de la mejora**, y una comparación antes/después no puede cazar eso: las dos
+líneas son mejores que la anterior.
+
+**Causa raíz:** `relato.js` tradujo `plataforma` a castellano en vez de preguntar por el PAPEL A PIE.
+La plataforma dice *qué es la línea*; el papel dice *qué es para quien la usa*, y **son dos preguntas
+distintas — que es exactamente la distinción que la tanda 19 introdujo**. Escribí la tabla de
+traducción en el mismo commit en el que se aprobaba el modelo de tres capas, y la escribí de una
+capa.
+
+**Cómo se cazó:** usuario. ⛔ Ningún test lo cogía, y no por descuido: **todos los guardianes de la
+tanda 19 comprueban que la RUTA no se mueva** —metros, aristas, nodos, rodeo—, y ninguno comprueba
+que el TEXTO diga algo cierto. Un texto falso con la ruta correcta les sale verde por diseño.
+
+**Arreglo aplicado:** `SUSTANTIVO` pierde la entrada `carril-bici` —⛔ andando no se va «por el
+carril bici»— y entra `comoSeAnda(forma)`, que devuelve sustantivo y aviso según lo que **el
+Ayuntamiento declara** en `tipo_carri`:
+
+```
+   carril bici SOBRE LA ACERA   →  «Por la acera de X»  + se anda por ella, compartida con bicis
+   carril bici EN LA CALZADA    →  «Por X»              + el municipal lo sitúa en la calzada
+   senda ciclable               →  «Por X»              + se comparte con bicicletas
+   sin dato municipal           →  «Por X»              + no consta si va sobre acera o en calzada
+```
+
+⭐ Y de paso resuelve el segundo defecto que la tanda 19 declaró y no tocó: **el texto ya distingue
+sobre acera de en calzada**, que es justo la información que resolvió la discrepancia de la tanda 18.
+⛔ Lo que NO se arregla son las MAYÚSCULAS: medido sobre dos fuentes municipales y ocho campos de
+nombre, **ninguno trae el nombre con mayúsculas y minúsculas**. Reconstruirlo a mano es escribirlo.
+
+**Commit:** (este commit) — el que lo introdujo fue `e39e98a`
+
+**Ley que sale de aquí:** ⭐⭐ **si el modelo tiene modos, el texto tiene que PEDIR el modo, no
+traducir el campo.** Un redactor que traduce `plataforma` a castellano está eligiendo un modo sin
+saber que lo elige — y elegirá siempre el mismo.
+⚠️ Y la que más duele: **un fallo puede viajar dentro de una mejora.** El antes/después enseñaba dos
+líneas mejores que la anterior y las dos estaban mal. Comparar con el pasado dice si has avanzado; no
+dice si has llegado.
+⚠️ Y la tercera, operativa: **los guardianes de esta tanda comprobaban que la ruta no se moviera y
+ninguno comprobaba que el texto fuera cierto.** Una comprobación de invariancia no es una
+comprobación de verdad.
+
+**Traza:** `src/relato.js` (`SUSTANTIVO`, `comoSeAnda`, `tramo`)

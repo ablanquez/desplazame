@@ -109,21 +109,81 @@ function avisoCondicional(p) {
 //     se toca ni una letra — que es lo que mantiene idénticas las rutas 1 a 5.
 //
 //   ⚠️ QUÉ SE CUENTA Y QUÉ NO (corrección de Antonio):
-//     · **Qué ES la línea, siempre**: «por el carril bici de X», «por la acera de
-//       X». Eso sale de la PLATAFORMA, no de qué fichero trajo el nombre.
+//     · **Qué ES la línea, siempre**: «por la acera de X», «por la zona peatonal
+//       de X». Eso sale de la PLATAFORMA, no de qué fichero trajo el nombre.
+//       ⚠️ En la tanda 19 este ejemplo decía «por el carril bici de X». **Estaba
+//       mal y lo corrigió Antonio**: ver el bloque de la tanda 20, más abajo.
 //     · `osm` y `municipal-bici` se cuentan IGUAL: los dos son declarados, y al
 //       usuario no le importa de qué capa salió.
 //     · ⭐ Solo lo DEDUCIDO llevaría marca — y hoy no hay nada deducido: el método
 //       de portales de la tanda 17 sigue sin aplicarse.
 //   ⇒ La procedencia exacta se guarda en el dato, para nosotros. No se imprime.
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA 20 · EL TEXTO DE UNA RUTA **A PIE** CUENTA EL PAPEL **A PIE**
+// ═════════════════════════════════════════════════════════════════════════════
+//   Corrección de Antonio, y es un fallo de producto: *«si vamos andando NO
+//   PODEMOS IR POR UN CARRIL BICI. Tendrás que decir POR ACERA.»*
+//
+//   La tanda 19 imprimía «Por el carril bici de Avenida de San Juan de la Peña»
+//   **en una ruta a pie**. Eso es contarle al peatón el papel del modo
+//   equivocado — exactamente lo contrario de lo que el modelo vino a arreglar.
+//   ⇒ El sustantivo sale de la PLATAFORMA, y `carril-bici` NO tiene entrada aquí:
+//     lo resuelve `comoSeAnda()`, que mira lo que el Ayuntamiento DECLARA.
 const SUSTANTIVO = {
-  'carril-bici': 'el carril bici de',
   'acera': 'la acera de',
   'plataforma-peatonal': 'la zona peatonal de',
   'camino': 'el camino de',
   'pista': 'la pista de',
   'vial-de-servicio': 'el vial de servicio de',
+  // ⛔ 'carril-bici' NO ESTÁ, y no está a propósito.
 };
+
+/**
+ * ⭐⭐ Qué es esta línea PARA QUIEN ANDA. Devuelve `{sustantivo, aviso}`.
+ *
+ * ⛔ NO INVENTA. Cada rama dice solo lo que el dato declara:
+ *   · la PLATAFORMA la dice OSM;
+ *   · si encima hay carril bici y **dónde va** lo dice el Ayuntamiento
+ *     (`tipo_carri`, relleno en el 100 % de sus 733 tramos — tanda 18).
+ *
+ * ⚠️ Y LA TENSIÓN QUE ESTO DEJA A LA VISTA, dicha aquí porque se va a leer en el
+ *    texto: cuando OSM dibuja el carril y el municipal dice que va SOBRE LA ACERA,
+ *    la frase dice «la acera de X» mientras D4 sigue marcando ese tramo con ◦
+ *    («solo tengo el eje de la calzada»). ⛔ D4 no se toca en esta tanda. El aviso
+ *    lo explica en vez de esconderlo.
+ */
+function comoSeAnda(forma) {
+  if (!forma) return { sustantivo: null, aviso: null };
+  const plat = forma.plataforma, cic = forma.ciclista || null;
+  // 1 · la línea ES una plataforma de andar. El sustantivo sale de ella; el dato
+  //     ciclista solo AÑADE con quién se comparte, y solo cuando de verdad añade.
+  if (SUSTANTIVO[plat]) {
+    const comparte = (cic === 'carril-sobre-acera' || cic === 'senda-ciclable')
+      ? 'por aquí pasan bicis: el Ayuntamiento tiene declarado un carril sobre esta línea'
+      : null;
+    return { sustantivo: SUSTANTIVO[plat], aviso: comparte };
+  }
+  // 2 · la línea ES el carril bici. ⛔ Andando no se va «por el carril bici».
+  if (plat === 'carril-bici') {
+    if (cic === 'carril-sobre-acera') {
+      // ⭐ el municipal DECLARA que va sobre la acera: decirlo no es deducir.
+      return { sustantivo: 'la acera de',
+        aviso: 'aquí el Ayuntamiento declara el carril bici SOBRE LA ACERA, así que se anda por ella compartiendo con las bicis — aunque OSM solo dibuje la franja del carril' };
+    }
+    if (cic === 'carril-en-calzada') {
+      // ⛔ NO CONSTA por dónde va la acera. Se dice la calle, sin sustantivo.
+      return { sustantivo: null,
+        aviso: 'el Ayuntamiento sitúa este carril bici EN LA CALZADA, no sobre la acera' };
+    }
+    if (cic === 'senda-ciclable') {
+      return { sustantivo: null, aviso: 'esto es una senda ciclable: se comparte con bicicletas' };
+    }
+    // ⛔ sin dato municipal no se elige: se dice que no se sabe.
+    return { sustantivo: null,
+      aviso: 'este tramo está dibujado como carril bici y el dato municipal no dice si va sobre la acera o en la calzada' };
+  }
+  return { sustantivo: null, aviso: null };
+}
 
 function tramo(p, nombreDeWay, n, modelo) {
   let nombre = nombreDeWay ? nombreDeWay(p.way) : null;
@@ -134,7 +194,10 @@ function tramo(p, nombreDeWay, n, modelo) {
     const m = modelo(p.way);
     if (m && m.via && m.via.nombre) { deModelo = m; nombre = m.via.nombre; }
   }
+  // ⭐ TANDA 20 · el papel A PIE de la línea, si el modelo tiene algo que decir
+  const anda = deModelo ? comoSeAnda(deModelo.forma) : { sustantivo: null, aviso: null };
   const avisos = [];
+  if (anda.aviso) avisos.push(anda.aviso);
   const ap = avisoPrecision(p.precision);
   if (ap) avisos.push(ap);
   if (p.condicional) avisos.push(avisoCondicional(p));
@@ -150,8 +213,7 @@ function tramo(p, nombreDeWay, n, modelo) {
     //    tipo de D4 sobraría: «por el carril bici de X (eje de calzada)» son dos
     //    formas de contar lo mismo, y la segunda es la que menos se entiende.
     //    ⚠️ El aviso de precisión NO se pierde: sigue en el `◦` y en su nota.
-    const sus = deModelo ? SUSTANTIVO[deModelo.forma.plataforma] : null;
-    if (sus) frase = 'Por ' + sus + ' ' + nombre;
+    if (anda.sustantivo) frase = 'Por ' + anda.sustantivo + ' ' + nombre;
     else frase += ' (' + tipo + ')';
   } else if (!nombre && p.precision !== 'paso-de-peatones' && p.precision !== 'escaleras') {
     frase += ' (' + tipo + ')';
@@ -367,4 +429,4 @@ function texto(res, opciones = {}) {
 }
 
 module.exports = { texto, tramos, tramo, geometria, largoDe, aWgs, minutos,
-  VELOCIDAD_KMH, TIPO, avisoPrecision, avisoCondicional };
+  VELOCIDAD_KMH, TIPO, SUSTANTIVO, comoSeAnda, avisoPrecision, avisoCondicional };

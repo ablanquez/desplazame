@@ -796,6 +796,57 @@ if (require.main === module) {
     global._R = { c };
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  log('');
+  log('='.repeat(110));
+  log('D4 · ⛔ LAS MAYÚSCULAS DEL NOMBRE MUNICIPAL — ¿lo resuelve algún dato?');
+  log('='.repeat(110));
+  log('   El texto imprime «AVENIDA SAN JUAN DE LA PEÑA» al lado de «Avenida de San Juan de');
+  log('   la Peña». ⛔ Poner mayúsculas y minúsculas a mano en un nombre propio español es');
+  log('   INVENTARLO. La pregunta no es si queda feo: es **si algún fichero lo trae bien**.');
+  {
+    const fsx = require('fs');
+    const crudoVias = JSON.parse(fsx.readFileSync(P.RUTA_VIAS, 'utf8'));
+    const mezcla = (s) => s && /[a-z]/.test(s) && /[A-ZÁÉÍÓÚÑ]/.test(s);
+    log('');
+    log('   FUENTE 1 · el callejero del padrón (`vias-zaragoza.json`, ' + crudoVias.length + ' vías)');
+    log('   ' + 'campo'.padEnd(26) + 'TODO MAYÚSCULAS'.padStart(18) + 'todo minúsculas'.padStart(18)
+      + 'MEZCLA'.padStart(10));
+    for (const c of ['nombre', 'nombreCompleto', 'nombrePublico', 'nombrePublicoNorm']) {
+      const may = crudoVias.filter((v) => v[c] && v[c] === String(v[c]).toUpperCase()).length;
+      const min = crudoVias.filter((v) => v[c] && v[c] === String(v[c]).toLowerCase()).length;
+      const mez = crudoVias.filter((v) => mezcla(v[c])).length;
+      log('   ' + c.padEnd(26) + String(may).padStart(18) + String(min).padStart(18) + String(mez).padStart(10));
+    }
+    log('');
+    log('   ⭐ POSITIVO DE CONTROL DEL BUSCADOR (un cero es indistinguible de un buscador roto):');
+    const conMinus = crudoVias.filter((v) => /[a-z]/.test(v.nombrePublicoNorm || '')).length;
+    di('   campos `…Norm` donde el MISMO buscador SÍ ve minúsculas', `${conMinus} de ${crudoVias.length}  ✅`);
+
+    const RUTA_WFS = path.join(__dirname, '..', 'data', 'exploracion',
+      '2026-08-02_wfs_urbanismo-Vias_completa-4326.json');
+    log('');
+    if (fsx.existsSync(RUTA_WFS)) {
+      const j = JSON.parse(fsx.readFileSync(RUTA_WFS, 'utf8'));
+      log('   FUENTE 2 · el callejero del WFS de urbanismo (' + j.features.length + ' vías) — ⭐ es OTRA fuente');
+      log('   ' + 'campo'.padEnd(26) + 'MEZCLA de mayús/minús'.padStart(24));
+      for (const c of ['nombre', 'nombre_completo', 'nombre_reducido', 'nombre_publico']) {
+        log('   ' + c.padEnd(26) + String(j.features.filter((f) => mezcla(f.properties[c])).length).padStart(24));
+      }
+    } else {
+      log('   FUENTE 2 · ⛔ NO CONSTA: no está `' + path.basename(RUTA_WFS) + '`');
+    }
+    log('');
+    log('   ⇒ ⛔ **NO CONSTA, y no por falta de método:** dos fuentes municipales');
+    log('     independientes, ocho campos de nombre entre las dos, y **ninguno trae el nombre');
+    log('     con mayúsculas y minúsculas**. O todo mayúsculas o todo minúsculas.');
+    log('   ⇒ ⛔ NO SE TOCA. Reconstruirlo a mano exige decidir «de», «la», «San», «D\'Anglade»');
+    log('     y los romanos, y eso es escribir el nombre, no leerlo. Se declara y se deja.');
+    log('   ⚠️ Y una pista de por dónde NO ir: una vía trae «ABOGACíA» —con la í minúscula—,');
+    log('     que es un artefacto de codificación del origen. El dato ni siquiera es');
+    log('     consistente en su propia mayúscula.');
+  }
+
   log('');
   log('='.repeat(110));
   log(A.cierre('DÓNDE FALTA EL NOMBRE'));
