@@ -573,6 +573,13 @@ dos portales: **3.231 puertas entre todas las 2.548.**
 **76,7 %** por arista sobre el patrón de verdad, **con techo declarado**. ⇒ cobertura × acierto ≈
 **131 km de los 371 que duelen**. El número de arriba es **cobertura posible, no aciertos**.
 
+⚠️⚠️ **Y UN PASO QUE FALTA Y QUE NADIE HABÍA CONTADO:** `heredar-nombre.js` **no produce un nombre,
+produce un NÚCLEO NORMALIZADO** — sin acentos, en minúsculas, sin tipo de vía ni artículos:
+`torre sierras`, no `CAMINO TORRE SIERRAS`. Es correcto para lo que se diseñó (comparar identidad,
+tanda 17) y **no sirve para imprimir**. ⇒ hay que devolverlo al callejero, y aquí se hace buscando
+entre las vías de sus propios portales: **1.292 de 1.292 lo encuentran**. ⭐ El paso es barato, pero
+**no existía**, y aplicar el método sin él habría escrito núcleos en el texto.
+
 ⚠️ Y las mejoras del método ya identificadas en la tanda 17 —paridad, normalizador, agrupación por
 way— **no están medidas aquí**: esto es el método tal como quedó.
 

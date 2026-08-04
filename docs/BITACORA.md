@@ -4918,3 +4918,57 @@ el mecanismo es el de siempre.
 un texto descriptivo no asume.** Nombrar mal es equivocarse; citar mal es atribuir.
 
 **Traza:** `src/relato.js` (`comoSeAnda`), `src/modelo.js` (`resolverPorWay`)
+
+---
+
+## [2026-08-04] — Enseñé el núcleo normalizado como si fuera el nombre que saldría
+
+**Categoría:** aviso falso
+**Síntoma:** el globo del visor, al pinchar una línea sin nombre, contestaba a *«¿qué nombre saldría
+si se dedujera?»* con esto:
+
+```
+   ⚠️ SI se dedujera, saldría:
+      torre sierras
+      (5 de 6 portales de acuerdo)
+```
+
+**`torre sierras` no es un nombre de calle.** Es lo que devuelve `heredar-nombre.js`, y devuelve eso
+a propósito: un **NÚCLEO NORMALIZADO** —sin acentos, en minúsculas, sin tipo de vía y sin artículos—
+porque se diseñó en la tanda 17 para **comparar identidad**, no para imprimir. La calle se llama
+`CAMINO TORRE SIERRAS`.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la comprobación del globo, que
+existe justo para eso, y pasó.** `src/probar-visor-nombres.js` §C4 exige tres cosas del globo del
+nombre deducido: que lleve el aviso «NO está aplicado» ✅, que **enseñe el nombre que saldría** ✅, y
+que diga cuántos portales lo apoyan ✅. La segunda comprobaba `gD.includes(el texto exportado)` —o
+sea, **que el globo enseñara lo que el exportador le hubiera metido**, fuera lo que fuera. Un
+guardián que verifica el transporte y no el contenido.
+⭐ Y alrededor, todo lo demás en verde legítimo: los dos contadores del visor cuadrando en las cinco
+capas, la línea falsa apareciendo y desapareciendo, el recorte por zona sin esconder el denominador.
+
+**Causa raíz:** di por hecho que la salida del método era un nombre porque el campo se llama
+`nombre`. Lo es dentro de su módulo —ahí «nombre» significa «el núcleo que identifica a la vía»— y
+deja de serlo en cuanto sale de él. **El nombre del campo viajó mejor que su significado.**
+
+**Cómo se cazó:** ojo humano, al leer la salida de la propia comprobación C4, que imprime el valor:
+`⭐ …y lleva el nombre que saldría   ✅ «torre sierras»`. **El guardián lo dio por bueno y a la vez lo
+enseñó.** Imprimir el valor al lado del ✅ es lo único que lo salvó.
+
+**Arreglo aplicado:** el exportador devuelve el núcleo al callejero buscándolo entre **las vías de
+sus propios portales**, que ya viajan al visor con su nombre municipal entero: **1.292 de 1.292 lo
+encuentran**. ⭐ Y si alguno no se encontrara, se enseña el núcleo **con el aviso pegado** — no se
+maquilla.
+⚠️ Y lo que esto destapa va a la recomendación del informe: **aplicar el método de portales necesita
+un paso que no existía.** Sin él se habrían escrito núcleos en el texto de las rutas.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un campo llamado `nombre` dentro de un módulo no es un nombre fuera
+de él.** El significado de un valor lo fija su productor, no su etiqueta; al cruzar la frontera del
+módulo hay que preguntarse qué es, no cómo se llama.
+⚠️ Y la operativa, que es la que lo cazó: **una comprobación que verifica el transporte
+(«¿llega lo que se mandó?») no verifica el contenido («¿es correcto lo que se mandó?»).** Imprimir el
+valor junto al ✅ convierte a un guardián ciego en, al menos, un testigo.
+
+**Traza:** `src/exportar-nombres.js` (el bloque `d.estado === 'NOMBRADA'`)

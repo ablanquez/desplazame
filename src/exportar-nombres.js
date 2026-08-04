@@ -90,8 +90,17 @@ function construirSalida() {
       if (r.vias.length) o.v = r.vias.slice(0, 4).map((x) => [meter(x.nombre), x.n]);
       const d = dec.get(r.i);
       // ⛔ marcado como DEDUCIDO y NO APLICADO; el visor lo repite en el globo
-      if (d && d.estado === 'NOMBRADA') o.d = [meter(d.nombre), d.apoyo, d.votos];
-      else if (d) o.d = [-1, 0, d.votos];
+      // ⚠️ Y OJO A LO QUE DEVUELVE EL MÉTODO: `heredar-nombre.js` no produce un
+      //    nombre, produce un **NÚCLEO NORMALIZADO** —sin acentos, en minúsculas,
+      //    sin tipo de vía ni artículos: «torre sierras», no «CAMINO TORRE
+      //    SIERRAS»—. Enseñar eso como «el nombre que saldría» sería enseñar otra
+      //    cosa. ⇒ se busca de vuelta entre las vías de SUS PROPIOS portales, que
+      //    ya viajan aquí con su nombre municipal entero.
+      //    ⭐ Y si no se encontrara, se dice: no se maquilla el núcleo.
+      if (d && d.estado === 'NOMBRADA') {
+        const v = r.vias.find((x) => P.nucleo(x.nombre) === d.nombre);
+        o.d = [meter(v ? v.nombre : d.nombre + '   (núcleo sin nombre municipal)'), d.apoyo, d.votos];
+      } else if (d) o.d = [-1, 0, d.votos];
     } else {
       o.n = meter(r.nombre);
       o.f = meter(r.fuente);
