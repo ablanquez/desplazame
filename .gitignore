@@ -322,3 +322,13 @@ tools/rutas-visor.js
 #    dos de arriba: es un DERIVADO (14 MB), se rehace en trece segundos y cambia
 #    con el grafo y con los portales. Lo que se versiona es el exportador y el HTML.
 tools/nombres-visor.js
+
+# ── 2026-08-04 · TANDA 22 · el derivado del mapa de dos colores ───────────────
+#    tools/nombre-simple-visor.js lo genera src/exportar-nombre-simple.js. Mismo
+#    motivo que los tres de arriba: es un DERIVADO (9,2 MB), se rehace en trece
+#    segundos y cambia con el grafo. Se versiona el exportador y el HTML.
+#    ⚠️ La tanda decía «va a data/fuentes/ gitignoreado, como los otros». Va a
+#    `tools/` —que es donde están «los otros»— por dos razones: el HTML lo carga
+#    con `./` y funciona con doble clic, y `data/fuentes/` está declarado arriba
+#    como «el dato que el motor CONSUME», no como derivados del grafo. Se dice.
+tools/nombre-simple-visor.js

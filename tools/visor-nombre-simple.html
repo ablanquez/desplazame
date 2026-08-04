@@ -1,0 +1,68 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Desplázame · líneas con nombre y sin nombre</title>
+<!--
+  Dos colores y ya:
+     AZUL  = la línea tiene nombre de vía (declarado o deducido)
+     ROJO  = no lo tiene
+
+  Se abre con doble clic. Necesita internet para Leaflet y para el fondo.
+  El dato lo genera `node src/exportar-nombre-simple.js`.
+
+  ⚠️ El fondo es OpenStreetMap, la misma fuente de la que salen —y de la que
+     faltan— estos nombres. El fondo sitúa; no verifica.
+-->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./nombre-simple-visor.js"></script>
+<style>
+  html,body{margin:0;height:100%}
+  #mapa{height:100%}
+  .clave{background:#fff;padding:8px 10px;border-radius:5px;font:13px/1.6 system-ui,sans-serif;
+         box-shadow:0 1px 5px rgba(0,0,0,.35)}
+  .sw{display:inline-block;width:26px;height:5px;vertical-align:middle;margin-right:7px;border-radius:2px}
+</style>
+<div id="mapa"></div>
+<script>
+const G = window.SIMPLE;
+if (!G) { document.body.innerHTML = '<p style="padding:2em;font:14px system-ui">⛔ Falta <code>nombre-simple-visor.js</code>. Genéralo con <code>node src/exportar-nombre-simple.js</code></p>'; throw new Error('sin datos'); }
+
+const AZUL = '#1f5fd0';
+const ROJO = '#e01b00';
+
+const z = G.zona;
+// preferCanvas: con ~99.000 líneas un elemento SVG por línea mata al navegador.
+const mapa = L.map('mapa', { preferCanvas: true })
+  .fitBounds([[z.sur, z.oeste], [z.norte, z.este]]);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  { maxZoom: 20, attribution: '© OpenStreetMap' }).addTo(mapa);
+
+// ⭐ el contador va aquí y no en el HTML: es lo que la prueba de Node compara.
+const CUENTA = { azules: 0, rojas: 0 };
+
+function pintar() {
+  CUENTA.azules = 0; CUENTA.rojas = 0;
+  const capa = L.layerGroup();
+  for (const a of G.aristas) {
+    const con = a.n === 1;
+    if (con) CUENTA.azules++; else CUENTA.rojas++;
+    L.polyline(a.g.map((p) => [p[1], p[0]]),
+      { color: con ? AZUL : ROJO, weight: con ? 1.4 : 2.2, opacity: con ? 0.55 : 0.9 }).addTo(capa);
+  }
+  capa.addTo(mapa);
+  return CUENTA;
+}
+pintar();
+
+const clave = L.control({ position: 'bottomleft' });
+clave.onAdd = function () {
+  const d = L.DomUtil.create('div', 'clave');
+  d.innerHTML = '<div><span class="sw" style="background:' + AZUL + '"></span>con nombre de vía</div>'
+    + '<div><span class="sw" style="background:' + ROJO + '"></span>sin nombre de vía</div>';
+  return d;
+};
+clave.addTo(mapa);
+
+// ⭐ para que `src/probar-visor-nombre-simple.js` pueda contar sin navegador.
+window.VISOR = { pintar, cuenta: CUENTA, AZUL, ROJO };
+</script>
