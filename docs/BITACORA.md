@@ -4433,3 +4433,64 @@ contestada para V0, V1 y V2 en la cabecera, y eso me dio la sensación de tenerl
 todas.
 **Traza:** `src/probar-visor-rutas.js` (V4), `src/relato.js` (el redactor único que se estaba
 comprobando)
+
+---
+
+## [2026-08-04] — Declaré un invariante de ×3 sin haber medido el mando del que dependía
+
+**Categoría:** contraprueba con un umbral inventado dentro
+**Síntoma:** el guardián de la contraprueba de barajado se puso rojo:
+
+```
+      el método, tal cual                3781 de 40168     76.7 %
+      ⛔⛔ barajado LOCAL (celdas de 300 m)  903 de 40168     29.7 %
+   ⛔ FALLO · el método acierta 76.7 % y con los nombres barajados en la propia celda 29.7 %: no separa
+```
+
+Escribí, antes de ejecutar, que barajar los nombres **dentro de la misma celda de 300 m** tenía que
+derrumbar la discriminación al menos ×3. Salió **×2,58**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el otro barajado, el GLOBAL, salió
+un 0,0 % perfecto** — 6 aristas nombradas de 40.168 y ni un acierto. Un control negativo redondo,
+del tipo que da ganas de firmar. Y ese 0,0 % **no demuestra casi nada**: lo escribí en la propia
+cabecera antes de correr nada (con 3.000 vías en el bombo, que dos de tres coincidan es ~0,1 % por
+aritmética pura). Si me hubiera quedado con el control limpio, habría publicado *«el método lee
+identidad, contraprueba superada»* con toda la cara.
+
+**Causa raíz:** el ×3 no es el problema; el problema es que **la contraprueba tiene un mando —el
+tamaño de la celda— y lo puse a ojo en 300 m sin medir cuánto manda.** Medido después:
+
+```
+      celda del barajado local           opina    ACIERTO    razón contra el método
+      50 m                                2985      70.4 %                      ×1.1
+      100 m                               1851      51.4 %                      ×1.5
+      300 m                                903      29.7 %                      ×2.6
+      1000 m                               386      12.4 %                      ×6.2
+      3000 m                               197       2.5 %                     ×30.2
+```
+
+La razón va de ×1,1 a ×30,2 según un número que elegí yo. **El umbral de aprobado y el mando del
+experimento eran la misma decisión, tomada dos veces y sin mirarse.** A 50 m barajar dentro de la
+celda no baraja nada —una celda de 50 m es una calle— así que el «control» aprueba al método por
+construcción; a 3 km es el barajado global con otro nombre.
+
+**Cómo se cazó:** por el propio guardián, que era lo que tenía que pasar. Lo que NO estaba previsto
+es que su rojo no distinguiera *«el método no separa»* de *«mi contraprueba está mal calibrada»*.
+
+**Arreglo aplicado:** ⛔ **ninguno sobre el umbral.** Mover el ×3 hasta que pase es ajustar el
+instrumento al resultado — es el nº88 y el nº91 por tercera vez, y esta vez no. El guardián se queda
+en rojo, `src/nombrar-aceras.js` sale en código 1, y lo que se añade es **la curva entera del mando**
+con su fecha: escrita DESPUÉS de ver el rojo, y marcada como post-hoc en el código y en el informe.
+El ×2,6 se publica como **suelo** de la separación, no como su valor.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **una contraprueba también tiene parámetros, y un umbral de aprobado
+puesto sobre un parámetro sin medir no juzga al método: juzga al parámetro.** Antes de declarar
+«tiene que caer ×N», hay que barrer el mando y ver la curva — si el veredicto cambia de ×1,1 a ×30
+moviendo un número que elegí yo, el veredicto es mío, no del dato.
+⚠️ Y el corolario, que es lo que casi cuela: **el control negativo que sale redondo es sospechoso por
+redondo.** Si su resultado se puede predecir con aritmética de servilleta antes de ejecutarlo, no
+está midiendo el instrumento; está midiendo la aritmética.
+
+**Traza:** `src/nombrar-aceras.js` (B2b), `src/heredar-nombre.js`
