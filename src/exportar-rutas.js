@@ -93,7 +93,12 @@ function exportar() {
       tramos: ts.map((t, i) => ({
         n: t.n, frase: t.frase, metros: t.metros, tipo: t.tipo, precision: t.precision,
         ways: t.ways, condicional: t.condicional, unidoPorDefecto: t.unidoPorDefecto,
-        avisos: t.avisos,
+        // ⚠️ TANDA 21 · los avisos ya no son cadenas: son {texto, metros, veces},
+        //    porque un paso agrupa varios tramos y cada aviso afecta a UNA PARTE de
+        //    los metros. El visor espera cadenas, así que se aplanan AQUÍ y con su
+        //    parte dentro — ⛔ no se tira el dato, se escribe.
+        avisos: t.avisos.map((a) => a.texto
+          + (a.metros < t.metros - 0.5 ? '   (' + Math.round(a.metros) + ' m de ' + Math.round(t.metros) + ')' : '')),
         // ⭐ CONTADOR INDEPENDIENTE: los metros de la GEOMETRÍA, medidos sobre lo
         //    que se va a pintar. Si no cuadran con los del motor, el visor está
         //    dibujando otra cosa — y eso es lo que hay que poder ver.

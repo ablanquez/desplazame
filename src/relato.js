@@ -48,6 +48,8 @@
 
 'use strict';
 const { aGrados } = require('./geo');
+const P = require('./portales');
+const NL = require('./nombre-largo');
 
 const VELOCIDAD_KMH = 6;
 
@@ -139,50 +141,72 @@ const SUSTANTIVO = {
 };
 
 /**
- * ⭐⭐ Qué es esta línea PARA QUIEN ANDA. Devuelve `{sustantivo, aviso}`.
+ * ⭐⭐ Qué es esta línea PARA QUIEN ANDA. Devuelve `{sustantivo, bici}`.
  *
- * ⛔ NO INVENTA. Cada rama dice solo lo que el dato declara:
- *   · la PLATAFORMA la dice OSM;
- *   · si encima hay carril bici y **dónde va** lo dice el Ayuntamiento
- *     (`tipo_carri`, relleno en el 100 % de sus 733 tramos — tanda 18).
+ * ⛔ NO INVENTA. El sustantivo sale de la PLATAFORMA (OSM) y, donde el
+ *    Ayuntamiento DECLARA que el carril va sobre la acera, de eso.
  *
- * ⚠️ Y LA TENSIÓN QUE ESTO DEJA A LA VISTA, dicha aquí porque se va a leer en el
- *    texto: cuando OSM dibuja el carril y el municipal dice que va SOBRE LA ACERA,
- *    la frase dice «la acera de X» mientras D4 sigue marcando ese tramo con ◦
- *    («solo tengo el eje de la calzada»). ⛔ D4 no se toca en esta tanda. El aviso
- *    lo explica en vez de esconderlo.
+ * ═════════════════════════════════════════════════════════════════════════════
+ * ⛔⛔ TANDA 21 · D · FUERA LA CLASIFICACIÓN DEL CARRIL
+ * ═════════════════════════════════════════════════════════════════════════════
+ *   > *«Lo de las advertencias de carril bici en acera y todo eso me sobra.»*
+ *
+ *   La tanda 20 imprimía *«el Ayuntamiento sitúa este carril bici EN LA CALZADA»*.
+ *   **A quien va andando le da igual cómo clasifique el Ayuntamiento el carril**:
+ *   es un detalle administrativo que nos sirvió a NOSOTROS para entender el dato.
+ *   ⭐ Es el mismo error de la tanda anterior con otra piel: contarle al peatón
+ *     algo que es del otro modo.
+ *   ⇒ **Los dos avisos de clasificación se van.** ⛔ El dato SE QUEDA en el modelo
+ *     (`forma.ciclista`): lo necesita la bici en H2. Solo deja de contarse.
+ *
+ *   ⭐ Y lo que SÍ se queda es el aviso de que **por ahí pasan bicis** (§E): eso no
+ *     es clasificación administrativa, es que conviene ir atento. Va con su
+ *     medida al lado: si saliera en la mitad de los pasos dejaría de significar
+ *     nada, y eso se cuenta en el informe.
  */
+const AVISO_BICIS = 'por aquí pasan bicis: conviene ir atento';
+
 function comoSeAnda(forma) {
-  if (!forma) return { sustantivo: null, aviso: null };
+  if (!forma) return { sustantivo: null, bici: false };
   const plat = forma.plataforma, cic = forma.ciclista || null;
-  // 1 · la línea ES una plataforma de andar. El sustantivo sale de ella; el dato
-  //     ciclista solo AÑADE con quién se comparte, y solo cuando de verdad añade.
+  // 1 · la línea ES una plataforma de andar
   if (SUSTANTIVO[plat]) {
-    const comparte = (cic === 'carril-sobre-acera' || cic === 'senda-ciclable')
-      ? 'por aquí pasan bicis: el Ayuntamiento tiene declarado un carril sobre esta línea'
-      : null;
-    return { sustantivo: SUSTANTIVO[plat], aviso: comparte };
+    return { sustantivo: SUSTANTIVO[plat],
+      bici: cic === 'carril-sobre-acera' || cic === 'senda-ciclable' };
   }
   // 2 · la línea ES el carril bici. ⛔ Andando no se va «por el carril bici».
   if (plat === 'carril-bici') {
-    if (cic === 'carril-sobre-acera') {
-      // ⭐ el municipal DECLARA que va sobre la acera: decirlo no es deducir.
-      return { sustantivo: 'la acera de',
-        aviso: 'aquí el Ayuntamiento declara el carril bici SOBRE LA ACERA, así que se anda por ella compartiendo con las bicis — aunque OSM solo dibuje la franja del carril' };
-    }
-    if (cic === 'carril-en-calzada') {
-      // ⛔ NO CONSTA por dónde va la acera. Se dice la calle, sin sustantivo.
-      return { sustantivo: null,
-        aviso: 'el Ayuntamiento sitúa este carril bici EN LA CALZADA, no sobre la acera' };
-    }
-    if (cic === 'senda-ciclable') {
-      return { sustantivo: null, aviso: 'esto es una senda ciclable: se comparte con bicicletas' };
-    }
-    // ⛔ sin dato municipal no se elige: se dice que no se sabe.
-    return { sustantivo: null,
-      aviso: 'este tramo está dibujado como carril bici y el dato municipal no dice si va sobre la acera o en la calzada' };
+    // ⭐ el municipal DECLARA que va sobre la acera: decirlo no es deducir.
+    if (cic === 'carril-sobre-acera') return { sustantivo: 'la acera de', bici: true };
+    // ⛔ en calzada, senda o sin dato: NO CONSTA por dónde va la acera. Se dice la
+    //    calle a secas. El `◦` de D4 ya avisa de que solo se tiene el eje.
+    return { sustantivo: null, bici: true };
   }
-  return { sustantivo: null, aviso: null };
+  return { sustantivo: null, bici: false };
+}
+
+// ── el nombre DEDUCIDO se dice de otra manera (tanda 21 · A2/D3) ─────────────
+// ⭐ El lector tiene derecho a saber que ese nombre no lo declara nadie: lo
+//    deducimos de los portales que dan a esa línea, con un 89,7 % de acierto
+//    medido. ⛔ Callarlo sería vender una deducción como un dato.
+const SUSTANTIVO_DEDUCIDO = {
+  'la acera de': 'una acera que parece de',
+  'la zona peatonal de': 'una zona peatonal que parece de',
+  'el camino de': 'un camino que parece de',
+  'la pista de': 'una pista que parece de',
+  'el vial de servicio de': 'un vial de servicio que parece de',
+};
+const AVISO_DEDUCIDO = 'el nombre no lo dice el mapa: lo deduzco de los portales que dan a esta línea';
+
+/** La frase de un paso, a partir de lo que se sabe de él. */
+function fraseDe(t) {
+  if (t.precision === 'paso-de-peatones') return 'Cruzas por un paso de peatones';
+  if (t.precision === 'escaleras') return 'Subes o bajas unas escaleras';
+  if (!t.nombre) return 'Por un tramo sin nombre' + (t.tipoUnico ? ' (' + t.tipo + ')' : '');
+  const sus = t.deducida ? (SUSTANTIVO_DEDUCIDO[t.sustantivo] || null) : t.sustantivo;
+  if (sus) return 'Por ' + sus + ' ' + t.nombre;
+  if (t.deducida) return 'Por lo que parece ' + t.nombre;
+  return 'Por ' + t.nombre + (t.tipoUnico ? ' (' + t.tipo + ')' : '');
 }
 
 function tramo(p, nombreDeWay, n, modelo) {
@@ -194,72 +218,272 @@ function tramo(p, nombreDeWay, n, modelo) {
     const m = modelo(p.way);
     if (m && m.via && m.via.nombre) { deModelo = m; nombre = m.via.nombre; }
   }
-  // ⭐ TANDA 20 · el papel A PIE de la línea, si el modelo tiene algo que decir
-  const anda = deModelo ? comoSeAnda(deModelo.forma) : { sustantivo: null, aviso: null };
+  const via = deModelo ? deModelo.via : (nombre ? { nombre, fuente: 'osm', declarada: true } : null);
+  const deducida = !!(via && via.declarada === false);
+  const anda = deModelo ? comoSeAnda(deModelo.forma) : { sustantivo: null, bici: false };
   const avisos = [];
-  if (anda.aviso) avisos.push(anda.aviso);
+  if (anda.bici) avisos.push(AVISO_BICIS);
+  if (deducida) avisos.push(AVISO_DEDUCIDO);
   const ap = avisoPrecision(p.precision);
   if (ap) avisos.push(ap);
   if (p.condicional) avisos.push(avisoCondicional(p));
   if (p.unidoPorDefecto) avisos.push('este empalme se unió por defecto: nada decía que no se pudiera pasar, pero tampoco que sí (D2)');
-  // ⭐ el «qué hace» sale del tipo, no de un giro que no sé
-  let frase;
-  if (p.precision === 'paso-de-peatones') frase = 'Cruzas por un paso de peatones';
-  else if (p.precision === 'escaleras') frase = 'Subes o bajas unas escaleras';
-  else if (nombre) frase = 'Por ' + nombre;
-  else frase = 'Por un tramo sin nombre';
-  if (nombre && p.precision !== 'paso-de-peatones' && p.precision !== 'escaleras') {
-    // ⭐ si el nombre lo trae el modelo, el sustantivo dice QUÉ ES la línea y el
-    //    tipo de D4 sobraría: «por el carril bici de X (eje de calzada)» son dos
-    //    formas de contar lo mismo, y la segunda es la que menos se entiende.
-    //    ⚠️ El aviso de precisión NO se pierde: sigue en el `◦` y en su nota.
-    if (anda.sustantivo) frase = 'Por ' + anda.sustantivo + ' ' + nombre;
-    else frase += ' (' + tipo + ')';
-  } else if (!nombre && p.precision !== 'paso-de-peatones' && p.precision !== 'escaleras') {
-    frase += ' (' + tipo + ')';
-  } else if (nombre) {
-    frase += ' de ' + nombre;
-  }
-  return { n, nombre, tipo, frase, metros: p.metros, precision: p.precision,
+  return { n, nombre, nucleo: P.nucleo(nombre), tipo, metros: p.metros, precision: p.precision,
+    sustantivo: anda.sustantivo, bici: anda.bici, deducida,
     condicional: !!p.condicional, unidoPorDefecto: !!p.unidoPorDefecto, avisos,
     way: p.way, highway: p.highway,
-    // ⭐ el dato completo viaja, aunque no se imprima: fuente del nombre y forma
-    via: deModelo ? deModelo.via : (nombre ? { nombre, fuente: 'osm', declarada: true } : null),
-    forma: deModelo ? deModelo.forma : null };
+    frase: fraseDe({ precision: p.precision, nombre, sustantivo: anda.sustantivo,
+      deducida, tipo, tipoUnico: true }),
+    via, forma: deModelo ? deModelo.forma : null };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA 21 · C · EL ITINERARIO SE AGRUPA POR **VÍA**
+// ═════════════════════════════════════════════════════════════════════════════
+//   > *«Si estoy en Avenida de la Academia o en Avenida San Juan de la Peña, ¿por
+//   >  qué lo repites 300 veces? Se pone una con todos los metros y punto. Si se
+//   >  hace un cruce como es con Calle Juslibol para pasar de acera, estás en San
+//   >  Juan de la Peña igual, así que eso me sobra.»* — Antonio
+//
+//   **Tiene razón y era un fallo de producto.** Hasta la tanda 20 se agrupaba por
+//   *nombre + precisión + avisos*, así que **un cambio de aviso partía la avenida
+//   en tres**. ⇒ ahí se coló un criterio NUESTRO —la clasificación municipal del
+//   carril— en una decisión que es del que anda.
+//
+//   ⭐ SE AGRUPA POR VÍA, y «la misma vía» lo decide `nombre-largo.js` (§B): por
+//     eso «Avenida de San Juan de la Peña» (OSM) y «AVENIDA SAN JUAN DE LA PEÑA»
+//     (deducida) son **un solo paso**, y «Calle Oliván Bayle» y «CALLE FRANCISCO
+//     OLIVÁN BAYLE» también.
+//
+//   ⚠️ QUÉ **NO** SE FUNDE, y va dicho porque agrupar es borrar:
+//     · un **paso de peatones** y unas **escaleras** son EVENTOS, no vías: van
+//       aparte siempre. Fundirlos con la calle borraría lo único que el motor sabe
+//       de ese punto.
+//     · un tramo **condicional** —el que cruza el interior de un edificio y puede
+//       estar cerrado— va aparte aunque sea de la misma vía. Puede estar cerrado,
+//       y eso no es un matiz.
+//
+//   ⭐ Y NADA SE PIERDE: cada paso lleva dentro sus avisos CON SUS METROS, los ways
+//     que fundió, las precisiones que mezcla y **lo que se tragó** (`comido`).
+//
+// ── el umbral de «corto», y de qué medición sale ─────────────────────────────
+// ⚠️ C2 pide absorber los cruces cortos que interrumpen la misma calle. Eso
+//    necesita un tamaño, y **el tamaño no me lo invento**: es el **p99 de la
+//    longitud de una arista `paso-de-peatones` en Zaragoza**, medido sobre las
+//    10.494 que hay en el grafo:
+//
+//        p50  3,9 m   ·   p75  5,5 m   ·   p90  7,4 m   ·   p95  9,0 m
+//        ⭐ p99 13,3 m   ·   máx 51,5 m
+//
+//    O sea: **lo que mide cruzar una calle en esta ciudad.** ⚠️ La MAGNITUD sale
+//    del dato; **la elección del percentil es MÍA** y va declarada. El informe
+//    publica la curva de sensibilidad (cuántos pasos salen a 7,4 · 9,0 · 13,3 ·
+//    20 · 30 · 50 m) para que se vea de qué depende.
+const CORTO_M = 13.3;
+
+/** La clave de agrupación. Los eventos y los condicionales van solos. */
+function claveDe(t) {
+  if (t.precision === 'paso-de-peatones') return '@paso';
+  if (t.precision === 'escaleras') return '@escaleras';
+  if (t.condicional) return '@cond:' + (t.nombre || '') + ':' + (t.way || '');
+  return t.nucleo || '@sin-nombre';
+}
+
+const esEvento = (k) => k === '@paso' || k === '@escaleras' || k.startsWith('@cond:');
+
+/** ¿Son el mismo paso? Misma clase, y la misma vía según §B. */
+function mismoPaso(a, b) {
+  if (esEvento(a.clave) || esEvento(b.clave)) return a.clave === b.clave;
+  if (a.clave === '@sin-nombre' || b.clave === '@sin-nombre') {
+    // ⚠️ dos sin nombre seguidos se funden solo si además comparten precisión: lo
+    //    único que se puede decir de ellos es QUÉ SON.
+    return a.clave === b.clave && a.precision === b.precision;
+  }
+  return NL.mismaVia(a.clave, b.clave);
+}
+
+/** Paso nuevo a partir de un tramo suelto. */
+function nuevoPaso(t, i) {
+  return { clave: claveDe(t), metros: t.metros, ways: 1, pasos: [i],
+    precision: t.precision, precisiones: new Map([[t.precision, t.metros]]),
+    condicional: t.condicional, unidoPorDefecto: t.unidoPorDefecto,
+    avisos: t.avisos.map((a) => ({ texto: a, metros: t.metros, veces: 1 })),
+    candidatos: [{ via: t.via, nombre: t.nombre, sustantivo: t.sustantivo,
+      deducida: t.deducida, metros: t.metros }],
+    comido: [], bici: t.bici, highway: t.highway, way: t.way };
+}
+
+/** Mete un tramo suelto dentro del paso `u`. ⛔ Nada se pierde: todo se acumula. */
+function meter(u, t, i) {
+  u.metros = Math.round((u.metros + t.metros) * 10) / 10;
+  u.ways++;
+  u.pasos.push(i);
+  u.precisiones.set(t.precision, (u.precisiones.get(t.precision) || 0) + t.metros);
+  u.unidoPorDefecto = u.unidoPorDefecto || t.unidoPorDefecto;
+  u.bici = u.bici || t.bici;
+  for (const a of t.avisos) {
+    const y = u.avisos.find((x) => x.texto === a);
+    if (y) { y.metros = Math.round((y.metros + t.metros) * 10) / 10; y.veces++; }
+    else u.avisos.push({ texto: a, metros: t.metros, veces: 1 });
+  }
+  u.candidatos.push({ via: t.via, nombre: t.nombre, sustantivo: t.sustantivo,
+    deducida: t.deducida, metros: t.metros });
+}
+
+/** Absorbe un paso entero dentro de `u`. `comido` = es una interrupción (C2/C3). */
+function tragar(u, v, comido) {
+  u.metros = Math.round((u.metros + v.metros) * 10) / 10;
+  u.ways += v.ways;
+  u.pasos.push(...v.pasos);
+  for (const [k, m] of v.precisiones) u.precisiones.set(k, (u.precisiones.get(k) || 0) + m);
+  u.unidoPorDefecto = u.unidoPorDefecto || v.unidoPorDefecto;
+  u.bici = u.bici || v.bici;
+  for (const a of v.avisos) {
+    const y = u.avisos.find((x) => x.texto === a.texto);
+    if (y) { y.metros = Math.round((y.metros + a.metros) * 10) / 10; y.veces += a.veces; }
+    else u.avisos.push({ ...a });
+  }
+  u.comido.push(...v.comido);
+  if (comido) {
+    for (const c of v.candidatos) {
+      u.comido.push({ nombre: c.nombre, metros: c.metros, precision: v.precision });
+    }
+  } else u.candidatos.push(...v.candidatos);
 }
 
 /**
- * Los tramos de una ruta ya calculada.
- *
- * ⚠️ AGRUPAR ES BORRAR, y aquí se agrupa — así que hay que decir exactamente qué.
- *    `rutaEntre` corta por `way` de OSM, y una calle real son varios ways: la nº2
- *    de Antonio salía con «Por Calle Pedro Atarés 26 m» y «Por Calle Pedro Atarés
- *    16 m» seguidos, que para quien anda es un solo tramo.
- * ⇒ Se funden los tramos consecutivos **idénticos en todo lo que se cuenta**:
- *   mismo nombre, mismo tipo, mismos avisos. ⛔ Lo PARECIDO no se funde: dos
- *   tramos de la misma calle con precisión distinta siguen separados, porque esa
- *   diferencia es justo lo que hay que ver.
- * ⭐ Y el número de ways fundidos VIAJA en el tramo (`ways`), así que la fusión no
- *   puede esconder nada: quien quiera el detalle lo tiene contado.
+ * ⭐ EL NOMBRE QUE SE IMPRIME de un paso que fundió varias fuentes.
+ * ⛔ D0 manda: si alguna parte tiene nombre DECLARADO por OSM, ése se dice —y de
+ *    paso el texto sale con mayúsculas y minúsculas **sin que nadie las invente**,
+ *    porque se elige entre dos cadenas reales—. Luego el declarado por el
+ *    Ayuntamiento. Y solo si TODO es deducido, se dice que lo es.
  */
-function tramos(ruta, nombreDeWay, modelo) {
-  const sueltos = ruta.pasos.map((p, i) => ({ ...tramo(p, nombreDeWay, 0, modelo), pasos: [i] }));
-  const out = [];
-  for (const t of sueltos) {
-    const u = out[out.length - 1];
-    const mismo = u && u.nombre === t.nombre && u.precision === t.precision
-      && u.condicional === t.condicional && u.unidoPorDefecto === t.unidoPorDefecto
-      && u.avisos.join('|') === t.avisos.join('|');
-    if (mismo) {
-      u.metros = Math.round((u.metros + t.metros) * 10) / 10;
-      u.pasos.push(...t.pasos);
-      u.ways = (u.ways || 1) + 1;
-    } else {
-      out.push({ ...t, ways: 1 });
-    }
+function nombreDelPaso(u) {
+  const conNombre = u.candidatos.filter((c) => c.nombre);
+  if (!conNombre.length) return { nombre: null, deducida: false, sustantivo: null };
+  for (const f of ['osm', 'municipal-bici', 'portales']) {
+    const l = conNombre.filter((c) => c.via && c.via.fuente === f);
+    if (!l.length) continue;
+    l.sort((a, b) => b.metros - a.metros);
+    return { nombre: l[0].nombre, deducida: f === 'portales',
+      sustantivo: l[0].sustantivo, fuente: f };
   }
-  out.forEach((t, i) => { t.n = i + 1; });
-  return out;
+  const l = conNombre.slice().sort((a, b) => b.metros - a.metros);
+  return { nombre: l[0].nombre, deducida: !!l[0].deducida, sustantivo: l[0].sustantivo };
+}
+
+/**
+ * Los pasos de una ruta ya calculada. ⭐ Agrupados por VÍA (§C).
+ * @param {Object|number} [op] `{corto, viejo}` — o un número, que es `corto`.
+ *   · `corto`: umbral de «interrupción corta» en metros (curva de sensibilidad).
+ *   · `viejo`: ⭐ **LA LÍNEA BASE.** Reproduce la agrupación de la tanda 20 —fundir
+ *     solo lo idéntico en nombre, precisión y avisos— para poder comparar contra
+ *     ella sin fiarse de un fichero viejo. ⛔ No se usa para imprimir nada.
+ */
+function tramos(ruta, nombreDeWay, modelo, op) {
+  const o = (op === undefined || op === null) ? {} : (typeof op === 'number' ? { corto: op } : op);
+  const lim = o.corto === undefined ? CORTO_M : o.corto;
+  const sueltos = ruta.pasos.map((p) => tramo(p, nombreDeWay, 0, modelo));
+
+  // ── LÍNEA BASE · la agrupación de la tanda 20, para poder comparar ────────
+  if (o.viejo) {
+    const out = [];
+    for (const t of sueltos) {
+      const u = out[out.length - 1];
+      const mismo = u && u.nombre === t.nombre && u.precision === t.precision
+        && u.condicional === t.condicional && u.unidoPorDefecto === t.unidoPorDefecto
+        && u.avisos.join('|') === t.avisos.join('|');
+      if (mismo) { u.metros = Math.round((u.metros + t.metros) * 10) / 10; u.ways++; }
+      else out.push({ ...t, ways: 1, tipos: [{ tipo: t.precision, metros: t.metros }] });
+    }
+    out.forEach((t, i) => { t.n = i + 1; });
+    return out;
+  }
+
+  // ── 1 · fusión consecutiva POR VÍA ────────────────────────────────────────
+  const uno = [];
+  sueltos.forEach((t, i) => {
+    const u = uno[uno.length - 1];
+    if (u && mismoPaso(u, { clave: claveDe(t), precision: t.precision })) meter(u, t, i);
+    else uno.push(nuevoPaso(t, i));
+  });
+
+  // ── 2 · absorber las interrupciones CORTAS entre dos trozos de la misma vía ─
+  //
+  //   ⭐⭐ SE ABSORBE UNA **RACHA**, no una sola pieza. Cruzar un cruce de verdad son
+  //     varios trocitos seguidos —paso de peatones, isleta sin nombre, otro paso—, y
+  //     absorber solo uno deja la avenida partida en cinco igual. Medido sobre la
+  //     ruta nº3: «Gómez Laguna 26 m · paso 3 m · sin nombre 14 m · paso 8 m · sin
+  //     nombre 4 m · paso 4 m · Gómez Laguna 1,56 km».
+  //
+  //   ⚠️ Y **el paso de peatones SÍ se absorbe** (bitácora nº104): lo excluí como
+  //     «evento» y el ejemplo de Antonio era literalmente un cruce —*«si se hace un
+  //     cruce como es con Calle Juslibol para pasar de acera, estás en San Juan de
+  //     la Peña igual»*—. Cruzar es atravesar, no llegar a otro sitio.
+  //
+  //   ⛔ LO QUE **NO** SE ABSORBE NUNCA, y la línea es física, no de longitud:
+  //     · unas **ESCALERAS** — son un esfuerzo y una barrera de accesibilidad;
+  //     · un tramo **CONDICIONAL** — puede estar cerrado.
+  //     Cruzar se atraviesa; subir y encontrarse una puerta cerrada, no.
+  //
+  //   ⚠️ Se repite hasta que no cambia nada: al absorber una racha, las vecinas
+  //      pueden quedar pegadas y volverse fundibles.
+  const absorbible = (x) => x.clave !== '@escaleras' && !x.clave.startsWith('@cond:')
+    && x.metros <= lim;
+  let lista = uno;
+  for (let vuelta = 0; vuelta < 20; vuelta++) {
+    let cambio = false;
+    const out = [];
+    for (let i = 0; i < lista.length; i++) {
+      const a = out[out.length - 1], x = lista[i];
+      if (a && !esEvento(a.clave) && a.clave !== '@sin-nombre' && absorbible(x)) {
+        // ¿cuánto dura la racha de piezas absorbibles, y qué hay al otro lado?
+        // ⚠️⚠️ LA RACHA SE PARA EN CUANTO APARECE LA MISMA VÍA (bitácora nº104): esa
+        //    pieza es la que CIERRA, no parte de la interrupción. Sin esta condición
+        //    la racha se tragaba el trozo de San Juan de la Peña de 11 m que tenía
+        //    que cerrarla, seguía hasta Oliván Bayle —otra calle— y no absorbía
+        //    nada. ⭐ Lo cazó la curva de sensibilidad: subir el umbral producía MÁS
+        //    pasos, y eso es aritméticamente imposible si el algoritmo es correcto.
+        let j = i;
+        while (j < lista.length && absorbible(lista[j]) && !mismoPaso(a, lista[j])) j++;
+        const b = lista[j];
+        if (b && mismoPaso(a, b)) {
+          for (let k = i; k < j; k++) tragar(a, lista[k], true);
+          tragar(a, b, false);
+          i = j;                   // `b` ya está dentro
+          cambio = true;
+          continue;
+        }
+      }
+      out.push(x);
+    }
+    lista = out;
+    if (!cambio) break;
+  }
+
+  // ── 3 · lo que se imprime ──────────────────────────────────────────────────
+  lista.forEach((u, i) => {
+    const n = nombreDelPaso(u);
+    const prs = [...u.precisiones.entries()].sort((a, b) => b[1] - a[1]);
+    u.n = i + 1;
+    u.nombre = n.nombre;
+    u.deducida = n.deducida;
+    u.fuente = n.fuente || null;
+    u.precision = prs[0][0];
+    u.tipo = TIPO[u.precision] || u.precision;
+    u.tipos = prs.map(([k, m]) => ({ tipo: k, metros: Math.round(m) }));
+    // ⚠️ el `(tipo)` solo se imprime si el paso tiene UNA precisión. Si mezcla,
+    //    decir una sola sería mentir por omisión: lo cuentan el `◦` y su nota.
+    u.frase = fraseDe({
+      precision: u.clave === '@paso' ? 'paso-de-peatones'
+        : u.clave === '@escaleras' ? 'escaleras' : u.precision,
+      nombre: n.nombre, sustantivo: n.sustantivo, deducida: n.deducida,
+      tipo: u.tipo, tipoUnico: prs.length === 1 });
+    // ⛔ el aviso de «deducido» solo se queda si el nombre que se imprime lo es
+    if (!n.deducida) u.avisos = u.avisos.filter((a) => a.texto !== AVISO_DEDUCIDO);
+    u.avisos.sort((a, b) => b.metros - a.metros);
+  });
+  return lista;
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -393,24 +617,35 @@ function texto(res, opciones = {}) {
   //    un símbolo y la frase entera va UNA vez al final, con cuántos tramos y
   //    cuántos metros afecta. ⛔ Nada se pierde: el recuento va al lado.
   const SOLO_EJE = new Set(['eje-de-calzada', 'eje-con-acera-declarada']);
+  // ⚠️ Un paso puede MEZCLAR precisiones desde la tanda 21 (se agrupa por vía), así
+  //    que el ◦ ya no puede salir de una sola: sale de los METROS que van por el
+  //    eje dentro del paso. Y el recuento final se hace en metros, no en pasos.
+  const mEjeDe = (t) => t.tipos.reduce((a, x) => a + (SOLO_EJE.has(x.tipo) ? x.metros : 0), 0);
   let nEje = 0, mEje = 0;
   for (const t of ts) {
-    const marca = SOLO_EJE.has(t.precision) ? ' ◦' : '  ';
-    if (SOLO_EJE.has(t.precision)) { nEje++; mEje += t.metros; }
+    const me = mEjeDe(t);
+    const marca = me > 0 ? ' ◦' : '  ';
+    if (me > 0) { nEje++; mEje += me; }
     L.push('   ' + (String(t.n) + '.').padStart(anchoN + 1) + marca + ' '
       + t.frase.padEnd(52) + m(t.metros).padStart(8)
       + (t.ways > 1 ? '   · ' + t.ways + ' tramos de OSM' : ''));
     for (const a of t.avisos) {
-      if (SOLO_EJE.has(t.precision) && a === avisoPrecision(t.precision)) continue;
-      L.push('   ' + ' '.repeat(anchoN + 1) + '  ⚠️  ' + a);
+      // el aviso de precisión va UNA vez al final, con su recuento (◦)
+      if (a.texto === avisoPrecision('eje-de-calzada') || a.texto === avisoPrecision('eje-con-acera-declarada')) continue;
+      // ⭐ y cada aviso dice A CUÁNTOS METROS del paso afecta: agrupar es borrar, y
+      //    un aviso sin su parte de los metros es justo lo que se estaría borrando.
+      const parte = (a.metros < t.metros - 0.5)
+        ? '   (' + m(a.metros) + ' de los ' + m(t.metros) + ')' : '';
+      L.push('   ' + ' '.repeat(anchoN + 1) + '  ⚠️  ' + a.texto + parte);
     }
   }
   L.push('');
   L.push('   ' + ' '.repeat(anchoN + 1) + '  ' + 'TOTAL'.padEnd(52) + m(res.metros).padStart(8));
   if (nEje) {
     L.push('');
-    L.push('   ◦  ' + nEje + ' de los ' + ts.length + ' tramos (' + m(mEje) + ', el '
-      + Math.round(100 * mEje / res.metros) + ' % del recorrido) van por el EJE DE LA CALZADA:');
+    L.push('   ◦  ' + m(mEje) + ' del recorrido (el '
+      + Math.round(100 * mEje / res.metros) + ' %, repartidos por ' + nEje + ' de los '
+      + ts.length + ' pasos) van por el EJE DE LA CALZADA:');
     L.push('      ahí no tengo la acera dibujada, así que los metros pueden bailar.');
   }
 
@@ -429,4 +664,6 @@ function texto(res, opciones = {}) {
 }
 
 module.exports = { texto, tramos, tramo, geometria, largoDe, aWgs, minutos,
-  VELOCIDAD_KMH, TIPO, SUSTANTIVO, comoSeAnda, avisoPrecision, avisoCondicional };
+  VELOCIDAD_KMH, TIPO, SUSTANTIVO, SUSTANTIVO_DEDUCIDO, comoSeAnda, fraseDe,
+  claveDe, mismoPaso, nombreDelPaso, CORTO_M, AVISO_BICIS, AVISO_DEDUCIDO,
+  avisoPrecision, avisoCondicional };

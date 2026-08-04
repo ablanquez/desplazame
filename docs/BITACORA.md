@@ -5039,3 +5039,121 @@ fuera —los cinco positivos de la tanda 17 sí eran de fuera, y por eso no caza
 también los pasaba—.
 
 **Traza:** `src/nombre-largo.js` (`recorteDe`, `sufijoDe`, B3)
+
+---
+
+## [2026-08-04] — La expectativa del guardián estaba escrita a mano, y caducó en silencio
+
+**Categoría:** aviso falso
+**Síntoma:** al aplicar el método de los portales, `src/modelo-rutas.js` se puso rojo:
+
+```
+   ⭐ rutas cuyo texto cambia   1, 5, 6, 7   (esperado: 6 y 7)
+   ⛔ FALLO · cambian las rutas 1,5,6,7 y solo debían cambiar la 6 y la 7
+```
+
+**Y no había fallado nada.** Las rutas 1 y 5 cambian de texto porque ganan un nombre nuevo, que es
+justo lo que la tanda venía a hacer. Lo que había caducado era el guardián:
+`A.exige(JSON.stringify(cambian) === JSON.stringify([6, 7]), …)` — **una lista que escribí yo en la
+tanda 19 con el resultado de la tanda 19 delante.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **las otras dos comprobaciones de D1,
+que son las que de verdad protegen**: las siete rutas con los mismos metros al decimal entre las dos
+ejecuciones, la misma lista de aristas, y los mismos metros que la tanda 16 publicó. Todo ✅. Y en la
+tanda 19 y en la 20 esa lista estuvo verde las dos veces, porque las dos veces cambiaban exactamente
+la 6 y la 7. **Un guardián que ha estado verde dos tandas parece probado; solo estaba de acuerdo.**
+
+**Causa raíz:** la expectativa era **una lista, no una regla**. Una lista de resultados no dice qué
+tiene que pasar: dice qué pasó el día que se escribió. En cuanto el sistema mejora, un guardián así
+se pone rojo por la mejora.
+⚠️ Y el arreglo obvio —cambiar `[6,7]` por `[1,5,6,7]`— **habría sido ajustar el instrumento al
+resultado**, que es el nº88 y el nº91. Y habría vuelto a caducar en la tanda siguiente.
+
+**Cómo se cazó:** el propio rojo, leído en vez de obedecido. La pregunta que lo resolvió fue *«¿esto
+es un fallo o es lo que pedí que pasara?»*, y para contestarla hacía falta mirar QUÉ rutas ganan
+nombre — que es exactamente el dato que la expectativa debería haber usado desde el principio.
+
+**Arreglo aplicado:** la expectativa **se deriva del modelo**, no se escribe:
+
+```js
+   const deben = con.aristas.filter((r) => r.aristas.some((i) =>
+     !g.nombres.get(g.aristas[i].way) && mod.deWay.get(g.aristas[i].way)?.via?.nombre)).map(r => r.n);
+   A.exige(cambian === deben, …)
+```
+
+⭐ Y ahora sí puede fallar en las dos direcciones: una ruta que gana vía y **no** cambia de texto
+significa que el modelo se monta y no llega al redactor; una que cambia **sin** ganarla, que
+`relato.js` se ha movido por otra razón. **Antes solo podía quejarse de que el proyecto avanzara.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **una expectativa escrita como LISTA caduca; escrita como REGLA, no.**
+Si un guardián enumera resultados en vez de derivarlos, cada mejora del sistema lo pone rojo y cada
+vez habrá que editarlo — y editar un guardián con el resultado nuevo delante es exactamente lo que un
+guardián existe para impedir.
+⚠️ Y el corolario incómodo: **estar verde varias tandas no prueba que un guardián vigile.** Éste
+llevaba dos y solo estaba coincidiendo.
+
+**Traza:** `src/modelo-rutas.js` (D1 · comprobación 3)
+
+---
+
+## [2026-08-04] — Excluí de la absorción justo el ejemplo que Antonio había puesto, y la racha se comía a su propio cierre
+
+**Categoría:** carencia · rompe
+**Síntoma:** dos fallos encadenados en la misma regla, la de absorber cruces cortos (§C2).
+
+**(1)** Escribí que un paso de peatones es un EVENTO y no se absorbe nunca. Resultado en la ruta nº3,
+que es andar por una avenida recta:
+
+```
+   14. ◦ Por Avenida del Alcalde Gómez Laguna    26 m
+   15.   Cruzas por un paso de peatones           3 m
+   16.   Por un tramo sin nombre                 14 m
+   17.   Cruzas por un paso de peatones           8 m
+   18.   Por un tramo sin nombre                  4 m
+   19.   Cruzas por un paso de peatones           4 m
+   20. ◦ Por Avenida del Alcalde Gómez Laguna  1,56 km
+```
+
+**Siete pasos para no moverse de Gómez Laguna** — literalmente lo que Antonio pidió que se quitara, y
+con su ejemplo: *«si se hace un cruce como es con Calle Juslibol para pasar de acera, estás en San
+Juan de la Peña igual, así que eso me sobra»*. **Leí «cruce» como «trozo corto de otra calle» y él
+estaba hablando del cruce.**
+
+**(2)** Al arreglarlo —absorber la RACHA entera, no una sola pieza— apareció el segundo: la racha
+crecía mientras las piezas fueran absorbibles, **incluida la pieza que tenía que cerrarla**. En la
+ruta nº7: `San Juan de la Peña · Peña Oroel 6 m · San Juan de la Peña 11 m · Oliván Bayle`. Como los
+11 m de San Juan de la Peña también son «cortos», la racha se los tragaba, seguía hasta Oliván Bayle
+—otra calle— y **no absorbía nada**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el resultado global, y con buena
+cara.** El total bajaba de 110 a 86 pasos (−22 %), el cuadre de metros salía exacto en las siete, la
+ruta nº3 pasaba de 31 a 21 pasos y la nº7 de 19 a 16. **Un −22 % es difícil de mirar con
+desconfianza.** Y el `A.exige` de monotonía que yo mismo había puesto **también estaba verde**: lo
+había escrito sobre el TOTAL (109 ≥ 86 ✅).
+
+**Cómo se cazó:** ⭐⭐ **por la curva de sensibilidad, no por el resultado.** Al publicar los pasos a
+0 · 7,4 · 9,0 · 13,3 · 20 · 30 · 50 m, la ruta nº7 daba **12 pasos con el umbral a 9,0 m y 16 con el
+umbral a 13,3 m**. Absorber interrupciones MÁS LARGAS no puede producir MÁS pasos: es aritmética
+(ley 51). ⚠️ Y el TOTAL sí era monótono mientras la nº7 no lo era — **un agregado tapa un signo**.
+
+**Arreglo aplicado:** (1) el paso de peatones **sí** se absorbe; ⛔ las **escaleras** y los tramos
+**condicionales** no, y la línea es física y no de longitud: *cruzar se atraviesa; subir unas
+escaleras o encontrarse una puerta cerrada, no*. (2) la racha **se para en cuanto aparece la misma
+vía**: esa pieza cierra, no interrumpe. Y el `A.exige` de monotonía se rehace **ruta por ruta**.
+⇒ 110 → **82 pasos (−25 %)**, la nº7 de 19 a 12 y la nº3 de 31 a 21.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **cuando alguien te da un ejemplo, el ejemplo ES la especificación.**
+Antonio escribió «un cruce como es con Calle Juslibol» y yo codifiqué una regla que dejaba fuera los
+cruces. Si la regla que escribes no resuelve el caso que te contaron, la regla está mal por mucho que
+el número global mejore.
+⚠️ Y la segunda, que es la que lo cazó: **una curva de sensibilidad no está para justificar el
+umbral: está para cazar el algoritmo.** Aquí no dijo nada del percentil —el resultado no cuelga de
+él— y sí dijo que el código estaba roto.
+⚠️ Y la tercera: **un invariante sobre el agregado no vale.** La monotonía se cumplía en la suma
+mientras se rompía en una ruta. Los signos se cancelan; hay que comprobar donde no pueden.
+
+**Traza:** `src/relato.js` (`tramos`, la absorción de rachas), `src/pasos.js` (la monotonía por ruta)
