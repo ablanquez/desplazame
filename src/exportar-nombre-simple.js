@@ -22,27 +22,62 @@ const { aGrados, aMetros } = require('./geo');
 const A = require('./alarma');
 const D = require('./direccion');
 const Mo = require('./modelo');
+const Rel = require('./relato');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 
 const SALIDA = path.join(__dirname, '..', 'tools', 'nombre-simple-visor.js');
 const r6 = (v) => Math.round(v * 1e6) / 1e6;
 const pg = (p) => { const g = aGrados(p[0], p[1]); return [r6(g[0]), r6(g[1])]; };
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⛔⛔ EL COLOR SE PREGUNTA POR EL MISMO CAMINO QUE EL MOTOR — bitácora nº107
+// ═════════════════════════════════════════════════════════════════════════════
+//   La primera versión leía `M[i].via`, que es el nombre **por ARISTA**. El motor
+//   no usa eso: `relato.js` pregunta **por WAY** (`resolverPorWay`), porque el
+//   texto corta por way. Y no dan lo mismo:
+//
+//       nombre por ARISTA (lo que pintaba el mapa)        44.842
+//       nombre por WAY a secas (`deWay`)                  45.252
+//       ⭐ lo que dice EL REDACTOR (lo que se pinta ahora)  45.593
+//       ⛔ con nombre para el motor y saliendo ROJAS   774  (25,32 km)
+//       ⚠️ al revés                                     23  ( 2,43 km)
+//
+//   Las 774 son TODAS de fuente `municipal-bici`, que es la única que se asigna
+//   arista a arista: un way podía tener la mitad de sus aristas asignadas, el
+//   motor lo nombraba entero y el mapa pintaba la otra mitad de rojo.
+//
+//   ⇒ **El mapa pinta lo que el producto dice.** Si el motor le pone nombre a esa
+//     línea, la línea es azul. Un mapa que contradice al buscador de rutas no es
+//     un mapa distinto: es un mapa equivocado.
+//   ⭐⭐ Y NO SE COPIA LA REGLA: SE LLAMA AL REDACTOR. El color de cada línea sale
+//     de `Rel.tramo()`, **la misma función que escribe el texto de las rutas**.
+//     Copiar «primero OSM, luego el modelo» aquí sería un segundo camino de código
+//     desde el mismo dato, y ésa es la forma exacta del fallo nº68 y del de hoy.
+//     ⚠️ La primera versión del arreglo usaba `deWay` a secas —el modelo por way— y
+//     **seguía divergiendo en 341 líneas**: un way que OSM SÍ nombra puede no llegar
+//     a 2/3 en `resolverPorWay` y quedarse sin entrada, y el redactor lo nombra
+//     igual porque mira OSM primero. ⇒ el único camino seguro es no tener dos.
+const nombreDeLinea = (tramoDe, e) => tramoDe(e);
+
 function construirSalida() {
   const g = construir(ZONA_TERMINO);
   const ctx = D.abrir(g, CRUDO);
   const portales = ctx.enganche.portales.filter((o) => o.enganchado);
-  const { M } = Mo.construirModelo(g, portales);
+  const { M, deWay, modeloDeWay } = Mo.construirModelo(g, portales);
+  const nombreDeWay = (id) => g.nombres.get(id) || null;
+  // ⛔ EL ÚNICO SITIO DONDE SE DECIDE EL COLOR, y no decide aquí: pregunta.
+  const tramoDe = (e) => Rel.tramo(
+    { way: e.way, precision: e.precision, metros: e.largo }, nombreDeWay, 0, modeloDeWay).nombre;
 
-  const aristas = g.aristas.map((e, i) => ({
+  const aristas = g.aristas.map((e) => ({
     g: e.pts.map(pg),
     // 1 = tiene nombre (declarado o deducido) · 0 = no lo tiene
-    n: (M[i].via && M[i].via.nombre) ? 1 : 0,
+    n: nombreDeLinea(tramoDe, e) ? 1 : 0,
   }));
 
   const con = aristas.filter((a) => a.n === 1).length;
   return {
-    g, M,
+    g, M, deWay, tramoDe,
     salida: {
       sello: g.sello, zona: g.zona, generado: 'src/exportar-nombre-simple.js',
       contadores: { total: aristas.length, conNombre: con, sinNombre: aristas.length - con },
@@ -55,7 +90,7 @@ if (require.main === module) {
   const log = console.log;
   const di = (k, v) => log(`   ${String(k).padEnd(48)} ${v}`);
   const T0 = Date.now();
-  const { g, M, salida } = construirSalida();
+  const { g, M, deWay, tramoDe, salida } = construirSalida();
 
   // ── la reproyección, ANTES de escribir nada ────────────────────────────────
   let peor = 0;
@@ -77,14 +112,51 @@ if (require.main === module) {
   A.exige(peor < 0.01, `la reproyección tiene ${peor.toFixed(3)} m de error`);
 
   log('');
-  log('   ⭐ EL CUADRE — lo exportado contra el modelo');
-  const conM = M.filter((m) => m.via && m.via.nombre).length;
+  log('   ⭐ EL CUADRE — lo exportado contra EL REDACTOR (`relato.js`), línea a línea');
+  const conW = g.aristas.filter((e) => tramoDe(e)).length;
   const c = salida.contadores;
-  di('AZULES · con nombre — exportado / modelo', `${c.conNombre} / ${conM}   ${c.conNombre === conM ? '✅' : '⛔'}`);
-  di('ROJAS  · sin nombre — exportado / modelo', `${c.sinNombre} / ${M.length - conM}   ${c.sinNombre === M.length - conM ? '✅' : '⛔'}`);
+  di('AZULES · con nombre — exportado / modelo', `${c.conNombre} / ${conW}   ${c.conNombre === conW ? '✅' : '⛔'}`);
+  di('ROJAS  · sin nombre — exportado / modelo', `${c.sinNombre} / ${g.aristas.length - conW}   ${c.sinNombre === g.aristas.length - conW ? '✅' : '⛔'}`);
   di('⭐ suman', `${c.conNombre + c.sinNombre} de ${g.aristas.length}   ${c.conNombre + c.sinNombre === g.aristas.length ? '✅ ninguna fuera' : '⛔ FALTAN'}`);
-  A.exige(c.conNombre === conM && c.sinNombre === M.length - conM, 'el exportado no cuadra con el modelo');
+  A.exige(c.conNombre === conW, 'el exportado no cuadra con lo que dice el redactor');
   A.exige(c.conNombre + c.sinNombre === g.aristas.length, 'las dos cuentas no suman las aristas del grafo');
+
+  // ⚠️ EL CUADRE DE ARRIBA PASA POR CONSTRUCCIÓN, y eso es lo que se buscaba: el
+  //    color LO DECIDE el redactor, así que no puede discrepar de él. **Ésa es la
+  //    garantía**, no la comprobación. ⇒ lo que informa es la DIFERENCIA con las
+  //    dos reglas anteriores, que es exactamente lo que estaba mal.
+  log('');
+  log('   ⚠️ Ese cuadre PASA POR CONSTRUCCIÓN, y es lo que se buscaba: el color lo decide el');
+  log('      redactor, así que no puede discrepar de él. **Eso es la garantía, no la prueba.**');
+  log('      Lo que informa es la diferencia con las dos reglas anteriores:');
+  {
+    const conA = M.filter((m) => m.via && m.via.nombre).length;
+    const conD = g.aristas.filter((e) => { const w = deWay.get(e.way); return !!(w && w.via && w.via.nombre); }).length;
+    const soloWay = [], soloArista = [];
+    for (let i = 0; i < g.aristas.length; i++) {
+      const a = !!(M[i].via && M[i].via.nombre);
+      const w = !!tramoDe(g.aristas[i]);
+      if (!a && w) soloWay.push(i); else if (a && !w) soloArista.push(i);
+    }
+    const km = (l) => (l.reduce((s, i) => s + g.aristas[i].largo, 0) / 1000).toFixed(2) + ' km';
+    di('por ARISTA (lo que pintaba antes) — ⛔ la regla mala', conA);
+    di('por WAY a secas (`deWay`) — ⚠️ tampoco, pierde nombres de OSM', conD);
+    di('⭐ lo que dice EL REDACTOR (lo que se pinta ahora)', conW);
+    di('⛔ tenían nombre para el MOTOR y salían ROJAS', `${soloWay.length}  (${km(soloWay)})`);
+    di('⚠️ salían AZULES y el motor no las nombra', `${soloArista.length}  (${km(soloArista)})`);
+    const fu = new Map();
+    for (const i of soloWay) {
+      const w = deWay.get(g.aristas[i].way);
+      const k = (w && w.via && w.via.fuente) || 'osm (el way no llega a 2/3 en `resolverPorWay`)';
+      fu.set(k, (fu.get(k) || 0) + 1);
+    }
+    for (const [k, v] of [...fu.entries()].sort((a, b) => b[1] - a[1])) {
+      log('      ' + String(v).padStart(6) + '  de fuente `' + k + '`');
+    }
+    log('      ⇒ `municipal-bici` es la ÚNICA fuente que se asigna arista a arista: un way');
+    log('        con la mitad de sus aristas asignadas lo nombraba el motor entero y el mapa');
+    log('        pintaba la otra mitad de rojo.');
+  }
 
   const vE = salida.aristas.reduce((s, a) => s + a.g.length, 0);
   const vG = g.aristas.reduce((s, e) => s + e.pts.length, 0);

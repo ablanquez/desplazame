@@ -155,10 +155,70 @@ log('        dicho nunca «hay uno más» no ha dicho nada (ley 52).');
     'una línea con nombre no se pinta de azul: los dos colores no separan');
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ LA COMPROBACIÓN QUE FALTABA: **CONTRA EL MOTOR, NO CONTRA EL FICHERO**
+// ═════════════════════════════════════════════════════════════════════════════
+//   Lo de arriba tenía tres contadores —visor, arnés, dato— y los tres decían
+//   44.842. **Los tres leían la misma fuente, y la fuente estaba mal**: el mapa
+//   contaba el nombre por ARISTA y el motor lo cuenta por WAY (bitácora nº107).
+//   ⇒ *Tres contadores de la misma fuente no son tres testigos.*
+//
+//   Aquí se le pregunta a `relato.js` —**el redactor de verdad, el que imprime el
+//   texto de las rutas**— qué nombre le pone a cada línea del grafo, y se compara
+//   con el color. Si alguna vez vuelven a divergir, esto se pone rojo.
+log('');
+log('='.repeat(88));
+log('CONTRA EL MOTOR — ¿pinta el mapa lo que el redactor dice de cada línea?');
+log('='.repeat(88));
+{
+  const D = require('./direccion');
+  const Mo = require('./modelo');
+  const Rel = require('./relato');
+  const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
+  const gr = construir(ZONA_TERMINO);
+  const ctx = D.abrir(gr, CRUDO);
+  const { M, deWay, modeloDeWay } = Mo.construirModelo(gr, ctx.enganche.portales.filter((o) => o.enganchado));
+  const nombreDeWay = (id) => gr.nombres.get(id) || null;
+
+  /** ⭐ Lo que el REDACTOR dice de esta línea. Pasa por `relato.js`, no por el dato. */
+  const nombreSegunElMotor = (e) =>
+    Rel.tramo({ way: e.way, precision: e.precision, metros: e.largo }, nombreDeWay, 0, modeloDeWay).nombre;
+
+  const comparar = (colorDe, etq) => {
+    let mal = 0; const ej = [];
+    for (let i = 0; i < gr.aristas.length; i++) {
+      const azul = colorDe(i) === 1;
+      const conNombre = !!nombreSegunElMotor(gr.aristas[i]);
+      if (azul !== conNombre) { mal++; if (ej.length < 4) ej.push([i, azul, conNombre]); }
+    }
+    return { mal, ej };
+  };
+
+  di('aristas del grafo', gr.aristas.length);
+  const r1 = comparar((i) => G.aristas[i].n, 'exportado');
+  di('⭐ líneas donde el color y el redactor NO coinciden', r1.mal + (r1.mal === 0 ? '   ✅' : '   ⛔'));
+  for (const [i, azul, con] of r1.ej) {
+    log('      ⛔ arista ' + i + ': el mapa la pinta ' + (azul ? 'AZUL' : 'ROJA')
+      + ' y el redactor ' + (con ? 'SÍ la nombra' : 'NO la nombra'));
+  }
+  A.exige(r1.mal === 0, `${r1.mal} líneas pintadas de un color que el redactor contradice`);
+
+  // ⭐⭐ Y SU ROJO, VISTO: la regla VIEJA —el nombre por arista— tiene que fallar.
+  //    Si no fallara, esta comprobación no distinguiría nada y valdría lo mismo que
+  //    los tres contadores que dejaron pasar el fallo.
+  log('');
+  log('   ⭐⭐ EL ROJO DE ESTA COMPROBACIÓN, VISTO: se le da la regla VIEJA (el nombre por');
+  log('      ARISTA, la que pintaba el mapa hasta hoy) y TIENE que ponerse roja.');
+  const r2 = comparar((i) => ((M[i].via && M[i].via.nombre) ? 1 : 0), 'regla vieja');
+  di('   discrepancias con la regla vieja', r2.mal + (r2.mal > 0 ? '   ✅ la caza' : '   ⛔ NO LA CAZA'));
+  A.exige(r2.mal > 0, 'la comprobación contra el motor no distingue la regla vieja de la nueva: no vale');
+  log('   ⇒ ⭐ **habría cazado el fallo de hoy el día que se escribió.**');
+}
+
 log('');
 log('   ⚠️ Lo que esto NO comprueba: que se vea bien (colores, grosores, rendimiento con');
-log('      ~99.000 líneas) ni que la clasificación sea correcta. Solo que el mapa pinta lo');
-log('      que el modelo dice, y en el color que le toca.');
+log('      ~99.000 líneas) ni que el NOMBRE sea correcto. Solo que el mapa y el motor dicen');
+log('      lo mismo de cada línea. Si los dos se equivocan igual, esto sale verde.');
 log('');
 log(A.cierre('MAPA DE DOS COLORES'));
 di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');

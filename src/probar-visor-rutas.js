@@ -254,11 +254,16 @@ log('   No «parecido»: la misma cadena. Salen los dos de `src/relato.js`.');
     const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
     const gg = construir(ZONA_TERMINO);
     const cc = D.abrir(gg, CRUDO);
+    // ⛔ TANDA 24 · la terminal de esta comparación tiene que llevar el MISMO modelo
+    //    que el exportador. Si uno lo lleva y el otro no, esto comparaba dos textos
+    //    distintos y salía verde porque los dos estaban igual de incompletos.
+    const Mo = require('./modelo');
+    const modeloDeWay = Mo.construirModelo(gg, cc.enganche.portales.filter((o) => o.enganchado)).modeloDeWay;
     const a = D.punto('Calle Manifestación 6', cc), b = D.punto('Calle Don Jaime I 17', cc);
     const res = G.rutaEntre(gg, a, b);
     const terminal = Rel.texto(res, { origen: 'Calle Manifestación 6', destino: 'Calle Don Jaime I 17',
       nombreDeWay: cc.nombreDeWay, rodeo: res.metros / Math.hypot(a.m[0] - b.m[0], a.m[1] - b.m[1]),
-      engancheOrigen: a.d, engancheDestino: b.d });
+      engancheOrigen: a.d, engancheDestino: b.d, modelo: modeloDeWay });
     const d2 = enDisco.rutas.find((x) => x.n === 2);
     let dentro = 0, ausente = null;
     for (const t of d2.tramos) {

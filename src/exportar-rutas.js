@@ -43,6 +43,14 @@ function exportar() {
 
   const g = construir(ZONA_TERMINO);
   const ctx = D.abrir(g, CRUDO);
+  // ⛔⛔ TANDA 24 · EL MAPA DE RUTAS TENÍA EL TEXTO DE ANTES DE LA TANDA 21.
+  //    `Rel.tramos(res, ctx.nombreDeWay)` sin el modelo imprimía «Por un tramo sin
+  //    nombre, 1.269 m» donde la terminal dice «Por la acera de AVENIDA ACADEMIA
+  //    GENERAL MILITAR» + «Por Avenida de San Juan de la Peña». **Dos redactores
+  //    con el mismo nombre**, que es el fallo nº107 en otro fichero.
+  //    ⇒ el modelo se monta AQUÍ igual que en `ruta.js` y `rutas-antonio.js`.
+  const Mo = require('./modelo');
+  const modeloDeWay = Mo.construirModelo(g, ctx.enganche.portales.filter((o) => o.enganchado)).modeloDeWay;
   const Ent = En.cargar();
 
   const rutas = [];
@@ -64,7 +72,7 @@ function exportar() {
 
     const recta = dist(aP.m, bFin.m);
     const rodeo = res.metros / recta;
-    const ts = Rel.tramos(res, ctx.nombreDeWay);
+    const ts = Rel.tramos(res, ctx.nombreDeWay, modeloDeWay);
     const geo = Rel.geometria(g, aP, bFin, res);
 
     // ⭐ la geometría se agrupa con los MISMOS cortes que el relato: cada tramo

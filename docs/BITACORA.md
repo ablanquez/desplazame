@@ -5294,3 +5294,87 @@ tranquilizadora.
 segundos.
 
 **Traza:** `src/probar-modelo-obligatorio.js` (`precargar`, `precargadoVivo`, la sonda de §5)
+
+---
+
+## [2026-08-04] — El mapa contaba el nombre por ARISTA y el motor lo cuenta por WAY
+
+**Categoría:** datos
+**Síntoma:** lo vio Antonio. En el mapa de dos colores, **Calle Salvador Minguijón sale roja**, y el
+motor dice de esa misma calle `1. ◦ Por Calle Salvador Minguijón · 450 m · 4 tramos de OSM`.
+
+⚠️ **Y el síntoma que lo destapó era una falsa alarma.** Trazado línea a línea:
+
+```
+   el EJE de la calle (29 aristas con nombre en OSM)   azules 29 de 29   ✅
+   las 12 ACERAS con portales de esa calle            ROJAS, y el motor tampoco las nombra
+      método de portales: MUDA — 1 o 2 votos, y hacen falta 3 (umbral de la tanda 6)
+```
+
+**El mapa tenía razón sobre Salvador Minguijón.** Lo que Antonio ve rojo son las doce aceras, y el
+motor dice de ellas exactamente lo mismo. Lo que crea la ilusión de contradicción es **el dibujo**:
+en la tanda 22 puse el rojo a `weight 2.2 / opacity 0.9` y el azul a `1.4 / 0.55` a propósito —*«que
+canten»*—, así que **doce aceras rojas gruesas tapan un eje azul fino y translúcido**: la calle se lee
+roja aunque su eje sea azul.
+
+⭐⭐ **Pero al ir a buscarlo apareció una divergencia real, y no era ésa:**
+
+```
+   nombre por ARISTA  (lo que pintaba el mapa)          44.842
+   nombre por WAY a secas (`deWay`)                     45.252
+   ⭐ lo que dice EL REDACTOR (lo que se pinta ahora)    45.593
+   ⛔ tenían nombre para el motor y salían ROJAS   774  (25,32 km)
+   ⚠️ salían azules y el motor no las nombra        23  ( 2,43 km)
+```
+
+Las **774 son todas de fuente `municipal-bici`**, que es la única que se asigna **arista a arista**:
+un way con la mitad de sus aristas asignadas lo nombraba el motor entero —porque `relato.js` corta
+por way— y el mapa pintaba la otra mitad de rojo.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **los tres contadores del visor.**
+`probar-visor-nombre-simple.js` comparaba «visor / arnés / dato» y los tres decían **44.842**, con la
+línea falsa entrando y saliendo en su color. Todo correcto **y todo leyendo la misma fuente**.
+⭐ *Tres contadores de la misma fuente no son tres testigos.* La comprobación que faltaba no era una
+cuarta cuenta: era **preguntarle al motor**.
+
+**Causa raíz:** dos caminos de código desde el mismo dato. El exportador decidió el color con
+`M[i].via` —el modelo por arista— y el redactor lo decide con `Rel.tramo()`, que mira **primero el
+nombre de OSM del way y luego el modelo por way**. Nadie los obligó a coincidir.
+⚠️ Y el primer arreglo —usar `deWay` en el exportador— **seguía divergiendo en 341 líneas**: un way
+que OSM SÍ nombra puede no llegar a 2/3 en `resolverPorWay` y quedarse sin entrada, y el redactor lo
+nombra igual porque mira OSM primero. **Copiar la regla no vale: hay que llamar a la función.**
+
+**Cómo se cazó:** usuario, y por una calle que resultó estar bien. **El síntoma era falso y el fallo
+era real** — pero en otro sitio y de otro tamaño.
+
+**Arreglo aplicado:** el exportador **no decide el color: lo pregunta**. Llama a `Rel.tramo()`, la
+misma función que escribe el texto de las rutas. ⭐ Y la comprobación nueva compara, **línea a línea
+sobre las 98.774**, el color contra lo que dice el redactor — **con su rojo visto**: se le da la regla
+vieja (el nombre por arista) y saca **797 discrepancias**. *Habría cazado esto el día que se escribió.*
+
+⭐ **Y el mismo fallo estaba en el visor de RUTAS** (`exportar-rutas.js`, tanda 16), que llamaba a
+`Rel.tramos(res, ctx.nombreDeWay)` **sin el modelo**: el mapa de las siete rutas enseñaba el texto de
+antes de la tanda 21 —«Por un tramo sin nombre, 1.269 m» donde la terminal dice «Por la acera de
+AVENIDA ACADEMIA GENERAL MILITAR» + «Por Avenida de San Juan de la Peña»—. Arreglado igual, y su
+prueba también: `probar-visor-rutas.js` comparaba el texto del mapa con el de la terminal **y montaba
+la terminal sin modelo**, así que comparaba dos textos igual de incompletos y salía verde.
+
+⚠️ **Lo que NO se arregla, y va con su número:** `exportar-nombres.js` y `donde-falta.js` (tanda 20)
+cuentan por arista Y sin el método de portales. Cambiarlos reescribiría una medición publicada, así
+que se declara: **3.705 líneas (266,20 km) cambiarían de categoría**, y «las que duelen» pasarían de
+**3.867 a 2.158**. Decide Antonio.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **si dos sitios tienen que decir lo mismo, uno de los dos tiene que
+PREGUNTARLE al otro.** Copiar la regla —aunque se copie bien— crea un segundo camino que diverge en
+cuanto uno cambia. Aquí ni siquiera hizo falta que cambiara: nacieron distintos.
+⚠️ Y la segunda, que es la que dejó pasar esto dos tandas: **varios contadores sobre la misma fuente
+no son varios testigos.** Un cuadre solo vale contra algo que se calcula por otro camino — y el otro
+camino que importa es **el producto**, no otro fichero.
+⚠️ Y la tercera, de dibujo: **el grosor y la opacidad son una afirmación.** Pintar una categoría más
+gorda que otra hace que una calle con doce aceras rojas y un eje azul **se lea roja**. No es un fallo
+del dato; es que el mapa está diciendo algo que no midió.
+
+**Traza:** `src/exportar-nombre-simple.js` (`tramoDe`), `src/probar-visor-nombre-simple.js` (contra el
+motor), `src/exportar-rutas.js`, `src/probar-visor-rutas.js`
