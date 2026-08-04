@@ -214,15 +214,38 @@ function resolverPorWay(g, M) {
   for (const [w, idxs] of porWay) {
     const conVia = idxs.filter((i) => M[i].via);
     if (!conVia.length) { out.set(w, null); continue; }
-    const metros = new Map();
-    for (const i of conVia) {
-      const k = M[i].via.codigoVia || M[i].via.nombre;
-      if (!metros.has(k)) metros.set(k, { m: 0, i });
-      const v = metros.get(k);
-      v.m += g.aristas[i].largo;
-      if (g.aristas[i].largo > g.aristas[v.i].largo) v.i = i;
+    // ══════════════════════════════════════════════════════════════════════════
+    // ⭐ D0 MANDA TAMBIÉN AQUÍ — bitácora nº108
+    // ══════════════════════════════════════════════════════════════════════════
+    //   Si alguna arista del way tiene vía **DECLARADA** (OSM o el callejero
+    //   municipal), las DEDUCIDAS no votan. Un nombre que deducimos nosotros no
+    //   puede tumbar a uno que alguien declara — y eso es exactamente lo que
+    //   hacía: el way 49290755 tenía 10 m declarados «POLÍGONO MIGUEL SERVET» y
+    //   9 m deducidos «Avenida Compromiso de Caspe», ninguno llegaba a 2/3, y el
+    //   way **se quedaba sin nombre teniendo uno declarado**.
+    const decl = conVia.filter((i) => M[i].via.declarada);
+    const votantes = decl.length ? decl : conVia;
+    // ══════════════════════════════════════════════════════════════════════════
+    // ⭐⭐ Y SE AGRUPA POR **VÍA**, NO POR CADENA — bitácora nº108
+    // ══════════════════════════════════════════════════════════════════════════
+    //   Agrupaba por `codigoVia || nombre`, así que «Calle del Valle de Broto»
+    //   (OSM) y «CALLE VALLE DE BROTO» (municipal) contaban como DOS vías y se
+    //   partían el voto: 20 m contra 15 m, ninguno llegaba a 2/3, y el way se
+    //   quedaba mudo **siendo una sola calle**. Es el problema del nombre largo
+    //   de la tanda 21, que aquí no se había aplicado.
+    //   ⚠️ Agrupar por núcleo funde homónimos (ley 41). Dentro de UN way eso es
+    //      admisible —un way no recorre dos calles distintas del mismo nombre—, y
+    //      el nombre que se imprime sale de una arista REAL, no de un índice.
+    const grupos = [];
+    for (const i of votantes) {
+      const nu = P.nucleo(M[i].via.nombre);
+      let gr = grupos.find((G) => [...G.nucleos].some((x) => x === nu || NL.mismaVia(x, nu)));
+      if (!gr) { gr = { nucleos: new Set(), m: 0, i }; grupos.push(gr); }
+      gr.nucleos.add(nu);
+      gr.m += g.aristas[i].largo;
+      if (g.aristas[i].largo > g.aristas[gr.i].largo) gr.i = i;
     }
-    const orden = [...metros.values()].sort((a, b) => b.m - a.m);
+    const orden = grupos.sort((a, b) => b.m - a.m);
     const total = orden.reduce((s, x) => s + x.m, 0);
     if (orden[0].m / total < ACUERDO_WAY) { out.set(w, null); continue; }
     out.set(w, { via: M[orden[0].i].via, forma: M[orden[0].i].forma,

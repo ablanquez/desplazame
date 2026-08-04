@@ -5378,3 +5378,110 @@ del dato; es que el mapa está diciendo algo que no midió.
 
 **Traza:** `src/exportar-nombre-simple.js` (`tramoDe`), `src/probar-visor-nombre-simple.js` (contra el
 motor), `src/exportar-rutas.js`, `src/probar-visor-rutas.js`
+
+---
+
+## [2026-08-04] — El segundo testigo le quitó el nombre a 176 líneas que lo tenían, y no por discrepar
+
+**Categoría:** agregación
+**Síntoma:** al aplicar la calle pegada, el contador de §E dijo **«⚠️ lo PIERDEN 239»**. Yo lo
+etiqueté como *«los dos testigos discrepan y se calla»*, que es la regla que acababa de escribir y
+que sí quita nombres a propósito. **La etiqueta era mía y era falsa: solo 63 eran eso.**
+
+```
+   176  ⛔ el way SIGUE nombrado, pero `resolverPorWay` ya no lo resuelve
+    63  los dos testigos DISCREPAN  (previsto y correcto)
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo, y esta vez todo con razón.**
+Las siete rutas idénticas al milímetro y contra la tanda 16. El guardián `modelo-rutas.js` verde con
+su expectativa DERIVADA. El mapa cuadrando con el redactor línea a línea, **0 discrepancias**, con su
+rojo visto (686). `probar-visor-rutas.js`, verde. La batería entera, verde.
+⭐ Y el número estaba impreso en mi propio informe, en su fila, con su flecha. **Lo que mentía no era
+el instrumento: era el rótulo que le puse.** Un contador con la causa equivocada al lado es peor que
+no tenerlo, porque se lee como explicado.
+
+**Cómo se cazó:** por un `undefined` en una sonda de detalle. Fui a listar «las 239 que discrepan» con
+sus dos nombres —`portales dicen X · la paralela dice Y`— y salieron cinco filas seguidas de
+`undefined`. **Si no llego a imprimir los nombres, el 239 se publica como si fuera la regla nueva
+funcionando.**
+
+**Causa raíz:** dos defectos de `resolverPorWay()`, los dos de la misma familia —*agrupar es borrar*—
+y los dos anteriores a esta tanda; el segundo testigo solo los hizo frecuentes.
+
+1. **Agrupaba por cadena, no por vía.** La clave era `codigoVia || nombre`, así que
+   `Calle del Valle de Broto` (deducida, sin código) y `CALLE VALLE DE BROTO` (municipal, con código)
+   contaban como **dos vías distintas** y se partían el voto: 20 m contra 15 m, ninguno llegaba a los
+   2/3, y el way **se quedaba mudo siendo una sola calle**. Es exactamente el problema del nombre
+   largo que la tanda 21 resolvió en el relato y que aquí nadie aplicó.
+2. **Una vía DEDUCIDA diluía a una DECLARADA.** El way 49290755 tenía 10 m declarados
+   «POLÍGONO MIGUEL SERVET» y 9 m deducidos «Avenida Compromiso de Caspe»: ninguno llegaba a 2/3 y el
+   way perdía **un nombre que alguien declara**. ⛔ D0 dice que manda lo declarado, y ahí no se
+   aplicaba.
+
+**Arreglo aplicado:** los dos, en `resolverPorWay`:
+· si alguna arista del way tiene vía **declarada**, solo votan las declaradas (D0 manda también aquí);
+· y los votos se agrupan **por VÍA** —`nombre-largo.js`, el mismo criterio que usa el itinerario—, no
+  por cadena.
+⭐ Resultado: **176 → 0**. Quedan las 63 que pierden el nombre porque los dos testigos discrepan, que
+es lo que la regla nueva quiere que pase.
+
+⚠️ Y de paso sube el «antes» de la comparación: sin el segundo testigo, con solo este arreglo, el
+grafo pasa de **45.593 a 45.597** líneas con nombre. Cuatro. El defecto llevaba desde la tanda 19
+puesto y casi no se notaba porque hacían falta dos fuentes distintas sobre el mismo way.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **el rótulo de un contador es una afirmación, y hay que comprobarla
+como cualquier otra.** «Pierden el nombre: 239» era cierto; «porque discrepan» me lo inventé yo, y
+encajaba tan bien con lo que acababa de escribir que no lo miré. **Cuando un número confirma
+exactamente la regla que acabas de meter, ésa es la señal, no el premio.**
+⚠️ Y la segunda: **una fuente nueva no solo añade — también vota.** Meter un tercer testigo en un
+sitio donde ya había un recuento por mayoría le cambia el denominador a todo el mundo. Aquí el
+segundo testigo, sin equivocarse ni una vez, tumbó 176 nombres correctos solo por aparecer.
+
+**Traza:** `src/modelo.js` (`resolverPorWay`)
+
+---
+
+## [2026-08-04] — Escribí `module.exports` al final otra vez, en el fichero que cierra el ciclo
+
+**Categoría:** silencio falso (evitado)
+**Síntoma:** ninguno, y por eso va aquí. `src/calle-pegada.js` nació con sus `module.exports` al
+final del fichero y con un bloque `if (require.main === module)` que pide `./modelo` — y `modelo.js`
+pide `./calle-pegada` de vuelta. **Es el ciclo del fallo nº105, montado desde cero y en la misma
+tanda en la que presumo de haberlo arreglado.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** nada: se cazó antes de ejecutarlo. ⚠️ Lo
+que sí hay que anotar es qué habría pasado — `CP.decidirTodos` habría salido `undefined` y el error
+habría dicho *«CP.decidirTodos is not a function»*, **sin mencionar el ciclo por ningún lado**, que
+es la propiedad exacta que hizo que el nº105 durase dos tandas.
+
+**Cómo se cazó:** por relectura, al ir a ejecutar. La regla de la tanda 23 estaba escrita en
+`src/ruta.js` con dos ⛔ y aun así la volví a romper en el fichero siguiente. **Una ley escrita en el
+fichero donde ocurrió no protege al fichero de al lado.**
+
+**Arreglo aplicado:** los exports suben por encima del bloque de línea de órdenes, con el motivo al
+lado. ⭐ Y lo que convierte esto en mecanismo: `calle-pegada.js` entra en la lista de
+`src/probar-modelo-obligatorio.js` §5, el barrido que mide qué scripts pasan por el ciclo y con qué
+`CRUDO`. Ahora son ocho filas y las ocho verdes.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⚠️ **una ley aprendida se documenta donde se rompió, y se rompe otra vez en
+el fichero siguiente.** Lo único que no se olvida es una lista que alguien ejecuta. ⇒ cuando un
+módulo nuevo pueda entrar en un ciclo, se añade al barrido el mismo día, no cuando falle.
+
+**Traza:** `src/calle-pegada.js` (orden de `module.exports`),
+`src/probar-modelo-obligatorio.js` (§5, la lista de consumidores)
+
+## [2026-08-04] — D0 manda al resolver el way, y los votos se agrupan por via
+**Categoría:** NO CONSTA
+**Síntoma:** NO CONSTA
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ NO CONSTA
+**Causa raíz:** NO CONSTA
+**Cómo se cazó:** NO CONSTA
+**Arreglo aplicado:** NO CONSTA
+**Commit:** (este commit)
+**Ley que sale de aquí:** NO CONSTA
+**Traza:** NO CONSTA
