@@ -4494,3 +4494,55 @@ redondo.** Si su resultado se puede predecir con aritmética de servilleta antes
 está midiendo el instrumento; está midiendo la aritmética.
 
 **Traza:** `src/nombrar-aceras.js` (B2b), `src/heredar-nombre.js`
+
+---
+
+## [2026-08-04] — Medí «lo que dice el municipal del tramo de la ruta 7» sobre el way entero, no sobre lo que Antonio anduvo
+
+**Categoría:** unidad de medida más grande que la afirmación
+**Síntoma:** el encargo pedía qué dice la capa municipal del **tramo de 1.269 m** de la ruta nº7 —el
+único sitio de todo el proyecto donde hay verdad sobre el terreno, porque Antonio lo ha andado—. Yo
+lo identifiqué bien, por los dos ways de OSM (354344721 y 475881583), y luego medí sobre **los ways
+enteros**, que en el grafo son 53 aristas y **3,02 km**. Salió esto:
+
+```
+   aristas del grafo con esos dos ways                      53  (3.02 km)
+   ⭐ metros de capa municipal que caen sobre ese tramo      2.85 km
+         2.02 km   Unidireccional calzada | AV | SAN JUAN DE LA PEÑA | 28220
+           631 m   Bidireccional acera | AV | ACADEMIA GENERAL MILITAR | 12950
+```
+
+**Dos kilómetros y medio de conclusión sobre un tramo de 1,2 km.** Y el reparto cambia: sobre lo que
+Antonio anduvo de verdad son 760 m de «Unidireccional calzada» y 252 m de «Bidireccional acera», no
+2,02 km y 631 m.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo lo demás, y con nota.** El CRS
+verificado contra el rango real de coordenadas (no por el nombre), el `numberMatched === numberReturned`,
+los cero vértices de otras Zaragozas (ley 41), y sobre todo **la contraprueba de desplazamiento del
+emparejamiento, que se hundió ×10,8 al mover la capa 2 km**. La contraprueba más cara de la tanda
+funcionaba perfectamente… **sobre la geometría equivocada.** Una contraprueba correcta no dice nada
+del recorte al que se aplica.
+
+**Causa raíz:** identifiqué el tramo por su `way` porque era lo correcto —⛔ nada de coordenadas de
+memoria— y me quedé ahí. **Un way de OSM no es un tramo de ruta:** una ruta usa el trozo de way que
+va de un nodo a otro. Tenía el dato bueno a mano —`rutas-antonio.js --aristas` da las aristas exactas
+de cada ruta, y lo usé en la tanda 17 para esto mismo— y no lo usé aquí.
+
+**Cómo se cazó:** ojo humano, al leer «3,02 km» en la pantalla debajo de un título que decía «el tramo
+de 1.269 m». **Los dos números estaban en la misma pantalla y no se parecían.**
+
+**Arreglo aplicado:** las aristas salen de `rutas-antonio.js --aristas` y se cruzan con los dos ways
+(16 aristas, 1,19 km). Y de paso se añade la medida **al revés** —para cada metro del tramo, la línea
+municipal más cercana y paralela— porque la primera dirección estaba sesgada: una línea municipal que
+encaje mejor con la calzada de al lado no aparecía aunque describa la misma avenida.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **identificar bien el objeto no es recortar bien el objeto.** Un `way`,
+una `vía` o un `codigoVia` son el CONTENEDOR; la afirmación casi siempre es sobre un TROZO. Antes de
+medir, la pregunta es *«¿el recorte que estoy midiendo es el mismo del que voy a hablar?»* — y si la
+frase lleva un número (1.269 m), **ese número tiene que salir del propio recorte**, no del contenedor.
+⚠️ Y el corolario, que es lo que casi cuela: una contraprueba impecable sobre el recorte equivocado
+sale verde igual. **La contraprueba valida el método, no el recorte.**
+
+**Traza:** `src/bici-inventario.js` (C4), `src/rutas-antonio.js --aristas` (sólo se lee)
