@@ -188,7 +188,11 @@ log('   Cada uno se ejecuta con un `--require` que mira lo que `modelo.js` recib
 log('   `./ruta` y **aborta en el acto**: interesa el ciclo, no el resultado.');
 {
   const CONSUMIDORES = ['ruta.js', 'rutas-antonio.js', 'modelo.js', 'modelo-rutas.js',
-    'donde-falta.js', 'exportar-nombres.js', 'exportar-nombre-simple.js'];
+    'donde-falta.js', 'exportar-nombres.js', 'exportar-nombre-simple.js',
+    // ⭐ TANDA 25 · éste entra por el ciclo al revés: su informe pide `./modelo`, y
+    //   `modelo.js` pide `./calle-pegada` de vuelta. Por eso sus `module.exports`
+    //   están ARRIBA, y por eso está en esta lista.
+    'calle-pegada.js'];
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'desplazame-ciclo-'));
   const sonda = path.join(tmp, 'sonda.js');
   const buzon = path.join(tmp, 'veredicto.txt').replace(/\\/g, '/');
