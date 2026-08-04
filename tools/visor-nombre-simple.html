@@ -29,6 +29,15 @@ if (!G) { document.body.innerHTML = '<p style="padding:2em;font:14px system-ui">
 
 const AZUL = '#1f5fd0';
 const ROJO = '#e01b00';
+// ⭐⭐ TANDA 25 · EL GROSOR Y LA OPACIDAD SON UNA AFIRMACIÓN, Y AQUÍ AFIRMABAN ALGO
+//    QUE NADIE MIDIÓ. En la tanda 22 el rojo se pintó a 2,2/0,9 y el azul a
+//    1,4/0,55 —«que canten»—, y el resultado fue que **Calle Salvador Minguijón se
+//    leía ROJA teniendo su eje entero AZUL**: doce aceras rojas gruesas tapaban un
+//    eje azul fino y translúcido. El dato estaba bien; el dibujo mentía.
+//    ⇒ **los dos se pintan igual.** Si una categoría se ve más, que sea porque hay
+//      más, no porque yo le haya puesto medio punto más de trazo.
+const GROSOR = 1.8;
+const OPACIDAD = 0.75;
 
 const z = G.zona;
 // preferCanvas: con ~99.000 líneas un elemento SVG por línea mata al navegador.
@@ -47,7 +56,7 @@ function pintar() {
     const con = a.n === 1;
     if (con) CUENTA.azules++; else CUENTA.rojas++;
     L.polyline(a.g.map((p) => [p[1], p[0]]),
-      { color: con ? AZUL : ROJO, weight: con ? 1.4 : 2.2, opacity: con ? 0.55 : 0.9 }).addTo(capa);
+      { color: con ? AZUL : ROJO, weight: GROSOR, opacity: OPACIDAD }).addTo(capa);
   }
   capa.addTo(mapa);
   return CUENTA;
@@ -64,5 +73,5 @@ clave.onAdd = function () {
 clave.addTo(mapa);
 
 // ⭐ para que `src/probar-visor-nombre-simple.js` pueda contar sin navegador.
-window.VISOR = { pintar, cuenta: CUENTA, AZUL, ROJO };
+window.VISOR = { pintar, cuenta: CUENTA, AZUL, ROJO, GROSOR, OPACIDAD };
 </script>
