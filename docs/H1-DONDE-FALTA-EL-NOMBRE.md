@@ -261,8 +261,9 @@ más de una vía.
 llevarían el **1,8 %**. Se llevan el 18,2 % ⇒ **hay concentración (×10), pero no es la de la tanda
 14.** Allí 267 de 565 portales eran de una sola vía. **Aquí no.**
 
-⇒ **VEREDICTO: REPARTIDAS.** Hacen falta **100 vías para cubrir la mitad** de los metros. **Es un
-proyecto, no una tarde** — y por eso importa que haya un método automático.
+⇒ **VEREDICTO: REPARTIDAS.** Con **100 vías** se cubre el 45,2 % de los metros: hacen falta **más de
+cien** para llegar a la mitad. **Es un proyecto, no una tarde** — y por eso importa que haya un método
+automático.
 
 ⚠️ Y la cabecera de la tabla dice algo más: **doce de las veinte son `CAMINO`, `CARRETERA` o
 `DISEMINADO`** — el problema rural que ya se veía en A4. Las urbanas de verdad son la Ilustración,
