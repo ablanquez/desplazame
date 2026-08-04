@@ -37,6 +37,7 @@ const osm = require('./osm');
 const AB = require('./asignar-bici');
 const H = require('./heredar-nombre');
 const NL = require('./nombre-largo');
+const CP = require('./calle-pegada');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 
 /** Huella del grafo: si alguien lo muta, esto cambia. */
@@ -129,9 +130,133 @@ function deducirPorWay(g, portales, op = {}) {
   return out;
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA 25 · EL SEGUNDO TESTIGO, Y EL CRUCE — idea de Antonio
+// ═════════════════════════════════════════════════════════════════════════════
+//   > *«Además del portal, ¿no puede comprobar que tiene otra línea en paralelo a
+//   >  nada de distancia que tiene el nombre, y compararlo contra los portales?»*
+//
+//   ⛔⛔ **NO ES HEREDAR EL NOMBRE DEL VECINO. SON DOS TESTIGOS INDEPENDIENTES:**
+//     · los **PORTALES** que dan a la línea → `codigoVia` del **Ayuntamiento**
+//     · la **CALLE PEGADA** a lo largo      → `name` de **OSM**
+//   Heredar del vecino sería OSM contra OSM. Cruzar dos fuentes distintas es otra
+//   cosa, y §C3 lo mide: de los 198 portales que sabemos mal enganchados, la
+//   paralela opina en 67 y **en 0 dice lo mismo que el portal malo**.
+//
+//   ⭐ EL ACIERTO DE CADA CELDA, medido contra el patrón de verdad (§C2 del
+//     informe), es lo que fija la regla — no una preferencia mía:
+//
+//       CONCUERDAN (≥3 portales + paralela)          802   100,0 %
+//       ⭐ paralela + 1-2 portales que CONFIRMAN      677    99,4 %
+//       paralela sola, sin ningún portal            5090    91,7 %
+//       portales solos (≥3, lo que ya se aplicaba)  2264    86,9 %
+//       ⛔ paralela con la mayoría de portales EN CONTRA  87   86,2 %
+//
+//   ⇒ **Antonio tenía razón y está medido: UN portal con respaldo paralelo (99,4 %)
+//     es más fiable que TRES portales solos (86,9 %).** Dos fuentes coincidiendo no
+//     son tres votos de la misma.
+//
+//   LA REGLA, escrita antes de aplicarla:
+//     1 · los dos opinan y COINCIDEN            → se nombra (basta 1 portal)
+//     2 · los dos opinan y DISCREPAN            → ⛔ NO se nombra. Se cuenta.
+//     3 · solo la paralela, y la mayoría de los portales dice OTRA COSA
+//                                               → ⛔ NO se nombra (86,2 %: es la
+//                                                 celda mala, y va fuera)
+//     4 · solo la paralela, sin portales que la contradigan  → se nombra (91,7 %)
+//     5 · solo los portales (≥3, 2/3)           → se nombra, **como hasta hoy**
+//
+//   ⭐ Y CUANDO LOS DOS COINCIDEN, EL NOMBRE QUE SE IMPRIME ES EL DE OSM: D0 manda
+//     (`src/modelo.js` §A2). De paso el texto sale con mayúsculas y minúsculas sin
+//     que nadie las invente, porque se elige entre dos cadenas reales.
+
+/** El núcleo MAYORITARIO de los portales de un way, ⛔ sin mínimo de votos. */
+function mayoriaPortales(g, portales) {
+  const grupos = new Map();
+  for (const o of portales) {
+    if (o.arista == null || !o.via || !o.via.nucleo) continue;
+    const w = g.aristas[o.arista].way;
+    if (!grupos.has(w)) grupos.set(w, []);
+    grupos.get(w).push(o);
+  }
+  const out = new Map();
+  for (const [w, l] of grupos) {
+    const c = new Map();
+    for (const o of l) c.set(o.via.nucleo, (c.get(o.via.nucleo) || 0) + 1);
+    const or = [...c.entries()].sort((a, b) => b[1] - a[1]);
+    let mejor = null;
+    for (const o of l) {
+      if (o.via.nucleo !== or[0][0]) continue;
+      if (!mejor || NL.palabras(o.via.nucleo).length > NL.palabras(mejor.via.nucleo).length) mejor = o;
+    }
+    out.set(w, { nucleo: or[0][0], nombre: mejor.via.nombre, codigoVia: String(mejor.codigoVia),
+      votos: l.length, apoyo: or[0][1] });
+  }
+  return out;
+}
+
+const mismaVia = (a, b) => !!a && !!b && (a === b || NL.mismaVia(a, b));
+
+/**
+ * ⭐⭐ LOS DOS TESTIGOS, CRUZADOS. ⛔ No muta nada.
+ * @returns {Map<way, {estado, nucleo, nombre, codigoVia, apoyo, votos, testigos}>}
+ */
+function deducirCruzado(g, portales, op = {}) {
+  const port = deducirPorWay(g, portales, op);
+  const may = mayoriaPortales(g, portales);
+  const nombreDeWay = (id) => g.nombres.get(id) || null;
+  const nucleoDeWay = CP.nucleoDeWayDe(g);
+  const par = op.sinParalela ? new Map() : CP.decidirTodos(g, nucleoDeWay, nombreDeWay, op);
+
+  const out = new Map();
+  for (const w of new Set([...port.keys(), ...par.keys()])) {
+    const pv = port.get(w) || null;
+    const a = (pv && pv.estado === 'NOMBRADA') ? pv : null;
+    const pr = par.get(w) || null;
+    const b = (pr && pr.estado === 'PEGADA') ? pr : null;
+    const m = may.get(w) || null;
+
+    if (a && b) {
+      if (mismaVia(a.nucleo, b.nucleo)) {
+        // ⭐ D0 manda: el nombre que se imprime es el de OSM (el de la paralela)
+        out.set(w, { estado: 'NOMBRADA', testigos: 'portales+pegada',
+          nucleo: b.nucleo, nombre: b.nombre, codigoVia: a.codigoVia,
+          apoyo: a.apoyo, votos: a.votos, dMax: b.dMax });
+      } else {
+        out.set(w, { estado: 'DISCREPAN', votos: a.votos,
+          nucleoPortales: a.nucleo, nucleoPegada: b.nucleo });
+      }
+      continue;
+    }
+    if (a) { out.set(w, { estado: 'NOMBRADA', testigos: 'portales', ...a }); continue; }
+    if (b) {
+      // ⛔ la celda mala: la mayoría de los portales dice otra cosa (86,2 %)
+      if (m && !mismaVia(m.nucleo, b.nucleo)) {
+        out.set(w, { estado: 'DISCREPAN', votos: m.votos,
+          nucleoPortales: m.nucleo, nucleoPegada: b.nucleo });
+        continue;
+      }
+      if (m) {
+        // ⭐ 1-2 portales que CONFIRMAN: 99,4 %. Es el caso de Antonio.
+        out.set(w, { estado: 'NOMBRADA', testigos: 'portales+pegada',
+          nucleo: b.nucleo, nombre: b.nombre, codigoVia: m.codigoVia,
+          apoyo: m.apoyo, votos: m.votos, dMax: b.dMax });
+        continue;
+      }
+      out.set(w, { estado: 'NOMBRADA', testigos: 'pegada',
+        nucleo: b.nucleo, nombre: b.nombre, codigoVia: null,
+        apoyo: b.apoyo, votos: 0, dMax: b.dMax });
+      continue;
+    }
+    // ninguno de los dos nombra: se guarda POR QUÉ, que también es un resultado
+    out.set(w, { estado: (pv && pv.estado) || 'MUDA', pegada: pr ? pr.estado : null,
+      votos: pv ? pv.votos : 0 });
+  }
+  return out;
+}
+
 /**
  * ⭐ El modelo. Devuelve un array paralelo a `g.aristas`. ⛔ No muta `g`.
- * @param {Map} [deducidas] salida de `deducirPorWay` — la tercera fuente (tanda 21)
+ * @param {Map} [deducidas] salida de `deducirCruzado` — la tercera fuente
  * @returns {Array<{via, forma, papel}>}
  */
 function aplicar(g, tags, tabla, vias, deducidas) {
@@ -169,7 +294,12 @@ function aplicar(g, tags, tabla, vias, deducidas) {
     if (!via && deducidas) {
       const d = deducidas.get(e.way);
       if (d && d.estado === 'NOMBRADA') {
-        via = { nombre: d.nombre, codigoVia: d.codigoVia, fuente: 'portales',
+        // ⭐ `fuente` dice de dónde sale el nombre; `testigos`, quién lo respalda.
+        //   Los dos viajan: el redactor los necesita para decir la verdad de cómo
+        //   lo sabe (tanda 25), y el orden de `nombreDelPaso` los usa.
+        via = { nombre: d.nombre, codigoVia: d.codigoVia,
+          fuente: d.testigos === 'pegada' ? 'calle-pegada' : 'portales',
+          testigos: d.testigos || 'portales',
           declarada: false, apoyo: d.apoyo, votos: d.votos };
       }
     }
@@ -282,7 +412,7 @@ function construirModelo(g, portales, op = {}) {
   const vias = P.cargarVias();
   const asig = AB.asignar(g, AB.cargarCapa().lineas, (w) => F.plataforma(tags.get(w)),
     { idx: AB.indexar(g.aristas) });
-  const deducidas = op.sinPortales ? null : deducirPorWay(g, portales, op);
+  const deducidas = op.sinPortales ? null : deducirCruzado(g, portales, op);
   const M = aplicar(g, tags, asig.tabla, vias, deducidas);
   const deWay = resolverPorWay(g, M);
   return { M, deWay, deducidas, tags, vias, asig, modeloDeWay: (w) => deWay.get(w) || null };
@@ -509,24 +639,43 @@ if (require.main === module) {
     di('   aristas que ganan vía DEDUCIDA de los portales', `${port.n}  (${km(port.m)})   ⛔ marcadas `
       + '`declarada: false`');
     {
+      // ⚠️ SOLO sobre los ways SIN nombre en OSM: en los demás el método corre pero
+      //    su resultado no se usa (D0 manda), y contarlos engordaría el cuadro con
+      //    decisiones que no llegan a ninguna parte.
       const est = new Map();
-      for (const d of deducidas.values()) est.set(d.estado, (est.get(d.estado) || 0) + 1);
-      log('   ' + 'resultado del método, por WAY'.padEnd(34) + 'ways'.padStart(10));
-      for (const [k, v] of [...est.entries()].sort((a, b) => b[1] - a[1])) {
-        log('   ' + String(k).padEnd(34) + String(v).padStart(10));
+      let sinOsm = 0;
+      for (const [w, d] of deducidas) {
+        if (g.nombres.get(w)) continue;
+        sinOsm++;
+        est.set(d.estado, (est.get(d.estado) || 0) + 1);
       }
-      log('   ⚠️ AMBIGUA es un RESULTADO, no un problema: una acera de esquina tiene portales de');
-      log('      dos calles y no es de ninguna en exclusiva. Ahí NO se nombra.');
+      log('   ' + `resultado del cruce, por WAY (solo los ${sinOsm} sin nombre en OSM)`.padEnd(58) + 'ways'.padStart(10));
+      for (const [k, v] of [...est.entries()].sort((a, b) => b[1] - a[1])) {
+        log('   ' + String(k).padEnd(58) + String(v).padStart(10));
+      }
+      log('   ⚠️ AMBIGUA y DISCREPAN son RESULTADOS, no problemas: una acera de esquina tiene');
+      log('      portales de dos calles, y cuando los dos testigos no dicen lo mismo NO se nombra.');
+      // ⭐ quién nombra: los dos, los portales solos, la paralela sola
+      const tes = new Map();
+      for (const [w, d] of deducidas) {
+        if (g.nombres.get(w) || d.estado !== 'NOMBRADA') continue;
+        tes.set(d.testigos, (tes.get(d.testigos) || 0) + 1);
+      }
+      log('');
+      log('   ' + '⭐⭐ TANDA 25 · QUIÉN LO NOMBRA'.padEnd(58) + 'ways'.padStart(10));
+      for (const [k, v] of [...tes.entries()].sort((a, b) => b[1] - a[1])) {
+        log('   ' + String(k).padEnd(58) + String(v).padStart(10));
+      }
       // ⭐ cuánto aporta B (el nombre largo) DENTRO de A
-      const sinB = deducirPorWay(g, portalesEng, { sinNombreLargo: true });
+      const sinB = deducirCruzado(g, portalesEng, { sinNombreLargo: true });
       let nB = 0;
       for (const [w, d] of deducidas) {
-        if (d.estado !== 'NOMBRADA') continue;
+        if (g.nombres.get(w) || d.estado !== 'NOMBRADA') continue;
         const s = sinB.get(w);
         if (!s || s.estado !== 'NOMBRADA') nB++;
       }
       di('   ⭐ ways que SOLO se nombran gracias al nombre largo (§B)', nB);
-      global._PORT = { n: port.n, m: port.m, est, nB };
+      global._PORT = { n: port.n, m: port.m, est, tes, nB };
     }
     log('');
     di('⭐ aristas que GANAN vía (no tenían nombre en OSM)', `${gana.n}   ⚠️ el álgebra de A5 decía 2.632`);
@@ -648,4 +797,4 @@ if (require.main === module) {
 }
 
 module.exports = { aplicar, hashGrafo, dosPapeles, resolverPorWay, ACUERDO_WAY,
-  deducirPorWay, canonizar, construirModelo };
+  deducirPorWay, canonizar, construirModelo, deducirCruzado, mayoriaPortales };

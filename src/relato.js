@@ -198,6 +198,18 @@ const SUSTANTIVO_DEDUCIDO = {
 };
 const AVISO_DEDUCIDO = 'el nombre no lo dice el mapa: lo deduzco de los portales que dan a esta línea';
 
+// ⭐⭐ TANDA 25 · Y AHORA HAY DOS TESTIGOS, ASÍ QUE EL AVISO DICE CUÁL HABLÓ.
+//   ⛔ Decir «lo deduzco de los portales» cuando el nombre sale de la calle que va
+//     pegada sería contar una procedencia falsa — y la procedencia es justo lo que
+//     este aviso existe para contar.
+const AVISO_POR = {
+  'portales': AVISO_DEDUCIDO,
+  'portales+pegada': 'el nombre no lo dice el mapa: lo deducen a la vez los portales de esta línea y la calle que va pegada a ella',
+  'pegada': 'el nombre no lo dice el mapa: lo deduzco de la calle con nombre que va pegada a esta línea',
+};
+const avisoDeducido = (via) => AVISO_POR[(via && via.testigos) || 'portales'] || AVISO_DEDUCIDO;
+const esAvisoDeducido = (t) => Object.values(AVISO_POR).includes(t);
+
 /** La frase de un paso, a partir de lo que se sabe de él. */
 function fraseDe(t) {
   if (t.precision === 'paso-de-peatones') return 'Cruzas por un paso de peatones';
@@ -223,7 +235,7 @@ function tramo(p, nombreDeWay, n, modelo) {
   const anda = deModelo ? comoSeAnda(deModelo.forma) : { sustantivo: null, bici: false };
   const avisos = [];
   if (anda.bici) avisos.push(AVISO_BICIS);
-  if (deducida) avisos.push(AVISO_DEDUCIDO);
+  if (deducida) avisos.push(avisoDeducido(via));
   const ap = avisoPrecision(p.precision);
   if (ap) avisos.push(ap);
   if (p.condicional) avisos.push(avisoCondicional(p));
@@ -361,15 +373,18 @@ function tragar(u, v, comido) {
 function nombreDelPaso(u) {
   const conNombre = u.candidatos.filter((c) => c.nombre);
   if (!conNombre.length) return { nombre: null, deducida: false, sustantivo: null };
-  for (const f of ['osm', 'municipal-bici', 'portales']) {
+  // ⚠️ `calle-pegada` va la ÚLTIMA: es la fuente que no tiene ningún portal
+  //    detrás, la de menor acierto medido de las que se aplican (91,7 %).
+  for (const f of ['osm', 'municipal-bici', 'portales', 'calle-pegada']) {
     const l = conNombre.filter((c) => c.via && c.via.fuente === f);
     if (!l.length) continue;
     l.sort((a, b) => b.metros - a.metros);
-    return { nombre: l[0].nombre, deducida: f === 'portales',
-      sustantivo: l[0].sustantivo, fuente: f };
+    return { nombre: l[0].nombre, deducida: f === 'portales' || f === 'calle-pegada',
+      sustantivo: l[0].sustantivo, fuente: f, via: l[0].via };
   }
   const l = conNombre.slice().sort((a, b) => b.metros - a.metros);
-  return { nombre: l[0].nombre, deducida: !!l[0].deducida, sustantivo: l[0].sustantivo };
+  return { nombre: l[0].nombre, deducida: !!l[0].deducida, sustantivo: l[0].sustantivo,
+    via: l[0].via };
 }
 
 /**
@@ -479,8 +494,12 @@ function tramos(ruta, nombreDeWay, modelo, op) {
         : u.clave === '@escaleras' ? 'escaleras' : u.precision,
       nombre: n.nombre, sustantivo: n.sustantivo, deducida: n.deducida,
       tipo: u.tipo, tipoUnico: prs.length === 1 });
-    // ⛔ el aviso de «deducido» solo se queda si el nombre que se imprime lo es
-    if (!n.deducida) u.avisos = u.avisos.filter((a) => a.texto !== AVISO_DEDUCIDO);
+    // ⛔ el aviso de «deducido» solo se queda si el nombre que se imprime lo es —y
+    //    solo el que corresponde a ESE nombre: un paso puede fundir trozos
+    //    deducidos por testigos distintos, y contar los tres sería contar la
+    //    procedencia de nombres que no se imprimen (tanda 25).
+    const elMio = n.deducida ? avisoDeducido(n.via) : null;
+    u.avisos = u.avisos.filter((a) => !esAvisoDeducido(a.texto) || a.texto === elMio);
     u.avisos.sort((a, b) => b.metros - a.metros);
   });
   return lista;
@@ -666,4 +685,4 @@ function texto(res, opciones = {}) {
 module.exports = { texto, tramos, tramo, geometria, largoDe, aWgs, minutos,
   VELOCIDAD_KMH, TIPO, SUSTANTIVO, SUSTANTIVO_DEDUCIDO, comoSeAnda, fraseDe,
   claveDe, mismoPaso, nombreDelPaso, CORTO_M, AVISO_BICIS, AVISO_DEDUCIDO,
-  avisoPrecision, avisoCondicional };
+  AVISO_POR, avisoDeducido, esAvisoDeducido, avisoPrecision, avisoCondicional };
