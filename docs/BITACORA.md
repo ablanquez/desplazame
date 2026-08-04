@@ -5157,3 +5157,140 @@ umbral: está para cazar el algoritmo.** Aquí no dijo nada del percentil —el 
 mientras se rompía en una ruta. Los signos se cancelan; hay que comprobar donde no pueden.
 
 **Traza:** `src/relato.js` (`tramos`, la absorción de rachas), `src/pasos.js` (la monotonía por ruta)
+
+---
+
+## [2026-08-04] — El modelo no se cargaba en `ruta.js`, avisaba, y seguía sin él
+
+**Categoría:** silencio falso
+**Síntoma:** lo encontró Antonio. `node src/ruta.js "Salvador Minguijón 2" "Salvador Minguijón 40"`:
+
+```
+   ⚠️  sin modelo de vía·forma·papel: The "path" argument must be of type string
+       or an instance of Buffer or URL. Received undefined
+
+   1.   Por un tramo sin nombre (acera)                    63 m
+   ...
+   código de salida 0
+```
+
+**Devolvía la ruta.** Con las aceras como «un tramo sin nombre», como si el método de la tanda 21 no
+existiera. Con el modelo puesto, esa misma ruta empieza por **«Por Calle Salvador Minguijón, 450 m»**
+y tiene **5 pasos en vez de 7**.
+
+**Causa raíz:** **dependencia circular**. `src/modelo.js` hace `require('./ruta')` para coger `CRUDO`
+y `ZONA_TERMINO`. Cuando `ruta.js` se ejecuta **como programa**, su bloque `if (require.main ===
+module)` corría **antes** de la línea `module.exports = {…}`, que estaba al final del fichero. Desde
+ese bloque se pedía `./modelo`; modelo.js pedía `./ruta` de vuelta y **recibía un objeto vacío**.
+`CRUDO` salía `undefined` y `osm.cargar(undefined)` lanzaba un error de `path` **que no menciona el
+ciclo por ningún lado**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo**, y esto es lo grave.
+`probar-paradas.js --todo` pasó las tandas 21 y 22 enteras: `ruta.js` sale en **código 2** (una ruta
+de prueba sin camino) y el invariante solo exige que un fallo DECLARADO no salga en 0 — éste no
+estaba declarado, era un `console.error`. El guardián de las siete rutas, verde. El mapa de dos
+colores, verde y **correcto**. `probar-visor-rutas.js`, verde.
+⭐⭐ **Y Node lo estaba diciendo a gritos, en la última línea de la salida, las dos tandas:**
+`Warning: Accessing non-existent property 'ZONA_TERMINO' of module exports inside circular
+dependency`. **Nadie la leyó** — iba después del resultado, que es donde se deja de mirar.
+⭐ Y el `try/catch` que lo tapaba **lo escribí yo en la tanda 21**, pensando en un caso benigno —«si
+no hay portales, no se monta el modelo, y se dice»— y me tragué uno que no lo era.
+
+**Cómo se cazó:** usuario. Antonio leyó el aviso y preguntó por qué seguía.
+
+**Arreglo aplicado:** tres cosas, y las tres hacen falta:
+1. **La causa**: `module.exports` de `ruta.js` sube **por encima** del bloque `require.main`. Quien
+   entre por el ciclo encuentra el objeto ya completo.
+2. **La consecuencia**: fuera el `try/catch`. Si el modelo no carga, **`ruta.js` sale en 1 y no
+   imprime ninguna ruta**. Un resultado calculado sin modelo no es un resultado degradado: **es otro
+   resultado, y tiene el mismo aspecto.**
+3. **El portero**: `construirModelo()` comprueba lo que recibe y, si `CRUDO` no es una ruta, lanza un
+   error **que nombra el ciclo y dice dónde mirar**. Un error que no nombra su causa se despacha con
+   un `try/catch`, que es exactamente lo que pasó.
+
+⭐ Y `src/probar-modelo-obligatorio.js` guarda las tres: el ORDEN de los exports, que con el modelo
+roto a propósito el comando PARA, y un barrido que mide **qué scripts pasaban por el ciclo**.
+
+⭐⭐ **A quién más le pasaba: A NADIE.** Medido, no razonado — la sonda apunta `process.mainModule`
+en el momento en que modelo.js pide `./ruta`:
+
+```
+   ruta.js                     ¿pasaba por el ciclo?  SÍ
+   rutas-antonio.js · modelo.js · modelo-rutas.js · donde-falta.js
+   exportar-nombres.js · exportar-nombre-simple.js                    no
+```
+
+⇒ **El mapa de dos colores estaba bien.** Y con un segundo testigo independiente: sus 44.842 azules
+solo salen CON modelo; sin él serían 40.420.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un aviso al lado de un resultado es un resultado sin aviso.** Nadie
+lee lo que hay debajo de la respuesta que fue a buscar. Si algo hace que la respuesta sea OTRA
+respuesta, no se avisa: **se para**.
+⚠️ Y la segunda: **los avisos del propio Node son evidencia, no ruido.** «Accessing non-existent
+property … inside circular dependency» describía el fallo con precisión y llevaba dos tandas
+imprimiéndose.
+⚠️ Y la tercera, sobre mí: **un `try/catch` escrito pensando en un caso benigno se traga todos los
+demás.** Si se captura, hay que decir QUÉ se captura — y volver a lanzar el resto.
+
+**Traza:** `src/ruta.js` (orden de `module.exports`, el `try/catch` retirado), `src/modelo.js`
+(`construirModelo`), `src/probar-modelo-obligatorio.js`
+
+---
+
+## [2026-08-04] — La contraprueba del arreglo estaba verde sin haber probado nada: `NODE_OPTIONS` se come las barras
+
+**Categoría:** aviso falso (una prueba que aprueba sin ejecutar lo que dice)
+**Síntoma:** `src/probar-modelo-obligatorio.js` §3 rompe el modelo desde fuera con
+`NODE_OPTIONS=--require "<fichero>"` y exige que `ruta.js` pare. Salió esto:
+
+```
+   código de salida con el modelo roto     1  ✅ PARA
+   ⭐ y NO imprime ninguna ruta                ✅
+   el motivo, en el mensaje                   ⚠️ no se ve el motivo
+```
+
+**Verde.** Y falso: **el precargado no llegaba a cargarse nunca.** `NODE_OPTIONS` interpreta la barra
+invertida como escape dentro de las comillas, así que la ruta del fichero llegaba a Node sin sus
+separadores y el proceso moría con `MODULE_NOT_FOUND` **antes de arrancar** —código 1 y ninguna ruta
+impresa—: **exactamente los dos síntomas que la contraprueba buscaba.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ las dos comprobaciones de §3, y la
+tercera —la única que podía cazarlo— salió **⚠️ y no ⛔**: «el motivo, en el mensaje: no se ve el
+motivo». **La escribí como aviso en vez de como exigencia**, y era la que estaba diciendo la verdad.
+⭐ Y §1, §2 y §4 seguían siendo válidas, así que el informe entero se leía sólido.
+
+**Causa raíz:** tres fallos de la misma clase en el mismo fichero, y cada uno destapó al siguiente:
+· `NODE_OPTIONS` y las barras invertidas de Windows;
+· en un precargado, **`require.main` es `undefined` para siempre** —se captura al envolver el módulo,
+  y ahí el módulo principal aún no existe—, así que la columna «¿pasaba por el ciclo?» decía **«no»
+  en las siete filas**, incluida la que sí. Otra vez **la respuesta cómoda**;
+· y `process.stdout.write` seguido de `process.exit()` pierde la salida cuando stdout es una tubería:
+  la primera sonda no reportaba nada y eso se leía como «no carga el modelo».
+**Las tres son la misma raíz: di por hecho que un mecanismo estaba vivo sin comprobarlo.**
+
+**Cómo se cazó:** por el reloj. El barrido de siete scripts que tardan 20–60 s cada uno terminaba en
+**14 segundos**. Un total que no puede ser (ley 51: cuando el número contradice a la aritmética, el
+número está mal).
+
+**Arreglo aplicado:** la ruta del precargado va con barras normales (`path.sep` → `/`), la sonda usa
+`process.mainModule` —que sí es vivo— y escribe su veredicto en un **fichero**, no en stdout. Y
+⭐⭐ **la prueba se prueba a sí misma antes de usarse**: `precargadoVivo()` arranca un `node -e` que
+comprueba que el precargado ha puesto su bandera. Si no está vivo, **la contraprueba se declara falsa
+y sale en rojo**. Además el «⚠️ no se ve el motivo» pasa a ser un `A.exige`: **si `ruta.js` muere,
+tiene que morir por NUESTRA razón y no por otra.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **una contraprueba tiene que demostrar que su palanca está conectada.**
+Romper algo desde fuera solo prueba lo que dice si la rotura llegó a ocurrir; si el mecanismo de
+romper falla, el fallo del mecanismo se disfraza del resultado esperado — **y se disfraza siempre de
+verde**, porque «murió y no imprimió nada» es justo lo que se estaba buscando.
+⚠️ Y la que se repite por tercera vez en tres tandas (nº98, nº101, ésta): **el arnés es un
+instrumento y miente.** Aquí mintió tres veces en el mismo fichero, y las tres en la dirección
+tranquilizadora.
+⚠️ Y la operativa que lo cazó: **mirar el reloj.** Siete procesos de medio minuto no caben en catorce
+segundos.
+
+**Traza:** `src/probar-modelo-obligatorio.js` (`precargar`, `precargadoVivo`, la sonda de §5)

@@ -246,6 +246,28 @@ function resolver(g, latO, lonO, latD, lonD) {
   };
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⛔⛔ LOS EXPORTS VAN **ANTES** DEL BLOQUE DE LÍNEA DE ÓRDENES, Y NO ES ESTILO
+// ═════════════════════════════════════════════════════════════════════════════
+//   Estaban debajo, y eso rompió el modelo en silencio durante dos tandas
+//   (bitácora nº105).
+//
+//   `src/modelo.js` hace `require('./ruta')` para coger `CRUDO` y `ZONA_TERMINO`.
+//   Cuando este fichero se ejecuta como programa —`node src/ruta.js …`—, el bloque
+//   de abajo corre **antes** de que `module.exports` esté asignado. Si desde ahí se
+//   pide `./modelo`, modelo.js recibe un `{}` vacío: **`CRUDO` sale `undefined`** y
+//   el modelo revienta con un error de `path` que no dice nada del ciclo.
+//
+//   ⇒ Con los exports arriba, cualquiera que entre por el ciclo encuentra el objeto
+//     ya completo. ⛔ NO se mueve el bloque de abajo ni se cambia ningún require:
+//     lo que se arregla es EL ORDEN, que es lo que estaba mal.
+//   ⚠️ Node ya lo estaba diciendo, y nadie lo leyó:
+//        Warning: Accessing non-existent property 'ZONA_TERMINO' of module exports
+//        inside circular dependency
+module.exports = { construir, resolver, engancharPunto, declarar, nombreDeZona,
+  ZONAS, ZONA_CASCO, ZONA_TERMINO, ZONA_TANDA3, contiene, CRUDO,
+  MAX_ENGANCHE_M, AVISO_ENGANCHE_M };
+
 if (require.main === module) {
   const arg = process.argv.slice(2);
   // ⭐ TANDA 16 · por defecto contesta en TEXTO, porque esto lo lee una persona en
@@ -311,14 +333,17 @@ if (require.main === module) {
       //    está resuelta cuando esto se monta.
       //    ⚠️ Cuesta ~10 s y necesita los portales enganchados, así que solo se
       //    monta cuando los hay — con `--coords` no se enganchan y se dice.
+      // ⛔⛔ SI EL MODELO NO CARGA, ESTO **PARA**. No sigue sin él.
+      //    Antes había aquí un `try/catch` que imprimía un aviso y continuaba, y
+      //    el resultado salía con las aceras «sin nombre» como si el método de la
+      //    tanda 21 no existiera. **Un resultado calculado sin modelo no es un
+      //    resultado degradado: es OTRO resultado**, y sale con el mismo aspecto.
+      //    ⚠️ Es la ley 44 con la forma más cara: un `⚠️` impreso y código 0.
+      //    ⇒ el error sube al `catch` de fuera, que sale en 1 (bitácora nº105).
       let modeloDeWay = null;
       if (ctxDir && !process.argv.includes('--sin-modelo')) {
-        try {
-          const Mo = require('./modelo');
-          modeloDeWay = Mo.construirModelo(g, ctxDir.enganche.portales.filter((o) => o.enganchado)).modeloDeWay;
-        } catch (e) {
-          console.error('   ⚠️  sin modelo de vía·forma·papel: ' + e.message);
-        }
+        const Mo = require('./modelo');
+        modeloDeWay = Mo.construirModelo(g, ctxDir.enganche.portales.filter((o) => o.enganchado)).modeloDeWay;
       }
       console.log(Rel.texto(salida, { origen: etqO, destino: etqD, nombreDeWay,
         rodeo: salida.rodeo, engancheOrigen: salida.engancheOrigen,
@@ -340,7 +365,3 @@ if (require.main === module) {
     process.exit(1);
   }
 }
-
-module.exports = { construir, resolver, engancharPunto, declarar, nombreDeZona,
-  ZONAS, ZONA_CASCO, ZONA_TERMINO, ZONA_TANDA3, contiene, CRUDO,
-  MAX_ENGANCHE_M, AVISO_ENGANCHE_M };

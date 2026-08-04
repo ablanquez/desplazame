@@ -240,6 +240,20 @@ function resolverPorWay(g, M) {
 //   ⚠️ Cuesta: relee el crudo de OSM y monta la asignación municipal. Una vez por
 //      proceso, y los portales se le pasan YA enganchados.
 function construirModelo(g, portales, op = {}) {
+  // ⛔⛔ EL PORTERO, Y ESTÁ AQUÍ A PROPÓSITO: es el sitio por el que entran TODOS.
+  //    `CRUDO` llega `undefined` cuando alguien cae en la dependencia circular con
+  //    `ruta.js` (bitácora nº105), y entonces `osm.cargar(undefined)` lanza un
+  //    error de `path` que no menciona el ciclo por ningún lado. Un fallo que no
+  //    nombra su causa se despacha con un `try/catch`, que es justo lo que pasó.
+  //    ⇒ se comprueba lo que se recibe, y el mensaje dice qué mirar.
+  if (typeof CRUDO !== 'string' || !CRUDO) {
+    throw new Error('construirModelo: `CRUDO` no es una ruta (' + String(CRUDO) + '). '
+      + 'Casi seguro es la dependencia circular con `ruta.js`: si `ruta.js` se ejecuta '
+      + 'como programa y pide `./modelo`, sus `module.exports` tienen que estar '
+      + 'asignados ANTES del bloque `require.main`.');
+  }
+  if (!g || !g.aristas || !g.zona) throw new Error('construirModelo: el grafo no está construido');
+  if (!Array.isArray(portales)) throw new Error('construirModelo: hacen falta los portales YA enganchados');
   const tags = new Map();
   for (const w of osm.recortar(osm.cargar(CRUDO).ways, g.zona)) tags.set(w.id, w.tags || {});
   const vias = P.cargarVias();
