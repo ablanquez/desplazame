@@ -248,6 +248,54 @@ log('   ⚠️ Es lo único que impide que un nombre informativo se lea como un 
   A.exige(gD.includes(G.textos[conD.d[0]]), 'el globo no enseña el nombre deducido');
   A.exige(!!sinD && /NO se podría deducir/.test(V.globo(sinD)), 'el globo no distingue una arista sin votos bastantes');
   A.exige(/lo dice/.test(gN) && gN.includes(G.textos[conN.n]), 'el globo de una arista con nombre no enseña su nombre');
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⚠️⚠️ TANDA 31 · LA MISMA FORMA DEL nº105, ENCONTRADA BUSCÁNDOLA A PROPÓSITO
+  // ═══════════════════════════════════════════════════════════════════════════
+  //   Todo lo de arriba mira **UNA arista de muestra** y comprueba que su globo
+  //   CONTIENE una frase. Eso es exactamente la forma que la tanda 29 destapó en
+  //   `probar-modelo-obligatorio.js` §2: *la comprobación busca algo que otra
+  //   fuente aporta por su cuenta*. Medido sobre las tres familias enteras:
+  //
+  //       «NO está aplicado»      1.292 de 1.292 deducidas   ✅
+  //                               2.575 de 2.575 SIN VOTOS   ⛔⛔  ← no distingue
+  //                                   0 de 41.930 con nombre  ✅
+  //
+  //   ⇒ **`«NO está aplicado»` no separa «deducida» de «sin votos»: lo lleva
+  //     cualquier arista sin nombre.** La línea de arriba se lee como si probara
+  //     que el globo distingue el nombre deducido, y lo único que prueba es que
+  //     distingue «tiene nombre» de «no lo tiene».
+  //   ⛔ La línea vieja NO se borra: sigue siendo cierta, y quitarla dejaría este
+  //     fichero pareciendo que siempre supo lo que estaba comprobando.
+  //   ⭐ Lo que se añade es la pareja que SÍ separa, sobre las familias enteras y
+  //     no sobre una muestra: `«NO se podría deducir»` tiene que salir en TODAS
+  //     las sin votos y en NINGUNA deducida.
+  {
+    const fam = (f) => G.aristas.filter(f);
+    const dedu = fam((a) => a.d && a.d[0] >= 0);
+    const sinV = fam((a) => a.d && a.d[0] < 0);
+    const conNom = fam((a) => a.k === 0);
+    const cuenta = (l, rx) => l.filter((a) => rx.test(V.globo(a))).length;
+    const apl = [cuenta(dedu, /NO está aplicado/), cuenta(sinV, /NO está aplicado/), cuenta(conNom, /NO está aplicado/)];
+    const pod = [cuenta(dedu, /NO se podría deducir/), cuenta(sinV, /NO se podría deducir/)];
+    log('');
+    log('   ⚠️⚠️ ¿DISTINGUE DE VERDAD, O LO DICE DE TODAS? — medido sobre las familias enteras');
+    log('   ' + 'frase del globo'.padEnd(26) + 'deducidas'.padStart(12) + 'sin votos'.padStart(12) + 'con nombre'.padStart(13));
+    log('   ' + '«NO está aplicado»'.padEnd(26) + `${apl[0]}/${dedu.length}`.padStart(12)
+      + `${apl[1]}/${sinV.length}`.padStart(12) + `${apl[2]}/${conNom.length}`.padStart(13));
+    log('   ' + '⭐ «NO se podría deducir»'.padEnd(27) + `${pod[0]}/${dedu.length}`.padStart(12)
+      + `${pod[1]}/${sinV.length}`.padStart(12) + '—'.padStart(13));
+    log('   ⛔ «NO está aplicado» NO separa deducida de sin-votos: lo lleva cualquiera sin nombre.');
+    log('     Se deja dicho, porque la comprobación de arriba se lee como si lo separara.');
+    // ⭐ y ésta SÍ es una pareja discriminante: todas de un lado, ninguna del otro
+    di('⭐⭐ «NO se podría deducir»: TODAS las sin votos y NINGUNA deducida',
+      (pod[1] === sinV.length && pod[0] === 0) ? '✅ separa' : '⛔ NO separa');
+    A.exige(pod[1] === sinV.length && pod[0] === 0,
+      `el globo no separa «sin votos» de «deducida»: ${pod[1]} de ${sinV.length} y ${pod[0]} de ${dedu.length}`);
+    // ⭐ y que las tres familias existan: si alguna fuera 0, lo de arriba pasaría por vacío
+    A.exige(dedu.length > 0 && sinV.length > 0 && conNom.length > 0,
+      `alguna familia está vacía (${dedu.length}/${sinV.length}/${conNom.length}): esta comprobación pasaría por vacío`);
+  }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
