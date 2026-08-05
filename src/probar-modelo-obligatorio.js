@@ -192,7 +192,9 @@ log('   `./ruta` y **aborta en el acto**: interesa el ciclo, no el resultado.');
     // ⭐ TANDA 25 · éste entra por el ciclo al revés: su informe pide `./modelo`, y
     //   `modelo.js` pide `./calle-pegada` de vuelta. Por eso sus `module.exports`
     //   están ARRIBA, y por eso está en esta lista.
-    'calle-pegada.js'];
+    'calle-pegada.js',
+    // ⭐ TANDA 26 · el mismo día que nace, no cuando falle (ley del nº109).
+    'paso-de-cebra.js'];
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'desplazame-ciclo-'));
   const sonda = path.join(tmp, 'sonda.js');
   const buzon = path.join(tmp, 'veredicto.txt').replace(/\\/g, '/');
