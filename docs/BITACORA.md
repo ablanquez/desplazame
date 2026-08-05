@@ -6163,3 +6163,237 @@ segunda ronda de mutaciones de la tanda 29 (0,1 s por script) y ésta. **Un inst
 mirar es más rápido que uno que mira, siempre, y ésa es la única señal que da.**
 
 **Traza:** `src/probar-paradas.js` (§P4 y la bandera `--todo`)
+
+---
+
+## [2026-08-05] — Inventé una opción que `construirModelo` no tiene, y el «antes» salió clavado al ahora
+
+**Categoría:** medida mal apuntada
+**Síntoma:** para atribuir el movimiento del reparto del mapa —51.556 → 51.493 al aplicar la regla
+estricta de bicis— monté el «antes» así:
+
+```js
+const antes = Mo.construirModelo(g, portales, { asignacion: asigL.tabla });
+```
+
+```
+azules con asignacion LAXA: 51493   con ESTRICTA: 51493   delta 0
+aristas que cambian de categoria: 0
+fuente del nombre que PIERDEN: []
+```
+
+**Delta cero, y las dos columnas dando el número de HOY.** `construirModelo` no tiene ninguna opción
+`asignacion`: monta la asignación por su cuenta, ignora lo que le pases y devuelve el modelo actual
+dos veces.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el script entero**. No lanzó, no
+avisó, imprimió sus tres líneas con formato y un `delta 0` perfectamente legible. ⚠️ **Una opción que
+no existe no es un error en JavaScript: es una propiedad más de un objeto que nadie mira.** El
+lenguaje no tiene forma de quejarse, así que el instrumento arranca, corre veinte segundos y no mide
+nada.
+
+**Cómo se cazó:** ⭐⭐ **porque el «antes» salió CLAVADO al ahora**, que es el mismo síntoma del nº121
+—donde el «antes» de la tanda 26 salía idéntico al ahora por hacerle la pregunta de hoy—. Van tres
+veces (nº117, nº121 y ésta) que lo que delata a la palanca desconectada es **que los dos lados del
+experimento dan lo mismo**. ⛔ Y no lo delató ningún ⛔: lo delató mirar el número esperando que
+fuera distinto.
+
+**Causa raíz:** di por hecho que la opción existía porque el fichero YA tiene tres opciones de ese
+estilo (`pasosConNombre`, `sinParalela`, `sinPortales`). ⚠️ Que un módulo tenga opciones de una
+familia no significa que tenga la que hace falta, y **el parecido con lo que sí existe es justo lo
+que evita que lo compruebes**.
+
+**Arreglo aplicado:** se añade `op.asignacionLaxa` a `construirModelo`, que sí llega hasta
+`AB.asignar({ laxo })`, y **se comprueba que la palanca mueve algo antes de usarla**: se imprime
+`aristas asignadas laxa/estricta` (3.557 / 3.472) y solo entonces se lee el resultado. Con la palanca
+conectada: azules 51.556 → 51.493, y **las 63 que pierden el nombre son todas de `municipal-bici`**.
+⭐ Y el «antes» reproduce **51.556 clavado**, que es el número congelado de la tanda 30: ése es el
+positivo de control que dice que la reconstrucción es de verdad.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **una opción que no existe se pasa igual de bien que una que sí.** En un
+objeto de opciones no hay nada que falle cuando te inventas una clave: el experimento corre entero y
+devuelve el estado que querías cambiar. ⇒ **antes de leer el resultado de una palanca, se enseña que
+la palanca movió algo** — y con un número que no sea el resultado, porque si usas el resultado estás
+comprobando la conclusión con la conclusión.
+
+**Traza:** `src/modelo.js` (`construirModelo`, `op.asignacionLaxa`), `src/puertas-sin-calle.js`
+
+---
+
+## [2026-08-05] — Leí el código de salida de `tail` y di por verde un script que salía en rojo
+
+**Categoría:** aviso falso
+**Síntoma:** cerrando la medición de las puertas sin calle:
+
+```
+node src/puertas-sin-calle.js 2>&1 | tail -45; echo "codigo=$?"
+   …
+   ⇒ ⛔ LAS PUERTAS SIN CALLE: 1 FALLO(S). El proceso saldrá en rojo.
+codigo=0
+```
+
+**El script declara un fallo, la alarma dice que saldrá en rojo, y la línea de abajo dice `codigo=0`.**
+Las dos cosas en la misma pantalla, y las dos ciertas: `$?` era el código de `tail`, no el de `node`.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la costumbre.** Llevo toda la tanda
+cerrando comandos con `; echo "codigo=$?"` y las veces anteriores no había tubería, así que el número
+era el bueno. **Un patrón que ha funcionado diez veces se deja de leer.**
+
+**Cómo se cazó:** por la contradicción, no por el código: el texto del propio script decía «saldrá en
+rojo» tres líneas más arriba. ⚠️ Si el script hubiera sido menos hablador, me lo trago.
+
+**Causa raíz:** en una tubería, `$?` es el código del ÚLTIMO mandato, y `tail` casi siempre sale en 0.
+⇒ **el instrumento con el que compruebo si algo salió bien es el que no estaba mirando.**
+
+**Arreglo aplicado:** el código se toma sin tubería —`node … > fichero 2>&1; echo $?`— y se lee del
+fichero lo que haga falta. ⛔ No se arregla nada del proyecto: el fallo era de cómo lo estaba
+mirando, y el script hacía exactamente lo que debía.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **el código de salida no sobrevive a una tubería.** Y la general, que es
+la que importa: **el instrumento con el que se comprueba también es un instrumento.** Van dos en dos
+tandas —el nº122 fue dar por corrida una batería que no barrió nada— y las dos veces el error no
+estaba en lo medido sino en cómo lo estaba leyendo.
+
+**Traza:** (ninguna en el repositorio: es un fallo de método)
+
+---
+
+## [2026-08-05] — Conté cero avisos de bici buscando una palabra que el texto no usa
+
+**Categoría:** cero sin positivo de control
+**Síntoma:** comprobando si el titular «el aviso de bicis sale en 5 de los 82 pasos» seguía vigente,
+mi contador dijo:
+
+```
+menciones de bici en el texto: 0
+```
+
+**Cero.** Y el número publicado era 5, así que a punto estuve de publicar «otro número caducado: de 5
+a 0», que habría sido un hallazgo inventado sobre un texto que no ha cambiado.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la otra mitad del mismo comando**, que
+contaba los pasos de las siete rutas y dio 74 —correcto, y además destapó un caducado de verdad—. ⚠️
+**Un comando que acierta en una columna se lee como si acertara en las dos.**
+
+**Cómo se cazó:** ⭐ **por la regla del proyecto**: todo cero se demuestra con un positivo de control.
+Se buscó `bici` a secas y salieron **5**, con su frase: *«bicis: conviene ir atento»*. ⇒ el texto dice
+**«bicis»**, y yo estaba buscando `bicicleta` y `carril bici`.
+
+**Causa raíz:** escribí el patrón desde lo que yo diría, no desde lo que dice el redactor. ⛔ Y el
+redactor está en el repositorio: mirarlo costaba un `grep`.
+
+**Arreglo aplicado:** ninguno en el código —no hay nada roto—. El número se confirma: **5 avisos, los
+mismos**, y lo que cambia es el denominador (5 de 74, no 5 de 82).
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un cero de un buscador es un resultado sobre el buscador hasta que se
+demuestra lo contrario.** La regla del proyecto ya lo decía; lo que añade este caso es **cuándo pica**:
+cuando el cero CONFIRMA algo interesante. «De 5 a 0» era un titular, y un titular baja las ganas de
+comprobar el instrumento que lo produjo.
+
+**Traza:** (ninguna en el repositorio: es un fallo de método)
+
+---
+
+## [2026-08-05] — 950 m de pasillos de edificio se escribían como «eje de calzada»
+
+**Categoría:** clasificación mal hecha
+**Síntoma:** el invariante `plataforma ⇄ precision` de `modelo.js` llevaba desde la tanda 19 sacando
+una familia de choque **no predicha**:
+
+```
+   familia del choque                                          aristas      metros
+   plataforma-peatonal ⇄ eje-de-calzada   (highway=corridor)        22       950 m
+```
+
+Un `highway=corridor` es el pasillo interior de un edificio. `precision()` no lo conocía, así que
+caía al valor por defecto del final de la función: **`eje-de-calzada`**. ⇒ 22 aristas y 950 m de
+pasillo se contaban en la tabla D4 —y se escribían en el texto de las rutas— como el eje de una
+calzada.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo lo demás que el proyecto sabe
+de un `corridor`, que es bastante y es correcto.** `forma.js:81` le da `plataforma-peatonal`, y
+`condicionales.js:54` lo trata como **paso condicional FIRME** —«atravesar algo que tiene dueño y
+puerta»— y el texto ya avisa de él desde la tanda 12. ⚠️ **Estaba bien clasificado en dos sitios de
+tres, y eso es justo lo que hizo que nadie mirara el tercero.**
+
+**Cómo se cazó:** ⭐ **lo cazó el invariante, y desde el primer día.** No es que no hubiera guardián:
+lo había, decía la verdad, salía en rojo cada ejecución, y estuvo doce tandas esperando a que alguien
+decidiera. ⇒ el fallo no fue de detección: fue de **cola**.
+
+**Causa raíz:** `precision()` termina en `return 'eje-de-calzada'` sin cajón de «otros». Cualquier
+`highway` que no esté en sus cinco listas **se convierte en calzada en silencio**. ⛔ No hay ninguna
+señal de que se haya caído al defecto: un valor por defecto es indistinguible de una decisión.
+
+**Arreglo aplicado:** `corridor` entra en la lista de `peatonal`, que es donde ya están `footway`,
+`pedestrian`, `path` y `living_street`. ⛔ No hace falta categoría nueva ni tocar la transitabilidad:
+la precisión no entra en el coste ni en `transitableAPie()` —comprobado, sus únicos consumidores son
+el hash del grafo, la fusión de pasos del relato y los informes—, y **las siete rutas salen idénticas
+al milímetro**.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un `return` por defecto al final de un clasificador convierte «no lo
+conozco» en una afirmación**, y no deja rastro de que se ha caído ahí. La forma que sí avisa es la de
+`plataforma()`, que tiene nueve valores y **ninguno es «otros»**.
+⚠️ Y la segunda, que es de proceso: **un rojo que lleva doce tandas abierto ya no es un aviso, es
+mobiliario.** Éste decía exactamente lo que pasaba, con su familia y sus metros, todos los días.
+
+**Traza:** `src/planarizar.js` (`precision`), `src/modelo.js` (el invariante INV)
+
+---
+
+## [2026-08-05] — El hook rechazaba la práctica que el propio repositorio exige, y escribía en lo que vigila
+
+**Categoría:** aviso falso
+**Síntoma:** `.githooks/commit-msg` rechaza un `fix:` sin entrada de bitácora. Tenía **tres falsos
+positivos**, encontrados en la auditoría de la tanda 29 y nunca anotados aquí:
+
+```
+   ⛔ git commit --amend                         rechaza  Y ESCRIBE
+   ⛔ git commit --amend --no-edit               rechaza  Y ESCRIBE
+   ⛔ fix: con la entrada en el commit ANTERIOR  rechaza  Y ESCRIBE
+```
+
+⚠️⚠️ **Y el tercero es el que manda: `CLAUDE.md` exige commits ATÓMICOS.** Una entrada de bitácora y
+un arreglo son dos cosas. **El guardián castigaba exactamente la ley que venía a defender**, y la
+salida fácil —meterlo todo en un commit— es dejar que el guardián escriba la historia.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **su único caso, que funciona
+perfectamente**: `fix:` con la entrada en el mismo commit se acepta, y sin entrada se rechaza. El hook
+hacía bien lo que se le probó. **Nadie le había probado nunca un verde que no fuera el suyo**, que es
+la diferencia entre «se le ha visto el rojo» y «se le ha visto todo».
+
+**Cómo se cazó:** por mutación, en la tanda 29. ⚠️ Ninguna relectura lo habría dado: el código es
+correcto para la pregunta que se hace —«¿el diff en stage añade una cabecera?»—. Lo que estaba mal era
+**la pregunta**, no la respuesta.
+
+**Causa raíz:** los tres casos son el mismo: **la entrada existe, pero no en el diff en stage.** Y el
+efecto lateral —escribir el esqueleto en `docs/BITACORA.md` y añadirlo al stage— es la ley 39: un
+guardián que modifica el estado que vigila. En la tanda 26 eso coló una entrada entera de NO CONSTA
+dentro de un commit (nº112).
+
+**Arreglo aplicado:** una sola regla nueva cierra los tres: se acepta también si la entrada entró en
+**HEAD y no en HEAD~**. ⛔ No se detecta `--amend`, que desde `commit-msg` no se puede hacer
+limpiamente. Y el esqueleto va a `$GIT_DIR/BITACORA-ESQUELETO.md`, **fuera del árbol y sin `git add`**.
+⚠️ **Efecto lateral declarado: es más laxo** —una entrada puede cubrir dos `fix:` seguidos si van en
+el mismo commit—, y se acepta a cambio de cero falsos positivos.
+⭐ Y nace con `src/probar-hook.js`: su rojo, sus tres verdes, el límite de la laxitud (dos commits
+después ya se rechaza) y que el árbol quede intacto — **7 de 7, en un repositorio de usar y tirar**,
+con la palanca comprobada antes (un hook que rechaza todo tiene que rechazar).
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **a un guardián hay que verle los VERDES, no solo el rojo.** La ley del
+proyecto decía «no está hecho hasta que se ha visto su rojo», y este hook lo cumplía: se le había
+visto. Le faltaba lo otro —**qué rechaza que no debería**—, y ése es el fallo que hace que un guardián
+se desactive, que es peor que no tenerlo.
+⚠️ Y la segunda: **cuando un guardián y una ley del proyecto chocan, mira el guardián primero.** Aquí
+la ley era buena y el guardián estaba mal, pero la salida cómoda era al revés.
+
+**Traza:** `.githooks/commit-msg`, `src/probar-hook.js`

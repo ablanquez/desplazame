@@ -267,7 +267,22 @@ function precision(t) {
   if (t.footway === 'crossing' || t.highway === 'crossing') return 'paso-de-peatones';
   if (t.footway === 'sidewalk') return 'acera';
   if (t.highway === 'steps') return 'escaleras';
-  if (['footway', 'pedestrian', 'path', 'living_street'].includes(t.highway)) return 'peatonal';
+  // ⭐⭐ TANDA 31 · `corridor` ENTRA AQUÍ, y no es una categoría nueva.
+  //   Un `highway=corridor` es el pasillo interior de un edificio. A efectos del
+  //   modelo **ya estaba clasificado dos veces y bien**:
+  //     · `forma.js:81`         → plataforma `plataforma-peatonal`
+  //     · `condicionales.js:54` → paso condicional **FIRME** («atravesar algo que
+  //                               tiene dueño y puerta»), que es exactamente lo
+  //                               que es. Ya se avisa de ellos en el texto.
+  //   ⛔ El único sitio que NO lo conocía era esta función, y como no lo conocía
+  //     caía al valor por defecto del final: **`eje-de-calzada`**. O sea, 22
+  //     aristas y 950 m de pasillo de edificio contados —y escritos en el texto—
+  //     como el eje de una calzada.
+  //   ⇒ Lo caza el invariante de `modelo.js` como familia de choque NO predicha
+  //     («plataforma-peatonal ⇄ eje-de-calzada»), que es justo para lo que está.
+  //   ⚠️ No se toca la transitabilidad: la precisión no entra en el coste ni en
+  //     `transitableAPie()`. Lo que cambia es cómo se NOMBRA lo que se pisa.
+  if (['footway', 'pedestrian', 'path', 'living_street', 'corridor'].includes(t.highway)) return 'peatonal';
   if (t.sidewalk && !['no', 'none', 'separate'].includes(t.sidewalk)) return 'eje-con-acera-declarada';
   return 'eje-de-calzada';
 }
