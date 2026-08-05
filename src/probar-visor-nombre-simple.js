@@ -85,7 +85,8 @@ if (!V) { A.fallo('el visor no expone window.VISOR'); process.exit(1); }
 function arnes(reg, V) {
   const l = reg.filter((x) => x.tipo === 'polyline');
   return { azules: l.filter((x) => x.color === V.AZUL).length,
-    rojas: l.filter((x) => x.color === V.ROJO).length, total: l.length };
+    rojas: l.filter((x) => x.color === V.ROJO).length,
+    grises: l.filter((x) => x.color === V.GRIS).length, total: l.length };
 }
 
 // ── el cuadre ────────────────────────────────────────────────────────────────
@@ -96,7 +97,8 @@ log('   ' + ''.padEnd(24) + 'visor'.padStart(10) + 'arnés'.padStart(10) + 'dato
   const a = arnes(r.reg, V);
   const filas = [
     ['AZULES · con nombre', V.cuenta.azules, a.azules, G.contadores.conNombre],
-    ['ROJAS  · sin nombre', V.cuenta.rojas, a.rojas, G.contadores.sinNombre],
+    ['ROJAS  · le falta', V.cuenta.rojas, a.rojas, G.contadores.sinNombre],
+    ['GRISES · no aplica', V.cuenta.grises, a.grises, G.contadores.noAplica],
   ];
   for (const [k, v, ar, d] of filas) {
     const ok = v === d && ar === d;
@@ -105,7 +107,7 @@ log('   ' + ''.padEnd(24) + 'visor'.padStart(10) + 'arnés'.padStart(10) + 'dato
     A.exige(v === d, `${k}: el visor dice ${v} y el dato tiene ${d}`);
     A.exige(ar === d, `${k}: el arnés cuenta ${ar} y el dato tiene ${d}`);
   }
-  const suma = V.cuenta.azules + V.cuenta.rojas;
+  const suma = V.cuenta.azules + V.cuenta.rojas + V.cuenta.grises;
   di('⭐ suman', `${suma} de ${G.contadores.total}   ${suma === G.contadores.total ? '✅ ninguna sin pintar' : '⛔ FALTAN'}`);
   A.exige(suma === G.contadores.total, `se pintan ${suma} líneas y el grafo tiene ${G.contadores.total}`);
   A.exige(a.total === G.contadores.total, `el arnés cuenta ${a.total} polilíneas y el grafo tiene ${G.contadores.total}`);
@@ -131,10 +133,12 @@ log('        dicho nunca «hay uno más» no ha dicho nada (ley 52).');
   const aFin = arnes(r3.reg, r3.V);
 
   log('');
-  log('   ' + 'dato'.padEnd(34) + 'azules'.padStart(10) + 'rojas'.padStart(10));
-  log('   ' + 'real'.padEnd(34) + String(antes.azules).padStart(10) + String(antes.rojas).padStart(10));
-  log('   ' + 'real + 1 línea ROJA inventada'.padEnd(34) + String(aCon.azules).padStart(10) + String(aCon.rojas).padStart(10));
-  log('   ' + 'real otra vez (la falsa quitada)'.padEnd(34) + String(aFin.azules).padStart(10) + String(aFin.rojas).padStart(10));
+  const fil = (k, x) => log('   ' + k.padEnd(34) + String(x.azules).padStart(10)
+    + String(x.rojas).padStart(10) + String(x.grises).padStart(10));
+  log('   ' + 'dato'.padEnd(34) + 'azules'.padStart(10) + 'rojas'.padStart(10) + 'grises'.padStart(10));
+  fil('real', antes);
+  fil('real + 1 línea ROJA inventada', aCon);
+  fil('real otra vez (la falsa quitada)', aFin);
   log('');
   const seVe = aCon.rojas === antes.rojas + 1 && aCon.azules === antes.azules;
   const vuelve = aFin.rojas === antes.rojas && aFin.azules === antes.azules;
@@ -143,16 +147,20 @@ log('        dicho nunca «hay uno más» no ha dicho nada (ley 52).');
   A.exige(seVe, 'la línea falsa no aparece en el mapa: el visor se traga líneas en silencio');
   A.exige(vuelve, 'al quitar la línea falsa el mapa no vuelve a su cuenta anterior');
 
-  // ⭐ y la de control: una falsa AZUL tiene que ir al otro montón
-  const con2 = JSON.parse(JSON.stringify(base));
-  con2.aristas.push({ ...falsa, n: 1 });
-  con2.contadores.total++; con2.contadores.conNombre++;
-  const r4 = ejecutar('window.SIMPLE = ' + JSON.stringify(con2) + ';');
-  const aAz = arnes(r4.reg, r4.V);
-  di('⭐ una falsa CON nombre va al montón azul', aAz.azules === antes.azules + 1 && aAz.rojas === antes.rojas
-    ? '✅ +1 azul, las rojas igual' : '⛔ los dos colores no separan');
-  A.exige(aAz.azules === antes.azules + 1 && aAz.rojas === antes.rojas,
-    'una línea con nombre no se pinta de azul: los dos colores no separan');
+  // ⭐ y las de control: cada categoría tiene que ir a SU montón y solo al suyo
+  const control = (n, etq, campo) => {
+    const c2 = JSON.parse(JSON.stringify(base));
+    c2.aristas.push({ ...falsa, n });
+    c2.contadores.total++; c2.contadores[campo]++;
+    const x = arnes(ejecutar('window.SIMPLE = ' + JSON.stringify(c2) + ';').reg, V);
+    const ok = x.azules === antes.azules + (n === 1 ? 1 : 0)
+      && x.rojas === antes.rojas + (n === 0 ? 1 : 0)
+      && x.grises === antes.grises + (n === 2 ? 1 : 0);
+    di('⭐ una falsa ' + etq, ok ? '✅ +1 en su montón, los otros dos igual' : '⛔ las tres categorías no separan');
+    A.exige(ok, `una línea ${etq} no va a su montón: las tres categorías no separan`);
+  };
+  control(1, 'CON nombre → azul', 'conNombre');
+  control(2, 'de PASO DE PEATONES → gris', 'noAplica');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -181,38 +189,45 @@ log('='.repeat(88));
   const nombreDeWay = (id) => gr.nombres.get(id) || null;
 
   /** ⭐ Lo que el REDACTOR dice de esta línea. Pasa por `relato.js`, no por el dato. */
-  const nombreSegunElMotor = (e) =>
-    Rel.tramo({ way: e.way, precision: e.precision, metros: e.largo }, nombreDeWay, 0, modeloDeWay).nombre;
+  //   ⛔ Y la CATEGORÍA tampoco se decide aquí: se le pide al exportador la misma
+  //     función que usó para pintar (ley 56 — no copies la regla, llama a la
+  //     función). Si esto reimplementara «0/1/2», serían dos caminos otra vez.
+  const { CATEGORIA } = require('./exportar-nombre-simple');
+  const segunElMotor = (e) =>
+    CATEGORIA(Rel.tramo({ way: e.way, precision: e.precision, metros: e.largo }, nombreDeWay, 0, modeloDeWay));
 
-  const comparar = (colorDe, etq) => {
+  const NOMBRE = { 0: 'ROJA (le falta)', 1: 'AZUL (con nombre)', 2: 'GRIS (no aplica)' };
+  const comparar = (colorDe) => {
     let mal = 0; const ej = [];
     for (let i = 0; i < gr.aristas.length; i++) {
-      const azul = colorDe(i) === 1;
-      const conNombre = !!nombreSegunElMotor(gr.aristas[i]);
-      if (azul !== conNombre) { mal++; if (ej.length < 4) ej.push([i, azul, conNombre]); }
+      const pintado = colorDe(i), dice = segunElMotor(gr.aristas[i]);
+      if (pintado !== dice) { mal++; if (ej.length < 4) ej.push([i, pintado, dice]); }
     }
     return { mal, ej };
   };
 
   di('aristas del grafo', gr.aristas.length);
-  const r1 = comparar((i) => G.aristas[i].n, 'exportado');
+  const r1 = comparar((i) => G.aristas[i].n);
   di('⭐ líneas donde el color y el redactor NO coinciden', r1.mal + (r1.mal === 0 ? '   ✅' : '   ⛔'));
-  for (const [i, azul, con] of r1.ej) {
-    log('      ⛔ arista ' + i + ': el mapa la pinta ' + (azul ? 'AZUL' : 'ROJA')
-      + ' y el redactor ' + (con ? 'SÍ la nombra' : 'NO la nombra'));
+  for (const [i, p, d] of r1.ej) {
+    log('      ⛔ arista ' + i + ': el mapa la pinta ' + NOMBRE[p] + ' y el redactor dice ' + NOMBRE[d]);
   }
   A.exige(r1.mal === 0, `${r1.mal} líneas pintadas de un color que el redactor contradice`);
 
-  // ⭐⭐ Y SU ROJO, VISTO: la regla VIEJA —el nombre por arista— tiene que fallar.
-  //    Si no fallara, esta comprobación no distinguiría nada y valdría lo mismo que
-  //    los tres contadores que dejaron pasar el fallo.
+  // ⭐⭐ Y SU ROJO, VISTO: las reglas VIEJAS tienen que fallar. Si no fallaran, esta
+  //    comprobación no distinguiría nada y valdría lo mismo que los tres contadores
+  //    que dejaron pasar el fallo nº107.
   log('');
-  log('   ⭐⭐ EL ROJO DE ESTA COMPROBACIÓN, VISTO: se le da la regla VIEJA (el nombre por');
-  log('      ARISTA, la que pintaba el mapa hasta hoy) y TIENE que ponerse roja.');
-  const r2 = comparar((i) => ((M[i].via && M[i].via.nombre) ? 1 : 0), 'regla vieja');
-  di('   discrepancias con la regla vieja', r2.mal + (r2.mal > 0 ? '   ✅ la caza' : '   ⛔ NO LA CAZA'));
-  A.exige(r2.mal > 0, 'la comprobación contra el motor no distingue la regla vieja de la nueva: no vale');
-  log('   ⇒ ⭐ **habría cazado el fallo de hoy el día que se escribió.**');
+  log('   ⭐⭐ EL ROJO DE ESTA COMPROBACIÓN, VISTO — dos veces, con las dos reglas viejas:');
+  const r2 = comparar((i) => ((M[i].via && M[i].via.nombre) ? 1 : 0));
+  di('   (a) el nombre por ARISTA (lo de antes de la tanda 24)', r2.mal + (r2.mal > 0 ? '   ✅ la caza' : '   ⛔ NO LA CAZA'));
+  A.exige(r2.mal > 0, 'la comprobación contra el motor no distingue la regla por arista: no vale');
+  // ⭐ y la de HOY: dos categorías en vez de tres — todo lo gris pintado de rojo
+  const r3 = comparar((i) => (G.aristas[i].n === 2 ? 0 : G.aristas[i].n));
+  di('   ⭐ (b) DOS categorías, con los pasos metidos en el rojo (la tanda 25)',
+    r3.mal + (r3.mal > 0 ? '   ✅ la caza' : '   ⛔ NO LA CAZA'));
+  A.exige(r3.mal > 0, 'la comprobación no distingue dos categorías de tres: el gris no está probado');
+  log('   ⇒ ⭐ **habría cazado los dos fallos el día que se escribió.**');
 }
 
 log('');

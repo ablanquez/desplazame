@@ -2,9 +2,11 @@
 <meta charset="utf-8">
 <title>Desplázame · líneas con nombre y sin nombre</title>
 <!--
-  Dos colores y ya:
+  Tres colores desde la tanda 26, porque había DOS COSAS en el mismo rojo:
      AZUL  = la línea tiene nombre de vía (declarado o deducido)
-     ROJO  = no lo tiene
+     ROJO  = LE FALTA el nombre — eso es un problema
+     GRIS  = NO TIENE nombre, y es así: un paso de peatones es del cruce, no de
+             ninguna de las dos calles. La pregunta no aplica ahí.
 
   Se abre con doble clic. Necesita internet para Leaflet y para el fondo.
   El dato lo genera `node src/exportar-nombre-simple.js`.
@@ -29,15 +31,25 @@ if (!G) { document.body.innerHTML = '<p style="padding:2em;font:14px system-ui">
 
 const AZUL = '#1f5fd0';
 const ROJO = '#e01b00';
+const GRIS = '#9aa0a6';
 // ⭐⭐ TANDA 25 · EL GROSOR Y LA OPACIDAD SON UNA AFIRMACIÓN, Y AQUÍ AFIRMABAN ALGO
 //    QUE NADIE MIDIÓ. En la tanda 22 el rojo se pintó a 2,2/0,9 y el azul a
 //    1,4/0,55 —«que canten»—, y el resultado fue que **Calle Salvador Minguijón se
 //    leía ROJA teniendo su eje entero AZUL**: doce aceras rojas gruesas tapaban un
 //    eje azul fino y translúcido. El dato estaba bien; el dibujo mentía.
-//    ⇒ **los dos se pintan igual.** Si una categoría se ve más, que sea porque hay
-//      más, no porque yo le haya puesto medio punto más de trazo.
+//    ⇒ **azul y rojo se pintan IGUAL.** Si una se ve más, que sea porque hay más.
 const GROSOR = 1.8;
 const OPACIDAD = 0.75;
+// ⭐⭐ TANDA 26 · EL GRIS SÍ VA MÁS FINO Y MÁS APAGADO, Y ESO **NO** CONTRADICE LO
+//    DE ARRIBA — lo aplica. Aquella regla dice que dos categorías que responden a
+//    LA MISMA pregunta se pintan igual, para que el ojo no le dé más peso a una.
+//    Azul y rojo son las dos respuestas a «¿tiene nombre?». **El gris no es una
+//    tercera respuesta: dice que la pregunta no aplica ahí.**
+//    ⇒ El mapa se abre para ver DÓNDE FALTA NOMBRE. Un paso de cebra no falta, así
+//      que no debe competir por la atención. Y esto va declarado porque es una
+//      decisión de dibujo, no un dato.
+const GROSOR_GRIS = 1.0;
+const OPACIDAD_GRIS = 0.35;
 
 const z = G.zona;
 // preferCanvas: con ~99.000 líneas un elemento SVG por línea mata al navegador.
@@ -47,16 +59,24 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   { maxZoom: 20, attribution: '© OpenStreetMap' }).addTo(mapa);
 
 // ⭐ el contador va aquí y no en el HTML: es lo que la prueba de Node compara.
-const CUENTA = { azules: 0, rojas: 0 };
+const CUENTA = { azules: 0, rojas: 0, grises: 0 };
 
 function pintar() {
-  CUENTA.azules = 0; CUENTA.rojas = 0;
+  CUENTA.azules = 0; CUENTA.rojas = 0; CUENTA.grises = 0;
   const capa = L.layerGroup();
-  for (const a of G.aristas) {
-    const con = a.n === 1;
-    if (con) CUENTA.azules++; else CUENTA.rojas++;
-    L.polyline(a.g.map((p) => [p[1], p[0]]),
-      { color: con ? AZUL : ROJO, weight: GROSOR, opacity: OPACIDAD }).addTo(capa);
+  // ⭐ los GRISES van PRIMERO: si un paso se dibuja encima de la calle, tapa
+  //   justo lo que se viene a mirar. El orden de pintado también afirma.
+  const orden = [2, 0, 1];
+  for (const cat of orden) {
+    for (const a of G.aristas) {
+      if (a.n !== cat) continue;
+      if (cat === 1) CUENTA.azules++; else if (cat === 0) CUENTA.rojas++; else CUENTA.grises++;
+      L.polyline(a.g.map((p) => [p[1], p[0]]), {
+        color: cat === 1 ? AZUL : cat === 0 ? ROJO : GRIS,
+        weight: cat === 2 ? GROSOR_GRIS : GROSOR,
+        opacity: cat === 2 ? OPACIDAD_GRIS : OPACIDAD,
+      }).addTo(capa);
+    }
   }
   capa.addTo(mapa);
   return CUENTA;
@@ -67,11 +87,13 @@ const clave = L.control({ position: 'bottomleft' });
 clave.onAdd = function () {
   const d = L.DomUtil.create('div', 'clave');
   d.innerHTML = '<div><span class="sw" style="background:' + AZUL + '"></span>con nombre de vía</div>'
-    + '<div><span class="sw" style="background:' + ROJO + '"></span>sin nombre de vía</div>';
+    + '<div><span class="sw" style="background:' + ROJO + '"></span><b>le falta</b> el nombre</div>'
+    + '<div><span class="sw" style="background:' + GRIS + '"></span>no tiene nombre: es un paso de peatones</div>';
   return d;
 };
 clave.addTo(mapa);
 
 // ⭐ para que `src/probar-visor-nombre-simple.js` pueda contar sin navegador.
-window.VISOR = { pintar, cuenta: CUENTA, AZUL, ROJO, GROSOR, OPACIDAD };
+window.VISOR = { pintar, cuenta: CUENTA, AZUL, ROJO, GRIS, GROSOR, OPACIDAD,
+  GROSOR_GRIS, OPACIDAD_GRIS };
 </script>
