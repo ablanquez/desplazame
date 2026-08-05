@@ -5658,3 +5658,99 @@ llevaba la palabra «álgebra» en el título y eso ya sonaba a rigor.
 
 **Traza:** `src/exportar-nombre-simple.js` (el bloque retirado), `src/modelo.js`
 (`aplicar`, `op.pasosConNombre`), `src/paso-de-cebra.js` (§A4)
+
+---
+
+## [2026-08-05] — Casi publico como «inventado por nosotros» lo que declara el Ayuntamiento
+
+**Categoría:** semántica
+**Síntoma:** §C4 del informe de parques imprimió esto:
+
+```
+   MUNICIPAL · líneas dentro con nombre DEDUCIDO por nosotros   544  (22,64 km)
+      por testigo: municipal-bici=307 · pegada=229 · portales=5 · portales+pegada=3
+```
+
+**El titular era «544 líneas dentro de parques llevan un nombre que les hemos puesto
+nosotros».** Y es falso: **307 de esas 544 —el 56 %— llevan un nombre que DECLARA el
+Ayuntamiento** en su capa de carriles bici. El número real es **237**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ el filtro, que era correcto y
+por eso engañaba: `if (nombreDeWay(e.way)) continue` descarta lo que nombra OSM, y todo lo
+que queda se etiquetó como «nuestro». Pero *«no lo nombra OSM»* y *«lo inventamos
+nosotros»* no son lo mismo — en medio está el **callejero municipal**, que es una fuente
+declarada desde la tanda 19 y que el propio modelo marca con `declarada: true`.
+
+**Cómo se cazó:** ⭐⭐ **por leer la fila que no esperaba**, que es la ley que salió ayer del
+fallo nº110. El desglose por testigo estaba impreso al lado del total y decía
+`municipal-bici=307` en primer lugar. Ayer publiqué un desglose sin mirar la fila rara y me
+costó una tanda; hoy lo miré.
+
+**Causa raíz:** dos fuentes, un solo cajón. El modelo tiene tres orígenes de nombre —OSM,
+municipal y deducido— y yo partí el mundo en dos: «OSM» y «lo demás». **La distinción que
+importa no es de dónde viene el fichero: es si alguien lo DECLARA o lo deducimos.** El
+campo que lo dice ya existía (`via.declarada`) y no lo usé.
+
+**Arreglo aplicado:** se separan las dos filas y se dice qué es cada una. El texto que
+acompaña al número explica que los 307 son carriles bici que atraviesan el parque con
+`vias_codigo` municipal, y que ésos no los inventamos.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **«no lo dice OSM» no significa «nos lo hemos inventado».**
+Cuando se mide cuánto inventa un método, el complemento hay que definirlo por la
+PROPIEDAD que importa —¿lo declara alguien?— y no por descarte de una fuente. Aquí el
+descarte metía una fuente declarada en el saco de lo inventado e inflaba el titular un
+56 %.
+⚠️ Y la operativa, que hoy funcionó: **el desglose se lee antes que el total.** Si el total
+tiene una fila que no encaja con lo que el título afirma, el título está mal.
+
+**Traza:** `src/parques.js` (§C4)
+
+---
+
+## [2026-08-05] — Dos peticiones gastadas contra un Overpass que devolvía 504
+
+**Categoría:** proceso
+**Síntoma:** el encargo daba **un máximo de 6 peticiones para toda la tanda**. Las dos
+primeras se fueron en errores del servidor sin traer un solo byte de dato:
+
+```
+   1 · overpass-api.de       consulta amplia (leisure+landuse+natural, término entero)   HTTP 504
+   2 · overpass.kumi.systems consulta media  (bbox recortado, sin `natural`)             HTTP 502
+   3 · idezar-sig            ZonasVerdesPrincipales                                      200  ✅
+   4 · idezar-sig            ZonasVerdesSecundarias                                      200  ✅
+   5 · overpass-api.de       consulta mínima (4 etiquetas, `nwr`, timeout 120)           200  ✅
+```
+
+⇒ **5 de 6 gastadas, y el segundo testigo entró por los pelos.** Si la quinta hubiera
+fallado, la tanda se quedaba con un solo testigo.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** nada — pero sí hay algo que
+avisaba y no miré: **`data/fuentes/` ya tenía cuatro ficheros `*_ERROR-HTTP504-*.html` de
+la tanda 3**, y `data/exploracion/` otros tres de la tanda 0. **Overpass ya había dado 504
+en este proyecto siete veces**, siempre con consultas amplias, y aun así empecé por la
+consulta más amplia posible.
+
+**Cómo se cazó:** el propio 504.
+
+**Causa raíz:** ordené las peticiones de más ambiciosa a menos, que es justo al revés de lo
+que conviene cuando hay presupuesto. La consulta 1 pedía cinco familias de etiquetas sobre
+los 2.989 km² del término, incluida `natural=wood`, que en el término de Zaragoza son los
+sotos del Ebro enteros.
+
+**Arreglo aplicado:** ninguno en el código — es operativa. Queda escrito: **cuando haya
+presupuesto de peticiones, la primera es la mínima que sirve**, y se amplía solo si sobra.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐ **con presupuesto contado, se empieza por la petición más
+pequeña que conteste la pregunta.** Una petición que falla cuesta lo mismo que una que
+acierta, y el historial del propio repositorio decía que ésa iba a fallar: **siete 504
+guardados en disco son un dato, no un archivo muerto.**
+⚠️ Y la segunda: **el dato que ya está descargado se mira ANTES de pedir nada.** Aquí
+funcionó —el `GetCapabilities` en disco dio las capas sin gastar petición— y es lo único
+que salvó el presupuesto.
+
+**Traza:** `data/fuentes/2026-08-05_overpass_zaragoza-zonas-verdes*`,
+`data/fuentes/2026-08-05_wfs_idezar-ZonasVerdes*`
