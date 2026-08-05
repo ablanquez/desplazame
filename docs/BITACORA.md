@@ -5816,3 +5816,172 @@ titular no es la que hay que leer.** Hoy las tres filas confirmaban, y la que fa
 tabla: había que ir a buscarla.
 
 **Traza:** `src/parques.js` (`FUENTE_DEL_MAPA`, `MIN_AREA`, `indiceDelMapa`)
+
+---
+
+## [2026-08-05] — El auditor de guardianes traía una comprobación DECORATIVA, en la tanda que viene a cazarlas
+
+**Categoría:** aviso falso
+**Síntoma:** el clasificador del «rojo visto» lleva un control negativo —*una comprobación sin
+ninguna marca alrededor NO debe salir marcada*—. Salió esto:
+
+```
+   ⇒ y el NEGATIVO: una comprobación sin ninguna marca alrededor NO debe salir marcada.
+      la de este mismo fichero (sin contraprueba)     ⛔ la marca y no debería
+
+   ⇒ ✅ AUDITORÍA DE GUARDIANES: sin fallos. (código de salida 0)
+```
+
+**Un `⛔` impreso y el proceso en verde.** Es la ley 44 exacta, dentro del fichero escrito para
+auditar precisamente eso.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el cierre del propio script.**
+`A.cierre()` dijo «sin fallos» con el control negativo en rojo tres líneas más arriba, porque el rojo
+era una cadena impresa y no una llamada a la alarma. Y los tres positivos de control **sí** estaban
+bien, así que el bloque se leía sólido: tres ✅ y un ⛔ que no contaba.
+
+**Cómo se cazó:** leyendo la salida entera antes de publicarla. ⚠️ Que es exactamente lo que la ley
+44 dice que nadie hace.
+
+**Causa raíz:** escribí el positivo de control con `A.exige` y el negativo con `log`. No hay motivo:
+fue descuido al teclear. ⭐ Pero el descuido tiene una forma reconocible —**el positivo se siente
+como «la prueba» y el negativo como «un comentario»**— y es la misma que produjo el nº106, donde la
+única comprobación capaz de cazar el fallo estaba escrita como `⚠️` en vez de como `⛔`.
+
+**Arreglo aplicado:** el control negativo pasa a ser `A.exige`. ⇒ **el script sale en rojo**, y se
+queda así: el clasificador textual **no vale** y ajustarlo hasta que pase sería ajustar el
+instrumento al resultado. Se hizo **una** corrección principiada —no contar la cabecera del fichero,
+que habla del fichero entero y no de una comprobación concreta— y **siguió fallando**, así que se
+declara no válido y no se toca más.
+
+⭐ Y el porqué del fallo es en sí un hallazgo: la comprobación que se le da como negativo **sí tiene
+un «positivo de control» catorce líneas más abajo… pero es el de OTRA cosa**. ⇒ **la proximidad no
+implica que la marca hable de ESA comprobación.** Una heurística de cercanía no distingue «tiene
+contraprueba» de «vive en un barrio donde las hay».
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **el control NEGATIVO se escribe con la misma tinta que el positivo.**
+El positivo se siente como la prueba y el negativo como una nota al margen — y el negativo es el que
+dice si el instrumento distingue algo. Van dos veces (nº106 y ésta) que la única comprobación capaz
+de cazar el fallo estaba escrita como aviso.
+⚠️ Y la segunda: **una heurística de proximidad no puede certificar una atribución.** Si la evidencia
+no está ligada a lo que certifica, lo único que mide es el vecindario.
+
+**Traza:** `src/auditoria-guardianes.js` (§A2, `evidenciaCerca`, el control negativo)
+
+---
+
+## [2026-08-05] — Cinco de mis diez mutaciones no llegaron a ocurrir, y salían como «no salta nada»
+
+**Categoría:** aviso falso
+**Síntoma:** la primera ronda de §B mutaba los módulos parcheando **el objeto que devuelve
+`require`**. Resultado:
+
+```
+   mutación            objetivo                       parches   veredicto
+   paralela-muda       calle-pegada.js                      0   ⛔⛔ LA MUTACIÓN NO OCURRIÓ
+   sin-noaplica        paso-de-cebra.js                     0   ⛔⛔ LA MUTACIÓN NO OCURRIÓ
+   sin-noaplica        exportar-nombre-simple.js            0   ⛔⛔ LA MUTACIÓN NO OCURRIÓ
+   resolver-vacio      probar-modelo-obligatorio.js         0   ⛔⛔ LA MUTACIÓN NO OCURRIÓ
+   hash-constante      modelo.js                            0   ⛔⛔ LA MUTACIÓN NO OCURRIÓ
+```
+
+**Cinco de diez.** Y sin el contador de parches, las cinco se habrían publicado como
+**«⛔ NO SALTA NADA»** — o sea, como cinco guardianes muertos. **Un instrumento roto que produce
+hallazgos falsos, y hallazgos que confirman exactamente la tesis de la tanda.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la palanca (§B0).** `precargadoVivo`
+—heredado del nº106— dijo ✅: el precargado se cargaba. Y era verdad. ⚠️ **Pero «el preload se carga»
+y «la mutación ocurre» son dos cosas distintas, y yo tenía comprobada la primera creyendo que
+cubría la segunda.** El nº106 me enseñó a comprobar que la palanca está conectada; no me enseñó a
+comprobar que la palanca mueve algo.
+
+**Cómo se cazó:** por el contador de parches, que escribí porque el método de la tanda lo exigía
+—*«¿la palanca está conectada?»*— y no porque esperara que fallara. **Sin esa columna, la tanda
+publica cinco guardianes muertos que no lo están.**
+
+**Causa raíz:** un módulo llama a sus propias funciones **por nombre**, no a través de su objeto
+exportado. `planarizar.js` usa `sinNombrePorDefinicion(t)`; `modelo.js` usa `hashGrafo(g)`;
+`calle-pegada.js` usa `escanear(...)`. Cambiar `exports.X` no cambia el uso interno **de ninguno**.
+⇒ mutar los exports solo alcanza a los consumidores de FUERA, y las comprobaciones interesantes
+viven dentro.
+
+**Arreglo aplicado:** la mutación se hace sobre el **fuente**: se intercepta
+`Module._extensions['.js']` y se reescribe el código antes de compilarlo. ⭐ Y la marca se pone **al
+compilar**, no al invocar, que es lo que separa «el parche se instaló» de «el parche se ejecutó».
+⭐ Además el mutador distingue ahora un tercer estado: **`⛔⛔ EL PATRÓN A MUTAR YA NO EXISTE`** — si
+alguien renombra la función, el mutador queda caduco y lo dice, en vez de decir «no salta nada».
+⭐ Y antes de gastar veinte minutos, los siete patrones se prueban en aislado: los siete mutan.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **«el instrumento arranca» no es «el instrumento mide».** El nº106 dejó
+la ley de comprobar que la palanca está conectada; faltaba la otra mitad: **comprobar que la palanca
+mueve algo.** Un mutador que no muta, un cepo que no se arma, un desplazamiento que no desplaza —
+todos arrancan perfectamente.
+⚠️ Y la que hace esto peligroso de verdad: **un instrumento roto en una auditoría no da un resultado
+vacío, da HALLAZGOS FALSOS.** Aquí habría publicado cinco guardianes muertos, y encima confirmando
+la tesis que la tanda venía a demostrar. **Cuando el instrumento nuevo confirma lo que esperabas
+encontrar, es cuando más hay que mirarlo.**
+
+**Traza:** `src/auditoria-guardianes.js` (`mutar`, la transformación de fuente y el testigo)
+
+---
+
+## [2026-08-05] — El guardián del nº105 nunca pudo distinguir lo que dice distinguir
+
+**Categoría:** aviso falso
+**Síntoma:** encontrado por mutación en la auditoría de hoy. `src/probar-modelo-obligatorio.js` §2 se
+titula *«EL MODELO SÍ ENTRA — el positivo de control»* y dice de sí mismo:
+
+> *«se exige que el TEXTO lleve un nombre que **solo** puede venir del modelo»*
+
+Se vacía el modelo desde fuera —`resolverPorWay` devuelve un `Map` vacío— y el guardián **pasa en
+verde**. El texto de su ruta de control, con el modelo destruido:
+
+```
+   1.   Por un tramo sin nombre (acera)                63 m
+   2.   Cruzas por un paso de peatones                  8 m
+   3. ◦ Por Calle Salvador Minguijón (eje de calzada) 378 m   · 2 tramos de OSM   ← lo encuentra AQUÍ
+   5.   Por un tramo sin nombre (acera)                11 m
+   7.   Por un tramo sin nombre (acera)                33 m
+```
+
+**Siete pasos donde con el modelo hay UNO** («Por Calle Salvador Minguijón, 503 m, 12 tramos»). La
+degradación se ve a simple vista. **El guardián no la ve**, porque busca la subcadena
+`Por Calle Salvador Minguijón` y **el EJE de la calle la aporta por su cuenta: lo nombra OSM.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el guardián entero, sus cinco
+secciones, y desde el día que se escribió.** Y no está solo: §3 —romper el modelo desde fuera y
+exigir que `ruta.js` PARE— sí funciona y se le vio el rojo. ⇒ el fichero se lee sólido porque **cuatro
+de sus cinco secciones son buenas**, y la que no lo es es justo la que dice ser el positivo de control.
+
+**Cómo se cazó:** por mutación, no por lectura. Ninguna relectura del código lo habría delatado: la
+afirmación *«un nombre que solo puede venir del modelo»* es plausible y está escrita con seguridad.
+**Solo se ve rompiendo el modelo y mirando si el texto cambia.**
+
+**Causa raíz:** la tanda 23 cubrió el fallo que había ocurrido —el modelo **no carga**, excepción,
+`CRUDO` undefined— y eligió el testigo mirando ese caso. ⚠️ Pero hay un estado intermedio que nadie
+consideró: **el modelo carga y no dice nada.** No revienta, no avisa, devuelve estructuras vacías y
+el sistema sigue produciendo un resultado **plausible y degradado**. El guardián solo distingue los
+extremos.
+
+**Arreglo aplicado:** ⛔ **NINGUNO.** Esta tanda audita y no arregla; el arreglo se decide con
+Antonio. Queda anotado qué haría falta: un testigo que **no pueda venir de OSM** — por ejemplo exigir
+que la ruta salga en **UN solo paso** (que es lo que aporta el modelo al fundir el eje con sus doce
+aceras), o una calle cuyo nombre no exista en OSM.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un positivo de control tiene que fallar cuando se rompe lo que
+vigila, y eso se COMPRUEBA rompiéndolo — no se argumenta.** Escribí «un nombre que solo puede venir
+del modelo» y era mentira; la frase sonaba a razonamiento y por eso nadie la puso a prueba. **Una
+comprobación cuya validez descansa en una frase, y no en un rojo visto, es una opinión con formato de
+guardián.**
+⚠️ Y la séptima forma de mentir, que sale de aquí: **la comprobación distingue los extremos y no el
+medio.** Vigila «está / no está» y se queda ciega ante «está pero vacío», que es justo el estado en
+el que el sistema **sigue dando respuestas**. Un fallo que revienta se caza solo; el que degrada, no.
+
+**Traza:** `src/probar-modelo-obligatorio.js` (§2), `src/auditoria-guardianes.js` (la mutación
+`resolver-vacio`)
