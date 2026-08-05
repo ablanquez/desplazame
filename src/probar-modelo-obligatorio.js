@@ -194,7 +194,7 @@ log('   `./ruta` y **aborta en el acto**: interesa el ciclo, no el resultado.');
     //   están ARRIBA, y por eso está en esta lista.
     'calle-pegada.js',
     // ⭐ TANDA 26 · el mismo día que nace, no cuando falle (ley del nº109).
-    'paso-de-cebra.js'];
+    'paso-de-cebra.js', 'parques.js'];
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'desplazame-ciclo-'));
   const sonda = path.join(tmp, 'sonda.js');
   const buzon = path.join(tmp, 'veredicto.txt').replace(/\\/g, '/');
