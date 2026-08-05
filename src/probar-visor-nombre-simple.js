@@ -194,7 +194,7 @@ log('='.repeat(88));
   //     función). Si esto reimplementara «0/1/2», serían dos caminos otra vez.
   const { CATEGORIA } = require('./exportar-nombre-simple');
   const segunElMotor = (e) =>
-    CATEGORIA(Rel.tramo({ way: e.way, precision: e.precision, metros: e.largo }, nombreDeWay, 0, modeloDeWay));
+    CATEGORIA(Rel.tramoDeArista(e, nombreDeWay, modeloDeWay));
 
   const NOMBRE = { 0: 'ROJA (le falta)', 1: 'AZUL (con nombre)', 2: 'GRIS (no aplica)' };
   const comparar = (colorDe) => {

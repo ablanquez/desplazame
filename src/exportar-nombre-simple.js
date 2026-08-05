@@ -83,8 +83,7 @@ function construirSalida() {
   const { M, deWay, modeloDeWay } = Mo.construirModelo(g, portales);
   const nombreDeWay = (id) => g.nombres.get(id) || null;
   // ⛔ EL ÚNICO SITIO DONDE SE DECIDE EL COLOR, y no decide aquí: pregunta.
-  const tramoDe = (e) => Rel.tramo(
-    { way: e.way, precision: e.precision, metros: e.largo }, nombreDeWay, 0, modeloDeWay);
+  const tramoDe = (e) => Rel.tramoDeArista(e, nombreDeWay, modeloDeWay);
 
   const aristas = g.aristas.map((e) => ({ g: e.pts.map(pg), n: CATEGORIA(tramoDe(e)) }));
 
@@ -166,7 +165,7 @@ if (require.main === module) {
     di('⭐ lo que dice EL REDACTOR (lo que se pinta ahora)', conW);
     di('⛔ tenían nombre para el MOTOR y salían ROJAS', `${soloWay.length}  (${km(soloWay)})`);
     di('⚠️ el modelo por arista les da nombre y NO se pintan azules', `${soloArista.length}  (${km(soloArista)})`);
-    const gris = soloArista.filter((i) => PL.SIN_NOMBRE_POR_DEFINICION.has(g.aristas[i].precision));
+    const gris = soloArista.filter((i) => g.aristas[i].nombreNoAplica);
     log('      ' + String(gris.length).padStart(6) + '  ⭐ porque son PASOS DE PEATONES y van de gris: '
       + 'OSM les puso nombre y el dato lo respeta, pero el');
     log('              mapa no las pinta de azul — la pregunta «¿tiene nombre?» no aplica ahí.');
@@ -201,21 +200,21 @@ if (require.main === module) {
   {
     const pasos = [];
     for (let i = 0; i < g.aristas.length; i++) {
-      if (PL.SIN_NOMBRE_POR_DEFINICION.has(g.aristas[i].precision)) pasos.push(i);
+      if (g.aristas[i].nombreNoAplica) pasos.push(i);
     }
     const grises = [];
     for (let i = 0; i < g.aristas.length; i++) if (salida.aristas[i].n === 2) grises.push(i);
     const soloPaso = pasos.filter((i) => salida.aristas[i].n !== 2);
-    const soloGris = grises.filter((i) => !PL.SIN_NOMBRE_POR_DEFINICION.has(g.aristas[i].precision));
-    di('aristas `paso-de-peatones` en el grafo', pasos.length);
+    const soloGris = grises.filter((i) => !g.aristas[i].nombreNoAplica);
+    di('aristas SIN NOMBRE POR DEFINICIÓN (paso de cebra + isleta)', pasos.length);
     di('líneas pintadas de GRIS', grises.length);
-    di('⛔ pasos que NO salen grises', soloPaso.length + (soloPaso.length ? '   ⛔' : '   ✅'));
-    di('⛔ grises que NO son un paso', soloGris.length + (soloGris.length ? '   ⛔' : '   ✅'));
-    A.exige(soloPaso.length === 0, 'hay pasos de peatones que no se pintan de gris');
-    A.exige(soloGris.length === 0, 'hay líneas grises que no son pasos de peatones');
-    log('   ⚠️ Las dos direcciones, y no una: «todos los pasos son grises» y «todos los grises');
-    log('      son pasos» son afirmaciones distintas, y con una sola el gris podría estar');
-    log('      llevándose media ciudad sin que se viera.');
+    di('⛔ las que NO salen grises', soloPaso.length + (soloPaso.length ? '   ⛔' : '   ✅'));
+    di('⛔ grises que SÍ podrían tener nombre', soloGris.length + (soloGris.length ? '   ⛔' : '   ✅'));
+    A.exige(soloPaso.length === 0, 'hay líneas sin nombre por definición que no se pintan de gris');
+    A.exige(soloGris.length === 0, 'hay líneas grises que sí podrían tener nombre');
+    log('   ⚠️ Las dos direcciones, y no una: «todas las que no tienen nombre son grises» y');
+    log('      «todas las grises son de ésas» son afirmaciones distintas, y con una sola el gris');
+    log('      podría estar llevándose media ciudad sin que se viera.');
     const conOsm = pasos.filter((i) => nombreDeWay(g.aristas[i].way));
     di('⭐ de esos pasos, los que OSM SÍ nombra', `${conOsm.length}  (${(conOsm.reduce((s, i) => s + g.aristas[i].largo, 0) / 1000).toFixed(2)} km)`);
     log('      ⛔ El nombre de OSM SE RESPETA en el dato: el modelo lo sigue llevando y el texto');

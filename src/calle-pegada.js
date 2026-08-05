@@ -781,8 +781,7 @@ if (require.main === module) {
     const Rel = require('./relato');
     const antes = Mo.construirModelo(g, portales, { sinParalela: true });
     const ahora = Mo.construirModelo(g, portales);
-    const tramoDe = (mod) => (e) => Rel.tramo(
-      { way: e.way, precision: e.precision, metros: e.largo }, nombreDeWay, 0, mod.modeloDeWay).nombre;
+    const tramoDe = (mod) => (e) => Rel.tramoDeArista(e, nombreDeWay, mod.modeloDeWay).nombre;
     const tA = tramoDe(antes), tB = tramoDe(ahora);
     let cA = 0, cB = 0, mA = 0, mB = 0, gana = 0, mGana = 0, pierde = 0, mPierde = 0;
     for (const e of g.aristas) {

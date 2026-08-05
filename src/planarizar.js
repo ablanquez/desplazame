@@ -235,6 +235,33 @@ function decidirCruce(ta, tb) {
 //     pongamos NOSOTROS.
 const SIN_NOMBRE_POR_DEFINICION = new Set(['paso-de-peatones']);
 
+// ⭐⭐ TANDA 27 · LA ISLETA ENTRA, y no cabía en la lista de arriba: **el criterio
+//    no es la precisión D4, es la ETIQUETA.** Una `footway=traffic_island` tiene
+//    precisión `peatonal` —igual que una calle peatonal de verdad—, así que la
+//    lista de precisiones no la alcanzaba y la regla de la tanda 26 la dejó fuera.
+//
+//    Y es exactamente el mismo caso: **la isleta es el trocito que queda EN MEDIO
+//    del paso de cebra.** Si el paso no es de ninguna de las dos calles, el refugio
+//    del medio tampoco. Medido en la tanda 26: 674 aristas, 369 con nombre puesto
+//    por nosotros.
+//
+//    ⚠️ Y por eso esto pasa de ser una LISTA a ser una FUNCIÓN de las etiquetas: hay
+//       formas que se reconocen por D4 y otras que no. Quien pregunte, que pregunte
+//       aquí — ⛔ y que no copie la condición (ley 56).
+const FOOTWAY_SIN_NOMBRE = new Set(['traffic_island']);
+
+/**
+ * ⭐ ¿Es esta línea de las que **NO TIENEN** nombre, en vez de las que no se lo
+ * sabemos? ⛔ El único sitio donde se decide.
+ * @param {object} t etiquetas de OSM del way
+ */
+function sinNombrePorDefinicion(t) {
+  const tt = t || {};
+  if (SIN_NOMBRE_POR_DEFINICION.has(precision(tt))) return true;
+  if (FOOTWAY_SIN_NOMBRE.has(tt.footway)) return true;
+  return false;
+}
+
 /** D4 · la precisión con la que sabemos por dónde se anda en esta arista. */
 function precision(t) {
   if (t.footway === 'crossing' || t.highway === 'crossing') return 'paso-de-peatones';
@@ -345,7 +372,7 @@ function planarizar(ways, opciones = {}) {
   const aristas = [];
   for (let i = 0; i < ways.length; i++) {
     const w = ways[i], t = w.tags || {};
-    const pr = precision(t), pie = transitableAPie(t);
+    const pr = precision(t), pie = transitableAPie(t), sinNom = sinNombrePorDefinicion(t);
     // ⭐ B4 · el paso condicional EXISTE y se anda: es terreno, y se construye.
     //    Es un CAMPO de la arista, como la precisión de D4 — no una exclusión del
     //    grafo. Separar "existe" de "se puede pasar ahora" es la misma decisión.
@@ -400,7 +427,9 @@ function planarizar(ways, opciones = {}) {
       if (na === nb) continue;
       aristas.push({
         a: na, b: nb, largo: L, way: w.id, highway: t.highway,
-        precision: pr, pie, condicional: cond, condVia, condHorario,
+        // ⭐ TANDA 26/27 · viaja como CAMPO desde aquí, igual que la precisión: el
+        //   redactor y el mapa lo necesitan y no tienen las etiquetas a mano.
+        precision: pr, nombreNoAplica: sinNom, pie, condicional: cond, condVia, condHorario,
         // el edificio que atraviesa se rellena después, en `condicionales.nombrar()`:
         // aquí solo se sabe lo que dicen las etiquetas del propio way.
         condEdificio: null, condMirado: null,
@@ -469,4 +498,5 @@ function planarizar(ways, opciones = {}) {
 module.exports = { planarizar, decidirCruce, precision, nivel, esPuente, esTunel,
   velocidad, esRodada, transitableAPie, porQueNoSeAnda, existeHoy, prohibidoPorElDato,
   valoresDesconocidos, VIARIO_ANDABLE, VIARIO_NO_ANDABLE, ESTADOS_MUERTOS,
-  TOLERANCIA_PUNTA, TECHO_PUNTA, SIN_NOMBRE_POR_DEFINICION };
+  TOLERANCIA_PUNTA, TECHO_PUNTA, SIN_NOMBRE_POR_DEFINICION, FOOTWAY_SIN_NOMBRE,
+  sinNombrePorDefinicion };

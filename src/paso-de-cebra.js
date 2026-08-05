@@ -57,8 +57,8 @@ if (require.main === module) {
   //   un fichero ni —peor— del modelo ya arreglado (bitácora nº110).
   const antes = Mo.construirModelo(g, portales, { pasosConNombre: true });
   const ahora = Mo.construirModelo(g, portales);
-  const trA = (e) => Rel.tramo({ way: e.way, precision: e.precision, metros: e.largo }, nombreDeWay, 0, antes.modeloDeWay);
-  const trB = (e) => Rel.tramo({ way: e.way, precision: e.precision, metros: e.largo }, nombreDeWay, 0, ahora.modeloDeWay);
+  const trA = (e) => Rel.tramoDeArista(e, nombreDeWay, antes.modeloDeWay);
+  const trB = (e) => Rel.tramoDeArista(e, nombreDeWay, ahora.modeloDeWay);
 
   log('='.repeat(104));
   log('UN PASO DE CEBRA NO TIENE NOMBRE');
@@ -72,16 +72,41 @@ if (require.main === module) {
   log('      cerca Y una calle pegada, así que cumple las condiciones de LOS DOS testigos.');
   const pasos = [];
   for (let i = 0; i < g.aristas.length; i++) {
-    if (PL.SIN_NOMBRE_POR_DEFINICION.has(g.aristas[i].precision)) pasos.push(i);
+    if (g.aristas[i].nombreNoAplica) pasos.push(i);
   }
   const mSum = (l) => l.reduce((s, i) => s + g.aristas[i].largo, 0);
   const conOsm = pasos.filter((i) => nombreDeWay(g.aristas[i].way));
   const deducidos = pasos.filter((i) => !nombreDeWay(g.aristas[i].way) && trA(g.aristas[i]).nombre);
   log('');
-  di('aristas `paso-de-peatones`', `${pasos.length}  (${km(mSum(pasos))})`);
+  di('aristas SIN NOMBRE POR DEFINICIÓN', `${pasos.length}  (${km(mSum(pasos))})`);
   di('   ⭐ con nombre que trae OSM — dato ajeno, SE RESPETA', `${conOsm.length}  (${km(mSum(conOsm))})  ${pct(conOsm.length, pasos.length)}`);
   di('   ⛔ con nombre puesto POR NOSOTROS (deducido)', `${deducidos.length}  (${km(mSum(deducidos))})  ${pct(deducidos.length, pasos.length)}`);
   di('   sin nombre de ninguna clase', pasos.length - conOsm.length - deducidos.length);
+  // ⭐ TANDA 27 · CLASIFICAR ANTES DE CONTAR: son DOS familias, y la segunda entró
+  //   hoy. Sumarlas en una línea escondería cuál aporta qué.
+  log('');
+  log('   ' + 'familia'.padEnd(38) + 'aristas'.padStart(9) + 'metros'.padStart(11)
+    + 'de OSM'.padStart(9) + 'DEDUCIDO'.padStart(11));
+  {
+    const FAM = [
+      ['paso de cebra · `footway=crossing`', (i) => g.aristas[i].precision === 'paso-de-peatones'],
+      ['⭐ isleta · `footway=traffic_island`', (i) => g.aristas[i].precision !== 'paso-de-peatones'],
+    ];
+    let sn = 0, so = 0, sd = 0;
+    for (const [etq, f] of FAM) {
+      const l = pasos.filter(f);
+      const o = l.filter((i) => nombreDeWay(g.aristas[i].way));
+      const d = l.filter((i) => !nombreDeWay(g.aristas[i].way) && trA(g.aristas[i]).nombre);
+      sn += l.length; so += o.length; sd += d.length;
+      log('   ' + etq.padEnd(38) + String(l.length).padStart(9) + km(mSum(l)).padStart(11)
+        + String(o.length).padStart(9) + String(d.length).padStart(11));
+    }
+    A.exige(sn === pasos.length && so === conOsm.length && sd === deducidos.length,
+      'las dos familias no suman el total: hay una tercera cosa metida en el gris');
+    log('   ⚠️ La isleta NO se reconoce por la precisión D4 —es `peatonal`, igual que una calle');
+    log('      peatonal de verdad—, sino por la etiqueta. Por eso la regla de la tanda 26 la');
+    log('      dejó fuera y por eso `sinNombrePorDefinicion()` pasó de ser una LISTA a una FUNCIÓN.');
+  }
   A.exige(deducidos.length > 0,
     'ningún paso de cebra tenía nombre deducido: o el positivo de control está roto, o el «antes» no es el de antes');
   log('');
@@ -152,7 +177,7 @@ if (require.main === module) {
     di('pasos que PIERDEN el nombre deducido', deducidos.length);
     di('líneas que cambian de categoría', cambian.length);
     // ⭐ EL ÁLGEBRA: lo que cambia tiene que ser EXACTAMENTE el conjunto de pasos.
-    const fuera = cambian.filter((i) => !PL.SIN_NOMBRE_POR_DEFINICION.has(g.aristas[i].precision));
+    const fuera = cambian.filter((i) => !g.aristas[i].nombreNoAplica);
     di('⛔ …y de ellas, las que NO son un paso de peatones', fuera.length + (fuera.length ? '   ⛔' : '   ✅ ninguna'));
     A.exige(fuera.length === 0, 'ha cambiado de categoría algo que no es un paso de peatones');
     A.exige(cambian.length === pasos.length, `cambian ${cambian.length} líneas y hay ${pasos.length} pasos: no es el mismo conjunto`);

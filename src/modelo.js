@@ -301,7 +301,7 @@ function aplicar(g, tags, tabla, vias, deducidas, op = {}) {
     //     ⛔ No se usa para imprimir nada: existe para que el «antes» de una
     //     comparación se CALCULE, en vez de leerse de un fichero o —peor— de este
     //     mismo modelo ya arreglado, que es el fallo nº110.
-    const noAplica = !op.pasosConNombre && PL.SIN_NOMBRE_POR_DEFINICION.has(e.precision);
+    const noAplica = !op.pasosConNombre && !!e.nombreNoAplica;
     if (!via && deducidas && !noAplica) {
       const d = deducidas.get(e.way);
       if (d && d.estado === 'NOMBRADA') {

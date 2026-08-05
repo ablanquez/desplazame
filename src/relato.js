@@ -226,9 +226,12 @@ function tramo(p, nombreDeWay, n, modelo) {
   let nombre = nombreDeWay ? nombreDeWay(p.way) : null;
   const tipo = TIPO[p.precision] || p.precision;
   // ⭐⭐ TANDA 26 · «sin nombre» y «no tiene nombre» no son lo mismo, y el que
-  //   pregunta —el mapa— necesita distinguirlo. ⛔ La lista NO se copia aquí: la
-  //   declara `planarizar.js` junto a `precision()`, que es donde vive D4.
-  const noAplica = PL.SIN_NOMBRE_POR_DEFINICION.has(p.precision);
+  //   pregunta —el mapa— necesita distinguirlo.
+  //   ⚠️ TANDA 27 · ya NO se deduce de la precisión aquí: la isleta es `peatonal`
+  //      y aun así no tiene nombre, así que la condición mira las ETIQUETAS. Se
+  //      decide UNA vez, en `planarizar.js`, y viaja como campo de la arista —
+  //      igual que la precisión. ⛔ Aquí no se recalcula: se lee.
+  const noAplica = !!p.nombreNoAplica;
   // ⭐ el modelo solo habla donde OSM se calla
   let deModelo = null;
   if (!nombre && modelo) {
@@ -253,6 +256,21 @@ function tramo(p, nombreDeWay, n, modelo) {
       deducida, tipo, tipoUnico: true }),
     via, forma: deModelo ? deModelo.forma : null };
 }
+
+/**
+ * ⭐⭐ EL TRAMO DE UNA ARISTA DEL GRAFO — el ÚNICO sitio donde una arista se
+ * proyecta a un paso.
+ *
+ * ⛔ Hasta la tanda 27 cada llamador armaba el `{way, precision, metros}` a mano,
+ *   en cuatro ficheros distintos. El día que `tramo()` necesitó un campo más
+ *   —`nombreNoAplica`—, esos cuatro objetos se quedaron incompletos **y nadie
+ *   habría fallado**: la isleta simplemente se habría pintado azul. Es la forma
+ *   exacta del fallo nº107, que costó dos tandas.
+ * ⇒ Se proyecta AQUÍ, y quien quiera el tramo de una arista llama a esto.
+ */
+const tramoDeArista = (e, nombreDeWay, modelo) => tramo(
+  { way: e.way, precision: e.precision, metros: e.largo, nombreNoAplica: e.nombreNoAplica },
+  nombreDeWay, 0, modelo);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // ⭐⭐⭐ TANDA 21 · C · EL ITINERARIO SE AGRUPA POR **VÍA**
@@ -687,7 +705,7 @@ function texto(res, opciones = {}) {
   return L.join('\n');
 }
 
-module.exports = { texto, tramos, tramo, geometria, largoDe, aWgs, minutos,
+module.exports = { texto, tramos, tramo, tramoDeArista, geometria, largoDe, aWgs, minutos,
   VELOCIDAD_KMH, TIPO, SUSTANTIVO, SUSTANTIVO_DEDUCIDO, comoSeAnda, fraseDe,
   claveDe, mismoPaso, nombreDelPaso, CORTO_M, AVISO_BICIS, AVISO_DEDUCIDO,
   AVISO_POR, avisoDeducido, esAvisoDeducido, avisoPrecision, avisoCondicional };

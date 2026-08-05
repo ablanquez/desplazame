@@ -168,6 +168,7 @@ function reconstruir(nodos, aristas, r, origen, destino) {
       ult.metros += e.largo; ult.aristas++;
     } else {
       pasos.push({ way: e.way, highway: e.highway, precision: e.precision,
+        nombreNoAplica: e.nombreNoAplica,
         unidoPorDefecto: e.unidoPorDefecto, metros: e.largo, aristas: 1 });
     }
   }
@@ -255,6 +256,7 @@ function rutaEntre(g, oP, dP, opciones = {}) {
       u.metros += m; u.aristas++;
     } else {
       pasos.push({ way: e.way, highway: e.highway, precision: e.precision,
+        nombreNoAplica: e.nombreNoAplica,
         unidoPorDefecto: e.unidoPorDefecto, condicional: !!e.condicional,
         // ⭐ C3 · el motivo y el sitio viajan hasta la salida, igual que la
         //    precisión de D4. Sin ellos el aviso solo podría decir "puede estar
