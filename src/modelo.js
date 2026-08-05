@@ -38,6 +38,7 @@ const AB = require('./asignar-bici');
 const H = require('./heredar-nombre');
 const NL = require('./nombre-largo');
 const CP = require('./calle-pegada');
+const PL = require('./planarizar');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 
 /** Huella del grafo: si alguien lo muta, esto cambia. */
@@ -259,7 +260,7 @@ function deducirCruzado(g, portales, op = {}) {
  * @param {Map} [deducidas] salida de `deducirCruzado` — la tercera fuente
  * @returns {Array<{via, forma, papel}>}
  */
-function aplicar(g, tags, tabla, vias, deducidas) {
+function aplicar(g, tags, tabla, vias, deducidas, op = {}) {
   const out = new Array(g.aristas.length);
   for (let i = 0; i < g.aristas.length; i++) {
     const e = g.aristas[i];
@@ -291,7 +292,17 @@ function aplicar(g, tags, tabla, vias, deducidas) {
     // ── ⭐⭐ TANDA 21 · LA TERCERA FUENTE, YA APLICADA ────────────────────────
     // ⛔ Va la ÚLTIMA a propósito: solo habla donde no hay nada declarado. Y va
     //    marcada `declarada: false`, que es lo que permite al texto decirlo.
-    if (!via && deducidas) {
+    // ⭐⭐ TANDA 26 · lo que NO TIENE nombre no se queda esperando uno.
+    //   Un `paso-de-peatones` no es de ninguna calle: es del cruce. ⛔ La lista la
+    //   declara `planarizar.js` al lado de `precision()`, que es donde vive D4 —
+    //   aquí NO se copia el criterio, se pregunta (ley 56).
+    //   ⚠️ Y solo tapa lo DEDUCIDO: lo que declara OSM se respeta, es dato ajeno.
+    //   ⭐ `op.pasosConNombre` reproduce el comportamiento de ANTES de la tanda 26.
+    //     ⛔ No se usa para imprimir nada: existe para que el «antes» de una
+    //     comparación se CALCULE, en vez de leerse de un fichero o —peor— de este
+    //     mismo modelo ya arreglado, que es el fallo nº110.
+    const noAplica = !op.pasosConNombre && PL.SIN_NOMBRE_POR_DEFINICION.has(e.precision);
+    if (!via && deducidas && !noAplica) {
       const d = deducidas.get(e.way);
       if (d && d.estado === 'NOMBRADA') {
         // ⭐ `fuente` dice de dónde sale el nombre; `testigos`, quién lo respalda.
@@ -304,7 +315,7 @@ function aplicar(g, tags, tabla, vias, deducidas) {
       }
     }
 
-    out[i] = { via, forma,
+    out[i] = { via, forma, nombreNoAplica: noAplica,
       papel: { pie: F.papel(forma, 'pie'), bici: F.papel(forma, 'bici') },
       coherente: F.coherente(plataforma, e.precision) };
   }
@@ -413,7 +424,7 @@ function construirModelo(g, portales, op = {}) {
   const asig = AB.asignar(g, AB.cargarCapa().lineas, (w) => F.plataforma(tags.get(w)),
     { idx: AB.indexar(g.aristas) });
   const deducidas = op.sinPortales ? null : deducirCruzado(g, portales, op);
-  const M = aplicar(g, tags, asig.tabla, vias, deducidas);
+  const M = aplicar(g, tags, asig.tabla, vias, deducidas, op);
   const deWay = resolverPorWay(g, M);
   return { M, deWay, deducidas, tags, vias, asig, modeloDeWay: (w) => deWay.get(w) || null };
 }

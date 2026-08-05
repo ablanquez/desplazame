@@ -50,6 +50,7 @@
 const { aGrados } = require('./geo');
 const P = require('./portales');
 const NL = require('./nombre-largo');
+const PL = require('./planarizar');
 
 const VELOCIDAD_KMH = 6;
 
@@ -224,6 +225,10 @@ function fraseDe(t) {
 function tramo(p, nombreDeWay, n, modelo) {
   let nombre = nombreDeWay ? nombreDeWay(p.way) : null;
   const tipo = TIPO[p.precision] || p.precision;
+  // ⭐⭐ TANDA 26 · «sin nombre» y «no tiene nombre» no son lo mismo, y el que
+  //   pregunta —el mapa— necesita distinguirlo. ⛔ La lista NO se copia aquí: la
+  //   declara `planarizar.js` junto a `precision()`, que es donde vive D4.
+  const noAplica = PL.SIN_NOMBRE_POR_DEFINICION.has(p.precision);
   // ⭐ el modelo solo habla donde OSM se calla
   let deModelo = null;
   if (!nombre && modelo) {
@@ -241,7 +246,7 @@ function tramo(p, nombreDeWay, n, modelo) {
   if (p.condicional) avisos.push(avisoCondicional(p));
   if (p.unidoPorDefecto) avisos.push('este empalme se unió por defecto: nada decía que no se pudiera pasar, pero tampoco que sí (D2)');
   return { n, nombre, nucleo: P.nucleo(nombre), tipo, metros: p.metros, precision: p.precision,
-    sustantivo: anda.sustantivo, bici: anda.bici, deducida,
+    noAplica, sustantivo: anda.sustantivo, bici: anda.bici, deducida,
     condicional: !!p.condicional, unidoPorDefecto: !!p.unidoPorDefecto, avisos,
     way: p.way, highway: p.highway,
     frase: fraseDe({ precision: p.precision, nombre, sustantivo: anda.sustantivo,

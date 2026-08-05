@@ -205,6 +205,36 @@ function decidirCruce(ta, tb) {
   return { conectar: true, motivo: 'unido-por-defecto' };
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ TANDA 26 · «SIN NOMBRE» Y «NO TIENE NOMBRE» NO SON LO MISMO
+// ═════════════════════════════════════════════════════════════════════════════
+//   > *«Si un paso de cebra es un paso de cebra y no tiene nombre, no lo tendrá
+//   >  que tener ninguno, digo yo.»* — Antonio
+//
+//   Una **acera sin nombre** es información que falta: es un problema.
+//   Un **paso de cebra sin nombre** no es un problema: es así.
+//   ⇒ Meterlos en el mismo saco hace que el mapa **exagere el problema**.
+//
+//   ⭐ Y el porqué no es estadístico, es de definición: **un paso de cebra no es de
+//     ninguna calle, es del CRUCE.** El que cruza de Rodrigo Rebolledo a Salvador
+//     Minguijón está entre las dos y no pertenece a ninguna: ponerle una sería
+//     elegir, y elegir es inventar.
+//
+//   ⛔ ESTO NO DICE «no se sabe su nombre». Dice **«esta pregunta no aplica aquí»**.
+//     Por eso vive al lado de `precision()` —es semántica de D4, no del redactor ni
+//     del modelo— y por eso la leen los dos desde aquí en vez de copiarla (ley 56).
+//
+//   ⚠️ SOLO LOS PASOS, y las escaleras NO, aunque el relato también las cuente
+//      solas. Medido en la tanda 26: de los 75 ways de escalera que OSM nombra,
+//      **73 llevan el nombre de una calle que sale de su propio extremo** —el
+//      mapeador las trata como el tramo escalonado de esa calle—, y de las que se
+//      pueden decidir por sus extremos, 89 unen la MISMA calle contra 29 que unen
+//      dos distintas. ⇒ una escalera SÍ suele ser de una calle. **Decide Antonio.**
+//
+//   ⛔ Lo que trae OSM se respeta SIEMPRE: es dato ajeno. Esto solo impide que lo
+//     pongamos NOSOTROS.
+const SIN_NOMBRE_POR_DEFINICION = new Set(['paso-de-peatones']);
+
 /** D4 · la precisión con la que sabemos por dónde se anda en esta arista. */
 function precision(t) {
   if (t.footway === 'crossing' || t.highway === 'crossing') return 'paso-de-peatones';
@@ -439,4 +469,4 @@ function planarizar(ways, opciones = {}) {
 module.exports = { planarizar, decidirCruce, precision, nivel, esPuente, esTunel,
   velocidad, esRodada, transitableAPie, porQueNoSeAnda, existeHoy, prohibidoPorElDato,
   valoresDesconocidos, VIARIO_ANDABLE, VIARIO_NO_ANDABLE, ESTADOS_MUERTOS,
-  TOLERANCIA_PUNTA, TECHO_PUNTA };
+  TOLERANCIA_PUNTA, TECHO_PUNTA, SIN_NOMBRE_POR_DEFINICION };
