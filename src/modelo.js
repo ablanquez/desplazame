@@ -421,8 +421,14 @@ function construirModelo(g, portales, op = {}) {
   const tags = new Map();
   for (const w of osm.recortar(osm.cargar(CRUDO).ways, g.zona)) tags.set(w.id, w.tags || {});
   const vias = P.cargarVias();
+  // ⚠️ `op.asignacionLaxa` monta el modelo con la regla de bicis de las tandas
+  //   19-30 (la que asignaba el caso unívoco sin mirar la compatibilidad). ⛔ NO es
+  //   una opción para usar: existe para poder CALCULAR el «antes» de la tanda 31
+  //   en el mismo proceso, igual que `pasosConNombre` calcula el de la 26.
+  //   Reconstruir un «antes» de otra manera es como se publicó un número falso en
+  //   la nº111, y medirlo sin que la palanca mueva nada es la nº117.
   const asig = AB.asignar(g, AB.cargarCapa().lineas, (w) => F.plataforma(tags.get(w)),
-    { idx: AB.indexar(g.aristas) });
+    { idx: AB.indexar(g.aristas), laxo: !!op.asignacionLaxa });
   const deducidas = op.sinPortales ? null : deducirCruzado(g, portales, op);
   const M = aplicar(g, tags, asig.tabla, vias, deducidas, op);
   const deWay = resolverPorWay(g, M);
@@ -534,15 +540,43 @@ if (require.main === module) {
     //    imprime. Va como comprobación aparte y en positivo.
     A.exige(sw.every((i) => g.aristas[i].precision === 'acera'),
       'alguna `footway=sidewalk` ha dejado de tener precisión `acera`: el texto se movería');
-    // ⚠️ Y ésta es la MÍA, la que se pone en rojo: mi lectura física discrepa en 1.
-    A.exige(sw.every((i) => M[i].forma.plataforma === 'acera'),
-      'alguna `footway=sidewalk` no es `acera` para mi lectura física (mira la familia de choque)');
-    for (const i of sw) {
-      if (M[i].forma.plataforma === 'acera') continue;
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⚠️⚠️ PREDICCIÓN MÍA QUE SALIÓ MAL — TANDA 19, cerrada en la TANDA 31
+    // ═══════════════════════════════════════════════════════════════════════
+    //   Predije: «toda `footway=sidewalk` es `acera` para mi lectura física», y
+    //   lo puse como `A.exige`. **Falla en 1 arista de 16.858 (6 m).** Y el que
+    //   se equivocó fui yo, no el modelo: esa arista es
+    //
+    //     footway=sidewalk · highway=steps · step_count=6 · handrail=no · ramp=no
+    //
+    //   o sea **una acera escalonada de seis peldaños**. `forma.js` dice
+    //   `escaleras` porque su regla 1 es «unas escaleras son escaleras aunque
+    //   además sean otra cosa», que es lo correcto y está escrito desde el primer
+    //   día. Mi predicción no contempló que una acera pudiera tener peldaños.
+    //
+    //   ⛔ EL ROJO SE APAGA Y LA PREDICCIÓN SE QUEDA ESCRITA, con su número y su
+    //     fecha. Un rojo que no significa nada hace ruido, y con ruido se dejan de
+    //     mirar los que sí significan. ⚠️ Pero NO se borra: borrarla dejaría el
+    //     invariante pareciendo que siempre acertó.
+    //   ⭐ Y lo que SÍ protege el texto —la precisión— sigue exigido arriba, en
+    //     rojo de verdad: `sw.every(precision === 'acera')`.
+    const excepciones = sw.filter((i) => M[i].forma.plataforma !== 'acera');
+    di('⚠️ PREDICCIÓN FALLADA (tanda 19): «toda sidewalk es acera físicamente»',
+      `falla en ${excepciones.length} de ${sw.length}  (${km(excepciones.reduce((s, i) => s + g.aristas[i].largo, 0))})`);
+    for (const i of excepciones) {
       const t = tags.get(g.aristas[i].way) || {};
-      log('      ⛔ la excepción: way ' + g.aristas[i].way + ' · '
+      log('      ⚠️ way ' + g.aristas[i].way + ' · '
         + Object.entries(t).map(([k, v]) => k + '=' + v).join(' · '));
+      log('         ⇒ es una acera con peldaños. `escaleras` es lo correcto; la predicción, no.');
     }
+    // ⭐⭐ Y AUN ASÍ ESTO VIGILA ALGO: si la excepción creciera de golpe, ya no
+    //   sería «una acera escalonada» sino que `plataforma()` habría cambiado de
+    //   criterio. El listón se declara aquí y ahora: **el 0,1 % de las aceras**.
+    //   ⛔ No es el listón viejo rebajado hasta que pase: el viejo era «cero» y se
+    //     queda escrito arriba. Éste vigila otra cosa —la magnitud, no la
+    //     existencia— y por eso puede convivir con la predicción fallada.
+    A.exige(excepciones.length <= Math.max(3, sw.length * 0.001),
+      `${excepciones.length} de ${sw.length} \`footway=sidewalk\` no son \`acera\`: eso ya no es «alguna acera con peldaños», es que \`plataforma()\` ha cambiado de criterio`);
   }
 
   // ── C2 · los contadores, contra el álgebra de A5 ──────────────────────────
@@ -738,19 +772,21 @@ if (require.main === module) {
     global._VIA = { gana: gana.n, comparables: cT, concuerda: oT, porEstado };
 
     // ═══════════════════════════════════════════════════════════════════════
-    // ⚠️⚠️ POST-HOC Y NO APLICADO — pero el número hay que ponerlo delante
+    // ⭐⭐ TANDA 31 · ÉSTA FUE LA SEGUNDA MEDIDA QUE PEDÍA EL CAMBIO, y se aplicó
     // ═══════════════════════════════════════════════════════════════════════
-    // `univoca` acierta MENOS que `tipo` y `margen`. Eso apunta al mismo sitio que
-    // la contraprueba de desplazamiento de B4a: **el paso 1 de la regla asigna sin
-    // comprobar la compatibilidad**. Dos medidas independientes, el mismo agujero.
-    // ⛔ La regla NO se cambia aquí. Se mide la alternativa y decide Antonio.
+    // `univoca` acertaba MENOS que `tipo` y `margen`. Eso apuntaba al mismo sitio
+    // que la contraprueba de desplazamiento de `asignar-bici.js` §B4a: **el paso 1
+    // de la regla asignaba sin comprobar la compatibilidad**. Dos medidas
+    // independientes, el mismo agujero, y ninguna de las dos se usó para cambiar
+    // la regla el día que se vio — se midió la alternativa y decidió Antonio.
+    // ⇒ Desde la tanda 31 **manda la estricta**. Debajo queda la comparación, que
+    //   es lo que sostuvo la decisión y sin lo cual la regla nueva no tiene causa.
     log('');
-    log('   ⚠️⚠️ `univoca` ACIERTA MENOS QUE LAS OTRAS DOS, y eso apunta al mismo sitio que la');
-    log('      contraprueba de desplazamiento: **el paso 1 de la regla asigna sin comprobar la');
-    log('      compatibilidad**. Dos medidas independientes señalando el mismo agujero.');
-    log('   ⛔ La regla no se cambia aquí. Se MIDE la alternativa (post-hoc, no aplicada):');
+    log('   ⭐⭐ TANDA 31 · LA REGLA ESTRICTA YA ESTÁ APLICADA. `univoca` acertaba menos que las');
+    log('      otras dos, y eso apuntaba al mismo sitio que la contraprueba de desplazamiento.');
+    log('      Debajo, las dos reglas al lado — la laxa es la de las tandas 19-30:');
     {
-      const asigE = AB.asignar(g, capa.lineas, platDe, { idx, estricto: true });
+      const asigE = AB.asignar(g, capa.lineas, platDe, { idx, laxo: true });
       const ME = aplicar(g, tags, asigE.tabla, vias);
       const pe = new Map();
       for (let i = 0; i < ME.length; i++) {
@@ -769,11 +805,18 @@ if (require.main === module) {
       log('');
       log('      ' + 'regla'.padEnd(32) + 'aristas con ciclista'.padStart(22) + 'ganan vía'.padStart(12)
         + 'coincide con OSM'.padStart(20));
-      log('      ' + 'DECLARADA (la que se aplica)'.padEnd(32) + String(asig.tabla.size).padStart(22)
-        + String(gana.n).padStart(12) + `${oT} de ${cT} (${pct(oT, cT)})`.padStart(20));
-      log('      ' + '⭐ estricta (NO se aplica)'.padEnd(33) + String(asigE.tabla.size).padStart(22)
+      log('      ' + 'LAXA · tandas 19-30 (ya NO se aplica)'.padEnd(32) + String(asigE.tabla.size).padStart(22)
         + String(gana2).padStart(12) + `${o2} de ${n2} (${pct(o2, n2)})`.padStart(20));
-      log('      ⇒ decide Antonio. Aquí solo está medido, y con las dos contrapruebas al lado.');
+      log('      ' + '⭐ ESTRICTA · la que se aplica'.padEnd(33) + String(asig.tabla.size).padStart(22)
+        + String(gana.n).padStart(12) + `${oT} de ${cT} (${pct(oT, cT)})`.padStart(20));
+      // ⭐⭐ Y SU ROJO, VISTO EN CADA EJECUCIÓN: si la estricta NO acertara más que
+      //   la laxa, la decisión de la tanda 31 no tendría el apoyo que dice tener.
+      //   ⛔ Es la segunda pata, y es INDEPENDIENTE de la de `asignar-bici.js`:
+      //     allí se mide correspondencia (desplazamiento), aquí acierto contra OSM.
+      const mejora = (cT ? oT / cT : 0) > (n2 ? o2 / n2 : 0);
+      log('      ' + '⭐⭐ ¿la estricta acierta MÁS que la laxa?'.padEnd(50)
+        + (mejora ? `✅ sí — ${pct(oT, cT)} contra ${pct(o2, n2)}` : '⛔ NO — la decisión de la tanda 31 no tiene este apoyo'));
+      A.exige(mejora, `la regla estricta NO acierta más que la laxa (${pct(oT, cT)} contra ${pct(o2, n2)}): la mitad de la razón para aplicarla no se sostiene`);
       global._ALT2 = { n: asigE.tabla.size, gana: gana2, ok: o2, tot: n2 };
     }
   }

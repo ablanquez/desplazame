@@ -21,7 +21,26 @@
 //   Se muestrea la línea municipal cada 10 m. Para cada punto, los WAYS con un
 //   segmento a ≤15 m y con rumbo a ≤30° (los mismos números de la tanda 18).
 //
-//     1 · un solo way            → ASIGNADA · univoca
+//     1 · un solo way **y compatible con `tipo_carri`**
+//                                → ASIGNADA · univoca
+//         ⭐⭐ TANDA 31 · «y compatible» ES NUEVO, y lo decide Antonio con el número
+//           delante. La regla original asignaba el caso de un solo candidato **sin
+//           mirar la compatibilidad**, y eso lo señalaron DOS medidas independientes:
+//           la contraprueba de desplazamiento (§B4a) y el acierto por estado
+//           (`univoca` acertaba menos que `tipo` y `margen`, `modelo.js` §B5).
+//           ⛔ Y no se cambió el día que se vio —eso habría sido ajustar el
+//             instrumento al resultado—: se midió la alternativa, se publicó, y se
+//             aplica una tanda después, decidida. Lo que cuesta y lo que da:
+//
+//              regla        metros    aristas   desplazada 2 km    razón aristas   acierto
+//              laxa       212,43 km      3557       1930                 ×1,8       69,0 %
+//              ⭐ estricta  207,30 km      3472       1095                 ×3,2       70,5 %
+//
+//           ⇒ **85 aristas de 3.557 (2,4 %)**, y a cambio la contraprueba de
+//             desplazamiento pasa de ×1,8 —en rojo contra el listón de ×3 que se
+//             declaró antes de mirarla— a ×3,2.
+//         ⚠️ `{ laxo: true }` reproduce la regla vieja. ⛔ No es una opción para
+//           usar: existe para poder seguir enseñando el número de la otra.
 //     2 · varios → filtro por `tipo_carri`: si dice «acera», solo son candidatas
 //         las plataformas de andar; si dice «calzada», las de rodar. Si queda uno
 //                                → ASIGNADA · desempatada-por-tipo
@@ -194,13 +213,13 @@ function asignar(g, lineas, platDe, op = {}) {
         let estado = null, elegido = null;
         if (!ways.size) estado = 'sinCandidata';
         else if (todas.length === 1) {
-          // ⚠️ LA REGLA, TAL COMO LA DECLARÉ: un solo candidato se asigna SIN mirar
-          //    la compatibilidad. Es discutible —y en B4a se ve lo que cuesta—,
-          //    pero se queda como está: cambiarla después de ver la contraprueba
-          //    sería ajustar el instrumento al resultado.
-          // ⛔ `estricto` NO es la regla: es la ALTERNATIVA que B4a mide y que
-          //    NADIE aplica. Existe para poder enseñar el número, no para usarlo.
-          if (op.estricto && !compat.includes(platDe(todas[0][0]))) estado = 'sinCompatible';
+          // ⭐⭐ TANDA 31 · LA REGLA ES LA ESTRICTA: un solo candidato TAMBIÉN pasa
+          //    por el filtro de compatibilidad. Decidido por Antonio con los dos
+          //    números delante (cabecera del fichero y §B4a).
+          // ⚠️ `op.laxo` reproduce la regla de la tanda 19 —asignar sin mirar— y
+          //    está SOLO para poder seguir enseñando lo que costaba. ⛔ No se usa
+          //    en producción: `modelo.js` llama sin opciones.
+          if (!op.laxo && !compat.includes(platDe(todas[0][0]))) estado = 'sinCompatible';
           else { estado = 'univoca'; elegido = todas[0]; }
         } else {
           const filtradas = todas.filter(([w]) => compat.includes(platDe(w)));
@@ -290,14 +309,19 @@ if (require.main === module) {
     A.exige(real.tabla.size > 3 * desp.tabla.size, `las aristas asignadas no se hunden al desplazar (${real.tabla.size} contra ${desp.tabla.size})`);
 
     // ═════════════════════════════════════════════════════════════════════════
-    // ⚠️⚠️ POST-HOC, Y VA DICHO: esto se escribe DESPUÉS de ver que el contador
-    //      de ARISTAS no se hunde. ⛔ No se toca la regla ni el umbral. Lo que se
-    //      hace es abrir el número, que es lo único honesto que queda.
+    // ⭐⭐ TANDA 31 · ESTE ROJO ESTÁ CERRADO, Y EL CÓMO SE QUEDA ESCRITO
     // ═════════════════════════════════════════════════════════════════════════
+    //   Durante las tandas 19-30 este guardián estuvo EN ROJO: los metros se
+    //   hundían ×3,5 y el contador de aristas solo ×1,8, contra un listón de ×3
+    //   declarado antes de mirar. ⛔ No se movió el umbral ni se tocó la regla: se
+    //   abrió el número (§1, §2, §3), se midió la alternativa (§4) y se dejó la
+    //   decisión a Antonio. La toma en la tanda 31: **manda la estricta**.
+    //   ⚠️ Todo lo que hay debajo se queda porque es el registro de por qué se
+    //     cambió la regla. Borrarlo dejaría la regla nueva sin causa.
     log('');
-    log('   ⚠️⚠️ LOS METROS SE HUNDEN ×3,5 PERO EL CONTADOR DE ARISTAS SOLO ×1,8. El guardián');
-    log('      que declaré (×3 en aristas) se queda EN ROJO. ⛔ No muevo el umbral. Abro el');
-    log('      número, que es lo único honesto: (post-hoc)');
+    log('   ⭐⭐ ESTE GUARDIÁN ESTUVO EN ROJO DE LA TANDA 19 A LA 30, y se cerró CAMBIANDO LA');
+    log('      REGLA, no el umbral. Debajo queda por qué. (§1-§3 son post-hoc; §4 es la');
+    log('      medición que sostuvo la decisión.)');
     log('');
     log('   1 · ¿es el 2 km al este, o pasa en cualquier dirección?');
     log('      ' + 'desplazamiento'.padEnd(24) + 'metros asignados'.padStart(20) + 'aristas'.padStart(10) + 'razón aristas'.padStart(16));
@@ -331,29 +355,41 @@ if (require.main === module) {
       for (const k of ['univoca', 'tipo', 'margen', 'ambigua', 'sinCompatible', 'sinCandidata']) {
         log('      ' + k.padEnd(24) + String(p[k]).padStart(10) + pct(p[k], t).padStart(9));
       }
-      log('      ⇒ ⚠️ LA REGLA ASIGNA EL CASO UNÍVOCO **SIN COMPROBAR LA COMPATIBILIDAD**, porque');
-      log('        así la declaré. Una línea desplazada que cae sola al lado de cualquier calle');
-      log('        se lleva esa arista aunque la plataforma no pegue ni con cola.');
-      log('      ⛔ NO lo arreglo aquí: cambiar la regla después de ver la contraprueba es');
-      log('        ajustar el instrumento al resultado. Lo que sí puedo es MEDIR la alternativa.');
+      log('      ⇒ ⚠️ ASÍ ERA LA REGLA HASTA LA TANDA 31: el caso unívoco se asignaba **SIN');
+      log('        COMPROBAR LA COMPATIBILIDAD**. Una línea desplazada que cae sola al lado de');
+      log('        cualquier calle se llevaba esa arista aunque la plataforma no pegara ni con cola.');
+      log('      ⭐ Es lo que se cambió. Debajo, la comparación que lo sostuvo.');
     }
     log('');
-    log('   4 · ⭐ LA ALTERNATIVA, MEDIDA Y **NO APLICADA**: exigir compatibilidad también en');
-    log('      el caso unívoco. Va con su propia contraprueba de desplazamiento entera.');
+    log('   4 · ⭐⭐ LAS DOS REGLAS, UNA AL LADO DE OTRA — con su contraprueba entera cada una');
     {
-      const asignarEstricto = (lineas) => asignar(g, lineas, platDe, { idx, estricto: true });
-      const rE = asignarEstricto(capa.lineas);
-      const dE = asignarEstricto(capa.lineas.map((l) => ({ p: l.p, pts: l.pts.map((q) => [q[0] + 2000, q[1]]) })));
-      const aR = rE.metros.univoca + rE.metros.tipo + rE.metros.margen;
-      const aD = dE.metros.univoca + dE.metros.tipo + dE.metros.margen;
+      const asignarLaxo = (lineas) => asignar(g, lineas, platDe, { idx, laxo: true });
+      const rL = asignarLaxo(capa.lineas);
+      const dL = asignarLaxo(capa.lineas.map((l) => ({ p: l.p, pts: l.pts.map((q) => [q[0] + 2000, q[1]]) })));
+      const aR = rL.metros.univoca + rL.metros.tipo + rL.metros.margen;
+      const aD = dL.metros.univoca + dL.metros.tipo + dL.metros.margen;
+      const rz = (a, b) => `×${(a / Math.max(1, b)).toFixed(1)}`;
       log('      ' + 'regla'.padEnd(34) + 'metros'.padStart(14) + 'aristas'.padStart(10)
         + 'desplazada: metros'.padStart(20) + 'aristas'.padStart(10) + 'razón aristas'.padStart(15));
-      log('      ' + 'DECLARADA (la que se aplica)'.padEnd(34) + km(asigR).padStart(14) + String(real.tabla.size).padStart(10)
-        + km(asigD).padStart(20) + String(desp.tabla.size).padStart(10) + `×${(real.tabla.size / desp.tabla.size).toFixed(1)}`.padStart(15));
-      log('      ' + '⭐ estricta (NO se aplica)'.padEnd(35) + km(aR).padStart(14) + String(rE.tabla.size).padStart(10)
-        + km(aD).padStart(20) + String(dE.tabla.size).padStart(10) + `×${(rE.tabla.size / Math.max(1, dE.tabla.size)).toFixed(1)}`.padStart(15));
-      log('      ⇒ decide Antonio. Aquí solo está medido.');
-      global._ALT = { rE, dE };
+      log('      ' + 'LAXA · tandas 19-30 (ya NO se aplica)'.padEnd(34) + km(aR).padStart(14) + String(rL.tabla.size).padStart(10)
+        + km(aD).padStart(20) + String(dL.tabla.size).padStart(10) + rz(rL.tabla.size, dL.tabla.size).padStart(15));
+      log('      ' + '⭐ ESTRICTA · la que se aplica'.padEnd(35) + km(asigR).padStart(14) + String(real.tabla.size).padStart(10)
+        + km(asigD).padStart(20) + String(desp.tabla.size).padStart(10) + rz(real.tabla.size, desp.tabla.size).padStart(15));
+      // ⭐⭐ Y SU ROJO, VISTO EN CADA EJECUCIÓN: si la regla laxa NO fallara el
+      //   listón, este guardián no distinguiría las dos reglas y el cambio de la
+      //   tanda 31 no significaría nada. ⛔ El listón NO se toca: es el mismo ×3
+      //   declarado en la tanda 19, antes de mirar ningún resultado.
+      const laxaFalla = rL.tabla.size <= 3 * dL.tabla.size;
+      di('   ⭐⭐ y el ROJO de este guardián, visto: ¿la regla LAXA falla el ×3?',
+        laxaFalla ? `✅ sí — ${rL.tabla.size} contra ${dL.tabla.size}` : '⛔ NO — el guardián no distingue las dos reglas');
+      A.exige(laxaFalla, 'la regla laxa PASARÍA el listón de ×3: el guardián no distingue las dos reglas y el cambio de la tanda 31 no está probado');
+      // ⭐ y cuánto se movió de verdad, en la unidad que importa
+      const soloLaxa = [...rL.tabla.keys()].filter((k) => !real.tabla.has(k));
+      const soloEstr = [...real.tabla.keys()].filter((k) => !rL.tabla.has(k));
+      di('   aristas que PIERDEN la asignación al ser estrictos', `${soloLaxa.length}  (${pct(soloLaxa.length, rL.tabla.size)})`);
+      di('   ⚠️ aristas que la GANAN (no debería haber ninguna)', soloEstr.length + (soloEstr.length ? '   ⛔' : '   ✅'));
+      A.exige(soloEstr.length === 0, `la regla estricta asigna ${soloEstr.length} aristas que la laxa no asignaba: no es un filtro, está haciendo otra cosa`);
+      global._ALT = { rL, dL, soloLaxa: soloLaxa.length };
     }
   }
 
