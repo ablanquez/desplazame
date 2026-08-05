@@ -5475,13 +5475,186 @@ módulo nuevo pueda entrar en un ciclo, se añade al barrido el mismo día, no c
 **Traza:** `src/calle-pegada.js` (orden de `module.exports`),
 `src/probar-modelo-obligatorio.js` (§5, la lista de consumidores)
 
-## [2026-08-04] — D0 manda al resolver el way, y los votos se agrupan por via
-**Categoría:** NO CONSTA
-**Síntoma:** NO CONSTA
-**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ NO CONSTA
-**Causa raíz:** NO CONSTA
-**Cómo se cazó:** NO CONSTA
-**Arreglo aplicado:** NO CONSTA
+---
+
+## [2026-08-05] — El hook escribió en la bitácora y yo lo commiteé sin leerlo
+
+**Categoría:** proceso
+**Síntoma:** al contar las entradas salieron **112** y tenían que ser 111. La de más, entre la nº109
+y la nº110, era ésta —reproducida entera, que es todo lo que decía—:
+
+```
+   ## [2026-08-04] — D0 manda al resolver el way, y los votos se agrupan por via
+   **Categoría:** NO CONSTA
+   **Síntoma:** NO CONSTA
+   … (los nueve campos en NO CONSTA)
+```
+
+**Un esqueleto vacío con el asunto de mi propio commit**, dentro del commit `3114547` de la tanda 25,
+duplicando el fallo nº108 que estaba tres párrafos más arriba escrito entero.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el hook**, que es el guardián que
+existe justo para esto. Y el `git status`, que enseñaba `docs/BITACORA.md` como modificado — porque
+YO lo había modificado— así que la línea de más no destacaba en ningún sitio.
+
+**Cómo se cazó:** contando. `grep -c '^## \['` daba 112 y la cuenta de la tanda anterior más las dos
+de hoy daba 111. **Aritmética otra vez** (ley 51).
+
+**Causa raíz:** dos, encadenadas.
+1. ⚠️ **El hook tiene un falso positivo con `git commit --amend`.** Comprueba que haya líneas nuevas
+   en `docs/BITACORA.md` con `git diff --cached -- docs/BITACORA.md`, que en un `--amend` compara
+   contra el commit que se está enmendando — **y ése ya lleva la entrada dentro**. ⇒ no ve ninguna
+   nueva, aunque esté. ⛔ **No se toca**: es un guardián y arreglarlo es una decisión de Antonio.
+2. ⭐⭐ **Y la mía, que es la que cuenta:** cuando el hook no encuentra entrada, **escribe el
+   esqueleto al final del fichero y lo mete en el stage él solo** —está documentado en su cabecera:
+   *«cumplir tiene que ser fácil, no solo incumplir difícil»*—. Rechazó mi primer `--amend`, dejó el
+   esqueleto puesto, y el segundo `--amend` se lo llevó. **Yo no volví a mirar el fichero.**
+
+⇒ En el repositorio cuya ley más cara es *«se lee `git status` y se añade lo que se quiere añadir,
+mirándolo»*, commiteé el contenido de un fichero que **otro proceso había cambiado detrás de mí**.
+Las rutas eran explícitas; el contenido, no.
+
+**Arreglo aplicado:** se retira el esqueleto. ⛔ No se «fusiona» ni se «suaviza» ninguna entrada: el
+fallo que ese esqueleto decía no describir es el nº108, que sigue entero y sin tocar. Lo que se quita
+no es el registro de un fallo — es un hueco con forma de entrada.
+⚠️ Y el falso positivo del hook se reporta hacia arriba, sin tocarlo.
+
 **Commit:** (este commit)
-**Ley que sale de aquí:** NO CONSTA
-**Traza:** NO CONSTA
+
+**Ley que sale de aquí:** ⭐⭐ **«rutas explícitas» protege de añadir el fichero equivocado, no de
+añadir el contenido equivocado.** Un hook que escribe es una segunda mano sobre el árbol de trabajo:
+después de que un hook rechace algo, **el fichero que tocó ya no es el que yo dejé**, y hay que
+volver a leerlo antes de reintentar.
+⚠️ Y la operativa: **cuando algo se cuenta, se cuenta antes y después.** Las entradas de la bitácora
+tienen un número; si no llego a mirarlo, esto se publica y queda para siempre.
+
+**Traza:** `docs/BITACORA.md` (el esqueleto retirado), `.githooks/commit-msg` (el falso positivo, ⛔ no tocado)
+
+---
+
+## [2026-08-05] — El testigo de la calle pegada le puso nombre a 3.786 pasos de cebra, y el informe lo publicó sin verlo
+
+**Categoría:** semántica
+**Síntoma:** lo vio Antonio, y de una frase: *«si un paso de cebra es un paso de cebra y no tiene
+nombre, no lo tendrá que tener ninguno, digo yo»*. Medido:
+
+```
+   aristas `paso-de-peatones`                              10494  (46,55 km)
+   ⭐ con nombre que trae OSM (dato ajeno)                  1101  (10,5 %)
+   ⛔ con nombre puesto POR NOSOTROS                        3786  (36,1 %)
+        pegada           3753        portales+pegada  33
+```
+
+**Uno de cada tres pasos de cebra llevaba un nombre de calle que le habíamos puesto nosotros**, y
+3.753 de los 3.786 los puso el testigo de la calle pegada — el que metí en la tanda 25, el día antes.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el informe de la tanda 25 imprimió
+el número y yo lo leí como un logro.** En `docs/H1-CALLE-PEGADA.md` §E, la tabla «de qué son las
+11.330 que ganan nombre» dice, en su primera fila por precisión D4:
+
+```
+   paso-de-peatones   3786   18,36 km
+```
+
+Estaba ahí, el primero de la lista, y lo publiqué como cobertura ganada. ⭐ Y todo lo demás cuadraba:
+93,4 % de acierto contra el patrón de verdad, 0 discrepancias entre el mapa y el motor, las siete
+rutas idénticas al milímetro, la batería entera en verde. **Ninguna de esas comprobaciones podía
+cazar esto, porque todas preguntan «¿es correcto el nombre?» y la pregunta buena era «¿tiene sentido
+que tenga uno?».**
+⚠️ Y el número también engordaba el titular: de las **11.330 líneas que ganaban nombre, 3.786 eran
+pasos** — un tercio del resultado de la tanda no debía existir.
+
+**Cómo se cazó:** usuario, y no mirando datos: pensando en qué es un paso de cebra.
+
+**Causa raíz:** dos, y la segunda es la que importa.
+1. **Mecánica:** un paso de cebra es la línea más corta del grafo (mediana 3,9 m), así que sus cinco
+   puntos de muestreo caen casi encima y **cualquier calle a menos de 11 m gana en los cinco**. Esto
+   estaba escrito y medido en la tanda 25 §D4 —*«en una línea CORTA los cinco puntos caen casi
+   encima»*, 85,8 % de acierto entre 25 y 50 m contra 99,7 % entre 100 y 250— y **no se me ocurrió
+   preguntar cuáles eran las líneas más cortas del grafo**.
+2. ⭐⭐ **Conceptual, y es la de verdad:** el modelo solo tenía dos estados, *con nombre* y *sin
+   nombre*, y faltaba el tercero: **«no tiene nombre»**. Un paso de cebra no es de ninguna calle: es
+   del cruce. El que va de Rodrigo Rebolledo a Salvador Minguijón está entre las dos y no pertenece a
+   ninguna — **ponerle una es elegir, y elegir es inventar**. Sin ese tercer estado, el método no
+   tenía forma de callarse: o nombraba o dejaba un hueco que parecía un problema.
+
+**Arreglo aplicado:** el tercer estado, declarado **una sola vez** en `planarizar.js` al lado de
+`precision()` —que es donde vive D4— y leído desde ahí por el modelo y por el redactor, sin copiarlo
+(ley 56). El modelo no le pone nombre deducido a un `paso-de-peatones`; el redactor devuelve
+`noAplica`; el mapa lo pinta **gris**.
+⛔ **Lo que trae OSM no se toca**: los 1.101 con `name` lo conservan en el dato y en el texto. Lo que
+cambia es el color, porque la pregunta *«¿le falta el nombre?»* no aplica ahí lo lleve o no.
+
+```
+                    antes      ahora
+   AZULES           56864      51977
+   ROJAS            41910      36303      ⭐ 5.607 rojas eran pasos: el mapa exageraba un 13,4 %
+   GRISES               —      10494
+```
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un hueco en el dato tiene dos causas y no son la misma: «no lo
+sabemos» y «no existe».** Un instrumento que solo sabe decir *sí* y *no* convierte la segunda en la
+primera, y entonces mide un problema que no existe **y encima intenta arreglarlo**. Aquí el método no
+se equivocó: contestó una pregunta que nadie debió hacerle.
+⚠️ Y la segunda, sobre cómo se leen los propios informes: **la tabla de composición de un resultado
+no es decoración, es la comprobación.** Publiqué «footway 9.263, el 82 %, son aceras: justo el caso
+que Antonio señaló» y no miré la fila de al lado, que decía que 3.786 eran pasos. **Cuando se desglosa
+un resultado, hay que leer las filas que NO se esperaban, no las que confirman el titular.**
+
+**Traza:** `src/planarizar.js` (`SIN_NOMBRE_POR_DEFINICION`), `src/modelo.js` (`aplicar`),
+`src/relato.js` (`tramo`), `src/exportar-nombre-simple.js` (`CATEGORIA`),
+`tools/visor-nombre-simple.html`, `src/paso-de-cebra.js`
+
+---
+
+## [2026-08-05] — Escribí un cuadre que pasaba por construcción y publicó un número falso con un ✅ al lado
+
+**Categoría:** aviso falso
+**Síntoma:** al meter el gris, añadí al exportador un bloque titulado «EL ÁLGEBRA DEL GRIS, ESCRITA
+ANTES DE EJECUTAR». Imprimió esto:
+
+```
+   ⭐ AZULES antes / ahora    53078 → 51977
+   ⭐ ROJAS  antes / ahora    45696 → 36303
+   ⭐ cuadre                  98774 = 98774   ✅
+```
+
+**Las dos primeras filas son falsas.** Los azules de antes eran **56.864** y las rojas **41.910** —los
+números que la tanda 25 publicó dos días antes—. Y el ✅ de abajo era verdad y no valía nada.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el propio cuadre**, y por eso está
+aquí. `azules + rojas + grises` suman el total del grafo **haga lo que haga el reparto**: es una
+identidad, no una comprobación. Un ✅ que no puede salir ⛔ no es un ✅.
+
+**Cómo se cazó:** por aritmética, y en el sitio de siempre (ley 51): el número no cuadraba con uno
+publicado. 53.078 no podía ser el «antes» de 51.977 si la tanda 25 había cerrado en 56.864, y la
+diferencia —4.887— es exactamente los pasos que tenían nombre. **El número contradecía a la
+aritmética, así que el número estaba mal.**
+
+**Causa raíz:** reconstruí el «antes» leyendo `deWay`, **que es el modelo YA ARREGLADO**. Como el
+arreglo consiste precisamente en no ponerles nombre a los pasos, el «antes» que salía de ahí ya no
+tenía los 3.786 deducidos: solo veía los 1.101 de OSM. ⇒ **pregunté por el pasado a un testigo que ya
+vivía en el presente.**
+
+**Arreglo aplicado:** dos cosas.
+· El «antes» se **calcula**: `construirModelo(g, portales, { pasosConNombre: true })` monta el modelo
+  con la regla vieja en el mismo proceso, y se le pregunta **al mismo redactor** las dos veces. Vive
+  en `src/paso-de-cebra.js`, no en el exportador.
+· En el exportador queda lo que el exportador **sí puede comprobar solo**, y en las dos direcciones:
+  *todos los pasos son grises* **y** *todos los grises son pasos*. Con una sola de las dos, el gris
+  podría estar llevándose media ciudad sin que se viera.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un «antes» que sale del código de «ahora» no es un antes.** Si la
+comparación mide el efecto de un cambio, la rama vieja tiene que EJECUTARSE, no reconstruirse de
+memoria a partir de la nueva — y eso vale igual para un fichero guardado (que puede ser de otro día)
+que para una estructura del proceso actual (que ya lleva el arreglo dentro).
+⚠️ Y la que se repite: **antes de escribir un cuadre, hay que contestar si puede salir ⛔.** Éste no
+podía. La pregunta está escrita en el método de todas las tandas y aun así la salté, porque el bloque
+llevaba la palabra «álgebra» en el título y eso ya sonaba a rigor.
+
+**Traza:** `src/exportar-nombre-simple.js` (el bloque retirado), `src/modelo.js`
+(`aplicar`, `op.pasosConNombre`), `src/paso-de-cebra.js` (§A4)
