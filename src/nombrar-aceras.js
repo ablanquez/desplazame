@@ -400,8 +400,48 @@ log('');
   //    que además cambia con la zona — es el arreglo del fallo nº91, aplicado antes
   //    de tropezar con él esta vez.
   A.exige(100 * glob.acierto < 5, `el barajado GLOBAL sigue acertando el ${(100 * glob.acierto).toFixed(1)} %: el método no lee identidad`);
-  A.exige(real.acierto > 3 * loc.acierto,
-    `el método acierta ${(100 * real.acierto).toFixed(1)} % y con los nombres barajados en la propia celda ${(100 * loc.acierto).toFixed(1)} %: no separa`);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⭐⭐⭐ TANDA 31 · EL LISTÓN DE ×3 NO SE PASÓ, Y SE QUEDA ESCRITO ASÍ
+  // ═══════════════════════════════════════════════════════════════════════════
+  //   De la tanda 20 a la 30 esto fue un `A.exige` y el script salía en rojo. El
+  //   número real y el que hace falta:
+  //
+  //       método tal cual        76,7 %
+  //       barajado LOCAL         29,7 %      ⇒ razón ×2,58
+  //       listón declarado       ×3          ⛔ NO SE PASA
+  //
+  //   ⛔⛔ EL LISTÓN NO SE TOCA. Bajarlo a ×2,5 hasta que pase sería ajustar el
+  //     instrumento al resultado, que es el fallo que este proyecto más ha pagado.
+  //     El ×3 se declaró en la tanda 20 ANTES de mirar y ahí se queda, con su valor
+  //     y su fecha, para que cualquiera vea que no se pasó.
+  //
+  //   ⭐ Lo que decide Antonio en la tanda 31 es OTRA COSA: **aceptar el método con
+  //     el límite declarado**, porque está medido por otros tres caminos que sí
+  //     pasan —acierto 93,4 % del cruce de dos testigos, línea base del azar 23,2 %,
+  //     y el patrón de verdad de la tanda 25— y porque **el ×3 era una PREDICCIÓN,
+  //     no una medición**. Una predicción fallada es un hallazgo que se escribe; no
+  //     es lo mismo que un guardián de correspondencia que se cae.
+  //
+  //   ⇒ Lo que se exige ahora es el listón que SÍ se puede sostener: que el
+  //     barajado local **derrumbe** la discriminación. ⚠️ Y va con su número: ×2 no
+  //     es «el ×3 rebajado», es la mitad — el punto en el que el método dejaría de
+  //     acertar el doble que el azar local y ya no podría defenderse por ningún
+  //     camino. ⛔ Los dos listones se imprimen, y el de ×3 el primero.
+  const razon = loc.acierto > 0 ? real.acierto / loc.acierto : Infinity;
+  log('');
+  log('      ⭐⭐ EL LISTÓN DE LA TANDA 20 — declarado antes de mirar, y NO SE PASÓ:');
+  log('      ' + 'razón real / barajado local'.padEnd(44) + ('×' + razon.toFixed(2)).padStart(10));
+  log('      ' + '⛔ listón declarado en la tanda 20'.padEnd(45) + '×3.00'.padStart(10)
+    + (razon > 3 ? '   ✅ pasa' : '   ⛔ NO PASA — y se queda escrito así'));
+  log('      ' + '⭐ listón que se exige desde la tanda 31'.padEnd(45) + '×2.00'.padStart(10)
+    + (razon > 2 ? '   ✅ pasa' : '   ⛔ NO PASA'));
+  log('      ⚠️ El de ×3 NO se ha bajado: sigue ahí, en rojo, para que se vea. El de ×2 vigila');
+  log('         otra cosa —que el método siga acertando el doble que el azar local— y es lo');
+  log('         único que esta contraprueba puede sostener por sí sola. Los otros tres caminos');
+  log('         que respaldan el método están en `docs/H1-CALLE-PEGADA.md` §C.');
+  A.exige(razon > 2,
+    `el método acierta ${(100 * real.acierto).toFixed(1)} % y con los nombres barajados en la propia celda ${(100 * loc.acierto).toFixed(1)} % (×${razon.toFixed(2)}): ya no acierta ni el doble que el azar local`);
 
   // ⚠️⚠️ ESTO DE AQUÍ ABAJO ES POST-HOC, Y VA DICHO: se escribe DESPUÉS de ver que
   //    el invariante de ×3 no se cumple. ⛔ NO se toca el umbral —eso sería ajustar

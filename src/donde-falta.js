@@ -686,11 +686,38 @@ if (require.main === module) {
     const fCalz = filas.find((x) => x.k === 'calzada');
     di('   acera', '×' + fAcera.r.toFixed(2) + (fAcera.r <= 1.15 ? '   ✅ como predije' : '   ⛔ ME EQUIVOQUÉ: aguanta'));
     di('   calzada', '×' + fCalz.r.toFixed(2) + (fCalz.r > 1.15 ? '   ✅ como predije' : '   ⛔ ME EQUIVOQUÉ: no aguanta'));
-    log('   ⚠️ Una predicción declarada que falla es un HALLAZGO, y por eso pone el script en');
-    log('      rojo: es el mismo trato que `forma.js` se dio a sí mismo en la tanda 19.');
-    A.exige(fAcera.r <= 1.15, 'predije que en `acera` la relación se aplanaría y aguanta a ×' + fAcera.r.toFixed(2));
-    A.exige(fCalz.r > 1.15, 'predije que en `calzada` la relación aguantaría y sale plana a ×' + fCalz.r.toFixed(2)
-      + ' — el techo (×' + fCalz.techo.toFixed(2) + ') explica por qué, y eso es lo que no vi');
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⭐⭐ TANDA 31 · ESTE ROJO SE APAGA, Y LA PREDICCIÓN FALLADA SE QUEDA ESCRITA
+    // ═══════════════════════════════════════════════════════════════════════
+    //   De la tanda 20 a la 30 estas dos líneas fueron `A.exige`, y ponían el
+    //   script en rojo en cada ejecución. ⚠️ **Pero ese rojo no señalaba un fallo
+    //   del proyecto: señalaba que una predicción MÍA salió mal**, y encima ya
+    //   está explicada —el techo aritmético de la razón, que es lo que no vi—.
+    //   ⇒ Decisión de Antonio, tanda 31: **un rojo que no significa nada hace
+    //     ruido, y con ruido se dejan de mirar los que sí significan.**
+    //   ⛔ Se apaga el rojo. ⛔ NO se borra la predicción: se imprime con su valor,
+    //     su fecha y el veredicto, porque borrarla dejaría este análisis pareciendo
+    //     que acertó a la primera. **El registro es el resultado, no el ✅.**
+    log('   ⭐ VEREDICTO DE LA PREDICCIÓN (tanda 20) — se deja escrita, acertara o no:');
+    log('      · `acera`   predije «se aplana o se invierte» ⇒ '
+      + (fAcera.r <= 1.15 ? 'ACERTÉ' : '⛔ ME EQUIVOQUÉ: aguanta a ×' + fAcera.r.toFixed(2)));
+    log('      · `calzada` predije «aguanta»                 ⇒ '
+      + (fCalz.r > 1.15 ? 'ACERTÉ' : '⛔ ME EQUIVOQUÉ: sale plana a ×' + fCalz.r.toFixed(2)
+        + ', y el techo (×' + fCalz.techo.toFixed(2) + ') explica por qué'));
+    log('   ⚠️ Las dos fallaron, y las dos por lo mismo: **no miré el techo aritmético antes de');
+    log('      predecir.** Con el techo delante la lectura se invierte — `calzada` ha recorrido');
+    log('      más de la mitad de lo que su aritmética permitía, y `acera` casi nada.');
+    log('   ⛔ Esto NO pone el script en rojo desde la tanda 31 (decisión de Antonio): un rojo');
+    log('      que no significa nada hace ruido. Lo que sí sigue en rojo es lo de abajo.');
+    // ⭐⭐ Y PARA QUE ESTO NO SE QUEDE EN UN `log` DECORATIVO (ley 44, nº116): lo
+    //   que SÍ tiene que seguir siendo cierto es que **el análisis distingue algo**.
+    //   Si todas las plataformas salieran planas, la comparación no separaría nada
+    //   y este bloque entero estaría midiendo ruido — y ESO sí es un fallo del
+    //   proyecto, no una predicción mía. El listón se declara aquí: al menos una.
+    di('⭐⭐ ¿la relación SOBREVIVE en alguna plataforma? (si en ninguna, esto mide ruido)',
+      vivas > 0 ? `✅ en ${vivas} de ${filas.length}` : '⛔ en NINGUNA');
+    A.exige(vivas > 0,
+      'la relación portal↔nombre no sobrevive en NINGUNA plataforma: el análisis B2 no separa nada y estaría midiendo ruido');
     global._B2 = { filas, vivas, planas, invertidas };
   }
 
