@@ -93,24 +93,24 @@ const TABLA = [
     sostiene: 'los 6.500 km de red que se publican en todos los informes' },
 
   // ── ⭐⭐ EL REPARTO DEL MAPA — el que la tanda 29 demostró desnudo ──────────
-  { id: 'mapa.azules', valor: 51556, fuente: 'docs/H1-VERDE.md §0 y §5',
+  { id: 'mapa.azules', valor: 51493, fuente: 'docs/H1-ROJOS-CERRADOS.md §A1 (tanda 31) · antes docs/H1-VERDE.md §0',
     sostiene: '⭐ el reparto publicado del mapa — las líneas CON nombre' },
-  { id: 'mapa.rojas', valor: 32258, fuente: 'docs/H1-VERDE.md §0 y §5',
+  { id: 'mapa.rojas', valor: 32310, fuente: 'docs/H1-ROJOS-CERRADOS.md §A1 (tanda 31) · antes docs/H1-VERDE.md §0',
     sostiene: '⭐ el reparto publicado del mapa — «el rojo que queda», sin explicación' },
-  { id: 'mapa.verdes', valor: 3792, fuente: 'docs/H1-VERDE.md §0 y §5',
+  { id: 'mapa.verdes', valor: 3803, fuente: 'docs/H1-ROJOS-CERRADOS.md §A1 (tanda 31) · antes docs/H1-VERDE.md §0',
     sostiene: '⭐ el reparto publicado del mapa — las rojas explicadas por estar en zona verde' },
   { id: 'mapa.grises', valor: 11168, fuente: 'docs/H1-VERDE.md §0 y §5',
     sostiene: '⭐ el reparto publicado del mapa — las que no tienen nombre NI DEBEN' },
-  { id: 'mapa.rojasMotor', valor: 36050, fuente: 'docs/H1-VERDE.md §0 · docs/H1-PARQUES.md §A2b',
+  { id: 'mapa.rojasMotor', valor: 36113, fuente: 'docs/H1-ROJOS-CERRADOS.md §A1 (tanda 31) · antes docs/H1-VERDE.md §0',
     sostiene: 'las líneas a las que EL MOTOR les ve falta de nombre (rojas + verdes)' },
 
   // ── ⭐ EL LISTÓN DE 1 ha — la tanda 29 lo encontró sin guardián ────────────
-  //   ⭐⭐ La pareja es lo que congela la DECISIÓN: 3.792 con listón y 4.405 sin
+  //   ⭐⭐ La pareja es lo que congela la DECISIÓN: 3.803 con listón y 4.424 sin
   //     él. Congelar solo uno dejaría el corte suelto; con los dos, mover
   //     `MIN_AREA` mueve la distancia entre ellos y salta.
-  { id: 'verde.sinListon', valor: 4405, fuente: 'docs/H1-VERDE.md §1 (la curva) y §2',
-    sostiene: '⭐ el listón de 1 ha: sin filtro entrarían 4.405 y con filtro entran 3.792' },
-  { id: 'mapa.verdesKm', valor: 145.34, dec: 2, fuente: 'docs/H1-VERDE.md §1 y §2',
+  { id: 'verde.sinListon', valor: 4424, fuente: 'docs/H1-ROJOS-CERRADOS.md §A1 (tanda 31) · antes docs/H1-VERDE.md §0',
+    sostiene: '⭐ el listón de 1 ha: sin filtro entrarían 4.424 y con filtro entran 3.803' },
+  { id: 'mapa.verdesKm', valor: 145.94, dec: 2, fuente: 'docs/H1-ROJOS-CERRADOS.md §A1 (tanda 31) · antes docs/H1-VERDE.md §0',
     sostiene: 'los metros de rojo explicados por zona verde' },
 
   // ── ⭐ POR QUÉ MANDA OSM Y NO LA CAPA MUNICIPAL ────────────────────────────
@@ -132,8 +132,18 @@ const TABLA = [
     sostiene: '«el nombre que trae OSM SE RESPETA en el dato: solo cambia el color»' },
   { id: 'pasos.deducidos', valor: 4155, fuente: 'docs/H1-PARQUES.md §A2',
     sostiene: '⭐⭐ los 4.155 nombres que les habíamos puesto NOSOTROS a pasos e isletas, y que se quitaron' },
-  { id: 'mapa.azulesConPasos', valor: 56864, fuente: 'docs/H1-CALLE-PEGADA.md §0 y §E',
+  { id: 'mapa.azulesConPasos', valor: 56801, fuente: 'docs/H1-ROJOS-CERRADOS.md §A1 (tanda 31) · antes docs/H1-VERDE.md §0',
     sostiene: '⭐ el «antes» de la tanda 26 — el número que hacía falsa la versión de 53.078 (nº111)' },
+
+  // ── ⭐⭐ EL NÚMERO QUE HABÍA CADUCADO, REPUBLICADO Y AHORA SÍ CONGELADO ─────
+  //   La tanda 30 lo midió y lo dejó FUERA a propósito, escrito como «medido y no
+  //   congelado»: el publicado (3.166, tanda 21) ya no valía, y congelar un número
+  //   caducado clava un rojo permanente que en dos días deja de significar nada.
+  //   ⇒ La tanda 31 lo republica con su reparto (`src/puertas-sin-calle.js`) y
+  //     **entonces** entra aquí. Ése es el orden que manda la cabecera de este
+  //     fichero: publicar primero, congelar después.
+  { id: 'puertas.sinCalle', valor: 2669, fuente: 'docs/H1-ROJOS-CERRADOS.md §E (tanda 31) · antes 3.166 en docs/H1-NOMBRES-Y-PASOS.md §0',
+    sostiene: '⭐⭐ las puertas de Zaragoza que cuelgan de una línea sin nombre — el número que mide el problema en la unidad que le importa a una persona' },
 ];
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -215,9 +225,9 @@ function medir(op = {}) {
   M['pasos.deducidos'] = deducidos;
   M['mapa.azulesConPasos'] = azulesAntes;
 
-  // ⚠️ NO se congela, pero SE MIDE y se enseña: es un número publicado en la
-  //    tanda 21 y cuatro tandas de nombres han pasado por encima desde entonces.
-  M['_portalesSinNombre'] = portales
+  // ⭐ TANDA 31 · ya NO es un `_`: se republicó en `src/puertas-sin-calle.js` con su
+  //   reparto por tanda, así que pasa a estar congelado como cualquier otro.
+  M['puertas.sinCalle'] = portales
     .filter((o) => o.arista != null && !tramoDe(g.aristas[o.arista]).nombre).length;
   M['_nodosSinArista'] = g.nodos.length - g.contadores.nodos;
   M['_idxVerdePolis'] = idxVerde.polis.length;
@@ -373,11 +383,6 @@ function congelar(log, di, T0) {
   // ── lo que se mide y NO se congela, dicho ─────────────────────────────────
   log('');
   log('   ⚠️ MEDIDO Y **NO** CONGELADO — a propósito, y por eso va escrito');
-  di('portales colgando de una línea SIN nombre (hoy)', medido._portalesSinNombre);
-  log('      ⚠️ La tanda 21 publicó **3.166** («8.576 puertas ganan calle»). Las tandas 25, 26');
-  log('        y 27 han movido los nombres desde entonces. ⛔ NO se congela el 3.166: sería');
-  log('        clavar un guardián en rojo permanente contra un número que ya caducó. Lo que');
-  log('        toca es publicarlo de nuevo, y eso lo decide Antonio.');
   di('nodos del array que NO toca ninguna arista', medido._nodosSinArista);
   log('      ⚠️ `g.nodos` lleva ' + (medido['grafo.nodos'] + medido._nodosSinArista) + ' y el contador publicado dice '
     + medido['grafo.nodos'] + '. La diferencia');

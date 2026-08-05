@@ -48,6 +48,21 @@ const pct = (a, b) => (b ? (100 * a / b).toFixed(1) + ' %' : '—');
 //    escritos antes de que esta tanda existiera. No los elijo yo (ley 17).
 const PUBLICADOS = { 1: 3086.9, 2: 598.1, 3: 3704.9, 4: 505.9, 5: 477.4, 6: 523.4, 7: 2528.9 };
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ TANDA 31 · Y LOS PASOS DEL ITINERARIO, QUE TAMBIÉN ESTABAN PUBLICADOS
+// ═════════════════════════════════════════════════════════════════════════════
+//   `docs/H1-NOMBRES-Y-PASOS.md` §0 publica «EL ITINERARIO TIENE UN CUARTO MENOS
+//   DE PASOS: las siete rutas, 110 → 82». **Hoy son 74**, y nadie se enteró: las
+//   tandas 25, 26, 27 y 31 han seguido fundiendo pasos al poner nombres, y ese
+//   número se recalculaba, se imprimía y no se comparaba con nada — exactamente lo
+//   que le pasó a las «3.166 puertas» (§E de la tanda 31).
+//   ⇒ Se republica en `docs/H1-ROJOS-CERRADOS.md` §E y se congela AQUÍ, que es el
+//     sitio donde ya se ejecutan las siete rutas: congelarlo en otro fichero
+//     obligaría a correrlas dos veces.
+//   ⚠️ Y envejecerá, como todos: el día que una tanda funda un paso más, esto se
+//     pone rojo y hay que republicarlo. Eso es el objetivo, no el defecto.
+const PASOS_PUBLICADOS = 74;
+
 /** Ejecuta `rutas-antonio.js` y devuelve {texto, aristas}. */
 function correr(flags) {
   let salida = '';
@@ -131,6 +146,25 @@ A.exige(!!sin.aristas && !!con.aristas, 'no se ha podido leer `##ARISTAS##` de a
   log('       cambiar SI Y SOLO SI alguno de los ways que pisa gana vía por el modelo.');
   const bSin = bloques(sin.salida), bCon = bloques(con.salida);
   A.exige(bSin.size === 7 && bCon.size === 7, `no se han extraído los 7 bloques de texto (${bSin.size} / ${bCon.size})`);
+
+  // ── ⭐⭐ TANDA 31 · LOS PASOS, CONGELADOS ──────────────────────────────────
+  {
+    const pasosDe = (b) => (b.match(/^\s+\d+\.\s/gm) || []).length;
+    const porRuta = [...bCon.entries()].sort((a, b) => a[0] - b[0]).map(([n, b]) => [n, pasosDe(b)]);
+    const total = porRuta.reduce((s, x) => s + x[1], 0);
+    log('');
+    log('   ⭐⭐ PASOS DEL ITINERARIO (congelado en la tanda 31)');
+    log('      ' + porRuta.map(([n, p]) => `${n}:${p}`).join(' · '));
+    di('   pasos en las siete, con modelo', `${total} / ${PASOS_PUBLICADOS}`
+      + (total === PASOS_PUBLICADOS ? '   ✅' : '   ⛔ SE HA MOVIDO'));
+    A.exige(total === PASOS_PUBLICADOS,
+      `las siete rutas salen en ${total} pasos y lo publicado son ${PASOS_PUBLICADOS}: `
+      + 'el itinerario ha cambiado de forma. Si es a propósito, se republica y se actualiza; si no, es un hallazgo');
+    // ⭐ y que la cuenta no pase por vacío: si el extractor dejara de encontrar
+    //   pasos, `total` sería 0 y solo saltaría por el número, sin decir por qué.
+    A.exige(porRuta.every(([, p]) => p > 0),
+      'alguna ruta sale con CERO pasos: el extractor de pasos no está leyendo el texto');
+  }
   log('');
   log('   ' + 'ruta'.padStart(5) + 'texto'.padStart(16) + '   qué pasa');
   const cambian = [];
