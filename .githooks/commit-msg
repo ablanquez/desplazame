@@ -52,10 +52,62 @@ anade_entrada() {
         | grep -qE '^\+## \['
 }
 
-if es_fix && ! anade_entrada; then
+# ─────────────────────────────────────────────────────────────────────────────
+# ⭐⭐ TANDA 31 · LA SEGUNDA PUERTA: ¿la entrada está en el commit ANTERIOR?
+# ─────────────────────────────────────────────────────────────────────────────
+#   La tanda 29 le encontró a este hook TRES falsos positivos, y los tres son el
+#   mismo caso visto desde sitios distintos: **la entrada existe, pero no en el
+#   diff en stage**.
+#
+#     1 · `git commit --amend`            la entrada está en el commit que se enmienda
+#     2 · `git commit --amend --no-edit`  igual
+#     3 · la bitácora en el commit ANTERIOR y el `fix:` en el siguiente
+#
+#   ⚠️⚠️ Y el tercero es el que manda, porque **el hook castigaba exactamente la
+#     práctica que `CLAUDE.md` exige**: commits atómicos. Una entrada de bitácora
+#     y un arreglo son dos cosas, y meterlas en el mismo commit para contentar al
+#     guardián es dejar que el guardián escriba la historia.
+#
+#   ⇒ Se acepta también si la entrada entró en HEAD y **no** venía ya de HEAD~.
+#     Los tres casos caen bajo esa única regla; no hace falta detectar `--amend`,
+#     que desde `commit-msg` no se puede hacer limpiamente.
+#
+#   ⚠️⚠️ EFECTO LATERAL, DECLARADO: esto es MÁS LAXO. Con un commit que lleve la
+#     entrada Y un `fix:` juntos, **el siguiente `fix:` también pasa** aunque no
+#     traiga entrada propia — una entrada puede cubrir dos arreglos seguidos. Se
+#     acepta a cambio de cero falsos positivos: un guardián que grita cuando no
+#     debe se desactiva, y entonces no guarda nada.
+#     ⛔ Lo que NO se ha aflojado: un `fix:` sin entrada en ningún sitio se sigue
+#       rechazando, y eso se comprueba en `src/probar-hook.js`, no se promete.
+entrada_en_head() {
+    git rev-parse --verify -q HEAD >/dev/null 2>&1 || return 1
+    if git rev-parse --verify -q HEAD~1 >/dev/null 2>&1; then
+        git diff HEAD~1 HEAD -- "$BITACORA" | grep -qE '^\+## \['
+    else
+        # primer commit del repositorio: no hay HEAD~1 con el que comparar
+        git show --format= HEAD -- "$BITACORA" | grep -qE '^\+## \['
+    fi
+}
+
+if es_fix && ! anade_entrada && ! entrada_en_head; then
 
     FECHA="$(date +%F)"
     TITULO="$(printf '%s' "$SUBJECT" | sed -E 's/^fix(\([^)]+\))?!?:[[:space:]]*//')"
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # ⭐⭐ TANDA 31 · EL ESQUELETO **NO** SE ESCRIBE EN EL ÁRBOL — ley 39
+    # ─────────────────────────────────────────────────────────────────────────
+    #   Hasta hoy esto hacía `>> docs/BITACORA.md` y `git add`. O sea: **el
+    #   guardián modificaba el estado que vigila**, y encima lo dejaba en el
+    #   stage. En la tanda 26 eso coló una entrada de esqueleto entera —los nueve
+    #   campos en NO CONSTA— dentro de un commit, y nadie la vio hasta contar las
+    #   entradas dos días después (bitácora nº112).
+    #   ⇒ El esqueleto va al directorio de git, que NO es el árbol de trabajo:
+    #     nada que salga de aquí puede acabar en un commit por accidente.
+    #   ⚠️ Y por eso el mensaje dice dónde está y qué hacer con él: cumplir tiene
+    #     que seguir siendo fácil, que era el motivo de autogenerarlo.
+    GIT_DIR_REAL="$(git rev-parse --git-dir)"
+    ESQUELETO="$GIT_DIR_REAL/BITACORA-ESQUELETO.md"
 
     {
         printf '\n## [%s] — %s\n' "$FECHA" "$TITULO"
@@ -68,20 +120,25 @@ if es_fix && ! anade_entrada; then
         printf '**Commit:** (este commit)\n'
         printf '**Ley que sale de aquí:** NO CONSTA\n'
         printf '**Traza:** NO CONSTA\n'
-    } >> "$BITACORA"
-
-    git add "$BITACORA"
+    } > "$ESQUELETO"
 
     {
         echo ''
         echo '──────────────────────────────────────────────────────────────────'
         echo '⚠️  COMMIT RECHAZADO: un `fix:` sin entrada en la bitácora.'
         echo ''
-        echo "    He autogenerado el esqueleto al final de $BITACORA"
-        echo '    (todos los campos en NO CONSTA) y lo he añadido al stage.'
+        echo '    Ni en este commit ni en el anterior.'
         echo ''
-        echo '    Rellena lo que sepas y vuelve a commitear. El campo ⭐ es el'
-        echo '    importante y el que se pierde: qué prueba estaba en VERDE'
+        echo "    He dejado un esqueleto con los nueve campos en NO CONSTA en:"
+        echo "        $ESQUELETO"
+        echo ''
+        echo '    ⛔ NO lo he escrito en docs/BITACORA.md ni lo he puesto en el'
+        echo '       stage: un guardián que modifica lo que vigila estropea la'
+        echo '       operación siguiente aunque acierte en la suya, y ya coló'
+        echo '       una entrada falsa en un commit (bitácora nº112).'
+        echo ''
+        echo '    Cópialo, rellena lo que sepas y vuelve a commitear. El campo ⭐'
+        echo '    es el importante y el que se pierde: qué prueba estaba en VERDE'
         echo '    mientras el fallo ya existía. Si no hubo ninguna, déjalo en'
         echo '    NO CONSTA — es un valor honesto. Lo que no vale es inventarlo.'
         echo '──────────────────────────────────────────────────────────────────'
