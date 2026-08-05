@@ -194,7 +194,10 @@ log('   `./ruta` y **aborta en el acto**: interesa el ciclo, no el resultado.');
     //   están ARRIBA, y por eso está en esta lista.
     'calle-pegada.js',
     // ⭐ TANDA 26 · el mismo día que nace, no cuando falle (ley del nº109).
-    'paso-de-cebra.js', 'parques.js'];
+    'paso-de-cebra.js', 'parques.js',
+    // ⭐ TANDA 30 · el guardián de los números publicados: pide `./ruta`, `./modelo`,
+    //   `./relato` y `./exportar-nombre-simple`, o sea que entra por el ciclo entero.
+    'numeros-congelados.js'];
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'desplazame-ciclo-'));
   const sonda = path.join(tmp, 'sonda.js');
   const buzon = path.join(tmp, 'veredicto.txt').replace(/\\/g, '/');

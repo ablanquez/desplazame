@@ -5985,3 +5985,181 @@ el que el sistema **sigue dando respuestas**. Un fallo que revienta se caza solo
 
 **Traza:** `src/probar-modelo-obligatorio.js` (§2), `src/auditoria-guardianes.js` (la mutación
 `resolver-vacio`)
+
+---
+
+## [2026-08-05] — El guardián nuevo dio cuatro rojos en su primer arranque y los cuatro eran suyos
+
+**Categoría:** aviso falso
+**Síntoma:** primera ejecución de `src/numeros-congelados.js`, el fichero escrito precisamente para
+que un número publicado no pueda moverse en silencio:
+
+```
+   grafo.nodos            68.649        68.787   ⛔   (+138)
+   mapa.azulesConPasos    56.864        51.556   ⛔   (-5308)
+   ⛔ FALLO · 17 filas congeladas no se ponen rojas al cambiarles el valor: no vigilan nada
+   ⛔ FALLO · la comparación saca rojos con los valores sin tocar: se los inventa
+```
+
+**Cuatro rojos, y ni uno del proyecto.** Los dos primeros son dos medidas apuntando a la cantidad
+equivocada (entradas siguientes); los dos últimos son el control de §A3 contaminado por los dos
+primeros: contaba como «fila ciega» cualquier fila que se moviera **mientras otra fila estaba roja
+por su cuenta**, así que en cuanto hubo una deriva de verdad, las diecisiete salieron ciegas.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la comprobación anti-vacío.** «17
+congelados / 17 medidos / 0 huérfanos ✅» salió perfecta con dos de las diecisiete midiendo otra cosa.
+Y tenía que salir: cuenta **cuántas** filas hay a cada lado, no **qué** miden. ⚠️ Una comprobación de
+cardinalidad no dice nada del contenido, y se lee como si lo dijera.
+
+**Cómo se cazó:** por el rojo mismo, y porque los números publicados están en `docs/` y se pueden
+mirar. **Los cuatro fallos eran FALSOS POSITIVOS, y por eso se cazaron solos: un rojo obliga a
+mirar.** ⚠️ Los cuatro rojos que la tanda 29 encontró eran lo contrario —verdes falsos— y llevaban
+tandas ahí.
+
+**Causa raíz:** un instrumento nuevo mide *algo parecido* a lo publicado y se supone que es *lo
+mismo*. Y el control de la propia herramienta se escribió contra la medida de hoy, que es una entrada
+sucia.
+
+**Arreglo aplicado:** las dos medidas, en sus entradas. El control de §A3 pasa a correr contra una
+base **sintética** —los propios valores congelados— en vez de contra la medida de hoy: así prueba **el
+comparador**, que es lo que tiene que probar, y no puede contaminarse con derivas reales. Que la
+MEDIDA sea de verdad lo prueba `--contraprueba`, que es otra cosa y va aparte.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **el control de un instrumento se corre contra una entrada limpia, no
+contra el dato real.** Mezclar las dos cosas hace que el instrumento se declare roto en cuanto el dato
+tenga algo que decir — justo el día que importa.
+⚠️ Y la segunda, que es la que se lee mal: **una comprobación de CARDINALIDAD no dice nada del
+CONTENIDO.** «17 congelados y 17 medidos ✅» convive tan campante con dos filas midiendo otra cosa.
+
+**Traza:** `src/numeros-congelados.js` (§A3, la base sintética)
+
+---
+
+## [2026-08-05] — Congelé «68.649 nodos» y lo medí de un sitio que dice 68.787
+
+**Categoría:** medida mal apuntada
+**Síntoma:** `grafo.nodos: se publicó 68.649 y ahora sale 68.787  (+138)`. Leído tal cual, es
+justo lo que este guardián viene a encontrar: **un número publicado que se ha movido.** Y no lo era.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **todo lo demás de la misma tabla**,
+que se mide del mismo objeto `g` y clava los siete valores: aristas 98.774 ✅, componentes 170 ✅,
+a-pie 94.570 ✅, vértices 378.222 ✅, km 6.499,98 ✅. ⚠️ **Que seis medidas del mismo objeto sean
+exactas no dice nada de la séptima**, y sin embargo es exactamente la sensación que producen.
+
+**Cómo se cazó:** preguntándole al código de dónde sale el número publicado en vez de dar por hecho
+que salía de donde yo lo estaba leyendo:
+
+```
+   tras construir: nodos.length 68787   contadores.nodos 68649
+   tras D.abrir  : nodos.length 68787   contadores.nodos 68649
+```
+
+⚠️ Y de paso murió la hipótesis cómoda —«los añade el enganche»—: los 138 ya están ahí desde el
+primer instante.
+
+**Causa raíz:** son dos cantidades distintas y las dos se llaman «nodos». `planarizar.js:493` hace
+`cont.nodos = new Set(aristas.flatMap(...)).size`, o sea **los nodos que toca alguna arista**; el
+array `g.nodos` lleva además 138 que no tocan ninguna. Lo publicado en la línea ⚑ de `ruta.js` —y en
+`H1-CIERRE.md` y `H1-GRAFO-CIUDAD.md`— es el contador. Yo medí el array.
+
+**Arreglo aplicado:** se mide `g.contadores.nodos`, que es literalmente el campo que imprime la línea
+publicada. ⛔ **Los 138 no se tocan**: no son un fallo, son la definición del contador. Se enseñan en
+la sección «medido y NO congelado» para que nadie los descubra otra vez desde cero.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un número congelado se mide del MISMO sitio del que salió el número
+publicado, y eso se comprueba leyendo el código que lo imprimió** — no eligiendo el campo que suena
+igual. Si no, el guardián no vigila el número: vigila un primo suyo, y el día que discrepen dirá que
+el proyecto se ha movido cuando el que se movió es él.
+
+**Traza:** `src/numeros-congelados.js` (`medir`, `grafo.nodos`), `src/planarizar.js:493`
+
+---
+
+## [2026-08-05] — El «antes» de la tanda 26 me salió idéntico al «ahora», y eso era imposible
+
+**Categoría:** medida mal apuntada
+**Síntoma:** `mapa.azulesConPasos: se publicó 56.864 y ahora sale 51.556  (-5308)`. Y el 51.556 no es
+un número cualquiera: **es exactamente el «ahora»**. O sea, montar el modelo con la regla vieja
+(`pasosConNombre: true`) no cambiaba absolutamente nada.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **las otras dos medidas del MISMO
+bloque, que salen del MISMO modelo «antes» y clavan lo publicado**: `pasos.deOsm` 1.153 ✅ y
+`pasos.deducidos` 4.155 ✅. ⇒ el modelo viejo estaba bien construido y respondía bien; lo que estaba
+mal era **la pregunta que le hacía la tercera línea**. Dos aciertos consecutivos con el mismo objeto
+son una invitación a no mirar el tercero.
+
+**Cómo se cazó:** ⭐ **por el álgebra, no por el rojo.** Un rojo dice «no coincide»; que el «antes»
+salga *clavado al ahora* dice **qué** pasa: la rama que tenía que separarlos no se está ejecutando.
+⚠️ Si el fallo hubiera dado 56.121 en vez de 51.556 me habría costado mucho más.
+
+**Causa raíz:** pregunté con `CATEGORIA()`, que es de **tres** categorías —y devuelve `2` (gris) para
+todo paso de cebra, mire el modelo que mire, porque el gris lo decide `e.nombreNoAplica`, que es un
+campo de la arista—. Pero el «antes» de la tanda 26 es de **DOS** categorías: el gris no existía. La
+pregunta correcta es `.nombre`, que es la que hace `paso-de-cebra.js` y por eso allí sale 56.864.
+⇒ **usé el clasificador de hoy para medir el mundo de ayer.**
+
+**Arreglo aplicado:** `trA(e).nombre` en vez de `CATEGORIA(trA(e)) === 1`. ⛔ Y sigue sin copiarse
+ninguna regla (ley 56): quien contesta si hay nombre es el redactor.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **para medir un «antes» no basta con montar el estado de antes: hay
+que hacerle la PREGUNTA de antes.** El estado viejo respondido por el clasificador nuevo no es el
+antes — es el antes filtrado por lo que hemos aprendido después, y sale sospechosamente parecido al
+ahora. Es primo del nº111 («un antes que sale del código de ahora no es un antes»), pero por el otro
+lado: allí el estado era el de hoy, aquí el estado es el bueno y **la que es de hoy es la pregunta.**
+
+**Traza:** `src/numeros-congelados.js` (`medir`, el bloque del «antes»), `src/paso-de-cebra.js` (§A4,
+que sí la hacía bien)
+
+---
+
+## [2026-08-05] — Di la batería por corrida cuando no había barrido ni un fichero
+
+**Categoría:** aviso falso
+**Síntoma:** lancé `node src/probar-paradas.js` para cerrar la tanda y salió esto, en **código 0**:
+
+```
+   ⇒ ✅ UN FALLO DETECTADO YA NO PUEDE TERMINAR EN VERDE.
+```
+
+Treinta líneas de salida, cuatro secciones con sus ✅, código 0. **Y no había ejecutado ni uno de los
+47 scripts de `src/`**: el barrido va detrás de `--todo`.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **las tres secciones que sí corrieron
+—P1, P2 y P3— y son buenas de verdad**, incluido el caso real de `Puerta del Carmen → Magdalena` con
+su positivo de control. Un bloque sólido, verde y **completamente ajeno a lo que yo creía estar
+comprobando**. ⚠️ La forma exacta del nº118: cuatro secciones buenas hacen que el fichero se lea
+sólido y nadie mire la que falta.
+
+**Cómo se cazó:** ⭐ **por el reloj.** La batería tarda media hora larga —`auditoria-guardianes.js`
+sola son 517 s— y aquello acabó en dos minutos. **Y sólo después de mirar por el reloj leí que el
+propio script lo dice por escrito**, en su sección P4:
+
+```
+   P4 · ⚠️ el invariante sobre todo `src/` NO se ha ejecutado (falta `--todo`).
+      ⛔ y eso NO significa que pase: significa que no se ha mirado.
+```
+
+⇒ **el aviso estaba impreso, en su sitio, bien redactado, y no me sirvió de nada.** Es la ley 44 por
+tercera vez: un `⛔` impreso es texto.
+
+**Causa raíz:** el comando de la batería lo tenía en la cabeza sin la bandera, y el script **sale en
+0** cuando no barre —correctamente, porque lo que sí corrió pasó—. ⇒ el código de salida no puede
+distinguir «todo bien» de «casi nada mirado», y yo estaba leyendo el código de salida.
+
+**Arreglo aplicado:** ninguno en el código —⛔ esta tanda no arregla instrumentos, y además el script
+no miente: avisa—. Se corrió con `--todo`, que es lo que había que hacer.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **el reloj es el primer testigo de que una comprobación ha ocurrido, y
+va antes de leer su veredicto.** Van tres: el nº106 (siete scripts de 20-60 s acabando en 14), la
+segunda ronda de mutaciones de la tanda 29 (0,1 s por script) y ésta. **Un instrumento que no llega a
+mirar es más rápido que uno que mira, siempre, y ésa es la única señal que da.**
+
+**Traza:** `src/probar-paradas.js` (§P4 y la bandera `--todo`)
