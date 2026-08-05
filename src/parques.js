@@ -178,8 +178,67 @@ function puntosDentro(idx, e, fracciones = FRACCIONES) {
   return { dentro, n: fracciones.length, pol };
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ TANDA 28 · LA REGLA DEL MAPA — declarada aquí, y en UN SOLO SITIO
+// ═════════════════════════════════════════════════════════════════════════════
+//   Antonio acepta la recomendación de la tanda 27: **no se toca el modelo ni el
+//   texto, solo el mapa.** Una línea ROJA que esté dentro de una zona verde se
+//   pinta de VERDE, y el verde **no dice «no debe tener nombre»**: dice
+//   **«está dentro de una zona verde, por eso es roja»**.
+//
+//   ⭐ Y por eso es reversible y no puede romper una calle: **el verde es una
+//     variante del ROJO**. Una línea que YA tiene nombre sigue azul pase lo que
+//     pase, así que el daño medido en la tanda 27 §C2a —1.020-1.661 líneas con
+//     nombre dentro de un polígono— **deja de existir como riesgo**: a ninguna se
+//     le quita nada.
+//
+// ── QUÉ CAPA MANDA · ⭐ OSM ──────────────────────────────────────────────────
+//   ⛔ Y NO es la que yo esperaba. La intersección de las dos —que es la doctrina
+//     del proyecto: dos testigos coincidiendo— salía la más limpia sobre el papel
+//     (14 `acera` contra 273), y **el positivo de control la mató**:
+//
+//        parque                    rojas   MUNICIPAL        OSM
+//        Parque Grande               553   439 (79,4 %)   553 (100 %)
+//        ⛔ Parque del Agua           493     0 (0,0 %)   493 (100 %)
+//        Parque del Tío Jorge         79    75 (94,9 %)    79 (100 %)
+//
+//     La capa municipal es `carto1000` de **2012** y **no cubre el Parque del Agua**
+//     —el recinto de la Expo 2008, 125 ha, el sitio más rojo del mapa—. ⚠️ Y no es
+//     que le falte del todo: tiene 6 polígonos y 46,7 ha solapando su bbox, pero
+//     **ninguno contiene ni uno de los 493 senderos**. Dibuja láminas y parterres,
+//     no el recinto.
+//   ⇒ Intersección y municipal quedan descartadas **por el control, no por gusto**.
+//   ⭐ Y OSM tiene algo que la municipal no: **nombre**. 199 polígonos nombrados
+//     contra 0. Un verde que se puede auditar preguntándole «¿qué parque eres?».
+//   ⚠️ Lo que se pierde: es UN testigo, no dos. Se dice, y pesa poco porque esto
+//      **no cambia ningún nombre**.
+const FUENTE_DEL_MAPA = 'osm';
+
+// ── EL LISTÓN DE TAMAÑO · ⭐ 1 ha ────────────────────────────────────────────
+//   Medido en la tanda 27 §C3: los jardincillos de menos de 2.000 m² aportan **56
+//   líneas y 772 metros** —nada— y el 97 % de los metros está en parques de 1 ha
+//   para arriba. ⚠️ La elección del corte es MÍA y va declarada; el informe publica
+//   la curva (sin filtro · 2.000 m² · 1 ha · 5 ha).
+//   ⭐ Y sirve para algo medible: baja las rojas pegadas al borde del 12,3 % al
+//     8,8 %. Un jardín entre dos bloques es justo donde la acera que lo cruza SÍ
+//     puede ser de la calle.
+const MIN_AREA = 10000;   // m²
+
+/** ⭐ El índice de zonas verdes que usa EL MAPA. ⛔ El único sitio que lo monta. */
+function indiceDelMapa() {
+  return indexar(cargarOsm().filter((P) => P.area >= MIN_AREA));
+}
+
+/**
+ * ⭐ ¿Está esta arista dentro de una zona verde, para el mapa?
+ * ⛔ Los CINCO puntos dentro, heredado de `calle-pegada.js` (ley 17). Con «basta
+ *   rozar» entrarían las aceras del contorno, que es el modo de fallo entero.
+ */
+const dentroDelVerde = (idx, e) => puntosDentro(idx, e).dentro === FRACCIONES.length;
+
 module.exports = { MUNICIPAL, OSM, FRACCIONES, cargarMunicipal, cargarOsm,
-  indexar, polDe, enAnillo, puntosDentro, areaAnillo };
+  indexar, polDe, enAnillo, puntosDentro, areaAnillo,
+  FUENTE_DEL_MAPA, MIN_AREA, indiceDelMapa, dentroDelVerde };
 
 // ═════════════════════════════════════════════════════════════════════════════
 // LA MEDICIÓN — B · C · D.  ⛔ Y NADA MÁS: no se aplica.

@@ -24,6 +24,7 @@ const D = require('./direccion');
 const Mo = require('./modelo');
 const Rel = require('./relato');
 const PL = require('./planarizar');
+const PQ = require('./parques');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 
 const SALIDA = path.join(__dirname, '..', 'tools', 'nombre-simple-visor.js');
@@ -76,6 +77,25 @@ const pg = (p) => { const g = aGrados(p[0], p[1]); return [r6(g[0]), r6(g[1])]; 
 const nombreDeLinea = (tramoDe, e) => tramoDe(e).nombre;
 const CATEGORIA = (t) => (t.noAplica ? 2 : (t.nombre ? 1 : 0));
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ TANDA 28 · LA CUARTA CATEGORÍA — y es una VARIANTE DEL ROJO, no una hermana
+// ═════════════════════════════════════════════════════════════════════════════
+//   3 = verde: **la línea sigue siendo roja para el motor**, y el verde solo dice
+//   *«está dentro de una zona verde, por eso es roja»*.
+//
+//   ⛔⛔ LA SEPARACIÓN QUE HACE QUE ESTO NO PUEDA ROMPER NADA:
+//     · `CATEGORIA(t)`      → lo que dice EL MOTOR (0/1/2). No se toca.
+//     · `CATEGORIA_MAPA()`  → añade una explicación GEOGRÁFICA encima, y **solo
+//       puede convertir un 0 en un 3**. Nunca toca un 1 ni un 2.
+//   ⇒ Una línea con nombre sigue azul pase lo que pase, así que el verde no puede
+//     dejar sin nombre a ninguna calle. Y la prueba contra el motor colapsa 3→0 y
+//     sigue exigiendo cero discrepancias: **el verde no puede tapar una divergencia**.
+const CATEGORIA_MAPA = (t, e, idxVerde) => {
+  const c = CATEGORIA(t);
+  if (c !== 0 || !idxVerde) return c;
+  return PQ.dentroDelVerde(idxVerde, e) ? 3 : 0;
+};
+
 function construirSalida() {
   const g = construir(ZONA_TERMINO);
   const ctx = D.abrir(g, CRUDO);
@@ -85,16 +105,18 @@ function construirSalida() {
   // ⛔ EL ÚNICO SITIO DONDE SE DECIDE EL COLOR, y no decide aquí: pregunta.
   const tramoDe = (e) => Rel.tramoDeArista(e, nombreDeWay, modeloDeWay);
 
-  const aristas = g.aristas.map((e) => ({ g: e.pts.map(pg), n: CATEGORIA(tramoDe(e)) }));
+  // ⭐ el índice de zonas verdes lo monta `parques.js`: la regla —qué capa manda y
+  //   con qué listón— vive allí, no aquí. Este fichero sigue sin tener ni una.
+  const idxVerde = PQ.indiceDelMapa();
+  const aristas = g.aristas.map((e) => ({ g: e.pts.map(pg), n: CATEGORIA_MAPA(tramoDe(e), e, idxVerde) }));
 
-  const con = aristas.filter((a) => a.n === 1).length;
-  const noAp = aristas.filter((a) => a.n === 2).length;
+  const cuenta = (k) => aristas.filter((a) => a.n === k).length;
   return {
-    g, M, deWay, tramoDe, nombreDeWay,
+    g, M, deWay, tramoDe, nombreDeWay, idxVerde,
     salida: {
       sello: g.sello, zona: g.zona, generado: 'src/exportar-nombre-simple.js',
-      contadores: { total: aristas.length, conNombre: con,
-        sinNombre: aristas.length - con - noAp, noAplica: noAp },
+      contadores: { total: aristas.length, conNombre: cuenta(1),
+        sinNombre: cuenta(0), noAplica: cuenta(2), enVerde: cuenta(3) },
       aristas,
     },
   };
@@ -104,7 +126,7 @@ if (require.main === module) {
   const log = console.log;
   const di = (k, v) => log(`   ${String(k).padEnd(48)} ${v}`);
   const T0 = Date.now();
-  const { g, M, deWay, tramoDe, nombreDeWay, salida } = construirSalida();
+  const { g, M, deWay, tramoDe, nombreDeWay, idxVerde, salida } = construirSalida();
 
   // ── la reproyección, ANTES de escribir nada ────────────────────────────────
   let peor = 0;
@@ -129,18 +151,27 @@ if (require.main === module) {
   log('   ⭐ EL CUADRE — lo exportado contra EL REDACTOR (`relato.js`), línea a línea');
   const conW = g.aristas.filter((e) => CATEGORIA(tramoDe(e)) === 1).length;
   const grisW = g.aristas.filter((e) => CATEGORIA(tramoDe(e)) === 2).length;
+  const rojoW = g.aristas.length - conW - grisW;      // lo que el MOTOR llama rojo
+  const verdeW = g.aristas.filter((e) => CATEGORIA_MAPA(tramoDe(e), e, idxVerde) === 3).length;
   const c = salida.contadores;
   di('AZULES · con nombre — exportado / modelo', `${c.conNombre} / ${conW}   ${c.conNombre === conW ? '✅' : '⛔'}`);
-  di('ROJAS  · sin nombre — exportado / modelo', `${c.sinNombre} / ${g.aristas.length - conW - grisW}   ${c.sinNombre === g.aristas.length - conW - grisW ? '✅' : '⛔'}`);
-  di('⭐ GRISES · no aplica — exportado / modelo', `${c.noAplica} / ${grisW}   ${c.noAplica === grisW ? '✅' : '⛔'}`);
-  di('⭐ suman', `${c.conNombre + c.sinNombre + c.noAplica} de ${g.aristas.length}   ${c.conNombre + c.sinNombre + c.noAplica === g.aristas.length ? '✅ ninguna fuera' : '⛔ FALTAN'}`);
+  di('ROJAS  · le falta — exportado / modelo', `${c.sinNombre} / ${rojoW - verdeW}   ${c.sinNombre === rojoW - verdeW ? '✅' : '⛔'}`);
+  di('⭐ VERDES · roja dentro de zona verde', `${c.enVerde} / ${verdeW}   ${c.enVerde === verdeW ? '✅' : '⛔'}`);
+  di('GRISES · no aplica — exportado / modelo', `${c.noAplica} / ${grisW}   ${c.noAplica === grisW ? '✅' : '⛔'}`);
+  const suma4 = c.conNombre + c.sinNombre + c.noAplica + c.enVerde;
+  di('⭐ suman', `${suma4} de ${g.aristas.length}   ${suma4 === g.aristas.length ? '✅ ninguna fuera' : '⛔ FALTAN'}`);
   A.exige(c.conNombre === conW, 'el exportado no cuadra con lo que dice el redactor');
   A.exige(c.noAplica === grisW, 'los grises exportados no cuadran con lo que dice el redactor');
-  A.exige(c.conNombre + c.sinNombre + c.noAplica === g.aristas.length, 'las tres cuentas no suman las aristas del grafo');
-  // ⭐ EL NÚMERO QUE PIDIÓ ANTONIO: cuántas rojas quedan DE VERDAD.
+  A.exige(c.enVerde === verdeW, 'los verdes exportados no cuadran con la regla de `parques.js`');
+  A.exige(suma4 === g.aristas.length, 'las cuatro cuentas no suman las aristas del grafo');
+  // ⭐⭐ Y LA QUE DE VERDAD PROTEGE: el verde SOLO puede salir de una roja. Si algún
+  //    día se comiera un azul o un gris, el motor y el mapa dirían cosas distintas.
+  A.exige(c.sinNombre + c.enVerde === rojoW,
+    'el verde no sale de las rojas: se está llevando líneas que el motor NO llama rojas');
   log('');
-  di('⭐⭐ ROJAS DE VERDAD (líneas a las que les falta el nombre)', c.sinNombre);
-  di('   …y cuántas eran antes, con los pasos dentro del rojo', c.sinNombre + c.noAplica);
+  di('⭐⭐ ROJAS DE VERDAD (rojas + verdes: al motor le falta el nombre en las dos)', rojoW);
+  di('   …de ellas, EXPLICADAS por estar en zona verde', `${c.enVerde}  (${(100 * c.enVerde / rojoW).toFixed(1)} %)`);
+  di('   …sin explicación: el rojo que queda', c.sinNombre);
 
   // ⚠️ EL CUADRE DE ARRIBA PASA POR CONSTRUCCIÓN, y eso es lo que se buscaba: el
   //    color LO DECIDE el redactor, así que no puede discrepar de él. **Ésa es la
@@ -235,4 +266,4 @@ if (require.main === module) {
   di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');
 }
 
-module.exports = { construirSalida, SALIDA, CATEGORIA };
+module.exports = { construirSalida, SALIDA, CATEGORIA, CATEGORIA_MAPA };

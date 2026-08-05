@@ -86,7 +86,8 @@ function arnes(reg, V) {
   const l = reg.filter((x) => x.tipo === 'polyline');
   return { azules: l.filter((x) => x.color === V.AZUL).length,
     rojas: l.filter((x) => x.color === V.ROJO).length,
-    grises: l.filter((x) => x.color === V.GRIS).length, total: l.length };
+    grises: l.filter((x) => x.color === V.GRIS).length,
+    verdes: l.filter((x) => x.color === V.VERDE).length, total: l.length };
 }
 
 // ── el cuadre ────────────────────────────────────────────────────────────────
@@ -98,6 +99,7 @@ log('   ' + ''.padEnd(24) + 'visor'.padStart(10) + 'arnés'.padStart(10) + 'dato
   const filas = [
     ['AZULES · con nombre', V.cuenta.azules, a.azules, G.contadores.conNombre],
     ['ROJAS  · le falta', V.cuenta.rojas, a.rojas, G.contadores.sinNombre],
+    ['⭐ VERDES · en zona verde', V.cuenta.verdes, a.verdes, G.contadores.enVerde],
     ['GRISES · no aplica', V.cuenta.grises, a.grises, G.contadores.noAplica],
   ];
   for (const [k, v, ar, d] of filas) {
@@ -107,7 +109,7 @@ log('   ' + ''.padEnd(24) + 'visor'.padStart(10) + 'arnés'.padStart(10) + 'dato
     A.exige(v === d, `${k}: el visor dice ${v} y el dato tiene ${d}`);
     A.exige(ar === d, `${k}: el arnés cuenta ${ar} y el dato tiene ${d}`);
   }
-  const suma = V.cuenta.azules + V.cuenta.rojas + V.cuenta.grises;
+  const suma = V.cuenta.azules + V.cuenta.rojas + V.cuenta.grises + V.cuenta.verdes;
   di('⭐ suman', `${suma} de ${G.contadores.total}   ${suma === G.contadores.total ? '✅ ninguna sin pintar' : '⛔ FALTAN'}`);
   A.exige(suma === G.contadores.total, `se pintan ${suma} líneas y el grafo tiene ${G.contadores.total}`);
   A.exige(a.total === G.contadores.total, `el arnés cuenta ${a.total} polilíneas y el grafo tiene ${G.contadores.total}`);
@@ -134,14 +136,15 @@ log('        dicho nunca «hay uno más» no ha dicho nada (ley 52).');
 
   log('');
   const fil = (k, x) => log('   ' + k.padEnd(34) + String(x.azules).padStart(10)
-    + String(x.rojas).padStart(10) + String(x.grises).padStart(10));
-  log('   ' + 'dato'.padEnd(34) + 'azules'.padStart(10) + 'rojas'.padStart(10) + 'grises'.padStart(10));
+    + String(x.rojas).padStart(10) + String(x.verdes).padStart(10) + String(x.grises).padStart(10));
+  log('   ' + 'dato'.padEnd(34) + 'azules'.padStart(10) + 'rojas'.padStart(10)
+    + 'verdes'.padStart(10) + 'grises'.padStart(10));
   fil('real', antes);
   fil('real + 1 línea ROJA inventada', aCon);
   fil('real otra vez (la falsa quitada)', aFin);
   log('');
-  const seVe = aCon.rojas === antes.rojas + 1 && aCon.azules === antes.azules;
-  const vuelve = aFin.rojas === antes.rojas && aFin.azules === antes.azules;
+  const seVe = aCon.rojas === antes.rojas + 1 && aCon.azules === antes.azules && aCon.verdes === antes.verdes;
+  const vuelve = aFin.rojas === antes.rojas && aFin.azules === antes.azules && aFin.verdes === antes.verdes;
   di('⭐ la línea falsa SE VE, y en SU color', seVe ? '✅ +1 roja, las azules igual' : '⛔ NO aparece');
   di('⭐ al quitarla DESAPARECE', vuelve ? '✅ vuelve al número de antes' : '⛔ NO vuelve');
   A.exige(seVe, 'la línea falsa no aparece en el mapa: el visor se traga líneas en silencio');
@@ -155,12 +158,14 @@ log('        dicho nunca «hay uno más» no ha dicho nada (ley 52).');
     const x = arnes(ejecutar('window.SIMPLE = ' + JSON.stringify(c2) + ';').reg, V);
     const ok = x.azules === antes.azules + (n === 1 ? 1 : 0)
       && x.rojas === antes.rojas + (n === 0 ? 1 : 0)
-      && x.grises === antes.grises + (n === 2 ? 1 : 0);
-    di('⭐ una falsa ' + etq, ok ? '✅ +1 en su montón, los otros dos igual' : '⛔ las tres categorías no separan');
-    A.exige(ok, `una línea ${etq} no va a su montón: las tres categorías no separan`);
+      && x.grises === antes.grises + (n === 2 ? 1 : 0)
+      && x.verdes === antes.verdes + (n === 3 ? 1 : 0);
+    di('⭐ una falsa ' + etq, ok ? '✅ +1 en su montón, los otros tres igual' : '⛔ las cuatro categorías no separan');
+    A.exige(ok, `una línea ${etq} no va a su montón: las cuatro categorías no separan`);
   };
   control(1, 'CON nombre → azul', 'conNombre');
   control(2, 'de PASO DE PEATONES → gris', 'noAplica');
+  control(3, 'DENTRO DE ZONA VERDE → verde', 'enVerde');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -196,6 +201,13 @@ log('='.repeat(88));
   const segunElMotor = (e) =>
     CATEGORIA(Rel.tramoDeArista(e, nombreDeWay, modeloDeWay));
 
+  // ⭐⭐ TANDA 28 · EL VERDE SE COLAPSA A ROJO ANTES DE COMPARAR, y ésa es la
+  //    comprobación que hace que la cuarta categoría no pueda esconder nada:
+  //    para el MOTOR el verde no existe —esas líneas siguen sin nombre—, así que
+  //    si el mapa pintara de verde algo que el motor llama azul o gris, aquí
+  //    saltaría. **El verde solo puede ser una roja explicada.**
+  const sinVerde = (n) => (n === 3 ? 0 : n);
+
   const NOMBRE = { 0: 'ROJA (le falta)', 1: 'AZUL (con nombre)', 2: 'GRIS (no aplica)' };
   const comparar = (colorDe) => {
     let mal = 0; const ej = [];
@@ -207,7 +219,7 @@ log('='.repeat(88));
   };
 
   di('aristas del grafo', gr.aristas.length);
-  const r1 = comparar((i) => G.aristas[i].n);
+  const r1 = comparar((i) => sinVerde(G.aristas[i].n));
   di('⭐ líneas donde el color y el redactor NO coinciden', r1.mal + (r1.mal === 0 ? '   ✅' : '   ⛔'));
   for (const [i, p, d] of r1.ej) {
     log('      ⛔ arista ' + i + ': el mapa la pinta ' + NOMBRE[p] + ' y el redactor dice ' + NOMBRE[d]);
@@ -223,11 +235,22 @@ log('='.repeat(88));
   di('   (a) el nombre por ARISTA (lo de antes de la tanda 24)', r2.mal + (r2.mal > 0 ? '   ✅ la caza' : '   ⛔ NO LA CAZA'));
   A.exige(r2.mal > 0, 'la comprobación contra el motor no distingue la regla por arista: no vale');
   // ⭐ y la de HOY: dos categorías en vez de tres — todo lo gris pintado de rojo
-  const r3 = comparar((i) => (G.aristas[i].n === 2 ? 0 : G.aristas[i].n));
+  const r3 = comparar((i) => (G.aristas[i].n === 2 ? 0 : sinVerde(G.aristas[i].n)));
   di('   ⭐ (b) DOS categorías, con los pasos metidos en el rojo (la tanda 25)',
     r3.mal + (r3.mal > 0 ? '   ✅ la caza' : '   ⛔ NO LA CAZA'));
   A.exige(r3.mal > 0, 'la comprobación no distingue dos categorías de tres: el gris no está probado');
   log('   ⇒ ⭐ **habría cazado los dos fallos el día que se escribió.**');
+
+  // ⭐⭐ Y EL ROJO DEL COLAPSO, VISTO: si NO se colapsara el verde, la comparación
+  //    tendría que ponerse roja. Si no se pusiera, es que no hay ni un verde y la
+  //    comprobación de arriba estaría pasando por vacío.
+  log('');
+  const r4 = comparar((i) => G.aristas[i].n);          // ⛔ sin colapsar
+  di('⭐ sin colapsar el verde, ¿discrepa?', r4.mal + (r4.mal > 0 ? '   ✅ sí — hay verdes y se distinguen' : '   ⛔ NO — o no hay ni un verde, o la comprobación no mira'));
+  A.exige(r4.mal > 0, 'sin colapsar el verde no hay discrepancias: no hay ni una línea verde, o la comparación no distingue');
+  di('   …y coincide con los verdes del dato', `${r4.mal} / ${G.contadores.enVerde}   ${r4.mal === G.contadores.enVerde ? '✅' : '⛔'}`);
+  A.exige(r4.mal === G.contadores.enVerde,
+    'las discrepancias sin colapsar no son exactamente los verdes: el verde se está llevando algo más');
 }
 
 log('');

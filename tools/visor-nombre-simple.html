@@ -2,9 +2,11 @@
 <meta charset="utf-8">
 <title>Desplázame · líneas con nombre y sin nombre</title>
 <!--
-  Tres colores desde la tanda 26, porque había DOS COSAS en el mismo rojo:
+  Cuatro colores desde la tanda 28:
      AZUL  = la línea tiene nombre de vía (declarado o deducido)
      ROJO  = LE FALTA el nombre — eso es un problema
+     VERDE = le falta igual, pero está DENTRO DE UNA ZONA VERDE: por eso es roja.
+             ⭐ Es una variante del rojo, no una categoría hermana.
      GRIS  = NO TIENE nombre, y es así: un paso de peatones es del cruce, no de
              ninguna de las dos calles. La pregunta no aplica ahí.
 
@@ -32,6 +34,13 @@ if (!G) { document.body.innerHTML = '<p style="padding:2em;font:14px system-ui">
 const AZUL = '#1f5fd0';
 const ROJO = '#e01b00';
 const GRIS = '#9aa0a6';
+// ⭐⭐ TANDA 28 · EL VERDE VA CON EL MISMO GROSOR Y LA MISMA OPACIDAD QUE EL ROJO,
+//    y eso es la ley 57 aplicada, no saltada: **el verde no es una categoría
+//    hermana del rojo, es una VARIANTE del rojo**. A esas líneas les falta el
+//    nombre igual que a las rojas; lo único que añade el color es POR QUÉ.
+//    ⛔ Hacerlo más gordo diría que es más importante, y no lo es: es una
+//      explicación. Hacerlo más fino diría que importa menos, y tampoco.
+const VERDE = '#1f8a4c';
 // ⭐⭐ TANDA 25 · EL GROSOR Y LA OPACIDAD SON UNA AFIRMACIÓN, Y AQUÍ AFIRMABAN ALGO
 //    QUE NADIE MIDIÓ. En la tanda 22 el rojo se pintó a 2,2/0,9 y el azul a
 //    1,4/0,55 —«que canten»—, y el resultado fue que **Calle Salvador Minguijón se
@@ -59,20 +68,22 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   { maxZoom: 20, attribution: '© OpenStreetMap' }).addTo(mapa);
 
 // ⭐ el contador va aquí y no en el HTML: es lo que la prueba de Node compara.
-const CUENTA = { azules: 0, rojas: 0, grises: 0 };
+const CUENTA = { azules: 0, rojas: 0, grises: 0, verdes: 0 };
+const CLAVE = { 0: 'rojas', 1: 'azules', 2: 'grises', 3: 'verdes' };
+const COLOR = { 0: ROJO, 1: AZUL, 2: GRIS, 3: VERDE };
 
 function pintar() {
-  CUENTA.azules = 0; CUENTA.rojas = 0; CUENTA.grises = 0;
+  CUENTA.azules = 0; CUENTA.rojas = 0; CUENTA.grises = 0; CUENTA.verdes = 0;
   const capa = L.layerGroup();
-  // ⭐ los GRISES van PRIMERO: si un paso se dibuja encima de la calle, tapa
-  //   justo lo que se viene a mirar. El orden de pintado también afirma.
-  const orden = [2, 0, 1];
-  for (const cat of orden) {
+  // ⭐ el orden de pintado también afirma: primero lo que menos urge. Los GRISES
+  //   (no aplica), luego los VERDES (roja ya explicada), luego el ROJO que queda
+  //   —que es lo que se viene a mirar— y encima el azul.
+  for (const cat of [2, 3, 0, 1]) {
     for (const a of G.aristas) {
       if (a.n !== cat) continue;
-      if (cat === 1) CUENTA.azules++; else if (cat === 0) CUENTA.rojas++; else CUENTA.grises++;
+      CUENTA[CLAVE[cat]]++;
       L.polyline(a.g.map((p) => [p[1], p[0]]), {
-        color: cat === 1 ? AZUL : cat === 0 ? ROJO : GRIS,
+        color: COLOR[cat],
         weight: cat === 2 ? GROSOR_GRIS : GROSOR,
         opacity: cat === 2 ? OPACIDAD_GRIS : OPACIDAD,
       }).addTo(capa);
@@ -86,14 +97,15 @@ pintar();
 const clave = L.control({ position: 'bottomleft' });
 clave.onAdd = function () {
   const d = L.DomUtil.create('div', 'clave');
-  d.innerHTML = '<div><span class="sw" style="background:' + AZUL + '"></span>con nombre de vía</div>'
+  d.innerHTML = '<div><span class="sw" style="background:' + AZUL + '"></span>tiene nombre de calle</div>'
     + '<div><span class="sw" style="background:' + ROJO + '"></span><b>le falta</b> el nombre</div>'
-    + '<div><span class="sw" style="background:' + GRIS + '"></span>no tiene nombre: es un paso de peatones</div>';
+    + '<div><span class="sw" style="background:' + VERDE + '"></span>le falta, pero está <b>dentro de una zona verde</b></div>'
+    + '<div><span class="sw" style="background:' + GRIS + '"></span>no tiene nombre ni debe: paso de peatones o isleta</div>';
   return d;
 };
 clave.addTo(mapa);
 
 // ⭐ para que `src/probar-visor-nombre-simple.js` pueda contar sin navegador.
-window.VISOR = { pintar, cuenta: CUENTA, AZUL, ROJO, GRIS, GROSOR, OPACIDAD,
+window.VISOR = { pintar, cuenta: CUENTA, AZUL, ROJO, GRIS, VERDE, GROSOR, OPACIDAD,
   GROSOR_GRIS, OPACIDAD_GRIS };
 </script>

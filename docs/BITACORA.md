@@ -5754,3 +5754,65 @@ que salvó el presupuesto.
 
 **Traza:** `data/fuentes/2026-08-05_overpass_zaragoza-zonas-verdes*`,
 `data/fuentes/2026-08-05_wfs_idezar-ZonasVerdes*`
+
+---
+
+## [2026-08-05] — Elegí la fuente del verde por la fila que confirmaba el titular, y el control la tumbó
+
+**Categoría:** semántica
+**Síntoma:** al decidir **qué capa manda** para pintar el verde, medí las cuatro opciones y me
+convencí de la INTERSECCIÓN —lo que dicen las dos capas— en cuanto vi esta fila:
+
+```
+   de qué son las verdes (listón ≥ 1 ha)
+   MUNICIPAL       peatonal=2704 · eje-de-calzada=443 · acera=273 · escaleras=129
+   UNIÓN           peatonal=4416 · eje-de-calzada=638 · acera=373 · escaleras=190
+   ⭐ INTERSECCIÓN  peatonal=1557 · eje-de-calzada=93  · acera=14  · escaleras=60
+```
+
+**14 aceras contra 273.** El 90 % `peatonal`. Y además encaja con la doctrina del proyecto —dos
+testigos coincidiendo, ley 60—, así que la escribí ya como recomendación.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todas las medidas de calidad, y
+todas apuntaban al mismo sitio.** La intersección salía la mejor en las tres que había mirado: menos
+`acera` (0,8 % contra 7,7 %), menos líneas pegadas al borde (7,0 % contra 12,3 %) y menos
+`eje-de-calzada`. **Tres indicadores independientes, los tres favorables, y los tres midiendo lo
+mismo: la PUREZA de lo que entra. Ninguno miraba lo que se quedaba fuera.**
+
+**Cómo se cazó:** ⭐⭐ **por el positivo de control**, que escribí porque el método lo exige y no
+porque esperara nada de él:
+
+```
+   parque                          rojas   MUNICIPAL         OSM     INTERSECCIÓN
+   Parque Grande                     553   439 (79,4 %)   553 (100 %)   439 (79,4 %)
+   ⛔ Parque del Agua Luis Buñuel     493     0 (0,0 %)   493 (100 %)     0 (0,0 %)
+   Anillo Verde Oliver                19     0 (0,0 %)    19 (100 %)     0 (0,0 %)
+```
+
+**La intersección deja fuera el Parque del Agua ENTERO: 0 de 493.** El recinto de la Expo, 125 ha, el
+sitio más rojo del mapa y uno de los que Antonio nombró. ⇒ **la intersección estaba limpia porque no
+cogía casi nada donde importa.**
+
+**Causa raíz:** medí la **precisión** del criterio y no su **cobertura**, y elegí con las tres
+métricas que tenía. La causa material es que la capa municipal es `carto1000` de **2012** y no cubre
+el Parque del Agua: ⚠️ y no es que le falte del todo —tiene 6 polígonos y 46,7 ha solapando su
+bbox—, es que **ninguno contiene ni uno de los 493 senderos**. Dibuja láminas de agua y parterres,
+no el recinto. Una intersección hereda **todos** los agujeros de la capa más pobre.
+
+**Arreglo aplicado:** manda **OSM**, con listón de 1 ha. Recoge el 100 % de los cuatro parques de
+control, es la única capa con nombre (199 polígonos nombrados contra 0) y por tanto la única
+auditable. ⚠️ Se pierde el segundo testigo, y va declarado — pesa poco porque **esto no cambia ningún
+nombre**: el verde es una variante del rojo y una línea con nombre sigue azul pase lo que pase.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un criterio no se elige por lo limpio que sale, sino por lo que
+recoge de lo que tenía que recoger.** La pureza y la cobertura se mueven en direcciones contrarias, y
+tres indicadores de pureza no son tres testigos: son el mismo testigo tres veces. **El positivo de
+control —"¿aparece lo que sé que tiene que aparecer?"— es la única de las cuatro que mira al otro
+lado**, y aquí fue la que decidió.
+⚠️ Y la que se repite por tercera tanda seguida (nº110, nº113, ésta): **la fila que confirma el
+titular no es la que hay que leer.** Hoy las tres filas confirmaban, y la que faltaba no estaba en la
+tabla: había que ir a buscarla.
+
+**Traza:** `src/parques.js` (`FUENTE_DEL_MAPA`, `MIN_AREA`, `indiceDelMapa`)
