@@ -165,12 +165,23 @@ if (require.main === module) {
   const ps = P.cargarPortales();
   {
     const res = D.resolver('Avenida Cataluña 78', ctx.indice);
-    const o = res.portal;
+    // ⚠️⚠️ TANDA 33 · LO QUE ESTE BLOQUE MIDE YA NO ES LO QUE CONTESTA EL BUSCADOR.
+    //   La regla de la paridad (`src/paridad.js`) hizo que `Avenida Cataluña 78`
+    //   deje de tener respuesta: ahora sale `sin-numero-cerca` y dos sugerencias.
+    //   ⛔ El hallazgo de la tanda 32 NO se borra ni se reescribe: se sigue midiendo
+    //     **sobre el nº77**, que es lo que se devolvía entonces, pedido ahora de
+    //     forma explícita. Así los números de `docs/H1-ACERA-EQUIVOCADA.md` siguen
+    //     siendo reproducibles y al lado se ve qué contesta el buscador de hoy.
+    const o = res.portal || D.resolver('Avenida Cataluña 77', ctx.indice).portal;
     di('lo que se pide', 'Avenida Cataluña 78');
-    di('⭐⭐ lo que devuelve el geocodificador', `el portal nº${o.n}   (estado: ${res.estado})`);
+    di('⭐⭐ lo que devuelve HOY el geocodificador', res.portal
+      ? `el portal nº${res.portal.n}   (estado: ${res.estado})`
+      : `⛔ NADA — estado ${res.estado}, con sugerencias `
+        + (res.sugerencias || []).map((s) => 'nº' + s.n).join(' / ') + '   ⭐ TANDA 33');
     di('   y lo dice', res.aviso ? '✅ «' + res.aviso + '»' : '⛔ NO lo dice');
     A.exige(!!res.aviso, 'el geocodificador cambia de número y no lo dice');
-    di('⛔ ¿cambia de PARIDAD?', (78 % 2) !== (o.n % 2) ? '⛔ SÍ — 78 es par y el 77 es impar' : 'no');
+    di('⚠️ lo que devolvía cuando se midió esto (tanda 32)', `el portal nº${o.n}`);
+    di('⛔ ¿cambiaba de PARIDAD?', (78 % 2) !== (o.n % 2) ? '⛔ SÍ — 78 es par y el 77 es impar' : 'no');
     log('');
     di('A1 · el enganche del portal que devuelve', `arista ${o.arista} a ${o.d.toFixed(2)} m`);
     const e = g.aristas[o.arista];
@@ -561,20 +572,29 @@ if (require.main === module) {
         // hay que devolver el ENGANCHADO, no el crudo
         return eng.find((e2) => e2.id === l[0].id) || null;
       };
-      const o1 = busca('Avenida Cataluña 78'), d1 = busca('Avenida Pablo Gargallo 16');
+      // ⚠️⚠️ TANDA 33 · ESTE «HOY» ES EL DE LA TANDA 32, Y AHORA HAY QUE PEDIRLO.
+      //   Aquella medía la ruta 1 entre **el 77 y el 15** —lo que devolvía el
+      //   buscador al pedir el 78 y el 16—. Con la regla de la paridad esas dos
+      //   consultas ya no tienen respuesta, así que los portales se piden por su
+      //   número, explícitos.
+      // ⭐ Y así el cuadre de abajo mejora: deja de depender de la regla del
+      //   buscador y pasa a guardar lo que de verdad tiene que guardar —el grafo y
+      //   el enganche—. Si mañana la paridad cambia otra vez, este número no se
+      //   mueve; si se mueve, es que se ha movido el terreno.
+      const o1 = busca('Avenida Cataluña 77'), d1 = busca('Avenida Pablo Gargallo 15');
       const o1p = paridadDe(o1, 78), d1p = paridadDe(d1, 16);
       const hoy1 = mts(o1, d1);
 
-      di('   ruta 1 · HOY (nº' + o1.n + ' → nº' + d1.n + ')', hoy1.toFixed(1) + ' m   ⭐ publicado 3086,9');
+      di('   ruta 1 · como la midió la tanda 32 (nº' + o1.n + ' → nº' + d1.n + ')', hoy1.toFixed(1) + ' m   ⭐ publicado 3086,9');
       if (o1p && d1p) {
         const alt = mts(o1p, d1p);
         di('   ruta 1 · con la paridad pedida (nº' + o1p.n + ' → nº' + d1p.n + ')',
           alt.toFixed(1) + ' m   ⇒ ' + (alt - hoy1).toFixed(1) + ' m  (' + (100 * (alt - hoy1) / hoy1).toFixed(1) + ' %)');
       }
-      const o6 = busca('Calle Francisco de Quevedo 1'), d6 = busca('Calle Matadero 1');
+      const o6 = busca('Calle Francisco de Quevedo 1'), d6 = busca('Calle Matadero 2');
       const d6p = paridadDe(d6, 1);
       const hoy6 = mts(o6, d6);
-      di('   ruta 6 · HOY (nº' + o6.n + ' → nº' + d6.n + ')', hoy6.toFixed(1) + ' m   ⭐ publicado 523,4');
+      di('   ruta 6 · como la midió la tanda 32 (nº' + o6.n + ' → nº' + d6.n + ')', hoy6.toFixed(1) + ' m   ⭐ publicado 523,4');
       if (d6p) di('   ruta 6 · con la paridad pedida (→ nº' + d6p.n + ')', mts(o6, d6p).toFixed(1) + ' m');
       // ⭐⭐ EL CUADRE QUE HACE QUE ESTO VALGA: el «hoy» calculado aquí tiene que ser
       //   el número publicado. Si no lo fuera, esta sección estaría midiendo otra cosa.
@@ -585,7 +605,18 @@ if (require.main === module) {
     }
 
     log('');
+    // ⚠️⚠️ TANDA 33 · ESTA CUENTA YA NO PUEDE SALIR MÁS QUE CERO, Y DECIR SOLO «0»
+    //   SERÍA ENGAÑOSO. Cuando se midió esto salían **3 de 10**: el 78→77, el 16→15
+    //   y el 1→2. La regla de la paridad los ha convertido en dos `sin-numero-cerca`
+    //   —la ruta 1— y en un cambio dentro de su acera —el 1→3 de la ruta 6—.
+    //   ⇒ se imprimen las dos cuentas: **el cero es el resultado de la regla, no la
+    //     desaparición del hallazgo.**
+    const aSug = t.rutas.flatMap((r) => [r.o, r.d]).filter((txt) => !POI[txt]
+      && D.resolver(txt, ctx.indice).estado === 'sin-numero-cerca').length;
     di('⛔ extremos que CAMBIAN DE PARIDAD', `${cambian} de ${14 - poi} con portal  (${poi} son POI)`);
+    di('   ⭐ cuando se midió esto (tanda 32, sin la regla)', '3 de 10 — el 78→77, el 16→15 y el 1→2');
+    di('   ⭐⭐ y hoy, con la regla: extremos SIN RESPUESTA', `${aSug} de ${14 - poi}   (los de la ruta 1)`);
+    A.exige(cambian === 0, `${cambian} extremos siguen cambiando de paridad con la regla de la tanda 33 aplicada: la regla no está actuando en el banco`);
     log('   ⇒ ⭐⭐ La ruta 7 —la que CALIBRA los ~6 km/h de toda la tabla contra los 2.600 m del');
     log('     GPS— tiene sus dos extremos EXACTOS. **La calibración no está en cuestión.**');
     global._D = { cambian, poi };
