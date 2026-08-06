@@ -61,20 +61,33 @@
  *   independientes que caen en la misma magnitud.
  *
  * ═════════════════════════════════════════════════════════════════════════════
- * ⭐⭐ TANDA 34 · SUBE A 100 m, Y NO POR UNA MEDIDA NUEVA
+ * ⚠️⚠️⚠️ ESTE NÚMERO SE HA MOVIDO DOS VECES. LAS DOS VAN ESCRITAS AQUÍ.
  * ═════════════════════════════════════════════════════════════════════════════
- *   La tanda 33 midió el coste de los 50: **62.315 consultas (41,3 % de lo
- *   pedible) sin respuesta automática**, y publicó el dial entero porque el
- *   listón caía justo en el acantilado — entre 50 y 100 m las contestadas se
- *   multiplican por siete (4.562 → 31.411).
- *   ⇒ **Antonio elige 100.** ⛔ No es un número que salga de un percentil: es una
- *     decisión sobre cuánto error se acepta a cambio de cuánta cobertura, y ésa
- *     es suya. El dato que la sostiene está en `docs/H1-PARIDAD.md` §C3.
- *   ⚠️ Lo que el p90 de 48 m sigue diciendo es que **una respuesta con 100 m de
- *     cota está por encima de la separación típica entre portales seguidos**: no
- *     es «el de al lado», es «el de la manzana». Va dicho, no disimulado.
+ *   **50 → 100 (tanda 34) → 50 (tanda 36).** Y no es una indecisión: es que el
+ *   dato sobre el que se decidió la primera mudanza resultó ser un artefacto.
+ *
+ *   · **50 (tanda 33)** — de la medida de arriba: el p90 de la separación entre
+ *     portales seguidos de la misma acera. *Como mucho, el portal de al lado.*
+ *
+ *   · **100 (tanda 34)** — ⛔ NO de un percentil. La tanda 33 publicó el dial del
+ *     coste de cada listón, y el argumento fue **el acantilado**: entre 50 y 100
+ *     las contestadas se multiplicaban por siete (4.562 → 31.411).
+ *
+ *   · **50 (tanda 36)** — ⭐⭐⭐ **el acantilado era el centinela 99999.** La tanda
+ *     35 lo apagó y volvió a medir el dial sobre el universo limpio: 4.562 a 50 m
+ *     y **6.421** a 100 ⇒ **×1,4**, no ×7. Los 4.562 son idénticos en los dos
+ *     porque toda la contaminación estaba en esa banda.
+ *     ⇒ **la razón para estar en 100 no existía**, y Antonio devuelve el listón a
+ *       donde lo puso la medida. Ver `docs/H1-TOPE-ADELANTO.md` §B3.
+ *
+ *   ⭐ Y el argumento de fondo, que es de diseño y no de medida: **con el listón
+ *     bajo no te quedas sin nada — te sale la SUGERENCIA.** *«Se dice que no se
+ *     tiene y se sugiere.»* A 50 m el buscador contesta; a más, pregunta. Y eso
+ *     es más honesto que llevarte a 100 m sin avisar.
+ *
+ * ⛔ Los otros dos listones NO se tocan: `ENFRENTE_M` 150, `ADELANTO_M` 20.
  */
-const RAZONABLE_M = 100;
+const RAZONABLE_M = 50;
 
 /**
  * ⭐⭐ TANDA 34 · EL RADIO PARA OFRECER LA ACERA DE ENFRENTE.

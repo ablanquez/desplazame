@@ -78,7 +78,14 @@ function barrer(indice, tipoDe) {
     resp: [], respU: [], neg: [], negU: [], antes: [], antesU: [],
     sinRespuestaU: 0, cambiaAceraU: 0, fuera: 0, hueco: 0, invariante: 0, cotas: [],
     // ── TANDA 34 · lo que recupera cada listón, por separado ─────────────────
-    gana50a100: 0, conEnfrente: 0, conEnfrenteHueco: 0, conEnfrenteFuera: 0,
+    // ⭐⭐ TANDA 36 · el contador se da la vuelta con el listón. Antes era
+    //   `gana50a100` —lo que el listón alto AÑADÍA—; ahora el listón está en 50 y
+    //   lo que hay que contar es **lo que se pierde respecto a 100**, que es la
+    //   cifra sobre la que se decide. ⛔ Se cuenta AQUÍ, en el barrido, y además
+    //   sale del dial por otro camino: dos cuentas independientes del mismo número
+    //   (y §A4 exige que coincidan). Un contador viejo con nombre viejo habría
+    //   seguido imprimiendo un 0 perfectamente cierto y perfectamente inútil.
+    pierde100a50: 0, conEnfrente: 0, conEnfrenteHueco: 0, conEnfrenteFuera: 0,
     mudas: 0, mudasAntes: 0, dEnfrente: [], enfrenteEsUnica: 0 });
   // ⭐⭐ TANDA 35 · UN SOLO UNIVERSO, y es el limpio, porque el índice ya lo es.
   //   La tanda 34 llevaba dos —el inflado y el limpio— para poder comparar mientras
@@ -118,9 +125,12 @@ function barrer(indice, tipoDe) {
         if (d.modo === 'misma-acera') {
           inc('mismaAcera');
           mete('resp', d.cota.m); if (urb) mete('respU', d.cota.m);
-          // ⭐ A4 · las que el listón de 100 le quita al de 50 de la tanda 33
-          if (d.cota.m > 50) inc('gana50a100');
         } else {
+          // ⭐⭐ A2 · TANDA 36 · las que el listón de 50 le quita al de 100.
+          //   ⛔ Va en la rama de «sin respuesta» a propósito: son consultas que HOY
+          //     no se contestan y que con 100 sí se contestarían. Esto es lo que se
+          //     pierde, medido, no previsto.
+          if (d.cota && Number.isFinite(d.cota.m) && d.cota.m <= 100) inc('pierde100a50');
           inc('sinRespuesta'); if (urb) inc('sinRespuestaU');
           const esHueco = d.cota && d.cota.acota === 'hueco';
           if (esHueco) { inc('hueco'); mete('neg', d.cota.m); if (urb) mete('negU', d.cota.m); }
@@ -208,20 +218,23 @@ if (require.main === module) {
         + r.mediana.toFixed(0).padStart(7) + r.p75.toFixed(0).padStart(7)
         + r.p90.toFixed(0).padStart(7) + r.p95.toFixed(0).padStart(7));
     }
-    di('⇒ ⭐ p90 urbano', `${rU.p90.toFixed(0)} m   —— era de aquí de donde salían los 50 de la tanda 33`);
-    di('⭐⭐ TANDA 34 · el listón aplicado', `**${Par.RAZONABLE_M} m** — decisión de Antonio, no un percentil`);
-    log('   ⚠️⚠️ Y ESTE GUARDIÁN SALTÓ AL SUBIRLO, que es lo que tenía que hacer. Exigía que');
-    log('     el listón cayera entre la mediana y el p95 del reparto de arriba —de donde');
-    log('     salía—, y 100 > 91. **El rojo era cierto: los 100 ya no salen de ahí.**');
-    log('   ⇒ ⭐ Se reescribe con la procedencia NUEVA. Los 100 salen del DIAL que la tanda 33');
-    log('     publicó midiendo el coste de cada listón, y Antonio eligió sobre ese dato. ⇒ lo');
-    log('     que se puede exigir es que **el dial acertara**: aquel informe predijo 31.411');
-    log('     consultas contestadas con el listón a 100, y se comprueba abajo, en §C1.');
-    log('   ⛔ Lo que NO se disimula: 100 m está por encima del p90 de la separación entre');
-    log('     portales seguidos (' + rU.p90.toFixed(0) + ' m). La respuesta ya no es «el de al lado»: es «el de la');
-    log('     manzana». Ése es el precio, y lo que compra está contado en §A4.');
-    A.exige(Par.RAZONABLE_M >= rU.p75,
-      `el listón de ${Par.RAZONABLE_M} m está por debajo del p75 (${rU.p75.toFixed(0)} m) de la separación entre portales seguidos: sería más estricto que el propio dato`);
+    di('⇒ ⭐ p90 urbano', `${rU.p90.toFixed(0)} m   —— de aquí salen los 50, y aquí vuelven`);
+    di('⭐⭐ TANDA 36 · el listón aplicado', `**${Par.RAZONABLE_M} m**`);
+    log('   ⚠️⚠️ ESTE NÚMERO SE HA MOVIDO DOS VECES: 50 → 100 (tanda 34) → 50 (tanda 36).');
+    log('     Subió porque el dial decía que entre 50 y 100 las contestadas se multiplicaban');
+    log('     por siete. ⭐⭐⭐ **Ese acantilado era el centinela 99999**: limpio, el salto es');
+    log('     ×1,4 (§A4). ⇒ la razón para estar en 100 no existía, y el listón vuelve a donde');
+    log('     lo puso la medida — al p90 de ' + rU.p90.toFixed(0) + ' m del reparto de arriba.');
+    log('   ⭐ Y lo que se pierde no se pierde: se convierte en SUGERENCIA. A ' + Par.RAZONABLE_M + ' m el');
+    log('     buscador contesta; a más, pregunta. El coste va contado en §C3 y §A4.');
+    // ⭐⭐ EL GUARDIÁN VUELVE A SER DE DOS LADOS, que es como nació. La tanda 34 tuvo
+    //   que abrirlo por arriba porque 100 se salía del reparto del que decía venir —y
+    //   el rojo era cierto—. Con el listón otra vez en su procedencia, **se puede
+    //   volver a exigir las dos cosas**: ni más estricto que el dato ni por encima de
+    //   él. ⛔ Y se deja escrito que se abrió, para que abrirlo otra vez cueste.
+    A.exige(Par.RAZONABLE_M >= rU.p75 && Par.RAZONABLE_M <= rU.p95,
+      `el listón de ${Par.RAZONABLE_M} m se sale del reparto del que dice venir (p75 ${rU.p75.toFixed(0)} m · p95 ${rU.p95.toFixed(0)} m): `
+      + 'o se cambia la procedencia escrita en `paridad.js`, o el número no sale de aquí');
     global._P90 = rU.p90;
   }
 
@@ -567,9 +580,29 @@ if (require.main === module) {
     log('   ⛔ Son dos cosas distintas y no se suman: uno devuelve RESPUESTAS y el otro');
     log('     devuelve OPCIONES. Mezclarlos daría un titular más grande y más falso.');
     log('');
-    log('   ⭐ (1) SU ACERA, de 50 a 100 m — devuelve RESPUESTA automática');
+    log('   ⭐ (1) SU ACERA, de vuelta a ' + Par.RAZONABLE_M + ' m — devuelve RESPUESTA automática');
     di('   consultas contestadas ahora', G.mismaAcera);
-    di('   …de ellas, las que el listón de 50 rechazaba', `${G.gana50a100}   ⭐ eso es lo que recupera`);
+    di('   ⭐⭐ …y las que se PIERDEN respecto al listón de 100', `${G.pierde100a50}`);
+    // ⭐⭐⭐ LA RESTA, IMPRESA. Es la ley nº142, escrita ayer y aplicada hoy: *la
+    //   cifra que entra en una decisión es la del texto, no la de la tabla.* ⇒ el
+    //   informe no puede pedirle a nadie que reste dos columnas a mano.
+    log('   ' + 'listón'.padEnd(24) + 'contestadas'.padStart(14) + '   ');
+    log('   ' + '100 m (tanda 34-35)'.padEnd(24) + String(G.mismaAcera + G.pierde100a50).padStart(14));
+    log('   ' + ('⭐ ' + Par.RAZONABLE_M + ' m (tanda 36)').padEnd(24) + String(G.mismaAcera).padStart(14));
+    log('   ' + '⇒ se pierden'.padEnd(24) + String(G.pierde100a50).padStart(14)
+      + `   (${pct(G.pierde100a50, G.mismaAcera + G.pierde100a50)} de las que contestaba el listón alto)`);
+    log('   ⚠️ La tanda 35 previó 1.859. ⛔ Era una PREVISIÓN y se comprueba aquí, porque la');
+    log('     anterior —las «358 perdidas» del tope de adelanto— falló por un factor de tres.');
+    // ⭐ DOS CAMINOS PARA EL MISMO NÚMERO, y se exige que coincidan: el contador del
+    //   barrido cuenta consulta a consulta; el dial lo saca del reparto de cotas. Si
+    //   discreparan, uno de los dos está midiendo otra cosa.
+    {
+      const porDial = G.cotas.filter((x) => x <= 100).length - G.cotas.filter((x) => x <= Par.RAZONABLE_M).length;
+      di('   ⭐ ¿lo dice también el dial, por su cuenta?',
+        porDial === G.pierde100a50 ? `✅ ${porDial} = ${G.pierde100a50}` : `⛔ NO — ${porDial} frente a ${G.pierde100a50}`);
+      A.exige(porDial === G.pierde100a50,
+        `el contador dice que se pierden ${G.pierde100a50} y el dial ${porDial}: uno de los dos no mide lo que dice`);
+    }
     // ═══════════════════════════════════════════════════════════════════════
     // ⭐⭐⭐ TANDA 35 · EL SEGUNDO CUADRE QUE ESTABA DE ACUERDO SOBRE EL ARTEFACTO
     // ═══════════════════════════════════════════════════════════════════════
@@ -584,19 +617,25 @@ if (require.main === module) {
     //     contaminación estaba en la banda de 50 a 100.
     //   ⇒ ⭐ **El acantilado era el artefacto.** Subir el listón sigue recuperando
     //     consultas, pero siete veces menos de las que decía el dato que se miró.
-    //   ⛔ No se revierte nada: los 100 m son decisión de Antonio y se quedan. Lo
-    //     que se hace es decirle sobre qué número los decidió.
-    log('   ⛔⛔ EL DIAL DE LA TANDA 33 TAMBIÉN ESTABA INFLADO — y era el argumento:');
-    log('   ' + 'listón'.padEnd(24) + 'dial de la tanda 33'.padStart(22) + 'limpio (tanda 35)'.padStart(20));
-    log('   ' + '50 m'.padEnd(24) + '4.562'.padStart(22) + '4.562'.padStart(20) + '   ⭐ idénticos');
-    log('   ' + '100 m'.padEnd(24) + '31.411'.padStart(22) + String(G.mismaAcera).padStart(20)
-      + `   ⇒ ×${(31411 / Math.max(1, G.mismaAcera)).toFixed(1)} de diferencia`);
-    log('   ⇒ ⭐⭐ el «acantilado ×7» entre 50 y 100 que sostuvo la decisión era el centinela.');
-    // ⛔ Freno de deriva contra lo republicado HOY. No valida el número: impide que
-    //   se mueva en silencio. El número bueno se publica y se congela.
-    A.exige(G.mismaAcera === 6421,
-      `las contestadas con el listón a 100 m dan ${G.mismaAcera} y la tanda 35 republicó 6.421: `
-      + 'si es a propósito se republica con su motivo escrito; si no, es un hallazgo');
+    // ⭐⭐⭐ TANDA 36 · Y ÉSA ES LA DECISIÓN DE HOY: si la razón para subir a 100 era
+    //   el acantilado, y el acantilado no existe, **el listón vuelve a 50**.
+    log('   ⛔⛔ EL DIAL DE LA TANDA 33 ESTABA INFLADO — y era el argumento para subir:');
+    const cien = G.mismaAcera + G.pierde100a50;
+    log('   ' + 'listón'.padEnd(24) + 'dial de la tanda 33'.padStart(22) + 'limpio (tandas 35-36)'.padStart(22));
+    log('   ' + '50 m   ⭐ el aplicado'.padEnd(24) + '4.562'.padStart(22) + String(G.mismaAcera).padStart(22));
+    log('   ' + '100 m'.padEnd(24) + '31.411'.padStart(22) + String(cien).padStart(22)
+      + `   ⇒ ×${(31411 / Math.max(1, cien)).toFixed(1)} de diferencia`);
+    log('   ' + '⇒ el salto de 50 a 100'.padEnd(24) + '×6,9'.padStart(22)
+      + `×${(cien / Math.max(1, G.mismaAcera)).toFixed(1)}`.padStart(22) + '   ⭐⭐ el acantilado era el centinela');
+    // ⛔⛔ EL CUADRE QUE NO SE RETIRA, y es el que más dice hoy: la tanda 35 midió y
+    //   congeló **6.421 contestadas a 100 m**. Ese número no depende del listón que
+    //   se aplique —se reconstruye sumando lo que hoy se contesta y lo que hoy se
+    //   pierde—, así que sigue siendo exigible. ⭐ Y hace algo más: **demuestra que
+    //   la resta de arriba es la buena**, porque si `pierde100a50` estuviera mal la
+    //   suma no daría 6.421.
+    A.exige(cien === 6421,
+      `contestadas a 50 m (${G.mismaAcera}) + perdidas respecto a 100 (${G.pierde100a50}) = ${cien}, `
+      + 'y la tanda 35 congeló 6.421 contestadas a 100 m: o el listón mide otra cosa, o la resta está mal');
     log('');
     log('   ⭐ (2) ENFRENTE, ≤' + Par.ENFRENTE_M + ' m de radio Y ≤' + Par.ADELANTO_M + ' m calle abajo');
     log('        — NO devuelve respuesta: devuelve una OPCIÓN marcada');
@@ -623,14 +662,31 @@ if (require.main === module) {
 
     // ── A2b · ⭐⭐ LA SENSIBILIDAD DEL LISTÓN — el dial, sin elegirlo yo ────────
     log('');
-    log('   ⭐⭐ A2b · SI EL LISTÓN FUERA OTRO — el dial, para que se pueda mover con datos');
+    log('   ⭐⭐ A3 · EL DIAL ENTERO, SOBRE EL UNIVERSO LIMPIO — ⛔ éste es el que hay que');
+    log('     mirar: el que publicó la tanda 33 llevaba el centinela dentro (§A4).');
+    // ⛔ El denominador es el mismo en todas las filas —las consultas que la regla
+    //   llega a evaluar— y no cambia con el listón: lo único que se mueve es dónde
+    //   cae el corte. Así las dos columnas suman siempre lo mismo y se puede leer
+    //   la fila de al lado sin rehacer ninguna cuenta.
+    const evaluadas = G.mismaAcera + G.sinRespuesta;
     log('   ' + 'listón'.padStart(9) + 'contestadas'.padStart(14) + 'sin respuesta'.padStart(15)
-      + '   error máximo que se acepta');
-    for (const u of [25, 50, 100, 200, 400]) {
+      + '        %'.padStart(11) + '   error máximo que se acepta');
+    for (const u of [25, 50, 75, 100, 150, 200]) {
       const si = G.cotas.filter((x) => x <= u).length;
-      const no = G.mismaAcera + G.hueco - si;
-      log('   ' + (u + ' m').padStart(9) + String(si).padStart(14) + String(no + G.fuera).padStart(15)
+      log('   ' + (u + ' m').padStart(9) + String(si).padStart(14) + String(evaluadas - si).padStart(15)
+        + pct(si, evaluadas).padStart(11)
         + '   ' + (u === Par.RAZONABLE_M ? '⭐ el aplicado' : ''));
+    }
+    // ⭐⭐ QUE EL DIAL MIDA LA REGLA, y no una versión suya: la fila del listón
+    //   aplicado tiene que dar exactamente lo que devuelve `decidir()`. Es la ley
+    //   del nº141 —*un dial que no reproduce la regla mide otra cosa*— puesta como
+    //   comprobación en vez de como frase.
+    {
+      const enLaFila = G.cotas.filter((x) => x <= Par.RAZONABLE_M).length;
+      di('⭐ ¿la fila del listón aplicado da lo que contesta el buscador?',
+        enLaFila === G.mismaAcera ? `✅ ${enLaFila} = ${G.mismaAcera}` : `⛔ NO — ${enLaFila} frente a ${G.mismaAcera}`);
+      A.exige(enLaFila === G.mismaAcera,
+        `el dial dice ${enLaFila} contestadas con el listón aplicado y el buscador contesta ${G.mismaAcera}: el dial no mide la regla`);
     }
     log('   ⛔ Las ' + G.fuera + ' que caen fuera del tramo no se arreglan subiendo el listón: no hay');
     log('     hueco que medir. Ésas solo las movería la interpolación (§D2).');
