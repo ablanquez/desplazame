@@ -1,4 +1,4 @@
-// ⭐⭐⭐ TANDA 34 · ¿LOS 150 m DE ENFRENTE SON ANCHO O SON DESFASE?
+// ⭐⭐⭐ TANDA 34-35 · ¿LOS 150 m DE ENFRENTE SON ANCHO O SON DESFASE?
 //
 //   node src/medir-listones.js
 //
@@ -40,9 +40,10 @@ const P = require('./portales');
 const Par = require('./paridad');
 const { construir, ZONA_TERMINO, CRUDO } = require('./ruta');
 
-/** ⛔ Igual que en `medir-paridad.js`: 99999 es «no tiene número», no un portal. */
-const CENTINELA = 9999;
-const conCentinela = (l) => l.some((o) => o.n != null && o.n >= CENTINELA);
+// ⭐ TANDA 35 · el centinela ya NO se filtra aquí: se apaga en `construirIndice` y su
+//   definición vive en `portales.js`. Este medidor no tiene su propia copia.
+
+
 
 function reparto(v) {
   if (!v.length) return null;
@@ -58,7 +59,7 @@ function entre(a, b) {
   return Math.acos(Math.max(0, Math.min(1, c))) * 180 / Math.PI;
 }
 
-module.exports = { reparto, entre, conCentinela, CENTINELA };
+module.exports = { reparto, entre };
 
 // ═════════════════════════════════════════════════════════════════════════════
 if (require.main === module) {
@@ -138,7 +139,7 @@ if (require.main === module) {
     for (const l of indice.values()) {
       const an = l.paridad;
       if (!(an.pares >= Par.MIN_HILO && an.impares >= Par.MIN_HILO)) continue;
-      if (conCentinela(l)) continue;
+
       const vals = [];
       for (const par of [0, 1]) {
         const hilo = l.filter((o) => o.n != null && o.n % 2 === par).sort((a, b) => a.n - b.n);
@@ -195,29 +196,55 @@ if (require.main === module) {
   log('B1–B2 · ⭐⭐⭐ LAS QUE ENTRAN POR LOS 150: ¿ANCHO O DESFASE?');
   log('='.repeat(112));
   {
-    const casos = [];
+    // ⭐⭐ TANDA 35 · SE GUARDA EL PUNTO DE PARTIDA DE CADA CONSULTA, no solo lo que
+    //   sale hoy. Así el dial de abajo puede volver a preguntar con OTROS listones
+    //   llamando a `Par.deEnfrente()` con sus parámetros — que es la única forma de
+    //   explorar más allá del tope aplicado.
+    // ⛔ La versión anterior filtraba la salida de `decidir()`, que ya trae el tope
+    //   puesto: las filas «≤40 m» y «sin tope» salían idénticas a «≤20 m» y el dial
+    //   no exploraba nada (bitácora nº141).
+    const partidas = [];        // { l, n, ref, situacion }
     for (const l of indice.values()) {
       const an = l.paridad;
       if (!(an.pares >= Par.MIN_HILO && an.impares >= Par.MIN_HILO)) continue;
-      const limpia = !conCentinela(l);
       const presentes = new Set(l.map((o) => o.n).filter((n) => n != null));
       const nums = [...presentes].sort((a, b) => a - b);
       for (let n = nums[0]; n <= nums[nums.length - 1]; n++) {
         if (presentes.has(n)) continue;
         const d = Par.decidir(n, l, an);
-        for (const s of (d.sugerencias || [])) {
-          if (!s.enfrente) continue;
-          casos.push({ l, n, s, limpia,
-            situacion: d.cota && d.cota.acota === 'hueco' ? 'hueco' : 'fuera-del-tramo' });
-        }
+        if (d.modo !== 'sin-numero-cerca' || !d.cota) continue;
+        partidas.push({ l, n, ref: d.cota.cand,
+          situacion: d.cota.acota === 'hueco' ? 'hueco' : 'fuera-del-tramo' });
       }
     }
-    const limpios = casos.filter((c) => c.limpia);
+    /** Recalcula las sugerencias de enfrente con los listones que se le pidan. */
+    const conListones = (radio, adelanto) => {
+      const out = [];
+      for (const p of partidas) {
+        for (const s of Par.deEnfrente(p.n, p.l, p.ref, radio, adelanto)) {
+          out.push({ ...p, s });
+        }
+      }
+      return out;
+    };
+    const limpios = conListones(Par.ENFRENTE_M, Par.ADELANTO_M);
     log('');
-    di('sugerencias de enfrente emitidas', `${casos.length}   (limpias, sin centinela: ${limpios.length})`);
-    log('   ⛔ Todo lo de abajo va sobre las LIMPIAS. Con el centinela dentro, una sola vía');
-    log('     aporta el 70 % y el resultado sería el de esa vía, no el de Zaragoza.');
-    A.exige(limpios.length > 0, 'no queda ni una sugerencia de enfrente al quitar el centinela: no hay nada que clasificar');
+    di('sugerencias de enfrente emitidas HOY', `${limpios.length}   (radio ${Par.ENFRENTE_M} m · adelanto ≤${Par.ADELANTO_M} m)`);
+    A.exige(limpios.length > 0, 'no queda ni una sugerencia de enfrente: no hay nada que clasificar');
+    // ⛔ y que el recálculo sea el mismo que da el buscador: si `conListones` con los
+    //   listones de hoy no reprodujera lo que sale por `decidir()`, el dial mediría
+    //   otra cosa que la regla.
+    {
+      let porDecidir = 0;
+      for (const p of partidas) {
+        const d = Par.decidir(p.n, p.l, p.l.paridad);
+        porDecidir += (d.sugerencias || []).filter((s) => s.enfrente).length;
+      }
+      di('⭐⭐ ¿el recálculo reproduce lo que devuelve el buscador?',
+        porDecidir === limpios.length ? `✅ ${porDecidir} = ${limpios.length}` : `⛔ NO — ${porDecidir} frente a ${limpios.length}`);
+      A.exige(porDecidir === limpios.length,
+        `el dial recalcula ${limpios.length} sugerencias y el buscador da ${porDecidir}: el dial no mide la regla`);
+    }
 
     const clases = new Map();
     for (const c of limpios) clases.set(c.s.clase, (clases.get(c.s.clase) || 0) + 1);
@@ -310,38 +337,66 @@ if (require.main === module) {
     // ═══════════════════════════════════════════════════════════════════════
     // ⭐⭐ B3 · EL DIAL — ⛔ NO SE TOCA NADA. Es para que decida Antonio.
     // ═══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⭐⭐ A3 · QUÉ SE PIERDE AL PONER EL TOPE — y la previsión que le di a Antonio
+    // ═══════════════════════════════════════════════════════════════════════
     log('');
-    log('   ⭐⭐ B3 · SI EL RADIO FUERA OTRO — ⛔ no se cambia nada, es el dato para decidir');
-    log('   ' + 'radio'.padEnd(18) + 'sugerencias'.padStart(13) + 'ancho'.padStart(9)
-      + 'desfase'.padStart(9) + '% desfase'.padStart(11) + '   cruce que CABE en su calle');
-    for (const R of [25, 50, 75, 100, 150]) {
-      const dentro = limpios.filter((c) => c.s.metros <= R);
-      const de = dentro.filter((c) => c.s.clase === 'desfase').length;
-      const an2 = dentro.length - de;
+    log('   ⭐⭐ A3 · QUÉ SE PIERDE — contra lo que se midió SIN tope');
+    {
+      const sinTope = conListones(Par.ENFRENTE_M, Infinity);
+      const cuenta = (v) => {
+        let an2 = 0, cabe = 0;
+        for (const c of v) {
+          if (c.s.clase !== 'ancho') continue;
+          an2++;
+          const r = anchoDeVia.get(c.l);
+          if (r && r.mediana >= 1 && c.s.ancho / r.mediana <= 2) cabe++;
+        }
+        return { total: v.length, ancho: an2, desfase: v.length - an2, cabe };
+      };
+      const a = cuenta(sinTope), b = cuenta(limpios);
+      log('   ' + ''.padEnd(40) + 'sin tope'.padStart(11) + 'con ≤20 m'.padStart(12)
+        + 'se pierden'.padStart(12));
+      for (const [et, k] of [['sugerencias de enfrente', 'total'], ['⭐ de ellas, ANCHO', 'ancho'],
+        ['⛔ de ellas, DESFASE', 'desfase'], ['⭐⭐ las que CABEN en su calle', 'cabe']]) {
+        log('   ' + et.padEnd(40) + String(a[k]).padStart(11) + String(b[k]).padStart(12)
+          + String(a[k] - b[k]).padStart(12));
+      }
+      log('');
+      log('   ⛔⛔ Y AQUÍ HAY QUE CORREGIR LO QUE YO MISMO ESCRIBÍ AYER. El informe de la');
+      log('     tanda 34 dijo *«conservando 2.982 de los 3.340 buenos»*, y el encargo de hoy lo');
+      log('     repite como 358 perdidas. **Está mal**: los 2.982 eran el TOTAL de sugerencias');
+      log('     que quedaban a ≤20 m, no las buenas. Las «ancho» que quedaban eran **2.138**.');
+      di('   ⇒ ⭐ «ancho» que se pierden de verdad', `${a.ancho - b.ancho}  (no 358)`);
+      di('   ⇒ ⭐ y de las que CABEN en el ancho de su calle', `${a.cabe - b.cabe}`);
+      log('   ⚠️ Es más de lo previsto y va destacado, porque la costura del encargo dice que');
+      log('     cambiaría la decisión. ⛔ Lo que NO cambia es el sentido: lo que queda es');
+      log('     mucho más limpio (' + pct(b.cabe, b.total) + ' de cruces reales frente a ' + pct(a.cabe, a.total) + ').');
+      global._A3 = { a, b };
+    }
+    log('');
+    log('   ⭐⭐ B3 · SI LOS LISTONES FUERAN OTROS — ⛔ no se cambia nada, es el dato');
+    log('   ' + 'radio · adelanto'.padEnd(24) + 'sugerencias'.padStart(13) + 'ancho'.padStart(9)
+      + 'desfase'.padStart(9) + '% desfase'.padStart(11) + '   cruce que CABE');
+    const fila = (et, v, marca) => {
+      const de = v.filter((c) => c.s.clase === 'desfase').length;
       let cabe = 0;
-      for (const c of dentro) {
+      for (const c of v) {
         if (c.s.clase !== 'ancho') continue;
         const r = anchoDeVia.get(c.l);
         if (r && r.mediana >= 1 && c.s.ancho / r.mediana <= 2) cabe++;
       }
-      log('   ' + (R + ' m' + (R === Par.ENFRENTE_M ? '   ⭐ el aplicado' : '')).padEnd(18)
-        + String(dentro.length).padStart(13) + String(an2).padStart(9) + String(de).padStart(9)
-        + pct(de, dentro.length).padStart(11) + `   ${cabe}  (${pct(cabe, dentro.length)})`);
-    }
+      log('   ' + (et + (marca ? '   ⭐ el aplicado' : '')).padEnd(24) + String(v.length).padStart(13)
+        + String(v.length - de).padStart(9) + String(de).padStart(9)
+        + pct(de, v.length).padStart(11) + `   ${cabe}  (${pct(cabe, v.length)})`);
+    };
+    for (const R of [25, 50, 100, 150]) fila(`${R} m · ≤${Par.ADELANTO_M} m`, conListones(R, Par.ADELANTO_M), R === Par.ENFRENTE_M);
     log('');
-    log('   ⚠️ Y LA OTRA PALANCA, que no es el radio: **limitar lo que te adelanta CALLE');
-    log('     ABAJO**, que es exactamente lo que distingue las dos cosas. ⛔ NO se aplica.');
-    log('   ' + 'tope de «calle abajo»'.padEnd(30) + 'sugerencias'.padStart(13)
-      + 'ancho'.padStart(9) + 'desfase'.padStart(9) + '% desfase'.padStart(11));
-    for (const X of [10, 20, 40, 999]) {
-      const dentro = limpios.filter((c) => c.s.largo != null && c.s.largo <= X);
-      const de = dentro.filter((c) => c.s.clase === 'desfase').length;
-      log('   ' + (X === 999 ? 'sin tope (hoy)' : '≤ ' + X + ' m').padEnd(30)
-        + String(dentro.length).padStart(13) + String(dentro.length - de).padStart(9)
-        + String(de).padStart(9) + pct(de, dentro.length).padStart(11));
+    for (const X of [5, 10, 20, 40, Infinity]) {
+      fila(`${Par.ENFRENTE_M} m · ${X === Infinity ? 'sin tope' : '≤' + X + ' m'}`,
+        conListones(Par.ENFRENTE_M, X), X === Par.ADELANTO_M);
     }
-    log('   ⇒ ⛔ **NO ELIJO.** El encargo dice que si salen sobre todo desfase, se dice y se');
-    log('     para. Sale que sí, y aquí están las dos palancas con su coste medido.');
+    log('   ⇒ ⛔ **NO ELIJO.** Los listones son de Antonio; esto es el coste de cada uno.');
     global._B2 = { limpios, clases };
   }
 
