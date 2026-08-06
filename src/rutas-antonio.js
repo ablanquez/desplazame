@@ -141,7 +141,22 @@ if (require.main === module) {
     log(`RUTA ${ru.n} · ${ru.o}  →  ${ru.d}`);
     if (ru.caso) log(`   ${ru.caso}`);
     const a = puntoDe(ru.o, ctx, g), b = puntoDe(ru.d, ctx, g);
-    if (!a || !b) { log('   ⛔ NO SE PUEDE RESOLVER LA DIRECCIÓN'); resultados.push({ ru, ok: false, motivo: 'sin-direccion' }); continue; }
+    if (!a || !b) {
+      log('   ⛔ NO SE PUEDE RESOLVER LA DIRECCIÓN');
+      // ⭐⭐ TANDA 33 · y se dice POR QUÉ y QUÉ SE OFRECE. Un «no se puede» a secas
+      //    es indistinguible de un fallo del buscador; la sugerencia es el dato que
+      //    la interfaz va a poner en el botón, y aquí se enseña tal cual.
+      for (const [q, txt, p] of [['origen', ru.o, a], ['destino', ru.d, b]]) {
+        if (p || POI[txt]) continue;
+        const res = D.resolver(txt, ctx.indice);
+        log('   ' + q.padEnd(9) + String(res.estado).padEnd(20) + (res.aviso || ''));
+        for (const s of (res.sugerencias || [])) {
+          log('   ' + ''.padEnd(9) + `⭐ sugerencia nº${s.n} · acera de los ${s.acera}`
+            + (s.metros == null ? '' : ` · el hueco mide ${s.metros} m`));
+        }
+      }
+      resultados.push({ ru, ok: false, motivo: 'sin-direccion' }); continue;
+    }
     for (const [q, p] of [['origen', a], ['destino', b]]) {
       log('   ' + q.padEnd(9) + String(p.estado).padEnd(20) + 'enganche ' + p.d.toFixed(1) + ' m'
         + (p.tipo === 'POI' ? '   ⚠️ es un EDIFICIO: se rutea a su CENTRO, no a su puerta' : '')
