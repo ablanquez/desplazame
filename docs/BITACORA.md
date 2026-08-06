@@ -6751,7 +6751,7 @@ y `Avenida Pablo Gargallo 16` —los textos que devolvían el 77 y el 15—, as�
 3.086,9 m publicados también se quedaba sin portales.
 
 **Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la batería entera.**
-`node src/probar-paradas.js --todo` ejecutó los 55 scripts de `src/`, uno de ellos se estrelló, y la
+`node src/probar-paradas.js --todo` ejecutó los 56 scripts de `src/`, uno de ellos se estrelló, y la
 batería terminó con **`⇒ ✅ UN FALLO DETECTADO YA NO PUEDE TERMINAR EN VERDE.` y código 0.**
 ⚠️ Y no solo eso: en su propia tabla, la fila del script muerto pone **`código 1  sin fallos  ✅`**.
 
@@ -6789,7 +6789,7 @@ perder el punto de comparación.
 
 ---
 
-## [2026-08-06] — La batería recorre los 55 scripts, uno se estrella, y sale en verde
+## [2026-08-06] — La batería recorre los 56 scripts, uno se estrella, y sale en verde
 
 **Categoría:** silencio falso
 **Síntoma:** con `acera-equivocada.js` muerto de un `TypeError`, la batería completa dio esto:
@@ -6842,7 +6842,7 @@ es una implicación —*si se queja, que no salga en 0*— da por bueno todo lo 
 la forma más completa de callarse.
 ⚠️ Y la de la casa, otra vez y en su forma más limpia: **un guardián no está hecho hasta que se ha
 visto su rojo.** El de la batería se había visto para P1, P2 y P3 —los tres provocados— y **nunca
-para P4**, que es el que barre 55 ficheros. P4 nació en `e264d90` (2026-08-03, *«un fallo detectado
+para P4**, que es el que barre 56 ficheros. P4 nació en `e264d90` (2026-08-03, *«un fallo detectado
 ya no puede terminar en verde»*) y **su rojo no se había provocado ni una vez** desde entonces:
 `git log -S"EL INVARIANTE SOBRE TODO" -- src/probar-paradas.js` devuelve ese único commit.
 

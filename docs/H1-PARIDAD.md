@@ -414,6 +414,32 @@ quedarían veinte veces más lejos—. ⛔ Esta tanda **no toca el enganche**.
 
 ---
 
+## G · Verificación
+
+```
+node src/probar-paradas.js --todo
+   P4 · 56 scripts · invariante cumplido en los 56 · código 0
+   rojos DECLARADOS (los mismos que antes de esta tanda, ninguno nuevo):
+      auditoria-guardianes.js · donde-falta.js · modelo-rutas.js
+      pasos.js · rutas-antonio.js
+```
+
+| | |
+|---|---|
+| los 21 números congelados | ✅ intactos · `numeros-congelados.js` código 0 sin mutar |
+| las dos roturas de la tanda 30 | ✅ 2 de 2 cazadas |
+| el banco de las siete | 6 de 7 resueltas · único rojo, el de la ruta 4, **idéntico al de antes** |
+| `modelo-rutas.js` | 6 rutas clavadas · 56/56 pasos · ⭐ la ruta 1 sigue en sugerencia |
+| `acera-equivocada.js` | ✅ código 0 · 3.086,9 · 523,4 · 258 m · 1,82 m · −254,8 m reproducidos |
+
+⚠️ **Y la batería tenía un agujero que esta tanda destapó por accidente:** con
+`acera-equivocada.js` estrellado, **recorrió los 56 scripts y salió en verde**. Su
+invariante estaba escrito en una sola dirección —*un fallo declarado no puede salir
+en 0*— y un script que revienta no declara nada. Arreglado y con su rojo visto
+(bitácora nº136).
+
+---
+
 ## F · Mis fallos de esta tanda
 
 Los tres están en `docs/BITACORA.md` con su ⭐ capturado en caliente.
@@ -423,6 +449,8 @@ Los tres están en `docs/BITACORA.md` con su ⭐ capturado en caliente.
 | **132** | El detector de correlativas, calibrado contra cuatro casos conocidos, **pasó los cuatro** y clasificó **Avenida Pablo Gargallo como correlativa**. Lo cazó el banco de rutas. Causa: los ángulos son **bimodales incluso en avenidas normales**, y la mediana de una bimodal dice cuál montón es más gordo, no de qué lado está la vía. |
 | **133** | Metí en la misma fila el error de las respuestas que doy y el hueco de las que rechazo — y publiqué «error residual 85 m» con un listón declarado de 50. Lo cazó el absurdo aritmético contra un listón del propio fichero. |
 | **134** | Copié la sugerencia campo a campo y se quedó `motivo` por el camino: `«175 m undefined»`. Lo cazó leer la salida. |
+| **135** | Amplié lo que puede devolver `resolver()` —`portal` puede ser `null`— y **estrellé `acera-equivocada.js`**, el instrumento de ayer. Encontré a los consumidores con `grep` y **no los ejecuté**. |
+| **136** | La batería recorrió los 56 scripts **con uno estrellado dentro y salió en verde**. Su invariante es una implicación en un solo sentido, y morirse es la forma más completa de callarse. |
 
 ⭐ **La ley de la 132, que es la que se lleva la tanda:** *un listón calibrado contra
 N casos conocidos acierta en los N casos conocidos. Eso no es una comprobación: es

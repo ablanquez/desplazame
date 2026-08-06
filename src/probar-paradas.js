@@ -133,7 +133,7 @@ if (process.argv.includes('--todo')) {
     //   declara nada, sale en 1, y la condición lo da por bueno.
     //   Pasó de verdad: al cambiar el contrato de `direccion.resolver()` —el portal
     //   puede venir a null—, `acera-equivocada.js` reventó con un `TypeError`, y
-    //   **la batería recorrió los 55 scripts y terminó en ✅ código 0**.
+    //   **la batería recorrió los 56 scripts y terminó en ✅ código 0**.
     // ⭐ La marca: Node imprime su epílogo (`Node.js vXX`) tras una excepción no
     //   capturada. Es específica de «se ha muerto», no de «ha salido en 1».
     // ⚠️ Y solo cuenta si NO declara nada: `A.imposible()` también revienta, pero
