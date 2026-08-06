@@ -307,6 +307,12 @@ log('   `./ruta` y **aborta en el acto**: interesa el ciclo, no el resultado.');
   //   rojo con «no llega a cargar el modelo», que era cierto y no significaba nada
   //   (bitácora nº131). ⚠️ La ley del nº109 dice «regístralo el mismo día», no
   //   «regístralo en cualquier lista».
+  // ⛔ TANDA 33 · `medir-paridad.js` y `paridad.js` TAMPOCO entran, y esta vez se
+  //   comprobó ANTES en vez de suponerlo:
+  //     node -e "require('./src/medir-paridad'); …require.cache…"  →  NINGUNO
+  //   `paridad.js` no pide nada del proyecto y `medir-paridad.js` solo carga
+  //   `./rutas-antonio` dentro de `--rutas`. No cargan el modelo ⇒ no son
+  //   consumidores.
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'desplazame-ciclo-'));
   const sonda = path.join(tmp, 'sonda.js');
   const buzon = path.join(tmp, 'veredicto.txt').replace(/\\/g, '/');
