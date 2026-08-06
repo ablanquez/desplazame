@@ -150,9 +150,18 @@ if (require.main === module) {
         if (p || POI[txt]) continue;
         const res = D.resolver(txt, ctx.indice);
         log('   ' + q.padEnd(9) + String(res.estado).padEnd(20) + (res.aviso || ''));
+        // ⛔⛔ TANDA 34 · LA DE ENFRENTE TIENE QUE DECIR QUE LO ES. Cruzar cuesta un
+        //    semáforo y un rodeo hasta el paso, y eso no está en la línea recta.
+        //    ⚠️ La primera versión de esta línea imprimía las cinco iguales y llamaba
+        //    «el hueco mide» a la distancia hasta el portal de la otra acera, que es
+        //    otra cosa (bitácora nº139).
         for (const s of (res.sugerencias || [])) {
-          log('   ' + ''.padEnd(9) + `⭐ sugerencia nº${s.n} · acera de los ${s.acera}`
-            + (s.metros == null ? '' : ` · el hueco mide ${s.metros} m`));
+          log('   ' + ''.padEnd(9) + (s.enfrente ? '⛔ ENFRENTE   ' : '⭐ su acera   ')
+            + `nº${s.n} · acera de los ${s.acera}`
+            + (s.metros == null ? ''
+              : s.enfrente ? ` · a ${s.metros} m, CRUZANDO (${Math.round(s.ancho)} m de calle`
+                + ` y ${Math.round(s.largo)} m calle abajo)`
+                : ` · el hueco mide ${s.metros} m`));
         }
       }
       resultados.push({ ru, ok: false, motivo: 'sin-direccion' }); continue;
