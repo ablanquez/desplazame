@@ -10,6 +10,7 @@
 
 'use strict';
 const P = require('./portales');
+const Par = require('./paridad');
 
 /**
  * Índice de búsqueda: núcleo de la vía -> lista de portales.
@@ -27,6 +28,12 @@ function construirIndice(portalesEnganchados, vias) {
   }
   // los números que se repiten (bloques, escaleras) se dejan todos: se elige después
   for (const l of porNucleo.values()) l.sort((a, b) => (a.n || 0) - (b.n || 0));
+  // ⭐⭐ TANDA 33 · la FORMA de numeración de cada casilla, calculada UNA vez.
+  //   ⛔ Va aquí y no dentro de `resolver` porque `resolver` se llama por consulta
+  //     y esto se calcula por vía: mezclarlo sería recalcular lo mismo 150.000
+  //     veces. Y va colgado de la lista para no cambiar la forma del índice, que
+  //     es lo que usan `abrir()`, `punto()` y media docena de scripts.
+  for (const l of porNucleo.values()) l.paridad = Par.analizar(l);
   return porNucleo;
 }
 
@@ -41,7 +48,11 @@ function partir(texto) {
 /**
  * Resuelve una dirección.
  * @returns {{estado, portal?, calle?, candidatos?, aviso?}}
- *   estado ∈ 'exacto' | 'numero-aproximado' | 'calle-ambigua' | 'sin-calle' | 'sin-portales'
+ *   estado ∈ 'exacto' | 'numero-aproximado' | 'sin-numero-cerca'
+ *          | 'calle-ambigua' | 'sin-calle' | 'sin-portales'
+ * ⭐ `sin-numero-cerca` es la TANDA 33: **no se tiene**, y se devuelven
+ *    `sugerencias` —solo de la acera pedida— para que la interfaz las ofrezca.
+ *    ⛔ No se resuelve por su cuenta: `portal` viene a null a propósito.
  */
 function resolver(texto, indice) {
   const { calle, numero } = partir(texto);
@@ -68,10 +79,26 @@ function resolver(texto, indice) {
   if (exacto.length) {
     return { estado: 'exacto', consulta: texto, portal: exacto[0], hermanos: exacto.length };
   }
-  let mejor = lista[0];
-  for (const o of lista) if (Math.abs((o.n || 0) - numero) < Math.abs((mejor.n || 0) - numero)) mejor = o;
-  return { estado: 'numero-aproximado', consulta: texto, portal: mejor,
-    aviso: `el número ${numero} no existe en el callejero; el más cercano es el ${mejor.n}` };
+  // ═════════════════════════════════════════════════════════════════════════
+  // ⭐⭐⭐ TANDA 33 · DOS ACERAS, DOS CALLES
+  // ═════════════════════════════════════════════════════════════════════════
+  //   Antes: el más cercano EN NÚMERO, sin mirar la paridad. Eso devolvía el 77
+  //   cuando se pedía el 78 de Avenida Cataluña, con el par más próximo a 258 m.
+  //   ⭐ **La cercanía numérica no es cercanía física**, y tratarlas como si lo
+  //     fueran es el fallo entero.
+  // ⛔ La regla NO está copiada aquí: la tiene `paridad.js` y se la llama (ley 56).
+  //   Así el geocodificador y el medidor de `medir-paridad.js` deciden con el
+  //   mismo código, no con dos redacciones de la misma idea.
+  const an = lista.paridad || Par.analizar(lista);
+  const d = Par.decidir(numero, lista, an);
+  if (d.modo === 'sin-numero-cerca') {
+    // ⭐ NO SE TIENE, y se sugiere. ⛔ La sugerencia nunca lleva el de enfrente.
+    return { estado: 'sin-numero-cerca', consulta: texto, portal: null, nucleo: nu,
+      sugerencias: d.sugerencias.map((s) => ({ n: s.n, acera: s.acera, metros: s.metros, motivo: s.motivo, portal: s.portal })),
+      paridad: d.modo, forma: an.forma, aviso: d.aviso };
+  }
+  return { estado: 'numero-aproximado', consulta: texto, portal: d.portal,
+    paridad: d.modo, forma: an.forma, cota: d.cota ? d.cota.m : null, aviso: d.aviso };
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
