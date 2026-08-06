@@ -235,6 +235,31 @@ if (require.main === module) {
     A.exige(Par.RAZONABLE_M >= rU.p75 && Par.RAZONABLE_M <= rU.p95,
       `el listón de ${Par.RAZONABLE_M} m se sale del reparto del que dice venir (p75 ${rU.p75.toFixed(0)} m · p95 ${rU.p95.toFixed(0)} m): `
       + 'o se cambia la procedencia escrita en `paridad.js`, o el número no sale de aquí');
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⭐⭐⭐ Y EL REPARTO DEL QUE SALE, EXIGIDO — no solo el listón (bitácora nº144)
+    // ═══════════════════════════════════════════════════════════════════════
+    //   El guardián de arriba compara el listón con el reparto **medido hoy**. Si el
+    //   reparto se moviera entero, el listón seguiría cayendo dentro y no saltaría
+    //   nada: *la comprobación distingue los extremos y no el medio* (ley 61).
+    //   ⛔ Y eso no es hipotético: el comentario de `paridad.js` llevaba tres tandas
+    //     diciendo «p90 48 · p95 82» mientras `docs/H1-PARIDAD.md` §A2 publicaba
+    //     52 y 91 — y nadie se enteró, porque este número **no estaba en la tabla de
+    //     congelados y ningún guardián lo miraba**.
+    //   ⇒ se congela AQUÍ, que es donde se mide, contra lo publicado en la tanda 33.
+    //   ⭐ Su rojo se ha visto: poniéndole los números del propio comentario viejo,
+    //     salta y nombra p90 y p95 con los dos valores.
+    {
+      const PUB_33 = { n: 30283, p75: 24, p90: 52, p95: 91 };
+      const sale = { n: rU.n, p75: Math.round(rU.p75), p90: Math.round(rU.p90), p95: Math.round(rU.p95) };
+      const mal = Object.keys(PUB_33).filter((k) => PUB_33[k] !== sale[k]);
+      di('⭐ ¿el reparto sigue siendo el que publicó la tanda 33?',
+        mal.length ? '⛔ se mueve: ' + mal.join(', ') : `✅ n ${sale.n} · p75 ${sale.p75} · p90 ${sale.p90} · p95 ${sale.p95}`);
+      A.exige(mal.length === 0,
+        'el reparto del que sale el listón se ha movido en ' + mal.join(', ')
+        + `: publicado n ${PUB_33.n} · p75 ${PUB_33.p75} · p90 ${PUB_33.p90} · p95 ${PUB_33.p95}, `
+        + `ahora n ${sale.n} · p75 ${sale.p75} · p90 ${sale.p90} · p95 ${sale.p95} `
+        + '(docs/H1-PARIDAD.md §A2). Si es a propósito se republica; si no, es un hallazgo');
+    }
     global._P90 = rU.p90;
   }
 

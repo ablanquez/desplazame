@@ -51,8 +51,17 @@
  *    o doscientos, y eso es justo lo que hizo fallar al geocodificador.
  *
  * ⭐ De dónde sale: de la SEPARACIÓN ENTRE PORTALES CONSECUTIVOS DE LA MISMA
- *   ACERA en vías urbanas — 30.239 pares medidos: mediana 14 m, p75 23 m,
- *   **p90 48 m**, p95 82 m. Se redondea a 50.
+ *   ACERA en vías urbanas — **30.283 pares medidos: mediana 14 m, p75 24 m,
+ *   p90 52 m, p95 91 m**. Se redondea a 50.
+ * ⚠️ TANDA 36 · esta línea decía «30.239 pares, p75 23, p90 48, p95 82» y **no era
+ *   lo que publicó `docs/H1-PARIDAD.md` §A2**, que ya traía 30.283 · 24 · 52 · 91 —
+ *   lo mismo que sale hoy, con el mismo bucle de medida y desde el mismo commit.
+ *   ⛔ **De dónde salieron esos cuatro números NO CONSTA:** ninguna variante del
+ *     código del repositorio los reproduce (bitácora nº144). Salieron de un
+ *     borrador y se quedaron viviendo en prosa tres tandas, porque **ningún
+ *     guardián los comparaba con nada** — el que vigila el listón lee el reparto
+ *     MEDIDO, no el escrito aquí.
+ *   ⇒ el reparto entero pasa a estar exigido en `medir-paridad.js` §A2.
  *   El criterio en una frase: *no se da por buena una respuesta cuyo error
  *   posible sea mayor que la distancia típica entre dos portales seguidos de esa
  *   misma acera.* O sea: **como mucho, el portal de al lado.**

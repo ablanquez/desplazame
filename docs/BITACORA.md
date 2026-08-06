@@ -7183,3 +7183,70 @@ preguntárselo. ⚠️ Y la operativa: **una sustitución por índices por ejecu
 mienten. Si hacen falta dos, se hace dos veces releyendo el fichero.
 
 **Traza:** `src/medir-paridad.js` (`barrer`)
+
+---
+
+## [2026-08-06] — La procedencia del listón escrita en el código nunca fue la publicada
+
+**Categoría:** datos
+**Síntoma:** al devolver `RAZONABLE_M` a 50 m volví a leer el comentario que justifica de dónde sale
+ese número, en `src/paridad.js`, para copiarlo al informe:
+
+```
+ *   ACERA en vías urbanas — 30.239 pares medidos: mediana 14 m, p75 23 m,
+ *   **p90 48 m**, p95 82 m. Se redondea a 50.
+```
+
+Y el medidor, hoy, dice otra cosa: **30.283 pares · 14 · 24 · 52 · 91**. Fui a `docs/H1-PARIDAD.md`
+§A2 a ver cuál de los dos había envejecido, y **el informe publicaba 30.283 · 14 · 24 · 52 · 91 desde
+el primer día**. ⇒ no ha envejecido nada: **el comentario nunca coincidió con lo que se publicó.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **absolutamente todo, tres tandas
+seguidas.** La batería de 57 scripts, los 26 números congelados, y —lo que más duele— **el guardián
+que vigila precisamente este listón**: exige que `RAZONABLE_M` caiga dentro del reparto, y lo compara
+con el reparto **MEDIDO**, no con el escrito. Los 50 m caen dentro de los dos repartos, así que la
+comprobación estaba en verde y seguía siendo cierta. ⚠️ Y el número tampoco estaba en la tabla de
+congelados: **no había ni un sitio en el proyecto donde ese p90 se comparase con nada.**
+
+**Cómo se cazó:** ojo humano, al copiar el dato a mano de un fichero a otro. ⛔ Es el peor camino
+posible para cazar algo, porque depende de que alguien vuelva a mirar ese comentario — y en tres
+tandas nadie lo hizo, ni siquiera cuando la tanda 34 reescribió el bloque de al lado.
+
+**Causa raíz:** ⚠️ **NO CONSTA de dónde salieron esos cuatro números, y eso es lo peor del caso.**
+Los dos —el comentario y la tabla del informe— entraron en el MISMO commit (`42b6501`), con el mismo
+código de medida que sigue hoy; el bucle que mide la separación no ha cambiado ni una línea. Probé
+las tres variantes que podrían explicar una población de 30.239:
+
+```
+   hoy (como está)                                  n 30283 · p75 24 · p90 52 · p95 91
+   sin el filtro de portales repetidos              n 36196 · p75 23 · p90 51 · p95 93
+   con el centinela 99999 dentro                    n 30283 · p75 24 · p90 52 · p95 91
+   sin filtro y con centinela                       n 36196 · p75 23 · p90 51 · p95 93
+```
+
+**Ninguna da 30.239 · 23 · 48 · 82.** ⇒ esos números **no los produce ninguna versión del código que
+esté en el repositorio**: salieron de un borrador que nunca se commiteó y se quedaron escritos en
+prosa. Lo que sí se puede afirmar: **un número copiado a un comentario no está publicado, está
+escondido.** El informe de `docs/` tenía el dato bueno, pero quien abre el código para entender por
+qué el listón vale 50 **lee el comentario**, no el informe.
+
+**Arreglo aplicado:**
+· se corrige el comentario y se deja escrito en él que estaba mal y desde cuándo;
+· ⭐⭐ y —que es lo único que sirve— **el reparto entero pasa a estar exigido**: `medir-paridad.js`
+  §A2 compara `n · p75 · p90 · p95` contra lo que publicó la tanda 33 y se pone rojo si se mueve
+  cualquiera de los cuatro. ⛔ El guardián viejo no podía cazarlo: comparaba el listón con el reparto,
+  y si el reparto se movía entero el listón seguía cayendo dentro — *la comprobación distingue los
+  extremos y no el medio* (ley 61), otra vez.
+· ⛔ `docs/H1-PARIDAD.md` **no se toca**: su tabla era la correcta.
+· Y su rojo se ha provocado antes de dejarlo puesto (regla 3 de CLAUDE.md).
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un número que solo vive en un comentario no tiene guardián posible,
+y por eso no envejece: se pudre.** Es el nº142 —*la cifra que entra en una decisión es la del texto,
+no la de la tabla*— con el texto dentro del código, y el arreglo es el mismo los dos días: no
+corregir la frase, sino **obligar al número a pasar por una comparación**. ⚠️ Y el corolario
+operativo: cuando un comentario cita una medida, o la mide el propio fichero, o la exige alguien, o
+no se escribe.
+
+**Traza:** `src/paridad.js` (`RAZONABLE_M`), `src/medir-paridad.js` (§A2, el reparto exigido)
