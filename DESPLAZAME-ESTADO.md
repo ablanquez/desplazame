@@ -68,6 +68,17 @@ no se toca hasta que H1 cierre.
   largo** (idea de Antonio, §4).
 - ⭐ **El itinerario, simplificado**: se agrupa **por vía**, y los cruces cortos que interrumpen la
   misma calle **desaparecen**. La ruta 7 pasó de **20 pasos a 12**.
+- ⭐⭐ **EL MAPA DICE CUATRO COSAS** (§4): azul *tiene nombre* · rojo *le falta* · **gris *no tiene
+  ni debe*** (pasos de cebra e isletas) · **verde *le falta, pero está en un parque***.
+- ⭐⭐ **LOS INSTRUMENTOS, AUDITADOS** (§7): de 198 comprobaciones censadas, **solo 6 tenían el rojo
+  visto** y **182 líneas imprimían `⛔`/`✅` sin parar nada**. Y apareció **la séptima forma de
+  mentir**.
+- ⭐⭐ **20 NÚMEROS PUBLICADOS CONGELADOS.** *Antes había UNO en todo el proyecto.* Y **avisaron el
+  mismo día**: un cambio de regla movió el reparto del mapa 63 líneas y saltaron siete filas en
+  rojo.
+- ✅ **LOS CINCO ROJOS VIVOS, CERRADOS.**
+
+**Lo siguiente: la AUDITORÍA DE CIERRE DE H1.**
 
 ⭐⭐ **H1 ESTÁ TERMINADO EN LO QUE SE PUEDE TERMINAR HOY.** Lo que queda son **cabos declarados**,
 no trabajo pendiente.
@@ -451,6 +462,63 @@ CALZADA»*): **al que va andando le da igual.** *El dato se queda en el modelo p
 ✅ **El aviso de que se comparte con bicis SÍ se queda**: sale en **5 de 82 pasos (6,1 %)**, y la
 condición de Antonio era que se mantuviera *«siempre que sea verdad que en muy pocas calles pasa»*.
 
+### ⭐⭐ EL MAPA DICE CUATRO COSAS (tandas 26 · 27 · 28)
+
+| color | significa | cuántas |
+|---|---|---:|
+| **AZUL** | tiene nombre | 51.493 |
+| **ROJO** | **le falta**, y es un problema | 32.310 |
+| ⭐ **VERDE** | le falta, **pero está dentro de una zona verde: por eso** | 3.803 |
+| ⭐ **GRIS** | **no tiene nombre NI DEBE TENERLO** | 11.168 |
+
+**GRIS — idea de Antonio:**
+> *«Si un paso de cebra es un paso de cebra y no tiene nombre, no lo tendrá que tener ninguno, digo
+> yo.»*
+
+⭐⭐ **Y la distinción que abre es la importante:** *una acera sin nombre* → **falta información**;
+*un paso de cebra sin nombre* → **no falta nada**. **Meterlos en el mismo rojo hacía que el mapa
+exagerara el problema.**
+⛔ **Y 3.786 pasos (uno de cada tres) llevaban un nombre que les habíamos puesto nosotros.** Se
+retiran. *El de OSM se respeta: es dato ajeno.* Las **369 isletas** —el trocito que queda en medio
+del paso— entran igual, por decisión de Antonio.
+
+**VERDE — teoría de Antonio:**
+> *«Hay muchas manchas rojas en la ciudad que son parques o zonas verdes grandes.»*
+
+**Correcta, y con tamaño: 3.803 líneas y ~145 km** están dentro de una zona verde.
+⛔ **Pero NO se pintan de gris, y el motivo es fino:** *un paso se reconoce por su ETIQUETA; un
+sendero, por DÓNDE ESTÁ* — y ese «dónde» sale de una capa de 2012, sin nombres, que coincide con
+OSM en el 22 %. **Colgar una regla de definición de una fuente de calidad desconocida, no.**
+⇒ ⭐ **El verde es una variante del rojo: para el motor esas líneas siguen siendo rojas.** No dice
+*«no debe tener nombre»*, dice *«está en un parque, por eso es roja»*. **Reversible, y no puede
+romper una calle.**
+⚠️ **Manda OSM, no la municipal** — y la elección la tumbó un positivo de control: **cruzar las dos
+capas dejaba fuera el Parque del Agua entero, 0 de 493 senderos.** *Estaba limpia porque no cogía
+casi nada donde importa.*
+⚠️ **Y el contraejemplo, medido:** el **Anillo Verde de Oliver** no es un parque sino una franja
+que envuelve calles del barrio — **pero sus 131 calles con nombre siguen azules**: solo se pintan de
+verde sus 19 rojas. **Un error de explicación sobre 148 m, no de dato sobre 131 calles.** *Eso es
+exactamente lo que se ganó al no pintarlos de gris.*
+
+### ⭐ EL NOMBRE PRESTADO — decidido: se marca en el DATO, no en el texto
+
+**458 aristas (0,9 %, 17,38 km) llevan el nombre del tramo de al lado del mismo way**, y **las 458
+se presentaban como declaradas**. En las siete rutas: **44 m de 11 km (0,4 %)**.
+⭐ **Todas de `municipal-bici`** — la única fuente que asigna por arista; las otras tres deciden por
+way y para ellas no hay préstamo.
+
+⇒ **DECISIÓN DE ANTONIO: no se dice nada en el texto.**
+> *«Aquí nos pasa como con ZetaBus: a la gente le importa tres pimientos quién lo declara.»*
+
+⭐⭐ **Y es la TERCERA vez que se corrige el mismo patrón** —contarle al usuario cómo funciona el
+dato por dentro—: primero *«carril bici»* a un peatón, después *«el Ayuntamiento lo sitúa en la
+calzada»*, y ahora *«el nombre es el del tramo de al lado»*.
+**El nombre acierta el 99,6 %**, es la misma calle y la misma línea de OSM. ⭐ Y **la cita al
+Ayuntamiento —que era lo que de verdad chirriaba— ya no existe**, porque se retiraron los avisos de
+clasificación del carril.
+⇒ **Se marca en el DATO**, para nosotros: si algún día una de esas 458 sale mal, se sabrá que era
+prestada.
+
 ### ⛔ EL CUARTO TESTIGO — el orden de los números: probado y DESCARTADO
 
 **Idea de Antonio (tanda 15):** *«Si tengo Paseo Pamplona 5, sé que estará entre el 3 y el 7.»*
@@ -695,9 +763,9 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 60 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 70 VECES
 
-**Veintinueve tandas. Sesenta instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
+**Treinta y cinco tandas. Setenta instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
 no una anécdota — y llegó antes que el proyecto.
 
 | # | Qué mintió |
@@ -762,6 +830,16 @@ no una anécdota — y llegó antes que el proyecto.
 | 58 | ⭐⭐ **UN ARNÉS QUE NUNCA LLEGÓ A PROBAR NADA, Y DABA VERDE.** El precargado no cargaba y el proceso moría antes de arrancar — **código 1 y ninguna salida, los dos síntomas exactos del éxito buscado.** ⭐ **Lo cazó el reloj**: siete scripts de 20-60 s terminaban en 14 |
 | 59 | ⭐⭐ **EL SEGUNDO TESTIGO LE QUITÓ EL NOMBRE A 176 LÍNEAS QUE LO TENÍAN** — *«Calle del Valle de Broto»* y *«CALLE VALLE DE BROTO»* **se partían el voto y se anulaban**. ⭐ Lo cazó **un `undefined` al ir a imprimir los dos nombres de cada discrepancia** |
 | 60 | ⚠️ **EL MISMO CICLO DE `module.exports`, REPETIDO EN LA TANDA SIGUIENTE A ARREGLARLO.** *Cazado antes de ejecutarlo, y ahora hay un barrido que lo comprueba en los ocho ficheros* |
+| 61 | ⭐⭐⭐ **3.786 PASOS DE CEBRA LLEVABAN UN NOMBRE QUE LES PUSIMOS NOSOTROS** — uno de cada tres. Casi todos, del testigo de la calle pegada: **un paso mide 4 m, así que sus cinco puntos de muestreo caen casi encima y siempre hay una calle a menos de tres metros.** ⭐ *No era un fallo del método: la pregunta no aplicaba y nadie se lo había dicho* |
+| 62 | ⭐⭐⭐ **UN NÚMERO PUBLICADO SIN NADA QUE LO PROTEJA.** Rota `sinNombrePorDefinicion()`, el exportador sale en **código 0 con los nueve cuadres en ✅** y **0 grises**: el reparto publicado cambia entero y **nadie se entera**, porque los cuadres solo exigen que las categorías **sumen 98.774** — y eso pasa siempre |
+| 63 | ⭐⭐⭐ **UN GUARDIÁN QUE NUNCA PUDO DISTINGUIR LO QUE DECÍA DISTINGUIR.** Se titula *«el positivo de control»* y afirma exigir un nombre **que solo puede venir del modelo**. Vaciado el modelo, **pasa en verde**: busca una subcadena que **el eje de la calle aporta por su cuenta, porque lo nombra OSM**. ⭐ *No se estropeó: nunca pudo. La frase era un razonamiento, no un rojo visto.* ⚠️ **Y no era la única: 7 de 210 comprobaciones tenían la misma forma** |
+| 64 | ⭐⭐⭐ **CINCO DE DIEZ MUTACIONES DE UNA AUDITORÍA NO LLEGARON A OCURRIR** — y sin una columna de control **se habrían publicado como cinco guardianes muertos: hallazgos falsos que confirmaban justo la tesis de la tanda.** ⭐ Cazado por **el reloj y la palanca a la vez**: la segunda ronda murió a 0,1 s por script contra 15-60 s de base |
+| 65 | ⭐⭐ **«20 CONGELADOS / 20 MEDIDOS / 0 HUÉRFANOS ✅»** — perfecto, **y dos de esas filas medían otra cosa.** *Una comprobación de cardinalidad no dice nada del contenido* |
+| 66 | ⭐⭐ **TRES INDICADORES FAVORABLES QUE ERAN EL MISMO TESTIGO TRES VECES.** Al elegir la capa de parques, los tres medían **la pureza de lo que entra** y **ninguno miraba la cobertura**. ⛔ El positivo de control tumbó la elección: cruzar las dos capas **dejaba fuera el Parque del Agua entero, 0 de 493** |
+| 67 | ⚠️ **DOS NÚMEROS PUBLICADOS CADUCADOS SIN QUE NADIE LO NOTARA.** *«De 11.742 a 3.166 puertas sin calle»* seguía escrito con el 3.166 cuando ya eran 2.669; y *«82 pasos»* eran 74. Tres tandas pasaron por encima |
+| 68 | ⚠️ **UNA OPCIÓN INVENTADA QUE NO EXISTE SE PASA IGUAL DE BIEN QUE UNA QUE SÍ.** `{asignacion: …}` corrió veinte segundos y devolvió el modelo de hoy dos veces. ⭐ Lo delató **que el «antes» salió clavado al «ahora» — tercera vez** |
+| 69 | ⚠️ **`codigo=0` LEÍDO CUANDO EL SCRIPT SALÍA EN 1**: `$?` era el de `tail`. *El instrumento con el que compruebo también es un instrumento* |
+| 70 | ⚠️ **UN CERO PICA MENOS CUANDO CONFIRMA ALGO INTERESANTE.** «0 avisos de bici» buscando *«bicicleta»* cuando el texto dice *«bicis»*: eran 5 |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -947,6 +1025,32 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     con respaldo de la calle pegada acierta el 99,4 %; tres portales solos, el 86,9 %.* ⇒ **Y hay
     que DEMOSTRAR que son independientes**, no suponerlo: la paralela **no repitió ni una vez** el
     error de los 198 portales ya conocidos como malos, hablando en 67 de ellos.
+61. ⭐⭐⭐ **LA SÉPTIMA FORMA DE MENTIR: LA COMPROBACIÓN DISTINGUE LOS EXTREMOS Y NO EL MEDIO.**
+    Vigila *«está / no está»* y **es ciega a «está pero vacío»** — el estado en el que el sistema
+    **no revienta, no avisa, y sigue dando respuestas plausibles y degradadas.**
+    ⚠️ **Es la más peligrosa: un fallo que revienta se caza solo; el que degrada, no.**
+    ⭐ *Nace mirando un fallo concreto y hereda su binariedad.*
+62. ⭐⭐⭐ **UNA CONTRAPRUEBA SOLO VALE SI ALGUIEN LE HA VISTO EL ROJO.** Si nunca se ha puesto
+    roja, **no sabemos si puede**. ⛔ *«Creo que funciona» no es una categoría.*
+63. ⭐⭐⭐ **«EL INSTRUMENTO ARRANCA» NO ES «EL INSTRUMENTO MIDE».** *La ley 58 dejó la mitad
+    —comprobar que la palanca está conectada—; falta la otra: **comprobar que la palanca mueve
+    algo.***
+64. ⭐⭐ **UNA COMPROBACIÓN DE CARDINALIDAD NO DICE NADA DEL CONTENIDO.** *Contar que hay veinte no
+    dice que los veinte sean los buenos.*
+65. ⭐⭐ **UN ROJO QUE NO SIGNIFICA NADA HACE RUIDO — y con ruido se dejan de mirar los que sí.**
+    ⇒ Un rojo que señala una **predicción fallada** y no un fallo del proyecto **se apaga, dejando
+    la predicción escrita**.
+66. ⭐⭐ **UN GUARDIÁN QUE GRITA CUANDO NO DEBE SE DESACTIVA — y entonces no guarda nada.**
+    *El hook rechazaba un `fix:` con la bitácora en el commit anterior: **castigaba exactamente la
+    práctica que `CLAUDE.md` exige**.*
+67. ⭐⭐ **UN NÚMERO PUBLICADO SIN CONGELAR CADUCA SIN QUE NADIE LO NOTE.** ⚠️ **Y congelar un
+    número YA caducado clava un rojo permanente — y un rojo permanente deja de significar nada.**
+    ⇒ **Primero se republica, después se congela.**
+68. ⭐⭐ **CONGELAR EN PAREJAS, NO SUELTOS.** *Un número suelto se mueve con la excusa de que «el
+    dato cambió»; una pareja hay que moverla dos veces.*
+69. ⭐ **PARA MEDIR UN «ANTES» NO BASTA CON MONTAR EL ESTADO DE ANTES: HAY QUE HACERLE LA PREGUNTA
+    DE ANTES.** *Y si el «antes» sale clavado al «ahora», eso dice qué pasa.*
+70. ⭐ **UN CERO PICA MENOS CUANDO CONFIRMA ALGO INTERESANTE.**
 
 ---
 
@@ -1034,7 +1138,13 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **21** | ⭐ Poner los nombres y simplificar el itinerario | **H1** | ✅ |
 | **22-24** | El mapa de dos colores, y dos divergencias mapa↔motor | **H1** | ✅ |
 | **25** | ⭐⭐ **La calle que va pegada** — segundo testigo | **H1** | ✅ **+11.267 líneas** |
-| **26** | *(siguiente: pasos de cebra con color propio; luego **AUDITORÍA DE CIERRE**)* | **H1** | ⬜ |
+| **26** | ⭐ **Un paso de cebra no tiene nombre** — gris | **H1** | ✅ |
+| **27** | Las isletas, y la teoría de los parques | **H1** | ✅ |
+| **28** | El verde en el mapa | **H1** | ✅ |
+| **29** | ⭐⭐ **¿Qué comprobación ha visto su rojo?** | **H1** | ✅ **6 de 198** |
+| **30** | ⭐⭐ Congelar los números publicados | **H1** | ✅ |
+| **31** | ⭐ Cerrar los rojos | **H1** | ✅ **de 5 a 0** |
+| **32** | *(siguiente: **AUDITORÍA DE CIERRE DE H1**)* | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -1202,6 +1312,36 @@ azul fino.
 ⭐⭐ **Segunda idea de Antonio, y la mejor de las dos:** cruzar los portales con **la calle con
 nombre que va pegada a lo largo**. **+11.267 líneas con nombre**, y el mapa cambia de cara: **el
 continuo urbano queda azul y el rojo se retira a autovías, polígono y campo.**
+
+### 26 · 27 · 28 — El mapa dice cuatro cosas (5/08)
+⭐ **Dos ideas de Antonio, las dos correctas y las dos medidas**: los pasos de cebra **no tienen
+nombre ni deben tenerlo** (y llevaban 3.786 puestos por nosotros), y **las manchas rojas son
+parques**.
+⭐ Y el ejecutor **recomendó NO aplicar la segunda como definición**, con el daño contado: el
+criterio se llevaría por delante hasta 1.661 líneas que **sí tienen nombre**, incluidas 181 aceras.
+⇒ **El verde es color, no definición.**
+
+### 29 — ¿Qué comprobación ha visto su rojo? (5/08) · ⭐⭐ la tanda más incómoda
+**De 198 comprobaciones censadas, solo 6 tenían el rojo visto.** **182 líneas imprimen `⛔`/`✅` y
+no paran nada.**
+⛔ Y encontró **un número publicado sin nada que lo proteja** y **un guardián que nunca pudo hacer
+lo que decía**.
+⭐⭐ **Y la séptima forma de mentir** (§8·61), que es la peor: *distinguir los extremos y no el
+medio*.
+⚠️ Y el auditor **se pilló a sí mismo**: cinco de sus diez mutaciones no llegaron a ocurrir, y sin
+control **se habrían publicado como cinco hallazgos falsos que confirmaban la tesis de la tanda**.
+
+### 30 — Congelar los números publicados (5/08)
+**20 números congelados. Antes había UNO en todo el proyecto.**
+⭐⭐ Y la rotura pequeña enseñó por qué hacía falta: **quitar las isletas devuelve el reparto a un
+estado que estuvo PUBLICADO el día antes** — plausible, real, y que nada habría notado.
+
+### 31 — Cerrar los rojos (5/08)
+**De cinco rojos vivos a cero.** El hook arreglado (7 de 7, incluidos los tres falsos positivos —y
+**uno castigaba justo lo que `CLAUDE.md` exige**), el guardián del nº105 rehecho con su rojo **y**
+su verde, y **dos números caducados republicados y congelados**.
+⭐⭐ **Y los congelados de la 30 avisaron el mismo día**: un cambio de regla movió el mapa 63 líneas
+y saltaron siete filas en rojo. *Un día antes habría pasado en silencio.*
 ## 10 · Cabos abiertos
 
 ### ⭐⭐ Los que bloquean el diseño
