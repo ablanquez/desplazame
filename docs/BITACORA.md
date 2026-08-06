@@ -6397,3 +6397,144 @@ se desactive, que es peor que no tenerlo.
 la ley era buena y el guardián estaba mal, pero la salida cómoda era al revés.
 
 **Traza:** `.githooks/commit-msg`, `src/probar-hook.js`
+
+---
+
+## [2026-08-06] — Escribí la prueba de aceptación sobre MI hipótesis, no sobre lo que dijo Antonio
+
+**Categoría:** aviso falso
+**Síntoma:** el encargo pone las dos avenidas de Antonio como control: *«el método TIENE que cazarlas;
+si no las caza, el método no vale»*. Escribí eso como `A.exige` sobre §B2 —«portales enganchados a la
+acera contraria»— y el script salió en rojo:
+
+```
+   AVENIDA CATALUÑA   0 enfrente de 66 decidibles   ⛔ NO LA CAZA
+   AVENIDA MADRID     0 enfrente de 94 decidibles   ⛔ NO LA CAZA
+   ⛔ FALLO · el método no caza 2 de las 2 dianas de Antonio: el instrumento no vale
+```
+
+**Y el veredicto era falso.** El método funciona; lo que no ocurre en esas dos avenidas es el fallo
+que yo había supuesto.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el desfase entre hilos, en la misma
+tabla y dos líneas más arriba**: Cataluña **166 m** de mediana, Madrid **574 m**. O sea, el
+instrumento estaba cazando exactamente lo que Antonio describió —*«ni de coña coincide una acera con
+la de enfrente»*— y **al lado ponía «NO LA CAZA»**, porque yo estaba preguntando otra cosa.
+
+**Cómo se cazó:** midiendo por qué salían cero en vez de aceptar el rojo. En las dos avenidas,
+**0 de 35 y 0 de 48 aristas de acera llevan las dos paridades**: cada acera lleva solo la suya, así
+que el enganche **no puede** estar enfrente ahí. El cero no era ceguera del método: era el dato
+diciendo que ese fallo no está en esas calles.
+
+**Causa raíz:** Antonio dijo **dos cosas** —«lo marca en la acera contraria» y «ni de coña coincide
+una acera con la de enfrente»— y yo las traté como una sola. Al escribir la prueba, la colgué de mi
+explicación del mecanismo en vez de colgarla de la afirmación observable. ⇒ **una prueba de
+aceptación que depende de que mi diagnóstico sea correcto no es una prueba de aceptación: es el
+diagnóstico otra vez.**
+
+**Arreglo aplicado:** se comprueban **las dos afirmaciones por separado**, y el `A.exige` va sobre la
+literal y medible (el desfase). La otra **se reporta con su explicación medida**, que es un hallazgo
+por sí sola: en las dianas de Antonio el enganche está bien. ⛔ Y no se ha aflojado nada: la
+comprobación de §B2 sigue ahí, con su línea base de barajado al lado.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una prueba de aceptación se escribe contra lo que se OBSERVÓ, no
+contra lo que uno cree que lo causa.** Si se cuelga de la hipótesis, cuando la hipótesis falla la
+prueba dice «el instrumento no vale» y el instrumento estaba bien — y la salida cómoda es aflojarla,
+que es cómo se ajusta un instrumento al resultado sin darse cuenta.
+⚠️ Y la segunda: **cuando el usuario dice dos cosas en la misma frase, son dos.**
+
+**Traza:** `src/acera-equivocada.js` (§C, las dos preguntas)
+
+---
+
+## [2026-08-06] — Publiqué «mediana 126 m, máximo 18.633 m» y las doce peores filas eran la misma carretera
+
+**Categoría:** medida sin clasificar
+**Síntoma:** el desplazamiento por hueco de numeración salió así:
+
+```
+   números que NO existen y caen en la OTRA paridad           66973
+   desplazamiento              mediana 126   p90 171   máx 18633
+
+   ⭐ LOS 12 PEORES SALTOS
+   CARRETERA AUTOVÍA DE LOGROÑO   138  →157  (el suyo 242)   18633 m
+   CARRETERA AUTOVÍA DE LOGROÑO   140  →157  (el suyo 242)   18633 m
+   … y diez filas más, todas la misma carretera
+```
+
+**Un máximo de 18,6 km en una tanda que va de aceras**, y una tabla de «los doce peores» que era
+**una sola vía repetida doce veces**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la aritmética, que era correcta.**
+Los 66.973 huecos existen, el 18.633 es real, y la mediana está bien calculada. ⚠️ **No había ningún
+error que encontrar: había una pregunta mal hecha.** Eso es lo que hace que este tipo de número pase:
+no se puede depurar, porque no está roto.
+
+**Cómo se cazó:** ⭐⭐ **por la costura que el propio encargo puso**: *«si el número sale grande,
+sospecha del instrumento antes de celebrarlo»*. Sin esa frase delante, un 126 de mediana era
+publicable y confirmaba la tesis de la tanda.
+
+**Causa raíz:** conté en una sola bolsa calles urbanas y carreteras de acceso. Una carretera numerada
+cada kilómetro **no tiene «la acera de enfrente»**, así que sus huecos no son el fenómeno que se está
+midiendo — pero sí son el 81 % de la bolsa y se llevan la mediana y el máximo.
+
+**Arreglo aplicado:** se parte por el `tipoVia` **del propio callejero**, no por una clasificación
+mía, y se publican las tres filas: TODOS, urbanas y el resto. El titular pasa a ser **12.610 huecos
+urbanos, mediana 51 m, p90 252 m**. ⭐ Y se añade el denominador que faltaba —cuántos números se
+pueden pedir— para que el número tenga unidad.
+⚠️ La tabla de los peores pasa a ser **uno por vía**: doce filas de la misma calle no son doce casos.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **clasificar antes de contar no es una preferencia de presentación: es lo
+que decide si el número significa algo** (ley 29, y van varias). Aquí la bolsa sin partir daba un
+titular 2,5 veces mayor y un máximo de otro planeta, **con toda la aritmética correcta**.
+⚠️ Y la que hace falta recordar: **una tabla de «los N peores» sin agrupar por su unidad natural
+enseña el peor caso N veces, no los N peores casos.**
+
+**Traza:** `src/acera-equivocada.js` (§B3b, la partición por `tipoVia`)
+
+---
+
+## [2026-08-06] — Cero vías urbanas: mi filtro comparaba palabras contra códigos de dos letras
+
+**Categoría:** cero sin positivo de control
+**Síntoma:** al partir los huecos por tipo de vía, la fila que iba a ser el titular salió vacía:
+
+```
+   TODOS                                        66973   mediana 126
+   ⭐ solo vías URBANAS (calle/avenida/paseo…)       0         —
+   ⚠️ carreteras, caminos, diseminados…         66973   mediana 126
+```
+
+**Cero vías urbanas en Zaragoza.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la partición cuadraba perfectamente**:
+0 + 66.973 = 66.973. ⚠️ Una suma que cuadra no dice nada de si el criterio separa: **con un filtro que
+no casa nunca, todo se va a un lado y el total sigue siendo el total.**
+
+**Cómo se cazó:** ⭐⭐ **porque el caso que abre la tanda tenía que estar dentro.** Avenida Cataluña es
+una avenida y su hueco —el 78— es literalmente el motivo de esta tanda. Un cero que incluye el caso
+conocido es imposible por definición, y eso se ve sin depurar nada.
+⇒ Positivo de control: `tipoVia` tiene **códigos de dos letras** —`CL` 2.443, `CN` 252, `PL` 202,
+`AV` 81…—, y yo comparaba contra `'CALLE'`, `'AVENIDA'`. Avenida Cataluña es `AV`.
+
+**Causa raíz:** supuse el formato de un campo en vez de mirarlo. El campo se llama `tipoVia` y el
+callejero lo publica como código.
+
+**Arreglo aplicado:** el conjunto pasa a ser `CL AV PS PL GL RD TR CJ PJ AN VI`, con el criterio
+escrito —trama de calle con dos aceras y numeración alternando— y **con un `A.exige` que impide que
+vuelva a salir cero**: *«CERO huecos en vías urbanas: imposible — Avenida Cataluña es urbana y su
+hueco abre esta tanda»*. ⭐ Es el caso conocido convertido en guardián.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **si tienes un caso conocido, conviértelo en el positivo de control del
+filtro que lo debería contener.** No hace falta pensar en qué podría fallar: basta con exigir que el
+sitio donde empezó todo siga apareciendo.
+⚠️ Y la de siempre, que van tres tandas seguidas (nº125, nº128 y ésta): **un cero es un resultado
+sobre el buscador hasta que se demuestra lo contrario** — y pica más cuando el cero es cómodo.
+
+**Traza:** `src/acera-equivocada.js` (§B3b, `URBANAS`)

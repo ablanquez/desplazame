@@ -298,7 +298,9 @@ log('   `./ruta` y **aborta en el acto**: interesa el ciclo, no el resultado.');
     'numeros-congelados.js',
     // ⭐ TANDA 31 · los dos que nacen hoy y piden `./ruta` + `./modelo` + `./relato`.
     //   El mismo día que nacen, no cuando fallen (ley del nº109).
-    'nombre-prestado.js', 'puertas-sin-calle.js'];
+    'nombre-prestado.js', 'puertas-sin-calle.js',
+    // ⭐ TANDA 32 · el mismo día que nace (ley del nº109).
+    'acera-equivocada.js'];
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'desplazame-ciclo-'));
   const sonda = path.join(tmp, 'sonda.js');
   const buzon = path.join(tmp, 'veredicto.txt').replace(/\\/g, '/');
