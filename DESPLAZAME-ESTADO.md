@@ -14,79 +14,52 @@
 
 ---
 
-## ESTADO ACTUAL — 2 de agosto de 2026
+## ESTADO ACTUAL — 6 de agosto de 2026
 
-**Fase 0 cerrada. Repositorio publicado. H1 en diseño. Cero líneas de código de producto.**
+**H1 está terminado. Estamos en su AUDITORÍA DE CIERRE: bloque A hecho, B y C pendientes.**
 
-- Cuatro tandas de reconocimiento (0.A – 0.D) y la tanda 1 (andamiaje) cerradas.
-  `github.com/ablanquez/desplazame`, público, 12 commits.
-- **Tanda 2 · el diseño en papel de H1**: `docs/DISEÑO-H1-GRAFO.md` (912 líneas), seis preguntas
-  respondidas, cinco decisiones elevadas a Antonio.
-- **Tandas 2.B y 2.C · la regla de nivel, medida en cuatro zonas reales** (4 km², 7.114 cruces).
-  ⭐ **Dos veces seguidas la medición ha INVERTIDO una decisión ya firmada**, no la ha confirmado.
-- **Las cinco decisiones de diseño, cerradas** (§5 · D1–D5), más **el backtesting elevado a
-  principio del proyecto** por Antonio.
-- ⭐⭐ **P0 CERRADA (§5·D0): el grafo se construye sobre OSM.** El dato municipal **verifica, no
-  decide**.
-- ⭐⭐ **D0 MEDIDA Y REFORZADA** (tandas 3 y 5): solo el **0,97 %** del callejero está sin mapear en
-  OSM **donde el padrón dice que hay puertas**. El hueco duro son 48 vías, y **23 de ellas no
-  tienen ni un portal** — Valdespartera, Arcosur, Parque Venecia: ahí todavía no hay ciudad.
-- ⭐⭐ **Dos cosas que el diseño daba por imposibles, medidas y posibles** (tanda 4, idea de
-  Antonio): **los portales generan el eje** (1,3 m de error mediano promediando por paridad) y
-  **el lado de la calle sí se puede saber** (89,5 % contra línea base 4,3 %).
+**Lo que existe y funciona:**
 
-- ⭐⭐ **H1 ARRANCADO. EXISTE EL PRIMER GRAFO** (tandas 8 y 9): 3,24 km² del casco, **5.121 nodos,
-  7.175 aristas, 20 componentes con el 99,1 % en la mayor**. Con D1, D2, D4 y D5 aplicados y las
-  tres contrapruebas en rojo.
-- ⭐ **Stack decidido: JavaScript sobre Node, cero dependencias** — coherente con que el grafo
-  peatonal viva en el navegador.
-- ⭐ **Inspección visual hecha** (tanda 9): visor propio, y **el ojo no encontró ningún fallo del
-  grafo**. Sí encontró una categoría que ningún dato iba a enseñar: **los pasos condicionales**.
-- ⭐⭐ **ZARAGOZA ENTERA PLANARIZADA** (tanda 10): **68.649 nodos, 98.774 aristas**, 6,5 s de
-  proceso. ⭐⭐ **LOS RÍOS NO PARTEN EL GRAFO** — 36 de 36 pares sorteados cruzan el Ebro, el Huerva
-  y el Gállego. **La costura de mayor impacto del proyecto no se dispara.**
-- ✅ **D1 aguanta a escala de ciudad** y **D5 está bien puesta** — las cuatro puntas sin soldar se
-  verificaron a mano y **ninguna era una calle cortada por error**.
-- ⭐⭐ **LOS PORTALES ESTÁN DENTRO** (tandas 11-13). El motor va **de dirección a dirección**, no de
-  coordenada a coordenada.
-- ⭐⭐ **LAS SIETE RUTAS DE ANTONIO: 7 de 7 resueltas · 6 de 7 en rodeo · 0 imposibles.** La nº7 da
-  **2.529 m frente a los 2.600 medidos con GPS** (2,7 %), y la nº1 **cruza por el Puente de
-  Piedra**, como él.
-- ⭐⭐ **EL PUNTO CIEGO, CERRADO** (tanda 13): donde ninguna salvaguarda mira —el 25,9 % de los
-  portales— **el enganche SÍ acierta**.
+- ⭐⭐ **El grafo peatonal de Zaragoza entera**, planarizado y verificado: **68.649 nodos, 98.774
+  aristas**, 6,5 s de proceso. **Los ríos no lo parten** y los tres barrios rurales incomunicados
+  lo están de verdad, contados y publicados.
+- ⭐⭐ **El motor va de DIRECCIÓN a DIRECCIÓN**: 46.026 de 46.150 portales enganchados, 2.661 vías
+  en el índice, itinerario agrupado por vía y explicado paso a paso.
+- ⭐⭐ **LAS SIETE RUTAS DE ANTONIO, verificadas por él con los ojos sobre el mapa: 7 de 7.**
+  ⚠️ **La nº7 da 2.529 m contra los 2.600 de su GPS (2,7 %) y CALIBRA los ~6 km/h de toda la
+  tabla: ninguna tanda puede moverla.**
+- ⭐ **El mapa dice cuatro cosas** (azul · rojo · gris · verde) y **56.864 líneas tienen nombre**,
+  puestas con dos testigos independientes.
+- ⭐⭐ **El buscador respeta la paridad** (tandas 32-36): *la acera par y la impar son como dos
+  calles distintas que no guardan relación*. Si no hay número de tu paridad cerca, **no se
+  contesta: se sugiere**. Tres listones: **su acera 50 m · la de enfrente 150 m · tope de adelanto
+  20 m**.
+- **26 números publicados congelados**, y ya han avisado en caliente más de una vez.
+- **74 ficheros · 24.931 líneas de JavaScript · cero dependencias.** Repositorio público al día,
+  166 commits.
 
-**Falta decidir:** el alcance v1 del buscador · ⭐ **la lista de candidatos aparcados** (§10), que
-no se toca hasta que H1 cierre.
+**Dónde estamos exactamente: la AUDITORÍA DE CIERRE DE H1, tres bloques.**
 
-- ⭐ **`entrance=*` aplicado** (decisión de Antonio): si el dato dice dónde se entra, se entra por
-  ahí.
-- ⛔ **El cuarto testigo —el orden de los números— probado y DESCARTADO** (§4), con su motivo.
-- ⭐⭐ **EL MODELO VÍA · FORMA · PAPEL, construido** (§4): una línea es **acera andando y carril
-  bici en bici**, y el papel **se deduce, no se guarda**.
-- ⭐⭐ **LOS NOMBRES, PUESTOS.** De 40.420 líneas con nombre (solo OSM) a **56.864**. Con **dos
-  testigos independientes**: los portales que le dan a una línea, y **la calle que va pegada a lo
-  largo** (idea de Antonio, §4).
-- ⭐ **El itinerario, simplificado**: se agrupa **por vía**, y los cruces cortos que interrumpen la
-  misma calle **desaparecen**. La ruta 7 pasó de **20 pasos a 12**.
-- ⭐⭐ **EL MAPA DICE CUATRO COSAS** (§4): azul *tiene nombre* · rojo *le falta* · **gris *no tiene
-  ni debe*** (pasos de cebra e isletas) · **verde *le falta, pero está en un parque***.
-- ⭐⭐ **LOS INSTRUMENTOS, AUDITADOS** (§7): de 198 comprobaciones censadas, **solo 6 tenían el rojo
-  visto** y **182 líneas imprimían `⛔`/`✅` sin parar nada**. Y apareció **la séptima forma de
-  mentir**.
-- ⭐⭐ **20 NÚMEROS PUBLICADOS CONGELADOS.** *Antes había UNO en todo el proyecto.* Y **avisaron el
-  mismo día**: un cambio de regla movió el reparto del mapa 63 líneas y saltaron siete filas en
-  rojo.
-- ✅ **LOS CINCO ROJOS VIVOS, CERRADOS.**
+| | | |
+|---|---|---|
+| **A · El código** | ✅ **HECHO** | `docs/auditoriafinal/A-CODIGO-2026-08-06.md` — **cinco hallazgos vivos** (§10) |
+| **B · La documentación contra el dato de hoy** | ⬜ **SIGUIENTE** | Cada afirmación publicada de los 41 documentos de `docs/`, contrastada |
+| **C · Las decisiones y los ejes de verificación** | ⬜ pendiente | |
 
-**Lo siguiente: la AUDITORÍA DE CIERRE DE H1.**
+⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
+decide al final de los tres bloques, entera.**
 
-⭐⭐ **H1 ESTÁ TERMINADO EN LO QUE SE PUEDE TERMINAR HOY.** Lo que queda son **cabos declarados**,
-no trabajo pendiente.
+⭐ **Y el bloque A dejó la frase que resume el estado del repositorio:**
+> **La clase de fallo dominante aquí no es el código roto: es la medida que se corrigió en el
+> informe y no en el instrumento.**
 
-**Lo siguiente: la AUDITORÍA DE CIERRE DE H1** — los seis bloques del método de 003 aplicados a un
-hito en vez de a un proyecto entero. **No construye: revisa.**
+**Falta decidir:** el alcance v1 del buscador · la lista de **candidatos aparcados** (§10), que no
+se toca hasta que H1 cierre.
 
-⚠️ **Y un recordatorio de calendario: el GTFS muere el 05/10/2026**, y H2 depende de él.
+**Después de la auditoría: H2, la red de transporte.**
+⚠️ **Y un plazo real: el GTFS caduca el 05/10/2026, y H2 depende de él.**
+
+*(Cómo se llegó hasta aquí: §4 el terreno · §5 las decisiones · §9 el diario de las tandas.)*
 
 ---
 
@@ -500,6 +473,53 @@ que envuelve calles del barrio — **pero sus 131 calles con nombre siguen azule
 verde sus 19 rojas. **Un error de explicación sobre 148 m, no de dato sobre 131 calles.** *Eso es
 exactamente lo que se ganó al no pintarlos de gris.*
 
+### ⭐⭐ EL BUSCADOR POR PARIDAD — dos aceras, dos calles (tandas 32-36)
+
+**Lo destapó Antonio mirando el mapa**, no un contador: pidió la ruta 1 y vio que arrancaba a
+~200 m del portal.
+
+```
+   se pide      Avenida Cataluña 78
+   ⛔ el 78 NO EXISTE en el callejero
+   el buscador caía al nº77          ⬅ la acera de ENFRENTE
+   el par más próximo, el nº74       ⬅ a 258 m
+```
+
+⛔⛔ **Y ninguna salvaguarda podía verlo: las dos aceras tienen el MISMO nombre y el MISMO
+`codigoVia`.** El código dice *«correcto»*, la nube dice *«correcto»*, la calle pegada dice
+*«correcto»*. **Los tres miran la CALLE; ninguno mira el LADO.**
+⇒ ⭐⭐ **Todos los porcentajes publicados —99,6 % · 97,0 % · 93,4 %— miden identidad de calle, no
+de acera.**
+⭐ **Y el enganche NO era el culpable**: el 77 cuelga a 1,82 m de su propia acera. **El fallo era
+del buscador.** *(Portales enganchados a la acera contraria: 76, el 0,2 %, y desvían 3,7 m. Se
+marcan, no se mueven: 59 no tienen adónde ir.)*
+
+**DECISIÓN DE ANTONIO:**
+> *«La acera par por un lado, la impar por otro. A efectos de entenderme, es **como si fuesen dos
+> calles diferentes que no guardan relación** — precisamente para evitar lo que ha pasado con
+> Avenida Cataluña.»*
+
+· **Si se pide un PAR, solo existe la acera par.** Los impares **no son una alternativa**.
+· **Si el número exacto no está, se busca en SU MISMA PARIDAD.** *78 → 76 u 80. Nunca 77.*
+· ⭐ **Si no hay ninguno cerca: NO SE CONTESTA, SE SUGIERE.** *«Luego, con un botón, le daremos esa
+  sugerencia para que la cliquee.»* ⇒ **La app no decide por ti: te ofrece.**
+
+**Los tres listones, y cada uno con su historia:**
+
+| | valor | por qué |
+|---|---:|---|
+| **su acera** | **50 m** | ⚠️ Se subió a 100 por un *«acantilado ×7»* entre 50 y 100 — **y el acantilado era el centinela 99999. Limpio, el salto es ×1,4.** Se bajó al limpiarlo |
+| **la de enfrente** | **150 m** | *«Se puede comunicar con la acera de enfrente si está en un radio, que eso por su lat-lon se puede saber»* — **y hasta 150 porque hay avenidas muy anchas** |
+| ⭐ **tope de adelanto** | **20 m** | ⛔ **A 150 m sin tope, el 75 % era DESFASE, no ancho.** ⇒ **CRUZAR TE MUEVE DE LADO, NO HACIA DELANTE.** Con el tope: **71,7 % ancho** |
+
+⭐ **Y el dial limpio no tiene ningún codo:** cada duplicación del listón compra unos diez puntos y
+cada una menos que la anterior. **Ningún valor se defiende solo: el listón es una decisión sobre
+cuánto error se acepta.**
+
+⚠️ **Lo que esto NO arregla, apuntado:** *el 78 sigue sin existir*. **Lo honesto sería interpolar
+sobre el hilo de su paridad** — si el 74 y el 84 están, el 78 va entre medias. **32.401 consultas
+lo esperarían.** No se ha hecho.
+
 ### ⭐ EL NOMBRE PRESTADO — decidido: se marca en el DATO, no en el texto
 
 **458 aristas (0,9 %, 17,38 km) llevan el nombre del tramo de al lado del mismo way**, y **las 458
@@ -763,10 +783,12 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 70 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 84 VECES
 
-**Treinta y cinco tandas. Setenta instrumentos mintiendo** — los 33 primeros, sin una sola línea de código. Ya es una categoría,
-no una anécdota — y llegó antes que el proyecto.
+**Cuarenta tandas y una auditoría. Ochenta y cuatro instrumentos mintiendo** — los 33 primeros,
+sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
+⚠️ **Los cuatro últimos (81-84) los produjo la propia auditoría de cierre**, y tres de ellos se
+cazaron **porque el instrumento llevaba dentro un contador o un control**.
 
 | # | Qué mintió |
 |---|---|
@@ -840,6 +862,20 @@ no una anécdota — y llegó antes que el proyecto.
 | 68 | ⚠️ **UNA OPCIÓN INVENTADA QUE NO EXISTE SE PASA IGUAL DE BIEN QUE UNA QUE SÍ.** `{asignacion: …}` corrió veinte segundos y devolvió el modelo de hoy dos veces. ⭐ Lo delató **que el «antes» salió clavado al «ahora» — tercera vez** |
 | 69 | ⚠️ **`codigo=0` LEÍDO CUANDO EL SCRIPT SALÍA EN 1**: `$?` era el de `tail`. *El instrumento con el que compruebo también es un instrumento* |
 | 70 | ⚠️ **UN CERO PICA MENOS CUANDO CONFIRMA ALGO INTERESANTE.** «0 avisos de bici» buscando *«bicicleta»* cuando el texto dice *«bicis»*: eran 5 |
+| 71 | ⭐⭐⭐ **EL BUSCADOR MANDABA A LA ACERA DE ENFRENTE Y NINGUNA SALVAGUARDA PODÍA VERLO.** Se pidió `Avenida Cataluña 78`, **el 78 no existe**, y cayó al **77** —la otra acera— con **el par más próximo a 258 m**. ⛔⛔ **Los tres testigos son ESTRUCTURALMENTE CIEGOS al lado**: las dos aceras tienen el mismo nombre y el mismo `codigoVia`, así que los tres dicen *«correcto»*. ⭐ **Y todos los porcentajes publicados —99,6 % · 97,0 % · 93,4 %— miden identidad de CALLE, no de acera.** Lo vio Antonio a ojo en el primer sitio que miró |
+| 72 | ⭐⭐⭐ **EL CENTINELA 99999.** 117 portales con número crudo `BL0`/`A1` inflaban el universo de consultas de **51.028 a 151.026** — el triple. ⛔ Y lo grave: **dos cuadres entre tandas estaban en VERDE sobre el mismo artefacto** *(el barrido reproducía a la 32 con <0,1 % de diferencia y el dial de la 33 predijo 31.411 y salieron 31.411 clavadas)*. **Lo cazó una mediana redonda, no una comprobación** |
+| 73 | ⭐⭐⭐ **EL ACANTILADO QUE JUSTIFICÓ UNA DECISIÓN ERA EL ARTEFACTO.** El listón se subió de 50 a 100 m porque *«entre 50 y 100 las contestadas se multiplican por siete»*. **Limpio, el salto es ×1,4.** ⇒ **La decisión se tomó sobre un número inflado** |
+| 74 | ⭐⭐ **LOS 150 m DE «ENFRENTE» ERAN DESFASE, NO ANCHO.** Solo el **24,4 %** era de verdad cruzar la calle. *La avenida más ancha de Zaragoza tiene 80 m de mediana: 150 es casi el doble de la más ancha que existe* |
+| 75 | ⭐⭐⭐ **CUATRO NÚMEROS PUBLICADOS QUE NO REPRODUCE NINGUNA VERSIÓN DEL REPOSITORIO** (nº144). El comentario del código decía unos, el documento publicó otros, **en el mismo commit y con el mismo bucle**. Sobrevivieron tres tandas porque **ningún guardián los comparaba con nada** |
+| 76 | ⚠️ **UNA CIFRA MAL LEÍDA DE UNA TABLA PROPIA ENTRÓ EN UNA DECISIÓN.** *«Conservando 2.982 de los 3.340 buenos»* — los 2.982 eran el **total**, no los buenos: se perdían **1.206**, no 358. **Y la cifra volvió convertida en la base del encargo siguiente** |
+| 77 | ⛔⛔ **EL CENTINELA SE APAGÓ EN EL INFORME, NO EN EL INSTRUMENTO** (auditoría A). `acera-equivocada.js` sigue imprimiendo **los cuatro números que la tanda 35 declaró falsos** — y **la batería lo ejecuta en cada `--todo` y sale en verde** |
+| 78 | ⛔⛔ **DOS MEDIDAS DEL MISMO UNIVERSO QUE DIVERGEN HOY**: 50.986 contra 51.065. Una agrupa por `codigoVia` y otra por núcleo de vía. **Mismo rótulo, universos distintos** — y el congelado vigila uno de los dos |
+| 79 | ⛔⛔ **EL README DICE QUE TODAVÍA NO HAY CÓDIGO.** *«Fase actual: reconocimiento de fuentes. Ni una línea de aplicación.»* — con **24.931 líneas de JavaScript y un motor funcionando.** ⚠️ **Es la portada pública de un portafolio público** |
+| 80 | ⚠️ **297 LÍNEAS `⛔` EN 37 SCRIPTS QUE SALEN EN VERDE**, frente a 257 comprobaciones reales. ⭐ **Hay más `⛔` que no paran nada que guardianes que paran algo.** ⚠️ **Y el número hay que citarlo con lo que significa:** *37 scripts no se pueden leer por su código de salida*, **no «297 fallos»** — el mismo símbolo rotula prosa, controles negativos y fallos. El recuento estático deja el residuo real en **6 líneas** |
+| 81 | ⭐⭐ **EL CENSO DE LA PROPIA AUDITORÍA CONTABA `require()` ESCRITOS DENTRO DE COMENTARIOS** — y su v2 los seguía contando **dentro de cadenas**. ⭐ **A la v2 la tumbó su propio control: 2 de 5 casos en rojo.** *El instrumento que iba a medir el código no sabía leer código* |
+| 82 | ⭐⭐⭐ **UNA PRECARGA QUE ENVOLVIÓ UNA COPIA DEL MÓDULO QUE NADIE USABA.** Requirió `f:/…/portales.js` y el script requiere `F:\…\portales.js`: **dos entradas distintas en la caché de módulos de Node por la caja de una letra.** ⭐ Lo cazó **su propio contador diciendo «interceptado 0 veces»**. *Es el nº64 repetido por el ejecutor, hoy, sabiéndoselo* |
+| 83 | ⚠️ **`CENTINELA = 9999` MIENTRAS EL CENTINELA ES `99999`.** El nombre dice «el valor centinela» y el valor es un listón por debajo; toda la documentación —y el comentario tres líneas más arriba— dice 99999. **`A.exige(maxN < P.CENTINELA)` compara contra el número equivocado.** ⭐ Hoy no muerde **y está medido**: cero portales caen en la franja |
+| 84 | ⭐⭐ **UN VEREDICTO QUE ERAN CINCO CADENAS LITERALES.** `orden-numeros.js` **corre los controles arriba y luego los re-declara como texto fijo** en la sección «LO QUE NO HACE», que es justo la que lee un humano. **Si un control cambiara de resultado, el resumen seguiría diciendo lo mismo** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1051,6 +1087,46 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
 69. ⭐ **PARA MEDIR UN «ANTES» NO BASTA CON MONTAR EL ESTADO DE ANTES: HAY QUE HACERLE LA PREGUNTA
     DE ANTES.** *Y si el «antes» sale clavado al «ahora», eso dice qué pasa.*
 70. ⭐ **UN CERO PICA MENOS CUANDO CONFIRMA ALGO INTERESANTE.**
+71. ⭐⭐⭐ **LA CERCANÍA NUMÉRICA NO ES CERCANÍA FÍSICA.** *Todo el fallo del buscador sale de
+    tratarlas como si fueran lo mismo: el 77 se parece al 78 en el número y está a 258 m.*
+72. ⭐⭐⭐ **UN TESTIGO QUE NO PUEDE DISTINGUIR LA PREGUNTA NO ES QUE FALLE: ES QUE NO OPINA.** *Las
+    dos aceras son la misma calle, así que los tres testigos aprobaban un portal enganchado
+    enfrente.* ⇒ **Antes de fiarse de un porcentaje, preguntar QUÉ mide exactamente** — el 99,6 %
+    medía identidad de calle y se leía como identidad de sitio.
+73. ⭐⭐⭐ **DOS MEDIDAS DE ACUERDO NO SON DOS MEDIDAS CORRECTAS.** *Dos cuadres entre tandas
+    coincidían al decimal sobre el mismo artefacto.*
+74. ⭐⭐⭐ **CONGELAR PRESERVA LOS ERRORES CON LA MISMA FIDELIDAD QUE LAS VERDADES.** *Casi todos
+    los cuadres contra lo publicado son **frenos de deriva, no validaciones**: sirven para que nada
+    se mueva en silencio, pero **no pueden descubrir un error que ya estaba el día que se
+    congeló**.*
+75. ⭐⭐⭐ **UN LISTÓN CALIBRADO CONTRA N CASOS ACIERTA EN LOS N CASOS: eso no es una comprobación,
+    es la definición de calibrar.**
+76. ⭐⭐⭐ **UN NÚMERO QUE SOLO VIVE EN UN COMENTARIO NO TIENE GUARDIÁN POSIBLE, Y POR ESO NO
+    ENVEJECE: SE PUDRE.**
+77. ⭐⭐ **LA CIFRA QUE ENTRA EN UNA DECISIÓN ES LA DEL TEXTO, NO LA DE LA TABLA.** ⇒ **Imprimir la
+    resta hecha**, no los dos números para que alguien la haga.
+78. ⭐⭐ **UNA LEY ESCRITA NO PROTEGE: PROTEGE EL MECANISMO.** *El mismo mapeo campo a campo se
+    comió la marca dos días seguidos, con la ley ya escrita y describiendo exactamente eso.*
+79. ⭐⭐ **APAGAR ALGO EN EL INFORME NO ES APAGARLO EN EL INSTRUMENTO.** *El script que produce los
+    números falsos sigue corriendo, y la batería lo da por verde.*
+80. ⭐ **PARA CORRER LO QUE HAY NO HACE FALTA ESCRIBIR NADA NUEVO.** *De los cinco hallazgos del
+    bloque A, tres los encontró código que ya estaba en el repositorio y que nadie ejecutaba.*
+81. ⭐⭐⭐ **UN REPOSITORIO PÚBLICO QUE SOLO CORRE EN LA MÁQUINA DE QUIEN LO ESCRIBIÓ NO ES
+    PÚBLICO.** *Dos rutas absolutas a otro disco dejan a cualquiera que clone sin poder ejecutar
+    ni un script — y la decisión que las puso ahí («los portales se leen DONDE ESTÁN») es correcta
+    para quien trabaja en esa máquina y falsa para todos los demás.* ⇒ **Toda decisión de entorno
+    se relee desde fuera antes de publicar.**
+82. ⭐⭐ **NO SE PUEDE COMPROBAR UNA JUSTIFICACIÓN QUE NO EXISTE.** *De 64 umbrales de nivel
+    superior, 41 no tienen ni un comentario.* Un umbral sin porqué escrito no es que esté mal:
+    es que **no hay nada contra lo que contrastarlo el día que se dude de él.**
+83. ⭐⭐ **CONTAR SÍMBOLOS ES UNA CRIBA; EL VEREDICTO SALE DE EJECUTAR.** *764 líneas imprimen
+    `⛔`/`✅`, 46 afirman algo sin vigilancia, y leídas una a una quedan **6**. Ejecutando, la
+    pregunta es otra: 37 scripts que no se pueden leer por su código de salida.* ⇒ **Dos recuentos
+    distintos de la misma pregunta, y el grande se lee mal si se cita solo.**
+84. ⭐⭐ **UNA CIFRA EN UN COMENTARIO ES LA FOTO DE UNA MEDIDA QUE EL CÓDIGO YA NO REPITE.** *328 de
+    330 son `NO CONSTA` estructural — comprobarlas exigiría reconstruir treinta y seis tandas.*
+    ⇒ **No es dejadez: es que un comentario no tiene guardián posible.** Lo que sostiene una
+    decisión, se congela; lo demás se escribe sabiendo que envejece.
 
 ---
 
@@ -1144,7 +1220,12 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **29** | ⭐⭐ **¿Qué comprobación ha visto su rojo?** | **H1** | ✅ **6 de 198** |
 | **30** | ⭐⭐ Congelar los números publicados | **H1** | ✅ |
 | **31** | ⭐ Cerrar los rojos | **H1** | ✅ **de 5 a 0** |
-| **32** | *(siguiente: **AUDITORÍA DE CIERRE DE H1**)* | **H1** | ⬜ |
+| **32** | ⭐⭐ **¿A qué acera engancha cada portal?** | **H1** | ✅ |
+| **33** | ⭐ Dos aceras, dos calles — el buscador respeta la paridad | **H1** | ✅ |
+| **34-36** | Los tres listones, el tope de adelanto y el centinela | **H1** | ✅ |
+| **A** | ⭐⭐ **AUDITORÍA DE CIERRE · el código** | **H1** | ✅ **4 vivos** |
+| **B** | *(siguiente: **AUDITORÍA · la documentación contra el dato de hoy**)* | **H1** | ⬜ |
+| **C** | AUDITORÍA · las decisiones y los ejes | **H1** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -1342,6 +1423,23 @@ estado que estuvo PUBLICADO el día antes** — plausible, real, y que nada habr
 su verde, y **dos números caducados republicados y congelados**.
 ⭐⭐ **Y los congelados de la 30 avisaron el mismo día**: un cambio de regla movió el mapa 63 líneas
 y saltaron siete filas en rojo. *Un día antes habría pasado en silencio.*
+
+### 32 · 33 · 34 · 35 · 36 — El buscador por paridad (6/08)
+⭐⭐ **Antonio mira el mapa y ve que la ruta 1 arranca a 200 m del portal.** De ahí salen cinco
+tandas: el fallo, la regla de paridad, los tres listones, **el centinela 99999** —que había
+inflado el universo de medición de tres tandas— y el ajuste final del dial.
+⭐ **Y el ejecutor corrigió a Antonio y a mí varias veces con datos**: los 150 m de *«enfrente»*
+eran desfase, la previsión de pérdidas estaba mal por 848, y **el acantilado que justificó subir un
+listón era el artefacto**.
+
+### A — Auditoría de cierre de H1 · el código (6/08)
+**Primer bloque de la auditoría. Cuatro hallazgos VIVOS y ninguno arreglado**, que es como debe ser:
+la lista se decide entera al final.
+⭐⭐ **El más incómodo es el README**: dice *«todavía no hay código»* con 24.931 líneas y un motor
+funcionando — **en la portada pública de un portafolio público**.
+⭐ **Y la frase que resume el bloque:** *de los cinco hallazgos principales, tres los encontró
+código que ya estaba en el repositorio y que nadie ejecutaba. No hacía falta escribir nada nuevo:
+hacía falta correr lo que había.*
 ## 10 · Cabos abiertos
 
 ### ⭐⭐ Los que bloquean el diseño
@@ -1426,6 +1524,52 @@ hora y a esa distancia el coche es lo razonable.
   `name`. Se cierra cuando toque descargar OSM de verdad en H1 — pide red.
 - ⚠️ **163 de las 2.595 vías "encontradas" (6,3 %) apuntan a un nombre que corresponde a más de un
   objeto físico.** El texto acertó el nombre y **no dice cuál es**.
+
+### ⛔ HALLAZGOS VIVOS DE LA AUDITORÍA — sin arreglar, se deciden al cerrar los tres bloques
+
+⭐ **Registro:** `docs/auditoriafinal/A-CODIGO-2026-08-06.md`. ⛔ **No se reescribe nunca** — lo que
+Antonio reclasifique después vive aquí, no allí.
+
+| # | qué | dónde |
+|---|---|---|
+| **V1** | ⛔⛔ **El README dice que todavía no hay código** —ni una línea de aplicación—, con 24.931 líneas y un motor funcionando. **Y dos frases más:** *«no hay código que pueda fallar»* (144 entradas de bitácora) y *«no contiene ningún dato integrado»* (46.150 portales). ⭐ **No es registro histórico: es la puerta, y ahí sí se reescribe** | `README.md` |
+| **V2** | ⛔⛔ **El centinela 99999 se apagó en el informe, no en el instrumento.** Sigue imprimiendo los cuatro números que la tanda 35 declaró falsos, **y la batería sale en verde** | `acera-equivocada.js` |
+| **V3** | ⛔⛔ **Dos medidas del mismo universo divergen hoy** (50.986 vs 51.065): `codigoVia` contra núcleo de vía. **El congelado vigila uno de los dos** | `acera-equivocada.js` / `medir-paridad.js` |
+| **V4** | ⛔ **Un número publicado infravalorado**: el *«16,9× el azar»* es **21,3×** limpio | `H1-PORTALES.md` §323 |
+| ⭐ **V5** | ⛔⛔ **UN CLON DEL REPOSITORIO PÚBLICO NO PUEDE EJECUTAR NI UN SCRIPT** — dos rutas absolutas a `E:/PROYECTOS WEB/…`. *(El bloque A lo anotó como deuda D5; **Antonio lo sube a VIVO el 6/08**: es el mismo animal que el README — el repositorio es la carta de presentación y no funciona para quien la lee.)* | `portales.js:38-39` |
+
+⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
+requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
+(L6) · **el índice se queda a 0 casillas en silencio** si las vías vienen vacías (L7) ·
+`Gr.rutaEntre` sobre un grafo vacío revienta sin nombrar la causa, teniendo el proyecto la forma
+correcta escrita al lado (L8) · **18 commits antiguos con correo personal** (los 18 más viejos: la
+ley de 001 llegó tarde, y **no se puede deshacer sin reescribir el historial de un repositorio
+público**) · **dos radios de enganche distintos** (120 m para los portales, 350 m para una
+coordenada suelta) · y **la ODbL vencida** más los visores atribuyendo `© OpenStreetMap` **sin
+`contributors` ni enlace a la licencia**.
+
+✅ **Higiene limpia**: ningún secreto, credencial ni dato de terceros, con positivos de control.
+✅ **Y lo que el bloque A cerró y no hay que volver a mirar:** `CLAUDE.md` (verdadero punto por
+punto), `LICENSE` (Apache 2.0 íntegra), y el `.gitignore` (probado con `git check-ignore`, 14
+rutas + 6 positivos).
+
+⚠️ **Lo que A declaró que NO pudo auditar:** cuáles de las 297 líneas `⛔` son un fallo vivo *(el
+volcado existe; es el sitio exacto donde estuvo dos tandas la ruta rota del casco)* · 328 de las
+330 cifras de comentario · si las duplicaciones que hoy coinciden coincidieron siempre · y **si
+`docs/` dice la verdad — que es el bloque B.**
+
+⭐ **Y la costura que Antonio resolvió el 6/08:** el ejecutor **siguió auditando** tras encontrar el
+correo y la ruta local, en vez de pararse, y **lo declaró**. Antonio le dio la razón ⇒ **el bloque
+A queda firme entero.** *El criterio queda sentado: se puede seguir si se juzga que no es el caso
+que la costura protege, pero se dice en voz alta y se declara qué quedaría provisional.*
+
+
+### Los técnicos
+
+- ⚠️ **Por qué faltan números en una calle** —¿solar, edificio grande, portales con letra, o hueco
+  del dato?— **no se ha mirado nunca.** *(Duda de Antonio a partir de Cesáreo Alierta 79.)*
+- ⚠️ **La interpolación sobre el hilo de la paridad**: lo honesto sería que el 78 caiga entre el 74
+  y el 84. **32.401 consultas la esperan.** No hecha.
 - ⚠️ **1.592 portales (3,5 %) sin NINGÚN testigo** — ni con nombre en OSM ni alcanzados por la capa
   municipal. ⚠️ **No todos son descampados**: mediana de 25 vecinos en 300 m, y en la muestra
   aparecen **Avenida de la Ilustración, José Anselmo Clavé y Vía Hispanidad**.
@@ -1443,7 +1587,6 @@ hora y a esa distancia el coche es lo razonable.
   los señalados son **casi todos los portales de la vía** (6 de 6, 4 de 4): **no es un portal
   descolocado, es la vía entera rara.** Lista revisable: `CALLE RÍO` y `CALLE ARIZA` son las más
   limpias para mirar.
-  avenida ancha produce esa firma sin que nadie se equivoque. Sin verificar a mano.
 - ⚠️ **El punto ciego de Garrapinillos y los polígonos** necesitaría **otra fuente**, y hoy no se
   sabe cuál.
 - ⚠️ **`H1-PRIMER-GRAFO.md` §C4d publica una ruta que estuvo rota dos tandas** (`Puerta del Carmen
@@ -1563,6 +1706,7 @@ visores. Ninguno lo encontró un barrido: los puso Antonio.
 | `DESPLAZAME-ESTADO.md` | **Solo la conversación de estrategia** | Claude Code lo lee, **nunca lo toca**. Lo que descubra que lo contradiga, lo reporta hacia arriba |
 | `docs/BITACORA.md` | **Solo Claude Code**, en caliente | Una entrada por fallo. Agrupar es borrar. `NO CONSTA` es válido; inventar no |
 | `docs/RECONOCIMIENTO-*.md`, `docs/INVENTARIO-*.md` | Claude Code | **Registro histórico: se añaden, no se reescriben** |
+| ⭐ `docs/auditoriafinal/*.md` | Claude Code | **Registro fechado de cada bloque de auditoría. ⛔ NO SE REESCRIBE NUNCA** — lo que Antonio reclasifique después vive en §10 de este documento, no allí |
 | `CLAUDE.md` | Ambos | Reglas permanentes de sesión |
 
 **Prompts:** estructura de 7 puntos obligatoria, siempre completos y con detalle, en un solo
