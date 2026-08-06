@@ -81,6 +81,35 @@ function nucleo(nombre) {
 
 // ── carga ────────────────────────────────────────────────────────────────────
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA 35 · EL CENTINELA — 99999 no es un número de portal
+// ═════════════════════════════════════════════════════════════════════════════
+//   117 portales traen `sortNumber = 99999`. Su número crudo es `"BL0"`, `"A1"`,
+//   `"C3"`, `"LL"`… — **bloques y letras, sin número de portal**. 99999 es el
+//   centinela con el que el callejero dice «no tiene».
+//
+//   ⛔⛔ Las tandas 32, 33 y 34 lo contaron como un portal más. Como el universo
+//     «lo que se puede pedir» va del número mínimo al máximo de cada vía, una vía
+//     iba **de 1 a 99999**: 99.998 consultas inventadas, el 66,2 % del
+//     denominador de tres informes (`docs/H1-LISTONES.md` §0b).
+//
+//   ⚠️ LO QUE **NO** SE HACE, y va aquí para que nadie lo «arregle» de más: estos
+//     117 portales **no desaparecen**. Existen, están en algún sitio y siguen
+//     enganchados al grafo. Dos vías enteras —`URBANIZACIÓN ALAMEDA` (38) y
+//     `URBANIZACIÓN PARQUE ROMA` (43)— son **solo** portales así: quitarlos las
+//     borraría del buscador. ⇒ salen del universo de lo que se puede pedir POR
+//     NÚMERO, y de nada más.
+//
+// ⭐ Y la definición vive AQUÍ, una sola vez: `direccion.js` la llama, y los
+//   medidores la llaman. Tres copias de la misma constante es cómo se llega a que
+//   una tanda limpie y otra no (ley 56).
+const CENTINELA = 9999;
+
+/** El número con el que se puede PEDIR un portal, o `null` si no tiene. */
+function numeroPedible(n) {
+  return (Number.isFinite(n) && n > 0 && n < CENTINELA) ? n : null;
+}
+
 /** Los 46.150 portales, proyectados a metros. ⛔ Se leen donde están; no se copian. */
 function cargarPortales(ruta = RUTA_PORTALES) {
   const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
@@ -181,4 +210,5 @@ function ladoDe(p, a, b) {
 }
 
 module.exports = { cargarPortales, cargarVias, nucleo, sinAcentos, aSegmento,
-  indexarAristas, engancharUno, ladoDe, RUTA_PORTALES, RUTA_VIAS, TIPOS_VIA };
+  indexarAristas, engancharUno, ladoDe, RUTA_PORTALES, RUTA_VIAS, TIPOS_VIA,
+  CENTINELA, numeroPedible };

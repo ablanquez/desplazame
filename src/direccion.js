@@ -24,7 +24,16 @@ function construirIndice(portalesEnganchados, vias) {
     const v = o.via || vias.get(o.codigoVia);
     if (!v || !v.nucleo) continue;
     if (!porNucleo.has(v.nucleo)) porNucleo.set(v.nucleo, []);
-    porNucleo.get(v.nucleo).push(o);
+    // ⭐⭐ TANDA 35 · EL CENTINELA SE APAGA AQUÍ, y solo aquí.
+    //   El portal sigue entero —mismo id, mismo enganche, misma geometría— y sigue
+    //   en el índice: lo único que pierde es el número pedible. ⇒ ya no compite en
+    //   ninguna búsqueda por número, ya no define el rango de la vía y ya no cuenta
+    //   como paridad; pero una consulta SIN número lo sigue encontrando, que es lo
+    //   único que tienen las dos urbanizaciones que son solo bloques.
+    // ⛔ Se apaga en una COPIA: `ctx.enganche.portales` no se toca, así que el
+    //   grafo, el modelo y las salvaguardas siguen viendo los 46.150.
+    porNucleo.get(v.nucleo).push(
+      P.numeroPedible(o.n) === o.n ? o : { ...o, n: null, sinNumero: true, numeroCrudo: o.numero });
   }
   // los números que se repiten (bloques, escaleras) se dejan todos: se elige después
   for (const l of porNucleo.values()) l.sort((a, b) => (a.n || 0) - (b.n || 0));
@@ -78,6 +87,19 @@ function resolver(texto, indice) {
   const exacto = lista.filter((o) => o.n === numero);
   if (exacto.length) {
     return { estado: 'exacto', consulta: texto, portal: exacto[0], hermanos: exacto.length };
+  }
+  // ⭐⭐ TANDA 35 · UNA VÍA QUE NO NUMERA POR PORTALES. `URBANIZACIÓN ALAMEDA` y
+  //   `URBANIZACIÓN PARQUE ROMA` son **solo** bloques y letras: 38 y 43 accesos,
+  //   ninguno con número. ⛔ Antes de apagar el centinela sus «números» eran todos
+  //   99999 y cualquier consulta caía ahí; ahora no hay nada que comparar y se
+  //   dice, en vez de fingir un portal más cercano en número.
+  const conNumero = lista.filter((o) => o.n != null);
+  if (!conNumero.length) {
+    const ej = lista.slice(0, 3).map((o) => o.numeroCrudo || o.numero).filter(Boolean);
+    return { estado: 'via-sin-numeros', consulta: texto, nucleo: nu,
+      portal: lista[Math.floor(lista.length / 2)],
+      aviso: `esta vía no va por números de portal: sus accesos son bloques o letras`
+        + (ej.length ? ` (${ej.join(', ')}…)` : '') + ` · te dejo en uno de ellos` };
   }
   // ═════════════════════════════════════════════════════════════════════════
   // ⭐⭐⭐ TANDA 33 · DOS ACERAS, DOS CALLES
