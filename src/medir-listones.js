@@ -342,6 +342,18 @@ if (require.main === module) {
     // ═══════════════════════════════════════════════════════════════════════
     log('');
     log('   ⭐⭐ A3 · QUÉ SE PIERDE — contra lo que se midió SIN tope');
+    // ⚠️⚠️ TANDA 36 · ESTAS CIFRAS DEPENDEN DEL OTRO LISTÓN, y eso hay que decirlo
+    //   antes de que alguien compare esta tabla con la de ayer y crea que el tope se
+    //   ha movido. La población de partida son **las consultas que se quedan sin
+    //   respuesta de su propia acera**: al bajar `RAZONABLE_M` de 100 a 50, 899
+    //   consultas más caen aquí y algunas ganan sugerencia de enfrente. ⇒ los totales
+    //   suben (2.986 → 3.885) aunque el radio y el tope estén intactos.
+    //   ⭐ Lo que NO se mueve es el reparto —71,7/28,3 ayer, 71,5/28,5 hoy— ni el
+    //     apriete (63,9 % → 64,3 %). Que la mezcla aguante al cambiar la población es
+    //     el único indicio de que la clasificación mide algo de la calle y no del
+    //     listón; ⛔ un indicio, no una prueba: nadie ha ido a mirar ninguna acera.
+    log('   ⚠️ Los totales dependen de `RAZONABLE_M` (hoy ' + Par.RAZONABLE_M + ' m): la población de partida son');
+    log('     las que se quedan sin respuesta propia. El reparto y el apriete apenas se mueven.');
     {
       const sinTope = conListones(Par.ENFRENTE_M, Infinity);
       const cuenta = (v) => {
@@ -369,7 +381,7 @@ if (require.main === module) {
       log('     que quedaban a ≤20 m, no las buenas. Las «ancho» que quedaban eran **2.138**.');
       di('   ⇒ ⭐ «ancho» que se pierden de verdad', `${a.ancho - b.ancho}  (no 358)`);
       di('   ⇒ ⭐ y de las que CABEN en el ancho de su calle', `${a.cabe - b.cabe}`);
-      log('   ⚠️ Es más de lo previsto y va destacado, porque la costura del encargo dice que');
+        log('   ⚠️ Es más de lo previsto y va destacado, porque la costura del encargo dice que');
       log('     cambiaría la decisión. ⛔ Lo que NO cambia es el sentido: lo que queda es');
       log('     mucho más limpio (' + pct(b.cabe, b.total) + ' de cruces reales frente a ' + pct(a.cabe, a.total) + ').');
       global._A3 = { a, b };
