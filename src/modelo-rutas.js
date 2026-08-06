@@ -46,7 +46,34 @@ const pct = (a, b) => (b ? (100 * a / b).toFixed(1) + ' %' : '—');
 
 // ⭐ PATRÓN EXTERNO: los metros publicados en `docs/H1-VER-RUTAS.md` (tanda 16),
 //    escritos antes de que esta tanda existiera. No los elijo yo (ley 17).
-const PUBLICADOS = { 1: 3086.9, 2: 598.1, 3: 3704.9, 4: 505.9, 5: 477.4, 6: 523.4, 7: 2528.9 };
+//
+// ═════════════════════════════════════════════════════════════════════════════
+// ⚠️⚠️ TANDA 33 · DOS DE ESTOS NÚMEROS SE HAN MOVIDO, Y ES UNA DECISIÓN
+// ═════════════════════════════════════════════════════════════════════════════
+//   La regla de la paridad (`src/paridad.js`) cambió lo que contesta el buscador
+//   a un número que no existe. Dos rutas lo notan, **y las dos por su extremo**:
+//
+//   · **nº1 · `Avenida Cataluña 78` → `Avenida Pablo Gargallo 16`.** Los DOS
+//     extremos dejan de resolverse: el 78 cae en un hueco de 175 m entre el 74 y
+//     el 84, y los pares de Pablo Gargallo empiezan en el 36. ⇒ la ruta pasa a
+//     **sugerencia** y ya no tiene metros. Los 3.086,9 m publicados estaban
+//     medidos **entre el 77 y el 15** —la acera de enfrente en los dos extremos—,
+//     que es justo el fallo que Antonio encontró. ⛔ No se sustituye por otro
+//     número: aceptando las sugerencias daría 2.832,1 m, pero eso ya no es «la
+//     ruta nº1», es otra consulta.
+//   · **nº6 · `Calle Matadero 1`.** El 1 no existe; antes caía en el 2 —enfrente—
+//     y ahora en el 3, a un paso de 23 m. **523,4 → 520,2 m.**
+//
+//   ⛔ Las otras cinco no se mueven ni un milímetro, y la **nº7 —la que calibra
+//     los ~6 km/h— tiene sus dos extremos exactos**. Eso se comprueba abajo.
+//   ⚠️ Actualizar estos números NO es un trámite: es aceptar que el banco de
+//     pruebas mide otra cosa que antes. Queda escrito aquí y en
+//     `docs/H1-PARIDAD.md` §C4. ⛔ `data/pruebas/RUTAS-CONOCIDAS.md` no se toca:
+//     es de Antonio.
+const PUBLICADOS = { 2: 598.1, 3: 3704.9, 4: 505.9, 5: 477.4, 6: 520.2, 7: 2528.9 };
+
+/** ⭐ Las que YA NO se resuelven, con el motivo. Es una expectativa, no un hueco. */
+const A_SUGERENCIA = { 1: 'los dos extremos caen en un hueco de su propia acera (tanda 33)' };
 
 // ═════════════════════════════════════════════════════════════════════════════
 // ⭐⭐ TANDA 31 · Y LOS PASOS DEL ITINERARIO, QUE TAMBIÉN ESTABAN PUBLICADOS
@@ -61,7 +88,13 @@ const PUBLICADOS = { 1: 3086.9, 2: 598.1, 3: 3704.9, 4: 505.9, 5: 477.4, 6: 523.
 //     obligaría a correrlas dos veces.
 //   ⚠️ Y envejecerá, como todos: el día que una tanda funda un paso más, esto se
 //     pone rojo y hay que republicarlo. Eso es el objetivo, no el defecto.
-const PASOS_PUBLICADOS = 74;
+//
+// ⚠️⚠️ TANDA 33 · Y HA ENVEJECIDO, EXACTAMENTE COMO SE DIJO. **74 → 56.** No es que
+//   se hayan fundido pasos: es que **la ruta nº1 ya no se resuelve** y sus 18 pasos
+//   no existen. ⇒ el número se republica en `docs/H1-PARIDAD.md` §C4 con su motivo.
+//   ⛔ Se actualiza porque la causa está identificada y es la decisión de esta
+//     tanda. Si el motivo fuera «ha salido otro número», NO se tocaría.
+const PASOS_PUBLICADOS = 56;
 
 /** Ejecuta `rutas-antonio.js` y devuelve {texto, aristas}. */
 function correr(flags) {
@@ -127,12 +160,22 @@ A.exige(!!sin.aristas && !!con.aristas, 'no se ha podido leer `##ARISTAS##` de a
     const mismasAristas = c && JSON.stringify(c.aristas) === JSON.stringify(r.aristas);
     const mismosMetros = c && c.metros === r.metros;
     const pub = PUBLICADOS[r.n];
-    const okPub = Math.abs(r.metros - pub) < 0.05;
+    const okPub = pub != null && Math.abs(r.metros - pub) < 0.05;
     log('   ' + String(r.n).padStart(5) + r.metros.toFixed(1).padStart(20) + (c ? c.metros.toFixed(1) : '—').padStart(20)
       + String(r.aristas.length).padStart(10) + (mismasAristas && mismosMetros ? '✅' : '⛔').padStart(12)
-      + '   ' + pub.toFixed(1) + (okPub ? '  ✅' : '  ⛔ SE HA MOVIDO'));
+      + '   ' + (pub == null ? 'NO DEBERÍA RESOLVERSE' : pub.toFixed(1) + (okPub ? '  ✅' : '  ⛔ SE HA MOVIDO')));
     A.exige(mismasAristas && mismosMetros, `la ruta nº${r.n} cambia entre las dos ejecuciones: el modelo se ha colado en el cálculo`);
-    A.exige(okPub, `la ruta nº${r.n} da ${r.metros} y la tanda 16 publicó ${pub}`);
+    A.exige(okPub, `la ruta nº${r.n} da ${r.metros} y lo publicado es ${pub == null ? 'que NO se resuelve' : pub}`);
+  }
+  // ⭐⭐ Y EL LADO CONTRARIO: las que tienen que seguir SIN resolverse. ⛔ Sin esto,
+  //   revertir la paridad en silencio dejaría este guardián en verde — que es la
+  //   forma exacta del fallo nº105: un testigo que no depende de lo que vigila.
+  log('');
+  for (const [n, porque] of Object.entries(A_SUGERENCIA)) {
+    const vuelve = sin.aristas.some((x) => x.n === Number(n));
+    di(`   ⭐ la ruta nº${n} NO debe resolverse`, vuelve ? '⛔ VUELVE A RESOLVERSE' : '✅ sigue en sugerencia');
+    A.exige(!vuelve, `la ruta nº${n} vuelve a resolverse y lo publicado es que no: ${porque}. `
+      + 'O se ha revertido la regla de la paridad, o el callejero ha ganado ese portal. Las dos cosas son una decisión, no un trámite');
   }
 }
 {
@@ -145,7 +188,12 @@ A.exige(!!sin.aristas && !!con.aristas, 'no se ha podido leer `##ARISTAS##` de a
   log('       al resultado. ⇒ **la expectativa se DERIVA**: el texto de una ruta tiene que');
   log('       cambiar SI Y SOLO SI alguno de los ways que pisa gana vía por el modelo.');
   const bSin = bloques(sin.salida), bCon = bloques(con.salida);
-  A.exige(bSin.size === 7 && bCon.size === 7, `no se han extraído los 7 bloques de texto (${bSin.size} / ${bCon.size})`);
+  // ⚠️ TANDA 33 · son SEIS, no siete: la nº1 pasó a sugerencia y no tiene texto.
+  //   ⛔ El número se deriva de `A_SUGERENCIA` en vez de escribirse a mano, para que
+  //     el día que la nº1 vuelva no haya que acordarse de tocar dos sitios.
+  const ESPERADOS = 7 - Object.keys(A_SUGERENCIA).length;
+  A.exige(bSin.size === ESPERADOS && bCon.size === ESPERADOS,
+    `no se han extraído los ${ESPERADOS} bloques de texto (${bSin.size} / ${bCon.size})`);
 
   // ── ⭐⭐ TANDA 31 · LOS PASOS, CONGELADOS ──────────────────────────────────
   {
