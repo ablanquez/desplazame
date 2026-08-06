@@ -345,6 +345,18 @@ pasos**. **Los 21 números congelados, intactos.** ⭐ Y tenían que estarlo: es
 fichero de producción — el único cambio fuera del script nuevo es una línea en
 `probar-modelo-obligatorio.js` para meterlo en el barrido del ciclo.
 
+## LA BATERÍA
+
+`node src/probar-paradas.js --todo` — **52 scripts, invariante cumplido en los 52.**
+`acera-equivocada.js` en código 0. Los tres que declaran fallo son los conocidos:
+`auditoria-guardianes.js` (rojo a propósito desde la 29), `modelo-rutas.js` (el nombre prestado, tanda
+31) y `rutas-antonio.js` (el rodeo de la nº4, fuera de banda desde la 16).
+
+⚠️ **Y hubo un cuarto que era mío:** registré `acera-equivocada.js` en la lista `CONSUMIDORES` de
+`probar-modelo-obligatorio.js` aplicando la ley del nº109 —*«el mismo día que nace»*— **sin mirar qué
+exige esa lista**: es de los ficheros que cargan `./modelo`, y éste no lo hace ni tiene por qué. El
+rojo era cierto y no significaba nada. Sacado, con el porqué escrito (bitácora nº131).
+
 ## LO QUE SE BUSCÓ A PROPÓSITO Y NO SE ENCONTRÓ
 
 - **Que alguno de los tres testigos pudiera haber cazado el caso de Antonio** — **ninguno**, y está
