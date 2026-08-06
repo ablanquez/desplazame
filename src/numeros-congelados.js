@@ -144,6 +144,26 @@ const TABLA = [
   //     fichero: publicar primero, congelar después.
   { id: 'puertas.sinCalle', valor: 2669, fuente: 'docs/H1-ROJOS-CERRADOS.md §E (tanda 31) · antes 3.166 en docs/H1-NOMBRES-Y-PASOS.md §0',
     sostiene: '⭐⭐ las puertas de Zaragoza que cuelgan de una línea sin nombre — el número que mide el problema en la unidad que le importa a una persona' },
+
+  // ── ⭐⭐⭐ EL UNIVERSO DEL BUSCADOR — republicado en la tanda 35 ─────────────
+  //   Las tandas 32, 33 y 34 midieron sobre un universo INFLADO: 117 portales
+  //   traían el centinela 99999 («BL0», «A1»…) y una sola vía estiraba su rango
+  //   de 1 a 99999. **El 66,2 % de las 150.947 consultas «pedibles» no existía.**
+  //   ⇒ `docs/H1-TOPE-ADELANTO.md` §0b los republica y aquí se congelan, que es el
+  //     orden que manda la cabecera: publicar primero, congelar después.
+  //   ⚠️ Y se congelan CINCO, no uno: el universo, lo que se contesta y lo que se
+  //     ofrece de enfrente. Congelar solo el total dejaría suelto el reparto, que
+  //     es donde estaba el daño.
+  { id: 'buscador.sinNumero', valor: 117, fuente: 'docs/H1-TOPE-ADELANTO.md §B1 (tanda 35)',
+    sostiene: '⭐⭐ EL POSITIVO DE CONTROL DEL CENTINELA: si el filtro dejara de filtrar esto sería 0 y todos los de abajo volverían a inflarse. Es la fila que hace que las otras cuatro signifiquen algo' },
+  { id: 'buscador.pedibles', valor: 51065, fuente: 'docs/H1-TOPE-ADELANTO.md §0b (tanda 35) · antes 150.947 en docs/H1-ACERA-EQUIVOCADA.md §B3b',
+    sostiene: '⭐ el denominador de TODO lo que publican las tandas 32 a 35 sobre el buscador' },
+  { id: 'buscador.huecos', valor: 23184, fuente: 'docs/H1-TOPE-ADELANTO.md §0b (tanda 35) · antes 123.132',
+    sostiene: 'los números que se pueden pedir y no existen' },
+  { id: 'buscador.cambianAcera', valor: 16981, fuente: 'docs/H1-TOPE-ADELANTO.md §0b (tanda 35) · antes 66.973',
+    sostiene: '⭐ el tamaño del fallo que Antonio encontró: los huecos que te mandaban a la acera de enfrente' },
+  { id: 'buscador.contestadas', valor: 6421, fuente: 'docs/H1-TOPE-ADELANTO.md §A4 (tanda 35) · antes 31.411 en el dial de docs/H1-PARIDAD.md §C3',
+    sostiene: '⭐⭐ lo que contesta el listón de 100 m. El 31.411 del dial también estaba inflado, y ése fue el argumento con el que se subió' },
 ];
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -229,6 +249,29 @@ function medir(op = {}) {
   //   reparto por tanda, así que pasa a estar congelado como cualquier otro.
   M['puertas.sinCalle'] = portales
     .filter((o) => o.arista != null && !tramoDe(g.aristas[o.arista]).nombre).length;
+  // ── ⭐⭐ EL UNIVERSO DEL BUSCADOR (tanda 35) ────────────────────────────────
+  //   ⛔ El barrido NO se copia aquí: se llama a `MP.barrer()`, que es la misma
+  //     función que imprime `medir-paridad.js`. Dos caminos de código desde el
+  //     mismo dato es la forma exacta de los fallos nº63, nº67 y nº107 — y esta
+  //     tanda acaba de enseñar lo caro que sale que dos medidas se den la razón.
+  //   ⭐ Y el índice se construye con `D.construirIndice`, que es donde el
+  //     centinela se apaga: si se apagara en otro sitio, esto mediría otro mundo.
+  t('el universo del buscador (`medir-paridad.barrer`)');
+  {
+    const MP = require('./medir-paridad');
+    const Dir = require('./direccion');
+    const Po = require('./portales');
+    const vias = Po.cargarVias();
+    const indice = Dir.construirIndice(Po.cargarPortales(), vias);
+    const tipoDe = (l) => String((vias.get(l[0].codigoVia) || {}).tipoVia || '').toUpperCase().trim();
+    const { G, sinNumeroEnIndice } = MP.barrer(indice, tipoDe);
+    M['buscador.sinNumero'] = sinNumeroEnIndice;
+    M['buscador.pedibles'] = G.rango;
+    M['buscador.huecos'] = G.huecos;
+    M['buscador.cambianAcera'] = G.cambiaAcera;
+    M['buscador.contestadas'] = G.mismaAcera;
+  }
+
   M['_nodosSinArista'] = g.nodos.length - g.contadores.nodos;
   M['_idxVerdePolis'] = idxVerde.polis.length;
   M['_polisSinListon'] = idxTodo.polis.length;
