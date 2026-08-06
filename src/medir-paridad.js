@@ -49,10 +49,13 @@ const URBANAS = new Set(['CL', 'AV', 'PS', 'PL', 'GL', 'RD', 'TR', 'CJ', 'PJ', '
 //     universo LIMPIO, que es el que dice algo. ⛔ El centinela NO se quita del
 //     buscador: qué hacer con 117 portales que no tienen número es una decisión,
 //     y no es mía (§D4).
-const CENTINELA = 9999;
-const esCentinela = (n) => n != null && n >= CENTINELA;
-/** ¿La casilla tiene algún portal con número centinela? */
-const conCentinela = (l) => l.some((o) => esCentinela(o.n));
+// ⭐⭐ TANDA 35 · YA NO SE FILTRA AQUÍ: el centinela se apaga en `construirIndice`,
+//   que es donde nace el índice del buscador, y la definición vive en
+//   `portales.js` (`P.CENTINELA` / `P.numeroPedible`). ⛔ Este medidor no tiene su
+//   propia copia del criterio: si la tuviera, podría limpiar cosas distintas que
+//   el buscador y volveríamos a medir un mundo que nadie consulta (ley 56).
+//   ⇒ lo que queda aquí es la LÍNEA BASE histórica, para poder republicar.
+const PUBLICADO_32 = { rango: 150947, existen: 27815, huecos: 123132, cambiaAcera: 66973 };
 
 /** Mediana, p90 y máximo. Misma forma que en la tanda 32. */
 function reparto(v) {
@@ -62,7 +65,93 @@ function reparto(v) {
   return { n: s.length, p25: q(0.25), mediana: q(0.5), p75: q(0.75), p90: q(0.9), p95: q(0.95), max: s[s.length - 1] };
 }
 
-module.exports = { reparto, URBANAS };
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ EL BARRIDO, EXPORTADO — ⛔ para que nadie lo escriba dos veces
+// ═════════════════════════════════════════════════════════════════════════════
+//   `numeros-congelados.js` congela varios de estos números, y si los midiera por
+//   su cuenta habría **dos caminos de código desde el mismo dato** — que es la
+//   forma exacta de los fallos nº63, nº67 y nº107. ⇒ se llama a esta función.
+// ⚠️ Y no lleva ni un `console.log`: lo que se imprime lo decide quien la llama.
+function barrer(indice, tipoDe) {
+  const nuevo = () => ({ rango: 0, existen: 0, huecos: 0, cambiaAcera: 0,
+    igual: 0, mismaAcera: 0, sinRespuesta: 0, sinParidad: 0,
+    resp: [], respU: [], neg: [], negU: [], antes: [], antesU: [],
+    sinRespuestaU: 0, cambiaAceraU: 0, fuera: 0, hueco: 0, invariante: 0, cotas: [],
+    // ── TANDA 34 · lo que recupera cada listón, por separado ─────────────────
+    gana50a100: 0, conEnfrente: 0, conEnfrenteHueco: 0, conEnfrenteFuera: 0,
+    mudas: 0, mudasAntes: 0, dEnfrente: [], enfrenteEsUnica: 0 });
+  // ⭐⭐ TANDA 35 · UN SOLO UNIVERSO, y es el limpio, porque el índice ya lo es.
+  //   La tanda 34 llevaba dos —el inflado y el limpio— para poder comparar mientras
+  //   el centinela seguía dentro del buscador. Ahora está apagado en `construirIndice`
+  //   ⇒ lo que se mide es lo que se consulta, que es la única forma de que un número
+  //   signifique algo. La línea base histórica se imprime aparte, en `PUBLICADO_32`.
+  const G = nuevo();
+  let sinNumeroEnIndice = 0, viasSinNumeros = 0;
+  {
+    for (const l of indice.values()) {
+      sinNumeroEnIndice += l.filter((o) => o.n == null).length;
+      if (!l.some((o) => o.n != null)) viasSinNumeros++;
+      const an = l.paridad;
+      if (!(an.pares >= Par.MIN_HILO && an.impares >= Par.MIN_HILO)) continue;
+      const urb = URBANAS.has(tipoDe(l));
+      const inc = (k, v = 1) => { G[k] += v; };
+      const mete = (k, v) => { G[k].push(v); };
+      const presentes = new Set(l.map((o) => o.n).filter((n) => n != null));
+      const nums = [...presentes].sort((a, b) => a - b);
+      const lo = nums[0], hi = nums[nums.length - 1];
+      inc('rango', hi - lo + 1);
+      inc('existen', presentes.size);
+      for (let n = lo; n <= hi; n++) {
+        if (presentes.has(n)) continue;
+        inc('huecos');
+        const hoy = Par.masCercanoEnNumero(l, n);          // ⛔ lo que devolvía antes
+        const cambia = hoy && hoy.n != null && (hoy.n % 2) !== (n % 2);
+        if (!cambia) inc('igual');
+        else { inc('cambiaAcera'); if (urb) inc('cambiaAceraU'); }
+        // ⭐ y ahora la MISMA función que usa el geocodificador (ley 56)
+        const d = Par.decidir(n, l, an);
+        // ⛔⛔ EL INVARIANTE: si la respuesta de hoy ya era de su acera, NO puede
+        //   cambiar. Un cambio ahí sería la regla saliéndose de su sitio.
+        if (!cambia && (d.modo !== 'como-siempre' || d.portal !== hoy)) inc('invariante');
+        if (d.modo === 'como-siempre') continue;
+        if (d.modo === 'sin-paridad') { inc('sinParidad'); continue; }
+        if (d.modo === 'misma-acera') {
+          inc('mismaAcera');
+          mete('resp', d.cota.m); if (urb) mete('respU', d.cota.m);
+          // ⭐ A4 · las que el listón de 100 le quita al de 50 de la tanda 33
+          if (d.cota.m > 50) inc('gana50a100');
+        } else {
+          inc('sinRespuesta'); if (urb) inc('sinRespuestaU');
+          const esHueco = d.cota && d.cota.acota === 'hueco';
+          if (esHueco) { inc('hueco'); mete('neg', d.cota.m); if (urb) mete('negU', d.cota.m); }
+          else inc('fuera');
+          // ⭐⭐ A4 · y lo que recupera el listón de ENFRENTE, que no es respuesta:
+          //   es una opción donde a veces no había ninguna. Se cuentan las dos cosas.
+          const enf = d.sugerencias.filter((s) => s.enfrente);
+          const propias = d.sugerencias.filter((s) => !s.enfrente);
+          if (enf.length) {
+            inc('conEnfrente');
+            if (esHueco) inc('conEnfrenteHueco'); else inc('conEnfrenteFuera');
+            for (const e of enf) mete('dEnfrente', e.metros);
+            // ⛔ el caso que de verdad importa: la única alternativa que hay
+            if (propias.length <= 1) inc('enfrenteEsUnica');
+          }
+          // ⚠️ y las que se quedan MUDAS: sin respuesta y sin ninguna sugerencia
+          if (!d.sugerencias.length) inc('mudas');
+          if (!propias.length) inc('mudasAntes');
+        }
+        // ⭐ la cota de TODAS las que la tienen: es lo que mueve el listón (§A2b)
+        if (d.cota && Number.isFinite(d.cota.m)) mete('cotas', d.cota.m);
+        // el desplazamiento de la tanda 32: cuánto te alejaba la respuesta vieja
+        const mio = (d.cota && d.cota.cand) || null;
+        if (mio) { const x = Par.dist(mio, hoy); mete('antes', x); if (urb) mete('antesU', x); }
+      }
+    }
+  }
+  return { G, sinNumeroEnIndice, viasSinNumeros };
+}
+
+module.exports = { reparto, URBANAS, barrer };
 
 // ═════════════════════════════════════════════════════════════════════════════
 if (require.main === module) {
@@ -255,9 +344,6 @@ if (require.main === module) {
           + (s.metros == null ? 'NO CONSTA la distancia: ' + s.motivo : s.metros + ' m ' + s.motivo));
       }
     }
-    // ⛔⛔ LA COMPROBACIÓN QUE HACE QUE ESTO VALGA: ninguna sugerencia puede ser de
-    //   la acera de enfrente. Es la regla 4 de Antonio, y es la que evita repetir
-    //   el fallo con otro nombre.
     // ⛔⛔ LA COMPROBACIÓN CAMBIA CON LA REGLA, Y SE DICE.
     //   La tanda 33 exigía **cero** sugerencias de enfrente. La 34 las admite, así
     //   que esa comprobación ya no vale — pero **no se borra: se sustituye por la
@@ -309,115 +395,109 @@ if (require.main === module) {
   log('='.repeat(112));
   log('   ⭐ El universo es el mismo que el de la tanda 32: para cada vía con dos hilos, todos');
   log('     los números del mínimo al máximo. Así los dos informes se pueden comparar.');
-  const nuevo = () => ({ rango: 0, existen: 0, huecos: 0, cambiaAcera: 0,
-    igual: 0, mismaAcera: 0, sinRespuesta: 0, sinParidad: 0,
-    resp: [], respU: [], neg: [], negU: [], antes: [], antesU: [],
-    sinRespuestaU: 0, cambiaAceraU: 0, fuera: 0, hueco: 0, invariante: 0, cotas: [],
-    // ── TANDA 34 · lo que recupera cada listón, por separado ─────────────────
-    gana50a100: 0, conEnfrente: 0, conEnfrenteHueco: 0, conEnfrenteFuera: 0,
-    mudas: 0, mudasAntes: 0, dEnfrente: [], enfrenteEsUnica: 0 });
-  // ⭐⭐ DOS UNIVERSOS A LA VEZ: `G` es el de las tandas 32 y 33 —centinela dentro,
-  //   para que el cuadre entre informes siga valiendo— y `GL` es el LIMPIO, sin las
-  //   vías que llegan al 99999. ⛔ Si solo se publicara el limpio, no habría forma
-  //   de saber si los números de ayer eran otra medida o un error de hoy.
-  const G = nuevo(), GL = nuevo();
-  let viasSucias = 0;
+  const { G, sinNumeroEnIndice, viasSinNumeros } = barrer(indice, tipoDe);
   {
-    for (const l of indice.values()) {
-      const an = l.paridad;
-      if (!(an.pares >= Par.MIN_HILO && an.impares >= Par.MIN_HILO)) continue;
-      const urb = URBANAS.has(tipoDe(l));
-      const sucia = conCentinela(l);
-      if (sucia) viasSucias++;
-      const B = sucia ? [G] : [G, GL];
-      const inc = (k, v = 1) => { for (const b of B) b[k] += v; };
-      const mete = (k, v) => { for (const b of B) b[k].push(v); };
-      const presentes = new Set(l.map((o) => o.n).filter((n) => n != null));
-      const nums = [...presentes].sort((a, b) => a - b);
-      const lo = nums[0], hi = nums[nums.length - 1];
-      inc('rango', hi - lo + 1);
-      inc('existen', presentes.size);
-      for (let n = lo; n <= hi; n++) {
-        if (presentes.has(n)) continue;
-        inc('huecos');
-        const hoy = Par.masCercanoEnNumero(l, n);          // ⛔ lo que devolvía antes
-        const cambia = hoy && hoy.n != null && (hoy.n % 2) !== (n % 2);
-        if (!cambia) inc('igual');
-        else { inc('cambiaAcera'); if (urb) inc('cambiaAceraU'); }
-        // ⭐ y ahora la MISMA función que usa el geocodificador (ley 56)
-        const d = Par.decidir(n, l, an);
-        // ⛔⛔ EL INVARIANTE: si la respuesta de hoy ya era de su acera, NO puede
-        //   cambiar. Un cambio ahí sería la regla saliéndose de su sitio.
-        if (!cambia && (d.modo !== 'como-siempre' || d.portal !== hoy)) inc('invariante');
-        if (d.modo === 'como-siempre') continue;
-        if (d.modo === 'sin-paridad') { inc('sinParidad'); continue; }
-        if (d.modo === 'misma-acera') {
-          inc('mismaAcera');
-          mete('resp', d.cota.m); if (urb) mete('respU', d.cota.m);
-          // ⭐ A4 · las que el listón de 100 le quita al de 50 de la tanda 33
-          if (d.cota.m > 50) inc('gana50a100');
-        } else {
-          inc('sinRespuesta'); if (urb) inc('sinRespuestaU');
-          const esHueco = d.cota && d.cota.acota === 'hueco';
-          if (esHueco) { inc('hueco'); mete('neg', d.cota.m); if (urb) mete('negU', d.cota.m); }
-          else inc('fuera');
-          // ⭐⭐ A4 · y lo que recupera el listón de ENFRENTE, que no es respuesta:
-          //   es una opción donde a veces no había ninguna. Se cuentan las dos cosas.
-          const enf = d.sugerencias.filter((s) => s.enfrente);
-          const propias = d.sugerencias.filter((s) => !s.enfrente);
-          if (enf.length) {
-            inc('conEnfrente');
-            if (esHueco) inc('conEnfrenteHueco'); else inc('conEnfrenteFuera');
-            for (const e of enf) mete('dEnfrente', e.metros);
-            // ⛔ el caso que de verdad importa: la única alternativa que hay
-            if (propias.length <= 1) inc('enfrenteEsUnica');
-          }
-          // ⚠️ y las que se quedan MUDAS: sin respuesta y sin ninguna sugerencia
-          if (!d.sugerencias.length) inc('mudas');
-          if (!propias.length) inc('mudasAntes');
-        }
-        // ⭐ la cota de TODAS las que la tienen: es lo que mueve el listón (§A2b)
-        if (d.cota && Number.isFinite(d.cota.m)) mete('cotas', d.cota.m);
-        // el desplazamiento de la tanda 32: cuánto te alejaba la respuesta vieja
-        const mio = (d.cota && d.cota.cand) || null;
-        if (mio) { const x = Par.dist(mio, hoy); mete('antes', x); if (urb) mete('antesU', x); }
+    log('');
+    log('   ⛔⛔ EL CENTINELA, APAGADO — y los números que sostenía, republicados');
+    di('portales sin número pedible en el índice (bloques, letras)', sinNumeroEnIndice);
+    di('   …y vías que son SOLO eso', `${viasSinNumeros}   (Alameda y Parque Roma: 38 y 43 accesos)`);
+    log('     ⭐ Siguen en el índice y siguen enganchados al grafo: lo único que han');
+    log('       perdido es el número con el que se les podía pedir. Una consulta sin');
+    log('       número los sigue encontrando.');
+    A.exige(sinNumeroEnIndice > 0,
+      'CERO portales sin número en el índice: el centinela no se está apagando y este barrido mide el universo inflado');
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⭐⭐⭐ EL MECANISMO CONTRA LA CLASE, NO CONTRA EL CASO
+    // ═══════════════════════════════════════════════════════════════════════
+    //   Apagar el 99999 arregla ESTE centinela. No arregla el siguiente —un 9999,
+    //   un 0, un 8888—, y un centinela nuevo volvería a inflar el universo sin que
+    //   nadie se enterara, porque **el síntoma no es el valor: es que una vía se
+    //   lleve un rango absurdo**. ⇒ se imprimen SIEMPRE las cinco vías con el rango
+    //   más grande. Con eso, un centinela de cualquier valor se ve a la primera.
+    // ⚠️ Esto es lo que faltaba en las tandas 32, 33 y 34: la tabla existía, pero
+    //   agregada. Un máximo por vía habría cantado desde el primer día.
+    log('');
+    log('   ⭐⭐ LAS CINCO VÍAS CON EL RANGO MÁS GRANDE — el detector de centinelas');
+    {
+      // ⚠️ SOBRE LA MISMA POBLACIÓN QUE EL UNIVERSO — las vías con dos hilos. La
+      //   primera versión barría el índice entero y señalaba carreteras que ni
+      //   siquiera entran en la cuenta: un detector que mira otra población que la
+      //   que vigila señala cosas que no importan (bitácora nº140).
+      const rangos = [];
+      let maxN = 0;
+      for (const l of indice.values()) {
+        const an = l.paridad;
+        if (!(an.pares >= Par.MIN_HILO && an.impares >= Par.MIN_HILO)) continue;
+        const ns = l.map((o) => o.n).filter((n) => n != null);
+        if (!ns.length) continue;
+        const lo = Math.min(...ns), hi = Math.max(...ns);
+        if (hi > maxN) maxN = hi;
+        rangos.push({ l, r: hi - lo + 1, lo, hi, portales: ns.length, k: (hi - lo + 1) / ns.length });
       }
+      rangos.sort((a, b) => b.k - a.k);
+      log('   ' + 'vía'.padEnd(46) + 'rango'.padStart(9) + 'de'.padStart(8) + 'a'.padStart(8)
+        + 'portales'.padStart(10) + '  nº por portal');
+      for (const x of rangos.slice(0, 5)) {
+        log('   ' + nombreDe(x.l).slice(0, 44).padEnd(46) + String(x.r).padStart(9)
+          + String(x.lo).padStart(8) + String(x.hi).padStart(8) + String(x.portales).padStart(10)
+          + '  ' + x.k.toFixed(1));
+      }
+      const ks = rangos.map((x) => x.k).sort((a, b) => a - b);
+      di('números pedibles por portal (mediana · p99 · máximo)',
+        `${ks[Math.floor(ks.length / 2)].toFixed(1)} · ${ks[Math.floor(0.99 * ks.length)].toFixed(1)} · ${ks[ks.length - 1].toFixed(1)}`);
+      di('⭐ el número de portal más alto del universo', maxN);
+      // ⛔ (1) el centinela por su VALOR: un número imposible.
+      A.exige(maxN < P.CENTINELA,
+        `hay un portal con número ${maxN} en el universo y el centinela declarado es ${P.CENTINELA}: `
+        + 'o el filtro no filtra, o el callejero ha estrenado otro valor imposible');
+      // ⛔ (2) el centinela por su FORMA, que es lo que caza a uno de otro valor.
+      //   ⭐ El listón se declara con los dos anclajes medidos, no a ojo:
+      //     · el peor caso REAL de Zaragoza es DISEMINADO PEÑAFLOR, con 63,8
+      //       números por portal — numeración rural dispersa, no un centinela;
+      //     · el artefacto del 99999 daba 99.999/47 ≈ **2.128**.
+      //   ⇒ 500 está a ×8 del caso real y a ÷4 del artefacto. Los dos márgenes van
+      //     escritos para que se vea que no está pegado a ninguno.
+      const LISTON_K = 500;
+      const absurdas = rangos.filter((x) => x.k > LISTON_K);
+      di(`⚠️ vías con más de ${LISTON_K} números pedibles por portal`, absurdas.length
+        + (absurdas.length ? '   ⇒ ' + absurdas.slice(0, 3).map((x) => nombreDe(x.l).slice(0, 30)).join(' · ') : '   ✅ ninguna'));
+      A.exige(absurdas.length === 0,
+        `${absurdas.length} vías pasan de ${LISTON_K} números pedibles por portal: es la forma de un centinela `
+        + 'de otro valor, y hasta que se declare no se puede contar como consultas');
+      // ⚠️ Y lo que SÍ hay y es real, dicho con su tamaño: la numeración dispersa.
+      const dispersas = rangos.filter((x) => x.k > 30);
+      const suman = dispersas.reduce((s, x) => s + x.r, 0);
+      di('⚠️ vías de numeración DISPERSA (>30 nº por portal), que son reales',
+        `${dispersas.length}   aportan ${suman} pedibles  (${pct(suman, G.rango)})`);
+      log('     Son diseminados y carreteras: numeración kilométrica de verdad. ⛔ No se');
+      log('     quitan —existen— pero su peso va dicho, que es lo que faltó con el centinela.');
     }
     log('');
-    log('   ⛔⛔ EL CENTINELA — lo primero, porque cambia el denominador de tres tandas');
-    di('vías con algún portal en el centinela 99999 («BL0», «BL1»…)', viasSucias);
-    di('⛔ números «pedibles» que aporta ese centinela', `${G.rango - GL.rango}  (${pct(G.rango - GL.rango, G.rango)} de lo pedible)`);
-    log('     Son bloques SIN número de portal, y el callejero los marca con 99999. Las');
-    log('     tandas 32, 33 y 34 los han contado como si fueran un portal más, así que el');
-    log('     universo de una vía iba de 1 a 99999. ⚠️ Ningún CASO medido era falso; lo que');
-    log('     estaba mal es **todo porcentaje cuyo denominador fuera «lo pedible»**.');
-    log('');
-    log('   ' + 'universo'.padEnd(34) + 'pedibles'.padStart(11) + 'existen'.padStart(10)
+    log('   ' + 'universo'.padEnd(40) + 'pedibles'.padStart(11) + 'existen'.padStart(10)
       + 'huecos'.padStart(10) + 'cambian de acera'.padStart(19));
-    for (const [et, X] of [['el de las tandas 32 y 33', G], ['⭐ LIMPIO, sin el centinela', GL]]) {
-      log('   ' + et.padEnd(34) + String(X.rango).padStart(11) + String(X.existen).padStart(10)
-        + String(X.huecos).padStart(10) + `${X.cambiaAcera}  ${pct(X.cambiaAcera, X.huecos)}`.padStart(19));
-    }
-    log('   ⚠️ La tanda 32 publicó 150.947 · 27.815 · 123.132 · 66.973 — la fila de arriba, con');
-    log('     menos del 0,1 % de diferencia (agrupó por `codigoVia` sobre los enganchados y');
-    log('     esto agrupa por CASILLA DE BÚSQUEDA sobre los 46.150). ⭐ El cuadre entre tandas');
-    log('     seguía saliendo perfecto **sobre el mismo artefacto**: dos medidas de acuerdo no');
-    log('     son dos medidas correctas.');
-    A.exige(G.rango > GL.rango, 'el universo limpio y el sucio son iguales: o el centinela ya no está, o el filtro no filtra');
-    A.exige(GL.rango > 0, 'el universo limpio ha salido vacío: el filtro se lo ha comido todo');
+    log('   ' + '⛔ el que publicaron las tandas 32 y 33'.padEnd(41) + String(PUBLICADO_32.rango).padStart(11)
+      + String(PUBLICADO_32.existen).padStart(10) + String(PUBLICADO_32.huecos).padStart(10)
+      + `${PUBLICADO_32.cambiaAcera}  ${pct(PUBLICADO_32.cambiaAcera, PUBLICADO_32.huecos)}`.padStart(19));
+    log('   ' + '⭐ EL BUENO (tanda 35)'.padEnd(41) + String(G.rango).padStart(11)
+      + String(G.existen).padStart(10) + String(G.huecos).padStart(10)
+      + `${G.cambiaAcera}  ${pct(G.cambiaAcera, G.huecos)}`.padStart(19));
+    di('⇒ lo que sobraba', `${PUBLICADO_32.rango - G.rango} consultas  (${pct(PUBLICADO_32.rango - G.rango, PUBLICADO_32.rango)} de lo publicado)`);
+    log('   ⚠️ Y NO coincide con las 51.028 que la tanda 34 llamó «limpio»: aquella EXCLUÍA');
+    log('     la vía entera, y el Grupo Casamayor tiene 26 portales bien numerados que ahora');
+    log('     vuelven a contar. ⇒ apagar el centinela y quitar la vía **no son lo mismo**, y');
+    log('     el bueno es éste: el que ve el buscador.');
+    A.exige(G.rango < PUBLICADO_32.rango,
+      `el universo sale ${G.rango} y lo publicado eran ${PUBLICADO_32.rango}: si no ha bajado, el centinela sigue dentro`);
     log('');
     log('   ⭐⭐ C1 · CUÁNTAS CONSULTAS CAMBIAN DE RESPUESTA');
     const cambian = G.mismaAcera + G.sinRespuesta;
-    log('   ' + ''.padEnd(50) + 'con centinela'.padStart(20) + '⭐ LIMPIO'.padStart(20));
-    const dosFilas = (et, k) => log('   ' + et.padEnd(50)
-      + `${G[k]}  ${pct(G[k], G.huecos)}`.padStart(20) + `${GL[k]}  ${pct(GL[k], GL.huecos)}`.padStart(20));
-    dosFilas('la respuesta de hoy ya era de su acera ⇒ NO se toca', 'igual');
-    dosFilas('⭐ pasa a un portal de SU acera', 'mismaAcera');
-    dosFilas('⛔ pasa a NO TENER respuesta (solo sugerencia)', 'sinRespuesta');
-    dosFilas('⚠️ la paridad no manda ⇒ respuesta de siempre', 'sinParidad');
-    log('   ' + '⇒ ⭐⭐ CONSULTAS QUE CAMBIAN DE RESPUESTA'.padEnd(51)
-      + `${cambian}  ${pct(cambian, G.rango)}`.padStart(20)
-      + `${GL.mismaAcera + GL.sinRespuesta}  ${pct(GL.mismaAcera + GL.sinRespuesta, GL.rango)}`.padStart(20));
+    const unaFila = (et, k) => log('   ' + et.padEnd(56) + `${G[k]}`.padStart(10) + pct(G[k], G.huecos).padStart(10));
+    unaFila('la respuesta de hoy ya era de su acera ⇒ NO se toca', 'igual');
+    unaFila('⭐ pasa a un portal de SU acera', 'mismaAcera');
+    unaFila('⛔ pasa a NO TENER respuesta (solo sugerencia)', 'sinRespuesta');
+    unaFila('⚠️ la paridad no manda ⇒ respuesta de siempre', 'sinParidad');
+    log('   ' + '⇒ ⭐⭐ CONSULTAS QUE CAMBIAN DE RESPUESTA'.padEnd(57)
+      + `${cambian}`.padStart(10) + pct(cambian, G.rango).padStart(10) + '  de lo pedible');
     log('');
     log('   ⛔⛔ EL INVARIANTE — el cambio no puede salirse de su sitio');
     di('consultas cuya respuesta de hoy YA era de su acera y aun así cambian', G.invariante);
@@ -443,10 +523,25 @@ if (require.main === module) {
     fila('⛔ el hueco de las que se RECHAZAN · todas', reparto(G.neg));
     fila('   …urbanas', reparto(G.negU));
     log('');
-    log('   ⭐⭐ EL CUADRE: la fila de arriba tiene que reproducir la tanda 32 —mediana 126 m');
-    log('     todas, 51 m urbanas—. Si no lo hiciera, este barrido estaría midiendo otra cosa.');
-    A.exige(rA && Math.abs(rA.mediana - 126) < 6 && rAU && Math.abs(rAU.mediana - 51) < 6,
-      `el «antes» da ${rA ? rA.mediana.toFixed(0) : '—'} / ${rAU ? rAU.mediana.toFixed(0) : '—'} y la tanda 32 publicó 126 / 51: este barrido no mide lo mismo`);
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⚠️⚠️ TANDA 35 · ESTE CUADRE ERA UNO DE LOS DOS QUE ESTABAN DE ACUERDO
+    //   SOBRE EL ARTEFACTO — y al apagar el centinela se puso rojo, que es lo que
+    //   tenía que hacer. Exigía reproducir **126 m** de mediana, y esos 126 los
+    //   levantaba la vía del centinela: sin ella salen **75**.
+    //   ⭐ La fila URBANA no se movió (54 frente a 51): el centinela vivía en un
+    //     GRUPO, no en una vía urbana. ⇒ los números urbanos de las tandas 32 a 34
+    //     nunca estuvieron contaminados, y eso también hay que decirlo.
+    //   ⛔ Y lo que sustituye al cuadre NO es una validación: es un freno de
+    //     deriva. Comparar el script contra una constante sacada del propio script
+    //     no demuestra que el número sea correcto —solo que no se ha movido solo—.
+    //     El número correcto es el que se publica hoy en `docs/H1-TOPE-ADELANTO.md`
+    //     y se congela en `numeros-congelados.js`.
+    log('   ⚠️ EL CUADRE CONTRA LA TANDA 32 SE RETIRA: sus 126 m los levantaba el centinela.');
+    log('     Lo que queda es un FRENO DE DERIVA contra lo republicado hoy —75 m todas, 54 m');
+    log('     urbanas—, y ⛔ eso no valida nada: solo impide que se mueva sin que nadie se entere.');
+    A.exige(rA && Math.abs(rA.mediana - 75) < 6 && rAU && Math.abs(rAU.mediana - 54) < 6,
+      `el «antes» da ${rA ? rA.mediana.toFixed(0) : '—'} / ${rAU ? rAU.mediana.toFixed(0) : '—'} y la tanda 35 republicó 75 / 54: `
+      + 'si es a propósito se republica con su motivo escrito; si no, es un hallazgo');
     log('   ⛔ Y la primera fila NO «baja a cero porque la regla funcione»: la respuesta nueva');
     log('     ES el portal con el que la tanda 32 midió el error viejo. Misma vara. ⇒ el número');
     log('     que vale es el de en medio: **lo que sigue sin saberse aun contestando bien**.');
@@ -475,38 +570,53 @@ if (require.main === module) {
     log('   ⭐ (1) SU ACERA, de 50 a 100 m — devuelve RESPUESTA automática');
     di('   consultas contestadas ahora', G.mismaAcera);
     di('   …de ellas, las que el listón de 50 rechazaba', `${G.gana50a100}   ⭐ eso es lo que recupera`);
-    di('   ⭐⭐ ¿lo predijo el dial de la tanda 33? (decía 31.411 a 100 m)',
-      G.mismaAcera === 31411 ? '✅ 31.411 clavadas' : `⛔ NO — salen ${G.mismaAcera}`);
-    // ⭐⭐ ESTE ES EL CUADRE QUE SOSTIENE LA DECISIÓN: Antonio eligió 100 mirando un
-    //   dial. Si el dial no acertara, la decisión se tomó sobre un número falso.
-    A.exige(G.mismaAcera === 31411,
-      `el dial de la tanda 33 predijo 31.411 contestadas con el listón a 100 m y salen ${G.mismaAcera}: `
-      + 'la decisión de subirlo se tomó mirando un número que no era. Si el callejero ha cambiado, se republica el dial');
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⭐⭐⭐ TANDA 35 · EL SEGUNDO CUADRE QUE ESTABA DE ACUERDO SOBRE EL ARTEFACTO
+    // ═══════════════════════════════════════════════════════════════════════
+    //   La tanda 34 celebró que el dial de la 33 predijera **31.411 clavadas** con
+    //   el listón a 100 m. Y era cierto — **porque el dial también se midió sobre
+    //   el universo inflado**. Sin el centinela salen **6.421**.
+    //
+    //   ⚠️⚠️ Y NO ES SOLO UN NÚMERO MÁS PEQUEÑO: es el argumento de la decisión.
+    //     El dial de la 33 decía 4.562 a 50 m y 31.411 a 100 ⇒ **×6,9**, y ese
+    //     «acantilado» fue lo que llevó a subir el listón. Limpio: 4.562 y 6.421
+    //     ⇒ **×1,4**. Los 4.562 son IDÉNTICOS en los dos, porque toda la
+    //     contaminación estaba en la banda de 50 a 100.
+    //   ⇒ ⭐ **El acantilado era el artefacto.** Subir el listón sigue recuperando
+    //     consultas, pero siete veces menos de las que decía el dato que se miró.
+    //   ⛔ No se revierte nada: los 100 m son decisión de Antonio y se quedan. Lo
+    //     que se hace es decirle sobre qué número los decidió.
+    log('   ⛔⛔ EL DIAL DE LA TANDA 33 TAMBIÉN ESTABA INFLADO — y era el argumento:');
+    log('   ' + 'listón'.padEnd(24) + 'dial de la tanda 33'.padStart(22) + 'limpio (tanda 35)'.padStart(20));
+    log('   ' + '50 m'.padEnd(24) + '4.562'.padStart(22) + '4.562'.padStart(20) + '   ⭐ idénticos');
+    log('   ' + '100 m'.padEnd(24) + '31.411'.padStart(22) + String(G.mismaAcera).padStart(20)
+      + `   ⇒ ×${(31411 / Math.max(1, G.mismaAcera)).toFixed(1)} de diferencia`);
+    log('   ⇒ ⭐⭐ el «acantilado ×7» entre 50 y 100 que sostuvo la decisión era el centinela.');
+    // ⛔ Freno de deriva contra lo republicado HOY. No valida el número: impide que
+    //   se mueva en silencio. El número bueno se publica y se congela.
+    A.exige(G.mismaAcera === 6421,
+      `las contestadas con el listón a 100 m dan ${G.mismaAcera} y la tanda 35 republicó 6.421: `
+      + 'si es a propósito se republica con su motivo escrito; si no, es un hallazgo');
     log('');
-    log('   ⭐ (2) ENFRENTE, hasta ' + Par.ENFRENTE_M + ' m — NO devuelve respuesta: devuelve una OPCIÓN marcada');
-    log('   ⛔ Y AQUÍ EL CENTINELA SE NOTABA MÁS QUE EN NINGÚN SITIO: sin limpiarlo, **una');
-    log('     sola vía —el Grupo M. Andrea Casamayor— aportaba 25.012 de las sugerencias**, y');
-    log('     el reparto de distancias salía «mediana 126 · p75 126 · p90 126». ⭐ Lo cazó lo');
-    log('     redondo del número, no una comprobación.');
-    log('   ' + ''.padEnd(58) + 'con centinela'.padStart(16) + '⭐ LIMPIO'.padStart(16));
-    const dos = (et, k, den) => log('   ' + et.padEnd(58)
-      + `${G[k]}  ${den ? pct(G[k], G[den]) : ''}`.padStart(16)
-      + `${GL[k]}  ${den ? pct(GL[k], GL[den]) : ''}`.padStart(16));
-    dos('   sin respuesta que ganan alguna sugerencia de enfrente', 'conEnfrente', 'sinRespuesta');
-    dos('      …con hueco propio medible', 'conEnfrenteHueco');
-    dos('      …fuera del tramo de su acera', 'conEnfrenteFuera');
-    dos('   ⭐⭐ …y en cuántas es la ÚNICA alternativa', 'enfrenteEsUnica');
-    log('');
-    log('   ' + 'distancia al portal de enfrente ofrecido'.padEnd(50)
-      + 'n'.padStart(9) + 'med'.padStart(8) + 'p75'.padStart(8) + 'p90'.padStart(8) + 'máx'.padStart(9));
-    for (const [et, X] of [['   con el centinela dentro', G], ['   ⭐ LIMPIO', GL]]) {
-      const r = reparto(X.dEnfrente);
-      if (r) log('   ' + et.padEnd(50) + String(r.n).padStart(9) + r.mediana.toFixed(0).padStart(8)
+    log('   ⭐ (2) ENFRENTE, ≤' + Par.ENFRENTE_M + ' m de radio Y ≤' + Par.ADELANTO_M + ' m calle abajo');
+    log('        — NO devuelve respuesta: devuelve una OPCIÓN marcada');
+    const una = (et, k, den) => log('   ' + et.padEnd(58)
+      + `${G[k]}`.padStart(10) + (den ? pct(G[k], G[den]) : '').padStart(10));
+    una('   sin respuesta que ganan alguna sugerencia de enfrente', 'conEnfrente', 'sinRespuesta');
+    una('      …con hueco propio medible', 'conEnfrenteHueco');
+    una('      …fuera del tramo de su acera', 'conEnfrenteFuera');
+    una('   ⭐⭐ …y en cuántas es la ÚNICA alternativa', 'enfrenteEsUnica');
+    {
+      const r = reparto(G.dEnfrente);
+      log('');
+      log('   ' + 'distancia al portal de enfrente ofrecido'.padEnd(50)
+        + 'n'.padStart(9) + 'med'.padStart(8) + 'p75'.padStart(8) + 'p90'.padStart(8) + 'máx'.padStart(9));
+      if (r) log('   ' + ''.padEnd(50) + String(r.n).padStart(9) + r.mediana.toFixed(0).padStart(8)
         + r.p75.toFixed(0).padStart(8) + r.p90.toFixed(0).padStart(8) + r.max.toFixed(0).padStart(9));
     }
     log('');
-    di('⚠️ consultas que se quedan MUDAS (sin respuesta y sin ninguna sugerencia)', `${G.mudas} · limpio ${GL.mudas}`);
-    di('   …y las que se quedarían sin el listón de enfrente', `${G.mudasAntes} · limpio ${GL.mudasAntes}`);
+    di('⚠️ consultas que se quedan MUDAS (sin respuesta y sin ninguna sugerencia)', G.mudas);
+    di('   …y las que se quedarían sin el listón de enfrente', G.mudasAntes);
     log('   ⭐ Lo que NO se pierde en las demás: se sigue sabiendo el número, la acera, el');
     log('     tamaño del hueco y —si la hay— la de enfrente CON SU MARCA. Lo que se quita es');
     log('     que **la app decida sola**.');

@@ -6993,3 +6993,193 @@ sobre la primera deja la segunda sin tocar.
 ⚠️ Y la de siempre, que hoy sí funcionó: **ejecutar al consumidor.** No hizo falta nada más.
 
 **Traza:** `src/rutas-antonio.js` (la impresión de sugerencias)
+
+---
+
+## [2026-08-06] — El detector de centinelas miraba una población distinta de la que vigila
+
+**Categoría:** aviso falso
+**Síntoma:** para que el 99999 no se repita con otro valor escribí un detector: *«las cinco vías con
+el rango más grande, y rojo si alguna pasa de 30 números pedibles por portal»*. Saltó a la primera:
+
+```
+   ⚠️ vías con más de 30 números pedibles por portal   3
+      ⇒ DISEMINADO PEÑAFLOR · CARRETERA AUTOVÍA DE MADRID · CARRETERA CASTELLÓN
+   ⛔ FALLO · 3 vías tienen más de 30 números pedibles por portal
+```
+
+**Y dos de las tres no entran en el universo que el detector vigila.** El universo cuenta solo las
+vías con DOS HILOS (≥5 portales de cada paridad); las dos carreteras no llegan, así que no aportan ni
+una consulta al número que se está protegiendo.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el rojo, que era cierto.** Las tres
+vías tienen de verdad esos ratios. ⚠️ Un guardián que dice una verdad sobre algo que no vigila no es
+un guardián: es ruido con razón — y es el mismo animal que el nº131, donde registré un fichero en una
+lista sin mirar qué exigía esa lista.
+
+**Cómo se cazó:** abriendo la lista en vez de creerme el recuento. `CARRETERA CASTELLÓN` no pintaba
+nada en una tabla de vías con dos aceras.
+
+**Causa raíz:** el detector barría `indice.values()` entero y el universo barre `indice.values()`
+**filtrado por dos hilos**. Escribí el bucle nuevo mirando el dato, no mirando el bucle de al lado que
+define lo que hay que proteger.
+
+**Arreglo aplicado:** el detector barre exactamente la misma población que el universo. Con eso queda
+**una** vía —`DISEMINADO PEÑAFLOR`, 63,8 números por portal, 702 pedibles, el 1,4 %—, y **no es un
+centinela: es numeración rural dispersa de verdad**. ⇒ se separa en dos comprobaciones:
+· por VALOR: ningún número del universo puede llegar al centinela declarado;
+· por FORMA: ninguna vía puede pasar de **500** números por portal — con los dos anclajes escritos,
+  el peor caso real (63,8) y el artefacto que hubo que cazar (99.999/47 ≈ **2.128**).
+Y la numeración dispersa real se declara con su peso, que es lo que faltó con el centinela.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un guardián tiene que barrer exactamente la población que protege.**
+Si mira más, señala cosas que no importan y se aprende a ignorarlo; si mira menos, calla donde hace
+falta. Y las dos cosas se ven comparando el bucle del guardián con el bucle del número, no leyendo el
+resultado.
+
+**Traza:** `src/medir-paridad.js` (el detector de centinelas)
+
+---
+
+## [2026-08-06] — El dial no podía explorar más allá del tope que acababa de aplicar
+
+**Categoría:** silencio falso
+**Síntoma:** el dial que enseña qué pasaría con otros listones salió así, con el tope de 20 m ya
+puesto:
+
+```
+   tope de «calle abajo»    sugerencias    ancho  desfase  % desfase
+   ≤ 10 m                          1603     1498      105      6.6 %
+   ≤ 20 m                          2986     2142      844     28.3 %
+   ≤ 40 m                          2986     2142      844     28.3 %
+   sin tope (hoy)                  2986     2142      844     28.3 %
+```
+
+**Tres filas idénticas.** «≤40 m» y «sin tope» dan exactamente lo mismo que «≤20 m».
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la fila que importaba era correcta.**
+El ≤20 m aplicado da 2.986 · 28,3 %, y eso cuadra con todo lo demás del informe. La tabla era
+consistente consigo misma y con la regla; lo único que no hacía era **explorar**.
+
+**Cómo se cazó:** ⭐ por las filas que no esperaba. Tres iguales seguidas no es un resultado: es un
+tope invisible. Es la costura del encargo —*«si sale redondo, ésa es la señal»*— aplicada a una tabla
+en vez de a una mediana.
+
+**Causa raíz:** el dial FILTRABA la salida de `Par.decidir()`, y `decidir()` **ya trae el tope
+aplicado**. Filtrar por «≤40 m» un conjunto que ya está podado a 20 no puede devolver nada nuevo. ⇒
+**un dial que se construye filtrando el resultado solo puede mirar hacia dentro del listón vigente,
+nunca hacia fuera.**
+
+**Arreglo aplicado:** se guarda el PUNTO DE PARTIDA de cada consulta —la vía, el número y el portal de
+referencia— y el dial vuelve a llamar a `Par.deEnfrente()` **con los listones que se le piden**. Ahora
+«sin tope» da 10.777 y el dial explora de verdad.
+⭐ Y con ello se puede añadir la comprobación que faltaba: que el recálculo con los listones de HOY
+reproduzca exactamente lo que devuelve el buscador (2.986 = 2.986). Si no lo hiciera, el dial estaría
+midiendo otra regla que la aplicada.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un dial que filtra el resultado solo mira hacia dentro.** Para
+enseñar qué pasaría con otro listón hay que volver a calcular con ese listón, y eso obliga a guardar
+la entrada, no la salida. ⚠️ Y el síntoma es siempre el mismo: **filas repetidas al final de la
+tabla** — justo donde uno deja de leer.
+
+**Traza:** `src/medir-listones.js` (§B3, `conListones`)
+
+---
+
+## [2026-08-06] — Escribí «2.982 de los 3.340 buenos» y el encargo de hoy me lo repitió como decisión
+
+**Categoría:** datos
+**Síntoma:** el informe de la tanda 34 recomendó el tope de 20 m con esta frase: *«el desfase cae del
+68,9 % al 28,3 % conservando 2.982 de los 3.340 buenos»*. El encargo de la tanda 35 la recoge tal
+cual, y de ahí sale la previsión de **358 perdidas**.
+
+**Está mal.** Los 2.982 eran el TOTAL de sugerencias que quedaban a ≤20 m —ancho **y** desfase—, no
+las buenas. En la misma tabla, una columna a la derecha, ponía que las «ancho» eran **2.138**.
+
+```
+   tope de «calle abajo»   sugerencias    ancho  desfase
+   ≤ 20 m                         2982     2138      844      ← 2.982 no son los buenos
+```
+
+Medido hoy: se pierden **1.206 «ancho»** de 3.348, no 358. Y de las que caben en el ancho real de su
+propia calle, **719**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la tabla, que era correcta.** Los
+2.982, los 2.138 y los 844 estaban bien calculados y bien impresos. El fallo no está en el dato: está
+en **la frase que lo resume**, escrita a mano dos párrafos más abajo leyendo la columna equivocada.
+⚠️ Y no hay ningún mecanismo en este proyecto que compare la prosa de un informe con su propia tabla.
+
+**Cómo se cazó:** al medir lo que se pierde de verdad tras aplicar el tope. Salió 1.206 donde la
+previsión decía 358, y la costura del encargo —*«si se pierden muchas más de las previstas, dilo»*—
+obligaba a mirar por qué. La diferencia no era del cálculo: era mía.
+
+**Causa raíz:** resumir a mano una tabla de cinco columnas cogiendo el número de la fila correcta y la
+columna equivocada. ⇒ **el número que llega a la decisión no es el que está en la tabla: es el que
+alguien escribe debajo.**
+
+**Arreglo aplicado:** ⛔ El informe de la tanda 34 **no se reescribe** —es registro histórico—: la
+corrección va en `docs/H1-TOPE-ADELANTO.md` §A3, diciendo qué corrige y por qué. Y el medidor imprime
+ahora la comparación *sin tope / con tope / se pierden* **en columnas, calculada**, para que la frase
+de resumen no tenga que existir.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **la cifra que entra en una decisión es la del texto, no la de la
+tabla.** Una tabla correcta con un resumen mal leído decide igual de mal que un cálculo roto, y no
+hay guardián que lo cace: lo único que lo evita es **que el informe imprima la resta hecha** en vez de
+dejar que alguien la haga al escribir.
+⚠️ Y la segunda: cuando el encargo siguiente te devuelve tu propio número, **compruébalo antes de
+construir encima**. Éste llegó de vuelta convertido en la base de una decisión.
+
+**Traza:** `docs/H1-LISTONES.md` §B3 (la frase), `src/medir-listones.js` (§A3, la resta impresa)
+
+---
+
+## [2026-08-06] — Un refactor por script se comió una sección entera del medidor
+
+**Categoría:** rompe
+**Síntoma:** para que `numeros-congelados.js` midiera con la misma función que `medir-paridad.js` —y
+no con una segunda copia— extraje el barrido a una función de módulo con un script de sustitución por
+índices de texto. El resultado:
+
+```
+    // una casilla del índice puede llevar DOS vías distintas
+   const { G, sinNumeroEnIndice, viasSinNumeros } = barrer(indice, tipoDe);
+  {
+
+    A.exige(conEnf > 0, 'CERO sugerencias de enfrente en todo el callejero…');
+```
+
+**Entre esas dos líneas faltaban unas sesenta**: el recuento de casillas mezcladas, la sección
+`A3 + B` entera —los ocho casos de ejemplo— y el barrido que comprueba la marca, el radio y el orden
+de las sugerencias.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⚠️ **NO CONSTA — nada llegó a estar en
+verde.** `node -c` cantó a la primera con `Identifier 'G' has already been declared`. ⛔ Y eso es
+suerte, no diseño: la sustitución dejó el fichero sintácticamente roto **por accidente**. Si el trozo
+comido hubiera empezado y acabado en fronteras de bloque, el fichero habría compilado, el script
+habría salido en verde y **la sección habría desaparecido en silencio**.
+
+**Cómo se cazó:** el compilador, y luego `git show HEAD:fichero` para recuperar el trozo textual.
+
+**Causa raíz:** hice DOS sustituciones por índices sobre el mismo fichero, y la primera movió todas
+las posiciones. La segunda cortó desde una marca que ya no estaba donde yo creía. ⇒ **una edición por
+posición de texto es correcta exactamente una vez**; a la segunda ya está operando sobre otro
+fichero.
+
+**Arreglo aplicado:** el trozo se recuperó de `git show HEAD:` —no de memoria— y se volvió a insertar
+comprobando que las cinco secciones del fichero siguen ahí (`A1`, `A2`, `A3 + B`, `C1–C3`, `D`) y que
+el balance de llaves cierra en 0.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un fichero que se edita por script se comprueba por CONTENIDO, no por
+que compile.** Compilar solo dice que las llaves cuadran; que no falte una sección hay que
+preguntárselo. ⚠️ Y la operativa: **una sustitución por índices por ejecución**, o los índices
+mienten. Si hacen falta dos, se hace dos veces releyendo el fichero.
+
+**Traza:** `src/medir-paridad.js` (`barrer`)
