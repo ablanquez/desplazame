@@ -162,8 +162,26 @@ const TABLA = [
     sostiene: 'los números que se pueden pedir y no existen' },
   { id: 'buscador.cambianAcera', valor: 16981, fuente: 'docs/H1-TOPE-ADELANTO.md §0b (tanda 35) · antes 66.973',
     sostiene: '⭐ el tamaño del fallo que Antonio encontró: los huecos que te mandaban a la acera de enfrente' },
-  { id: 'buscador.contestadas', valor: 6421, fuente: 'docs/H1-TOPE-ADELANTO.md §A4 (tanda 35) · antes 31.411 en el dial de docs/H1-PARIDAD.md §C3',
-    sostiene: '⭐⭐ lo que contesta el listón de 100 m. El 31.411 del dial también estaba inflado, y ése fue el argumento con el que se subió' },
+  // ── ⚠️⚠️⚠️ EL ÚNICO NÚMERO DE ESTA TABLA QUE SE HA MOVIDO DOS VECES ────────
+  //   **4.562 (tanda 33) → 6.421 (tanda 34) → 4.562 (tanda 36).** Y las dos veces
+  //   lo movió el mismo listón, `RAZONABLE_M`:
+  //     · la tanda 34 lo subió de 50 a 100 m porque el dial decía que entre 50 y
+  //       100 las contestadas se multiplicaban por siete (4.562 → 31.411);
+  //     · ⭐⭐⭐ **ese acantilado era el centinela 99999.** La tanda 35 lo apagó y el
+  //       mismo dial, limpio, dio 4.562 → 6.421: **×1,4**. La razón para estar en
+  //       100 no existía y la tanda 36 devuelve el listón a 50.
+  //   ⇒ ⭐ Que vuelva EXACTAMENTE al 4.562 de la tanda 33 no es casualidad ni
+  //     suerte: toda la contaminación del centinela vivía en la banda de 50 a 100 m,
+  //     así que la fila de 50 nunca estuvo tocada. Es la comprobación más barata de
+  //     que lo que se apagó era lo que se creía.
+  //   ⚠️ Y lo que esta fila enseña de sí misma: **congelar preserva los errores con
+  //     la misma fidelidad que las verdades.** El 6.421 estuvo congelado y verde, y
+  //     era correcto —lo que estaba mal era la razón por la que se eligió el listón
+  //     que lo produce—. Un número congelado protege del cambio silencioso, no de
+  //     haber decidido sobre un artefacto.
+  { id: 'buscador.contestadas', valor: 4562,
+    fuente: 'docs/H1-LISTON-50.md §A1 (tanda 36) · antes 6.421 en docs/H1-TOPE-ADELANTO.md §A4 · antes 31.411 en el dial inflado de docs/H1-PARIDAD.md §C3',
+    sostiene: '⭐⭐ lo que contesta el listón de la propia acera. ⚠️ Se ha movido DOS veces con él: 50 → 100 → 50. Antes de tocarlo, leer el bloque de arriba' },
 ];
 
 // ═════════════════════════════════════════════════════════════════════════════
