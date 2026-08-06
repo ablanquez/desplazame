@@ -101,6 +101,25 @@ const RAZONABLE_M = 100;
  */
 const ENFRENTE_M = 150;
 
+/**
+ * ⭐⭐⭐ TANDA 35 · EL TOPE DE ADELANTO — cuánto puede estar CALLE ABAJO.
+ *
+ *   > **Antonio:** *«CRUZAR TE MUEVE DE LADO, NO HACIA DELANTE.»*
+ *
+ * ⭐ Y ése es el porqué geométrico de todo esto: un portal a 100 m calle abajo no
+ *   es tu vecino aunque esté en la otra acera. El radio de 150 m no distingue las
+ *   dos cosas —la tanda 34 midió que **el 68,9 % de lo que dejaba pasar era
+ *   desfase, no ancho**, y que bajar el radio no lo arreglaba: ni a 25 m—.
+ *
+ * ⛔ De dónde salen los 20: del dial medido en `docs/H1-LISTONES.md` §B3.
+ *      ≤ 10 m → 6,6 % de desfase, pero solo 1.601 sugerencias
+ *      ≤ 20 m → 28,3 % de desfase, con 2.982 de las 3.340 buenas conservadas
+ *      ≤ 40 m → 45,6 %
+ *   Antonio elige 20. ⚠️ Es una decisión sobre cuánto desfase se tolera a cambio
+ *   de cuánta cobertura, no un percentil — igual que los 100 m de su acera.
+ */
+const ADELANTO_M = 20;
+
 /** Portales de una paridad para hablar de «hilo». Heredado de la tanda 32. */
 const MIN_HILO = 5;
 
@@ -194,8 +213,16 @@ function analizar(lista) {
  *    diferencia aquí movería respuestas que esta tanda NO debe tocar.
  */
 function masCercanoEnNumero(lista, numero) {
-  let mejor = lista[0];
-  for (const o of lista) if (Math.abs((o.n || 0) - numero) < Math.abs((mejor.n || 0) - numero)) mejor = o;
+  // ⚠️ TANDA 35 · los portales SIN número pedible (bloques, letras) traen `n: null`
+  //   desde `construirIndice`. Antes esto hacía `(o.n || 0)`, o sea que un portal
+  //   sin número competía como si fuera el nº0 — y ganaba en cuanto se pidiera un
+  //   número bajo. Se saltan. ⛔ Y devuelve `null` si no queda ninguno: hay dos
+  //   urbanizaciones enteras que son solo bloques.
+  let mejor = null;
+  for (const o of lista) {
+    if (o.n == null) continue;
+    if (!mejor || Math.abs(o.n - numero) < Math.abs(mejor.n - numero)) mejor = o;
+  }
   return mejor;
 }
 
@@ -301,6 +328,23 @@ function descomponer(ref, otro, eje) {
 }
 
 /**
+ * ⭐⭐⭐ EL ÚNICO SITIO DONDE NACE UNA SUGERENCIA — y por qué existe esta función.
+ *
+ * ⛔⛔ `enfrente` NO se pasa por parámetro: **se deduce de la paridad pedida**, y
+ *   se escribe DESPUÉS del `...extra`, así que quien llame no puede pisarla ni
+ *   olvidarla. Una sugerencia sin marca deja de ser representable.
+ *
+ * ⚠️ Existe porque la marca ya se perdió dos veces en dos días: el nº134 se comió
+ *   `motivo` y el nº137 se comió `enfrente`, **con la ley del nº134 ya escrita y
+ *   describiendo exactamente eso**. ⇒ *una ley escrita no protege; protege el
+ *   mecanismo* (ley 37). Esto es el mecanismo.
+ */
+function sugerencia(portal, pedido, extra = {}) {
+  return { ...extra, portal, n: portal.n, acera: acera(portal.n),
+    enfrente: esPar(portal.n) !== esPar(pedido) };
+}
+
+/**
  * ⭐⭐ LOS CANDIDATOS DE LA ACERA DE ENFRENTE.
  *
  * ⛔ Candidato **por número**, aceptado **por metros**: el número es lo que hace
@@ -311,7 +355,7 @@ function descomponer(ref, otro, eje) {
  *   la otra paridad—, no solo el más cercano: en un hueco grande el de detrás
  *   puede estar lejos y el de delante al lado.
  */
-function deEnfrente(numero, lista, ref, radio = ENFRENTE_M) {
+function deEnfrente(numero, lista, ref, radio = ENFRENTE_M, adelanto = ADELANTO_M) {
   if (!ref) return [];
   const otros = lista.filter((o) => o.n != null && esPar(o.n) !== esPar(numero));
   if (!otros.length) return [];
@@ -326,9 +370,14 @@ function deEnfrente(numero, lista, ref, radio = ENFRENTE_M) {
     if (!o || out.some((x) => x.portal === o)) continue;
     const g = descomponer(ref, o, eje);
     if (g.d > radio) continue;
-    out.push({ portal: o, n: o.n, acera: acera(o.n), enfrente: true,
-      metros: Math.round(g.d), largo: g.largo, ancho: g.ancho, grados: g.grados, clase: g.clase,
-      motivo: 'la acera de ENFRENTE: hay que cruzar' });
+    // ⭐⭐⭐ TANDA 35 · EL TOPE DE ADELANTO. Cruzar te mueve de LADO.
+    // ⛔ Sin eje no se puede saber cuánto adelanta ⇒ **no se ofrece**. Antes esto
+    //   pasaba porque `clase` quedaba en 'NO CONSTA' y el portal salía igual: un
+    //   `NO CONSTA` que se ofrece es un sí disfrazado.
+    if (g.largo == null || g.largo > adelanto) continue;
+    out.push(sugerencia(o, numero, { metros: Math.round(g.d),
+      largo: g.largo, ancho: g.ancho, grados: g.grados, clase: g.clase,
+      motivo: 'la acera de ENFRENTE: hay que cruzar' }));
   }
   // ⭐ el más cerca primero, que es lo que va a ver quien pulse el botón
   return out.sort((a, b) => a.metros - b.metros);
@@ -348,6 +397,13 @@ function deEnfrente(numero, lista, ref, radio = ENFRENTE_M) {
  */
 function decidir(numero, lista, an) {
   const hoy = masCercanoEnNumero(lista, numero);
+  // ⚠️ TANDA 35 · una vía sin ni un portal numerado (dos urbanizaciones enteras son
+  //   solo bloques). `direccion.resolver()` lo caza antes, pero esto se llama desde
+  //   los medidores y no puede reventar aquí.
+  if (!hoy) {
+    return { modo: 'sin-numeros', portal: null, sugerencias: [], cota: null,
+      aviso: 'esta vía no va por números de portal: sus accesos son bloques o letras' };
+  }
   // ⛔ EL CANDADO: si la respuesta de siempre ya es de la acera pedida, no se toca.
   if (hoy && hoy.n != null && esPar(hoy.n) === esPar(numero)) {
     return { modo: 'como-siempre', portal: hoy, sugerencias: [], cota: null,
@@ -393,14 +449,16 @@ function decidir(numero, lista, an) {
   //   no hay hueco y `metros` viene a **null**. NO CONSTA, no un cero.
   const sug = [];
   if (c) {
+    // ⛔ TODAS pasan por `sugerencia()`, también las propias: si la de su acera se
+    //   montara a mano, el día que alguien copie esa línea para otra cosa la marca
+    //   volvería a faltar. El mecanismo solo protege si no tiene puerta de atrás.
     for (const o of [c.ant, c.sig, c.cand].filter(Boolean)) {
-      if (!sug.some((x) => x.portal === o)) sug.push({ portal: o, n: o.n, acera: acera(o.n) });
+      if (!sug.some((x) => x.portal === o)) sug.push(sugerencia(o, numero));
     }
     for (const s of sug) {
       const otro = sug.find((x) => x !== s);
       s.metros = otro ? Math.round(dist(s.portal, otro.portal)) : null;
       s.motivo = otro ? 'un extremo del hueco' : 'fuera del tramo numerado: no hay hueco que medir';
-      s.enfrente = false;
     }
   }
   const enfrente = c ? deEnfrente(numero, lista, c.cand) : [];
@@ -422,7 +480,7 @@ function decidir(numero, lista, an) {
   return { modo: 'sin-numero-cerca', portal: null, sugerencias: sug, cota: c, aviso };
 }
 
-module.exports = { RAZONABLE_M, ENFRENTE_M, MIN_HILO, ANG_CORRELATIVA, MIN_TRIOS,
-  FRAC_CORRELATIVA, ANGULO_ANCHO,
+module.exports = { RAZONABLE_M, ENFRENTE_M, ADELANTO_M, MIN_HILO, ANG_CORRELATIVA,
+  MIN_TRIOS, FRAC_CORRELATIVA, ANGULO_ANCHO,
   formaDeVia, analizar, masCercanoEnNumero, cota, decidir, acera, esPar, dist,
-  ejeLocal, descomponer, deEnfrente };
+  ejeLocal, descomponer, deEnfrente, sugerencia };
