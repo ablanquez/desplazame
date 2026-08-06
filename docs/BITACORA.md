@@ -6538,3 +6538,48 @@ sitio donde empezó todo siga apareciendo.
 sobre el buscador hasta que se demuestra lo contrario** — y pica más cuando el cero es cómodo.
 
 **Traza:** `src/acera-equivocada.js` (§B3b, `URBANAS`)
+
+---
+
+## [2026-08-06] — Registré el fichero nuevo en la lista equivocada y me inventé un rojo
+
+**Categoría:** aviso falso
+**Síntoma:** al cerrar la tanda, la batería sacó un rojo que antes no estaba:
+
+```
+   probar-modelo-obligatorio.js   código 1   DECLARA FALLO
+   acera-equivocada.js   (no carga el modelo)   no   ⚠️
+   ⛔ FALLO · acera-equivocada.js no llega a cargar el modelo: la sonda no puede opinar
+```
+
+**Y el mensaje era cierto**: `acera-equivocada.js` **no carga `./modelo`**, y no tiene por qué —pide
+`./direccion`, `./portales`, `./ruta`, `./grafo` y `./tabla-rutas`, que es el enganche y el callejero,
+no los nombres deducidos—. El que estaba mal era yo, que lo metí en una lista a la que no pertenece.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo lo demás del fichero nuevo**:
+`acera-equivocada.js` salió en **código 0, sin fallos**, con sus secciones A–E y sus siete `A.exige`.
+El script estaba perfecto; lo que fallaba era **una línea de registro en otro fichero**. ⚠️ Y la
+batería siguió dando su ✅ global, porque el invariante que vigila —«declarar un fallo y salir en
+0»— se cumplía: el rojo era falso pero estaba bien señalizado.
+
+**Cómo se cazó:** por comparación con la tanda anterior. `probar-modelo-obligatorio.js` salía en 0 en
+la 31 y ahora en 1, y lo único que había cambiado ahí era mi línea.
+
+**Causa raíz:** apliqué la ley del nº109 —*«regístralo el mismo día que nace, no cuando falle»*— sin
+comprobar la CONDICIÓN de la lista. `CONSUMIDORES` no es «los ficheros nuevos»: es **los que cargan el
+modelo**, porque la sonda mide si les muerde la dependencia circular con `ruta.js`. Un fichero que no
+carga el modelo no puede pasar por ese ciclo, así que la sonda no tiene nada que decir de él.
+
+**Arreglo aplicado:** se saca de la lista, y se deja escrito **por qué no está** — si no, el siguiente
+lo vuelve a añadir «por si acaso» y el rojo vuelve.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **registrar no es comprobar** — es la regla 1 del proyecto («configurar
+no es comprobar») aplicada a una lista. Añadir un nombre a un sitio se siente como cumplir; lo que
+cumple es **leer qué exige ese sitio**.
+⚠️ Y la segunda, que es la que hace daño a largo plazo: **un rojo falso bien señalizado sigue siendo
+ruido.** Éste decía la verdad, salía en rojo como debe y no significaba nada — que es exactamente lo
+que la tanda 31 se dedicó a quitar.
+
+**Traza:** `src/probar-modelo-obligatorio.js` (`CONSUMIDORES`), `src/acera-equivocada.js`

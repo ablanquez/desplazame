@@ -298,9 +298,15 @@ log('   `./ruta` y **aborta en el acto**: interesa el ciclo, no el resultado.');
     'numeros-congelados.js',
     // ⭐ TANDA 31 · los dos que nacen hoy y piden `./ruta` + `./modelo` + `./relato`.
     //   El mismo día que nacen, no cuando fallen (ley del nº109).
-    'nombre-prestado.js', 'puertas-sin-calle.js',
-    // ⭐ TANDA 32 · el mismo día que nace (ley del nº109).
-    'acera-equivocada.js'];
+    'nombre-prestado.js', 'puertas-sin-calle.js'];
+  // ⛔ TANDA 32 · `acera-equivocada.js` NO entra en esta lista, y va dicho para que
+  //   nadie lo añada otra vez «por si acaso»: **no carga `./modelo`**. Pide
+  //   `./direccion`, `./portales`, `./ruta`, `./grafo` y `./tabla-rutas`, que es
+  //   todo lo que necesita —el enganche y el callejero, no los nombres deducidos—.
+  //   Esta lista es de los que SÍ cargan el modelo; meterlo aquí puso el script en
+  //   rojo con «no llega a cargar el modelo», que era cierto y no significaba nada
+  //   (bitácora nº131). ⚠️ La ley del nº109 dice «regístralo el mismo día», no
+  //   «regístralo en cualquier lista».
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'desplazame-ciclo-'));
   const sonda = path.join(tmp, 'sonda.js');
   const buzon = path.join(tmp, 'veredicto.txt').replace(/\\/g, '/');
