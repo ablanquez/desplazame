@@ -6847,3 +6847,149 @@ ya no puede terminar en verde»*) y **su rojo no se había provocado ni una vez*
 `git log -S"EL INVARIANTE SOBRE TODO" -- src/probar-paradas.js` devuelve ese único commit.
 
 **Traza:** `src/probar-paradas.js` (P4, `revienta` / `mudoYMuerto`)
+
+---
+
+## [2026-08-06] — Escribí la ley ayer, y hoy volví a perder un campo en el mismo mapeo
+
+**Categoría:** datos
+**Síntoma:** la tanda 34 añade a la sugerencia el campo `enfrente`, que es lo que dice si hay que
+cruzar la calle. Al probarla:
+
+```
+   Avenida Pablo Gargallo 16
+      sug nº17   su acera   94 m
+      sug nº15   su acera   114 m
+```
+
+**El 17 y el 15 son impares y el número pedido es par.** Son las dos de la acera de enfrente y
+salían marcadas como si fueran de la suya — o sea, justo lo que el aviso tiene que decir y no decía.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la ley que lo describe, escrita
+ayer por mí en la entrada nº134**: *«re-mapear un objeto campo a campo pierde en silencio todo lo que
+se añada después, y el sitio donde se pierde no es el sitio donde se nota»*. Estaba escrita, era
+correcta, y **la causa exacta de este fallo**. ⚠️ Escribir la ley no es aplicarla.
+
+**Cómo se cazó:** ojo humano otra vez, mirando la salida de prueba. Ningún `A.exige` lo cazaba,
+porque los que había miraban el número y la distancia, no la marca.
+
+**Causa raíz:** la misma línea de `direccion.js` que en el nº134. Y peor: ayer decidí **a propósito**
+no cambiarla a un `{...s}`, con el argumento de que un `spread` metería ahí dentro lo que hubiera en
+cada momento. ⇒ **defendí el mapeo explícito el mismo día que me costó un campo, y al día siguiente
+me costó otro.** El argumento era falso: la sugerencia la construye entera `paridad.js` y no tiene
+ningún campo que haya que esconder — `portal` se expone a propósito.
+
+**Arreglo aplicado:** `sugerencias: d.sugerencias.map((s) => ({ ...s }))`, con la marcha atrás
+escrita en el propio fichero. ⭐ Y lo que hacía falta de verdad: **la comprobación que faltaba**, que
+ahora barre el callejero entero y exige tres cosas —que toda sugerencia de la otra paridad lleve la
+marca, que ninguna pase de 150 m, y que ninguna propia vaya detrás de una de enfrente— más un
+positivo de control para que los tres ceros no pasen por vacío.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una ley escrita en la bitácora no protege de nada: lo que protege es
+el mecanismo** (ley 37, y van unas cuantas). El nº134 terminó con una ley y sin guardián, y a las
+veinticuatro horas el mismo sitio volvió a fallar del mismo modo.
+⚠️ Y la segunda: **cuando uno defiende por escrito la decisión que acaba de costarle un fallo,
+conviene releer el argumento.** El mío decía «para no exponer el portal crudo», y el portal crudo ya
+se exponía en la línea de al lado.
+
+**Traza:** `src/direccion.js` (`resolver`, `sugerencias`), `src/medir-paridad.js` (§A3+B)
+
+---
+
+## [2026-08-06] — El 66,2 % del universo «pedible» de tres tandas era un centinela
+
+**Categoría:** datos
+**Síntoma:** al medir a qué distancia queda el portal de enfrente que se ofrece, el reparto salió
+así:
+
+```
+   distancia al portal de enfrente ofrecido    n=35767   med 126   p75 126   p90 126   máx 150
+```
+
+**Mediana, p75 y p90 idénticos.** Un reparto de 35.767 valores no se comporta así.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **DOS cuadres entre tandas, los dos
+perfectos.** El primero: este barrido reproduce el universo de la tanda 32 —150.947 · 27.815 ·
+123.132 · 66.973— con menos del 0,1 % de diferencia. El segundo: el dial que publicó la tanda 33
+predijo **31.411** consultas contestadas con el listón a 100 m, y salen **31.411 clavadas**.
+⚠️⚠️ Los dos cuadres son ciertos y los dos están calculados **sobre el mismo artefacto**. ⇒ **dos
+medidas de acuerdo no son dos medidas correctas**: si las dos comparten el defecto, concuerdan por
+él.
+
+**Cómo se cazó:** ⭐ por lo redondo del número, que es la costura que el propio encargo pone —*«y si
+sale redondo, ésa es la señal»*—. Al abrir el reparto por vías, **una sola aportaba 25.012 de las
+35.767 sugerencias (70 %)**: `GRUPO M. ANDREA CASAMAYOR Y DE LA COMA`. Es la forma exacta del nº129,
+donde las doce peores filas eran la misma carretera doce veces.
+
+**Causa raíz:** 117 portales del callejero traen `sortNumber = 99999`. Su número crudo es `"BL0"`,
+`"BL1"`, `"BL2"`… — **son bloques sin número de portal**, y 99999 es el centinela con el que el
+callejero dice «no tiene». El universo «lo que se puede pedir» se construye del número mínimo al
+máximo de cada vía, así que en esa vía **iba de 1 a 99999**: 99.998 consultas inventadas, el
+**66,2 %** de las 151.026 que las tandas 32, 33 y 34 han usado de denominador.
+⇒ Ningún CASO medido era falso —los huecos reales siguen siendo reales— pero **todo porcentaje cuyo
+denominador fuera «lo pedible» estaba inflado**, y el reparto de distancias de esta tanda era, en un
+70 %, una sola vía.
+
+**Arreglo aplicado:** se mide **en los dos universos a la vez** y se publican los dos: el de las
+tandas 32 y 33 —centinela dentro, para que el cuadre entre informes siga valiendo y se vea de dónde
+venía— y el LIMPIO. El limpio son **51.028 pedibles, 23.171 huecos y 16.969 que cambian de acera**.
+⛔ El centinela **NO se quita del buscador**: qué hacer con 117 portales que no tienen número es una
+decisión de Antonio, no un arreglo mío. Queda con su tamaño en el informe.
+⚠️ Y la corrección va en documento NUEVO (`docs/H1-LISTONES.md`), no reescribiendo los anteriores.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **antes de usar el máximo de un campo como límite de un rango, hay que
+mirar si ese campo tiene centinelas.** Un 99999, un −1 o un 0 no fallan: se comportan como un valor,
+y el rango que abren se llena de casos que no existen.
+⚠️ Y la grande: **la reproducibilidad entre tandas no es corrección.** Un cuadre perfecto entre dos
+informes solo demuestra que los dos hacen lo mismo — incluido el error. Aquí hicieron falta dos
+cuadres verdes y una mediana sospechosamente redonda para verlo.
+
+**Traza:** `src/medir-paridad.js` (`CENTINELA`, los universos `G` y `GL`), `src/medir-listones.js`
+
+---
+
+## [2026-08-06] — La sugerencia de enfrente llegaba marcada y el sitio donde se lee no la marcaba
+
+**Categoría:** visual
+**Síntoma:** el encargo pide, con estrella, que *«la sugerencia de enfrente TIENE QUE DECIR QUE LO
+ES»* — cruzar cuesta un semáforo y un rodeo hasta el paso—. En el banco de las siete rutas salía así:
+
+```
+   ⭐ sugerencia nº36 · acera de los pares
+   ⭐ sugerencia nº17 · acera de los impares · el hueco mide 94 m
+   ⭐ sugerencia nº15 · acera de los impares · el hueco mide 114 m
+```
+
+**Las cinco iguales.** Y las dos últimas son de la acera de enfrente. Peor: llama *«el hueco mide»*
+a los 94 m, que no son un hueco — **son la distancia hasta el portal de la otra acera**, otra
+magnitud con otro significado.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la comprobación nueva de
+`medir-paridad.js`, que barre el callejero entero y exige que toda sugerencia de la otra paridad
+lleve la marca `enfrente`.** Salía 0 sin marca sobre 76.880 sugerencias, y era cierto: **el dato
+llevaba la marca**. Lo que no la usaba era quien la imprime.
+
+**Cómo se cazó:** ejecutando `rutas-antonio.js` y leyendo la ruta 1, que es la que tiene los dos
+extremos en sugerencia. ⭐ Es la ley del nº135 aplicada a tiempo: *ejecuta a los consumidores, no los
+busques con `grep`*.
+
+**Causa raíz:** añadí el campo a `paridad.js`, lo comprobé en el barrido y lo enseñé en
+`medir-listones.js` — y **no toqué el único sitio que lo pinta para un humano**. El barrido comprueba
+el DATO; el requisito de Antonio es sobre el TEXTO. Son dos cosas, y una comprobación verde sobre la
+primera no dice nada de la segunda.
+
+**Arreglo aplicado:** la línea distingue `⛔ ENFRENTE` de `⭐ su acera`, y en la de enfrente dice la
+distancia con sus dos componentes —cuánto es calle y cuánto es calle abajo— en vez de llamarlo hueco.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un requisito sobre lo que lee una persona no se comprueba mirando el
+dato.** «El campo está» y «se ve» son dos afirmaciones distintas, y el barrido más completo del mundo
+sobre la primera deja la segunda sin tocar.
+⚠️ Y la de siempre, que hoy sí funcionó: **ejecutar al consumidor.** No hizo falta nada más.
+
+**Traza:** `src/rutas-antonio.js` (la impresión de sugerencias)

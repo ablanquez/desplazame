@@ -94,7 +94,16 @@ function resolver(texto, indice) {
   if (d.modo === 'sin-numero-cerca') {
     // ⭐ NO SE TIENE, y se sugiere. ⛔ La sugerencia nunca lleva el de enfrente.
     return { estado: 'sin-numero-cerca', consulta: texto, portal: null, nucleo: nu,
-      sugerencias: d.sugerencias.map((s) => ({ n: s.n, acera: s.acera, metros: s.metros, motivo: s.motivo, portal: s.portal })),
+      // ⛔⛔ AQUÍ NO SE VUELVE A COPIAR CAMPO A CAMPO, Y ES UNA MARCHA ATRÁS.
+      //   El nº134 dejó escrito que re-mapear pierde en silencio lo que se añada
+      //   después, y aun así decidí mantener el mapeo explícito «para no exponer
+      //   el portal crudo». Al día siguiente la tanda 34 añadió `enfrente` a la
+      //   sugerencia y **se perdió exactamente igual** (nº137).
+      //   ⇒ la sugerencia la construye `paridad.js` entera y entera se entrega:
+      //     no hay ningún campo suyo que aquí haya que esconder —`portal` se
+      //     expone a propósito, lo necesita quien calcule la ruta— y el mapeo
+      //     solo servía para perder cosas.
+      sugerencias: d.sugerencias.map((s) => ({ ...s })),
       paridad: d.modo, forma: an.forma, aviso: d.aviso };
   }
   return { estado: 'numero-aproximado', consulta: texto, portal: d.portal,
