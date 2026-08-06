@@ -59,8 +59,47 @@
  * ⚠️ Y coincide con el listón de 50 m que la tanda 32 ya publicó por otro camino
  *   («6.380 huecos urbanos desplazan más de 50 m»). Son dos medidas
  *   independientes que caen en la misma magnitud.
+ *
+ * ═════════════════════════════════════════════════════════════════════════════
+ * ⭐⭐ TANDA 34 · SUBE A 100 m, Y NO POR UNA MEDIDA NUEVA
+ * ═════════════════════════════════════════════════════════════════════════════
+ *   La tanda 33 midió el coste de los 50: **62.315 consultas (41,3 % de lo
+ *   pedible) sin respuesta automática**, y publicó el dial entero porque el
+ *   listón caía justo en el acantilado — entre 50 y 100 m las contestadas se
+ *   multiplican por siete (4.562 → 31.411).
+ *   ⇒ **Antonio elige 100.** ⛔ No es un número que salga de un percentil: es una
+ *     decisión sobre cuánto error se acepta a cambio de cuánta cobertura, y ésa
+ *     es suya. El dato que la sostiene está en `docs/H1-PARIDAD.md` §C3.
+ *   ⚠️ Lo que el p90 de 48 m sigue diciendo es que **una respuesta con 100 m de
+ *     cota está por encima de la separación típica entre portales seguidos**: no
+ *     es «el de al lado», es «el de la manzana». Va dicho, no disimulado.
  */
-const RAZONABLE_M = 50;
+const RAZONABLE_M = 100;
+
+/**
+ * ⭐⭐ TANDA 34 · EL RADIO PARA OFRECER LA ACERA DE ENFRENTE.
+ *
+ *   > *«Se puede comunicar con la acera de enfrente si está en un radio de 100
+ *   >  metros, que eso por su lat-lon se puede saber.»*
+ *   > *«Lo puedes subir a 150 metros porque pueden ser avenidas muy anchas.»*
+ *
+ * ⭐ Esto **no rompe la regla de la tanda 33: la afina.** Entonces se dijo *«el de
+ *   enfrente, si se lo das, corremos el riesgo de que no esté ni remotamente
+ *   cerca»* — y con la lat-lon **se puede saber si lo está**. Es exactamente la
+ *   lección del fallo: *la cercanía numérica no es cercanía física, pero la
+ *   física sí se mide.*
+ *
+ * ⚠️ Y que el de enfrente tenga MÁS margen que el propio no es una incoherencia:
+ *   compensa que **cruzar una avenida ancha es poco camino aunque los metros
+ *   digan mucho**.
+ *
+ * ⛔ DESDE DÓNDE SE MIDE ESE RADIO, que es lo que decide si el listón vale:
+ *   **desde el portal que se ofrecería de su propia acera** (el más cercano en
+ *   número). Es la misma distancia que la tanda 32 publicó —*«el par más próximo
+ *   (nº74) a 258 m del nº77 que te da»*— así que los tres informes hablan del
+ *   mismo número. ⇒ en Avenida Cataluña el 77 queda a 258 m del 74 y **no entra**.
+ */
+const ENFRENTE_M = 150;
 
 /** Portales de una paridad para hablar de «hilo». Heredado de la tanda 32. */
 const MIN_HILO = 5;
@@ -197,6 +236,104 @@ function cota(numero, mismos) {
   return { m: Infinity, acota: 'fuera-del-tramo', cand: extremo, pasos };
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA 34 · ¿150 m ES ANCHO O ES DESFASE? — la comprobación que no se salta
+// ═════════════════════════════════════════════════════════════════════════════
+//   Un número de metros **no distingue dos cosas opuestas**:
+//     · ANCHO   — el de enfrente está CRUZANDO la calle. Legítimo: es la misma
+//                 altura de la vía y cruzar es poco camino.
+//     · DESFASE — el de enfrente está CALLE ABAJO. Es el fallo de Avenida
+//                 Cataluña otra vez, con 150 m en vez de 258.
+//
+//   ⇒ Se separan por GEOMETRÍA: se descompone el vector que va del portal propio
+//     al de enfrente en sus dos componentes respecto al EJE DE LA VÍA.
+//
+// ⚠️⚠️ Y EL CRITERIO NO SE CALIBRA CONTRA CASOS CONOCIDOS. Es la ley de ayer
+//   (nº132): *un listón calibrado contra N casos acierta en los N casos; eso no
+//   es una comprobación, es la definición de calibrar.* ⇒ el corte es **45°**,
+//   que es el punto medio geométrico entre «perpendicular» y «calle adelante»:
+//   ancho si la componente TRANSVERSAL manda, desfase si manda la LONGITUDINAL.
+//   ⛔ No se ha mirado ninguna avenida para elegirlo, y la sensibilidad a 30° y
+//     60° va impresa en el informe para que se vea que no está pegado al borde.
+
+/** Corte, en grados, entre «cruzando» y «calle adelante». 45° = punto medio. */
+const ANGULO_ANCHO = 45;
+
+/**
+ * ⭐ EL EJE LOCAL DE LA VÍA, sin tocar el grafo.
+ *
+ * El hilo de una acera **va por la acera**, así que la dirección entre el portal
+ * anterior y el siguiente de la MISMA paridad es la dirección de la calle ahí.
+ * ⛔ No se usa el grafo a propósito: `direccion.resolver()` no lo tiene, y una
+ *   regla que solo se pueda comprobar con el grafo cargado no se comprueba.
+ * ⚠️ `medir-paridad.js` calcula ADEMÁS el eje desde la geometría de la arista y
+ *   compara los dos: dos testigos independientes (ley 60). Si no concordaran,
+ *   esta clasificación no valdría y habría que decirlo.
+ *
+ * @returns {[number,number]|null} unitario, o null si no hay con qué medirlo
+ */
+function ejeLocal(ref, mismos) {
+  const orden = mismos.slice().sort((a, b) => a.n - b.n);
+  const i = orden.findIndex((o) => o === ref);
+  if (i < 0) return null;
+  const a = orden[i - 1] || ref;
+  const b = orden[i + 1] || ref;
+  if (a === b) return null;                        // hilo de un solo portal
+  const v = [b.m[0] - a.m[0], b.m[1] - a.m[1]];
+  const L = Math.hypot(v[0], v[1]);
+  if (L < 1) return null;                          // portales encimados: no dicen nada
+  return [v[0] / L, v[1] / L];
+}
+
+/**
+ * ⭐⭐ Descompone el vector `ref → otro` en LARGO (calle adelante) y ANCHO
+ * (cruzando), con el ángulo respecto al eje.
+ * @returns {{d, largo, ancho, grados, clase}} — clase ∈ 'ancho'|'desfase'|'NO CONSTA'
+ */
+function descomponer(ref, otro, eje) {
+  const v = [otro.m[0] - ref.m[0], otro.m[1] - ref.m[1]];
+  const d = Math.hypot(v[0], v[1]);
+  if (!eje) return { d, largo: null, ancho: null, grados: null, clase: 'NO CONSTA' };
+  const largo = Math.abs(v[0] * eje[0] + v[1] * eje[1]);
+  const ancho = Math.abs(v[0] * eje[1] - v[1] * eje[0]);   // el perpendicular
+  const grados = Math.atan2(ancho, largo) * 180 / Math.PI;
+  return { d, largo, ancho, grados, clase: grados >= ANGULO_ANCHO ? 'ancho' : 'desfase' };
+}
+
+/**
+ * ⭐⭐ LOS CANDIDATOS DE LA ACERA DE ENFRENTE.
+ *
+ * ⛔ Candidato **por número**, aceptado **por metros**: el número es lo que hace
+ *   que ese portal tenga algo que ver con lo que se ha pedido; la distancia es lo
+ *   único que dice si además está donde parece. Ofrecer un impar cualquiera que
+ *   caiga a menos de 150 m sería ofrecer otra dirección distinta.
+ * ⚠️ Se miran los DOS que rodean al número pedido —el anterior y el siguiente de
+ *   la otra paridad—, no solo el más cercano: en un hueco grande el de detrás
+ *   puede estar lejos y el de delante al lado.
+ */
+function deEnfrente(numero, lista, ref, radio = ENFRENTE_M) {
+  if (!ref) return [];
+  const otros = lista.filter((o) => o.n != null && esPar(o.n) !== esPar(numero));
+  if (!otros.length) return [];
+  let ant = null, sig = null;
+  for (const o of otros) {
+    if (o.n <= numero && (!ant || o.n > ant.n)) ant = o;
+    if (o.n >= numero && (!sig || o.n < sig.n)) sig = o;
+  }
+  const eje = ejeLocal(ref, lista.filter((o) => o.n != null && esPar(o.n) === esPar(numero)));
+  const out = [];
+  for (const o of [ant, sig]) {
+    if (!o || out.some((x) => x.portal === o)) continue;
+    const g = descomponer(ref, o, eje);
+    if (g.d > radio) continue;
+    out.push({ portal: o, n: o.n, acera: acera(o.n), enfrente: true,
+      metros: Math.round(g.d), largo: g.largo, ancho: g.ancho, grados: g.grados, clase: g.clase,
+      motivo: 'la acera de ENFRENTE: hay que cruzar' });
+  }
+  // ⭐ el más cerca primero, que es lo que va a ver quien pulse el botón
+  return out.sort((a, b) => a.metros - b.metros);
+}
+
 /**
  * ⭐⭐⭐ LA REGLA. Decide qué contestar a un número que NO existe en la vía.
  *
@@ -240,8 +377,14 @@ function decidir(numero, lista, an) {
         + ` · el ${numero} caería como mucho a ${Math.round(c.m)} m` };
   }
 
-  // ⛔ NO SE TIENE. Se sugiere, y **solo de su acera**: el de enfrente se parece en
-  //   número y no está donde parece — que es exactamente lo que ha engañado hoy.
+  // ⛔ NO SE TIENE. Se sugiere.
+  // ⭐⭐ TANDA 34 · Y LA ACERA DE ENFRENTE VUELVE, PERO MEDIDA. Hasta ayer no se
+  //   ofrecía nunca, porque *«se parece en número y no está donde parece»*. Ahora
+  //   se ofrece **solo si está a menos de `ENFRENTE_M` de verdad**, y va marcada.
+  // ⛔⛔ EL ORDEN NO COMPITE POR DISTANCIA: primero TODAS las de su acera, y solo
+  //   después la de enfrente — **aunque la de enfrente esté más cerca en metros**.
+  //   Cruzar cuesta un semáforo y un rodeo hasta el paso, y eso no está en la
+  //   línea recta entre dos portales.
   // ⭐ A3 · lo que el botón necesita: el número, DE QUÉ ACERA, y a qué distancia.
   // ⚠️ La distancia es ENTRE LAS DOS SUGERENCIAS, y se dice: el número pedido no
   //   tiene sitio, así que no hay ninguna distancia «hasta él» que medir. Lo que
@@ -257,8 +400,12 @@ function decidir(numero, lista, an) {
       const otro = sug.find((x) => x !== s);
       s.metros = otro ? Math.round(dist(s.portal, otro.portal)) : null;
       s.motivo = otro ? 'un extremo del hueco' : 'fuera del tramo numerado: no hay hueco que medir';
+      s.enfrente = false;
     }
   }
+  const enfrente = c ? deEnfrente(numero, lista, c.cand) : [];
+  for (const e of enfrente) sug.push(e);           // ⛔ SIEMPRE detrás. Ver arriba.
+
   let aviso;
   if (c && c.acota === 'hueco') {
     aviso = `el ${numero} no existe · en su acera, la de los ${acera(numero)}, los más cercanos son`
@@ -268,8 +415,14 @@ function decidir(numero, lista, an) {
     aviso = `el ${numero} no existe · en esta vía los ${acera(numero)} ${arranca} ${c.cand.n}`
       + `, ${c.pasos} números más ${c.cand.n > numero ? 'adelante' : 'atrás'}`;
   }
+  if (enfrente.length) {
+    aviso += ` · enfrente tienes el ${enfrente.map((e) => e.n).join(' y el ')}`
+      + ` a ${enfrente.map((e) => e.metros).join(' y ')} m, cruzando`;
+  }
   return { modo: 'sin-numero-cerca', portal: null, sugerencias: sug, cota: c, aviso };
 }
 
-module.exports = { RAZONABLE_M, MIN_HILO, ANG_CORRELATIVA, MIN_TRIOS, FRAC_CORRELATIVA,
-  formaDeVia, analizar, masCercanoEnNumero, cota, decidir, acera, esPar, dist };
+module.exports = { RAZONABLE_M, ENFRENTE_M, MIN_HILO, ANG_CORRELATIVA, MIN_TRIOS,
+  FRAC_CORRELATIVA, ANGULO_ANCHO,
+  formaDeVia, analizar, masCercanoEnNumero, cota, decidir, acera, esPar, dist,
+  ejeLocal, descomponer, deEnfrente };
