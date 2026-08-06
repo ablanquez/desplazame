@@ -6583,3 +6583,267 @@ ruido.** Éste decía la verdad, salía en rojo como debe y no significaba nada 
 que la tanda 31 se dedicó a quitar.
 
 **Traza:** `src/probar-modelo-obligatorio.js` (`CONSUMIDORES`), `src/acera-equivocada.js`
+
+---
+
+## [2026-08-06] — El detector de numeración correlativa pasó los cuatro casos conocidos y se llevó por delante Avenida Pablo Gargallo
+
+**Categoría:** aviso falso
+**Síntoma:** para saber dónde la paridad NO significa acera hice falta un detector de vías con
+numeración correlativa, y lo monté midiendo el ángulo entre `n→n+1` y `n→n+2`: en una calle par/impar
+el `n+1` está enfrente y el `n+2` calle adelante, así que el ángulo tiene que ser grande. Calibré el
+listón contra los cuatro casos que ya se sabían:
+
+```
+   POLÍGONO SAN VALERO                   mediana   0°   correlativa   ✅  (tanda 4)
+   URB. TORRES DE SAN LAMBERTO           mediana  35°   correlativa   ✅  (tanda 4)
+   AVENIDA CATALUÑA                      mediana 167°   par/impar     ✅  (diana de Antonio)
+   AVENIDA MADRID                        mediana 178°   par/impar     ✅  (diana de Antonio)
+```
+
+**Cuatro de cuatro.** Y con ese listón, `Avenida Pablo Gargallo 16` salía así:
+
+```
+   Avenida Pablo Gargallo 16   numero-aproximado   nº15   sin-paridad
+      «en esta vía los números van seguidos, no por aceras · el 16 no existe y te dejo en el 15»
+```
+
+**Pablo Gargallo es una avenida normal de dos aceras**, y el 15 es exactamente la acera de enfrente
+que esta tanda existe para no dar.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **los cuatro casos de control, los
+cuatro en verde.** Dos vías correlativas conocidas dentro y las dos dianas de Antonio fuera. Un
+listón calibrado contra verdad conocida, que es lo que se supone que hay que hacer — y aun así estaba
+mal. ⚠️ Y no había forma de verlo en esa tabla: **el instrumento acertaba en todo lo que se le
+preguntaba.**
+
+**Cómo se cazó:** ⭐ pasándole las catorce direcciones de las siete rutas. Pablo Gargallo 16 es el
+destino de la ruta 1 y salió etiquetado como vía de numeración seguida, que es falso a simple vista.
+
+**Causa raíz:** ⭐⭐ **los ángulos son BIMODALES incluso en las avenidas normales.** Avenida Cataluña
+tiene 12 tríos por debajo de 20° y 16 por encima de 87°; Madrid, 14 y 30. En una vía con las dos
+aceras desfasadas, el `n+1` de enfrente cae unas veces adelante y otras atrás. ⇒ **la mediana de una
+distribución bimodal no dice de qué lado está la vía: dice cuál de los dos montones es más gordo.**
+Pablo Gargallo tenía 9 tríos, 5 de ellos pequeños, y la mediana se fue a 13°.
+
+**Arreglo aplicado:** se deja de mirar la mediana y se mira **la FRACCIÓN de tríos que van calle
+adelante**, que es lo que se quería medir desde el principio; los tríos mínimos suben de 5 a **15**, y
+la fracción exigida es **0,90**. ⭐ Y el corte va alto **a propósito, por la asimetría del daño**:
+declarar correlativa una vía que no lo es repite el fallo original sin cota (258 m en Avenida
+Cataluña), mientras que declarar par/impar una correlativa lo acota el listón de 50 m o se convierte
+en sugerencia. ⇒ ante la duda, paridad, y la duda se declara (`no-verificable`, 58,9 % de las vías).
+⛔ Y el precio va escrito: con 0,90 el método caza Polígono San Valero (0,98) y **NO caza Torres de
+San Lamberto (0,65)**, que era uno de los dos casos conocidos. Sus 51 tríos van de 1° a 180°: la
+numeración está mezclada de verdad. **NO CONSTA** — no se fuerza a mano.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un listón calibrado contra N casos conocidos acierta en los N casos
+conocidos.** Eso no es una comprobación: es la definición de calibrar. La comprobación es el caso
+N+1, y hay que ir a buscarlo — aquí lo trajo el banco de rutas, que es dato de fuera.
+⚠️ Y la segunda: **antes de resumir una distribución por su mediana, mírala.** Una bimodal resumida
+por su centro describe un sitio donde no hay nada.
+
+**Traza:** `src/paridad.js` (`formaDeVia`, `MIN_TRIOS`, `FRAC_CORRELATIVA`)
+
+---
+
+## [2026-08-06] — Metí en la misma fila el error de las respuestas que doy y el de las que rechazo
+
+**Categoría:** medida sin clasificar
+**Síntoma:** la tabla de «cuánto acerca» salió así:
+
+```
+   lo que te alejaba la acera de enfrente (tanda 32)    66877   med 126   p90 171
+   ⭐ EL ERROR QUE QUEDA: el hueco donde puede caer     36963   med  85   p90 248
+```
+
+**Un error residual de 85 m con un listón declarado de 50 m.** Aritméticamente imposible de leer: si
+solo se contesta cuando el hueco mide 50 m o menos, ¿de dónde sale una mediana de 85?
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el `A.exige` del cuadre, que estaba
+puesto y pasó.** La fila de arriba reproducía la tanda 32 clavada —126 m todas, 54 m urbanas frente a
+51— y eso daba por bueno el barrido entero. ⚠️ Un cuadre correcto en la fila de al lado no dice
+absolutamente nada de esta fila.
+
+**Cómo se cazó:** ⭐ por el listón. 85 > 50 es un absurdo aritmético contra un número declarado en el
+propio fichero, y se ve sin depurar nada. **Los listones declarados sirven para esto, no solo para
+decidir.**
+
+**Causa raíz:** metí en el mismo array las consultas que SÍ se contestan —cuyo error está acotado por
+el listón, ≤ 50 m por construcción— y las que se RECHAZAN por hueco grande —cuyo hueco es
+precisamente > 50 m—. **Son dos poblaciones con significados opuestos**: una es «lo que sigue sin
+saberse aun contestando bien» y la otra es «lo que me niego a contestar». Sumadas no son nada.
+
+**Arreglo aplicado:** dos filas separadas, con su nombre: *el error que queda en las que SÍ se
+contestan* (4.562 · mediana 22 m · máx 50) y *el hueco de las que se RECHAZAN* (32.401 · mediana
+85 m). ⭐ Y de paso aparece el número que de verdad hacía falta: el error residual real es de 22 m,
+no de 85.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **si una fila puede contener dos poblaciones separadas por una decisión
+del propio código, ya son dos filas.** Aquí la decisión era literalmente `if (cota <= LISTON)`: el
+código ya las había partido y el informe volvió a juntarlas.
+⚠️ Y la que se repite desde el nº129: **clasificar antes de contar** — con la variante de hoy, que es
+que el criterio de clasificación estaba escrito tres líneas más arriba.
+
+**Traza:** `src/medir-paridad.js` (§C2, `G.resp` y `G.neg`)
+
+---
+
+## [2026-08-06] — Copié la sugerencia campo a campo y se quedó un campo por el camino
+
+**Categoría:** datos
+**Síntoma:** el informe imprimía la sugerencia con un `undefined` pegado:
+
+```
+   ⭐ sugerencia  nº74    acera de los pares    175 m undefined
+   ⭐ sugerencia  nº36    acera de los pares    NO CONSTA la distancia: undefined
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la comprobación que de verdad
+importaba de esa sección**: *«ninguna sugerencia puede ser de la acera de enfrente»* — 5 sugerencias,
+0 de enfrente, ✅. El contenido que decide estaba bien; lo que faltaba era el que explica.
+
+**Cómo se cazó:** ojo humano, leyendo la salida. Nada lo habría cazado solo: un `undefined` impreso no
+rompe nada ni cambia ningún número.
+
+**Causa raíz:** `paridad.js` construye la sugerencia con cuatro campos —`n`, `acera`, `metros` y
+`motivo`— y `direccion.js` la volvía a montar campo a campo para no exponer el portal crudo. Se me
+quedó `motivo` fuera. ⇒ **re-mapear un objeto campo a campo pierde en silencio todo lo que se añada
+después**, y el sitio donde se pierde no es el sitio donde se nota.
+
+**Arreglo aplicado:** se añade `motivo` al mapeo. ⛔ NO se cambia a un `{...s}`: el `portal` crudo se
+expone a propósito y controladamente —lo necesita el cálculo de la ruta con la sugerencia aceptada—,
+y un `spread` metería ahí dentro lo que haya en cada momento.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⚠️ **un `undefined` impreso es el mismo animal que un `⛔` impreso** (ley 44):
+no falla, no cuenta, no sale en ningún código de salida. Se caza leyendo, y por eso hay que leer la
+salida entera al menos una vez — no solo las líneas que uno fue a buscar.
+
+**Traza:** `src/direccion.js` (`resolver`, el mapeo de `sugerencias`)
+
+---
+
+## [2026-08-06] — Cambié el contrato de `resolver()` y reventé un script que llevaba un día escrito
+
+**Categoría:** rompe
+**Síntoma:** la regla de la paridad hace que `direccion.resolver()` pueda devolver `portal: null`
+—«no se tiene, solo sugerencia»—, y eso antes no pasaba nunca cuando la calle existía.
+`src/acera-equivocada.js`, el instrumento de la tanda 32, empieza así:
+
+```js
+const res = D.resolver('Avenida Cataluña 78', ctx.indice);
+const o = res.portal;
+di('⭐⭐ lo que devuelve el geocodificador', `el portal nº${o.n}   …`);
+```
+
+```
+TypeError: Cannot read properties of null (reading 'n')
+    at Object.<anonymous> (src\acera-equivocada.js:170:65)
+```
+
+**Y hay una segunda víctima en el mismo fichero:** §D2 medía la ruta 1 pidiendo `Avenida Cataluña 78`
+y `Avenida Pablo Gargallo 16` —los textos que devolvían el 77 y el 15—, así que su cuadre contra los
+3.086,9 m publicados también se quedaba sin portales.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la batería entera.**
+`node src/probar-paradas.js --todo` ejecutó los 55 scripts de `src/`, uno de ellos se estrelló, y la
+batería terminó con **`⇒ ✅ UN FALLO DETECTADO YA NO PUEDE TERMINAR EN VERDE.` y código 0.**
+⚠️ Y no solo eso: en su propia tabla, la fila del script muerto pone **`código 1  sin fallos  ✅`**.
+
+**Cómo se cazó:** ⭐ leyendo la tabla de la batería fila por fila en vez de mirar el veredicto final.
+`acera-equivocada.js` salía en código 1 y el día anterior salía en 0. Nada me avisó: hubo que
+comparar con lo que uno recordaba.
+
+**Causa raíz:** amplié lo que puede devolver una función —`portal` pasa a poder ser `null`— y busqué
+los consumidores con `grep` de `D.punto` y `.resolver(`. **Los encontré todos**, incluido éste. Lo
+que no hice fue **ejecutarlos**: miré si el `null` estaba tratado en `ruta.js` y `rutas-antonio.js`,
+que eran los que me preocupaban, y di por hecho que un script de auditoría de ayer se defendería
+solo. ⇒ **encontrar al consumidor no es comprobar al consumidor.**
+
+**Arreglo aplicado:** `acera-equivocada.js` mide ahora **las dos cosas y las separa**: qué contesta
+HOY el buscador (`sin-numero-cerca` + sugerencias nº74 / nº84) y, al lado, el nº77 **pedido de forma
+explícita**, que es lo que devolvía cuando se hizo aquella medición.
+⭐ Y el cuadre de §D2 mejora al arreglarse: pasa a pedir `Avenida Cataluña 77` y
+`Avenida Pablo Gargallo 15` en vez de depender de qué conteste el buscador. ⇒ **deja de guardar la
+regla del buscador y pasa a guardar lo que tiene que guardar: el grafo y el enganche.** Los 3.086,9 y
+los 523,4 vuelven a salir clavados, y seguirán saliendo aunque la paridad cambie otra vez.
+⛔ No se ha borrado ni suavizado nada de la tanda 32: los 258 m, el enganche de 1,82 m y los
+−254,8 m siguen imprimiéndose igual.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **ampliar lo que una función puede devolver es romper su contrato,
+aunque no cambie ni una firma ni un nombre.** «Ahora esto puede ser null» es un cambio incompatible,
+y la lista de consumidores es el principio del trabajo, no el final: **hay que ejecutarlos.**
+⚠️ Y la segunda, que es la que se lleva la tanda: **un instrumento de auditoría es código de
+producción.** Mide una verdad histórica y tiene que seguir midiéndola; cuando el mundo se mueve
+debajo, el arreglo es **medir las dos cosas y decir cuál es cuál**, no actualizarlo al presente y
+perder el punto de comparación.
+
+**Traza:** `src/acera-equivocada.js` (§A, §D, §D2), `src/direccion.js` (`resolver`)
+
+---
+
+## [2026-08-06] — La batería recorre los 55 scripts, uno se estrella, y sale en verde
+
+**Categoría:** silencio falso
+**Síntoma:** con `acera-equivocada.js` muerto de un `TypeError`, la batería completa dio esto:
+
+```
+   acera-equivocada.js       código 1       sin fallos     ✅
+   …
+   ⇒ ✅ UN FALLO DETECTADO YA NO PUEDE TERMINAR EN VERDE.
+```
+
+**Código de salida 0.** Un script que ni siquiera llegó a la mitad de su informe, marcado con un ✅.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **P1, P2 y P3 —los tres casos que la
+batería provoca a propósito— pasaron los tres**, incluido el caso real de la ruta del casco que
+estuvo rota dos tandas. La parte de la batería que se diseñó con cuidado funciona; el agujero está en
+la que barre.
+
+**Cómo se cazó:** por la fila de al lado. El código 1 de un script que ayer salía en 0 llamaba la
+atención; el `✅` de esa misma fila, más.
+
+**Causa raíz:** ⭐⭐ **el invariante está escrito en UNA sola dirección**:
+
+```js
+const ok = !declara || r.status !== 0;      // «un fallo declarado no puede salir en 0»
+```
+
+Es exactamente lo que dice hacer, y está bien. Pero **un script que se estrella no declara nada**:
+`declara` es `false`, la condición se cumple sola y el `✅` no significa «ha ido bien», significa «no
+ha dicho que fuera mal». ⇒ **la batería no comprueba que los scripts terminen: comprueba que los que
+se quejan no salgan en verde.** Son dos cosas distintas y llevaban treinta y tres tandas pareciendo
+la misma.
+
+**Arreglo aplicado:** se añade la marca de morirse. Node imprime su epílogo (`Node.js vXX`) tras una
+excepción no capturada, y eso es específico de «se ha muerto», no de «ha salido en 1» —que puede ser
+legítimo: `ruta.js` sin argumentos sale en 2 a propósito—.
+⚠️ Y solo cuenta si el script **no declara nada**: `A.imposible()` también revienta, pero ésa es la
+forma correcta de morirse y deja su marca escrita. ⇒ `mudoYMuerto = revienta && !declara`.
+⭐ Su rojo se ha visto antes de arreglar nada, con los tres casos al lado:
+
+```
+   acera-equivocada.js       codigo 1    ESTRELLA  ⛔ SE ESTRELLA SIN DECIR NADA
+   auditoria-guardianes.js   codigo 1    DECLARA   ✅      (declara fallo a propósito)
+   paridad.js                codigo 0    sin fallo ✅
+```
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **«no ha dicho que vaya mal» no es «va bien».** Un barrido cuyo criterio
+es una implicación —*si se queja, que no salga en 0*— da por bueno todo lo que se calla, y morirse es
+la forma más completa de callarse.
+⚠️ Y la de la casa, otra vez y en su forma más limpia: **un guardián no está hecho hasta que se ha
+visto su rojo.** El de la batería se había visto para P1, P2 y P3 —los tres provocados— y **nunca
+para P4**, que es el que barre 55 ficheros. P4 nació en `e264d90` (2026-08-03, *«un fallo detectado
+ya no puede terminar en verde»*) y **su rojo no se había provocado ni una vez** desde entonces:
+`git log -S"EL INVARIANTE SOBRE TODO" -- src/probar-paradas.js` devuelve ese único commit.
+
+**Traza:** `src/probar-paradas.js` (P4, `revienta` / `mudoYMuerto`)

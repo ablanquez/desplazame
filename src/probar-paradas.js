@@ -127,11 +127,24 @@ if (process.argv.includes('--todo')) {
     const r = spawnSync(process.execPath, [path.join(__dirname, f)], { encoding: 'utf8', timeout: 900000 });
     const salida = (r.stdout || '') + (r.stderr || '');
     const declara = salida.includes(A.MARCA_FALLO) || salida.includes(A.MARCA_IMPOSIBLE);
-    const ok = !declara || r.status !== 0;
+    // ⛔⛔ TANDA 33 · EL AGUJERO QUE TENÍA ESTE INVARIANTE, Y CÓMO SE VIO.
+    //   La condición era `!declara || status !== 0`: *«un fallo declarado no puede
+    //   salir en 0»*. Es **una sola dirección**. ⇒ un script que se ESTRELLA no
+    //   declara nada, sale en 1, y la condición lo da por bueno.
+    //   Pasó de verdad: al cambiar el contrato de `direccion.resolver()` —el portal
+    //   puede venir a null—, `acera-equivocada.js` reventó con un `TypeError`, y
+    //   **la batería recorrió los 55 scripts y terminó en ✅ código 0**.
+    // ⭐ La marca: Node imprime su epílogo (`Node.js vXX`) tras una excepción no
+    //   capturada. Es específica de «se ha muerto», no de «ha salido en 1».
+    // ⚠️ Y solo cuenta si NO declara nada: `A.imposible()` también revienta, pero
+    //   ésa es la forma correcta de morirse y deja su marca escrita.
+    const revienta = /\nNode\.js v\d/.test(r.stderr || '');
+    const mudoYMuerto = revienta && !declara;
+    const ok = (!declara || r.status !== 0) && !mudoYMuerto;
     if (!ok) todo = false;
     L.push('   ' + f.padEnd(26) + 'código ' + String(r.status).padEnd(8)
-      + (declara ? 'DECLARA FALLO  ' : 'sin fallos     ')
-      + (ok ? '✅' : '⛔ DECLARA UN FALLO Y SALE EN 0'));
+      + (declara ? 'DECLARA FALLO  ' : revienta ? '⛔ SE ESTRELLA  ' : 'sin fallos     ')
+      + (ok ? '✅' : mudoYMuerto ? '⛔ SE ESTRELLA SIN DECIR NADA' : '⛔ DECLARA UN FALLO Y SALE EN 0'));
   }
 } else {
   L.push('');
