@@ -8357,3 +8357,39 @@ que escribir primero lo que NO sabe hacer. ⚠️ Y el aviso: **una frase que es
 de los casos se lee como cierta para todos** — la proporción no es cuantificador.
 
 **Traza:** `README.md`, sección *Cómo ejecutarlo* · `src/verificar-datos.js`, campo `consulta`
+
+---
+
+## [2026-08-07] — Comprobé las 30 cifras del README y los comandos, y no miré cómo se VE
+
+**Categoría:** publicado sin comprobar
+**Síntoma:** al añadir el aviso sobre qué direcciones entiende el buscador dejé una valla de código
+de más. `README.md` quedó con **nueve** ```` ``` ````, impar: **todo lo que va debajo del bloque de
+comandos se renderizaba como código**, incluidas las cuatro secciones finales y la licencia.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la auditoría completa de la
+portada, hecha esta misma tarde.** Las 30 cifras contrastadas una a una contra su fuente; el comando
+de ejemplo ejecutado antes de escribirlo; la promesa de las consultas ajustada al instrumento tras
+provocarle el rojo. **Tres pasadas de verificación sobre el mismo fichero, y ninguna lo miró
+RENDERIZADO.** ⚠️ Y en texto plano no se ve: las vallas están a 45 líneas de distancia y cada una,
+por separado, parece correcta.
+
+**Cómo se cazó:** por el aviso del editor al releer el fichero entero, no por ninguna comprobación
+mía.
+
+**Causa raíz:** ⭐⭐ **verifiqué el CONTENIDO de un documento y no su FORMA, porque las herramientas
+que tengo miden contenido.** Puedo contar cifras, ejecutar comandos y comparar salidas; «se ve bien»
+no tiene comando en este repositorio. ⇒ **una propiedad sin instrumento no es que salga mal: es que
+no se mira**, y es la misma forma del fallo de la atribución de OSM (entrada anterior) — el
+repositorio vigila la clase de afirmación que sabe comprobar.
+
+**Arreglo aplicado:** quitada la valla huérfana. El comando que lo caza —y que no existía— es
+`grep -c '^```' README.md`: **tiene que dar un número par.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un documento de cara afuera se verifica también por su forma, y la
+forma tiene comando.** Contar delimitadores es tan barato como contar cifras, y nadie lo hacía
+porque «se ve bien» suena a impresión y no a medida.
+
+**Traza:** `README.md`

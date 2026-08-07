@@ -111,7 +111,6 @@ node src/exportar-rutas.js && start tools/visor-rutas.html    # verlas sobre el 
 ⚠️ **El buscador entiende `Calle X 17`, no `Plaza del Pilar`.** Resuelve **portales del callejero
 municipal** —vía + número— y una lista corta de sitios con nombre; un topónimo suelto no. Si no lo
 resuelve te lo dice, pero ⛔ **sale en código 0 igualmente**: está anotado como fallo pendiente.
-```
 
 ## Qué se sabe de las fuentes
 
