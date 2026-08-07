@@ -7395,3 +7395,168 @@ ocurrido.
 primero no es el dato: es el instrumento que lo produjo.**
 
 **Traza:** instrumento desechable `b2b4.js --rojo` (fuera de `src/`)
+
+---
+
+## [2026-08-07] — La cosecha de productores se tragó los números que las contrapruebas rompen a propósito
+
+**Categoría:** dato envenenado
+**Síntoma:** para saber qué números **produce hoy** el repositorio se ejecutaron los 66 scripts de
+`src/` y se guardó su salida. `numeros-congelados.js` imprime esto en su parte B:
+
+```
+   ⛔ mapa.azules: se publicó 51.493 y ahora sale 56.801  (+5308)
+   ⛔ mapa.grises: se publicó 11.168 y ahora sale 0       (-11.168)
+   ⛔ mapa.rojas:  se publicó 32.310 y ahora sale 38.145  (+5835)
+   …
+   ⇒ ✅ LA CONTRAPRUEBA: sin fallos. (código de salida 0)
+```
+
+Son valores **rotos a propósito** por la mutación. Y estaban entrando en el diccionario con el que
+se decide si una cifra publicada tiene productor.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el productor más fiable del
+proyecto, diciendo que estaba sano.** Tres líneas más abajo de los números envenenados,
+`numeros-congelados.js` firma *«NÚMEROS CONGELADOS: sin fallos»*, *«roturas CAZADAS 2 de 2 ✅»* y
+**código de salida 0**. Y los contadores de la cosecha —66 ejecutados, 47 con salida, repositorio
+sin tocar— también en verde. **Nada de lo que había que mirar estaba en rojo.**
+
+**Cómo se cazó:** leyendo la salida de `numeros-congelados.js` **antes** de usarla, porque era el
+productor del que dependía el control de semilla del mapa.
+
+**Causa raíz:** en este proyecto **la mitad de los instrumentos terminan rompiendo algo a propósito
+y publicando el número roto** — es la ley 62 hecha código. Un cosechador que lee «lo que imprime un
+instrumento» y no distingue *lo que mide* de *lo que rompe para enseñar el rojo* recoge las dos
+cosas. ⇒ **La salida de un instrumento con contraprueba no es un dato: es un dato y su negación,
+mezclados en el mismo flujo.**
+
+**Arreglo aplicado:** filtro por línea sobre las que anuncian una rotura (`se publicó … y ahora
+sale`, `al plantarla`, `2 km al este`, `mutado`, `desplazado`). Daño real medido: **1 afirmación**.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **la salida de un instrumento honesto contiene, por diseño, números
+que son falsos.** Cuanto mejor es la contraprueba, más basura publica el script — y el código 0 no
+distingue. ⚠️ En un proyecto que exige el rojo visto, **cosechar salidas es cosechar rojos
+provocados**.
+
+**Traza:** instrumento desechable `b2-cosecha.js` → `b2-mapa.js` (fuera de `src/`)
+
+---
+
+## [2026-08-07] — El arreglo del veneno hizo cien veces más daño que el veneno, y el daño iba a publicarse como hallazgo
+
+**Categoría:** hallazgo falso
+**Síntoma:** con el corte puesto, el daño del envenenamiento anterior salió medido así:
+
+```
+   R con el diccionario envenenado   452
+   R con el diccionario cortado      344
+   ⇒ desaparecen                     108      ← el 24 % de la clase
+```
+
+**108 afirmaciones que solo tenían productor gracias a una rotura deliberada.** Iba al informe con
+ese número y con esa frase.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el corte hizo exactamente lo que
+se le pidió y lo dijo:** *«salidas cortadas por anunciar una rotura: 20 · líneas tiradas 2.449»*, con
+la lista de las veinte. **El instrumento declaraba su propio efecto y el efecto parecía razonable.**
+Y la dirección era la conservadora —el corte solo puede encoger `R`—, que es justo el argumento con
+el que uno se autoriza a no mirar.
+
+**Cómo se cazó:** ⭐ **por la muestra de las 108**, no por el número. Al leerlas aparecieron `3.644
+tramos`, `6.500 km`, `493 polígonos`, `21,3 %` — cifras que no tienen nada que ver con una rotura.
+Y al mirar dónde cortaba: `src/donde-falta.js:1`, `src/modelo-rutas.js:1`, `src/asignar-bici.js:1`.
+
+**Causa raíz:** el corte era «desde que la salida anuncia una contraprueba **hasta el final**», y en
+**este** proyecto **la contraprueba va DELANTE**: `donde-falta.js` titula la suya *«A0 · ⛔⛔ LA
+CONTRAPRUEBA QUE VA ANTES QUE NINGÚN NÚMERO»*. El corte empezaba en la línea 1 y **se llevaba la
+salida entera de tres productores**. Rehecho por línea, el veneno cuesta **1 afirmación**; las otras
+**107 las produjo el parche**.
+
+**Arreglo aplicado:** filtro por línea en vez de corte por sección.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **la medida del daño de un fallo se toma con el arreglo puesto, y el
+arreglo es un instrumento nuevo que nadie ha verificado.** Un «esto costaba 108» calculado con un
+parche recién escrito **mide el parche**. ⚠️ Y la forma concreta: **importar la convención de otro
+sitio** —«las contrapruebas van al final»— cuando este repositorio hace lo contrario **y lo dice en
+el título**.
+
+**Traza:** instrumento desechable `b2-mapa.js` / `b2-veneno.js` (fuera de `src/`)
+
+---
+
+## [2026-08-07] — «Cita de fuente ajena» acertaba 5 de 14: en este proyecto OSM es el objeto de la medida, no la fuente
+
+**Categoría:** aviso falso
+**Síntoma:** el mapa clasificaba **86 cifras** como PROSA con el criterio *«la línea menciona una
+fuente ajena cerca del número»* (OSM, WFS, Overpass, IDEZar, Ayuntamiento). Era la clase P más
+grande con diferencia.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el orden de las clases estaba bien
+puesto y demostrado.** `R` se evalúa **antes** que `P`, así que ninguna cifra con productor podía
+caer en P — y eso se comprobó y era cierto. La defensa estaba construida contra el error que **no**
+ocurrió.
+
+**Cómo se cazó:** ⭐ muestra sistemática de 14 filas, una de cada 6. Nueve estaban mal: *«`univoca`
+coincide con OSM el **34,4 %**»*, *«**6,27 km** SOLO EN OSM»*, *«de las **313 líneas** de andar con
+carril bici municipal encima»*. **Todas son medidas NUESTRAS sobre datos de OSM.**
+
+**Causa raíz:** el criterio medía **el vocabulario de la frase**, no la naturaleza del número. En un
+proyecto cuyo grafo *es* OSM, mencionar OSM no dice nada de quién produjo la cifra. ⇒ Es el censo v1
+otra vez, en pequeño: una clase que crece con lo que el clasificador no entiende.
+
+**Arreglo aplicado:** el criterio **se retira entero**. Las 86 vuelven a `?`, que es lo honesto: no
+sé si tienen productor. ⛔ No se sustituye por otro más fino — no supe escribirlo.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un criterio que mira las palabras de alrededor mide el estilo de
+quien escribe, no la cosa que quiere clasificar.** ⚠️ Y el síntoma barato, otra vez: **era la clase
+más grande de las que llevaban criterio.**
+
+**Traza:** instrumento desechable `b2-mapa.js` (fuera de `src/`)
+
+---
+
+## [2026-08-07] — La clase FOTO suspendió tres muestras seguidas y se declaró fallida, no arreglada
+
+**Categoría:** aviso falso
+**Síntoma:** el mapa tenía que separar las afirmaciones cuyo dato **ya no existe** (mediciones de
+una tanda intermedia) de las demás. Tres versiones, tres muestras sistemáticas, tres suspensos:
+
+```
+   v1 · la marca en cualquier parte de la línea      3 mal de 12
+   v2 · la marca pegada al número (±44 caracteres)   7 mal de 12
+   v3 · solo marcas explícitas (caducado, pasó de)   9 mal de 10
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el tamaño de la clase parecía
+sensato en las tres versiones** —103, 68 y 10 sobre 2.062—, y bajaba al apretar el criterio, que es
+lo que uno espera ver cuando va por buen camino. **La curva era la correcta y el contenido no.**
+
+**Cómo se cazó:** leyendo las diez de la v3 una a una. *«paso de peatones»* casa con «pasó de».
+*«Caduca 05/10/2026»* mete el `05` y el `10` como afirmaciones caducadas. De diez, **una** era una
+foto de verdad.
+
+**Causa raíz:** en castellano `antes` es espacial (*«además está mucho antes»*, calle arriba) y
+metodológico (*«antes de leer ninguno»*) además de temporal; `era` casa en *«el grafo decía
+unido»*, donde el pasado es del grafo y no del número; y `anterior` casa en
+*«`H1-PRIMER-GRAFO.md:43`»*, que es una **línea**. ⇒ **la marca temporal de una frase no dice de qué
+parte de la frase es.**
+
+**Arreglo aplicado:** ⛔ **ninguno.** La clase se publica con tamaño **1** —el único caso verificado
+a mano— y se declara que **no supe construir el criterio**. Todo lo demás que pudiera ser foto está
+en `?`.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una clase que no pasa su propia muestra se declara fallida, no se
+afina hasta que salga bonita.** Tres intentos y tres suspensos son el resultado; el cuarto intento
+solo habría sido el primero que no se muestreó. ⚠️ Y el aviso de método: **`?` con su tamaño dicho
+vale más que una clase con nombre y sin sustancia** — porque `?` se puede volver a mirar y una clase
+falsa ya está contada.
+
+**Traza:** instrumento desechable `b2-mapa.js` / `b2-valida-mapa.js` (fuera de `src/`)
