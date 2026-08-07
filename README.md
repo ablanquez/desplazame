@@ -34,7 +34,7 @@ cuando leas esto serán otras. **Manda el comando, no el número.**
 | Direcciones que el buscador puede pedir | 51.065 | `node src/numeros-congelados.js` |
 | Rutas de cordura que se ejecutan en cada cambio | 7, y **una no debe resolverse** — es el control | `node src/modelo-rutas.js` |
 | Código | 71 ficheros · 25.574 líneas | `ls src/*.js \| wc -l` · `cat src/*.js \| wc -l` |
-| Entradas de bitácora | 166 | `grep -c '^## \[' docs/BITACORA.md` |
+| Entradas de bitácora | 167 | `grep -c '^## \[' docs/BITACORA.md` |
 | Informes | 40 | `ls docs/*.md \| wc -l` |
 
 ⚠️ **Las siete rutas no se publican aquí a propósito.** Sus metros viven en el instrumento que las
