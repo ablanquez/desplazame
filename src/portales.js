@@ -28,15 +28,40 @@
 //   el terreno, lo verifica.
 //
 // ⛔ NO se copia el geocodificador heredado. Se usa como referencia y se escribe
-//    éste (ley del trasplante). Los portales se leen DONDE ESTÁN, no se copian.
+//    éste (ley del trasplante).
 
 'use strict';
 const fs = require('fs');
 const path = require('path');
 const { aMetros, dist } = require('./geo');
 
-const RUTA_PORTALES = 'E:/PROYECTOS WEB/01 ZGZ RADAR REACT/data/generated/territorio/callejero/ayuntamiento-zaragoza/portales-zaragoza.json';
-const RUTA_VIAS = 'E:/PROYECTOS WEB/01 ZGZ RADAR REACT/data/generated/territorio/callejero/ayuntamiento-zaragoza/vias-zaragoza.json';
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA DE ARREGLOS 2 · DE DÓNDE SE LEE EL CALLEJERO
+// ═════════════════════════════════════════════════════════════════════════════
+//   Hasta hoy estas dos constantes eran rutas absolutas a
+//   `E:/PROYECTOS WEB/01 ZGZ RADAR REACT/…`, con la decisión escrita al lado:
+//   *«los portales se leen DONDE ESTÁN, no se copian»*.
+//
+//   ⭐ Esa decisión era CIERTA para quien trabaja en esa máquina y FALSA para
+//     todos los demás. 29 ficheros de `src/` requieren este módulo ⇒ **un clon no
+//     construía el grafo ni resolvía una dirección**, y nada lo decía. Es la ley
+//     81 del estado —*un repositorio público que solo corre en la máquina de
+//     quien lo escribió no es público*— aplicada a su propio caso.
+//
+//   ⚠️ Y lo que se descubre al mover esto, que tampoco estaba escrito en ningún
+//     sitio: **el dato NO lo descarga 004. Lo GENERA OTRO PROYECTO** (ZGZ RADAR
+//     REACT) a partir del WFS de Urbanismo del Ayuntamiento. La procedencia
+//     entera —licencia, capas, sello, y por qué los metadatos de origen NO
+//     describen estos ficheros— está en
+//     `data/fuentes/2026-05-13_zgzradar_callejero_procedencia.txt`.
+//
+// ⛔ `data/fuentes/` sigue GITIGNOREADA: el dato no viaja en el repositorio, y
+//    eso es deliberado (frescura, no licencia). Lo que cambia es que ahora el
+//    hueco tiene un sitio y un nombre, y `src/verificar-datos.js` dice si está.
+const RUTA_PORTALES = path.join(__dirname, '..', 'data', 'fuentes',
+  '2026-05-13_zgzradar_callejero-portales-zaragoza.json');
+const RUTA_VIAS = path.join(__dirname, '..', 'data', 'fuentes',
+  '2026-05-13_zgzradar_callejero-vias-zaragoza.json');
 
 // ── normalización de nombres de vía ──────────────────────────────────────────
 // El callejero municipal dice `CALLE DEL COSO`; OSM dice `Calle del Coso`. Y a
@@ -127,7 +152,7 @@ function numeroPedible(n) {
   return (Number.isFinite(n) && n > 0 && n < TECHO_PEDIBLE) ? n : null;
 }
 
-/** Los 46.150 portales, proyectados a metros. ⛔ Se leen donde están; no se copian.
+/** Los 46.150 portales, proyectados a metros. Se leen de `data/fuentes/`.
  *
  * ⭐⭐⭐ TANDA DE ARREGLOS 1 · EL CENTINELA SE APAGA **AQUÍ**, NO EN UNA COPIA.
  *   La tanda 35 lo apagó en `direccion.construirIndice`, que trabaja sobre una

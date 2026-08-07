@@ -7938,3 +7938,52 @@ detector encuentra lo que ya sabías; no comprueba nada sobre lo que no sabías.
 falta barrer una parcela pequeña con criterio ancho y contar la diferencia.
 
 **Traza:** instrumento desechable `t1-hermanos.js` (fuera de `src/`) · `src/sin-vigilancia.js`
+
+---
+
+## [2026-08-07] — Medí la dependencia del disco `E:` y creí haber medido el agujero del clon
+
+**Categoría:** medida corta
+**Síntoma:** el bloque B de la auditoría publicó *«49 de los 70 ficheros de `src/` (70 %) no pueden
+correr en un clon»*, con los 21 restantes clasificados como *«librerías que reciben la ruta por
+parámetro»*. El número salía de seguir la cadena de `require` hasta `portales.js:38-39`, las dos
+rutas absolutas a `E:/PROYECTOS WEB/01 ZGZ RADAR REACT/…`.
+
+**El número era correcto y la conclusión era corta.** Un clon no se queda sin dos ficheros: se
+queda **sin ninguno**. `data/fuentes/` está gitignoreada entera —37 MB de OSM, 12 MB de edificios,
+la jerarquía viaria, las zonas verdes—, así que los 21 «que sí podrían» tampoco tienen de dónde
+leer. Medido hoy con `git ls-files data`: **0 de los 34 ficheros de `data/fuentes/` viajan.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **absolutamente todo, durante 36
+tandas.** `probar-paradas.js --todo` recorriendo los 57 scripts con el invariante cumplido; los
+**26 números congelados** cuadrando uno a uno con su rojo visto; **las siete rutas al decimal**; los
+cuatro visores. Nada de eso puede detectar el fallo, y no por descuido: **todos se ejecutan en la
+máquina donde el dato está.** Un guardián que solo corre donde el fallo no ocurre es un guardián que
+nunca lo verá.
+
+**Cómo se cazó:** por una pregunta del encargo que no era la mía —*«¿qué le falta a alguien que
+acaba de clonar?»*— en vez de la que yo me hice, que era *«¿qué rutas absolutas hay?»*.
+
+**Causa raíz:** ⭐⭐ **busqué por el mecanismo que ya conocía.** Tenía las dos rutas absolutas
+señaladas por el bloque A y medí su alcance. Nadie mide el alcance de lo que no ha señalado, y
+`data/fuentes/` no estaba señalada porque **no es un fallo: es una decisión correcta** (dato de
+producción, se refresca, versionarlo lo pudre). ⇒ **un agujero puede estar hecho de dos piezas y
+que solo una sea un error.** La pieza correcta me hizo invisible el tamaño real del hueco.
+
+**Arreglo aplicado:** las dos rutas pasan a `path.join(__dirname, '..', 'data', 'fuentes', …)` y los
+dos ficheros del callejero se copian ahí con su procedencia escrita —⚠️ **la genera OTRO PROYECTO**,
+y eso tampoco estaba escrito en ningún sitio—. `data/fuentes/` sigue gitignoreada: **el arreglo no
+hace que un clon funcione; hace que pueda funcionar en cuanto tenga el dato, y que sepa cuál.** El
+guardián nuevo es `auditoria-grafo.js` §A2, con su rojo visto (2 rutas, `portales.js:38-39`) y sus
+dos controles: un cebo que sí caza y las trampas conocidas (`https://`, una ruta dentro de un
+comentario) que no marca.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una batería que solo se ejecuta donde el fallo no ocurre no es una
+red: es una costumbre.** ⚠️ Y la práctica: **medir el alcance de lo señalado no es medir el
+agujero.** Antes de publicar un «X de N no pueden», hay que preguntarse qué tendrían que tener los
+que sí pueden.
+
+**Traza:** `src/portales.js:38-39` · `src/auditoria-grafo.js` §A2 ·
+`data/fuentes/2026-05-13_zgzradar_callejero_procedencia.txt`

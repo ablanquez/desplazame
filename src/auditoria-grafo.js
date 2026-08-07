@@ -67,7 +67,16 @@ const MARCA = 'PROVOCACIÓN';
  *    regla (ley 40): el siguiente fichero que hable de código volvería a saltar.
  *    La regla es **mirar solo lo que se ejecuta**.
  */
-function soloCodigo(s) {
+// ⭐⭐ TANDA DE ARREGLOS 2 · UN SOLO ESCÁNER, DOS USOS.
+//   §A2 necesita lo CONTRARIO que §A1: buscar dentro de las cadenas, sin que los
+//   comentarios cuenten. Escribir un segundo recorredor habría sido copiar la
+//   regla en vez de llamar a la función (ley 56) — y con un escáner de comentarios
+//   y comillas, copiar significa que un día uno de los dos aprende a leer
+//   plantillas y el otro no. ⇒ un `enmascarar(s, tapaCadenas)`, y las dos vistas
+//   salen de él.
+// ⚠️ `soloCodigo` conserva su nombre y su comportamiento EXACTO: es lo que usa el
+//    rojo de §A1, que lleva funcionando desde la tanda 12 y no se toca.
+function enmascarar(s, tapaCadenas) {
   let out = '', i = 0;
   const hueco = (t) => t.replace(/[^\n]/g, ' ');
   while (i < s.length) {
@@ -77,11 +86,16 @@ function soloCodigo(s) {
     if (c === '"' || c === "'" || c === '`') {
       let j = i + 1;
       while (j < s.length && s[j] !== c) { if (s[j] === '\\') j++; j++; }
-      out += hueco(s.slice(i, j + 1)); i = j + 1; continue;
+      out += tapaCadenas ? hueco(s.slice(i, j + 1)) : s.slice(i, j + 1); i = j + 1; continue;
     }
     out += c; i++;
   }
   return out;
+}
+
+/** El código sin comentarios y sin cadenas. Lo que usa §A1. */
+function soloCodigo(s) {
+  return enmascarar(s, true);
 }
 
 function analizar(nombre) {
@@ -196,5 +210,72 @@ for (const s of saltanLaPuerta) {
 L.push('');
 L.push(rojo ? '   ⇒ ⛔ ROJO: alguien puede mirar el grafo equivocado en silencio.'
   : '   ⇒ ✅ VERDE: todo grafo nace de una zona escrita a la vista.');
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// A2 · ⭐⭐ ¿PUEDE ESTE `src/` RESOLVER SUS DATOS DESDE OTRA RAÍZ?
+// ═══════════════════════════════════════════════════════════════════════════════
+//   Es la misma clase de fallo que §A1 y por eso vive aquí: **una decisión que
+//   nadie ve.** Allí era un parámetro por defecto; aquí, una ruta absoluta al
+//   disco de quien lo escribió. Ninguna de las dos falla en esa máquina — las dos
+//   fallan en todas las demás.
+//
+//   ⚠️ El caso: `portales.js` leía los 46.150 portales de
+//   `E:/PROYECTOS WEB/01 ZGZ RADAR REACT/…`, el dato **generado por otro
+//   proyecto**. 29 ficheros de `src/` requieren `portales.js`. ⇒ un clon no
+//   construía el grafo ni resolvía una dirección, y nada lo decía.
+//
+// ⭐ EL CRITERIO, y es POSITIVO: **un literal de cadena que empieza por letra de
+//    unidad** (`'E:/…'`, `"C:\…"`). No «contiene dos puntos y una barra» —eso
+//    caza `https://` y `file://`, que salen 25 veces en comentarios y en URLs de
+//    servicio y ninguna es una ruta.
+// ⚠️ Y por eso se mira `sinComentarios` y no el texto bruto: el bruto trae
+//    `probar-modelo-obligatorio.js:61`, que **habla** de `--require "C:\Users\…"`
+//    dentro de un comentario. Hablar de una ruta no es leer de ella.
+// ⛔ Esto NO comprueba que el fichero exista: comprueba que la ruta se pueda
+//    resolver desde el repositorio. Que el dato ESTÉ lo dice `verificar-datos.js`.
+const RE_ABSOLUTA = /(['"`])[A-Za-z]:[\\/]/;
+const sinComentarios = (s) => enmascarar(s, false);
+
+L.push('');
+L.push('='.repeat(104));
+L.push('A2 · ⭐⭐ ¿PUEDE ESTE `src/` RESOLVER SUS DATOS DESDE OTRA RAÍZ?');
+L.push('   criterio: un literal de cadena que EMPIEZA por letra de unidad, mirado sin comentarios.');
+L.push('');
+
+const absolutas = [];
+for (const f of FICHEROS) {
+  const bruto = fs.readFileSync(path.join(DIR, f), 'utf8');
+  sinComentarios(bruto).split('\n').forEach((L2, i) => {
+    if (RE_ABSOLUTA.test(L2)) absolutas.push({ f, linea: i + 1, txt: L2.trim().slice(0, 72) });
+  });
+}
+
+// ⭐⭐ EL POSITIVO DE CONTROL DEL CERO, y va ANTES del cero (regla del proyecto:
+//    un cero es indistinguible de un buscador roto). Se le da al MISMO detector
+//    un texto que sí tiene una ruta absoluta, y otro que tiene las trampas
+//    conocidas —`https://`, y una ruta absoluta dentro de un comentario—.
+{
+  const CEBO = "const R = 'E:/PROYECTOS WEB/x.json';\n";
+  const TRAMPAS = "// mira C:\\Users\\x\nconst u = 'https://idezar-sig.zaragoza.es/wfs';\nconst v = './data/x.json';\n";
+  const pica = RE_ABSOLUTA.test(sinComentarios(CEBO));
+  const falso = sinComentarios(TRAMPAS).split('\n').some((x) => RE_ABSOLUTA.test(x));
+  L.push('   ⭐ control POSITIVO: sobre un cebo con ruta absoluta   '
+    + (pica ? '✅ la caza' : '⛔ NO la caza — el cero de abajo no probaría nada'));
+  L.push('   ⭐ control NEGATIVO: URL de servicio y ruta en comentario '
+    + (falso ? '⛔ las marca, y no debería' : '✅ no las marca'));
+  if (!pica || falso) { rojo = true; L.push('   ⛔ EL DETECTOR NO VALE: lo de abajo no significa nada.'); }
+}
+
+L.push('');
+if (absolutas.length) {
+  L.push('   ⛔ rutas absolutas encontradas                 ' + absolutas.length);
+  for (const a of absolutas) L.push('      ' + (a.f + ':' + a.linea).padEnd(28) + a.txt);
+  L.push('   ⇒ ⛔ ROJO: quien clone este repositorio no puede ejecutar lo que dependa de esas rutas.');
+  rojo = true;
+} else {
+  L.push('   ✅ ninguna ruta absoluta: los ' + FICHEROS.length + ' ficheros resuelven desde `__dirname`.');
+  L.push('   ⇒ ✅ VERDE: este `src/` se puede ejecutar desde cualquier raíz.');
+}
+
 console.log(L.join('\n'));
 if (rojo) process.exit(1);
