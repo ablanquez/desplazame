@@ -163,6 +163,33 @@ if (require.main === module) {
   log('A · ⭐⭐ EL CASO CONCRETO — Avenida Cataluña 78, que es donde Antonio lo vio');
   log('='.repeat(112));
   const ps = P.cargarPortales();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⭐⭐⭐ A·V1 · EL CENTINELA TIENE QUE VENIR APAGADO DE ORIGEN
+  // ═══════════════════════════════════════════════════════════════════════════
+  //   La tanda 35 apagó el centinela 99999 en `direccion.construirIndice`, que
+  //   trabaja **sobre una copia**. Este fichero lee `cargarPortales()` en crudo y
+  //   hace `o.n % 2` — y 99999 es impar. ⇒ midió **150.947 / 123.132 / 66.973 /
+  //   126 m** donde el dato limpio da otra cosa, y la batería salía en verde
+  //   porque sus invariantes son estructurales (`> 0`, `=== 2`), no de valor.
+  //
+  //   ⛔ Este guardián NO copia la regla: se la pregunta a `P.numeroPedible`, que
+  //     es donde vive (ley 56). Si alguien vuelve a devolver el centinela crudo,
+  //     esto lo para AQUÍ, que es donde duele.
+  {
+    const crudos = ps.filter((o) => o.n != null && P.numeroPedible(o.n) !== o.n);
+    // ⭐ POSITIVO DE CONTROL, y sin él el cero de arriba no prueba nada (regla 2
+    //   de CLAUDE.md): un cero es indistinguible de una lista vacía.
+    A.exige(ps.length > 46000,
+      `cargarPortales() ha devuelto ${ps.length} portales: el cero de abajo no probaría nada`);
+    A.exige(ps.filter((o) => o.sinNumero).length === 117,
+      `los portales SIN número pedible salen ${ps.filter((o) => o.sinNumero).length} y no 117: `
+      + 'o el centinela no se está apagando, o el callejero ha cambiado');
+    A.exige(crudos.length === 0,
+      `cargarPortales() devuelve ${crudos.length} portales con el centinela SIN apagar `
+      + `(el primero, nº${(crudos[0] || {}).n}): este fichero hace \`o.n % 2\` y los cuenta como impares`);
+  }
+
   {
     const res = D.resolver('Avenida Cataluña 78', ctx.indice);
     // ⚠️⚠️ TANDA 33 · LO QUE ESTE BLOQUE MIDE YA NO ES LO QUE CONTESTA EL BUSCADOR.

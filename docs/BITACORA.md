@@ -7651,3 +7651,56 @@ qué entra en un censo es el sitio donde se pierde lo que nunca se contará** �
 sale en ninguna clase, y el reparto de abajo sigue sumando 100 %.
 
 **Traza:** instrumento desechable `c1-diseno.js` (fuera de `src/`)
+
+---
+
+## [2026-08-07] — El centinela se apagó sobre una copia, y cuatro tandas midieron el triple de universo
+
+**Categoría:** dato envenenado
+**Síntoma:** la tanda 35 apagó el centinela `99999` en `direccion.construirIndice`. Esa función
+trabaja **sobre una copia**: `cargarPortales()` seguía devolviendo 117 portales con `n = 99999`.
+`acera-equivocada.js` los lee en crudo y hace `o.n % 2` —99999 es impar—, así que publicaba:
+
+```
+   números que se pueden pedir      150947        con el centinela dentro
+   …que son HUECO                   123132
+   ⭐ …los que CAMBIAN DE ACERA       66973        desplazamiento mediano 126 m
+```
+
+Limpio: **50.986 · 23.172 · 16.993 · 73 m.** El 66 % del denominador no existía.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la batería entera, en cada
+`--todo`, ejecutando este mismo fichero.** Salida `✅ código 0`, y los **13 `A.exige`** del propio
+`acera-equivocada.js` también: son estructurales —`conDos > 0`, `dianaCv.size === 2`,
+`decidibles > 0`— y **ninguno mira un valor**. ⭐ Y `direccion.js` llevaba escrito *«EL CENTINELA SE
+APAGA AQUÍ, y solo aquí»*, que es verdad y por eso engaña: apagarlo en un sitio no es apagarlo.
+
+**Cómo se cazó:** la auditoría del bloque A, ejecutando `cargarPortales()` e interceptándola —no
+leyéndola—. El fallo no se ve en el código: **se ve en lo que devuelve.**
+
+**Causa raíz:** ⭐⭐ **la limpieza se aplicó en el CONSUMIDOR y no en el PRODUCTOR.**
+`construirIndice` hace `{ ...o, n: null }` — una copia. Todo el que no pase por el índice recibe el
+dato sucio. Y los que pasan por él (`medir-paridad`, `medir-listones`, `numeros-congelados`)
+estaban limpios, lo cual **hacía el fallo invisible desde el lado más mirado del proyecto**.
+
+**Arreglo aplicado:** `cargarPortales()` marca en origen —`n: null`, `sinNumero: true`,
+`numeroCrudo`—, que es **la forma exacta que `direccion.js:36` ya definía**. ⛔ Se MARCA, no se
+excluye: dos vías enteras (`URBANIZACIÓN ALAMEDA`, `PARQUE ROMA`) son solo portales así y
+excluirlas las borraría del buscador. Y en `acera-equivocada.js` queda el guardián que lo para,
+**preguntándole la regla a `P.numeroPedible`** en vez de copiarla (ley 56), con su positivo de
+control al lado: 46.150 portales y 117 marcados.
+
+⭐⭐ **Rojo visto antes de arreglar:** `⛔ cargarPortales() devuelve 117 portales con el centinela SIN
+apagar (el primero, nº99999)`. Y verde después, con el resto de la batería sin moverse.
+
+⭐⭐⭐ **Y la confirmación que vale más que el arreglo:** el bloque A, el 6 de agosto y con otro
+método, **predijo que `informe-portales.js` pasaría de `16,9×` a `21,3× el azar`**. Hoy, con el
+centinela apagado, da **21,3×** exacto.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una limpieza aplicada sobre una copia no es una limpieza: es una
+segunda versión del dato.** Y el síntoma es traicionero — **el camino más vigilado del proyecto es
+justo el que va por la copia limpia**, así que cuanto más se mira, menos se ve.
+
+**Traza:** `src/portales.js` · `src/acera-equivocada.js` · registro `A-CODIGO-2026-08-06.md` §V1

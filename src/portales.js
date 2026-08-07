@@ -110,18 +110,45 @@ function numeroPedible(n) {
   return (Number.isFinite(n) && n > 0 && n < CENTINELA) ? n : null;
 }
 
-/** Los 46.150 portales, proyectados a metros. ⛔ Se leen donde están; no se copian. */
+/** Los 46.150 portales, proyectados a metros. ⛔ Se leen donde están; no se copian.
+ *
+ * ⭐⭐⭐ TANDA DE ARREGLOS 1 · EL CENTINELA SE APAGA **AQUÍ**, NO EN UNA COPIA.
+ *   La tanda 35 lo apagó en `direccion.construirIndice`, que trabaja sobre una
+ *   copia. Esta función seguía devolviendo `n = 99999`, y **el que la lee en
+ *   crudo hace `o.n % 2` y se lleva 117 impares inventados**: así midió
+ *   `acera-equivocada.js` **150.947 / 123.132 / 66.973 / 126 m** durante cuatro
+ *   tandas, con la batería en verde (sus invariantes son de forma, no de valor).
+ *
+ *   ⛔ SE MARCA, NO SE EXCLUYE, y no es una elección de estilo:
+ *     · el bloque de arriba lo prohíbe — `URBANIZACIÓN ALAMEDA` (38 portales) y
+ *       `URBANIZACIÓN PARQUE ROMA` (43) son **solo** portales así, y quitarlos
+ *       las borraría del buscador;
+ *     · `direccion.js:36` **ya define esta forma exacta** desde la tanda 35. Esto
+ *       no inventa un contrato: mueve el que ya existía de la copia al origen.
+ *   ⭐ Y la marca deja el número crudo a la vista (`numeroCrudo`), porque «BL0» es
+ *     un dato, no un hueco: quien quiera enseñarlo puede.
+ *
+ *   ⚠️ `direccion.construirIndice` sigue llamando a `numeroPedible` y **debe
+ *     seguir haciéndolo**: es idempotente sobre lo ya marcado, y es lo que
+ *     protege el día que alguien construya un índice desde otra fuente.
+ */
 function cargarPortales(ruta = RUTA_PORTALES) {
   const d = JSON.parse(fs.readFileSync(ruta, 'utf8'));
-  return d.map((p) => ({
-    id: p.portalId,
-    codigoVia: String(p.codigoVia),
-    numero: p.numero,
-    n: Number(p.sortNumber),
-    lat: p.coordLat,
-    lon: p.coordLon,
-    m: aMetros(p.coordLon, p.coordLat),
-  }));
+  return d.map((p) => {
+    const bruto = Number(p.sortNumber);
+    const n = numeroPedible(bruto);
+    const o = {
+      id: p.portalId,
+      codigoVia: String(p.codigoVia),
+      numero: p.numero,
+      n,
+      lat: p.coordLat,
+      lon: p.coordLon,
+      m: aMetros(p.coordLon, p.coordLat),
+    };
+    if (n === null) { o.sinNumero = true; o.numeroCrudo = p.numero; }
+    return o;
+  });
 }
 
 /** Las 3.359 vías del callejero municipal, indexadas por `codigoVia`. */
