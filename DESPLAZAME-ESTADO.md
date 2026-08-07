@@ -42,16 +42,21 @@
 
 | | | |
 |---|---|---|
-| **A · El código** | ✅ **HECHO** | `docs/auditoriafinal/A-CODIGO-2026-08-06.md` — **cinco hallazgos vivos** (§10) |
-| **B · La documentación contra el dato de hoy** | ⬜ **SIGUIENTE** | Cada afirmación publicada de los 41 documentos de `docs/`, contrastada |
-| **C · Las decisiones y los ejes de verificación** | ⬜ pendiente | |
+| **A · El código** | ✅ **HECHO** | `A-CODIGO-2026-08-06.md` — 4 vivos + D5 ascendido |
+| **B · La documentación** | ✅ **HECHO** | `B-DOCUMENTACION-2026-08-07.md` — 3 vivos · 13 superados · 5 deudas |
+| **B.2 · El contraste** | ✅ **HECHO** | `B2-CONTRASTE-2026-08-07.md` — **el mapa de las 2.062, entero**; 3 vivos · 10 superados · la cosecha. ⛔ **Contrastadas 38 (1,8 %)**: recorrer no se puede, contrastar `R` es circular |
+| **C · Las decisiones y los ejes** | ✅ **HECHO** | `C-DECISIONES-2026-08-07.md` — ⛔⛔ **retiró `B·V1`, un rojo falso publicado** · el reparto del diseño · **la tabla de los ejes** · la cobertura de toda la auditoría |
+| ⭐ **La lista de arreglos, entera** | ⬜ **SIGUIENTE** | **Diez vivos** + la batería + los diez congelados propuestos. **Se decide aquí, sin ejecutor** |
 
 ⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
 decide al final de los tres bloques, entera.**
 
-⭐ **Y el bloque A dejó la frase que resume el estado del repositorio:**
+⭐ **Y las tres frases que resumen lo que llevan dicho los cuatro bloques:**
 > **La clase de fallo dominante aquí no es el código roto: es la medida que se corrigió en el
-> informe y no en el instrumento.**
+> informe y no en el instrumento.** *(A)*
+> **La cadena de documentos es navegable solo en la dirección en la que nadie la lee.** *(B)*
+> ⭐⭐⭐ **Ninguno de los cuatro bloques ha comprobado que la ruta que sale sea la ruta correcta.**
+> *(C — y no lo abre esta auditoría: lo hereda)*
 
 **Falta decidir:** el alcance v1 del buscador · la lista de **candidatos aparcados** (§10), que no
 se toca hasta que H1 cierre.
@@ -783,12 +788,14 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 84 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 93 VECES
 
-**Cuarenta tandas y una auditoría. Ochenta y cuatro instrumentos mintiendo** — los 33 primeros,
+**Cuarenta tandas y cuatro de auditoría. Noventa y tres instrumentos mintiendo** — los 33 primeros,
 sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los cuatro últimos (81-84) los produjo la propia auditoría de cierre**, y tres de ellos se
-cazaron **porque el instrumento llevaba dentro un contador o un control**.
+⚠️ **Los trece últimos (81-93) los produjo la propia auditoría de cierre**, y casi todos se cazaron
+**porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
+escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
+decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 
 | # | Qué mintió |
 |---|---|
@@ -863,7 +870,7 @@ cazaron **porque el instrumento llevaba dentro un contador o un control**.
 | 69 | ⚠️ **`codigo=0` LEÍDO CUANDO EL SCRIPT SALÍA EN 1**: `$?` era el de `tail`. *El instrumento con el que compruebo también es un instrumento* |
 | 70 | ⚠️ **UN CERO PICA MENOS CUANDO CONFIRMA ALGO INTERESANTE.** «0 avisos de bici» buscando *«bicicleta»* cuando el texto dice *«bicis»*: eran 5 |
 | 71 | ⭐⭐⭐ **EL BUSCADOR MANDABA A LA ACERA DE ENFRENTE Y NINGUNA SALVAGUARDA PODÍA VERLO.** Se pidió `Avenida Cataluña 78`, **el 78 no existe**, y cayó al **77** —la otra acera— con **el par más próximo a 258 m**. ⛔⛔ **Los tres testigos son ESTRUCTURALMENTE CIEGOS al lado**: las dos aceras tienen el mismo nombre y el mismo `codigoVia`, así que los tres dicen *«correcto»*. ⭐ **Y todos los porcentajes publicados —99,6 % · 97,0 % · 93,4 %— miden identidad de CALLE, no de acera.** Lo vio Antonio a ojo en el primer sitio que miró |
-| 72 | ⭐⭐⭐ **EL CENTINELA 99999.** 117 portales con número crudo `BL0`/`A1` inflaban el universo de consultas de **51.028 a 151.026** — el triple. ⛔ Y lo grave: **dos cuadres entre tandas estaban en VERDE sobre el mismo artefacto** *(el barrido reproducía a la 32 con <0,1 % de diferencia y el dial de la 33 predijo 31.411 y salieron 31.411 clavadas)*. **Lo cazó una mediana redonda, no una comprobación** |
+| 72 | ⭐⭐⭐ **EL CENTINELA 99999.** 117 portales con número crudo `BL0`/`A1` inflaban el universo de consultas **a 150.947** — el triple. ⚠️ **Y los dos números que esta ficha publicó antes —«de 51.028 a 151.026»— NO eran ninguno el bueno**: el 51.028 excluía la vía entera. Limpio son **51.065**. ⛔ Y lo grave: **dos cuadres entre tandas estaban en VERDE sobre el mismo artefacto** *(el barrido reproducía a la 32 con <0,1 % de diferencia y el dial de la 33 predijo 31.411 y salieron 31.411 clavadas)*. **Lo cazó una mediana redonda, no una comprobación** |
 | 73 | ⭐⭐⭐ **EL ACANTILADO QUE JUSTIFICÓ UNA DECISIÓN ERA EL ARTEFACTO.** El listón se subió de 50 a 100 m porque *«entre 50 y 100 las contestadas se multiplican por siete»*. **Limpio, el salto es ×1,4.** ⇒ **La decisión se tomó sobre un número inflado** |
 | 74 | ⭐⭐ **LOS 150 m DE «ENFRENTE» ERAN DESFASE, NO ANCHO.** Solo el **24,4 %** era de verdad cruzar la calle. *La avenida más ancha de Zaragoza tiene 80 m de mediana: 150 es casi el doble de la más ancha que existe* |
 | 75 | ⭐⭐⭐ **CUATRO NÚMEROS PUBLICADOS QUE NO REPRODUCE NINGUNA VERSIÓN DEL REPOSITORIO** (nº144). El comentario del código decía unos, el documento publicó otros, **en el mismo commit y con el mismo bucle**. Sobrevivieron tres tandas porque **ningún guardián los comparaba con nada** |
@@ -876,6 +883,15 @@ cazaron **porque el instrumento llevaba dentro un contador o un control**.
 | 82 | ⭐⭐⭐ **UNA PRECARGA QUE ENVOLVIÓ UNA COPIA DEL MÓDULO QUE NADIE USABA.** Requirió `f:/…/portales.js` y el script requiere `F:\…\portales.js`: **dos entradas distintas en la caché de módulos de Node por la caja de una letra.** ⭐ Lo cazó **su propio contador diciendo «interceptado 0 veces»**. *Es el nº64 repetido por el ejecutor, hoy, sabiéndoselo* |
 | 83 | ⚠️ **`CENTINELA = 9999` MIENTRAS EL CENTINELA ES `99999`.** El nombre dice «el valor centinela» y el valor es un listón por debajo; toda la documentación —y el comentario tres líneas más arriba— dice 99999. **`A.exige(maxN < P.CENTINELA)` compara contra el número equivocado.** ⭐ Hoy no muerde **y está medido**: cero portales caen en la franja |
 | 84 | ⭐⭐ **UN VEREDICTO QUE ERAN CINCO CADENAS LITERALES.** `orden-numeros.js` **corre los controles arriba y luego los re-declara como texto fijo** en la sección «LO QUE NO HACE», que es justo la que lee un humano. **Si un control cambiara de resultado, el resumen seguiría diciendo lo mismo** |
+| 85 | ⚠️ **UN CENSO QUE LLAMÓ «AFIRMACIÓN» AL RESIDUO.** El v1 del bloque B clasificó **10.192 de 19.906** tokens como afirmación **porque era la clase de lo que no encajaba en las otras siete**. ⭐ Lo tumbó **una muestra sistemática de 32 filas**: casi todas eran celdas de tablas de resultado. *Un denominador inflado ×5 que se habría publicado como cobertura* |
+| 86 | ⚠️ **CINCO «EL DOCUMENTO NO LO CONTIENE» QUE ERAN DEL INSTRUMENTO.** `(4562).toLocaleString('es-ES')` devuelve **`4562` sin punto** —`Intl` **no agrupa cuatro cifras**— y los informes escriben `4.562`. ⭐⭐ Acertaba en **20 de 26**: todos los de cinco y seis cifras. ⇒ *cuando se busca un dato «como se escribe», hay que buscarlo como lo escribe QUIEN LO ESCRIBIÓ* |
+| 87 | ⭐⭐⭐ **UNA CONTRAPRUEBA QUE IBA A FIRMAR UN «26 DE 26» CON EL ROJO NUNCA VISTO.** Cazaba **1 rojo de 6** — y **el método estaba bien**: la rotura sustituía **solo la primera aparición** del número, y en estos informes el mismo dato sale tres veces. ⛔⛔ **La columna VERDE salía impecable mientras el fallo estaba vivo**: es la séptima forma de mentir. ⭐ **Lo paró la costura del encargo, no el criterio del auditor** |
+| 88 | ⛔⛔ **UNA COSECHA QUE SE TRAGÓ LOS NÚMEROS QUE LAS CONTRAPRUEBAS ROMPEN A PROPÓSITO.** Al ejecutar los 66 scripts para saber qué imprime el repositorio, entraron al diccionario los valores rotos adrede — *«mapa.grises: se publicó 11.168 y ahora sale 0»* — y el script firmaba **`✅ sin fallos, código 0`**. ⭐⭐⭐ **El productor más fiable del proyecto alimentando basura**, y todos sus contadores en verde |
+| 89 | ⛔⛔⛔ **Y EL ARREGLO HIZO CIEN VECES MÁS DAÑO QUE EL VENENO — Y EL DAÑO IBA A PUBLICARSE COMO HALLAZGO.** El parche cortaba *«desde que la salida anuncia una contraprueba»*, **y en este proyecto la contraprueba va DELANTE**: empezaba en la línea 1 de tres productores. **Medido así, el veneno costaba 108 afirmaciones; el daño real era 1.** Las otras **107 las produjo el parche** |
+| 90 | ⚠️ **LA CLASE «CITA DE FUENTE AJENA» ACERTABA 5 DE 14.** Saltaba si la línea nombraba OSM o el WFS cerca del número — pero ⭐ **en este proyecto OSM es el OBJETO de casi toda medición, no la fuente de la cifra.** Medía el vocabulario de la frase, no la naturaleza del número: **el censo v1 otra vez.** Retirada entera |
+| 91 | ⚠️ **LA CLASE «FOTO» ACERTÓ 1 DE 10 Y SE DECLARÓ FALLIDA, no arreglada.** Tres versiones, tres muestras, tres suspensos: *«paso de peatones»* casa con *«pasó de»*, *«mucho antes»* es espacial y *«Caduca 05/10/2026»* mete el `05` y el `10` como cifras caducadas. ⭐ **Se publica con tamaño 1 y todo lo demás vuelve a `?`** |
+| 92 | ⛔⛔ **LA CLASE «DESCRIBE» DABA 32 Y ERAN CERO.** Leídas 15 a mano: **20 de las 32 eran mediciones** del 2 de agosto y el resto reglas propuestas o el índice del documento. ⭐⭐⭐ **Y la ley 35 lo había predicho por escrito ANTES de mirar:** *«en castellano una regla PROPUESTA se escribe en presente de indicativo igual que una implementada»*. **El modo verbal no separa lo propuesto de lo implementado** |
+| 93 | ⚠️ **UN CLASIFICADOR QUE EXIGÍA VERBO CONJUGADO Y NO VEÍA SU PROPIA SEMILLA.** La v1 no encontraba §P6.2 porque esa línea es **un sintagma nominal** *(«fichero versionado en el repositorio, leído por el proceso en cada regeneración»)*. ⭐ **Un diseño enuncia sus reglas sin conjugar nada** — y eso ya era un dato del bloque |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1127,6 +1143,58 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     330 son `NO CONSTA` estructural — comprobarlas exigiría reconstruir treinta y seis tandas.*
     ⇒ **No es dejadez: es que un comentario no tiene guardián posible.** Lo que sostiene una
     decisión, se congela; lo demás se escribe sabiendo que envejece.
+85. ⭐⭐⭐ **UNA CONTRAPRUEBA QUE FALLA PUEDE ESTAR ACUSANDO AL DETECTOR CUANDO LA CULPABLE ES LA
+    ROTURA.** *El método cazaba 1 de 6 y el método estaba bien: la mutación sustituía solo la
+    primera aparición del número.* ⇒ **Antes de concluir «mi método no caza», comprobar que la
+    rotura ocurrió DEL TODO.** ⚠️ Es el nº117 con una vuelta de tuerca peor: allí las mutaciones no
+    llegaron a ocurrir; aquí **ocurrieron incompletas, que deja marca de haber ocurrido.**
+86. ⭐⭐⭐ **LA CONVENCIÓN «SE AÑADE, NO SE REESCRIBE» CREA PUNTEROS SOLO HACIA ATRÁS.** *40 citas
+    hacia atrás, 0 hacia delante en los documentos que un congelado declara superados.*
+    ⇒ **La cadena es navegable solo en la dirección en la que nadie la lee.** El arreglo no es
+    corregir los números: es que **republicar OBLIGUE a dejar la nota en el documento superado.**
+    ⭐ *Una ley escrita no protege; protege el mecanismo.*
+87. ⭐⭐⭐ **LA VERDAD DE UN DOCUMENTO ES UNA FOTO, NO UNA PROPIEDAD.** *`RAZONABLE_M = 50 m` fue
+    cierto en la 33, falso en la 34 y la 35, y cierto otra vez en la 36 — **sin que nadie lo
+    tocara**.* ⇒ *«el documento dice la verdad» es una afirmación sobre CUÁNDO se mira*, y **nada
+    en el repositorio registra que estuvo mintiendo.**
+88. ⚠️ **CUANDO SE BUSCA UN DATO «COMO SE ESCRIBE», HAY QUE BUSCARLO COMO LO ESCRIBE QUIEN LO
+    ESCRIBIÓ**, no como lo escribiría la librería. *`Intl` no agrupa cuatro cifras y la prosa de
+    este repositorio sí: cinco hallazgos falsos.*
+89. ⭐⭐ **UN SESGO NO SE VE EN UN CASO: SE VE EN EL SIGNO DE TODOS.** *El 16,9×, la capa del README
+    y el acantilado del listón fallan los tres **en la dirección que favorece a la tesis**.* Un
+    error aislado es ruido; tres con el mismo signo son **quien escribe.**
+90. ⭐⭐⭐ **LA MEDIDA DEL DAÑO DE UN FALLO SE TOMA CON EL ARREGLO PUESTO — Y EL ARREGLO ES UN
+    INSTRUMENTO NUEVO QUE NADIE HA VERIFICADO.** *«El envenenamiento costaba 108» calculado con un
+    parche recién escrito **medía el parche**: el daño real era 1 y las otras 107 las fabricó el
+    remedio.* ⇒ **La cifra del daño se audita como se audita cualquier otra.**
+91. ⭐⭐⭐ **UN VERDE FALSO LO CAZA EL SIGUIENTE QUE MIRE; UN ROJO FALSO PUBLICADO NO LO CAZA NADIE.**
+    *Porque a un hallazgo nadie lo audita: entra en el registro, entra en el estado y en tres tandas
+    es un hecho del proyecto.* ⇒ **Un instrumento que inventa fallos es más peligroso que uno que
+    los tapa**, y los 87 anteriores mentían todos en verde.
+92. ⭐⭐ **CONTRASTAR UNA CLASE DEFINIDA POR COINCIDENCIA ES CIRCULAR.** *Una cifra es `R` **porque**
+    su valor coincide con lo que imprime un productor; preguntarle después «¿cuadra?» devuelve «sí»
+    siempre.* ⇒ **Las divergencias no salen de recorrer lo que casa: salen de buscar al revés**, en
+    lo que NO casa pero comparte vocabulario.
+93. ⭐⭐⭐ **UN CENSO MIDE LO QUE EL PROYECTO SUBRAYA, NO LO QUE AFIRMA — Y LO QUE MÁS SE PROTEGE ES
+    JUSTO LO QUE MENOS SE SUBRAYA.** *El censo v2 deja fuera 12 de los 26 congelados: viven en
+    celdas de tabla sin negrita. Un número entra en `numeros-congelados.js` porque es importante,
+    no porque esté destacado.* ⇒ **Todo denominador se declara por lo que realmente mide.**
+94. ⭐⭐⭐ **ANTES DE AUDITAR UN DOCUMENTO HAY QUE PREGUNTARLE QUÉ ES — Y SUELE DECIRLO EN SU PRIMERA
+    PÁGINA.** *Dos lectores clasificaron cuatro documentos razonando sobre su contenido, con
+    «Estado: propuesta para aprobar. Nada de esto está construido» en la tercera línea del primero.*
+    ⇒ **Clasificar por el contenido teniendo la declaración de estado delante sin leerla es el mismo
+    fallo que la auditoría estaba denunciando en otros.**
+95. ⭐⭐⭐ **UN EJE QUE GRITA LO QUE LE PASA NO ES EL PELIGROSO.** *La ruta nº7 avisa en su documento,
+    avisa en el comentario del código de al lado, y la columna que decide es inmune. La batería no
+    avisa de nada: cuelga todo de ella y su único fallo conocido fue **no ver nada**.*
+    ⇒ **El riesgo se mide por carga partido por vigilancia, no por fragilidad aparente.**
+96. ⭐⭐⭐ **UNA ESCALA DERIVADA DE LA MAGNITUD QUE VALIDA NO PUEDE INVALIDARLA.** *Las bandas de
+    distancia salieron de los 6 km/h, así que **una ruta comparada con su banda no puede fallar por
+    una calibración mala: banda y ruta se mueven juntas**.* Es la ley 92 vestida de otra cosa —
+    y **no estaba escrita en ninguna parte** aunque el documento sí marcaba las bandas como
+    derivadas.
+97. ⚠️ **UN DISEÑO ENUNCIA SUS REGLAS SIN CONJUGAR NADA.** *Un clasificador que exige verbo pierde
+    los sintagmas nominales, que en un documento de diseño son la mitad de las reglas.*
 
 ---
 
@@ -1403,8 +1471,15 @@ criterio se llevaría por delante hasta 1.661 líneas que **sí tienen nombre**,
 ⇒ **El verde es color, no definición.**
 
 ### 29 — ¿Qué comprobación ha visto su rojo? (5/08) · ⭐⭐ la tanda más incómoda
-**De 198 comprobaciones censadas, solo 6 tenían el rojo visto.** **182 líneas imprimen `⛔`/`✅` y
-no paran nada.**
+**De 198 comprobaciones censadas, solo 6 tenían el rojo visto.** **182 líneas imprimían `⛔`/`✅` y
+no paraban nada.**
+⚠️ **El 182 es de la tanda 29 y NO es la cifra de hoy: su propio instrumento
+(`auditoria-guardianes.js` §A1b) da 232** (`B2·V3`, 7/08). ⭐ **Y con eso se cierra un `NO CONSTA`
+del bloque A**, que no había podido reproducirlo porque buscó con otro instrumento.
+⛔ **Tres números distintos rondan esta misma pregunta y NO se mezclan:** **198** *comprobaciones*
+censadas (tanda 29) · **182 → 232** *líneas que imprimen un veredicto sin alarma cerca*
+(`auditoria-guardianes.js`) · **297** en 37 scripts, que significa *«37 scripts no se pueden leer
+por su código de salida»*, **no «297 fallos»** (bloque A, otro instrumento).
 ⛔ Y encontró **un número publicado sin nada que lo proteja** y **un guardián que nunca pudo hacer
 lo que decía**.
 ⭐⭐ **Y la séptima forma de mentir** (§8·61), que es la peor: *distinguir los extremos y no el
@@ -1527,16 +1602,271 @@ hora y a esa distancia el coche es lo razonable.
 
 ### ⛔ HALLAZGOS VIVOS DE LA AUDITORÍA — sin arreglar, se deciden al cerrar los tres bloques
 
-⭐ **Registro:** `docs/auditoriafinal/A-CODIGO-2026-08-06.md`. ⛔ **No se reescribe nunca** — lo que
-Antonio reclasifique después vive aquí, no allí.
+⭐ **Registro:** `docs/auditoriafinal/A-CODIGO-2026-08-06.md` y `B-DOCUMENTACION-2026-08-07.md`.
+⛔ **No se reescriben nunca** — lo que Antonio reclasifique después vive aquí, no allí.
+⚠️ **Y la numeración manda desde el registro:** este documento la había renumerado y **se ha
+corregido el 7/08.** *(Fue exactamente la clase de fallo que el bloque B audita.)*
 
 | # | qué | dónde |
 |---|---|---|
-| **V1** | ⛔⛔ **El README dice que todavía no hay código** —ni una línea de aplicación—, con 24.931 líneas y un motor funcionando. **Y dos frases más:** *«no hay código que pueda fallar»* (144 entradas de bitácora) y *«no contiene ningún dato integrado»* (46.150 portales). ⭐ **No es registro histórico: es la puerta, y ahí sí se reescribe** | `README.md` |
-| **V2** | ⛔⛔ **El centinela 99999 se apagó en el informe, no en el instrumento.** Sigue imprimiendo los cuatro números que la tanda 35 declaró falsos, **y la batería sale en verde** | `acera-equivocada.js` |
-| **V3** | ⛔⛔ **Dos medidas del mismo universo divergen hoy** (50.986 vs 51.065): `codigoVia` contra núcleo de vía. **El congelado vigila uno de los dos** | `acera-equivocada.js` / `medir-paridad.js` |
-| **V4** | ⛔ **Un número publicado infravalorado**: el *«16,9× el azar»* es **21,3×** limpio | `H1-PORTALES.md` §323 |
-| ⭐ **V5** | ⛔⛔ **UN CLON DEL REPOSITORIO PÚBLICO NO PUEDE EJECUTAR NI UN SCRIPT** — dos rutas absolutas a `E:/PROYECTOS WEB/…`. *(El bloque A lo anotó como deuda D5; **Antonio lo sube a VIVO el 6/08**: es el mismo animal que el README — el repositorio es la carta de presentación y no funciona para quien la lee.)* | `portales.js:38-39` |
+| **A·V1** | ⛔⛔ **El centinela 99999 se apagó en el informe, no en el instrumento.** Sigue imprimiendo los cuatro números que la tanda 35 declaró falsos, **y la batería sale en verde** | `acera-equivocada.js` |
+| **A·V2** | ⛔⛔ **Dos medidas del mismo universo divergen hoy** (50.986 vs 51.065): `codigoVia` contra núcleo de vía. **El congelado vigila uno de los dos** | `acera-equivocada.js` / `medir-paridad.js` |
+| **A·V3** | ⛔ **Un número publicado infravalorado**: el *«16,9× el azar»* es **21,3×** limpio | `H1-PORTALES.md` §323 |
+| **A·V4** | ⛔⛔ **El README dice que todavía no hay código** —ni una línea de aplicación—, con 24.931 líneas y un motor funcionando. **Y dos frases más:** *«no hay código que pueda fallar»* (144 entradas de bitácora) y *«no contiene ningún dato integrado»* (46.150 portales). ⭐ **No es registro histórico: es la puerta, y ahí sí se reescribe** | `README.md` |
+| ⭐ **A·D5** | ⛔⛔ **UN CLON DEL REPOSITORIO PÚBLICO NO PUEDE EJECUTAR NI UN SCRIPT** — dos rutas absolutas a `E:/PROYECTOS WEB/…`. *(El registro de A lo anotó como **deuda D5**; **Antonio lo sube a VIVO el 6/08**.)* ⭐⭐ **Y el bloque B lo midió: 49 de los 70 ficheros de `src/` (70 %) no pueden correr en un clon**, y los 21 restantes son librerías que reciben la ruta por parámetro ⇒ **un clon no construye el grafo ni resuelve una dirección** | `portales.js:38-39` |
+| **B·V2** | ⛔ **El README atribuye a una capa lo que está repartido en tres.** Dice que `MU1_jerarquia_viaria` trae 3.644 tramos **con código de vía**: 3.644 es `tn-ro:RoadLink` y no tiene ninguno de los tres atributos; la capa nombrada tiene 3.453 y tampoco trae código; el código solo está en `urbanismo:Vias` (3.359). ⭐ **La conclusión sigue siendo cierta; la evidencia con que se justifica, no** | `README.md:32-34` |
+| **B·V3** | ⛔⛔ **Lo que el README promete no es verdad en un clon**, y **no lo menciona en ninguna línea**. ⭐ **Y lo afilado: los 48 comandos `node …` citados existen los 48.** No falta el fichero — está y no puede correr: el lector copia el comando y recibe un `ENOENT` sobre un disco que no es suyo | `README.md` |
+| ⭐⭐ **B2·V1** | ⛔⛔ **EL DENOMINADOR APROBADO DEJA FUERA 12 DE LOS 26 CONGELADOS.** Aparecen **31 veces en `docs/` y ninguna marcada**; el control positivo (98.774 · 4.562) sale marcado 7 y 11 veces. Viven en celdas de tabla sin negrita. ⇒ **El censo v2 mide lo que el proyecto SUBRAYA, no lo que AFIRMA**, y con ello **toda cobertura declarada sobre 2.062** — en B y en B.2. ⛔ Propuesta del ejecutor: **no ampliar el censo** (el v1 ya enseñó adónde lleva) sino **declararlo por lo que es** y decir que su intersección con los congelados es de 13 | la definición de trabajo del bloque B |
+| **B2·V2** | ⛔ **Un script recita un número que él mismo acaba de desmentir.** Línea 77 mide **412,7×**; línea 192 imprime **«400× el azar»** dentro del veredicto. ⭐ **El documento copió el bueno: el que miente es el script.** Es el nº144 con vuelta de tuerca — **vive en una cadena que se imprime, así que no parece un comentario: parece un resultado.** Sostiene el veredicto E7 de `H1-CIERRE.md` §433 | `sin-vigilancia.js:77/192` |
+| **B2·V3** | ⛔ **El «182 líneas decorativas» es de la tanda 29; hoy su instrumento da 232**, con siete tandas de código por medio — y este documento lo citaba en presente *(corregido el 7/08)*. ⭐⭐ **Cierra un `NO CONSTA` del bloque A**: el productor es `auditoria-guardianes.js` §A1b | `H1-AUDITORIA-GUARDIANES.md:20` |
+
+### ⛔ SUPERADOS — trece números publicados y desmentidos, **ninguno con marca** (bloque B)
+
+⭐⭐ **Y el hallazgo no son los trece: es el mecanismo que los produce.**
+
+```
+   citas entre documentos, HACIA ATRÁS                        40
+   citas HACIA DELANTE                                        10
+   ⛔ punteros hacia delante en los 5 documentos que un
+      número congelado declara superados                       0
+```
+
+> **La convención «este documento se AÑADE, no reescribe nada» crea un puntero hacia ATRÁS y
+> ninguno hacia DELANTE.** `H1-VERDE` sabe que actualiza a `H1-PARQUES`; `H1-PARQUES` no sabe que
+> `H1-VERDE` existe. ⇒ **La cadena es navegable solo en la dirección en la que nadie la lee.**
+
+⛔ **Y el precedente lo confirma:** la republicación *«3.166 → 2.669»* **existe** en
+`H1-ROJOS-CERRADOS.md:359` y dice lo que dice — pero desde `H1-NOMBRES-Y-PASOS.md` **no se llega a
+ella** (`grep -c` = 0). *Funcionó para el fichero y no para el lector.*
+
+| documento | dice | hoy |
+|---|---:|---:|
+| `H1-VERDE.md` ×7 | 51.556 / 32.258 / 3.792 · 145,34 km · 4.405 | 51.493 / 32.310 / 3.803 · 145,94 · 4.424 |
+| `H1-PARQUES.md` ×4 | 51.556 azules · 36.050 rojas · 4.055–4.405 | 51.493 · 36.113 · 4.424 |
+| `H1-CALLE-PEGADA.md` | 56.864 azules | 56.801 |
+| `H1-AUDITORIA-GUARDIANES.md` ×3 | el reparto de la tanda 29 | republicado en la 31 |
+| `H1-NOMBRES-Y-PASOS.md` · `H1-DONDE-FALTA-EL-NOMBRE.md` | 3.166 · 11.742 puertas | **2.669** |
+| `H1-ACERA-EQUIVOCADA.md` | 150.947 · 66.973 | 51.065 · 16.981 |
+| `H1-PARIDAD.md` | dial 31.411 · «56 scripts» · «21 congelados» | 4.562 · 57 · 26 |
+| ⭐⭐ `H1-LISTONES.md` ×4 | *«el dial predijo 31.411 y salieron 31.411 clavadas»* | **6.421** |
+| `H1-PORTALES.md` §323 | «16,9× el azar» | 21,3× |
+
+⭐⭐ **La fila que más pesa es `H1-LISTONES`:** es el cuadre que la tanda 35 demostró **en verde
+sobre el artefacto del centinela**, y el documento lo sigue publicando como acierto del método.
+✅ **La única que hizo lo que había que hacer:** `H1-TOPE-ADELANTO.md:164` publica 6.421 **y lleva
+marca en su cabecera**.
+
+### ⚠️ DEUDA de la documentación (bloque B)
+
+- **BD1 · El puntero solo va hacia atrás.** No es error de ningún documento: **es la forma de la
+  convención.** ⭐ *Trece filas son el mismo fallo trece veces; arreglarlas a mano garantiza la
+  catorce.*
+- **BD2 · `DISEÑO-H1-GRAFO.md` §P6.2 cita `data/excepciones-grafo.json` como fichero versionado y
+  leído en cada regeneración. No existe.** Es una propuesta escrita en presente. ⚠️ **Y el diseño
+  no marca en ningún sitio qué es descripción y qué es propuesta** — eso es lo que lo hace difícil
+  de auditar.
+- **BD3 · 16 rutas citadas que no existen**; ⭐ **14 son del proyecto heredado (001)** y en los
+  `RECONOCIMIENTO-*` eso es legítimo — **pero nada en el texto lo distingue**.
+- **BD4 · Tres informes crecieron después de publicarse** (`H1-PARIDAD` §G, `H1-ACERA-EQUIVOCADA`,
+  `H1-DONDE-FALTA-EL-NOMBRE`). ⭐ Son **añadidos, no reescrituras** —la ley se respeta— pero el
+  documento no dice que creció.
+- **BD5 · Verificaciones publicadas que envejecen cada tanda y no están congeladas** («56 de 56
+  scripts», «21 congelados»). ⭐ *De ahí sale el «69» del censo de A: era cierto el 6 a las 12:46.*
+
+### ⭐ COBERTURA DECLARADA DEL BLOQUE B — y lo que queda abierto
+
+```
+   tokens numéricos en los 44 documentos                19.906
+   ⛔ censo v1 «afirmación»                             10.192  ← DESCARTADO, era el residuo
+   ⭐ cifras que el documento MARCA como afirmación       2.062
+   contrastadas                                        ~212     (26 congelados · 16 pares ·
+                                                                 218 comandos y rutas · README)
+   ⛔ SIN CONTRASTAR                                   ~1.850
+```
+
+⭐ **Decisión de Antonio (7/08): se recorren las 2.062 enteras.** *Una cobertura del 10 % con
+extrapolación es lo que este proyecto lleva cuarenta tandas denunciando.*
+⛔ **Las 17.844 no marcadas quedan cerradas como `NO CONSTA` ESTRUCTURAL**, y no se vuelve sobre
+ellas: son celdas de tablas de medición de 40 tandas y **el dato de cada día ya no existe**.
+
+⚠️ **Lo que el bloque B declaró no haber podido auditar:** las ~1.850 · los `RECONOCIMIENTO-*`
+(**exigen RED, parado ahí como manda la costura**) · `BITACORA.md` entera (7.252 líneas, el 28 % de
+la documentación) · **cuándo empezó a mentir cada superado** (`CAUSA NO CONFIRMADA`).
+⭐⭐ **Y las «~1.700 líneas de diseño sin contrastar» que este documento arrastraba como el riesgo
+vivo mayor: NO LO ERAN.** El bloque C demostró que la pregunta no aplica — ver §10·C1.
+
+### ⭐ EL MAPA Y LA COBERTURA REAL — tras B.2 (7/08)
+
+⭐⭐ **El mapa de las 2.062 está ENTERO. El contraste, no** — y eso lo anticipó la costura del
+encargo.
+
+```
+   afirmaciones del censo v2 (universo aprobado)        2.062   100 %
+   R · reproducible, con productor NOMBRADO               531   25,8 %
+        ⚠️ …cuya evidencia es PROSA del script             87   ⇒ suelo defendible: 444
+   F · foto declarada (1 verificada a mano)                10    0,5 %
+   P · suelo, umbral, ejemplo, identificador               13    0,6 %
+   ⭐ ? · «no lo he sabido clasificar»                   1.508   73,1 %
+        · casi-R (el valor está, faltó vocabulario)       354
+        · ningún productor imprime hoy ese valor          304
+        · menores de 100 (índices, porcentajes)           875
+   ⛔ contrastadas contra el motor                          38    1,8 %
+```
+
+⛔ **`?` NO es `NO CONSTA`.** *`NO CONSTA` es «no se puede saber»; `?` es «no lo he sabido».*
+⭐⭐ **Y el 73 % es un resultado, no un fracaso:** la válvula se pidió a propósito para que nadie
+clasificara por descarte, que es lo que mató al censo v1.
+
+⛔⛔ **Y por qué el contraste no se puede completar «recorriendo»:** *contrastar la clase R es
+circular* (ley 92). Las diez divergencias nuevas salieron **al revés** — cifras NO-R cuya línea
+comparte vocabulario con una salida que trae otro número del mismo orden: **38 candidatas, 10
+confirmadas a mano, 28 falsas.** ⭐ El buscador es un **proponedor, no un juez**.
+
+**⛔ SUPERADOS NUEVOS (B.2) — diez más, en siete documentos, ninguno con marca:**
+`H1-PASOS-DE-CEBRA` (193 aristas · 1,20 km ⇒ **190 · 1,16**) · `H1-MODELO-VIA-FORMA-PAPEL`
+(794 m ⇒ **783**) · `H1-PARQUES` (1.020 · 1.661 · 181 · 220 ⇒ **1.007 · 1.642 · 237 · 294**) ·
+`H1-NOMBRAR-ACERAS` (1.159 de 3.851 ⇒ **1.069 de 3.582**) · `H1-CALLE-PEGADA` (+511 ⇒ **+495**).
+⭐ **Y una que parecía superada y NO lo está:** el 2.667 contra 2.669 **lo explica el propio
+`puertas-sin-calle.js`** (tanda 31, regla estricta de bici ⇒ +2). *El instrumento lleva dentro la
+historia de su número — es lo que el resto no hace.*
+
+### ⭐⭐ LA COSECHA — propuesta de guardianes, ⛔ sin aplicar
+
+**495 afirmaciones tienen productor nombrado y ningún guardián · 279 valores distintos. Hoy hay 26.**
+⚠️ **Y no es una lista de la compra:** de 28 candidatos fuertes, **ocho no deberían estar** (99999 es
+el centinela; 100 · 150 · 500 son listones ya vigilados; cuatro casan con números de bitácora).
+⇒ **El ejecutor propone diez y ninguno más** — `3.644` · `3.359` · `46.150` · `11.942` · `2.006` ·
+`1.592` · `493` · `4.326` · `1.269` · `320/179` — *porque cada congelado es un rojo que alguien
+tendrá que entender.* ⭐ **Y empezaría por los tres primeros: están en el README**, que es lo que lee
+quien no es Antonio.
+
+⚠️ **Lo que B.2 declaró no haber podido auditar:** 2.024 de 2.062 · las 1.508 de `?` · los
+`RECONOCIMIENTO-*` (**RED, parado**) · **las 39 afirmaciones que sostiene `acera-equivocada.js`**
+—marcadas `MEDIDO CON INSTRUMENTO TOCADO` y no medidas, para no usar el instrumento de `A·V1`— ·
+los 19 ficheros sin salida (librerías: sus constantes son reproducibles y el mapa no las ve) · y
+los `exportar-*.js`, **no ejecutados a propósito porque escriben dentro del repositorio**.
+
+### ⛔⛔⛔ UN HALLAZGO PUBLICADO Y RETIRADO — `B·V1` (7/08)
+
+> **Es la primera vez en este proyecto que se audita un HALLAZGO.** Y salió falso.
+
+**Lo publicado en el registro de B:** *«`DISEÑO-H1-GRAFO.md` §P4.1 dice “manda el código, SIEMPRE”
+y el motor engancha por distancia pura ⇒ el documento de diseño no describe lo que hace el motor.»*
+
+**Las cinco pruebas que lo tumban, independientes entre sí:**
+
+| # | evidencia |
+|---|---|
+| 1 | ⭐⭐ **`DISEÑO-H1-GRAFO.md:3`, su propia cabecera: *«Estado: propuesta para aprobar. Nada de esto está construido.»*** |
+| 2 | `DISEÑO-H1-ADENDA.md:7`: *«`DISEÑO-H1-GRAFO.md` (tanda 2) y sus dos anexos son registro histórico»* |
+| 3 | El diseño es del **2/08**; el primer fichero de `src/`, del **3/08** |
+| 4 | La decisión que el código cita, **`D0`, dice *«por proximidad sobre la geometría OSM»*** — que es justo lo que el motor hace |
+| 5 | `src/` cita `D0`-`D5` y `G1`-`G3` **más de 90 veces**, y **`§P4.x` CERO veces** |
+
+⇒ **§P4.1 no es una descripción falsa: es una propuesta de tanda 2 que no se adoptó.**
+⭐ **Decisión de Antonio (7/08): `B·V1` baja de VIVO a NOTA, y el arreglo va al README** — que es
+quien los enlaza como *«el diseño»* sin decir que son el plan en papel del 2 de agosto.
+
+⛔⛔ **Y las dos causas, que valen más que el hallazgo:**
+1. **El ejecutor no fue al documento a preguntarle QUÉ ES: fue a buscar en él lo que el encargo
+   señalaba.** La declaración de estado estaba en la primera página de dos de los cuatro.
+2. ⭐⭐ **Y esta conversación lo RATIFICÓ**, por escrito, en el encargo de B.2: *«Antonio lo acepta:
+   son VIVOS»*. **Dos lectores razonando sobre el contenido con la cabecera delante sin leerla.**
+
+⚠️ **Lo cazó el bloque siguiente por la casualidad de que hubiera bloque siguiente. Si B hubiera
+sido el último, `B·V1` seguiría publicado como un hecho del proyecto** — en el registro, en este
+documento y en el portafolio. **Es la ley 91 cumpliéndose contra su autor a las veinticuatro horas
+de escribirla.**
+
+### ⭐⭐⭐ C1 · LOS CUATRO DOCUMENTOS DE DISEÑO — la pregunta no aplica
+
+El bloque C fue a contrastar sus ~1.700 líneas contra el código. **Volvió diciendo que eso no se
+puede preguntar**, con **tres testigos independientes** (ley 60):
+
+```
+   líneas de los cuatro documentos                    1.853
+   con una afirmación de comportamiento                 573
+      DESCRIBE     32   5,6 %   ⛔ y CERO tras leer 15 a mano
+      PROPONE      84  14,7 %
+      ?           457  79,8 %
+
+   ⭐ ficheros de src/ citados en los cuatro documentos     0
+   ⭐ control positivo · H1-CIERRE.md cita src/             8 veces
+```
+
+⭐⭐ **La ley 35 se cumplió entera, y estaba escrita ANTES de mirar:** *«en castellano una regla
+PROPUESTA se escribe en presente de indicativo igual que una implementada ⇒ predigo que DESCRIBE se
+llenará de propuestas»*. De las 15 leídas, **20 de las 32 eran mediciones del 2 de agosto** y el
+resto reglas propuestas o el índice del documento.
+
+> ⭐⭐⭐ **Los cuatro documentos son PLAN y MEDICIÓN, con DESCRIPCIÓN CERO POR CONSTRUCCIÓN.**
+> Ninguna de sus líneas **puede** describir el código: no lo mencionan nunca. **Contrastarlos
+> contra el motor es contrastar un plan contra su resultado.**
+
+⚠️ **Y la pregunta buena queda abierta: de las 84 PROPONE, ¿cuáles se hicieron, cuáles siguen
+pendientes y cuáles se abandonaron?** No se ha mirado.
+
+✅ **Lo que sí se pudo comprobar sale limpio** — las seis decisiones que el código cita como su
+autoridad están implementadas con el valor que dice este documento: `D0` distancia pura ·
+`D1` nodo compartido · `D2` `unidoPorDefecto` · `D3` marca y no corrige · `D4` `precision()` por
+tramo · `D5` `TOLERANCIA_PUNTA = 2.0` / `TECHO_PUNTA = 5.0`.
+⚠️ **Con su advertencia, escrita por el propio ejecutor: se LEYERON, no se rompieron.** *«Existe y
+dice lo que debe» no es «rige».*
+
+### ⭐⭐⭐ LOS EJES — de qué se fía este proyecto (bloque C)
+
+| eje | ¿rojo visto? | testigo | cuánto cuelga |
+|---|---|---|---|
+| **las 7 rutas** | ✅ **real** (tanda 33: la nº6 se movió 523,4 → 520,2) | ⚠️ **el mismo motor reejecutado**, salvo la nº7 | la costura de parada de 21 tandas · 6 documentos publican *«idénticas al milímetro»* |
+| **los 26 congelados** | ✅ dos veces | ⛔ **el mismo código** — freno de deriva | el mapa, el verde, los pasos, el buscador. **Y cubren 13 de 26** |
+| ⭐⭐⭐ **la batería de 57** | ⭐⭐⭐ **sí, y primero fue un VERDE FALSO** (56 scripts con uno estrellado dentro, código 0) | el propio repositorio | **TODO** |
+| **los 2 testigos del nombrado** | ✅ (`calle-pegada.js:768`) | ⭐ **dos caminos distintos** | el nombrado y el 89,5 % |
+| **los controles ±** | ⚠️ parcial: **7 de 210 pasaban por construcción** | variable | transversal |
+
+⭐⭐⭐ **EL EJE DEL QUE MÁS CUELGA Y MENOS SE HA VERIFICADO ES LA BATERÍA.** Cuelga todo de ella —es
+la única puerta por la que pasa cada tanda—, **su único rojo documentado fue un verde falso**, ese
+arreglo **no ha vuelto a ponerse a prueba**, y el bloque A midió que **37 de sus 57 scripts no se
+pueden leer por su código de salida**: ⇒ **vigila 57 scripts de los que solo puede interpretar 20.**
+**Máxima carga, testigo más débil, y su único fallo conocido fue no ver nada.**
+
+**⚠️ LA RUTA Nº7 cuelga MENOS de lo que temíamos** — *«un eje que grita lo que le pasa no es el
+peligroso»*. Se caen **19 tiempos publicados en 8 documentos, los minutos del visor y 3 bandas**.
+✅ **NO se caen**: los metros de las siete rutas, el grafo, el mapa, el nombrado, el buscador **ni la
+columna RODEO, que es adimensional — y es «la columna que manda».**
+⭐⭐ **Y una circularidad que nadie había escrito:** las bandas **se derivaron de los 6 km/h**, así
+que **una ruta comparada con su banda NO PUEDE fallar por una calibración mala: banda y ruta se
+mueven juntas.**
+⛔⛔ **El agujero real: NO HAY NI UN GUARDIÁN SOBRE EL TIEMPO.** Los metros están congelados siete
+veces; **los minutos, ninguna.**
+⭐ **Segundo testigo, propuesto y sin hacer:** un trayecto más con la misma pulsera, **en cuadrícula**
+(el nº7 va en diagonal). ⭐ **Y uno gratis: los ~25 min son «de repetición»** — si hay más de una
+apuntada, su dispersión ya es un segundo dato. `NO CONSTA` si existe.
+⛔ **Lo que NO vale:** una velocidad de tabla o de literatura. *Sería cambiar un testigo humano flojo
+por ninguno, y el proyecto entero está construido contra eso.*
+
+### ⚠️ HALLAZGOS MENORES DEL BLOQUE C
+
+- **`C·N1` · DEUDA · `D1`-`D4` significan DOS COSAS en este repositorio**: la decisión de diseño y
+  una sección del informe de cuatro scripts. ⭐ *Despistó al propio auditor en esta tanda.*
+- **`C·N2` · DEUDA · `orden-numeros.js` —el cuarto testigo DESCARTADO— sigue en la batería.** No
+  está en `MODULOS`, nadie lo requiere, y **dos de sus seis guardianes congelan cifras del
+  experimento muerto**. ⭐ El ejecutor rozó la costura y juzgó que no aplica *(no imponen nada al
+  motor: vigilan que la medición que descartó la idea siga dando lo mismo)*. **Propuesta: meterlo
+  en `MODULOS`, no borrarlo.**
+- **`C·N3` · NOTA · El resto de las decisiones deshechas no ha dejado código vivo.** `estadoEstacion`
+  solo en comentarios que citan su ley; la jerarquía, con `planarizar.js:11` diciendo *«la jerarquía
+  NO vota»*. ⚠️ **Buscado por el NOMBRE de cada creencia: si quedara código con otro nombre, no se
+  ha mirado.**
+
+### ⛔⛔ LO QUE HAY QUE DECIR EL DÍA QUE SE CIERRE H1
+
+> **La auditoría ha mirado si el código está sano (A), si lo escrito coincide con el dato (B, B.2)
+> y si las decisiones se cumplen (C). NINGUNO DE LOS CUATRO BLOQUES HA COMPROBADO QUE LA RUTA QUE
+> SALE SEA LA RUTA CORRECTA.**
+
+Eso lo sostienen **las siete rutas de Antonio**, y el bloque C acaba de medir de qué se fían: **del
+mismo motor reejecutado, salvo una observación humana.** ⭐ **Es el hueco más grande de H1, y esta
+auditoría no lo abre: lo hereda.**
 
 ⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
 requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
