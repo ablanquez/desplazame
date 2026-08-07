@@ -48,8 +48,9 @@
 | **C · Las decisiones y los ejes** | ✅ **HECHO** | `C-DECISIONES-2026-08-07.md` — ⛔⛔ **retiró `B·V1`, un rojo falso publicado** · el reparto del diseño · **la tabla de los ejes** · la cobertura de toda la auditoría |
 | ⭐ **La lista de arreglos** | 🔄 **EN CURSO** | Decidida entera el 7/08, **agrupada por lo que se estorba**, en tres tandas |
 | **1 · el instrumento** | ✅ **HECHO** | `A·V1` el centinela · `L2` el techo mal llamado · `B2·V2` el 400× · **+ los 3 hermanos del mismo veredicto**. ⭐⭐ **La predicción acertó 6 de 6** |
-| **2 · el clon y la portada** | ⬜ **SIGUIENTE** | ⚠️ **La abren los dos rojos de la línea base** · `A·D5` · `A·V4` · `B·V3` · `B·V2` · `A·V3` · la nota de los diseños |
-| **3 · el mecanismo del puntero** | ⬜ pendiente | `BD1` + `B2·V1` + el productor de cada número. **Los tres son el mismo arreglo desde tres sitios** |
+| **2 · el clon y la portada** | ✅ **HECHO** | Rutas relativas · `verificar-datos.js` · el README entero · ODbL + Ley 37/2007 · `N4`. ⭐⭐ **El clon con datos corre 58 de 58**, y `B·V2` resultó FALSO |
+| ⭐⭐ **2·bis · LA BATERÍA** | ⬜ **SIGUIENTE** | **No estaba en la lista y se la ha ganado.** `probar-paradas.js:129` decide con un booleano ⇒ **un script que declara 1 fallo imprime lo mismo que uno que declara 7** |
+| **3 · el mecanismo del puntero** | ⬜ pendiente | `BD1` + `B2·V1` + el productor de cada número, **y con él todos los documentos de `docs/`** |
 
 ⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
 decide al final de los tres bloques, entera.**
@@ -791,11 +792,11 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 99 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 105 VECES
 
-**Cuarenta tandas, cuatro de auditoría y dos de arreglos. Noventa y nueve instrumentos mintiendo** — los 33 primeros,
+**Cuarenta tandas, cuatro de auditoría y tres de arreglos. Ciento cinco instrumentos mintiendo** — los 33 primeros,
 sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los diecinueve últimos (81-99) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
+⚠️ **Los veinticinco últimos (81-105) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
 **porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
 escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
 decir *«esto lo detuvo ella, no el criterio de quien medía»*.
@@ -901,6 +902,12 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 97 | ⚠️ **UN NÚMERO DERIVADO SE INTERPOLÓ Y PARTIÓ EL PÁRRAFO EN DOS VOCES.** Interpolar la resta de dos porcentajes del alcance dejó *«~11 puntos arriba»* junto a *«~10 puntos abajo»*, porque la frase de cierre estaba **fuera** de alcance. ⭐ **Aritméticamente el ~11 era mejor y aun así se revirtió**, con el porqué escrito al lado |
 | 98 | ⛔⛔ **UN DETECTOR DE HERMANOS QUE EXIGÍA `%` O `×` — Y SE DEJÓ DOS EN EL FICHERO QUE ESTABA ARREGLANDO.** `214 casos` y `~10 puntos` son resultados medidos igual y no llevan ninguno de los dos símbolos. ⇒ **El «43 hermanos» publicado NO es un recuento: es un SUELO**, y no se declaró como tal. ⭐⭐⭐ **Y su control de semilla no lo cazó porque comprobaba que el detector encontrase el hermano YA CONOCIDO** |
 | 99 | ⛔⛔⛔ **Y UNO DE ESTA CONVERSACIÓN, QUE ES EL MISMO ANIMAL:** los encargos a Claude Code llevaban escritas **las siete rutas «idénticas al milímetro»** como costura de parada dura — **con `523,4` en la nº6, valor que la tanda 33 sustituyó por `520,2`**, y con `3.086,9` en la nº1, **que ya no devuelve metros porque va en sugerencia**. ⭐ **Cinco encargos seguidos.** No mordió porque el ejecutor comparaba contra su propia línea base ⇒ **la costura escrita no era la que se estaba comprobando.** *Siete números a mano, en un texto que se lee como autoridad, sin congelar y sin salir del estado* |
+| 100 | ⛔⛔⛔ **EL VERIFICADOR DE DATOS NACIÓ CON DIEZ DE DOCE HUELLAS INVENTADAS.** Se escribieron truncadas a 16 caracteres y **el resto se rellenó a mano** ⇒ **habrían dado `OTRO` sobre datos correctos.** ⭐ Es el **rojo falso que no caza nadie** (ley 91) **dentro del instrumento diseñado para ser de fiar** |
+| 101 | ⛔⛔ **UNA LISTA ESCRITA A MANO QUE EL CÓDIGO SABÍA CALCULAR, Y NACIÓ MAL.** El campo `quien:` de `verificar-datos.js` daba **2 de 4 consumidores equivocados**. ⭐⭐ **Y las tres pruebas del comparador salían en verde con razón: nada de lo que ese fichero comprueba toca el texto descriptivo.** ⚠️ **Los otros diez estaban bien, así que la lista se leía como derivada del código** |
+| 102 | ⛔⛔⛔ **`B·V2` ERA FALSO — SEGUNDO ROJO FALSO DE LA AUDITORÍA.** Confundió `movilidad:MU1_jerarquia_viaria` con `idezar_base:JERARQUIA_VIARIA`: **mismo nombre humano, espacio de nombres distinto.** ⭐⭐ **Las cuatro piezas eran ciertas por separado; lo falso era lo que las unía** — *«la capa nombrada es ésa»*, que no se comprobó contra nada. ⚠️ **Y la trampa: MU1 y RoadLink comparten el 3.644 porque RoadLink es su edición INSPIRE**, así que el número que delataba la confusión era el que la escondía |
+| 103 | ⚠️ **«~120 MB» EN LA PORTADA QUE PROMETE QUE NO HAY NÚMEROS A MANO.** Medido: **135,1 MB**, y el mayor **62,4 MB**, no 37. ⭐ Y al medirlo salió lo que nadie sabía: **ese fichero de 62,4 MB no lo lee ningún script** — el 46 % del peso. *El `~` no es licencia para no medir* |
+| 104 | ⛔⛔⛔ **UN COMANDO DE EJEMPLO PUBLICADO EN LA PORTADA Y NUNCA EJECUTADO — Y NO FUNCIONA.** *«El primer comando que copia quien llega.»* ⭐⭐ Se verificaron **las 30 cifras** y se dieron por buenos los `bash` que las rodean: **la mitad de la promesa que no se lee como promesa.** ⚠️ Y se eligió *«Plaza del Pilar»* **porque hacía bonito**, dentro de un documento cuyo método es no fiarse de lo que parece razonable |
+| 105 | ⛔⛔ **UNA VALLA DE CÓDIGO HUÉRFANA DEJÓ MEDIO README RENDERIZÁNDOSE COMO CÓDIGO.** ⭐⭐⭐ **Tres pasadas de verificación sobre ese fichero la misma tarde —cifras, comandos, promesas— y NINGUNA lo miró RENDERIZADO.** ⚠️ En texto plano no se ve: las vallas están a 45 líneas y cada una, por separado, parece correcta. **Lo cazó el editor, no una comprobación** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1229,6 +1236,30 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     que PROVOCARSE y decirse que se provocó.**
 103. ⭐ **UN CONTROL QUE DEPENDE DE LO QUE CONTROLA NO ES UN CONTROL.** *El positivo saltaba junto al
     guardián al provocarle el rojo, porque contaba la variable misma que se estaba probando.*
+104. ⭐⭐⭐ **UNA RETIRADA QUE SOLO VIVE EN UN MENSAJE DE COMMIT NO ESTÁ PUBLICADA: UN HALLAZGO SE CAE
+    DONDE SE LEYÓ.** *Es la ley 86 aplicada a las conclusiones y no a los números — el puntero hacia
+    delante hace falta también cuando lo que se sustituye es un veredicto.*
+105. ⭐⭐⭐ **SI EL CÓDIGO PUEDE CONTESTAR LA PREGUNTA, LA RESPUESTA NO SE ESCRIBE** — ni aunque se
+    tenga delante, ni aunque sea texto y no un número. ⚠️ **Una lista descriptiva es PEOR que una
+    cifra: no tiene quien la vigile, y no necesita pudrirse porque nace mal.** ⭐ Y el aviso:
+    **diez elementos correctos de doce hacen creíble una lista inventada — la proporción no es
+    evidencia de método.**
+106. ⚠️ **UN `~` NO ES LICENCIA PARA NO MEDIR.** *Y la promesa de una portada alcanza a su prosa, no
+    solo a su tabla.*
+107. ⭐⭐⭐ **UNA PORTADA QUE PROMETE QUE NINGUNA CIFRA ESTÁ A MANO PROMETE TAMBIÉN QUE SUS COMANDOS
+    CORREN.** *Se verificaron las 30 cifras y se dieron por buenos los `bash` que las rodean:*
+    **la mitad de la promesa que no se lee como promesa.** ⭐ Y el arreglo bueno no es ejecutar el
+    ejemplo: es **elegir un ejemplo que sea una comprobación** *(el que quedó da 598 m — la ruta nº2
+    congelada al decimal)*.
+108. ⭐⭐⭐ **LA LEY 5 EN SU VERSIÓN DIFÍCIL: SOSPECHAR DEL TEST CUANDO PASA.** *La batería salió en
+    verde y no valía, porque su verde venía del booleano que la propia tanda acababa de denunciar.*
+    ⇒ **La comprobación que vale es la que compara el CONTENIDO, no el veredicto.**
+109. ⭐⭐⭐ **UNA PROPIEDAD SIN INSTRUMENTO NO ES QUE SALGA MAL: ES QUE NO SE MIRA.** *Tres pasadas
+    sobre el README el mismo día y ninguna lo miró renderizado, porque «se ve bien» no tiene comando
+    en este repositorio.* ⇒ ⭐⭐ **El repositorio vigila la clase de afirmación que sabe comprobar.**
+    Y la forma **también tiene comando**: `grep -c '^```' README.md` **tiene que dar par.**
+110. ⭐⭐⭐ **LO QUE MIENTE NO SIEMPRE ES UN NÚMERO: A VECES ES UN `✅` QUE SIGUE AHÍ.** *Los fallos que
+    esta auditoría ha arreglado se veían al MIRAR; el silencio de un guardián solo se ve al CONTAR.*
 
 ---
 
@@ -1648,7 +1679,7 @@ corregido el 7/08.** *(Fue exactamente la clase de fallo que el bloque B audita.
 | **A·V3** | ⛔ **Un número publicado infravalorado**: el *«16,9× el azar»* es **21,3×** limpio | `H1-PORTALES.md` §323 |
 | **A·V4** | ⛔⛔ **El README dice que todavía no hay código** —ni una línea de aplicación—, con 24.931 líneas y un motor funcionando. **Y dos frases más:** *«no hay código que pueda fallar»* (144 entradas de bitácora) y *«no contiene ningún dato integrado»* (46.150 portales). ⭐ **No es registro histórico: es la puerta, y ahí sí se reescribe** | `README.md` |
 | ⭐ **A·D5** | ⛔⛔ **UN CLON DEL REPOSITORIO PÚBLICO NO PUEDE EJECUTAR NI UN SCRIPT** — dos rutas absolutas a `E:/PROYECTOS WEB/…`. *(El registro de A lo anotó como **deuda D5**; **Antonio lo sube a VIVO el 6/08**.)* ⭐⭐ **Y el bloque B lo midió: 49 de los 70 ficheros de `src/` (70 %) no pueden correr en un clon**, y los 21 restantes son librerías que reciben la ruta por parámetro ⇒ **un clon no construye el grafo ni resuelve una dirección** | `portales.js:38-39` |
-| **B·V2** | ⛔ **El README atribuye a una capa lo que está repartido en tres.** Dice que `MU1_jerarquia_viaria` trae 3.644 tramos **con código de vía**: 3.644 es `tn-ro:RoadLink` y no tiene ninguno de los tres atributos; la capa nombrada tiene 3.453 y tampoco trae código; el código solo está en `urbanismo:Vias` (3.359). ⭐ **La conclusión sigue siendo cierta; la evidencia con que se justifica, no** | `README.md:32-34` |
+| ~~**B·V2**~~ | ⛔⛔ **RETIRADO el 7/08 — ERA FALSO.** *Ver «los dos rojos falsos» más abajo.* Decía que el README atribuía a una capa lo que estaba repartido en tres |
 | **B·V3** | ⛔⛔ **Lo que el README promete no es verdad en un clon**, y **no lo menciona en ninguna línea**. ⭐ **Y lo afilado: los 48 comandos `node …` citados existen los 48.** No falta el fichero — está y no puede correr: el lector copia el comando y recibe un `ENOENT` sobre un disco que no es suyo | `README.md` |
 | ⭐⭐ **B2·V1** | ⛔⛔ **EL DENOMINADOR APROBADO DEJA FUERA 12 DE LOS 26 CONGELADOS.** Aparecen **31 veces en `docs/` y ninguna marcada**; el control positivo (98.774 · 4.562) sale marcado 7 y 11 veces. Viven en celdas de tabla sin negrita. ⇒ **El censo v2 mide lo que el proyecto SUBRAYA, no lo que AFIRMA**, y con ello **toda cobertura declarada sobre 2.062** — en B y en B.2. ⛔ Propuesta del ejecutor: **no ampliar el censo** (el v1 ya enseñó adónde lleva) sino **declararlo por lo que es** y decir que su intersección con los congelados es de 13 | la definición de trabajo del bloque B |
 | ~~**B2·V2**~~ | ✅ **ARREGLADO** en las tandas 1 y 1·bis — interpolado, no sustituido, y con sus tres hermanos del mismo veredicto. ⛔ **Un script recitaba un número que él mismo acababa de desmentir.** Línea 77 mide **412,7×**; línea 192 imprime **«400× el azar»** dentro del veredicto. ⭐ **El documento copió el bueno: el que miente es el script.** Es el nº144 con vuelta de tuerca — **vive en una cadena que se imprime, así que no parece un comentario: parece un resultado.** Sostiene el veredicto E7 de `H1-CIERRE.md` §433 | `sin-vigilancia.js:77/192` |
@@ -1780,7 +1811,40 @@ quien no es Antonio.
 los 19 ficheros sin salida (librerías: sus constantes son reproducibles y el mapa no las ve) · y
 los `exportar-*.js`, **no ejecutados a propósito porque escriben dentro del repositorio**.
 
-### ⛔⛔⛔ UN HALLAZGO PUBLICADO Y RETIRADO — `B·V1` (7/08)
+### ⛔⛔⛔ LOS DOS ROJOS FALSOS DE LA AUDITORÍA — `B·V1` y `B·V2` (7/08)
+
+> **De once hallazgos publicados, DOS eran falsos. Y ninguno lo cazó el bloque que lo publicó:**
+> el primero lo cazó el bloque siguiente, el segundo una tanda de arreglos dos días después.
+> ⭐⭐⭐ **Sin bloque siguiente, los dos seguirían publicados como hechos del proyecto.**
+> **Misma causa las dos veces: emparejar por el NOMBRE en vez de ir al OBJETO.**
+
+### ⛔⛔ `B·V2` — RETIRADO. La capa nombrada no era la que se creía
+
+Publicado: *«el README atribuye a `MU1_jerarquia_viaria` los 3.644 tramos con código de vía; 3.644
+es `RoadLink` y no trae ninguno de los tres atributos.»* **Contrastado contra los cuatro crudos
+archivados, sin descargar nada:**
+
+| capa | `numberMatched` | ¿código? | ¿sentido + velocidad? |
+|---|---:|---|---|
+| ⭐ `movilidad:MU1_jerarquia_viaria` | **3.644** | ✅ **3.623** | ✅ |
+| `tn-ro:RoadLink` | 3.644 | ⛔ | ⛔ *(edición INSPIRE de MU1)* |
+| `idezar_base:JERARQUIA_VIARIA` | 3.453 | ⛔ | ✅ |
+| `urbanismo:Vias` | 3.359 | ✅ | ⛔ |
+
+⭐ **Cuarto testigo, la misma zona en dos capas:** `zona-casco_MU1jv` = 19 features **con** código;
+`zona-casco_IDEZARjv` = 14 **sin** él.
+⇒ **`B·V2` confundió `movilidad:MU1_jerarquia_viaria` con `idezar_base:JERARQUIA_VIARIA`** — mismo
+nombre humano, espacio de nombres distinto. **El README original tenía razón.**
+
+⭐⭐⭐ **Y lo que lo hace instructivo: las cuatro piezas eran ciertas por separado.** Lo falso era **lo
+que las unía**, y eso no se comprobó contra nada. ⚠️ **Con la trampa encima: MU1 y RoadLink comparten
+el 3.644 porque RoadLink es su edición INSPIRE**, así que el número que delataba la confusión era
+justo el que la escondía.
+
+⛔⛔ **Y la retirada se escribió primero en el cuerpo de un mensaje de commit.** De ahí la **ley 104**:
+*una retirada que solo vive en un commit no está publicada — un hallazgo se cae donde se leyó.*
+
+### ⛔⛔⛔ `B·V1` — RETIRADO (7/08)
 
 > **Es la primera vez en este proyecto que se audita un HALLAZGO.** Y salió falso.
 
@@ -1950,6 +2014,77 @@ quedan en `sin-vigilancia.js` (líneas 580, 603, 611).
 
 **Para republicar en la tanda 3:** `H1-ACERA-EQUIVOCADA.md` (los cuatro números) ·
 `H1-PORTALES.md:323` (16,9×) · `H1-AUDITORIA-GUARDIANES.md:20` y este documento §29 (182 → 232).
+
+### ✅ TANDA DE ARREGLO 2 (7/08) — el clon y la portada
+
+**El agujero era mucho mayor que «dos rutas a `E:`»:** de los 36 ficheros versionados bajo `data/`,
+**los 36 son de `exploracion/` y CERO de `fuentes/`** — el dato que el motor consume está
+gitignoreado. ⇒ **Un clon no se quedaba sin dos ficheros: se quedaba sin nada.**
+
+```
+   CLON PURO        (162 rastreados · 0 datos)     ✅ 18 de 58    ⛔ 40 mueren, todos por ENOENT
+   CLON + fuentes/  (162 rastreados · 37 datos)    ✅ 58 de 58    ⛔  0
+```
+⚠️ **Y el propio ejecutor desactivó su número:** *«corre» solo dice que no se estrella, no que
+acierte* — los cinco rojos permanentes declaran lo suyo allí igual que aquí.
+⭐ **Y lo que nadie sabía: los cuatro `*-visor.js` (48 MB) no viajan y el clon se los fabrica en
+trece segundos**, con el comando que el README ya manda. ⇒ **Con los 12 ficheros puestos no queda
+nada con nombre que le falte a la portada.**
+
+**LA DECISIÓN (Antonio, 7/08):** ⛔ **no se versionan los crudos** (135,1 MB) · ⛔ **no se escribe un
+script que los baje** —*un clon que se baja su propio OSM arranca y da OTROS números, y eso es peor
+que no arrancar porque parece que funciona* (ley 21)— ✅ **rutas relativas + `verificar-datos.js`**,
+con tres veredictos y ninguno por defecto: `EL MISMO` · `OTRO` · `NO ESTÁ`.
+> ⭐⭐⭐ **Si el clon no puede tener el dato, que al menos SEPA que no lo tiene.**
+
+**El README, reescrito entero.** Fuera: *«todavía no hay código»*, *«ni una línea de aplicación»*,
+*«no hay código que pueda fallar»*, *«no contiene ningún dato integrado»*, *«la licencia se
+declarará cuando se integre alguno»*. Dentro: que el dato no viaja y un clon no ejecuta el motor ·
+que los `DISEÑO-H1-*` son **el plan en papel** · **ODbL + Ley 37/2007, ciertas ya** · `N4` con
+`contributors` y enlace · y ⭐⭐ **el principio que salió del nº99:** *las siete rutas no se publican
+en la portada — sus metros viven en el instrumento que las mide.*
+
+**⛔⛔ LOS CINCO ROJOS PERMANENTES — y no eran dos.** Tres no los reportó ningún bloque de la
+auditoría, **y el repositorio SÍ los reportaba en cuatro documentos**:
+
+| script | desde | qué es | clase |
+|---|---|---|---|
+| `modelo-rutas.js` | 4/08, **nació rojo** | San Juan de la Peña sin asignación propia | **declarado**: *«decide Antonio»* |
+| `auditoria-guardianes.js` | 5/08, **nació rojo** | el control negativo del clasificador falla | **declarado NO VÁLIDO a propósito**: *«ajustarlo hasta que pase sería ajustar el instrumento al resultado»* |
+| `rutas-antonio.js` | tanda 16 | el rodeo de la nº4: 2,17 frente a ≤1,6 | declarado fuera de banda |
+| ⛔ `donde-falta.js` | **6/08** | exige 7 rutas y la nº1 ya no se resuelve | ⚠️ **EXPECTATIVA CADUCADA** |
+| ⛔ `pasos.js` | **6/08** | ídem | ⚠️ **EXPECTATIVA CADUCADA** |
+
+⭐ **Reconciliación del «49 de 70» del bloque B, medida:** 29 ficheros requieren `portales.js`
+directamente, **48 lo alcanzan transitivamente**, 48 + 1 = 49. *Aquel número medía la dependencia de
+`E:`, no el agujero del clon.*
+
+**⚠️ Y dos cosas que van a `§3 · qué miente cada fuente`:**
+- ⛔⛔ **El callejero —46.150 portales, 3.359 vías, la base de todo— lo genera OTRO PROYECTO**
+  (`ZGZ RADAR REACT`) y **004 no lo descarga.** ⚠️ **Y los metadatos de ese proyecto no describen los
+  ficheros que 004 consume:** ni el tamaño (10.364.859 contra 10.835.605) ni la huella — **se
+  reescribieron ocho horas después del metadato.** *La fuente de la que cuelga el proyecto entero
+  miente sobre sí misma, y hasta hoy la dependencia ni siquiera estaba declarada.*
+- ⚠️ **De los 12 ficheros necesarios, la consulta exacta de SEIS es `NO CONSTA`** (los POST a
+  Overpass). ⭐ **Publicado en la portada como hallazgo, no tapado:** *el repositorio no sabe cómo se
+  pidió la mitad de su dato, y prefiere decirlo a inventar una consulta plausible — alguien la
+  ejecutaría.*
+
+### ⛔⛔⛔ LO QUE MUERDE PRIMERO A QUIEN LLEGUE — y de ahí sale la tanda 2·bis
+
+> **«Que el repositorio le va a decir que todo está bien cuando no lo esté.»**
+
+`probar-paradas.js:129` decide con `salida.includes('⛔ FALLO ·')`. ⇒ **Un script que declara UN
+fallo y uno que declara SIETE imprimen la misma línea `DECLARA FALLO ✅`.**
+⭐⭐ **Cinco rojos permanentes son cinco vendas** — y una de ellas tapa `modelo-rutas.js`, **el control
+de las siete rutas, el eje del que más cuelga del proyecto entero**, que no tiene ningún canal
+automático para decir que le ha salido un segundo fallo.
+
+⛔⛔ **Y ya está mordiendo, con fecha:** `donde-falta.js §A6` y `pasos.js` llevan **desde el 6 de
+agosto publicando `NO CONSTA` en vez de medir**, y **la batería los da ✅ en cada pasada.**
+
+> ⭐⭐⭐ **Lo que le miente no es un número: es el silencio de un guardián que sigue diciendo `✅`.
+> Los fallos que esta auditoría ha arreglado se veían al MIRAR; éste solo se ve al CONTAR.**
 
 ⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
 requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
