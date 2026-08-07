@@ -59,6 +59,10 @@ grep -rhoE "require\('[^.][^']*'\)" src/*.js | sort -u
 
 Se ejecuta hoy con **Node v24**. ⚠️ No hay medido cuál es el mínimo: no se dice para no inventarlo.
 
+⚠️ **El motor funciona sin red; los cuatro visores no.** Cargan Leaflet 1.9.4 de `unpkg.com` y las
+teselas de fondo de `tile.openstreetmap.org`. Sin internet salen en blanco — y eso no es un fallo
+del cálculo: los metros y el texto de la ruta se producen enteros sin conexión.
+
 **Primero, saber qué te falta:**
 
 ```bash
