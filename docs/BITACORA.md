@@ -7560,3 +7560,94 @@ vale más que una clase con nombre y sin sustancia** — porque `?` se puede vol
 falsa ya está contada.
 
 **Traza:** instrumento desechable `b2-mapa.js` / `b2-valida-mapa.js` (fuera de `src/`)
+
+---
+
+## [2026-08-07] — Publiqué como hallazgo VIVO que un documento mentía, y el documento decía en su tercera línea que era una propuesta
+
+**Categoría:** hallazgo falso
+**Síntoma:** el bloque B cerró con este vivo, el primero de los tres, en negrita y con evidencia:
+
+```
+   BV1 · DISEÑO-H1-GRAFO.md §P4.1 dice «manda el código, SIEMPRE» y el motor
+         engancha por distancia pura ⇒ el documento de diseño no describe lo que
+         hace el motor.
+```
+
+Y entró en el registro, en el commit y en el informe a Antonio.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **todo lo comprobable de la
+afirmación era cierto, y lo comprobé bien.** `engancharUno` **sí** elige por distancia pura
+(`portales.js:181`); la función de nombre **sí** sirve solo de testigo del empate; §P4.1 **sí** dice
+lo que dice. Fui al código, no lo razoné. ⭐ Y hasta encontré el matiz fino —que la ADENDA dice
+*«sin cambios»*, luego P4.1 nunca describió el motor—. **Cada pieza del hallazgo era verdad. La
+conclusión era falsa.**
+
+**Cómo se cazó:** el bloque C empezó leyendo los cuatro documentos **desde la línea 1**, que es lo
+que el bloque B no hizo. `DISEÑO-H1-GRAFO.md:3`:
+
+> **Estado:** propuesta para aprobar. **Nada de esto está construido.**
+
+Y `DISEÑO-H1-ADENDA.md:7`: *«`DISEÑO-H1-GRAFO.md` (tanda 2) y sus dos anexos son **registro
+histórico**»*. ⇒ §P4.1 no es una descripción falsa: es **una propuesta que no se adoptó**, en un
+documento que declara que nada de él existe. Y `git log` lo confirma: el diseño es del 2/08, el
+primer fichero de `src/` del 3/08.
+
+**Causa raíz:** en el bloque B clasifiqué los cuatro documentos de diseño como **VIVOS**, con
+argumento, y el argumento lo construí **sobre su contenido**. ⛔ **No fui al documento a preguntarle
+qué era: fui a buscar en él lo que el encargo me señalaba.** La declaración de estado estaba en la
+primera página de los dos ficheros implicados y no la leí ninguna de las dos veces.
+
+**Arreglo aplicado:** ninguno en el repositorio —la auditoría no arregla—. `B·V1` baja de VIVO a
+NOTA en el registro del bloque C, con las cinco pruebas, y se declara qué queda provisional si
+Antonio mantiene la clasificación anterior.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **antes de auditar un documento hay que preguntarle QUÉ ES, y el
+documento suele decirlo en la primera página.** Un hallazgo puede tener todas sus piezas
+verificadas y ser falso porque **la pregunta no aplicaba al objeto**.
+⚠️ Y la segunda, que es la ley 91 cumpliéndose contra su autor: **un rojo falso publicado no lo
+caza nadie**, porque a un hallazgo nadie lo audita. Éste lo cazó el bloque siguiente **por
+casualidad de que hubiera bloque siguiente**. Si B hubiera sido el último, seguiría en pie.
+
+**Traza:** `docs/auditoriafinal/B-DOCUMENTACION-2026-08-07.md` §BV1 → `C-DECISIONES-2026-08-07.md` §0
+
+---
+
+## [2026-08-07] — El clasificador del diseño exigía verbo conjugado, y un diseño enuncia sus reglas sin conjugar nada
+
+**Categoría:** silencio falso
+**Síntoma:** el instrumento que reparte las 1.853 líneas del diseño en DESCRIBE / PROPONE / `?`
+llevaba puesto su control de semilla —§P4.1 y §P6.2, los dos hallazgos ya conocidos— y salió esto:
+
+```
+   §P4.1 «manda el código»                 DESCRIBE (GRAFO.md:545)
+   §P6.2 `data/excepciones-grafo.json`     ⛔ NO LA VE — el clasificador está roto
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la mitad del control de semilla, y
+el reparto entero.** 417 afirmaciones repartidas en tres clases con porcentajes creíbles
+—5 % / 13 % / 82 %— y la semilla más citada del encargo, §P4.1, localizada y clasificada. **Un
+control que acierta la mitad se lee como un control que funciona**, y el 82 % de `?` daba una
+sensación de honestidad que tapaba el agujero.
+
+**Cómo se cazó:** por el propio control, que estaba escrito con **las dos** semillas. Con una sola
+—la que salió bien— habría pasado.
+
+**Causa raíz:** el filtro previo exigía un **verbo conjugado** para considerar que una línea afirma
+algo. §P6.2 dice *«Fichero versionado en el repositorio —`data/excepciones-grafo.json`—, **leído por
+el proceso en cada regeneración**»*: **un sintagma nominal con un participio.** ⇒ **un documento de
+diseño enuncia sus reglas sin conjugar nada**, y filtrar por verbo tira justo las líneas más
+normativas. Al aceptar el participio: 417 → **573** afirmaciones, un 37 % más.
+
+**Arreglo aplicado:** se acepta también el participio, con el porqué escrito al lado.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un control de semilla con dos casos vale el doble que con uno, y no
+por cubrir más: porque uno solo no puede fallar a medias.** ⚠️ Y la de fondo: **el filtro que decide
+qué entra en un censo es el sitio donde se pierde lo que nunca se contará** — no deja rastro, no
+sale en ninguna clase, y el reparto de abajo sigue sumando 100 %.
+
+**Traza:** instrumento desechable `c1-diseno.js` (fuera de `src/`)
