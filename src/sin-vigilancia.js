@@ -18,6 +18,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const A = require('./alarma');   // ROTURA TEMPORAL
 const P = require('./portales');
 const E = require('./enganche');
 const D = require('./direccion');
@@ -369,6 +370,8 @@ if (require.main === module) {
   //    enganche malo, es un hueco de la descarga. Sin esta condición el test daba
   //    una mediana de 39,5 m y un p99 de 3 km, midiendo cobertura y no acierto.
   const CUBIERTO = 60;
+  // ⭐ el testigo 2, visible desde §E7 — ver más abajo por qué
+  let T2 = null;
   let nCubiertos = 0, cerca = 0, lejos = 0;
   const distsMun = [];
   const cubiertos = [];
@@ -393,6 +396,10 @@ if (require.main === module) {
     const ok = (v) => `${v.filter((x) => x <= 25).length} de ${v.length}  (${pct(v.filter((x) => x <= 25).length, v.length)})`;
     di('   de ellos, donde OSM SÍ da nombre', ok(vistosCub));
     di('   ⭐⭐ de ellos, DONDE NADIE VIGILA', ok(ciegosCub));
+    // ⭐ El veredicto de §E7 recitaba estos dos porcentajes A MANO. Se guardan para
+    //   que allí se INTERPOLEN. ⛔ No se recalculan: son estos mismos, o serían dos
+    //   caminos de código desde el mismo dato (nº63, nº107).
+    T2 = { vistos: vistosCub, ciegos: ciegosCub, tasa: (v) => 100 * v.filter((x) => x <= 25).length / v.length };
 
     // ⭐ POSITIVO DE CONTROL: el mismo test contra la calle EQUIVOCADA tiene que fallar
     const codigos = [...tramos.keys()];
@@ -553,8 +560,23 @@ if (require.main === module) {
   log('   1 · ¿está la calle del callejero entre las vecinas del enganche?   [OSM, n=4.000]');
   log(`         buenos conocidos ${tBuenos.pctv.toFixed(1)} %  ·  sospechosos ${tMalos.pctv.toFixed(1)} %  ·  azar ${tAzar.pctv.toFixed(1)} %`);
   log(`         ⭐ DONDE NADIE VIGILA: ${tCiegos.pctv.toFixed(1)} %   ⇒ al nivel de los BUENOS`);
-  log('   2 · ¿está el enganche sobre el eje municipal de su calle?          [NO-OSM, n=214]');
-  log('         con nombre 55,6 %  ·  ⭐ donde nadie vigila 44,9 %   ⇒ ~10 puntos PEOR');
+  // ⭐⭐ TANDA 1·bis · LOS TRES HERMANOS DEL «400×», EN EL MISMO PÁRRAFO.
+  //   `55,6 %`, `44,9 %` y `5,4 %` estaban escritos a mano igual que el `400×`.
+  //   ⚠️ Con una diferencia que hay que decir: **los tres eran CORRECTOS hoy.** No
+  //     mentían — todavía. Por eso no tenían rojo natural y hubo que provocárselo
+  //     moviendo el listón de 25 a 30 m: entonces salió `55,6 → 64,2`,
+  //     `44,9 → 52,3` y `5,4 → 9,8`. ⇒ **el fallo no era el número: era que el
+  //     número no podía enterarse.**
+  //   ⛔ Y por eso NO se sustituye por el valor de hoy: se interpola.
+  const t2Vistos = T2.tasa(T2.vistos), t2Ciegos = T2.tasa(T2.ciegos);
+  log(`   2 · ¿está el enganche sobre el eje municipal de su calle?          [NO-OSM, n=${T2.ciegos.length}]`);
+  // ⚠️ El «~10 puntos» se queda ESCRITO A MANO, y a propósito. Interpolarlo daba
+  //   `~11` —la diferencia real es 10,7— y **la frase de cierre de §E7 dice «~10
+  //   puntos por debajo» y está fuera del alcance de esta tanda**. ⇒ arreglarlo
+  //   aquí dejaba el mismo veredicto diciendo 11 arriba y 10 abajo, que es peor
+  //   que no tocarlo. Queda anotado como hermano pendiente, con su pareja.
+  log(`         con nombre ${t2Vistos.toFixed(1)} %  ·  ⭐ donde nadie vigila ${t2Ciegos.toFixed(1)} %`
+    + '   ⇒ ~10 puntos PEOR');
   log('         y no lo explica el confusor de la acera (53,5 % frente a 44,0 % dentro del mismo tipo)');
   log('   3 · ¿cuelga del mismo way que sus hermanos de calle?               [DEGRADADO]');
   log('         falla por construcción en este grupo: no se usa.');
@@ -585,7 +607,7 @@ if (require.main === module) {
   const sinNadie = Math.round(11942 * 672 / 4000);
   log(`      · ${sinNadie} portales (${pct(sinNadie, 46026)} del total) no tienen NI UNA arista con`);
   log('        nombre a 80 m. Ahí no opina ningún testigo, ni el nuevo ni los dos viejos.');
-  log('      · la muestra municipal cubre el 5,4 % de la capa. Con la capa entera descargada,');
+  log(`      · la muestra municipal cubre el ${pct(nTramos, 3644)} de la capa. Con la capa entera descargada,`);
   log('        el testigo 2 pasaría de 214 casos a decenas de miles, y esto se decidiría.');
   log('        ⛔ NO se ha descargado en esta tanda: no estaba en el alcance.');
 

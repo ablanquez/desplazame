@@ -7855,3 +7855,46 @@ evitar: **una salida capturada con `2>&1` no es determinista**, y comparar dos d
 también el planificador del sistema operativo.
 
 **Traza:** comparación `prod/` (cosecha del bloque B.2) contra `post1/`, fuera de `src/`
+
+---
+## [2026-08-07] — Interpolar una cifra a medias metió una contradicción DENTRO del mismo veredicto
+
+**Categoría:** aviso falso
+**Síntoma:** al arreglar los tres hermanos del veredicto de `sin-vigilancia.js` interpolé también,
+de paso, la diferencia entre los dos porcentajes del testigo 2. La salida quedó así:
+
+```
+   línea 185   con nombre 55.6 %  ·  donde nadie vigila 44.9 %   ⇒ ~11 puntos PEOR
+   línea 603   …lo pone ~10 puntos por debajo sobre 214 casos, y 214 casos no deciden nada.
+```
+
+**El mismo veredicto diciendo 11 arriba y 10 abajo.** Y las dos frases hablan de lo mismo.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo, y con razón.** El script
+salió en **código 0**, el diff contra la línea base dio **exactamente las tres líneas esperadas**, y
+`55,6 − 44,9 = 10,7`, así que **`~11` es MÁS correcto que `~10`**. El arreglo era aritméticamente
+mejor que lo que sustituía. ⭐ Lo único que estaba mal era **lo que no toqué**: la línea 603 quedaba
+fuera del alcance declarado de la tanda, así que el veredicto se quedaba a dos voces.
+
+**Cómo se cazó:** leyendo el diff entero en vez de contar sus líneas — que es lo que la entrada 157
+me acababa de enseñar a hacer, ayer mismo.
+
+**Causa raíz:** el alcance eran **tres cifras** (`55,6 %`, `44,9 %`, `5,4 %`) y la diferencia entre
+dos de ellas es **una cuarta**, que además tiene un gemelo veinte líneas más abajo. ⇒ ⭐⭐ **un
+número derivado de dos que sí están en el alcance NO está en el alcance**: arrastra a todos los
+sitios donde se repite.
+
+**Arreglo aplicado:** se devuelve el `~10` escrito a mano, **con el porqué al lado**, y se anota
+como hermano pendiente **junto con su pareja de la línea 603**. Los dos, o ninguno.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **arreglar de más dentro de un alcance estrecho puede ser peor que no
+arreglar.** Un párrafo con dos números incoherentes le cuesta más al lector que uno con dos números
+viejos coherentes — porque el viejo es una foto y el incoherente es una duda.
+⚠️ Y la regla práctica: **antes de interpolar una cifra, buscar si se repite en otro sitio del
+mismo texto.** Si se repite y ese sitio no está en el alcance, no se toca.
+
+**Traza:** `src/sin-vigilancia.js` §E7
+
+---
