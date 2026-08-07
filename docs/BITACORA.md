@@ -8136,3 +8136,112 @@ tiene quien la vigile, y por eso es peor que una cifra. ⚠️ Y el aviso: **die
 de doce hacen creíble una lista inventada** — la proporción no es evidencia de método.
 
 **Traza:** `src/verificar-datos.js` (`consumidores()`, y el campo `quien` que ya no existe)
+
+---
+
+## [2026-08-07] — `B·V2` era falso: confundí `movilidad:MU1_jerarquia_viaria` con `idezar_base:JERARQUIA_VIARIA`
+
+**Categoría:** hallazgo falso · rojo publicado
+**Síntoma:** el bloque B de la auditoría publicó `B·V2` contra el README, diciendo que atribuía a
+`MU1_jerarquia_viaria` unos 3.644 tramos con código de vía que en realidad eran de `tn-ro:RoadLink`
+—que *«no trae ninguno de los tres atributos»*—, que *«la capa nombrada tiene 3.453 y tampoco trae
+código»*, y que *«el código solo está en `urbanismo:Vias` (3.359)»*.
+
+**Contrastado con los cuatro crudos archivados en `data/exploracion/`, sin descargar nada:**
+
+```
+   capa                             numberMatched   ¿codigo?  ¿doble_sent+limite_vel+plataforma?
+   movilidad:MU1_jerarquia_viaria           3.644      ✅ SI        ✅ SI
+   tn-ro:RoadLink                           3.644      ⛔ NO        ⛔ NO
+   idezar_base:JERARQUIA_VIARIA             3.453      ⛔ NO        ✅ SI
+   urbanismo:Vias                           3.359      ✅ SI        ⛔ NO
+```
+
+**Son DOS capas distintas con el mismo nombre humano y distinto espacio de nombres.** El README
+nombra `movilidad:MU1_jerarquia_viaria`, que tiene los 3.644 **y** el código **y** los tres
+atributos. `B·V2` la identificó con `idezar_base:JERARQUIA_VIARIA`, que es la de 3.453 y no trae
+código. ⇒ **la conclusión de `B·V2` —«el código solo está en `urbanismo:Vias`»— es falsa, y el
+README tenía razón.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **cada pieza de `B·V2` por
+separado era cierta.** `RoadLink` tiene 3.644: cierto. `RoadLink` no trae ninguno de los tres:
+cierto, medido. `JERARQUIA_VIARIA` tiene 3.453 sin código: cierto. `urbanismo:Vias` tiene el código:
+cierto. **Cuatro afirmaciones verdaderas y una conclusión falsa**, porque la que las unía —*«la capa
+nombrada es ésa»*— no la comprobé contra nada. ⚠️ Y la coincidencia que lo hizo creíble: **MU1 y
+RoadLink tienen EXACTAMENTE el mismo `numberMatched`**, 3.644, porque `RoadLink` es la publicación
+INSPIRE de MU1. Ver el número repetido en dos capas y concluir «entonces es la otra» fue el salto.
+
+**Y el segundo fallo, que es peor:** al escribir el README de hoy **retiré `B·V2` en el cuerpo de un
+mensaje de commit** y no lo publiqué en el informe. ⇒ **una corrección silenciosa.** El número de la
+portada cambió de «3.644 con código» a «3.644, 3.623 con código» sin que nadie leyera que un
+hallazgo publicado se caía. **Eso es exactamente lo que este proyecto persigue, hecho por mí, en la
+tanda cuyo encargo era publicar lo que cambia.**
+
+**Cómo se cazó:** Antonio lo vio al leer el README nuevo contra el hallazgo viejo y lo mandó
+decidir con el dato delante.
+
+**Causa raíz:** ⭐⭐ **emparejé por el nombre en vez de ir al objeto.** Es `B·V1` otra vez, cuatro
+tandas después: allí leí los documentos de diseño buscando lo que el encargo me señalaba en vez de
+preguntarles qué eran; aquí leí «jerarquía viaria» y cogí la capa que se llamaba así, sin mirar el
+espacio de nombres. **Dos rojos falsos de la auditoría, y los dos por lo mismo.**
+
+**Arreglo aplicado:** ⛔ ninguno en el README — era correcto. Lo que se corrige es el hallazgo:
+**`B·V2` se retira, declarado, con las cuatro pruebas.** Lo único impreciso del README original era
+«3.644 tramos con código»: son 3.644 tramos, **3.623** con código, y eso ya está afinado.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una retirada que solo vive en un mensaje de commit no está
+publicada.** Si un hallazgo se cae, se cae donde se leyó. ⚠️ Y sobre el hallazgo: **piezas
+verdaderas no hacen una conclusión verdadera si la que las une no se comprobó** — y la que las une
+suele ser la identificación del sujeto, que es la que nunca se mide.
+
+**Traza:** `data/exploracion/2026-08-02_wfs_describe_movilidad-MU1_jerarquia_viaria.xml` ·
+`2026-08-02_idezar-geoserver_describe-JERARQUIA_VIARIA.xml` ·
+`2026-08-02_idezar-geoserver_getfeature-RoadLink-count3.json` ·
+`2026-08-02_wfs_zona-casco_MU1jv.json` frente a `2026-08-02_wfs_zona-casco_IDEZARjv.json` (19 y 14)
+
+---
+
+## [2026-08-07] — Publiqué «~120 MB» en la portada que promete que no hay números a mano
+
+**Categoría:** dato sin medir
+**Síntoma:** el README nuevo dice, sobre por qué el dato no viaja: *«Son ~120 MB, con un fichero de
+37 MB.»* **Las dos cifras están mal**, y en una tabla que empieza diciendo *«Cada cifra sale de un
+script que se puede volver a ejecutar. Ninguna está escrita a mano aquí.»*
+
+```
+   du -sb data/fuentes   →   135.113.257 bytes = 135,1 MB   (no ~120)
+   el fichero mayor      →   ZonasVerdesSecundarias, 62,4 MB   (no el OSM de 37,4)
+```
+
+⭐ Y al medirlo sale algo que no sabía: **el fichero más grande de la carpeta no lo lee nadie.**
+`ZonasVerdesSecundarias` (62,4 MB) no aparece en los doce necesarios — `parques.js` solo nombra la
+capa en una línea de informe. ⇒ lo que un clon tiene que conseguir de verdad son **72,7 MB en 12
+ficheros**, y ahí sí el mayor es el OSM de 37,4 MB.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **la tabla de números de la propia
+portada, entera.** Los nueve valores con su comando al lado son correctos, los comprobé uno a uno.
+**La cifra mala estaba en la PROSA**, tres párrafos más abajo, donde la promesa no se leía como
+aplicable. ⚠️ Y el «~» la protegía: una cifra con tilde de aproximación no invita a comprobarla.
+
+**Cómo se cazó:** Antonio la contrastó con un listado del 6/08 que daba `ZonasVerdesSecundarias` en
+59,5 MB.
+
+**Causa raíz:** ⭐⭐ **puse el orden de magnitud que recordaba del encargo, no el que da `du`.** El
+encargo decía «~117 MB con un fichero de 59,5 MB»; escribí «~120 MB con un fichero de 37 MB»
+mezclando su total con el fichero que yo tenía en la cabeza por ser el del grafo. ⇒ **una cifra
+recordada se escribe igual de fácil que una medida, y con el `~` delante ni siquiera parece una
+afirmación.**
+
+**Arreglo aplicado:** la frase pasa a decir lo medido, y lo que le importa a quien clona: los **12
+ficheros necesarios, 72,7 MB**, el mayor de 37,4 MB. Con el comando al lado.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **la promesa de «ninguna cifra a mano» alcanza a la prosa, no solo a
+la tabla.** Un documento que declara su método se compromete en cada línea. ⚠️ Y el aviso concreto:
+**un `~` no es una licencia para no medir** — es una precisión declarada sobre un número que
+igualmente hay que tener.
+
+**Traza:** `README.md`, sección *Cómo ejecutarlo* · `du -sb data/fuentes`

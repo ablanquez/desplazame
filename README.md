@@ -77,7 +77,10 @@ veredictos y ninguno por defecto: `EL MISMO` · `OTRO` · `NO ESTÁ`.
 
 - `data/fuentes/` es **dato de producción**: se refresca. OSM cambia a diario. Versionarlo sería
   guardar para siempre algo que se pudre sin avisar, y que alguien clonaría seis meses después
-  creyendo que está al día. Son ~120 MB, con un fichero de 37 MB.
+  creyendo que está al día. Los **12 ficheros que el motor necesita suman 72,7 MB**, el mayor de
+  37,4 MB — los dice `node src/verificar-datos.js`, uno a uno y con su tamaño. *(La carpeta entera
+  pesa 135,1 MB por `du -sb data/fuentes`, pero 62,4 de ellos son una capa que no lee ningún
+  script.)*
 - ⛔ Y **no se escribe un script que lo descargue**, que sería lo cómodo: *un clon que se baja su
   propio OSM arranca y da OTROS números — y eso es peor que no arrancar, porque parece que
   funciona.* Un dato de otro día es otra fuente.
