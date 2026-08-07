@@ -8245,3 +8245,59 @@ la tabla.** Un documento que declara su método se compromete en cada línea. �
 igualmente hay que tener.
 
 **Traza:** `README.md`, sección *Cómo ejecutarlo* · `du -sb data/fuentes`
+
+---
+
+## [2026-08-07] — Publiqué en la portada un comando de ejemplo que no había ejecutado, y no funciona
+
+**Categoría:** dato sin medir
+**Síntoma:** el README nuevo abre la sección *«Después, el motor»* con esto:
+
+```
+   node src/ruta.js "Calle Don Jaime I 1" "Plaza del Pilar"    # una ruta
+```
+
+Ejecutado:
+
+```
+   ⛔ no se puede resolver la dirección "Plaza del Pilar"
+   exit=0
+```
+
+**El primer comando que un extraño copia de la portada no funciona.** El buscador resuelve
+**portales del callejero** —vía + número— y una lista corta de sitios con nombre; «Plaza del Pilar»
+es un topónimo suelto y no está.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la portada entera, y con su
+propio método puesto.** Audité las 30 cifras del README una a una contra su fuente y corregí cuatro.
+**Ninguna de esas 30 comprobaciones es un comando**: comprobé los números y di por buenos los
+`bash` que los rodean. ⚠️ Y el comando iba en un bloque con otros tres que **sí** funcionan, así que
+el bloque se leía como verificado en conjunto.
+
+**Cómo se cazó:** preguntándome qué le impide a un extraño usar esto —la última pregunta del
+encargo— y ejecutando lo primero que ese extraño ejecutaría.
+
+**Causa raíz:** ⭐⭐ **escribí el ejemplo por lo que hace bonito, no por lo que resuelve.** «Calle
+Don Jaime I 1 → Plaza del Pilar» es el trayecto turístico obvio de Zaragoza y suena a demostración;
+las direcciones que el motor resuelve son las siete de Antonio, que suenan a banco de pruebas. ⇒
+**elegí el ejemplo con criterio de escaparate dentro de un documento cuyo método es no fiarse de lo
+que parece razonable.**
+
+**Y un fallo de otro que sale de paso, anotado y NO tocado:** `ruta.js` imprime `⛔ no se puede
+resolver la dirección` **y termina en código 0**. Un `⛔` impreso no es un fallo, es texto — es la
+ley 44, y es exactamente el caso para el que se escribió `src/alarma.js`. Fuera del alcance de esta
+tanda.
+
+**Arreglo aplicado:** el ejemplo pasa a `"Calle Manifestación 6" → "Calle Don Jaime I 17"`,
+**ejecutado antes de escribirlo**: da 598 m, que es la ruta nº2 congelada al decimal. Y se añade la
+línea que faltaba: qué clase de dirección entiende el buscador, y que un fallo de resolución sale en
+verde.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un comando publicado es una afirmación, y se ejecuta antes de
+publicarlo.** La portada prometía «cada cifra con su comando» y yo verifiqué las cifras y no los
+comandos: **la mitad de la promesa que no se lee como promesa es la que no se comprueba.**
+
+**Traza:** `README.md`, sección *Cómo ejecutarlo* · `src/ruta.js` (el código 0 sobre una dirección
+no resuelta, anotado)

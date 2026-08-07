@@ -92,10 +92,15 @@ veredictos y ninguno por defecto: `EL MISMO` · `OTRO` · `NO ESTÁ`.
 **Después, el motor:**
 
 ```bash
-node src/ruta.js "Calle Don Jaime I 1" "Plaza del Pilar"    # una ruta
+node src/ruta.js "Calle Manifestación 6" "Calle Don Jaime I 17"   # una ruta (da 598 m)
 node src/modelo-rutas.js                                     # las siete rutas de cordura
 node src/probar-paradas.js --todo                            # la batería entera (~35 min)
-node src/exportar-rutas.js && start tools/visor-rutas.html   # verlas sobre el mapa
+node src/exportar-rutas.js && start tools/visor-rutas.html    # verlas sobre el mapa
+```
+
+⚠️ **El buscador entiende `Calle X 17`, no `Plaza del Pilar`.** Resuelve **portales del callejero
+municipal** —vía + número— y una lista corta de sitios con nombre; un topónimo suelto no. Si no lo
+resuelve te lo dice, pero ⛔ **sale en código 0 igualmente**: está anotado como fallo pendiente.
 ```
 
 ## Qué se sabe de las fuentes
