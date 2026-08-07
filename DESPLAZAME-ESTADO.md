@@ -46,7 +46,10 @@
 | **B · La documentación** | ✅ **HECHO** | `B-DOCUMENTACION-2026-08-07.md` — 3 vivos · 13 superados · 5 deudas |
 | **B.2 · El contraste** | ✅ **HECHO** | `B2-CONTRASTE-2026-08-07.md` — **el mapa de las 2.062, entero**; 3 vivos · 10 superados · la cosecha. ⛔ **Contrastadas 38 (1,8 %)**: recorrer no se puede, contrastar `R` es circular |
 | **C · Las decisiones y los ejes** | ✅ **HECHO** | `C-DECISIONES-2026-08-07.md` — ⛔⛔ **retiró `B·V1`, un rojo falso publicado** · el reparto del diseño · **la tabla de los ejes** · la cobertura de toda la auditoría |
-| ⭐ **La lista de arreglos, entera** | ⬜ **SIGUIENTE** | **Diez vivos** + la batería + los diez congelados propuestos. **Se decide aquí, sin ejecutor** |
+| ⭐ **La lista de arreglos** | 🔄 **EN CURSO** | Decidida entera el 7/08, **agrupada por lo que se estorba**, en tres tandas |
+| **1 · el instrumento** | ✅ **HECHO** | `A·V1` el centinela · `L2` el techo mal llamado · `B2·V2` el 400× · **+ los 3 hermanos del mismo veredicto**. ⭐⭐ **La predicción acertó 6 de 6** |
+| **2 · el clon y la portada** | ⬜ **SIGUIENTE** | ⚠️ **La abren los dos rojos de la línea base** · `A·D5` · `A·V4` · `B·V3` · `B·V2` · `A·V3` · la nota de los diseños |
+| **3 · el mecanismo del puntero** | ⬜ pendiente | `BD1` + `B2·V1` + el productor de cada número. **Los tres son el mismo arreglo desde tres sitios** |
 
 ⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
 decide al final de los tres bloques, entera.**
@@ -788,11 +791,11 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 93 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 99 VECES
 
-**Cuarenta tandas y cuatro de auditoría. Noventa y tres instrumentos mintiendo** — los 33 primeros,
+**Cuarenta tandas, cuatro de auditoría y dos de arreglos. Noventa y nueve instrumentos mintiendo** — los 33 primeros,
 sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los trece últimos (81-93) los produjo la propia auditoría de cierre**, y casi todos se cazaron
+⚠️ **Los diecinueve últimos (81-99) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
 **porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
 escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
 decir *«esto lo detuvo ella, no el criterio de quien medía»*.
@@ -892,6 +895,12 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 91 | ⚠️ **LA CLASE «FOTO» ACERTÓ 1 DE 10 Y SE DECLARÓ FALLIDA, no arreglada.** Tres versiones, tres muestras, tres suspensos: *«paso de peatones»* casa con *«pasó de»*, *«mucho antes»* es espacial y *«Caduca 05/10/2026»* mete el `05` y el `10` como cifras caducadas. ⭐ **Se publica con tamaño 1 y todo lo demás vuelve a `?`** |
 | 92 | ⛔⛔ **LA CLASE «DESCRIBE» DABA 32 Y ERAN CERO.** Leídas 15 a mano: **20 de las 32 eran mediciones** del 2 de agosto y el resto reglas propuestas o el índice del documento. ⭐⭐⭐ **Y la ley 35 lo había predicho por escrito ANTES de mirar:** *«en castellano una regla PROPUESTA se escribe en presente de indicativo igual que una implementada»*. **El modo verbal no separa lo propuesto de lo implementado** |
 | 93 | ⚠️ **UN CLASIFICADOR QUE EXIGÍA VERBO CONJUGADO Y NO VEÍA SU PROPIA SEMILLA.** La v1 no encontraba §P6.2 porque esa línea es **un sintagma nominal** *(«fichero versionado en el repositorio, leído por el proceso en cada regeneración»)*. ⭐ **Un diseño enuncia sus reglas sin conjugar nada** — y eso ya era un dato del bloque |
+| 94 | ⚠️ **EL POSITIVO DE CONTROL SALTABA JUNTO AL GUARDIÁN QUE VIGILABA.** Al provocarle el rojo, el control se caía con él **porque contaba «los portales por debajo del techo» — la variable misma que se estaba probando.** ⭐ *Un control que depende de lo que controla no es un control* |
+| 95 | ⛔⛔ **UN GUARDIÁN ESCRITO SOBRE LA FRASE QUE EL PROPIO SCRIPT ACABA DE CONSTRUIR.** `A.exige(FRASE.includes(razon))` **pasa siempre**: es el nº63 exacto. ⭐ Se cazó y se tiró **antes de commitear**, y en su sitio se escribió **por qué no hay guardián** — *lo que protege esa línea es que ya no queda ningún número que escribir a mano* |
+| 96 | ⭐⭐ **UNA SALIDA CAPTURADA CON `2>&1` NO ES DETERMINISTA.** El banner `⚑` va por **stderr** y el resto por **stdout**: el orden en que se entrelazan **depende del buffering, no del programa** ⇒ dos ejecuciones idénticas dan ficheros distintos y un `diff` los cuenta como cambios. ⛔⛔ **Iba a declarar FALLADA la predicción de T1 y a parar la tanda.** ⭐⭐ Y lo que lo disfrazó: **dos aciertos de tres hicieron que el tercero pareciera un hallazgo** en vez de un fallo del comparador |
+| 97 | ⚠️ **UN NÚMERO DERIVADO SE INTERPOLÓ Y PARTIÓ EL PÁRRAFO EN DOS VOCES.** Interpolar la resta de dos porcentajes del alcance dejó *«~11 puntos arriba»* junto a *«~10 puntos abajo»*, porque la frase de cierre estaba **fuera** de alcance. ⭐ **Aritméticamente el ~11 era mejor y aun así se revirtió**, con el porqué escrito al lado |
+| 98 | ⛔⛔ **UN DETECTOR DE HERMANOS QUE EXIGÍA `%` O `×` — Y SE DEJÓ DOS EN EL FICHERO QUE ESTABA ARREGLANDO.** `214 casos` y `~10 puntos` son resultados medidos igual y no llevan ninguno de los dos símbolos. ⇒ **El «43 hermanos» publicado NO es un recuento: es un SUELO**, y no se declaró como tal. ⭐⭐⭐ **Y su control de semilla no lo cazó porque comprobaba que el detector encontrase el hermano YA CONOCIDO** |
+| 99 | ⛔⛔⛔ **Y UNO DE ESTA CONVERSACIÓN, QUE ES EL MISMO ANIMAL:** los encargos a Claude Code llevaban escritas **las siete rutas «idénticas al milímetro»** como costura de parada dura — **con `523,4` en la nº6, valor que la tanda 33 sustituyó por `520,2`**, y con `3.086,9` en la nº1, **que ya no devuelve metros porque va en sugerencia**. ⭐ **Cinco encargos seguidos.** No mordió porque el ejecutor comparaba contra su propia línea base ⇒ **la costura escrita no era la que se estaba comprobando.** *Siete números a mano, en un texto que se lee como autoridad, sin congelar y sin salir del estado* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1195,6 +1204,31 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     derivadas.
 97. ⚠️ **UN DISEÑO ENUNCIA SUS REGLAS SIN CONJUGAR NADA.** *Un clasificador que exige verbo pierde
     los sintagmas nominales, que en un documento de diseño son la mitad de las reglas.*
+98. ⭐⭐⭐ **UNA SEMILLA QUE SE ENCUENTRA A SÍ MISMA NO DICE NADA DE LO QUE NO SE BUSCÓ.** *El control
+    de un barrido comprobaba que el detector encontrase el hermano YA CONOCIDO — y salía. Mientras,
+    se dejaba dos en el mismo fichero.* ⇒ **Una semilla mide el recall sobre lo que ya sabías; no
+    dice nada sobre el hueco.** ⚠️ **Y afecta a los encargos de esta conversación, que la han pedido
+    tres veces.** ⭐ **La alternativa buena: barrer una parcela pequeña con criterio ancho y contar
+    la diferencia.**
+99. ⭐⭐ **UN FILTRO DE FORMATO PRODUCE UN SUELO, NO UN RECUENTO — y si no se declara como suelo, se
+    lee como total.** *Exigir `%` o `×` dejó fuera `214 casos` y `~10 puntos`, que son resultados
+    medidos igual.*
+100. ⭐⭐⭐ **UN NÚMERO ESCRITO A MANO DENTRO DE UNA CADENA QUE SE IMPRIME ES PEOR QUE EN UN
+    COMENTARIO, PORQUE HEREDA LA CREDIBILIDAD DEL INSTRUMENTO.** *Un comentario se lee como un
+    comentario; una línea de salida se lee como un resultado. **Nadie sospecha de la salida de un
+    instrumento.*** ⇒ Y el corolario del arreglo: **cuando la solución es interpolar, el guardián
+    que verifica la interpolación pasa por construcción. No se pone: se dice que no se pone y por
+    qué.**
+101. ⭐⭐ **UN NÚMERO DERIVADO DE DOS QUE SÍ ESTÁN EN EL ALCANCE NO ESTÁ EN EL ALCANCE** — arrastra a
+    todos los sitios donde se repite. *Un párrafo con dos números incoherentes le cuesta más al
+    lector que uno con dos números viejos coherentes: **el viejo es una foto, el incoherente es una
+    duda**.* ⇒ **Antes de interpolar una cifra, buscar si se repite fuera del alcance.**
+102. ⭐⭐ **UN NÚMERO PUEDE ESTAR BIEN Y AUN ASÍ SER EL FALLO.** *Las tres cifras de
+    `sin-vigilancia.js` eran correctas el día que se arreglaron; el «400×» ya mentía.* ⇒ **El fallo
+    no era el número: era que el número no podía enterarse.** ⚠️ **Y de ahí sale que el rojo tenga
+    que PROVOCARSE y decirse que se provocó.**
+103. ⭐ **UN CONTROL QUE DEPENDE DE LO QUE CONTROLA NO ES UN CONTROL.** *El positivo saltaba junto al
+    guardián al provocarle el rojo, porque contaba la variable misma que se estaba probando.*
 
 ---
 
@@ -1609,7 +1643,7 @@ corregido el 7/08.** *(Fue exactamente la clase de fallo que el bloque B audita.
 
 | # | qué | dónde |
 |---|---|---|
-| **A·V1** | ⛔⛔ **El centinela 99999 se apagó en el informe, no en el instrumento.** Sigue imprimiendo los cuatro números que la tanda 35 declaró falsos, **y la batería sale en verde** | `acera-equivocada.js` |
+| ~~**A·V1**~~ | ✅ **ARREGLADO** en la tanda 1 (7/08) — apagado donde vive, no sobre una copia. *El hallazgo se conserva: la tabla registra qué se encontró, no solo qué queda* | `acera-equivocada.js` |
 | **A·V2** | ⛔⛔ **Dos medidas del mismo universo divergen hoy** (50.986 vs 51.065): `codigoVia` contra núcleo de vía. **El congelado vigila uno de los dos** | `acera-equivocada.js` / `medir-paridad.js` |
 | **A·V3** | ⛔ **Un número publicado infravalorado**: el *«16,9× el azar»* es **21,3×** limpio | `H1-PORTALES.md` §323 |
 | **A·V4** | ⛔⛔ **El README dice que todavía no hay código** —ni una línea de aplicación—, con 24.931 líneas y un motor funcionando. **Y dos frases más:** *«no hay código que pueda fallar»* (144 entradas de bitácora) y *«no contiene ningún dato integrado»* (46.150 portales). ⭐ **No es registro histórico: es la puerta, y ahí sí se reescribe** | `README.md` |
@@ -1617,8 +1651,8 @@ corregido el 7/08.** *(Fue exactamente la clase de fallo que el bloque B audita.
 | **B·V2** | ⛔ **El README atribuye a una capa lo que está repartido en tres.** Dice que `MU1_jerarquia_viaria` trae 3.644 tramos **con código de vía**: 3.644 es `tn-ro:RoadLink` y no tiene ninguno de los tres atributos; la capa nombrada tiene 3.453 y tampoco trae código; el código solo está en `urbanismo:Vias` (3.359). ⭐ **La conclusión sigue siendo cierta; la evidencia con que se justifica, no** | `README.md:32-34` |
 | **B·V3** | ⛔⛔ **Lo que el README promete no es verdad en un clon**, y **no lo menciona en ninguna línea**. ⭐ **Y lo afilado: los 48 comandos `node …` citados existen los 48.** No falta el fichero — está y no puede correr: el lector copia el comando y recibe un `ENOENT` sobre un disco que no es suyo | `README.md` |
 | ⭐⭐ **B2·V1** | ⛔⛔ **EL DENOMINADOR APROBADO DEJA FUERA 12 DE LOS 26 CONGELADOS.** Aparecen **31 veces en `docs/` y ninguna marcada**; el control positivo (98.774 · 4.562) sale marcado 7 y 11 veces. Viven en celdas de tabla sin negrita. ⇒ **El censo v2 mide lo que el proyecto SUBRAYA, no lo que AFIRMA**, y con ello **toda cobertura declarada sobre 2.062** — en B y en B.2. ⛔ Propuesta del ejecutor: **no ampliar el censo** (el v1 ya enseñó adónde lleva) sino **declararlo por lo que es** y decir que su intersección con los congelados es de 13 | la definición de trabajo del bloque B |
-| **B2·V2** | ⛔ **Un script recita un número que él mismo acaba de desmentir.** Línea 77 mide **412,7×**; línea 192 imprime **«400× el azar»** dentro del veredicto. ⭐ **El documento copió el bueno: el que miente es el script.** Es el nº144 con vuelta de tuerca — **vive en una cadena que se imprime, así que no parece un comentario: parece un resultado.** Sostiene el veredicto E7 de `H1-CIERRE.md` §433 | `sin-vigilancia.js:77/192` |
-| **B2·V3** | ⛔ **El «182 líneas decorativas» es de la tanda 29; hoy su instrumento da 232**, con siete tandas de código por medio — y este documento lo citaba en presente *(corregido el 7/08)*. ⭐⭐ **Cierra un `NO CONSTA` del bloque A**: el productor es `auditoria-guardianes.js` §A1b | `H1-AUDITORIA-GUARDIANES.md:20` |
+| ~~**B2·V2**~~ | ✅ **ARREGLADO** en las tandas 1 y 1·bis — interpolado, no sustituido, y con sus tres hermanos del mismo veredicto. ⛔ **Un script recitaba un número que él mismo acababa de desmentir.** Línea 77 mide **412,7×**; línea 192 imprime **«400× el azar»** dentro del veredicto. ⭐ **El documento copió el bueno: el que miente es el script.** Es el nº144 con vuelta de tuerca — **vive en una cadena que se imprime, así que no parece un comentario: parece un resultado.** Sostiene el veredicto E7 de `H1-CIERRE.md` §433 | `sin-vigilancia.js:77/192` |
+| **B2·V3** | ⚠️ **SOLO EN DOCUMENTOS — el instrumento ya interpola** (comprobado en la tanda 1: `grep '\b182\b' src/` no devuelve nada) ⇒ **es tanda 3.** El «182 líneas decorativas» es de la tanda 29; hoy su instrumento da 232, con siete tandas de código por medio — y este documento lo citaba en presente *(corregido el 7/08)*. ⭐⭐ **Cierra un `NO CONSTA` del bloque A**: el productor es `auditoria-guardianes.js` §A1b | `H1-AUDITORIA-GUARDIANES.md:20` |
 
 ### ⛔ SUPERADOS — trece números publicados y desmentidos, **ninguno con marca** (bloque B)
 
@@ -1867,6 +1901,55 @@ por ninguno, y el proyecto entero está construido contra eso.*
 Eso lo sostienen **las siete rutas de Antonio**, y el bloque C acaba de medir de qué se fían: **del
 mismo motor reejecutado, salvo una observación humana.** ⭐ **Es el hueco más grande de H1, y esta
 auditoría no lo abre: lo hereda.**
+
+### ✅ TANDAS DE ARREGLO 1 y 1·bis (7/08) — el instrumento
+
+⭐⭐⭐ **LA PREDICCIÓN ACERTÓ 6 DE 6.** Escrita y fechada **antes de tocar una línea**: qué ficheros
+se moverían, cuáles no, qué congelados saltarían (ninguno) y con qué valores.
+
+```
+   acera-equivocada.js   150.947 → 50.986 · 123.132 → 23.172 · 66.973 → 16.993 · 126 → 73 m
+   informe-portales.js   16,9× → 21,3×
+   congelados que saltaron            0 de 26
+   siete rutas                        sin mover
+```
+
+⭐⭐⭐ **Y LA ÚNICA TRIANGULACIÓN REAL QUE TIENE ESTE PROYECTO:** el **bloque A predijo 21,3× el 6 de
+agosto, con otro método y sin tocar nada**; con el centinela apagado sale **21,3× exacto**. *Todo lo
+demás que aquí se llama «cuadre» es el mismo código reejecutado.*
+
+**Lo arreglado:** `A·V1` el centinela, **apagado donde vive y no sobre una copia** — ⭐ *se marca, no
+se excluye: el contrato ya estaba escrito en `portales.js` y en `direccion.js:36`; el arreglo no lo
+inventa, lo mueve de la copia al origen* · `L2`, que resultó ser otra cosa mejor contada —
+**`CENTINELA = 9999` era el TECHO, no el centinela: mentía el nombre, no el valor**, y el rojo
+provocado enseñó los **3.553 portales reales** que un techo bajo tiraría en silencio · `B2·V2` el
+«400×» y **sus tres hermanos del mismo veredicto**, todos **interpolados, no sustituidos**.
+
+⛔ **`B2·V3` NO TENÍA ARREGLO QUE HACER.** `grep '\\b182\\b' src/` no devuelve nada: la línea ya
+interpola. ⭐ **El error estaba en la lista y era de esta conversación** — heredado del criterio del
+bloque C y propagado sin ir al código. *El ejecutor fue, miró, y dijo que no había nada en vez de
+fabricar un arreglo para justificar el encargo.*
+
+⛔⛔ **Y LA BATERÍA QUEDÓ DEMOSTRADA, NO ARGUMENTADA:** salió **byte a byte idéntica antes y después**,
+con `acera-equivocada.js` pasando de 150.947 a 50.986 **dentro**. ⇒ **Sale en verde con el
+instrumento mintiendo y en verde con el instrumento arreglado.** *El bloque C dijo que era el eje
+más peligroso; ya no es una tesis.*
+
+**⚠️ DOS ROJOS EN LA LÍNEA BASE QUE NINGÚN BLOQUE DE LA AUDITORÍA REPORTÓ**, y **no son de los 37
+ilegibles: son de los que sí se pueden leer por su código de salida:**
+- `modelo-rutas.js` → código 1: *«sobre las aristas que PISA la ruta 7, San Juan de la Peña no sale
+  como carril en calzada»*
+- `auditoria-guardianes.js` → código 1: *«el control NEGATIVO del clasificador falla»*
+⛔ **No se sabe desde cuándo ni qué sostienen. ABREN LA TANDA 2.**
+
+**Lo que queda anotado y sin tocar:** la divergencia `A·V2` **medida limpia: 79** (50.986 por
+`codigoVia` contra 51.065 por núcleo de vía) — ⛔ **decisión de Antonio, no arreglo** · **39
+afirmaciones liberadas** del marcaje `MEDIDO CON INSTRUMENTO TOCADO`, sin medir · **~40 hermanos**
+en el resto de `src/` — ⚠️ **y el «43» declarado SUELO, no recuento** · **cinco cifras a mano** que
+quedan en `sin-vigilancia.js` (líneas 580, 603, 611).
+
+**Para republicar en la tanda 3:** `H1-ACERA-EQUIVOCADA.md` (los cuatro números) ·
+`H1-PORTALES.md:323` (16,9×) · `H1-AUDITORIA-GUARDIANES.md:20` y este documento §29 (182 → 232).
 
 ⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
 requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
