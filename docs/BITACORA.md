@@ -8039,3 +8039,54 @@ rellena un identificador por su prefijo.** Si la fuente está truncada, la fuent
 vuelve a medir.
 
 **Traza:** `src/verificar-datos.js` (la cabecera lo cuenta) · `data/fuentes/`
+
+---
+
+## [2026-08-07] — Los cuatro visores pintaban teselas de OSM acreditando «© OpenStreetMap» a secas
+
+**Categoría:** obligación incumplida
+**Síntoma:** los cuatro visores cargan el mapa de fondo de `tile.openstreetmap.org` y lo acreditan
+así:
+
+```
+   attribution: '© OpenStreetMap'
+```
+
+**Sin `contributors` y sin enlace a las condiciones.** La ODbL pide crédito a los **colaboradores**
+—no a un proyecto— y que desde donde se ve el dato se pueda llegar a la licencia. Y no es un
+detalle formal aquí: el grafo entero de este repositorio es una base de datos derivada de OSM, así
+que la atribución es **la única contrapartida** de todo lo que el proyecto usa.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **los cuatro probadores de visor,
+que son de los instrumentos más duros del repositorio.** `probar-visor-rutas.js` simula Leaflet,
+cuenta polilíneas y marcas, compara metro a metro lo que el visor pinta contra lo que el motor
+calcula, mete un tramo falso para comprobar que no se filtra en silencio y lo borra para comprobar
+que desaparece. **Ninguno mira la licencia ni una sola vez** — y no por descuido: comprueban que el
+mapa diga la verdad sobre el DATO, y la atribución es una verdad sobre la PROCEDENCIA del dato.
+⚠️ Y los cuatro reciben la cadena: pasa por su `tileLayer` simulado, entra por el parámetro, y allí
+nadie le pregunta nada.
+
+**Cómo se cazó:** por el reconocimiento de cierre, buscando qué le falta al repositorio de cara
+afuera. No lo cazó ningún guardián, y a día de hoy sigue sin haber uno.
+
+**Causa raíz:** ⭐ **la atribución no es una afirmación sobre el mundo, y todo lo que este proyecto
+vigila lo es.** Un contador se compara con un recuento; una ruta, con otra ruta; un nombre, con la
+fuente. Un crédito de licencia no se contrasta con nada medible, así que no hay dónde engancharle
+un `A.exige` de los que aquí se escriben. ⇒ **la clase de afirmación que este proyecto sabe
+vigilar dejó fuera una obligación entera.**
+
+**Arreglo aplicado:** una cadena por visor, las cuatro, con `colaboradores de OpenStreetMap` y
+enlace a `openstreetmap.org/copyright`. Los cuatro probadores, en verde después. ⛔ **Y no se pone
+guardián**, porque el que se me ocurría —comprobar que la cadena contiene «OpenStreetMap»— es un
+guardián sobre el texto que acabo de escribir, que es el nº63. Queda anotado como descubierto sin
+red: lo caza quien mire, y hoy nadie mira.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un repositorio vigila las afirmaciones de la clase que sabe
+comprobar, y las demás no es que fallen: es que no están.** ⚠️ Antes de decir «esto está
+verificado», hay que preguntar de qué CLASE son las obligaciones que tiene encima, no solo cuántas
+comprobaciones hay.
+
+**Traza:** `tools/visor-grafo.html` · `tools/visor-nombre-simple.html` · `tools/visor-nombres.html` ·
+`tools/visor-rutas.html` — la línea del `tileLayer` de cada uno

@@ -65,7 +65,7 @@ const z = G.zona;
 const mapa = L.map('mapa', { preferCanvas: true })
   .fitBounds([[z.sur, z.oeste], [z.norte, z.este]]);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-  { maxZoom: 20, attribution: '© OpenStreetMap' }).addTo(mapa);
+  { maxZoom: 20, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">colaboradores de OpenStreetMap</a>' }).addTo(mapa);
 
 // ⭐ el contador va aquí y no en el HTML: es lo que la prueba de Node compara.
 const CUENTA = { azules: 0, rojas: 0, grises: 0, verdes: 0 };
