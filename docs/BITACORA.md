@@ -7250,3 +7250,148 @@ operativo: cuando un comentario cita una medida, o la mide el propio fichero, o 
 no se escribe.
 
 **Traza:** `src/paridad.js` (`RAZONABLE_M`), `src/medir-paridad.js` (§A2, el reparto exigido)
+
+---
+
+## [2026-08-07] — El censo de la auditoría llamó «afirmación» a la mitad de los números del proyecto
+
+**Categoría:** aviso falso
+**Síntoma:** el primer instrumento del bloque B clasificaba cada número de `docs/` para saber cuántas
+afirmaciones hay que contrastar. Salió esto:
+
+```
+   tokens numéricos encontrados 19906
+   AFIRMACION            10192   51.2 %
+   SUELTO                 6073   30.5 %
+```
+
+**10.192 afirmaciones numéricas** en 44 documentos. Es el denominador con el que iba a declarar la
+cobertura del bloque entero.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **las otras siete clases.**
+`CITA-AJENA`, `REFERENCIA`, `FECHA-SELLO`, `COORDENADA-ID`, `SUELO-DECLARADO` e `ILUSTRACION`
+estaban bien clasificadas y sumaban lo que tenían que sumar. El clasificador funcionaba en todo
+menos en la clase que importaba — porque `AFIRMACION` **no era una clase: era el residuo**, lo que
+quedaba cuando ninguna otra casaba.
+
+**Cómo se cazó:** ⭐ una muestra sistemática de 32 filas, una de cada 340. Casi todas eran celdas de
+tablas de resultado (`| 18 | CAMINO PEÑAFLOR A VILLAMAYOR | 2,33 km | 3 | 5 |`), y varias eran
+basura pura: un `05` de una fecha, un `4` de un índice de tabla, un `5` de «2-5 m».
+
+**Causa raíz:** definir la clase que importa **por descarte**. Las seis primeras clases se
+comprobaban con un criterio positivo; la séptima se llevaba todo lo demás. ⇒ **una clase-residuo
+crece con lo que el clasificador no entiende, y su tamaño mide la ignorancia del instrumento, no
+el fenómeno.**
+
+**Arreglo aplicado:** el censo v2 no pregunta «¿es una afirmación?», pregunta **«¿lo marca el
+documento como afirmación?»** — negrita, cita `>` o línea de conclusión `⇒`. Es una definición
+estrecha, se declara como tal en el informe, y da **2.062**. ⛔ El 10.192 no se publica como
+cobertura: se publica como el error que fue.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **una clase definida por descarte no es una medida: es el resto de una
+división.** Si el número que va a ser el denominador de una cobertura sale de «lo que no encajó en
+ninguna otra parte», ese número mide al clasificador. ⚠️ Y el síntoma es barato: **la clase-residuo
+era la más grande de las ocho.**
+
+**Traza:** instrumento desechable `b1-censo.js` → `b1-titulares.js` (fuera de `src/`)
+
+---
+
+## [2026-08-07] — Cinco hallazgos falsos porque `toLocaleString` no agrupa los números de cuatro cifras
+
+**Categoría:** aviso falso
+**Síntoma:** el cruce entre los 26 números congelados y los documentos que los publican dio **seis
+filas donde «el documento NO contiene el valor congelado»**:
+
+```
+   ⛔ SIN localizar en ninguno de sus documentos   6
+      grafo.km  mapa.verdes  verde.sinListon  verde.municipalNombrados
+      verde.municipalPolis  buscador.contestadas
+```
+
+Seis números publicados que sus propios informes no dirían. Iba a ser el hallazgo gordo del bloque.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **las otras veinte filas.** El
+instrumento localizaba correctamente `68.649`, `98.774`, `378.222`, `51.493`, `56.801`… — todos de
+**cinco y seis cifras**. Y el control de lectura del fichero estaba puesto y en verde. Un
+instrumento que acierta veinte de veintiséis parece un instrumento que funciona.
+
+**Cómo se cazó:** abriendo los seis. `H1-LISTON-50.md` dice **«4.562»** en su tercera tabla, a la
+vista. ⇒ el que no lo encontraba era yo.
+
+**Causa raíz:** `(4562).toLocaleString('es-ES')` devuelve **`'4562'`**, sin punto: Intl **no agrupa
+los números de cuatro cifras**. La prosa del proyecto sí los agrupa. ⇒ el instrumento buscaba una
+forma que ningún documento escribe. Cinco de los seis eran exactamente eso —4.562, 3.803, 4.424,
+1.235 y 6.499,98—; el sexto (`verde.municipalNombrados = 0`) lo tiraba otro filtro mío, el que salta
+las formas de un solo carácter.
+
+**Arreglo aplicado:** la agrupación se hace a mano (`replace(/\B(?=(\d{3})+(?!\d))/g, '.')`) además
+de con `Intl`, y se buscan **todas** las formas. Con eso: **26 de 26 localizados**. ⛔ Y el `0` del
+municipal sigue sin poder buscarse por ser de un carácter: **va declarado como límite del
+instrumento en el informe**, no como hallazgo.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un formateador de la plataforma no es el formateador del proyecto.**
+`toLocaleString` implementa una convención tipográfica —«no agrupes cuatro cifras»— que la prosa de
+este repositorio no sigue. ⚠️ Y la forma general: **cuando se busca un dato «como se escribe», hay
+que buscarlo como lo escribe QUIEN LO ESCRIBIÓ**, no como lo escribiría la librería.
+
+**Traza:** instrumento desechable `b2-cruce.js` / `b2b4.js` (fuera de `src/`)
+
+---
+
+## [2026-08-07] — La contraprueba iba a firmar un «26 de 26» con el rojo del método nunca visto
+
+**Categoría:** silencio falso
+**Síntoma:** con el cruce ya arreglado, el bloque B tenía su resultado: **26 de 26 números
+congelados aparecen en su documento vigente y el motor reproduce los 26**. Un pleno. La costura del
+encargo dice que un resultado redondo es la señal, así que antes de publicarlo se corrió la
+contraprueba — romper una afirmación cierta en una copia y exigir que el método la cace:
+
+```
+   ⭐⭐ ROJO · se rompe UNA A UNA cada afirmación cierta
+      dato.sello         H1-CIERRE.md          ⛔ NO la caza
+      grafo.nodos        H1-GRAFO-CIUDAD.md    ⛔ NO la caza
+      grafo.aristas      H1-GRAFO-CIUDAD.md    ⛔ NO la caza
+      grafo.componentes  H1-CIERRE.md          ⛔ NO la caza
+      grafo.aristasAPie  H1-CIERRE.md          ✅ cazada
+      grafo.vertices     H1-GRAFO-CIUDAD.md    ⛔ NO la caza
+   ⇒ rojos vistos 1 de 6
+```
+
+**Uno de seis.** El método con el que iba a publicar un pleno no cazaba cinco roturas de seis.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la columna VERDE de la propia
+contraprueba, y el resultado entero del apartado.** «26 de 26 localizados · 0 marcados · ✅ no grita
+con todo» — impecable. **El instrumento acertaba en todo lo que se le pedía acertar y fallaba en lo
+único que se le pedía fallar.** Es la séptima forma de mentir: *la comprobación distingue los
+extremos y no el medio.*
+
+**Cómo se cazó:** porque la contraprueba estaba escrita **antes** de mirar el resultado bonito, y
+porque el encargo la exigía con las dos columnas. Sin la columna del rojo, «26 de 26» se habría
+publicado tal cual.
+
+**Causa raíz:** la rotura sustituía **la primera aparición** del número. En estos informes **el
+mismo dato sale varias veces** —en la tabla, en el resumen y en la cita—, así que `buscar()` lo
+encontraba más abajo y el método parecía ciego cuando lo ciego era la rotura. ⇒ **una mutación que
+no destruye TODAS las instancias de lo que quiere destruir no prueba nada**, y su resultado se lee
+al revés: parece que el detector falla cuando el que falla es el mutador.
+
+**Arreglo aplicado:** se rompen todas las formas y todas las apariciones (`replace` global sobre
+cada forma). Con eso: **6 rojos de 6, 0 contagios**, y el «26 de 26» pasa a poder publicarse. ⭐ Se
+publica **con la contraprueba al lado**, no solo.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una contraprueba que falla puede estar acusando al detector cuando
+la culpable es la rotura.** Antes de concluir «mi método no caza», hay que comprobar que la rotura
+ocurrió **del todo** — es el nº117 (*cinco de diez mutaciones no llegaron a ocurrir*) con una vuelta
+de tuerca: aquí la mutación ocurrió, pero **incompleta**, que es peor porque deja marca de haber
+ocurrido.
+⚠️ Y la segunda, para este proyecto: **cuando un resultado sale redondo, lo que hay que auditar
+primero no es el dato: es el instrumento que lo produjo.**
+
+**Traza:** instrumento desechable `b2b4.js --rojo` (fuera de `src/`)
