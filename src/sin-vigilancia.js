@@ -561,7 +561,23 @@ if (require.main === module) {
   log('');
   log('   ⇒ ⭐⭐⭐ VEREDICTO, EN UNA FRASE:');
   log('      NO SE PUEDE SABER CON LO QUE HAY — el testigo más potente pone el enganche ciego');
-  log('      al nivel de los buenos conocidos (65,5 % frente a 61,9 %, 400× el azar), pero el');
+  // ⭐⭐ B2·V2 · ESTA FRASE RECITABA «400× el azar» TRES LÍNEAS DESPUÉS DE MEDIR 412,7×.
+  //   No era un comentario: **es una cadena que se imprime**, así que no parece un
+  //   comentario — parece un resultado. Y `docs/H1-CIERRE.md` §E7 copió el bueno,
+  //   o sea que el que mentía era el script.
+  //   ⛔ El arreglo NO es cambiar 400 por 412,7: eso es el mismo fallo con otro
+  //     número. La frase INTERPOLA lo medido, que es lo único que no envejece.
+  const razonAzar = tAzar.pctv > 0 ? (tBuenos.pctv / tAzar.pctv).toFixed(1) + '×' : '∞ (el azar da 0)';
+  log(`      al nivel de los buenos conocidos (${tCiegos.pctv.toFixed(1)} % frente a `
+    + `${tBuenos.pctv.toFixed(1)} %, ${razonAzar} el azar), pero el`);
+  // ⛔⛔ Y AQUÍ NO VA UN GUARDIÁN, Y ES A PROPÓSITO.
+  //   Escribí uno —«la frase tiene que contener lo medido»— y lo tiré: la frase
+  //   se construye CON esos mismos valores, así que pasaría siempre. Es el nº63
+  //   exacto: *una comprobación que no puede distinguir lo que dice distinguir*.
+  //   ⇒ Lo que protege esta línea no es una alarma: es que **no queda ningún
+  //     número que escribir a mano**. El rojo se vio antes del arreglo, contra la
+  //     frase enlatada: «el veredicto recita un número escrito a mano y lo medido
+  //     es 412.7×».
   log('      ÚNICO independiente de OSM lo pone ~10 puntos por debajo sobre 214 casos, y 214');
   log('      casos no deciden nada.');
   log('');

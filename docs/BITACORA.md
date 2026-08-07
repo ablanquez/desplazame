@@ -7758,3 +7758,53 @@ leyó» de «el guardián tenía razón» — y es en la rotura, justo cuando ha
 servir.
 
 **Traza:** `src/portales.js` · `src/medir-paridad.js` · registro `A-CODIGO-2026-08-06.md` §L2
+
+---
+
+## [2026-08-07] — Un veredicto recitaba «400× el azar» tres líneas después de medir 412,7×
+
+**Categoría:** dato envenenado
+**Síntoma:** `sin-vigilancia.js` mide y publica la razón sobre el azar, y luego la vuelve a decir
+en su frase de cierre. Las dos líneas, en la misma ejecución:
+
+```
+   :79    ⇒ ¿y está por encima del azar?                     412.7×      ← lo MEDIDO
+   :192      …(65,5 % frente a 61,9 %, 400× el azar), pero el            ← lo RECITADO
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el propio documento que lo cita.**
+`docs/H1-CIERRE.md` §E7 publica **412×** — el bueno. Quien leyera el informe y quien leyera la
+salida del script verían números distintos, y **el que estaba bien era el documento**. ⭐ Y el
+script sale en **código 0**: no tiene ni un `A.exige` en sus 600 líneas, así que no había nada que
+pudiera ponerse rojo.
+
+**Cómo se cazó:** el bloque B.2 de la auditoría, comparando cada cifra publicada contra la salida
+de su productor. Salió como «candidata a divergencia» **al revés de lo esperado**: el documento
+decía una cosa y el script otra, y el equivocado era el script.
+
+**Causa raíz:** ⭐⭐ **el número vive en una cadena que se IMPRIME.** Es el nº144 —*un número que solo
+vive en un comentario se pudre*— con una vuelta de tuerca que lo hace peor: **un comentario se lee
+como un comentario; una cadena impresa se lee como un resultado.** Nadie sospecha de la línea de
+salida de un instrumento.
+
+**Arreglo aplicado:** la frase interpola `tCiegos.pctv`, `tBuenos.pctv` y `tBuenos/tAzar`.
+⛔ **NO se cambió 400 por 412,7**: eso es el mismo fallo con otro número, y volvería a pudrirse.
+
+⭐⭐ **Rojo visto antes de arreglar** —`⛔ el veredicto recita un número escrito a mano y lo medido es
+412.7×`— y verde después, con **una sola línea de diferencia** en toda la salida del script.
+
+**Y un fallo mío dentro, que estuve a punto de commitear:** ⛔ escribí como guardián permanente un
+`A.exige(FRASE.includes(razon))` **sobre la frase que yo mismo acababa de construir con esa razón**.
+Pasa siempre. Es el nº63 exacto — *una comprobación que no puede distinguir lo que dice
+distinguir*—, y encima habría quedado como prueba de que la línea está vigilada. Se tiró, y en su
+sitio queda escrito por qué no hay guardián: **lo que protege esa línea es que ya no queda ningún
+número que escribir a mano.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un número escrito a mano dentro de una cadena que se imprime es peor
+que en un comentario, porque hereda la credibilidad del instrumento.** ⚠️ Y la segunda, sobre el
+arreglo: **cuando la solución es interpolar, el guardián que verifica la interpolación pasa por
+construcción.** No se pone: se dice que no se pone y por qué.
+
+**Traza:** `src/sin-vigilancia.js` · registro `B2-CONTRASTE-2026-08-07.md` §B2·V2
