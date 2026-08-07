@@ -7808,3 +7808,50 @@ arreglo: **cuando la solución es interpolar, el guardián que verifica la inter
 construcción.** No se pone: se dice que no se pone y por qué.
 
 **Traza:** `src/sin-vigilancia.js` · registro `B2-CONTRASTE-2026-08-07.md` §B2·V2
+
+---
+
+## [2026-08-07] — Estuve a punto de declarar fallada la predicción por dos líneas que solo habían cambiado de sitio
+
+**Categoría:** aviso falso
+**Síntoma:** con el arreglo del centinela puesto, la comprobación de qué se había movido dio esto:
+
+```
+   medir-paridad            líneas distintas: 0
+   medir-listones           líneas distintas: 4      ⬅ predije que NO cambiaba
+   informe-portales         líneas distintas: 24
+```
+
+La predicción de T1·1a decía **explícitamente** que `medir-listones.js` no se movía, porque todos
+sus `.n` vienen del índice, que ya estaba limpio. Y la costura del encargo es tajante: *«lo que se
+mueve no coincide con la predicción → PARA Y AVISA»*. Iba a pararla.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el mismo instrumento, sobre los
+otros dos ficheros, dando la respuesta correcta las dos veces.** `medir-paridad` salió en 0 —que es
+lo predicho— e `informe-portales` en 24 —que también—. **Dos aciertos de tres hacen que el tercero
+parezca un hallazgo**, no un fallo del comparador.
+
+**Cómo se cazó:** por mirar el diff entero en vez de su recuento. Las cuatro líneas eran **dos**,
+y las dos eran el banner del grafo:
+
+```
+   > ⚑ GRAFO · zona=termino …          (aparece en la línea 11)
+   < ⚑ GRAFO · zona=termino …          (aparecía en la línea 140)
+```
+
+**Causa raíz:** el banner se imprime por **stderr** y el resto por **stdout**. Al capturar con
+`2>&1`, el orden en que se entrelazan **depende del buffering**, no del programa. ⇒ dos ejecuciones
+idénticas del mismo código dan ficheros distintos, y un `diff` los cuenta como cambios. **Ningún
+número se movió.**
+
+**Arreglo aplicado:** la comparación filtra las líneas `⚑` antes de contar. ⛔ Y no basta con
+filtrar el tiempo: hay más de una fuente de ruido en una salida capturada.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **la ley 90 aplicada al comparador: el instrumento que mide el efecto
+de un arreglo también es código nuevo sin auditar.** ⚠️ Y la forma concreta, que es barata de
+evitar: **una salida capturada con `2>&1` no es determinista**, y comparar dos de ellas mide
+también el planificador del sistema operativo.
+
+**Traza:** comparación `prod/` (cosecha del bloque B.2) contra `post1/`, fuera de `src/`
