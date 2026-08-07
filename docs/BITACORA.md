@@ -7704,3 +7704,57 @@ segunda versión del dato.** Y el síntoma es traicionero — **el camino más v
 justo el que va por la copia limpia**, así que cuanto más se mira, menos se ve.
 
 **Traza:** `src/portales.js` · `src/acera-equivocada.js` · registro `A-CODIGO-2026-08-06.md` §V1
+
+---
+
+## [2026-08-07] — La constante se llamaba `CENTINELA` y valía 9999; el centinela vale 99999
+
+**Categoría:** silencio falso
+**Síntoma:** `portales.js` declaraba `const CENTINELA = 9999` y `numeroPedible` filtraba con
+`n < CENTINELA`. **El centinela del callejero es `99999`.** 9999 no es el centinela: es el **techo
+por debajo del cual un número se considera pedible**. Dos conceptos, un nombre. Y el guardián de
+`medir-paridad.js:488` comparaba contra el equivocado, con un mensaje que llegaba a imprimir:
+
+```
+   «hay un portal con número X y el centinela declarado es 9999»
+```
+
+—una frase sencillamente falsa, impresa por un guardián.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el guardián mismo, en todas las
+tandas desde la 35, y con razón: `maxN < 9999` es CIERTO.** El filtro funciona, el universo sale
+bien, el número publicado es correcto. **Nada de lo que se podía comprobar estaba mal.** Lo único
+falso era el nombre — y un nombre no sale rojo. ⭐ Y el bloque A lo clasificó como *latente* `L2`
+precisamente por eso: *«hoy no muerde»*.
+
+**Cómo se cazó:** el bloque A, leyendo la constante al lado de su uso. **Medido hoy con control
+positivo:** el único valor crudo ≥ 9999 en los 46.150 portales es **99999**, y hay **0 portales en
+la franja `[9999, 99999)`** (control: 46.033 por debajo del techo).
+
+**Causa raíz:** el techo se eligió *para* atrapar el centinela, y heredó su nombre. ⇒ ⭐ **una
+constante que se llama por el problema que resuelve, y no por lo que es, miente en cuanto alguien
+la lee sin el contexto.** El daño latente: el día que el callejero estrene un portal `12345`, este
+techo lo tira **en silencio** y el guardián no puede verlo, porque compara contra 9999.
+
+**Arreglo aplicado:** se separan en dos —`TECHO_PEDIBLE = 9999` y `CENTINELA_CALLEJERO = 99999`,
+este último **observado, no supuesto**— y el guardián pasa a ser dos: uno por el techo y ⭐ **uno
+nuevo sobre la franja**, que es el que no existía.
+
+⭐⭐ **Rojo visto, y hay que decir cómo: PROVOCADO.** El guardián de la franja está en 0 con el dato
+real, así que se bajó el techo a 100 en una rotura temporal y se leyó su rojo —*«hay 3553 portales
+con número entre el techo (100) y el centinela (99999): son números REALES y el techo los está
+tirando en silencio»*— antes de restaurarlo. ⛔ **No es un rojo natural y va dicho.**
+
+**Y un segundo fallo, mío, que salió de ahí:** ⚠️ **el positivo de control saltó junto al guardián**
+al provocar el rojo. Contaba «los portales por debajo del techo», que depende de lo que se está
+poniendo a prueba. ⇒ **un control que se rompe con la rotura no controla nada.** Reescrito para
+contar el fichero, no el filtro.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un positivo de control no puede depender de la variable que el
+guardián vigila.** Si la rotura los tumba a los dos, el control no distingue «el fichero no se
+leyó» de «el guardián tenía razón» — y es en la rotura, justo cuando hace falta, cuando deja de
+servir.
+
+**Traza:** `src/portales.js` · `src/medir-paridad.js` · registro `A-CODIGO-2026-08-06.md` §L2

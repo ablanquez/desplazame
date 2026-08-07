@@ -485,9 +485,36 @@ if (require.main === module) {
         `${ks[Math.floor(ks.length / 2)].toFixed(1)} · ${ks[Math.floor(0.99 * ks.length)].toFixed(1)} · ${ks[ks.length - 1].toFixed(1)}`);
       di('⭐ el número de portal más alto del universo', maxN);
       // ⛔ (1) el centinela por su VALOR: un número imposible.
-      A.exige(maxN < P.CENTINELA,
-        `hay un portal con número ${maxN} en el universo y el centinela declarado es ${P.CENTINELA}: `
+      //   ⚠️⚠️ ARREGLOS 1 · ESTE GUARDIÁN COMPARABA CONTRA EL NÚMERO EQUIVOCADO.
+      //     Decía `maxN < P.CENTINELA` y `P.CENTINELA` valía **9999**, que no es el
+      //     centinela: es el TECHO de lo pedible. El mensaje llegaba a imprimir «el
+      //     centinela declarado es 9999», que es falso. Ahora son dos exigencias,
+      //     porque son dos cosas:
+      A.exige(maxN < P.TECHO_PEDIBLE,
+        `hay un portal con número ${maxN} en el universo y el techo de lo pedible es ${P.TECHO_PEDIBLE}: `
         + 'o el filtro no filtra, o el callejero ha estrenado otro valor imposible');
+      // ⛔ (1b) ⭐⭐ LO QUE EL TECHO TIRA EN SILENCIO. Un portal con número real
+      //   entre el techo y el centinela desaparecería del buscador sin que nadie
+      //   se enterase. Hoy son 0 —medido— y por eso hace falta el guardián: un
+      //   cero sin vigilancia es un cero que nadie volverá a mirar.
+      {
+        // ⛔ se lee el CRUDO a propósito: `cargarPortales()` ya aplica el techo, y
+        //   preguntarle a la función filtrada si el filtro tira algo daría 0 siempre.
+        const crudos = JSON.parse(require('fs').readFileSync(P.RUTA_PORTALES, 'utf8'))
+          .map((x) => Number(x.sortNumber));
+        const franja = crudos.filter((n) => n >= P.TECHO_PEDIBLE && n < P.CENTINELA_CALLEJERO);
+        // ⭐ positivo de control: sin él, un 0 es indistinguible de una lista vacía.
+        //   ⚠️ Y NO puede depender de `TECHO_PEDIBLE`: la primera versión contaba
+        //     «los que están por debajo del techo» y al provocarle el rojo al
+        //     guardián **saltó también el control**, que es justo lo que un control
+        //     no debe hacer. Cuenta el fichero, no el filtro.
+        A.exige(crudos.length > 46000,
+          `el crudo de portales trae ${crudos.length} registros: el cero de abajo no probaría nada`);
+        A.exige(franja.length === 0,
+          `hay ${franja.length} portales con número entre el techo (${P.TECHO_PEDIBLE}) y el `
+          + `centinela del callejero (${P.CENTINELA_CALLEJERO}): son números REALES y el techo los `
+          + 'está tirando en silencio');
+      }
       // ⛔ (2) el centinela por su FORMA, que es lo que caza a uno de otro valor.
       //   ⭐ El listón se declara con los dos anclajes medidos, no a ojo:
       //     · el peor caso REAL de Zaragoza es DISEMINADO PEÑAFLOR, con 63,8

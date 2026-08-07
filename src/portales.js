@@ -103,11 +103,28 @@ function nucleo(nombre) {
 // ⭐ Y la definición vive AQUÍ, una sola vez: `direccion.js` la llama, y los
 //   medidores la llaman. Tres copias de la misma constante es cómo se llega a que
 //   una tanda limpie y otra no (ley 56).
-const CENTINELA = 9999;
+//
+// ⛔⛔ ARREGLOS 1 · LA CONSTANTE SE LLAMABA `CENTINELA` Y VALÍA 9999.
+//   El centinela del callejero es **99999**; 9999 era el **techo por debajo del
+//   cual un número se considera pedible**. Dos cosas distintas con un solo
+//   nombre — y el mensaje de `medir-paridad.js` llegaba a imprimir *«el centinela
+//   declarado es 9999»*, que es sencillamente falso.
+//   ⚠️ Hoy no muerde y va medido: **0 portales** con número crudo en la franja
+//     `[9999, 99999)` (control positivo: 46.033 por debajo del techo). Pero el
+//     día que el callejero estrene un portal 12345, este techo lo tira **en
+//     silencio**, y el guardián de `medir-paridad.js` no podría verlo porque
+//     compara contra el número equivocado.
+//   ⇒ Se separan los dos conceptos y **cada uno dice lo que es**.
+const TECHO_PEDIBLE = 9999;
+
+/** ⭐ El valor con el que el callejero municipal dice «este portal no tiene
+ *  número»: `sortNumber = 99999` sobre `"BL0"`, `"A1"`, `"LL"`… **Observado**,
+ *  no supuesto: es el único valor crudo ≥ `TECHO_PEDIBLE` en los 46.150. */
+const CENTINELA_CALLEJERO = 99999;
 
 /** El número con el que se puede PEDIR un portal, o `null` si no tiene. */
 function numeroPedible(n) {
-  return (Number.isFinite(n) && n > 0 && n < CENTINELA) ? n : null;
+  return (Number.isFinite(n) && n > 0 && n < TECHO_PEDIBLE) ? n : null;
 }
 
 /** Los 46.150 portales, proyectados a metros. ⛔ Se leen donde están; no se copian.
@@ -238,4 +255,4 @@ function ladoDe(p, a, b) {
 
 module.exports = { cargarPortales, cargarVias, nucleo, sinAcentos, aSegmento,
   indexarAristas, engancharUno, ladoDe, RUTA_PORTALES, RUTA_VIAS, TIPOS_VIA,
-  CENTINELA, numeroPedible };
+  TECHO_PEDIBLE, CENTINELA_CALLEJERO, numeroPedible };
