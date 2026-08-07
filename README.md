@@ -21,7 +21,9 @@
 
 ## Qué hay dentro, en números
 
-Cada cifra sale de un script que se puede volver a ejecutar. Ninguna está escrita a mano aquí:
+Cada cifra sale de un script que se puede volver a ejecutar, y va con él al lado. ⚠️ **Las cuatro
+últimas suben solas** —código, bitácora, informes—: están medidas el **7 de agosto de 2026** y para
+cuando leas esto serán otras. **Manda el comando, no el número.**
 
 | Qué | Cuánto | De dónde sale |
 |---|---|---|
@@ -31,8 +33,8 @@ Cada cifra sale de un script que se puede volver a ejecutar. Ninguna está escri
 | Portales del callejero municipal | 46.150, de los que **46.026** quedan enganchados a una calle | `node src/informe-portales.js` |
 | Direcciones que el buscador puede pedir | 51.065 | `node src/numeros-congelados.js` |
 | Rutas de cordura que se ejecutan en cada cambio | 7, y **una no debe resolverse** — es el control | `node src/modelo-rutas.js` |
-| Código | 71 ficheros · 25.548 líneas | `ls src/*.js \| wc -l` · `cat src/*.js \| wc -l` |
-| Entradas de bitácora | 161 | `grep -c '^## \[' docs/BITACORA.md` |
+| Código | 71 ficheros · 25.574 líneas | `ls src/*.js \| wc -l` · `cat src/*.js \| wc -l` |
+| Entradas de bitácora | 165 | `grep -c '^## \[' docs/BITACORA.md` |
 | Informes | 40 | `ls docs/*.md \| wc -l` |
 
 ⚠️ **Las siete rutas no se publican aquí a propósito.** Sus metros viven en el instrumento que las
@@ -98,7 +100,7 @@ node src/exportar-rutas.js && start tools/visor-rutas.html   # verlas sobre el m
 
 ## Qué se sabe de las fuentes
 
-- **Sí hay red viaria vectorial descargable.** El GeoServer del Ayuntamiento publica 178 capas por
+- **Sí hay red viaria vectorial descargable.** El GeoServer del Ayuntamiento publica **178 capas** por
   WFS; `movilidad:MU1_jerarquia_viaria` trae **3.644 tramos** con geometría, sentido de circulación
   y límite de velocidad, y **3.623 de ellos con el código de vía** que enlaza con los 46.150
   portales del callejero municipal. Un cruce por identificador exacto, no por nombre y cercanía.
@@ -108,6 +110,10 @@ node src/exportar-rutas.js && start tools/visor-rutas.html   # verlas sobre el m
   zonas, solo 21 pares de extremos coinciden. Pero **87 pares se cruzan geométricamente**, así que
   la información está en el dato — hay que *planarizarla*. Ese paso está construido, y es la parte
   interesante.
+  ⚠️ De esas cuatro cifras, **solo los 160 tramos salen de un instrumento que siga vivo** (los 12
+  ficheros de zona de `data/exploracion/`, contando `fid` únicos). **Los 21 y los 87 los midió un
+  script de la tanda 0 que no está en `src/`**: son citas de
+  [`docs/BITACORA.md`](docs/BITACORA.md), no algo que puedas reproducir con un comando de aquí.
 - **No hay red peatonal municipal publicada.** Ni aceras como eje, ni pasos de peatones. Existen
   —están catalogados— pero son de acceso restringido a técnicos municipales. OpenStreetMap sí los
   tiene, y usarlo tiene un precio que se ha decidido pagar: **la ODbL alcanza a las bases de datos
@@ -147,7 +153,8 @@ retrospectiva, se pierde. Algunos ejemplos de lo que hay ahí dentro:
   Cinco contadores en verde midiendo si el servidor **respondió**, no si respondió **bien**.
 - Un `.gitignore` cuyas reglas de claves privadas no protegían nada, porque el comentario al final
   de la línea formaba parte del patrón.
-- Una batería de 57 scripts que recorrió todos y terminó en verde **con uno estrellado**.
+- Una batería que recorrió los 57 scripts que había entonces y terminó en verde **con uno
+  estrellado**.
 - Un centinela `99999` apagado en una copia y no en el origen: cuatro tandas de números falsos, con
   todos los invariantes en verde, porque eran invariantes de forma y no de valor.
 
@@ -164,8 +171,8 @@ contraste con OpenStreetMap y la misma calle servida en dos sistemas de coordena
 
 No está toda la exploración —son evidencia de un momento, y un repositorio guarda todas las
 versiones para siempre— pero sí lo necesario para reproducir los números sin fiarse de nadie. Y lo
-que se quedó fuera está **nombrado** en el `.gitignore`, con el porqué: un crudo de 34 MB y tres
-ficheros con datos personales.
+que se quedó fuera está **nombrado** en el `.gitignore`, con el porqué: un crudo de 35,9 MB y
+tres ficheros con datos personales.
 
 ## Si trabajas en este repositorio
 
