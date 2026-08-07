@@ -2,53 +2,103 @@
 
 **Buscador de rutas urbanas multimodales en Zaragoza, con motor de cálculo propio.**
 
-> ## ⚠️ Fase actual: reconocimiento de fuentes. **Todavía no hay código.**
+> ## ⚠️ Qué hay y qué no
 >
-> Lo que hay en este repositorio es el trabajo previo: cuatro informes de reconocimiento, una
-> bitácora de fallos y la evidencia cruda que sostiene sus afirmaciones. **Ni una línea de
-> aplicación.** Si has llegado buscando una app que funcione, todavía no existe.
+> Hay **motor de rutas a pie funcionando**: un grafo de la ciudad construido desde cero, enganche de
+> direcciones, cálculo de itinerarios y un redactor que los cuenta en castellano. Hay **cuatro
+> visores** para mirarlos sobre el mapa.
+>
+> **No hay aplicación, ni interfaz de usuario, ni servidor.** Se interroga por línea de comandos.
+> **El motor calcula a pie y nada más**: el carril bici está en el grafo como *etiqueta* —el texto
+> de la ruta lo menciona— pero no hay cálculo en bici, ni autobús, ni tranvía. Eso es lo siguiente.
+> Y el **tiempo real** (posiciones de vehículos, llegadas en vivo, bicis disponibles) está fuera de
+> la primera versión.
+>
+> ⛔ **Y el dato NO viaja en este repositorio.** Un clon recién hecho **no puede ejecutar el motor**.
+> Cómo saber qué te falta está tres secciones más abajo, en *Cómo ejecutarlo*.
 
 ---
+
+## Qué hay dentro, en números
+
+Cada cifra sale de un script que se puede volver a ejecutar. Ninguna está escrita a mano aquí:
+
+| Qué | Cuánto | De dónde sale |
+|---|---|---|
+| El grafo de Zaragoza | 68.649 nodos · 98.774 aristas · 170 componentes · 6.499,98 km | `node src/numeros-congelados.js` |
+| …de ellas, a pie | 94.570 aristas | ídem |
+| Sello del dato de OSM | `2026-08-03T08:19:51Z` | ídem |
+| Portales del callejero municipal | 46.150, de los que **46.026** quedan enganchados a una calle | `node src/informe-portales.js` |
+| Direcciones que el buscador puede pedir | 51.065 | `node src/numeros-congelados.js` |
+| Rutas de cordura que se ejecutan en cada cambio | 7, y **una no debe resolverse** — es el control | `node src/modelo-rutas.js` |
+| Código | 71 ficheros · 25.548 líneas | `ls src/*.js \| wc -l` · `cat src/*.js \| wc -l` |
+| Entradas de bitácora | 161 | `grep -c '^## \[' docs/BITACORA.md` |
+| Informes | 40 | `ls docs/*.md \| wc -l` |
+
+⚠️ **Las siete rutas no se publican aquí a propósito.** Sus metros viven en el instrumento que las
+mide, y un número copiado a una portada se pudre sin que nadie se entere. `node src/modelo-rutas.js`
+las dice, y compara cada una con lo que se publicó.
 
 ## Qué va a ser
 
 Un buscador de *"quiero ir de X a Y"* en Zaragoza, combinando **a pie, autobús, tranvía y BiZi**,
 con un buscador configurable (qué transportes acepto, minimizar transbordos).
 
-El cálculo de rutas será **código propio**: nada de OSRM, Valhalla ni GraphHopper. Ese es el
-motivo del proyecto — el algoritmo es el trabajo, no el envoltorio.
+El cálculo de rutas es **código propio**: nada de OSRM, Valhalla ni GraphHopper. Ese es el motivo
+del proyecto — el algoritmo es el trabajo, no el envoltorio.
 
-**Fuera de la primera versión:** el tiempo real (posición de vehículos, llegadas en vivo,
-disponibilidad de bicis).
+## ⭐ Cómo ejecutarlo
 
-## Por qué el reconocimiento va primero
+**Primero, saber qué te falta:**
 
-Porque la pregunta que decide el proyecto entero —*¿existe una red de calles descargable con la
-que construir un grafo?*— no tenía respuesta. Elegir el stack antes de saberlo es elegir la
-herramienta y después recortar el proyecto para que quepa en ella.
+```bash
+node src/verificar-datos.js
+```
 
-Cuatro tandas de reconocimiento después, esto es lo que se sabe:
+Te dice, fichero a fichero, qué necesita el motor, con qué consulta se pidió cada uno, y —lo que de
+verdad importa— **si lo que tienes es EL MISMO fichero que produjo los números publicados**. Tres
+veredictos y ninguno por defecto: `EL MISMO` · `OTRO` · `NO ESTÁ`.
+
+**Por qué el dato no viaja, y por qué no hay un script que lo baje:**
+
+- `data/fuentes/` es **dato de producción**: se refresca. OSM cambia a diario. Versionarlo sería
+  guardar para siempre algo que se pudre sin avisar, y que alguien clonaría seis meses después
+  creyendo que está al día. Son ~120 MB, con un fichero de 37 MB.
+- ⛔ Y **no se escribe un script que lo descargue**, que sería lo cómodo: *un clon que se baja su
+  propio OSM arranca y da OTROS números — y eso es peor que no arrancar, porque parece que
+  funciona.* Un dato de otro día es otra fuente.
+
+⇒ La limitación es real y está declarada. Lo que se ha construido es que **el clon lo sepa**.
+
+**Después, el motor:**
+
+```bash
+node src/ruta.js "Calle Don Jaime I 1" "Plaza del Pilar"    # una ruta
+node src/modelo-rutas.js                                     # las siete rutas de cordura
+node src/probar-paradas.js --todo                            # la batería entera (~35 min)
+node src/exportar-rutas.js && start tools/visor-rutas.html   # verlas sobre el mapa
+```
+
+## Qué se sabe de las fuentes
 
 - **Sí hay red viaria vectorial descargable.** El GeoServer del Ayuntamiento publica 178 capas por
-  WFS; `movilidad:MU1_jerarquia_viaria` trae 3.644 tramos con geometría, sentido de circulación,
-  límite de velocidad y —lo decisivo— el **código de vía** que enlaza con los 46.150 portales del
-  callejero municipal. Un cruce por identificador exacto, no por nombre y cercanía.
+  WFS; `movilidad:MU1_jerarquia_viaria` trae **3.644 tramos** con geometría, sentido de circulación
+  y límite de velocidad, y **3.623 de ellos con el código de vía** que enlaza con los 46.150
+  portales del callejero municipal. Un cruce por identificador exacto, no por nombre y cercanía.
+  ⚠️ `tn-ro:RoadLink` publica **los mismos 3.644** —es la edición INSPIRE de esa capa— con menos
+  atributos; e `idezar_base:JERARQUIA_VIARIA` es **otra** (3.453 tramos, sin código de vía).
 - **No hay topología.** Las líneas están dibujadas, no conectadas: de 160 tramos medidos en 11
   zonas, solo 21 pares de extremos coinciden. Pero **87 pares se cruzan geométricamente**, así que
-  la información está en el dato — hay que *planarizarla*. Ese paso lo construye el proyecto, y es
-  justamente la parte interesante.
+  la información está en el dato — hay que *planarizarla*. Ese paso está construido, y es la parte
+  interesante.
 - **No hay red peatonal municipal publicada.** Ni aceras como eje, ni pasos de peatones. Existen
   —están catalogados— pero son de acceso restringido a técnicos municipales. OpenStreetMap sí los
-  tiene: en la misma zona del casco, 115 aceras, 43 pasos de peatones y 26 escaleras. Usarlo tiene
-  un precio y se ha decidido pagarlo: la ODbL alcanza a las bases de datos derivadas, así que el
-  grafo que salga de ahí nacerá bajo esa licencia, aunque el código siga siendo Apache 2.0.
-- **El transporte está resuelto.** El GTFS del Punto de Acceso Nacional trae bus y tranvía, con
-  paradas, horarios y el trazado real de cada línea.
+  tiene, y usarlo tiene un precio que se ha decidido pagar: **la ODbL alcanza a las bases de datos
+  derivadas**, así que el grafo nace bajo esa licencia aunque el código siga siendo Apache 2.0.
+- **El transporte está resuelto y sin integrar.** El GTFS del Punto de Acceso Nacional trae bus y
+  tranvía, con paradas, horarios y el trazado real de cada línea.
 
-Nada de esto se afirma de memoria: cada cifra de ahí arriba tiene detrás su comando y su respuesta
-cruda, y lo que no se ha llegado a comprobar está declarado como tal, informe por informe.
-
-Los cuatro informes, con sus comandos y sus números:
+Los cuatro informes de reconocimiento, con sus comandos y sus números:
 
 | Informe | Qué responde |
 |---|---|
@@ -57,37 +107,48 @@ Los cuatro informes, con sus comandos y sus números:
 | [Reconocimiento de las fuentes en red](docs/RECONOCIMIENTO-RED-ZARAGOZA.md) | Los servicios del Ayuntamiento: qué se puede descargar |
 | [Inventario exhaustivo de fuentes](docs/INVENTARIO-FUENTES-ZARAGOZA.md) | Las 178 capas, clasificadas una a una |
 
-## La bitácora nació antes que el código
+## ⚠️ Los documentos de diseño son el plan en papel, no el diseño vigente
 
-[`docs/BITACORA.md`](docs/BITACORA.md) es el registro de los fallos reales del proyecto, escrito
-**en caliente**, en el momento en que se descubren. Existe desde antes de que hubiera repositorio,
-y a día de hoy todas sus entradas son de **datos y de instrumentos que mintieron**, porque
-todavía no hay código que pueda fallar.
+Los cuatro `docs/DISEÑO-H1-*.md` están fechados el **2 y el 3 de agosto de 2026** y el primero dice
+en su tercera línea: *«Estado: propuesta para aprobar. **Nada de esto está construido.**»* Siguen
+publicados como **registro histórico** —lo que se pensó antes de escribir código—, y se leen así.
 
-El campo importante de cada entrada es *"qué se probó y DIO VERDE mientras el fallo estaba
-vivo"* — la prueba que pasaba mientras el problema ya existía. Es un dato perecedero: si se deja
-para la retrospectiva, se pierde. Algunos ejemplos de lo que hay ahí dentro:
+⭐ Y se dice aquí porque hace falta decirlo: un auditor con el encargo delante los leyó como el
+diseño vigente y publicó un hallazgo falso a partir de ellos. Lo que rige de verdad son las
+decisiones de `DESPLAZAME-ESTADO.md` §5, que el código cita más de noventa veces.
+
+## La bitácora es la mitad del proyecto
+
+[`docs/BITACORA.md`](docs/BITACORA.md) es el registro de los fallos reales, escrito **en caliente**,
+en el momento en que se descubren. Existe desde antes que el repositorio.
+
+El campo importante de cada entrada es *"qué se probó y DIO VERDE mientras el fallo estaba vivo"* —
+la prueba que pasaba mientras el problema ya existía. Es un dato perecedero: si se deja para la
+retrospectiva, se pierde. Algunos ejemplos de lo que hay ahí dentro:
 
 - Un dataset que declaraba `coveragePercent: 100` con el 29,6 % de los números de portal mal.
   Cinco contadores en verde midiendo si el servidor **respondió**, no si respondió **bien**.
-- Una regla verificada «934 de 934» que miente en 50 casos, porque al cambiar de proyecto cambia
-  el denominador.
 - Un `.gitignore` cuyas reglas de claves privadas no protegían nada, porque el comentario al final
   de la línea formaba parte del patrón.
+- Una batería de 57 scripts que recorrió todos y terminó en verde **con uno estrellado**.
+- Un centinela `99999` apagado en una copia y no en el origen: cuatro tandas de números falsos, con
+  todos los invariantes en verde, porque eran invariantes de forma y no de valor.
 
-Junto a ella está [`DESPLAZAME-ESTADO.md`](DESPLAZAME-ESTADO.md), la memoria del proyecto: qué se
-ha decidido y con qué motivo, qué miente cada fuente y qué sigue abierto — incluida una tabla de lo
-que se creyó y resultó falso, que no se borra.
+Junto a ella está [`DESPLAZAME-ESTADO.md`](DESPLAZAME-ESTADO.md), la memoria del proyecto: qué se ha
+decidido y con qué motivo, qué miente cada fuente y qué sigue abierto — incluida una tabla de lo que
+se creyó y resultó falso, que no se borra.
 
 ## Cómo comprobar lo que dicen los informes
 
-En la carpeta `data/exploracion/` están las respuestas **crudas** de los servidores que
-sostienen las afirmaciones más fuertes: el catálogo completo de capas, las 11 zonas de medición de
-conectividad, el contraste con OpenStreetMap y la misma calle servida en dos sistemas de
-coordenadas distintos.
+En `data/exploracion/` están las respuestas **crudas** de los servidores que sostienen las
+afirmaciones más fuertes: el catálogo completo de capas, las zonas de medición de conectividad, el
+contraste con OpenStreetMap y la misma calle servida en dos sistemas de coordenadas distintos.
+Ésas **sí viajan** en el repositorio, una a una y con su motivo escrito en el `.gitignore`.
 
 No está toda la exploración —son evidencia de un momento, y un repositorio guarda todas las
-versiones para siempre— pero sí lo necesario para reproducir los números sin fiarse de nadie.
+versiones para siempre— pero sí lo necesario para reproducir los números sin fiarse de nadie. Y lo
+que se quedó fuera está **nombrado** en el `.gitignore`, con el porqué: un crudo de 34 MB y tres
+ficheros con datos personales.
 
 ## Si trabajas en este repositorio
 
@@ -104,16 +165,20 @@ esqueleto para que rellenarlo sea fácil. Las reglas de trabajo están en [`CLAU
 
 El **código** de este proyecto está bajo [Apache 2.0](LICENSE).
 
-La licencia de los **datos** se declarará cuando se integre alguno: hoy este repositorio no
-contiene ningún dato integrado, solo respuestas crudas de servicios públicos citadas como
-evidencia. Las fuentes previstas tienen condiciones distintas entre sí —la del Ayuntamiento de
-Zaragoza exige atribución; la de OpenStreetMap es ODbL, con efecto sobre las bases de datos
-derivadas— y eso se documentará cuando sea cierto, no antes.
+**Los datos tienen dos licencias distintas, y ya son ciertas las dos:**
+
+- **OpenStreetMap — ODbL.** El grafo de la ciudad es una **base de datos derivada** de OSM, así que
+  nace bajo [ODbL](https://opendatacommons.org/licenses/odbl/). Alcanza a lo derivado: quien
+  redistribuya el grafo, o cualquier cosa calculada a partir de él que constituya base de datos,
+  queda bajo la misma licencia. Atribución: *© colaboradores de OpenStreetMap.*
+- **Ayuntamiento de Zaragoza — Ley 37/2007.** El callejero (portales y vías) y las capas
+  municipales (jerarquía viaria, carriles bici, zonas verdes) se reutilizan bajo la
+  [licencia general de reutilización](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones).
+  Atribución: *Origen de los datos: Ayuntamiento de Zaragoza (IDEZar).* La reutilización no implica
+  que el Ayuntamiento participe, patrocine o apoye este proyecto.
 
 ## Aviso
 
-Este proyecto **no es un producto oficial** del Ayuntamiento de Zaragoza, ni de Avanza Zaragoza,
-ni de Tranvías de Zaragoza, ni de ninguna otra entidad. Es un trabajo personal que utiliza datos
+Este proyecto **no es un producto oficial** del Ayuntamiento de Zaragoza, ni de Avanza Zaragoza, ni
+de Tranvías de Zaragoza, ni de ninguna otra entidad. Es un trabajo personal que utiliza datos
 publicados en abierto por esos organismos.
-
-Origen de los datos consultados: Ayuntamiento de Zaragoza.
