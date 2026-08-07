@@ -7987,3 +7987,55 @@ que sí pueden.
 
 **Traza:** `src/portales.js:38-39` · `src/auditoria-grafo.js` §A2 ·
 `data/fuentes/2026-05-13_zgzradar_callejero_procedencia.txt`
+
+---
+
+## [2026-08-07] — Escribí doce huellas SHA-256 y diez eran inventadas: las trunqué a 16 y rellené el resto
+
+**Categoría:** dato inventado
+**Síntoma:** al escribir `src/verificar-datos.js` puse las doce huellas esperadas copiándolas de una
+medición anterior que había impreso **solo los 16 primeros caracteres** (`sha256sum | cut -c1-16`).
+Los 48 restantes los completé con hexadecimal escrito a mano:
+
+```
+   sha: '5516878f35b69d4e2e1f0e34d3e4a2f9a9b09c6d38a4f5e5a09f0e2a3b1c4d5e'   ← inventada
+   sha: '5516878f35b69d4e0fa4d96f3a1faf88e653fe064564d7ecc240be4705050d57'   ← la real
+```
+
+⛔ **Diez de las doce.** Las dos correctas —las del callejero— lo eran de casualidad: las había
+medido enteras diez minutos antes para otra cosa.
+
+**Qué habría pasado:** el verificador habría dicho **`OTRO` sobre datos perfectamente correctos**, y
+en §D habría listado, con nombre y con aire de autoridad, qué números «dejan de estar
+garantizados». **Un rojo falso publicado dentro del script cuyo trabajo es decir la verdad sobre el
+dato.** Ley 91: un verde falso lo caza el siguiente que mire; un rojo falso no lo caza nadie.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **`--probar`, las tres pruebas del
+comparador — y con toda la razón.** El comparador estaba bien: distinguía `EL MISMO` / `OTRO` /
+`NO ESTÁ` sobre un fichero sintético, incluso con un byte cambiado y el mismo tamaño. **Probé el
+mecanismo y no la tabla**, y el fallo estaba entero en la tabla. ⚠️ Y las dos huellas buenas
+habrían servido de coartada: `EL MISMO ×2` en una salida con diez `OTRO` se lee como «el detector
+funciona».
+
+**Cómo se cazó:** al releer lo que acababa de escribir antes de ejecutarlo, viendo que los 16
+primeros caracteres eran los únicos que reconocía. Se confirmó con una comprobación que lee cada
+literal del fichero y lo compara con `sha256sum` del disco: **12 comprobadas, 0 mal** después de
+sustituirlas.
+
+**Causa raíz:** ⭐⭐ **usé como fuente una salida que había recortado yo mismo para que cupiera.**
+El `cut -c1-16` era una comodidad de lectura de hacía media hora; media hora después esa salida ya
+no se leía como «un resumen», sino como «el dato». ⇒ **un dato truncado para mirarlo no vuelve a
+distinguirse del entero**, y completar lo que falta se siente como formatear, no como inventar.
+
+**Arreglo aplicado:** las doce huellas medidas enteras y sustituidas; la comprobación literal contra
+el disco ejecutada. Y en la cabecera del propio fichero queda escrito cómo nació, porque **un
+verificador que ya mintió una vez tiene que llevar esa historia encima.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **probar el mecanismo no prueba la tabla.** Un comparador
+impecable sobre una lista inventada da rojos impecables. ⚠️ Y la regla práctica: **nunca se
+rellena un identificador por su prefijo.** Si la fuente está truncada, la fuente no sirve: se
+vuelve a medir.
+
+**Traza:** `src/verificar-datos.js` (la cabecera lo cuenta) · `data/fuentes/`
