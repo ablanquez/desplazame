@@ -8301,3 +8301,59 @@ comandos: **la mitad de la promesa que no se lee como promesa es la que no se co
 
 **Traza:** `README.md`, sección *Cómo ejecutarlo* · `src/ruta.js` (el código 0 sobre una dirección
 no resuelta, anotado)
+
+---
+
+## [2026-08-07] — La portada prometía «con qué consulta se pidió cada uno», y para seis de los doce no consta
+
+**Categoría:** promesa incumplida
+**Síntoma:** el README, presentando `verificar-datos.js`, decía:
+
+> *«Te dice, fichero a fichero, qué necesita el motor, **con qué consulta se pidió cada uno**…»*
+
+Y el propio instrumento contesta, para seis de los doce:
+
+```
+   2026-08-03_overpass_zaragoza-rios_geom-y-tags.json
+      consulta NO CONSTA la consulta exacta … Sello del dato: timestamp_osm_base 2026-08-03T10:37:31Z.
+```
+
+**Cinco POST a Overpass —límite, ríos, edificios, entrance, zonas verdes— y las
+`ZonasVerdesPrincipales` guardaron la RESPUESTA y no la PETICIÓN.** ⇒ **el repositorio no sabe cómo
+se pidió la mitad de su dato**, y la portada afirmaba que sí.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el propio `NO CONSTA`, que
+funciona perfectamente.** El instrumento hace exactamente lo correcto: para cada fichero sin consulta
+archivada dice `NO CONSTA` **con su motivo**, y conserva el sello que sí está dentro del crudo. **La
+honestidad estaba entera en el instrumento y se perdió al resumirlo en la portada.** ⚠️ Y lo que lo
+hacía invisible: la frase es cierta *de los seis que sí constan*, así que leyéndola con un ejemplo
+bueno delante no chirría.
+
+**Cómo se cazó:** Antonio cruzó la frase de la portada con lo que yo mismo había medido y publicado
+—«de los 12 necesarios, seis son `NO CONSTA`»— dos apartados más abajo del mismo informe.
+
+**Causa raíz:** ⭐⭐ **resumí el instrumento por lo que hace cuando le sale bien.** Al describir una
+herramienta se cuenta su caso feliz, porque es el que explica para qué sirve; el caso «no lo sé» se
+queda dentro, donde nadie lo lee salvo ejecutándola. ⇒ **un resumen tiende a prometer el mejor de
+los comportamientos de lo que resume**, y eso convierte una herramienta honesta en una portada que
+miente. Es, además, **la clase exacta de fallo que esta tanda vino a arreglar, cometida en la frase
+que lo arregla.**
+
+**Arreglo aplicado:** la frase pasa a decir lo que el instrumento entrega, y el `NO CONSTA` se
+publica **como hallazgo, no como matiz**: cuántas constan, cuántas no, por qué, y qué se conserva en
+su lugar. ⚠️ Comprobado **antes** de reescribir: se provocó el rojo escondiendo dos de los seis y se
+verificó que el verificador dice `NO CONSTA` con su motivo — la portada se ajusta al instrumento, no
+al revés.
+
+**Y uno de otro, anotado y NO tocado:** ese texto dice *«NO CONSTA la consulta exacta, **por lo mismo
+que la anterior**»*, y «la anterior» solo existe si el fichero de arriba también falta. Provocado en
+solitario, la referencia queda huérfana. Es un texto que depende del orden de impresión.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un resumen promete el mejor comportamiento de lo que resume, salvo
+que se le obligue a contar el peor.** Al describir un instrumento en un documento de cara afuera hay
+que escribir primero lo que NO sabe hacer. ⚠️ Y el aviso: **una frase que es cierta para la mayoría
+de los casos se lee como cierta para todos** — la proporción no es cuantificador.
+
+**Traza:** `README.md`, sección *Cómo ejecutarlo* · `src/verificar-datos.js`, campo `consulta`

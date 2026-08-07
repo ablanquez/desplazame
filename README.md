@@ -71,9 +71,19 @@ del cálculo: los metros y el texto de la ruta se producen enteros sin conexión
 node src/verificar-datos.js
 ```
 
-Te dice, fichero a fichero, qué necesita el motor, con qué consulta se pidió cada uno, y —lo que de
-verdad importa— **si lo que tienes es EL MISMO fichero que produjo los números publicados**. Tres
-veredictos y ninguno por defecto: `EL MISMO` · `OTRO` · `NO ESTÁ`.
+Te dice, fichero a fichero, qué necesita el motor, qué scripts se quedan sin poder correr si falta, y
+—lo que de verdad importa— **si lo que tienes es EL MISMO fichero que produjo los números
+publicados**. Tres veredictos y ninguno por defecto: `EL MISMO` · `OTRO` · `NO ESTÁ`.
+
+⛔⛔ **Y de la consulta con la que se pidió cada uno: para SEIS de los doce, este repositorio NO
+SABE.** Están archivadas las de los cinco WFS y la del OSM del grafo —ésa entera, en
+[`docs/H1-PRIMER-GRAFO.md`](docs/H1-PRIMER-GRAFO.md) §1—; de las otras seis se guardó **la respuesta
+y no la petición**, porque eran POST a Overpass. ⇒ **el verificador dice `NO CONSTA` con su motivo,
+uno por uno**, y ahí se queda: se conserva el sello del dato que está dentro del propio fichero
+(`timestamp_osm_base`), que sirve para saber **qué** tienes, no para volver a pedirlo.
+
+*No es un matiz: es que el repositorio no sabe cómo se pidió la mitad de su dato. Prefiere decirlo a
+inventar una consulta plausible — alguien la ejecutaría.*
 
 **Por qué el dato no viaja, y por qué no hay un script que lo baje:**
 
