@@ -49,6 +49,16 @@ del proyecto — el algoritmo es el trabajo, no el envoltorio.
 
 ## ⭐ Cómo ejecutarlo
 
+**Qué necesitas instalar: nada.** No hay `package.json` porque no hay ni una dependencia externa —
+todo son módulos de Node (`fs`, `path`, `crypto`, `child_process`, `os`, `vm`, `module`). Se
+comprueba con:
+
+```bash
+grep -rhoE "require\('[^.][^']*'\)" src/*.js | sort -u
+```
+
+Se ejecuta hoy con **Node v24**. ⚠️ No hay medido cuál es el mínimo: no se dice para no inventarlo.
+
 **Primero, saber qué te falta:**
 
 ```bash
