@@ -8090,3 +8090,49 @@ comprobaciones hay.
 
 **Traza:** `tools/visor-grafo.html` · `tools/visor-nombre-simple.html` · `tools/visor-nombres.html` ·
 `tools/visor-rutas.html` — la línea del `tileLayer` de cada uno
+
+---
+
+## [2026-08-07] — Escribí a mano una lista que el código sabe calcular, y ya nació con un error
+
+**Categoría:** dato escrito a mano
+**Síntoma:** `src/verificar-datos.js` llevaba, para cada uno de los doce ficheros de datos, un campo
+`quien:` con sus consumidores escrito a mano. Se commiteó así (`8e54555`). Al comprobarlo contra el
+código:
+
+```
+   escrito   MU1_jerarquia_viaria → municipal.js · cerrar-punto-ciego.js · asignar-bici.js · sin-vigilancia.js
+   medido    MU1_jerarquia_viaria → municipal.js · cerrar-punto-ciego.js
+```
+
+`asignar-bici.js` lee la capa de **carriles bici** (MU2), no la jerarquía viaria; y `sin-vigilancia.js`
+lee las **zonas de `data/exploracion/`**, que es otra cosa. Dos de cuatro, mal.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **las tres pruebas del comparador,
+otra vez, y otra vez con razón.** `--probar` da los tres veredictos correctos; el informe salía en
+código 0 con los doce `EL MISMO`. **Nada de lo que este fichero comprueba toca el campo `quien`**:
+es texto descriptivo, y el texto descriptivo no tiene guardián. ⚠️ Y el detalle que lo hacía
+creíble: los otros diez estaban bien, así que la lista se leía como derivada del código.
+
+**Cómo se cazó:** al ir a citar la lista en el informe de la tanda me fié de ella y la contrasté por
+costumbre —`grep -l "require('./municipal')"`— y no cuadraba.
+
+**Causa raíz:** ⭐⭐ **es exactamente el hermano que esta misma tanda persigue, escrito por mí, en el
+fichero nuevo.** Un dato que el código puede contestar (`¿quién nombra este fichero?`) puesto a mano
+porque en el momento de escribirlo lo tenía delante. La bitácora 159 dice que una cifra a mano se
+pudre; una LISTA a mano ni siquiera necesita pudrirse: **nace mal y nadie la vuelve a mirar.**
+
+**Arreglo aplicado:** el campo `quien` desaparece. Los consumidores se calculan al vuelo leyendo
+`src/` y siguiendo los `require`, y se publica además **cuántos ficheros alcanzan cada dato** —que
+resulta ser el número del bloque B visto desde el otro lado: el callejero lo alcanzan **49 de 70**.
+⚠️ Y el auditor **se excluye a sí mismo**: este fichero NOMBRA los doce, así que sin excluirlo
+saldría como consumidor directo de todos. Es el nº70, en el que ya cayó `auditoria-grafo.js`.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **si el código puede contestar la pregunta, la respuesta no se
+escribe.** Ni aunque se tenga delante, ni aunque sea texto y no un número: una lista descriptiva no
+tiene quien la vigile, y por eso es peor que una cifra. ⚠️ Y el aviso: **diez elementos correctos
+de doce hacen creíble una lista inventada** — la proporción no es evidencia de método.
+
+**Traza:** `src/verificar-datos.js` (`consumidores()`, y el campo `quien` que ya no existe)

@@ -84,7 +84,6 @@ const NECESARIOS = [
     f: '2026-08-03_overpass_zaragoza-highway_geom-y-tags.json',
     bytes: 37416905,
     sha: '5516878f35b69d4e0fa4d96f3a1faf88e653fe064564d7ecc240be4705050d57',
-    quien: 'ruta.js  ⇒ TODO el motor',
     consulta: '[out:json][timeout:900];\n'
       + 'area["name"="Zaragoza"]["admin_level"="8"]["boundary"="administrative"]->.a;\n'
       + 'way["highway"](area.a);\nout geom;\n'
@@ -96,7 +95,6 @@ const NECESARIOS = [
     f: '2026-08-03_wfs_movilidad-MU1_jerarquia_viaria_completa.json',
     bytes: 2705406,
     sha: 'bd431718627a492adc0867536c9ddd1da82364ffc6468e40cecfd25654c56d6a',
-    quien: 'municipal.js · cerrar-punto-ciego.js · asignar-bici.js · sin-vigilancia.js',
     consulta: 'GET https://idezar-sig.zaragoza.es/servicios/geoserver/wfs'
       + '?service=WFS&version=2.0.0&request=GetFeature'
       + '&typeNames=movilidad:MU1_jerarquia_viaria&outputFormat=application/json&srsName=EPSG:4326',
@@ -107,7 +105,6 @@ const NECESARIOS = [
     f: '2026-08-03_overpass_zaragoza-limite_geom.json',
     bytes: 171955,
     sha: '82b4b6789ff086ec642974fb14cf8ff611f0a8444d8206f6f711c651cf35ff07',
-    quien: 'limite.js  ⇒ el recorte del término',
     consulta: 'NO CONSTA la consulta exacta — el `_cabeceras.txt` de esta descarga solo guardó la '
       + 'respuesta, no la petición (fue un POST a Overpass). El sello del dato sí consta: '
       + 'timestamp_osm_base 2026-08-03T10:49:51Z, dentro del propio fichero.',
@@ -117,7 +114,6 @@ const NECESARIOS = [
     f: '2026-08-03_overpass_zaragoza-rios_geom-y-tags.json',
     bytes: 1234292,
     sha: '3c5bbfdd2deb22fe7742bb8de192b868e455ec9430ef513b88f6442176c3b479',
-    quien: 'rios.js · verificar-rios.js',
     consulta: 'NO CONSTA la consulta exacta, por lo mismo que la anterior. '
       + 'Sello del dato: timestamp_osm_base 2026-08-03T10:37:31Z.',
     numeros: 'los cruces de río y las contrapruebas de `verificar-rios.js`',
@@ -126,7 +122,6 @@ const NECESARIOS = [
     f: '2026-08-03_overpass_zaragoza-edificios-centro_geom.json',
     bytes: 12092790,
     sha: 'd3e01687d20fa97ac9faa9dee3ddb847a6a606b3a2bdeb7e5b6503d9b68dae6f',
-    quien: 'condicionales.js · puerta.js · entrar-por-la-puerta.js',
     consulta: 'NO CONSTA la consulta exacta (POST a Overpass, solo se guardó la respuesta).',
     numeros: 'los 196 pasos condicionales · las 2.669 puertas sin calle · el ruteo a la puerta '
       + 'de las rutas 4 y 5',
@@ -135,7 +130,6 @@ const NECESARIOS = [
     f: '2026-08-03_overpass_zaragoza-entrance-nodos.json',
     bytes: 642420,
     sha: '6ed23a4784c876238de50829843e3c8b5c02c0b2a35dd05c4347ff18745d4ab2',
-    quien: 'entradas.js · es-puerta.js · entrar-por-la-puerta.js',
     consulta: 'POST https://overpass-api.de/api/interpreter   (intento 2; el 1 dio HTTP 504) '
       + '— endpoint archivado en el `_cabeceras.txt`; el cuerpo de la consulta NO CONSTA.',
     numeros: 'las entradas declaradas (`entrance=main`) que usan las rutas 4 y 5',
@@ -144,7 +138,6 @@ const NECESARIOS = [
     f: '2026-08-04_wfs_movilidad-MU2_carriles_bici.json',
     bytes: 785975,
     sha: '65b356aa751fb4ec02c24dce43e8fbaf51ee350987c798142feabb6320ac3fd4',
-    quien: 'asignar-bici.js · bici-inventario.js',
     consulta: 'GET https://idezar-sig.zaragoza.es/servicios/geoserver/wfs'
       + '?service=WFS&version=2.0.0&request=GetFeature'
       + '&typeNames=movilidad:MU2_carriles_bici&outputFormat=application/json&srsName=EPSG:4326',
@@ -155,7 +148,6 @@ const NECESARIOS = [
     f: '2026-08-04_wfs_idezar-carril_bizi_20250127.json',
     bytes: 585332,
     sha: '763b2bf51729915504fc8158a0d6598f9b9d41ec15efa41f8836ac6b3411be13',
-    quien: 'bici-inventario.js',
     consulta: 'GET https://idezar-sig.zaragoza.es/servicios/geoserver/wfs'
       + '?service=WFS&version=2.0.0&request=GetFeature'
       + '&typeNames=idezar_base:carril_bizi_20250127&outputFormat=application/json&srsName=EPSG:4326',
@@ -165,7 +157,6 @@ const NECESARIOS = [
     f: '2026-08-05_wfs_idezar-ZonasVerdesPrincipales.json',
     bytes: 2212739,
     sha: '45fb124669ef54edb6a5b2853be5c6ee5a30c994a4db41584a4ad4e4a21bb80e',
-    quien: 'parques.js',
     consulta: 'NO CONSTA la petición en el `_cabeceras.txt` (solo la respuesta). '
       + 'La capa se nombra en `parques.js`: `idezar_base:ZonasVerdesPrincipales_carto1000_2012`, '
       + 'y el `Content-Disposition` de la respuesta la confirma.',
@@ -175,7 +166,6 @@ const NECESARIOS = [
     f: '2026-08-05_overpass_zaragoza-zonas-verdes.json',
     bytes: 3000293,
     sha: '7dedcc4e8a7c59d272be46ab21edc3d7c3e1528f9fa7e78a88549d0115e55d24',
-    quien: 'parques.js',
     consulta: 'NO CONSTA la consulta exacta (POST a Overpass). '
       + 'Sello del dato: timestamp_osm_base 2026-08-05T09:44:50Z.',
     numeros: 'los 3.402 polígonos verdes de OSM y el listón de 1 ha (124 por encima)',
@@ -184,7 +174,6 @@ const NECESARIOS = [
     f: '2026-05-13_zgzradar_callejero-portales-zaragoza.json',
     bytes: 10835605,
     sha: '3c391d60cf91362c984ec2ac2e302f7eec2ce35d94deb42f6e42b678aef7cfdc',
-    quien: 'portales.js  ⇒ 29 ficheros de `src/` lo requieren',
     consulta: '⚠️ NO se pide a ningún servidor: lo GENERA OTRO PROYECTO (ZGZ RADAR REACT) desde '
       + '`urbanismo:Portales` del WFS de Urbanismo. Procedencia entera, con su licencia y con el '
       + 'desajuste de los metadatos de origen, en '
@@ -196,7 +185,6 @@ const NECESARIOS = [
     f: '2026-05-13_zgzradar_callejero-vias-zaragoza.json',
     bytes: 1025210,
     sha: '9c7873679df0b94c7b27fa2f6cbaac84a0b610e64a06bfd725070df17d646ebc',
-    quien: 'portales.js · donde-falta.js',
     consulta: '⚠️ Igual que el anterior: derivado de `urbanismo:Vias`. Ver el fichero de procedencia.',
     numeros: 'las 3.359 vías del callejero y el nombre con el que se contrasta OSM',
   },
@@ -211,6 +199,40 @@ const QUE_SI_VIAJAN = [
   ['data/pruebas/RUTAS-CONOCIDAS.md', 'tabla-rutas.js · rutas-antonio.js'],
   ['data/exploracion/2026-08-02_wfs_zona-*_MU1jv.json  (12)', 'sin-vigilancia.js'],
 ];
+
+// ═════════════════════════════════════════════════════════════════════════════
+// QUIÉN USA CADA FICHERO — ⭐ SE MIDE, NO SE ESCRIBE A MANO
+// ═════════════════════════════════════════════════════════════════════════════
+//   ⛔ La primera versión de esto era una lista escrita a mano, y ya traía un
+//     error: atribuía la jerarquía viaria a `asignar-bici.js` (que lee la capa
+//     de carriles, no ésa) y a `sin-vigilancia.js` (que lee las zonas de
+//     `data/exploracion/`). ⇒ una lista a mano de algo que el código sabe
+//     contestar es un hermano más de los que esta tanda persigue.
+//
+// ⚠️ Y EL AUDITOR SE EXCLUYE A SÍ MISMO. Este fichero NOMBRA los doce, así que
+//    sin excluirlo saldría como consumidor directo de todos y el número no
+//    diría nada. Es el nº70 —`auditoria-grafo.js` cayó en él— y aquí se evita
+//    a propósito: nombrar un dato no es leerlo.
+const YO = path.basename(__filename);
+const FUENTE = new Map();
+for (const f of fs.readdirSync(__dirname).filter((x) => x.endsWith('.js') && x !== YO)) {
+  FUENTE.set(f, fs.readFileSync(path.join(__dirname, f), 'utf8'));
+}
+const REQ = new Map([...FUENTE].map(([f, t]) =>
+  [f, [...t.matchAll(/require\('\.\/([a-z0-9-]+)'\)/g)].map((m) => m[1] + '.js')]));
+
+/** Quién nombra el fichero, y cuántos lo alcanzan a través de sus `require`. */
+function consumidores(nombre) {
+  const directos = [...FUENTE].filter(([, t]) => t.includes(nombre)).map(([f]) => f).sort();
+  const alcanzan = new Set(directos);
+  for (let cambio = true; cambio;) {
+    cambio = false;
+    for (const [f, ds] of REQ) {
+      if (!alcanzan.has(f) && ds.some((d) => alcanzan.has(d))) { alcanzan.add(f); cambio = true; }
+    }
+  }
+  return { directos, alcanzan: alcanzan.size };
+}
 
 // ═════════════════════════════════════════════════════════════════════════════
 // EL COMPARADOR — una sola función, y es la que se pone a prueba con `--probar`
@@ -294,14 +316,16 @@ const filas = NECESARIOS.map((n) => {
 
 log('A · LO QUE HACE FALTA');
 log('');
-log('   ' + 'fichero'.padEnd(60) + 'bytes'.padStart(12) + '  veredicto');
-log('   ' + '─'.repeat(99));
+log('   ' + 'fichero'.padEnd(58) + 'bytes'.padStart(11) + '  sin él no corren  veredicto');
+log('   ' + '─'.repeat(103));
 for (const { n, r } of filas) {
   const marca = r.v === 'EL MISMO' ? '✅' : r.v === 'OTRO' ? '⚠️' : '⛔';
-  log('   ' + n.f.slice(0, 59).padEnd(60)
-    + (r.bytes === null ? '—' : String(r.bytes)).padStart(12) + '  ' + marca + ' ' + r.v);
+  const c = consumidores(n.f);
+  log('   ' + n.f.slice(0, 57).padEnd(58)
+    + (r.bytes === null ? '—' : String(r.bytes)).padStart(11)
+    + (c.alcanzan + ' de ' + FUENTE.size).padStart(17) + '  ' + marca + ' ' + r.v);
 }
-log('   ' + '─'.repeat(99));
+log('   ' + '─'.repeat(103));
 const mismos = filas.filter((x) => x.r.v === 'EL MISMO').length;
 const otros = filas.filter((x) => x.r.v === 'OTRO');
 const faltan = filas.filter((x) => x.r.v === 'NO ESTÁ');
@@ -327,7 +351,9 @@ if (faltan.length) {
   for (const { n } of faltan) {
     log('');
     log('   ' + n.f);
-    log('      lo usa   ' + n.quien);
+    const c = consumidores(n.f);
+    log('      lo lee   ' + (c.directos.join(' · ') || '⚠️ NADIE lo nombra en src/')
+      + '   ⇒ lo alcanzan ' + c.alcanzan + ' de ' + FUENTE.size + ' ficheros de `src/`');
     log('      consulta ' + n.consulta.split('\n').join('\n               '));
   }
 }
