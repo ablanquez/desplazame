@@ -7898,3 +7898,43 @@ mismo texto.** Si se repite y ese sitio no está en el alcance, no se toca.
 **Traza:** `src/sin-vigilancia.js` §E7
 
 ---
+
+## [2026-08-07] — Mi detector de hermanos exigía `%` o `×`, y en el fichero que estaba arreglando se dejó dos
+
+**Categoría:** silencio falso
+**Síntoma:** en T1·4 barrí `src/` buscando *«un valor escrito a mano donde debería ir uno
+calculado»* y publiqué **43 hermanos**, tres de ellos en `sin-vigilancia.js`. Al arreglar ese
+fichero y volver a mirarlo de cerca aparecieron **dos más que mi barrido no había visto**:
+
+```
+   :603   …lo pone ~10 puntos por debajo sobre 214 casos, y 214 casos no deciden nada.
+   :611   el testigo 2 pasaría de 214 casos a decenas de miles…
+```
+
+`214` es `ciegosCub.length` y `~10` es la resta de dos porcentajes medidos. **Los dos son
+resultados del propio script, escritos a mano, dentro de algo que se imprime** — la definición
+exacta de hermano.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el control de semilla del propio
+barrido.** T1·4 comprobaba que `sin-vigilancia.js:564` —el «400×», el hermano conocido— saliera en
+la lista, y salía. **Una semilla que se encuentra a sí misma no dice nada de lo que no se buscó.**
+
+**Cómo se cazó:** por la pregunta de cierre del encargo —*«¿queda alguna cifra escrita a mano en el
+fichero?»*—, que me obligó a barrer **el mismo fichero con un criterio ancho** en vez de con el mío.
+
+**Causa raíz:** para bajar de 570 candidatas a 63 legibles, mi criterio exigía que la cifra llevara
+**`%` o `×`**. Es un filtro de FORMATO, no de naturaleza: **`214 casos` y `~10 puntos` son
+resultados igual de medidos y no llevan ninguno de los dos símbolos.** ⇒ el 43 no es un recuento:
+es **un suelo**, y no lo dije al publicarlo.
+
+**Arreglo aplicado:** ⛔ ninguno en el código — los dos quedan anotados, no tocados (fuera de
+alcance). **Lo que se corrige es el número: 43 pasa a declararse como SUELO, no como total.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un filtro de formato produce un suelo, no un recuento — y si no se
+declara como suelo, se lee como total.** ⚠️ Y sobre los controles: **una semilla comprueba que el
+detector encuentra lo que ya sabías; no comprueba nada sobre lo que no sabías.** Para eso hace
+falta barrer una parcela pequeña con criterio ancho y contar la diferencia.
+
+**Traza:** instrumento desechable `t1-hermanos.js` (fuera de `src/`) · `src/sin-vigilancia.js`
