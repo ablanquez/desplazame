@@ -62,8 +62,12 @@ cazando.**
 | **Velocidad** | **~6 km/h** |
 | **Rodeo real** | 2.600 / 2.380 = **1,09** |
 
-⚠️ **Toda la calibración cuelga de UN trayecto.** Si esos 25 minutos fueran 22, todo se mueve.
-⇒ **En cuanto haya una segunda distancia medida, se recalibra** y se anota aquí.
+⚠️ **Las BANDAS cuelgan de UN trayecto.** Si esos 25 minutos fueran 22, se mueven.
+⛔ **Los tiempos que publica el buscador ya NO** — desde el 8/08/2026 salen de una **constante
+estándar de 5,0 km/h**, la de OSRM y openrouteservice. *Un buscador de rutas no puede publicar el
+ritmo de una persona.*
+⇒ ⭐ **Y esto es lo que sigue haciendo falta: en cuanto haya una SEGUNDA distancia medida, las
+bandas dejan de ser circulares** —hoy salen del mismo ritmo que juzgan— y se anota aquí.
 
 ⚠️ **Y el GPS es un instrumento:** los relojes suelen dar **de más** en ciudad (el rebote en
 edificios mete zigzag y el zigzag suma metros). ⇒ La distancia real está más probablemente entre
@@ -73,6 +77,12 @@ una ciudad con manzanas. Es plausible si el trayecto va en diagonal; **si fuera 
 sería raro y el GPS estaría dando de MENOS.** El número encaja.
 
 **Bandas resultantes** (⚠️ derivadas, salvo la del nº7):
+
+⛔⛔ **Y NO se recalculan a 5,0 km/h, aunque el buscador publique con esa constante.** Una banda dice
+*«este trayecto lo ando en ~5 min, así que debe medir ~500 m»*: **es una expectativa de DISTANCIA
+sacada de una observación real**, y los metros no cambian porque la aplicación publique otros
+minutos. ⭐ **Recalcularlas las convertiría en “lo que el motor dice que son 5 minutos” — y entonces
+dejarían de juzgarlo para repetirlo.**
 
 | Tiempo declarado | Banda (a ~6 km/h) |
 |---|---|
@@ -96,7 +106,7 @@ sería raro y el GPS estaría dando de MENOS.** El número encaja.
 | 4 | Centro Etopía | Estación Delicias | *(medir)* | ~450–550 m | **≤ 1,60** | ~5 min | ⭐ **LA PLATAFORMA ELEVADA** (90 ways a `layer=2`) | ⛔ **v1: NO HAY CAMINO.** Ver §"lo que rompió esta tabla" |
 | 5 | Principado de Morea 14 | C.C. Utrillas | *(medir)* | ~450–550 m | **≤ 1,45** | ~5 min | **Corto y cotidiano.** En 500 m, un error de enganche de 30 m es el 6 % | |
 | 6 | Calle Francisco de Quevedo 1 | Calle Matadero 1 | 484 m | ~450–550 m | **≤ 1,45** | ~5 min | ⭐ **DOS PORTALES EN ESQUINA** (los dos, el nº 1). Ataca la salvaguarda **D3** | ✅ **v1: la esquina no engañó al enganche** (3,9 y 2,7 m). Los testigos callan porque las aceras no tienen nombre — **y callar es lo correcto** |
-| 7 | Calle El Coloso 2 | Calle Valle de Zuriza 48 | 2.380 m | **2,4–2,6 km** ✅ | **≤ 1,20** | **~25 min** | ⭐⭐ **EL DE CALIBRACIÓN.** Único con distancia **medida** y tiempo de repetición | **De aquí sale la velocidad de toda la tabla** |
+| 7 | Calle El Coloso 2 | Calle Valle de Zuriza 48 | 2.380 m | **2,4–2,6 km** ✅ | **≤ 1,20** | **~25 min** | ⭐⭐ **EL DE CALIBRACIÓN.** Único con distancia **medida** y tiempo de repetición | ⚠️ **Ya NO sale de aquí la velocidad del buscador** (8/08: constante estándar de 5,0 km/h). De aquí salen **las BANDAS de distancia**, que siguen a ~6 km/h **porque son el ritmo de Antonio y su trabajo es juzgar los metros, no calcularlos** |
 
 ⚠️ **Los rodeos son propuestos, no medidos.** Se ajustan cuando haya rodeos reales de varios
 trayectos — **y el ajuste se declara**, no se hace en silencio. El de la nº4 es más generoso porque
@@ -170,6 +180,9 @@ al Clínico de la nº3 y a cualquier POI grande.
 
 **Filas reales: 7** · **v2 (3/08/2026)** — velocidad recalibrada a ~6 km/h y rodeo como columna
 principal.
+⭐ **Nota del 8/08/2026:** el buscador dejó de calcular sus tiempos con el ritmo de Antonio y pasó a
+una **constante estándar de 5,0 km/h**. **Esta tabla no cambia**: sus bandas y sus tiempos siguen
+siendo los de Antonio, **porque su trabajo es JUZGAR al motor, no alimentarlo.**
 
 ⚠️ **Sin cubrir:** el Gállego, las zonas sin acera, los pasos condicionales, los barrios
 incomunicados y las plazas-área.
