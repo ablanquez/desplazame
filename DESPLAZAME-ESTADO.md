@@ -51,7 +51,8 @@
 | **2 · el clon y la portada** | ✅ **HECHO** | Rutas relativas · `verificar-datos.js` · el README entero · ODbL + Ley 37/2007 · `N4`. ⭐⭐ **El clon con datos corre 58 de 58**, y `B·V2` resultó FALSO |
 | ⭐⭐ **2·bis · LA BATERÍA** | ✅ **HECHO** | Ya cuenta, y **cazó los arreglos de su propia tanda con la tabla sin tocar**. ⚠️ **Sigue sin ver «¿de qué?» ni un silencio bien formado** |
 | **3 · el puntero Y EL LATIDO** | ✅ **MECANISMO HECHO** | `superados.js` marca **37 pares en 16 documentos** · el latido vigila 4 números · `B2·V1` declarado. ⭐⭐ **Y el latido habría cazado el 412 el 6 de agosto: demostrado** |
-| ⭐ **3·bis · LAS REPUBLICACIONES** | ⬜ **SIGUIENTE** | No cabían y **no se aceleraron** — la costura funcionando. Los pares ya llevan puntero diciendo `PENDIENTE` |
+| **4 · la velocidad estándar** | ✅ **HECHO** | `VELOCIDAD_KMH = 5,0`, la de OSRM/Valhalla. ⭐⭐ **Disuelve el eje de la nº7** — ya no calibra nada |
+| ⭐ **5 · LAS REPUBLICACIONES** | ⬜ **SIGUIENTE** | No cabían y **no se aceleraron**. Los pares ya llevan puntero diciendo `PENDIENTE` |
 
 ⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
 decide al final de los tres bloques, entera.**
@@ -793,11 +794,11 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 107 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 109 VECES
 
-**Cuarenta tandas, cuatro de auditoría y cinco de arreglos. Ciento siete instrumentos mintiendo** — los 33 primeros,
+**Cuarenta tandas, cuatro de auditoría y seis de arreglos. Ciento nueve instrumentos mintiendo** — los 33 primeros,
 sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los veintisiete últimos (81-107) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
+⚠️ **Los veintinueve últimos (81-109) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
 **porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
 escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
 decir *«esto lo detuvo ella, no el criterio de quien medía»*.
@@ -911,6 +912,8 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 105 | ⛔⛔ **UNA VALLA DE CÓDIGO HUÉRFANA DEJÓ MEDIO README RENDERIZÁNDOSE COMO CÓDIGO.** ⭐⭐⭐ **Tres pasadas de verificación sobre ese fichero la misma tarde —cifras, comandos, promesas— y NINGUNA lo miró RENDERIZADO.** ⚠️ En texto plano no se ve: las vallas están a 45 líneas y cada una, por separado, parece correcta. **Lo cazó el editor, no una comprobación** |
 | 106 | ⛔⛔ **UN BARRIDO DE HERMANOS QUE NO ENCONTRÓ SU PROPIA SEMILLA — Y HABRÍA PUBLICADO 61 PARECIENDO LIMPIO.** `probar-paradas.js:129` **no es un `A.exige`**: es una variable con `.includes()` cuyo veredicto se imprime **veinte líneas más abajo, en un ternario anidado**, y un barrido por línea no lo ve. ⭐ **Lo cazó la ley 98, escrita por él mismo el día anterior**: se ensanchó hasta que las dos semillas salieron ⇒ el universo real son **464 veredictos**, no 61 |
 | 107 | ⛔⛔⛔ **UN MARCADOR QUE BUSCABA LA CIFRA Y HABRÍA ESCRITO UNA AFIRMACIÓN FALSA DENTRO DE UN REGISTRO HISTÓRICO.** El `182` de `H1-ACERA-EQUIVOCADA:324` es **un listón p99 en metros**; los `412` de `H1-CIERRE` son **«412× el azar»**. ⭐ **Cazado mirando las líneas ANTES de escribir**, no después. ⚠️ **Y el mismo barrido llevaba dos tandas siendo aceptable**: auditando solo proponía; marcando, escribe |
+| 108 | ⛔⛔⛔ **UN GUARDIÁN COLOCADO DETRÁS DE QUIEN REPARA EL DEFECTO.** `V3` vigilaba `tools/rutas-visor.js`: **a mano daba rojo real, en la batería salía verde** — porque `--todo` corre `exportar-rutas.js` **en el puesto 21** y el guardián **en el 69**. ⚠️ **Y el visor está en `.gitignore:318`, así que la escritura ni aparecía en `git status`.** ⭐ **El verde no era falso: era TARDÍO** |
+| 109 | ⚠️ **UNA GUARDA CONTRA FALSOS POSITIVOS QUE PERDÍA DOS APARICIONES DE SEIS.** La cola exigía que tras la `h` de `km/h` no hubiera coma — **y las dos perdidas van seguidas de coma.** ⭐⭐ **Lo cazó que el «seis» del encargo VINIERA DE FUERA del instrumento**: su propio recuento decía cinco y parecía limpio |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1306,6 +1309,27 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     v2 exige dos dígitos: en sus 2.360 marcas no hay un solo token de uno.* ⛔ **Y en un proyecto
     cuya regla exige demostrar todo cero con un positivo de control, eso lo inhabilita justo donde
     más falta hace.**
+121. ⭐⭐⭐ **UN GUARDIÁN NO VALE POR LO QUE COMPRUEBA, SINO POR LO QUE PUEDE LLEGAR A VER.** *Antes de
+    creerse un verde hay que preguntar **quién más toca el objeto vigilado, y en qué orden**.*
+    ⇒ ⭐⭐ **Corolario: vigilar un artefacto GENERADO es vigilar a su generador con retraso.** Si se
+    puede regenerar, **hay que vigilar el código, no el producto.**
+122. ⭐⭐⭐ **UNA GUARDA QUE PROTEGE DE UN FALSO POSITIVO COMPRA EL FALSO NEGATIVO DEL OTRO LADO — Y
+    ÉSE NO SE VE:** sale un número más pequeño y parece limpio. ⇒ ⭐⭐ **Y el corolario que salva:
+    un recuento cerrado declarado a partir de lo que midió el propio barrido no es un guardián, es
+    un ECO. Solo vale si la cifra viene de FUERA del instrumento.**
+123. ⭐⭐⭐ **LO DE ANTONIO JUZGA, NUNCA DECIDE.** *Medido: `ruta.js` y `caminos.js` no conocen
+    `rodeoMax`, ni `banda`, ni `tabla-rutas` — cero menciones.* ⇒ **Los topes, las bandas y los siete
+    trayectos EVALÚAN al motor; ninguno entra en su cálculo.** ⚠️ **`VELOCIDAD_KMH` era la única cosa
+    suya que decidía un número publicado, y ha dejado de serlo.**
+124. ⭐⭐⭐ **CAMBIAR EL VALOR DE UNA CONSTANTE CIRCULAR NO ROMPE LA CIRCULARIDAD: LA TRASLADA.** *Si
+    las bandas se recalculan con la constante nueva, vuelven a salir de ella y el guardián vuelve a
+    no poder fallar por la misma razón — número cambiado, defecto conservado.* ⇒ **Solo la rompe una
+    segunda distancia MEDIDA, no calculada.**
+125. ⚠️ **UNA DECISIÓN CORRECTA PUEDE DEJAR UN DATO HUÉRFANO SIN QUE SALTE NADA.** *Con 6 km/h la
+    ruta 7 cuadraba con su banda medida; con 5,0 no —30 calculados contra 25 declarados— **y ningún
+    guardián lo denuncia, porque nadie compara el tiempo calculado con el declarado**.* ⚠️ **Segunda
+    vez en dos tandas: la primera fue el 412.** ⇒ **El rojo del que se cae es un rojo que no
+    existía**, y eso es la ley 119 otra vez.
 
 ---
 
@@ -2246,6 +2270,50 @@ diga** · el latido **añade ~12 min a cada pasada** porque ejecuta dos producto
 12** *(el candidato de la diferencia es `verde.municipalNombrados = 0`)* · y **`numeros-congelados.js`
 apunta a `H1-ROJOS-CERRADOS §A1` cuando el dato vive en su §0** — *el documento es el correcto, el
 ancla no: es lo que produce un puntero que nadie sigue.*
+
+### ✅ TANDA DE ARREGLO 4 (8/08) — la velocidad deja de ser la de Antonio
+
+⭐⭐⭐ **DECISIÓN DE ANTONIO, y es de DISEÑO, no un número mal:** los tiempos se calculaban con **su**
+velocidad, y **esto es un buscador para cualquiera.** ⇒ **`VELOCIDAD_KMH = 5,0` (1,39 m/s).**
+
+**Por qué 5,0 y no la media de la literatura:** es lo que fijan **openrouteservice** y las isócronas
+de **OSRM / Valhalla** por defecto. ⭐⭐ **Y este proyecto se define por NO usar esos motores: usar su
+misma constante hace que sus tiempos sean COMPARABLES con los de ellos.** *Si alguien contrasta una
+ruta con Google Maps y sale lo mismo, eso valida el motor.*
+⚠️ *Contexto, no validación: la marcha preferida humana cae entre 4,0 y 5,9 km/h. Antonio declara
+~9 min/km = **6,67** — por encima del rango, y ése es el argumento de por qué su ritmo no calibra.*
+
+⭐⭐⭐ **Y esto DISUELVE el eje que el bloque C marcó como el más frágil:** de la nº7 colgaban 19
+tiempos y 3 bandas por un solo testigo humano. **Con la constante estándar, la nº7 ya no calibra
+nada.** ⇒ **No se arregla el eje: desaparece.** ⭐ *Y las caminatas siguen valiendo para lo que de
+verdad miden: que los METROS son correctos —2.529 contra 2.600 del GPS—. Un GPS mide bien
+distancias; los minutos eran otra cosa.*
+
+```
+   ruta      metros      antes (~6)    ahora (5,0)
+     2        598,1        6 min          7 min
+     3      3.704,9       37 min         44 min
+     7      2.528,9       25 min         30 min
+```
+✅ **Y los metros, IDÉNTICOS AL DECIMAL** — comprobado, no supuesto. Ningún congelado se movió.
+⭐ **El cálculo vivía en UN solo sitio** (`relato.js:55`), con barrido ancho de cinco sondas sobre 77
+ficheros y positivo de control. ⚠️ **Pero el NÚMERO estaba en dos:** `relato.js:647` lo escribía a
+mano dentro de un texto. *Mismo valor, así que no saltó la costura — pero era un segundo sitio
+esperando a pudrirse.* Ahora se deriva.
+
+**⭐⭐ Y la pregunta de fondo, contestada y medida (ley 123):** en el motor **no queda ninguna
+constante que salga de una persona.** Lo que queda de Antonio es un documento —`RUTAS-CONOCIDAS.md`,
+con los topes de rodeo, las bandas y los siete trayectos— y **`ruta.js` y `caminos.js` no lo
+conocen: cero menciones.** ⇒ **lo de Antonio JUZGA, nunca DECIDE.**
+
+**Seis documentos marcados** con `superados.js` → `docs/H1-VELOCIDAD-ESTANDAR.md §0`. ⛔ **Uno no se
+dejó y no se marcó a mano:** `data/pruebas/RUTAS-CONOCIDAS.md`, *que no es de este repositorio: es de
+Antonio.* ⚠️ **Sigue diciendo `~6 km/h` cuatro veces y sus dos bandas derivadas siguen a 6.**
+
+⚠️ **Y lo que la tanda declaró sin resolver:** la **circularidad de las bandas sigue entera —
+trasladada, no tocada** (ley 124) · **la batería ejecuta los `exportar-*.js`**, así que la regla «no
+los ejecutes» no se puede cumplir mientras se corra `--todo` — *decide Antonio* · y **el rojo
+huérfano de la ley 125.**
 
 ⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
 requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
