@@ -169,6 +169,14 @@ const PARES = [
     // ⛔ ajenas conocidas: el listón p99 de 182 m (H1-ACERA-EQUIVOCADA) y los 182
     //   portales de Movera (H1-DONDE-FALTA-EL-NOMBRE). No son este número.
     contexto: /decorativ|veredicto|proceso en rojo/i, propias: 9, ajenas: 2 },
+  // ⭐⭐⭐ TANDA 4 · EL PRIMER PAR QUE NO ES UN NÚMERO PELADO, y el primero que
+  //   no envejeció: **cambió de pregunta**. Los ~6 km/h eran la velocidad de
+  //   Antonio, medidos bien; 5,0 es la que publica un buscador para cualquiera.
+  //   ⛔ Por eso el `que` no dice «la velocidad»: dice de quién era.
+  { viejo: '6 km/h', nuevo: '5,0 km/h', que: 'la velocidad con la que se calculan los tiempos — era la de UNA persona',
+    republicaEn: 'docs/H1-VELOCIDAD-ESTANDAR.md §0', desde: '2026-08-08',
+    contexto: null, propias: 9, ajenas: 0 },
+
   { viejo: '412', nuevo: '438', que: 'los metros sin nombre de la ruta nº6 (§A6)',
     republicaEn: null, desde: '2026-08-08 · medido y atado en la tanda 2·bis (bitácora 171)',
     // ⭐ las tres propias son FILAS DE TABLA sin una sola palabra alrededor: lo que
@@ -186,7 +194,14 @@ const PARES = [
 //   · el documento que REPUBLICA imprime el viejo al lado del nuevo por
 //     definición («51.556 → 51.493»). Exigirle una cabecera sería pedirle que se
 //     apunte a sí mismo.
-const esActa = (d) => /BITACORA\.md$|auditoriafinal\//.test(d);
+//   · ⛔⛔ TANDA 4 · `data/pruebas/RUTAS-CONOCIDAS.md` **NO ES DE ESTE
+//     REPOSITORIO: es de Antonio.** `modelo-rutas.js` lo declara desde la tanda
+//     33 —*«no se toca»*—. Dice `~6 km/h` cuatro veces y **seguirá diciéndolo**.
+//     ⚠️ Escribirle una cabecera generada sería tomar posesión de un documento
+//       ajeno, y este mecanismo existe precisamente para no reescribir a nadie.
+//     ⇒ se excluye del MARCADO, se dice aquí, y se reporta hacia arriba.
+const esActa = (d) => /BITACORA\.md$|auditoriafinal\//.test(d)
+  || /RUTAS-CONOCIDAS\.md$/.test(d.replace(/\\/g, '/'));
 
 const INICIO = '<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->';
 const FIN = '<!-- SUPERADOS:FIN -->';
@@ -202,9 +217,21 @@ function documentos() {
 
 const leer = (d) => fs.readFileSync(path.join(RAIZ, d), 'utf8');
 
-/** El valor, buscado como CIFRA entera: ni dentro de otra ni pegado a un decimal. */
+/**
+ * El valor, buscado como CIFRA entera: ni dentro de otra ni pegado a un decimal.
+ * ⚠️⚠️ TANDA 4 · LAS GUARDAS SON CONDICIONALES, y esto costó un rojo falso.
+ *   Un par puede no ser un número pelado: `6 km/h` es un valor superado tan
+ *   legítimo como `3.166`. Con la guarda de cola puesta siempre, `«a 6 km/h, la
+ *   velocidad…»` NO casaba —detrás de la `h` hay una coma— y el barrido decía
+ *   cero sobre un documento que lo dice cuatro veces.
+ * ⇒ la guarda de cabeza solo si el valor EMPIEZA por dígito, la de cola solo si
+ *   TERMINA en dígito. Fuera de eso, estorban.
+ */
 function reDe(v) {
-  return new RegExp('(?<![\\d.,])' + v.replace(/[.]/g, '\\.') + '(?![\\d.,])');
+  const cuerpo = v.replace(/[.]/g, '\\.').replace(/[/]/g, '\\/');
+  const antes = /^\d/.test(v) ? '(?<![\\d.,])' : '';
+  const despues = /\d$/.test(v) ? '(?![\\d.,])' : '';
+  return new RegExp(antes + cuerpo + despues);
 }
 
 /** ⭐ El cuerpo = el documento SIN su cabecera generada. Se mide sobre él, nunca

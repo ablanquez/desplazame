@@ -1,5 +1,16 @@
 # H1 · VER LAS RUTAS
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `6 km/h` | **5,0 km/h** | `docs/H1-VELOCIDAD-ESTANDAR.md §0` · 2026-08-08 |
+>
+> <sub>la velocidad con la que se calculan los tiempos — era la de UNA persona</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 16 · 2026-08-04 · «las rutas corren pero yo no las he visto pintadas para ver si son
 coherentes» (Antonio).*
 

@@ -8607,3 +8607,50 @@ inaceptable marcando.
 
 **Traza:** `src/superados.js` · `docs/H1-ACERA-EQUIVOCADA.md:324` (no tocado) ·
 `docs/H1-CIERRE.md:367` (no tocado)
+
+---
+
+## [2026-08-08] — El buscador de valores superados no encontraba dos de nueve: llevaban una coma detrás
+
+**Categoría:** silencio falso
+**Síntoma:** `src/superados.js` busca cada valor superado con guardas a los dos lados para no
+casar dentro de otra cifra:
+
+```js
+   new RegExp('(?<![\d.,])' + valor + '(?![\d.,])');
+```
+
+La tanda 4 metió el primer par que **no es un número pelado**: `6 km/h → 5,0 km/h`. Y con la
+guarda de cola puesta siempre, la expresión pide que detrás de la `h` **no** haya coma —
+así que estas dos líneas, que dicen exactamente lo que se busca, **no salían**:
+
+```
+   ⛔ H1-NOMBRES-Y-PASOS.md:365   ⚠️ el tiempo es una estimación a 6 km/h, la velocidad de Antonio…
+   ⛔ H1-VER-RUTAS.md:92          ⚠️ el tiempo es una estimación a 6 km/h, la velocidad de Antonio…
+```
+
+⇒ el barrido daba **7 apariciones en 5 documentos**. Son **9 en SEIS**. Y la tanda decía
+«los seis documentos»: **el número de Antonio era el correcto y el de mi instrumento no.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el control del buscador de
+cifras, y era cierto.** `«3182»` no cuenta ✅ · `«-0.89182»` no cuenta ✅ · `«182 líneas»` sí
+✅. Las guardas hacían exactamente lo que se probó que hacían. Y el recuento cerrado (D3)
+también daba ✅, porque yo declaré `propias: 7` **después** de leer lo que el propio barrido
+me enseñó: **el mundo cerrado confirma el barrido contra sí mismo**, no contra el documento.
+⚠️ Y una tercera: D1 dio su rojo con 5 documentos y parecía completo.
+
+**Arreglo aplicado:** las guardas pasan a ser **condicionales** — la de cabeza solo si el
+valor empieza por dígito, la de cola solo si termina en dígito. Fuera de eso estorban.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una guarda que protege de un falso positivo compra el falso
+negativo del otro lado, y el falso negativo no se ve.** La guarda de cola existía para que
+`182` no casara dentro de `182,5`; el precio fue que `6 km/h,` dejara de casar, y ese precio
+**no lo paga nadie que mire la salida** — sale un número más pequeño y parece limpio.
+⚠️ Y el corolario, que es el que me importa: **un recuento cerrado declarado a partir de lo
+que midió el propio barrido no es un guardián: es un eco.** Solo empieza a valer cuando el
+número viene de fuera — aquí vino de Antonio, y por eso se vio.
+
+**Traza:** `src/superados.js` · `docs/H1-NOMBRES-Y-PASOS.md:365` (no tocado) ·
+`docs/H1-VER-RUTAS.md:92` (no tocado)

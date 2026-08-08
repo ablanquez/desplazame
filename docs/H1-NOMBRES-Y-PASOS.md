@@ -1,15 +1,16 @@
 # H1 · PONER LOS NOMBRES Y SIMPLIFICAR EL ITINERARIO
 
 <!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
-> ⚠️ **ESTE DOCUMENTO PUBLICA 2 NÚMERO(S) SUPERADO(S).**
+> ⚠️ **ESTE DOCUMENTO PUBLICA 3 NÚMERO(S) SUPERADO(S).**
 > El cuerpo **no se ha corregido**: era verdad el día que se escribió.
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
 > |---|---|---|
 > | `11.742` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
 > | `3.166` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
+> | `6 km/h` | **5,0 km/h** | `docs/H1-VELOCIDAD-ESTANDAR.md §0` · 2026-08-08 |
 >
-> <sub>las puertas que cuelgan de una línea sin nombre</sub>
+> <sub>las puertas que cuelgan de una línea sin nombre · la velocidad con la que se calculan los tiempos — era la de UNA persona</sub>
 <!-- SUPERADOS:FIN -->
 
 *Tanda 21 · 2026-08-04 · cinco cosas decididas por Antonio, aplicadas.*
