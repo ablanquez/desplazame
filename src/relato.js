@@ -40,11 +40,34 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // ⚠️ EL TIEMPO ES UNA MAGNITUD DERIVADA (ley 45)
 // ═════════════════════════════════════════════════════════════════════════════
-//   Sale de dividir los metros por **~6 km/h**, que es la velocidad a la que anda
-//   Antonio. ⛔ Y esa constante **cuelga de UN solo trayecto**: los ~25 min
-//   declarados de la ruta nº7 sobre 2,4–2,6 km medidos (`RUTAS-CONOCIDAS.md` §v2).
-//   Si esos 25 minutos fueran 22, todos los tiempos se mueven un 14 %.
-//   ⇒ **No es un dato del motor: es una estimación, y va dicho en la cabecera.**
+//   Sale de dividir los metros por una velocidad. **Y esa velocidad ya NO es la
+//   de una persona.**
+//
+// ⭐⭐⭐ TANDA 4 · 6 km/h → **5,0 km/h**, y no es que 6 estuviera mal: es que la
+//   PREGUNTA era otra. Los ~6 km/h salían de UN trayecto de Antonio cronometrado
+//   —los ~25 min de la ruta nº7 sobre 2,6 km de GPS— y contestaban *«¿a qué
+//   velocidad anda Antonio?»*. ⛔ **Esto es un buscador para cualquiera**, y lo
+//   que tiene que contestar es *«¿qué velocidad publica un buscador de rutas?»*.
+//
+//   LAS FUENTES, que es lo que hace que esto no sea otra opinión:
+//     · **openrouteservice** fija **5 km/h** para los perfiles a pie.
+//     · Las isócronas de **OSRM / Valhalla** usan **5 km/h** por defecto.
+//   ⭐ Y la razón de peso es de diseño: este proyecto se define por **no** usar
+//     esos motores, así que **compartir su constante hace que estos tiempos sean
+//     COMPARABLES con los suyos.** Si alguien contrasta una ruta de aquí con otro
+//     motor y sale lo mismo, eso valida el motor. Con 6 no cuadraría.
+//
+//   ⚠️ Antonio anda a ~6,67 km/h (9 min/km), por encima del rango habitual de
+//     marcha preferida (4,0–5,9 km/h). ⭐ Eso no dice que ande mal: dice que su
+//     ritmo no puede calibrar un buscador para cualquiera.
+//
+//   ⭐⭐ Y lo que esto DISUELVE: la ruta nº7 era el eje del que colgaban todos los
+//     tiempos. **Ya no calibra nada.** Sus caminatas siguen valiendo para lo que
+//     de verdad miden —que los METROS son correctos, 2.529 contra 2.600 del
+//     GPS—. Un GPS mide bien distancias; los minutos eran otra cosa.
+//
+//   ⛔ Quien vigila que esto siga siendo el estándar es `src/velocidad.js`, y
+//     comprueba también que ningún texto repita la cifra a mano.
 
 'use strict';
 const { aGrados } = require('./geo');
@@ -52,7 +75,7 @@ const P = require('./portales');
 const NL = require('./nombre-largo');
 const PL = require('./planarizar');
 
-const VELOCIDAD_KMH = 6;
+const VELOCIDAD_KMH = 5.0;
 
 /** Minutos estimados. ⚠️ derivada: arrastra el error de la constante. */
 function minutos(metros) {
@@ -644,8 +667,11 @@ function texto(res, opciones = {}) {
   const min = minutos(res.metros);
   L.push('  ' + m(res.metros) + ' · unos ' + Math.max(1, Math.round(min)) + ' min'
     + (rodeo != null ? ' · rodeo ' + rodeo.toFixed(2).replace('.', ',') : ''));
-  L.push('  ⚠️ el tiempo es una estimación a 6 km/h, la velocidad de Antonio calibrada sobre');
-  L.push('     UN solo trayecto. No es un dato del motor.');
+  // ⭐ Ley 116: la cifra NO se repite aquí, se deriva. Antes decía «6 km/h» a mano
+  //   y era un segundo sitio con el mismo número, esperando a pudrirse.
+  L.push('  ⚠️ el tiempo es una estimación a ' + VELOCIDAD_KMH.toFixed(1).replace('.', ',')
+    + ' km/h, la velocidad estándar de un buscador');
+  L.push('     de rutas (openrouteservice · OSRM/Valhalla). No es un dato del motor.');
   if (engancheOrigen != null || engancheDestino != null) {
     L.push('  enganche: ' + Math.round(engancheOrigen || 0) + ' m en el origen, '
       + Math.round(engancheDestino || 0) + ' m en el destino');
