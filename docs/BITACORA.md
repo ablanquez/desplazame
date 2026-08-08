@@ -8393,3 +8393,58 @@ forma tiene comando.** Contar delimitadores es tan barato como contar cifras, y 
 porque «se ve bien» suena a impresión y no a medida.
 
 **Traza:** `README.md`
+
+---
+
+## [2026-08-08] — La batería decidía con un booleano: un fallo y siete imprimían la misma línea
+
+**Categoría:** silencio falso
+**Síntoma:** `src/probar-paradas.js:129` decidía el veredicto de cada script así:
+
+```js
+   const declara = salida.includes(A.MARCA_FALLO) || salida.includes(A.MARCA_IMPOSIBLE);
+   const ok = (!declara || r.status !== 0) && !mudoYMuerto;
+```
+
+`.includes()` contesta **sí o no** sobre algo que tiene una **cantidad**. ⇒ un script que declara
+UN fallo y uno que declara SIETE imprimen exactamente `DECLARA FALLO ✅`, y los dos salen en 1, así
+que el código de salida tampoco los separa.
+
+**Consecuencia medida: cinco rojos permanentes son cinco vendas.** Una de ellas tapa
+`modelo-rutas.js` —el control de las siete rutas, el eje del que más cuelga el proyecto— que **no
+tenía ningún canal automático para decir que le había salido un segundo fallo.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la propia batería, 36 tandas
+seguidas, y es el peor caso posible: el instrumento que da el verde era el enfermo.** Y no es
+teoría — llevaba dos días tapando dos muertos: `donde-falta.js §A6` y `pasos.js` publican
+`NO CONSTA` en vez de medir desde el 6 de agosto, y la batería los daba `DECLARA FALLO ✅` en cada
+pasada. ⚠️ Y lo que hacía imposible verlo: **la salida era byte a byte idéntica pasada tras
+pasada**, que es lo que un humano lee como «no ha cambiado nada».
+
+**Cómo se cazó:** por la pregunta de cierre de la tanda 2 —*¿qué es lo primero que le va a morder a
+quien llegue?*—, que obligó a mirar el instrumento en vez de sus resultados.
+
+**Causa raíz:** ⭐⭐ **la condición se escribió para contestar la pregunta de la tanda 12, y la
+pregunta cambió sin que nadie reescribiera la condición.** Entonces se preguntaba *«¿hay algún
+fallo que salga en verde?»* —y ahí un booleano es exacto—. Desde que existen rojos permanentes
+declarados, la pregunta es otra: *«¿ha cambiado lo que declara?»*, y para eso un booleano no tiene
+resolución. ⇒ **una comprobación no envejece porque se equivoque: envejece porque la pregunta se
+mueve debajo de ella.**
+
+**Arreglo aplicado:** el veredicto sale a `juzgar(real, esperado)` —para poder enseñarle casos sin
+ejecutar los 58 scripts, que es media hora— y compara **recuento y código de salida** contra una
+tabla de rojos DECLARADOS, con **mundo cerrado**: lo que no está en la tabla debe declarar 0. Cada
+fila lleva **recuento · texto · desde cuándo · CLASE**, y la clase es la que hace el trabajo: sin
+ella la tabla no distingue un rojo que debe seguir rojo de uno que se pudrió.
+⛔ Y los que salen en rojo **sin declarar nada** no entran en la tabla: salen como **HALLAZGO**
+—hoy `ruta.js`, código 2— porque aceptarlos como esperado sería aceptar un guardián callado.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un booleano donde hay una cantidad no es una simplificación: es
+una venda.** Contesta bien mientras solo importe «¿hay?», y deja de contestar el día que empiece a
+importar «¿cuántos?» — sin avisar, y sin cambiar una línea de su salida.
+⚠️ Y la práctica: **cuando algo se declara permanentemente rojo, hay que preguntarse qué deja de
+vigilar el canal que ya estaba ocupado.**
+
+**Traza:** `src/probar-paradas.js` (`juzgar()`, `DECLARADOS`, P5)
