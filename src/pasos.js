@@ -51,10 +51,26 @@ log('='.repeat(110));
 log('C5 · ⭐⭐ CUÁNTOS PASOS TENÍA CADA RUTA Y CUÁNTOS TIENE AHORA');
 log('='.repeat(110));
 const R = pedir();
-if (!A.exige(R && R.length === 7, 'no se han podido leer las siete rutas de `rutas-antonio.js --pasos`')) {
+// ⭐⭐⭐ TANDA 2·bis · LA MISMA EXPECTATIVA PODRIDA QUE `donde-falta.js`, y por eso
+//   se arregla igual: exigía `R.length === 7`, el proyecto decidió el 6 de agosto
+//   (`c6f7f41`) que la ruta nº1 NO debe resolverse, y desde entonces esto no
+//   medía nada — con la batería dándolo por bueno en cada pasada.
+// ⛔ No es «bajar a 6»: el universo se le pregunta al banco de pruebas y aquí solo
+//   se exige lo que este informe necesita, que es tener algo que medir. Quién
+//   vigila que sean las que son es `modelo-rutas.js` (ley 56).
+const banco = require('./tabla-rutas').leer().rutas.map((r) => r.n);
+const leidas = (R || []).map((x) => x.n);
+const faltan = banco.filter((n) => !leidas.includes(n));
+if (!A.exige(leidas.length > 0, 'no se ha podido leer NINGUNA ruta de `rutas-antonio.js --pasos`')) {
   log('   ⛔ sin las rutas no hay nada que medir. NO CONSTA.');
   process.exit(1);
 }
+log('   ⭐ medido sobre ' + leidas.length + ' de las ' + banco.length + ' del banco de pruebas: '
+  + leidas.join(', '));
+log('      ' + (faltan.length
+  ? '⚠️ NO se resuelve(n): ' + faltan.join(', ') + ' — expectativa declarada, no un hueco. '
+    + 'Quien vigila ese número es `modelo-rutas.js`.'
+  : '✅ se resuelven todas las del banco.'));
 
 log('');
 log('   ⭐ TRES columnas, no dos. La del medio aísla lo que hace C de lo que hace A:');

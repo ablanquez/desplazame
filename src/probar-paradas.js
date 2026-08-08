@@ -181,12 +181,13 @@ const DECLARADOS = {
   'rutas-antonio.js': { n: 1, cod: 1, desde: '2026-08-03 · e264d90',
     clase: 'fuera de banda',
     texto: 'la ruta nº4 se sale del rodeo aceptable' },
-  'donde-falta.js': { n: 1, cod: 1, desde: '2026-08-06 · c6f7f41',
-    clase: 'expectativa caducada',
-    texto: 'no se han podido leer las siete rutas' },
-  'pasos.js': { n: 1, cod: 1, desde: '2026-08-06 · c6f7f41',
-    clase: 'expectativa caducada',
-    texto: 'no se han podido leer las siete rutas de `rutas-antonio.js --pasos`' },
+  // ⭐⭐⭐ TANDA 2·bis · `donde-falta.js` y `pasos.js` ESTUVIERON AQUÍ, y su salida
+  //   de esta tabla es la contraprueba de que esto funciona: al arreglarles la
+  //   expectativa pasaron a declarar 0 donde se esperaba 1, y **la batería se puso
+  //   roja avisándolo** —`⛔ DECLARA 0 Y SE ESPERABAN 1`— antes de que nadie
+  //   tocara la tabla. Con la regla de ayer habrían pasado a `✅` sin decir nada.
+  //   ⛔ La fila se quita DESPUÉS del rojo, nunca antes: quitarla primero habría
+  //     dado verde por construcción y no habría probado nada (ley 35).
 };
 const SIN_DECLARAR = { n: 0, cod: 0, declarado: false };
 const hallazgos = [];

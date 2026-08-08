@@ -8448,3 +8448,113 @@ importar «¿cuántos?» — sin avisar, y sin cambiar una línea de su salida.
 vigilar el canal que ya estaba ocupado.**
 
 **Traza:** `src/probar-paradas.js` (`juzgar()`, `DECLARADOS`, P5)
+
+---
+
+## [2026-08-08] — `donde-falta.js §A6` y `pasos.js` exigían siete rutas y el proyecto había decidido que fueran seis
+
+**Categoría:** expectativa caducada
+**Síntoma:** las dos leen las rutas de `rutas-antonio.js --aristas`, que emite **solo las que
+resuelven**, y las dos exigían:
+
+```js
+   A.exige(rutas && rutas.length === 7, 'no se han podido leer las siete rutas')
+```
+
+El **6 de agosto** (`c6f7f41`) el proyecto decidió que la ruta nº1 **no debe resolverse** —sus dos
+extremos caen en un hueco de su propia acera— y desde entonces `--aristas` emite **seis**. ⇒ las dos
+comprobaciones fallan siempre, y **§A6 lleva desde entonces imprimiendo `NO CONSTA` en lugar de la
+tabla que es su razón de existir.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la batería, en cada pasada, y
+por partida doble.** Los daba `donde-falta.js código 1 DECLARA FALLO ✅` — porque su regla solo
+miraba si declaraban *algo*— y además **la salida de la batería salía byte a byte idéntica**, que es
+lo que cualquiera lee como «no ha cambiado nada». ⚠️ Y el tercer verde, el más fino:
+`nombrar-aceras.js` hace lo mismo con `sieteRaw.length > 0` y **sobrevivió al cambio sin enterarse
+de nada**, así que el patrón sano ya estaba escrito en el repositorio, a nueve ficheros de
+distancia.
+
+**Cómo se cazó:** midiendo el propio instrumento en vez de sus resultados, al preguntarse qué es lo
+primero que le muerde a quien llega.
+
+**Causa raíz:** ⭐⭐ **dos ficheros duplicaron una vigilancia que ya tenía dueño.** Cuántas rutas
+deben resolverse lo vigila `modelo-rutas.js`, que compara las seis contra `PUBLICADOS` y comprueba
+que la nº1 sigue en sugerencia. `donde-falta.js` y `pasos.js` no necesitaban ese número para nada
+—solo necesitaban *tener algo que medir*— y aun así escribieron su propia copia. ⇒ **la copia no
+se enteró de la decisión, y como estaba dentro de un `A.exige`, su ignorancia salió por el mismo
+canal que un fallo de verdad.** Es la ley 56 con una vuelta más: copiar la regla no solo duplica el
+mantenimiento — **convierte un dato desactualizado en un rojo indistinguible.**
+
+**Arreglo aplicado:** el universo se le **pregunta al banco de pruebas** (`tabla-rutas.leer()`, que
+lee el documento de Antonio y cuadra contra su propia cabecera), y cada script exige solo lo suyo:
+tener alguna ruta. Las que faltan se **nombran** —«NO se resuelve: 1 — expectativa declarada, no un
+hueco»— y se dice por escrito quién vigila ese número. ⛔ No es «bajar a 6»: no queda ningún literal
+que pudrir.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una vigilancia duplicada no envejece igual que su original: el
+original se actualiza con la decisión y la copia se queda dando un rojo que parece un hallazgo.**
+⚠️ Y la regla práctica: antes de escribir un `A.exige` sobre una cantidad, preguntar **quién es el
+dueño de ese número**. Si no eres tú, exige lo tuyo y NOMBRA al dueño.
+
+**Traza:** `src/donde-falta.js` §A6 · `src/pasos.js` §C5 · el patrón sano ya estaba en
+`src/nombrar-aceras.js:1073`
+
+---
+
+## [2026-08-08] — ⭐ HALLAZGO ATADO: la ruta 6 pasó de 412 a 438 m sin nombre y su contradictor llevaba dos días muerto
+
+**Categoría:** número viejo publicado
+**Síntoma:** al volver a medir §A6 —muerto desde el 6/08— **cinco de las seis rutas cuadran al
+metro con lo publicado y la sexta no.**
+
+```
+   ruta 6   publicado en docs/H1-DONDE-FALTA-EL-NOMBRE.md §A6   412 m · 188 m con portales · 10 portales
+            medido el 2026-08-08                                438 m · 207 m con portales · 11 portales
+```
+
+⭐ **Y está triangulado con un instrumento vivo:** `modelo-rutas.js` §D4 —que corre en cada
+batería— publica hoy **438 m sin nombre para la ruta 6**. ⚠️ Y las dos cifras miden **lo mismo**: se
+comprobó que las dos usan `new Set(['paso-de-peatones','escaleras'])`, el mismo filtro
+`!nombre && !NO.has(precision)` y la misma suma de `largo`. No es una diferencia de definición.
+
+**¿El 412 fue cierto alguna vez? SÍ, y consta.** `docs/H1-MODELO-VIA-FORMA-PAPEL.md` §D4, publicado
+el **2026-08-04 a las 15:15:16**, da para la ruta 6 exactamente **412 m sin nombre**. Los dos
+instrumentos coincidían aquel día. ⇒ **no nació desmentido: envejeció.**
+
+```
+   2026-08-04 15:15:15   nace §D4 en modelo-rutas.js          (e39e98a)
+   2026-08-04 15:15:16   se publica §D4 con «6 → 412»         (db563e4)
+   2026-08-04 15:45:13   nace §A6 en donde-falta.js           (68ce4ec)
+   2026-08-04 16:07:22   se publica §A6 con «6 → 412»         (c8d43ba)
+   2026-08-06            la ruta nº1 deja de resolverse       (c6f7f41)  ⇒ §A6 MUERE
+   2026-08-08            §A6 revive y dice 438
+```
+
+⚠️ **Y hay una segunda diferencia en la misma fila, que la tanda 3 va a necesitar:** aquel día la
+ruta 6 ganaba `221 m` de vía municipal (53,6 %, **0 con asignación propia**); hoy `modelo-rutas.js`
+§D4 le da `438 m` (100,0 %). ⇒ lo que se movió no es solo el reparto de «sin nombre».
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo, y no había otra:** el único
+instrumento que compara §A6 con la realidad **es §A6**, y estaba muerto. `modelo-rutas.js` seguía
+dando 438 en cada batería sin que nadie comparase ese 438 con el 412 impreso en otro documento —
+porque **comparar dos documentos entre sí no lo hace ningún script.**
+
+**Arreglo aplicado:** ⛔ **NINGUNO, y es deliberado.** Republicar `docs/` es la tanda 3. Aquí queda
+**atado** para que esa tanda pueda hacerlo sin volver a medir: los tres números publicados, los tres
+medidos, la triangulación con `modelo-rutas.js §D4`, la prueba de que el 412 fue cierto, y la fecha
+exacta desde la que §A6 dejó de poder contradecirlo.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **ley 110 con su primer caso confirmado: lo que mentía no era un
+número — era un `✅` que seguía ahí.** El 412 no era falso cuando se escribió y nadie lo tocó nunca:
+se quedó viejo mientras el único que podía desmentirlo llevaba dos días imprimiendo `NO CONSTA` con
+la batería dándolo por bueno.
+⚠️ Y lo que esto añade: **un documento no puede envejecer solo. Envejece cuando muere su
+contradictor**, y por eso lo que hay que vigilar no es el número publicado, sino que su instrumento
+siga vivo.
+
+**Traza:** `docs/H1-DONDE-FALTA-EL-NOMBRE.md` §A6 (no tocado) ·
+`docs/H1-MODELO-VIA-FORMA-PAPEL.md` §D4 (no tocado) · `src/modelo-rutas.js` §D4

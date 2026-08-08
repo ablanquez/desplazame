@@ -541,9 +541,33 @@ if (require.main === module) {
       const l = sal.split('\n').find((x) => x.startsWith('##ARISTAS##'));
       rutas = l ? JSON.parse(l.slice('##ARISTAS##'.length)) : null;
     }
-    if (!A.exige(rutas && rutas.length === 7, 'no se han podido leer las siete rutas')) {
+    // ⭐⭐⭐ TANDA 2·bis · LA EXPECTATIVA QUE SE PUDRIÓ, Y POR QUÉ ERA ÉSTA.
+    //   Esto exigía `rutas.length === 7`. El 6 de agosto (`c6f7f41`) el proyecto
+    //   decidió que la ruta nº1 **no debe resolverse** —sus dos extremos caen en
+    //   un hueco de su propia acera— y desde entonces `--aristas` emite SEIS.
+    //   ⇒ §A6 llevaba dos días imprimiendo `NO CONSTA` en vez de medir, con la
+    //     batería dándolo por bueno en cada pasada.
+    //
+    // ⛔ Y el arreglo NO es «bajar a 6», que se pudriría otra vez el día que
+    //   cambie otra. El universo se PREGUNTA al banco de pruebas —el documento
+    //   de Antonio, vía `tabla-rutas.leer()`— y aquí solo se exige lo que este
+    //   informe necesita de verdad: **tener alguna ruta que medir**.
+    // ⭐ Quién vigila que sean las que son NO es este fichero: es
+    //   `modelo-rutas.js`, que compara las seis contra `PUBLICADOS` y comprueba
+    //   que la nº1 sigue sin resolverse. Duplicar aquí esa vigilancia fue lo que
+    //   la pudrió (ley 56: no copies la regla, llama a quien la tiene).
+    const banco = require('./tabla-rutas').leer().rutas.map((r) => r.n);
+    const leidas = (rutas || []).map((x) => x.n);
+    const faltan = banco.filter((n) => !leidas.includes(n));
+    if (!A.exige(leidas.length > 0, 'no se ha podido leer NINGUNA ruta de `rutas-antonio.js --aristas`')) {
       log('   ⛔ sin las rutas, A6 no se puede medir. NO CONSTA.');
     } else {
+      log('   ⭐ medido sobre ' + leidas.length + ' de las ' + banco.length + ' del banco de pruebas: '
+        + leidas.join(', '));
+      log('      ' + (faltan.length
+        ? '⚠️ NO se resuelve(n): ' + faltan.join(', ') + ' — es una expectativa declarada, no un hueco. '
+          + 'Quien vigila ese número es `modelo-rutas.js`.'
+        : '✅ se resuelven todas las del banco.'));
       log('');
       log('   ' + 'ruta'.padStart(5) + 'm sin nombre'.padStart(16) + 'de ellos CON portales'.padStart(24)
         + '%'.padStart(9) + 'portales'.padStart(11));
