@@ -8558,3 +8558,52 @@ siga vivo.
 
 **Traza:** `docs/H1-DONDE-FALTA-EL-NOMBRE.md` §A6 (no tocado) ·
 `docs/H1-MODELO-VIA-FORMA-PAPEL.md` §D4 (no tocado) · `src/modelo-rutas.js` §D4
+
+---
+
+## [2026-08-08] — El puntero iba a marcar «182 → 232» al lado de un listón de 182 m
+
+**Categoría:** identidad falsa
+**Síntoma:** la primera versión de `src/superados.js` buscaba cada valor superado como CIFRA
+—`(?<![\d.,])182(?![\d.,])`— y daba por suya toda aparición. El guardián dio su rojo, `41`
+apariciones sin puntero, y el generador estaba listo para escribir la cabecera. Miré las líneas
+antes de escribir, y dos de esas 41 son **otro número**:
+
+```
+   ⛔ H1-ACERA-EQUIVOCADA.md:324    ⭐ listón (p99 de la propia distribución)   182 m
+   ⛔ H1-DONDE-FALTA-EL-NOMBRE.md:201  | rural · Movera | 57 | 8,15 km | 182 | 41,3 % |
+```
+
+Y con el `412` lo mismo: tres apariciones son la ruta 6 (`H1-DONDE-FALTA` §A6,
+`H1-MODELO-VIA-FORMA-PAPEL` §D4, `H1-NOMBRAR-ACERAS`), y **tres no lo son** — `412× el azar` dos
+veces en `H1-CIERRE.md` y un `412 (97,2 %)` en `H1-ULTIMOS-CABOS.md`.
+
+⇒ **Una cifra desnuda no es una identidad.** Y aquí eso no es un falso positivo cualquiera: el
+instrumento estaba a punto de **escribir una afirmación falsa dentro de un registro histórico**,
+que es exactamente lo que la ley de esta tanda —*marcar no es corregir*— existe para impedir.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo lo que el fichero comprueba
+de sí mismo.** D1 encontró sus 41 · D2 dio 0 · la ley 109 dio 0 vallas impares · la contraprueba de
+idempotencia estaba escrita · y el control del buscador de cifras —«3182» no cuenta, «-0.89182» no
+cuenta— **daba ✅ y era cierto**. El buscador funcionaba perfectamente. Lo que fallaba no era
+encontrar el número: era **suponer que encontrar el número es encontrar el dato**.
+⚠️ Y una tercera cosa verde: el positivo de control del cruce (`98.774` sale, un inventado no sale).
+Un control de que el buscador LEE no dice nada de si lo que lee es lo mismo.
+
+**Arreglo aplicado:** cada par lleva ahora un `contexto` —la marca que la línea tiene que llevar
+ADEMÁS de la cifra— y un `ajenos` declarado: **cuántas apariciones de esa misma cifra son otro
+número**. Si mañana ese recuento se mueve, el guardián lo dice y alguien mira. ⛔ Las ajenas **no se
+marcan y no se tocan**: se nombran.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una cifra no identifica un dato: lo identifica la cifra MÁS su
+contexto.** Un barrido que solo casa el número tiene una precisión que nadie ha medido, y en un
+instrumento que sólo LEE eso es ruido — pero en uno que ESCRIBE es una mentira nueva, publicada,
+con formato de corrección.
+⚠️ Corolario, y es el que me importa: **el riesgo de un instrumento no está en lo que mide, está en
+lo que hace con lo medido.** El mismo barrido, con la misma precisión, es aceptable auditando e
+inaceptable marcando.
+
+**Traza:** `src/superados.js` · `docs/H1-ACERA-EQUIVOCADA.md:324` (no tocado) ·
+`docs/H1-CIERRE.md:367` (no tocado)
