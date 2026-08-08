@@ -8654,3 +8654,55 @@ número viene de fuera — aquí vino de Antonio, y por eso se vio.
 
 **Traza:** `src/superados.js` · `docs/H1-NOMBRES-Y-PASOS.md:365` (no tocado) ·
 `docs/H1-VER-RUTAS.md:92` (no tocado)
+
+---
+
+## [2026-08-08] — Puse un guardián sobre un fichero que la batería repara 48 puestos antes de preguntarle
+
+**Categoría:** guardián que no puede fallar
+**Síntoma:** `src/velocidad.js` §V3 comprueba que el visor exportado publique la misma
+velocidad que el motor. Ejecutado a mano dio un rojo **real y correcto**:
+
+```
+   ⛔ FALLO · el visor publica 6 km/h y el motor 5: hay que reexportar con `exportar-rutas.js`
+```
+
+En la batería salió `velocidad.js  código 0  0 de 0  sin fallo  ✅`. No es que el rojo se
+arreglara: es que **la batería lo arregla antes de mirarlo**. `probar-paradas.js --todo`
+ejecuta *todos* los scripts de `src/` en orden alfabético, y `exportar-rutas.js` **reescribe
+el visor**:
+
+```
+   exportar-rutas.js   posición 21
+   velocidad.js        posición 69      ⇒ el export corre SIEMPRE antes
+```
+
+⇒ **V3 es estructuralmente incapaz de salir en rojo dentro de la batería.** No es que sea
+poco sensible: es que su objeto de estudio está regenerado y sano cada vez que se le mira.
+
+⚠️ Y el detalle que lo hizo invisible: `tools/rutas-visor.js` está en `.gitignore` (línea
+318). Como no está versionado, **`git status` no enseña nada** — la escritura ocurrió, el
+árbol siguió limpio, y yo estaba comprobando el árbol.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la contraprueba entera, y
+era honesta.** C1 positivo de control ✅ · C2 constante mal ✅ lo caza · C3 un tiempo viejo ✅
+· C4 un solo minuto de diferencia ✅. La función juzga perfectamente. **Lo que nadie probó
+es si el guardián llega a ver alguna vez un caso malo**, que es otra pregunta y no se
+contesta mirando el guardián: se contesta mirando **quién toca su objeto antes que él**.
+
+**Arreglo aplicado:** V3 deja de vigilar el ARTEFACTO y pasa a vigilar la FUENTE — que
+`exportar-rutas.js` **derive** la velocidad de la constante en vez de escribirla a mano. Eso
+sí puede fallar y no lo repara nadie. La lectura del fichero exportado se queda, pero
+**declarada como informativa**, con su porqué escrito al lado.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un guardián no vale por lo que comprueba, sino por lo que
+puede llegar a ver.** Antes de creerse un verde hay que preguntar **quién más toca el objeto
+vigilado, y en qué orden** — un guardián colocado detrás de quien repara el defecto es
+indistinguible de uno que funciona, y sale verde por construcción todos los días.
+⚠️ Corolario, y es el que me duele: **vigilar un artefacto generado es casi siempre vigilar
+al generador con retraso.** Si el artefacto se puede regenerar, lo que hay que vigilar es el
+código que lo genera.
+
+**Traza:** `src/velocidad.js` §V3 · `src/probar-paradas.js` §P4 · `.gitignore:318`

@@ -137,22 +137,41 @@ log('   V2 · los tiempos publicados corresponden al estándar');
 A.exige(j.malos.filter((x) => x.que !== 'la constante').length === 0,
   j.malos.filter((x) => x.que !== 'la constante').length + ' tiempo(s) publicado(s) que no corresponden a ' + ESTANDAR_KMH + ' km/h');
 
-// ── V3 · ⚠️ EL VISOR — se genera aparte, y puede quedarse atrás ──────────────
-//   ⛔ `exportar-rutas.js` NO se ejecuta desde aquí (escribe dentro del
-//     repositorio). Se LEE lo último que dejó escrito. Si el motor cambia y
-//     nadie reexporta, el visor publica otra velocidad que el informe: esto lo
-//     dice en voz alta en vez de dejarlo pasar.
-log('   V3 · el visor exportado publica la misma velocidad');
+// ═════════════════════════════════════════════════════════════════════════════
+// V3 · EL VISOR — ⛔⛔ Y AQUÍ HAY UNA LECCIÓN CARA, bitácora 174
+// ═════════════════════════════════════════════════════════════════════════════
+//   La primera versión de V3 leía `tools/rutas-visor.js` y exigía que publicara
+//   la misma velocidad. A mano dio un rojo real y correcto. **En la batería salió
+//   verde**, y no porque el rojo se arreglara: porque `probar-paradas.js --todo`
+//   ejecuta todo `src/` en orden alfabético y **`exportar-rutas.js` (puesto 21)
+//   REESCRIBE el visor antes de que `velocidad.js` (puesto 69) lo mire**.
+//   ⚠️ Y como el visor está en `.gitignore`, la escritura no aparecía en
+//     `git status`: el árbol seguía limpio y yo estaba mirando el árbol.
+//
+//   ⇒ ⭐⭐⭐ **Un guardián no vale por lo que comprueba, sino por lo que puede
+//     llegar a ver.** Uno colocado detrás de quien repara el defecto es
+//     indistinguible de uno que funciona.
+//   ⇒ **Vigilar un artefacto generado es vigilar a su generador con retraso.**
+//     Si el artefacto se puede regenerar, lo que hay que vigilar es el CÓDIGO
+//     que lo genera. Eso sí puede fallar, y no lo repara nadie.
+log('   V3 · el exportador DERIVA la velocidad, no la escribe a mano');
+const exp = fs.readFileSync(path.join(__dirname, 'exportar-rutas.js'), 'utf8');
+const deriva = /velocidadKmh:\s*(?:Rel|R)\.VELOCIDAD_KMH\b/.test(exp);
+const aManoExp = /velocidadKmh:\s*[\d.]/.test(exp);
+di('   `exportar-rutas.js` publica `Rel.VELOCIDAD_KMH`', deriva ? '✅' : '⛔ NO');
+di('   …o escribe una cifra a mano', aManoExp ? '⛔ SÍ' : '✅ no');
+A.exige(deriva && !aManoExp,
+  'el exportador del visor no deriva la velocidad de la constante: el visor puede publicar otra cosa que el motor');
+
+// ── y el artefacto, ⚠️ COMO INFORMACIÓN Y NO COMO GUARDIÁN ───────────────────
 const fVisor = path.join(RAIZ, 'tools', 'rutas-visor.js');
 if (!fs.existsSync(fVisor)) {
-  log('        ⚠️ no hay visor exportado: nada que comparar. NO CONSTA.');
+  di('   el visor exportado', 'no existe todavía — NO CONSTA');
 } else {
-  const cab = fs.readFileSync(fVisor, 'utf8').slice(0, 400);
-  const mv = cab.match(/"velocidadKmh":\s*([\d.]+)/);
-  const kmhVisor = mv ? Number(mv[1]) : null;
-  di('   velocidad del visor', kmhVisor == null ? '⛔ no se encuentra en la cabecera' : kmhVisor + ' km/h');
-  A.exige(kmhVisor != null && Math.abs(kmhVisor - ESTANDAR_KMH) < 1e-9,
-    `el visor publica ${kmhVisor} km/h y el motor ${ESTANDAR_KMH}: hay que reexportar con \`exportar-rutas.js\``);
+  const mv = fs.readFileSync(fVisor, 'utf8').slice(0, 400).match(/"velocidadKmh":\s*([\d.]+)/);
+  di('   ⚠️ el visor exportado dice (informativo, no vigila)',
+    (mv ? mv[1] + ' km/h' : 'no se encuentra')
+    + '   ⛔ la batería lo regenera antes de llegar aquí');
 }
 
 // ── V4 · el número no puede estar escrito a mano en ningún texto ─────────────
