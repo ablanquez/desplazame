@@ -49,8 +49,8 @@
 | ⭐ **La lista de arreglos** | 🔄 **EN CURSO** | Decidida entera el 7/08, **agrupada por lo que se estorba**, en tres tandas |
 | **1 · el instrumento** | ✅ **HECHO** | `A·V1` el centinela · `L2` el techo mal llamado · `B2·V2` el 400× · **+ los 3 hermanos del mismo veredicto**. ⭐⭐ **La predicción acertó 6 de 6** |
 | **2 · el clon y la portada** | ✅ **HECHO** | Rutas relativas · `verificar-datos.js` · el README entero · ODbL + Ley 37/2007 · `N4`. ⭐⭐ **El clon con datos corre 58 de 58**, y `B·V2` resultó FALSO |
-| ⭐⭐ **2·bis · LA BATERÍA** | ⬜ **SIGUIENTE** | **No estaba en la lista y se la ha ganado.** `probar-paradas.js:129` decide con un booleano ⇒ **un script que declara 1 fallo imprime lo mismo que uno que declara 7** |
-| **3 · el mecanismo del puntero** | ⬜ pendiente | `BD1` + `B2·V1` + el productor de cada número, **y con él todos los documentos de `docs/`** |
+| ⭐⭐ **2·bis · LA BATERÍA** | ✅ **HECHO** | Ya cuenta, y **cazó los arreglos de su propia tanda con la tabla sin tocar**. ⚠️ **Sigue sin ver «¿de qué?» ni un silencio bien formado** |
+| **3 · el puntero Y EL LATIDO** | ⬜ **SIGUIENTE** | `BD1` + `B2·V1` + ⭐⭐ **que un número publicado sepa si su productor SIGUE VIVO y sigue diciendo lo mismo.** Y con ella, todos los documentos de `docs/` |
 
 ⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
 decide al final de los tres bloques, entera.**
@@ -792,11 +792,11 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 105 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 106 VECES
 
-**Cuarenta tandas, cuatro de auditoría y tres de arreglos. Ciento cinco instrumentos mintiendo** — los 33 primeros,
+**Cuarenta tandas, cuatro de auditoría y cuatro de arreglos. Ciento seis instrumentos mintiendo** — los 33 primeros,
 sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los veinticinco últimos (81-105) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
+⚠️ **Los veintiséis últimos (81-106) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
 **porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
 escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
 decir *«esto lo detuvo ella, no el criterio de quien medía»*.
@@ -908,6 +908,7 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 103 | ⚠️ **«~120 MB» EN LA PORTADA QUE PROMETE QUE NO HAY NÚMEROS A MANO.** Medido: **135,1 MB**, y el mayor **62,4 MB**, no 37. ⭐ Y al medirlo salió lo que nadie sabía: **ese fichero de 62,4 MB no lo lee ningún script** — el 46 % del peso. *El `~` no es licencia para no medir* |
 | 104 | ⛔⛔⛔ **UN COMANDO DE EJEMPLO PUBLICADO EN LA PORTADA Y NUNCA EJECUTADO — Y NO FUNCIONA.** *«El primer comando que copia quien llega.»* ⭐⭐ Se verificaron **las 30 cifras** y se dieron por buenos los `bash` que las rodean: **la mitad de la promesa que no se lee como promesa.** ⚠️ Y se eligió *«Plaza del Pilar»* **porque hacía bonito**, dentro de un documento cuyo método es no fiarse de lo que parece razonable |
 | 105 | ⛔⛔ **UNA VALLA DE CÓDIGO HUÉRFANA DEJÓ MEDIO README RENDERIZÁNDOSE COMO CÓDIGO.** ⭐⭐⭐ **Tres pasadas de verificación sobre ese fichero la misma tarde —cifras, comandos, promesas— y NINGUNA lo miró RENDERIZADO.** ⚠️ En texto plano no se ve: las vallas están a 45 líneas y cada una, por separado, parece correcta. **Lo cazó el editor, no una comprobación** |
+| 106 | ⛔⛔ **UN BARRIDO DE HERMANOS QUE NO ENCONTRÓ SU PROPIA SEMILLA — Y HABRÍA PUBLICADO 61 PARECIENDO LIMPIO.** `probar-paradas.js:129` **no es un `A.exige`**: es una variable con `.includes()` cuyo veredicto se imprime **veinte líneas más abajo, en un ternario anidado**, y un barrido por línea no lo ve. ⭐ **Lo cazó la ley 98, escrita por él mismo el día anterior**: se ensanchó hasta que las dos semillas salieron ⇒ el universo real son **464 veredictos**, no 61 |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1260,6 +1261,23 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     Y la forma **también tiene comando**: `grep -c '^```' README.md` **tiene que dar par.**
 110. ⭐⭐⭐ **LO QUE MIENTE NO SIEMPRE ES UN NÚMERO: A VECES ES UN `✅` QUE SIGUE AHÍ.** *Los fallos que
     esta auditoría ha arreglado se veían al MIRAR; el silencio de un guardián solo se ve al CONTAR.*
+111. ⭐⭐⭐ **UN DOCUMENTO NO ENVEJECE SOLO: ENVEJECE CUANDO MUERE SU CONTRADICTOR.** *El «412 m» de la
+    ruta 6 fue cierto el 4 de agosto y consta. Se quedó viejo el 6, cuando §A6 dejó de medir — y
+    nadie pudo desmentirlo durante dos días porque el único que sabía hacerlo estaba callado.*
+    ⇒ ⭐⭐ **Lo que hay que vigilar no es el número publicado: es que su instrumento siga vivo.**
+112. ⭐⭐⭐ **UN SILENCIO BIEN FORMADO NO LO CAZA NINGÚN CONTADOR.** *Imprimir `NO CONSTA` es una
+    salida legítima: ni el código de salida ni el recuento de fallos podían decir «§A6 lleva dos
+    días sin medir».* ⇒ **Saber si un instrumento sigue midiendo lo que dice medir no lo contesta un
+    contador: lo contesta comparar su salida con la de otro.**
+113. ⭐⭐ **UN BOOLEANO DONDE HAY UNA CANTIDAD NO ES UNA SIMPLIFICACIÓN: ES UNA VENDA.** *Contesta bien
+    mientras importe «¿hay?» y deja de contestar cuando importe «¿cuántos?» — **sin cambiar una
+    línea de su salida.***
+114. ⭐⭐ **UNA VIGILANCIA DUPLICADA NO ENVEJECE COMO SU ORIGINAL.** *El original se actualiza con la
+    decisión; la copia se queda dando un rojo indistinguible de un hallazgo.*
+115. ⭐⭐⭐ **«HA DEJADO DE MENTIR EN ESTO» NO ES «DICE LA VERDAD».** *La batería pasó de contestar
+    «¿hay?» a contestar «¿hay?» y «¿cuántos?». Sigue sin contestar **«¿de qué?»** — y ésa era la que
+    importaba en el caso de la ruta 6.* ⇒ **Confundir las dos es exactamente el fallo que cada tanda
+    viene a arreglar.**
 
 ---
 
@@ -2085,6 +2103,72 @@ agosto publicando `NO CONSTA` en vez de medir**, y **la batería los da ✅ en c
 
 > ⭐⭐⭐ **Lo que le miente no es un número: es el silencio de un guardián que sigue diciendo `✅`.
 > Los fallos que esta auditoría ha arreglado se veían al MIRAR; éste solo se ve al CONTAR.**
+
+### ✅ TANDA DE ARREGLO 2·bis (8/08) — la batería ya cuenta
+
+**El arreglo:** `probar-paradas.js` decide con **recuento + código de salida** contra una **tabla de
+excepciones** que vive en el propio guardián, con **cuatro campos por fila —recuento · texto · desde
+cuándo · clase—** y ⭐⭐ **regla de mundo cerrado: todo lo que no esté en la tabla debe declarar 0.**
+*Un script nuevo que empiece a fallar salta solo, sin que nadie se acuerde de añadirlo.*
+
+⭐⭐⭐ **Y la contraprueba que vale no fue la planeada: el guardián cazó los arreglos de su propia
+tanda, con la tabla todavía sin tocar.**
+```
+   donde-falta.js   0 de 1   ⛔ DECLARA 0 Y SE ESPERABAN 1
+   pasos.js         0 de 1   ⛔ DECLARA 0 Y SE ESPERABAN 1
+```
+*Con la regla de ayer eso habría pasado a `✅` sin decir una palabra.* ⭐ **Y el orden fue el
+correcto: las filas salieron de la tabla DESPUÉS del rojo** — al revés habría sido verde por
+construcción.
+⛔ **Ningún rojo apagado:** los tres declarados siguen rojos **y ahora se cuentan.** La clase
+«expectativa caducada» ya no existe.
+⭐ **Cerrojo aplicado:** los scripts que salen en 1 sin declarar nada **no entran en la tabla** —
+salen como **HALLAZGO** (`ruta.js`, y seis más latentes con `process.exit(1)` sin `alarma`).
+
+### ⭐⭐⭐ EL PRIMER CASO CONFIRMADO DE LA LEY 110 — la ruta 6, con autopsia a la hora
+
+`§A6` revivió y **cinco de las seis rutas cuadran al metro con lo publicado. La sexta, no:**
+
+```
+   ruta 6   publicado   412 m sin nombre · 188 con portales · 10 portales
+            medido      438 m            · 207              · 11
+```
+
+⭐ **Triangulado con instrumento vivo:** `modelo-rutas.js §D4` da **438** en cada batería, y está
+comprobado que **las dos cifras miden lo mismo** (idéntico conjunto, idéntico filtro, idéntica suma).
+⭐⭐ **Y el 412 FUE CIERTO — consta, y no nació desmentido:**
+
+```
+   04/08 15:15:15   nace §D4 en modelo-rutas.js
+   04/08 15:15:16   se publica §D4 con «6 → 412»
+   04/08 15:45:13   nace §A6 en donde-falta.js
+   04/08 16:07:22   se publica §A6 con «6 → 412»
+   06/08            la ruta nº1 deja de resolverse   ⇒ §A6 MUERE
+   08/08            §A6 revive y dice 438
+```
+
+> ⭐⭐⭐ **No es un número que mienta: es un número viejo cuyo contradictor llevaba dos días muerto.**
+
+⚠️ **Segundo dato para la tanda 3:** aquel día la ruta 6 ganaba **221 m de vía municipal (53,6 %, 0
+propios)**; hoy §D4 le da **438 (100 %)**. **Se movió más que el reparto de «sin nombre».**
+⛔ **Nada republicado.** Atado en bitácora 171 con su triangulación y su fecha de muerte.
+
+### ⚠️ LO QUE LA BATERÍA SIGUE SIN PODER VER — declarado por su propio autor
+
+- ⭐⭐ **El TEXTO del fallo no se compara.** La tabla lo guarda y el veredicto solo mira el número:
+  **un rojo declarado puede cambiar de motivo, seguir siendo 1, y pasar en verde.** *Es el fallo de
+  hoy un piso más abajo.*
+- **La CLASE no la vigila nadie** · **la tabla puede sobrar** (si un script desaparece, su fila se
+  queda) · **el recuento se fía de una línea de texto** que imprime `alarma.js`.
+- ⛔⛔ **Y nadie compara dos documentos entre sí. Es lo que dejó vivir al 412 durante dos días.**
+
+> ⭐⭐⭐ **«¿La batería ya puede decir la verdad, o solo menos mentira?» — SOLO MENOS MENTIRA, Y SÉ
+> CUÁNTA MENOS.** *Antes contestaba «¿hay?» y la daba por respondida a otra pregunta. Ahora contesta
+> «¿hay?» y «¿cuántos?». Sigue sin contestar **«¿de qué?»**, que era la que importaba en la ruta 6.*
+
+**⚠️ Los hermanos, y es SUELO por dos razones medidas** (no se sigue el flujo, y 207 «otras» sin
+leer): de **464 veredictos** — 137 booleanos donde puede haber cantidad · 81 literales numéricos, de
+ellos **18 contra un valor medido** · 39 del patrón sano «hay alguno». ⛔ Ninguno arreglado.
 
 ⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
 requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
