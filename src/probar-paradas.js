@@ -181,6 +181,18 @@ const DECLARADOS = {
   'rutas-antonio.js': { n: 1, cod: 1, desde: '2026-08-03 · e264d90',
     clase: 'fuera de banda',
     texto: 'la ruta nº4 se sale del rodeo aceptable' },
+  // ⭐⭐⭐ TANDA 3 · UNA CLASE NUEVA, y nace con fecha de caducidad puesta.
+  //   `latido.js` sale en rojo porque la ruta 6 se publicó en 412 y sus DOS
+  //   productores dan 438. ⛔ No es un fallo del motor ni del guardián: es un
+  //   documento que envejeció. Se cierra republicándolo, no arreglando nada.
+  //   ⚠️ Y la fila se escribe DESPUÉS de que la batería gritara —lo hizo, con
+  //     `latido.js  1 de 0  ⛔ DECLARA 1 Y SE ESPERABAN 0`—, nunca antes: al
+  //     revés saldría verde por construcción y no habría probado nada (ley 35).
+  //   ⭐ El día que se republique, este rojo tiene que DESAPARECER y la batería
+  //     gritará por el otro lado, igual que hizo con `donde-falta.js` en la 2·bis.
+  'latido.js': { n: 1, cod: 1, desde: '2026-08-08 · ec4986e',
+    clase: 'pendiente de republicar',
+    texto: 'la ruta 6 se publicó en 412 y sus dos productores dan 438' },
   // ⭐⭐⭐ TANDA 2·bis · `donde-falta.js` y `pasos.js` ESTUVIERON AQUÍ, y su salida
   //   de esta tabla es la contraprueba de que esto funciona: al arreglarles la
   //   expectativa pasaron a declarar 0 donde se esperaba 1, y **la batería se puso
