@@ -1,5 +1,19 @@
 # H1 · ¿QUÉ COMPROBACIÓN HA VISTO SU ROJO?
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 4 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `51.556` | **51.493** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `32.258` | **32.310** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `3.792` | **3.803** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `182` | **232** | `docs/auditoriafinal/B2-CONTRASTE-2026-08-07.md §B2·V3` · 2026-08-07 |
+>
+> <sub>las líneas CON nombre del mapa · las líneas rojas del mapa · las rojas explicadas por zona verde · las líneas decorativas — un ⛔ impreso que no para nada</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 29 · 2026-08-05 · auditoría de los instrumentos. ⛔ No arregla nada.*
 
 > **Este documento se AÑADE, no reescribe nada.** ⛔ Y esta tanda **no toca ni un fichero de

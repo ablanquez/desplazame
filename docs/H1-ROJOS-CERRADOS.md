@@ -1,5 +1,16 @@
 # H1 · CERRAR LOS ROJOS
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `182` | **232** | `docs/auditoriafinal/B2-CONTRASTE-2026-08-07.md §B2·V3` · 2026-08-07 |
+>
+> <sub>las líneas decorativas — un ⛔ impreso que no para nada</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 31 · 2026-08-05 · Antonio decide cuatro de los cinco rojos vivos y pide el número del quinto
 antes de decidirlo.*
 

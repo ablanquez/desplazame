@@ -1,5 +1,16 @@
 # H1 · LA CALLE QUE VA PEGADA
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `56.864` | **56.801** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+>
+> <sub>las azules ANTES de la tanda 26</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 25 · 2026-08-04 · idea de Antonio: «además del portal, ¿no puede comprobar que tiene otra
 línea en paralelo a nada de distancia que tiene el nombre, y compararlo contra los portales?».*
 

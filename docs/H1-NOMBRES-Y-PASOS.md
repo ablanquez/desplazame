@@ -1,5 +1,17 @@
 # H1 · PONER LOS NOMBRES Y SIMPLIFICAR EL ITINERARIO
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 2 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `11.742` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
+> | `3.166` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
+>
+> <sub>las puertas que cuelgan de una línea sin nombre</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 21 · 2026-08-04 · cinco cosas decididas por Antonio, aplicadas.*
 
 > ⛔⛔ **El cálculo de rutas NO se toca.** Ni costes, ni transitabilidad, ni enganche, ni tolerancia,

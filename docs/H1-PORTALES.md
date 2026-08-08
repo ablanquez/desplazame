@@ -1,5 +1,16 @@
 # H1 · LOS PORTALES ENTRAN EN EL GRAFO
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `16,9` | **21,3** | ⛔ **republicación PENDIENTE** · 2026-08-06 · medido por el bloque A de la auditoría (A·V3) |
+>
+> <sub>las veces el azar de los portales como testigos</sub>
+<!-- SUPERADOS:FIN -->
+
 **Fecha:** 2026-08-03 · **Sellos:** calles `2026-08-03T08:19:51Z` · edificios
 `2026-08-03T12:30:06Z` · POI `2026-08-03T12:48:20Z` · portales del callejero municipal
 (46.150, leídos donde están, **sin copiar**)

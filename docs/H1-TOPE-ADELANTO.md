@@ -1,5 +1,17 @@
 # H1 · CRUZAR ES DE LADO — el tope de adelanto, y el centinela apagado
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 2 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `3.166` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
+> | `6.421` | **4.562** | `docs/H1-LISTON-50.md §D` · 2026-08-06 |
+>
+> <sub>las puertas que cuelgan de una línea sin nombre · las consultas contestadas — con el listón de 100 m</sub>
+<!-- SUPERADOS:FIN -->
+
 **Tanda 35 · 2026-08-06.** Reproducible con:
 
 ```

@@ -1,5 +1,17 @@
 # H1 · ¿DÓNDE FALTA EL NOMBRE, DE VERDAD?
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 2 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `11.742` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
+> | `412` | **438** | ⛔ **republicación PENDIENTE** · 2026-08-08 · medido y atado en la tanda 2·bis (bitácora 171) |
+>
+> <sub>las puertas que cuelgan de una línea sin nombre · los metros sin nombre de la ruta nº6 (§A6)</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 20 · 2026-08-04 · se mide y se pinta. **No se deduce ni se aplica ningún nombre.***
 
 > ⛔⛔ **El método de portales de la tanda 17 sigue siendo capa de prueba.** Aquí se mide **dónde

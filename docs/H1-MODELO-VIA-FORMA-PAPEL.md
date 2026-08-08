@@ -1,5 +1,16 @@
 # H1 · VÍA · FORMA · PAPEL — el modelo de datos
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `412` | **438** | ⛔ **republicación PENDIENTE** · 2026-08-08 · medido y atado en la tanda 2·bis (bitácora 171) |
+>
+> <sub>los metros sin nombre de la ruta nº6 (§A6)</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 19 · 2026-08-04 · a partir de Antonio: «una acera que comparte carril bici es una acera en el
 contexto de caminar y es un carril bici en el contexto de ir en bici».*
 

@@ -1,5 +1,16 @@
 # H1 · LA ACERA EQUIVOCADA
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `66.973` | **16.981** | `docs/H1-TOPE-ADELANTO.md §B2` · 2026-08-06 |
+>
+> <sub>las consultas que cambian de acera</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 32 · 2026-08-06 · Antonio pidió la ruta 1 sobre el mapa y vio que arrancaba en la acera de
 enfrente y mucho antes. ⛔ Esta tanda audita y mide. No arregla nada.*
 

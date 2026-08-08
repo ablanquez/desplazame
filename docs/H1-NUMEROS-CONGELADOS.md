@@ -1,5 +1,24 @@
 # H1 · LOS NÚMEROS CONGELADOS
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 9 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `51.556` | **51.493** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `32.258` | **32.310** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `3.792` | **3.803** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `4.405` | **4.424** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `145,34` | **145,94** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `56.864` | **56.801** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `11.742` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
+> | `3.166` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
+> | `182` | **232** | `docs/auditoriafinal/B2-CONTRASTE-2026-08-07.md §B2·V3` · 2026-08-07 |
+>
+> <sub>las líneas CON nombre del mapa · las líneas rojas del mapa · las rojas explicadas por zona verde · las verdes SIN el listón de 1 ha · los km de rojo explicados por zona verde · las azules ANTES de la tanda 26 · las puertas que cuelgan de una línea sin nombre · las líneas decorativas — un ⛔ impreso que no para nada</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 30 · 2026-08-05 · sale del agujero que encontró la auditoría de la tanda 29: el reparto
 publicado del mapa no estaba protegido por nada.*
 

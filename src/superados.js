@@ -290,7 +290,7 @@ function bloque(pares) {
         : '⛔ **republicación PENDIENTE** · ' + p.desde) + ' |');
   }
   L.push('>');
-  L.push('> <sub>' + pares.map((p) => p.que).join(' · ') + '</sub>');
+  L.push('> <sub>' + [...new Set(pares.map((p) => p.que))].join(' · ') + '</sub>');
   L.push(FIN);
   return L.join('\n');
 }

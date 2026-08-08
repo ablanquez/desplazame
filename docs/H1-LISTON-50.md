@@ -1,5 +1,16 @@
 # H1 · EL LISTÓN VUELVE A 50 — y lo que cuesta
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `31.411` | **4.562** | `docs/H1-TOPE-ADELANTO.md §B2` · 2026-08-06 |
+>
+> <sub>las consultas contestadas — con el dial inflado</sub>
+<!-- SUPERADOS:FIN -->
+
 **Tanda 36 · 2026-08-06.** Reproducible con:
 
 ```

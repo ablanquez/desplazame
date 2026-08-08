@@ -1,5 +1,16 @@
 # H1 · ¿DE QUÉ CALLE ES ESTA ACERA?
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `412` | **438** | ⛔ **republicación PENDIENTE** · 2026-08-08 · medido y atado en la tanda 2·bis (bitácora 171) |
+>
+> <sub>los metros sin nombre de la ruta nº6 (§A6)</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 17 · 2026-08-04 · idea de Antonio: «si una línea la tenemos sin nombre, ¿no se puede deducir
 a partir de esos puntos el nombre de la vía?».*
 

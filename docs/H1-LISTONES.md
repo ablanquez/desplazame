@@ -1,5 +1,17 @@
 # H1 · LOS TRES LISTONES — su acera a 100 m, la de enfrente a 150
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 2 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `31.411` | **4.562** | `docs/H1-TOPE-ADELANTO.md §B2` · 2026-08-06 |
+> | `2.982` | **2.138** | `docs/H1-TOPE-ADELANTO.md §A3` · 2026-08-06 |
+>
+> <sub>las consultas contestadas — con el dial inflado · las sugerencias BUENAS a ≤ 20 m (nº142)</sub>
+<!-- SUPERADOS:FIN -->
+
 **Tanda 34 · 2026-08-06.** Reproducible con:
 
 ```
