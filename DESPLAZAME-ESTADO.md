@@ -50,7 +50,8 @@
 | **1 · el instrumento** | ✅ **HECHO** | `A·V1` el centinela · `L2` el techo mal llamado · `B2·V2` el 400× · **+ los 3 hermanos del mismo veredicto**. ⭐⭐ **La predicción acertó 6 de 6** |
 | **2 · el clon y la portada** | ✅ **HECHO** | Rutas relativas · `verificar-datos.js` · el README entero · ODbL + Ley 37/2007 · `N4`. ⭐⭐ **El clon con datos corre 58 de 58**, y `B·V2` resultó FALSO |
 | ⭐⭐ **2·bis · LA BATERÍA** | ✅ **HECHO** | Ya cuenta, y **cazó los arreglos de su propia tanda con la tabla sin tocar**. ⚠️ **Sigue sin ver «¿de qué?» ni un silencio bien formado** |
-| **3 · el puntero Y EL LATIDO** | ⬜ **SIGUIENTE** | `BD1` + `B2·V1` + ⭐⭐ **que un número publicado sepa si su productor SIGUE VIVO y sigue diciendo lo mismo.** Y con ella, todos los documentos de `docs/` |
+| **3 · el puntero Y EL LATIDO** | ✅ **MECANISMO HECHO** | `superados.js` marca **37 pares en 16 documentos** · el latido vigila 4 números · `B2·V1` declarado. ⭐⭐ **Y el latido habría cazado el 412 el 6 de agosto: demostrado** |
+| ⭐ **3·bis · LAS REPUBLICACIONES** | ⬜ **SIGUIENTE** | No cabían y **no se aceleraron** — la costura funcionando. Los pares ya llevan puntero diciendo `PENDIENTE` |
 
 ⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
 decide al final de los tres bloques, entera.**
@@ -792,11 +793,11 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 106 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 107 VECES
 
-**Cuarenta tandas, cuatro de auditoría y cuatro de arreglos. Ciento seis instrumentos mintiendo** — los 33 primeros,
+**Cuarenta tandas, cuatro de auditoría y cinco de arreglos. Ciento siete instrumentos mintiendo** — los 33 primeros,
 sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los veintiséis últimos (81-106) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
+⚠️ **Los veintisiete últimos (81-107) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
 **porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
 escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
 decir *«esto lo detuvo ella, no el criterio de quien medía»*.
@@ -909,6 +910,7 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 104 | ⛔⛔⛔ **UN COMANDO DE EJEMPLO PUBLICADO EN LA PORTADA Y NUNCA EJECUTADO — Y NO FUNCIONA.** *«El primer comando que copia quien llega.»* ⭐⭐ Se verificaron **las 30 cifras** y se dieron por buenos los `bash` que las rodean: **la mitad de la promesa que no se lee como promesa.** ⚠️ Y se eligió *«Plaza del Pilar»* **porque hacía bonito**, dentro de un documento cuyo método es no fiarse de lo que parece razonable |
 | 105 | ⛔⛔ **UNA VALLA DE CÓDIGO HUÉRFANA DEJÓ MEDIO README RENDERIZÁNDOSE COMO CÓDIGO.** ⭐⭐⭐ **Tres pasadas de verificación sobre ese fichero la misma tarde —cifras, comandos, promesas— y NINGUNA lo miró RENDERIZADO.** ⚠️ En texto plano no se ve: las vallas están a 45 líneas y cada una, por separado, parece correcta. **Lo cazó el editor, no una comprobación** |
 | 106 | ⛔⛔ **UN BARRIDO DE HERMANOS QUE NO ENCONTRÓ SU PROPIA SEMILLA — Y HABRÍA PUBLICADO 61 PARECIENDO LIMPIO.** `probar-paradas.js:129` **no es un `A.exige`**: es una variable con `.includes()` cuyo veredicto se imprime **veinte líneas más abajo, en un ternario anidado**, y un barrido por línea no lo ve. ⭐ **Lo cazó la ley 98, escrita por él mismo el día anterior**: se ensanchó hasta que las dos semillas salieron ⇒ el universo real son **464 veredictos**, no 61 |
+| 107 | ⛔⛔⛔ **UN MARCADOR QUE BUSCABA LA CIFRA Y HABRÍA ESCRITO UNA AFIRMACIÓN FALSA DENTRO DE UN REGISTRO HISTÓRICO.** El `182` de `H1-ACERA-EQUIVOCADA:324` es **un listón p99 en metros**; los `412` de `H1-CIERRE` son **«412× el azar»**. ⭐ **Cazado mirando las líneas ANTES de escribir**, no después. ⚠️ **Y el mismo barrido llevaba dos tandas siendo aceptable**: auditando solo proponía; marcando, escribe |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1278,6 +1280,32 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     «¿hay?» a contestar «¿hay?» y «¿cuántos?». Sigue sin contestar **«¿de qué?»** — y ésa era la que
     importaba en el caso de la ruta 6.* ⇒ **Confundir las dos es exactamente el fallo que cada tanda
     viene a arreglar.**
+116. ⭐⭐⭐ **UNA CIFRA NO IDENTIFICA UN DATO: LO IDENTIFICA LA CIFRA MÁS SU CONTEXTO.** *`182` era un
+    listón p99 en metros y `412` era «412× el azar».* ⇒ **Y el corolario, que es la ley de verdad:
+    EL RIESGO DE UN INSTRUMENTO NO ESTÁ EN LO QUE MIDE, ESTÁ EN LO QUE HACE CON LO MEDIDO.** *El
+    mismo barrido, con la misma precisión, es aceptable auditando —solo propone— e inaceptable
+    marcando —escribe en un registro histórico.*
+117. ⭐⭐⭐ **UN GUARDIÁN CUYO ROJO SE APAGA CAMBIANDO SU EXPECTATIVA ES UN GUARDIÁN QUE ENSEÑA A
+    MENTIRLE.** *Los `contexto` y los recuentos cerrados son fotos de hoy: el día que alguien escriba
+    una frase nueva con ese número, el guardián dirá «se ha movido» —correctamente— y la salida
+    cómoda será subir el número sin mirar.* ⚠️ **La tanda 3 construyó dos con esa forma, y lo
+    declaró.**
+118. ⭐⭐⭐ **UN GUARDIÁN PUEDE DECIR «LO QUE VIGILO HA CAMBIADO»; NO PUEDE DECIR «HAY ALGO QUE
+    DEBERÍA VIGILAR Y NO VIGILO».** *La tabla tiene 18 pares porque alguien los conocía; el latido
+    vigila 4 números porque son los que esa tanda midió.* ⇒ **Para eso haría falta el censo — y el
+    censo es justo el instrumento que acaba de declararse ciego a la mitad de lo congelado y a todos
+    los ceros.** ⭐⭐ **El instrumento que podría medir la cobertura de los demás es el que peor
+    cobertura tiene, y no es casualidad: es el más difícil.**
+119. ⭐⭐⭐ **EL ENVEJECIMIENTO QUE NO CAMBIA NINGUNA CIFRA NO LO VE NINGÚN MECANISMO DE ESTE
+    PROYECTO.** *La definición que se ensancha, el criterio que se relaja, la pregunta que deja de
+    ser la misma pregunta.* ⚠️ **Y el caso está medido:** la ruta 6 pasó de **221 m municipales
+    (53,6 %, cero propios)** a **438 (100 %)** — *el número que se movió no es el mismo tipo de
+    número*. ⇒ **El puntero y el latido comparan NÚMEROS, y eso es precisamente lo único que este
+    envejecimiento no toca.**
+120. ⚠️ **UN CENSO QUE NO PUEDE VER UN CERO NO PUEDE AUDITAR UNA NEGACIÓN.** *La expresión del censo
+    v2 exige dos dígitos: en sus 2.360 marcas no hay un solo token de uno.* ⛔ **Y en un proyecto
+    cuya regla exige demostrar todo cero con un positivo de control, eso lo inhabilita justo donde
+    más falta hace.**
 
 ---
 
@@ -2169,6 +2197,55 @@ propios)**; hoy §D4 le da **438 (100 %)**. **Se movió más que el reparto de �
 **⚠️ Los hermanos, y es SUELO por dos razones medidas** (no se sigue el flujo, y 207 «otras» sin
 leer): de **464 veredictos** — 137 booleanos donde puede haber cantidad · 81 literales numéricos, de
 ellos **18 contra un valor medido** · 39 del patrón sano «hay alguno». ⛔ Ninguno arreglado.
+
+### ✅ TANDA DE ARREGLO 3 (8/08) — el puntero y el latido
+
+**EL PUNTERO.** `src/superados.js` genera una cabecera en el documento superado, entre marcas y **no
+editable a mano**, con la tabla `lo que dice aquí · hoy vale · dónde se republicó`. **37 pares en 16
+documentos, ninguno a mano.**
+⭐⭐ **Y «marcar no es corregir» queda demostrado con instrumento, no con una frase:**
+```
+   git diff --numstat -- docs/   →   16 documentos · 197 insertadas · 0 BORRADAS
+   tres pasadas de --marcar      →   un solo bloque por documento (idempotente)
+```
+⭐ **Y su rojo lo cazó la batería sin que nadie se lo pidiera:** `superados.js · 1 de 0 ⛔ DECLARA 1
+Y SE ESPERABAN 0`. *El guardián de la 2·bis vigilando al de la 3.*
+
+**⛔⛔ LOS CINCO QUE NO SE DEJARON MARCAR — y valen tanto como los 37 que sí.** El `182` de
+`H1-ACERA-EQUIVOCADA:324` es **un listón p99 en metros**; los `412` de `H1-CIERRE` son **«412× el
+azar»**. ⚠️ **La primera versión buscaba solo la cifra y los habría marcado: una afirmación FALSA
+dentro de un registro histórico**, que es el único sitio del proyecto donde eso no tiene vuelta
+atrás. **Cazado mirando las líneas antes de escribir.** ⇒ **leyes 116 y 107.**
+
+**EL LATIDO.** Cada número publicado declara su productor y su sección; **si la sección no emite, el
+latido lo dice — aunque el código de salida sea 0.**
+⭐⭐⭐ **Y la prueba que decidía si el mecanismo servía: SÍ habría cazado el 412 el 6 de agosto.**
+```
+   §A6 imprimiendo «NO CONSTA», como del 6 al 8      MUDO    ⛔ EL PRODUCTOR NO EMITE
+   positivo de control · la sección viva             VIVO    ✅
+   ⭐ el CERO · la ruta 2 publica 0                   VIVO    ✅ (leyó «0»)
+   …y la fila SIN cifra                              MUDO    ⛔ SALE PERO SIN EL DATO
+   la deriva                                         DERIVA  ⛔ PUBLICADO 412 · HOY 438
+```
+⚠️ *Aquel día `donde-falta.js` declaraba 1 fallo y salía en 1 — **exactamente lo esperado**, y la
+batería decía `1 de 1`. **Ningún contador tenía nada que decir. Éste sí.***
+⛔ **El latido sigue en rojo a propósito** —clase nueva, «pendiente de republicar», **con fecha de
+caducidad puesta**— y entró en la tabla **después** de que la batería gritara.
+
+⛔ **Y una quinta opción murió medida antes de proponerse:** extender `numeros-congelados.js`. **El
+412 no está entre los 26** (`grep -c` = 0) ⇒ *no habría cazado el caso que motiva la tanda.*
+
+**`B2·V1` declarado en `docs/H1-CENSO-DECLARADO.md`**, no ampliado: el censo v2 mide **2.361 cifras
+que el documento SUBRAYA**, ve **13 de los 26 congelados**, ⛔ **y no puede ver un cero** — su
+expresión exige dos dígitos y en 2.360 marcas no hay un token de uno *(ley 120)*.
+
+**⚠️ Lo que la propia tanda declaró sin arreglar:** las republicaciones **no cabían y no se
+aceleraron** *(los dos pares ya llevan puntero diciendo `PENDIENTE`, y el día que se republiquen el
+latido pasa a verde solo)* · el fixture del 6 de agosto **es un literal y envejecerá sin que nadie lo
+diga** · el latido **añade ~12 min a cada pasada** porque ejecuta dos productores · **13 de 26, no
+12** *(el candidato de la diferencia es `verde.municipalNombrados = 0`)* · y **`numeros-congelados.js`
+apunta a `H1-ROJOS-CERRADOS §A1` cuando el dato vive en su §0** — *el documento es el correcto, el
+ancla no: es lo que produce un puntero que nadie sigue.*
 
 ⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
 requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
