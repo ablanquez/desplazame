@@ -52,7 +52,9 @@
 | ⭐⭐ **2·bis · LA BATERÍA** | ✅ **HECHO** | Ya cuenta, y **cazó los arreglos de su propia tanda con la tabla sin tocar**. ⚠️ **Sigue sin ver «¿de qué?» ni un silencio bien formado** |
 | **3 · el puntero Y EL LATIDO** | ✅ **MECANISMO HECHO** | `superados.js` marca **37 pares en 16 documentos** · el latido vigila 4 números · `B2·V1` declarado. ⭐⭐ **Y el latido habría cazado el 412 el 6 de agosto: demostrado** |
 | **4 · la velocidad estándar** | ✅ **HECHO** | `VELOCIDAD_KMH = 5,0`, la de OSRM/Valhalla. ⭐⭐ **Disuelve el eje de la nº7** — ya no calibra nada |
-| ⭐ **5 · LAS REPUBLICACIONES** | ⬜ **SIGUIENTE** | No cabían y **no se aceleraron**. Los pares ya llevan puntero diciendo `PENDIENTE` |
+| **5 · las republicaciones** | ✅ **HECHO** | `H1-REPUBLICACIONES.md` · **22 pares en 103 líneas de 17 documentos** · `H1-QUE-QUEDA-ABIERTO.md`. ⛔⛔ **Pero el latido NO pasó a verde solo** |
+| ⚠️ **6 · EL LATIDO, A MEDIAS** | ⬜ **SIGUIENTE** | Su `publicado` es un literal a mano: **no lee documentos.** *Ley 105 incumplida dentro del instrumento que la aplica* |
+| ⭐⭐⭐ **Y LO QUE NO ES CÓDIGO** | ⬜ **abierto** | **Una segunda distancia medida con GPS.** *Lo único que apunta al mundo, y sigue siendo una* |
 
 ⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
 decide al final de los tres bloques, entera.**
@@ -794,11 +796,11 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 109 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 111 VECES
 
-**Cuarenta tandas, cuatro de auditoría y seis de arreglos. Ciento nueve instrumentos mintiendo** — los 33 primeros,
+**Cuarenta tandas, cuatro de auditoría y siete de arreglos. Ciento once instrumentos mintiendo** — los 33 primeros,
 sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los veintinueve últimos (81-109) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
+⚠️ **Los treinta y un últimos (81-111) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
 **porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
 escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
 decir *«esto lo detuvo ella, no el criterio de quien medía»*.
@@ -914,6 +916,8 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 107 | ⛔⛔⛔ **UN MARCADOR QUE BUSCABA LA CIFRA Y HABRÍA ESCRITO UNA AFIRMACIÓN FALSA DENTRO DE UN REGISTRO HISTÓRICO.** El `182` de `H1-ACERA-EQUIVOCADA:324` es **un listón p99 en metros**; los `412` de `H1-CIERRE` son **«412× el azar»**. ⭐ **Cazado mirando las líneas ANTES de escribir**, no después. ⚠️ **Y el mismo barrido llevaba dos tandas siendo aceptable**: auditando solo proponía; marcando, escribe |
 | 108 | ⛔⛔⛔ **UN GUARDIÁN COLOCADO DETRÁS DE QUIEN REPARA EL DEFECTO.** `V3` vigilaba `tools/rutas-visor.js`: **a mano daba rojo real, en la batería salía verde** — porque `--todo` corre `exportar-rutas.js` **en el puesto 21** y el guardián **en el 69**. ⚠️ **Y el visor está en `.gitignore:318`, así que la escritura ni aparecía en `git status`.** ⭐ **El verde no era falso: era TARDÍO** |
 | 109 | ⚠️ **UNA GUARDA CONTRA FALSOS POSITIVOS QUE PERDÍA DOS APARICIONES DE SEIS.** La cola exigía que tras la `h` de `km/h` no hubiera coma — **y las dos perdidas van seguidas de coma.** ⭐⭐ **Lo cazó que el «seis» del encargo VINIERA DE FUERA del instrumento**: su propio recuento decía cinco y parecía limpio |
+| 110 | ⛔⛔⛔ **EL LATIDO RECITA EL VALOR PUBLICADO EN VEZ DE LEERLO.** `latido.js` guarda `publicado: '412'` **como literal copiado a mano y NUNCA abre un documento**: solo ejecuta productores. ⇒ **Republicar escribe 438 en un documento nuevo y ese documento no le llega.** ⭐⭐⭐ **Es la ley 105 incumplida DENTRO del instrumento construido para aplicarla**, y solo se ve **cuando llega la primera republicación** |
+| 111 | ⛔⛔ **EL PUNTERO MANDABA A UN DOCUMENTO QUE NO EXISTE Y SALÍA VERDE ANTES Y DESPUÉS.** Al provocar el rojo se apuntó a `H1-NO-EXISTE-JAMAS.md` y **la cabecera pública lo publicó tan tranquila**. ⭐ *El remedio contra las referencias que nadie sigue estaba escribiendo referencias que nadie seguía.* Cerrado con `D4`, rojo visto |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1330,6 +1334,19 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     guardián lo denuncia, porque nadie compara el tiempo calculado con el declarado**.* ⚠️ **Segunda
     vez en dos tandas: la primera fue el 412.** ⇒ **El rojo del que se cae es un rojo que no
     existía**, y eso es la ley 119 otra vez.
+126. ⭐⭐⭐ **UN PUNTERO ROTO ES PEOR QUE NO TENER PUNTERO, PORQUE PROMETE CAMINO.** *Una cabecera que
+    manda al lector a un documento inexistente es peor que una que no le manda a ninguno: la
+    primera se cierra sola, la segunda le hace buscar.*
+127. ⭐⭐⭐ **UN BARRIDO POR CONTENIDO NO DISTINGUE UNA AFIRMACIÓN DE UNA TRANSCRIPCIÓN.** *«Recorrió
+    los 56 scripts» es un hecho del 6 de agosto y sigue siendo cierto: **marcarlo como superado
+    sería decir que aquella ejecución fue otra**.* ⇒ **El instrumento encuentra la cifra; el juicio
+    lo pone una persona — y por eso cada par lleva su recuento cerrado: para que ese juicio se emita
+    una vez y quede grabado.**
+128. ⭐⭐⭐ **UN SISTEMA PUEDE ALCANZAR UNA CONSISTENCIA IMPECABLE ALREDEDOR DE UN ERROR QUE NADIE FUE
+    A BUSCAR FUERA — Y CUANTO MEJORES SEAN SUS GUARDIANES, MÁS CONVINCENTE SERÁ EL CONJUNTO.**
+    *111 instrumentos vigilando la coherencia interna; **una cinta métrica apuntando al mundo**.*
+    ⇒ ⛔⛔ **El riesgo no es que mienta un número: es que TODO CUADRE y la ruta esté mal, porque lo
+    único que podría desmentirla no está en el disco.**
 
 ---
 
@@ -2314,6 +2331,48 @@ Antonio.* ⚠️ **Sigue diciendo `~6 km/h` cuatro veces y sus dos bandas deriva
 trasladada, no tocada** (ley 124) · **la batería ejecuta los `exportar-*.js`**, así que la regla «no
 los ejecutes» no se puede cumplir mientras se corra `--todo` — *decide Antonio* · y **el rojo
 huérfano de la ley 125.**
+
+### ✅ TANDA DE ARREGLO 5 (9/08) — las republicaciones, y la costura que saltó
+
+**22 pares superado → vigente, en 103 líneas de 17 documentos.** ⚠️ *El «23» venía de dos sitios que
+nadie había sumado.* ⭐ **Y tres que ninguna tabla tenía**: `36.050 → 36.113` · `21 congelados → 26`
+· y uno de otra especie — **la anotación de un comando escrita en presente** (`# los 21
+congelados`), *que el lector desmiente él solo en tres segundos.*
+
+**Publicado:** `docs/H1-REPUBLICACIONES.md` *(la tabla no está escrita a mano: sale de
+`superados.js --censar`, y la columna «líneas» es medida)* y `docs/H1-QUE-QUEDA-ABIERTO.md`.
+⭐ **Y la segunda diferencia de la ruta 6 va publicada como diferencia, no como explicación:** el
+4/08 ganaba **221 m de vía municipal (53,6 %, 0 propios)** y hoy **438 (100 %)** — **por qué,
+`NO CONSTA`.**
+
+⛔⛔ **PERO EL LATIDO NO PASÓ A VERDE SOLO — y ésa era la prueba de aceptación de la tanda.**
+*Documento publicado, `republicaEn` puestos, cabeceras regeneradas, puntero en verde… y el latido
+sigue diciendo `PUBLICADO 412 · HOY 438` por los dos productores.* ⇒ **El mecanismo de la tanda 3
+quedó a medias: el puntero MIDE dónde aparece cada valor; el latido RECITA el valor publicado**
+(instrumento nº110). ⛔ **Parado y sin tocar, como manda la costura.**
+
+⭐⭐ **Y tres que NO se republicaron, ninguno a mano y ninguno por descuido** — *`superados.js`
+encuentra la cifra pero no sabe distinguir una afirmación de una transcripción* (ley 127): los «56
+scripts» son **un hecho del 6/08 que sigue siendo cierto** · el `4.055` es **otra magnitud**, no una
+versión vieja · el `45.597` es **el «antes» de una transición narrada.**
+
+✅ `26 insertadas · 18 borradas en docs/`, **y las 18 son cabeceras regenerándose** — cero líneas del
+cuerpo, comprobado línea a línea. ✅ Siete rutas idénticas · congelados en 0 · **bitácora sin
+entradas nuevas: no se equivocó en nada que el instrumento no cazara en el acto.**
+
+### ⛔⛔⛔ LO QUE MÁS PREOCUPA AL CERRAR H1 — y no es un número
+
+> **El repositorio ya sabe mirarse a sí mismo mucho mejor de lo que sabe mirar Zaragoza.**
+
+*Seis tandas construyendo guardianes sobre guardianes —la batería cuenta, el puntero navega en dos
+direcciones, el latido pregunta si un instrumento sigue vivo—, y **todo eso vigila el
+repositorio**.* ⛔ **Mientras, sigue en pie la frase con la que se cierra H1: nadie ha comprobado que
+la ruta que sale sea la CORRECTA.** *Siete trayectos, una sola observación humana — y a esa
+observación se le acaban de retirar los minutos porque no servían para calibrar. **Queda una medida
+de GPS contra una ruta.***
+
+⇒ ⭐⭐⭐ **La siguiente tanda no debería ser otro guardián: debería ser salir a andar una segunda
+ruta.** *(Ley 128.)*
 
 ⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
 requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
