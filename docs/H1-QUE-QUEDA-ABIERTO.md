@@ -94,6 +94,52 @@ lo hecho*; *no lo he sabido* es que el criterio no llegó; *no lo he mirado* es 
 | **Los datos crudos de OSM y del callejero** | No se versionan y **no hay script que los baje**: un clon que se descargara su propio OSM arrancaría y daría OTROS números, que es peor que no arrancar |
 | **El verificador `verificar-datos.js`** | Existe para que el clon **SEPA** lo que no tiene. Con los crudos delante hoy dice ✅ los 12 ficheros; sin ellos, la mitad de sus consultas contestan `NO CONSTA` |
 
+### B6 · ⭐⭐ TANDA 8 · Los dos límites del puntero, con su fecha y su ejemplo
+
+**Los dos salieron el 9 de agosto de 2026 al republicar una banda de
+`data/pruebas/RUTAS-CONOCIDAS.md`, y ninguno de los dos se ha arreglado.**
+
+| qué | estado |
+|---|---|
+| ⭐⭐⭐ **El puntero envejece las CIFRAS y NO la PROSA que las envuelve** | Es un límite **de diseño**, no un fallo: `superados.js` busca cadenas de dígitos. Una frase que ha dejado de ser cierta no lleva dígitos y **no hay barrido posible** con este mecanismo |
+| ⭐⭐⭐ **El puntero MARCA lo que alguien declara; no DESCUBRE nada** | Su cobertura es igual a *lo que un humano se acordó de escribir en `PARES`*. Cuando el 9/08 cambió una banda, **nada se lo contó**. Es la **ley 118** con fecha |
+
+**El ejemplo, y es el que hay que leer porque los dos límites se ven en el mismo
+documento.** `docs/H1-VELOCIDAD-ESTANDAR.md` publicaba tres cosas caducadas a la vez, y el
+mecanismo alcanza **una**:
+
+| lo que dice | por qué es falso hoy | ¿lo ve el puntero? |
+|---|---|---|
+| la banda de distancia de los 40 min | era **derivada** del ritmo al que anda Antonio; hoy hay una **medida** (ruta nº10, 9/08) | ✅ **sí** — es una cifra, y se ha republicado |
+| **«§C · LAS TRES BANDAS»** | son **cinco**: 5, 25, 28, 40 y 59 min | ⛔ **no** — «tres» es una palabra |
+| **«dos de las tres bandas se derivaron de la velocidad»** | hoy se deriva **una de cinco**; las otras cuatro están medidas con GPS | ⛔ **no** — y es la peor de las tres, porque **el argumento de circularidad de §D casi se ha caído solo** y el documento sigue afirmándolo |
+
+⛔⛔ **Y el segundo límite no es una queja teórica: incumple el criterio con el que se aceptó
+este mecanismo.** La tanda 3 lo eligió con una condición escrita — *«no vale una convención
+que alguien tenga que acordarse de cumplir. ¿Qué pasa el día 24?»*. **El 9 de agosto fue el
+día 24**, y el puntero pasó sus propios `D1`, `D2` y `D4` mientras una cifra caducada estaba
+publicada delante.
+
+⭐ **Lo que sí quedó demostrado, y conviene no confundirlo con lo anterior:** el barrido **no
+está ciego**. Declarado el par, lo encuentra a la primera y sin un solo falso positivo en los
+otros dieciséis documentos:
+
+```
+node src/superados.js      # con el par recién declarado, ANTES de marcar
+   ⟨la banda vieja⟩      1 de 1    0 de 0    ✅
+   D1 · valor superado impreso SIN que la cabecera lo declare   1
+      H1-VELOCIDAD-ESTANDAR.md
+```
+
+⚠️ **Y las dos cifras van sustituidas por `⟨…⟩` a propósito, no por adorno:** escribirlas
+aquí haría que este documento saliera marcado como si las AFIRMARA, cuando solo las está
+contando. Es el límite de B1 —*`superados.js` no distingue una afirmación de una
+transcripción*— visto desde el otro lado: **evitarlo obliga a mutilar la cita.**
+
+⇒ **El problema no está en lo que el instrumento ve: está en lo que se le manda mirar.**
+
+---
+
 ---
 
 ## C · ⚠️ LO QUE ESTE INVENTARIO NO PUEDE PROMETER
