@@ -22,7 +22,7 @@
 ## Qué hay dentro, en números
 
 Cada cifra sale de un script que se puede volver a ejecutar, y va con él al lado. ⚠️ **Las cuatro
-últimas suben solas** —código, bitácora, informes—: están medidas el **7 de agosto de 2026** y para
+últimas suben solas** —código, bitácora, informes—: están medidas el **9 de agosto de 2026** y para
 cuando leas esto serán otras. **Manda el comando, no el número.**
 
 | Qué | Cuánto | De dónde sale |
@@ -32,12 +32,12 @@ cuando leas esto serán otras. **Manda el comando, no el número.**
 | Sello del dato de OSM | `2026-08-03T08:19:51Z` | ídem |
 | Portales del callejero municipal | 46.150, de los que **46.026** quedan enganchados a una calle | `node src/informe-portales.js` |
 | Direcciones que el buscador puede pedir | 51.065 | `node src/numeros-congelados.js` |
-| Rutas de cordura que se ejecutan en cada cambio | 7, y **una no debe resolverse** — es el control | `node src/modelo-rutas.js` |
-| Código | 71 ficheros · 25.574 líneas | `ls src/*.js \| wc -l` · `cat src/*.js \| wc -l` |
-| Entradas de bitácora | 168 | `grep -c '^## \[' docs/BITACORA.md` |
-| Informes | 40 | `ls docs/*.md \| wc -l` |
+| Rutas de cordura que se ejecutan en cada cambio | 8, y **una de ellas no debe resolverse** — es el control | `node src/modelo-rutas.js` |
+| Código | 74 ficheros · 27.046 líneas | `ls src/*.js \| wc -l` · `cat src/*.js \| wc -l` |
+| Entradas de bitácora | 175 | `grep -c '^## \[' docs/BITACORA.md` |
+| Informes | 44 | `ls docs/*.md \| wc -l` |
 
-⚠️ **Las siete rutas no se publican aquí a propósito.** Sus metros viven en el instrumento que las
+⚠️ **Los metros de las rutas no se publican aquí a propósito.** Viven en el instrumento que las
 mide, y un número copiado a una portada se pudre sin que nadie se entere. `node src/modelo-rutas.js`
 las dice, y compara cada una con lo que se publicó.
 
@@ -103,8 +103,8 @@ inventar una consulta plausible — alguien la ejecutaría.*
 
 ```bash
 node src/ruta.js "Calle Manifestación 6" "Calle Don Jaime I 17"   # una ruta (da 598 m)
-node src/modelo-rutas.js                                     # las siete rutas de cordura
-node src/probar-paradas.js --todo                            # la batería entera (~35 min)
+node src/modelo-rutas.js                                     # las ocho rutas de cordura
+node src/probar-paradas.js --todo                            # la batería entera (17 min medidos)
 node src/exportar-rutas.js && start tools/visor-rutas.html    # verlas sobre el mapa
 ```
 
@@ -152,7 +152,36 @@ publicados como **registro histórico** —lo que se pensó antes de escribir c�
 
 ⭐ Y se dice aquí porque hace falta decirlo: un auditor con el encargo delante los leyó como el
 diseño vigente y publicó un hallazgo falso a partir de ellos. Lo que rige de verdad son las
-decisiones de `DESPLAZAME-ESTADO.md` §5, que el código cita más de noventa veces.
+decisiones `D0`–`D5` de `DESPLAZAME-ESTADO.md` §5, que el código cita **175 veces** —
+`grep -rhoE '\bD[0-5][a-z]?\b' src/*.js | wc -l`.
+
+## La auditoría, y los dos hallazgos que resultaron falsos
+
+En **agosto de 2026** se auditó el hito entero en **cuatro bloques** —código, documentación,
+contraste y decisiones—, con sus registros fechados en
+[`docs/auditoriafinal/`](docs/auditoriafinal/). ⛔ **No se arregló nada hasta tener los cuatro.**
+Auditar y arreglar a la vez habría dejado sin saber qué encontró la auditoría y qué encontró el
+arreglo.
+
+⭐⭐ **Y de los hallazgos que se publicaron como VIVOS —`A·V1`–`V4`, `B·V1`–`V3`, `B2·V1`–`V3`—,
+DOS resultaron FALSOS.** Ninguno de los dos lo cazó el bloque que lo publicó:
+
+- **`B·V1`**: se publicó que un documento vigente mentía, y el documento decía **en su tercera
+  línea** que era una propuesta sin construir. Lo desmintió el bloque siguiente.
+- **`B·V2`**: se publicó contra esta portada un error que no existía — confundir
+  `movilidad:MU1_jerarquia_viaria` con `idezar_base:JERARQUIA_VIARIA`, que son dos capas
+  distintas. Se descubrió al ir a corregir la portada, dos tandas después.
+
+Los dos están contados uno a uno en [`docs/BITACORA.md`](docs/BITACORA.md), con el campo que
+importa: qué estaba en verde mientras el hallazgo falso ya estaba publicado.
+
+**Lo que quedó sin resolver** está en
+[`docs/H1-QUE-QUEDA-ABIERTO.md`](docs/H1-QUE-QUEDA-ABIERTO.md), con la clase de cada hueco sin
+fundir —`NO CONSTA` no es lo mismo que *no lo he mirado*—. **Lo que se republicó** está en
+[`docs/H1-REPUBLICACIONES.md`](docs/H1-REPUBLICACIONES.md), con el puntero puesto desde cada
+número viejo.
+
+⛔ **Y ninguno de los cuatro bloques ha comprobado que la ruta que sale sea la CORRECTA.**
 
 ## La bitácora es la mitad del proyecto
 
@@ -185,8 +214,9 @@ contraste con OpenStreetMap y la misma calle servida en dos sistemas de coordena
 
 No está toda la exploración —son evidencia de un momento, y un repositorio guarda todas las
 versiones para siempre— pero sí lo necesario para reproducir los números sin fiarse de nadie. Y lo
-que se quedó fuera está **nombrado** en el `.gitignore`, con el porqué: un crudo de 35,9 MB y
-tres ficheros con datos personales.
+que se quedó fuera está **nombrado** en el `.gitignore`, con el porqué: un crudo de **34,25 MB** y
+**tres** ficheros con datos personales — las dos cifras salen del propio fichero,
+`grep -nE 'MB|dato personal' .gitignore`.
 
 ## Si trabajas en este repositorio
 
