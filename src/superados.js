@@ -196,8 +196,26 @@ const PARES = [
 
   // ⭐ TANDA 6 · el tercer envejecimiento de este número, y por una causa nueva:
   //   no se funden pasos ni se pierde una ruta — ENTRA la nº8, con sus 27.
-  { viejo: '56 pasos', nuevo: '83 pasos', que: 'los pasos del itinerario — cubre también la forma «56/56 pasos» de los cierres',
-    republicaEn: 'docs/H1-REPUBLICACIONES.md §F', desde: '2026-08-09',
+  //
+  // ⭐⭐ TANDA 8 · EL CUARTO, Y AQUÍ SE ACTUALIZA EL PAR EN VEZ DE ENCADENARLO.
+  //   Entran la nº9 y la nº10: 83 + 9 + 28 = 120. La otra opción era dejar este
+  //   par en `83 pasos` y añadir `83 pasos → 120 pasos`. ⛔ No sirve, y es
+  //   medible: fuera de las actas **ninguna línea de ningún cuerpo dice `83
+  //   pasos`** —el 83 solo vive en las cabeceras que genera este fichero—. Un par
+  //   así marcaría cero documentos y, mientras tanto, los cuatro que dicen `56
+  //   pasos` seguirían mandando a un número ya superado.
+  //   ⇒ ⭐ el `nuevo` de un par es un valor VIVO: dice cuánto vale HOY y dónde
+  //     comprobarlo. La historia la cuentan `docs/H1-REPUBLICACIONES.md` §F y §G
+  //     y la bitácora, que son las que no se tocan.
+  //   ⭐⭐ Y aquí este guardián me corrigió a mí: di por hecho que una cabecera
+  //     con el `nuevo` caducado pasaría inadvertida, y **es falso**. D1 exige que
+  //     coincidan el viejo Y EL NUEVO (línea 400), así que al cambiar este par y
+  //     antes de regenerar nada gritó en los cuatro documentos. La cabecera no
+  //     puede separarse de la tabla en ninguna de las dos direcciones.
+  //   ⚠️ Lo que sigue sin vigilar es OTRA cosa: que la tabla cuadre con el mundo.
+  //     Eso lo diría `src/latido.js`, y este número no está en su lista.
+  { viejo: '56 pasos', nuevo: '120 pasos', que: 'los pasos del itinerario — cubre también la forma «56/56 pasos» de los cierres',
+    republicaEn: 'docs/H1-REPUBLICACIONES.md §G', desde: '2026-08-09',
     contexto: null, propias: 8, ajenas: 0 },
 
   { viejo: '412', nuevo: '438', que: 'los metros sin nombre de la ruta nº6 (§A6)',

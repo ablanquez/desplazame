@@ -196,3 +196,81 @@ motor sabe contar hoy.**
 
 ⭐ **Y sigue envejeciendo igual:** el día que una tanda funda un paso más, `modelo-rutas.js`
 se pone rojo y hay que volver a republicarlo. **Eso es el objetivo, no el defecto.**
+
+---
+
+## G · ⭐ TANDA 8 · LOS PASOS: `83` → **`120`**, y una corrección a §F
+
+**Dónde está publicado el viejo:** en ninguna parte del cuerpo de ningún documento. `83` vive
+solo en la **cabecera generada** de los cuatro que dicen `56 pasos`, y en el título de §F.
+⇒ por eso esto **no añade un par nuevo al puntero**: actualiza el que ya había.
+
+### G1 · La causa: entran la nº9 y la nº10
+
+Es la cuarta vez que este número envejece, y van tres causas distintas: `110 → 82` fundiendo
+pasos al poner nombres, `74 → 56` porque la nº1 dejó de resolverse, `56 → 83` porque entró la
+nº8, y ahora `83 → 120` porque entran **dos** rutas de golpe.
+
+```
+node src/modelo-rutas.js      # §PASOS DEL ITINERARIO · el reparto por ruta y el total
+   2:9 · 3:22 · 4:7 · 5:4 · 6:3 · 7:11 · 8:27 · 9:9 · 10:28      TOTAL 120
+```
+
+**Y cuadra con el anterior sin necesidad de creerse nada:** `83 + 9 + 28 = 120`.
+
+⭐⭐ **Y las dos entran también en `PUBLICADOS`, lo que las convierte en costura de parada**
+como las siete de antes: desde hoy, si los metros de la nº9 (`2.883,0 m`) o los de la nº10
+(`4.044,2 m`) se mueven, `modelo-rutas.js` se pone rojo y el trabajo para.
+
+### G2 · ⛔ Y lo que este documento viene a corregir: el reparto de §F estaba mal
+
+§F publicó el reparto de los 83 así, y **no es lo que dijo el instrumento aquel día**:
+
+```
+   §F                  2:9 · 3:22 · 4:7 · 5:4 · 6:5 · 7:9  · 8:27      TOTAL 83
+   modelo-rutas.js     2:9 · 3:22 · 4:7 · 5:4 · 6:3 · 7:11 · 8:27      TOTAL 83
+                                                ↑↑↑   ↑↑↑↑
+```
+
+**Dos pasos apuntados a la ruta nº6 que eran de la nº7.** ⛔ **§F no se reescribe** —es
+registro histórico y la corrección va en documento nuevo, que es esta sección—. La evidencia
+de qué dijo el instrumento son las dos capturas de la propia tanda 6, antes y después de
+tocar `modelo-rutas.js`: **las dos dicen `6:3 · 7:11`**.
+
+⚠️ **Y el total tapó el error: `5 + 9 = 14` y `3 + 11 = 14`.** Los cuatro instrumentos del
+repositorio vigilan el total —`PASOS_PUBLICADOS` es un escalar— y **ninguno mira el
+reparto**. Contado en `docs/BITACORA.md`, con lo que dio verde mientras el fallo estaba vivo.
+
+### G3 · ⚠️ Por qué el par se ACTUALIZA en vez de encadenarse
+
+La otra opción era dejar `56 pasos → 83 pasos` y añadir `83 pasos → 120 pasos`. **No sirve, y
+la razón es medible:** fuera de las actas, **ninguna línea de ningún cuerpo dice `83 pasos`**.
+Un par así marcaría cero documentos, y mientras tanto los cuatro que dicen `56 pasos`
+seguirían con una cabecera que manda a un número ya superado.
+
+⇒ ⭐⭐ **El `nuevo` de un par es un valor VIVO, no un dato histórico.** La cabecera generada no
+cuenta la historia del número: dice cuánto vale hoy y dónde comprobarlo. La historia la
+cuentan §F, esta sección y la bitácora, que son las que no se tocan.
+
+⭐⭐ **Y aquí el guardián corrigió a quien escribe esto.** Al redactar esta sección di por
+hecho que una cabecera con el `nuevo` caducado pasaría inadvertida —`D1` barre el cuerpo, y
+la cabecera se excluye para que no se confirme a sí misma—. **Es falso, y lo demostró en
+rojo antes de que nadie tocara nada:** al cambiar el par en la tabla y ANTES de regenerar,
+`D1` gritó en los cuatro documentos.
+
+```
+node src/superados.js
+   D1 · valor superado impreso SIN que la cabecera lo declare   4
+      H1-LISTONES.md          56 pasos → 120 pasos
+      H1-PARIDAD.md           56 pasos → 120 pasos
+      H1-TOPE-ADELANTO.md     56 pasos → 120 pasos
+      H1-LISTON-50.md         56 pasos → 120 pasos
+```
+
+`D1` exige que coincidan **el viejo Y el nuevo** (`src/superados.js:400`), así que la
+cabecera **no puede separarse de la tabla en ninguna de las dos direcciones**.
+
+⚠️ **Lo que sigue sin vigilar es otra cosa, y conviene no confundirlas:** que la TABLA
+coincida con el mundo. Que `120` siga siendo 120 mañana no lo dice `superados.js` —lo diría
+`src/latido.js`, y **este número no está en su lista**. El puntero garantiza que la marca
+cuadre con la tabla; que la tabla cuadre con la realidad es un trabajo distinto.

@@ -8,7 +8,7 @@
 > |---|---|---|
 > | `3.166` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
 > | `6.421` | **4.562** | `docs/H1-LISTON-50.md §D` · 2026-08-06 |
-> | `56 pasos` | **83 pasos** | `docs/H1-REPUBLICACIONES.md §F` · 2026-08-09 |
+> | `56 pasos` | **120 pasos** | `docs/H1-REPUBLICACIONES.md §G` · 2026-08-09 |
 >
 > <sub>las puertas que cuelgan de una línea sin nombre · las consultas contestadas — con el listón de 100 m · los pasos del itinerario — cubre también la forma «56/56 pasos» de los cierres</sub>
 <!-- SUPERADOS:FIN -->

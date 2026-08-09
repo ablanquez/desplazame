@@ -80,7 +80,16 @@ const pct = (a, b) => (b ? (100 * a / b).toFixed(1) + ' %' : '—');
 //     resuelto `exacto`. Con el texto anterior —que llevaba un paréntesis detrás
 //     del número— el buscador leía `numero-aproximado` y caía en el portal 6:
 //     6.446,6 m en vez de 6.366,1. **80,5 m de diferencia, en silencio.**
-const PUBLICADOS = { 2: 598.1, 3: 3704.9, 4: 505.9, 5: 477.4, 6: 520.2, 7: 2528.9, 8: 6366.1 };
+//
+// ⭐⭐⭐ TANDA 8 · ENTRAN LA Nº9 Y LA Nº10, y vale lo mismo que se dijo de la nº8:
+//   **al entrar aquí las dos pasan a ser COSTURA DE PARADA como las demás.** Si
+//   sus metros se mueven, este guardián se pone rojo y el trabajo para.
+//   ⚠️ Y los cuatro extremos se resolvieron `exacto`, comprobado uno a uno antes
+//     de congelar nada — que es la lección que dejó el paréntesis de la nº8.
+//   ⚠️ La nº10 trae además el único origen que NO es El Coloso 2, así que estas
+//     dos cifras dejan de compartir un solo enganche de salida.
+const PUBLICADOS = { 2: 598.1, 3: 3704.9, 4: 505.9, 5: 477.4, 6: 520.2, 7: 2528.9, 8: 6366.1,
+  9: 2883.0, 10: 4044.2 };
 
 /** ⭐ Las que YA NO se resuelven, con el motivo. Es una expectativa, no un hueco. */
 const A_SUGERENCIA = { 1: 'los dos extremos caen en un hueco de su propia acera (tanda 33)' };
@@ -112,7 +121,16 @@ const A_SUGERENCIA = { 1: 'los dos extremos caen en un hueco de su propia acera 
 //   después, que es el orden que manda `numeros-congelados.js`.
 //   ⚠️ Y sigue envejeciendo igual que antes: el día que una tanda funda un paso,
 //     esto se pone rojo. Eso es el objetivo.
-const PASOS_PUBLICADOS = 83;
+//
+// ⭐⭐⭐ TANDA 8 · **83 → 120**, y por la misma causa que la vez anterior pero por
+//   partida doble: entran la nº9 (9 pasos) y la nº10 (28). `83 + 9 + 28 = 120`.
+//   ⇒ se republica en `docs/H1-REPUBLICACIONES.md` §G con su puntero, y **después**
+//     se actualiza aquí: publicar primero, congelar después.
+//   ⛔⛔ Y §G corrige algo que §F publicó mal: el REPARTO por ruta de los 83 decía
+//     `6:5 · 7:9` y el instrumento decía `6:3 · 7:11`. **El total era correcto**
+//     —`5+9 = 3+11`— y por eso ningún guardián lo vio: este congelado es un
+//     ESCALAR y nadie mira el desglose. Bitácora del 9/08.
+const PASOS_PUBLICADOS = 120;
 
 /** Ejecuta `rutas-antonio.js` y devuelve {texto, aristas}. */
 function correr(flags) {

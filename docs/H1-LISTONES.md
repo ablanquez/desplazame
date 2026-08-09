@@ -10,7 +10,7 @@
 > | `31.411` | **4.562** | `docs/H1-TOPE-ADELANTO.md §B2` · 2026-08-06 |
 > | `2.982` | **2.138** | `docs/H1-TOPE-ADELANTO.md §A3` · 2026-08-06 |
 > | `6 km/h` | **5,0 km/h** | `docs/H1-VELOCIDAD-ESTANDAR.md §0` · 2026-08-08 |
-> | `56 pasos` | **83 pasos** | `docs/H1-REPUBLICACIONES.md §F` · 2026-08-09 |
+> | `56 pasos` | **120 pasos** | `docs/H1-REPUBLICACIONES.md §G` · 2026-08-09 |
 >
 > <sub>cuántos números vigila `numeros-congelados.js` · las consultas contestadas — con el dial inflado · las sugerencias BUENAS a ≤ 20 m (nº142) · la velocidad con la que se calculan los tiempos — era la de UNA persona · los pasos del itinerario — cubre también la forma «56/56 pasos» de los cierres</sub>
 <!-- SUPERADOS:FIN -->
