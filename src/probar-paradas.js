@@ -181,18 +181,16 @@ const DECLARADOS = {
   'rutas-antonio.js': { n: 1, cod: 1, desde: '2026-08-03 · e264d90',
     clase: 'fuera de banda',
     texto: 'la ruta nº4 se sale del rodeo aceptable' },
-  // ⭐⭐⭐ TANDA 3 · UNA CLASE NUEVA, y nace con fecha de caducidad puesta.
-  //   `latido.js` sale en rojo porque la ruta 6 se publicó en 412 y sus DOS
-  //   productores dan 438. ⛔ No es un fallo del motor ni del guardián: es un
-  //   documento que envejeció. Se cierra republicándolo, no arreglando nada.
-  //   ⚠️ Y la fila se escribe DESPUÉS de que la batería gritara —lo hizo, con
-  //     `latido.js  1 de 0  ⛔ DECLARA 1 Y SE ESPERABAN 0`—, nunca antes: al
-  //     revés saldría verde por construcción y no habría probado nada (ley 35).
-  //   ⭐ El día que se republique, este rojo tiene que DESAPARECER y la batería
-  //     gritará por el otro lado, igual que hizo con `donde-falta.js` en la 2·bis.
-  'latido.js': { n: 1, cod: 1, desde: '2026-08-08 · ec4986e',
-    clase: 'pendiente de republicar',
-    texto: 'la ruta 6 se publicó en 412 y sus dos productores dan 438' },
+  // ⭐⭐⭐ TANDA 3 · `latido.js` ESTUVO AQUÍ con la clase «pendiente de
+  //   republicar», y su salida es la contraprueba de que el ciclo entero cierra:
+  //     · la 3 lo metió con su rojo visto (412 publicado, 438 medido)
+  //     · la 5 republicó el 438 y el latido SIGUIÓ EN ROJO — porque recitaba
+  //     · la 6 le enseñó a LEER del documento y **pasó a verde solo**
+  //     · y entonces la batería gritó por el OTRO lado:
+  //         `latido.js  código 0  0 de 1  ⛔ DECLARA 0 Y SE ESPERABAN 1`
+  //   ⛔ La fila se quita DESPUÉS de ese grito, nunca antes (ley 35). Es la
+  //     segunda vez que esta tabla caza un rojo que se cura: la primera fueron
+  //     `donde-falta.js` y `pasos.js` en la 2·bis.
   // ⭐⭐⭐ TANDA 2·bis · `donde-falta.js` y `pasos.js` ESTUVIERON AQUÍ, y su salida
   //   de esta tabla es la contraprueba de que esto funciona: al arreglarles la
   //   expectativa pasaron a declarar 0 donde se esperaba 1, y **la batería se puso
