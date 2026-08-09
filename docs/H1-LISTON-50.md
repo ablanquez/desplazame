@@ -1,15 +1,16 @@
 # H1 · EL LISTÓN VUELVE A 50 — y lo que cuesta
 
 <!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
-> ⚠️ **ESTE DOCUMENTO PUBLICA 2 NÚMERO(S) SUPERADO(S).**
+> ⚠️ **ESTE DOCUMENTO PUBLICA 3 NÚMERO(S) SUPERADO(S).**
 > El cuerpo **no se ha corregido**: era verdad el día que se escribió.
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
 > |---|---|---|
 > | `31.411` | **4.562** | `docs/H1-TOPE-ADELANTO.md §B2` · 2026-08-06 |
 > | `6 km/h` | **5,0 km/h** | `docs/H1-VELOCIDAD-ESTANDAR.md §0` · 2026-08-08 |
+> | `56 pasos` | **83 pasos** | `docs/H1-REPUBLICACIONES.md §F` · 2026-08-09 |
 >
-> <sub>las consultas contestadas — con el dial inflado · la velocidad con la que se calculan los tiempos — era la de UNA persona</sub>
+> <sub>las consultas contestadas — con el dial inflado · la velocidad con la que se calculan los tiempos — era la de UNA persona · los pasos del itinerario — cubre también la forma «56/56 pasos» de los cierres</sub>
 <!-- SUPERADOS:FIN -->
 
 **Tanda 36 · 2026-08-06.** Reproducible con:

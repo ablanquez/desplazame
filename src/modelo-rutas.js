@@ -70,7 +70,17 @@ const pct = (a, b) => (b ? (100 * a / b).toFixed(1) + ' %' : '—');
 //     pruebas mide otra cosa que antes. Queda escrito aquí y en
 //     `docs/H1-PARIDAD.md` §C4. ⛔ `data/pruebas/RUTAS-CONOCIDAS.md` no se toca:
 //     es de Antonio.
-const PUBLICADOS = { 2: 598.1, 3: 3704.9, 4: 505.9, 5: 477.4, 6: 520.2, 7: 2528.9 };
+//
+// ⭐⭐⭐ TANDA 6 · ENTRA LA Nº8, y con ella una consecuencia que se dice en voz
+//   alta: **al entrar aquí, la nº8 pasa a ser COSTURA DE PARADA como las demás.**
+//   Desde hoy, si sus metros se mueven, este guardián se pone rojo y el trabajo
+//   para. No es un número de adorno: es un invariante más, con el mismo peso que
+//   los seis de arriba.
+//   ⚠️ Y sus metros son los del **portal 1** de Padre Arrupe, con el destino
+//     resuelto `exacto`. Con el texto anterior —que llevaba un paréntesis detrás
+//     del número— el buscador leía `numero-aproximado` y caía en el portal 6:
+//     6.446,6 m en vez de 6.366,1. **80,5 m de diferencia, en silencio.**
+const PUBLICADOS = { 2: 598.1, 3: 3704.9, 4: 505.9, 5: 477.4, 6: 520.2, 7: 2528.9, 8: 6366.1 };
 
 /** ⭐ Las que YA NO se resuelven, con el motivo. Es una expectativa, no un hueco. */
 const A_SUGERENCIA = { 1: 'los dos extremos caen en un hueco de su propia acera (tanda 33)' };
@@ -94,7 +104,15 @@ const A_SUGERENCIA = { 1: 'los dos extremos caen en un hueco de su propia acera 
 //   no existen. ⇒ el número se republica en `docs/H1-PARIDAD.md` §C4 con su motivo.
 //   ⛔ Se actualiza porque la causa está identificada y es la decisión de esta
 //     tanda. Si el motivo fuera «ha salido otro número», NO se tocaría.
-const PASOS_PUBLICADOS = 56;
+//
+// ⭐⭐⭐ TANDA 6 · **56 → 83**, y esta vez la causa NO es que se fundan pasos ni
+//   que se pierda una ruta: es que **entra la nº8**, que son 6,4 km y 27 pasos
+//   ella sola. ⇒ el número se republica en `docs/H1-REPUBLICACIONES.md` §F con
+//   su puntero, y **entonces** se actualiza aquí — publicar primero, congelar
+//   después, que es el orden que manda `numeros-congelados.js`.
+//   ⚠️ Y sigue envejeciendo igual que antes: el día que una tanda funda un paso,
+//     esto se pone rojo. Eso es el objetivo.
+const PASOS_PUBLICADOS = 83;
 
 /** Ejecuta `rutas-antonio.js` y devuelve {texto, aristas}. */
 function correr(flags) {
@@ -191,7 +209,16 @@ A.exige(!!sin.aristas && !!con.aristas, 'no se ha podido leer `##ARISTAS##` de a
   // ⚠️ TANDA 33 · son SEIS, no siete: la nº1 pasó a sugerencia y no tiene texto.
   //   ⛔ El número se deriva de `A_SUGERENCIA` en vez de escribirse a mano, para que
   //     el día que la nº1 vuelva no haya que acordarse de tocar dos sitios.
-  const ESPERADOS = 7 - Object.keys(A_SUGERENCIA).length;
+  //
+  // ⭐⭐⭐ TANDA 6 · Y EL `7` TAMBIÉN ERA UN LITERAL, con el mismo fallo dentro.
+  //   Derivar de `A_SUGERENCIA` arreglaba una mitad y dejaba la otra escrita a
+  //   mano: **cuántas rutas hay**. Entró la nº8 y esto se puso rojo diciendo que
+  //   faltaban bloques, cuando lo que sobraba era una expectativa vieja.
+  //   ⇒ Es el MISMO fallo que la tanda 2·bis quitó de `donde-falta.js` §A6 y de
+  //     `pasos.js` §C5, y sobrevivía aquí: **no se copia el número de rutas, se
+  //     le pregunta al banco de pruebas** (ley 56).
+  const TR = require('./tabla-rutas').leer();
+  const ESPERADOS = TR.rutas.length - Object.keys(A_SUGERENCIA).length;
   A.exige(bSin.size === ESPERADOS && bCon.size === ESPERADOS,
     `no se han extraído los ${ESPERADOS} bloques de texto (${bSin.size} / ${bCon.size})`);
 

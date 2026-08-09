@@ -194,6 +194,12 @@ const PARES = [
     republicaEn: 'docs/H1-VELOCIDAD-ESTANDAR.md §0', desde: '2026-08-08',
     contexto: null, propias: 9, ajenas: 0 },
 
+  // ⭐ TANDA 6 · el tercer envejecimiento de este número, y por una causa nueva:
+  //   no se funden pasos ni se pierde una ruta — ENTRA la nº8, con sus 27.
+  { viejo: '56 pasos', nuevo: '83 pasos', que: 'los pasos del itinerario — cubre también la forma «56/56 pasos» de los cierres',
+    republicaEn: 'docs/H1-REPUBLICACIONES.md §F', desde: '2026-08-09',
+    contexto: null, propias: 8, ajenas: 0 },
+
   { viejo: '412', nuevo: '438', que: 'los metros sin nombre de la ruta nº6 (§A6)',
     republicaEn: 'docs/H1-REPUBLICACIONES.md §A1', desde: '2026-08-09',
     // ⭐ las tres propias son FILAS DE TABLA sin una sola palabra alrededor: lo que

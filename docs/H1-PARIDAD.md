@@ -1,7 +1,7 @@
 # H1 · DOS ACERAS, DOS CALLES — la paridad en el buscador de direcciones
 
 <!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
-> ⚠️ **ESTE DOCUMENTO PUBLICA 6 NÚMERO(S) SUPERADO(S).**
+> ⚠️ **ESTE DOCUMENTO PUBLICA 7 NÚMERO(S) SUPERADO(S).**
 > El cuerpo **no se ha corregido**: era verdad el día que se escribió.
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
@@ -12,8 +12,9 @@
 > | `123.132` | **23.184** | `docs/H1-TOPE-ADELANTO.md §B2` · 2026-08-06 |
 > | `31.411` | **4.562** | `docs/H1-TOPE-ADELANTO.md §B2` · 2026-08-06 |
 > | `6 km/h` | **5,0 km/h** | `docs/H1-VELOCIDAD-ESTANDAR.md §0` · 2026-08-08 |
+> | `56 pasos` | **83 pasos** | `docs/H1-REPUBLICACIONES.md §F` · 2026-08-09 |
 >
-> <sub>cuántos números vigila `numeros-congelados.js` · las direcciones pedibles del buscador · los huecos del buscador · las consultas contestadas — con el dial inflado · la velocidad con la que se calculan los tiempos — era la de UNA persona</sub>
+> <sub>cuántos números vigila `numeros-congelados.js` · las direcciones pedibles del buscador · los huecos del buscador · las consultas contestadas — con el dial inflado · la velocidad con la que se calculan los tiempos — era la de UNA persona · los pasos del itinerario — cubre también la forma «56/56 pasos» de los cierres</sub>
 <!-- SUPERADOS:FIN -->
 
 **Tanda 33 · 2026-08-06.** Reproducible con:

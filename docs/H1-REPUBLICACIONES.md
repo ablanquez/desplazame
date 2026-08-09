@@ -171,3 +171,28 @@ un caso, el caso se nombra; no se apaña.
   vigila **4 números**, no 22.
 - **Por qué la ruta 6 pasó del 53,6 % al 100 %** de vía municipal. **NO CONSTA**, y va
   escrito arriba en vez de rellenarse con lo que parezca.
+
+---
+
+## F · ⭐ TANDA 6 · LOS PASOS DEL ITINERARIO: `56 pasos` → **`83 pasos`**
+
+**Dónde está publicado el viejo:** `docs/H1-PARIDAD.md` §C4 · `docs/H1-LISTONES.md` ·
+`docs/H1-LISTON-50.md` · `docs/H1-TOPE-ADELANTO.md`.
+
+**Y esta vez la causa NO es la de las otras dos veces.** El número ya envejeció dos veces por
+motivos distintos —`110 → 82` fundiendo pasos al poner nombres, y `74 → 56` porque la ruta
+nº1 dejó de resolverse—. Ahora sube por una tercera razón: **entra la ruta nº8**, que son
+6,4 km y **27 pasos ella sola**.
+
+```
+node src/modelo-rutas.js      # §PASOS DEL ITINERARIO · el reparto por ruta y el total
+   2:9 · 3:22 · 4:7 · 5:4 · 6:5 · 7:9 · 8:27      TOTAL 83
+```
+
+⚠️ **Lo que este número mide y lo que no:** cuenta los pasos que el redactor imprime, no las
+esquinas que gira una persona. Sube cuando entra una ruta y baja cuando se funden tramos al
+ponerles nombre. ⇒ **no es una medida de la ciudad: es una medida del itinerario que este
+motor sabe contar hoy.**
+
+⭐ **Y sigue envejeciendo igual:** el día que una tanda funda un paso más, `modelo-rutas.js`
+se pone rojo y hay que volver a republicarlo. **Eso es el objetivo, no el defecto.**
