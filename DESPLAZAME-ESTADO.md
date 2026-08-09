@@ -53,8 +53,8 @@
 | **3 · el puntero Y EL LATIDO** | ✅ **MECANISMO HECHO** | `superados.js` marca **37 pares en 16 documentos** · el latido vigila 4 números · `B2·V1` declarado. ⭐⭐ **Y el latido habría cazado el 412 el 6 de agosto: demostrado** |
 | **4 · la velocidad estándar** | ✅ **HECHO** | `VELOCIDAD_KMH = 5,0`, la de OSRM/Valhalla. ⭐⭐ **Disuelve el eje de la nº7** — ya no calibra nada |
 | **5 · las republicaciones** | ✅ **HECHO** | `H1-REPUBLICACIONES.md` · **22 pares en 103 líneas de 17 documentos** · `H1-QUE-QUEDA-ABIERTO.md`. ⛔⛔ **Pero el latido NO pasó a verde solo** |
-| ⚠️ **6 · EL LATIDO, A MEDIAS** | ⬜ **SIGUIENTE** | Su `publicado` es un literal a mano: **no lee documentos.** *Ley 105 incumplida dentro del instrumento que la aplica* |
-| ⭐⭐⭐ **Y LO QUE NO ES CÓDIGO** | ⬜ **abierto** | **Una segunda distancia medida con GPS.** *Lo único que apunta al mundo, y sigue siendo una* |
+| **6 · el latido y la nº8** | ✅ **HECHO** | El latido **lee del documento con ancla declarada** y pasa a verde solo. ⭐⭐ **Y entra la RUTA Nº8**, la segunda distancia medida |
+| ⭐⭐⭐ **Y LO QUE NO ES CÓDIGO** | ⬜ **abierto** | **La COORDENADA de la puerta de Consultas Externas** — sin ella la nº8 valida el rodeo pero no los metros. **Y una tercera medición CORTA** (bajo 1 km), que es donde peor cubierto está el banco |
 
 ⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
 decide al final de los tres bloques, entera.**
@@ -796,11 +796,11 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 111 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 113 VECES
 
-**Cuarenta tandas, cuatro de auditoría y siete de arreglos. Ciento once instrumentos mintiendo** — los 33 primeros,
+**Cuarenta tandas, cuatro de auditoría y ocho de arreglos. Ciento trece instrumentos mintiendo** — los 33 primeros,
 sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los treinta y un últimos (81-111) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
+⚠️ **Los treinta y tres últimos (81-113) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
 **porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
 escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
 decir *«esto lo detuvo ella, no el criterio de quien medía»*.
@@ -918,6 +918,8 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 109 | ⚠️ **UNA GUARDA CONTRA FALSOS POSITIVOS QUE PERDÍA DOS APARICIONES DE SEIS.** La cola exigía que tras la `h` de `km/h` no hubiera coma — **y las dos perdidas van seguidas de coma.** ⭐⭐ **Lo cazó que el «seis» del encargo VINIERA DE FUERA del instrumento**: su propio recuento decía cinco y parecía limpio |
 | 110 | ⛔⛔⛔ **EL LATIDO RECITA EL VALOR PUBLICADO EN VEZ DE LEERLO.** `latido.js` guarda `publicado: '412'` **como literal copiado a mano y NUNCA abre un documento**: solo ejecuta productores. ⇒ **Republicar escribe 438 en un documento nuevo y ese documento no le llega.** ⭐⭐⭐ **Es la ley 105 incumplida DENTRO del instrumento construido para aplicarla**, y solo se ve **cuando llega la primera republicación** |
 | 111 | ⛔⛔ **EL PUNTERO MANDABA A UN DOCUMENTO QUE NO EXISTE Y SALÍA VERDE ANTES Y DESPUÉS.** Al provocar el rojo se apuntó a `H1-NO-EXISTE-JAMAS.md` y **la cabecera pública lo publicó tan tranquila**. ⭐ *El remedio contra las referencias que nadie sigue estaba escribiendo referencias que nadie seguía.* Cerrado con `D4`, rojo visto |
+| 112 | ⛔⛔⛔ **UN PARÉNTESIS DETRÁS DEL NÚMERO CAMBIA EL DESTINO EN SILENCIO.** `partir()` exige el número al final: con `«Calle Padre Arrupe 1 (Hospital…)»` **el buscador no ve número**, cae en `numero-aproximado` **y elige el portal central de la vía**. ⭐⭐ **No da error ni aviso: devuelve una ruta con buena pinta a OTRO sitio** —80,5 m de diferencia y 79 m más lejos del destino real— **y solo se ve mirando la columna `estado`** |
+| 113 | ⛔⛔⛔ **EL LITERAL `7` DE `modelo-rutas.js` ERA EL FALLO QUE LA TANDA 2·bis CREYÓ CERRADO.** `const ESPERADOS = 7 - Object.keys(A_SUGERENCIA).length` **derivaba una mitad y dejaba la otra a mano**. Se arreglaron `donde-falta.js` y `pasos.js` **y quedaba un tercero — en el fichero que vigila las rutas.** ⭐⭐⭐ **Y solo apareció cuando el mundo cambió: al entrar la ruta nº8** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1347,6 +1349,24 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     *111 instrumentos vigilando la coherencia interna; **una cinta métrica apuntando al mundo**.*
     ⇒ ⛔⛔ **El riesgo no es que mienta un número: es que TODO CUADRE y la ruta esté mal, porque lo
     único que podría desmentirla no está en el disco.**
+129. ⭐⭐⭐ **UN GUARDIÁN TIENE QUE ACERTAR EN EL SOSPECHOSO, NO SOLO EN EL VEREDICTO.** *El de la
+    tabla acusaba al parser de comerse una fila que había leído perfectamente.* ⇒ ⭐⭐ **Y el corolario
+    es el que asusta: LOS MENSAJES DE ERROR NO LOS PRUEBA NADIE.** Se escriben una vez, con el mundo
+    de aquel día en la cabeza, **y envejecen sin que ningún test los toque** — la ley 119 en su forma
+    más barata de producir y más cara de detectar.
+130. ⭐⭐⭐ **UN FALLO DE FORMA NO SE CIERRA ARREGLANDO SUS CASOS CONOCIDOS: SOBREVIVE DONDE NADIE FUE
+    A MIRAR, Y SOLO APARECE CUANDO EL MUNDO CAMBIA.** *El literal `7` se quitó de dos ficheros en la
+    tanda 2·bis y quedaba un tercero — **en el que vigila las rutas**—, y no se vio hasta que entró
+    una ruta nueva.*
+131. ⭐⭐⭐ **CUANDO LA INCERTIDUMBRE DEL CONTRASTE IGUALA AL EFECTO, LA MEDICIÓN NO PUEDE CONCLUIR
+    NADA — SALGA LO QUE SALGA.** *El destino andado estaba a 134 m del portal medido: un 2,0 % sobre
+    6,6 km, y la diferencia motor↔GPS que se querría medir es de ese mismo tamaño.* ⇒ ⭐⭐ **Medir
+    mejor el trayecto no sirve si no se fija el punto final.**
+132. ⭐⭐ **EL RODEO NO CRECE CON LA DISTANCIA — y es un resultado del MOTOR, no del instrumento.**
+    *De 520 m a 6,4 km, factor 12, el rodeo no se mueve de 1,06–1,10.* ⇒ **En trayectos largos las
+    desviaciones de manzana se promedian; en 500 m una sola manzana mal tomada es el 10 %.** ⚠️ Y lo
+    que sí crece es otra cosa: **el error no se acumula con la distancia, sino con cuánta ciudad mal
+    mapeada se cruza.**
 
 ---
 
@@ -2373,6 +2393,54 @@ de GPS contra una ruta.***
 
 ⇒ ⭐⭐⭐ **La siguiente tanda no debería ser otro guardián: debería ser salir a andar una segunda
 ruta.** *(Ley 128.)*
+
+### ✅ TANDA 6 (9/08) — el latido lee, y ENTRA LA RUTA Nº8
+
+⭐⭐⭐ **ANTONIO SALIÓ A ANDAR.** *El informe de la tanda 5 decía que la siguiente no debería ser otro
+guardián sino una segunda ruta. Lo fue.*
+
+| | |
+|---|---|
+| **Trayecto** | **nº8** · El Coloso 2 → **Calle Padre Arrupe 1** *(Hospital Miguel Servet)* |
+| **Medido** | **6,60 km · 59 min**, casi sin semáforos ⇒ **6,71 km/h** |
+| **El motor** | **6.366 m** · recta 5.857 · ⭐ **rodeo 1,09** ✅ dentro de tope |
+
+⭐⭐⭐ **Y EL RESULTADO ES DEL MOTOR, NO DEL INSTRUMENTO: el rodeo NO crece con la distancia.**
+`nº6 520 m → 1,10` · `nº7 2.529 m → 1,06` · `nº8 6.366 m → 1,09`. **Factor 12 y no se mueve de la
+banda 1,06–1,10** *(ley 132)*. ⭐ Y la nº8 **cruza por el Puente de Piedra**, el mismo que elige
+Antonio en la nº1 — **sin que nadie se lo dijera.**
+
+⛔⛔ **PERO NO VALIDA LOS METROS, y va declarado y no absorbido:** el trayecto andado terminaba en
+**Consultas Externas** y el portal medido está a **134 m** de ahí ⇒ **2,0 % sobre 6,6 km, del mismo
+tamaño que la diferencia motor↔GPS que se querría medir** *(ley 131)*. ⇒ **Valida el RODEO, que es
+«la columna que manda». Los metros, no.**
+
+**El latido cerró:** ya no recita — **cada número declara `docParte` + `ancla` y lee el valor DEL
+DOCUMENTO** en cada pasada, con contraprueba de 7 de 7 *(el cero leído por los dos lados, el ancla
+rota como `MUDO` y no como error)*. ⭐⭐ **Y el ciclo cerró por donde tenía que cerrar: la batería
+gritó `latido.js · 0 de 1` al ponerse verde, y la fila salió de la tabla DESPUÉS del grito.**
+
+**Y la nº8 entra en `PUBLICADOS`**, con los pasos republicados **de 56 a 83**, con puntero. ⭐ *Ya
+había envejecido dos veces —110→82 fundiendo pasos, 74→56 al perderse la nº1—: **es la primera vez
+que SUBE porque entra una ruta.*** ⚠️ **Y desde hoy la nº8 es costura de parada como las demás.**
+
+**⛔⛔ Y lo que se descubrió por el camino, que es lo más caro:**
+- **Un paréntesis detrás del número cambia el destino EN SILENCIO** (nº112). *Tres veces seguidas
+  escribió esta conversación mal el destino de esa fila.*
+- **El literal `7` que la tanda 2·bis creyó cerrado seguía vivo en `modelo-rutas.js`** (nº113) ⇒
+  **ley 130**, y solo apareció **al entrar una ruta nueva**.
+- ⚠️ **El centroide del complejo engancha a 70,8 m**, por encima del `AVISO_ENGANCHE_M = 65` que es
+  el p99 del callejero: **el destino cae en el 1 % peor.** ⛔ Sin tocar.
+
+**⭐ Lo que enseña un trayecto largo y en 500 m no se ve:** la nº8 **mezcla los dos regímenes** —64 %
+de eje de calzada repartido en 12 de 27 pasos— mientras las cortas son homogéneas *(nº2 al 9 %, nº7
+al 93 %)*. ⇒ **El error no se acumula con la distancia: se acumula con cuánta ciudad mal mapeada se
+cruza.**
+
+**⚠️ Las bandas, con dos mediciones:** ninguna se cae, **dos dejan de ser circulares y dos siguen
+siéndolo** — y **el hueco no ha mejorado donde peor estaba**: las dos medidas están en los extremos
+(2,6 y 6,6 km) y las derivadas en medio y por debajo. ⇒ **hace falta una tercera CORTA, bajo 1 km**,
+que es donde un error de enganche de 30 m pesa el 6 %.
 
 ⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
 requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
