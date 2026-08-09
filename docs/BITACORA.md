@@ -8754,3 +8754,60 @@ mundo de aquel día en la cabeza, y envejecen sin que ningún test los toque.
 
 **Traza:** `src/tabla-rutas.js:148` · `1b46d3d` (2026-08-03) ·
 `data/pruebas/RUTAS-CONOCIDAS.md:221`
+
+---
+
+## [2026-08-09] — El reparto de los 83 pasos se publicó mal y la suma lo tapó
+
+**Categoría:** error que conserva la suma de control
+**Síntoma:** al republicar `56 pasos → 83 pasos` en la tanda 6, `docs/H1-REPUBLICACIONES.md`
+§F transcribió el reparto por ruta que imprime `modelo-rutas.js`. Lo que dice el documento y
+lo que dijo el instrumento aquel mismo día:
+
+```
+   §F del documento    2:9 · 3:22 · 4:7 · 5:4 · 6:5 · 7:9  · 8:27      TOTAL 83
+   el instrumento      2:9 · 3:22 · 4:7 · 5:4 · 6:3 · 7:11 · 8:27      TOTAL 83
+                                                ↑↑↑   ↑↑↑↑
+```
+
+**Dos pasos cambiados de la ruta nº7 a la nº6.** Y `5 + 9 = 14` igual que `3 + 11 = 14`:
+**el total no se mueve.** La evidencia de qué dijo el instrumento son las dos capturas de la
+propia tanda 6, la de antes y la de después de tocar `modelo-rutas.js`, y **las dos dicen
+`6:3 · 7:11`**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **todo, y no por poco.**
+
+```
+   node src/modelo-rutas.js     pasos en las siete   83 / 83   ✅
+   node src/superados.js        D1 0 · D2 0 · D4 ✅ · vallas 0 · exit 0
+   node src/latido.js           4 vigilados · 0 mudos · 0 con deriva · exit 0
+   probar-paradas.js --todo     modelo-rutas.js   1 de 1   declara   ✅
+```
+
+⛔ **Los cuatro miran el TOTAL. El reparto no lo mira ninguno.** El congelado de
+`modelo-rutas.js` es `PASOS_PUBLICADOS = 83`, un escalar; el latido lee cifras ancladas de
+otras secciones; el puntero busca la cadena `83 pasos`, que en §F está bien escrita. El
+número equivocado está **dentro del bloque de código de un documento**, que es tierra de
+nadie: ningún instrumento del repositorio lee ahí.
+
+⚠️ Y lo que lo hace peor que un número suelto mal copiado: **el bloque de §F lleva el comando
+que lo produce escrito encima.** Invita a comprobarlo y nadie lo comprobó — ni yo, que lo
+escribí mirando la salida.
+
+**Arreglo aplicado:** ⛔ **§F no se reescribe** — es registro histórico y se corrige en un
+documento nuevo que dice qué corrige (§G), con el reparto de hoy sacado del instrumento y
+pegado sin tocar una cifra.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una suma de control solo prueba lo que suma.** Un desglose
+que cuadra con su total puede estar entero mal repartido, y el guardián que vigila el total
+da verde con la misma cara con la que lo daría si todo estuviera bien. ⇒ **si se publica un
+desglose, el desglose necesita su propia comprobación, o no se publica.**
+⚠️ Corolario, y es el caro: **lo que va dentro de un bloque de código en un documento no lo
+vigila nada.** Es donde este proyecto pone sus evidencias, y es el único sitio del
+repositorio donde una cifra puede envejecer o nacer torcida sin que ningún mecanismo la
+alcance.
+
+**Traza:** `docs/H1-REPUBLICACIONES.md:189` · `0f82afd` (2026-08-09) ·
+`src/modelo-rutas.js:233`
