@@ -194,6 +194,21 @@ const PARES = [
     republicaEn: 'docs/H1-VELOCIDAD-ESTANDAR.md §0', desde: '2026-08-08',
     contexto: null, propias: 9, ajenas: 0 },
 
+  // ⭐⭐ TANDA 8 · LA BANDA DE 40 MINUTOS, que dejó de ser DERIVADA y pasó a ser
+  //   MEDIDA. La vieja salía de convertir 40 min a ~6 km/h; la nueva sale de la
+  //   ruta nº10 andada con GPS el 9/08 (4,4 km en 43 min).
+  //   ⛔ El `republicaEn` NO apunta a `docs/`: apunta a la tabla de Antonio, que
+  //     es donde vive la banda medida. Es un fichero que este repositorio NO
+  //     escribe, y por eso mismo es el que manda sobre las bandas. D4 comprueba
+  //     que existe, como con cualquier otro destino.
+  //   ⚠️ Y esto marca UNA cifra. Lo que envuelve a esa cifra —«LAS TRES BANDAS»,
+  //     «dos de las tres se derivaron»— también ha caducado y **este mecanismo no
+  //     puede verlo**: busca cadenas de dígitos, y eso son palabras. Queda
+  //     declarado en `docs/H1-QUE-QUEDA-ABIERTO.md`.
+  { viejo: '3,8–4,2', nuevo: '4,3–4,5', que: 'la banda de distancia de los 40 min — era DERIVADA de los ~6 km/h y ahora está MEDIDA',
+    republicaEn: 'data/pruebas/RUTAS-CONOCIDAS.md', desde: '2026-08-09',
+    contexto: null, propias: 1, ajenas: 0 },
+
   // ⭐ TANDA 6 · el tercer envejecimiento de este número, y por una causa nueva:
   //   no se funden pasos ni se pierde una ruta — ENTRA la nº8, con sus 27.
   //

@@ -1,5 +1,16 @@
 # H1 · LA VELOCIDAD DEJA DE SER LA DE ANTONIO
 
+<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
+> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> El cuerpo **no se ha corregido**: era verdad el día que se escribió.
+>
+> | lo que dice aquí | hoy vale | dónde se republicó |
+> |---|---|---|
+> | `3,8–4,2` | **4,3–4,5** | `data/pruebas/RUTAS-CONOCIDAS.md` · 2026-08-09 |
+>
+> <sub>la banda de distancia de los 40 min — era DERIVADA de los ~6 km/h y ahora está MEDIDA</sub>
+<!-- SUPERADOS:FIN -->
+
 *Tanda 4 · 2026-08-08 · `~6 km/h` → **5,0 km/h**. Decisión de diseño, no corrección.*
 
 > **Este documento se AÑADE, no reescribe nada.** Lo que dicen los informes anteriores era
