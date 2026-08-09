@@ -389,6 +389,27 @@ function auditar(esc) {
   return { d1, d2 };
 }
 
+/**
+ * ⭐⭐⭐ TANDA 5 · D4 — EL PUNTERO TIENE QUE LLEVAR A ALGÚN SITIO.
+ * ⛔ Salió al hacer la contraprueba de T5·3: se cambió el destino del `412` por
+ *   `docs/H1-NO-EXISTE-JAMAS.md` y **el guardián siguió en verde y escribió esa
+ *   ruta en la cabecera pública** de `H1-DONDE-FALTA-EL-NOMBRE.md`. D1 y D2
+ *   comprueban que la marca ESTÉ y que CUADRE; ninguno de los dos comprueba que
+ *   el sitio al que manda exista.
+ * ⚠️ Y es la ley 44 otra vez, un nivel más adentro: el remedio contra las
+ *   referencias que nadie sigue estaba él mismo escribiendo referencias que
+ *   nadie seguía. Un puntero roto es peor que no tener puntero: promete camino.
+ */
+function destinosRotos() {
+  const malos = [];
+  for (const p of PARES) {
+    if (!p.republicaEn) continue;                    // pendiente declarado, no roto
+    const f = p.republicaEn.split(' ')[0];
+    if (!fs.existsSync(path.join(RAIZ, f))) malos.push({ p, f });
+  }
+  return malos;
+}
+
 /** Ley 109 · las vallas de código tienen que quedar PARES en todos los documentos. */
 function vallas() {
   const malas = [];
@@ -551,6 +572,13 @@ log('');
 log('   D2 · la cabecera declara un par que el cuerpo YA NO dice      ' + d2.length);
 for (const x of d2) log('      ' + x.d.replace('docs/', '').padEnd(46) + x.x.viejo.padStart(9) + ' → ' + x.x.nuevo);
 A.exige(d2.length === 0, d2.length + ' par(es) declarado(s) en una cabecera cuyo cuerpo ya no los imprime');
+
+const rotos = destinosRotos();
+log('');
+log('   D4 · ⭐ el documento al que manda la marca EXISTE                ' + (rotos.length ? rotos.length + ' ROTO(S)' : '✅'));
+for (const x of rotos) log('      ' + x.p.viejo.padStart(9) + ' → ' + x.p.nuevo.padEnd(14) + 'manda a ' + x.f);
+A.exige(rotos.length === 0,
+  rotos.length + ' marca(s) mandan al lector a un documento que no existe');
 
 const malas = vallas();
 log('');
