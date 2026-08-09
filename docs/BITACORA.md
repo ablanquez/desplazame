@@ -8706,3 +8706,51 @@ al generador con retraso.** Si el artefacto se puede regenerar, lo que hay que v
 código que lo genera.
 
 **Traza:** `src/velocidad.js` §V3 · `src/probar-paradas.js` §P4 · `.gitignore:318`
+
+---
+
+## [2026-08-09] — El guardián de la tabla acusó al parser de comerse una fila que había leído
+
+**Categoría:** diagnóstico invertido
+**Síntoma:** `src/tabla-rutas.js` compara las filas que lee con el recuento que declara la
+cabecera del documento (`**Filas reales: N**`) y para si no cuadran. El mensaje del rojo,
+escrito el 3 de agosto (`1b46d3d`), era:
+
+```
+   ⇒ ¿cuadra?   ⛔ NO — el parser se ha comido filas. PARAR.
+```
+
+El 9 de agosto Antonio añadió la **ruta nº8** a `data/pruebas/RUTAS-CONOCIDAS.md` y no tocó
+el recuento. El guardián paró **el motor entero** —`rutas-antonio.js` no calculó ni una
+ruta— y dijo que el parser se había comido una fila. **El parser había leído las ocho
+perfectamente**, con su banda, su rodeo y sus minutos. Quien contaba de menos era el
+documento.
+
+⇒ El guardián **acertó al parar y mintió al explicar.** Y el precio no es cosmético: manda a
+depurar el instrumento cuando lo que hay que mirar es una línea del documento.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo, porque el fallo no
+está en nada que se pueda ejecutar.** La condición es correcta —`rutas.length ===
+filasDeclaradas`—, el código de salida es el correcto, la parada es la correcta, y la lista
+de lo leído se imprime justo debajo. **Un test sobre este guardián habría pasado el día que
+se escribió y todos los días desde entonces**, porque lo único equivocado era una frase.
+⚠️ Y es un caso puro de la ley 119: **el envejecimiento que no cambia ninguna cifra.** El
+mensaje era razonable el 3 de agosto, cuando la única causa imaginable de un descuadre era
+un parser flojo sobre un documento estable. Dejó de serlo el día que el documento empezó a
+crecer, y ese día nadie volvió a leer la frase.
+
+**Arreglo aplicado:** el mensaje nombra **las dos causas** —parser que se come filas, o
+cabecera sin actualizar— y dice cómo distinguirlas: contar la lista que va debajo contra el
+documento. ⛔ La lógica no se toca: sigue parando igual y con el mismo código de salida.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un guardián no solo tiene que acertar en el veredicto: tiene
+que acertar en el sospechoso.** Un rojo que nombra una causa cuando hay dos posibles no es
+un aviso, es una pista falsa — y cuesta más caro que un rojo mudo, porque el mudo manda a
+mirar y el falso manda a mirar donde no es.
+⚠️ Corolario: **los mensajes de error no los prueba nadie.** Se escriben una vez, con el
+mundo de aquel día en la cabeza, y envejecen sin que ningún test los toque.
+
+**Traza:** `src/tabla-rutas.js:148` · `1b46d3d` (2026-08-03) ·
+`data/pruebas/RUTAS-CONOCIDAS.md:221`

@@ -145,7 +145,26 @@ function informe(t) {
   di('versión declarada', t.version);
   di('filas leídas · filas que declara el fichero', `${t.rutas.length} · ${t.filasDeclaradas === null ? 'NO CONSTA' : t.filasDeclaradas}`);
   const cuadra = t.filasDeclaradas === null || t.rutas.length === t.filasDeclaradas;
-  di('⇒ ¿cuadra?', cuadra ? '✅ sí' : '⛔ NO — el parser se ha comido filas. PARAR.');
+  // ⚠️⚠️ TANDA 6 · EL MENSAJE DIAGNOSTICABA AL REVÉS, y esto es un arreglo
+  //   DECLARADO FUERA DEL ALCANCE de su tanda.
+  //   Decía «el parser se ha comido filas» y daba por hecho que el equivocado era
+  //   el instrumento. El 9 de agosto entró la ruta nº8 en la tabla, el recuento de
+  //   la cabecera se quedó en 7, y el guardián paró el motor entero **acusando al
+  //   parser de haberse comido una fila que había leído perfectamente**.
+  //   ⇒ Un aviso que nombra una sola causa manda a mirar donde no es. Las dos
+  //     causas son igual de probables y las dos se nombran.
+  //   ⛔ La lógica NO cambia: sigue parando exactamente igual. Solo deja de
+  //     señalar a un culpable que puede ser el inocente.
+  di('⇒ ¿cuadra?', cuadra ? '✅ sí'
+    : '⛔ NO — el documento y el parser no cuentan lo mismo. PARAR.');
+  if (!cuadra) {
+    L.push('      ⚠️ Y puede ser por DOS motivos opuestos. Hay que mirar los dos:');
+    L.push('         · el parser se está comiendo filas de la tabla, o');
+    L.push('         · la tabla ha ganado (o perdido) filas y el recuento de la');
+    L.push('           cabecera —«Filas reales: N»— se quedó sin actualizar.');
+    L.push('      ⭐ Abajo va lo que se ha leído: contarlo contra el documento');
+    L.push('         distingue los dos casos en diez segundos.');
+  }
   L.push('');
   L.push('   ⭐ ESTO ES LO QUE HE ENTENDIDO. Se imprime para poder contrastarlo con el documento:');
   L.push('   ' + 'nº'.padEnd(4) + 'origen → destino'.padEnd(52) + 'banda (m)'.padEnd(16)
