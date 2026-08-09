@@ -137,9 +137,28 @@ dejarían de juzgarlo para repetirlo.**
 
 | Tiempo declarado | Banda (a ~6 km/h) |
 |---|---|
-| 5 min | **~450–550 m** |
+| 5 min | **~450–550 m** ⚠️ **sigue derivada** |
 | 25 min | **~2,4–2,6 km** ✅ *medida* |
-| 40 min | **~3,8–4,2 km** |
+| 28 min | **~2,8–3,0 km** ✅ *medida (nº9)* |
+| 40 min | **~4,3–4,5 km** ✅ *medida (nº10)* |
+| 59 min | **~6,4–6,6 km** ✅ *medida (nº8)* |
+
+⭐⭐⭐ **CUATRO MEDICIONES, Y CON ELLAS LAS BANDAS DEJAN DE SER CIRCULARES** — salvo la de 5 min, que
+sigue sin ninguna medición cerca. ⚠️ **La de 40 min pasa de `~3,8–4,2` a `~4,3–4,5`: la derivada se
+quedaba corta**, y no se ha ajustado para que cuadre — **se ha sustituido por una medida.**
+
+⭐⭐ **Y las cuatro velocidades dicen algo que con una sola no se veía:**
+
+```
+   nº7   2,6 km / 25 min   →   6,24 km/h    urbano
+   nº9   2,9 km / 28 min   →   6,26 km/h    urbano
+   nº10  4,4 km / 43 min   →   6,14 km/h    urbano
+   nº8   6,6 km / 59 min   →   6,71 km/h    ⭐ casi sin semáforos
+```
+
+**Las tres urbanas caen entre 6,14 y 6,26 —un 2 % de dispersión— y la que fue sin paradas se sale
+del grupo.** ⇒ **La parada urbana se come del orden de medio km/h**, y eso ya no es `CAUSA NO
+CONFIRMADA` por una sola comparación: son tres contra una.
 
 ⛔ **`NO CONSTA` es válido y preferible** a un número aproximado que después se cite como medido.
 
@@ -153,12 +172,14 @@ dejarían de juzgarlo para repetirlo.**
 |---|---|---|---:|---:|---:|---:|---|---|
 | 1 | Avenida Cataluña 78 | Avenida Pablo Gargallo 16 | *(medir)* | `NO CONSTA` | **≤ 1,45** | `NO CONSTA` | ⭐⭐ **CRUZA EL EBRO**, y hay **tres puentes posibles**: no prueba solo que el río se cruza, sino **cuál elige el motor** | Antonio cruza por el **Puente de Piedra**. ✅ **v1: el motor eligió ese** |
 | 2 | Calle Manifestación 6 | Calle Don Jaime I 17 | 454 m | ~450–550 m | **≤ 1,45** | ~5 min | **Casco antiguo**: trama irregular y peatonal. Prueba que el motor **no sale del casco para volver a entrar** | La banda v1 (350-450) era **imposible**: la recta ya son 454 |
-| 3 | Cantando Bajo la Lluvia 6 | Hospital Clínico Lozano Blesa | *(medir)* | ~3,8–4,2 km | **≤ 1,40** | ~40 min | **Valdespartera → centro.** Enganche donde el mapeado es flojo y **las calles son nuevas** | Zona donde OSM *"va por delante"*. ⚠️ Destino = **edificio grande**: ver aviso del centroide |
+| 3 | Cantando Bajo la Lluvia 6 | Hospital Clínico Lozano Blesa | *(medir)* | **~4,3–4,5 km** | **≤ 1,40** | ~40 min | **Valdespartera → centro.** Enganche donde el mapeado es flojo y **las calles son nuevas** | ⚠️ **Banda actualizada el 9/08**: la vieja (~3,8–4,2) era **derivada** de los ~6 km/h; la nueva sale de la **nº10 medida** (4,4 km / 43 min). ⛔ **La nº3 sigue SIN medir**: hereda una banda medida en otro trayecto del mismo tiempo. Zona donde OSM *"va por delante"*. ⚠️ Destino = **edificio grande**: ver aviso del centroide |
 | 4 | Centro Etopía | Estación Delicias | *(medir)* | ~450–550 m | **≤ 1,60** | ~5 min | ⭐ **LA PLATAFORMA ELEVADA** (90 ways a `layer=2`) | ⛔ **v1: NO HAY CAMINO.** Ver §"lo que rompió esta tabla" |
 | 5 | Principado de Morea 14 | C.C. Utrillas | *(medir)* | ~450–550 m | **≤ 1,45** | ~5 min | **Corto y cotidiano.** En 500 m, un error de enganche de 30 m es el 6 % | |
 | 6 | Calle Francisco de Quevedo 1 | Calle Matadero 1 | 484 m | ~450–550 m | **≤ 1,45** | ~5 min | ⭐ **DOS PORTALES EN ESQUINA** (los dos, el nº 1). Ataca la salvaguarda **D3** | ✅ **v1: la esquina no engañó al enganche** (3,9 y 2,7 m). Los testigos callan porque las aceras no tienen nombre — **y callar es lo correcto** |
 | 7 | Calle El Coloso 2 | Calle Valle de Zuriza 48 | 2.380 m | **2,4–2,6 km** ✅ | **≤ 1,20** | **~25 min** | ⭐⭐ **EL DE CALIBRACIÓN.** Único con distancia **medida** y tiempo de repetición | ⚠️ **Ya NO sale de aquí la velocidad del buscador** (8/08: constante estándar de 5,0 km/h). De aquí salen **las BANDAS de distancia**, que siguen a ~6 km/h **porque son el ritmo de Antonio y su trabajo es juzgar los metros, no calcularlos** |
 | 8 | Calle El Coloso 2 | **Calle Padre Arrupe 1** | **5.857 m** | **~6,4–6,6 km** ⚠️ | **≤ 1,60** · ⭐ **real 1,09** | **~59 min** | ⭐⭐ **LA SEGUNDA MEDICIÓN**, 2,5× más larga que la nº7. ⚠️ **Valida el RODEO, no los metros** | **6,60 km / 59 min = 6,71 km/h** (9/08, GPS) · motor **6.366 m**, ⚠️ **corto por 34 m sobre la banda — y NO se ajusta**: la banda es de apoyo, el rodeo es el criterio y entra holgado. ⛔ **El destino andado fue Consultas Externas y este portal está a 134 m** ⇒ 2,0 %, del tamaño de lo que se querría medir. ⛔⛔ **El texto TIENE que acabar en el número: un paréntesis detrás lo tapa, cae en `numero-aproximado` y mide otro portal SIN dar error** |
+| 9 | Calle El Coloso 2 | **Calle María Montessori 2** | *(medir)* | **~2,8–3,0 km** ✅ | **≤ 1,45** | **~28 min** | ⭐ **TERCERA MEDICIÓN.** Comparte origen con la nº7 y la nº8: **si el enganche de El Coloso 2 estuviera mal, se vería en las tres a la vez** | **2,92 km / 28 min = 6,26 km/h** (9/08, GPS). ⚠️ Punto final sin precisar: **valida el rodeo, no los metros** |
+| 10 | **Calle del Carmen 19** | **Camino del Pilón 61** | *(medir)* | **~4,3–4,5 km** ✅ | **≤ 1,45** | **~43 min** | ⭐⭐ **ROMPE EL ORIGEN** — la única de las cuatro medidas que NO sale de El Coloso 2, así que **no hereda su enganche**. ⚠️ Y el destino está en zona de **mapeado flojo** | **4,4 km / 43 min = 6,14 km/h** (9/08, GPS). ⚠️ Punto final sin precisar: **valida el rodeo, no los metros** |
 
 ⚠️ **Los rodeos son propuestos, no medidos.** Se ajustan cuando haya rodeos reales de varios
 trayectos — **y el ajuste se declara**, no se hace en silencio. El de la nº4 es más generoso porque
@@ -236,7 +257,7 @@ al Clínico de la nº3 y a cualquier POI grande.
 
 ## Estado
 
-**Filas reales: 8** · **v2 (3/08/2026)** — velocidad recalibrada a ~6 km/h y rodeo como columna
+**Filas reales: 10** · **v2 (3/08/2026)** — velocidad recalibrada a ~6 km/h y rodeo como columna
 principal.
 ⭐ **Nota del 9/08/2026:** entra la **ruta nº8** con la **segunda distancia medida** (6,60 km / 59
 min). ⇒ **Las bandas dejan de colgar de un solo trayecto.** ⚠️ Le faltan la recta, el rodeo y la
