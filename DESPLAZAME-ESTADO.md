@@ -14,9 +14,10 @@
 
 ---
 
-## ESTADO ACTUAL — 6 de agosto de 2026
+## ESTADO ACTUAL — 9 de agosto de 2026
 
-**H1 está terminado. Estamos en su AUDITORÍA DE CIERRE: bloque A hecho, B y C pendientes.**
+**H1 ESTÁ CERRADO.** El terreno construido, la auditoría de cierre hecha entera en cuatro bloques, y
+las siete tandas de arreglo cerradas. **Lo siguiente es H2: la red de transporte.**
 
 **Lo que existe y funciona:**
 
@@ -25,54 +26,89 @@
   lo están de verdad, contados y publicados.
 - ⭐⭐ **El motor va de DIRECCIÓN a DIRECCIÓN**: 46.026 de 46.150 portales enganchados, 2.661 vías
   en el índice, itinerario agrupado por vía y explicado paso a paso.
-- ⭐⭐ **LAS SIETE RUTAS DE ANTONIO, verificadas por él con los ojos sobre el mapa: 7 de 7.**
-  ⚠️ **La nº7 da 2.529 m contra los 2.600 de su GPS (2,7 %) y CALIBRA los ~6 km/h de toda la
-  tabla: ninguna tanda puede moverla.**
-- ⭐ **El mapa dice cuatro cosas** (azul · rojo · gris · verde) y **56.864 líneas tienen nombre**,
-  puestas con dos testigos independientes.
 - ⭐⭐ **El buscador respeta la paridad** (tandas 32-36): *la acera par y la impar son como dos
   calles distintas que no guardan relación*. Si no hay número de tu paridad cerca, **no se
   contesta: se sugiere**. Tres listones: **su acera 50 m · la de enfrente 150 m · tope de adelanto
   20 m**.
+- ⭐ **El mapa dice cuatro cosas** (azul · rojo · gris · verde) y las líneas con nombre se pusieron
+  con **dos testigos independientes** (§4).
+- ⭐⭐ **EL BANCO DE RUTAS: diez trayectos, CUATRO con distancia medida por GPS** (§4 y
+  `data/pruebas/RUTAS-CONOCIDAS.md`, que **es de Antonio** y entró al repositorio en la tanda 7).
+  Las siete primeras las verificó Antonio **con los ojos sobre el mapa** en la tanda 16.
+  ⚠️ **La nº1 ya no devuelve metros: desde la paridad va en sugerencia** (§7·99).
+  ⛔ **`NO CONSTA` si la nº9 y la nº10 son costura de parada como las demás** — *pendiente de
+  decisión de Antonio, no de medición.*
+- ⭐⭐ **La velocidad es la ESTÁNDAR, no la de nadie: `VELOCIDAD_KMH = 5,0`** — la de
+  OSRM/Valhalla/openrouteservice, elegida para que los tiempos sean **comparables** con los suyos.
+  ⇒ **La nº7 ya NO calibra nada** (tanda de arreglo 4, §10).
 - **26 números publicados congelados**, y ya han avisado en caliente más de una vez.
-- **74 ficheros · 24.931 líneas de JavaScript · cero dependencias.** Repositorio público al día,
-  166 commits.
+- ⛔ **PENDIENTE DE MEDIR: ficheros, líneas de JavaScript y commits.** *Las cifras que este bloque
+  publicaba —74 ficheros · 24.931 líneas · 166 commits— eran del 6 de agosto, con siete tandas de
+  arreglo por medio.* **No se estiman: se miden.**
+  `git ls-files 'src/*.js' | wc -l` · `git ls-files 'src/*.js' | xargs wc -l | tail -1` ·
+  `git rev-list --count HEAD`
 
-**Dónde estamos exactamente: la AUDITORÍA DE CIERRE DE H1, tres bloques.**
+**LA AUDITORÍA DE CIERRE DE H1 — hecha entera, cuatro bloques.**
 
 | | | |
 |---|---|---|
-| **A · El código** | ✅ **HECHO** | `A-CODIGO-2026-08-06.md` — 4 vivos + D5 ascendido |
-| **B · La documentación** | ✅ **HECHO** | `B-DOCUMENTACION-2026-08-07.md` — 3 vivos · 13 superados · 5 deudas |
-| **B.2 · El contraste** | ✅ **HECHO** | `B2-CONTRASTE-2026-08-07.md` — **el mapa de las 2.062, entero**; 3 vivos · 10 superados · la cosecha. ⛔ **Contrastadas 38 (1,8 %)**: recorrer no se puede, contrastar `R` es circular |
-| **C · Las decisiones y los ejes** | ✅ **HECHO** | `C-DECISIONES-2026-08-07.md` — ⛔⛔ **retiró `B·V1`, un rojo falso publicado** · el reparto del diseño · **la tabla de los ejes** · la cobertura de toda la auditoría |
-| ⭐ **La lista de arreglos** | 🔄 **EN CURSO** | Decidida entera el 7/08, **agrupada por lo que se estorba**, en tres tandas |
-| **1 · el instrumento** | ✅ **HECHO** | `A·V1` el centinela · `L2` el techo mal llamado · `B2·V2` el 400× · **+ los 3 hermanos del mismo veredicto**. ⭐⭐ **La predicción acertó 6 de 6** |
-| **2 · el clon y la portada** | ✅ **HECHO** | Rutas relativas · `verificar-datos.js` · el README entero · ODbL + Ley 37/2007 · `N4`. ⭐⭐ **El clon con datos corre 58 de 58**, y `B·V2` resultó FALSO |
-| ⭐⭐ **2·bis · LA BATERÍA** | ✅ **HECHO** | Ya cuenta, y **cazó los arreglos de su propia tanda con la tabla sin tocar**. ⚠️ **Sigue sin ver «¿de qué?» ni un silencio bien formado** |
-| **3 · el puntero Y EL LATIDO** | ✅ **MECANISMO HECHO** | `superados.js` marca **37 pares en 16 documentos** · el latido vigila 4 números · `B2·V1` declarado. ⭐⭐ **Y el latido habría cazado el 412 el 6 de agosto: demostrado** |
-| **4 · la velocidad estándar** | ✅ **HECHO** | `VELOCIDAD_KMH = 5,0`, la de OSRM/Valhalla. ⭐⭐ **Disuelve el eje de la nº7** — ya no calibra nada |
-| **5 · las republicaciones** | ✅ **HECHO** | `H1-REPUBLICACIONES.md` · **22 pares en 103 líneas de 17 documentos** · `H1-QUE-QUEDA-ABIERTO.md`. ⛔⛔ **Pero el latido NO pasó a verde solo** |
-| **6 · el latido y la nº8** | ✅ **HECHO** | El latido **lee del documento con ancla declarada** y pasa a verde solo. ⭐⭐ **Y entra la RUTA Nº8**, la segunda distancia medida |
-| ⭐⭐⭐ **Y LO QUE NO ES CÓDIGO** | ⬜ **abierto** | **La COORDENADA de la puerta de Consultas Externas** — sin ella la nº8 valida el rodeo pero no los metros. **Y una tercera medición CORTA** (bajo 1 km), que es donde peor cubierto está el banco |
+| **A · El código** | ✅ | `A-CODIGO-2026-08-06.md` — 4 vivos + `D5` ascendido por Antonio |
+| **B · La documentación** | ✅ | `B-DOCUMENTACION-2026-08-07.md` — 3 vivos · 13 superados · 5 deudas |
+| **B.2 · El contraste** | ✅ | `B2-CONTRASTE-2026-08-07.md` — **el mapa de las 2.062, entero**; 3 vivos · 10 superados · la cosecha. ⛔ **Contrastadas 38 (1,8 %)**: recorrer no se puede, contrastar `R` es circular |
+| **C · Las decisiones y los ejes** | ✅ | `C-DECISIONES-2026-08-07.md` — ⛔⛔ **retiró `B·V1`, un rojo falso publicado** · el reparto del diseño · **la tabla de los ejes** · la cobertura de toda la auditoría |
 
-⛔⛔ **La auditoría NO arregla nada.** Todo se anota con su gravedad y **la lista de arreglos se
-decide al final de los tres bloques, entera.**
+⭐⭐⭐ **De once hallazgos publicados, DOS resultaron FALSOS** (`B·V1` y `B·V2`) — **y ninguno lo cazó
+el bloque que lo publicó** (§10). ⛔ **La auditoría no arregló nada:** la lista se decidió entera al
+final de los cuatro bloques.
 
-⭐ **Y las tres frases que resumen lo que llevan dicho los cuatro bloques:**
+**LAS SIETE TANDAS DE ARREGLO — todas cerradas (7 al 9 de agosto).**
+
+| | | |
+|---|---|---|
+| **1 · el instrumento** | ✅ | `A·V1` el centinela · `L2` el techo mal llamado · `B2·V2` el 400× · **+ los 3 hermanos**. ⭐⭐ **La predicción acertó 6 de 6** · **1·bis** los hermanos |
+| **2 · el clon y la portada** | ✅ | Rutas relativas · `verificar-datos.js` · el README entero · ODbL + Ley 37/2007 · `N4`. ⭐⭐ **El clon con datos corre 58 de 58**, y `B·V2` resultó FALSO |
+| ⭐⭐ **2·bis · la batería** | ✅ | Ya cuenta, y **cazó los arreglos de su propia tanda con la tabla sin tocar**. ⚠️ **Sigue sin ver «¿de qué?» ni un silencio bien formado** |
+| **3 · el puntero y el latido** | ✅ | `superados.js` marca **37 pares en 16 documentos** · `B2·V1` declarado. ⭐⭐ **El latido habría cazado el 412 el 6 de agosto: demostrado** |
+| **4 · la velocidad estándar** | ✅ | `VELOCIDAD_KMH = 5,0`. ⭐⭐ **Disuelve el eje de la nº7** — ya no calibra nada |
+| **5 · las republicaciones** | ✅ | `H1-REPUBLICACIONES.md` · **22 pares en 103 líneas de 17 documentos** · `H1-QUE-QUEDA-ABIERTO.md`. ⛔⛔ **El latido NO pasó a verde solo** ⇒ abre la 6 |
+| **6 · el latido lee, y entra la nº8** | ✅ | El latido **lee del documento con ancla declarada** y pasa a verde solo. ⭐⭐⭐ **Y Antonio salió a andar**: la nº8, 6,60 km |
+| **7 · la portada y las rutas nº9 y nº10** | ✅ | El README cuenta la auditoría **incluidos los dos falsos** · seis cifras al día · **cuatro distancias medidas** ⇒ de cinco bandas, cuatro son medidas |
+
+⭐ **Y las cuatro frases que resumen lo que dijeron los bloques:**
 > **La clase de fallo dominante aquí no es el código roto: es la medida que se corrigió en el
 > informe y no en el instrumento.** *(A)*
 > **La cadena de documentos es navegable solo en la dirección en la que nadie la lee.** *(B)*
 > ⭐⭐⭐ **Ninguno de los cuatro bloques ha comprobado que la ruta que sale sea la ruta correcta.**
 > *(C — y no lo abre esta auditoría: lo hereda)*
+> ⭐⭐⭐ **Un sistema puede alcanzar una consistencia impecable alrededor de un error que nadie fue a
+> buscar fuera.** *(el cierre, §8·128)*
 
-**Falta decidir:** el alcance v1 del buscador · la lista de **candidatos aparcados** (§10), que no
-se toca hasta que H1 cierre.
+**LO QUE QUEDA ABIERTO — nada bloquea H2.** Inventario entero en `docs/H1-QUE-QUEDA-ABIERTO.md`.
 
-**Después de la auditoría: H2, la red de transporte.**
+- ⭐⭐ **Una medición CORTA, bajo 1 km.** Es la única banda que sigue derivada, y es donde peor
+  cubierto está el banco: **cuatro trayectos de ~500 m sin ninguna medición**, y ahí 30 m de
+  enganche pesan el 6 %. ⛔ **No es código: es una caminata.**
+- **La coordenada de la puerta de Consultas Externas** — sin ella la nº8 valida el rodeo y **no los
+  metros** (ley 131).
+- **El centroide de los edificios grandes**: el complejo del Miguel Servet engancha a **70,8 m**,
+  por encima del `AVISO_ENGANCHE_M = 65` que es el p99 del callejero.
+- **`ruta.js` sale en código 2 sin declarar nada**, y quedan cinco scripts mudos más con
+  `process.exit(1)` sin `alarma`.
+- **`A·V2`**: dos medidas del mismo universo divergen en **79** (50.986 contra 51.065). ⛔ **Decisión
+  de Antonio, no arreglo.**
+- **~40 hermanos** y **464 veredictos** clasificados como SUELO, sin tocar.
+
+**Falta decidir:** el stack · el alcance v1 del buscador · la lista de **candidatos aparcados**
+(§10) · la frase del proyecto (§12, cuya condición ya se cumplió).
+
+**Lo siguiente: H2, la red de transporte.**
 ⚠️ **Y un plazo real: el GTFS caduca el 05/10/2026, y H2 depende de él.**
 
-*(Cómo se llegó hasta aquí: §4 el terreno · §5 las decisiones · §9 el diario de las tandas.)*
+⭐ **Saneamiento del 9/08:** este bloque se ha sustituido entero y **diez afirmaciones caducadas se
+han corregido en el cuerpo del documento** — ver §10 · *«El estado también mentía»*.
+
+*(Cómo se llegó hasta aquí: §4 el terreno · §5 las decisiones · §9 el diario de las tandas ·
+§10 la auditoría y los arreglos.)*
 
 ---
 
@@ -95,8 +131,13 @@ posteriori.** Es parte del producto, no infraestructura.
 **Identidad de commits:** `ablanquez <278133158+ablanquez@users.noreply.github.com>`, verificada
 **contra el último commit de 003**, no contra `git config`. Cero coautoría.
 
-**Licencia:** código Apache 2.0. La de los datos **se declarará cuando se integre alguno** — hoy
-el repositorio no contiene ningún dato integrado, solo respuestas crudas citadas como evidencia.
+**Licencia:** código **Apache 2.0**. Datos: **ODbL** (el grafo entero es derivado de OpenStreetMap)
+y **Ley 37/2007** para el dato municipal — **las dos declaradas en el README desde la tanda de
+arreglo 2 (7/08)**, y ciertas ya.
+⚠️ **Corregido el 9/08:** aquí seguía escrito *«la licencia se declarará cuando se integre alguno —
+hoy el repositorio no contiene ningún dato integrado»*. **Son dos de las cinco frases que la tanda 2
+retiró del README por falsas** (`A·V4`), con 46.150 portales dentro. *Se arreglaron en la portada y
+sobrevivieron aquí seis días.*
 
 ---
 
@@ -158,7 +199,7 @@ devolvería el proyecto al terreno de 003.
 | ⭐ **Red viaria (aristas)** | `movilidad:MU1_jerarquia_viaria` — GeoServer IDEZar, WFS | ✅ 3.644 tramos con geometría, `codigo` de vía, `doble_sent`, `limite_vel`, `plataforma`, `pacificada`, `calle_z30`, `longitud`. ⚠️ **Sin topología** y **sin campo de nivel** |
 | ⭐ **Nodos (origen/destino)** | 46.150 portales WGS84 con `codigoVia` | ✅ Limpios. 46.147 coordenadas únicas de 46.150 |
 | **Geocodificador** | Heredado del dataset previo | ✅ 3.359 vías tokenizadas sin tildes, `by-street` con 2.731 calles, normalizador de abreviaturas. **Reutilizable tal cual** |
-| ⭐ **Red peatonal fina** | **OpenStreetMap** (Overpass) | ⬜ Decidida, no integrada. Aceras, pasos de peatones y escaleras **como líneas** y **ya nodalizadas por diseño**. ⚠️ **ODbL con efecto share-alike** |
+| ⭐ **Red peatonal fina** | **OpenStreetMap** (Overpass) | ✅ **INTEGRADA — es la geometría base del grafo (D0)**: 68.649 nodos y 98.774 aristas. Aceras, pasos de peatones y escaleras **como líneas** y **ya nodalizadas por diseño**. ⚠️ **ODbL con efecto share-alike, declarada en el README** (tanda 2). *Corregido el 9/08: esta fila decía «decidida, no integrada» con el grafo entero construido encima.* |
 | ⭐ **Transporte** | **GTFS 1176 del NAP** (bus + tranvía) | ⬜ Decidido, no descargado. 984 paradas, 52+1 rutas, 34.427 viajes, 870.717 horarios, `shapes.txt` con 89 trazados sanos. ⚠️ **CADUCA EL 05/10/2026** y exige clave propia del NAP |
 | **BiZi** | `MU1_estaciones_bici_ubicacion` (WFS) + API de la sede | ✅ 276 estaciones, 5.520 anclajes. Las dos fuentes consistentes |
 | **Destinos (POI)** | Farmacias, centros cívicos, equipamientos | ✅ Baratos de añadir: **no tocan el motor**, son nodos enganchados al grafo |
@@ -176,7 +217,9 @@ devolvería el proyecto al terreno de 003.
 
 - **El callejero municipal**: enriquecimiento OSM con `coveragePercent: 100` y el **29,6 %** de
   los `houseNumber` mal.
-- **`MU1_jerarquia_viaria`**: no tiene ningún campo de nivel. Con 106 cruces geométricos,
+- **`MU1_jerarquia_viaria`**: no tiene ningún campo de nivel. Con **89** cruces geométricos
+  *(⚠️ 9/08: decía **106**, cifra que §7·17 desmintió — un cruce sobre un vértice lo contaban los
+  dos segmentos que lo comparten)*,
   planarizar **fusionaría pasos elevados con las calles de debajo** (caso real detectado:
   `GRACIA, LUCIANO` × `MADRID, AUTOVÍA DE`).
 - **El GTFS**: no trae `calendar.txt`; su calendario se extiende **tres meses más allá de su
@@ -201,7 +244,8 @@ trazados de línea · BiZi · carriles bici · geocodificación.
 **Lo que queda, y es el trabajo del proyecto:**
 
 1. ⭐ **PLANARIZAR.** Los tramos no comparten extremos (21 pares de 50.880) pero **se cruzan
-   geométricamente** (87 pares, 106 puntos). La información topológica **está en el dato**: hay
+   geométricamente** (87 pares, **89** puntos — ⚠️ *9/08: decía 106; el 87 SÍ era correcto, y por
+   eso colaba: §7·17*). La información topológica **está en el dato**: hay
    que partir cada tramo en sus intersecciones y usar una tolerancia pequeña (~2 m) solo para las
    puntas sueltas. Nadie publica esto: la topología no existe en el catálogo de ninguna ciudad, y
    construirla **es** la parte interesante.
@@ -317,7 +361,16 @@ dónde) y se decide cuando el motor calcule — donde `RUTAS-CONOCIDAS.md` lo de
 | 6 | Quevedo 1 → Matadero 1 | 523 m | 1,08 | ≤1,45 | ✅ **la esquina no engañó al enganche** |
 | 7 | El Coloso 2 → Valle de Zuriza 48 | 2.529 m | 1,06 | ≤1,20 | ✅ ⭐⭐ **2.529 contra los 2.600 del GPS: 2,7 %** |
 
-**7 de 7 resueltas · 6 de 7 en rodeo · 0 imposibles.**
+**7 de 7 resueltas · 6 de 7 en rodeo · 0 imposibles** — *tal como se midió en las tandas 11-13.*
+
+⚠️ **9/08 · LO QUE HA CAMBIADO DESDE ENTONCES, y esta tabla no lo decía:**
+- ⛔ **La nº1 ya NO devuelve metros**: desde la regla de paridad **va en sugerencia**, porque el 78
+  de Avenida Cataluña no existe (§7·71 y §7·99). ⇒ **El «7 de 7» es de la tanda 13, no de hoy.**
+- ⚠️ **La nº6 pasó de `523,4` a `520,2`** en la tanda 33.
+- ⭐ **Los TIEMPOS de esta tabla ya no son éstos**: la tanda de arreglo 4 puso `VELOCIDAD_KMH = 5,0`
+  y recalculó los 19 publicados. **Los METROS no se movieron ni un decimal.**
+- ⭐⭐ **Y el banco ya no tiene siete filas: tiene DIEZ** — nº8, nº9 y nº10 entraron el 9/08 con
+  distancia medida por GPS (§10 · tandas 6 y 7).
 
 ### ⭐⭐ EL PUNTO CIEGO — cerrado (tanda 13)
 
@@ -798,9 +851,12 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 115 VECES
 
-**Cuarenta tandas, cuatro de auditoría y diez de arreglos. Ciento quince instrumentos mintiendo** — los 33 primeros,
-sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
+**Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento quince instrumentos mintiendo** —
+los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
+que el proyecto.
+⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
+el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.** Casi todos se cazaron
 **porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
 escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
 decir *«esto lo detuvo ella, no el criterio de quien medía»*.
@@ -1416,8 +1472,9 @@ Desglosado porque su contenido está fundado en lo que ya se sabe:
 
 1. Descargar la red de OSM de toda la ciudad (geometría base, D0) y `MU1_jerarquia_viaria`
    completa (atributos y verificación).
-2. ⭐ **Planarizar**: partir cada tramo en sus intersecciones (106 puntos de cruce detectados en
-   la muestra), y usar tolerancia pequeña (~2 m) **solo** para las puntas sueltas.
+2. ⭐ **Planarizar**: partir cada tramo en sus intersecciones (**89** puntos de cruce detectados en
+   la muestra — ⚠️ *9/08: decía 106, desmentido por §7·17*), y usar tolerancia pequeña (~2 m)
+   **solo** para las puntas sueltas.
 3. ⚠️ **Resolver los niveles.** Sin campo de cota, planarizar fusiona pasos elevados con la calle
    de debajo. La pista está en OSM (`bridge`, `layer`). **Riesgo de corrección nº1.**
 4. Enganchar los 46.150 portales **por proximidad**, con el `codigoVia` como **salvaguarda**:
@@ -1480,9 +1537,19 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **32** | ⭐⭐ **¿A qué acera engancha cada portal?** | **H1** | ✅ |
 | **33** | ⭐ Dos aceras, dos calles — el buscador respeta la paridad | **H1** | ✅ |
 | **34-36** | Los tres listones, el tope de adelanto y el centinela | **H1** | ✅ |
-| **A** | ⭐⭐ **AUDITORÍA DE CIERRE · el código** | **H1** | ✅ **4 vivos** |
-| **B** | *(siguiente: **AUDITORÍA · la documentación contra el dato de hoy**)* | **H1** | ⬜ |
-| **C** | AUDITORÍA · las decisiones y los ejes | **H1** | ⬜ |
+| **A** | ⭐⭐ **AUDITORÍA DE CIERRE · el código** | **H1** | ✅ **4 vivos + `D5` ascendido** |
+| **B** | **AUDITORÍA · la documentación contra el dato de hoy** | **H1** | ✅ **3 vivos · 13 superados · 5 deudas** |
+| **B.2** | ⭐⭐ **AUDITORÍA · el contraste** — el mapa de las 2.062 | **H1** | ✅ **3 vivos · 10 superados. Contrastadas 38 (1,8 %)** |
+| **C** | ⭐⭐ **AUDITORÍA · las decisiones y los ejes** | **H1** | ✅ ⛔⛔ **retira `B·V1`: era un rojo FALSO** |
+| **Ar 1 · 1·bis** | ⭐⭐ El instrumento — el centinela y sus hermanos | **H1** | ✅ **la predicción acertó 6 de 6** |
+| **Ar 2 · 2·bis** | ⭐⭐ El clon y la portada · la batería ya cuenta | **H1** | ✅ **58 de 58 · `B·V2` era FALSO** |
+| **Ar 3** | ⭐⭐ El puntero y el latido | **H1** | ✅ **37 pares en 16 documentos** |
+| **Ar 4** | ⭐⭐⭐ **La velocidad estándar** — disuelve el eje de la nº7 | **H1** | ✅ `VELOCIDAD_KMH = 5,0` |
+| **Ar 5** | Las republicaciones | **H1** | ✅ **22 pares · el latido no pasó a verde solo** |
+| **Ar 6** | ⭐⭐⭐ El latido lee — **y Antonio sale a andar: la nº8** | **H1** | ✅ |
+| **Ar 7** | ⭐⭐ La portada cuenta la auditoría · **rutas nº9 y nº10** | **H1** | ✅ **4 de 5 bandas, medidas** |
+| **—** | ⭐⭐ **H1 CERRADO** *(el diario de A→Ar7 vive en §10, no aquí)* | **H1** | ✅ **9/08** |
+| **H2** | *(siguiente: **LA RED DE TRANSPORTE**)* | **H2** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -1623,6 +1690,9 @@ Texto salto a salto y visor de rutas. **Antonio las miró una a una:** *«están
 perfectas. Literalmente se me han caído los ojos al suelo.»* Y cerró tres cabos sobre el terreno,
 incluido el carril bici de 1.269 m: *«es carril bici a misma cota que acera, pegado»* ⇒ **la
 calibración de ~6 km/h se sostiene.**
+⚠️ **SUPERADO (tanda de arreglo 4, 8/08):** aquella calibración **ya no rige**. `VELOCIDAD_KMH = 5,0`
+es la estándar de OSRM/Valhalla y **la nº7 no calibra nada**. *La frase se conserva porque fue cierta
+y es registro: se marca, no se reescribe* (ley 86).
 
 ### 17-18 — El método de los portales y la capa de carriles bici (4/08)
 El método se prueba (77 % de acierto) y la capa municipal aparece con **el tipo al 100 % y el
@@ -2553,9 +2623,12 @@ que la costura protege, pero se dice en voz alta y se declara qué quedaría pro
 - ⚠️ **`H1-PRIMER-GRAFO.md` §C4d publica una ruta que estuvo rota dos tandas** (`Puerta del Carmen
   → Magdalena`). El documento es registro histórico: **se corrige en documento nuevo, no se
   reescribe.**
-- ⚠️ **El diseño y la adenda se contradicen** en el enganche de portales: P4.1 dice *"manda el
-  código, SIEMPRE"* y la adenda §A1 dice *"por proximidad"*. **Manda la adenda** (posterior y
-  explícita, y es lo que se ha construido). Pendiente de reconciliar por escrito.
+- ~~⚠️ **El diseño y la adenda se contradicen** en el enganche de portales~~ ⛔⛔ **RETIRADO EL
+  9/08 — ES `B·V1`, EL ROJO FALSO, ESCRITO AQUÍ CON OTRAS PALABRAS.** *No hay contradicción que
+  reconciliar:* `DISEÑO-H1-GRAFO.md` **declara en su tercera línea que es una propuesta sin
+  construir**, y §P4.1 no describe el motor — lo propone y no se adoptó (las cinco pruebas, en
+  §10 · `B·V1`). ⭐⭐ **Y lo que enseña: la retirada y lo retirado llevaban dos días conviviendo en
+  esta misma sección.** *Es la ley 104 contra el propio documento de estado.*
 - **944 paradas en el WFS contra 934 en el GTFS.** Sin explicar.
 - **La clave del NAP.** Trámite de Antonio. El feed muere el **05/10/2026**.
 - **Los dos números no cerrados de §4** (4,4 % de la red medida; 117 capas sin abrir).
@@ -2651,6 +2724,52 @@ segundo par de ojos.
 *"JSON maestros ubicados"* y **la licencia no consta**. Es el caso de la capa de nombres de 003 con
 otra piel.
 
+### ⛔⛔⛔ EL ESTADO TAMBIÉN MENTÍA — saneamiento del 9/08
+
+> **Los cuatro bloques auditaron el código (A), los 44 documentos de `docs/` (B, B.2) y las
+> decisiones (C). NINGUNO AUDITÓ ESTE DOCUMENTO.**
+
+Entró en la auditoría **solo como objeto de corrección puntual** —la renumeración de los hallazgos
+(7/08) y el `182 → 232` de `B2·V3`—, **nunca como universo.** ⛔ **Y no lo vigila nada:**
+`superados.js` marca `docs/` y este fichero vive en la raíz · el latido vigila cuatro números · el
+censo v2 mide lo que un documento **subraya**. ⇒ **Es el único texto del proyecto sin contradictor**
+(ley 111), **y es el primer input que lee cualquier conversación nueva.**
+
+⚠️ **Y eso ya se había cobrado una pieza: el instrumento nº99** — esta conversación metiendo cifras
+caducadas en **cinco encargos seguidos** porque las llevaba escritas de antes.
+
+**Las once afirmaciones caducadas, todas corregidas hoy:**
+
+| # | qué decía | dónde | qué pasa |
+|---|---|---|---|
+| 1 | *«bloque A hecho, B y C pendientes»* | cabecera | **Se desmentía a sí misma dos líneas más abajo**, donde la tabla daba los cuatro en ✅ |
+| 2 | fechada **6/08** | cabecera | Con la tanda 6 (**9/08**) dentro, y **sin la tanda 7** |
+| 3 | ⛔⛔ *«la nº7 CALIBRA los ~6 km/h de toda la tabla: ninguna tanda puede moverla»* | cabecera | **La tanda de arreglo 4 la retiró.** Era la frase en negrita más contundente del bloque de estado |
+| 4 | *«una TERCERA medición corta»* | cabecera | Ya había **cuatro** mediciones; lo que falta es una **bajo 1 km** |
+| 5 | **74 ficheros · 24.931 líneas · 166 commits** | cabecera | Cifras del 6/08 con siete tandas por medio ⇒ **puestas a `PENDIENTE DE MEDIR` con su comando**, no estimadas |
+| 6 | ⛔ *«la licencia de los datos se declarará cuando se integre alguno — no contiene ningún dato integrado»* | §1 | **Dos de las cinco frases que la tanda 2 retiró del README por falsas** (`A·V4`). *Arregladas en la portada, vivas aquí seis días* |
+| 7 | *«red peatonal OSM: decidida, NO INTEGRADA»* | §3 | Con **68.649 nodos y 98.774 aristas** construidos encima. Es la fila de estado de la fuente de la que cuelga todo |
+| 8 | **«106 puntos de cruce»**, tres veces | §3 · §4 · §9 | **Son 89**, y lo dice §7·17 de este mismo documento. ⭐ *Un superado sin marca dentro del documento que gobierna a los que sí la llevan* |
+| 9 | *«7 de 7 resueltas · 0 imposibles»* | §4 | **La nº1 ya no se resuelve: va en sugerencia.** El «7 de 7» era de la tanda 13 |
+| 10 | ⛔⛔ *«el diseño y la adenda se contradicen… pendiente de reconciliar»* | §10 | **Es `B·V1` con otras palabras** — el rojo falso que el bloque C retiró el 7/08. **La retirada y lo retirado convivían en la misma sección** |
+| 11 | *«se escribirá cuando el motor resuelva su primera ruta»* | §12 | **La condición se cumplió en la tanda 11** y nadie volvió a por ella |
+
+**Y dos de estructura, no de dato:**
+- **El mapa de tandas (§9) se quedó en `A ✅ · B ⬜ · C ⬜`**, mientras todo lo posterior crecía en
+  §10. ⇒ **El diario y el registro habían divergido**, y quien leyera §9 vería la auditoría a medias.
+- **§7 decía «diez tandas de arreglo»** y son **nueve** (siete numeradas más dos `bis`), contadas
+  sobre §10. *Enumerar no es contar* — ley 116 contra quien escribió la cabecera.
+
+⭐⭐⭐ **LA LECTURA, Y ES LA QUE IMPORTA:** la regla propia de este documento —*«el bloque de estado
+actual se SUSTITUYE, no se acumula»* (cabecera)— **nació para evitar el sedimento de 003 y produjo lo
+contrario**: la cabecera se congeló el 6 de agosto y el cuerpo siguió creciendo hasta el 9.
+⇒ **Congelar preserva los errores con la misma fidelidad que las verdades** (ley 74), aplicada al
+documento que escribió esa ley.
+
+⚠️ **Lo que este saneamiento NO ha hecho, declarado:** no se ha contrastado **cifra a cifra** — se
+corrigió lo que once contradicciones internas delataron, **no un barrido de las 2.697 líneas**.
+⛔ **La cobertura de este saneamiento es `NO CONSTA`**, y decirlo es la mitad del trabajo.
+
 ## 11 · Método y entorno
 
 **Reparto:** esta conversación hace visión, estrategia, prompts y **este documento**. Claude Code
@@ -2685,7 +2804,10 @@ Conventional Commits con ámbito, asunto en español. Cero coautoría. ⛔ `git 
 
 ## 12 · La frase que resume el proyecto
 
-*(Pendiente. Se escribirá cuando el motor resuelva su primera ruta — no antes.)*
+*(Pendiente — **y la condición YA SE CUMPLIÓ**: el motor resolvió su primera ruta en la tanda 11 y
+hoy tiene diez trayectos de cordura y cuatro distancias medidas. ⭐ **La frase la escribe Antonio, no
+este documento**, y por eso sigue en blanco: nadie volvió a por ella cuando la puerta se abrió.
+Corregido el 9/08.)*
 
 Lo que se puede decir hoy, y ya es una frase:
 
