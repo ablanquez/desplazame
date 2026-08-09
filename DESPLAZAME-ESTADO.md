@@ -796,11 +796,11 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 113 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 115 VECES
 
-**Cuarenta tandas, cuatro de auditoría y ocho de arreglos. Ciento trece instrumentos mintiendo** — los 33 primeros,
+**Cuarenta tandas, cuatro de auditoría y diez de arreglos. Ciento quince instrumentos mintiendo** — los 33 primeros,
 sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes que el proyecto.
-⚠️ **Los treinta y tres últimos (81-113) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
+⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos** — ⛔⛔ **y el nº99 lo produjo la conversación de estrategia, que escribe estos encargos.**, y casi todos se cazaron
 **porque el instrumento llevaba dentro un contador o un control**. ⭐⭐ **El nº87 lo paró una costura
 escrita en el encargo** — es la primera vez en este proyecto que se puede señalar una costura y
 decir *«esto lo detuvo ella, no el criterio de quien medía»*.
@@ -920,6 +920,8 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 111 | ⛔⛔ **EL PUNTERO MANDABA A UN DOCUMENTO QUE NO EXISTE Y SALÍA VERDE ANTES Y DESPUÉS.** Al provocar el rojo se apuntó a `H1-NO-EXISTE-JAMAS.md` y **la cabecera pública lo publicó tan tranquila**. ⭐ *El remedio contra las referencias que nadie sigue estaba escribiendo referencias que nadie seguía.* Cerrado con `D4`, rojo visto |
 | 112 | ⛔⛔⛔ **UN PARÉNTESIS DETRÁS DEL NÚMERO CAMBIA EL DESTINO EN SILENCIO.** `partir()` exige el número al final: con `«Calle Padre Arrupe 1 (Hospital…)»` **el buscador no ve número**, cae en `numero-aproximado` **y elige el portal central de la vía**. ⭐⭐ **No da error ni aviso: devuelve una ruta con buena pinta a OTRO sitio** —80,5 m de diferencia y 79 m más lejos del destino real— **y solo se ve mirando la columna `estado`** |
 | 113 | ⛔⛔⛔ **EL LITERAL `7` DE `modelo-rutas.js` ERA EL FALLO QUE LA TANDA 2·bis CREYÓ CERRADO.** `const ESPERADOS = 7 - Object.keys(A_SUGERENCIA).length` **derivaba una mitad y dejaba la otra a mano**. Se arreglaron `donde-falta.js` y `pasos.js` **y quedaba un tercero — en el fichero que vigila las rutas.** ⭐⭐⭐ **Y solo apareció cuando el mundo cambió: al entrar la ruta nº8** |
+| 114 | ⛔⛔ **UN REPARTO PUBLICADO MAL, Y LA SUMA LO TAPÓ.** Los 120 pasos se repartieron `83 + 9 + 28` y **el total cuadraba**. ⭐⭐⭐ *El número que se comprueba es el correcto: un reparto mal con el total bien es de lo más difícil de ver, porque el guardián mira la suma* |
+| 115 | ⛔⛔⛔ **Y DOS DE ESTA CONVERSACIÓN, LOS DOS POR NO MEDIR:** dijo **«~35 min»** de la batería **en cinco encargos seguidos** —cronometrada, son **17m29s**: se estimó una vez y se repitió veinte— y pidió publicar **«dos de los ONCE hallazgos»** sin contarlos. ⭐ **El ejecutor fue a contar y el número cambia con la expresión regular** (8 · 10 · 13) ⇒ **enumeró en vez de contar.** *Ley 116 contra quien escribió el encargo* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1367,6 +1369,21 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     desviaciones de manzana se promedian; en 500 m una sola manzana mal tomada es el 10 %.** ⚠️ Y lo
     que sí crece es otra cosa: **el error no se acumula con la distancia, sino con cuánta ciudad mal
     mapeada se cruza.**
+133. ⭐⭐⭐ **EL PUNTERO ENVEJECE LAS CIFRAS Y NO LA PROSA QUE LAS ENVUELVE.** *`H1-VELOCIDAD-ESTANDAR.md`
+    republicó su banda de 40 min — pero su §C se titula «LAS TRES BANDAS» y hoy son **cinco**, y su
+    §D dice «dos de las tres se derivaron» cuando hoy se deriva **una de cinco**.* ⛔⛔ **El argumento
+    de circularidad del documento casi se ha caído solo y el documento lo sigue afirmando: ningún
+    mecanismo de este repositorio puede verlo.**
+134. ⭐⭐⭐ **EL PUNTERO MARCA LO QUE ALGUIEN DECLARA. NO DESCUBRE NADA.** *La tanda 3 aceptó el
+    mecanismo con una condición escrita —«¿qué pasa el día 24, cuando nadie se acuerde?»— **y el 9 de
+    agosto FUE el día 24**: puntero en verde y una cifra caducada publicada.* ⭐ **Y el positivo de
+    control separa las dos acusaciones: el instrumento no está ciego — nadie le mandó mirar.**
+135. ⭐⭐ **UN REPARTO MAL CON EL TOTAL BIEN NO LO VE NADIE, PORQUE EL NÚMERO QUE SE COMPRUEBA ES EL
+    CORRECTO.**
+136. ⭐⭐ **CITAR UNA CIFRA CADUCADA LA MARCA COMO AFIRMADA — Y EVITARLO OBLIGA A MUTILAR LA CITA.**
+    *Un documento que CUENTA los números caducados de otro sale marcado como si los AFIRMARA.* ⇒ Es
+    la ley 127 vista desde el otro lado: **el instrumento no distingue afirmar de transcribir, y el
+    precio lo paga quien escribe.**
 
 ---
 
@@ -2441,6 +2458,46 @@ cruza.**
 siéndolo** — y **el hueco no ha mejorado donde peor estaba**: las dos medidas están en los extremos
 (2,6 y 6,6 km) y las derivadas en medio y por debajo. ⇒ **hace falta una tercera CORTA, bajo 1 km**,
 que es donde un error de enganche de 30 m pesa el 6 %.
+
+### ✅ TANDA 7 (9/08) — la portada cuenta la auditoría, y entran las rutas nº9 y nº10
+
+**El README ya menciona la auditoría**, que hasta hoy no aparecía en ninguna línea: los cuatro
+bloques con sus registros, **los dos hallazgos que resultaron falsos con dónde están contados**, los
+enlaces a `H1-QUE-QUEDA-ABIERTO.md` y `H1-REPUBLICACIONES.md` —que la portada no enlazaba— y la
+frase de cierre. ⭐ **Y seis cifras caducadas al día, cada una con su comando**, dos de ellas
+encontradas al ejecutar toda la tabla y no solo lo señalado.
+
+**⭐⭐⭐ CUATRO DISTANCIAS MEDIDAS, y con ellas las bandas dejan de ser circulares:**
+
+```
+   nº7   2,6 km / 25 min   →   6,24 km/h    urbano
+   nº9   2,9 km / 28 min   →   6,26 km/h    urbano        ⭐ NUEVA
+   nº10  4,4 km / 43 min   →   6,14 km/h    urbano        ⭐ NUEVA · rompe el origen
+   nº8   6,6 km / 59 min   →   6,71 km/h    casi sin semáforos
+```
+⭐⭐ **Las tres urbanas caen entre 6,14 y 6,26 —un 2 % de dispersión— y la de sin paradas se sale del
+grupo.** ⇒ **La parada urbana se come del orden de medio km/h**, y ya no es una comparación suelta:
+son **tres contra una**.
+⭐ **Y la nº10 ROMPE EL ORIGEN**: es la única medida que no sale de El Coloso 2, así que **no hereda
+su enganche.** *Las otras tres compartiéndolo son un control que apareció solo.*
+
+**De cinco bandas, cuatro son ya MEDIDAS.** ⚠️ **Y la de 40 min pasó de `~3,8–4,2` a `~4,3–4,5`: la
+derivada se quedaba corta.** ⛔ **No se ajustó para que cuadrara — se sustituyó por una medida**, que
+es el único motivo válido que el propio banco admite. ⚠️ **Solo la de 5 min sigue derivada**, y es
+justo donde peor cubierto está: **cuatro trayectos de ~500 m sin ninguna medición.**
+
+⭐⭐ **Y la batería volvió a salir IDÉNTICA fila a fila a la del día anterior, con dos rutas más
+dentro** — con su línea de cierre volviendo a `✅ un fallo detectado ya no puede terminar en verde`,
+**cerrada al declarar lo que faltaba, no apagando nada.**
+
+**⛔⛔ EL DÍA 24 HA LLEGADO, Y ERA HOY.** *La tanda 3 aceptó el mecanismo del puntero con una condición
+escrita —«¿qué pasa el día 24, cuando nadie se acuerde?»— y el 9 de agosto **el puntero estaba en
+verde con una cifra caducada publicada**.* ⇒ **leyes 133 y 134**, y las dos en
+`docs/H1-QUE-QUEDA-ABIERTO.md §B6` con su ejemplo.
+
+⚠️ **Y `data/pruebas/RUTAS-CONOCIDAS.md` entra por fin al repositorio**, con su argumento: **dos de
+los diez metros congelados salen de rutas que solo existen en ese fichero** ⇒ sin él, un clon no
+puede reproducir la nº9 ni la nº10 y **la costura de parada se queda sin su entrada.**
 
 ⚠️ **Latentes que conviene no perder:** el apagado del centinela vive donde no toca y **29 ficheros
 requieren `portales.js`** (L1) · `Par.analizar([])` devuelve `un-solo-lado` sobre una lista vacía
