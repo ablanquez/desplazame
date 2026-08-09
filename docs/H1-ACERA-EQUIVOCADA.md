@@ -1,15 +1,16 @@
 # H1 · LA ACERA EQUIVOCADA
 
 <!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
-> ⚠️ **ESTE DOCUMENTO PUBLICA 2 NÚMERO(S) SUPERADO(S).**
+> ⚠️ **ESTE DOCUMENTO PUBLICA 3 NÚMERO(S) SUPERADO(S).**
 > El cuerpo **no se ha corregido**: era verdad el día que se escribió.
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
 > |---|---|---|
+> | `21 números congelados` | **26 números congelados** | `docs/H1-REPUBLICACIONES.md §B` · 2026-08-09 |
 > | `66.973` | **16.981** | `docs/H1-TOPE-ADELANTO.md §B2` · 2026-08-06 |
 > | `6 km/h` | **5,0 km/h** | `docs/H1-VELOCIDAD-ESTANDAR.md §0` · 2026-08-08 |
 >
-> <sub>las consultas que cambian de acera · la velocidad con la que se calculan los tiempos — era la de UNA persona</sub>
+> <sub>cuántos números vigila `numeros-congelados.js` · las consultas que cambian de acera · la velocidad con la que se calculan los tiempos — era la de UNA persona</sub>
 <!-- SUPERADOS:FIN -->
 
 *Tanda 32 · 2026-08-06 · Antonio pidió la ruta 1 sobre el mapa y vio que arrancaba en la acera de

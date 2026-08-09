@@ -6,7 +6,7 @@
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
 > |---|---|---|
-> | `412` | **438** | ⛔ **republicación PENDIENTE** · 2026-08-08 · medido y atado en la tanda 2·bis (bitácora 171) |
+> | `412` | **438** | `docs/H1-REPUBLICACIONES.md §A1` · 2026-08-09 |
 >
 > <sub>los metros sin nombre de la ruta nº6 (§A6)</sub>
 <!-- SUPERADOS:FIN -->

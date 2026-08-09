@@ -1,16 +1,17 @@
 # H1 · LOS TRES LISTONES — su acera a 100 m, la de enfrente a 150
 
 <!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
-> ⚠️ **ESTE DOCUMENTO PUBLICA 3 NÚMERO(S) SUPERADO(S).**
+> ⚠️ **ESTE DOCUMENTO PUBLICA 4 NÚMERO(S) SUPERADO(S).**
 > El cuerpo **no se ha corregido**: era verdad el día que se escribió.
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
 > |---|---|---|
+> | `21 congelados` | **26 congelados** | `docs/H1-REPUBLICACIONES.md §B` · 2026-08-09 |
 > | `31.411` | **4.562** | `docs/H1-TOPE-ADELANTO.md §B2` · 2026-08-06 |
 > | `2.982` | **2.138** | `docs/H1-TOPE-ADELANTO.md §A3` · 2026-08-06 |
 > | `6 km/h` | **5,0 km/h** | `docs/H1-VELOCIDAD-ESTANDAR.md §0` · 2026-08-08 |
 >
-> <sub>las consultas contestadas — con el dial inflado · las sugerencias BUENAS a ≤ 20 m (nº142) · la velocidad con la que se calculan los tiempos — era la de UNA persona</sub>
+> <sub>cuántos números vigila `numeros-congelados.js` · las consultas contestadas — con el dial inflado · las sugerencias BUENAS a ≤ 20 m (nº142) · la velocidad con la que se calculan los tiempos — era la de UNA persona</sub>
 <!-- SUPERADOS:FIN -->
 
 **Tanda 34 · 2026-08-06.** Reproducible con:

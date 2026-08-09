@@ -7,7 +7,7 @@
 > | lo que dice aquí | hoy vale | dónde se republicó |
 > |---|---|---|
 > | `11.742` | **2.669** | `docs/H1-ROJOS-CERRADOS.md §E1` · 2026-08-05 |
-> | `412` | **438** | ⛔ **republicación PENDIENTE** · 2026-08-08 · medido y atado en la tanda 2·bis (bitácora 171) |
+> | `412` | **438** | `docs/H1-REPUBLICACIONES.md §A1` · 2026-08-09 |
 >
 > <sub>las puertas que cuelgan de una línea sin nombre · los metros sin nombre de la ruta nº6 (§A6)</sub>
 <!-- SUPERADOS:FIN -->

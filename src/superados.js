@@ -126,6 +126,23 @@ const PARES = [
     republicaEn: 'docs/H1-ROJOS-CERRADOS.md §0', desde: '2026-08-05',
     contexto: null, propias: 0, ajenas: 0 },
 
+  // ⭐ TANDA 5 · lo llevaba el bloque B en su tabla y esta tabla no lo tenía.
+  { viejo: '36.050', nuevo: '36.113', que: 'las líneas a las que el motor les ve falta de nombre',
+    republicaEn: 'docs/H1-ROJOS-CERRADOS.md §0', desde: '2026-08-05',
+    contexto: null, propias: 4, ajenas: 0 },
+
+  // ⭐⭐ TANDA 5 · Y ÉSTOS SON DE OTRA ESPECIE: no son una cifra de una tabla,
+  //   son **la anotación de un comando** —`node src/numeros-congelados.js  # los
+  //   21 congelados`— escrita en PRESENTE. Quien la lea hoy ejecuta y ve 26.
+  //   ⛔ Es el superado más caro de todos: los demás hay que creérselos, éste el
+  //     lector lo desmiente él solo en tres segundos.
+  { viejo: '21 congelados', nuevo: '26 congelados', que: 'cuántos números vigila `numeros-congelados.js`',
+    republicaEn: 'docs/H1-REPUBLICACIONES.md §B', desde: '2026-08-09',
+    contexto: null, propias: 4, ajenas: 0 },
+  { viejo: '21 números congelados', nuevo: '26 números congelados', que: 'cuántos números vigila `numeros-congelados.js`',
+    republicaEn: 'docs/H1-REPUBLICACIONES.md §B', desde: '2026-08-09',
+    contexto: null, propias: 2, ajenas: 0 },
+
   // ── las puertas sin calle · dos generaciones de valor viejo ───────────────
   { viejo: '11.742', nuevo: '2.669', que: 'las puertas que cuelgan de una línea sin nombre',
     republicaEn: 'docs/H1-ROJOS-CERRADOS.md §E1', desde: '2026-08-05',
@@ -159,7 +176,7 @@ const PARES = [
   //     que es la verdad y sigue siendo navegable: el lector sabe que ese número
   //     no vale y que nadie ha publicado el que vale.
   { viejo: '16,9', nuevo: '21,3', que: 'las veces el azar de los portales como testigos',
-    republicaEn: null, desde: '2026-08-06 · medido por el bloque A de la auditoría (A·V3)',
+    republicaEn: 'docs/H1-REPUBLICACIONES.md §A2', desde: '2026-08-09',
     contexto: /azar/i, propias: 1, ajenas: 0 },
 
   // ⭐⭐ LOS DOS QUE OBLIGARON A INVENTAR EL `contexto`, y por eso su `ajenas` no
@@ -178,7 +195,7 @@ const PARES = [
     contexto: null, propias: 9, ajenas: 0 },
 
   { viejo: '412', nuevo: '438', que: 'los metros sin nombre de la ruta nº6 (§A6)',
-    republicaEn: null, desde: '2026-08-08 · medido y atado en la tanda 2·bis (bitácora 171)',
+    republicaEn: 'docs/H1-REPUBLICACIONES.md §A1', desde: '2026-08-09',
     // ⭐ las tres propias son FILAS DE TABLA sin una sola palabra alrededor: lo que
     //   las identifica es empezar por la ruta 6. ⛔ ajenas: «412× el azar» (×2) y un
     //   «412 (97,2 %)» que es otra cosa entera.
@@ -200,8 +217,12 @@ const PARES = [
 //     ⚠️ Escribirle una cabecera generada sería tomar posesión de un documento
 //       ajeno, y este mecanismo existe precisamente para no reescribir a nadie.
 //     ⇒ se excluye del MARCADO, se dice aquí, y se reporta hacia arriba.
+//   · ⭐ TANDA 5 · `docs/H1-REPUBLICACIONES.md` es EL ÍNDICE de todo esto: su
+//     tabla lleva los 22 valores viejos al lado de los nuevos, que es su trabajo.
+//     Es un acta, como la bitácora. Exigirle una cabecera sería pedirle que se
+//     apunte a sí mismo 22 veces.
 const esActa = (d) => /BITACORA\.md$|auditoriafinal\//.test(d)
-  || /RUTAS-CONOCIDAS\.md$/.test(d.replace(/\\/g, '/'));
+  || /RUTAS-CONOCIDAS\.md$|H1-REPUBLICACIONES\.md$/.test(d.replace(/\\/g, '/'));
 
 const INICIO = '<!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->';
 const FIN = '<!-- SUPERADOS:FIN -->';

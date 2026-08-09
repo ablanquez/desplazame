@@ -1,15 +1,16 @@
 # H1 · LAS ISLETAS, Y LA TEORÍA DE LOS PARQUES
 
 <!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
-> ⚠️ **ESTE DOCUMENTO PUBLICA 2 NÚMERO(S) SUPERADO(S).**
+> ⚠️ **ESTE DOCUMENTO PUBLICA 3 NÚMERO(S) SUPERADO(S).**
 > El cuerpo **no se ha corregido**: era verdad el día que se escribió.
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
 > |---|---|---|
 > | `51.556` | **51.493** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
 > | `4.405` | **4.424** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `36.050` | **36.113** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
 >
-> <sub>las líneas CON nombre del mapa · las verdes SIN el listón de 1 ha</sub>
+> <sub>las líneas CON nombre del mapa · las verdes SIN el listón de 1 ha · las líneas a las que el motor les ve falta de nombre</sub>
 <!-- SUPERADOS:FIN -->
 
 *Tanda 27 · 2026-08-05 · idea de Antonio: «hay muchas manchas rojas en la ciudad que son parques o

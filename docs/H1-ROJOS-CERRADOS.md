@@ -1,14 +1,15 @@
 # H1 · CERRAR LOS ROJOS
 
 <!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
-> ⚠️ **ESTE DOCUMENTO PUBLICA 1 NÚMERO(S) SUPERADO(S).**
+> ⚠️ **ESTE DOCUMENTO PUBLICA 2 NÚMERO(S) SUPERADO(S).**
 > El cuerpo **no se ha corregido**: era verdad el día que se escribió.
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
 > |---|---|---|
+> | `21 congelados` | **26 congelados** | `docs/H1-REPUBLICACIONES.md §B` · 2026-08-09 |
 > | `182` | **232** | `docs/auditoriafinal/B2-CONTRASTE-2026-08-07.md §B2·V3` · 2026-08-07 |
 >
-> <sub>las líneas decorativas — un ⛔ impreso que no para nada</sub>
+> <sub>cuántos números vigila `numeros-congelados.js` · las líneas decorativas — un ⛔ impreso que no para nada</sub>
 <!-- SUPERADOS:FIN -->
 
 *Tanda 31 · 2026-08-05 · Antonio decide cuatro de los cinco rojos vivos y pide el número del quinto

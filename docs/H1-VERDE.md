@@ -1,7 +1,7 @@
 # H1 · EL VERDE EN EL MAPA
 
 <!-- SUPERADOS:INICIO — generado por src/superados.js · ⛔ no editar a mano -->
-> ⚠️ **ESTE DOCUMENTO PUBLICA 4 NÚMERO(S) SUPERADO(S).**
+> ⚠️ **ESTE DOCUMENTO PUBLICA 5 NÚMERO(S) SUPERADO(S).**
 > El cuerpo **no se ha corregido**: era verdad el día que se escribió.
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
@@ -10,8 +10,9 @@
 > | `32.258` | **32.310** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
 > | `3.792` | **3.803** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
 > | `145,34` | **145,94** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
+> | `36.050` | **36.113** | `docs/H1-ROJOS-CERRADOS.md §0` · 2026-08-05 |
 >
-> <sub>las líneas CON nombre del mapa · las líneas rojas del mapa · las rojas explicadas por zona verde · los km de rojo explicados por zona verde</sub>
+> <sub>las líneas CON nombre del mapa · las líneas rojas del mapa · las rojas explicadas por zona verde · los km de rojo explicados por zona verde · las líneas a las que el motor les ve falta de nombre</sub>
 <!-- SUPERADOS:FIN -->
 
 *Tanda 28 · 2026-08-05 · Antonio acepta la recomendación de la tanda 27: no se toca el modelo ni el

@@ -6,7 +6,7 @@
 >
 > | lo que dice aquí | hoy vale | dónde se republicó |
 > |---|---|---|
-> | `16,9` | **21,3** | ⛔ **republicación PENDIENTE** · 2026-08-06 · medido por el bloque A de la auditoría (A·V3) |
+> | `16,9` | **21,3** | `docs/H1-REPUBLICACIONES.md §A2` · 2026-08-09 |
 >
 > <sub>las veces el azar de los portales como testigos</sub>
 <!-- SUPERADOS:FIN -->
