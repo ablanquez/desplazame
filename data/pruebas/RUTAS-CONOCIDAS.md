@@ -52,7 +52,7 @@ cazando.**
 
 ---
 
-## La calibración — un solo dato, y hay que saberlo
+## La calibración — DOS datos desde el 9/08/2026
 
 | | |
 |---|---|
@@ -62,7 +62,58 @@ cazando.**
 | **Velocidad** | **~6 km/h** |
 | **Rodeo real** | 2.600 / 2.380 = **1,09** |
 
-⚠️ **Las BANDAS cuelgan de UN trayecto.** Si esos 25 minutos fueran 22, se mueven.
+### ⭐⭐ La segunda medición (9/08/2026) — y con ella las bandas dejan de ser circulares
+
+| | |
+|---|---|
+| **Trayecto** | nº8 (El Coloso 2 → Consultas Externas, Hospital Miguel Servet) |
+| **Distancia** | **6,60 km · GPS de pulsera**, aproximada |
+| **Tiempo** | **59 min**, y ⭐ **casi sin semáforos: movimiento continuo** |
+| **Velocidad** | **6,71 km/h** |
+
+⭐⭐⭐ **Por qué esta medición vale mucho:** es **dos veces y media más larga** que la nº7. *Si el
+motor acierta en 2,6 km y en 6,6 km, ya no es casualidad de escala.* **Y sobre todo: con DOS
+distancias medidas, las bandas dejan de derivarse del mismo ritmo que juzgan.**
+
+⚠️ **Y las dos velocidades NO coinciden, y eso se escribe en vez de esconderse:**
+
+```
+   nº7   2,6 km / 25 min   →   6,24 km/h    urbano, con esperas
+   nº8   6,6 km / 59 min   →   6,71 km/h    ⭐ casi sin semáforos
+   ⇒ diferencia                  7 %
+```
+
+⭐ **Esa diferencia no es ruido: es el dato que faltaba.** Dice que el ritmo real está **por encima
+de 6,2** y que **la parada urbana se come alrededor de medio km/h**. ⛔ Con un solo trayecto no se
+podía ni ver.
+⚠️ **`CAUSA NO CONFIRMADA`:** la explicación —semáforos— es plausible y **no está medida**. Haría
+falta el mismo trayecto con y sin esperas.
+
+⛔⛔ **Y el número incómodo, declarado y no absorbido: LA INCERTIDUMBRE DEL CONTRASTE ES DEL MISMO
+TAMAÑO QUE EL EFECTO.** *El destino andado fue **Consultas Externas**; el portal más cercano de esa
+calle, el nº1, está a **134 m** — un **2,0 %** sobre 6,6 km. Y la diferencia motor↔GPS que se quiere
+medir es del **−3,5 %**.* ⇒ **Con este destino la nº8 NO puede validar los metros del motor:
+cualquier resultado cae dentro del margen de no saber dónde acaba el trayecto.**
+
+⭐⭐ **PERO SÍ VALIDA EL RODEO, que es «la columna que manda».** *Los dos portales candidatos están a
+134 m uno del otro y dan **el mismo rodeo físico: 1,089** — porque ruta y recta se mueven juntas.
+**El rodeo es adimensional y no depende del punto exacto de llegada.*** ⇒ **Confirma que a 6,4 km el
+rodeo sigue en 1,089, clavado al 1,09 medido de la nº7.**
+
+⚠️ **Y lo que la convertiría en validación de metros:** **la coordenada de la puerta por la que se
+entró.** Con ella el margen baja de 134 m a unos pocos. ⛔ `NO CONSTA`.
+
+⚠️ **El callejero de esa vía, medido:** 7 portales (1·3·5·6·7·9·13), **el 2 NO existe**, y el 6 es
+el único par. *Por eso `Padre Arrupe 2` no resolvía: el buscador pide un par, solo existe el 6, y lo
+ofrece como sugerencia sin resolver por su cuenta — la regla de la tanda 33 funcionando.*
+
+⚠️ **Y el centroide se delata sin necesidad de la nº8:** el complejo engancha a **70,8 m** de la
+calle más cercana, **por encima del `AVISO_ENGANCHE_M = 65`**, que es el p99 del callejero. **El
+destino cae en el 1 % peor.**
+
+---
+
+⚠️ **Las BANDAS colgaban de UN trayecto hasta el 9/08.** Si esos 25 minutos fueran 22, se mueven.
 ⛔ **Los tiempos que publica el buscador ya NO** — desde el 8/08/2026 salen de una **constante
 estándar de 5,0 km/h**, la de OSRM y openrouteservice. *Un buscador de rutas no puede publicar el
 ritmo de una persona.*
@@ -107,10 +158,13 @@ dejarían de juzgarlo para repetirlo.**
 | 5 | Principado de Morea 14 | C.C. Utrillas | *(medir)* | ~450–550 m | **≤ 1,45** | ~5 min | **Corto y cotidiano.** En 500 m, un error de enganche de 30 m es el 6 % | |
 | 6 | Calle Francisco de Quevedo 1 | Calle Matadero 1 | 484 m | ~450–550 m | **≤ 1,45** | ~5 min | ⭐ **DOS PORTALES EN ESQUINA** (los dos, el nº 1). Ataca la salvaguarda **D3** | ✅ **v1: la esquina no engañó al enganche** (3,9 y 2,7 m). Los testigos callan porque las aceras no tienen nombre — **y callar es lo correcto** |
 | 7 | Calle El Coloso 2 | Calle Valle de Zuriza 48 | 2.380 m | **2,4–2,6 km** ✅ | **≤ 1,20** | **~25 min** | ⭐⭐ **EL DE CALIBRACIÓN.** Único con distancia **medida** y tiempo de repetición | ⚠️ **Ya NO sale de aquí la velocidad del buscador** (8/08: constante estándar de 5,0 km/h). De aquí salen **las BANDAS de distancia**, que siguen a ~6 km/h **porque son el ritmo de Antonio y su trabajo es juzgar los metros, no calcularlos** |
+| 8 | Calle El Coloso 2 | **Calle Padre Arrupe 1** | **5.857 m** | **~6,4–6,6 km** ⚠️ | **≤ 1,60** · ⭐ **real 1,09** | **~59 min** | ⭐⭐ **LA SEGUNDA MEDICIÓN**, 2,5× más larga que la nº7. ⚠️ **Valida el RODEO, no los metros** | **6,60 km / 59 min = 6,71 km/h** (9/08, GPS) · motor **6.366 m**, ⚠️ **corto por 34 m sobre la banda — y NO se ajusta**: la banda es de apoyo, el rodeo es el criterio y entra holgado. ⛔ **El destino andado fue Consultas Externas y este portal está a 134 m** ⇒ 2,0 %, del tamaño de lo que se querría medir. ⛔⛔ **El texto TIENE que acabar en el número: un paréntesis detrás lo tapa, cae en `numero-aproximado` y mide otro portal SIN dar error** |
 
 ⚠️ **Los rodeos son propuestos, no medidos.** Se ajustan cuando haya rodeos reales de varios
 trayectos — **y el ajuste se declara**, no se hace en silencio. El de la nº4 es más generoso porque
 una estación obliga a rodear el edificio; el de la nº7 es más estricto porque **está medido: 1,09**.
+⭐ **El de la nº8 (≤ 1,60) se propone por el mismo criterio que el de la nº4:** destino en **edificio
+grande**, que obliga a rodear. ⚠️ **Su rodeo real NO se puede calcular todavía: falta la recta.**
 
 ---
 
@@ -171,15 +225,22 @@ al Clínico de la nº3 y a cualquier POI grande.
 - ⭐ Uno con destino en un **barrio incomunicado** (Peñaflor): la respuesta correcta es `IMPOSIBLE`.
 - Uno que cruce una **plaza mapeada como área** — abierto desde la tanda 3.
 - Uno **de noche**, cuando exista el reloj (H3).
-- ⭐⭐ **Y una segunda distancia medida con GPS**, la que sea: **toda la calibración cuelga de un
-  solo trayecto.**
+- ✅ ~~Una segunda distancia medida con GPS~~ — **hecha el 9/08/2026: la nº8, 6,60 km en 59 min.**
+  ⭐ *Era lo único de esta lista que no dependía de ninguna tanda de código.*
+- ⭐ **Una TERCERA**, y a ser posible **corta** (bajo 1 km): las dos que hay son de 2,6 y 6,6 km, y
+  cuatro de los siete trayectos son de ~500 m — **el tramo donde más pesa un error de enganche es el
+  que peor cubierto está.**
+- ⭐ **El mismo trayecto con esperas y sin ellas**, para medir lo que hoy es `CAUSA NO CONFIRMADA`.
 
 ---
 
 ## Estado
 
-**Filas reales: 7** · **v2 (3/08/2026)** — velocidad recalibrada a ~6 km/h y rodeo como columna
+**Filas reales: 8** · **v2 (3/08/2026)** — velocidad recalibrada a ~6 km/h y rodeo como columna
 principal.
+⭐ **Nota del 9/08/2026:** entra la **ruta nº8** con la **segunda distancia medida** (6,60 km / 59
+min). ⇒ **Las bandas dejan de colgar de un solo trayecto.** ⚠️ Le faltan la recta, el rodeo y la
+puerta de entrada: **declarados `NO CONSTA`, no estimados.**
 ⭐ **Nota del 8/08/2026:** el buscador dejó de calcular sus tiempos con el ritmo de Antonio y pasó a
 una **constante estándar de 5,0 km/h**. **Esta tabla no cambia**: sus bandas y sus tiempos siguen
 siendo los de Antonio, **porque su trabajo es JUZGAR al motor, no alimentarlo.**
