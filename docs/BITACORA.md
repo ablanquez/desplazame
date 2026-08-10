@@ -8829,14 +8829,43 @@ mismo instrumento a un fichero de la allowlist, el código de salida miente.**
    README.md               1        1           NO ignorado
 ```
 
+⚠️ **De dónde sale la tercera columna, porque la primera versión de esta entrada no lo decía y
+Antonio preguntó, con razón:** `.env.example` **no existe en 004**, así que `git status` no puede
+opinar sobre un fichero ausente. Para esa fila **se creó el fichero en disco**, con una línea de
+comentario y **sin un solo valor**, se leyó `git status` y **se borró**. La columna está **medida,
+no deducida** — pero eso había que enseñarlo y no se enseñó.
+
 ⇒ **`-v` cambia el código de salida.** Sin `-v` el código es el veredicto. **Con `-v`, `exit 0`
 significa «ha casado alguna regla» — incluida una negación `!`**, que es exactamente la regla que
 dice *«esto NO se ignora»*. La salida verbosa es honesta: el `!` está impreso. **El código de
 salida no.** Y el código de salida es lo que se lee cuando se automatiza.
 
-⚠️ **Y falla justo en la mitad del fichero que es de este proyecto.** El `.gitignore` de 004 es
-deny-all con allowlist: **25 reglas `!`** y **35 ficheros versionados** debajo de ellas. Para un
-fichero DENEGADO —el `.pem`, el `.env.local`— los dos códigos coinciden y no se nota nada.
+⚠️ **Y falla en las negaciones, que aquí son 25.** Para un fichero DENEGADO —el `.pem`, el
+`.env.local`— los dos códigos coinciden y no se nota nada.
+
+⛔⛔ **CORREGIDO EL 10/08, Y EL ERROR ERA DE ESTA ENTRADA.** La primera versión decía que *«el
+`.gitignore` de 004 es deny-all con allowlist»*. **Es falso, y no lo medí: lo copié del encargo
+que lo traía escrito de memoria.** Lo que dice el fichero, contado:
+
+```
+   grep -c ''                     .gitignore     334 líneas
+   grep -cvE '^\s*(#|$)'          .gitignore      82 reglas efectivas
+   grep -cE '^\s*!'               .gitignore      25 negaciones
+   y las 25, por sitio:                           24 en data/exploracion/  ·  1 el .env.example
+```
+
+⇒ **Es una lista de exclusiones normal.** El único deny-all es **acotado a una carpeta**
+—`data/exploracion/*`, línea 57— y las credenciales son patrones concretos (`.env`, `.env.*`,
+`*.pem`, `*.key`, `id_rsa*`, `*.p12`, `*.pfx`, `secrets.json`, `credentials.json`), **no una
+denegación general**. Las 25 negaciones son las excepciones de esos dos sitios, no una lista
+blanca del repositorio.
+
+⭐ **El hallazgo NO cambia:** la inversión del código de salida con `-v` es real y se demuestra
+contra la regla. **Lo que cambia es su tamaño**, y hacia abajo: muerde en 25 reglas de dos sitios
+concretos, no en la mitad del fichero.
+⚠️ **Y lo que enseña de propina:** *una caracterización heredada de un encargo entra en la
+bitácora con la misma cara que una medida propia.* Aquí el encargo decía «es deny-all» y yo lo
+escribí como si lo hubiera contado.
 
 **Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la comprobación del encargo de
 hoy, y con el resultado correcto.**
