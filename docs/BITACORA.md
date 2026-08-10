@@ -8811,3 +8811,70 @@ alcance.
 
 **Traza:** `docs/H1-REPUBLICACIONES.md:189` · `0f82afd` (2026-08-09) ·
 `src/modelo-rutas.js:233`
+
+---
+
+## [2026-08-10] — `git check-ignore -v` invierte su veredicto en la allowlist
+
+**Categoría:** el instrumento contesta otra pregunta
+**Síntoma:** el encargo de H2·1 pide comprobar con `git check-ignore -v .env.local` que el fichero
+de la clave del NAP nacería ignorado. Sale `exit 0` y la regla correcta. **Pero al pasarle el
+mismo instrumento a un fichero de la allowlist, el código de salida miente.**
+
+```
+                        sin -v   con -v      lo que dice git status
+   .env.example            1        0        ?? NO ignorado   ⛔ el -v lo da por ignorado
+   .env.local              0        0        !! ignorado
+   .env.inventado-XYZ      0        0        !! ignorado
+   README.md               1        1           NO ignorado
+```
+
+⇒ **`-v` cambia el código de salida.** Sin `-v` el código es el veredicto. **Con `-v`, `exit 0`
+significa «ha casado alguna regla» — incluida una negación `!`**, que es exactamente la regla que
+dice *«esto NO se ignora»*. La salida verbosa es honesta: el `!` está impreso. **El código de
+salida no.** Y el código de salida es lo que se lee cuando se automatiza.
+
+⚠️ **Y falla justo en la mitad del fichero que es de este proyecto.** El `.gitignore` de 004 es
+deny-all con allowlist: **25 reglas `!`** y **35 ficheros versionados** debajo de ellas. Para un
+fichero DENEGADO —el `.pem`, el `.env.local`— los dos códigos coinciden y no se nota nada.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la comprobación del encargo de
+hoy, y con el resultado correcto.**
+
+```
+   git check-ignore -v .env.local
+      .gitignore:28:.env.*	.env.local        exit 0    ✅ y es VERDAD
+```
+
+⛔ **El caso que había delante era del lado que no falla.** La contraprueba histórica de este
+repositorio —la del `*.pem  # claves privadas`, que salvó tres reglas inertes— también era de
+denegación. **El instrumento lleva desde entonces con media cara sin mirar**, y la mitad sin mirar
+es la que protege lo que SÍ tiene que viajar.
+
+**Arreglo aplicado:** ninguno al `.gitignore` —no hace falta, la regla es correcta—. Lo que cambia
+es **cómo se demuestra**: la prueba deja de ser el código de salida y pasa a ser un **fichero real**
+que casa el mismo patrón, con su positivo de control al lado.
+
+```
+   echo … > .env.PRUEBA-BORRABLE      ⇐ casa `.env.*` igual que .env.local
+   echo … > PRUEBA-BORRABLE.txt       ⇐ el positivo de control: NO lo casa nada
+
+   git status --porcelain -uall             ?? PRUEBA-BORRABLE.txt        ⇐ solo ve uno
+   git status --porcelain -uall --ignored   !! .env.PRUEBA-BORRABLE       ⇐ y el otro, ignorado
+```
+
+⛔ El fichero de prueba **no se llamó `.env.local`**: crear ese nombre para probarlo habría dejado
+en disco algo con pinta de fichero de claves, y lo escribe Antonio, no yo.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un flag de diagnóstico puede cambiar lo que devuelve el mandato,
+no solo lo que imprime.** `-v` se pone para VER MÁS y aquí además decide otra cosa. ⇒ **cuando un
+instrumento tiene modo verboso, el veredicto se lee en el modo que se va a usar en producción, no
+en el que se usa para mirar.**
+⚠️ Corolario, y es el que muerde a este repositorio: **una allowlist necesita su propia
+contraprueba.** Comprobar que lo prohibido está prohibido no dice nada sobre si lo permitido está
+permitido, y las dos mitades del `.gitignore` se rompen por motivos distintos.
+
+**Traza:** `.gitignore:28` · `.gitignore:31` · git 2.51.2.windows.1 ·
+`docs/BITACORA.md` (la entrada del `*.pem`)
