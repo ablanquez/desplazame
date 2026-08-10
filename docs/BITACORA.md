@@ -8968,3 +8968,74 @@ declaró, y nadie le declaró la prosa.
 
 **Traza:** `src/superados.js:447` · `003_ZETABUS/docs/auditoria/06-fase7b-ruta-real.md:226` ·
 `docs/BITACORA.md` (la entrada de la banda superada con el puntero en verde delante)
+
+---
+
+## [2026-08-10] — Dije que 003 no tenía NADA de transbordo, y tiene 615 líneas de motor
+
+**Categoría:** clasifiqué la salida de un buscador sin abrirla
+**Síntoma:** el descubrimiento nº1 de H2·2 decía, textual: *«De transbordo, 003 no tiene NADA.
+Medido sobre sus 199 ficheros TypeScript: los 13 aciertos de `transfer|transbordo` son chips de
+interfaz.»* **Es falso por los dos lados.** Al abrir `src/engine/topologia.ts` para otra cosa, sus
+líneas 279-284 dicen que allí vivían `transbordosDe` y `lineasQuePasanPor` y que **se mudaron a
+`src/engine/correspondencias.ts`**.
+
+```
+   grep -rl "transfer\|transbordo" src/ tests/ e2e/ --include=*.ts --include=*.tsx
+      11 ficheros   ⚠️ dije 13
+      src/engine/correspondencias.ts        338 líneas   ⛔ NO es interfaz
+      src/engine/topologia.ts               335 líneas   ⛔ NO es interfaz
+      src/sources/avanza/correspondencias.ts 277 líneas  ⛔ NO es interfaz (sale por otro grep)
+      … + 5 specs de e2e + 2 tests + 2 componentes
+```
+
+⇒ **Dos errores distintos en una sola frase, y el segundo es el grave.** El recuento (13 en vez de
+11) es un descuido. **La clasificación —«son chips de interfaz»— es una afirmación que nunca
+comprobé:** leí once rutas de fichero, vi `page.tsx` y `.spec.ts` entre ellas, y extendí esa
+etiqueta a la lista entera sin abrir las dos que estaban en `engine/`.
+
+⚠️ **Y no es un matiz de vocabulario.** `engine/correspondencias.ts` sirve
+`correspondenciasDeParada`, `otrasLineasEnPoste` y un `ArtefactoIndice` con estado de frescura,
+leído de `data/generated/correspondencias.json`. Es maquinaria de «qué otras líneas puedes coger
+aquí», con índice diario y modo degradado. **Que no sea un enrutador de transbordo no la convierte
+en un chip.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el propio positivo de control
+de la afirmación, y era correcto.**
+
+```
+   afirmación:  «los aciertos de transfer|transbordo son chips de interfaz»
+   control:     stop_code|stopCode → 5 ficheros   ⇒ ✅ el buscador NO está roto
+   batería --todo H2·2   ANTES 12:53:34→13:11:34 · DESPUÉS 13:19:26→13:37:09   las dos exit=0
+   diff cuerpo a cuerpo de las dos salidas: 112 vs 112, VACÍO
+   puntero: D1 0 · D2 0 · D4 ✅ · vallas impares 0 · exit=0
+```
+
+⛔⛔ **El control positivo hizo exactamente su trabajo y no podía salvarme.** Demostraba que el
+`grep` encontraba lo que había — y lo encontraba: `engine/correspondencias.ts` **estaba en la
+salida**. Lo que falló fue **leerla**. Un positivo de control valida el INSTRUMENTO; no valida la
+lectura de lo que el instrumento devuelve, y yo lo usé como si validara las dos cosas.
+
+⚠️ **Y llegó hasta arriba.** La frase se destiló al estado en `DESPLAZAME-ESTADO.md:2825-2826`, y
+como titular de la tanda en `:1615`. ⛔ **No la corrijo yo** —escritor único—: se reporta.
+
+**Arreglo aplicado:** ninguno sobre `docs/RECONOCIMIENTO-H2-HERENCIA-003.md`, que es **registro
+histórico y no se reescribe**. La corrección entra en documento nuevo,
+`docs/RECONOCIMIENTO-H2-CABOS.md` §2.5, diciendo qué corrige y por qué. La superficie de
+`correspondencias.ts` se midió **con `grep` de sus líneas `^export`, sin abrir el fichero**: el
+encargo de hoy limita la lectura a cuatro ficheros de 003 y **un quinto exige preguntar**.
+
+**Commit:** `bcc71c0` (la corrección) · este commit (la entrada)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un positivo de control demuestra que el instrumento ve; no
+demuestra que tú hayas mirado.** Valida el buscador, la consulta y el universo — y deja
+completamente intacta la clasificación que hagas después con sus resultados en la mano. ⇒ **cuando
+la conclusión es una ETIQUETA sobre N aciertos («son todos de X»), el control que hace falta no es
+que el buscador funcione: es abrir los N.** Once eran once, y me sobraba con abrir dos.
+⚠️ Corolario del tamaño: la etiqueta se puso sobre once ficheros y **falló en tres**. Un 27 % de
+error en una afirmación que se publicó con la palabra «NADA» y en mayúsculas.
+
+**Traza:** `003_ZETABUS/src/engine/topologia.ts:279-284` ·
+`003_ZETABUS/src/engine/correspondencias.ts` (338 líneas, no abierto) ·
+`docs/RECONOCIMIENTO-H2-HERENCIA-003.md` §6·1 · `docs/BITACORA.md` (la entrada de la ruta de
+fichero que no existía — el mismo día, y también sobre 003)
