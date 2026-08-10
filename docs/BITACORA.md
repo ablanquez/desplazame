@@ -9347,3 +9347,92 @@ tanda**, no un hueco que rellenar con trabajo. Tratarlo como hueco es lo que pro
 
 **Traza:** `src/superados.js` (el que lee `docs/`) · `src/probar-paradas.js:217` (su universo es
 `__dirname`, o sea `src/`) · `docs/H2A-ENGANCHE-DE-LAS-PARADAS.md` §7
+
+---
+
+## [2026-08-10] — Una parada contra sí misma mide 15,70 metros
+
+**Categoría:** el motor no puede andar por dentro de una arista
+**Síntoma:** al provocar a propósito el cuarto veredicto del enlace —el que dice *«estas dos
+paradas son el mismo punto para el grafo»*— se le pasó a `G.rutaEntre` **la misma parada dos
+veces**. Debería dar 0.
+
+```
+   veredicto("PA00002" Agustín Príncipe N.º 2, LA MISMA)
+      el motor dice ....... 15,70 m
+      la verdad es ......... 0,00 m
+```
+
+⇒ **Y no es un redondeo: es la estructura.** `src/grafo.js:227-228` inserta **dos nodos temporales
+independientes** y `insertar` (`:211-213`) enlaza cada uno **solo con los dos extremos de la
+arista**, nunca entre sí:
+
+```
+   const enlaza = (n, w) => { ady[id].push({ n, w, … }); ady[n].push({ n: id, w, … }); };
+   enlaza(e.a, antes);
+   enlaza(e.b, resto);
+```
+
+⛔ **Si las dos puntas caen en la MISMA arista, no hay camino directo entre ellas.** El corto es
+`A → extremo → B`, o sea **salir a la esquina y volver**. Para un punto a 7,85 m del extremo más
+cercano, ida y vuelta: 15,70 m.
+
+⭐⭐ **Y no es un caso de laboratorio. Medido sobre los pares candidatos reales:**
+
+```
+   pares candidatos bus×bus (≤300 m, con línea nueva) ...... 2.266
+   ⛔ con las dos puntas en la MISMA arista .................... 16   (0,7 %)
+
+   el motor    la verdad    se infla    el par
+     78,9 m       3,0 m     +75,9 m    Camino De Los Molinos × Camino De Los Molinos
+     86,1 m      16,8 m     +69,3 m    Av. De Madrid N.º 29 × Av. De Madrid / Aljafería
+     80,1 m      10,9 m     +69,2 m    Av. De Madrid N.º 36 × Av. De Madrid N.º 38
+
+   inflación: mín +1,2 · p50 +49,0 · p90 +69,3 · máx +75,9 m
+   factor motor/verdad: mediana 2,79× · MÁXIMO 26,4×
+```
+
+⭐ **Positivo de control:** un par cuyas puntas caen en aristas **distintas** sale normal —
+`PA00002 × PA00004`, motor 291,1 m contra 242,1 m de recta, **rodeo 1,20**. ⇒ El sesgo es
+exclusivo del caso «misma arista», no un problema general del motor.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **H1 entero, y lleva así desde
+que existe el enganche a arista.**
+
+```
+   batería --todo  18:38:28 → 18:55:21   exit=0                    ✅
+   las diez rutas de RUTAS-CONOCIDAS.md, todas dentro de banda      ✅
+   el rodeo de las diez, entre 1,06 y 2,17, con su tope declarado   ✅
+   la ruta de cordura Puerta del Carmen → Magdalena, resuelta       ✅
+```
+
+⛔⛔ **Y no podía cazarlo ninguna de ellas, porque las diez rutas van de un portal a otro
+DISTANTE.** El caso solo aparece cuando origen y destino comparten segmento de calle — que en H1
+es raro y en H2a es **justo el caso que más importa**: el transbordo corto. **La comprobación de
+H1 no estaba mal: estaba mirando el rango donde el defecto no vive.**
+
+**Arreglo aplicado:** ⛔ **ninguno en `src/grafo.js`. H1 está fuera del alcance de esta tanda y no
+se toca por iniciativa propia.** Lo que se hace es:
+1. el cuarto veredicto **se redefine**: era `MISMO PUNTO` (camino < 1 m), que **no puede ocurrir
+   nunca** por esto mismo — un valor inalcanzable, o sea una promesa. Pasa a ser **`MISMA ARISTA`**,
+   que sí es detectable y sí es el caso real;
+2. el veredicto **publica los dos números**, el del motor y el verdadero a lo largo de la arista,
+   con la diferencia al lado. ⛔ **No corrige el metraje**: medir el sesgo y taparlo son cosas
+   distintas, y taparlo aquí escondería un defecto de H1 en un fichero de H2a;
+3. se reporta hacia arriba como descubrimiento.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un grafo que inserta puntos al vuelo no sabe ir de un punto
+insertado a otro si comparten arista.** Es una consecuencia estructural de partir la arista *por
+consulta y por punto* en vez de *por consulta*: los dos cortes no se conocen. ⇒ **Todo enganche al
+vuelo tiene que preguntarse qué pasa cuando los dos extremos caen en el mismo sitio**, porque el
+resultado no es un error visible: es un número corto, creíble y mayor que la verdad.
+⚠️ Corolario que es el que muerde a este proyecto: **el caso límite de H2·5 estaba mal enunciado y
+aun así valía.** Se avisó de *«dos andenes enfrentados darán 0 m»*; el 0 no existe, pero ir a
+buscarlo destapó algo peor — **no un cero sospechoso, sino un número plausible**. *Un caso límite
+mal formulado sigue siendo mejor que no mirarlo.*
+
+**Traza:** `src/grafo.js:211-213` · `src/grafo.js:227-228` ·
+`tools/grafo/veredicto-enlace.js` · `docs/H2A-ENGANCHE-DE-LAS-PARADAS.md` §5·2 (el caso límite,
+enunciado como «0 metros»)
