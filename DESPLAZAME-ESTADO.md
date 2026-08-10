@@ -36,17 +36,22 @@ las siete tandas de arreglo cerradas. **Lo siguiente es H2: la red de transporte
   `data/pruebas/RUTAS-CONOCIDAS.md`, que **es de Antonio** y entró al repositorio en la tanda 7).
   Las siete primeras las verificó Antonio **con los ojos sobre el mapa** en la tanda 16.
   ⚠️ **La nº1 ya no devuelve metros: desde la paridad va en sugerencia** (§7·99).
-  ⛔ **`NO CONSTA` si la nº9 y la nº10 son costura de parada como las demás** — *pendiente de
-  decisión de Antonio, no de medición.*
+  ⭐ **DECIDIDO el 10/08 (Antonio): la nº9 y la nº10 SON costura de parada**, como las demás.
+  *Motivo: de las diez rutas solo cuatro tienen GPS, y tres de esas cuatro sostienen la velocidad
+  urbana medida. Dejarlas fuera sería tener el mejor dato del proyecto **sin contradictor*** (ley
+  111). ⚠️ **Coste declarado: dos costuras más que pueden ponerse rojas — y la nº10 rompe el origen
+  común de El Coloso 2, así que fallará por motivos distintos que las demás. Eso es la ventaja, no
+  el coste: una costura que solo se rompe como las otras no añade cobertura.**
 - ⭐⭐ **La velocidad es la ESTÁNDAR, no la de nadie: `VELOCIDAD_KMH = 5,0`** — la de
   OSRM/Valhalla/openrouteservice, elegida para que los tiempos sean **comparables** con los suyos.
   ⇒ **La nº7 ya NO calibra nada** (tanda de arreglo 4, §10).
 - **26 números publicados congelados**, y ya han avisado en caliente más de una vez.
-- ⛔ **PENDIENTE DE MEDIR: ficheros, líneas de JavaScript y commits.** *Las cifras que este bloque
-  publicaba —74 ficheros · 24.931 líneas · 166 commits— eran del 6 de agosto, con siete tandas de
-  arreglo por medio.* **No se estiman: se miden.**
-  `git ls-files 'src/*.js' | wc -l` · `git ls-files 'src/*.js' | xargs wc -l | tail -1` ·
-  `git rev-list --count HEAD`
+- ⭐ **MEDIDO el 10/08: `src/` son 74 ficheros · 27.097 líneas · 235 commits** *(contra los
+  74 · 24.931 · 166 que este bloque publicaba del 6/08)*. ⭐⭐ **Y el 74 quieto no era sospechoso:
+  es la firma de una auditoría** — las siete tandas de arreglo **no crearon un solo fichero** y
+  engordaron los que había en **2.166 líneas**. Se toca lo que hay en vez de construir al lado.
+  ⚠️ **Son líneas de FICHERO, no de código:** incluyen blancos y comentarios. Los dos patrones
+  (`src/*.js` y `src/**/*.js`) dan idéntico ⇒ **`src/` es plana**, y el recuento es completo.
 
 **LA AUDITORÍA DE CIERRE DE H1 — hecha entera, cuatro bloques.**
 
@@ -200,7 +205,7 @@ devolvería el proyecto al terreno de 003.
 | ⭐ **Nodos (origen/destino)** | 46.150 portales WGS84 con `codigoVia` | ✅ Limpios. 46.147 coordenadas únicas de 46.150 |
 | **Geocodificador** | Heredado del dataset previo | ✅ 3.359 vías tokenizadas sin tildes, `by-street` con 2.731 calles, normalizador de abreviaturas. **Reutilizable tal cual** |
 | ⭐ **Red peatonal fina** | **OpenStreetMap** (Overpass) | ✅ **INTEGRADA — es la geometría base del grafo (D0)**: 68.649 nodos y 98.774 aristas. Aceras, pasos de peatones y escaleras **como líneas** y **ya nodalizadas por diseño**. ⚠️ **ODbL con efecto share-alike, declarada en el README** (tanda 2). *Corregido el 9/08: esta fila decía «decidida, no integrada» con el grafo entero construido encima.* |
-| ⭐ **Transporte** | **GTFS 1176 del NAP** (bus + tranvía) | ⬜ Decidido, no descargado. 984 paradas, 52+1 rutas, 34.427 viajes, 870.717 horarios, `shapes.txt` con 89 trazados sanos. ⚠️ **CADUCA EL 05/10/2026** y exige clave propia del NAP |
+| ⭐ **Transporte** | **GTFS 1176 del NAP** (bus + tranvía) | ✅ **DESCARGADO el 10/08 con código propio de 004** (`tools/bajar-gtfs.js`) — ⛔ **NO se copió de 003**. `feed_version 20260623_AUZSA_Y_TRANVIA` · 6.883.311 B · sha256 `5c96992c…f3a82`. **984 paradas · 53 rutas · 34.427 viajes · 870.717 horarios · 89 trazados sin huérfanos**, remedidos. ⚠️ **CADUCA EL 05/10/2026, Y EN DOS TIEMPOS: el bus respeta sus fechas al día, el tranvía se sale 87 días.** ⛔ **NO trae transbordo de ninguna forma** (§4·H2). *Hasta el 10/08 esta fila decía «decidido, no descargado»* |
 | **BiZi** | `MU1_estaciones_bici_ubicacion` (WFS) + API de la sede | ✅ 276 estaciones, 5.520 anclajes. Las dos fuentes consistentes |
 | **Destinos (POI)** | Farmacias, centros cívicos, equipamientos | ✅ Baratos de añadir: **no tocan el motor**, son nodos enganchados al grafo |
 | **Validadores** | Semáforos, puentes, manzanas, ríos | ⬜ No son dato del grafo: **sirven para comprobarlo** |
@@ -849,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 115 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 126 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento quince instrumentos mintiendo** —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento veintiséis instrumentos mintiendo** *(115 al cerrar H1 + 11 en las dos tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -978,6 +983,18 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 113 | ⛔⛔⛔ **EL LITERAL `7` DE `modelo-rutas.js` ERA EL FALLO QUE LA TANDA 2·bis CREYÓ CERRADO.** `const ESPERADOS = 7 - Object.keys(A_SUGERENCIA).length` **derivaba una mitad y dejaba la otra a mano**. Se arreglaron `donde-falta.js` y `pasos.js` **y quedaba un tercero — en el fichero que vigila las rutas.** ⭐⭐⭐ **Y solo apareció cuando el mundo cambió: al entrar la ruta nº8** |
 | 114 | ⛔⛔ **UN REPARTO PUBLICADO MAL, Y LA SUMA LO TAPÓ.** Los 120 pasos se repartieron `83 + 9 + 28` y **el total cuadraba**. ⭐⭐⭐ *El número que se comprueba es el correcto: un reparto mal con el total bien es de lo más difícil de ver, porque el guardián mira la suma* |
 | 115 | ⛔⛔⛔ **Y DOS DE ESTA CONVERSACIÓN, LOS DOS POR NO MEDIR:** dijo **«~35 min»** de la batería **en cinco encargos seguidos** —cronometrada, son **17m29s**: se estimó una vez y se repitió veinte— y pidió publicar **«dos de los ONCE hallazgos»** sin contarlos. ⭐ **El ejecutor fue a contar y el número cambia con la expresión regular** (8 · 10 · 13) ⇒ **enumeró en vez de contar.** *Ley 116 contra quien escribió el encargo* |
+| | **⬇ H2 · TANDAS 1 Y 2 (10/08) — ONCE MÁS, Y NUEVE SON DE ESTA CONVERSACIÓN** ⬇ | |
+| 116 | ⭐⭐⭐ **`git check-ignore -v` INVIERTE SU VEREDICTO.** Sin `-v` el código de salida es el veredicto; **con `-v`, `exit 0` significa «ha casado alguna regla» — incluida una negación `!`**, que es la que dice *«esto NO se ignora»*. La salida verbosa es honesta; el código de salida no, **y el código es lo que se automatiza.** ⛔ **Y el instrumento lo escribió esta conversación, como positivo de control sobre un fichero de CLAVES.** El caso que había delante era del lado que no falla |
+| 117 | ⭐⭐ **UNA CARACTERIZACIÓN NO MEDIDA VIAJÓ DE UN ENCARGO A LA BITÁCORA COMO MEDIDA PROPIA.** Esta conversación escribió *«el `.gitignore` de 004 es deny-all con allowlist»* de memoria, arrastrado de 003. **Es falso**: es una lista de exclusiones normal con dos deny-all acotados (`data/exploracion/*` y las credenciales), y los 25 `!` son sus excepciones. El ejecutor lo copió a la bitácora nº177 **con la misma cara que una medida suya.** *Es el nº99 otra vez, tres días después* |
+| 118 | ⭐⭐⭐ **UNA RUTA DE FICHERO CITADA DE MEMORIA, CON NOMBRE PLAUSIBLE.** `06-fase7b-desvios.md` no existe; es `...ruta-real.md`. **El contenido citado era correcto** —salió de un `grep` que sí devuelve la ruta buena— y el nombre se reconstruyó después. ⚠️ **Encaja en la serie de la carpeta** (`02-fase4-color-y-desvios`, `03-fase5-desvios`): un lector que no abra el fichero no puede sospechar. Al pasar el `ls` a las ocho rutas salieron **cinco números de línea más y un recuento**. ⭐ **El reparto dice de qué va: el nombre falló UNA vez y las coordenadas CINCO** |
+| 119 | ⛔⛔ **UN CONTROL CUYO VERDE ERA IMPOSIBLE POR CONSTRUCCIÓN.** El saneamiento exigía 0 apariciones de `Decidida, no integrada` — **pero un documento que registra sus correcciones contiene por fuerza el texto retirado entre comillas.** Dio 2, y las dos eran citas. *Ley 136 mordiendo veinte minutos después de escribirse en este documento* |
+| 120 | ⭐⭐ **LA LÍNEA BASE DEL SANEAMIENTO SE EJECUTÓ DESPUÉS DEL CAMBIO QUE IBA A PROTEGER.** Pedía ver 2.697 líneas antes de sustituir; cuando se corrió ya había 2.819. **No se puede atestiguar a posteriori** — se reconstruyó por huella git (`0a3423d…` y `76391073…`, las dos cuadraron) |
+| 121 | ⭐ **`Measure-Object -Line` NO CUENTA LAS CADENAS VACÍAS.** Dio **2.273** donde `(Get-Content).Count` daba **2.697**: la diferencia son las **424 líneas en blanco**. **Dos instrumentos contestando «¿cuántas líneas?» en la misma sesión, con dos respuestas y las dos correctas para su pregunta** |
+| 122 | **`[System.IO.File]` NO COMPARTE EL DIRECTORIO ACTUAL DE PowerShell.** Buscó `.env.local` en `C:\Users\Ordenador` después de un `cd` a `F:`. *De propina, un resultado bueno: no hay ningún `.env.local` suelto en la carpeta de usuario* |
+| 123 | ⭐ **`Read-Host -AsSecureString` NO ADMITE PEGAR** en la consola de Windows: registró **un carácter**. Se pidió pegar con un método que no deja pegar. ⭐⭐ **Lo cazó el control de longitud —esperaba 36, salió 1—**, que estaba puesto justo para eso |
+| 124 | ⭐⭐ **ESTA CONVERSACIÓN AFIRMÓ QUE `get_stops_list` DEVUELVE LA TRAZA REAL DE HOY.** Medio falso, y la mitad falsa era la que importaba: **refleja los desvíos de obras y NO las prolongaciones estacionales** — 003 lo midió con la línea 44, que tenía **cero viajes ese día** y aun así recibía el trazado completo. **Se repitió como hecho una frase propia de una conversación de julio contra un documento medido** |
+| 125 | ⭐ **CONTAR `.ts` Y LLAMARLO «FICHEROS TYPESCRIPT».** 167 era correcto; el sustantivo no: faltaban 32 `.tsx`. **199.** El ejecutor no pudo reproducir el 167 con cuatro filtros y lo dejó en `CAUSA NO CONFIRMADA` — *el número era bueno y la etiqueta lo hacía irreproducible* |
+| 126 | ⛔ **UN FALSO ROJO CONTRA EL EJECUTOR: `Test-Path` DIO `False` Y SE LEYÓ COMO «NUNCA EXISTIÓ».** Él había creado `.env.example`, medido y borrado. **Se midió después del hecho y se concluyó sobre el antes** — la misma forma que el nº120, el mismo día |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1441,6 +1458,51 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     la ley 127 vista desde el otro lado: **el instrumento no distingue afirmar de transcribir, y el
     precio lo paga quien escribe.**
 
+137. ⭐⭐⭐ **LA MAQUINARIA ES LA FÓRMULA. LA DECISIÓN ES LA VALLA. Y LO QUE SE COPIA ES LA SEGUNDA.**
+    *De la herencia de 003: `poste = int(stop_code[2:])` era correcto allí **y su autor lo encerró en
+    la capa de fuente citando al tranvía por su nombre**.* ⇒ **El peligro de heredar no es copiar un
+    fallo: es copiar la fórmula y dejarse la valla** — porque la fórmula cabe en una línea y la valla
+    vive en un párrafo de un documento de diseño que nadie está obligado a leer.
+
+138. ⭐⭐⭐ **UN CONTROL CUYO VERDE ES IMPOSIBLE POR CONSTRUCCIÓN NO ES UN GUARDIÁN: ES UNA CEREMONIA.**
+    *Un documento que registra sus correcciones **tiene que** contener la frase retirada, entre
+    comillas, o la corrección no se puede leer.* ⇒ Antes de exigir un cero, se comprueba **si ese cero
+    puede darse alguna vez**.
+
+139. ⭐⭐⭐ **EL DOCUMENTO QUE GOBIERNA A LOS DEMÁS ES EL QUE NINGÚN MECANISMO VIGILA — Y ES EL PRIMERO
+    QUE LEE QUIEN LLEGA.** *La auditoría cubrió el código, los 44 de `docs/` y las decisiones.
+    `DESPLAZAME-ESTADO.md` no entró en ninguno de los cuatro bloques: `superados.js` marca `docs/` y
+    este fichero vive en la raíz.* ⇒ **Es la ley 111 en el peor sitio posible.**
+
+140. ⭐⭐⭐ **UNA RUTA DE FICHERO ES UNA AFIRMACIÓN, Y SE VERIFICA COMO TAL.**
+    *El contenido y su dirección son dos hechos distintos: acertar el primero no dice nada del
+    segundo.* ⚠️ **Y en un registro histórico la dirección es lo único que le queda al que venga
+    después.** Corolario medido: **lo que se degrada al resumir de memoria no es el fichero —ése se
+    recuerda— son las COORDENADAS dentro de él** (un nombre mal contra cinco líneas mal).
+
+141. ⭐⭐ **UN FLAG DE DIAGNÓSTICO PUEDE CAMBIAR LO QUE DEVUELVE EL MANDATO, NO SOLO LO QUE IMPRIME.**
+    *`-v` se pone para VER MÁS y además decide otra cosa.* ⇒ **El veredicto se lee en el modo que se
+    va a usar en producción, no en el que se usa para mirar.**
+
+142. ⭐⭐ **UNA ALLOWLIST NECESITA SU PROPIA CONTRAPRUEBA.**
+    *Comprobar que lo prohibido está prohibido no dice nada sobre si lo permitido está permitido, y
+    las dos mitades de un `.gitignore` se rompen por motivos distintos.* ⚠️ Y el caso de 004 lo
+    empeora: **`tools/` no la protege ninguna regla** — se versiona por defecto lo que caiga ahí, y
+    cada derivado ha tenido que excluirse **a mano, cuatro veces**.
+
+143. ⭐⭐ **MÁS PUNTOS NO ES MÁS VERDAD.**
+    *Heredada de 003, medida allí: `shapes.txt` trae 300-440 puntos por trazado **y miente cuando hay
+    obras**; el KML trae 153 **y dice la verdad**.* ⇒ Precisión sin exactitud. ⚠️ **Muerde directo
+    aquí: 004 publica metros con un decimal sobre una geometría que puede estar desactualizada.**
+
+144. ⭐⭐⭐ **CUANDO EL DATO NO TRAE LA RELACIÓN, LA RELACIÓN ES TUYA — Y QUIEN TIENE POR DÓNDE ANDAR NO
+    NECESITA UN RADIO.**
+    *El feed no trae `transfers.txt`, ni `pathways.txt`, ni un solo `parent_station`, y **bus y
+    tranvía no comparten ni una parada de 984**.* ⇒ **Todo transbordo entre modos es forzosamente un
+    tramo a pie.** Los routers que no tienen grafo peatonal lo resuelven con un radio fijo. **004 lo
+    puede CALCULAR andando** — y eso convierte H1 en pieza portante del multimodal, no en un
+    accesorio que se hizo antes.
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1549,7 +1611,10 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **Ar 6** | ⭐⭐⭐ El latido lee — **y Antonio sale a andar: la nº8** | **H1** | ✅ |
 | **Ar 7** | ⭐⭐ La portada cuenta la auditoría · **rutas nº9 y nº10** | **H1** | ✅ **4 de 5 bandas, medidas** |
 | **—** | ⭐⭐ **H1 CERRADO** *(el diario de A→Ar7 vive en §10, no aquí)* | **H1** | ✅ **9/08** |
-| **H2** | *(siguiente: **LA RED DE TRANSPORTE**)* | **H2** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
+| **H2·1** | ⭐⭐⭐ **RECONOCIMIENTO DEL GTFS** — bajado con código propio y contado | **H2** | ✅ **10/08** ⛔ **el transbordo NO viene** |
+| **H2·2** | ⭐⭐ **LA HERENCIA DE 003** — datos, decisiones y maquinaria | **H2** | ✅ **10/08** ⛔ **de transbordo, nada que heredar** |
+| **H2·3** | *(siguiente: **las vallas y los cabos** — cuatro verificaciones de solo lectura)* | **H2** | ⬜ |
+| **—** | *(y luego: **EL DESGLOSE DE H2**, que ya se puede hacer sin enumerar)* | **H2** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -2724,6 +2789,96 @@ segundo par de ojos.
 *"JSON maestros ubicados"* y **la licencia no consta**. Es el caso de la capa de nombres de 003 con
 otra piel.
 
+### ⭐⭐⭐ H2 · LA RED — LO QUE SE SABE TRAS LAS DOS PRIMERAS TANDAS (10/08)
+
+**H2 abierto el 10/08.** Dos tandas de reconocimiento, ninguna línea de código de producto.
+Registro entero en `docs/RECONOCIMIENTO-H2-GTFS.md` y `docs/RECONOCIMIENTO-H2-HERENCIA-003.md`.
+
+> ⭐⭐⭐ **LO QUE DECIDE EL TAMAÑO DEL HITO: EL TRANSBORDO NO VIENE, DE NINGUNA FORMA.**
+> `transfers.txt` ⛔ · `pathways.txt` ⛔ · `levels.txt` ⛔ · `parent_station` no vacío **0 de 984** ·
+> `location_type = 1` **0 de 984**. **Y bus y tranvía no comparten NI UNA parada:** 934 + 50 = 984,
+> intersección **0**, huérfanas **0**.
+> ⇒ **Todo transbordo entre modos es forzosamente un tramo A PIE, y hay que construirlo entero.**
+> ⭐⭐ **Y ahí está la ventaja: los routers sin grafo peatonal lo resuelven con un radio fijo. 004 lo
+> puede CALCULAR ANDANDO.** H1 deja de ser un hito previo y pasa a ser **pieza portante** (ley 144).
+
+**H2·1 · EL GTFS, BAJADO Y CONTADO (10/08).**
+
+- ⭐ **Cuatro sondas antes de creerse el `200`** (ley 34): sin clave **401** · clave inventada con
+  forma de UUID **401 con otro mensaje** · ficha 999999 **500** · la 1176 **200 y 6.883.311 B**.
+  ⭐⭐ **La que discrimina es la segunda: dos mensajes distintos ⇒ comprueba la clave, no la cabecera.**
+- ⚠️ **El NAP responde 500, no 404, a una ficha inexistente.** ⇒ **El día que la 1176 desaparezca,
+  la señal será indistinguible de una avería.** Dato operativo del plazo del 05/10.
+- ⛔ **La respuesta no trae `last-modified`, ni `etag`, ni `age`, ni `via`.** Desde HTTP **no se puede
+  saber si es fresco o una réplica rancia**: la frescura hay que sacarla de dentro del fichero.
+- ⭐⭐ **Ocho filas de nueve cuadraron con lo publicado el 2/08 — y NO se celebró.** Se comprobó si se
+  estaba leyendo el mismo artefacto: la descarga es de hoy (`date` + `x-correlation-id` único), el
+  servicio está vivo (tres cuerpos distintos), **y es el mismo fichero: el feed no se republica desde
+  el 23 de junio.** ⇒ ⭐⭐⭐ **La descarga es fresca y el dato es viejo, y las dos son ciertas.
+  Cuadrar no valida el instrumento: valida que el feed lleva siete semanas quieto.**
+- ⛔⛔ **EL PRIMER CONTROL DE VERDAD SERÁ LA PRÓXIMA DESCARGA**, cuando cambie el `feed_version`.
+  *Hasta entonces, todo lo que este proyecto cree saber del GTFS sale de un fichero inmóvil.*
+
+**H2·2 · LA HERENCIA DE 003 (10/08).**
+
+- ⭐⭐⭐ **Lo que 003 tiene de valor no son sus datos: son sus VALLAS** (ley 137).
+- ⛔ **De transbordo, 003 no tiene NADA.** Medido sobre sus 199 ficheros TypeScript: los 13 aciertos
+  de `transfer|transbordo` son **chips de interfaz**. **Positivo de control en el mismo universo:**
+  `stop_code|stopCode` → 5 ficheros ⇒ **el buscador funciona, la ausencia es real.**
+- ⭐ **Se hereda ejecutada:** el GTFS se procesa en BUILD, no en runtime · cada geometría lleva su
+  procedencia y **no se mezclan jamás** · ante dos fuentes que se contradicen **no se adjudica: se
+  citan las dos y quién lo dice** · nunca decir «todos» · fuera el tiempo real.
+- ⚠️ **Se hereda CON CAMBIO:** *el nombre bueno se pide al operador* — pero **en 004 los operadores
+  son TRES** (Avanza, Tranvías, y el Ayuntamiento que nombra los portales), **y para el peatón puede
+  que no haya a quién preguntar.**
+- ⛔ **Cobertura declarada e incómoda: 3.101 de 22.615 líneas de documentación (13,7 %) y CERO de
+  199 ficheros de código.** ⇒ **El cubo MAQUINARIA se apoya en documentos** — en un repositorio que
+  tiene catalogado por escrito un caso de documento de diseño que promete un `User-Agent` **que el
+  código nunca implementó**. *Hay prueba, dentro de 003, de que sus documentos pueden mentir sobre su
+  código.*
+
+**LO QUE SE MIDIÓ Y CORRIGE AL PROPIO PROYECTO:**
+
+| | qué | |
+|---|---|---|
+| ⭐⭐ | **La caducidad es POR OPERADOR, no del feed** | El bus respeta `20260623–20261005` **al día, 0 filas fuera**; el tranvía mete **quince meses** (20250916 → 20261227). **72 filas posteriores al 05/10, y cinco de esos seis servicios TIENEN VIAJES** ⇒ *un motor que no mire `feed_end_date` seguirá sirviendo tranvías después de caducar, con cara de acertar* |
+| ⭐⭐ | **8 rutas ZOMBI con cero viajes** | `CEM · CE · LAN · EM1 · EM2 · V1 · ES3 · V4`. De 53 rutas, **45 tienen viajes**; de 52 de bus, **operan 44**. ⇒ **Una ruta sin viajes es un enlace que nunca se puede tomar.** Y las tres primeras explican el corredor ausente. ⚠️ `EM3` **no existe** en este feed, aunque 003 la nombra en un título |
+| ⭐⭐ | **944 contra 934 no eran diez casos: eran DOCE** | **11 solo en el WFS · 1 solo en el GTFS · 933 comunes.** *La resta escondía la mitad.* ⭐ Positivo de control geométrico: **ninguna tiene gemela** (la más cercana a 64 m y es otra parada) ⇒ discrepancias de **inventario**, no de codificación |
+| ⭐⭐ | **Seis de las once, explicadas** | `PA00617` Parque de Atracciones + `PA00646`–`PA00650` Duque de Alba. Las sirven `CEM`/`CE`/`LAN`, **que son tres de los ocho zombis**. ⚠️ *La cadena «sin viajes ⇒ fuera de `stops.txt`» es inferencia, no un hecho declarado* |
+| ⛔ | **Y las otras cuatro NO son obras** | 003 midió que **el GTFS conserva la ruta teórica con la calle cortada** (`Coso 126` sigue dentro). ⇒ **las obras no borran paradas del feed**, luego Ramón y Cajal / Madre Ràfols sigue `CAUSA NO CONFIRMADA` |
+| ⭐⭐ | **Los grupos `813x` no cuadran entre TRES inventarios** | ZGZ RADAR tiene `8134-8137`; el WFS de hoy tiene `8130-8133`; **el GTFS no tiene ninguno de los ocho.** ⚠️ Ocho postes consecutivos partidos por la mitad: **la frontera cae en un número, no en un sitio.** ⛔ Asimetría de evidencia declarada: los `8130-8133` medidos aquí, los `8134-8137` citados de 003 |
+| ⭐⭐⭐ | **Los nombres del GTFS están rotos en el 80,4 %** | 003 lo midió: **751 de 934** (491 conectores en mayúscula + 515 `N.º`), transformación **mecánica y determinista al exportar**, que destroza los romanos (`III → Iii`) y no sabe subir una `á`. ⛔⛔ **ES CON PÉRDIDA: deshacerlo desde este lado sería adivinar.** ⭐ Y la medida propia de 004, que es un SUELO porque no tiene el nombre verdadero: **492 de 934 (52,7 %)** |
+| ⭐⭐⭐ | **Y el tranvía escribe BIEN, en el mismo fichero** | Bus: 8 tildes caídas y **489 partículas en mayúscula de 934**. Tranvía: **0 y 4 de 50.** ⇒ **Es la TERCERA aparición de «dos publicadores en una columna»** — ya cazada en `stop_code` y en `location_type`, y **en `stop_name` no se había mirado** |
+| ⭐ | **La licencia del NAP, leída** | Permite *compartir, copiar, distribuir* **y modificar, adaptar, extraer, reordenar y combinar**. A cambio: **«Powered by MITRAMS» + cita del MITMS + decir si el dato es BRUTO o PROCESADO**, y ⚠️ **conservar SIN ALTERAR la metainformación de fecha y condiciones**. ⛔ **Ésta última muerde en el build: si el artefacto compacto se come `feed_info.txt`, 004 incumple la licencia Y pierde la caducidad. Un fallo, dos consecuencias** |
+| ⭐⭐ | **Verificación externa que no se buscaba** | 003 auditó **este mismo feed** el 13/07 y publicó **catorce cifras: las mismas al byte.** Dos proyectos, dos instrumentos, 28 días. ⛔ **No valida el instrumento —el feed está quieto— pero descarta que las cifras sean artefacto de un parser** |
+| ⚠️ | **El árbol local de 003 publica menos de lo que tiene** | **20 entradas ignoradas**, entre ellas `.cache/fixtures-reales/` con respuestas reales de Avanza **bajo compromiso de no redistribución. Ninguna se abrió.** ⇒ *Quien reconstruya esta herencia leyendo solo GitHub verá menos.* ⭐ Y medido aparte: **306 ficheros versionados en local contra 289 en el repo público ⇒ 17 que nunca se subieron** |
+| ⚠️ | **`tools/` no la protege ninguna regla** | Se versiona por defecto lo que caiga ahí; cada derivado se ha excluido **a mano, cuatro veces** (`.gitignore` 312 · 318 · 324 · 334). **No muerde hoy** —`bajar-gtfs.js` solo escribe en `data/exploracion/`— **pero es un cabo** (ley 142) |
+| ⭐ | **El mecanismo para cazar rutas falsas YA EXISTE, y le falta alcance** | `src/superados.js:447` hace `existsSync` sobre las rutas de **su propia tabla** y sobre ninguna otra. **Nada recorre las rutas que aparecen en la PROSA.** ⇒ *Ley 118: el guardián vigila lo que alguien le declaró, y nadie le declaró la prosa.* **Candidato a instrumento** |
+
+**DECISIONES NUEVAS DE H2:**
+
+- ⭐ **El código que sale a la red vive en `tools/`, NO en `src/`.** `src/` es el universo de la
+  batería, y **un invariante del proyecto no puede depender de que un tercero esté vivo** ni de que
+  haya clave. *(Propuesta del ejecutor, aprobada.)*
+- **La clave del NAP se LEE de 003 y la maquinaria se ESCRIBE en 004.** Fichero aparte con su
+  positivo de control **antes** de que la clave exista, y **la dependencia se declara** — que es
+  exactamente lo que faltaba en el caso del callejero (`C·V1`).
+- ⚠️ **Orden de modos, APROBADO COMO HIPÓTESIS y a cerrar en el desglose:**
+  **bus → tranvía → estaciones BiZi → red ciclable.** *Las estaciones son NODOS y son baratas; la
+  red ciclable es un GRAFO NUEVO con reglas propias y es la pieza más grande de H2.*
+- ⭐ **Y una pregunta abierta para el desglose, no decidida:** si conviene partir en **H2a** —red de
+  transporte público con transbordo peatonal, que ya demuestra el diferenciador— y **H2b** ciclable
+  después. *Un proyecto cerrado del todo bate a dos al 80 %, y eso vale también dentro de un hito.*
+
+**LO SIGUIENTE — H2·3, cuatro verificaciones de solo lectura:**
+`1` los cuatro ficheros dirigidos de 003 (`identity` · `adapter` · `desvios` · `topologia`), porque
+**el cubo MAQUINARIA no puede afirmarse desde documentos** · `2` el cruce `8130-8133 × 8134-8137`:
+**¿ocho postes o cuatro renumerados?** · `3` la intersección de los dos 934 —*«usadas por rutas 704»*
+y *«códigos que empiezan por PA»*— que **cuentan igual y nadie ha comprobado que sean el mismo
+conjunto** (la forma de `A·V2`) · `4` dónde acaba la traza de la línea 34.
+
+---
+
 ### ⛔⛔⛔ EL ESTADO TAMBIÉN MENTÍA — saneamiento del 9/08
 
 > **Los cuatro bloques auditaron el código (A), los 44 documentos de `docs/` (B, B.2) y las
@@ -2746,7 +2901,7 @@ caducadas en **cinco encargos seguidos** porque las llevaba escritas de antes.
 | 2 | fechada **6/08** | cabecera | Con la tanda 6 (**9/08**) dentro, y **sin la tanda 7** |
 | 3 | ⛔⛔ *«la nº7 CALIBRA los ~6 km/h de toda la tabla: ninguna tanda puede moverla»* | cabecera | **La tanda de arreglo 4 la retiró.** Era la frase en negrita más contundente del bloque de estado |
 | 4 | *«una TERCERA medición corta»* | cabecera | Ya había **cuatro** mediciones; lo que falta es una **bajo 1 km** |
-| 5 | **74 ficheros · 24.931 líneas · 166 commits** | cabecera | Cifras del 6/08 con siete tandas por medio ⇒ **puestas a `PENDIENTE DE MEDIR` con su comando**, no estimadas |
+| 5 | **74 ficheros · 24.931 líneas · 166 commits** | cabecera | Cifras del 6/08 con siete tandas por medio ⇒ **puestas a `PENDIENTE DE MEDIR` con su comando**, no estimadas. ⭐ **MEDIDAS el 10/08: 74 · 27.097 · 235** (cabecera) |
 | 6 | ⛔ *«la licencia de los datos se declarará cuando se integre alguno — no contiene ningún dato integrado»* | §1 | **Dos de las cinco frases que la tanda 2 retiró del README por falsas** (`A·V4`). *Arregladas en la portada, vivas aquí seis días* |
 | 7 | *«red peatonal OSM: decidida, NO INTEGRADA»* | §3 | Con **68.649 nodos y 98.774 aristas** construidos encima. Es la fila de estado de la fuente de la que cuelga todo |
 | 8 | **«106 puntos de cruce»**, tres veces | §3 · §4 · §9 | **Son 89**, y lo dice §7·17 de este mismo documento. ⭐ *Un superado sin marca dentro del documento que gobierna a los que sí la llevan* |
@@ -2804,10 +2959,17 @@ Conventional Commits con ámbito, asunto en español. Cero coautoría. ⛔ `git 
 
 ## 12 · La frase que resume el proyecto
 
-*(Pendiente — **y la condición YA SE CUMPLIÓ**: el motor resolvió su primera ruta en la tanda 11 y
-hoy tiene diez trayectos de cordura y cuatro distancias medidas. ⭐ **La frase la escribe Antonio, no
-este documento**, y por eso sigue en blanco: nadie volvió a por ella cuando la puerta se abrió.
-Corregido el 9/08.)*
+*(Pendiente, **con condición NUEVA y declarada: se escribe cuando H2 componga su primer trayecto
+multimodal.** Decidido por Antonio el 10/08.)*
+
+**Por qué no se escribió el 9/08, cuando la condición vieja ya se había cumplido:** la frase
+disponible era la del cierre de H1 —*«el repositorio sabe mirarse a sí mismo mucho mejor de lo que
+sabe mirar Zaragoza»*— **y ésa es una frase sobre el MÉTODO, no sobre el proyecto.** El proyecto
+aún no ha hecho lo que lo define: **componer a pie + bus + tranvía.** Escribirla hoy sería resumir
+la mitad.
+
+⭐ **Y lo que se arregla poniéndole condición nueva es el SILENCIO:** un «pendiente» sin disparador
+no tiene contradictor y no envejece nunca (ley 111). Ahora sí lo tiene.
 
 Lo que se puede decir hoy, y ya es una frase:
 
