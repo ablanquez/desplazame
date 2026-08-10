@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 133 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 136 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento treinta y tres instrumentos mintiendo** *(115 al cerrar H1 + 18 en las cinco tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento treinta y seis instrumentos mintiendo** *(115 al cerrar H1 + 21 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1004,6 +1004,10 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 131 | ⭐⭐⭐ **SE MIDIERON LAS COMPONENTES SOBRE UN GRAFO QUE EL MOTOR NO USA** (`sinCondicionales=true`) **Y DIO EL MISMO RESULTADO** — las mismas tres paradas fuera de la mayor. ⛔⛔ **Ninguna salida podía delatarlo: el número correcto tapaba el universo equivocado.** Se cazó **porque un número de al lado no cuadraba** ⇒ *el acierto es el peor camuflaje que hay* |
 | 132 | ⛔⛔ **LA LÍNEA BASE SE LANZÓ Y SE EMPEZÓ A ESCRIBIR EN `docs/` A LA VEZ.** El razonamiento era *«el universo de la batería es `src/`, escribir en `docs/` es inocuo»* — **y es falso: el puntero lee `docs/`.** La batería de arranque salió roja **y se publicó declarada como inservible**, con la comparación válida hecha contra el cierre de la tanda 4. ⭐ *Hermano del nº120: la línea base vuelve a fallar por el mismo sitio, y esta vez por un razonamiento explícito y equivocado sobre su propio alcance* |
 | 133 | ⭐ **UN `⛔` SIN `alarma` EN SU PROPIO SCRIPT — el fallo que fundó `alarma.js`** — y, el mismo día, **publicar «solo un fichero» sin pasar el `grep` cuatro horas después de escribir la ley 140 que lo prohíbe.** ⇒ *La lección de la tanda N no entra sola en la tanda N+1 ni siquiera cuando la escribiste tú* |
+| | **⬇ H2a · TANDA 6 Y LA TANDA CORTA (10/08) — TRES MÁS, LAS TRES DE ESTA CONVERSACIÓN** ⬇ | |
+| 134 | ⛔⛔⛔ **`insertar` COBRA 32,5 m POR 11,9 m REALES EN EL CENTRO DE ZARAGOZA.** Enlaza cada nodo temporal **solo con los extremos de su arista, nunca entre sí** (`src/grafo.js:211-213`). **233.767 pares de direcciones reales** lo padecen, p50 34,8 m. ⛔ **Y lo peor no es el fallo: es que H1 se cerró con auditoría de cuatro bloques y siete tandas de arreglo encima sin verlo, porque LAS DIEZ RUTAS DE CORDURA VAN DE UN PORTAL A OTRO DISTANTE.** *El universo de la costura excluía por construcción la clase de trayecto más común que existe* |
+| 135 | ⛔⛔ **UN ENCARGO PIDIÓ UN CERO SIN SU POSITIVO DE CONTROL.** Esta conversación escribió *«las rutas largas son el control»* — **y son un control NEGATIVO: demuestran que el instrumento no dispara de más, no que sepa decir que SÍ.** ⭐ **Lo cazó el ejecutor y montó el positivo que faltaba**: 233.767 pares que sí comparten arista, 6 de 6. *Ley 4, incumplida por quien la tiene escrita en este documento* |
+| 136 | ⛔⛔ **SE ORDENÓ HACER ALGO QUE YA ESTABA HECHO, SOBRE UN DIAGNÓSTICO FALSO.** El encargo de H2·6 mandaba sacar la bitácora del universo del puntero: **ya estaba fuera desde la tanda 4** (`superados.js:342`), **y sacarla no habría arreglado el choque** — la causa es que un documento normal cita el ordinal de una entrada. ⚠️ **Se leyó del resumen del ejecutor sin ir al código, y se le hizo decidir a Antonio una decisión ya tomada.** *El nº99 otra vez* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1554,6 +1558,27 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     ⛔ **Corolario que decide H2a: la cobertura de un guardián se declara sobre el MODELO, no sobre
     los casos.**
 
+151. ⭐⭐⭐ **EL UNIVERSO DE LAS COSTURAS DECIDE QUÉ CLASE DE FALLO ES INVISIBLE — Y NADIE AUDITA EL
+    UNIVERSO, SOLO LOS CASOS.**
+    *Las diez rutas de cordura de H1 van todas de un portal a otro DISTANTE. Por eso ningún bloque de
+    la auditoría, ni siete tandas de arreglo, pudieron ver que el motor cobra 32,5 m por 11,9 en el
+    centro.* ⇒ **Una costura no solo comprueba: DEFINE lo que se puede comprobar.** ⚠️ Y la pregunta
+    que la audita no es *«¿pasan las diez?»* sino ⭐ **«¿qué clase de trayecto NO hay entre las
+    diez?»**
+
+152. ⭐⭐⭐ **UN CONTROL NEGATIVO NO ES UN POSITIVO DE CONTROL, Y SE CONFUNDEN CON FACILIDAD PORQUE
+    LOS DOS SALEN VERDES.**
+    *«Las rutas largas son el control» demuestra que el instrumento no dispara de más. Para saber que
+    sabe disparar hace falta darle casos que SÍ deben dispararlo.* ⇒ **Un cero solo vale acompañado
+    de un uno**, y los dos tienen que salir del mismo instrumento en la misma ejecución.
+
+153. ⭐⭐ **UNA CONCLUSIÓN CORRECTA CON CAUSA FALSA ES DEUDA, NO ACIERTO — Y SE CORRIGE LA CAUSA SIN
+    TOCAR LA CONCLUSIÓN.**
+    *La bitácora nº185 acertó que las diez rutas no cazaban el fallo, y lo explicó por una razón que
+    resultó falsa: hay 8.811 pares reales igual de separados que la nº4 que sí lo padecen.* ⇒ **La
+    causa vuelve a `NO CONSTA`, y la entrada vieja no se reescribe.** ⚠️ *No se cambia una explicación
+    inventada por otra más bonita.*
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1667,7 +1692,9 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2·3** | ⭐⭐⭐ **LAS VALLAS Y LOS CABOS** — cuatro verificaciones de solo lectura | **H2** | ✅ **10/08** ⛔ **la valla estaba en la REGEX, no en la frase** |
 | **H2·4** | ⭐⭐⭐ **EL DISEÑO EN PAPEL de H2a** — `docs/DISENO-H2A-RED.md` | **H2a** | ✅ **10/08** ⭐ **2.538 pares, no 483.636** |
 | **H2·5** | ⭐⭐⭐ **LOS POSTES EN EL GRAFO** — la medición que podía tumbar D4 | **H2a** | ✅ **10/08** ⭐ **el radio SOBREVIVE** |
-| **H2·6** | *(siguiente: **la red de bus**)* | **H2a** | ⬜ ⚠️ **y el veredicto por enlace, ver §10** |
+| **H2·6** | ⭐⭐⭐ **LA RED DE BUS Y EL VEREDICTO POR ENLACE** | **H2a** | ✅ **10/08** ⛔⛔ **78,4 % de los enlaces van por EJE** |
+| **—** | ⭐⭐ **TANDA CORTA · ¿está contaminado el rodeo de las cortas?** | **H1** | ✅ **10/08** ⭐ **SOBREVIVE ENTERO** |
+| **H2·7** | *(siguiente: **el transbordo andando** — los 2.538)* | **H2a** | ⬜ ⚠️ **y antes, la decisión sobre `insertar`** |
 | **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO** — la pieza que no tiene nadie más | **H2a** | ⬜ |
 | **H2·8** | El tranvía — casi gratis si el modelo está bien | **H2a** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
 | **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
@@ -2956,7 +2983,7 @@ Registro entero en `docs/RECONOCIMIENTO-H2-GTFS.md` y `docs/RECONOCIMIENTO-H2-HE
 
 | | qué | |
 |---|---|---|
-| ⭐⭐⭐ | **EL HALLAZGO QUE CAMBIÓ EL DISEÑO — y sale de datos que ya estaban publicados** | Los rodeos de las diez rutas de H1, mirados **por tamaño de trayecto**, que nadie había hecho: **largas (2,5–6,4 km) 1,06 · 1,09 · 1,24 · 1,25** contra **cortas (477–598 m) 1,10 · 1,32 · 1,37 · ⛔ 2,17.** La nº4 recorre **506 m para salvar 233 en recta.** ⇒ ⭐⭐⭐ **El rodeo es peor y mucho más variable justo en los trayectos cortos, que son los del transbordo.** Un radio fijo **no es solo impreciso: es peor precisamente en el rango donde vive la pieza.** ⇒ **El radio es un PRE-FILTRO barato; el coste son los METROS ANDANDO** |
+| ⭐⭐⭐ | **EL HALLAZGO QUE CAMBIÓ EL DISEÑO — y sale de datos que ya estaban publicados** | Los rodeos de las diez rutas de H1, mirados **por tamaño de trayecto**, que nadie había hecho: **largas 1,06 · 1,09 · 1,15 · 1,24 · 1,25 (media 1,16)** contra **cortas 1,10 · 1,32 · 1,37 · ⛔ 2,17 (media 1,49).** ⚠️ *Corregido el 10/08: esta lista publicaba CUATRO largas y son **CINCO** — faltaba la nº10 (4.044 m, rodeo 1,15). El error lo copió esta conversación sin contarlas. **El argumento no se debilita: se refuerza**, porque la media de las largas baja.* La nº4 recorre **506 m para salvar 233 en recta.** ⇒ ⭐⭐⭐ **El rodeo es peor y mucho más variable justo en los trayectos cortos, que son los del transbordo.** Un radio fijo **no es solo impreciso: es peor precisamente en el rango donde vive la pieza.** ⇒ **El radio es un PRE-FILTRO barato; el coste son los METROS ANDANDO** |
 | ⭐⭐ | **La costura bus↔tranvía existe físicamente** | **48 de 50** paradas de tranvía tienen un autobús a ≤300 m — mín **20 m**, mediana **73 m**, p90 **130 m**. Las dos que no son Juslibol, a **418 m**, declaradas. ⛔ **No se sube el radio a 500 m para rescatarlas: multiplicaría los pares por 2,5 para ganar dos paradas** |
 | ⭐⭐⭐ | **D1 · La identidad, con la colisión medida EN 004** | `bus AA99999` 934/934 · `tranvía 9999` 50/50 · **intersección literal de códigos: 0**. ⛔ **Quitando prefijo y quedándose el número: 15 colisiones.** ⛔⛔ **Con `int(stop_code[2:])` de 003: 47 choques, y 24 paradas en el poste 1 — sin un solo error.** ✅ **Con `/^PA(\d{5})$/`: 0** ⇒ **La parada se identifica por su `stop_id` OPACO; el poste es un ATRIBUTO que 50 paradas no tienen.** ⭐ Y el tranvía **no recibe puente equivalente**: su código se guarda como cadena sin interpretar, porque `NO CONSTA` qué significa |
 | ⭐⭐ | **La valla tiene una prueba que PUEDE FALLAR** | Meter los 50 códigos del tranvía y exigir 50 «no tiene». **Con la fórmula de 003 esa prueba da 24 al poste 1 y se pone roja** (ley 147) |
@@ -3074,6 +3101,80 @@ tapa el síntoma: si el fichero crece, el choque vuelve.**
 paradas al mismo nodo · el enganche de las **11 paradas del WFS que no están en el GTFS** · y ⭐ **la
 verificación del 2.538 por un tercer camino** — *propuesta barata: cinco pares de los 2.538 y cinco
 de los 693 descartados, comprobados a mano en un mapa.*
+
+**H2·6 · LA RED DE BUS Y EL VEREDICTO POR ENLACE (10/08) — `docs/H2A-RED-DE-BUS-Y-VEREDICTO.md`.**
+
+> ⛔⛔⛔ **LA TESIS DEL HITO NO SE SOSTIENE ENTERA, Y EL NÚMERO ES ÉSTE:**
+> ```
+>    sobre 324 pares candidatos, muestra determinista 1 de cada 7
+>       ACERA           67    20,7 %
+>       EJE            254    78,4 %   ⛔
+>       MISMA ARISTA     3     0,9 %
+>       SIN CAMINO       0     0,0 %   (existe: se provocó)
+> ```
+> **Cuatro de cada cinco enlaces pasan por donde el grafo no sabe que hay dos lados de calle.**
+> *«Nosotros lo calculamos andando»* **es cierto en el 20,7 %.** En el resto **el cálculo produce el
+> mismo error que un radio — firmado con decimales, que se creen más.**
+> ⭐⭐ **Y la justificación medida de haberlo metido AHORA y no tras el transbordo: 79 de 324 enlaces
+> (24,4 %) parecen buenos mirando solo las paradas y no lo son.** Con veredicto por parada, esos 79
+> se publicaban limpios.
+
+| | qué | |
+|---|---|---|
+| ⭐⭐⭐ | **Predicciones selladas ANTES de ejecutar (18:39:36), y DOS fallaron** | `P2` puntas no-eje 35–45 % → **45,7 %** (fuera por 0,7) · `P3` ACERA 20–32 % → **20,7 %** ✅ · ⛔ `P4` reparto bimodal → **mezclado** · ⛔ `P5` enlaces de 0 m: 1–40 → **0**. ⭐ **Que fallen dos es la respuesta a la costura de «no te confirmes a ti mismo»** |
+| ⛔ | **Y `P4` falla hacia el lado MALO** | **Mezclado es peor que bimodal**: p50 = 31 % de aristas en eje, **no hay frontera geográfica que sirva de aviso** ⇒ **el aviso tiene que ir en CADA enlace**, uno a uno |
+| ⚠️ | **`ACERA` no significa «por la acera correcta»** | Significa **«por aristas de tipo acera»**. ⛔ **Ni siquiera ese 20,7 % está verificado**: es la segunda tanda sin comprobar el LADO de la calle, y `src/acera-equivocada.js` existe y sigue sin usarse |
+| ⭐ | **La red** | **44 rutas** (las 8 zombis caen contra `trips.txt`, **y el script contrasta que sigan siendo esas ocho**), 74 sentidos, 934 paradas. Los dos condicionales con su cuota exigida en banda |
+| ⭐⭐ | **El artefacto, que es lo que decidirá el stack** | **200,5 KB · 41,9 KB gzip · reducción 229×** |
+| ⭐⭐ | **Una suma que cierra sola entre tres tandas y tres scripts** | **2.266** (bus×bus) **+ 272** (bus↔tranvía) **= 2.538** |
+| ⛔ | **T3 del encargo: la premisa ya estaba cumplida** | **La bitácora estaba fuera del puntero desde la tanda 4** (`src/superados.js:342`), demostrado con control positivo: un valor superado aparece **19 veces** y el puntero declara **6 líneas**. ⚠️ **Y sacarla no habría arreglado el choque: la causa es que un DOCUMENTO NORMAL cita el ordinal de una entrada.** Por eso el `⟨…⟩` **no se retira** — retirarlo pone `D3` en rojo. ✅ **Lo que sí valía se hizo: el puntero DECLARA sus 7 de 55 documentos excluidos, con motivo y sin perder una marca** |
+
+**⭐⭐⭐ TANDA CORTA (10/08) · ¿ESTABA CONTAMINADO EL ARGUMENTO DEL RODEO? — `docs/H2A-RODEO-DE-LAS-CORTAS.md`.**
+
+> **SOBREVIVE ENTERO.** Ninguna de las nueve rutas resueltas tiene las dos puntas en la misma arista.
+> **Los rodeos publicados no se mueven ni una centésima. El 2,17 de la nº4 es la ciudad.**
+> ⭐ Y se explica tramo a tramo: **21 tramos, dos de escaleras (30 m), 284 m de paso peatonal sin
+> nombre, 94 m de Calle de la Rioja** — la plataforma elevada. **Un ida y vuelta a la esquina no se
+> itemiza así.** ⚠️ La nº6 estuvo a un índice: `52337` contra `52169`.
+
+⭐⭐ **Y con TRES instrumentos detrás, porque un «no» sin instrumento no vale:** el script **no arranca
+sin el artefacto del motor** y le exige reproducir ruta a ruta los metros y la lista entera de
+índices (9 de 9) — *la delación exigida, que es justo lo que le faltó al nº131* · un **tercer camino**
+leído solo del artefacto · y **el positivo de control**.
+
+⛔⛔ **Y el positivo de control corrige el diseño del encargo, que era de esta conversación:** las
+rutas largas son un control **NEGATIVO** —demuestran que el instrumento no dispara de más, **no que
+sepa decir que SÍ**—. Se le echaron **233.767 pares de direcciones reales que sí comparten arista**:
+**6 de 6 cazados.** *Se pidió el cero sin su positivo (ley 4), y lo montó el ejecutor.*
+
+> ⛔⛔⛔ **Y DE AHÍ SALE UN DEFECTO DE PRODUCTO DE H1, QUE NO ES DE H2a:**
+> ```
+>    AVENIDA SAN JUAN BOSCO 5 × 3    motor 41,4 m   verdad 17,3 m   2,4×
+>    CALLE ALFONSO I 12 × 17         motor 32,5 m   verdad 11,9 m   2,7×
+>    universo: 233.767 pares reales sobre 7.192 aristas · p50 34,8 m · p99 433,2 m
+> ```
+> **Doce metros de acera y el motor cobra treinta y dos, en el eje peatonal del centro.**
+> *«¿Cuánto hay del 12 al 17 de Alfonso I?»* **es la pregunta más elemental que contesta un buscador
+> peatonal.** ⛔ **Y H1 está cerrado, auditado en cuatro bloques y con siete tandas de arreglo encima:
+> ninguno lo vio, porque LAS DIEZ RUTAS DE CORDURA VAN DE UN PORTAL A OTRO DISTANTE** — y son las
+> diez las que definen qué se mira.
+> ⇒ ⭐⭐⭐ **Es la ley 148 en su forma más cara: el universo de las rutas de cordura excluía POR
+> CONSTRUCCIÓN la clase de trayecto más común que existe.**
+
+**⚠️ DECISIÓN PENDIENTE DE ANTONIO — la primera que plantearía reabrir H1:**
+`insertar` enlaza cada nodo temporal **solo con los extremos de su arista, nunca entre sí**
+(`src/grafo.js:211-213`). ⭐ **Y esta tanda ha medido que el radio de explosión de un arreglo acotado
+es demostrablemente CERO:** ninguna de las nueve rutas resueltas comparte arista, así que un
+tratamiento que **solo actúe cuando las dos puntas caen en la misma arista** no movería ni un metro
+de lo publicado. ⚠️ **La alternativa legítima es NO arreglarlo y DECLARARLO**, como el veredicto por
+enlace: *«estas dos direcciones están en el mismo tramo de calle; mi ruta da la vuelta porque no sé
+andar entre ellas.»* ⛔ **Lo que no vale es seguir sirviendo 32,5 en silencio.**
+
+⭐ **Y una corrección de la bitácora, hecha por su autor sobre sí mismo:** la nº185 explicaba el cero
+diciendo *«las diez rutas van de un portal a otro distante»*. **La conclusión aguanta; la causa es
+falsa** — hay **8.811 pares reales** que comparten arista y están tan separados como la nº4.
+⇒ **El rango del defecto llega hasta donde viven las cuatro cortas y simplemente no las tocó.**
+`CAUSA NO CONFIRMADA`, y la 185 **no se reescribe** (bitácora 186).
 
 **DECISIONES NUEVAS DE H2:**
 
