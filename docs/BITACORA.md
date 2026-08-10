@@ -9436,3 +9436,67 @@ mal formulado sigue siendo mejor que no mirarlo.*
 **Traza:** `src/grafo.js:211-213` · `src/grafo.js:227-228` ·
 `tools/grafo/veredicto-enlace.js` · `docs/H2A-ENGANCHE-DE-LAS-PARADAS.md` §5·2 (el caso límite,
 enunciado como «0 metros»)
+
+---
+
+## [2026-08-10] — Escribí POR QUÉ las diez rutas esquivaban el fallo, y esa causa es falsa
+
+**Categoría:** aviso falso
+**Síntoma:** la entrada anterior de esta bitácora —*«Una parada contra sí misma mide 15,70
+metros»*— cerraba explicando por qué el defecto de `insertar` no lo había cazado H1:
+
+```
+   ⛔⛔ Y no podía cazarlo ninguna de ellas, porque las diez rutas van de un
+      portal a otro DISTANTE.
+```
+
+**La conclusión es cierta; la causa es inventada.** Hoy, midiendo las diez de verdad, ninguna
+comparte arista entre sus dos puntas — pero **no por la distancia**:
+
+```
+   pares de direcciones REALES que comparten arista .......... 233.767
+   separación entre ellas:  p50 34,8 m · p99 433,2 m · máx 1.315,8 m
+
+   de esos pares, tan separados como la ruta CORTA de Antonio que menos mide:
+      nº4  recta 233 m  →  8.811 pares  (3,8 %)
+      nº6  recta 475 m  →  1.878 pares  (0,8 %)
+```
+
+⇒ **Existen casi nueve mil pares de direcciones de Zaragoza separadas 233 m o más que SÍ comparten
+arista.** «Ir de un portal a otro distante» no protege de nada: **el rango del defecto llega hasta
+donde viven las cuatro cortas y simplemente no las tocó.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo, porque el fallo estaba en la
+prosa y no en el código.** El informe `docs/H2A-RED-DE-BUS-Y-VEREDICTO.md` se publicó entero, con
+su batería en 0, sus cuatro veredictos y su positivo de control; y en su §3.4 **esta frase no
+aparece** — vive solo en la bitácora, que es justo el documento que ningún guardián revisa. La
+frase pasó porque **suena a explicación y no la contradecía ningún número que estuviera medido.**
+
+**Causa raíz:** al descubrir un defecto se siente la obligación de decir por qué no se había visto
+antes, y esa frase se escribe con lo que parece razonable en vez de con lo medido. **Era comprobable
+en diez minutos** —los índices de arista de las diez rutas los publica el motor con `--aristas`— y
+no se comprobó. Es la misma forma exacta del fallo nº180 (*escribí «0 en `src/`» antes de medirlo*),
+**dos días seguidos y en el mismo hito.**
+
+**Cómo se cazó:** Antonio, leyendo el informe de ayer y cruzando lo que yo no crucé: *«233 metros en
+recta es perfectamente compatible con estar en el mismo tramo de calle»*.
+
+**Arreglo aplicado:** ⛔ **la entrada nº185 NO se reescribe** — el registro histórico se corrige en
+documento nuevo, nunca borrando. Lo que se hace:
+1. se mide de verdad, con instrumento (`tools/grafo/misma-arista.js`), positivo de control y tercer
+   camino: `docs/H2A-RODEO-DE-LAS-CORTAS.md`;
+2. la causa verdadera de por qué las nueve esquivan el defecto se declara **`NO CONSTA`**, en vez
+   de cambiar una explicación inventada por otra más bonita;
+3. el §8 de ese informe dice qué frase de ayer se cae y por qué.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **la frase «no podía cazarlo porque…» es una afirmación, no un
+cierre.** Explicar por qué un fallo no se vio antes es tan comprobable como el fallo mismo —y suele
+serlo con el instrumento que acabas de escribir—, así que **o se mide o se escribe `NO CONSTA`**.
+⚠️ Y el corolario incómodo: **el sitio donde más barato sale colar una explicación sin medir es la
+bitácora**, porque es el único documento del proyecto que se escribe en caliente, no lo revisa
+ningún guardián y **está declarado fuera del universo del puntero**.
+
+**Traza:** `docs/BITACORA.md` (entrada nº185) · `tools/grafo/misma-arista.js` §P8 ·
+`docs/H2A-RODEO-DE-LAS-CORTAS.md` §5.1 y §8
