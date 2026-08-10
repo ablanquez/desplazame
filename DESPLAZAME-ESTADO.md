@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 130 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 133 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento treinta instrumentos mintiendo** *(115 al cerrar H1 + 15 en las tres tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento treinta y tres instrumentos mintiendo** *(115 al cerrar H1 + 18 en las cinco tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1000,6 +1000,10 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 128 | ⛔⛔⛔ **UNA COMPROBACIÓN QUE NO PODÍA FALLAR, PEDIDA POR ESTA CONVERSACIÓN.** El encargo de H2·3 pedía verificar si `PA00617` aparece en algún viaje **para demostrar por qué falta del corredor**. Pero `stop_times` referencia `stop_id`, y **el `stop_id` de `PA00617` no existe** ⇒ **el cero estaba garantizado y no distingue nada** (ley 96). ⚠️ **Y la pregunta iba además a la línea equivocada:** quien serviría el parque es la `104/LAN`, que es zombi. *Hermano del nº119, con el signo cambiado: aquel no podía ponerse verde; éste no podía ponerse rojo* |
 | 129 | ⭐⭐⭐ **EL DOCUMENTO DE 003 DESCRIBE DE MENOS, Y JUSTO EN LA VALLA.** Publica `poste = int(stop_code[2:])`; el código es `/^PA(\d{5})$/`, **anclada y exigiendo cinco dígitos**. Los 50 postes del tranvía llevan **cuatro** cifras ⇒ la fórmula publicada da **`1` para tres paradas distintas, sin un solo error**. ⛔ **Y la ruta del documento también es falsa**: no existe `sources/avanza-zaragoza/`; vive en `src/sources/gtfs-nap/identity.ts` |
 | 130 | ⛔ **EL POSITIVO DE CONTROL DE LOS TERMINALES SALIÓ ROJO, Y ERA VERDAD.** **21 de 74 sentidos** dan ≥2 terminales, incluidas líneas que nadie había nombrado ⇒ la consulta **no distinguía un segundo destino de una cola de final de servicio**. ⭐ **El ejecutor paró el veredicto ahí**, como manda la costura, y lo separó después por cuota. ⚠️ *Umbral elegido DESPUÉS de ver los datos, declarado: lo sostiene el salto 32 % → 7 %, no el corte* |
+| | **⬇ H2a · TANDA 5 (10/08) — TRES MÁS** ⬇ | |
+| 131 | ⭐⭐⭐ **SE MIDIERON LAS COMPONENTES SOBRE UN GRAFO QUE EL MOTOR NO USA** (`sinCondicionales=true`) **Y DIO EL MISMO RESULTADO** — las mismas tres paradas fuera de la mayor. ⛔⛔ **Ninguna salida podía delatarlo: el número correcto tapaba el universo equivocado.** Se cazó **porque un número de al lado no cuadraba** ⇒ *el acierto es el peor camuflaje que hay* |
+| 132 | ⛔⛔ **LA LÍNEA BASE SE LANZÓ Y SE EMPEZÓ A ESCRIBIR EN `docs/` A LA VEZ.** El razonamiento era *«el universo de la batería es `src/`, escribir en `docs/` es inocuo»* — **y es falso: el puntero lee `docs/`.** La batería de arranque salió roja **y se publicó declarada como inservible**, con la comparación válida hecha contra el cierre de la tanda 4. ⭐ *Hermano del nº120: la línea base vuelve a fallar por el mismo sitio, y esta vez por un razonamiento explícito y equivocado sobre su propio alcance* |
+| 133 | ⭐ **UN `⛔` SIN `alarma` EN SU PROPIO SCRIPT — el fallo que fundó `alarma.js`** — y, el mismo día, **publicar «solo un fichero» sin pasar el `grep` cuatro horas después de escribir la ley 140 que lo prohíbe.** ⇒ *La lección de la tanda N no entra sola en la tanda N+1 ni siquiera cuando la escribiste tú* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1529,6 +1533,27 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     conversación, con un día de diferencia.* ⇒ **Antes de pedir una comprobación se pregunta qué
     resultado la haría fallar. Si no hay ninguno, no se está comprobando: se está decorando.**
 
+148. ⭐⭐⭐ **UN RESULTADO CORRECTO NO DEMUESTRA QUE HAYAS MEDIDO EL UNIVERSO CORRECTO — Y EL ACIERTO
+    ES EL MEJOR CAMUFLAJE QUE HAY.**
+    *Las componentes se midieron sobre un grafo que el motor no usa y salieron las mismas tres
+    paradas. Ninguna salida podía delatarlo.* ⇒ **Un guardián compara valores; nadie compara
+    UNIVERSOS.** Corolario: **si el fallo hubiera cambiado el número, se habría cazado solo. Se
+    escapó por acertar.**
+
+149. ⭐⭐ **UNA MEDIDA REPRODUCIBLE POR SU PROPIO AUTOR, EL MISMO DÍA, NO ESTÁ VERIFICADA:
+    ESTÁ REPETIDA.**
+    *Dos scripts escritos por la misma persona con la misma idea en la cabeza reproducen su criterio,
+    no la realidad.* ⇒ **El control de verdad es un TERCER CAMINO** — otro método, otra persona, o una
+    muestra comprobada a mano. ⚠️ Y decir *«se reproduce exacto»* sin esto es cierto y engañoso a la
+    vez.
+
+150. ⭐⭐⭐ **UN INSTRUMENTO NO PUEDE PONERSE ROJO SOBRE LO QUE SU MODELO NO REPRESENTA.**
+    *`acera-equivocada.js` no puede cazar una acera equivocada en las 456 paradas que enganchan al
+    EJE DE LA CALZADA: ahí el grafo no tiene dos lados, tiene un eje.* ⇒ **Su verde cubre dos
+    poblaciones y solo vigila una** — y **la que no vigila falla en silencio y sin cruzar nada.**
+    ⛔ **Corolario que decide H2a: la cobertura de un guardián se declara sobre el MODELO, no sobre
+    los casos.**
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1641,8 +1666,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2·2** | ⭐⭐ **LA HERENCIA DE 003** — datos, decisiones y maquinaria | **H2** | ✅ **10/08** ⚠️ **de ENRUTADO de transbordo, nada que heredar** *(corregido por H2·3)* |
 | **H2·3** | ⭐⭐⭐ **LAS VALLAS Y LOS CABOS** — cuatro verificaciones de solo lectura | **H2** | ✅ **10/08** ⛔ **la valla estaba en la REGEX, no en la frase** |
 | **H2·4** | ⭐⭐⭐ **EL DISEÑO EN PAPEL de H2a** — `docs/DISENO-H2A-RED.md` | **H2a** | ✅ **10/08** ⭐ **2.538 pares, no 483.636** |
-| **H2·5** | *(siguiente: **las paradas en el grafo** — y la medición que puede tumbar D4)* | **H2a** | ⬜ |
-| **H2·6** | La red de bus | **H2a** | ⬜ |
+| **H2·5** | ⭐⭐⭐ **LOS POSTES EN EL GRAFO** — la medición que podía tumbar D4 | **H2a** | ✅ **10/08** ⭐ **el radio SOBREVIVE** |
+| **H2·6** | *(siguiente: **la red de bus**)* | **H2a** | ⬜ ⚠️ **y el veredicto por enlace, ver §10** |
 | **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO** — la pieza que no tiene nadie más | **H2a** | ⬜ |
 | **H2·8** | El tranvía — casi gratis si el modelo está bien | **H2a** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
 | **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
@@ -2959,6 +2984,96 @@ cifra medida con su comando*. Se resolvió con scripts de usar y tirar fuera del
 **el 2.538, que es el número que decide el hito, está publicado SIN SU INSTRUMENTO.** La regla del
 proyecto es *«lo que se versiona es el script, no su salida»* y aquí ha pasado lo contrario.
 **Se arregla en H2·5, donde esos scripts entran como código de verdad.**
+
+**H2·5 · LOS POSTES EN EL GRAFO (10/08) — `docs/H2A-ENGANCHE-DE-LAS-PARADAS.md`.**
+
+> ⭐⭐⭐ **EL RADIO DE 300 m DE D4 SOBREVIVE, Y LA ARITMÉTICA DE 2.538 NO SE REHACE.**
+> ```
+>    población             n     mín   p50   p75   p90   p95    p99    máx
+>    PORTALES (control) 2308     0,2   5,3   8,5  17,4  27,7   65,4  195,8
+>    PARADAS · bus       934     0,0   2,2   5,0   7,3   8,3   11,1   23,7
+>    PARADAS · tranvía    50     0,0   2,6   5,5   9,6  12,4   16,2   16,2
+> ```
+> **0 de 984 por encima de 65 m.** El error que el enganche mete en un par: **4,4 m típicos = 1,5 %
+> del radio**; peor caso imaginable 47,4 m.
+> ⭐⭐ **Y la respuesta es creíble por dos motivos que valen más que el número:**
+> **(1) tiene causa física** — un portal es una puerta en una fachada, y entre fachada y calle hay
+> acera, jardín o aparcamiento; **un poste está EN la vía pública, muchas veces encima de la propia
+> arista**; **(2) tiene control** — el mismo instrumento reprodujo el p99 de 65 m sobre portales con
+> **0,4 m de desvío**, y la tolerancia vive en `A.exige`, no en un comentario.
+> ⇒ **`AVISO_ENGANCHE_M = 65` es el p99 de OTRA POBLACIÓN. Para paradas sobra un orden de magnitud.**
+
+| | qué | |
+|---|---|---|
+| ⭐⭐ | **D1 implementado, y el rojo se vio primero** | `--formula=003` ⇒ **50 paradas de tranvía con poste · 24 colapsadas al poste 1 · 47 choques · 6 de 12 controles mal · código 1.** La buena ⇒ **0 · 934/934 · 0 choques · 12/12 · código 0.** ⭐ **Y el rojo destapó un séptimo defecto que nadie había nombrado: la fórmula publicada tampoco recorta espacios** — `" PA00669 "` le da `null` |
+| ⭐⭐ | **EL GRAFO NO ES DIRIGIDO** | `src/grafo.js:25-26`: cada arista se empuja en los dos sentidos con el mismo peso. ⇒ **La simetría del enlace está GARANTIZADA POR CONSTRUCCIÓN, no asumida, y el enlace se guarda UNA vez** — cierra dos de las cuatro preguntas abiertas de H2·4 (la simetría y el tamaño). ⚠️ **Con su límite: simétrico DENTRO DEL MODELO, que no modela escaleras de un solo sentido** |
+| ⭐ | **El 2.538 se reproduce exacto con los scripts ya versionados** | `483.636 → 3.231 → 2.538`, comparado con `A.exige`. ⛔⛔ **Y su autor lo declara: «reproducir no es verificar»** — los dos scripts los escribió él el mismo día con la misma idea; **reproducen su criterio, no la realidad. El control de verdad sería un tercer camino y no lo hay** |
+| ⭐ | **`SIN CAMINO` existirá: el cero que se temía no se da** | **3 paradas fuera de la componente mayor** (Ctra. Castellón) |
+
+**⛔⛔⛔ EL CRUCE QUE NADIE HABÍA HECHO — y apunta al corazón de H2a.**
+
+*Tres hallazgos de esta tanda son EL MISMO, y sueltos no lo parecen:*
+
+```
+   456 de 984 (46,3 %) enganchan a EJE DE CALZADA, no a acera
+   nadie ha comprobado que el enganche caiga al LADO CORRECTO de la calle
+   nadie ha comprobado si dos paradas distintas enganchan al MISMO punto
+```
+
+⇒ **El 46,3 % parte la comprobación de la acera en DOS POBLACIONES con DOS modos de fallo:**
+
+- **Los 457 que enganchan a ACERA:** ahí *«lado correcto»* **es una pregunta con respuesta**, y
+  `src/acera-equivocada.js` la puede contestar. Riesgo real y **comprobable**.
+- ⛔ **Los 456 que enganchan a EJE DE CALZADA: ahí la pregunta NI SIQUIERA SE PUEDE FORMULAR.** El
+  grafo no tiene dos lados: tiene un eje. **`acera-equivocada.js` no puede ponerse rojo sobre ellos
+  porque no hay acera que equivocar.** ⇒ **Un enlace que salga de una de esas paradas recorre el
+  centro de la calzada y llega al otro lado SIN CRUZAR NADA, porque geométricamente no hay nada que
+  cruzar. No avisa, y no puede avisar.**
+- ⭐⭐⭐ **Y su forma extrema es el tercer hallazgo:** con mediana de **2,2 m**, dos andenes
+  enfrentados pueden **colapsar al mismo nodo** ⇒ **su enlace mediría CERO METROS**, cuando en
+  realidad hay que cruzar la calle. *Una respuesta falsa con pinta perfecta.*
+
+⛔⛔ **POR QUÉ IMPORTA MÁS QUE NINGUNA OTRA COSA DE H2a:** la tesis del hito es *«los routers usan un
+radio fijo y por eso te mandan a cruzar una autovía; nosotros lo calculamos andando»*. **Si la mitad
+de los transbordos se calculan por el eje de la calzada, el cálculo andando puede producir
+exactamente el mismo error que el radio — y ahora firmado con metros, con pinta de exacto.** La
+mediana del enlace bus↔tranvía es **73 m**: a esa escala, **estar a un lado o al otro de la calle es
+la mitad del trayecto.**
+
+⭐ **Y no hace falta dibujar aceras para ser honesto. Propuesta pendiente de decisión:** que el aviso
+de D5 deje de ser genérico y **pase a ser un VEREDICTO POR ENLACE** — `ACERA` cuando las dos puntas
+enganchan a acera y el camino va por acera · `EJE` cuando alguna atraviesa el eje · **y decirlo en la
+salida.** Es barato y **es lo que este proyecto vende.**
+
+⚠️ *Y el 46,3 % de las paradas es casi calcado al 47,2 % del término entero que H1 ya publicaba
+⇒ **las paradas no tienen sesgo propio: es la ciudad la que está así dibujada.***
+
+**⛔ CUATRO FALLOS EN ESTA TANDA, Y NINGUNO LO CAZÓ UNA SALIDA:**
+
+- ⭐⭐⭐ **El peor: se midieron las componentes sobre un grafo que el motor NO usa**
+  (`sinCondicionales=true`) — **y dio el mismo resultado, las mismas tres paradas.** ⇒ **Ninguna
+  salida podía delatarlo. Se cazó porque un número de al lado no cuadraba.**
+- Un `⛔` sin `alarma` en su propio script: **el fallo que fundó `alarma.js`**.
+- Se publicó *«solo un fichero»* sin pasar el `grep`, **cuatro horas después de escribir la ley que
+  lo prohíbe** (ley 140).
+- ⛔⛔ **La línea base de arranque salió EN ROJO y se publica declarada como inservible.** Se lanzó y
+  se empezó a escribir; **el puntero lee `docs/`**. Se razonó que el universo de la batería es `src/`
+  y que escribir en `docs/` era inocuo: **falso.** La comparación válida se hizo contra el cierre de
+  la tanda 4 con el árbol quieto: **112 líneas contra 112, `diff` vacío.**
+
+**⚠️ CABO ESTRUCTURAL — el choque bitácora ↔ puntero.** La bitácora va por **184 entradas**, y varios
+valores retirados que el puntero vigila **caen dentro de ese rango**. Documentar el choque lo volvió
+a provocar **cuatro veces**; se tapó con el convenio `⟨…⟩` que ya usaba `H1-QUE-QUEDA-ABIERTO.md`.
+⇒ **Recomendación de esta conversación, pendiente de Antonio: sacar la bitácora del universo del
+puntero, entera.** *El puntero marca valores superados para que nadie los lea como vigentes; la
+bitácora es registro histórico y su valor es decir lo que se dijo entonces, números retirados
+incluidos. Marcar un superado dentro de un registro histórico es la ley 86 al revés.* ⚠️ **Y `⟨…⟩`
+tapa el síntoma: si el fichero crece, el choque vuelve.**
+
+**MEDICIONES PENDIENTES QUE DEJA ESTA TANDA:** el lado de la acera (los 457) · el colapso de dos
+paradas al mismo nodo · el enganche de las **11 paradas del WFS que no están en el GTFS** · y ⭐ **la
+verificación del 2.538 por un tercer camino** — *propuesta barata: cinco pares de los 2.538 y cinco
+de los 693 descartados, comprobados a mano en un mapa.*
 
 **DECISIONES NUEVAS DE H2:**
 
