@@ -542,6 +542,36 @@ log('   líneas que lo imprimen                       '
   + [...esc.values()].reduce((s, x) => s + x.propias.length, 0));
 
 // ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ TANDA H2a·6 · EL UNIVERSO EXCLUIDO, DECLARADO EN LA SALIDA
+// ═════════════════════════════════════════════════════════════════════════════
+//   Las exclusiones existen desde la tanda 4 y estaban razonadas **en un
+//   comentario**. Un comentario no lo lee quien mira la salida, y una exclusión
+//   que no se ve es un agujero silencioso: dentro de seis meses nadie sabrá que
+//   hay sitios que este guardián no mira.
+// ⛔ Esto NO cambia lo que se vigila. Cambia que se pueda saber sin abrir el
+//    código — que es la diferencia entre una decisión y un olvido.
+{
+  const todos = documentos();
+  const fuera = todos.filter(esActa);
+  log('');
+  log('   ⛔ FUERA DEL UNIVERSO — ' + fuera.length + ' de ' + todos.length + ' documentos');
+  for (const d of fuera) {
+    const motivo = /BITACORA\.md$/.test(d)
+      ? 'ACTA · el valor viejo TIENE que aparecer; marcarlo sería marcar el acta'
+      : /auditoriafinal\//.test(d)
+        ? 'ACTA de auditoría · mismo motivo'
+        : /RUTAS-CONOCIDAS\.md$/.test(d)
+          ? '⛔ NO ES DE ESTE REPOSITORIO: es de Antonio. No se le escribe encima'
+          : 'ES EL ÍNDICE de las republicaciones: imprime el viejo al lado del nuevo';
+    log('      ' + d.replace(/\\/g, '/').padEnd(40) + motivo);
+  }
+  log('   ⚠️ Y una exclusión más, por par y no por documento: el documento al que');
+  log('      cada par REPUBLICA no cuenta para ese par (`republicaEn`).');
+  log('   ⭐ Lo que esto NO cubre, dicho para que no se lea de más: la ley 109 —las');
+  log('      vallas ``` pares— SÍ se comprueba sobre TODOS, actas incluidas.');
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
 // D3 · ⭐⭐ EL RECUENTO CERRADO — va PRIMERO, porque si esto no cuadra, marcar
 //      sería escribir en un documento público a partir de un barrido que ya no
 //      mide lo que medía.
