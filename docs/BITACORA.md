@@ -9039,3 +9039,62 @@ error en una afirmación que se publicó con la palabra «NADA» y en mayúscula
 `003_ZETABUS/src/engine/correspondencias.ts` (338 líneas, no abierto) ·
 `docs/RECONOCIMIENTO-H2-HERENCIA-003.md` §6·1 · `docs/BITACORA.md` (la entrada de la ruta de
 fichero que no existía — el mismo día, y también sobre 003)
+
+---
+
+## [2026-08-10] — Escribí una cifra en el documento antes de medirla, y acertó
+
+**Categoría:** una afirmación sin comando al lado, que además salió bien
+**Síntoma:** redactando el §1.4 del diseño de H2a escribí, como prueba de que la valla del prefijo
+`PA` nace cumplida: *«Hoy, sobre el repositorio, ese número es 0 en `src/`»*. **Lo escribí porque
+era evidente —004 aún no ha tocado el GTFS— no porque lo hubiera contado.** El fichero se guardó
+con la cifra dentro. La medí después.
+
+```
+   grep -rn "PA[0-9]" src/ | wc -l          0     ⇐ y era verdad
+   grep -rnE "['\"]PA['\"]" src/ | wc -l    0
+```
+
+⇒ **El problema no es el cero: es el orden.** La regla de este repositorio no dice «acierta», dice
+**«toda afirmación va con su comando o su evidencia al lado»**. Un cero deducido y un cero medido
+**se escriben exactamente igual**, y el lector no puede distinguirlos.
+
+⚠️ **Y es la tercera vez esta semana con la misma forma.** La nº177 copió del encargo que el
+`.gitignore` era deny-all sin contarlo. La nº178 reconstruyó de memoria un nombre de fichero. Ésta
+dedujo un recuento. **Las tres veces el gesto es el mismo: escribir primero lo que parece obvio y
+comprobar después, o no comprobar.** Lo único que cambió fue la suerte.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la propia medición, que salió
+0 y me dio la razón.**
+
+```
+   la cifra escrita a ojo ........ 0
+   la cifra medida después ....... 0     ✅ coinciden
+   batería de arranque   14:57:19 → 15:14:07   exit=0
+   puntero superados     D1 0 · D2 0 · D4 ✅ · vallas impares 0
+```
+
+⛔⛔ **Y ése es justo el problema.** Cuando la deducción acierta, **no queda ni una señal de que se
+dedujo**. El documento se ve idéntico al que se habría escrito midiendo. **Un fallo de método que
+sale bien no deja rastro, y por eso vuelve.** Las nº177 y nº178 se cazaron porque salieron mal;
+ésta solo se ha cazado porque me paré a verificar antes de commitear, y **eso es disciplina, que se
+olvida.**
+
+**Arreglo aplicado:** el §1.4 ya no publica la cifra sola. Publica **los dos comandos con su
+resultado y un positivo de control** —el mismo `grep` sobre `docs/RECONOCIMIENTO-H2-CABOS.md`, que
+devuelve **19**— porque un cero sin un positivo al lado es indistinguible de un buscador roto
+(ley 4). ⇒ Ahora el lector puede ver que está medido; antes tenía que fiarse.
+
+**Commit:** `4450f09` (el arreglo) · este commit (la entrada)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **acertar sin medir no es acertar: es no haberse equivocado, y las
+dos cosas se escriben igual.** Una cifra deducida que coincide con la real **no valida el método
+que la produjo** — valida esa cifra, una vez, por casualidad. ⇒ **El orden es la evidencia:** si el
+comando no existía cuando se escribió el número, el número no tenía respaldo, y que luego lo tenga
+no cambia lo que era en el momento de escribirlo.
+⚠️ Corolario operativo, que es lo que se puede hacer mañana: **en un documento, el sitio de una
+cifra es debajo de su comando, no encima.** Escribir el comando primero hace imposible el orden
+inverso — no por virtud, por sintaxis.
+
+**Traza:** `docs/DISENO-H2A-RED.md` §1.4 · `docs/BITACORA.md` (las entradas del `.gitignore`
+deny-all y de la ruta de fichero que no existía)
