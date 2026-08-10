@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 126 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 130 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento veintiséis instrumentos mintiendo** *(115 al cerrar H1 + 11 en las dos tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento treinta instrumentos mintiendo** *(115 al cerrar H1 + 15 en las tres tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -995,6 +995,11 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 124 | ⭐⭐ **ESTA CONVERSACIÓN AFIRMÓ QUE `get_stops_list` DEVUELVE LA TRAZA REAL DE HOY.** Medio falso, y la mitad falsa era la que importaba: **refleja los desvíos de obras y NO las prolongaciones estacionales** — 003 lo midió con la línea 44, que tenía **cero viajes ese día** y aun así recibía el trazado completo. **Se repitió como hecho una frase propia de una conversación de julio contra un documento medido** |
 | 125 | ⭐ **CONTAR `.ts` Y LLAMARLO «FICHEROS TYPESCRIPT».** 167 era correcto; el sustantivo no: faltaban 32 `.tsx`. **199.** El ejecutor no pudo reproducir el 167 con cuatro filtros y lo dejó en `CAUSA NO CONFIRMADA` — *el número era bueno y la etiqueta lo hacía irreproducible* |
 | 126 | ⛔ **UN FALSO ROJO CONTRA EL EJECUTOR: `Test-Path` DIO `False` Y SE LEYÓ COMO «NUNCA EXISTIÓ».** Él había creado `.env.example`, medido y borrado. **Se midió después del hecho y se concluyó sobre el antes** — la misma forma que el nº120, el mismo día |
+| | **⬇ H2 · TANDA 3 (10/08) — CUATRO MÁS** ⬇ | |
+| 127 | ⛔⛔⛔ **EL POSITIVO DE CONTROL ESTABA VERDE Y ERA CORRECTO — LO QUE FALLÓ FUE LEERLO.** El `grep` de `transbordo` **sí devolvió `engine/correspondencias.ts`**; el informe de H2·2 lo clasificó como interfaz sin abrirlo y publicó *«003 no tiene NADA»*. **Y este documento lo destiló ayer a dos sitios.** ⇒ ⭐⭐ **Un positivo de control demuestra que el instrumento VE; no demuestra que tú hayas MIRADO** |
+| 128 | ⛔⛔⛔ **UNA COMPROBACIÓN QUE NO PODÍA FALLAR, PEDIDA POR ESTA CONVERSACIÓN.** El encargo de H2·3 pedía verificar si `PA00617` aparece en algún viaje **para demostrar por qué falta del corredor**. Pero `stop_times` referencia `stop_id`, y **el `stop_id` de `PA00617` no existe** ⇒ **el cero estaba garantizado y no distingue nada** (ley 96). ⚠️ **Y la pregunta iba además a la línea equivocada:** quien serviría el parque es la `104/LAN`, que es zombi. *Hermano del nº119, con el signo cambiado: aquel no podía ponerse verde; éste no podía ponerse rojo* |
+| 129 | ⭐⭐⭐ **EL DOCUMENTO DE 003 DESCRIBE DE MENOS, Y JUSTO EN LA VALLA.** Publica `poste = int(stop_code[2:])`; el código es `/^PA(\d{5})$/`, **anclada y exigiendo cinco dígitos**. Los 50 postes del tranvía llevan **cuatro** cifras ⇒ la fórmula publicada da **`1` para tres paradas distintas, sin un solo error**. ⛔ **Y la ruta del documento también es falsa**: no existe `sources/avanza-zaragoza/`; vive en `src/sources/gtfs-nap/identity.ts` |
+| 130 | ⛔ **EL POSITIVO DE CONTROL DE LOS TERMINALES SALIÓ ROJO, Y ERA VERDAD.** **21 de 74 sentidos** dan ≥2 terminales, incluidas líneas que nadie había nombrado ⇒ la consulta **no distinguía un segundo destino de una cola de final de servicio**. ⭐ **El ejecutor paró el veredicto ahí**, como manda la costura, y lo separó después por cuota. ⚠️ *Umbral elegido DESPUÉS de ver los datos, declarado: lo sostiene el salto 32 % → 7 %, no el corte* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1503,6 +1508,27 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     puede CALCULAR andando** — y eso convierte H1 en pieza portante del multimodal, no en un
     accesorio que se hizo antes.
 
+145. ⭐⭐⭐ **SE BUSCA AL DOCUMENTO QUE PROMETE DE MÁS. EL QUE DESCRIBE DE MENOS HACE EL MISMO DAÑO Y
+    NO LO MIRA NADIE.**
+    *003 publicó `poste = int(stop_code[2:])` y su código era `/^PA(\d{5})$/`. La regex ancla y exige
+    cinco dígitos; **el tranvía tiene cuatro**, así que el código devuelve `null` y la fórmula
+    publicada devuelve **`1` para tres paradas distintas, sin error**.* ⇒ **La valla estaba en la
+    regex, no en la frase — y quien hereda, hereda la prosa.** Corolario: **una auditoría que solo
+    pregunta «¿el código cumple lo que el documento promete?» tiene media cara sin mirar.**
+
+146. ⭐⭐⭐ **UN POSITIVO DE CONTROL DEMUESTRA QUE EL INSTRUMENTO VE. NO DEMUESTRA QUE TÚ HAYAS
+    MIRADO.**
+    *El `grep` devolvió `engine/correspondencias.ts` y el informe publicó «003 no tiene nada de
+    transbordo».* ⇒ **Entre el instrumento y la afirmación queda un humano leyendo**, y ese tramo no
+    lo cubre ningún control. ⚠️ Y este documento lo destiló al día siguiente, **a dos sitios**: *un
+    error leído se propaga más rápido que uno medido.*
+
+147. ⭐⭐ **UNA PRUEBA QUE SOLO TIENE UN RESULTADO POSIBLE NO ES UNA PRUEBA, EN CUALQUIERA DE LOS DOS
+    SENTIDOS.**
+    *El nº119 no podía ponerse verde; el nº128 no podía ponerse rojo. Los dos los escribió esta
+    conversación, con un día de diferencia.* ⇒ **Antes de pedir una comprobación se pregunta qué
+    resultado la haría fallar. Si no hay ninguno, no se está comprobando: se está decorando.**
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1612,8 +1638,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **Ar 7** | ⭐⭐ La portada cuenta la auditoría · **rutas nº9 y nº10** | **H1** | ✅ **4 de 5 bandas, medidas** |
 | **—** | ⭐⭐ **H1 CERRADO** *(el diario de A→Ar7 vive en §10, no aquí)* | **H1** | ✅ **9/08** |
 | **H2·1** | ⭐⭐⭐ **RECONOCIMIENTO DEL GTFS** — bajado con código propio y contado | **H2** | ✅ **10/08** ⛔ **el transbordo NO viene** |
-| **H2·2** | ⭐⭐ **LA HERENCIA DE 003** — datos, decisiones y maquinaria | **H2** | ✅ **10/08** ⛔ **de transbordo, nada que heredar** |
-| **H2·3** | *(siguiente: **las vallas y los cabos** — cuatro verificaciones de solo lectura)* | **H2** | ⬜ |
+| **H2·2** | ⭐⭐ **LA HERENCIA DE 003** — datos, decisiones y maquinaria | **H2** | ✅ **10/08** ⚠️ **de ENRUTADO de transbordo, nada que heredar** *(corregido por H2·3)* |
+| **H2·3** | ⭐⭐⭐ **LAS VALLAS Y LOS CABOS** — cuatro verificaciones de solo lectura | **H2** | ✅ **10/08** ⛔ **la valla estaba en la REGEX, no en la frase** |
 | **—** | *(y luego: **EL DESGLOSE DE H2**, que ya se puede hacer sin enumerar)* | **H2** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
 
 ### 0.A — El dataset heredado (2/08)
@@ -2822,9 +2848,18 @@ Registro entero en `docs/RECONOCIMIENTO-H2-GTFS.md` y `docs/RECONOCIMIENTO-H2-HE
 **H2·2 · LA HERENCIA DE 003 (10/08).**
 
 - ⭐⭐⭐ **Lo que 003 tiene de valor no son sus datos: son sus VALLAS** (ley 137).
-- ⛔ **De transbordo, 003 no tiene NADA.** Medido sobre sus 199 ficheros TypeScript: los 13 aciertos
-  de `transfer|transbordo` son **chips de interfaz**. **Positivo de control en el mismo universo:**
-  `stop_code|stopCode` → 5 ficheros ⇒ **el buscador funciona, la ausencia es real.**
+- ~~⛔ **De transbordo, 003 no tiene NADA** — los 13 aciertos son chips de interfaz~~
+  ⛔⛔ **CORREGIDO POR H2·3 (10/08). ERA FALSO, Y LO ESCRIBIÓ ESTE DOCUMENTO AYER.** Son **once**
+  ficheros, no trece, y **tres son motor**: `engine/correspondencias.ts` (338 líneas),
+  `engine/topologia.ts` (335) y `sources/avanza/correspondencias.ts` (277).
+  ✅ **Lo que SIGUE siendo cierto:** 003 no tiene **ENRUTADO** de transbordo — nada enlaza dos
+  paradas distintas, ni calcula un tramo a pie, ni mete el tiempo. Su pregunta es *«¿qué otras
+  líneas paran EN ESTE MISMO POSTE?»*.
+  ⚠️ **Y lo que la frase falsa hizo invisible es una DECISIÓN heredable:** *las correspondencias se
+  resuelven en UN SOLO SITIO, con un índice del día —no «habitualmente»—, un suelo de cobertura
+  declarado (`RATIO_SUELO = 0.8`) y un modo degradado que se dice en pantalla.*
+  ⭐⭐⭐ **Y lo que enseña, que es lo que sube a ley: el positivo de control ERA CORRECTO y estaba
+  verde.** El `grep` sí devolvió `correspondencias.ts`; **lo que falló fue leer su salida.**
 - ⭐ **Se hereda ejecutada:** el GTFS se procesa en BUILD, no en runtime · cada geometría lleva su
   procedencia y **no se mezclan jamás** · ante dos fuentes que se contradicen **no se adjudica: se
   citan las dos y quién lo dice** · nunca decir «todos» · fuera el tiempo real.
@@ -2854,6 +2889,26 @@ Registro entero en `docs/RECONOCIMIENTO-H2-GTFS.md` y `docs/RECONOCIMIENTO-H2-HE
 | ⚠️ | **El árbol local de 003 publica menos de lo que tiene** | **20 entradas ignoradas**, entre ellas `.cache/fixtures-reales/` con respuestas reales de Avanza **bajo compromiso de no redistribución. Ninguna se abrió.** ⇒ *Quien reconstruya esta herencia leyendo solo GitHub verá menos.* ⭐ Y medido aparte: **306 ficheros versionados en local contra 289 en el repo público ⇒ 17 que nunca se subieron** |
 | ⚠️ | **`tools/` no la protege ninguna regla** | Se versiona por defecto lo que caiga ahí; cada derivado se ha excluido **a mano, cuatro veces** (`.gitignore` 312 · 318 · 324 · 334). **No muerde hoy** —`bajar-gtfs.js` solo escribe en `data/exploracion/`— **pero es un cabo** (ley 142) |
 | ⭐ | **El mecanismo para cazar rutas falsas YA EXISTE, y le falta alcance** | `src/superados.js:447` hace `existsSync` sobre las rutas de **su propia tabla** y sobre ninguna otra. **Nada recorre las rutas que aparecen en la PROSA.** ⇒ *Ley 118: el guardián vigila lo que alguien le declaró, y nadie le declaró la prosa.* **Candidato a instrumento** |
+
+**H2·3 · LAS VALLAS Y LOS CABOS (10/08) — lo medido:**
+
+| | qué | |
+|---|---|---|
+| ⭐⭐⭐ | **La valla de 003 estaba en la REGEX, no en la frase** | Ver §7·129 y §8·145. ⛔ **004 NO puede heredar `int(stop_code[2:])`: tiene que heredar `/^PA(\d{5})$/`.** Cuatro vallas de cinco están en el código, y la del diff de desvíos **además en el tipo y en un test que existe** |
+| ✅ | **Los dos 934 son EL MISMO conjunto** | `A∩B = 934`, las dos diferencias **0**. ⇒ **`A·V2` no tiene hermano aquí y el cruce contra el WFS se hizo contra el conjunto correcto: no hay nada que rehacer.** ⭐ Salió limpio a la primera y se trató como sospecha: el control es que **0 de las 50 del tranvía** casan el criterio ⇒ no se estaba comparando una lista consigo misma |
+| ⛔ | **El cruce `813x` queda en `NO CONSTA`** | `PA08134`–`PA08137` **no están en ninguna fuente al alcance**; en todo el rango `080xx`–`082xx` el WFS de hoy solo tiene `PA08000` y `PA08130`–`PA08133`. **Haría falta el inventario de ZGZ RADAR o un WFS anterior al 13/07.** ⭐ **Control ya medido para cuando llegue:** en esa zona dos postes distintos están a **170-300 m** y el par más apretado a **50,2 m** ⇒ *«renumerado» y «otro poste» se distinguirán solos* |
+| ⭐⭐⭐ | **Terminales variables: son DOS de 74 sentidos, no una anécdota ni la red entera** | `44 s0` cuota 39 %, determinante **DÍA** (117 laborables · 0 sábados · 0 domingos, y solo 07h-20h) · `23 s0` cuota 32 %, determinante **HORA** (cero viajes entre las 08h y las 12h; todo de 23h a 25h). ⭐⭐ **Salieron a ciegas dos de las tres que nombró Antonio** |
+| ⚠️ | **La 34 NO sale variable en este feed** | Cuota 1,2 %, y su segundo terminal no es el parque. ⛔ **Y la cadena «sin viajes ⇒ fuera de `stops.txt`» SIGUE SIENDO INFERENCIA**: la comprobación que la habría cerrado no podía fallar (§7·128) |
+| ⭐ | **003 no podría haber visto esto nunca** | Su adapter **se queda con el viaje más largo de cada (línea, sentido) y tira el resto** ⇒ **colapsa el terminal variable por construcción, y sobrestima su propia cobertura.** ⛔ **Decisión que 004 NO hereda** |
+
+> ⭐⭐⭐ **Y LO QUE ABRE, COMO HALLAZGO Y NO COMO DISEÑO — pendiente de decisión de Antonio:**
+> *«¿La línea 23 sirve Clara Campoamor?»* **no tiene respuesta sí/no.** A las diez de la mañana es
+> **no**; a las once de la noche es **sí**. ⇒ **Una red sin reloj solo puede dar una de las dos, y
+> las dos son falsas parte del día.**
+> ⚠️ **Y el fallo NO es simétrico:** el «sí» falso **manda a alguien a esperar un autobús que no va
+> a venir**; el «no» falso solo le esconde uno. **El primero se paga en la calle.**
+> ⇒ Si esto entra, **H3 deja de ser «añadir horarios» y pasa a ser «restringir la red por tiempo»**,
+> que es un encargo distinto. **Tamaño medido: 2 sentidos de 74.**
 
 **DECISIONES NUEVAS DE H2:**
 
