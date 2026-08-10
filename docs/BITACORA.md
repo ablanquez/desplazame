@@ -9098,3 +9098,252 @@ inverso — no por virtud, por sintaxis.
 
 **Traza:** `docs/DISENO-H2A-RED.md` §1.4 · `docs/BITACORA.md` (las entradas del `.gitignore`
 deny-all y de la ruta de fichero que no existía)
+
+---
+
+## [2026-08-10] — Medí las paradas contra un grafo que el motor no usa, y dio el mismo resultado
+
+**Categoría:** el instrumento mide sobre otro universo
+**Síntoma:** `tools/grafo/enganche-paradas.js` calculaba sus propias componentes conexas en vez de
+usar las del grafo que le devuelve `src/ruta.js`:
+
+```
+   G.adyacencia(g.nodos, g.aristas, true, true)   ⇐ el cuarto argumento es `sinCondicionales`
+```
+
+⇒ **Ese `true` deja fuera los PASOS CONDICIONALES**, y los pasos condicionales **entran en el
+cálculo desde la tanda 12** (`src/ruta.js:106-112`, decisión de Antonio: *«la primera consecuencia
+real medida fue que la Estación de Delicias quedaba sin acceso a pie»*). O sea: **contaba paradas
+incomunicadas sobre un grafo que no contesta ninguna ruta.**
+
+```
+   el grafo que usa el motor      componentes 170   ·   mayor 65.707
+   el grafo que yo medí           componentes 184   ·   mayor 65.580
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el positivo de control, que era
+correcto, exigente y del todo ajeno al fallo.**
+
+```
+   portales, p99 medido con este instrumento .... 65,4 m
+   publicado por H1 (src/ruta.js:151) ...........   65 m      desvío 0,4 m   ✅
+   código de salida del script ..................    0        ✅
+```
+
+⛔⛔ **Y el control no podía cazarlo, porque vigila otra cosa.** Comprueba que el ENGANCHE reproduce
+una medida conocida —y la reproduce, con 0,4 m de desvío—. **La elección del grafo sobre el que se
+cuentan las componentes no la mira nadie.** Es la ley 148 otra vez, con otra cara: *un positivo de
+control cubre lo que cubre*, y este cubría el instrumento de medir distancias, no el universo sobre
+el que se medían.
+
+⛔⛔⛔ **Pero lo de verdad grave es esto: el resultado NO CAMBIA.** Con las 184 componentes salen
+**3 paradas fuera de la mayor** —`PA00349`, `PA00353`, `PA00354`, la Ctra. Castellón— y con las 170
+del motor salen **las mismas tres**.
+
+⇒ **Ninguna salida del script podía delatarlo.** No había un número raro que mirar, ni un rojo, ni
+una cifra que no cuadrase. **Solo se caza leyendo el código, y solo se leyó porque el recuento de
+nodos de al lado no me cuadraba y fui a mirar de dónde salía.** Si aquel otro número hubiera
+cuadrado, esto se publica.
+
+**Arreglo aplicado:** el script **no recalcula nada**: coge `g.comp` y `g.ady` del grafo que
+devuelve `construir()`, con su comentario explicando por qué, y **imprime que los pasos
+condicionales van DENTRO** para que la próxima lectura no tenga que confiar.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **cuando un dato ya viene calculado con la configuración buena,
+recalcularlo es elegir una configuración — aunque no se note que se está eligiendo.**
+`G.adyacencia(...)` tiene dos banderas con valor por defecto; llamarla otra vez **no es reutilizar
+el grafo: es construir uno distinto** y quedarse con el parecido. ⇒ **Un valor que el objeto ya
+trae no se vuelve a derivar**; si hace falta derivarlo, hay que decir con qué opciones y por qué
+son ésas.
+⚠️ Corolario, y es el que asusta: **un fallo que da el resultado correcto no deja ninguna huella
+observable.** No hay comprobación de salida que lo cace. Lo único que lo caza es que alguien lea de
+dónde sale cada número — y eso no escala.
+
+**Commit del arreglo:** `6eec6c2`
+
+**Traza:** `tools/grafo/enganche-paradas.js` · `src/ruta.js:106-117` · `src/grafo.js:18` ·
+`docs/BITACORA.md` (la entrada de la cifra escrita antes de medirla)
+
+---
+
+## [2026-08-10] — Escribí en mi propio script un `⛔` que no alarmaba, y encima afirmaba algo falso
+
+**Categoría:** un ⛔ impreso es texto (ley 44), cometido por mí, en un fichero nuevo
+**Síntoma:** el mismo script traía esta línea para «demostrar» que los dos recuentos de nodos
+cuadran:
+
+```
+   log('… ⇒ ' + (g.contadores.nodos + g.comp.aislados === g.nodos.length ? '✅ cuadra' : '⛔ NO CUADRA'));
+```
+
+**Salió `⛔ NO CUADRA`. Y el script terminó en 0.**
+
+```
+   nodos con alguna arista (contadores.nodos) .... 68.649
+   nodos en el array ............................. 68.787
+   aislados en el grafo a pie .................... 1.977
+   68.649 + 1.977 = 70.626  ≠  68.787
+```
+
+⇒ **Dos fallos en dos líneas, y son distintos:**
+
+1. ⛔ **La afirmación era falsa**, y la escribí porque «tenía pinta». `contadores.nodos`
+   (`src/planarizar.js:508`) cuenta los nodos que salen en **alguna arista, sea transitable o no**;
+   `aislados` cuenta los que no tienen **adyacencia en el grafo a pie**. **Son poblaciones que se
+   solapan**, así que sumarlas no puede dar el total. La ecuación no describía nada.
+2. ⛔⛔ **Y el `⛔` solo se imprimía.** Sin `A.exige`, sin `A.fallo`: el proceso salía en 0 con un
+   símbolo de alarma en pantalla. **Es literalmente el fallo que fundó `src/alarma.js`** —la ruta
+   `Puerta del Carmen → Magdalena`, dos tandas rota, imprimiendo `⛔` y saliendo en 0— y lo he
+   vuelto a escribir en un fichero nuevo, dieciocho meses de leyes después.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todo, incluido el propio script.**
+
+```
+   node tools/grafo/enganche-paradas.js   ⇒  código 0    ✅
+   ⇒ ✅ EL ENGANCHE DE LAS PARADAS: sin fallos.
+   y el ⛔ NO CUADRA impreso tres líneas más arriba, en la misma salida.
+```
+
+⛔ **El cierre de la alarma decía «sin fallos» con un `⛔` visible en su propia pantalla**, porque
+la alarma solo sabe de lo que se le cuenta. **No hay contradicción para la máquina: para ella no
+pasó nada.**
+
+**Arreglo aplicado:** la línea se sustituye por el invariante que **sí** es cierto y **sí** puede
+fallar — *quien no tiene ninguna arista tampoco puede tener adyacencia*, o sea
+`aislados >= nodos_del_array − contadores.nodos` — y va con `A.exige`, así que un incumplimiento
+saca el proceso en rojo. De paso se publican los tres recuentos por separado, que era lo
+informativo: **138 nodos sin ninguna arista, 1.977 aislados a pie.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una comprobación escrita con un ternario no es una comprobación:
+es una etiqueta.** El `? '✅' : '⛔'` produce las dos caras del veredicto **y ninguna consecuencia**,
+y se escribe sin pensar porque cabe en una línea. ⇒ **Si un texto puede llevar un `⛔`, tiene que
+poder llevar un código de salida distinto de 0.** No hay término medio: o se comprueba y se alarma,
+o no se imprime el símbolo.
+⚠️ Y lo que enseña de este proyecto en concreto: **`src/` tiene la batería que caza esto —ejecuta
+los 59 scripts y compara su salida con su código de retorno— y `tools/` NO ESTÁ EN SU UNIVERSO.**
+El cabo de que `tools/` no lo vigila nada (ley 142) ha dejado de ser teórico hoy: **el primer fallo
+de esta clase en un fichero de `tools/` ha existido y ha salido en verde.**
+
+**Commit del arreglo:** `6eec6c2`
+
+**Traza:** `tools/grafo/enganche-paradas.js` · `src/alarma.js` (su cabecera, que cuenta el caso
+fundacional) · `src/probar-paradas.js` (la batería, cuyo universo es `src/`)
+
+---
+
+## [2026-08-10] — La ley que escribí esta mañana no me impidió repetir el fallo esta tarde
+
+**Categoría:** la misma de la nº180, cuatro horas después
+**Síntoma:** al describir la valla del prefijo en `docs/H2A-ENGANCHE-DE-LAS-PARADAS.md` §1.3
+escribí que el `grep` devuelve **un** fichero:
+
+```
+   lo que escribí:   grep -rln "PA[0-9]" tools/  →  tools/gtfs/identidad.js
+   lo que devuelve:  tools/gtfs/identidad.js
+                     tools/gtfs/probar-identidad.js      ⛔
+```
+
+`probar-identidad.js` lleva `"PA00002"`, `"PA01183"`, `"PA00000"` y ocho casos más en su tabla de
+control. **Lo sabía: los escribí yo, media hora antes.** Y aun así publiqué «y solo ése».
+
+⛔⛔ **Y esto es exactamente la nº180 de esta misma mañana**, cuya ley decía, textual: *«en un
+documento, el sitio de una cifra es debajo de su comando, no encima»*. **La escribí, la commiteé, y
+cuatro horas después hice lo mismo con la primera afirmación que me pareció obvia.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la mitad de la afirmación, que
+era la que yo estaba mirando.**
+
+```
+   grep -rn "PA[0-9]" src/ | wc -l              0      ✅ y es verdad, y es lo que importaba
+   la prueba del puente, en verde                      ✅
+   la prueba del puente, en rojo con --formula=003     ✅
+```
+
+⛔ **El trozo verdadero tapó al falso.** Lo que la valla protege de verdad es `src/`, ahí sale 0, y
+al verlo di por bueno el resto de la frase sin volver a leerla. **Un enunciado con dos mitades se
+comprueba entero o no se comprueba**: la mitad que miré era la que ya sabía que iba a salir bien.
+
+**Arreglo aplicado:** ninguno al código —**la valla está bien y el fallo era del enunciado**—. Una
+prueba de un formato **tiene que** contener ejemplos del formato; esconderlos la dejaría probando
+algo invisible. Lo que se corrige es la regla, que ahora dice lo que se puede vigilar: *el prefijo
+vive en el fichero que lo define y en el que lo prueba, y en ningún otro sitio*, con el `grep` y su
+salida real debajo.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una ley aprendida no protege del fallo que la produjo.** La 180 se
+escribió hoy, con su caso y su corolario, y no evitó nada cuatro horas después — porque el fallo no
+viene de ignorar la regla, viene de **no notar que se está afirmando algo**. «Y solo ése» no se
+siente como una medición: se siente como una coma. ⇒ **Lo que protege no es la ley: es el comando
+escrito antes.** Una regla que hay que recordar en el momento exacto de olvidarla no es una
+protección, es una esperanza (ley 37: mecanismo, no disciplina).
+⚠️ Y el corolario que sale de esta tercera vez: **el peligro no está en las cifras, que ya miro.
+Está en los cuantificadores** — «solo», «todos», «ninguno», «siempre». Son los que se escriben sin
+pensar y los que convierten una frase cierta en una falsa. *003 ya tenía media ley aquí:* **«nunca
+digas todos los buses»**. Le faltaba la otra mitad: **ni «solo éste».**
+
+**Commit del arreglo:** `639795b`
+
+**Traza:** `docs/H2A-ENGANCHE-DE-LAS-PARADAS.md` §1.3 · `tools/gtfs/probar-identidad.js` ·
+`docs/BITACORA.md` (la entrada de esta misma mañana sobre la cifra escrita antes de medirla)
+
+---
+
+## [2026-08-10] — Dejé correr la línea base mientras escribía, y midió un estado que no existió nunca
+
+**Categoría:** el instrumento y el sujeto se movieron a la vez
+**Síntoma:** la batería de arranque de H2a·5 salió en **rojo**, y en las cuatro tandas anteriores
+salía en 0.
+
+```
+   ANTES   ARRANQUE 15:47:51  →  FIN 16:04:38    ⛔ exit=1
+      superados.js   código 1   1 de 0   declara   ⛔ DECLARA 1 Y SE ESPERABAN 0
+```
+
+⇒ **No lo rompió nada de `src/`** —esta tanda no ha tocado ni un fichero de `src/`—. Lo rompió que
+**la batería estaba leyendo `docs/` mientras yo escribía un documento nuevo dentro de `docs/`.** El
+puntero recorre los documentos: le cambié el suelo bajo los pies a mitad de recorrido.
+
+⛔⛔ **Y el atajo fue consciente.** Los encargos de las tandas 2, 3 y 4 exigían que la línea base
+terminase **antes del primer fichero escrito**, y se esperó las tres veces —diecisiete minutos cada
+una—. El de hoy **no lo exigía**, así que la lancé y me puse a escribir. Lo declaré en el documento
+como *«vale, y vale menos»*.
+
+⚠️ **Y esa declaración era demasiado suave: no vale MENOS, no vale.** Una línea base sirve para una
+sola cosa —decir cómo estaba todo ANTES— y ésta mezcla el antes de `src/` con el a-medias de
+`docs/`. **Mide un estado que no existió en ningún instante.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la propia batería, en la tanda
+anterior, cuatro horas antes.**
+
+```
+   tanda 4 · DESPUÉS   15:17:57 → 15:34:32   exit=0   112 líneas   ✅
+   y su diff contra la de arranque de aquella tanda: VACÍO
+```
+
+⇒ ⭐ **Ese es el estado limpio de verdad**, y es lo que salva la tanda: la comparación de hoy se
+hace **contra la batería de cierre de la tanda 4**, que sí se tomó con el árbol quieto. La de
+arranque de hoy se publica igualmente —esconderla sería peor— **pero se publica declarada como
+inservible**, no como línea base.
+
+**Arreglo aplicado:** ninguno en el código. Lo que cambia es el método, y se escribe aquí para que
+no dependa de que el encargo lo pida: **la línea base termina antes de tocar el primer fichero,
+aunque nadie lo exija.** Diecisiete minutos de espera cuestan menos que una tanda sin suelo.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una medición de referencia no admite trabajo en paralelo, aunque
+el trabajo sea «de otra carpeta».** Yo razoné que el universo de la batería es `src/` y que escribir
+en `docs/` era inocuo — **y era falso, porque uno de los 59 scripts de `src/` LEE `docs/`**. ⇒ **El
+universo de un instrumento no es la carpeta donde vive: es todo lo que toca.** Para saber si un
+cambio le afecta hay que conocer sus lecturas, no su ubicación, y eso es precisamente lo que uno no
+recuerda cuando tiene prisa.
+⚠️ Corolario práctico: **si la línea base tarda diecisiete minutos, ese tiempo es parte de la
+tanda**, no un hueco que rellenar con trabajo. Tratarlo como hueco es lo que produjo esto.
+
+**Traza:** `src/superados.js` (el que lee `docs/`) · `src/probar-paradas.js:217` (su universo es
+`__dirname`, o sea `src/`) · `docs/H2A-ENGANCHE-DE-LAS-PARADAS.md` §7
