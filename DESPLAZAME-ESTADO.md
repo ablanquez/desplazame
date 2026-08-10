@@ -1640,7 +1640,12 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2·1** | ⭐⭐⭐ **RECONOCIMIENTO DEL GTFS** — bajado con código propio y contado | **H2** | ✅ **10/08** ⛔ **el transbordo NO viene** |
 | **H2·2** | ⭐⭐ **LA HERENCIA DE 003** — datos, decisiones y maquinaria | **H2** | ✅ **10/08** ⚠️ **de ENRUTADO de transbordo, nada que heredar** *(corregido por H2·3)* |
 | **H2·3** | ⭐⭐⭐ **LAS VALLAS Y LOS CABOS** — cuatro verificaciones de solo lectura | **H2** | ✅ **10/08** ⛔ **la valla estaba en la REGEX, no en la frase** |
-| **—** | *(y luego: **EL DESGLOSE DE H2**, que ya se puede hacer sin enumerar)* | **H2** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
+| **H2·4** | ⭐⭐⭐ **EL DISEÑO EN PAPEL de H2a** — `docs/DISENO-H2A-RED.md` | **H2a** | ✅ **10/08** ⭐ **2.538 pares, no 483.636** |
+| **H2·5** | *(siguiente: **las paradas en el grafo** — y la medición que puede tumbar D4)* | **H2a** | ⬜ |
+| **H2·6** | La red de bus | **H2a** | ⬜ |
+| **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO** — la pieza que no tiene nadie más | **H2a** | ⬜ |
+| **H2·8** | El tranvía — casi gratis si el modelo está bien | **H2a** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
+| **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -2910,6 +2915,51 @@ Registro entero en `docs/RECONOCIMIENTO-H2-GTFS.md` y `docs/RECONOCIMIENTO-H2-HE
 > ⇒ Si esto entra, **H3 deja de ser «añadir horarios» y pasa a ser «restringir la red por tiempo»**,
 > que es un encargo distinto. **Tamaño medido: 2 sentidos de 74.**
 
+**H2·4 · EL DISEÑO EN PAPEL DE H2a (10/08) — `docs/DISENO-H2A-RED.md`, propuesta sin construir.**
+
+> ⭐⭐⭐ **LA ARITMÉTICA QUE DECIDE EL HITO:**
+> ```
+>    pares totales  N(N-1)/2, N=984 ....... 483.636
+>    a ≤ 300 m a vuelo de pájaro ..........   3.231   (0,668 %)
+>    que además aportan una LÍNEA NUEVA ...   2.538
+> ```
+> **Reducción de 190×.** El transbordo **no es medio millón de rutas peatonales: son 2.538**, que es
+> un cálculo de minutos. ⭐ **Y el filtro lleva control:** si no filtrara nada los inútiles serían 0,
+> si filtrara todo quedarían 0 — **da 693 y 2.538.**
+> ⚠️ **Coste declarado:** 9 paradas sin pareja a 300 m, 2 a 500 m, la más aislada a **592 m** ⇒
+> *ningún radio le da transbordo a todo el mundo, y eso es un hecho de la ciudad, no del método.*
+
+| | qué | |
+|---|---|---|
+| ⭐⭐⭐ | **EL HALLAZGO QUE CAMBIÓ EL DISEÑO — y sale de datos que ya estaban publicados** | Los rodeos de las diez rutas de H1, mirados **por tamaño de trayecto**, que nadie había hecho: **largas (2,5–6,4 km) 1,06 · 1,09 · 1,24 · 1,25** contra **cortas (477–598 m) 1,10 · 1,32 · 1,37 · ⛔ 2,17.** La nº4 recorre **506 m para salvar 233 en recta.** ⇒ ⭐⭐⭐ **El rodeo es peor y mucho más variable justo en los trayectos cortos, que son los del transbordo.** Un radio fijo **no es solo impreciso: es peor precisamente en el rango donde vive la pieza.** ⇒ **El radio es un PRE-FILTRO barato; el coste son los METROS ANDANDO** |
+| ⭐⭐ | **La costura bus↔tranvía existe físicamente** | **48 de 50** paradas de tranvía tienen un autobús a ≤300 m — mín **20 m**, mediana **73 m**, p90 **130 m**. Las dos que no son Juslibol, a **418 m**, declaradas. ⛔ **No se sube el radio a 500 m para rescatarlas: multiplicaría los pares por 2,5 para ganar dos paradas** |
+| ⭐⭐⭐ | **D1 · La identidad, con la colisión medida EN 004** | `bus AA99999` 934/934 · `tranvía 9999` 50/50 · **intersección literal de códigos: 0**. ⛔ **Quitando prefijo y quedándose el número: 15 colisiones.** ⛔⛔ **Con `int(stop_code[2:])` de 003: 47 choques, y 24 paradas en el poste 1 — sin un solo error.** ✅ **Con `/^PA(\d{5})$/`: 0** ⇒ **La parada se identifica por su `stop_id` OPACO; el poste es un ATRIBUTO que 50 paradas no tienen.** ⭐ Y el tranvía **no recibe puente equivalente**: su código se guarda como cadena sin interpretar, porque `NO CONSTA` qué significa |
+| ⭐⭐ | **La valla tiene una prueba que PUEDE FALLAR** | Meter los 50 códigos del tranvía y exigir 50 «no tiene». **Con la fórmula de 003 esa prueba da 24 al poste 1 y se pone roja** (ley 147) |
+| ⭐ | **El enlace guarda METROS, no minutos** | Convertir a minutos exige una velocidad, y la de H1 **está medida como banda (4,3–4,5 km/h), no como número.** Guardar minutos convertiría una banda en un dato falso-preciso. **Se derivan al enseñar, con su banda y diciendo que son estimados** |
+| ⭐⭐ | **`SIN CAMINO` es un RESULTADO, no un fallo** | El grafo tiene **170 componentes** y tres barrios rurales incomunicados de verdad. ⭐ **Y la comprobación que puede fallar: si el cocinado saliera con CERO `SIN CAMINO`, sería SOSPECHOSO** — significaría que el pre-filtro solo elige pares del centro |
+| ⛔⛔ | **D3 QUEDA COMO MEDICIÓN PENDIENTE, Y ES LA QUE PUEDE TUMBAR ESTO** | **No hereda `AVISO_ENGANCHE_M = 65`**: ese es el p99 de **portales**, y un poste está **en la vía pública, no en una fachada**. ⇒ **Si muchos postes enganchan a 100-200 m, el radio de 300 m deja de tener sentido.** Es la primera tanda que puede fallar de verdad |
+
+**⚠️ LAS CUATRO PREGUNTAS QUE EL DISEÑO NO SE HIZO, declaradas por su autor** — *el documento salió
+redondo y en vez de celebrarlo enumeró lo que no había mirado:*
+
+1. ⭐⭐ **Se asume que un enlace peatonal es SIMÉTRICO, y no se ha medido.** ⇒ *Y puede no ser una
+   medición: si el grafo de H1 es NO DIRIGIDO, la simetría está garantizada por construcción — y
+   entonces el enlace se guarda una vez y no dos, lo que ataca también la pregunta 4.*
+2. **Dos paradas con el mismo nombre** («Juslibol» ×2).
+3. ⛔⛔ **La estabilidad de los `stop_id` entre versiones del feed — Y ESTÁ DEBAJO DE D1.** Si los
+   identificadores cambian, **la decisión central de la tanda está sobre arena** y lo cocinado en
+   agosto deja de casar en octubre **sin avisar**. ⇒ **Hoy no se puede comprobar: solo existe una
+   versión, y 003 auditó la misma.** ⭐⭐⭐ **Eso asciende la tanda de repetibilidad de higiene a
+   VALIDACIÓN DE D1: cuando cambie el `feed_version`, la primera pregunta no es cuántas paradas hay,
+   sino si las 934 siguen llamándose igual.**
+4. **El tamaño del artefacto.**
+
+⚠️ **Y un defecto del ENCARGO, que es de esta conversación:** pidió *cero código* y a la vez *toda
+cifra medida con su comando*. Se resolvió con scripts de usar y tirar fuera del repositorio ⇒
+**el 2.538, que es el número que decide el hito, está publicado SIN SU INSTRUMENTO.** La regla del
+proyecto es *«lo que se versiona es el script, no su salida»* y aquí ha pasado lo contrario.
+**Se arregla en H2·5, donde esos scripts entran como código de verdad.**
+
 **DECISIONES NUEVAS DE H2:**
 
 - ⭐ **El código que sale a la red vive en `tools/`, NO en `src/`.** `src/` es el universo de la
@@ -2918,12 +2968,25 @@ Registro entero en `docs/RECONOCIMIENTO-H2-GTFS.md` y `docs/RECONOCIMIENTO-H2-HE
 - **La clave del NAP se LEE de 003 y la maquinaria se ESCRIBE en 004.** Fichero aparte con su
   positivo de control **antes** de que la clave exista, y **la dependencia se declara** — que es
   exactamente lo que faltaba en el caso del callejero (`C·V1`).
-- ⚠️ **Orden de modos, APROBADO COMO HIPÓTESIS y a cerrar en el desglose:**
-  **bus → tranvía → estaciones BiZi → red ciclable.** *Las estaciones son NODOS y son baratas; la
-  red ciclable es un GRAFO NUEVO con reglas propias y es la pieza más grande de H2.*
-- ⭐ **Y una pregunta abierta para el desglose, no decidida:** si conviene partir en **H2a** —red de
-  transporte público con transbordo peatonal, que ya demuestra el diferenciador— y **H2b** ciclable
-  después. *Un proyecto cerrado del todo bate a dos al 80 %, y eso vale también dentro de un hito.*
+- ⭐⭐⭐ **H2 SE PARTE (Antonio, 10/08). `H2a` = bus + tranvía + transbordo a pie. `H2b` = red
+  ciclable + estaciones BiZi, después.**
+  *Motivo: la red ciclable es un GRAFO NUEVO con reglas propias —una bici no va por la acera ni sube
+  escaleras— y es sola más de la mitad del hito. **Y el diferenciador no la necesita:** el transbordo
+  andando se demuestra entero con bus y tranvía.* ⚠️ **Y las estaciones BiZi se van con la bici, no
+  con el bus:** son nodos baratos, pero **sin red ciclable son nodos que no llevan a ningún sitio.**
+  ⇒ *Un proyecto cerrado del todo bate a dos al 80 %, y eso vale también dentro de un hito.*
+- ⭐⭐ **H2 SIGUE SIN RELOJ, y el reparto de terminales entra COMO DATO (Antonio, 10/08).**
+  Cada enlace lleva terminal mayoritario, cuota y determinante (`DÍA` / `HORA` / `NO CONSTA`).
+  **El motor no lo consulta y no decide nada con eso.** *Lo que compra: H3 no tiene que
+  redescubrirlo, y hoy está medido con un feed que en octubre ya no existirá.*
+  ⛔ **CON UNA CONDICIÓN: los dos sentidos condicionales se marcan EN LA SALIDA, no solo en el dato.**
+  Guardar el reparto en un fichero no evita que el motor mande a alguien a esperar a las diez de la
+  mañana. **El «sí» falso se paga en la calle.**
+- ⚠️ **EL STACK NO SE DECIDE TODAVÍA — y el criterio sí.** Lleva sin decidir desde H1 y no ha
+  bloqueado nada, porque el motor no tiene dependencias y el grafo cabe en memoria. **La restricción
+  ya medida:** el hosting de `antonioblanquez.es` es compartido y **no tiene Node** ⇒ o el grafo se
+  resuelve **en el navegador** —y manda cuánto pesa el artefacto— o hace falta plan Node como 003.
+  **Se decide con el tamaño del grafo multimodal delante, que sale en H2·6.**
 
 **LO SIGUIENTE — H2·3, cuatro verificaciones de solo lectura:**
 `1` los cuatro ficheros dirigidos de 003 (`identity` · `adapter` · `desvios` · `topologia`), porque
