@@ -8907,3 +8907,64 @@ permitido, y las dos mitades del `.gitignore` se rompen por motivos distintos.
 
 **Traza:** `.gitignore:28` · `.gitignore:31` · git 2.51.2.windows.1 ·
 `docs/BITACORA.md` (la entrada del `*.pem`)
+
+---
+
+## [2026-08-10] — Cité un documento de 003 por un nombre que no existe, y el contenido citado era correcto
+
+**Categoría:** la evidencia apunta a un sitio que no está
+**Síntoma:** en H2·2, investigando la herencia de 003, apunté la asimetría desvío/supresión como
+`docs/auditoria/06-fase7b-desvios.md:194-226,366` y la llevé así a un mensaje de trabajo. **Ese
+fichero no existe.** El de verdad se llama `06-fase7b-ruta-real.md`.
+
+```
+   ls docs/auditoria/06-fase7b-desvios.md     No such file or directory   ⛔
+   ls docs/auditoria/06-fase7b-ruta-real.md   372 líneas                  ✅
+```
+
+⇒ **Lo que falla es el puntero, no el dato.** El párrafo citado está donde dije que estaba —línea
+226 del fichero de verdad, *«No es un fantasma. Es una parada suprimida sobre el papel y viva en la
+base de datos»*— porque lo saqué con `grep` sobre la carpeta entera y **el `grep` sí devuelve la
+ruta correcta**. El nombre falso lo puse yo después, al resumir de memoria, reconstruyendo un
+nombre plausible a partir del tema del documento: hablaba de desvíos ⇒ *«desvíos»*.
+
+⚠️ **Y es plausible, que es lo que lo hace peligroso.** La carpeta tiene `02-fase4-color-y-desvios`
+y `03-fase5-desvios`: el nombre inventado encaja en la serie. Un lector que no abra el fichero no
+tiene forma de sospechar.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **todo, y una de las cosas verdes
+se llama exactamente «el documento al que manda la marca EXISTE».**
+
+```
+   batería src/ --todo   ARRANQUE 12:53:34 → FIN 13:11:34    exit=0     ✅
+   D4 · ⭐ el documento al que manda la marca EXISTE          ✅
+   D1 · valor superado impreso sin declararlo                0
+```
+
+⛔ **D4 comprueba rutas, pero solo las SUYAS.** `src/superados.js:447` recorre el campo
+`republicaEn` de los 24 pares de la tabla y comprueba con `existsSync` que cada destino está en
+disco. **Nada recorre las rutas que aparecen en la PROSA de un documento.** Y aquí la ruta ni
+siquiera era de este repositorio: apuntaba fuera, a `003_ZETABUS`.
+
+**Arreglo aplicado:** la cita se corrige al nombre medido antes de que entre en
+`docs/RECONOCIMIENTO-H2-HERENCIA-003.md`, y **todas las rutas de 003 que van a ese documento se
+comprueban con `ls` una a una**, no con la memoria de haberlas abierto. **Y no era la única:** al
+pasar el `ls` y el `grep -n` a las **ocho rutas de fichero** del documento salieron **cinco números
+de línea equivocados** —y aparte, un recuento de veinte entradas ignoradas que yo había declarado
+como veintiuna, en dos sitios—. Los seis, corregidos antes del commit.
+⚠️ **Y el reparto dice de qué va esto:** el nombre de fichero falló **una** vez y los números de
+línea **cinco**. Lo que se degrada al resumir de memoria no es el fichero —ese se recuerda— **son
+las coordenadas dentro de él.**
+
+**Commit:** `0e0216c` (el arreglo) · este commit (la entrada)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una ruta de fichero es una afirmación, y se verifica como tal.**
+El contenido y su dirección son dos hechos distintos: acertar el primero no dice nada del segundo,
+y en un registro histórico la dirección es lo único que le queda al que venga después.
+⚠️ Corolario que este repositorio se puede permitir y no tiene: **D4 sabe hacer justo esto** —abrir
+un `existsSync` sobre una ruta declarada— **y solo lo hace sobre su propia tabla.** El mecanismo
+existe; el alcance es lo que falta. Es la ley 118 otra vez: el guardián vigila lo que alguien le
+declaró, y nadie le declaró la prosa.
+
+**Traza:** `src/superados.js:447` · `003_ZETABUS/docs/auditoria/06-fase7b-ruta-real.md:226` ·
+`docs/BITACORA.md` (la entrada de la banda superada con el puntero en verde delante)
