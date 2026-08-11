@@ -193,6 +193,21 @@ function reconstruir(nodos, aristas, r, origen, destino) {
 //    Enganchar al nodo mete hasta medio kilómetro de error antes de empezar.
 
 /**
+ * La distancia andando POR la arista `e` desde su origen hasta el punto `p`.
+ * ⭐ Estaba escrita dentro de `insertar` y sale aquí porque el arreglo de la tanda
+ *    8 la necesita en dos sitios. ⛔ No es un «ya que estoy»: dejarla duplicada
+ *    sería tener dos copias de la misma aritmética, que es la forma exacta del
+ *    fallo nº68 (medir una cosa y que el motor use otra).
+ * ⚠️ El resultado es idéntico al de antes, línea a línea. Lo que lo demuestra no
+ *    es este comentario: son los 26 congelados y las diez rutas de Antonio.
+ */
+function alLargoDeLaArista(e, p) {
+  let a = 0;
+  for (let k = 0; k < p.seg; k++) a += dist(e.pts[k], e.pts[k + 1]);
+  return a + p.t * dist(e.pts[p.seg], e.pts[p.seg + 1]);
+}
+
+/**
  * Inserta un punto de enganche {arista, seg, t, q} como NODO TEMPORAL, partiendo
  * la arista solo para esta consulta.
  * ⭐ Es la consecuencia de P4.5: el portal NO parte la arista en el terreno, así
@@ -201,16 +216,48 @@ function reconstruir(nodos, aristas, r, origen, destino) {
  */
 function insertar(aristas, ady, nodos, p) {
   const e = aristas[p.arista];
-  let antes = 0;
-  for (let k = 0; k < p.seg; k++) antes += dist(e.pts[k], e.pts[k + 1]);
-  antes += p.t * dist(e.pts[p.seg], e.pts[p.seg + 1]);
+  const antes = alLargoDeLaArista(e, p);
   const resto = Math.max(0, e.largo - antes);
   const id = nodos.length;
-  nodos.push({ x: p.q[0], y: p.q[1], temporal: true });
+  // ⭐ `arista` y `antes` viajan en el nodo porque los necesita el enlace de abajo.
+  //    Son los dos datos que dicen DÓNDE sobre la arista está este punto.
+  nodos.push({ x: p.q[0], y: p.q[1], temporal: true, arista: p.arista, antes });
   ady.push([]);
   const enlaza = (n, w) => { ady[id].push({ n, w, e: p.arista }); ady[n].push({ n: id, w, e: p.arista }); };
   enlaza(e.a, antes);
   enlaza(e.b, resto);
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⭐⭐⭐ TANDA DE ARREGLO 8 (12/08/2026) · LOS PUNTOS DE LA MISMA ARISTA SE
+  //    ENLAZAN ENTRE SÍ. Antes no lo hacían, y entonces el camino más corto que
+  //    este grafo sabía encontrar entre dos puntas de la MISMA arista era
+  //    **salir a la esquina y volver**:
+  //
+  //        CALLE ALFONSO I 12 × 17        32,5 m por 11,9 reales      2,7×
+  //        AVENIDA MONTAÑANA 736 × 797  1.145,2 m por 4,5 reales    256,4×
+  //
+  //    Universo medido: **233.767 pares de direcciones reales comparten arista**
+  //    sobre 7.192 aristas (`tools/grafo/misma-arista.js`).
+  //
+  // ⛔ Y no se «declara» en vez de arreglarse porque **el dato SÍ está**: los dos
+  //    puntos tienen su posición sobre la misma arista y la distancia es una
+  //    resta. Declarar ignorancia aquí sería mentir sobre lo que se sabe.
+  //
+  // ⭐ VA EN `insertar` Y NO EN `rutaEntre` a propósito: `rutaEntre` mete DOS
+  //    puntos, pero `src/puerta.js:242-243` (`rutaAEdificio`) mete hasta 25 en la
+  //    misma consulta. Un arreglo en `rutaEntre` dejaría ese camino sin él.
+  //
+  // ⚠️ El recorrido hacia atrás vale porque los nodos temporales SIEMPRE se
+  //    apilan al final y son contiguos: `id = nodos.length`. Los permanentes no
+  //    llevan `temporal`, así que el bucle se para solo en cuanto sale de ellos.
+  //    ⛔ Es O(nodos temporales), no O(nodos): 2 vueltas en una ruta normal.
+  //
+  // ⚠️ Y es SIMÉTRICO por construcción —`Math.abs`—, así que no depende del orden
+  //    de inserción. `src/probar-misma-arista.js` lo comprueba con A→B y B→A.
+  // ═══════════════════════════════════════════════════════════════════════════
+  for (let i = id - 1; i >= 0 && nodos[i].temporal; i--) {
+    if (nodos[i].arista !== p.arista) continue;
+    enlaza(i, Math.abs(antes - nodos[i].antes));
+  }
   return id;
 }
 
@@ -282,4 +329,4 @@ function rutaEntre(g, oP, dP, opciones = {}) {
 }
 
 module.exports = { adyacencia, componentes, articulaciones, dijkstra, nodoMasCercano,
-  reconstruir, insertar, rutaEntre, Cola };
+  reconstruir, insertar, alLargoDeLaArista, rutaEntre, Cola };

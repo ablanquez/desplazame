@@ -9500,3 +9500,86 @@ ningún guardián y **está declarado fuera del universo del puntero**.
 
 **Traza:** `docs/BITACORA.md` (entrada nº185) · `tools/grafo/misma-arista.js` §P8 ·
 `docs/H2A-RODEO-DE-LAS-CORTAS.md` §5.1 y §8
+
+---
+
+## [2026-08-12] — El motor cobraba 1.145 metros por andar cuatro y medio
+
+**Categoría:** rompe
+**Síntoma:** `insertar` (`src/grafo.js:202-215`) mete cada punto de enganche como nodo temporal y lo
+enlaza **solo con los dos extremos de su arista, nunca con otro punto temporal de la misma arista**.
+⇒ Si las dos puntas de una consulta caían en la MISMA arista, el camino más corto que el grafo sabía
+encontrar era **salir a la esquina y volver**.
+
+```
+   CALLE ALFONSO I 12 × 17         el motor    32,5 m   la verdad  11,9 m     2,7×
+   AVENIDA SAN JUAN BOSCO 5 × 3    el motor    41,4 m   la verdad  17,3 m     2,4×
+   AVENIDA MONTAÑANA 736 × 797     el motor 1.145,2 m   la verdad   4,5 m   256,4×
+```
+
+⛔ **El peor caso no es una rareza de laboratorio: es una avenida de 1.164,6 m sin partir con dos
+portales a cuatro metros y medio, cerca de su punto medio. Salir a la esquina era recorrerla entera.**
+
+**Universo, medido:** **233.767 pares de direcciones reales comparten arista**, sobre 7.192 aristas.
+Sobre muestra determinista de 401: inflación **p50 51,8 m · p99 439,9 m · máx 850,2 m**; factor
+**p50 2,5× · máx 1.936,6×**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **H1 ENTERO, y desde que existe el
+enganche a arista.**
+
+```
+   la batería --todo, 112 líneas                      exit 0    ✅
+   las diez rutas de RUTAS-CONOCIDAS.md, 9 resueltas             ✅
+   los 26 números congelados                                    ✅
+   la auditoría de cierre, cuatro bloques                       ✅
+   siete tandas de arreglo                                      ✅
+```
+
+⛔⛔ **Y no podía verlo nada de eso, y ahora sí está medido por qué** (ley 151): **las diez rutas de
+cordura van de un punto a otro y `rutaEntre` inserta DOS.** El caso solo aparece cuando origen y
+destino comparten segmento de calle. ⚠️ **Lo que NO es la causa: la distancia.** Eso se creyó el
+11/08 y era falso (bitácora nº186): hay **8.811 pares reales igual de separados que la ruta nº4** que
+sí lo padecen. **La costura no falló por corta: falló porque su universo no contiene esa forma.**
+
+**Causa raíz:** `insertar` parte la arista **por consulta y por punto**, y los dos cortes no se
+conocen entre sí. Es una consecuencia estructural de insertar al vuelo, no un olvido puntual: cada
+nodo temporal se enlaza con la topología permanente y con nada más.
+
+**Cómo se cazó:** ojo humano. Antonio cruzó dos cosas que estaban publicadas por separado —el
+defecto medido el 10/08 y el rodeo de las rutas cortas— y preguntó si una contaminaba a la otra.
+**La respuesta fue que no, y por el camino salió el tamaño real del universo.**
+
+**Arreglo aplicado:** los puntos temporales de la **misma arista se enlazan entre sí**, con peso
+`|antes_A − antes_B|` — la distancia andando por la arista, que es una resta.
+
+⭐ **Va en `insertar` y no en `rutaEntre`** a propósito: `rutaEntre` mete dos puntos, pero
+`src/puerta.js:242-243` mete **hasta 25** en la misma consulta. Un arreglo en `rutaEntre` habría
+dejado ese camino sin él, y nadie lo habría notado.
+⭐ **Es simétrico por construcción** (`Math.abs`): no depende del orden de inserción. Comprobado con
+`A→B` y `B→A` al centímetro en los tres casos.
+⛔ **Y no se «declaró» en vez de arreglarse**, que era la otra salida: el veredicto por acera se
+declara porque *el grafo no tiene el dato*; aquí **el dato SÍ está** y la distancia es una resta.
+Declarar ignorancia habría sido mentir sobre lo que se sabe.
+
+**Lo que NO se movió, y es la condición con la que se reabrió H1:**
+
+```
+   las diez rutas de Antonio        9 de 9 idénticas · listas de aristas idénticas · diff vacío
+   los 26 números congelados        idénticos
+   grafo                            68.649 nodos · 98.774 aristas   sin cambio
+   tools/grafo/misma-arista.js      sigue 9 de 9 «no»
+   la batería --todo                una fila nueva, la de este mismo guardián
+```
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un arreglo que solo puede actuar donde nada de lo publicado pisa es
+un arreglo con radio de explosión medible ANTES de hacerlo — y ese radio es lo que decide si se toca
+un hito cerrado.** Aquí el radio se midió primero (`docs/H2A-RODEO-DE-LAS-CORTAS.md`: ninguna de las
+nueve rutas comparte arista) y solo entonces se aprobó abrir H1.
+⚠️ **Corolario:** *un cero de contraprueba —«no se ha movido nada»— es indistinguible de un arreglo
+no aplicado.* Por eso la contraprueba viaja siempre con su uno: **393 de 401 pares SÍ se movieron**,
+del mismo instrumento y en la misma ejecución (ley 152).
+
+**Traza:** `src/grafo.js` (`alLargoDeLaArista` e `insertar`) · `src/probar-misma-arista.js` ·
+`tools/grafo/efecto-arreglo.js` · `docs/H1-ARREGLO-8-MISMA-ARISTA.md`
