@@ -19,6 +19,36 @@
 
 ---
 
+## ⭐ Qué hace esto que no hace un buscador con radio
+
+Entre dos paradas de autobús, la distancia que importa no es la que hay en línea recta: **es la que
+se anda**. Casi todos los buscadores resuelven el enlace entre líneas con un radio a vuelo de
+pájaro, porque no tienen por dónde andar. **Aquí hay un grafo peatonal de la ciudad entera, así que
+el enlace se calcula andando.**
+
+**Y la diferencia está medida, sobre los 2.538 enlaces de transbordo de Zaragoza:**
+
+| | |
+|---|---|
+| Andar frente a la línea recta | **1,29×** en la mediana |
+| El bus más cercano a cada parada de tranvía | **66 m** volando · **87 m** andando ⇒ **1,31×** |
+
+⇒ **Un radio no se queda corto en los casos raros: se queda corto en la mitad.**
+*(`node tools/gtfs/enlaces.js` · los dos factores salen de poblaciones distintas y coinciden.)*
+
+⛔ **Y lo segundo, que es lo que más ha costado aprender: este proyecto NO sabe por qué acera vas.**
+De los 2.538 enlaces, en **1.456 (57,4 %) no sabe de qué lado de la calle va el camino**, y en
+**247 (9,7 %) sabe que el dibujo no tiene dos lados** — que es lo contrario de no saberlo, y por eso
+va en un campo aparte. **La diferencia con un radio no es que aquí se sepa: es que aquí se puede
+decir, enlace por enlace, qué no se sabe.** Un radio no llega ni a poder formular la pregunta,
+porque no tiene camino sobre el que preguntarla.
+
+⚠️ **Nada de esto dice cuál es el transbordo más rápido**, ni pretende decirlo: no hay horarios
+todavía, y sin saber la acera tampoco se puede prometer el mejor. Lo que hay son **metros medidos y
+una declaración de lo que se ignora**.
+
+---
+
 ## Qué hay dentro, en números
 
 Cada cifra sale de un script que se puede volver a ejecutar, y va con él al lado. ⚠️ **Las cuatro
@@ -233,7 +263,9 @@ esqueleto para que rellenarlo sea fácil. Las reglas de trabajo están en [`CLAU
 
 El **código** de este proyecto está bajo [Apache 2.0](LICENSE).
 
-**Los datos tienen dos licencias distintas, y ya son ciertas las dos:**
+**Los datos tienen TRES licencias distintas, y son ciertas las tres:**
+*(⚠️ Aquí decía «dos» hasta el 11/08/2026. El GTFS entró el 10/08 y su licencia se quedó sin
+declarar seis días — el mismo patrón que ya pasó con la ODbL. Ver `docs/BITACORA.md`.)*
 
 - **OpenStreetMap — ODbL.** El grafo de la ciudad es una **base de datos derivada** de OSM, así que
   nace bajo [ODbL](https://opendatacommons.org/licenses/odbl/). Alcanza a lo derivado: quien
@@ -244,6 +276,15 @@ El **código** de este proyecto está bajo [Apache 2.0](LICENSE).
   [licencia general de reutilización](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones).
   Atribución: *Origen de los datos: Ayuntamiento de Zaragoza (IDEZar).* La reutilización no implica
   que el Ayuntamiento participe, patrocine o apoye este proyecto.
+- ⭐ **Punto de Acceso Nacional (NAP) — Ministerio de Transportes y Movilidad Sostenible.** El GTFS
+  de autobús y tranvía (`feed_version 20260623_AUZSA_Y_TRANVIA`) se descarga del
+  [NAP](https://nap.transportes.gob.es). Atribución: **Powered by MITRAMS**, con enlace, y cita al
+  **Ministerio de Transportes y Movilidad Sostenible**.
+  ⛔ **Y lo que este proyecto publica es dato PROCESADO, no bruto**: recortado a las líneas con
+  viajes, reproyectado y cruzado con un grafo peatonal propio. **No se puede citar como el dato del
+  NAP.** La marca viaja dentro del artefacto (`artefacto.feed.procesado`), no solo aquí.
+  ⚠️ **Y caduca: `feed_end_date` = 05/10/2026.** La fecha viaja sin alterar dentro del artefacto,
+  que es lo que la licencia exige.
 
 ## Aviso
 
