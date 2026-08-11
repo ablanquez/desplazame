@@ -9847,3 +9847,67 @@ recuento lo genera algo, o no se pone el número.**
 color.** Por eso los seis límites de esta tanda viajan dentro del artefacto y no en el README.
 
 **Traza:** `README.md` (sección Licencia) · `tools/gtfs/enlaces.js` (`artefacto.feed`)
+
+---
+
+## [2026-08-11] — El reconocimiento contó 52 rutas y son 53: el tranvía se quedó fuera de su recuento
+
+**Categoría:** datos
+**Síntoma:** el comparador de feeds, en su **primera ejecución**, se puso rojo contra la medición
+publicada el 10/08:
+
+```
+   fichero        bytes hoy  bytes 10/08  filas hoy  filas 10/08   ¿cuadra?
+   routes.txt          3430         3430         53           52   ⛔ NO
+```
+
+⭐ **Los bytes cuadran AL BYTE.** El fichero es exactamente el mismo, así que no era el dato: **era
+el recuento**. Medido hoy sobre ese mismo `routes.txt`:
+
+```
+   filas de datos ......... 53
+   por route_type ......... {"704": 52 (bus), "900": 1 (tranvía)}
+   líneas del fichero ..... 54  (cabecera + 53)
+```
+
+⇒ **El 52 publicado es el recuento del BUS puesto en la columna del total. El tranvía —la única
+línea de `route_type` 900, `TRA · Tranvía L1 Valdespartera - Actur - Parque Goya`— se quedó fuera de
+su propio recuento.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el número bueno llevaba un mes
+publicado en OTRO documento del mismo proyecto.** `docs/DISENO-H2A-RED.md:203` dice *«de **53**
+rutas, 45 tienen viajes · de **52** de bus, operan 44»* — **las dos cifras, bien, y una al lado de
+la otra.** ⛔ Y aun así el 52 sobrevivió en la tabla del reconocimiento **porque nada compara dos
+documentos entre sí**: el puntero vigila cifras superadas y declaradas, no cifras que se contradicen
+en dos sitios.
+
+⚠️ Y por debajo: **la tabla del reconocimiento tiene ocho filas y siete cuadran.** Siete de ocho en
+verde es exactamente la sensación de cobertura que hace que nadie mire la octava.
+
+**Causa raíz:** una tabla de recuentos rellenada a mano donde una fila (`routes.txt`) mezcla dos
+poblaciones —bus y tranvía— y las demás no. **El error no está en contar mal: está en que la
+columna «filas de datos» significaba una cosa en siete filas y otra en la octava.**
+
+**Cómo se cazó:** el comparador de la tanda 9, que existe para el día que el feed cambie y **cazó
+algo el día que no había cambiado nada**. ⭐ Es lo que la ley 154 predice: **un instrumento que
+compara hacia atrás encuentra cosas aunque el mundo esté quieto.**
+
+**Arreglo aplicado:**
+1. el ancla del comparador es **lo medido (53)**, con la discrepancia escrita al lado en el código y
+   **impresa en cada ejecución** — no se cuadra en silencio;
+2. ⛔ **`RECONOCIMIENTO-003-TRANSPORTE.md` NO se reescribe.** Es registro histórico: documenta lo que
+   se supo en una fecha. La corrección va en documento nuevo y aquí;
+3. se reporta hacia arriba como descubrimiento.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una columna de recuentos tiene que significar lo mismo en todas sus
+filas, y cuando una mezcla poblaciones no hay forma de verlo mirando la tabla.** Las otras siete
+filas no la contradicen: **la arropan.**
+⚠️ Y el corolario que este proyecto ya tenía en otra forma: **dos documentos del mismo proyecto
+pueden decir cosas distintas durante un mes sin que nada se ponga rojo**, porque **ningún mecanismo
+compara documentos entre sí** — el puntero compara cifras con su sucesora, no cifras con sus
+hermanas.
+
+**Traza:** `tools/gtfs/comparar-feed.js` (`MEDIDO_10_08.routes.txt`) ·
+`docs/RECONOCIMIENTO-003-TRANSPORTE.md:105` (el 52) · `docs/DISENO-H2A-RED.md:203` (el 53, correcto)
