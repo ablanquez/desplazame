@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 141 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 144 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cuarenta y un instrumentos mintiendo** *(115 al cerrar H1 + 26 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cuarenta y cuatro instrumentos mintiendo** *(115 al cerrar H1 + 29 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1015,6 +1015,10 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 139 | ⛔⛔⛔ **UNA FÓRMULA CAMBIÓ DE POBLACIÓN Y SIGUIÓ CALCULANDO.** El rodeo nació sobre **portales**, donde el hueco al grafo es 5,3 m. Al mudarlo a **paradas de bus** siguió dando número **y empezó a mentir**: 33 enlaces «más cortos que su propia recta», mínimo **0,20×**. **El grafo no estaba roto** — la ruta iba de enganche a enganche y la recta de parada a parada: **cuatro puntos, no dos.** ⇒ *Una fórmula no declara su población, así que sobrevive a la mudanza en silencio* |
 | 140 | ⛔ **UNA TOLERANCIA RELATIVA PIDIÓ MÁS PRECISIÓN DE LA QUE EL DATO TIENE.** Un umbral de `0,999` **exige 1,3 cm** a un dato redondeado a **0,1 m** por `Math.round(total*10)/10`. Dos falsos rojos: `13,0` publicado contra `13,044` real, **cuatro centímetros** |
 | 141 | ⛔⛔ **UNA PREDICCIÓN CAYÓ DENTRO DE LA BANDA CON EL RAZONAMIENTO AL REVÉS.** Se predijo `sin-eje` **por debajo** del 21,3 % *«porque el tranvía empuja hacia el eje»* y salió **por encima** (23,2 %), dentro de la banda igualmente. ⭐ **Lo declaró su propio autor: acertar la banda con la razón equivocada no es acertar** ⇒ *una predicción se evalúa por su MECANISMO, no solo por su intervalo* |
+| | **⬇ H2a · TANDA 7 · PUERTA 3 (11/08) — TRES MÁS** ⬇ | |
+| 142 | ⛔⛔ **UN GUARDIÁN DE TEXTO NACIÓ SIN SERVIR PARA NADA Y SALIÓ VERDE A LA PRIMERA.** El patrón de L6 era `/\bel m[áa]s r[áa]pido\b/` y la frase real —*«el transbordo más rápido»*— **lleva una palabra en medio: no la cazaba.** ⭐ **Lo destapó su propia provocación** (ley 156), no una revisión. ⇒ *El patrón estaba pegado a `el` **porque así la escribió en su cabeza quien lo redactó**: un guardián de texto escrito desde la frase que se te ocurre vigila TU frase, no la prohibición* |
+| 143 | ⛔⛔⛔ **UN GUARDIÁN DE FORMA SIN GUARDIÁN DE VIGENCIA: EL 06/10/2026 TODO SEGUIRÁ EN VERDE.** El `A.exige` comprueba que `fin === '20261005'` **viaje dentro del artefacto**, no que **la fecha no haya pasado**. ⭐⭐⭐ **Es el PRIMERO de los 143 que se cataloga ANTES de mentir** — escrito, fechado y con 55 días de aviso. *Es la forma exacta del fallo que fundó el proyecto: un instrumento que sigue dando verde después de que el mundo cambie* |
+| 144 | ⛔ **UNA SECCIÓN DE LICENCIAS CON UN RECUENTO EN PROSA, MINTIENDO POR SEGUNDA VEZ.** Decía *«los datos tienen DOS licencias»* y **desde el 10/08 son TRES**: faltaban «Powered by MITRAMS», la cita al Ministerio y declarar el dato como **procesado, no bruto**. ⚠️ **La primera vez esa misma sección dijo *«hoy el repositorio no contiene ningún dato integrado»* con 46.150 portales dentro** ⇒ *un recuento escrito en prosa es un contador a mano en el sitio donde más caro sale equivocarse* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1635,6 +1639,27 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     equivocada no es acertar**, y contarlo como acierto convierte el sellado de predicciones —que es
     el mejor instrumento antisesgo del proyecto— **en una lotería con acta notarial.**
 
+161. ⭐⭐⭐ **UN LÍMITE ESCRITO EN EL README NO PROTEGE A NADIE: QUIEN CONSULTA UN DATO NO LEE EL
+    README.**
+    *Los seis límites de H2a viajan DENTRO del artefacto, con el dato al que afectan, y cada uno con
+    su `A.exige`.* ⇒ **Un límite sin guardián es una intención**, y un límite lejos de su dato es una
+    coartada. ⭐ **Y tiene precio medido: 19,4 KB de 491 — lo que cuesta no mentir.**
+    ⚠️ Corolario del caso L1: **sin las 172 paradas invisibles dentro, una consulta devolvería una
+    lista vacía — y una lista vacía es indistinguible de «no hay transbordo».**
+
+162. ⭐⭐⭐ **UN GUARDIÁN DE TEXTO ESCRITO DESDE LA FRASE QUE SE TE OCURRIÓ VIGILA TU FRASE, NO LA
+    PROHIBICIÓN — SE ESCRIBE DESDE EL NÚCLEO DE LO PROHIBIDO.**
+    *`/\bel m[áa]s r[áa]pido\b/` no caza «el transbordo más rápido»: una palabra en medio y el
+    guardián calla.* ⚠️ Y su límite estructural: **un detector de promesas no distingue una promesa
+    de su negación**, así que vigila datos y no prosa.
+
+163. ⭐⭐⭐ **UN GUARDIÁN DE FORMA NO ES UN GUARDIÁN DE VIGENCIA: COMPROBAR QUE UNA FECHA VIAJA NO ES
+    COMPROBAR QUE NO HA PASADO.**
+    *`fin === '20261005'` seguirá siendo cierto el 6 de octubre, y todo seguirá en verde.* ⇒ **Todo
+    dato con caducidad necesita DOS guardianes: uno que exija que la fecha esté, y otro que la
+    compare con hoy.** ⭐ *Y este caso tiene un mérito raro: es el primer instrumento del proyecto
+    catalogado **antes** de mentir — con fecha y con 55 días de aviso.*
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1753,9 +1778,10 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **Ar 8** | ⭐⭐⭐ **`insertar` Y LA MISMA ARISTA** — se reabre H1 por una rendija | **H1** | ✅ **11/08** ⭐ **las diez rutas, quietas** |
 | **H2·7·P1** | ⭐⭐⭐ **EL LADO DE LA ACERA** — el veredicto deja de mentir | **H2a** | ✅ **12/08** ⛔ **el `ACERA` se desinfla** |
 | **H2·7·P2** | ⭐⭐⭐ **LOS 2.538 ENLACES**, con el veredicto en dos campos | **H2a** | ✅ **11/08** ⭐ **andando ÷ volando = 1,3×** |
-| **H2·7·P3** | *(siguiente: **qué se publica y cómo no mentir**)* | **H2a** | ⬜ |
-| **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO** — la pieza que no tiene nadie más | **H2a** | ⬜ |
-| **H2·8** | El tranvía — casi gratis si el modelo está bien | **H2a** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
+| **H2·7·P3** | ⭐⭐ **QUÉ SE PUBLICA Y CÓMO NO MENTIR** — los seis límites | **H2a** | ✅ **11/08** ⭐ **19,4 KB cuesta no mentir** |
+| **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO — LA PIEZA. COMPLETO.** | **H2a** | ✅ **11/08** |
+| **—** | *(siguiente: ⛔ **LA CADUCIDAD Y LA REPETIBILIDAD** — el 05/10 en verde)* | **H2a** | ⬜ ⚠️ **55 días** |
+| **H2·8** | El tranvía — casi gratis si el modelo está bien | **H2a** | ⬜ |
 | **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
@@ -3457,6 +3483,86 @@ decide el stack.** 119,7 KB gzip caben en cualquier navegador **pero eso es la c
 el motor sigue necesitando **el grafo peatonal de 68.649 nodos y 98.774 aristas en ejecución** para
 el primer y el último tramo —de tu portal a la parada—, **y ése es el que decide si hace falta Node.**
 *Los 672 KB no lo contestan.*
+
+**⭐⭐⭐ H2·7 · PUERTA 3 (11/08) — LOS SEIS LÍMITES. `docs/H2A-PUERTA-3-LOS-LIMITES.md`.**
+**CON ESTA PUERTA SE CIERRA H2·7 ENTERO.**
+
+> ⭐⭐⭐ **EL CRITERIO QUE LA ORDENA:** *un límite escrito en el README no protege a nadie, **porque
+> quien consulta un enlace no lee el README**.* ⇒ **Cada límite viaja CON EL DATO al que afecta**, y
+> cada uno lleva su `A.exige` debajo: **un límite sin guardián es una intención.**
+
+| | límite | dónde vive | guardián |
+|---|---|---|---|
+| **L1** | ⛔ **172 paradas invisibles** | `artefacto.sinEnlaces` — **las 172 con código, nombre y motivo** | ✅ `A.exige` del 172 + `code`/`motivo` de cada una |
+| **L2** | el veredicto de dos campos | `artefacto.campos` + los dos campos **en cada enlace** | ✅ todo valor emitido tiene leyenda, y el aviso **separa CONOCIMIENTO de IGNORANCIA** |
+| **L3** | la red es la del periodo del feed | `artefacto.cobertura` | ✅ las **8 zombis** y **la ausencia de `PA00617`** |
+| **L4** | los dos sentidos condicionales | `sentido.terminal.aviso` | ✅ banda de cuota **+ nuevo**: el aviso existe y **nombra el segundo terminal** |
+| **L5** | caducidad, licencia y atribución | `artefacto.feed` + README | ✅ `version`/`fin`/`atribucion`/`procesado` |
+| **L6** | nunca «todos», nunca «el más rápido» | prohibición sobre **todo el JSON** | ✅ 7 patrones, **con provocación dentro** |
+
+⭐⭐ **L1 con sus palabras, y el motivo de que estén las 172 dentro:** *«Para estas paradas este
+artefacto NO dice nada. No significa que no haya transbordo: significa que a menos de 300 m no hay
+ninguna parada que aporte línea nueva. Puede haber una a 320 m y no se ha calculado.»* ⇒ **Sin ellas
+una consulta devolvería lista vacía, y una lista vacía es indistinguible de «no hay transbordo».**
+⭐ **Y L4 pasa de número a AVISO:** la cuota `0,32` estaba desde H2·6, **pero un número no avisa a
+nadie** — ahora dice *«el 32 % de los viajes NO acaba en 19414 sino en 17871. Depende de LA HORA»*.
+
+**⛔⛔ EL GUARDIÁN DE L6 NACIÓ SIN SERVIR PARA NADA, Y LO DESTAPÓ SU PROPIA PROVOCACIÓN (ley 156).**
+Salió **verde a la primera**; al darle la frase prohibida —*«el transbordo más rápido»*— **no la
+cazaba**: el patrón era `/\bel m[áa]s r[áa]pido\b/` y la frase lleva **una palabra en medio**.
+*Estaba pegado a `el` porque así la escribió quien lo redactó, en su cabeza.*
+⚠️ **Y su límite declarado: vigila el ARTEFACTO, no la prosa** — sobre el README daría falso positivo
+en *«no se puede prometer el mejor»*, **que es una negación**. *Un detector de promesas no distingue
+una promesa de su negación.*
+✅ Y sobre lo ya escrito, **ninguna frase incumplía L6** —comprobado sobre `README.md`, `src/relato.js`
+y los cinco instrumentos—. ⭐ *Y no es casualidad: `relato.js` ya cierra diciendo lo que el motor **no**
+sabe, «ni por cuál de las dos aceras vas».*
+
+> ⭐⭐⭐ **EL PÁRRAFO DEL HITO, ESCRITO Y CON LA LEY 157 PASADA:**
+> *Entre dos paradas, la distancia que importa no es la de la línea recta: es la que se anda.*
+> **1,29× en la mediana** · el bus más cercano a cada tranvía: **66 m volando · 87 m andando =
+> 1,31×**. ⇒ ***Un radio no se queda corto en los casos raros: se queda corto en la mitad.***
+> ⛔ **Y lo segundo, que va dentro y no escondido:** *este proyecto **NO sabe por qué acera vas**.*
+> En **1.456 de 2.538 (57,4 %)** no sabe de qué lado va el camino; en **247 (9,7 %)** sabe que el
+> dibujo no tiene dos lados — **que es lo contrario de no saberlo.**
+> ⇒ ***La diferencia con un radio no es que aquí se sepa: es que aquí se puede decir, enlace por
+> enlace, qué NO se sabe.***
+> ⛔ **Y una frase se cayó al pasar la prueba:** decía *«sabemos de qué lado son 7 de cada 100
+> aristas»* — **ese 6,7 % es de los 67 enlaces `ACERA`, no de los 2.538**, y ahí habría sonado a
+> global (ley 158, el mismo día).
+
+**⛔⛔⛔ LA DEUDA, Y NO ES UN CABO MÁS — TIENE FECHA:**
+**Nada comprueba que el feed no haya caducado.** El `A.exige` verifica que `fin === '20261005'`
+**viaje dentro**, no que **no haya pasado**. ⇒ **El 6 de octubre de 2026 todo seguirá en verde.**
+⭐⭐ *Es la forma exacta del fallo que fundó este proyecto —un instrumento que sigue dando verde
+después de que el mundo cambie— **y es el PRIMERO de los 141 que se cataloga ANTES de mentir**: está
+escrito, fechado y con 55 días de aviso.* ⇒ **Sale de la lista de deuda y pasa a ser la tanda
+siguiente, junto con la repetibilidad de la descarga: las dos son el mismo problema.**
+
+⚠️ **Y el resto de la deuda, declarada:** `L2` no vigila valores, **solo leyenda** — si baja el listón
+de cobertura, **los 1.456 `no-consta` se mueven en silencio** · el artefacto **no se escribe a disco**
+(los límites viven en la estructura; que sobrevivan a la serialización es de H2·8) · `L6` **no cubre
+la prosa**, que es donde vive el riesgo de prometer.
+
+**⛔ Y UNA TERCERA LICENCIA LLEVABA SEIS DÍAS SIN DECLARAR:** el README decía *«los datos tienen DOS
+licencias»* y **el GTFS entró el 10/08** — faltaban **«Powered by MITRAMS»**, la cita al Ministerio y
+decir que el dato es **procesado, no bruto**. ⚠️ **Es la SEGUNDA vez que miente esa misma sección**:
+ya dijo *«hoy el repositorio no contiene ningún dato integrado»* con 46.150 portales dentro.
+
+**⭐ EL CIERRE DE H2·7 — y el tamaño con los límites dentro:**
+```
+   la red de bus .............. 200,5 KB · gzip  41,9 KB
+   los enlaces + los límites .. 491,1 KB · gzip  82,2 KB   (eran 471,7 / 77,8 sin ellos)
+   TOTAL ...................... 691,6 KB · gzip 124,1 KB   (464,1 / 67,6 sin dibujar)
+```
+⭐⭐ **19,4 KB es lo que cuesta no mentir.** ⚠️ **Y esto NO decide el stack**: el motor necesita el
+**grafo peatonal de 68.649 nodos EN EJECUCIÓN** para el primer y el último tramo, y ése es el que
+manda.
+
+**QUEDA ABIERTO DE LAS TRES PUERTAS:** los **193 enlaces sin examinar** · si un `no-cambia-de-lado`
+**empieza** en el lado correcto · **el listón de cobertura (decisión de Antonio)** · los **2
+`cambia-sin-paso`** sin mirar en el mapa · **la caducidad sin vigilar** · `L2` sin guardián de valores
+· el artefacto sin escribir a disco.
 
 **DECISIONES NUEVAS DE H2:**
 
