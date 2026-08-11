@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 136 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 138 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento treinta y seis instrumentos mintiendo** *(115 al cerrar H1 + 21 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento treinta y ocho instrumentos mintiendo** *(115 al cerrar H1 + 23 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1008,6 +1008,9 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 134 | ✅ **ARREGLADO el 11/08 (tanda de arreglo 8) — se marca, no se reescribe.** ⛔⛔⛔ **`insertar` COBRA 32,5 m POR 11,9 m REALES EN EL CENTRO DE ZARAGOZA.** Enlaza cada nodo temporal **solo con los extremos de su arista, nunca entre sí** (`src/grafo.js:211-213`). **233.767 pares de direcciones reales** lo padecen, p50 34,8 m. ⛔ **Y lo peor no es el fallo: es que H1 se cerró con auditoría de cuatro bloques y siete tandas de arreglo encima sin verlo, porque LAS DIEZ RUTAS DE CORDURA VAN DE UN PORTAL A OTRO DISTANTE.** *El universo de la costura excluía por construcción la clase de trayecto más común que existe* |
 | 135 | ⛔⛔ **UN ENCARGO PIDIÓ UN CERO SIN SU POSITIVO DE CONTROL.** Esta conversación escribió *«las rutas largas son el control»* — **y son un control NEGATIVO: demuestran que el instrumento no dispara de más, no que sepa decir que SÍ.** ⭐ **Lo cazó el ejecutor y montó el positivo que faltaba**: 233.767 pares que sí comparten arista, 6 de 6. *Ley 4, incumplida por quien la tiene escrita en este documento* |
 | 136 | ⛔⛔ **SE ORDENÓ HACER ALGO QUE YA ESTABA HECHO, SOBRE UN DIAGNÓSTICO FALSO.** El encargo de H2·6 mandaba sacar la bitácora del universo del puntero: **ya estaba fuera desde la tanda 4** (`superados.js:342`), **y sacarla no habría arreglado el choque** — la causa es que un documento normal cita el ordinal de una entrada. ⚠️ **Se leyó del resumen del ejecutor sin ir al código, y se le hizo decidir a Antonio una decisión ya tomada.** *El nº99 otra vez* |
+| | **⬇ H2a · TANDA 7 · PUERTA 1 (12/08) — DOS MÁS** ⬇ | |
+| 137 | ⛔⛔⛔ **`ACERA` SIGNIFICABA «POR ARISTAS DE TIPO ACERA» Y SE LEÍA COMO «POR LA ACERA CORRECTA».** Publicado como 20,7 % durante cuatro tandas. Medido: **28 de esos 67 enlaces (41,8 %) son NO DECIDIBLES**, y **de cada cien aristas del camino se conoce el lado de siete.** ⇒ *La etiqueta no mentía en su definición: mentía en su lectura, y nadie lee las definiciones* |
+| 138 | ⛔⛔ **UN VEREDICTO ESTUVO A PUNTO DE PUBLICARSE CON UN NOMBRE QUE ACUSABA.** Se llamaba `CRUZA CALLADO`. **Doblar una esquina cambia de acera sin ningún paso y es perfectamente legítimo** ⇒ el nombre habría metido una acusación falsa en 2.538 enlaces. Renombrado a `CAMBIA SIN PASO` antes de salir. ⭐ *Lo cazó su propio autor aplicándose la ley 145 a un nombre propio* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1593,6 +1596,20 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     candidata SÍ tiene que cambiar.* ⇒ **Toda causa propuesta se acompaña del experimento que la
     mataría**, y si no se le encuentra ninguno, se queda en `CAUSA NO CONFIRMADA` (leyes 147 y 153).
 
+156. ⭐⭐⭐ **CUMPLIR LA LEY 150 NO PROTEGE DE LA LEY 4 — Y LAS DOS MITADES VAN PEGADAS SIEMPRE.**
+    *Declarar la cobertura de un guardián sobre el modelo no dice nada sobre si sabe disparar dentro
+    de ella. `CAMBIA SIN PASO = 0` con un 6,7 % de cobertura era indistinguible de un detector roto,
+    y solo valió cuando se provocaron los dos veredictos a propósito.* ⇒ **Un cero se publica con
+    dos cosas o con ninguna: SU COBERTURA y SU PROVOCACIÓN.**
+
+157. ⭐⭐⭐ **UNA ETIQUETA NO MIENTE EN SU DEFINICIÓN: MIENTE EN SU LECTURA — Y NADIE LEE LAS
+    DEFINICIONES.**
+    *`ACERA` significaba «por aristas de tipo acera» y estuvo cuatro tandas leyéndose como «por la
+    acera correcta», incluida por quien la escribió.* ⇒ **El nombre de un veredicto es una
+    afirmación**, y se audita como tal: ⭐ **la prueba es si un lector que solo ve la etiqueta puede
+    concluir algo que el instrumento no sabe.** *Corolario, del mismo día: `CRUZA CALLADO` acusaba
+    de cruzar a quien solo doblaba una esquina.*
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1709,7 +1726,9 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2·6** | ⭐⭐⭐ **LA RED DE BUS Y EL VEREDICTO POR ENLACE** | **H2a** | ✅ **10/08** ⛔⛔ **78,4 % de los enlaces van por EJE** |
 | **—** | ⭐⭐ **TANDA CORTA · ¿está contaminado el rodeo de las cortas?** | **H1** | ✅ **10/08** ⭐ **SOBREVIVE ENTERO** |
 | **Ar 8** | ⭐⭐⭐ **`insertar` Y LA MISMA ARISTA** — se reabre H1 por una rendija | **H1** | ✅ **11/08** ⭐ **las diez rutas, quietas** |
-| **H2·7** | *(siguiente: **el transbordo andando** — los 2.538)* | **H2a** | ⬜ |
+| **H2·7·P1** | ⭐⭐⭐ **EL LADO DE LA ACERA** — el veredicto deja de mentir | **H2a** | ✅ **12/08** ⛔ **el `ACERA` se desinfla** |
+| **H2·7·P2** | *(siguiente: **los 2.538 enlaces**)* | **H2a** | ⬜ ⚠️ **y antes, los dos campos** |
+| **H2·7·P3** | Qué se publica y cómo no mentir | **H2a** | ⬜ |
 | **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO** — la pieza que no tiene nadie más | **H2a** | ⬜ |
 | **H2·8** | El tranvía — casi gratis si el modelo está bien | **H2a** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
 | **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
@@ -3236,15 +3255,88 @@ viniendo de fuera eso no ocurre. ⇒ **No es inercia por suerte: es inercia por 
 COMPARTA arista con una puerta candidata SÍ debe cambiar** — que es justo el caso declarado como no
 probado. **Si no cambia, la explicación es falsa.**
 
-⛔ **Y UNA CATEGORÍA DEL VEREDICTO HA QUEDADO CADUCADA — entra en el encargo de H2·7:**
-`MISMA ARISTA` se definió como *«el grafo no las distingue **y el metraje es falso**»*.
-**Desde hoy el metraje YA NO es falso.** Son 3 de 324, **pero es una definición que H2·7 va a aplicar
-sobre los 2.538.** ⇒ *O la categoría desaparece y esos pares pasan a `ACERA`/`EJE` como los demás, o
-significa otra cosa.* **Pendiente de decidir en H2·7, no aquí.**
+⛔ **Y UNA CATEGORÍA DEL VEREDICTO QUEDÓ CADUCADA — ✅ RESUELTA EN H2·7·P1, ver más abajo:**
+`MISMA ARISTA` se definió como *«el grafo no las distingue **y el metraje es falso**»*, y **desde
+hoy el metraje YA NO es falso.** ⇒ **Pasa de VEREDICTO a MARCA.**
 
 **⚠️ LO NO PROBADO, declarado:** un origen que comparta arista con una puerta candidata de su destino
 · el coste en tiempo con 25 temporales (**el bucle es cuadrático en temporales**) · **el lado de la
 acera, por CUARTA tanda** · y los otros 233.751 pares uno a uno.
+
+**⭐⭐⭐ H2·7 · PUERTA 1 (12/08) — EL LADO DE LA ACERA. `docs/H2A-PUERTA-1-EL-LADO-DE-LA-ACERA.md`.**
+*Se ordenó primero porque **si el veredicto nace mintiendo, calcular 2.538 enlaces con él es tirar la
+tanda entera.** Las puertas 2 y 3 no se abrieron: una cerrada bien vale más que tres a medias.*
+
+> ⛔⛔⛔ **EL `ACERA` DEL 20,7 % SE DESINFLA — Y NO POR DONDE SE ESPERABA.**
+> **No es que los enlaces crucen mal: es que sobre la mayoría LA PREGUNTA NO SE PUEDE FORMULAR.**
+> ```
+>    los 67 enlaces ACERA            los 324 enteros
+>       MISMO LADO        33  49,3 %    con alguna punta en eje ... 176  54,3 %
+>       CAMBIA CON PASO    6   9,0 %    con LAS DOS en eje ........  53  16,4 %
+>       CAMBIA SIN PASO    0   0,0 %    ⭐ donde SE PUEDE preguntar  131  40,4 %
+>    ⚠️ NO DECIDIBLE      28  41,8 %
+>
+>    aristas del camino con lado conocido ......  58 de 867   (6,7 %)
+>    enlaces ACERA con las DOS puntas conocidas ....  7 de 67
+> ```
+> ⇒ ⭐⭐⭐ **De cada cien aristas que recorre un enlace «ACERA», sabemos de qué acera son SIETE.**
+> *«Calculamos andando, así que sabemos por qué lado»* **es cierto sobre el 6,7 % del camino y falso
+> como frase general.** ⛔ **Y 193 de 324 enlaces (59,6 %) no salen aprobados: salen SIN EXAMINAR.**
+
+| | qué | |
+|---|---|---|
+| ⭐⭐ | **La cobertura, declarada sobre el MODELO (ley 150)** | **2.397 de 98.774 aristas (2,4 %) tienen lado decidible.** `eje-de-calzada` 46.643 ⛔ **NUNCA** —un eje no tiene dos lados— · `paso-de-peatones` 10.494 ⛔ en ninguna · `acera` 16.858 ✅ 975 · `peatonal` 21.552 ✅ 386. ⭐ **No es un defecto del instrumento: el 47,2 % del grafo es eje de calzada** — *y ese 47,2 % es el del término entero, así que **la limitación es de cómo está dibujada Zaragoza, no de las paradas ni del método*** |
+| ⭐⭐⭐ | **EL CERO QUE CASI SE LEE COMO BUENA NOTICIA** | `CAMBIA SIN PASO = 0` **no significaba nada**: con 6,7 % de cobertura casi ningún camino llega a ver dos lados, **así que el cero era candidato a artefacto.** ⇒ Se **provocaron los dos veredictos a propósito** buscando dos aristas de la misma vía con lados opuestos: ✅ `CAMBIA CON PASO` (vía 100, 101 m, 2 pasos) y ✅ `CAMBIA SIN PASO` (vía 105, 45 m, 0 pasos). **El cero pasa a ser un cero de verdad DENTRO DE SU COBERTURA, y las dos mitades van pegadas siempre** |
+| ⭐⭐ | **Un veredicto renombrado antes de publicarse** | Se llamaba `CRUZA CALLADO` y **prometía más de lo que el instrumento sabe**: **doblar una esquina cambia de acera sin paso y es legítimo.** Pasa a `CAMBIA SIN PASO` (ley 145). *El nombre viejo habría metido una acusación falsa en 2.538 enlaces* |
+| ✅ | **La muestra es la misma de ayer, y se exige** | `934 · 2.266 · 324` y `67 · 254 · 3 · 0` con `A.exige`, **no a ojo**: si el universo se hubiera movido, el script para antes de hablar del lado (ley 148) |
+
+**⭐⭐ `MISMA ARISTA` PASA DE VEREDICTO A MARCA — decisión del ejecutor, aprobada.**
+*La mitad que la justificaba —«el metraje es falso»— murió con la tanda de arreglo 8. Lo que queda no
+es una cuarta clase de camino: es la clase de su arista.*
+```
+   bus×bus 16 de 2.266 · bus↔tranvía 3 de 272 ⇒ 19 de 2.538 (0,7 %)
+   la arista que comparten:  acera 9 → serían ACERA  ·  eje 7 → serían EJE
+```
+⚠️ **Pero la marca NO se tira:** dos paradas con nombres distintos que son **el mismo punto para el
+grafo** es algo que el usuario tiene derecho a saber. ⛔ **Lo que se retira es la palabra «falso».**
+⭐ Y un cruce hacia atrás gratis: **los 272 bus↔tranvía salen solos del radio** — `2.266 + 272 =
+2.538`, **cuarta vez que esa suma cierra con instrumentos distintos** (ley 154).
+
+**⭐⭐⭐ LEY 155 · LA EXPLICACIÓN DE LA TANDA 8 SOBREVIVE AL EXPERIMENTO QUE LA MATARÍA.**
+*Predicción: si el origen COMPARTE arista con una puerta candidata, tiene que cambiar.*
+**11 de 25 cambian los metros y la puerta** (Δ mín −68,9 · p50 −14,4): *Automóviles Sánchez* **70,3 →
+1,4 m**, la puerta se mueve 48,4 m. ⇒ ✅ **Los 58 de 60 no se movieron por INERCIA DE CONSTRUCCIÓN,
+no por casualidad. Deja de ser `CAUSA NO CONFIRMADA`.**
+⚠️ **Y trae un hallazgo con ella: existe una clase real donde el arreglo del 11/08 SÍ cambia lo que
+devuelve H1, y cambia mucho.** Ningún número publicado depende de ella —las diez rutas no la
+contienen— **pero *«el arreglo no mueve nada de H1»* hay que leerlo con su alcance exacto: no mueve
+nada de lo PUBLICADO.**
+
+> ⭐⭐⭐ **LA LECTURA ESTRATÉGICA, Y NO ES LA DERROTA QUE PARECE — la tesis se corrige, no se cae.**
+> Lo que ya **no** se puede decir es *«calculamos andando, así que sabemos por qué acera»*: es falso
+> y está medido. **Pero la comparación que decide es ésta:**
+> ```
+>                              ¿sobre qué % del camino sabe el lado?   ¿sabe que no lo sabe?
+>    router de radio fijo                 0 %                                 NO
+>    004                                6,7 %                    SÍ, enlace por enlace
+> ```
+> ⇒ **El diferenciador se mueve de «sabemos» a «SABEMOS QUÉ NO SABEMOS».** Un router de radio **no
+> tiene camino que examinar**: no es que falle la pregunta, es que **no puede formularla y tampoco
+> puede decírtelo.** ⭐ **Y eso es exactamente el carácter de este proyecto** —136 instrumentos
+> mentirosos catalogados, un estado que se auditó a sí mismo, una auditoría que retiró dos de sus
+> once hallazgos por falsos—: **un motor de transbordo que declara su cobertura epistémica enlace por
+> enlace es raro de verdad, y es coherente con todo lo demás.**
+
+**⚠️ Y UNA DESVIACIÓN DE MÉTODO, DECLARADA POR SU AUTOR:** escribió en `tools/` mientras corría la
+batería base. **Su razonamiento es correcto** —`probar-paradas.js:217` lee `src/` y el puntero lee
+`docs/`— **pero hace dos días el razonamiento tenía LA MISMA FORMA y era falso** (§7·132). ⇒ *La
+regla no existe porque el razonamiento sea difícil: existe porque es fácil hacerlo bien y fácil
+hacerlo mal, y desde dentro se parecen.* **Hoy acertó. No cambia la regla.**
+
+**⛔ LO QUE LA PUERTA 1 NO MIDIÓ, declarado:** si un `MISMO LADO` **empieza** en el lado correcto
+respecto a la parada —que no cambie de acera no dice que arranque en la buena— · los 193 sin examinar
+siguen sin examinar · **y la cobertura del 6,7 % no se intentó subir**: bajar el listón de
+`≥4 portales · 75 %` **subiría la cobertura y la tasa de error a la vez**, y eso es una decisión.
 
 **DECISIONES NUEVAS DE H2:**
 
