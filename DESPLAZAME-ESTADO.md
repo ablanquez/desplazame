@@ -1005,7 +1005,7 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 132 | ⛔⛔ **LA LÍNEA BASE SE LANZÓ Y SE EMPEZÓ A ESCRIBIR EN `docs/` A LA VEZ.** El razonamiento era *«el universo de la batería es `src/`, escribir en `docs/` es inocuo»* — **y es falso: el puntero lee `docs/`.** La batería de arranque salió roja **y se publicó declarada como inservible**, con la comparación válida hecha contra el cierre de la tanda 4. ⭐ *Hermano del nº120: la línea base vuelve a fallar por el mismo sitio, y esta vez por un razonamiento explícito y equivocado sobre su propio alcance* |
 | 133 | ⭐ **UN `⛔` SIN `alarma` EN SU PROPIO SCRIPT — el fallo que fundó `alarma.js`** — y, el mismo día, **publicar «solo un fichero» sin pasar el `grep` cuatro horas después de escribir la ley 140 que lo prohíbe.** ⇒ *La lección de la tanda N no entra sola en la tanda N+1 ni siquiera cuando la escribiste tú* |
 | | **⬇ H2a · TANDA 6 Y LA TANDA CORTA (10/08) — TRES MÁS, LAS TRES DE ESTA CONVERSACIÓN** ⬇ | |
-| 134 | ⛔⛔⛔ **`insertar` COBRA 32,5 m POR 11,9 m REALES EN EL CENTRO DE ZARAGOZA.** Enlaza cada nodo temporal **solo con los extremos de su arista, nunca entre sí** (`src/grafo.js:211-213`). **233.767 pares de direcciones reales** lo padecen, p50 34,8 m. ⛔ **Y lo peor no es el fallo: es que H1 se cerró con auditoría de cuatro bloques y siete tandas de arreglo encima sin verlo, porque LAS DIEZ RUTAS DE CORDURA VAN DE UN PORTAL A OTRO DISTANTE.** *El universo de la costura excluía por construcción la clase de trayecto más común que existe* |
+| 134 | ✅ **ARREGLADO el 11/08 (tanda de arreglo 8) — se marca, no se reescribe.** ⛔⛔⛔ **`insertar` COBRA 32,5 m POR 11,9 m REALES EN EL CENTRO DE ZARAGOZA.** Enlaza cada nodo temporal **solo con los extremos de su arista, nunca entre sí** (`src/grafo.js:211-213`). **233.767 pares de direcciones reales** lo padecen, p50 34,8 m. ⛔ **Y lo peor no es el fallo: es que H1 se cerró con auditoría de cuatro bloques y siete tandas de arreglo encima sin verlo, porque LAS DIEZ RUTAS DE CORDURA VAN DE UN PORTAL A OTRO DISTANTE.** *El universo de la costura excluía por construcción la clase de trayecto más común que existe* |
 | 135 | ⛔⛔ **UN ENCARGO PIDIÓ UN CERO SIN SU POSITIVO DE CONTROL.** Esta conversación escribió *«las rutas largas son el control»* — **y son un control NEGATIVO: demuestran que el instrumento no dispara de más, no que sepa decir que SÍ.** ⭐ **Lo cazó el ejecutor y montó el positivo que faltaba**: 233.767 pares que sí comparten arista, 6 de 6. *Ley 4, incumplida por quien la tiene escrita en este documento* |
 | 136 | ⛔⛔ **SE ORDENÓ HACER ALGO QUE YA ESTABA HECHO, SOBRE UN DIAGNÓSTICO FALSO.** El encargo de H2·6 mandaba sacar la bitácora del universo del puntero: **ya estaba fuera desde la tanda 4** (`superados.js:342`), **y sacarla no habría arreglado el choque** — la causa es que un documento normal cita el ordinal de una entrada. ⚠️ **Se leyó del resumen del ejecutor sin ir al código, y se le hizo decidir a Antonio una decisión ya tomada.** *El nº99 otra vez* |
 
@@ -1579,6 +1579,20 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     causa vuelve a `NO CONSTA`, y la entrada vieja no se reescribe.** ⚠️ *No se cambia una explicación
     inventada por otra más bonita.*
 
+154. ⭐⭐⭐ **EL TERCER CAMINO QUE VALE ES EL QUE NADIE ESTABA BUSCANDO.**
+    *La tanda 6 midió `+49,0 m` como inflación mediana de 16 pares, midiendo el DEFECTO. La tanda 8
+    midió `−49,0 m` de lo que se les quita, midiendo el ARREGLO. Dos instrumentos, dos días, dos
+    propósitos, y ninguno escrito para comprobar al otro.* ⇒ **Una coincidencia entre dos medidas
+    hechas con fines distintos vale más que una muestra grande hecha a propósito** (ley 149), *porque
+    el sesgo del autor no puede haber apuntado a las dos.* ⭐ **Y por eso se busca hacia atrás: los
+    números viejos del proyecto son terceros caminos esperando a que alguien los cruce.**
+
+155. ⭐⭐⭐ **UNA EXPLICACIÓN QUE NO PREDICE DÓNDE FALLARÍA NO ES UNA EXPLICACIÓN: ES UN RELATO.**
+    *58 de 60 edificios tenían el mecanismo y ninguno se movió. «Inercia por construcción» solo vale
+    como explicación porque predice el caso contrario — un origen que COMPARTA arista con una puerta
+    candidata SÍ tiene que cambiar.* ⇒ **Toda causa propuesta se acompaña del experimento que la
+    mataría**, y si no se le encuentra ninguno, se queda en `CAUSA NO CONFIRMADA` (leyes 147 y 153).
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1694,7 +1708,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2·5** | ⭐⭐⭐ **LOS POSTES EN EL GRAFO** — la medición que podía tumbar D4 | **H2a** | ✅ **10/08** ⭐ **el radio SOBREVIVE** |
 | **H2·6** | ⭐⭐⭐ **LA RED DE BUS Y EL VEREDICTO POR ENLACE** | **H2a** | ✅ **10/08** ⛔⛔ **78,4 % de los enlaces van por EJE** |
 | **—** | ⭐⭐ **TANDA CORTA · ¿está contaminado el rodeo de las cortas?** | **H1** | ✅ **10/08** ⭐ **SOBREVIVE ENTERO** |
-| **H2·7** | *(siguiente: **el transbordo andando** — los 2.538)* | **H2a** | ⬜ ⚠️ **y antes, la decisión sobre `insertar`** |
+| **Ar 8** | ⭐⭐⭐ **`insertar` Y LA MISMA ARISTA** — se reabre H1 por una rendija | **H1** | ✅ **11/08** ⭐ **las diez rutas, quietas** |
+| **H2·7** | *(siguiente: **el transbordo andando** — los 2.538)* | **H2a** | ⬜ |
 | **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO** — la pieza que no tiene nadie más | **H2a** | ⬜ |
 | **H2·8** | El tranvía — casi gratis si el modelo está bien | **H2a** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
 | **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
@@ -3161,7 +3176,7 @@ sepa decir que SÍ**—. Se le echaron **233.767 pares de direcciones reales que
 > ⇒ ⭐⭐⭐ **Es la ley 148 en su forma más cara: el universo de las rutas de cordura excluía POR
 > CONSTRUCCIÓN la clase de trayecto más común que existe.**
 
-**⚠️ DECISIÓN PENDIENTE DE ANTONIO — la primera que plantearía reabrir H1:**
+**✅ DECISIÓN TOMADA Y EJECUTADA (Antonio, 11/08) — ver la TANDA DE ARREGLO 8 más abajo:**
 `insertar` enlaza cada nodo temporal **solo con los extremos de su arista, nunca entre sí**
 (`src/grafo.js:211-213`). ⭐ **Y esta tanda ha medido que el radio de explosión de un arreglo acotado
 es demostrablemente CERO:** ninguna de las nueve rutas resueltas comparte arista, así que un
@@ -3175,6 +3190,61 @@ diciendo *«las diez rutas van de un portal a otro distante»*. **La conclusión
 falsa** — hay **8.811 pares reales** que comparten arista y están tan separados como la nº4.
 ⇒ **El rango del defecto llega hasta donde viven las cuatro cortas y simplemente no las tocó.**
 `CAUSA NO CONFIRMADA`, y la 185 **no se reescribe** (bitácora 186).
+
+**⭐⭐⭐ H1 · TANDA DE ARREGLO 8 (11/08) — `insertar` y la misma arista.**
+`docs/H1-ARREGLO-8-MISMA-ARISTA.md`. **Se reabrió H1 por una rendija y se cerró en la misma tanda.**
+
+> ⭐⭐⭐ **LA CONDICIÓN CON LA QUE ANTONIO APROBÓ REABRIR H1, CUMPLIDA:**
+> **Las diez rutas de cordura no se mueven — ni en metros ni en la lista de 678 índices de arista.**
+> Δ = 0,0 en las nueve que resuelven, y `--aristas` idéntico salvo **una línea de 656: el
+> cronómetro** (18,4 s → 18,6 s).
+> ⚠️ *Y su autor corrige la precisión que pidió el encargo: son **0,1 m**, no un centímetro
+> (`Math.round(total*10)/10`). **Pero los 678 índices de arista son más estrechos que cualquier
+> tolerancia, y salen todos iguales** ⇒ la prueba real es mejor que la pedida.*
+
+| | qué | |
+|---|---|---|
+| ⭐⭐ | **La prueba nació roja y se vio roja** | 6 fallos, código 1: `ALFONSO I 12×17` **32,5 / 11,9 · 2,7×** · `SAN JUAN BOSCO 5×3` **41,4 / 17,3 · 2,4×** · ⛔⛔ `AVENIDA MONTAÑANA 736×797` **1.145,2 / 4,5 · 256,4×** · y tres puntos en la misma arista. **Verde después SIN tocar una línea de la prueba** |
+| ⭐⭐ | **El tercer caso, elegido mirando el resultado — y dicho** | El par de **mayor inflación de los 233.767**. ⭐ *No es una muestra: es el TECHO del universo. Si el arreglo resuelve el peor que existe, los de en medio no pueden salir peor.* Los otros dos siguen siendo la muestra ciega. ⭐ **Y su forma explica el 256×:** Montañana es un eje de calzada de **1.164,6 m sin partir**, con los dos portales a 4,5 m **cerca de su punto medio** ⇒ salir a la esquina era recorrer la avenida entera |
+| ⭐⭐⭐ | **Y una diana, no un resultado** | **Lo único que se mueve en todo `misma-arista.js` son las SEIS parejas de su propio positivo de control** (32,5 → 11,9 · 2,7× → 1,0×). **Que se muevan ésas y solo ésas** es la mejor prueba de que el arreglo apunta donde debe |
+| ✅ | **La estructura, intacta** | **68.649 nodos · 98.774 aristas**, iguales. Los **26 congelados**, `diff` vacío quitando cronómetros. `misma-arista.js` sigue **9 de 9 «no»** ⇒ *el arreglo es del CAMINO, no del grafo* |
+| ⭐ | **La batería gana una fila y se explica exacta** | 112 → 113. `probar-paradas.js:217` lee **todos** los `.js` de `src/`, así que el guardián nuevo añade su línea. **Ninguna de las 112 anteriores cambia** |
+| ⭐⭐ | **Lo que SÍ se movió (ley 152), del mismo instrumento** | Muestra determinista **401 de 233.767**: inflación **ANTES** p50 51,8 m · p99 439,9 · máx 850,2 · **factor máx 1.936,6×** ⇒ **DESPUÉS** p50 −0,0 · p99 0,0 · máx 0,0. **Se mueven 393 de 401 (98,0 %), exactos 401 de 401.** ⚠️ *Los 8 que no se mueven no son un fallo: tienen una punta en el extremo de la arista, donde salir a la esquina YA era el camino bueno* |
+| ⭐ | **Simétrico por construcción, no por suerte** | `A→B` = `B→A` al decimal en los tres casos (`Math.abs`) |
+| ⭐ | **Los 16 pares de bus, corregidos** | El instrumento **recupera primero `2.266 · 16`** —positivo de control de que mide el mismo universo— y luego los corrige. **Los otros 2.250, intactos. Nada de H2a recalculado** |
+
+> ⭐⭐⭐ **EL TERCER CAMINO QUE SE DIJO NO TENER, Y APARECIÓ SOLO:**
+> La **tanda 6** midió `+49,0 m` como inflación mediana de los 16 pares — **midiendo el DEFECTO**.
+> La **tanda 8** mide `−49,0 m` de lo que se les quita — **midiendo el ARREGLO**.
+> **Dos instrumentos, dos días, dos propósitos distintos, y ninguno se escribió para comprobar al
+> otro.** ⚠️ No es independencia total —mismo grafo, mismo universo— **pero es lo más cerca del
+> tercer camino que ha producido este proyecto, y vale más que la muestra de 401 porque NADIE LO
+> ESTABA BUSCANDO** (ley 149).
+
+**⭐⭐ LEY 151 APLICADA POR SU AUTOR AL DÍA SIGUIENTE DE ESCRIBIRLA — la clase que las diez no cubren:**
+`rutaAEdificio` inserta **hasta 25 puntos a la vez** y muchas puertas candidatas caen en la misma
+arista; **solo tres de las diez rutas tocan un edificio.** Medido sobre 60 edificios (1 de cada 197,
+determinista): **58 de 60 tienen candidatas compartiendo arista, y en 0 de 57 cambia la puerta o los
+metros.**
+
+⭐ **Y la `CAUSA NO CONFIRMADA` tiene candidato estructural, propuesto por esta conversación:** el
+origen está **fuera** de la arista. Que dos puertas queden enlazadas entre sí no ayuda a llegar a
+ninguna **desde fuera** — el camino entra por un extremo y va a la más cercana; **el enlace
+puerta↔puerta solo estaría en la ruta si hubiera que pasar por una puerta para alcanzar la otra**, y
+viniendo de fuera eso no ocurre. ⇒ **No es inercia por suerte: es inercia por construcción.**
+⭐⭐ **Y la explicación PUEDE FALLAR, que es lo que la hace valer:** predice que **un origen que
+COMPARTA arista con una puerta candidata SÍ debe cambiar** — que es justo el caso declarado como no
+probado. **Si no cambia, la explicación es falsa.**
+
+⛔ **Y UNA CATEGORÍA DEL VEREDICTO HA QUEDADO CADUCADA — entra en el encargo de H2·7:**
+`MISMA ARISTA` se definió como *«el grafo no las distingue **y el metraje es falso**»*.
+**Desde hoy el metraje YA NO es falso.** Son 3 de 324, **pero es una definición que H2·7 va a aplicar
+sobre los 2.538.** ⇒ *O la categoría desaparece y esos pares pasan a `ACERA`/`EJE` como los demás, o
+significa otra cosa.* **Pendiente de decidir en H2·7, no aquí.**
+
+**⚠️ LO NO PROBADO, declarado:** un origen que comparta arista con una puerta candidata de su destino
+· el coste en tiempo con 25 temporales (**el bucle es cuadrático en temporales**) · **el lado de la
+acera, por CUARTA tanda** · y los otros 233.751 pares uno a uno.
 
 **DECISIONES NUEVAS DE H2:**
 
