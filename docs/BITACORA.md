@@ -9911,3 +9911,104 @@ hermanas.
 
 **Traza:** `tools/gtfs/comparar-feed.js` (`MEDIDO_10_08.routes.txt`) ·
 `docs/RECONOCIMIENTO-003-TRANSPORTE.md:105` (el 52) · `docs/DISENO-H2A-RED.md:203` (el 53, correcto)
+
+---
+
+## [2026-08-11] — Escribí «cero medido» del tranvía sin haber medido nada, y el tranvía tenía un 42,5 %
+
+**Categoría:** aviso falso
+**Síntoma:** al parametrizar la red por modo, escribí la fila del tranvía con las listas vacías y
+este comentario **antes de ejecutarlo ni una vez**:
+
+```
+   ⛔ Y las listas VACÍAS del tranvía no son «no lo hemos mirado»: son **cero
+      medido**, y el programa exige que sigan siendo cero.
+```
+
+**Era falso.** Al ejecutar, el sentido `dir=1` del tranvía salió con un **segundo terminal al
+42,5 %** — más alto que los dos condicionales del bus (32 % y 39 %), que sí están medidos y
+declarados.
+
+```
+   sentido dir=1 · 2.473 viajes
+      terminal mayoritario  0102  cuota 0,477      ⬅ el «mayoritario» NO llega al 50 %
+      segundo               0101  cuota 0,425
+      los dos se llaman "Avenida de la Academia"
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **la ejecución entera del tranvía,
+en verde y sin un solo fallo.** 1 ruta, 2 sentidos, 50 paradas, 5.107 viajes, artefacto de 9,3 KB,
+`código de salida 0`. ⛔ **Y no podía cazarlo nada**, porque el `A.exige` de las condicionales
+recorre la lista declarada: **con la lista vacía, el bucle no da ni una vuelta.** Un guardián que
+itera sobre lo declarado **no puede ver lo que no está declarado.**
+
+**Causa raíz:** rellené una fila de tabla por simetría con la del bus —*«el tranvía no tendrá de
+esto»*— y le puse al comentario la palabra «medido» porque **sonaba a como se escriben las cosas en
+este proyecto**. Es la forma exacta del fallo nº186 y del nº180: **una explicación plausible escrita
+en el sitio donde van las medidas.**
+
+**Cómo se cazó:** ley 108, sospechar cuando pasa. El tranvía entró a la primera y fui a mirar la
+salida en vez de darla por buena; ahí estaba el 42,5 % con `determinante: NO CONSTA`.
+
+**Arreglo aplicado:** el comentario se reescribe con lo medido, y `condicionales` **sigue vacía pero
+ahora con motivo**: ver la entrada siguiente — ese 42,5 % **no es un terminal condicional**.
+⛔ No se añade una fila inventada para «cubrir» el caso.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un guardián que recorre una lista declarada no vigila el caso que
+falta en la lista: vigila la lista.** Con la lista vacía su verde es automático. ⇒ **Toda tabla de
+excepciones por modo necesita, además, un contador de lo que NO está en ella** — aquí, *«sentidos
+con segundo terminal por encima del 10 % y sin fila declarada»*.
+⚠️ Y el corolario personal: **la palabra «medido» en un comentario es una afirmación**, y se escribe
+después de ejecutar, no antes.
+
+**Traza:** `tools/gtfs/red-bus.js` (`MODOS[900]`) · `docs/H2A-TANDA-8-TRANVIA.md` §T1
+
+---
+
+## [2026-08-11] — Publiqué el tamaño del artefacto en caracteres y lo llamé KB
+
+**Categoría:** datos
+**Síntoma:** al escribir el artefacto de los enlaces al disco por primera vez, el fichero salió más
+grande que lo medido en memoria:
+
+```
+   tamaño en disco · en memoria     494,7 KB · 491,4 KB   ⚠️ NO coinciden
+```
+
+**No era el disco: era la medida.** `tools/gtfs/enlaces.js` calculaba el peso con `json.length` —
+que son **unidades UTF-16**, no bytes—. Cada tilde, cada `⇒` y cada `⛔` del artefacto **cuesta más
+bytes que caracteres**, y el artefacto lleva mucho texto de avisos desde la Puerta 3.
+
+⇒ **Todos los tamaños de los enlaces publicados hasta hoy están en caracteres**: los 471,7 KB de la
+Puerta 2 y los 491,1 KB de la Puerta 3. En bytes son **494,7 KB**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **`tools/gtfs/red-bus.js` lo hacía
+BIEN desde H2·6**, con `Buffer.byteLength(json)`, y su cifra convivía con la mala en el mismo
+informe de la Puerta 2 —*«200,5 KB + 471,7 KB = 672,2 KB»*— **sumando dos magnitudes distintas y
+llamando KB a las dos.** ⛔ Nada podía cazarlo: **las dos cifras son plausibles y la diferencia es
+del 0,7 %.**
+
+**Causa raíz:** `String.prototype.length` parece un tamaño y no lo es. En un artefacto de datos ASCII
+la diferencia habría sido cero; **la diferencia aparece justo porque este proyecto mete avisos en
+castellano y con símbolos dentro del dato** — que es la decisión de la Puerta 3.
+
+**Cómo se cazó:** escribir el fichero al disco y comparar. ⭐ **Y ése era el objetivo declarado de la
+tanda: ver qué sobrevive a la serialización.** Sobrevivieron los seis límites; **lo que no sobrevivió
+fue la medida del tamaño.**
+
+**Arreglo aplicado:** `bytes(s) = Buffer.byteLength(s, 'utf8')` en `enlaces.js`, y la comprobación
+disco↔memoria pasa a exigir **igualdad byte a byte** en vez de avisar. Los tamaños se republican.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **el tamaño de un texto no se mide con `.length`: eso cuenta
+caracteres, y lo que ocupa un fichero son bytes.** ⚠️ Y lo que lo hace traicionero: **coinciden
+exactamente mientras el contenido sea ASCII**, así que el error nace dormido y se despierta el día
+que alguien mete una tilde.
+⭐ Corolario del proyecto: **una cifra que va a decidir algo —aquí, el stack— se mide sobre el
+artefacto ESCRITO, no sobre el objeto.**
+
+**Traza:** `tools/gtfs/enlaces.js` (`kb`/`bytes`) · `docs/H2A-PUERTA-2-LOS-2538.md` §8 (471,7 KB) ·
+`docs/H2A-PUERTA-3-LOS-LIMITES.md` §8 (491,1 KB)
