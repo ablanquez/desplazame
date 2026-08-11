@@ -25,6 +25,7 @@
 const A = require('../../src/alarma');
 const { cargar } = require('./feed');
 const { posteDeAvanza } = require('./identidad');
+const G8 = require('./gemelos');
 
 const log = (s) => process.stdout.write(s + '\n');
 const raya = (c = '=') => log(c.repeat(100));
@@ -72,11 +73,20 @@ const MODOS = {
     ],
     // las que la tanda 3 midió sin ni un viaje
     zombisEsperadas: ['CEM', 'CE', 'LAN', 'EM1', 'EM2', 'V1', 'ES3', 'V4'],
+    // ⭐⭐⭐ TANDA 10 · el sha del artefacto ANTES de que entrara la marca. Es lo
+    //   que demuestra que la marca no ha movido la red: quitando el campo nuevo,
+    //   el artefacto vuelve a salir byte a byte el mismo.
+    shaSinMarca: 'd883310a3fce0e16cea5b7c3c0695c12ae1c8cf5a5e3c0617f239a48298ad1f3',
+    bytesSinMarca: 205744,
+    postesConMarca: 2,
   },
   900: {
     nombre: 'tranvia',
     condicionales: [],
     zombisEsperadas: [],
+    shaSinMarca: '9c3bb3c95c8b94eac91c27d5db8de42702e52690b3f63ac12d8d60584fa6eb13',
+    bytesSinMarca: 9528,
+    postesConMarca: 32,
   },
 };
 
@@ -106,6 +116,17 @@ for (const s of stops) {
     nombreProc: 'gtfs-sin-corregir',
   });
 }
+
+// ⭐⭐ LA MARCA SE CALCULA SOBRE LAS 984, NO SOBRE LAS DE ESTE MODO. El poste con
+//    el mismo nombre puede ser del OTRO modo —«Campus Río Ebro» tiene un poste de
+//    bus y dos de tranvía—, y calcularla dentro del modo la haría ciega justo al
+//    caso que más importa. ⛔ El modo sigue siendo un parámetro: esto no es una
+//    rama, es el universo del que se saca el dato.
+const marcaNombre = G8.marcar(stops.map((s) => ({
+  code: s.stop_code, nombre: s.stop_name,
+  lat: Number.parseFloat(s.stop_lat), lon: Number.parseFloat(s.stop_lon),
+  modo: modo.get(s.stop_id) || '?',
+})), G8.UMBRAL_M);
 
 raya();
 log('LA RED DE ' + MODO.nombre.toUpperCase() + ' — feed ' + (feedInfo[0] ? feedInfo[0].feed_version : '?'));
@@ -294,7 +315,15 @@ const artefacto = {
     fin: feedInfo[0].feed_end_date,
     editor: feedInfo[0].feed_publisher_name,
   } : null,
-  paradas: [...usadas].map((id) => paradaDe.get(id)),
+  // ⭐⭐⭐ TANDA 10 · LA MARCA VIAJA CON LA PARADA (ley 161). Quien lea este
+  //   artefacto ve el poste, y es aquí donde tiene que enterarse de que hay otro
+  //   con el mismo nombre al lado. ⛔ Y se añade AL FINAL del objeto: metida en
+  //   medio cambiaría los bytes de las 934 y el sha dejaría de demostrar nada.
+  paradas: [...usadas].map((id) => {
+    const p = paradaDe.get(id);
+    const m = marcaNombre.get(p.codigo);
+    return m ? { ...p, mismoNombreCerca: m.otras } : p;
+  }),
   lineas: vivas.map((r) => ({
     id: r.route_id, corta: r.route_short_name, larga: r.route_long_name,
     modo: MODO.nombre, operador: r.agency_id, color: r.route_color || null,
@@ -326,6 +355,58 @@ log('   ⚠️ contra el crudo: stop_times.txt son 47.049.063 B ⇒ reducción '
 if (process.argv.includes('--tamano')) {
   log('   comprimido (gzip) ........................ '
     + kb(require('zlib').gzipSync(json).length));
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA 10 · LA MARCA, Y LA PRUEBA DE QUE NO HA MOVIDO LA RED
+//
+//   ⛔ Esta tanda DECLARA, no fusiona. Si el artefacto sin el campo nuevo no
+//     vuelve a ser byte a byte el de ayer, algo se ha agrupado por el camino.
+// ═════════════════════════════════════════════════════════════════════════════
+log('');
+raya('─');
+log('LA MARCA DE MISMO NOMBRE — y el sha que demuestra que la red NO se ha movido');
+raya('─');
+{
+  const conMarca = artefacto.paradas.filter((p) => p.mismoNombreCerca);
+  log('   ' + ('postes de ' + MODO.nombre + ' con marca ').padEnd(41, '.') + ' ' + conMarca.length
+    + ' de ' + artefacto.paradas.length);
+  A.exige(conMarca.length === MODO.postesConMarca,
+    `salen ${conMarca.length} postes de ${MODO.nombre} con marca y se midieron ${MODO.postesConMarca}`);
+  // ⭐ y cada marca lleva código Y distancia, o no es una marca: es un aviso vago
+  A.exige(conMarca.every((p) => p.mismoNombreCerca.length
+    && p.mismoNombreCerca.every((o) => o.code && typeof o.m === 'number' && o.modo)),
+  'alguna marca viaja sin el código del otro poste, sin su distancia o sin su modo');
+  if (conMarca.length) {
+    const ej = conMarca[0];
+    log('   ejemplo .................................. ' + ej.codigo + ' "' + ej.nombre + '" ⇒ '
+      + ej.mismoNombreCerca.map((o) => o.code + ' a ' + o.m + ' m [' + o.modo + ']').join(' · '));
+  }
+  // ── ⛔⛔ EL SHA: quitando la marca, ¿vuelve a ser el mismo artefacto? ───────
+  const sha = (s) => require('crypto').createHash('sha256').update(Buffer.from(s, 'utf8')).digest('hex');
+  const sinMarca = JSON.parse(json);
+  for (const p of sinMarca.paradas) delete p.mismoNombreCerca;
+  const jsonSin = JSON.stringify(sinMarca);
+  log('   sha sin la marca ......................... ' + sha(jsonSin).slice(0, 32) + '…');
+  log('   sha antes de la tanda 10 ................. ' + MODO.shaSinMarca.slice(0, 32) + '…');
+  log('   bytes: sin marca · antes ................. ' + Buffer.byteLength(jsonSin) + ' · '
+    + MODO.bytesSinMarca + (Buffer.byteLength(jsonSin) === MODO.bytesSinMarca ? '   ✅ el mismo' : '   ⛔ NO'));
+  A.exige(sha(jsonSin) === MODO.shaSinMarca,
+    `la red de ${MODO.nombre} SE HA MOVIDO: quitando la marca el artefacto no vuelve a ser el de `
+    + 'antes de esta tanda. Esta tanda declara, NO fusiona.');
+  // ⭐ el uno que acompaña al cero (ley 152): que el sha sepa ponerse rojo
+  const tocado = JSON.parse(jsonSin);
+  tocado.paradas[0].lat += 0.0000001;
+  log('   ⭐ provocado: se mueve UNA parada 1e-7 grados  '
+    + (sha(JSON.stringify(tocado)) !== MODO.shaSinMarca ? '✅ el sha lo caza' : '⛔ NO lo caza'));
+  A.exige(sha(JSON.stringify(tocado)) !== MODO.shaSinMarca,
+    'el sha no distingue una parada movida: no demuestra nada');
+  // ── ⭐⭐ LEY 167 · el guardián mira el UNIVERSO, no la lista de marcados ────
+  const conParent = stops.filter((s) => s.parent_station && s.parent_station.length > 0).length;
+  log('   ⛔ paradas del feed con parent_station .... ' + conParent + ' de ' + stops.length);
+  A.exige(stops.length === 984 && conParent === 0,
+    `el feed trae ${stops.length} paradas y ${conParent} con parent_station: la marca existe porque `
+    + 'NADA declara que dos postes formen una estación, y eso ha dejado de ser cierto');
 }
 
 log('');
