@@ -175,10 +175,36 @@ for (const c of CONDICIONALES) {
   if (!s) continue;
   s.terminal.determinante = c.determinante;
   const q = s.terminal.cuotaSegundo;
+  // ⭐⭐ PUERTA 3 · L4 · EL AVISO VIAJA CON EL SENTIDO, EN CASTELLANO.
+  //   La cuota ya estaba —`cuotaSegundo: 0.32`—, pero un número no avisa a nadie:
+  //   quien lea la lista de paradas de este sentido dará por hecho que todos los
+  //   viajes las hacen. **El «sí» falso manda a alguien a esperar un autobús que
+  //   no viene.** ⛔ El aviso no sustituye a la cuota: la acompaña.
+  s.terminal.aviso = `⚠️ El ${(100 * q).toFixed(0)} % de los viajes de este sentido NO acaba en `
+    + `"${s.terminal.mayoritario}" sino en "${s.terminal.segundo}". Depende de `
+    + (c.determinante === 'HORA' ? 'LA HORA' : 'EL DÍA DE LA SEMANA')
+    + '. ⛔ Las paradas de más allá del terminal corto NO se sirven en todos los viajes.';
   A.exige(q >= c.cuotaMin && q <= c.cuotaMax,
     `la cuota del segundo terminal de ${c.linea} s${c.dir} es ${(100 * q).toFixed(1)} % y se `
     + `declaró entre ${100 * c.cuotaMin} % y ${100 * c.cuotaMax} %. O el feed cambió o la medida `
     + 'de H2·3 no era lo que creíamos.');
+}
+// ⛔ Y el guardián del propio aviso: un sentido condicional SIN aviso escrito es
+//   un sentido que viaja mudo. Se exige que los dos lo lleven y que nombre el
+//   segundo terminal, que es el dato que evita la espera inútil.
+for (const c of CONDICIONALES) {
+  const s = sentidos.find((x) => x.corta === c.linea && x.dir === Number(c.dir));
+  if (!s) continue;
+  A.exige(!!s.terminal.aviso && s.terminal.aviso.includes(String(s.terminal.segundo)),
+    `el sentido condicional ${c.linea} s${c.dir} viaja sin aviso legible, o su aviso no nombra el `
+    + 'segundo terminal. Una cuota sola no avisa a nadie.');
+}
+// ⭐ LEY 156 · y que el guardián sepa ponerse rojo: se le enseña un sentido mudo.
+{
+  const mudo = { terminal: { aviso: null, segundo: 'X' } };
+  const caza = !(mudo.terminal.aviso && mudo.terminal.aviso.includes('X'));
+  log('   ⭐ provocado: un sentido condicional SIN aviso ⇒ ' + (caza ? '✅ lo caza' : '⛔ NO lo caza'));
+  A.exige(caza, 'el guardián del aviso no caza un sentido mudo: su verde no vale');
 }
 
 const usadas = new Set(sentidos.flatMap((s) => s.paradas));
