@@ -9583,3 +9583,66 @@ del mismo instrumento y en la misma ejecución (ley 152).
 
 **Traza:** `src/grafo.js` (`alLargoDeLaArista` e `insertar`) · `src/probar-misma-arista.js` ·
 `tools/grafo/efecto-arreglo.js` · `docs/H1-ARREGLO-8-MISMA-ARISTA.md`
+
+---
+
+## [2026-08-12] — Iba a leer un cero como buena noticia cuando era el hueco del instrumento
+
+**Categoría:** silencio falso
+**Síntoma:** el instrumento del lado de la acera clasificó los 67 enlaces `ACERA` de la muestra de
+H2·6 y sacó **0 enlaces que cambian de acera sin pasar por un paso de peatones**. La tabla salía
+limpia, el proceso terminaba en 0, y **el cero se leía como «no cruzan mal».**
+
+```
+   MISMO LADO             33    49.3 %
+   CAMBIA CON PASO         6     9.0 %
+   CAMBIA SIN PASO         0     0.0 %      ⬅ éste
+   NO DECIDIBLE           28    41.8 %
+```
+
+⛔ **Y el cero no significaba eso.** Dos líneas más abajo, en la misma salida, estaba el motivo:
+
+```
+   aristas del camino con lado decidible ....  58 de 867   (6,7 %)
+```
+
+⇒ **Con el 6,7 % de las aristas con lado conocido, casi ningún camino llega a ver DOS lados**, así
+que el veredicto «cambia de lado» casi no puede emitirse. **El cero medía la cobertura del
+instrumento, no la calidad de los enlaces.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el propio instrumento, entero.**
+Reproducía la muestra de H2·6 al par (934 · 2.266 · 324) y sus cuatro veredictos exactos
+(67 · 254 · 3 · 0) **con `A.exige`, no a ojo**; declaraba su cobertura sobre el modelo como pide la
+ley 150; y terminaba en código 0. ⛔ **Nada de eso podía delatarlo: el fallo no estaba en el
+universo ni en el cálculo, estaba en cómo se iba a LEER una casilla.**
+
+**Causa raíz:** el instrumento declaraba su cobertura **en una línea aparte de la tabla de
+resultados**, así que la tabla se podía leer sola. Y un `0` en una tabla de veredictos se lee como
+*«no pasa»*, nunca como *«no se puede ver»*. ⚠️ **La ley 150 estaba aplicada —la cobertura estaba
+medida y escrita— y aun así el número engañaba.** Declarar la cobertura no basta si el número que
+la necesita se puede leer sin ella.
+
+**Cómo se cazó:** ley 4, a mano. *«Todo cero se demuestra con un positivo de control»* — al ir a
+buscar el positivo apareció que no era obvio que el veredicto pudiera emitirse siquiera.
+
+**Arreglo aplicado:**
+1. ⭐⭐ **Se provocan los dos veredictos a propósito** —buscando dos aristas de la misma vía con
+   lados opuestos y ruteando entre ellas— y los dos salen: `CAMBIA CON PASO` en la vía 100 y
+   `CAMBIA SIN PASO` en la 105. **El cero pasa a ser un cero de verdad dentro de su cobertura.**
+2. La conclusión se publica **con las dos mitades pegadas**: *«cero, dentro de una cobertura del
+   6,7 %»*. Nunca la primera sola.
+3. ⚠️ Y de paso se renombra el veredicto: se llamaba **`CRUZA CALLADO`** y prometía más de lo que el
+   instrumento sabe —doblar una esquina cambia de acera sin ningún paso y es legítimo—. Pasa a
+   `CAMBIA SIN PASO`, que es lo que de verdad mide (ley 145).
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un cero en una tabla de veredictos se lee siempre como «no pasa»,
+aunque la cobertura esté declarada tres líneas más arriba.** ⇒ **La cobertura no se declara al lado:
+se declara DENTRO de la casilla**, o el número viajará solo en cuanto alguien copie la tabla.
+⚠️ Corolario que este proyecto ya tiene medido en otra forma: **cumplir la ley 150 no protege de la
+ley 4.** Declarar sobre qué puede ponerse rojo un instrumento y demostrar que sabe ponerse rojo son
+dos obligaciones distintas, y la segunda es la que convierte un cero en un dato.
+
+**Traza:** `tools/grafo/lado-de-la-acera.js` §P3 y §P3·bis ·
+`docs/H2A-PUERTA-1-EL-LADO-DE-LA-ACERA.md` §3.2
