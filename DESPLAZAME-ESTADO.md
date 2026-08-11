@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 145 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 147 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cuarenta y cinco instrumentos mintiendo** *(115 al cerrar H1 + 30 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cuarenta y siete instrumentos mintiendo** *(115 al cerrar H1 + 32 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1021,6 +1021,9 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 144 | ⛔ **UNA SECCIÓN DE LICENCIAS CON UN RECUENTO EN PROSA, MINTIENDO POR SEGUNDA VEZ.** Decía *«los datos tienen DOS licencias»* y **desde el 10/08 son TRES**: faltaban «Powered by MITRAMS», la cita al Ministerio y declarar el dato como **procesado, no bruto**. ⚠️ **La primera vez esa misma sección dijo *«hoy el repositorio no contiene ningún dato integrado»* con 46.150 portales dentro** ⇒ *un recuento escrito en prosa es un contador a mano en el sitio donde más caro sale equivocarse* |
 | | **⬇ H2a · TANDA 9 (11/08) — UNO MÁS** ⬇ | |
 | 145 | ⛔⛔ **UNA COLUMNA DE RECUENTOS CON UNA FILA QUE MEDÍA OTRA POBLACIÓN.** `docs/RECONOCIMIENTO-003-TRANSPORTE.md:105` publicó **52 rutas** donde el fichero tiene **53**: era **el recuento del BUS puesto en la columna del TOTAL**, y ⭐ *el tranvía se quedó fuera de su propio recuento*. **Las otras siete filas de la tabla eran correctas y lo arroparon.** ⛔⛔ **Y el número bueno llevaba UN MES publicado en otro documento del mismo proyecto** (`DISENO-H2A-RED.md:203`) ⇒ ***nada compara dos documentos entre sí***. Lo cazó un comparador de feeds escrito para otra cosa, **el día que el fichero no había cambiado** |
+| | **⬇ H2a · TANDA 8 (11/08) — DOS MÁS, Y CIERRAN H2a** ⬇ | |
+| 146 | ⛔⛔⛔ **UN COMENTARIO AFIRMÓ «CERO MEDIDO» ANTES DE MEDIR.** Se escribió `condicionales: []` con la nota *«no es "no lo hemos mirado": es cero medido»* **antes de ejecutar nada** — y al ejecutar salió **42,5 %**. ⛔ **Y no podía cazarlo el `A.exige`: recorre la LISTA DECLARADA, y con la lista vacía el bucle no da ni una vuelta.** ⇒ *El comentario afirmaba justo la propiedad que no tenía* |
+| 147 | ⛔⛔ **EL TAMAÑO DEL ARTEFACTO ESTABA EN CARACTERES, NO EN BYTES.** `json.length` cuenta **unidades UTF-16**, y el artefacto lleva tildes y `⛔` desde la Puerta 3: **471,7 y 491,1 publicados eran 494,7 KB reales.** ⚠️ **`red-bus.js` lo medía bien desde H2·6 con `Buffer.byteLength` — y las dos cifras se sumaron en el mismo informe.** *La cifra iba a decidir el stack* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1681,6 +1684,30 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     estar encendido**, no solo por la gravedad de lo que vigila. ⛔ *Y la decisión se escribe con su
     coste, o al mes siguiente parece un descuido.*
 
+167. ⭐⭐⭐ **UN GUARDIÁN QUE ITERA SOBRE UNA LISTA DECLARADA VIGILA LA LISTA, NO LO QUE FALTA EN
+    ELLA — Y CON LA LISTA VACÍA NO DA NI UNA VUELTA.**
+    *`condicionales: []` se escribió con el comentario «no es "no lo hemos mirado": es cero medido»
+    antes de medir, y el `A.exige` que recorría esa lista no podía cazarlo.* ⇒ **Un cero declarado
+    necesita un guardián que mire el UNIVERSO, no la declaración** (leyes 4 y 152 en su forma más
+    barata de incumplir). ⚠️ *Y el comentario afirmaba exactamente la propiedad que no tenía: la
+    prosa que acompaña a un dato puede mentir sin que el dato cambie.*
+
+168. ⭐⭐⭐ **UNA CIFRA QUE VA A DECIDIR ALGO SE MIDE SOBRE EL ARTEFACTO ESCRITO, NO SOBRE EL OBJETO
+    EN MEMORIA.**
+    *`json.length` son unidades UTF-16 y se publicaron como KB durante dos puertas; el número real
+    era 494,7. Y otro instrumento del mismo proyecto lo medía bien desde hacía cinco tandas: las dos
+    cifras se sumaron en el mismo informe.* ⇒ **Dos instrumentos que producen «la misma magnitud» con
+    unidades distintas no se detectan sumándolos: se detectan preguntándoles su unidad.**
+
+169. ⭐⭐⭐ **UN MODELO PUEDE RESPONDER BIEN A LA PREGUNTA QUE SE LE HIZO Y AUN ASÍ LEER MAL EL
+    MUNDO, PORQUE LE FALTA UN NIVEL — Y EL NIVEL QUE FALTA SOLO SE VE EN EL CASO DONDE ABUNDA.**
+    *`D1` identifica postes sin una sola colisión. Pero el usuario no pregunta «¿qué parada es
+    ésta?», sino «¿desde qué SITIO puedo coger el tranvía?» — y ese nivel, la ESTACIÓN, el GTFS lo
+    prevé (`parent_station`) y el editor no lo rellena en ninguna de las 984.* ⇒ **En bus era 1 caso
+    de 934 y no se notaba; en tranvía son 15 de 17.** ⭐ **Un hueco de modelado no se descubre donde
+    es raro: se descubre donde es sistemático**, y por eso el modo «pequeño» es el que examina el
+    modelo.
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1802,7 +1829,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2·7·P3** | ⭐⭐ **QUÉ SE PUBLICA Y CÓMO NO MENTIR** — los seis límites | **H2a** | ✅ **11/08** ⭐ **19,4 KB cuesta no mentir** |
 | **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO — LA PIEZA. COMPLETO.** | **H2a** | ✅ **11/08** |
 | **9** | ⭐⭐⭐ **LA CADUCIDAD Y LA REPETIBILIDAD** — el guardián de vigencia | **H2a** | ✅ **11/08** ⭐ **rojo con el reloj movido** |
-| **H2·8** | *(siguiente: **el tranvía** — casi gratis si el modelo está bien)* | **H2a** | ⬜ |
+| **H2·8** | ⭐⭐⭐ **EL TRANVÍA — y el examen del modelo** | **H2a** | ✅ **11/08** ⭐ **0 `if` por modo** |
+| **—** | ⭐⭐⭐ **H2a CERRADO** — bus + tranvía + transbordo a pie | **H2a** | ✅ **11/08** ⛔ **3 decisiones en la mesa de Antonio** |
 | **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
@@ -3649,6 +3677,110 @@ caminos esperando. *Cabo, no tanda: lo decide Antonio.*
 *«decidido, no medido, porque nunca se ha cronometrado cuánto dura una tanda»* — **pero `git log` lo
 sabe**: 26 commits el 10/08 y 20 el 11/08, con sus fechas. *El número existe y no hace falta
 estimarlo.*
+
+**⭐⭐⭐ H2a · TANDA 8 (11/08) — EL TRANVÍA. LA ÚLTIMA. `docs/H2A-TANDA-8-TRANVIA.md`.**
+
+> ⭐⭐⭐ **EL VEREDICTO, Y SON LAS DOS COSAS A LA VEZ SIN ELEGIR LA QUE QUEDA MEJOR:**
+> **El modelo AGUANTÓ estructuralmente — y aun así LEE MAL el tranvía.**
+> ```
+>    ficheros de código tocados ....  2   (red-bus.js · enlaces.js)
+>    líneas en red-bus.js ..........  +68 −22, de las cuales 35 son COMENTARIO ⇒ 33 de código
+>    campos nuevos en el modelo ....  0
+>    ⛔ `if` por modo nuevos .......  0
+> ```
+> ⭐ **El único `grep` que acierta con `esTranvia` en todo el repositorio es el comentario que dice
+> que no hay ninguno.** Y ⭐⭐ **el bus salió con el sha del artefacto IDÉNTICO** (`d883310a…`): solo
+> cambian dos líneas de texto, las dos a propósito. ***«Casi gratis» era cierto, y es un número.***
+> ⭐ **Cómo entró:** `const TIPO_BUS` incrustado pasa a una **tabla `MODOS`** con lo que cada modo
+> sabe de sí mismo. ***Una rama por modo se multiplica con cada modo nuevo; una fila de tabla, no*** —
+> y eso vale para H2b.
+
+**⛔⛔⛔ EL HALLAZGO: EL «TERMINAL VARIABLE» DEL TRANVÍA NO EXISTE.**
+```
+   sentido dir=1 · 2.473 viajes
+      mayoritario  0102  cuota 0,477    ⬅ el «mayoritario» NO llega al 50 %
+      segundo      0101  cuota 0,425
+      los dos se llaman "Avenida de la Academia" · distancia: 2,1 METROS
+```
+**No son dos terminales: son los dos andenes del mismo final de línea.** Y es estructural:
+```
+   TRANVÍA   50 paradas · 33 nombres · 17 pares homónimos · 15 a MENOS de 15 m   (p50 8,3 m)
+   BUS      934 paradas · 911 nombres · 26 pares homónimos ·  1 a menos de 15 m  (p50 59,5 m
+                                                              ⇒ son DOS ACERAS, sitios distintos)
+   parent_station relleno .... 0 de 984   ⛔ EN NINGUNA
+```
+⇒ **En el tranvía 30 de 50 paradas son 15 parejas del mismo sitio; en el bus es 1 caso de 934.**
+**No es diferencia de grado: es de estructura.** ⛔ **Y muerde en un número YA PUBLICADO: 170 de los
+272 enlaces bus↔tranvía (62,5 %)** tienen como punta un andén con gemelo a menos de 15 m ⇒ **el
+usuario ve el enlace duplicado.**
+
+> ⭐⭐⭐ **LA LECTURA, Y REENCUADRA LA DECISIÓN — de esta conversación:**
+> **No es un problema del tranvía: es que `D1` respondió bien a una pregunta que nadie hizo.**
+> `D1` decidió **cómo identificar una parada** y lo resolvió bien (0 colisiones). **Pero el usuario no
+> pregunta «¿qué parada es ésta?»: pregunta «¿desde qué SITIO puedo coger el tranvía?»**
+> ⇒ **Falta un nivel entero del modelo: la ESTACIÓN, que es lo que agrupa andenes.** El GTFS lo tiene
+> previsto (`parent_station`) **y Avanza no lo rellena en ninguna de las 984.**
+> ⚠️ *No es un error de `D1`: es un hueco que `D1` no cubría **porque en bus no se notaba**.*
+> ⇒ **Y por eso la tercera salida deja de ser el apaño y pasa a ser una respuesta legítima:** *este
+> proyecto modela POSTES, no estaciones, y aquí hay dos postes del mismo sitio.*
+
+**⭐⭐ LOS SEIS LÍMITES, RELEÍDOS DEL FICHERO DEL DISCO — 6 de 6.** *La Puerta 3 los dejó probados
+sobre el objeto en memoria, y `JSON.stringify` se come `undefined`, funciones, `Map` y `Set` **sin
+decir ni pío**.* Sobreviven los seis, **con provocación** (se quita `feed.procesado` ⇒ lo caza). ⭐ Y
+el bloque `vigencia` entra **con la regla y sin hornear el estado** (ley 165).
+✅ **Y las dos de Juslibol salen declaradas, no desaparecen:** `0301` y `0302` en `sinEnlaces` con su
+motivo, leído del disco. ⛔ **`tranvía × tranvía` no se calcula, y también se dice.**
+
+**⛔ LO QUE NO SOBREVIVIÓ FUE LA MEDIDA DEL TAMAÑO — y era el objetivo declarado de la comprobación:**
+`enlaces.js` medía con `json.length` —**unidades UTF-16**— y lo llamaba KB. **Cada tilde y cada `⛔`
+de los avisos cuesta más bytes que caracteres.** ⇒ Los **471,7** de la Puerta 2 y los **491,1** de la
+Puerta 3 **estaban en caracteres**: son **494,7 KB**. ⚠️ **`red-bus.js` lo hacía bien desde H2·6 con
+`Buffer.byteLength`, y las dos cifras se sumaron en el mismo informe.**
+
+```
+   EL TAMAÑO REAL, EN DISCO Y EN BYTES
+      red de bus ......... 200,9 KB · gzip 42,0 KB
+      red de tranvía ......  9,3 KB · gzip  2,2 KB
+      los enlaces ........ 494,7 KB · gzip 82,4 KB
+      ──────────────────────────────────────────────
+      TOTAL .............. 704,9 KB · gzip 126,6 KB   (477,3 · 70,1 sin dibujar)
+```
+⚠️ **Y sigue sin decidir el stack:** el motor necesita el **grafo peatonal de 68.649 nodos en
+ejecución** para el primer y el último tramo.
+
+**⚠️ QUÉ CLASE DE FALLO NO PODRÍA HABER CAZADO ESTA TANDA, declarado:** nada de horarios · **nada
+sobre si la secuencia de 25 paradas es correcta sobre el terreno** —se deriva del viaje mayoritario,
+y con un «mayoritario» del 47,7 % **cubre menos de la mitad de los viajes**— · nada del trazado ·
+y nada que solo se vea con un segundo feed.
+
+**⚠️ Y UNA DEUDA ACEPTADA CON SU MOTIVO:** el fichero **sigue llamándose `red-bus.js`**. Renombrarlo
+**falsificaría las rutas citadas en dos documentos que son registro histórico** ⇒ *una ruta de fichero
+es una afirmación (ley 140), también hacia atrás.*
+
+---
+
+### ⭐⭐⭐ H2a CERRADO (11/08) — Y LAS TRES DECISIONES QUE QUEDAN EN LA MESA
+
+**Lo que existe:** la red de bus (44 rutas, 74 sentidos, 934 paradas) · la red de tranvía (1 ruta, 2
+sentidos, 50 paradas) · **los 2.538 enlaces a pie calculados** con veredicto de dos campos · los seis
+límites viajando dentro del artefacto y **verificados en disco** · el guardián de vigencia · el
+comparador de feeds · y la línea de flotación.
+
+| | LO QUE DECIDE ANTONIO | |
+|---|---|---|
+| **1** | ⛔⛔ **LOS ANDENES GEMELOS** — la única que toca un número ya publicado (**170 de 272**). Tres salidas: **dejarlo · agrupar por proximidad+nombre · publicar el duplicado como marca.** ⚠️ Agrupar **cambia qué es «una parada» para todo H2a**, puede fusionar dos paradas de bus enfrentadas que **sí** son sitios distintos, y **movería los 272** |
+| **2** | ⚠️ **EL LISTÓN DE COBERTURA** `≥4 portales · 75 %` — **mueve 1.456 `no-consta`.** No es un ajuste: **es decidir cuánto error se acepta a cambio de cuánta cobertura** |
+| **3** | ⏳ **EL FEED CADUCA EL 05/10/2026 — 55 días.** *La maquinaria está puesta: el guardián avisa solo desde el 05/09 y se pone rojo el 06/10; el comparador y la línea de flotación están escritos y probados* |
+
+**LO QUE QUEDA ABIERTO Y NO BLOQUEA:** los **193 de 324 enlaces sin examinar** el lado · los **2
+`cambia-sin-paso`** sin mirar en el mapa · **`L2` sin guardián de valores**, solo de leyenda · **el
+descargador y el lector de ZIP sin control** hasta que exista un segundo feed · **el listón de 30
+días, decidido y no medido** · **`red-bus.js` con nombre caducado**.
+
+⚠️⚠️ **Y UN LÍMITE DE LA BATERÍA QUE SALE A LA LUZ EN ESTA TANDA:** el `diff` salió **vacío** y la
+tanda **sí tocó código** — porque **todo lo tocado vive en `tools/`, que está fuera del universo de
+`probar-paradas.js:217`.** ⇒ ***La batería no protege `tools/`; lo que protegió al bus fue el sha del
+artefacto.*** Es la ley 142 en su versión útil **y también su límite.**
 
 **DECISIONES NUEVAS DE H2:**
 
