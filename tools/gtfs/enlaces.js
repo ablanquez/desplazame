@@ -137,7 +137,7 @@ di('aristas donde dos vías se contradicen', contradicen.size);
 // ═════════════════════════════════════════════════════════════════════════════
 // P0 · EL UNIVERSO, Y SU CUADRE CON LO PUBLICADO
 // ═════════════════════════════════════════════════════════════════════════════
-const { stops, modo, lineasDe, feedInfo } = cargar();
+const { stops, modo, lineasDe, feedInfo, routes, trips } = cargar();
 const mk = (s) => ({ id: s.stop_id, code: s.stop_code, nombre: s.stop_name,
   lat: Number.parseFloat(s.stop_lat), lon: Number.parseFloat(s.stop_lon),
   lineas: lineasDe.get(s.stop_id) || new Set() });
@@ -455,13 +455,104 @@ const fi = feedInfo[0] ? {
   fin: feedInfo[0].feed_end_date,
   editor: feedInfo[0].feed_publisher_name,
 } : null;
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ PUERTA 3 · LOS LÍMITES VIVEN DENTRO DEL ARTEFACTO, NO EN EL README
+//
+//   **Un límite escrito en el README no protege a nadie, porque quien consulta un
+//   enlace no lee el README.** Cada uno viaja CON EL DATO al que afecta, y cada
+//   uno lleva debajo un `A.exige` que lo mantiene vivo. Los que no lo llevan se
+//   declaran como deuda en `limites.sinGuardian`, no se disimulan.
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ── L3 · las rutas sin ni un viaje, recontadas AQUÍ para tener guardián ──────
+const conViajes = new Set(trips.map((t) => t.route_id));
+const zombis = routes.filter((r) => Number(r.route_type) === 704 && !conViajes.has(r.route_id))
+  .map((r) => r.route_short_name).sort();
+
+// ── L1 · las paradas que el pre-filtro deja sin ni un enlace ─────────────────
+const conPar = new Set();
+for (const p of pares) { conPar.add(p.a.id); conPar.add(p.b.id); }
+const sinEnlaces = BUS.concat(TRA).filter((p) => !conPar.has(p.id)).map((p) => ({
+  code: p.code, nombre: p.nombre,
+  modo: modo.get(p.id),
+  motivo: 'sin-par-candidato',
+}));
+
 const artefacto = {
+  // ── L5 · CADUCIDAD Y LICENCIA ─────────────────────────────────────────────
   // ⛔⛔ LA LICENCIA DEL NAP OBLIGA A CONSERVAR SIN ALTERAR LA METAINFORMACIÓN DE
-  //    FECHA. Si el artefacto se la come, 004 incumple **y** pierde la caducidad.
-  //    Por eso `feed` va DENTRO y se exige, no se confía.
-  feed: fi,
+  //    FECHA, a citar al MITMS, a poner «Powered by MITRAMS» con enlace, y a
+  //    decir si el dato es BRUTO o PROCESADO. El nuestro es PROCESADO y se dice.
+  //    Si el artefacto se lo come, 004 incumple **y** pierde la caducidad.
+  feed: fi ? { ...fi,
+    caduca: '2026-10-05',
+    procesado: true,
+    procesadoQue: 'recortado a las líneas con viajes, reproyectado y cruzado con un grafo peatonal '
+      + 'propio. ⛔ NO es el dato bruto del NAP: no se puede citar como tal.',
+    fuente: 'Punto de Acceso Nacional (NAP) · Ministerio de Transportes y Movilidad Sostenible',
+    atribucion: 'Powered by MITRAMS',
+    atribucionUrl: 'https://nap.transportes.gob.es',
+  } : null,
   radioPrefiltro: RADIO_M,
-  campos: { camino: CAMINOS, lado: LADOS },
+
+  // ── L3 · LA RED ES LA DEL PERIODO DEL FEED, NO LA DE LA CIUDAD ────────────
+  cobertura: {
+    periodo: fi ? { desde: fi.inicio, hasta: fi.fin } : null,
+    aviso: 'Ésta es la red del PERIODO DEL FEED, no la de la ciudad. Una parada que no esté en '
+      + 'stops.txt no existe aquí aunque exista en la calle.',
+    ejemploConocido: 'PA00617 (Parque de Atracciones) no está en stops.txt: quien lo busque un día '
+      + 'de feria no encontrará la parada.',
+    lineasFuera: { n: zombis.length, codigos: zombis, motivo: 'cero viajes en trips.txt' },
+    modosFuera: ['tranvía como red — sus 50 paradas entran solo como PUNTAS de enlace'],
+  },
+
+  // ── L1 · LAS PARADAS QUE ESTE ARTEFACTO NO PUEDE CONTESTAR ────────────────
+  // ⭐ Van DENTRO y con nombre. Si no estuvieran, una consulta sobre una de ellas
+  //   devolvería una lista vacía, y **una lista vacía es indistinguible de «no hay
+  //   transbordo»**. Lo que hay es un pre-filtro que las deja fuera.
+  sinEnlaces: {
+    n: sinEnlaces.length,
+    aviso: 'Para estas paradas este artefacto NO dice nada. ⛔ No significa que no haya transbordo: '
+      + 'significa que a menos de ' + RADIO_M + ' m no hay ninguna parada que aporte línea nueva. '
+      + 'Puede haber una a ' + (RADIO_M + 20) + ' m y no se ha calculado.',
+    paradas: sinEnlaces,
+  },
+
+  // ── L2 · EL VEREDICTO, CON SU LECTURA AL LADO ─────────────────────────────
+  campos: {
+    camino: {
+      queEs: 'por dónde va el camino. Sale del GRAFO.',
+      valores: {
+        'sin-eje': 'ninguna arista del camino es eje de calzada',
+        mixto: 'unas aristas son eje de calzada y otras no',
+        'solo-eje': 'todas las aristas del camino son eje de calzada',
+        'sin-camino-en-el-grafo': 'ESTE grafo no encuentra camino. ⛔ No significa que no se pueda '
+          + 'ir andando: el grafo tiene 170 componentes.',
+      },
+    },
+    lado: {
+      queEs: 'qué sabemos de los lados de la calle. Sale de NUESTRO CONOCIMIENTO, no del grafo.',
+      // ⭐⭐ LA DISTINCIÓN QUE JUSTIFICA QUE HAYA DOS CAMPOS. Si quien lee no puede
+      //   separar conocimiento de ignorancia, los dos campos no han servido de nada.
+      aviso: '⛔ `sin-lados-en-el-grafo` es CONOCIMIENTO («el dibujo no tiene dos lados») y '
+        + '`no-consta` es IGNORANCIA («podría tenerlos y no llegamos al listón»). Son lo contrario '
+        + 'y no se pueden leer igual.',
+      valores: {
+        'sin-lados-en-el-grafo': 'CONOCIMIENTO FIRME: ni una arista del camino es de una clase que '
+          + 'pueda tener lado. ⚠️ La calle real puede tener dos aceras; el dibujo no.',
+        'no-consta': 'IGNORANCIA: hay aristas que podrían tener lado y ninguna llega al listón '
+          + '(≥4 portales de la misma vía y ≥75 % de la misma paridad).',
+        'no-cambia-de-lado': 'el camino no cambia de acera en ningún punto decidible. ⚠️ NO dice '
+          + 'que empiece en la acera correcta: eso no se mide.',
+        'cambia-con-paso': 'cambia de acera y pasa por un paso de peatones',
+        'cambia-sin-paso': 'cambia de acera sin pasar por ninguno. ⚠️ Doblar una esquina también lo '
+          + 'hace y es legítimo: NO significa «cruza mal».',
+      },
+    },
+    coste: 'METROS, no minutos. La velocidad de este proyecto está medida como BANDA (4,3–4,5 km/h '
+      + 'reales, 5,0 km/h estándar en el buscador): guardar minutos convertiría una banda en un '
+      + 'dato falso-preciso.',
+  },
   enlaces: res.map((r) => ({
     a: r.p.a.code, b: r.p.b.code, clase: r.p.clase,
     m: r.r ? Math.round(r.r.metros * 10) / 10 : null,     // ⭐ METROS, no minutos
@@ -470,8 +561,68 @@ const artefacto = {
     aristas: r.r ? r.r.aristas : null,
   })),
 };
-A.exige(!!artefacto.feed, 'el artefacto no lleva `feed_info`: la licencia del NAP exige conservar '
-  + 'sin alterar la metainformación de fecha, y sin ella además se pierde la caducidad');
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐ LOS GUARDIANES DE LOS SEIS LÍMITES — un límite sin guardián es una intención
+// ═════════════════════════════════════════════════════════════════════════════
+log('');
+log('   ⭐⭐ LOS GUARDIANES DE LOS LÍMITES — qué mantiene vivo a cada uno');
+// L5 · caducidad, licencia y atribución
+A.exige(!!artefacto.feed && !!artefacto.feed.version && !!artefacto.feed.fin
+  && !!artefacto.feed.atribucion && !!artefacto.feed.atribucionUrl && artefacto.feed.procesado === true,
+  'L5 · el artefacto no lleva feed_info completo con atribución y la marca de PROCESADO. '
+  + 'La licencia del NAP exige conservar sin alterar la metainformación de fecha, citar al MITMS '
+  + 'y decir si el dato es bruto o procesado');
+A.exige(artefacto.feed && artefacto.feed.fin === '20261005',
+  `L5 · la caducidad declarada (${artefacto.feed && artefacto.feed.fin}) no es la del feed`);
+log('      L5 caducidad y licencia .......... A.exige sobre feed.version/fin/atribucion/procesado');
+// L3 · la red es la del periodo
+A.exige(zombis.length === 8, `L3 · salen ${zombis.length} líneas sin viajes y H2·6 midió 8`);
+A.exige(!stops.some((s) => s.stop_code === 'PA00617'),
+  'L3 · PA00617 SÍ está en stops.txt: el ejemplo del Parque de Atracciones ha caducado y el aviso '
+  + 'de cobertura está señalando a un caso que ya no existe');
+log('      L3 red del periodo ............... A.exige sobre las 8 zombis y sobre la ausencia de PA00617');
+// L1 · las paradas invisibles
+A.exige(sinEnlaces.length === 172, `L1 · salen ${sinEnlaces.length} paradas sin par y la Puerta 2 midió 172`);
+A.exige(artefacto.sinEnlaces.paradas.every((p) => p.code && p.motivo),
+  'L1 · alguna parada sin enlaces viaja sin código o sin motivo');
+log('      L1 paradas invisibles ............ A.exige sobre las 172 y sobre code+motivo de cada una');
+// L2 · el veredicto, con su leyenda, y que la leyenda cubra lo que se emite
+{
+  const emitidosC = new Set(res.map((r) => r.camino));
+  const emitidosL = new Set(res.map((r) => r.lado));
+  const faltaC = [...emitidosC].filter((v) => !artefacto.campos.camino.valores[v]);
+  const faltaL = [...emitidosL].filter((v) => !artefacto.campos.lado.valores[v]);
+  A.exige(faltaC.length === 0, `L2 · se emiten valores de camino sin leyenda: ${faltaC.join(', ')}`);
+  A.exige(faltaL.length === 0, `L2 · se emiten valores de lado sin leyenda: ${faltaL.join(', ')}`);
+  A.exige(/CONOCIMIENTO/.test(artefacto.campos.lado.aviso) && /IGNORANCIA/.test(artefacto.campos.lado.aviso),
+    'L2 · el aviso del campo lado no distingue conocimiento de ignorancia');
+  log('      L2 veredicto por enlace .......... A.exige: todo valor emitido tiene leyenda, y el aviso');
+  log('                                        separa CONOCIMIENTO de IGNORANCIA');
+}
+// L6 · nunca «todos», nunca «el más rápido»
+{
+  // ⛔ El guardián mira el ARTEFACTO ENTERO, texto incluido: es lo que viaja.
+  // ⛔⛔ LA PRIMERA VERSIÓN DE ESTA LISTA NO CAZABA NADA, y lo destapó su propia
+  //   provocación: el patrón era `/\bel m[áa]s r[áa]pido\b/` y la frase que hay que
+  //   cazar es **«el transbordo más rápido»** — con una palabra en medio. Un
+  //   patrón pegado a «el» solo caza la forma exacta que se te ocurrió al
+  //   escribirlo. ⇒ Se busca el NÚCLEO de la promesa, no la frase entera.
+  const PROHIBIDAS = [/m[áa]s r[áa]pid/i, /mejor ruta/i, /\b[óo]ptim[oa]/i,
+    /todos los transbordos/i, /\bsiempre\b/i, /garantiz/i, /\bel mejor\b/i];
+  const texto = JSON.stringify(artefacto);
+  const pilladas = PROHIBIDAS.filter((re) => re.test(texto)).map((re) => re.source);
+  A.exige(pilladas.length === 0, `L6 · el artefacto contiene una promesa que no se puede cumplir: ${pilladas.join(' · ')}`);
+  log('      L6 nunca «todos» ni «el más rápido» A.exige sobre el JSON entero, ' + PROHIBIDAS.length + ' patrones');
+  // ⭐ LEY 156 · el cero se provoca: se enseña que el guardián sabe ponerse rojo
+  const falso = JSON.stringify({ ...artefacto, prueba: 'el transbordo más rápido' });
+  const cazado = PROHIBIDAS.some((re) => re.test(falso));
+  log('      ⭐ provocado: con la frase «el transbordo más rápido» dentro ⇒ '
+    + (cazado ? '✅ LO CAZA' : '⛔ NO LO CAZA — el guardián no vale'));
+  A.exige(cazado, 'L6 · el guardián no caza «el transbordo más rápido»: su cero no vale nada');
+}
+// L4 · vive en el artefacto de la red, no en éste
+log('      L4 sentidos condicionales ........ ⚠️ NO vive aquí: vive en `tools/gtfs/red-bus.js`,');
+log('                                        en `sentido.terminal`, con su propio A.exige de cuota');
 const json = JSON.stringify(artefacto);
 const kb = (n) => (n / 1024).toFixed(1) + ' KB';
 di('enlaces en el artefacto', artefacto.enlaces.length);
