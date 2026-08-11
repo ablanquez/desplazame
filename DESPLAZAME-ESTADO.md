@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 144 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 145 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cuarenta y cuatro instrumentos mintiendo** *(115 al cerrar H1 + 29 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cuarenta y cinco instrumentos mintiendo** *(115 al cerrar H1 + 30 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1017,8 +1017,10 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 141 | ⛔⛔ **UNA PREDICCIÓN CAYÓ DENTRO DE LA BANDA CON EL RAZONAMIENTO AL REVÉS.** Se predijo `sin-eje` **por debajo** del 21,3 % *«porque el tranvía empuja hacia el eje»* y salió **por encima** (23,2 %), dentro de la banda igualmente. ⭐ **Lo declaró su propio autor: acertar la banda con la razón equivocada no es acertar** ⇒ *una predicción se evalúa por su MECANISMO, no solo por su intervalo* |
 | | **⬇ H2a · TANDA 7 · PUERTA 3 (11/08) — TRES MÁS** ⬇ | |
 | 142 | ⛔⛔ **UN GUARDIÁN DE TEXTO NACIÓ SIN SERVIR PARA NADA Y SALIÓ VERDE A LA PRIMERA.** El patrón de L6 era `/\bel m[áa]s r[áa]pido\b/` y la frase real —*«el transbordo más rápido»*— **lleva una palabra en medio: no la cazaba.** ⭐ **Lo destapó su propia provocación** (ley 156), no una revisión. ⇒ *El patrón estaba pegado a `el` **porque así la escribió en su cabeza quien lo redactó**: un guardián de texto escrito desde la frase que se te ocurre vigila TU frase, no la prohibición* |
-| 143 | ⛔⛔⛔ **UN GUARDIÁN DE FORMA SIN GUARDIÁN DE VIGENCIA: EL 06/10/2026 TODO SEGUIRÁ EN VERDE.** El `A.exige` comprueba que `fin === '20261005'` **viaje dentro del artefacto**, no que **la fecha no haya pasado**. ⭐⭐⭐ **Es el PRIMERO de los 143 que se cataloga ANTES de mentir** — escrito, fechado y con 55 días de aviso. *Es la forma exacta del fallo que fundó el proyecto: un instrumento que sigue dando verde después de que el mundo cambie* |
+| 143 | ✅ **ARREGLADO el 11/08 (tanda 9), 55 días antes de mentir — se marca, no se reescribe.** ⛔⛔⛔ **UN GUARDIÁN DE FORMA SIN GUARDIÁN DE VIGENCIA: EL 06/10/2026 TODO SEGUIRÁ EN VERDE.** El `A.exige` comprueba que `fin === '20261005'` **viaje dentro del artefacto**, no que **la fecha no haya pasado**. ⭐⭐⭐ **Es el PRIMERO de los 143 que se cataloga ANTES de mentir** — escrito, fechado y con 55 días de aviso. *Es la forma exacta del fallo que fundó el proyecto: un instrumento que sigue dando verde después de que el mundo cambie* |
 | 144 | ⛔ **UNA SECCIÓN DE LICENCIAS CON UN RECUENTO EN PROSA, MINTIENDO POR SEGUNDA VEZ.** Decía *«los datos tienen DOS licencias»* y **desde el 10/08 son TRES**: faltaban «Powered by MITRAMS», la cita al Ministerio y declarar el dato como **procesado, no bruto**. ⚠️ **La primera vez esa misma sección dijo *«hoy el repositorio no contiene ningún dato integrado»* con 46.150 portales dentro** ⇒ *un recuento escrito en prosa es un contador a mano en el sitio donde más caro sale equivocarse* |
+| | **⬇ H2a · TANDA 9 (11/08) — UNO MÁS** ⬇ | |
+| 145 | ⛔⛔ **UNA COLUMNA DE RECUENTOS CON UNA FILA QUE MEDÍA OTRA POBLACIÓN.** `docs/RECONOCIMIENTO-003-TRANSPORTE.md:105` publicó **52 rutas** donde el fichero tiene **53**: era **el recuento del BUS puesto en la columna del TOTAL**, y ⭐ *el tranvía se quedó fuera de su propio recuento*. **Las otras siete filas de la tabla eran correctas y lo arroparon.** ⛔⛔ **Y el número bueno llevaba UN MES publicado en otro documento del mismo proyecto** (`DISENO-H2A-RED.md:203`) ⇒ ***nada compara dos documentos entre sí***. Lo cazó un comparador de feeds escrito para otra cosa, **el día que el fichero no había cambiado** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1660,6 +1662,25 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     compare con hoy.** ⭐ *Y este caso tiene un mérito raro: es el primer instrumento del proyecto
     catalogado **antes** de mentir — con fecha y con 55 días de aviso.*
 
+164. ⭐⭐⭐ **UNA COLUMNA DE RECUENTOS TIENE QUE SIGNIFICAR LO MISMO EN TODAS SUS FILAS — Y LA QUE
+    MEZCLA POBLACIONES NO SE VE MIRANDO LA TABLA, PORQUE LAS OTRAS LA ARROPAN.**
+    *«52 rutas» era el recuento del bus en la columna del total: el tranvía quedó fuera de su propio
+    recuento, y las otras siete filas eran correctas.* ⇒ **Una tabla no se audita fila a fila: se
+    audita preguntando de qué población es CADA celda.**
+
+165. ⭐⭐⭐ **UN VEREDICTO QUE DEPENDE DEL RELOJ NO SE PUEDE CONGELAR EN UN ARTEFACTO.**
+    *Un `dentro-del-periodo` horneado hoy diría lo mismo en noviembre.* ⇒ **Lo que viaja son las
+    FECHAS y la REGLA; el estado se recalcula al servir.** ⚠️ Y su corolario incómodo: **es el único
+    instrumento del proyecto que es función del fichero Y del reloj**, así que **un reloj mal puesto
+    produce un veredicto falso indetectable desde dentro** — cotejarlo con la fecha del ZIP caza el
+    atrasado y **no caza el adelantado**.
+
+166. ⭐⭐⭐ **UN ROJO QUE DURA UN MES ENSEÑA A IGNORARLO — POR ESO HAY AVISOS QUE NO DEBEN FALLAR.**
+    *`se-acaba` avisa treinta días y no rompe la batería, a sabiendas de que el coste es enterarse el
+    día del rojo y no el del aviso.* ⇒ **La severidad de un guardián se elige por cuánto tiempo va a
+    estar encendido**, no solo por la gravedad de lo que vigila. ⛔ *Y la decisión se escribe con su
+    coste, o al mes siguiente parece un descuido.*
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1780,8 +1801,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2·7·P2** | ⭐⭐⭐ **LOS 2.538 ENLACES**, con el veredicto en dos campos | **H2a** | ✅ **11/08** ⭐ **andando ÷ volando = 1,3×** |
 | **H2·7·P3** | ⭐⭐ **QUÉ SE PUBLICA Y CÓMO NO MENTIR** — los seis límites | **H2a** | ✅ **11/08** ⭐ **19,4 KB cuesta no mentir** |
 | **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO — LA PIEZA. COMPLETO.** | **H2a** | ✅ **11/08** |
-| **—** | *(siguiente: ⛔ **LA CADUCIDAD Y LA REPETIBILIDAD** — el 05/10 en verde)* | **H2a** | ⬜ ⚠️ **55 días** |
-| **H2·8** | El tranvía — casi gratis si el modelo está bien | **H2a** | ⬜ |
+| **9** | ⭐⭐⭐ **LA CADUCIDAD Y LA REPETIBILIDAD** — el guardián de vigencia | **H2a** | ✅ **11/08** ⭐ **rojo con el reloj movido** |
+| **H2·8** | *(siguiente: **el tranvía** — casi gratis si el modelo está bien)* | **H2a** | ⬜ |
 | **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
@@ -3563,6 +3584,71 @@ manda.
 **empieza** en el lado correcto · **el listón de cobertura (decisión de Antonio)** · los **2
 `cambia-sin-paso`** sin mirar en el mapa · **la caducidad sin vigilar** · `L2` sin guardián de valores
 · el artefacto sin escribir a disco.
+
+**⭐⭐⭐ H2a · TANDA 9 (11/08) — EL 5 DE OCTUBRE. `docs/H2A-TANDA-9-VIGENCIA.md` y
+`docs/H2A-LINEA-DE-FLOTACION.md`.**
+
+> ⭐⭐⭐ **EL Nº143 ESTÁ ARREGLADO 55 DÍAS ANTES DE MENTIR, Y CON LA ÚNICA PRUEBA QUE LO DEMUESTRA:**
+> ```
+>    $ node src/probar-vigencia.js               ⇒ dentro-del-periodo · 55 días · ✅ código 0
+>    $ node src/probar-vigencia.js --hoy 20261006 ⇒ fuera-del-periodo-declarado · -1 · ⛔ FALLO
+> ```
+> *Hasta ayer un guardián bueno y uno roto daban exactamente el mismo verde.*
+> ⭐⭐ **Y la provocación va DENTRO de la ejecución verde:** no es que se haya visto rojo una vez —
+> **enseña cada día que sabe ponerse rojo** (`20261005` todavía `se-acaba`, `20261006` ya no).
+
+| | qué | |
+|---|---|---|
+| ⭐⭐⭐ | **Vive en `src/`, y ése es el punto entero** | `probar-paradas.js:217` solo ejecuta los `.js` de **`src/`**; `tools/` está fuera de la batería (ley 142). ⇒ ***Un guardián de caducidad metido en `tools/` es un guardián que nadie corre nunca***, y el 6 de octubre nadie se habría enterado igual. **La lógica en `tools/gtfs/vigencia.js`; el que la ejecuta a diario, en `src/`** |
+| ⭐ | **Cinco estados, con la ley 157 pasada** | ⚠️ `vigente` **no pasaba** —se lee *«el dato es correcto»*, y **un feed puede estar dentro de su periodo y tener la red mal**— ⇒ `dentro-del-periodo`. ⚠️ `caducado` **no pasaba** —se lee *«ya no sirve»*— ⇒ `fuera-del-periodo-declarado`: *lo que se sabe es que **el editor declaró un periodo y terminó***. **Los cinco se provocan y se exigen: un estado que nunca sale no es un estado, es una promesa** |
+| ⚠️ | **`se-acaba` avisa y NO falla, con su coste dicho** | Ponerlo rojo dejaría la batería roja **treinta días seguidos**, y **un rojo que dura un mes enseña a ignorarlo**. ⛔ *Consecuencia aceptada: el 6 de octubre uno se entera por el rojo, no por el aviso* |
+| ⭐⭐ | **El único instrumento del proyecto cuyo veredicto cambia SIN QUE CAMBIE EL DATO** | Es función del fichero **y del reloj**. Desde dentro solo se puede cotejar con el repositorio: **si `HOY` < la fecha del ZIP (20260810), el reloj va atrasado**. ⛔ **Eso caza el atrasado —el que produce un falso «vigente»— y NO caza el adelantado** |
+| ⭐⭐ | **Y por eso el estado NO se hornea en el artefacto** | Un `dentro-del-periodo` congelado hoy **diría lo mismo en noviembre**. ⇒ **Viajan las fechas y la REGLA; quien sirve el dato recalcula** |
+
+**⭐⭐⭐ EL COMPARADOR DE FEEDS CAZÓ ALGO EL DÍA QUE NO HABÍA CAMBIADO NADA:**
+```
+   routes.txt      3.430 bytes = 3.430 bytes      53 filas ≠ 52 filas   ⛔
+```
+**Los bytes cuadran AL BYTE, así que el fichero es el mismo: lo que estaba mal era el recuento.**
+Medido: **52 de `route_type` 704 (bus) + 1 de 900 (tranvía) = 53.** El **52** publicado en
+`docs/RECONOCIMIENTO-003-TRANSPORTE.md:105` es **el recuento del bus puesto en la columna del
+total**, y ⭐ *el tranvía se quedó fuera de su propio recuento.*
+⭐⭐ **Y el número bueno llevaba UN MES publicado en otro documento del mismo proyecto**
+(`DISENO-H2A-RED.md:203`). ⛔ El informe **no se reescribe** —registro histórico—: el ancla pasa a ser
+**lo medido**, con la discrepancia **impresa en cada ejecución**.
+
+**✅ SIETE DIFERENCIAS PROVOCADAS, SEIS CLASES, TODAS CAZADAS** —`caducidad · version · filas ·
+fichero · identidad (×2) · zombis`—, ⛔ **con el sha y los bytes dejados iguales A PROPÓSITO**: si no,
+todas se cazarían por el sha y no se probaría nada más.
+⚠️ **Límite declarado: se muta la MEDICIÓN en memoria, no el ZIP** ⇒ prueba el comparador, **no el
+lector de ZIP ni el descargador, que siguen sin control.**
+
+**⭐⭐ Y LO QUE CONTESTARÁ EL DÍA QUE HAYA UN SEGUNDO FICHERO:** cuántos `stop_id` desaparecen, cuántos
+son nuevos, y ⛔⛔ **cuántos MANTIENEN el id y CAMBIAN el `stop_code`** — *el caso peor, porque la
+identidad parecería estable y señalaría a otro poste*. **Hoy no se puede contestar: solo existe una
+versión.**
+
+**LA LÍNEA DE FLOTACIÓN** (`docs/H2A-LINEA-DE-FLOTACION.md`) dice qué se hace el día que el feed
+cambie y **qué deja de valer según qué cambie** — con el caso peor marcado como *«PARAR y decidir con
+Antonio, no se recalcula nada»*. ⭐ **Y lo que NO se re-mide pase lo que pase: el grafo, las diez
+rutas y los 26 congelados. El GTFS no toca H1.**
+⚠️ **Su contradictor está escrito** —`comparar-feed.js --otro <zip>`— **pero solo puede dispararse el
+día que exista un segundo fichero** ⇒ **es un contradictor con 55 días de latencia: hasta entonces el
+documento no puede envejecer ni bien ni mal, está congelado por falta de mundo.** *Es una clase de
+contradictor distinta a las demás y conviene que conste.*
+
+**⛔⛔ CABO ESTRUCTURAL QUE DESTAPA ESTA TANDA — y es más grande que el 53/52:**
+***Nada en este proyecto compara dos documentos entre sí.*** Hay un puntero que marca superados, un
+latido que vigila cuatro números y `A.exige` por todas partes — **y ningún instrumento que cruce dos
+documentos.** El **53** llevaba un mes conviviendo con el **52**, y lo encontró **un instrumento
+escrito para otra cosa.** ⇒ Con **3.703 líneas de estado, 144 instrumentos y 163 leyes**, la pregunta
+*«¿cuántas más hay?»* **no tiene respuesta hoy** — y la ley 154 dice que ahí dentro hay terceros
+caminos esperando. *Cabo, no tanda: lo decide Antonio.*
+
+⭐ **Y una medición que se creía imposible y no lo es:** el listón de 30 días de `se-acaba` está
+*«decidido, no medido, porque nunca se ha cronometrado cuánto dura una tanda»* — **pero `git log` lo
+sabe**: 26 commits el 10/08 y 20 el 11/08, con sus fechas. *El número existe y no hace falta
+estimarlo.*
 
 **DECISIONES NUEVAS DE H2:**
 
