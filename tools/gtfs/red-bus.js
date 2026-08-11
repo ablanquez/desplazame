@@ -29,23 +29,66 @@ const { posteDeAvanza } = require('./identidad');
 const log = (s) => process.stdout.write(s + '\n');
 const raya = (c = '=') => log(c.repeat(100));
 
-/** `route_type` extendido: 704 = Local Bus Service. ⛔ El tranvía (900) es H2·8. */
-const TIPO_BUS = '704';
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA 8 · EL MODO ES UN PARÁMETRO, NO UNA RAMA
+//
+//   Hasta hoy este fichero tenía `const TIPO_BUS = '704'` incrustado. El tranvía
+//   entra **cambiando ese parámetro**, no añadiendo un `if (esTranvia)`.
+//
+//   ⛔ Y lo que el bus sabe de sí mismo —sus zombis, sus terminales condicionales—
+//     **no puede ser una rama del código: es DATO por modo.** Va en esta tabla.
+//     Una rama por modo se multiplica con cada modo nuevo; una fila de tabla, no.
+//
+// ⚠️ EL NOMBRE DEL FICHERO SE QUEDA `red-bus.js` Y ES DEUDA DECLARADA: renombrarlo
+//    falsificaría las rutas citadas en `docs/H2A-RED-DE-BUS-Y-VEREDICTO.md` y en
+//    `docs/H2A-PUERTA-3-LOS-LIMITES.md`, que son **registro histórico y no se
+//    reescriben**. Una ruta de fichero es una afirmación (ley 140), también hacia
+//    atrás.
+// ═════════════════════════════════════════════════════════════════════════════
 
 /**
- * ⭐ Los dos sentidos con terminal condicional, MEDIDOS en la tanda 3 sobre este
- *    mismo feed, no heredados de nadie. Son 2 de 74.
- * ⚠️ Se declaran aquí y el programa los COMPRUEBA contra lo que sale del feed: si
- *    la cuota se mueve, sale en rojo. Una lista escrita a mano que nadie contrasta
- *    es una lista que envejece en silencio.
+ * ⭐ Lo que cada modo sabe de sí mismo. `route_type` extendido: 704 = Local Bus
+ *    Service, 900 = Tram Service.
+ * ⚠️ `condicionales` y `zombisEsperadas` se declaran y el programa los COMPRUEBA
+ *    contra lo que sale del feed: si la cuota se mueve, sale en rojo. Una lista
+ *    escrita a mano que nadie contrasta es una lista que envejece en silencio.
+ * ⛔⛔ Y LAS LISTAS VACÍAS DEL TRANVÍA: la primera versión de este comentario decía
+ *    que eran «cero medido». **Era falso: se escribieron ANTES de medir nada**, y
+ *    al ejecutar salió que el sentido `dir=1` del tranvía tiene un segundo terminal
+ *    al **42,5 %** —más alto que los dos condicionales del bus—. (bitácora nº194)
+ * ⚠️ `condicionales` sigue vacía **y ahora con motivo medido**: ese 42,5 % NO es un
+ *    terminal condicional. Los dos «terminales» son `0101` y `0102`, **los dos
+ *    andenes del mismo final de línea, a 2,1 m**. No es que unos viajes acaben en
+ *    otro sitio: es que el mismo sitio tiene dos `stop_id`. Ver §T1 del informe.
  */
-const CONDICIONALES = [
-  { linea: '23', dir: '0', cuotaMin: 0.28, cuotaMax: 0.36, determinante: 'HORA' },
-  { linea: '44', dir: '0', cuotaMin: 0.35, cuotaMax: 0.43, determinante: 'DÍA' },
-];
+const MODOS = {
+  704: {
+    nombre: 'bus',
+    // los dos sentidos con terminal condicional, MEDIDOS en la tanda 3 sobre
+    // este mismo feed, no heredados de nadie. Son 2 de 74.
+    condicionales: [
+      { linea: '23', dir: '0', cuotaMin: 0.28, cuotaMax: 0.36, determinante: 'HORA' },
+      { linea: '44', dir: '0', cuotaMin: 0.35, cuotaMax: 0.43, determinante: 'DÍA' },
+    ],
+    // las que la tanda 3 midió sin ni un viaje
+    zombisEsperadas: ['CEM', 'CE', 'LAN', 'EM1', 'EM2', 'V1', 'ES3', 'V4'],
+  },
+  900: {
+    nombre: 'tranvia',
+    condicionales: [],
+    zombisEsperadas: [],
+  },
+};
 
-/** Las que la tanda 3 midió sin ni un viaje. Se DECLARAN para poder contrastarlas. */
-const ZOMBIS_ESPERADAS = ['CEM', 'CE', 'LAN', 'EM1', 'EM2', 'V1', 'ES3', 'V4'];
+const iTipo = process.argv.indexOf('--tipo');
+const TIPO = iTipo >= 0 ? process.argv[iTipo + 1] : '704';
+const MODO = MODOS[TIPO];
+if (!MODO) {
+  throw new Error(`⛔ modo desconocido: route_type ${TIPO}. Conocidos: ${Object.keys(MODOS).join(' · ')}`);
+}
+const TIPO_BUS = TIPO;                       // el nombre viejo, para no tocar el cuerpo
+const CONDICIONALES = MODO.condicionales;
+const ZOMBIS_ESPERADAS = MODO.zombisEsperadas;
 
 const { stops, routes, trips, feedInfo, modo } = cargar();
 
@@ -65,7 +108,7 @@ for (const s of stops) {
 }
 
 raya();
-log('LA RED DE BUS — feed ' + (feedInfo[0] ? feedInfo[0].feed_version : '?'));
+log('LA RED DE ' + MODO.nombre.toUpperCase() + ' — feed ' + (feedInfo[0] ? feedInfo[0].feed_version : '?'));
 raya();
 
 // ── el filtro de zombis, CONTRA trips.txt y con su cifra ─────────────────────
@@ -75,7 +118,8 @@ const vivas = deBus.filter((r) => conViajes.has(r.route_id));
 const zombis = deBus.filter((r) => !conViajes.has(r.route_id));
 
 log('   rutas en routes.txt ...................... ' + routes.length);
-log('   de ellas, de BUS (route_type ' + TIPO_BUS + ') ......... ' + deBus.length);
+log(('   de ellas, de ' + MODO.nombre.toUpperCase() + ' (route_type ' + TIPO + ') ').padEnd(45, '.')
+  + ' ' + deBus.length);
 log('   ⛔ descartadas por NO tener ni un viaje ... ' + zombis.length);
 for (const r of zombis) {
   log('        ' + r.route_id.padEnd(5) + r.route_short_name.padEnd(6) + r.route_long_name.slice(0, 52));
@@ -89,7 +133,12 @@ const esperadas = ZOMBIS_ESPERADAS.slice().sort();
 const igual = nombresZombis.length === esperadas.length
   && nombresZombis.every((x, i) => x === esperadas[i]);
 log('');
-log('   ⭐ contraste con lo medido en H2·3: ' + (igual ? '✅ las mismas ocho' : '⛔ HA CAMBIADO'));
+// ⚠️ El mensaje dice CUÁNTAS son, no «las mismas ocho»: con el tranvía —que tiene
+//   cero— la frase vieja afirmaba ocho donde no hay ninguna. Un rótulo escrito
+//   para un modo miente en cuanto entra el segundo (ley 157 aplicada a la salida).
+log('   ⭐ contraste con lo medido: ' + (igual
+  ? '✅ las mismas ' + esperadas.length + (esperadas.length === 0 ? ' — ninguna, y se exige que siga así' : '')
+  : '⛔ HA CAMBIADO'));
 if (!igual) {
   log('      ahora:    ' + nombresZombis.join(' '));
   log('      entonces: ' + esperadas.join(' '));
@@ -214,7 +263,7 @@ log('LOS SENTIDOS');
 raya();
 log('   sentidos ................................. ' + sentidos.length);
 log('   viajes que los sostienen ................. ' + sentidos.reduce((a, s) => a + s.viajes, 0));
-log('   paradas usadas por la red de bus ......... ' + usadas.size);
+log(('   paradas usadas por la red de ' + MODO.nombre + ' ').padEnd(45, '.') + ' ' + usadas.size);
 log('   paradas con poste ........................ '
   + [...usadas].filter((id) => paradaDe.get(id).poste !== null).length);
 
@@ -248,7 +297,7 @@ const artefacto = {
   paradas: [...usadas].map((id) => paradaDe.get(id)),
   lineas: vivas.map((r) => ({
     id: r.route_id, corta: r.route_short_name, larga: r.route_long_name,
-    modo: 'bus', operador: r.agency_id, color: r.route_color || null,
+    modo: MODO.nombre, operador: r.agency_id, color: r.route_color || null,
   })),
   sentidos,
 };
@@ -281,6 +330,6 @@ if (process.argv.includes('--tamano')) {
 
 log('');
 raya();
-log(A.cierre('LA RED DE BUS'));
+log(A.cierre('LA RED DE ' + MODO.nombre.toUpperCase()));
 
 module.exports = { artefacto, paradaDe, sentidos };
