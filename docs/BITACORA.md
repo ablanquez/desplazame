@@ -10012,3 +10012,57 @@ artefacto ESCRITO, no sobre el objeto.**
 
 **Traza:** `tools/gtfs/enlaces.js` (`kb`/`bytes`) · `docs/H2A-PUERTA-2-LOS-2538.md` §8 (471,7 KB) ·
 `docs/H2A-PUERTA-3-LOS-LIMITES.md` §8 (491,1 KB)
+
+
+---
+
+## [2026-08-11] — Una mayúscula dejó fuera un par de andenes, y el cruce hacia atrás lo confirmó
+
+**Categoría:** datos / método
+**Síntoma:** la tanda 8 publicó que el tranvía tiene **17 pares homónimos, 15 a menos de 15 m**, y
+que **170 de 272 enlaces** tienen una punta con gemelo. Al escribir el instrumento de la tanda 10
+salió otro par que nadie había visto:
+
+```
+   1001  "La Chimenea"      1002  "La chimenea"      10,7 m
+```
+
+**Son los dos andenes de la misma parada, y la comparación de nombres los tenía por dos paradas
+distintas** porque una lleva la ce en mayúscula. ⇒ Los números buenos son **18 pares, 16 a menos de
+15 m, y 178 de 272 enlaces**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el cruce hacia atrás con la tanda
+8 (ley 154), que es el instrumento antisesgo más fuerte que tiene este proyecto.** La tanda 10
+reencontró **las diez cifras de la tanda 8 clavadas** —17 · 15 · 2,1 · 8,3 · 66,4 · 26 · 1 · 13,7 ·
+59,5 · 942— y las diez salieron ✅. ⛔ **Y no valían nada: las dos mediciones comparaban el nombre
+con la misma regla rota, así que reproducían el criterio, no la realidad** (ley 149). Un cruce hacia
+atrás confirma un número; **no confirma la definición con la que se midió.**
+
+**Causa raíz:** el nombre se comparó **tal cual** (`a.stop_name === b.stop_name`) sin normalizar ni
+las mayúsculas. `stop_name` es texto tecleado por el editor del feed, no un identificador.
+⚠️ Y el proyecto ya tenía la advertencia escrita en `tools/gtfs/red-bus.js`: *«ningún nombre
+arreglado. Los del GTFS están rotos en el 80,4 %»*. **Estaba dicho para no corregirlos, y se leyó
+como que se podían comparar.**
+
+**Cómo se cazó:** ⭐ **no buscándolo.** Fui a comprobar si el convenio de código del tranvía
+(`NNN1`/`NNN2`) servía de segundo testigo para decidir el umbral. **No sirve** —cinco parejas de
+código están a 108–155 m con nombres de calles distintas—, pero al listarlas apareció
+`1001`/`1002` con el mismo nombre y dos grafías. ⇒ **Un testigo que no vale para lo que buscabas
+puede valer para otra cosa, y hay que mirar su salida entera aunque lo descartes.**
+
+**Arreglo aplicado:** `tools/gtfs/gemelos.js` compara con `normaliza()` — `trim` + minúsculas +
+espacios colapsados —, y **ni un paso más**: quitar tildes o dejar solo alfanuméricos da los mismos
+940 nombres y los mismos 48 pares, y eso queda con su `A.exige` para enterarse el día que cambie.
+⛔ Las cifras de la tanda 8 **no se reescriben** —son registro histórico— y el instrumento las
+reproduce a propósito con la regla vieja antes de cambiar de regla.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un cruce hacia atrás valida un NÚMERO, no la DEFINICIÓN con la que
+se midió — y si las dos mediciones comparten la definición rota, el cruce sale verde y refuerza el
+error.** ⇒ **Antes de cruzar hacia atrás hay que preguntarse qué comparte la medida vieja con la
+nueva**; lo que comparten es lo que el cruce no puede ver.
+⚠️ Corolario barato: **un nombre humano no es una clave.** Se normaliza para compararlo o no se
+compara.
+
+**Traza:** `tools/gtfs/gemelos.js` (P2 y P3) · `docs/H2A-TANDA-8-TRANVIA.md` §3 (17 · 15 · 170)
