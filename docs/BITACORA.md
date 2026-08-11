@@ -9754,3 +9754,96 @@ que conocer.** Un redondeo honesto en la salida es un límite duro en la entrada
 
 **Traza:** `tools/gtfs/enlaces.js` §P4 · `src/grafo.js` (`rutaEntre`, el redondeo) ·
 `docs/H2A-PUERTA-2-LOS-2538.md` §5
+
+---
+
+## [2026-08-11] — El guardián que prohíbe prometer no cazaba la promesa que le di a probar
+
+**Categoría:** silencio falso
+**Síntoma:** L6 del encargo dice *nunca «todos», nunca «el transbordo más rápido»*. Escribí el
+guardián que revisa el artefacto entero buscando promesas, y **salió verde a la primera**. Después
+le di la frase prohibida a propósito, como pide la ley 156, y **no la cazó**:
+
+```
+   ⭐ provocado: con la frase «el transbordo más rápido» dentro ⇒ ⛔ NO LO CAZA — el guardián no vale
+   ⛔ FALLO · L6 · el guardián no caza «el transbordo más rápido»: su cero no vale nada
+```
+
+**La causa, en un patrón:** `/\bel m[áa]s r[áa]pido\b/i`. La frase real es **«el transbordo más
+rápido»** — con una palabra en medio. El patrón estaba pegado a `el` porque **así es como yo escribí
+la frase en mi cabeza al redactarlo**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el guardián mismo, sobre el
+artefacto real.** Recorrió 491 KB de JSON, siete patrones, y dijo *«ninguna promesa»* — **y era
+verdad, porque el artefacto no tiene promesas.** ⛔ Un guardián que no encuentra nada donde no hay
+nada es indistinguible de uno roto: **el verde era correcto y el instrumento no valía.**
+
+**Causa raíz:** un patrón de texto escrito desde la frase concreta que uno tiene en la cabeza, en
+vez de desde el NÚCLEO de lo que se prohíbe. `más rápido` es la promesa; `el` no es nada.
+
+**Cómo se cazó:** la ley 156, que obliga a provocar todo cero. ⭐ **Sin la provocación este guardián
+habría entrado en el repositorio con su verde puesto y sin servir para nada** — y peor: dando la
+sensación de que la prohibición estaba vigilada.
+
+**Arreglo aplicado:** los patrones buscan el núcleo (`/m[áa]s r[áa]pid/i`, `/mejor ruta/i`,
+`/\b[óo]ptim[oa]/i`, `/garantiz/i`…), y **la provocación se queda dentro del script** para que el
+día que alguien toque la lista se vuelva a comprobar sola.
+⚠️ Y un límite del guardián, declarado: **vigila el ARTEFACTO, no el README.** Aplicado al README
+daría falso positivo en la frase *«no se puede prometer el mejor»*, que es una negación. **Un
+detector de promesas no distingue una promesa de su negación**, y por eso no se aplica a la prosa.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un guardián de TEXTO se escribe desde el núcleo de lo prohibido, no
+desde la frase que se te ocurrió.** El patrón que nace de un ejemplo caza ese ejemplo y nada más.
+⚠️ Corolario que este proyecto ya tiene en otra forma: **el verde de un guardián sobre un universo
+limpio no dice nada de si el guardián funciona.** Solo lo dice su rojo.
+
+**Traza:** `tools/gtfs/enlaces.js` (los guardianes de los seis límites, L6)
+
+---
+
+## [2026-08-11] — El README declaraba dos licencias y el proyecto ya usaba tres
+
+**Categoría:** datos
+**Síntoma:** la sección de licencias del README abría con *«Los datos tienen **dos** licencias
+distintas, y ya son ciertas las dos»* y enumeraba OSM (ODbL) y Ayuntamiento (Ley 37/2007). **El GTFS
+del Punto de Acceso Nacional entró el 10/08/2026** —descargado con código propio, 6.883.311 bytes,
+`feed_version 20260623_AUZSA_Y_TRANVIA`— y **su licencia no estaba declarada en ningún sitio.**
+
+⛔ **Y no es solo una atribución que falta.** La licencia del NAP exige tres cosas concretas que no
+estaban: **«Powered by MITRAMS» con enlace**, **cita al Ministerio de Transportes y Movilidad
+Sostenible**, y **decir si el dato republicado es BRUTO o PROCESADO**. El de 004 es procesado.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **el artefacto llevaba `feed_info`
+dentro Y con su `A.exige` desde H2·6.** O sea: **la parte que un guardián podía vigilar estaba
+vigilada, y la parte que solo vive en prosa llevaba seis días caducada.** ⛔ El `A.exige` comprobaba
+que la METAINFORMACIÓN viajara; nadie comprobaba que la LICENCIA estuviera declarada.
+
+**Causa raíz:** la frase *«y ya son ciertas las dos»* es una afirmación con un número dentro, y **un
+número en prosa no tiene contradictor** (ley 111). Cuando entró la tercera fuente, la frase pasó de
+cierta a falsa **sin que nada cambiara de color**.
+⚠️ **Y es reincidencia declarada:** esa misma sección ya mintió antes —decía *«hoy el repositorio no
+contiene ningún dato integrado»* con 46.150 portales dentro, corregido el 9/08—. **Es el segundo
+aviso del mismo sitio.**
+
+**Cómo se cazó:** la Puerta 3, al ir a buscar dónde vivía el límite L5. **No lo cazó ningún
+mecanismo: lo cazó una pregunta del encargo.**
+
+**Arreglo aplicado:**
+1. Entra la tercera licencia en el README, con las tres exigencias del NAP escritas y la caducidad
+   del **05/10/2026**;
+2. la marca `procesado: true` con su explicación **viaja DENTRO del artefacto**
+   (`artefacto.feed.procesado`), no solo en la prosa, y con `A.exige` que la exige;
+3. la corrección se declara en el propio README con su fecha, en vez de cambiar el «dos» por «tres»
+   en silencio.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una sección de licencias con un recuento dentro («las dos», «las
+tres») es un contador escrito a mano en el sitio donde más caro sale equivocarse.** ⇒ **O el
+recuento lo genera algo, o no se pone el número.**
+⚠️ Y el corolario que ordena la Puerta 3 entera: **lo que solo vive en prosa envejece sin cambiar de
+color.** Por eso los seis límites de esta tanda viajan dentro del artefacto y no en el README.
+
+**Traza:** `README.md` (sección Licencia) · `tools/gtfs/enlaces.js` (`artefacto.feed`)
