@@ -44,6 +44,7 @@ const R = require('../../src/ruta');
 const G = require('../../src/grafo');
 const D = require('../../src/direccion');
 const Ac = require('../../src/acera-equivocada');
+const G8 = require('./gemelos');
 const { cargar } = require('./feed');
 
 const log = (s) => process.stdout.write(s + '\n');
@@ -55,7 +56,14 @@ const RADIO_M = 300;
 
 /** Lo que ya está publicado y este script tiene que reencontrar antes de hablar. */
 const PUBLICADO = { paradasBus: 934, paradasTranvia: 50, bxb: 2266, bt: 272, total: 2538,
-  aristasConLado: 2397, contradicen: 18, muestra: 324, sinEje324: 69, soloEje324: 33 };
+  aristasConLado: 2397, contradicen: 18, muestra: 324, sinEje324: 69, soloEje324: 33,
+  // ⭐⭐⭐ TANDA 10 · EL SHA DEL ARTEFACTO ANTES DE QUE ENTRARA LA MARCA. Medido
+  //   sobre `data/artefactos/enlaces.json` escrito por la tanda 8 (506.524 bytes).
+  //   ⛔ Es lo que demuestra que esta tanda NO RECALCULA NADA: quitando el campo
+  //     nuevo, el fichero tiene que volver a salir byte a byte el mismo.
+  shaTanda8: 'e3a3a81a3b4c5617341183814c5af2a1000191990a039d243c25d9444d17a559',
+  bytesTanda8: 506524,
+  enlacesConMarca: 178, paradasConMarca: 34 };
 
 // ═════════════════════════════════════════════════════════════════════════════
 // ⭐⭐ LOS DOS CAMPOS, Y LA PRUEBA DE LA LEY 157 PASADA A CADA NOMBRE
@@ -140,6 +148,7 @@ di('aristas donde dos vías se contradicen', contradicen.size);
 const { stops, modo, lineasDe, feedInfo, routes, trips } = cargar();
 const mk = (s) => ({ id: s.stop_id, code: s.stop_code, nombre: s.stop_name,
   lat: Number.parseFloat(s.stop_lat), lon: Number.parseFloat(s.stop_lon),
+  modo: modo.get(s.stop_id) || '?',
   lineas: lineasDe.get(s.stop_id) || new Set() });
 const BUS = stops.filter((s) => modo.get(s.stop_id) === 'bus').map(mk);
 const TRA = stops.filter((s) => modo.get(s.stop_id) === 'tranvia').map(mk);
@@ -478,6 +487,25 @@ const sinEnlaces = BUS.concat(TRA).filter((p) => !conPar.has(p.id)).map((p) => (
   motivo: 'sin-par-candidato',
 }));
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ L7 · TANDA 10 — LA MARCA DE «HAY OTRO POSTE CON ESTE NOMBRE AL LADO»
+//
+//   Antonio decidió el 11/08: **OPCIÓN C — se declara, no se fusiona.** ⛔ Aquí no
+//   se junta ni un `stop_id` con otro: los 2.538 enlaces y sus metros salen
+//   EXACTAMENTE iguales, y se demuestra con el sha.
+//
+//   ⭐ Y la marca va en el ENLACE, no solo en la parada (ley 161): quien consulta
+//     un transbordo lee el enlace, y ahí es donde le va a aparecer duplicado.
+// ═════════════════════════════════════════════════════════════════════════════
+const TODAS = BUS.concat(TRA);
+const marcaNombre = G8.marcar(TODAS, G8.UMBRAL_M);
+const puntasMarcadas = (r) => {
+  const p = [];
+  if (marcaNombre.has(r.p.a.code)) p.push('a');
+  if (marcaNombre.has(r.p.b.code)) p.push('b');
+  return p;
+};
+
 const artefacto = {
   // ── L5 · CADUCIDAD Y LICENCIA ─────────────────────────────────────────────
   // ⛔⛔ LA LICENCIA DEL NAP OBLIGA A CONSERVAR SIN ALTERAR LA METAINFORMACIÓN DE
@@ -564,14 +592,69 @@ const artefacto = {
       + 'reales, 5,0 km/h estándar en el buscador): guardar minutos convertiría una banda en un '
       + 'dato falso-preciso.',
   },
-  enlaces: res.map((r) => ({
-    a: r.p.a.code, b: r.p.b.code, clase: r.p.clase,
-    m: r.r ? Math.round(r.r.metros * 10) / 10 : null,     // ⭐ METROS, no minutos
-    camino: r.camino, lado: r.lado,
-    ...(r.mismaArista ? { mismaArista: true } : {}),
-    aristas: r.r ? r.r.aristas : null,
-  })),
+  enlaces: res.map((r) => {
+    const e = {
+      a: r.p.a.code, b: r.p.b.code, clase: r.p.clase,
+      m: r.r ? Math.round(r.r.metros * 10) / 10 : null,   // ⭐ METROS, no minutos
+      camino: r.camino, lado: r.lado,
+      ...(r.mismaArista ? { mismaArista: true } : {}),
+      aristas: r.r ? r.r.aristas : null,
+    };
+    // ⛔⛔ LA MARCA SE AÑADE AL FINAL Y NUNCA EN MEDIO. `JSON.stringify` respeta el
+    //   orden de inserción: metida en medio cambiaría los bytes de TODOS los
+    //   enlaces y el sha dejaría de poder demostrar que no se ha movido nada.
+    const pm = puntasMarcadas(r);
+    if (pm.length) e.mismoNombreCerca = pm;
+    return e;
+  }),
 };
+
+// ── L7 · el bloque, al FINAL de la raíz por la misma razón que el campo ──────
+{
+  const modoDe = new Map(TODAS.map((p) => [p.code, p.modo]));
+  const marcadas = [...marcaNombre].map(([code, x]) => ({
+    code, modo: modoDe.get(code), n: x.n, otras: x.otras,
+  })).sort((u, v) => u.code.localeCompare(v.code));
+  artefacto.mismoNombre = {
+    umbralM: G8.UMBRAL_M,
+    aviso: G8.AVISO_MARCA,
+    // ⭐ LEY 157 AL NOMBRE DEL CAMPO: por qué no se llama `gemelo` ni `estacion`.
+    porQueNoSeLlamaGemelo: 'dos gemelos son la misma cosa duplicada, y un lector concluiría «es la '
+      + 'misma parada». Eso es la agrupación entrando por la puerta de atrás. `mismoNombreCerca` '
+      + 'dice un hecho medible y NO dice qué significa.',
+    comoSeCompara: 'el nombre, en minúsculas y con los espacios colapsados. ⛔ Ni tildes ni '
+      + 'puntuación se tocan: medido sobre las 984, hacerlo no une ni un par más.',
+    // ⭐⭐ EL UMBRAL VIAJA CON SU INCERTIDUMBRE, NO SOLO CON SU VALOR.
+    banda: {
+      desde: G8.BANDA_ESPERADA.desde, hasta: G8.BANDA_ESPERADA.hasta,
+      queEs: 'el par de BUS más corto está a 13,7 m y el par de TRANVÍA más largo a 66,4 m: las dos '
+        + 'poblaciones se PISAN a lo largo de 52,7 m. 19 de los 48 pares homónimos caen dentro, y '
+        + '⛔ no hay ninguna medida que diga cuáles de ellos son un sitio o dos.',
+      loQueCuesta: 'con el umbral en 15 m quedan SIN marca 2 pares de tranvía que parecen el mismo '
+        + 'sitio (1201/1202 a 17,8 m · 2501/2502 a 66,4 m) y SÍ lleva marca 1 par de bus que parece '
+        + 'dos aceras (PA00406/PA00407 a 13,7 m). ⛔ No se puede bajar un error sin subir el otro.',
+    },
+    campoEnElEnlace: {
+      nombre: 'mismoNombreCerca',
+      queEs: 'qué puntas del enlace («a», «b») tienen otro poste con su mismo nombre a menos de '
+        + G8.UMBRAL_M + ' m. ⛔ NO cambia el coste ni el camino: los metros son los mismos.',
+    },
+    recuento: {
+      // ⭐⭐ LEY 164 · de qué población es CADA celda, y los denominadores puestos.
+      postesMarcados: { tranvia: marcadas.filter((x) => x.modo === 'tranvia').length,
+        de_50_de_tranvia: 50,
+        bus: marcadas.filter((x) => x.modo === 'bus').length, de_934_de_bus: 934 },
+      enlacesMarcados: { total: artefacto.enlaces.filter((e) => e.mismoNombreCerca).length,
+        busXbus: artefacto.enlaces.filter((e) => e.mismoNombreCerca && e.clase === 'bus×bus').length,
+        de_2266_busXbus: 2266,
+        busTranvia: artefacto.enlaces.filter((e) => e.mismoNombreCerca && e.clase !== 'bus×bus').length,
+        de_272_busTranvia: 272 },
+      aviso: '⛔ Las dos filas NO se suman: una cuenta POSTES y la otra ENLACES, y un poste marcado '
+        + 'puede estar en varios enlaces o en ninguno.',
+    },
+    paradas: marcadas,
+  };
+}
 // ═════════════════════════════════════════════════════════════════════════════
 // ⭐⭐ LOS GUARDIANES DE LOS SEIS LÍMITES — un límite sin guardián es una intención
 // ═════════════════════════════════════════════════════════════════════════════
@@ -634,6 +717,68 @@ log('      L1 paradas invisibles ............ A.exige sobre las 172 y sobre code
 // L4 · vive en el artefacto de la red, no en éste
 log('      L4 sentidos condicionales ........ ⚠️ NO vive aquí: vive en `tools/gtfs/red-bus.js`,');
 log('                                        en `sentido.terminal`, con su propio A.exige de cuota');
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ L7 · EL GUARDIÁN MIRA LAS 984, NO LA LISTA DE MARCADAS (ley 167)
+//
+//   ⛔ Un `A.exige` que recorriera `artefacto.mismoNombre.paradas` vigilaría la
+//     lista que acabo de escribir. Con la lista vacía no daría ni una vuelta y
+//     saldría verde. ⇒ El universo de este guardián son las 984 paradas del feed.
+// ═════════════════════════════════════════════════════════════════════════════
+{
+  const M = artefacto.mismoNombre;
+  // ── el universo, recontado del feed y no del bloque ────────────────────────
+  const conParent = stops.filter((s) => s.parent_station && s.parent_station.length > 0).length;
+  A.exige(stops.length === 984 && conParent === 0,
+    `L7 · el feed trae ${stops.length} paradas y ${conParent} con parent_station. Esta marca existe `
+    + 'porque NADA declara que dos postes formen una estación: si el feed empieza a declararlo, '
+    + 'lo que hay que hacer no es marcar, es leerlo');
+  // ── el texto dice las dos cosas que tiene que decir ────────────────────────
+  A.exige(/POSTES/.test(M.aviso) && /parent_station/.test(M.aviso) && /984/.test(M.aviso),
+    'L7 · el aviso de la marca no dice que este proyecto modela POSTES y que el feed no trae '
+    + 'parent_station en ninguna de las 984');
+  // ── la banda, con dudosos: un umbral sin dudosos es un umbral mal medido ───
+  A.exige(M.banda.hasta > M.banda.desde && /19 de los 48/.test(M.banda.queEs),
+    'L7 · la banda de solape viaja sin decir cuántos pares caen dentro: el umbral parecería una '
+    + 'frontera limpia y no lo es');
+  // ── ⛔⛔ Y LO QUE ESTA TANDA PROMETIÓ NO HACER: no se ha fusionado nada ──────
+  const codigos = new Set(TODAS.map((p) => p.code));
+  A.exige(codigos.size === 984, `L7 · quedan ${codigos.size} códigos de parada distintos y son 984: `
+    + 'ALGO HA FUSIONADO DOS POSTES, que es exactamente lo que esta tanda tiene prohibido');
+  A.exige(artefacto.enlaces.length === PUBLICADO.total,
+    `L7 · el artefacto sale con ${artefacto.enlaces.length} enlaces y tenía ${PUBLICADO.total}`);
+  // ── el recuento, contra lo medido en `gemelos.js` ──────────────────────────
+  const nMarcadas = M.paradas.length;
+  const nEnlaces = M.recuento.enlacesMarcados.total;
+  log('      L7 mismo nombre cerca ............ A.exige sobre las 984 (parent_station 0), sobre el');
+  log('                                        texto, sobre la banda y sobre que sigan siendo 984');
+  di('   ⭐ postes con marca', nMarcadas + '   (tranvía ' + M.recuento.postesMarcados.tranvia
+    + ' de 50 · bus ' + M.recuento.postesMarcados.bus + ' de 934)');
+  di('   ⭐ enlaces con marca', nEnlaces + ' de ' + artefacto.enlaces.length
+    + '   (bus×bus ' + M.recuento.enlacesMarcados.busXbus + ' de ' + nBxB
+    + ' · bus↔tranvía ' + M.recuento.enlacesMarcados.busTranvia + ' de ' + nBT + ')');
+  A.exige(nMarcadas === PUBLICADO.paradasConMarca, `L7 · salen ${nMarcadas} postes con marca y se midieron ${PUBLICADO.paradasConMarca}`);
+  A.exige(nEnlaces === PUBLICADO.enlacesConMarca, `L7 · salen ${nEnlaces} enlaces con marca y se midieron ${PUBLICADO.enlacesConMarca}`);
+  // ── ⭐ EL CERO DE bus×bus, CON SU CAUSA Y SU PROVOCACIÓN (leyes 152 y 156) ──
+  log('');
+  log('      ⭐ Y los enlaces bus×bus con marca salen CERO. Un cero no se publica solo:');
+  const enSinEnlaces = new Set(sinEnlaces.map((p) => p.code));
+  const busMarcados = M.paradas.filter((x) => x.modo === 'bus').map((x) => x.code);
+  const busMarcadosSinPar = busMarcados.filter((c) => enSinEnlaces.has(c));
+  log('        LA CAUSA: los ' + busMarcados.length + ' postes de bus con marca son ' + busMarcados.join(' y '));
+  log('        y los ' + busMarcadosSinPar.length + ' están en `sinEnlaces` —el pre-filtro ya los dejó fuera—.');
+  log('        ⇒ El cero NO es que la marca no mire el bus: es que esas dos paradas no tienen');
+  log('          ni un enlace que marcar. Dos límites distintos que se tapan el uno al otro.');
+  A.exige(busMarcadosSinPar.length === busMarcados.length,
+    'L7 · algún poste de bus con marca SÍ tiene enlaces y aun así no hay enlaces bus×bus marcados: '
+    + 'la explicación del cero es falsa');
+  const marca25 = G8.marcar(TODAS, 25);
+  const bxb25 = res.filter((r) => r.p.clase === 'bus×bus'
+    && (marca25.has(r.p.a.code) || marca25.has(r.p.b.code))).length;
+  log('        LA PROVOCACIÓN: con el umbral a 25 m salen ' + bxb25 + ' enlaces bus×bus marcados');
+  log('          ⇒ ' + (bxb25 > 0 ? '✅ el cruce marca↔enlaces bus×bus FUNCIONA' : '⛔ NO funciona'));
+  A.exige(bxb25 > 0, 'L7 · ni subiendo el umbral a 25 m se marca un enlace bus×bus: el cruce entre '
+    + 'la marca y los enlaces no está funcionando y su cero no significa nada');
+}
 const json = JSON.stringify(artefacto);
 // ⛔⛔ EN BYTES, NO EN CARACTERES. Esto decía `json.length`, que son unidades
 //   UTF-16: cada tilde y cada ⛔ del artefacto cuesta más bytes que caracteres, y
@@ -672,10 +817,55 @@ di('dónde vive feed_info', fi ? 'artefacto.feed = ' + JSON.stringify(fi).slice(
     const path = require('path');
     const destino = process.argv[iEsc + 1] || path.join(__dirname, '..', '..', 'data', 'artefactos', 'enlaces.json');
     fs.mkdirSync(path.dirname(destino), { recursive: true });
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // ⭐⭐⭐ TANDA 10 · LA PRUEBA DE QUE NO SE HA MOVIDO NI UN METRO
+    //
+    //   Se quita el campo nuevo del artefacto y se comprueba que vuelve a salir
+    //   **byte a byte** el fichero de la tanda 8. ⛔ Si un solo enlace se hubiera
+    //   recalculado, o si un metro hubiera cambiado de redondeo, el sha lo dice.
+    //
+    //   ⚠️ Y por eso el campo se añade AL FINAL del objeto y del enlace: bastaría
+    //     meterlo en medio para que los bytes cambiaran sin que nada se moviera,
+    //     y entonces esta prueba no podría distinguir un reorden de un recálculo.
+    // ═════════════════════════════════════════════════════════════════════════
+    const sha = (b) => require('crypto').createHash('sha256').update(b).digest('hex');
+    const sinMarca = JSON.parse(json);
+    delete sinMarca.mismoNombre;
+    for (const e of sinMarca.enlaces) delete e.mismoNombreCerca;
+    const jsonSinMarca = JSON.stringify(sinMarca);
+    const shaSinMarca = sha(Buffer.from(jsonSinMarca, 'utf8'));
+    const antesExiste = fs.existsSync(destino);
+    const shaEnDisco = antesExiste ? sha(fs.readFileSync(destino)) : null;
+    log('');
+    raya('─');
+    log('P8a · ⭐⭐⭐ ¿SE HA MOVIDO ALGO? — el sha del artefacto SIN el campo nuevo');
+    raya('─');
+    di('sha del fichero que había en disco', shaEnDisco || '⚠️ no había fichero: se compara solo con el publicado');
+    di('sha del artefacto de hoy SIN la marca', shaSinMarca);
+    di('sha publicado por la tanda 8', PUBLICADO.shaTanda8);
+    di('bytes: hoy sin marca · tanda 8', bytes(jsonSinMarca) + ' · ' + PUBLICADO.bytesTanda8
+      + (bytes(jsonSinMarca) === PUBLICADO.bytesTanda8 ? '   ✅ el mismo' : '   ⛔ NO'));
+    A.exige(shaSinMarca === PUBLICADO.shaTanda8,
+      'los 2.538 enlaces SE HAN MOVIDO: quitando el campo nuevo el artefacto no vuelve a ser el de '
+      + `la tanda 8 (${shaSinMarca} ≠ ${PUBLICADO.shaTanda8}). Esta tanda no recalcula nada.`);
+    if (antesExiste) {
+      A.exige(shaEnDisco === shaSinMarca,
+        `el fichero que había en disco (${shaEnDisco}) no coincide con el artefacto de hoy sin la `
+        + 'marca: o el de disco no era el de la tanda 8, o algo del cálculo ha cambiado');
+    }
+    // ⭐ el uno que acompaña al cero (ley 152): que la prueba sepa ponerse roja.
+    const tocado = JSON.parse(jsonSinMarca);
+    tocado.enlaces[0].m = Math.round((tocado.enlaces[0].m + 0.1) * 10) / 10;
+    di('⭐ provocado: se le suma 0,1 m a UN enlace',
+      sha(Buffer.from(JSON.stringify(tocado), 'utf8')) !== PUBLICADO.shaTanda8 ? '✅ el sha lo caza' : '⛔ NO lo caza');
+    A.exige(sha(Buffer.from(JSON.stringify(tocado), 'utf8')) !== PUBLICADO.shaTanda8,
+      'el sha no distingue un enlace con 0,1 m de más: no demuestra nada');
+
     fs.writeFileSync(destino, json);
     log('');
     raya('─');
-    log('P8 · ⭐⭐⭐ AL DISCO, Y LOS SEIS LÍMITES RELEÍDOS DEL FICHERO');
+    log('P8 · ⭐⭐⭐ AL DISCO, Y LOS SIETE LÍMITES RELEÍDOS DEL FICHERO');
     raya('─');
     const enDisco = fs.statSync(destino).size;
     di('escrito en', path.relative(path.join(__dirname, '..', '..'), destino).replace(/\\/g, '/'));
@@ -708,6 +898,21 @@ di('dónde vive feed_info', fi ? 'artefacto.feed = ' + JSON.stringify(fi).slice(
     c('L6', 'ni una promesa en el texto del fichero escrito',
       ![/m[áa]s r[áa]pid/i, /mejor ruta/i, /\b[óo]ptim[oa]/i, /garantiz/i]
         .some((re) => re.test(fs.readFileSync(destino, 'utf8'))));
+    // ⭐⭐⭐ L7 · Y SE RELEE COMO LOS OTROS SEIS. `JSON.stringify` no se come un array
+    //   de cadenas, pero eso hay que VERLO en el fichero, no suponerlo: la tanda 8
+    //   existe entera porque los seis estaban probados sobre el objeto.
+    c('L7', 'mismoNombre: umbral, banda con dudosos, texto y las 34 con distancia',
+      !!R2.mismoNombre && R2.mismoNombre.umbralM === 15
+      && /POSTES/.test(R2.mismoNombre.aviso) && /parent_station/.test(R2.mismoNombre.aviso)
+      && /984/.test(R2.mismoNombre.aviso)
+      && R2.mismoNombre.banda.desde === 13.7 && R2.mismoNombre.banda.hasta === 66.4
+      && /19 de los 48/.test(R2.mismoNombre.banda.queEs)
+      && R2.mismoNombre.paradas.length === PUBLICADO.paradasConMarca
+      && R2.mismoNombre.paradas.every((p) => p.code && p.modo && p.otras.length
+        && p.otras.every((o) => o.code && typeof o.m === 'number'))
+      && R2.enlaces.filter((e) => e.mismoNombreCerca).length === PUBLICADO.enlacesConMarca
+      && R2.enlaces.filter((e) => e.mismoNombreCerca)
+        .every((e) => e.mismoNombreCerca.every((k) => k === 'a' || k === 'b')));
     log('');
     di('⇒ límites que sobreviven al disco', chk.filter(Boolean).length + ' de ' + chk.length);
     for (let i = 0; i < chk.length; i++) {
@@ -720,6 +925,43 @@ di('dónde vive feed_info', fi ? 'artefacto.feed = ' + JSON.stringify(fi).slice(
     const cazado = !(roto.feed && roto.feed.procesado === true);
     di('⭐ provocado: se quita feed.procesado del releído', cazado ? '✅ lo caza' : '⛔ NO lo caza');
     A.exige(cazado, 'la comprobación de L5 no caza que falte `procesado`: su verde no vale');
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // ⭐⭐ LA SIMETRÍA DE LA MARCA, COMPROBADA SOBRE EL FICHERO ESCRITO
+    //   Es simétrica por construcción, y «por construcción» es exactamente lo que
+    //   se dice de las comprobaciones que no pueden fallar (ley 35). Se mira.
+    // ═════════════════════════════════════════════════════════════════════════
+    {
+      const porCode = new Map(R2.mismoNombre.paradas.map((p) => [p.code, p]));
+      let rel = 0, rotas = 0, dist = 0;
+      for (const p of R2.mismoNombre.paradas) {
+        for (const o of p.otras) {
+          rel++;
+          const y = porCode.get(o.code);
+          const vuelta = y && y.otras.find((z) => z.code === p.code);
+          if (!vuelta) { rotas++; continue; }
+          if (Math.abs(vuelta.m - o.m) > 0.05) dist++;
+        }
+      }
+      log('');
+      di('simetría en el fichero: relaciones A→B', rel);
+      di('   sin vuelta · con distinta distancia', rotas + ' · ' + dist + (rotas + dist === 0 ? '   ✅' : '   ⛔'));
+      A.exige(rotas === 0 && dist === 0,
+        `L7 · la marca no es simétrica en el fichero escrito: ${rotas} sin vuelta y ${dist} con `
+        + 'distinta distancia en cada sentido');
+      // ⭐ y que sepa ponerse roja
+      const cojo = JSON.parse(JSON.stringify(R2.mismoNombre.paradas));
+      const v = cojo[0]; const otro = cojo.find((p) => p.code === v.otras[0].code);
+      otro.otras = otro.otras.filter((z) => z.code !== v.code);
+      const idx = new Map(cojo.map((p) => [p.code, p]));
+      let rotas2 = 0;
+      for (const p of cojo) for (const o of p.otras) {
+        const y = idx.get(o.code);
+        if (!y || !y.otras.find((z) => z.code === p.code)) rotas2++;
+      }
+      di('⭐ provocado: se borra una vuelta del releído', rotas2 > 0 ? '✅ la caza (' + rotas2 + ')' : '⛔ NO la caza');
+      A.exige(rotas2 > 0, 'la comprobación de simetría sobre el fichero no caza una vuelta borrada');
+    }
 
     // ⭐⭐ el bloque `vigencia`, que la tanda 9 dejó definido y sin meter (ley 165)
     log('');
