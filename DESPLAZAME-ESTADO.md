@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 138 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 141 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento treinta y ocho instrumentos mintiendo** *(115 al cerrar H1 + 23 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cuarenta y un instrumentos mintiendo** *(115 al cerrar H1 + 26 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1011,6 +1011,10 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | | **⬇ H2a · TANDA 7 · PUERTA 1 (12/08) — DOS MÁS** ⬇ | |
 | 137 | ⛔⛔⛔ **`ACERA` SIGNIFICABA «POR ARISTAS DE TIPO ACERA» Y SE LEÍA COMO «POR LA ACERA CORRECTA».** Publicado como 20,7 % durante cuatro tandas. Medido: **28 de esos 67 enlaces (41,8 %) son NO DECIDIBLES**, y **de cada cien aristas del camino se conoce el lado de siete.** ⇒ *La etiqueta no mentía en su definición: mentía en su lectura, y nadie lee las definiciones* |
 | 138 | ⛔⛔ **UN VEREDICTO ESTUVO A PUNTO DE PUBLICARSE CON UN NOMBRE QUE ACUSABA.** Se llamaba `CRUZA CALLADO`. **Doblar una esquina cambia de acera sin ningún paso y es perfectamente legítimo** ⇒ el nombre habría metido una acusación falsa en 2.538 enlaces. Renombrado a `CAMBIA SIN PASO` antes de salir. ⭐ *Lo cazó su propio autor aplicándose la ley 145 a un nombre propio* |
+| | **⬇ H2a · TANDA 7 · PUERTA 2 (11/08) — TRES MÁS** ⬇ | |
+| 139 | ⛔⛔⛔ **UNA FÓRMULA CAMBIÓ DE POBLACIÓN Y SIGUIÓ CALCULANDO.** El rodeo nació sobre **portales**, donde el hueco al grafo es 5,3 m. Al mudarlo a **paradas de bus** siguió dando número **y empezó a mentir**: 33 enlaces «más cortos que su propia recta», mínimo **0,20×**. **El grafo no estaba roto** — la ruta iba de enganche a enganche y la recta de parada a parada: **cuatro puntos, no dos.** ⇒ *Una fórmula no declara su población, así que sobrevive a la mudanza en silencio* |
+| 140 | ⛔ **UNA TOLERANCIA RELATIVA PIDIÓ MÁS PRECISIÓN DE LA QUE EL DATO TIENE.** Un umbral de `0,999` **exige 1,3 cm** a un dato redondeado a **0,1 m** por `Math.round(total*10)/10`. Dos falsos rojos: `13,0` publicado contra `13,044` real, **cuatro centímetros** |
+| 141 | ⛔⛔ **UNA PREDICCIÓN CAYÓ DENTRO DE LA BANDA CON EL RAZONAMIENTO AL REVÉS.** Se predijo `sin-eje` **por debajo** del 21,3 % *«porque el tranvía empuja hacia el eje»* y salió **por encima** (23,2 %), dentro de la banda igualmente. ⭐ **Lo declaró su propio autor: acertar la banda con la razón equivocada no es acertar** ⇒ *una predicción se evalúa por su MECANISMO, no solo por su intervalo* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1610,6 +1614,27 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     concluir algo que el instrumento no sabe.** *Corolario, del mismo día: `CRUZA CALLADO` acusaba
     de cruzar a quien solo doblaba una esquina.*
 
+158. ⭐⭐⭐ **UN CRUCE QUE NO CUADRA PUEDE SER UNA POBLACIÓN MAL PUESTA, NO UN DATO EN CONFLICTO — Y
+    «CORREGIRLO» METE UNA CONTRADICCIÓN INVENTADA.**
+    *La mediana de las paradas de tranvía a su bus daba 66 m sobre 48 y 73 m sobre 50: el máximo de
+    418 son las dos de Juslibol, fuera del radio. Publicar «66 contra 73» habría fabricado un
+    conflicto que no existe.* ⇒ **Antes de declarar que dos medidas se contradicen, se comprueba que
+    miden la MISMA población** (hermana de la 154, y del mismo día que la 139).
+
+159. ⭐⭐⭐ **UN COCIENTE EXIGE QUE LAS DOS MEDIDAS UNAN LOS MISMOS PUNTOS — Y UNA FÓRMULA NO DECLARA
+    SU POBLACIÓN, ASÍ QUE SOBREVIVE A LA MUDANZA EN SILENCIO.**
+    *El rodeo nació sobre portales (hueco al grafo 5,3 m) y al mudarse a paradas siguió calculando:
+    la ruta unía enganches y la recta unía paradas. Cuatro puntos, no dos.* ⇒ ⭐ **Cuando un
+    instrumento cambia de universo, el que hay que revisar primero es el que NO dio error.**
+    Corolario: **una tolerancia relativa esconde la resolución del dato** — `0,999` pedía 1,3 cm a
+    un número redondeado a 10.
+
+160. ⭐⭐⭐ **UNA PREDICCIÓN SE EVALÚA POR SU MECANISMO, NO SOLO POR SU INTERVALO.**
+    *`sin-eje` cayó dentro de la banda predicha con el razonamiento invertido: se esperaba por debajo
+    «porque el tranvía empuja hacia el eje» y salió por encima.* ⇒ **Acertar la banda con la razón
+    equivocada no es acertar**, y contarlo como acierto convierte el sellado de predicciones —que es
+    el mejor instrumento antisesgo del proyecto— **en una lotería con acta notarial.**
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1727,8 +1752,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **—** | ⭐⭐ **TANDA CORTA · ¿está contaminado el rodeo de las cortas?** | **H1** | ✅ **10/08** ⭐ **SOBREVIVE ENTERO** |
 | **Ar 8** | ⭐⭐⭐ **`insertar` Y LA MISMA ARISTA** — se reabre H1 por una rendija | **H1** | ✅ **11/08** ⭐ **las diez rutas, quietas** |
 | **H2·7·P1** | ⭐⭐⭐ **EL LADO DE LA ACERA** — el veredicto deja de mentir | **H2a** | ✅ **12/08** ⛔ **el `ACERA` se desinfla** |
-| **H2·7·P2** | *(siguiente: **los 2.538 enlaces**)* | **H2a** | ⬜ ⚠️ **y antes, los dos campos** |
-| **H2·7·P3** | Qué se publica y cómo no mentir | **H2a** | ⬜ |
+| **H2·7·P2** | ⭐⭐⭐ **LOS 2.538 ENLACES**, con el veredicto en dos campos | **H2a** | ✅ **11/08** ⭐ **andando ÷ volando = 1,3×** |
+| **H2·7·P3** | *(siguiente: **qué se publica y cómo no mentir**)* | **H2a** | ⬜ |
 | **H2·7** | ⭐⭐⭐ **EL TRANSBORDO ANDANDO** — la pieza que no tiene nadie más | **H2a** | ⬜ |
 | **H2·8** | El tranvía — casi gratis si el modelo está bien | **H2a** | ⬜ ⚠️ **GTFS caduca 05/10/2026** |
 | **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
@@ -3337,6 +3362,101 @@ hacerlo mal, y desde dentro se parecen.* **Hoy acertó. No cambia la regla.**
 respecto a la parada —que no cambie de acera no dice que arranque en la buena— · los 193 sin examinar
 siguen sin examinar · **y la cobertura del 6,7 % no se intentó subir**: bajar el listón de
 `≥4 portales · 75 %` **subiría la cobertura y la tasa de error a la vez**, y eso es una decisión.
+
+**⭐⭐⭐ H2·7 · PUERTA 2 (11/08) — LOS 2.538 ENLACES. `docs/H2A-PUERTA-2-LOS-2538.md`.**
+**Calculados los 2.538 a pie por el grafo**, con el veredicto partido en dos campos (decisión de
+Antonio). *La Puerta 3 no se abrió.*
+
+> ⭐⭐⭐ **EL ARGUMENTO DEL HITO, EN UNA CIFRA — Y CONFIRMADO POR DOS CAMINOS QUE NADIE CRUZÓ:**
+> ```
+>    rodeo p50 de los 2.538 (parada→parada) ....... 1,29×
+>    andando ÷ volando en las 48 del tranvía ...... 1,31×
+> ```
+> **Dos poblaciones distintas, elegidas con criterios distintos, en dos secciones distintas del
+> informe — y el mismo número.** ⇒ ⭐⭐ ***Un radio a vuelo de pájaro se queda corto un 30 % EN LA
+> MEDIANA*** — no en la cola. **Es el párrafo del README, y ya no es una cifra: es una cifra
+> confirmada** (ley 154).
+
+**⭐⭐ LOS DOS CAMPOS — y CINCO DE NUEVE NOMBRES NO PASARON LA LEY 157:**
+
+```
+   camino (hecho del GRAFO)          sin-eje · mixto · solo-eje · sin-camino-en-el-grafo
+   lado   (hecho del CONOCIMIENTO)   sin-lados-en-el-grafo · no-consta · no-cambia-de-lado
+                                     cambia-con-paso · cambia-sin-paso
+```
+
+| se llamaba | por qué no pasaba |
+|---|---|
+| `acera` | se lee *«va por la acera correcta»* — **lo que la Puerta 1 demostró que no se sabe** |
+| `sin-camino` | se lee *«no se puede ir andando»*. **El grafo tiene 170 componentes**: lo que se sabe es que ESTE grafo no lo encuentra |
+| `sin-lados` | **la calle sí puede tener dos aceras. Lo que no las tiene es el DIBUJO** |
+| `mismo-lado` | se lee *«empieza en la acera correcta»*, **y eso no se mide** |
+| `cruza-callado` | doblar una esquina cambia de acera sin paso **y es legítimo** |
+
+⛔ **Cinco de nueve. No es estilo: cada uno era una frase que el instrumento no puede sostener.**
+
+**LA TABLA CRUZADA — los 2.538 enteros:**
+
+| camino \ lado | no-cambia | con-paso | sin-paso | no-consta | sin-lados | TOTAL |
+|---|---:|---:|---:|---:|---:|---:|
+| `sin-eje` | 235 | 53 | 2 | 298 | 0 | **588** |
+| `mixto` | 499 | 46 | 0 | **1.158** | 32 | **1.735** |
+| `solo-eje` | 0 | 0 | 0 | 0 | 215 | **215** |
+| `sin-camino-en-el-grafo` | 0 | 0 | 0 | 0 | 0 | **0** |
+| **TOTAL** | **734** | **99** | **2** | **1.456** | **247** | **2.538** |
+
+⚠️ ⭐⭐ **La casilla que más dice de este proyecto: `mixto × no-consta` = 1.158, el 45,6 %.**
+*El transbordo típico de Zaragoza es «el camino toca eje de calzada en algún punto, y del resto no
+sabemos de qué acera es».* ✅ Y los 324 reetiquetados devuelven **69 y 33**, los dos números que H2·6
+publicó, **exigidos con `A.exige`**.
+
+**⭐⭐ PREDICCIONES SELLADAS A LAS 10:52:46, FUERA DEL REPOSITORIO. Fallan tres, y las tres enseñan:**
+
+| | predicho | medido | |
+|---|---|---|---|
+| `sin-eje` · `mixto` · `solo-eje` | 18–23 · 64–72 · 8–13 % | **23,2 · 68,4 · 8,5 %** | ✅ |
+| `SIN CAMINO` | 1–15 | **0** | ⛔ |
+| metros p50 | 160–210 m | **261 m** | ⛔ |
+| rodeo p50 | 1,20–1,45 | **1,29×** | ✅ |
+| mínimo en recta | 70–80 m | **66 (48) · 73 (50)** | ⛔ *población* |
+| artefacto | 350–600 KB | **471,7 KB** | ✅ |
+
+⭐ **La de los metros falla EXACTAMENTE por el tamaño del rodeo:** *«pensé en la recta y el andado la
+multiplica por 1,29»* — **el error es el fenómeno que este proyecto existe para medir.**
+⛔⛔ **Y una «acertada» que su autor anula: `sin-eje` cayó en banda CON EL RAZONAMIENTO AL REVÉS.**
+Escribió que el tranvía empujaría hacia el eje y salió **por encima**, no por debajo.
+⇒ ***Acertar la banda con la razón equivocada no es acertar.***
+
+**⭐⭐⭐ EL CRUCE HACIA ATRÁS — CUATRO DE CUATRO, Y CÓMO ESTUVO A PUNTO DE FALLAR:**
+`20 · 73 · 130 · 418` y **48 de 50**, reencontrados **con otro script y otro camino** contra lo que la
+tanda 4 publicó.
+⚠️ **Hubo que medirlo sobre las 50, no sobre las 48:** sobre las 48 sale **66 m**, porque el máximo de
+418 son **las dos de Juslibol, que están fuera del radio**. ⇒ ⭐⭐⭐ **Publicar «66 contra 73» habría
+metido en este documento una contradicción INVENTADA.**
+
+**⛔⛔ DOS ROJOS DEL RODEO, LOS DOS DE SU AUTOR (bitácora 189 y 190):** el guardián de imposibilidad
+física saltó con **33 enlaces más cortos que su recta, mínimo 0,20×**. **El grafo no estaba roto:**
+la ruta va **de enganche a enganche** y la recta iba **de parada a parada** — *cuatro puntos, no dos*.
+31 de 33 se caen solos; **los 2 restantes eran redondeo** (`13,0` contra `13,044`: cuatro
+centímetros, y el umbral de `0,999` **pedía 1,3 cm a un dato con 5 de resolución**).
+⇒ **Ahora hay DOS rodeos y se dice qué es cada uno:** `CONSULTADO` parada→parada (puede bajar de 1:
+el hueco al grafo) y `DEL CAMINO` enganche→enganche (no puede, y ahí vive el guardián). **Imposibles:
+0. Consultados < 1: 33, publicados como lo que son.** ⛔ *El guardián no se relajó: se le dio la recta
+correcta y la tolerancia que el dato sostiene.*
+
+| | y además | |
+|---|---|---|
+| ⛔ | **`SIN CAMINO` = 0 sobre 2.538, y provocado** (ley 156) | `PA00002 × PA00349` ⇒ el veredicto existe. **El cero es real: 300 m no bastan para rozar otra componente**, porque están separadas por mucho más |
+| ⛔⛔ | **172 de 984 paradas (17,5 %) no tienen NI UN par candidato** | **El pre-filtro de 300 m las hace invisibles**: quien esté en una de ellas **no verá una alternativa que existe a 320 m.** *Es el coste real de D4 y va escrito en la Puerta 3* |
+| ⭐ | **El artefacto** | red de bus 200,5 KB + enlaces 471,7 KB = **672,2 KB · 119,7 gzip** (**444,7 · 63,1 sin las listas de aristas, que son el 48 % del peso y hacen falta para DIBUJAR, no para calcular**) |
+| ⛔ | **`feed_info` vive DENTRO**, en `artefacto.feed`, **exigido con `A.exige`** | La licencia del NAP obliga a conservar **sin alterar** la metainformación de fecha, **y sin ella se pierde la caducidad del 05/10** |
+| ✅ | **La marca `misma-arista`: 19**, los mismos que midió la Puerta 1 | |
+
+⚠️⚠️ **Y UNA CONCLUSIÓN QUE NO SE PUEDE SACAR, dicha por esta conversación:** ⛔ **el artefacto NO
+decide el stack.** 119,7 KB gzip caben en cualquier navegador **pero eso es la capa de TRANSPORTE**;
+el motor sigue necesitando **el grafo peatonal de 68.649 nodos y 98.774 aristas en ejecución** para
+el primer y el último tramo —de tu portal a la parada—, **y ése es el que decide si hace falta Node.**
+*Los 672 KB no lo contestan.*
 
 **DECISIONES NUEVAS DE H2:**
 
