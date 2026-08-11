@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 147 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 150 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cuarenta y siete instrumentos mintiendo** *(115 al cerrar H1 + 32 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta instrumentos mintiendo** *(115 al cerrar H1 + 35 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1024,6 +1024,10 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | | **⬇ H2a · TANDA 8 (11/08) — DOS MÁS, Y CIERRAN H2a** ⬇ | |
 | 146 | ⛔⛔⛔ **UN COMENTARIO AFIRMÓ «CERO MEDIDO» ANTES DE MEDIR.** Se escribió `condicionales: []` con la nota *«no es "no lo hemos mirado": es cero medido»* **antes de ejecutar nada** — y al ejecutar salió **42,5 %**. ⛔ **Y no podía cazarlo el `A.exige`: recorre la LISTA DECLARADA, y con la lista vacía el bucle no da ni una vuelta.** ⇒ *El comentario afirmaba justo la propiedad que no tenía* |
 | 147 | ⛔⛔ **EL TAMAÑO DEL ARTEFACTO ESTABA EN CARACTERES, NO EN BYTES.** `json.length` cuenta **unidades UTF-16**, y el artefacto lleva tildes y `⛔` desde la Puerta 3: **471,7 y 491,1 publicados eran 494,7 KB reales.** ⚠️ **`red-bus.js` lo medía bien desde H2·6 con `Buffer.byteLength` — y las dos cifras se sumaron en el mismo informe.** *La cifra iba a decidir el stack* |
+| | **⬇ H2a · TANDA 10 (11/08) — TRES MÁS** ⬇ | |
+| 148 | ⛔⛔ **UNA MAYÚSCULA DEJÓ FUERA UN PAR DE ANDENES, Y EL CRUCE HACIA ATRÁS LO TAPÓ.** `1001 "La Chimenea"` contra `1002 "La chimenea"`, **a 10,7 m**. Los recuentos buenos de la tanda 8 son **18 · 16 · 178**, no 17 · 15 · 170. ⛔⛔ **Y lo grave no es el fallo: es que las diez cifras se reencontraron CLAVADAS en el cruce hacia atrás** — *las dos mediciones compartían la definición rota, así que el cruce salió verde y REFORZÓ el error* (§8·154, corregida) |
+| 149 | ⛔⛔⛔ **UNA LEY CITADA POR UN NÚMERO QUE NO LE CORRESPONDE, PROPAGADA DOS DÍAS.** Esta conversación escribió **«(ley 142)»** en dos encargos para sostener que `tools/` estaba fuera de la batería. **La ley 142 habla de ALLOWLISTS y no dice nada de eso.** El ejecutor la copió a **tres informes y a su bitácora**, y ⛔ **nadie abrió la ley para leerla.** *Hermano del nº117: una caracterización no medida viajando de un encargo a un registro con cara de hecho* |
+| 150 | ⛔⛔ **SE MIDIÓ EL ALCANCE DE LA BATERÍA CON UN `grep` QUE BUSCABA LA PALABRA YA SOSPECHADA.** `readdirSync` **solo caza listados de carpeta** —un `readFileSync(path.join(RAIZ,'docs',x))` no aparece— y el segundo patrón **buscaba literalmente `docs`**. ⇒ *«No medí el universo: encontré un caso y generalicé.»* ⭐ **Lo declaró su propio autor al medirlo de verdad**, instrumentando `fs` y `Module._resolveFilename` sobre una ejecución entera |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1602,6 +1606,12 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     hechas con fines distintos vale más que una muestra grande hecha a propósito** (ley 149), *porque
     el sesgo del autor no puede haber apuntado a las dos.* ⭐ **Y por eso se busca hacia atrás: los
     números viejos del proyecto son terceros caminos esperando a que alguien los cruce.**
+    ⛔⛔ **CORRECCIÓN DEL 11/08, y es esencial: un cruce hacia atrás valida un NÚMERO, no la
+    DEFINICIÓN con la que se midió. Si las dos mediciones comparten la definición rota, el cruce sale
+    VERDE Y REFUERZA EL ERROR.** *Las diez cifras de la tanda 8 se reencontraron clavadas y no valían
+    nada: una mayúscula en «La Chimenea» dejaba fuera un par en las dos.* ⇒ **Antes de celebrar un
+    cruce, se comprueba si los dos caminos comparten la definición — porque el sesgo que sí puede
+    apuntar a los dos es el que está dentro de la regla.**
 
 155. ⭐⭐⭐ **UNA EXPLICACIÓN QUE NO PREDICE DÓNDE FALLARÍA NO ES UNA EXPLICACIÓN: ES UN RELATO.**
     *58 de 60 edificios tenían el mecanismo y ninguno se movió. «Inercia por construcción» solo vale
@@ -1707,6 +1717,34 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     de 934 y no se notaba; en tranvía son 15 de 17.** ⭐ **Un hueco de modelado no se descubre donde
     es raro: se descubre donde es sistemático**, y por eso el modo «pequeño» es el que examina el
     modelo.
+
+170. ⭐⭐⭐ **EL UNIVERSO DE LA BATERÍA SON LOS SCRIPTS DE `src/`, PERO SU ALCANCE ES TODO LO QUE ESOS
+    SCRIPTS LEAN, REQUIERAN O ESCRIBAN.**
+    *Medido el 11/08 con un espía que parchea `fs` y `Module._resolveFilename` sobre una ejecución
+    entera: **65 procesos, 2.655 registros, 183 ficheros leídos · 77 requeridos · 6 escritos**,
+    repartidos en `src/` · `data/` · `docs/` · `tools/` · `.githooks/` y la raíz.*
+    ⛔ **`tools/` NO está fuera:** `src/probar-vigencia.js` **ejecuta** `tools/gtfs/vigencia.js` y
+    `tools/gtfs/feed.js` desde la tanda 9, y cuatro `exportar*.js` **escriben 48 MB** dentro.
+    ⚠️ **Y la medida declara su propio techo: es una COTA INFERIOR, no el universo.** Es UNA
+    ejecución: las ramas que no se dispararon no aparecen — `superados.js:401` escribe en `docs/`
+    **solo bajo `--marcar`**, así que **la batería PUEDE escribir donde esta medida dice que no**.
+    ⭐ *Y lo que sigue siendo cierto: `red-bus.js` y `enlaces.js` sí están fuera. La conclusión
+    concreta de la tanda 8 era correcta; la generalización a todo `tools/`, falsa.*
+
+171. ⭐⭐⭐ **UNA LEY CITADA POR SU NÚMERO ES UNA AFIRMACIÓN, Y NADIE COMPRUEBA EL NÚMERO.**
+    *La conversación de estrategia citó dos veces «(ley 142)» para sostener que `tools/` estaba fuera
+    de la batería. **La ley 142 habla de allowlists y no dice eso.** El ejecutor la copió a tres
+    informes y a su bitácora, y la cita viajó dos días sin que nadie la abriera.* ⇒ **Citar por
+    número convierte una ley en una etiqueta de autoridad** (ley 157 aplicada a una referencia): ⭐
+    **la cita se escribe con su FRASE, no solo con su número** — la frase se puede contrastar de un
+    vistazo y el número no.
+
+172. ⭐⭐⭐ **UN `grep` QUE BUSCA LA PALABRA QUE YA SOSPECHAS NO MIDE: CONFIRMA.**
+    *Se afirmó el alcance de la batería con `grep -rn "readdirSync\|readFileSync(.*docs" src/*.js`:
+    el primer patrón solo caza listados de carpeta —un `readFileSync(path.join(RAIZ,'docs',x))` no
+    aparece— y **el segundo buscaba literalmente la palabra `docs`**. ⇒ **Encontrar un caso y
+    generalizar no es medir un universo** (ley 3 contra quien la tiene escrita). ⭐ **La medida
+    verdadera no se hizo con un patrón: se hizo instrumentando el sistema y dejándolo correr.**
 
 ---
 
@@ -1831,7 +1869,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **9** | ⭐⭐⭐ **LA CADUCIDAD Y LA REPETIBILIDAD** — el guardián de vigencia | **H2a** | ✅ **11/08** ⭐ **rojo con el reloj movido** |
 | **H2·8** | ⭐⭐⭐ **EL TRANVÍA — y el examen del modelo** | **H2a** | ✅ **11/08** ⭐ **0 `if` por modo** |
 | **—** | ⭐⭐⭐ **H2a CERRADO** — bus + tranvía + transbordo a pie | **H2a** | ✅ **11/08** ⛔ **3 decisiones en la mesa de Antonio** |
-| **H2b** | *(después: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
+| **10** | ⭐⭐⭐ **LOS ANDENES GEMELOS — la marca, no la fusión** | **H2a** | ✅ **11/08** ⛔ **no hay frontera: 52,7 m de solape** |
+| **H2b** | *(siguiente: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -3627,7 +3666,7 @@ manda.
 
 | | qué | |
 |---|---|---|
-| ⭐⭐⭐ | **Vive en `src/`, y ése es el punto entero** | `probar-paradas.js:217` solo ejecuta los `.js` de **`src/`**; `tools/` está fuera de la batería (ley 142). ⇒ ***Un guardián de caducidad metido en `tools/` es un guardián que nadie corre nunca***, y el 6 de octubre nadie se habría enterado igual. **La lógica en `tools/gtfs/vigencia.js`; el que la ejecuta a diario, en `src/`** |
+| ⭐⭐⭐ | **Vive en `src/`, y ése es el punto entero** | `probar-paradas.js:217` ejecuta los `.js` de **`src/`** ⇒ ***un guardián de caducidad metido en `tools/` es un guardián que nadie corre nunca***, y el 6 de octubre nadie se habría enterado igual. **La lógica en `tools/gtfs/vigencia.js`; el que la ejecuta a diario, en `src/`.** ⛔ *Corregido el 11/08: aquí se escribió «`tools/` está fuera de la batería (ley 142)» — **la ley 142 habla de allowlists y no dice eso**, y la afirmación es falsa: ver §8·170 y §7·148* |
 | ⭐ | **Cinco estados, con la ley 157 pasada** | ⚠️ `vigente` **no pasaba** —se lee *«el dato es correcto»*, y **un feed puede estar dentro de su periodo y tener la red mal**— ⇒ `dentro-del-periodo`. ⚠️ `caducado` **no pasaba** —se lee *«ya no sirve»*— ⇒ `fuera-del-periodo-declarado`: *lo que se sabe es que **el editor declaró un periodo y terminó***. **Los cinco se provocan y se exigen: un estado que nunca sale no es un estado, es una promesa** |
 | ⚠️ | **`se-acaba` avisa y NO falla, con su coste dicho** | Ponerlo rojo dejaría la batería roja **treinta días seguidos**, y **un rojo que dura un mes enseña a ignorarlo**. ⛔ *Consecuencia aceptada: el 6 de octubre uno se entera por el rojo, no por el aviso* |
 | ⭐⭐ | **El único instrumento del proyecto cuyo veredicto cambia SIN QUE CAMBIE EL DATO** | Es función del fichero **y del reloj**. Desde dentro solo se puede cotejar con el repositorio: **si `HOY` < la fecha del ZIP (20260810), el reloj va atrasado**. ⛔ **Eso caza el atrasado —el que produce un falso «vigente»— y NO caza el adelantado** |
@@ -3704,15 +3743,18 @@ estimarlo.*
 ```
 **No son dos terminales: son los dos andenes del mismo final de línea.** Y es estructural:
 ```
-   TRANVÍA   50 paradas · 33 nombres · 17 pares homónimos · 15 a MENOS de 15 m   (p50 8,3 m)
+   TRANVÍA   50 paradas · 33 nombres · 18 pares homónimos · 16 a MENOS de 15 m   (p50 8,3 m)
    BUS      934 paradas · 911 nombres · 26 pares homónimos ·  1 a menos de 15 m  (p50 59,5 m
                                                               ⇒ son DOS ACERAS, sitios distintos)
    parent_station relleno .... 0 de 984   ⛔ EN NINGUNA
 ```
-⇒ **En el tranvía 30 de 50 paradas son 15 parejas del mismo sitio; en el bus es 1 caso de 934.**
-**No es diferencia de grado: es de estructura.** ⛔ **Y muerde en un número YA PUBLICADO: 170 de los
-272 enlaces bus↔tranvía (62,5 %)** tienen como punta un andén con gemelo a menos de 15 m ⇒ **el
-usuario ve el enlace duplicado.**
+⇒ **En el tranvía 32 de 50 paradas son 16 parejas del mismo sitio; en el bus es 1 caso de 934.**
+**No es diferencia de grado: es de estructura.** ⛔ **Y muerde en un número YA PUBLICADO: 178 de los
+272 enlaces bus↔tranvía** tienen como punta un andén con gemelo a menos de 15 m ⇒ **el usuario ve el
+enlace duplicado.**
+⛔ **CORREGIDO EL 11/08 (tanda 10):** esta tanda publicó **17 · 15 · 170** y los buenos son
+**18 · 16 · 178**. *Una mayúscula dejó fuera un par entero:* `1001 "La Chimenea"` contra
+`1002 "La chimenea"`, **a 10,7 m** (§7·148).
 
 > ⭐⭐⭐ **LA LECTURA, Y REENCUADRA LA DECISIÓN — de esta conversación:**
 > **No es un problema del tranvía: es que `D1` respondió bien a una pregunta que nadie hizo.**
@@ -3768,7 +3810,7 @@ comparador de feeds · y la línea de flotación.
 
 | | LO QUE DECIDE ANTONIO | |
 |---|---|---|
-| **1** | ⛔⛔ **LOS ANDENES GEMELOS** — la única que toca un número ya publicado (**170 de 272**). Tres salidas: **dejarlo · agrupar por proximidad+nombre · publicar el duplicado como marca.** ⚠️ Agrupar **cambia qué es «una parada» para todo H2a**, puede fusionar dos paradas de bus enfrentadas que **sí** son sitios distintos, y **movería los 272** |
+| **1** | ✅ **RESUELTA EL 11/08 — OPCIÓN C: SE DECLARA, NO SE FUSIONA.** *(Eran 178 de 272, no 170.)* Ver la **tanda 10** más abajo |
 | **2** | ⚠️ **EL LISTÓN DE COBERTURA** `≥4 portales · 75 %` — **mueve 1.456 `no-consta`.** No es un ajuste: **es decidir cuánto error se acepta a cambio de cuánta cobertura** |
 | **3** | ⏳ **EL FEED CADUCA EL 05/10/2026 — 55 días.** *La maquinaria está puesta: el guardián avisa solo desde el 05/09 y se pone rojo el 06/10; el comparador y la línea de flotación están escritos y probados* |
 
@@ -3778,9 +3820,64 @@ descargador y el lector de ZIP sin control** hasta que exista un segundo feed ·
 días, decidido y no medido** · **`red-bus.js` con nombre caducado**.
 
 ⚠️⚠️ **Y UN LÍMITE DE LA BATERÍA QUE SALE A LA LUZ EN ESTA TANDA:** el `diff` salió **vacío** y la
-tanda **sí tocó código** — porque **todo lo tocado vive en `tools/`, que está fuera del universo de
-`probar-paradas.js:217`.** ⇒ ***La batería no protege `tools/`; lo que protegió al bus fue el sha del
-artefacto.*** Es la ley 142 en su versión útil **y también su límite.**
+tanda **sí tocó código** — porque **`red-bus.js` y `enlaces.js` no los requiere ni los lee ningún
+script de `src/`.** ⇒ ***Lo que protegió al bus no fue la batería: fue el sha del artefacto.***
+⛔ **CORREGIDO EL 11/08:** aquí se escribió que *«todo `tools/` está fuera del universo de la
+batería»* **y eso es FALSO, medido** — `src/probar-vigencia.js` **requiere** `tools/gtfs/vigencia.js`
+y `tools/gtfs/feed.js` desde la tanda 9, y cuatro `exportar*.js` **escriben 48 MB** dentro de
+`tools/`. ⭐ **La conclusión concreta era correcta; la generalización a todo `tools/` no** (ley 158
+aplicada a una ley). Ver §8·170.
+
+**⭐⭐⭐ H2a · TANDA 10 (11/08) — LOS ANDENES GEMELOS. `docs/H2A-TANDA-10-LA-MARCA.md`.**
+**Decisión de Antonio: OPCIÓN C — se declara, no se fusiona. Este proyecto modela POSTES.**
+
+> ⛔⛔⛔ **Y EL RESULTADO NO ES LA MARCA: ES QUE NO HAY FRONTERA. Eso mata la opción B.**
+> ```
+>    par de BUS más corto     («dos aceras»)   13,7 m
+>    par de TRANVÍA más largo («dos andenes»)  66,4 m
+>    ⇒ ancho de la banda de solape             52,7 m
+>
+>    por debajo (<13,7)   16 pares   tranvía 16 · bus  0 · mixto 0
+>    ⚠️ DENTRO DE LA BANDA 19 pares   tranvía  2 · bus 15 · mixto 2   ⇒ 39,6 %
+>    por encima (>66,4)   13 pares   tranvía  0 · bus 11 · mixto 2
+> ```
+> ⛔ **Y dentro de la banda no hay NI UN caso verificado de ninguna de las dos cosas:**
+> `parent_station` vacío en las 984, **y nadie ha mirado un par en un mapa.** *«Andenes» y «aceras»
+> son LECTURAS.* ⇒ ⭐⭐⭐ **El dato de hoy NO PUEDE sostener una regla de agrupación.**
+> **La opción B no está esperando a que haya tiempo: espera a que exista un dato que hoy no existe.**
+> ⇒ *Y por tanto C no es la opción prudente: **es la única que el dato permite**.*
+
+⚠️ **El umbral, con su honestidad delante:** se eligió **15 m** y su autor declara que *«la
+distribución NO justifica 15; lo que justifica es que **ningún umbral se puede justificar**»*. Se
+elige 15 **porque es el número con el que ya estaba publicado lo que había en la mesa**, y moverlo
+cambiaría un número publicado **sin ninguna medida nueva detrás**. ⛔ **Y su coste es contable y
+simétrico:** sin marca `1201/1202` (17,8 m) y `2501/2502` (66,4 m), que parecen el mismo sitio; con
+marca `PA00406/PA00407` (13,7 m), que la tanda 8 leyó como dos aceras. ***Del mismo umbral: no se
+puede bajar uno sin subir el otro.***
+
+| | qué | |
+|---|---|---|
+| ⭐⭐ | **La marca NO se llama `gemelo`** | *Dos gemelos son la misma cosa duplicada, y un lector concluye «es la misma parada»: **la opción B por la puerta de atrás**.* Se llama **`mismoNombreCerca`** (ley 157). ⛔ Y del primer borrador **se retiró** la frase *«dos entradas para lo que en la calle es un mismo sitio»* — **eso afirma que son el mismo sitio** |
+| ⭐⭐⭐ | **Los 272 NO se han movido, y se demuestra** | El sha del artefacto **sin la marca** es idéntico al que había en disco (`e3a3a81a…`, 506.524 B) ⭐ **con provocación: +0,1 m a UN enlace ⇒ el sha lo caza.** *Y por eso el campo se añade al FINAL: metido en medio cambiarían los bytes sin moverse nada, y el sha no podría distinguir un reorden de un recálculo* |
+| ⭐⭐ | **El recuento, con su población por celda** (ley 164) | `tranvía×tranvía` **16 pares de 18** ⇒ 32 postes de 50 · `bus×bus` **1 de 26** ⇒ 2 de 934 · mixto **0 de 4**. **Enlaces con marca: 178 de 2.538** (bus×bus **0 de 2.266**; bus↔tranvía **178 de 272**). ⛔ *Las columnas no se suman: una cuenta PAREJAS y la otra POSTES* |
+| ⭐⭐ | **El cero de `bus×bus` lo produce OTRO límite** | `PA00406` y `PA00407` **ya estaban en `sinEnlaces`**: el pre-filtro los había dejado fuera. **Dos límites tapándose el uno al otro.** ⭐ Provocado a 25 m ⇒ **58 enlaces bus×bus marcados** |
+| ✅ | **L7 releído del disco, 7 de 7** | Y su `A.exige` **mira las 984, no la lista de marcadas** (ley 167): `parent_station` a 0 sobre el universo, **y que sigan siendo 984 códigos distintos — si alguien fusiona dos postes, se pone rojo** |
+| ✅ | **Simetría sobre el fichero escrito** | 34 relaciones A→B, **0 sin vuelta, 0 con distinta distancia**, con provocación |
+| ⛔ | **El convenio de código del tranvía NO identifica estaciones** | Cinco parejas `NNN1`/`NNN2` **a 108–155 m con nombres de calles distintas.** *Descartado antes de usarlo* |
+| ⚠️ | **El modo pequeño paga la marca** | tranvía **+20,9 %** · bus **+0,06 %** |
+
+**⚠️ QUÉ CLASE DE PAR NO PODRÍA HABER CAZADO, declarado:** ⛔ **dos postes del mismo sitio con nombres
+DE VERDAD distintos** — *la marca entera cuelga del nombre, y el caso existe:* `0501 "Margarita
+Xirgu"` / `0502 "García Abril"`, emparejados por el código, **a 131 m**. Tampoco: **cuántos de los 19
+dudosos son un sitio.** ⛔ **Y ni un par se ha mirado sobre un mapa: todo sale de tres columnas del
+feed.**
+
+**⭐⭐⭐ Y LA MEDIDA QUE MÁS VALE DE LA TANDA NO ES LA MARCA: ES EL UNIVERSO DE LA BATERÍA, MEDIDO POR
+PRIMERA VEZ.** Un espía que parchea `fs` y `Module._resolveFilename`, **fuera del repositorio**, sobre
+una ejecución entera: **65 procesos · 2.655 registros · 183 leídos · 77 requeridos · 6 escritos.**
+⇒ Ver **§8·170**, **§8·172** y **§7·149-150**: *tres afirmaciones que llevaban dos días circulando
+—el universo, la cita de la ley y el método del `grep`— eran falsas, y las tres cayeron con una sola
+medición.*
 
 **DECISIONES NUEVAS DE H2:**
 
