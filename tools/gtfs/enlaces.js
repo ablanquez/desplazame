@@ -492,6 +492,17 @@ const artefacto = {
     fuente: 'Punto de Acceso Nacional (NAP) · Ministerio de Transportes y Movilidad Sostenible',
     atribucion: 'Powered by MITRAMS',
     atribucionUrl: 'https://nap.transportes.gob.es',
+    // ⭐⭐ TANDA 9 · LA VIGENCIA VIAJA COMO FECHAS Y REGLA, NUNCA COMO ESTADO
+    //    (ley 165). Un «dentro-del-periodo» horneado hoy seguiría diciendo lo
+    //    mismo en noviembre: el veredicto depende del reloj, no del dato.
+    vigencia: {
+      inicio: fi.feed_start_date,
+      fin: fi.feed_end_date,
+      reglaDiasAviso: 30,
+      comoSeEvalua: 'compara la fecha de HOY con `fin`. Si hoy > fin ⇒ fuera-del-periodo-declarado; '
+        + 'si faltan 30 días o menos ⇒ se-acaba; si no ⇒ dentro-del-periodo.',
+      noSeHornea: 'el estado NO viaja aquí a propósito: depende del reloj. Quien sirva esto lo recalcula.',
+    },
   } : null,
   radioPrefiltro: RADIO_M,
 
@@ -624,18 +635,98 @@ log('      L1 paradas invisibles ............ A.exige sobre las 172 y sobre code
 log('      L4 sentidos condicionales ........ ⚠️ NO vive aquí: vive en `tools/gtfs/red-bus.js`,');
 log('                                        en `sentido.terminal`, con su propio A.exige de cuota');
 const json = JSON.stringify(artefacto);
+// ⛔⛔ EN BYTES, NO EN CARACTERES. Esto decía `json.length`, que son unidades
+//   UTF-16: cada tilde y cada ⛔ del artefacto cuesta más bytes que caracteres, y
+//   el fichero salía 3,3 KB más grande de lo publicado. `red-bus.js` ya lo hacía
+//   bien con `Buffer.byteLength` desde H2·6. (bitácora nº195)
 const kb = (n) => (n / 1024).toFixed(1) + ' KB';
+const bytes = (s) => Buffer.byteLength(s, 'utf8');
 di('enlaces en el artefacto', artefacto.enlaces.length);
-di('JSON compacto', kb(json.length));
+di('JSON compacto', kb(bytes(json)));
 di('comprimido (gzip)', kb(require('zlib').gzipSync(json).length));
 {
   const sinAristas = JSON.stringify({ ...artefacto, enlaces: artefacto.enlaces.map(({ aristas, ...x }) => x) });
-  di('⭐ sin la lista de aristas', kb(sinAristas.length) + ' · gzip '
+  di('⭐ sin la lista de aristas', kb(bytes(sinAristas)) + ' · gzip '
     + kb(require('zlib').gzipSync(sinAristas).length));
-  log('      ⇒ la lista de aristas es ' + (100 * (json.length - sinAristas.length) / json.length).toFixed(0)
+  log('      ⇒ la lista de aristas es ' + (100 * (bytes(json) - bytes(sinAristas)) / bytes(json)).toFixed(0)
     + ' % del peso. Es lo que hace falta para DIBUJAR el enlace, no para calcularlo.');
 }
 di('dónde vive feed_info', fi ? 'artefacto.feed = ' + JSON.stringify(fi).slice(0, 80) : '⛔ NO CONSTA');
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA 8 · EL ARTEFACTO AL DISCO, Y LOS SEIS LÍMITES RELEÍDOS DEL FICHERO
+//
+//   La Puerta 3 dejó los seis límites comprobados **sobre el objeto en memoria**.
+//   ⛔ Un `A.exige` sobre un objeto no demuestra nada del JSON que sale al disco:
+//     `JSON.stringify` se come `undefined`, las funciones, los `Infinity` y los
+//     `NaN` sin decir ni pío, y `Map`/`Set` salen como `{}`. ⇒ **La pregunta que
+//     quedó abierta es cuál de los seis sobrevive a la serialización**, y solo se
+//     contesta releyendo el fichero.
+//
+//   node tools/gtfs/enlaces.js --escribir data/artefactos/enlaces.json
+// ═════════════════════════════════════════════════════════════════════════════
+{
+  const iEsc = process.argv.indexOf('--escribir');
+  if (iEsc >= 0) {
+    const fs = require('fs');
+    const path = require('path');
+    const destino = process.argv[iEsc + 1] || path.join(__dirname, '..', '..', 'data', 'artefactos', 'enlaces.json');
+    fs.mkdirSync(path.dirname(destino), { recursive: true });
+    fs.writeFileSync(destino, json);
+    log('');
+    raya('─');
+    log('P8 · ⭐⭐⭐ AL DISCO, Y LOS SEIS LÍMITES RELEÍDOS DEL FICHERO');
+    raya('─');
+    const enDisco = fs.statSync(destino).size;
+    di('escrito en', path.relative(path.join(__dirname, '..', '..'), destino).replace(/\\/g, '/'));
+    di('tamaño en disco · en memoria', kb(enDisco) + ' · ' + kb(bytes(json))
+      + (enDisco === bytes(json) ? '   ✅ el mismo, byte a byte' : '   ⛔ NO coinciden'));
+    di('gzip del fichero', kb(require('zlib').gzipSync(fs.readFileSync(destino)).length));
+
+    // ⛔ SE RELEE DEL DISCO. No se reutiliza `artefacto`: eso sería comprobar el
+    //    objeto otra vez, que es justo lo que la Puerta 3 ya hizo.
+    const R2 = JSON.parse(fs.readFileSync(destino, 'utf8'));
+    log('');
+    log('   ' + 'límite'.padEnd(8) + 'qué se comprueba RELEYENDO'.padEnd(58) + '¿sobrevive?');
+    const chk = [];
+    const c = (id, texto, ok) => { chk.push(ok); log('   ' + id.padEnd(8) + texto.padEnd(58) + (ok ? '✅ sí' : '⛔ NO')); };
+    c('L1', 'sinEnlaces con las 172, cada una con code y motivo',
+      !!R2.sinEnlaces && R2.sinEnlaces.n === 172 && R2.sinEnlaces.paradas.length === 172
+      && R2.sinEnlaces.paradas.every((p) => p.code && p.motivo) && !!R2.sinEnlaces.aviso);
+    c('L2', 'la leyenda cubre todo valor emitido, y separa saber de ignorar',
+      !!R2.campos && [...new Set(R2.enlaces.map((e) => e.camino))].every((v) => R2.campos.camino.valores[v])
+      && [...new Set(R2.enlaces.map((e) => e.lado))].every((v) => R2.campos.lado.valores[v])
+      && /CONOCIMIENTO/.test(R2.campos.lado.aviso) && /IGNORANCIA/.test(R2.campos.lado.aviso));
+    c('L3', 'cobertura: periodo, aviso, PA00617 y las 8 líneas fuera',
+      !!R2.cobertura && !!R2.cobertura.periodo && /PERIODO DEL FEED/.test(R2.cobertura.aviso)
+      && /PA00617/.test(R2.cobertura.ejemploConocido) && R2.cobertura.lineasFuera.n === 8);
+    c('L4', 'NO vive aquí — vive en el artefacto de la red',
+      R2.enlaces.every((e) => e.linea === undefined));
+    c('L5', 'feed con version, fin, atribución y la marca de PROCESADO',
+      !!R2.feed && R2.feed.fin === '20261005' && R2.feed.procesado === true
+      && !!R2.feed.atribucion && !!R2.feed.atribucionUrl && !!R2.feed.fuente);
+    c('L6', 'ni una promesa en el texto del fichero escrito',
+      ![/m[áa]s r[áa]pid/i, /mejor ruta/i, /\b[óo]ptim[oa]/i, /garantiz/i]
+        .some((re) => re.test(fs.readFileSync(destino, 'utf8'))));
+    log('');
+    di('⇒ límites que sobreviven al disco', chk.filter(Boolean).length + ' de ' + chk.length);
+    for (let i = 0; i < chk.length; i++) {
+      A.exige(chk[i], `el límite L${i + 1} NO sobrevive a la serialización: estaba probado sobre `
+        + 'un objeto en memoria y no sobre lo que se publica');
+    }
+    // ⭐ y el uno que acompaña al cero (ley 152): que la comprobación sepa fallar.
+    const roto = JSON.parse(JSON.stringify(R2));
+    delete roto.feed.procesado;
+    const cazado = !(roto.feed && roto.feed.procesado === true);
+    di('⭐ provocado: se quita feed.procesado del releído', cazado ? '✅ lo caza' : '⛔ NO lo caza');
+    A.exige(cazado, 'la comprobación de L5 no caza que falte `procesado`: su verde no vale');
+
+    // ⭐⭐ el bloque `vigencia`, que la tanda 9 dejó definido y sin meter (ley 165)
+    log('');
+    di('⚠️ bloque `vigencia` en el fichero', R2.feed && R2.feed.vigencia ? '✅ está' : '⛔ NO está todavía');
+    log('      ⛔ Y NO se hornea el estado: viajan las fechas y la regla. Ver `tools/gtfs/vigencia.js`.');
+  }
+}
 
 log('');
 raya();
