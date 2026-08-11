@@ -9646,3 +9646,111 @@ dos obligaciones distintas, y la segunda es la que convierte un cero en un dato.
 
 **Traza:** `tools/grafo/lado-de-la-acera.js` §P3 y §P3·bis ·
 `docs/H2A-PUERTA-1-EL-LADO-DE-LA-ACERA.md` §3.2
+
+---
+
+## [2026-08-11] — Medí el rodeo entre dos puntos por los que la ruta no pasa
+
+**Categoría:** datos
+**Síntoma:** al calcular los 2.538 enlaces, el guardián de imposibilidad física saltó con **33
+enlaces que miden MENOS que su línea recta**, rodeo mínimo **0,20×**.
+
+```
+   ⛔ con rodeo < 1 (imposible)   33   ⛔⛔ EL GRAFO ESTÁ ROTO
+   ⛔ FALLO · 33 enlaces miden menos que su línea recta
+```
+
+**Y el grafo no estaba roto: el instrumento comparaba dos medidas entre puntos distintos.** La ruta
+va de **enganche a enganche** —las proyecciones de las paradas sobre el grafo— y la recta iba de
+**parada a parada**. Son cuatro puntos, no dos.
+
+```
+   PA00152 × PA03071    ruta 16,8 m   recta entre PARADAS 16,9 m   recta entre ENGANCHES 16,8 m
+   PA00240 × PA03517    ruta 56,5 m   recta entre PARADAS 59,6 m   recta entre ENGANCHES 56,5 m
+   hueco parada → grafo:  p50 1,7 m · p90 6,1 m · p99 11,1 m · máx 23,7 m
+```
+
+⇒ **31 de los 33 se caen solos al medir la recta entre los enganches.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **todos los cuadres del script, que
+son muchos y ninguno mira esto.** El universo reencontrado al par (934 · 50 · 2.266 · 272 · 2.538),
+la muestra de H2·6 reetiquetada con sus 69 y sus 33 exactos, las aristas con lado, los 19 de la
+marca. **Ocho `A.exige` en verde alrededor de una comparación mal planteada.** ⛔ Ninguno podía
+verlo: **todos comparan contra números publicados, y no había ningún número publicado de esto.**
+
+**Causa raíz:** el rodeo de `RUTAS-CONOCIDAS.md` se mide de portal a portal, y ahí el hueco al grafo
+es de **5,3 m de mediana**, así que nunca da la vuelta al signo. Copié la fórmula a un universo
+donde las puntas son **paradas de autobús**, y no comprobé si la premisa —*la recta y la ruta unen
+los mismos dos puntos*— seguía valiendo. **Es la ley 1 del proyecto en su forma pura: una fórmula
+verificada arrastra su denominador, y aquí arrastraba sus PUNTOS.**
+
+**Cómo se cazó:** el guardián de imposibilidad física, que estaba puesto. ⭐ **Funcionó como debía:
+paró el proceso en rojo antes de que ningún número saliera de aquí.**
+
+**Arreglo aplicado:** ⛔ **no se relaja el guardián: se le da la recta correcta.**
+1. Se calcula `rectaEng`, la distancia entre las dos proyecciones, y **el guardián compara contra
+   ésa** — son las dos puntas que el motor une de verdad.
+2. **Se publican los DOS rodeos y se dice qué es cada uno**: el **consultado** (parada→parada), que
+   es lo que el usuario pide y **puede bajar de 1 legítimamente**; y el **del camino**
+   (enganche→enganche), que **no puede**.
+3. Y el uno que acompaña al cero (ley 152): **33 rodeos consultados por debajo de 1 siguen ahí, y
+   ahora se publican como lo que son** — el hueco de la parada al grafo, no un atajo inventado.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un cociente entre dos medidas exige que las dos midan entre los
+MISMOS puntos, y eso deja de ser cierto en silencio al cambiar de universo.** El rodeo nació sobre
+portales, donde el hueco al grafo es despreciable; al mudarlo a paradas de autobús siguió calculando
+y empezó a mentir. ⚠️ **Corolario:** *cuando un guardián de imposibilidad física salta, la primera
+hipótesis no es que el mundo esté roto: es que la fórmula ya no está midiendo lo que medía.*
+
+**Traza:** `tools/gtfs/enlaces.js` §P4 · `docs/H2A-PUERTA-2-LOS-2538.md` §5
+
+---
+
+## [2026-08-11] — Pedí centímetro y medio a un dato que llega redondeado a diez
+
+**Categoría:** aviso falso
+**Síntoma:** arreglada la recta del fallo anterior, **2 de los 33 seguían saliendo imposibles**. Y
+tampoco lo eran:
+
+```
+   PA00741 Plaza San Miguel N.º 5 × PA00745    ruta 13,0 m   recta 13,044 m   rodeo 0,9967
+   PA00912 Lagos De Coronas N.º 39 × PA03530   ruta 47,0 m   recta 47,050 m   rodeo 0,9989
+```
+
+**La diferencia son cuatro y cinco centímetros**, y `G.rutaEntre` devuelve `Math.round(total*10)/10`
+(`src/grafo.js`): **el metraje llega con una resolución de 0,1 m.** Un enlace de 13 m redondeado a
+13,0 pierde hasta 5 cm, y mi guardián exigía un cociente ≥ 0,999 — que sobre 13 m son **1,3 cm**.
+
+⇒ **Le pedía al dato tres veces más precisión de la que tiene.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐ **el arreglo anterior, que era
+correcto.** Al medir la recta entre enganches, 31 de los 33 desaparecieron y **el resultado parecía
+resuelto**. ⛔ Los 2 que quedaban invitaban a la conclusión contraria y peligrosa: *«el arreglo no
+era la causa completa, luego el grafo sí tiene algo»*. **Un arreglo que funciona casi del todo es la
+mejor tapadera de un segundo fallo distinto.**
+
+**Causa raíz:** un umbral RELATIVO sobre una magnitud con resolución ABSOLUTA. El 0,999 es
+razonable sobre una ruta de 3 km y absurdo sobre una de 13 m, y el universo de esta tanda son
+**trayectos cortos por definición** — p50 de 261 m.
+
+**Cómo se cazó:** mirando los dos supervivientes uno a uno en vez de aceptar «casi todos se han
+arreglado». El tercero que apareció al ampliar el filtro —`Lagos De Coronas`, arista única, dos
+puntos sobre un segmento recto— lo confirmó: **la verdad geométrica y el dato coinciden, y lo que
+sobraba eran los decimales que el motor ya no da.**
+
+**Arreglo aplicado:** el guardián compara en **metros absolutos** contra la resolución del
+redondeo: `metros >= rectaEng - 0,05`. **No se relaja el criterio: se ajusta a lo que el dato puede
+sostener**, y el 0,05 va escrito con su motivo al lado.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una tolerancia relativa esconde la resolución del dato, y revienta
+cuando el universo se hace pequeño.** Un `≥ 99,9 %` no dice nada hasta saber el 99,9 % *de cuánto*.
+⚠️ Y el corolario que muerde: **este proyecto redondea a 0,1 m en `rutaEntre` por una buena razón
+—no publicar precisión falsa— y ese redondeo es un dato que cualquier comprobación aguas abajo tiene
+que conocer.** Un redondeo honesto en la salida es un límite duro en la entrada del siguiente.
+
+**Traza:** `tools/gtfs/enlaces.js` §P4 · `src/grafo.js` (`rutaEntre`, el redondeo) ·
+`docs/H2A-PUERTA-2-LOS-2538.md` §5
