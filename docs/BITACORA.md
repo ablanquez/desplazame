@@ -10127,3 +10127,73 @@ hay una?», no «¿cuál escribo?»** — y aquí la había, exportada, desde H1
 
 **Traza:** `src/geo.js:26` · `tools/gtfs/enlaces.js:109` y `:215` · `docs/H1-CARRILES-BICI.md` §A4 ·
 `docs/H2A-PUERTA-2-LOS-2538.md` (el rodeo consultado)
+
+
+---
+
+## [2026-08-12] — La procedencia de los 5,0 km/h se publica en cada pasada y no cuadra
+
+**Categoría:** datos / método
+**Síntoma:** para adoptar la constante de la bici había que verificar las fuentes de la de andar,
+porque el encargo extiende **ese** criterio. Al ir a las tres:
+
+```
+   openrouteservice   foot-* = 5 km/h en todas las vías permitidas          ✅ cuadra
+   OSRM               profiles/foot.lua → local walking_speed = 5           ✅ cuadra
+   Valhalla           pedestrian costing → "Defaults to 5.1 km/hr"          ⛔ NO son 5
+```
+
+`docs/H1-VELOCIDAD-ESTANDAR.md` §A y `src/velocidad.js:20-23` publican: *«Las isócronas basadas en
+**OSRM / Valhalla** usan **5 km/h** por defecto»*. **Es cierto de OSRM y falso de Valhalla, que usa
+5,1.**
+
+⛔ **Y no está enterrado en un comentario: se imprime en pantalla en cada ejecución de la batería**
+(`src/velocidad.js:113`):
+
+```
+   ⭐ el estándar que este proyecto adopta        5.0 km/h   (openrouteservice · OSRM/Valhalla)
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **`src/velocidad.js` entero, que es
+el guardián de esta constante y lleva cuatro tandas en verde.** Sus tres invariantes:
+
+```
+   V1 · la constante del redactor es el estándar          ✅
+   V2 · los tiempos publicados corresponden al estándar   ✅
+   V3 · el exportador DERIVA la velocidad, no la escribe  ✅
+```
+
+⛔ **Los tres vigilan el VALOR y ninguno la PROCEDENCIA.** `V1` es literalmente
+`A.exige(Math.abs(Rel.VELOCIDAD_KMH - ESTANDAR_KMH) < 1e-9, …)`: **compara la constante con la
+constante declarada tres líneas más arriba, en el mismo fichero.** ⇒ *Un guardián que compara un
+número consigo mismo no puede enterarse de que la atribución que lo acompaña es falsa.*
+⚠️ Y es la segunda vez que este mismo fichero enseña la misma clase de agujero: la bitácora nº174 fue
+*«un guardián no vale por lo que comprueba, sino por lo que puede llegar a ver»*. **Aquí el guardián
+podía verlo todo del número y nada de su origen.**
+
+**Causa raíz:** la tanda 4 nombró tres fuentes y **no citó ninguna** — ni fichero, ni URL, ni
+versión. Una atribución sin cita **no es verificable ni falsable**, así que nadie la volvió a mirar
+en cuatro tandas. ⚠️ *Y las dos que sí cuadran (openrouteservice y OSRM) la arroparon*: es la ley 16
+—*un número que cuadra con su vecino no está verificado: está apuntalado*— aplicada a una cita.
+
+**Cómo se cazó:** ⭐ **porque el encargo de hoy prohibía recordar y obligaba a citar.** Verificar las
+fuentes de la bici obligó a abrir las mismas páginas para andar. **Sin esa regla, la atribución
+seguiría imprimiéndose.**
+
+**Arreglo aplicado:** ⛔ **NINGUNO — esta tanda no toca código y `VELOCIDAD_KMH` está fuera de
+alcance por el encargo.** ⭐ Y no hay que cambiar la constante: **la decisión de los 5,0 no dependía
+de Valhalla** —es de diseño, para ser comparable con un buscador— y **dos de las tres fuentes dan 5
+exacto**. Lo que hay que arreglar es **la frase**, y lleva su propuesta escrita en
+`docs/H2B-UNIDAD-DE-COSTE.md` §5. **Decide Antonio.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una atribución sin cita no es falsable, y por eso sobrevive a
+cualquier número de revisiones.** El guardián de una constante vigila su valor; **la procedencia no
+tiene guardián a menos que la cita sea una ruta o una URL que alguien pueda volver a abrir.**
+⚠️ Corolario, y es el que duele: **este proyecto exige `grep -n` para citarse a sí mismo y aceptaba
+«lo usa OSRM» para citar a un tercero.** La ley 140 —*una ruta de fichero es una afirmación*— **no
+se estaba aplicando hacia fuera.**
+
+**Traza:** `src/velocidad.js:20-23` y `:113` · `docs/H1-VELOCIDAD-ESTANDAR.md` §A ·
+`docs/H2B-UNIDAD-DE-COSTE.md` §5
