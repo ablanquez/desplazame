@@ -855,10 +855,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 153 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 155 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y tres instrumentos mintiendo** *(115 al cerrar H1 + 38 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y cinco instrumentos mintiendo** *(115 al cerrar H1 + 40 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1034,6 +1034,9 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 152 | ⛔⛔ **ESTA CONVERSACIÓN AVISÓ DE UN PROBLEMA QUE NO EXISTE, POR ANALOGÍA.** El encargo de H2b daba por hecho que **las estaciones BiZi tendrían el problema de los andenes gemelos**. Medido: **276 estaciones, 276 nombres DISTINTOS, el par más cercano a 95,1 m** ⇒ **la marca no se dispararía ni una vez.** ⭐ **Y la fuente sí declara el nivel que al GTFS le faltaba (`tipologia`)** — *justo lo contrario de lo que se avisó.* **Forma del nº117: una afirmación no medida viajando dentro de un encargo** |
 | | **⬇ H2b · TANDA 0 (12/08) — UNO MÁS** ⬇ | |
 | 153 | ⛔⛔⛔ **UNA ATRIBUCIÓN A TERCEROS QUE NO SE SOSTIENE, IMPRESA EN CADA PASADA DE LA BATERÍA.** `src/velocidad.js:113` publica **«5.0 km/h (openrouteservice · OSRM/Valhalla)»** y **Valhalla dice 5,1** (`pedestrian → "Defaults to 5.1 km/hr"`). ⭐⭐ **Y lo que dio verde mientras vivía es lo que enseña: `src/velocidad.js` entero, CUATRO tandas.** Sus tres invariantes **vigilan el VALOR** — `V1` es `A.exige(Math.abs(Rel.VELOCIDAD_KMH - ESTANDAR_KMH) < 1e-9)`, **que compara la constante consigo misma tres líneas más abajo** — ⛔ **y ninguno vigila la PROCEDENCIA.** *La decisión no se cae: dos de tres dan 5 exacto y el argumento nunca fue promediar. Lo falso es la frase* |
+| | **⬇ H2b · TANDA 2 (12/08) — DOS MÁS** ⬇ | |
+| 154 | ⛔⛔⛔ **UN GUARDIÁN CUYO UNIVERSO INCLUYE LOS DOCUMENTOS QUE LO DESCRIBEN: DOCUMENTAR ES MODIFICAR LO VIGILADO.** `src/superados.js` puso la batería en rojo **tres veces seguidas**, y **ninguna la rompió el código**: la 1ª fue citar una velocidad de ORS que comparte cadena con una cifra retirada, la 2ª **el texto que explicaba la 1ª**, la 3ª **el texto que explicaba la 2ª**. ⇒ ***Está hecho exactamente de las cadenas que prohíbe.*** ⭐ **El proyecto ya tenía el sitio previsto —la bitácora, que `esActa()` exime— y se escribía en el otro.** ⚠️ *Explica de paso el `⟨…⟩` que no se podía retirar y el falso «choque con la bitácora»* |
+| 155 | ⛔⛔ **SE COMPROBÓ, SE PUBLICÓ EL VERDE, Y DESPUÉS SE ESCRIBIÓ EL TEXTO QUE LO ROMPÍA.** Se corrió `superados.js`, salió `exit 0`, **se publicó en el chat como prueba de que estaba arreglado** — y a continuación se escribió la explicación que lo volvía a romper. ⇒ ***Comprobar y luego cambiar es no haber comprobado***, y **una edición «solo de documentación» invalida la comprobación entera** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1794,6 +1797,26 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     adoptar una constante para una familia se mira su dispersión: si abarca un factor de dos, no es
     una constante — es un promedio disfrazado.*
 
+179. ⭐⭐⭐ **HAY GUARDIANES CUYO UNIVERSO INCLUYE LOS DOCUMENTOS QUE LOS DESCRIBEN — Y CON ÉSOS,
+    DOCUMENTAR ES MODIFICAR LO VIGILADO.**
+    *`superados.js` vigila cadenas retiradas y **está hecho de esas mismas cadenas**: explicar por qué
+    saltó lo volvió a hacer saltar, tres veces en cascada.* ⇒ **Un guardián de TEXTO necesita un sitio
+    eximido donde poder ser descrito**, y este proyecto ya lo tenía —la bitácora, `esActa()`— **y se
+    escribía en el otro.** ⚠️ *De aquí salen, vistos de lado, el `⟨…⟩` irretirable y el falso «choque
+    con la bitácora».*
+
+180. ⭐⭐⭐ **COMPROBAR Y LUEGO CAMBIAR ES NO HABER COMPROBADO — LA ÚLTIMA ACCIÓN ANTES DE UN COMMIT
+    TIENE QUE SER LA COMPROBACIÓN, NO EL CAMBIO.**
+    *Se corrió el guardián, salió verde, se publicó como prueba, y después se escribió el texto que lo
+    rompía.* ⇒ **Una comprobación solo vale para el estado exacto en que se hizo**, y ⛔ **una edición
+    «solo de documentación» la invalida entera** — en un proyecto donde los documentos están dentro
+    del universo vigilado, «solo documentación» no existe.
+
+181. ⭐⭐ **EL MENSAJE DE UN GUARDIÁN ES UNA AFIRMACIÓN SOBRE LA CAUSA, Y SE ESCRIBE ANTES DE VER EL
+    FALLO — ASÍ QUE DEBE DECIR QUÉ SE HA ROTO, NO POR QUÉ.**
+    ⇒ ⭐ **Corolario: un rojo se audita menos que un verde, porque parece que ya ha hecho su trabajo.**
+    *Tres rojos seguidos culparon al código y los tres los causaba el documento.*
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1920,7 +1943,7 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **10** | ⭐⭐⭐ **LOS ANDENES GEMELOS — la marca, no la fusión** | **H2a** | ✅ **11/08** ⛔ **no hay frontera: 52,7 m de solape** |
 | **H2b·1** | ⭐⭐⭐ **EL DISEÑO EN PAPEL — qué es un modo** | **H2b** | ✅ **12/08** ⛔ **`MODOS` no sirve** |
 | **H2b·0** | ⭐⭐⭐ **LA UNIDAD DE COSTE** — 18 km/h con procedencia citada | **H2b** | ✅ **12/08** ⭐ **y la del bus, encontrada** |
-| **H2b·2** | La circulación de la bici — ⚠️ *la que puede fallar EN VERDE* | **H2b** | ⬜ |
+| **H2b·2** | ⭐⭐⭐ **LA CIRCULACIÓN DE LA BICI** — la que podía fallar en verde | **H2b** | ✅ **12/08** ⭐ **no cayó: 79 m de carril en 4,8 km** |
 | **H2b·3** | Las estaciones BiZi · **H2b·4** la combinación · **H2b·5** la bici propia | **H2b** | ⬜ |
 | **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
 
@@ -4106,6 +4129,94 @@ dos testigos.**
 
 ⛔ **DECISIÓN PENDIENTE DE ANTONIO:** si el bus entra en H2b con la velocidad comercial publicada, y
 si el encadenado de testigos se construye como su contradictor o se aparca para H3.
+
+### ⭐⭐⭐ H2b · TANDA 2 (12/08) — LA CIRCULACIÓN DE LA BICI. `docs/H2B-CIRCULACION-BICI.md`.
+
+**Era la marcada como *«la única que puede salir VERDE ESTANDO MAL»*. No cayó** — y lo que la salvó
+fue enseñar **por dónde va la ruta**, no que la ruta existiera.
+
+**⭐⭐ EL PREDICADO SE LLAMA `circula`, Y TIENE TRES VALORES, NO DOS:**
+```
+   circula     49.972   50,6 %   4.870,8 km    se RUEDA
+   empuja      44.882   45,4 %   1.067,0 km    ⚠️ se pasa BAJÁNDOSE
+   prohibido    3.920    4,0 %     562,3 km    ⛔ el dato lo prohíbe o la clase no admite bici
+```
+⭐ **`empuja` no está inventado: es el nivel que modelan las tres referencias de la tanda 0** —ORS
+escribe `setHighwaySpeed("footway", 6)` frente a **18 en calzada**— ⇒ ***es la ley 177 cobrando su
+factura el mismo día: se adoptó el valor y se dejó la estructura, y aquí aparece el nivel que la
+constante única no puede representar.***
+⚠️ **Y el nombre pasó por la ley 157:** `ciclable` ⛔ *(«apto» incluye seguro y legal)* ·
+`transitableEnBici` ⛔ · `permitido` ⛔ *(**OSM no lo declara: solo 2.502 de 98.774 traen
+`bicycle=*`**)* ⇒ ✅ **`circula`** — *dice que esta clase de vía es de las que se recorren rodando, y
+no dice ni segura, ni legal, ni agradable.*
+
+**⛔⛔ EL FALLO PREDICHO, MEDIDO — y por qué la calzada no es opcional:**
+```
+   ⛔ A · solo `cycleway` ...............   4.675    4,7 %    56 trozos
+   ⭐ C · + campo + CALZADA ⇐ `circula` .  50.259   50,9 %   178 trozos · el mayor 94,3 %
+      D · C + peatonal ..................  94.682   95,9 %   247 trozos ⚠️ MÁS trozos que C
+```
+⇒ **El 4,7 % era exactamente el fallo que el propio ejecutor predijo en su diseño.** ⭐ **Y la C es la
+que decide: con la calzada dentro, la bici PUEDE rutear en Zaragoza** *(el mayor componente pasa del
+8,1 % de los 666 trozos al 94,3 %)*. ⚠️ **Y la D enseña algo: añadir peatonal AUMENTA los trozos** —
+más aristas no es más red.
+
+**⛔⛔ Y LA TRAMPA DEL VERDE NO CAYÓ PORQUE SE ENSEÑÓ EL REPARTO, NO LA RUTA:**
+```
+   primary      2.516  51,5 %      service    404   8,3 %
+   residential  1.193  24,4 %      tertiary   112   2,3 %
+   secondary      546  11,2 %      cycleway    79   1,6 %  ⬅
+```
+⇒ ⭐⭐⭐ **79 metros de carril bici en 4,8 km. El 51,5 % por avenida principal.**
+**No es un defecto del predicado: es cómo está la ciudad.** ⛔ **Mandar la bici por avenidas es la
+consecuencia, y es DECISIÓN DE PRODUCTO.**
+
+**⛔⛔ HALLAZGO NO BUSCADO: LA BICI NO PUEDE SALIR DE UN PORTAL.**
+```
+   Estación Delicias   a pie: corridor 31,1 m [empuja]   en bici: service  99,1 m
+   C.C. Utrillas       a pie: footway  28,7 m [empuja]   en bici: tertiary 65,6 m
+   ⛔ con el enganche de andar ⇒ SIN CAMINO      ⭐ con enganche propio ⇒ 4.788,9 m
+```
+*Un edificio da a la acera, y **por una acera no se rueda*** — con el grafo sano (94,3 % en la mayor).
+⇒ **La bici necesita SU PROPIO enganche, y el hueco casi se triplica.** ⚠️⚠️ **Y es el mismo problema
+que espera a las 276 estaciones BiZi**, que era la tanda siguiente.
+
+**⚠️ `oneway` — MEDIDO, NO RESUELTO:** **23.499 de las 49.972 que circulan (47,0 %), 1.008,5 km.**
+Hoy el grafo es no dirigido ⇒ **una ruta puede meterse a contramano por cualquiera de ellas.**
+⛔ *¿Puede una bici legalmente?* **`NO CONSTA`: solo 12 lo declaran (`oneway:bicycle=no`). Es dato, no
+deducción.**
+
+> ⛔⛔ **PARA Y AVISO — Y LO QUE BLOQUEA H1 NO ES UN CAMPO, ES UNA FIRMA.**
+> `e.highway` **ya viaja en la arista** ⇒ el predicado de clase **no necesita campo nuevo**, y **el
+> precio de no reabrir H1 son 287 aristas de 49.972: el 0,6 %.**
+> **Lo que sí obliga:** `src/grafo.js:18` — **`adyacencia(nodos, aristas, soloAPie = true, …)`**
+> ⇒ ***el modo no es un predicado: es un BOOLEANO CON EL NOMBRE DE UN MODO.***
+> ⭐ **Y el proyecto ya está a medio camino:** `src/portales.js:250` — **`indexarAristas(aristas,
+> filtro)` SÍ acepta predicado.** ⇒ **No hay que inventar el diseño: hay que igualar las dos firmas.**
+> ⛔ **Decisión de Antonio.**
+
+**⛔⛔⛔ Y EL HALLAZGO MAYOR DEL DÍA, QUE SALIÓ DE TRES BATERÍAS EN ROJO:**
+```
+   base       13:26:40 → 13:47:07   exit 0   114 líneas
+   cierre 1   13:57:09 → 14:21:08   exit 1   ⛔ superados.js: 2 fallos
+   cierre 2   14:24:20 → 14:47:08   exit 1   ⛔ superados.js: 2 fallos
+   cierre 3   14:51:45 → 15:16:19   exit 0   ✅ DIFF VACÍO
+```
+**Ninguna la rompió el código: las tres las rompió EL DOCUMENTO.** `src/superados.js` vigila cifras
+retiradas, y **el informe las escribía sin darse cuenta**: la 1ª citando la velocidad de empujar de
+ORS *(misma cadena que la velocidad de andar retirada)*, la 2ª **el texto que explicaba la 1ª**, la 3ª
+**el texto que explicaba la 2ª.**
+⇒ ⭐⭐⭐ ***`src/superados.js` está hecho exactamente de las cadenas que prohíbe. No se le puede
+describir dentro de `docs/`, que es donde este proyecto documenta todo.***
+⭐ **El proyecto ya tenía el sitio previsto y se estaba escribiendo en el otro:** la evidencia verbatim
+**vive en la bitácora, que `esActa()` exime.**
+⚠️⚠️ *Y explica de paso dos cosas que se arrastraban: el `⟨…⟩` que no se podía retirar y el «choque con
+la bitácora» que resultó ser un documento normal citando un ordinal. **Era el mismo fenómeno visto de
+lado.***
+
+⛔ **DECISIÓN PENDIENTE DE ANTONIO:** `superados.js` **no distingue una cifra propia superada de la
+misma cifra citada de un tercero. Va a volver a saltar.** La solución durable **edita un recuento
+declarado en `src/`.**
 
 **DECISIONES NUEVAS DE H2:**
 
