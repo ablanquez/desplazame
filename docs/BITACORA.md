@@ -10197,3 +10197,59 @@ se estaba aplicando hacia fuera.**
 
 **Traza:** `src/velocidad.js:20-23` y `:113` · `docs/H1-VELOCIDAD-ESTANDAR.md` §A ·
 `docs/H2B-UNIDAD-DE-COSTE.md` §5
+
+
+---
+
+## [2026-08-12] — El guardián se puso rojo con razón y culpó a quien no era
+
+**Categoría:** método
+**Síntoma:** la ruta de ejemplo en bici salió **«sin camino»** mientras a pie salían 4.743,4 m. El
+`A.exige` que lo cazó llevaba escrito este mensaje:
+
+```
+   ⛔ FALLO · no hay ruta en bici entre los dos POI: el predicado deja el grafo roto
+```
+
+**El rojo era correcto. La causa era falsa.** El predicado no rompe nada: **un edificio engancha a
+una acera, y por una acera no se rueda.** Los dos POI entraban en el grafo por `corridor` (31,1 m) y
+`footway` (28,7 m), las dos de veredicto `empuja` ⇒ el punto de inserción quedaba aislado. Con un
+enganche propio de bici —`service` a 99,1 m y `tertiary` a 65,6 m— la ruta sale: **4.788,9 m.**
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la medición que lo desmentía
+estaba en la MISMA PANTALLA, veinte líneas más arriba, y la había impreso yo mismo:**
+
+```
+   ⭐ C · B + CALZADA  ⇐ el predicado `circula`   50259   50.9 %   4896.8 km   178 trozos   94.3 %
+```
+
+**Una red cuya mayor componente tiene el 94,3 % de los kilómetros no está rota.** ⇒ *La refutación
+de mi propia explicación estaba impresa, en la misma ejecución, antes de la línea que la contradecía.
+No hacía falta medir nada nuevo: hacía falta leer hacia arriba.*
+
+**Causa raíz:** el mensaje del `A.exige` **se escribió al mismo tiempo que la comprobación, antes de
+verla fallar** — es decir, contiene **la explicación que YO esperaba**, no la que el fallo tuviera.
+⚠️ Y es el mismo mecanismo de la bitácora nº162 con los guardianes de texto: *un patrón escrito desde
+la frase que se te ocurre vigila tu frase, no la prohibición.* **Aquí: un mensaje escrito desde la
+causa que se te ocurre acusa a tu sospechoso, no al culpable.**
+
+**Cómo se cazó:** ⭐ porque el encargo lo exigía en grande —*«si sale una ruta a la primera y bonita,
+sospecha»*— y salió lo contrario, así que fui a mirar **qué arista** era el enganche en vez de dar el
+rojo por bueno. ⚠️ **Y ése es el punto incómodo: un rojo se acepta con menos escrutinio que un
+verde.** Un fallo que confirma lo que temías se lee, se anota y se cierra.
+
+**Arreglo aplicado:** el mensaje pasa a decir lo que de verdad se sabe, y **el hallazgo se convierte
+en invariante con su propia provocación**: `A.exige(!rBiciMalEnganchada.encontrada, …)` — si algún
+día SÍ hay ruta con el enganche de andar, el texto que lo explica ha caducado y hay que enterarse.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **el mensaje de un guardián es una AFIRMACIÓN SOBRE LA CAUSA, y se
+escribe antes de haber visto el fallo — así que por defecto es una hipótesis del autor disfrazada de
+diagnóstico.** ⇒ **Un `A.exige` debería decir QUÉ se ha roto, no POR QUÉ**, y el porqué se investiga
+cuando salta.
+⚠️ Corolario: **un rojo se audita menos que un verde porque parece que ya ha hecho su trabajo.** La
+ley 36 decía *«un resultado decepcionante no despierta sospecha; uno bueno sí»* — **esto es su
+hermana: un fallo que confirma tu miedo tampoco la despierta.**
+
+**Traza:** `tools/grafo/circulacion-bici.js` (P2 y P5) · `docs/H2B-CIRCULACION-BICI.md` §5
