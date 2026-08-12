@@ -147,6 +147,8 @@ A.exige(sinTags === 0, `${sinTags} aristas no encuentran su way en el crudo: la 
 // P1 · EL VEREDICTO SOBRE LAS 98.774
 // ═════════════════════════════════════════════════════════════════════════════
 const ver = g.aristas.map((e) => veredicto(e, tagsDe.get(e.way) || {}));
+/** arista → su índice, para que un predicado pueda consultar `ver` sin copiar nada. */
+const indiceDe = new Map(g.aristas.map((e, i) => [e, i]));
 const idx = { circula: [], empuja: [], prohibido: [] };
 for (let i = 0; i < ver.length; i++) idx[ver[i]].push(i);
 const metrosDe = (l) => l.reduce((s, i) => s + g.aristas[i].largo, 0);
@@ -399,15 +401,15 @@ raya('─');
   log('     necesita su propio enganche**, y ese tramo se hace EMPUJANDO.');
   log('');
 
-  // ⭐⭐ SE LLAMA A LA FUNCIÓN DEL PROYECTO, NO SE COPIA (ley 56). Y para eso hay
-  //   que darle una adyacencia de bici. ⛔⛔ Y AQUÍ SALE EL HALLAZGO DE T2:
-  //   `adyacencia(nodos, aristas, soloAPie, …)` **no acepta un predicado: acepta
-  //   un booleano llamado `soloAPie`**. La única forma de reutilizarla sin tocar
-  //   `src/` es pasarle una COPIA de las aristas donde `pie` signifique «circula
-  //   en bici». Se hace, y se dice en voz alta: es un apaño de medición, no un
-  //   diseño, y es exactamente lo que hay que arreglar para meter esto al motor.
-  const aristasBici = g.aristas.map((e, i) => (ver[i] === 'circula' ? e : { ...e, pie: false }));
-  const { ady } = G.adyacencia(g.nodos, aristasBici, true, false);
+  // ⭐⭐⭐ TANDA DE ARREGLO 9 · EL APAÑO DE ESTA LÍNEA HA DESAPARECIDO, y es la
+  //   prueba de que la firma nueva sirve para lo que se cambió.
+  //   ⛔ Lo que había aquí antes: `adyacencia()` solo aceptaba el booleano
+  //     `soloAPie`, así que para conseguir una red de bici había que pasarle una
+  //     COPIA de las 98.774 aristas con `pie` redefinido —`{ ...e, pie: false }`—.
+  //     Era un apaño de medición declarado en voz alta, no un diseño.
+  //   ⭐ Ahora se le pasa el predicado y ya está. **Mismos números, sin copia.**
+  const pasaBici = (e) => ver[indiceDe.get(e)] === 'circula';
+  const { ady } = G.adyacencia(g.nodos, g.aristas, pasaBici, false);
   const gBici = { ...g, ady };
 
   const rPie = G.rutaEntre(g, o, d);
