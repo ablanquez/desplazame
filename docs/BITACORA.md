@@ -10453,3 +10453,64 @@ convivieron y la que viajó fue la conclusión.**
 
 **Traza:** `docs/H2B-CIRCULACION-BICI.md` §3 y §6 · `tools/grafo/enganche-bici.js` (P2) ·
 `docs/H2B-ENGANCHE-BICI.md` §2
+
+
+---
+
+## [2026-08-12] — Escribí el guardián del atajo y lo comparé contra otro atajo mío
+
+**Categoría:** método
+**Síntoma:** la ley 182 —*declarar un apaño no es medirlo*— salió ayer de una bitácora mía, y hoy la
+apliqué al primer atajo de esta tanda: el trayecto en BiZi se calcula **de nodo a nodo** en vez de
+insertar el punto proyectado dentro de la arista como hace el motor. Escribí el bloque que le pone su
+cifra al lado, y salió esto:
+
+```
+   andando, de NODO a NODO (lo que se usa aquí)        4697.0 m
+   andando, con el motor (`G.rutaEntre`)               4665.9 m
+   ⇒ lo que se pierde por no insertar el punto         -31.1 m   (0.7 %)
+```
+
+⛔⛔ **Y la línea del medio era falsa.** No es «con el motor»: es `G.rutaEntre` **con un punto de
+enganche que yo fabriqué** —`{ arista: eO.i, seg: 0, t: 0, q: pts[0] }`, es decir, forzando la
+proyección al primer vértice de la arista en vez de calcularla—. **Dos aproximaciones mías
+comparadas entre sí.** El número bueno, con `R.engancharPunto`, es **4.743,4 m**, y el atajo cuesta
+**46,4 m (1,0 %)**, no 31,1.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el `A.exige` que yo mismo acababa
+de escribir para vigilar el atajo.**
+
+```
+   A.exige(Math.abs(dif) < 100, 'el atajo de nodo a nodo se desvía … del motor')
+   ⇒ 31,1 < 100   ✅ pasa
+```
+
+**El guardián existía para comprobar que mi aproximación no se aleja del motor, y lo que comparó fue
+mi aproximación contra OTRA aproximación mía.** Habría pasado igual con cualquier número, porque las
+dos ramas comparten el mismo defecto.
+
+**Causa raíz:** ⛔ **la ley 55 en su forma más pura, incumplida mientras honraba la 182.** *«La
+comprobación va contra el MOTOR, no contra el propio fichero»* — y yo llamé a `G.rutaEntre`, que ES
+del motor, **pero le di de comer un punto que no salía de `R.engancharPunto`.** ⚠️ **Llamar a la
+función del proyecto no basta: hay que darle las entradas del proyecto.** Media llamada correcta
+produce un número con toda la pinta de ser el bueno.
+
+**Cómo se cazó:** ⭐ **porque el número no cuadraba con uno publicado.** La tanda 3 dejó escrito
+**4.743,4 m** para ese mismo par de puntos, y mi «con el motor» decía 4.665,9. **Sin esa cifra
+publicada al lado, el 4.665,9 habría pasado sin que nada chirriara** — y el guardián estaba en verde.
+
+**Arreglo aplicado:** el bloque llama a `R.engancharPunto` y reproduce **4.743,4 exacto**; el atajo
+queda medido en **46,4 m (1,0 %)** y se dice que **las dos ramas comparadas lo llevan igual**, así que
+la comparación BiZi ↔ andando vale y **los metros absolutos no son los del motor**.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un guardián que compara tu aproximación con otra aproximación tuya
+está midiendo tu consistencia, no tu exactitud — y sale verde exactamente igual.** ⇒ **El patrón
+externo de un atajo tiene que ser un número que NO haya salido de ti**: uno publicado, uno de otro
+instrumento, o el motor **con sus propias entradas**.
+⚠️ Corolario, y es el que me habría ahorrado el rato: **llamar a la función del proyecto no la
+convierte en el patrón externo si le pasas datos fabricados.** *Media llamada correcta es una llamada
+incorrecta con mejor aspecto.*
+
+**Traza:** `tools/grafo/estaciones-bizi.js` (P6) · `docs/H2B-ENGANCHE-BICI.md` §4 (4.743,4 m)
