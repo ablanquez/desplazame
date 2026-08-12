@@ -855,10 +855,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 156 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 157 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y seis instrumentos mintiendo** *(115 al cerrar H1 + 41 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y siete instrumentos mintiendo** *(115 al cerrar H1 + 42 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1039,6 +1039,8 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 155 | ⛔⛔ **SE COMPROBÓ, SE PUBLICÓ EL VERDE, Y DESPUÉS SE ESCRIBIÓ EL TEXTO QUE LO ROMPÍA.** Se corrió `superados.js`, salió `exit 0`, **se publicó en el chat como prueba de que estaba arreglado** — y a continuación se escribió la explicación que lo volvía a romper. ⇒ ***Comprobar y luego cambiar es no haber comprobado***, y **una edición «solo de documentación» invalida la comprobación entera** |
 | | **⬇ H1 · TANDA DE ARREGLO 9 (12/08) — UNO MÁS** ⬇ | |
 | 156 | ⛔⛔⛔ **UN APAÑO DECLARADO EN MAYÚSCULAS DENTRO DEL CÓDIGO QUE LO HACÍA, Y NADIE LO MIDIÓ.** Para construir la red de bici se le pasaba a `adyacencia` una **copia** de las aristas con `pie` redefinido, y `adyacencia` **seguía filtrando por `e.pie`** ⇒ **la condición real era `circula` Y `pie`.** Medido al caerse: **613 aristas que circulan tienen `foot=no`, y 180 son CARRIL BICI** ⇒ ***el apaño le prohibía a la bici justamente los sitios reservados para ella.*** ⭐ **Lo que dio verde: el informe entero de la tanda 2, publicado el mismo día.** ⚠️ *La pregunta que lo habría cazado en un comando —**«¿qué excluye este apaño que el predicado no excluiría?»**— nunca se hizo* |
+| | **⬇ H2b · TANDA 3 (12/08) — UNO MÁS** ⬇ | |
+| 157 | ⛔⛔⛔ **UN ADJETIVO PASÓ POR DONDE UN NÚMERO NO HABRÍA PASADO.** *«El hueco casi se triplica»* se escribió **con DOS casos** y **viajó hasta este documento**. Medido sobre los 46.150 portales: **1,39× en la mediana · 1,13× en el p99 · 1,00× en el máximo.** ⭐ **Lo que dio verde: NADA podía ponerse rojo, porque la afirmación no era un número — era un adjetivo**, y no hay nada que comparar. ⛔ **Y la causa: los dos casos eran EDIFICIOS, no portales** — *se midió una población y se habló de otra* (ley 158 contra quien la tiene escrita). ⚠️⚠️ **Y el corolario que más escuece: la tanda 2 declaraba «es un caso, no una muestra» en su §6 y generalizaba en su §3. Convivieron — y al estado viajó la conclusión** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1841,6 +1843,27 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     equivocadas**—, y «todo el grafo» **rutea por autovías sin ponerse rojo**.* ⇒ **Sin defecto:
     olvidarlo revienta.** ⭐ ***Un fallo que revienta se caza solo; el que degrada, no.***
 
+185. ⭐⭐⭐ **UN ADJETIVO NO TIENE DENOMINADOR, Y POR ESO VIAJA DONDE UN NÚMERO NO HABRÍA PASADO.**
+    *«Casi se triplica» atravesó un informe, una destilación y el documento de estado con 157
+    instrumentos y guardianes en cada esquina — **porque no había nada que comparar**. Medido: 1,39×.*
+    ⇒ **Un guardián compara cifras; la prosa cuantitativa no la vigila nada.** ⭐ **Toda palabra que
+    signifique una proporción —«casi», «apenas», «el doble», «se dispara»— se escribe con su cifra al
+    lado o no se escribe.**
+
+186. ⭐⭐⭐ **DECLARAR EL LÍMITE EN LA SECCIÓN DE LÍMITES NO PROTEGE LA CONCLUSIÓN.**
+    *La tanda 2 escribió «no es una muestra: es un caso» en su §6 y generalizó en su §3. Las dos
+    frases convivieron en el mismo documento — **y la que viajó al estado fue la conclusión**.*
+    ⇒ **El alcance de una afirmación va PEGADO a la afirmación, no en un apartado al final** — porque
+    quien destila lee la conclusión, y quien la lee después ya no ve el apartado.
+    ⚠️ *Hermana de la 182: declarar tranquiliza al que declara.*
+
+187. ⭐⭐ **CUANDO DOS MEDIDAS DE LO MISMO SE INVIERTEN EN LA MEDIANA Y EN LA COLA, NO HAY
+    CONTRADICCIÓN: HAY DOS PREGUNTAS.**
+    *La distancia recta a la red de bici da p50 7,4 y el tramo andado da 6,8 —menor—, porque **el
+    63,9 % de los portales engancha a una arista que ya es de bici** y empuja cero; pero en el p99 se
+    invierte (101,1 contra 73,9) porque ahí hay que rodear.* ⇒ ⭐ **Una media habría escondido las dos
+    cosas y habría parecido un error de cálculo.**
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1969,7 +1992,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2b·0** | ⭐⭐⭐ **LA UNIDAD DE COSTE** — 18 km/h con procedencia citada | **H2b** | ✅ **12/08** ⭐ **y la del bus, encontrada** |
 | **H2b·2** | ⭐⭐⭐ **LA CIRCULACIÓN DE LA BICI** — la que podía fallar en verde | **H2b** | ✅ **12/08** ⭐ **no cayó: 79 m de carril en 4,8 km** |
 | **Ar 9** | ⭐⭐⭐ **`adyacencia` DEJA DE SABER DE MODOS** — se reabre H1 por una rendija | **H1** | ✅ **12/08** ⭐ **las nueve rutas, idénticas** |
-| **H2b·3** | *(siguiente: **el enganche propio de la bici**)* | **H2b** | ⬜ |
+| **H2b·3** | ⭐⭐⭐ **EL ENGANCHE PROPIO DE LA BICI** | **H2b** | ✅ **12/08** ⛔ **corrige «se triplica»: es 1,39×** |
+| **H2b·4** | *(siguiente: **las estaciones BiZi**)* | **H2b** | ⬜ |
 | **H2b·3** | Las estaciones BiZi · **H2b·4** la combinación · **H2b·5** la bici propia | **H2b** | ⬜ |
 | **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
 
@@ -4204,7 +4228,10 @@ consecuencia, y es DECISIÓN DE PRODUCTO.**
    ⛔ con el enganche de andar ⇒ SIN CAMINO      ⭐ con enganche propio ⇒ 4.788,9 m
 ```
 *Un edificio da a la acera, y **por una acera no se rueda*** — con el grafo sano (94,3 % en la mayor).
-⇒ **La bici necesita SU PROPIO enganche, y el hueco casi se triplica.** ⚠️⚠️ **Y es el mismo problema
+⇒ **La bici necesita SU PROPIO enganche** ~~y el hueco casi se triplica~~ ⛔⛔ **CORREGIDO EL 12/08
+(H2b·3): «casi se triplica» ERA FALSO.** Sobre los 46.150 portales el factor es **1,39× en la
+mediana, 1,13× en el p99 y 1,00× en el máximo**. *Los dos casos eran **EDIFICIOS**, no portales:
+se midió una población y se habló de otra* (§7·157). ⚠️⚠️ **Y es el mismo problema
 que espera a las 276 estaciones BiZi**, que era la tanda siguiente.
 
 **⚠️ `oneway` — MEDIDO, NO RESUELTO:** **23.499 de las 49.972 que circulan (47,0 %), 1.008,5 km.**
@@ -4318,6 +4345,61 @@ de las nueve rutas la activa ⇒ **la rama que combina predicado + condicionales
 no es teórica: son 196 aristas** · una llamada desde fuera de `src/ruta.js` *(hoy no hay ninguna, y
 el `throw` es lo único que la protege)* · ninguna ruta de bici de producto · **nada con `oneway`: la
 red de bici es no dirigida.**
+
+### ⭐⭐⭐ H2b · TANDA 3 (12/08) — EL ENGANCHE PROPIO DE LA BICI. `docs/H2B-ENGANCHE-BICI.md`.
+⛔ **Ni una línea de `src/`:** la rendija de la tanda de arreglo 9 se cerró.
+
+> ⭐⭐ **EL POSITIVO DE CONTROL, PRIMERO — y sin él nada de lo demás valdría:**
+> la misma muestra determinista de **2.308** portales que usó H2·5, medida con código propio:
+> **p99 = 65,4 m contra los 65,4 publicados. Desvío 0,0 m sobre las OCHO columnas.**
+> ⭐ **Con provocación**: la muestra inflada un 50 % ⇒ el control lo cazaría (p99 98,0). ⛔ *Y la
+> tolerancia se apretó a 1 m —la hermana usa 10— porque aquí se contrasta contra **la misma
+> medición**, no contra una parecida.*
+
+```
+   población                     n    mín   p50    p75    p90    p95    p99    máx
+   PORTALES → red PEATONAL   46150    0,0   5,3    8,8   18,0   27,0   65,2  303,1
+   ⭐ PORTALES → red de BICI  46150    0,0   7,4   14,0   30,8   43,4   73,9  303,1
+   factor                                  1,39×  1,59×  1,71×  1,61×  1,13×  1,00×
+```
+
+**⛔⛔ Y ESTO CORRIGE UNA CONCLUSIÓN DE LA TANDA 2 QUE YA ESTABA DESTILADA AQUÍ.**
+Se escribió *«el hueco casi se triplica»* **con DOS casos**. Es **1,39× en la mediana**.
+✅ **Sigue en pie: la bici necesita su propio enganche** —con el de andar, la ruta no existe—.
+⛔ **Se cae: el tamaño del problema.** ⭐ **Y la causa está medida: los dos casos eran EDIFICIOS**
+—un centro comercial y una estación, con su centroide lejos de cualquier calle—, **no portales.**
+⚠️⚠️ **La cola CONVERGE:** en el p99 los dos números casi coinciden y **el máximo es idéntico (303,1
+m)** ⇒ ***los portales peores no están lejos de la bici: están lejos de TODO.***
+
+| | qué | |
+|---|---|---|
+| ⭐⭐⭐ | **Nadie se queda fuera** | **0 portales sin arista de bici a 350 m**, y **solo 179 (0,4 %)** no la alcanzan **andando**. ⭐ *Y a partir de 150 m las dos columnas son la MISMA hasta el último portal: **la bici solo penaliza en el tramo corto**, que es donde se resuelve empujando* |
+| ⭐⭐⭐ | **EL CRITERIO: se engancha a pie y se EMPUJA hasta la calzada** | Tres salidas medidas: **A** enganchar a la arista `circula` más cercana *(p50 7,4 · 0 fuera,* ⚠️ *pero **TELETRANSPORTA**: pone al ciclista sobre la calzada sin decir cómo llegó)* · ⭐ **B** empujar *(p50 **6,8 m** · p90 **26,9 m** · 179 no llegan)* · **C** declarar sin camino *(⛔ **descartada por el dato**: tirar el 99,6 % por 179 casos)*. ⇒ ***B es la única que describe lo que pasa de verdad: A da un número más bonito y esconde el tramo; B lo cuenta*** |
+| ⭐⭐ | **Y el número que explica la paradoja aparente** | **El 63,9 % de los portales engancha a una arista que YA es de bici** ⇒ **empujan cero.** *Por eso la mediana andada (6,8) baja por debajo de la recta (7,4): **no es una paradoja, son dos preguntas** — la recta va a la arista de bici más cercana, la andada va por el grafo.* ⚠️ **Y en la cola se invierte**: p99 andado **101,1** contra 73,9 recto, *porque ahí sí hay que rodear.* ⛔ **Medido, no razonado**, y con guardián si baja de la mitad |
+| ⭐ | **El Dijkstra multiorigen lleva su control** | Un solo Dijkstra desde los **39.142 nodos** que tocan una arista de bici. ⛔ **No es una muestra: son todas.** ⭐ Y como es código propio y no del proyecto: **con un origen da idéntico nodo a nodo que `G.dijkstra`** |
+| ⭐ | **El carril bici de la ruta de ejemplo: de 79 m a 306 m (6,4 %)** | ⇒ **×3,9 al caerse el apaño de la tanda de arreglo 9** — *aquel hallazgo se cierra con una cifra.* ⛔ **Y aun así el 54,7 % va por avenida principal: la bici va entre coches** |
+| ⛔ | **Lo que la ruta NO cuenta** | **219,1 m empujando en el origen + 4.651,3 rodando + 125,6 en el destino = 4.996,0 m.** *Los dos extremos son de los peores del reparto y suman el **6,9 %** del trayecto* ⚠️ **y no es casualidad: los dos POI son edificios grandes — la misma población que causó el error de arriba** |
+
+**⛔ DECISIÓN DE PRODUCTO, DECLARADA: el primer y el último tramo de una ruta en bici se hacen
+ANDANDO**, empujando. *Quien pida una ruta en bici va a ver «saca la bici y anda X metros hasta la
+calle».* ⚠️ **Y 179 portales (0,4 %) no alcanzan la red andando** — *no es un listón que se pueda
+aflojar: están en componentes peatonales que no tocan ninguna arista de bici.*
+
+**⭐ QUÉ FALTA PARA QUE UN TRAYECTO EN BICI TENGA DURACIÓN, y es corto:** el trayecto tiene **tres
+regímenes —empujar · rodar · empujar— y una sola constante.** ⇒ **(1)** una velocidad para `empuja`,
+**adoptada como se adoptó la de rodar** *(ORS da a la acera una cifra muy inferior a la de calzada, y
+a las escaleras la mitad de ésa)* · **(2)** que el tramo empujado **forme parte del trayecto y no sea
+un número al lado** — *hoy la ruta son 4.651,3 m y el trayecto 4.996,0: **dos objetos distintos y solo
+uno se calcula*** · ⭐ **(3) nada más: NO hace falta el reloj.**
+
+**⚠️ QUÉ NO SE HA PROBADO, y esta vez dicho antes:** ⛔ **los 179 que no alcanzan la red andando están
+CONTADOS Y NO MIRADOS** — *«tiene la forma del hallazgo de los tres barrios incomunicados de H1»*, y
+aquello resultó ser verdad · ningún portal con `numero-aproximado` *(entran los 46.150 tal cual, **sin
+mirar su calidad**)* · ninguno de los tres barrios que H1 excluyó · **ni un caso mirado sobre el
+mapa** · ⚠️ **y la ruta del ejemplo no es un portal: son dos EDIFICIOS** ⇒ *no es una muestra, es un
+caso, y su 6,9 % de empuje no se lee como propiedad de las rutas en bici.*
+⚠️ **Y sigue NO DIRIGIDA:** `oneway=yes` en **23.499 de 49.972 (47,0 %)** ⇒ **la ruta del ejemplo
+puede llevar contramanos dentro y no se ha mirado.**
 
 **DECISIONES NUEVAS DE H2:**
 
