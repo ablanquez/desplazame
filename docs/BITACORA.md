@@ -10393,3 +10393,63 @@ vieja en pie**, porque el campo sigue significando lo suyo en todo lo que no toc
 
 **Traza:** `tools/grafo/circulacion-bici.js` (P5) · `docs/H2B-CIRCULACION-BICI.md` §2 (4.788,9 m) ·
 `docs/H1-ARREGLO-9-FIRMA-ADYACENCIA.md` §4
+
+
+---
+
+## [2026-08-12] — «El hueco casi se triplica» salió de dos casos y viajó al documento de estado
+
+**Categoría:** método / datos
+**Síntoma:** la tanda 2 publicó, sobre el enganche de la bici:
+
+> *«⇒ ⭐⭐ **La bici necesita SU PROPIO ENGANCHE, y el hueco casi se triplica** (28,7 → 65,6 m ·
+> 31,1 → 99,1 m).»*
+
+Medido hoy sobre **los 46.150 portales del callejero**, con el mismo instrumento que reproduce el
+control de H2·5:
+
+```
+   percentil        peatonal       bici    factor
+   p50                 5.3 m      7.4 m     1.39×
+   p75                 8.8 m     14.0 m     1.59×
+   p90                18.0 m     30.8 m     1.71×
+   p99                65.2 m     73.9 m     1.13×
+   max               303.1 m    303.1 m     1.00×
+   ⛔ portales SIN arista de bici a 350 m ...... 0   (0,0 %)
+```
+
+⇒ **No se triplica: se multiplica por 1,39 en la mediana, y en la cola se IGUALA.** Y andando por el
+grafo la mediana del tramo empujando son **6,8 m**, porque **el 63,9 % de los portales engancha a una
+arista que ya es de bici**.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **nada podía ponerse rojo, y eso es
+lo importante: la afirmación no era un número, era un ADJETIVO.** Los dos casos que la sostienen son
+correctos y están bien medidos —28,7 → 65,6 y 31,1 → 99,1—; lo falso es la generalización. ⛔ **Y
+viajó: se destiló al documento de estado y volvió en el encargo siguiente como premisa**, escrita
+igual, para justificar la tanda de hoy.
+
+**Causa raíz:** ⭐⭐ **medí una población y hablé de otra.** Los dos casos son `Estación Delicias` y
+`C.C. Utrillas`: **EDIFICIOS grandes**, con su centroide lejos de cualquier calle. Un portal es una
+puerta en una fachada que da a una calle. **Que un centro comercial esté lejos de la calzada no dice
+nada de los 46.150 portales**, y yo escribí la conclusión como si sí.
+⚠️ Y el instrumento me lo había dicho: la tanda 2 declara que sus dos POI *«no es una muestra: es un
+caso»*. **Lo escribí en la sección de límites y lo contradije en la de conclusiones.**
+
+**Cómo se cazó:** midiéndolo, que es lo que el encargo de hoy pedía en su T1. ⭐ **No lo cazó una
+revisión: lo cazó que alguien pidiera la distribución.**
+
+**Arreglo aplicado:** ninguno en el código —no hay código que arreglar—. ⛔ **El informe de la tanda 2
+NO se reescribe**: la corrección se publica en el de hoy, con la distribución delante.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un ADJETIVO no tiene denominador, y por eso viaja donde un número
+no habría pasado.** *«Casi se triplica»* no lleva su `n` pegada; si hubiera escrito *«3,2× sobre 2
+casos»*, alguien —yo mismo— habría preguntado por la muestra. ⇒ **Toda comparación cualitativa
+publicada necesita su n al lado, o se escribe como caso y no como propiedad.**
+⚠️ Corolario del proyecto: **declarar el límite en la sección de límites no protege la conclusión.**
+La tanda 2 decía *«es un caso, no una muestra»* en su §6 y generalizaba en su §3. **Las dos frases
+convivieron y la que viajó fue la conclusión.**
+
+**Traza:** `docs/H2B-CIRCULACION-BICI.md` §3 y §6 · `tools/grafo/enganche-bici.js` (P2) ·
+`docs/H2B-ENGANCHE-BICI.md` §2
