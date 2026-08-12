@@ -8,19 +8,63 @@
 const { dist } = require('./geo');
 
 /**
- * Lista de adyacencia. `soloAPie` deja fuera las aristas por donde no se puede andar.
+ * ⭐ EL PREDICADO DE ANDAR. Vive aquí, al lado de quien lo consume, para que no se
+ *    copie: `(e) => e.pie` escrito en cuatro sitios son cuatro sitios que pueden
+ *    divergir (ley 56 — no copies la regla, llama a la función).
+ * ⛔ Y NO decide QUIÉN puede andar: `e.pie` ya viene decidido de `planarizar.js`,
+ *    que es el único que mira los tags. Esto solo lo lee.
+ */
+const PASA_A_PIE = (e) => e.pie;
+
+/**
+ * Lista de adyacencia. **`pasa(e)` decide qué aristas entran en la red.**
+ *
+ * ═════════════════════════════════════════════════════════════════════════════
+ * ⭐⭐⭐ TANDA DE ARREGLO 9 (12/08/2026) · EL MODO DEJA DE SER UN BOOLEANO
+ * ═════════════════════════════════════════════════════════════════════════════
+ *   Hasta hoy el tercer parámetro era `soloAPie = true`. ⇒ **el modo no era un
+ *   predicado: era un booleano con el nombre de un modo**, y por eso el grafo no
+ *   sabía construir la red de nada que no fuera un peatón. Medido en H2b·2: la
+ *   bici salía `SIN CAMINO` desde cualquier portal.
+ *
+ *   ⭐ Y la forma correcta ya existía en el fichero de al lado:
+ *     `src/portales.js:250` — `indexarAristas(aristas, filtro, celda)`.
+ *     **No se inventa un diseño: se iguala una firma.**
+ *
+ * ⛔⛔ POR QUÉ EL PREDICADO ES OBLIGATORIO Y NO TIENE VALOR POR DEFECTO
+ *   Cualquier defecto es una decisión tomada en nombre de quien llama, y aquí las
+ *   dos posibles son malas:
+ *     · defecto «solo a pie» — es el de antes, y **esconde el modo otra vez**:
+ *       una llamada de bici que olvide el predicado devolvería la red peatonal y
+ *       daría rutas plausibles y equivocadas.
+ *     · defecto «todo el grafo» — **peor**: rutaría por autovías sin ponerse roja.
+ *   ⇒ **Sin defecto, olvidarlo REVIENTA.** Un fallo que revienta se caza solo; el
+ *     que degrada, no (ley 61). Cuesta escribir un argumento más en 2 llamadas.
+ *
  * ⭐ `sinCondicionales` deja fuera además los PASOS CONDICIONALES: sitios por los
  *    que se puede andar pero no siempre —un pasaje bajo un edificio, un pasillo
  *    interior, un ascensor—. Siguen en el grafo porque existen; simplemente el
  *    enrutador no cuenta con ellos. Decisión de Antonio: se ignoran para calcular,
  *    pero se marcan y se cuentan.
+ * ⚠️ Y NO se ha fundido con `pasa`, aunque se parezcan: `pasa` dice *por dónde
+ *    circula este modo* y `sinCondicionales` dice *cuánto me fío de este sitio*.
+ *    Son dos preguntas y juntarlas volvería a esconder una dentro de la otra.
+ *
+ * @param {(e:object)=>boolean} pasa OBLIGATORIO. `G.PASA_A_PIE` para el peatón.
  */
-function adyacencia(nodos, aristas, soloAPie = true, sinCondicionales = false) {
+function adyacencia(nodos, aristas, pasa, sinCondicionales = false) {
+  // ⛔ El mensaje nombra el caso real que puede darse: alguien que actualiza una
+  //   llamada vieja y deja el `true` que había.
+  if (typeof pasa !== 'function') {
+    throw new Error('⛔ adyacencia() exige un PREDICADO como tercer argumento, y ha recibido '
+      + `\`${JSON.stringify(pasa)}\`. Desde la tanda de arreglo 9 el modo no es un booleano: `
+      + 'para la red peatonal se pasa `G.PASA_A_PIE`.');
+  }
   const ady = Array.from({ length: nodos.length }, () => []);
   let usadas = 0;
   for (let i = 0; i < aristas.length; i++) {
     const e = aristas[i];
-    if (soloAPie && !e.pie) continue;
+    if (!pasa(e)) continue;
     if (sinCondicionales && e.condicional) continue;
     ady[e.a].push({ n: e.b, w: e.largo, e: i });
     ady[e.b].push({ n: e.a, w: e.largo, e: i });
@@ -328,5 +372,5 @@ function rutaEntre(g, oP, dP, opciones = {}) {
     nodoOrigen: a, nodoDestino: b, pasos };
 }
 
-module.exports = { adyacencia, componentes, articulaciones, dijkstra, nodoMasCercano,
+module.exports = { adyacencia, PASA_A_PIE, componentes, articulaciones, dijkstra, nodoMasCercano,
   reconstruir, insertar, alLargoDeLaArista, rutaEntre, Cola };

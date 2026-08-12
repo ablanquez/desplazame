@@ -10325,3 +10325,71 @@ documentos que los describen, y con ésos DOCUMENTAR ES MODIFICAR LO VIGILADO.**
 que cazaron citándolo: hay que contarlo describiéndolo, o escribirlo en un acta exenta.
 
 **Traza:** `src/superados.js:263` (`esActa`) y `:272` · `docs/H2B-CIRCULACION-BICI.md` §8
+
+
+---
+
+## [2026-08-12] — El apaño que declaré en voz alta hacía que la bici heredara las prohibiciones del peatón
+
+**Categoría:** motor / método
+**Síntoma:** al cambiar la firma de `adyacencia` y quitar el apaño de la tanda 2, la ruta de ejemplo
+en bici **se movió**:
+
+```
+   con el apaño (tanda 2, publicado)   4.788,9 m · 155 aristas
+   con el predicado de verdad          4.651,3 m · 150 aristas
+```
+
+**El apaño construía la red de bici pasándole a `adyacencia` una COPIA de las 98.774 aristas con
+`pie` redefinido** —`ver[i] === 'circula' ? e : { ...e, pie: false }`— y `adyacencia` seguía
+filtrando por `e.pie`. ⇒ **la condición real era `circula` Y `pie`, no `circula`.**
+
+```
+   aristas «circula» ................................ 49972
+   ⛔ …de ellas con e.pie = false .................... 613     ⇐ el apaño las tiraba TODAS
+      por motivo: foot=no: 613
+      por clase:  cycleway 180 · secondary 145 · primary 124 · residential 92 · tertiary 30 …
+```
+
+⭐⭐⭐ **Y las 180 peores son carril bici con `foot=no`: lo más «solo bicis» que existe en OSM.** El
+apaño le prohibía a la bici justamente los sitios reservados para ella.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el informe entero de la tanda 2, y
+el apaño estaba DECLARADO en mayúsculas dentro del código que lo hacía:**
+
+> *«La única forma de reutilizarla sin tocar `src/` es pasarle una COPIA de las aristas donde `pie`
+> signifique “circula en bici”. Se hace, y se dice en voz alta: **es un apaño de medición, no un
+> diseño**.»*
+
+⛔ **Declararlo es exactamente lo que hizo que dejara de mirarlo.** Un apaño confesado se siente
+resuelto: queda escrito, queda honesto, y **nadie vuelve a preguntarle qué hace**. ⚠️ Y la pregunta
+que lo habría cazado en un comando era una sola: ***¿qué excluye este apaño que el predicado no
+excluiría?*** — nunca la hice.
+
+⚠️ Y lo arropaba que **todos los demás números de la tanda 2 son correctos y no se mueven**: el
+veredicto `circula` (49.972), el 4,7 % del fallo predicho, las componentes. **Ninguno pasa por
+`adyacencia`.** Solo se movía lo que se ruteaba.
+
+**Causa raíz:** el apaño **redefinía el significado de un campo** (`pie`) en vez de expresar una
+condición. Un campo redefinido sigue teniendo su valor viejo para todo lo que no se copió, y aquí lo
+que no se copió era **la mitad de la condición**.
+
+**Cómo se cazó:** quitando el apaño. ⭐ **No lo cazó una revisión: lo cazó sustituirlo por lo bueno y
+comparar.** Es el tercer camino de la ley 154 sin buscarlo.
+
+**Arreglo aplicado:** la firma de `adyacencia` acepta un predicado desde esta tanda, así que el apaño
+**desaparece** y el instrumento pasa `(e) => ver[indiceDe.get(e)] === 'circula'`. ⛔ **El informe de
+la tanda 2 NO se reescribe** —es registro histórico—: la corrección se publica en el documento de
+esta tanda, diciendo qué corrige y por qué.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **declarar un apaño no es medirlo — y declararlo es lo que hace que
+dejes de mirarlo.** La confesión da la sensación de haberlo tratado. ⇒ **Todo apaño declarado necesita
+una cifra al lado: QUÉ hace de más o de menos frente a lo que sustituye**, medida el día que se
+escribe.
+⚠️ Corolario técnico: **redefinir un campo para colar una condición deja la mitad de la condición
+vieja en pie**, porque el campo sigue significando lo suyo en todo lo que no tocaste.
+
+**Traza:** `tools/grafo/circulacion-bici.js` (P5) · `docs/H2B-CIRCULACION-BICI.md` §2 (4.788,9 m) ·
+`docs/H1-ARREGLO-9-FIRMA-ADYACENCIA.md` §4

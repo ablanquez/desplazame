@@ -114,7 +114,10 @@ function construir(zona, opciones = {}) {
   // el nombre de lo que atraviesa cada paso condicional: campo, no consulta suelta
   const nombrados = C.nombrar(aristas, aGrados);
 
-  const { ady, usadas } = G.adyacencia(nodos, aristas, true, sinCond);
+  // ⭐ TANDA DE ARREGLO 9 · el `true` de aquí era el modo escondido en un booleano.
+  //   `G.PASA_A_PIE` dice lo mismo y lo dice en voz alta. ⛔ El resultado tiene que
+  //   ser IDÉNTICO: es la condición con la que se aprobó reabrir H1.
+  const { ady, usadas } = G.adyacencia(nodos, aristas, G.PASA_A_PIE, sinCond);
   const comp = G.componentes(nodos, ady);
   // ⭐ el nombre de cada way, UNA vez y desde el mismo recorte que produjo el grafo.
   //    Antes cada consumidor releía los 37 MB del crudo por su cuenta para sacar lo
