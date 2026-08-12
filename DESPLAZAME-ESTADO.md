@@ -855,10 +855,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 155 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 156 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y cinco instrumentos mintiendo** *(115 al cerrar H1 + 40 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y seis instrumentos mintiendo** *(115 al cerrar H1 + 41 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1037,6 +1037,8 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | | **⬇ H2b · TANDA 2 (12/08) — DOS MÁS** ⬇ | |
 | 154 | ⛔⛔⛔ **UN GUARDIÁN CUYO UNIVERSO INCLUYE LOS DOCUMENTOS QUE LO DESCRIBEN: DOCUMENTAR ES MODIFICAR LO VIGILADO.** `src/superados.js` puso la batería en rojo **tres veces seguidas**, y **ninguna la rompió el código**: la 1ª fue citar una velocidad de ORS que comparte cadena con una cifra retirada, la 2ª **el texto que explicaba la 1ª**, la 3ª **el texto que explicaba la 2ª**. ⇒ ***Está hecho exactamente de las cadenas que prohíbe.*** ⭐ **El proyecto ya tenía el sitio previsto —la bitácora, que `esActa()` exime— y se escribía en el otro.** ⚠️ *Explica de paso el `⟨…⟩` que no se podía retirar y el falso «choque con la bitácora»* |
 | 155 | ⛔⛔ **SE COMPROBÓ, SE PUBLICÓ EL VERDE, Y DESPUÉS SE ESCRIBIÓ EL TEXTO QUE LO ROMPÍA.** Se corrió `superados.js`, salió `exit 0`, **se publicó en el chat como prueba de que estaba arreglado** — y a continuación se escribió la explicación que lo volvía a romper. ⇒ ***Comprobar y luego cambiar es no haber comprobado***, y **una edición «solo de documentación» invalida la comprobación entera** |
+| | **⬇ H1 · TANDA DE ARREGLO 9 (12/08) — UNO MÁS** ⬇ | |
+| 156 | ⛔⛔⛔ **UN APAÑO DECLARADO EN MAYÚSCULAS DENTRO DEL CÓDIGO QUE LO HACÍA, Y NADIE LO MIDIÓ.** Para construir la red de bici se le pasaba a `adyacencia` una **copia** de las aristas con `pie` redefinido, y `adyacencia` **seguía filtrando por `e.pie`** ⇒ **la condición real era `circula` Y `pie`.** Medido al caerse: **613 aristas que circulan tienen `foot=no`, y 180 son CARRIL BICI** ⇒ ***el apaño le prohibía a la bici justamente los sitios reservados para ella.*** ⭐ **Lo que dio verde: el informe entero de la tanda 2, publicado el mismo día.** ⚠️ *La pregunta que lo habría cazado en un comando —**«¿qué excluye este apaño que el predicado no excluiría?»**— nunca se hizo* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1817,6 +1819,28 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     ⇒ ⭐ **Corolario: un rojo se audita menos que un verde, porque parece que ya ha hecho su trabajo.**
     *Tres rojos seguidos culparon al código y los tres los causaba el documento.*
 
+182. ⭐⭐⭐ **DECLARAR UN APAÑO NO ES MEDIRLO — Y DECLARARLO ES LO QUE HACE QUE DEJES DE MIRARLO.**
+    *El apaño de la red de bici estaba escrito en mayúsculas dentro del código que lo hacía, y aun así
+    excluía 613 aristas —180 de ellas carril bici— durante un informe entero.* ⇒ **Todo apaño
+    declarado necesita UNA CIFRA AL LADO: qué hace de más o de menos frente a lo que sustituye.**
+    ⭐ **Y la pregunta que lo caza cabe en un comando: *«¿qué excluye este apaño que la versión buena
+    no excluiría?»*** ⚠️ *La declaración tranquiliza al que la escribe y al que la lee: por eso es
+    peor que el silencio si no va acompañada de su medida.*
+
+183. ⭐⭐⭐ **UN RESULTADO IDÉNTICO NO VALE NADA HASTA DEMOSTRAR QUE EL CÓDIGO NUEVO SE EJECUTA.**
+    *Una firma que ignorase su parámetro habría dado exactamente los mismos idénticos que la que lo
+    honra.* ⇒ **Antes de creerse una contraprueba de no-regresión hay que enseñar que el camino nuevo
+    está vivo**: aquí, que **la llamada vieja revienta** y que **tres predicados dan tres resultados
+    distintos** (94.570 · 98.774 · 0). ⭐ *Es la ley 152 aplicada al propio cambio: el «no se movió
+    nada» necesita su «esto sí se mueve».*
+
+184. ⭐⭐ **UN PARÁMETRO QUE ES UN BOOLEANO CON EL NOMBRE DE UN MODO ESCONDE UNA PREGUNTA DENTRO DE
+    OTRA — Y UN DEFECTO LA VUELVE A ESCONDER.**
+    *`soloAPie = true` decidía el modo por quien llamaba. Los dos defectos posibles eran malos:
+    «solo a pie» devuelve la red peatonal a una llamada de bici que lo olvide —**rutas plausibles y
+    equivocadas**—, y «todo el grafo» **rutea por autovías sin ponerse rojo**.* ⇒ **Sin defecto:
+    olvidarlo revienta.** ⭐ ***Un fallo que revienta se caza solo; el que degrada, no.***
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1944,6 +1968,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2b·1** | ⭐⭐⭐ **EL DISEÑO EN PAPEL — qué es un modo** | **H2b** | ✅ **12/08** ⛔ **`MODOS` no sirve** |
 | **H2b·0** | ⭐⭐⭐ **LA UNIDAD DE COSTE** — 18 km/h con procedencia citada | **H2b** | ✅ **12/08** ⭐ **y la del bus, encontrada** |
 | **H2b·2** | ⭐⭐⭐ **LA CIRCULACIÓN DE LA BICI** — la que podía fallar en verde | **H2b** | ✅ **12/08** ⭐ **no cayó: 79 m de carril en 4,8 km** |
+| **Ar 9** | ⭐⭐⭐ **`adyacencia` DEJA DE SABER DE MODOS** — se reabre H1 por una rendija | **H1** | ✅ **12/08** ⭐ **las nueve rutas, idénticas** |
+| **H2b·3** | *(siguiente: **el enganche propio de la bici**)* | **H2b** | ⬜ |
 | **H2b·3** | Las estaciones BiZi · **H2b·4** la combinación · **H2b·5** la bici propia | **H2b** | ⬜ |
 | **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
 
@@ -4217,6 +4243,81 @@ lado.***
 ⛔ **DECISIÓN PENDIENTE DE ANTONIO:** `superados.js` **no distingue una cifra propia superada de la
 misma cifra citada de un tercero. Va a volver a saltar.** La solución durable **edita un recuento
 declarado en `src/`.**
+
+### ⭐⭐⭐ H1 · TANDA DE ARREGLO 9 (12/08) — `adyacencia` DEJA DE SABER DE MODOS.
+`docs/H1-ARREGLO-9-FIRMA-ADYACENCIA.md`. **Se reabrió H1 por una rendija y se cerró en la misma
+tanda**, con la condición de la tanda de arreglo 8.
+
+```
+   antes   adyacencia(nodos, aristas, soloAPie = true, sinCondicionales = false)
+   ahora   adyacencia(nodos, aristas, pasa,            sinCondicionales = false)
+```
+⭐ **No se inventó un diseño: se igualó una firma.** La forma correcta ya vivía en el fichero de al
+lado — `src/portales.js:250`, `indexarAristas(aristas, filtro)`.
+⭐ **Y `PASA_A_PIE` vive exportado en `grafo.js` para que la regla no se copie** (ley 56).
+⚠️ **Lo que NO se fundió, aunque se parezca:** `sinCondicionales` sigue aparte. ***`pasa` dice por
+dónde circula este modo; `sinCondicionales` dice cuánto me fío de este sitio. Juntarlos habría vuelto
+a esconder una pregunta dentro de otra*** — que es el defecto que la tanda venía a quitar.
+
+> ⭐⭐⭐ **H1 NO SE HA MOVIDO, Y LA PRUEBA NO ADMITE INTERPRETACIÓN:**
+> **Las nueve rutas que resuelven salen idénticas en METROS Y EN LA LISTA DE ÍNDICES DE ARISTA** —
+> un solo sha para la línea entera, `65a16a41…`, **antes y después.** Grafo **68.649 · 98.774 · 170
+> componentes · 94.570 a pie**, los cuatro iguales. **Los 26 congelados, `exit 0`.**
+> ⭐⭐ **Y el artefacto de los 2.538: `e3a3a81a…`, 506.524 bytes, byte a byte** — *la prueba más
+> exigente de las tres, porque los enlaces se calculan sobre este mismo grafo.*
+
+**⭐⭐⭐ Y EL IDÉNTICO VALE PORQUE PRIMERO SE DEMOSTRÓ QUE EL CÓDIGO NUEVO SE EJECUTA:**
+```
+   la llamada vieja  adyacencia(…, true, …)     ✅ REVIENTA
+   PASA_A_PIE 94.570  ·  ()=>true 98.774  ·  ()=>false 0   ⇒ el parámetro se HONRA
+   provocación: +0,1 m en UNA ruta ✅ lo caza · UN índice cambiado ✅ lo caza
+```
+⛔ ***Una firma que ignorase su parámetro habría dado exactamente los mismos idénticos.*** ⭐ **Y las
+dos provocaciones importan por separado: una ruta puede medir lo mismo yendo por otro sitio.**
+
+**⭐⭐ SIN VALOR POR DEFECTO, y el argumento:** *«solo a pie»* **esconde el modo otra vez** —una
+llamada de bici que lo olvide devuelve la red peatonal y **da rutas plausibles y equivocadas**—;
+*«todo el grafo»* **es peor: rutaría por autovías sin ponerse roja.** ⇒ **Olvidarlo REVIENTA.**
+***Un fallo que revienta se caza solo; el que degrada, no*** (ley 61). **El precio son dos argumentos
+en dos llamadas** — porque **hay UNA sola llamada de producción: `src/ruta.js:117`.**
+
+> ⛔⛔⛔ **Y SÍ SE MOVIÓ ALGO — pero no de H1: DE UN NÚMERO PUBLICADO AYER.**
+> ```
+>    ruta de ejemplo en bici   4.788,9 m · 155 aristas  →  4.651,3 m · 150
+> ```
+> Al caerse el apaño se destapó que **exigía `circula` Y `pie`**, y ⛔ **613 aristas que circulan
+> tienen `foot=no` — 180 de ellas CARRIL BICI.**
+> ⇒ ⭐⭐⭐ ***El apaño le prohibía a la bici justamente los sitios reservados para ella.***
+> ⭐ **Lo que dio verde mientras vivía: el informe entero de la tanda 2 — y el apaño estaba declarado
+> EN MAYÚSCULAS dentro del código que lo hacía.** ⚠️ *La pregunta que lo habría cazado en un comando
+> —**¿qué excluye este apaño que el predicado no excluiría?**— nunca se hizo.*
+> ✅ **Y qué NO se mueve:** el veredicto `circula` (49.972), el 4,7 % del fallo predicho, las
+> componentes, el enganche y el `oneway`. **Ninguno pasa por `adyacencia`.**
+
+**⭐ LA RED DE BICI, ENCHUFADA Y SOLO ENCHUFADA:** **49.972 aristas (50,6 %) · 4.870,8 km · 176
+componentes**, la mayor con **37.912 de 39.142 nodos (96,9 %)**.
+⚠️ *176 y no 178: la tanda 2 publicó 178 para la variante de **clase sola**; aquí el predicado añade
+el filtro del dato (`bicycle=no`, `access=no`), que quita **287 aristas** y con ellas **dos
+componentes enteras**.* ⛔ **No hay enganche de bici, ni tiempos, ni rutas de producto.**
+
+**⛔ T4 · `superados.js` — PARADO, y el motivo es mejor que la costura que lo permitía.**
+No es que no quepa: **es que el concepto no encaja.** `src/superados.js:346` hace
+`(p.contexto && !p.contexto.test(l) ? ajenas : propias)` ⇒ **`contexto` identifica lo PROPIO, y una
+línea es ajena CUANDO NO CASA.** Pero *«tal router usa esa cifra como velocidad»* **lleva el contexto
+propio y sigue sin ser nuestro dato.** ⇒ ***«citado de un tercero» no es «le falta mi contexto»: son
+dos ejes.***
+⛔⛔ **Y el modo de fallo del atajo es el peor posible:** habría que escribir un patrón que case
+**exactamente las nueve líneas propias de siete documentos**, y **si se deja una fuera, el guardián
+la reclasifica como ajena y DEJA DE MARCAR un superado de verdad, en silencio.**
+⇒ **Hace falta un campo nuevo, `ajeno`** — *un patrón que marque la línea como de otro POR SÍ SOLO*.
+**Es un cambio en el MODELO del instrumento, no en su recuento** ⇒ **tanda propia. Decisión de
+Antonio.**
+
+**⚠️ LO QUE NO SE HA PROBADO, declarado:** ⛔ **`adyacencia` con `sinCondicionales = true`** — ninguna
+de las nueve rutas la activa ⇒ **la rama que combina predicado + condicionales no se ha ejercitado, y
+no es teórica: son 196 aristas** · una llamada desde fuera de `src/ruta.js` *(hoy no hay ninguna, y
+el `throw` es lo único que la protege)* · ninguna ruta de bici de producto · **nada con `oneway`: la
+red de bici es no dirigida.**
 
 **DECISIONES NUEVAS DE H2:**
 
