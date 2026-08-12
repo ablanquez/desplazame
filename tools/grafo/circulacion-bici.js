@@ -76,8 +76,9 @@ const CIRCULA = new Set([
 
 /**
  * ⭐ Por dónde se EMPUJA: se pasa, pero bajándose de la bici.
- * ⚠️ Y esta clase existe porque las tres referencias la tienen: openrouteservice
- *    le da 6 km/h a `footway` y 2 a `steps` (`PUSHING_SECTION_SPEED / 2`), y OSRM
+ * ⚠️ Y esta clase existe porque las tres referencias la tienen. El literal de
+ *    openrouteservice, tal cual — `setHighwaySpeed("footway", 6)` frente a 18 en
+ *    calzada, y `setHighwaySpeed(KEY_STEPS, PUSHING_SECTION_SPEED / 2)` —, y OSRM
  *    ni siquiera las mete en su tabla `bicycle_speeds`. **No es un invento mío:
  *    es el nivel que los tres modelan y que nuestra constante única no puede.**
  */

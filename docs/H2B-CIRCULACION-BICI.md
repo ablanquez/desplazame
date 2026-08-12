@@ -20,7 +20,7 @@
 |---|---|
 | ⛔⛔ **El fallo que predije, MEDIDO** | Un predicado hecho solo de carril bici deja pasar el **4,7 %** del grafo (y con `ciclista` del municipal, el **3,5 %**). **Era exactamente eso** |
 | ⭐⭐⭐ **El predicado bueno: `circula`, y deja pasar el 50,6 %** | **49.972 aristas · 4.870,8 km.** Y con la calzada dentro la red queda en **178 trozos con el 94,3 % de los km en el mayor** ⇒ **la bici PUEDE rutear en Zaragoza** |
-| ⭐⭐ **Tres valores, no dos** | `circula` · `empuja` · `prohibido`. **`empuja` no es un adorno**: es el nivel que las tres referencias modelan (ORS da 6 km/h a `footway` y 2 a `steps`) **y que nuestra constante única no puede representar** |
+| ⭐⭐ **Tres valores, no dos** | `circula` · `empuja` · `prohibido`. **`empuja` no es un adorno**: es el nivel que las tres referencias modelan —ORS escribe `setHighwaySpeed("footway", 6)`— **y que nuestra constante única no puede representar** |
 | ⛔⛔ **Y la ruta de ejemplo dice lo incómodo** | Delicias → Utrillas en bici: **4.788,9 m, y solo 79 m (1,6 %) por carril bici.** El **51,5 % va por `primary`** ⇒ **mandar la bici por avenidas es la consecuencia, y es decisión de producto** |
 | ⛔⛔ **HALLAZGO NO BUSCADO: la bici no puede salir de un portal** | Un edificio engancha a una acera y **por una acera no se rueda**. Con el enganche de andar la ruta **no existe**; con enganche propio, sí. **La bici necesita su propio enganche** |
 | ⛔ **PARA Y AVISO sobre H1 — y no es un campo** | `e.highway` YA está en la arista ⇒ el predicado de clase **no necesita campo nuevo**. Lo que sí bloquea es **`src/grafo.js:18`: `adyacencia(nodos, aristas, soloAPie = true, …)`** — el modo es un **booleano con el nombre de un modo** |
@@ -51,9 +51,17 @@
 ```
 
 ⭐ **`empuja` no me lo he inventado**: es el nivel que modelan las tres referencias que la tanda 0
-citó — openrouteservice da **6 km/h** a `footway` y **2** a `steps` (`PUSHING_SECTION_SPEED / 2`), y
-OSRM **ni siquiera mete `footway` en su tabla `bicycle_speeds`**. ⛔ **Y nuestra constante única de
-18 km/h no puede representarlo**, así que esta tanda lo declara y lo deja fuera de `circula`.
+citó. Sus literales, tal cual (⛔ la cita es el literal, no mi paráfrasis):
+
+```java
+   openrouteservice · CommonBikeFlagEncoder.java
+      setHighwaySpeed("footway", 6);                          // frente a 18 en calzada
+      setHighwaySpeed(KEY_STEPS, PUSHING_SECTION_SPEED / 2);   // PUSHING_SECTION_SPEED = 4
+```
+
+y OSRM **ni siquiera mete `footway` en su tabla `bicycle_speeds`**. ⛔ **Y nuestra constante única de
+18 km/h no puede representar esa diferencia**, así que esta tanda lo declara y lo deja fuera de
+`circula`.
 
 ### 1.3 · ⭐⭐⭐ Cuánto grafo deja pasar cada variante — el fallo predicho, medido
 
@@ -300,16 +308,57 @@ obliga a llevar el crudo de OSM al lado del grafo**, que hoy no hace falta para 
    se escribe antes de ver el fallo* ⇒ **debería decir QUÉ se ha roto, no POR QUÉ.** Y su corolario:
    **un rojo se audita menos que un verde porque parece que ya ha hecho su trabajo.**
 10. ⚠️ **Añadir aristas puede fragmentar más:** meter las aceras sube las componentes de 178 a 247.
+11. ⛔ **`src/superados.js` no distingue una cifra propia superada de la misma cifra citada de un
+    tercero.** Puso la batería en rojo por dos líneas que citaban el `6` de openrouteservice (§8).
+    **Va a volver a saltar**, y la solución durable —una regex de exclusión, como la que ya tiene el
+    par `182`— **edita un recuento declarado dentro de `src/`: es de Antonio.**
 
 ---
 
-## §8 · LAS DOS BATERÍAS
+## §8 · ⛔ LA PRIMERA BATERÍA DE CIERRE SALIÓ EN ROJO — y la causa, exacta
 
 ```
-   base    13:26:40 → 13:47:xx   exit 0   114 líneas
+   base    13:26:40 → 13:47:07   exit 0   114 líneas
+   cierre  13:57:09 → 14:21:08   exit 1   ⛔ 114 líneas, DOS distintas:
+
+   82c82
+   <    superados.js   código 0   0 de 0  sin fallo  ✅
+   >    superados.js   código 1   2 de 0  declara    ⛔ DECLARA 2 Y SE ESPERABAN 0
+   114c114
+   <    ⇒ ✅ UN FALLO DETECTADO YA NO PUEDE TERMINAR EN VERDE.
+   >    ⇒ ⛔ HAY UN CAMINO POR EL QUE UN FALLO SIGUE SALIENDO EN 0.
 ```
 
-*(la de cierre, con su `diff`, va en el checkpoint)*
+**Lo rompió ESTE documento**, y el diagnóstico es exacto:
+
+```
+   6 km/h     11 de 9    0 de 0   — la cifra sola     ⛔ SE HA MOVIDO
+      H2B-CIRCULACION-BICI.md:23   … ORS da 6 km/h a `footway` …
+      H2B-CIRCULACION-BICI.md:54   … openrouteservice da 6 km/h a `footway` …
+```
+
+⭐⭐ **`6 km/h` es un valor SUPERADO de este proyecto** —era la velocidad de andar, retirada por la
+tanda de arreglo 4 en favor de 5,0—, y `src/superados.js` vigila el literal. **Mis dos líneas no
+hablaban de eso: hablaban de la velocidad de EMPUJAR de openrouteservice.** Dos hechos distintos con
+la misma cadena de caracteres.
+
+**Arreglo: se cita el literal de la fuente en vez de parafrasearlo** —`setHighwaySpeed("footway", 6)`
+en vez de *«da 6 km/h a footway»*—, que **es más fiel** (ley 145: se describe exactamente) y de paso
+deja de coincidir con la cadena vigilada.
+
+⛔⛔ **Y lo digo en voz alta para que nadie lo lea como silenciar un guardián:** el guardián **tiene
+razón en su mecanismo y no puede tenerla en su lectura.** `superados.js` no distingue *una cifra
+propia superada* de *la misma cifra citada de un tercero*, y **va a volver a saltar** con el próximo
+documento que cite a openrouteservice. ⇒ **La solución durable es enseñarle la distinción** —tiene
+sitio para ello: el par `182` ya lleva su regex de exclusión `/decorativ|veredicto|proceso en rojo/i`—
+**pero eso es editar un recuento declarado dentro de `src/`, y lo decide Antonio.** Va a §7·11.
+
+⭐ **Y una cosa que esto sí demuestra:** sin la disciplina de batería-antes-y-después, este
+repositorio se habría quedado con un guardián en rojo y el checkpoint diría *«todo verde»*.
+
+```
+   cierre (2ª)   ver el checkpoint
+```
 
 ⚠️ El instrumento vive en **`tools/grafo/`**, que **no está en el universo del runner**
 (`src/probar-paradas.js:217` solo ejecuta los `.js` de `src/`) ⇒ **la batería no debería moverse ni
