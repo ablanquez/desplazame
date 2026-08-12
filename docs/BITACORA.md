@@ -10066,3 +10066,64 @@ nueva**; lo que comparten es lo que el cruce no puede ver.
 compara.
 
 **Traza:** `tools/gtfs/gemelos.js` (P2 y P3) · `docs/H2A-TANDA-8-TRANVIA.md` §3 (17 · 15 · 170)
+
+
+---
+
+## [2026-08-12] — El rodeo publicado divide metros de UTM entre metros de una esfera
+
+**Categoría:** datos / método
+**Síntoma:** midiendo la capa de carriles bici para el diseño de H2b, mi longitud no cuadraba con la
+publicada:
+
+```
+   con la ESFERA (la fórmula de tools/gtfs/enlaces.js) .. 333.46 km
+   con UTM      (src/geo.js aMetros, la de H1) .......... 333.72 km
+   publicado en docs/H1-CARRILES-BICI.md §A4 ........... 333.72 km
+   diferencia ........................................... 264 m  (0,079 %)
+```
+
+**No era la capa: son dos fórmulas de distancia distintas conviviendo en el proyecto.**
+
+```
+   src/geo.js:26              aMetros()  — proyección UTM sobre el elipsoide WGS84, con K0
+   tools/gtfs/enlaces.js:109  recta()    — esfera de R = 6.371.000 m, equirectangular
+   tools/gtfs/gemelos.js:99   ídem
+   tools/gtfs/pares-candidatos.js:36  ídem
+```
+
+⇒ ⛔ **El «RODEO CONSULTADO» de los 2.538 enlaces es un cociente entre las dos**: `r.metros` sale del
+grafo, que está en UTM, y `r.rectaM` sale de `recta()`, que está en la esfera. **El radio de
+pre-filtro de 300 m también es esférico**, así que acota sobre una métrica y el coste se mide en
+otra.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la auditoría de la ley 159, hecha
+a este mismo cociente y en esta misma tanda.** La bitácora nº189 lo cazó mezclando POBLACIONES —*«la
+ruta unía enganches y la recta unía paradas»*— y se arregló con `rectaEng`. ⛔ **Se auditó qué PUNTOS
+unía cada medida y no se auditó en QUÉ MÉTRICA estaba cada una.** Y el guardián de imposibilidad
+—`r.metros < r.rectaEng`— **no podía cazarlo**: `rectaEng` se calcula sobre `eng.q`, que son
+coordenadas del grafo, o sea UTM contra UTM. **La única comparación limpia es justo la que vigila.**
+
+**Causa raíz:** H1 proyecta a metros una vez, al construir el grafo, y todo lo suyo vive ya en el
+plano. H2a nació leyendo un GTFS en grados y necesitó su propia distancia; se escribió la fórmula
+esférica ahí mismo **sin preguntar si el proyecto ya tenía una**. ⚠️ Y no chocan nunca de frente:
+las dos devuelven «metros» y se parecen en el 0,08 %.
+
+**Cómo se cazó:** ⭐ **por accidente y desde fuera.** Volviendo a contar una cifra vieja porque el
+encargo prohíbe recitarlas —*«⛔ Nada recitado de informes viejos sin volver a contarlo»*—. **Sin esa
+regla, habría escrito 333,72 de memoria y las dos fórmulas seguirían sin encontrarse.**
+
+**Arreglo aplicado:** ⛔ **NINGUNO — esta tanda es de diseño y no toca código.** Se declara, se mide
+el tamaño del error (0,079 %) y **la corrección se propone como medición pendiente**: hay que decidir
+si H2a adopta `geo.aMetros` o si la diferencia se declara como límite. **Decide Antonio.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **auditar qué PUNTOS une una medida no es auditar en qué MÉTRICA
+está.** Dos fórmulas que devuelven «metros» y difieren en el 0,08 % no se detectan comparándolas:
+se detectan **preguntándole a cada una de qué proyección sale.**
+⚠️ Corolario del proyecto: **el día que un módulo nuevo necesita una distancia, la pregunta es «¿ya
+hay una?», no «¿cuál escribo?»** — y aquí la había, exportada, desde H1.
+
+**Traza:** `src/geo.js:26` · `tools/gtfs/enlaces.js:109` y `:215` · `docs/H1-CARRILES-BICI.md` §A4 ·
+`docs/H2A-PUERTA-2-LOS-2538.md` (el rodeo consultado)
