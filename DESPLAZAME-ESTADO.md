@@ -207,7 +207,7 @@ devolvería el proyecto al terreno de 003.
 | ⭐ **Red peatonal fina** | **OpenStreetMap** (Overpass) | ✅ **INTEGRADA — es la geometría base del grafo (D0)**: 68.649 nodos y 98.774 aristas. Aceras, pasos de peatones y escaleras **como líneas** y **ya nodalizadas por diseño**. ⚠️ **ODbL con efecto share-alike, declarada en el README** (tanda 2). *Corregido el 9/08: esta fila decía «decidida, no integrada» con el grafo entero construido encima.* |
 | ⭐⭐⭐ **Velocidad comercial del bus** | **Indicadores SIU · Ayuntamiento de Zaragoza** | ✅ **ENCONTRADA el 12/08.** `zaragoza.es/sede/servicio/siu/?indicador=velocidad-linea-transporte` — **velocidad media en km/h por línea, en día laborable, con las PARADAS DENTRO** (km comerciales ÷ tiempo de trabajo comercial). ⭐ **Es la velocidad a la que AVANZA EL SERVICIO, no a la que circula el bus** — justo lo que hace falta. ⛔ **Último dato 01/01/2024**, y ⚠️ **muchas líneas repiten valor exacto años seguidos** (la 28 con 21,88 durante cinco) ⇒ *o el indicador se congeló, o es dato de PLANIFICACIÓN y no de medición: **hay que comprobarlo antes de usarlo***. ⛔ **No incluye el tranvía** |
 | ⭐ **Transporte** | **GTFS 1176 del NAP** (bus + tranvía) | ✅ **DESCARGADO el 10/08 con código propio de 004** (`tools/bajar-gtfs.js`) — ⛔ **NO se copió de 003**. `feed_version 20260623_AUZSA_Y_TRANVIA` · 6.883.311 B · sha256 `5c96992c…f3a82`. **984 paradas · 53 rutas · 34.427 viajes · 870.717 horarios · 89 trazados sin huérfanos**, remedidos. ⚠️ **CADUCA EL 05/10/2026, Y EN DOS TIEMPOS: el bus respeta sus fechas al día, el tranvía se sale 87 días.** ⛔ **NO trae transbordo de ninguna forma** (§4·H2). *Hasta el 10/08 esta fila decía «decidido, no descargado»* |
-| **BiZi** | `MU1_estaciones_bici_ubicacion` (WFS) + API de la sede | ✅ 276 estaciones, 5.520 anclajes. Las dos fuentes consistentes |
+| **BiZi** | `MU1_estaciones_bici_ubicacion` (WFS) + API de la sede | ✅ **276 estaciones · 5.520 anclajes**, recontados el 12/08. ⛔⛔ **«Las dos fuentes son consistentes» DECÍA MENOS DE LO QUE PARECÍA (acotado el 12/08):** coinciden en **recuento** e **identidad** —la clave es el `numero`, 50 de 50— **y NO en POSICIÓN: hasta 41,0 m para la misma estación.** ⚠️ *Y eso es **4× el p99 del enganche** que se mide sobre ellas ⇒ **cambiar de fuente movería el enganche más que cualquier decisión de listón**.* ⛔ **El contraste alcanza a 50 de 276: las otras 226 no se han descargado.** ⇒ **Se usa el WFS**, que trae `anclajes_bicicletas`, `tipologia` y `pavimento`. ⛔ `tipologia` **sin documentar (`xsd:string`): `NO CONSTA` qué significa** |
 | **Destinos (POI)** | Farmacias, centros cívicos, equipamientos | ✅ Baratos de añadir: **no tocan el motor**, son nodos enganchados al grafo |
 | **Validadores** | Semáforos, puentes, manzanas, ríos | ⬜ No son dato del grafo: **sirven para comprobarlo** |
 
@@ -855,10 +855,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 157 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 159 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y siete instrumentos mintiendo** *(115 al cerrar H1 + 42 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y nueve instrumentos mintiendo** *(115 al cerrar H1 + 44 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1041,6 +1041,9 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 156 | ⛔⛔⛔ **UN APAÑO DECLARADO EN MAYÚSCULAS DENTRO DEL CÓDIGO QUE LO HACÍA, Y NADIE LO MIDIÓ.** Para construir la red de bici se le pasaba a `adyacencia` una **copia** de las aristas con `pie` redefinido, y `adyacencia` **seguía filtrando por `e.pie`** ⇒ **la condición real era `circula` Y `pie`.** Medido al caerse: **613 aristas que circulan tienen `foot=no`, y 180 son CARRIL BICI** ⇒ ***el apaño le prohibía a la bici justamente los sitios reservados para ella.*** ⭐ **Lo que dio verde: el informe entero de la tanda 2, publicado el mismo día.** ⚠️ *La pregunta que lo habría cazado en un comando —**«¿qué excluye este apaño que el predicado no excluiría?»**— nunca se hizo* |
 | | **⬇ H2b · TANDA 3 (12/08) — UNO MÁS** ⬇ | |
 | 157 | ⛔⛔⛔ **UN ADJETIVO PASÓ POR DONDE UN NÚMERO NO HABRÍA PASADO.** *«El hueco casi se triplica»* se escribió **con DOS casos** y **viajó hasta este documento**. Medido sobre los 46.150 portales: **1,39× en la mediana · 1,13× en el p99 · 1,00× en el máximo.** ⭐ **Lo que dio verde: NADA podía ponerse rojo, porque la afirmación no era un número — era un adjetivo**, y no hay nada que comparar. ⛔ **Y la causa: los dos casos eran EDIFICIOS, no portales** — *se midió una población y se habló de otra* (ley 158 contra quien la tiene escrita). ⚠️⚠️ **Y el corolario que más escuece: la tanda 2 declaraba «es un caso, no una muestra» en su §6 y generalizaba en su §3. Convivieron — y al estado viajó la conclusión** |
+| | **⬇ H2b · TANDA 4 (12/08) — DOS MÁS** ⬇ | |
+| 158 | ⛔⛔ **UN GUARDIÁN COMPARÓ UNA APROXIMACIÓN CON OTRA APROXIMACIÓN DEL MISMO AUTOR, Y SALIÓ VERDE.** Se llamó a `G.rutaEntre` —**del motor**— **pero con un punto de enganche fabricado a mano** ⇒ *no era el patrón externo que parecía*. ⭐ **Lo que dio verde: el `A.exige` recién escrito para vigilarlo (31,1 < 100 ✅).** ⛔ **Lo cazó que el número no cuadrara con uno publicado**, no el guardián |
+| 159 | ⚠️⚠️ **«LAS DOS FUENTES DE BiZi SON CONSISTENTES» DECÍA MENOS DE LO QUE PARECÍA, Y ESTABA EN §3.** Coinciden en **recuento** e **identidad** — **y NO en POSICIÓN: hasta 41,0 m para la misma estación**, con el contraste alcanzando **solo a 50 de 276**. ⇒ ⭐ **La discrepancia entre fuentes es 4× el p99 del enganche que se mide sobre ellas** *(9,3 m)* ⇒ ***cambiar de fuente movería el enganche más que cualquier decisión de listón*** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1864,6 +1867,26 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     invierte (101,1 contra 73,9) porque ahí hay que rodear.* ⇒ ⭐ **Una media habría escondido las dos
     cosas y habría parecido un error de cálculo.**
 
+188. ⭐⭐⭐ **UN MODO NUEVO NO EXISTE HASTA QUE LA UNIDAD DE COSTE PUEDE PREFERIRLO — Y SI NO PUEDE,
+    SE HA CONSTRUIDO ALGO QUE EL MOTOR JAMÁS PROPONDRÁ.**
+    *En metros la BiZi no gana nunca, ni a 400 m ni a 4 km: **rodar no acorta la distancia, acorta el
+    tiempo**, y encima suma los dos tramos andando hasta las estaciones.* ⇒ **La unidad de tiempo no
+    era una mejora del modelo: era la condición para que el modo exista.** ⭐ *Y la comprobación que
+    lo destapa cabe en una pregunta: **¿en qué caso ganaría este modo?** Si no hay ninguno, está de
+    adorno.*
+
+189. ⭐⭐⭐ **UN GUARDIÁN QUE COMPARA TU APROXIMACIÓN CON OTRA APROXIMACIÓN TUYA MIDE TU CONSISTENCIA,
+    NO TU EXACTITUD — Y SALE VERDE IGUAL.**
+    *Se llamó a la función del motor, pero con un punto de enganche fabricado a mano.* ⇒ ⛔ **Llamar
+    a la función del proyecto no la convierte en patrón externo si le pasas datos fabricados.** ⭐ *Lo
+    cazó que el número no cuadrara con uno publicado — es decir, lo cazó el proyecto, no el guardián.*
+
+190. ⭐⭐ **QUE DOS FUENTES «SEAN CONSISTENTES» ES UNA AFIRMACIÓN CON EJE: HAY QUE DECIR EN QUÉ.**
+    *Las dos de BiZi coinciden en recuento y en identidad, **y difieren hasta 41,0 m en posición** —
+    y el contraste solo alcanzaba a 50 de 276.* ⇒ ⭐ **Una consistencia se declara con su EJE y con su
+    COBERTURA**, y se compara con la magnitud que se va a medir encima: *aquí la discrepancia es
+    cuatro veces el enganche que sostiene.*
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1993,7 +2016,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2b·2** | ⭐⭐⭐ **LA CIRCULACIÓN DE LA BICI** — la que podía fallar en verde | **H2b** | ✅ **12/08** ⭐ **no cayó: 79 m de carril en 4,8 km** |
 | **Ar 9** | ⭐⭐⭐ **`adyacencia` DEJA DE SABER DE MODOS** — se reabre H1 por una rendija | **H1** | ✅ **12/08** ⭐ **las nueve rutas, idénticas** |
 | **H2b·3** | ⭐⭐⭐ **EL ENGANCHE PROPIO DE LA BICI** | **H2b** | ✅ **12/08** ⛔ **corrige «se triplica»: es 1,39×** |
-| **H2b·4** | *(siguiente: **las estaciones BiZi**)* | **H2b** | ⬜ |
+| **H2b·4** | ⭐⭐⭐ **LAS 276 ESTACIONES BiZi** | **H2b** | ✅ **12/08** ⛔⛔ **en metros la BiZi no gana nunca** |
+| **H2b·5** | *(siguiente: ⛔ **LA VELOCIDAD DE `empuja`** — ya no es opcional)* | **H2b** | ⬜ |
 | **H2b·3** | Las estaciones BiZi · **H2b·4** la combinación · **H2b·5** la bici propia | **H2b** | ⬜ |
 | **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
 
@@ -4400,6 +4424,62 @@ mapa** · ⚠️ **y la ruta del ejemplo no es un portal: son dos EDIFICIOS** �
 caso, y su 6,9 % de empuje no se lee como propiedad de las rutas en bici.*
 ⚠️ **Y sigue NO DIRIGIDA:** `oneway=yes` en **23.499 de 49.972 (47,0 %)** ⇒ **la ruta del ejemplo
 puede llevar contramanos dentro y no se ha mirado.**
+
+### ⭐⭐⭐ H2b · TANDA 4 (12/08) — LAS 276 ESTACIONES BiZi. `docs/H2B-ESTACIONES-BIZI.md`.
+⛔ **Ni una línea de `src/`.**
+
+> ⛔⛔⛔ **EL HALLAZGO NO ESTABA EN EL ENCARGO, Y ES EL MÁS IMPORTANTE DE H2b:**
+> ```
+>    trayecto en BiZi ....... 4.733,6 m
+>    andando entero ......... 4.697,0 m   ⇒ ⛔ la BiZi es MÁS LARGA (36,6 m)
+> ```
+> ***EN METROS LA BiZi NO GANA NUNCA. NI A 400 m NI A 4 km.***
+> **Rodar NO acorta la distancia: acorta el TIEMPO.** Y encima **suma los dos tramos andando** hasta
+> las estaciones. ⇒ ⭐⭐⭐ **Un motor que minimiza metros NUNCA elegiría la BiZi**, y la pregunta que
+> el encargo mandaba comprobar —*«¿la cogería para 400 m?»*— **no se puede ni formular sin la unidad
+> de tiempo.**
+> ⭐ **Y NO es un fallo del coste de cambio de modo:** los 240 s de Valhalla **hoy ni siquiera hacen
+> falta, porque la BiZi ya pierde por construcción.**
+> ⇒ ⚠️⚠️ **CONSECUENCIA: la velocidad de `empuja` deja de ser «qué falta para que tenga duración» y
+> pasa a ser «qué falta para que la bici SIRVA DE ALGO».** *Sin unidad de tiempo, H2b construye un
+> modo que el motor jamás propondría.*
+> ⚠️ *Y el único trayecto donde la BiZi podría ganar en metros es aquel en que la red de bici ofrece
+> un atajo que la peatonal no tiene —los 613 tramos con el peatón prohibido—. **Aquí no ocurre.***
+
+| | qué | |
+|---|---|---|
+| ⭐⭐⭐ | **Una estación engancha como un POSTE — y mejor que el poste** | ```ESTACIONES → peatonal  276   p50 2,9 · p90 6,3 · p99 9,3 · máx 11,2``` contra **postes 11,1 / 23,7** y **portales 65,2 / 303,1**. ⇒ ***No heredar el listón era lo correcto: el MÁXIMO de las 276 es menor que el p90 de los portales.*** ⭐ **Con causa física:** *es una plataforma de obra en la vía pública, no una puerta en una fachada* |
+| ⭐⭐⭐ | **Las 276 entran TODAS, con ceros limpios** | **0 sin arista peatonal · 0 sin arista de bici · 0 que no alcancen la red andando.** *En portales fueron 179 (0,4 %)* |
+| ⭐ | **El `pavimento` es la variable que manda** | **CALZADA p50 3,9 m** contra **ZONA VERDE 7,6 m**, y **el peor de las 276 (166,3 m) es de zona verde.** *La sospecha que la tanda 1 dejó apuntada era la buena* |
+| ⚠️ | **Empujando: p50 5,2 · p90 12,9 · máx 139,4 m** | **41,7 % engancha a una arista que ya es de bici** *(portales: 63,9 %)* — **coherente: 122 de 276 están sobre la ACERA**, y una acera no es una arista por la que se ruede |
+| ⛔ | **`ENFRENTADA` NO es el problema de los andenes — refutado con medida** | La no-LINEAL **más cercana a otra está a 164,6 m**. *Si fuera «dos mitades a los dos lados de la calle», habría pares a metros.* ⭐ **La sospecha del encargo era razonable y era falsa** — y **cada estación es UNA feature, con UN número y UN recuento de anclajes**. ⚠️ *Lo único que insinúa el dato: las 10 `DOBLE` tienen exactamente 18 anclajes las diez. **Observación, no significado*** |
+| ⛔ | **`tipologia`: `NO CONSTA` qué significa** | `xsd:string` **sin documentación, sin anotación y sin enumerado.** *Deducirlo del nombre sería inventar el dato* |
+| ⭐ | **El atajo del bloque lleva su cifra** (ley del apaño) | nodo a nodo **4.697,0** contra el motor **4.743,4** ⇒ **46,4 m (1,0 %)** de no insertar el punto en la arista. ⭐ **Y reproduce EXACTO el 4.743,4 que publicó la tanda 3.** *Las dos ramas comparadas llevan el mismo atajo, así que la comparación vale; los metros absolutos no son los del motor* |
+
+**⚠️⚠️ Y LO QUE SE ACOTA DE §3: «las dos fuentes son consistentes» decía menos de lo que parecía.**
+Coinciden en **recuento** (276 · 5.520, recontados) y en **identidad** —⭐ *la clave es el `numero` del
+título, **no la proximidad**: emparejar por distancia habría sido inventarlo*, 50 de 50— **y NO en
+POSICIÓN: hasta 41,0 m para la misma estación.** ⛔ **Y el contraste alcanza a 50 de 276: las otras
+226 no se descargaron.** ⇒ ⚠️ **La discrepancia entre fuentes es 4× el p99 del enganche que se mide
+sobre ellas.**
+
+**⛔⛔ SIGUE SIN SABERSE SI HAY BICIS, y con prueba de por qué no serviría:** la API trae
+`bicisDisponibles` y `anclajesDisponibles` **y no se usan** —H2 es sin reloj—. ⭐ *Y hay una prueba de
+que la foto es foto:* **en 12 de 49 estaciones, `bicis + anclajes libres` NO LLEGA a los anclajes
+declarados.* **No es una contradicción: es una bici en tránsito o un anclaje averiado.** ⇒ **Ni
+siquiera sirve para verificar la capacidad.**
+
+**⚠️ QUÉ NO SE HA PROBADO, dicho antes y también al final:** ⛔ **las 226 que solo están en el WFS**
+*(no se sabe si difieren 3 m o 41)* · **ninguna mirada sobre el mapa** · **ninguna `FASE I` contra
+`FASE II`** (108 y 168), *una partición que el dato regala* · ⛔ **ninguna fuera de servicio: la API
+trae `estado` y el WFS no**, así que **si alguna de las 276 está retirada, aquí entra como buena** ·
+⚠️ **y el trayecto es UN caso con dos EDIFICIOS: su «36,6 m más larga» no se lee como propiedad de los
+trayectos en BiZi.**
+
+**⛔ Y UN CABO QUE CRECE CON CADA TANDA, para la mesa de Antonio:** ***citar una ley por su NÚMERO
+puede disparar `superados.js`*** — el número de una ley de ayer **coincide con una cifra vigilada** y
+la batería se puso roja al escribirlo. **Hay 187 leyes y 24 cifras vigiladas: las colisiones están
+garantizadas y aumentan.** ⭐ *Se cita por su FRASE, que es lo que el método ya pedía (ley 171).*
 
 **DECISIONES NUEVAS DE H2:**
 
