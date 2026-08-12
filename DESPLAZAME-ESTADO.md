@@ -205,6 +205,7 @@ devolvería el proyecto al terreno de 003.
 | ⭐ **Nodos (origen/destino)** | 46.150 portales WGS84 con `codigoVia` | ✅ Limpios. 46.147 coordenadas únicas de 46.150 |
 | **Geocodificador** | Heredado del dataset previo | ✅ 3.359 vías tokenizadas sin tildes, `by-street` con 2.731 calles, normalizador de abreviaturas. **Reutilizable tal cual** |
 | ⭐ **Red peatonal fina** | **OpenStreetMap** (Overpass) | ✅ **INTEGRADA — es la geometría base del grafo (D0)**: 68.649 nodos y 98.774 aristas. Aceras, pasos de peatones y escaleras **como líneas** y **ya nodalizadas por diseño**. ⚠️ **ODbL con efecto share-alike, declarada en el README** (tanda 2). *Corregido el 9/08: esta fila decía «decidida, no integrada» con el grafo entero construido encima.* |
+| ⭐⭐⭐ **Velocidad comercial del bus** | **Indicadores SIU · Ayuntamiento de Zaragoza** | ✅ **ENCONTRADA el 12/08.** `zaragoza.es/sede/servicio/siu/?indicador=velocidad-linea-transporte` — **velocidad media en km/h por línea, en día laborable, con las PARADAS DENTRO** (km comerciales ÷ tiempo de trabajo comercial). ⭐ **Es la velocidad a la que AVANZA EL SERVICIO, no a la que circula el bus** — justo lo que hace falta. ⛔ **Último dato 01/01/2024**, y ⚠️ **muchas líneas repiten valor exacto años seguidos** (la 28 con 21,88 durante cinco) ⇒ *o el indicador se congeló, o es dato de PLANIFICACIÓN y no de medición: **hay que comprobarlo antes de usarlo***. ⛔ **No incluye el tranvía** |
 | ⭐ **Transporte** | **GTFS 1176 del NAP** (bus + tranvía) | ✅ **DESCARGADO el 10/08 con código propio de 004** (`tools/bajar-gtfs.js`) — ⛔ **NO se copió de 003**. `feed_version 20260623_AUZSA_Y_TRANVIA` · 6.883.311 B · sha256 `5c96992c…f3a82`. **984 paradas · 53 rutas · 34.427 viajes · 870.717 horarios · 89 trazados sin huérfanos**, remedidos. ⚠️ **CADUCA EL 05/10/2026, Y EN DOS TIEMPOS: el bus respeta sus fechas al día, el tranvía se sale 87 días.** ⛔ **NO trae transbordo de ninguna forma** (§4·H2). *Hasta el 10/08 esta fila decía «decidido, no descargado»* |
 | **BiZi** | `MU1_estaciones_bici_ubicacion` (WFS) + API de la sede | ✅ 276 estaciones, 5.520 anclajes. Las dos fuentes consistentes |
 | **Destinos (POI)** | Farmacias, centros cívicos, equipamientos | ✅ Baratos de añadir: **no tocan el motor**, son nodos enganchados al grafo |
@@ -854,10 +855,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 152 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 153 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y dos instrumentos mintiendo** *(115 al cerrar H1 + 37 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y tres instrumentos mintiendo** *(115 al cerrar H1 + 38 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1031,6 +1032,8 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | | **⬇ H2b · TANDA 1 (12/08) — DOS MÁS** ⬇ | |
 | 151 | ⛔⛔⛔ **EL RODEO DE LOS 2.538 DIVIDE METROS DE UTM ENTRE METROS DE UNA ESFERA.** `src/geo.js:26` contra `tools/gtfs/enlaces.js:109`. **0,079 %.** ⭐⭐ **Y lo que dio verde mientras el fallo vivía es lo que enseña: la AUDITORÍA DE LA LEY 159 hecha a ese mismísimo cociente** — se comprobó **qué puntos unía cada medida** y **nunca en qué MÉTRICA estaba cada una**. *Es la 159 con un piso más abajo: un cociente exige mismos puntos **y misma unidad*** |
 | 152 | ⛔⛔ **ESTA CONVERSACIÓN AVISÓ DE UN PROBLEMA QUE NO EXISTE, POR ANALOGÍA.** El encargo de H2b daba por hecho que **las estaciones BiZi tendrían el problema de los andenes gemelos**. Medido: **276 estaciones, 276 nombres DISTINTOS, el par más cercano a 95,1 m** ⇒ **la marca no se dispararía ni una vez.** ⭐ **Y la fuente sí declara el nivel que al GTFS le faltaba (`tipologia`)** — *justo lo contrario de lo que se avisó.* **Forma del nº117: una afirmación no medida viajando dentro de un encargo** |
+| | **⬇ H2b · TANDA 0 (12/08) — UNO MÁS** ⬇ | |
+| 153 | ⛔⛔⛔ **UNA ATRIBUCIÓN A TERCEROS QUE NO SE SOSTIENE, IMPRESA EN CADA PASADA DE LA BATERÍA.** `src/velocidad.js:113` publica **«5.0 km/h (openrouteservice · OSRM/Valhalla)»** y **Valhalla dice 5,1** (`pedestrian → "Defaults to 5.1 km/hr"`). ⭐⭐ **Y lo que dio verde mientras vivía es lo que enseña: `src/velocidad.js` entero, CUATRO tandas.** Sus tres invariantes **vigilan el VALOR** — `V1` es `A.exige(Math.abs(Rel.VELOCIDAD_KMH - ESTANDAR_KMH) < 1e-9)`, **que compara la constante consigo misma tres líneas más abajo** — ⛔ **y ninguno vigila la PROCEDENCIA.** *La decisión no se cae: dos de tres dan 5 exacto y el argumento nunca fue promediar. Lo falso es la frase* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1771,6 +1774,26 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     encargo que anticipa un hallazgo está fijando dónde mira el ejecutor**, así que **lo anticipado se
     marca como hipótesis o no se escribe** (ley 171 vista desde el otro lado).*
 
+176. ⭐⭐⭐ **UNA ATRIBUCIÓN SIN CITA NO ES FALSABLE, Y POR ESO SOBREVIVE A CUALQUIER NÚMERO DE
+    REVISIONES.**
+    *«5.0 km/h (openrouteservice · OSRM/Valhalla)» llevaba cuatro tandas imprimiéndose en cada pasada
+    de la batería, con tres invariantes vigilando el VALOR y ninguno la PROCEDENCIA. Valhalla dice
+    5,1.* ⇒ ⛔ **Corolario incómodo: este proyecto exige `grep -n` para citarse a sí mismo y aceptaba
+    «lo usa OSRM» para citar a un tercero.** ***La ley 140 no se estaba aplicando hacia fuera.***
+
+177. ⭐⭐⭐ **ADOPTAR UNA SOLA CIFRA ES ADOPTAR LA MITAD DEL MODELO.**
+    *Las tres fuentes dan velocidad **por tipo de vía** —ORS: 18 en calzada, 6 en `footway`, 2 en
+    escaleras— y aquí se adoptó un solo número.* ⇒ **Cuando se toma prestada una constante de un
+    sistema ajeno se está tomando el VALOR y dejando su ESTRUCTURA**, y la estructura es la que sabe
+    que una bici no va igual por una calzada que por unas escaleras.
+
+178. ⭐⭐⭐ **UNA MAGNITUD ÚNICA PARA UNA FAMILIA HETEROGÉNEA ES FALSA POR EL FACTOR QUE LA SEPARA.**
+    *La velocidad comercial del bus en Zaragoza va de **10,39 km/h (línea 33) a 21,88 (línea 28)**:
+    el más lento avanza a **la mitad** que el más rápido.* ⇒ **Una constante única para «el bus»
+    habría errado por un factor de dos** — y no en la cola: **en el reparto entero.** ⭐ *Antes de
+    adoptar una constante para una familia se mira su dispersión: si abarca un factor de dos, no es
+    una constante — es un promedio disfrazado.*
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -1896,7 +1919,7 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **—** | ⭐⭐⭐ **H2a CERRADO** — bus + tranvía + transbordo a pie | **H2a** | ✅ **11/08** ⛔ **3 decisiones en la mesa de Antonio** |
 | **10** | ⭐⭐⭐ **LOS ANDENES GEMELOS — la marca, no la fusión** | **H2a** | ✅ **11/08** ⛔ **no hay frontera: 52,7 m de solape** |
 | **H2b·1** | ⭐⭐⭐ **EL DISEÑO EN PAPEL — qué es un modo** | **H2b** | ✅ **12/08** ⛔ **`MODOS` no sirve** |
-| **H2b·0** | *(siguiente: ⛔ **LA UNIDAD DE COSTE** — bloquea la combinación entera)* | **H2b** | ⬜ ⚠️ **decisión de Antonio** |
+| **H2b·0** | ⭐⭐⭐ **LA UNIDAD DE COSTE** — 18 km/h con procedencia citada | **H2b** | ✅ **12/08** ⭐ **y la del bus, encontrada** |
 | **H2b·2** | La circulación de la bici — ⚠️ *la que puede fallar EN VERDE* | **H2b** | ⬜ |
 | **H2b·3** | Las estaciones BiZi · **H2b·4** la combinación · **H2b·5** la bici propia | **H2b** | ⬜ |
 | **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
@@ -3997,6 +4020,92 @@ con `ciclista`», produce rutas por el 3,5 % del grafo sin quejarse.*
 periodo en septiembre**, pero **en vacaciones no lo tocan**.* ⇒ **El 05/10 no es una fecha de muerte:
 es una RENOVACIÓN ESPERADA que puede llegar tarde.** El guardián de vigencia sigue valiendo igual —
 **cambia lo que significa que salte.**
+
+### ⭐⭐⭐ H2b · TANDA 0 (12/08) — LA UNIDAD DE COSTE. `docs/H2B-UNIDAD-DE-COSTE.md`.
+
+**Decisión de Antonio: opción C en su forma ESTÁNDAR** — se adopta la constante de los routers de
+referencia, **no se mide**, igual que se hizo con los 5,0 km/h a pie. *Motivo: la C-medida daría «la
+velocidad de Antonio», que es lo que retiró la tanda de arreglo 4.*
+
+**⭐⭐ 18 km/h, CON LAS TRES FUENTES VERIFICADAS FICHERO A FICHERO:**
+```
+   OSRM        profiles/bicycle.lua   default_speed = 15   ⚠️ UN SOLO valor para todo
+   Valhalla    Route API reference    Road 25 · Hybrid/City 18 · Cross 20 · Mountain 16
+   ORS         CommonBikeFlagEncoder  CYCLEWAY_SPEED = 18 · residential 18 · primary 18
+```
+⭐⭐⭐ **Y no es una votación —eso sería el promedio con otro nombre—:** *Valhalla y ORS **distinguen
+tipo de bicicleta** y las dos dan **18 a la urbana**; OSRM **no distingue**: su 15 es un único
+`default_speed` para carretera, montaña y ciudad a la vez.* ⇒ ***Los tres no discrepan sobre la bici
+urbana: dos hablan de ella y el tercero no.***
+⚠️ **Y el límite, declarado: ninguna de las tres modela una bici DE ALQUILER.** Los 18 son *casi
+seguro optimistas* para una BiZi; cuánto, **`NO CONSTA`** — y **no se inventa una segunda constante
+porque no hay fuente que citar.**
+
+| | qué | |
+|---|---|---|
+| ⭐⭐ | **La unidad: SEGUNDOS, y viven en la COMPARACIÓN** | Se guarda **metros + el modo del tramo**; se divide al leer. ⇒ ⛔ **Ni un byte de los 2.538 enlaces cambia, y la decisión `D2` de H2a se RESPETA.** ⭐⭐ **Y hay un argumento a favor de D2 que en su día no se dijo: si H2a hubiera guardado minutos, el hallazgo del nº153 obligaría a recalcular el artefacto entero.** *Guardar la magnitud cruda es lo que hace barato corregir una constante — y eso solo se ve el día que una falla* |
+| ⭐ | **El cambio de modo NO es gratis, y también tiene cita** | Con coste cero, *un buscador coge una BiZi para 40 m* y `BiZi → BiZi` seguidas **cuesta lo mismo que no cambiar**. Valhalla: `bss_rent_cost` / `bss_return_cost`, **120 s cada uno ⇒ 240 s por ruta BiZi.** ⭐ **Y se adopta el `cost`, que se MUESTRA; no el `penalty`, que dirige la ruta sin enseñarse.** ⚠️ Del cambio `bus → a pie` **no hay fuente: `NO CONSTA`, y no se pone** |
+| ⛔ | **La premisa de T3 del encargo era FALSA** | Se dijo *«los tiempos a pie salen de la banda MEDIDA»*: **no.** `src/relato.js:78` tiene `VELOCIDAD_KMH = 5.0` y `:81` divide por ella. **La banda 4,3–4,5 vive en `RUTAS-CONOCIDAS.md` y no calcula ningún tiempo publicado: sirve para CONTRASTAR.** ⇒ **Hay UNA sola clase de número**, y la regla es una: ⭐ **la constante viaja pegada al número** — `«12 min a 18 km/h»` ✅ · `«unos 12 minutos»` ⛔ *(suena a margen medido y no lo hay)* |
+
+**⛔⛔ Y DE CAMINO, LA CITA DE LOS 5,0 NO SE SOSTIENE ENTERA (nº153):**
+```
+   openrouteservice   foot-* = 5 km/h                      ✅
+   OSRM               foot.lua → walking_speed = 5         ✅
+   Valhalla           pedestrian → "Defaults to 5.1 km/hr" ⛔ 5,1
+```
+**Y el proyecto imprime «5.0 km/h (openrouteservice · OSRM/Valhalla)» en CADA pasada de la batería**
+(`src/velocidad.js:113`). ⭐ **La decisión no se cae** —dos de tres dan 5 exacto y el argumento nunca
+fue la media de la literatura—: **lo que hay que corregir es la frase.**
+
+**⭐⭐⭐ LO QUE ANTONIO APORTÓ, Y ES EL DESBLOQUEO DEL TRANSPORTE PÚBLICO.**
+*El ejecutor cerró la tanda declarando que el bus se quedaba fuera —«no tiene velocidad, tiene
+horarios»— con las dos salidas malas: **coste 0** (el bus sale gratis e instantáneo y gana siempre) o
+**no componerlo** (honesto, y deja fuera el modo que más usa la gente).*
+
+> ⭐⭐⭐ **EXISTE UNA VELOCIDAD COMERCIAL POR LÍNEA, PUBLICADA POR EL AYUNTAMIENTO.**
+> **`Indicadores SIU · Autobús Urbano · Velocidad comercial por línea`** (§3).
+> *«Velocidad media en km/h en día laborable de todos los vehículos adscritos a la línea, obtenida
+> como el cociente de los kilómetros comerciales entre el tiempo de trabajo comercial.»*
+> ⇒ ⭐⭐ **CON LAS PARADAS DENTRO.** No es a la que circula el bus: **es a la que avanza el servicio.**
+> ```
+>    la más lenta ....  33 → 10,39 km/h        la 29 → 13,67    la 23 → 12,74
+>    la más rápida ...  28 → 21,88 km/h        la 35 → 12,01    la 44 → 15,26
+> ```
+> ⇒ ⭐⭐⭐ **El rango lo dice todo: de 10,4 a 21,9. El bus más lento va a LA MITAD que el más rápido**
+> ⇒ ***una constante única para el bus habría sido falsa por un factor de dos.***
+> ⚠️ **Tres avisos antes de usarla:** último dato **01/01/2024** · **muchas líneas repiten valor
+> EXACTO años seguidos** (la 28 con 21,88 durante cinco) ⇒ *o el indicador se congeló, o es dato de
+> **planificación** y no de medición* · ⛔ **no incluye el tranvía.**
+
+**⭐⭐⭐ Y EL MÉTODO DE ANTONIO PARA MEDIR EL TIEMPO REAL DE UN TRAYECTO — sin horarios y sin
+`trip_id`.** *Conocimiento de campo suyo, del endpoint de `gps.avanzabus.com` que ya usa 003:*
+
+```
+   cada poste devuelve, POR LÍNEA, los DOS próximos buses con su nº de unidad y sus minutos
+   ⇒ se sigue a UNA unidad por la secuencia de postes y se RESTA: la diferencia es el tiempo del tramo
+   ⛔ cuando esa unidad se cae de la lista (solo caben dos), se toma la que ha quedado por encima
+      y se sigue sumando — el empalme es posible porque en ese poste las DOS están visibles
+   ⭐ y se pueden saltar postes para gastar menos llamadas
+```
+⇒ ⭐⭐ **Es la misma forma que el transbordo andando: *el dato no trae la relación, así que la
+relación es tuya*.** Aquí **el dato no trae el tiempo de viaje y el tiempo se construye desde lo que
+sí hay.** ⚠️ **Y su fragilidad tiene nombre:** si dos lecturas consecutivas **no comparten ninguna
+unidad**, la cadena se rompe — **saltar postes ahorra llamadas Y hace más probable la rotura.**
+⭐ **Antonio declara que siempre hay solape** *(observación de campo, no medición)*, y tiene apoyo
+estructural: **dos postes están a 300-400 m y harían falta DOS buses nuevos de golpe para perder los
+dos testigos.**
+
+> ⭐⭐⭐ **Y LA PIEZA QUE ENCAJA TODO — la velocidad publicada y el método NO compiten:**
+> ```
+>    velocidad comercial por línea  →  barato, publicado, uniforme  →  ESTIMA
+>    el encadenado de testigos      →  caro, vivo, tramo a tramo    →  MIDE
+> ```
+> **El segundo es el CONTRADICTOR del primero** (ley 111): *el indicador dice que la 35 va a 12,01;
+> encadenar testigos una tarde dice si es verdad hoy.* ⚠️ **Y el método es tiempo real, así que como
+> CONSULTA es H3 — pero como MEDICIÓN cabe en H2**, porque su resultado es **un número guardado.**
+
+⛔ **DECISIÓN PENDIENTE DE ANTONIO:** si el bus entra en H2b con la velocidad comercial publicada, y
+si el encadenado de testigos se construye como su contradictor o se aparca para H3.
 
 **DECISIONES NUEVAS DE H2:**
 
