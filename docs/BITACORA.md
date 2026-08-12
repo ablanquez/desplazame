@@ -10253,3 +10253,75 @@ ley 36 decía *«un resultado decepcionante no despierta sospecha; uno bueno sí
 hermana: un fallo que confirma tu miedo tampoco la despierta.**
 
 **Traza:** `tools/grafo/circulacion-bici.js` (P2 y P5) · `docs/H2B-CIRCULACION-BICI.md` §5
+
+
+---
+
+## [2026-08-12] — Documenté el disparo del guardián escribiendo otra vez lo que lo dispara
+
+**Categoría:** método
+**Síntoma:** la batería de cierre salió en rojo **dos veces seguidas**, y la segunda por mi culpa.
+
+La primera vez, `src/superados.js` cazó dos líneas de `docs/H2B-CIRCULACION-BICI.md` que escribían
+`6 km/h` —el valor de la velocidad a pie que la tanda de arreglo 4 retiró— cuando lo que decían era
+la velocidad de **empujar** de openrouteservice. Se arregló citando el literal del fichero fuente
+(`setHighwaySpeed("footway", 6)`) en vez de parafrasearlo.
+
+⛔⛔ **Y entonces escribí un §8 explicando el incidente, y el §8 metió la cadena CUATRO VECES más:**
+
+```
+   1ª vez:  6 km/h     11 de 9   ⛔ SE HA MOVIDO      (2 líneas mías)
+   2ª vez:  6 km/h     14 de 9   ⛔ SE HA MOVIDO      (4 líneas mías, todas del texto que
+                                                       explicaba por qué había saltado)
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **`node src/superados.js` con
+`exit=0`, ejecutado por mí, publicado por mí en el chat como prueba de que estaba arreglado.**
+
+```
+   superados exit=0        ← cierto en ese instante
+   …y noventa segundos después escribí el §8 y volví a meter la cadena, y commiteé sin repetirlo.
+```
+
+⇒ **El verde era real y era falso a la vez: real cuando se midió, falso cuando se publicó.** No
+mintió el instrumento: mintió el ORDEN.
+
+**Causa raíz:** *«configurar no es comprobar»* —la primera regla de verificación de `CLAUDE.md`— en
+su forma menos vistosa: **comprobar y DESPUÉS cambiar es no haber comprobado.** El hueco no estaba en
+la medición, estaba entre la medición y el commit. ⚠️ Y lo hizo especialmente fácil que el cambio
+posterior fuera *«solo documentación»*: **un documento no parece que pueda romper una batería**, y en
+este proyecto sí puede, porque `src/superados.js:272` recorre `docs/`.
+
+**Cómo se cazó:** la segunda batería de cierre. ⭐ **No hubo ninguna intuición: hubo una batería que
+se corre siempre.**
+
+⛔⛔ **Y HUBO UNA TERCERA, en el mismo ciclo de edición.** El §8 reescrito explicaba la solución
+durable **nombrando otro par de la lista del guardián y citando su regex de exclusión**, y volvió a
+salir en rojo — esta vez por el par `182 → 232`:
+
+```
+   1ª   6 km/h    11 de 9    ⇐ 2 líneas citando a openrouteservice
+   2ª   6 km/h    14 de 9    ⇐ 4 líneas más, del texto que explicaba la 1ª
+   3ª   182       10 de 9    ⇐ 1 línea del texto que explicaba la 2ª
+```
+
+⇒ **Tres intentos, tres rojos, y el tercero ya no es un descuido: es una propiedad.**
+**`src/superados.js` está hecho exactamente de las cadenas que prohíbe**, así que nombrar un par,
+citar una exclusión o pegar su informe **es republicar lo que vigila.**
+
+**Arreglo aplicado:** el §8 del informe **describe el incidente sin escribir ninguna de las cifras y
+sin nombrar ningún par**, y dice por qué no lo hace. ⭐ **La evidencia verbatim vive AQUÍ**, que es
+donde puede: `esActa()` en `src/superados.js:263` exime a la bitácora precisamente porque *«el valor
+viejo TIENE que aparecer; marcarlo sería marcar el acta»*. **El proyecto ya tenía el sitio previsto y
+yo estaba escribiendo en el otro.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una comprobación solo vale para el estado en el que se hizo, y
+cualquier edición posterior la invalida entera — incluida una edición «solo de documentación».** ⇒ La
+última acción antes de un commit tiene que ser **la comprobación, no el cambio.**
+⚠️ Y el corolario que este proyecto tiene que asumir: **hay guardianes cuyo universo incluye los
+documentos que los describen, y con ésos DOCUMENTAR ES MODIFICAR LO VIGILADO.** No se puede contar lo
+que cazaron citándolo: hay que contarlo describiéndolo, o escribirlo en un acta exenta.
+
+**Traza:** `src/superados.js:263` (`esActa`) y `:272` · `docs/H2B-CIRCULACION-BICI.md` §8

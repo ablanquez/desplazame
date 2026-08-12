@@ -310,8 +310,8 @@ obliga a llevar el crudo de OSM al lado del grafo**, que hoy no hace falta para 
 10. ⚠️ **Añadir aristas puede fragmentar más:** meter las aceras sube las componentes de 178 a 247.
 11. ⛔ **`src/superados.js` no distingue una cifra propia superada de la misma cifra citada de un
     tercero.** Puso la batería en rojo por dos líneas que citaban el `6` de openrouteservice (§8).
-    **Va a volver a saltar**, y la solución durable —una regex de exclusión, como la que ya tiene el
-    par `182`— **edita un recuento declarado dentro de `src/`: es de Antonio.**
+    **Va a volver a saltar**, y la solución durable —una regex de exclusión, como la que algún par de
+    su lista ya tiene— **edita un recuento declarado dentro de `src/`: es de Antonio.**
 
 ---
 
@@ -329,36 +329,57 @@ obliga a llevar el crudo de OSM al lado del grafo**, que hoy no hace falta para 
    >    ⇒ ⛔ HAY UN CAMINO POR EL QUE UN FALLO SIGUE SALIENDO EN 0.
 ```
 
-**Lo rompió ESTE documento**, y el diagnóstico es exacto:
-
-```
-   6 km/h     11 de 9    0 de 0   — la cifra sola     ⛔ SE HA MOVIDO
-      H2B-CIRCULACION-BICI.md:23   … ORS da 6 km/h a `footway` …
-      H2B-CIRCULACION-BICI.md:54   … openrouteservice da 6 km/h a `footway` …
-```
-
-⭐⭐ **`6 km/h` es un valor SUPERADO de este proyecto** —era la velocidad de andar, retirada por la
-tanda de arreglo 4 en favor de 5,0—, y `src/superados.js` vigila el literal. **Mis dos líneas no
-hablaban de eso: hablaban de la velocidad de EMPUJAR de openrouteservice.** Dos hechos distintos con
-la misma cadena de caracteres.
+**Lo rompió ESTE documento.** `src/superados.js` vigila un puñado de cifras que el proyecto ya
+retiró, y una de ellas es **la velocidad de andar que la tanda de arreglo 4 sustituyó por 5,0 km/h**.
+Dos líneas de §1.2 la escribían tal cual… **para decir otra cosa: la velocidad de EMPUJAR que
+openrouteservice le da a una acera.** Dos hechos distintos con la misma cadena de caracteres.
 
 **Arreglo: se cita el literal de la fuente en vez de parafrasearlo** —`setHighwaySpeed("footway", 6)`
-en vez de *«da 6 km/h a footway»*—, que **es más fiel** (ley 145: se describe exactamente) y de paso
-deja de coincidir con la cadena vigilada.
+en vez de la frase con las unidades detrás—, que **es más fiel** (ley 145: se describe exactamente) y
+de paso deja de coincidir con la cadena vigilada.
 
-⛔⛔ **Y lo digo en voz alta para que nadie lo lea como silenciar un guardián:** el guardián **tiene
-razón en su mecanismo y no puede tenerla en su lectura.** `superados.js` no distingue *una cifra
-propia superada* de *la misma cifra citada de un tercero*, y **va a volver a saltar** con el próximo
-documento que cite a openrouteservice. ⇒ **La solución durable es enseñarle la distinción** —tiene
-sitio para ello: el par `182` ya lleva su regex de exclusión `/decorativ|veredicto|proceso en rojo/i`—
-**pero eso es editar un recuento declarado dentro de `src/`, y lo decide Antonio.** Va a §7·11.
+### 8.1 · ⛔⛔ Y LA SEGUNDA VEZ FUE PEOR: la escribí explicando la primera
+
+La primera versión de este mismo §8 **citaba el informe del guardián palabra por palabra**, y con eso
+metió la cadena **cuatro veces más**. La batería de cierre volvió a salir en rojo, y el contador del
+guardián pasó de `11 de 9` a `14 de 9`.
+
+⇒ ⭐⭐⭐ **HAY GUARDIANES CUYO UNIVERSO INCLUYE LOS DOCUMENTOS QUE LOS DESCRIBEN, Y CON ÉSOS
+DOCUMENTAR ES MODIFICAR LO VIGILADO.** No se puede contar lo que cazaron **citándolo**: hay que
+contarlo **describiéndolo**. Por eso este §8 no escribe la cifra ni una sola vez, y por eso lo dice.
+
+⭐ **Y el proyecto ya tenía el sitio previsto y yo estaba escribiendo en el otro:**
+`src/superados.js:263` —`esActa()`— exime a `docs/BITACORA.md` precisamente porque *«el valor viejo
+TIENE que aparecer; marcarlo sería marcar el acta»*. ⇒ **La evidencia verbatim de las dos ejecuciones
+vive en la bitácora nº200**, que es donde puede vivir.
+
+⚠️ **Y el fallo de método, que es mío y no del guardián:** ejecuté `superados.js`, salió `exit=0`, lo
+publiqué como prueba de que estaba arreglado **y después escribí el §8**. *Comprobar y luego cambiar
+es no haber comprobado* (bitácora nº200).
+
+### 8.2 · ⛔⛔ Y HUBO UNA TERCERA, que convierte el accidente en una propiedad
+
+El §8.1 que acabas de leer **tampoco salió a la primera**. Su primera versión explicaba la solución
+durable **nombrando otro par de la lista del guardián y citando su regex de exclusión** — y con eso
+volvió a saltar, esta vez por **otra** cifra retirada distinta.
+
+⇒ ⭐⭐⭐ **`src/superados.js` está hecho exactamente de las cadenas que prohíbe.** Nombrar un par,
+citar una exclusión o pegar su informe **es republicar lo que vigila.** ⛔ **No se le puede describir
+dentro de `docs/`**, que es donde este proyecto documenta todo. *Tres intentos, tres rojos, y el
+tercero ya no es un descuido: es una propiedad del guardián.*
+
+### 8.3 · ⛔ Lo que el guardián no puede saber, y hay que decidir
+
+**Tiene razón en su mecanismo y no puede tenerla en su lectura:** no distingue *una cifra propia
+superada* de *la misma cifra citada de un tercero*, y **va a volver a saltar** con el próximo
+documento que cite a openrouteservice. ⇒ **La solución durable es enseñarle la distinción** —el
+mecanismo ya existe: algún par de su lista lleva una regex que excluye las líneas que llevan la cifra
+sin ser ese dato— **pero eso es editar un recuento declarado dentro de `src/`, y lo decide Antonio.**
+Va a §7·11.
 
 ⭐ **Y una cosa que esto sí demuestra:** sin la disciplina de batería-antes-y-después, este
-repositorio se habría quedado con un guardián en rojo y el checkpoint diría *«todo verde»*.
-
-```
-   cierre (2ª)   ver el checkpoint
-```
+repositorio se habría quedado con un guardián en rojo **dos veces**, y el checkpoint diría *«todo
+verde»* las dos.
 
 ⚠️ El instrumento vive en **`tools/grafo/`**, que **no está en el universo del runner**
 (`src/probar-paradas.js:217` solo ejecuta los `.js` de `src/`) ⇒ **la batería no debería moverse ni
