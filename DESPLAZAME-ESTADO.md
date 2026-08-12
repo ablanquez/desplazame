@@ -854,10 +854,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 150 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 152 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta instrumentos mintiendo** *(115 al cerrar H1 + 35 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y dos instrumentos mintiendo** *(115 al cerrar H1 + 37 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1028,6 +1028,9 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 148 | ⛔⛔ **UNA MAYÚSCULA DEJÓ FUERA UN PAR DE ANDENES, Y EL CRUCE HACIA ATRÁS LO TAPÓ.** `1001 "La Chimenea"` contra `1002 "La chimenea"`, **a 10,7 m**. Los recuentos buenos de la tanda 8 son **18 · 16 · 178**, no 17 · 15 · 170. ⛔⛔ **Y lo grave no es el fallo: es que las diez cifras se reencontraron CLAVADAS en el cruce hacia atrás** — *las dos mediciones compartían la definición rota, así que el cruce salió verde y REFORZÓ el error* (§8·154, corregida) |
 | 149 | ⛔⛔⛔ **UNA LEY CITADA POR UN NÚMERO QUE NO LE CORRESPONDE, PROPAGADA DOS DÍAS.** Esta conversación escribió **«(ley 142)»** en dos encargos para sostener que `tools/` estaba fuera de la batería. **La ley 142 habla de ALLOWLISTS y no dice nada de eso.** El ejecutor la copió a **tres informes y a su bitácora**, y ⛔ **nadie abrió la ley para leerla.** *Hermano del nº117: una caracterización no medida viajando de un encargo a un registro con cara de hecho* |
 | 150 | ⛔⛔ **SE MIDIÓ EL ALCANCE DE LA BATERÍA CON UN `grep` QUE BUSCABA LA PALABRA YA SOSPECHADA.** `readdirSync` **solo caza listados de carpeta** —un `readFileSync(path.join(RAIZ,'docs',x))` no aparece— y el segundo patrón **buscaba literalmente `docs`**. ⇒ *«No medí el universo: encontré un caso y generalicé.»* ⭐ **Lo declaró su propio autor al medirlo de verdad**, instrumentando `fs` y `Module._resolveFilename` sobre una ejecución entera |
+| | **⬇ H2b · TANDA 1 (12/08) — DOS MÁS** ⬇ | |
+| 151 | ⛔⛔⛔ **EL RODEO DE LOS 2.538 DIVIDE METROS DE UTM ENTRE METROS DE UNA ESFERA.** `src/geo.js:26` contra `tools/gtfs/enlaces.js:109`. **0,079 %.** ⭐⭐ **Y lo que dio verde mientras el fallo vivía es lo que enseña: la AUDITORÍA DE LA LEY 159 hecha a ese mismísimo cociente** — se comprobó **qué puntos unía cada medida** y **nunca en qué MÉTRICA estaba cada una**. *Es la 159 con un piso más abajo: un cociente exige mismos puntos **y misma unidad*** |
+| 152 | ⛔⛔ **ESTA CONVERSACIÓN AVISÓ DE UN PROBLEMA QUE NO EXISTE, POR ANALOGÍA.** El encargo de H2b daba por hecho que **las estaciones BiZi tendrían el problema de los andenes gemelos**. Medido: **276 estaciones, 276 nombres DISTINTOS, el par más cercano a 95,1 m** ⇒ **la marca no se dispararía ni una vez.** ⭐ **Y la fuente sí declara el nivel que al GTFS le faltaba (`tipologia`)** — *justo lo contrario de lo que se avisó.* **Forma del nº117: una afirmación no medida viajando dentro de un encargo** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1744,7 +1747,29 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     el primer patrón solo caza listados de carpeta —un `readFileSync(path.join(RAIZ,'docs',x))` no
     aparece— y **el segundo buscaba literalmente la palabra `docs`**. ⇒ **Encontrar un caso y
     generalizar no es medir un universo** (ley 3 contra quien la tiene escrita). ⭐ **La medida
-    verdadera no se hizo con un patrón: se hizo instrumentando el sistema y dejándolo correr.**
+    verdadera no se hizo con un patrón: se hizo instrumentando el sistema y dejándolo correr.*
+
+173. ⭐⭐⭐ **UNA ABSTRACCIÓN QUE ABSORBIÓ UN CASO NUEVO SIN INMUTARSE PUEDE HABER ABSORBIDO UNA
+    SEMEJANZA, NO UNA CLASE — Y LA PRUEBA ES DE DÓNDE VIENE EL CASO, NO CÓMO SE COMPORTA.**
+    *La tabla `MODOS` metió el tranvía con 0 `if` y 33 líneas. Pero **el bus y el tranvía no se
+    parecen en la calle: los describe el MISMO FICHERO**, son dos `route_type` del mismo GTFS. La
+    bici no tiene feed.* ⇒ **La tanda 8 no demostró que el modelo escalara a cualquier modo:
+    demostró que escalaba a otro `route_type`.** ⭐ **Para saber si una abstracción aguanta hay que
+    darle un caso que venga de OTRA FUENTE**, no otro caso de la misma.
+
+174. ⭐⭐⭐ **UNA UNIDAD COMÚN NO ES UNA UNIDAD COMPARTIDA: SI DOS MODOS RECORREN LA MISMA MAGNITUD A
+    DISTINTO RITMO, SUMARLA PRODUCE UN ORDEN FALSO.**
+    *500 m andando contra 2.000 m en BiZi: en metros gana andar; en la calle gana la bici y no hay
+    discusión.* ⚠️ **Y el arreglo NO es el reloj** —no hacen falta horarios ni disponibilidad—:
+    **es una velocidad por modo.** ⛔ Corolario que este proyecto ya pagó: **una velocidad declarada
+    y no medida es lo que retiró la tanda de arreglo 4.**
+
+175. ⭐⭐ **UN AVISO POR ANALOGÍA ES UNA AFIRMACIÓN SIN MEDIR, Y VIAJA CON LA AUTORIDAD DE QUIEN
+    ENCARGA.**
+    *«Las estaciones BiZi tendrán el problema de los andenes» resultó falso: 276 nombres distintos y
+    el par más cercano a 95,1 m — **y la fuente declara el nivel que al GTFS le faltaba**.* ⇒ **Un
+    encargo que anticipa un hallazgo está fijando dónde mira el ejecutor**, así que **lo anticipado se
+    marca como hipótesis o no se escribe** (ley 171 vista desde el otro lado).*
 
 ---
 
@@ -1870,7 +1895,11 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2·8** | ⭐⭐⭐ **EL TRANVÍA — y el examen del modelo** | **H2a** | ✅ **11/08** ⭐ **0 `if` por modo** |
 | **—** | ⭐⭐⭐ **H2a CERRADO** — bus + tranvía + transbordo a pie | **H2a** | ✅ **11/08** ⛔ **3 decisiones en la mesa de Antonio** |
 | **10** | ⭐⭐⭐ **LOS ANDENES GEMELOS — la marca, no la fusión** | **H2a** | ✅ **11/08** ⛔ **no hay frontera: 52,7 m de solape** |
-| **H2b** | *(siguiente: **la red ciclable y las estaciones BiZi**)* | **H2b** | ⬜ |
+| **H2b·1** | ⭐⭐⭐ **EL DISEÑO EN PAPEL — qué es un modo** | **H2b** | ✅ **12/08** ⛔ **`MODOS` no sirve** |
+| **H2b·0** | *(siguiente: ⛔ **LA UNIDAD DE COSTE** — bloquea la combinación entera)* | **H2b** | ⬜ ⚠️ **decisión de Antonio** |
+| **H2b·2** | La circulación de la bici — ⚠️ *la que puede fallar EN VERDE* | **H2b** | ⬜ |
+| **H2b·3** | Las estaciones BiZi · **H2b·4** la combinación · **H2b·5** la bici propia | **H2b** | ⬜ |
+| **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
 46.150 portales WGS84 con `codigoVia`, geocodificador ya escrito, y **cero aristas, cero paradas,
@@ -3878,6 +3907,96 @@ una ejecución entera: **65 procesos · 2.655 registros · 183 leídos · 77 req
 ⇒ Ver **§8·170**, **§8·172** y **§7·149-150**: *tres afirmaciones que llevaban dos días circulando
 —el universo, la cita de la ley y el método del `grep`— eran falsas, y las tres cayeron con una sola
 medición.*
+
+### ⭐⭐⭐ H2b · TANDA 1 (12/08) — EL DISEÑO EN PAPEL. `docs/DISENO-H2B-MODOS.md`, propuesta sin construir.
+
+> ⭐⭐⭐ **EL PRODUCTO, DEFINIDO POR ANTONIO — y agranda H2b:**
+> **El usuario MARCA qué modos puede usar** —andando · transporte público · bici propia · BiZi ·
+> (coche, futuro)— **puede marcar VARIOS a la vez, y el motor COMPONE una ruta que los combina.**
+> ⇒ *No es «meter la bici»: es cerrar **qué es un modo** en este proyecto.*
+> ⛔ **Y lo primero que sale: «bicicleta» y «BiZi» son DOS MODOS DISTINTOS.** La bici propia sale de
+> tu portal; **la BiZi se coge y se deja en estaciones fijas** ⇒ **siempre hay tramo andando al
+> principio y al final.** *La misma forma que el bus.*
+> ⭐ **El COCHE queda declarado como hito futuro (`H2c`)**, no diseñado — pero el modelo tiene que
+> poder recibirlo sin abrirse en canal.
+
+**⭐⭐⭐ EL VEREDICTO SOBRE LA TABLA `MODOS`, Y ES MÁS AFINADO QUE LA PREGUNTA:**
+> **No sirve. Y lo que aguantó no fue el modelo: fue la semejanza — pero se puede nombrar con
+> precisión.** ⇒ ***No es que el bus y el tranvía se parezcan en la calle: es que LOS DESCRIBE EL
+> MISMO FICHERO.*** Son dos `route_type` del mismo GTFS. **La bici no tiene feed. El coche tampoco.**
+> ⇒ ⭐⭐⭐ **La tanda 8 no demostró que el modelo escalara a cualquier modo: demostró que escalaba a
+> otro `route_type`.**
+
+| modo | CIRCULACIÓN | ACCESO | coste |
+|---|---|---|---|
+| **a pie** | ⭐ medida: `e.pie`, **94.570 de 98.774 (95,7 %)** | cualquier punto | metros |
+| **transporte público** | ⛔ **no va por aristas: por secuencias de paradas** | 984 postes, **atado a su línea** | ⛔ no comparable |
+| **bici propia** | ⛔ **no existe `e.bici`** | libre… ⛔ **y con ESTADO** | ⛔ `NO CONSTA` |
+| **BiZi** | la misma que la bici propia | **276 estaciones**, subir y bajar | **+ 2 cambios de modo** |
+| **coche** ⏳ | ⛔ **el grafo es NO DIRIGIDO** | **bajar = aparcar, sin dato** | ⛔ no comparable |
+
+⭐⭐ **LA PROPUESTA: un modo = `CIRCULACIÓN × ACCESO`.** *Explica sin inventar nada por qué la BiZi se
+parece más al bus que a la bici propia:* **BiZi y bici propia comparten CIRCULACIÓN; BiZi y bus
+comparten la forma del ACCESO.** ⛔ Y `VEHÍCULO` se cayó por la ley 157: **un peatón no es un
+vehículo.**
+
+**⭐⭐ Y UN HALLAZGO QUE NO ESTABA EN EL ENCARGO: el proyecto ya tiene DOS modelos de modo y no se
+hablan.** `MODOS` (un feed, tabla, **0 ramas**) y `papel(forma, modo)` en `src/forma.js:148` (una
+arista, **cadena de `if`, y lanza excepción con un modo desconocido**). ⇒ **Entre los dos falta el que
+H2b necesita.**
+
+**⛔⛔ EL BLOQUEO — LA UNIDAD DE COSTE. Y se paró aquí, que era lo correcto:**
+```
+   500 m andando   contra   2.000 m en BiZi
+   ⇒ en METROS gana andar.   ⇒ en la calle gana la bici, y no hay discusión.
+```
+⇒ ⭐⭐⭐ **LOS METROS NO PUEDEN SER LA UNIDAD COMÚN DE UNA RUTA MULTIMODAL.**
+⚠️ **Y no es el reloj —no hacen falta horarios ni disponibilidad—: es UNA VELOCIDAD POR MODO**, y eso
+sí cabe en H2. De andar hay banda medida (4,3–4,5 / 5,0 estándar); **de la bici, cero mediciones.**
+**Tres salidas, con su coste, y el ejecutor no elige:** **A** componer solo en metros y decirlo
+*(produce rutas que nadie usaría)* · **B** velocidad declarada y no medida *(⛔ **es exactamente lo
+que retiró la tanda de arreglo 4**)* · **C** medirla. ⛔ **PENDIENTE DE ANTONIO.**
+
+**⛔⛔ D4 · ¿LA RED CICLABLE ES UNA RED O SON TROZOS? — TROZOS, y no depende de la tolerancia:**
+```
+   tolerancia   componentes   la mayor (km)   % de los km   sueltas
+      0 m           666          27,05           8,1 %        539
+      5 m           383          32,44           9,7 %        286
+     50 m           122         183,03          54,9 %         83
+```
+⭐⭐ **La forma de la curva dice más que sus filas: de 0 a 5 m la mayor apenas se mueve ⇒ NO son
+vértices que casi se tocan, son huecos de verdad.** *Por eso no hace falta decidir una tolerancia para
+contestar.* ⇒ ⛔ **La bici tiene que poder ir por CALZADA desde el primer día**, y eso arrastra una
+decisión **de producto, no técnica: mandarla entre coches.**
+
+**⛔⛔⛔ TRES HALLAZGOS QUE NADIE BUSCABA, Y DOS TOCAN H1:**
+
+| | qué | |
+|---|---|---|
+| ⛔ | **El aviso de esta conversación sobre los «andenes gemelos en BiZi» ERA FALSO** | Medido: **276 estaciones, 276 nombres distintos, el par más cercano a 95,1 m.** ⇒ **La marca `mismoNombreCerca` no se dispararía ni una vez.** *Se dio por hecho por analogía con el tranvía* (forma del §7·117). ⭐⭐ **Y encima la fuente SÍ declara el nivel que al GTFS le faltaba: `tipologia` — LINEAL 239 · ENFRENTADA 27 · DOBLE 10.** *Lo que el tranvía no tenía, la bici lo trae de serie* |
+| ⛔⛔ | **`VÍA · FORMA · PAPEL` NO ESTÁ EN EL GRAFO QUE USA EL MOTOR** | Los campos de una arista son `a b condEdificio condHorario condMirado condVia condicional highway largo nombreNoAplica pie precision pts unidoPorDefecto way` — **no hay `forma`, ni `plataforma`, ni `ciclista`.** ⇒ **Meter la bici EMPIEZA por mover el modelo dentro del motor, y eso toca H1** |
+| ⛔ | **El grafo es NO DIRIGIDO y nunca ha leído `oneway`** | Una sola línea en todo `src/`, **y solo para contarla**. Lo traen el **35,7 % de los `cycleway`** y el **65,3 % de la calzada**. ⇒ **Mismo bloqueo para bici y coche: se paga una vez** |
+
+**⛔ Y EL Nº151, QUE ES DE LOS BUENOS:** el rodeo publicado de los 2.538 **divide metros de UTM entre
+metros de una esfera** (`src/geo.js:26` contra `tools/gtfs/enlaces.js:109`). **0,079 %.**
+⭐⭐ *Lo que dio verde mientras estaba vivo:* **la auditoría de la ley 159 hecha a ese mismo cociente**
+— se comprobó **qué puntos unía cada medida y nunca en qué MÉTRICA estaba cada una.** *Es la 159 con
+un piso más abajo.* ⭐ Lo cazó la regla de no recitar cifras viejas.
+
+**⚠️ OCHO MEDICIONES PENDIENTES:** la velocidad en bici · el enganche de las 276 por `pavimento` · la
+aritmética de las **76.176** parejas de estaciones · **cuánta calzada une los 666 trozos** · por qué
+`en-obras` y `no-municipal` no llegan a ninguna arista · qué cuesta hacer el grafo dirigido · la
+discrepancia UTM↔esfera · **y si Avanza admite bicis** *(dato, no deducción)*.
+
+**⭐ EL ORDEN, CAMBIADO POR EL EJECUTOR Y APROBADO:** la **unidad de coste** pasa a ser la **tanda 0**
+porque bloquea la combinación entera. ⚠️ **Y la primera que puede fallar de verdad es la circulación
+de la bici: es la única que puede salir VERDE ESTANDO MAL** — *si el predicado se define como «aristas
+con `ciclista`», produce rutas por el 3,5 % del grafo sin quejarse.*
+
+**⚠️ Y UN APUNTE DE ANTONIO SOBRE EL FEED (12/08), que el proyecto no sabía:** *el editor **amplía el
+periodo en septiembre**, pero **en vacaciones no lo tocan**.* ⇒ **El 05/10 no es una fecha de muerte:
+es una RENOVACIÓN ESPERADA que puede llegar tarde.** El guardián de vigencia sigue valiendo igual —
+**cambia lo que significa que salte.**
 
 **DECISIONES NUEVAS DE H2:**
 
