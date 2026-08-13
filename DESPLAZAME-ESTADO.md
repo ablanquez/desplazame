@@ -205,6 +205,7 @@ devolvería el proyecto al terreno de 003.
 | ⭐ **Nodos (origen/destino)** | 46.150 portales WGS84 con `codigoVia` | ✅ Limpios. 46.147 coordenadas únicas de 46.150 |
 | **Geocodificador** | Heredado del dataset previo | ✅ 3.359 vías tokenizadas sin tildes, `by-street` con 2.731 calles, normalizador de abreviaturas. **Reutilizable tal cual** |
 | ⭐ **Red peatonal fina** | **OpenStreetMap** (Overpass) | ✅ **INTEGRADA — es la geometría base del grafo (D0)**: 68.649 nodos y 98.774 aristas. Aceras, pasos de peatones y escaleras **como líneas** y **ya nodalizadas por diseño**. ⚠️ **ODbL con efecto share-alike, declarada en el README** (tanda 2). *Corregido el 9/08: esta fila decía «decidida, no integrada» con el grafo entero construido encima.* |
+| ⭐⭐⭐ **Elevación** | **IGN · PNOA-LiDAR**, WCS INSPIRE `servicios.idee.es/wcs-inspire/mdt`, cobertura `Elevacion25830_5` | ✅ **DESCARGADA el 13/08** — **malla de 5 m**, EPSG:25830, ArcGrid ASCII. **332 teselas · 407 MB · 50 s · 0 fallos.** ⭐⭐ **Y no hay que reproyectar nada, comprobado:** el `.prj` que devuelve el servicio **coincide con `src/geo.js:14-21`** (GRS_1980, meridiano −3, factor 0,9996). ⛔ **La municipal NO sirve:** IDEZar publica **57.804 curvas de nivel SIN COTA** —`LEVEL`, `RED`, `GREEN`, `BLUE`, geometría 2D: **es dibujo de CAD**— y OSM trae `ele` en **0 de 48.211** |
 | ⭐⭐⭐ **Velocidad comercial del bus** | **Indicadores SIU · Ayuntamiento de Zaragoza** | ✅ **ENCONTRADA el 12/08.** `zaragoza.es/sede/servicio/siu/?indicador=velocidad-linea-transporte` — **velocidad media en km/h por línea, en día laborable, con las PARADAS DENTRO** (km comerciales ÷ tiempo de trabajo comercial). ⭐ **Es la velocidad a la que AVANZA EL SERVICIO, no a la que circula el bus** — justo lo que hace falta. ⛔ **Último dato 01/01/2024**, y ⚠️ **muchas líneas repiten valor exacto años seguidos** (la 28 con 21,88 durante cinco) ⇒ *o el indicador se congeló, o es dato de PLANIFICACIÓN y no de medición: **hay que comprobarlo antes de usarlo***. ⛔ **No incluye el tranvía** |
 | ⭐ **Transporte** | **GTFS 1176 del NAP** (bus + tranvía) | ✅ **DESCARGADO el 10/08 con código propio de 004** (`tools/bajar-gtfs.js`) — ⛔ **NO se copió de 003**. `feed_version 20260623_AUZSA_Y_TRANVIA` · 6.883.311 B · sha256 `5c96992c…f3a82`. **984 paradas · 53 rutas · 34.427 viajes · 870.717 horarios · 89 trazados sin huérfanos**, remedidos. ⚠️ **CADUCA EL 05/10/2026, Y EN DOS TIEMPOS: el bus respeta sus fechas al día, el tranvía se sale 87 días.** ⛔ **NO trae transbordo de ninguna forma** (§4·H2). *Hasta el 10/08 esta fila decía «decidido, no descargado»* |
 | **BiZi** | `MU1_estaciones_bici_ubicacion` (WFS) + API de la sede | ✅ **276 estaciones · 5.520 anclajes**, recontados el 12/08. ⛔⛔ **«Las dos fuentes son consistentes» DECÍA MENOS DE LO QUE PARECÍA (acotado el 12/08):** coinciden en **recuento** e **identidad** —la clave es el `numero`, 50 de 50— **y NO en POSICIÓN: hasta 41,0 m para la misma estación.** ⚠️ *Y eso es **4× el p99 del enganche** que se mide sobre ellas ⇒ **cambiar de fuente movería el enganche más que cualquier decisión de listón**.* ⛔ **El contraste alcanza a 50 de 276: las otras 226 no se han descargado.** ⇒ **Se usa el WFS**, que trae `anclajes_bicicletas`, `tipologia` y `pavimento`. ⛔ `tipologia` **sin documentar (`xsd:string`): `NO CONSTA` qué significa** |
@@ -855,10 +856,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 162 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 165 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento sesenta y dos instrumentos mintiendo** *(115 al cerrar H1 + 47 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento sesenta y cinco instrumentos mintiendo** *(115 al cerrar H1 + 50 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1048,6 +1049,10 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 160 | ⛔⛔⛔ **UNA FILA CALCULADA POR DIFERENCIA HACE QUE LA TABLA CUADRE SIEMPRE.** La estación de entrada que se publicaba **no era la del camino** —se cogía *«la más barata de alcanzar»* en vez de la que usa el Dijkstra— **y el total no se movió: 28,6 min antes y después**, porque **el tramo de rodar no se mide, SE DESPEJA**, y se comió los 148 m sobrantes al céntimo. ⭐ **Lo que dio verde: la propia suma de la tabla, las DOS veces.** ⇒ ***un total correcto no valida su desglose***, y lo cazó una costura del encargo, **no un guardián** |
 | 161 | ⛔⛔ **UNA PREDICCIÓN CAYÓ EN LA BANDA CON UN ERROR DE UNIDADES DE 6× DENTRO.** Se escribió *«rodar ahorra ≈0,144 min por cada 100 m»* **y son 0,867**: el 0,144 es `(1/5 − 1/18)` **en horas por kilómetro**, leído como minutos. **Y de ahí se concluyó que la BiZi PERDERÍA** — el resultado contrario al medido. ⭐⭐ **Lo declaró su propio autor y anuló el acierto**: *escribir el mecanismo es lo único que permitió saber que era suerte* |
 | 162 | ⚠️ **SE CITÓ LA CONSTANTE EQUIVOCADA DE LA MISMA FUENTE.** La tanda 2 citó `setHighwaySpeed("footway", 6)` de ORS para hablar de empujar — **y eso es una bici RODANDO por una acera.** La de empujar es `PUSHING_SECTION_SPEED = 4`, **en el mismo fichero.** ⇒ *tener la fuente correcta no garantiza tener el valor correcto: dentro de una fuente hay varias constantes y solo una responde a tu pregunta* |
+| | **⬇ H2b · TANDA 6 (13/08) — TRES MÁS** ⬇ | |
+| 163 | ⛔⛔⛔ **LA BATERÍA SALE EN VERDE O EN ROJO SEGÚN EL INTÉRPRETE DE ÓRDENES DESDE EL QUE SE LANCE.** `src/auditoria-guardianes.js:169-181` valida su censo con `spawnSync('bash', …)`: desde **Git Bash cuenta 328 = 328 ✅**, desde **PowerShell no hay `bash`, el contador da 0** y el guardián declara —correctamente— que no puede verificarse. ⇒ ***«La batería sale en verde» es una frase incompleta mientras no diga DESDE DÓNDE.*** ⚠️⚠️ **Y lo que ata el nudo: repetida con la máquina parada, el `diff` salió VACÍO** ⇒ ***reproducible y equivocada a la vez.*** ⭐ *La primera hipótesis —«la he ensuciado bajando 407 MB»— se PROBÓ y era falsa* |
+| 164 | ⛔⛔ **DOS TABLAS DE LA MISMA FUENTE CON EL MISMO NOMBRE Y CONVENCIONES OPUESTAS.** En Valhalla, `kGradeBasedSpeedFactor` **multiplica VELOCIDAD en la bici** y **multiplica TIEMPO en el peatón** ⇒ **un 1,83 al +10 % es 83 % MÁS de tiempo.** ⛔ *Leerla con la convención equivocada diría que uno anda casi el doble de rápido cuesta arriba.* ⚠️ *Y el otro falso amigo del mismo día: `setTrackTypeSpeed("grade1", 18)` de ORS es **el firme**, no la pendiente* |
+| 165 | ⚠️ **CONVIVEN DOS ENGANCHES Y PRODUCEN DOS «ANDANDO ENTERO».** `R.engancharPunto`+`G.rutaEntre` da **4.743,4 m** y `P.engancharUno(…,350)` da **4.725,6**: **17,8 m, 0,4 %.** ⛔ **Ninguno está mal — pero el trayecto de la tanda 5 compara la BiZi medida con uno contra el andando medido con el otro, y eso no se había dicho** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1910,6 +1915,29 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     el mismo fichero**.* ⇒ **Dentro de una fuente hay varias constantes y solo una contesta lo que
     preguntas**: la cita se verifica contra **la pregunta**, no solo contra el fichero.
 
+194. ⭐⭐⭐ **UN VEREDICTO DE VERIFICACIÓN NO ES UNA PROPIEDAD DEL REPOSITORIO: ES DEL REPOSITORIO Y
+    DEL ENTORNO DESDE EL QUE SE LANZA.**
+    *La misma batería, el mismo commit: verde desde Git Bash, rojo desde PowerShell — porque un
+    guardián valida su censo con `spawnSync('bash', …)` y allí no hay `bash`.* ⇒ ***«Sale en verde» es
+    una frase incompleta mientras no diga DESDE DÓNDE.***
+    ⚠️⚠️ **Y el corolario que desarma la contraprueba favorita de este proyecto:** *repetida con la
+    máquina parada, el `diff` salió vacío* ⇒ ***reproducible y equivocada a la vez: un `diff` vacío
+    solo mide que la SEGUNDA ejecución coincide con la primera, no que la primera fuera correcta.***
+
+195. ⭐⭐⭐ **UN CONTROL POSITIVO SIN SU NEGATIVO NO PRUEBA EL INSTRUMENTO: PRUEBA QUE EL INSTRUMENTO
+    DICE QUE SÍ.**
+    *«Cuesta del Reloj» y «Subida La Cadena» salen con 9-10 % de pendiente — pero eso solo vale porque
+    **«Camino Alto del Molino» sale LLANO (0,50 %)**: «Alto» suena a altura y no es cuesta.* ⇒ **Si el
+    instrumento dijera «cuesta» a cualquier nombre sugerente, los dos positivos no probarían nada.**
+    ⭐ *Y el control que no depende de ningún nombre es el mejor: **un río no puede subir** — el Ebro
+    cae 37,8 m en 34 km y solo 1 de 17 franjas sube, por 0,4 m.*
+
+196. ⭐⭐ **LA RESOLUCIÓN QUE DECIDE NO ES SIEMPRE LA QUE SE MIRA.**
+    *La malla de elevación de 25 m parecía suficiente por su rejilla — y venía **cuantizada a metros
+    enteros**: 29 valores distintos en 6.400 celdas, **escalones del 4 % sobre una arista de 25 m**.*
+    ⇒ **El límite era la resolución VERTICAL, no la horizontal.** ⭐ *Antes de aceptar una fuente por
+    su resolución nominal, se cuenta **cuántos valores distintos trae de verdad**.*
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -2041,7 +2069,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2b·3** | ⭐⭐⭐ **EL ENGANCHE PROPIO DE LA BICI** | **H2b** | ✅ **12/08** ⛔ **corrige «se triplica»: es 1,39×** |
 | **H2b·4** | ⭐⭐⭐ **LAS 276 ESTACIONES BiZi** | **H2b** | ✅ **12/08** ⛔⛔ **en metros la BiZi no gana nunca** |
 | **H2b·5** | ⭐⭐⭐ **LA VELOCIDAD DE `empuja` Y EL TRAYECTO ENTERO** | **H2b** | ✅ **13/08** ⭐ **la BiZi gana desde ~1,5 km** |
-| **H2b·6** | *(siguiente: **la combinación de modos** — lo que queda ya no es enganchar, es que se hablen)* | **H2b** | ⬜ |
+| **H2b·6** | ⭐⭐⭐ **LA CUESTA** — ¿hay dato, cuánta hay, y cuánto mueve? | **H2b** | ✅ **13/08** ⭐ **cabo: 1,2–1,5 %** |
+| **H2b·7** | *(siguiente: **la combinación de modos** — lo que queda ya no es enganchar, es que se hablen)* | **H2b** | ⬜ |
 | **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
@@ -4571,6 +4600,131 @@ menos de 250 m · ⚠️ **la escala del umbral tiene UN SOLO ORIGEN** —*es un
 el ~1,5 km es de ese origen*— · ninguno mirado sobre un mapa · **y el caso del trayecto son dos
 EDIFICIOS con 762,7 m de caminata final: su ventaja de 24,3 min no se lee como propiedad de los
 trayectos en BiZi.**
+
+### ⭐⭐⭐ H2b · TANDA 6 (13/08) — LA CUESTA. `docs/H2B-CUESTA.md`. ⛔ **Ni una línea de `src/`.**
+
+> ⭐⭐⭐ **VEREDICTO: CABO, no corrección urgente.** Mueve los tiempos un **1,2–1,5 %** y **no cambia
+> ninguna conclusión** — ⚠️ **pero el ~1,5 km publicado es un LÍMITE SUPERIOR, y ése es el número que
+> hay que dejar de recitar.**
+> ⭐ **Y por qué sale pequeño, con cifra y no como excusa:** *por donde pasa la red de bici Zaragoza
+> es llana (**67,8 % bajo el 2 %**) y **estos dos trayectos no cruzan el escalón del Actur***.
+> ⛔ ***Eso no es una propiedad de Zaragoza: es una propiedad de los dos casos medidos.***
+
+**⭐⭐⭐ HAY DATO, Y LA RESOLUCIÓN QUE DECIDE NO ES LA HORIZONTAL:**
+```
+   malla    celdas   enteras   valores distintos
+    25 m     6.400    100,0 %          29        ⛔ cuantizada A METROS ENTEROS
+     5 m   160.000     49,0 %      17.721        ⭐ la que se usa
+```
+⇒ ***Sobre una arista de 25 m, la malla gruesa da escalones del 4 %: no distingue una cuesta suave de
+una llana por fina que parezca su rejilla.*** **El límite era la resolución VERTICAL, no la horizontal.**
+
+**⭐⭐ CONTRASTADO CONTRA UN TESTIGO QUE NO COMPARTE NI SENSOR NI ORGANISMO:** 4.278 clavos
+topográficos del WFS municipal *(de 4.308; 30 sin altitud, `NO CONSTA`)* ⇒ **p50 0,21 m · p90 0,51 ·
+p99 2,73.** ⭐ **Y los tres peores, mirados uno a uno:** el de −27,8 m **lo explica su propio
+comentario** *(«SOBRE TERRAZA MÁS ELEVADA»)*, y los de −143,9 y −47,5 son **dos clavos consecutivos
+«EN EL BORDILLO» de la misma avenida** declarando 244,3 y 343,8 m donde el terreno está a 197 y 200.
+⇒ ***Dos bordillos de la misma calle no pueden estar a 100 m de altura uno del otro: el que se
+equivoca ahí es el registro municipal.***
+
+**⭐⭐ CUÁNTA CUESTA HAY — y el control positivo lo eligió el Ayuntamiento con sus nombres de calle:**
+```
+   Cuesta del Reloj          positivo     275 m    |p| 9,53 %   ✅
+   Subida La Cadena          positivo     971 m    |p| 10,23 %  ✅
+   Camino Alto del Molino    ⭐ NEGATIVO 1.046 m    |p| 0,50 %   ✅ sale LLANO
+```
+⭐⭐⭐ ***El negativo es lo que convierte a los positivos en prueba:*** *«Alto» suena a altura y no es
+cuesta. Si el instrumento dijera «cuesta» a cualquier nombre sugerente, los dos primeros no probarían
+nada.* ⭐ **Y el que no depende de ningún nombre: un río no puede subir** — el Ebro **cae 37,8 m en 34
+km**, y **1 de 17 franjas sube, esa una por 0,4 m.**
+
+```
+   la red de bici (4.870,8 km), por pendiente
+     0–1 %  2.372,3 km  48,7 %        5–8 %  260,7 km   5,4 %
+     1–2 %    929,3 km  19,1 %       8–10 %   63,9 km   1,3 %
+     2–3 %    594,9 km  12,2 %        ≥10 %   77,0 km   1,6 %
+     3–5 %    572,6 km  11,8 %
+   ⇒ 67,8 % bajo el 2 %   ·   8,2 % (401,6 km) por encima del 5 %
+```
+⚠️ **Con su suelo de ruido MEDIDO, no supuesto:** las aristas de menos de 5 m tienen colas más gordas
+(p90 6,55 % contra 4,72 %), **y tirándolas —el 55,8 % de las aristas— el reparto se mueve siete
+décimas.** ⇒ *El ruido existe y no mueve la respuesta.*
+⭐ **El Actur está 57,5 m por encima de la ribera del Ebro** (p50 256,0 contra 198,5).
+⚠️ **Y lo que el MDT no puede acertar, con su cifra: 723 aristas, 36,2 km, el 0,7 %, son puente o
+túnel**, donde devuelve **la cota del terreno y no la de la calzada.**
+
+> ⭐⭐⭐ **LA TRAMPA DE VALHALLA — y es la ley del valor correcto con una vuelta más:**
+> **Las dos tablas SE LLAMAN IGUAL —`kGradeBasedSpeedFactor`— y NO significan lo mismo.**
+> En la **bici** multiplica **VELOCIDAD** (`bike_speed = speed_ * … * factor`); en el **peatón**
+> multiplica **TIEMPO** (`sec = length * speedfactor_ * … * factor`). ⇒ **Un 1,83 al +10 % es 83 % MÁS
+> de tiempo.** ⛔ ***Leer la del peatón con la convención de la bici diría que uno anda casi el doble
+> de rápido cuesta arriba.***
+> ⚠️ *Y el otro falso amigo: `setTrackTypeSpeed("grade1", 18)` de ORS es **el firme**, no la pendiente.*
+
+**LAS TRES FUENTES:** **Valhalla** la modela entera **y para los dos modos** *(16 cubos de −10 % a
++15 %, más `kAvoidHillsStrength[]`)* · **ORS solo la bici**, y en dos sitios que no son una tabla de
+velocidad *(`consider_elevation` sube el techo de 30 a 50 km/h; `getHillIndex()` alimenta un
+`AvoidHillsWeighting` de 16 escalones)* · **OSRM no la modela** — ⭐ **y el cero va con su uno: el
+mismo `grep` encuentra `walking_speed` en los dos ficheros.**
+
+**⛔⛔ LA ASIMETRÍA SUBIR/BAJAR — PARA Y AVISO, y es más pequeña de lo que parecía.**
+Los dos que la modelan **la guardan por sentido y lo dicen en su firma**: `getHillIndex(points,
+reverse)`, `reverse ? edgeState.getReverse(…) : edgeState.get(…)` ⇒ **dos valores por arista.**
+⭐⭐ **Y el matiz que cambia el tamaño del problema: los dos sentidos YA EXISTEN en `src/grafo.js`** —
+cada arista se empuja dos veces—. ***Lo que falta no es la segunda dirección: es que el peso sepa en
+cuál está.*** ⛔ **Pero el peso de hoy son METROS, y con pendiente los metros dejan de convertirse en
+minutos arista a arista** ⇒ **es tocar H1, y lo decide Antonio.**
+
+**⭐⭐ EL EFECTO, con predicción sellada a las 16:22:23 — y evaluada por el MECANISMO:**
+```
+   tramo         metros   llano   con cuesta    dif
+   1 · andar      416,4     5,0        5,3     +0,3
+   3 · rodar     4348,3    14,5       14,2     −0,2   ⭐ la bici BAJA
+   5 · andar      762,7     9,2        9,5     +0,4
+   TOTAL BiZi              32,6       33,1     +0,5   (1,5 %)
+   ANDANDO       4725,6    56,7       57,4     +0,7   (1,2 %)
+   ⇒ ganaba por 24,1 min y ganaría por 24,3 ⭐ LA PENDIENTE LE ENSANCHA LA VENTAJA
+```
+⭐ **Y el mecanismo acertó donde el resultado no:** se predijo *«la tabla de la bici es generosa
+bajando, así que la ondulación sale a su favor»* **y pasó exactamente** —el tramo de rodar bajó de
+14,5 a 14,2—. ⛔ **Se falló la dirección del TOTAL porque el trayecto lleva dos tramos ANDANDO dentro,
+y el peatón paga en las dos direcciones** ⇒ ***se razonó sobre un tramo y se predijo sobre el objeto
+entero: el error de encuadre de la tanda 5, otra vez y del revés.***
+⭐⭐ **Con control primero:** `4348,3 / 416,4 / 762,7` y `#236 → #40` ✅ **es EL MISMO trayecto.**
+
+**⛔⛔ Y LA HONESTIDAD QUE LE FALTA AL «BAJA 500 m»:** los peldaños son **250 · 500 · 750 · 1000 ·
+1500**, así que **entre 1.000 y 1.500 NO HAY NADA MEDIDO.** *Este instrumento no distingue 1.001 de
+1.499.* ⇒ **El número honesto es «baja, y baja al menos un peldaño».**
+⚠️ **Y es una COTA INFERIOR:** se mide el error **sobre el mismo camino**, y con pendiente **el camino
+óptimo también cambiaría** — *en la tanda 5, pasar de metros a minutos ya movió el camino de 4.734 a
+5.527 m.*
+
+**⚠️ QUÉ CLASE DE CUESTA NO SE HA PROBADO:** ⛔ **ninguna que cruce el escalón del Actur — el caso que
+más movería el resultado es justo el que falta** · ⛔ ninguna subiendo contra bajando *(todo en un solo
+sentido)* · ⛔ **ninguna empujando en cuesta** *(ninguna de las tres fuentes lo modela: los tramos 2 y
+4 quedan llanos **por falta de dato, no por decisión**)* · ⛔ **nada entre 1.000 y 1.500 m, que es
+donde está el umbral nuevo** · ⚠️ ningún puente ni túnel corregido · **nada mirado sobre un mapa** ·
+⚠️ *y un peldaño se sale de la curva y se dice: a 9.997 m la BiZi tarda 98,5 min cuando a 8.001
+tardaba 45,0. **No se ha investigado.***
+
+> ⛔⛔⛔ **Y EL HALLAZGO MAYOR NO ES DE LA CUESTA — la batería base salió ROJA dos veces:**
+> `src/auditoria-guardianes.js:169-181` valida su censo **lanzando `spawnSync('bash', …)`**. Desde
+> **Git Bash cuenta 328 contra 328 ✅**; desde **PowerShell no hay `bash`, el contador da 0**, y el
+> guardián declara —**correctamente**— que no ha podido verificarse.
+> ⇒ ⭐⭐⭐ ***El veredicto de la verificación no es una propiedad del repositorio: es una propiedad del
+> repositorio Y DEL ENTORNO desde el que se lanza.*** **«La batería sale en verde» es una frase
+> incompleta mientras no diga DESDE DÓNDE.**
+> ⚠️⚠️ **Y lo que ata el nudo: se repitió la batería con la máquina parada y el diff salió VACÍO.**
+> ⇒ ***Reproducible y equivocada a la vez. El diff vacío solo mide lo primero.***
+> ⛔ *(Y la redirección de PowerShell escribe un BOM, así que un diff entre una captura suya y una de
+> Bash no puede salir vacío nunca.)*
+> ⭐ **Su primera hipótesis —«la he ensuciado yo bajando 407 MB al lado»— se PROBÓ y era falsa:** con
+> seis procesos comiéndose la CPU, el guardián sigue declarando 1.
+
+**⚠️ Y UN CABO NUEVO QUE TOCA A LA TANDA 5:** **conviven DOS enganches** y dan dos *«andando entero»*
+— **4.743,4 m** con `R.engancharPunto`+`G.rutaEntre` y **4.725,6** con `P.engancharUno(…,350)`:
+**17,8 m, 0,4 %.** ⛔ **Ninguno está mal, pero el trayecto de la tanda 5 compara la BiZi medida con
+uno contra el andando medido con el otro, y eso no se había dicho.**
 
 **DECISIONES NUEVAS DE H2:**
 
