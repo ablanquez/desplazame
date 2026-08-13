@@ -10575,3 +10575,187 @@ marca como tal**, y **el cuadre de la tabla deja de ser evidencia de nada.**
 de corregir de qué estación se salía — *el número era verdad y el relato era falso.*
 
 **Traza:** `tools/grafo/trayecto-bici.js` (`dijkstraMulti` y P2) · `docs/H2B-TRAYECTO-BICI.md` §3
+
+---
+
+## [2026-08-13] — El buscador de capas de elevación dijo CERO porque se había comido las barras
+
+**Categoría:** método / instrumento
+**Síntoma:** primera pregunta de la tanda: ¿publica IDEZar alguna capa de elevación? El script
+recorrió las 178 capas del `getcapabilities` cacheado y contestó:
+
+```
+   FeatureTypes: 178
+   coinciden: 0
+```
+
+**Y el cero era perfectamente creíble.** Un ayuntamiento puede no publicar un modelo digital del
+terreno: para eso está el IGN. Iba a escribir *«IDEZar no tiene ninguna capa de elevación»* y seguir.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **`FeatureTypes: 178`.** El único
+número que el script imprimía antes del cero decía que el parser encontraba las 178 capas y las
+contaba bien. **El instrumento parecía sano por el único sitio por el que se le miraba.** Y un `grep`
+crudo sobre el mismo fichero, hecho un minuto antes, **sí** encontraba `urbanismo:Clavos_Topograficos`
+y la palabra `curvas` — o sea que había una contradicción delante y no la vi.
+
+**Cómo se cazó:** ⭐ **el positivo de control, que estaba escrito en el mismo script y corría antes
+del barrido:** buscar `/acera/i`, que se sabe que está —`data/exploracion/2026-08-02_idezar-geoserver_describe-Aceras.xml`
+existe—. Contestó `NINGUNA`. Un cero se puede creer; **dos ceros, uno de ellos imposible, no.**
+
+**Causa raíz:** el script se escribió con un *heredoc* del shell, y `'[\\s\\S]'` llegó al fichero
+como `'[\s\S]'`. En un literal de JavaScript `\s` **no es un error de sintaxis**: es `s`. La
+expresión quedó `<Name>([sS]*?)</Name>`, que no casa con ningún nombre que traiga un dígito, un
+guion bajo o dos puntos — es decir, con **ninguno** de los 178. `g(f,'Name')` devolvía cadena vacía
+siempre, y el filtro no encontraba nada porque **no estaba mirando nada**.
+
+**Arreglo aplicado:** se dejó de escribir código por heredoc. Los tres scripts de aquel momento se
+borraron y se reescribieron con la herramienta de escritura, con el positivo de control **antes** del
+barrido y con `process.exit(1)` si el control falla, para que no se pueda leer el cero de abajo sin
+haber visto el uno de arriba.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un cero es una afirmación sobre el mundo Y sobre el instrumento, y
+sin su positivo de control no hay forma de saber cuál de las dos está hablando.** Ya estaba escrita
+—es la ley del proyecto— y aquí se cobró sola.
+⚠️ Corolario nuevo, que es lo que esta entrada añade: **el canal por el que se escribe el código es
+parte del instrumento.** Un escape comido no da error, no avisa y no revienta: **da otro programa,
+que funciona perfectamente y contesta otra cosa.**
+
+**Traza:** el barrido definitivo vive en `tools/grafo/mdt.js`; la capa que aquel cero escondía es
+`urbanismo:IDEZar_Ordenacion_lineas` (57.804 curvas de nivel **sin cota**), en `docs/H2B-CUESTA.md` §1.1
+
+---
+
+## [2026-08-13] — El Ebro no aparecía porque en OpenStreetMap se llama «Río Ebro»
+
+**Categoría:** dato / instrumento
+**Síntoma:** el segundo control positivo de la tanda —*un río no puede subir*— filtraba el crudo de
+ríos por `e.tags.name === 'Ebro'` y sacaba **0 ways**. En OSM el cauce se llama **«Río Ebro»**, con
+33 ways, y ahí estaba, en el mismo fichero, el primero de la lista de nombres por frecuencia.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐ **nada, y eso es lo grave.** El
+`filter` devolvió un array vacío **sin quejarse**, que es lo que hace un `filter`. Lo único que paró
+el script fue que dos líneas después se leyó `pts[0][0]` sobre un array vacío y reventó con un
+`TypeError`. ⇒ **me salvó una excepción por accidente, no una comprobación.**
+⛔ Y la forma en que esto podría haber pasado: si hubiera escrito un `if (!pts.length) return`
+«defensivo» —que es lo que uno escribe sin pensar—, el informe habría publicado
+*«franjas que suben: 0 de 0 ✅»*. **El control positivo habría salido en verde sin haber mirado un
+solo metro de río.**
+
+**Causa raíz:** la misma de la nº196 con «La Chimenea», en otra forma: **comparar nombres por
+igualdad exacta contra un dato que no elige uno.** Aquí ni siquiera hacía falta normalizar
+mayúsculas: el nombre real trae una palabra más.
+
+**Arreglo aplicado:** el filtro busca `'Río Ebro'` y va con un
+`A.exige(ways.length > 0, 'cero ways del Ebro: el filtro por nombre no encuentra el río y su perfil
+no se puede comprobar')`. ⛔ **Un filtro por nombre que no encuentra nada es un fallo, no un array
+vacío.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **un control positivo que puede salir en verde con cero casos no es un
+control: es una comprobación de que el bucle no revienta.** ⇒ **todo control positivo empieza
+comprobando que su universo no está vacío**, y esa comprobación es un `A.exige`, no un aviso.
+
+**Traza:** `tools/grafo/cuesta.js` §P1 · `docs/H2B-CUESTA.md` §2.2
+
+---
+
+## [2026-08-13] — La respuesta del WCS traía un segundo documento pegado detrás de la rejilla
+
+**Categoría:** dato / formato
+**Síntoma:** al parsear la primera tesela del MDT, la cuenta no cuadraba:
+
+```
+   Error: tesela 338:2305: 160037 celdas, esperaba 160000
+```
+
+37 fichas de más sobre 160.000. La cabecera decía `ncols 400 · nrows 400 · cellsize 5`, el HTTP era
+200, el fichero pesaba 1,3 MB y los números eran alturas correctas de Zaragoza.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **todo lo que suele probarse:** el
+código de respuesta, el tamaño, la cabecera ArcGrid completa y correcta, y **los propios valores**,
+que eran cotas plausibles. ⚠️ Y lo peor: **las 160.000 primeras celdas eran exactamente las buenas.**
+La basura estaba **al final**. ⇒ **un parser que hubiera truncado a 160.000 en vez de contar habría
+funcionado, para siempre, sin que nadie se enterara nunca de que estaba leyendo mal el formato.**
+
+**Causa raíz:** `format=application/asc` sobre WCS 2.0.1 **no devuelve un fichero**: devuelve
+`multipart/related` con **dos adjuntos** — la rejilla y el `.prj`. Trocear «todo lo que hay tras la
+cabecera» por espacios en blanco mete dentro
+`PROJCS["ETRS89_UTM_zone_30N",GEOGCS["GCS_ETRS_1989",DATUM[...` como si fueran números.
+
+**Cómo se cazó:** `if (k !== N * N) throw` — la cuenta exacta, escrita antes de mirar ningún dato.
+
+**Arreglo aplicado:** el cuerpo se corta en el límite MIME (`split(/\r?\n--wcs/)[0]`) **y se sigue
+contando**: la cuenta es lo que caza, el corte solo arregla.
+⭐ Y de la basura salió algo que valía: ese `.prj` es lo que demuestra que el MDT viene en
+`SPHEROID["GRS_1980",6378137,298.257222101]` con meridiano central −3 y factor 0,9996, que es
+**exactamente** lo que implementa `src/geo.js:14-21`. **No hay que reproyectar nada, y eso ahora no
+es una suposición.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **contar es lo único que distingue «he leído el fichero» de «he leído
+lo que había».** Un `200` con la cabecera correcta puede traer dentro un segundo documento, y un
+parser que acepta «lo que quede» no está leyendo un formato: **está adivinando, y acierta casi
+siempre.**
+
+**Traza:** `tools/grafo/mdt.js` (`rejilla`) · `docs/H2B-CUESTA.md` §1.2
+
+---
+
+## [2026-08-13] — La batería salió roja y la causa era el intérprete de órdenes desde el que la lancé
+
+**Categoría:** método / verificación
+**Síntoma:** batería base de la tanda, con el árbol limpio y sin haber tocado una línea:
+
+```
+   auditoria-guardianes.js   código 1       2 de 1  declara    ⛔ DECLARA 2 Y SE ESPERABAN 1
+   EXIT 1
+```
+
+La sesión anterior había publicado **esa misma batería en exit 0**, 114 líneas, sobre **el mismo
+commit** (`1eb123f`) y con el árbol igual de limpio.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **`git status` vacío, las dos
+veces.** El árbol estaba quieto —que es la regla que este proyecto se escribió para esto— y la
+batería seguía en rojo. Y una segunda cosa peor: **repetí la batería entera con la máquina parada y
+el `diff` contra la primera salió VACÍO.** ⇒ el instrumento era **perfectamente reproducible**
+mientras contestaba distinto que la víspera. ⛔ **«Reproducible» y «correcto» no son lo mismo, y un
+diff vacío solo mide lo primero.**
+
+**La hipótesis que tenía y era falsa:** durante la primera ejecución bajé 407 MB de teselas y corrí
+procesos de 6 GB al lado. Di por hecho que la había ensuciado yo. **La probé antes de escribirla:**
+con seis procesos comiéndose la CPU, `auditoria-guardianes.js` sigue declarando **1**. ⭐ La
+explicación cómoda era mentira y lo dijo la contraprueba, no el razonamiento.
+
+**Causa raíz:** `src/auditoria-guardianes.js:169-181` valida su censo contra un contador
+**independiente** —ley de los dos testigos— lanzando
+`spawnSync('bash', ['-c', 'grep -o "A\\.exige(\\|A\\.fallo(\\|A\\.imposible(" src/*.js | wc -l'])`.
+
+- lanzada desde **Git Bash**: `bash` está en el PATH → `328` contra `328` → ✅, 1 fallo (el declarado)
+- lanzada desde **PowerShell**: `bash` no está → el contador da **0** → el guardián entra por su
+  rama `else` y declara `A.fallo('el censo no tiene contador independiente: no se puede afirmar que
+  esté completo')` → **2 fallos**
+
+⇒ ⛔ **No es un falso positivo.** El guardián dice *«no he podido verificar mi censo»* y **es verdad**:
+en esa ejecución no pudo. Está escrito exactamente como debe estarlo. Y la línea que lo explicaba
+—`` `grep -o | wc -l` encuentra 0 ``— estuvo impresa en la salida todo el rato, veinte minutos, y no
+la leí: solo miré la columna del veredicto.
+
+**Cómo se cazó:** ejecutando **el mismo script desde los dos intérpretes** y comparando. No hacía
+falta nada más, y era lo primero que debí hacer en vez de repetir una batería de veinte minutos.
+
+**Arreglo aplicado:** ⛔ **ninguno en el código** — esta tanda no arregla `src/`. La batería de esta
+tanda se lanza desde Bash, que es donde su contador independiente existe. **Se reporta hacia arriba.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **el veredicto de la verificación no es una propiedad del
+repositorio: es una propiedad del repositorio Y DEL ENTORNO desde el que se lanza.** *«La batería
+sale en verde»* es una frase incompleta mientras no diga **desde dónde**.
+⚠️ Corolario: **un guardián que se apoya en una herramienta externa hereda su disponibilidad**, y eso
+tiene que estar dicho **allí donde se publica su verde**, no solo dentro del guardián.
+
+**Traza:** `src/auditoria-guardianes.js:169-181` · `src/probar-paradas.js:210-243` · `docs/H2B-CUESTA.md` §8
