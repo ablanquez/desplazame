@@ -37,6 +37,52 @@ function correr(codigo) {
   return { codigo: r.status, salida: (r.stdout || '') + (r.stderr || '') };
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ⭐⭐⭐ TANDA DE ARREGLO 10 · LA CAPTURA TIENE QUE DECIR DESDE DÓNDE SE HIZO
+// ═════════════════════════════════════════════════════════════════════════════
+//   El 13/08 esta batería salió en VERDE desde Git Bash y en ROJO desde
+//   PowerShell, **sobre el mismo commit y con el árbol limpio**, porque un
+//   guardián validaba su censo con `spawnSync('bash', …)` y desde PowerShell no
+//   hay `bash`. ⇒ ***«La batería sale en verde» es una frase incompleta mientras
+//   no diga DESDE DÓNDE***, y una captura que no lo dice no se puede interpretar
+//   seis meses después.
+//
+// ⛔⛔ Y POR QUÉ ESTO VA POR **STDERR** Y NO DENTRO DE LAS LÍNEAS QUE SE COMPARAN:
+//   la salida de esta batería es el ARTEFACTO que se compara con `diff` antes y
+//   después de cada tanda, y ese `diff` está para detectar cambios en el
+//   REPOSITORIO. Si dentro de él va la versión de Node o el nombre del
+//   intérprete, **ningún `diff` entre dos máquinas puede volver a salir vacío** y
+//   la contraprueba de cierre deja de servir para lo único que sirve.
+//   ⭐ No es una invención: es la misma puerta que `src/ruta.js:77-78` ya se puso
+//     para el sello del grafo —*«se DECLARA por stderr, siempre, sin escotilla»*—
+//     aplicada al instrumento con el que se cierran las tandas.
+//   ⇒ **Lo que depende del repositorio va por stdout y se compara. Lo que depende
+//     de la máquina va por stderr y se lee.**
+//
+// ⚠️ Y lo que eso rompería si se quedara ahí: por stderr, el entorno NO entra en
+//   una captura hecha con `>`. Por eso existe `--capturar`, que escribe las dos
+//   cosas a la vez y **en UTF-8 sin BOM**, que es el otro motivo por el que dos
+//   capturas del mismo commit no se podían comparar: la redirección de PowerShell
+//   le pone BOM y la de Bash no.
+//
+//   node src/probar-paradas.js --todo --capturar salida.txt
+//      → salida.txt           las líneas comparables, sin BOM
+//      → salida.txt.entorno   el entorno de ESA ejecución
+function entorno() {
+  const hay = (b) => {
+    const r = spawnSync(b, ['--version'], { encoding: 'utf8' });
+    return (!r.error && r.status === 0) ? String(r.stdout || '').split('\n')[0].trim() : 'NO ESTÁ';
+  };
+  return [
+    `⚑ ENTORNO · so=${process.platform} ${os.release()}  arch=${process.arch}  node=${process.version}`,
+    `⚑ ENTORNO · icu=${process.versions.icu || 'sin ICU'}  cwd=${process.cwd()}`,
+    `⚑ ENTORNO · shell=${process.env.SHELL || process.env.ComSpec || 'NO CONSTA'}`,
+    `⚑ ENTORNO · binarios externos:  bash=${hay('bash')}  |  git=${hay('git')}`,
+    '⚑ ENTORNO · ⛔ esto NO entra en las líneas que se comparan: va por stderr a propósito.',
+  ];
+}
+process.stderr.write(entorno().join('\n') + '\n');
+
 L.push('='.repeat(100));
 L.push('A3 · ⛔⛔ LOS DOS TIPOS DE PARADA, PROVOCADOS');
 
@@ -326,4 +372,19 @@ L.push('');
 L.push(todo ? '   ⇒ ✅ UN FALLO DETECTADO YA NO PUEDE TERMINAR EN VERDE.'
   : '   ⇒ ⛔ HAY UN CAMINO POR EL QUE UN FALLO SIGUE SALIENDO EN 0.');
 console.log(L.join('\n'));
+
+// ⭐ `--capturar <fichero>`: el artefacto comparable y su entorno, escritos por
+//   Node y no por la redirección del intérprete. ⛔ El artefacto NO lleva el
+//   entorno dentro: si lo llevara, dos capturas de máquinas distintas no podrían
+//   dar `diff` vacío nunca, y esa comparación es la contraprueba de cierre de
+//   todas las tandas.
+{
+  const i = process.argv.indexOf('--capturar');
+  if (i >= 0 && process.argv[i + 1]) {
+    const f = process.argv[i + 1];
+    fs.writeFileSync(f, L.join('\n') + '\n', 'utf8');
+    fs.writeFileSync(f + '.entorno', entorno().join('\n') + '\n', 'utf8');
+    process.stderr.write(`⚑ capturado: ${f} (${L.length} líneas, UTF-8 sin BOM) + ${f}.entorno\n`);
+  }
+}
 if (!todo) process.exit(1);
