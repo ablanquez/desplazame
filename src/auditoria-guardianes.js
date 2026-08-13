@@ -135,7 +135,50 @@ function evidenciaCerca(fichero, linea, radio = 14) {
   return MARCAS.some((rx) => rx.test(trozo));
 }
 
-module.exports = { comprobacionesDe, decorativasDe, evidenciaCerca, modulosDeLaBateria, MARCAS };
+// ── §A1 · EL CONTADOR PORTÁTIL ───────────────────────────────────────────────
+// ⭐⭐⭐ TANDA DE ARREGLO 10 · POR QUÉ EXISTE ESTO.
+//   Hasta el 13/08 el censo se validaba con UN solo contador independiente, y era
+//   `spawnSync('bash', …)`. ⇒ **El veredicto de la batería entera dependía del
+//   intérprete de órdenes desde el que se lanzara**: desde Git Bash contaba
+//   328 = 328 ✅, y desde PowerShell —donde no hay `bash`— el contador daba 0 y
+//   este guardián declaraba, con toda la razón, que no podía verificarse. Mismo
+//   commit, mismo árbol, dos veredictos. *«La batería sale en verde» era una
+//   frase incompleta.*
+//
+// ⛔ LO QUE **NO** SE HA HECHO, porque sería peor que el rojo de ayer: dar el
+//   censo por bueno cuando no se puede contar. **Un contador que no puede contar
+//   tiene que decirlo, no aprobar.** Si esto devuelve 0, el guardián sigue rojo.
+//
+// ⚠️ Y LO QUE SE PIERDE AL PORTARLO, dicho aquí y no escondido: `grep` es un
+//   programa **AJENO**, escrito por otra gente, y eso es lo que hacía fuerte al
+//   testigo. Esto no. Sigue siendo independiente del EXTRACTOR —que es lo que
+//   pide la ley de los dos testigos— pero **no es independiente ni del autor ni
+//   del intérprete**. Por eso `grep` NO se retira: cuando está, se usa también.
+/**
+ * Cuenta las llamadas a la alarma **sin lanzar ningún binario**.
+ * ⛔ A propósito NO usa `split('\n')` ni el motor de expresiones regulares, que
+ *   son justo las dos piezas del extractor que podrían fallar: recorre el texto
+ *   crudo con `indexOf`, que es lo mismo que hace `grep -o`.
+ */
+function contarLiterales(dir) {
+  // ⚠️ Las agujas van CONCATENADAS a propósito: escritas de una pieza, el propio
+  //   fichero contendría tres llamadas de mentira y **los tres contadores las
+  //   contarían**. Cuadrarían igual —todos ven lo mismo— pero el censo publicaría
+  //   tres comprobaciones que no existen. Partirlas las hace invisibles a los tres.
+  const AGUJAS = ['A.exige' + '(', 'A.fallo' + '(', 'A.imposible' + '('];
+  let n = 0;
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.js')).sort()) {
+    const s = fs.readFileSync(path.join(dir, f), 'utf8');
+    for (const a of AGUJAS) {
+      let i = s.indexOf(a);
+      while (i >= 0) { n++; i = s.indexOf(a, i + a.length); }
+    }
+  }
+  return n;
+}
+
+module.exports = { comprobacionesDe, decorativasDe, evidenciaCerca, modulosDeLaBateria, MARCAS,
+  contarLiterales };
 
 // ═════════════════════════════════════════════════════════════════════════════
 if (require.main === module) {
@@ -164,21 +207,56 @@ if (require.main === module) {
   for (const f of todos) censo.push(...comprobacionesDe(f));
   log('');
   log('   ⭐⭐ POSITIVO DE CONTROL DEL EXTRACTOR, antes de fiarse de un solo número:');
-  log('      el censo tiene que reproducir lo que cuenta `grep -o`, que es un contador');
-  log('      INDEPENDIENTE de este código (ley 55).');
+  log('      el censo tiene que reproducir lo que cuentan contadores INDEPENDIENTES de');
+  log('      este código (ley de los dos testigos). ⭐ Desde la tanda de arreglo 10 hay');
+  log('      DOS y uno de ellos no necesita ningún binario: el veredicto ya no depende');
+  log('      del intérprete de órdenes desde el que se lance la batería.');
   {
+    const cuentas = [];
+    di('   el extractor encuentra', censo.length);
+
+    // 1 · el testigo AJENO — el más fuerte, y solo si el entorno lo tiene
     const g = spawnSync('bash', ['-c',
       `grep -o "A\\.exige(\\|A\\.fallo(\\|A\\.imposible(" ${JSON.stringify(SRC.split(path.sep).join('/'))}/*.js | wc -l`],
     { encoding: 'utf8' });
-    const n = parseInt((g.stdout || '0').trim(), 10);
-    di('   el extractor encuentra', censo.length);
-    di('   `grep -o | wc -l` encuentra', Number.isFinite(n) ? n : '⚠️ NO CONSTA (no hay bash)');
-    if (Number.isFinite(n) && n > 0) {
-      di('   ⭐ ¿cuadran?', censo.length === n ? '✅ sí' : `⛔ NO — el extractor se deja ${n - censo.length}`);
-      A.exige(censo.length === n, `el extractor cuenta ${censo.length} y grep cuenta ${n}: el censo está incompleto`);
+    const nBash = parseInt((g.stdout || '0').trim(), 10);
+    if (Number.isFinite(nBash) && nBash > 0) {
+      cuentas.push({ q: '`bash` · grep -o | wc -l', n: nBash, clase: '⭐ AJENO — programa de otros' });
     } else {
-      log('      ⚠️ NO CONSTA: sin `bash` no hay contador independiente y el censo va sin verificar.');
-      A.fallo('el censo no tiene contador independiente: no se puede afirmar que esté completo');
+      di('   `bash` · grep -o | wc -l', '⚠️ NO CONSTA — no hay `bash` en este entorno');
+    }
+
+    // 2 · el testigo PORTÁTIL — siempre, y por eso el veredicto ya no se mueve
+    const nBytes = contarLiterales(SRC);
+    cuentas.push({ q: 'recuento literal sobre el texto crudo', n: nBytes, clase: 'propio, sin binarios' });
+
+    for (const c of cuentas) di('   ' + c.q, String(c.n).padStart(5) + '   (' + c.clase + ')');
+    const cuadran = cuentas.length > 0 && cuentas.every((c) => c.n === censo.length);
+    di(`   ⭐ ¿cuadran los ${cuentas.length} contadores con el extractor?`, cuadran ? '✅ sí'
+      : '⛔ NO — ' + cuentas.map((c) => c.n).join(' / ') + ' contra ' + censo.length);
+    // ⛔ Si el portátil cuenta cero es que NO está contando: eso no absuelve a nadie.
+    A.exige(nBytes > 0, 'el contador portátil no encuentra ni una llamada en src/: no está contando '
+      + 'nada y el censo se quedaría sin verificar');
+    A.exige(cuadran, `el extractor cuenta ${censo.length} y los contadores independientes dan `
+      + `${cuentas.map((c) => c.n).join(' / ')}: el censo está incompleto`);
+
+    // ⭐⭐ Y LA CONTRAPRUEBA DEL CONTADOR NUEVO: un contador que nadie ha visto
+    //   equivocarse a propósito es una promesa, no un testigo. Se le planta un
+    //   directorio de mentira con 4 llamadas de verdad, 4 cosas que se le parecen
+    //   y no lo son, y una que está en un fichero que no es `.js`.
+    {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'desplazame-censo-'));
+      const P = (t) => 'A.' + t + '(1, "un mensaje suficientemente largo");\n';
+      fs.writeFileSync(path.join(tmp, 'con.js'), P('exige') + P('exige') + P('fallo') + P('imposible'));
+      fs.writeFileSync(path.join(tmp, 'sin.js'),
+        'B.' + 'exige(1);\n' + 'A.' + 'exigencia(2);\n' + 'A.' + 'exige\n(3);\n// A.' + 'fallo sin parentesis\n');
+      fs.writeFileSync(path.join(tmp, 'no-es-js.txt'), P('exige'));
+      const n = contarLiterales(tmp);
+      di('   ⭐ provocado: 4 plantadas · 4 que se le parecen · 1 fuera de `.js`',
+        n === 4 ? '✅ cuenta 4' : '⛔ cuenta ' + n);
+      A.exige(n === 4, `el contador portátil cuenta ${n} donde hay 4 llamadas plantadas: no sabe `
+        + 'contar, y su acuerdo con el extractor no significaría nada');
+      fs.rmSync(tmp, { recursive: true, force: true });
     }
   }
   log('');
