@@ -856,10 +856,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 165 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 167 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento sesenta y cinco instrumentos mintiendo** *(115 al cerrar H1 + 50 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento sesenta y siete instrumentos mintiendo** *(115 al cerrar H1 + 52 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1050,9 +1050,12 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | 161 | ⛔⛔ **UNA PREDICCIÓN CAYÓ EN LA BANDA CON UN ERROR DE UNIDADES DE 6× DENTRO.** Se escribió *«rodar ahorra ≈0,144 min por cada 100 m»* **y son 0,867**: el 0,144 es `(1/5 − 1/18)` **en horas por kilómetro**, leído como minutos. **Y de ahí se concluyó que la BiZi PERDERÍA** — el resultado contrario al medido. ⭐⭐ **Lo declaró su propio autor y anuló el acierto**: *escribir el mecanismo es lo único que permitió saber que era suerte* |
 | 162 | ⚠️ **SE CITÓ LA CONSTANTE EQUIVOCADA DE LA MISMA FUENTE.** La tanda 2 citó `setHighwaySpeed("footway", 6)` de ORS para hablar de empujar — **y eso es una bici RODANDO por una acera.** La de empujar es `PUSHING_SECTION_SPEED = 4`, **en el mismo fichero.** ⇒ *tener la fuente correcta no garantiza tener el valor correcto: dentro de una fuente hay varias constantes y solo una responde a tu pregunta* |
 | | **⬇ H2b · TANDA 6 (13/08) — TRES MÁS** ⬇ | |
-| 163 | ⛔⛔⛔ **LA BATERÍA SALE EN VERDE O EN ROJO SEGÚN EL INTÉRPRETE DE ÓRDENES DESDE EL QUE SE LANCE.** `src/auditoria-guardianes.js:169-181` valida su censo con `spawnSync('bash', …)`: desde **Git Bash cuenta 328 = 328 ✅**, desde **PowerShell no hay `bash`, el contador da 0** y el guardián declara —correctamente— que no puede verificarse. ⇒ ***«La batería sale en verde» es una frase incompleta mientras no diga DESDE DÓNDE.*** ⚠️⚠️ **Y lo que ata el nudo: repetida con la máquina parada, el `diff` salió VACÍO** ⇒ ***reproducible y equivocada a la vez.*** ⭐ *La primera hipótesis —«la he ensuciado bajando 407 MB»— se PROBÓ y era falsa* |
+| 163 | ✅ **ARREGLADO el 13/08 (tanda de arreglo 10), por los DOS lados — se marca, no se reescribe.** ⛔⛔⛔ **LA BATERÍA SALE EN VERDE O EN ROJO SEGÚN EL INTÉRPRETE DE ÓRDENES DESDE EL QUE SE LANCE.** `src/auditoria-guardianes.js:169-181` valida su censo con `spawnSync('bash', …)`: desde **Git Bash cuenta 328 = 328 ✅**, desde **PowerShell no hay `bash`, el contador da 0** y el guardián declara —correctamente— que no puede verificarse. ⇒ ***«La batería sale en verde» es una frase incompleta mientras no diga DESDE DÓNDE.*** ⚠️⚠️ **Y lo que ata el nudo: repetida con la máquina parada, el `diff` salió VACÍO** ⇒ ***reproducible y equivocada a la vez.*** ⭐ *La primera hipótesis —«la he ensuciado bajando 407 MB»— se PROBÓ y era falsa* |
 | 164 | ⛔⛔ **DOS TABLAS DE LA MISMA FUENTE CON EL MISMO NOMBRE Y CONVENCIONES OPUESTAS.** En Valhalla, `kGradeBasedSpeedFactor` **multiplica VELOCIDAD en la bici** y **multiplica TIEMPO en el peatón** ⇒ **un 1,83 al +10 % es 83 % MÁS de tiempo.** ⛔ *Leerla con la convención equivocada diría que uno anda casi el doble de rápido cuesta arriba.* ⚠️ *Y el otro falso amigo del mismo día: `setTrackTypeSpeed("grade1", 18)` de ORS es **el firme**, no la pendiente* |
 | 165 | ⚠️ **CONVIVEN DOS ENGANCHES Y PRODUCEN DOS «ANDANDO ENTERO».** `R.engancharPunto`+`G.rutaEntre` da **4.743,4 m** y `P.engancharUno(…,350)` da **4.725,6**: **17,8 m, 0,4 %.** ⛔ **Ninguno está mal — pero el trayecto de la tanda 5 compara la BiZi medida con uno contra el andando medido con el otro, y eso no se había dicho** |
+| | **⬇ TANDA DE ARREGLO 10 (13/08) — DOS MÁS** ⬇ | |
+| 166 | ⛔⛔⛔ **UN GUARDIÁN QUE SABÍA QUE NO PODÍA COMPROBAR, LO IMPRIMIÓ, Y SE IGNORÓ A SÍ MISMO.** Sin `git` en el `PATH`, `probar-hook.js` daba **13 fallos y DOCE eran acusaciones FALSAS contra un hook perfecto**. ⛔⛔ **Y el primero de los trece decía *«los siete casos serían falsos»* — seis líneas más abajo ejecutaba los siete y publicaba los doce.** ⇒ ***La refutación estaba impresa ENCIMA de las acusaciones.*** ⚠️ *Y no mordía **por casualidad, no por diseño**: `git` está en el `PATH` de esta máquina* |
+| 167 | ⛔⛔ **AL `diff` DE CIERRE NADIE LE HABÍA PROVOCADO NUNCA UNA DIFERENCIA — VEINTE TANDAS.** El «DIFF VACÍO» con el que se cierra cada tanda **nunca había demostrado que el comparador supiera ver un cambio.** ⭐ **Su primer positivo de control es del 13/08:** base PowerShell contra base Bash ⇒ **2 líneas.** ⚠️ *Y el BOM lo empeoraba: una captura con `>` de PowerShell y otra de Bash **no pueden dar vacío nunca**, así que el instrumento ni siquiera podía comparar entre entornos* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1938,6 +1941,30 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     ⇒ **El límite era la resolución VERTICAL, no la horizontal.** ⭐ *Antes de aceptar una fuente por
     su resolución nominal, se cuenta **cuántos valores distintos trae de verdad**.*
 
+197. ⭐⭐⭐ **UN GUARDIÁN QUE NO PUEDE COMPROBAR NO ABSUELVE NI CONDENA: DECLARA QUE NO PUEDE. SON
+    TRES ESTADOS, NO DOS.**
+    *Sin `git`, un guardián publicó **doce acusaciones falsas contra un hook perfecto** — y lo peor:
+    **su primera línea decía que los casos serían falsos, y seis líneas más abajo los ejecutaba
+    igual.*** ⇒ ***La refutación estaba impresa encima de las acusaciones.***
+    ⭐ **Y el arreglo bueno se reconoce por su uno:** *no le ha quitado los dientes —el hook saboteado
+    sigue saliendo rojo—, **le ha quitado la lengua cuando no tiene ojos**.*
+
+198. ⭐⭐⭐ **UN COMPARADOR AL QUE NUNCA SE LE HA PROVOCADO UNA DIFERENCIA NO ES UNA CONTRAPRUEBA: ES
+    UN RITO.**
+    *El «DIFF VACÍO» cerró **veinte tandas** sin que nadie demostrase jamás que sabía ver un cambio —
+    y con el BOM de por medio **ni siquiera podía comparar entre entornos**.* ⇒ **Todo instrumento de
+    cierre necesita su positivo de control, igual que cualquier otro guardián** *(ley del cero con su
+    uno, aplicada al último eslabón)*. ⚠️ **Y lo que un vacío demuestra, exactamente: que la SEGUNDA
+    ejecución coincide con la primera.** *Dos rojos idénticos también dan vacío.*
+
+199. ⭐⭐ **MEDIR Y CONFIRMAR PUEDEN COINCIDIR — Y ESO SOLO SE SABE MIDIENDO.**
+    *El patrón (`grep`) y la instrumentación (`--require` que engancha los lanzamientos reales) dieron
+    los mismos dos guardianes. **Pero la instrumentación añadió lo que el patrón no podía: cuál falla
+    aquí (82 contra 1) y que las otras 95 llamadas no cuentan**.* ⇒ ⭐ **Coincidir no es equivalente:
+    el patrón dice dónde está escrito el riesgo; la instrumentación, cuál se dispara.**
+    ⚠️ *Y la medida llevaba su control: **instrumentar no cambió lo medido** — la batería instrumentada
+    contra la limpia dio `diff` vacío.*
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -2070,6 +2097,7 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2b·4** | ⭐⭐⭐ **LAS 276 ESTACIONES BiZi** | **H2b** | ✅ **12/08** ⛔⛔ **en metros la BiZi no gana nunca** |
 | **H2b·5** | ⭐⭐⭐ **LA VELOCIDAD DE `empuja` Y EL TRAYECTO ENTERO** | **H2b** | ✅ **13/08** ⭐ **la BiZi gana desde ~1,5 km** |
 | **H2b·6** | ⭐⭐⭐ **LA CUESTA** — ¿hay dato, cuánta hay, y cuánto mueve? | **H2b** | ✅ **13/08** ⭐ **cabo: 1,2–1,5 %** |
+| **Ar 10** | ⭐⭐⭐ **LA BATERÍA DICE DESDE DÓNDE** — el instrumento que cierra todo | **—** | ✅ **13/08** ⭐ **mismo commit, dos entornos, mismo veredicto** |
 | **H2b·7** | *(siguiente: **la combinación de modos** — lo que queda ya no es enganchar, es que se hablen)* | **H2b** | ⬜ |
 | **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
 
@@ -4725,6 +4753,91 @@ tardaba 45,0. **No se ha investigado.***
 — **4.743,4 m** con `R.engancharPunto`+`G.rutaEntre` y **4.725,6** con `P.engancharUno(…,350)`:
 **17,8 m, 0,4 %.** ⛔ **Ninguno está mal, pero el trayecto de la tanda 5 compara la BiZi medida con
 uno contra el andando medido con el otro, y eso no se había dicho.**
+
+### ⭐⭐⭐ TANDA DE ARREGLO 10 (13/08) — LA BATERÍA DICE DESDE DÓNDE.
+`docs/ARREGLO-10-EL-ENTORNO.md`. ⚠️ *No lleva prefijo de hito: **no reabre H1**, arregla el
+instrumento con el que se cierran todas las tandas.*
+
+> ⭐⭐⭐ **LA PRUEBA DE LA TANDA: el MISMO commit, desde los DOS entornos, DIFF VACÍO.**
+> ```
+>    BASE     PowerShell  17:44:57 → 18:05:09   ⛔ exit 1   114 líneas
+>    BASE     Git Bash    18:26:45 → 18:45:31   ✅ exit 0   114 líneas
+>    CIERRE   Git Bash    18:50:53 → 19:09:20   ✅ exit 0   114 líneas
+>    CIERRE   PowerShell  19:09:52 → 19:28:41   ✅ exit 0   114 líneas
+>
+>    base Bash vs cierre Bash ......... ✅ VACÍO — el arreglo no movió lo vigilado
+>    ⭐⭐⭐ cierre PowerShell vs Bash ... ✅ VACÍO — LA PRUEBA
+>    ⭐ base PowerShell vs base Bash ... ⛔ 2 líneas — EL POSITIVO DE CONTROL del comparador
+> ```
+> ⭐ **Y vale MÁS, no menos, porque los entornos NO coinciden:** *`bash` no está en uno de los dos.*
+> **Las dos capturas del cierre son byte a byte la misma desde intérpretes distintos.**
+
+**⭐⭐⭐ SON DOS DE 64, Y SE MIDIÓ EN VEZ DE CONFIRMAR — con las dos vías declaradas por separado:**
+**A · el patrón** *(`grep` de `child_process`)*: dice **dónde está escrito** el riesgo ·
+⭐ **B · la instrumentación** *(un `--require` que engancha `spawn/exec/fork` y se propaga por
+`NODE_OPTIONS`)*: dice **cuál falla aquí**.
+```
+   anotaciones totales                      178
+     lanzan el PROPIO node (execPath)        95   ✅ no es dependencia del entorno
+     lanzan un BINARIO AJENO                 83   ⚠️ y son solo DOS scripts
+   ⇒ 2 de los 64 ejecutables
+```
+⭐⭐ **Y el control sin el que la medida no valdría: instrumentar NO cambió lo medido** — la batería
+instrumentada contra la limpia, **`diff` vacío sobre las 114.**
+⭐ *«Esta vez el patrón y la instrumentación coincidieron — **pero eso solo se sabe porque se
+midió**.»* ⚠️ **Punto ciego acotado:** 21 llamadas pisan `NODE_OPTIONS` y sus nietos no se ven, **pero
+lanzan scripts de `src/` que el barrido ya midió directamente** ⇒ *tapado por solapamiento, no
+cerrado.*
+⭐ **Y la frontera no era la que se dijo:** ***no es «Git Bash sí, PowerShell no» — es que `git` está
+en el `PATH` del sistema y `usr\bin` de Git no.***
+
+| | guardián | binario | veces | al faltar |
+|---|---|---|---|---|
+| ⭐ | `auditoria-guardianes.js` | `bash` | 1 | **«no puedo verificar mi censo»** ⇒ **VERDAD** |
+| ⛔⛔ | `probar-hook.js` | `git` | 82 | **13 fallos, DOCE acusaciones FALSAS contra un hook perfecto** ⇒ **MENTIRA** |
+
+> ⛔⛔⛔ **Y EL HALLAZGO ES PEOR QUE LA MENTIRA: la refutación estaba IMPRESA ENCIMA de las
+> acusaciones.** *El primero de los trece fallos dice «los siete casos serían falsos» — **y seis
+> líneas más abajo ejecuta los siete y publica los doce**.*
+> ⇒ ***No es un guardián que se equivoca: es un guardián que SABE que no puede comprobar, LO DICE, y
+> sigue acusando igual.*** **La información para no mentir estaba dentro de su propia salida.**
+> ⚠️ *Y hoy no mordía **por casualidad, no por diseño**: `git` está en el `PATH` de esta máquina.*
+
+**⭐⭐ LOS DOS ARREGLOS, CON SU ROJO VISTO PRIMERO, Y CON TRES ESTADOS EN VEZ DE DOS:**
+***Un guardián que no puede comprobar no absuelve ni condena: declara que no puede.***
+· `auditoria-guardianes.js` **no absuelve si el contador portátil devolviera 0: sigue rojo.**
+· `probar-hook.js` sin `git` ⇒ **`ENOENT` → 1 fallo VERDADERO, ni un caso ejecutado.**
+⭐⭐ **Y su uno al lado (ley del cero con su uno):** el hook **REAL denuncia 0 de 7** ✅ · saboteado
+*«acepta todo»* **2 de 7 en rojo** ✅ · saboteado *«rechaza todo»* **5 de 7 en verde** ✅ ⇒ ***el
+arreglo no le ha quitado los dientes: le ha quitado la lengua cuando no tiene ojos.***
+
+**⚠️ Y LO QUE SE PIERDE AL PORTARLO, ESCRITO EN EL CÓDIGO Y NO ESCONDIDO:** `grep` **es AJENO; el
+contador portátil no.** *Sigue siendo independiente del extractor —que es lo que pide la ley— **pero
+no del autor ni del intérprete**.* ⇒ **Por eso `grep` NO se retira.**
+
+**⭐ DÓNDE VIVE EL ENTORNO:** por **`stderr`**, ⛔ *porque el artefacto que se compara está para
+detectar cambios **del repositorio**: si dentro va la versión de Node, **ningún `diff` entre dos
+máquinas vuelve a salir vacío**.* ⭐ **Y no es invención: es la puerta que el proyecto ya se puso en
+`src/ruta.js:77-78` para el sello del grafo.** ⚠️ *Qué rompe: por `stderr` no entra en una captura con
+`>`; por eso `--capturar <f>` escribe `f` (114 líneas, **UTF-8 sin BOM**) y `f.entorno` al lado.*
+⛔ **Y el BOM, en los tres primeros bytes:** `ef bb bf` con `>` de PowerShell contra `3d 3d 3d` con
+`--capturar`.
+
+> ⭐⭐⭐ **QUÉ VALE UN «DIFF VACÍO» — y llevamos VEINTE tandas cerrando con él:**
+> **Demuestra que la SEGUNDA ejecución coincide con la primera.** ⛔ **No demuestra que ninguna sea
+> correcta, ni que la comparación fuera siquiera posible.** *Ayer salió vacío entre dos ejecuciones
+> que declaraban un fallo inexistente. **Y dos rojos idénticos también dan vacío.***
+> ⛔⛔ ***Y al `diff` de cierre NADIE le ha provocado nunca una diferencia.*** **Hoy sí, por primera
+> vez: base PowerShell contra base Bash da 2 líneas.**
+> ⛔ **PROPUESTA PENDIENTE DE ANTONIO —cambiar el rito de cierre de todas las tandas es suyo—:** que
+> el vacío vaya **con los códigos de salida, los entornos, el número de líneas y un POSITIVO DE
+> CONTROL del propio comparador.**
+
+**⚠️ QUÉ ENTORNO NO SE HA PROBADO:** ⛔ **una máquina SIN Git Bash instalado** —*aquí `bash` no está en
+el `PATH` **pero existe en el disco***; se razona que daría el mismo veredicto, **y razonado no es
+medido**— · ⛔ ningún Linux ni macOS · ⛔ **ningún CI, que es justo donde esto habría vivido
+invisible** · ningún Node con `small-icu` · ningún tercer intérprete.
+⚠️ **Y contado sin tocar:** `numeros-congelados.js` **depende del ICU** (`toLocaleString('es-ES')`).
 
 **DECISIONES NUEVAS DE H2:**
 
