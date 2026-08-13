@@ -855,10 +855,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 159 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 162 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento cincuenta y nueve instrumentos mintiendo** *(115 al cerrar H1 + 44 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento sesenta y dos instrumentos mintiendo** *(115 al cerrar H1 + 47 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1044,6 +1044,10 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | | **⬇ H2b · TANDA 4 (12/08) — DOS MÁS** ⬇ | |
 | 158 | ⛔⛔ **UN GUARDIÁN COMPARÓ UNA APROXIMACIÓN CON OTRA APROXIMACIÓN DEL MISMO AUTOR, Y SALIÓ VERDE.** Se llamó a `G.rutaEntre` —**del motor**— **pero con un punto de enganche fabricado a mano** ⇒ *no era el patrón externo que parecía*. ⭐ **Lo que dio verde: el `A.exige` recién escrito para vigilarlo (31,1 < 100 ✅).** ⛔ **Lo cazó que el número no cuadrara con uno publicado**, no el guardián |
 | 159 | ⚠️⚠️ **«LAS DOS FUENTES DE BiZi SON CONSISTENTES» DECÍA MENOS DE LO QUE PARECÍA, Y ESTABA EN §3.** Coinciden en **recuento** e **identidad** — **y NO en POSICIÓN: hasta 41,0 m para la misma estación**, con el contraste alcanzando **solo a 50 de 276**. ⇒ ⭐ **La discrepancia entre fuentes es 4× el p99 del enganche que se mide sobre ellas** *(9,3 m)* ⇒ ***cambiar de fuente movería el enganche más que cualquier decisión de listón*** |
+| | **⬇ H2b · TANDA 5 (13/08) — TRES MÁS** ⬇ | |
+| 160 | ⛔⛔⛔ **UNA FILA CALCULADA POR DIFERENCIA HACE QUE LA TABLA CUADRE SIEMPRE.** La estación de entrada que se publicaba **no era la del camino** —se cogía *«la más barata de alcanzar»* en vez de la que usa el Dijkstra— **y el total no se movió: 28,6 min antes y después**, porque **el tramo de rodar no se mide, SE DESPEJA**, y se comió los 148 m sobrantes al céntimo. ⭐ **Lo que dio verde: la propia suma de la tabla, las DOS veces.** ⇒ ***un total correcto no valida su desglose***, y lo cazó una costura del encargo, **no un guardián** |
+| 161 | ⛔⛔ **UNA PREDICCIÓN CAYÓ EN LA BANDA CON UN ERROR DE UNIDADES DE 6× DENTRO.** Se escribió *«rodar ahorra ≈0,144 min por cada 100 m»* **y son 0,867**: el 0,144 es `(1/5 − 1/18)` **en horas por kilómetro**, leído como minutos. **Y de ahí se concluyó que la BiZi PERDERÍA** — el resultado contrario al medido. ⭐⭐ **Lo declaró su propio autor y anuló el acierto**: *escribir el mecanismo es lo único que permitió saber que era suerte* |
+| 162 | ⚠️ **SE CITÓ LA CONSTANTE EQUIVOCADA DE LA MISMA FUENTE.** La tanda 2 citó `setHighwaySpeed("footway", 6)` de ORS para hablar de empujar — **y eso es una bici RODANDO por una acera.** La de empujar es `PUSHING_SECTION_SPEED = 4`, **en el mismo fichero.** ⇒ *tener la fuente correcta no garantiza tener el valor correcto: dentro de una fuente hay varias constantes y solo una responde a tu pregunta* |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1887,6 +1891,25 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     COBERTURA**, y se compara con la magnitud que se va a medir encima: *aquí la discrepancia es
     cuatro veces el enganche que sostiene.*
 
+191. ⭐⭐⭐ **UNA FILA CALCULADA POR DIFERENCIA HACE QUE LA TABLA CUADRE SIEMPRE — Y ESCONDE EL ERROR
+    EN LA ÚNICA FILA QUE NADIE COMPRUEBA.**
+    *La estación publicada no era la del camino, y el total fue 28,6 min antes y después: el tramo de
+    rodar no se medía, se despejaba, y absorbió los 148 m sobrantes al céntimo.* ⇒ ⭐ ***Un total
+    correcto no valida su desglose.*** **Toda fila despejada se marca como tal**, o se convierte en la
+    coartada de todas las demás.
+
+192. ⭐⭐⭐ **CAMBIAR LA UNIDAD DE COSTE CAMBIA EL CAMINO, NO SOLO SU ETIQUETA.**
+    *Minimizando tiempo salen **5.527 m**; minimizando metros, **4.734**. **El motor acepta rodar más
+    para andar menos.*** ⇒ **Una unidad no es una forma de presentar el resultado: es la definición de
+    qué se está buscando.** ⚠️ *Y por eso un modo sin unidad propia no está «pendiente de mostrar»:
+    está pendiente de existir.*
+
+193. ⭐⭐ **TENER LA FUENTE CORRECTA NO GARANTIZA TENER EL VALOR CORRECTO.**
+    *De `CommonBikeFlagEncoder.java` se citó `setHighwaySpeed("footway", 6)` —una bici **rodando** por
+    una acera— cuando la constante que respondía a la pregunta era `PUSHING_SECTION_SPEED = 4`, **en
+    el mismo fichero**.* ⇒ **Dentro de una fuente hay varias constantes y solo una contesta lo que
+    preguntas**: la cita se verifica contra **la pregunta**, no solo contra el fichero.
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -2017,8 +2040,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **Ar 9** | ⭐⭐⭐ **`adyacencia` DEJA DE SABER DE MODOS** — se reabre H1 por una rendija | **H1** | ✅ **12/08** ⭐ **las nueve rutas, idénticas** |
 | **H2b·3** | ⭐⭐⭐ **EL ENGANCHE PROPIO DE LA BICI** | **H2b** | ✅ **12/08** ⛔ **corrige «se triplica»: es 1,39×** |
 | **H2b·4** | ⭐⭐⭐ **LAS 276 ESTACIONES BiZi** | **H2b** | ✅ **12/08** ⛔⛔ **en metros la BiZi no gana nunca** |
-| **H2b·5** | *(siguiente: ⛔ **LA VELOCIDAD DE `empuja`** — ya no es opcional)* | **H2b** | ⬜ |
-| **H2b·3** | Las estaciones BiZi · **H2b·4** la combinación · **H2b·5** la bici propia | **H2b** | ⬜ |
+| **H2b·5** | ⭐⭐⭐ **LA VELOCIDAD DE `empuja` Y EL TRAYECTO ENTERO** | **H2b** | ✅ **13/08** ⭐ **la BiZi gana desde ~1,5 km** |
+| **H2b·6** | *(siguiente: **la combinación de modos** — lo que queda ya no es enganchar, es que se hablen)* | **H2b** | ⬜ |
 | **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
@@ -4480,6 +4503,74 @@ trayectos en BiZi.**
 puede disparar `superados.js`*** — el número de una ley de ayer **coincide con una cifra vigilada** y
 la batería se puso roja al escribirlo. **Hay 187 leyes y 24 cifras vigiladas: las colisiones están
 garantizadas y aumentan.** ⭐ *Se cita por su FRASE, que es lo que el método ya pedía (ley 171).*
+
+### ⭐⭐⭐ H2b · TANDA 5 (13/08) — LA VELOCIDAD DE `empuja` Y EL TRAYECTO ENTERO.
+`docs/H2B-TRAYECTO-BICI.md`. ⛔ **Ni una línea de `src/`.**
+
+> ⭐⭐⭐ **LA BICI YA EXISTE COMO OPCIÓN: GANA DESDE ~1,5 km.**
+> ```
+>       recta   andando    min  |   BiZi m    min   con cambio  ⇒ ¿gana?
+>       250,1     337,7    4,1  |    444,0    5,4         9,4   ⛔ no
+>      1000,0    1356,4   16,3  |   1815,7   13,4        17,4   ⚠️ solo sin cambio
+>      1500,1    1896,1   22,8  |   2666,3   16,5        20,5   ⭐ SÍ
+>      4000,0    4791,9   57,5  |   5214,9   26,9        30,9   ⭐ SÍ
+>
+>    umbral SIN coste de cambio ≈ 1.000 m   ·   CON los 240 s ≈ 1.500 m
+> ```
+> ⭐⭐ **Y por debajo pierde SIEMPRE, que es justo lo que el coste de cambio existía para
+> garantizar:** a **250 m tarda 9,4 min contra 4,1 andando.** *La tanda 4 dijo que los 240 s «hoy ni
+> siquiera hacen falta». **Hoy hacen falta y funcionan.***
+
+**⭐⭐ `empuja = 4,0 km/h`, CON PROCEDENCIA FICHERO A FICHERO:**
+```
+   ORS   CommonBikeFlagEncoder.java   PUSHING_SECTION_SPEED = 4   (y /2 en escaleras)
+   OSRM  profiles/bicycle.lua:13      walking_speed = 4  ⇐ la usa bike_push_handler()
+   Valhalla  ⛔ NO modela el empujar: su costing no tiene opción de bajarse. NO CONSTA
+```
+⛔ **No se promedia ni se vota: las dos que lo modelan dan EXACTAMENTE lo mismo y la tercera no habla
+de ello** — *el mismo argumento con el que se eligió el 18.*
+⭐⭐ **Y una precisión sobre lo que se citó en la tanda 2:** allí se citó
+`setHighwaySpeed("footway", 6)`, **que es una bici RODANDO por una acera** — **no una bici
+EMPUJADA.** *Son dos cosas, y ahora está la correcta.* ⭐ **Y encaja con el modelo: 4,0 < 5,0** —
+*empujar es más lento que andar, que es lo que uno espera de llevar un estorbo al lado.*
+⚠️ *Adoptar una cifra en vez de las dos de ORS afecta al **0,8 %** de lo empujable (8,3 km de
+escaleras sobre 1.079,3).*
+
+> ⭐⭐⭐ **Y EL EJECUTOR ANULÓ SU PROPIO ACIERTO — la ley del mecanismo, en el caso más difícil.**
+> La predicción `P2` **cayó dentro de la banda y NO cuenta**: se escribió *«rodar ahorra ≈0,144 min
+> por cada 100 m»* **y son 0,867** — ⛔ **un error de unidades de 6×**, leyendo *horas por kilómetro*
+> como minutos. **Y de ahí se concluyó que la BiZi PERDERÍA.**
+> ⇒ ***Escribir el mecanismo es lo único que permitió saber que el acierto era suerte.***
+> ⭐ *`P1` sí cuenta, y por el mecanismo correcto: «va a haber una constante que se llame empujar, y
+> empujar < andar».*
+
+**⭐⭐⭐ Y UN HALLAZGO QUE CAMBIA ALGO MÁS QUE LOS NÚMEROS: cambiar la unidad cambió EL CAMINO.**
+```
+   minimizando TIEMPO ..... 5.527,4 m · 28,6 min (+4,0 de cambio = 32,6)
+   minimizando METROS ..... 4.733,6 m
+   andando entero ......... 4.743,4 m · 56,9 min   ⇒ ⭐ la BiZi gana por 24,3 min
+```
+⇒ ***El motor acepta rodar MÁS para andar MENOS.*** **No es una consecuencia contable: es que el
+proyecto tiene por primera vez un criterio de optimización distinto de la distancia.**
+
+**⛔⛔ Y LA COSTURA DE «SI GANA POR MUCHO, SOSPECHA» ENCONTRÓ ALGO — con la forma de esconderse:**
+Los tramos andando **sí** estaban dentro de la suma. Pero **la estación de entrada que se publicaba
+no era la del camino**: se cogía *«la más barata de alcanzar»* en vez de la que el Dijkstra usa.
+⛔⛔ **Y la tabla cuadraba igual, porque el tramo 3 no se mide: SE DESPEJA** — *los 148 m que le
+sobraban al tramo 1 se los comía al céntimo.* **El total fue 28,6 min antes y después.**
+⇒ ⭐⭐⭐ ***Una fila calculada por diferencia hace que la tabla cuadre SIEMPRE, y esconde el error en
+la única fila que nadie comprueba.*** ⭐ *Lo cazó la costura del encargo, no un guardián.*
+
+**⛔⛔ Y LA SIMPLIFICACIÓN MÁS GRANDE QUE HAY HOY EN EL PROYECTO, declarada por su autor:**
+***NINGÚN TRAYECTO CON CUESTA.*** **Ninguna de las tres constantes mira la pendiente — y las tres
+fuentes SÍ la modelan** (`use_hills`, `consider_elevation`). ⇒ **Zaragoza tiene el Actur arriba y el
+Ebro abajo: una bici a 18 km/h subiendo al Actur es falsa, y el motor no lo sabe.**
+
+**⚠️ LO DEMÁS SIN PROBAR:** ninguno con estación llena o vacía *(sin reloj no existe)* · ninguno de
+menos de 250 m · ⚠️ **la escala del umbral tiene UN SOLO ORIGEN** —*es una escalera, no una muestra:
+el ~1,5 km es de ese origen*— · ninguno mirado sobre un mapa · **y el caso del trayecto son dos
+EDIFICIOS con 762,7 m de caminata final: su ventaja de 24,3 min no se lee como propiedad de los
+trayectos en BiZi.**
 
 **DECISIONES NUEVAS DE H2:**
 
