@@ -10514,3 +10514,64 @@ convierte en el patrón externo si le pasas datos fabricados.** *Media llamada c
 incorrecta con mejor aspecto.*
 
 **Traza:** `tools/grafo/estaciones-bizi.js` (P6) · `docs/H2B-ENGANCHE-BICI.md` §4 (4.743,4 m)
+
+
+---
+
+## [2026-08-13] — La tabla de tramos cuadraba porque una fila se calculaba restando
+
+**Categoría:** motor / método
+**Síntoma:** el trayecto en BiZi se publica como cinco tramos con su régimen. La primera versión
+imprimía esto:
+
+```
+   1 · del origen a la estación     andar      268.6 m    3.2 min
+   3 · rodando                      rodar     4865.7 m   16.2 min
+   TOTAL sin cambio de modo                   5900.3 m   28.6 min
+```
+
+⛔⛔ **Y la estación de entrada que sostiene el tramo 1 NO ERA la del camino.** El Dijkstra sobre la
+red de bici arranca con las 276 estaciones a la vez, cada una con su coste de acceso; para contar
+*«se entra por la estación X»* hay que saber **de qué origen viene el mínimo de cada nodo**, y yo no
+lo guardaba: cogía **la entrada más barata**, que es otra cosa. Con el origen bien registrado:
+
+```
+   estación de entrada · de salida   #236 Navarra: H. Rguez. Miñón  →  #40 Alierta: Burriel
+   1 · del origen a la estación     andar      416.4 m    5.0 min
+   3 · rodando                      rodar     4348.3 m   14.5 min
+   TOTAL sin cambio de modo                   5527.4 m   28.6 min
+```
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la propia suma de la tabla, y el
+total, que era CORRECTO las dos veces: 28,6 min antes y 28,6 después.**
+
+⇒ **El error no estaba en el resultado: estaba en la historia pegada al resultado.** Y la razón por la
+que la tabla cuadraba es la que hay que aprender: **el tramo 3 no se medía, se DESPEJABA** —
+`tRodando = total − tramos fijos`—. ⛔ **Una fila calculada por diferencia absorbe cualquier error de
+las demás y hace que la tabla balancee siempre.** Los 148 m que le sobraban al tramo 1 se los comió
+el tramo 3, al céntimo, y ningún cuadre podía verlo.
+
+**Causa raíz:** un Dijkstra multiorigen **sabe** cuánto cuesta llegar y **no sabe por dónde** a menos
+que se le pida. Escribí el que devuelve solo distancias y luego **reconstruí el origen con una
+plausibilidad** —*«será la entrada más barata»*—, que **no se sigue de nada**: la estación más barata
+de alcanzar puede estar en el lado contrario de la ciudad respecto al destino.
+
+**Cómo se cazó:** ⭐ **por la costura del encargo**, que decía *«si la BiZi gana a la primera y por
+mucho, sospecha: comprueba que los tramos andando están dentro de la suma»*. Fui a comprobar la suma
+—que estaba bien— y al mirar tramo a tramo vi que el que se despejaba era el grande. **La orden de
+sospechar del verde es lo que encontró un fallo que ningún guardián podía ver.**
+
+**Arreglo aplicado:** el multiorigen devuelve `de[]` —de qué origen viene el mínimo de cada nodo— y se
+propaga en cada relajación. El tramo 1 pasa a ser el de la estación **que el camino usa**, y hay un
+`A.exige` que revienta si el nodo de salida no tiene origen registrado. ⛔ El tramo 3 **sigue
+despejándose**, y eso queda dicho en voz alta: *es la fila que absorbe.*
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **una fila calculada por diferencia hace que la tabla cuadre siempre, y
+esconde el error en la única fila que nadie comprueba.** ⇒ **En un desglose, la fila despejada se
+marca como tal**, y **el cuadre de la tabla deja de ser evidencia de nada.**
+⚠️ Corolario: **un total correcto no valida su desglose.** Aquí el total fue el mismo antes y después
+de corregir de qué estación se salía — *el número era verdad y el relato era falso.*
+
+**Traza:** `tools/grafo/trayecto-bici.js` (`dijkstraMulti` y P2) · `docs/H2B-TRAYECTO-BICI.md` §3
