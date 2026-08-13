@@ -156,6 +156,56 @@ if (require.main === module) {
   log('EL HOOK DE LA BITÁCORA — su rojo y sus verdes, vistos');
   log('='.repeat(104));
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ⭐⭐⭐ TANDA DE ARREGLO 10 · TRES ESTADOS, NO DOS
+  // ═══════════════════════════════════════════════════════════════════════════
+  //   Este fichero comprueba el hook lanzando `git` **82 veces**. Hasta hoy tenía
+  //   dos respuestas posibles: **acepta** o **acusa**. Le faltaba la tercera, que
+  //   es la única honrada cuando no puede mirar: **no puedo comprobar.**
+  //
+  //   ⛔⛔ Y sin `git` en el PATH no se callaba: **MENTÍA.** Medido el 13/08 con
+  //     `PATH` sin `git` — 13 fallos, y **12 eran una acusación falsa contra un
+  //     hook `commit-msg` que está perfecto**:
+  //         ⛔ FALLO · el hook: «VERDE · `fix:` CON la entrada…» esperaba acepta y salió rechazo
+  //     *El mensaje de un guardián es una afirmación sobre la causa*, y ésa era
+  //     falsa. **Cuando un test falla, el primer sospechoso es el test** — y aquí
+  //     el test acusaba doce veces a código sano.
+  //
+  //   ⚠️ Y LO PEOR NO ES QUE FALLARA: **ES QUE YA LO SABÍA.** La palanca de abajo
+  //     disparaba bien y decía la verdad —*«el hook no se ejecuta…: los siete
+  //     casos serían falsos»*— y el fichero **se ignoraba a sí mismo y ejecutaba
+  //     los casos igual**, seis líneas más abajo. La refutación estaba impresa en
+  //     la misma ejecución, encima de las acusaciones.
+  //
+  //   ⭐ Y hoy no mordía **por casualidad, no por diseño**: `git` está en el PATH
+  //     del sistema y `usr\bin` de Git no. La casualidad se acaba en una máquina
+  //     sin Git en el PATH, o en un CI — que es justo donde se lanzan baterías.
+  //
+  //   ⛔ Aquí no se aprueba nada: se sale en **ROJO diciendo la causa verdadera**,
+  //     y **no se ejecuta ni un caso**, porque sus veredictos no valdrían.
+  log('');
+  log('   ⭐⭐⭐ ANTES QUE NADA: ¿se puede ejecutar `git` en este entorno?');
+  {
+    const v = spawnSync('git', ['--version'], { encoding: 'utf8' });
+    const hayGit = !v.error && v.status === 0 && /git version/i.test(v.stdout || '');
+    di('   `git --version`', hayGit ? '✅ ' + String(v.stdout).trim()
+      : '⛔ NO SE PUEDE EJECUTAR — ' + (v.error ? String(v.error.code) : 'código ' + v.status));
+    if (!hayGit) {
+      A.fallo('no se puede ejecutar `git` en este entorno: este guardián NO PUEDE comprobar el hook. '
+        + '⛔ Los siete casos NO se ejecutan, porque sus veredictos acusarían al hook `commit-msg` de '
+        + 'un fallo que es del entorno');
+      log('');
+      log('   ⛔⛔ NO SE EJECUTA NINGÚN CASO, y eso es el arreglo, no una escotilla:');
+      log('     un guardián que no puede comprobar **no absuelve ni condena — declara');
+      log('     que no puede**. El hook `commit-msg` NO está en cuestión: lo que falta');
+      log('     es `git`. ⇒ Un fallo verdadero en vez de doce falsos.');
+      log('');
+      log(A.cierre('EL HOOK DE LA BITÁCORA'));
+      di('tiempo total', ((Date.now() - T0) / 1000).toFixed(1) + ' s');
+      process.exit(1);
+    }
+  }
+
   // ── ⭐ LA PALANCA: ¿el hook se está ejecutando siquiera? ────────────────────
   //   «El instrumento arranca» no es «el instrumento mide» (nº117). Si
   //   `core.hooksPath` no cogiera, TODOS los casos saldrían «acepta» y seis de

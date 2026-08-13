@@ -10759,3 +10759,63 @@ sale en verde»* es una frase incompleta mientras no diga **desde dónde**.
 tiene que estar dicho **allí donde se publica su verde**, no solo dentro del guardián.
 
 **Traza:** `src/auditoria-guardianes.js:169-181` · `src/probar-paradas.js:210-243` · `docs/H2B-CUESTA.md` §8
+
+---
+
+## [2026-08-13] — El guardián del hook sabía que no podía comprobar, lo imprimió, y se ignoró a sí mismo
+
+**Categoría:** instrumentos / método
+**Síntoma:** `src/probar-hook.js` lanza `git` **82 veces** para comprobar el hook `commit-msg`.
+Ejecutado con un `PATH` sin `git` —medido, no supuesto— sale así:
+
+```
+   ⛔ FALLO · el hook no se ejecuta en el repositorio de prueba: los siete casos serían falsos
+   ⛔ FALLO · el hook: «VERDE · `fix:` CON la entrada en el mismo commit» esperaba acepta y salió rechazo
+   ⛔ FALLO · el hook: «VERDE · `git commit --amend` (falso positivo nº1)» esperaba acepta y salió rechazo
+   ⛔ FALLO · el hook: «VERDE · un commit que NO es `fix:` y no lleva entrada» esperaba acepta y salió rechazo
+   ⛔ 13 FALLO(S) DETECTADO(S)
+```
+
+⛔⛔ **Trece fallos, y DOCE son una acusación falsa contra un hook que está perfecto.** *El mensaje de
+un guardián es una afirmación sobre la causa*, y la causa aquí no era el hook: era que faltaba `git`.
+**Cuando un test falla, el primer sospechoso es el test** — y este test acusaba doce veces a código
+sano.
+
+⚠️⚠️ **Y lo peor no es que fallara: es que YA LO SABÍA.** El primero de los trece —la palanca— dispara
+bien y dice la verdad: *«el hook no se ejecuta en el repositorio de prueba: **los siete casos serían
+falsos**»*. **Y seis líneas más abajo el fichero ejecuta los siete casos y publica sus doce fallos.**
+La refutación estaba impresa en la misma ejecución, **encima** de las acusaciones. Es la forma exacta
+de la nº199, agravada: allí la refutación estaba veinte líneas más arriba; aquí, seis, y además
+anunciaba literalmente que lo que venía era falso.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el guardián en sí, todos los días,
+desde los dos intérpretes.** `git` está en el PATH del sistema de esta máquina
+(`C:\Program Files\Git\cmd\git.exe`) y `usr\bin` de Git no lo está — por eso `auditoria-guardianes.js`
+mordió con `bash` y éste no mordió nunca. ⇒ ⛔ **Estaba en verde POR CASUALIDAD, no por diseño**, y la
+casualidad se acaba en una máquina sin Git en el PATH o en un CI, que es justo donde se lanzan
+baterías.
+
+**Cómo se cazó:** ⭐ no se cazó solo. Salió **midiendo**: se instrumentó `child_process` con un
+`--require` y se ejecutó la batería entera anotando **cada lanzamiento real**. De **178 llamadas**,
+**95** eran al propio Node (`process.execPath`, portátil) y **83** a un binario ajeno — y solo de
+**dos** scripts: `git` ×82 desde éste y `bash` ×1 desde el otro. ⚠️ Un `grep` habría encontrado las
+mismas dos líneas, **pero no habría podido decir cuál falla aquí ni cuántas veces corre cada una**.
+
+**Arreglo aplicado:** **tres estados en vez de dos.** Antes de nada, `git --version`: si no se puede
+ejecutar, se declara **un fallo verdadero** —*«este guardián NO PUEDE comprobar el hook»*— y ⛔ **no
+se ejecuta ni un caso**. Sigue saliendo en rojo: **un guardián que no puede comprobar no absuelve ni
+condena, declara que no puede.** De 13 fallos (12 falsos) a **1 verdadero**.
+⭐ Y con su contraprueba, porque un cero necesita su uno: con `git` disponible, **sigue sabiendo
+acusar** — hook real intacto 0 denuncias de 7, hook que acepta todo **2 de 7**, hook que rechaza todo
+**5 de 7**.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un guardián que no puede comprobar tiene TRES respuestas, no dos: sí,
+no, y NO PUEDO.** Sin la tercera, la ignorancia sale disfrazada de veredicto — y sale disfrazada de
+*condena*, que es la cara cara.
+⚠️ Corolario, y es el que dolió: **un guardián que imprime «lo que viene es falso» y a continuación lo
+publica igual, no está avisando: está firmando.** Si un instrumento sabe que no puede medir, **la
+consecuencia es PARAR, no anotarlo.**
+
+**Traza:** `src/probar-hook.js` (el bloque de los tres estados) · `docs/ARREGLO-10-EL-ENTORNO.md` §1.3 y §2.2
