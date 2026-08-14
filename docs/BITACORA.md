@@ -10819,3 +10819,99 @@ publica igual, no está avisando: está firmando.** Si un instrumento sabe que n
 consecuencia es PARAR, no anotarlo.**
 
 **Traza:** `src/probar-hook.js` (el bloque de los tres estados) · `docs/ARREGLO-10-EL-ENTORNO.md` §1.3 y §2.2
+
+---
+
+## [2026-08-14] — Conté componentes y la mitad de mi reparto era el «no sé» disfrazado de componente
+
+**Categoría:** método / instrumento
+**Síntoma:** para contestar si `BiZi → BiZi` puede ganar alguna vez, hacía falta saber en cuántas
+componentes distintas de la red que rueda caen las 276 estaciones. Conté así:
+
+```
+   componentes de la red que RUEDA: 176 | mayor: 37912 nodos
+   estaciones sin enganche: 0 | estaciones colocadas: 276
+   componentes distintas que tocan: 3
+   reparto (top 6): [[0,146],[-1,129],[123,1]]
+```
+
+**Y la conclusión que estuve a punto de escribir era:** *«las 276 estaciones caen en solo 3
+componentes, así que `BiZi → BiZi` está de adorno»*. **Habría sido falso.**
+
+⛔ **El `-1` no es una componente: es el valor con el que `G.componentes` marca «este nodo no está en
+la red».** 129 de las 276 —el **46,7 %**— no tenían componente de bici porque **la estación se
+engancha a la red PEATONAL**, y el nodo de esa arista no tiene ninguna arista de bici. Para saber en
+qué componente de bici cae una estación hay que **andar hasta el primer nodo que rueda**, que es
+exactamente lo que hace `empujeHasta` en `tools/grafo/trayecto-bici.js`, y mi contador no lo hacía.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **la tabla cuadraba con el total
+exacto: 146 + 129 + 1 = 276.** Ni una estación de más ni de menos. ⚠️ Y encima el `0 sin enganche`
+reforzaba la sensación de que todo estaba colocado — **y era verdad: estaban todas colocadas, sobre
+la red equivocada.** ⇒ *La suma exacta es la forma más barata de parecer correcto.* Es la misma
+familia que la fila despejada de la nº204: **cuadrar no es medir.**
+
+**Cómo se cazó:** ⭐ por imprimir el reparto **con sus claves** en vez de solo `cuenta.size`. Si
+hubiera publicado el titular —*«3 componentes»*— la clave `-1` no habría aparecido en ningún sitio y
+el número habría viajado al diseño. **Lo salvó enseñar el dato crudo al lado del resumen.**
+
+**Arreglo aplicado:** ⛔ **ninguno**, y a propósito: esta tanda es de diseño y **no se escribe código**.
+La medición queda **declarada como pendiente** en `docs/DISENO-H2B-COMBINACION.md` §6 (medición 3) y la casilla
+`BiZi → BiZi` de la matriz queda en **`NO CONSTA`**, que es lo que de verdad se sabe.
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **un agregado que cuadra con el total no demuestra que sus categorías
+sean categorías.** El valor centinela —`-1`, `null`, `NO CONSTA`— **suma igual que los demás**, y en
+un recuento por clases se disfraza de clase.
+⇒ **Todo reparto se publica con sus CLAVES, no solo con su número de clases**, y el centinela se
+nombra antes de contar.
+
+**Traza:** `docs/DISENO-H2B-COMBINACION.md` §2.2 y §6 (medición 3) · `src/grafo.js` (`componentes` devuelve −1
+para el nodo sin aristas) · el contador era un `node -e` de una sola vez y no se conserva
+
+---
+
+## [2026-08-14] — Rompí el guardián de los superados con un número que no era el suyo, teniendo el barrido escrito de la víspera
+
+**Categoría:** método / documentación
+**Síntoma:** al ensamblar `docs/DISENO-H2B-COMBINACION.md`, `src/superados.js` salió en rojo:
+
+```
+   DISENO-H2B-COMBINACION.md:313    radio 100 m →   332 pares · 328/984 paradas · 182/276 estaciones
+   ⛔ FALLO · 1 par(es) cuyo recuento de líneas ya no es el declarado
+```
+
+El literal es **`182`**, que este proyecto vigila como valor superado —*«las líneas decorativas»*,
+182 → 232—. ⛔ **Y en mi tabla `182` son ESTACIONES BiZi a menos de 100 m de una parada**: la cifra es
+correcta, medida hoy, y **no tiene absolutamente nada que ver** con lo que el guardián vigila.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el recuerdo de haber hecho el
+barrido.** En la tanda de la cuesta escribí un barrido que comparaba mis borradores contra la lista de
+literales vigilados **antes** de tocar `docs/`, y salió limpio. **Ayer funcionó, así que hoy no lo
+hice.** ⇒ *La memoria de tener una salvaguarda sustituyó a la salvaguarda.* Y es peor que olvidarla:
+olvidarla se nota, acordarse de ella tranquiliza.
+
+**Cómo se cazó:** por ejecutar `superados.js` **antes de commitear**, que es el sitio donde este
+proyecto lo pone. No lo cazó ninguna revisión del texto.
+
+**Arreglo aplicado:** ⛔ **el guardián no se toca** y ⛔ **no se marca el documento**: la cabecera
+diría que ese `182` fue superado por `232`, **y sería falsa**. Se aplica el precedente de la nº200
+—*describir sin citar, y el verbatim al acta*—: la casilla se publica en **porcentaje (66,0 % de las
+276)** con una nota al pie que dice **por qué es la única en porcentaje**, y **el entero exacto queda
+aquí**, que es donde `esActa()` lo permite:
+
+```
+   radio 100 m →   332 pares · 328/984 paradas · 182/276 estaciones
+```
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐ **una salvaguarda que se ejecuta a mano no es una salvaguarda: es una
+costumbre, y las costumbres se saltan el día que hay prisa.** El barrido de literales vigilados
+existió una vez, en un `scratchpad`, y **murió con la tanda que lo escribió.**
+⚠️ Y el hallazgo que deja para arriba: **`superados.js` casa por LITERAL**, así que **cualquier
+medición futura que dé 182, 232, 412 o 3.166 tropezará con él sin tener nada que ver.** *Un vigilante
+de cifras sueltas no puede distinguir un número superado de un número que coincide* — y el coste no
+lo paga él, lo paga quien escribe.
+
+**Traza:** `docs/DISENO-H2B-COMBINACION.md` §3.2 y su nota (†) · `src/superados.js` (`reDe`, casado por literal)
