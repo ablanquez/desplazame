@@ -10915,3 +10915,61 @@ de cifras sueltas no puede distinguir un número superado de un número que coin
 lo paga él, lo paga quien escribe.
 
 **Traza:** `docs/DISENO-H2B-COMBINACION.md` §3.2 y su nota (†) · `src/superados.js` (`reDe`, casado por literal)
+
+---
+
+## [2026-08-14] — Enuncié como ABIERTA una decisión que estaba TOMADA, y mi copia del estado me daba la razón
+
+**Categoría:** método / instrumento
+**Síntoma:** el diseño de la tanda 7 dedica su sección más larga —§1, con seis salidas, sus costes y
+un **«⛔⛔ PARO AQUÍ»**— a enunciar `D1` como una decisión pendiente de Antonio. ⛔ **`D1` estaba
+decidida desde el 13/08:** *el bus entra SIN duración de trayecto; el motor compone y no promete un
+total; enseña la opción y decide el usuario.*
+
+⇒ El documento no solo se equivocaba: **pedía parar el trabajo a la espera de algo que ya existía**, y
+además dejaba viva la salida `C` —dar al bus una duración estimada del SIU— que la decisión descarta.
+
+**Qué se probó y DIO VERDE mientras el fallo estaba vivo:** ⭐⭐⭐ **el propio documento de estado, con
+sus palabras exactas.**
+
+```
+   DESPLAZAME-ESTADO.md   (copia en disco, 13/08 19:51, 4.978 líneas)
+   4284:  ⛔ DECISIÓN PENDIENTE DE ANTONIO: si el bus entra en H2b con la velocidad
+          comercial publicada, y si el encadenado de testigos se construye …
+```
+
+⚠️ **Y no es que no mirase: es que la fuente de la verdad decía literalmente lo que yo escribí.** Si
+hubiera citado la línea 4284 al lado de mi «PARO AQUÍ», el documento habría quedado **mejor apoyado y
+exactamente igual de falso**. ⇒ *La cita correcta de una fuente desactualizada es la forma más
+convincente de equivocarse.*
+
+**Cómo se cazó:** ⛔ **no lo cazó ningún instrumento del repositorio, y no podía.** Lo cazó Antonio
+al leer el informe. **El dato que faltaba no estaba en el repositorio en ningún sitio**: vive en la
+conversación de estrategia, que es el único escritor de ese documento.
+
+**Arreglo aplicado:** ⛔ **el §1 no se borra** —es lo que el ejecutor supo y con qué apoyo lo supo—.
+Se añade `§1ter` diciendo qué corrige y por qué, con el positivo de control del buscador, y `§8` con
+la consecuencia de diseño. Tres punteros («superado por §1ter/§8») en §1.4, §4.3 y §5 para que nadie
+actúe sobre el «PARO AQUÍ». ⛔ **`DESPLAZAME-ESTADO.md` no se toca** —un solo escritor—: la línea 4284
+sigue diciendo `PENDIENTE` y **eso se reporta hacia arriba, no se corrige por cuenta propia**.
+
+⭐ **Positivo de control del buscador, porque afirmar «no está decidido» es un CERO:** el mismo `grep`
+sobre el mismo fichero **sí** encuentra decisiones tomadas —`el reloj` a H3 (1981), *«fuera de la
+v1»* (176)— y **sí** encuentra las otras cuatro `PENDIENTE DE ANTONIO` (4158, 4284, 4374, 4832).
+⇒ **El instrumento no estaba roto. El contenido llegaba tarde.**
+
+**Commit:** (este commit)
+
+**Ley que sale de aquí:** ⭐⭐⭐ **el documento de decisiones tiene UN SOLO ESCRITOR ⇒ el ejecutor lo
+lee SIEMPRE con retraso. «Pendiente en mi copia» NO es «pendiente».**
+Es la ley del cero de la tanda 6 aplicada a las decisiones: *un cero es una afirmación sobre el mundo
+Y sobre el instrumento* — y aquí el instrumento es **una copia con fecha**.
+⇒ **Regla operativa:** el ejecutor **no escribe «está sin decidir»**. Escribe **«en mi copia del
+estado, del 13/08 19:51, línea 4284, figura como PENDIENTE»**. Lo primero es una afirmación sobre el
+mundo que no puede sostener; lo segundo es verdad siempre.
+⚠️ **Y el corolario que duele:** parar es la conducta correcta del ejecutor **salvo cuando lo que
+frena ya está resuelto en el canal que él no lee.** Un «PARO Y AVISO» tiene el mismo coste que una
+ñapa si el aviso llega tarde a su propia respuesta.
+
+**Traza:** `docs/DISENO-H2B-COMBINACION.md` §1 (intacto), §1.4 (puntero), §1ter y §8 (nuevos) ·
+`DESPLAZAME-ESTADO.md:4284` (⛔ **no editado**, reportado hacia arriba)
