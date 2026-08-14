@@ -9,6 +9,11 @@ que ya existían, y cada cifra lleva su comando al lado.**
 ⛔ **Y `D1` NO SE DECIDE AQUÍ.** Se enuncia, se le ponen sus salidas con su coste, y
 se para: **es una decisión de Antonio.**
 
+> ⛔⛔ **CORREGIDO EL 14/08 — `D1` YA ESTABA DECIDIDA desde el 13/08.** La línea de
+> arriba y todo el §1 quedan **superados por §1ter y §8**, que dicen qué corrigen y
+> por qué. **No se borra nada:** §1 es lo que el ejecutor supo y con qué apoyo lo
+> supo. ⇒ **Lee §1ter antes que §1.**
+
 ---
 
 ## 0 · LAS CINCO PIEZAS DE HOY, CONTADAS DE NUEVO
@@ -102,7 +107,7 @@ hace ganar al modo que uno quería— solo que disfrazado de ausencia.
 | ⭐ **E** | **Separar el número que sirve para ELEGIR del número que se PUBLICA** — el motor ordena con una estimación; la respuesta **enseña los tramos y NO suma un total** | ⭐⭐ **es la forma que este proyecto ya usa**: el reparto de terminales entra *«como dato»* y el motor no decide con él. Aquí sería al revés y por el mismo motivo · ⭐ compone sin prometer | ⛔⛔ **un coste interno que nadie ve no se puede auditar**: una estimación mala produciría una ruta mala **en silencio**. ⇒ Solo vale si la estimación **se publica igual, etiquetada como tal y sin sumarse**. Y entonces el usuario ve un número que el propio motor dice no creerse |
 | **F** | *(fuera de alcance)* **coste real = espera + trayecto** | sería el correcto | ⛔ **exige el reloj**, que está fuera de H2 por decisión tomada |
 
-### 1.4 · ⛔⛔ PARO AQUÍ
+### 1.4 · ⛔⛔ PARO AQUÍ  — ⛔ **SUPERADO POR §1ter: la decisión ya estaba tomada**
 
 **No elijo.** Las cinco salidas viables tienen coste y ninguna es gratis; **la que
 se tome define el producto**, y eso no es del ejecutor.
@@ -224,6 +229,88 @@ mismo motivo por el que la velocidad no lo fue.
 
 ⛔ **No decido nada.** Lo que la medición aporta es que **la puerta que parecía
 cerrada por falta de dato está cerrada por una decisión que aún no se ha tomado.**
+---
+
+---
+
+## 1ter · ⛔⛔ CORRECCIÓN — `D1` YA ESTABA DECIDIDA. LO DE ARRIBA SOBRA
+
+**Qué corrige y por qué:** §1.3 y §1.4 presentan `D1` como una decisión abierta y
+**paran**. ⛔ **Es falso: la decisión estaba tomada desde el 13/08.** Lo de arriba
+**no se borra** —es lo que el ejecutor supo y con qué apoyo lo supo— pero **queda
+superado por esta sección**. *(Antonio, 14/08.)*
+
+> **El bus entra SIN duración de trayecto. El motor compone —anda al poste, coge el
+> 35, bájate en el 771— y no promete un tiempo total porque el dato no existe.**
+> **⇒ Enseña la opción y decide el usuario.**
+
+### 1ter.1 · ⚠️ POR QUÉ NO LA VI, dicho con su evidencia
+
+⛔ **No fue por no mirar: mi copia del estado dice lo contrario.**
+
+```
+   DESPLAZAME-ESTADO.md   (copia en disco, 13/08 19:51, 4.978 líneas)
+   línea 4284 →  ⛔ DECISIÓN PENDIENTE DE ANTONIO: si el bus entra en H2b con la
+                 velocidad comercial publicada, y si el encadenado de testigos …
+```
+
+⭐ **Y el positivo de control, porque un «no está» sin él no vale nada:** el mismo
+buscador **sí** encuentra decisiones tomadas en ese fichero —`el reloj` en H3
+(línea 1981), *«fuera de la v1»* (línea 176)— y **sí** encuentra las otras cuatro
+`PENDIENTE DE ANTONIO` (4158, 4284, 4374, 4832). ⇒ **El instrumento funciona; el
+contenido llegaba tarde.**
+
+⇒ ⭐⭐⭐ **La ley que sale de aquí:** *el documento de decisiones tiene UN SOLO
+ESCRITOR ⇒ el ejecutor lo lee SIEMPRE con retraso.* **«Pendiente en mi copia» no
+es «pendiente».** Un enunciado de decisión abierta es un CERO y necesita decir
+sobre qué copia y de qué fecha se afirma. **Bitácora nº212.**
+
+⚠️ **Y va hacia arriba, sin tocar el fichero:** la línea 4284 sigue diciendo
+`PENDIENTE`. **Yo no la edito** —ese documento tiene un solo escritor y no soy yo—:
+lo declaro y decide Antonio.
+
+### 1ter.2 · Qué salida es, de las seis
+
+**Ninguna de las seis, y conviene verlo porque explica su coste.**
+
+| | | |
+|---|---|---|
+| **no es `A`** | el bus **sí** se ofrece | ⇒ no es `coste ∞` con otro nombre |
+| **no es `B`** | el motor **sí** COMPONE — *anda al poste · coge el 35 · bájate* | ⇒ no son bloques separados |
+| **no es `C`** | ⛔ **no se le pone duración estimada** | ⇒ los tres avisos del SIU dejan de importar |
+| **no es `E`** | ⛔ **ni siquiera un coste interno**: no hay número escondido | ⇒ nada que auditar, porque nada que ocultar |
+| **no es `F`** | no hay espera ni trayecto | ⇒ el reloj sigue fuera |
+
+⇒ **Es una séptima, `G`: COMPONER SIN PROMETER.** El bus participa en la ruta
+**como camino**, no como coste. ⭐ **Y su virtud es exactamente la que este
+proyecto lleva persiguiendo:** *no hay ningún número inventado que haga ganar al
+modo que uno quería, porque no hay número.*
+
+⛔ **Su coste, escrito y no escondido:** la ruta con bus **no se puede ordenar
+contra la que no lo lleva**, y eso el producto **se lo pasa al usuario**. Está
+desarrollado en §8.
+
+### 1ter.3 · ⭐ La medición de la frecuencia (§1bis) NO reabre nada: la confirma
+
+`§1bis` se pidió *«antes de decidir `D1`»* y su resultado **apuntala la decisión ya
+tomada**, no la discute:
+
+- **`frequencies.txt` no está en el feed** (§1bis P1, con sus tres controles) ⇒ la
+  espera **no es un número publicado** ⇒ ⛔ **`C` no se puede arreglar sumándole la
+  espera**, que era su única reparación barata.
+- **La única vía sería derivarla de las horas de `stop_times`** (§1bis P2) ⇒ y eso
+  es justo lo que `docs/DISENO-H2A-RED.md` prohíbe: *«sus horas no sobreviven al
+  cocinado»*. **No se deriva.**
+- ⭐ **El candidato que dejé en `NO CONSTA`** —catálogo 335, *«Líneas, paradas y
+  tiempos»*— **queda cerrado por Antonio (14/08): es el canal en TIEMPO REAL, no
+  una tabla de horarios.** ⚠️ *Va con su atribución: esto lo aporta Antonio, no lo
+  he medido yo* — y el tiempo real está fuera de la v1, así que **cierra el cabo
+  por partida doble**.
+
+⇒ ⭐⭐ **La frase de §1bis —*«la puerta está cerrada por una decisión que aún no se
+ha tomado»*— era falsa por los dos lados: la decisión estaba tomada, y la puerta
+está cerrada por falta de dato.**
+
 ---
 
 ## 2 · ⭐⭐ D2 · QUÉ COMBINACIONES TIENEN SENTIDO
@@ -414,6 +501,7 @@ declarada, no una regla; y que **el aviso siga estando en su tramo aunque suba**
 usuario marcó, no una «mejor».** ⛔ `L6` prohíbe «el más rápido», y con `D1` sin
 decidir **puede que ni siquiera exista un orden entre ellas**. ⇒ Devolver varias no
 es una comodidad: **es la consecuencia de no poder ordenarlas.**
+*(⛔ **14/08 — ya no es «puede que»: NO existe, y es permanente. Ver §8.2.**)*
 ⛔ **Coste declarado:** el usuario tiene que elegir, y **eso es trabajo que el
 producto le pasa a él**. Es el precio de no mentir.
 
@@ -433,6 +521,9 @@ usuario tiene que aprender.** La alternativa —dos estados— es más legible y
 ---
 
 ## 5 · D5 · EL ORDEN DE LAS TANDAS QUE VIENEN
+
+⛔ **14/08 — esta tabla se escribió con `D1` abierta. La fila 1 está HECHA y el
+riesgo de la fila 4 se ha mudado de sitio: el orden corregido está en §8.6.**
 
 | | tanda | por qué ahí | ⚠️ ¿puede fallar de verdad? |
 |---|---|---|---|
@@ -459,6 +550,10 @@ coste inventado, **el motor lo preferirá y la ruta saldrá preciosa.**
 | **5** | ⚠️ **¿La velocidad comercial del SIU es medición o planificación?** | Es la condición de la salida `C` de `D1`. **Ya está escrito el aviso; nadie lo ha comprobado** | comparar años del indicador |
 | **6** | **¿Qué tiempo de espera tiene un bus?** | Sin espera, la salida `C` mide medio viaje | ⛔ **exige el reloj: fuera de H2** |
 
+⭐ **14/08 — las filas 5 y 6 DEJAN DE BLOQUEAR:** eran la condición de la salida
+`C`, que la decisión de §1ter descarta. **Siguen siendo interesantes, pero ya no
+son requisito de H2b.** Las filas 1-4 siguen vivas tal cual. Ver §8.6.
+
 ---
 
 ## 7 · ⚠️ QUÉ PREGUNTA NO ME HE HECHO
@@ -482,3 +577,163 @@ mismo vehículo, el fallo saldrá **en verde**.
 marca `a pie`?** Todo cambio de modo pasa por andar (§2.3). ⇒ *O `a pie` no es un
 modo marcable sino el sustrato, o desmarcarlo hace imposible cualquier
 combinación.* **No lo he resuelto.**
+
+---
+
+## 8 · ⭐⭐⭐ LA CONSECUENCIA DE `G` — EL MOTOR NO ELIGE POR EL USUARIO
+
+**Esto no es dato: es diseño.** Sale entero de la decisión de §1ter y **hay que
+escribirlo**, porque es lo que cambia en `D2`–`D5` ahora que el bus está cerrado.
+
+> ⭐⭐⭐ **Cuando el usuario marca modos CON duración y modos SIN ella, el motor
+> NO ELIGE POR ÉL: enseña las opciones.**
+
+### 8.1 · ⛔ Primero, lo que casi se me escapa: EL HUECO ES CONTAGIOSO
+
+**No es «el bus no tiene tiempo». Es «la RUTA no tiene tiempo».** En cuanto un solo
+tramo carece de número, **el total desaparece para la ruta entera**, aunque los
+otros tramos lo tengan de sobra:
+
+```
+   anda 259 m  →  4,7 min      ✅ lo sé
+   el 35, del poste 744 al 771  ⛔ NO CONSTA
+   anda 180 m  →  3,2 min      ✅ lo sé
+   ─────────────────────────────────────
+   TOTAL                        ⛔ NO CONSTA    ← y no es «7,9 min y algo más»
+```
+
+⚠️ **La tentación exacta a nombrar ahora, antes de que aparezca en código:**
+publicar *«7,9 min + el bus»*. **Eso es una cota inferior disfrazada de dato**, y
+el usuario la leerá como un total. ⛔ **Los tramos se publican con su número; la
+suma NO se hace.**
+
+**Cuánto alcanza el contagio — contado sobre la matriz de §2.1, no supuesto:**
+
+```
+   transiciones de la matriz          25 casillas − 2 diagonales «—»  =  23
+   permitidas (✅ o ⚠️)                                                  17
+   permitidas que TOCAN un modo sin tiempo (bus o tranvía)              12   70,6 %
+   permitidas enteramente con tiempo                                     5   29,4 %
+```
+
+⇒ ⭐⭐ **Siete de cada diez combinaciones permitidas producen una ruta sin total.**
+El caso «con tiempo» no es la regla con una excepción: **es la minoría.**
+
+### 8.2 · Dos familias de respuesta, y ⛔ NO se ordenan entre sí
+
+| | familia **CON TIEMPO** | familia **SIN TOTAL** |
+|---|---|---|
+| modos | a pie · bici propia · BiZi | cualquiera que incluya **bus** o **tranvía** |
+| qué publica | ⭐ un número: *«32,6 min»* | los pasos, y **el tiempo de los tramos que lo tienen** |
+| cómo se ordena por dentro | por tiempo *(ya funciona: tanda 5)* | ⛔ **hace falta un criterio — §8.4** |
+| contra la otra familia | ⛔⛔ **no se ordena. Nunca.** | ⛔⛔ **no se ordena. Nunca.** |
+
+⛔ **Y no es una limitación temporal que se arregle midiendo mejor:** son
+magnitudes distintas, y **no hay factor de conversión que arregle un hueco** (§1.1).
+⇒ **Se enseñan las dos.**
+
+⭐ **Esto ya estaba a medias en §4.3 punto 3** —*«una ruta por combinación de modos
+marcada, no una mejor»*—, escrito entonces como precaución. **Ahora no es una
+precaución: es la forma obligada.**
+
+### 8.3 · ⭐⭐ `NO-EMPEORA-AL-MARCAR` HAY QUE REENUNCIARLO, y sale MÁS fuerte
+
+La ley 157 comparaba *«la respuesta con el modo marcado contra la respuesta sin
+él»*. ⛔ **Con dos familias inordenables, «peor» no está definido entre ellas** ⇒
+tal cual estaba escrita, **no es comprobable**.
+
+⭐ **Y su forma correcta es más barata y más dura que la vieja:**
+
+> **Marcar un modo SIN tiempo no puede alterar la respuesta de la familia CON
+> tiempo. Sale IDÉNTICA, byte a byte.**
+
+- ⭐ **Falsable, y con un instrumento que ya existe**: dos consultas y un `diff` —
+  exactamente el rito de cierre de las tandas.
+- ⭐ **Caza el fallo que más miedo daba** (§1.1): si alguien mete un `coste 0` para
+  el bus «provisionalmente», la caminata de 200 m se convierte en viaje en autobús
+  y **el `diff` sale con líneas**. ⛔ Con la ley vieja ese fallo pasaba.
+- ⚠️ **Su límite, dicho:** no dice nada sobre si la familia sin total es buena.
+  **Solo garantiza que no contamina a la otra.**
+
+⇒ **Se puede construir ANTES que nada de lo demás**, y por eso `D5` cambia (§8.6).
+
+### 8.4 · ⛔ EL AGUJERO QUE ABRE LA DECISIÓN: dentro de la familia sin total, ¿qué orden?
+
+Si hay tres maneras de ir en bus, **algo tiene que decidir cuál se enseña primero**,
+y **no puede ser el tiempo**. ⛔ **Esto es nuevo: lo crea la decisión de §1ter, y no
+estaba en el documento.**
+
+| candidato | ⭐ qué gana | ⛔ qué cuesta |
+|---|---|---|
+| **nº de transbordos** | ⭐ dato duro, ya existe (2.538 enlaces), **cero número inventado** | ⛔ un transbordo puede ahorrar 15 min; ordenar por su número **prefiere el directo lento** |
+| **metros a pie** | ⭐ medido y ya publicado por el motor | ⛔ prefiere la ruta que te deja lejos en un bus que tarda una hora |
+| **nº de paradas recorridas** | ⭐ está en `stop_times` sin tocar sus horas | ⚠️ **una parada no es una distancia**: 20 paradas del centro ≠ 20 del Actur |
+| ⛔ **cualquiera con tiempo estimado** | — | ⛔⛔ **es la salida `C` por la puerta de atrás**, y está descartada |
+
+**Propuesta, con su coste declarado —no es una decisión mía—:** ordenar por
+**nº de transbordos y, a igualdad, metros a pie**. ⭐ Las dos cifras existen hoy y
+ninguna se inventa.
+⛔ **Su coste, sin adornos: el primero de la lista NO es el más rápido, y el
+usuario no tiene cómo saberlo.** ⇒ **Hay que decírselo en la propia lista**, o el
+orden miente por su cuenta: *el orden es una afirmación aunque no lleve número.*
+
+⚠️ Y una salida más honesta que también tiene coste: **no ordenar** —enseñarlas
+como conjunto—. ⛔ Cuesta que con más de 3-4 opciones **es ilegible**, que es el
+problema medido en §4.2.
+
+### 8.5 · Qué se le enseña al usuario — la redacción
+
+⭐ **`L6` («nunca el más rápido») deja de ser una regla que hay que recordar y pasa
+a ser estructural para el bus: no hay número con el que faltar a ella.**
+
+```
+   CON TIEMPO      En BiZi                       32,6 min
+                   Andando                       58,1 min
+
+   SIN TOTAL   ⛔ estas opciones NO dicen cuánto tardan: el dato del tiempo de
+               viaje del bus no está publicado (no lo estimamos).
+                   Andar 259 m · el 35 (744→771) · andar 180 m   — 2 tramos a pie: 7,9 min
+                   Andar 410 m · el 23 (…) · el 40 (…) · andar 95 m
+```
+
+**Tres decisiones de redacción, con su coste:**
+
+1. ⭐ **La razón del hueco se dice UNA vez por familia, no por tramo.** ⇒ evita
+   que §4.2 se cumpla —*los avisos ya son mayoría*— repitiendo lo mismo N veces.
+   ⛔ **Coste:** un aviso a nivel de familia **es un aviso que se puede saltar
+   leyendo**; el de tramo no. ⇒ ⚠️ Es **la excepción** al criterio de §4.3 punto 1
+   (*el aviso viaja pegado a su tramo*), y **hay que declararla como excepción**, no
+   dejar que se cuele.
+2. ⭐⭐ **«No lo decimos» y no «no se sabe».** El tiempo de un bus **se puede
+   saber**; lo que pasa es que **no está publicado y no lo inventamos**. Es la
+   distinción `sin-lados-en-el-grafo` / `no-consta` de §4.1 aplicada aquí:
+   ⛔ **esto es CONOCIMIENTO, no ignorancia.**
+3. ⚠️ **El tiempo de los tramos a pie SÍ se enseña, pero nunca como total**, y va
+   con su etiqueta —*«2 tramos a pie»*— para que no se lea como el viaje entero.
+   ⛔ **Coste: es la línea que más fácilmente se malinterpreta de toda la pantalla.**
+
+### 8.6 · ⇒ QUÉ CAMBIA EN `D2`–`D5`
+
+| | qué decía | qué dice ahora |
+|---|---|---|
+| **`D2`** §2.1 | la matriz | ⭐ **no cambia ni una casilla.** Las prohibiciones eran por dato (`bici a bordo`) o por estado (`bici propia`), **no por tiempo** |
+| **`D3`** §3.3 | *«si el cambio a pie↔bus vale 0 y el de BiZi 240 s, el motor prefiere el bus por una asimetría del DATO»* | ⭐⭐ **el riesgo desaparece, y no por haberlo medido: el bus y el BiZi ya no compiten en la misma lista.** ⇒ los 240 s siguen aplicando **dentro** de la familia con tiempo |
+| **`D4`** §4.3 pto 3 | *«con `D1` sin decidir puede que ni siquiera exista un orden»* | ⛔ **ya no es «puede que»: NO existe**, y es permanente (§8.2) |
+| **`D5`** §5 fila 1 | *«tanda 1 = la decisión de `D1`»* | ✅ **hecha.** ⇒ la 2 y la 3 pasan a ser la 1 y la 2 |
+| **`D5`** §5 fila 4 | *«puede fallar EN VERDE: producirá rutas y que las produzca no demuestra que sean comparables»* | ⭐ **ese fallo concreto ya no puede ocurrir** —no hay coste que las haga comparables—. ⚠️ **El riesgo se muda al orden de §8.4: la lista saldrá ordenada y nadie sabrá por qué** |
+| **`D5`** — **nueva tanda 0** | — | ⭐⭐ **`NO-EMPEORA-AL-MARCAR` en su forma nueva (§8.3): dos consultas y un `diff`.** Se puede construir **hoy**, sin enganche y sin composición, y **es la red que sujeta todo lo demás** |
+| **`D5`** §6 filas 5 y 6 | *«bloquean: son la condición de la salida `C`»* | ⭐ **dejan de bloquear.** `C` está descartada ⇒ la velocidad comercial del SIU y la espera **ya no son requisitos de H2b**. ⚠️ **Siguen siendo interesantes como CONTRADICTOR** (estado, línea ~4275), pero eso es otra cosa |
+
+### 8.7 · ⚠️ LO QUE LA DECISIÓN NO DICE, Y YO NO SUPONGO
+
+1. ⛔ **La decisión nombra el BUS. El TRANVÍA está en la misma situación** —50
+   paradas, cero tiempo (§0)— **y no está nombrado.** ⇒ **Lo he tratado por
+   simetría** en todo lo de arriba, y **lo declaro como suposición mía, no como
+   decisión.** Si Antonio quiere el tranvía de otra manera, cambia §8.1 y §8.2.
+2. ⚠️ **«Enseña la opción y decide el usuario» no dice CUÁNTAS opciones.** Con
+   2.266 enlaces `bus×bus` (§7), *«las rutas en bus»* pueden ser muchas. ⇒ el tope
+   y el orden son §8.4, **sin resolver**.
+3. ⛔ **Sigue en pie la pregunta de §7 que la decisión no toca:** el modelo **no
+   tiene VIAJE**, y `bus → bus` es el 89,3 % de los enlaces. ⚠️ **`G` no la
+   arregla: la vuelve más visible**, porque ahora los tramos de bus se ENSEÑAN uno
+   a uno, y *«baja en la parada A y sube en la parada A»* se leería en pantalla.
