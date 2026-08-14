@@ -13,6 +13,11 @@ se para: **es una decisión de Antonio.**
 > arriba y todo el §1 quedan **superados por §1ter y §8**, que dicen qué corrigen y
 > por qué. **No se borra nada:** §1 es lo que el ejecutor supo y con qué apoyo lo
 > supo. ⇒ **Lee §1ter antes que §1.**
+>
+> ✅ **Y el 14/08 entran las dos que quedaban en la mesa** —el tranvía en la misma
+> familia que el bus, y el orden de la lista— **⇒ el diseño queda CERRADO.**
+> ⛔ **Cerrado no es construido:** sigue sin haber código, sin artefacto nuevo y sin
+> una línea de `src/` tocada.
 
 ---
 
@@ -243,6 +248,20 @@ superado por esta sección**. *(Antonio, 14/08.)*
 > **El bus entra SIN duración de trayecto. El motor compone —anda al poste, coge el
 > 35, bájate en el 771— y no promete un tiempo total porque el dato no existe.**
 > **⇒ Enseña la opción y decide el usuario.**
+
+**Y las dos que quedaron colgando, decididas el 14/08 y ya dentro:**
+
+> **1 · ⭐⭐ El TRANVÍA va en la misma familia que el bus: tampoco promete duración.**
+> La decisión del 13/08 nombraba el bus porque era el caso que tenía delante.
+> **⇒ `G` aplica a los dos.** *(Desarrollado en §8.7 punto 1.)*
+>
+> **2 · ⭐⭐ La familia sin total se ordena por nº de TRANSBORDOS y, a igualdad, por
+> METROS A PIE** — porque las dos cifras existen y ninguna se inventa.
+> ⛔ **Con su coste dentro de la lista y visible**, que es la condición.
+> *(Desarrollado en §8.4 y §8.5.)*
+
+⇒ ✅ **Con estas dos, el diseño de la tanda 7 queda CERRADO.** Lo que sigue abierto
+son mediciones (§6) y preguntas (§7), **no decisiones.**
 
 ### 1ter.1 · ⚠️ POR QUÉ NO LA VI, dicho con su evidencia
 
@@ -625,7 +644,7 @@ El caso «con tiempo» no es la regla con una excepción: **es la minoría.**
 |---|---|---|
 | modos | a pie · bici propia · BiZi | cualquiera que incluya **bus** o **tranvía** |
 | qué publica | ⭐ un número: *«32,6 min»* | los pasos, y **el tiempo de los tramos que lo tienen** |
-| cómo se ordena por dentro | por tiempo *(ya funciona: tanda 5)* | ⛔ **hace falta un criterio — §8.4** |
+| cómo se ordena por dentro | por tiempo *(ya funciona: tanda 5)* | ✅ **transbordos, y a igualdad metros a pie** — §8.4 |
 | contra la otra familia | ⛔⛔ **no se ordena. Nunca.** | ⛔⛔ **no se ordena. Nunca.** |
 
 ⛔ **Y no es una limitación temporal que se arregle midiendo mejor:** son
@@ -657,29 +676,44 @@ tal cual estaba escrita, **no es comprobable**.
 
 ⇒ **Se puede construir ANTES que nada de lo demás**, y por eso `D5` cambia (§8.6).
 
-### 8.4 · ⛔ EL AGUJERO QUE ABRE LA DECISIÓN: dentro de la familia sin total, ¿qué orden?
+### 8.4 · ✅ EL ORDEN DE LA FAMILIA SIN TOTAL — **DECIDIDO (Antonio, 14/08)**
 
 Si hay tres maneras de ir en bus, **algo tiene que decidir cuál se enseña primero**,
-y **no puede ser el tiempo**. ⛔ **Esto es nuevo: lo crea la decisión de §1ter, y no
-estaba en el documento.**
+y **no puede ser el tiempo**. Este agujero lo abrió la decisión de §1ter, y **queda
+cerrado el mismo día**:
+
+> ⭐⭐ **Se ordena por nº de TRANSBORDOS y, a igualdad, por METROS A PIE.**
+> **Motivo declarado: las dos cifras existen y ninguna se inventa.**
+> ⛔ **Condición de la decisión: su coste va DENTRO de la lista, no en un apéndice.**
+
+⚠️ **Lo que quedaba por debajo, y por eso se enseña la tabla entera:** los otros
+candidatos no eran malos por capricho, y sus costes **siguen siendo el precio que
+se paga**.
 
 | candidato | ⭐ qué gana | ⛔ qué cuesta |
 |---|---|---|
-| **nº de transbordos** | ⭐ dato duro, ya existe (2.538 enlaces), **cero número inventado** | ⛔ un transbordo puede ahorrar 15 min; ordenar por su número **prefiere el directo lento** |
-| **metros a pie** | ⭐ medido y ya publicado por el motor | ⛔ prefiere la ruta que te deja lejos en un bus que tarda una hora |
+| ✅ **nº de transbordos** *(1º)* | ⭐ dato duro, ya existe (2.538 enlaces), **cero número inventado** | ⛔ un transbordo puede ahorrar 15 min; ordenar por su número **prefiere el directo lento** |
+| ✅ **metros a pie** *(desempate)* | ⭐ medido y ya publicado por el motor | ⛔ prefiere la ruta que te deja lejos en un bus que tarda una hora |
 | **nº de paradas recorridas** | ⭐ está en `stop_times` sin tocar sus horas | ⚠️ **una parada no es una distancia**: 20 paradas del centro ≠ 20 del Actur |
 | ⛔ **cualquiera con tiempo estimado** | — | ⛔⛔ **es la salida `C` por la puerta de atrás**, y está descartada |
 
-**Propuesta, con su coste declarado —no es una decisión mía—:** ordenar por
-**nº de transbordos y, a igualdad, metros a pie**. ⭐ Las dos cifras existen hoy y
-ninguna se inventa.
-⛔ **Su coste, sin adornos: el primero de la lista NO es el más rápido, y el
-usuario no tiene cómo saberlo.** ⇒ **Hay que decírselo en la propia lista**, o el
-orden miente por su cuenta: *el orden es una afirmación aunque no lleve número.*
+⛔⛔ **EL COSTE, QUE VIAJA CON LA DECISIÓN Y NO SE PUEDE DESPEGAR DE ELLA:**
 
-⚠️ Y una salida más honesta que también tiene coste: **no ordenar** —enseñarlas
-como conjunto—. ⛔ Cuesta que con más de 3-4 opciones **es ilegible**, que es el
-problema medido en §4.2.
+> **El primero de la lista NO es el más rápido, y el usuario no tiene cómo saberlo.**
+
+⇒ ⭐⭐⭐ **Y por eso se le dice EN LA LISTA, no en un apéndice ni en una leyenda**
+(redacción en §8.5). Un coste que se declara donde nadie lo lee **no está
+declarado**: está archivado.
+⇒ ⭐⭐⭐ **La razón, en una frase: EL ORDEN ES UNA AFIRMACIÓN AUNQUE NO LLEVE
+NÚMERO.** Poner una ruta primera dice *«empieza por ésta»* con la misma fuerza que
+un *«32,6 min»*, y **sin un número que auditar** — que es precisamente lo que la
+hace peligrosa.
+
+⚠️ **La salida que se descarta, dicha con su motivo:** **no ordenar** —enseñarlas
+como conjunto— era más honesta en el papel. ⛔ **Cuesta que con más de 3-4 opciones
+es ilegible**, que es el problema ya medido en §4.2; y ⚠️ **tampoco es neutral: un
+conjunto se imprime en algún orden, así que «no ordenar» acaba siendo «ordenar por
+lo que salga»** — la misma afirmación, sin nadie que la firme.
 
 ### 8.5 · Qué se le enseña al usuario — la redacción
 
@@ -690,13 +724,23 @@ a ser estructural para el bus: no hay número con el que faltar a ella.**
    CON TIEMPO      En BiZi                       32,6 min
                    Andando                       58,1 min
 
-   SIN TOTAL   ⛔ estas opciones NO dicen cuánto tardan: el dato del tiempo de
-               viaje del bus no está publicado (no lo estimamos).
-                   Andar 259 m · el 35 (744→771) · andar 180 m   — 2 tramos a pie: 7,9 min
-                   Andar 410 m · el 23 (…) · el 40 (…) · andar 95 m
+   SIN TOTAL   ⛔ estas opciones NO dicen cuánto tardan: el tiempo de viaje del
+               bus y del tranvía no está publicado, y no lo estimamos.
+               ⛔ ordenadas por TRANSBORDOS y metros a pie — NO por rapidez:
+                  la primera no es la más rápida, y no sabemos cuál lo es.
+
+                  0 transbordos · 439 m a pie
+                     andar 259 m · el 35 (744 → 771) · andar 180 m       7,9 min a pie
+                  1 transbordo  · 505 m a pie
+                     andar 410 m · el 23 (…) · el 40 (…) · andar 95 m    9,1 min a pie
+                  1 transbordo  · 612 m a pie
+                     andar 350 m · tranvía (…) · el 40 (…) · andar 262 m 11,0 min a pie
 ```
 
-**Tres decisiones de redacción, con su coste:**
+⚠️ **Las cifras del recuadro son de EJEMPLO** —ilustran la forma, no son una ruta
+medida—: la única real es el par de tramos a pie de §8.1, que viene de la tanda 5.
+
+**Cuatro decisiones de redacción, con su coste:**
 
 1. ⭐ **La razón del hueco se dice UNA vez por familia, no por tramo.** ⇒ evita
    que §4.2 se cumpla —*los avisos ya son mayoría*— repitiendo lo mismo N veces.
@@ -709,8 +753,16 @@ a ser estructural para el bus: no hay número con el que faltar a ella.**
    distinción `sin-lados-en-el-grafo` / `no-consta` de §4.1 aplicada aquí:
    ⛔ **esto es CONOCIMIENTO, no ignorancia.**
 3. ⚠️ **El tiempo de los tramos a pie SÍ se enseña, pero nunca como total**, y va
-   con su etiqueta —*«2 tramos a pie»*— para que no se lea como el viaje entero.
+   con su etiqueta —*«a pie»*— para que no se lea como el viaje entero.
    ⛔ **Coste: es la línea que más fácilmente se malinterpreta de toda la pantalla.**
+4. ⭐⭐ **El criterio de orden se imprime EN LA CABECERA DE LA LISTA, con su
+   negación explícita** —*«ordenadas por transbordos y metros a pie — NO por
+   rapidez»*—, y **cada fila lleva las dos cifras por las que está ordenada**, para
+   que el orden sea **comprobable a ojo** y no haya que creérselo.
+   ⛔ **Coste: son dos líneas de cabecera y dos cifras por fila en la familia que
+   ya era la más cargada** (§4.2). ⚠️ **Y es deliberado**: el coste de §8.4 **es
+   condición de la decisión**, así que **no puede irse a un apéndice** aunque
+   estorbe. *Un coste declarado donde nadie lo lee no está declarado.*
 
 ### 8.6 · ⇒ QUÉ CAMBIA EN `D2`–`D5`
 
@@ -726,10 +778,15 @@ a ser estructural para el bus: no hay número con el que faltar a ella.**
 
 ### 8.7 · ⚠️ LO QUE LA DECISIÓN NO DICE, Y YO NO SUPONGO
 
-1. ⛔ **La decisión nombra el BUS. El TRANVÍA está en la misma situación** —50
-   paradas, cero tiempo (§0)— **y no está nombrado.** ⇒ **Lo he tratado por
-   simetría** en todo lo de arriba, y **lo declaro como suposición mía, no como
-   decisión.** Si Antonio quiere el tranvía de otra manera, cambia §8.1 y §8.2.
+1. ✅ **RESUELTO (Antonio, 14/08) — ya no es suposición mía: `G` APLICA A LOS DOS.**
+   La decisión del 13/08 nombraba el bus **porque era el caso que tenía delante**;
+   el tranvía está exactamente igual —50 paradas, cero tiempo (§0)— y **tampoco
+   promete duración.** ⇒ La simetría con la que escribí §8.1–§8.6 **queda
+   confirmada como decisión, no como supuesto**, y esas secciones se leen tal cual.
+   ⭐ **Y conviene ver lo que esto cierra:** era el aviso de la salida `C` —*«no
+   incluye el tranvía ⇒ el tranvía se quedaría sin número mientras el bus lo
+   tiene»*, §1.3—. **Con `G` no hay asimetría posible: ninguno de los dos tiene
+   número.**
 2. ⚠️ **«Enseña la opción y decide el usuario» no dice CUÁNTAS opciones.** Con
    2.266 enlaces `bus×bus` (§7), *«las rutas en bus»* pueden ser muchas. ⇒ el tope
    y el orden son §8.4, **sin resolver**.
