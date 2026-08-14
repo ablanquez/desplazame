@@ -856,10 +856,10 @@ Elevado por Antonio tras aparecerle en tres de las cuatro decisiones seguidas.
 
 ---
 
-## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 167 VECES
+## 7 · ⚠️ EL INSTRUMENTO HA MENTIDO 169 VECES
 
 **Cuarenta tandas, cuatro bloques de auditoría y nueve de arreglo** *(siete numeradas más `1·bis` y
-`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento sesenta y siete instrumentos mintiendo** *(115 al cerrar H1 + 52 en las tandas de H2)* —
+`2·bis` — contadas sobre §10 el 9/08, donde decía «diez»)*. **Ciento sesenta y nueve instrumentos mintiendo** *(115 al cerrar H1 + 54 en las tandas de H2)* —
 los 33 primeros, sin una sola línea de código. Ya es una categoría, no una anécdota — y llegó antes
 que el proyecto.
 ⚠️ **Los treinta y cinco últimos (81-115) los produjo la propia auditoría y sus arreglos**, ⛔⛔ **y
@@ -1056,6 +1056,9 @@ decir *«esto lo detuvo ella, no el criterio de quien medía»*.
 | | **⬇ TANDA DE ARREGLO 10 (13/08) — DOS MÁS** ⬇ | |
 | 166 | ⛔⛔⛔ **UN GUARDIÁN QUE SABÍA QUE NO PODÍA COMPROBAR, LO IMPRIMIÓ, Y SE IGNORÓ A SÍ MISMO.** Sin `git` en el `PATH`, `probar-hook.js` daba **13 fallos y DOCE eran acusaciones FALSAS contra un hook perfecto**. ⛔⛔ **Y el primero de los trece decía *«los siete casos serían falsos»* — seis líneas más abajo ejecutaba los siete y publicaba los doce.** ⇒ ***La refutación estaba impresa ENCIMA de las acusaciones.*** ⚠️ *Y no mordía **por casualidad, no por diseño**: `git` está en el `PATH` de esta máquina* |
 | 167 | ⛔⛔ **AL `diff` DE CIERRE NADIE LE HABÍA PROVOCADO NUNCA UNA DIFERENCIA — VEINTE TANDAS.** El «DIFF VACÍO» con el que se cierra cada tanda **nunca había demostrado que el comparador supiera ver un cambio.** ⭐ **Su primer positivo de control es del 13/08:** base PowerShell contra base Bash ⇒ **2 líneas.** ⚠️ *Y el BOM lo empeoraba: una captura con `>` de PowerShell y otra de Bash **no pueden dar vacío nunca**, así que el instrumento ni siquiera podía comparar entre entornos* |
+| | **⬇ H2b · TANDA 7 (14/08) — DOS MÁS, Y LAS DOS DE ESTA CONVERSACIÓN** ⬇ | |
+| 168 | ⛔⛔⛔ **EL EJECUTOR PARÓ UN DÍA ENTERO POR UNA DECISIÓN QUE YA ESTABA TOMADA — Y SU COPIA DECÍA LA VERDAD.** La línea 4284 de este documento ponía `PENDIENTE` desde el 13/08, y **la decisión se tomó ese mismo día**. ⭐ **Con positivo de control:** el mismo `grep` encontraba las decisiones tomadas y las otras cuatro pendientes ⇒ **el instrumento funcionaba; el contenido llegaba tarde.** ⇒ ***El documento de decisiones tiene UN SOLO ESCRITOR, así que el ejecutor lo lee SIEMPRE con retraso: «pendiente en mi copia» no es «pendiente».*** ⛔ **Y el desfase lo produce esta conversación, que destila al final del día** |
+| 169 | ⛔⛔ **ESTA CONVERSACIÓN REABRIÓ UNA DECISIÓN CERRADA SIN CONSULTAR EL DOCUMENTO QUE LA GUARDA.** Ante un bloqueo levantado por el ejecutor, **se pidió una medición de frecuencias y se salió a buscar fuentes** para poder darle un número al bus — **cuando el bus estaba decidido desde hacía un día, con su motivo escrito.** ⭐ *La medición confirmó la decisión en vez de contradecirla, así que no hizo daño* — ⛔ **pero era el nº99 otra vez: la conversación de estrategia trabajando sobre memoria en vez de sobre el estado** |
 
 **Regla del proyecto, heredada de 003:** *sospechar del instrumento es verificar quién de los dos
 miente.*
@@ -1965,6 +1968,38 @@ Van a la guía maestra. Las tres primeras son las que más caro han salido.
     ⚠️ *Y la medida llevaba su control: **instrumentar no cambió lo medido** — la batería instrumentada
     contra la limpia dio `diff` vacío.*
 
+200. ⭐⭐⭐ **CUANDO A UNA MAGNITUD LE FALTA EL NÚMERO, NO HAY LADO SEGURO: EL CERO MIENTE HACIA
+    ARRIBA Y EL INFINITO HACIA ABAJO.**
+    *No es un problema de unidades —dos unidades se convierten—: **es un HUECO, y no hay factor de
+    conversión que arregle un hueco**. Con coste 0 el bus gana siempre («para ir 200 m, coge el 23»);
+    con coste ∞, marcarlo es decorativo.* ⇒ **La salida no es elegir el error menos malo: es NO
+    PROMETER** —componer sin sumar—, ⭐ **y entonces el problema deja de tener dónde ocurrir.**
+    ⚠️ **Y el hueco es CONTAGIOSO: no es que un tramo no tenga tiempo, es que la RUTA no lo tiene.**
+    *Publicar «7,9 min + el bus» es una cota inferior disfrazada de dato.*
+
+201. ⭐⭐⭐ **«NO ORDENAR» TAMPOCO ES NEUTRAL: UN CONJUNTO SE IMPRIME EN ALGÚN ORDEN.**
+    *«No ordenar» acaba siendo «ordenar por lo que salga»: **la misma afirmación, sin nadie que la
+    firme**.* ⇒ **El orden es una afirmación aunque no lleve número**, así que **se elige, se dice el
+    criterio, y se dice también lo que el criterio NO es** —*«ordenadas por transbordos, NO por
+    rapidez: la primera no es la más rápida y no sabemos cuál lo es»*—.
+    ⭐ **Y su corolario de redacción: *un coste declarado donde nadie lo lee no está declarado: está
+    archivado*.** Por eso el criterio va en la cabecera y **cada fila lleva las cifras por las que
+    está ordenada: el orden queda comprobable a ojo.**
+
+202. ⭐⭐⭐ **UN MODO CON ESTADO NO ES UN MODO MÁS: CONTAMINA TODOS LOS TRAMOS SIGUIENTES.**
+    *La bici propia **no se puede dejar**: donde la dejas, ahí sigue. Y un camino mínimo contesta
+    «cuál es el camino más barato de A a B» — **no tiene sitio donde guardar «y además llevo una bici
+    encima»**.* ⇒ `bici propia → a pie` **no es andar: es empujar**; `→ bus` **no es bajarse: es meter
+    la bici dentro**; **y no hay ningún tramo posterior en el que deje de existir.**
+    ⭐ **Los modos que se cogen y se sueltan son un problema distinto del que se arrastra**, y mezclar
+    los dos en la misma matriz es lo que hace que la matriz mienta.
+
+203. ⭐⭐ **UNA ASIMETRÍA EN LA COBERTURA DEL DATO SE CONVIERTE EN UNA PREFERENCIA DEL MOTOR.**
+    *El cambio `a pie↔BiZi` cuesta 240 s citados y el `a pie↔bus` es `NO CONSTA` ⇒ **con el hueco a
+    cero, el motor prefiere el bus por una asimetría del DATO, no del mundo**.* ⚠️ Y la salida
+    tentadora es la prohibida: **poner 240 s también al bus «por simetría» es inventar un número para
+    que el diseño cierre.**
+
 ---
 
 ## 9 · Plan de construcción y mapa de tandas
@@ -2098,7 +2133,8 @@ incumple y que después nadie se atreve a tocar porque *"estaba escrito"*.
 | **H2b·5** | ⭐⭐⭐ **LA VELOCIDAD DE `empuja` Y EL TRAYECTO ENTERO** | **H2b** | ✅ **13/08** ⭐ **la BiZi gana desde ~1,5 km** |
 | **H2b·6** | ⭐⭐⭐ **LA CUESTA** — ¿hay dato, cuánta hay, y cuánto mueve? | **H2b** | ✅ **13/08** ⭐ **cabo: 1,2–1,5 %** |
 | **Ar 10** | ⭐⭐⭐ **LA BATERÍA DICE DESDE DÓNDE** — el instrumento que cierra todo | **—** | ✅ **13/08** ⭐ **mismo commit, dos entornos, mismo veredicto** |
-| **H2b·7** | *(siguiente: **la combinación de modos** — lo que queda ya no es enganchar, es que se hablen)* | **H2b** | ⬜ |
+| **H2b·7** | ⭐⭐⭐ **LA COMBINACIÓN DE MODOS — el diseño en papel** | **H2b** | ✅ **14/08** ⭐ **`G` · componer sin prometer** |
+| **H2b·8** | *(siguiente: **`NO-EMPEORA-AL-MARCAR`** — la tanda 0 de la construcción)* | **H2b** | ⬜ |
 | **H2c** | *(futuro: **el coche**)* — declarado, no diseñado | **H2c** | ⬜ |
 
 ### 0.A — El dataset heredado (2/08)
@@ -4281,8 +4317,11 @@ dos testigos.**
 > encadenar testigos una tarde dice si es verdad hoy.* ⚠️ **Y el método es tiempo real, así que como
 > CONSULTA es H3 — pero como MEDICIÓN cabe en H2**, porque su resultado es **un número guardado.**
 
-⛔ **DECISIÓN PENDIENTE DE ANTONIO:** si el bus entra en H2b con la velocidad comercial publicada, y
-si el encadenado de testigos se construye como su contradictor o se aparca para H3.
+✅ **RESUELTA EL 13/08 — y esta línea siguió diciendo «PENDIENTE» hasta el 14/08:** **el bus entra
+SIN duración**, la velocidad comercial **queda anotada y NO se usa**, y el encadenado de testigos
+**queda documentado y sin construir**. Ver la tanda 5 y `H2b·7 · G`.
+⛔⛔ **Y esta línea le hizo PARAR al ejecutor un día entero** (§7·168): *él lee este documento con
+retraso, y en su copia ponía `PENDIENTE` — **que era verdad en su copia**.*
 
 ### ⭐⭐⭐ H2b · TANDA 2 (12/08) — LA CIRCULACIÓN DE LA BICI. `docs/H2B-CIRCULACION-BICI.md`.
 
@@ -4838,6 +4877,101 @@ el `PATH` **pero existe en el disco***; se razona que daría el mismo veredicto,
 medido**— · ⛔ ningún Linux ni macOS · ⛔ **ningún CI, que es justo donde esto habría vivido
 invisible** · ningún Node con `small-icu` · ningún tercer intérprete.
 ⚠️ **Y contado sin tocar:** `numeros-congelados.js` **depende del ICU** (`toLocaleString('es-ES')`).
+
+### ⭐⭐⭐ H2b · TANDA 7 (14/08) — LA COMBINACIÓN DE MODOS. `docs/DISENO-H2B-COMBINACION.md`,
+796 líneas, **propuesta sin construir.** ⛔ **Ni una línea de `src/`, ni artefacto, ni stack.**
+
+> ⭐⭐⭐ **LA DECISIÓN: `G` — COMPONER SIN PROMETER.**
+> **El bus y el tranvía participan como CAMINO, no como COSTE.** *Su virtud es que **no hay número
+> inventado, porque no hay número**.* ⇒ **El motor compone la ruta, dice dónde subes y dónde bajas, y
+> NO promete un tiempo total.**
+> ⭐ **Y aplica a los DOS** *(Antonio, 14/08: el tranvía deja de ser suposición del ejecutor)*.
+> ⭐⭐ **Y eso disuelve un problema en vez de resolverlo:** el aviso que la salida `C` arrastraba
+> —*«la velocidad comercial no incluye el tranvía ⇒ se quedaría sin número mientras el bus lo
+> tiene»*— **con `G` no puede existir: ninguno de los dos tiene número.**
+> ***El problema no se resolvió: dejó de tener dónde ocurrir.*** *(Segunda vez que este proyecto
+> produce esa forma — la primera fue la nº7 al adoptarse la velocidad estándar.)*
+
+**⭐⭐⭐ EL ENUNCIADO PRECISO, Y NO ERA EL QUE PARECÍA:**
+> **No es un problema de UNIDADES DISTINTAS** —dos unidades se convierten, y se convirtieron en la
+> tanda 5—: ***es que una de las dos opciones NO TIENE NÚMERO, y no hay factor de conversión que
+> arregle un hueco.***
+```
+   coste del bus = 0   ⇒ gratis e instantáneo: GANA SIEMPRE
+                          «para ir 200 m, coge el 23» — y lo diría en serio
+   coste del bus = ∞   ⇒ no se usa nunca: marcarlo es DECORATIVO
+```
+⚠️ ***Ninguna de las dos es la conservadora: una miente hacia arriba y otra hacia abajo. No hay lado
+seguro.***
+
+**⛔⛔ EL HUECO ES CONTAGIOSO — lo que casi se le escapa y es lo más grande de la tanda:**
+***No es que el bus no tenga tiempo: es que la RUTA no lo tiene.***
+```
+   anda 259 m → 4,7 min     ✅      ⚠️ la tentación, con nombre:
+   el 35, del 744 al 771    ⛔         publicar «7,9 min + el bus»
+   anda 180 m → 3,2 min     ✅         ⇒ es una COTA INFERIOR DISFRAZADA DE DATO
+   ─────────────────────────────
+   TOTAL                    ⛔ NO CONSTA
+```
+⇒ **De 17 transiciones permitidas, 12 tocan un modo sin tiempo: el 70,6 %.** ***La ruta con total es
+la minoría, no la regla.*** ⛔ **Dos familias de respuesta, y NO se ordenan entre sí. Nunca** — *no es
+provisional: no hay factor de conversión que arregle un hueco.*
+
+**⭐⭐ `NO-EMPEORA-AL-MARCAR`, REENUNCIADA Y MÁS FUERTE** *(la vieja no valía: entre familias, «peor»
+no está definido)*:
+> **Marcar un modo SIN tiempo no puede alterar la respuesta de la familia CON tiempo. Sale idéntica,
+> byte a byte.**
+⭐ **Más barata y más dura: dos consultas y un `diff`** —el rito que ya se usa— **y caza el `coste 0`,
+que con la versión vieja pasaba.** ⇒ **Se puede construir antes que nada: pasa a ser la tanda 0 de la
+construcción.**
+
+**⭐⭐⭐ LA MATRIZ 5×5, Y EL HALLAZGO QUE SALE DE ELLA: `bici propia` NO ES UN MODO COMO LOS DEMÁS.**
+> ***La bici propia no se puede DEJAR. Donde la dejas, ahí sigue — y un camino mínimo no sabe expresar
+> eso.*** *Un Dijkstra contesta «cuál es el camino más barato de A a B»: **no tiene sitio donde guardar
+> «y además llevo una bici encima»**.*
+· `bici propia → a pie` **no es andar: es EMPUJAR** (4,0 contra 5,0 — *y eso el proyecto ya sabe
+modelarlo*) · `bici propia → bus` **no es «bajarse»: es meter la bici dentro** · ⛔ **y no hay ningún
+tramo posterior en el que la bici deje de existir.**
+⇒ ⭐⭐ **Los otros cuatro modos se cogen y se sueltan; éste CONTAMINA todos los tramos siguientes.**
+⛔ **Y `bici propia ↔ bus/tranvía` queda `NO CONSTA`: el proyecto no sabe si Avanza admite bicis.
+Es dato, no deducción.** ⭐ *Y `a pie → cualquier cosa` es **el pegamento**: todo cambio de modo pasa
+por andar, aunque sean 20 m.*
+
+**⛔⛔ Y UN HUECO QUE NO ESTABA EN NINGÚN ENCARGO — el coste del cambio de modo:**
+```
+   a pie ↔ BiZi     240 s cada sentido   ⭐ adoptado y citado
+   a pie ↔ bus      ⛔ NO CONSTA          ninguna de las tres fuentes lo publica
+   bus ↔ bus        ⛔ NO CONSTA          y es el más frecuente: 2.266 enlaces
+```
+⇒ ***Si el cambio a pie↔bus vale 0 y el de BiZi vale 240 s, el motor prefiere el bus por una asimetría
+DEL DATO, no del mundo.*** ⚠️ **Y la tentación, parada con su nombre: poner 240 s también al bus «por
+simetría» sería inventar un número para que el diseño cierre.**
+
+**⭐ EL PAR NUEVO QUE LA COMBINACIÓN NECESITA — `parada ↔ estación BiZi`, medido hoy:**
+**1.847 pares a 300 m** (839/984 paradas · 271/276 estaciones). ⭐ **Mismo orden de magnitud que los
+2.538 enlaces de bus: no es una explosión, es otra tabla parecida.** ⚠️ **Con su alcance pegado: es
+LÍNEA RECTA, no camino a pie** ⇒ *es una **cota superior** del trabajo, no el número de enlaces que
+saldrían.*
+
+**✅ EL ORDEN DE LA FAMILIA SIN TOTAL — DECIDIDO (Antonio, 14/08): nº de TRANSBORDOS, y a igualdad
+METROS A PIE.** *Las dos existen y ninguna se inventa.* ⛔ **Con su coste DENTRO de la lista, que era
+la condición:** *el primero NO es el más rápido y el usuario no puede saberlo*, así que la cabecera
+lo dice **y cada fila lleva las dos cifras por las que está ordenada** ⇒ ***el orden queda comprobable
+a ojo, no hay que creérselo.***
+⭐⭐ **Y la frase que se queda: *el orden es una afirmación aunque no lleve número*.**
+⭐⭐⭐ **Y al escribir el descarte apareció lo que nadie había visto: *«no ordenar» tampoco es
+neutral*.** Un conjunto se imprime en algún orden ⇒ ***«no ordenar» acaba siendo «ordenar por lo que
+salga»: la misma afirmación, sin nadie que la firme.***
+⭐ *Y su corolario de redacción: **un coste declarado donde nadie lo lee no está declarado: está
+archivado**.*
+
+**⚠️ SIGUE ABIERTO Y DECLARADO:** ⛔ **el modelo no tiene VIAJE**, y `bus→bus` es el 89,3 % — *`G` no
+lo arregla: **lo hace más visible**, porque ahora los tramos se enseñan uno a uno* · **cuántos cambios
+de modo se permiten** *(no se elige número: **«¿en qué caso ganaría el quinto cambio?»** no se sabe
+contestar sin medir; y `andar→BiZi→andar→bus→andar` son cuatro y es plausible)* · **`BiZi → BiZi`**:
+`NO CONSTA` si gana alguna vez *(el intento de medirlo **cuadraba dando una respuesta falsa** —
+bitácora nº210: el 46,7 % del reparto era el centinela `-1` disfrazado de componente, y `146+129+1 =
+276` exacto)*.
 
 **DECISIONES NUEVAS DE H2:**
 
