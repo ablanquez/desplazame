@@ -29,12 +29,43 @@ enseña en pantalla**. Ya no es una declaración por adelantado: es una obligaci
 > es incumplir la ODbL — es el mismo descuido que ya se pagó una vez en la casa. Aquí la cadena
 > está escrita a mano, y hay una prueba (`app/src/app/mapa.spec.ts`) que falla si desaparece.
 
-### 1.2 · Dato municipal del Ayuntamiento de Zaragoza — todavía **ninguno**
+### 1.2 · Portales de Zaragoza — Ayuntamiento de Zaragoza (IDEZar)
 
-No hay ni un fichero de callejero, portales o paradas en este repositorio. Cuando entre, su
-reutilización se rige por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)**
-—declarada por adelantado en el [README](README.md#licencia-y-créditos)— y su ficha completa
-viene aquí: qué es, de dónde sale, qué permite y qué obliga.
+| | |
+|---|---|
+| **Qué es** | Los **46.150 portales** del término municipal: código de vía, número, y coordenada (lat/lon). Es la base sobre la que el buscador resolverá «calle + número» |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS Urbanismo · `https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs` · capa `urbanismo:Portales` |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
+| **Dónde está cumplida** | En el control de atribución del mapa, junto a la de OpenStreetMap, **mientras la capa de portales está encendida** — que es cuando el dato se enseña |
+| **Fecha del dato** | Generado el **2026-05-13T07:11:41.075Z** (conjunto `callejero-zaragoza` v1.0). CRS **EPSG:4326** |
+| **Campos** | `portalId`, `codigoVia`, `numero`, `displayNumber`, `sortNumber`, `coordLat`, `coordLon`, `numeroPolicia`, y opcionales `calificacion`, `bloqueEscalera`, `letra`. **Ni un campo personal**: todo son componentes de dirección |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`data/2026-05-13_zgzradar_callejero-portales-zaragoza.json`](data/2026-05-13_zgzradar_callejero-portales-zaragoza.json) · 10.835.605 bytes · sha256 `3c391d60cf91362c984ec2ac2e302f7eec2ce35d94deb42f6e42b678aef7cfdc` |
+
+**Cómo llegó aquí, que no es una descarga.** No lo pidió este proyecto al WFS: es un **derivado**
+producido por otro proyecto de la casa (*ZGZ RADAR REACT*), y entró en Desplázame **copiado tal
+cual desde el archivo del intento anterior**, con autorización expresa y pieza a pieza. No se ha
+editado, filtrado ni «limpiado»: el sha256 de la copia es idéntico al del origen.
+
+**Avisos que el propio origen declara, y que se trasladan en vez de esconderse:**
+
+- El WFS devolvió **239 features duplicadas en portales**, descartadas al generar.
+- **`huerfanosReales = 29`**: portales sin vía que los reclame.
+- ⚠️ **Los metadatos del proyecto de origen describen OTRO fichero.** Declaran para portales
+  `sha256 398ac652…` y 10.364.859 bytes; lo que hay en disco —y lo que está aquí— es
+  `sha256 3c391d60…` y 10.835.605 bytes. El metadato es de las 07:11 y el fichero de las 15:26
+  del mismo día: se reescribió después y nadie regeneró el metadato. **La huella válida es la de
+  este fichero**, que es el que se consume.
+
+**Cómo se vuelve a conseguir:** pidiendo la capa al WFS de Urbanismo — pero saldrá **otro**
+fichero: el callejero municipal se refresca (política declarada: mensual). Lo que garantiza los
+números de arriba es **este** fichero, no una consulta nueva.
+
+### 1.3 · El resto del dato municipal — todavía **ninguno**
+
+No hay grafo de calles, ni paradas, ni carriles bici en este repositorio. Cada uno entrará con su
+autorización y su ficha, como ésta.
 
 ---
 
