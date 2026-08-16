@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-16] 🔴 ABIERTA — Crear `app/` dejó falso el párrafo de «Estado» del README, y vivió tres commits en un repo público
+## [2026-08-16] ✅ CERRADA — Crear `app/` dejó falso el párrafo de «Estado» del README, y vivió tres commits en un repo público
 
 **Categoría:** documentación que caduca en silencio
 
@@ -48,16 +48,35 @@ otro dato falso, repórtalo»). No lo cazó ningún instrumento: no hay CI (`.gi
 existe), ni hooks activos (solo `.sample`), ni pruebas, ni enlace comprobado. Nada
 vigila el README.
 
-**Causa raíz:** ⏳ PENDIENTE
+**Causa raíz:** `git status` compara un fichero contra su última versión commiteada, y
+nada más. Detecta **ediciones**; no puede detectar **afirmaciones que dejaron de ser
+ciertas**, porque la verdad del README no dependía del README sino del resto del repo —
+de que `app/` no existiera. Ningún instrumento ata lo que un documento afirma a los
+hechos que describe. Y encima el alcance del encargo prohibía tocar el README, así que
+«nada fuera del alcance tocado» convirtió el fichero caduco en criterio cumplido: el
+verde no fue un descuido del método, fue el método funcionando como estaba escrito.
 
-**Arreglo aplicado:** ⏳ PENDIENTE
+**Arreglo aplicado:** `README.md`, blockquote de «Estado» (hoy líneas 19-25): las tres
+afirmaciones falsas se sustituyen por lo que sí es verificable contra el repo —no hay
+formulario, ni motor, ni mapa; lo único que hay es el esqueleto del CLI en `app/`, que
+arranca en local—, comprobado antes de escribirlo (sin `<form>`/`<input>`/`FormsModule`
+en `app/src/`, sin `leaflet` instalado, `localhost:4200 → 200`). El titular «Estado: hoy
+no hay aplicación» se mantiene. Y en el mismo commit, línea 77-78, el enlace a
+`THIRD-PARTY-NOTICES.md` en «Licencia y créditos». Total: +10 −3, un solo fichero.
 
-**Commit:** ⏳ PENDIENTE
+**Commit:** `7976623` (`docs(readme): el estado dice la verdad de hoy y enlaza los
+notices`, 2026-08-16) — la captura de esta entrada es `2742033`, anterior al arreglo.
 
 **Ley que sale de aquí:** añadir una pieza puede falsear un documento que el encargo
 prohíbe tocar. El alcance protege el fichero de que lo editen, no de que envejezca. Todo
 encargo que crea algo nuevo (`app/`, un endpoint, un dato) tiene que releer lo que la
 portada afirma sobre su ausencia — antes de cerrar, no dos commits después.
+
+*Añadido al cerrar (2026-08-16):* la ley ya no vive solo aquí — es regla transversal del
+plan (`PLAN-DESPLAZAME.md` 14-16, commit `b6aba72`). Pero **el arreglo no creó ningún
+instrumento**: sigue sin haber CI, hook ni prueba que mire el README. La vigilancia es
+humana, así que este fallo puede repetirse; lo único que cambia es que ahora hay una
+regla escrita a la que señalar cuando pase.
 
 **Traza:** `README.md` 19-21 · introducido en `baccc36` (`chore(app): esqueleto angular
 22 en app/`) · detectado en `726cb51`.
