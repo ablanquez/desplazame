@@ -9,15 +9,32 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 ---
 
-## 1 · Datos de terceros — hoy, **ninguno**
+## 1 · Datos de terceros
 
-**No hay ni un fichero de datos ajenos en este repositorio.** Ni cartografía, ni callejero, ni
-portales, ni paradas. Todavía no hay nada que atribuir.
+### 1.1 · OpenStreetMap — cartografía, **en uso desde hoy**
 
-Las dos licencias de datos que regirán cuando los haya —**ODbL 1.0** para lo derivado de
-OpenStreetMap y la **Ley 37/2007** para el dato municipal del Ayuntamiento de Zaragoza— están
-declaradas por adelantado en el [README](README.md#licencia-y-créditos). El día que entre el
-primer fichero, su ficha completa viene aquí: qué es, de dónde sale, qué permite y qué obliga.
+Desde que existe el mapa (punto 3 del plan), la aplicación **pide teselas a OpenStreetMap y las
+enseña en pantalla**. Ya no es una declaración por adelantado: es una obligación viva.
+
+| | |
+|---|---|
+| **Qué es** | Las teselas (imágenes) del mapa base, servidas por `tile.openstreetmap.org` |
+| **Licencia** | **ODbL 1.0** |
+| **Atribución exigida** | **Literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
+| **Dónde está cumplida** | En el control de atribución del propio mapa, `app/src/app/mapa.ts`. Renderizado real, copiado de la salida de una prueba: `© colaboradores de OpenStreetMap` |
+| **¿Hay teselas en este repo?** | ❌ **NO.** Se piden en tiempo de ejecución, no se guardan ni se redistribuyen |
+
+> ⚠️ **El ejemplo oficial de Leaflet NO cumple.** Su guía de inicio propone
+> `&copy; <a href="...">OpenStreetMap</a>`, **sin la palabra «contributors»**. Copiarlo tal cual
+> es incumplir la ODbL — es el mismo descuido que ya se pagó una vez en la casa. Aquí la cadena
+> está escrita a mano, y hay una prueba (`app/src/app/mapa.spec.ts`) que falla si desaparece.
+
+### 1.2 · Dato municipal del Ayuntamiento de Zaragoza — todavía **ninguno**
+
+No hay ni un fichero de callejero, portales o paradas en este repositorio. Cuando entre, su
+reutilización se rige por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)**
+—declarada por adelantado en el [README](README.md#licencia-y-créditos)— y su ficha completa
+viene aquí: qué es, de dónde sale, qué permite y qué obliga.
 
 ---
 
@@ -35,6 +52,7 @@ Las que van en `dependencies` de [`app/package.json`](app/package.json).
 | `@angular/forms` | 22.1.2 | MIT | Los formularios — el de cuatro campos irá aquí |
 | `@angular/platform-browser` | 22.1.2 | MIT | Arrancar la aplicación en el navegador |
 | `@angular/router` | 22.1.2 | MIT | ⚠️ **Instalado y sin usar** — ver la nota de abajo |
+| `leaflet` | 1.9.4 | **BSD-2-Clause** | El mapa. Es quien pide las teselas de § 1.1 |
 | `rxjs` | 7.8.2 | **Apache-2.0** | Flujos asíncronos; `HttpClient` los devuelve |
 | `tslib` | 2.8.1 | **0BSD** | Ayudantes que emite TypeScript al compilar |
 
@@ -59,30 +77,32 @@ pagado el precio de una tabla incompleta.
 | `@angular/build` | 22.1.4 | MIT | El constructor (esbuild + Vite por debajo) |
 | `@angular/compiler-cli` | 22.1.2 | MIT | Compilación anticipada (AOT) |
 | `typescript` | 6.0.3 | **Apache-2.0** | El lenguaje |
+| `@types/leaflet` | 1.9.22 | MIT | Los tipos de Leaflet: **no vienen en el paquete**, van aparte |
 | `vitest` | 4.1.10 | MIT | El corredor de pruebas que eligió el CLI |
 | `jsdom` | 28.1.0 | MIT | DOM de mentira para que Vitest pueda correr pruebas |
 | `prettier` | 3.9.6 | MIT | Formateo |
 
 ### 2.3 · El árbol transitivo — existe, y no se lista aquí
 
-Las **15 declaradas** de arriba arrastran, con todo lo suyo, **497 paquetes** instalados.
+Las **17 declaradas** de arriba arrastran, con todo lo suyo, **500 paquetes** instalados.
 Enumerarlos aquí sería una tabla que nadie lee y que caduca en la primera actualización.
 
 **Dónde mirarlos, que es lo que importa:** [`app/package-lock.json`](app/package-lock.json), que
 está versionado precisamente para eso — cada entrada trae su versión, su origen y su licencia.
 
 ```bash
-cd app && npm ls --depth=0     # las 15 declaradas
+cd app && npm ls --depth=0     # las 17 declaradas
 cd app && npm ls --all         # el árbol entero
 ```
 
-**El reparto de licencias del árbol completo, leído del `package-lock.json` el 16/08/2026:**
+**El reparto de licencias del árbol completo, leído del `package-lock.json` el 16/08/2026
+(recalculado al entrar Leaflet):**
 
 | Licencia | Paquetes |
 |---|---|
-| MIT | 426 |
+| MIT | 428 |
 | ISC | 25 |
-| BSD-2-Clause | 12 |
+| BSD-2-Clause | 13 |
 | **MPL-2.0** | 12 |
 | Apache-2.0 | 10 |
 | BSD-3-Clause | 6 |
@@ -91,11 +111,11 @@ cd app && npm ls --all         # el árbol entero
 | BlueOak-1.0.0 | 1 |
 | CC0-1.0 | 1 |
 | 0BSD | 1 |
-| **Total** | **497** |
+| **Total** | **500** |
 
 ### 2.4 · Las tres que no son MIT ni BSD
 
-De las 497, tres familias no son la licencia permisiva de siempre. **Las tres son de desarrollo:
+De las 500, tres familias no son la licencia permisiva de siempre. **Las tres son de desarrollo:
 ninguna viaja al navegador.**
 
 | Paquete | Licencia | Qué tiene de distinto |
@@ -106,9 +126,10 @@ ninguna viaja al navegador.**
 
 ### 2.5 · Resumen de compatibilidad
 
-**Las 15 dependencias declaradas son MIT, Apache-2.0 o 0BSD**: permisivas, sin copyleft, y
-compatibles con la Apache 2.0 de este proyecto sin ninguna condición añadida. **No hay ninguna
-sorpresa entre ellas.**
+**Las 17 dependencias declaradas son MIT, Apache-2.0, BSD-2-Clause o 0BSD**: permisivas, sin
+copyleft, y compatibles con la Apache 2.0 de este proyecto sin ninguna condición añadida. **No
+hay ninguna sorpresa entre ellas** — y en particular, Leaflet es BSD-2-Clause, no una licencia
+con restricciones de uso.
 
 En el árbol transitivo aparecen tres licencias menos habituales (§ 2.4). Ninguna bloquea nada:
 la única con copyleft —MPL-2.0— es débil, por fichero, y está en una herramienta de *build* que
@@ -117,5 +138,5 @@ arriba.
 
 > **Y lo que este documento no garantiza:** el reparto de licencias de § 2.3 sale del campo
 > `license` que cada paquete declara en el `package-lock.json`. **No se ha abierto el `LICENSE` de
-> los 497 para comprobar que dicen la verdad**, y un paquete puede declarar mal. Las **15
+> los 500 para comprobar que dicen la verdad**, y un paquete puede declarar mal. Las **17
 > declaradas sí** se han mirado una a una. Del resto: **NO CONSTA**.
