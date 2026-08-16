@@ -53,7 +53,7 @@ paso debajo.
 - **Tipos compartidos:** un paquete común al motor y a la interfaz —
   `Paso`, `Trayecto`, `Modo`, `Aviso`. Si el motor cambia la forma de la
   respuesta, el front no compila. Eso es a propósito.
-- **Endpoints:** `GET /api/vias` (autocompletado de las 2.661 vías),
+- **Endpoints:** `GET /api/vias` (autocompletado sobre las vías del callejero),
   `POST /api/ruta` (pasos, geometría y avisos), `POST /api/regenerar`
   (barrido nocturno de paradas, patrón de ZetaBus, cron a las 02:00).
 - **Idioma:** TypeScript de punta a punta.
