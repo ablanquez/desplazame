@@ -14,14 +14,17 @@ De ella no se hereda ni código ni documentación: solo las decisiones que
 viajen escritas en los encargos, y los datos que Antonio autorice pieza a
 pieza.
 
-**Dónde estamos: punto 1 del plan (cimientos), en curso.**
-Repo iniciado en `main`, identidad `ablanquez` verificada, primer commit
-`c2fc70d` con `.gitignore`, `CLAUDE.md` y `PLAN-DESPLAZAME.md`. Bitácora
-vacía en `docs/` y este fichero, colocados.
+**Dónde estamos: punto 1 del plan (cimientos), a falta de dos casillas.**
+Repo iniciado en `main`, identidad `ablanquez` verificada. Remoto conectado y
+`main` sustituida con `--force` el 16/08 — el archivo del viejo verificado
+intacto en `49e1105` antes y después. LICENSE y README generados por Claude
+Code en su primer encargo (Extra effort), partiendo de Linaje y ZetaBus:
+commits `6b43700` y `1f2498d`, atómicos, árbol limpio.
+Cuatro commits en local: `c2fc70d` · `d4558b2` · `6b43700` · `1f2498d`.
 
-**Lo siguiente:** primer encargo a Claude Code — generar LICENSE y README con
-el modelo de la casa. Después, conectar el remoto y sustituir la `main` vieja
-(operación de Antonio, con verificación en GitHub con sus ojos).
+**Lo siguiente:** push de los commits pendientes (decisión de Antonio) y su
+verificación en GitHub con sus ojos. Con eso el punto 1 se cierra y empieza
+el punto 2: la pantalla.
 
 ---
 
@@ -41,11 +44,13 @@ igualdad por metros a pie, diciéndolo en la propia lista.
 local `F:\01_PROYECTOS\004_DESPLAZAME` · la versión vieja en
 `F:\01_PROYECTOS\004_DESPLAZAME-OLD` (solo como almacén de datos a autorizar).
 
-**Licencias — DECIDIDO el 16/08, ficheros pendientes de generar:** código
-Apache 2.0 · datos ODbL (OSM) y Ley 37/2007 (Ayuntamiento). El mismo modelo
-que Linaje, ZetaBus y el Desplázame viejo. **LICENSE y README los genera
-Claude Code en su primer encargo**, partiendo de cómo están en el resto de
-proyectos.
+**Licencias — DECIDIDO y MATERIALIZADO el 16/08:** código Apache 2.0 · datos
+ODbL (OSM) y Ley 37/2007 (Ayuntamiento). El mismo modelo que Linaje, ZetaBus
+y el Desplázame viejo. LICENSE es el texto oficial byte a byte (verificado
+con `diff` contra ZetaBus); **el copyright vive en el README** (© 2026), como
+en la casa, y el apéndice del LICENSE queda sin rellenar, como en la casa.
+La atribución «© **colaboradores** de OpenStreetMap» va declarada por
+adelantado en el README — es obligación de la ODbL, no cortesía.
 
 ## 2 · Stack (cerrado el 16/08, firme)
 
@@ -103,7 +108,10 @@ Solo estas viajan; el resto se quedó archivado.
 
 - La capa de **aparcabicis no existe** en ningún sitio: habrá que traerla de
   fuente cuando le toque (punto 4 del plan).
-- El mecanismo exacto para que la `main` nueva sustituya a la vieja en GitHub:
-  pendiente de ejecutar (punto 1).
+- `THIRD-PARTY-NOTICES.md` no existe todavía — el modelo de la casa son TRES
+  ficheros, no dos (hallazgo del ejecutor, 16/08). Nace en el punto 2 con la
+  primera dependencia npm y se amplía en el 4 con las fuentes de datos.
+- El color de marca del proyecto: `NO CONSTA`. Los badges del README llevan
+  el gris neutro de la casa hasta que Antonio lo decida (punto 11).
 - El **plazo del GTFS (05/10/2026)** afecta al punto 8; el barrido nocturno
   de Avanza no depende de él.

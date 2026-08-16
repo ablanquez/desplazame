@@ -1,10 +1,10 @@
 # PLAN — 004 Desplázame (reinicio)
 
-Estado a 16/08/2026. Se tacha lo hecho. Los puntos 7 en adelante están en
-grueso a propósito: se detallan cuando les llegue el turno, no antes.
+Estado a 16/08/2026 (tarde). Se tacha lo hecho y lo nuevo se añade en su punto.
 
 Reglas que cruzan todo el plan:
-- **Commits atómicos**, rutas escritas una a una. Push solo cuando Antonio lo diga.
+- **Commits atómicos**, rutas escritas una a una, formato `tipo(ámbito): descripción`.
+  Push solo cuando Antonio lo diga.
 - **Del punto 2 en adelante, nada está hecho hasta verse funcionar en Chrome.**
 - La bitácora la escribe la skill `escribir-bitacora` cuando aparece un fallo
   real, antes de arreglarlo. Nadie la escribe a mano.
@@ -19,28 +19,30 @@ Reglas que cruzan todo el plan:
       `archivo/motor-vanilla`, verificados en GitHub (14/08)
 - [x] `CLAUDE.md` en la raíz (PARTE A del taller + PARTE B con el stack
       cerrado: Angular 22 + Node/TS + Leaflet, 16/08)
-- [ ] `git init` en la carpeta nueva, identidad verificada antes del primer
-      commit: `ablanquez` / `278133158+ablanquez@users.noreply.github.com`
-- [ ] `.gitignore` desde el minuto uno: `node_modules/`, `dist/`, artefactos
-      de build. Revisado ANTES del primer commit, no después
-- [ ] `LICENSE` Apache 2.0 (código) + declaración ODbL para los datos
-      derivados de OSM y Ley 37/2007 para el dato municipal — en el README
-      desde el commit 1, no "cuando toque"
-- [ ] `README.md` honesto: qué es, en construcción, sin prometer nada que no
-      exista todavía
-- [ ] `docs/BITACORA.md` creada VACÍA (solo el título) — es donde escribirá
-      la skill
-- [ ] `DESPLAZAME-ESTADO.md` v0 a cero, escrito por la conversación de
-      estrategia — corto: identidad, stack, este plan referenciado, y nada más
-- [ ] Primer commit atómico con lo anterior. NO PUSH todavía
-- [ ] Conectar el remoto y decidir el mecanismo para que la `main` nueva
-      sustituya a la vieja (la vieja queda en `archivo/`). **Lo ejecuta
-      Antonio con bloque preparado y verificación en GitHub con sus ojos**
+- [x] `git init`, identidad `ablanquez` verificada antes del primer commit
+- [x] `.gitignore` antes del primer commit
+- [x] `docs/BITACORA.md` creada vacía · `DESPLAZAME-ESTADO.md` v0 colocado
+- [x] Primer commit `c2fc70d` + estado y bitácora en `d4558b2`
+- [x] Remoto conectado y `main` sustituida con `--force` — el archivo del
+      viejo verificado intacto en `49e1105` antes y después (16/08)
+- [x] Licencia DECIDIDA: Apache 2.0 (código) + ODbL (OSM) + Ley 37/2007
+      (municipal) — el modelo de la casa
+- [x] LICENSE y README generados por Claude Code partiendo de Linaje y
+      ZetaBus (`6b43700`, `1f2498d`). El copyright vive en el README, como
+      en la casa; el LICENSE lleva el apéndice sin rellenar, como en la casa
+- [ ] **Push de los dos commits de LICENSE y README** — decisión de Antonio
+- [ ] Verificación de Antonio en GitHub con sus ojos: portada con README
+      pintado y licencia detectada
 
 ## 2 — La pantalla antes que nada
 
 - [ ] Proyecto Angular 22 creado (standalone, sin NgModules), `ng serve`
       levantando y **visto en Chrome**
+- [ ] **`THIRD-PARTY-NOTICES.md` nace aquí** — con Angular entra el primer
+      paquete npm, y el modelo de la casa es de tres ficheros (LICENSE +
+      README + notices con tabla por fuente). *Surgió en el checkpoint del
+      16/08: hoy no hay ni una dependencia; el día que entre la primera, el
+      hueco se nota.*
 - [ ] Estructura de carpetas mínima acordada antes de escribir componentes
       (una vista, sin router de páginas)
 - [ ] Formulario de cuatro campos: calle y portal de origen, calle y portal
@@ -56,8 +58,9 @@ Reglas que cruzan todo el plan:
 ## 3 — El mapa vivo
 
 - [ ] Leaflet + OSM dentro de la pantalla, centrado en Zaragoza
-- [ ] Atribución de OpenStreetMap visible y correcta (obligación ODbL, no
-      cortesía)
+- [ ] Atribución de OpenStreetMap visible y correcta: «© colaboradores de
+      OpenStreetMap» con enlace — la palabra «colaboradores» no es opcional
+      (obligación ODbL; ZetaBus pagó saltárselo)
 - [ ] La respuesta falsa del punto 2 pinta una polilínea inventada en el
       mapa — el circuito formulario → pasos → mapa cerrado con datos falsos
 - [ ] Visto en Chrome en el tamaño de ventana que usará la gente, no solo
@@ -69,6 +72,8 @@ Cada pieza entra **solo con autorización expresa de Antonio**, una a una,
 desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
 
 - [ ] Decidir formato y carpeta (`data/`) y dejarlo escrito en el estado
+- [ ] **`THIRD-PARTY-NOTICES.md` se amplía aquí** con la tabla de fuentes de
+      datos (OSM/ODbL, municipal/Ley 37/2007), fecha de descarga incluida
 - [ ] Los 46k portales
 - [ ] La continuidad peatonal y ciclable (el grafo: 68.649 nodos / 98.774
       aristas)
@@ -92,6 +97,9 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
 - [ ] `GET /api/vias` — autocompletado sobre las 2.661 vías
 - [ ] El formulario real consume `/api/vias` — **autocompletar visto
       funcionar en Chrome**
+- [ ] **El README se amplía aquí** con los endpoints y las cifras (2.661
+      vías, 68.649 nodos) — cuando existan de verdad, no antes. *Quedaron
+      fuera a propósito en el checkpoint del 16/08.*
 
 ## 6 — Primera ruta: ANDANDO (aquí ya existe la demo)
 
@@ -123,3 +131,7 @@ Público y usable.
 ## 11 — Estética *(en grueso)*
 
 La capa visual que haga falta. La última, a propósito.
+
+- [ ] Color de marca del proyecto — hoy `NO CONSTA`; los badges del README
+      llevan el gris neutro de la casa hasta que se decida. *Surgió en el
+      checkpoint del 16/08.*
