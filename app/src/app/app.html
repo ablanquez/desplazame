@@ -43,6 +43,15 @@
         </button>
       }
     </fieldset>
+
+    <button
+      type="button"
+      class="generar"
+      [disabled]="!sePuedeGenerar()"
+      (click)="generarRuta()"
+    >
+      Generar ruta
+    </button>
   </form>
 
   <section class="mapa-hueco" aria-label="Mapa">
@@ -52,8 +61,26 @@
 
   <section class="pasos" aria-label="Indicaciones">
     <h2>Indicaciones</h2>
-    <p class="pasos__vacio">
-      Todavía no hay pasos. Rellena los cuatro campos y pulsa «Generar ruta».
-    </p>
+
+    @if (pasos().length === 0) {
+      <p class="pasos__vacio">
+        Todavía no hay pasos. Rellena los cuatro campos y pulsa «Generar ruta».
+      </p>
+    } @else {
+      <p class="aviso-prueba">
+        ⚠️ DATOS DE PRUEBA. Esta ruta es fija e inventada: no la calcula nadie y no
+        corresponde a ningún trayecto real. Es un andamio para ver funcionar la pantalla
+        hasta que exista el motor.
+      </p>
+      <p class="pasos__modo">Modo: {{ etiquetaDe(modoGenerado()!) }}</p>
+      <ol class="pasos__lista">
+        @for (paso of pasos(); track $index) {
+          <li>
+            <span class="pasos__texto">{{ paso.texto }}</span>
+            <span class="pasos__detalle">{{ paso.detalle }}</span>
+          </li>
+        }
+      </ol>
+    }
   </section>
 </main>

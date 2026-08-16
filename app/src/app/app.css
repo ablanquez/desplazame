@@ -124,3 +124,55 @@ legend {
   margin: 0;
   color: #555;
 }
+
+.generar {
+  justify-self: start;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid #1a1a1a;
+  border-radius: 3px;
+  background: #1a1a1a;
+  color: #fff;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.generar:disabled {
+  border-color: #aaa;
+  background: #ddd;
+  color: #777;
+  cursor: not-allowed;
+}
+
+/* El andamio tiene que cantar. El repo es público. */
+.aviso-prueba {
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 2px solid #b45309;
+  border-radius: 4px;
+  background: #fff4e5;
+  color: #7c3d00;
+  font-weight: bold;
+}
+
+.pasos__modo {
+  margin: 0 0 0.5rem;
+  color: #555;
+}
+
+.pasos__lista {
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+.pasos__lista li {
+  margin-bottom: 0.4rem;
+}
+
+.pasos__detalle {
+  color: #555;
+}
+
+.pasos__detalle::before {
+  content: ' · ';
+}
