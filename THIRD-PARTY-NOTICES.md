@@ -3,9 +3,10 @@
 La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno**, que conserva sus
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
-> ℹ️ **Estado a 16/08/2026.** El proyecto está en construcción. Hoy lo único de terceros que hay
-> en él son las dependencias npm que ha traído Angular. Este documento nace con ellas y crece
-> cuando entre lo demás.
+> ℹ️ **Estado a 16/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **un** fichero de dato
+> municipal —los portales—. El resto del dato (grafo, paradas, carriles bici) todavía no ha
+> entrado; cada pieza llega con su autorización y su ficha.
 
 ---
 
@@ -41,7 +42,7 @@ enseña en pantalla**. Ya no es una declaración por adelantado: es una obligaci
 | **Dónde está cumplida** | En el control de atribución del mapa, junto a la de OpenStreetMap, **mientras la capa de portales está encendida** — que es cuando el dato se enseña |
 | **Fecha del dato** | Generado el **2026-05-13T07:11:41.075Z** (conjunto `callejero-zaragoza` v1.0). CRS **EPSG:4326** |
 | **Campos** | `portalId`, `codigoVia`, `numero`, `displayNumber`, `sortNumber`, `coordLat`, `coordLon`, `numeroPolicia`, y opcionales `calificacion`, `bloqueEscalera`, `letra`. **Ni un campo personal**: todo son componentes de dirección |
-| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`data/2026-05-13_zgzradar_callejero-portales-zaragoza.json`](data/2026-05-13_zgzradar_callejero-portales-zaragoza.json) · 10.835.605 bytes · sha256 `3c391d60cf91362c984ec2ac2e302f7eec2ce35d94deb42f6e42b678aef7cfdc` |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-05-13_zgzradar_callejero-portales-zaragoza.json`](app/data/2026-05-13_zgzradar_callejero-portales-zaragoza.json) · 10.835.605 bytes · sha256 `3c391d60cf91362c984ec2ac2e302f7eec2ce35d94deb42f6e42b678aef7cfdc` |
 
 **Cómo llegó aquí, que no es una descarga.** No lo pidió este proyecto al WFS: es un **derivado**
 producido por otro proyecto de la casa (*ZGZ RADAR REACT*), y entró en Desplázame **copiado tal

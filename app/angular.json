@@ -25,6 +25,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "*.json",
+                "input": "data",
+                "output": "datos"
               }
             ],
             "styles": [
