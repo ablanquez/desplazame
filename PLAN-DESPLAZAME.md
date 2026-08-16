@@ -60,17 +60,23 @@ Reglas que cruzan todo el plan:
       arreglo y commit rellenos con git, estrella y ley intactas, y la nota
       de cierre declarando que NO se creó ningún instrumento — la vigilancia
       del README sigue siendo humana
-- [ ] Estructura de carpetas mínima acordada antes de escribir componentes
-      (una vista, sin router de páginas)
-- [ ] Formulario de cuatro campos: calle y portal de origen, calle y portal
-      de destino. Sin lógica detrás todavía
-- [ ] Cuatro botones de modo **excluyentes**: andando · bus/tranvía · bici ·
-      coche. Se ve cuál está activo
-- [ ] Hueco del mapa y hueco de la lista de pasos, presentes en pantalla
-- [ ] Botón «generar ruta» que pinta una respuesta FALSA fija (tres pasos
-      inventados) en la lista — **el ciclo entero se ve funcionar en Chrome
-      antes de que exista ningún dato real**
-- [ ] Commit atómico por cada pieza que se vea funcionar
+- [x] Estructura declarada con la doc ([DOC] guía de estilo oficial): un
+      solo componente `App` — se parte cuando una zona tenga estado propio
+      (el mapa, punto 3)
+- [x] Formulario de cuatro campos, template-driven con `FormsModule`
+      ([DOC] guía oficial de forms; Signal Forms descartado con motivo).
+      Cero dependencias nuevas, comprobado contra el lock (`aab68c8`)
+- [x] Cuatro botones excluyentes con Andando activo por defecto, y la
+      exclusividad probada con contraprueba (`aab68c8`)
+- [x] Hueco del mapa rotulado «llega en el punto 3» y lista de pasos vacía
+      (`456dbe7`)
+- [x] «Generar ruta»: bloqueado hasta los cuatro campos, y la respuesta
+      falsa marcada como ⚠️ DATOS DE PRUEBA en banda y en el texto de cada
+      paso (`54dab4a`). README releído por la regla transversal (`7590b67`)
+      e `index.html` a idioma `es` con la tilde (`dbd4755`)
+- [x] Commit atómico por pieza — cinco commits
+- [x] **CICLO ENTERO VISTO POR ANTONIO EN CHROME** (16/08): campos, bloqueo,
+      exclusividad, banda de prueba y los tres pasos. **PUNTO 2 CERRADO**
 
 ## 3 — El mapa vivo
 

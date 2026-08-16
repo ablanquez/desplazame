@@ -36,8 +36,17 @@ funcionando como estaba escrito.*
 **Sin push desde `5188ba5`:** ocho commits en local — `01eb312` · `baccc36` ·
 `299770d` · `726cb51` · `2742033` · `7976623` · `b6aba72` · `c3c301f`.
 
-**Lo siguiente (punto 2, segunda parte):** el formulario, los botones y la
-respuesta falsa que cierra el ciclo entero en Chrome.
+**PUNTO 2 CERRADO (16/08): la pantalla funciona y Antonio vio el ciclo
+entero en Chrome** — cuatro campos con bloqueo del botón, modos excluyentes,
+hueco del mapa rotulado, y la respuesta falsa marcada como ⚠️ DATOS DE
+PRUEBA. Un componente `App` (se parte cuando una zona tenga estado propio),
+formulario template-driven, cero dependencias nuevas. Nueve pruebas en
+`app.spec.ts` con contraprueba hecha — **primer instrumento del proyecto**,
+sin nadie que lo ejecute en automático (`NO CONSTA` CI). Cinco commits más
+la releída del README por la regla transversal.
+
+**Lo siguiente: punto 3 — el mapa vivo.** Leaflet + OSM con su atribución
+literal, la polilínea falsa, y la decisión pendiente del badge.
 
 ---
 
@@ -144,6 +153,14 @@ Y las tomadas en este reinicio (16/08):
 - README y notices se apuntan mutuamente (datos ↔ dependencias). Correcto
   hoy; fácil que en la próxima ampliación uno describa al otro de oídas
   (aviso del ejecutor, 16/08).
+- **El andamio tiene caducidad escrita pero no vigilada**: `RUTA_DE_PRUEBA`
+  en `app.ts` lleva el comentario de que se retira en el punto 6, y si ese
+  día no se retira, nada lo detecta — la forma exacta del fallo nº1,
+  señalada antes de que pase (aviso del ejecutor). La casilla de retirarla
+  ya existe en el punto 6 del plan.
+- **Las nueve pruebas de `app.spec.ts` no las ejecuta nadie en automático**:
+  no hay CI. `NO CONSTA` que haga falta hoy; si algún día se quiere, lo
+  decide Antonio.
 - **El badge de Leaflet es promesa, no realidad** (Leaflet no está
   instalado). Decisión de Antonio: quitarlo ya o dejarlo hasta el punto 3,
   donde se vuelve cierto.
