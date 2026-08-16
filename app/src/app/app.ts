@@ -30,6 +30,20 @@ const TRAZADO_DE_PRUEBA: readonly Vertice[] = [
   [41.6425, -0.8865],
 ];
 
+/**
+ * ANDAMIO DE VERIFICACIÓN. El navegador se baja los 46.150 portales enteros
+ * (10,3 MB) solo para poder verlos sembrados en el mapa. En el punto 5 esto se
+ * retira: el motor los tendrá en memoria y el navegador pedirá `/api/vias`, no
+ * el fichero. La correa que lo sirve es la entrada `data` de `angular.json`.
+ */
+const PORTALES = '/datos/2026-05-13_zgzradar_callejero-portales-zaragoza.json';
+
+/** Un portal, tal y como viene en el fichero municipal. */
+interface PortalCrudo {
+  readonly coordLat: number;
+  readonly coordLon: number;
+}
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, Mapa],
@@ -61,6 +75,27 @@ export class App {
 
   /** El trazado que se pinta en el mapa. Vacío hasta que se genera. */
   protected readonly trazado = signal<readonly Vertice[]>([]);
+
+  /** Los portales, una vez descargados. Vacío mientras tanto. */
+  protected readonly portales = signal<readonly Vertice[]>([]);
+
+  constructor() {
+    this.cargarPortales();
+  }
+
+  private async cargarPortales(): Promise<void> {
+    try {
+      const respuesta = await fetch(PORTALES);
+      if (!respuesta.ok) {
+        console.error(`portales: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const crudos = (await respuesta.json()) as readonly PortalCrudo[];
+      this.portales.set(crudos.map((p) => [p.coordLat, p.coordLon] as Vertice));
+    } catch (e) {
+      console.error('portales: no se pudieron cargar', e);
+    }
+  }
 
   protected elegirModo(modo: Modo): void {
     this.modo.set(modo);

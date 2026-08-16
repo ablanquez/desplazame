@@ -23,6 +23,14 @@ const ZOOM = 12;
 const ATRIBUCION =
   '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">colaboradores de OpenStreetMap</a>';
 
+/**
+ * Atribución del dato municipal. La exige la licencia de reutilización del
+ * Ayuntamiento (Ley 37/2007), literal, y va colgada de la capa de portales:
+ * Leaflet la enseña solo mientras esa capa está encendida, que es justo cuando
+ * el dato se está mostrando.
+ */
+const ATRIBUCION_PORTALES = 'Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)';
+
 @Component({
   selector: 'app-mapa',
   templateUrl: './mapa.html',
@@ -32,9 +40,14 @@ export class Mapa {
   /** Vértices a pintar. Vacío = sin línea. */
   readonly trazado = input<readonly Vertice[]>([]);
 
+  /** Portales a sembrar. Vacío = sin capa. */
+  readonly portales = input<readonly Vertice[]>([]);
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
+  private capaPortales?: L.LayerGroup;
+  private control?: L.Control.Layers;
 
   constructor() {
     // [DOC] Angular: «Use afterNextRender to read or write the DOM once, for
@@ -47,6 +60,7 @@ export class Mapa {
         attribution: ATRIBUCION,
       }).addTo(this.mapa);
       this.pintarTrazado();
+      this.pintarPortales();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -55,6 +69,65 @@ export class Mapa {
       this.trazado();
       this.pintarTrazado();
     });
+
+    effect(() => {
+      this.portales();
+      this.pintarPortales();
+    });
+  }
+
+  /**
+   * Siembra los portales y los deja apagables con el control de capas de
+   * Leaflet. Una sola capa: la anterior se quita antes de poner la nueva.
+   */
+  private pintarPortales(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    if (this.capaPortales) {
+      this.control?.remove();
+      this.control = undefined;
+      this.capaPortales.remove();
+      this.capaPortales = undefined;
+    }
+
+    const puntos = this.portales();
+    if (puntos.length === 0) {
+      return;
+    }
+
+    // [DOC] Leaflet: «preferCanvas — Whether Paths should be rendered on a
+    // Canvas renderer. By default, all Paths are rendered in a SVG renderer.»
+    // Con SVG, 46.150 portales serían 46.150 nodos del DOM. Aquí el canvas va
+    // por CAPA y no en todo el mapa a propósito: la polilínea sigue en SVG, que
+    // es lo que las pruebas pueden mirar bajo jsdom —jsdom no da contexto 2D—.
+    const lienzoCanvas = L.canvas();
+
+    const comienzo = performance.now();
+    this.capaPortales = L.layerGroup(
+      puntos.map(([lat, lon]) =>
+        L.circleMarker([lat, lon], {
+          renderer: lienzoCanvas,
+          radius: 1.5,
+          stroke: false,
+          fillColor: '#1d4ed8',
+          fillOpacity: 0.6,
+          interactive: false,
+        }),
+      ),
+      { attribution: ATRIBUCION_PORTALES },
+    ).addTo(this.mapa);
+
+    this.control = L.control
+      .layers(undefined, {
+        [`Portales (${puntos.length.toLocaleString('es-ES')})`]: this.capaPortales,
+      })
+      .addTo(this.mapa);
+
+    console.info(
+      `mapa: ${puntos.length} portales sembrados en ${Math.round(performance.now() - comienzo)} ms`,
+    );
   }
 
   /** Una sola línea: la anterior se quita antes de poner la nueva. */
