@@ -86,29 +86,8 @@ legend {
   font-weight: bold;
 }
 
-/* El hueco del mapa: se ve que está reservado y que hoy está vacío. */
-.mapa-hueco {
+.mapa {
   margin-top: 1rem;
-  min-height: 14rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  border: 2px dashed #999;
-  border-radius: 4px;
-  background: #f4f4f4;
-  color: #555;
-  text-align: center;
-  padding: 1rem;
-}
-
-.mapa-hueco p {
-  margin: 0;
-}
-
-.mapa-hueco__nota {
-  font-size: 0.9rem;
 }
 
 .pasos {

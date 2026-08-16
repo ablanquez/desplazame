@@ -1,5 +1,6 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Mapa, type Vertice } from './mapa';
 
 /** Los cuatro modos de transporte. Excluyentes: solo uno puede estar activo. */
 export type Modo = 'andando' | 'bus' | 'bici' | 'coche';
@@ -21,9 +22,17 @@ const RUTA_DE_PRUEBA: readonly Paso[] = [
   { texto: 'Anda 200 m hasta el portal de destino', detalle: '3 min' },
 ];
 
+/** ANDAMIO. El trazado que acompaña a RUTA_DE_PRUEBA: tampoco lo calcula nadie. */
+const TRAZADO_DE_PRUEBA: readonly Vertice[] = [
+  [41.6561, -0.8773],
+  [41.6516, -0.879],
+  [41.6468, -0.883],
+  [41.6425, -0.8865],
+];
+
 @Component({
   selector: 'app-root',
-  imports: [FormsModule],
+  imports: [FormsModule, Mapa],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -50,6 +59,9 @@ export class App {
   /** Con qué modo se generó lo que hay en pantalla. */
   protected readonly modoGenerado = signal<Modo | null>(null);
 
+  /** El trazado que se pinta en el mapa. Vacío hasta que se genera. */
+  protected readonly trazado = signal<readonly Vertice[]>([]);
+
   protected elegirModo(modo: Modo): void {
     this.modo.set(modo);
   }
@@ -65,6 +77,7 @@ export class App {
     }
     this.modoGenerado.set(this.modo());
     this.pasos.set(RUTA_DE_PRUEBA);
+    this.trazado.set(TRAZADO_DE_PRUEBA);
   }
 
   /** Única validación de este punto: los cuatro campos rellenos. */

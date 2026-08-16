@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+.lienzo {
+  height: 22rem;
+  border: 1px solid #999;
+  border-radius: 4px;
+}
+
+/* La atribución tiene que leerse. La ODbL no se cumple con letra invisible. */
+:host ::ng-deep .leaflet-control-attribution {
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.9);
+}

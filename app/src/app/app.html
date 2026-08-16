@@ -54,9 +54,8 @@
     </button>
   </form>
 
-  <section class="mapa-hueco" aria-label="Mapa">
-    <p>Aquí va el mapa.</p>
-    <p class="mapa-hueco__nota">Llega en el punto 3 del plan. Todavía no hay nada de mapa.</p>
+  <section class="mapa" aria-label="Mapa">
+    <app-mapa [trazado]="trazado()" />
   </section>
 
   <section class="pasos" aria-label="Indicaciones">
