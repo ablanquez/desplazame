@@ -56,9 +56,10 @@ Reglas que cruzan todo el plan:
       cumplido *por no tocar el fichero*). Entrada nº1, 🔴 ABIERTA
 - [x] README: `THIRD-PARTY-NOTICES.md` enlazado desde «Licencia y créditos»
       con el patrón de ZetaBus, recortado a lo que hoy es cierto
-- [ ] **Cerrar la entrada nº1 de la bitácora** — el arreglo existe
-      (`7976623`) y la entrada sigue abierta: el cierre (pieza B de la
-      skill) no ocurrió solo esta vez. Cierre en frío, que está probado
+- [x] Entrada nº1 de la bitácora CERRADA en frío (`c3c301f`): causa raíz,
+      arreglo y commit rellenos con git, estrella y ley intactas, y la nota
+      de cierre declarando que NO se creó ningún instrumento — la vigilancia
+      del README sigue siendo humana
 - [ ] Estructura de carpetas mínima acordada antes de escribir componentes
       (una vista, sin router de páginas)
 - [ ] Formulario de cuatro campos: calle y portal de origen, calle y portal

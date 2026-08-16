@@ -29,14 +29,15 @@ arreglar el README, el ejecutor encontró el verde mentiroso (git limpio y el
 HECHO del encargo de `baccc36` cumplido *por no tocar el fichero*) y escribió
 la entrada nº1 ANTES de arreglar, con su ley: *el alcance protege el fichero
 de que lo editen, no de que envejezca.* La ley entró como regla transversal
-del plan. La entrada sigue 🔴 ABIERTA: el cierre (pieza B) queda pendiente.
+del plan, y la entrada nº1 quedó ✅ CERRADA en frío (`c3c301f`) con la causa
+raíz buena: *el verde no fue un descuido del método, fue el método
+funcionando como estaba escrito.*
 
-**Sin push desde `5188ba5`:** seis commits en local — `01eb312` · `baccc36` ·
-`299770d` · `726cb51` · `2742033` (bitácora) · `7976623` (README corregido).
+**Sin push desde `5188ba5`:** ocho commits en local — `01eb312` · `baccc36` ·
+`299770d` · `726cb51` · `2742033` · `7976623` · `b6aba72` · `c3c301f`.
 
-**Lo siguiente (punto 2, segunda parte):** cerrar la entrada nº1, y después
-el formulario, los botones y la respuesta falsa que cierra el ciclo en
-Chrome.
+**Lo siguiente (punto 2, segunda parte):** el formulario, los botones y la
+respuesta falsa que cierra el ciclo entero en Chrome.
 
 ---
 
@@ -129,9 +130,12 @@ Y las tomadas en este reinicio (16/08):
 
 - La capa de **aparcabicis no existe** en ningún sitio: habrá que traerla de
   fuente cuando le toque (punto 4 del plan).
-- **La entrada nº1 de la bitácora sigue ABIERTA** con el arreglo ya hecho:
-  el cierre en la misma sesión no ocurrió solo. Cierre en frío pendiente —
-  y el dato va al taller, que es donde vive la skill.
+- **Para el taller** (donde vive la skill, no aquí): el cierre en la misma
+  sesión no ocurrió solo esta vez — hizo falta encargo de cierre en frío. Y
+  la imprecisión que la releída cazó: la entrada dice «tres commits» y el
+  fallo vivió cuatro (el commit de la propia bitácora va antes del arreglo).
+  Decisión de Antonio: se deja tal cual — la entrada era exacta al capturar
+  y las cerradas no se retocan.
 - **La portada volverá a caducar cuando el punto 5 cree el motor** («no hay
   motor» dejará de ser cierto). No hay guardián que vigile el README y
   `NO CONSTA` que haga falta uno: hoy lo cubren la regla transversal del
