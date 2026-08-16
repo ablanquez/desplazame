@@ -45,8 +45,23 @@ formulario template-driven, cero dependencias nuevas. Nueve pruebas en
 sin nadie que lo ejecute en automático (`NO CONSTA` CI). Cinco commits más
 la releída del README por la regla transversal.
 
-**Lo siguiente: punto 3 — el mapa vivo.** Leaflet + OSM con su atribución
-literal, la polilínea falsa, y la decisión pendiente del badge.
+**PUNTO 3 CERRADO (16/08): el mapa vive y Antonio lo vio en Chrome** —
+Zaragoza en Leaflet+OSM (componente propio, la frontera declarada en el
+punto 2), la atribución con «colaboradores» escrita a mano porque el ejemplo
+oficial de Leaflet no la lleva, **y con guardián en prueba**. La polilínea
+falsa cierra el circuito entero. Y del punto salió la **entrada nº2 de la
+bitácora** (el `200` de tres checkpoints lo daba un servidor muerto), cerrada
+con una guardia determinista decidida con la doc: `comprobar-arranque.mjs`,
+que verifica identidad y no estado, vista en rojo tres veces — y cuyos rojos
+cazaron un defecto del propio guardián antes de fiarse de él.
+
+**Sin push desde `5188ba5`: dieciséis commits en local** (del `01eb312` al
+`103ecae`).
+
+**Lo siguiente: punto 4 — los datos entran**, pieza a pieza con autorización
+de Antonio, y cada capa pintada en el mapa. Aviso ya dado: el README y el
+§1.2 del notices volverán a caducar cuando entre el primer dato — la regla
+transversal viaja en el encargo.
 
 ---
 
@@ -161,9 +176,15 @@ Y las tomadas en este reinicio (16/08):
 - **Las nueve pruebas de `app.spec.ts` no las ejecuta nadie en automático**:
   no hay CI. `NO CONSTA` que haga falta hoy; si algún día se quiere, lo
   decide Antonio.
-- **El badge de Leaflet es promesa, no realidad** (Leaflet no está
-  instalado). Decisión de Antonio: quitarlo ya o dejarlo hasta el punto 3,
-  donde se vuelve cierto.
+- **La guardia de arranque es de invocación manual**: nada la llama solo
+  (ni `npm start` ni CI — engancharla quedó fuera del alcance a propósito).
+  Es la misma forma que la ley de la entrada nº1: la regla existe, el
+  disparador no. `NO CONSTA` que haga falta engancharla; lo decide Antonio.
+- **La guardia es solo-Windows** (netstat + Get-Process), y lo declara su
+  cabecera. Si algún día hace falta en Hostinger, es otra pieza.
+- **El verde de la guardia dice «no caducado», no «recién arrancado»**:
+  si se reinicia sin tocar la configuración, un servidor con recarga en
+  caliente pasa en verde — correctamente (falso negativo declarado).
 - `@angular/router` instalado sin usar (lo mete el CLI aunque pases
   `--routing=false`). Revisión en el punto 5: si sigue sin usarse, fuera.
 - **TypeScript va en rama 6** (6.0.3), no en la 5: salto de mayor que

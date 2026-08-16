@@ -80,17 +80,27 @@ Reglas que cruzan todo el plan:
 
 ## 3 — El mapa vivo
 
-- [ ] Leaflet + OSM dentro de la pantalla, centrado en Zaragoza
-- [ ] Atribución de OpenStreetMap visible y correcta: «© colaboradores de
-      OpenStreetMap» con enlace — la palabra «colaboradores» no es opcional
-      (obligación ODbL; ZetaBus pagó saltárselo)
-- [ ] La respuesta falsa del punto 2 pinta una polilínea inventada en el
-      mapa — el circuito formulario → pasos → mapa cerrado con datos falsos
-- [ ] Visto en Chrome en el tamaño de ventana que usará la gente, no solo
-      maximizado
-- [ ] **El badge de Leaflet del README se vuelve cierto aquí.** Hoy es el
-      único badge que promete algo no instalado (aviso del ejecutor, 16/08).
-      ⛔ Decisión de Antonio si se quita ya o se deja hasta este punto
+- [x] Leaflet 1.9.4 + `@types/leaflet` (las únicas dependencias nuevas,
+      autorizadas), mapa centrado en Zaragoza en componente propio —
+      la frontera declarada en el punto 2, cumplida (`0c19450`).
+      Inicialización con `afterNextRender` [DOC], CommonJS declarado [DOC]
+- [x] Atribución «© colaboradores de OpenStreetMap» escrita a mano — el
+      ejemplo oficial de Leaflet NO lleva «contributors» y copiarlo sería
+      incumplir la ODbL (hallazgo del ejecutor) — **y con guardián**: una
+      prueba se pone roja si alguien quita la palabra
+- [x] Polilínea falsa al generar, una sola (no se acumulan), ligada al
+      aviso de DATOS DE PRUEBA. Notices al día: §1 reescrito porque OSM ya
+      es obligación VIVA (teselas en ejecución), 17 declaradas / 500 en el
+      árbol (`1c43c14`), README releído por la regla transversal (`9685e6a`)
+- [x] **Visto por Antonio en Chrome** (16/08). **PUNTO 3 CERRADO**
+- [x] El badge de Leaflet dejó de ser promesa solo, al instalarse
+- [x] **Guardia de arranque nacida del fallo nº2** (`c3263a0`, cerrada en
+      `103ecae`): `comprobar-arranque.mjs` verifica identidad, no estado —
+      quién escucha, si arrancó después de tocar la configuración, y el
+      hash de build cuando existe. Vista en ROJO tres veces con condiciones
+      reales; probando sus rojos se cazó y arregló un defecto del propio
+      guardián (exit 127 de libuv pisando el código de salida). Decidida
+      con la doc y la doctrina del taller, no por gusto
 
 ## 4 — Los datos entran
 
