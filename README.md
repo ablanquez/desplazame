@@ -17,12 +17,14 @@
 ## Estado: hoy no hay aplicación
 
 > ⚠️ **Este repositorio está en construcción, y todavía no hay nada que puedas usar.**
-> El buscador de rutas no existe: no hay formulario, ni motor, ni mapa. Lo único que hay
-> de aplicación es el **esqueleto de Angular** en [`app/`](app/) —el que genera el CLI—:
-> arranca en local y pinta su página de bienvenida. Eso no busca rutas.
+> La pantalla ya existe en [`app/`](app/) y arranca en local: el formulario de cuatro
+> campos, los cuatro modos y las indicaciones. Pero **no busca rutas**. Al pulsar «Generar
+> ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
+> dice con todas las letras. No hay motor, no hay datos, y donde irá el mapa hoy solo hay
+> un hueco reservado.
 >
-> Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y ese
-> esqueleto.
+> Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y una
+> pantalla con andamio.
 >
 > El README se publica igualmente desde el principio —el repositorio es público desde el
 > primer commit— y por eso dice lo que hay, no lo que habrá.
