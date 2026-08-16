@@ -20,8 +20,10 @@
 > La pantalla ya existe en [`app/`](app/) y arranca en local: el formulario de cuatro
 > campos, los cuatro modos y las indicaciones. Pero **no busca rutas**. Al pulsar «Generar
 > ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
-> dice con todas las letras. No hay motor, no hay datos, y donde irá el mapa hoy solo hay
-> un hueco reservado.
+> dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
+> OpenStreetMap—, pero lo único que dibuja encima es una línea igual de inventada que los
+> pasos. No hay motor, y no hay ni un dato de Zaragoza: ni callejero, ni portales, ni
+> paradas.
 >
 > Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y una
 > pantalla con andamio.
