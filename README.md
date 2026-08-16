@@ -16,9 +16,13 @@
 
 ## Estado: hoy no hay aplicación
 
-> ⚠️ **Este repositorio está en construcción, y hoy no contiene nada que puedas usar.**
-> No hay aplicación, no hay servidor, no hay nada que instalar ni nada que abrir en el
-> navegador. Lo que hay es el método de trabajo, el plan y estos dos ficheros de licencia.
+> ⚠️ **Este repositorio está en construcción, y todavía no hay nada que puedas usar.**
+> El buscador de rutas no existe: no hay formulario, ni motor, ni mapa. Lo único que hay
+> de aplicación es el **esqueleto de Angular** en [`app/`](app/) —el que genera el CLI—:
+> arranca en local y pinta su página de bienvenida. Eso no busca rutas.
+>
+> Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y ese
+> esqueleto.
 >
 > El README se publica igualmente desde el principio —el repositorio es público desde el
 > primer commit— y por eso dice lo que hay, no lo que habrá.
@@ -69,6 +73,9 @@ puede consultar.
 
 Código: **[Apache 2.0](LICENSE)** · © 2026 **Antonio Blánquez Cabeza** —
 [antonioblanquez.es](https://antonioblanquez.es)
+
+Las dependencias de terceros conservan sus propias condiciones, una por una, en
+**[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**.
 
 Los datos **no** van bajo esa licencia: conservan las suyas, y son estas dos.
 
