@@ -107,10 +107,20 @@ Reglas que cruzan todo el plan:
 Cada pieza entra **solo con autorización expresa de Antonio**, una a una,
 desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
 
-- [ ] Decidir formato y carpeta (`data/`) y dejarlo escrito en el estado
-- [ ] **`THIRD-PARTY-NOTICES.md` se amplía aquí** con la tabla de fuentes de
-      datos (OSM/ODbL, municipal/Ley 37/2007), fecha de descarga incluida
-- [ ] Los 46k portales
+- [x] Carpeta decidida: `app/data/` — lo decidió Angular, no el gusto (la
+      raíz de trabajo es `app/` y rechaza assets de fuera). El motor del
+      punto 5 lee de disco igual
+- [x] Notices ampliado: la ficha completa de los portales en §1.2 (fuente
+      WFS IDEZar, Ley 37/2007, atribución cumplida, fecha, sha256) y el
+      encabezado corregido — «lo único de terceros son las npm» era falso
+      desde hoy (`a35ffc9`)
+- [x] **Los 46k portales dentro y VISTOS por Antonio** (16/08): 46.150
+      exactos, sha256 idéntico origen/copia (y coincide con el que la
+      procedencia declaraba), campos revisados sin dato personal, tal cual
+      sin limpiar (`a3822f5`). Pintados en canvas por capa [DOC] con casilla
+      de apagado y la atribución municipal colgada de la capa (`c8da500`).
+      README releído (`387529f`). La cifra caducada de vías salió de
+      CLAUDE.md — el número lo medirá el motor (`ca1aaba`)
 - [ ] La continuidad peatonal y ciclable (el grafo: 68.649 nodos / 98.774
       aristas)
 - [ ] Los carriles bici (49.972 aristas)

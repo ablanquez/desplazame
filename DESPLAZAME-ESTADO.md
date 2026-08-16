@@ -58,10 +58,22 @@ cazaron un defecto del propio guardián antes de fiarse de él.
 **Sin push desde `5188ba5`: dieciséis commits en local** (del `01eb312` al
 `103ecae`).
 
-**Lo siguiente: punto 4 — los datos entran**, pieza a pieza con autorización
-de Antonio, y cada capa pintada en el mapa. Aviso ya dado: el README y el
-§1.2 del notices volverán a caducar cuando entre el primer dato — la regla
-transversal viaja en el encargo.
+**Punto 4 en curso: la primera pieza dentro y vista (16/08).** Los 46.150
+portales del Ayuntamiento (WFS IDEZar, mayo 2026) entraron tal cual, con
+sha256 idéntico en origen, copia y procedencia declarada, campos revisados
+sin dato personal, ficha completa en el notices, y pintados en canvas con
+casilla de apagado — la atribución municipal cuelga de la capa y solo se
+enseña cuando el dato se muestra. Antonio lo vio todo en Chrome. Y una
+cifra mía caducada salió de CLAUDE.md (las «2.661 vías» venían del proyecto
+viejo; el dato real da 2.731 códigos hoy): el número lo medirá el motor en
+el punto 5 — decidido con la doc oficial: el CLAUDE.md lleva convenciones,
+no mediciones (`ca1aaba`).
+
+**Sin push desde `5188ba5`: veintitrés commits en local** (hasta `ca1aaba`).
+
+**Lo siguiente:** las demás piezas del punto 4, cada una con autorización de
+Antonio — grafo, carriles, paradas de bus, tranvía, BiZi, y la de
+aparcabicis que no existe y hay que traer de fuente.
 
 ---
 
@@ -168,6 +180,22 @@ Y las tomadas en este reinicio (16/08):
 - README y notices se apuntan mutuamente (datos ↔ dependencias). Correcto
   hoy; fácil que en la próxima ampliación uno describa al otro de oídas
   (aviso del ejecutor, 16/08).
+- **Dos andamios nuevos con caducidad en el punto 5**, comentados en el
+  código: el navegador se baja los 10,3 MB de portales enteros solo para
+  pintarlos, y la entrada `datos` de `angular.json` que los sirve. Si el
+  punto 5 llega y no se retiran, nada lo detecta — misma forma que
+  `RUTA_DE_PRUEBA`.
+- **El dato de portales caduca**: el callejero municipal se refresca
+  mensualmente y el fichero es de mayo 2026. Los 46.150 son de ESTE
+  fichero; regenerarlo dará otra huella. Cuándo refrescar lo decide
+  Antonio.
+- **`app/data/` queda dentro de la raíz web de producción** (symlink
+  `public_html → app`). Hoy indiferente (dato público y reutilizable); si
+  en el punto 5 no se quiere descargable en directo, es un `git mv` y
+  quitar la entrada de `angular.json` — decisión para entonces.
+- **La cifra de vías real está por medir**: 2.731 códigos en los portales,
+  3.359 vías en el callejero completo según la procedencia (habrá vías sin
+  portal). El motor la medirá en el punto 5 y ahí se publicará.
 - **El andamio tiene caducidad escrita pero no vigilada**: `RUTA_DE_PRUEBA`
   en `app.ts` lleva el comentario de que se retira en el punto 6, y si ese
   día no se retira, nada lo detecta — la forma exacta del fallo nº1,
