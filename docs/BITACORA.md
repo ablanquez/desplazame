@@ -14,6 +14,62 @@
 
 ---
 
+## [2026-08-16] 🔴 ABIERTA — El `200` de `localhost:4200` lo daba un servidor muerto: contestaba el proceso anterior con la configuración vieja
+
+**Categoría:** instrumento que no identifica lo que mide
+
+**Síntoma:** tras añadir el CSS de Leaflet a `angular.json`, reinicié el servidor. El
+nuevo **murió al arrancar** (`Port 4200 is already in use`, código 127) porque el anterior
+seguía vivo: `TaskStop` mató el envoltorio y no al `ng serve` hijo. `curl` siguió
+devolviendo **200** — lo contestaba el proceso viejo, PID 14536, con la configuración
+anterior. Es el mismo `200` que llevo usando tres encargos como condición de HECHO.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** el `curl` de siempre. Ejecutado con el
+servidor nuevo ya muerto y el viejo respondiendo:
+
+```
+$ curl -s -o /dev/null -w "%{http_code}" http://localhost:4200/
+200
+
+$ curl -s http://localhost:4200/styles.css | grep -c leaflet
+0                          <- el servidor NO tiene el CSS de Leaflet
+
+$ grep -c leaflet angular.json
+2                          <- pero el fichero en disco SÍ lo declara
+
+$ netstat -ano | grep ":4200"
+  TCP    [::1]:4200    [::]:0    LISTENING    14536
+```
+
+Y el arranque que había fallado, en su propio registro:
+
+```
+> ng serve
+An unhandled exception occurred: Port 4200 is already in use.
+[exited with code 127]
+```
+
+**Cómo se cazó:** casualidad. El aviso automático de que la tarea de fondo había muerto
+llegó **después** de que yo diera el `200` por bueno. Sin ese aviso, el checkpoint habría
+dicho «200 comprobado» con un servidor de hace media hora.
+
+**Causa raíz:** ⏳ PENDIENTE
+
+**Arreglo aplicado:** ⏳ PENDIENTE
+
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** un `200` en un puerto fijo dice que **alguien** contesta, no
+**quién**. No prueba que conteste el código de ahora. Todo arranque que se dé por bueno
+tiene que comprobar además **una marca propia de la versión que se acaba de construir**
+—un fichero, una cadena, un recurso nuevo— y no solo el código de estado. Y matar un
+servidor no es matar su envoltorio: se confirma que el puerto queda libre.
+
+**Traza:** `app/angular.json` (`styles`, `allowedCommonJsDependencies`) · proceso `ng
+serve` PID 14536 · detectado durante el punto 3 (mapa).
+
+---
+
 ## [2026-08-16] ✅ CERRADA — Crear `app/` dejó falso el párrafo de «Estado» del README, y vivió tres commits en un repo público
 
 **Categoría:** documentación que caduca en silencio
