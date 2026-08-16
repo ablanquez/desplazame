@@ -11,6 +11,9 @@ Reglas que cruzan todo el plan:
 - `DESPLAZAME-ESTADO.md` lo escribe solo la conversación de estrategia.
 - El repo es **público desde el primer commit**: nada entra sin licencia clara
   y sin revisar qué se está subiendo.
+- **Todo encargo que CREA algo nuevo relee lo que la portada afirma sobre su
+  ausencia, antes de cerrar** — ley de la bitácora nº1 (16/08): el alcance
+  protege el fichero de que lo editen, no de que envejezca.
 
 ## 1 — Cimientos
 
@@ -36,13 +39,26 @@ Reglas que cruzan todo el plan:
 
 ## 2 — La pantalla antes que nada
 
-- [ ] Proyecto Angular 22 creado (standalone, sin NgModules), `ng serve`
-      levantando y **visto en Chrome**
-- [ ] **`THIRD-PARTY-NOTICES.md` nace aquí** — con Angular entra el primer
-      paquete npm, y el modelo de la casa es de tres ficheros (LICENSE +
-      README + notices con tabla por fuente). *Surgió en el checkpoint del
-      16/08: hoy no hay ni una dependencia; el día que entre la primera, el
-      hueco se nota.*
+- [x] Proyecto Angular 22 creado en `app/` (`baccc36`): standalone, sin
+      router, CSS plano, sin SSR, zoneless. 200 comprobado con contraprueba
+      (404 y puerto muerto) y **visto por Antonio en Chrome** (16/08)
+- [x] `THIRD-PARTY-NOTICES.md` nacido en la raíz (`299770d`, 121 líneas):
+      15 directas miradas una a una, 497 transitivas apuntadas al lock, y
+      las tres no-MIT declaradas (MPL-2.0, CC-BY-4.0 con su atribución,
+      BlueOak) — todas de desarrollo, ninguna viaja al navegador
+- [x] Badge de TypeScript corregido a la rama real, 6 (`726cb51`)
+- [x] Decidido con la doc ([DOC]): `app/.vscode/` SE QUEDA versionado — el
+      CLI lo genera a propósito y su .gitignore no lo excluye
+- [x] README: el párrafo de «Estado» corregido (`7976623`) — decía tres
+      cosas falsas desde `baccc36`, cada afirmación nueva verificada contra
+      el repo de hoy. **Y estrenó la bitácora** (`2742033`): la skill disparó
+      sola al encontrar el verde mentiroso (git limpio + el HECHO del encargo
+      cumplido *por no tocar el fichero*). Entrada nº1, 🔴 ABIERTA
+- [x] README: `THIRD-PARTY-NOTICES.md` enlazado desde «Licencia y créditos»
+      con el patrón de ZetaBus, recortado a lo que hoy es cierto
+- [ ] **Cerrar la entrada nº1 de la bitácora** — el arreglo existe
+      (`7976623`) y la entrada sigue abierta: el cierre (pieza B de la
+      skill) no ocurrió solo esta vez. Cierre en frío, que está probado
 - [ ] Estructura de carpetas mínima acordada antes de escribir componentes
       (una vista, sin router de páginas)
 - [ ] Formulario de cuatro campos: calle y portal de origen, calle y portal
@@ -65,6 +81,9 @@ Reglas que cruzan todo el plan:
       mapa — el circuito formulario → pasos → mapa cerrado con datos falsos
 - [ ] Visto en Chrome en el tamaño de ventana que usará la gente, no solo
       maximizado
+- [ ] **El badge de Leaflet del README se vuelve cierto aquí.** Hoy es el
+      único badge que promete algo no instalado (aviso del ejecutor, 16/08).
+      ⛔ Decisión de Antonio si se quita ya o se deja hasta este punto
 
 ## 4 — Los datos entran
 
@@ -97,6 +116,9 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
 - [ ] `GET /api/vias` — autocompletado sobre las 2.661 vías
 - [ ] El formulario real consume `/api/vias` — **autocompletar visto
       funcionar en Chrome**
+- [ ] **Revisar `@angular/router`**: instalado sin usar desde `ng new` (el
+      CLI lo mete en su conjunto estándar aunque pases `--routing=false`).
+      Si aquí sigue sin hacer falta, fuera
 - [ ] **El README se amplía aquí** con los endpoints y las cifras (2.661
       vías, 68.649 nodos) — cuando existan de verdad, no antes. *Quedaron
       fuera a propósito en el checkpoint del 16/08.*

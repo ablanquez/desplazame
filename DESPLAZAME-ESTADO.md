@@ -14,17 +14,29 @@ De ella no se hereda ni código ni documentación: solo las decisiones que
 viajen escritas en los encargos, y los datos que Antonio autorice pieza a
 pieza.
 
-**Dónde estamos: PUNTO 1 CERRADO (16/08).** Repo iniciado, identidad
-`ablanquez` verificada, `main` sustituida con `--force` (el archivo del viejo
-intacto en `49e1105`, comprobado antes y después). LICENSE y README generados
-por Claude Code en su primer encargo (Extra effort) partiendo de Linaje y
-ZetaBus. Cinco commits publicados —`c2fc70d` · `d4558b2` · `6b43700` ·
-`1f2498d` · `5188ba5`— y verificados por Antonio en GitHub con sus ojos:
-portada con README pintado y licencia detectada.
+**Dónde estamos: punto 2 en curso — la pantalla existe.** El punto 1 se
+cerró el 16/08 (repo público, `main` sustituida, archivo del viejo intacto,
+LICENSE y README con el modelo de la casa, verificado por Antonio en GitHub).
+Ese mismo día: **la app Angular 22 arrancó en `app/` y Antonio la vio en
+Chrome** — el esqueleto del CLI (standalone, sin router, CSS plano, sin SSR,
+zoneless), con 200 comprobado por contraprueba. `THIRD-PARTY-NOTICES.md`
+nació con las dependencias npm, y el badge de TypeScript se corrigió a la
+rama real (6). Node se actualizó a 24.19.0 tras un paro correcto del
+ejecutor: la 24.14.1 no cumplía el rango de Angular 22.
 
-**Lo siguiente: punto 2 — la pantalla antes que nada.** Angular 22 arrancado
-y visto en Chrome, formulario y botones sin lógica, respuesta falsa que cierra
-el ciclo entero. Con la primera dependencia npm nace `THIRD-PARTY-NOTICES.md`.
+**La bitácora se estrenó el 16/08 y la skill disparó sola.** Al ir a
+arreglar el README, el ejecutor encontró el verde mentiroso (git limpio y el
+HECHO del encargo de `baccc36` cumplido *por no tocar el fichero*) y escribió
+la entrada nº1 ANTES de arreglar, con su ley: *el alcance protege el fichero
+de que lo editen, no de que envejezca.* La ley entró como regla transversal
+del plan. La entrada sigue 🔴 ABIERTA: el cierre (pieza B) queda pendiente.
+
+**Sin push desde `5188ba5`:** seis commits en local — `01eb312` · `baccc36` ·
+`299770d` · `726cb51` · `2742033` (bitácora) · `7976623` (README corregido).
+
+**Lo siguiente (punto 2, segunda parte):** cerrar la entrada nº1, y después
+el formulario, los botones y la respuesta falsa que cierra el ciclo en
+Chrome.
 
 ---
 
@@ -104,14 +116,45 @@ Solo estas viajan; el resto se quedó archivado.
 - **La velocidad a pie es la estándar (5,0 km/h)**, la de OSRM/Valhalla, para
   que los tiempos sean comparables. No se recalibra con caminatas.
 
+Y las tomadas en este reinicio (16/08):
+
+- **`app/.vscode/` se queda versionado** [DOC]: el CLI lo genera a propósito
+  y su `.gitignore` no lo excluye — Angular lo concibe compartido.
+- **`@angular/router` se queda hasta el punto 5** [DOC el hecho, PROPIO la
+  espera]: es el conjunto estándar del CLI, no viaja al bundle si no se
+  importa, y quitarlo el primer día sería desviarse del esqueleto oficial
+  sin ganancia.
+
 ## 6 · Cabos abiertos
 
 - La capa de **aparcabicis no existe** en ningún sitio: habrá que traerla de
   fuente cuando le toque (punto 4 del plan).
-- `THIRD-PARTY-NOTICES.md` no existe todavía — el modelo de la casa son TRES
-  ficheros, no dos (hallazgo del ejecutor, 16/08). Nace en el punto 2 con la
-  primera dependencia npm y se amplía en el 4 con las fuentes de datos.
+- **La entrada nº1 de la bitácora sigue ABIERTA** con el arreglo ya hecho:
+  el cierre en la misma sesión no ocurrió solo. Cierre en frío pendiente —
+  y el dato va al taller, que es donde vive la skill.
+- **La portada volverá a caducar cuando el punto 5 cree el motor** («no hay
+  motor» dejará de ser cierto). No hay guardián que vigile el README y
+  `NO CONSTA` que haga falta uno: hoy lo cubren la regla transversal del
+  plan y la costura §6 de cada encargo. Si algún día se quiere un
+  instrumento, lo decide Antonio.
+- README y notices se apuntan mutuamente (datos ↔ dependencias). Correcto
+  hoy; fácil que en la próxima ampliación uno describa al otro de oídas
+  (aviso del ejecutor, 16/08).
+- **El badge de Leaflet es promesa, no realidad** (Leaflet no está
+  instalado). Decisión de Antonio: quitarlo ya o dejarlo hasta el punto 3,
+  donde se vuelve cierto.
+- `@angular/router` instalado sin usar (lo mete el CLI aunque pases
+  `--routing=false`). Revisión en el punto 5: si sigue sin usarse, fuera.
+- **TypeScript va en rama 6** (6.0.3), no en la 5: salto de mayor que
+  arrastra Angular 22. Anotado por si aparece en un error raro.
+- `THIRD-PARTY-NOTICES.md` se amplía en el punto 4 con las fuentes de datos
+  (fecha de descarga incluida). Sus dos `NO CONSTA` declarados: qué acaba en
+  el bundle (no hay build de producción) y las licencias de las 497
+  transitivas (leídas del lock, no de sus LICENSE).
 - El color de marca del proyecto: `NO CONSTA`. Los badges del README llevan
   el gris neutro de la casa hasta que Antonio lo decida (punto 11).
+- El Node del hosting: `NO CONSTA` qué versión ofrece Hostinger. Angular 22
+  exige `^22.22.3 || ^24.15.0 || >=26`. Lo mira Antonio en el panel antes
+  del punto 10 — mejor hoy que en el despliegue.
 - El **plazo del GTFS (05/10/2026)** afecta al punto 8; el barrido nocturno
   de Avanza no depende de él.
