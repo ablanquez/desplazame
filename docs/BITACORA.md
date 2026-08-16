@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-16] 🔴 ABIERTA — El `200` de `localhost:4200` lo daba un servidor muerto: contestaba el proceso anterior con la configuración vieja
+## [2026-08-16] ✅ CERRADA — El `200` de `localhost:4200` lo daba un servidor muerto: contestaba el proceso anterior con la configuración vieja
 
 **Categoría:** instrumento que no identifica lo que mide
 
@@ -53,11 +53,31 @@ An unhandled exception occurred: Port 4200 is already in use.
 llegó **después** de que yo diera el `200` por bueno. Sin ese aviso, el checkpoint habría
 dicho «200 comprobado» con un servidor de hace media hora.
 
-**Causa raíz:** ⏳ PENDIENTE
+**Causa raíz:** el instrumento medía **el puerto**, no **el servidor**. Un código de estado
+HTTP es una propiedad de la conexión: dice que algo escucha en 4200 y contesta, y no puede
+decir qué proceso es ni de qué build viene. Nada en `curl` distingue un servidor recién
+arrancado de uno de hace media hora. Y encima confluyeron dos cosas que se tapan entre sí:
+`TaskStop` informó de éxito habiendo matado solo el envoltorio —el `ng serve` hijo quedó
+huérfano y escuchando—, y `angular.json` es de los ficheros que **solo se leen al arrancar**,
+así que el recargado en caliente no podía corregir la diferencia ni delatarla. El resultado
+es un servidor que sirve la aplicación correctamente y con la configuración caducada: 200
+legítimo, respuesta obsoleta.
 
-**Arreglo aplicado:** ⏳ PENDIENTE
+**Arreglo aplicado:** dos capas. **(1) El caso**: se mató el proceso huérfano (PID 14536), se
+confirmó el puerto libre —`curl → 000`— y se arrancó de nuevo, verificando esta vez por
+identidad. **(2) El fondo**, que es lo que cierra esta entrada: `app/scripts/comprobar-arranque.mjs`,
+invocable con `npm run comprobar-arranque`, que comprueba (a) que contesta la aplicación y no
+otra cosa, (b) **qué PID** escucha, (c) que ese proceso **arrancó después** de la última
+modificación de `angular.json`, `package.json` y `package-lock.json` —los que solo se leen al
+arrancar—, (d) que los recursos que el HTML anuncia se sirven, y (e) si traen hash de
+contenido, que ese fichero esté en `dist/`. Visto en rojo tres veces antes de fiarse de él,
+con condiciones reales y tres códigos de salida distintos: `1` nadie escucha · `4` servidor
+anterior a la configuración —este caso, reproducido: mientras el script daba ROJO, `curl`
+daba **200** en el mismo instante— · `6` sirve un bundle que no está en `dist/`. El script
+lleva escrito en su cabecera qué **no** puede detectar.
 
-**Commit:** ⏳ PENDIENTE
+**Commit:** `c3263a0` (`feat(comprobar): el arranque se verifica por identidad, no por
+estado`, 2026-08-16). La captura de esta entrada es `8af95ba`, anterior al arreglo.
 
 **Ley que sale de aquí:** un `200` en un puerto fijo dice que **alguien** contesta, no
 **quién**. No prueba que conteste el código de ahora. Todo arranque que se dé por bueno
@@ -65,8 +85,17 @@ tiene que comprobar además **una marca propia de la versión que se acaba de co
 —un fichero, una cadena, un recurso nuevo— y no solo el código de estado. Y matar un
 servidor no es matar su envoltorio: se confirma que el puerto queda libre.
 
+*Añadido al cerrar (2026-08-16):* la ley pedía «una marca propia de la versión recién
+construida», y al buscarla apareció un límite que hay que decir: **`ng serve` no pone hash
+de contenido en los nombres** —sirve `main.js`, no `main-XXXXXXXX.js`—, así que en
+desarrollo esa marca **no existe**. El hash solo lo emite `ng build`. Lo que sí distingue a
+un servidor caducado en desarrollo es **cuándo arrancó** frente a cuándo se tocó la
+configuración, y por ahí va la comprobación. La ley se cumple; la marca no siempre es un
+hash.
+
 **Traza:** `app/angular.json` (`styles`, `allowedCommonJsDependencies`) · proceso `ng
-serve` PID 14536 · detectado durante el punto 3 (mapa).
+serve` PID 14536 · detectado durante el punto 3 (mapa) · guardia en
+`app/scripts/comprobar-arranque.mjs`.
 
 ---
 
