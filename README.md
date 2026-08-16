@@ -21,9 +21,10 @@
 > campos, los cuatro modos y las indicaciones. Pero **no busca rutas**. Al pulsar «Generar
 > ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
 > dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
-> OpenStreetMap—, pero lo único que dibuja encima es una línea igual de inventada que los
-> pasos. No hay motor, y no hay ni un dato de Zaragoza: ni callejero, ni portales, ni
-> paradas.
+> OpenStreetMap— y ya puede sembrar encima los **46.150 portales reales** del Ayuntamiento
+> de Zaragoza, que son el primer dato que ha entrado. Pero el buscador **todavía no los
+> usa**: la línea que dibuja al generar sigue siendo tan inventada como los pasos. No hay
+> motor, y del resto del dato —grafo de calles, paradas, carriles bici— no hay nada.
 >
 > Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y una
 > pantalla con andamio.
