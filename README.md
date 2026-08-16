@@ -6,7 +6,7 @@
 
 [![Licencia](https://img.shields.io/badge/licencia-Apache%202.0-64748B)](LICENSE)
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031)](https://angular.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6)](https://www.typescriptlang.org/)
 [![Leaflet](https://img.shields.io/badge/Leaflet%20%2B%20OpenStreetMap-199900)](https://leafletjs.com/)
 [![Estado](https://img.shields.io/badge/estado-en%20construcci%C3%B3n-B45309)](#estado-hoy-no-hay-aplicación)
 
