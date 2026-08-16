@@ -14,17 +14,17 @@ De ella no se hereda ni código ni documentación: solo las decisiones que
 viajen escritas en los encargos, y los datos que Antonio autorice pieza a
 pieza.
 
-**Dónde estamos: punto 1 del plan (cimientos), a falta de dos casillas.**
-Repo iniciado en `main`, identidad `ablanquez` verificada. Remoto conectado y
-`main` sustituida con `--force` el 16/08 — el archivo del viejo verificado
-intacto en `49e1105` antes y después. LICENSE y README generados por Claude
-Code en su primer encargo (Extra effort), partiendo de Linaje y ZetaBus:
-commits `6b43700` y `1f2498d`, atómicos, árbol limpio.
-Cuatro commits en local: `c2fc70d` · `d4558b2` · `6b43700` · `1f2498d`.
+**Dónde estamos: PUNTO 1 CERRADO (16/08).** Repo iniciado, identidad
+`ablanquez` verificada, `main` sustituida con `--force` (el archivo del viejo
+intacto en `49e1105`, comprobado antes y después). LICENSE y README generados
+por Claude Code en su primer encargo (Extra effort) partiendo de Linaje y
+ZetaBus. Cinco commits publicados —`c2fc70d` · `d4558b2` · `6b43700` ·
+`1f2498d` · `5188ba5`— y verificados por Antonio en GitHub con sus ojos:
+portada con README pintado y licencia detectada.
 
-**Lo siguiente:** push de los commits pendientes (decisión de Antonio) y su
-verificación en GitHub con sus ojos. Con eso el punto 1 se cierra y empieza
-el punto 2: la pantalla.
+**Lo siguiente: punto 2 — la pantalla antes que nada.** Angular 22 arrancado
+y visto en Chrome, formulario y botones sin lógica, respuesta falsa que cierra
+el ciclo entero. Con la primera dependencia npm nace `THIRD-PARTY-NOTICES.md`.
 
 ---
 

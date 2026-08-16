@@ -30,9 +30,9 @@ Reglas que cruzan todo el plan:
 - [x] LICENSE y README generados por Claude Code partiendo de Linaje y
       ZetaBus (`6b43700`, `1f2498d`). El copyright vive en el README, como
       en la casa; el LICENSE lleva el apéndice sin rellenar, como en la casa
-- [ ] **Push de los dos commits de LICENSE y README** — decisión de Antonio
-- [ ] Verificación de Antonio en GitHub con sus ojos: portada con README
-      pintado y licencia detectada
+- [x] Push de los cinco commits (`5188ba5` en origin/main, 16/08)
+- [x] Verificado por Antonio en GitHub con sus ojos: portada con README y
+      licencia detectada. **PUNTO 1 CERRADO**
 
 ## 2 — La pantalla antes que nada
 
