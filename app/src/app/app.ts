@@ -44,6 +44,21 @@ interface PortalCrudo {
   readonly coordLon: number;
 }
 
+/**
+ * ANDAMIO DE VERIFICACIÓN, como el de los portales. El fichero del grafo es un
+ * `.js` de una sola línea (`window.GRAFO = {…};`) que se copió tal cual del
+ * archivo: se pide como TEXTO y se le quita el prefijo en memoria. **Nunca se
+ * carga como script.** En el punto 6 esto se retira: el grafo vivirá en el
+ * motor y el navegador no se lo bajará.
+ */
+const GRAFO = '/datos/grafo-visor.js';
+const GRAFO_PREFIJO = 'window.GRAFO = ';
+
+/** Una arista: `g` son sus vértices, y vienen en [lon, lat]. */
+interface AristaCruda {
+  readonly g: readonly (readonly [number, number])[];
+}
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, Mapa],
@@ -79,8 +94,40 @@ export class App {
   /** Los portales, una vez descargados. Vacío mientras tanto. */
   protected readonly portales = signal<readonly Vertice[]>([]);
 
+  /** Las aristas del grafo, una vez descargadas. Vacío mientras tanto. */
+  protected readonly grafo = signal<readonly (readonly Vertice[])[]>([]);
+
   constructor() {
     this.cargarPortales();
+    this.cargarGrafo();
+  }
+
+  /**
+   * Pide el grafo como texto, le quita el prefijo de asignación y se queda
+   * SOLO con las aristas: el enganche portal→arista y la auditoría que
+   * también viajan en el fichero ni se leen ni se pintan.
+   */
+  private async cargarGrafo(): Promise<void> {
+    try {
+      const respuesta = await fetch(GRAFO);
+      if (!respuesta.ok) {
+        console.error(`grafo: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const texto = await respuesta.text();
+      if (!texto.startsWith(GRAFO_PREFIJO)) {
+        console.error('grafo: el fichero no empieza por el prefijo esperado');
+        return;
+      }
+      const crudo = JSON.parse(texto.slice(GRAFO_PREFIJO.length).replace(/;\s*$/, '')) as {
+        readonly aristas: readonly AristaCruda[];
+      };
+      this.grafo.set(
+        crudo.aristas.map((a) => a.g.map(([lon, lat]) => [lat, lon] as Vertice)),
+      );
+    } catch (e) {
+      console.error('grafo: no se pudo cargar', e);
+    }
   }
 
   private async cargarPortales(): Promise<void> {

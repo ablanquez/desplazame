@@ -43,10 +43,14 @@ export class Mapa {
   /** Portales a sembrar. Vacío = sin capa. */
   readonly portales = input<readonly Vertice[]>([]);
 
+  /** Aristas del grafo: cada una, su lista de vértices. Vacío = sin capa. */
+  readonly grafo = input<readonly (readonly Vertice[])[]>([]);
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
   private capaPortales?: L.LayerGroup;
+  private capaGrafo?: L.Polyline;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -61,6 +65,7 @@ export class Mapa {
       }).addTo(this.mapa);
       this.pintarTrazado();
       this.pintarPortales();
+      this.pintarGrafo();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -74,6 +79,71 @@ export class Mapa {
       this.portales();
       this.pintarPortales();
     });
+
+    effect(() => {
+      this.grafo();
+      this.pintarGrafo();
+    });
+  }
+
+  /**
+   * Pinta la red del grafo. Las 98.774 aristas van en UNA sola polilínea:
+   * [DOC] los tipos de Leaflet declaran
+   * `polyline(latlngs: LatLngExpression[] | LatLngExpression[][])` — un array
+   * de arrays es una multi-polilínea en un único objeto. Una capa y un dibujo,
+   * en vez de 98.774 capas.
+   */
+  private pintarGrafo(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaGrafo?.remove();
+    this.capaGrafo = undefined;
+
+    const aristas = this.grafo();
+    if (aristas.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const comienzo = performance.now();
+    this.capaGrafo = L.polyline(
+      aristas.map((a) => a.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
+      {
+        renderer: L.canvas(),
+        color: '#15803d',
+        weight: 1,
+        opacity: 0.7,
+        interactive: false,
+      },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${aristas.length} aristas pintadas en ${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
+  }
+
+  /** Un solo control de capas, rehecho con las capas que existan ahora. */
+  private refrescarControl(): void {
+    this.control?.remove();
+    this.control = undefined;
+    if (!this.mapa) {
+      return;
+    }
+
+    const capas: Record<string, L.Layer> = {};
+    if (this.capaPortales) {
+      capas[`Portales (${this.portales().length.toLocaleString('es-ES')})`] = this.capaPortales;
+    }
+    if (this.capaGrafo) {
+      capas[`Grafo peatonal/ciclable (${this.grafo().length.toLocaleString('es-ES')})`] =
+        this.capaGrafo;
+    }
+    if (Object.keys(capas).length > 0) {
+      this.control = L.control.layers(undefined, capas).addTo(this.mapa);
+    }
   }
 
   /**
@@ -85,15 +155,12 @@ export class Mapa {
       return;
     }
 
-    if (this.capaPortales) {
-      this.control?.remove();
-      this.control = undefined;
-      this.capaPortales.remove();
-      this.capaPortales = undefined;
-    }
+    this.capaPortales?.remove();
+    this.capaPortales = undefined;
 
     const puntos = this.portales();
     if (puntos.length === 0) {
+      this.refrescarControl();
       return;
     }
 
@@ -119,11 +186,7 @@ export class Mapa {
       { attribution: ATRIBUCION_PORTALES },
     ).addTo(this.mapa);
 
-    this.control = L.control
-      .layers(undefined, {
-        [`Portales (${puntos.length.toLocaleString('es-ES')})`]: this.capaPortales,
-      })
-      .addTo(this.mapa);
+    this.refrescarControl();
 
     console.info(
       `mapa: ${puntos.length} portales sembrados en ${Math.round(performance.now() - comienzo)} ms`,
