@@ -1,15 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Mapa, type Vertice } from './mapa';
-
-/** Los cuatro modos de transporte. Excluyentes: solo uno puede estar activo. */
-export type Modo = 'andando' | 'bus' | 'bici' | 'coche';
-
-/** Un paso de las indicaciones. */
-export interface Paso {
-  readonly texto: string;
-  readonly detalle: string;
-}
+// El contrato manda: los tipos vienen del paquete compartido, no de copias
+// locales. Si el motor cambia la forma, esta pantalla deja de compilar.
+import type { Modo, Paso, Via, Vertice } from '@desplazame/tipos';
+import { Mapa } from './mapa';
+import { AutocompletarVia } from './autocompletar-via';
 
 /**
  * ANDAMIO. Respuesta falsa y fija: no sale de ningún motor ni de ningún dato.
@@ -117,7 +112,7 @@ const APARCABICIS = '/datos/2026-08-17_wfs_movilidad-MU2_aparcabicis.json';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, Mapa],
+  imports: [FormsModule, Mapa, AutocompletarVia],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -130,9 +125,16 @@ export class App {
     { id: 'coche', etiqueta: 'Coche' },
   ];
 
-  protected calleOrigen = '';
+  /** Lo escrito en los campos de calle, que el autocompletar mantiene. */
+  protected readonly calleOrigen = signal('');
+  protected readonly calleDestino = signal('');
+
+  /** La vía elegida de la lista. Guarda el CÓDIGO, no solo el texto. */
+  protected readonly viaOrigen = signal<Via | null>(null);
+  protected readonly viaDestino = signal<Via | null>(null);
+
+  /** El portal sigue siendo texto libre: resolver números es del punto 6. */
   protected portalOrigen = '';
-  protected calleDestino = '';
   protected portalDestino = '';
 
   /** Andando por defecto. */
@@ -425,9 +427,9 @@ export class App {
   /** Única validación de este punto: los cuatro campos rellenos. */
   protected sePuedeGenerar(): boolean {
     return (
-      this.calleOrigen.trim() !== '' &&
+      this.calleOrigen().trim() !== '' &&
       this.portalOrigen.trim() !== '' &&
-      this.calleDestino.trim() !== '' &&
+      this.calleDestino().trim() !== '' &&
       this.portalDestino.trim() !== ''
     );
   }

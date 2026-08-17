@@ -7,9 +7,11 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
+// El vértice lo define el contrato, no este componente: es la misma forma que
+// el motor devolverá en la geometría de un trayecto.
+import type { Vertice } from '@desplazame/tipos';
 
-/** Un vértice del trazado: latitud y longitud. */
-export type Vertice = readonly [number, number];
+export type { Vertice };
 
 /** Zaragoza, y un zoom que enseña la ciudad entera. */
 const CENTRO: L.LatLngTuple = [41.6488, -0.8891];
