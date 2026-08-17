@@ -127,11 +127,30 @@ real hasta el 27/12). **Y una decisión nueva de Antonio, D-MAPA-DE-HOY:**
 el mapa pintará la red operativa del día, no el catálogo — se construye en
 el punto 8 con el cron; queda en el plan con sus casillas.
 
-**Publicado hasta `acfefaa`; veinte commits en local** (hasta `cc79570`).
+**La sexta pieza dentro y vista (17/08): las estaciones BiZi.** 276
+exactas — la primera cifra heredada que cae clavada tras tres retiradas y
+dos matizadas. La capa municipal MU1 entró en sus seis páginas tal cual
+(unirlas sería fabricar un fichero que nadie publicó), la API viva quedó
+descartada por regla y fichada con su contradicción interna (una estación
+«IN_SERVICE», «no-operativa» y «Operativa» a la vez), y las estaciones van
+en el corporativo #54A097 decidido por Antonio — marca, no paleta: si
+choca, se ajusta forma. El ejecutor cazó además su propio error propagado
+en la portada (la cuenta de datos iba una atrás desde el GTFS): lección
+dicha — la releída de la portada es de la frase entera, no solo de lo que
+el encargo señala. **Y Antonio dejó dicho el destino de las casillas:**
+las capas y sus interruptores son verificación de la fase de datos — la
+demo final no va a jugar a visualizar/ocultar capas; cuando el motor
+calcule, esto se replantea (encaja con la caducidad de los andamios en el
+punto 6).
 
-**Lo siguiente:** las dos piezas que quedan del punto 4 — BiZi (estaciones
-en la OLD: `MU1_estaciones_bici` + API) y aparcabicis (fuente: el catálogo
-municipal, descarga nueva). Cada una con autorización de Antonio.
+**Publicado hasta `acfefaa`; veintiséis commits en local** (hasta
+`df8ac0d`).
+
+**Lo siguiente: la última pieza del punto 4 — aparcabicis** (no está en la
+OLD; fuente: el catálogo de datos abiertos municipal, descarga nueva). Con
+autorización de Antonio. Queda también anotado el tranvía municipal
+(`MU3_lineas_tranvia`, `MU3_paradas_tranvia`) como opción futura que nadie
+ha descargado nunca.
 
 ---
 

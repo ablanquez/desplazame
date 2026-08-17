@@ -193,7 +193,18 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       decidida por Antonio (`c344bbe`, `cc79570`). Los stop_code son 25
       pares `NN01`/`NN02` con tres saltos (`1311/1312`, `2322`, `2422`):
       mina anotada para quien derive sentidos del sufijo en el punto 8
-- [ ] Estaciones BiZi (276)
+- [x] **Las estaciones BiZi dentro y VISTAS por Antonio** (17/08): 276
+      exactas — la primera cifra heredada que cae clavada. La capa
+      municipal MU1 en sus SEIS páginas tal cual (unirlas habría sido
+      fabricar un fichero que nadie publicó; la app las une al leer), hash
+      por página sobre clon (`51d47dd`). La API viva de zaragoza.es
+      descartada por regla —el dato vivo es del punto 8— y fichada con su
+      contradicción interna documentada (`821cb32`). Pintadas en el color
+      corporativo #54A097 decidido por Antonio; si algún día choca, se
+      ajusta la forma, no el tono: es marca (`da29696`). README releído,
+      y de paso el ejecutor cazó su propio error propagado: la cuenta de
+      datos de la portada iba una atrás desde el GTFS (`956e6a3`,
+      `df8ac0d`). 5.520 anclajes totales, dato para el punto 7
 - [ ] Aparcabicis — la capa no está en la OLD, pero **la fuente existe:
       el catálogo de datos abiertos del Ayuntamiento la publica como
       conjunto propio** [DOC, visto el 17/08]. Se detalla cuando le toque
