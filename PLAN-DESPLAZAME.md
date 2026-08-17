@@ -151,7 +151,21 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       reproducirá el motor si cruza carriles contra grafo, no una copia.
       Y la atribución municipal ahora cuelga de TODAS las capas municipales,
       no solo de la primera — el hueco se cortó antes de existir
-- [ ] Postes de bus + líneas que pasan (934 postes, 44 rutas, 74 sentidos)
+- [x] **Los postes de bus dentro y VISTOS por Antonio** (17/08): 944 postes
+      del MU3 municipal (WFS IDEZar, Ley 37/2007), integridad sobre clon
+      (`773a135`), ficha con LOS DOS CENSOS declarados —944 el inventario
+      municipal, ~934 lo que el operador anunciaba (GTFS+barrido de
+      ZetaBus)— y el `NO CONSTA` de `exploracion/` honesto (`7ed0f44`).
+      Pintados con forma propia (radio 4 + aro blanco) y en rojo tras
+      corrección de color a ojo de Antonio: el cian inicial se confundía
+      con el azul de los portales (`e153b00`, `3af28c4`). README con la
+      dependencia en la portada: «no se sabe aún qué líneas pasan por cada
+      poste» (`78fffae`).
+      ⚠️ **SIN LÍNEAS, y no es recorte: no existen como fichero.** La
+      cifra heredada «44 rutas / 74 sentidos» era del feed GTFS de ZetaBus
+      — QUEDA RETIRADA como criterio de esta pieza (van dos derivadas).
+      Las líneas por poste llegarán con el GTFS (pieza pendiente de este
+      punto 4) o el barrido del punto 8; el puente es el `stop_code` PA…
 - [ ] Líneas y su orden (del GTFS)
 - [ ] Postes y recorrido del tranvía (50 paradas, 1 línea, 2 sentidos)
 - [ ] Estaciones BiZi (276)

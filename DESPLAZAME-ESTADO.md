@@ -97,13 +97,25 @@ de que el hueco existiera. **Y una corrección de herencia: la cifra «49.972
 aristas que ruedan» queda retirada** — era una derivada del procesamiento
 viejo, no un dato; la reproducirá el motor si le hace falta.
 
-**Publicado hasta `acfefaa`; cuatro commits en local** (hasta `2f7bdc8`).
+**La cuarta pieza dentro y vista (17/08): los postes de bus.** 944 postes
+del MU3 municipal — y el paro previo del ejecutor dejó tres verdades en su
+sitio: el dato es municipal (no del barrido de Avanza, como asumía mi
+encargo), las líneas por poste NO existen como fichero en la OLD (viven en
+el GTFS y en el barrido del punto 8, con el `stop_code` PA… como puente
+verificado contra ZetaBus), y los «~934 / 44 rutas / 74 sentidos» heredados
+eran el censo y las derivadas de ZetaBus — **van dos cifras derivadas
+retiradas** (49.972 y 44/74), mismo patrón cazado dos veces. La ficha
+declara los dos censos como legítimos y el `NO CONSTA` de por qué la OLD
+tenía este dato en `exploracion/` sin adoptar. Color corregido a ojo de
+Antonio: el cian se confundía con el azul de los portales; ahora rojo, con
+el círculo de tono como criterio.
 
-**Lo siguiente:** las piezas que quedan del punto 4 — postes de bus con sus
-líneas, el orden del GTFS, tranvía, BiZi (estaciones en la OLD:
-`MU1_estaciones_bici` + API), y aparcabicis, que ya tiene fuente: el
-catálogo de datos abiertos municipal la publica como conjunto propio.
-Cada una con autorización de Antonio.
+**Publicado hasta `acfefaa`; diez commits en local** (hasta `3af28c4`).
+
+**Lo siguiente:** las piezas que quedan del punto 4 — el GTFS (donde viven
+las líneas y su orden; feed vigente hasta el 05/10), tranvía, BiZi
+(estaciones en la OLD: `MU1_estaciones_bici` + API), y aparcabicis (fuente:
+el catálogo municipal). Cada una con autorización de Antonio.
 
 ---
 
@@ -247,6 +259,14 @@ Y las tomadas en este reinicio (16/08):
 - **Quedan piezas de bici en la OLD fuera de autorización**: estaciones
   Bizi (`MU1_estaciones_bici`) y una API de Bizi con ficheros de
   exploración. Entrarán con su pieza.
+- **La dependencia «líneas por poste» está escrita en tres sitios**
+  (notices §1.5, README, comentario en `app.ts`) **y ninguno es un
+  guardián**: si el punto 8 llega y las líneas siguen sin estar, nada se
+  pone rojo (aviso del ejecutor, 17/08).
+- **Tres cifras heredadas del proyecto viejo han resultado derivadas, no
+  datos**: 49.972 aristas ciclables, 44 rutas, 74 sentidos. Regla que
+  sale del patrón: ninguna cifra del proyecto viejo se hereda como
+  criterio — se contrasta contra lo que el ejecutor mida, y el dato manda.
 - **El andamio tiene caducidad escrita pero no vigilada**: `RUTA_DE_PRUEBA`
   en `app.ts` lleva el comentario de que se retira en el punto 6, y si ese
   día no se retira, nada lo detecta — la forma exacta del fallo nº1,
