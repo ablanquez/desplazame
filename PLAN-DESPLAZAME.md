@@ -121,8 +121,23 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       de apagado y la atribución municipal colgada de la capa (`c8da500`).
       README releído (`387529f`). La cifra caducada de vías salió de
       CLAUDE.md — el número lo medirá el motor (`ca1aaba`)
-- [ ] La continuidad peatonal y ciclable (el grafo: 68.649 nodos / 98.774
-      aristas)
+- [x] **El grafo dentro y VISTO por Antonio** (17/08): 98.774 aristas /
+      68.649 nodos / 378.222 vértices, exactos. Copiado byte a byte desde
+      `tools/grafo-visor.js` de la OLD (no estaba en data/): un `.js` de una
+      línea que se pide con fetch como texto y NUNCA se ejecuta (`f4f049c`).
+      Trae tres partes, declaradas en la ficha (`b84545d`): el grafo (se
+      pinta), el enganche portal→arista (se conserva para el motor del
+      punto 6), la auditoría del viejo (viaja porque el fichero es
+      indivisible sin editar). Pintado como UNA multi-polilínea en canvas
+      [DOC tipos de Leaflet] (`7b8fdd6`): 116 ms, arrastre fluido, la red
+      calcando la tesela. README releído (`f7c6bcf`)
+- [x] **Entrada nº3 de la bitácora, capturada y cerrada por el camino**
+      (`a9f05b5` → `2f0db56`): el sha256 del árbol de trabajo NO era el que
+      recibía quien clona — git metía un CRLF al checkout. Arreglo:
+      `.gitattributes` con `app/data/** -text` + renormalize, verificado
+      SOBRE UN CLON (`6a9cffa`). Ley: la integridad se acredita en el clon,
+      no en el disco propio — y un aviso repetido asumido como ruido es un
+      fallo esperando el fichero adecuado
 - [ ] Los carriles bici (49.972 aristas)
 - [ ] Postes de bus + líneas que pasan (934 postes, 44 rutas, 74 sentidos)
 - [ ] Líneas y su orden (del GTFS)

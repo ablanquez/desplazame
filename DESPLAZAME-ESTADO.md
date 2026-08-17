@@ -69,11 +69,26 @@ viejo; el dato real da 2.731 códigos hoy): el número lo medirá el motor en
 el punto 5 — decidido con la doc oficial: el CLAUDE.md lleva convenciones,
 no mediciones (`ca1aaba`).
 
-**Sin push desde `5188ba5`: veintitrés commits en local** (hasta `ca1aaba`).
+**La segunda pieza dentro y vista (17/08): el grafo.** 98.774 aristas
+copiadas byte a byte desde la OLD (un `.js` de una línea que se lee como
+texto, nunca se ejecuta), con sus tres partes declaradas en la ficha: el
+grafo que se pinta, el enganche portal→arista que el motor querrá, y la
+auditoría del viejo que viaja por indivisible. Pintado como una sola
+multi-polilínea en canvas: 116 ms y arrastre fluido con todo encendido —
+la red calca la tesela, cosa que el proyecto viejo jamás llegó a ver. Y por
+el camino, **entrada nº3 de la bitácora**: el sha256 declarado era el del
+disco propio, no el del clon — git metía un CRLF al checkout. Arreglada con
+`.gitattributes` (`app/data/** -text`) y verificada sobre un clon recién
+hecho. Su ley: la integridad se acredita en el clon; y su corolario: un
+aviso repetido asumido como ruido es un fallo esperando el fichero adecuado
+(el «LF will be replaced» llevaba saliendo desde el primer commit y se
+despachó como normal — también aquí, en la estrategia).
 
-**Lo siguiente:** las demás piezas del punto 4, cada una con autorización de
-Antonio — grafo, carriles, paradas de bus, tranvía, BiZi, y la de
-aparcabicis que no existe y hay que traer de fuente.
+**Sin push desde `5188ba5`: treinta commits en local** (hasta `f7c6bcf`).
+
+**Lo siguiente:** las demás piezas del punto 4 — carriles bici, paradas de
+bus, tranvía, BiZi, y la de aparcabicis que no existe y hay que traer de
+fuente. Cada una con autorización de Antonio.
 
 ---
 
@@ -196,6 +211,21 @@ Y las tomadas en este reinicio (16/08):
 - **La cifra de vías real está por medir**: 2.731 códigos en los portales,
   3.359 vías en el callejero completo según la procedencia (habrá vías sin
   portal). El motor la medirá en el punto 5 y ahí se publicará.
+- **Dos versiones de los portales conviven en el repo, a propósito**: los
+  municipales (Ley 37/2007) y los enganchados al grafo (ODbL, con distancia
+  de enganche). Cuando el motor resuelva direcciones habrá que decidir cuál
+  manda — decisión del punto 6.
+- **124 portales no enganchan a ninguna arista** (46.026 de 46.150 sí).
+  Son los que no tendrán por dónde salir cuando el motor calcule.
+- **El grafo tiene 170 componentes** (el mayor: 65.707 nodos; ~2.942 nodos
+  en 169 islas). Visible en el mapa; el motor decidirá qué hace con las
+  islas.
+- **`enlaces.json` de la OLD referencia aristas por índice de ESTE fichero
+  exacto**: si el grafo se regenera algún día, esos índices caducan en
+  silencio. Pendiente de tener presente cuando entren las paradas.
+- **Tercer andamio con caducidad en el punto 6**: el navegador se baja
+  22,8 MB del grafo (más 10,3 de portales) solo para verlos. Comentado en
+  el código; nada lo vigila.
 - **El andamio tiene caducidad escrita pero no vigilada**: `RUTA_DE_PRUEBA`
   en `app.ts` lleva el comentario de que se retira en el punto 6, y si ese
   día no se retira, nada lo detecta — la forma exacta del fallo nº1,
