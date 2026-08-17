@@ -4,11 +4,11 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 17/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **cinco** conjuntos de
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **seis** conjuntos de
 > datos —los portales del Ayuntamiento, el grafo de continuidad derivado de OSM, los carriles
-> bici y los postes de autobús municipales, y el GTFS del Punto de Acceso Nacional—. Las capas
-> municipales de tranvía y las estaciones Bizi todavía no han entrado; cada pieza llega con su
-> autorización y su ficha.
+> bici, los postes de autobús y las estaciones BiZi municipales, y el GTFS del Punto de Acceso
+> Nacional—. Las capas municipales de tranvía y los aparcabicis todavía no han entrado; cada
+> pieza llega con su autorización y su ficha.
 >
 > ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.6).
 >
@@ -238,11 +238,55 @@ los límites de GitHub.
 > hasta el **31/12/2026**. Son casi tres meses de servicio declarado más allá de la validez que
 > el propio feed se da. **Aquí se toma la fecha conservadora, la del publicador: 05/10/2026.**
 
-### 1.7 · El resto del dato — todavía **ninguno**
+### 1.7 · Estaciones BiZi — Ayuntamiento de Zaragoza (IDEZar)
 
-No hay capas municipales de tranvía ni estaciones Bizi en este repositorio, ni el cruce
-líneas↔postes (que es trabajo de motor, no un dato que copiar). Cada pieza entrará con su
-autorización y su ficha, como éstas.
+| | |
+|---|---|
+| **Qué es** | Las **276 estaciones** del servicio público de bicicleta BiZi: posición, nombre, situación, **capacidad** (`anclajes_bicicletas`), tipo de pavimento y tipología. Es el dónde se coge y se deja una bici sin tenerla |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU1_estaciones_bici_ubicacion`** · descargada el **02/08/2026 10:10 GMT** (los `timeStamp` de las seis páginas van de las 10:10:20 a las 10:10:28). CRS **EPSG:4326**, geometría `Point` |
+| **Licencia** | **Ley 37/2007**, la misma que portales (§ 1.2), carriles (§ 1.4) y postes (§ 1.5) |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
+| **Campos** | `numero`, `nombre`, `situacion`, `pavimento`, `coord_x`/`coord_y` (UTM), `fase`, `anclajes_bicicletas`, `junta_municipal`, `poligono`, `tipologia`. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ **Sí, tal cual, en sus seis páginas** (ver abajo) |
+
+**Entra repartido en seis ficheros, y es a propósito.** El WFS lo sirvió **paginado de 50 en
+50**, y así se descargó. Juntarlos en uno sería fabricar un fichero que nadie publicó — es
+derivar, no copiar. Entran los seis tal cual y es la aplicación la que los une al leerlos:
+
+| Página | Rasgos | Bytes | sha256 (verificado sobre un clon) |
+|---|---|---|---|
+| `…_pag0.json` | 50 | 21.848 | `7c26bc5679317044463335bf25a153cbaffed80aaaf30db75556caadbc6ac8a2` |
+| `…_pag50.json` | 50 | 22.217 | `82633663b9c6abf68d7f517e34b1fefa459de30c8c03bfb91f8b0d75a36be98e` |
+| `…_pag100.json` | 50 | 22.220 | `aeeb1448c9bfd7afca751c2c346af682933f988dc649a0e7005537cb656429bf` |
+| `…_pag150.json` | 50 | 22.357 | `aeebdae28754910e2e57fd0b80c26a887a7340deeb118b1cb6772b9c389f5e23` |
+| `…_pag200.json` | 50 | 22.483 | `215d8662231ab834733b7e1e4037dcef3e4ee0e0316efcbad504474e2cb9a368` |
+| `…_pag250.json` | **26** | 11.786 | `61a54580f28d9cc94d6c48cbe609c2f49da7b4d9ee7134aeb9b0edff16e8c7ef` |
+| **Total** | **276** | | Las seis declaran `totalFeatures: 276` |
+
+**Comprobado que son el conjunto completo, no una muestra**: 276 rasgos sumados, **276 `id`
+distintos y 276 números de estación distintos** — sin solapes ni huecos—, cero sin coordenada,
+5.520 anclajes en total.
+
+> ⚠️ **Hay una segunda fuente de estaciones en el archivo del intento anterior, y NO entra: la
+> API de zaragoza.es**, que sirve **dato vivo** (`bicisDisponibles`, `anclajesDisponibles`,
+> `estado`, `lastUpdated`). Eso no es esta pieza: la disponibilidad en tiempo real es otra cosa,
+> de otra vía y de otro punto del plan. Aquí entra **el inventario**, que no caduca cada minuto.
+>
+> Y de paso, un aviso sobre esa API por si algún día se usa: **se contradice dentro del mismo
+> rasgo**. En la estación «193- Pza. La Ermita» convivían `estado: "IN_SERVICE"`, un
+> `estadoEstacion` que apunta a la URI **`…/no-operativa`**, y una descripción que dice
+> «Estado: **Operativa**». Tres afirmaciones, y al menos dos no pueden ser ciertas a la vez.
+
+> ℹ️ **Estos seis ficheros no traen `_cabeceras.txt`**, al contrario que los carriles o el GTFS.
+> La procedencia se sostiene en lo que declara el propio dato: el `id` de cada rasgo
+> (`MU1_estaciones_bici_ubicacion.N`), el `timeStamp` del WFS en cada página y el `crs`. **Del
+> URL exacto de la petición: NO CONSTA.**
+
+### 1.8 · El resto del dato — todavía **ninguno**
+
+No hay capas municipales de tranvía, ni aparcabicis, ni el cruce líneas↔postes (que es trabajo
+de motor, no un dato que copiar). Cada pieza entrará con su autorización y su ficha, como éstas.
 
 ---
 
