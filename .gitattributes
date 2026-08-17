@@ -1,0 +1,8 @@
+# Los ficheros de datos se entregan BYTE A BYTE como entraron.
+#
+# Sin esto, con core.autocrlf=true git reescribe los saltos de línea al hacer
+# checkout: el grafo (una sola línea) salía del clon con un byte de más y otro
+# sha256 que el declarado en THIRD-PARTY-NOTICES.md. Ver docs/BITACORA.md nº3.
+#
+# -text = no conviertas finales de línea, ni al entrar ni al salir.
+app/data/** -text
