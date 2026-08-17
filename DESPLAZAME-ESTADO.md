@@ -170,10 +170,25 @@ urgencia). La guardia tiene perfil de motor con sus rojos vistos: la
 entrada nº2 con otro disfraz (Node no recarga en caliente), cazada antes
 de nacer.
 
-**Lo siguiente del punto 5:** el grafo en memoria (medir el arranque),
-la decisión de qué portales mandan, `GET /api/vias` midiendo la cifra
-real, el autocompletar en Chrome, y el destino de los andamios. Queda
-anotado el tranvía municipal como opción futura.
+**El grafo vive en el motor (17/08), medido y vigilado.** Carga antes de
+abrir el puerto (~190 ms; el «6,5 s» heredado era construir, no cargar —
+otra cifra que no se compara), recuentos exactos contra el punto 4, la
+salud lo declara y la guardia lo exige con dos rojos vistos: el motor sin
+grafo y el impostor con otro grafo. **196 MB de RSS** — dato en la mesa
+para el punto 10, donde la memoria del plan de Hostinger sigue en NO
+CONSTA junto al Node y el arranque persistente. Cabos de la casilla: en
+memoria viajan también el enganche y la auditoría sin que nadie los lea
+(tirarlos sería filtrar; si la memoria aprieta, ahí hay margen COMO
+DECISIÓN) · la guardia lleva `GRAFO_ESPERADO` escrito a mano — si el
+grafo se regenera, se pone roja hasta actualizarlo, intencionado y dicho ·
+la memoria es la foto del arranque, bajo carga es NO CONSTA ·
+`allowImportingTsExtensions` en el tsconfig del motor porque quien
+resuelve es Node, no un empaquetador.
+
+**Lo siguiente del punto 5:** la decisión de qué portales mandan,
+`GET /api/vias` midiendo la cifra real, el autocompletar en Chrome, y el
+destino de los andamios. Queda anotado el tranvía municipal como opción
+futura.
 
 Cabos nuevos del esqueleto: **`Modo` y `Vertice` viven por duplicado**
 (canónicos en `tipos/`, locales en la pantalla) — temporal a propósito

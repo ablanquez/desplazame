@@ -260,8 +260,20 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       nueva al Node del panel de Hostinger. La guardia aprendió el motor
       con perfil propio y sus tres rojos vistos, contrato incluido
       (`e64e57c`)
-- [ ] El grafo se carga UNA vez al arrancar y vive en memoria (medir cuánto
-      tarda y dejarlo escrito)
+- [x] **El grafo en memoria, medido y vigilado** (17/08): cargado UNA vez
+      antes de `listen()` — el puerto no abre hasta que el grafo está, a
+      propósito, para que la guardia no pueda dar verde a un motor a medio
+      cargar (`efb4dd9`). Cifras REALES: ~190 ms de arranque (~500 en
+      frío), parse ~150 ms — el «6,5 s» heredado era CONSTRUIR, no cargar,
+      y no se compara. Recuentos exactos contra el punto 4 (98.774 /
+      68.649 / 378.222). ⚠️ **196 MB de RSS** — dato para el punto 10: la
+      memoria del plan de Hostinger es NO CONSTA y esto sube su urgencia.
+      La salud declara el grafo que lleva (`cb6eda4`, el front sigue
+      compilando) y la guardia lo EXIGE con dos rojos vistos: el motor
+      sin grafo (el «verde del esqueleto», rechazado) y el impostor con
+      OTRO grafo, cazado por recuentos (`d2516ac`). Y un hueco
+      autodetectado: las fuentes vigiladas se leen ahora del directorio,
+      no de una lista escrita a mano — la entrada nº2, aprendida
 - [ ] **Decidir qué portales mandan** para resolver direcciones: el repo
       tiene DOS versiones a propósito (los 46.150 municipales y los
       46.026 enganchados al grafo con su distancia de enganche). El motor
