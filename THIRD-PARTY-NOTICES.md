@@ -4,10 +4,13 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 17/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **cuatro** ficheros de
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **cinco** conjuntos de
 > datos —los portales del Ayuntamiento, el grafo de continuidad derivado de OSM, los carriles
-> bici y los postes de autobús municipales—. El GTFS, el tranvía y las estaciones Bizi todavía
-> no han entrado; cada pieza llega con su autorización y su ficha.
+> bici y los postes de autobús municipales, y el GTFS del Punto de Acceso Nacional—. Las capas
+> municipales de tranvía y las estaciones Bizi todavía no han entrado; cada pieza llega con su
+> autorización y su ficha.
+>
+> ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.6).
 >
 > **Las huellas sha256 de esta página se verifican sobre un clon**, no sobre el disco de quien
 > las escribe: git puede reescribir bytes al hacer *checkout*. Ver `docs/BITACORA.md` nº3, y el
@@ -168,10 +171,71 @@ servicio, o de refuerzo, está en uno y no en el otro. Ninguno de los dos númer
 > adoptado». Puede que lo descartara a favor del GTFS o del barrido; no se ha averiguado, y no
 > se infiere.
 
-### 1.6 · El resto del dato — todavía **ninguno**
+### 1.6 · GTFS del transporte urbano — Punto de Acceso Nacional (ficha 1176)
 
-No hay GTFS, ni tranvía, ni estaciones Bizi en este repositorio, ni las líneas por poste de
-§ 1.5. Cada pieza entrará con su autorización y su ficha, como éstas.
+> ## ⏳ ESTE DATO CADUCA EL **05/10/2026**
+> Lo declara el propio feed: `feed_info.feed_end_date = 20261005`. Es una **instantánea
+> autorizada**, no una fuente viva. Pasada esa fecha, lo que hay aquí describe una red que ya
+> no está vigente, y **nada en el repositorio lo va a avisar solo**.
+
+| | |
+|---|---|
+| **Qué es** | El feed GTFS del transporte urbano de Zaragoza: líneas, viajes, orden de paradas, calendario y **trazados**. Es donde viven las líneas que § 1.5 dejó anotadas como dependencia |
+| **Titular** | **Avanza Zaragoza S.A.U** (publicador del feed) |
+| **Canal** | **Punto de Acceso Nacional** · Ministerio de Transportes y Movilidad Sostenible · **ficha 1176** · `https://nap.transportes.gob.es/api/Fichero/download/1176` |
+| **Descarga** | **10/08/2026 09:44:51 GMT**, estado 200. Las cabeceras de la respuesta declaran `sha256 5c96992c…` y `content-length 6883311`: **las dos cuadran** con el fichero que hay aquí |
+| **`feed_version`** | `20260623_AUZSA_Y_TRANVIA` · vigencia declarada **23/06/2026 → 05/10/2026** |
+| **Agencias** | **Dos**: `1` Avanza Zaragoza S.A.U. y `11` **Tranvías Urbanos de Zaragoza S.L.** El tranvía viene dentro |
+| **Licencia** | **Licencia de datos abiertos del MITMS.** Permite redistribuir: *«Compartir (copiar, distribuir) los datos […] obtenidos del MITRAMS»*, incluida *«modificación, adaptación, extracción, reordenación y combinación»* |
+| **Atribución exigida** | *«Powered by MITRAMS»* con enlace a `https://www.transportes.gob.es/`, cita del MITMS como fuente, e **indicación de si el dato es bruto o procesado** |
+| **Dónde está cumplida** | Colgada de la capa de trazados: *«Trazados: GTFS de Avanza Zaragoza S.A.U. (dato bruto) · Powered by MITRAMS»* |
+| **¿Está en este repo?** | ✅ **Sí, el ZIP entero tal cual**: [`app/data/2026-08-10_nap_gtfs-ficha1176.zip`](app/data/2026-08-10_nap_gtfs-ficha1176.zip) · 6.883.311 bytes · sha256 `5c96992c97aac966bc9bc20babfbbbffb312f2a3cbcf9dd543982d2674cf3a82` **verificado sobre un clon** |
+
+**Y una copia de trabajo extraída, solo una.** [`…_shapes.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_shapes.txt),
+1.408.077 bytes, sha256 `f38397d36c98fb756b2ee5a3ca261fbfc712aea2e51903d51b7c9b4fddb18157`. **Extraer no
+es editar**: el hash del fichero en disco es idéntico al del miembro dentro del archivo, comprobado
+con `unzip -p … | sha256sum` antes y después. Se extrae porque el navegador no abre ZIP sin una
+dependencia nueva, y no la hay. **`stop_times.txt` (47 MB) NO se extrae**: no hace falta para
+pintar y sería peso muerto rozando los límites de GitHub.
+
+> ⚠️ **Divergencia declarada.** Ni el proyecto anterior ni ZetaBus subieron este ZIP: los dos lo
+> ignoraban a propósito, y por el mismo motivo — *«caduca, y una copia versionada se pudre en
+> silencio mientras alguien construye contra ella»*. **Aquí sí entra**, por decisión expresa y
+> con la caducidad escrita arriba en grande. Este proyecto trata los datos como **instantáneas
+> autorizadas**; el dato fresco llegará por su vía en el punto 8.
+
+**Recuentos re-verificados aquí, con comandos sobre este ZIP** (no heredados):
+
+| | Medido |
+|---|---|
+| Ficheros en el archivo | **8** (`agency`, `calendar_dates`, `feed_info`, `routes`, `shapes`, `stops`, `stop_times`, `trips`) |
+| `stops` | **984** = **934** con `stop_code` `PA…` + **50** con código de cuatro cifras (`0101`, `0201`…) |
+| `routes` | **53** = **52** de la agencia 1 (bus) + **1** de la agencia 11 (tranvía) |
+| `trips` | **34.427**, y **los 34.427 traen `shape_id`** |
+| `shapes` | **89 trazados**, **27.603 puntos** |
+| Huérfanos | **0** en los dos sentidos: ningún viaje apunta a un trazado inexistente, ningún trazado se queda sin usar |
+| `calendar_dates` | 27.161 filas, **todas `exception_type=1`** (servicio añadido). Cero supresiones |
+
+**Las dos minas conocidas, confirmadas con el dato delante:**
+
+- **El puente `PA…` miente sobre el tranvía.** El `stop_code` `PA…` es lo que permite cruzar
+  este feed con los postes municipales de § 1.5 — pero **solo lo tienen 934 de los 984**. Los
+  **50 del tranvía usan otro espacio de códigos** (`0101`, `0201`, …). Quien cruce por `PA…`
+  creyendo que cubre la red entera perderá el tranvía **sin que nada falle**.
+- **Suciedad de codificación que viaja tal cual.** El origen no pone en mayúscula las vocales
+  acentuadas: **8 nombres** salen mal — «Miguel **á**ngel Blanco N.º 53», «Nuestra Señora De Los
+  **á**ngeles», «Ies **í**taca», «Marcelino **á**lvarez». No se corrige: el dato se copia tal cual.
+
+> ⚠️ **Y una tercera que salió al re-verificar, que no venía heredada: el feed se contradice
+> consigo mismo.** Declara `feed_end_date = 20261005`, pero su `calendar_dates` tiene servicio
+> hasta el **31/12/2026**. Son casi tres meses de servicio declarado más allá de la validez que
+> el propio feed se da. **Aquí se toma la fecha conservadora, la del publicador: 05/10/2026.**
+
+### 1.7 · El resto del dato — todavía **ninguno**
+
+No hay capas municipales de tranvía ni estaciones Bizi en este repositorio, ni el cruce
+líneas↔postes (que es trabajo de motor, no un dato que copiar). Cada pieza entrará con su
+autorización y su ficha, como éstas.
 
 ---
 
