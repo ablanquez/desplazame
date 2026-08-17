@@ -29,10 +29,11 @@
 > encenderlo y apagarlo. Pero el buscador **todavía no los usa**: la línea que dibuja al
 > generar sigue siendo tan inventada como los pasos.
 >
-> Y ya hay **motor**, aunque no calcule nada: un servidor mínimo en Node que solo sabe
-> responder que está vivo. **Ninguna ruta, ningún dato cargado, ningún cálculo** — lo que hay
-> es el contrato entre motor e interfaz, compartido en un paquete de tipos, y la fontanería
-> para que se hablen. Tampoco se sabe aún qué líneas pasan por cada poste.
+> Y ya hay **motor**: un servidor mínimo en Node que carga al arrancar el grafo de la ciudad
+> y el callejero, y sabe **sugerir calles** — de las 3.359 vías del callejero ofrece las
+> **2.731 que tienen algún portal**, porque sugerir una calle sin portales sería prometer una
+> dirección que después no se puede resolver. **Pero no calcula ninguna ruta**: eso no existe
+> todavía. Tampoco se sabe aún qué líneas pasan por cada poste.
 >
 > Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y una
 > pantalla con andamio.
