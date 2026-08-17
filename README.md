@@ -21,7 +21,7 @@
 > campos, los cuatro modos y las indicaciones. Pero **no busca rutas**. Al pulsar «Generar
 > ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
 > dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
-> OpenStreetMap— y ya puede dibujar encima cuatro datos reales: los **46.150 portales** del
+> OpenStreetMap— y ya puede dibujar encima seis datos reales: los **46.150 portales** del
 > Ayuntamiento de Zaragoza, las **98.774 aristas** del grafo de continuidad peatonal y
 > ciclable, los **733 tramos de carril bici**, los **944 postes de autobús** y las **276
 > estaciones BiZi** municipales, y los **89 trazados de línea** del GTFS —tranvía incluido, con
