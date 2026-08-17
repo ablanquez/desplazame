@@ -82,7 +82,24 @@ números de arriba es **este** fichero, no una consulta nueva.
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
 | **Dónde está cumplida** | Esta pieza **no se pinta** —es tabla, no capa—, así que no cuelga de ninguna capa del mapa. Su atribución es la de esta ficha, y la que acompañe a las sugerencias cuando el formulario las enseñe |
 | **Campos** | `id`, `codigoVia`, `nombre`, `nombreCompleto`, `nombrePublico`, `nombrePublicoNorm`, `tipoVia`, `numPortales`, y en 739 vías `barrioRural`/`barrioRuralLabel`. **Ninguno personal** |
-| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json`](app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json) · 1.025.210 bytes · sha256 `9c7873679df0b94c7b27fa2f6cbaac84a0b610e64a06bfd725070df17d646ebc` **verificado sobre un clon**, y coincide con el que la ficha de procedencia del origen declaró haber medido en disco |
+| **¿Está en este repo?** | ✅ Sí, **con dos correcciones declaradas** (abajo): [`app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json`](app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json) · 1.025.210 bytes · sha256 `3ca75f305b4bb9ef1a9a6de2583d535a6cbd750db2d6f91b6c1951a3f238655b` **verificado sobre un clon**. Tal y como salió del origen era `9c7873679df0b94c7b27fa2f6cbaac84a0b610e64a06bfd725070df17d646ebc`, la misma huella que su ficha de procedencia declaraba |
+
+> ⚠️ **Este es el ÚNICO fichero de datos del repositorio que no está tal cual.** Lleva **dos
+> correcciones**, decididas expresamente y con la evidencia delante:
+>
+> | Vía | Decía | Dice | Por qué |
+> |---|---|---|---|
+> | `CALLE BARCELONA` (cod. 3564) | `---CRT` | `---CST` | Su propio `barrioRural` es **`CST`** y sus 20 portales tienen el centroide en **41,7238 · −1,0338**, dentro de Casetas |
+> | `CALLE LA PARRA` (cod. 22340) | `---CRT` | `---CST` | Ídem: `barrioRural` = **`CST`**, y sus 11 portales en **41,7193 · −1,0282** |
+>
+> **El registro se contradecía a sí mismo**: el marcador del nombre decía `CRT` (La Cartuja,
+> a 20 km al sureste) mientras el campo `barrioRural` del mismo registro decía `CST` y las
+> coordenadas caían en Casetas. Dos evidencias contra una. Sin corregirlo, cualquiera que
+> agrupase por marcador colocaría **31 portales** en el barrio equivocado.
+>
+> Se cambiaron **8 líneas** —los cuatro campos de nombre de cada vía: `nombre`,
+> `nombreCompleto`, `nombrePublico` y `nombrePublicoNorm`—, ni una más. Tocar solo dos habría
+> dejado el registro contradiciéndose de otra manera.
 
 **El cruce contra los portales municipales, que es la verificación de esta pieza** (no se pinta:
 se cuenta). Medido con comando sobre los dos ficheros del repositorio:
