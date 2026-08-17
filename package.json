@@ -5,6 +5,7 @@
   "description": "Raíz de workspaces. Aquí no vive código: solo el reparto en tipos, motor e interfaz.",
   "workspaces": [
     "tipos",
+    "motor",
     "app"
   ]
 }

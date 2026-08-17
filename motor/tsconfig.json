@@ -1,0 +1,25 @@
+{
+  /* Coherente con app/tsconfig.json, con una diferencia declarada: aquí
+     `strict` va ESCRITO. En app/ las comprobaciones estrictas están activas
+     sin declararse —vienen del valor por defecto de TypeScript 6, comprobado
+     ejecutando: un parámetro sin tipo da TS7006—, pero al motor lo revisa
+     `tsc` a secas y no Angular, así que no se da por hecho: se declara. */
+  "compilerOptions": {
+    "strict": true,
+    "isolatedModules": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "skipLibCheck": true,
+    "target": "ES2022",
+
+    /* Node 24 ejecuta TypeScript directamente (borrado de tipos), así que
+       aquí NO se compila nada: `tsc` solo revisa. De ahí el noEmit. */
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"]
+}

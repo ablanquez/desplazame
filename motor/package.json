@@ -1,0 +1,17 @@
+{
+  "name": "@desplazame/motor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "El motor: servidor mínimo sobre node:http. Hoy solo sabe decir que está vivo.",
+  "scripts": {
+    "start": "node src/servidor.ts",
+    "comprobar-tipos": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@desplazame/tipos": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0"
+  }
+}
