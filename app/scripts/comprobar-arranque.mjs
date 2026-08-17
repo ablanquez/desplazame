@@ -16,6 +16,7 @@
  *      · motor: que `/api/salud` cumple el contrato `Salud`        2
  *        y que lleva EL GRAFO cargado, con los recuentos de este
  *        repositorio — no solo que respire ................... 7
+ *        y EL CALLEJERO, con su cifra sugerible .............. 8
  *   2. QUIÉN: el PID que está escuchando ....................... 3
  *   3. Que ese proceso arrancó DESPUÉS de la última modificación
  *      de los ficheros que solo se leen al arrancar ............ 4
@@ -83,9 +84,11 @@ const SOLO_AL_ARRANCAR = ES_MOTOR
       ...readdirSync(join(RAIZ, 'src'))
         .filter((f) => f.endsWith('.ts'))
         .map((f) => join('src', f)),
-      // Y el grafo: el motor lo lee UNA vez al arrancar. Si el dato cambia,
-      // el motor sirve el de antes hasta que alguien lo reinicie.
+      // Y los DATOS que lee al arrancar: los lee una sola vez, así que si
+      // alguno cambia, el motor sirve el de antes hasta que se reinicie.
       join('..', 'app', 'data', 'grafo-visor.js'),
+      join('..', 'app', 'data', '2026-05-13_zgzradar_callejero-vias-zaragoza.json'),
+      join('..', 'app', 'data', '2026-05-13_zgzradar_callejero-portales-zaragoza.json'),
     ]
   : ['angular.json', 'package.json', 'package-lock.json'];
 
@@ -100,6 +103,12 @@ const DIST = join(APP, 'dist', 'desplazame', 'browser');
  * roja hasta que alguien los actualice es justo lo que se quiere.
  */
 const GRAFO_ESPERADO = { nodos: 68649, aristas: 98774, vertices: 378222 };
+
+/**
+ * Y lo que tiene que traer el callejero. `sugeribles` es el número que se
+ * publica: las vías con portal, medidas en el cruce de esta casilla.
+ */
+const CALLEJERO_ESPERADO = { vias: 3359, sugeribles: 2731, portales: 46150 };
 
 /**
  * Rojo. Lanza en vez de salir: `process.exit()` con peticiones a medio cerrar
@@ -170,6 +179,25 @@ async function comprobar() {
     bien(
       `lleva el grafo: ${g.aristas} aristas · ${g.nodos} nodos · ${g.vertices} vértices ` +
         `(cargado en ${g.cargadoEnMs} ms)`,
+    );
+
+    // 1c · ¿Lleva el callejero, y es ESTE?
+    const c = salud.callejero;
+    if (!c || typeof c.sugeribles !== 'number' || typeof c.vias !== 'number') {
+      mal(8, 'el motor contesta pero NO declara callejero: arrancó sin cargarlo', portada.cuerpo.slice(0, 200));
+    }
+    for (const [campo, esperado] of Object.entries(CALLEJERO_ESPERADO)) {
+      if (c[campo] !== esperado) {
+        mal(
+          8,
+          `el callejero cargado no es el de este repositorio: ${campo} = ${c[campo]}`,
+          `esperado ${esperado}, medido en el cruce callejero↔portales`,
+        );
+      }
+    }
+    bien(
+      `lleva el callejero: ${c.vias} vías, ${c.sugeribles} sugeribles, ` +
+        `${c.portales} portales (cargado en ${c.cargadoEnMs} ms)`,
     );
   } else {
     if (!portada.cuerpo.includes('<app-root>')) {
