@@ -166,8 +166,33 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       — QUEDA RETIRADA como criterio de esta pieza (van dos derivadas).
       Las líneas por poste llegarán con el GTFS (pieza pendiente de este
       punto 4) o el barrido del punto 8; el puente es el `stop_code` PA…
-- [ ] Líneas y su orden (del GTFS)
-- [ ] Postes y recorrido del tranvía (50 paradas, 1 línea, 2 sentidos)
+- [x] **El GTFS dentro y VISTO por Antonio** (17/08): el ZIP del NAP
+      (ficha 1176, 6,9 MB) tal cual, con el hash cuadrando por TRES puntas
+      (cabeceras de la descarga · origen · clon) (`e5091e8`). Licencia
+      MITRAMS resuelta con el precedente de ZetaBus: redistribución
+      permitida, atribución «Powered by MITRAMS» colgada de las capas
+      (`e2493db`). shapes.txt y stops.txt extraídos y verificados POR
+      MIEMBRO — extraer no es editar (`bef1dae`, `f8ea5d1`). Los 87
+      trazados de bus en violeta (`ec5beaa`), README releído (`95a9b7c`).
+      Re-verificado el reconocimiento heredado: 984 stops · 53 rutas ·
+      34.427 trips · 89/27.603 shapes sin huérfanos ✓ — y la caducidad
+      quedó en UNA vía, no dos: el feed se contradice (servicio real hasta
+      el 27/12; vale el 05/10 del publicador, la conservadora).
+      ⭐ Misterio resuelto: 45 rutas CON viajes = 44 bus + tranvía — ahí
+      estaban las «44 líneas» de ZetaBus. Las 8 sin ningún viaje (CEM, CE,
+      LAN, EM1, EM2, V1, ES3, V4 — cementerio, estadio, sustitución del
+      tranvía) están declaradas y apagadas: sin viajes no hay trazado, no
+      se pintan solas
+- [x] **El tranvía completo y VISTO por Antonio** (17/08), cubierto por el
+      GTFS — las capas municipales de tranvía existen en el catálogo pero
+      nadie las descargó nunca (ni la OLD): quedan como opción futura si
+      hicieran falta. Recorrido en negro grueso distinguido de los buses a
+      petición de Antonio (`d3262b1`: 2 de 89 por shape_id `210_*`,
+      acromático fuera del círculo de tono) y las 50 paradas con casilla
+      propia siguiendo la lógica del bus —trazados y paradas separados—
+      decidida por Antonio (`c344bbe`, `cc79570`). Los stop_code son 25
+      pares `NN01`/`NN02` con tres saltos (`1311/1312`, `2322`, `2422`):
+      mina anotada para quien derive sentidos del sufijo en el punto 8
 - [ ] Estaciones BiZi (276)
 - [ ] Aparcabicis — la capa no está en la OLD, pero **la fuente existe:
       el catálogo de datos abiertos del Ayuntamiento la publica como
@@ -209,6 +234,31 @@ Carriles y continuidad ciclable sobre el mismo esqueleto del 6.
 Paradas, líneas y la decisión `G`: componer sin prometer, sin total
 inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
 02:00). Se detalla cuando el 6 y el 7 estén vistos funcionar.
+
+Dejado aquí desde el punto 4, para cuando toque:
+
+- [ ] **D-MAPA-DE-HOY (decidida por Antonio el 17/08, se construye aquí):**
+      el mapa pinta la red operativa DEL DÍA, no el catálogo — el cron
+      nocturno recalcula qué líneas tienen viajes hoy (cruce trips +
+      calendar_dates contra la fecha) y el pintado sigue a ese cálculo.
+      Un búho en martes no se pinta; una especial activada, sí
+- [ ] **La comprobación de la fecha viva**: el cron mide en cada feed
+      hasta cuándo llega el servicio REAL (hoy: 27/12, con el feed
+      declarando 05/10 — se contradice) y lo reporta; la caducidad deja
+      de vigilarse a mano
+- [ ] **El cruce líneas↔postes** (routes+trips+stop_times contra los 944
+      del MU3): la dependencia anotada en tres sitios sin guardián.
+      El puente es el stop_code PA… — que MIENTE sobre el tranvía (los 50
+      numéricos): el cruce lleva la guarda o pierde el tranvía en silencio
+- [ ] **Un listado ingenuo de líneas ofrecería 8 que no llevan a ninguna
+      parte**: las operativas son 45 (44 bus + tranvía), las 8 especiales
+      están declaradas sin viajes. El buscador lista lo que opera
+- [ ] **Los sentidos del tranvía NO se derivan del sufijo a ciegas**:
+      tres saltos conocidos en los stop_code (`1311/1312`, `2322`, `2422`)
+- [ ] Al retirar los andamios de carga (~35,6 MB en el navegador), la
+      imprecisión menor del notices §1.6 (dice 31/12; el servicio real
+      usado llega al 27/12, el 31 es de huérfanos) se corrige en la misma
+      pasada que toque ese fichero
 
 ## 9 — Modo COCHE *(en grueso)*
 

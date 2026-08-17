@@ -110,12 +110,28 @@ tenía este dato en `exploracion/` sin adoptar. Color corregido a ojo de
 Antonio: el cian se confundía con el azul de los portales; ahora rojo, con
 el círculo de tono como criterio.
 
-**Publicado hasta `acfefaa`; diez commits en local** (hasta `3af28c4`).
+**La quinta pieza dentro y vista (17/08): el GTFS — y el tranvía completo
+con ella.** El ZIP del NAP entró tal cual (hash por tres puntas: cabeceras
+de la propia descarga, origen y clon), con la licencia MITRAMS resuelta
+contra el precedente de ZetaBus y la divergencia declarada: la OLD y
+ZetaBus lo gitignoreaban por frescura; aquí entra como instantánea
+autorizada con caducidad 05/10 en destacado. shapes.txt y stops.txt
+extraídos y verificados por miembro. Los 87 trazados de bus en violeta; el
+tranvía en negro (recorrido grueso + 50 paradas con casilla propia, la
+lógica de bus aplicada por decisión de Antonio). El control del mapa tiene
+siete capas. ⭐ Dos misterios resueltos: las «44 líneas» de ZetaBus son
+las 45 rutas CON viajes (44 bus + tranvía) — el feed declara 53 pero 8
+especiales van apagadas (cementerio, estadio, sustitución del tranvía) —
+y la caducidad «por dos vías» era por una: el feed se contradice (servicio
+real hasta el 27/12). **Y una decisión nueva de Antonio, D-MAPA-DE-HOY:**
+el mapa pintará la red operativa del día, no el catálogo — se construye en
+el punto 8 con el cron; queda en el plan con sus casillas.
 
-**Lo siguiente:** las piezas que quedan del punto 4 — el GTFS (donde viven
-las líneas y su orden; feed vigente hasta el 05/10), tranvía, BiZi
-(estaciones en la OLD: `MU1_estaciones_bici` + API), y aparcabicis (fuente:
-el catálogo municipal). Cada una con autorización de Antonio.
+**Publicado hasta `acfefaa`; veinte commits en local** (hasta `cc79570`).
+
+**Lo siguiente:** las dos piezas que quedan del punto 4 — BiZi (estaciones
+en la OLD: `MU1_estaciones_bici` + API) y aparcabicis (fuente: el catálogo
+municipal, descarga nueva). Cada una con autorización de Antonio.
 
 ---
 
@@ -267,6 +283,14 @@ Y las tomadas en este reinicio (16/08):
   datos**: 49.972 aristas ciclables, 44 rutas, 74 sentidos. Regla que
   sale del patrón: ninguna cifra del proyecto viejo se hereda como
   criterio — se contrasta contra lo que el ejecutor mida, y el dato manda.
+  (Las «44» quedaron después explicadas: son las rutas operativas del
+  GTFS.)
+- **El correo de contacto del feed** (`feed_info.txt`, contacto
+  profesional del operador) viaja dentro del ZIP tal cual — decidido por
+  Antonio: es redistribución fiel de un dato oficial público.
+- **La caducidad del GTFS (05/10) no tiene guardián** hasta el punto 8,
+  donde el cron medirá la fecha viva en cada feed. Hasta entonces vive en
+  el notices en destacado y en nadie más.
 - **El andamio tiene caducidad escrita pero no vigilada**: `RUTA_DE_PRUEBA`
   en `app.ts` lleva el comentario de que se retira en el punto 6, y si ese
   día no se retira, nada lo detecta — la forma exacta del fallo nº1,
