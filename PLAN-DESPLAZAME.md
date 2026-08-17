@@ -285,25 +285,29 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
         `Aviso` honesto en vez de fallar en silencio
       Verificación informativa para el 6: el casado por `portalId` entre
       los dos censos — si no casan por id, el salto será por coordenada
-- [ ] **El callejero entra como pieza de datos** (autorización de Antonio,
-      17/08): la tabla código↔nombre de la OLD (~3.359 vías declaradas,
-      el mismo lote de mayo que los portales). Formato NO CONSTA hasta
-      mirarlo — reporte antes de copiar, la lección del grafo. Ficha en
-      el notices; la verificación aquí no es pintar (es tabla, no capa):
-      recuentos, muestra, y el cruce contra los `codigoVia` de los
-      portales. La suciedad conocida de la fuente (`ABOGACíA`) viaja tal
-      cual: la NORMALIZACIÓN vive en el motor al comparar, y las
-      sugerencias se muestran como el dato venga
-- [ ] `GET /api/vias` — autocompletado sobre las vías del callejero.
-      ⭐ AQUÍ se mide por fin la cifra real. **Criterio de producto,
-      decidido: se sugieren SOLO las vías con portal** (la intersección
-      callejero ∩ portales) — sugerir una vía sin portales sería prometer
-      lo que el punto 6 no puede cumplir, la forma de las 8 líneas de bus
-      apagadas. El endpoint declara los DOS números (las N del callejero,
-      las M sugeribles); la cifra que se publica es la M, con la N de
-      contexto. La guardia vigila los ficheros nuevos que el motor lea al
-      arrancar (callejero y portales entran en sus fuentes), y el
-      contrato crece con el tipo de la sugerencia sin romper el front
+- [x] **El callejero dentro** (17/08): fichero limpio hermano de los
+      portales (mismo lote de mayo, sha256 triple: procedencia, origen y
+      clon), 3.359 vías (`0733021`). El cruce, IMPECABLE: cero portales
+      huérfanos, y el `numPortales` declarado cuadra en las 3.359 sin una
+      excepción (`5c4a0d4`). La suciedad declarada: la ABOGACíA (sin
+      portales, no se sugiere) y 256 vías con marcadores `---CST`/`---PÑF`
+      que viajan tal cual — 231 de ellas sugeribles. Y el descarte con
+      dato: el otro candidato era geometría de calles, no la tabla
+- [x] **`GET /api/vias` sugiriendo, VISTO por Antonio en Chrome por el
+      proxy** (17/08): ⭐ **LA CIFRA REAL POR FIN — N = 3.359 vías, M =
+      2.731 sugeribles (la que se publica), 628 sin portal que no se
+      ofrecen** (`9fa9bd1`). Y la 2.661 de la memoria vieja: MUERTA — no
+      cuadra con nada medible, y ya no existe en ningún fichero del repo
+      (grep vacío). Normalización NFD escrita a mano por los dos lados
+      (coincide al 100% con el `nombrePublicoNorm` del origen), subcadena
+      con prefijos primero, tope 10, vacíos bien formados — Antonio vio
+      el `q=colon` sin tilde casando las COLÓN y la COLONIA, y el
+      `---CST` saliendo tal cual. La guardia exige el callejero con dos
+      rojos nuevos vistos (tocado-tras-arrancar con curl dando 200 en ese
+      instante · arrancado-sin-callejero) y vigila los TRES ficheros de
+      datos (`8eccc9d`). Contrato crecido sin romper el front
+      (`323c7c4`), README diciendo la verdad nueva (`b7a3347`).
+      Motor: 223 MB de RSS (+27) — el punto 10 acumula
 - [ ] El formulario real consume `/api/vias` — **autocompletar visto
       funcionar en Chrome**
 - [ ] **El destino de los andamios de carga (~34 MB), decidido aquí**:
