@@ -1,15 +1,13 @@
 /**
  * El motor de Desplázame.
  *
- * Carga el grafo UNA vez al arrancar y lo deja en memoria; después abre el
- * puerto. Todavía no calcula rutas —eso es el punto 6—, pero ya sostiene el
- * dato que las hará posibles, y lo dice en `/api/salud`.
+ * Carga el grafo y el callejero UNA vez al arrancar y los deja en memoria;
+ * después abre el puerto. Todavía no calcula rutas —eso es el punto 6—, pero
+ * ya sugiere vías y dice en `/api/salud` con qué dato lo hace.
  *
- * **El puerto no abre hasta que el grafo está.** Es la decisión declarada de
- * esta casilla: así no existe el instante en que el motor contesta a medio
- * cargar, y la guardia no puede darle verde a un motor incompleto. Si algún
- * día la carga tarda tanto que ese silencio inicial estorbe, se cambia por un
- * estado «cargando» — pero hoy tarda lo que tarda un parpadeo.
+ * **El puerto no abre hasta que todo está cargado.** Es la decisión declarada:
+ * así no existe el instante en que el motor contesta a medio cargar, y la
+ * guardia no puede darle verde a un motor incompleto.
  *
  * No se compila: Node 24 ejecuta TypeScript directamente borrando los tipos.
  */
@@ -17,6 +15,7 @@
 import { createServer } from 'node:http';
 import type { Salud } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
+import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 
 /** El puerto del motor. La interfaz le habla por el proxy de `ng serve`. */
 const PUERTO = 3000;
@@ -31,6 +30,15 @@ console.log(
   `motor: leído en ${memoria.leidoEnMs.toFixed(0)} ms · parseado en ` +
     `${memoria.parseadoEnMs.toFixed(0)} ms · listo en ${memoria.cargadoEnMs.toFixed(0)} ms`,
 );
+
+console.log('motor: cargando el callejero…');
+const callejero = cargarCallejero();
+console.log(
+  `motor: callejero en memoria — ${callejero.vias} vías, de las que ` +
+    `${callejero.sugeribles.length} tienen portal y se sugieren ` +
+    `(${callejero.portales} portales) · ${callejero.cargadoEnMs.toFixed(0)} ms`,
+);
+
 const usoMemoria = process.memoryUsage();
 console.log(
   `motor: memoria del proceso — rss ${(usoMemoria.rss / 1048576).toFixed(0)} MB · ` +
@@ -46,7 +54,9 @@ const servidor = createServer((peticion, respuesta) => {
     respuesta.end(JSON.stringify(cuerpo));
   };
 
-  if (peticion.method === 'GET' && peticion.url === '/api/salud') {
+  const url = new URL(peticion.url ?? '/', `http://localhost:${PUERTO}`);
+
+  if (peticion.method === 'GET' && url.pathname === '/api/salud') {
     const salud: Salud = {
       ok: true,
       pid: process.pid,
@@ -57,8 +67,22 @@ const servidor = createServer((peticion, respuesta) => {
         vertices: memoria.vertices,
         cargadoEnMs: Math.round(memoria.cargadoEnMs),
       },
+      callejero: {
+        vias: callejero.vias,
+        sugeribles: callejero.sugeribles.length,
+        portales: callejero.portales,
+        cargadoEnMs: Math.round(callejero.cargadoEnMs),
+      },
     };
     json(200, salud);
+    return;
+  }
+
+  if (peticion.method === 'GET' && url.pathname === '/api/vias') {
+    // Sin `q`, o con menos de MINIMO letras, se devuelve lista vacía: es una
+    // respuesta bien formada, no un error. Quien escribe todavía no ha dicho
+    // bastante como para sugerirle nada.
+    json(200, buscar(callejero, url.searchParams.get('q') ?? ''));
     return;
   }
 
@@ -67,5 +91,6 @@ const servidor = createServer((peticion, respuesta) => {
 
 servidor.listen(PUERTO, () => {
   console.log(`motor: escuchando en http://localhost:${PUERTO} (pid ${process.pid})`);
+  console.log(`motor: /api/vias sugiere desde ${MINIMO} letras, hasta ${LIMITE} resultados`);
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 });
