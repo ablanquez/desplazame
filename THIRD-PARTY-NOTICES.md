@@ -301,6 +301,13 @@ distintos y 276 números de estación distintos** — sin solapes ni huecos—, 
 procedencia la generamos aquí, con el mismo patrón que las heredadas traían de fábrica: el URL
 de la petición y las cabeceras de la respuesta, en un fichero hermano.
 
+> 🔒 **Norma, desde hoy: las cabeceras de descargas propias se guardan SIN `Set-Cookie`.** El
+> servidor emite un identificador de sesión hasta en una petición anónima de dato abierto, y un
+> repositorio público no es sitio para un token — commiteado una vez, se queda en la historia
+> para siempre. En su lugar va una línea que declara la omisión, para que se vea que se filtró y
+> no que faltaba. **Las cabeceras de las piezas heredadas no se tocan**: las generó el proyecto
+> anterior y son su registro, no el nuestro.
+
 **Vino completa de una vez**: `numberMatched` = `numberReturned` = **2.158**, sin paginar. Todos
 los rasgos con geometría, dentro del término (41,60–41,76 N · −1,04–−0,77 O). **14.544 anclajes**
 en total.
