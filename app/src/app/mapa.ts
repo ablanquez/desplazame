@@ -66,6 +66,9 @@ export class Mapa {
   /** Trazados del tranvía. Capa aparte: es otra red y otra agencia. */
   readonly tranvia = input<readonly (readonly Vertice[])[]>([]);
 
+  /** Paradas del tranvía. Su propia casilla, como en bus. */
+  readonly paradasTranvia = input<readonly Vertice[]>([]);
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
@@ -75,6 +78,7 @@ export class Mapa {
   private capaPostes?: L.LayerGroup;
   private capaTrazados?: L.Polyline;
   private capaTranvia?: L.Polyline;
+  private capaParadasTranvia?: L.LayerGroup;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -94,6 +98,7 @@ export class Mapa {
       this.pintarPostes();
       this.pintarTrazados();
       this.pintarTranvia();
+      this.pintarParadasTranvia();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -132,6 +137,53 @@ export class Mapa {
       this.tranvia();
       this.pintarTranvia();
     });
+
+    effect(() => {
+      this.paradasTranvia();
+      this.pintarParadasTranvia();
+    });
+  }
+
+  /**
+   * Siembra las paradas del tranvía. Mismo tamaño que los postes de bus, pero
+   * en el negro de su red en vez del rojo: el color dice de qué red es, y el
+   * tamaño dice que es una parada.
+   */
+  private pintarParadasTranvia(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaParadasTranvia?.remove();
+    this.capaParadasTranvia = undefined;
+
+    const puntos = this.paradasTranvia();
+    if (puntos.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const lienzoCanvas = L.canvas();
+    const comienzo = performance.now();
+    this.capaParadasTranvia = L.layerGroup(
+      puntos.map(([lat, lon]) =>
+        L.circleMarker([lat, lon], {
+          renderer: lienzoCanvas,
+          radius: 4,
+          color: '#ffffff',
+          weight: 1.5,
+          fillColor: '#111827',
+          fillOpacity: 1,
+          interactive: false,
+        }),
+      ),
+      { attribution: ATRIBUCION_GTFS },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${puntos.length} paradas de tranvía sembradas en ${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -355,6 +407,10 @@ export class Mapa {
     }
     if (this.capaTranvia) {
       capas[`Tranvía (${this.tranvia().length.toLocaleString('es-ES')})`] = this.capaTranvia;
+    }
+    if (this.capaParadasTranvia) {
+      capas[`Paradas de tranvía (${this.paradasTranvia().length.toLocaleString('es-ES')})`] =
+        this.capaParadasTranvia;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);

@@ -93,6 +93,15 @@ const TRAZADOS = '/datos/2026-08-10_nap_gtfs-ficha1176_shapes.txt';
 /** Los trazados del tranvía (`route_id` 210). Comprobado: casan 2 de los 89. */
 const ID_TRANVIA = /^210_/;
 
+/**
+ * ANDAMIO DE VERIFICACIÓN. `stops.txt` extraído del ZIP, tal cual. De sus 984
+ * paradas solo se pintan las **50 del tranvía**: las que NO llevan `stop_code`
+ * `PA…`. Las 934 de bus no se pintan desde aquí — los postes de bus salen del
+ * censo municipal (§ 1.5 del notices), que es el que manda para eso.
+ */
+const PARADAS = '/datos/2026-08-10_nap_gtfs-ficha1176_stops.txt';
+const CODIGO_BUS = /^PA/i;
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, Mapa],
@@ -143,12 +152,65 @@ export class App {
   /** Los trazados del TRANVÍA: otra red, otra agencia, capa aparte. */
   protected readonly tranvia = signal<readonly (readonly Vertice[])[]>([]);
 
+  /** Las paradas del tranvía, del mismo GTFS. */
+  protected readonly paradasTranvia = signal<readonly Vertice[]>([]);
+
   constructor() {
     this.cargarPortales();
     this.cargarGrafo();
     this.cargarCarriles();
     this.cargarPostes();
     this.cargarTrazados();
+    this.cargarParadasTranvia();
+  }
+
+  private async cargarParadasTranvia(): Promise<void> {
+    try {
+      const respuesta = await fetch(PARADAS);
+      if (!respuesta.ok) {
+        console.error(`paradas de tranvía: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const lineas = (await respuesta.text()).split(/\r?\n/);
+      const cabecera = this.campos(lineas[0]);
+      const iCod = cabecera.indexOf('stop_code');
+      const iLat = cabecera.indexOf('stop_lat');
+      const iLon = cabecera.indexOf('stop_lon');
+      if (iCod < 0 || iLat < 0 || iLon < 0) {
+        console.error('paradas de tranvía: stops.txt no trae las columnas esperadas');
+        return;
+      }
+
+      const paradas: Vertice[] = [];
+      for (const linea of lineas.slice(1)) {
+        if (!linea) continue;
+        const c = this.campos(linea);
+        if (CODIGO_BUS.test(c[iCod])) continue;
+        paradas.push([Number(c[iLat]), Number(c[iLon])]);
+      }
+      this.paradasTranvia.set(paradas);
+    } catch (e) {
+      console.error('paradas de tranvía: no se pudieron cargar', e);
+    }
+  }
+
+  /** Parte una línea CSV respetando las comillas: los nombres traen comas. */
+  private campos(linea: string): string[] {
+    const salida: string[] = [];
+    let actual = '';
+    let entreComillas = false;
+    for (const c of linea) {
+      if (c === '"') {
+        entreComillas = !entreComillas;
+      } else if (c === ',' && !entreComillas) {
+        salida.push(actual);
+        actual = '';
+      } else {
+        actual += c;
+      }
+    }
+    salida.push(actual);
+    return salida;
   }
 
   private async cargarTrazados(): Promise<void> {
