@@ -55,7 +55,12 @@
   </form>
 
   <section class="mapa" aria-label="Mapa">
-    <app-mapa [trazado]="trazado()" [portales]="portales()" [grafo]="grafo()" />
+    <app-mapa
+      [trazado]="trazado()"
+      [portales]="portales()"
+      [grafo]="grafo()"
+      [carriles]="carriles()"
+    />
   </section>
 
   <section class="pasos" aria-label="Indicaciones">

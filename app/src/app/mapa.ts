@@ -25,11 +25,11 @@ const ATRIBUCION =
 
 /**
  * Atribución del dato municipal. La exige la licencia de reutilización del
- * Ayuntamiento (Ley 37/2007), literal, y va colgada de la capa de portales:
- * Leaflet la enseña solo mientras esa capa está encendida, que es justo cuando
- * el dato se está mostrando.
+ * Ayuntamiento (Ley 37/2007), literal, y va colgada de CADA capa que enseñe
+ * dato suyo —portales y carriles—: Leaflet la muestra mientras haya al menos
+ * una encendida, que es justo cuando el dato se está mostrando.
  */
-const ATRIBUCION_PORTALES = 'Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)';
+const ATRIBUCION_MUNICIPAL = 'Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)';
 
 @Component({
   selector: 'app-mapa',
@@ -46,11 +46,15 @@ export class Mapa {
   /** Aristas del grafo: cada una, su lista de vértices. Vacío = sin capa. */
   readonly grafo = input<readonly (readonly Vertice[])[]>([]);
 
+  /** Tramos de carril bici. Vacío = sin capa. */
+  readonly carriles = input<readonly (readonly Vertice[])[]>([]);
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
   private capaPortales?: L.LayerGroup;
   private capaGrafo?: L.Polyline;
+  private capaCarriles?: L.Polyline;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -66,6 +70,7 @@ export class Mapa {
       this.pintarTrazado();
       this.pintarPortales();
       this.pintarGrafo();
+      this.pintarCarriles();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -84,6 +89,49 @@ export class Mapa {
       this.grafo();
       this.pintarGrafo();
     });
+
+    effect(() => {
+      this.carriles();
+      this.pintarCarriles();
+    });
+  }
+
+  /**
+   * Pinta la red ciclable, encima del grafo y con la atribución municipal
+   * colgada de la capa: si se apagan los portales y se dejan los carriles,
+   * sigue habiendo dato del Ayuntamiento en pantalla.
+   */
+  private pintarCarriles(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaCarriles?.remove();
+    this.capaCarriles = undefined;
+
+    const tramos = this.carriles();
+    if (tramos.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const comienzo = performance.now();
+    this.capaCarriles = L.polyline(
+      tramos.map((t) => t.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
+      {
+        renderer: L.canvas(),
+        color: '#db2777',
+        weight: 2.5,
+        opacity: 0.9,
+        interactive: false,
+        attribution: ATRIBUCION_MUNICIPAL,
+      },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${tramos.length} tramos de carril pintados en ${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -141,6 +189,10 @@ export class Mapa {
       capas[`Grafo peatonal/ciclable (${this.grafo().length.toLocaleString('es-ES')})`] =
         this.capaGrafo;
     }
+    if (this.capaCarriles) {
+      capas[`Carriles bici (${this.carriles().length.toLocaleString('es-ES')})`] =
+        this.capaCarriles;
+    }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);
     }
@@ -183,7 +235,7 @@ export class Mapa {
           interactive: false,
         }),
       ),
-      { attribution: ATRIBUCION_PORTALES },
+      { attribution: ATRIBUCION_MUNICIPAL },
     ).addTo(this.mapa);
 
     this.refrescarControl();

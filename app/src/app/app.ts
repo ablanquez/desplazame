@@ -59,6 +59,17 @@ interface AristaCruda {
   readonly g: readonly (readonly [number, number])[];
 }
 
+/**
+ * ANDAMIO DE VERIFICACIÓN, como los otros dos. GeoJSON del WFS municipal: cada
+ * rasgo es un MultiLineString, así que un rasgo puede traer varios tramos.
+ * También en [lon, lat].
+ */
+const CARRILES = '/datos/2026-08-04_wfs_movilidad-MU2_carriles_bici.json';
+
+interface CarrilCrudo {
+  readonly geometry: { readonly coordinates: readonly (readonly (readonly [number, number])[])[] };
+}
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, Mapa],
@@ -97,9 +108,32 @@ export class App {
   /** Las aristas del grafo, una vez descargadas. Vacío mientras tanto. */
   protected readonly grafo = signal<readonly (readonly Vertice[])[]>([]);
 
+  /** Los tramos de carril bici, una vez descargados. */
+  protected readonly carriles = signal<readonly (readonly Vertice[])[]>([]);
+
   constructor() {
     this.cargarPortales();
     this.cargarGrafo();
+    this.cargarCarriles();
+  }
+
+  /** Aplana los MultiLineString a tramos sueltos, que es lo que se pinta. */
+  private async cargarCarriles(): Promise<void> {
+    try {
+      const respuesta = await fetch(CARRILES);
+      if (!respuesta.ok) {
+        console.error(`carriles: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const crudo = (await respuesta.json()) as { readonly features: readonly CarrilCrudo[] };
+      this.carriles.set(
+        crudo.features.flatMap((f) =>
+          f.geometry.coordinates.map((tramo) => tramo.map(([lon, lat]) => [lat, lon] as Vertice)),
+        ),
+      );
+    } catch (e) {
+      console.error('carriles: no se pudieron cargar', e);
+    }
   }
 
   /**
