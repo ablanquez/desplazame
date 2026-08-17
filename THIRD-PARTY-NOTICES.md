@@ -61,11 +61,20 @@ editado, filtrado ni «limpiado»: el sha256 de la copia es idéntico al del ori
 
 - El WFS devolvió **239 features duplicadas en portales**, descartadas al generar.
 - **`huerfanosReales = 29`**: portales sin vía que los reclame.
-- ⚠️ **Los metadatos del proyecto de origen describen OTRO fichero.** Declaran para portales
-  `sha256 398ac652…` y 10.364.859 bytes; lo que hay en disco —y lo que está aquí— es
-  `sha256 3c391d60…` y 10.835.605 bytes. El metadato es de las 07:11 y el fichero de las 15:26
-  del mismo día: se reescribió después y nadie regeneró el metadato. **La huella válida es la de
-  este fichero**, que es el que se consume.
+- ℹ️ **El metadato del proyecto de origen NO describe otro fichero: describe ÉSTE, con los
+  saltos de línea en LF.** Declara `sha256 398ac652…` y 10.364.859 bytes, mientras que lo que
+  hay aquí es `sha256 3c391d60…` y 10.835.605 bytes — pero **la diferencia es 470.746 bytes,
+  que es exactamente el número de líneas del fichero**: un retorno de carro por línea.
+  Convertido a LF sin tocar el contenido, da `398ac652…` y 10.364.859 bytes, **clavado**.
+  **La huella válida sigue siendo la de este fichero** —es el que se consume— pero el metadato
+  ajeno nunca estuvo equivocado.
+
+  > ⚠️ **Rectificación (17/08/2026).** Hasta hoy este documento afirmaba que los metadatos
+  > «describen OTRO fichero» y que «se reescribió después y nadie regeneró el metadato». **Era
+  > falso.** La conclusión venía heredada de la ficha de procedencia del proyecto anterior y se
+  > copió sin comprobarla; se destapó al medir los finales de línea por otro motivo. Se corrige
+  > aquí en vez de borrarlo en silencio: un documento de licencias que se enmienda a sí mismo
+  > sin decirlo vale menos que uno que lo dice.
 
 **Cómo se vuelve a conseguir:** pidiendo la capa al WFS de Urbanismo — pero saldrá **otro**
 fichero: el callejero municipal se refresca (política declarada: mensual). Lo que garantiza los
@@ -100,6 +109,11 @@ números de arriba es **este** fichero, no una consulta nueva.
 > Se cambiaron **8 líneas** —los cuatro campos de nombre de cada vía: `nombre`,
 > `nombreCompleto`, `nombrePublico` y `nombrePublicoNorm`—, ni una más. Tocar solo dos habría
 > dejado el registro contradiciéndose de otra manera.
+
+**Su huella de origen también coincide con el metadato ajeno**, y por lo mismo que en § 1.2:
+el metadato declaraba `70d73b4321…` y 990.140 bytes, y este fichero tal como salió del origen
+era `9c787367…` y 1.025.210 bytes — **35.070 bytes de diferencia, que son sus 35.070 líneas**.
+Convertido a LF da `70d73b4321…` exacto. No eran dos ficheros: era el mismo con otros saltos.
 
 **El cruce contra los portales municipales, que es la verificación de esta pieza** (no se pinta:
 se cuenta). Medido con comando sobre los dos ficheros del repositorio:
