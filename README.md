@@ -23,11 +23,11 @@
 > dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
 > OpenStreetMap— y ya puede dibujar encima cuatro datos reales: los **46.150 portales** del
 > Ayuntamiento de Zaragoza, las **98.774 aristas** del grafo de continuidad peatonal y
-> ciclable, los **733 tramos de carril bici** y los **944 postes de autobús** municipales,
-> cada uno con su casilla para encenderlo y apagarlo. Pero el buscador **todavía no los
-> usa**: la línea que dibuja al generar sigue siendo tan inventada como los pasos. No hay
-> motor, no se sabe aún qué líneas pasan por cada poste, y del tranvía y las estaciones
-> Bizi no hay nada.
+> ciclable, los **733 tramos de carril bici** y los **944 postes de autobús** municipales, y
+> los **89 trazados de línea** del GTFS —tranvía incluido—, cada uno con su casilla para
+> encenderlo y apagarlo. Pero el buscador **todavía no los usa**: la línea que dibuja al
+> generar sigue siendo tan inventada como los pasos. No hay motor, no se sabe aún qué líneas
+> pasan por cada poste, y de las estaciones Bizi no hay nada.
 >
 > Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y una
 > pantalla con andamio.
