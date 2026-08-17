@@ -225,13 +225,30 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
 
 ## 5 — El motor mínimo
 
-- [ ] **Estructura del motor, decidida ANTES de escribirlo** (aplazada aquí
-      desde el punto 2): dónde vive (carpeta hermana de `app/`), cómo se
-      comparten los tipos con la interfaz (workspaces npm o el mecanismo
-      que la doc oficial recomiende — Regla Cero), y cómo habla `ng serve`
-      con el motor en desarrollo (proxy). Declarado con fuentes
+- [x] **Estructura del motor DECIDIDA con la doc delante y APROBADA por
+      Antonio** (17/08, informe sin tocar un fichero): workspaces npm con
+      raíz única (`tipos/` + `motor/` + `app/`), tipos como paquete
+      `@desplazame/tipos` sin build consumido con `import type` — el
+      contrato es UN fichero enlazado por symlink, no una copia, y por eso
+      el front no compila si cambia [DOC npm + descarte de project refs y
+      `paths` con la doc de TS]. Proxy `proxy.conf.json` con `/api/**`
+      (doble asterisco OBLIGATORIO en el builder Vite — caso real del
+      rastreador de Angular, cambio no documentado que falla en silencio),
+      motor en el 3000. `motor/` fuera de la raíz web en cualquier
+      despliegue. Conflicto del symlink de CLAUDE.md detectado y aplazado
+      al punto 10 con su decisión preliminar: `public_html` apuntará a lo
+      CONSTRUIDO, nunca a `app/` literal
+- [ ] **La prueba del symlink, ANTES de nada**: un paquete de tipos vacío,
+      un `import type` desde `app/src`, y `ng build` — ver si el builder
+      atraviesa el symlink del workspace. Si no, `preserveSymlinks`; si
+      tampoco, se replantea la estructura de tipos. Es el NO CONSTA cuatro
+      del informe convertido en primera casilla
 - [ ] Paquete de tipos compartidos: `Paso`, `Trayecto`, `Modo`, `Aviso` —
-      antes que el servidor, porque es el contrato
+      antes que el servidor, porque es el contrato. ⚠️ El lockfile SE MUDA:
+      con workspaces, `app/package-lock.json` desaparece y nace el de la
+      raíz — los recuentos del notices (§2.3) se recalculan contra el
+      nuevo. `@types/node` queda PRE-AUTORIZADA como dependencia del motor
+      cuando la pida
 - [ ] Servidor Node + TS mínimo (`node:http`), arranca y responde — y la
       guardia de arranque aprende a verificarlo a él también (hoy solo
       conoce `ng serve`)
@@ -308,8 +325,20 @@ La red viaria. El último de los cuatro.
 
 ## 10 — Despliegue *(en grueso)*
 
-Hostinger plan Node (slot 2), dominio, symlink `public_html → app`, cron.
-Público y usable.
+Hostinger plan Node (slot 2), dominio, cron. Público y usable.
+
+Dejado aquí desde el punto 5 (17/08):
+
+- [ ] **El symlink se precisa con el panel delante**: `public_html` apunta
+      a lo CONSTRUIDO (`app/dist/...`), NUNCA a `app/` literal — que
+      expondría fuentes, `node_modules` y `app/data/` entero. La frase de
+      CLAUDE.md era préstamo a brocha gorda del patrón ZetaBus; se corrige
+      ahí cuando se ejecute esto
+- [ ] Los NO CONSTA del panel de Hostinger, por resolver ANTES de
+      desplegar: qué versión de Node ofrece (Angular 22 exige `^22.22.3 ||
+      ^24.15.0 || >=26`) · cómo arranca un proceso Node persistente (el
+      grafo vive en memoria: proceso vivo, no CGI) · si permite DOS
+      procesos o el motor sirve también los estáticos
 
 ## 11 — Estética *(en grueso)*
 
