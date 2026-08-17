@@ -138,13 +138,26 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       SOBRE UN CLON (`6a9cffa`). Ley: la integridad se acredita en el clon,
       no en el disco propio — y un aviso repetido asumido como ruido es un
       fallo esperando el fichero adecuado
-- [ ] Los carriles bici (49.972 aristas)
+- [x] **Los carriles bici dentro y VISTOS por Antonio** (17/08): 733 rasgos
+      / 2.120 tramos / 333,5 km del MU2 de movilidad (WFS IDEZar, capa viva),
+      elegido con el catálogo oficial delante [DOC] frente a la instantánea
+      congelada `carril_bizi_20250127`, que se queda en la OLD. Integridad
+      sobre CLON (ley nº3), ficha con Ley 37/2007, los 7 «En Construcción» y
+      el «No Municipal» declarados, y la clasificación calzada/acera/senda/
+      calmado que usará el punto 7 (`bed5dc9`, `17a7a9b`, `ee2a809`,
+      `2f7bdc8`). Pintados en magenta legible sobre el grafo, 15 ms.
+      ⚠️ La cifra «49.972 aristas que ruedan» QUEDA RETIRADA: era una
+      derivada del procesamiento del proyecto viejo, no un dato — la
+      reproducirá el motor si cruza carriles contra grafo, no una copia.
+      Y la atribución municipal ahora cuelga de TODAS las capas municipales,
+      no solo de la primera — el hueco se cortó antes de existir
 - [ ] Postes de bus + líneas que pasan (934 postes, 44 rutas, 74 sentidos)
 - [ ] Líneas y su orden (del GTFS)
 - [ ] Postes y recorrido del tranvía (50 paradas, 1 línea, 2 sentidos)
 - [ ] Estaciones BiZi (276)
-- [ ] Aparcabicis — **esta capa NO existe: hay que traerla de fuente** (se
-      detalla cuando le toque)
+- [ ] Aparcabicis — la capa no está en la OLD, pero **la fuente existe:
+      el catálogo de datos abiertos del Ayuntamiento la publica como
+      conjunto propio** [DOC, visto el 17/08]. Se detalla cuando le toque
 - [ ] Cada capa que entre se PINTA en el mapa para verla — entrar sin verse
       no cuenta como entrar
 

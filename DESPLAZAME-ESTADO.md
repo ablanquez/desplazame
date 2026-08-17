@@ -84,11 +84,26 @@ aviso repetido asumido como ruido es un fallo esperando el fichero adecuado
 (el «LF will be replaced» llevaba saliendo desde el primer commit y se
 despachó como normal — también aquí, en la estrategia).
 
-**Sin push desde `5188ba5`: treinta commits en local** (hasta `f7c6bcf`).
+**La tercera pieza dentro y vista (17/08): los carriles bici.** 733 rasgos
+/ 2.120 tramos / 333,5 km del MU2 de movilidad — elegido con el catálogo
+oficial del Ayuntamiento delante frente a la instantánea congelada de enero
+2025, que se queda en la OLD. Integridad sobre clon, ficha con los avisos
+honestos del dato (7 «En Construcción», 1 «No Municipal», doble
+capitalización de «Senda ciclable» que viene del origen y no se corrige), y
+pintados en magenta legible: 15 ms. Dos jugadas del encargo que valen
+método: la guardia cazó en rojo a un servidor huérfano ANTES del checkpoint,
+y la atribución municipal pasó a colgar de todas las capas municipales antes
+de que el hueco existiera. **Y una corrección de herencia: la cifra «49.972
+aristas que ruedan» queda retirada** — era una derivada del procesamiento
+viejo, no un dato; la reproducirá el motor si le hace falta.
 
-**Lo siguiente:** las demás piezas del punto 4 — carriles bici, paradas de
-bus, tranvía, BiZi, y la de aparcabicis que no existe y hay que traer de
-fuente. Cada una con autorización de Antonio.
+**Publicado hasta `acfefaa`; cuatro commits en local** (hasta `2f7bdc8`).
+
+**Lo siguiente:** las piezas que quedan del punto 4 — postes de bus con sus
+líneas, el orden del GTFS, tranvía, BiZi (estaciones en la OLD:
+`MU1_estaciones_bici` + API), y aparcabicis, que ya tiene fuente: el
+catálogo de datos abiertos municipal la publica como conjunto propio.
+Cada una con autorización de Antonio.
 
 ---
 
@@ -223,9 +238,15 @@ Y las tomadas en este reinicio (16/08):
 - **`enlaces.json` de la OLD referencia aristas por índice de ESTE fichero
   exacto**: si el grafo se regenera algún día, esos índices caducan en
   silencio. Pendiente de tener presente cuando entren las paradas.
-- **Tercer andamio con caducidad en el punto 6**: el navegador se baja
-  22,8 MB del grafo (más 10,3 de portales) solo para verlos. Comentado en
-  el código; nada lo vigila.
+- **Los andamios de carga ya son ~34 MB** (10,3 portales + 22,8 grafo +
+  0,8 carriles) que el navegador se baja solo para verlos. Caducidad en el
+  punto 6, comentada en el código; nada lo vigila.
+- **La doble capitalización del origen** («Senda ciclable» 58 + «Senda
+  Ciclable» 1) viaja tal cual: quien agrupe por `tipo_carri` sin normalizar
+  contará dos categorías donde hay una. Aviso para el punto 7.
+- **Quedan piezas de bici en la OLD fuera de autorización**: estaciones
+  Bizi (`MU1_estaciones_bici`) y una API de Bizi con ficheros de
+  exploración. Entrarán con su pieza.
 - **El andamio tiene caducidad escrita pero no vigilada**: `RUTA_DE_PRUEBA`
   en `app.ts` lleva el comentario de que se retira en el punto 6, y si ese
   día no se retira, nada lo detecta — la forma exacta del fallo nº1,
