@@ -91,24 +91,30 @@ números de arriba es **este** fichero, no una consulta nueva.
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
 | **Dónde está cumplida** | Esta pieza **no se pinta** —es tabla, no capa—, así que no cuelga de ninguna capa del mapa. Su atribución es la de esta ficha, y la que acompañe a las sugerencias cuando el formulario las enseñe |
 | **Campos** | `id`, `codigoVia`, `nombre`, `nombreCompleto`, `nombrePublico`, `nombrePublicoNorm`, `tipoVia`, `numPortales`, y en 739 vías `barrioRural`/`barrioRuralLabel`. **Ninguno personal** |
-| **¿Está en este repo?** | ✅ Sí, **con dos correcciones declaradas** (abajo): [`app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json`](app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json) · 1.025.210 bytes · sha256 `3ca75f305b4bb9ef1a9a6de2583d535a6cbd750db2d6f91b6c1951a3f238655b` **verificado sobre un clon**. Tal y como salió del origen era `9c7873679df0b94c7b27fa2f6cbaac84a0b610e64a06bfd725070df17d646ebc`, la misma huella que su ficha de procedencia declaraba |
+| **¿Está en este repo?** | ✅ Sí, **con cinco correcciones declaradas** (abajo): [`app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json`](app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json) · 1.025.408 bytes · sha256 `5f5df76a32098e088ad4c92126e72a9e84835663647f9c4f47300232dc038104` **verificado sobre un clon**. Tal y como salió del origen era `9c7873679df0b94c7b27fa2f6cbaac84a0b610e64a06bfd725070df17d646ebc` y 1.025.210 bytes, la misma huella que su ficha de procedencia declaraba |
 
-> ⚠️ **Este es el ÚNICO fichero de datos del repositorio que no está tal cual.** Lleva **dos
+> ⚠️ **Este es el ÚNICO fichero de datos del repositorio que no está tal cual.** Lleva **cinco
 > correcciones**, decididas expresamente y con la evidencia delante:
 >
 > | Vía | Decía | Dice | Por qué |
 > |---|---|---|---|
 > | `CALLE BARCELONA` (cod. 3564) | `---CRT` | `---CST` | Su propio `barrioRural` es **`CST`** y sus 20 portales tienen el centroide en **41,7238 · −1,0338**, dentro de Casetas |
 > | `CALLE LA PARRA` (cod. 22340) | `---CRT` | `---CST` | Ídem: `barrioRural` = **`CST`**, y sus 11 portales en **41,7193 · −1,0282** |
+> | `CALLE PARAÍSO` (cod. 22190) | sin barrio | `MRL` / `Miralbueno` | Lleva marcador `---MRL` y **no traía los campos de barrio**. Sus 37 portales están en **41,6603 · −0,9440**, junto a los de `CALLE MAYOR ---MRL`, que sí declara Miralbueno |
+> | `CAMINO DEL CAIDERO` (cod. 5435) | sin barrio | `MRL` / `Miralbueno` | Ídem, sus 3 portales en **41,6593 · −0,9641** |
+> | `JARDINES PORTAZGO SAN LAMBERTO` (cod. 23957) | sin barrio | `MRL` / `Miralbueno` | Ídem. ⚠️ **Esta no tiene portales**, así que no hay coordenadas que la confirmen: se completa **por el marcador y por coherencia con las otras tres `---MRL`**, no por evidencia geográfica propia |
 >
-> **El registro se contradecía a sí mismo**: el marcador del nombre decía `CRT` (La Cartuja,
-> a 20 km al sureste) mientras el campo `barrioRural` del mismo registro decía `CST` y las
-> coordenadas caían en Casetas. Dos evidencias contra una. Sin corregirlo, cualquiera que
-> agrupase por marcador colocaría **31 portales** en el barrio equivocado.
+> **Las dos primeras: el registro se contradecía a sí mismo.** El marcador del nombre decía
+> `CRT` (La Cartuja, a 20 km al sureste) mientras el campo `barrioRural` del mismo registro
+> decía `CST` y las coordenadas caían en Casetas. Dos evidencias contra una. Sin corregirlo,
+> cualquiera que agrupase por marcador colocaría **31 portales** en el barrio equivocado. Se
+> cambiaron **8 líneas** —los cuatro campos de nombre de cada vía: `nombre`, `nombreCompleto`,
+> `nombrePublico` y `nombrePublicoNorm`—, ni una más.
 >
-> Se cambiaron **8 líneas** —los cuatro campos de nombre de cada vía: `nombre`,
-> `nombreCompleto`, `nombrePublico` y `nombrePublicoNorm`—, ni una más. Tocar solo dos habría
-> dejado el registro contradiciéndose de otra manera.
+> **Las tres siguientes: faltaban los campos, no estaban vacíos.** Se insertaron `barrioRural`
+> y `barrioRuralLabel` (**+9 líneas, −3**), porque la pantalla enseña el núcleo entre
+> paréntesis y sin ellos esas tres vías saldrían sin decir de dónde son. Después de esto,
+> **ninguna de las 256 vías con marcador se queda sin barrio declarado**.
 
 **Su huella de origen también coincide con el metadato ajeno**, y por lo mismo que en § 1.2:
 el metadato declaraba `70d73b4321…` y 990.140 bytes, y este fichero tal como salió del origen
