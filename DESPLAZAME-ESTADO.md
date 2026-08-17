@@ -143,8 +143,9 @@ demo final no va a jugar a visualizar/ocultar capas; cuando el motor
 calcule, esto se replantea (encaja con la caducidad de los andamios en el
 punto 6).
 
-**Publicado hasta `acfefaa`; treinta y dos commits en local** (hasta
-`12e0221`).
+**Publicado hasta `169da6a` (push del cierre del punto 4). En local:
+los commits de la estructura del punto 5** (de `ea66676` a `5e59abf`,
+más los docs).
 
 **PUNTO 4 CERRADO (17/08): los siete conjuntos de datos dentro, fichados y
 vistos.** La última pieza fue la primera descarga propia del proyecto: los
@@ -156,12 +157,32 @@ nueve capas apagables, ~34 MB de dato, y aguanta fluido con todo
 encendido. Antonio dejó dicho además el destino de este mapa: las casillas
 son verificación de la fase de datos, no producto.
 
-**Lo siguiente: punto 5 — el motor mínimo.** Tipos compartidos primero
-(son el contrato), servidor Node con el grafo en memoria, `GET /api/vias`
-y el autocompletar visto funcionar en Chrome. Ahí se miden por fin la
-cifra real de vías y se decide qué versión de los portales manda (la
-municipal o la enganchada al grafo). Queda anotado el tranvía municipal
-(`MU3_lineas_tranvia`, `MU3_paradas_tranvia`) como opción futura.
+**Punto 5 en marcha (17/08): la estructura construida y el contrato vivo.**
+La prueba del symlink pasó con el rojo que importa (`TS2305`: el módulo
+resuelve, no cae a `any`), los workspaces están montados (`tipos/` +
+`motor/` + `app/`, lockfile único en la raíz con cero versiones declaradas
+movidas), y el motor-esqueleto contesta `/api/salud` tipado contra el
+contrato, atravesando el proxy — Antonio vio el mismo pid por las dos
+puertas y la pantalla intacta. ⭐ El motor corre TypeScript sin compilar
+(Node 24 borra tipos): cero build — y eso ata el despliegue a que el Node
+de Hostinger sepa hacer lo mismo (el NO CONSTA del panel sube de
+urgencia). La guardia tiene perfil de motor con sus rojos vistos: la
+entrada nº2 con otro disfraz (Node no recarga en caliente), cazada antes
+de nacer.
+
+**Lo siguiente del punto 5:** el grafo en memoria (medir el arranque),
+la decisión de qué portales mandan, `GET /api/vias` midiendo la cifra
+real, el autocompletar en Chrome, y el destino de los andamios. Queda
+anotado el tranvía municipal como opción futura.
+
+Cabos nuevos del esqueleto: **`Modo` y `Vertice` viven por duplicado**
+(canónicos en `tipos/`, locales en la pantalla) — temporal a propósito
+hasta que la pantalla consuma `/api`, y nada lo vigila si divergen ·
+la guardia vive en `app/scripts/` pero ya vigila a dos — con un tercer
+proceso se le queda pequeño el sitio · npm 11 bloquea los scripts de
+instalación de cuatro paquetes (`esbuild`, `lmdb`, `msgpackr-extract`,
+`@parcel/watcher`) — sin estorbar hasta hoy, anotado por si un build
+falla por ahí.
 
 ---
 

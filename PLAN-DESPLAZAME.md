@@ -238,20 +238,28 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       despliegue. Conflicto del symlink de CLAUDE.md detectado y aplazado
       al punto 10 con su decisión preliminar: `public_html` apuntará a lo
       CONSTRUIDO, nunca a `app/` literal
-- [ ] **La prueba del symlink, ANTES de nada**: un paquete de tipos vacío,
-      un `import type` desde `app/src`, y `ng build` — ver si el builder
-      atraviesa el symlink del workspace. Si no, `preserveSymlinks`; si
-      tampoco, se replantea la estructura de tipos. Es el NO CONSTA cuatro
-      del informe convertido en primera casilla
-- [ ] Paquete de tipos compartidos: `Paso`, `Trayecto`, `Modo`, `Aviso` —
-      antes que el servidor, porque es el contrato. ⚠️ El lockfile SE MUDA:
-      con workspaces, `app/package-lock.json` desaparece y nace el de la
-      raíz — los recuentos del notices (§2.3) se recalculan contra el
-      nuevo. `@types/node` queda PRE-AUTORIZADA como dependencia del motor
-      cuando la pida
-- [ ] Servidor Node + TS mínimo (`node:http`), arranca y responde — y la
-      guardia de arranque aprende a verificarlo a él también (hoy solo
-      conoce `ng serve`)
+- [x] **La prueba del symlink PASÓ** (17/08): `ng build` atraviesa el
+      symlink del workspace sin `preserveSymlinks`, y el rojo que compra
+      todo — `TS2305` con un tipo inexistente: el módulo resuelve de
+      verdad, no cae a `any` en silencio. Tres rojos vistos, fichero de
+      juguete retirado
+- [x] **El contrato vivo**: `@desplazame/tipos` con `Modo`, `Vertice`,
+      `Paso`, `Aviso`, `Trayecto`, `Salud` — derivados de la pantalla y de
+      CLAUDE.md, con los NO CONSTA escritos (¿detalle formateado o
+      metros/segundos? ¿gravedad del aviso? ¿totales?) y la regla en
+      cabecera: el contrato crece cuando el motor lo pide (`ea66676`,
+      commits de tipos). El lockfile mudado a la raíz: 0 versiones
+      declaradas movidas, 502 paquetes, notices recalculado (`5e59abf`).
+      `@types/node` 26.2.0 dentro, la pre-autorizada
+- [x] **El esqueleto del motor arrancando y VISTO por Antonio** (17/08):
+      `node:http` en el 3000, `/api/salud` tipado contra el contrato
+      (`27d2d73`), proxy `/api/**` comprobado — mismo pid por las dos
+      puertas, 4200 y 3000 (`720917f`) — y la pantalla del punto 4
+      intacta. ⭐ El motor corre TypeScript SIN COMPILAR (Node 24 borra
+      tipos al ejecutar): cero build, cero empaquetador — y una atadura
+      nueva al Node del panel de Hostinger. La guardia aprendió el motor
+      con perfil propio y sus tres rojos vistos, contrato incluido
+      (`e64e57c`)
 - [ ] El grafo se carga UNA vez al arrancar y vive en memoria (medir cuánto
       tarda y dejarlo escrito)
 - [ ] **Decidir qué portales mandan** para resolver direcciones: el repo
