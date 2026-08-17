@@ -4,11 +4,11 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 17/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **seis** conjuntos de
-> datos —los portales del Ayuntamiento, el grafo de continuidad derivado de OSM, los carriles
-> bici, los postes de autobús y las estaciones BiZi municipales, y el GTFS del Punto de Acceso
-> Nacional—. Las capas municipales de tranvía y los aparcabicis todavía no han entrado; cada
-> pieza llega con su autorización y su ficha.
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **siete** conjuntos de
+> datos —los portales, los carriles bici, los postes de autobús, las estaciones BiZi y los
+> aparcabicis del Ayuntamiento; el grafo de continuidad derivado de OSM; y el GTFS del Punto de
+> Acceso Nacional—. Solo quedan fuera las capas municipales de tranvía; cada pieza llega con su
+> autorización y su ficha.
 >
 > ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.6).
 >
@@ -283,10 +283,46 @@ distintos y 276 números de estación distintos** — sin solapes ni huecos—, 
 > (`MU1_estaciones_bici_ubicacion.N`), el `timeStamp` del WFS en cada página y el `crs`. **Del
 > URL exacto de la petición: NO CONSTA.**
 
-### 1.8 · El resto del dato — todavía **ninguno**
+### 1.8 · Aparcabicis — Ayuntamiento de Zaragoza (IDEZar)
 
-No hay capas municipales de tranvía, ni aparcabicis, ni el cruce líneas↔postes (que es trabajo
-de motor, no un dato que copiar). Cada pieza entrará con su autorización y su ficha, como éstas.
+| | |
+|---|---|
+| **Qué es** | Los **2.158 aparcabicis** públicos: soportes donde dejar la bici propia, con su tipo, su vía y su número de anclajes. Completa el modo BICI por el otro lado — las estaciones de § 1.7 son la bici pública; esto es dónde dejar la tuya |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU2_aparcabicis`** |
+| **Petición** | **Ésta la hicimos nosotros**, y por eso el URL sí consta: `https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU2_aparcabicis&outputFormat=application/json&srsName=EPSG:4326` |
+| **Descarga** | **17/08/2026 12:34:30 GMT**, estado 200. Cabeceras completas guardadas en [`…_cabeceras.txt`](app/data/2026-08-17_wfs_movilidad-MU2_aparcabicis_cabeceras.txt) · `timeStamp` del WFS: `2026-08-17T12:34:31.537Z` · CRS **EPSG:4326**, geometría `Point` |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
+| **Campos** | `tipo_aparcamiento`, `tipo_estacion`, `n_estacion`, `n_aparcamiento`, `anclajes`, `tipo_via`, `nombre_reducido`. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-17_wfs_movilidad-MU2_aparcabicis.json`](app/data/2026-08-17_wfs_movilidad-MU2_aparcabicis.json) · 695.754 bytes · sha256 `777036273a0227e34b3af7c7c97d44f4a46e2138a0f231c60e52475577675710` **verificado sobre un clon** |
+
+**Es la primera pieza que descargamos nosotros**, no heredada del intento anterior. Por eso la
+procedencia la generamos aquí, con el mismo patrón que las heredadas traían de fábrica: el URL
+de la petición y las cabeceras de la respuesta, en un fichero hermano.
+
+**Vino completa de una vez**: `numberMatched` = `numberReturned` = **2.158**, sin paginar. Todos
+los rasgos con geometría, dentro del término (41,60–41,76 N · −1,04–−0,77 O). **14.544 anclajes**
+en total.
+
+**Lo que el dato declara de honesto, y se traslada:**
+
+- **`tipo_aparcamiento`** distingue lo que existe de lo que no: `Abierto` 1.906 · `Cerrado` 238 ·
+  `Vigilado` 8 · **`Proyecto` 4** · **`Sin servicio` 2**. **Seis de los 2.158 no se pueden usar
+  hoy**: cuatro están proyectados y dos fuera de servicio. Quien los pinte o los enrute sin mirar
+  ese campo ofrecerá aparcabicis que no existen — es la misma trampa que los 7 tramos «En
+  Construcción» de § 1.4.
+- **`tipo_estacion`** trae 17 tipos de soporte (`Individuales U` 1.003, `Bicis y Vmp en calzada`
+  833, `Módulo  U en bastidor` 123…) — con **dobles espacios** en algunos nombres, del origen.
+- **`anclajes`** va de **0 a 110**, y **un rasgo no lo trae**.
+- **`nombre_reducido`** arrastra marcadores internos del callejero municipal en **36 de los
+  2.158**: valores como `"LOGROÑO  ---CST"`. No se corrige: el dato se copia tal cual.
+
+### 1.9 · El resto del dato — todavía **ninguno**
+
+No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
+el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
+dato que copiar.
 
 ---
 
