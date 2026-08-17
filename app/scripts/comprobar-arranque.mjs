@@ -7,18 +7,25 @@
  * contestaba el proceso anterior, con la configuración vieja. Un código de
  * estado dice que ALGUIEN contesta; no dice QUIÉN ni CON QUÉ.
  *
+ * Vale para las DOS piezas: la interfaz (por defecto, 4200) y el motor
+ * (`motor`, 3000). Lo que comprueba cambia según cuál.
+ *
  * QUÉ COMPRUEBA (y con qué código sale si falla)
  *   1. Que alguien contesta en el puerto ....................... 1
- *      y que lo que devuelve es la aplicación (lleva <app-root>)  2
+ *      · interfaz: que devuelve la aplicación (lleva <app-root>)   2
+ *      · motor: que `/api/salud` cumple el contrato `Salud`        2
  *   2. QUIÉN: el PID que está escuchando ....................... 3
  *   3. Que ese proceso arrancó DESPUÉS de la última modificación
  *      de los ficheros que solo se leen al arrancar ............ 4
- *      (angular.json, package.json, package-lock.json). El
- *      recargado en caliente NO los aplica: un servidor anterior
- *      a ellos sirve configuración caducada. Es el fallo nº2.
- *   4. Que los recursos que el propio HTML anuncia se sirven ... 5
- *   5. Si los nombres traen hash de contenido —lo que hace
- *      `ng build` de serie—, que ese fichero esté en dist/ ..... 6
+ *      · interfaz: angular.json, package.json, package-lock.json
+ *        — el recargado en caliente NO los aplica.
+ *      · motor: sus FUENTES (package.json, tsconfig.json,
+ *        src/servidor.ts) — Node ejecuta el TypeScript directamente
+ *        y no recarga nada: tocar el servidor sin reiniciarlo deja
+ *        corriendo el de antes. Es el fallo nº2 con otro disfraz.
+ *   4. (solo interfaz) Que los recursos que el HTML anuncia se sirven .. 5
+ *   5. (solo interfaz) Si los nombres traen hash de contenido —lo que
+ *      hace `ng build` de serie—, que ese fichero esté en dist/ ....... 6
  *
  * QUÉ **NO** PUEDE DETECTAR — los límites, dichos y no escondidos:
  *   · `ng serve` NO pone hash de contenido en los nombres (comprobado: sirve
@@ -41,14 +48,32 @@ import { execSync } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const PUERTO = Number(process.argv[2] ?? 4200);
+/**
+ * Dos perfiles. Sin argumentos, la interfaz en el 4200; con `motor`, el motor
+ * en el 3000. Se puede forzar otro puerto detrás:
+ *   npm run comprobar-arranque                 → interfaz, 4200
+ *   npm run comprobar-arranque -- 4300         → interfaz, 4300
+ *   npm run comprobar-arranque -- motor        → motor, 3000
+ *   npm run comprobar-arranque -- motor 3001   → motor, 3001
+ */
+const ES_MOTOR = process.argv[2] === 'motor';
+const PUERTO = Number(ES_MOTOR ? (process.argv[3] ?? 3000) : (process.argv[2] ?? 4200));
 const BASE = `http://localhost:${PUERTO}`;
-const RAIZ = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+const APP = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+const RAIZ = ES_MOTOR ? join(APP, '..', 'motor') : APP;
 
-/** Ficheros que solo se leen al arrancar: el recargado en caliente no los aplica. */
-const SOLO_AL_ARRANCAR = ['angular.json', 'package.json', 'package-lock.json'];
+/**
+ * Ficheros que solo se leen al arrancar. Para la interfaz son los de
+ * configuración, porque el recargado en caliente no los aplica. Para el motor
+ * son **sus fuentes**: Node ejecuta el TypeScript directamente y NO recarga en
+ * caliente, así que tocar el servidor y no reiniciarlo deja corriendo el de
+ * antes — el fallo de la entrada nº2 con otro disfraz.
+ */
+const SOLO_AL_ARRANCAR = ES_MOTOR
+  ? ['package.json', 'tsconfig.json', 'src/servidor.ts']
+  : ['angular.json', 'package.json', 'package-lock.json'];
 
-const DIST = join(RAIZ, 'dist', 'desplazame', 'browser');
+const DIST = join(APP, 'dist', 'desplazame', 'browser');
 
 /**
  * Rojo. Lanza en vez de salir: `process.exit()` con peticiones a medio cerrar
@@ -79,19 +104,33 @@ async function pedir(ruta) {
 }
 
 async function comprobar() {
-  // 1 · ¿Contesta alguien, y contesta la aplicación?
-  const portada = await pedir('/');
+  // 1 · ¿Contesta alguien, y contesta lo que tiene que contestar?
+  const ruta = ES_MOTOR ? '/api/salud' : '/';
+  const portada = await pedir(ruta);
   if (portada.estado !== 200) {
     mal(
       1,
       `nadie contesta en el puerto ${PUERTO} (estado ${portada.estado})`,
-      portada.error ?? 'el servidor no está levantado',
+      portada.error ?? `${ES_MOTOR ? 'el motor' : 'el servidor'} no está levantado`,
     );
   }
-  if (!portada.cuerpo.includes('<app-root>')) {
-    mal(2, `algo contesta en el puerto ${PUERTO}, pero no es Desplázame`, 'no aparece <app-root>');
+  if (ES_MOTOR) {
+    let salud;
+    try {
+      salud = JSON.parse(portada.cuerpo);
+    } catch {
+      mal(2, `algo contesta en el puerto ${PUERTO}, pero no devuelve JSON`, portada.cuerpo.slice(0, 80));
+    }
+    if (salud.ok !== true || typeof salud.pid !== 'number' || typeof salud.arrancado !== 'string') {
+      mal(2, 'contesta JSON, pero no tiene la forma de Salud', portada.cuerpo.slice(0, 120));
+    }
+    bien(`/api/salud contesta 200 y cumple el contrato (pid ${salud.pid})`);
+  } else {
+    if (!portada.cuerpo.includes('<app-root>')) {
+      mal(2, `algo contesta en el puerto ${PUERTO}, pero no es Desplázame`, 'no aparece <app-root>');
+    }
+    bien('contesta 200 y trae <app-root>');
   }
-  bien('contesta 200 y trae <app-root>');
 
   // 2 · ¿Quién contesta?
   let pid;
@@ -137,6 +176,11 @@ async function comprobar() {
     }
   }
   bien(`arrancó (${arranque.toISOString()}) después de ${SOLO_AL_ARRANCAR.join(', ')}`);
+
+  // El motor termina aquí: no sirve HTML ni tiene bundles que comprobar.
+  if (ES_MOTOR) {
+    return;
+  }
 
   // 4 · ¿Sirve de verdad lo que su propio HTML anuncia?
   // Set: el HTML de producción referencia la hoja de estilos dos veces (la
