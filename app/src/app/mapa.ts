@@ -134,7 +134,7 @@ export class Mapa {
           radius: 4,
           color: '#ffffff',
           weight: 1.5,
-          fillColor: '#0891b2',
+          fillColor: '#dc2626',
           fillOpacity: 1,
           interactive: false,
         }),
