@@ -1,0 +1,10 @@
+GET https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU2_aparcabicis&outputFormat=application/json&srsName=EPSG:4326
+HTTP/1.1 200 
+Access-Control-Allow-Origin: *
+X-Frame-Options: SAMEORIGIN
+Content-Disposition: inline; filename=MU2_aparcabicis.json
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Mon, 17 Aug 2026 12:34:30 GMT
+Set-Cookie: cookiesession1=678A3E14F303825E2CD73EC498B51658;Expires=Tue, 17 Aug 2027 12:35:49 GMT;Path=/;HttpOnly
+
