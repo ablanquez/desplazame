@@ -225,20 +225,39 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
 
 ## 5 — El motor mínimo
 
+- [ ] **Estructura del motor, decidida ANTES de escribirlo** (aplazada aquí
+      desde el punto 2): dónde vive (carpeta hermana de `app/`), cómo se
+      comparten los tipos con la interfaz (workspaces npm o el mecanismo
+      que la doc oficial recomiende — Regla Cero), y cómo habla `ng serve`
+      con el motor en desarrollo (proxy). Declarado con fuentes
 - [ ] Paquete de tipos compartidos: `Paso`, `Trayecto`, `Modo`, `Aviso` —
       antes que el servidor, porque es el contrato
-- [ ] Servidor Node + TS mínimo (`node:http`), arranca y responde
+- [ ] Servidor Node + TS mínimo (`node:http`), arranca y responde — y la
+      guardia de arranque aprende a verificarlo a él también (hoy solo
+      conoce `ng serve`)
 - [ ] El grafo se carga UNA vez al arrancar y vive en memoria (medir cuánto
       tarda y dejarlo escrito)
-- [ ] `GET /api/vias` — autocompletado sobre las 2.661 vías
+- [ ] **Decidir qué portales mandan** para resolver direcciones: el repo
+      tiene DOS versiones a propósito (los 46.150 municipales y los
+      46.026 enganchados al grafo con su distancia de enganche). El motor
+      elige aquí, con los 124 sin enganche tratados y dicho qué pasa con
+      ellos
+- [ ] `GET /api/vias` — autocompletado sobre las vías del callejero.
+      ⭐ AQUÍ se mide por fin la cifra real de vías (2.731 códigos en
+      portales · 3.359 en el callejero según la procedencia — el motor
+      dirá cuál es la suya y esa se publica)
 - [ ] El formulario real consume `/api/vias` — **autocompletar visto
       funcionar en Chrome**
+- [ ] **El destino de los andamios de carga (~34 MB), decidido aquí**:
+      qué dato pasa a servirlo el motor y qué sigue bajándose el navegador
+      para el mapa de verificación (que es de esta fase, no producto — lo
+      dejó dicho Antonio). La retirada final es del punto 6
 - [ ] **Revisar `@angular/router`**: instalado sin usar desde `ng new` (el
       CLI lo mete en su conjunto estándar aunque pases `--routing=false`).
       Si aquí sigue sin hacer falta, fuera
-- [ ] **El README se amplía aquí** con los endpoints y las cifras (2.661
-      vías, 68.649 nodos) — cuando existan de verdad, no antes. *Quedaron
-      fuera a propósito en el checkpoint del 16/08.*
+- [ ] **El README se amplía aquí** con los endpoints y las cifras que el
+      motor MIDA (vías reales, nodos cargados, tiempo de arranque) —
+      cuando existan de verdad, no antes
 
 ## 6 — Primera ruta: ANDANDO (aquí ya existe la demo)
 
