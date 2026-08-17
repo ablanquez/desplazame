@@ -1,0 +1,7 @@
+{
+  "name": "@desplazame/tipos",
+  "version": "0.0.0",
+  "private": true,
+  "description": "El contrato entre el motor y la interfaz. Solo tipos: no emite nada.",
+  "types": "./src/index.ts"
+}
