@@ -75,6 +75,22 @@ export interface Trayecto {
 }
 
 /**
+ * Lo que el motor lleva del grafo en memoria, y lo que le costó ponerlo ahí.
+ *
+ * Los tres recuentos salen del objeto cargado, no de una constante escrita a
+ * mano: `aristas` y `vertices` se cuentan de verdad; `nodos` es el único que
+ * el fichero solo declara —el grafo no trae lista de nodos, solo el contador—.
+ * Sirven para que la guardia pueda distinguir un motor con el grafo cargado
+ * de uno que arrancó sin él.
+ */
+export interface SaludGrafo {
+  readonly nodos: number;
+  readonly aristas: number;
+  readonly vertices: number;
+  readonly cargadoEnMs: number;
+}
+
+/**
  * Lo que devuelve `GET /api/salud`. No sale de CLAUDE.md: es el primer
  * endpoint del motor y su forma la fija el encargo que lo pidió.
  *
@@ -85,4 +101,5 @@ export interface Salud {
   readonly ok: boolean;
   readonly pid: number;
   readonly arrancado: string;
+  readonly grafo: SaludGrafo;
 }
