@@ -18,7 +18,8 @@
 
 > ⚠️ **Este repositorio está en construcción, y todavía no hay nada que puedas usar.**
 > La pantalla ya existe en [`app/`](app/) y arranca en local: el formulario de cuatro
-> campos, los cuatro modos y las indicaciones. Pero **no busca rutas**. Al pulsar «Generar
+> campos, los cuatro modos y las indicaciones. **Los dos campos de calle ya autocompletan
+> contra el motor**, con las calles de verdad de Zaragoza. Pero **no busca rutas**. Al pulsar «Generar
 > ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
 > dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
 > OpenStreetMap— y ya puede dibujar encima **siete datos reales**: del Ayuntamiento de
@@ -30,10 +31,13 @@
 > generar sigue siendo tan inventada como los pasos.
 >
 > Y ya hay **motor**: un servidor mínimo en Node que carga al arrancar el grafo de la ciudad
-> y el callejero, y sabe **sugerir calles** — de las 3.359 vías del callejero ofrece las
-> **2.731 que tienen algún portal**, porque sugerir una calle sin portales sería prometer una
-> dirección que después no se puede resolver. **Pero no calcula ninguna ruta**: eso no existe
-> todavía. Tampoco se sabe aún qué líneas pasan por cada poste.
+> y el callejero, y sirve las sugerencias que ves al teclear — de las 3.359 vías del callejero
+> ofrece las **2.731 que tienen algún portal**, porque sugerir una calle sin portales sería
+> prometer una dirección que después no se puede resolver. Cuando la calle está en un barrio
+> rural lo dice: **CALLE BURGOS (CASETAS)**, que es distinta de la CALLE BURGOS de la ciudad.
+>
+> **Pero no calcula ninguna ruta**: eso no existe todavía. El número de portal no se resuelve,
+> y tampoco se sabe aún qué líneas pasan por cada poste.
 >
 > Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y una
 > pantalla con andamio.
