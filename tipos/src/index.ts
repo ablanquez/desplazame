@@ -75,6 +75,40 @@ export interface Trayecto {
 }
 
 /**
+ * Una vía que se puede sugerir al escribir la dirección: lo que devuelve
+ * `GET /api/vias?q=…`.
+ *
+ * `nombre` viene **tal cual está en el callejero municipal**, sin maquillar:
+ * en mayúsculas, y con la suciedad de codificación del origen si la trae. La
+ * normalización (minúsculas, sin acentos) es solo para COMPARAR dentro del
+ * motor; no sale al contrato.
+ *
+ * `portales` es cuántos portales tiene, contados sobre el censo municipal. No
+ * es decoración: solo se sugieren vías con al menos uno, porque sugerir una
+ * vía sin portales sería prometer una dirección que no se puede resolver.
+ */
+export interface Via {
+  readonly codigo: string;
+  readonly nombre: string;
+  readonly tipo: string;
+  readonly portales: number;
+}
+
+/**
+ * Lo que el motor lleva del callejero, y lo que le costó cargarlo.
+ *
+ * Los dos números que importan y que llevan dos puntos del plan esperándose:
+ * `vias` es el callejero entero, `sugeribles` las que tienen portal. **La que
+ * se publica es `sugeribles`**: es lo único que el buscador puede cumplir.
+ */
+export interface SaludCallejero {
+  readonly vias: number;
+  readonly sugeribles: number;
+  readonly portales: number;
+  readonly cargadoEnMs: number;
+}
+
+/**
  * Lo que el motor lleva del grafo en memoria, y lo que le costó ponerlo ahí.
  *
  * Los tres recuentos salen del objeto cargado, no de una constante escrita a
@@ -102,4 +136,5 @@ export interface Salud {
   readonly pid: number;
   readonly arrancado: string;
   readonly grafo: SaludGrafo;
+  readonly callejero: SaludCallejero;
 }
