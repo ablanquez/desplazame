@@ -72,6 +72,9 @@ export class Mapa {
   /** Estaciones BiZi. Vacío = sin capa. */
   readonly estacionesBizi = input<readonly Vertice[]>([]);
 
+  /** Aparcabicis. Vacío = sin capa. */
+  readonly aparcabicis = input<readonly Vertice[]>([]);
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
@@ -83,6 +86,7 @@ export class Mapa {
   private capaTranvia?: L.Polyline;
   private capaParadasTranvia?: L.LayerGroup;
   private capaBizi?: L.LayerGroup;
+  private capaAparcabicis?: L.LayerGroup;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -104,6 +108,7 @@ export class Mapa {
       this.pintarTranvia();
       this.pintarParadasTranvia();
       this.pintarBizi();
+      this.pintarAparcabicis();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -152,6 +157,56 @@ export class Mapa {
       this.estacionesBizi();
       this.pintarBizi();
     });
+
+    effect(() => {
+      this.aparcabicis();
+      this.pintarAparcabicis();
+    });
+  }
+
+  /**
+   * Siembra los aparcabicis. Aquí ya NO quedaba hueco limpio de tono —los
+   * siete colores en uso ocupan casi todo el círculo—, así que se distinguen
+   * por DOS cosas a la vez: el amarillo, el único tono que nadie usaba, y la
+   * forma: más pequeños y con aro OSCURO, frente a los tres «sitios de parar»
+   * que van a radio 4 con aro blanco. Son 2.158, la capa más numerosa después
+   * de los portales: si fueran del mismo tamaño, taparían la ciudad.
+   */
+  private pintarAparcabicis(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaAparcabicis?.remove();
+    this.capaAparcabicis = undefined;
+
+    const puntos = this.aparcabicis();
+    if (puntos.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const lienzoCanvas = L.canvas();
+    const comienzo = performance.now();
+    this.capaAparcabicis = L.layerGroup(
+      puntos.map(([lat, lon]) =>
+        L.circleMarker([lat, lon], {
+          renderer: lienzoCanvas,
+          radius: 3,
+          color: '#78350f',
+          weight: 1,
+          fillColor: '#eab308',
+          fillOpacity: 1,
+          interactive: false,
+        }),
+      ),
+      { attribution: ATRIBUCION_MUNICIPAL },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${puntos.length} aparcabicis sembrados en ${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -468,6 +523,10 @@ export class Mapa {
     if (this.capaBizi) {
       capas[`Estaciones BiZi (${this.estacionesBizi().length.toLocaleString('es-ES')})`] =
         this.capaBizi;
+    }
+    if (this.capaAparcabicis) {
+      capas[`Aparcabicis (${this.aparcabicis().length.toLocaleString('es-ES')})`] =
+        this.capaAparcabicis;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);

@@ -112,6 +112,9 @@ const BIZI = [0, 50, 100, 150, 200, 250].map(
   (p) => `/datos/2026-08-02_wfs_bizi_pag${p}.json`,
 );
 
+/** ANDAMIO DE VERIFICACIÓN. Los 2.158 aparcabicis, descarga propia del WFS. */
+const APARCABICIS = '/datos/2026-08-17_wfs_movilidad-MU2_aparcabicis.json';
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, Mapa],
@@ -168,6 +171,9 @@ export class App {
   /** Las estaciones BiZi, unidas de sus seis páginas. */
   protected readonly estacionesBizi = signal<readonly Vertice[]>([]);
 
+  /** Los aparcabicis. */
+  protected readonly aparcabicis = signal<readonly Vertice[]>([]);
+
   constructor() {
     this.cargarPortales();
     this.cargarGrafo();
@@ -176,6 +182,26 @@ export class App {
     this.cargarTrazados();
     this.cargarParadasTranvia();
     this.cargarBizi();
+    this.cargarAparcabicis();
+  }
+
+  private async cargarAparcabicis(): Promise<void> {
+    try {
+      const respuesta = await fetch(APARCABICIS);
+      if (!respuesta.ok) {
+        console.error(`aparcabicis: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const crudo = (await respuesta.json()) as { readonly features: readonly PosteCrudo[] };
+      this.aparcabicis.set(
+        crudo.features.map((f) => {
+          const [lon, lat] = f.geometry.coordinates;
+          return [lat, lon] as Vertice;
+        }),
+      );
+    } catch (e) {
+      console.error('aparcabicis: no se pudieron cargar', e);
+    }
   }
 
   private async cargarBizi(): Promise<void> {
