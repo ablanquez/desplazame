@@ -15,10 +15,14 @@
     "target": "ES2022",
 
     /* Node 24 ejecuta TypeScript directamente (borrado de tipos), así que
-       aquí NO se compila nada: `tsc` solo revisa. De ahí el noEmit. */
+       aquí NO se compila nada: `tsc` solo revisa. De ahí el noEmit.
+       Y como quien resuelve los imports es Node y no un empaquetador, van
+       con extensión `.ts` explícita: eso es lo que habilita
+       allowImportingTsExtensions, que a su vez exige noEmit. */
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "types": ["node"]
   },
   "include": ["src/**/*.ts"]
