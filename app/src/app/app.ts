@@ -70,6 +70,17 @@ interface CarrilCrudo {
   readonly geometry: { readonly coordinates: readonly (readonly (readonly [number, number])[])[] };
 }
 
+/**
+ * ANDAMIO DE VERIFICACIÓN. GeoJSON del WFS municipal: cada rasgo es un Point.
+ * También en [lon, lat]. **No trae las líneas que pasan por cada poste**: ese
+ * dato no existe todavía en el repositorio (ver THIRD-PARTY-NOTICES § 1.5).
+ */
+const POSTES = '/datos/2026-08-10_wfs_movilidad-MU3_paradas_bus_unicas.json';
+
+interface PosteCrudo {
+  readonly geometry: { readonly coordinates: readonly [number, number] };
+}
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, Mapa],
@@ -111,10 +122,33 @@ export class App {
   /** Los tramos de carril bici, una vez descargados. */
   protected readonly carriles = signal<readonly (readonly Vertice[])[]>([]);
 
+  /** Los postes de autobús, una vez descargados. */
+  protected readonly postes = signal<readonly Vertice[]>([]);
+
   constructor() {
     this.cargarPortales();
     this.cargarGrafo();
     this.cargarCarriles();
+    this.cargarPostes();
+  }
+
+  private async cargarPostes(): Promise<void> {
+    try {
+      const respuesta = await fetch(POSTES);
+      if (!respuesta.ok) {
+        console.error(`postes: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const crudo = (await respuesta.json()) as { readonly features: readonly PosteCrudo[] };
+      this.postes.set(
+        crudo.features.map((f) => {
+          const [lon, lat] = f.geometry.coordinates;
+          return [lat, lon] as Vertice;
+        }),
+      );
+    } catch (e) {
+      console.error('postes: no se pudieron cargar', e);
+    }
   }
 
   /** Aplana los MultiLineString a tramos sueltos, que es lo que se pinta. */

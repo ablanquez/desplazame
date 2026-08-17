@@ -49,12 +49,16 @@ export class Mapa {
   /** Tramos de carril bici. Vacío = sin capa. */
   readonly carriles = input<readonly (readonly Vertice[])[]>([]);
 
+  /** Postes de autobús. Vacío = sin capa. */
+  readonly postes = input<readonly Vertice[]>([]);
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
   private capaPortales?: L.LayerGroup;
   private capaGrafo?: L.Polyline;
   private capaCarriles?: L.Polyline;
+  private capaPostes?: L.LayerGroup;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -71,6 +75,7 @@ export class Mapa {
       this.pintarPortales();
       this.pintarGrafo();
       this.pintarCarriles();
+      this.pintarPostes();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -94,6 +99,53 @@ export class Mapa {
       this.carriles();
       this.pintarCarriles();
     });
+
+    effect(() => {
+      this.postes();
+      this.pintarPostes();
+    });
+  }
+
+  /**
+   * Siembra los postes de autobús. Son 944 —dos órdenes de magnitud menos que
+   * los portales—, así que se pintan más grandes y con aro blanco: tienen que
+   * distinguirse de los puntitos azules aunque estén encima.
+   */
+  private pintarPostes(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaPostes?.remove();
+    this.capaPostes = undefined;
+
+    const puntos = this.postes();
+    if (puntos.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const lienzoCanvas = L.canvas();
+    const comienzo = performance.now();
+    this.capaPostes = L.layerGroup(
+      puntos.map(([lat, lon]) =>
+        L.circleMarker([lat, lon], {
+          renderer: lienzoCanvas,
+          radius: 4,
+          color: '#ffffff',
+          weight: 1.5,
+          fillColor: '#0891b2',
+          fillOpacity: 1,
+          interactive: false,
+        }),
+      ),
+      { attribution: ATRIBUCION_MUNICIPAL },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${puntos.length} postes sembrados en ${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -192,6 +244,9 @@ export class Mapa {
     if (this.capaCarriles) {
       capas[`Carriles bici (${this.carriles().length.toLocaleString('es-ES')})`] =
         this.capaCarriles;
+    }
+    if (this.capaPostes) {
+      capas[`Postes de bus (${this.postes().length.toLocaleString('es-ES')})`] = this.capaPostes;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);
