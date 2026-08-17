@@ -4,9 +4,10 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 17/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **dos** ficheros de
-> datos —los portales del Ayuntamiento y el grafo de continuidad derivado de OSM—. Las paradas
-> y los carriles bici todavía no han entrado; cada pieza llega con su autorización y su ficha.
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **tres** ficheros de
+> datos —los portales del Ayuntamiento, el grafo de continuidad derivado de OSM y los carriles
+> bici municipales—. Las paradas y las estaciones Bizi todavía no han entrado; cada pieza llega
+> con su autorización y su ficha.
 >
 > **Las huellas sha256 de esta página se verifican sobre un clon**, no sobre el disco de quien
 > las escribe: git puede reescribir bytes al hacer *checkout*. Ver `docs/BITACORA.md` nº3, y el
@@ -95,10 +96,48 @@ prefijo en memoria. En el repositorio no se toca, y el navegador nunca lo ejecut
 > municipales de § 1.2 (fuente, Ley 37/2007) y los enganchados de aquí (derivados, ODbL). No son
 > el mismo dato ni tienen los mismos campos. Que convivan es una decisión tomada, no un descuido.
 
-### 1.4 · El resto del dato municipal — todavía **ninguno**
+### 1.4 · Carriles bici y sendas ciclables — Ayuntamiento de Zaragoza (IDEZar)
 
-No hay paradas ni carriles bici en este repositorio. Cada uno entrará con su autorización y su
-ficha, como éstas.
+| | |
+|---|---|
+| **Qué es** | La red ciclable de la ciudad: **733 rasgos** (`MultiLineString`) que suman **2.120 tramos** y **333,5 km** medidos. Es la capa que hará distinto al modo BICI |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU2_carriles_bici`** · petición registrada el **04/08/2026 11:52:40 GMT** (`timeStamp` del propio WFS: `2026-08-04T11:52:40.217Z`). CRS **EPSG:4326** |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)**, la misma que los portales de § 1.2 |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
+| **Dónde está cumplida** | Colgada **de esta capa también**, no solo de la de portales: si se apagan los portales y se dejan los carriles, sigue habiendo dato municipal en pantalla y la atribución tiene que seguir ahí |
+| **Fecha del dato** | Es la **capa viva** de movilidad, no una instantánea. El campo `fecha` viene poblado en **424 de los 733** rasgos; en los otros 309, **NO CONSTA** |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-04_wfs_movilidad-MU2_carriles_bici.json`](app/data/2026-08-04_wfs_movilidad-MU2_carriles_bici.json) · 785.975 bytes · sha256 `65b356aa751fb4ec02c24dce43e8fbaf51ee350987c798142feabb6320ac3fd4` **verificado sobre un clon** |
+
+**Lo que distingue esta capa, y por eso es la que entró:** clasifica cada tramo en `tipo_carri`,
+y esa clasificación es justo la que el modo BICI necesitará —**por dónde se rueda**:
+
+`Bidireccional calzada` 216 · `Bidireccional acera` 202 · `Calmado` 123 · `Unidireccional
+calzada` 81 · `Senda ciclable` 58 · `Unidireccional acera` 44 · **`En Construcción` 7** ·
+`Senda Ciclable` 1 · **`No Municipal` 1**
+
+**Y lo que el dato declara de honesto, que se traslada en vez de callarse:**
+
+- **7 tramos «En Construcción»**: hay carril dibujado donde todavía no se puede rodar. Quien los
+  pinte o los enrute sin mirar ese campo estará prometiendo un carril que no existe.
+- **1 tramo «No Municipal»**: no lo mantiene el Ayuntamiento, y la capa lo dice.
+- `Senda ciclable` aparece **dos veces con distinta capitalización** (58 + 1). Es del origen; no
+  se corrige aquí porque el dato se copia tal cual.
+- **343 de 733 rasgos traen `observaciones`** en texto libre.
+
+**Enlaza con el callejero.** Los 733 rasgos traen `vias_codigo` (ninguno vacío): **255 códigos
+distintos, de los que 207 (81%) están también en el `codigoVia` de los portales** de § 1.2. Es
+el mismo espacio de códigos, lo que permitirá cruzarlos sin inventar correspondencias.
+
+> ℹ️ **Había un segundo candidato y NO entró:** `idezar_base:carril_bizi_20250127` (700 rasgos,
+> 322,1 km), descargado el mismo día del mismo servidor. Es una **instantánea congelada** —la
+> fecha va en el nombre de la capa— y sus atributos colapsan la distinción calzada/acera que
+> aquí es lo útil. Se queda en el archivo del intento anterior.
+
+### 1.5 · El resto del dato municipal — todavía **ninguno**
+
+No hay paradas de autobús ni tranvía, ni estaciones Bizi, en este repositorio. Cada pieza
+entrará con su autorización y su ficha, como éstas.
 
 ---
 
