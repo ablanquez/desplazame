@@ -4,10 +4,10 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 17/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **tres** ficheros de
-> datos —los portales del Ayuntamiento, el grafo de continuidad derivado de OSM y los carriles
-> bici municipales—. Las paradas y las estaciones Bizi todavía no han entrado; cada pieza llega
-> con su autorización y su ficha.
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **cuatro** ficheros de
+> datos —los portales del Ayuntamiento, el grafo de continuidad derivado de OSM, los carriles
+> bici y los postes de autobús municipales—. El GTFS, el tranvía y las estaciones Bizi todavía
+> no han entrado; cada pieza llega con su autorización y su ficha.
 >
 > **Las huellas sha256 de esta página se verifican sobre un clon**, no sobre el disco de quien
 > las escribe: git puede reescribir bytes al hacer *checkout*. Ver `docs/BITACORA.md` nº3, y el
@@ -134,10 +134,44 @@ el mismo espacio de códigos, lo que permitirá cruzarlos sin inventar correspon
 > fecha va en el nombre de la capa— y sus atributos colapsan la distinción calzada/acera que
 > aquí es lo útil. Se queda en el archivo del intento anterior.
 
-### 1.5 · El resto del dato municipal — todavía **ninguno**
+### 1.5 · Postes de autobús urbano — Ayuntamiento de Zaragoza (IDEZar)
 
-No hay paradas de autobús ni tranvía, ni estaciones Bizi, en este repositorio. Cada pieza
-entrará con su autorización y su ficha, como éstas.
+| | |
+|---|---|
+| **Qué es** | Los **944 postes** de autobús urbano del catálogo municipal: `codigo`, `stop_name` y `stop_code`, con su coordenada. Son el dónde se sube y se baja del modo BUS |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU3_paradas_bus_unicas`** · petición registrada el **10/08/2026 09:48:39 GMT** (`timeStamp` del propio WFS: `2026-08-10T09:48:39.236Z`). CRS **EPSG:4326**, geometría `Point` |
+| **Licencia** | **Ley 37/2007**, la misma que los portales (§ 1.2) y los carriles (§ 1.4) |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
+| **Campos** | `codigo`, `stop_name`, `stop_code` — los tres en los 944, y **ninguno personal**. 944 `stop_code` únicos, cero rasgos sin coordenada, 921 nombres distintos (los repetidos son postes enfrentados) |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-10_wfs_movilidad-MU3_paradas_bus_unicas.json`](app/data/2026-08-10_wfs_movilidad-MU3_paradas_bus_unicas.json) · 226.540 bytes · sha256 `f335b56d586a387bfd592abfa32d0536cc1bb1b8c3a2520d6cf68e0e05d43bad` **verificado sobre un clon** |
+
+> ⚠️ **Este fichero NO trae las líneas que pasan por cada poste.** Tiene tres campos y ninguno
+> es de líneas. No es un recorte: **no existen como fichero** en ningún sitio del que este
+> proyecto pueda copiarlas hoy. Queda anotado como **dependencia pendiente**.
+
+**Dónde viven las líneas, para cuando toque:** en el **GTFS** —pieza propia todavía por
+autorizar en este mismo punto 4— y en el **barrido nocturno contra el operador**, que es el
+patrón ya construido y probado en ZetaBus y que aquí corresponde al punto 8. El puente entre
+unos y otros es el **`stop_code`**: el espacio de códigos `PA…` (p. ej. `PA00010`) es el mismo
+que usan el catálogo municipal y los artefactos del intento anterior, así que se podrán cruzar
+sin inventar correspondencias.
+
+**Dos censos de la misma cosa, y los dos legítimos.** El proyecto anterior manejaba **~934**
+postes; aquí hay **944**. No es una discrepancia que haya que resolver: son **censos
+distintos**. Los ~934 salían del cruce GTFS + barrido del operador —lo que el operador
+*anuncia*—; los 944 son lo que el Ayuntamiento *tiene inventariado*. Un poste fuera de
+servicio, o de refuerzo, está en uno y no en el otro. Ninguno de los dos números está mal.
+
+> ℹ️ **NO CONSTA por qué la OLD no lo adoptó como fuente.** Este fichero vivía en
+> `data/exploracion/` y no en `data/fuentes/`, que en aquel proyecto marcaba «mirado, no
+> adoptado». Puede que lo descartara a favor del GTFS o del barrido; no se ha averiguado, y no
+> se infiere.
+
+### 1.6 · El resto del dato — todavía **ninguno**
+
+No hay GTFS, ni tranvía, ni estaciones Bizi en este repositorio, ni las líneas por poste de
+§ 1.5. Cada pieza entrará con su autorización y su ficha, como éstas.
 
 ---
 
