@@ -20619,7 +20619,9 @@
     "nombrePublico": "CALLE PARAÍSO ---MRL",
     "nombrePublicoNorm": "calle paraiso ---mrl",
     "tipoVia": "CL",
-    "numPortales": 37
+    "numPortales": 37,
+    "barrioRural": "MRL",
+    "barrioRuralLabel": "Miralbueno"
   },
   {
     "id": "22270",
@@ -27801,7 +27803,9 @@
     "nombrePublico": "CAMINO DEL CAIDERO ---MRL",
     "nombrePublicoNorm": "camino del caidero ---mrl",
     "tipoVia": "CN",
-    "numPortales": 3
+    "numPortales": 3,
+    "barrioRural": "MRL",
+    "barrioRuralLabel": "Miralbueno"
   },
   {
     "id": "5745",
@@ -30945,7 +30949,9 @@
     "nombrePublico": "JARDINES PORTAZGO SAN LAMBERTO ---MRL",
     "nombrePublicoNorm": "jardines portazgo san lamberto ---mrl",
     "tipoVia": "JR",
-    "numPortales": 0
+    "numPortales": 0,
+    "barrioRural": "MRL",
+    "barrioRuralLabel": "Miralbueno"
   },
   {
     "id": "932",
