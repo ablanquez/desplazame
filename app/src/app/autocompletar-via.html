@@ -1,0 +1,48 @@
+<label class="campo campo--calle" [attr.for]="campo()">
+  <span>{{ etiqueta() }}</span>
+  <input
+    type="text"
+    [id]="campo()"
+    [name]="campo()"
+    [value]="texto()"
+    autocomplete="off"
+    role="combobox"
+    aria-autocomplete="list"
+    [attr.aria-expanded]="hayQueMostrar()"
+    [attr.aria-controls]="campo() + '-sugerencias'"
+    [attr.aria-activedescendant]="activo() >= 0 ? campo() + '-sug-' + activo() : null"
+    (input)="alEscribir($any($event.target).value)"
+    (keydown)="alTeclear($event)"
+    (focus)="abierto.set(true)"
+    (blur)="alSalir()"
+  />
+</label>
+
+@if (hayQueMostrar()) {
+  <ul class="sugerencias" [id]="campo() + '-sugerencias'" role="listbox">
+    @if (sugerencias.isLoading()) {
+      <li class="sugerencias__aviso">Buscando…</li>
+    } @else if (sugerencias.error()) {
+      <li class="sugerencias__aviso sugerencias__aviso--mal">
+        No se pudo preguntar al motor. ¿Está arrancado?
+      </li>
+    } @else if (lista().length === 0) {
+      <li class="sugerencias__aviso">Sin resultados</li>
+    } @else {
+      @for (via of lista(); track via.codigo; let i = $index) {
+        <li
+          class="sugerencia"
+          [class.sugerencia--activa]="i === activo()"
+          [id]="campo() + '-sug-' + i"
+          role="option"
+          [attr.aria-selected]="i === activo()"
+          (mousedown)="elegir(via)"
+          (mouseenter)="activo.set(i)"
+        >
+          <span class="sugerencia__nombre">{{ comoSeVe(via) }}</span>
+          <span class="sugerencia__portales">{{ via.portales }}</span>
+        </li>
+      }
+    }
+  </ul>
+}

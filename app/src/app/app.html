@@ -7,10 +7,12 @@
   <form class="buscador" (submit)="$event.preventDefault()">
     <fieldset class="punto">
       <legend>Origen</legend>
-      <label class="campo campo--calle">
-        <span>Calle</span>
-        <input type="text" name="calleOrigen" [(ngModel)]="calleOrigen" autocomplete="off" />
-      </label>
+      <app-autocompletar-via
+        campo="calleOrigen"
+        etiqueta="Calle"
+        [(texto)]="calleOrigen"
+        (seleccion)="viaOrigen.set($event)"
+      />
       <label class="campo campo--portal">
         <span>Portal</span>
         <input type="text" name="portalOrigen" [(ngModel)]="portalOrigen" autocomplete="off" />
@@ -19,10 +21,12 @@
 
     <fieldset class="punto">
       <legend>Destino</legend>
-      <label class="campo campo--calle">
-        <span>Calle</span>
-        <input type="text" name="calleDestino" [(ngModel)]="calleDestino" autocomplete="off" />
-      </label>
+      <app-autocompletar-via
+        campo="calleDestino"
+        etiqueta="Calle"
+        [(texto)]="calleDestino"
+        (seleccion)="viaDestino.set($event)"
+      />
       <label class="campo campo--portal">
         <span>Portal</span>
         <input type="text" name="portalDestino" [(ngModel)]="portalDestino" autocomplete="off" />

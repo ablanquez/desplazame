@@ -1,0 +1,73 @@
+/* El campo y su desplegable. El :host es el ancla de posición: el
+   desplegable flota sobre lo que venga debajo, incluido el mapa. */
+:host {
+  position: relative;
+  display: block;
+  flex: 3 1 14rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.campo input {
+  padding: 0.4rem;
+  border: 1px solid #999;
+  border-radius: 3px;
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sugerencias {
+  position: absolute;
+  z-index: 1000; /* por encima del mapa de Leaflet, que usa 400-700 */
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 15rem;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: 3px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.sugerencia {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+}
+
+.sugerencia--activa {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+/* Cuántos portales tiene, discreto: informa sin competir con el nombre. */
+.sugerencia__portales {
+  color: #666;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.sugerencia--activa .sugerencia__portales {
+  color: #ddd;
+}
+
+.sugerencias__aviso {
+  padding: 0.35rem 0.5rem;
+  color: #555;
+}
+
+.sugerencias__aviso--mal {
+  color: #7c3d00;
+  background: #fff4e5;
+}
