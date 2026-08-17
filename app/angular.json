@@ -27,7 +27,7 @@
                 "input": "public"
               },
               {
-                "glob": "*.json",
+                "glob": "*.{json,js}",
                 "input": "data",
                 "output": "datos"
               }
