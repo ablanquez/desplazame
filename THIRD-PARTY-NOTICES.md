@@ -337,7 +337,7 @@ dato que copiar.
 
 ### 2.1 · Dependencias declaradas como de ejecución
 
-Las que van en `dependencies` de [`app/package.json`](app/package.json).
+Las que van en `dependencies` de [`app/package.json`](app/package.json) — la interfaz.
 
 | Paquete | Versión | Licencia | Para qué |
 |---|---|---|---|
@@ -376,26 +376,29 @@ pagado el precio de una tabla incompleta.
 | `vitest` | 4.1.10 | MIT | El corredor de pruebas que eligió el CLI |
 | `jsdom` | 28.1.0 | MIT | DOM de mentira para que Vitest pueda correr pruebas |
 | `prettier` | 3.9.6 | MIT | Formateo |
+| `@types/node` | 26.2.0 | MIT | **Del motor**, no de la interfaz: los tipos de Node para revisar `motor/` con `tsc` |
 
 ### 2.3 · El árbol transitivo — existe, y no se lista aquí
 
-Las **17 declaradas** de arriba arrastran, con todo lo suyo, **500 paquetes** instalados.
+Las **18 declaradas** de arriba arrastran, con todo lo suyo, **502 paquetes** de terceros
+instalados.
 Enumerarlos aquí sería una tabla que nadie lee y que caduca en la primera actualización.
 
-**Dónde mirarlos, que es lo que importa:** [`app/package-lock.json`](app/package-lock.json), que
+**Dónde mirarlos, que es lo que importa:** [`package-lock.json`](package-lock.json) **de la
+raíz** —desde que el repositorio son workspaces npm hay uno solo para las tres piezas—, que
 está versionado precisamente para eso — cada entrada trae su versión, su origen y su licencia.
 
 ```bash
-cd app && npm ls --depth=0     # las 17 declaradas
-cd app && npm ls --all         # el árbol entero
+npm ls --depth=0 --workspaces  # las declaradas, pieza a pieza
+npm ls --all                   # el árbol entero
 ```
 
-**El reparto de licencias del árbol completo, leído del `package-lock.json` el 16/08/2026
-(recalculado al entrar Leaflet):**
+**El reparto de licencias del árbol completo, leído del `package-lock.json` de la raíz el
+17/08/2026 (recalculado al montar los workspaces):**
 
 | Licencia | Paquetes |
 |---|---|
-| MIT | 428 |
+| MIT | 430 |
 | ISC | 25 |
 | BSD-2-Clause | 13 |
 | **MPL-2.0** | 12 |
@@ -406,11 +409,15 @@ cd app && npm ls --all         # el árbol entero
 | BlueOak-1.0.0 | 1 |
 | CC0-1.0 | 1 |
 | 0BSD | 1 |
-| **Total** | **500** |
+| **Total** | **502** |
+
+*(El `package-lock.json` trae tres entradas más sin licencia: `desplazame`, `@desplazame/tipos`
+y `@desplazame/motor`. No son terceros — son los enlaces de nuestros propios workspaces, y por
+eso no cuentan en los 502.)*
 
 ### 2.4 · Las tres que no son MIT ni BSD
 
-De las 500, tres familias no son la licencia permisiva de siempre. **Las tres son de desarrollo:
+De las 502, tres familias no son la licencia permisiva de siempre. **Las tres son de desarrollo:
 ninguna viaja al navegador.**
 
 | Paquete | Licencia | Qué tiene de distinto |
@@ -421,7 +428,7 @@ ninguna viaja al navegador.**
 
 ### 2.5 · Resumen de compatibilidad
 
-**Las 17 dependencias declaradas son MIT, Apache-2.0, BSD-2-Clause o 0BSD**: permisivas, sin
+**Las 18 dependencias declaradas son MIT, Apache-2.0, BSD-2-Clause o 0BSD**: permisivas, sin
 copyleft, y compatibles con la Apache 2.0 de este proyecto sin ninguna condición añadida. **No
 hay ninguna sorpresa entre ellas** — y en particular, Leaflet es BSD-2-Clause, no una licencia
 con restricciones de uso.
@@ -433,5 +440,5 @@ arriba.
 
 > **Y lo que este documento no garantiza:** el reparto de licencias de § 2.3 sale del campo
 > `license` que cada paquete declara en el `package-lock.json`. **No se ha abierto el `LICENSE` de
-> los 500 para comprobar que dicen la verdad**, y un paquete puede declarar mal. Las **17
+> los 502 para comprobar que dicen la verdad**, y un paquete puede declarar mal. Las **18
 > declaradas sí** se han mirado una a una. Del resto: **NO CONSTA**.

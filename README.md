@@ -27,8 +27,12 @@
 > **98.774 aristas** del grafo de continuidad peatonal y ciclable; y del GTFS, los **89
 > trazados de línea** —tranvía incluido, con sus 50 paradas—. Cada uno con su casilla para
 > encenderlo y apagarlo. Pero el buscador **todavía no los usa**: la línea que dibuja al
-> generar sigue siendo tan inventada como los pasos. No hay motor, y no se sabe aún qué líneas
-> pasan por cada poste.
+> generar sigue siendo tan inventada como los pasos.
+>
+> Y ya hay **motor**, aunque no calcule nada: un servidor mínimo en Node que solo sabe
+> responder que está vivo. **Ninguna ruta, ningún dato cargado, ningún cálculo** — lo que hay
+> es el contrato entre motor e interfaz, compartido en un paquete de tipos, y la fontanería
+> para que se hablen. Tampoco se sabe aún qué líneas pasan por cada poste.
 >
 > Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y una
 > pantalla con andamio.
