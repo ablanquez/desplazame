@@ -14,15 +14,19 @@
  *   1. Que alguien contesta en el puerto ....................... 1
  *      · interfaz: que devuelve la aplicación (lleva <app-root>)   2
  *      · motor: que `/api/salud` cumple el contrato `Salud`        2
+ *        y que lleva EL GRAFO cargado, con los recuentos de este
+ *        repositorio — no solo que respire ................... 7
  *   2. QUIÉN: el PID que está escuchando ....................... 3
  *   3. Que ese proceso arrancó DESPUÉS de la última modificación
  *      de los ficheros que solo se leen al arrancar ............ 4
  *      · interfaz: angular.json, package.json, package-lock.json
  *        — el recargado en caliente NO los aplica.
- *      · motor: sus FUENTES (package.json, tsconfig.json,
- *        src/servidor.ts) — Node ejecuta el TypeScript directamente
- *        y no recarga nada: tocar el servidor sin reiniciarlo deja
- *        corriendo el de antes. Es el fallo nº2 con otro disfraz.
+ *      · motor: sus FUENTES (package.json, tsconfig.json y TODOS
+ *        los .ts de src/) y ADEMÁS el fichero del grafo, que lee una
+ *        sola vez al arrancar. Node ejecuta el TypeScript
+ *        directamente y no recarga nada: tocar el servidor —o el
+ *        dato— sin reiniciarlo deja corriendo el de antes. Es el
+ *        fallo nº2 con otro disfraz.
  *   4. (solo interfaz) Que los recursos que el HTML anuncia se sirven .. 5
  *   5. (solo interfaz) Si los nombres traen hash de contenido —lo que
  *      hace `ng build` de serie—, que ese fichero esté en dist/ ....... 6
@@ -40,12 +44,13 @@
  *   · No comprueba la red externa (las teselas de OpenStreetMap).
  *   · Lee el PID con `netstat -ano` y la hora con PowerShell: **solo Windows**.
  *
- * Uso:  npm run comprobar-arranque  [puerto]
+ * Uso:  npm run comprobar-arranque            → la interfaz, 4200
+ *       npm run comprobar-arranque -- motor   → el motor, 3000
  * Sale con 0 si todo está bien; distinto de 0, con el motivo escrito.
  */
 
 import { execSync } from 'node:child_process';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
@@ -70,10 +75,31 @@ const RAIZ = ES_MOTOR ? join(APP, '..', 'motor') : APP;
  * antes — el fallo de la entrada nº2 con otro disfraz.
  */
 const SOLO_AL_ARRANCAR = ES_MOTOR
-  ? ['package.json', 'tsconfig.json', 'src/servidor.ts']
+  ? [
+      'package.json',
+      'tsconfig.json',
+      // Todas sus fuentes, no solo el servidor: el fichero que se olvida de
+      // la lista es el que un día se toca sin reiniciar.
+      ...readdirSync(join(RAIZ, 'src'))
+        .filter((f) => f.endsWith('.ts'))
+        .map((f) => join('src', f)),
+      // Y el grafo: el motor lo lee UNA vez al arrancar. Si el dato cambia,
+      // el motor sirve el de antes hasta que alguien lo reinicie.
+      join('..', 'app', 'data', 'grafo-visor.js'),
+    ]
   : ['angular.json', 'package.json', 'package-lock.json'];
 
 const DIST = join(APP, 'dist', 'desplazame', 'browser');
+
+/**
+ * Lo que el grafo tiene que traer si de verdad está cargado. Son los
+ * recuentos verificados en el punto 4 sobre el fichero que hay en el
+ * repositorio, y están escritos aquí a propósito: un motor que conteste con
+ * otros números no está sirviendo ESTE grafo. Si algún día el grafo se
+ * regenera, estos tres números cambian con él — y que la guardia se ponga
+ * roja hasta que alguien los actualice es justo lo que se quiere.
+ */
+const GRAFO_ESPERADO = { nodos: 68649, aristas: 98774, vertices: 378222 };
 
 /**
  * Rojo. Lanza en vez de salir: `process.exit()` con peticiones a medio cerrar
@@ -125,6 +151,26 @@ async function comprobar() {
       mal(2, 'contesta JSON, pero no tiene la forma de Salud', portada.cuerpo.slice(0, 120));
     }
     bien(`/api/salud contesta 200 y cumple el contrato (pid ${salud.pid})`);
+
+    // 1b · ¿Lleva el grafo cargado, y es ESTE grafo?
+    // Es la comprobación que separa un motor útil de uno que solo respira.
+    const g = salud.grafo;
+    if (!g || typeof g.aristas !== 'number' || typeof g.nodos !== 'number') {
+      mal(7, 'el motor contesta pero NO declara grafo: arrancó sin cargarlo', portada.cuerpo.slice(0, 160));
+    }
+    for (const [campo, esperado] of Object.entries(GRAFO_ESPERADO)) {
+      if (g[campo] !== esperado) {
+        mal(
+          7,
+          `el grafo cargado no es el de este repositorio: ${campo} = ${g[campo]}`,
+          `esperado ${esperado}, verificado en el punto 4 sobre app/data/grafo-visor.js`,
+        );
+      }
+    }
+    bien(
+      `lleva el grafo: ${g.aristas} aristas · ${g.nodos} nodos · ${g.vertices} vértices ` +
+        `(cargado en ${g.cargadoEnMs} ms)`,
+    );
   } else {
     if (!portada.cuerpo.includes('<app-root>')) {
       mal(2, `algo contesta en el puerto ${PUERTO}, pero no es Desplázame`, 'no aparece <app-root>');
