@@ -69,6 +69,9 @@ export class Mapa {
   /** Paradas del tranvía. Su propia casilla, como en bus. */
   readonly paradasTranvia = input<readonly Vertice[]>([]);
 
+  /** Estaciones BiZi. Vacío = sin capa. */
+  readonly estacionesBizi = input<readonly Vertice[]>([]);
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
@@ -79,6 +82,7 @@ export class Mapa {
   private capaTrazados?: L.Polyline;
   private capaTranvia?: L.Polyline;
   private capaParadasTranvia?: L.LayerGroup;
+  private capaBizi?: L.LayerGroup;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -99,6 +103,7 @@ export class Mapa {
       this.pintarTrazados();
       this.pintarTranvia();
       this.pintarParadasTranvia();
+      this.pintarBizi();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -142,6 +147,54 @@ export class Mapa {
       this.paradasTranvia();
       this.pintarParadasTranvia();
     });
+
+    effect(() => {
+      this.estacionesBizi();
+      this.pintarBizi();
+    });
+  }
+
+  /**
+   * Siembra las estaciones BiZi. El tono NO sale de la paleta del mapa: es el
+   * corporativo del servicio, para que se reconozcan de un vistazo. Si algún
+   * día chocan con otra capa, lo que se ajusta es la forma —radio, aro—, no
+   * el color.
+   */
+  private pintarBizi(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaBizi?.remove();
+    this.capaBizi = undefined;
+
+    const puntos = this.estacionesBizi();
+    if (puntos.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const lienzoCanvas = L.canvas();
+    const comienzo = performance.now();
+    this.capaBizi = L.layerGroup(
+      puntos.map(([lat, lon]) =>
+        L.circleMarker([lat, lon], {
+          renderer: lienzoCanvas,
+          radius: 4,
+          color: '#ffffff',
+          weight: 1.5,
+          fillColor: '#54A097',
+          fillOpacity: 1,
+          interactive: false,
+        }),
+      ),
+      { attribution: ATRIBUCION_MUNICIPAL },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${puntos.length} estaciones BiZi sembradas en ${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -411,6 +464,10 @@ export class Mapa {
     if (this.capaParadasTranvia) {
       capas[`Paradas de tranvía (${this.paradasTranvia().length.toLocaleString('es-ES')})`] =
         this.capaParadasTranvia;
+    }
+    if (this.capaBizi) {
+      capas[`Estaciones BiZi (${this.estacionesBizi().length.toLocaleString('es-ES')})`] =
+        this.capaBizi;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);

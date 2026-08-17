@@ -102,6 +102,16 @@ const ID_TRANVIA = /^210_/;
 const PARADAS = '/datos/2026-08-10_nap_gtfs-ficha1176_stops.txt';
 const CODIGO_BUS = /^PA/i;
 
+/**
+ * ANDAMIO DE VERIFICACIÓN. Las 276 estaciones BiZi vienen **repartidas en seis
+ * páginas** porque así las sirvió el WFS, de 50 en 50, y así se copiaron: unir
+ * los ficheros en disco sería derivar un fichero que nadie publicó. Se juntan
+ * aquí, al leerlos.
+ */
+const BIZI = [0, 50, 100, 150, 200, 250].map(
+  (p) => `/datos/2026-08-02_wfs_bizi_pag${p}.json`,
+);
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, Mapa],
@@ -155,6 +165,9 @@ export class App {
   /** Las paradas del tranvía, del mismo GTFS. */
   protected readonly paradasTranvia = signal<readonly Vertice[]>([]);
 
+  /** Las estaciones BiZi, unidas de sus seis páginas. */
+  protected readonly estacionesBizi = signal<readonly Vertice[]>([]);
+
   constructor() {
     this.cargarPortales();
     this.cargarGrafo();
@@ -162,6 +175,31 @@ export class App {
     this.cargarPostes();
     this.cargarTrazados();
     this.cargarParadasTranvia();
+    this.cargarBizi();
+  }
+
+  private async cargarBizi(): Promise<void> {
+    try {
+      const paginas = await Promise.all(
+        BIZI.map(async (url) => {
+          const respuesta = await fetch(url);
+          if (!respuesta.ok) {
+            throw new Error(`${url} respondió ${respuesta.status}`);
+          }
+          return (await respuesta.json()) as { readonly features: readonly PosteCrudo[] };
+        }),
+      );
+      this.estacionesBizi.set(
+        paginas.flatMap((p) =>
+          p.features.map((f) => {
+            const [lon, lat] = f.geometry.coordinates;
+            return [lat, lon] as Vertice;
+          }),
+        ),
+      );
+    } catch (e) {
+      console.error('estaciones BiZi: no se pudieron cargar', e);
+    }
   }
 
   private async cargarParadasTranvia(): Promise<void> {
