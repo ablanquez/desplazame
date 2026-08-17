@@ -60,8 +60,11 @@ export class Mapa {
   /** Postes de autobús. Vacío = sin capa. */
   readonly postes = input<readonly Vertice[]>([]);
 
-  /** Trazados de línea del GTFS: cada uno, su lista de vértices. */
+  /** Trazados de línea de bus del GTFS: cada uno, su lista de vértices. */
   readonly trazados = input<readonly (readonly Vertice[])[]>([]);
+
+  /** Trazados del tranvía. Capa aparte: es otra red y otra agencia. */
+  readonly tranvia = input<readonly (readonly Vertice[])[]>([]);
 
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
@@ -71,6 +74,7 @@ export class Mapa {
   private capaCarriles?: L.Polyline;
   private capaPostes?: L.LayerGroup;
   private capaTrazados?: L.Polyline;
+  private capaTranvia?: L.Polyline;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -89,6 +93,7 @@ export class Mapa {
       this.pintarCarriles();
       this.pintarPostes();
       this.pintarTrazados();
+      this.pintarTranvia();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -122,6 +127,46 @@ export class Mapa {
       this.trazados();
       this.pintarTrazados();
     });
+
+    effect(() => {
+      this.tranvia();
+      this.pintarTranvia();
+    });
+  }
+
+  /**
+   * Pinta el tranvía. Los seis colores en uso ya ocupan seis tonos del
+   * círculo; en vez de meterse en un hueco cada vez más estrecho, éste sale
+   * del círculo: casi negro, acromático, no puede chocar con ningún tono. Y
+   * al doble de grosor, porque es la otra red.
+   */
+  private pintarTranvia(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaTranvia?.remove();
+    this.capaTranvia = undefined;
+
+    const lineas = this.tranvia();
+    if (lineas.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    this.capaTranvia = L.polyline(
+      lineas.map((t) => t.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
+      {
+        renderer: L.canvas(),
+        color: '#111827',
+        weight: 4,
+        opacity: 0.9,
+        interactive: false,
+        attribution: ATRIBUCION_GTFS,
+      },
+    ).addTo(this.mapa);
+
+    this.refrescarControl();
   }
 
   /**
@@ -305,8 +350,11 @@ export class Mapa {
       capas[`Postes de bus (${this.postes().length.toLocaleString('es-ES')})`] = this.capaPostes;
     }
     if (this.capaTrazados) {
-      capas[`Trazados de líneas (${this.trazados().length.toLocaleString('es-ES')})`] =
+      capas[`Trazados de bus (${this.trazados().length.toLocaleString('es-ES')})`] =
         this.capaTrazados;
+    }
+    if (this.capaTranvia) {
+      capas[`Tranvía (${this.tranvia().length.toLocaleString('es-ES')})`] = this.capaTranvia;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);

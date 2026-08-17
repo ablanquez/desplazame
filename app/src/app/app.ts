@@ -90,6 +90,9 @@ interface PosteCrudo {
  */
 const TRAZADOS = '/datos/2026-08-10_nap_gtfs-ficha1176_shapes.txt';
 
+/** Los trazados del tranvía (`route_id` 210). Comprobado: casan 2 de los 89. */
+const ID_TRANVIA = /^210_/;
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, Mapa],
@@ -134,8 +137,11 @@ export class App {
   /** Los postes de autobús, una vez descargados. */
   protected readonly postes = signal<readonly Vertice[]>([]);
 
-  /** Los trazados de línea del GTFS, una vez descargados. */
+  /** Los trazados de línea de BUS del GTFS, una vez descargados. */
   protected readonly trazados = signal<readonly (readonly Vertice[])[]>([]);
+
+  /** Los trazados del TRANVÍA: otra red, otra agencia, capa aparte. */
+  protected readonly tranvia = signal<readonly (readonly Vertice[])[]>([]);
 
   constructor() {
     this.cargarPortales();
@@ -172,11 +178,21 @@ export class App {
         porTrazado.set(c[iId], puntos);
       }
 
-      this.trazados.set(
-        [...porTrazado.values()].map((puntos) =>
-          puntos.sort((a, b) => a.orden - b.orden).map((p) => p.punto),
-        ),
-      );
+      // El tranvía es otra red y otra agencia: se separa para verlo como lo
+      // que es. Son sus 2 trazados (`210_I`, `210_V`) frente a los 87 de bus,
+      // que se llaman `Route_N` — el patrón del nombre los distingue sin
+      // necesidad de `trips`. Esto NO distingue líneas de bus entre sí: eso
+      // sigue siendo del motor.
+      const ordenados = (puntos: { orden: number; punto: Vertice }[]) =>
+        puntos.sort((a, b) => a.orden - b.orden).map((p) => p.punto);
+
+      const bus: Vertice[][] = [];
+      const tranvia: Vertice[][] = [];
+      for (const [id, puntos] of porTrazado) {
+        (ID_TRANVIA.test(id) ? tranvia : bus).push(ordenados(puntos));
+      }
+      this.trazados.set(bus);
+      this.tranvia.set(tranvia);
     } catch (e) {
       console.error('trazados: no se pudieron cargar', e);
     }
