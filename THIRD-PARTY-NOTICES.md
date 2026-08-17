@@ -4,13 +4,13 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 17/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **siete** conjuntos de
-> datos —los portales, los carriles bici, los postes de autobús, las estaciones BiZi y los
-> aparcabicis del Ayuntamiento; el grafo de continuidad derivado de OSM; y el GTFS del Punto de
-> Acceso Nacional—. Solo quedan fuera las capas municipales de tranvía; cada pieza llega con su
-> autorización y su ficha.
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **ocho** conjuntos de
+> datos —los portales, **el callejero de vías**, los carriles bici, los postes de autobús, las
+> estaciones BiZi y los aparcabicis del Ayuntamiento; el grafo de continuidad derivado de OSM; y
+> el GTFS del Punto de Acceso Nacional—. Solo quedan fuera las capas municipales de tranvía;
+> cada pieza llega con su autorización y su ficha.
 >
-> ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.6).
+> ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7).
 >
 > **Las huellas sha256 de esta página se verifican sobre un clon**, no sobre el disco de quien
 > las escribe: git puede reescribir bytes al hacer *checkout*. Ver `docs/BITACORA.md` nº3, y el
@@ -71,7 +71,47 @@ editado, filtrado ni «limpiado»: el sha256 de la copia es idéntico al del ori
 fichero: el callejero municipal se refresca (política declarada: mensual). Lo que garantiza los
 números de arriba es **este** fichero, no una consulta nueva.
 
-### 1.3 · Grafo de continuidad peatonal y ciclable — derivado de OpenStreetMap
+### 1.3 · Callejero de vías — Ayuntamiento de Zaragoza (IDEZar)
+
+| | |
+|---|---|
+| **Qué es** | La tabla **código ↔ nombre** de las **3.359 vías** del término. Sin ella el censo de portales es mudo: el municipal trae `codigoVia` y **ni un nombre de calle**, así que no habría autocompletar posible |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS Urbanismo · capa `urbanismo:Vias`. **Es el hermano de los portales de § 1.2**: mismo conjunto `callejero-zaragoza` v1.0, mismo `generatedAt` **2026-05-13T07:11:41.075Z**, misma ficha de procedencia |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
+| **Dónde está cumplida** | Esta pieza **no se pinta** —es tabla, no capa—, así que no cuelga de ninguna capa del mapa. Su atribución es la de esta ficha, y la que acompañe a las sugerencias cuando el formulario las enseñe |
+| **Campos** | `id`, `codigoVia`, `nombre`, `nombreCompleto`, `nombrePublico`, `nombrePublicoNorm`, `tipoVia`, `numPortales`, y en 739 vías `barrioRural`/`barrioRuralLabel`. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json`](app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json) · 1.025.210 bytes · sha256 `9c7873679df0b94c7b27fa2f6cbaac84a0b610e64a06bfd725070df17d646ebc` **verificado sobre un clon**, y coincide con el que la ficha de procedencia del origen declaró haber medido en disco |
+
+**El cruce contra los portales municipales, que es la verificación de esta pieza** (no se pinta:
+se cuenta). Medido con comando sobre los dos ficheros del repositorio:
+
+| | |
+|---|---|
+| Vías en el callejero | **3.359** — *N* |
+| **Vías con al menos un portal** | **2.731** — ***M*, la cifra que se publica** |
+| Vías sin ningún portal | **628** |
+| **Códigos de portal sin vía en el callejero** | **0** |
+
+**Cero huérfanos en el sentido que importa**: los 46.150 portales tienen su vía. Y una
+coherencia que merece decirse: el callejero declara en `numPortales` cuántos tiene cada vía, y
+**cuadra con el recuento real en las 3.359, sin una sola excepción**.
+
+> **Por qué se publica 2.731 y no 3.359.** El buscador solo sugiere vías **con portal**: sugerir
+> una de las 628 sin portales sería ofrecer una dirección que después no se puede resolver. Los
+> dos números están declarados en `/api/salud`, y el que sale a la pantalla es el cumplible.
+
+**La suciedad del origen, trasladada y no corregida:**
+
+- **Una sola vía con la vocal acentuada en minúscula**: `ANDADOR ABOGACíA TURNO DE OFICIO`
+  (código 81). Es la misma familia de fallo que las 8 paradas del GTFS (§ 1.7). **No es
+  sugerible**: no tiene portales, así que ni siquiera aparecerá.
+- **256 vías arrastran marcadores internos** del tipo `---PÑF`, `---CST`, `---TRC`
+  (`ANDADOR DEL CAIDERO ---PÑF`), y **231 de ellas sí son sugeribles**: saldrán así en las
+  sugerencias, porque el nombre **se devuelve tal cual viene**. Maquillarlo sería editar el dato.
+
+### 1.4 · Grafo de continuidad peatonal y ciclable — derivado de OpenStreetMap
 
 | | |
 |---|---|
@@ -99,7 +139,7 @@ prefijo en memoria. En el repositorio no se toca, y el navegador nunca lo ejecut
 > municipales de § 1.2 (fuente, Ley 37/2007) y los enganchados de aquí (derivados, ODbL). No son
 > el mismo dato ni tienen los mismos campos. Que convivan es una decisión tomada, no un descuido.
 
-### 1.4 · Carriles bici y sendas ciclables — Ayuntamiento de Zaragoza (IDEZar)
+### 1.5 · Carriles bici y sendas ciclables — Ayuntamiento de Zaragoza (IDEZar)
 
 | | |
 |---|---|
@@ -137,14 +177,14 @@ el mismo espacio de códigos, lo que permitirá cruzarlos sin inventar correspon
 > fecha va en el nombre de la capa— y sus atributos colapsan la distinción calzada/acera que
 > aquí es lo útil. Se queda en el archivo del intento anterior.
 
-### 1.5 · Postes de autobús urbano — Ayuntamiento de Zaragoza (IDEZar)
+### 1.6 · Postes de autobús urbano — Ayuntamiento de Zaragoza (IDEZar)
 
 | | |
 |---|---|
 | **Qué es** | Los **944 postes** de autobús urbano del catálogo municipal: `codigo`, `stop_name` y `stop_code`, con su coordenada. Son el dónde se sube y se baja del modo BUS |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU3_paradas_bus_unicas`** · petición registrada el **10/08/2026 09:48:39 GMT** (`timeStamp` del propio WFS: `2026-08-10T09:48:39.236Z`). CRS **EPSG:4326**, geometría `Point` |
-| **Licencia** | **Ley 37/2007**, la misma que los portales (§ 1.2) y los carriles (§ 1.4) |
+| **Licencia** | **Ley 37/2007**, la misma que los portales (§ 1.2) y los carriles (§ 1.5) |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
 | **Campos** | `codigo`, `stop_name`, `stop_code` — los tres en los 944, y **ninguno personal**. 944 `stop_code` únicos, cero rasgos sin coordenada, 921 nombres distintos (los repetidos son postes enfrentados) |
 | **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-10_wfs_movilidad-MU3_paradas_bus_unicas.json`](app/data/2026-08-10_wfs_movilidad-MU3_paradas_bus_unicas.json) · 226.540 bytes · sha256 `f335b56d586a387bfd592abfa32d0536cc1bb1b8c3a2520d6cf68e0e05d43bad` **verificado sobre un clon** |
@@ -171,7 +211,7 @@ servicio, o de refuerzo, está en uno y no en el otro. Ninguno de los dos númer
 > adoptado». Puede que lo descartara a favor del GTFS o del barrido; no se ha averiguado, y no
 > se infiere.
 
-### 1.6 · GTFS del transporte urbano — Punto de Acceso Nacional (ficha 1176)
+### 1.7 · GTFS del transporte urbano — Punto de Acceso Nacional (ficha 1176)
 
 > ## ⏳ ESTE DATO CADUCA EL **05/10/2026**
 > Lo declara el propio feed: `feed_info.feed_end_date = 20261005`. Es una **instantánea
@@ -180,7 +220,7 @@ servicio, o de refuerzo, está en uno y no en el otro. Ninguno de los dos númer
 
 | | |
 |---|---|
-| **Qué es** | El feed GTFS del transporte urbano de Zaragoza: líneas, viajes, orden de paradas, calendario y **trazados**. Es donde viven las líneas que § 1.5 dejó anotadas como dependencia |
+| **Qué es** | El feed GTFS del transporte urbano de Zaragoza: líneas, viajes, orden de paradas, calendario y **trazados**. Es donde viven las líneas que § 1.6 dejó anotadas como dependencia |
 | **Titular** | **Avanza Zaragoza S.A.U** (publicador del feed) |
 | **Canal** | **Punto de Acceso Nacional** · Ministerio de Transportes y Movilidad Sostenible · **ficha 1176** · `https://nap.transportes.gob.es/api/Fichero/download/1176` |
 | **Descarga** | **10/08/2026 09:44:51 GMT**, estado 200. Las cabeceras de la respuesta declaran `sha256 5c96992c…` y `content-length 6883311`: **las dos cuadran** con el fichero que hay aquí |
@@ -197,7 +237,7 @@ dependencia nueva y no la hay:
 | Miembro extraído | Bytes | sha256 | Para qué |
 |---|---|---|---|
 | [`…_shapes.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_shapes.txt) | 1.408.077 | `f38397d36c98fb756b2ee5a3ca261fbfc712aea2e51903d51b7c9b4fddb18157` | Los 89 trazados que se pintan |
-| [`…_stops.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_stops.txt) | 99.309 | `6d1a969ab25d7be41ffb9b8184589865407be671fd52fadc50206aa3917c957b` | **Las 50 paradas del tranvía**, que no están en ninguna otra fuente del repositorio: el MU3 municipal (§ 1.5) es solo bus. De sus 984 paradas se pintan **solo esas 50**; las 934 `PA…` de bus no, porque para eso manda el censo municipal |
+| [`…_stops.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_stops.txt) | 99.309 | `6d1a969ab25d7be41ffb9b8184589865407be671fd52fadc50206aa3917c957b` | **Las 50 paradas del tranvía**, que no están en ninguna otra fuente del repositorio: el MU3 municipal (§ 1.6) es solo bus. De sus 984 paradas se pintan **solo esas 50**; las 934 `PA…` de bus no, porque para eso manda el censo municipal |
 
 **Extraer no es editar**: en los dos casos el hash del fichero en disco es idéntico al del miembro
 dentro del archivo, comprobado con `unzip -p … | sha256sum` antes y después.
@@ -226,7 +266,7 @@ los límites de GitHub.
 **Las dos minas conocidas, confirmadas con el dato delante:**
 
 - **El puente `PA…` miente sobre el tranvía.** El `stop_code` `PA…` es lo que permite cruzar
-  este feed con los postes municipales de § 1.5 — pero **solo lo tienen 934 de los 984**. Los
+  este feed con los postes municipales de § 1.6 — pero **solo lo tienen 934 de los 984**. Los
   **50 del tranvía usan otro espacio de códigos** (`0101`, `0201`, …). Quien cruce por `PA…`
   creyendo que cubre la red entera perderá el tranvía **sin que nada falle**.
 - **Suciedad de codificación que viaja tal cual.** El origen no pone en mayúscula las vocales
@@ -238,14 +278,14 @@ los límites de GitHub.
 > hasta el **31/12/2026**. Son casi tres meses de servicio declarado más allá de la validez que
 > el propio feed se da. **Aquí se toma la fecha conservadora, la del publicador: 05/10/2026.**
 
-### 1.7 · Estaciones BiZi — Ayuntamiento de Zaragoza (IDEZar)
+### 1.8 · Estaciones BiZi — Ayuntamiento de Zaragoza (IDEZar)
 
 | | |
 |---|---|
 | **Qué es** | Las **276 estaciones** del servicio público de bicicleta BiZi: posición, nombre, situación, **capacidad** (`anclajes_bicicletas`), tipo de pavimento y tipología. Es el dónde se coge y se deja una bici sin tenerla |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU1_estaciones_bici_ubicacion`** · descargada el **02/08/2026 10:10 GMT** (los `timeStamp` de las seis páginas van de las 10:10:20 a las 10:10:28). CRS **EPSG:4326**, geometría `Point` |
-| **Licencia** | **Ley 37/2007**, la misma que portales (§ 1.2), carriles (§ 1.4) y postes (§ 1.5) |
+| **Licencia** | **Ley 37/2007**, la misma que portales (§ 1.2), carriles (§ 1.5) y postes (§ 1.6) |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
 | **Campos** | `numero`, `nombre`, `situacion`, `pavimento`, `coord_x`/`coord_y` (UTM), `fase`, `anclajes_bicicletas`, `junta_municipal`, `poligono`, `tipologia`. **Ninguno personal** |
 | **¿Está en este repo?** | ✅ **Sí, tal cual, en sus seis páginas** (ver abajo) |
@@ -283,11 +323,11 @@ distintos y 276 números de estación distintos** — sin solapes ni huecos—, 
 > (`MU1_estaciones_bici_ubicacion.N`), el `timeStamp` del WFS en cada página y el `crs`. **Del
 > URL exacto de la petición: NO CONSTA.**
 
-### 1.8 · Aparcabicis — Ayuntamiento de Zaragoza (IDEZar)
+### 1.9 · Aparcabicis — Ayuntamiento de Zaragoza (IDEZar)
 
 | | |
 |---|---|
-| **Qué es** | Los **2.158 aparcabicis** públicos: soportes donde dejar la bici propia, con su tipo, su vía y su número de anclajes. Completa el modo BICI por el otro lado — las estaciones de § 1.7 son la bici pública; esto es dónde dejar la tuya |
+| **Qué es** | Los **2.158 aparcabicis** públicos: soportes donde dejar la bici propia, con su tipo, su vía y su número de anclajes. Completa el modo BICI por el otro lado — las estaciones de § 1.8 son la bici pública; esto es dónde dejar la tuya |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU2_aparcabicis`** |
 | **Petición** | **Ésta la hicimos nosotros**, y por eso el URL sí consta: `https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU2_aparcabicis&outputFormat=application/json&srsName=EPSG:4326` |
@@ -318,14 +358,14 @@ en total.
   `Vigilado` 8 · **`Proyecto` 4** · **`Sin servicio` 2**. **Seis de los 2.158 no se pueden usar
   hoy**: cuatro están proyectados y dos fuera de servicio. Quien los pinte o los enrute sin mirar
   ese campo ofrecerá aparcabicis que no existen — es la misma trampa que los 7 tramos «En
-  Construcción» de § 1.4.
+  Construcción» de § 1.5.
 - **`tipo_estacion`** trae 17 tipos de soporte (`Individuales U` 1.003, `Bicis y Vmp en calzada`
   833, `Módulo  U en bastidor` 123…) — con **dobles espacios** en algunos nombres, del origen.
 - **`anclajes`** va de **0 a 110**, y **un rasgo no lo trae**.
 - **`nombre_reducido`** arrastra marcadores internos del callejero municipal en **36 de los
   2.158**: valores como `"LOGROÑO  ---CST"`. No se corrige: el dato se copia tal cual.
 
-### 1.9 · El resto del dato — todavía **ninguno**
+### 1.10 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
