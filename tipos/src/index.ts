@@ -79,8 +79,19 @@ export interface Trayecto {
  * `GET /api/vias?q=…`.
  *
  * `nombre` viene **tal cual está en el callejero municipal**, sin maquillar:
- * en mayúsculas, y con la suciedad de codificación del origen si la trae. La
- * normalización (minúsculas, sin acentos) es solo para COMPARAR dentro del
+ * en mayúsculas, y con el marcador de núcleo (`CALLE BURGOS ---CST`) si lo
+ * trae. Se conserva porque es el dato.
+ *
+ * `limpio` y `nucleo` son ese mismo nombre **ya interpretado**, que es lo que
+ * se enseña: `CALLE BURGOS` y `CASETAS`. El marcador es críptico y no debe
+ * salir a pantalla, pero **tampoco puede perderse**: hay 52 nombres que se
+ * repiten entre la ciudad y los barrios rurales, y el núcleo es lo único que
+ * los distingue. `nucleo` es `null` en las vías de Zaragoza ciudad.
+ *
+ * El corte del sufijo y la búsqueda del núcleo los hace **el motor, en un
+ * único sitio**: la interfaz no parsea nombres.
+ *
+ * La normalización (minúsculas, sin acentos) es solo para COMPARAR dentro del
  * motor; no sale al contrato.
  *
  * `portales` es cuántos portales tiene, contados sobre el censo municipal. No
@@ -90,6 +101,8 @@ export interface Trayecto {
 export interface Via {
   readonly codigo: string;
   readonly nombre: string;
+  readonly limpio: string;
+  readonly nucleo: string | null;
   readonly tipo: string;
   readonly portales: number;
 }

@@ -26,7 +26,15 @@ interface ViaCruda {
   readonly nombrePublico: string;
   readonly tipoVia: string;
   readonly numPortales: number;
+  readonly barrioRuralLabel?: string;
 }
+
+/**
+ * El marcador de núcleo que arrastran 256 vías: ` ---CST`, ` ---PÑF`…
+ * Comprobado sobre las 3.359: **siempre al final, siempre precedido de un
+ * espacio, nunca dos en el mismo nombre**. Por eso el corte es seguro.
+ */
+const MARCADOR = / ---[A-ZÁÉÍÓÚÑ0-9]+$/;
 
 /** Un portal municipal. Solo lo que aquí se mira. */
 interface PortalCrudo {
@@ -90,8 +98,17 @@ export function cargarCallejero(): CallejeroEnMemoria {
       continue;
     }
     sugeribles.push({
-      // El nombre se devuelve TAL CUAL viene, sin maquillar.
-      via: { codigo, nombre: cruda.nombrePublico, tipo: cruda.tipoVia, portales: cuantos },
+      via: {
+        codigo,
+        // El nombre se guarda TAL CUAL viene, con su marcador: es el dato.
+        nombre: cruda.nombrePublico,
+        // Y ya interpretado, que es lo que se enseña. El corte lo hace el
+        // motor aquí y solo aquí: la interfaz no parsea nombres.
+        limpio: cruda.nombrePublico.replace(MARCADOR, ''),
+        nucleo: cruda.barrioRuralLabel ? cruda.barrioRuralLabel.toUpperCase() : null,
+        tipo: cruda.tipoVia,
+        portales: cuantos,
+      },
       norma: normalizar(cruda.nombrePublico),
     });
   }
