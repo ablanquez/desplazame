@@ -14,6 +14,62 @@
 
 ---
 
+## [2026-08-17] 🔴 ABIERTA — El sha256 del dato cuadraba en mi disco y NO es el que recibe quien clona: git le cambia los bytes al salir
+
+**Categoría:** instrumento que no identifica lo que mide
+
+**Síntoma:** el grafo (`app/data/grafo-visor.js`, 22,8 MB en una sola línea) se copió byte a
+byte y la comprobación de integridad dio idéntico: mismo tamaño, mismo sha256 que el origen.
+Pero `core.autocrlf = true` y no hay `.gitattributes`: al hacer *checkout*, git convierte el
+único `\n` final en `\r\n`. **El fichero que recibe quien clona pesa un byte más y tiene otra
+huella.** El sha256 que la ficha del notices declara como identidad del dato es el de mi disco,
+no el del repositorio. Al portales no le pasa: no tiene salto de línea, así que no hay nada que
+convertir — y por eso el fallo no se vio con la primera pieza.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la comprobación de integridad prescrita, y
+también el blob de git. Las dos ciertas, y las dos midiendo lo que no era. Ejecutado antes de
+tocar nada:
+
+```
+$ sha256sum app/data/grafo-visor.js                        # mi árbol de trabajo
+d7d03aed71990d1ca5233955bff0940bda455422e6fd51dd755eb9c07f5cc717
+$ sha256sum <origen en la OLD>
+d7d03aed71990d1ca5233955bff0940bda455422e6fd51dd755eb9c07f5cc717
+$ git cat-file -p HEAD:app/data/grafo-visor.js | sha256sum # el blob guardado
+d7d03aed71990d1ca5233955bff0940bda455422e6fd51dd755eb9c07f5cc717
+```
+
+Y lo que recibe de verdad quien clona el repositorio:
+
+```
+$ git clone <repo> clon && cd clon
+$ wc -c   app/data/grafo-visor.js  -> 23925690        (el origen: 23925689)
+$ sha256sum app/data/grafo-visor.js
+7f7304080cc9b2aaf9f690216834837220021540d7af249705b7ab1b1183f56a
+```
+
+**Cómo se cazó:** el aviso de git al commitear —«LF will be replaced by CRLF the next time Git
+touches it»—, que llevaba saliendo en todos los commits desde el primero y que hasta hoy había
+tratado como ruido. Sobre un fichero de una sola línea dejó de ser ruido.
+
+**Causa raíz:** ⏳ PENDIENTE
+
+**Arreglo aplicado:** ⏳ PENDIENTE
+
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** una huella calculada sobre el árbol de trabajo **no acredita lo que
+el repositorio entrega**. Git puede reescribir bytes entre el commit y el checkout, y lo hace
+en silencio. Todo dato cuya integridad se declare tiene que verificarse **sobre un clon**, no
+sobre el fichero que uno acaba de copiar — y todo fichero de datos tiene que quedar marcado
+para que git no lo toque. Corolario: un aviso repetido que se asume como ruido es un fallo
+esperando el fichero adecuado.
+
+**Traza:** `app/data/grafo-visor.js` · `core.autocrlf=true` sin `.gitattributes` ·
+ficha en `THIRD-PARTY-NOTICES.md` § 1.3 · detectado durante el punto 4 (grafo).
+
+---
+
 ## [2026-08-16] ✅ CERRADA — El `200` de `localhost:4200` lo daba un servidor muerto: contestaba el proceso anterior con la configuración vieja
 
 **Categoría:** instrumento que no identifica lo que mide
