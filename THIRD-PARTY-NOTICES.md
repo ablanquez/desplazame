@@ -3,10 +3,14 @@
 La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno**, que conserva sus
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
-> ℹ️ **Estado a 16/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **un** fichero de dato
-> municipal —los portales—. El resto del dato (grafo, paradas, carriles bici) todavía no ha
-> entrado; cada pieza llega con su autorización y su ficha.
+> ℹ️ **Estado a 17/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **dos** ficheros de
+> datos —los portales del Ayuntamiento y el grafo de continuidad derivado de OSM—. Las paradas
+> y los carriles bici todavía no han entrado; cada pieza llega con su autorización y su ficha.
+>
+> **Las huellas sha256 de esta página se verifican sobre un clon**, no sobre el disco de quien
+> las escribe: git puede reescribir bytes al hacer *checkout*. Ver `docs/BITACORA.md` nº3, y el
+> `.gitattributes` que lo impide.
 
 ---
 
@@ -63,10 +67,38 @@ editado, filtrado ni «limpiado»: el sha256 de la copia es idéntico al del ori
 fichero: el callejero municipal se refresca (política declarada: mensual). Lo que garantiza los
 números de arriba es **este** fichero, no una consulta nueva.
 
-### 1.3 · El resto del dato municipal — todavía **ninguno**
+### 1.3 · Grafo de continuidad peatonal y ciclable — derivado de OpenStreetMap
 
-No hay grafo de calles, ni paradas, ni carriles bici en este repositorio. Cada uno entrará con su
-autorización y su ficha, como ésta.
+| | |
+|---|---|
+| **Qué es** | La red por la que se podrá caminar y pedalear: **98.774 aristas** con su geometría propia (378.222 vértices) y **68.649 nodos** (que solo existen como contador y como extremos de arista) |
+| **Origen del dato** | **OpenStreetMap**, vía Overpass. Cada arista conserva su etiqueta `highway` (`h`) y su **id de *way*** (`w`) de OSM. Deriva de una descarga de Overpass registrada el **03/08/2026 08:20:58 GMT**; el propio grafo lleva sello `2026-08-03T08:19:51Z` |
+| **Licencia** | **ODbL 1.0**, la misma que la cartografía de § 1.1, por ser un derivado de datos de OSM |
+| **Atribución** | La exigida por la ODbL —«© **colaboradores** de OpenStreetMap»— **ya está cumplida** por el mapa base (§ 1.1), que está siempre encendido. La capa del grafo **no cuelga atribución propia**: sería la misma cadena repetida |
+| **Zona** | bbox 41,4011–41,982 N · −1,2199–−0,6541 O — **más ancha que el término municipal**: trae calle de fuera de Zaragoza |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/grafo-visor.js`](app/data/grafo-visor.js) · 23.925.689 bytes · sha256 `d7d03aed71990d1ca5233955bff0940bda455422e6fd51dd755eb9c07f5cc717` |
+
+**El fichero es un `.js`, y no se carga como script.** Es una sola línea, `window.GRAFO = {…};`,
+que es como lo exportó el proyecto anterior. Se copió **byte a byte** —convertirlo a `.json`
+habría sido editar el dato— y la aplicación lo pide con `fetch` **como texto** y le quita el
+prefijo en memoria. En el repositorio no se toca, y el navegador nunca lo ejecuta.
+
+**Dentro viajan tres cosas, y solo una se usa:**
+
+| Parte | Peso | Qué se hace con ella |
+|---|---|---|
+| **El grafo** (`aristas`) | **16,5 MB** | **Se usa y se pinta.** Es lo que este dato aporta |
+| **El enganche portal→arista** (`portales`) | **5,9 MB** | **NO se usa hoy.** Son los mismos 46.150 portales de § 1.2 otra vez, pero pegados al grafo: distancia de enganche, vía heredada y concordancias, con sus contadores (**46.026 enganchados · 124 no**). Se conserva porque **el motor del punto 6 lo necesitará** y porque el `enlaces.json` del proyecto anterior referencia aristas **por índice de este fichero** |
+| **La auditoría del intento anterior** | **0,2 MB** | **No se hereda como documentación** —`componentes` (170), `noConectados` (1.410), `puntasLejos` (488), `porDefecto` (114)—. Viaja porque el fichero es **indivisible sin editarlo**, y editarlo está prohibido |
+
+> ⚠️ **Hay dos versiones de los portales en este repositorio**, y es a propósito: los
+> municipales de § 1.2 (fuente, Ley 37/2007) y los enganchados de aquí (derivados, ODbL). No son
+> el mismo dato ni tienen los mismos campos. Que convivan es una decisión tomada, no un descuido.
+
+### 1.4 · El resto del dato municipal — todavía **ninguno**
+
+No hay paradas ni carriles bici en este repositorio. Cada uno entrará con su autorización y su
+ficha, como éstas.
 
 ---
 
