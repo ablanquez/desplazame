@@ -191,12 +191,19 @@ servicio, o de refuerzo, está en uno y no en el otro. Ninguno de los dos númer
 | **Dónde está cumplida** | Colgada de la capa de trazados: *«Trazados: GTFS de Avanza Zaragoza S.A.U. (dato bruto) · Powered by MITRAMS»* |
 | **¿Está en este repo?** | ✅ **Sí, el ZIP entero tal cual**: [`app/data/2026-08-10_nap_gtfs-ficha1176.zip`](app/data/2026-08-10_nap_gtfs-ficha1176.zip) · 6.883.311 bytes · sha256 `5c96992c97aac966bc9bc20babfbbbffb312f2a3cbcf9dd543982d2674cf3a82` **verificado sobre un clon** |
 
-**Y una copia de trabajo extraída, solo una.** [`…_shapes.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_shapes.txt),
-1.408.077 bytes, sha256 `f38397d36c98fb756b2ee5a3ca261fbfc712aea2e51903d51b7c9b4fddb18157`. **Extraer no
-es editar**: el hash del fichero en disco es idéntico al del miembro dentro del archivo, comprobado
-con `unzip -p … | sha256sum` antes y después. Se extrae porque el navegador no abre ZIP sin una
-dependencia nueva, y no la hay. **`stop_times.txt` (47 MB) NO se extrae**: no hace falta para
-pintar y sería peso muerto rozando los límites de GitHub.
+**Y dos copias de trabajo extraídas, solo dos**, porque el navegador no abre ZIP sin una
+dependencia nueva y no la hay:
+
+| Miembro extraído | Bytes | sha256 | Para qué |
+|---|---|---|---|
+| [`…_shapes.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_shapes.txt) | 1.408.077 | `f38397d36c98fb756b2ee5a3ca261fbfc712aea2e51903d51b7c9b4fddb18157` | Los 89 trazados que se pintan |
+| [`…_stops.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_stops.txt) | 99.309 | `6d1a969ab25d7be41ffb9b8184589865407be671fd52fadc50206aa3917c957b` | **Las 50 paradas del tranvía**, que no están en ninguna otra fuente del repositorio: el MU3 municipal (§ 1.5) es solo bus. De sus 984 paradas se pintan **solo esas 50**; las 934 `PA…` de bus no, porque para eso manda el censo municipal |
+
+**Extraer no es editar**: en los dos casos el hash del fichero en disco es idéntico al del miembro
+dentro del archivo, comprobado con `unzip -p … | sha256sum` antes y después.
+
+**`stop_times.txt` (47 MB) NO se extrae**: no hace falta para pintar y sería peso muerto rozando
+los límites de GitHub.
 
 > ⚠️ **Divergencia declarada.** Ni el proyecto anterior ni ZetaBus subieron este ZIP: los dos lo
 > ignoraban a propósito, y por el mismo motivo — *«caduca, y una copia versionada se pudre en
