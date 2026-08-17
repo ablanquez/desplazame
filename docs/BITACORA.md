@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-17] 🔴 ABIERTA — El sha256 del dato cuadraba en mi disco y NO es el que recibe quien clona: git le cambia los bytes al salir
+## [2026-08-17] ✅ CERRADA — El sha256 del dato cuadraba en mi disco y NO es el que recibe quien clona: git le cambia los bytes al salir
 
 **Categoría:** instrumento que no identifica lo que mide
 
@@ -52,11 +52,22 @@ $ sha256sum app/data/grafo-visor.js
 touches it»—, que llevaba saliendo en todos los commits desde el primero y que hasta hoy había
 tratado como ruido. Sobre un fichero de una sola línea dejó de ser ruido.
 
-**Causa raíz:** ⏳ PENDIENTE
+**Causa raíz:** la medida cubría el trayecto equivocado. Comparaba **origen contra copia**, que
+son las dos puntas de un `cp` y coinciden por construcción; el trayecto que altera los bytes es
+**commit → checkout**, y ése no lo tocaba ninguna comprobación. Git no guarda ficheros, guarda
+contenido normalizado: con `core.autocrlf=true` y sin `.gitattributes` decide por heurística que
+un fichero es «texto» y le reescribe los finales de línea **al salir**. Y hubo suerte engañosa:
+el portales no tiene saltos de línea que convertir, así que la primera pieza pasó limpia y dejó
+la comprobación acreditada cuando ya era insuficiente.
 
-**Arreglo aplicado:** ⏳ PENDIENTE
+**Arreglo aplicado:** `.gitattributes` en la raíz con `app/data/** -text` —no conviertas nada,
+ni al entrar ni al salir— más `git add --renormalize app/data/` para que los blobs guarden los
+bytes tal cual. Verificado como manda la ley nueva, **sobre un clon recién hecho**, no sobre mi
+disco: `grafo-visor.js` sale con 23.925.689 bytes y `d7d03aed…`, y el portales con 10.835.605 y
+`3c391d60…` — los dos idénticos a sus originales en la OLD.
 
-**Commit:** ⏳ PENDIENTE
+**Commit:** `6a9cffa` (`fix(datos): gitattributes para que el dato salga del clon tal cual
+entro`). La captura de esta entrada es `a9f05b5`, anterior al arreglo.
 
 **Ley que sale de aquí:** una huella calculada sobre el árbol de trabajo **no acredita lo que
 el repositorio entrega**. Git puede reescribir bytes entre el commit y el checkout, y lo hace
