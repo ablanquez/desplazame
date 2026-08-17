@@ -274,15 +274,36 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       OTRO grafo, cazado por recuentos (`d2516ac`). Y un hueco
       autodetectado: las fuentes vigiladas se leen ahora del directorio,
       no de una lista escrita a mano — la entrada nº2, aprendida
-- [ ] **Decidir qué portales mandan** para resolver direcciones: el repo
-      tiene DOS versiones a propósito (los 46.150 municipales y los
-      46.026 enganchados al grafo con su distancia de enganche). El motor
-      elige aquí, con los 124 sin enganche tratados y dicho qué pasa con
-      ellos
+- [x] **Decidido qué portales mandan (17/08), y no era «cuál» sino el
+      reparto** — cada censo con su trabajo:
+      · resolver y autocompletar → CALLEJERO (nombres) + MUNICIPAL
+        (portales): el municipal no trae ni un nombre de calle, el
+        autocompletar era imposible sin la tabla código↔nombre
+      · saltar al grafo (punto 6) → ENGANCHADO (portal → arista +
+        distancia): regenerarlo sería rehacer trabajo de motor ya hecho
+      · los 124 sin enganche → resuelven normal; en el punto 6 devuelven
+        `Aviso` honesto en vez de fallar en silencio
+      Verificación informativa para el 6: el casado por `portalId` entre
+      los dos censos — si no casan por id, el salto será por coordenada
+- [ ] **El callejero entra como pieza de datos** (autorización de Antonio,
+      17/08): la tabla código↔nombre de la OLD (~3.359 vías declaradas,
+      el mismo lote de mayo que los portales). Formato NO CONSTA hasta
+      mirarlo — reporte antes de copiar, la lección del grafo. Ficha en
+      el notices; la verificación aquí no es pintar (es tabla, no capa):
+      recuentos, muestra, y el cruce contra los `codigoVia` de los
+      portales. La suciedad conocida de la fuente (`ABOGACíA`) viaja tal
+      cual: la NORMALIZACIÓN vive en el motor al comparar, y las
+      sugerencias se muestran como el dato venga
 - [ ] `GET /api/vias` — autocompletado sobre las vías del callejero.
-      ⭐ AQUÍ se mide por fin la cifra real de vías (2.731 códigos en
-      portales · 3.359 en el callejero según la procedencia — el motor
-      dirá cuál es la suya y esa se publica)
+      ⭐ AQUÍ se mide por fin la cifra real. **Criterio de producto,
+      decidido: se sugieren SOLO las vías con portal** (la intersección
+      callejero ∩ portales) — sugerir una vía sin portales sería prometer
+      lo que el punto 6 no puede cumplir, la forma de las 8 líneas de bus
+      apagadas. El endpoint declara los DOS números (las N del callejero,
+      las M sugeribles); la cifra que se publica es la M, con la N de
+      contexto. La guardia vigila los ficheros nuevos que el motor lea al
+      arrancar (callejero y portales entran en sus fuentes), y el
+      contrato crece con el tipo de la sugerencia sin romper el front
 - [ ] El formulario real consume `/api/vias` — **autocompletar visto
       funcionar en Chrome**
 - [ ] **El destino de los andamios de carga (~34 MB), decidido aquí**:
