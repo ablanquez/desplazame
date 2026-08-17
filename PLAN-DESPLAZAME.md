@@ -205,11 +205,23 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       y de paso el ejecutor cazó su propio error propagado: la cuenta de
       datos de la portada iba una atrás desde el GTFS (`956e6a3`,
       `df8ac0d`). 5.520 anclajes totales, dato para el punto 7
-- [ ] Aparcabicis — la capa no está en la OLD, pero **la fuente existe:
-      el catálogo de datos abiertos del Ayuntamiento la publica como
-      conjunto propio** [DOC, visto el 17/08]. Se detalla cuando le toque
-- [ ] Cada capa que entre se PINTA en el mapa para verla — entrar sin verse
-      no cuenta como entrar
+- [x] **Los aparcabicis dentro y VISTOS por Antonio** (17/08): 2.158
+      soportes, 14.544 anclajes — **la primera descarga propia del
+      proyecto** (`movilidad:MU2_aparcabicis`, WFS IDEZar, la capa que la
+      OLD nunca miró), con procedencia generada por nosotros: URL exacto y
+      cabeceras guardadas (`ba2b203`, `eae90b1`). Pintados en amarillo con
+      aro OSCURO y radio menor — el círculo de tono estaba lleno y se
+      resolvió por dos dimensiones (`982dee8`). README reescrito agrupando
+      por procedencia, cuenta verificable leyendo (`476a2bb`)
+- [x] **Y la norma nueva de la casa** (`12e0221`), decidida con GitHub y
+      OWASP delante: las cabeceras de descargas propias se guardan SIN
+      Set-Cookie — el token se filtró ANTES del primer push, declarando la
+      omisión para que se vea que se filtró y no que faltaba. Cero tokens
+      en el repo, dist/ incluido
+- [x] Cada capa que entró se PINTÓ y se vio — las nueve, con el mapa
+      fluido y ~34 MB de dato encima. **PUNTO 4 CERRADO** (17/08): siete
+      conjuntos de datos, 14 ficheros en `app/data/`, cada uno con ficha,
+      huella sobre clon y atribución colgada de su capa
 
 ## 5 — El motor mínimo
 

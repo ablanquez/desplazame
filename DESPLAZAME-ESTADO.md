@@ -143,14 +143,25 @@ demo final no va a jugar a visualizar/ocultar capas; cuando el motor
 calcule, esto se replantea (encaja con la caducidad de los andamios en el
 punto 6).
 
-**Publicado hasta `acfefaa`; veintiséis commits en local** (hasta
-`df8ac0d`).
+**Publicado hasta `acfefaa`; treinta y dos commits en local** (hasta
+`12e0221`).
 
-**Lo siguiente: la última pieza del punto 4 — aparcabicis** (no está en la
-OLD; fuente: el catálogo de datos abiertos municipal, descarga nueva). Con
-autorización de Antonio. Queda también anotado el tranvía municipal
-(`MU3_lineas_tranvia`, `MU3_paradas_tranvia`) como opción futura que nadie
-ha descargado nunca.
+**PUNTO 4 CERRADO (17/08): los siete conjuntos de datos dentro, fichados y
+vistos.** La última pieza fue la primera descarga propia del proyecto: los
+2.158 aparcabicis del WFS (la capa que la OLD nunca miró), con procedencia
+generada por nosotros — y de ella nació una norma de la casa: las
+cabeceras propias se guardan sin `Set-Cookie`, decidido con GitHub y OWASP
+delante y filtrado ANTES del primer push. El mapa de verificación tiene
+nueve capas apagables, ~34 MB de dato, y aguanta fluido con todo
+encendido. Antonio dejó dicho además el destino de este mapa: las casillas
+son verificación de la fase de datos, no producto.
+
+**Lo siguiente: punto 5 — el motor mínimo.** Tipos compartidos primero
+(son el contrato), servidor Node con el grafo en memoria, `GET /api/vias`
+y el autocompletar visto funcionar en Chrome. Ahí se miden por fin la
+cifra real de vías y se decide qué versión de los portales manda (la
+municipal o la enganchada al grafo). Queda anotado el tranvía municipal
+(`MU3_lineas_tranvia`, `MU3_paradas_tranvia`) como opción futura.
 
 ---
 
