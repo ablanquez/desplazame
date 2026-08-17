@@ -31,6 +31,14 @@ const ATRIBUCION =
  */
 const ATRIBUCION_MUNICIPAL = 'Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)';
 
+/**
+ * Atribución del GTFS. La licencia de datos abiertos del MITMS exige «Powered
+ * by MITRAMS» con enlace, citar la fuente, y decir si el dato es bruto o
+ * procesado — aquí es bruto: se pintan los trazados tal como vienen.
+ */
+const ATRIBUCION_GTFS =
+  'Trazados: GTFS de Avanza Zaragoza S.A.U. (dato bruto) · Powered by <a href="https://www.transportes.gob.es/" target="_blank" rel="noopener">MITRAMS</a>';
+
 @Component({
   selector: 'app-mapa',
   templateUrl: './mapa.html',
@@ -52,6 +60,9 @@ export class Mapa {
   /** Postes de autobús. Vacío = sin capa. */
   readonly postes = input<readonly Vertice[]>([]);
 
+  /** Trazados de línea del GTFS: cada uno, su lista de vértices. */
+  readonly trazados = input<readonly (readonly Vertice[])[]>([]);
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
@@ -59,6 +70,7 @@ export class Mapa {
   private capaGrafo?: L.Polyline;
   private capaCarriles?: L.Polyline;
   private capaPostes?: L.LayerGroup;
+  private capaTrazados?: L.Polyline;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -76,6 +88,7 @@ export class Mapa {
       this.pintarGrafo();
       this.pintarCarriles();
       this.pintarPostes();
+      this.pintarTrazados();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -104,6 +117,49 @@ export class Mapa {
       this.postes();
       this.pintarPostes();
     });
+
+    effect(() => {
+      this.trazados();
+      this.pintarTrazados();
+    });
+  }
+
+  /**
+   * Pinta los trazados de línea del GTFS, todos en una polilínea multi-tramo
+   * como el grafo. Sin distinguir por línea: eso pide `trips`, y es del motor.
+   * Lo que verifica esta capa es si los trazados calcan las avenidas.
+   */
+  private pintarTrazados(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaTrazados?.remove();
+    this.capaTrazados = undefined;
+
+    const lineas = this.trazados();
+    if (lineas.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const comienzo = performance.now();
+    this.capaTrazados = L.polyline(
+      lineas.map((t) => t.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
+      {
+        renderer: L.canvas(),
+        color: '#7c3aed',
+        weight: 2,
+        opacity: 0.75,
+        interactive: false,
+        attribution: ATRIBUCION_GTFS,
+      },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${lineas.length} trazados pintados en ${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -247,6 +303,10 @@ export class Mapa {
     }
     if (this.capaPostes) {
       capas[`Postes de bus (${this.postes().length.toLocaleString('es-ES')})`] = this.capaPostes;
+    }
+    if (this.capaTrazados) {
+      capas[`Trazados de líneas (${this.trazados().length.toLocaleString('es-ES')})`] =
+        this.capaTrazados;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);

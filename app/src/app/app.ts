@@ -81,6 +81,15 @@ interface PosteCrudo {
   readonly geometry: { readonly coordinates: readonly [number, number] };
 }
 
+/**
+ * ANDAMIO DE VERIFICACIÓN. `shapes.txt` extraído del ZIP del GTFS, tal cual:
+ * CSV con `shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence,...`. Aquí se
+ * agrupa por trazado y se ordena por secuencia, que es lo mínimo para pintarlo.
+ * El ZIP entero está en el repositorio; el navegador no lo abre —no hay
+ * dependencia para eso— y por eso se sirve este miembro extraído.
+ */
+const TRAZADOS = '/datos/2026-08-10_nap_gtfs-ficha1176_shapes.txt';
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, Mapa],
@@ -125,11 +134,52 @@ export class App {
   /** Los postes de autobús, una vez descargados. */
   protected readonly postes = signal<readonly Vertice[]>([]);
 
+  /** Los trazados de línea del GTFS, una vez descargados. */
+  protected readonly trazados = signal<readonly (readonly Vertice[])[]>([]);
+
   constructor() {
     this.cargarPortales();
     this.cargarGrafo();
     this.cargarCarriles();
     this.cargarPostes();
+    this.cargarTrazados();
+  }
+
+  private async cargarTrazados(): Promise<void> {
+    try {
+      const respuesta = await fetch(TRAZADOS);
+      if (!respuesta.ok) {
+        console.error(`trazados: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const lineas = (await respuesta.text()).split(/\r?\n/);
+      const cabecera = lineas[0].split(',');
+      const iId = cabecera.indexOf('shape_id');
+      const iLat = cabecera.indexOf('shape_pt_lat');
+      const iLon = cabecera.indexOf('shape_pt_lon');
+      const iSeq = cabecera.indexOf('shape_pt_sequence');
+      if (iId < 0 || iLat < 0 || iLon < 0 || iSeq < 0) {
+        console.error('trazados: shapes.txt no trae las columnas esperadas');
+        return;
+      }
+
+      const porTrazado = new Map<string, { orden: number; punto: Vertice }[]>();
+      for (const linea of lineas.slice(1)) {
+        if (!linea) continue;
+        const c = linea.split(',');
+        const puntos = porTrazado.get(c[iId]) ?? [];
+        puntos.push({ orden: Number(c[iSeq]), punto: [Number(c[iLat]), Number(c[iLon])] });
+        porTrazado.set(c[iId], puntos);
+      }
+
+      this.trazados.set(
+        [...porTrazado.values()].map((puntos) =>
+          puntos.sort((a, b) => a.orden - b.orden).map((p) => p.punto),
+        ),
+      );
+    } catch (e) {
+      console.error('trazados: no se pudieron cargar', e);
+    }
   }
 
   private async cargarPostes(): Promise<void> {
