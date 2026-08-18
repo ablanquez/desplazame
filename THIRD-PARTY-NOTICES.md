@@ -4,12 +4,12 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 18/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **diez** conjuntos de
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **once** conjuntos de
 > datos —los portales, **el callejero de vías**, los carriles bici, los postes de autobús, las
-> estaciones BiZi, los aparcabicis, los aparcamotos y **el estacionamiento regulado** del
-> Ayuntamiento; el grafo de continuidad derivado de OSM; y el GTFS del Punto de Acceso
-> Nacional—. Quedan fuera las capas municipales de tranvía y la de zonas reguladas; cada
-> pieza llega con su autorización y su ficha.
+> estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento regulado y **las zonas
+> reguladas** del Ayuntamiento; el grafo de continuidad derivado de OSM; y el GTFS del Punto de
+> Acceso Nacional—. Quedan fuera las capas municipales de tranvía; cada pieza llega con su
+> autorización y su ficha.
 >
 > ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7).
 >
@@ -514,9 +514,9 @@ Y `forma_estacionar`: `CORDON` 5.824 · `BATERIA` 1.533 · **`null` 34**.
 > **Quien filtre por `zona_reguladora` se lleva 5.049 bordillos gratuitos pintados como de
 > pago.** El único campo que dice si se paga es **`tipo_actual`**.
 >
-> Cruzados los números de zona contra la capa de polígonos (`MU1_zonas_reguladas`, que **no está
-> en este repositorio**: se consultó sin descargarla), el reparto sale limpio — los **13
-> polígonos publicados son exactamente las zonas 1 a 13**, y son exactamente las que cobran:
+> Cruzados los números de zona contra la capa de polígonos (`MU1_zonas_reguladas`, que desde hoy
+> está en el repositorio: § 1.12), el reparto sale limpio — los **13 polígonos publicados son
+> exactamente las zonas 1 a 13**, y son exactamente las que cobran:
 >
 > ```
 > zonas 1..13, CON polígono ....... 3.346 tramos · 1.157 de pago
@@ -577,13 +577,94 @@ Y de este mismo fichero sale una **segunda vista, de cotejo y temporal**: los **
 mismas 7.391 filas. Existe para cotejarla contra los planos de la ampliación, y **se retira o se
 consolida cuando ese cotejo diga** — el signo de interrogación del nombre es literal.
 
-### 1.12 · El resto del dato — todavía **ninguno**
+### 1.12 · Zonas reguladas — Ayuntamiento de Zaragoza (IDEZar)
+
+| | |
+|---|---|
+| **Qué es** | Los **13 perímetros** de zona de estacionamiento regulado: la mancha dentro de la cual vive cada bordillo de pago de § 1.11 |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU1_zonas_reguladas`** |
+| **Petición** | **Ésta la hicimos nosotros**: `https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_zonas_reguladas&outputFormat=application/json&srsName=EPSG:4326` |
+| **Descarga** | **18/08/2026 13:21:04 GMT**, estado 200. Cabeceras en [`…_cabeceras.txt`](app/data/2026-08-18_wfs_movilidad-MU1_zonas_reguladas_cabeceras.txt), sin `Set-Cookie` · `timeStamp` del WFS: `2026-08-18T13:21:04.074Z` · CRS **EPSG:4326**, geometría `MultiPolygon`. El `content-length: 10699` es el del cuerpo **comprimido** (`gzip`) |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal. Sin `MetadataURL`; el servicio con `Fees: NONE` y `AccessConstraints: NONE` |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
+| **Campos** | `fid`, `NUMERO_ZONA`, `NOMBRE_ZONA`, `TAMAÑO`, `PERIMETRO`. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-18_wfs_movilidad-MU1_zonas_reguladas.json`](app/data/2026-08-18_wfs_movilidad-MU1_zonas_reguladas.json) · 27.079 bytes · sha256 `db6fba882b7135dc0469f75172288793be8746b9848602e4f0bc7989bcd50b08` **verificado sobre un clon** |
+
+`numberMatched` = `numberReturned` = **13**. Los 13 con geometría, **un polígono y un anillo cada
+uno** —ni islas ni huecos—, 920 vértices en total, dentro de un recuadro de 41,640–41,659 N ·
+−0,906–−0,871 O: la almendra central y poco más.
+
+**`NUMERO_ZONA` va del 1 al 13 sin huecos.** Ojo, porque el `fid` **no coincide** con el número:
+el WFS las sirve por `fid` y así la Zona 1 llega la segunda y la Zona 11 la última. Quien las lea
+por orden de llegada se equivocará de zona.
+
+#### Qué resuelven estos 13 polígonos, y qué no
+
+Cruzados contra los 7.391 tramos de § 1.11, el reparto es sorprendentemente limpio: **los 13
+polígonos publicados son exactamente las 13 zonas que cobran**.
+
+| | Zonas | Tramos | De pago |
+|---|---|---|---|
+| **Con polígono** (1…13) | 13 | 3.346 | **1.157** |
+| Sin polígono, numeradas | 19 | 2.860 | **0** |
+| `zona 0` (centinela «sin zona») | — | 1.125 | 0 |
+| zona 65 y zona nula | — | 60 | 2 |
+
+**Resuelven 1.157 de los 1.159 tramos de pago: el 99,83 %.** Los dos que faltan son los dos
+registros a medio rellenar que § 1.11 describe con nombre.
+
+**Lo que NO resuelven son las 19 zonas numeradas sin polígono** —14, 15, 16, 18, 21, 22, 25, 26,
+27, 29, 32, 33, 34, 37, 39, 40, 43, 46 y 47—, que no cobran ni un tramo. Ésas son las de la
+**vista de cotejo** de § 1.11, la de la posible ampliación: existen como número en el censo de
+bordillos, pero **su perímetro no está publicado**. Que la numeración tenga huecos y llegue al 65
+mientras solo hay 13 polígonos es coherente con eso: **no es una serie 1…N, es un catálogo con
+sitio reservado**.
+
+#### 🐞 Dos defectos del dato, declarados y NO corregidos
+
+**1 · La Zona 11 está rota en tres sitios a la vez.** Es la única fila que se sale del patrón, y
+se sale por todo:
+
+```
+NOMBRE_ZONA .... "11"   (las otras doce: "Zona 1" … "Zona 13")
+TAMAÑO ......... 0      (las otras doce: de 134.782 a 445.241)
+PERIMETRO ...... 0      (las otras doce: de 810 a 2.683)
+vértices ....... 7      (las otras doce: de 11 a 138)
+```
+
+**Pero su geometría es válida**: un hexágono cerrado de unos **234.950 m² y 1.992 m** de
+perímetro, medidos sobre sus coordenadas. O sea, **el polígono está bien y sus atributos están a
+cero**: nadie los calculó. Y no es una zona menor — la Zona 11 tiene **492 tramos** en § 1.11,
+**154 de ellos de pago**, de las que más.
+
+**2 · `TAMAÑO` y `PERIMETRO` no siempre cuadran con la geometría.** Calculados sobre las
+coordenadas con una aproximación equirectangular —que en diez de las trece acierta con un error
+por debajo del 0,15 %, así que sirve para detectar los que se salen—:
+
+```
+zona    TAMAÑO decl.   área calc.     PERIMETRO decl.   perím. calc.
+   6         445.241     444.824               2.380          2.736   ← perímetro un 15 % corto
+  11               0     234.950                   0          1.992   ← sin calcular
+  13         202.830     190.116                 810          1.903   ← perímetro a menos de la mitad
+```
+
+**No se corrigen**: el fichero se copia como vino y el defecto se declara aquí. **Quien necesite
+superficie o perímetro que los calcule de la geometría**, que es la que está bien; los dos campos
+declarados no son de fiar en tres de las trece.
+
+**⚠️ Frescura: `NO CONSTA`**, como en § 1.10 y § 1.11. La fecha de descarga es la única marca — y
+aquí importa más que en las otras: **es la capa que la ampliación moverá primero**.
+
+**Cómo se pinta.** Trece manchas en pizarra acromática con relleno al 8 % y borde fino, cada una
+rotulada con su número, en un panel **por debajo** del de los bordillos: se encienden a la vez que
+el regulado y la vista de cotejo, y hay que poder leer el bordillo sobre la mancha.
+
+### 1.13 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
-dato que copiar. Tampoco la capa de **zonas reguladas** (`MU1_zonas_reguladas`), que § 1.11 cita
-pero que no está aquí: sin ella, los números de zona del regulado no se pueden resolver a un
-perímetro.
+dato que copiar.
 
 ---
 
