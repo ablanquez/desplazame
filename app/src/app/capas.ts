@@ -128,7 +128,37 @@ interface TramoCrudo {
 const ZONAS_CON_POLIGONO = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
 
 /**
- * Lo que el mapa necesita saber de las capas de verificación, y nada más: doce
+ * ANDAMIO DE VERIFICACIÓN. Los 13 perímetros de zona regulada, cuarta descarga
+ * propia. Son el contexto del regulado: dentro de qué mancha vive cada bordillo
+ * de pago. Ver THIRD-PARTY-NOTICES § 1.12.
+ */
+const ZONAS = '/datos/2026-08-18_wfs_movilidad-MU1_zonas_reguladas.json';
+
+/** Una zona tal y como viene: MultiPolygon y su número. */
+interface ZonaCruda {
+  readonly geometry: {
+    readonly coordinates: readonly (readonly (readonly (readonly [number, number])[])[])[];
+  };
+  readonly properties: { readonly NUMERO_ZONA: number };
+}
+
+/**
+ * Una zona ya lista para pintar. Lleva el número porque es lo que se rotula: un
+ * perímetro sin número no dice nada, y el número es justo lo que hay que cruzar
+ * con el `zona_reguladora` de los tramos.
+ *
+ * No vive en `@desplazame/tipos` a propósito: el motor no sirve zonas, y el
+ * contrato crece cuando el motor lo pide. Esto es andamio, como todo el resto
+ * de este fichero.
+ */
+export interface ZonaRegulada {
+  readonly numero: number;
+  /** MultiPolygon: lista de polígonos, cada uno con su anillo exterior y sus huecos. */
+  readonly poligonos: readonly (readonly (readonly Vertice[])[])[];
+}
+
+/**
+ * Lo que el mapa necesita saber de las capas de verificación, y nada más: trece
  * señales de solo lectura y la orden de cargarlas. Está escrito aparte del
  * servicio para que una prueba pueda darle al mapa unas capas de mentira sin
  * levantar la descarga entera.
@@ -147,11 +177,12 @@ export interface CapasDeVerificacion {
   readonly reguladoRotacion: Signal<readonly (readonly Vertice[])[]>;
   readonly reguladoResidentes: Signal<readonly (readonly Vertice[])[]>;
   readonly ampliacionPrevista: Signal<readonly (readonly Vertice[])[]>;
+  readonly zonasReguladas: Signal<readonly ZonaRegulada[]>;
   cargar(): void;
 }
 
 /**
- * Las doce capas de verificación, cargadas UNA vez para toda la aplicación.
+ * Las trece capas de verificación, cargadas UNA vez para toda la aplicación.
  *
  * Vivían en el componente de la pantalla, que era el único que las pintaba.
  * Con dos páginas —el buscador y el visor— eso ya no vale: [DOC] el
@@ -241,6 +272,10 @@ export class Capas implements CapasDeVerificacion {
   private readonly _ampliacionPrevista = signal<readonly (readonly Vertice[])[]>([]);
   readonly ampliacionPrevista = this._ampliacionPrevista.asReadonly();
 
+  /** Los 13 perímetros de zona regulada, con su número. */
+  private readonly _zonasReguladas = signal<readonly ZonaRegulada[]>([]);
+  readonly zonasReguladas = this._zonasReguladas.asReadonly();
+
   /** Si ya se pidió. La segunda página no vuelve a bajarse los 34 MB. */
   private pedido = false;
 
@@ -264,6 +299,32 @@ export class Capas implements CapasDeVerificacion {
     this.cargarAparcabicis();
     this.cargarAparcamotos();
     this.cargarRegulado();
+    this.cargarZonas();
+  }
+
+  private async cargarZonas(): Promise<void> {
+    try {
+      const respuesta = await fetch(ZONAS);
+      if (!respuesta.ok) {
+        console.error(`zonas reguladas: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const crudo = (await respuesta.json()) as { readonly features: readonly ZonaCruda[] };
+      this._zonasReguladas.set(
+        crudo.features
+          .map((rasgo) => ({
+            numero: rasgo.properties.NUMERO_ZONA,
+            poligonos: rasgo.geometry.coordinates.map((pol) =>
+              pol.map((anillo) => anillo.map(([lon, lat]) => [lat, lon] as Vertice)),
+            ),
+          }))
+          // El WFS las sirve en el orden de su `fid`, que no es el del número.
+          // Se ordenan para que el control y el ojo las lean de 1 a 13.
+          .sort((a, b) => a.numero - b.numero),
+      );
+    } catch (e) {
+      console.error('zonas reguladas: no se pudieron cargar', e);
+    }
   }
 
   /**

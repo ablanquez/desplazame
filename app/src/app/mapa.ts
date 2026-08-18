@@ -37,6 +37,19 @@ const ATRIBUCION =
 const ATRIBUCION_MUNICIPAL = 'Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)';
 
 /**
+ * Un panel propio para las manchas de zona, POR DEBAJO de todo lo demás.
+ *
+ * [DOC] Leaflet reparte sus capas en paneles por `zIndex`: `tilePane` 200 y
+ * `overlayPane` 400 —«Pane for vectors (Paths, like Polylines and Polygons)»—.
+ * Con 350, las manchas quedan encima del mapa base y **debajo de todos los
+ * bordillos**, pase lo que pase con el orden en que se enciendan las casillas.
+ * Sin esto, encender las zonas después del regulado taparía justo lo que se
+ * quiere comparar.
+ */
+const PANEL_MANCHAS = 'manchas';
+const PANEL_MANCHAS_Z = '350';
+
+/**
  * Atribución del GTFS. La licencia de datos abiertos del MITMS exige «Powered
  * by MITRAMS» con enlace, citar la fuente, y decir si el dato es bruto o
  * procesado — aquí es bruto: se pintan los trazados tal como vienen.
@@ -49,7 +62,7 @@ const ATRIBUCION_GTFS =
  *
  * Lo que cambia entre el buscador y el visor son DOS cosas, y las dos son
  * parámetro, no copia: el ALTO del lienzo y si hay o no TRAZADO que pintar. Las
- * doce capas de verificación no se le pasan: las lee del servicio `Capas`, que
+ * trece capas de verificación no se le pasan: las lee del servicio `Capas`, que
  * es donde viven, y así el bloque que las ata no se escribe dos veces —una por
  * página— ni hay que acordarse de dos sitios cada vez que entra una capa nueva.
  *
@@ -58,7 +71,7 @@ const ATRIBUCION_GTFS =
  *
  * **Ninguna capa de verificación arranca encendida.** Se construyen todas y se
  * registran en el control, pero no se añaden al mapa: se encienden a mano, una
- * a una. Con doce capas superpuestas —46.150 portales y 98.774 aristas entre
+ * a una. Con trece capas superpuestas —46.150 portales y 98.774 aristas entre
  * ellas— el mapa de partida era ilegible, y verificar es mirar una cosa cada
  * vez. La única línea que sí se pinta sola es el TRAZADO, que no es una capa de
  * verificación ni tiene casilla: es el resultado de pulsar «Generar».
@@ -97,6 +110,7 @@ export class Mapa {
   private capaAparcamotos?: L.LayerGroup;
   private capaRegulado?: L.LayerGroup;
   private capaAmpliacion?: L.Polyline;
+  private capaZonas?: L.LayerGroup;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -105,6 +119,7 @@ export class Mapa {
     // cuenta, así que no puede montarse antes de que el lienzo exista.
     afterNextRender(() => {
       this.mapa = L.map(this.lienzo().nativeElement).setView(CENTRO, ZOOM);
+      this.mapa.createPane(PANEL_MANCHAS).style.zIndex = PANEL_MANCHAS_Z;
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: ATRIBUCION,
@@ -122,6 +137,7 @@ export class Mapa {
       this.pintarAparcamotos();
       this.pintarRegulado();
       this.pintarAmpliacion();
+      this.pintarZonas();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -192,6 +208,11 @@ export class Mapa {
       this.pintarAmpliacion();
     });
 
+    effect(() => {
+      this.capas.zonasReguladas();
+      this.pintarZonas();
+    });
+
     // Y al morir, se desmonta. Mientras hubo una sola pantalla esto no hacía
     // falta: el mapa nacía con la aplicación y moría con ella. Con el router
     // sí — el `RouterOutlet` destruye el componente cada vez que se sale de su
@@ -203,6 +224,60 @@ export class Mapa {
       this.mapa?.remove();
       this.mapa = undefined;
     });
+  }
+
+  /**
+   * Pinta las 13 manchas de zona regulada: **relleno muy tenue y borde fino**.
+   *
+   * Es capa de CONTEXTO, no de contenido: lo que se mira encima de ella son los
+   * bordillos. Por eso va en **pizarra `#334155`, acromática**, la única
+   * elección que no compite con el azul, el naranja ni el morado — las tres se
+   * encienden juntas para comparar—; con **relleno al 8 %**, que tiñe sin
+   * ocultar, y **borde de 1,5** frente a los 3 de los bordillos.
+   *
+   * Y va en su propio panel, por debajo: ver `PANEL_MANCHAS`.
+   *
+   * El número de zona se rotula con una etiqueta fija en el centro de cada
+   * mancha. Sale barato —son trece— y es justo el dato que hay que cruzar con
+   * el `zona_reguladora` de los tramos.
+   */
+  private pintarZonas(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaZonas?.remove();
+    this.capaZonas = undefined;
+
+    const zonas = this.capas.zonasReguladas();
+    if (zonas.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const lienzoCanvas = L.canvas({ pane: PANEL_MANCHAS });
+    this.capaZonas = L.layerGroup(
+      zonas.map((zona) =>
+        L.polygon(
+          zona.poligonos.map((pol) =>
+            pol.map((anillo) => anillo.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
+          ),
+          {
+            renderer: lienzoCanvas,
+            pane: PANEL_MANCHAS,
+            color: '#334155',
+            weight: 1.5,
+            opacity: 0.8,
+            fillColor: '#334155',
+            fillOpacity: 0.08,
+            interactive: false,
+          },
+        ).bindTooltip(String(zona.numero), { permanent: true, direction: 'center' }),
+      ),
+      { attribution: ATRIBUCION_MUNICIPAL },
+    );
+
+    this.refrescarControl();
   }
 
   /**
@@ -751,6 +826,10 @@ export class Mapa {
     if (this.capaAmpliacion) {
       const n = this.capas.ampliacionPrevista().length.toLocaleString('es-ES');
       capas[`¿Ampliación? zonas sin activar (${n})`] = this.capaAmpliacion;
+    }
+    if (this.capaZonas) {
+      capas[`Zonas reguladas (${this.capas.zonasReguladas().length.toLocaleString('es-ES')})`] =
+        this.capaZonas;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);

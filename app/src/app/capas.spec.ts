@@ -22,6 +22,35 @@ const MUESTRA = {
   ],
 };
 
+/**
+ * Tres zonas **desordenadas a propósito**: el WFS las sirve por su `fid`, que no
+ * es el número de zona — en el fichero de verdad la Zona 1 llega la segunda.
+ */
+const ZONAS = {
+  type: 'FeatureCollection',
+  features: [zona(3), zona(1), zona(2)],
+};
+
+function zona(numero: number) {
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'MultiPolygon',
+      coordinates: [
+        [
+          [
+            [-0.88, 41.65],
+            [-0.87, 41.65],
+            [-0.87, 41.66],
+            [-0.88, 41.65],
+          ],
+        ],
+      ],
+    },
+    properties: { NUMERO_ZONA: numero, NOMBRE_ZONA: `Zona ${numero}` },
+  };
+}
+
 function tramo(tipo: string | null, zona: number | null, lon: number, lat: number) {
   return {
     type: 'Feature',
@@ -47,13 +76,18 @@ describe('Capas — el regulado se filtra por tipo_actual', () => {
     globalThis.fetch = ((url: string) => {
       const u = String(url);
       pedidas.push(u);
-      // Solo se contesta al fichero del regulado; las demás capas se quedan
-      // colgadas a propósito, que aquí no pintan nada.
-      if (!u.includes('MU1_estacionamientos_calle')) {
+      // Solo se contesta a los dos ficheros que esta prueba mira; las demás
+      // capas se quedan colgadas a propósito, que aquí no pintan nada.
+      const cuerpo = u.includes('MU1_estacionamientos_calle')
+        ? MUESTRA
+        : u.includes('MU1_zonas_reguladas')
+          ? ZONAS
+          : null;
+      if (!cuerpo) {
         return new Promise<Response>(() => {});
       }
       return Promise.resolve(
-        new Response(JSON.stringify(MUESTRA), {
+        new Response(JSON.stringify(cuerpo), {
           status: 200,
           headers: { 'content-type': 'application/json' },
         }),
@@ -115,6 +149,22 @@ describe('Capas — el regulado se filtra por tipo_actual', () => {
   it('convierte a [lat, lon], que es como pinta Leaflet', async () => {
     const capas = await cargar();
     expect(capas.reguladoRotacion()[0][0]).toEqual([41.65, -0.88]);
+  });
+
+  /**
+   * El WFS las sirve en el orden de su `fid`, que no es el del número: en el
+   * fichero de verdad la Zona 1 llega la segunda y la Zona 11 la última. Sin
+   * ordenar, el rótulo de cada mancha saldría bien pero cualquier lectura por
+   * índice sería otra cosa.
+   */
+  it('las zonas salen ordenadas por su número, no como las sirve el WFS', async () => {
+    const capas = await cargar();
+    expect(capas.zonasReguladas().map((z) => z.numero)).toEqual([1, 2, 3]);
+  });
+
+  it('las zonas también se convierten a [lat, lon]', async () => {
+    const capas = await cargar();
+    expect(capas.zonasReguladas()[0].poligonos[0][0][0]).toEqual([41.65, -0.88]);
   });
 
   it('pedir dos veces no vuelve a bajarse nada', async () => {

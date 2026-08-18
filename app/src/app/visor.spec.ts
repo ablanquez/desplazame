@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { Vertice } from '@desplazame/tipos';
-import { Capas, type CapasDeVerificacion } from './capas';
+import { Capas, type CapasDeVerificacion, type ZonaRegulada } from './capas';
 import { Visor } from './visor';
 
 const PUNTO: readonly Vertice[] = [[41.6488, -0.8891]];
@@ -10,6 +10,23 @@ const LINEA: readonly (readonly Vertice[])[] = [
     [41.6488, -0.8891],
     [41.6516, -0.879],
   ],
+];
+
+/** Una zona de mentira: un triangulito con su número. */
+const ZONA: readonly ZonaRegulada[] = [
+  {
+    numero: 1,
+    poligonos: [
+      [
+        [
+          [41.65, -0.89],
+          [41.65, -0.88],
+          [41.66, -0.88],
+          [41.65, -0.89],
+        ],
+      ],
+    ],
+  },
 ];
 
 /**
@@ -32,6 +49,7 @@ function capasLlenas(): CapasDeVerificacion {
     reguladoRotacion: signal(LINEA),
     reguladoResidentes: signal(LINEA),
     ampliacionPrevista: signal(LINEA),
+    zonasReguladas: signal(ZONA),
     cargar: () => {},
   };
 }
@@ -92,15 +110,15 @@ describe('Visor', () => {
     expect(lienzo.style.height).toBe('100%');
   });
 
-  it('el control lista las doce capas', async () => {
+  it('el control lista las trece capas', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    expect(capasDelControl(raiz).length).toBe(12);
+    expect(capasDelControl(raiz).length).toBe(13);
   });
 
-  it('las doce son las doce, cada una con su nombre', async () => {
+  it('las trece son las trece, cada una con su nombre', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -119,6 +137,7 @@ describe('Visor', () => {
       'Aparcamotos',
       'Regulado ESRO+ESRE',
       '¿Ampliación? zonas sin activar',
+      'Zonas reguladas',
     ]);
   });
 
@@ -131,16 +150,32 @@ describe('Visor', () => {
   });
 
   /**
-   * Ninguna arranca encendida. Con doce capas superpuestas el mapa de partida
+   * Ninguna arranca encendida. Con trece capas superpuestas el mapa de partida
    * era ilegible, y verificar es mirar una cosa cada vez: se encienden a mano.
    */
-  it('las doce están en el control y ninguna encendida', async () => {
+  it('las trece están en el control y ninguna encendida', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    expect(capasDelControl(raiz).length).toBe(12);
+    expect(capasDelControl(raiz).length).toBe(13);
     expect(capasEncendidas(raiz)).toBe(0);
+  });
+
+  /**
+   * Las manchas de zona van en su PROPIO panel, por debajo de los bordillos. Sin
+   * esto, encender las zonas después del regulado taparía justo lo que se quiere
+   * comparar — y el orden lo decide quien pulsa las casillas, no el código.
+   * [DOC] Leaflet: `overlayPane` va a zIndex 400; 350 queda por debajo.
+   */
+  it('las manchas tienen su panel, y va por debajo del de los bordillos', async () => {
+    const fixture = TestBed.createComponent(Visor);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    const manchas = raiz.querySelector<HTMLElement>('.leaflet-manchas-pane');
+    expect(manchas).not.toBeNull();
+    expect(Number(manchas!.style.zIndex)).toBeLessThan(400);
   });
 
   it('el visor no dibuja ningún trayecto: no es lo que viene a verificar', async () => {

@@ -115,20 +115,20 @@ describe('App — la cáscara y sus dos rutas', () => {
    * LO QUE PAGA LA SEGUNDA PÁGINA. El `RouterOutlet` destruye el componente al
    * salir de su ruta y lo vuelve a crear al volver, así que si las capas se
    * cargaran desde el componente, cada ida y vuelta se bajaría todo otra vez.
-   * Las quince peticiones son: portales, grafo, carriles, postes, trazados,
-   * paradas, aparcabicis, aparcamotos, regulado y las SEIS páginas del BiZi. El número
+   * Las dieciséis peticiones son: portales, grafo, carriles, postes, trazados,
+   * paradas, aparcabicis, aparcamotos, regulado, zonas y las SEIS del BiZi. El número
    * sube con cada capa nueva, y que haya que tocarlo aquí es la señal de que
    * esta prueba sigue contando de verdad.
    */
   it('ir al visor y volver NO vuelve a pedir las capas', async () => {
     const { fixture, router } = await ir('/');
-    expect(peticiones.length).toBe(15);
+    expect(peticiones.length).toBe(16);
 
     await router.navigate(['/visor']);
     await fixture.whenStable();
     await router.navigate(['/']);
     await fixture.whenStable();
 
-    expect(peticiones.length).toBe(15);
+    expect(peticiones.length).toBe(16);
   });
 });
