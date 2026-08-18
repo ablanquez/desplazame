@@ -435,11 +435,23 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       apagar no ahorra descarga (vive en `cargar()` de la página), solo
       dibujo — hacer la descarga perezosa queda dicho como opción para
       antes del 6, no hecho (`90c9124`). 55 pruebas
-- [ ] **Las 13 zonas reguladas entran** (`MU1_zonas_reguladas`,
-      MultiPolygon): el perímetro numerado de cada zona — contexto del
-      regulado y lo que la ampliación moverá. Aviso: los tramos usan
-      números de zona hasta el 43 y los polígonos son 13 — no cubren
-      todos; declarado en la ficha
+- [x] **Las 13 zonas dentro y VISTAS por Antonio** (18/08): descarga
+      propia nº4 (la más pequeña: 27 KB, gzip), hits clavado, huella
+      `db6fba88…` sobre clon (`cf19bd5`). Cinco campos (la consulta solo
+      vio dos por el propertyName — `fid` era nuevo) y DOS defectos
+      encontrados midiendo: la Zona 11 rota en tres sitios (nombre "11",
+      TAMAÑO y PERIMETRO a cero — pero geometría VÁLIDA: hexágono de
+      ~235.000 m² calculado, y no es zona menor: 492 tramos) y
+      TAMAÑO/PERIMETRO mal en 3 de 13 (la 6 corta un 15%, la 13 menos de
+      la mitad — el cálculo propio acierta <0,15% en las otras diez, por
+      eso se sabe). El fid no ordena: se ordena por NUMERO_ZONA al
+      cargar, con prueba. Manchas pizarra acromática al 8% con rótulo
+      numérico, EN PANEL PROPIO zIndex 350 [DOC] — garantiza el bordillo
+      SOBRE la mancha pulse quien pulse en el orden que sea (`1ce9489`).
+      Ficha §1.12 con el cruce fino (99,83%) y §1.11/§1.13 des-caducadas
+      (`230d793`). Antonio verificó: las trece clavadas, la 11 en sitio
+      sensato, y NADA de pago fuera de su perímetro. 58 pruebas
+      (`9c9265a`)
 - [ ] **Las reservas PMR entran** (autorización de Antonio, 18/08 —
       accesibilidad, no extra): `MU1_reservas`, 2.636 puntos (el WFS
       vivo; los dos servicios de la API suman 2.072). Trae PMR + carga y

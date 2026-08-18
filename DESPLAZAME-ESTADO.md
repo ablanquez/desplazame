@@ -84,8 +84,15 @@ prueba, sin producto ni ficha. Y TODAS las capas arrancan desmarcadas
 en las dos páginas (apagar no ahorra descarga, solo dibujo — la
 descarga perezosa queda como opción dicha para antes del 6). 55 pruebas.
 
+**Las 13 zonas dentro y vistas (18/08):** descarga nº4 (27 KB), dos
+defectos del dato encontrados midiendo (la Zona 11 rota en atributos con
+geometría válida — hexágono calculado; TAMAÑO/PERIMETRO mal en 3 de 13),
+manchas acromáticas en panel propio (zIndex 350: el bordillo SIEMPRE
+sobre la mancha), rótulos numéricos. Antonio verificó las trece y que
+nada de pago se sale de su perímetro. 58 pruebas.
+
 **Lo siguiente (punto 5), en el orden de Antonio:**
-1. Las DOS capas restantes: **13 zonas reguladas** → **reservas PMR**.
+1. La última capa: **reservas PMR**.
 2. La etiqueta del modo: **«Bici / patinete»** (solo presentación).
 3. **El README** con endpoints y cifras medidas — y el punto 5 cerrado.
 
