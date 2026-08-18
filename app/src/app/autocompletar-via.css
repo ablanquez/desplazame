@@ -21,6 +21,20 @@
   box-sizing: border-box;
 }
 
+/* El borrador: hay texto escrito pero no hay vía elegida, así que el campo no
+   vale todavía. El ámbar no es una elección nueva: es el mismo que ya usa el
+   aviso de datos de prueba (#b45309 / #fff4e5 / #7c3d00). Rojo diría «error»,
+   y esto no es un error: es algo a medio hacer. */
+.campo__entrada--borrador {
+  border-color: #b45309;
+  background: #fff4e5;
+}
+
+.campo__borrador {
+  color: #7c3d00;
+  font-size: 0.85rem;
+}
+
 .sugerencias {
   position: absolute;
   z-index: 1000; /* por encima del mapa de Leaflet, que usa 400-700 */

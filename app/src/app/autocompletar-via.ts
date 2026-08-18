@@ -48,6 +48,29 @@ export class AutocompletarVia {
   protected readonly abierto = signal(false);
   protected readonly activo = signal(-1);
 
+  /**
+   * La vía que se eligió de la lista, si se eligió alguna. Es lo que separa
+   * «escrito» de «elegido», y sin ella no hay código de vía: escribir el
+   * nombre a mano no vale, porque el nombre no identifica nada —hay 52 que se
+   * repiten entre la ciudad y los barrios rurales—. Entrada nº4 de la bitácora.
+   */
+  private readonly elegida = signal<Via | null>(null);
+
+  /** Si el usuario ya salió del campo alguna vez. Antes de salir no se regaña. */
+  private readonly tocado = signal(false);
+
+  /** Hay texto pero no hay vía: un borrador, que se conserva pero no vale. */
+  private readonly esBorrador = computed(
+    () => this.texto().trim() !== '' && this.elegida() === null,
+  );
+
+  /**
+   * Cuándo se ENSEÑA que no vale. Mientras se teclea no: sería regañar a mitad
+   * de palabra. Se enseña al salir, y se apaga solo de dos maneras —eligiendo
+   * de la lista, o dejando el campo vacío—, que son las dos que lo resuelven.
+   */
+  protected readonly marcado = computed(() => this.tocado() && this.esBorrador());
+
   /** Lo escrito, pero con la espera aplicada: es lo que dispara la petición. */
   private readonly consulta = signal('');
 
@@ -87,11 +110,14 @@ export class AutocompletarVia {
     this.texto.set(valor);
     this.abierto.set(true);
     this.activo.set(-1);
-    // Lo escrito a mano ya no corresponde a la vía elegida antes.
+    // Lo escrito a mano ya no corresponde a la vía elegida antes: el código
+    // que había fijado deja de valer, aunque solo se haya tocado una letra.
+    this.elegida.set(null);
     this.seleccion.emit(null);
   }
 
   protected elegir(via: Via): void {
+    this.elegida.set(via);
     this.texto.set(this.comoSeVe(via));
     this.seleccion.emit(via);
     this.abierto.set(false);
@@ -125,8 +151,16 @@ export class AutocompletarVia {
     }
   }
 
-  /** Al salir del campo se cierra, pero con margen para que el click cuente. */
+  /**
+   * Al salir del campo se cierra, pero con margen para que el click cuente.
+   *
+   * Salir es también el momento en que el campo se moja: si hay texto y no hay
+   * vía elegida, se queda como borrador MARCADO. No se borra lo que escribió
+   * el usuario —tirarle la escritura por no haber pulsado la lista es peor que
+   * el fallo—, pero tampoco cuenta como relleno.
+   */
   protected alSalir(): void {
+    this.tocado.set(true);
     setTimeout(() => this.abierto.set(false), 150);
   }
 }

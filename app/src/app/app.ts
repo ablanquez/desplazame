@@ -424,12 +424,23 @@ export class App {
     this.trazado.set(TRAZADO_DE_PRUEBA);
   }
 
-  /** Única validación de este punto: los cuatro campos rellenos. */
+  /**
+   * Cuándo se puede generar: las dos calles ELEGIDAS de la lista —con su
+   * código de vía— y los dos portales escritos.
+   *
+   * Mira `viaOrigen()`/`viaDestino()` y NO `calleOrigen()`/`calleDestino()`.
+   * Mirar el texto era el fallo de la entrada nº4 de la bitácora: se escribía
+   * cualquier cosa, se salía con Tab, y el botón se desbloqueaba sin que
+   * hubiera detrás ninguna vía real. El texto no identifica una calle —hay 52
+   * nombres repetidos entre la ciudad y los barrios rurales—; el código sí.
+   *
+   * El portal sigue siendo texto libre a propósito: resolverlo es del punto 6.
+   */
   protected sePuedeGenerar(): boolean {
     return (
-      this.calleOrigen().trim() !== '' &&
+      this.viaOrigen() !== null &&
       this.portalOrigen.trim() !== '' &&
-      this.calleDestino().trim() !== '' &&
+      this.viaDestino() !== null &&
       this.portalDestino.trim() !== ''
     );
   }

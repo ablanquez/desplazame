@@ -11,11 +11,19 @@
     [attr.aria-expanded]="hayQueMostrar()"
     [attr.aria-controls]="campo() + '-sugerencias'"
     [attr.aria-activedescendant]="activo() >= 0 ? campo() + '-sug-' + activo() : null"
+    [class.campo__entrada--borrador]="marcado()"
+    [attr.aria-invalid]="marcado() ? 'true' : null"
+    [attr.aria-describedby]="marcado() ? campo() + '-borrador' : null"
     (input)="alEscribir($any($event.target).value)"
     (keydown)="alTeclear($event)"
     (focus)="abierto.set(true)"
     (blur)="alSalir()"
   />
+  @if (marcado()) {
+    <span class="campo__borrador" [id]="campo() + '-borrador'">
+      Elige una calle de la lista: escribirla no basta.
+    </span>
+  }
 </label>
 
 @if (hayQueMostrar()) {
