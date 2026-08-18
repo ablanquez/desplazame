@@ -14,6 +14,45 @@
 
 ---
 
+## [2026-08-18] 🔴 ABIERTA — Escribir la calle y salir sin elegir desbloqueaba «Generar ruta» sin código de vía fijado
+
+**Categoría:** validación de formulario
+**Síntoma:** en el campo de calle se escribe cualquier cosa —basta con que no
+esté vacío— y se sale con Tab o con un click fuera, sin tocar el desplegable.
+El texto se queda puesto y el formulario lo cuenta como campo relleno: con los
+cuatro campos así, «Generar ruta» se desbloquea y genera. No hay ninguna vía
+elegida detrás: el código de vía es `null` en los dos extremos. El campo no
+distingue «escrito» de «elegido», y la decisión del encargo anterior era que
+solo ELEGIR fija el código.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las 18 pruebas, y dos de
+ellas no es que no cubrieran el caso — lo **exigían**. `app.spec.ts` escribe
+texto crudo en las dos calles (`escribir(raiz, 'calleOrigen', 'Don Jaime I')`,
+sin pasar por el desplegable) y afirma `expect(botonGenerar(raiz).disabled).toBe(false)`.
+Ejecutadas antes de tocar nada, con el fallo vivo:
+```
+$ npm test -- --reporters=verbose
+ ✓ src/app/app.spec.ts > App > con los cuatro campos genera los tres pasos de prueba, marcados como prueba 37ms
+ ✓ src/app/app.spec.ts > App > el modo elegido es el que se muestra en el resultado 49ms
+ ✓ src/app/app.spec.ts > App > con tres de los cuatro campos, el botón sigue bloqueado 32ms
+ Test Files  3 passed (3)
+      Tests  18 passed (18)
+```
+La tercera pasaba por el motivo equivocado: daba bloqueado por el portal vacío,
+no por las calles, que tampoco estaban elegidas. Y el checkpoint entero se dio
+por bueno con este verde delante.
+**Cómo se cazó:** ojo humano — Antonio, en la primera sesión de uso real de la
+pantalla, con el checkpoint ya aceptado.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** si un campo exige un código, la validación mira el
+código, nunca el texto que se ve. Y una prueba que rellena por el atajo en vez
+de por el gesto del usuario no deja de cubrir el fallo: lo fija.
+**Traza:** `app/src/app/app.ts` → `sePuedeGenerar()`, que mira
+`calleOrigen()`/`calleDestino()` (texto) y no `viaOrigen()`/`viaDestino()`
+(la vía elegida) · `app/src/app/autocompletar-via.ts` → `alSalir()`, que cierra
+el desplegable sin decidir nada sobre lo escrito · `app/src/app/app.spec.ts`.
+
 ## [2026-08-17] ✅ CERRADA — El sha256 del dato cuadraba en mi disco y NO es el que recibe quien clona: git le cambia los bytes al salir
 
 **Categoría:** instrumento que no identifica lo que mide
