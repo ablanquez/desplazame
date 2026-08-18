@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-18] 🔴 ABIERTA — Escribir la calle y salir sin elegir desbloqueaba «Generar ruta» sin código de vía fijado
+## [2026-08-18] ✅ CERRADA — Escribir la calle y salir sin elegir desbloqueaba «Generar ruta» sin código de vía fijado
 
 **Categoría:** validación de formulario
 **Síntoma:** en el campo de calle se escribe cualquier cosa —basta con que no
@@ -42,12 +42,39 @@ no por las calles, que tampoco estaban elegidas. Y el checkpoint entero se dio
 por bueno con este verde delante.
 **Cómo se cazó:** ojo humano — Antonio, en la primera sesión de uso real de la
 pantalla, con el checkpoint ya aceptado.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** el código y la prueba compartían la MISMA premisa falsa —«campo
+con texto = campo relleno»— y por eso no podían contradecirse. `sePuedeGenerar()`
+validaba `calleOrigen()`/`calleDestino()`, que es el texto; y la prueba rellenaba
+ese mismo texto a pelo (`campo.value = …` más un evento `input`), que es
+justamente el único camino que el código miraba. La prueba nunca ejercitó el
+gesto del usuario —escribir, esperar los 200 ms, pulsar la sugerencia—: entraba
+por el atajo que producía exactamente el estado que el código daba por bueno. Un
+instrumento que asume lo mismo que el vigilado solo puede darle la razón.
+Y el dato estaba bien: `alEscribir()` ya emitía `null` al teclear, así que el
+código de vía era correcto en todo momento. Nadie lo miraba.
+**Arreglo aplicado:** `app/src/app/app.ts` → `sePuedeGenerar()` pasa a mirar
+`viaOrigen() !== null` y `viaDestino() !== null`, no el texto.
+`app/src/app/autocompletar-via.ts` → el campo aprende a distinguir los dos
+estados: `elegida` (la vía, o nada), `tocado` (si ya se salió alguna vez),
+`esBorrador` (texto sin vía) y `marcado` (`tocado && esBorrador`); `alSalir()`
+moja el campo, `alEscribir()` tira el código fijado, `elegir()` lo fija.
+`autocompletar-via.html` → `aria-invalid`, `aria-describedby` y el mensaje
+«Elige una calle de la lista: escribirla no basta.». `autocompletar-via.css` →
+el ámbar que la pantalla ya usaba (`#b45309`/`#fff4e5`/`#7c3d00`); rojo no,
+porque un borrador no es un error sino algo a medio hacer.
+Y se arregló el instrumento: `app/src/app/app.spec.ts` ahora elige por el gesto
+de una persona, con el motor fingido. De 18 pruebas a 24, las seis nuevas
+nacidas en rojo y con su contraprueba. Verificado además en Chrome por Antonio:
+borrador marcado, reapertura del desplegable, «Generar» bloqueado, edición que
+invalida y vaciado que limpia.
+**Commit:** `5624507` (el arreglo) y `776598a` (las pruebas). La captura de esta
+entrada, antes de tocar código: `98c1633`.
 **Ley que sale de aquí:** si un campo exige un código, la validación mira el
 código, nunca el texto que se ve. Y una prueba que rellena por el atajo en vez
 de por el gesto del usuario no deja de cubrir el fallo: lo fija.
+*Añadido al cerrar (2026-08-18):* un instrumento que rellena por el mismo camino que el
+código valida no vigila nada —comparten la premisa y solo pueden darse la
+razón—. La prueba tiene que entrar por donde entra la persona.
 **Traza:** `app/src/app/app.ts` → `sePuedeGenerar()`, que mira
 `calleOrigen()`/`calleDestino()` (texto) y no `viaOrigen()`/`viaDestino()`
 (la vía elegida) · `app/src/app/autocompletar-via.ts` → `alSalir()`, que cierra
