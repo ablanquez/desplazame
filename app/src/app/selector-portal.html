@@ -1,0 +1,62 @@
+<label class="campo campo--portal" [attr.for]="campo()">
+  <span>{{ etiqueta() }}</span>
+  <input
+    type="text"
+    [id]="campo()"
+    [name]="campo()"
+    [value]="texto()"
+    autocomplete="off"
+    role="combobox"
+    aria-autocomplete="list"
+    [disabled]="!listo()"
+    [placeholder]="listo() ? 'Elige…' : 'Elige antes la calle'"
+    [attr.aria-expanded]="hayQueMostrar()"
+    [attr.aria-controls]="campo() + '-portales'"
+    [attr.aria-activedescendant]="activo() >= 0 ? campo() + '-por-' + activo() : null"
+    [class.campo__entrada--borrador]="marcado()"
+    [attr.aria-invalid]="marcado() ? 'true' : null"
+    [attr.aria-describedby]="marcado() ? campo() + '-borrador' : null"
+    (input)="alEscribir($any($event.target).value)"
+    (keydown)="alTeclear($event)"
+    (focus)="abierto.set(true)"
+    (blur)="alSalir()"
+  />
+  @if (marcado()) {
+    <span class="campo__borrador" [id]="campo() + '-borrador'">
+      Elige un portal de la lista: escribirlo no basta.
+    </span>
+  }
+</label>
+
+@if (hayQueMostrar()) {
+  <ul class="portales" [id]="campo() + '-portales'" role="listbox">
+    @if (portales.isLoading()) {
+      <li class="portales__aviso">Buscando…</li>
+    } @else if (portales.error()) {
+      <li class="portales__aviso portales__aviso--mal">
+        No se pudo preguntar al motor. ¿Está arrancado?
+      </li>
+    } @else if (lista().length === 0) {
+      <li class="portales__aviso">Sin resultados</li>
+    } @else {
+      @for (portal of lista(); track portal.codigo; let i = $index) {
+        <li
+          class="portal"
+          [class.portal--activo]="i === activo()"
+          [id]="campo() + '-por-' + i"
+          role="option"
+          [attr.aria-selected]="i === activo()"
+          (mousedown)="elegir(portal)"
+          (mouseenter)="activo.set(i)"
+        >
+          {{ portal.numero }}
+        </li>
+      }
+      @if (recortados() > 0) {
+        <li class="portales__aviso">
+          y {{ recortados() }} más — escribe para acotar
+        </li>
+      }
+    }
+  </ul>
+}

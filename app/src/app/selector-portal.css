@@ -1,0 +1,82 @@
+/* El campo de portal y su desplegable. Mismo lenguaje que el de calle: el
+   :host ancla la posición para que la lista flote sobre lo que venga debajo,
+   incluido el mapa. Lo que cambia es el ancho — un portal es «12», no
+   «AVENIDA DE LA ILUSTRACIÓN». */
+:host {
+  position: relative;
+  display: block;
+  flex: 1 1 6rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.campo input {
+  padding: 0.4rem;
+  border: 1px solid #999;
+  border-radius: 3px;
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Deshabilitado mientras no hay calle: se ve apagado, y el placeholder dice
+   por qué. No es un campo roto, es un campo que todavía no toca. */
+.campo input:disabled {
+  background: #f2f2f2;
+  color: #777;
+  cursor: not-allowed;
+}
+
+/* El mismo ámbar del resto de la pantalla. Ver autocompletar-via.css. */
+.campo__entrada--borrador {
+  border-color: #b45309;
+  background: #fff4e5;
+}
+
+.campo__borrador {
+  color: #7c3d00;
+  font-size: 0.85rem;
+}
+
+.portales {
+  position: absolute;
+  z-index: 1000; /* por encima del mapa de Leaflet, que usa 400-700 */
+  top: 100%;
+  left: 0;
+  right: 0;
+  min-width: 7rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 15rem;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #999;
+  border-radius: 3px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.portal {
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+}
+
+.portal--activo {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.portales__aviso {
+  padding: 0.35rem 0.5rem;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+.portales__aviso--mal {
+  color: #7c3d00;
+  background: #fff4e5;
+}

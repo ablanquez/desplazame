@@ -1,10 +1,10 @@
 import { Component, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 // El contrato manda: los tipos vienen del paquete compartido, no de copias
 // locales. Si el motor cambia la forma, esta pantalla deja de compilar.
-import type { Modo, Paso, Via, Vertice } from '@desplazame/tipos';
+import type { Modo, Paso, Portal, Via, Vertice } from '@desplazame/tipos';
 import { Mapa } from './mapa';
 import { AutocompletarVia } from './autocompletar-via';
+import { SelectorPortal } from './selector-portal';
 
 /**
  * ANDAMIO. Respuesta falsa y fija: no sale de ningún motor ni de ningún dato.
@@ -112,7 +112,7 @@ const APARCABICIS = '/datos/2026-08-17_wfs_movilidad-MU2_aparcabicis.json';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, Mapa, AutocompletarVia],
+  imports: [Mapa, AutocompletarVia, SelectorPortal],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -133,9 +133,13 @@ export class App {
   protected readonly viaOrigen = signal<Via | null>(null);
   protected readonly viaDestino = signal<Via | null>(null);
 
-  /** El portal sigue siendo texto libre: resolver números es del punto 6. */
-  protected portalOrigen = '';
-  protected portalDestino = '';
+  /**
+   * El portal elegido de la lista de la vía. Guarda el CÓDIGO, no el número
+   * escrito — como la vía, y por la misma razón: un `12` tecleado no
+   * identifica ninguna puerta, y podía no existir.
+   */
+  protected readonly portalOrigen = signal<Portal | null>(null);
+  protected readonly portalDestino = signal<Portal | null>(null);
 
   /** Andando por defecto. */
   protected readonly modo = signal<Modo>('andando');
@@ -425,23 +429,22 @@ export class App {
   }
 
   /**
-   * Cuándo se puede generar: las dos calles ELEGIDAS de la lista —con su
-   * código de vía— y los dos portales escritos.
+   * Cuándo se puede generar: **los cuatro códigos**. Dos vías elegidas de su
+   * lista y dos portales elegidos de la suya. Ni un texto.
    *
-   * Mira `viaOrigen()`/`viaDestino()` y NO `calleOrigen()`/`calleDestino()`.
    * Mirar el texto era el fallo de la entrada nº4 de la bitácora: se escribía
    * cualquier cosa, se salía con Tab, y el botón se desbloqueaba sin que
    * hubiera detrás ninguna vía real. El texto no identifica una calle —hay 52
-   * nombres repetidos entre la ciudad y los barrios rurales—; el código sí.
-   *
-   * El portal sigue siendo texto libre a propósito: resolverlo es del punto 6.
+   * nombres repetidos entre la ciudad y los barrios rurales— ni una puerta
+   * —un «12» tecleado podía no existir en una calle de 31 portales—; los
+   * códigos sí.
    */
   protected sePuedeGenerar(): boolean {
     return (
       this.viaOrigen() !== null &&
-      this.portalOrigen.trim() !== '' &&
+      this.portalOrigen() !== null &&
       this.viaDestino() !== null &&
-      this.portalDestino.trim() !== ''
+      this.portalDestino() !== null
     );
   }
 }
