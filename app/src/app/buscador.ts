@@ -41,11 +41,21 @@ export class Buscador {
    */
   private readonly capas = inject(Capas);
 
-  /** El orden en que se pintan los botones. */
+  /**
+   * El orden en que se pintan los botones, y su texto.
+   *
+   * La `etiqueta` es lo ÚNICO visible, y sale por dos sitios: el botón y la
+   * línea «Modo:» del resultado. El `id` es del contrato (`Modo`) y no se
+   * toca: la rueda pequeña comparte la red ciclista, así que el patinete va
+   * por el mismo modo `bici` — lo que cambia es que ahora se dice.
+   */
   protected readonly modos: ReadonlyArray<{ id: Modo; etiqueta: string }> = [
     { id: 'andando', etiqueta: 'Andando' },
     { id: 'bus', etiqueta: 'Bus / tranvía' },
-    { id: 'bici', etiqueta: 'Bici' },
+    // «Patinete» con mayúscula es decisión de peso visual, no despiste: la
+    // norma pediría minúscula tras la barra. Y no dice «VMP» porque eso es
+    // jerga de ordenanza — el botón habla el idioma de quien lo pulsa.
+    { id: 'bici', etiqueta: 'Bici / Patinete' },
     { id: 'coche', etiqueta: 'Coche' },
   ];
 

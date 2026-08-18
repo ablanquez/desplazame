@@ -194,7 +194,7 @@ describe('Buscador', () => {
     botones[2].click(); // Bici
     await fixture.whenStable();
 
-    expect(modosActivos(raiz)).toEqual(['Bici']);
+    expect(modosActivos(raiz)).toEqual(['Bici / Patinete']);
     expect(botones[0].getAttribute('aria-pressed')).toBe('false');
     expect(botones[2].getAttribute('aria-pressed')).toBe('true');
   });
