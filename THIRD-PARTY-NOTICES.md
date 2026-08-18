@@ -4,11 +4,12 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 18/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **nueve** conjuntos de
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **diez** conjuntos de
 > datos —los portales, **el callejero de vías**, los carriles bici, los postes de autobús, las
-> estaciones BiZi, los aparcabicis y **los aparcamotos** del Ayuntamiento; el grafo de
-> continuidad derivado de OSM; y el GTFS del Punto de Acceso Nacional—. Solo quedan fuera las
-> capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
+> estaciones BiZi, los aparcabicis, los aparcamotos y **el estacionamiento regulado** del
+> Ayuntamiento; el grafo de continuidad derivado de OSM; y el GTFS del Punto de Acceso
+> Nacional—. Quedan fuera las capas municipales de tranvía y la de zonas reguladas; cada
+> pieza llega con su autorización y su ficha.
 >
 > ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7).
 >
@@ -470,11 +471,99 @@ sus altas son recientes y suyas son las correcciones de posición.
   campo que delata la tanda de altas de arriba.
 - **`Portal`** trae `"S/N"` cuando no hay número, que es literal del origen.
 
-### 1.11 · El resto del dato — todavía **ninguno**
+### 1.11 · Estacionamiento regulado en superficie — Ayuntamiento de Zaragoza (IDEZar)
+
+| | |
+|---|---|
+| **Qué es** | Los **7.391 tramos de bordillo** del censo de estacionamiento en calzada, con cuántas plazas tiene cada uno y de qué clase son — **55.572 plazas**. Es la respuesta a «dónde se paga por aparcar»: **1.159 de esos tramos** son zona regulada, y los otros 6.232 son bordillo libre |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU1_estacionamientos_calle`** |
+| **Petición** | **Ésta la hicimos nosotros**: `https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_estacionamientos_calle&outputFormat=application/json&srsName=EPSG:4326` |
+| **Descarga** | **18/08/2026 12:26:53 GMT**, estado 200. Cabeceras en [`…_cabeceras.txt`](app/data/2026-08-18_wfs_movilidad-MU1_estacionamientos_calle_cabeceras.txt), sin `Set-Cookie` · `timeStamp` del WFS: `2026-08-18T12:26:53.933Z` · CRS **EPSG:4326**, geometría `MultiLineString`. ⚠️ El `content-length: 367269` es el del cuerpo **comprimido** (`content-encoding: gzip`), no el del fichero |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal. La capa no declara condiciones propias: sin `MetadataURL`, y el servicio con `Fees: NONE` y `AccessConstraints: NONE` |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
+| **Campos** | `tipo_actual`, `direccion`, `portal`, `forma_estacionar`, `longitud`, `plazas`, `zona_reguladora`, `distrito`, `codigo`, `tipo_via`. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-18_wfs_movilidad-MU1_estacionamientos_calle.json`](app/data/2026-08-18_wfs_movilidad-MU1_estacionamientos_calle.json) · 3.178.840 bytes · sha256 `f45f394b2d2190e676ae7bea0fd74856d1fbbcb235a2b1579126e4a6cb8a467d` **verificado sobre un clon** |
+
+**Vino completa de una vez**: `numberMatched` = `numberReturned` = **7.391**, sin paginar. Los
+7.391 con geometría, y cada `MultiLineString` trae **exactamente una parte** — 16.763 vértices en
+total, unos 2,3 por tramo: son bordillos rectos, no trazados sinuosos.
+
+El desglose que importa, por **`tipo_actual`**:
+
+| `tipo_actual` | Tramos | Plazas | Qué es |
+|---|---|---|---|
+| `LIBRE` | 6.204 | 49.222 | bordillo sin regular |
+| **`ESRO`** | **664** | **3.507** | **regulado de rotación** — la zona azul |
+| **`ESRE`** | **495** | **2.617** | **regulado de residentes** |
+| `null` | 28 | 226 | sin clasificar |
+| | **7.391** | **55.572** | |
+
+Y `forma_estacionar`: `CORDON` 5.824 · `BATERIA` 1.533 · **`null` 34**.
+
+> 🚨 **LA TRAMPA, y es gorda: `zona_reguladora` NO significa «está regulado».** Es un perímetro
+> **geográfico**, y lo llevan tramos que no se pagan. Medido sobre este fichero:
+>
+> ```
+> LIBRE con zona_reguladora > 0 ....... 5.049
+> LIBRE con zona_reguladora 0 o nula .. 1.155
+> ESRO con zona_reguladora > 0 ........   664   (todos)
+> ESRE con zona_reguladora > 0 ........   494   (uno se queda sin ella)
+> ```
+>
+> **Quien filtre por `zona_reguladora` se lleva 5.049 bordillos gratuitos pintados como de
+> pago.** El único campo que dice si se paga es **`tipo_actual`**. Y hay un segundo desajuste:
+> `zona_reguladora` llega hasta el **65** con 34 valores distintos, mientras que la capa de zonas
+> (`MU1_zonas_reguladas`, que **no está en este repositorio**) solo publica **13 polígonos** — así
+> que los números de zona de aquí no se pueden resolver a un perímetro con lo que hay publicado.
+
+> ⏳ **Este dato va a caducar de golpe, no despacio.** El Ayuntamiento prepara una **ampliación
+> de la zona azul/naranja**; el día que se active, el reparto `LIBRE`/`ESRO`/`ESRE` cambia de
+> golpe para miles de tramos. **Hipótesis declarada, no dato**: que `zona_reguladora` marque ya
+> perímetros donde hoy todo es `LIBRE` encaja con que el campo describa lo previsto y no lo
+> vigente — pero eso es una lectura nuestra, y el WFS no dice nada al respecto. Lo que sí es
+> firme: **la fecha de descarga de esta ficha es lo único que fecha este reparto**, y a partir de
+> la ampliación habrá que volver a bajarlo.
+
+**⚠️ Frescura: `NO CONSTA`.** Como en § 1.10: el WFS no publica cuándo se actualizó la capa. La
+fecha de descarga es la única marca.
+
+**Y la cifra de SU fuente.** Aquí se censan **55.572 plazas**, de las cuales 6.124 reguladas
+(3.507 + 2.617). La serie estadística municipal `datos-movilidad/plazas-estacionamiento-por-tipo`
+declara para el mismo mes **6.794** de superficie regulada y **31.676** de superficie libre,
+contra las 49.222 de aquí. **Esta ficha declara la cifra de su fuente** — la del fichero que está
+en el repositorio—, como en § 1.10. Ni se promedian, ni se corrigen.
+
+**`distrito` viene sucio, y se copia sucio.** El campo tiene **31 valores distintos para 10
+distritos**: mayúsculas mezcladas, acentos inconsistentes y erratas del origen.
+
+```
+Centro 599 · CENTRO 31              Delicias 1432 · DELICIAS 21
+Casco Historico 285 · Casco Histórico 5 · CASCO HISTORICO 1 · CASCO HISTÓRICO 3 · CASCO HISTÓRICI 1
+El Rabal 1134 · EL Rabal 1 · El RAbal 1 · El rabal 1 · El Arrabal 1
+Universidad 647 · UNIVERSIDAD 4 · INIVERSIDAD 1
+Torrero-La Paz 711 · Torrero-La paz 1 · Torrer-La Paz 1 · Torrero 1
+Las Fuentes 622 · LAs Fuentes 1 · La Fuentes 1
+San Jose 777 · SAN JOSÉ 4            Actur-Rey Fernando 672 · Actur-Rey FErnando 4
+La Almozara 398 · La ALmozara 2      null 28
+```
+
+**No se normaliza**: el fichero se copia como vino. Quien agrupe por distrito sin unificar antes
+contará «Centro» dos veces y perderá un «CASCO HISTÓRICI» por el camino.
+
+**Lo que la aplicación pinta, y lo que no.** El visor y el buscador pintan **solo los 1.159
+tramos `ESRO` y `ESRE`** —azul los primeros, naranja los segundos, una sola casilla—. Los 6.204
+`LIBRE` y los 28 sin clasificar **no se pintan**: no son regulado, y pintarlos contestaría otra
+pregunta. Están en el fichero igualmente, y hay una prueba
+(`app/src/app/capas.spec.ts`) que se pone roja si alguien los cuela.
+
+### 1.12 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
-dato que copiar.
+dato que copiar. Tampoco la capa de **zonas reguladas** (`MU1_zonas_reguladas`), que § 1.11 cita
+pero que no está aquí: sin ella, los números de zona del regulado no se pueden resolver a un
+perímetro.
 
 ---
 
