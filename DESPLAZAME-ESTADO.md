@@ -59,10 +59,20 @@ cambiarla, todo por código: «Generar» exige los cuatro. `FormsModule`
 fuera: el bundle baja 393→353 kB. El formulario entero se rellena ya
 contra el motor — la zanja quedó cerrada de una vez.
 
-**Lo siguiente (punto 5):** el encargo del README falso (la afirmación de
-«Licencia y créditos» — huele a entrada nº5, el encargo dejará que el
-método lo diga), el destino de los andamios, y la revisión del router —
-y el punto 5 queda cerrado.
+**La entrada nº5, capturada y cerrada (18/08).** El README juró «ningún
+dato integrado» durante 2 días y 13 commits — y el verde lo daba la
+propia regla de releída, cumplida trece veces sobre «Estado» mientras
+«Licencia y créditos» envejecía. Ley nueva: una regla de releída vale lo
+que su alcance; la unidad es el documento entero. Rectificación visible
+en el README, cinco de cinco entradas cerradas. Y la releída entera del
+documento destapó un género nuevo: dos líneas del Stack («build con tsc o
+esbuild» · los cuatro tipos) son copia FIEL de CLAUDE.md — el README no
+mintió: reflejó una carta que la realidad desmintió. Decisión de Antonio
+pendiente: actualizar CLAUDE.md y el README detrás, o declarar que la
+carta describe el plan.
+
+**Lo siguiente (punto 5):** la decisión de CLAUDE.md, el destino de los
+andamios, y la revisión del router — y el punto 5 queda cerrado.
 
 ---
 
@@ -183,12 +193,12 @@ Tomadas en este reinicio:
 ## 6 · Cabos abiertos
 
 **Para el punto 5 (lo que queda):**
-- **El README afirma en «Licencia y créditos» que «hoy el repositorio no
-  tiene ningún dato integrado»** — falso desde la PRIMERA pieza del punto
-  4, sobrevivió a ocho releídas transversales porque la mirada siempre
-  fue al párrafo de «Estado». Espera encargo propio con rectificación
-  visible; huele a entrada de bitácora y el encargo dejará que el método
-  lo diga.
+- **Dos líneas del Stack del README son copia fiel de un CLAUDE.md que la
+  realidad desmintió**: «build con tsc o esbuild» (el motor no tiene
+  build: Node ejecuta el TS) y la lista de cuatro tipos (el contrato
+  lleva once, y los que trabajan son Via y Portal). Corregir solo el
+  README cambiaría una inconsistencia por otra: la decisión —CLAUDE.md
+  al día y el README detrás, o carta-como-plan declarada— es de Antonio.
 - El destino de los andamios de carga (~34 MB al navegador + la entrada
   `datos` de `angular.json` + `RUTA_DE_PRUEBA`): qué pasa al motor y qué
   sigue para el mapa de verificación. Retirada final en el punto 6;

@@ -346,6 +346,16 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       35 pruebas con contraprueba; `FormsModule` fuera y el bundle baja
       393→353 kB (`cfab981`, `a4cdae4`, `2f0d76a`). La decisión fina
       heredada murió: de una lista real no se elige lo que no existe
+- [x] **Entrada nº5 de la bitácora, capturada y CERRADA** (`7360469` →
+      `eff8c80`): el README juró «ningún dato integrado» durante 2 días y
+      13 commits con ocho dentro — y el verde lo daba LA PROPIA REGLA de
+      releída, cumplida trece veces sobre el párrafo de «Estado» mientras
+      «Licencia y créditos» envejecía. Cronología al minuto con git: la
+      frase era falsa desde el commit que escribió la primera atribución
+      (`a35ffc9`). Arreglo con rectificación visible (`c0f449c`). Ley: una
+      regla de releída vale lo que su ALCANCE; al releer, la unidad es el
+      documento, y la pregunta es «¿qué afirma este fichero que hoy sea
+      mentira?». Las CINCO entradas de la bitácora están cerradas
 - [ ] **El destino de los andamios de carga (~34 MB), decidido aquí**:
       qué dato pasa a servirlo el motor y qué sigue bajándose el navegador
       para el mapa de verificación (que es de esta fase, no producto — lo
