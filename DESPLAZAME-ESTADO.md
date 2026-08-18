@@ -36,11 +36,23 @@ Los puntos 1-4 están cerrados y publicados. Lo que existe y funciona hoy:
 del punto 5** (estructura, grafo en memoria, callejero y `/api/vias`, más
 los docs).
 
-**Lo siguiente (punto 5):** el autocompletar en el formulario — la
-pantalla consume al motor por primera vez, muere el duplicado
-`Modo`/`Vertice`, y decisión de Antonio sobre los marcadores `---CST` en
-la UI. Después: el destino de los andamios y la revisión del router, y el
-punto 5 queda cerrado.
+**El autocompletar está hecho y visto (18/08).** La pantalla consume al
+motor (`httpResource` + 200 ms), las sugerencias van «LIMPIO [NÚCLEO]»
+(corchetes: los paréntesis ya son del dato), el duplicado `Modo`/`Vertice`
+murió, y el callejero lleva CINCO correcciones propias en el fichero
+(2 CRT→CST + 3 MRL completadas — «están mal y punto»; huella
+`5f5df76a…`, ficha con tabla). Por el camino, la **entrada nº4** de la
+bitácora: escribir sin elegir desbloqueaba «Generar» — cazada por el ojo
+de Antonio tras un checkpoint aceptado con 24 verdes; cerrada con la
+opción B (borrador marcado, generar bloqueado) y su ley: la validación
+mira el código, y la prueba entra por donde entra la persona. Las cuatro
+entradas de la bitácora están cerradas.
+
+**Lo siguiente (punto 5):** el selector de portales — se elige, no se
+escribe; transversal a los cuatro modos y se hace ahora con la zanja del
+formulario abierta (decisión de Antonio: no abrir la misma calle dos
+veces) —, el encargo del README falso (huele a entrada nº5), el destino
+de los andamios, y la revisión del router — y el punto 5 queda cerrado.
 
 ---
 
@@ -148,21 +160,40 @@ Tomadas en este reinicio:
   de dato oficial público.
 - **El puerto del motor no abre hasta que el grafo está** — la guardia no
   puede dar verde a un motor a medio cargar.
+- **«LIMPIO [NÚCLEO]» con corchetes (18/08):** los paréntesis ya son del
+  dato (15 vías los traen; HERRERÍN es trampa) — dos signos, dos
+  significados. · **Correcciones EN EL FICHERO cuando el dato está mal
+  (17-18/08):** cinco aplicadas al callejero, con huella nueva y tabla en
+  la ficha — el notices ya no dice «tal cual» de ese fichero. ·
+  **Borrador marcado, no borrado (opción B, 18/08):** al salir sin
+  elegir, el texto se conserva marcado y «Generar» sigue bloqueado
+  [DOC usabilidad]. · **El portal se elegirá de lista, y en el punto 5** — con la
+  zanja del formulario abierta, no reabriéndola en el 6 (18/08).
 
 ## 6 · Cabos abiertos
 
 **Para el punto 5 (lo que queda):**
-- Los marcadores `---CST`/`---PÑF` se verán en el autocompletar (231 vías
-  sugeribles los llevan): decisión de Antonio si la UI los oculta al
-  mostrar, sin tocar el dato.
-- `Modo` y `Vertice` viven por duplicado (canónicos en `tipos/`, locales
-  en la pantalla) — muere cuando el formulario consuma `/api`. Nada lo
-  vigila mientras tanto.
+- **El README afirma en «Licencia y créditos» que «hoy el repositorio no
+  tiene ningún dato integrado»** — falso desde la PRIMERA pieza del punto
+  4, sobrevivió a ocho releídas transversales porque la mirada siempre
+  fue al párrafo de «Estado». Espera encargo propio con rectificación
+  visible; huele a entrada de bitácora y el encargo dejará que el método
+  lo diga.
 - El destino de los andamios de carga (~34 MB al navegador + la entrada
   `datos` de `angular.json` + `RUTA_DE_PRUEBA`): qué pasa al motor y qué
   sigue para el mapa de verificación. Retirada final en el punto 6;
   comentado en el código, nada lo vigila.
 - `@angular/router` sin usar: la revisión pendiente.
+- **Hueco latente del componente** (reportado con sonda, no vivo): si
+  alguien escribe el texto del campo desde FUERA (`calleOrigen.set(…)`),
+  el código fijado sobrevive y no se marca. Hoy nadie lo hace; taparlo
+  pide decidir si el componente vigila su `model` — decisión de Antonio
+  si algún día un tercero escribe ahí.
+- **El eco**: elegir una sugerencia dispara una consulta más al motor
+  200 ms después (el texto cambió). Inofensivo y nombrado en el helper
+  de pruebas; si molesta, es ajuste fino de otro día.
+- El campo `nombre` crudo viaja al navegador y no se pinta (se mantiene
+  por ser el dato; el punto 6 dirá si lo usa).
 
 **Para el punto 6:**
 - Los 124 portales sin enganche → `Aviso` honesto, no fallo en silencio.

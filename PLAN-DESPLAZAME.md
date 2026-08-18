@@ -308,8 +308,39 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       datos (`8eccc9d`). Contrato crecido sin romper el front
       (`323c7c4`), README diciendo la verdad nueva (`b7a3347`).
       Motor: 223 MB de RSS (+27) — el punto 10 acumula
-- [ ] El formulario real consume `/api/vias` — **autocompletar visto
-      funcionar en Chrome**
+- [x] **El autocompletar en el formulario, VISTO por Antonio paso a paso**
+      (17-18/08): `httpResource` de Angular 22 [DOC, no experimental] +
+      espera de 200 ms propia, componente `AutocompletarVia`. Las
+      sugerencias se muestran «LIMPIO [NÚCLEO]» — corchetes decididos por
+      Antonio porque los paréntesis ya son del dato (15 vías los traen;
+      HERRERÍN es trampa pura). El núcleo sale de `barrioRuralLabel`; el
+      motor corta el sufijo en UN sitio. Cinco correcciones EN EL FICHERO
+      («están mal y punto», decisión de Antonio): 2 CRT→CST y 3 MRL
+      completadas, huella nueva sobre clon, ficha con su tabla
+      (`2aa8b76`, `9ef52ce`). El duplicado `Modo`/`Vertice` MUERTO: la
+      pantalla importa del contrato (`a90061a`). Motor apagado → aviso
+      ámbar digno. 24 pruebas (18+6) con contraprueba
+- [x] **Entrada nº4 de la bitácora, capturada y CERRADA** (`98c1633` →
+      `a26d859`): escribir sin elegir desbloqueaba «Generar» — cazado por
+      el ojo de Antonio en la primera sesión de uso real, con 18 verdes y
+      dos pruebas EXIGIENDO el fallo (rellenaban por atajo). Arreglo:
+      opción B por usabilidad [DOC WAI-ARIA/NNG] — borrador conservado y
+      marcado, generar bloqueado hasta elegir, editar tras elegir
+      invalida (`5624507`, `776598a`). Ley: la validación mira el CÓDIGO,
+      nunca el texto; y un instrumento que entra por el mismo camino que
+      el código valida solo puede darle la razón — la prueba entra por
+      donde entra la persona
+- [ ] **El portal se ELIGE, no se escribe** (decidido por Antonio, 18/08 —
+      transversal a los cuatro modos, y se hace AQUÍ con la zanja
+      abierta: el formulario está recién trabajado y volver en el punto 6
+      sería abrir la misma calle dos veces): al fijar la vía, el campo de
+      portal ofrece los portales REALES de esa vía — el motor carga los
+      46.150 enteros (la carga compartida que el estado ya anotaba) y un
+      endpoint nuevo los sirve por vía. Elegir fija el portal como elegir
+      fija la vía: mismo patrón, misma validación por código. La decisión
+      fina heredada (el portal que no existe → ¿el más cercano con
+      paridad?) deja de existir como problema: de una lista real no se
+      elige lo que no existe
 - [ ] **El destino de los andamios de carga (~34 MB), decidido aquí**:
       qué dato pasa a servirlo el motor y qué sigue bajándose el navegador
       para el mapa de verificación (que es de esta fase, no producto — lo
