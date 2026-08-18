@@ -24,7 +24,7 @@
 > ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
 > dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
 > OpenStreetMap— y ya puede dibujar encima **once datos reales**: del Ayuntamiento de
-> Zaragoza, los **46.150 portales**, los **733 tramos de carril bici**, los **944 postes de
+> Zaragoza, los **46.150 portales**, los **2.120 tramos de carril bici**, los **944 postes de
 > autobús**, las **276 estaciones BiZi**, los **2.158 aparcabicis**, los **2.146
 > aparcamotos**, el **estacionamiento regulado** —los **1.159 tramos** de zona azul y de
 > residentes, de un censo de 7.391—, los **13 perímetros de zona** y las **1.226 reservas
@@ -49,8 +49,8 @@
 > ofrece las **2.731 que tienen algún portal**, porque sugerir una calle sin portales sería
 > prometer una dirección que después no se puede resolver. Cuando la calle está en un barrio
 > rural lo dice: **CALLE BURGOS [CASETAS]**, que es distinta de la CALLE BURGOS de la ciudad.
-> Va entre corchetes y no entre paréntesis porque los paréntesis ya son del dato: hay 15 vías
-> que los traen en su propio nombre.
+> Va entre corchetes y no entre paréntesis porque los paréntesis ya son del dato: hay 38 vías
+> que los traen en su propio nombre, 32 de ellas con portal.
 >
 > **El portal no se escribe: se elige.** Fijada la calle, el motor sirve sus portales reales y
 > el campo los ofrece en el orden en que se lee un callejero —1, 2, 3, 10, no 1, 10, 2—, con
