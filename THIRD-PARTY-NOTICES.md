@@ -410,7 +410,7 @@ en total.
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU2_motos`** |
 | **Petición** | **Ésta la hicimos nosotros**, y por eso el URL sí consta: `https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU2_motos&outputFormat=application/json&srsName=EPSG:4326` |
-| **Descarga** | **18/08/2026 12:04:45 GMT**, estado 200. Cabeceras completas guardadas en [`…_cabeceras.txt`](app/data/2026-08-18_wfs_movilidad-MU2_motos_cabeceras.txt), sin `Set-Cookie` (norma de § 1.9) · `timeStamp` del WFS: `2026-08-18T12:04:45.494Z` · CRS **EPSG:4326**, geometría `Point` |
+| **Descarga** | **18/08/2026 12:04:45 GMT**, estado 200. Cabeceras completas guardadas en [`…_cabeceras.txt`](app/data/2026-08-18_wfs_movilidad-MU2_motos_cabeceras.txt), sin `Set-Cookie` (norma de § 1.9) · `timeStamp` del WFS: `2026-08-18T12:04:45.494Z` · CRS **EPSG:4326**, geometría `Point`. ⚠️ El `content-length: 64811` de esas cabeceras es el del cuerpo **comprimido** (`content-encoding: gzip`), no el del fichero: el tamaño real es el de la fila de abajo |
 | **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal. La capa no declara condiciones propias: no trae `MetadataURL`, y el servicio va con `Fees: NONE` y `AccessConstraints: NONE` |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
 | **Campos** | `Nombre_calle`, `Tipo_via`, `Portal`, `Codigo_calle`, `Poligono`, `Numero_plazas`, `Fecha_instalacion`. **Ninguno personal** |
