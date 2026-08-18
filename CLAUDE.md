@@ -55,9 +55,11 @@ paso debajo.
   (`@desplazame/tipos`), también sin build. **El contrato crece cuando el motor
   lo pide**, no antes. Si el motor cambia la forma de la respuesta, el front no
   compila. Eso es a propósito.
-- **Endpoints:** `GET /api/vias` (autocompletado sobre las vías del callejero),
-  `POST /api/ruta` (pasos, geometría y avisos), `POST /api/regenerar`
-  (barrido nocturno de paradas, patrón de ZetaBus, cron a las 02:00).
+- **Endpoints:** la API va bajo `/api`, y su forma la fija el contrato de
+  `@desplazame/tipos` — si cambia, el front no compila. **Cuáles hay no se
+  escribe aquí**: los vivos los declara el motor en `motor/src/servidor.ts`, y
+  los previstos, el plan (`PLAN-DESPLAZAME.md`, puntos 6 y 8). Una lista en la
+  carta se queda corta cada vez que el motor crece; el puntero no.
 - **Idioma:** TypeScript de punta a punta.
 - **Despliegue:** Hostinger, plan Node. Symlink `public_html → app`.
 
@@ -68,7 +70,7 @@ paso debajo.
   decisiones que sigan vigentes llegarán dentro de los encargos, no leyendo
   documentación vieja.
 - **Los ficheros de datos** (portales, grafo, paradas, carriles bici, en
-  `data/`): se leen, no se editan a mano. O se regeneran con su script, o
+  `app/data/`): se leen, no se editan a mano. O se regeneran con su script, o
   entran de fuera. Y del proyecto viejo solo entra el dato que Antonio
   autorice, pieza a pieza.
 
