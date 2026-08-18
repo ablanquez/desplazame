@@ -376,25 +376,25 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       declaradas, «se irá con el andamio» (`f97b341`)
 - [x] **El router SE QUEDA** — el visor le dio el uso; la revisión que
       decía «si no se usa, fuera» queda respondida por la puerta buena
-- [ ] **Los aparcamotos entran como capa** (autorización de Antonio,
-      18/08 — investigación completa en dos consultas, 18/08): descarga
-      propia nº2 del WFS (`movilidad:MU2_motos`, 2.146 soportes / 11.715
-      plazas, `srsName` a 4326), cabeceras SIN Set-Cookie (la norma), tal
-      cual a `app/data/`, integridad sobre clon. Ficha con TODO declarado:
-      la discrepancia con la API del propio Ayuntamiento (32 altas de una
-      tanda 2024 con `Poligono` que la API aún no ha volcado · 1 soporte
-      que solo la API conserva, Manuel Lasala F 44 · 7 posiciones
-      corregidas que lleva el WFS · plazas cuadrando exacto), la fecha
-      imposible `0203-10-20` de Tenor Fleta 134 que viaja tal cual (salvo
-      «está mal y punto» de Antonio), y la frescura NO CONSTA — la fecha
-      de descarga es la única marca. Pintados en canvas con casilla
-      «Aparcamotos (2.146)», color/forma por resolver con el círculo
-      lleno (la vía de los aparcabicis: forma). Releída transversal con
-      la ley de la nº5. ⭐ El dato trae `Codigo_calle`+`Portal`: mejor
-      enganchado al callejero que los aparcabicis (821/823 códigos casan;
-      los 2 huérfanos son 6 registros que el propio Ayuntamiento deja en
-      blanco). El USO (final de ruta del modo coche/moto) es de su punto,
-      no de esta capa
+- [x] **Los aparcamotos dentro y VISTOS por Antonio en el visor** (18/08):
+      descarga propia nº2 (`MU2_motos` GeoJSON, `srsName` funcionó — la
+      trampa del wgs84 es de la API), recuento previo clavado (2.146 /
+      11.715), cabeceras sin Set-Cookie, huella `8a0b4727…` sobre clon,
+      recuentos con comando (`3590056`). Ficha §1.10 con TODO: la
+      discrepancia entera (32 solo-WFS de la tanda 2024 — 30/33 de los
+      `Poligono` lo confirman, medido · 1 solo-API · 7 posiciones ·
+      plazas exactas), el tercer número de la serie (8.644), la fecha
+      imposible `0203` tal cual, los 6 sin nombre = los 2 códigos
+      huérfanos, y la primera descarga que llegó GZIP (64.811 comprimidos
+      vs 625.297 reales — dicho para que nadie crea que falta dato)
+      (`8a5e11c`, `6a1d713`). Capa en las dos páginas vía el servicio (2
+      ficheros justos), marcador final por decisión de Antonio: DISCO
+      verde oliva relleno, aro blanco, radio 4 — el hueco-cian se
+      descartó: son capas de verificación con caducidad, basta
+      distinguirlas (`6ade170`, `eea1111`). Antonio validó el par
+      motos/bicis a simple vista y que los puntos caen donde hay
+      aparcamotos de verdad. README a ocho datos / diez capas / nueve
+      conjuntos (`3b8994f`). 48 pruebas
 - [ ] **El estacionamiento regulado entra como capa** (autorización de
       Antonio, 18/08): `MU1_estacionamientos_calle`, 7.391 tramos de
       bordillo / 55.572 plazas, MultiLineString — se pinta como los

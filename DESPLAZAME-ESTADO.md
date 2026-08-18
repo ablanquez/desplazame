@@ -59,9 +59,17 @@ desconocidas (apuntado al punto 10) · la pestaña dice «Desplázame» en
 las dos páginas (title por ruta, fuera de alcance — cosmético) · el
 guardián sigue ciego a `src/`.
 
+**Los aparcamotos dentro y vistos (18/08):** descarga propia nº2, huella
+sobre clon, ficha §1.10 con la discrepancia entera y la primera descarga
+GZIP declarada (64.811 vs 625.297 — para que nadie crea que falta dato),
+disco verde oliva por decisión de Antonio (el hueco-cian descartado:
+capas de verificación, basta distinguirlas), el par motos/bicis validado
+a ojo y los puntos cayendo donde hay aparcamotos de verdad. 48 pruebas.
+Cabo menor reportado: los `_cabeceras.txt` se sirven en `/datos/` (el
+glob incluye `*.txt`) — inofensivo en repo público, anotado.
+
 **Lo siguiente (punto 5), en el orden de Antonio:**
-1. Las CUATRO capas nuevas, verificadas ya en grande en el visor:
-   **aparcamotos** → **regulado en superficie** → **13 zonas** →
+1. Las TRES capas restantes: **regulado en superficie** → **13 zonas** →
    **reservas PMR**.
 2. La etiqueta del modo: **«Bici / patinete»** (solo presentación).
 3. **El README** con endpoints y cifras medidas — y el punto 5 cerrado.
