@@ -108,6 +108,46 @@ export interface Via {
 }
 
 /**
+ * Un portal concreto de una vía: lo que devuelve `GET /api/portales?via=…`.
+ *
+ * `codigo` es el `portalId` del censo municipal (`Portales.96724`). Es lo que
+ * la pantalla fija al elegir y lo que `/api/ruta` recibirá para saber de qué
+ * puerta se habla — la ley de la entrada nº4 de la bitácora, desde el
+ * nacimiento: **se elige un código, no se escribe un texto**.
+ *
+ * `numero` es el `displayNumber` del censo, TAL CUAL: es lo único que se
+ * pinta. No siempre es un número —hay `9-11`, `1DP`, `71 TV C2`, `BL0 ESC1`—,
+ * y por eso es `string` y no `number`. El municipio ya lo trae escrito para
+ * leerse; aquí no se maquilla.
+ *
+ * **No lleva coordenadas a propósito.** El motor las tiene en memoria
+ * indexadas por este mismo código, así que mandarlas al navegador sería
+ * enviar 46.150 pares que nadie pinta. Cuando `/api/ruta` exista, pedirá el
+ * código y las buscará él.
+ */
+export interface Portal {
+  readonly codigo: string;
+  readonly numero: string;
+}
+
+/**
+ * Lo que el motor lleva de portales, y lo que le costó ponerlos en memoria.
+ *
+ * `total` tiene que coincidir con `SaludCallejero.portales`: son el mismo
+ * censo contado una sola vez, porque el callejero ya no lo lee por su cuenta
+ * —los recibe cargados—. Que aparezcan dos veces no es descuido: la guardia
+ * comprueba que los dos números concuerdan, y así la redundancia trabaja.
+ *
+ * `vias` es cuántas vías tienen al menos un portal, y por la misma razón debe
+ * coincidir con `SaludCallejero.sugeribles`.
+ */
+export interface SaludPortales {
+  readonly total: number;
+  readonly vias: number;
+  readonly cargadoEnMs: number;
+}
+
+/**
  * Lo que el motor lleva del callejero, y lo que le costó cargarlo.
  *
  * Los dos números que importan y que llevan dos puntos del plan esperándose:
@@ -150,4 +190,5 @@ export interface Salud {
   readonly arrancado: string;
   readonly grafo: SaludGrafo;
   readonly callejero: SaludCallejero;
+  readonly portales: SaludPortales;
 }
