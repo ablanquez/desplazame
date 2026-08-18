@@ -2,10 +2,12 @@
   display: block;
 }
 
+/* El ALTO no está aquí: lo pone el parámetro `alto`, porque es lo único que
+   distingue el mapa pequeño del formulario del mapa grande del visor. */
 .lienzo {
-  height: 22rem;
   border: 1px solid #999;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
 /* La atribución tiene que leerse. La ODbL no se cumple con letra invisible. */

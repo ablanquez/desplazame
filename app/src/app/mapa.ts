@@ -66,6 +66,14 @@ export class Mapa {
   /** Vértices a pintar. Vacío = sin línea. */
   readonly trazado = input<readonly Vertice[]>([]);
 
+  /**
+   * El alto del lienzo, tal cual va al CSS. Leaflet exige una altura
+   * DEFINIDA: si el contenedor no la tiene, el mapa se monta con 0 px de alto
+   * y no se ve nada. Por defecto, el del formulario. El visor le pasa `100%`
+   * y le da la altura desde fuera, con su propia caja flexible.
+   */
+  readonly alto = input('22rem');
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
