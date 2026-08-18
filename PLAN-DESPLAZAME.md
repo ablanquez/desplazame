@@ -360,9 +360,65 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       están — el mapa de verificación los necesita y es la herramienta de
       esta fase. Cero código hoy; la retirada ENTERA tiene su casilla
       nueva en el punto 6, para que no se olvide
-- [ ] **Revisar `@angular/router`**: instalado sin usar desde `ng new` (el
-      CLI lo mete en su conjunto estándar aunque pases `--routing=false`).
-      Si aquí sigue sin hacer falta, fuera
+- [ ] **PRIMERO DEL PUNTO 5 (orden de Antonio, 18/08) — EL VISOR: una
+      página nueva con el mapa a ventana casi completa**: las capas de
+      verificación se ven hoy en un mapa microscópico dentro del
+      formulario — el visor es su casa: mapa a casi toda la ventana, el
+      control de capas entero, y navegación entre las dos páginas (la
+      principal queda como está). Va primero para que las CUATRO capas
+      nuevas de abajo se verifiquen ya en grande
+- [ ] **El router SE QUEDA — la revisión cambia de sentido** (18/08): la
+      casilla decía «si sigue sin usarse, fuera», y el visor le da uso:
+      dos páginas = `@angular/router` trabajando. Configurarlo con la doc
+      delante [Regla Cero] al montar el visor
+- [ ] **Los aparcamotos entran como capa** (autorización de Antonio,
+      18/08 — investigación completa en dos consultas, 18/08): descarga
+      propia nº2 del WFS (`movilidad:MU2_motos`, 2.146 soportes / 11.715
+      plazas, `srsName` a 4326), cabeceras SIN Set-Cookie (la norma), tal
+      cual a `app/data/`, integridad sobre clon. Ficha con TODO declarado:
+      la discrepancia con la API del propio Ayuntamiento (32 altas de una
+      tanda 2024 con `Poligono` que la API aún no ha volcado · 1 soporte
+      que solo la API conserva, Manuel Lasala F 44 · 7 posiciones
+      corregidas que lleva el WFS · plazas cuadrando exacto), la fecha
+      imposible `0203-10-20` de Tenor Fleta 134 que viaja tal cual (salvo
+      «está mal y punto» de Antonio), y la frescura NO CONSTA — la fecha
+      de descarga es la única marca. Pintados en canvas con casilla
+      «Aparcamotos (2.146)», color/forma por resolver con el círculo
+      lleno (la vía de los aparcabicis: forma). Releída transversal con
+      la ley de la nº5. ⭐ El dato trae `Codigo_calle`+`Portal`: mejor
+      enganchado al callejero que los aparcabicis (821/823 códigos casan;
+      los 2 huérfanos son 6 registros que el propio Ayuntamiento deja en
+      blanco). El USO (final de ruta del modo coche/moto) es de su punto,
+      no de esta capa
+- [ ] **El estacionamiento regulado entra como capa** (autorización de
+      Antonio, 18/08): `MU1_estacionamientos_calle`, 7.391 tramos de
+      bordillo / 55.572 plazas, MultiLineString — se pinta como los
+      carriles. El campo que MANDA es `tipo_actual` (ESRO 664 · ESRE 495
+      · LIBRE 6.204); ⚠️ `zona_reguladora` NO significa regulado (5.104
+      tramos LIBRES la llevan) — con la ampliación de zona azul/naranja
+      que el Ayuntamiento prepara (aviso de Antonio), ese campo apunta al
+      perímetro previsto y `tipo_actual` al presente: la ficha lo dirá
+      así, y el dato CADUCARÁ de golpe cuando la ampliación se active.
+      Suciedad declarada: `distrito` con mayúsculas/acentos mezclados.
+      Qué se pinta (¿solo regulado, o regulado+libre?): decide Antonio en
+      la pieza
+- [ ] **Las 13 zonas reguladas entran** (`MU1_zonas_reguladas`,
+      MultiPolygon): el perímetro numerado de cada zona — contexto del
+      regulado y lo que la ampliación moverá. Aviso: los tramos usan
+      números de zona hasta el 43 y los polígonos son 13 — no cubren
+      todos; declarado en la ficha
+- [ ] **Las reservas PMR entran** (autorización de Antonio, 18/08 —
+      accesibilidad, no extra): `MU1_reservas`, 2.636 puntos (el WFS
+      vivo; los dos servicios de la API suman 2.072). Trae PMR + carga y
+      descarga: el desglose se mide en la pieza y Antonio decide si se
+      pinta solo PMR (propuesta) o también C/D — lo no pintado viaja en
+      el dato. Limpio de personal: 1.224/1.226 «PMR general», cero
+      titulares
+- [ ] **La etiqueta del modo BICI pasa a «Bici / patinete»** (decidido por
+      Antonio, 18/08): la red que usa el modo es la misma para rueda
+      pequeña (carriles, sendas, calmado) y BiZi es solo-bici dentro de
+      él. SOLO presentación: `Modo = 'bici'` no se renombra (contrato,
+      motor y pruebas intactos)
 - [ ] **El README se amplía aquí** con los endpoints y las cifras que el
       motor MIDA (vías reales, nodos cargados, tiempo de arranque) —
       cuando existan de verdad, no antes
@@ -410,9 +466,16 @@ portales — un sitio es una coordenada más entrando al mismo tubo.
       resolver sitio → coordenada → enganche al grafo (el del punto 6)
 - [ ] *(hueco para lo que Antonio vaya añadiendo)*
 
-## 7 — Modo BICI *(en grueso)*
+## 7 — Modo BICI / PATINETE *(en grueso)*
 
-Carriles y continuidad ciclable sobre el mismo esqueleto del 6.
+Carriles y continuidad ciclable sobre el mismo esqueleto del 6. La rueda
+pequeña comparte red (bici, patinete, BiZi — este último solo-bici).
+
+- [ ] **Verificar la ordenanza de Zaragoza sobre VMP antes de etiquetar
+      tramos** (apuntado el 18/08): bici y patinete no van idénticos en
+      toda vía (acera-bici, zonas peatonales, edades). Si hay diferencias
+      que afecten a la ruta: decidir si el modo se desdobla o basta el
+      aviso honesto (patrón D-G, componer sin prometer)
 
 ## 8 — Modo BUS/TRANVÍA *(en grueso)*
 
@@ -446,6 +509,22 @@ Dejado aquí desde el punto 4, para cuando toque:
       pasada que toque ese fichero
 
 ## 9 — Modo COCHE *(en grueso)*
+
+Dejado aquí el 18/08 (investigación de estacionamiento):
+
+- [ ] **Parkings públicos, si entran, es aquí** («aparca en el parking
+      X», patrón aparcamotos/moto). Las dos fuentes conocidas y ninguna
+      redonda: los 104 «Público» de `MU1_parking` (censo de garajes/vados
+      — 7.129 privados que NO se pintan; varios públicos sin calle) vs
+      los 41 de la API con nombre y horario pero sellados en 2013. Se
+      decide con la demo delante
+- [ ] **Parquímetros: NO entran hoy** (312, solo-API, sellados en 2015 y
+      con la ampliación de zonas en puerta — entrarían caducados). Se
+      reevalúa si el Ayuntamiento los refresca
+- [ ] Aviso heredado de la investigación: la serie estadística mensual
+      oficial NO cuadra con las capas geográficas (Libre: 31.676 vs
+      49.222; Motos: 8.644, tercer número). Toda ficha declara la cifra
+      DE SU fuente, nunca «las plazas de Zaragoza»
 
 La red viaria. El último de los cuatro.
 

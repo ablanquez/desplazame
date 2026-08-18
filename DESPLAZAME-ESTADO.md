@@ -5,277 +5,200 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 17 de agosto de 2026 (tarde)
+## ESTADO ACTUAL — 18 de agosto de 2026
 
-**Dónde estamos: punto 5 (el motor mínimo), a dos casillas de cerrarse.**
-Los puntos 1-4 están cerrados y publicados. Lo que existe y funciona hoy:
+**Dónde estamos: punto 5 (el motor mínimo), con el núcleo hecho y una
+cola de capas y visor por delante.** Los puntos 1-4 están cerrados y
+publicados. Lo que existe y funciona hoy:
 
-- **La pantalla** (punto 2): formulario de cuatro campos, cuatro modos
-  excluyentes, respuesta falsa marcada como ⚠️ DATOS DE PRUEBA. 13 pruebas.
+- **La pantalla** (puntos 2 y 5): formulario donde TODO se elige, nada se
+  escribe a ciegas — las calles con autocompletar contra el motor
+  («LIMPIO [NÚCLEO]», corchetes porque los paréntesis son del dato), el
+  portal de una lista con los portales reales de la vía en orden natural,
+  borrador marcado si se sale sin elegir, y «Generar ruta» exigiendo los
+  CUATRO códigos. 35 pruebas. La respuesta de generar sigue siendo el
+  andamio ⚠️ DATOS DE PRUEBA (muere en el punto 6).
 - **El mapa de verificación** (puntos 3-4): Leaflet+OSM con NUEVE capas
-  apagables — portales, grafo, carriles, postes de bus, trazados de bus,
-  tranvía (trazado y paradas), BiZi, aparcabicis. ~34 MB de dato, fluido.
-  Las casillas son verificación de la fase de datos, NO producto.
-- **Siete conjuntos de datos + el callejero** en `app/data/` (14+ ficheros,
-  cada uno con ficha en el notices, huella verificada sobre CLON y
-  atribución colgada de su capa).
-- **El motor** (punto 5, en construcción): workspaces npm (`tipos/` +
-  `motor/` + `app/`), contrato vivo en `@desplazame/tipos`, `node:http` en
-  el 3000 tras el proxy `/api/**`. Corre TypeScript SIN COMPILAR (Node 24
-  borra tipos). Carga al arrancar el grafo (98.774 aristas, ~190 ms) y el
-  callejero+portales (60 ms) ANTES de abrir el puerto. 223 MB de RSS.
-  `GET /api/salud` declara lo que lleva; `GET /api/vias` sugiere.
-- **⭐ La cifra real de vías, medida y publicada: N = 3.359 del callejero,
-  M = 2.731 sugeribles** (solo vías con portal — no se sugiere lo que el
-  punto 6 no puede cumplir). La «2.661» de la memoria vieja está muerta.
-- **La bitácora**: 3 entradas, las 3 cerradas con ley. **Dos guardias**
-  (interfaz y motor) con rojos vistos, exigiendo grafo y callejero
-  cargados y vigilando los tres ficheros de datos del motor.
+  apagables (portales, grafo, carriles, postes de bus, trazados de bus,
+  tranvía ×2, BiZi, aparcabicis), ~34 MB, fluido. Microscópico dentro del
+  formulario — su casa nueva será el VISOR (primera casilla pendiente).
+- **El motor** (punto 5): workspaces npm (`tipos/`+`motor/`+`app/`),
+  contrato vivo en `@desplazame/tipos` (11 tipos), `node:http` en el 3000
+  tras el proxy `/api/**`. TypeScript SIN compilar (Node borra tipos).
+  Carga ANTES de abrir el puerto: grafo (98.774 aristas, ~190 ms),
+  callejero (3.359 vías, 7 ms — el fichero de portales se lee UNA vez) y
+  los 46.150 portales enteros (99 ms). RSS ~248 MB — el punto 10 acumula.
+  Endpoints vivos: `/api/salud` (declara todo lo que lleva) · `/api/vias`
+  (sugiere solo lo cumplible) · `/api/portales?via=` (orden natural:
+  sortNumber + Intl.Collator numérico).
+- **⭐ Las cifras reales, medidas:** N = 3.359 vías · M = 2.731 sugeribles
+  (la publicada) · 628 sin portal no se ofrecen · 46.150 portales · el
+  callejero lleva CINCO correcciones propias en el fichero (2 CRT→CST +
+  3 MRL completadas — «están mal y punto»; huella `5f5df76a…`).
+- **La bitácora: 5 entradas, las 5 cerradas**, cada una con ley. **Dos
+  guardias** (interfaz y motor) con rojos vistos; la del motor exige
+  grafo + callejero + portales cargados y vigila los ficheros que lee.
+- **La carta (CLAUDE.md) al día** con la doc oficial delante: el motor
+  real (sin build), convención con puntero en vez de listas que caducan,
+  `app/data/` correcto.
 
-**Publicado hasta `169da6a` (cierre del punto 4). En local: los commits
-del punto 5** (estructura, grafo en memoria, callejero y `/api/vias`, más
-los docs).
+**Publicado hasta `169da6a` (cierre del punto 4). En local: el punto 5
+entero** (de `ea66676` a `9eabbb6`: estructura, grafo en memoria,
+callejero y `/api/vias`, autocompletar, selector de portales, entradas
+nº4 y nº5, carta al día, y el plan con las tandas del 18/08).
 
-**El autocompletar está hecho y visto (18/08).** La pantalla consume al
-motor (`httpResource` + 200 ms), las sugerencias van «LIMPIO [NÚCLEO]»
-(corchetes: los paréntesis ya son del dato), el duplicado `Modo`/`Vertice`
-murió, y el callejero lleva CINCO correcciones propias en el fichero
-(2 CRT→CST + 3 MRL completadas — «están mal y punto»; huella
-`5f5df76a…`, ficha con tabla). Por el camino, la **entrada nº4** de la
-bitácora: escribir sin elegir desbloqueaba «Generar» — cazada por el ojo
-de Antonio tras un checkpoint aceptado con 24 verdes; cerrada con la
-opción B (borrador marcado, generar bloqueado) y su ley: la validación
-mira el código, y la prueba entra por donde entra la persona. Las cuatro
-entradas de la bitácora están cerradas.
-
-**El selector de portales, hecho y visto (18/08, los seis pasos).** Los
-46.150 enteros en el motor (99 ms; el callejero baja a 7 ms porque el
-fichero se lee una vez; RSS 223→248 — el punto 10 acumula), servidos por
-vía en orden natural (sortNumber municipal + Intl.Collator numérico,
-demostrado BARAJANDO: el censo venía ordenado y sin barajar el comparador
-roto habría dado verde). Combobox que se abre al entrar (mediana 9
-portales), tope 50 = percentil 95. Deshabilitado sin vía, reset al
-cambiarla, todo por código: «Generar» exige los cuatro. `FormsModule`
-fuera: el bundle baja 393→353 kB. El formulario entero se rellena ya
-contra el motor — la zanja quedó cerrada de una vez.
-
-**La entrada nº5, capturada y cerrada (18/08).** El README juró «ningún
-dato integrado» durante 2 días y 13 commits — y el verde lo daba la
-propia regla de releída, cumplida trece veces sobre «Estado» mientras
-«Licencia y créditos» envejecía. Ley nueva: una regla de releída vale lo
-que su alcance; la unidad es el documento entero. Rectificación visible
-en el README, cinco de cinco entradas cerradas. Y la releída entera del
-documento destapó un género nuevo: dos líneas del Stack («build con tsc o
-esbuild» · los cuatro tipos) son copia FIEL de CLAUDE.md — el README no
-mintió: reflejó una carta que la realidad desmintió. Decisión de Antonio
-pendiente: actualizar CLAUDE.md y el README detrás, o declarar que la
-carta describe el plan.
-
-**La carta al día (18/08), con la doc oficial delante.** CLAUDE.md dice ya
-el motor real (sin build, contrato que crece — `d919930`) y guarda
-convención con puntero en vez de listas que caducan: los endpoints vivos
-los declara el motor, los previstos el plan; `data/` corregido a
-`app/data/` (`041e432`); el README detrás (`7590fe4`). Punteros
-comprobados: los dos destinos sostienen su mitad. La línea del Despliegue
-(symlink) se queda tal cual: su corrección YA tiene casilla en el punto
-10 — los raíles la llevaban.
-
-**Los andamios, decididos (18/08): se quedan** — el mapa de verificación
-los necesita y es la herramienta de esta fase. La retirada entera tiene
-casilla propia en el punto 6, para que no se olvide.
-
-**Lo siguiente (punto 5):** la revisión del router y la casilla del
-README (endpoints y cifras medidas) — y el punto 5 queda cerrado.
+**Lo siguiente (punto 5), en el orden de Antonio:**
+1. **EL VISOR** — página nueva con el mapa a ventana casi completa y el
+   control de capas entero; el router se queda (el visor le da el uso).
+2. Las CUATRO capas nuevas, verificadas ya en grande: **aparcamotos** →
+   **regulado en superficie** → **13 zonas reguladas** → **reservas PMR**.
+3. La etiqueta del modo: **«Bici / patinete»** (solo presentación).
+4. **El README** con endpoints y cifras medidas — y el punto 5 cerrado.
 
 ---
 
 ## 1 · Identidad
 
 **Qué es:** buscador de rutas para moverse por Zaragoza. Cuatro campos
-(calle y portal de origen, calle y portal de destino), cuatro modos
-excluyentes (andando · bus/tranvía · bici · coche), la ruta en el mapa y
-los pasos escritos. **Una sola pantalla. No es multimodal: se elige un
-modo.**
+(calle y portal de origen y destino — todo elegido, nada tecleado a
+ciegas), cuatro modos excluyentes (andando · bus/tranvía · bici/patinete
+· coche), la ruta en el mapa y los pasos escritos. **Una sola pantalla de
+búsqueda** (más el visor de capas como página de verificación). No es
+multimodal: se elige un modo.
 
 **Qué NO es:** no promete tiempos totales inventados. Para bus y tranvía
-rige la decisión `G` heredada del 14/08: **componer sin prometer** — el
-transporte participa como camino, no como coste; la lista se ordena por
-transbordos y a igualdad por metros a pie, diciéndolo en la propia lista.
+rige la decisión `G` (14/08): **componer sin prometer**.
 
 **Repositorio:** `github.com/ablanquez/desplazame` (público) ·
-local `F:\01_PROYECTOS\004_DESPLAZAME` · la versión vieja en
-`F:\01_PROYECTOS\004_DESPLAZAME-OLD` (solo almacén de datos a autorizar:
-se copia DE ahí, no se lee nunca DESDE ahí).
+local `F:\01_PROYECTOS\004_DESPLAZAME` · la OLD en
+`F:\01_PROYECTOS\004_DESPLAZAME-OLD` (solo almacén: se copia DE ahí,
+no se lee nunca DESDE ahí).
 
-**Licencias — decididas y materializadas:** código Apache 2.0 · datos
-ODbL (OSM), Ley 37/2007 (Ayuntamiento) y licencia MITMS (GTFS del NAP,
-«Powered by MITRAMS»). El copyright vive en el README (© 2026), como en
-la casa. Atribuciones colgadas de sus capas.
+**Licencias:** código Apache 2.0 · datos ODbL (OSM), Ley 37/2007
+(Ayuntamiento) y MITMS (GTFS del NAP, «Powered by MITRAMS»). Copyright
+en el README (© 2026). Atribuciones colgadas de sus capas.
 
 ## 2 · Stack (cerrado el 16/08, firme)
 
-- **Frontend:** Angular 22, componentes standalone, sin NgModules.
-  Leaflet + OpenStreetMap. Build con Angular CLI.
-- **Motor:** Node + TypeScript ejecutado SIN compilar (Node 24 borra
-  tipos), servidor mínimo `node:http`. El grafo se carga una vez al
-  arrancar y vive en memoria.
-- **Workspaces npm** de raíz única: `tipos/` + `motor/` + `app/`, lockfile
-  único en la raíz.
-- **Tipos compartidos** (`@desplazame/tipos`, sin build): `Modo`,
-  `Vertice`, `Paso`, `Aviso`, `Trayecto`, `Salud`, `Via`. El contrato es
+- **Frontend:** Angular 22 standalone, sin NgModules. Leaflet + OSM.
+  `@angular/router` SE QUEDA (el visor le da uso).
+- **Motor:** Node + TypeScript ejecutado SIN compilar (Node borra tipos;
+  no hay build — hecho de despliegue: ata el punto 10). `node:http`.
+  Todo cargado en memoria antes de `listen()`.
+- **Workspaces npm** de raíz única: `tipos/` + `motor/` + `app/`,
+  lockfile único.
+- **Tipos compartidos** (`@desplazame/tipos`, sin build): el contrato es
   UN fichero por symlink — si el motor cambia la respuesta, el front no
-  compila, a propósito. Crece cuando el motor lo pide, no antes.
-- **Endpoints:** `GET /api/salud` · `GET /api/vias` · `POST /api/ruta`
-  (por hacer) · `POST /api/regenerar` (punto 8, patrón ZetaBus, cron
-  02:00). Proxy de desarrollo `/api/**` → 3000.
+  compila, a propósito. Crece cuando el motor lo pide.
+- **Endpoints:** bajo `/api`; los vivos los declara el motor
+  (`motor/src/servidor.ts`), los previstos el plan (puntos 6 y 8). Proxy
+  de desarrollo `/api/**` → 3000 (doble asterisco obligatorio en Vite).
 - **Despliegue:** Hostinger plan Node. `public_html` apuntará a lo
-  CONSTRUIDO, nunca a `app/` literal (precisado en el punto 10 con el
-  panel delante).
-- **Por qué Angular:** el hueco del portafolio (001 PHP · 002 Vue ·
-  003 Next/React · 005 Astro) y el stack dominante en empresa en España.
-- **Por qué Node:** lo impone el grafo en memoria, no la preferencia.
+  CONSTRUIDO, nunca a `app/` literal (se precisa en el punto 10).
+- **Por qué Angular / por qué Node:** hueco del portafolio y stack de
+  empresa · el grafo en memoria lo impone.
 
 ## 3 · Las reglas del reinicio
 
-1. **Visualización desde el minuto uno.** Cada avance se comprueba
-   mirándolo. Nada cuenta como hecho sin verse funcionar. La estética, la
-   última.
+1. **Visualización desde el minuto uno.** Nada cuenta sin verse
+   funcionar. La estética, la última.
 2. **Estado y bitácora a cero.** La bitácora la escribe la skill
    `escribir-bitacora` ante fallo real, antes de arreglar.
-3. **Alcance corto.** El producto es el de §1 y nada más; nada entra por
-   iniciativa propia. *(El intento anterior murió de esto.)*
+3. **Alcance corto.** Nada entra por iniciativa propia. Documentación y
+   plan son los raíles; lo que surja se encaja en el plan o no se hace.
 4. **Commits atómicos** `tipo(ámbito): descripción`, push solo cuando
    Antonio lo diga.
-5. **Los datos entran pieza a pieza con autorización expresa**, tal cual,
-   se leen y no se editan; integridad acreditada sobre un CLON (ley nº3).
-6. **Ninguna cifra del proyecto viejo se hereda como criterio**: se
-   contrasta contra lo que el ejecutor mida, y el dato manda. *(Cuatro
-   derivadas cazadas por este camino; solo las 276 de BiZi cayeron
-   clavadas.)*
+5. **Los datos entran pieza a pieza con autorización expresa**, tal cual;
+   integridad sobre CLON (ley nº3). Correcciones en el fichero solo
+   cuando Antonio dice «está mal y punto», con huella nueva y tabla en
+   la ficha.
+6. **Ninguna cifra del proyecto viejo (ni de memoria) se hereda como
+   criterio**: el dato manda.
 
 ## 4 · El plan
 
-Vive en `PLAN-DESPLAZAME.md` (raíz), con casillas que se tachan. Once
-puntos: 1-4 CERRADOS · 5 el motor mínimo (en curso) · 6 primera ruta
-andando (ahí existe la demo) · 7 bici · 8 bus/tranvía · 9 coche ·
-10 despliegue · 11 estética. Los puntos 8 y 10 ya llevan cargado lo
-aplazado desde el 4 y el 5.
+Vive en `PLAN-DESPLAZAME.md`, con casillas. Puntos: 1-4 CERRADOS · 5 el
+motor mínimo (en curso: visor → 4 capas → etiqueta → README) · 6 primera
+ruta andando · **6B destinos con nombre (nuevo, EN CONSTRUCCIÓN)** ·
+7 bici/patinete · 8 bus/tranvía · 9 coche · 10 despliegue · 11 estética.
+Los puntos 6, 8, 9 y 10 llevan cargado lo aplazado. La investigación de
+datos abiertos vive en `docs/INVESTIGACION-EQUIPAMIENTOS.md`.
 
 ## 5 · Decisiones
 
-Heredadas del intento anterior (solo estas viajan):
+Heredadas del intento anterior: **D-G** (componer sin prometer) · las
+paradas se regeneran, no se copian (barrido punto 8) · velocidad a pie
+5,0 km/h.
 
-- **D-G (14/08):** componer sin prometer. Bus y tranvía sin total
-  inventado; orden por transbordos y a igualdad metros a pie, declarado.
-- **Las paradas se regeneran, no se copian:** barrido nocturno contra
-  Avanza (punto 8). Límite heredado: los desvíos se detectan; las paradas
-  suprimidas, no.
-- **Velocidad a pie estándar (5,0 km/h)**, la de OSRM/Valhalla.
+De este reinicio (16-17/08): `app/.vscode/` versionado [DOC] · el ZIP
+del GTFS como instantánea con caducidad declarada · **D-MAPA-DE-HOY**
+(la red operativa del día, punto 8) · reparto de censos (callejero+
+municipal resuelven · enganchado salta al grafo · 124 sin enganche →
+Aviso) · solo se sugiere lo cumplible (M=2.731) · norma Set-Cookie ·
+el color de BiZi es marca · el correo del feed viaja tal cual · el
+puerto del motor no abre hasta que el grafo está.
 
-Tomadas en este reinicio:
-
-- **`app/.vscode/` versionado** [DOC] · **`@angular/router` se queda hasta
-  la revisión del punto 5** [DOC+PROPIO].
-- **El ZIP del GTFS se commitea** como instantánea con caducidad declarada
-  (05/10), divergiendo de la OLD/ZetaBus con motivo (17/08).
-- **D-MAPA-DE-HOY (17/08):** el mapa pintará la red operativa DEL DÍA, no
-  el catálogo — se construye en el punto 8 con el cron.
-- **Reparto de censos (17/08):** callejero+municipal resuelven y
-  autocompletan · el enganchado salta al grafo (punto 6) · los 124 sin
-  enganche resuelven normal y tendrán `Aviso` honesto.
-- **Solo se sugiere lo cumplible (17/08):** `/api/vias` ofrece únicamente
-  vías con portal (M=2.731), declarando N y M.
-- **Norma Set-Cookie (17/08):** las cabeceras de descargas propias se
-  guardan SIN identificadores de sesión, filtrado declarado — decidido
-  con GitHub y OWASP delante, antes del primer push del dato.
-- **El color de BiZi es marca** (#54A097): si choca, se ajusta forma, no
-  tono. · **El correo del feed GTFS viaja tal cual**: redistribución fiel
-  de dato oficial público.
-- **El puerto del motor no abre hasta que el grafo está** — la guardia no
-  puede dar verde a un motor a medio cargar.
-- **«LIMPIO [NÚCLEO]» con corchetes (18/08):** los paréntesis ya son del
-  dato (15 vías los traen; HERRERÍN es trampa) — dos signos, dos
-  significados. · **Correcciones EN EL FICHERO cuando el dato está mal
-  (17-18/08):** cinco aplicadas al callejero, con huella nueva y tabla en
-  la ficha — el notices ya no dice «tal cual» de ese fichero. ·
-  **Borrador marcado, no borrado (opción B, 18/08):** al salir sin
-  elegir, el texto se conserva marcado y «Generar» sigue bloqueado
-  [DOC usabilidad]. · **El portal se elegirá de lista, y en el punto 5** — con la
-  zanja del formulario abierta, no reabriéndola en el 6 (18/08).
+Del 18/08: **«LIMPIO [NÚCLEO]» con corchetes** (los paréntesis son del
+dato) · **borrador marcado, no borrado** (opción B, usabilidad [DOC]) ·
+**correcciones en el fichero cuando el dato está mal** (cinco en el
+callejero) · **el portal se elige de lista, y en el punto 5** (la zanja
+abierta) · **aparcamotos: fuente WFS** (32 altas que la API no volcó;
+la discrepancia entera a la ficha) · **regulado + zonas + PMR entran**
+(PMR es accesibilidad, no extra) · **parquímetros y parkings públicos NO
+hoy** (2015/2013; parkings al punto 9) · **etiqueta «Bici / patinete»**
+(el contrato no se renombra) · **el visor primero, y el router se
+queda** · toda ficha declara la cifra DE SU fuente (las tres cuentas
+municipales no cuadran entre sí).
 
 ## 6 · Cabos abiertos
 
-**Para el punto 5 (lo que queda):**
-- La frase de cierre del «Estado» del README («el repositorio es esto:
-  el método, el plan, las licencias y una pantalla con andamio») se ha
-  quedado corta — hay motor y ocho datos. Se ajusta en la casilla del
-  README de este punto (endpoints y cifras medidas), no en encargo
-  suelto.
-- El destino de los andamios de carga (~34 MB al navegador + la entrada
-  `datos` de `angular.json` + `RUTA_DE_PRUEBA`): qué pasa al motor y qué
-  sigue para el mapa de verificación. Retirada final en el punto 6;
-  comentado en el código, nada lo vigila.
-- `@angular/router` sin usar: la revisión pendiente.
-- **Hueco latente del componente** (reportado con sonda, no vivo): si
-  alguien escribe el texto del campo desde FUERA (`calleOrigen.set(…)`),
-  el código fijado sobrevive y no se marca. Hoy nadie lo hace; taparlo
-  pide decidir si el componente vigila su `model` — decisión de Antonio
-  si algún día un tercero escribe ahí.
-- **El eco**: elegir una sugerencia dispara una consulta más al motor
-  200 ms después (el texto cambió). Inofensivo y nombrado en el helper
-  de pruebas; si molesta, es ajuste fino de otro día.
-- El campo `nombre` crudo viaja al navegador y no se pinta (se mantiene
-  por ser el dato; el punto 6 dirá si lo usa).
+**Punto 5 (la cola, en orden):** visor+router · aparcamotos · regulado ·
+zonas · PMR · etiqueta · README (incluida su frase de cierre envejecida,
+reportada por el ejecutor).
 
-**Para el punto 6:**
-- Los 124 portales sin enganche → `Aviso` honesto, no fallo en silencio.
-- Los 628 con vía pero sin portal: quien escriba una a mano no tendrá
-  sugerencia — candidato a `Aviso`.
-- El grafo tiene 170 componentes (169 islas, ~2.942 nodos): el motor
-  decide qué hace con ellas.
-- La carga de portales se comparte cuando `/api/ruta` los pida enteros
-  (hoy `callejero.ts` solo guarda recuentos).
+**Punto 6:** los 124 portales sin enganche → `Aviso` · los 628 con vía
+sin portal → candidato a `Aviso` · 170 componentes del grafo (169
+islas) · `Via.nombre` crudo viaja al navegador sin usarse (el 6 dirá si
+lo usa) · la retirada de los andamios (~34 MB) tiene su casilla allí.
 
-**Para el punto 7:** la doble capitalización «Senda ciclable/Ciclable»
-del origen — quien agrupe por `tipo_carri` sin normalizar contará dos
-categorías donde hay una.
+**Punto 6B:** en construcción — Antonio irá añadiendo. La cuestión del
+dato personal de farmacias (titulares) tiene su salida apuntada.
 
-**Para el punto 8:** las líneas por poste no existen aún en el repo (la
-dependencia está escrita en tres sitios y ninguno es guardián) · la
-caducidad del GTFS (05/10; servicio real hasta 27/12) sin vigilante hasta
-que el cron mida la fecha viva · `enlaces.json` de la OLD referencia
-aristas por índice de ESTE grafo: si se regenera, caducan en silencio ·
-la API viva de Bizi (disponibilidad) sería de aquí, con sus condiciones
-por resolver.
+**Punto 7:** la ordenanza VMP antes de etiquetar tramos (casilla en el
+plan) · la doble capitalización «Senda ciclable/Ciclable» del origen.
 
-**Para el punto 10 (el panel de Hostinger, todo NO CONSTA):** versión de
-Node (exige `^22.22.3 || ^24.15.0 || >=26` Y ejecutar TS sin compilar) ·
-memoria del plan (el motor ya pide 223 MB de RSS, y el punto 6 subirá) ·
-arranque de proceso persistente · si permite dos procesos o el motor
-sirve también estáticos.
+**Punto 8:** líneas por poste (escritas en tres sitios, ningún guardián)
+· caducidad GTFS (05/10; servicio real 27/12) sin vigilante hasta el
+cron · `enlaces.json` referencia aristas por índice de ESTE grafo · API
+viva de Bizi.
 
-**Para el punto 11:** el color de marca del proyecto (`NO CONSTA`; badges
-en gris neutro de la casa).
+**Punto 9:** parkings públicos con sus dos fuentes cojas · parquímetros
+reevaluables · el aviso de las tres cuentas municipales.
 
-**Método y vigilancia (sin punto asignado):**
-- Nada vigila el README: lo cubren la regla transversal y la costura §6.
-  Ha caducado en silencio una vez (entrada nº1) y se cazó dos veces más
-  por releída. README y notices se apuntan mutuamente: fácil que uno
-  describa al otro de oídas en la próxima ampliación.
-- Las 13 pruebas de `app` no las ejecuta nadie en automático (sin CI) ·
-  las guardias son de invocación manual y solo-Windows · su verde dice
-  «no caducado», no «recién arrancado» (falso negativo declarado) · la
-  guardia vive en `app/scripts/` y ya vigila a dos procesos: con un
-  tercero se le queda pequeño el sitio · `GRAFO_ESPERADO` está escrito a
-  mano: si el grafo se regenera, roja hasta actualizarlo (intencionado).
-- Los datos municipales caducan (refresco mensual del callejero; los
-  ficheros son de mayo-agosto): cuándo refrescar lo decide Antonio.
-- npm 11 bloquea los scripts de instalación de cuatro paquetes (esbuild,
-  lmdb, msgpackr-extract, @parcel/watcher) — sin estorbar; por si un
-  build falla ahí. · La memoria del motor es la foto del arranque: bajo
-  carga, `NO CONSTA`. · TypeScript va en rama 6 (salto de mayor). · Del
-  notices: qué acaba en el bundle y las licencias de las ~500 transitivas
-  siguen en `NO CONSTA` declarado. · `nombrePublicoNorm` del origen
-  existe y coincide con nuestra normalización; no se usa.
-- El tranvía municipal (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`)
-  existe en el catálogo y nadie lo ha descargado nunca: opción futura.
+**Punto 10 (panel de Hostinger, todo NO CONSTA):** versión de Node
+(exige `^22.22.3 || ^24.15.0 || >=26` Y ejecutar TS sin compilar) ·
+memoria del plan (el motor pide ~248 MB y subirá) · proceso persistente
+· dos procesos o estáticos desde el motor.
+
+**Punto 11:** el color de marca (`NO CONSTA`; badges en gris).
+
+**Método y vigilancia:**
+- Nada vigila el README (dos entradas de bitácora lo avalan: nº1 y nº5);
+  lo cubren la regla transversal — con su ley: la unidad es el documento
+  entero — y la costura §6.
+- 35 pruebas sin CI · guardias manuales y solo-Windows · su verde dice
+  «no caducado», no «recién arrancado» · la guardia vive en
+  `app/scripts/` y vigila a dos — con un tercero se queda pequeña ·
+  `GRAFO_ESPERADO` a mano (si el grafo se regenera, roja hasta
+  actualizar).
+- Hueco latente del autocompletar (sonda, no vivo): escribir el texto
+  desde fuera del componente conserva el código sin marcar · el eco:
+  elegir dispara una consulta más a los 200 ms (inofensivo, nombrado).
+- Los datos municipales caducan (callejero mensual; el regulado caducará
+  DE GOLPE con la ampliación de zonas) — cuándo refrescar, Antonio.
+- npm 11 bloquea scripts de 4 paquetes (esbuild, lmdb, msgpackr-extract,
+  @parcel/watcher) · TypeScript rama 6 · del notices: bundle y licencias
+  de transitivas en `NO CONSTA` declarado · `nombrePublicoNorm` existe y
+  coincide; no se usa.
+- El tranvía municipal (`MU3_lineas/paradas_tranvia`): nunca descargado,
+  opción futura.
