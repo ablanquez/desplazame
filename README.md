@@ -34,7 +34,9 @@
 > y el callejero, y sirve las sugerencias que ves al teclear — de las 3.359 vías del callejero
 > ofrece las **2.731 que tienen algún portal**, porque sugerir una calle sin portales sería
 > prometer una dirección que después no se puede resolver. Cuando la calle está en un barrio
-> rural lo dice: **CALLE BURGOS (CASETAS)**, que es distinta de la CALLE BURGOS de la ciudad.
+> rural lo dice: **CALLE BURGOS [CASETAS]**, que es distinta de la CALLE BURGOS de la ciudad.
+> Va entre corchetes y no entre paréntesis porque los paréntesis ya son del dato: hay 15 vías
+> que los traen en su propio nombre.
 >
 > **Pero no calcula ninguna ruta**: eso no existe todavía. El número de portal no se resuelve,
 > y tampoco se sabe aún qué líneas pasan por cada poste.

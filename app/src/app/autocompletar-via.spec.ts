@@ -103,7 +103,7 @@ describe('AutocompletarVia', () => {
     http.expectNone(() => true);
   });
 
-  it('pinta las sugerencias como «NOMBRE (NÚCLEO)», y sin coletilla si no hay núcleo', async () => {
+  it('pinta las sugerencias como «NOMBRE [NÚCLEO]», y sin coletilla si no hay núcleo', async () => {
     const fixture = TestBed.createComponent(Anfitrion);
     await fixture.whenStable();
     await escribir(fixture, 'burgos');
@@ -115,7 +115,7 @@ describe('AutocompletarVia', () => {
     const textos = Array.from(raiz.querySelectorAll('.sugerencia__nombre')).map((n) =>
       n.textContent?.trim(),
     );
-    expect(textos).toEqual(['CALLE BURGOS', 'CALLE BURGOS (CASETAS)']);
+    expect(textos).toEqual(['CALLE BURGOS', 'CALLE BURGOS [CASETAS]']);
   });
 
   it('elegir una sugerencia fija el CÓDIGO y cierra el desplegable', async () => {
@@ -131,7 +131,7 @@ describe('AutocompletarVia', () => {
     await fixture.whenStable();
 
     expect(fixture.componentInstance.elegida()?.codigo).toBe('5150');
-    expect(fixture.componentInstance.texto()).toBe('CALLE BURGOS (CASETAS)');
+    expect(fixture.componentInstance.texto()).toBe('CALLE BURGOS [CASETAS]');
     expect(raiz.querySelector('.sugerencias')).toBeNull();
   });
 

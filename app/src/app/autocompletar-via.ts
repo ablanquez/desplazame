@@ -25,7 +25,7 @@ const ESPERA_MS = 200;
  * `httpResource` dispara en cuanto cambia la señal. Se debe a que el motor
  * está a un proxy de distancia y no hace falta preguntarle por cada tecla.
  *
- * Lo que se ENSEÑA es «NOMBRE LIMPIO (NÚCLEO)». El marcador críptico del dato
+ * Lo que se ENSEÑA es «NOMBRE LIMPIO [NÚCLEO]». El marcador críptico del dato
  * (`---CST`) no sale a pantalla, pero su significado sí — y hace falta: hay 52
  * nombres que se repiten entre la ciudad y los barrios rurales.
  */
@@ -101,9 +101,17 @@ export class AutocompletarVia {
     () => this.abierto() && this.consulta().trim().length >= MINIMO,
   );
 
-  /** Cómo se enseña una vía: el nombre limpio y, si es de un núcleo, su nombre. */
+  /**
+   * Cómo se enseña una vía: el nombre limpio y, si es de un núcleo, su nombre.
+   *
+   * El núcleo va entre CORCHETES, no entre paréntesis, porque los paréntesis
+   * ya son del dato: 15 vías sugeribles los traen en su propio nombre
+   * («CALLE MALPICA ( A)»), y una es trampa pura —«CALLE HERRERÍN (JAIME
+   * BALLESTEROS)»— donde el paréntesis NO es un núcleo. Dos signos, dos
+   * significados: el paréntesis es del callejero, el corchete es nuestro.
+   */
   protected comoSeVe(via: Via): string {
-    return via.nucleo ? `${via.limpio} (${via.nucleo})` : via.limpio;
+    return via.nucleo ? `${via.limpio} [${via.nucleo}]` : via.limpio;
   }
 
   protected alEscribir(valor: string): void {

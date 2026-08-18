@@ -42,7 +42,7 @@ const GOYA: Via = {
 
 /** Cómo se ve una vía en la lista: igual que la pinta el autocompletar. */
 function comoSeVe(via: Via): string {
-  return via.nucleo ? `${via.limpio} (${via.nucleo})` : via.limpio;
+  return via.nucleo ? `${via.limpio} [${via.nucleo}]` : via.limpio;
 }
 
 /**
