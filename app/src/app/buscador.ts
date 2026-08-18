@@ -48,13 +48,17 @@ export class Buscador {
    * línea «Modo:» del resultado. El `id` es del contrato (`Modo`) y no se
    * toca: la rueda pequeña comparte la red ciclista, así que el patinete va
    * por el mismo modo `bici` — lo que cambia es que ahora se dice.
+   *
+   * **La palabra que va tras la barra lleva mayúscula en los dos botones que
+   * la tienen**, y es una decisión de peso visual, no un despiste: la norma
+   * pediría minúscula. En el README, que es prosa y no botón, va en minúscula.
+   *
+   * Y el de la bici no dice «VMP»: eso es jerga de ordenanza, y el botón habla
+   * el idioma de quien lo pulsa.
    */
   protected readonly modos: ReadonlyArray<{ id: Modo; etiqueta: string }> = [
     { id: 'andando', etiqueta: 'Andando' },
-    { id: 'bus', etiqueta: 'Bus / tranvía' },
-    // «Patinete» con mayúscula es decisión de peso visual, no despiste: la
-    // norma pediría minúscula tras la barra. Y no dice «VMP» porque eso es
-    // jerga de ordenanza — el botón habla el idioma de quien lo pulsa.
+    { id: 'bus', etiqueta: 'Bus / Tranvía' },
     { id: 'bici', etiqueta: 'Bici / Patinete' },
     { id: 'coche', etiqueta: 'Coche' },
   ];
