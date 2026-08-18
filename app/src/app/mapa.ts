@@ -49,7 +49,7 @@ const ATRIBUCION_GTFS =
  *
  * Lo que cambia entre el buscador y el visor son DOS cosas, y las dos son
  * parámetro, no copia: el ALTO del lienzo y si hay o no TRAZADO que pintar. Las
- * once capas de verificación no se le pasan: las lee del servicio `Capas`, que
+ * doce capas de verificación no se le pasan: las lee del servicio `Capas`, que
  * es donde viven, y así el bloque que las ata no se escribe dos veces —una por
  * página— ni hay que acordarse de dos sitios cada vez que entra una capa nueva.
  *
@@ -89,6 +89,7 @@ export class Mapa {
   private capaAparcabicis?: L.LayerGroup;
   private capaAparcamotos?: L.LayerGroup;
   private capaRegulado?: L.LayerGroup;
+  private capaAmpliacion?: L.Polyline;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -113,6 +114,7 @@ export class Mapa {
       this.pintarAparcabicis();
       this.pintarAparcamotos();
       this.pintarRegulado();
+      this.pintarAmpliacion();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -178,6 +180,11 @@ export class Mapa {
       this.pintarRegulado();
     });
 
+    effect(() => {
+      this.capas.ampliacionPrevista();
+      this.pintarAmpliacion();
+    });
+
     // Y al morir, se desmonta. Mientras hubo una sola pantalla esto no hacía
     // falta: el mapa nacía con la aplicación y moría con ella. Con el router
     // sí — el `RouterOutlet` destruye el componente cada vez que se sale de su
@@ -189,6 +196,57 @@ export class Mapa {
       this.mapa?.remove();
       this.mapa = undefined;
     });
+  }
+
+  /**
+   * ⚠️ **VISTA DE COTEJO, TEMPORAL.** Pinta los 2.860 tramos LIBRE cuyo número
+   * de zona no tiene polígono publicado — la forma que tendría la ampliación de
+   * zona azul/naranja, si la hipótesis es buena. **No es dato nuevo**: sale del
+   * mismo fichero que el regulado. Existe para cotejarla contra los planos de
+   * la ampliación, y se retira o se consolida cuando ese cotejo diga.
+   *
+   * **Morado `#a21caf`, y discontinua.** El morado es el último hueco que
+   * quedaba entre el violeta de los trazados de bus (`#7c3aed`) y el rosa de
+   * los carriles (`#db2777`), así que el tono solo no basta: el trazo
+   * discontinuo `6 5` es lo que la separa de verdad — y además **significa** lo
+   * que es, una hipótesis y no un hecho. La otra línea discontinua del mapa es
+   * la ruta de prueba, que va al triple de grosor y en naranja quemado, y solo
+   * aparece al pulsar «Generar». Grosor 3, el del regulado: son el mismo tipo
+   * de cosa, un bordillo.
+   */
+  private pintarAmpliacion(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaAmpliacion?.remove();
+    this.capaAmpliacion = undefined;
+
+    const tramos = this.capas.ampliacionPrevista();
+    if (tramos.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const comienzo = performance.now();
+    this.capaAmpliacion = L.polyline(
+      tramos.map((t) => t.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
+      {
+        renderer: L.canvas(),
+        color: '#a21caf',
+        weight: 3,
+        opacity: 0.9,
+        dashArray: '6 5',
+        interactive: false,
+        attribution: ATRIBUCION_MUNICIPAL,
+      },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${tramos.length} tramos de la posible ampliación pintados en ` +
+        `${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -682,6 +740,10 @@ export class Mapa {
       const tramos =
         this.capas.reguladoRotacion().length + this.capas.reguladoResidentes().length;
       capas[`Regulado ESRO+ESRE (${tramos.toLocaleString('es-ES')})`] = this.capaRegulado;
+    }
+    if (this.capaAmpliacion) {
+      const n = this.capas.ampliacionPrevista().length.toLocaleString('es-ES');
+      capas[`¿Ampliación? zonas sin activar (${n})`] = this.capaAmpliacion;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);

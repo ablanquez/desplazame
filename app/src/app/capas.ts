@@ -109,16 +109,26 @@ const APARCAMOTOS = '/datos/2026-08-18_wfs_movilidad-MU2_motos.json';
  */
 const REGULADO = '/datos/2026-08-18_wfs_movilidad-MU1_estacionamientos_calle.json';
 
-/** Un tramo de bordillo. `tipo_actual` es lo único que se mira de él. */
+/** Un tramo de bordillo. Solo se miran su clase y su número de zona. */
 interface TramoCrudo {
   readonly geometry: {
     readonly coordinates: readonly (readonly (readonly [number, number])[])[];
   };
-  readonly properties: { readonly tipo_actual: string | null };
+  readonly properties: {
+    readonly tipo_actual: string | null;
+    readonly zona_reguladora: number | null;
+  };
 }
 
 /**
- * Lo que el mapa necesita saber de las capas de verificación, y nada más: once
+ * Las 13 zonas que el Ayuntamiento publica como polígono
+ * (`movilidad:MU1_zonas_reguladas`), medido: son exactamente 1..13, sin huecos.
+ * Y son exactamente las que tienen tramos de pago — 1.157 de los 1.159.
+ */
+const ZONAS_CON_POLIGONO = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+
+/**
+ * Lo que el mapa necesita saber de las capas de verificación, y nada más: doce
  * señales de solo lectura y la orden de cargarlas. Está escrito aparte del
  * servicio para que una prueba pueda darle al mapa unas capas de mentira sin
  * levantar la descarga entera.
@@ -136,11 +146,12 @@ export interface CapasDeVerificacion {
   readonly aparcamotos: Signal<readonly Vertice[]>;
   readonly reguladoRotacion: Signal<readonly (readonly Vertice[])[]>;
   readonly reguladoResidentes: Signal<readonly (readonly Vertice[])[]>;
+  readonly ampliacionPrevista: Signal<readonly (readonly Vertice[])[]>;
   cargar(): void;
 }
 
 /**
- * Las once capas de verificación, cargadas UNA vez para toda la aplicación.
+ * Las doce capas de verificación, cargadas UNA vez para toda la aplicación.
  *
  * Vivían en el componente de la pantalla, que era el único que las pintaba.
  * Con dos páginas —el buscador y el visor— eso ya no vale: [DOC] el
@@ -211,6 +222,25 @@ export class Capas implements CapasDeVerificacion {
   private readonly _reguladoResidentes = signal<readonly (readonly Vertice[])[]>([]);
   readonly reguladoResidentes = this._reguladoResidentes.asReadonly();
 
+  /**
+   * ⚠️ **VISTA DE COTEJO, HIPÓTESIS, TEMPORAL.** No es dato nuevo: son otros
+   * tramos del MISMO fichero del regulado — los 2.860 `LIBRE` cuyo número de
+   * zona **no tiene polígono publicado** (19 zonas: 14, 15, 16, 18, 21, 22, 25,
+   * 26, 27, 29, 32, 33, 34, 37, 39, 40, 43, 46 y 47), con 21.268 plazas.
+   *
+   * Por qué existe: esos 19 números **no cobran ni uno solo de sus tramos**,
+   * mientras que las 13 zonas con polígono se llevan 1.157 de los 1.159 de
+   * pago. Esa separación limpia es la forma que tendría la ampliación de zona
+   * azul/naranja que el Ayuntamiento prepara — **pero es una lectura nuestra:
+   * el WFS no dice nada**. Se pinta para poder cotejarla contra los planos de
+   * la ampliación que tiene Antonio.
+   *
+   * **Se retira o se consolida cuando el cotejo diga.** No es producto ni
+   * pretende serlo.
+   */
+  private readonly _ampliacionPrevista = signal<readonly (readonly Vertice[])[]>([]);
+  readonly ampliacionPrevista = this._ampliacionPrevista.asReadonly();
+
   /** Si ya se pidió. La segunda página no vuelve a bajarse los 34 MB. */
   private pedido = false;
 
@@ -251,13 +281,9 @@ export class Capas implements CapasDeVerificacion {
       const crudo = (await respuesta.json()) as { readonly features: readonly TramoCrudo[] };
       const rotacion: Vertice[][] = [];
       const residentes: Vertice[][] = [];
+      const ampliacion: Vertice[][] = [];
       for (const rasgo of crudo.features) {
-        const destino =
-          rasgo.properties.tipo_actual === 'ESRO'
-            ? rotacion
-            : rasgo.properties.tipo_actual === 'ESRE'
-              ? residentes
-              : null;
+        const destino = this.dondeVa(rasgo, rotacion, residentes, ampliacion);
         if (!destino) {
           continue;
         }
@@ -267,9 +293,34 @@ export class Capas implements CapasDeVerificacion {
       }
       this._reguladoRotacion.set(rotacion);
       this._reguladoResidentes.set(residentes);
+      this._ampliacionPrevista.set(ampliacion);
     } catch (e) {
       console.error('regulado: no se pudo cargar', e);
     }
+  }
+
+  /**
+   * A cuál de las tres listas va un tramo, o a ninguna. El corte de lo que se
+   * COBRA HOY se hace solo por `tipo_actual`; `zona_reguladora` únicamente
+   * entra para la vista de cotejo, y sobre tramos que ya se sabe que son LIBRE.
+   */
+  private dondeVa(
+    rasgo: TramoCrudo,
+    rotacion: Vertice[][],
+    residentes: Vertice[][],
+    ampliacion: Vertice[][],
+  ): Vertice[][] | null {
+    const { tipo_actual: tipo, zona_reguladora: zona } = rasgo.properties;
+    if (tipo === 'ESRO') {
+      return rotacion;
+    }
+    if (tipo === 'ESRE') {
+      return residentes;
+    }
+    if (tipo === 'LIBRE' && zona !== null && zona !== 0 && !ZONAS_CON_POLIGONO.has(zona)) {
+      return ampliacion;
+    }
+    return null;
   }
 
   private async cargarAparcamotos(): Promise<void> {

@@ -31,6 +31,7 @@ function capasLlenas(): CapasDeVerificacion {
     aparcamotos: signal(PUNTO),
     reguladoRotacion: signal(LINEA),
     reguladoResidentes: signal(LINEA),
+    ampliacionPrevista: signal(LINEA),
     cargar: () => {},
   };
 }
@@ -86,15 +87,15 @@ describe('Visor', () => {
     expect(lienzo.style.height).toBe('100%');
   });
 
-  it('el control lista las once capas', async () => {
+  it('el control lista las doce capas', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    expect(capasDelControl(raiz).length).toBe(11);
+    expect(capasDelControl(raiz).length).toBe(12);
   });
 
-  it('las once son las once, cada una con su nombre', async () => {
+  it('las doce son las doce, cada una con su nombre', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -112,6 +113,7 @@ describe('Visor', () => {
       'Aparcabicis',
       'Aparcamotos',
       'Regulado ESRO+ESRE',
+      '¿Ampliación? zonas sin activar',
     ]);
   });
 

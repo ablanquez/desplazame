@@ -2,21 +2,27 @@ import { TestBed } from '@angular/core/testing';
 import { Capas } from './capas';
 
 /**
- * Un GeoJSON de mentira con **una de cada**: los dos tipos que se pintan y los
- * dos que no. Coordenadas en [lon, lat], como las sirve el WFS.
+ * Un GeoJSON de mentira con una muestra de cada caso que el cargador tiene que
+ * saber separar. Coordenadas en [lon, lat], como las sirve el WFS.
  */
-const CUATRO_TRAMOS = {
+const MUESTRA = {
   type: 'FeatureCollection',
   features: [
-    tramo('ESRO', -0.88, 41.65),
-    tramo('ESRE', -0.89, 41.66),
-    // Los dos siguientes NO se pintan: no son regulado.
-    tramo('LIBRE', -0.9, 41.67),
-    tramo(null, -0.91, 41.68),
+    // Se cobran hoy, y van a la capa del regulado.
+    tramo('ESRO', 8, -0.88, 41.65),
+    tramo('ESRE', 5, -0.89, 41.66),
+    // LIBRE con zona SIN polígono: va a la vista de cotejo, y solo ahí.
+    tramo('LIBRE', 25, -0.9, 41.67),
+    tramo('LIBRE', 47, -0.92, 41.69),
+    // Los tres siguientes no van a ninguna parte: LIBRE con zona que SÍ tiene
+    // polígono, LIBRE sin zona, y sin clasificar.
+    tramo('LIBRE', 5, -0.93, 41.7),
+    tramo('LIBRE', 0, -0.94, 41.71),
+    tramo(null, null, -0.91, 41.68),
   ],
 };
 
-function tramo(tipo: string | null, lon: number, lat: number) {
+function tramo(tipo: string | null, zona: number | null, lon: number, lat: number) {
   return {
     type: 'Feature',
     geometry: {
@@ -28,7 +34,7 @@ function tramo(tipo: string | null, lon: number, lat: number) {
         ],
       ],
     },
-    properties: { tipo_actual: tipo },
+    properties: { tipo_actual: tipo, zona_reguladora: zona },
   };
 }
 
@@ -47,7 +53,7 @@ describe('Capas — el regulado se filtra por tipo_actual', () => {
         return new Promise<Response>(() => {});
       }
       return Promise.resolve(
-        new Response(JSON.stringify(CUATRO_TRAMOS), {
+        new Response(JSON.stringify(MUESTRA), {
           status: 200,
           headers: { 'content-type': 'application/json' },
         }),
@@ -75,14 +81,35 @@ describe('Capas — el regulado se filtra por tipo_actual', () => {
   });
 
   /**
-   * LA DECISIÓN DE ESTA PIEZA. De los 7.391 tramos del censo, 6.204 son LIBRE y
-   * 28 no traen clasificación: **no son regulado y no se pintan**. Si algún día
-   * alguien los cuela, esta prueba se pone roja antes de que aparezcan en el
-   * mapa pintados como si se pagara por ellos.
+   * LA DECISIÓN DE LA CAPA DEL REGULADO. De los 7.391 tramos del censo, 6.204
+   * son LIBRE y 28 no traen clasificación: **no son regulado y no se pintan**.
+   * Si algún día alguien los cuela, esta prueba se pone roja antes de que
+   * aparezcan en el mapa pintados como si se pagara por ellos.
    */
-  it('el LIBRE y el sin clasificar NO entran en ninguna de las dos', async () => {
+  it('ni el LIBRE ni el sin clasificar entran en el regulado', async () => {
     const capas = await cargar();
     expect(capas.reguladoRotacion().length + capas.reguladoResidentes().length).toBe(2);
+  });
+
+  /**
+   * LA DECISIÓN DE LA VISTA DE COTEJO. Solo entran los LIBRE cuya zona existe y
+   * **no tiene polígono publicado**. Los tres que quedan fuera son los tres
+   * errores que se pueden cometer aquí: colar un LIBRE de una zona que sí tiene
+   * polígono (la 5), colar los de zona 0 —que es «sin zona», no una zona— y
+   * colar los que ni siquiera están clasificados.
+   */
+  it('la vista de cotejo se queda solo con los LIBRE de zona sin polígono', async () => {
+    const capas = await cargar();
+    expect(capas.ampliacionPrevista().length).toBe(2);
+  });
+
+  it('lo que se cobra hoy y lo que solo se cotea no se mezclan', async () => {
+    const capas = await cargar();
+    const regulado = [...capas.reguladoRotacion(), ...capas.reguladoResidentes()];
+    const cotejo = capas.ampliacionPrevista();
+    const comoTexto = (t: readonly (readonly (readonly number[])[])[]) =>
+      t.map((v) => JSON.stringify(v));
+    expect(comoTexto(regulado).filter((r) => comoTexto(cotejo).includes(r))).toEqual([]);
   });
 
   it('convierte a [lat, lon], que es como pinta Leaflet', async () => {
