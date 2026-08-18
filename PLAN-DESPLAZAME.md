@@ -356,10 +356,10 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       regla de releída vale lo que su ALCANCE; al releer, la unidad es el
       documento, y la pregunta es «¿qué afirma este fichero que hoy sea
       mentira?». Las CINCO entradas de la bitácora están cerradas
-- [ ] **El destino de los andamios de carga (~34 MB), decidido aquí**:
-      qué dato pasa a servirlo el motor y qué sigue bajándose el navegador
-      para el mapa de verificación (que es de esta fase, no producto — lo
-      dejó dicho Antonio). La retirada final es del punto 6
+- [x] **El destino de los andamios, DECIDIDO** (18/08): se quedan como
+      están — el mapa de verificación los necesita y es la herramienta de
+      esta fase. Cero código hoy; la retirada ENTERA tiene su casilla
+      nueva en el punto 6, para que no se olvide
 - [ ] **Revisar `@angular/router`**: instalado sin usar desde `ng new` (el
       CLI lo mete en su conjunto estándar aunque pases `--routing=false`).
       Si aquí sigue sin hacer falta, fuera
@@ -374,6 +374,13 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
 - [ ] Probada con trayectos que Antonio conoce a pie — el juez es su ojo
       sobre el mapa, no un contador
 - [ ] La respuesta falsa del punto 2 se retira (ya no hace falta el andamio)
+- [ ] **Se retiran los andamios de carga del mapa de verificación**
+      (decidido el 18/08 en el punto 5): el navegador deja de bajarse los
+      ~34 MB (grafo 22,8 + portales 10,3 + carriles + shapes + stops +
+      BiZi + aparcabicis), sale la entrada `datos` de `angular.json`, y el
+      mapa de capas se replantea — las casillas eran verificación de la
+      fase de datos, no producto (dicho por Antonio el 17/08). Qué
+      visualización queda en la demo lo decide Antonio entonces
 
 ## 7 — Modo BICI *(en grueso)*
 

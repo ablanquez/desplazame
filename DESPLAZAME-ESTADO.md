@@ -80,9 +80,12 @@ comprobados: los dos destinos sostienen su mitad. La línea del Despliegue
 (symlink) se queda tal cual: su corrección YA tiene casilla en el punto
 10 — los raíles la llevaban.
 
-**Lo siguiente (punto 5):** el destino de los andamios, la revisión del
-router, y la casilla del README (endpoints y cifras medidas) — y el
-punto 5 queda cerrado.
+**Los andamios, decididos (18/08): se quedan** — el mapa de verificación
+los necesita y es la herramienta de esta fase. La retirada entera tiene
+casilla propia en el punto 6, para que no se olvide.
+
+**Lo siguiente (punto 5):** la revisión del router y la casilla del
+README (endpoints y cifras medidas) — y el punto 5 queda cerrado.
 
 ---
 
