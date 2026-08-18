@@ -64,4 +64,25 @@ describe('Mapa', () => {
     await fixture.whenStable();
     expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(1);
   });
+  /**
+   * Mientras hubo UNA pantalla, el mapa nacía con la aplicación y moría con
+   * ella: no desmontarlo no costaba nada. Con el router deja de ser así — el
+   * `RouterOutlet` destruye el componente cada vez que se sale de su ruta—, y
+   * un mapa que nadie desmonta se queda con sus escuchas de `window` y con sus
+   * 46.150 marcadores dentro. [DOC] Leaflet: «remove(): Destroys the map and
+   * clears all related event listeners», y al hacerlo suelta el contenedor.
+   */
+  it('al destruirse el componente, Leaflet suelta su contenedor', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    const lienzo = (fixture.nativeElement as HTMLElement).querySelector(
+      '.lienzo',
+    ) as HTMLElement & { _leaflet_id?: number };
+
+    expect(lienzo._leaflet_id).toBeDefined();
+
+    fixture.destroy();
+
+    expect(lienzo._leaflet_id).toBeUndefined();
+  });
 });

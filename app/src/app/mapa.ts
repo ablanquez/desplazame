@@ -1,6 +1,7 @@
 import {
   afterNextRender,
   Component,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -160,6 +161,18 @@ export class Mapa {
     effect(() => {
       this.capas.aparcabicis();
       this.pintarAparcabicis();
+    });
+
+    // Y al morir, se desmonta. Mientras hubo una sola pantalla esto no hacía
+    // falta: el mapa nacía con la aplicación y moría con ella. Con el router
+    // sí — el `RouterOutlet` destruye el componente cada vez que se sale de su
+    // ruta—, y Leaflet no se entera solo: [DOC] «remove(): Destroys the map and
+    // clears all related event listeners». Sin esto, cada ida y vuelta deja
+    // atrás un mapa entero con sus escuchas de `window` y sus 46.150
+    // marcadores, que nadie vuelve a mirar y nadie recoge.
+    inject(DestroyRef).onDestroy(() => {
+      this.mapa?.remove();
+      this.mapa = undefined;
     });
   }
 
