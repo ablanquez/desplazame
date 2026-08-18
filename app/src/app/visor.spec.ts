@@ -50,6 +50,7 @@ function capasLlenas(): CapasDeVerificacion {
     reguladoResidentes: signal(LINEA),
     ampliacionPrevista: signal(LINEA),
     zonasReguladas: signal(ZONA),
+    reservasPmr: signal(PUNTO),
     cargar: () => {},
   };
 }
@@ -110,15 +111,15 @@ describe('Visor', () => {
     expect(lienzo.style.height).toBe('100%');
   });
 
-  it('el control lista las trece capas', async () => {
+  it('el control lista las catorce capas', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    expect(capasDelControl(raiz).length).toBe(13);
+    expect(capasDelControl(raiz).length).toBe(14);
   });
 
-  it('las trece son las trece, cada una con su nombre', async () => {
+  it('las catorce son las catorce, cada una con su nombre', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -138,6 +139,7 @@ describe('Visor', () => {
       'Regulado ESRO+ESRE',
       '¿Ampliación? zonas sin activar',
       'Zonas reguladas',
+      'Reservas PMR',
     ]);
   });
 
@@ -150,15 +152,15 @@ describe('Visor', () => {
   });
 
   /**
-   * Ninguna arranca encendida. Con trece capas superpuestas el mapa de partida
+   * Ninguna arranca encendida. Con catorce capas superpuestas el mapa de partida
    * era ilegible, y verificar es mirar una cosa cada vez: se encienden a mano.
    */
-  it('las trece están en el control y ninguna encendida', async () => {
+  it('las catorce están en el control y ninguna encendida', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    expect(capasDelControl(raiz).length).toBe(13);
+    expect(capasDelControl(raiz).length).toBe(14);
     expect(capasEncendidas(raiz)).toBe(0);
   });
 

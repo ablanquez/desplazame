@@ -134,6 +134,28 @@ const ZONAS_CON_POLIGONO = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
  */
 const ZONAS = '/datos/2026-08-18_wfs_movilidad-MU1_zonas_reguladas.json';
 
+/**
+ * ANDAMIO DE VERIFICACIÓN. El censo de reservas de espacio, quinta descarga
+ * propia: 2.636 puntos de los que **solo se pintan las 1.226 PMR**. El resto
+ * —carga y descarga, taxi, sanitarias…— viaja en el fichero sin pintarse.
+ *
+ * ⚠️ **El campo que manda es `TIPO`, no `SUBTIPO`.** 1.384 registros llevan
+ * `SUBTIPO: 'PMR general'`, pero **158 de ellos son reservas RETIRADAS o
+ * DENEGADAS**: plazas que se quitaron o que nunca se concedieron. Filtrar por
+ * `SUBTIPO` mandaría a alguien con tarjeta PMR a 158 plazas que no existen.
+ * Ver THIRD-PARTY-NOTICES § 1.13.
+ */
+const RESERVAS = '/datos/2026-08-18_wfs_movilidad-MU1_reservas.json';
+
+/** El único `TIPO` que se pinta. */
+const TIPO_PMR = '14_PMR';
+
+/** Una reserva. `TIPO` es lo único que se mira de ella. */
+interface ReservaCruda {
+  readonly geometry: { readonly coordinates: readonly [number, number] };
+  readonly properties: { readonly TIPO: string | null };
+}
+
 /** Una zona tal y como viene: MultiPolygon y su número. */
 interface ZonaCruda {
   readonly geometry: {
@@ -158,7 +180,7 @@ export interface ZonaRegulada {
 }
 
 /**
- * Lo que el mapa necesita saber de las capas de verificación, y nada más: trece
+ * Lo que el mapa necesita saber de las capas de verificación, y nada más: catorce
  * señales de solo lectura y la orden de cargarlas. Está escrito aparte del
  * servicio para que una prueba pueda darle al mapa unas capas de mentira sin
  * levantar la descarga entera.
@@ -178,11 +200,12 @@ export interface CapasDeVerificacion {
   readonly reguladoResidentes: Signal<readonly (readonly Vertice[])[]>;
   readonly ampliacionPrevista: Signal<readonly (readonly Vertice[])[]>;
   readonly zonasReguladas: Signal<readonly ZonaRegulada[]>;
+  readonly reservasPmr: Signal<readonly Vertice[]>;
   cargar(): void;
 }
 
 /**
- * Las trece capas de verificación, cargadas UNA vez para toda la aplicación.
+ * Las catorce capas de verificación, cargadas UNA vez para toda la aplicación.
  *
  * Vivían en el componente de la pantalla, que era el único que las pintaba.
  * Con dos páginas —el buscador y el visor— eso ya no vale: [DOC] el
@@ -276,6 +299,14 @@ export class Capas implements CapasDeVerificacion {
   private readonly _zonasReguladas = signal<readonly ZonaRegulada[]>([]);
   readonly zonasReguladas = this._zonasReguladas.asReadonly();
 
+  /**
+   * Las 1.226 reservas PMR **en vigor**. Las retiradas y las denegadas se
+   * quedan fuera: esto es accesibilidad, y una plaza que no existe no es un
+   * error de pintado, es un viaje en balde para quien menos puede permitírselo.
+   */
+  private readonly _reservasPmr = signal<readonly Vertice[]>([]);
+  readonly reservasPmr = this._reservasPmr.asReadonly();
+
   /** Si ya se pidió. La segunda página no vuelve a bajarse los 34 MB. */
   private pedido = false;
 
@@ -300,6 +331,28 @@ export class Capas implements CapasDeVerificacion {
     this.cargarAparcamotos();
     this.cargarRegulado();
     this.cargarZonas();
+    this.cargarReservasPmr();
+  }
+
+  private async cargarReservasPmr(): Promise<void> {
+    try {
+      const respuesta = await fetch(RESERVAS);
+      if (!respuesta.ok) {
+        console.error(`reservas PMR: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const crudo = (await respuesta.json()) as { readonly features: readonly ReservaCruda[] };
+      this._reservasPmr.set(
+        crudo.features
+          .filter((rasgo) => rasgo.properties.TIPO === TIPO_PMR)
+          .map((rasgo) => {
+            const [lon, lat] = rasgo.geometry.coordinates;
+            return [lat, lon] as Vertice;
+          }),
+      );
+    } catch (e) {
+      console.error('reservas PMR: no se pudieron cargar', e);
+    }
   }
 
   private async cargarZonas(): Promise<void> {

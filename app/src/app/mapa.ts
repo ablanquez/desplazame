@@ -62,7 +62,7 @@ const ATRIBUCION_GTFS =
  *
  * Lo que cambia entre el buscador y el visor son DOS cosas, y las dos son
  * parámetro, no copia: el ALTO del lienzo y si hay o no TRAZADO que pintar. Las
- * trece capas de verificación no se le pasan: las lee del servicio `Capas`, que
+ * catorce capas de verificación no se le pasan: las lee del servicio `Capas`, que
  * es donde viven, y así el bloque que las ata no se escribe dos veces —una por
  * página— ni hay que acordarse de dos sitios cada vez que entra una capa nueva.
  *
@@ -71,7 +71,7 @@ const ATRIBUCION_GTFS =
  *
  * **Ninguna capa de verificación arranca encendida.** Se construyen todas y se
  * registran en el control, pero no se añaden al mapa: se encienden a mano, una
- * a una. Con trece capas superpuestas —46.150 portales y 98.774 aristas entre
+ * a una. Con catorce capas superpuestas —46.150 portales y 98.774 aristas entre
  * ellas— el mapa de partida era ilegible, y verificar es mirar una cosa cada
  * vez. La única línea que sí se pinta sola es el TRAZADO, que no es una capa de
  * verificación ni tiene casilla: es el resultado de pulsar «Generar».
@@ -111,6 +111,7 @@ export class Mapa {
   private capaRegulado?: L.LayerGroup;
   private capaAmpliacion?: L.Polyline;
   private capaZonas?: L.LayerGroup;
+  private capaPmr?: L.LayerGroup;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -138,6 +139,7 @@ export class Mapa {
       this.pintarRegulado();
       this.pintarAmpliacion();
       this.pintarZonas();
+      this.pintarPmr();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -213,6 +215,11 @@ export class Mapa {
       this.pintarZonas();
     });
 
+    effect(() => {
+      this.capas.reservasPmr();
+      this.pintarPmr();
+    });
+
     // Y al morir, se desmonta. Mientras hubo una sola pantalla esto no hacía
     // falta: el mapa nacía con la aplicación y moría con ella. Con el router
     // sí — el `RouterOutlet` destruye el componente cada vez que se sale de su
@@ -224,6 +231,57 @@ export class Mapa {
       this.mapa?.remove();
       this.mapa = undefined;
     });
+  }
+
+  /**
+   * Siembra las reservas PMR: **discos en rosa `#ec4899`**, con el aro blanco y
+   * el radio 4 de los demás «sitios de parar».
+   *
+   * El rosa lo eligió Antonio por el logo de DFA. Ya había rosa en el mapa —los
+   * carriles bici, `#db2777`—, así que se separan por dos cosas: el **tono**,
+   * éste más claro y vivo, y sobre todo la **forma**, disco contra línea. No es
+   * el par peligroso que fueron los aparcabicis y los aparcamotos: allí eran dos
+   * nubes de puntos iguales; aquí una es una red de líneas y la otra son 1.226
+   * puntos.
+   *
+   * Esta capa es accesibilidad, no un extra: para quien conduce con tarjeta
+   * PMR, dónde puede aparcar **es** la pregunta.
+   */
+  private pintarPmr(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaPmr?.remove();
+    this.capaPmr = undefined;
+
+    const puntos = this.capas.reservasPmr();
+    if (puntos.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const lienzoCanvas = L.canvas();
+    const comienzo = performance.now();
+    this.capaPmr = L.layerGroup(
+      puntos.map(([lat, lon]) =>
+        L.circleMarker([lat, lon], {
+          renderer: lienzoCanvas,
+          radius: 4,
+          color: '#ffffff',
+          weight: 1.5,
+          fillColor: '#ec4899',
+          fillOpacity: 1,
+          interactive: false,
+        }),
+      ),
+      { attribution: ATRIBUCION_MUNICIPAL },
+    );
+
+    console.info(
+      `mapa: ${puntos.length} reservas PMR sembradas en ${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -830,6 +888,10 @@ export class Mapa {
     if (this.capaZonas) {
       capas[`Zonas reguladas (${this.capas.zonasReguladas().length.toLocaleString('es-ES')})`] =
         this.capaZonas;
+    }
+    if (this.capaPmr) {
+      capas[`Reservas PMR (${this.capas.reservasPmr().length.toLocaleString('es-ES')})`] =
+        this.capaPmr;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);

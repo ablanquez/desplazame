@@ -31,6 +31,31 @@ const ZONAS = {
   features: [zona(3), zona(1), zona(2)],
 };
 
+/**
+ * Reservas de mentira, con **la trampa de esta capa dentro**: tres de las
+ * cuatro llevan `SUBTIPO: 'PMR general'`, pero solo una está en vigor. En el
+ * fichero de verdad son 1.384 con ese subtipo y solo 1.226 vigentes.
+ */
+const RESERVAS = {
+  type: 'FeatureCollection',
+  features: [
+    reserva('14_PMR', 'PMR general', -0.88, 41.65),
+    // Retirada y denegada: plazas que se quitaron o que nunca se concedieron.
+    reserva('RETIRADA', 'PMR general', -0.89, 41.66),
+    reserva('DENEGADA', 'PMR general', -0.9, 41.67),
+    // Y una que no es PMR de ninguna manera.
+    reserva('13_CyD', 'CyD', -0.91, 41.68),
+  ],
+};
+
+function reserva(tipo: string, subtipo: string, lon: number, lat: number) {
+  return {
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [lon, lat] },
+    properties: { TIPO: tipo, SUBTIPO: subtipo },
+  };
+}
+
 function zona(numero: number) {
   return {
     type: 'Feature',
@@ -82,7 +107,9 @@ describe('Capas — el regulado se filtra por tipo_actual', () => {
         ? MUESTRA
         : u.includes('MU1_zonas_reguladas')
           ? ZONAS
-          : null;
+          : u.includes('MU1_reservas')
+            ? RESERVAS
+            : null;
       if (!cuerpo) {
         return new Promise<Response>(() => {});
       }
@@ -165,6 +192,23 @@ describe('Capas — el regulado se filtra por tipo_actual', () => {
   it('las zonas también se convierten a [lat, lon]', async () => {
     const capas = await cargar();
     expect(capas.zonasReguladas()[0].poligonos[0][0][0]).toEqual([41.65, -0.88]);
+  });
+
+  /**
+   * LA DECISIÓN DE LA CAPA PMR, y la más cara de equivocar de las tres. El
+   * campo que manda es `TIPO`, no `SUBTIPO`: en el fichero de verdad hay 1.384
+   * registros con `SUBTIPO: 'PMR general'` y **158 de ellos están RETIRADOS o
+   * DENEGADOS**. Colarlos no es un error de pintado — es mandar a alguien con
+   * tarjeta PMR a 158 plazas que no existen.
+   */
+  it('las retiradas y las denegadas NO se pintan aunque digan «PMR general»', async () => {
+    const capas = await cargar();
+    expect(capas.reservasPmr().length).toBe(1);
+  });
+
+  it('tampoco se cuela la carga y descarga', async () => {
+    const capas = await cargar();
+    expect(capas.reservasPmr()).toEqual([[41.65, -0.88]]);
   });
 
   it('pedir dos veces no vuelve a bajarse nada', async () => {
