@@ -48,11 +48,13 @@ paso debajo.
 
 - **Frontend:** Angular 22 con componentes standalone (sin NgModules).
   Mapa con Leaflet sobre OpenStreetMap. Build con Angular CLI.
-- **Motor:** Node + TypeScript, servidor mínimo (`node:http`; Fastify solo si
-  el mínimo estorba). Build con `tsc` o esbuild.
-- **Tipos compartidos:** un paquete común al motor y a la interfaz —
-  `Paso`, `Trayecto`, `Modo`, `Aviso`. Si el motor cambia la forma de la
-  respuesta, el front no compila. Eso es a propósito.
+- **Motor:** Node + TypeScript ejecutado **sin compilar** — Node borra los tipos
+  al ejecutar, así que no hay build. Servidor mínimo (`node:http`; Fastify solo
+  si el mínimo estorba).
+- **Tipos compartidos:** un paquete común al motor y a la interfaz
+  (`@desplazame/tipos`), también sin build. **El contrato crece cuando el motor
+  lo pide**, no antes. Si el motor cambia la forma de la respuesta, el front no
+  compila. Eso es a propósito.
 - **Endpoints:** `GET /api/vias` (autocompletado sobre las vías del callejero),
   `POST /api/ruta` (pasos, geometría y avisos), `POST /api/regenerar`
   (barrido nocturno de paradas, patrón de ZetaBus, cron a las 02:00).
