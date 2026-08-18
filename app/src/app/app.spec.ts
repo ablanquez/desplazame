@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import type { Via } from '@desplazame/tipos';
+import type { Portal, Via } from '@desplazame/tipos';
 import { App } from './app';
 
 /** Devuelve los botones de modo que están marcados como activos. */
@@ -40,6 +40,17 @@ const GOYA: Via = {
   portales: 120,
 };
 
+/** Los portales que sirve el motor fingido para cada una. */
+const PORTALES_BURGOS: readonly Portal[] = [
+  { codigo: 'Portales.5140a', numero: '2' },
+  { codigo: 'Portales.5140b', numero: '4' },
+];
+
+const PORTALES_GOYA: readonly Portal[] = [
+  { codigo: 'Portales.1900a', numero: '45' },
+  { codigo: 'Portales.1900b', numero: '47' },
+];
+
 /** Cómo se ve una vía en la lista: igual que la pinta el autocompletar. */
 function comoSeVe(via: Via): string {
   return via.nucleo ? `${via.limpio} [${via.nucleo}]` : via.limpio;
@@ -59,6 +70,7 @@ async function elegirCalle(
   nombre: string,
   escrito: string,
   via: Via,
+  portales: readonly Portal[],
 ): Promise<void> {
   const raiz = fixture.nativeElement as HTMLElement;
   const campo = raiz.querySelector<HTMLInputElement>(`input[name="${nombre}"]`)!;
@@ -74,9 +86,15 @@ async function elegirCalle(
   await fixture.whenStable();
 
   // Hay DOS autocompletar en la pantalla: se pulsa la sugerencia del que toca.
+  //
+  // Y OJO con no poner un `whenStable()` aquí: elegir la calle despierta al
+  // selector de portales, que pide los suyos al instante. `whenStable()`
+  // esperaría esa petición, y quien la resuelve es esta misma función unas
+  // líneas más abajo. Abrazo mortal — el mismo de `autocompletar-via.spec.ts`,
+  // que ha vuelto a morder en cuanto ha habido dos peticiones encadenadas.
   const suyo = campo.closest('app-autocompletar-via')!;
   suyo.querySelector<HTMLElement>('.sugerencia')!.dispatchEvent(new MouseEvent('mousedown'));
-  await fixture.whenStable();
+  fixture.detectChanges();
 
   // EL ECO. Elegir cambia el texto del campo, y ese cambio vuelve a disparar la
   // consulta 200 ms después aunque el campo ya esté resuelto y no haya nada que
@@ -88,6 +106,32 @@ async function elegirCalle(
   for (const eco of http.match(`/api/vias?q=${encodeURIComponent(comoSeVe(via))}`)) {
     eco.flush([via]);
   }
+
+  // Y fijar la calle despierta a SU selector de portales, que pide los suyos.
+  http.expectOne(`/api/portales?via=${via.codigo}`).flush(portales);
+  await fixture.whenStable();
+}
+
+/** Elige un portal de la lista del campo que toca, como lo haría una persona. */
+async function elegirPortal(
+  fixture: any,
+  nombre: string,
+  numero: string,
+): Promise<void> {
+  const raiz = fixture.nativeElement as HTMLElement;
+  const campo = raiz.querySelector<HTMLInputElement>(`input[name="${nombre}"]`)!;
+  campo.dispatchEvent(new Event('focus'));
+  fixture.detectChanges();
+
+  const suyo = campo.closest('app-selector-portal')!;
+  const opcion = Array.from(suyo.querySelectorAll<HTMLElement>('.portal')).find(
+    (o) => o.textContent?.trim() === numero,
+  );
+  if (!opcion) {
+    throw new Error(`no está el portal ${numero} en ${nombre}`);
+  }
+  opcion.dispatchEvent(new MouseEvent('mousedown'));
+  await fixture.whenStable();
 }
 
 describe('App', () => {
@@ -180,9 +224,7 @@ describe('App', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     escribir(raiz, 'calleOrigen', 'Don Jaime I');
-    escribir(raiz, 'portalOrigen', '12');
     escribir(raiz, 'calleDestino', 'Avenida de Goya');
-    escribir(raiz, 'portalDestino', '45');
     await fixture.whenStable();
 
     expect(botonGenerar(raiz).disabled).toBe(true);
@@ -194,14 +236,71 @@ describe('App', () => {
     expect(raiz.querySelector('.pasos__vacio')).not.toBeNull();
   });
 
-  it('con tres de los cuatro campos, el botón sigue bloqueado', async () => {
+  /**
+   * Y el portal ya ni siquiera se deja teclear: sin vía fijada el campo está
+   * deshabilitado, así que el camino por el que se colaba un `99999` está
+   * cerrado de raíz, no vigilado.
+   */
+  it('sin calle elegida, los dos campos de portal están deshabilitados', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS);
-    escribir(raiz, 'portalOrigen', '12');
-    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA);
+    escribir(raiz, 'calleOrigen', 'Don Jaime I');
+    await fixture.whenStable();
+
+    for (const nombre of ['portalOrigen', 'portalDestino']) {
+      const campo = raiz.querySelector<HTMLInputElement>(`input[name="${nombre}"]`)!;
+      expect(campo.disabled).toBe(true);
+      expect(campo.placeholder).toBe('Elige antes la calle');
+    }
+  });
+
+  it('con la calle elegida pero SIN portal, «Generar» sigue bloqueado', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await fixture.whenStable();
+
+    // Las dos vías tienen código; ningún portal lo tiene. Faltan dos de cuatro.
+    expect(botonGenerar(raiz).disabled).toBe(true);
+  });
+
+  /**
+   * Cambiar la calle después de haber elegido portal vuelve a bloquear: el
+   * portal de la calle vieja no vale para la nueva.
+   */
+  it('cambiar una calle tira su portal y vuelve a bloquear «Generar»', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
+    await elegirPortal(fixture, 'portalOrigen', '2');
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await elegirPortal(fixture, 'portalDestino', '45');
+    await fixture.whenStable();
+    expect(botonGenerar(raiz).disabled).toBe(false);
+
+    // Se cambia la calle de origen por otra: su portal deja de valer.
+    await elegirCalle(fixture, http, 'calleOrigen', 'goya', GOYA, PORTALES_GOYA);
+    await fixture.whenStable();
+
+    expect(botonGenerar(raiz).disabled).toBe(true);
+    expect(raiz.querySelector<HTMLInputElement>('input[name="portalOrigen"]')!.value).toBe('');
+  });
+
+  it('con tres de los cuatro códigos, el botón sigue bloqueado', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
+    await elegirPortal(fixture, 'portalOrigen', '2');
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
     await fixture.whenStable();
 
     expect(botonGenerar(raiz).disabled).toBe(true);
@@ -212,10 +311,10 @@ describe('App', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS);
-    escribir(raiz, 'portalOrigen', '12');
-    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA);
-    escribir(raiz, 'portalDestino', '45');
+    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
+    await elegirPortal(fixture, 'portalOrigen', '2');
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await elegirPortal(fixture, 'portalDestino', '45');
     await fixture.whenStable();
 
     expect(botonGenerar(raiz).disabled).toBe(false);
@@ -234,10 +333,10 @@ describe('App', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     raiz.querySelectorAll<HTMLButtonElement>('.modo')[3].click(); // Coche
-    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS);
-    escribir(raiz, 'portalOrigen', '12');
-    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA);
-    escribir(raiz, 'portalDestino', '45');
+    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
+    await elegirPortal(fixture, 'portalOrigen', '2');
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await elegirPortal(fixture, 'portalDestino', '45');
     await fixture.whenStable();
 
     botonGenerar(raiz).click();
