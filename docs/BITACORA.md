@@ -14,6 +14,57 @@
 
 ---
 
+## [2026-08-18] 🔴 ABIERTA — El README juraba que no había «ningún dato integrado» con ocho dentro, y la regla de releída daba verde porque solo miraba el otro párrafo
+
+**Categoría:** documentación que caduca
+**Síntoma:** en «Licencia y créditos», el README dice: *«Hoy el repositorio **no
+tiene ningún dato integrado** —ni cartografía, ni callejero, ni paradas—, así
+que todavía no hay nada que atribuir»*. Falso: hay ocho conjuntos dentro, y el
+párrafo nombra el callejero, que está cargado en el motor. Tres pantallas más
+arriba, el mismo fichero enumera los siete dibujables con sus cifras. Se
+contradice consigo mismo, en un repositorio público.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **la propia regla transversal
+del plan**, la que salió de la entrada nº1 de esta bitácora: *«todo encargo que
+crea algo nuevo tiene que releer lo que la portada afirma sobre su ausencia»*.
+Se cumplió, encargo tras encargo, y cada vez dio verde. La cuenta, ejecutada
+antes de tocar nada:
+```
+$ git log --oneline -S "no tiene ningún dato" -- README.md
+1f2498d docs(readme): que va a ser, estado y licencias
+
+$ git log --oneline --ancestry-path a35ffc9..HEAD -- README.md | wc -l
+13
+```
+Trece commits de README **después** de que el dato entrara, y el párrafo con una
+sola línea de historia: la de su nacimiento. Nadie lo tocó porque nadie lo miró
+— la releída iba siempre al párrafo de «Estado», que sí se ajustó trece veces
+(«cuatro datos» → «seis» → «siete», el motor, el autocompletar, los corchetes,
+el portal). El instrumento existía, se ejecutaba y salía verde; su ALCANCE real
+era más estrecho que el documento que decía vigilar.
+Y hay un agravante escrito de antemano: el cierre de la entrada nº1 ya avisó de
+que *«el arreglo no creó ningún instrumento… la vigilancia es humana, así que
+este fallo puede repetirse»*. Se repitió.
+**Cronología:** el párrafo nace con el primer README (`1f2498d`, 16/08) cuando
+era verdad. Se vuelve falso en `a35ffc9` (16/08 16:39:50), que es justo el
+commit que **escribió la atribución de los portales** en el notices — decía «no
+hay nada que atribuir» el día en que se atribuyó. Dos minutos después el dato
+aterrizaba en `3de058c`. Ha sobrevivido 2 días y 13 commits de portada.
+**Cómo se cazó:** ojo humano — el del ejecutor, aplicando la costura §6 de un
+encargo que tocaba otra cosa (el selector de portales). No lo cazó la regla.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** una regla de releída vale lo que su ALCANCE, no lo que
+su enunciado promete. Si en la práctica el ojo va a un párrafo, solo ese párrafo
+está protegido: el resto del documento envejece **con la regla dando verde**, que
+es peor que sin regla, porque la regla cumplida se siente como cobertura. Al
+releer, la unidad es el DOCUMENTO, y la pregunta no es «¿qué he cambiado yo?»
+sino «¿qué afirma este fichero que hoy sea mentira?».
+**Traza:** `README.md`, sección «Licencia y créditos», el párrafo `> ℹ️` que
+sigue a la tabla de licencias · nacido en `1f2498d` · falso desde `a35ffc9` ·
+mismo género que la entrada nº1 de esta bitácora, que es de donde salió la
+regla que aquí dio verde.
+
 ## [2026-08-18] ✅ CERRADA — Escribir la calle y salir sin elegir desbloqueaba «Generar ruta» sin código de vía fijado
 
 **Categoría:** validación de formulario
