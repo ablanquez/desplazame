@@ -23,21 +23,22 @@
 > portal se elige de la lista de los que esa calle tiene. Pero **no busca rutas**. Al pulsar «Generar
 > ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
 > dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
-> OpenStreetMap— y ya puede dibujar encima **nueve datos reales**: del Ayuntamiento de
+> OpenStreetMap— y ya puede dibujar encima **diez datos reales**: del Ayuntamiento de
 > Zaragoza, los **46.150 portales**, los **733 tramos de carril bici**, los **944 postes de
 > autobús**, las **276 estaciones BiZi**, los **2.158 aparcabicis**, los **2.146
-> aparcamotos** y el **estacionamiento regulado** —los **1.159 tramos** de zona azul y de
-> residentes, de un censo de 7.391—; de OpenStreetMap, las **98.774 aristas** del grafo de
+> aparcamotos**, el **estacionamiento regulado** —los **1.159 tramos** de zona azul y de
+> residentes, de un censo de 7.391— y los **13 perímetros de zona**; de OpenStreetMap, las
+> **98.774 aristas** del grafo de
 > continuidad peatonal y ciclable; y del GTFS, los **89 trazados de línea** —tranvía
-> incluido, con sus 50 paradas—. **Doce capas**, cada una con su casilla; **todas empiezan
-> apagadas** y se encienden a mano, porque las doce a la vez no se leen. La duodécima no es un
+> incluido, con sus 50 paradas—. **Trece capas**, cada una con su casilla; **todas empiezan
+> apagadas** y se encienden a mano, porque las trece a la vez no se leen. Una de ellas no es un
 > dato más: es una **vista de cotejo** del regulado —los 2.860 tramos libres cuya zona no tiene
 > perímetro publicado, que **quizá** sean la ampliación de zona azul que se prepara—, y está
 > ahí para contrastarla, no como afirmación. Pero el buscador **todavía no usa** ninguno: la
 > línea que dibuja al generar sigue siendo tan inventada como los pasos.
 >
 > **Y ya son dos páginas.** La de siempre —el buscador, en la raíz— y un **visor de capas** en
-> `/visor`: el mismo mapa y las mismas doce capas, pero a ventana casi completa. No es
+> `/visor`: el mismo mapa y las mismas trece capas, pero a ventana casi completa. No es
 > producto: es la herramienta con la que se verifica cada dato que entra, porque en el lienzo
 > pequeño de debajo del formulario no se ve nada. Se irá con el andamio.
 >
@@ -121,15 +122,15 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son estas dos.
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
 
-> ℹ️ **Y las dos están en uso.** El repositorio lleva **diez conjuntos de datos dentro**: ocho
+> ℹ️ **Y las dos están en uso.** El repositorio lleva **once conjuntos de datos dentro**: nueve
 > del Ayuntamiento de Zaragoza —el callejero, los portales, los carriles bici, los postes de
-> autobús, las estaciones BiZi, los aparcabicis, los aparcamotos y el estacionamiento
-> regulado—, el grafo de continuidad derivado de OpenStreetMap, y el GTFS del Punto de Acceso
-> Nacional. A eso se suma la
+> autobús, las estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento regulado y
+> las zonas reguladas—, el grafo de continuidad derivado de OpenStreetMap, y el GTFS del Punto
+> de Acceso Nacional. A eso se suma la
 > **cartografía de OpenStreetMap**, que no es un fichero: el mapa la pinta en vivo.
 > **La atribución de OpenStreetMap se cumple en la pantalla**, en el control del mapa y con la
 > palabra «colaboradores» literal. La del dato municipal se cumple en
-> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —once,
+> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —doce,
 > contando la cartografía—: fuente, fecha de descarga, licencia y cómo volver a conseguirlo.
 
 > ⚠️ **Rectificación (18/08/2026).** Hasta hoy este párrafo decía que el repositorio **«no
