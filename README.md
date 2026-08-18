@@ -29,8 +29,8 @@
 > aparcamotos**, el **estacionamiento regulado** —los **1.159 tramos** de zona azul y de
 > residentes, de un censo de 7.391—, los **13 perímetros de zona** y las **1.226 reservas
 > PMR** —dónde puede aparcar quien lleva tarjeta de movilidad reducida—; de OpenStreetMap, las
-> **98.774 aristas** del grafo de
-> continuidad peatonal y ciclable; y del GTFS, los **89 trazados de línea** —tranvía
+> **98.774 aristas** del grafo de continuidad peatonal y ciclable; y del GTFS, los **89
+> trazados de línea** —tranvía
 > incluido, con sus 50 paradas—. **Catorce capas**, cada una con su casilla; **todas empiezan
 > apagadas** y se encienden a mano, porque las catorce a la vez no se leen. Una de ellas no es un
 > dato más: es una **vista de cotejo** del regulado —los 2.860 tramos libres cuya zona no tiene
@@ -60,11 +60,24 @@
 > **Pero no calcula ninguna ruta**: eso no existe todavía. Tampoco se sabe aún qué líneas
 > pasan por cada poste.
 >
-> Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y dos
-> páginas con andamio.
+> Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, doce
+> conjuntos de datos verificados, un motor que sugiere calles y sirve portales, y dos páginas
+> con andamio.**
 >
 > El README se publica igualmente desde el principio —el repositorio es público desde el
 > primer commit— y por eso dice lo que hay, no lo que habrá.
+
+**Lo que no cabe aquí vive al lado**, y es donde está lo interesante:
+
+- **[`PLAN-DESPLAZAME.md`](PLAN-DESPLAZAME.md)** — el plan por puntos: qué está hecho, qué toca
+  ahora y qué queda.
+- **[`docs/BITACORA.md`](docs/BITACORA.md)** — los fallos reales, con lo que daba verde mientras
+  el fallo estaba vivo y la ley que salió de cada uno.
+- **[`docs/INVESTIGACION-EQUIPAMIENTOS.md`](docs/INVESTIGACION-EQUIPAMIENTOS.md)** — los datos
+  abiertos del Ayuntamiento sondeados uno a uno: qué publican, por qué puerta, y en qué no
+  coinciden entre sí.
+- **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)** — una ficha por conjunto de datos: de
+  dónde salió, con qué licencia, y qué trae de roto.
 
 ---
 
@@ -81,6 +94,69 @@ Una sola pantalla:
 - **Las indicaciones paso a paso**, debajo.
 
 Y nada más. El alcance es corto a propósito.
+
+---
+
+## Cómo arrancarlo en local
+
+Hace falta **[Node](https://nodejs.org/)** y nada más. **Probado con Node 24.19.0 y npm 11.17.0**
+—la versión de npm sí la fija el repositorio, en `packageManager`—.
+⚠️ **El mínimo de Node no consta**: el repositorio no declara `engines`, y aquí no se ha probado
+con versiones anteriores. Lo que sí se sabe es por qué importa — **el motor ejecuta TypeScript sin
+compilarlo**, y eso pide un Node reciente: con uno viejo no arranca, y nadie te avisa antes.
+
+```bash
+git clone https://github.com/ablanquez/desplazame.git
+cd desplazame
+npm install          # en la RAÍZ: son workspaces, instala los tres a la vez
+```
+
+Y luego **dos terminales**, porque son dos procesos:
+
+```bash
+# terminal 1 — el motor, en el 3000
+cd motor && npm start
+
+# terminal 2 — la interfaz, en el 4200
+cd app && npm start
+```
+
+Con las dos arriba, en el navegador:
+
+| | |
+|---|---|
+| **<http://localhost:4200/>** | el buscador: el formulario, el mapa y las indicaciones |
+| **<http://localhost:4200/visor>** | el visor de capas: el mismo mapa a ventana completa |
+
+> ⚠️ **No esperes rutas.** Lo que se puede hacer hoy es exactamente lo que dice el párrafo de
+> «Estado» de arriba: rellenar los cuatro campos contra el callejero de verdad y ver los datos
+> en el mapa. «Generar ruta» devuelve siempre la misma ruta inventada.
+
+### Comprobar que lo que contesta es lo de ahora
+
+Un `200` dice que **alguien** contesta; no dice quién ni con qué. Hay una guardia para cada
+proceso, y sale de un fallo real que está contado en la bitácora:
+
+```bash
+cd app
+npm run comprobar-arranque            # la interfaz: ¿contesta, quién, y no es un servidor caducado?
+npm run comprobar-arranque -- motor   # el motor: ¿lleva el grafo, el callejero y los portales?
+```
+
+Las dos son solo de Windows: leen el PID con `netstat` y la hora de arranque con PowerShell.
+
+### La API del motor, hoy
+
+Tres rutas vivas. Las que vengan las decide el plan, no esta lista:
+
+| | |
+|---|---|
+| `GET /api/salud` | si está vivo, y con qué dato: grafo, callejero y portales, con sus recuentos |
+| `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
+| `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
+
+En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
+`/api/…` y no sabe en qué puerto vive el motor.
 
 ---
 
