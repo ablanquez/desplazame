@@ -452,13 +452,26 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       (`230d793`). Antonio verificó: las trece clavadas, la 11 en sitio
       sensato, y NADA de pago fuera de su perímetro. 58 pruebas
       (`9c9265a`)
-- [ ] **Las reservas PMR entran** (autorización de Antonio, 18/08 —
-      accesibilidad, no extra): `MU1_reservas`, 2.636 puntos (el WFS
-      vivo; los dos servicios de la API suman 2.072). Trae PMR + carga y
-      descarga: el desglose se mide en la pieza y Antonio decide si se
-      pinta solo PMR (propuesta) o también C/D — lo no pintado viaja en
-      el dato. Limpio de personal: 1.224/1.226 «PMR general», cero
-      titulares
+- [x] **Las reservas PMR dentro y VISTAS por Antonio** (18/08): descarga
+      propia nº5 (2.636 reservas / 746 KB, hits clavado, huella
+      `8aaf80c1…`, CUARENTENA antes de entrar: el barrido de dato
+      personal se hizo fuera del repo y salió limpio — los 10
+      «tratamientos» eran calles tipo DON JUAN DE ARAGÓN) (`4581200`).
+      El WFS desglosa 16 tipos (la API solo dejaba ver 2) — y LA TRAMPA
+      DE LA PIEZA, cazada midiendo: 158 plazas RETIRADAS o DENEGADAS
+      siguen diciendo «PMR general» en SUBTIPO — filtrar por SUBTIPO es
+      mandar a alguien con tarjeta a una plaza que no existe. MANDA
+      TIPO === '14_PMR': 1.226 / 1.447 — y por primera vez en la tanda
+      las dos puertas municipales coinciden AL DÍGITO con la API. Los 5
+      `10_E.S.PMR` mixtos quedan sin pintar (decisión declarada:
+      preserva la coincidencia; en el dato viajan). Discos rosa #ec4899
+      por DFA (decisión de Antonio; se separa del carril por tono y
+      forma — validado a ojo). Prueba del filtro CON la trampa dentro
+      (3 de 4 dicen «PMR general», solo 1 en vigor). Ficha §1.13 con
+      todo; HORARIO con 7 grafías de PERMANENTE declaradas. 60 pruebas
+      (`14d88f4`, `26b72a8`, `7ee75be`). ⚠️ Dato para la mesa:
+      app/data/ pesa ya 42 MB y el navegador se lo baja entero con las
+      capas apagadas — el andamio decidido, pero la cifra creció
 - [ ] **La etiqueta del modo BICI pasa a «Bici / patinete»** (decidido por
       Antonio, 18/08): la red que usa el modo es la misma para rueda
       pequeña (carriles, sendas, calmado) y BiZi es solo-bici dentro de

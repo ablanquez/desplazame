@@ -91,10 +91,20 @@ manchas acromáticas en panel propio (zIndex 350: el bordillo SIEMPRE
 sobre la mancha), rótulos numéricos. Antonio verificó las trece y que
 nada de pago se sale de su perímetro. 58 pruebas.
 
-**Lo siguiente (punto 5), en el orden de Antonio:**
-1. La última capa: **reservas PMR**.
-2. La etiqueta del modo: **«Bici / patinete»** (solo presentación).
-3. **El README** con endpoints y cifras medidas — y el punto 5 cerrado.
+**Las PMR dentro y vistas — la tanda de capas CERRADA (18/08).** Descarga
+nº5 con cuarentena previa (barrido personal fuera del repo: limpio), la
+trampa de la pieza cazada midiendo (158 plazas retiradas/denegadas que
+aún dicen «PMR general» — manda TIPO, no SUBTIPO), y la primera
+coincidencia al dígito entre las dos puertas municipales (1.226/1.447).
+Rosa #ec4899 por DFA, validado contra el carril. Los 5 E.S.PMR mixtos
+sin pintar (decisión declarada). 60 pruebas. ⚠️ `app/data/` pesa ya 42
+MB y viaja entero al navegador con las capas apagadas — el andamio
+decidido, la cifra creciendo (la descarga perezosa sigue dicha como
+opción para antes del 6).
+
+**Lo siguiente (punto 5):**
+1. La etiqueta del modo: **«Bici / patinete»** (solo presentación).
+2. **El README** con endpoints y cifras medidas — y el punto 5 cerrado.
 
 ---
 
