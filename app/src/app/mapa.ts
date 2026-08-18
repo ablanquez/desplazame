@@ -184,20 +184,21 @@ export class Mapa {
   }
 
   /**
-   * Siembra los aparcamotos.
+   * Siembra los aparcamotos: **disco relleno en verde oliva**, con el aro
+   * blanco de los demás discos.
    *
-   * **Aquí el color ya no puede resolverlo solo**: los ocho tonos en uso se
-   * reparten el círculo entero, y el vecino peligroso es su hermano — los
-   * aparcabicis son 2.158 puntos amarillos repartidos por la misma ciudad, y
-   * éstos son 2.146. Mismo número, misma dispersión: si además el tono fuera
-   * contiguo, no habría manera de leerlos por separado.
+   * Nació como aro hueco en cian, para separarlo por forma de su hermano —los
+   * aparcabicis son 2.158 puntos amarillos por la misma ciudad y éstos son
+   * 2.146: mismo número, misma dispersión—. **Decisión de Antonio: sobra.**
+   * Estas capas son verificación con fecha de caducidad —se van con el andamio
+   * en el punto 6—, así que basta con distinguirlas hoy, y el oliva no choca ni
+   * con el amarillo del hermano ni con el verde azulado del BiZi.
    *
-   * Se resuelve **por FORMA, como se hizo con los aparcabicis**: éste es el
-   * ÚNICO marcador HUECO del mapa. Los otros cuatro «sitios de parar» son
-   * discos rellenos; un aro sin relleno se distingue de un disco a cualquier
-   * zoom, y no depende del color para hacerlo. Y es el más grande —radio 5—
-   * porque una moto ocupa más que una bici. El tono, el cian, refuerza: es lo
-   * más lejos que quedaba del amarillo del hermano.
+   * Radio **4, el estándar de los discos** —el de los postes de bus, las
+   * paradas de tranvía y las estaciones BiZi—, no el 5 que llevaba de aro:
+   * relleno y a radio 5, una capa de 2.146 puntos taparía la ciudad. Y ese 4
+   * lo deja además un punto por encima del hermano, que va a 3 con aro oscuro:
+   * tamaño, aro y tono, tres cosas separándolos.
    */
   private pintarAparcamotos(): void {
     if (!this.mapa) {
@@ -219,10 +220,11 @@ export class Mapa {
       puntos.map(([lat, lon]) =>
         L.circleMarker([lat, lon], {
           renderer: lienzoCanvas,
-          radius: 5,
-          color: '#0891b2',
-          weight: 2,
-          fill: false,
+          radius: 4,
+          color: '#ffffff',
+          weight: 1.5,
+          fillColor: '#6b8e23',
+          fillOpacity: 1,
           interactive: false,
         }),
       ),
