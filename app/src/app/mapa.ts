@@ -55,6 +55,13 @@ const ATRIBUCION_GTFS =
  *
  * El servicio se lee, no se dispara: quien pide la descarga es la página, con
  * `capas.cargar()`. Montar este componente no baja ni un byte.
+ *
+ * **Ninguna capa de verificación arranca encendida.** Se construyen todas y se
+ * registran en el control, pero no se añaden al mapa: se encienden a mano, una
+ * a una. Con doce capas superpuestas —46.150 portales y 98.774 aristas entre
+ * ellas— el mapa de partida era ilegible, y verificar es mirar una cosa cada
+ * vez. La única línea que sí se pinta sola es el TRAZADO, que no es una capa de
+ * verificación ni tiene casilla: es el resultado de pulsar «Generar».
  */
 @Component({
   selector: 'app-mapa',
@@ -240,7 +247,7 @@ export class Mapa {
         interactive: false,
         attribution: ATRIBUCION_MUNICIPAL,
       },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${tramos.length} tramos de la posible ampliación pintados en ` +
@@ -302,7 +309,7 @@ export class Mapa {
         L.polyline(aLeaflet(residentes), { ...comun, color: '#f97316' }),
       ],
       { attribution: ATRIBUCION_MUNICIPAL },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${rotacion.length} tramos ESRO y ${residentes.length} ESRE pintados en ` +
@@ -357,7 +364,7 @@ export class Mapa {
         }),
       ),
       { attribution: ATRIBUCION_MUNICIPAL },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${puntos.length} aparcamotos sembrados en ${Math.round(performance.now() - comienzo)} ms`,
@@ -402,7 +409,7 @@ export class Mapa {
         }),
       ),
       { attribution: ATRIBUCION_MUNICIPAL },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${puntos.length} aparcabicis sembrados en ${Math.round(performance.now() - comienzo)} ms`,
@@ -445,7 +452,7 @@ export class Mapa {
         }),
       ),
       { attribution: ATRIBUCION_MUNICIPAL },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${puntos.length} estaciones BiZi sembradas en ${Math.round(performance.now() - comienzo)} ms`,
@@ -487,7 +494,7 @@ export class Mapa {
         }),
       ),
       { attribution: ATRIBUCION_GTFS },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${puntos.length} paradas de tranvía sembradas en ${Math.round(performance.now() - comienzo)} ms`,
@@ -525,7 +532,7 @@ export class Mapa {
         interactive: false,
         attribution: ATRIBUCION_GTFS,
       },
-    ).addTo(this.mapa);
+    );
 
     this.refrescarControl();
   }
@@ -560,7 +567,7 @@ export class Mapa {
         interactive: false,
         attribution: ATRIBUCION_GTFS,
       },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${lineas.length} trazados pintados en ${Math.round(performance.now() - comienzo)} ms`,
@@ -602,7 +609,7 @@ export class Mapa {
         }),
       ),
       { attribution: ATRIBUCION_MUNICIPAL },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${puntos.length} postes sembrados en ${Math.round(performance.now() - comienzo)} ms`,
@@ -640,7 +647,7 @@ export class Mapa {
         interactive: false,
         attribution: ATRIBUCION_MUNICIPAL,
       },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${tramos.length} tramos de carril pintados en ${Math.round(performance.now() - comienzo)} ms`,
@@ -679,7 +686,7 @@ export class Mapa {
         opacity: 0.7,
         interactive: false,
       },
-    ).addTo(this.mapa);
+    );
 
     console.info(
       `mapa: ${aristas.length} aristas pintadas en ${Math.round(performance.now() - comienzo)} ms`,
@@ -788,7 +795,7 @@ export class Mapa {
         }),
       ),
       { attribution: ATRIBUCION_MUNICIPAL },
-    ).addTo(this.mapa);
+    );
 
     this.refrescarControl();
 

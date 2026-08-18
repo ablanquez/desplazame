@@ -55,6 +55,11 @@ function contexto2dFalso(): CanvasRenderingContext2D {
   }) as unknown as CanvasRenderingContext2D;
 }
 
+/** Cuántas casillas del control están marcadas, o sea, cuántas capas se ven. */
+function capasEncendidas(raiz: HTMLElement): number {
+  return raiz.querySelectorAll('.leaflet-control-layers-selector:checked').length;
+}
+
 /** Los nombres que el control de capas de Leaflet tiene puestos ahora mismo. */
 function capasDelControl(raiz: HTMLElement): string[] {
   return Array.from(
@@ -123,6 +128,19 @@ describe('Visor', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     expect(capasDelControl(raiz)).toContain('Portales (1)');
+  });
+
+  /**
+   * Ninguna arranca encendida. Con doce capas superpuestas el mapa de partida
+   * era ilegible, y verificar es mirar una cosa cada vez: se encienden a mano.
+   */
+  it('las doce están en el control y ninguna encendida', async () => {
+    const fixture = TestBed.createComponent(Visor);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    expect(capasDelControl(raiz).length).toBe(12);
+    expect(capasEncendidas(raiz)).toBe(0);
   });
 
   it('el visor no dibuja ningún trayecto: no es lo que viene a verificar', async () => {
