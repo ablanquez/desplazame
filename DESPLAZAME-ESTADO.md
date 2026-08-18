@@ -48,11 +48,21 @@ opción B (borrador marcado, generar bloqueado) y su ley: la validación
 mira el código, y la prueba entra por donde entra la persona. Las cuatro
 entradas de la bitácora están cerradas.
 
-**Lo siguiente (punto 5):** el selector de portales — se elige, no se
-escribe; transversal a los cuatro modos y se hace ahora con la zanja del
-formulario abierta (decisión de Antonio: no abrir la misma calle dos
-veces) —, el encargo del README falso (huele a entrada nº5), el destino
-de los andamios, y la revisión del router — y el punto 5 queda cerrado.
+**El selector de portales, hecho y visto (18/08, los seis pasos).** Los
+46.150 enteros en el motor (99 ms; el callejero baja a 7 ms porque el
+fichero se lee una vez; RSS 223→248 — el punto 10 acumula), servidos por
+vía en orden natural (sortNumber municipal + Intl.Collator numérico,
+demostrado BARAJANDO: el censo venía ordenado y sin barajar el comparador
+roto habría dado verde). Combobox que se abre al entrar (mediana 9
+portales), tope 50 = percentil 95. Deshabilitado sin vía, reset al
+cambiarla, todo por código: «Generar» exige los cuatro. `FormsModule`
+fuera: el bundle baja 393→353 kB. El formulario entero se rellena ya
+contra el motor — la zanja quedó cerrada de una vez.
+
+**Lo siguiente (punto 5):** el encargo del README falso (la afirmación de
+«Licencia y créditos» — huele a entrada nº5, el encargo dejará que el
+método lo diga), el destino de los andamios, y la revisión del router —
+y el punto 5 queda cerrado.
 
 ---
 

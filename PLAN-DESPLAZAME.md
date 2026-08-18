@@ -330,17 +330,22 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       nunca el texto; y un instrumento que entra por el mismo camino que
       el código valida solo puede darle la razón — la prueba entra por
       donde entra la persona
-- [ ] **El portal se ELIGE, no se escribe** (decidido por Antonio, 18/08 —
-      transversal a los cuatro modos, y se hace AQUÍ con la zanja
-      abierta: el formulario está recién trabajado y volver en el punto 6
-      sería abrir la misma calle dos veces): al fijar la vía, el campo de
-      portal ofrece los portales REALES de esa vía — el motor carga los
-      46.150 enteros (la carga compartida que el estado ya anotaba) y un
-      endpoint nuevo los sirve por vía. Elegir fija el portal como elegir
-      fija la vía: mismo patrón, misma validación por código. La decisión
-      fina heredada (el portal que no existe → ¿el más cercano con
-      paridad?) deja de existir como problema: de una lista real no se
-      elige lo que no existe
+- [x] **El portal se ELIGE, no se escribe — VISTO por Antonio paso a paso**
+      (18/08, los seis pasos): el motor carga los 46.150 enteros (99 ms,
+      RSS 223→248; y el callejero baja a 7 ms — el fichero se lee UNA
+      vez) y `GET /api/portales?via=` los sirve en orden natural:
+      `sortNumber` municipal + desempate con `Intl.Collator` numérico
+      [DOC], demostrado BARAJANDO porque el censo ya venía ordenado y una
+      demo sin barajar habría dado verde con el comparador roto
+      (`3be31f5`). Combobox con filtrado [DOC ARIA] que se abre al entrar
+      sin escribir (mediana: 9 portales), tope 50 = percentil 95, «y N
+      más — escribe para acotar» (`60ef29e`). Deshabilitado sin vía ·
+      reset al cambiarla · fija por CÓDIGO · «Generar» exige los cuatro
+      códigos. `numero` es string (9.572 no son números puros: 9-11, 1DP,
+      71 TV C2; 117 sin número caen al final por convención municipal).
+      35 pruebas con contraprueba; `FormsModule` fuera y el bundle baja
+      393→353 kB (`cfab981`, `a4cdae4`, `2f0d76a`). La decisión fina
+      heredada murió: de una lista real no se elige lo que no existe
 - [ ] **El destino de los andamios de carga (~34 MB), decidido aquí**:
       qué dato pasa a servirlo el motor y qué sigue bajándose el navegador
       para el mapa de verificación (que es de esta fase, no producto — lo
