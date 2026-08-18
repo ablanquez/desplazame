@@ -382,6 +382,34 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       fase de datos, no producto (dicho por Antonio el 17/08). Qué
       visualización queda en la demo lo decide Antonio entonces
 
+## 6B — Destinos con nombre: «de la calle X al hospital Y» *(nuevo, 18/08 — EN CONSTRUCCIÓN: Antonio irá añadiendo)*
+
+El destino puede ser un SITIO además de calle+portal: se está en un
+portal y se quiere ir al Hospital Miguel Servet, a una farmacia, a un
+centro cívico. Va después del 6 porque REUTILIZA sus dos piezas: el
+autocompletar (elegir-fija-código, mismo componente que calles y
+portales) y el enganche coordenada→grafo que el 6 construye para los
+portales — un sitio es una coordenada más entrando al mismo tubo.
+
+- [ ] Fuente investigada (18/08, informe en
+      `docs/INVESTIGACION-EQUIPAMIENTOS.md`): la API de equipamientos de
+      zaragoza.es — ~250 categorías en 19 familias (313 farmacias, 17
+      hospitales, 56 centros de salud, 75 bibliotecas, 25 centros
+      cívicos, 46 mercados…), Ley 37/2007, coordenadas SOLO con
+      `srsname=wgs84` (el parámetro en mayúsculas o EPSG se ignora en
+      silencio)
+- [ ] Qué categorías entran: decide Antonio pieza a pieza (patrón del
+      punto 4: autorización, ficha, verificación)
+- [ ] Decisión de presentación pendiente: 268/313 farmacias llevan
+      nombre del titular (dato registral público; republicarlo es lícito
+      pero es decisión consciente — la salida fácil: «Farmacia» +
+      dirección al mostrar, sin editar el dato)
+- [ ] El destino en el formulario: un tipo de destino nuevo (sitio) con
+      el autocompletar existente; el contrato crece con el tipo del sitio
+- [ ] El motor: cargar las categorías autorizadas, sugerirlas, y
+      resolver sitio → coordenada → enganche al grafo (el del punto 6)
+- [ ] *(hueco para lo que Antonio vaya añadiendo)*
+
 ## 7 — Modo BICI *(en grueso)*
 
 Carriles y continuidad ciclable sobre el mismo esqueleto del 6.
