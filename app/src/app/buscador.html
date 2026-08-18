@@ -1,0 +1,93 @@
+<main class="pantalla">
+  <header class="cabecera">
+    <h1>Desplázame</h1>
+    <p>Cómo ir de un portal a otro en Zaragoza.</p>
+  </header>
+
+  <form class="buscador" (submit)="$event.preventDefault()">
+    <fieldset class="punto">
+      <legend>Origen</legend>
+      <app-autocompletar-via
+        campo="calleOrigen"
+        etiqueta="Calle"
+        [(texto)]="calleOrigen"
+        (seleccion)="viaOrigen.set($event)"
+      />
+      <app-selector-portal
+        campo="portalOrigen"
+        etiqueta="Portal"
+        [via]="viaOrigen()"
+        (seleccion)="portalOrigen.set($event)"
+      />
+    </fieldset>
+
+    <fieldset class="punto">
+      <legend>Destino</legend>
+      <app-autocompletar-via
+        campo="calleDestino"
+        etiqueta="Calle"
+        [(texto)]="calleDestino"
+        (seleccion)="viaDestino.set($event)"
+      />
+      <app-selector-portal
+        campo="portalDestino"
+        etiqueta="Portal"
+        [via]="viaDestino()"
+        (seleccion)="portalDestino.set($event)"
+      />
+    </fieldset>
+
+    <fieldset class="modos">
+      <legend>Cómo</legend>
+      @for (m of modos; track m.id) {
+        <button
+          type="button"
+          class="modo"
+          [class.modo--activo]="modo() === m.id"
+          [attr.aria-pressed]="modo() === m.id"
+          (click)="elegirModo(m.id)"
+        >
+          {{ m.etiqueta }}
+        </button>
+      }
+    </fieldset>
+
+    <button
+      type="button"
+      class="generar"
+      [disabled]="!sePuedeGenerar()"
+      (click)="generarRuta()"
+    >
+      Generar ruta
+    </button>
+  </form>
+
+  <section class="mapa" aria-label="Mapa">
+    <app-mapa [trazado]="trazado()" />
+  </section>
+
+  <section class="pasos" aria-label="Indicaciones">
+    <h2>Indicaciones</h2>
+
+    @if (pasos().length === 0) {
+      <p class="pasos__vacio">
+        Todavía no hay pasos. Rellena los cuatro campos y pulsa «Generar ruta».
+      </p>
+    } @else {
+      <p class="aviso-prueba">
+        ⚠️ DATOS DE PRUEBA. Esta ruta es fija e inventada: no la calcula nadie y no
+        corresponde a ningún trayecto real. Es un andamio para ver funcionar la pantalla
+        hasta que exista el motor.
+      </p>
+      <p class="pasos__modo">Modo: {{ etiquetaDe(modoGenerado()!) }}</p>
+      <ol class="pasos__lista">
+        @for (paso of pasos(); track $index) {
+          <li>
+            <span class="pasos__texto">{{ paso.texto }}</span>
+            <span class="pasos__detalle">{{ paso.detalle }}</span>
+          </li>
+        }
+      </ol>
+    }
+  </section>
+</main>

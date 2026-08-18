@@ -1,1 +1,6 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  /* El alto de la barra de navegación, escrito UNA vez: la barra lo usa para
+     medirse y el visor para descontarlo de la ventana. Si cambia aquí, el mapa
+     grande sigue cuadrando solo. */
+  --alto-navegacion: 2.75rem;
+}

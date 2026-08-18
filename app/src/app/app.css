@@ -1,157 +1,25 @@
-/* CSS mínimo y funcional: que se entienda qué es cada cosa.
+/* CSS mínimo y funcional: que se vea en qué página estás y cómo ir a la otra.
    La estética va al final del proyecto (punto 11). */
 
-.pantalla {
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-.cabecera h1 {
-  margin: 0;
-}
-
-.cabecera p {
-  margin: 0.25rem 0 1.5rem;
-  color: #555;
-}
-
-.buscador {
-  display: grid;
+.navegacion {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-}
-
-fieldset {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 0.75rem;
-  margin: 0;
-}
-
-legend {
-  padding: 0 0.4rem;
-  font-weight: bold;
-}
-
-.punto {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.campo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.campo--calle {
-  flex: 3 1 14rem;
-}
-
-.campo--portal {
-  flex: 1 1 6rem;
-}
-
-.campo input {
-  padding: 0.4rem;
-  border: 1px solid #999;
-  border-radius: 3px;
-  font: inherit;
-  width: 100%;
+  height: var(--alto-navegacion);
+  padding: 0 0.75rem;
+  border-bottom: 1px solid #ccc;
   box-sizing: border-box;
 }
 
-.modos {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+.navegacion__enlace {
+  color: #1a1a1a;
+  text-decoration: none;
+  font-size: 0.9rem;
 }
 
-.modo {
-  padding: 0.5rem 0.9rem;
-  border: 1px solid #999;
-  border-radius: 3px;
-  background: #fff;
-  font: inherit;
-  cursor: pointer;
-}
-
-/* El modo activo tiene que distinguirse sin depender solo del color. */
-.modo--activo {
-  border-color: #1a1a1a;
-  border-width: 2px;
-  background: #1a1a1a;
-  color: #fff;
+/* En cuál estás no puede depender solo del color. */
+.navegacion__enlace--activo {
   font-weight: bold;
-}
-
-.mapa {
-  margin-top: 1rem;
-}
-
-.pasos {
-  margin-top: 1.5rem;
-}
-
-.pasos h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.15rem;
-}
-
-.pasos__vacio {
-  margin: 0;
-  color: #555;
-}
-
-.generar {
-  justify-self: start;
-  padding: 0.6rem 1.2rem;
-  border: 1px solid #1a1a1a;
-  border-radius: 3px;
-  background: #1a1a1a;
-  color: #fff;
-  font: inherit;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.generar:disabled {
-  border-color: #aaa;
-  background: #ddd;
-  color: #777;
-  cursor: not-allowed;
-}
-
-/* El andamio tiene que cantar. El repo es público. */
-.aviso-prueba {
-  margin: 0 0 0.75rem;
-  padding: 0.6rem 0.75rem;
-  border: 2px solid #b45309;
-  border-radius: 4px;
-  background: #fff4e5;
-  color: #7c3d00;
-  font-weight: bold;
-}
-
-.pasos__modo {
-  margin: 0 0 0.5rem;
-  color: #555;
-}
-
-.pasos__lista {
-  margin: 0;
-  padding-left: 1.4rem;
-}
-
-.pasos__lista li {
-  margin-bottom: 0.4rem;
-}
-
-.pasos__detalle {
-  color: #555;
-}
-
-.pasos__detalle::before {
-  content: ' · ';
+  text-decoration: underline;
+  text-underline-offset: 0.3rem;
 }
