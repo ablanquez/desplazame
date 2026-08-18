@@ -472,11 +472,15 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       (`14d88f4`, `26b72a8`, `7ee75be`). ⚠️ Dato para la mesa:
       app/data/ pesa ya 42 MB y el navegador se lo baja entero con las
       capas apagadas — el andamio decidido, pero la cifra creció
-- [ ] **La etiqueta del modo BICI pasa a «Bici / patinete»** (decidido por
-      Antonio, 18/08): la red que usa el modo es la misma para rueda
-      pequeña (carriles, sendas, calmado) y BiZi es solo-bici dentro de
-      él. SOLO presentación: `Modo = 'bici'` no se renombra (contrato,
-      motor y pruebas intactos)
+- [x] **La etiqueta del modo, VISTA: «Bici / Patinete»** (18/08) — y de
+      rebote «Bus / Tranvía», por coherencia de la misma decisión:
+      mayúscula tras la barra por peso visual (decisión de Antonio,
+      consciente de la norma; comentada en el código para que no parezca
+      despiste). Se descartó «VMP»: el botón habla el idioma de quien lo
+      pulsa. Fuente única `modos[]` — botón y línea de resultado cambian
+      juntos; `Modo = 'bici'` intacto en contrato y motor (grep limpio).
+      En el README va en minúscula: allí es prosa (`e7ff5c4`, `79ef5b1`
+      y el commit de bus-tranvía). 60 pruebas
 - [ ] **El README se amplía aquí** con los endpoints y las cifras que el
       motor MIDA (vías reales, nodos cargados, tiempo de arranque) —
       cuando existan de verdad, no antes

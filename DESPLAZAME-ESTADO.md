@@ -102,9 +102,13 @@ MB y viaja entero al navegador con las capas apagadas — el andamio
 decidido, la cifra creciendo (la descarga perezosa sigue dicha como
 opción para antes del 6).
 
-**Lo siguiente (punto 5):**
-1. La etiqueta del modo: **«Bici / patinete»** (solo presentación).
-2. **El README** con endpoints y cifras medidas — y el punto 5 cerrado.
+**La etiqueta vista (18/08):** «Bici / Patinete» y «Bus / Tranvía» —
+mayúscula tras la barra por peso visual (decisión de Antonio, comentada
+en el código), VMP descartado, fuente única para botón y resultado,
+contrato intacto.
+
+**Lo siguiente (punto 5), lo último:** **el README** con endpoints y
+cifras medidas — y el punto 5 queda cerrado.
 
 ---
 
