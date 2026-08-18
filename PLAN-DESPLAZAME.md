@@ -360,17 +360,22 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       están — el mapa de verificación los necesita y es la herramienta de
       esta fase. Cero código hoy; la retirada ENTERA tiene su casilla
       nueva en el punto 6, para que no se olvide
-- [ ] **PRIMERO DEL PUNTO 5 (orden de Antonio, 18/08) — EL VISOR: una
-      página nueva con el mapa a ventana casi completa**: las capas de
-      verificación se ven hoy en un mapa microscópico dentro del
-      formulario — el visor es su casa: mapa a casi toda la ventana, el
-      control de capas entero, y navegación entre las dos páginas (la
-      principal queda como está). Va primero para que las CUATRO capas
-      nuevas de abajo se verifiquen ya en grande
-- [ ] **El router SE QUEDA — la revisión cambia de sentido** (18/08): la
-      casilla decía «si sigue sin usarse, fuera», y el visor le da uso:
-      dos páginas = `@angular/router` trabajando. Configurarlo con la doc
-      delante [Regla Cero] al montar el visor
+- [x] **EL VISOR, hecho y VISTO por Antonio en cinco pasos** (18/08):
+      `/visor` con el mapa a ventana casi completa y las nueve capas —
+      rinde fluido con portales y grafo encendidos, y el F5 sobre /visor
+      recarga bien en `ng serve` (`693551e`). El router configurado
+      mínimo [DOC]: `provideRouter`, tres rutas (raíz = Buscador ·
+      /visor · `**` → raíz), `router-outlet` en la cáscara (`d5623a7`).
+      SIN duplicar pintado: las nueve capas se mudan a un SERVICIO
+      singleton (`providedIn:'root'` [DOC]) y el mapa lo lee — una capa
+      nueva se toca en 2 ficheros, no en 4 (`ef6ccc5`); el alto del
+      lienzo es parámetro (22rem / 100%). Los 34 MB NO se re-descargan
+      al navegar: MEDIDO con contador de fetch — 13 peticiones en
+      buscador, 13 tras ir y volver (contraprueba: 26 falla). 47 pruebas
+      (35+12), dos tandas nacidas en rojo de verdad. README: dos páginas
+      declaradas, «se irá con el andamio» (`f97b341`)
+- [x] **El router SE QUEDA** — el visor le dio el uso; la revisión que
+      decía «si no se usa, fuera» queda respondida por la puerta buena
 - [ ] **Los aparcamotos entran como capa** (autorización de Antonio,
       18/08 — investigación completa en dos consultas, 18/08): descarga
       propia nº2 del WFS (`movilidad:MU2_motos`, 2.146 soportes / 11.715

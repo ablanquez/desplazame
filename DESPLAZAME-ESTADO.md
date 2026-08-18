@@ -47,13 +47,24 @@ entero** (de `ea66676` a `9eabbb6`: estructura, grafo en memoria,
 callejero y `/api/vias`, autocompletar, selector de portales, entradas
 nº4 y nº5, carta al día, y el plan con las tandas del 18/08).
 
+**El VISOR está hecho y visto (18/08, cinco pasos).** `/visor` con el
+mapa a ventana casi completa y las nueve capas, fluido; el router
+configurado mínimo [DOC] y la raíz intacta; las capas mudadas a un
+servicio singleton (cero duplicación de pintado; una capa nueva = 2
+ficheros); los 34 MB NO se re-descargan al navegar (medido: 13 y 13);
+47 pruebas. Descubrimientos del encargo: jsdom sin canvas tapaba el
+pintado en pruebas (resuelto fingiendo solo el contexto 2D) · `/visor`
+en producción exigirá que el servidor devuelva index.html en rutas
+desconocidas (apuntado al punto 10) · la pestaña dice «Desplázame» en
+las dos páginas (title por ruta, fuera de alcance — cosmético) · el
+guardián sigue ciego a `src/`.
+
 **Lo siguiente (punto 5), en el orden de Antonio:**
-1. **EL VISOR** — página nueva con el mapa a ventana casi completa y el
-   control de capas entero; el router se queda (el visor le da el uso).
-2. Las CUATRO capas nuevas, verificadas ya en grande: **aparcamotos** →
-   **regulado en superficie** → **13 zonas reguladas** → **reservas PMR**.
-3. La etiqueta del modo: **«Bici / patinete»** (solo presentación).
-4. **El README** con endpoints y cifras medidas — y el punto 5 cerrado.
+1. Las CUATRO capas nuevas, verificadas ya en grande en el visor:
+   **aparcamotos** → **regulado en superficie** → **13 zonas** →
+   **reservas PMR**.
+2. La etiqueta del modo: **«Bici / patinete»** (solo presentación).
+3. **El README** con endpoints y cifras medidas — y el punto 5 cerrado.
 
 ---
 
@@ -178,7 +189,9 @@ reevaluables · el aviso de las tres cuentas municipales.
 **Punto 10 (panel de Hostinger, todo NO CONSTA):** versión de Node
 (exige `^22.22.3 || ^24.15.0 || >=26` Y ejecutar TS sin compilar) ·
 memoria del plan (el motor pide ~248 MB y subirá) · proceso persistente
-· dos procesos o estáticos desde el motor.
+· dos procesos o estáticos desde el motor · **el servidor debe devolver
+index.html en rutas desconocidas** (si no, F5 en /visor dará 404 — nuevo
+del 18/08).
 
 **Punto 11:** el color de marca (`NO CONSTA`; badges en gris).
 
