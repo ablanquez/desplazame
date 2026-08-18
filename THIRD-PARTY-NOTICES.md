@@ -3,12 +3,12 @@
 La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno**, que conserva sus
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
-> ℹ️ **Estado a 17/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **ocho** conjuntos de
+> ℹ️ **Estado a 18/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **nueve** conjuntos de
 > datos —los portales, **el callejero de vías**, los carriles bici, los postes de autobús, las
-> estaciones BiZi y los aparcabicis del Ayuntamiento; el grafo de continuidad derivado de OSM; y
-> el GTFS del Punto de Acceso Nacional—. Solo quedan fuera las capas municipales de tranvía;
-> cada pieza llega con su autorización y su ficha.
+> estaciones BiZi, los aparcabicis y **los aparcamotos** del Ayuntamiento; el grafo de
+> continuidad derivado de OSM; y el GTFS del Punto de Acceso Nacional—. Solo quedan fuera las
+> capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
 >
 > ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7).
 >
@@ -402,7 +402,75 @@ en total.
 - **`nombre_reducido`** arrastra marcadores internos del callejero municipal en **36 de los
   2.158**: valores como `"LOGROÑO  ---CST"`. No se corrige: el dato se copia tal cual.
 
-### 1.10 · El resto del dato — todavía **ninguno**
+### 1.10 · Aparcamotos — Ayuntamiento de Zaragoza (IDEZar)
+
+| | |
+|---|---|
+| **Qué es** | Los **2.146 aparcamotos** públicos: los reservados donde dejar la moto, con su vía, su portal y cuántas plazas tiene cada uno — **11.715 plazas** en total. Es el equivalente de § 1.9 para el otro vehículo de dos ruedas: las motos ruedan como el coche pero aparcan en lo suyo |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU2_motos`** |
+| **Petición** | **Ésta la hicimos nosotros**, y por eso el URL sí consta: `https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU2_motos&outputFormat=application/json&srsName=EPSG:4326` |
+| **Descarga** | **18/08/2026 12:04:45 GMT**, estado 200. Cabeceras completas guardadas en [`…_cabeceras.txt`](app/data/2026-08-18_wfs_movilidad-MU2_motos_cabeceras.txt), sin `Set-Cookie` (norma de § 1.9) · `timeStamp` del WFS: `2026-08-18T12:04:45.494Z` · CRS **EPSG:4326**, geometría `Point` |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal. La capa no declara condiciones propias: no trae `MetadataURL`, y el servicio va con `Fees: NONE` y `AccessConstraints: NONE` |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
+| **Campos** | `Nombre_calle`, `Tipo_via`, `Portal`, `Codigo_calle`, `Poligono`, `Numero_plazas`, `Fecha_instalacion`. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-18_wfs_movilidad-MU2_motos.json`](app/data/2026-08-18_wfs_movilidad-MU2_motos.json) · 625.297 bytes · sha256 `8a0b4727b85fc7e2aa310641d9a3f7fcb56ba20a87ff3d464cb08e856c56a00b` **verificado sobre un clon** |
+
+**Vino completa de una vez**: `numberMatched` = `numberReturned` = **2.146**, sin paginar. Los
+2.146 con geometría —ni uno sin coordenada—, dentro del término (41,604–41,720 N ·
+−1,031–−0,822 O). Plazas: mínimo 1, mediana 5, máximo 74.
+
+**⚠️ Frescura: `NO CONSTA`.** El WFS no publica cuándo se actualizó la capa —sin `MetadataURL`,
+sin fecha de revisión—, así que **la única marca temporal fiable de esta pieza es la fecha de
+descarga** de arriba. Lo único que se puede afirmar es una cota inferior: el censo contiene una
+instalación fechada el 01/12/2025, así que no es anterior a esa fecha.
+
+#### Se eligió el WFS, y no la API, con la discrepancia medida
+
+El Ayuntamiento publica los aparcamotos **por dos puertas que no coinciden**: esta capa
+(**2.146 / 11.715 plazas**) y el servicio REST `…/equipamiento/aparcamiento-moto.json`
+(**2.115 / 11.543**). No hay identificador común —los del WFS son correlativos de GeoServer y
+los de la API son ids de tabla con 136 huecos—, así que se casaron por **vecino más próximo,
+uno a uno**; donde casan, **la coordenada es idéntica**: es el mismo dato de origen saliendo por
+dos sitios. La diferencia se reparte así, y suma exacto:
+
+- **32 solo en el WFS.** Su firma los delata como una **tanda de altas**: el 94 % trae
+  `Fecha_instalacion` (31 de ellas de 2024) y el 91 % trae `Poligono`, un campo que en el resto
+  del censo casi nadie lleva. Publicados y ubicados en el WFS; la API todavía no los volcó.
+- **1 solo en la API**: MANUEL LASALA F 44, 2 plazas, id 1198. **El WFS no es un superconjunto**:
+  ese lo quitó y la API lo conserva.
+- **7 soportes movidos** entre 1,2 y 14,9 m. La posición corregida la lleva el WFS en los siete.
+- **Plazas: cuadre exacto.** Cero soportes con plazas distintas en la misma posición; las 172 de
+  diferencia son enteras de los huérfanos.
+
+Con eso delante, **la decisión fue quedarse con el WFS**: va por delante añadiendo (32 contra 1),
+sus altas son recientes y suyas son las correcciones de posición.
+
+> ⚠️ **Y hay un tercer número.** La serie estadística municipal
+> `datos-movilidad/plazas-estacionamiento-por-tipo` declara **8.644 plazas de moto** en el mes de
+> esta descarga, frente a las 11.715 de aquí. Son tres fuentes municipales contando lo mismo de
+> tres maneras, y **esta ficha declara la cifra de SU fuente** — la del fichero que está en el
+> repositorio. Ni se promedian, ni se corrigen, ni se esconde que no cuadran.
+
+#### Lo que el dato trae de honesto, y de roto
+
+- **⭐ Viene enganchado al callejero.** A diferencia de los aparcabicis, trae `Codigo_calle` y
+  `Portal`: **821 de sus 823 códigos de vía casan** con el callejero de § 1.3, y cubren 2.140 de
+  los 2.146 registros. Los **2 códigos huérfanos** (25000 y 9740) son exactamente los **6
+  registros que el propio origen deja sin `Nombre_calle`**: un agujero suyo, coherente consigo
+  mismo. Ese enganche **todavía no se usa para nada**; viaja en el dato para el día del modo
+  coche/moto.
+- **`Fecha_instalacion` solo en 616 de los 2.146** (el 29 %): 2020 → 111, 2021 → 261, 2022 → 65,
+  2023 → 93, 2024 → 84, 2025 → 1.
+- **🐞 Una fecha imposible, que viaja tal cual**: el aparcamoto de **AV TENOR FLETA 134** declara
+  `Fecha_instalacion = 0203-10-20`. Un 2023 mal tecleado, con toda probabilidad — pero eso es una
+  conjetura, no un dato. **No se corrige**: el fichero se copia como vino, y el defecto se
+  declara aquí. Quien ordene por esa columna se lo encontrará el primero.
+- **`Poligono` solo en 33 de los 2.146** (el 1,5 %), y **30 de esos 33 son de 2024**: es el
+  campo que delata la tanda de altas de arriba.
+- **`Portal`** trae `"S/N"` cuando no hay número, que es literal del origen.
+
+### 1.11 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
