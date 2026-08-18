@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   ElementRef,
+  inject,
   input,
   viewChild,
 } from '@angular/core';
@@ -10,6 +11,7 @@ import * as L from 'leaflet';
 // El vértice lo define el contrato, no este componente: es la misma forma que
 // el motor devolverá en la geometría de un trayecto.
 import type { Vertice } from '@desplazame/tipos';
+import { Capas } from './capas';
 
 export type { Vertice };
 
@@ -41,41 +43,28 @@ const ATRIBUCION_MUNICIPAL = 'Origen de los datos: Ayuntamiento de Zaragoza (IDE
 const ATRIBUCION_GTFS =
   'Trazados: GTFS de Avanza Zaragoza S.A.U. (dato bruto) · Powered by <a href="https://www.transportes.gob.es/" target="_blank" rel="noopener">MITRAMS</a>';
 
+/**
+ * El mapa, uno solo para las dos páginas.
+ *
+ * Lo que cambia entre el buscador y el visor son DOS cosas, y las dos son
+ * parámetro, no copia: el ALTO del lienzo y si hay o no TRAZADO que pintar. Las
+ * nueve capas de verificación no se le pasan: las lee del servicio `Capas`, que
+ * es donde viven, y así el bloque que las ata no se escribe dos veces —una por
+ * página— ni hay que acordarse de dos sitios cada vez que entra una capa nueva.
+ *
+ * El servicio se lee, no se dispara: quien pide la descarga es la página, con
+ * `capas.cargar()`. Montar este componente no baja ni un byte.
+ */
 @Component({
   selector: 'app-mapa',
   templateUrl: './mapa.html',
   styleUrl: './mapa.css',
 })
 export class Mapa {
+  private readonly capas = inject(Capas);
+
   /** Vértices a pintar. Vacío = sin línea. */
   readonly trazado = input<readonly Vertice[]>([]);
-
-  /** Portales a sembrar. Vacío = sin capa. */
-  readonly portales = input<readonly Vertice[]>([]);
-
-  /** Aristas del grafo: cada una, su lista de vértices. Vacío = sin capa. */
-  readonly grafo = input<readonly (readonly Vertice[])[]>([]);
-
-  /** Tramos de carril bici. Vacío = sin capa. */
-  readonly carriles = input<readonly (readonly Vertice[])[]>([]);
-
-  /** Postes de autobús. Vacío = sin capa. */
-  readonly postes = input<readonly Vertice[]>([]);
-
-  /** Trazados de línea de bus del GTFS: cada uno, su lista de vértices. */
-  readonly trazados = input<readonly (readonly Vertice[])[]>([]);
-
-  /** Trazados del tranvía. Capa aparte: es otra red y otra agencia. */
-  readonly tranvia = input<readonly (readonly Vertice[])[]>([]);
-
-  /** Paradas del tranvía. Su propia casilla, como en bus. */
-  readonly paradasTranvia = input<readonly Vertice[]>([]);
-
-  /** Estaciones BiZi. Vacío = sin capa. */
-  readonly estacionesBizi = input<readonly Vertice[]>([]);
-
-  /** Aparcabicis. Vacío = sin capa. */
-  readonly aparcabicis = input<readonly Vertice[]>([]);
 
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
@@ -121,47 +110,47 @@ export class Mapa {
     });
 
     effect(() => {
-      this.portales();
+      this.capas.portales();
       this.pintarPortales();
     });
 
     effect(() => {
-      this.grafo();
+      this.capas.grafo();
       this.pintarGrafo();
     });
 
     effect(() => {
-      this.carriles();
+      this.capas.carriles();
       this.pintarCarriles();
     });
 
     effect(() => {
-      this.postes();
+      this.capas.postes();
       this.pintarPostes();
     });
 
     effect(() => {
-      this.trazados();
+      this.capas.trazados();
       this.pintarTrazados();
     });
 
     effect(() => {
-      this.tranvia();
+      this.capas.tranvia();
       this.pintarTranvia();
     });
 
     effect(() => {
-      this.paradasTranvia();
+      this.capas.paradasTranvia();
       this.pintarParadasTranvia();
     });
 
     effect(() => {
-      this.estacionesBizi();
+      this.capas.estacionesBizi();
       this.pintarBizi();
     });
 
     effect(() => {
-      this.aparcabicis();
+      this.capas.aparcabicis();
       this.pintarAparcabicis();
     });
   }
@@ -182,7 +171,7 @@ export class Mapa {
     this.capaAparcabicis?.remove();
     this.capaAparcabicis = undefined;
 
-    const puntos = this.aparcabicis();
+    const puntos = this.capas.aparcabicis();
     if (puntos.length === 0) {
       this.refrescarControl();
       return;
@@ -225,7 +214,7 @@ export class Mapa {
     this.capaBizi?.remove();
     this.capaBizi = undefined;
 
-    const puntos = this.estacionesBizi();
+    const puntos = this.capas.estacionesBizi();
     if (puntos.length === 0) {
       this.refrescarControl();
       return;
@@ -267,7 +256,7 @@ export class Mapa {
     this.capaParadasTranvia?.remove();
     this.capaParadasTranvia = undefined;
 
-    const puntos = this.paradasTranvia();
+    const puntos = this.capas.paradasTranvia();
     if (puntos.length === 0) {
       this.refrescarControl();
       return;
@@ -310,7 +299,7 @@ export class Mapa {
     this.capaTranvia?.remove();
     this.capaTranvia = undefined;
 
-    const lineas = this.tranvia();
+    const lineas = this.capas.tranvia();
     if (lineas.length === 0) {
       this.refrescarControl();
       return;
@@ -344,7 +333,7 @@ export class Mapa {
     this.capaTrazados?.remove();
     this.capaTrazados = undefined;
 
-    const lineas = this.trazados();
+    const lineas = this.capas.trazados();
     if (lineas.length === 0) {
       this.refrescarControl();
       return;
@@ -382,7 +371,7 @@ export class Mapa {
     this.capaPostes?.remove();
     this.capaPostes = undefined;
 
-    const puntos = this.postes();
+    const puntos = this.capas.postes();
     if (puntos.length === 0) {
       this.refrescarControl();
       return;
@@ -424,7 +413,7 @@ export class Mapa {
     this.capaCarriles?.remove();
     this.capaCarriles = undefined;
 
-    const tramos = this.carriles();
+    const tramos = this.capas.carriles();
     if (tramos.length === 0) {
       this.refrescarControl();
       return;
@@ -464,7 +453,7 @@ export class Mapa {
     this.capaGrafo?.remove();
     this.capaGrafo = undefined;
 
-    const aristas = this.grafo();
+    const aristas = this.capas.grafo();
     if (aristas.length === 0) {
       this.refrescarControl();
       return;
@@ -498,36 +487,39 @@ export class Mapa {
 
     const capas: Record<string, L.Layer> = {};
     if (this.capaPortales) {
-      capas[`Portales (${this.portales().length.toLocaleString('es-ES')})`] = this.capaPortales;
+      capas[`Portales (${this.capas.portales().length.toLocaleString('es-ES')})`] =
+        this.capaPortales;
     }
     if (this.capaGrafo) {
-      capas[`Grafo peatonal/ciclable (${this.grafo().length.toLocaleString('es-ES')})`] =
+      capas[`Grafo peatonal/ciclable (${this.capas.grafo().length.toLocaleString('es-ES')})`] =
         this.capaGrafo;
     }
     if (this.capaCarriles) {
-      capas[`Carriles bici (${this.carriles().length.toLocaleString('es-ES')})`] =
+      capas[`Carriles bici (${this.capas.carriles().length.toLocaleString('es-ES')})`] =
         this.capaCarriles;
     }
     if (this.capaPostes) {
-      capas[`Postes de bus (${this.postes().length.toLocaleString('es-ES')})`] = this.capaPostes;
+      capas[`Postes de bus (${this.capas.postes().length.toLocaleString('es-ES')})`] =
+        this.capaPostes;
     }
     if (this.capaTrazados) {
-      capas[`Trazados de bus (${this.trazados().length.toLocaleString('es-ES')})`] =
+      capas[`Trazados de bus (${this.capas.trazados().length.toLocaleString('es-ES')})`] =
         this.capaTrazados;
     }
     if (this.capaTranvia) {
-      capas[`Tranvía (${this.tranvia().length.toLocaleString('es-ES')})`] = this.capaTranvia;
+      capas[`Tranvía (${this.capas.tranvia().length.toLocaleString('es-ES')})`] = this.capaTranvia;
     }
     if (this.capaParadasTranvia) {
-      capas[`Paradas de tranvía (${this.paradasTranvia().length.toLocaleString('es-ES')})`] =
-        this.capaParadasTranvia;
+      capas[
+        `Paradas de tranvía (${this.capas.paradasTranvia().length.toLocaleString('es-ES')})`
+      ] = this.capaParadasTranvia;
     }
     if (this.capaBizi) {
-      capas[`Estaciones BiZi (${this.estacionesBizi().length.toLocaleString('es-ES')})`] =
+      capas[`Estaciones BiZi (${this.capas.estacionesBizi().length.toLocaleString('es-ES')})`] =
         this.capaBizi;
     }
     if (this.capaAparcabicis) {
-      capas[`Aparcabicis (${this.aparcabicis().length.toLocaleString('es-ES')})`] =
+      capas[`Aparcabicis (${this.capas.aparcabicis().length.toLocaleString('es-ES')})`] =
         this.capaAparcabicis;
     }
     if (Object.keys(capas).length > 0) {
@@ -547,7 +539,7 @@ export class Mapa {
     this.capaPortales?.remove();
     this.capaPortales = undefined;
 
-    const puntos = this.portales();
+    const puntos = this.capas.portales();
     if (puntos.length === 0) {
       this.refrescarControl();
       return;
