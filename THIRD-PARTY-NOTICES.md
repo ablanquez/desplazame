@@ -512,10 +512,24 @@ Y `forma_estacionar`: `CORDON` 5.824 · `BATERIA` 1.533 · **`null` 34**.
 > ```
 >
 > **Quien filtre por `zona_reguladora` se lleva 5.049 bordillos gratuitos pintados como de
-> pago.** El único campo que dice si se paga es **`tipo_actual`**. Y hay un segundo desajuste:
-> `zona_reguladora` llega hasta el **65** con 34 valores distintos, mientras que la capa de zonas
-> (`MU1_zonas_reguladas`, que **no está en este repositorio**) solo publica **13 polígonos** — así
-> que los números de zona de aquí no se pueden resolver a un perímetro con lo que hay publicado.
+> pago.** El único campo que dice si se paga es **`tipo_actual`**.
+>
+> Cruzados los números de zona contra la capa de polígonos (`MU1_zonas_reguladas`, que **no está
+> en este repositorio**: se consultó sin descargarla), el reparto sale limpio — los **13
+> polígonos publicados son exactamente las zonas 1 a 13**, y son exactamente las que cobran:
+>
+> ```
+> zonas 1..13, CON polígono ....... 3.346 tramos · 1.157 de pago
+> 19 zonas SIN polígono ........... 2.860 tramos ·     0 de pago   (14,15,16,18,21,22,25,26,27,
+> zona 0 (el centinela «sin zona»)  1.125 tramos ·     0 de pago    29,32,33,34,37,39,40,43,46,47)
+> zona 65 y zona nula ................. 60 tramos ·     2 de pago  ← los dos raros
+> ```
+>
+> Los **dos únicos tramos de pago sin perímetro publicado** no parecen zonas fantasma sino
+> registros a medio rellenar: un `ESRO` de zona **65** en CALLE SAN VICENTE MARTIR 11 —valor único
+> en todo el censo, en pleno Centro, con `tipo_via` y `codigo` nulos— y un `ESRE` en CAMINO DE LA
+> MOSQUETERA que viene **vacío de todo**: sin zona, sin plazas, sin forma, sin distrito, sin
+> código y con el portal literal `"NUL"`.
 
 > ⏳ **Este dato va a caducar de golpe, no despacio.** El Ayuntamiento prepara una **ampliación
 > de la zona azul/naranja**; el día que se active, el reparto `LIBRE`/`ESRO`/`ESRE` cambia de
@@ -556,6 +570,12 @@ tramos `ESRO` y `ESRE`** —azul los primeros, naranja los segundos, una sola ca
 `LIBRE` y los 28 sin clasificar **no se pintan**: no son regulado, y pintarlos contestaría otra
 pregunta. Están en el fichero igualmente, y hay una prueba
 (`app/src/app/capas.spec.ts`) que se pone roja si alguien los cuela.
+
+Y de este mismo fichero sale una **segunda vista, de cotejo y temporal**: los **2.860 tramos
+`LIBRE` de las 19 zonas sin polígono** (21.268 plazas), en morado y discontinua, con la casilla
+«¿Ampliación? zonas sin activar». **No es otro dato ni otra descarga**: es otra lectura de estas
+mismas 7.391 filas. Existe para cotejarla contra los planos de la ampliación, y **se retira o se
+consolida cuando ese cotejo diga** — el signo de interrogación del nombre es literal.
 
 ### 1.12 · El resto del dato — todavía **ninguno**
 
