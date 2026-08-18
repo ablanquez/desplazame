@@ -4,12 +4,12 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 18/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **once** conjuntos de
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **doce** conjuntos de
 > datos —los portales, **el callejero de vías**, los carriles bici, los postes de autobús, las
-> estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento regulado y **las zonas
-> reguladas** del Ayuntamiento; el grafo de continuidad derivado de OSM; y el GTFS del Punto de
-> Acceso Nacional—. Quedan fuera las capas municipales de tranvía; cada pieza llega con su
-> autorización y su ficha.
+> estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas
+> reguladas y **las reservas de espacio** del Ayuntamiento; el grafo de continuidad derivado de
+> OSM; y el GTFS del Punto de Acceso Nacional—. Quedan fuera las capas municipales de tranvía;
+> cada pieza llega con su autorización y su ficha.
 >
 > ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7).
 >
@@ -660,7 +660,97 @@ aquí importa más que en las otras: **es la capa que la ampliación moverá pri
 rotulada con su número, en un panel **por debajo** del de los bordillos: se encienden a la vez que
 el regulado y la vista de cotejo, y hay que poder leer el bordillo sobre la mancha.
 
-### 1.13 · El resto del dato — todavía **ninguno**
+### 1.13 · Reservas de espacio, y las PMR — Ayuntamiento de Zaragoza (IDEZar)
+
+| | |
+|---|---|
+| **Qué es** | El censo de **2.636 reservas de espacio** en la vía pública, con su tipo, sus plazas y su horario — **5.813 plazas**. De ellas, **1.226 son reservas PMR** (1.447 plazas): dónde puede aparcar quien conduce con tarjeta de movilidad reducida |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU1_reservas`** |
+| **Petición** | **Ésta la hicimos nosotros**: `https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_reservas&outputFormat=application/json&srsName=EPSG:4326` |
+| **Descarga** | **18/08/2026 13:41:55 GMT**, estado 200. Cabeceras en [`…_cabeceras.txt`](app/data/2026-08-18_wfs_movilidad-MU1_reservas_cabeceras.txt), sin `Set-Cookie` · `timeStamp` del WFS: `2026-08-18T13:41:55.079Z` · CRS **EPSG:4326**, geometría `Point`. El `content-length: 84480` es el del cuerpo **comprimido** (`gzip`) |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal. Sin `MetadataURL`; el servicio con `Fees: NONE` y `AccessConstraints: NONE` |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, colgada también de esta capa |
+| **Campos** | `TIPO`, `SUBTIPO`, `NOMBRE_CALLE`, `PORTAL`, `LONGITUD`, `PLAZAS`, `HORARIO`. **Ninguno personal** — barrido abajo |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-18_wfs_movilidad-MU1_reservas.json`](app/data/2026-08-18_wfs_movilidad-MU1_reservas.json) · 746.406 bytes · sha256 `8aaf80c1d946bf891c5a6387a213cb56fa4581922ee07ebb5fd0e7aaa3500057` **verificado sobre un clon** |
+
+`numberMatched` = `numberReturned` = **2.636**, sin paginar. Los 2.636 con geometría, dentro del
+término (41,603–41,760 N · −1,036–−0,796 O). 9 sin `NOMBRE_CALLE` y 47 sin `PLAZAS`.
+
+#### El desglose por `TIPO`
+
+| `TIPO` | Puntos | Plazas | | `TIPO` | Puntos | Plazas |
+|---|---|---|---|---|---|---|
+| **`14_PMR`** | **1.226** | **1.447** | | `08_E.S.P.` | 47 | 91 |
+| `13_CyD` | 846 | 2.766 | | `17_HOTEL` | 24 | 66 |
+| **`RETIRADA`** | **125** | 177 | | `12_BUS_ESC` | 22 | 182 |
+| **`DENEGADA`** | **98** | 56 | | `06_SEG.PUB` | 13 | 113 |
+| `19_TAXI` | 84 | 525 | | `null` | 9 | 1 |
+| `09_C.SANIT` | 67 | 158 | | `21_PROX_CO` | 8 | 40 |
+| `07_VH.OFI` | 60 | 174 | | `10_E.S.PMR` | 5 | 10 |
+| | | | | `22_NP.CLAS` · `18_ATRACCI` | 1 · 1 | 6 · 1 |
+
+> 🚨 **LA TRAMPA, y aquí duele más que en § 1.11: el campo que manda es `TIPO`, no `SUBTIPO`.**
+>
+> **1.384 registros llevan `SUBTIPO: 'PMR general'`**, pero solo 1.224 de ellos están en vigor:
+>
+> ```
+> SUBTIPO 'PMR general' por TIPO:
+>    14_PMR ......... 1.224   ← en vigor
+>    RETIRADA ...........84   ← se quitó
+>    DENEGADA ...........74   ← nunca se concedió
+>    10_E.S.PMR ..........2
+> ```
+>
+> **158 plazas retiradas o denegadas dicen «PMR general».** Filtrar por `SUBTIPO` no es un error
+> de pintado: es **mandar a alguien con tarjeta PMR a 158 plazas que no existen**, y esa persona
+> es justo la que menos puede permitirse el viaje en balde. El filtro correcto es
+> **`TIPO === '14_PMR'`**.
+>
+> Y al revés también hay ruido: dentro de los 1.226 de `14_PMR` hay 1.224 con `SUBTIPO`
+> `'PMR general'`, **uno** `'Hotel'` y **uno** `'Sanitaria'`. Se pintan los 1.226: manda el `TIPO`.
+
+**Los 5 de `10_E.S.PMR` se quedan fuera, y es una decisión.** Dos llevan `SUBTIPO: 'PMR general'` y
+tres `'Ent.Priv para S.P.'`: es un tipo mezclado, y meterlos rompería la coincidencia exacta con el
+otro censo municipal —ver abajo—. Están en el fichero, sin pintar.
+
+#### La cifra de SU fuente, y esta vez cuadra
+
+Es la primera pieza donde **dos puertas del Ayuntamiento dicen exactamente lo mismo**: el WFS da
+**1.226 PMR / 1.447 plazas** filtrando por `TIPO`, y el servicio REST
+`equipamiento/aparcamiento-personas-discapacidad` da **1.226 / 1.447**. Al dígito.
+
+Del censo entero no se puede decir lo mismo: el WFS trae **2.636 reservas** y los dos servicios de
+la API que cubren esto —`aparcamiento-personas-discapacidad` 1.226 y `reserva-de-espacio` 846—
+suman **2.072**. Las 564 de diferencia son, sobre todo, los tipos que la API no publica por
+separado (taxi, vehículo oficial, hotel, escolar…) más las 223 retiradas y denegadas. **Esta ficha
+declara la cifra de su fuente**, como § 1.10 y § 1.11.
+
+#### Dato personal: barrido y limpio
+
+La investigación miró la API; esto es el barrido sobre **los campos reales del WFS**, hecho
+**antes de meter el fichero en el repositorio**:
+
+```
+campos marcados por su nombre ....... NOMBRE_CALLE (y es el nombre de la calle)
+matrículas (patrón español) ......... 0
+DNI/NIE ............................. 0
+tratamientos (D./Dña/Sr./Dr.) ....... 10, y los diez son nombres de calle:
+     DON JUAN DE ARAGÓN · DON PEDRO DE LUNA · NTRA.SRA.DEL AGUA · DON TEOBALDO…
+```
+
+`HORARIO` es texto libre —472 valores distintos— y era el candidato natural a colar algo: no cuela
+nada, solo horarios. Eso sí, **escritos de 472 maneras**: `PERMANENTE`, `Permanente`,
+`permanente`, y las erratas `PERMENENTE`, `PERMAENTE`, `PERMANTE`, `PERMANETE`, `PERMENTE`,
+`PERMANENT`, `Permanante`. Se copia tal cual.
+
+**⚠️ Frescura: `NO CONSTA`**, como el resto del WFS. La fecha de descarga es la única marca.
+
+**Cómo se pinta.** Solo las **1.226 PMR**, en discos rosa con aro blanco. El resto del censo viaja
+en el fichero sin pintarse, y hay una prueba (`app/src/app/capas.spec.ts`) que se pone roja si una
+retirada o una denegada se cuela.
+
+### 1.14 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
