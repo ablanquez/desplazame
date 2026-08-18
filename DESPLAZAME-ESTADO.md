@@ -68,9 +68,24 @@ a ojo y los puntos cayendo donde hay aparcamotos de verdad. 48 pruebas.
 Cabo menor reportado: los `_cabeceras.txt` se sirven en `/datos/` (el
 glob incluye `*.txt`) — inofensivo en repo público, anotado.
 
+**El regulado dentro y visto, con premio (18/08).** Descarga nº3, solo
+el pago pintado (ESRO azul / ESRE naranja, colores de Antonio, casilla
+única), verificado en el visor: la almendra sí, los barrios no. La
+trampa medida de verdad (5.049, no 5.104) y `distrito` con 31 valores
+para 10 distritos. El cruce zonas↔tramos que pidió Antonio salió
+redondo: los 13 polígonos = las 13 zonas que cobran; 19 zonas numeradas
+100% LIBRES (2.860 tramos / 21.268 plazas) — y la VISTA DE COTEJO morada
+que Antonio contrastó con sus planos: SON las zonas de la ampliación
+prevista, y sus planos traen más que el dato calla (pendiente de
+detallar). Contexto de contrato: activación de golpe verano 2027,
+~15.000 nuevas hasta 21.745 (Heraldo 14/07; recurso Tacpa pendiente).
+Decisión: la capa queda interna de momento — pública en el repo como
+prueba, sin producto ni ficha. Y TODAS las capas arrancan desmarcadas
+en las dos páginas (apagar no ahorra descarga, solo dibujo — la
+descarga perezosa queda como opción dicha para antes del 6). 55 pruebas.
+
 **Lo siguiente (punto 5), en el orden de Antonio:**
-1. Las TRES capas restantes: **regulado en superficie** → **13 zonas** →
-   **reservas PMR**.
+1. Las DOS capas restantes: **13 zonas reguladas** → **reservas PMR**.
 2. La etiqueta del modo: **«Bici / patinete»** (solo presentación).
 3. **El README** con endpoints y cifras medidas — y el punto 5 cerrado.
 

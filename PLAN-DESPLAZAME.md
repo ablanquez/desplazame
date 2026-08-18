@@ -395,18 +395,46 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       motos/bicis a simple vista y que los puntos caen donde hay
       aparcamotos de verdad. README a ocho datos / diez capas / nueve
       conjuntos (`3b8994f`). 48 pruebas
-- [ ] **El estacionamiento regulado entra como capa** (autorización de
-      Antonio, 18/08): `MU1_estacionamientos_calle`, 7.391 tramos de
-      bordillo / 55.572 plazas, MultiLineString — se pinta como los
-      carriles. El campo que MANDA es `tipo_actual` (ESRO 664 · ESRE 495
-      · LIBRE 6.204); ⚠️ `zona_reguladora` NO significa regulado (5.104
-      tramos LIBRES la llevan) — con la ampliación de zona azul/naranja
-      que el Ayuntamiento prepara (aviso de Antonio), ese campo apunta al
-      perímetro previsto y `tipo_actual` al presente: la ficha lo dirá
-      así, y el dato CADUCARÁ de golpe cuando la ampliación se active.
-      Suciedad declarada: `distrito` con mayúsculas/acentos mezclados.
-      Qué se pinta (¿solo regulado, o regulado+libre?): decide Antonio en
-      la pieza
+- [x] **El regulado dentro y VISTO por Antonio** (18/08): descarga propia
+      nº3 (7.391 tramos / 55.572 plazas, hits previo clavado, gzip
+      declarado 367 KB→3,2 MB, huella `f45f394b…` sobre clon,
+      `5788a21`). Pintado SOLO el pago: ESRO azul medio `#0284c7` + ESRE
+      naranja `#f97316` (colores de Antonio; el naranja se separa de la
+      ruta por tono+trazo+grosor), LIBRE sin pintar, casilla ÚNICA
+      «Regulado ESRO+ESRE (1.159)» por decisión de Antonio (`cbb547f`).
+      Antonio verificó: pago solo en la almendra, nada en barrios. Ficha
+      §1.11 con la trampa MEDIDA (el 5.104 eran 5.049 — 55 nulos
+      contados de más, corrección honesta del ejecutor), `distrito` peor
+      de lo investigado (31 valores para 10 distritos, con erratas
+      CASCO HISTÓRICI/INIVERSIDAD), y la cifra de SU fuente (`913eb15`,
+      `781bd0c`). Prueba nueva que vigila el filtro: un LIBRE colándose
+      como pago es el error caro. 52 pruebas
+- [x] **El cruce zonas↔tramos, medido a petición de Antonio** (18/08):
+      los 13 polígonos publicados son EXACTAMENTE las 13 zonas que
+      cobran (99,83% del pago resuelve); 19 zonas numeradas sin polígono
+      son 100% LIBRE — 2.860 tramos / 21.268 plazas (cifras con comando;
+      la consulta había sumado mal a mano: 2.859/21.130/20). Solo 2
+      tramos de pago raros, con perfil de dato roto (zona 65 en San
+      Vicente Mártir · un ESRE vacío con portal "NUL"). Ficha §1.11
+      reescrita con el cruce
+- [x] **La vista de cotejo de la posible ampliación** (pedida por
+      Antonio, 18/08): capa 12 «¿Ampliación? zonas sin activar (2.860)»
+      — morado `#a21caf` discontinuo (una hipótesis se dibuja con línea
+      de puntos), misma data del regulado (cero descargas), comentario
+      de retirada-o-consolidación (`c02bdf6`). ANTONIO COTEJÓ CON SUS
+      PLANOS: son las nuevas zonas de pago previstas — y sus planos
+      traen MÁS zonas que el dato no enseña (pendiente de detallar).
+      Contexto de contrato (Heraldo 14/07/2026): activación de golpe en
+      verano 2027, ~15.000 nuevas hasta 21.745 totales (recurso Tacpa
+      pendiente) — el 21.268 del censo vs 15.000 del contrato: ~6.300
+      plazas zonificadas que esta fase no activaría. DECISIÓN de
+      Antonio: la capa queda INTERNA de momento (pública en el repo como
+      prueba, sin uso de producto ni noticia en la ficha)
+- [x] **Todas las capas DESMARCADAS por defecto en las dos páginas**
+      (decisión de Antonio, 18/08): se encienden a mano; medido que
+      apagar no ahorra descarga (vive en `cargar()` de la página), solo
+      dibujo — hacer la descarga perezosa queda dicho como opción para
+      antes del 6, no hecho (`90c9124`). 55 pruebas
 - [ ] **Las 13 zonas reguladas entran** (`MU1_zonas_reguladas`,
       MultiPolygon): el perímetro numerado de cada zona — contexto del
       regulado y lo que la ampliación moverá. Aviso: los tramos usan
