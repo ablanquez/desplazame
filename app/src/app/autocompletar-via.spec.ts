@@ -53,6 +53,10 @@ describe('AutocompletarVia', () => {
     http.verify();
   });
 
+  function entrada(fixture: any): HTMLInputElement {
+    return (fixture.nativeElement as HTMLElement).querySelector('input')!;
+  }
+
   /**
    * Escribe en el campo y espera a que pase la espera del componente.
    *
@@ -66,11 +70,29 @@ describe('AutocompletarVia', () => {
    *    del `flush()`, en cada prueba.
    */
   async function escribir(fixture: any, valor: string): Promise<void> {
-    const campo = (fixture.nativeElement as HTMLElement).querySelector('input')!;
+    const campo = entrada(fixture);
     campo.value = valor;
     campo.dispatchEvent(new Event('input'));
     fixture.detectChanges();
     await new Promise((sigue) => setTimeout(sigue, 300));
+    fixture.detectChanges();
+  }
+
+  /**
+   * Sale del campo, que es el gesto del fallo: Tab o click fuera. Espera algo
+   * más que el margen de 150 ms que el componente se da para que un click
+   * sobre una sugerencia llegue a contar.
+   */
+  async function salir(fixture: any): Promise<void> {
+    entrada(fixture).dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 250));
+    fixture.detectChanges();
+  }
+
+  /** Vuelve al campo. */
+  function entrar(fixture: any): void {
+    entrada(fixture).dispatchEvent(new Event('focus'));
     fixture.detectChanges();
   }
 
@@ -137,5 +159,105 @@ describe('AutocompletarVia', () => {
     expect(raiz.querySelector('.sugerencias__aviso--mal')?.textContent).toContain(
       'No se pudo preguntar al motor',
     );
+  });
+
+  // ── El fallo de la entrada nº4 de la bitácora ─────────────────────────────
+  // Escribir no es elegir. Estas cinco cubren los dos estados que el campo no
+  // distinguía, y el gesto que lo destapó: salir sin haber tocado la lista.
+
+  it('salir sin elegir CONSERVA lo escrito y lo marca como no válido', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    await escribir(fixture, 'burgos');
+    http.expectOne('/api/vias?q=burgos').flush([BURGOS_CIUDAD, BURGOS_CASETAS]);
+    await fixture.whenStable();
+
+    await salir(fixture);
+
+    // No se borra lo que escribió el usuario: se conserva como borrador.
+    expect(entrada(fixture).value).toBe('burgos');
+    expect(fixture.componentInstance.texto()).toBe('burgos');
+    // Pero no hay vía elegida, y se ve que no la hay.
+    const raiz = fixture.nativeElement as HTMLElement;
+    expect(fixture.componentInstance.elegida()).toBeNull();
+    expect(entrada(fixture).getAttribute('aria-invalid')).toBe('true');
+    expect(raiz.querySelector('.campo__borrador')?.textContent).toContain('de la lista');
+  });
+
+  it('volver al campo con borrador REABRE el desplegable con lo escrito', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    await escribir(fixture, 'burgos');
+    http.expectOne('/api/vias?q=burgos').flush([BURGOS_CIUDAD, BURGOS_CASETAS]);
+    await fixture.whenStable();
+
+    await salir(fixture);
+    const raiz = fixture.nativeElement as HTMLElement;
+    expect(raiz.querySelector('.sugerencias')).toBeNull();
+
+    entrar(fixture);
+
+    // Un toque y resuelto: las sugerencias de lo escrito, sin volver a teclear.
+    expect(raiz.querySelectorAll('.sugerencia').length).toBe(2);
+  });
+
+  it('elegir después de un borrador LIMPIA la marca', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    await escribir(fixture, 'burgos');
+    http.expectOne('/api/vias?q=burgos').flush([BURGOS_CIUDAD, BURGOS_CASETAS]);
+    await fixture.whenStable();
+
+    await salir(fixture);
+    expect(entrada(fixture).getAttribute('aria-invalid')).toBe('true');
+
+    entrar(fixture);
+    const raiz = fixture.nativeElement as HTMLElement;
+    raiz.querySelectorAll<HTMLElement>('.sugerencia')[0].dispatchEvent(new MouseEvent('mousedown'));
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.elegida()?.codigo).toBe('5140');
+    expect(entrada(fixture).getAttribute('aria-invalid')).toBeNull();
+    expect(raiz.querySelector('.campo__borrador')).toBeNull();
+  });
+
+  it('borrar el texto del borrador LIMPIA la marca: campo vacío normal', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    await escribir(fixture, 'burgos');
+    http.expectOne('/api/vias?q=burgos').flush([BURGOS_CIUDAD, BURGOS_CASETAS]);
+    await fixture.whenStable();
+
+    await salir(fixture);
+    expect(entrada(fixture).getAttribute('aria-invalid')).toBe('true');
+
+    await escribir(fixture, '');
+
+    const raiz = fixture.nativeElement as HTMLElement;
+    expect(entrada(fixture).getAttribute('aria-invalid')).toBeNull();
+    expect(raiz.querySelector('.campo__borrador')).toBeNull();
+  });
+
+  it('EDITAR después de haber elegido tira el código: vuelve a borrador', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    await escribir(fixture, 'burgos');
+    http.expectOne('/api/vias?q=burgos').flush([BURGOS_CIUDAD, BURGOS_CASETAS]);
+    await fixture.whenStable();
+
+    const raiz = fixture.nativeElement as HTMLElement;
+    raiz.querySelectorAll<HTMLElement>('.sugerencia')[1].dispatchEvent(new MouseEvent('mousedown'));
+    await fixture.whenStable();
+    expect(fixture.componentInstance.elegida()?.codigo).toBe('5150');
+
+    // El texto ya no corresponde a la vía elegida: el código deja de valer.
+    await escribir(fixture, 'CALLE BURGO');
+    http.expectOne('/api/vias?q=CALLE%20BURGO').flush([]);
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.elegida()).toBeNull();
+
+    await salir(fixture);
+    expect(entrada(fixture).getAttribute('aria-invalid')).toBe('true');
   });
 });
