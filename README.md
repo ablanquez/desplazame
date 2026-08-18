@@ -2,7 +2,7 @@
 
 # Desplázame
 
-**Cómo ir de un portal a otro en Zaragoza: andando, en autobús o tranvía, en bici o en coche.**
+**Cómo ir de un portal a otro en Zaragoza: andando, en autobús o tranvía, en bici o patinete, o en coche.**
 
 [![Licencia](https://img.shields.io/badge/licencia-Apache%202.0-64748B)](LICENSE)
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031)](https://angular.dev/)
@@ -76,7 +76,7 @@ dónde, se elige un modo de transporte, y devuelve la ruta en el mapa y los paso
 Una sola pantalla:
 
 - **Formulario de cuatro campos**: calle y portal de origen, calle y portal de destino.
-- **Cuatro botones de modo, excluyentes**: andando, autobús/tranvía, bici, coche.
+- **Cuatro botones de modo, excluyentes**: andando, autobús/tranvía, bici o patinete, coche.
 - **Mapa con la ruta**.
 - **Las indicaciones paso a paso**, debajo.
 
