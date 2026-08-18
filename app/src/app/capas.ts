@@ -87,7 +87,15 @@ const BIZI = [0, 50, 100, 150, 200, 250].map(
 const APARCABICIS = '/datos/2026-08-17_wfs_movilidad-MU2_aparcabicis.json';
 
 /**
- * Lo que el mapa necesita saber de las capas de verificación, y nada más: nueve
+ * ANDAMIO DE VERIFICACIÓN. Los 2.146 aparcamotos, segunda descarga propia. Solo
+ * se leen las coordenadas: el `Numero_plazas` y el enganche al callejero
+ * (`Codigo_calle` + `Portal`) viajan en el fichero y **todavía no los usa
+ * nadie** — ver THIRD-PARTY-NOTICES § 1.10.
+ */
+const APARCAMOTOS = '/datos/2026-08-18_wfs_movilidad-MU2_motos.json';
+
+/**
+ * Lo que el mapa necesita saber de las capas de verificación, y nada más: diez
  * señales de solo lectura y la orden de cargarlas. Está escrito aparte del
  * servicio para que una prueba pueda darle al mapa unas capas de mentira sin
  * levantar la descarga entera.
@@ -102,11 +110,12 @@ export interface CapasDeVerificacion {
   readonly paradasTranvia: Signal<readonly Vertice[]>;
   readonly estacionesBizi: Signal<readonly Vertice[]>;
   readonly aparcabicis: Signal<readonly Vertice[]>;
+  readonly aparcamotos: Signal<readonly Vertice[]>;
   cargar(): void;
 }
 
 /**
- * Las nueve capas de verificación, cargadas UNA vez para toda la aplicación.
+ * Las diez capas de verificación, cargadas UNA vez para toda la aplicación.
  *
  * Vivían en el componente de la pantalla, que era el único que las pintaba.
  * Con dos páginas —el buscador y el visor— eso ya no vale: [DOC] el
@@ -165,6 +174,10 @@ export class Capas implements CapasDeVerificacion {
   private readonly _aparcabicis = signal<readonly Vertice[]>([]);
   readonly aparcabicis = this._aparcabicis.asReadonly();
 
+  /** Los aparcamotos. */
+  private readonly _aparcamotos = signal<readonly Vertice[]>([]);
+  readonly aparcamotos = this._aparcamotos.asReadonly();
+
   /** Si ya se pidió. La segunda página no vuelve a bajarse los 34 MB. */
   private pedido = false;
 
@@ -186,6 +199,26 @@ export class Capas implements CapasDeVerificacion {
     this.cargarParadasTranvia();
     this.cargarBizi();
     this.cargarAparcabicis();
+    this.cargarAparcamotos();
+  }
+
+  private async cargarAparcamotos(): Promise<void> {
+    try {
+      const respuesta = await fetch(APARCAMOTOS);
+      if (!respuesta.ok) {
+        console.error(`aparcamotos: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const crudo = (await respuesta.json()) as { readonly features: readonly PosteCrudo[] };
+      this._aparcamotos.set(
+        crudo.features.map((f) => {
+          const [lon, lat] = f.geometry.coordinates;
+          return [lat, lon] as Vertice;
+        }),
+      );
+    } catch (e) {
+      console.error('aparcamotos: no se pudieron cargar', e);
+    }
   }
 
   private async cargarAparcabicis(): Promise<void> {

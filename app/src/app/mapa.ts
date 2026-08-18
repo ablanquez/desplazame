@@ -49,7 +49,7 @@ const ATRIBUCION_GTFS =
  *
  * Lo que cambia entre el buscador y el visor son DOS cosas, y las dos son
  * parámetro, no copia: el ALTO del lienzo y si hay o no TRAZADO que pintar. Las
- * nueve capas de verificación no se le pasan: las lee del servicio `Capas`, que
+ * diez capas de verificación no se le pasan: las lee del servicio `Capas`, que
  * es donde viven, y así el bloque que las ata no se escribe dos veces —una por
  * página— ni hay que acordarse de dos sitios cada vez que entra una capa nueva.
  *
@@ -87,6 +87,7 @@ export class Mapa {
   private capaParadasTranvia?: L.LayerGroup;
   private capaBizi?: L.LayerGroup;
   private capaAparcabicis?: L.LayerGroup;
+  private capaAparcamotos?: L.LayerGroup;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -109,6 +110,7 @@ export class Mapa {
       this.pintarParadasTranvia();
       this.pintarBizi();
       this.pintarAparcabicis();
+      this.pintarAparcamotos();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -163,6 +165,11 @@ export class Mapa {
       this.pintarAparcabicis();
     });
 
+    effect(() => {
+      this.capas.aparcamotos();
+      this.pintarAparcamotos();
+    });
+
     // Y al morir, se desmonta. Mientras hubo una sola pantalla esto no hacía
     // falta: el mapa nacía con la aplicación y moría con ella. Con el router
     // sí — el `RouterOutlet` destruye el componente cada vez que se sale de su
@@ -174,6 +181,58 @@ export class Mapa {
       this.mapa?.remove();
       this.mapa = undefined;
     });
+  }
+
+  /**
+   * Siembra los aparcamotos.
+   *
+   * **Aquí el color ya no puede resolverlo solo**: los ocho tonos en uso se
+   * reparten el círculo entero, y el vecino peligroso es su hermano — los
+   * aparcabicis son 2.158 puntos amarillos repartidos por la misma ciudad, y
+   * éstos son 2.146. Mismo número, misma dispersión: si además el tono fuera
+   * contiguo, no habría manera de leerlos por separado.
+   *
+   * Se resuelve **por FORMA, como se hizo con los aparcabicis**: éste es el
+   * ÚNICO marcador HUECO del mapa. Los otros cuatro «sitios de parar» son
+   * discos rellenos; un aro sin relleno se distingue de un disco a cualquier
+   * zoom, y no depende del color para hacerlo. Y es el más grande —radio 5—
+   * porque una moto ocupa más que una bici. El tono, el cian, refuerza: es lo
+   * más lejos que quedaba del amarillo del hermano.
+   */
+  private pintarAparcamotos(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaAparcamotos?.remove();
+    this.capaAparcamotos = undefined;
+
+    const puntos = this.capas.aparcamotos();
+    if (puntos.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const lienzoCanvas = L.canvas();
+    const comienzo = performance.now();
+    this.capaAparcamotos = L.layerGroup(
+      puntos.map(([lat, lon]) =>
+        L.circleMarker([lat, lon], {
+          renderer: lienzoCanvas,
+          radius: 5,
+          color: '#0891b2',
+          weight: 2,
+          fill: false,
+          interactive: false,
+        }),
+      ),
+      { attribution: ATRIBUCION_MUNICIPAL },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${puntos.length} aparcamotos sembrados en ${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -542,6 +601,10 @@ export class Mapa {
     if (this.capaAparcabicis) {
       capas[`Aparcabicis (${this.capas.aparcabicis().length.toLocaleString('es-ES')})`] =
         this.capaAparcabicis;
+    }
+    if (this.capaAparcamotos) {
+      capas[`Aparcamotos (${this.capas.aparcamotos().length.toLocaleString('es-ES')})`] =
+        this.capaAparcamotos;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);
