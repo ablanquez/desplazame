@@ -12,12 +12,10 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Via } from '@desplazame/tipos';
+import type { PortalesEnMemoria } from './portales.ts';
 
 const CALLEJERO = fileURLToPath(
   new URL('../../app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json', import.meta.url),
-);
-const PORTALES = fileURLToPath(
-  new URL('../../app/data/2026-05-13_zgzradar_callejero-portales-zaragoza.json', import.meta.url),
 );
 
 /** Una vía tal y como viene en el callejero. Solo lo que aquí se mira. */
@@ -35,11 +33,6 @@ interface ViaCruda {
  * espacio, nunca dos en el mismo nombre**. Por eso el corte es seguro.
  */
 const MARCADOR = / ---[A-ZÁÉÍÓÚÑ0-9]+$/;
-
-/** Un portal municipal. Solo lo que aquí se mira. */
-interface PortalCrudo {
-  readonly codigoVia: string;
-}
 
 /**
  * Normaliza para COMPARAR, nunca para mostrar: minúsculas y sin acentos.
@@ -75,25 +68,24 @@ export interface CallejeroEnMemoria {
   readonly cargadoEnMs: number;
 }
 
-export function cargarCallejero(): CallejeroEnMemoria {
+/**
+ * Recibe los portales YA cargados en vez de volver a leer sus 10 MB. Antes
+ * este fichero parseaba el censo entero solo para contar y tiraba el
+ * resultado; ahora lo carga `portales.ts`, una vez, y aquí solo se cuenta
+ * sobre lo que ya está en memoria.
+ */
+export function cargarCallejero(portales: PortalesEnMemoria): CallejeroEnMemoria {
   const principio = performance.now();
 
   const vias = JSON.parse(readFileSync(CALLEJERO, 'utf8')) as readonly ViaCruda[];
-  const portales = JSON.parse(readFileSync(PORTALES, 'utf8')) as readonly PortalCrudo[];
-
-  // Cuántos portales tiene cada vía, contados de verdad sobre el censo
-  // municipal. El callejero también lo declara en `numPortales` y coincide en
-  // las 3.359 — pero manda lo contado, que es lo que el punto 6 va a resolver.
-  const porVia = new Map<string, number>();
-  for (const portal of portales) {
-    const codigo = String(portal.codigoVia);
-    porVia.set(codigo, (porVia.get(codigo) ?? 0) + 1);
-  }
 
   const sugeribles: ViaIndexada[] = [];
   for (const cruda of vias) {
     const codigo = String(cruda.codigoVia);
-    const cuantos = porVia.get(codigo);
+    // Cuántos portales tiene, contados de verdad sobre el censo municipal. El
+    // callejero también lo declara en `numPortales` y coincide en las 3.359 —
+    // pero manda lo contado, que es lo que se va a poder elegir.
+    const cuantos = portales.porVia.get(codigo)?.length;
     if (!cuantos) {
       continue;
     }
@@ -117,7 +109,7 @@ export function cargarCallejero(): CallejeroEnMemoria {
   return {
     vias: vias.length,
     sugeribles,
-    portales: portales.length,
+    portales: portales.total,
     cargadoEnMs: performance.now() - principio,
   };
 }

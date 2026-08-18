@@ -17,6 +17,7 @@
  *        y que lleva EL GRAFO cargado, con los recuentos de este
  *        repositorio — no solo que respire ................... 7
  *        y EL CALLEJERO, con su cifra sugerible .............. 8
+ *        y LOS PORTALES enteros, concordando con el callejero  9
  *   2. QUIÉN: el PID que está escuchando ....................... 3
  *   3. Que ese proceso arrancó DESPUÉS de la última modificación
  *      de los ficheros que solo se leen al arrancar ............ 4
@@ -111,6 +112,19 @@ const GRAFO_ESPERADO = { nodos: 68649, aristas: 98774, vertices: 378222 };
 const CALLEJERO_ESPERADO = { vias: 3359, sugeribles: 2731, portales: 46150 };
 
 /**
+ * Y lo que tienen que traer los portales, ahora que el motor los carga
+ * enteros y no solo los cuenta. `total` es el censo municipal completo;
+ * `vias` es en cuántas vías se reparten.
+ *
+ * Además se comprueba que CONCUERDAN con lo que declara el callejero: son el
+ * mismo censo contado una sola vez, así que `portales.total` tiene que valer
+ * lo mismo que `callejero.portales`, y `portales.vias` lo mismo que
+ * `callejero.sugeribles`. Si un día dejaran de coincidir, es que alguien
+ * volvió a contar por su cuenta.
+ */
+const PORTALES_ESPERADO = { total: 46150, vias: 2731 };
+
+/**
  * Rojo. Lanza en vez de salir: `process.exit()` con peticiones a medio cerrar
  * revienta libuv en Windows y devuelve 127 en lugar del código de este fallo.
  */
@@ -198,6 +212,38 @@ async function comprobar() {
     bien(
       `lleva el callejero: ${c.vias} vías, ${c.sugeribles} sugeribles, ` +
         `${c.portales} portales (cargado en ${c.cargadoEnMs} ms)`,
+    );
+
+    // 1d · ¿Lleva los portales ENTEROS, y son los de este censo?
+    // Contarlos ya no basta: ahora se sirven uno a uno y hay que saber que
+    // están en memoria, no solo que alguien los contó al arrancar.
+    const p = salud.portales;
+    if (!p || typeof p.total !== 'number' || typeof p.vias !== 'number') {
+      mal(
+        9,
+        'el motor contesta pero NO declara portales: arrancó sin cargarlos',
+        portada.cuerpo.slice(0, 240),
+      );
+    }
+    for (const [campo, esperado] of Object.entries(PORTALES_ESPERADO)) {
+      if (p[campo] !== esperado) {
+        mal(
+          9,
+          `los portales cargados no son los de este repositorio: ${campo} = ${p[campo]}`,
+          `esperado ${esperado}, contado sobre app/data/…callejero-portales-zaragoza.json`,
+        );
+      }
+    }
+    if (p.total !== c.portales || p.vias !== c.sugeribles) {
+      mal(
+        9,
+        'los portales y el callejero NO concuerdan: alguien está contando dos veces',
+        `portales ${p.total}/${p.vias} · callejero ${c.portales}/${c.sugeribles}`,
+      );
+    }
+    bien(
+      `lleva los portales: ${p.total} en ${p.vias} vías (cargado en ${p.cargadoEnMs} ms) ` +
+        `y concuerdan con el callejero`,
     );
   } else {
     if (!portada.cuerpo.includes('<app-root>')) {

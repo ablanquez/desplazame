@@ -16,6 +16,7 @@ import { createServer } from 'node:http';
 import type { Salud } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
+import { cargarPortales, portalesDe } from './portales.ts';
 
 /** El puerto del motor. La interfaz le habla por el proxy de `ng serve`. */
 const PUERTO = 3000;
@@ -31,8 +32,16 @@ console.log(
     `${memoria.parseadoEnMs.toFixed(0)} ms · listo en ${memoria.cargadoEnMs.toFixed(0)} ms`,
 );
 
+// Los portales van ANTES que el callejero: el callejero cuenta sobre ellos.
+console.log('motor: cargando los portales…');
+const portales = cargarPortales();
+console.log(
+  `motor: portales en memoria — ${portales.total} portales en ${portales.porVia.size} vías ` +
+    `· ${portales.cargadoEnMs.toFixed(0)} ms`,
+);
+
 console.log('motor: cargando el callejero…');
-const callejero = cargarCallejero();
+const callejero = cargarCallejero(portales);
 console.log(
   `motor: callejero en memoria — ${callejero.vias} vías, de las que ` +
     `${callejero.sugeribles.length} tienen portal y se sugieren ` +
@@ -73,6 +82,11 @@ const servidor = createServer((peticion, respuesta) => {
         portales: callejero.portales,
         cargadoEnMs: Math.round(callejero.cargadoEnMs),
       },
+      portales: {
+        total: portales.total,
+        vias: portales.porVia.size,
+        cargadoEnMs: Math.round(portales.cargadoEnMs),
+      },
     };
     json(200, salud);
     return;
@@ -83,6 +97,16 @@ const servidor = createServer((peticion, respuesta) => {
     // respuesta bien formada, no un error. Quien escribe todavía no ha dicho
     // bastante como para sugerirle nada.
     json(200, buscar(callejero, url.searchParams.get('q') ?? ''));
+    return;
+  }
+
+  if (peticion.method === 'GET' && url.pathname === '/api/portales') {
+    // Se devuelven TODOS los portales de la vía, no una página: la mediana es
+    // 9 y el peor caso 1.469, que en este contrato son unos 66 KB. Una sola
+    // petición al fijar la calle deja a la pantalla filtrando en local, sin
+    // ida y vuelta por cada tecla. Sin `via`, o con una que no existe: lista
+    // vacía, respuesta bien formada — como `/api/vias`.
+    json(200, portalesDe(portales, url.searchParams.get('via') ?? ''));
     return;
   }
 
