@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-18] 🔴 ABIERTA — El README juraba que no había «ningún dato integrado» con ocho dentro, y la regla de releída daba verde porque solo miraba el otro párrafo
+## [2026-08-18] ✅ CERRADA — El README juraba que no había «ningún dato integrado» con ocho dentro, y la regla de releída daba verde porque solo miraba el otro párrafo
 
 **Categoría:** documentación que caduca
 **Síntoma:** en «Licencia y créditos», el README dice: *«Hoy el repositorio **no
@@ -51,9 +51,29 @@ hay nada que atribuir» el día en que se atribuyó. Dos minutos después el dat
 aterrizaba en `3de058c`. Ha sobrevivido 2 días y 13 commits de portada.
 **Cómo se cazó:** ojo humano — el del ejecutor, aplicando la costura §6 de un
 encargo que tocaba otra cosa (el selector de portales). No lo cazó la regla.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** la regla decía «releer lo que la portada afirma sobre su
+ausencia», pero se ejecutaba como «releer el párrafo donde solemos anunciar lo
+que hay». Es un desajuste entre el enunciado y el gesto, y sobrevivió porque
+nada obligaba a comparar los dos: cada encargo cerraba con la portada ajustada
+—de verdad, y trece veces— y esa sensación de deber cumplido tapaba lo que no
+se había mirado. El párrafo podrido estaba además en la sección que el encargo
+de licencias dio por buena el primer día y ningún encargo posterior volvió a
+abrir: era la única parte del README que nadie tenía motivo para leer.
+No es un fallo de una persona distraída: es un instrumento cuyo alcance real
+nadie midió. Y estaba avisado — el cierre de la entrada nº1 dejó escrito que no
+se había creado ningún instrumento y que el fallo podía repetirse.
+**Arreglo aplicado:** `README.md`, sección «Licencia y créditos». El párrafo
+pasa a decir lo que hay —los ocho conjuntos, de dónde sale cada uno, y dónde se
+cumple cada atribución: la de OpenStreetMap en el control del mapa, comprobada
+en el bundle servido (`colaboradores de OpenStreetMap`), y la del dato municipal
+en el notices, ficha por ficha—. Con **rectificación visible** debajo, patrón de
+la del notices §1.2: qué decía, desde cuándo era falso y por qué sobrevivió.
+La tabla de licencias que hay encima no se tocó: ya decía la verdad.
+Al escribirlo me equivoqué yo mismo en la cuenta —enumeré nueve conjuntos y
+escribí «ocho»—; se cazó contando contra las fichas del notices antes de
+comitear, no después.
+**Commit:** `c0f449c` (el arreglo). La captura, antes de tocar el README:
+`7360469`.
 **Ley que sale de aquí:** una regla de releída vale lo que su ALCANCE, no lo que
 su enunciado promete. Si en la práctica el ojo va a un párrafo, solo ese párrafo
 está protegido: el resto del documento envejece **con la regla dando verde**, que
