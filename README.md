@@ -78,8 +78,8 @@ Y nada más. El alcance es corto a propósito.
 |---|---|
 | **Interfaz** | [Angular 22](https://angular.dev/) con componentes *standalone* (sin NgModules) · *build* con Angular CLI |
 | **Mapa** | [Leaflet](https://leafletjs.com/) sobre [OpenStreetMap](https://www.openstreetmap.org/) |
-| **Motor** | **Node** + **TypeScript**, servidor mínimo (`node:http`) · *build* con `tsc` o esbuild |
-| **Tipos compartidos** | Un paquete común al motor y a la interfaz (`Paso`, `Trayecto`, `Modo`, `Aviso`): si el motor cambia la forma de la respuesta, la interfaz no compila. **Eso es a propósito.** |
+| **Motor** | **Node** + **TypeScript** ejecutado **sin compilar** —Node borra los tipos al ejecutar, así que no hay *build*— · servidor mínimo (`node:http`) |
+| **Tipos compartidos** | Un paquete común al motor y a la interfaz (`@desplazame/tipos`), también sin *build*. **El contrato crece cuando el motor lo pide**, no antes: si el motor cambia la forma de la respuesta, la interfaz no compila. **Eso es a propósito.** |
 | **Lenguaje** | **TypeScript** de punta a punta |
 | **Despliegue** | Hostinger, plan Node |
 
