@@ -29,12 +29,15 @@
 > aparcamotos** y el **estacionamiento regulado** —los **1.159 tramos** de zona azul y de
 > residentes, de un censo de 7.391—; de OpenStreetMap, las **98.774 aristas** del grafo de
 > continuidad peatonal y ciclable; y del GTFS, los **89 trazados de línea** —tranvía
-> incluido, con sus 50 paradas—. Cada uno con su casilla para encenderlo y apagarlo. Pero el
-> buscador **todavía no los usa**: la línea que dibuja al generar sigue siendo tan inventada
-> como los pasos.
+> incluido, con sus 50 paradas—. **Doce capas**, cada una con su casilla; **todas empiezan
+> apagadas** y se encienden a mano, porque las doce a la vez no se leen. La duodécima no es un
+> dato más: es una **vista de cotejo** del regulado —los 2.860 tramos libres cuya zona no tiene
+> perímetro publicado, que **quizá** sean la ampliación de zona azul que se prepara—, y está
+> ahí para contrastarla, no como afirmación. Pero el buscador **todavía no usa** ninguno: la
+> línea que dibuja al generar sigue siendo tan inventada como los pasos.
 >
 > **Y ya son dos páginas.** La de siempre —el buscador, en la raíz— y un **visor de capas** en
-> `/visor`: el mismo mapa y las mismas once capas, pero a ventana casi completa. No es
+> `/visor`: el mismo mapa y las mismas doce capas, pero a ventana casi completa. No es
 > producto: es la herramienta con la que se verifica cada dato que entra, porque en el lienzo
 > pequeño de debajo del formulario no se ve nada. Se irá con el andamio.
 >
