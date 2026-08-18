@@ -71,8 +71,18 @@ mintió: reflejó una carta que la realidad desmintió. Decisión de Antonio
 pendiente: actualizar CLAUDE.md y el README detrás, o declarar que la
 carta describe el plan.
 
-**Lo siguiente (punto 5):** la decisión de CLAUDE.md, el destino de los
-andamios, y la revisión del router — y el punto 5 queda cerrado.
+**La carta al día (18/08), con la doc oficial delante.** CLAUDE.md dice ya
+el motor real (sin build, contrato que crece — `d919930`) y guarda
+convención con puntero en vez de listas que caducan: los endpoints vivos
+los declara el motor, los previstos el plan; `data/` corregido a
+`app/data/` (`041e432`); el README detrás (`7590fe4`). Punteros
+comprobados: los dos destinos sostienen su mitad. La línea del Despliegue
+(symlink) se queda tal cual: su corrección YA tiene casilla en el punto
+10 — los raíles la llevaban.
+
+**Lo siguiente (punto 5):** el destino de los andamios, la revisión del
+router, y la casilla del README (endpoints y cifras medidas) — y el
+punto 5 queda cerrado.
 
 ---
 
@@ -193,12 +203,11 @@ Tomadas en este reinicio:
 ## 6 · Cabos abiertos
 
 **Para el punto 5 (lo que queda):**
-- **Dos líneas del Stack del README son copia fiel de un CLAUDE.md que la
-  realidad desmintió**: «build con tsc o esbuild» (el motor no tiene
-  build: Node ejecuta el TS) y la lista de cuatro tipos (el contrato
-  lleva once, y los que trabajan son Via y Portal). Corregir solo el
-  README cambiaría una inconsistencia por otra: la decisión —CLAUDE.md
-  al día y el README detrás, o carta-como-plan declarada— es de Antonio.
+- La frase de cierre del «Estado» del README («el repositorio es esto:
+  el método, el plan, las licencias y una pantalla con andamio») se ha
+  quedado corta — hay motor y ocho datos. Se ajusta en la casilla del
+  README de este punto (endpoints y cifras medidas), no en encargo
+  suelto.
 - El destino de los andamios de carga (~34 MB al navegador + la entrada
   `datos` de `angular.json` + `RUTA_DE_PRUEBA`): qué pasa al motor y qué
   sigue para el mapa de verificación. Retirada final en el punto 6;
