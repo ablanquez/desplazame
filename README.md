@@ -18,8 +18,9 @@
 
 > ⚠️ **Este repositorio está en construcción, y todavía no hay nada que puedas usar.**
 > La pantalla ya existe en [`app/`](app/) y arranca en local: el formulario de cuatro
-> campos, los cuatro modos y las indicaciones. **Los dos campos de calle ya autocompletan
-> contra el motor**, con las calles de verdad de Zaragoza. Pero **no busca rutas**. Al pulsar «Generar
+> campos, los cuatro modos y las indicaciones. **Los cuatro campos se rellenan ya contra el
+> motor**, con el callejero de verdad de Zaragoza: la calle se autocompleta al teclear, y el
+> portal se elige de la lista de los que esa calle tiene. Pero **no busca rutas**. Al pulsar «Generar
 > ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
 > dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
 > OpenStreetMap— y ya puede dibujar encima **siete datos reales**: del Ayuntamiento de
@@ -30,16 +31,22 @@
 > encenderlo y apagarlo. Pero el buscador **todavía no los usa**: la línea que dibuja al
 > generar sigue siendo tan inventada como los pasos.
 >
-> Y ya hay **motor**: un servidor mínimo en Node que carga al arrancar el grafo de la ciudad
-> y el callejero, y sirve las sugerencias que ves al teclear — de las 3.359 vías del callejero
+> Y ya hay **motor**: un servidor mínimo en Node que carga al arrancar el grafo de la ciudad,
+> el callejero y los **46.150 portales enteros**, y sirve lo que ves al rellenar el formulario
+> — de las 3.359 vías del callejero
 > ofrece las **2.731 que tienen algún portal**, porque sugerir una calle sin portales sería
 > prometer una dirección que después no se puede resolver. Cuando la calle está en un barrio
 > rural lo dice: **CALLE BURGOS [CASETAS]**, que es distinta de la CALLE BURGOS de la ciudad.
 > Va entre corchetes y no entre paréntesis porque los paréntesis ya son del dato: hay 15 vías
 > que los traen en su propio nombre.
 >
-> **Pero no calcula ninguna ruta**: eso no existe todavía. El número de portal no se resuelve,
-> y tampoco se sabe aún qué líneas pasan por cada poste.
+> **El portal no se escribe: se elige.** Fijada la calle, el motor sirve sus portales reales y
+> el campo los ofrece en el orden en que se lee un callejero —1, 2, 3, 10, no 1, 10, 2—, con
+> sus rarezas tal cual vienen: **9-11**, **1DP**, **22B**, **71 TV C2**. Así no hay número
+> inventado que resolver después: de una lista no se puede elegir lo que no existe.
+>
+> **Pero no calcula ninguna ruta**: eso no existe todavía. Tampoco se sabe aún qué líneas
+> pasan por cada poste.
 >
 > Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y una
 > pantalla con andamio.
