@@ -111,10 +111,25 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son estas dos.
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
 
-> ℹ️ **Estas dos declaraciones van por adelantado.** Hoy el repositorio **no tiene ningún dato
-> integrado** —ni cartografía, ni callejero, ni paradas—, así que todavía no hay nada que
-> atribuir. Se declaran ahora porque la atribución de OpenStreetMap es **una obligación de la
-> ODbL**, no una cortesía, y porque el modelo de licencia del proyecto ya está decidido: el día
-> que entre el primer fichero de datos, la obligación ya está escrita y no se olvida.
+> ℹ️ **Y las dos están en uso.** El repositorio lleva **ocho conjuntos de datos dentro**: seis
+> del Ayuntamiento de Zaragoza —el callejero, los portales, los carriles bici, los postes de
+> autobús, las estaciones BiZi y los aparcabicis—, el grafo de continuidad derivado de
+> OpenStreetMap, y el GTFS del Punto de Acceso Nacional. A eso se suma la **cartografía de
+> OpenStreetMap**, que no es un fichero: el mapa la pinta en vivo.
+> **La atribución de OpenStreetMap se cumple en la pantalla**, en el control del mapa y con la
+> palabra «colaboradores» literal. La del dato municipal se cumple en
+> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —nueve,
+> contando la cartografía—: fuente, fecha de descarga, licencia y cómo volver a conseguirlo.
+
+> ⚠️ **Rectificación (18/08/2026).** Hasta hoy este párrafo decía que el repositorio **«no
+> tiene ningún dato integrado —ni cartografía, ni callejero, ni paradas—, así que todavía no
+> hay nada que atribuir»**. Era verdad el 16 de agosto por la mañana y dejó de serlo ese mismo
+> día, en el commit `a35ffc9` — que es, precisamente, el que escribió la atribución de los
+> portales en el notices. Sobrevivió dos días y trece commits de este README porque la regla
+> de releer la portada se estaba cumpliendo **sobre el párrafo de «Estado»**, tres pantallas
+> más arriba, que sí se corrigió trece veces. Queda escrito en `docs/BITACORA.md` (entrada
+> nº5): una regla de releída vale lo que su alcance, y el resto del documento envejece con la
+> regla dando verde. Se corrige aquí en vez de borrarlo en silencio, por lo mismo que en el
+> notices: un documento que se enmienda sin decirlo vale menos que uno que lo dice.
 
 **No es un producto oficial del Ayuntamiento de Zaragoza.**
