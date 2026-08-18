@@ -481,9 +481,23 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       juntos; `Modo = 'bici'` intacto en contrato y motor (grep limpio).
       En el README va en minúscula: allí es prosa (`e7ff5c4`, `79ef5b1`
       y el commit de bus-tranvía). 60 pruebas
-- [ ] **El README se amplía aquí** con los endpoints y las cifras que el
-      motor MIDA (vías reales, nodos cargados, tiempo de arranque) —
-      cuando existan de verdad, no antes
+- [x] **El README completo, con la doc de GitHub delante** (18/08):
+      «Cómo arrancarlo en local» PROBADO en clon limpio (install de raíz
+      23 s, build 2,7 s, el motor del clon cargando los mismos números —
+      solo murió por EADDRINUSE contra el motor vivo, que es la prueba
+      de que funciona), con la advertencia honesta del `engines` sin
+      declarar («probado con 24.19.0», no «hace falta 24» — no se midió
+      el mínimo). Los tres endpoints leídos de `servidor.ts`, los
+      documentos del método enlazados (plan, bitácora, investigación,
+      notices), la frase de cierre POR FIN veraz, y la releída final
+      cazando dos cifras falsas corregidas en encargo mínimo: los
+      carriles eran 2.120 tramos (733 son rasgos) y los paréntesis 38
+      vías, no 15 (`f3bd4a6`, `d56af44`). La línea de Hostinger se
+      queda: su casilla es del 10
+- [x] **⭐ PUNTO 5 CERRADO (18/08).** El motor mínimo existe, sugiere y
+      sirve; el formulario entero se rellena contra él; el visor enseña
+      las catorce capas; la bitácora lleva cinco entradas cerradas con
+      ley; y todo lo visto, visto por el ojo de Antonio
 
 ## 6 — Primera ruta: ANDANDO (aquí ya existe la demo)
 
