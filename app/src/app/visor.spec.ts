@@ -29,6 +29,8 @@ function capasLlenas(): CapasDeVerificacion {
     estacionesBizi: signal(PUNTO),
     aparcabicis: signal(PUNTO),
     aparcamotos: signal(PUNTO),
+    reguladoRotacion: signal(LINEA),
+    reguladoResidentes: signal(LINEA),
     cargar: () => {},
   };
 }
@@ -84,15 +86,15 @@ describe('Visor', () => {
     expect(lienzo.style.height).toBe('100%');
   });
 
-  it('el control lista las diez capas', async () => {
+  it('el control lista las once capas', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    expect(capasDelControl(raiz).length).toBe(10);
+    expect(capasDelControl(raiz).length).toBe(11);
   });
 
-  it('las diez son las diez, cada una con su nombre', async () => {
+  it('las once son las once, cada una con su nombre', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -109,6 +111,7 @@ describe('Visor', () => {
       'Estaciones BiZi',
       'Aparcabicis',
       'Aparcamotos',
+      'Regulado ESRO+ESRE',
     ]);
   });
 

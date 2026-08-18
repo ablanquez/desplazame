@@ -95,7 +95,30 @@ const APARCABICIS = '/datos/2026-08-17_wfs_movilidad-MU2_aparcabicis.json';
 const APARCAMOTOS = '/datos/2026-08-18_wfs_movilidad-MU2_motos.json';
 
 /**
- * Lo que el mapa necesita saber de las capas de verificación, y nada más: diez
+ * ANDAMIO DE VERIFICACIÓN. El estacionamiento regulado en superficie, tercera
+ * descarga propia: 7.391 tramos de bordillo (MultiLineString).
+ *
+ * **De los 7.391 solo se pintan 1.159.** El campo que manda es `tipo_actual`:
+ * `ESRO` es rotación —la zona azul— y `ESRE` residentes; los 6.204 `LIBRE` y
+ * los 28 sin clasificar **no se pintan**, porque no son regulado. Viajan en el
+ * fichero, que se copió entero y tal cual.
+ *
+ * ⚠️ **`zona_reguladora` NO dice si está regulado**: es un perímetro
+ * geográfico, y **5.049 tramos LIBRES lo llevan**. Filtrar por ahí pintaría de
+ * pago 5.049 bordillos gratuitos. Ver THIRD-PARTY-NOTICES § 1.11.
+ */
+const REGULADO = '/datos/2026-08-18_wfs_movilidad-MU1_estacionamientos_calle.json';
+
+/** Un tramo de bordillo. `tipo_actual` es lo único que se mira de él. */
+interface TramoCrudo {
+  readonly geometry: {
+    readonly coordinates: readonly (readonly (readonly [number, number])[])[];
+  };
+  readonly properties: { readonly tipo_actual: string | null };
+}
+
+/**
+ * Lo que el mapa necesita saber de las capas de verificación, y nada más: once
  * señales de solo lectura y la orden de cargarlas. Está escrito aparte del
  * servicio para que una prueba pueda darle al mapa unas capas de mentira sin
  * levantar la descarga entera.
@@ -111,11 +134,13 @@ export interface CapasDeVerificacion {
   readonly estacionesBizi: Signal<readonly Vertice[]>;
   readonly aparcabicis: Signal<readonly Vertice[]>;
   readonly aparcamotos: Signal<readonly Vertice[]>;
+  readonly reguladoRotacion: Signal<readonly (readonly Vertice[])[]>;
+  readonly reguladoResidentes: Signal<readonly (readonly Vertice[])[]>;
   cargar(): void;
 }
 
 /**
- * Las diez capas de verificación, cargadas UNA vez para toda la aplicación.
+ * Las once capas de verificación, cargadas UNA vez para toda la aplicación.
  *
  * Vivían en el componente de la pantalla, que era el único que las pintaba.
  * Con dos páginas —el buscador y el visor— eso ya no vale: [DOC] el
@@ -178,6 +203,14 @@ export class Capas implements CapasDeVerificacion {
   private readonly _aparcamotos = signal<readonly Vertice[]>([]);
   readonly aparcamotos = this._aparcamotos.asReadonly();
 
+  /** Los tramos ESRO: estacionamiento regulado de ROTACIÓN, la zona azul. */
+  private readonly _reguladoRotacion = signal<readonly (readonly Vertice[])[]>([]);
+  readonly reguladoRotacion = this._reguladoRotacion.asReadonly();
+
+  /** Los tramos ESRE: estacionamiento regulado de RESIDENTES. */
+  private readonly _reguladoResidentes = signal<readonly (readonly Vertice[])[]>([]);
+  readonly reguladoResidentes = this._reguladoResidentes.asReadonly();
+
   /** Si ya se pidió. La segunda página no vuelve a bajarse los 34 MB. */
   private pedido = false;
 
@@ -200,6 +233,43 @@ export class Capas implements CapasDeVerificacion {
     this.cargarBizi();
     this.cargarAparcabicis();
     this.cargarAparcamotos();
+    this.cargarRegulado();
+  }
+
+  /**
+   * Parte los tramos en las DOS clases que se pintan y tira el resto. El corte
+   * se hace por `tipo_actual` y solo por ahí: es el único campo que dice si un
+   * bordillo es de pago.
+   */
+  private async cargarRegulado(): Promise<void> {
+    try {
+      const respuesta = await fetch(REGULADO);
+      if (!respuesta.ok) {
+        console.error(`regulado: el servidor respondió ${respuesta.status}`);
+        return;
+      }
+      const crudo = (await respuesta.json()) as { readonly features: readonly TramoCrudo[] };
+      const rotacion: Vertice[][] = [];
+      const residentes: Vertice[][] = [];
+      for (const rasgo of crudo.features) {
+        const destino =
+          rasgo.properties.tipo_actual === 'ESRO'
+            ? rotacion
+            : rasgo.properties.tipo_actual === 'ESRE'
+              ? residentes
+              : null;
+        if (!destino) {
+          continue;
+        }
+        for (const tramo of rasgo.geometry.coordinates) {
+          destino.push(tramo.map(([lon, lat]) => [lat, lon] as Vertice));
+        }
+      }
+      this._reguladoRotacion.set(rotacion);
+      this._reguladoResidentes.set(residentes);
+    } catch (e) {
+      console.error('regulado: no se pudo cargar', e);
+    }
   }
 
   private async cargarAparcamotos(): Promise<void> {

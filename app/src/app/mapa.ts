@@ -49,7 +49,7 @@ const ATRIBUCION_GTFS =
  *
  * Lo que cambia entre el buscador y el visor son DOS cosas, y las dos son
  * parámetro, no copia: el ALTO del lienzo y si hay o no TRAZADO que pintar. Las
- * diez capas de verificación no se le pasan: las lee del servicio `Capas`, que
+ * once capas de verificación no se le pasan: las lee del servicio `Capas`, que
  * es donde viven, y así el bloque que las ata no se escribe dos veces —una por
  * página— ni hay que acordarse de dos sitios cada vez que entra una capa nueva.
  *
@@ -88,6 +88,7 @@ export class Mapa {
   private capaBizi?: L.LayerGroup;
   private capaAparcabicis?: L.LayerGroup;
   private capaAparcamotos?: L.LayerGroup;
+  private capaRegulado?: L.LayerGroup;
   private control?: L.Control.Layers;
 
   constructor() {
@@ -111,6 +112,7 @@ export class Mapa {
       this.pintarBizi();
       this.pintarAparcabicis();
       this.pintarAparcamotos();
+      this.pintarRegulado();
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -170,6 +172,12 @@ export class Mapa {
       this.pintarAparcamotos();
     });
 
+    effect(() => {
+      this.capas.reguladoRotacion();
+      this.capas.reguladoResidentes();
+      this.pintarRegulado();
+    });
+
     // Y al morir, se desmonta. Mientras hubo una sola pantalla esto no hacía
     // falta: el mapa nacía con la aplicación y moría con ella. Con el router
     // sí — el `RouterOutlet` destruye el componente cada vez que se sale de su
@@ -181,6 +189,68 @@ export class Mapa {
       this.mapa?.remove();
       this.mapa = undefined;
     });
+  }
+
+  /**
+   * Pinta el estacionamiento regulado: **ESRO en azul y ESRE en naranja**, las
+   * dos clases dentro de UNA sola casilla — se encienden y se apagan juntas,
+   * porque lo que se verifica es «dónde se paga», y el color de dentro dice de
+   * qué manera se paga.
+   *
+   * **Los 6.204 tramos LIBRE y los 28 sin clasificar no se pintan.** No son
+   * regulado, y pintarlos sería contestar otra pregunta.
+   *
+   * Los tonos:
+   * - **ESRO `#0284c7`**, un azul medio de señal. No es el de los portales
+   *   (`#1d4ed8`, más índigo) ni celeste: se lee «zona azul» a la primera.
+   * - **ESRE `#f97316`**, naranja vivo. ⚠️ Ya hay naranja en el mapa: la ruta
+   *   de prueba (`#b45309`). Se separan por **tres** cosas a la vez — el tono
+   *   (vivo contra quemado), el trazo (continuo contra discontinuo `10 8`) y el
+   *   grosor (3 contra 5).
+   *
+   * Grosor **3**: medio punto por encima de los carriles bici (2,5) para que se
+   * lean como otra familia, y por debajo del tranvía (4) y de la ruta (5).
+   */
+  private pintarRegulado(): void {
+    if (!this.mapa) {
+      return;
+    }
+
+    this.capaRegulado?.remove();
+    this.capaRegulado = undefined;
+
+    const rotacion = this.capas.reguladoRotacion();
+    const residentes = this.capas.reguladoResidentes();
+    if (rotacion.length === 0 && residentes.length === 0) {
+      this.refrescarControl();
+      return;
+    }
+
+    const lienzoCanvas = L.canvas();
+    const aLeaflet = (tramos: readonly (readonly Vertice[])[]) =>
+      tramos.map((t) => t.map(([lat, lon]) => [lat, lon] as L.LatLngTuple));
+    const comun = {
+      renderer: lienzoCanvas,
+      weight: 3,
+      opacity: 0.95,
+      interactive: false,
+      attribution: ATRIBUCION_MUNICIPAL,
+    };
+
+    const comienzo = performance.now();
+    this.capaRegulado = L.layerGroup(
+      [
+        L.polyline(aLeaflet(rotacion), { ...comun, color: '#0284c7' }),
+        L.polyline(aLeaflet(residentes), { ...comun, color: '#f97316' }),
+      ],
+      { attribution: ATRIBUCION_MUNICIPAL },
+    ).addTo(this.mapa);
+
+    console.info(
+      `mapa: ${rotacion.length} tramos ESRO y ${residentes.length} ESRE pintados en ` +
+        `${Math.round(performance.now() - comienzo)} ms`,
+    );
+    this.refrescarControl();
   }
 
   /**
@@ -607,6 +677,11 @@ export class Mapa {
     if (this.capaAparcamotos) {
       capas[`Aparcamotos (${this.capas.aparcamotos().length.toLocaleString('es-ES')})`] =
         this.capaAparcamotos;
+    }
+    if (this.capaRegulado) {
+      const tramos =
+        this.capas.reguladoRotacion().length + this.capas.reguladoResidentes().length;
+      capas[`Regulado ESRO+ESRE (${tramos.toLocaleString('es-ES')})`] = this.capaRegulado;
     }
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);
