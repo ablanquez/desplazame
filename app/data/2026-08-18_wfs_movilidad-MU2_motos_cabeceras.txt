@@ -1,0 +1,12 @@
+GET https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU2_motos&outputFormat=application/json&srsName=EPSG:4326
+HTTP 200
+access-control-allow-origin: *
+connection: keep-alive
+content-disposition: inline; filename=MU2_motos.json
+content-encoding: gzip
+content-length: 64811
+content-type: application/json;charset=UTF-8
+date: Tue, 18 Aug 2026 12:04:45 GMT
+keep-alive: timeout=20
+x-frame-options: SAMEORIGIN
+[Set-Cookie omitido: identificador de sesión, se filtra por norma]
