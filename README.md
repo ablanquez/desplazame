@@ -31,6 +31,11 @@
 > encenderlo y apagarlo. Pero el buscador **todavía no los usa**: la línea que dibuja al
 > generar sigue siendo tan inventada como los pasos.
 >
+> **Y ya son dos páginas.** La de siempre —el buscador, en la raíz— y un **visor de capas** en
+> `/visor`: el mismo mapa y las mismas nueve capas, pero a ventana casi completa. No es
+> producto: es la herramienta con la que se verifica cada dato que entra, porque en el lienzo
+> pequeño de debajo del formulario no se ve nada. Se irá con el andamio.
+>
 > Y ya hay **motor**: un servidor mínimo en Node que carga al arrancar el grafo de la ciudad,
 > el callejero y los **46.150 portales enteros**, y sirve lo que ves al rellenar el formulario
 > — de las 3.359 vías del callejero
@@ -48,8 +53,8 @@
 > **Pero no calcula ninguna ruta**: eso no existe todavía. Tampoco se sabe aún qué líneas
 > pasan por cada poste.
 >
-> Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y una
-> pantalla con andamio.
+> Así que hoy el repositorio es esto: el método de trabajo, el plan, las licencias y dos
+> páginas con andamio.
 >
 > El README se publica igualmente desde el principio —el repositorio es público desde el
 > primer commit— y por eso dice lo que hay, no lo que habrá.
