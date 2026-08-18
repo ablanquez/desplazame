@@ -23,16 +23,17 @@
 > portal se elige de la lista de los que esa calle tiene. Pero **no busca rutas**. Al pulsar «Generar
 > ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
 > dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
-> OpenStreetMap— y ya puede dibujar encima **siete datos reales**: del Ayuntamiento de
+> OpenStreetMap— y ya puede dibujar encima **ocho datos reales**: del Ayuntamiento de
 > Zaragoza, los **46.150 portales**, los **733 tramos de carril bici**, los **944 postes de
-> autobús**, las **276 estaciones BiZi** y los **2.158 aparcabicis**; de OpenStreetMap, las
-> **98.774 aristas** del grafo de continuidad peatonal y ciclable; y del GTFS, los **89
+> autobús**, las **276 estaciones BiZi**, los **2.158 aparcabicis** y los **2.146
+> aparcamotos**; de OpenStreetMap, las **98.774 aristas** del grafo de continuidad peatonal
+> y ciclable; y del GTFS, los **89
 > trazados de línea** —tranvía incluido, con sus 50 paradas—. Cada uno con su casilla para
 > encenderlo y apagarlo. Pero el buscador **todavía no los usa**: la línea que dibuja al
 > generar sigue siendo tan inventada como los pasos.
 >
 > **Y ya son dos páginas.** La de siempre —el buscador, en la raíz— y un **visor de capas** en
-> `/visor`: el mismo mapa y las mismas nueve capas, pero a ventana casi completa. No es
+> `/visor`: el mismo mapa y las mismas diez capas, pero a ventana casi completa. No es
 > producto: es la herramienta con la que se verifica cada dato que entra, porque en el lienzo
 > pequeño de debajo del formulario no se ve nada. Se irá con el andamio.
 >
@@ -116,14 +117,14 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son estas dos.
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
 
-> ℹ️ **Y las dos están en uso.** El repositorio lleva **ocho conjuntos de datos dentro**: seis
+> ℹ️ **Y las dos están en uso.** El repositorio lleva **nueve conjuntos de datos dentro**: siete
 > del Ayuntamiento de Zaragoza —el callejero, los portales, los carriles bici, los postes de
-> autobús, las estaciones BiZi y los aparcabicis—, el grafo de continuidad derivado de
-> OpenStreetMap, y el GTFS del Punto de Acceso Nacional. A eso se suma la **cartografía de
-> OpenStreetMap**, que no es un fichero: el mapa la pinta en vivo.
+> autobús, las estaciones BiZi, los aparcabicis y los aparcamotos—, el grafo de continuidad
+> derivado de OpenStreetMap, y el GTFS del Punto de Acceso Nacional. A eso se suma la
+> **cartografía de OpenStreetMap**, que no es un fichero: el mapa la pinta en vivo.
 > **La atribución de OpenStreetMap se cumple en la pantalla**, en el control del mapa y con la
 > palabra «colaboradores» literal. La del dato municipal se cumple en
-> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —nueve,
+> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —diez,
 > contando la cartografía—: fuente, fecha de descarga, licencia y cómo volver a conseguirlo.
 
 > ⚠️ **Rectificación (18/08/2026).** Hasta hoy este párrafo decía que el repositorio **«no
