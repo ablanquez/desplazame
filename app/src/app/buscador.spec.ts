@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import type { Portal, Via } from '@desplazame/tipos';
+import type { Portal, PortalCercano, Via } from '@desplazame/tipos';
 import { Buscador } from './buscador';
 
 /** Devuelve los botones de modo que están marcados como activos. */
@@ -24,6 +24,15 @@ function botonGenerar(raiz: HTMLElement): HTMLButtonElement {
 
 function botonInvertir(raiz: HTMLElement): HTMLButtonElement {
   return raiz.querySelector<HTMLButtonElement>('.invertir')!;
+}
+
+function botonUbicacion(raiz: HTMLElement): HTMLButtonElement {
+  return raiz.querySelector<HTMLButtonElement>('.ubicacion')!;
+}
+
+/** El aviso ámbar de la ubicación, si lo hay. */
+function avisoUbicacion(raiz: HTMLElement): string | null {
+  return raiz.querySelector('.aviso-ubicacion')?.textContent?.trim() ?? null;
 }
 
 /** El `<input>` de un campo, por su nombre. */
@@ -169,6 +178,63 @@ async function drenar(fixture: any, http: HttpTestingController): Promise<void> 
   await fixture.whenStable();
 }
 
+// La geolocalizacion, FINGIDA Y DICHA.
+//
+// jsdom NO trae la Geolocation API: `navigator.geolocation` es `undefined`.
+// Asi que aqui no se prueba el GPS —eso no se puede probar desde una prueba, y
+// el juez es el portatil de Antonio—. Lo que si es real, y es lo que miran
+// estas pruebas, es que se le PIDE al navegador y que se hace con cada una de
+// las respuestas que la doc dice que puede dar.
+
+/** Lo que hara el `getCurrentPosition` fingido en la prueba que toque. */
+let respondeGeo: (exito: PositionCallback, fallo: PositionErrorCallback) => void;
+
+/** Las opciones con las que se le llamo, para poder mirarlas. */
+let opcionesGeo: PositionOptions | undefined;
+
+function fingirGeolocalizacion(): void {
+  respondeGeo = () => {
+    throw new Error('la prueba no ha dicho que contesta la geolocalizacion');
+  };
+  opcionesGeo = undefined;
+  Object.defineProperty(navigator, 'geolocation', {
+    configurable: true,
+    value: {
+      getCurrentPosition: (
+        exito: PositionCallback,
+        fallo: PositionErrorCallback,
+        opciones?: PositionOptions,
+      ) => {
+        opcionesGeo = opciones;
+        respondeGeo(exito, fallo);
+      },
+    },
+  });
+}
+
+/** Una posicion como la que da el navegador, con su radio de confianza. */
+function posicion(lat: number, lon: number, precision: number): GeolocationPosition {
+  return {
+    coords: { latitude: lat, longitude: lon, accuracy: precision },
+    timestamp: 0,
+  } as unknown as GeolocationPosition;
+}
+
+/** [DOC MDN] Los tres codigos de `GeolocationPositionError`. */
+function falloGeo(codigo: number): GeolocationPositionError {
+  return { code: codigo, message: '' } as GeolocationPositionError;
+}
+
+/** El punto del Pilar. */
+const PILAR: readonly [number, number] = [41.6564, -0.8779];
+
+/** Lo que contestaria el motor para ese punto. */
+const CERCA: PortalCercano = {
+  via: BURGOS,
+  portal: { codigo: 'Portales.5140a', numero: '2' },
+  metros: 42,
+};
+
 describe('Buscador', () => {
   let http: HttpTestingController;
 
@@ -178,6 +244,7 @@ describe('Buscador', () => {
       providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);
+    fingirGeolocalizacion();
   });
 
   afterEach(() => {
@@ -452,5 +519,225 @@ describe('Buscador', () => {
     expect(botonGenerar(raiz).disabled).toBe(true);
 
     await drenar(fixture, http);
+  });
+
+  // ── MI UBICACIÓN ──────────────────────────────────────────────────────────
+
+  it('«Mi ubicación» rellena calle y portal POR CÓDIGO, como si se hubieran elegido', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // El destino se pone a mano, para que solo falte el origen.
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await elegirPortal(fixture, 'portalDestino', '45');
+    await fixture.whenStable();
+    expect(botonGenerar(raiz).disabled).toBe(true);
+
+    respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 20));
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+
+    // Mientras se espera al motor, el botón no se deja pulsar otra vez.
+    expect(botonUbicacion(raiz).disabled).toBe(true);
+
+    http.expectOne(`/api/portal-cercano?lat=${PILAR[0]}&lon=${PILAR[1]}`).flush(CERCA);
+    fixture.detectChanges();
+
+    expect(valor(raiz, 'calleOrigen')).toBe('CALLE BURGOS');
+    expect(valor(raiz, 'portalOrigen')).toBe('2');
+    expect(avisoUbicacion(raiz)).toBeNull();
+    expect(botonUbicacion(raiz).disabled).toBe(false);
+
+    // Y lo que prueba que hay CÓDIGO detrás y no solo texto: el botón se
+    // desbloquea. Con el texto puesto y el código vacío seguiría bloqueado —
+    // que es exactamente el fallo de la entrada nº4.
+    expect(botonGenerar(raiz).disabled).toBe(false);
+
+    await drenar(fixture, http);
+  });
+
+  it('pide la posición con las TRES opciones declaradas', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 20));
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+    http.expectOne(`/api/portal-cercano?lat=${PILAR[0]}&lon=${PILAR[1]}`).flush(CERCA);
+
+    expect(opcionesGeo).toEqual({
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    });
+
+    await drenar(fixture, http);
+  });
+
+  it('con la precisión mala NI PREGUNTA al motor, y dice cuántos metros son', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // 1.200 m de radio: un posicionamiento por IP, no un GPS.
+    respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 1200));
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+
+    expect(avisoUbicacion(raiz)).toContain('1200 metros');
+    expect(valor(raiz, 'calleOrigen')).toBe('');
+    // El umbral se mira ANTES de preguntar: no se molesta al motor en balde.
+    http.expectNone(() => true);
+  });
+
+  it('con el portal demasiado lejos NO toca los campos y dice a cuántos está', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 20));
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+
+    // 676 m es lo que mide Puerto Venecia, que está DENTRO de Zaragoza. Por eso
+    // el mensaje NO puede decir «no estás en Zaragoza»: lo estaría diciendo
+    // estando en Zaragoza. Habla de la distancia, que es lo que sí sabemos.
+    http
+      .expectOne(`/api/portal-cercano?lat=${PILAR[0]}&lon=${PILAR[1]}`)
+      .flush({ ...CERCA, metros: 676 } satisfies PortalCercano);
+    fixture.detectChanges();
+
+    expect(avisoUbicacion(raiz)).toContain('676 metros');
+    expect(avisoUbicacion(raiz)).not.toContain('Zaragoza');
+    expect(valor(raiz, 'calleOrigen')).toBe('');
+    expect(valor(raiz, 'portalOrigen')).toBe('');
+    expect(botonGenerar(raiz).disabled).toBe(true);
+  });
+
+  it('los TRES fallos de la API tienen su mensaje, y ninguno toca los campos', async () => {
+    const esperados: ReadonlyArray<readonly [number, string]> = [
+      [1, 'Sin permiso de ubicación'],
+      [2, 'no ha podido averiguar dónde estás'],
+      [3, 'Se ha tardado demasiado'],
+    ];
+
+    for (const [codigo, trozo] of esperados) {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      respondeGeo = (_exito, fallo) => fallo(falloGeo(codigo));
+      botonUbicacion(raiz).click();
+      fixture.detectChanges();
+
+      expect(avisoUbicacion(raiz)).toContain(trozo);
+      expect(valor(raiz, 'calleOrigen')).toBe('');
+      expect(botonUbicacion(raiz).disabled).toBe(false);
+      http.expectNone(() => true);
+    }
+  });
+
+  it('un aviso viejo se borra al volver a pulsar: no se queda mintiendo', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    respondeGeo = (_exito, fallo) => fallo(falloGeo(3));
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+    expect(avisoUbicacion(raiz)).toContain('Se ha tardado demasiado');
+
+    respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 20));
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+    http.expectOne(`/api/portal-cercano?lat=${PILAR[0]}&lon=${PILAR[1]}`).flush(CERCA);
+    fixture.detectChanges();
+
+    expect(avisoUbicacion(raiz)).toBeNull();
+    expect(valor(raiz, 'calleOrigen')).toBe('CALLE BURGOS');
+
+    await drenar(fixture, http);
+  });
+
+  it('lo que rellena «Mi ubicación» se puede INVERTIR: así se pone como destino', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 20));
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+    http.expectOne(`/api/portal-cercano?lat=${PILAR[0]}&lon=${PILAR[1]}`).flush(CERCA);
+    fixture.detectChanges();
+
+    botonInvertir(raiz).click();
+    fixture.detectChanges();
+
+    expect(valor(raiz, 'calleOrigen')).toBe('');
+    expect(valor(raiz, 'calleDestino')).toBe('CALLE BURGOS');
+    expect(valor(raiz, 'portalDestino')).toBe('2');
+
+    await drenar(fixture, http);
+  });
+
+  // Las tres ramas que no salen de la API sino del camino: sin contexto
+  // seguro, con el motor caído, y con el motor diciendo que no sabe. No están
+  // en los cinco mensajes que se aprobaron, pero existen, y un botón que no
+  // hace nada y no dice por qué es peor que no tener botón.
+
+  it('sin la API de geolocalización lo DICE, y dice que hace falta https', async () => {
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: undefined,
+    });
+
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+
+    expect(avisoUbicacion(raiz)).toContain('conexión segura (https)');
+    expect(botonUbicacion(raiz).disabled).toBe(false);
+    http.expectNone(() => true);
+  });
+
+  it('si el motor no contesta, lo dice igual que los demás campos', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 20));
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+
+    http
+      .expectOne(`/api/portal-cercano?lat=${PILAR[0]}&lon=${PILAR[1]}`)
+      .error(new ProgressEvent('error'), { status: 0, statusText: 'sin conexión' });
+    fixture.detectChanges();
+
+    expect(avisoUbicacion(raiz)).toContain('No se pudo preguntar al motor');
+    expect(botonUbicacion(raiz).disabled).toBe(false);
+    expect(valor(raiz, 'calleOrigen')).toBe('');
+  });
+
+  it('si el motor contesta que NO SABE, no se rellena media dirección', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 20));
+    botonUbicacion(raiz).click();
+    fixture.detectChanges();
+
+    http.expectOne(`/api/portal-cercano?lat=${PILAR[0]}&lon=${PILAR[1]}`).flush(null);
+    fixture.detectChanges();
+
+    expect(avisoUbicacion(raiz)).toContain('No hemos podido situarte');
+    expect(valor(raiz, 'calleOrigen')).toBe('');
+    expect(botonGenerar(raiz).disabled).toBe(true);
   });
 });

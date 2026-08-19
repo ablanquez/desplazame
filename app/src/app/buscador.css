@@ -62,6 +62,37 @@ legend {
   box-sizing: border-box;
 }
 
+/* «Mi ubicación» es un atajo, no la forma normal de rellenar: va discreto,
+   dentro del bloque de Origen y detrás de sus dos campos. */
+.ubicacion {
+  align-self: flex-end;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #999;
+  border-radius: 3px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.ubicacion:disabled {
+  border-color: #ccc;
+  background: #f0f0f0;
+  color: #777;
+  cursor: progress;
+}
+
+/* El mismo ámbar de siempre (#b45309 / #fff4e5 / #7c3d00): no es un error del
+   programa, es algo que no se ha podido hacer y se cuenta. */
+.aviso-ubicacion {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #b45309;
+  border-radius: 4px;
+  background: #fff4e5;
+  color: #7c3d00;
+}
+
 /* El ⇅ va ENTRE los dos bloques, que es donde lo pone todo el mundo y donde
    se lee lo que hace sin leer nada. Centrado y estrecho: es un gesto, no una
    acción principal — la principal es «Generar ruta». */

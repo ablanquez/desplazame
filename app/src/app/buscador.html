@@ -26,7 +26,21 @@
         [(seleccion)]="origen.portal"
         [(tocado)]="origen.portalTocado"
       />
+      <button
+        type="button"
+        class="ubicacion"
+        [disabled]="buscandoUbicacion()"
+        (click)="miUbicacion()"
+      >
+        {{ buscandoUbicacion() ? 'Buscando…' : '📍 Mi ubicación' }}
+      </button>
     </fieldset>
+
+    <!-- El aviso va pegado al botón que lo produce, no arriba del todo: se lee
+         donde se ha mirado. `role="status"` para que también se cante. -->
+    @if (avisoUbicacion(); as aviso) {
+      <p class="aviso-ubicacion" role="status">{{ aviso }}</p>
+    }
 
     <button
       type="button"
