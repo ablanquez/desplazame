@@ -131,6 +131,31 @@ export interface Portal {
 }
 
 /**
+ * Lo que devuelve `GET /api/portal-cercano?lat=&lon=`: el portal del censo que
+ * cae más cerca de un punto, con **la vía a la que pertenece** y **a cuántos
+ * metros está**.
+ *
+ * Lleva la `Via` y el `Portal` **enteros, y no sus códigos**, a propósito: son
+ * exactamente las dos piezas que la pantalla fija cuando alguien elige a mano,
+ * así que el botón «Mi ubicación» puede meterlas por el mismo camino en vez de
+ * abrir uno paralelo. El formulario no se entera de que hubo GPS.
+ *
+ * `metros` es la distancia en línea recta —haversine—, no andando. Va en la
+ * respuesta porque **quien decide si vale es la pantalla, no el motor**: el
+ * motor contesta cuál es el más cercano aunque esté en la otra punta, y el
+ * umbral se aplica arriba, donde se puede explicar al usuario.
+ *
+ * Sin `lat`/`lon`, o con valores que no son números o se salen de rango:
+ * `null`, que es una respuesta bien formada y no un error — igual que la lista
+ * vacía de `/api/vias`.
+ */
+export interface PortalCercano {
+  readonly via: Via;
+  readonly portal: Portal;
+  readonly metros: number;
+}
+
+/**
  * Lo que el motor lleva de portales, y lo que le costó ponerlos en memoria.
  *
  * `total` tiene que coincidir con `SaludCallejero.portales`: son el mismo
