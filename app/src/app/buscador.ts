@@ -12,7 +12,7 @@ import { SelectorPortal } from './selector-portal';
 /**
  * ANDAMIO. Respuesta falsa y fija: no sale de ningún motor ni de ningún dato.
  * Existe para poder ver funcionar la pantalla entera antes de que exista el
- * motor, y se retira en el punto 6 del plan cuando el motor real la sustituya.
+ * motor, y se retira en el punto 7 del plan cuando el motor real la sustituya.
  */
 const RUTA_DE_PRUEBA: readonly Paso[] = [
   { texto: 'Anda 150 m hasta la parada de prueba', detalle: '2 min' },

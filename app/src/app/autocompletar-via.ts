@@ -6,10 +6,10 @@ import type { Via } from '@desplazame/tipos';
  * Cómo se enseña una vía: el nombre limpio y, si es de un núcleo, su nombre.
  *
  * El núcleo va entre CORCHETES, no entre paréntesis, porque los paréntesis ya
- * son del dato: 15 vías sugeribles los traen en su propio nombre («CALLE
- * MALPICA ( A)»), y una es trampa pura —«CALLE HERRERÍN (JAIME BALLESTEROS)»— donde el
- * paréntesis NO es un núcleo. Dos signos, dos significados: el paréntesis es
- * del callejero, el corchete es nuestro.
+ * son del dato: 38 vías los traen en su propio nombre —32 de ellas sugeribles—
+ * («CALLE MALPICA ( A)»), y una es trampa pura —«CALLE HERRERÍN (JAIME
+ * BALLESTEROS)»— donde el paréntesis NO es un núcleo. Dos signos, dos
+ * significados: el paréntesis es del callejero, el corchete es nuestro.
  *
  * Es función suelta y **exportada**, no solo método del componente, porque el
  * padre la necesita: cuando «Mi ubicación» fija una vía por código tiene que
