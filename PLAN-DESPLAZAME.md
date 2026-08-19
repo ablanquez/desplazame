@@ -551,10 +551,47 @@ la documentación (MDN Geolocation API):
 
 ## 7 — Primera ruta: ANDANDO (aquí ya existe la demo)
 
-- [ ] `POST /api/ruta` de portal a portal, modo andando
+*Hitos ampliados el 19/08 con la doctrina de los motores de referencia
+delante (Valhalla/OSRM — sus docs de algoritmos): seis cosas que el
+plan genérico pasaba por alto.*
+
+- [ ] **PRIMERO, la comprobación que condiciona los pasos** [NO CONSTA]:
+      ¿el grafo lleva el nombre de vía en cada arista? El patrón
+      estándar de instrucciones (OSRM) agrupa aristas consecutivas POR
+      NOMBRE («Sigue por X, 200 m») — sin nombre, los pasos serían mudos
+      o pedirían cruzar con otro dato. Se mira ANTES de escribir nada, y
+      lo que salga decide la forma de los pasos
+- [ ] **El enganche completo, al patrón documentado**: portal → arista
+      del censo enganchado + punto PROYECTADO dentro de ella (la ruta
+      empieza en la proyección, no en un extremo — el conector
+      portal→proyección es parte de la geometría), y el camino puede
+      salir por CUALQUIERA de los dos extremos de cada arista: se
+      prueban las 4 combinaciones y gana la mejor [DOC — hacerlo naïf
+      produce retrocesos de hasta una manzana]. Los 124 sin enganche →
+      `Aviso` honesto
+- [ ] **El caso trivial, con trato propio** [DOC Valhalla]: origen y
+      destino en la MISMA arista (portal 10 → 14 de la misma calle) —
+      sin tratarlo, el algoritmo da la vuelta a la manzana para ir a 40
+      metros
+- [ ] **«Sin camino» es un resultado, no un error**: 170 componentes en
+      el grafo (169 islas) — dos portales en islas distintas devuelven
+      `Aviso`, jamás cuelgue ni ruta absurda
+- [ ] **Dijkstra unidireccional con montículo binario, MEDIDO**: la doc
+      respalda que basta (el peatonal usa solo jerarquía local, sin
+      atajos; el bidireccional es velocidad para grafos continentales) —
+      con 68.649 nodos en memoria se mide el coste real y no se optimiza
+      nada que no lo pida
+- [ ] `POST /api/ruta` de portal a portal, modo andando — el contrato
+      crece con lo que la respuesta necesite (geometría con conectores,
+      pasos, metros, `Aviso`)
+- [ ] **La duración, derivada y dicha como derivada**: metros medidos /
+      5,0 km/h (la decisión heredada) — coherente con D-G: no se promete
+      lo que no se mide
 - [ ] La ruta se pinta en el mapa y los pasos salen escritos
 - [ ] Probada con trayectos que Antonio conoce a pie — el juez es su ojo
-      sobre el mapa, no un contador
+      sobre el mapa, no un contador. Entre ellos, los casos de la
+      doctrina: uno trivial (misma calle), uno con islas, uno céntrico
+      largo
 - [ ] La respuesta falsa del punto 2 se retira (ya no hace falta el andamio)
 - [ ] **Se retiran los andamios de carga del mapa de verificación**
       (decidido el 18/08 en el punto 5): el navegador deja de bajarse los

@@ -60,6 +60,13 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
+**El punto 7 ganó hitos con la doctrina delante (19/08):** los seis
+puntos de Valhalla/OSRM — la comprobación del nombre-en-arista [NO
+CONSTA] que condiciona los pasos, el enganche con proyección y las 4
+combinaciones, el caso trivial de misma arista, el «sin camino» como
+resultado, Dijkstra unidireccional medido, y la duración derivada de
+los 5,0 km/h.
+
 **Lo siguiente: el punto 7** — `POST /api/ruta` andando (Dijkstra sobre
 el grafo en memoria, el enganche portal→arista del censo enganchado),
 la ruta pintada y los pasos escritos, el juez es el ojo de Antonio sobre
