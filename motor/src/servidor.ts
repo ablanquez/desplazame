@@ -2,8 +2,9 @@
  * El motor de Desplázame.
  *
  * Carga el grafo y el callejero UNA vez al arrancar y los deja en memoria;
- * después abre el puerto. Todavía no calcula rutas —eso es el punto 6—, pero
- * ya sugiere vías y dice en `/api/salud` con qué dato lo hace.
+ * después abre el puerto. Todavía no calcula rutas —eso es el punto 7—, pero
+ * ya sugiere vías, sirve los portales de cada una, dice cuál es el más cercano
+ * a un punto, y declara en `/api/salud` con qué dato lo hace.
  *
  * **El puerto no abre hasta que todo está cargado.** Es la decisión declarada:
  * así no existe el instante en que el motor contesta a medio cargar, y la
@@ -17,6 +18,7 @@ import type { Salud } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
+import { portalCercano } from './cercano.ts';
 
 /** El puerto del motor. La interfaz le habla por el proxy de `ng serve`. */
 const PUERTO = 3000;
@@ -100,6 +102,21 @@ const servidor = createServer((peticion, respuesta) => {
     return;
   }
 
+  if (peticion.method === 'GET' && url.pathname === '/api/portal-cercano') {
+    // El barrido de los 46.150 cuesta 1 ms medido, así que no hay ni índice
+    // espacial ni caché: se recorren todos en cada petición y se contesta.
+    //
+    // `Number('')` vale 0, que es una coordenada legítima en mitad del
+    // Atlántico. Por eso el parámetro que falta se convierte a `NaN` a mano en
+    // vez de dejarlo colar como cero.
+    const numero = (nombre: string): number => {
+      const crudo = url.searchParams.get(nombre);
+      return crudo === null || crudo.trim() === '' ? Number.NaN : Number(crudo);
+    };
+    json(200, portalCercano(portales, callejero, numero('lat'), numero('lon')));
+    return;
+  }
+
   if (peticion.method === 'GET' && url.pathname === '/api/portales') {
     // Se devuelven TODOS los portales de la vía, no una página: la mediana es
     // 9 y el peor caso 1.469, que en este contrato son unos 66 KB. Una sola
@@ -116,5 +133,6 @@ const servidor = createServer((peticion, respuesta) => {
 servidor.listen(PUERTO, () => {
   console.log(`motor: escuchando en http://localhost:${PUERTO} (pid ${process.pid})`);
   console.log(`motor: /api/vias sugiere desde ${MINIMO} letras, hasta ${LIMITE} resultados`);
+  console.log('motor: /api/portal-cercano barre los portales en memoria por haversine');
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 });

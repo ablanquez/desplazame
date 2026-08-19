@@ -6,9 +6,11 @@
  * es este fichero y nadie más — el callejero recibe los portales ya cargados
  * en vez de volver a parsear los 10 MB por su cuenta.
  *
- * Lo que se sirve son `codigo` y `numero`. Las coordenadas se guardan aparte,
- * indexadas por código, porque `/api/ruta` (punto 6) las va a necesitar y el
- * navegador no: mandarlas sería enviar 46.150 pares que nadie pinta.
+ * Lo que se sirve son `codigo` y `numero`. Las coordenadas se guardan aparte
+ * —en una lista plana y en un índice por código, los mismos objetos— porque
+ * las necesitan el motor y solo el motor: `/api/portal-cercano` las barre y
+ * `/api/ruta` las buscará. Al navegador no van: mandarlas sería enviar 46.150
+ * pares que nadie pinta.
  */
 
 import { readFileSync } from 'node:fs';
@@ -34,8 +36,15 @@ interface PortalCrudo {
   readonly coordLon: number;
 }
 
-/** Dónde está un portal. Todavía no se sirve: la querrá `/api/ruta`. */
-export interface Situacion {
+/**
+ * Un portal con su sitio y su vía. Es lo que hace falta para barrer el censo
+ * buscando el más cercano a un punto: el código para identificarlo, el número
+ * para enseñarlo, la vía para poder decir de qué calle es, y las coordenadas.
+ */
+export interface PortalSituado {
+  readonly codigo: string;
+  readonly numero: string;
+  readonly via: string;
   readonly lat: number;
   readonly lon: number;
 }
@@ -45,8 +54,18 @@ export interface PortalesEnMemoria {
   readonly total: number;
   /** Los portales de cada vía, YA en orden natural y listos para servir. */
   readonly porVia: ReadonlyMap<string, readonly Portal[]>;
-  /** Dónde cae cada portal, por su código. Para el punto 6. */
-  readonly donde: ReadonlyMap<string, Situacion>;
+  /**
+   * Los 46.150 en una lista plana, para recorrerlos de principio a fin. Un
+   * array se barre más rápido que un `Map`, y barrerlos enteros es justo lo
+   * que hace `/api/portal-cercano`.
+   */
+  readonly situados: readonly PortalSituado[];
+  /**
+   * Los MISMOS objetos de `situados`, indexados por su código. No hay dato
+   * duplicado: son punteros a lo mismo. Lo querrá `/api/ruta`, que buscará por
+   * código y no por cercanía.
+   */
+  readonly donde: ReadonlyMap<string, PortalSituado>;
   readonly cargadoEnMs: number;
 }
 
@@ -82,7 +101,8 @@ export function cargarPortales(): PortalesEnMemoria {
   const crudos = JSON.parse(readFileSync(PORTALES, 'utf8')) as readonly PortalCrudo[];
 
   const agrupados = new Map<string, PortalCrudo[]>();
-  const donde = new Map<string, Situacion>();
+  const situados: PortalSituado[] = [];
+  const donde = new Map<string, PortalSituado>();
   for (const crudo of crudos) {
     const via = String(crudo.codigoVia);
     const suyos = agrupados.get(via);
@@ -91,7 +111,15 @@ export function cargarPortales(): PortalesEnMemoria {
     } else {
       agrupados.set(via, [crudo]);
     }
-    donde.set(crudo.portalId, { lat: crudo.coordLat, lon: crudo.coordLon });
+    const situado: PortalSituado = {
+      codigo: crudo.portalId,
+      numero: crudo.displayNumber,
+      via,
+      lat: crudo.coordLat,
+      lon: crudo.coordLon,
+    };
+    situados.push(situado);
+    donde.set(situado.codigo, situado);
   }
 
   // Se ordena AQUÍ, una vez al arrancar, y no en cada petición: el orden es
@@ -105,7 +133,13 @@ export function cargarPortales(): PortalesEnMemoria {
     );
   }
 
-  return { total: crudos.length, porVia, donde, cargadoEnMs: performance.now() - principio };
+  return {
+    total: crudos.length,
+    porVia,
+    situados,
+    donde,
+    cargadoEnMs: performance.now() - principio,
+  };
 }
 
 /**
