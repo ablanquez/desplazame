@@ -8,7 +8,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 ## ESTADO ACTUAL — 18 de agosto de 2026 (noche)
 
 **⭐ PUNTO 5 CERRADO. Los puntos 1-5 están completos; lo siguiente es el
-punto 6: la primera ruta andando — ahí existe la demo.**
+punto 7: la primera ruta andando — ahí existe la demo.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio:
 
@@ -18,7 +18,7 @@ Lo que existe y funciona, todo visto por el ojo de Antonio:
   se sale sin elegir, «Generar ruta» exigiendo los cuatro CÓDIGOS.
   Modos: Andando · Bus / Tranvía · Bici / Patinete · Coche (mayúscula
   tras la barra: peso visual, decisión de Antonio). La respuesta de
-  generar sigue siendo el andamio ⚠️ DATOS DE PRUEBA (muere en el 6).
+  generar sigue siendo el andamio ⚠️ DATOS DE PRUEBA (muere en el 7).
 - **El visor** (`/visor`): el mapa a ventana casi completa con las
   CATORCE capas apagables — portales, grafo, carriles, postes bus,
   trazados bus, tranvía ×2, BiZi, aparcabicis, aparcamotos, regulado
@@ -47,11 +47,16 @@ Lo que existe y funciona, todo visto por el ojo de Antonio:
 capas apagadas, la etiqueta, el README — hasta `d56af44` más los cierres
 de plan/estado). El push de cierre del punto 5 es decisión de Antonio.
 
-**Lo siguiente: el punto 6** — `POST /api/ruta` andando (Dijkstra sobre
+**Lo siguiente: el punto 6 (nuevo, parlamentado el 19/08)** — el botón
+⇅ invertir y «Mi ubicación»: Geolocation API [DOC MDN] con permiso del
+navegador, `GET /api/portal-cercano`, el umbral en DOS comprobaciones
+medidas (`coords.accuracy` primero, distancia después), los tres errores
+tipados con su ámbar, y «Tu ubicación no está dentro de Zaragoza».
+**Después, el punto 7** — `POST /api/ruta` andando (Dijkstra sobre
 el grafo en memoria, el enganche portal→arista del censo enganchado),
 la ruta pintada y los pasos escritos, el juez es el ojo de Antonio sobre
 trayectos que conoce a pie, la respuesta falsa se retira, y los andamios
-de carga con su casilla de retirada. Y el 6B (destinos con nombre)
+de carga con su casilla de retirada. Y el 8 (destinos con nombre)
 espera detrás, en construcción.
 
 ---
@@ -80,14 +85,14 @@ colgadas de sus capas.
 - **Frontend:** Angular 22 standalone · Leaflet + OSM · router mínimo
   (dos rutas + comodín).
 - **Motor:** Node + TS SIN compilar (no hay build — hecho de despliegue,
-  ata el punto 10) · `node:http` · todo en memoria antes de `listen()`.
+  ata el punto 12) · `node:http` · todo en memoria antes de `listen()`.
 - **Workspaces** de raíz única (`tipos/`+`motor/`+`app/`), lockfile
   único · **contrato** por symlink: si el motor cambia, el front no
   compila, a propósito; crece cuando el motor lo pide.
 - **Endpoints:** bajo `/api`; los vivos los declara el motor, los
   previstos el plan (6 y 8). Proxy dev `/api/**` → 3000.
 - **Despliegue:** Hostinger plan Node — TODO en NO CONSTA hasta el
-  punto 10 (versión Node, memoria, proceso persistente, index.html en
+  punto 12 (versión Node, memoria, proceso persistente, index.html en
   rutas desconocidas, symlink a lo construido).
 
 ## 3 · Las reglas del reinicio
@@ -105,20 +110,22 @@ colgadas de sus capas.
 
 ## 4 · El plan
 
-`PLAN-DESPLAZAME.md`: **1-5 CERRADOS** · 6 primera ruta andando (la
-demo) · 6B destinos con nombre (EN CONSTRUCCIÓN, Antonio irá añadiendo)
-· 7 bici/patinete (con la casilla de la ordenanza VMP) · 8 bus/tranvía ·
-9 coche (cargado: parkings, parquímetros, las tres cuentas) ·
-10 despliegue (cargado) · 11 estética. La investigación de datos
-abiertos vive en `docs/INVESTIGACION-EQUIPAMIENTOS.md`.
+`PLAN-DESPLAZAME.md`, renumerado a enteros el 19/08 (fuera el «6B»):
+**1-5 CERRADOS** · 6 mi ubicación e invertir (parlamentado, lo
+inmediato) · 7 primera ruta andando (la demo) · 8 destinos con nombre
+(EN CONSTRUCCIÓN; ganó la regla del portal condicional y la opción de
+las 628 con trazados) · 9 bici/patinete (ordenanza VMP) ·
+10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
+cuentas) · 12 despliegue (cargado) · 13 estética. La investigación de
+datos abiertos vive en `docs/INVESTIGACION-EQUIPAMIENTOS.md`.
 
 ## 5 · Decisiones
 
 **Heredadas:** D-G (componer sin prometer) · paradas se regeneran
-(punto 8) · velocidad a pie 5,0 km/h.
+(punto 10) · velocidad a pie 5,0 km/h.
 
 **Del reinicio (16-17/08):** `app/.vscode/` versionado · GTFS como
-instantánea con caducidad · D-MAPA-DE-HOY (punto 8) · reparto de censos
+instantánea con caducidad · D-MAPA-DE-HOY (punto 10) · reparto de censos
 (callejero+municipal resuelven · enganchado salta al grafo · 124 sin
 enganche → Aviso) · solo se sugiere lo cumplible · norma Set-Cookie ·
 color BiZi es marca · correo del feed tal cual · el puerto no abre hasta
@@ -145,7 +152,7 @@ los andamios tiene su casilla (42 MB ya; la descarga perezosa quedó
 dicha como opción) · `enlaces.json` de la OLD referencia aristas por
 índice de ESTE grafo.
 
-**Punto 6B:** en construcción — el dato personal de farmacias tiene su
+**Punto 8:** en construcción — el dato personal de farmacias tiene su
 salida apuntada («Farmacia» + dirección).
 
 **Punto 7:** la ordenanza VMP antes de etiquetar tramos · la doble
@@ -159,7 +166,7 @@ reevaluables · las tres cuentas municipales que no cuadran.
 
 **Punto 10 (todo NO CONSTA, y creció):** versión Node del panel (el
 README ya advierte del `engines` sin declarar — candidato a declararlo
-aquí) · memoria (~248 MB y el 6 subirá) · proceso persistente ·
+aquí) · memoria (~248 MB y el 7 subirá) · proceso persistente ·
 index.html en rutas desconocidas (F5 en /visor) · symlink a lo
 construido · guardias solo-Windows si hicieran falta allí.
 

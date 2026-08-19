@@ -13,9 +13,9 @@
 | Regulado en superficie (7.391 tramos) | WFS `MU1_estacionamientos_calle` | **ENTRA** (punto 5) |
 | Zonas reguladas (13 polígonos) | WFS `MU1_zonas_reguladas` | **ENTRA** (punto 5) |
 | Reservas PMR (2.636) | WFS `MU1_reservas` | **ENTRA** (punto 5 — accesibilidad) |
-| Equipamientos/sitios (~250 categorías) | API `equipamiento` | Punto **6B** (destinos con nombre), pieza a pieza |
+| Equipamientos/sitios (~250 categorías) | API `equipamiento` | Punto **8** (destinos con nombre), pieza a pieza |
 | Parquímetros (312, sellados 2015) | solo API | **NO hoy** (reevaluable) |
-| Parkings públicos (104 WFS s/nombre · 41 API de 2013) | ambas, cojas | **NO hoy** → punto 9 |
+| Parkings públicos (104 WFS s/nombre · 41 API de 2013) | ambas, cojas | **NO hoy** → punto 11 |
 | Reservas C/D (dentro de MU1_reservas) | WFS | Viajan en el dato; pintado solo PMR (propuesta) |
 
 **Reglas transversales que salen de aquí:** toda ficha declara la cifra
@@ -75,7 +75,7 @@ Campos (farmacias): `title` · `calle` · `tel` · `geometry` · `horario`
 `lastUpdated`. Aparte: `/sede/servicio/farmacia.json` = solo las de
 guardia HOY (7), con turno.
 
-### Dato personal — la decisión pendiente (punto 6B)
+### Dato personal — la decisión pendiente (punto 8)
 268/313 farmacias llevan el nombre del titular («Farmacia Abad Sancho,
 Ana María»): dato registral publicado como abierto — reutilizar es
 lícito, pero el RGPD no desaparece: republicando somos responsables del
@@ -174,7 +174,7 @@ mal.
 - **Parquímetros** (NO hoy): 312, SOLO en la API, **todos sellados
   2015-07** — once años sin señal (o sello de migración). Con la
   ampliación en puerta, entraría caducado.
-- **Parkings públicos** (NO hoy → punto 9): `MU1_parking` NO es lo que
+- **Parkings públicos** (NO hoy → punto 11): `MU1_parking` NO es lo que
   parece — censo de garajes/vados (7.129 privados, mediana 8 plazas,
   `BADENES_ASOCIADOS`); sus 104 «Público» sí son aparcamientos (EXPO
   4.757, María Zambrano 2.500…) pero varios sin calle. La alternativa

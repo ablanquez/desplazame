@@ -127,7 +127,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       línea que se pide con fetch como texto y NUNCA se ejecuta (`f4f049c`).
       Trae tres partes, declaradas en la ficha (`b84545d`): el grafo (se
       pinta), el enganche portal→arista (se conserva para el motor del
-      punto 6), la auditoría del viejo (viaja porque el fichero es
+      punto 7), la auditoría del viejo (viaja porque el fichero es
       indivisible sin editar). Pintado como UNA multi-polilínea en canvas
       [DOC tipos de Leaflet] (`7b8fdd6`): 116 ms, arrastre fluido, la red
       calcando la tesela. README releído (`f7c6bcf`)
@@ -144,7 +144,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       congelada `carril_bizi_20250127`, que se queda en la OLD. Integridad
       sobre CLON (ley nº3), ficha con Ley 37/2007, los 7 «En Construcción» y
       el «No Municipal» declarados, y la clasificación calzada/acera/senda/
-      calmado que usará el punto 7 (`bed5dc9`, `17a7a9b`, `ee2a809`,
+      calmado que usará el punto 9 (`bed5dc9`, `17a7a9b`, `ee2a809`,
       `2f7bdc8`). Pintados en magenta legible sobre el grafo, 15 ms.
       ⚠️ La cifra «49.972 aristas que ruedan» QUEDA RETIRADA: era una
       derivada del procesamiento del proyecto viejo, no un dato — la
@@ -165,7 +165,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       cifra heredada «44 rutas / 74 sentidos» era del feed GTFS de ZetaBus
       — QUEDA RETIRADA como criterio de esta pieza (van dos derivadas).
       Las líneas por poste llegarán con el GTFS (pieza pendiente de este
-      punto 4) o el barrido del punto 8; el puente es el `stop_code` PA…
+      punto 4) o el barrido del punto 10; el puente es el `stop_code` PA…
 - [x] **El GTFS dentro y VISTO por Antonio** (17/08): el ZIP del NAP
       (ficha 1176, 6,9 MB) tal cual, con el hash cuadrando por TRES puntas
       (cabeceras de la descarga · origen · clon) (`e5091e8`). Licencia
@@ -192,19 +192,19 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       propia siguiendo la lógica del bus —trazados y paradas separados—
       decidida por Antonio (`c344bbe`, `cc79570`). Los stop_code son 25
       pares `NN01`/`NN02` con tres saltos (`1311/1312`, `2322`, `2422`):
-      mina anotada para quien derive sentidos del sufijo en el punto 8
+      mina anotada para quien derive sentidos del sufijo en el punto 10
 - [x] **Las estaciones BiZi dentro y VISTAS por Antonio** (17/08): 276
       exactas — la primera cifra heredada que cae clavada. La capa
       municipal MU1 en sus SEIS páginas tal cual (unirlas habría sido
       fabricar un fichero que nadie publicó; la app las une al leer), hash
       por página sobre clon (`51d47dd`). La API viva de zaragoza.es
-      descartada por regla —el dato vivo es del punto 8— y fichada con su
+      descartada por regla —el dato vivo es del punto 10— y fichada con su
       contradicción interna documentada (`821cb32`). Pintadas en el color
       corporativo #54A097 decidido por Antonio; si algún día choca, se
       ajusta la forma, no el tono: es marca (`da29696`). README releído,
       y de paso el ejecutor cazó su propio error propagado: la cuenta de
       datos de la portada iba una atrás desde el GTFS (`956e6a3`,
-      `df8ac0d`). 5.520 anclajes totales, dato para el punto 7
+      `df8ac0d`). 5.520 anclajes totales, dato para el punto 9
 - [x] **Los aparcabicis dentro y VISTOS por Antonio** (17/08): 2.158
       soportes, 14.544 anclajes — **la primera descarga propia del
       proyecto** (`movilidad:MU2_aparcabicis`, WFS IDEZar, la capa que la
@@ -236,7 +236,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       rastreador de Angular, cambio no documentado que falla en silencio),
       motor en el 3000. `motor/` fuera de la raíz web en cualquier
       despliegue. Conflicto del symlink de CLAUDE.md detectado y aplazado
-      al punto 10 con su decisión preliminar: `public_html` apuntará a lo
+      al punto 12 con su decisión preliminar: `public_html` apuntará a lo
       CONSTRUIDO, nunca a `app/` literal
 - [x] **La prueba del symlink PASÓ** (17/08): `ng build` atraviesa el
       symlink del workspace sin `preserveSymlinks`, y el rojo que compra
@@ -266,7 +266,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       cargar (`efb4dd9`). Cifras REALES: ~190 ms de arranque (~500 en
       frío), parse ~150 ms — el «6,5 s» heredado era CONSTRUIR, no cargar,
       y no se compara. Recuentos exactos contra el punto 4 (98.774 /
-      68.649 / 378.222). ⚠️ **196 MB de RSS** — dato para el punto 10: la
+      68.649 / 378.222). ⚠️ **196 MB de RSS** — dato para el punto 12: la
       memoria del plan de Hostinger es NO CONSTA y esto sube su urgencia.
       La salud declara el grafo que lleva (`cb6eda4`, el front sigue
       compilando) y la guardia lo EXIGE con dos rojos vistos: el motor
@@ -279,11 +279,11 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       · resolver y autocompletar → CALLEJERO (nombres) + MUNICIPAL
         (portales): el municipal no trae ni un nombre de calle, el
         autocompletar era imposible sin la tabla código↔nombre
-      · saltar al grafo (punto 6) → ENGANCHADO (portal → arista +
+      · saltar al grafo (punto 7) → ENGANCHADO (portal → arista +
         distancia): regenerarlo sería rehacer trabajo de motor ya hecho
-      · los 124 sin enganche → resuelven normal; en el punto 6 devuelven
+      · los 124 sin enganche → resuelven normal; en el punto 7 devuelven
         `Aviso` honesto en vez de fallar en silencio
-      Verificación informativa para el 6: el casado por `portalId` entre
+      Verificación informativa para el 7: el casado por `portalId` entre
       los dos censos — si no casan por id, el salto será por coordenada
 - [x] **El callejero dentro** (17/08): fichero limpio hermano de los
       portales (mismo lote de mayo, sha256 triple: procedencia, origen y
@@ -307,7 +307,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       instante · arrancado-sin-callejero) y vigila los TRES ficheros de
       datos (`8eccc9d`). Contrato crecido sin romper el front
       (`323c7c4`), README diciendo la verdad nueva (`b7a3347`).
-      Motor: 223 MB de RSS (+27) — el punto 10 acumula
+      Motor: 223 MB de RSS (+27) — el punto 12 acumula
 - [x] **El autocompletar en el formulario, VISTO por Antonio paso a paso**
       (17-18/08): `httpResource` de Angular 22 [DOC, no experimental] +
       espera de 200 ms propia, componente `AutocompletarVia`. Las
@@ -359,7 +359,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
 - [x] **El destino de los andamios, DECIDIDO** (18/08): se quedan como
       están — el mapa de verificación los necesita y es la herramienta de
       esta fase. Cero código hoy; la retirada ENTERA tiene su casilla
-      nueva en el punto 6, para que no se olvide
+      nueva en el punto 7, para que no se olvide
 - [x] **EL VISOR, hecho y VISTO por Antonio en cinco pasos** (18/08):
       `/visor` con el mapa a ventana casi completa y las nueve capas —
       rinde fluido con portales y grafo encendidos, y el F5 sobre /visor
@@ -434,7 +434,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       (decisión de Antonio, 18/08): se encienden a mano; medido que
       apagar no ahorra descarga (vive en `cargar()` de la página), solo
       dibujo — hacer la descarga perezosa queda dicho como opción para
-      antes del 6, no hecho (`90c9124`). 55 pruebas
+      antes del 7, no hecho (`90c9124`). 55 pruebas
 - [x] **Las 13 zonas dentro y VISTAS por Antonio** (18/08): descarga
       propia nº4 (la más pequeña: 27 KB, gzip), hits clavado, huella
       `db6fba88…` sobre clon (`cf19bd5`). Cinco campos (la consulta solo
@@ -499,7 +499,37 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       las catorce capas; la bitácora lleva cinco entradas cerradas con
       ley; y todo lo visto, visto por el ojo de Antonio
 
-## 6 — Primera ruta: ANDANDO (aquí ya existe la demo)
+## 6 — Mi ubicación e invertir (parlamentado el 19/08, antes de la ruta)
+
+Dos piezas de formulario decididas por Antonio, pasadas por el tamiz de
+la documentación (MDN Geolocation API):
+
+- [ ] **⇅ INVERTIR origen⇄destino** (el patrón de Google): un botón que
+      intercambia los cuatro códigos y sus textos — cada lado viaja con
+      su estado (completo o borrador). Solo pantalla, sin motor. Con él,
+      «mi ubicación como destino» no necesita botón propio: se pone en
+      origen y se invierte
+- [ ] **«MI UBICACIÓN» en Origen**: botón que llama a
+      `navigator.geolocation.getCurrentPosition()` — el permiso lo pide
+      el propio navegador al llamar [DOC MDN]; exige contexto seguro
+      (HTTPS en producción — nota al punto 12; localhost vale). El motor
+      gana `GET /api/portal-cercano?lat=&lon=` (haversine sobre los
+      46.150 en memoria) y el botón rellena calle+portal POR CÓDIGO,
+      como si se hubieran elegido — el formulario ni se entera de que
+      hubo GPS, la validación intacta
+- [ ] **El fallo digno, con la doc delante**: los tres errores tipados de
+      la API (PERMISSION_DENIED · POSITION_UNAVAILABLE · TIMEOUT), cada
+      uno con su mensaje ámbar; opciones (`timeout`, `maximumAge`,
+      `enableHighAccuracy`) declaradas [DOC]
+- [ ] **⭐ El umbral, en DOS comprobaciones medidas** (hallazgo de la
+      doc): la posición trae `coords.accuracy` (radio de confianza en
+      metros) — primero precisión sana (un posicionamiento por IP con
+      accuracy de kilómetros no vale aunque haya portal al lado), después
+      distancia al portal más cercano, con el corte salido de MEDIR la
+      distribución del censo, no de la barriga. Si no llega: «Tu
+      ubicación no está dentro de Zaragoza» (ámbar), sin tocar los campos
+
+## 7 — Primera ruta: ANDANDO (aquí ya existe la demo)
 
 - [ ] `POST /api/ruta` de portal a portal, modo andando
 - [ ] La ruta se pinta en el mapa y los pasos salen escritos
@@ -514,13 +544,13 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       fase de datos, no producto (dicho por Antonio el 17/08). Qué
       visualización queda en la demo lo decide Antonio entonces
 
-## 6B — Destinos con nombre: «de la calle X al hospital Y» *(nuevo, 18/08 — EN CONSTRUCCIÓN: Antonio irá añadiendo)*
+## 8 — Destinos con nombre: «de la calle X al hospital Y» *(nuevo, 18/08 — EN CONSTRUCCIÓN: Antonio irá añadiendo)*
 
 El destino puede ser un SITIO además de calle+portal: se está en un
 portal y se quiere ir al Hospital Miguel Servet, a una farmacia, a un
-centro cívico. Va después del 6 porque REUTILIZA sus dos piezas: el
+centro cívico. Va después del 7 porque REUTILIZA sus dos piezas: el
 autocompletar (elegir-fija-código, mismo componente que calles y
-portales) y el enganche coordenada→grafo que el 6 construye para los
+portales) y el enganche coordenada→grafo que el 7 construye para los
 portales — un sitio es una coordenada más entrando al mismo tubo.
 
 - [ ] Fuente investigada (18/08, informe en
@@ -539,12 +569,25 @@ portales — un sitio es una coordenada más entrando al mismo tubo.
 - [ ] El destino en el formulario: un tipo de destino nuevo (sitio) con
       el autocompletar existente; el contrato crece con el tipo del sitio
 - [ ] El motor: cargar las categorías autorizadas, sugerirlas, y
-      resolver sitio → coordenada → enganche al grafo (el del punto 6)
+      resolver sitio → coordenada → enganche al grafo (el del punto 7)
+- [ ] **La regla del portal condicional** (parlamentada el 19/08): la
+      casilla de portal se DESACTIVA y «Generar» no lo exige cuando el
+      destino elegido no tiene portales — porque trae su propia
+      coordenada (un hospital no tiene portal). La regla nace AQUÍ, con
+      su primer caso real: construirla antes dejaría elegir destinos sin
+      punto, cosa que ningún geocodificador permite
+- [ ] **(Opcional, autorización pendiente) Las 628 vías sin portal,
+      elegibles**: exige la pieza de TRAZADOS
+      (`wfs_urbanismo-Vias`, ~3,4 MB MultiLineString, localizada en la
+      investigación) y el patrón estándar [DOC Nominatim]: calle sin
+      número → geometría → CENTROIDE como punto → enganche a la red.
+      Sin la geometría no puede resolverlo ni el estándar — el requisito
+      es el dato
 - [ ] *(hueco para lo que Antonio vaya añadiendo)*
 
-## 7 — Modo BICI / PATINETE *(en grueso)*
+## 9 — Modo BICI / PATINETE *(en grueso)*
 
-Carriles y continuidad ciclable sobre el mismo esqueleto del 6. La rueda
+Carriles y continuidad ciclable sobre el mismo esqueleto del 7. La rueda
 pequeña comparte red (bici, patinete, BiZi — este último solo-bici).
 
 - [ ] **Verificar la ordenanza de Zaragoza sobre VMP antes de etiquetar
@@ -553,11 +596,11 @@ pequeña comparte red (bici, patinete, BiZi — este último solo-bici).
       que afecten a la ruta: decidir si el modo se desdobla o basta el
       aviso honesto (patrón D-G, componer sin prometer)
 
-## 8 — Modo BUS/TRANVÍA *(en grueso)*
+## 10 — Modo BUS/TRANVÍA *(en grueso)*
 
 Paradas, líneas y la decisión `G`: componer sin prometer, sin total
 inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
-02:00). Se detalla cuando el 6 y el 7 estén vistos funcionar.
+02:00). Se detalla cuando el 7 y el 9 estén vistos funcionar.
 
 Dejado aquí desde el punto 4, para cuando toque:
 
@@ -584,7 +627,7 @@ Dejado aquí desde el punto 4, para cuando toque:
       usado llega al 27/12, el 31 es de huérfanos) se corrige en la misma
       pasada que toque ese fichero
 
-## 9 — Modo COCHE *(en grueso)*
+## 11 — Modo COCHE *(en grueso)*
 
 Dejado aquí el 18/08 (investigación de estacionamiento):
 
@@ -604,7 +647,7 @@ Dejado aquí el 18/08 (investigación de estacionamiento):
 
 La red viaria. El último de los cuatro.
 
-## 10 — Despliegue *(en grueso)*
+## 12 — Despliegue *(en grueso)*
 
 Hostinger plan Node (slot 2), dominio, cron. Público y usable.
 
@@ -621,7 +664,7 @@ Dejado aquí desde el punto 5 (17/08):
       grafo vive en memoria: proceso vivo, no CGI) · si permite DOS
       procesos o el motor sirve también los estáticos
 
-## 11 — Estética *(en grueso)*
+## 13 — Estética *(en grueso)*
 
 La capa visual que haga falta. La última, a propósito.
 
