@@ -705,6 +705,34 @@ describe('Buscador', () => {
     http.expectNone(() => true);
   });
 
+  /**
+   * La que más se parece a un navegador de verdad.
+   *
+   * El GPS NO contesta dentro del click: tarda. Y cuando contesta, lo hace
+   * desde una devolución de llamada que no es un evento de Angular. Aquí eso
+   * se finge con un temporizador, y **a propósito no se llama a
+   * `detectChanges()` en ningún momento**: si el aviso aparece, es porque
+   * escribir la señal ya pide el repintado por su cuenta. Esta aplicación no
+   * lleva zone.js —no hay `polyfills` en `angular.json`—, así que eso no se
+   * puede dar por hecho: o se mira, o no consta.
+   */
+  it('la respuesta que llega TARDE repinta igual, sin empujar la pantalla a mano', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    respondeGeo = (_exito, fallo) => {
+      setTimeout(() => fallo(falloGeo(1)), 0);
+    };
+    botonUbicacion(raiz).click();
+
+    await new Promise((sigue) => setTimeout(sigue, 30));
+    await fixture.whenStable();
+
+    expect(avisoUbicacion(raiz)).toContain('Sin permiso de ubicación');
+    http.expectNone(() => true);
+  });
+
   it('si el motor no contesta, lo dice igual que los demás campos', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
