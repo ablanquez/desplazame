@@ -58,7 +58,7 @@ paso debajo.
 - **Endpoints:** la API va bajo `/api`, y su forma la fija el contrato de
   `@desplazame/tipos` — si cambia, el front no compila. **Cuáles hay no se
   escribe aquí**: los vivos los declara el motor en `motor/src/servidor.ts`, y
-  los previstos, el plan (`PLAN-DESPLAZAME.md`, puntos 6 y 8). Una lista en la
+  los previstos, el plan (`PLAN-DESPLAZAME.md`, puntos 6, 7 y 10). Una lista en la
   carta se queda corta cada vez que el motor crece; el puntero no.
 - **Idioma:** TypeScript de punta a punta.
 - **Despliegue:** Hostinger, plan Node. Symlink `public_html → app`.
