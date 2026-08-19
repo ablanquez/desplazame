@@ -57,11 +57,27 @@
 > sus rarezas tal cual vienen: **9-11**, **1DP**, **22B**, **71 TV C2**. Así no hay número
 > inventado que resolver después: de una lista no se puede elegir lo que no existe.
 >
+> **Y el formulario gana dos atajos.** Un **⇅** entre origen y destino que los intercambia
+> enteros: el texto, el código y hasta la marca de «esto está a medias» viajan con su lado. Y un
+> **📍 Mi ubicación** en origen, que rellena la calle y el portal con donde estás. No escribe
+> texto: fija los mismos códigos que fijaría elegir de la lista, así que la validación ni se
+> entera de que ha habido GPS. Antes de fiarse comprueba **dos cosas**: que el navegador sepa
+> dónde estás con menos de **100 m** de margen, y que haya un portal a menos de **150 m**. Si no,
+> lo dice en ámbar y no toca ningún campo. Para poner la ubicación como **destino** no hay botón
+> aparte: se pone en origen y se pulsa el ⇅.
+>
+> Lo que ese aviso **no** dice es si estás en Zaragoza, y no por prudencia: **con estos datos no
+> se puede saber**. El Polígono PLAZA está en Zaragoza y su portal más cercano queda a
+> **1.423 m** — más lejos que el centro de Utebo, que no lo está (1.387 m). No hay distancia que
+> separe los dos grupos, así que el aviso habla de lo que sí se sabe: a cuántos metros está el
+> portal más cercano.
+>
 > **Pero no calcula ninguna ruta**: eso no existe todavía. Tampoco se sabe aún qué líneas
 > pasan por cada poste.
 >
 > Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, doce
-> conjuntos de datos verificados, un motor que sugiere calles y sirve portales, y dos páginas
+> conjuntos de datos verificados, un motor que sugiere calles, sirve portales y sabe cuál cae
+> más cerca de un punto, y dos páginas
 > con andamio.**
 >
 > El README se publica igualmente desde el principio —el repositorio es público desde el
@@ -132,6 +148,10 @@ Con las dos arriba, en el navegador:
 > «Estado» de arriba: rellenar los cuatro campos contra el callejero de verdad y ver los datos
 > en el mapa. «Generar ruta» devuelve siempre la misma ruta inventada.
 
+> ℹ️ **«Mi ubicación» solo funciona en `localhost`.** El navegador reserva la geolocalización a
+> los contextos seguros, y `localhost` cuenta como tal; si abres la interfaz por la IP de la
+> máquina desde otro aparato, el botón lo dirá en vez de quedarse callado.
+
 ### Comprobar que lo que contesta es lo de ahora
 
 Un `200` dice que **alguien** contesta; no dice quién ni con qué. Hay una guardia para cada
@@ -147,13 +167,14 @@ Las dos son solo de Windows: leen el PID con `netstat` y la hora de arranque con
 
 ### La API del motor, hoy
 
-Tres rutas vivas. Las que vengan las decide el plan, no esta lista:
+Cuatro rutas vivas. Las que vengan las decide el plan, no esta lista:
 
 | | |
 |---|---|
 | `GET /api/salud` | si está vivo, y con qué dato: grafo, callejero y portales, con sus recuentos |
 | `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
+| `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
