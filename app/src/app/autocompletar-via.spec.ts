@@ -5,14 +5,22 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import type { Via } from '@desplazame/tipos';
 import { AutocompletarVia } from './autocompletar-via';
 
-/** Anfitrión: como lo usa la pantalla, con su doble sentido y su salida. */
+/**
+ * Anfitrión: como lo usa la pantalla, con sus dos sentidos.
+ *
+ * `seleccion` va atado en la forma larga —`[seleccion]` más
+ * `(seleccionChange)`— porque es como lo ata el padre de verdad, y ahí no es
+ * un capricho: le hace falta saber quién escribió. El porqué entero está en
+ * `alElegirVia`, en `buscador.ts`.
+ */
 @Component({
   imports: [AutocompletarVia],
   template: `<app-autocompletar-via
     campo="calleOrigen"
     etiqueta="Calle"
     [(texto)]="texto"
-    (seleccion)="elegida.set($event)"
+    [seleccion]="elegida()"
+    (seleccionChange)="elegida.set($event)"
   />`,
 })
 class Anfitrion {

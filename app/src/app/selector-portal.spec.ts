@@ -5,19 +5,30 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import type { Portal, Via } from '@desplazame/tipos';
 import { SelectorPortal } from './selector-portal';
 
-/** Anfitrión: como lo usa la pantalla — le pasa la vía y recoge el portal. */
+/**
+ * Anfitrión: como lo usa la pantalla — le pasa la vía y guarda lo demás.
+ *
+ * Desde el punto 6 el estado del campo lo guarda el padre: el texto, el portal
+ * elegido y si ya se salió. Aquí es un anfitrión PELADO, sin más reglas que
+ * las ataduras — a propósito, para que lo que midan estas pruebas sea el campo
+ * y no el anfitrión.
+ */
 @Component({
   imports: [SelectorPortal],
   template: `<app-selector-portal
     campo="portalOrigen"
     etiqueta="Portal"
     [via]="via()"
-    (seleccion)="elegido.set($event)"
+    [(texto)]="texto"
+    [(seleccion)]="elegido"
+    [(tocado)]="tocado"
   />`,
 })
 class Anfitrion {
   readonly via = signal<Via | null>(null);
+  readonly texto = signal('');
   readonly elegido = signal<Portal | null>(null);
+  readonly tocado = signal(false);
 }
 
 const ADRIANO: Via = {
@@ -151,7 +162,20 @@ describe('SelectorPortal', () => {
     expect(raiz.querySelector('.portales')).toBeNull();
   });
 
-  it('cambiar de calle TIRA el portal elegido y pide los de la calle nueva', async () => {
+  /**
+   * La regla «cambiar de calle TIRA el portal» —el 1 de ADRIANO VI no es el 1
+   * de MARÍA AGUSTÍN— **ya no vive aquí**: subió al padre en el punto 6,
+   * porque el padre es el único que distingue «el usuario ha cambiado de
+   * calle» de «he invertido origen y destino», y en el segundo caso el portal
+   * es justo lo que se está moviendo. La cubre `buscador.spec.ts`, en «cambiar
+   * una calle tira su portal y vuelve a bloquear Generar».
+   *
+   * Lo que esta prueba fija es el reparto: el campo pide los portales de la
+   * calle nueva y despinta la fila resaltada, pero **NO tira lo elegido**. Si
+   * alguien devuelve esa regla aquí dentro, esta prueba se pone roja — y la de
+   * invertir, en el padre, también.
+   */
+  it('cambiar de calle pide los de la NUEVA y despinta, pero tirar el portal es del padre', async () => {
     const fixture = TestBed.createComponent(Anfitrion);
     await fixture.whenStable();
     await fijarVia(fixture, ADRIANO, PORTALES_160);
@@ -162,14 +186,25 @@ describe('SelectorPortal', () => {
     await fixture.whenStable();
     expect(fixture.componentInstance.elegido()?.codigo).toBe('Portales.114332');
 
-    // El 1 de ADRIANO VI no es el 1 de MARÍA AGUSTÍN.
     await fijarVia(fixture, MARIA_AGUSTIN, PORTALES_340);
 
-    expect(fixture.componentInstance.elegido()).toBeNull();
-    expect(entrada(fixture).value).toBe('');
+    // Lo elegido sigue puesto: quien lo tira es el padre, no el campo.
+    expect(fixture.componentInstance.elegido()?.codigo).toBe('Portales.114332');
+    expect(entrada(fixture).value).toBe('1');
 
+    // Y OJO con la otra cara de haber subido la regla: el texto viejo se queda
+    // haciendo de FILTRO sobre la lista nueva, y ningún portal de MARÍA
+    // AGUSTÍN contiene un «1». Por eso `alElegirVia` limpia el texto además de
+    // tirar el código — si limpiara solo el código, el campo se veria vacio de
+    // opciones sin que se entienda por qué.
     entrar(fixture);
+    expect(numeros(fixture)).toEqual([]);
+
+    // Limpiando el texto como lo limpia el padre, salen los de la calle nueva.
+    fixture.componentInstance.texto.set('');
+    fixture.detectChanges();
     expect(numeros(fixture)).toEqual(['22A', '22B']);
+    expect(raiz.querySelector('.portal--activo')).toBeNull();
   });
 
   it('escribir FILTRA la lista, y encuentra los números con letra', async () => {

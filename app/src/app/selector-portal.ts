@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, output, signal, untracked } from '@angular/core';
+import { Component, computed, effect, input, model, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import type { Portal, Via } from '@desplazame/tipos';
 
@@ -49,31 +49,48 @@ export class SelectorPortal {
   /** La vía ya fijada. Sin ella este campo no tiene de qué hablar. */
   readonly via = input<Via | null>(null);
 
-  /** El portal elegido, o null mientras no se haya elegido ninguno. */
-  readonly seleccion = output<Portal | null>();
+  /**
+   * El portal elegido, o `null` mientras no se haya elegido ninguno. Lo que
+   * separa «escrito» de «elegido», igual que en el campo de calle.
+   *
+   * `model()` por lo mismo que allí: el padre tiene que poder fijarlo por
+   * código —al invertir origen⇄destino y al rellenar con «Mi ubicación»— sin
+   * pasar por el teclado. [DOC] *«A model signal is a writeable signal that
+   * can be exposed as an output»* (`@angular/core`, `ModelSignal`).
+   */
+  readonly seleccion = model<Portal | null>(null);
 
-  protected readonly texto = signal('');
+  /**
+   * Lo escrito: sirve de filtro Y de lo que se lee en el campo. Por eso no se
+   * puede derivar de `seleccion` —al teclear hay texto sin portal— y por eso
+   * es `model()`: al invertir, el número visible tiene que viajar con su lado.
+   */
+  readonly texto = model('');
+
+  /** Si ya se salió del campo alguna vez. `model()` por la misma razón. */
+  readonly tocado = model(false);
+
   protected readonly abierto = signal(false);
   protected readonly activo = signal(-1);
 
-  /** Lo que separa «escrito» de «elegido», igual que en el campo de calle. */
-  private readonly elegido = signal<Portal | null>(null);
-  private readonly tocado = signal(false);
-
   constructor() {
-    // Cambiar de calle TIRA el portal: el 12 de una calle no es el 12 de la
-    // otra, y dejarlo puesto sería dejar fijado un código que ya no pertenece
-    // a la dirección que se está componiendo.
+    // Cambiar de calle deja el desplegable sin sentido: la fila resaltada
+    // señala a un portal de la calle vieja. Se cierra y se despinta.
+    //
+    // Lo que YA NO se hace aquí es tirar el portal elegido. Esa regla —el 12
+    // de una calle no es el 12 de la otra— sigue viva, pero **ha subido al
+    // padre**, que es quien distingue las dos formas de cambiar de vía: si la
+    // cambia el usuario, el portal se tira; si la cambia el propio padre al
+    // invertir origen⇄destino, no —ahí el portal es justo lo que se está
+    // moviendo, y tirarlo deshacía la inversión—. Está en `buscador.ts`
+    // (`alElegirVia`) y lo cubre `buscador.spec.ts`.
+    //
+    // Contrapartida, dicha por si alguien monta este campo en otro sitio: sin
+    // esa regla arriba, el portal se quedaría pegado al cambiar de calle.
     effect(() => {
       this.via();
-      untracked(() => {
-        this.texto.set('');
-        this.elegido.set(null);
-        this.tocado.set(false);
-        this.activo.set(-1);
-        this.abierto.set(false);
-        this.seleccion.emit(null);
-      });
+      this.activo.set(-1);
+      this.abierto.set(false);
     });
   }
 
@@ -121,7 +138,7 @@ export class SelectorPortal {
 
   /** Hay texto pero no hay portal elegido: borrador, y no vale. */
   private readonly esBorrador = computed(
-    () => this.texto().trim() !== '' && this.elegido() === null,
+    () => this.texto().trim() !== '' && this.seleccion() === null,
   );
 
   /** Se enseña al salir, no mientras se teclea. Igual que el campo de calle. */
@@ -131,14 +148,12 @@ export class SelectorPortal {
     this.texto.set(valor);
     this.abierto.set(true);
     this.activo.set(-1);
-    this.elegido.set(null);
-    this.seleccion.emit(null);
+    this.seleccion.set(null);
   }
 
   protected elegir(portal: Portal): void {
-    this.elegido.set(portal);
     this.texto.set(portal.numero);
-    this.seleccion.emit(portal);
+    this.seleccion.set(portal);
     this.abierto.set(false);
     this.activo.set(-1);
   }

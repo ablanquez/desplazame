@@ -26,6 +26,43 @@ const TRAZADO_DE_PRUEBA: readonly Vertice[] = [
   [41.6425, -0.8865],
 ];
 
+/**
+ * El estado de UN lado de la dirección: su calle y su portal, cada uno con lo
+ * escrito, lo elegido y si ya se salió de él.
+ *
+ * **Vive aquí, en el padre, y no dentro de cada campo.** Los campos siguen
+ * siendo quienes lo escriben cuando el usuario teclea o pulsa una sugerencia
+ * —el camino de `elegir()` no se toca, que es la ley de la entrada nº4—, pero
+ * quien lo GUARDA es la pantalla. Hizo falta porque hay dos gestos que fijan
+ * una dirección sin que nadie teclee: invertir origen⇄destino y «Mi
+ * ubicación». Con el estado encerrado en el campo no había puerta por donde
+ * entrar —medido: su API pública era `['constructor']`—, y rellenar solo el
+ * texto habría sido el fallo de la nº4 con otro disfraz.
+ */
+function ladoVacio() {
+  return {
+    /** Lo escrito en el campo de calle. */
+    calle: signal(''),
+    /** La vía elegida de la lista. Guarda el CÓDIGO, no solo el texto. */
+    via: signal<Via | null>(null),
+    /** Si ya se salió del campo de calle: antes de eso no se regaña. */
+    calleTocada: signal(false),
+    /** Lo escrito en el campo de portal, que es filtro y es lo que se lee. */
+    portalTexto: signal(''),
+    /**
+     * El portal elegido de la lista de la vía. Guarda el CÓDIGO, no el número
+     * escrito — como la vía, y por la misma razón: un `12` tecleado no
+     * identifica ninguna puerta, y podía no existir.
+     */
+    portal: signal<Portal | null>(null),
+    /** Si ya se salió del campo de portal. */
+    portalTocado: signal(false),
+  };
+}
+
+/** Un lado del formulario, ya montado. */
+type Lado = ReturnType<typeof ladoVacio>;
+
 @Component({
   selector: 'app-buscador',
   imports: [Mapa, AutocompletarVia, SelectorPortal],
@@ -63,21 +100,9 @@ export class Buscador {
     { id: 'coche', etiqueta: 'Coche' },
   ];
 
-  /** Lo escrito en los campos de calle, que el autocompletar mantiene. */
-  protected readonly calleOrigen = signal('');
-  protected readonly calleDestino = signal('');
-
-  /** La vía elegida de la lista. Guarda el CÓDIGO, no solo el texto. */
-  protected readonly viaOrigen = signal<Via | null>(null);
-  protected readonly viaDestino = signal<Via | null>(null);
-
-  /**
-   * El portal elegido de la lista de la vía. Guarda el CÓDIGO, no el número
-   * escrito — como la vía, y por la misma razón: un `12` tecleado no
-   * identifica ninguna puerta, y podía no existir.
-   */
-  protected readonly portalOrigen = signal<Portal | null>(null);
-  protected readonly portalDestino = signal<Portal | null>(null);
+  /** Los dos lados de la dirección. Misma forma, mismo trato. */
+  protected readonly origen = ladoVacio();
+  protected readonly destino = ladoVacio();
 
   /** Andando por defecto. */
   protected readonly modo = signal<Modo>('andando');
@@ -93,6 +118,40 @@ export class Buscador {
 
   constructor() {
     this.capas.cargar();
+  }
+
+  /**
+   * El usuario ha elegido —o ha deshecho— la calle de un lado.
+   *
+   * Se cuelga de `(seleccionChange)`, y eso es **el camino del usuario**: el
+   * campo solo emite cuando lo cambia quien teclea o quien pulsa la lista.
+   * Cuando el cambio viene de esta misma clase (invertir, «Mi ubicación») el
+   * campo NO emite, así que este método no corre. Medido antes de escribirlo:
+   * escribir desde el padre da 0 avisos; escribir desde el hijo da 1.
+   *
+   * [DOC] Los tipos instalados lo dicen de una forma que se presta a leerlo al
+   * revés: *«Whenever its value is updated, it emits to the output»*
+   * (`@angular/core`, `ModelSignal`). El «its value is updated» es el hijo
+   * escribiendo, no el padre atando la entrada — y esa diferencia, que la
+   * frase no separa, es la que hay medida arriba.
+   *
+   * Esa asimetría es la que sostiene el botón de invertir, y es la razón de
+   * que la atadura de la plantilla vaya DESAZUCARADA —`[seleccion]` más
+   * `(seleccionChange)`— en vez de `[(seleccion)]`. [DOC] Angular da la forma
+   * larga por uso legítimo: la corta es azúcar de las dos, y cuál se usa queda
+   * *«up to the consumer»*. **No se "simplifique" a `[(…)]`**: con el azúcar el
+   * padre no se entera de quién escribió, y invertir se autodestruye.
+   *
+   * Cambiar de calle TIRA el portal: el 12 de una calle no es el 12 de la
+   * otra, y dejarlo puesto sería dejar fijado un código que ya no pertenece a
+   * la dirección que se está componiendo. La regla estaba dentro del selector
+   * de portal y ha subido aquí entera.
+   */
+  protected alElegirVia(lado: Lado, via: Via | null): void {
+    lado.via.set(via);
+    lado.portalTexto.set('');
+    lado.portal.set(null);
+    lado.portalTocado.set(false);
   }
 
   protected elegirModo(modo: Modo): void {
@@ -126,10 +185,10 @@ export class Buscador {
    */
   protected sePuedeGenerar(): boolean {
     return (
-      this.viaOrigen() !== null &&
-      this.portalOrigen() !== null &&
-      this.viaDestino() !== null &&
-      this.portalDestino() !== null
+      this.origen.via() !== null &&
+      this.origen.portal() !== null &&
+      this.destino.via() !== null &&
+      this.destino.portal() !== null
     );
   }
 }

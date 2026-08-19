@@ -7,17 +7,24 @@
   <form class="buscador" (submit)="$event.preventDefault()">
     <fieldset class="punto">
       <legend>Origen</legend>
+      <!-- La atadura de `seleccion` va DESAZUCARADA a propósito: el padre
+           necesita distinguir «lo cambió el usuario» de «lo escribí yo». El
+           porqué entero está en `alElegirVia`, en `buscador.ts`. -->
       <app-autocompletar-via
         campo="calleOrigen"
         etiqueta="Calle"
-        [(texto)]="calleOrigen"
-        (seleccion)="viaOrigen.set($event)"
+        [(texto)]="origen.calle"
+        [seleccion]="origen.via()"
+        (seleccionChange)="alElegirVia(origen, $event)"
+        [(tocado)]="origen.calleTocada"
       />
       <app-selector-portal
         campo="portalOrigen"
         etiqueta="Portal"
-        [via]="viaOrigen()"
-        (seleccion)="portalOrigen.set($event)"
+        [via]="origen.via()"
+        [(texto)]="origen.portalTexto"
+        [(seleccion)]="origen.portal"
+        [(tocado)]="origen.portalTocado"
       />
     </fieldset>
 
@@ -26,14 +33,18 @@
       <app-autocompletar-via
         campo="calleDestino"
         etiqueta="Calle"
-        [(texto)]="calleDestino"
-        (seleccion)="viaDestino.set($event)"
+        [(texto)]="destino.calle"
+        [seleccion]="destino.via()"
+        (seleccionChange)="alElegirVia(destino, $event)"
+        [(tocado)]="destino.calleTocada"
       />
       <app-selector-portal
         campo="portalDestino"
         etiqueta="Portal"
-        [via]="viaDestino()"
-        (seleccion)="portalDestino.set($event)"
+        [via]="destino.via()"
+        [(texto)]="destino.portalTexto"
+        [(seleccion)]="destino.portal"
+        [(tocado)]="destino.portalTocado"
       />
     </fieldset>
 

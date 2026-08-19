@@ -1,6 +1,24 @@
-import { Component, computed, effect, input, model, output, signal } from '@angular/core';
+import { Component, computed, effect, input, model, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import type { Via } from '@desplazame/tipos';
+
+/**
+ * Cómo se enseña una vía: el nombre limpio y, si es de un núcleo, su nombre.
+ *
+ * El núcleo va entre CORCHETES, no entre paréntesis, porque los paréntesis ya
+ * son del dato: 15 vías sugeribles los traen en su propio nombre («CALLE
+ * MALPICA ( A)»), y una es trampa pura —«CALLE HERRERÍN (JAIME BALLESTEROS)»— donde el
+ * paréntesis NO es un núcleo. Dos signos, dos significados: el paréntesis es
+ * del callejero, el corchete es nuestro.
+ *
+ * Es función suelta y **exportada**, no solo método del componente, porque el
+ * padre la necesita: cuando «Mi ubicación» fija una vía por código tiene que
+ * escribir en el campo exactamente el mismo texto que se habría escrito al
+ * elegirla de la lista. Dos formas de pintar la misma vía serían dos verdades.
+ */
+export function comoSeVeLaVia(via: Via): string {
+  return via.nucleo ? `${via.limpio} [${via.nucleo}]` : via.limpio;
+}
 
 /** Lo mismo que exige el motor: con una letra casaría media ciudad. */
 const MINIMO = 2;
@@ -42,26 +60,43 @@ export class AutocompletarVia {
   /** Lo escrito. Doble sentido: la pantalla necesita saberlo para validar. */
   readonly texto = model('');
 
-  /** La vía elegida, o null si lo escrito no corresponde a ninguna. */
-  readonly seleccion = output<Via | null>();
+  /**
+   * La vía elegida de la lista, o `null` si lo escrito no corresponde a
+   * ninguna. Es lo que separa «escrito» de «elegido», y sin ella no hay código
+   * de vía: escribir el nombre a mano no vale, porque el nombre no identifica
+   * nada —hay 52 que se repiten entre la ciudad y los barrios rurales—.
+   * Entrada nº4 de la bitácora.
+   *
+   * **Es `model()` y no `output()`, y esa es la pieza que sostiene el punto 6.**
+   *
+   * [DOC] La guía de Angular nombra el caso: *«Use model inputs when you want a
+   * component to support two-way binding»*, con el ejemplo de los *«custom form
+   * controls where the component needs to both receive a value and update
+   * it»* — que es literalmente este campo. Los tipos instalados lo dicen igual:
+   * *«A model signal is a writeable signal that can be exposed as an output»*
+   * (`@angular/core`, `ModelSignal`, `@publicApi 19.0`).
+   *
+   * Con `output()` no había puerta: el padre solo podía escribir el texto, y un
+   * texto sin código es el fallo de la entrada nº4 con otro disfraz. Medido
+   * antes de tocar nada — la API pública del componente era `['constructor']`.
+   */
+  readonly seleccion = model<Via | null>(null);
+
+  /**
+   * Si el usuario ya salió del campo alguna vez. Antes de salir no se regaña.
+   *
+   * También `model()`: al invertir origen⇄destino, el estado a medias de cada
+   * lado viaja con él —un borrador marcado sigue marcado al otro lado—, y quien
+   * sabe que ha habido intercambio es el padre, no el campo.
+   */
+  readonly tocado = model(false);
 
   protected readonly abierto = signal(false);
   protected readonly activo = signal(-1);
 
-  /**
-   * La vía que se eligió de la lista, si se eligió alguna. Es lo que separa
-   * «escrito» de «elegido», y sin ella no hay código de vía: escribir el
-   * nombre a mano no vale, porque el nombre no identifica nada —hay 52 que se
-   * repiten entre la ciudad y los barrios rurales—. Entrada nº4 de la bitácora.
-   */
-  private readonly elegida = signal<Via | null>(null);
-
-  /** Si el usuario ya salió del campo alguna vez. Antes de salir no se regaña. */
-  private readonly tocado = signal(false);
-
   /** Hay texto pero no hay vía: un borrador, que se conserva pero no vale. */
   private readonly esBorrador = computed(
-    () => this.texto().trim() !== '' && this.elegida() === null,
+    () => this.texto().trim() !== '' && this.seleccion() === null,
   );
 
   /**
@@ -101,17 +136,9 @@ export class AutocompletarVia {
     () => this.abierto() && this.consulta().trim().length >= MINIMO,
   );
 
-  /**
-   * Cómo se enseña una vía: el nombre limpio y, si es de un núcleo, su nombre.
-   *
-   * El núcleo va entre CORCHETES, no entre paréntesis, porque los paréntesis
-   * ya son del dato: 15 vías sugeribles los traen en su propio nombre
-   * («CALLE MALPICA ( A)»), y una es trampa pura —«CALLE HERRERÍN (JAIME
-   * BALLESTEROS)»— donde el paréntesis NO es un núcleo. Dos signos, dos
-   * significados: el paréntesis es del callejero, el corchete es nuestro.
-   */
+  /** Lo mismo que usa el padre, para que el campo se lea igual siempre. */
   protected comoSeVe(via: Via): string {
-    return via.nucleo ? `${via.limpio} [${via.nucleo}]` : via.limpio;
+    return comoSeVeLaVia(via);
   }
 
   protected alEscribir(valor: string): void {
@@ -120,14 +147,12 @@ export class AutocompletarVia {
     this.activo.set(-1);
     // Lo escrito a mano ya no corresponde a la vía elegida antes: el código
     // que había fijado deja de valer, aunque solo se haya tocado una letra.
-    this.elegida.set(null);
-    this.seleccion.emit(null);
+    this.seleccion.set(null);
   }
 
   protected elegir(via: Via): void {
-    this.elegida.set(via);
-    this.texto.set(this.comoSeVe(via));
-    this.seleccion.emit(via);
+    this.texto.set(comoSeVeLaVia(via));
+    this.seleccion.set(via);
     this.abierto.set(false);
     this.activo.set(-1);
   }
