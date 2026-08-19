@@ -47,12 +47,20 @@ Lo que existe y funciona, todo visto por el ojo de Antonio:
 capas apagadas, la etiqueta, el README — hasta `d56af44` más los cierres
 de plan/estado). El push de cierre del punto 5 es decisión de Antonio.
 
-**Lo siguiente: el punto 6 (nuevo, parlamentado el 19/08)** — el botón
-⇅ invertir y «Mi ubicación»: Geolocation API [DOC MDN] con permiso del
-navegador, `GET /api/portal-cercano`, el umbral en DOS comprobaciones
-medidas (`coords.accuracy` primero, distancia después), los tres errores
-tipados con su ámbar, y «Tu ubicación no está dentro de Zaragoza».
-**Después, el punto 7** — `POST /api/ruta` andando (Dijkstra sobre
+**⭐ PUNTO 6 CERRADO (19/08).** El estado de los cuatro campos subió al
+padre con la doc de Angular delante (`model()` + atadura desazucarada —
+y cerró el hueco latente del model externo), ⇅ invertir cruza estados a
+medias incluidos, y «Mi ubicación» rellena por código vía
+`/api/portal-cercano` (1,35 ms medidos) con umbrales medidos (≤100 m de
+accuracy [DOC MDN] · ≤150 m al portal — y el hallazgo: no existe corte
+que separe Zaragoza de fuera, así que el mensaje dice la verdad medible:
+«el portal más cercano está a N metros»). Ocho mensajes dignos en total.
+La prueba de fuego fue el sobremesa de Antonio: accuracy 5000 m (IP) →
+el botón se negó con el número real dentro — el umbral funcionando en
+vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
+repintado sin zone.js verificado sin empujón.
+
+**Lo siguiente: el punto 7** — `POST /api/ruta` andando (Dijkstra sobre
 el grafo en memoria, el enganche portal→arista del censo enganchado),
 la ruta pintada y los pasos escritos, el juez es el ojo de Antonio sobre
 trayectos que conoce a pie, la respuesta falsa se retira, y los andamios
@@ -184,8 +192,12 @@ la herramienta.
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
 §6) · 60 pruebas sin CI · guardias manuales y solo-Windows (declarado ya
-en el README) · `GRAFO_ESPERADO` a mano · hueco latente del
-autocompletar (model externo) · el eco de los 200 ms · datos municipales
+en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
+externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
+todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
+lleva dentro la regla de tirar el portal, y si se montara en otro sitio
+el portal se quedaría pegado (comentado y fijado con prueba doble) · el
+eco de los 200 ms · datos municipales
 caducan (callejero mensual; regulado de golpe) · npm 11 bloquea scripts
 de 4 paquetes (no rompe el build, comprobado en clon) · TS rama 6 · los
 `_cabeceras.txt` se sirven en `/datos/` (inofensivo, anotado) ·

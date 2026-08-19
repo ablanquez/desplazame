@@ -504,30 +504,50 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
 Dos piezas de formulario decididas por Antonio, pasadas por el tamiz de
 la documentación (MDN Geolocation API):
 
-- [ ] **⇅ INVERTIR origen⇄destino** (el patrón de Google): un botón que
-      intercambia los cuatro códigos y sus textos — cada lado viaja con
-      su estado (completo o borrador). Solo pantalla, sin motor. Con él,
-      «mi ubicación como destino» no necesita botón propio: se pone en
-      origen y se invierte
-- [ ] **«MI UBICACIÓN» en Origen**: botón que llama a
-      `navigator.geolocation.getCurrentPosition()` — el permiso lo pide
-      el propio navegador al llamar [DOC MDN]; exige contexto seguro
-      (HTTPS en producción — nota al punto 12; localhost vale). El motor
-      gana `GET /api/portal-cercano?lat=&lon=` (haversine sobre los
-      46.150 en memoria) y el botón rellena calle+portal POR CÓDIGO,
-      como si se hubieran elegido — el formulario ni se entera de que
-      hubo GPS, la validación intacta
-- [ ] **El fallo digno, con la doc delante**: los tres errores tipados de
-      la API (PERMISSION_DENIED · POSITION_UNAVAILABLE · TIMEOUT), cada
-      uno con su mensaje ámbar; opciones (`timeout`, `maximumAge`,
-      `enableHighAccuracy`) declaradas [DOC]
-- [ ] **⭐ El umbral, en DOS comprobaciones medidas** (hallazgo de la
-      doc): la posición trae `coords.accuracy` (radio de confianza en
-      metros) — primero precisión sana (un posicionamiento por IP con
-      accuracy de kilómetros no vale aunque haya portal al lado), después
-      distancia al portal más cercano, con el corte salido de MEDIR la
-      distribución del censo, no de la barriga. Si no llega: «Tu
-      ubicación no está dentro de Zaragoza» (ámbar), sin tocar los campos
+- [x] **El estado de los cuatro campos SUBIÓ AL PADRE** (19/08, el
+      requisito que la costura destapó): no había puerta — `elegir()` era
+      protected, y rellenar el texto desde fuera era la entrada nº4 con
+      otro disfraz. Resuelto CON LA DOC de Angular delante: `model()` es
+      el patrón documentado para esto («custom form controls… receive a
+      value AND update it»), atadura desazucarada legítima para
+      distinguir «lo cambió el usuario» de «lo escribí yo» (la asimetría
+      verificada con sonda: el padre escribe sin emitir), y la regla
+      «cambiar de calle tira el portal» subida al padre — solo en el
+      camino del usuario, nunca en invertir ni en mi-ubicación
+      (`c198617`). De rebote CIERRA el hueco latente del model externo
+      que el estado arrastraba desde el autocompletar
+- [x] **⇅ INVERTIR, visto** (19/08): los cuatro códigos y textos cruzan,
+      cada lado con su estado tal cual — Antonio vio cruzar hasta el
+      borrador ámbar (`71a7f9d`)
+- [x] **«MI UBICACIÓN», visto — con la demostración en vivo del umbral**
+      (19/08): `GET /api/portal-cercano` (haversine sobre 46.150,
+      **1,35 ms de mediana medidos** — no se optimiza nada), el contrato
+      con `PortalCercano` (Via y Portal enteros para entrar por el mismo
+      camino), umbrales MEDIDOS: precisión ≤100 m [DOC MDN: accuracy al
+      95%; wifi 20-100 m vs IP kilómetros] y distancia ≤150 m (la
+      distribución del censo: p95 32 m, el peor urbano real 100 m —
+      Expo; y el hallazgo: NO existe corte que separe Zaragoza de fuera,
+      el Polígono PLAZA queda más lejos que Utebo). El mensaje
+      «no estás en Zaragoza» se DESCARTÓ por infalsable — se lo diríamos
+      a alguien en Movera; en su lugar, la verdad: «el portal más
+      cercano está a N metros». CINCO mensajes aprobados + tres ramas
+      propias (sin HTTPS, motor caído, motor null — un botón mudo es
+      peor que no tener botón). Opciones declaradas [DOC]: maximumAge 0
+      escrito aunque sea el defecto, timeout 10000 porque Infinity no es
+      un botón, enableHighAccuracy true. ⭐ LA PRUEBA DE FUEGO: el
+      sobremesa de Antonio dio accuracy 5000 m (posicionamiento IP) y el
+      botón se negó con el mensaje exacto y el número real dentro — el
+      umbral rechazando en vivo lo que debía; el camino del éxito
+      espera un móvil con GPS (`ca414fd`, `dc03ad8`, `0ccf0a9`)
+- [x] **73 pruebas** (60+13, diez nacidas en rojo y tres a posteriori
+      compensadas con contraprueba — dicho, no escondido), incluida la
+      del repintado sin empujón (esta app no lleva zone.js: el DOM se
+      repinta solo tras el GPS tardío, verificado — `b92bf5d`). La
+      contraprueba conjunta no valía (un rojo arrastra a los de detrás
+      por el drenaje): se repitió una a una. README al día (`cfb1724`) y
+      dos comentarios del código des-caducados (la cifra 38/32 y el
+      punto 7 — `fe91aca`)
+- [x] **⭐ PUNTO 6 CERRADO (19/08).**
 
 ## 7 — Primera ruta: ANDANDO (aquí ya existe la demo)
 
