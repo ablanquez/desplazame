@@ -22,6 +22,20 @@ function botonGenerar(raiz: HTMLElement): HTMLButtonElement {
   return raiz.querySelector<HTMLButtonElement>('.generar')!;
 }
 
+function botonInvertir(raiz: HTMLElement): HTMLButtonElement {
+  return raiz.querySelector<HTMLButtonElement>('.invertir')!;
+}
+
+/** El `<input>` de un campo, por su nombre. */
+function campoDe(raiz: HTMLElement, nombre: string): HTMLInputElement {
+  return raiz.querySelector<HTMLInputElement>(`input[name="${nombre}"]`)!;
+}
+
+/** Lo que se lee en un campo. */
+function valor(raiz: HTMLElement, nombre: string): string {
+  return campoDe(raiz, nombre).value;
+}
+
 const BURGOS: Via = {
   codigo: '5140',
   nombre: 'CALLE BURGOS',
@@ -131,6 +145,27 @@ async function elegirPortal(
     throw new Error(`no está el portal ${numero} en ${nombre}`);
   }
   opcion.dispatchEvent(new MouseEvent('mousedown'));
+  await fixture.whenStable();
+}
+
+/**
+ * Drena lo que dispara mover los campos POR CÓDIGO, sin teclado de por medio.
+ *
+ * Son dos cosas, las dos comportamiento de hoy y ninguna del encargo:
+ *  1. cambiar la vía de un campo despierta a su selector de portales, que pide
+ *     los de la vía nueva — al instante;
+ *  2. EL ECO: cambiar el texto de una calle vuelve a disparar la consulta 200 ms
+ *     después aunque el campo ya esté resuelto. Está reportado desde el punto 4
+ *     y sigue sin tocarse.
+ *
+ * Se drena para que `verify()` no las cuente como peticiones perdidas.
+ */
+async function drenar(fixture: any, http: HttpTestingController): Promise<void> {
+  await new Promise((sigue) => setTimeout(sigue, 250));
+  fixture.detectChanges();
+  for (const pendiente of http.match(() => true)) {
+    pendiente.flush([]);
+  }
   await fixture.whenStable();
 }
 
@@ -343,5 +378,79 @@ describe('Buscador', () => {
     await fixture.whenStable();
 
     expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Coche');
+  });
+
+  // ── ⇅ INVERTIR ────────────────────────────────────────────────────────────
+
+  it('⇅ invertir intercambia los cuatro campos, CÓDIGOS incluidos', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
+    await elegirPortal(fixture, 'portalOrigen', '2');
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await elegirPortal(fixture, 'portalDestino', '45');
+    await fixture.whenStable();
+    expect(botonGenerar(raiz).disabled).toBe(false);
+
+    botonInvertir(raiz).click();
+    fixture.detectChanges();
+
+    expect(valor(raiz, 'calleOrigen')).toBe('AVENIDA GOYA');
+    expect(valor(raiz, 'portalOrigen')).toBe('45');
+    expect(valor(raiz, 'calleDestino')).toBe('CALLE BURGOS');
+    expect(valor(raiz, 'portalDestino')).toBe('2');
+
+    // Y con ellos los CÓDIGOS: «Generar» sigue desbloqueado.
+    //
+    // Aquí es donde se ve por qué la regla «cambiar de calle tira el portal»
+    // tuvo que subir al padre. Si siguiera dentro del selector de portal, la
+    // vía nueva de cada lado dispararía el tirón y los dos portales acabarían
+    // vacíos: invertir se deshacía a sí mismo.
+    expect(botonGenerar(raiz).disabled).toBe(false);
+
+    await drenar(fixture, http);
+  });
+
+  it('⇅ invertir con un lado a medias: el borrador viaja tal cual', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // Origen a medias: escrito, no elegido, y salido del campo — borrador.
+    escribir(raiz, 'calleOrigen', 'burgos');
+    fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 300));
+    fixture.detectChanges();
+    http.expectOne('/api/vias?q=burgos').flush([BURGOS]);
+    await fixture.whenStable();
+    campoDe(raiz, 'calleOrigen').dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 250));
+    fixture.detectChanges();
+    expect(campoDe(raiz, 'calleOrigen').getAttribute('aria-invalid')).toBe('true');
+
+    // Destino entero.
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await elegirPortal(fixture, 'portalDestino', '45');
+    await fixture.whenStable();
+
+    botonInvertir(raiz).click();
+    fixture.detectChanges();
+
+    // El borrador ha cruzado, y cruza MARCADO: el estado a medias viaja entero.
+    expect(valor(raiz, 'calleDestino')).toBe('burgos');
+    expect(campoDe(raiz, 'calleDestino').getAttribute('aria-invalid')).toBe('true');
+
+    // Y el lado bueno llega limpio al otro extremo.
+    expect(valor(raiz, 'calleOrigen')).toBe('AVENIDA GOYA');
+    expect(campoDe(raiz, 'calleOrigen').getAttribute('aria-invalid')).toBeNull();
+    expect(valor(raiz, 'portalOrigen')).toBe('45');
+
+    // Sigue faltando media dirección, así que sigue bloqueado.
+    expect(botonGenerar(raiz).disabled).toBe(true);
+
+    await drenar(fixture, http);
   });
 });

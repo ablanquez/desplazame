@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import type { WritableSignal } from '@angular/core';
 // El contrato manda: los tipos vienen del paquete compartido, no de copias
 // locales. Si el motor cambia la forma, esta pantalla deja de compilar.
 import type { Modo, Paso, Portal, Via, Vertice } from '@desplazame/tipos';
@@ -62,6 +63,13 @@ function ladoVacio() {
 
 /** Un lado del formulario, ya montado. */
 type Lado = ReturnType<typeof ladoVacio>;
+
+/** Cambia de sitio los valores de dos señales. Sin mirar lo que llevan. */
+function intercambiar<T>(a: WritableSignal<T>, b: WritableSignal<T>): void {
+  const guardado = a();
+  a.set(b());
+  b.set(guardado);
+}
 
 @Component({
   selector: 'app-buscador',
@@ -152,6 +160,32 @@ export class Buscador {
     lado.portalTexto.set('');
     lado.portal.set(null);
     lado.portalTocado.set(false);
+  }
+
+  /**
+   * ⇅ Intercambia origen y destino, enteros.
+   *
+   * Cada lado viaja con TODO su estado: el texto, el código y si estaba
+   * marcado. Un borrador cruza siendo borrador y sigue marcado al otro lado —
+   * inventarle una vía porque «ya estaba escrito» sería justo el fallo de la
+   * entrada nº4, y borrarlo por estar a medias sería tirarle al usuario lo que
+   * había escrito.
+   *
+   * Nada de esto pasa por `alElegirVia`: se escriben las señales del padre
+   * directamente, así que los campos NO emiten y la regla del portal no se
+   * dispara. Es el reverso exacto del camino del usuario, y por eso invertir
+   * no se deshace a sí mismo.
+   *
+   * Con este botón, «mi ubicación como destino» no necesita botón propio: se
+   * pone en origen y se invierte.
+   */
+  protected invertir(): void {
+    intercambiar(this.origen.calle, this.destino.calle);
+    intercambiar(this.origen.via, this.destino.via);
+    intercambiar(this.origen.calleTocada, this.destino.calleTocada);
+    intercambiar(this.origen.portalTexto, this.destino.portalTexto);
+    intercambiar(this.origen.portal, this.destino.portal);
+    intercambiar(this.origen.portalTocado, this.destino.portalTocado);
   }
 
   protected elegirModo(modo: Modo): void {
