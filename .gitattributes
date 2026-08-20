@@ -6,3 +6,8 @@
 #
 # -text = no conviertas finales de línea, ni al entrar ni al salir.
 app/data/** -text
+
+# El dato del motor va por la misma regla. Vive aparte de `app/data/` a
+# propósito: lo lee el motor y solo el motor, y `app/data/` está enganchado a
+# un glob de `angular.json` que se lo serviría al navegador entero.
+motor/data/** -text
