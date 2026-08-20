@@ -8,21 +8,24 @@
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6)](https://www.typescriptlang.org/)
 [![Leaflet](https://img.shields.io/badge/Leaflet%20%2B%20OpenStreetMap-199900)](https://leafletjs.com/)
-[![Estado](https://img.shields.io/badge/estado-en%20construcci%C3%B3n-B45309)](#estado-hoy-no-hay-aplicación)
+[![Estado](https://img.shields.io/badge/estado-en%20construcci%C3%B3n-B45309)](#estado-ya-calcula-rutas-andando)
 
 </div>
 
 ---
 
-## Estado: hoy no hay aplicación
+## Estado: ya calcula rutas andando
 
-> ⚠️ **Este repositorio está en construcción, y todavía no hay nada que puedas usar.**
-> La pantalla ya existe en [`app/`](app/) y arranca en local: el formulario de cuatro
-> campos, los cuatro modos y las indicaciones. **Los cuatro campos se rellenan ya contra el
-> motor**, con el callejero de verdad de Zaragoza: la calle se autocompleta al teclear, y el
-> portal se elige de la lista de los que esa calle tiene. Pero **la pantalla todavía no pide
-> rutas al motor**: al pulsar «Generar ruta» devuelve siempre la misma **ruta de prueba, fija e
-> inventada**, y lo dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
+> ⚠️ **Este repositorio está en construcción: arranca en local y no está publicado todavía en
+> ninguna dirección.** Lo que ya funciona de punta a punta es **el modo andando**: se escribe
+> de dónde a dónde, se pulsa «Generar ruta», y la pantalla dibuja la ruta de verdad en el mapa
+> y lista las indicaciones paso a paso. **Los otros tres modos —bus o tranvía, bici y coche—
+> todavía no calculan nada**, y el motor lo dice con esas palabras cuando se los piden.
+>
+> La pantalla vive en [`app/`](app/): el formulario de cuatro campos, los cuatro modos, el mapa
+> y las indicaciones. **Los cuatro campos se rellenan contra el motor**, con el callejero de
+> verdad de Zaragoza: la calle se autocompleta al teclear, y el
+> portal se elige de la lista de los que esa calle tiene. El mapa ya es un mapa de verdad —Leaflet sobre
 > OpenStreetMap— y ya puede dibujar encima **once datos reales**: del Ayuntamiento de
 > Zaragoza, los **46.150 portales**, los **2.120 tramos de carril bici**, los **944 postes de
 > autobús**, las **276 estaciones BiZi**, los **2.158 aparcabicis**, los **2.146
@@ -35,8 +38,9 @@
 > apagadas** y se encienden a mano, porque las catorce a la vez no se leen. Una de ellas no es un
 > dato más: es una **vista de cotejo** del regulado —los 2.860 tramos libres cuya zona no tiene
 > perímetro publicado, que **quizá** sean la ampliación de zona azul que se prepara—, y está
-> ahí para contrastarla, no como afirmación. Pero el buscador **todavía no usa** ninguno: la
-> línea que dibuja al generar sigue siendo tan inventada como los pasos.
+> ahí para contrastarla, no como afirmación. Ninguna de las catorce interviene en el cálculo:
+> son **para mirar**, no para rutar. La ruta la calcula el motor con su propio grafo en
+> memoria, y lo que el navegador recibe es la línea ya hecha.
 >
 > **Y ya son dos páginas.** La de siempre —el buscador, en la raíz— y un **visor de capas** en
 > `/visor`: el mismo mapa y las mismas catorce capas, pero a ventana casi completa. No es
@@ -44,7 +48,9 @@
 > pequeño de debajo del formulario no se ve nada. Se irá con el andamio.
 >
 > Y ya hay **motor**: un servidor mínimo en Node que carga al arrancar el grafo de la ciudad,
-> el callejero y los **46.150 portales enteros**, y sirve lo que ves al rellenar el formulario
+> el callejero y los **46.150 portales enteros**, y levanta con ellos la **red por la que de
+> verdad se puede andar** —93.503 aristas de las 98.774, ya con su adyacencia—, que es la que
+> rutea. Sirve lo que ves al rellenar el formulario
 > — de las 3.359 vías del callejero
 > ofrece las **2.731 que tienen algún portal**, porque sugerir una calle sin portales sería
 > prometer una dirección que después no se puede resolver. Cuando la calle está en un barrio
@@ -72,16 +78,21 @@
 > separe los dos grupos, así que el aviso habla de lo que sí se sabe: a cuántos metros está el
 > portal más cercano.
 >
-> **⭐ Y desde hoy el motor CALCULA RUTAS andando** — pero la pantalla todavía no las enseña, así
-> que conviene decirlo fino. `POST /api/ruta` recibe dos direcciones por código y devuelve la
-> ruta de verdad: la línea entera, los metros, una duración derivada, y los pasos escritos al
-> **formato de Google Maps**. De CALLE ALFONSO I 10 a PASEO INDEPENDENCIA 3, 342 m, son estos
-> cuatro:
+> **⭐ Y la ruta se ve.** El motor la calcula —`POST /api/ruta` recibe las dos direcciones por
+> código— y la pantalla la enseña: la línea entera **de puerta a puerta** sobre el mapa, que se
+> encuadra solo alrededor de ella, y debajo las indicaciones al **formato de Google Maps**,
+> cada paso con su flecha, su frase y sus metros. De CALLE ALFONSO I 10 a PASEO INDEPENDENCIA
+> 3 —342 m, ~4 min— son estos cuatro:
 >
-> > Sal de CALLE ALFONSO I 10 y dirígete hacia el suroeste por Calle de Alfonso I · **91 m**
-> > · Gira a la izquierda hacia la acera · **150 m**
-> > · Gira ligeramente a la derecha hacia Plaza de España · **96 m**
-> > · PASEO INDEPENDENCIA 3 está a la izquierda
+> > ◉ Sal de CALLE ALFONSO I 10 y dirígete hacia el suroeste por Calle de Alfonso I · **91 m**
+> > ↰ Gira a la izquierda hacia la acera · **150 m**
+> > ↗ Gira ligeramente a la derecha hacia Plaza de España · **96 m**
+> > ⚑ PASEO INDEPENDENCIA 3 está a la izquierda
+>
+> **La flecha sale del tipo de giro, no de la frase.** El motor manda el dato —`izquierda`,
+> `ligera-derecha`— y la pantalla elige el glifo; parsear el texto para ver si lleva la palabra
+> «derecha» ataría el icono a la redacción. Son diez giros y diez caracteres Unicode, sin una
+> sola dependencia añadida.
 >
 > **Cuatro, y no once.** Un cruce son siete piezas de red —bajas de la acera, cruzas, subes,
 > bordeas— y quien anda percibe **una** maniobra, así que lo que mide menos de **25 m** se funde
@@ -89,8 +100,9 @@
 > que fundir no se coma un giro de verdad. El umbral no es un gusto: sale de medir 6.443 pasos de
 > 363 rutas reales, donde la cuesta de micro-pasos muere justo en los 25-30 m.
 >
-> **El botón «Generar ruta» del formulario sigue devolviendo la respuesta inventada**:
-> engancharlo es lo siguiente.
+> **Y el tiempo va dicho como lo que es**: «~4 min **a 5 km/h**». Es una división —los metros
+> entre la velocidad a pie de manual—, no un cronómetro: no entran cuestas, ni semáforos, ni el
+> rato que se tarda en cruzar. Un «4 min» a secas prometería algo que aquí no se ha medido.
 >
 > Para escribirlos hizo falta el otro medio dato: las aristas del grafo llevan el id de calle de
 > OpenStreetMap pero **ningún nombre**. Las **19.897 calles con nombre** viven en `motor/data/`,
@@ -102,14 +114,15 @@
 > **Y hay direcciones a las que el motor contesta que no puede, en vez de inventarse un camino.**
 > Son **581 portales** de catorce vías —460 de ellos en URBANIZACIÓN PEÑA ZORONGO— cuyas calles
 > existen y son andables, pero forman **islas** del grafo: desde el resto de Zaragoza no se llega
-> andando. Ahí sale un aviso con su nombre, no una ruta.
+> andando. Ahí la pantalla enseña el aviso del motor en ámbar, con el nombre de la calle, y el
+> mapa se queda limpio. Ni una línea inventada para tapar el hueco.
 >
 > **Lo que sigue sin existir**: rutas en bus, bici o coche —el motor lo dice cuando se las
 > piden—, y saber qué líneas pasan por cada poste.
 >
 > Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, trece
-> conjuntos de datos verificados, **un motor que ya calcula rutas andando de portal a portal**,
-> y dos páginas con andamio.**
+> conjuntos de datos verificados, y un buscador que de verdad busca — andando, de portal a
+> portal, con la ruta en el mapa y los pasos escritos debajo.**
 >
 > El README se publica igualmente desde el principio —el repositorio es público desde el
 > primer commit— y por eso dice lo que hay, no lo que habrá.
@@ -175,9 +188,9 @@ Con las dos arriba, en el navegador:
 | **<http://localhost:4200/>** | el buscador: el formulario, el mapa y las indicaciones |
 | **<http://localhost:4200/visor>** | el visor de capas: el mismo mapa a ventana completa |
 
-> ⚠️ **No esperes rutas EN LA PANTALLA.** El motor ya las calcula —se pueden pedir a
-> `POST /api/ruta` con `curl`—, pero el formulario todavía no está enganchado a él: «Generar
-> ruta» sigue devolviendo la misma ruta inventada, y lo dice con todas las letras.
+> ⚠️ **Solo hay rutas ANDANDO**, que es el modo que viene marcado al abrir. Con bus, bici o
+> coche la pantalla enseña el aviso del motor diciendo que ese modo todavía no se calcula — no
+> una ruta a pie disfrazada de otra cosa.
 
 > ℹ️ **«Mi ubicación» solo funciona en `localhost`.** El navegador reserva la geolocalización a
 > los contextos seguros, y `localhost` cuenta como tal; si abres la interfaz por la IP de la
@@ -202,11 +215,11 @@ Cinco rutas vivas. Las que vengan las decide el plan, no esta lista:
 
 | | |
 |---|---|
-| `GET /api/salud` | si está vivo, y con qué dato: grafo, callejero y portales, con sus recuentos |
+| `GET /api/salud` | si está vivo, y con qué dato: grafo, red andable, callejero y portales, con sus recuentos |
 | `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. Medido de punta a punta: **p50 15 ms, p95 19**. Sin ruta, un aviso que dice por qué |
+| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido de punta a punta: **p50 15 ms, p95 19**. Sin ruta, un aviso que dice por qué |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
