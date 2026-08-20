@@ -17,6 +17,7 @@ import {
   colapsarManiobras,
   comoSeLlama,
   esLaMismaCalle,
+  comoSeEnlaza,
   comoSePresenta,
   NO_SON_ROMANOS,
   PARTICULAS_AL_ESCRIBIR,
@@ -977,6 +978,40 @@ describe('⭐ EL ARTÍCULO QUE ES NOMBRE PROPIO — «El Coloso», no «el Colos
   });
 });
 
+describe('⭐ «PARA SEGUIR POR» — el giro que no cambia de calle', () => {
+  const conNombre = (nombre: string) => ({ nombre, conNombre: true, esMunicipal: false });
+  const generico = (nombre: string) => ({ nombre, conNombre: false, esMunicipal: false });
+
+  test('mismo núcleo: se conserva el nombre con fórmula de permanencia', () => {
+    // [DOC Valhalla] «Turn right to stay on X»: el giro se anuncia porque hay
+    // que girar, pero el nombre no se presenta como si fuera nuevo.
+    assert.equal(comoSeEnlaza(conNombre('CALLE MAYOR'), conNombre('CALLE MAYOR')), ' para seguir por ');
+    // Y con las dos grafías, que por núcleo son la misma calle.
+    assert.equal(
+      comoSeEnlaza(conNombre('AVENIDA SAN JOSÉ'), conNombre('Avenida de San José')),
+      ' para seguir por ',
+    );
+  });
+
+  test('núcleo distinto: se entra en una calle nueva, y se dice «hacia»', () => {
+    assert.equal(comoSeEnlaza(conNombre('Calle Sobrarbe'), conNombre('Puente de Piedra')), ' hacia ');
+  });
+
+  test('⭐ dos GENÉRICOS seguidos siguen diciendo «hacia», y es la doctrina', () => {
+    // Valhalla usa la fórmula de permanencia **solo cuando hay nombre**: por
+    // una acera anónima no se «sigue», porque no había nada en lo que seguir.
+    // Aquí sale gratis: `esLaMismaCalle` ya exige nombre en los dos lados —es
+    // el `has_name_or_ref` de OSRM—, así que el vacío nunca casa.
+    assert.equal(comoSeEnlaza(generico('la acera'), generico('la acera')), ' hacia ');
+    assert.equal(comoSeEnlaza(conNombre('CALLE MAYOR'), generico('la acera')), ' hacia ');
+    assert.equal(comoSeEnlaza(generico('la acera'), conNombre('CALLE MAYOR')), ' hacia ');
+  });
+
+  test('sin nada delante —el arranque— tampoco hay nada que seguir', () => {
+    assert.equal(comoSeEnlaza(undefined, conNombre('CALLE MAYOR')), ' hacia ');
+  });
+});
+
 describe('Los pasos de una ruta real', () => {
   let red: RedEnMemoria;
   let rejilla: Rejilla;
@@ -1044,6 +1079,41 @@ describe('Los pasos de una ruta real', () => {
     const pasos = pasosDe(ORIGEN, ORIGEN);
     assert.equal(pasos.length, 1);
     assert.equal(pasos[0]!.partes.map((parte) => parte.texto).join(''), pasos[0]!.texto);
+  });
+
+  test('⭐ ABEDUL 1 → ALFARERÍA 6: el giro que no cambia de calle lo dice', () => {
+    // Los pasos 5 y 6 de esa ruta son dos giros por la MISMA calle: se sale de
+    // Calle Monasterio de Nuestra Señora de los Ángeles y se vuelve a entrar
+    // en ella. El segundo decía «Gira a la derecha HACIA Calle Monasterio…»,
+    // que promete una calle nueva y no la hay.
+    const pasos = pasosDe(ABEDUL, ALFARERIA);
+    const seguir = pasos.filter((paso) => paso.texto.includes(' para seguir por '));
+    assert.equal(seguir.length, 1, `sale ${seguir.length} veces: ${seguir.map((p) => p.texto)}`);
+    assert.match(
+      seguir[0]!.texto,
+      /^Gira a la derecha para seguir por Calle Monasterio de Nuestra Señora de los Ángeles$/,
+    );
+    // El paso ANTERIOR sí entra en ella, y por eso dice «hacia».
+    const k = pasos.indexOf(seguir[0]!);
+    assert.match(pasos[k - 1]!.texto, /^Gira a la izquierda hacia Calle Monasterio /);
+  });
+
+  test('⭐ y sus partes se marcan igual: acción + vía', () => {
+    const pasos = pasosDe(ABEDUL, ALFARERIA);
+    const seguir = pasos.find((paso) => paso.texto.includes(' para seguir por '))!;
+    assert.deepEqual(
+      seguir.partes.map((parte) => parte.papel),
+      ['accion', 'texto', 'via'],
+    );
+    assert.equal(seguir.partes[0]!.texto, 'Gira a la derecha');
+    assert.equal(seguir.partes[1]!.texto, ' para seguir por ');
+    assert.equal(seguir.partes.map((parte) => parte.texto).join(''), seguir.texto);
+  });
+
+  test('la ruta larga NO usa la fórmula: en ella cada giro cambia de calle', () => {
+    for (const paso of pasosDe(COLOSO, ARRUPE)) {
+      assert.equal(paso.texto.includes('para seguir por'), false, paso.texto);
+    }
   });
 
   test('empieza con el cardinal y acaba diciendo de qué lado queda la puerta', () => {
@@ -1234,6 +1304,9 @@ describe('Los pasos de una ruta real', () => {
   /** CALLE EL COLOSO 2 y CALLE PADRE ARRUPE 1. */
   const COLOSO = 'Portales.93310';
   const ARRUPE = 'Portales.108946';
+  /** CALLE ABEDUL 1 → CALLE ALFARERÍA 6, la del giro que no cambia de calle. */
+  const ABEDUL = 'Portales.90046';
+  const ALFARERIA = 'Portales.90493';
 
   /** «Gira a la izquierda hacia X» → «X». Lo que importa es el hacia dónde. */
   const haciaDonde = (texto: string): string => texto.replace(/^.*? hacia /, '');

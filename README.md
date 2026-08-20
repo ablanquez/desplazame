@@ -89,6 +89,13 @@
 > > ↗ **Gira ligeramente a la derecha** hacia **Plaza de España** · 96 m
 > > ⚑ **Paseo Independencia 3** está a la izquierda
 >
+> **⭐ Y una calle puede torcer sin dejar de ser ella.** Cuando el giro no cambia de calle, el
+> paso lo dice: «Gira a la derecha **para seguir por** Calle Monasterio de Nuestra Señora de los
+> Ángeles», no «**hacia**» — que prometería una calle nueva y no la hay. Es la fórmula de
+> Valhalla, *«Turn right to stay on X»*, y **solo se usa cuando hay nombre**: por una acera
+> anónima no se «sigue», porque no había nada en lo que seguir. Pasa en el **44,5 %** de las
+> rutas medidas y afecta al **5,3 %** de los pasos.
+>
 > **La negrita no es adorno: es el formato de Google.** Lo que hay que hacer y por dónde, en
 > negrita; el pegamento de la frase, no. Y **el motor no manda HTML**: manda los trozos de la
 > frase **con su papel** —acción, vía o texto— y la pantalla elige la etiqueta. El texto plano

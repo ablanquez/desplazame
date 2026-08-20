@@ -528,6 +528,36 @@ export function comoSePresenta(
     .join(' ');
 }
 
+/**
+ * ⭐ Lo que va entre el giro y el nombre: **«hacia» o «para seguir por»**.
+ *
+ * Una calle puede torcer sin dejar de ser ella misma. En CALLE ABEDUL 1 →
+ * CALLE ALFARERÍA 6 hay dos pasos seguidos por Calle Monasterio de Nuestra
+ * Señora de los Ángeles —se sale de ella y se vuelve a entrar—, y el segundo
+ * decía «Gira a la derecha **hacia** Calle Monasterio…». Ese «hacia» promete
+ * una calle nueva, y no la hay: es una mentira pequeña y sistemática.
+ *
+ * [DOC Valhalla] Su fórmula para esto es **«Turn right to stay on X»**: el giro
+ * se anuncia —hay que girar— pero el nombre no se presenta como si fuera nuevo.
+ * Aquí se dice «Gira a la derecha **para seguir por** X».
+ *
+ * **Solo con nombre, que es como lo hace Valhalla**: por una acera anónima no
+ * se «sigue», porque no había nada en lo que seguir. Sale gratis:
+ * `esLaMismaCalle` ya exige nombre en los dos lados —el `has_name_or_ref` de
+ * OSRM—, así que dos genéricos seguidos nunca casan y se quedan con «hacia».
+ *
+ * En la práctica solo la disparan los giros DE VERDAD: un giro suave por la
+ * misma calle ya lo funde la regla A del colapso, y nunca llega hasta aquí.
+ */
+export function comoSeEnlaza(
+  anterior: Denominacion | undefined,
+  actual: Denominacion,
+): string {
+  return anterior !== undefined && esLaMismaCalle(anterior, actual)
+    ? ' para seguir por '
+    : ' hacia ';
+}
+
 /** Lo que hace falta para saber cómo se llama un tramo. */
 interface Denominador {
   readonly nombreDeWay: ReadonlyMap<number, string>;
@@ -1321,7 +1351,7 @@ export function escribirPasos(
     pasos.push(
       pasoDe(maniobra.giro, metrosParaLeer(maniobra.metros), [
         { papel: 'accion', texto: COMO_SE_DICE[maniobra.giro] },
-        { papel: 'texto', texto: ' hacia ' },
+        { papel: 'texto', texto: comoSeEnlaza(maniobras[k - 1], maniobra) },
         {
           // Un tramo que se narra por su tipo —«la acera»— no lleva `via`:
           // destacarlo lo haría parecer un nombre, y no lo es.
