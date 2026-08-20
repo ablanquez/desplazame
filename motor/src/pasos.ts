@@ -160,6 +160,140 @@ export const NARRAN_SIEMPRE_POR_TIPO: ReadonlySet<string> = new Set([
   'escaleras',
 ]);
 
+/**
+ * ⭐ Las 30 palabras de tipo de vía, **sacadas del censo municipal**.
+ *
+ * No están escritas de cabeza: son el cruce `tipo_via` → primera palabra de
+ * `nombre_publico` sobre las 3.358 vías con nombre de § 1.15, y el cruce sale
+ * limpio — **cada uno de los 30 tipos usa exactamente una palabra**, sin una
+ * sola excepción. Van ya normalizadas (mayúsculas, sin tildes), que es la
+ * forma en la que se comparan.
+ *
+ * **Las de OSM que no están aquí se quedan dentro del núcleo a propósito**
+ * —`Autovía`, `Autopista`, `Corredor`, `Senda`, `Paso`—: no aparecen en el
+ * censo, así que quitarlas sería inventarse la lista. El efecto de dejarlas es
+ * conservador: dos nombres casan de menos, nunca de más.
+ */
+export const PALABRAS_DE_TIPO: ReadonlySet<string> = new Set([
+  'CALLE', 'CAMINO', 'PLAZA', 'AVENIDA', 'ANDADOR', 'PARQUE', 'PASEO',
+  'GLORIETA', 'JARDINES', 'DISEMINADO', 'PUENTE', 'CALLEJON', 'TRAVESIA',
+  'CARRETERA', 'URBANIZACION', 'POLIGONO', 'RONDA', 'VIA', 'GRUPO', 'PASAJE',
+  'ROTONDA', 'EMBARCADERO', 'CARRERA', 'RINCON', 'BULEVAR', 'LAGO', 'SOTO',
+  'BARRIO', 'PATIO', 'REPLACETA',
+]);
+
+/** Las partículas que unen el nombre y que cada registro pone donde quiere. */
+const PARTICULAS: ReadonlySet<string> = new Set(['DE', 'DEL', 'LA', 'LAS', 'EL', 'LOS', 'Y']);
+
+/**
+ * ⭐ EL NÚCLEO de un nombre de calle: lo que queda cuando se le quita todo lo
+ * que cada registro escribe a su manera.
+ *
+ * El problema que resuelve, con la ruta de Antonio delante: el carril bici
+ * hereda **«AVENIDA SAN JUAN DE LA PEÑA»** del callejero municipal y la
+ * calzada de al lado trae **«Avenida de San Juan de la Peña»** de OSM. Son la
+ * misma avenida y la ruta las anunciaba dos veces seguidas — medido antes de
+ * esto: **el 54,8 % de las rutas** lo hacía, y el 6,5 % de los pasos.
+ *
+ * [DOC OSRM] No es una idea nueva: su `requiresNameAnnounced` **descompone** el
+ * nombre y compara el núcleo, precisamente para que un cambio de prefijo o
+ * sufijo de tipo —«Avenida»— no cuente como cambio de calle.
+ *
+ * [DOC Karlsruhe / Streetmangler] Y la razón de que haya dos grafías es
+ * conocida: cuando las calles y las direcciones viven en registros distintos,
+ * la búsqueda se rompe. Aquí el registro canónico es **el municipal**, que es
+ * el de nuestras direcciones y el que el usuario acaba de leer en el
+ * formulario.
+ *
+ * Cuatro pasos, y este es el orden:
+ *
+ * 1. **Mayúsculas y sin tildes**, y todo lo que no sea letra o número pasa a
+ *    ser un espacio — eso colapsa de paso los **espacios dobles** que traen 20
+ *    vías del WFS (§ 1.15).
+ * 2. **Fuera la palabra de tipo, TODAS las veces que encabeza.** Una sola vez
+ *    no basta: el municipal trae 21 nombres que la repiten —`CAMINO CAMINO DE
+ *    LAS TORRES`—, y quitando una sola no casaría nunca con el `Camino de las
+ *    Torres` de OSM.
+ * 3. **Fuera las partículas**, que es donde los dos registros más difieren
+ *    (`AVENIDA MADRID` contra `Avenida de Madrid`).
+ * 4. Lo que queda, unido por espacios simples.
+ *
+ * ⚠️ **Y hay un efecto que conviene tener delante:** quitar la palabra de tipo
+ * hace que **`RONDA HISPANIDAD` y `VÍA HISPANIDAD` den el mismo núcleo**, y son
+ * dos vías municipales distintas con dos códigos distintos. Es la contrapartida
+ * de la doctrina, está fijada en una prueba para que nadie la descubra por
+ * sorpresa, y solo puede actuar entre dos tramos **contiguos** de una ruta.
+ */
+export function nucleoDe(nombre: string): string {
+  const palabras = nombre
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter((palabra) => palabra !== '');
+  let k = 0;
+  while (k < palabras.length && PALABRAS_DE_TIPO.has(palabras[k]!)) {
+    k++;
+  }
+  return palabras
+    .slice(k)
+    .filter((palabra) => !PARTICULAS.has(palabra))
+    .join(' ');
+}
+
+/** Cómo se llama un tramo, y de qué registro viene ese nombre. */
+export interface Denominacion {
+  readonly nombre: string;
+  /** Si es un nombre de verdad o el hueco dicho por su tipo. */
+  readonly conNombre: boolean;
+  /** Si viene del callejero MUNICIPAL (heredado) y no de OSM. */
+  readonly esMunicipal: boolean;
+}
+
+/**
+ * ⭐ Si dos tramos son **la misma calle**, que no es lo mismo que llamarse
+ * igual ni que llamarse parecido.
+ *
+ * Dos condiciones, y las dos hacen falta:
+ *
+ * **1 · Los dos tienen nombre de verdad.** [DOC OSRM] Es lo primero que hace
+ * su `haveSameName` en `collapsing_utility.hpp`, con el comentario delante:
+ *
+ *     // make sure empty is not involved
+ *     if (!has_name_or_ref(lhs) || !has_name_or_ref(rhs))
+ *     {
+ *         return false;
+ *     }
+ *
+ * `«la calzada»` y `«la acera»` no son nombres: son el hueco de OSM dicho por
+ * su tipo. Vacío contra vacío es **false**, no true.
+ *
+ * **2 · Sus núcleos coinciden, y no están vacíos.** Un núcleo vacío —un nombre
+ * que es solo tipo y partículas— **no casa con nada, ni consigo mismo**: si
+ * casara, dos calles sin nada que decir se fundirían por no decir nada.
+ */
+export function esLaMismaCalle(a: Denominacion, b: Denominacion): boolean {
+  if (!a.conNombre || !b.conNombre) {
+    return false;
+  }
+  const nucleo = nucleoDe(a.nombre);
+  return nucleo !== '' && nucleo === nucleoDe(b.nombre);
+}
+
+/**
+ * ⭐ De dos denominaciones EQUIVALENTES, la que se escribe.
+ *
+ * [DOC Karlsruhe] Manda el **municipal**: es el registro de nuestras
+ * direcciones, y es el nombre que el usuario leyó al elegir el portal. Si
+ * ninguna de las dos lo es —dos grafías de OSM, o dos genéricos— se queda la
+ * que ya estaba anunciada, que es la primera.
+ */
+function canonico(yaEstaba: Denominacion, llega: Denominacion): Denominacion {
+  return !yaEstaba.esMunicipal && llega.esMunicipal ? llega : yaEstaba;
+}
+
 /** Lo que hace falta para saber cómo se llama un tramo. */
 interface Denominador {
   readonly nombreDeWay: ReadonlyMap<number, string>;
@@ -181,23 +315,26 @@ interface Denominador {
  * tramos y el colapso de maniobras. **Un nombre municipal heredado ES un
  * nombre** — si no lo fuera, dos tramos de la misma avenida heredada no se
  * fundirían y la ruta diría dos veces lo mismo.
+ *
+ * `esMunicipal` dice de qué **registro** viene, y decide quién gana cuando dos
+ * grafías de la misma calle se juntan: ver `canonico`.
  */
-export function comoSeLlama(
-  red: Denominador,
-  way: number,
-  perfil: string,
-): { readonly nombre: string; readonly conNombre: boolean } {
+export function comoSeLlama(red: Denominador, way: number, perfil: string): Denominacion {
   const osm = red.nombreDeWay.get(way);
   if (osm !== undefined) {
-    return { nombre: osm, conNombre: true };
+    return { nombre: osm, conNombre: true, esMunicipal: false };
   }
   if (!NARRAN_SIEMPRE_POR_TIPO.has(perfil)) {
     const heredado = red.nombreHeredado.get(way);
     if (heredado !== undefined) {
-      return { nombre: heredado, conNombre: true };
+      return { nombre: heredado, conNombre: true, esMunicipal: true };
     }
   }
-  return { nombre: nombreGenerico(perfil, red.tipoDeWay.get(way)), conNombre: false };
+  return {
+    nombre: nombreGenerico(perfil, red.tipoDeWay.get(way)),
+    conNombre: false,
+    esMunicipal: false,
+  };
 }
 
 /**
@@ -328,17 +465,35 @@ const COMO_SE_DICE: Readonly<Record<Giro, string>> = {
  */
 export const UMBRAL_MICRO_M = 25;
 
-/** Un tramo: una o más aristas seguidas del mismo *way*. */
-interface Tramo {
+/**
+ * Un tramo: una o más aristas seguidas del mismo *way*, **ya con su nombre
+ * puesto**.
+ *
+ * La denominación se resuelve aquí y no más tarde porque a partir de la unión
+ * puede **cambiar**: cuando dos grafías de la misma calle se juntan, gana la
+ * municipal (`canonico`), y eso hay que poder escribirlo en el tramo.
+ */
+interface Tramo extends Denominacion {
   readonly way: number;
   readonly perfil: string;
   readonly metros: number;
   readonly g: readonly Punto[];
 }
 
+/** La forma mutable con la que se agrupa y se une. */
+type TramoEnObra = {
+  way: number;
+  perfil: string;
+  metros: number;
+  g: Punto[];
+  nombre: string;
+  conNombre: boolean;
+  esMunicipal: boolean;
+};
+
 /** Junta las aristas consecutivas que comparten `w`. */
 function agrupar(red: RedEnMemoria, trozos: readonly TrozoDeRuta[]): readonly Tramo[] {
-  const tramos: { way: number; perfil: string; metros: number; g: Punto[] }[] = [];
+  const tramos: TramoEnObra[] = [];
   for (const trozo of trozos) {
     const arista = red.aristas[trozo.arista]!;
     const ultimo = tramos[tramos.length - 1];
@@ -353,14 +508,10 @@ function agrupar(red: RedEnMemoria, trozos: readonly TrozoDeRuta[]): readonly Tr
       perfil: arista.perfil,
       metros: trozo.metros,
       g: [...trozo.g],
+      ...comoSeLlama(red, arista.way, arista.perfil),
     });
   }
   return tramos;
-}
-
-/** Cómo se nombra un tramo. Los tres niveles están en `comoSeLlama`. */
-function nombreDe(red: RedEnMemoria, tramo: Tramo): string {
-  return comoSeLlama(red, tramo.way, tramo.perfil).nombre;
 }
 
 /**
@@ -382,21 +533,41 @@ function nombreDe(red: RedEnMemoria, tramo: Tramo): string {
  * aceras distintas que forman una esquina, y se perdería el giro; solo por
  * «recto» se uniría una calle con la siguiente cuando enfilan igual, y se
  * perdería el cambio de calle.
+ *
+ * **«Se llaman igual» son dos cosas, y las dos valen aquí.** La misma cadena
+ * —que es lo que hace que dos trozos de acera sin nombre se unan yendo recto—
+ * o el mismo **núcleo**, que es lo que hace que la avenida heredada del
+ * municipal y la misma avenida nombrada por OSM dejen de anunciarse dos veces.
+ * Cuando se unen por núcleo, el nombre que sobrevive lo decide `canonico`.
  */
-function unirLasQueSonLaMisma(red: RedEnMemoria, tramos: readonly Tramo[]): readonly Tramo[] {
-  const unidos: { way: number; perfil: string; metros: number; g: Punto[] }[] = [];
+function unirLasQueSonLaMisma(tramos: readonly Tramo[]): readonly Tramo[] {
+  const unidos: TramoEnObra[] = [];
   for (const tramo of tramos) {
     const ultimo = unidos[unidos.length - 1];
+    const equivalente = ultimo !== undefined && esLaMismaCalle(ultimo, tramo);
     if (
       ultimo &&
-      nombreDe(red, ultimo) === nombreDe(red, tramo) &&
+      (ultimo.nombre === tramo.nombre || equivalente) &&
       giroDe(rumboDeSalida(ultimo.g), rumboDeEntrada(tramo.g)) === 'recto'
     ) {
       ultimo.metros += tramo.metros;
       ultimo.g.push(...tramo.g.slice(1));
+      if (equivalente) {
+        const gana = canonico(ultimo, tramo);
+        ultimo.nombre = gana.nombre;
+        ultimo.esMunicipal = gana.esMunicipal;
+      }
       continue;
     }
-    unidos.push({ way: tramo.way, perfil: tramo.perfil, metros: tramo.metros, g: [...tramo.g] });
+    unidos.push({
+      way: tramo.way,
+      perfil: tramo.perfil,
+      metros: tramo.metros,
+      g: [...tramo.g],
+      nombre: tramo.nombre,
+      conNombre: tramo.conNombre,
+      esMunicipal: tramo.esMunicipal,
+    });
   }
   return unidos;
 }
@@ -434,19 +605,14 @@ function ladoDelDestino(ultimoTramo: readonly Punto[], puerta: Punto): 'derecha'
  * es delicada, y comprobarla exigiendo una ruta de Zaragoza que la dispare
  * sería comprobarla a medias.
  */
-export interface TramoLlano {
-  readonly nombre: string;
-  /** Si `nombre` viene de OSM (true) o es el nombre de su tipo (false). */
-  readonly conNombre: boolean;
+export interface TramoLlano extends Denominacion {
   readonly metros: number;
   readonly entrada: number;
   readonly salida: number;
 }
 
 /** Lo que sobrevive a la fusión: un paso, con su giro ya combinado. */
-export interface TramoFundido {
-  readonly nombre: string;
-  readonly conNombre: boolean;
+export interface TramoFundido extends Denominacion {
   readonly metros: number;
   readonly giro: Giro;
   /** El rumbo de entrada del que manda: de ahí sale el cardinal del arranque. */
@@ -507,6 +673,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
   const salen: {
     nombre: string;
     conNombre: boolean;
+    esMunicipal: boolean;
     metros: number;
     metrosPropios: number;
     giro: Giro;
@@ -520,6 +687,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
       salen.push({
         nombre: tramo.nombre,
         conNombre: tramo.conNombre,
+        esMunicipal: tramo.esMunicipal,
         metros: tramo.metros,
         metrosPropios: tramo.metros,
         giro: 'salida',
@@ -534,7 +702,10 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     // y no cuenta.
     const giro = giroDe(ultimo.salida, tramo.entrada);
     const esMicro = tramo.metros < UMBRAL_MICRO_M;
-    const esLaMisma = giro === 'recto' && tramo.nombre === ultimo.nombre;
+    // Se calcula ANTES de tocar nada: en cuanto `ultimo` cambia de nombre, ya
+    // no se puede preguntar si eran equivalentes.
+    const equivalente = esLaMismaCalle(ultimo, tramo);
+    const esLaMisma = giro === 'recto' && (tramo.nombre === ultimo.nombre || equivalente);
     // El arranque no se funde hacia atrás porque no hay atrás: traga hacia
     // delante. Regla 5.
     const arranqueInsignificante = salen.length === 1 && ultimo.metros < UMBRAL_MICRO_M;
@@ -542,11 +713,24 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     if (esMicro || esLaMisma || arranqueInsignificante) {
       ultimo.metros += tramo.metros;
       if (tramo.metros > ultimo.metrosPropios) {
-        ultimo.nombre = tramo.nombre;
-        ultimo.conNombre = tramo.conNombre;
         ultimo.metrosPropios = tramo.metros;
         ultimo.entrada = tramo.entrada;
         ultimo.salida = tramo.salida;
+        // La regla del dominante manda sobre los RUMBOS siempre, pero sobre el
+        // NOMBRE solo cuando son calles distintas: entre dos grafías de la
+        // misma calle decide el registro, no los metros. Si no, la misma
+        // avenida saldría municipal en un paso y de OSM en el siguiente según
+        // qué trozo midiera más.
+        if (!equivalente) {
+          ultimo.nombre = tramo.nombre;
+          ultimo.conNombre = tramo.conNombre;
+          ultimo.esMunicipal = tramo.esMunicipal;
+        }
+      }
+      if (equivalente) {
+        const gana = canonico(ultimo, tramo);
+        ultimo.nombre = gana.nombre;
+        ultimo.esMunicipal = gana.esMunicipal;
       }
       continue;
     }
@@ -554,6 +738,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     salen.push({
       nombre: tramo.nombre,
       conNombre: tramo.conNombre,
+      esMunicipal: tramo.esMunicipal,
       metros: tramo.metros,
       metrosPropios: tramo.metros,
       giro,
@@ -562,9 +747,10 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     });
   }
 
-  return salen.map(({ nombre, conNombre, metros, giro, entrada, salida }) => ({
+  return salen.map(({ nombre, conNombre, esMunicipal, metros, giro, entrada, salida }) => ({
     nombre,
     conNombre,
+    esMunicipal,
     metros,
     giro,
     entrada,
@@ -580,39 +766,6 @@ const GIROS_SUAVES: ReadonlySet<Giro> = new Set<Giro>([
 ]);
 
 const esSuave = (giro: Giro): boolean => GIROS_SUAVES.has(giro);
-
-/**
- * ⭐ Si dos maniobras son **la misma calle**, que no es lo mismo que llamarse
- * igual.
- *
- * `«la calzada»` y `«la acera»` no son nombres: son el hueco de OpenStreetMap
- * dicho por su tipo, y el 60% de las aristas lo lleva. Dos tramos sin nombre
- * seguidos se «llaman igual» siempre, y colapsarlos por eso juntaría dos calles
- * distintas que OSM no nombró — perdiendo el giro que hay entre ellas.
- *
- * [DOC OSRM] No es una precaución mía: es lo primero que hace su `haveSameName`
- * en `collapsing_utility.hpp`, con el comentario delante.
- *
- *     const auto has_name_or_ref = [](auto const &step)
- *     { return !step.name.empty() || !step.ref.empty(); };
- *
- *     // make sure empty is not involved
- *     if (!has_name_or_ref(lhs) || !has_name_or_ref(rhs))
- *     {
- *         return false;
- *     }
- *
- * Vacío contra vacío es **false**, no true. `conNombre` es exactamente ese
- * `has_name_or_ref`: dice si el nombre viene de OSM o es el de su tipo.
- *
- * Ojo: esto NO deshace la unión de tramos sin nombre que sigue recto
- * (`unirLasQueSonLaMisma` y la regla 4 de la fusión). Aquello une lo que
- * enfila igual; esto es lo que colapsaría a través de un giro, y ahí sin
- * nombre no hay derecho.
- */
-function sonLaMismaCalle(a: Maniobra, b: Maniobra): boolean {
-  return a.conNombre && b.conNombre && a.nombre === b.nombre;
-}
 
 /**
  * ⭐ Cuánto puede medir un nombre que interrumpe para que se le absorba.
@@ -639,6 +792,7 @@ export const CORTE_DE_NOMBRE_M = 105;
 type Maniobra = {
   nombre: string;
   conNombre: boolean;
+  esMunicipal: boolean;
   metros: number;
   giro: Giro;
   entrada: number;
@@ -657,6 +811,13 @@ type Maniobra = {
  * arriba se comprueba antes que sumados no den una maniobra de verdad.
  */
 function absorber(crece: Maniobra, comido: Maniobra): void {
+  // El canónico ANTES de sumar nada, que es cuando todavía se puede preguntar
+  // si eran la misma calle: si lo eran, el que se escribe es el municipal.
+  if (esLaMismaCalle(crece, comido)) {
+    const gana = canonico(crece, comido);
+    crece.nombre = gana.nombre;
+    crece.esMunicipal = gana.esMunicipal;
+  }
   crece.metros += comido.metros;
   crece.salida = comido.salida;
 }
@@ -687,11 +848,9 @@ function absorber(crece: Maniobra, comido: Maniobra): void {
  * **Dónde este colapso es MÁS ESTRECHO que el de OSRM, y por qué.** OSRM
  * absorbe cualquier segmento de nombre corto contra el paso anterior, se llame
  * como se llame el que viene después. Aquí se exige además que **los dos
- * vecinos se llamen igual** — que sea de verdad una interrupción y no un
+ * vecinos sean la misma calle** — que sea de verdad una interrupción y no un
  * cambio de calle. Es lo que fijó el encargo, y ensancharlo no es decisión de
- * este código: con la regla ancha, «Plaza Basilio Paraíso · 62 m» desaparecería
- * de la ruta de Antonio, y esa plaza tiene nombre porque la gente la usa para
- * orientarse.
+ * este código.
  *
  * **La salvaguarda, que es lo que hay que mirar si algún día esto miente.** Un
  * giro de verdad en la misma calle SE ANUNCIA: la regla A no se aplica si el
@@ -731,7 +890,7 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
     // ── Regla A ────────────────────────────────────────────────────────────
     // El giro de `maniobra` YA es el ángulo entre la salida de `ultimo` y su
     // entrada, así que preguntarle si es suave es preguntar por el combinado.
-    if (sonLaMismaCalle(ultimo, maniobra) && esSuave(maniobra.giro)) {
+    if (esLaMismaCalle(ultimo, maniobra) && esSuave(maniobra.giro)) {
       absorber(ultimo, maniobra);
       continue;
     }
@@ -743,7 +902,7 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
     const despues = maniobras[i + 1];
     if (
       despues &&
-      sonLaMismaCalle(ultimo, despues) &&
+      esLaMismaCalle(ultimo, despues) &&
       maniobra.metros < CORTE_DE_NOMBRE_M &&
       esSuave(maniobra.giro) &&
       esSuave(despues.giro) &&
@@ -763,6 +922,66 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
 }
 
 /**
+ * ⭐ LA TERCERA PASADA: **un solo registro por calle en toda la lista.**
+ *
+ * Las dos pasadas anteriores juntan lo que se puede juntar, y al juntarlo el
+ * `canonico` deja escrito el nombre municipal. Pero hay pasos que **no se
+ * juntan y hacen bien en no juntarse**: si entre dos tramos de Paseo Cuéllar
+ * hay un giro de verdad, ese giro se anuncia — es la salvaguarda del colapso, y
+ * quitarla dejaría a quien anda sin la única instrucción que necesitaba.
+ *
+ * El resultado era que la misma calle salía dos veces en la lista, una vez
+ * «PASEO CUÉLLAR» y otra «Paseo Cuéllar». Medido sobre 400 rutas después del
+ * colapso: **el 23,0 % de las rutas** seguía haciéndolo, y **97 de los 102
+ * casos** eran exactamente ese, con un giro de verdad en medio.
+ *
+ * Así que esto no funde nada —el número de pasos no cambia— y solo decide
+ * **cuál de los dos nombres ciertos se escribe**: si en algún punto de la ruta
+ * esa calle apareció con su nombre municipal, ese se usa en todos.
+ *
+ * [DOC Karlsruhe / Streetmangler] El registro canónico es el municipal: es el
+ * de nuestras direcciones y el que el usuario leyó al elegir el portal. Una
+ * lista que alterna registros es la misma incoherencia que allí rompe la
+ * búsqueda, aquí puesta delante de los ojos.
+ *
+ * **Lo que NO hace, y es a propósito:** un nombre que solo existe en OSM se
+ * queda tal cual. Aquí no se traduce nada; solo se elige entre dos formas que
+ * la ruta ya tenía.
+ *
+ * ⚠️ Va un paso más allá de la letra del encargo, que pedía el canónico
+ * «cuando hay equivalentes en el tramo fundido». Sin esta pasada, «un solo
+ * registro por calle» no se cumple en el 23 % de las rutas, y era el criterio
+ * de HECHO. Queda declarado por si se quiere la versión corta: es borrar esta
+ * función y su llamada.
+ */
+export function unificarElRegistro(
+  maniobras: readonly TramoFundido[],
+): readonly TramoFundido[] {
+  const municipal = new Map<string, string>();
+  for (const maniobra of maniobras) {
+    if (!maniobra.conNombre || !maniobra.esMunicipal) {
+      continue;
+    }
+    const nucleo = nucleoDe(maniobra.nombre);
+    if (nucleo !== '') {
+      municipal.set(nucleo, maniobra.nombre);
+    }
+  }
+  if (municipal.size === 0) {
+    return maniobras;
+  }
+  return maniobras.map((maniobra) => {
+    // Un genérico no se renombra jamás: «la acera» no es una calle, y que su
+    // texto casara con algo sería casualidad, no identidad.
+    if (!maniobra.conNombre || maniobra.esMunicipal) {
+      return maniobra;
+    }
+    const gana = municipal.get(nucleoDe(maniobra.nombre));
+    return gana === undefined ? maniobra : { ...maniobra, nombre: gana, esMunicipal: true };
+  });
+}
+
+/**
  * Escribe los pasos de una ruta.
  *
  * `nombreOrigen` y `nombreDestino` son los MUNICIPALES —«CALLE BURGOS 4»—, y
@@ -775,7 +994,7 @@ export function escribirPasos(
   nombreDestino: string,
   puertaDestino: Punto,
 ): readonly Paso[] {
-  const tramos = unirLasQueSonLaMisma(red, agrupar(red, ruta.trozos));
+  const tramos = unirLasQueSonLaMisma(agrupar(red, ruta.trozos));
 
   // Una ruta trivial de cero metros: no hay nada que andar y se dice.
   if (tramos.length === 0) {
@@ -791,15 +1010,18 @@ export function escribirPasos(
   // Se bajan a la forma llana —nombre, metros y los dos rumbos— y se funden
   // los insignificantes. A partir de aquí ya no hay geometría: hay maniobras.
   const llanos: TramoLlano[] = tramos.map((tramo) => ({
-    ...comoSeLlama(red, tramo.way, tramo.perfil),
+    nombre: tramo.nombre,
+    conNombre: tramo.conNombre,
+    esMunicipal: tramo.esMunicipal,
     metros: tramo.metros,
     entrada: rumboDeEntrada(tramo.g),
     salida: rumboDeSalida(tramo.g),
   }));
-  // DOS PASADAS, y en este orden — el mismo que OSRM: primero se quitan los
-  // trocitos que nadie percibe, y sobre lo que queda se colapsa lo que no es
-  // una maniobra sino la misma calle contada dos veces.
-  const maniobras = colapsarManiobras(fundirMicroTramos(llanos));
+  // TRES PASADAS, y en este orden. Las dos primeras son las de OSRM: se quitan
+  // los trocitos que nadie percibe, y sobre lo que queda se colapsa lo que no
+  // es una maniobra sino la misma calle contada dos veces. La tercera no junta
+  // nada: solo deja **un solo registro por calle** en lo que ha sobrevivido.
+  const maniobras = unificarElRegistro(colapsarManiobras(fundirMicroTramos(llanos)));
 
   const pasos: Paso[] = [];
 

@@ -240,6 +240,21 @@ describe('El cruce contra el grafo entero', () => {
     assert.ok(suyos.length > 0, 'ningún way mudo heredó la avenida');
   });
 
+  test('⭐ la PUERTA DE DISPUTA actúa sobre un way de verdad, no solo en el banco', () => {
+    // El way 475888308 son 229 m de carril bici entre la AVENIDA ACADEMIA
+    // GENERAL MILITAR y la AVENIDA SAN JUAN DE LA PEÑA, y reparte sus votos
+    // entre las dos. No se sabe de quién es, así que no hereda de ninguna.
+    //
+    // Se comprueba AQUÍ y no en los pasos: desde que la regla ancha absorbe
+    // los segmentos cortos, ese trozo ya no sale como paso propio en la ruta
+    // —se lo come la avenida anterior—, y una prueba que lo buscara en el
+    // texto estaría comprobando el colapso, no la puerta.
+    assert.equal(red.nombreDeWay.has(475888308), false, 'ese way tiene nombre en OSM');
+    assert.equal(red.nombreHeredado.has(475888308), false, 'ha heredado, y estaba en disputa');
+    // Y el de al lado, que no está en disputa, sí hereda.
+    assert.equal(red.nombreHeredado.get(354344721), 'AVENIDA ACADEMIA GENERAL MILITAR');
+  });
+
   test('lo heredado NUNCA pisa un nombre de OSM', () => {
     for (const way of red.nombreHeredado.keys()) {
       assert.equal(red.nombreDeWay.has(way), false);

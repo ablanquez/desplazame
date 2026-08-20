@@ -16,6 +16,10 @@ import { calcularRuta, cuadernoPara, type Cuaderno } from './ruta.ts';
 import {
   colapsarManiobras,
   comoSeLlama,
+  esLaMismaCalle,
+  nucleoDe,
+  PALABRAS_DE_TIPO,
+  unificarElRegistro,
   CORTE_DE_NOMBRE_M,
   escribirPasos,
   fundirMicroTramos,
@@ -42,8 +46,9 @@ function tramo(
   metros: number,
   entrada: number,
   salida = entrada,
+  esMunicipal = false,
 ): TramoLlano {
-  return { nombre, conNombre: tieneNombre(nombre), metros, entrada, salida };
+  return { nombre, conNombre: tieneNombre(nombre), esMunicipal, metros, entrada, salida };
 }
 
 /**
@@ -59,8 +64,9 @@ function maniobra(
   giro: Giro,
   entrada: number,
   salida = entrada,
+  esMunicipal = false,
 ): TramoFundido {
-  return { nombre, conNombre: tieneNombre(nombre), metros, giro, entrada, salida };
+  return { nombre, conNombre: tieneNombre(nombre), esMunicipal, metros, giro, entrada, salida };
 }
 
 /** Los nombres que sobreviven a un colapso, en orden. */
@@ -456,6 +462,7 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
     assert.deepEqual(comoSeLlama(red, 1, 'eje-de-calzada'), {
       nombre: 'Avenida de Navarra',
       conNombre: true,
+      esMunicipal: false,
     });
   });
 
@@ -465,6 +472,9 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
     assert.deepEqual(comoSeLlama(red, 1, 'eje-de-calzada'), {
       nombre: 'AVENIDA ACADEMIA GENERAL MILITAR',
       conNombre: true,
+      // ⭐ Y viene del registro MUNICIPAL, que es lo que le da preferencia
+      // cuando se junta con la misma calle escrita por OSM.
+      esMunicipal: true,
     });
   });
 
@@ -480,6 +490,7 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
     assert.deepEqual(comoSeLlama(red, 1, 'eje-de-calzada'), {
       nombre: 'el carril bici',
       conNombre: false,
+      esMunicipal: false,
     });
   });
 
@@ -490,6 +501,7 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
     assert.deepEqual(comoSeLlama(red, 1, 'paso-de-peatones'), {
       nombre: 'el paso de peatones',
       conNombre: false,
+      esMunicipal: false,
     });
   });
 
@@ -498,6 +510,7 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
     assert.deepEqual(comoSeLlama(red, 1, 'escaleras'), {
       nombre: 'las escaleras',
       conNombre: false,
+      esMunicipal: false,
     });
   });
 
@@ -505,6 +518,155 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
     // Si mañana alguien mete «acera» en la lista, la mitad de la herencia se
     // apaga sin que ninguna otra prueba se entere.
     assert.deepEqual([...NARRAN_SIEMPRE_POR_TIPO].sort(), ['escaleras', 'paso-de-peatones']);
+  });
+});
+
+describe('⭐ EL NÚCLEO — dos grafías de la misma calle son la misma calle', () => {
+  test('los ejemplos límite del encargo', () => {
+    // Del censo municipal, tal y como vienen.
+    assert.equal(nucleoDe('PLAZA EL PROGRESO'), 'PROGRESO');
+    // La palabra de tipo se quita TODAS las veces que encabeza: el municipal
+    // trae 21 nombres que la repiten, y si solo se quitara una, la de OSM no
+    // casaría con la suya nunca.
+    assert.equal(nucleoDe('CAMINO CAMINO DE LAS TORRES'), 'TORRES');
+    assert.equal(nucleoDe('Camino de las Torres'), 'TORRES');
+    assert.equal(nucleoDe('PATIO PATIO DE LA LICORERA'), 'LICORERA');
+  });
+
+  test('la doble grafía que motivó todo esto: municipal y OSM dan el mismo núcleo', () => {
+    for (const [municipal, osm] of [
+      ['AVENIDA SAN JUAN DE LA PEÑA', 'Avenida de San Juan de la Peña'],
+      ['AVENIDA SAN JOSÉ', 'Avenida de San José'],
+      ['PASEO CUÉLLAR', 'Paseo Cuéllar'],
+      ['ANDADOR VEINTE DE DICIEMBRE', 'Andador del Veinte de Diciembre'],
+      ['AVENIDA MADRID', 'Avenida de Madrid'],
+      ['CALLE SAN JUAN BAUTISTA DE LA SALLE', 'Calle de San Juan Bautista de la Salle'],
+    ]) {
+      assert.equal(nucleoDe(municipal!), nucleoDe(osm!), `${municipal} ≠ ${osm}`);
+      assert.ok(nucleoDe(municipal!).length > 0);
+    }
+  });
+
+  test('los espacios dobles del WFS dejan de estorbar', () => {
+    // 20 de las 3.358 vías municipales los traen (§ 1.15). En pantalla no se
+    // ven —el HTML los colapsa— pero al comparar cadenas sí contaban.
+    assert.equal(nucleoDe('CALLE JUAN RAMÓN  JIMÉNEZ'), nucleoDe('Calle de Juan Ramón Jiménez'));
+    assert.equal(nucleoDe('PLAZA EL  PROGRESO'), nucleoDe('PLAZA EL PROGRESO'));
+  });
+
+  test('⭐ dos calles con el mismo nombre y distinto tipo SÍ casan, y hay que saberlo', () => {
+    // Es consecuencia directa de quitar la palabra de tipo, que es la doctrina
+    // (OSRM: un cambio de prefijo «Avenida» no es un cambio de nombre). Aquí
+    // queda fijado para que nadie lo descubra por sorpresa en una ruta.
+    assert.equal(nucleoDe('RONDA HISPANIDAD'), nucleoDe('VÍA HISPANIDAD'));
+  });
+
+  test('un núcleo VACÍO no casa con nada, ni consigo mismo', () => {
+    // Un nombre que es solo tipo y partículas se queda sin núcleo. No se
+    // inventa nada: se declara que no casa, como el vacío de OSRM.
+    assert.equal(nucleoDe('CALLE DE LA'), '');
+    assert.equal(nucleoDe('   '), '');
+    assert.equal(esLaMismaCalle(conNombre('CALLE DE LA'), conNombre('CALLE DE LA')), false);
+  });
+
+  test('la lista de palabras de tipo es la del censo municipal, las 30', () => {
+    // Sale del dato (§ 1.15), no de la cabeza: una por cada `tipo_via`, y el
+    // cruce da exactamente una palabra por tipo.
+    assert.equal(PALABRAS_DE_TIPO.size, 30);
+    for (const palabra of ['CALLE', 'AVENIDA', 'PASEO', 'CAMINO', 'PLAZA', 'RONDA', 'VIA']) {
+      assert.ok(PALABRAS_DE_TIPO.has(palabra), `falta ${palabra}`);
+    }
+  });
+
+  /** Una denominación con nombre de verdad, para preguntar por la equivalencia. */
+  const conNombre = (nombre: string, esMunicipal = false) => ({
+    nombre,
+    conNombre: true,
+    esMunicipal,
+  });
+
+  test('el vacío sigue sin casar: dos genéricos NO son la misma calle', () => {
+    // La regla de OSRM que ya estaba: `// make sure empty is not involved`.
+    // El núcleo no la deroga — «la acera» y «la acera» siguen sin casar.
+    const generico = { nombre: 'la acera', conNombre: false, esMunicipal: false };
+    assert.equal(esLaMismaCalle(generico, generico), false);
+    assert.equal(esLaMismaCalle(conNombre('CALLE MAYOR'), generico), false);
+  });
+
+  test('calles distintas del mismo tipo siguen siendo distintas', () => {
+    assert.equal(esLaMismaCalle(conNombre('CALLE SOBRARBE'), conNombre('Calle de Don Jaime I')), false);
+    assert.equal(esLaMismaCalle(conNombre('CALLE BARCELONA ---CST'), conNombre('Calle Barcelona')), false);
+  });
+});
+
+describe('⭐ EL CANÓNICO — cuando las dos grafías se juntan, manda la municipal', () => {
+  test('la fusión de micro-tramos deja el nombre municipal', () => {
+    // Un trozo de OSM de 10 m pegado a la avenida heredada: se funde, y lo que
+    // queda escrito es el nombre que el usuario leyó en el formulario.
+    const fundidos = fundirMicroTramos([
+      tramo('AVENIDA SAN JUAN DE LA PEÑA', 760, 0, 0, true),
+      tramo('Avenida de San Juan de la Peña', 10, 0),
+    ]);
+    assert.deepEqual(nombresDe(fundidos), ['AVENIDA SAN JUAN DE LA PEÑA']);
+    assert.equal(fundidos[0]!.metros, 770);
+  });
+
+  test('⭐ y también cuando el trozo de OSM es el LARGO', () => {
+    // La regla del dominante decía «manda el que más mide». Con dos grafías de
+    // la misma calle eso daría a veces una y a veces la otra en la misma ruta.
+    // Entre equivalentes manda el registro, no los metros.
+    const colapsadas = colapsarManiobras([
+      maniobra('AVENIDA SAN JUAN DE LA PEÑA', 760, 'salida', 0, 0, true),
+      maniobra('Avenida de San Juan de la Peña', 1040, 'recto', 0),
+    ]);
+    assert.deepEqual(nombresDe(colapsadas), ['AVENIDA SAN JUAN DE LA PEÑA']);
+    assert.equal(colapsadas[0]!.metros, 1800);
+  });
+
+  test('⭐ UN SOLO REGISTRO POR CALLE, aunque los dos pasos tengan que existir', () => {
+    // Aquí NO se funde nada y es correcto que no se funda: entre los dos pasos
+    // hay un giro de verdad, y un giro de verdad en la misma calle se anuncia
+    // —es la salvaguarda que el encargo del colapso dejó viva—.
+    //
+    // Lo que no puede ser es que el mismo paseo se escriba de dos maneras en
+    // la misma lista. Medido antes de esta pasada: pasaba en el 23,0 % de las
+    // rutas, y 97 de los 102 casos eran exactamente este, con giro en medio.
+    const unificadas = unificarElRegistro([
+      maniobra('PASEO CUÉLLAR', 360, 'salida', 0, 0, true),
+      maniobra('Calle de Prueba', 200, 'derecha', 90, 90),
+      maniobra('Paseo Cuéllar', 180, 'izquierda', 0, 0),
+    ]);
+    assert.deepEqual(nombresDe(unificadas), [
+      'PASEO CUÉLLAR',
+      'Calle de Prueba',
+      'PASEO CUÉLLAR',
+    ]);
+    // Y son TRES pasos: unificar el registro no funde nada.
+    assert.equal(unificadas.length, 3);
+  });
+
+  test('sin municipal en la ruta, el nombre de OSM se queda como está', () => {
+    const unificadas = unificarElRegistro([
+      maniobra('Paseo Cuéllar', 360, 'salida', 0),
+      maniobra('Paseo de Sagasta', 200, 'derecha', 90),
+    ]);
+    assert.deepEqual(nombresDe(unificadas), ['Paseo Cuéllar', 'Paseo de Sagasta']);
+  });
+
+  test('un genérico no se renombra nunca, aunque su texto casara', () => {
+    const unificadas = unificarElRegistro([
+      maniobra('CALLE ACERA', 360, 'salida', 0, 0, true),
+      maniobra('la acera', 200, 'derecha', 90),
+    ]);
+    assert.deepEqual(nombresDe(unificadas), ['CALLE ACERA', 'la acera']);
+  });
+
+  test('un nombre que solo tiene OSM NO se renombra: se queda como está', () => {
+    const colapsadas = colapsarManiobras([
+      maniobra('Calle de Don Jaime I', 610, 'salida', 0),
+      maniobra('Calle de Don Jaime I', 100, 'recto', 0),
+    ]);
+    assert.deepEqual(nombresDe(colapsadas), ['Calle de Don Jaime I']);
   });
 });
 
@@ -800,29 +962,26 @@ describe('Los pasos de una ruta real', () => {
 
   test('⭐ y AHORA se dicen por su nombre: los 1.270 m son dos avenidas', () => {
     // El tramo largo no era una cosa: eran la AVENIDA ACADEMIA GENERAL MILITAR
-    // y la AVENIDA SAN JUAN DE LA PEÑA, con un trozo en medio que ninguna
-    // reclama. Partirlo no es perder un paso: es decir lo que se anda.
+    // y la AVENIDA SAN JUAN DE LA PEÑA, con un trozo de carril de 82 m en medio
+    // que ninguna reclama — queda en disputa al heredar.
     const pasos = pasosDe(COLOSO, ARRUPE);
-    const dice = (texto: string) => pasos.find((p) => p.texto.endsWith(texto));
-    const academia = dice('hacia AVENIDA ACADEMIA GENERAL MILITAR');
-    const sanJuan = dice('hacia AVENIDA SAN JUAN DE LA PEÑA');
-    assert.ok(academia, 'el carril bici de la Academia sigue sin nombre');
-    assert.ok(sanJuan, 'el carril bici de San Juan de la Peña sigue sin nombre');
-    // Y los metros no se han ido a ninguna parte: los tres trozos en que se
-    // parte el bloque de 1.270 m siguen sumándolo.
-    const enmedio = pasos[pasos.indexOf(academia!) + 1]!;
-    assert.equal(academia!.metros + enmedio.metros + sanJuan!.metros, 1272);
+    const academia = pasos.findIndex((p) => p.texto.endsWith('hacia AVENIDA ACADEMIA GENERAL MILITAR'));
+    const sanJuan = pasos.findIndex((p) => p.texto.endsWith('hacia AVENIDA SAN JUAN DE LA PEÑA'));
+    assert.ok(academia >= 0, 'el carril bici de la Academia sigue sin nombre');
+    assert.ok(sanJuan > academia, 'la segunda avenida no aparece detrás de la primera');
+    assert.equal(pasos[academia]!.metros, 430);
   });
 
-  test('⭐ la PUERTA DE DISPUTA actúa en una ruta de verdad, no solo en el banco', () => {
-    // El way 475888308 —229 m de carril bici entre las dos avenidas— reparte
-    // sus votos 36/36 entre ACADEMIA GENERAL MILITAR y otra. No se sabe de
-    // quién es, así que no hereda: sigue diciendo lo que sí es verdad.
+  test('⭐ y la ruta larga ya no dice la MISMA avenida dos veces seguidas', () => {
+    // Era el vicio que este remate viene a quitar: «AVENIDA SAN JUAN DE LA
+    // PEÑA · 760 m» (municipal, heredada del carril) seguida de «Avenida de
+    // San Juan de la Peña · 1040 m» (de OSM, la calzada). Misma avenida, dos
+    // registros, dos pasos. Ahora es uno, y con el nombre municipal.
     const pasos = pasosDe(COLOSO, ARRUPE);
-    assert.ok(
-      pasos.some((p) => p.texto.endsWith('hacia el carril bici')),
-      'nadie se queda en genérico: la puerta de disputa no está actuando',
-    );
+    const sanJuan = pasos.filter((p) => /SAN JUAN DE LA PEÑA$/i.test(p.texto));
+    assert.equal(sanJuan.length, 1, `sale ${sanJuan.length} veces: ${sanJuan.map((p) => p.texto)}`);
+    assert.match(sanJuan[0]!.texto, /hacia AVENIDA SAN JUAN DE LA PEÑA$/);
+    assert.equal(sanJuan[0]!.metros, 1810, 'los 760 y los 1.040 tienen que sumarse');
   });
 
   test('la ruta céntrica corta NO se toca: sigue en cuatro pasos', () => {
