@@ -100,6 +100,15 @@
 > que fundir no se coma un giro de verdad. El umbral no es un gusto: sale de medir 6.443 pasos de
 > 363 rutas reales, donde la cuesta de micro-pasos muere justo en los 25-30 m.
 >
+> **Y hay una segunda pasada, la que quita el «otra vez esta calle».** OpenStreetMap parte los
+> paseos en muchos trozos, así que Paseo de Fernando el Católico salía anunciado dos veces
+> seguidas, y Paseo de la Independencia tres, partido por un tramo peatonal sin nombre. Dos
+> maniobras de la misma calle separadas por un giro que no es un giro son **una**; y una calle
+> que interrumpe a otra durante menos de **105 m** se absorbe entre sus dos mitades — los 105 m
+> son de OSRM, su `NAME_SEGMENT_CUTOFF_LENGTH`, leído de su fuente. En una ruta de 6,4 km de
+> punta a punta de la ciudad son **19 pasos que se quedan en 15**. Lo que **no** desaparece es un
+> giro de verdad aunque la calle se llame igual: ahí es justo donde hace falta la instrucción.
+>
 > **Y el tiempo va dicho como lo que es**: «~4 min **a 5 km/h**». Es una división —los metros
 > entre la velocidad a pie de manual—, no un cronómetro: no entran cuestas, ni semáforos, ni el
 > rato que se tarda en cruzar. Un «4 min» a secas prometería algo que aquí no se ha medido.
