@@ -20,9 +20,9 @@
 > La pantalla ya existe en [`app/`](app/) y arranca en local: el formulario de cuatro
 > campos, los cuatro modos y las indicaciones. **Los cuatro campos se rellenan ya contra el
 > motor**, con el callejero de verdad de Zaragoza: la calle se autocompleta al teclear, y el
-> portal se elige de la lista de los que esa calle tiene. Pero **no busca rutas**. Al pulsar «Generar
-> ruta» devuelve siempre la misma **ruta de prueba, fija e inventada**, y la pantalla lo
-> dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
+> portal se elige de la lista de los que esa calle tiene. Pero **la pantalla todavía no pide
+> rutas al motor**: al pulsar «Generar ruta» devuelve siempre la misma **ruta de prueba, fija e
+> inventada**, y lo dice con todas las letras. El mapa ya es un mapa de verdad —Leaflet sobre
 > OpenStreetMap— y ya puede dibujar encima **once datos reales**: del Ayuntamiento de
 > Zaragoza, los **46.150 portales**, los **2.120 tramos de carril bici**, los **944 postes de
 > autobús**, las **276 estaciones BiZi**, los **2.158 aparcabicis**, los **2.146
@@ -72,22 +72,32 @@
 > separe los dos grupos, así que el aviso habla de lo que sí se sabe: a cuántos metros está el
 > portal más cercano.
 >
-> **Y hay un dato nuevo en el árbol que todavía no hace nada.** Las aristas del grafo llevan el
-> id de calle de OpenStreetMap pero **ningún nombre**, así que un paso escrito con lo que hay
-> solo podría decir «sigue recto 200 m». La otra mitad —**19.897 calles con su nombre**— ya está
-> dentro, en `motor/data/`. **No se ha descargado nada**: el fichero llevaba desde el 02/08 en la
-> rama archivada del intento anterior, y aquí se ha promovido tal cual, con su huella y su ficha.
-> Cubre el **40,8 %** de las aristas — que es el **techo de OpenStreetMap**, no un fichero
-> incompleto: aceras y pasos de peatones no llevan nombre propio allí. **Hoy no lo usa nadie**;
-> es la primera pieza de las rutas.
+> **⭐ Y desde hoy el motor CALCULA RUTAS andando** — pero la pantalla todavía no las enseña, así
+> que conviene decirlo fino. `POST /api/ruta` recibe dos direcciones por código y devuelve la
+> ruta de verdad: la línea entera, los pasos escritos al **formato de Google Maps** —«Sal de
+> CALLE ALFONSO I 10 y dirígete hacia el suroeste por Calle de Alfonso I · 91 m», «Gira a la
+> izquierda hacia Plaza de España», «PASEO INDEPENDENCIA 3 está a la izquierda»—, los metros y
+> una duración derivada. **El botón «Generar ruta» del formulario sigue devolviendo la respuesta
+> inventada**: engancharlo es lo siguiente.
 >
-> **Pero no calcula ninguna ruta**: eso no existe todavía. Tampoco se sabe aún qué líneas
-> pasan por cada poste.
+> Para escribirlos hizo falta el otro medio dato: las aristas del grafo llevan el id de calle de
+> OpenStreetMap pero **ningún nombre**. Las **19.897 calles con nombre** viven en `motor/data/`,
+> promovidas de la rama archivada sin descargar nada. Cubren el **40,8 %** de las aristas, que es
+> el **techo de OpenStreetMap** y no un fichero incompleto: aceras y pasos de peatones no llevan
+> nombre propio allí. Por eso lo que no tiene nombre se dice **por su tipo** —«el paso de
+> peatones», «las escaleras», «la acera»—, que es lo que hace Valhalla.
+>
+> **Y hay direcciones a las que el motor contesta que no puede, en vez de inventarse un camino.**
+> Son **581 portales** de catorce vías —460 de ellos en URBANIZACIÓN PEÑA ZORONGO— cuyas calles
+> existen y son andables, pero forman **islas** del grafo: desde el resto de Zaragoza no se llega
+> andando. Ahí sale un aviso con su nombre, no una ruta.
+>
+> **Lo que sigue sin existir**: rutas en bus, bici o coche —el motor lo dice cuando se las
+> piden—, y saber qué líneas pasan por cada poste.
 >
 > Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, trece
-> conjuntos de datos verificados, un motor que sugiere calles, sirve portales y sabe cuál cae
-> más cerca de un punto, y dos páginas
-> con andamio.**
+> conjuntos de datos verificados, **un motor que ya calcula rutas andando de portal a portal**,
+> y dos páginas con andamio.**
 >
 > El README se publica igualmente desde el principio —el repositorio es público desde el
 > primer commit— y por eso dice lo que hay, no lo que habrá.
@@ -153,9 +163,9 @@ Con las dos arriba, en el navegador:
 | **<http://localhost:4200/>** | el buscador: el formulario, el mapa y las indicaciones |
 | **<http://localhost:4200/visor>** | el visor de capas: el mismo mapa a ventana completa |
 
-> ⚠️ **No esperes rutas.** Lo que se puede hacer hoy es exactamente lo que dice el párrafo de
-> «Estado» de arriba: rellenar los cuatro campos contra el callejero de verdad y ver los datos
-> en el mapa. «Generar ruta» devuelve siempre la misma ruta inventada.
+> ⚠️ **No esperes rutas EN LA PANTALLA.** El motor ya las calcula —se pueden pedir a
+> `POST /api/ruta` con `curl`—, pero el formulario todavía no está enganchado a él: «Generar
+> ruta» sigue devolviendo la misma ruta inventada, y lo dice con todas las letras.
 
 > ℹ️ **«Mi ubicación» solo funciona en `localhost`.** El navegador reserva la geolocalización a
 > los contextos seguros, y `localhost` cuenta como tal; si abres la interfaz por la IP de la
@@ -169,14 +179,14 @@ proceso, y sale de un fallo real que está contado en la bitácora:
 ```bash
 cd app
 npm run comprobar-arranque            # la interfaz: ¿contesta, quién, y no es un servidor caducado?
-npm run comprobar-arranque -- motor   # el motor: ¿lleva el grafo, el callejero y los portales?
+npm run comprobar-arranque -- motor   # el motor: ¿lleva el dato, y sabe rutear?
 ```
 
 Las dos son solo de Windows: leen el PID con `netstat` y la hora de arranque con PowerShell.
 
 ### La API del motor, hoy
 
-Cuatro rutas vivas. Las que vengan las decide el plan, no esta lista:
+Cinco rutas vivas. Las que vengan las decide el plan, no esta lista:
 
 | | |
 |---|---|
@@ -184,6 +194,7 @@ Cuatro rutas vivas. Las que vengan las decide el plan, no esta lista:
 | `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
+| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. Medido de punta a punta: **p50 15 ms, p95 19**. Sin ruta, un aviso que dice por qué |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
