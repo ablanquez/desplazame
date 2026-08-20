@@ -551,48 +551,83 @@ la documentación (MDN Geolocation API):
 
 ## 7 — Primera ruta: ANDANDO (aquí ya existe la demo)
 
-*Hitos ampliados el 19/08 con la doctrina de los motores de referencia
-delante (Valhalla/OSRM — sus docs de algoritmos): seis cosas que el
-plan genérico pasaba por alto.*
+*Hitos ampliados el 19/08 con la doctrina de Valhalla/OSRM delante, y
+COMPLETADOS el 20/08 tras la consulta al grafo y la investigación
+documental de los tres frentes que destapó. OBJETIVO DE FORMATO decidido
+por Antonio (20/08): los pasos escritos siguen el formato de Google Maps
+— «Dirígete hacia X · Gira a la derecha hacia Av. Y · 450 m · flechas ·
+El destino está a la izquierda». Se ejecuta en TRES encargos: A el dato
+de nombres · B el motor · C la pantalla.*
 
-- [ ] **PRIMERO, la comprobación que condiciona los pasos** [NO CONSTA]:
-      ¿el grafo lleva el nombre de vía en cada arista? El patrón
-      estándar de instrucciones (OSRM) agrupa aristas consecutivas POR
-      NOMBRE («Sigue por X, 200 m») — sin nombre, los pasos serían mudos
-      o pedirían cruzar con otro dato. Se mira ANTES de escribir nada, y
-      lo que salga decide la forma de los pasos
-- [ ] **El enganche completo, al patrón documentado**: portal → arista
-      del censo enganchado + punto PROYECTADO dentro de ella (la ruta
-      empieza en la proyección, no en un extremo — el conector
-      portal→proyección es parte de la geometría), y el camino puede
-      salir por CUALQUIERA de los dos extremos de cada arista: se
-      prueban las 4 combinaciones y gana la mejor [DOC — hacerlo naïf
-      produce retrocesos de hasta una manzana]. Los 124 sin enganche →
-      `Aviso` honesto
-- [ ] **El caso trivial, con trato propio** [DOC Valhalla]: origen y
-      destino en la MISMA arista (portal 10 → 14 de la misma calle) —
-      sin tratarlo, el algoritmo da la vuelta a la manzana para ir a 40
-      metros
-- [ ] **«Sin camino» es un resultado, no un error**: 170 componentes en
-      el grafo (169 islas) — dos portales en islas distintas devuelven
-      `Aviso`, jamás cuelgue ni ruta absurda
-- [ ] **Dijkstra unidireccional con montículo binario, MEDIDO**: la doc
-      respalda que basta (el peatonal usa solo jerarquía local, sin
-      atajos; el bidireccional es velocidad para grafos continentales) —
-      con 68.649 nodos en memoria se mide el coste real y no se optimiza
-      nada que no lo pida
-- [ ] `POST /api/ruta` de portal a portal, modo andando — el contrato
-      crece con lo que la respuesta necesite (geometría con conectores,
-      pasos, metros, `Aviso`)
-- [ ] **La duración, derivada y dicha como derivada**: metros medidos /
-      5,0 km/h (la decisión heredada) — coherente con D-G: no se promete
-      lo que no se mide
-- [ ] La ruta se pinta en el mapa y los pasos salen escritos
-- [ ] Probada con trayectos que Antonio conoce a pie — el juez es su ojo
-      sobre el mapa, no un contador. Entre ellos, los casos de la
-      doctrina: uno trivial (misma calle), uno con islas, uno céntrico
-      largo
-- [ ] La respuesta falsa del punto 2 se retira (ya no hace falta el andamio)
+**Lo que la consulta al grafo dejó medido (19/08):** cero nombres de
+vía en las 98.774 aristas (ni código cruzable) · el campo `p` clasifica
+el tipo (eje-de-calzada 47,2% · peatonal · acera · paso-de-peatones ·
+escaleras) · `m` metros precalculados y verificados · `w` id de way OSM
+(47.758 distintos) · nodos reconstruibles por coincidencia de
+coordenada (68.639/68.649; 10 NO CONSTA) · subgrafo útil a=1 ∧ c=0 =
+93.503 aristas · el `enlaces.json` del enganche SE PERDIÓ (el grafo
+lleva la auditoría, no el enganche: ni arista ni proyección) — la
+proyección se construye aquí.
+
+**Lo que la doctrina resolvió (20/08):** lo innombrado habla POR TIPO
+(Valhalla: «onto the walkway/crosswalk»; nuestro `p` es ese dato — el
+60% sin nombre dice «cruza el paso de peatones», «sube las escaleras») ·
+los arranques con cardinal («Walk southwest» → «Dirígete hacia el
+sur») · nombrar la acera por su calle paralela es issue ABIERTO en el
+propio Valhalla (#5587): no se intenta · los extremos hablan con el
+nombre MUNICIPAL (lo que el usuario eligió) y el interior con el de la
+red (OSM), cada fuente en su tramo — el 19,4% discordante solo afecta
+al interior y va declarado · los umbrales de giro son los de
+`valhalla/baldr/turn.cc`, LEÍDOS de la fuente: 0-10 recto · 11-44
+ligera dcha · 45-135 dcha · 136-159 cerrada dcha · 160-200 media
+vuelta · 201-224 cerrada izq · 225-315 izq · 316-349 ligera izq ·
+350-359 recto · el snapping al patrón Loki: candidatas en radio,
+coordenada proyectada devuelta, `node_snap_tolerance` 5 m (proyección
+pegada a un cruce → al nodo), y las islas fuera al estilo
+`minimum_reachability` (candidato en isla → se descarta y se sigue
+buscando; preferir c=0, solo a=1) · rotondas: SIN etiqueta en el grafo
+— quedan fuera, mejora futura declarada.
+
+**ENCARGO A — el dato de nombres (autorizado por Antonio el 20/08 al
+fijar el formato Google):**
+- [ ] El fichero de nombres OSM entra al repo: la respuesta Overpass de
+      la rama archivada (`2026-08-02_…_nombres.json`, 5 MB, 19.897 ways
+      con `name`) — ficha completa con: el desfase de UN DÍA con el
+      grafo (02/08 vs 03/08) declarado, la cobertura medida (16.994 de
+      47.758 ways del grafo → 40,8% de aristas, 37% de km — y que ese
+      40% es el TECHO real de OSM: el resto son aceras y pasos sin
+      nombre, no un fichero cojo), y el 19,4% de portales cuya vía OSM
+      DISCORDA del callejero (auditoría `cv`), declarado con la regla:
+      el interior habla OSM, los extremos hablan municipal
+
+**ENCARGO B — el motor:**
+- [ ] **La proyección portal→arista, construida aquí** (el enganche se
+      perdió): sobre el subgrafo a=1 ∧ c=0, patrón Loki — proyección
+      perpendicular, punto DENTRO de la arista, conector
+      portal→proyección en la geometría, `node_snap_tolerance` declarada
+- [ ] **Las 4 combinaciones extremo-extremo** [DOC — el naïf produce
+      retrocesos de una manzana] y **el caso trivial** de misma arista
+      con trato propio [DOC Valhalla]
+- [ ] **«Sin camino» es un resultado**: islas → `Aviso` honesto; los 124
+      sin enganche → `Aviso`
+- [ ] **Dijkstra unidireccional con montículo binario, MEDIDO** (la doc
+      respalda que basta: el peatonal usa jerarquía local; el
+      bidireccional es para grafos continentales)
+- [ ] `POST /api/ruta` — el contrato crece con lo que la respuesta pida:
+      geometría con conectores, pasos al formato Google (cardinal
+      inicial · giro clasificado por `turn.cc` · «hacia X» con nombre
+      OSM o por tipo con `p` · metros del tramo · lado del destino por
+      producto vectorial), metros totales, duración DERIVADA (5,0 km/h,
+      dicha como derivada — D-G) y `Aviso`
+**ENCARGO C — la pantalla:**
+- [ ] La ruta se pinta en el mapa (con sus conectores) y los pasos salen
+      escritos con el formato de la captura: flecha + «Gira … hacia …» +
+      metros por tramo + «El destino está a la …»
+- [ ] La respuesta falsa del punto 2 SE RETIRA (ya no hace falta el
+      andamio)
+- [ ] Probada con trayectos que Antonio conoce a pie — el juez es su
+      ojo. Entre ellos, los casos de la doctrina: uno trivial (misma
+      calle), uno con islas, uno céntrico largo
 - [ ] **Se retiran los andamios de carga del mapa de verificación**
       (decidido el 18/08 en el punto 5): el navegador deja de bajarse los
       ~34 MB (grafo 22,8 + portales 10,3 + carriles + shapes + stops +

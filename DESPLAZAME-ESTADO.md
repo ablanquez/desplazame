@@ -60,12 +60,18 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**El punto 7 ganó hitos con la doctrina delante (19/08):** los seis
-puntos de Valhalla/OSRM — la comprobación del nombre-en-arista [NO
-CONSTA] que condiciona los pasos, el enganche con proyección y las 4
-combinaciones, el caso trivial de misma arista, el «sin camino» como
-resultado, Dijkstra unidireccional medido, y la duración derivada de
-los 5,0 km/h.
+**El punto 7, cerrada su preparación (20/08):** la consulta al grafo
+midió lo que hay (cero nombres en aristas · `p` clasifica el tipo · `m`
+verificado · el `enlaces.json` del enganche PERDIDO — la proyección se
+construye) y la investigación documental resolvió los tres frentes: lo
+innombrado habla POR TIPO (el `p` es el dato de Valhalla), extremos
+municipales / interior OSM (el 19,4% discordante declarado), umbrales
+de giro LEÍDOS de `turn.cc`, snapping al patrón Loki con las islas
+fuera. FORMATO DECIDIDO por Antonio: el de Google Maps (cardinal +
+giros + «hacia X» + metros + lado del destino; rotondas fuera, mejora
+futura). El plan lo estructura en TRES encargos: A el fichero de
+nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
+(pintado + pasos, y la respuesta falsa se retira).
 
 **Lo siguiente: el punto 7** — `POST /api/ruta` andando (Dijkstra sobre
 el grafo en memoria, el enganche portal→arista del censo enganchado),
