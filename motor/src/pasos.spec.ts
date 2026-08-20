@@ -20,6 +20,7 @@ import {
   fundirMicroTramos,
   giroDe,
   metrosParaLeer,
+  nombreGenerico,
   UMBRAL_MICRO_M,
   type TramoFundido,
   type TramoLlano,
@@ -62,6 +63,18 @@ function maniobra(
 
 /** Los nombres que sobreviven a un colapso, en orden. */
 const nombresDe = (ms: readonly TramoFundido[]): string[] => ms.map((m) => m.nombre);
+
+/**
+ * Los 27 valores de `highway` que trae el grafo, contados sobre
+ * `app/data/grafo-visor.js`. La tabla de nombres genéricos los cubre todos.
+ */
+const LOS_27_HIGHWAY = [
+  'motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'unclassified',
+  'residential', 'motorway_link', 'trunk_link', 'primary_link',
+  'secondary_link', 'tertiary_link', 'busway', 'living_street', 'service',
+  'track', 'path', 'cycleway', 'footway', 'steps', 'pedestrian', 'corridor',
+  'construction', 'proposed', 'raceway', 'services', 'rest_area',
+] as const;
 
 describe('La fusión de micro-tramos', () => {
   test('⭐ LA SALVAGUARDA: un giro real de 90° entre dos trozos cortos NO se pierde', () => {
@@ -145,6 +158,67 @@ describe('La fusión de micro-tramos', () => {
       tramo('la acera', UMBRAL_MICRO_M - 1, 90, 90),
     ]);
     assert.equal(porUnPelo.length, 1);
+  });
+});
+
+describe('Lo mudo se nombra por su tipo REAL', () => {
+  // Entrada nº7 de la bitácora: un carril bici se anunciaba como «la calzada».
+  // [DOC Valhalla] «a generic description will be used… when a walkway,
+  // cycleway or trail is unnamed» — el tipo real manda, y vive en `h`.
+
+  test('⭐ un CARRIL BICI mudo se dice carril bici, no calzada', () => {
+    assert.equal(nombreGenerico('eje-de-calzada', 'cycleway'), 'el carril bici');
+  });
+
+  test('⭐ y una CALZADA de verdad sigue diciéndose calzada', () => {
+    // La corrección no puede llevarse por delante el caso que sí era cierto.
+    for (const h of ['residential', 'tertiary', 'secondary', 'primary', 'unclassified']) {
+      assert.equal(nombreGenerico('eje-de-calzada', h), 'la calzada', `h=${h}`);
+    }
+  });
+
+  test('los otros tres genéricos del eje dicen lo que son', () => {
+    assert.equal(nombreGenerico('eje-de-calzada', 'track'), 'el camino');
+    assert.equal(nombreGenerico('eje-de-calzada', 'service'), 'el vial de servicio');
+    assert.equal(nombreGenerico('eje-de-calzada', 'path'), 'la senda');
+  });
+
+  test('`eje-con-acera-declarada` es igual de genérico: también manda h', () => {
+    // Son 2.418 aristas y el mismo problema: el perfil no dice qué es la vía.
+    assert.equal(nombreGenerico('eje-con-acera-declarada', 'cycleway'), 'el carril bici');
+    assert.equal(nombreGenerico('eje-con-acera-declarada', 'residential'), 'la calzada');
+  });
+
+  test('⭐ el perfil FINO manda sobre h, y no al revés', () => {
+    // Una acera es una acera aunque su `h` sea `footway`, que se diría igual;
+    // pero un paso de peatones también es `footway` y NO es una acera. Cuando
+    // el perfil distingue más que el tipo, gana el perfil.
+    assert.equal(nombreGenerico('acera', 'footway'), 'la acera');
+    assert.equal(nombreGenerico('paso-de-peatones', 'footway'), 'el paso de peatones');
+    assert.equal(nombreGenerico('escaleras', 'steps'), 'las escaleras');
+    assert.equal(nombreGenerico('peatonal', 'footway'), 'la zona peatonal');
+  });
+
+  test('LOS 27 valores de highway del grafo tienen traducción, y ninguna vacía', () => {
+    // Si el dato trajera uno más, cae en el genérico declarado y esta prueba
+    // lo sigue cubriendo.
+    assert.equal(LOS_27_HIGHWAY.length, 27);
+    for (const h of LOS_27_HIGHWAY) {
+      const dicho = nombreGenerico('eje-de-calzada', h);
+      assert.ok(dicho.length > 0, `h=${h} no tiene traducción`);
+      // Y encaja detrás de «hacia»: artículo y singular.
+      assert.match(dicho, /^(el|la|las|los) /, `h=${h} dice «${dicho}», que no encaja tras «hacia»`);
+    }
+  });
+
+  test('un highway que no existe no se calla: cae en el genérico declarado', () => {
+    assert.equal(nombreGenerico('eje-de-calzada', 'lo-que-sea'), 'el camino');
+    assert.equal(nombreGenerico('eje-de-calzada', undefined), 'el camino');
+  });
+
+  test('un perfil desconocido tampoco se calla', () => {
+    assert.equal(nombreGenerico('perfil-que-no-existe', 'residential'), 'la calzada');
+    assert.equal(nombreGenerico('perfil-que-no-existe', undefined), 'el camino');
   });
 });
 
@@ -410,19 +484,61 @@ describe('Los pasos de una ruta real', () => {
     assert.match(pasos[pasos.length - 1]!.texto, /^CALLE DE LLEGADA 2 /);
   });
 
-  test('EL INTERIOR habla OSM cuando hay nombre, y por TIPO cuando no', () => {
+  /**
+   * ⚠️ ESTA ES LA PRUEBA QUE MINTIÓ. Entrada nº7 de la bitácora.
+   *
+   * Antes traía la lista de palabras genéricas **escrita a mano**, y «la
+   * calzada» estaba en ella. Así que daba verde mientras a un peatón se le
+   * decía que anduviera por la calzada de una avenida yendo por un carril
+   * bici: la lista decía qué se PUEDE decir, no cuándo es cierto cada cosa.
+   *
+   * Dos cambios, y los dos salen de la ley de esa entrada:
+   *
+   * 1. **La lista ya no se escribe aquí**: se construye llamando a
+   *    `nombreGenerico` sobre los perfiles y los tipos que existen. Si mañana
+   *    entra una palabra nueva, esta prueba la acepta sola; y si alguien borra
+   *    una, deja de aceptarla sola. No puede volver a desincronizarse.
+   * 2. **Y se ata la palabra a la condición**: esta ruta pasa por `service` y
+   *    por `track`, así que TIENE que decir «el vial de servicio» y «el
+   *    camino» — y NO puede decir «la calzada», porque no pisa ninguna calzada
+   *    muda. Eso es lo que la versión vieja no sabía comprobar.
+   */
+  test('EL INTERIOR habla OSM cuando hay nombre, y por TIPO REAL cuando no', () => {
     const pasos = pasosDe(ORIGEN, DESTINO);
     const medio = pasos.slice(1, -1);
-    const conNombre = medio.filter((p) => /hacia (Calle|Avenida|Camino|Paseo|Plaza)/.test(p.texto));
-    const porTipo = medio.filter((p) =>
-      /hacia (la acera|el paso de peatones|las escaleras|la zona peatonal|la calzada)$/.test(
-        p.texto,
-      ),
+
+    // El vocabulario genérico, tomado de las tablas de verdad y no copiado.
+    const PERFILES = [
+      'acera', 'paso-de-peatones', 'escaleras', 'peatonal',
+      'eje-de-calzada', 'eje-con-acera-declarada',
+    ];
+    const genericas = new Set(
+      PERFILES.flatMap((p) => LOS_27_HIGHWAY.map((h) => nombreGenerico(p, h))),
     );
+
+    const haciaDonde = (t: string) => t.replace(/^.*? hacia /, '');
+    const conNombre = medio.filter((p) => !genericas.has(haciaDonde(p.texto)));
+    const porTipo = medio.filter((p) => genericas.has(haciaDonde(p.texto)));
+
     assert.ok(conNombre.length > 0, 'ninguna calle con nombre: el cruce no está entrando');
     assert.ok(porTipo.length > 0, 'ninguna por tipo: el 60% sin nombre no se está tratando');
-    // Y no queda ninguno por clasificar: o nombre, o tipo.
     assert.equal(conNombre.length + porTipo.length, medio.length);
+
+    // Y la parte que ata palabra ↔ condición, que es la que faltaba.
+    const textos = medio.map((p) => p.texto);
+    assert.ok(
+      textos.some((t) => /hacia el vial de servicio$/.test(t)),
+      'esta ruta pisa `service` y no lo dice',
+    );
+    assert.ok(
+      textos.some((t) => /hacia el camino$/.test(t)),
+      'esta ruta pisa `track` y no lo dice',
+    );
+    assert.equal(
+      textos.filter((t) => /hacia la calzada$/.test(t)).length,
+      0,
+      'dice «la calzada» y esta ruta no pisa ninguna calzada muda',
+    );
   });
 
   test('no encadena «continúa» sobre la misma calle: eso se une en un tramo', () => {
@@ -483,12 +599,19 @@ describe('Los pasos de una ruta real', () => {
   });
 
   test('⭐ la chicane conserva su giro: fundir no endereza lo que tuerce', () => {
-    // Tres tramos sin nombre que hacían dos «ligeramente a la izquierda» y una
-    // «ligeramente a la derecha» —120, 23 y 82 m—. El de 23 es micro. Al
-    // fundirlos sale UN paso de ~220 m, y lo que se anuncia sigue siendo el
-    // giro con el que se entra en la chicane, no un «continúa recto».
+    // El tramo sin nombre del polígono: 117 m de `service` y 23 m de `track`.
+    // El de 23 es micro (< 25 m) y se funde en el anterior, así que sale UN
+    // paso de ~140 m — y lo que se anuncia sigue siendo el giro con el que se
+    // entra en la chicane, no un «continúa recto». Eso es lo que fija.
+    //
+    // ⚠️ Antes esto buscaba «la calzada · 220 m», y los 220 eran una FUSIÓN
+    // FALSA: un vial de servicio y un camino de tierra soldados porque los dos
+    // se llamaban «la calzada». Al decir cada uno lo que es dejan de fundirse,
+    // y la ruta pasa de 13 pasos a 14. Entrada nº7 de la bitácora.
     const pasos = pasosDe(ORIGEN, DESTINO);
-    const chicane = pasos.find((p) => p.metros >= 200 && p.metros <= 240 && /calzada/.test(p.texto));
+    const chicane = pasos.find(
+      (p) => p.metros >= 130 && p.metros <= 150 && /vial de servicio$/.test(p.texto),
+    );
     assert.ok(chicane, 'no aparece el tramo de la chicane fundido');
     assert.equal(chicane!.giro, 'ligera-izquierda');
   });
@@ -581,6 +704,24 @@ describe('Los pasos de una ruta real', () => {
     assert.ok(
       Math.abs(suma - ruta.metros) < 60,
       `los pasos suman ${suma} m y la ruta mide ${ruta.metros.toFixed(0)}`,
+    );
+  });
+
+  test('⭐ los 1.270 m de carril bici se dicen carril bici, no calzada', () => {
+    // Entrada nº7 de la bitácora. El paso son tres ways —354344721, 475888308
+    // y 475881583—, los tres h=cycleway y los tres mudos en OSM. Antes decía
+    // «Gira a la derecha hacia la calzada · 1270 m», que es FALSO: no se anda
+    // por la calzada de la avenida, se anda por el carril bici de al lado.
+    const pasos = pasosDe(COLOSO, ARRUPE);
+    const largo = pasos.find((p) => p.metros >= 1200 && p.metros <= 1350);
+    assert.ok(largo, 'no aparece el tramo largo de la ruta');
+    assert.match(largo!.texto, /hacia el carril bici$/);
+    // Y en toda la ruta no queda ni una «calzada»: los mudos que trae son
+    // carril bici, y eso ya se dice con su nombre.
+    assert.equal(
+      pasos.filter((p) => /hacia la calzada$/.test(p.texto)).length,
+      0,
+      `queda una calzada: ${pasos.filter((p) => /calzada/.test(p.texto)).map((p) => p.texto)}`,
     );
   });
 

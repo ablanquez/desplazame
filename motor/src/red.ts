@@ -83,6 +83,26 @@ export interface RedEnMemoria {
    * (40,0%), que es la cifra de la ficha § 1.14.
    */
   readonly nombreDeWay: ReadonlyMap<number, string>;
+  /**
+   * El cruce `w` → `highway` de OSM: **el TIPO REAL de la vía**.
+   *
+   * Existe porque sin él no se puede decir la verdad de lo que no tiene
+   * nombre. El perfil propio del exportador (`p`) mete en el mismo saco
+   * —`eje-de-calzada`— cosas que no son lo mismo: **4.671 de las 4.675
+   * aristas `cycleway` del grafo lo llevan**, y con solo `p` a la vista un
+   * carril bici se anunciaba como «la calzada». Entrada nº7 de la bitácora.
+   *
+   * Va como `Map` por `w` y no como campo de cada arista **porque `h` es
+   * constante dentro de un *way*** — verificado: 0 de las 98.774 aristas
+   * discrepan del `h` de su way—. Así son 47.758 entradas en vez de 93.503
+   * punteros, y queda simétrico con `nombreDeWay`, que se llena igual y se
+   * consulta igual.
+   *
+   * Lleva **los 47.758 ways del grafo entero**, no solo los del subgrafo
+   * útil: mismo criterio que `nombreDeWay`, poder distinguir «este way no
+   * está» de «este way lo tiramos al cargar».
+   */
+  readonly tipoDeWay: ReadonlyMap<number, string>;
   /** Cuántos extremos sueltos quedan (grado 1): puntas del dato, no error. */
   readonly puntasSueltas: number;
   readonly cargadoEnMs: number;
@@ -198,6 +218,14 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
     }
   }
 
+  // ── 5 · El cruce way → tipo real ───────────────────────────────────────────
+  // Sale del grafo, no del fichero de nombres: lo llevan TODAS las aristas,
+  // también las mudas — que son justo las que lo necesitan.
+  const tipoDeWay = new Map<number, string>();
+  for (const cruda of memoria.grafo.aristas) {
+    tipoDeWay.set(cruda.w, cruda.h);
+  }
+
   return {
     aristas,
     nodos,
@@ -207,6 +235,7 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
     salidaArista,
     salidaVecino,
     nombreDeWay,
+    tipoDeWay,
     puntasSueltas,
     cargadoEnMs: performance.now() - principio,
   };

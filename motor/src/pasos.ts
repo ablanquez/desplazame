@@ -33,27 +33,109 @@ import type { Ruta, TrozoDeRuta } from './ruta.ts';
 type Punto = readonly [number, number];
 
 /**
- * Cómo se llama un tramo que no tiene nombre, según su tipo.
+ * ⭐ NIVEL 1 — el perfil, cuando distingue MÁS que el tipo de OSM.
  *
- * [PROPIO] Las redacciones son mías; lo que no es mío es la idea de nombrar
- * por tipo, que es de Valhalla. Van en artículo y en singular para que encajen
- * detrás de «hacia»: «hacia el paso de peatones», «hacia las escaleras».
+ * El exportador del grafo trae su propio `p`, y en cuatro casos sabe algo que
+ * `highway` no dice. El ejemplo que lo justifica: una acera y un paso de
+ * peatones son **los dos** `highway=footway` en OSM —10.005 y 9.365 aristas
+ * mudas—, y no se anda igual por uno que por otro. Ahí manda el perfil.
  *
- * `eje-de-calzada` sin nombre es una calle que OSM no nombró, y se dice «la
- * calzada» y no «la calle sin nombre»: lo segundo describe nuestro dato, no lo
- * que la persona tiene delante.
+ * [PROPIO] Las redacciones son mías; la idea de nombrar por tipo es de
+ * Valhalla. Van con artículo y en singular para encajar detrás de «hacia».
+ *
+ * **Lo que ya NO está aquí es `eje-de-calzada`.** Ese perfil no distingue: le
+ * caen 46.643 aristas que son calzada de verdad, carril bici, camino de tierra
+ * y vial de servicio, todo junto. Decirlo «la calzada» era la entrada nº7 de
+ * la bitácora — una afirmación falsa en pantalla, no un hueco de información.
+ * Cuando el perfil es genérico, decide el tipo real: nivel 2.
  */
-const POR_TIPO: Readonly<Record<string, string>> = {
+const POR_PERFIL: Readonly<Record<string, string>> = {
   acera: 'la acera',
   'paso-de-peatones': 'el paso de peatones',
   escaleras: 'las escaleras',
   peatonal: 'la zona peatonal',
-  'eje-de-calzada': 'la calzada',
-  'eje-con-acera-declarada': 'la calzada',
 };
 
-/** Si aparece un tipo que no está en la tabla, se dice esto y no se calla. */
+/**
+ * ⭐ NIVEL 2 — el tipo REAL de OSM, que es quien manda cuando el perfil no
+ * distingue.
+ *
+ * [DOC Valhalla] La doctrina, de sus notas de versión: *«a generic description
+ * will be used… when a walkway, cycleway or trail is unnamed»*. El tipo real,
+ * no una etiqueta de conveniencia.
+ *
+ * **Están los 27 valores de `highway` que trae el grafo**, contados sobre
+ * `app/data/grafo-visor.js`; ninguno se queda sin traducción. Los grupos:
+ *
+ * - **La jerarquía viaria** —`motorway`…`residential`, sus `_link` y
+ *   `busway`— sí es calzada, y se dice «la calzada». Ahí la palabra siempre
+ *   fue cierta y no se toca.
+ * - **Lo que NO es calzada y lo decía**: `cycleway` (2.183 aristas mudas,
+ *   90 km), `track` (6.521, 1.928 km), `service` (7.563, 338 km), `path`
+ *   (2.632, 301 km). Son los cuatro que arreglan el fallo.
+ * - **Lo peatonal** —`footway`, `steps`, `pedestrian`, `corridor`,
+ *   `living_street`—: hoy casi nunca llegan aquí, porque su perfil ya es fino
+ *   y los caza el nivel 1. Están igualmente, y no es adorno: si el exportador
+ *   cambiara de criterio, la palabra correcta ya está puesta en vez de
+ *   aparecer un hueco.
+ * - **Lo que no se puede andar** —`construction`, `proposed`, `raceway`,
+ *   `services`, `rest_area`—: llevan `a=0` y no entran en la red, así que no
+ *   pueden salir en un paso. Se traducen igual, porque «no puede pasar» y «no
+ *   está previsto» no son lo mismo, y el día que pase se leerá algo cierto.
+ */
+const POR_HIGHWAY: Readonly<Record<string, string>> = {
+  // La jerarquía viaria: aquí «calzada» siempre fue verdad.
+  motorway: 'la calzada',
+  trunk: 'la calzada',
+  primary: 'la calzada',
+  secondary: 'la calzada',
+  tertiary: 'la calzada',
+  unclassified: 'la calzada',
+  residential: 'la calzada',
+  motorway_link: 'la calzada',
+  trunk_link: 'la calzada',
+  primary_link: 'la calzada',
+  secondary_link: 'la calzada',
+  tertiary_link: 'la calzada',
+  busway: 'la calzada',
+  // Los cuatro que no lo eran, y que son este encargo.
+  cycleway: 'el carril bici',
+  track: 'el camino',
+  service: 'el vial de servicio',
+  path: 'la senda',
+  // Lo peatonal. Se dice «la calle residencial» y no «la zona peatonal» para
+  // `living_street`: por una calle de convivencia pasan coches despacio, y
+  // llamarla peatonal invitaría a andar por el medio.
+  living_street: 'la calle residencial',
+  footway: 'la acera',
+  steps: 'las escaleras',
+  pedestrian: 'la zona peatonal',
+  corridor: 'el pasaje',
+  // Lo que hoy no rutea. Ver arriba.
+  construction: 'el tramo en obras',
+  proposed: 'el tramo proyectado',
+  raceway: 'el circuito',
+  services: 'el área de servicio',
+  rest_area: 'el área de descanso',
+};
+
+/** Si no hay ni perfil fino ni tipo conocido, se dice esto y no se calla. */
 const TIPO_DESCONOCIDO = 'el camino';
+
+/**
+ * Cómo se llama un tramo que OSM no nombró. **Dos niveles, en este orden.**
+ *
+ * Primero el perfil, si es de los que distinguen; si no, el tipo real; y si
+ * tampoco, el genérico. Nunca devuelve vacío: un paso sin «hacia» dónde no es
+ * un paso.
+ */
+export function nombreGenerico(perfil: string, highway: string | undefined): string {
+  const fino = POR_PERFIL[perfil];
+  if (fino !== undefined) {
+    return fino;
+  }
+  return (highway !== undefined ? POR_HIGHWAY[highway] : undefined) ?? TIPO_DESCONOCIDO;
+}
 
 /**
  * Los ocho rumbos. El corte está cada 45°, así que cada uno abarca ±22,5°.
@@ -213,9 +295,12 @@ function agrupar(red: RedEnMemoria, trozos: readonly TrozoDeRuta[]): readonly Tr
   return tramos;
 }
 
-/** Cómo se nombra un tramo: el de OSM si lo hay, y si no el de su tipo. */
+/** Cómo se nombra un tramo: el de OSM si lo hay, y si no el de su tipo real. */
 function nombreDe(red: RedEnMemoria, tramo: Tramo): string {
-  return red.nombreDeWay.get(tramo.way) ?? POR_TIPO[tramo.perfil] ?? TIPO_DESCONOCIDO;
+  return (
+    red.nombreDeWay.get(tramo.way) ??
+    nombreGenerico(tramo.perfil, red.tipoDeWay.get(tramo.way))
+  );
 }
 
 /**
