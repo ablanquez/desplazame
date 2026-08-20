@@ -670,6 +670,74 @@ describe('⭐ EL CANÓNICO — cuando las dos grafías se juntan, manda la munic
   });
 });
 
+describe('⭐ LA ABSORCIÓN ANCHA — el segmento corto se come aunque no case con nadie', () => {
+  test('el carril bici de 82 m entre dos avenidas desaparece dentro de la primera', () => {
+    // Es el paso 3 de EL COLOSO 2 → VALLE DE ZURIZA 1. Mide menos que el corte
+    // de OSRM, no tuerce, y separa dos avenidas que no son la misma: la regla
+    // estrecha no lo tocaba porque exigía que los dos vecinos casaran.
+    const colapsadas = colapsarManiobras([
+      maniobra('AVENIDA ACADEMIA GENERAL MILITAR', 430, 'salida', 90, 90, true),
+      maniobra('el carril bici', 82, 'recto', 90),
+      maniobra('AVENIDA SAN JUAN DE LA PEÑA', 1660, 'recto', 90, 90, true),
+    ]);
+    assert.deepEqual(nombresDe(colapsadas), [
+      'AVENIDA ACADEMIA GENERAL MILITAR',
+      'AVENIDA SAN JUAN DE LA PEÑA',
+    ]);
+    assert.equal(colapsadas[0]!.metros, 512);
+    assert.equal(colapsadas[1]!.metros, 1660);
+  });
+
+  test(`por encima de ${CORTE_DE_NOMBRE_M} m ya no es una interrupción: se queda`, () => {
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 430, 'salida', 90),
+      maniobra('CALLE ENMEDIO', CORTE_DE_NOMBRE_M + 1, 'recto', 90),
+      maniobra('CALLE OTRA', 400, 'recto', 90),
+    ]);
+    assert.equal(colapsadas.length, 3);
+  });
+
+  test('⭐ SALVAGUARDA: un giro de verdad al entrar en el corto NO se come', () => {
+    // Si para meterte en los 40 m hay que girar a la derecha, esos 40 m son
+    // una maniobra y se anuncian. Da igual lo poco que midan.
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 430, 'salida', 0),
+      maniobra('CALLE CORTA', 40, 'derecha', 90),
+      maniobra('CALLE OTRA', 400, 'derecha', 180),
+    ]);
+    assert.equal(colapsadas.length, 3);
+  });
+
+  test('⭐ SALVAGUARDA: dos suaves del mismo signo que suman un giro tampoco', () => {
+    // 30° + 30° son 60°, que es una derecha de verdad. El ángulo combinado a
+    // través de lo que se suprime es lo único que lo caza.
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 430, 'salida', 0, 0),
+      maniobra('CALLE CORTA', 40, 'ligera-derecha', 30, 30),
+      maniobra('CALLE OTRA', 400, 'ligera-derecha', 60, 60),
+    ]);
+    assert.equal(colapsadas.length, 3);
+  });
+
+  test('el ÚLTIMO no se absorbe: sin nadie detrás no hay ángulo que comprobar', () => {
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 430, 'salida', 90),
+      maniobra('CALLE CORTA', 40, 'recto', 90),
+    ]);
+    assert.equal(colapsadas.length, 2);
+  });
+
+  test('el ARRANQUE nunca desaparece, aunque sea corto y suave', () => {
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE CORTA', 12, 'salida', 90),
+      maniobra('CALLE UNA', 430, 'recto', 90),
+      maniobra('CALLE OTRA', 400, 'recto', 90),
+    ]);
+    assert.equal(colapsadas[0]!.giro, 'salida');
+    assert.equal(colapsadas[0]!.nombre, 'CALLE CORTA');
+  });
+});
+
 describe('Los pasos de una ruta real', () => {
   let red: RedEnMemoria;
   let rejilla: Rejilla;
@@ -960,16 +1028,21 @@ describe('Los pasos de una ruta real', () => {
     );
   });
 
-  test('⭐ y AHORA se dicen por su nombre: los 1.270 m son dos avenidas', () => {
+  test('⭐ y AHORA se dicen por su nombre: los 1.270 m son dos avenidas SEGUIDAS', () => {
     // El tramo largo no era una cosa: eran la AVENIDA ACADEMIA GENERAL MILITAR
-    // y la AVENIDA SAN JUAN DE LA PEÑA, con un trozo de carril de 82 m en medio
-    // que ninguna reclama — queda en disputa al heredar.
+    // y la AVENIDA SAN JUAN DE LA PEÑA.
+    //
+    // ⚠️ AJUSTE (regla ancha). Entre las dos había un trozo de 82 m de carril
+    // que ninguna reclama —queda en disputa al heredar— y que salía como paso
+    // propio. Ahora se absorbe dentro de la primera: las dos avenidas van
+    // SEGUIDAS. Los metros no se pierden, se suman a la Academia.
     const pasos = pasosDe(COLOSO, ARRUPE);
     const academia = pasos.findIndex((p) => p.texto.endsWith('hacia AVENIDA ACADEMIA GENERAL MILITAR'));
     const sanJuan = pasos.findIndex((p) => p.texto.endsWith('hacia AVENIDA SAN JUAN DE LA PEÑA'));
     assert.ok(academia >= 0, 'el carril bici de la Academia sigue sin nombre');
-    assert.ok(sanJuan > academia, 'la segunda avenida no aparece detrás de la primera');
-    assert.equal(pasos[academia]!.metros, 430);
+    assert.equal(sanJuan, academia + 1, 'entre las dos avenidas se ha colado un paso');
+    // 430 m de avenida + los 82 del carril absorbido, redondeados a la decena.
+    assert.equal(pasos[academia]!.metros, 510);
   });
 
   test('⭐ y la ruta larga ya no dice la MISMA avenida dos veces seguidas', () => {

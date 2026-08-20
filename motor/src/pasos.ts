@@ -840,24 +840,39 @@ function absorber(crece: Maniobra, comido: Maniobra): void {
  * es exigir que el giro sea suave. Valhalla lo dice desde el otro lado: no
  * repetir la instrucción de continuar por una variante leve del mismo nombre.
  *
- * **Regla B — la interrupción corta se absorbe.** [DOC OSRM] La segunda rama
- * suma los metros del nombre nuevo mientras el paso siguiente sea silencioso, y
- * si el total queda por debajo de `NAME_SEGMENT_CUTOFF_LENGTH` lo suprime
- * contra el anterior.
+ * **Regla B — el segmento corto se absorbe, sea de quien sea.** [DOC OSRM] La
+ * segunda rama de `suppressShortNameSegments` suprime contra el paso anterior
+ * todo segmento de nombre nuevo que quede por debajo de
+ * `NAME_SEGMENT_CUTOFF_LENGTH`, **sin exigir que los dos vecinos se llamen
+ * igual**. Es la regla ancha, y es la que está viva aquí.
  *
- * **Dónde este colapso es MÁS ESTRECHO que el de OSRM, y por qué.** OSRM
- * absorbe cualquier segmento de nombre corto contra el paso anterior, se llame
- * como se llame el que viene después. Aquí se exige además que **los dos
- * vecinos sean la misma calle** — que sea de verdad una interrupción y no un
- * cambio de calle. Es lo que fijó el encargo, y ensancharlo no es decisión de
- * este código.
+ * El caso que la pedía: EL COLOSO 2 → VALLE DE ZURIZA 1 decía «Gira a la
+ * derecha hacia AVENIDA ACADEMIA GENERAL MILITAR · 430 m», luego «Continúa
+ * hacia **el carril bici · 82 m**», y luego «Continúa hacia AVENIDA SAN JUAN DE
+ * LA PEÑA · 1.660 m». Esos 82 m son el trozo de carril que ninguna de las dos
+ * avenidas reclama —queda en disputa al heredar—, y partir dos avenidas por él
+ * no informa de nada: se anda seguido.
  *
- * **La salvaguarda, que es lo que hay que mirar si algún día esto miente.** Un
- * giro de verdad en la misma calle SE ANUNCIA: la regla A no se aplica si el
- * giro no es suave. Y en la regla B no basta con que los dos giros suprimidos
- * sean suaves por separado — dos «ligeramente a la derecha» de 30° suman una
- * derecha de 60°—, así que se mide **el ángulo combinado a través de lo que se
- * suprime** y solo se colapsa si TAMBIÉN es suave.
+ * **Y absorbe UNO, no dos.** La versión estrecha se comía el corto y el que
+ * venía detrás de una vez, porque los dos vecinos eran la misma calle. Ahora se
+ * absorbe solo el corto y el siguiente se procesa en su turno **con su giro
+ * intacto** —que se midió contra la salida del corto, y esa salida es ya la del
+ * que ha crecido—. Si además resulta ser la misma calle que el anterior, la
+ * regla A lo junta en la vuelta siguiente. Termina igual y no se pierde ningún
+ * giro por el camino.
+ *
+ * ⚠️ **Lo que la regla ancha se lleva por delante, y hay que saberlo:** los
+ * nombres cortos con valor de referencia. «Plaza Basilio Paraíso · 62 m»
+ * desaparece de la ruta larga, y esa plaza tiene nombre porque la gente la usa
+ * para orientarse. Es el precio declarado de seguir a OSRM.
+ *
+ * **Las salvaguardas, que es lo que hay que mirar si algún día esto miente.**
+ * Un giro de verdad SE ANUNCIA: ni la regla A ni la B se aplican si el giro no
+ * es suave. Y en la B no basta con que los giros sean suaves por separado —dos
+ * «ligeramente a la derecha» de 30° suman una derecha de 60°—, así que se mide
+ * **el ángulo combinado a través de lo que se suprime** y solo se colapsa si
+ * TAMBIÉN es suave. El arranque nunca desaparece, y el último tampoco: sin
+ * nadie detrás no hay ángulo combinado que comprobar, y se deja.
  *
  * Se repite hasta que una vuelta no cambie nada: absorber crea vecindades
  * nuevas —A·B·A·A acaba en una sola A— y una sola pasada las dejaría a medias.
@@ -895,14 +910,21 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
       continue;
     }
 
-    // ── Regla B ────────────────────────────────────────────────────────────
-    // Los dos VECINOS tienen que ser la misma calle con nombre; el que
-    // interrumpe puede no tener ninguno —el caso típico es justo ese, un
-    // tramo peatonal sin nombre partiendo un paseo en dos—.
+    // ── Regla B, la ANCHA ──────────────────────────────────────────────────
+    // No se exige que los vecinos casen: basta con que el de en medio sea
+    // corto y con que no haya un giro de verdad ni dentro ni a través de él.
+    // `despues` tiene que EXISTIR —es quien pone el otro extremo del ángulo
+    // combinado—, así que el último paso nunca se absorbe.
     const despues = maniobras[i + 1];
     if (
       despues &&
-      esLaMismaCalle(ultimo, despues) &&
+      // ⭐ Y de nombre DISTINTO a sus dos vecinos. Contra el de atrás ya lo
+      // garantiza la regla A, que va antes; contra el de delante hay que
+      // decirlo: si el corto es la misma calle que lo que viene, no es una
+      // interrupción — es su primer trozo, y absorberlo hacia atrás le
+      // regalaría sus metros a la calle anterior. Se deja pasar y la regla A
+      // los junta en la vuelta siguiente, que es donde le tocan.
+      !esLaMismaCalle(maniobra, despues) &&
       maniobra.metros < CORTE_DE_NOMBRE_M &&
       esSuave(maniobra.giro) &&
       esSuave(despues.giro) &&
@@ -911,8 +933,9 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
       esSuave(giroDe(ultimo.salida, despues.entrada))
     ) {
       absorber(ultimo, maniobra);
-      absorber(ultimo, despues);
-      i++;
+      // `despues` NO se salta: se procesa en su turno. Su giro se midió contra
+      // la salida del corto, que acaba de pasar a ser la de `ultimo`, así que
+      // sigue anunciando el ángulo correcto.
       continue;
     }
 
