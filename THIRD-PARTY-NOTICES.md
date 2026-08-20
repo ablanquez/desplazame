@@ -850,13 +850,32 @@ contradigan con el formulario:
 > calle, no pertenece a ella, y decir «continúa por Avenida de Navarra» mientras se cruza Navarra
 > le quita a quien anda justo el aviso que necesita.
 
-> ⚠️ **Y esto tiene una consecuencia visible que NO está resuelta.** Los niveles 1 y 2 son dos
-> registros distintos —OSM escribe «Avenida de San José», el municipal «AVENIDA SAN JOSÉ»—, así
-> que cuando una ruta pasa del carril bici heredado a la calzada nombrada por OSM, **dice la
-> misma calle dos veces seguidas con dos ortografías**. Medido sobre 400 rutas de 300 a 4.000 m:
-> pasa en el **54,8 % de las rutas** y afecta al **6,5 % de los pasos**. No es una mentira —los
-> dos nombres son ciertos—, pero se lee mal. **Está declarado y sin decidir**: unificarlos exige
-> elegir qué registro manda dentro de la ruta, y eso es decisión de producto, no de código.
+> ✅ **Y el registro es UNO por calle, que es lo que cierra el reparto.** Los niveles 1 y 2 son
+> dos registros que escriben distinto —OSM «Avenida de San José», el municipal «AVENIDA SAN
+> JOSÉ»—, y una ruta que pasaba del carril heredado a la calzada nombrada decía la misma calle
+> dos veces con dos ortografías: **el 54,8 % de las rutas**, medido. Dos reglas lo cierran, las
+> dos en [`motor/src/pasos.ts`](motor/src/pasos.ts):
+>
+> - **La equivalencia por NÚCLEO** —fuera la palabra de tipo (las 30 del censo de § 1.15), fuera
+>   las partículas, fuera tildes y mayúsculas, espacios colapsados—. [DOC OSRM] Su
+>   `requiresNameAnnounced` descompone el nombre exactamente por esto: que un cambio de prefijo
+>   «Avenida» no cuente como cambio de calle.
+> - **El canónico MUNICIPAL.** [DOC esquema Karlsruhe / Streetmangler] Cuando calles y
+>   direcciones viven en registros distintos, la búsqueda se rompe; aquí el canónico es el
+>   municipal, porque es el registro de nuestras direcciones y el nombre que el usuario acaba de
+>   leer en el formulario. Un nombre que **solo** existe en OSM no se toca.
+>
+> Queda en el **2,5 % de las rutas**, y lo que queda ya no es un cambio de registro: es OSM
+> escribiéndose distinto a sí mismo (`Calle de Martín Ruizanglada` / `Calle de Martín Ruiz
+> Anglada`), o una de las **nueve vías municipales cuyo nombre es una palabra de tipo**
+> —`CALLE PARQUE`, `CAMINO RONDA`—, que se quedan sin núcleo y por diseño no casan con nada.
+>
+> ⚠️ **El precio, medido:** quitar la palabra de tipo hace que `RONDA HISPANIDAD` y `VÍA
+> HISPANIDAD` den el mismo núcleo. Sobre 20.233 pares de tramos contiguos de 400 rutas, casan con
+> tipo distinto **42** — y mirados uno a uno, la mayoría son **la misma calle** escrita con otro
+> tipo por cada registro (`Calle de Pablo Ruiz Picasso` / `AVENIDA PABLO RUIZ PICASSO`,
+> `Pasarela del Voluntariado` / `PUENTE PASARELA DEL VOLUNTARIADO`). Dos son de verdad distintas
+> —una plaza y su calle—, y quedan aquí escritas.
 
 **3 · Y dos cosas menores, medidas.** 1.970 *ways* traen además `name:es`, que no se usa: manda
 `name`. Y cuatro llevan `addr:city` de **otro municipio** —Cuarte de Huerva, Villanueva de

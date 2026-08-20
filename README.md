@@ -105,10 +105,16 @@
 > seguidas, y Paseo de la Independencia tres, partido por un tramo peatonal sin nombre. Dos
 > maniobras de la misma calle separadas por un giro que no es un giro son **una**; y una calle
 > que interrumpe a otra durante menos de **105 m** se absorbe entre sus dos mitades — los 105 m
-> son de OSRM, su `NAME_SEGMENT_CUTOFF_LENGTH`, leído de su fuente. En una ruta de 6,4 km de
-> punta a punta de la ciudad, los **82 tramos de red** que se pisan se leen en **17 pasos**. Lo
-> que **no** desaparece es un giro de verdad aunque la calle se llame igual: ahí es justo donde
-> hace falta la instrucción.
+> son de OSRM, su `NAME_SEGMENT_CUTOFF_LENGTH`, leído de su fuente — y se absorbe **contra el
+> paso anterior sin exigir que las dos calles vecinas sean la misma**, que es la regla ancha de
+> OSRM. En una ruta de 6,4 km de punta a punta de la ciudad, los **82 tramos de red** que se
+> pisan se leen en **13 pasos**. Lo que **no** desaparece es un giro de verdad: ni el propio del
+> tramo corto ni el que resultaría de sumar dos suaves seguidos, que se mide aparte.
+>
+> ⚠️ **Lo que la regla ancha sí se lleva: los nombres cortos que sirven para orientarse.** «Plaza
+> de España · 66 m» y «Plaza Basilio Paraíso · 62 m» dejan de aparecer en esa ruta — sus metros
+> se suman al paso anterior, pero sus nombres no se dicen. Es el precio declarado de seguir a
+> OSRM, y las dos plazas siguen viéndose en el mapa.
 >
 > **Y el tiempo va dicho como lo que es**: «~4 min **a 5 km/h**». Es una división —los metros
 > entre la velocidad a pie de manual—, no un cronómetro: no entran cuestas, ni semáforos, ni el
@@ -147,16 +153,26 @@
 > de Navarra» mientras se cruza Navarra le quita a quien anda justo el aviso que necesita.
 >
 > Así, una ruta de punta a punta deja de decir «hacia el carril bici · 1.270 m» y dice lo que se
-> anda de verdad: **AVENIDA ACADEMIA GENERAL MILITAR · 430 m**, un tramo de 82 m que ninguna
-> calle reclama, y **AVENIDA SAN JUAN DE LA PEÑA · 760 m**.
+> anda de verdad: **AVENIDA ACADEMIA GENERAL MILITAR · 510 m** y **AVENIDA SAN JUAN DE LA PEÑA ·
+> 1.810 m**, seguidas.
 >
-> ⚠️ **Y trae un defecto conocido, que se dice en vez de esconderse.** Los nombres vienen de dos
-> registros distintos —OpenStreetMap escribe «Avenida de San José» y el municipal «AVENIDA SAN
-> JOSÉ»—, así que al pasar del carril heredado a la calzada nombrada, **la ruta dice la misma
-> calle dos veces seguidas con dos ortografías**. Medido sobre 400 rutas de 300 a 4.000 m: pasa
-> en el **54,8 %** de ellas y afecta al **6,5 %** de los pasos. No es falso —los dos nombres son
-> ciertos—, pero se lee mal, y unificarlo exige decidir **qué registro manda dentro de la ruta**.
-> Está declarado y sin decidir.
+> **⭐ Y una calle se dice de UNA sola manera en toda la lista.** Los dos nombres vienen de dos
+> registros que escriben distinto —OpenStreetMap pone «Avenida de San José» y el municipal
+> «AVENIDA SAN JOSÉ»—, así que la misma avenida salía dos veces seguidas con dos ortografías: en
+> el **54,8 %** de las rutas, medido. Ahora se comparan por su **núcleo** —fuera la palabra de
+> tipo, fuera las partículas, fuera tildes y mayúsculas—, que es lo que hace OSRM al decidir si
+> un nombre ha cambiado de verdad; y cuando dos formas de la misma calle coinciden en una ruta,
+> **manda la municipal**, que es la que el usuario leyó en el formulario. Queda en el **2,5 %**,
+> y lo que queda ya no es un cambio de registro: es OpenStreetMap escribiéndose distinto a sí
+> mismo —«Calle de Martín Ruizanglada» y «Calle de Martín Ruiz Anglada»—.
+>
+> ⚠️ **Y hay dos precios, que se dicen en vez de esconderse.** El primero: quitar la palabra de
+> tipo hace que `RONDA HISPANIDAD` y `VÍA HISPANIDAD` —dos vías municipales distintas— den el
+> mismo núcleo. Medido sobre 20.233 pares de tramos contiguos, pasa en **42**, y mirados uno a
+> uno la mayoría son **la misma calle** que cada registro escribe con un tipo distinto (`Calle de
+> Pablo Ruiz Picasso` / `AVENIDA PABLO RUIZ PICASSO`), que es justo lo que se busca. El segundo:
+> las nueve vías cuyo nombre **es** una palabra de tipo —`CALLE PARQUE`, `CAMINO RONDA`— se
+> quedan sin núcleo, y sin núcleo no casan con nada. Es a propósito: antes que adivinar, no unir.
 >
 > **Y hay direcciones a las que el motor contesta que no puede, en vez de inventarse un camino.**
 > Son **581 portales** de catorce vías —460 de ellos en URBANIZACIÓN PEÑA ZORONGO— cuyas calles
