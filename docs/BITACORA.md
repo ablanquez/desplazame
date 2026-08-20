@@ -14,6 +14,82 @@
 
 ---
 
+## [2026-08-20] ✅ CERRADA — Al peatón se le decía «anda por la calzada» donde anda por un carril bici: 1.270 m de una verdad falsa publicada en pantalla
+
+**Categoría:** dato traducido mal
+**Síntoma:** Antonio generó CALLE EL COLOSO 2 → CALLE PADRE ARRUPE 1 en la
+pantalla y leyó «Gira a la derecha hacia **la calzada** · 1.270 m». Su pie dice
+que ese tramo es MARQUÉS DE LA CADENA / AVENIDA DE LA ACADEMIA GENERAL MILITAR,
+y que se anda por un carril bici **en acera**. Medido: ese paso son tres *ways*
+—`354344721`, `475888308`, `475881583`—, los tres `h=cycleway`, los tres sin
+nombre en OSM. El motor no se equivoca de camino: se equivoca de PALABRA. No es
+un hueco de información —«no sé cómo se llama»— sino una afirmación falsa: le
+dice a alguien que va por la calzada de una avenida.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la prueba
+`EL INTERIOR habla OSM cuando hay nombre, y por TIPO cuando no`
+(`motor/src/pasos.spec.ts`), que **enumera «la calzada» como respuesta
+aceptable** y comprueba que no quede ningún paso sin clasificar. Ejecutada con
+el fallo vivo, antes de tocar nada:
+
+```
+$ node --test --test-name-pattern "EL INTERIOR habla OSM" "src/pasos.spec.ts"
+  ✔ EL INTERIOR habla OSM cuando hay nombre, y por TIPO cuando no (28.5333ms)
+✔ Los pasos de una ruta real (572.4154ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+```
+
+Verde. Y con ella las 60 del motor y las 81 de la pantalla, las dos guardias, y
+el build de producción. Ningún instrumento del repositorio distinguía «la
+calzada» dicha de una calzada de «la calzada» dicha de un carril bici.
+**Cómo se cazó:** ojo humano — Antonio, mirando la pantalla, reconoció por dónde
+pasa la ruta y supo que la palabra no era esa. Ningún instrumento lo habría
+cazado: la prueba que cubría la zona tenía «la calzada» en su lista de
+respuestas buenas.
+**Causa raíz:** la tabla `POR_TIPO` traducía **el perfil propio del grafo**
+(`p`), y ese perfil no distingue: `eje-de-calzada` le cae a **46.643 aristas**
+que son calzada de verdad, carril bici, camino de tierra y vial de servicio,
+todo junto — **4.671 de las 4.675 `cycleway` lo llevan**. El tipo real sí
+estaba en el dato, en `h`, pero **`AristaUtil` no lo subía a la red**: al
+escribir los pasos, `h` no estaba a la vista. Se tradujo lo único que había, y
+lo único que había era ambiguo.
+**Arreglo aplicado:** la tabla pasa a **dos niveles declarados**
+(`motor/src/pasos.ts`): `POR_PERFIL` con los cuatro perfiles que distinguen más
+que OSM —acera y paso de peatones son los dos `highway=footway`—, y
+`POR_HIGHWAY` con **los 27 valores de `highway` del grafo traducidos uno a
+uno**, ninguno sin traducción. La entrada `nombreGenerico(perfil, highway)`
+elige nivel. Y `red.ts` gana `tipoDeWay`, un `Map w → h`: va por *way* y no por
+arista porque **`h` es constante dentro de un way** —verificado: 0 de 98.774
+discrepan—, así son 47.758 entradas en vez de 93.503 punteros. Medido con el
+recolector forzado a los dos lados: **+1,7 MB**, la red pasa de 11,1 a 12,9 MB.
+**Commit:** `d9021e6`
+**Ley que sale de aquí:** una prueba que comprueba que un texto **está en una
+lista cerrada de textos aceptables** no comprueba que el texto sea VERDAD. La
+lista dice qué se puede decir; no dice cuándo se puede decir cada cosa. Donde
+haya un vocabulario cerrado, la prueba tiene que atar cada palabra a la
+condición que la hace cierta —`cycleway` → «el carril bici»—, no limitarse a
+aceptar el conjunto.
+
+Y una segunda, que sale del cierre y no se veía al capturar: **una etiqueta que
+agrupa no puede usarse para redactar.** El perfil del exportador sirve para
+filtrar y para pintar —para eso se hizo—, pero en cuanto su valor se convierte
+en una palabra que alguien lee, cada valor tiene que corresponder a **una sola**
+cosa del mundo. Antes de traducir un campo a lenguaje, hay que contar cuántas
+cosas distintas caben dentro de cada uno de sus valores.
+
+**Efecto lateral del arreglo, y es correcto:** dos tramos que se fundían en uno
+porque el nombre falso los hacía parecer la misma cosa —117 m de `service` y
+23 m de `track`, los dos «la calzada»— dejan de fundirse. La ruta larga pasa de
+13 pasos a 14. La fusión por nombre estaba heredando la mentira.
+**Traza:** `motor/src/pasos.ts` (`POR_TIPO`, `nombreDe`) ·
+`motor/src/red.ts` (`AristaUtil`, que no lleva `h`) ·
+`motor/src/pasos.spec.ts` («EL INTERIOR habla OSM cuando hay nombre, y por TIPO
+cuando no») · `app/data/grafo-visor.js` (4.671 de 4.675 `cycleway` con
+`p=eje-de-calzada`).
+
+---
+
 ## [2026-08-20] ✅ CERRADA — La ruta llegaba al destino por el extremo contrario de la última calle: un salto de 604,7 m que la prueba de los extremos no veía
 
 **Categoría:** geometría reconstruida
