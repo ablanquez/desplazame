@@ -14,6 +14,64 @@
 
 ---
 
+## [2026-08-20] ✅ CERRADA — La ruta llegaba al destino por el extremo contrario de la última calle: un salto de 604,7 m que la prueba de los extremos no veía
+
+**Categoría:** geometría reconstruida
+**Síntoma:** la geometría de `POST /api/ruta` (todavía sin endpoint, en
+`calcularRuta`) traía un salto de **604,7 m** entre dos puntos consecutivos,
+justo antes del final. Medido sobre la ruta CALLE PEDRO LAPUYADE 3 → CAMINO DE
+EN MEDIO 120: de sus 79 trozos, **78 pegan con el siguiente y uno no** — el
+último. Se llega al nodo 14341, que es el `desde` de la arista 13698, y el
+trozo final arranca en el vértice 7 de esa arista, a 604,7 m de allí.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la prueba
+`la geometría EMPIEZA en la puerta de origen y ACABA en la de destino`, que es
+la única que miraba la geometría de punta a punta. Ejecutada con el fallo vivo,
+antes de tocar nada:
+
+```
+$ node --test --test-name-pattern="EMPIEZA en la puerta" "src/ruta.spec.ts"
+  ✔ la geometría EMPIEZA en la puerta de origen y ACABA en la de destino (18.7284ms)
+✔ La ruta (560.6794ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+```
+
+También daban verde `ida y vuelta miden lo mismo` y las dos pruebas ⭐ del
+trivial y las cuatro combinaciones, y los dos guiones de medida del naíf
+imprimieron metros de aspecto normal en todos los casos.
+
+**Cómo se cazó:** test — una prueba hermana escrita el mismo día, que en vez de
+mirar los extremos recorre la línea punto a punto y exige que ningún salto
+pase de 500 m.
+**Causa raíz:** una negación de más. `haciaElFinal` dice **por qué extremo de
+su arista está una puerta**, no en qué sentido se anda por ella. Para el trozo
+final se pasaba `!mejorLlegada.haciaElFinal`, y eso pide el trozo del extremo
+CONTRARIO al que se acaba de llegar. Que estuviera invertido no se notaba en el
+resultado visible porque el otro parámetro, `saliendo: false`, le da la vuelta a
+la lista: el trozo terminaba en la proyección correcta viniendo del lado que no
+era. Los metros tampoco lo delataban — salen del Dijkstra, no de la geometría—,
+así que el único sitio donde el fallo asomaba era la línea del mapa.
+**Arreglo aplicado:** `motor/src/ruta.ts`, en `calcularRuta`: se quita la
+negación y se pasa `mejorLlegada.haciaElFinal` tal cual. Un carácter. Va con un
+comentario de seis líneas al lado, porque es un sitio donde volver a poner la
+negación parece lo correcto.
+**Commit:** `917528f`
+**Ley que sale de aquí:** una geometría no se comprueba por sus extremos. Los
+extremos son lo único que sigue estando bien cuando el interior está del revés
+— y son justo lo que apetece comprobar, porque es fácil. Si una prueba mira
+una línea, que la recorra.
+**Y una segunda, que salió al cerrar:** cuando el total lo calcula un camino y
+la geometría lo dibuja otro, son dos verdades que hay que cotejar. Aquí los
+metros venían del Dijkstra y la línea de la reconstrucción, y ninguna prueba
+los comparaba: la que lo hace ahora —los trozos suman lo que dice el total—
+vive dentro de la misma prueba que recorre la línea.
+**Traza:** `motor/src/ruta.ts`, `calcularRuta` y `trozoDelEnganche`;
+`motor/src/ruta.spec.ts`.
+
+---
+
 ## [2026-08-18] ✅ CERRADA — El README juraba que no había «ningún dato integrado» con ocho dentro, y la regla de releída daba verde porque solo miraba el otro párrafo
 
 **Categoría:** documentación que caduca
