@@ -60,6 +60,24 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
+**Punto 7, pieza C HECHA (20/08) — EXISTE LA DEMO.** La pantalla pinta
+la ruta real, lista los pasos con flechas y negritas (partes
+estructuradas accion/via), y la respuesta falsa murió sin rastro. Seis
+remates nacidos del ojo de Antonio sobre SUS rutas, todos con doctrina
+citada: colapso de maniobras [OSRM 105 m] · tipo real (carril bici ≠
+calzada — bitácora nº7: una lista de textos aceptables no comprueba
+verdad) · HERENCIA POR VECINDAD de los ejes municipales §1.15
+[Valhalla #5587 + Voronoi + confianza]: 40%→77,1% aristas nombradas,
+cruce 225 ms, disputa 3%→genérico · un solo nombre por calle [núcleo +
+canónico municipal, Karlsruhe] con la regla ancha (plazas absorbidas
+como los motores; plaza-hito y rotondas = mejora futura declarada) ·
+presentación IGN/RAE/OSM con negritas — bitácora nº8 (token sucio) ·
+«para seguir por» [Valhalla stay-on]. 153+84 pruebas. 8 bitácoras, 8
+cerradas. Queda del punto 7: retirar los andamios de carga (decisión
+de Antonio sobre qué visualización queda) y el PUSH (sin publicar
+desde b027199). Parlamento aparte anotado: el coste es solo metros —
+elegir carril bici vs acera es accidente, no decisión.
+
 **Punto 7, pieza B HECHA (20/08) — el motor calcula rutas de verdad.**
 `POST /api/ruta` vivo: proyección construida (p50 5,5 m, contrastada
 con la auditoría vieja al medio metro), Dijkstra 0,6 ms p50, las 4
@@ -93,14 +111,13 @@ futura). El plan lo estructura en TRES encargos: A el fichero de
 nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
 (pintado + pasos, y la respuesta falsa se retira).
 
-**Lo siguiente: el punto 7, encargos B y C** — `POST /api/ruta` andando
-(la proyección portal→arista construida al patrón Loki — el enganche
-del censo se perdió, solo viaja su auditoría —, Dijkstra sobre el grafo
-en memoria, los pasos al formato Google), la ruta pintada y los pasos
-escritos, el juez es el ojo de Antonio sobre trayectos que conoce a
-pie, la respuesta falsa se retira, y los andamios de carga con su
-casilla de retirada. Y el 8 (destinos con nombre) espera detrás, en
-construcción.
+**Lo siguiente:** tres decisiones de Antonio pendientes — (1) el PUSH
+del punto 7 entero (nada publicado desde `b027199`); (2) la retirada de
+los andamios de carga del mapa (~34 MB al navegador — y qué
+visualización queda en la demo); (3) el parlamento del coste (hoy solo
+metros: elegir carril bici vs acera es accidente, no decisión). Con
+ellas, el punto 7 se cierra y el 8 (destinos con nombre) espera
+detrás, en construcción.
 
 ---
 
