@@ -170,7 +170,7 @@ prefijo en memoria. En el repositorio no se toca, y el navegador nunca lo ejecut
 | Parte | Peso | Qué se hace con ella |
 |---|---|---|
 | **El grafo** (`aristas`) | **16,5 MB** | **Se usa y se pinta.** Es lo que este dato aporta |
-| **El enganche portal→arista** (`portales`) | **5,9 MB** | **NO se usa hoy.** Son los mismos 46.150 portales de § 1.2 otra vez, pero pegados al grafo: distancia de enganche, vía heredada y concordancias, con sus contadores (**46.026 enganchados · 124 no**). Se conserva porque **el motor del punto 7 lo necesitará** y porque el `enlaces.json` del proyecto anterior referencia aristas **por índice de este fichero** |
+| **La auditoría del enganche portal→arista** (`portales`) | **5,9 MB** | **NO se usa hoy.** Son los mismos 46.150 portales de § 1.2 otra vez, pero pegados al grafo: distancia de enganche, vía heredada y concordancias, con sus contadores (**46.026 enganchados · 124 no**). Se conserva porque es exactamente eso, **la auditoría**: a cuánto cayó cada portal de la calzada y si el nombre de OSM concordaba con el municipal. **El enganche en sí no está aquí** —ni id de arista ni punto proyectado—: viajaba en un `enlaces.json` del proyecto anterior que **no está versionado en ninguna parte**, ni en esta rama ni en la archivada. Por eso el punto 7 **construye la proyección por su cuenta** |
 | **La auditoría del intento anterior** | **0,2 MB** | **No se hereda como documentación** —`componentes` (170), `noConectados` (1.410), `puntasLejos` (488), `porDefecto` (114)—. Viaja porque el fichero es **indivisible sin editarlo**, y editarlo está prohibido |
 
 > ⚠️ **Hay dos versiones de los portales en este repositorio**, y es a propósito: los
