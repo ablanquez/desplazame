@@ -850,6 +850,12 @@ contradigan con el formulario:
 > partículas en minúscula (IGN), romanos en mayúsculas (RAE), sin abreviar ni desabreviar (OSM
 > ES)—. **Es presentación: el dato no se toca y las comparaciones siguen sobre el nombre crudo.**
 >
+> Y hay un **tercer cruce entre los dos ficheros**, además del de § 1.15: el artículo que forma
+> parte del nombre propio —«Calle de **El** Coloso»— solo se ve en OSM, porque el censo publica
+> todo en mayúscula. Al arrancar se anota, por núcleo, qué artículos intermedios lleva OSM altos:
+> **252 núcleos**, que le afectan a **142 nombres municipales**. ⚠️ Con la errata dentro: media
+> docena son apodos regios —«Alfonso X **El** Sabio»— que la RAE escribiría en minúscula.
+>
 > **Con dos excepciones que se saltan el nivel 2, y son a propósito:** los **pasos de peatones**
 > y las **escaleras** narran por su tipo SIEMPRE, hereden lo que hereden. Una cebra CRUZA la
 > calle, no pertenece a ella, y decir «continúa por Avenida de Navarra» mientras se cruza Navarra

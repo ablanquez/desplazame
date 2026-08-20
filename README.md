@@ -84,10 +84,17 @@
 > cada paso con su flecha, su frase y sus metros. De Calle Alfonso I 10 a Paseo Independencia
 > 3 —342 m, ~4 min— son estos cuatro:
 >
-> > ◉ Sal de Calle Alfonso I 10 y dirígete hacia el suroeste por Calle de Alfonso I · **91 m**
-> > ↰ Gira a la izquierda hacia la acera · **150 m**
-> > ↗ Gira ligeramente a la derecha hacia Plaza de España · **96 m**
-> > ⚑ Paseo Independencia 3 está a la izquierda
+> > ◉ **Sal de** **Calle Alfonso I 10** y dirígete hacia el suroeste por **Calle de Alfonso I** · 91 m
+> > ↰ **Gira a la izquierda** hacia la acera · 150 m
+> > ↗ **Gira ligeramente a la derecha** hacia **Plaza de España** · 96 m
+> > ⚑ **Paseo Independencia 3** está a la izquierda
+>
+> **La negrita no es adorno: es el formato de Google.** Lo que hay que hacer y por dónde, en
+> negrita; el pegamento de la frase, no. Y **el motor no manda HTML**: manda los trozos de la
+> frase **con su papel** —acción, vía o texto— y la pantalla elige la etiqueta. El texto plano
+> sigue viajando en la respuesta, y es exactamente la unión de esos trozos, para quien no pinte
+> nada. Un tramo que se narra por su tipo —«la acera»— **no** va en negrita: destacarlo lo haría
+> parecer un nombre de calle, y no lo es.
 >
 > **La flecha sale del tipo de giro, no de la frase.** El motor manda el dato —`izquierda`,
 > `ligera-derecha`— y la pantalla elige el glifo; parsear el texto para ver si lleva la palabra
@@ -160,17 +167,34 @@
 > mayúscula administrativa —`AVENIDA SAN JUAN DE LA PEÑA`— y OpenStreetMap en caso mixto;
 > mezclados en la misma lista, la ruta parecía escrita por dos personas. La última línea del
 > motor los recompone: **palabras significativas con mayúscula inicial y partículas en
-> minúscula** —el criterio de las directrices toponímicas del IGN—, **números romanos en
-> mayúsculas** —«Calle Alfonso I», que es lo que manda la RAE— y **ni una abreviatura nueva**:
+> minúscula** —artículos, preposiciones y conjunciones, el criterio de las directrices
+> toponímicas del IGN—, **números romanos en mayúsculas** —«Calle Alfonso I», que es lo que manda
+> la RAE— y **ni una abreviatura nueva**:
 > lo que el censo escribe `NTRA. SRA.` se dice `Ntra. Sra.`, porque abreviar —y desabreviar— es
 > decisión de quien escribe el callejero, no nuestra. **El dato no se toca**: esto ocurre al
 > escribir el paso y en ningún sitio más, y las comprobaciones internas siguen operando sobre el
 > nombre crudo.
 >
-> ⚠️ **Dos cosas que salen discutibles, y se enseñan.** Con la regla del IGN, `CALLE EL COLOSO`
-> se escribe «Calle el Coloso», y ahí «El Coloso» es el nombre de un cuadro, no un artículo — no
-> hay señal en el dato para distinguirlo de «Paseo Isabel la Católica», donde la minúscula sí es
-> la correcta. Y de los 3.358 nombres del censo, **uno** queda peor que como venía: la sigla de
+> **⭐ Y el artículo sube cuando forma parte del nombre.** El IGN declara la excepción con sus
+> ejemplos —**El** Escorial, **La** Laguna— pero no dice cómo reconocerla, y del censo municipal
+> no sale: publica todo en mayúscula, así que `CALLE EL COLOSO` y `CALLE LA FUENTE` se ven
+> iguales. **La señal la pone OpenStreetMap**, que escribe en caso mixto y decide calle por
+> calle: «Calle de **El** Coloso» —el cuadro de Goya— frente a «Calle de **la** Fuente». El motor
+> cruza los dos ficheros por el núcleo del nombre al arrancar: **252 núcleos** llevan artículo
+> alto en OSM, y le afectan a **142 nombres municipales**; los otros **327** con artículo
+> intermedio van con la regla general.
+>
+> ⚠️ **Y trae la errata de OSM dentro, que es el precio de fiarse de él.** Entre esos 142 hay
+> media docena donde el alto es discutible —«Calle de Alfonso X **El** Sabio», «Pedro II **El**
+> Católico», «Martín **El** Humano»—, que la RAE escribiría con minúscula por ser apodos. No se
+> corrigen a mano: enmendar a OpenStreetMap uno a uno es empezar otra lista.
+>
+> ⚠️ **Y tres cosas más que se dicen en vez de esconderse.** `BAJO` y `AL` se quedan **fuera** de
+> la lista de partículas porque en el censo salen mal 2 de cada 3 veces —`CALLE BARRIO BAJO` lo
+> usa de adjetivo y `JARDINES AL ÁNDALUS` lleva el artículo árabe pegado al nombre—, y el precio
+> es que `CALLE CANTANDO BAJO LA LLUVIA` sale con mayúscula donde el IGN pediría minúscula. De
+> **siglas no hay regla**: la doctrina no dice cómo distinguir una sigla de una palabra, así que
+> no se inventa. Y de los 3.358 nombres del censo, **uno** queda peor que como venía: la sigla de
 > `GRUPO ALFÉREZ ROJAS (GP-F II)` se recompone a `(Gp-F II)`.
 >
 > **⭐ Y una calle se dice de UNA sola manera en toda la lista.** Los dos nombres vienen de dos
