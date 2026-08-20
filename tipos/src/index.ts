@@ -31,19 +31,51 @@ export type Modo = 'andando' | 'bus' | 'bici' | 'coche';
 export type Vertice = readonly [number, number];
 
 /**
+ * La clase de giro de un paso. **La pantalla dibuja la flecha a partir de
+ * esto**, no del texto: parsear una frase para saber si va una flecha a la
+ * derecha sería atarse a la redacción.
+ *
+ * [DOC Valhalla] Los nueve del medio son los que clasifica
+ * `valhalla/baldr/turn.cc` por el ángulo entre tramos, leídos de la fuente:
+ * 0-10 recto · 11-44 ligera derecha · 45-135 derecha · 136-159 cerrada
+ * derecha · 160-200 media vuelta · 201-224 cerrada izquierda · 225-315
+ * izquierda · 316-349 ligera izquierda · 350-359 recto.
+ *
+ * `salida` y `llegada` no son giros: son el primer paso y el último, que en el
+ * formato de Google llevan icono propio.
+ */
+export type Giro =
+  | 'salida'
+  | 'recto'
+  | 'ligera-derecha'
+  | 'derecha'
+  | 'cerrada-derecha'
+  | 'media-vuelta'
+  | 'cerrada-izquierda'
+  | 'izquierda'
+  | 'ligera-izquierda'
+  | 'llegada';
+
+/**
  * Un paso de las indicaciones escritas.
  *
- * `texto` es la instrucción y `detalle` lo que la acompaña (hoy, en la
- * pantalla, el tiempo: «2 min»). Es la forma que la pantalla ya maneja.
+ * `metros` son los del TRAMO QUE ESTE PASO ABRE, no los acumulados: es lo que
+ * hace el formato de Google —«Gira a la derecha hacia Av. Goya · 450 m»—. El
+ * paso de llegada lleva 0, porque no abre nada.
  *
- * NO CONSTA si el motor debe mandar `detalle` ya formateado o mandar metros
- * y segundos y que la pantalla decida cómo escribirlos. Hoy la pantalla
- * recibe texto hecho porque los pasos son de mentira; cuando el motor los
- * calcule de verdad, esa decisión se toma y este tipo cambia.
+ * Vienen redondeados desde el motor: al metro por debajo de 100, y a la decena
+ * por encima. Un «447 m» fingiría una precisión que ni el grafo ni las piernas
+ * tienen.
+ *
+ * **Lo que ya NO lleva es `detalle`.** Era un texto libre que el andamio
+ * rellenaba con «2 min», y el motor de verdad no manda texto formateado: manda
+ * el dato —`giro` y `metros`— y la pantalla decide cómo escribirlo. Aquella
+ * duda quedó anotada como NO CONSTA en el punto 4; el punto 7 la resuelve.
  */
 export interface Paso {
+  readonly giro: Giro;
   readonly texto: string;
-  readonly detalle: string;
+  readonly metros: number;
 }
 
 /**
@@ -59,19 +91,52 @@ export interface Aviso {
 }
 
 /**
- * Lo que devuelve `POST /api/ruta`: según CLAUDE.md, **pasos, geometría y
- * avisos**. El modo va dentro porque la respuesta tiene que decir para cuál
- * se calculó — la pantalla ya lo enseña junto a los pasos.
+ * A quién se le pide una ruta: `POST /api/ruta` recibe esto.
  *
- * NO CONSTA si el trayecto debe traer totales (distancia, duración). La
- * pantalla no los enseña y CLAUDE.md no los menciona: no se añaden «por si
- * acaso».
+ * **Por CÓDIGOS, como todo el formulario.** No van coordenadas ni nombres: van
+ * el código de vía y el de portal que la pantalla fijó al elegir de la lista.
+ * Es la ley de la entrada nº4 llevada hasta el final del tubo — si aquí se
+ * aceptara texto, todo el cuidado del formulario no habría servido de nada.
+ *
+ * La vía viaja además del portal aunque el portal ya la determine: es lo que
+ * permite contestar «esa vía no existe» distinto de «ese portal no existe», y
+ * es una comprobación cruzada gratis.
+ */
+export interface PeticionDeRuta {
+  readonly origen: { readonly via: string; readonly portal: string };
+  readonly destino: { readonly via: string; readonly portal: string };
+  readonly modo: Modo;
+}
+
+/**
+ * Lo que devuelve `POST /api/ruta`: **pasos, geometría y avisos**, y desde el
+ * punto 7 también los totales.
+ *
+ * `metros` es la distancia de red que se anda. **No incluye los conectores**
+ * —el trocito entre la puerta y la calzada—, porque esos se andan de todos
+ * modos salga uno por donde salga, y sumarlos sería cobrar por cruzar el
+ * portal. Sí van dibujados en `geometria`, para que la línea salga de la
+ * puerta y no del medio de la calle.
+ *
+ * `segundos` es **DERIVADO, no medido**: `metros / 5,0 km/h`. Nadie ha
+ * cronometrado a nadie andando por Zaragoza; 5 km/h es la velocidad a pie de
+ * manual, y va en el contrato dicha como lo que es para que la pantalla no la
+ * enseñe como una promesa. No entran cuestas, semáforos ni esperas.
+ *
+ * `geometria` va en `[lat, lon]`, como todo `Vertice` — y **al revés que el
+ * grafo**, que viene en `[lon, lat]`. La vuelta se da una sola vez, al escribir
+ * la respuesta.
+ *
+ * Si no hay ruta, `pasos` y `geometria` vienen vacíos y el porqué está en
+ * `avisos`. Una respuesta vacía bien formada, nunca un error.
  */
 export interface Trayecto {
   readonly modo: Modo;
   readonly pasos: readonly Paso[];
   readonly geometria: readonly Vertice[];
   readonly avisos: readonly Aviso[];
+  readonly metros: number;
+  readonly segundos: number;
 }
 
 /**
@@ -203,6 +268,26 @@ export interface SaludGrafo {
 }
 
 /**
+ * Lo que el motor lleva de RED ROUTABLE, que no es lo mismo que el grafo.
+ *
+ * El grafo son 98.774 aristas sueltas sin nodos; la red es el subgrafo por el
+ * que de verdad se puede andar, ya con su adyacencia reconstruida. Que los dos
+ * aparezcan en la salud no es redundancia: **`aristas` aquí tiene que ser
+ * MENOR que `SaludGrafo.aristas`**, y si algún día coincidieran sería que el
+ * filtro de andable y componente dejó de aplicarse. La guardia lo comprueba.
+ *
+ * `nombres` es cuántos nombres de vía de OSM hay cargados (§ 1.14 del
+ * notices): sin ellos las rutas se calculan igual, pero los pasos salen mudos.
+ */
+export interface SaludRed {
+  readonly aristas: number;
+  readonly nodos: number;
+  readonly nombres: number;
+  readonly celdas: number;
+  readonly cargadoEnMs: number;
+}
+
+/**
  * Lo que devuelve `GET /api/salud`. No sale de CLAUDE.md: es el primer
  * endpoint del motor y su forma la fija el encargo que lo pidió.
  *
@@ -214,6 +299,7 @@ export interface Salud {
   readonly pid: number;
   readonly arrancado: string;
   readonly grafo: SaludGrafo;
+  readonly red: SaludRed;
   readonly callejero: SaludCallejero;
   readonly portales: SaludPortales;
 }
