@@ -21,7 +21,10 @@
  * tipo, exactamente como Valhalla dice *«onto the walkway»* cuando no hay
  * nombre. Son **tres niveles**, y están escritos abajo en `comoSeLlama`.
  *
- * **3 · Los extremos hablan MUNICIPAL.** El nombre de OSM y el del callejero
+ * **3 · Los extremos hablan MUNICIPAL, y todo se ESCRIBE igual.** El registro
+ * municipal publica en mayúscula administrativa y OSM en caso mixto; mezclados
+ * en la misma lista, la ruta parece escrita por dos personas. La última línea
+ * de este fichero recompone (`comoSePresenta`) — **el dato no se toca**. El nombre de OSM y el del callejero
  * discrepan en el 19,4% de los portales (§ 1.14 del notices). En medio manda
  * OSM, que es de quien es la red; pero el origen y el destino los eligió el
  * usuario de NUESTRO callejero, con su código, y ahí se le dice el nombre que
@@ -292,6 +295,125 @@ export function esLaMismaCalle(a: Denominacion, b: Denominacion): boolean {
  */
 function canonico(yaEstaba: Denominacion, llega: Denominacion): Denominacion {
   return !yaEstaba.esMunicipal && llega.esMunicipal ? llega : yaEstaba;
+}
+
+/**
+ * ⭐ Un número romano ENTERO, del I al MMMCMXCIX.
+ *
+ * [DOC RAE] Los números romanos se escriben **siempre en mayúsculas**, así que
+ * son la excepción al caso mixto: «Calle Alfonso I», no «Calle Alfonso i».
+ *
+ * La expresión está **anclada por los dos lados y con un mirar-adelante** que
+ * exige al menos una letra romana: sin el ancla, `CIVIL` casaría con su `C`
+ * inicial y saldría «Calle Guardia CIVIL». Con ella, `CIVIL` se rechaza entero
+ * —después de `IV` no puede venir una `L`— y no hace falta ninguna excepción
+ * para él. Comprobado sobre los 3.358 nombres del censo: **de los tokens de
+ * solo letras romanas, la expresión no rechaza ninguno que sí sea un número.**
+ */
+const ROMANO = /^(?=[MDCLXVI])M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/;
+
+/**
+ * ⭐ Las palabras que la expresión acepta y que **no son un número**.
+ *
+ * Medido sobre los 3.358 nombres con nombre del censo municipal: de todos los
+ * tokens que `ROMANO` acepta, **uno solo no numera nada** — `MI`, que aparece
+ * en `CALLE MI TÍO` y en `CALLE TODO SOBRE MI MADRE`. Como romano vale 1001, y
+ * no hay rey, papa ni siglo 1001 en un callejero.
+ *
+ * No es ambigua, y por eso no hubo que parar: en esos dos nombres `MI` es el
+ * posesivo y en ningún otro sitio del censo aparece.
+ *
+ * `DI` y `MIX` también validan, y **no están en el censo**: queda anotado como
+ * dato, no como excepción — meterlos sin haberlos visto sería inventarse la
+ * lista.
+ */
+export const NO_SON_ROMANOS: ReadonlySet<string> = new Set(['MI']);
+
+/** Quita tildes y sube a mayúsculas, solo para COMPARAR. */
+const paraComparar = (palabra: string): string =>
+  palabra.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+
+/**
+ * ⭐ CÓMO SE ESCRIBE UN NOMBRE EN LA PANTALLA. **El dato no se toca: esto es
+ * presentación, y vive solo en la última línea de la narración.**
+ *
+ * El callejero municipal publica en **mayúscula administrativa** —`AVENIDA SAN
+ * JUAN DE LA PEÑA`—, que es como se escribe un registro y no como se lee una
+ * indicación. OpenStreetMap publica en caso mixto. Mezclados en la misma lista,
+ * la ruta parece escrita por dos personas.
+ *
+ * Tres reglas, y las tres con su fuente:
+ *
+ * 1. **[DOC IGN, Directrices toponímicas]** las palabras significativas llevan
+ *    mayúscula inicial y **las partículas van en minúscula** — salvo si abren
+ *    el nombre, que entonces son la primera palabra. La lista de partículas es
+ *    la misma que usa el núcleo, y no es casualidad: son las mismas.
+ * 2. **[DOC RAE]** los números romanos, en mayúsculas. Ver `ROMANO`.
+ * 3. **[DOC OSM ES] sin abreviaturas** — y eso corta por los dos lados. Aquí
+ *    no se abrevia nada; pero **tampoco se desabrevia**: el censo escribe
+ *    `NTRA. SRA.` y desplegarlo sería inventarse el dato en vez de presentarlo.
+ *    Abreviar o no es decisión de quien escribe el callejero, no nuestra.
+ *
+ * Lo que **no** es una palabra se queda donde está: el marcador de núcleo rural
+ * (`---CST`), los números de portal, los paréntesis que el propio dato trae.
+ *
+ * `esMunicipal` decide si se recompone siempre o solo cuando hace falta. Un
+ * nombre de OSM ya viene legible y **no se toca**; solo se recompone si llega
+ * en mayúsculas plenas —en el fichero de § 1.14 son **tres de 4.384**—. Un
+ * nombre municipal se recompone siempre, y eso además deja legible la única
+ * vía del censo con la vocal acentuada en minúscula (`ANDADOR ABOGACíA…`, la
+ * suciedad de origen declarada en § 1.3), sin tocar el fichero.
+ */
+export function comoSePresenta(nombre: string, esMunicipal: boolean): string {
+  const enMayusculasPlenas = /\p{Lu}/u.test(nombre) && !/\p{Ll}/u.test(nombre);
+  if (!esMunicipal && !enMayusculasPlenas) {
+    return nombre;
+  }
+  // ⭐ Se trocea en PALABRAS DE VERDAD, no por espacios. Entrada nº8 de la
+  // bitácora: partiendo solo por espacios, el token de `(GP-F II)` era `II)`
+  // —con el paréntesis dentro—, y `II)` no valida como número romano, así que
+  // el romano salía «Ii)». El dato real pega los signos a las palabras: el
+  // paréntesis, el corchete del núcleo rural y **el punto de las abreviaturas
+  // que el censo escribe sin espacio** (`NTRA.SRA.DEL AGUA`).
+  //
+  // `split` con grupo de captura devuelve alternando palabra y separador, y
+  // los separadores se conservan tal cual: nada se pierde ni se mueve.
+  let esLaPrimera = true;
+  const recomponer = (trozo: string): string => {
+    // Un trozo sin letras —un número de portal, un signo, un espacio— se copia
+    // tal cual: no hay nada que capitalizar, y tampoco consume el turno de la
+    // primera palabra.
+    if (!/\p{L}/u.test(trozo)) {
+      return trozo;
+    }
+    const comparable = paraComparar(trozo);
+    const abreElNombre = esLaPrimera;
+    esLaPrimera = false;
+    if (ROMANO.test(comparable) && !NO_SON_ROMANOS.has(comparable)) {
+      return comparable;
+    }
+    const enMinusculas = trozo.toLocaleLowerCase('es-ES');
+    // La partícula solo baja si no abre el nombre.
+    if (!abreElNombre && PARTICULAS.has(comparable)) {
+      return enMinusculas;
+    }
+    return enMinusculas.charAt(0).toLocaleUpperCase('es-ES') + enMinusculas.slice(1);
+  };
+
+  return nombre
+    .split(' ')
+    .map((token) =>
+      // El MARCADOR DE NÚCLEO RURAL (`---CST`, `---PÑF`) lleva letras, pero es
+      // un código del censo y no una palabra: recomponerlo daría `---Cst`. Son
+      // 256 vías las que lo arrastran (§ 1.3), y se dice tal cual viene.
+      token.startsWith('---')
+        ? token
+        : token
+            .split(/([^\p{L}\p{N}]+)/u)
+            .map(recomponer)
+            .join(''),
+    )
+    .join(' ');
 }
 
 /** Lo que hace falta para saber cómo se llama un tramo. */
@@ -1024,7 +1146,7 @@ export function escribirPasos(
     return [
       {
         giro: 'llegada',
-        texto: `${nombreDestino} es el mismo portal del que sales.`,
+        texto: `${comoSePresenta(nombreDestino, true)} es el mismo portal del que sales.`,
         metros: 0,
       },
     ];
@@ -1057,8 +1179,8 @@ export function escribirPasos(
     // el «por X» solo si hay nombre de verdad: «dirígete hacia el sur por la
     // acera» no dice nada que el cardinal no dijera ya.
     texto:
-      `Sal de ${nombreOrigen} y dirígete hacia el ${cardinal}` +
-      (primero.conNombre ? ` por ${primero.nombre}` : ''),
+      `Sal de ${comoSePresenta(nombreOrigen, true)} y dirígete hacia el ${cardinal}` +
+      (primero.conNombre ? ` por ${comoSePresenta(primero.nombre, primero.esMunicipal)}` : ''),
     metros: metrosParaLeer(primero.metros),
   });
 
@@ -1067,7 +1189,9 @@ export function escribirPasos(
     const maniobra = maniobras[k]!;
     pasos.push({
       giro: maniobra.giro,
-      texto: `${COMO_SE_DICE[maniobra.giro]} hacia ${maniobra.nombre}`,
+      texto:
+        `${COMO_SE_DICE[maniobra.giro]} hacia ` +
+        comoSePresenta(maniobra.nombre, maniobra.esMunicipal),
       metros: metrosParaLeer(maniobra.metros),
     });
   }
@@ -1080,7 +1204,9 @@ export function escribirPasos(
   const ultimo = tramos[tramos.length - 1]!;
   pasos.push({
     giro: 'llegada',
-    texto: `${nombreDestino} está a la ${ladoDelDestino(ultimo.g, puertaDestino)}`,
+    texto:
+      `${comoSePresenta(nombreDestino, true)} está a la ` +
+      ladoDelDestino(ultimo.g, puertaDestino),
     metros: 0,
   });
 

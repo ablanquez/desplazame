@@ -17,6 +17,8 @@ import {
   colapsarManiobras,
   comoSeLlama,
   esLaMismaCalle,
+  comoSePresenta,
+  NO_SON_ROMANOS,
   nucleoDe,
   PALABRAS_DE_TIPO,
   unificarElRegistro,
@@ -738,6 +740,133 @@ describe('⭐ LA ABSORCIÓN ANCHA — el segmento corto se come aunque no case c
   });
 });
 
+describe('⭐ LA PRESENTACIÓN — el nombre administrativo se lee como se escribe', () => {
+  test('la mayúscula administrativa baja a caso mixto', () => {
+    assert.equal(comoSePresenta('AVENIDA SAN JUAN DE LA PEÑA', true), 'Avenida San Juan de la Peña');
+    assert.equal(comoSePresenta('CALLE GONZALO CALAMITA', true), 'Calle Gonzalo Calamita');
+    assert.equal(comoSePresenta('CALLE MARQUÉS DE LA CADENA', true), 'Calle Marqués de la Cadena');
+    assert.equal(comoSePresenta('PASEO ISABEL LA CATÓLICA', true), 'Paseo Isabel la Católica');
+  });
+
+  test('las partículas van en minúscula, salvo si abren el nombre', () => {
+    // [DOC IGN, Directrices toponímicas] las palabras significativas en
+    // mayúscula inicial y las partículas en minúscula. La lista es la misma
+    // que usa el núcleo, y eso no es casualidad: son las mismas partículas.
+    assert.equal(comoSePresenta('AVENIDA DE LOS PIRINEOS', true), 'Avenida de los Pirineos');
+    assert.equal(comoSePresenta('PASEO GRAN VÍA DE DON SANTIAGO RAMÓN Y CAJAL', true),
+      'Paseo Gran Vía de Don Santiago Ramón y Cajal');
+    assert.equal(comoSePresenta('LA ALMOZARA', true), 'La Almozara');
+    assert.equal(comoSePresenta('EL COLOSO', true), 'El Coloso');
+  });
+
+  test('⭐ los ROMANOS se quedan en mayúsculas', () => {
+    // [DOC RAE] los números romanos se escriben siempre en mayúsculas.
+    // Los doce que aparecen de verdad en el censo municipal, medidos.
+    assert.equal(comoSePresenta('CALLE ALFONSO I', true), 'Calle Alfonso I');
+    assert.equal(comoSePresenta('CALLE ALFONSO II DE ARAGÓN', true), 'Calle Alfonso II de Aragón');
+    assert.equal(comoSePresenta('CALLE ALFONSO III DE ARAGÓN', true), 'Calle Alfonso III de Aragón');
+    assert.equal(comoSePresenta('CALLE RAMÓN BERENGUER IV', true), 'Calle Ramón Berenguer IV');
+    assert.equal(comoSePresenta('CALLE ALFONSO V DE ARAGÓN', true), 'Calle Alfonso V de Aragón');
+    assert.equal(comoSePresenta('CALLE ADRIANO VI', true), 'Calle Adriano VI');
+    assert.equal(comoSePresenta('CALLE ALFONSO X EL SABIO', true), 'Calle Alfonso X el Sabio');
+    assert.equal(comoSePresenta('GLORIETA PIO XII', true), 'Glorieta Pio XII');
+    assert.equal(comoSePresenta('CALLE LEÓN XIII', true), 'Calle León XIII');
+    assert.equal(comoSePresenta('CALLE JUAN XXII', true), 'Calle Juan XXII');
+    assert.equal(comoSePresenta('CALLE JUAN XXIII', true), 'Calle Juan XXIII');
+  });
+
+  test('⭐ un romano PEGADO A UN SIGNO sigue siendo un romano — bitácora nº8', () => {
+    // El banco de arriba usa romanos rodeados de espacios, y por eso daba
+    // verde mientras `GRUPO ALFÉREZ ROJAS (GP-F II)` salía «(Gp-f Ii)». El
+    // dato real pega los signos a las palabras; la prueba también tiene que
+    // hacerlo.
+    assert.equal(comoSePresenta('GRUPO ALFÉREZ ROJAS (GP-F II)', true), 'Grupo Alférez Rojas (Gp-F II)');
+    assert.equal(comoSePresenta('CALLE MALPICA (II)', true), 'Calle Malpica (II)');
+    assert.equal(comoSePresenta('CALLE FELIPE V, EL REY', true), 'Calle Felipe V, el Rey');
+  });
+
+  test('⭐ el PUNTO separa palabras dentro del token, como el espacio', () => {
+    // El censo escribe `NTRA.SRA.DEL AGUA` sin espacios, y tratándolo como una
+    // sola palabra salía «Ntra.sra.del Agua».
+    assert.equal(comoSePresenta('CALLE NTRA.SRA.DEL AGUA', true), 'Calle Ntra.Sra.del Agua');
+    assert.equal(comoSePresenta('CALLE SOR M.JESÚS ÁGREDA', true), 'Calle Sor M.Jesús Ágreda');
+  });
+
+  test('⭐ y una palabra que PARECE romana no lo es: la regex casa el token ENTERO', () => {
+    // Es la trampa del encargo. `CIVIL` empieza por C-I-V pero no valida
+    // entero, y por eso no hace falta excepción: la ancla la rechaza sola.
+    assert.equal(comoSePresenta('CALLE GUARDIA CIVIL', true), 'Calle Guardia Civil');
+    assert.equal(comoSePresenta('CALLE MIL VIENTOS', true), 'Calle Mil Vientos');
+    assert.equal(comoSePresenta('CALLE EL CID', true), 'Calle el Cid');
+    assert.equal(comoSePresenta('CALLE LA VID', true), 'Calle la Vid');
+  });
+
+  test('⭐ LA COLISIÓN DECLARADA: «MI» valida como romano y NUNCA lo es', () => {
+    // Medido sobre los 3.358 nombres del censo: de los tokens que la regex
+    // acepta, uno solo no es un número — `MI`, en CALLE MI TÍO y en CALLE
+    // TODO SOBRE MI MADRE. Como romano vale 1001, que no numera a ningún rey.
+    assert.deepEqual([...NO_SON_ROMANOS], ['MI']);
+    assert.equal(comoSePresenta('CALLE MI TÍO', true), 'Calle Mi Tío');
+    assert.equal(comoSePresenta('CALLE TODO SOBRE MI MADRE', true), 'Calle Todo Sobre Mi Madre');
+  });
+
+  test('lo que no es una palabra se deja donde está', () => {
+    // El marcador de núcleo rural es un código del censo, no una palabra.
+    assert.equal(comoSePresenta('CALLE BARCELONA ---CST', true), 'Calle Barcelona ---CST');
+    // Y el número del portal, y los paréntesis que el dato trae dentro.
+    assert.equal(comoSePresenta('CALLE ALFONSO I 10', true), 'Calle Alfonso I 10');
+    assert.equal(comoSePresenta('CALLE BURGOS [CASETAS] 4', true), 'Calle Burgos [Casetas] 4');
+    assert.equal(comoSePresenta('CALLE MALPICA II (Q)', true), 'Calle Malpica II (Q)');
+  });
+
+  test('lo que el dato trae ABREVIADO se queda abreviado', () => {
+    // [DOC OSM ES] «sin abreviaturas»: abreviar es decisión del software y
+    // aquí no se toma. Pero DESabreviar tampoco: el censo escribe `NTRA. SRA.`
+    // y desplegarlo sería inventarse el dato, no presentarlo.
+    assert.equal(comoSePresenta('CALLE NTRA. SRA. DEL PILAR', true), 'Calle Ntra. Sra. del Pilar');
+  });
+
+  test('un nombre de OSM que ya viene en caso mixto no se toca', () => {
+    for (const nombre of [
+      'Calle de Don Jaime I',
+      'Paseo de Fernando el Católico',
+      'Gran Vía de Santiago Ramón y Cajal',
+      'Avenida de San Juan de la Peña',
+    ]) {
+      assert.equal(comoSePresenta(nombre, false), nombre);
+    }
+  });
+
+  test('un genérico tampoco: ya está escrito como se lee', () => {
+    assert.equal(comoSePresenta('el carril bici', false), 'el carril bici');
+    assert.equal(comoSePresenta('la zona peatonal', false), 'la zona peatonal');
+  });
+
+  test('un municipal que NO viene en mayúsculas plenas se recompone igual', () => {
+    // Es la única de las 3.359: ANDADOR ABOGACíA TURNO DE OFICIO, con la
+    // vocal acentuada en minúscula (§ 1.3, suciedad del origen declarada).
+    // Recomponer la deja legible sin tocar el fichero.
+    assert.equal(
+      comoSePresenta('ANDADOR ABOGACíA TURNO DE OFICIO', true),
+      'Andador Abogacía Turno de Oficio',
+    );
+  });
+
+  test('⭐ presentar NO cambia el núcleo: las comparaciones siguen intactas', () => {
+    // La costura que importa. Si presentar afectara al núcleo, la fusión de
+    // dos grafías dejaría de funcionar en cuanto el texto cambiara de caja.
+    for (const nombre of [
+      'AVENIDA SAN JUAN DE LA PEÑA',
+      'CALLE ALFONSO I',
+      'PASEO ISABEL LA CATÓLICA',
+      'CALLE BARCELONA ---CST',
+      'DISEMINADO DISEMINADO CASETAS',
+    ]) {
+      assert.equal(nucleoDe(comoSePresenta(nombre, true)), nucleoDe(nombre), nombre);
+    }
+  });
+});
+
 describe('Los pasos de una ruta real', () => {
   let red: RedEnMemoria;
   let rejilla: Rejilla;
@@ -782,8 +911,11 @@ describe('Los pasos de una ruta real', () => {
     // Se le pasaron nombres municipales inventados, y son los que salen: si el
     // motor cogiera el nombre de OSM para los extremos, aquí saldría «Calle de
     // Pedro Lapuyade» y no lo que eligió el usuario. Es el 19,4% discordante.
-    assert.match(pasos[0]!.texto, /^Sal de CALLE DE PRUEBA 1 /);
-    assert.match(pasos[pasos.length - 1]!.texto, /^CALLE DE LLEGADA 2 /);
+    // ⚠️ AJUSTE (presentación). Los extremos siguen siendo los municipales
+    // —es lo que esta prueba fija— pero ya no se escriben en mayúscula
+    // administrativa: se recomponen a caso mixto como todo lo demás.
+    assert.match(pasos[0]!.texto, /^Sal de Calle de Prueba 1 /);
+    assert.match(pasos[pasos.length - 1]!.texto, /^Calle de Llegada 2 /);
   });
 
   /**
@@ -1037,8 +1169,8 @@ describe('Los pasos de una ruta real', () => {
     // propio. Ahora se absorbe dentro de la primera: las dos avenidas van
     // SEGUIDAS. Los metros no se pierden, se suman a la Academia.
     const pasos = pasosDe(COLOSO, ARRUPE);
-    const academia = pasos.findIndex((p) => p.texto.endsWith('hacia AVENIDA ACADEMIA GENERAL MILITAR'));
-    const sanJuan = pasos.findIndex((p) => p.texto.endsWith('hacia AVENIDA SAN JUAN DE LA PEÑA'));
+    const academia = pasos.findIndex((p) => p.texto.endsWith('hacia Avenida Academia General Militar'));
+    const sanJuan = pasos.findIndex((p) => p.texto.endsWith('hacia Avenida San Juan de la Peña'));
     assert.ok(academia >= 0, 'el carril bici de la Academia sigue sin nombre');
     assert.equal(sanJuan, academia + 1, 'entre las dos avenidas se ha colado un paso');
     // 430 m de avenida + los 82 del carril absorbido, redondeados a la decena.
@@ -1053,7 +1185,9 @@ describe('Los pasos de una ruta real', () => {
     const pasos = pasosDe(COLOSO, ARRUPE);
     const sanJuan = pasos.filter((p) => /SAN JUAN DE LA PEÑA$/i.test(p.texto));
     assert.equal(sanJuan.length, 1, `sale ${sanJuan.length} veces: ${sanJuan.map((p) => p.texto)}`);
-    assert.match(sanJuan[0]!.texto, /hacia AVENIDA SAN JUAN DE LA PEÑA$/);
+    // Y se escribe con el artículo de la partícula en minúscula, no con la
+    // mayúscula administrativa del censo: es el mismo nombre, presentado.
+    assert.match(sanJuan[0]!.texto, /hacia Avenida San Juan de la Peña$/);
     assert.equal(sanJuan[0]!.metros, 1810, 'los 760 y los 1.040 tienen que sumarse');
   });
 
