@@ -74,11 +74,23 @@
 >
 > **⭐ Y desde hoy el motor CALCULA RUTAS andando** — pero la pantalla todavía no las enseña, así
 > que conviene decirlo fino. `POST /api/ruta` recibe dos direcciones por código y devuelve la
-> ruta de verdad: la línea entera, los pasos escritos al **formato de Google Maps** —«Sal de
-> CALLE ALFONSO I 10 y dirígete hacia el suroeste por Calle de Alfonso I · 91 m», «Gira a la
-> izquierda hacia Plaza de España», «PASEO INDEPENDENCIA 3 está a la izquierda»—, los metros y
-> una duración derivada. **El botón «Generar ruta» del formulario sigue devolviendo la respuesta
-> inventada**: engancharlo es lo siguiente.
+> ruta de verdad: la línea entera, los metros, una duración derivada, y los pasos escritos al
+> **formato de Google Maps**. De CALLE ALFONSO I 10 a PASEO INDEPENDENCIA 3, 342 m, son estos
+> cuatro:
+>
+> > Sal de CALLE ALFONSO I 10 y dirígete hacia el suroeste por Calle de Alfonso I · **91 m**
+> > · Gira a la izquierda hacia la acera · **150 m**
+> > · Gira ligeramente a la derecha hacia Plaza de España · **96 m**
+> > · PASEO INDEPENDENCIA 3 está a la izquierda
+>
+> **Cuatro, y no once.** Un cruce son siete piezas de red —bajas de la acera, cruzas, subes,
+> bordeas— y quien anda percibe **una** maniobra, así que lo que mide menos de **25 m** se funde
+> con el paso anterior y el giro que se anuncia se recalcula con el **ángulo combinado**, para
+> que fundir no se coma un giro de verdad. El umbral no es un gusto: sale de medir 6.443 pasos de
+> 363 rutas reales, donde la cuesta de micro-pasos muere justo en los 25-30 m.
+>
+> **El botón «Generar ruta» del formulario sigue devolviendo la respuesta inventada**:
+> engancharlo es lo siguiente.
 >
 > Para escribirlos hizo falta el otro medio dato: las aristas del grafo llevan el id de calle de
 > OpenStreetMap pero **ningún nombre**. Las **19.897 calles con nombre** viven en `motor/data/`,
