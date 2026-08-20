@@ -60,6 +60,19 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
+**Punto 7, pieza B HECHA (20/08) — el motor calcula rutas de verdad.**
+`POST /api/ruta` vivo: proyección construida (p50 5,5 m, contrastada
+con la auditoría vieja al medio metro), Dijkstra 0,6 ms p50, las 4
+combinaciones y el trivial con su rojo del naïf medido (10 m → 689 m el
+peor), Peña Zorongo investigado (isla c=39 — 581 sin ruta con Aviso
+honesto, el radio no se sube), pasos formato Google con fusión de
+micro-pasos (umbral 25 m del valle del histograma; la céntrica 11→4
+pasos, se lee como la captura; los «hacia la calzada» se quedan [DOC:
+práctica Valhalla; coserlo del callejero no lo hace ningún motor]).
+Bitácora nº6 con ley («una geometría no se comprueba por sus
+extremos»). 117 pruebas. Falta la pieza C: pintar, listar los pasos, y
+retirar la respuesta falsa.
+
 **Punto 7, pieza A HECHA (20/08):** los nombres OSM promovidos de la
 rama archivada a `motor/data/` (doble huella idéntica, nueve recuentos
 casando, ficha §1.14 con el desfase fino de 17 h 44 min y la regla de

@@ -614,25 +614,47 @@ buscando; preferir c=0, solo a=1) · rotondas: SIN etiqueta en el grafo
       declarado como lo que es: en el árbol, sin usar, primera pieza de
       las rutas (`b5c25d9`)
 
-**ENCARGO B — el motor:**
-- [ ] **La proyección portal→arista, construida aquí** (el enganche se
-      perdió): sobre el subgrafo a=1 ∧ c=0, patrón Loki — proyección
-      perpendicular, punto DENTRO de la arista, conector
-      portal→proyección en la geometría, `node_snap_tolerance` declarada
-- [ ] **Las 4 combinaciones extremo-extremo** [DOC — el naïf produce
-      retrocesos de una manzana] y **el caso trivial** de misma arista
-      con trato propio [DOC Valhalla]
-- [ ] **«Sin camino» es un resultado**: islas → `Aviso` honesto; los 124
-      sin enganche → `Aviso`
-- [ ] **Dijkstra unidireccional con montículo binario, MEDIDO** (la doc
-      respalda que basta: el peatonal usa jerarquía local; el
-      bidireccional es para grafos continentales)
-- [ ] `POST /api/ruta` — el contrato crece con lo que la respuesta pida:
-      geometría con conectores, pasos al formato Google (cardinal
-      inicial · giro clasificado por `turn.cc` · «hacia X» con nombre
-      OSM o por tipo con `p` · metros del tramo · lado del destino por
-      producto vectorial), metros totales, duración DERIVADA (5,0 km/h,
-      dicha como derivada — D-G) y `Aviso`
+**ENCARGO B — el motor — HECHO (20/08), con remate de fusión:**
+- [x] **El índice del grafo**: adyacencia por coordenada sobre el
+      subgrafo útil (93.503 aristas · 65.697 nodos — los 10 de desajuste
+      viven en c=0, fijados por prueba), rejilla espacial 51 ms, cruce
+      w→nombre cargado. Arranque +344 ms, heap +11,1 MB (la primera
+      medida de 89 MB era mentira del ámbito de medición — corregida)
+- [x] **La proyección, construida y CONTRASTADA**: p50 5,5 m contra los
+      5,3 m de la auditoría vieja — dos cálculos independientes
+      coincidiendo en medio metro. node_snap 5 m [DOC] disparando en el
+      8,6%. ⭐ La costura de los >50 m investigada ANTES de seguir: los
+      581 sin proyección (vs 124 viejos) NO son bug — 460 son
+      URBANIZACIÓN PEÑA ZORONGO, un barrio entero en la componente 39
+      (isla): sus calles existen a 9 m pero engancharlas daría rutas
+      mentirosas. El radio NO se sube; el Aviso con nombre es el
+      resultado honesto [minimum_reachability, DOC Loki]
+- [x] **⭐ El rojo del naïf, MEDIDO antes del trato**: el trivial naïf
+      anda un 51% de más (peor caso: 10 m reales → 689 m, dos puertas de
+      la misma calle a vuelta de manzana — ese par fija la prueba); las
+      4 combinaciones ganan en el 64,2% de pares. Dijkstra: p50 0,6 ms
+      uso real, 26 ms el peor aleatorio de 33 km — nada que optimizar
+- [x] `POST /api/ruta` VIVO: geometría de puerta a puerta con
+      conectores, pasos formato Google, metros, duración derivada,
+      Avisos. Cinco endpoints en el motor
+- [x] **La fusión de micro-pasos** (remate con doctrina: el colapso de
+      OSRM en cruces segregados «donde los humanos perciben una
+      maniobra» + el ángulo COMBINADO de la doctrina clásica): umbral
+      25 m salido del VALLE del histograma (6.443 pasos medidos — el
+      53% de los intermedios eran ruido de cruce), cinco reglas
+      declaradas, y las dos salvaguardas demostradas en rutas reales:
+      el giro que se volvió MÁS giro al fundir («bruscamente» — el
+      combinado dijo la verdad que los trozos escondían) y la chicane
+      que CONSERVÓ su «ligeramente». La céntrica: 11 → 4 pasos, ya se
+      lee como la captura (`8be4b4d`). Los «hacia la calzada» del
+      polígono SE QUEDAN [DOC: es la práctica de Valhalla — por tipo;
+      Google enseña «Unnamed Road»; coser el callejero municipal no lo
+      hace ningún motor, issue abierto #5587]
+- [x] **Bitácora nº6, con ley nueva**: la prueba que miraba la geometría
+      «por sus extremos» dio verde con un tramo INVERTIDO dentro (salto
+      de 604,7 m) — escrita con el verde delante, antes de arreglar.
+      Ley: una geometría no se comprueba por sus extremos. 117 pruebas
+      (44 motor + 73 pantalla)
 **ENCARGO C — la pantalla:**
 - [ ] La ruta se pinta en el mapa (con sus conectores) y los pasos salen
       escritos con el formato de la captura: flecha + «Gira … hacia …» +
