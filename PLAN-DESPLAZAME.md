@@ -126,8 +126,11 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       `tools/grafo-visor.js` de la OLD (no estaba en data/): un `.js` de una
       línea que se pide con fetch como texto y NUNCA se ejecuta (`f4f049c`).
       Trae tres partes, declaradas en la ficha (`b84545d`): el grafo (se
-      pinta), el enganche portal→arista (se conserva para el motor del
-      punto 7), la auditoría del viejo (viaja porque el fichero es
+      pinta), la AUDITORÍA del enganche portal→arista (distancia y
+      veredictos — el enganche en sí, id de arista y proyección, viajaba
+      en un `enlaces.json` que NO está versionado en ninguna parte: el
+      punto 7 construye la proyección por su cuenta, corregido 20/08),
+      la auditoría del viejo (viaja porque el fichero es
       indivisible sin editar). Pintado como UNA multi-polilínea en canvas
       [DOC tipos de Leaflet] (`7b8fdd6`): 116 ms, arrastre fluido, la red
       calcando la tesela. README releído (`f7c6bcf`)

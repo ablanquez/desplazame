@@ -80,12 +80,14 @@ futura). El plan lo estructura en TRES encargos: A el fichero de
 nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
 (pintado + pasos, y la respuesta falsa se retira).
 
-**Lo siguiente: el punto 7** — `POST /api/ruta` andando (Dijkstra sobre
-el grafo en memoria, el enganche portal→arista del censo enganchado),
-la ruta pintada y los pasos escritos, el juez es el ojo de Antonio sobre
-trayectos que conoce a pie, la respuesta falsa se retira, y los andamios
-de carga con su casilla de retirada. Y el 8 (destinos con nombre)
-espera detrás, en construcción.
+**Lo siguiente: el punto 7, encargos B y C** — `POST /api/ruta` andando
+(la proyección portal→arista construida al patrón Loki — el enganche
+del censo se perdió, solo viaja su auditoría —, Dijkstra sobre el grafo
+en memoria, los pasos al formato Google), la ruta pintada y los pasos
+escritos, el juez es el ojo de Antonio sobre trayectos que conoce a
+pie, la respuesta falsa se retira, y los andamios de carga con su
+casilla de retirada. Y el 8 (destinos con nombre) espera detrás, en
+construcción.
 
 ---
 
