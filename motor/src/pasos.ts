@@ -147,6 +147,42 @@ const COMO_SE_DICE: Readonly<Record<Giro, string>> = {
   llegada: 'Has llegado',
 };
 
+/**
+ * ⭐ Por debajo de cuántos metros un tramo deja de ser un paso.
+ *
+ * Un cruce de verdad son siete piezas de red —baja de la acera, cruza, sube,
+ * bordea, vuelve a cruzar— y quien anda percibe UNA maniobra. Escribirlas
+ * todas no es ser preciso: es ser ilegible.
+ *
+ * [DOC] La doctrina es de las dos implementaciones de referencia. OSRM colapsa
+ * las instrucciones de los cruces segregados *«donde los humanos solo perciben
+ * una maniobra»*, y Valhalla reduce la lista de maniobras a una concisa. Lo que
+ * ninguna de las dos regala es el número, porque depende del callejero.
+ *
+ * **25 m sale del dato, no de la barriga.** Medidos los pasos intermedios de
+ * 363 rutas reales de 1-2 km —6.443 pasos—, el histograma cada 5 m es:
+ *
+ *      0- 5 m  1274  ###################################################
+ *      5-10 m  1021  #########################################
+ *     10-15 m   535  #####################
+ *     15-20 m   325  #############
+ *     20-25 m   264  ###########
+ *     25-30 m   191  ########        ← el suelo del valle
+ *     30-35 m   198  ########        ← y aquí ya sube: empieza la meseta
+ *     35-40 m   158  ######
+ *     40-45 m   131  #####
+ *     45-50 m   138  ######
+ *
+ * No es una curva que baja sin más: **baja hasta los 25-30 m y ahí para**. Lo
+ * de la izquierda es la población de trozos de cruce; lo de la derecha, una
+ * meseta plana de 100-200 por tramo que son los pasos de verdad. El corte se
+ * pone en el borde del valle, no dentro de la meseta.
+ *
+ * A ese corte le caen el 53,1% de los pasos intermedios, y esa cifra tan gorda
+ * es justamente el síntoma: la mitad de lo que se escribía no era una maniobra.
+ */
+export const UMBRAL_MICRO_M = 25;
+
 /** Un tramo: una o más aristas seguidas del mismo *way*. */
 interface Tramo {
   readonly way: number;
@@ -245,6 +281,143 @@ function ladoDelDestino(ultimoTramo: readonly Punto[], puerta: Punto): 'derecha'
 }
 
 /**
+ * Un tramo reducido a lo que la fusión necesita: cómo se llama, cuánto mide, y
+ * con qué rumbo se entra y se sale de él.
+ *
+ * Se baja a esta forma llana para que la fusión sea una función **pura y
+ * probable con ángulos inventados**: la regla de qué se funde y qué giro sale
+ * es delicada, y comprobarla exigiendo una ruta de Zaragoza que la dispare
+ * sería comprobarla a medias.
+ */
+export interface TramoLlano {
+  readonly nombre: string;
+  /** Si `nombre` viene de OSM (true) o es el nombre de su tipo (false). */
+  readonly conNombre: boolean;
+  readonly metros: number;
+  readonly entrada: number;
+  readonly salida: number;
+}
+
+/** Lo que sobrevive a la fusión: un paso, con su giro ya combinado. */
+export interface TramoFundido {
+  readonly nombre: string;
+  readonly conNombre: boolean;
+  readonly metros: number;
+  readonly giro: Giro;
+  /** El rumbo de entrada del que manda: de ahí sale el cardinal del arranque. */
+  readonly entrada: number;
+}
+
+/**
+ * ⭐ Funde los tramos insignificantes y **recalcula el giro con el ángulo
+ * combinado**.
+ *
+ * Las reglas, todas declaradas:
+ *
+ * **1 · A cuál se funde: al ANTERIOR.** Sus metros se suman a él y su paso
+ * desaparece. El porqué es de quien anda: el nombre de un tramo se anuncia al
+ * entrar en él, y en un trozo de cruce de seis metros nadie te anuncia nada —
+ * sigues andando desde la instrucción anterior hasta la siguiente de verdad.
+ * Los metros no se pierden nunca: se suman.
+ *
+ * **2 · El giro sale del ÁNGULO COMBINADO.** Y esta es la pieza que impide que
+ * fundir se coma un giro: el giro que se anuncia para el tramo siguiente se
+ * mide entre el rumbo con el que se SALÍA del tramo anterior y el rumbo con el
+ * que se ENTRA en el siguiente — saltándose el que se ha fundido. Si entre A y
+ * B hay noventa grados repartidos en dos trozos de cruce, el resultado sigue
+ * siendo noventa grados. Se clasifica con los mismos umbrales de `turn.cc`, que
+ * no se tocan.
+ *
+ * **3 · El nombre lo pone el DOMINANTE.** Si lo que se funde mide más que lo
+ * que llevaba el tramo que lo absorbe, se queda con su nombre, su rumbo de
+ * salida y su rumbo de entrada. Es raro —solo pasa entre dos trozos cortos—
+ * pero si pasa, manda el largo.
+ *
+ * **4 · Si el combinado da «recto» y el nombre coincide, DESAPARECE en el
+ * vecino**; si el nombre cambia, se queda como «Continúa hacia X», que es un
+ * paso legítimo: la calle cambia de nombre sin que tuerzas. Es la misma regla
+ * que ya unía los *ways* de una misma calle, aplicada ahora también después de
+ * fundir.
+ *
+ * **5 · El primero NUNCA desaparece, pero si es él el insignificante, TRAGA
+ * HACIA DELANTE.** Un arranque no se puede fundir con lo de atrás porque no hay
+ * nada atrás; lo que no puede ser es que quede un paso de tres metros. Así que
+ * cuando el arranque mide menos que el umbral, se come al siguiente y —por la
+ * regla 3— se queda con su nombre: «Sal de X y dirígete hacia el norte **por
+ * Calle Larga**» en vez de «dirígete hacia el norte · 3 m» y luego «continúa
+ * hacia Calle Larga». Se corta solo: en cuanto traga uno, ya pasa del umbral.
+ *
+ * La llegada tampoco se funde, pero esa ni pasa por aquí: se escribe aparte.
+ */
+export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly TramoFundido[] {
+  const salen: {
+    nombre: string;
+    conNombre: boolean;
+    metros: number;
+    metrosPropios: number;
+    giro: Giro;
+    entrada: number;
+    salida: number;
+  }[] = [];
+
+  for (const tramo of tramos) {
+    const ultimo = salen[salen.length - 1];
+    if (!ultimo) {
+      salen.push({
+        nombre: tramo.nombre,
+        conNombre: tramo.conNombre,
+        metros: tramo.metros,
+        metrosPropios: tramo.metros,
+        giro: 'salida',
+        entrada: tramo.entrada,
+        salida: tramo.salida,
+      });
+      continue;
+    }
+
+    // EL ÁNGULO COMBINADO: del rumbo con el que se salía de lo último que se
+    // anunció, al rumbo con el que se entra en esto. Lo fundido queda en medio
+    // y no cuenta.
+    const giro = giroDe(ultimo.salida, tramo.entrada);
+    const esMicro = tramo.metros < UMBRAL_MICRO_M;
+    const esLaMisma = giro === 'recto' && tramo.nombre === ultimo.nombre;
+    // El arranque no se funde hacia atrás porque no hay atrás: traga hacia
+    // delante. Regla 5.
+    const arranqueInsignificante = salen.length === 1 && ultimo.metros < UMBRAL_MICRO_M;
+
+    if (esMicro || esLaMisma || arranqueInsignificante) {
+      ultimo.metros += tramo.metros;
+      if (tramo.metros > ultimo.metrosPropios) {
+        ultimo.nombre = tramo.nombre;
+        ultimo.conNombre = tramo.conNombre;
+        ultimo.metrosPropios = tramo.metros;
+        ultimo.entrada = tramo.entrada;
+        ultimo.salida = tramo.salida;
+      }
+      continue;
+    }
+
+    salen.push({
+      nombre: tramo.nombre,
+      conNombre: tramo.conNombre,
+      metros: tramo.metros,
+      metrosPropios: tramo.metros,
+      giro,
+      entrada: tramo.entrada,
+      salida: tramo.salida,
+    });
+  }
+
+  return salen.map(({ nombre, conNombre, metros, giro, entrada }) => ({
+    nombre,
+    conNombre,
+    metros,
+    giro,
+    entrada,
+  }));
+}
+
+/**
  * Escribe los pasos de una ruta.
  *
  * `nombreOrigen` y `nombreDestino` son los MUNICIPALES —«CALLE BURGOS 4»—, y
@@ -270,34 +443,48 @@ export function escribirPasos(
     ];
   }
 
+  // Se bajan a la forma llana —nombre, metros y los dos rumbos— y se funden
+  // los insignificantes. A partir de aquí ya no hay geometría: hay maniobras.
+  const llanos: TramoLlano[] = tramos.map((tramo) => ({
+    nombre: nombreDe(red, tramo),
+    conNombre: red.nombreDeWay.has(tramo.way),
+    metros: tramo.metros,
+    entrada: rumboDeEntrada(tramo.g),
+    salida: rumboDeSalida(tramo.g),
+  }));
+  const maniobras = fundirMicroTramos(llanos);
+
   const pasos: Paso[] = [];
 
   // ── El arranque, con su cardinal ─────────────────────────────────────────
-  const primero = tramos[0]!;
-  const cardinal = CARDINALES[Math.round(rumboDeEntrada(primero.g) / 45) % 8]!;
-  const nombrePrimero = red.nombreDeWay.get(primero.way);
+  const primero = maniobras[0]!;
+  const cardinal = CARDINALES[Math.round(primero.entrada / 45) % 8]!;
   pasos.push({
     giro: 'salida',
-    // El origen habla municipal: se sale del portal que el usuario eligió.
+    // El origen habla municipal: se sale del portal que el usuario eligió. Y
+    // el «por X» solo si hay nombre de verdad: «dirígete hacia el sur por la
+    // acera» no dice nada que el cardinal no dijera ya.
     texto:
       `Sal de ${nombreOrigen} y dirígete hacia el ${cardinal}` +
-      (nombrePrimero ? ` por ${nombrePrimero}` : ''),
+      (primero.conNombre ? ` por ${primero.nombre}` : ''),
     metros: metrosParaLeer(primero.metros),
   });
 
-  // ── Un paso por cada cambio de tramo ─────────────────────────────────────
-  for (let k = 1; k < tramos.length; k++) {
-    const antes = tramos[k - 1]!;
-    const ahora = tramos[k]!;
-    const giro = giroDe(rumboDeSalida(antes.g), rumboDeEntrada(ahora.g));
+  // ── Un paso por cada maniobra que ha sobrevivido ─────────────────────────
+  for (let k = 1; k < maniobras.length; k++) {
+    const maniobra = maniobras[k]!;
     pasos.push({
-      giro,
-      texto: `${COMO_SE_DICE[giro]} hacia ${nombreDe(red, ahora)}`,
-      metros: metrosParaLeer(ahora.metros),
+      giro: maniobra.giro,
+      texto: `${COMO_SE_DICE[maniobra.giro]} hacia ${maniobra.nombre}`,
+      metros: metrosParaLeer(maniobra.metros),
     });
   }
 
   // ── El cierre: de qué lado queda la puerta ───────────────────────────────
+  //
+  // Se mide sobre el ÚLTIMO TRAMO DE VERDAD, no sobre la última maniobra: de
+  // qué lado cae una puerta es geometría, y si el último trozo se fundió sigue
+  // siendo por donde se llega.
   const ultimo = tramos[tramos.length - 1]!;
   pasos.push({
     giro: 'llegada',

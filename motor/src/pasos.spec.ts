@@ -13,7 +13,109 @@ import { cargarRed, type RedEnMemoria } from './red.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { cargarRejilla, enganchar, type Rejilla } from './proyeccion.ts';
 import { calcularRuta, cuadernoPara, type Cuaderno } from './ruta.ts';
-import { escribirPasos, giroDe, metrosParaLeer } from './pasos.ts';
+import {
+  escribirPasos,
+  fundirMicroTramos,
+  giroDe,
+  metrosParaLeer,
+  UMBRAL_MICRO_M,
+  type TramoLlano,
+} from './pasos.ts';
+
+/** Un tramo llano de mentira, para probar la fusión con ángulos a mano. */
+function tramo(
+  nombre: string,
+  metros: number,
+  entrada: number,
+  salida = entrada,
+): TramoLlano {
+  return { nombre, conNombre: !nombre.startsWith('la '), metros, entrada, salida };
+}
+
+describe('La fusión de micro-tramos', () => {
+  test('⭐ LA SALVAGUARDA: un giro real de 90° entre dos trozos cortos NO se pierde', () => {
+    // Rumbo norte 100 m · seis metros de cruce girando ya · rumbo este 100 m.
+    // El de seis metros se funde, y lo que se anuncia tiene que seguir siendo
+    // el giro de noventa grados que hay entre lo que se andaba y lo que se va
+    // a andar. Si el ángulo se midiera contra el trozo fundido en vez de
+    // saltárselo, aquí saldría «recto» y quien anda se pasaría de largo.
+    const salen = fundirMicroTramos([
+      tramo('Calle Norte', 100, 0, 0),
+      tramo('la acera', 6, 45, 45),
+      tramo('Calle Este', 100, 90, 90),
+    ]);
+    assert.equal(salen.length, 2);
+    assert.equal(salen[1]!.nombre, 'Calle Este');
+    assert.equal(salen[1]!.giro, 'derecha');
+  });
+
+  test('los noventa grados sobreviven aunque vengan repartidos en dos cruces', () => {
+    const salen = fundirMicroTramos([
+      tramo('Calle Norte', 100, 0, 0),
+      tramo('la acera', 5, 30),
+      tramo('el paso de peatones', 5, 60),
+      tramo('Calle Este', 100, 90, 90),
+    ]);
+    assert.equal(salen.length, 2);
+    assert.equal(salen[1]!.giro, 'derecha');
+  });
+
+  test('los metros NO se pierden: lo fundido se suma al que lo absorbe', () => {
+    const salen = fundirMicroTramos([
+      tramo('Calle Norte', 100, 0, 0),
+      tramo('la acera', 6, 0),
+      tramo('el paso de peatones', 9, 0),
+      tramo('Calle Este', 100, 90, 90),
+    ]);
+    assert.equal(salen[0]!.metros, 115);
+    assert.equal(salen[1]!.metros, 100);
+    const total = salen.reduce((t, m) => t + m.metros, 0);
+    assert.equal(total, 215, 'la suma tiene que ser la misma antes y después');
+  });
+
+  test('el ARRANQUE nunca desaparece, ni siendo el más corto de todos', () => {
+    const salen = fundirMicroTramos([
+      tramo('el paso de peatones', 3, 0, 0),
+      tramo('Calle Larga', 400, 0, 0),
+    ]);
+    assert.ok(salen.length >= 1);
+    assert.equal(salen[0]!.giro, 'salida');
+    // Y como el largo domina, es SU nombre el que se anuncia y su rumbo el que
+    // manda para el cardinal.
+    assert.equal(salen[0]!.nombre, 'Calle Larga');
+    assert.equal(salen[0]!.metros, 403);
+  });
+
+  test('recto + MISMO nombre desaparece; recto + nombre distinto queda «Continúa»', () => {
+    const misma = fundirMicroTramos([
+      tramo('Calle Larga', 200, 0, 0),
+      tramo('Calle Larga', 300, 0, 0),
+    ]);
+    assert.equal(misma.length, 1);
+    assert.equal(misma[0]!.metros, 500);
+
+    const cambia = fundirMicroTramos([
+      tramo('Calle Larga', 200, 0, 0),
+      tramo('Calle Otra', 300, 0, 0),
+    ]);
+    assert.equal(cambia.length, 2);
+    assert.equal(cambia[1]!.giro, 'recto');
+  });
+
+  test('lo que llega justo al umbral se queda: el corte es estricto', () => {
+    const justo = fundirMicroTramos([
+      tramo('Calle Norte', 100, 0, 0),
+      tramo('la acera', UMBRAL_MICRO_M, 90, 90),
+    ]);
+    assert.equal(justo.length, 2, `${UMBRAL_MICRO_M} m no es micro: el corte es «menor que»`);
+
+    const porUnPelo = fundirMicroTramos([
+      tramo('Calle Norte', 100, 0, 0),
+      tramo('la acera', UMBRAL_MICRO_M - 1, 90, 90),
+    ]);
+    assert.equal(porUnPelo.length, 1);
+  });
+});
 
 describe('Los umbrales de giro', () => {
   /**
@@ -160,6 +262,69 @@ describe('Los pasos de una ruta real', () => {
         `el paso ${k} sigue recto por lo mismo que el anterior: «${pasos[k]!.texto}»`,
       );
     }
+  });
+
+  test('⭐ el cruce de doce pasos se lee como una maniobra, no como doce', () => {
+    // ANTES de fundir, esta misma ruta escribía esto —copiado del checkpoint
+    // del 20/08— para cruzar UN cruce:
+    //
+    //   Gira a la izquierda hacia el paso de peatones · 8 m
+    //   Continúa hacia la acera · 3 m
+    //   Gira a la derecha hacia la acera · 77 m
+    //   Gira a la izquierda hacia la acera · 250 m
+    //   Gira a la derecha hacia la acera · 3 m
+    //   Continúa hacia el paso de peatones · 10 m
+    //   Continúa hacia la acera · 23 m
+    //   Continúa hacia el paso de peatones · 11 m
+    //   Gira a la izquierda hacia la acera · 6 m
+    //   Gira a la derecha hacia la calzada · 4 m
+    //   Gira a la izquierda hacia la calzada · 6 m
+    //   Gira a la derecha hacia la calzada · 86 m
+    //
+    // Doce pasos, ocho de ellos por debajo de 25 m. La ruta entera tenía 34.
+    const pasos = pasosDe(ORIGEN, DESTINO);
+    assert.ok(
+      pasos.length <= 15,
+      `la ruta larga sale con ${pasos.length} pasos; antes de fundir eran 34`,
+    );
+    // Y lo que fija que no vuelvan: ningún paso intermedio por debajo del
+    // umbral. El arranque puede llevar pocos metros si la ruta es corta, y la
+    // llegada lleva cero por definición.
+    for (const paso of pasos.slice(1, -1)) {
+      assert.ok(
+        paso.metros >= UMBRAL_MICRO_M,
+        `«${paso.texto}» son ${paso.metros} m, por debajo del umbral de ${UMBRAL_MICRO_M}`,
+      );
+    }
+  });
+
+  test('⭐ la chicane conserva su giro: fundir no endereza lo que tuerce', () => {
+    // Tres tramos sin nombre que hacían dos «ligeramente a la izquierda» y una
+    // «ligeramente a la derecha» —120, 23 y 82 m—. El de 23 es micro. Al
+    // fundirlos sale UN paso de ~220 m, y lo que se anuncia sigue siendo el
+    // giro con el que se entra en la chicane, no un «continúa recto».
+    const pasos = pasosDe(ORIGEN, DESTINO);
+    const chicane = pasos.find((p) => p.metros >= 200 && p.metros <= 240 && /calzada/.test(p.texto));
+    assert.ok(chicane, 'no aparece el tramo de la chicane fundido');
+    assert.equal(chicane!.giro, 'ligera-izquierda');
+  });
+
+  test('la suma de metros de los pasos no cambia al fundir', () => {
+    // Fundir mueve metros de un paso a otro; no puede perderlos. Se compara
+    // contra los metros de la ruta, que los calcula el Dijkstra por su cuenta.
+    const uno = portales.donde.get(ORIGEN)!;
+    const otro = portales.donde.get(DESTINO)!;
+    const ea = enganchar(red, rejilla, uno.lon, uno.lat)!;
+    const eb = enganchar(red, rejilla, otro.lon, otro.lat)!;
+    const ruta = calcularRuta(red, cuaderno, ea, [uno.lon, uno.lat], eb, [otro.lon, otro.lat])!;
+    const pasos = escribirPasos(red, ruta, 'A', 'B', [otro.lon, otro.lat]);
+    const suma = pasos.reduce((t, p) => t + p.metros, 0);
+    // Con el redondeo a la decena por encima de 100 m, la suma se separa un
+    // poco; lo que no puede es perder un tramo entero.
+    assert.ok(
+      Math.abs(suma - ruta.metros) < 40,
+      `los pasos suman ${suma} m y la ruta mide ${ruta.metros.toFixed(0)}`,
+    );
   });
 
   test('de un portal a sí mismo lo dice, en vez de escribir una ruta vacía', () => {
