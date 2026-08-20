@@ -65,7 +65,22 @@ export interface AristaCruda {
 /** El grafo tal y como viene. Se declara solo lo que este punto mira. */
 export interface GrafoCrudo {
   readonly sello: string;
-  readonly contadores: { readonly nodos: number; readonly aristas: number };
+  /**
+   * Los contadores que el fichero declara de sí mismo. Se declaran todos los
+   * que trae; `tamanoMayor` es el que la red compara con lo que reconstruye
+   * juntando coordenadas, y de cuya diferencia salen los diez que NO CONSTAN.
+   */
+  readonly contadores: {
+    readonly nodos: number;
+    readonly aristas: number;
+    readonly componentes: number;
+    readonly mayor: number;
+    readonly tamanoMayor: number;
+    readonly unidoPorDefecto: number;
+    readonly noConectados: number;
+    readonly puntasLejos: number;
+    readonly vertices: number;
+  };
   readonly aristas: readonly AristaCruda[];
 }
 
