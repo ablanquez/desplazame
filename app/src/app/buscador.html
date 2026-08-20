@@ -146,7 +146,20 @@
                    («Gira a la izquierda»), así que a quien lea la pantalla en
                    voz alta se le ahorra. -->
               <span class="paso__flecha" aria-hidden="true">{{ flechaDe(paso.giro) }}</span>
-              <span class="paso__texto">{{ paso.texto }}</span>
+              <!-- El formato de Google: la ACCIÓN y el NOMBRE DE LA VÍA en
+                   negrita, el pegamento de la frase no. El motor no manda
+                   HTML: manda los trozos con su papel (`partes`), y la
+                   etiqueta la elige aquí. El `texto` plano sigue existiendo
+                   en el contrato para quien no pinte nada. -->
+              <span class="paso__texto">
+                @for (parte of paso.partes; track $index) {
+                  @if (parte.papel === 'texto') {
+                    <ng-container>{{ parte.texto }}</ng-container>
+                  } @else {
+                    <strong>{{ parte.texto }}</strong>
+                  }
+                }
+              </span>
               <!-- El paso de llegada no abre tramo: lleva 0 y no se escribe. -->
               @if (paso.metros > 0) {
                 <span class="paso__metros">{{ enMetros(paso.metros) }}</span>

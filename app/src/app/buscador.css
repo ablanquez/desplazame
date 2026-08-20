@@ -257,6 +257,15 @@ legend {
   flex: 1 1 auto;
 }
 
+/* La acción y el nombre de la vía, destacados — el formato de Google. El
+   navegador ya pone negrita a `strong`; el peso se declara aquí para que no
+   dependa de la hoja de estilo de nadie, y el color para que la negrita no
+   grite: lo que separa es el peso, no el tono. */
+.paso__texto strong {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
 .paso__metros {
   flex: none;
   color: #555;

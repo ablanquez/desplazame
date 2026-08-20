@@ -1,7 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import type { Giro, Paso, Portal, PortalCercano, Trayecto, Via } from '@desplazame/tipos';
+import type {
+  Giro,
+  ParteDelPaso,
+  Paso,
+  Portal,
+  PortalCercano,
+  Trayecto,
+  Via,
+} from '@desplazame/tipos';
 import { Buscador } from './buscador';
 
 /** Devuelve los botones de modo que están marcados como activos. */
@@ -96,21 +104,42 @@ function comoSeVe(via: Via): string {
  * prueba. La geometría va recortada a tres vértices: la de verdad trae 40 y lo
  * que se comprueba aquí es que llegue al mapa, no cuántos son.
  */
+/**
+ * Arma un paso como lo arma el motor: el texto se DERIVA de las partes, nunca
+ * se escribe aparte. Si se escribiera aparte, estas pruebas podrían pasar con
+ * un texto y unas partes que no cuadran, que es justo lo que el contrato
+ * promete que no ocurre.
+ */
+function paso(giro: Giro, metros: number, ...partes: ParteDelPaso[]): Paso {
+  return { giro, metros, partes, texto: partes.map((parte) => parte.texto).join('') };
+}
+const accion = (texto: string): ParteDelPaso => ({ papel: 'accion', texto });
+const via = (texto: string): ParteDelPaso => ({ papel: 'via', texto });
+const llano = (texto: string): ParteDelPaso => ({ papel: 'texto', texto });
+
 const TRAYECTO: Trayecto = {
   modo: 'andando',
   pasos: [
-    {
-      giro: 'salida',
-      texto: 'Sal de CALLE BURGOS 2 y dirígete hacia el suroeste por Calle de Burgos',
-      metros: 91,
-    },
-    { giro: 'izquierda', texto: 'Gira a la izquierda hacia la acera', metros: 150 },
-    {
-      giro: 'ligera-derecha',
-      texto: 'Gira ligeramente a la derecha hacia Avenida de Goya',
-      metros: 96,
-    },
-    { giro: 'llegada', texto: 'AVENIDA GOYA 45 está a la izquierda', metros: 0 },
+    paso(
+      'salida',
+      91,
+      accion('Sal de'),
+      llano(' '),
+      via('Calle Burgos 2'),
+      llano(' y dirígete hacia el suroeste'),
+      llano(' por '),
+      via('Calle de Burgos'),
+    ),
+    // Un tramo narrado por su tipo: «la acera» NO se marca como vía.
+    paso('izquierda', 150, accion('Gira a la izquierda'), llano(' hacia '), llano('la acera')),
+    paso(
+      'ligera-derecha',
+      96,
+      accion('Gira ligeramente a la derecha'),
+      llano(' hacia '),
+      via('Avenida de Goya'),
+    ),
+    paso('llegada', 0, via('Avenida Goya 45'), llano(' está a la izquierda')),
   ],
   geometria: [
     [41.6561, -0.8773],
@@ -168,8 +197,8 @@ const LOS_DIEZ_GIROS: readonly Giro[] = [
 /** Un trayecto de mentira que usa LOS DIEZ giros, uno por paso. */
 const TRAYECTO_DE_LOS_DIEZ: Trayecto = {
   ...TRAYECTO,
-  pasos: LOS_DIEZ_GIROS.map(
-    (giro): Paso => ({ giro, texto: `paso de ${giro}`, metros: 10 }),
+  pasos: LOS_DIEZ_GIROS.map((giro): Paso =>
+    paso(giro, 10, accion('paso'), llano(' de '), via(giro)),
   ),
 };
 
@@ -592,14 +621,73 @@ describe('Buscador', () => {
     await fixture.whenStable();
 
     expect(pasosEnPantalla(raiz)).toEqual([
-      '◉ Sal de CALLE BURGOS 2 y dirígete hacia el suroeste por Calle de Burgos 91 m',
+      '◉ Sal de Calle Burgos 2 y dirígete hacia el suroeste por Calle de Burgos 91 m',
       '↰ Gira a la izquierda hacia la acera 150 m',
       '↗ Gira ligeramente a la derecha hacia Avenida de Goya 96 m',
-      '⚑ AVENIDA GOYA 45 está a la izquierda',
+      '⚑ Avenida Goya 45 está a la izquierda',
     ]);
     // El paso de llegada no abre tramo: 0 metros no se escriben.
     expect(pasosEnPantalla(raiz)[3]).not.toContain('0 m');
     expect(raiz.querySelector('.pasos__vacio')).toBeNull();
+  });
+
+  it('⭐ pone en NEGRITA la acción y el nombre de la vía, y nada más', async () => {
+    // Es el formato de la captura de Google: lo que hay que hacer y por dónde,
+    // destacados; el pegamento de la frase, no.
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await fixture.whenStable();
+
+    const negritas = (k: number): string[] =>
+      Array.from(
+        raiz.querySelectorAll<HTMLElement>('.paso')[k]!.querySelectorAll('strong'),
+      ).map((f) => f.textContent ?? '');
+
+    expect(negritas(0)).toEqual(['Sal de', 'Calle Burgos 2', 'Calle de Burgos']);
+    expect(negritas(2)).toEqual(['Gira ligeramente a la derecha', 'Avenida de Goya']);
+    expect(negritas(3)).toEqual(['Avenida Goya 45']);
+  });
+
+  it('⭐ un tramo que se narra por su TIPO no se pone en negrita', async () => {
+    // «la acera» no es un nombre de calle, y destacarla lo haría parecer uno.
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await fixture.whenStable();
+
+    const segundo = raiz.querySelectorAll<HTMLElement>('.paso')[1]!;
+    expect(Array.from(segundo.querySelectorAll<HTMLElement>('strong')).map((f) => f.textContent)).toEqual([
+      'Gira a la izquierda',
+    ]);
+    // Y el texto entero se sigue leyendo igual.
+    expect(segundo.querySelector('.paso__texto')!.textContent).toBe(
+      'Gira a la izquierda hacia la acera',
+    );
+  });
+
+  it('⭐ el texto que se lee es EXACTAMENTE la unión de las partes', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await fixture.whenStable();
+
+    const pintados = Array.from(
+      raiz.querySelectorAll<HTMLElement>('.paso__texto'),
+    ).map((t) => t.textContent);
+    expect(pintados).toEqual(TRAYECTO.pasos.map((p) => p.texto));
   });
 
   /**

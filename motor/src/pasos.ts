@@ -32,7 +32,7 @@
  */
 
 import type { RedEnMemoria } from './red.ts';
-import type { Giro, Paso } from '@desplazame/tipos';
+import type { Giro, ParteDelPaso, Paso } from '@desplazame/tipos';
 import { metrosPlanos } from './proyeccion.ts';
 import type { Ruta, TrozoDeRuta } from './ruta.ts';
 
@@ -1239,6 +1239,17 @@ export function unificarElRegistro(
 }
 
 /**
+ * ⭐ Arma un paso a partir de sus PARTES, y compone el texto plano con ellas.
+ *
+ * El texto no se escribe aparte: se **deriva** de las partes concatenándolas.
+ * Así el contrato —«`texto` es exactamente la unión de `partes`»— no puede
+ * romperse por descuido al tocar una de las dos, porque solo hay una.
+ */
+function pasoDe(giro: Giro, metros: number, partes: readonly ParteDelPaso[]): Paso {
+  return { giro, texto: partes.map((parte) => parte.texto).join(''), metros, partes };
+}
+
+/**
  * Escribe los pasos de una ruta.
  *
  * `nombreOrigen` y `nombreDestino` son los MUNICIPALES —«CALLE BURGOS 4»—, y
@@ -1256,13 +1267,10 @@ export function escribirPasos(
   // Una ruta trivial de cero metros: no hay nada que andar y se dice.
   if (tramos.length === 0) {
     return [
-      {
-        giro: 'llegada',
-        texto:
-          `${comoSePresenta(nombreDestino, true, red.articulosPropios)} es el mismo ` +
-          'portal del que sales.',
-        metros: 0,
-      },
+      pasoDe('llegada', 0, [
+        { papel: 'via', texto: comoSePresenta(nombreDestino, true, red.articulosPropios) },
+        { papel: 'texto', texto: ' es el mismo portal del que sales.' },
+      ]),
     ];
   }
 
@@ -1287,30 +1295,41 @@ export function escribirPasos(
   // ── El arranque, con su cardinal ─────────────────────────────────────────
   const primero = maniobras[0]!;
   const cardinal = CARDINALES[Math.round(primero.entrada / 45) % 8]!;
-  pasos.push({
-    giro: 'salida',
-    // El origen habla municipal: se sale del portal que el usuario eligió. Y
-    // el «por X» solo si hay nombre de verdad: «dirígete hacia el sur por la
-    // acera» no dice nada que el cardinal no dijera ya.
-    texto:
-      `Sal de ${comoSePresenta(nombreOrigen, true, red.articulosPropios)} y dirígete hacia ` +
-      `el ${cardinal}` +
-      (primero.conNombre
-        ? ` por ${comoSePresenta(primero.nombre, primero.esMunicipal, red.articulosPropios)}`
-        : ''),
-    metros: metrosParaLeer(primero.metros),
-  });
+  // El origen habla municipal: se sale del portal que el usuario eligió. Y el
+  // «por X» solo si hay nombre de verdad: «dirígete hacia el sur por la acera»
+  // no dice nada que el cardinal no dijera ya.
+  const arranque: ParteDelPaso[] = [
+    { papel: 'accion', texto: 'Sal de' },
+    { papel: 'texto', texto: ' ' },
+    { papel: 'via', texto: comoSePresenta(nombreOrigen, true, red.articulosPropios) },
+    { papel: 'texto', texto: ` y dirígete hacia el ${cardinal}` },
+  ];
+  if (primero.conNombre) {
+    arranque.push(
+      { papel: 'texto', texto: ' por ' },
+      {
+        papel: 'via',
+        texto: comoSePresenta(primero.nombre, primero.esMunicipal, red.articulosPropios),
+      },
+    );
+  }
+  pasos.push(pasoDe('salida', metrosParaLeer(primero.metros), arranque));
 
   // ── Un paso por cada maniobra que ha sobrevivido ─────────────────────────
   for (let k = 1; k < maniobras.length; k++) {
     const maniobra = maniobras[k]!;
-    pasos.push({
-      giro: maniobra.giro,
-      texto:
-        `${COMO_SE_DICE[maniobra.giro]} hacia ` +
-        comoSePresenta(maniobra.nombre, maniobra.esMunicipal, red.articulosPropios),
-      metros: metrosParaLeer(maniobra.metros),
-    });
+    pasos.push(
+      pasoDe(maniobra.giro, metrosParaLeer(maniobra.metros), [
+        { papel: 'accion', texto: COMO_SE_DICE[maniobra.giro] },
+        { papel: 'texto', texto: ' hacia ' },
+        {
+          // Un tramo que se narra por su tipo —«la acera»— no lleva `via`:
+          // destacarlo lo haría parecer un nombre, y no lo es.
+          papel: maniobra.conNombre ? 'via' : 'texto',
+          texto: comoSePresenta(maniobra.nombre, maniobra.esMunicipal, red.articulosPropios),
+        },
+      ]),
+    );
   }
 
   // ── El cierre: de qué lado queda la puerta ───────────────────────────────
@@ -1319,13 +1338,12 @@ export function escribirPasos(
   // qué lado cae una puerta es geometría, y si el último trozo se fundió sigue
   // siendo por donde se llega.
   const ultimo = tramos[tramos.length - 1]!;
-  pasos.push({
-    giro: 'llegada',
-    texto:
-      `${comoSePresenta(nombreDestino, true, red.articulosPropios)} está a la ` +
-      ladoDelDestino(ultimo.g, puertaDestino),
-    metros: 0,
-  });
+  pasos.push(
+    pasoDe('llegada', 0, [
+      { papel: 'via', texto: comoSePresenta(nombreDestino, true, red.articulosPropios) },
+      { papel: 'texto', texto: ` está a la ${ladoDelDestino(ultimo.g, puertaDestino)}` },
+    ]),
+  );
 
   return pasos;
 }

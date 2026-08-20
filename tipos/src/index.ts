@@ -76,6 +76,38 @@ export interface Paso {
   readonly giro: Giro;
   readonly texto: string;
   readonly metros: number;
+  /**
+   * El mismo texto, **partido y marcado**, para que la pantalla pueda destacar
+   * lo que hay que destacar sin volver a leer la frase.
+   *
+   * El formato objetivo es el de Google Maps, donde **la acción y el nombre de
+   * la vía van en negrita** y el resto no. Eso podría resolverse mandando HTML
+   * dentro de `texto`, y **no se hace**: el motor no decide con qué etiqueta se
+   * pinta nada, y una cadena con `<strong>` dentro obliga a la interfaz a
+   * confiar en ella o a escaparla. Aquí van los trozos **con su papel**, y
+   * quien pinta elige la etiqueta.
+   *
+   * **`texto` sigue existiendo y sigue siendo la verdad**: es exactamente la
+   * concatenación de las partes, y quien no quiera pintar nada lo usa tal cual.
+   */
+  readonly partes: readonly ParteDelPaso[];
+}
+
+/** Qué papel hace un trozo de la frase de un paso. */
+export type PapelDeParte =
+  /** «Gira a la derecha», «Continúa», «Sal de» — lo que hay que hacer. */
+  | 'accion'
+  /** El nombre de la vía. Solo cuando es un nombre de verdad: un tramo que se
+   * narra por su tipo —«la acera»— no lo lleva, porque destacarlo lo haría
+   * parecer un nombre. */
+  | 'via'
+  /** Lo que pega los otros dos: preposiciones, cardinales, el lado del portal. */
+  | 'texto';
+
+/** Un trozo de la frase de un paso, con su papel. */
+export interface ParteDelPaso {
+  readonly papel: PapelDeParte;
+  readonly texto: string;
 }
 
 /**

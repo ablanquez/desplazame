@@ -1006,6 +1006,46 @@ describe('Los pasos de una ruta real', () => {
     cuaderno = cuadernoPara(red);
   });
 
+  test('⭐ cada paso trae sus PARTES, y el texto es exactamente su unión', () => {
+    // El contrato dice que `texto` es la concatenación de `partes`. Si no lo
+    // fuera, la pantalla y quien no pinte estarían leyendo cosas distintas.
+    for (const paso of pasosDe(ORIGEN, DESTINO)) {
+      assert.equal(paso.partes.map((parte) => parte.texto).join(''), paso.texto);
+      assert.ok(paso.partes.length > 0, `el paso «${paso.texto}» viene sin partes`);
+    }
+  });
+
+  test('⭐ la ACCIÓN y la VÍA van marcadas, y solo ellas', () => {
+    const pasos = pasosDe(COLOSO, ARRUPE);
+    const papeles = (k: number) => pasos[k]!.partes.map((parte) => parte.papel);
+    // El arranque: «Sal de» + el portal municipal + el rumbo + la vía.
+    assert.deepEqual(papeles(0), ['accion', 'texto', 'via', 'texto', 'texto', 'via']);
+    assert.equal(pasos[0]!.partes[0]!.texto, 'Sal de');
+    // Un paso de en medio: «Gira a la derecha» + « hacia » + la avenida.
+    assert.deepEqual(papeles(1), ['accion', 'texto', 'via']);
+    assert.equal(pasos[1]!.partes[0]!.texto, 'Gira a la derecha');
+    assert.equal(pasos[1]!.partes[2]!.texto, 'Avenida Academia General Militar');
+    // La llegada no lleva acción: es un estado, no una orden.
+    assert.deepEqual(papeles(pasos.length - 1), ['via', 'texto']);
+  });
+
+  test('⭐ un tramo narrado POR SU TIPO no se marca como vía', () => {
+    // «la acera» no es un nombre, y destacarla lo haría parecer uno.
+    const pasos = pasosDe('Portales.104760', 'Portales.120461');
+    const acera = pasos.find((paso) => paso.texto.endsWith('hacia la acera'))!;
+    assert.ok(acera, 'esta ruta ya no pasa por una acera muda');
+    assert.deepEqual(
+      acera.partes.map((parte) => parte.papel),
+      ['accion', 'texto', 'texto'],
+    );
+  });
+
+  test('la ruta trivial también trae partes', () => {
+    const pasos = pasosDe(ORIGEN, ORIGEN);
+    assert.equal(pasos.length, 1);
+    assert.equal(pasos[0]!.partes.map((parte) => parte.texto).join(''), pasos[0]!.texto);
+  });
+
   test('empieza con el cardinal y acaba diciendo de qué lado queda la puerta', () => {
     const pasos = pasosDe(ORIGEN, DESTINO);
     assert.equal(pasos[0]!.giro, 'salida');
