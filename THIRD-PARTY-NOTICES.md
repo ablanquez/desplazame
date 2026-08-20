@@ -843,7 +843,135 @@ Gállego—, coherente con que el bbox del grafo sea más ancho que el término 
 
 ---
 
-### 1.15 · El resto del dato — todavía **ninguno**
+### 1.15 · Ejes de vía municipales — Ayuntamiento de Zaragoza (IDEZar)
+
+| | |
+|---|---|
+| **Qué es** | La **geometría con nombre** de las 3.359 vías del término: una multilínea por vía, con su `codigo` y su `nombre_publico`. Es la capa que permite que una acera muda **herede el nombre de la calle que tiene al lado** — el 60 % de la red peatonal no lo lleva en OSM, y no es que falte: es que allí no existe |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS Urbanismo · `https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs` · capa `urbanismo:Vias`. **Es la misma capa de § 1.3**, pedida con geometría en vez de como tabla: § 1.3 entró copiada de otro proyecto de la casa y sin geometría, y esto se pide al WFS directamente |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)**, la misma que § 1.2, § 1.3, § 1.5 y § 1.13 · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
+| **Dónde está cumplida** | Esta pieza **no se pinta**: se consume al arrancar y muere. Su atribución es la de esta ficha — y la que ya cuelga del mapa mientras hay capas municipales encendidas |
+| **Fecha de descarga** | **2026-08-20**. El fichero declara dentro `timeStamp` **`2026-08-20T14:35:52.919Z`**, que es cuándo el servidor compuso la respuesta y **no la fecha del dato**: el WFS no publica la fecha del dato |
+| **Campos usados** | `codigo` (la clave, que cruza con el `codigoVia` de § 1.3), `nombre_publico` y la geometría. El fichero trae doce y **se guardan los doce**: `tipo_via`, `nombre`, `nombre_completo`, `nombre_reducido`, `barrio_rural`, `codigo_via_entrada`, `codigo_via_salida`, `fecha_acuerdo`, `fecha_baja` y `fecha_propuesta` no se usan hoy, y filtrarlos sería editar el dato. **Ninguno es personal** |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`motor/data/2026-08-20_idezar_wfs_urbanismo-vias_ejes.json`](motor/data/2026-08-20_idezar_wfs_urbanismo-vias_ejes.json) · 3.434.156 bytes · sha256 `ebf6dabd47416b4f9f371317bdfe512d9cd977fa7ac454a078e5c307b38c3ae7` **verificado sobre un clon** |
+
+**La consulta EXACTA, que es lo único que hace esto reproducible:**
+
+```
+curl -o motor/data/2026-08-20_idezar_wfs_urbanismo-vias_ejes.json \
+  "https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=urbanismo:Vias&outputFormat=application/json&srsName=EPSG:4326"
+```
+
+`srsName=EPSG:4326` no es adorno: sin él el WFS devuelve **EPSG:25830**, metros UTM, que no casa
+con el `[lon, lat]` del grafo y obligaría a reproyectar. Pidiéndolo así, el vértice llega en el
+mismo sistema y con el mismo orden que § 1.4, y el cruce es geometría contra geometría.
+
+> ⚠️ **La fuente VIVE, y esto se descargó dos veces con tres horas de diferencia.** Las dos
+> respuestas salen **byte a byte iguales salvo el `timeStamp`** —mismos 3.434.156 bytes, mismas
+> 3.359 *features*—, y eso es lo que dice que el dato no se movió esa tarde. Pero el callejero
+> municipal se refresca (política declarada: mensual), así que **lo que garantiza los números de
+> abajo es ESTE fichero, no una consulta nueva**.
+>
+> Y va por la regla de bytes de `.gitattributes`, como § 1.14: es **una sola línea de 3,4 MB**
+> sin un solo retorno de carro, y sin la regla el clon la devolvería con otro sha256.
+
+#### Los recuentos, medidos sobre lo descargado
+
+| | |
+|---|---|
+| *Features* | **3.359**, y `numberMatched` = `numberReturned` = 3.359: no hay paginación oculta |
+| Códigos distintos | **3.359** — exactamente **una *feature* por vía**, ni una repetida |
+| Con `nombre_publico` | **3.358** |
+| Geometría | **3.359 `MultiLineString`** · **8.261 tramos** · **75.844 vértices**, en **`[lon, lat]`** como el grafo |
+| Longitud total | **1.998,5 km** · mediana por vía **224 m** |
+| **Con `fecha_baja`** | **0** — ninguna vía dada de baja viaja aquí dentro |
+
+#### Lo que trae de roto, dicho antes de usarlo
+
+**1 · Las 18 vías con geometría VACÍA, y no son un fallo.** Son las 18
+`DISEMINADO DISEMINADO <núcleo>` —Alfocea, La Cartuja, Casetas, Garrapinillos, Juslibol,
+Villarrapa, Montañana, Venta del Olivar, Montemolín, Torrero, Monzalbarba, Movera, San Juan,
+Peñaflor, Torrecilla, Santa Isabel, Casablanca y Miralbueno—. Llegan con `coordinates: []`, y es
+coherente: un **diseminado** es la dirección de lo que está esparcido por el campo, no una calle,
+y no tiene eje que dibujar. **No prestan nombre a nadie**, y el cruce las cuenta y sigue.
+
+**2 · Una vía sin `nombre_publico`.** Es la **`GLORIETA ÓSCAR LAÍNEZ HERNÁNDEZ`** (código 15912),
+que trae `nombre` y `nombre_completo` pero el campo público a `null`. **No puede prestar nada**:
+lo que caiga a su lado se queda con su nombre genérico. Es una glorieta sin portales, así que
+nadie la va a escribir en el formulario.
+
+**3 · El desfase con § 1.3 es de UNA vía, y retrata que la fuente está viva.** Los dos ficheros
+declaran 3.359, pero no son las mismas 3.359:
+
+| | |
+|---|---|
+| Ejes que § 1.3 no conoce | **1** — `GLORIETA POLICÍA NACIONAL` (cod. 40127), `fecha_acuerdo` **2026-05-22** |
+| Vías de § 1.3 sin eje aquí | **1** — `GLORIETA LAS BANDERAS` (cod. 3410), **0 portales** |
+
+§ 1.3 es una foto del **13/05/2026** y esta del **20/08/2026**: esa glorieta se acordó **nueve
+días después** de aquella foto. Una entra, otra sale, y el total no se mueve. **No se toca
+ninguno de los dos ficheros**: son dos fechas distintas del mismo callejero, y eso es lo que son.
+
+**4 · Y 22 nombres que no se escriben igual que en § 1.3**, de los 3.358 comparables — el 0,7 %.
+Se cuenta entero porque es el nombre que se va a leer en un paso:
+
+- **20 son espacios de más** — `CALLE JUAN RAMÓN··JIMÉNEZ`, `PLAZA EL··PROGRESO`,
+  `CAMINO DE EN MEDIO···MRL`… El WFS los trae dobles y el derivado de § 1.3 los colapsó. En
+  pantalla **no se notan**: el navegador colapsa los espacios del HTML al pintar.
+- **2 son las correcciones declaradas de § 1.3**: `CALLE BARCELONA` (3564) y `CALLE LA PARRA`
+  (22340) llevan aquí el marcador `---CRT` (La Cartuja) y allí se corrigió a `---CST` (Casetas),
+  con dos evidencias delante. **Aquí llegan sin corregir y se dejan así**: el dato entra tal cual,
+  y la regla de la casa es reportar lo falso, no enmendarlo dentro del fichero. Si una ruta pasa
+  por esas dos calles de Casetas heredando su nombre, dirá `---CRT`. **Falso conocido, declarado.**
+
+**5 · Veintiún nombres repiten su primera palabra.** Los 18 `DISEMINADO DISEMINADO …` y tres vías
+de verdad: `PATIO PATIO DE LA LICORERA` (16690), `CAMINO CAMINO DE LAS TORRES` (32120) y
+`CARRETERA CARRETERA DE VILLAMAYOR ---SIS` (33560). Se dicen tal cual: es el dato.
+
+#### El cruce, y con qué puertas
+
+Al arrancar, cada *way* **mudo** del subgrafo andable se muestrea cada 15 m; cada muestra vota al
+eje municipal más cercano dentro de 25 m; gana el más votado, si cubre la mitad del *way* y si
+ninguna otra calle se lo disputa. La regla, sus umbrales y sus citas están en
+[`motor/src/ejes.ts`](motor/src/ejes.ts); lo que aquí importa es **cuánto rinde y qué deja fuera**:
+
+| | *ways* | |
+|---|---|---|
+| *Ways* mudos del subgrafo útil | **29.206** | el universo del cruce |
+| ✅ **Heredan nombre municipal** | **19.358** | **66,3 %** |
+| Sin ningún eje a 25 m | 6.775 | 23,2 % — huerta, interior de manzana, parque |
+| Con eje, pero **poca cobertura** (<50 %) | 2.152 | 7,4 % |
+| **En disputa** — dos calles se lo reparten | 881 | 3,0 % |
+| Sin geometría que muestrear | 40 | 0,1 % |
+
+Y lo que eso le hace a los pasos, que es para lo que se ha traído:
+
+| Aristas del subgrafo andable | | |
+|---|---|---|
+| Con `name` de OSM (§ 1.14) | 37.397 | 40,0 % |
+| **+ nombre municipal heredado** | **34.675** | **+37,1 %** |
+| **= con nombre** | **72.072** | **77,1 %** · 2.915 de 5.651 km |
+| Siguen mudas, y se dicen por su tipo | 21.431 | 22,9 % |
+
+**Cuesta 225 ms al arrancar y deja ~1,0 MB vivos.** El índice de los 67.583 segmentos de eje
+**muere en cuanto termina el cruce**: lo único que sobrevive es el `Map` de *way* a nombre.
+
+**La distancia media al eje heredado es 4,9 m (p50)**, 14,4 en el p90 y 22,4 en el p99. Cuadra
+con lo que hay de una acera al centro de su calzada, y es la señal de que se está casando lo que
+se cree que se está casando.
+
+> ⚠️ **Lo que esta pieza NO garantiza, dicho aquí y no en el pie.** Que haya un eje al lado no
+> demuestra que sea **su** eje. Las dos puertas —cobertura y disputa— tapan los casos en que la
+> duda es visible, pero un *way* pegado a una sola calle hereda **siempre**, y si el callejero lo
+> tiene mal, se hereda mal. El modo de fallo documentado del proyecto OpenSidewalks es
+> exactamente ese: heredar la calle de enfrente. **No se ha auditado caso a caso**, y hasta que
+> se haga, la cifra honrada es «77,1 % de aristas con nombre», no «77,1 % con el nombre correcto».
+
+---
+
+### 1.16 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
