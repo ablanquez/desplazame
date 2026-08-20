@@ -92,7 +92,7 @@ const M_POR_GRADO_LAT = (Math.PI / 180) * RADIO_TIERRA_M;
 const M_POR_GRADO_LON = M_POR_GRADO_LAT * Math.cos(aRadianes(LAT_REFERENCIA));
 
 /** Un punto del plano local, en metros. */
-function aPlano(lon: number, lat: number): readonly [number, number] {
+export function aPlano(lon: number, lat: number): readonly [number, number] {
   return [lon * M_POR_GRADO_LON, lat * M_POR_GRADO_LAT];
 }
 

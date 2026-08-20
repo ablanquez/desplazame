@@ -16,7 +16,8 @@
  *    declara. Los 10 de diferencia **NO CONSTAN**: no se inventa una causa.
  * 3. **Cargar el cruce way→nombre** de `motor/data/` (§ 1.14 del notices), que
  *    es lo que permite que un paso diga «por Calle Delicias» en vez de solo
- *    «sigue recto».
+ *    «sigue recto». Y donde OSM no nombró nada —el 60 %—, **heredar el nombre
+ *    municipal por vecindad** contra los ejes de vía (§ 1.15, y `ejes.ts`).
  *
  * La adyacencia se guarda en **CSR** (tres arrays planos) y no en un array de
  * arrays: son ~187.000 medias aristas, y 68.639 arrays pequeños serían 68.639
@@ -26,6 +27,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { AristaCruda, GrafoEnMemoria } from './grafo.ts';
+import { heredarNombres, type Herencias } from './ejes.ts';
 
 /** Los nombres de vía de OSM. Vive en `motor/data/`: no lo sirve el navegador. */
 const NOMBRES = fileURLToPath(
@@ -103,6 +105,15 @@ export interface RedEnMemoria {
    * está» de «este way lo tiramos al cargar».
    */
   readonly tipoDeWay: ReadonlyMap<number, string>;
+  /**
+   * El cruce `w` → **nombre MUNICIPAL heredado por vecindad**.
+   *
+   * Solo lleva *ways* que **no** están en `nombreDeWay`: lo heredado nunca
+   * pisa lo que OSM sí nombró. De dónde sale y con qué puertas, en `ejes.ts`.
+   */
+  readonly nombreHeredado: ReadonlyMap<number, string>;
+  /** Lo que costó heredar, y con qué números. Se publica en `/api/salud`. */
+  readonly herencias: Herencias;
   /** Cuántos extremos sueltos quedan (grado 1): puntas del dato, no error. */
   readonly puntasSueltas: number;
   readonly cargadoEnMs: number;
@@ -226,6 +237,12 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
     tipoDeWay.set(cruda.w, cruda.h);
   }
 
+  // ── 6 · La herencia por vecindad ───────────────────────────────────────────
+  // Va la última porque necesita las aristas ya filtradas y los nombres de OSM
+  // ya cargados: hereda EL QUE NO TIENE, y para saber quién no tiene hay que
+  // haber leído antes quién sí. El índice de ejes nace y muere ahí dentro.
+  const herencias = heredarNombres({ aristas, nombreDeWay });
+
   return {
     aristas,
     nodos,
@@ -236,6 +253,8 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
     salidaVecino,
     nombreDeWay,
     tipoDeWay,
+    nombreHeredado: herencias.nombreHeredado,
+    herencias,
     puntasSueltas,
     cargadoEnMs: performance.now() - principio,
   };
