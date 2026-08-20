@@ -90,6 +90,10 @@ const SOLO_AL_ARRANCAR = ES_MOTOR
       join('..', 'app', 'data', 'grafo-visor.js'),
       join('..', 'app', 'data', '2026-05-13_zgzradar_callejero-vias-zaragoza.json'),
       join('..', 'app', 'data', '2026-05-13_zgzradar_callejero-portales-zaragoza.json'),
+      // Los nombres de vía de OSM (§ 1.14). Viven en `motor/data/` y no en
+      // `app/data/`, y el motor los lee al arrancar: si cambian, el que está
+      // en marcha sirve los de antes.
+      join('..', 'motor', 'data', '2026-08-02_osm_overpass_zaragoza-termino_nombres.json'),
     ]
   : ['angular.json', 'package.json', 'package-lock.json'];
 
@@ -110,6 +114,20 @@ const GRAFO_ESPERADO = { nodos: 68649, aristas: 98774, vertices: 378222 };
  * publica: las vías con portal, medidas en el cruce de esta casilla.
  */
 const CALLEJERO_ESPERADO = { vias: 3359, sugeribles: 2731, portales: 46150 };
+
+/**
+ * Y lo que tiene que traer LA RED ROUTABLE, que no es el grafo.
+ *
+ * El grafo son aristas sueltas; la red es el subgrafo andable con sus nodos ya
+ * reconstruidos. Un motor puede tener el grafo cargado y no saber rutear, y
+ * hasta el punto 7 eso era exactamente lo que pasaba — por eso hace falta una
+ * comprobación propia y no vale con mirar el grafo.
+ *
+ * `aristas` 93.503 es el subgrafo a=1 ∧ c=0; `nodos` 65.697 es lo que sale de
+ * juntar coordenadas —diez menos que los 65.707 que el fichero declara, y esos
+ * diez NO CONSTAN—; `nombres` 19.897 es el fichero de § 1.14 entero.
+ */
+const RED_ESPERADA = { aristas: 93503, nodos: 65697, nombres: 19897 };
 
 /**
  * Y lo que tienen que traer los portales, ahora que el motor los carga
@@ -193,6 +211,39 @@ async function comprobar() {
     bien(
       `lleva el grafo: ${g.aristas} aristas · ${g.nodos} nodos · ${g.vertices} vértices ` +
         `(cargado en ${g.cargadoEnMs} ms)`,
+    );
+
+    // 1b bis · ¿Sabe RUTEAR, o solo tiene el grafo en un cajón?
+    const r = salud.red;
+    if (!r || typeof r.aristas !== 'number' || typeof r.nodos !== 'number') {
+      mal(
+        7,
+        'el motor lleva el grafo pero NO declara red: no puede calcular rutas',
+        portada.cuerpo.slice(0, 200),
+      );
+    }
+    for (const [campo, esperado] of Object.entries(RED_ESPERADA)) {
+      if (r[campo] !== esperado) {
+        mal(
+          7,
+          `la red levantada no es la de este repositorio: ${campo} = ${r[campo]}`,
+          `esperado ${esperado}, medido en el punto 7 sobre el subgrafo a=1 ∧ c=0`,
+        );
+      }
+    }
+    // La red tiene que ser MENOR que el grafo: si coincidieran, es que el
+    // filtro de andable y componente dejó de aplicarse y las rutas podrían
+    // meter a alguien por una autopista o por una isla.
+    if (r.aristas >= g.aristas) {
+      mal(
+        7,
+        'la red tiene tantas aristas como el grafo: el filtro andable no se aplica',
+        `red ${r.aristas} · grafo ${g.aristas}`,
+      );
+    }
+    bien(
+      `sabe rutear: ${r.aristas} aristas andables · ${r.nodos} nodos · ` +
+        `${r.nombres} nombres · ${r.celdas} celdas (levantado en ${r.cargadoEnMs} ms)`,
     );
 
     // 1c · ¿Lleva el callejero, y es ESTE?

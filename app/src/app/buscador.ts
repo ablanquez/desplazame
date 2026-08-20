@@ -15,9 +15,9 @@ import { SelectorPortal } from './selector-portal';
  * motor, y se retira en el punto 7 del plan cuando el motor real la sustituya.
  */
 const RUTA_DE_PRUEBA: readonly Paso[] = [
-  { texto: 'Anda 150 m hasta la parada de prueba', detalle: '2 min' },
-  { texto: 'Coge la línea de prueba y bájate en la tercera parada', detalle: '8 min' },
-  { texto: 'Anda 200 m hasta el portal de destino', detalle: '3 min' },
+  { giro: 'salida', texto: 'Anda 150 m hasta la parada de prueba', metros: 150 },
+  { giro: 'recto', texto: 'Coge la línea de prueba y bájate en la tercera parada', metros: 600 },
+  { giro: 'llegada', texto: 'Anda 200 m hasta el portal de destino', metros: 200 },
 ];
 
 /** ANDAMIO. El trazado que acompaña a RUTA_DE_PRUEBA: tampoco lo calcula nadie. */

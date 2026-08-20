@@ -2,9 +2,9 @@
  * El motor de Desplázame.
  *
  * Carga el grafo y el callejero UNA vez al arrancar y los deja en memoria;
- * después abre el puerto. Todavía no calcula rutas —eso es el punto 7—, pero
- * ya sugiere vías, sirve los portales de cada una, dice cuál es el más cercano
- * a un punto, y declara en `/api/salud` con qué dato lo hace.
+ * después abre el puerto. Sugiere vías, sirve los portales de cada una, dice
+ * cuál es el más cercano a un punto, **calcula rutas andando de portal a
+ * portal**, y declara en `/api/salud` con qué dato lo hace.
  *
  * **El puerto no abre hasta que todo está cargado.** Es la decisión declarada:
  * así no existe el instante en que el motor contesta a medio cargar, y la
@@ -19,6 +19,13 @@ import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
 import { portalCercano } from './cercano.ts';
+import { cargarRed } from './red.ts';
+import { cargarRejilla } from './proyeccion.ts';
+import { cuadernoPara } from './ruta.ts';
+import { calcularTrayecto, leerPeticion, type Motor } from './trayecto.ts';
+
+/** Cuánto se acepta como cuerpo de una petición. Una ruta cabe de sobra. */
+const CUERPO_MAXIMO = 4096;
 
 /** El puerto del motor. La interfaz le habla por el proxy de `ng serve`. */
 const PUERTO = 3000;
@@ -50,6 +57,35 @@ console.log(
     `(${callejero.portales} portales) · ${callejero.cargadoEnMs.toFixed(0)} ms`,
 );
 
+// La red va DESPUÉS del callejero porque necesita el grafo ya parseado, y
+// antes de abrir el puerto por lo mismo que todo lo demás: nadie contesta a
+// medio cargar.
+console.log('motor: levantando la red de rutas…');
+const red = cargarRed(memoria);
+console.log(
+  `motor: red en memoria — ${red.aristas.length} aristas andables · ${red.nodos} nodos ` +
+    `· ${red.nombreDeWay.size} nombres de vía · ${red.cargadoEnMs.toFixed(0)} ms`,
+);
+
+console.log('motor: indexando la red para enganchar portales…');
+const rejilla = cargarRejilla(red);
+console.log(
+  `motor: rejilla en memoria — ${rejilla.celdas.size} celdas · ` +
+    `${rejilla.segArista.length} segmentos · ${rejilla.cargadoEnMs.toFixed(0)} ms`,
+);
+
+/** Todo lo que hace falta para contestar una ruta, junto. */
+const motor: Motor = {
+  red,
+  rejilla,
+  portales,
+  callejero,
+  // El cuaderno del Dijkstra se reserva UNA vez y se reutiliza. El motor
+  // atiende de uno en uno —`node:http` es de un solo hilo—, así que no hay dos
+  // rutas escribiéndolo a la vez.
+  cuaderno: cuadernoPara(red),
+};
+
 const usoMemoria = process.memoryUsage();
 console.log(
   `motor: memoria del proceso — rss ${(usoMemoria.rss / 1048576).toFixed(0)} MB · ` +
@@ -77,6 +113,13 @@ const servidor = createServer((peticion, respuesta) => {
         aristas: memoria.aristas,
         vertices: memoria.vertices,
         cargadoEnMs: Math.round(memoria.cargadoEnMs),
+      },
+      red: {
+        aristas: red.aristas.length,
+        nodos: red.nodos,
+        nombres: red.nombreDeWay.size,
+        celdas: rejilla.celdas.size,
+        cargadoEnMs: Math.round(red.cargadoEnMs + rejilla.cargadoEnMs),
       },
       callejero: {
         vias: callejero.vias,
@@ -127,6 +170,35 @@ const servidor = createServer((peticion, respuesta) => {
     return;
   }
 
+  if (peticion.method === 'POST' && url.pathname === '/api/ruta') {
+    // El cuerpo se junta a trozos y con tope: sin él, una petición que no
+    // acabara nunca dejaría al motor comiendo memoria.
+    let cuerpo = '';
+    let pasado = false;
+    peticion.on('data', (trozo: Buffer) => {
+      cuerpo += trozo.toString('utf8');
+      if (cuerpo.length > CUERPO_MAXIMO) {
+        pasado = true;
+        peticion.destroy();
+      }
+    });
+    peticion.on('end', () => {
+      if (pasado) {
+        return;
+      }
+      // Un cuerpo que no es JSON no es un error del servidor: es una petición
+      // que no dice nada, y se contesta con el trayecto vacío que lo explica.
+      let crudo: unknown = null;
+      try {
+        crudo = JSON.parse(cuerpo);
+      } catch {
+        crudo = null;
+      }
+      json(200, calcularTrayecto(motor, leerPeticion(crudo)));
+    });
+    return;
+  }
+
   json(404, { error: `no hay nada en ${peticion.method} ${peticion.url}` });
 });
 
@@ -134,5 +206,6 @@ servidor.listen(PUERTO, () => {
   console.log(`motor: escuchando en http://localhost:${PUERTO} (pid ${process.pid})`);
   console.log(`motor: /api/vias sugiere desde ${MINIMO} letras, hasta ${LIMITE} resultados`);
   console.log('motor: /api/portal-cercano barre los portales en memoria por haversine');
+  console.log('motor: POST /api/ruta calcula andando, de portal a portal, por codigos');
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 });
