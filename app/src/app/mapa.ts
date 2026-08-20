@@ -21,6 +21,17 @@ const CENTRO: L.LatLngTuple = [41.6488, -0.8891];
 const ZOOM = 12;
 
 /**
+ * Cuánto aire se le deja a la ruta al encuadrarla, en píxeles por lado.
+ *
+ * [PROPIO] 30 px. El lienzo del buscador mide 22 rem de alto —unos 350 px—, así
+ * que los 60 px de holgura vertical se llevan un sexto: se nota, y es lo que
+ * hace falta para que el portal de salida y el de llegada no queden pegados al
+ * borde, que es justo donde el ojo los busca. Con menos no se separan; con más,
+ * una ruta corta en el lienzo pequeño se queda sin sitio.
+ */
+const HOLGURA_DEL_ENCUADRE: L.PointTuple = [30, 30];
+
+/**
  * Atribución de OpenStreetMap. Es obligación de la ODbL, no cortesía, y la
  * palabra «colaboradores» NO es opcional: el ejemplo oficial de Leaflet la
  * omite, y omitirla es incumplir.
@@ -350,9 +361,9 @@ export class Mapa {
    * los carriles (`#db2777`), así que el tono solo no basta: el trazo
    * discontinuo `6 5` es lo que la separa de verdad — y además **significa** lo
    * que es, una hipótesis y no un hecho. La otra línea discontinua del mapa es
-   * la ruta de prueba, que va al triple de grosor y en naranja quemado, y solo
-   * aparece al pulsar «Generar». Grosor 3, el del regulado: son el mismo tipo
-   * de cosa, un bordillo.
+   * la ruta, que va al triple de grosor y en naranja quemado, y solo aparece al
+   * pulsar «Generar». Grosor 3, el del regulado: son el mismo tipo de cosa, un
+   * bordillo.
    */
   private pintarAmpliacion(): void {
     if (!this.mapa) {
@@ -402,7 +413,7 @@ export class Mapa {
    * - **ESRO `#0284c7`**, un azul medio de señal. No es el de los portales
    *   (`#1d4ed8`, más índigo) ni celeste: se lee «zona azul» a la primera.
    * - **ESRE `#f97316`**, naranja vivo. ⚠️ Ya hay naranja en el mapa: la ruta
-   *   de prueba (`#b45309`). Se separan por **tres** cosas a la vez — el tono
+   *   (`#b45309`). Se separan por **tres** cosas a la vez — el tono
    *   (vivo contra quemado), el trazo (continuo contra discontinuo `10 8`) y el
    *   grosor (3 contra 5).
    *
@@ -945,7 +956,20 @@ export class Mapa {
     );
   }
 
-  /** Una sola línea: la anterior se quita antes de poner la nueva. */
+  /**
+   * La ruta. Una sola línea: la anterior se quita antes de poner la nueva.
+   *
+   * **Naranja quemado `#b45309`, grosor 5, discontinua `10 8`** — los tres
+   * valores de siempre, que se quedan. Nacieron para que se viera que la línea
+   * era inventada, y ese motivo ya no existe; pero los otros dos que tenían sin
+   * saberlo sí: el discontinuo es como se dibuja un recorrido A PIE —lo hace
+   * Google Maps, que es el formato que imitan los pasos—, y es lo que separa la
+   * ruta de las catorce capas de verificación, continuas todas menos la
+   * hipótesis de la ampliación, que va morada y a grosor 3.
+   *
+   * Cambiar el color aquí obliga a repasar dos comentarios más: el de
+   * `pintarRegulado` y el de `pintarAmpliacion`, que se apoyan en él.
+   */
   private pintarTrazado(): void {
     if (!this.mapa) {
       return;
@@ -960,13 +984,18 @@ export class Mapa {
       return;
     }
 
-    // Discontinua y en el naranja del aviso: la línea es de prueba, y se ve.
     const puntos: L.LatLngTuple[] = vertices.map(([lat, lon]) => [lat, lon]);
     this.linea = L.polyline(puntos, {
       color: '#b45309',
       weight: 5,
       dashArray: '10 8',
     }).addTo(this.mapa);
-    this.mapa.fitBounds(this.linea.getBounds(), { padding: [30, 30] });
+
+    // El encuadre. [DOC] Leaflet: «fitBounds(bounds, options): Sets a map view
+    // that contains the given geographical bounds with the maximum zoom level
+    // possible», y `padding` es «Equivalent of setting both top left and bottom
+    // right padding to the same value». Sin holgura, los dos extremos de la
+    // ruta —que son justo los que se quieren ver— quedan tocando el borde.
+    this.mapa.fitBounds(this.linea.getBounds(), { padding: HOLGURA_DEL_ENCUADRE });
   }
 }
