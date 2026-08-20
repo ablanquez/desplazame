@@ -791,7 +791,13 @@ sobre lo copiado:
 
 > ℹ️ **Ese 40 % es el TECHO de OSM, no un fichero cojo.** El otro 60 % son aceras, pasos de
 > peatones, sendas y caminos de servicio, y en OSM **eso normalmente no tiene nombre propio**: no
-> es que falten aquí, es que no existen allí. De los 19.897 con nombre, 6.649 son `residential`,
+> es que falten aquí, es que no existen allí.
+>
+> ⚠️ **Y ese 60 % se nombra por su tipo, pero por el tipo REAL** —la etiqueta `highway` que § 1.4
+> conserva en `h`—, **no por el perfil propio del grafo**. El perfil dice `eje-de-calzada` de
+> 46.643 aristas que son calzada, carril bici, camino de tierra y vial de servicio a la vez, y
+> fiándose de él el motor llegó a escribir «anda por la calzada» sobre un carril bici. Está
+> contado en `docs/BITACORA.md`, entrada nº7. De los 19.897 con nombre, 6.649 son `residential`,
 > 4.583 `footway`, 1.146 `tertiary`, 1.069 `secondary` y 986 `primary` — el viario con nombre de
 > la ciudad, que es justo por donde discurre el interior de una ruta.
 

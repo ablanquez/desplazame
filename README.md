@@ -120,6 +120,14 @@
 > nombre propio allí. Por eso lo que no tiene nombre se dice **por su tipo** —«el paso de
 > peatones», «las escaleras», «la acera»—, que es lo que hace Valhalla.
 >
+> **Y por su tipo REAL, que no es lo mismo.** El grafo trae una etiqueta propia que mete en el
+> mismo saco la calzada, el carril bici, el camino de tierra y el vial de servicio: **4.671 de
+> sus 4.675 tramos de carril bici** la llevan. Fiándose de ella, a quien iba por un carril bici
+> se le decía que anduviera **«por la calzada»** — no un hueco de información: una frase falsa.
+> Ahora manda la etiqueta `highway` de OpenStreetMap, con **los 27 valores traducidos uno a
+> uno**: «el carril bici», «el camino», «el vial de servicio», «la senda»… y «la calzada» solo
+> donde de verdad lo es. Está contado en [`docs/BITACORA.md`](docs/BITACORA.md), entrada nº7.
+>
 > **Y hay direcciones a las que el motor contesta que no puede, en vez de inventarse un camino.**
 > Son **581 portales** de catorce vías —460 de ellos en URBANIZACIÓN PEÑA ZORONGO— cuyas calles
 > existen y son andables, pero forman **islas** del grafo: desde el resto de Zaragoza no se llega
