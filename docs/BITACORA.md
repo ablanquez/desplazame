@@ -14,6 +14,73 @@
 
 ---
 
+## [2026-08-20] ✅ CERRADA — Un número romano pegado a un paréntesis deja de ser un número romano: `(GP-F II)` se escribe `(Gp-f Ii)`
+
+**Categoría:** regla aplicada al token equivocado
+**Síntoma:** barriendo la función de presentación sobre los 3.358 nombres del
+censo municipal, `GRUPO ALFÉREZ ROJAS (GP-F II)` sale como
+**`Grupo Alférez Rojas (Gp-f Ii)`**. El `II` es un número romano y la regla dice
+que los romanos van en mayúsculas — pero el token que se examina es `II)`, con
+el paréntesis dentro, y `II)` no valida como romano. La regla no falla: se le
+está preguntando por una cosa que no es la palabra.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la prueba
+`⭐ los ROMANOS se quedan en mayúsculas` (`motor/src/pasos.spec.ts`), que
+enumera los once romanos del censo —I, II, III, IV, V, VI, X, XII, XIII, XXII,
+XXIII— y los comprueba uno a uno. **Todos van rodeados de espacios.** Ejecutada
+con el fallo vivo, antes de tocar nada:
+
+```
+$ node --test --test-name-pattern "los ROMANOS se quedan" "src/pasos.spec.ts"
+  ✔ ⭐ los ROMANOS se quedan en mayúsculas (1.7221ms)
+✔ ⭐ LA PRESENTACIÓN — el nombre administrativo se lee como se escribe (2.5241ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+```
+
+Verde. Y con ella las 129 del motor y las 81 de la pantalla.
+**Cómo se cazó:** instrumento — la barrida de la función sobre los 3.358
+nombres reales que el checkpoint del encargo exige. Ninguna prueba la habría
+cazado: todas usan nombres escritos a mano, y a nadie se le ocurrió pegar un
+romano a un signo.
+**Causa raíz:** la función troceaba el nombre con `split(' ')` y trataba cada
+trozo como si fuera una palabra. Pero **un trozo separado por espacios no es
+una palabra**: el dato real le pega paréntesis (`II)`), corchetes
+(`[CASETAS]`), guiones (`GP-F`) y **puntos sin espacio** (`NTRA.SRA.DEL`). Las
+tres reglas —romano, partícula, capitalización— se estaban aplicando a una
+cadena que incluía los signos, así que ninguna reconocía la palabra que tenía
+delante. La regla de romanos fue la que se notó porque devuelve el token entero
+en mayúsculas; las otras dos fallaban en silencio (`Ntra.sra.del`).
+**Arreglo aplicado:** `comoSePresenta` (`motor/src/pasos.ts`) trocea ahora en
+**palabras de verdad** — `token.split(/([^\p{L}\p{N}]+)/u)`, que devuelve
+alternando palabra y separador y conserva los separadores tal cual—. El
+marcador de núcleo rural (`---CST`) sigue saliendo antes, entero, porque es un
+código y no una palabra. Dos pruebas nuevas con el token SUCIO: `⭐ un romano
+PEGADO A UN SIGNO sigue siendo un romano` y `⭐ el PUNTO separa palabras dentro
+del token, como el espacio`, las dos nacidas en rojo con la salida exacta del
+fallo (`'Grupo Alférez Rojas (Gp-f Ii)'` y `'Calle Ntra.sra.del Agua'`).
+Verificado además barriendo los 3.358 nombres: **0 núcleos movidos, 0 palabras
+perdidas**.
+**Commit:** `63ba4ac`
+**Ley que sale de aquí:** cuando una regla se aplica **por token**, la prueba
+tiene que incluir un token **sucio** — con el signo, el paréntesis o el punto
+pegados—, porque el dato real los trae y el banco escrito a mano no. Es
+hermana de la ley de la nº7: allí la prueba enumeraba textos aceptables sin
+atarlos a su condición; aquí enumera casos limpios sin atarlos a la forma en
+que el dato los escribe.
+
+Y una segunda, que sale del cierre: **«separado por espacios» no es «palabra».**
+Antes de aplicar una regla lingüística a un trozo de texto, hay que decidir
+dónde acaba la palabra — y el dato administrativo pega signos, puntos y guiones
+donde le conviene. Aquí solo se notó una de las tres reglas rotas; las otras dos
+fallaban sin ruido.
+**Traza:** `motor/src/pasos.ts` (`comoSePresenta`, el `split(' ')` que trocea
+por espacios y nada más) · `motor/src/pasos.spec.ts` (`⭐ los ROMANOS se quedan
+en mayúsculas`) · `motor/data/2026-08-20_idezar_wfs_urbanismo-vias_ejes.json`
+(`GRUPO ALFÉREZ ROJAS (GP-F II)`, código 25780).
+
+---
+
 ## [2026-08-20] ✅ CERRADA — Al peatón se le decía «anda por la calzada» donde anda por un carril bici: 1.270 m de una verdad falsa publicada en pantalla
 
 **Categoría:** dato traducido mal
