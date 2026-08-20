@@ -655,15 +655,39 @@ buscando; preferir c=0, solo a=1) · rotondas: SIN etiqueta en el grafo
       de 604,7 m) — escrita con el verde delante, antes de arreglar.
       Ley: una geometría no se comprueba por sus extremos. 117 pruebas
       (44 motor + 73 pantalla)
-**ENCARGO C — la pantalla:**
-- [ ] La ruta se pinta en el mapa (con sus conectores) y los pasos salen
-      escritos con el formato de la captura: flecha + «Gira … hacia …» +
-      metros por tramo + «El destino está a la …»
-- [ ] La respuesta falsa del punto 2 SE RETIRA (ya no hace falta el
-      andamio)
-- [ ] Probada con trayectos que Antonio conoce a pie — el juez es su
-      ojo. Entre ellos, los casos de la doctrina: uno trivial (misma
-      calle), uno con islas, uno céntrico largo
+**ENCARGO C — la pantalla — HECHO (20/08), con seis remates a ojo de
+Antonio:**
+- [x] La ruta real pintada (fitBounds, conectores, la anterior se
+      retira al regenerar) y los pasos con flecha Unicode por giro
+      (Record cerrado — un giro nuevo no compila), HttpClient.post
+      [DOC: httpResource es reactivo; una acción de botón no], estados
+      generando/éxito/ámbar (`d2ff3cf`)
+- [x] La respuesta falsa MUERTA sin rastro (grep limpio de
+      RUTA_DE_PRUEBA y «DATOS DE PRUEBA»), README enterrado el «no
+      busca rutas» (`2013c04`)
+- [x] Probada por el ojo de Antonio en Chrome con SUS rutas — y sus
+      defectos parieron los remates:
+      · colapso de maniobras [fuente OSRM leída: NAME_SEGMENT_CUTOFF
+        105 m, haveSameName vacío≠vacío] (`96c164f`)
+      · lo mudo por su TIPO real (cycleway→«el carril bici» — bitácora
+        nº7: la lista cerrada de textos aceptables no comprueba verdad)
+        (`d9021e6`)
+      · HERENCIA POR VECINDAD de ejes municipales [Valhalla #5587 +
+        Voronoi arXiv + confianza OSRM]: §1.15, cruce 225 ms, 40%→77,1%
+        de aristas nombradas, disputa 3% → genérico (`0612938`…)
+      · un solo nombre por calle [núcleo OSRM decompose + canónico
+        municipal, Karlsruhe] y la regla ancha de los 105 m — plazas
+        absorbidas como los motores hoy; plaza-hito y rotondas quedan
+        declaradas MEJORA FUTURA (`46fcb22`, `faafe5c`)
+      · presentación IGN/RAE/OSM: caso mixto, romanos, sin abreviar,
+        artículos propios por señal OSM, partículas completas, y las
+        NEGRITAS por partes estructuradas (accion/via — el contrato
+        manda papeles, la pantalla pone la etiqueta) — bitácora nº8
+        (el romano pegado a un paréntesis; un token sucio en cada
+        prueba de tokens) (`63ba4ac`, `ee9ab60`)
+      · «para seguir por» cuando el giro no cambia de calle [Valhalla
+        stay-on, solo con nombre] (`b9375a7`)
+      Bitácora: 8 entradas, 8 cerradas. 153 motor + 84 interfaz
 - [ ] **Se retiran los andamios de carga del mapa de verificación**
       (decidido el 18/08 en el punto 5): el navegador deja de bajarse los
       ~34 MB (grafo 22,8 + portales 10,3 + carriles + shapes + stops +
