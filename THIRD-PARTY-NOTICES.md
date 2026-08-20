@@ -3,12 +3,12 @@
 La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno**, que conserva sus
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
-> ℹ️ **Estado a 18/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **doce** conjuntos de
+> ℹ️ **Estado a 20/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **trece** conjuntos de
 > datos —los portales, **el callejero de vías**, los carriles bici, los postes de autobús, las
 > estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas
-> reguladas y **las reservas de espacio** del Ayuntamiento; el grafo de continuidad derivado de
-> OSM; y el GTFS del Punto de Acceso Nacional—. Quedan fuera las capas municipales de tranvía;
+> reguladas y **las reservas de espacio** del Ayuntamiento; el grafo de continuidad y **los
+> nombres de vía** derivados de OSM; y el GTFS del Punto de Acceso Nacional—. Quedan fuera las capas municipales de tranvía;
 > cada pieza llega con su autorización y su ficha.
 >
 > ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7).
@@ -154,7 +154,7 @@ coherencia que merece decirse: el callejero declara en `numPortales` cuántos ti
 | | |
 |---|---|
 | **Qué es** | La red por la que se podrá caminar y pedalear: **98.774 aristas** con su geometría propia (378.222 vértices) y **68.649 nodos** (que solo existen como contador y como extremos de arista) |
-| **Origen del dato** | **OpenStreetMap**, vía Overpass. Cada arista conserva su etiqueta `highway` (`h`) y su **id de *way*** (`w`) de OSM. Deriva de una descarga de Overpass registrada el **03/08/2026 08:20:58 GMT**; el propio grafo lleva sello `2026-08-03T08:19:51Z` |
+| **Origen del dato** | **OpenStreetMap**, vía Overpass. Cada arista conserva su etiqueta `highway` (`h`) y su **id de *way*** (`w`) de OSM — **pero ningún nombre: los nombres están en § 1.14**, y `w` es la clave que los cruza. Deriva de una descarga de Overpass registrada el **03/08/2026 08:20:58 GMT**; el propio grafo lleva sello `2026-08-03T08:19:51Z` |
 | **Licencia** | **ODbL 1.0**, la misma que la cartografía de § 1.1, por ser un derivado de datos de OSM |
 | **Atribución** | La exigida por la ODbL —«© **colaboradores** de OpenStreetMap»— **ya está cumplida** por el mapa base (§ 1.1), que está siempre encendido. La capa del grafo **no cuelga atribución propia**: sería la misma cadena repetida |
 | **Zona** | bbox 41,4011–41,982 N · −1,2199–−0,6541 O — **más ancha que el término municipal**: trae calle de fuera de Zaragoza |
@@ -750,7 +750,94 @@ nada, solo horarios. Eso sí, **escritos de 472 maneras**: `PERMANENTE`, `Perman
 en el fichero sin pintarse, y hay una prueba (`app/src/app/capas.spec.ts`) que se pone roja si una
 retirada o una denegada se cuela.
 
-### 1.14 · El resto del dato — todavía **ninguno**
+### 1.14 · Nombres de vía de OpenStreetMap — la otra mitad del grafo
+
+| | |
+|---|---|
+| **Qué es** | Los **nombres de calle** que el grafo de § 1.4 no lleva. Una respuesta de Overpass con **19.897 *ways*, los 19.897 con `name`**. Es lo que convierte «sigue recto 200 m» en «sigue por Calle Delicias» |
+| **Origen del dato** | **OpenStreetMap**, vía **Overpass API 0.7.62.11**. El propio fichero declara `timestamp_osm_base` **`2026-08-02T14:36:18Z`**, que es la fecha del nombre |
+| **Licencia** | **ODbL 1.0**, la misma que § 1.1 y § 1.4. El fichero **la trae escrita dentro**, en `osm3s.copyright` |
+| **Atribución** | Cumplida por el mapa base de § 1.1 —«© **colaboradores** de OpenStreetMap»—, que está siempre encendido. Un nombre de calle escrito en un paso no cuelga atribución propia: sería la misma cadena repetida |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`motor/data/2026-08-02_osm_overpass_zaragoza-termino_nombres.json`](motor/data/2026-08-02_osm_overpass_zaragoza-termino_nombres.json) · 5.023.094 bytes · sha256 `ddd22f7df3981b52e7762473e678b8a9b7e139fc92f3b7d6487f9b1a803fd2ef` **verificado sobre un clon** |
+
+**No se descargó nada.** Este fichero ya vivía en el repositorio, en la rama archivada
+`archivo/motor-vanilla`, y aquí se **promueve al árbol activo** tal cual — copiado con
+`git cat-file -p` y comprobado por huella a los dos lados. Es la **segunda** pieza del intento
+anterior que entra —la primera fue el grafo de § 1.4—, y entra como dato, nunca como código.
+
+**Y vive en `motor/data/`, no en `app/data/`**, que es la primera vez que el proyecto usa esa
+carpeta. El criterio: **los pasos los redacta el motor**, y `app/data/` está enganchado a un glob
+de `angular.json` que se lo serviría al navegador entero. Son 5 MB que el navegador no necesita,
+y los ~42 MB que ya se sirven son un cabo abierto, no un sitio donde añadir.
+
+> ⚠️ **La regla de bytes hubo que ampliarla, y no es papeleo.** `.gitattributes` cubría solo
+> `app/data/**`. Medido en un clon con `core.autocrlf=true`: **sin** la regla el fichero sale con
+> **5.276.472 bytes** —253.378 de más, uno por salto de línea— y otro sha256. Es la entrada nº3
+> de la bitácora exactamente, evitada antes de que ocurriera. Ahora `motor/data/**` va por la
+> misma regla, y el clon lo devuelve byte a byte.
+
+#### El cruce, y hasta dónde llega
+
+Cada arista del grafo lleva `w`, su id de *way* de OSM; aquí está el `name` de ese way. Medido
+sobre lo copiado:
+
+| | |
+|---|---|
+| *Ways* distintos en el grafo | 47.758 |
+| **De esos, con nombre aquí** | **16.994 · 35,6 %** |
+| **Aristas que quedan con nombre** | **40.316 de 98.774 · 40,8 %** |
+| Kilómetros con nombre | **2.404 de 6.500 · 37,0 %** |
+| En el subgrafo andable y conectado (`a=1` ∧ `c=0`) | **37.397 de 93.503 · 40,0 %** |
+
+> ℹ️ **Ese 40 % es el TECHO de OSM, no un fichero cojo.** El otro 60 % son aceras, pasos de
+> peatones, sendas y caminos de servicio, y en OSM **eso normalmente no tiene nombre propio**: no
+> es que falten aquí, es que no existen allí. De los 19.897 con nombre, 6.649 son `residential`,
+> 4.583 `footway`, 1.146 `tertiary`, 1.069 `secondary` y 986 `primary` — el viario con nombre de
+> la ciudad, que es justo por donde discurre el interior de una ruta.
+
+#### Lo que trae de roto, dicho antes de usarlo
+
+**1 · El desfase de 17 h 44 min.** El nombre es del **02/08/2026 14:36:18 GMT** y el grafo del
+**03/08/2026 08:19:51 GMT** (§ 1.4). No son la misma foto de OSM. Un *way* renombrado, partido o
+fusionado en esa ventana puede no casar: su `w` no estaría aquí, o llevaría otro nombre.
+**Cuánto pasó, NO CONSTA** — medirlo exigiría volver a descargar de Overpass, y eso sería otro
+dato con otra fecha, no una comprobación de este. Queda declarado como **riesgo residual**: se
+manifestaría como una arista sin nombre, que es el caso que el 60 % ya obliga a saber tratar.
+
+**2 · La discordancia del 19,4 %.** La auditoría que el propio grafo trae dentro (`portales.cv`)
+compara, portal a portal, el nombre municipal con el de OSM:
+
+| | | |
+|---|---|---|
+| `concuerda` | 25.120 | 54,4 % |
+| `osm-sin-nombre` | 11.942 | 25,9 % |
+| **`DISCORDA`** | **8.964** | **19,4 %** |
+| `sin-enganche` | 124 | 0,3 % |
+
+**Uno de cada cinco portales enganchó a una calle cuyo nombre en OSM contradice al del
+callejero.** De ahí sale **la regla de reparto**, que es la única forma de que los pasos no se
+contradigan con el formulario:
+
+> **El interior de la ruta habla OSM. Los extremos hablan municipal.**
+>
+> En medio se dice «sigue por Calle Delicias» porque es lo que el grafo sabe. Pero el origen y el
+> destino los eligió el usuario de nuestro callejero, con su código, y ahí se dice **su** nombre —
+> el que leyó al elegirlo—. Si en un extremo dijéramos el nombre de OSM, en el 19,4 % de los
+> casos le estaríamos nombrando una calle distinta de la que acaba de escribir.
+
+**3 · Y dos cosas menores, medidas.** 1.970 *ways* traen además `name:es`, que no se usa: manda
+`name`. Y cuatro llevan `addr:city` de **otro municipio** —Cuarte de Huerva, Villanueva de
+Gállego—, coherente con que el bbox del grafo sea más ancho que el término (§ 1.4).
+
+> ✅ **Barrido de dato personal, porque el fichero viene de un mapa colaborativo.** Las 319 claves
+> de etiqueta se pasaron por un patrón de `phone·email·contact·addr:·operator·owner·website·fax`.
+> Casan **quince *ways* en total**, y ninguno es de una persona: «Ayuntamiento de Zaragoza» (3),
+> dos gasolineras de una empresa, un Mercadona, un área de servicio y siete direcciones
+> municipales. **No hay dato personal.**
+
+---
+
+### 1.15 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
