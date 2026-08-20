@@ -28,6 +28,10 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { AristaCruda, GrafoEnMemoria } from './grafo.ts';
 import { heredarNombres, type Herencias } from './ejes.ts';
+// `nucleoDe` viene de `pasos.ts`, y no hay ciclo: `pasos.ts` solo importa de
+// aquí un **tipo**, que Node borra al ejecutar. Su única dependencia de valor
+// es `proyeccion.ts`, que tampoco importa valores de la red.
+import { nucleoDe, type ArticulosPropios } from './pasos.ts';
 
 /** Los nombres de vía de OSM. Vive en `motor/data/`: no lo sirve el navegador. */
 const NOMBRES = fileURLToPath(
@@ -114,6 +118,17 @@ export interface RedEnMemoria {
   readonly nombreHeredado: ReadonlyMap<number, string>;
   /** Lo que costó heredar, y con qué números. Se publica en `/api/salud`. */
   readonly herencias: Herencias;
+  /**
+   * El cruce **núcleo → artículos que OpenStreetMap escribe en mayúscula**.
+   *
+   * Existe porque el censo municipal publica todo en mayúscula y ahí no se ve
+   * la diferencia entre `CALLE EL COLOSO` —el cuadro de Goya, artículo del
+   * nombre propio— y `CALLE LA FUENTE`, donde el artículo solo acompaña. OSM
+   * escribe en caso mixto y sí la marca, así que se le pregunta a él.
+   *
+   * Se usa **solo al escribir un paso**; no interviene en ninguna comparación.
+   */
+  readonly articulosPropios: ArticulosPropios;
   /** Cuántos extremos sueltos quedan (grado 1): puntas del dato, no error. */
   readonly puntasSueltas: number;
   readonly cargadoEnMs: number;
@@ -123,6 +138,9 @@ export interface RedEnMemoria {
 // dio 89 MB: mientras esta función corre, el JSON de nombres recién parseado
 // sigue vivo en su propio ámbito y se cuenta. Medido desde fuera, con el
 // recolector forzado a los dos lados: **11,1 MB** sobre los 115,9 del grafo.
+
+/** Los cuatro artículos que pueden formar parte de un nombre propio. */
+const ARTICULOS: ReadonlySet<string> = new Set(['EL', 'LA', 'LOS', 'LAS']);
 
 /** La clave de un punto: su coordenada literal, tal cual la escribió el dato. */
 function clave(punto: readonly [number, number]): string {
@@ -237,6 +255,40 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
     tipoDeWay.set(cruda.w, cruda.h);
   }
 
+  // ── 5 bis · Qué artículos son nombre propio, según OSM ─────────────────────
+  // Se recorre el fichero de nombres una vez más y se anota, por núcleo, qué
+  // artículos intermedios lleva OSM en mayúscula. Solo los intermedios: el que
+  // abre el nombre va alto siempre y no dice nada.
+  const articulosPropios = new Map<string, Set<string>>();
+  for (const elemento of respuesta.elements) {
+    const nombre = elemento.tags?.name;
+    if (!nombre) {
+      continue;
+    }
+    const palabras = nombre.split(/[^\p{L}\p{N}]+/u).filter((palabra) => palabra !== '');
+    let nucleo: string | null = null;
+    for (let k = 1; k < palabras.length; k++) {
+      const palabra = palabras[k]!;
+      const comparable = palabra
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase();
+      if (!ARTICULOS.has(comparable) || palabra === palabra.toLowerCase()) {
+        continue;
+      }
+      nucleo ??= nucleoDe(nombre);
+      if (nucleo === '') {
+        break;
+      }
+      const ya = articulosPropios.get(nucleo);
+      if (ya) {
+        ya.add(comparable);
+      } else {
+        articulosPropios.set(nucleo, new Set([comparable]));
+      }
+    }
+  }
+
   // ── 6 · La herencia por vecindad ───────────────────────────────────────────
   // Va la última porque necesita las aristas ya filtradas y los nombres de OSM
   // ya cargados: hereda EL QUE NO TIENE, y para saber quién no tiene hay que
@@ -255,6 +307,7 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
     tipoDeWay,
     nombreHeredado: herencias.nombreHeredado,
     herencias,
+    articulosPropios,
     puntasSueltas,
     cargadoEnMs: performance.now() - principio,
   };

@@ -46,6 +46,17 @@ describe('La red', () => {
     assert.equal(grafo.grafo.contadores.tamanoMayor - red.nodos, 10);
   });
 
+  test('⭐ el cruce de artículos propios: 252 núcleos que OSM escribe altos', () => {
+    // El censo municipal publica todo en mayúscula y ahí no se ve si el
+    // artículo pertenece al nombre. OSM sí lo marca, y de él sale este cruce.
+    assert.equal(red.articulosPropios.size, 252);
+    // Los tres que se leen en las rutas de Antonio y en el README.
+    assert.deepEqual([...(red.articulosPropios.get('COLOSO') ?? [])], ['EL']);
+    assert.deepEqual([...(red.articulosPropios.get('HABANA') ?? [])], ['LA']);
+    // Y uno que NO está: «Calle la Fuente» del Actur no es un nombre propio…
+    assert.equal(red.articulosPropios.has('ISABEL CATOLICA'), false);
+  });
+
   test('la adyacencia es simétrica: si de A se llega a B, de B se llega a A', () => {
     const vecinosDe = (nodo: number): Set<number> => {
       const salen = new Set<number>();

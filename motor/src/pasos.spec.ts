@@ -19,6 +19,7 @@ import {
   esLaMismaCalle,
   comoSePresenta,
   NO_SON_ROMANOS,
+  PARTICULAS_AL_ESCRIBIR,
   nucleoDe,
   PALABRAS_DE_TIPO,
   unificarElRegistro,
@@ -807,7 +808,7 @@ describe('⭐ LA PRESENTACIÓN — el nombre administrativo se lee como se escri
     // TODO SOBRE MI MADRE. Como romano vale 1001, que no numera a ningún rey.
     assert.deepEqual([...NO_SON_ROMANOS], ['MI']);
     assert.equal(comoSePresenta('CALLE MI TÍO', true), 'Calle Mi Tío');
-    assert.equal(comoSePresenta('CALLE TODO SOBRE MI MADRE', true), 'Calle Todo Sobre Mi Madre');
+    assert.equal(comoSePresenta('CALLE TODO SOBRE MI MADRE', true), 'Calle Todo sobre Mi Madre');
   });
 
   test('lo que no es una palabra se deja donde está', () => {
@@ -864,6 +865,115 @@ describe('⭐ LA PRESENTACIÓN — el nombre administrativo se lee como se escri
     ]) {
       assert.equal(nucleoDe(comoSePresenta(nombre, true)), nucleoDe(nombre), nombre);
     }
+  });
+});
+
+describe('⭐ LAS PARTÍCULAS COMPLETAS — la lista del IGN, y lo que se deja fuera', () => {
+  test('preposiciones, artículos y conjunciones bajan a minúscula', () => {
+    assert.equal(comoSePresenta('CALLE CON FALDAS Y A LO LOCO', true), 'Calle con Faldas y a lo Loco');
+    assert.equal(comoSePresenta('CALLE UN AMERICANO EN PARÍS', true), 'Calle un Americano en París');
+    assert.equal(comoSePresenta('CALLE UNA NOCHE EN LA ÓPERA', true), 'Calle una Noche en la Ópera');
+    assert.equal(comoSePresenta('CALLE TODO SOBRE MI MADRE', true), 'Calle Todo sobre Mi Madre');
+    assert.equal(comoSePresenta('CALLE ATRACO A LAS TRES', true), 'Calle Atraco a las Tres');
+    assert.equal(comoSePresenta('CALLE DESAYUNO CON DIAMANTES', true), 'Calle Desayuno con Diamantes');
+    assert.equal(comoSePresenta('CAMINO DE EN MEDIO', true), 'Camino de en Medio');
+  });
+
+  test('⭐ y las dos que se dejan FUERA, con los nombres del censo delante', () => {
+    // `BAJO` sale mal en 2 de sus 3 apariciones —`CALLE BARRIO BAJO` y
+    // `CAMINO BAJO DE LA TORRE DEL RIMELICO` lo usan de adjetivo, no de
+    // preposición—, y `AL` en 2 de 3 —`JARDINES AL ÁNDALUS` es el artículo
+    // árabe pegado al nombre—. Se quedan fuera, y el precio es que
+    // `CALLE CANTANDO BAJO LA LLUVIA` y `CALLE AL ESTE DEL EDÉN` salen con
+    // mayúscula donde el IGN pediría minúscula. Dos contra dos, y prefiero
+    // fallar del lado que no toca un nombre propio.
+    assert.equal(comoSePresenta('CALLE BARRIO BAJO', true), 'Calle Barrio Bajo');
+    assert.equal(comoSePresenta('JARDINES AL ÁNDALUS', true), 'Jardines Al Ándalus');
+    assert.equal(PARTICULAS_AL_ESCRIBIR.has('BAJO'), false);
+    assert.equal(PARTICULAS_AL_ESCRIBIR.has('AL'), false);
+  });
+
+  test('⭐ una letra sola PEGADA A UN SIGNO no es partícula: es inicial o etiqueta', () => {
+    // `A` y `E` son partículas y son también iniciales de nombre y etiquetas
+    // de tramo. Medido en el censo: 5 iniciales `A.`, 1 `E.`, y las etiquetas
+    // `(A)`, `(E)`, `(O)`. La señal está en el token: una partícula de verdad
+    // va suelta entre espacios.
+    assert.equal(comoSePresenta('CALLE TOMÁS A. ÉDISON', true), 'Calle Tomás A. Édison');
+    assert.equal(comoSePresenta('CALLE AMADO E. MENÉ ARRUGA', true), 'Calle Amado E. Mené Arruga');
+    assert.equal(comoSePresenta('CALLE CIUDAD TRANSPORTE (E)', true), 'Calle Ciudad Transporte (E)');
+    assert.equal(comoSePresenta('CALLE MALPICA II (O)', true), 'Calle Malpica II (O)');
+    // Y la de verdad sigue bajando.
+    assert.equal(comoSePresenta('CALLE FRANCO Y LÓPEZ', true), 'Calle Franco y López');
+  });
+
+  test('⭐ la lista NUEVA no toca el núcleo: las comparaciones no se mueven', () => {
+    // El núcleo usa su propia lista, más corta, y tiene que seguir usándola:
+    // ampliarla cambiaría qué calles se consideran la misma, que es lo que
+    // este encargo NO toca.
+    // `LO` y `CON` NO están en la lista corta del núcleo, y siguen sin estar:
+    // eso es exactamente lo que esta prueba fija.
+    assert.equal(nucleoDe('CALLE CON FALDAS Y A LO LOCO'), 'CON FALDAS A LO LOCO');
+    assert.equal(nucleoDe('CALLE TODO SOBRE MI MADRE'), 'TODO SOBRE MI MADRE');
+    assert.ok(PARTICULAS_AL_ESCRIBIR.size > 7, 'la lista de escribir tiene que ser la ancha');
+  });
+});
+
+describe('⭐ EL ARTÍCULO QUE ES NOMBRE PROPIO — «El Coloso», no «el Coloso»', () => {
+  /** El cruce que la red construye: núcleo → artículos que OSM escribe altos. */
+  const propios = new Map([
+    ['COLOSO', new Set(['EL'])],
+    ['HABANA', new Set(['LA'])],
+    ['SITIOS', new Set(['LOS'])],
+  ]);
+
+  test('si OSM lo escribe alto, el municipal lo conserva', () => {
+    // [DOC IGN] La excepción declarada: el artículo va en mayúscula cuando
+    // forma parte del nombre propio — El Escorial, La Laguna. Aquí la señal
+    // de que forma parte no la inventamos: la pone OpenStreetMap, que escribe
+    // «Calle de El Coloso» porque El Coloso es un cuadro de Goya.
+    assert.equal(comoSePresenta('CALLE EL COLOSO', true, propios), 'Calle El Coloso');
+    assert.equal(comoSePresenta('CALLE LA HABANA', true, propios), 'Calle La Habana');
+    assert.equal(comoSePresenta('PLAZA LOS SITIOS', true, propios), 'Plaza Los Sitios');
+  });
+
+  test('⭐ en un EXTREMO, el número de portal no puede tapar el cruce', () => {
+    // El extremo llega como dirección entera —«CALLE EL COLOSO 2»— y su núcleo
+    // lleva el número dentro, así que no casaba con la clave `COLOSO` del
+    // cruce: la cabecera decía «Calle el Coloso 2» mientras el paso siguiente
+    // decía «Calle de El Coloso». La misma calle, dos artículos.
+    assert.equal(comoSePresenta('CALLE EL COLOSO 2', true, propios), 'Calle El Coloso 2');
+    assert.equal(comoSePresenta('CALLE LA HABANA 14', true, propios), 'Calle La Habana 14');
+    // Y con el núcleo rural entre corchetes, que tampoco es parte del nombre.
+    assert.equal(
+      comoSePresenta('CALLE LA HABANA [CASETAS] 4', true, propios),
+      'Calle La Habana [Casetas] 4',
+    );
+  });
+
+  test('sin equivalente en OSM, manda la regla general', () => {
+    assert.equal(comoSePresenta('CALLE LA FUENTE', true, propios), 'Calle la Fuente');
+    assert.equal(comoSePresenta('PASEO ISABEL LA CATÓLICA', true, propios), 'Paseo Isabel la Católica');
+  });
+
+  test('sin cruce ninguno, también manda la regla general', () => {
+    assert.equal(comoSePresenta('CALLE EL COLOSO', true), 'Calle el Coloso');
+  });
+
+  test('el artículo que ABRE el nombre no necesita cruce: siempre alto', () => {
+    assert.equal(comoSePresenta('LA ALMOZARA', true), 'La Almozara');
+    assert.equal(comoSePresenta('EL COLOSO', true), 'El Coloso');
+  });
+
+  test('el cruce es por el núcleo del nombre ENTERO, no por el artículo suelto', () => {
+    // Caso real medido: el núcleo de `AVENIDA LAS HEROÍNAS DE LOS SITIOS` es
+    // `HEROINAS SITIOS` —no `SITIOS`—, y su equivalente en OSM es «Avenida Las
+    // Heroínas de los Sitios», que sube `Las` y no `Los`. Así que sube `Las`.
+    // La clave `SITIOS` del cruce es la de `PLAZA LOS SITIOS`, otra vía.
+    const conHeroinas = new Map([...propios, ['HEROINAS SITIOS', new Set(['LAS'])]]);
+    assert.equal(
+      comoSePresenta('AVENIDA LAS HEROÍNAS DE LOS SITIOS', true, conHeroinas),
+      'Avenida Las Heroínas de los Sitios',
+    );
   });
 });
 

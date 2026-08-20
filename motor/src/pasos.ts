@@ -329,6 +329,83 @@ const ROMANO = /^(?=[MDCLXVI])M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0
  */
 export const NO_SON_ROMANOS: ReadonlySet<string> = new Set(['MI']);
 
+/**
+ * ⭐ Las partículas AL ESCRIBIR. **Es una lista distinta de la del núcleo, y
+ * tiene que serlo.**
+ *
+ * `PARTICULAS` —siete palabras— decide **qué calles son la misma**, y ampliarla
+ * cambiaría las comparaciones. Esta decide **cómo se escribe un nombre**, y ahí
+ * el criterio es el del IGN: *artículos, preposiciones, pronombres y
+ * conjunciones* en minúscula cuando no abren el nombre.
+ *
+ * Están la lista de artículos, la de preposiciones y la de conjunciones. De
+ * las 18 que el censo usa de verdad, **16 caen aquí**; las otras dos se dejan
+ * fuera a propósito y con la medición delante:
+ *
+ * - **`BAJO`** aparece 3 veces y en 2 es un adjetivo, no una preposición:
+ *   `CALLE BARRIO BAJO` y `CAMINO BAJO DE LA TORRE DEL RIMELICO`. Solo
+ *   `CALLE CANTANDO BAJO LA LLUVIA` la usa como preposición.
+ * - **`AL`** aparece 3 veces y en 2 no es la contracción: `JARDINES AL ÁNDALUS`
+ *   y `ANDADOR ABÚ YA'FAR AL-MUQTADIR` llevan el artículo árabe pegado al
+ *   nombre. Solo `CALLE AL ESTE DEL EDÉN` es la contracción.
+ *
+ * Dos contra dos en las dos, y se falla del lado que no toca un nombre propio.
+ * `DEL`, que es la misma clase de contracción, sí entra: sus 163 apariciones
+ * son todas preposición más artículo.
+ *
+ * Los **pronombres** que el IGN nombra no aparecen en el censo salvo `LO`, que
+ * ya está aquí como artículo neutro. No se meten los demás: `SE`, `LE` y `QUE`
+ * son homógrafos de nada en un callejero, y una lista que no se ha medido es
+ * una lista inventada.
+ */
+export const PARTICULAS_AL_ESCRIBIR: ReadonlySet<string> = new Set([
+  // Artículos
+  'EL', 'LA', 'LOS', 'LAS', 'LO', 'UN', 'UNA', 'UNOS', 'UNAS',
+  // Preposiciones, y la contracción `DEL`
+  'A', 'ANTE', 'CON', 'CONTRA', 'DE', 'DEL', 'DESDE', 'DURANTE', 'EN', 'ENTRE',
+  'HACIA', 'HASTA', 'MEDIANTE', 'PARA', 'POR', 'SEGUN', 'SIN', 'SOBRE', 'TRAS',
+  // Conjunciones
+  'Y', 'E', 'NI', 'O', 'U',
+]);
+
+/**
+ * ⭐ Los artículos que **son parte del nombre propio** y por eso van altos.
+ *
+ * [DOC IGN] Las directrices toponímicas declaran la excepción con sus propios
+ * ejemplos: **El Escorial**, **La Laguna**. El artículo sube cuando pertenece
+ * al topónimo en vez de acompañarlo.
+ *
+ * Lo que no dan es cómo distinguirlos, y del dato municipal no sale: el censo
+ * escribe TODO en mayúscula, así que `CALLE EL COLOSO` y `CALLE LA FUENTE` se
+ * ven iguales. **La señal la pone OpenStreetMap**, que escribe en caso mixto y
+ * decide en cada calle: «Calle de **El** Coloso» —el cuadro de Goya— frente a
+ * «Calle de **la** Fuente». La red cruza los dos ficheros por núcleo al
+ * arrancar y deja aquí el resultado.
+ *
+ * Medido: **252 núcleos** llevan artículo alto en OSM y le afectan a **142
+ * nombres municipales**; otros **327** con artículo intermedio no tienen
+ * equivalente y van con la regla general.
+ *
+ * ⚠️ Y trae la errata de OSM dentro, que es el precio de fiarse de él: entre
+ * los 142 hay media docena donde el alto es discutible —«Calle de Alfonso X
+ * **El** Sabio», «Pedro II **El** Católico», «Martín **El** Humano»—, que la
+ * RAE escribiría con minúscula por ser apodos. No se corrigen aquí: se
+ * declaran, porque enmendar a OSM a mano es empezar otra lista.
+ */
+export type ArticulosPropios = ReadonlyMap<string, ReadonlySet<string>>;
+
+/** El nombre de la CALLE dentro de una dirección: sin el núcleo ni el portal. */
+function soloLaVia(nombre: string): string {
+  let queda = nombre.replace(/\s*\[[^\]]*\]/gu, '');
+  for (;;) {
+    const corto = queda.replace(/\s+\S*\p{N}\S*$/u, '');
+    if (corto === queda) {
+      return queda;
+    }
+    queda = corto;
+  }
+}
+
 /** Quita tildes y sube a mayúsculas, solo para COMPARAR. */
 const paraComparar = (palabra: string): string =>
   palabra.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
@@ -363,8 +440,15 @@ const paraComparar = (palabra: string): string =>
  * nombre municipal se recompone siempre, y eso además deja legible la única
  * vía del censo con la vocal acentuada en minúscula (`ANDADOR ABOGACíA…`, la
  * suciedad de origen declarada en § 1.3), sin tocar el fichero.
+ *
+ * `propios` es el cruce de artículos que son nombre propio (ver arriba). Sin
+ * él, la regla general: el artículo intermedio baja.
  */
-export function comoSePresenta(nombre: string, esMunicipal: boolean): string {
+export function comoSePresenta(
+  nombre: string,
+  esMunicipal: boolean,
+  propios?: ArticulosPropios,
+): string {
   const enMayusculasPlenas = /\p{Lu}/u.test(nombre) && !/\p{Ll}/u.test(nombre);
   if (!esMunicipal && !enMayusculasPlenas) {
     return nombre;
@@ -378,8 +462,22 @@ export function comoSePresenta(nombre: string, esMunicipal: boolean): string {
   //
   // `split` con grupo de captura devuelve alternando palabra y separador, y
   // los separadores se conservan tal cual: nada se pierde ni se mueve.
+  // Los artículos que este nombre concreto escribe altos, si es que alguno.
+  // La clave se busca por el nombre de la VÍA, no por la dirección entera: un
+  // extremo llega como «CALLE EL COLOSO 2» y su núcleo llevaría el número
+  // dentro, así que no casaría nunca con el `COLOSO` del cruce — y la cabecera
+  // diría «Calle el Coloso 2» mientras el paso siguiente dice «Calle de El
+  // Coloso». Se quitan el núcleo rural entre corchetes y los trozos finales
+  // que llevan cifra, que son del portal y no de la calle.
+  //
+  // ⚠️ No cubre los números de portal con espacios dentro —«71 TV C2», que el
+  // censo trae—: ahí solo se quita el último trozo. El efecto es que ese
+  // extremo se queda con la regla general del artículo, no que se rompa nada.
+  const altos = propios?.get(nucleoDe(soloLaVia(nombre)));
+
   let esLaPrimera = true;
-  const recomponer = (trozo: string): string => {
+  // `suelto` dice si el trozo es TODO su token, es decir si va entre espacios.
+  const recomponer = (trozo: string, suelto: boolean): string => {
     // Un trozo sin letras —un número de portal, un signo, un espacio— se copia
     // tal cual: no hay nada que capitalizar, y tampoco consume el turno de la
     // primera palabra.
@@ -393,8 +491,22 @@ export function comoSePresenta(nombre: string, esMunicipal: boolean): string {
       return comparable;
     }
     const enMinusculas = trozo.toLocaleLowerCase('es-ES');
-    // La partícula solo baja si no abre el nombre.
-    if (!abreElNombre && PARTICULAS.has(comparable)) {
+    // ⭐ La partícula baja si no abre el nombre y no es parte de un nombre
+    // propio. Y si mide UNA SOLA LETRA, además tiene que ir **suelta**: `A.`
+    // en «Tomás A. Édison» y `(E)` en «Ciudad Transporte (E)» son la misma
+    // letra que la preposición y la conjunción, y lo único que las distingue
+    // es que no van solas en su token. Medido en el censo: 5 iniciales `A.`,
+    // 1 `E.`, y las etiquetas `(A)`, `(E)`, `(O)`.
+    //
+    // La exigencia se limita a las de una letra a propósito: `NTRA.SRA.DEL
+    // AGUA` lleva un `DEL` pegado a dos abreviaturas, y ese sí es la partícula.
+    const esUnaLetra = comparable.length === 1;
+    if (
+      !abreElNombre &&
+      (suelto || !esUnaLetra) &&
+      PARTICULAS_AL_ESCRIBIR.has(comparable) &&
+      !altos?.has(comparable)
+    ) {
       return enMinusculas;
     }
     return enMinusculas.charAt(0).toLocaleUpperCase('es-ES') + enMinusculas.slice(1);
@@ -408,10 +520,10 @@ export function comoSePresenta(nombre: string, esMunicipal: boolean): string {
       // 256 vías las que lo arrastran (§ 1.3), y se dice tal cual viene.
       token.startsWith('---')
         ? token
-        : token
-            .split(/([^\p{L}\p{N}]+)/u)
-            .map(recomponer)
-            .join(''),
+        : ((trozos) =>
+            trozos.map((trozo) => recomponer(trozo, trozos.length === 1)).join(''))(
+            token.split(/([^\p{L}\p{N}]+)/u),
+          ),
     )
     .join(' ');
 }
@@ -1146,7 +1258,9 @@ export function escribirPasos(
     return [
       {
         giro: 'llegada',
-        texto: `${comoSePresenta(nombreDestino, true)} es el mismo portal del que sales.`,
+        texto:
+          `${comoSePresenta(nombreDestino, true, red.articulosPropios)} es el mismo ` +
+          'portal del que sales.',
         metros: 0,
       },
     ];
@@ -1179,8 +1293,11 @@ export function escribirPasos(
     // el «por X» solo si hay nombre de verdad: «dirígete hacia el sur por la
     // acera» no dice nada que el cardinal no dijera ya.
     texto:
-      `Sal de ${comoSePresenta(nombreOrigen, true)} y dirígete hacia el ${cardinal}` +
-      (primero.conNombre ? ` por ${comoSePresenta(primero.nombre, primero.esMunicipal)}` : ''),
+      `Sal de ${comoSePresenta(nombreOrigen, true, red.articulosPropios)} y dirígete hacia ` +
+      `el ${cardinal}` +
+      (primero.conNombre
+        ? ` por ${comoSePresenta(primero.nombre, primero.esMunicipal, red.articulosPropios)}`
+        : ''),
     metros: metrosParaLeer(primero.metros),
   });
 
@@ -1191,7 +1308,7 @@ export function escribirPasos(
       giro: maniobra.giro,
       texto:
         `${COMO_SE_DICE[maniobra.giro]} hacia ` +
-        comoSePresenta(maniobra.nombre, maniobra.esMunicipal),
+        comoSePresenta(maniobra.nombre, maniobra.esMunicipal, red.articulosPropios),
       metros: metrosParaLeer(maniobra.metros),
     });
   }
@@ -1205,7 +1322,7 @@ export function escribirPasos(
   pasos.push({
     giro: 'llegada',
     texto:
-      `${comoSePresenta(nombreDestino, true)} está a la ` +
+      `${comoSePresenta(nombreDestino, true, red.articulosPropios)} está a la ` +
       ladoDelDestino(ultimo.g, puertaDestino),
     metros: 0,
   });
