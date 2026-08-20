@@ -306,6 +306,15 @@ export interface TramoFundido {
   readonly giro: Giro;
   /** El rumbo de entrada del que manda: de ahí sale el cardinal del arranque. */
   readonly entrada: number;
+  /**
+   * El rumbo con el que se SALE de esta maniobra.
+   *
+   * La primera pasada no lo necesitaba para nada de puertas afuera y no lo
+   * publicaba. La segunda —`colapsarManiobras`— sí: sin él no se puede medir
+   * el ángulo combinado a través de lo que se suprime, y medirlo es lo único
+   * que impide que colapsar se coma un giro de verdad.
+   */
+  readonly salida: number;
 }
 
 /**
@@ -408,13 +417,204 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     });
   }
 
-  return salen.map(({ nombre, conNombre, metros, giro, entrada }) => ({
+  return salen.map(({ nombre, conNombre, metros, giro, entrada, salida }) => ({
     nombre,
     conNombre,
     metros,
     giro,
     entrada,
+    salida,
   }));
+}
+
+/** Los tres giros que NO son una maniobra: se sigue por donde se iba. */
+const GIROS_SUAVES: ReadonlySet<Giro> = new Set<Giro>([
+  'recto',
+  'ligera-derecha',
+  'ligera-izquierda',
+]);
+
+const esSuave = (giro: Giro): boolean => GIROS_SUAVES.has(giro);
+
+/**
+ * ⭐ Si dos maniobras son **la misma calle**, que no es lo mismo que llamarse
+ * igual.
+ *
+ * `«la calzada»` y `«la acera»` no son nombres: son el hueco de OpenStreetMap
+ * dicho por su tipo, y el 60% de las aristas lo lleva. Dos tramos sin nombre
+ * seguidos se «llaman igual» siempre, y colapsarlos por eso juntaría dos calles
+ * distintas que OSM no nombró — perdiendo el giro que hay entre ellas.
+ *
+ * [DOC OSRM] No es una precaución mía: es lo primero que hace su `haveSameName`
+ * en `collapsing_utility.hpp`, con el comentario delante.
+ *
+ *     const auto has_name_or_ref = [](auto const &step)
+ *     { return !step.name.empty() || !step.ref.empty(); };
+ *
+ *     // make sure empty is not involved
+ *     if (!has_name_or_ref(lhs) || !has_name_or_ref(rhs))
+ *     {
+ *         return false;
+ *     }
+ *
+ * Vacío contra vacío es **false**, no true. `conNombre` es exactamente ese
+ * `has_name_or_ref`: dice si el nombre viene de OSM o es el de su tipo.
+ *
+ * Ojo: esto NO deshace la unión de tramos sin nombre que sigue recto
+ * (`unirLasQueSonLaMisma` y la regla 4 de la fusión). Aquello une lo que
+ * enfila igual; esto es lo que colapsaría a través de un giro, y ahí sin
+ * nombre no hay derecho.
+ */
+function sonLaMismaCalle(a: Maniobra, b: Maniobra): boolean {
+  return a.conNombre && b.conNombre && a.nombre === b.nombre;
+}
+
+/**
+ * ⭐ Cuánto puede medir un nombre que interrumpe para que se le absorba.
+ *
+ * [DOC OSRM] **105 m, y el número es suyo**: es `NAME_SEGMENT_CUTOFF_LENGTH`,
+ * de `include/engine/guidance/collapsing_utility.hpp`, leída de la fuente:
+ *
+ *     const constexpr double MAX_COLLAPSE_DISTANCE = 30.0;
+ *     // a bit larger than 100 to avoid oscillation in tests
+ *     const constexpr double NAME_SEGMENT_CUTOFF_LENGTH = 105.0;
+ *
+ * El comentario es de ellos y explica los cinco metros de más: el número que se
+ * quiere decir es 100, y el sobrante evita que un tramo que mide justo 100
+ * oscile entre absorberse y no absorberse.
+ *
+ * Y de paso, una corroboración que vale la pena anotar: `MAX_COLLAPSE_DISTANCE`
+ * son **30 m**, y el umbral de micro-tramos de la pasada anterior —medido aquí
+ * sobre 6.443 pasos de Zaragoza, sin mirar a OSRM— salió **25**. Dos caminos
+ * distintos para llegar al mismo sitio.
+ */
+export const CORTE_DE_NOMBRE_M = 105;
+
+/** La forma mutable con la que se trabaja dentro del colapso. */
+type Maniobra = {
+  nombre: string;
+  conNombre: boolean;
+  metros: number;
+  giro: Giro;
+  entrada: number;
+  salida: number;
+};
+
+/**
+ * Absorbe `comido` dentro de `crece`: los metros se suman y la salida pasa a
+ * ser la del comido.
+ *
+ * **Ni el `giro` ni la `entrada` de `crece` se tocan, y eso es la clave del
+ * ángulo combinado.** El giro de una maniobra se midió contra la SALIDA de la
+ * que la precede; como absorber solo alarga la salida hacia delante, la
+ * maniobra que venga después sigue midiendo su giro desde el sitio correcto,
+ * sin recalcular nada. Lo que desaparece son los giros de en medio, y por eso
+ * arriba se comprueba antes que sumados no den una maniobra de verdad.
+ */
+function absorber(crece: Maniobra, comido: Maniobra): void {
+  crece.metros += comido.metros;
+  crece.salida = comido.salida;
+}
+
+/**
+ * ⭐ LA SEGUNDA PASADA: el colapso a nivel de MANIOBRA.
+ *
+ * La primera pasada (`fundirMicroTramos`) quita los trocitos de red que nadie
+ * percibe. Esta quita las maniobras que sí miden, pero que **no son maniobras**:
+ * son la misma calle contada dos veces. Las dos implementaciones de referencia
+ * hacen las dos pasadas, en este orden — OSRM llama primero a
+ * `collapseTurnInstructions` y después a `suppressShortNameSegments`
+ * (`route_api.hpp`), y el orden importa.
+ *
+ * **Regla A — mismo nombre + giro suave se funden.** [DOC OSRM] En
+ * `suppressShortNameSegments` la primera rama es `if (haveSameName(previous,
+ * current)) suppress(previous, current);` — **sin umbral de distancia
+ * ninguno**: mismo nombre, se suprime. Y solo entra ahí lo que es
+ * `TurnType::NewName`, o sea un cambio de nombre sin giro; aquí el equivalente
+ * es exigir que el giro sea suave. Valhalla lo dice desde el otro lado: no
+ * repetir la instrucción de continuar por una variante leve del mismo nombre.
+ *
+ * **Regla B — la interrupción corta se absorbe.** [DOC OSRM] La segunda rama
+ * suma los metros del nombre nuevo mientras el paso siguiente sea silencioso, y
+ * si el total queda por debajo de `NAME_SEGMENT_CUTOFF_LENGTH` lo suprime
+ * contra el anterior.
+ *
+ * **Dónde este colapso es MÁS ESTRECHO que el de OSRM, y por qué.** OSRM
+ * absorbe cualquier segmento de nombre corto contra el paso anterior, se llame
+ * como se llame el que viene después. Aquí se exige además que **los dos
+ * vecinos se llamen igual** — que sea de verdad una interrupción y no un
+ * cambio de calle. Es lo que fijó el encargo, y ensancharlo no es decisión de
+ * este código: con la regla ancha, «Plaza Basilio Paraíso · 62 m» desaparecería
+ * de la ruta de Antonio, y esa plaza tiene nombre porque la gente la usa para
+ * orientarse.
+ *
+ * **La salvaguarda, que es lo que hay que mirar si algún día esto miente.** Un
+ * giro de verdad en la misma calle SE ANUNCIA: la regla A no se aplica si el
+ * giro no es suave. Y en la regla B no basta con que los dos giros suprimidos
+ * sean suaves por separado — dos «ligeramente a la derecha» de 30° suman una
+ * derecha de 60°—, así que se mide **el ángulo combinado a través de lo que se
+ * suprime** y solo se colapsa si TAMBIÉN es suave.
+ *
+ * Se repite hasta que una vuelta no cambie nada: absorber crea vecindades
+ * nuevas —A·B·A·A acaba en una sola A— y una sola pasada las dejaría a medias.
+ * Termina siempre, porque cada vuelta que hace algo acorta la lista.
+ */
+export function colapsarManiobras(
+  entrada: readonly TramoFundido[],
+): readonly TramoFundido[] {
+  let actual: Maniobra[] = entrada.map((m) => ({ ...m }));
+  for (;;) {
+    const siguiente = unaVueltaDeColapso(actual);
+    if (siguiente.length === actual.length) {
+      return siguiente;
+    }
+    actual = siguiente;
+  }
+}
+
+/** Una pasada de izquierda a derecha. Devuelve la lista, más corta o igual. */
+function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
+  const salen: Maniobra[] = [];
+  for (let i = 0; i < maniobras.length; i++) {
+    const maniobra = maniobras[i]!;
+    const ultimo = salen[salen.length - 1];
+    if (!ultimo) {
+      salen.push({ ...maniobra });
+      continue;
+    }
+
+    // ── Regla A ────────────────────────────────────────────────────────────
+    // El giro de `maniobra` YA es el ángulo entre la salida de `ultimo` y su
+    // entrada, así que preguntarle si es suave es preguntar por el combinado.
+    if (sonLaMismaCalle(ultimo, maniobra) && esSuave(maniobra.giro)) {
+      absorber(ultimo, maniobra);
+      continue;
+    }
+
+    // ── Regla B ────────────────────────────────────────────────────────────
+    // Los dos VECINOS tienen que ser la misma calle con nombre; el que
+    // interrumpe puede no tener ninguno —el caso típico es justo ese, un
+    // tramo peatonal sin nombre partiendo un paseo en dos—.
+    const despues = maniobras[i + 1];
+    if (
+      despues &&
+      sonLaMismaCalle(ultimo, despues) &&
+      maniobra.metros < CORTE_DE_NOMBRE_M &&
+      esSuave(maniobra.giro) &&
+      esSuave(despues.giro) &&
+      // ⭐ El ángulo combinado a través de la interrupción entera. Sin esto,
+      // dos suaves del mismo signo se comerían un giro de verdad.
+      esSuave(giroDe(ultimo.salida, despues.entrada))
+    ) {
+      absorber(ultimo, maniobra);
+      absorber(ultimo, despues);
+      i++;
+      continue;
+    }
+
+    salen.push({ ...maniobra });
+  }
+  return salen;
 }
 
 /**
@@ -452,7 +652,10 @@ export function escribirPasos(
     entrada: rumboDeEntrada(tramo.g),
     salida: rumboDeSalida(tramo.g),
   }));
-  const maniobras = fundirMicroTramos(llanos);
+  // DOS PASADAS, y en este orden — el mismo que OSRM: primero se quitan los
+  // trocitos que nadie percibe, y sobre lo que queda se colapsa lo que no es
+  // una maniobra sino la misma calle contada dos veces.
+  const maniobras = colapsarManiobras(fundirMicroTramos(llanos));
 
   const pasos: Paso[] = [];
 

@@ -14,13 +14,24 @@ import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { cargarRejilla, enganchar, type Rejilla } from './proyeccion.ts';
 import { calcularRuta, cuadernoPara, type Cuaderno } from './ruta.ts';
 import {
+  colapsarManiobras,
+  CORTE_DE_NOMBRE_M,
   escribirPasos,
   fundirMicroTramos,
   giroDe,
   metrosParaLeer,
   UMBRAL_MICRO_M,
+  type TramoFundido,
   type TramoLlano,
 } from './pasos.ts';
+import type { Giro } from '@desplazame/tipos';
+
+/**
+ * Si un nombre es de OSM o es el hueco dicho por su tipo. La convención de
+ * estas pruebas: los que empiezan por artículo minúsculo —«la calzada», «el
+ * paso de peatones»— son los innombrados, como en `POR_TIPO`.
+ */
+const tieneNombre = (nombre: string): boolean => !/^(la|el|las) /.test(nombre);
 
 /** Un tramo llano de mentira, para probar la fusión con ángulos a mano. */
 function tramo(
@@ -29,8 +40,28 @@ function tramo(
   entrada: number,
   salida = entrada,
 ): TramoLlano {
-  return { nombre, conNombre: !nombre.startsWith('la '), metros, entrada, salida };
+  return { nombre, conNombre: tieneNombre(nombre), metros, entrada, salida };
 }
+
+/**
+ * Una maniobra ya fundida, para probar el COLAPSO con ángulos a mano.
+ *
+ * El `giro` es el que se anuncia al entrar en ella, y por construcción es el
+ * ángulo entre la salida de la anterior y la entrada de esta: al escribirlas a
+ * mano hay que mantener esa coherencia o la prueba mide otra cosa.
+ */
+function maniobra(
+  nombre: string,
+  metros: number,
+  giro: Giro,
+  entrada: number,
+  salida = entrada,
+): TramoFundido {
+  return { nombre, conNombre: tieneNombre(nombre), metros, giro, entrada, salida };
+}
+
+/** Los nombres que sobreviven a un colapso, en orden. */
+const nombresDe = (ms: readonly TramoFundido[]): string[] => ms.map((m) => m.nombre);
 
 describe('La fusión de micro-tramos', () => {
   test('⭐ LA SALVAGUARDA: un giro real de 90° entre dos trozos cortos NO se pierde', () => {
@@ -114,6 +145,159 @@ describe('La fusión de micro-tramos', () => {
       tramo('la acera', UMBRAL_MICRO_M - 1, 90, 90),
     ]);
     assert.equal(porUnPelo.length, 1);
+  });
+});
+
+describe('El colapso de maniobras', () => {
+  test('⭐ JUEZ 14-15: dos «ligeramente a la izquierda» por la misma calle son una', () => {
+    // Copiado de la ruta de Antonio, El Coloso 2 → Padre Arrupe 1:
+    //   Gira ligeramente a la izquierda hacia Paseo de Fernando el Católico · 380 m
+    //   Gira ligeramente a la izquierda hacia Paseo de Fernando el Católico · 510 m
+    // Es un paseo que describe una curva, y se anda una sola vez.
+    const salen = colapsarManiobras([
+      maniobra('Gran Vía', 610, 'salida', 0, 30),
+      maniobra('Paseo de Fernando el Católico', 380, 'ligera-izquierda', 355, 350),
+      maniobra('Paseo de Fernando el Católico', 510, 'ligera-izquierda', 325, 320),
+    ]);
+    assert.equal(salen.length, 2);
+    assert.equal(salen[1]!.metros, 890, 'los metros de las dos se suman');
+    // El giro que se anuncia es con el que se ENTRA en el paseo, no el de en
+    // medio: entrar sí es una maniobra, seguir la curva no.
+    assert.equal(salen[1]!.giro, 'ligera-izquierda');
+    // Y la salida es la de la última: lo que venga después mide su giro desde
+    // ahí. Es lo que mantiene el ángulo combinado sin recalcular nada.
+    assert.equal(salen[1]!.salida, 320);
+  });
+
+  test('⭐ JUEZ 5-6: «continúa» + «ligeramente a la izquierda» por el mismo puente, una', () => {
+    //   Continúa hacia Puente de Piedra · 39 m
+    //   Gira ligeramente a la izquierda hacia Puente de Piedra · 240 m
+    const salen = colapsarManiobras([
+      maniobra('Calle Sobrarbe', 320, 'salida', 0, 0),
+      maniobra('Puente de Piedra', 39, 'recto', 0, 0),
+      maniobra('Puente de Piedra', 240, 'ligera-izquierda', 340, 340),
+    ]);
+    assert.deepEqual(nombresDe(salen), ['Calle Sobrarbe', 'Puente de Piedra']);
+    assert.equal(salen[1]!.metros, 279);
+    assert.equal(salen[1]!.giro, 'recto', 'se entra en el puente sin torcer');
+  });
+
+  test('⭐ LA SALVAGUARDA: un giro DE VERDAD en la misma calle se sigue anunciando', () => {
+    // Es el defecto que el encargo nombra y que NO se imita: suprimir el giro
+    // porque la calle se llama igual deja a quien anda sin la única
+    // instrucción que necesitaba.
+    for (const giro of ['derecha', 'izquierda', 'cerrada-derecha', 'media-vuelta'] as const) {
+      const salen = colapsarManiobras([
+        maniobra('Calle Larga', 200, 'salida', 0, 0),
+        maniobra('Calle Larga', 200, giro, 90, 90),
+      ]);
+      assert.equal(salen.length, 2, `el giro «${giro}» ha desaparecido`);
+      assert.equal(salen[1]!.giro, giro);
+    }
+  });
+
+  test('⭐ LA INTERRUPCIÓN CORTA se absorbe entre sus dos vecinos iguales', () => {
+    //   Gira ligeramente a la izquierda hacia Paseo de la Independencia · 420 m
+    //   Continúa hacia la zona peatonal · 86 m
+    //   Continúa hacia Paseo de la Independencia · 110 m
+    const salen = colapsarManiobras([
+      maniobra('Plaza de España', 66, 'salida', 0, 0),
+      maniobra('Paseo de la Independencia', 420, 'ligera-izquierda', 340, 340),
+      maniobra('la zona peatonal', 86, 'recto', 340, 340),
+      maniobra('Paseo de la Independencia', 110, 'recto', 340, 340),
+    ]);
+    assert.deepEqual(nombresDe(salen), ['Plaza de España', 'Paseo de la Independencia']);
+    assert.equal(salen[1]!.metros, 616, '420 + 86 + 110');
+  });
+
+  test('una interrupción LARGA no se absorbe: tiene entidad propia', () => {
+    // El corte es el de OSRM, 105 m. Con 130 la zona peatonal es un tramo del
+    // que merece la pena avisar, y se queda.
+    const salen = colapsarManiobras([
+      maniobra('Plaza de España', 66, 'salida', 0, 0),
+      maniobra('Paseo de la Independencia', 420, 'ligera-izquierda', 340, 340),
+      maniobra('la zona peatonal', 130, 'recto', 340, 340),
+      maniobra('Paseo de la Independencia', 110, 'recto', 340, 340),
+    ]);
+    assert.equal(salen.length, 4);
+    assert.ok(130 > CORTE_DE_NOMBRE_M, 'la prueba tiene que estar por encima del corte');
+  });
+
+  test('lo que llega justo al corte se queda: el umbral es estricto', () => {
+    const justo = (metros: number) =>
+      colapsarManiobras([
+        maniobra('A', 400, 'salida', 0, 0),
+        maniobra('la acera', metros, 'recto', 0, 0),
+        maniobra('A', 200, 'recto', 0, 0),
+      ]).length;
+    assert.equal(justo(CORTE_DE_NOMBRE_M - 1), 1, 'por debajo del corte se absorbe');
+    assert.equal(justo(CORTE_DE_NOMBRE_M), 3, 'justo en el corte, no');
+  });
+
+  test('⭐ dos suaves que SUMAN un giro de verdad no se colapsan', () => {
+    // Cada uno es «ligeramente a la derecha» —30° y otros 30°—, pero de punta
+    // a punta son 60°, que es una derecha. Si se mirara solo cada giro por
+    // separado, colapsar se comería la esquina.
+    const salen = colapsarManiobras([
+      maniobra('A', 400, 'salida', 0, 0),
+      maniobra('la acera', 50, 'ligera-derecha', 30, 30),
+      maniobra('A', 200, 'ligera-derecha', 60, 60),
+    ]);
+    assert.equal(giroDe(0, 60), 'derecha', 'el combinado es un giro de verdad');
+    assert.equal(salen.length, 3, 'se ha colapsado un giro de 60°');
+  });
+
+  test('⭐ sin NOMBRE no hay «misma calle»: dos calzadas anónimas no se juntan', () => {
+    // La regla de OSRM, literal: vacío contra vacío es false. Dos tramos que
+    // OSM no nombró se dicen los dos «la calzada» y no son la misma calle —
+    // juntarlos por el nombre se comería el giro que hay entre ellos.
+    const salen = colapsarManiobras([
+      maniobra('la calzada', 86, 'salida', 0, 0),
+      maniobra('la calzada', 220, 'ligera-izquierda', 340, 340),
+    ]);
+    assert.equal(salen.length, 2);
+    assert.equal(salen[1]!.giro, 'ligera-izquierda');
+  });
+
+  test('el ARRANQUE sigue siendo el arranque aunque crezca', () => {
+    const salen = colapsarManiobras([
+      maniobra('Calle Larga', 100, 'salida', 0, 0),
+      maniobra('Calle Larga', 300, 'recto', 0, 0),
+    ]);
+    assert.equal(salen.length, 1);
+    assert.equal(salen[0]!.giro, 'salida', 'el arranque no puede dejar de serlo');
+    assert.equal(salen[0]!.metros, 400);
+    assert.equal(salen[0]!.entrada, 0, 'y conserva su rumbo: de ahí sale el cardinal');
+  });
+
+  test('se repite hasta el final: una absorción destapa la siguiente', () => {
+    // Primera vuelta: los dos trozos de Calle Corta se unen entre sí (regla A)
+    // y quedan como UNA interrupción de 70 m — pero la pasada ya había pasado
+    // por ahí. La segunda vuelta la absorbe. Con una sola pasada saldrían tres.
+    //
+    // La calle de en medio tiene NOMBRE a propósito: sin nombre, la regla A no
+    // uniría sus dos trozos y este caso no se daría.
+    const salen = colapsarManiobras([
+      maniobra('Avenida Ancha', 300, 'salida', 0, 0),
+      maniobra('Calle Corta', 40, 'recto', 0, 0),
+      maniobra('Calle Corta', 30, 'recto', 0, 0),
+      maniobra('Avenida Ancha', 200, 'recto', 0, 0),
+    ]);
+    assert.equal(salen.length, 1);
+    assert.equal(salen[0]!.metros, 570);
+  });
+
+  test('los metros NO se pierden nunca, colapse lo que colapse', () => {
+    const entrada = [
+      maniobra('A', 300, 'salida', 0, 0),
+      maniobra('A', 120, 'ligera-derecha', 20, 20),
+      maniobra('la acera', 60, 'recto', 20, 20),
+      maniobra('A', 200, 'recto', 20, 20),
+      maniobra('B', 400, 'derecha', 110, 110),
+    ];
+    const antes = entrada.reduce((t, m) => t + m.metros, 0);
+    const despues = colapsarManiobras(entrada).reduce((t, m) => t + m.metros, 0);
+    assert.equal(despues, antes);
   });
 });
 
@@ -332,5 +516,86 @@ describe('Los pasos de una ruta real', () => {
     assert.equal(pasos.length, 1);
     assert.equal(pasos[0]!.giro, 'llegada');
     assert.match(pasos[0]!.texto, /el mismo portal/);
+  });
+
+  // ── LA RUTA LARGA DE ANTONIO ─────────────────────────────────────────────
+  //
+  // CALLE EL COLOSO 2 → CALLE PADRE ARRUPE 1, 6,4 km de punta a punta de la
+  // ciudad. La generó él en pantalla y la narración salía densa: 19 pasos con
+  // la misma calle anunciada dos y tres veces. Es la ruta que fija esta pasada.
+
+  /** CALLE EL COLOSO 2 y CALLE PADRE ARRUPE 1. */
+  const COLOSO = 'Portales.93310';
+  const ARRUPE = 'Portales.108946';
+
+  /** «Gira a la izquierda hacia X» → «X». Lo que importa es el hacia dónde. */
+  const haciaDonde = (texto: string): string => texto.replace(/^.*? hacia /, '');
+
+  test('⭐ NINGUNA calle se anuncia dos veces seguidas sin torcer de verdad', () => {
+    // Esto es la regla A vista desde la ruta: dos pasos seguidos que llevan al
+    // mismo sitio, con un giro que no es un giro, son un solo paso. Los dos
+    // casos juez de esta ruta eran Fernando el Católico (14 y 15) y Puente de
+    // Piedra (5 y 6).
+    const pasos = pasosDe(COLOSO, ARRUPE);
+    const SUAVES = new Set(['recto', 'ligera-derecha', 'ligera-izquierda']);
+    for (let k = 1; k < pasos.length - 1; k++) {
+      if (!SUAVES.has(pasos[k]!.giro)) {
+        continue;
+      }
+      assert.notEqual(
+        haciaDonde(pasos[k]!.texto),
+        haciaDonde(pasos[k - 1]!.texto),
+        `el paso ${k + 1} repite la calle del anterior sin torcer: «${pasos[k]!.texto}»`,
+      );
+    }
+  });
+
+  test('⭐ Paseo de la Independencia se dice UNA vez, no tres', () => {
+    // Iba partido en tres —420 m, la zona peatonal 86 m, y 110 m más— porque
+    // OSM corta el paseo por el tramo peatonal. Quien anda ve un paseo.
+    const pasos = pasosDe(COLOSO, ARRUPE);
+    const independencia = pasos.filter((p) => /Paseo de la Independencia$/.test(p.texto));
+    assert.equal(independencia.length, 1, 'el paseo sigue partido');
+    assert.ok(
+      independencia[0]!.metros >= 600,
+      `el paseo mide ${independencia[0]!.metros} m; los tres trozos sumaban 616`,
+    );
+  });
+
+  test('la ruta larga baja de 19 pasos, y no pierde ni el arranque ni la llegada', () => {
+    const pasos = pasosDe(COLOSO, ARRUPE);
+    assert.ok(pasos.length < 19, `sigue en ${pasos.length} pasos`);
+    assert.equal(pasos[0]!.giro, 'salida');
+    assert.equal(pasos[pasos.length - 1]!.giro, 'llegada');
+    assert.equal(pasos[pasos.length - 1]!.metros, 0);
+  });
+
+  test('colapsar tampoco pierde metros en la ruta larga', () => {
+    const uno = portales.donde.get(COLOSO)!;
+    const otro = portales.donde.get(ARRUPE)!;
+    const ea = enganchar(red, rejilla, uno.lon, uno.lat)!;
+    const eb = enganchar(red, rejilla, otro.lon, otro.lat)!;
+    const ruta = calcularRuta(red, cuaderno, ea, [uno.lon, uno.lat], eb, [otro.lon, otro.lat])!;
+    const pasos = escribirPasos(red, ruta, 'A', 'B', [otro.lon, otro.lat]);
+    const suma = pasos.reduce((t, p) => t + p.metros, 0);
+    assert.ok(
+      Math.abs(suma - ruta.metros) < 60,
+      `los pasos suman ${suma} m y la ruta mide ${ruta.metros.toFixed(0)}`,
+    );
+  });
+
+  test('la ruta céntrica corta NO se toca: sigue en cuatro pasos', () => {
+    // CALLE ALFONSO I 10 → PASEO INDEPENDENCIA 3. Es la del README y la del
+    // checkpoint anterior: si esta pasada la cambiara, habría que re-copiarla.
+    const pasos = pasosDe('Portales.104760', 'Portales.120461');
+    assert.equal(pasos.length, 4);
+    assert.deepEqual(
+      pasos.map((p) => p.giro),
+      ['salida', 'izquierda', 'ligera-derecha', 'llegada'],
+    );
+    assert.deepEqual(
+      pasos.map((p) => p.metros),
+      [91, 150, 96, 0],
+    );
   });
 });
