@@ -13,10 +13,13 @@
  * Se agrupan las consecutivas que comparten `w`, el id de *way* de OSM: mismo
  * *way*, misma calle, un solo paso.
  *
- * **2 · Lo innombrado habla POR TIPO.** El 60% de las aristas no tiene nombre
- * en OSM, y no es que falte: las aceras y los pasos de peatones no lo llevan.
- * Ahí entra `p`, el tipo propio del grafo, exactamente como Valhalla dice
- * *«onto the walkway»* o *«onto the crosswalk»* cuando no hay nombre.
+ * **2 · Lo innombrado habla POR HERENCIA, y si no, POR TIPO.** El 60% de las
+ * aristas no tiene nombre en OSM, y no es que falte: las aceras y los carriles
+ * bici no lo llevan. Pero una acera va pegada a su calle, y esa calle sí tiene
+ * nombre en el callejero municipal — así que primero se pregunta al vecino
+ * (`ejes.ts`, la herencia por vecindad) y solo si nadie contesta se habla por
+ * tipo, exactamente como Valhalla dice *«onto the walkway»* cuando no hay
+ * nombre. Son **tres niveles**, y están escritos abajo en `comoSeLlama`.
  *
  * **3 · Los extremos hablan MUNICIPAL.** El nombre de OSM y el del callejero
  * discrepan en el 19,4% de los portales (§ 1.14 del notices). En medio manda
@@ -135,6 +138,66 @@ export function nombreGenerico(perfil: string, highway: string | undefined): str
     return fino;
   }
   return (highway !== undefined ? POR_HIGHWAY[highway] : undefined) ?? TIPO_DESCONOCIDO;
+}
+
+/**
+ * ⭐ Los dos perfiles que narran POR TIPO SIEMPRE, hereden lo que hereden.
+ *
+ * Un **paso de peatones** CRUZA la calle: no pertenece a ella. La herencia por
+ * vecindad le va a dar el nombre de la calzada que atraviesa —es la más
+ * cercana, y en eso no se equivoca—, pero decirle a quien anda «continúa por
+ * Avenida de Navarra» mientras cruza Navarra es peor que no decirle nada: le
+ * quita justo el aviso que necesita. Lo mismo unas **escaleras**: lo que
+ * importa de unas escaleras es que son escaleras.
+ *
+ * [DOC Valhalla] Es su nivel 1 y ya estaba vivo: cuando el tipo dice más que
+ * el nombre, manda el tipo. Aquí solo se hace explícito que la herencia **no**
+ * lo desactiva. El veto es de la narración, no del cruce: `ejes.ts` los casa
+ * igual, para que su medición sea completa y comparable.
+ */
+export const NARRAN_SIEMPRE_POR_TIPO: ReadonlySet<string> = new Set([
+  'paso-de-peatones',
+  'escaleras',
+]);
+
+/** Lo que hace falta para saber cómo se llama un tramo. */
+interface Denominador {
+  readonly nombreDeWay: ReadonlyMap<number, string>;
+  readonly nombreHeredado: ReadonlyMap<number, string>;
+  readonly tipoDeWay: ReadonlyMap<number, string>;
+}
+
+/**
+ * ⭐ CÓMO SE LLAMA UN TRAMO. **Tres niveles, y este es el orden.**
+ *
+ * 1. **El `name` de OSM**, si lo tiene. La red es suya y el way sabe cómo se
+ *    llama. 40,0 % de las aristas del subgrafo útil.
+ * 2. **El nombre MUNICIPAL heredado por vecindad** (`ejes.ts`), si el way es
+ *    mudo y la herencia pasó las dos puertas de confianza. Otro 37,1 %.
+ * 3. **El genérico por tipo real**, que nunca falla porque siempre hay tipo.
+ *
+ * `conNombre` dice si lo devuelto es un nombre de verdad o el hueco dicho por
+ * su tipo, y es el `has_name_or_ref` de OSRM: de él dependen la unión de
+ * tramos y el colapso de maniobras. **Un nombre municipal heredado ES un
+ * nombre** — si no lo fuera, dos tramos de la misma avenida heredada no se
+ * fundirían y la ruta diría dos veces lo mismo.
+ */
+export function comoSeLlama(
+  red: Denominador,
+  way: number,
+  perfil: string,
+): { readonly nombre: string; readonly conNombre: boolean } {
+  const osm = red.nombreDeWay.get(way);
+  if (osm !== undefined) {
+    return { nombre: osm, conNombre: true };
+  }
+  if (!NARRAN_SIEMPRE_POR_TIPO.has(perfil)) {
+    const heredado = red.nombreHeredado.get(way);
+    if (heredado !== undefined) {
+      return { nombre: heredado, conNombre: true };
+    }
+  }
+  return { nombre: nombreGenerico(perfil, red.tipoDeWay.get(way)), conNombre: false };
 }
 
 /**
@@ -295,12 +358,9 @@ function agrupar(red: RedEnMemoria, trozos: readonly TrozoDeRuta[]): readonly Tr
   return tramos;
 }
 
-/** Cómo se nombra un tramo: el de OSM si lo hay, y si no el de su tipo real. */
+/** Cómo se nombra un tramo. Los tres niveles están en `comoSeLlama`. */
 function nombreDe(red: RedEnMemoria, tramo: Tramo): string {
-  return (
-    red.nombreDeWay.get(tramo.way) ??
-    nombreGenerico(tramo.perfil, red.tipoDeWay.get(tramo.way))
-  );
+  return comoSeLlama(red, tramo.way, tramo.perfil).nombre;
 }
 
 /**
@@ -731,8 +791,7 @@ export function escribirPasos(
   // Se bajan a la forma llana —nombre, metros y los dos rumbos— y se funden
   // los insignificantes. A partir de aquí ya no hay geometría: hay maniobras.
   const llanos: TramoLlano[] = tramos.map((tramo) => ({
-    nombre: nombreDe(red, tramo),
-    conNombre: red.nombreDeWay.has(tramo.way),
+    ...comoSeLlama(red, tramo.way, tramo.perfil),
     metros: tramo.metros,
     entrada: rumboDeEntrada(tramo.g),
     salida: rumboDeSalida(tramo.g),

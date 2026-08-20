@@ -278,11 +278,18 @@ export interface SaludGrafo {
  *
  * `nombres` es cuántos nombres de vía de OSM hay cargados (§ 1.14 del
  * notices): sin ellos las rutas se calculan igual, pero los pasos salen mudos.
+ *
+ * `heredados` es cuántos *ways* mudos han cogido su nombre del callejero
+ * municipal por vecindad (§ 1.15). Es un número distinto y hace falta: un
+ * motor puede tener los 19.897 nombres de OSM y no haber cruzado los ejes, y
+ * entonces contesta rutas correctas con dos tercios de los pasos mudos. Sin
+ * este campo, la guardia no sabría distinguir los dos casos.
  */
 export interface SaludRed {
   readonly aristas: number;
   readonly nodos: number;
   readonly nombres: number;
+  readonly heredados: number;
   readonly celdas: number;
   readonly cargadoEnMs: number;
 }

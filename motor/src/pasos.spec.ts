@@ -15,11 +15,13 @@ import { cargarRejilla, enganchar, type Rejilla } from './proyeccion.ts';
 import { calcularRuta, cuadernoPara, type Cuaderno } from './ruta.ts';
 import {
   colapsarManiobras,
+  comoSeLlama,
   CORTE_DE_NOMBRE_M,
   escribirPasos,
   fundirMicroTramos,
   giroDe,
   metrosParaLeer,
+  NARRAN_SIEMPRE_POR_TIPO,
   nombreGenerico,
   UMBRAL_MICRO_M,
   type TramoFundido,
@@ -436,6 +438,76 @@ describe('El redondeo de los metros', () => {
   });
 });
 
+describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
+  /** Una red de mentira con un solo way, para preguntar cómo se llama. */
+  const redCon = (
+    osm: string | null,
+    heredado: string | null,
+    highway: string,
+  ): Parameters<typeof comoSeLlama>[0] => ({
+    nombreDeWay: new Map(osm ? [[1, osm]] : []),
+    nombreHeredado: new Map(heredado ? [[1, heredado]] : []),
+    tipoDeWay: new Map([[1, highway]]),
+  });
+
+  test('con nombre de OSM, la herencia NO pinta nada: manda el way', () => {
+    // OSM es de quien es la red. Si el way dice cómo se llama, se le cree.
+    const red = redCon('Avenida de Navarra', 'CALLE OTRA COSA', 'residential');
+    assert.deepEqual(comoSeLlama(red, 1, 'eje-de-calzada'), {
+      nombre: 'Avenida de Navarra',
+      conNombre: true,
+    });
+  });
+
+  test('sin nombre de OSM pero con herencia, se dice el MUNICIPAL', () => {
+    // Es la ruta de Antonio: 1.270 m de carril bici que son la avenida.
+    const red = redCon(null, 'AVENIDA ACADEMIA GENERAL MILITAR', 'cycleway');
+    assert.deepEqual(comoSeLlama(red, 1, 'eje-de-calzada'), {
+      nombre: 'AVENIDA ACADEMIA GENERAL MILITAR',
+      conNombre: true,
+    });
+  });
+
+  test('lo heredado CUENTA como nombre: puede colapsar contra otro tramo igual', () => {
+    // `conNombre` es el `has_name_or_ref` de OSRM. Un nombre municipal es un
+    // nombre: si no lo fuera, dos tramos heredados de la misma avenida no se
+    // fundirían y la ruta diría dos veces lo mismo.
+    assert.equal(comoSeLlama(redCon(null, 'AVENIDA MADRID', 'footway'), 1, 'acera').conNombre, true);
+  });
+
+  test('sin nada que heredar, sigue mandando el tipo REAL', () => {
+    const red = redCon(null, null, 'cycleway');
+    assert.deepEqual(comoSeLlama(red, 1, 'eje-de-calzada'), {
+      nombre: 'el carril bici',
+      conNombre: false,
+    });
+  });
+
+  test('⭐ un PASO DE PEATONES no hereda jamás, aunque el cruce le diera nombre', () => {
+    // Una cebra CRUZA la calle: no pertenece a ella. Decir «continúa por
+    // Avenida de Navarra» mientras se cruza Navarra es peor que no decir nada.
+    const red = redCon(null, 'AVENIDA DE NAVARRA', 'footway');
+    assert.deepEqual(comoSeLlama(red, 1, 'paso-de-peatones'), {
+      nombre: 'el paso de peatones',
+      conNombre: false,
+    });
+  });
+
+  test('⭐ unas ESCALERAS tampoco: lo que importa es que son escaleras', () => {
+    const red = redCon(null, 'CALLE MAYOR', 'steps');
+    assert.deepEqual(comoSeLlama(red, 1, 'escaleras'), {
+      nombre: 'las escaleras',
+      conNombre: false,
+    });
+  });
+
+  test('y son esos dos perfiles, ni uno más', () => {
+    // Si mañana alguien mete «acera» en la lista, la mitad de la herencia se
+    // apaga sin que ninguna otra prueba se entere.
+    assert.deepEqual([...NARRAN_SIEMPRE_POR_TIPO].sort(), ['escaleras', 'paso-de-peatones']);
+  });
+});
+
 describe('Los pasos de una ruta real', () => {
   let red: RedEnMemoria;
   let rejilla: Rejilla;
@@ -707,21 +779,49 @@ describe('Los pasos de una ruta real', () => {
     );
   });
 
-  test('⭐ los 1.270 m de carril bici se dicen carril bici, no calzada', () => {
-    // Entrada nº7 de la bitácora. El paso son tres ways —354344721, 475888308
-    // y 475881583—, los tres h=cycleway y los tres mudos en OSM. Antes decía
-    // «Gira a la derecha hacia la calzada · 1270 m», que es FALSO: no se anda
-    // por la calzada de la avenida, se anda por el carril bici de al lado.
+  test('⭐ los 1.270 m de carril bici NUNCA son «la calzada» — bitácora nº7', () => {
+    // Entrada nº7 de la bitácora. El tramo son tres ways —354344721, 475888308
+    // y 475881583—, los tres h=cycleway y los tres mudos en OSM. Decía «Gira a
+    // la derecha hacia la calzada · 1270 m», que es FALSO: no se anda por la
+    // calzada de la avenida, se anda por el carril bici de al lado.
+    //
+    // ⚠️ AJUSTE (herencia por vecindad). Esta prueba exigía además que el
+    // tramo dijera «el carril bici». **Ya no lo dice, y es lo correcto**: el
+    // carril bici de una avenida ES la avenida, y ahora se llama por su
+    // nombre. Lo que la prueba protege sigue intacto, y es lo que la entrada
+    // de la bitácora fijaba: que no vuelva a decir «la calzada».
     const pasos = pasosDe(COLOSO, ARRUPE);
-    const largo = pasos.find((p) => p.metros >= 1200 && p.metros <= 1350);
-    assert.ok(largo, 'no aparece el tramo largo de la ruta');
-    assert.match(largo!.texto, /hacia el carril bici$/);
-    // Y en toda la ruta no queda ni una «calzada»: los mudos que trae son
-    // carril bici, y eso ya se dice con su nombre.
     assert.equal(
       pasos.filter((p) => /hacia la calzada$/.test(p.texto)).length,
       0,
       `queda una calzada: ${pasos.filter((p) => /calzada/.test(p.texto)).map((p) => p.texto)}`,
+    );
+  });
+
+  test('⭐ y AHORA se dicen por su nombre: los 1.270 m son dos avenidas', () => {
+    // El tramo largo no era una cosa: eran la AVENIDA ACADEMIA GENERAL MILITAR
+    // y la AVENIDA SAN JUAN DE LA PEÑA, con un trozo en medio que ninguna
+    // reclama. Partirlo no es perder un paso: es decir lo que se anda.
+    const pasos = pasosDe(COLOSO, ARRUPE);
+    const dice = (texto: string) => pasos.find((p) => p.texto.endsWith(texto));
+    const academia = dice('hacia AVENIDA ACADEMIA GENERAL MILITAR');
+    const sanJuan = dice('hacia AVENIDA SAN JUAN DE LA PEÑA');
+    assert.ok(academia, 'el carril bici de la Academia sigue sin nombre');
+    assert.ok(sanJuan, 'el carril bici de San Juan de la Peña sigue sin nombre');
+    // Y los metros no se han ido a ninguna parte: los tres trozos en que se
+    // parte el bloque de 1.270 m siguen sumándolo.
+    const enmedio = pasos[pasos.indexOf(academia!) + 1]!;
+    assert.equal(academia!.metros + enmedio.metros + sanJuan!.metros, 1272);
+  });
+
+  test('⭐ la PUERTA DE DISPUTA actúa en una ruta de verdad, no solo en el banco', () => {
+    // El way 475888308 —229 m de carril bici entre las dos avenidas— reparte
+    // sus votos 36/36 entre ACADEMIA GENERAL MILITAR y otra. No se sabe de
+    // quién es, así que no hereda: sigue diciendo lo que sí es verdad.
+    const pasos = pasosDe(COLOSO, ARRUPE);
+    assert.ok(
+      pasos.some((p) => p.texto.endsWith('hacia el carril bici')),
+      'nadie se queda en genérico: la puerta de disputa no está actuando',
     );
   });
 

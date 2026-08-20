@@ -66,6 +66,16 @@ console.log(
   `motor: red en memoria — ${red.aristas.length} aristas andables · ${red.nodos} nodos ` +
     `· ${red.nombreDeWay.size} nombres de vía · ${red.cargadoEnMs.toFixed(0)} ms`,
 );
+const h = red.herencias;
+console.log(
+  `motor: herencia por vecindad — ${h.nombreHeredado.size} de ${h.mudos} ways mudos ` +
+    `cogen el nombre municipal (${h.aristasHeredadas} aristas · ` +
+    `${h.kmHeredados.toFixed(0)} km) · ${h.cargadoEnMs.toFixed(0)} ms`,
+);
+console.log(
+  `motor: los que no — ${h.porMotivo['sin-eje']} sin eje cerca · ` +
+    `${h.porMotivo['poca-cobertura']} poca cobertura · ${h.porMotivo.disputa} en disputa`,
+);
 
 console.log('motor: indexando la red para enganchar portales…');
 const rejilla = cargarRejilla(red);
@@ -118,6 +128,7 @@ const servidor = createServer((peticion, respuesta) => {
         aristas: red.aristas.length,
         nodos: red.nodos,
         nombres: red.nombreDeWay.size,
+        heredados: red.nombreHeredado.size,
         celdas: rejilla.celdas.size,
         cargadoEnMs: Math.round(red.cargadoEnMs + rejilla.cargadoEnMs),
       },

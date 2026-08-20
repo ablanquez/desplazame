@@ -94,6 +94,9 @@ const SOLO_AL_ARRANCAR = ES_MOTOR
       // `app/data/`, y el motor los lee al arrancar: si cambian, el que está
       // en marcha sirve los de antes.
       join('..', 'motor', 'data', '2026-08-02_osm_overpass_zaragoza-termino_nombres.json'),
+      // Y los ejes de vía municipales (§ 1.15), de donde salen los nombres que
+      // OSM no da. Mismo trato: se leen al arrancar y una sola vez.
+      join('..', 'motor', 'data', '2026-08-20_idezar_wfs_urbanismo-vias_ejes.json'),
     ]
   : ['angular.json', 'package.json', 'package-lock.json'];
 
@@ -126,8 +129,14 @@ const CALLEJERO_ESPERADO = { vias: 3359, sugeribles: 2731, portales: 46150 };
  * `aristas` 93.503 es el subgrafo a=1 ∧ c=0; `nodos` 65.697 es lo que sale de
  * juntar coordenadas —diez menos que los 65.707 que el fichero declara, y esos
  * diez NO CONSTAN—; `nombres` 19.897 es el fichero de § 1.14 entero.
+ *
+ * `heredados` 19.358 son los *ways* mudos que cogen su nombre del callejero
+ * municipal por vecindad (§ 1.15). Va aquí y no como adorno: es el número que
+ * distingue un motor que cruzó los ejes de uno que arrancó sin ellos, y ese
+ * segundo contesta rutas correctas con dos tercios de los pasos mudos — que
+ * es justo la clase de fallo que no se ve mirando si el motor responde.
  */
-const RED_ESPERADA = { aristas: 93503, nodos: 65697, nombres: 19897 };
+const RED_ESPERADA = { aristas: 93503, nodos: 65697, nombres: 19897, heredados: 19358 };
 
 /**
  * Y lo que tienen que traer los portales, ahora que el motor los carga
@@ -243,7 +252,8 @@ async function comprobar() {
     }
     bien(
       `sabe rutear: ${r.aristas} aristas andables · ${r.nodos} nodos · ` +
-        `${r.nombres} nombres · ${r.celdas} celdas (levantado en ${r.cargadoEnMs} ms)`,
+        `${r.nombres} nombres + ${r.heredados} heredados · ${r.celdas} celdas ` +
+        `(levantado en ${r.cargadoEnMs} ms)`,
     );
 
     // 1c · ¿Lleva el callejero, y es ESTE?
