@@ -83,14 +83,21 @@ legend {
 }
 
 /* El mismo ámbar de siempre (#b45309 / #fff4e5 / #7c3d00): no es un error del
-   programa, es algo que no se ha podido hacer y se cuenta. */
-.aviso-ubicacion {
+   programa, es algo que no se ha podido hacer y se cuenta. Lo comparten los dos
+   sitios que dan malas noticias — el botón de ubicación y la ruta—, y lo
+   comparten de verdad: una sola regla, no dos copias que se separan. */
+.aviso-ubicacion,
+.aviso-ruta {
   margin: 0;
   padding: 0.5rem 0.75rem;
   border: 1px solid #b45309;
   border-radius: 4px;
   background: #fff4e5;
   color: #7c3d00;
+}
+
+.aviso-ruta {
+  margin-bottom: 0.75rem;
 }
 
 /* El ⇅ va ENTRE los dos bloques, que es donde lo pone todo el mundo y donde
@@ -171,35 +178,87 @@ legend {
   cursor: not-allowed;
 }
 
-/* El andamio tiene que cantar. El repo es público. */
-.aviso-prueba {
-  margin: 0 0 0.75rem;
-  padding: 0.6rem 0.75rem;
-  border: 2px solid #b45309;
-  border-radius: 4px;
-  background: #fff4e5;
-  color: #7c3d00;
-  font-weight: bold;
-}
-
 .pasos__modo {
   margin: 0 0 0.5rem;
   color: #555;
 }
 
-.pasos__lista {
+/* La cabecera de la ruta: de dónde, adónde, y cuánto. Como en la captura de
+   Google — origen arriba, destino debajo, y los totales al pie. */
+.ruta {
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.ruta__punto {
   margin: 0;
-  padding-left: 1.4rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
 }
 
-.pasos__lista li {
-  margin-bottom: 0.4rem;
+.ruta__marca {
+  width: 1.2rem;
+  flex: none;
+  text-align: center;
+  color: #b45309;
 }
 
-.pasos__detalle {
+.ruta__totales {
+  margin: 0.5rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ruta__metros {
+  font-weight: bold;
+}
+
+.ruta__duracion {
   color: #555;
 }
 
-.pasos__detalle::before {
-  content: ' · ';
+/* La lista no lleva números: el número lo pone la flecha, que dice además qué
+   hay que hacer. Un «3.» al lado de un ↰ es ruido. */
+.pasos__lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.paso {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.paso:last-child {
+  border-bottom: none;
+}
+
+/* La flecha, en columna fija para que todos los textos empiecen alineados. */
+.paso__flecha {
+  width: 1.2rem;
+  flex: none;
+  text-align: center;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #b45309;
+}
+
+.paso__texto {
+  flex: 1 1 auto;
+}
+
+.paso__metros {
+  flex: none;
+  color: #555;
+  font-variant-numeric: tabular-nums;
 }

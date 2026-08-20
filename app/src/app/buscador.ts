@@ -1,8 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import type { WritableSignal } from '@angular/core';
 // El contrato manda: los tipos vienen del paquete compartido, no de copias
 // locales. Si el motor cambia la forma, esta pantalla deja de compilar.
-import type { Modo, Paso, Portal, PortalCercano, Via, Vertice } from '@desplazame/tipos';
+import type {
+  Giro,
+  Modo,
+  PeticionDeRuta,
+  Portal,
+  PortalCercano,
+  Trayecto,
+  Via,
+} from '@desplazame/tipos';
 import { HttpClient } from '@angular/common/http';
 import { Capas } from './capas';
 import { Mapa } from './mapa';
@@ -10,23 +18,55 @@ import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
 
 /**
- * ANDAMIO. Respuesta falsa y fija: no sale de ningún motor ni de ningún dato.
- * Existe para poder ver funcionar la pantalla entera antes de que exista el
- * motor, y se retira en el punto 7 del plan cuando el motor real la sustituya.
+ * ⭐ EL MAPEO GIRO → FLECHA. Diez giros, diez glifos, y ni una dependencia.
+ *
+ * **La flecha sale del `giro`, nunca del `texto`.** Es lo que el contrato dice
+ * de `Giro` —*«la pantalla dibuja la flecha a partir de esto»*— y la razón es
+ * que parsear la frase para ver si lleva la palabra «derecha» ataría el icono a
+ * la redacción de los pasos: cambiar «Gira a la derecha» por «Tuerce a la
+ * derecha» dejaría el mapa de flechas roto sin que nada se pusiera rojo.
+ *
+ * **Son caracteres, no imágenes y no una librería de iconos.** El repositorio
+ * no añade dependencias, y aquí no hacía falta ninguna: Unicode trae la familia
+ * entera de flechas con codo. Los tres tamaños de giro se leen por dónde apunta
+ * la PUNTA, contando que se va hacia arriba: 45° (`↗`), 90° (`↱`), y más de 135°
+ * la punta ya baja (`⬎`), que es doblarse sobre uno mismo. La media vuelta es el
+ * gancho `↩`. Y la salida y la llegada no son giros —lo dice el contrato—, así
+ * que llevan marca propia: el punto de partida y la bandera, como en la captura
+ * de Google.
+ *
+ * `Record<Giro, string>` no es adorno de tipos: **obliga a que estén los diez**.
+ * Si el motor añadiera un giro al contrato —una rotonda, por ejemplo—, esta
+ * tabla dejaría de compilar en vez de pintar un hueco en blanco.
  */
-const RUTA_DE_PRUEBA: readonly Paso[] = [
-  { giro: 'salida', texto: 'Anda 150 m hasta la parada de prueba', metros: 150 },
-  { giro: 'recto', texto: 'Coge la línea de prueba y bájate en la tercera parada', metros: 600 },
-  { giro: 'llegada', texto: 'Anda 200 m hasta el portal de destino', metros: 200 },
-];
+const FLECHAS: Readonly<Record<Giro, string>> = {
+  salida: '◉',
+  recto: '↑',
+  'ligera-derecha': '↗',
+  derecha: '↱',
+  'cerrada-derecha': '⬎',
+  'media-vuelta': '↩',
+  'cerrada-izquierda': '⬐',
+  izquierda: '↰',
+  'ligera-izquierda': '↖',
+  llegada: '⚑',
+};
 
-/** ANDAMIO. El trazado que acompaña a RUTA_DE_PRUEBA: tampoco lo calcula nadie. */
-const TRAZADO_DE_PRUEBA: readonly Vertice[] = [
-  [41.6561, -0.8773],
-  [41.6516, -0.879],
-  [41.6468, -0.883],
-  [41.6425, -0.8865],
-];
+/**
+ * Cómo se dice la velocidad con la que el motor deriva la duración.
+ *
+ * **Va escrita al lado del tiempo, siempre**, y esa es toda su razón de ser: el
+ * contrato dice de `Trayecto.segundos` que es *«DERIVADO, no medido»* —
+ * `metros / 5,0 km/h`, sin cuestas, sin semáforos y sin esperas—. Un «4 min» a
+ * secas se leería como una promesa cronometrada, y aquí no se ha cronometrado a
+ * nadie andando por Zaragoza.
+ *
+ * Si el motor cambiara su velocidad, esta cadena se quedaría mintiendo: el
+ * número vive en `motor/src/trayecto.ts` (`VELOCIDAD_MS`) y aquí solo se
+ * REPITE. No hay forma de atarlos sin meter el número en el contrato, y meterlo
+ * sería que la pantalla recalculara lo que el motor ya calculó.
+ */
+const VELOCIDAD_DICHA = '5 km/h';
 
 /**
  * ⭐ EL UMBRAL DE PRECISIÓN: cuánto radio de confianza se acepta.
@@ -161,6 +201,62 @@ function intercambiar<T>(a: WritableSignal<T>, b: WritableSignal<T>): void {
   b.set(guardado);
 }
 
+/**
+ * Lo que hay pintado abajo: **el trayecto que contestó el motor, y las dos
+ * direcciones tal como estaban cuando se pidió**.
+ *
+ * Las direcciones se guardan aquí en vez de leerse del formulario a propósito.
+ * Después de generar, el formulario sigue vivo: se puede cambiar una calle sin
+ * volver a pulsar, y entonces la cabecera diría de dónde a dónde va una ruta
+ * que no es la que está en el mapa. Guardándolas con el resultado, lo que se
+ * lee arriba y lo que se ve abajo son siempre la misma cosa.
+ *
+ * Y por eso es UNA señal y no cuatro: cuatro señales pueden quedarse a medio
+ * actualizar; un objeto entero, no.
+ */
+interface Resultado {
+  readonly origen: string;
+  readonly destino: string;
+  readonly trayecto: Trayecto;
+}
+
+/** Cómo se escribe una dirección municipal completa: «CALLE BURGOS [CASETAS] 4». */
+function comoSeLeeLaDireccion(via: Via, portal: Portal): string {
+  return `${comoSeVeLaVia(via)} ${portal.numero}`;
+}
+
+/**
+ * Los metros como se leen, no como se guardan.
+ *
+ * Por debajo del kilómetro, tal cual vienen: el motor ya los redondea —al metro
+ * hasta 100, a la decena por encima—, así que aquí no se vuelve a tocar. Por
+ * encima, en kilómetros con un decimal, que es como se dice una distancia larga
+ * a pie: «3,5 km», no «3.482 m».
+ */
+function comoSeLeenLosMetros(metros: number): string {
+  if (metros < 1000) {
+    return `${metros} m`;
+  }
+  return `${(metros / 1000).toLocaleString('es-ES', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })} km`;
+}
+
+/**
+ * La duración, **dicha como lo que es**: una división, no un cronómetro.
+ *
+ * Por debajo del minuto no se redondea a «~1 min», que sería inflar siete
+ * segundos hasta sesenta: se dice «menos de 1 min», que es verdad y es igual de
+ * corto. El porqué del «a 5 km/h» está en `VELOCIDAD_DICHA`.
+ */
+function comoSeLeeLaDuracion(segundos: number): string {
+  if (segundos < 60) {
+    return `menos de 1 min a ${VELOCIDAD_DICHA}`;
+  }
+  return `~${Math.round(segundos / 60)} min a ${VELOCIDAD_DICHA}`;
+}
+
 @Component({
   selector: 'app-buscador',
   imports: [Mapa, AutocompletarVia, SelectorPortal],
@@ -220,14 +316,24 @@ export class Buscador {
   /** Andando por defecto. */
   protected readonly modo = signal<Modo>('andando');
 
-  /** Los pasos pintados. Vacío hasta que se genera. */
-  protected readonly pasos = signal<readonly Paso[]>([]);
+  /** Lo que contestó el motor la última vez. `null` mientras no se ha pedido. */
+  protected readonly resultado = signal<Resultado | null>(null);
 
-  /** Con qué modo se generó lo que hay en pantalla. */
-  protected readonly modoGenerado = signal<Modo | null>(null);
+  /** Se está esperando al motor: el botón lo dice y no se repulsa. */
+  protected readonly generando = signal(false);
 
-  /** El trazado que se pinta en el mapa. Vacío hasta que se genera. */
-  protected readonly trazado = signal<readonly Vertice[]>([]);
+  /** Lo que salió mal al pedir la ruta, para decirlo en ámbar. */
+  protected readonly avisoRuta = signal<string | null>(null);
+
+  /**
+   * El trazado que se pinta en el mapa: **el del resultado, y nada más**.
+   *
+   * Derivado, no guardado aparte. Así no puede pasar que el mapa enseñe la
+   * línea de una ruta y la lista los pasos de otra: si no hay resultado —o si
+   * el que hay no trae geometría, como una isla del grafo— el mapa se queda
+   * limpio solo.
+   */
+  protected readonly trazado = computed(() => this.resultado()?.trayecto.geometria ?? []);
 
   constructor() {
     this.capas.cargar();
@@ -414,14 +520,77 @@ export class Buscador {
     return this.modos.find((m) => m.id === modo)?.etiqueta ?? modo;
   }
 
-  /** Pinta la ruta de prueba. Con algún campo vacío no hace nada. */
+  /** La flecha de un paso. Sale del `giro`, nunca del texto: ver `FLECHAS`. */
+  protected flechaDe(giro: Giro): string {
+    return FLECHAS[giro];
+  }
+
+  protected readonly enMetros = comoSeLeenLosMetros;
+  protected readonly enTiempo = comoSeLeeLaDuracion;
+
+  /**
+   * ⭐ Le pide la ruta al motor. Con algún campo vacío no hace nada.
+   *
+   * **Esto es `HttpClient.post`, y no `httpResource`.** Los dos campos del
+   * formulario usan `httpResource` porque son LECTURAS que se rehacen solas
+   * cuando cambia lo escrito. Esto no: es una ACCIÓN que dispara un botón, una
+   * vez, cuando quien mira decide.
+   *
+   * [DOC] Los tipos instalados dicen que `httpResource` *«makes a **reactive**
+   * HTTP request and exposes the request status and response value as a
+   * `WritableResource`»*, y que su método *«defaults to GET if not specified»* —
+   * o sea que **técnicamente sabría hacer un POST**. Lo que no encaja no es el
+   * verbo: es el «reactive». Un recurso se rehace solo cuando cambia una señal
+   * de las que lee, y aquí las señales que habría que leer son los cuatro
+   * campos: tocar un portal dispararía una ruta que nadie ha pedido, y pulsar
+   * «Generar» dos veces con los mismos campos no dispararía ninguna. [PROPIO]
+   * Por eso va por el mismo camino que «Mi ubicación», que es la otra acción de
+   * esta pantalla.
+   *
+   * Lo primero que hace es **tirar el resultado anterior**. No es cosmética:
+   * mientras se espera, el mapa no puede seguir enseñando la línea de la ruta
+   * de antes como si fuera esta.
+   */
   protected generarRuta(): void {
-    if (!this.sePuedeGenerar()) {
+    const via = this.origen.via();
+    const portal = this.origen.portal();
+    const viaDestino = this.destino.via();
+    const portalDestino = this.destino.portal();
+    if (!via || !portal || !viaDestino || !portalDestino || this.generando()) {
       return;
     }
-    this.modoGenerado.set(this.modo());
-    this.pasos.set(RUTA_DE_PRUEBA);
-    this.trazado.set(TRAZADO_DE_PRUEBA);
+
+    // Los CUATRO CÓDIGOS, que es lo único que viaja. Es la ley de la entrada
+    // nº4 llegando al final del tubo: el formulario lleva desde el punto 4
+    // negándose a desbloquear con texto, y sería tirarlo todo mandar aquí los
+    // nombres. El motor tampoco los aceptaría — los rechaza en `leerPeticion`.
+    const peticion: PeticionDeRuta = {
+      origen: { via: via.codigo, portal: portal.codigo },
+      destino: { via: viaDestino.codigo, portal: portalDestino.codigo },
+      modo: this.modo(),
+    };
+
+    this.avisoRuta.set(null);
+    this.resultado.set(null);
+    this.generando.set(true);
+
+    this.http.post<Trayecto>('/api/ruta', peticion).subscribe({
+      next: (trayecto) => {
+        this.generando.set(false);
+        this.resultado.set({
+          origen: comoSeLeeLaDireccion(via, portal),
+          destino: comoSeLeeLaDireccion(viaDestino, portalDestino),
+          trayecto,
+        });
+      },
+      // Que el motor no conteste no es lo mismo que no haber ruta: cuando no
+      // hay ruta, el motor contesta un trayecto vacío con su aviso y eso entra
+      // por arriba. Aquí solo se cae cuando no hay nadie al otro lado.
+      error: () => {
+        this.generando.set(false);
+        this.avisoRuta.set('No se pudo preguntar al motor. ¿Está arrancado?');
+      },
+    });
   }
 
   /**

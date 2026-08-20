@@ -90,10 +90,10 @@
     <button
       type="button"
       class="generar"
-      [disabled]="!sePuedeGenerar()"
+      [disabled]="!sePuedeGenerar() || generando()"
       (click)="generarRuta()"
     >
-      Generar ruta
+      {{ generando() ? 'Generando…' : 'Generar ruta' }}
     </button>
   </form>
 
@@ -104,25 +104,61 @@
   <section class="pasos" aria-label="Indicaciones">
     <h2>Indicaciones</h2>
 
-    @if (pasos().length === 0) {
+    <!-- El motor no ha contestado: no hay nadie al otro lado. Es distinto de
+         «no hay ruta», que sí llega dentro de una respuesta. -->
+    @if (avisoRuta(); as aviso) {
+      <p class="aviso-ruta" role="status">{{ aviso }}</p>
+    }
+
+    @if (resultado(); as r) {
+      <!-- El modo que se dice es EL DE LA RESPUESTA, no el que está pulsado:
+           es el que corresponde a lo que hay pintado debajo. -->
+      <p class="pasos__modo">Modo: {{ etiquetaDe(r.trayecto.modo) }}</p>
+
+      <!-- Los avisos del motor, en su ámbar y con sus palabras. No se traducen
+           ni se resumen: el motor ya los escribe para leerse. -->
+      @for (aviso of r.trayecto.avisos; track $index) {
+        <p class="aviso-ruta" role="status">{{ aviso.texto }}</p>
+      }
+
+      @if (r.trayecto.pasos.length > 0) {
+        <header class="ruta">
+          <p class="ruta__punto ruta__origen">
+            <span class="ruta__marca" aria-hidden="true">{{ flechaDe('salida') }}</span>
+            {{ r.origen }}
+          </p>
+          <p class="ruta__punto ruta__destino">
+            <span class="ruta__marca" aria-hidden="true">{{ flechaDe('llegada') }}</span>
+            {{ r.destino }}
+          </p>
+          <p class="ruta__totales">
+            <span class="ruta__metros">{{ enMetros(r.trayecto.metros) }}</span>
+            <!-- El tiempo NUNCA sale solo: va con la velocidad de la que se
+                 deriva. Ver `VELOCIDAD_DICHA` en `buscador.ts`. -->
+            <span class="ruta__duracion">{{ enTiempo(r.trayecto.segundos) }}</span>
+          </p>
+        </header>
+
+        <ol class="pasos__lista">
+          @for (paso of r.trayecto.pasos; track $index) {
+            <li class="paso">
+              <!-- La flecha es un duplicado visual de lo que ya dice el texto
+                   («Gira a la izquierda»), así que a quien lea la pantalla en
+                   voz alta se le ahorra. -->
+              <span class="paso__flecha" aria-hidden="true">{{ flechaDe(paso.giro) }}</span>
+              <span class="paso__texto">{{ paso.texto }}</span>
+              <!-- El paso de llegada no abre tramo: lleva 0 y no se escribe. -->
+              @if (paso.metros > 0) {
+                <span class="paso__metros">{{ enMetros(paso.metros) }}</span>
+              }
+            </li>
+          }
+        </ol>
+      }
+    } @else if (!avisoRuta() && !generando()) {
       <p class="pasos__vacio">
         Todavía no hay pasos. Rellena los cuatro campos y pulsa «Generar ruta».
       </p>
-    } @else {
-      <p class="aviso-prueba">
-        ⚠️ DATOS DE PRUEBA. Esta ruta es fija e inventada: no la calcula nadie y no
-        corresponde a ningún trayecto real. Es un andamio para ver funcionar la pantalla
-        hasta que exista el motor.
-      </p>
-      <p class="pasos__modo">Modo: {{ etiquetaDe(modoGenerado()!) }}</p>
-      <ol class="pasos__lista">
-        @for (paso of pasos(); track $index) {
-          <li>
-            <span class="pasos__texto">{{ paso.texto }}</span>
-            <span class="pasos__detalle">{{ paso.metros }} m</span>
-          </li>
-        }
-      </ol>
     }
   </section>
 </main>

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import type { Portal, PortalCercano, Via } from '@desplazame/tipos';
+import type { Giro, Paso, Portal, PortalCercano, Trayecto, Via } from '@desplazame/tipos';
 import { Buscador } from './buscador';
 
 /** Devuelve los botones de modo que están marcados como activos. */
@@ -77,6 +77,140 @@ const PORTALES_GOYA: readonly Portal[] = [
 /** Cómo se ve una vía en la lista: igual que la pinta el autocompletar. */
 function comoSeVe(via: Via): string {
   return via.nucleo ? `${via.limpio} [${via.nucleo}]` : via.limpio;
+}
+
+// ── EL MOTOR DE RUTAS, FINGIDO Y DICHO ──────────────────────────────────────
+//
+// Aquí no hay motor: hay `HttpTestingController`, el mismo con el que ya se
+// fingen las vías y los portales. Lo que estas pruebas miran es lo que la
+// PANTALLA hace — qué pide, y qué enseña con lo que le contestan—; que el
+// cálculo sea correcto lo prueban las 44 del motor, y el juez último es el ojo
+// de Antonio sobre el mapa.
+
+/**
+ * Un trayecto con LA FORMA de uno real.
+ *
+ * Los cuatro pasos, sus giros y sus metros están calcados de una respuesta de
+ * verdad de `POST /api/ruta` —CALLE ALFONSO I 10 → PASEO INDEPENDENCIA 3, 342 m
+ * en cuatro pasos—, con los nombres cambiados a las dos vías que finge esta
+ * prueba. La geometría va recortada a tres vértices: la de verdad trae 40 y lo
+ * que se comprueba aquí es que llegue al mapa, no cuántos son.
+ */
+const TRAYECTO: Trayecto = {
+  modo: 'andando',
+  pasos: [
+    {
+      giro: 'salida',
+      texto: 'Sal de CALLE BURGOS 2 y dirígete hacia el suroeste por Calle de Burgos',
+      metros: 91,
+    },
+    { giro: 'izquierda', texto: 'Gira a la izquierda hacia la acera', metros: 150 },
+    {
+      giro: 'ligera-derecha',
+      texto: 'Gira ligeramente a la derecha hacia Avenida de Goya',
+      metros: 96,
+    },
+    { giro: 'llegada', texto: 'AVENIDA GOYA 45 está a la izquierda', metros: 0 },
+  ],
+  geometria: [
+    [41.6561, -0.8773],
+    [41.6516, -0.879],
+    [41.6425, -0.8865],
+  ],
+  avisos: [],
+  metros: 342,
+  segundos: 246,
+};
+
+/**
+ * Lo que contesta el motor cuando la dirección está en una isla del grafo. El
+ * texto es el suyo, literal: son las 581 puertas de las catorce vías aisladas.
+ */
+const SIN_RUTA: Trayecto = {
+  modo: 'andando',
+  pasos: [],
+  geometria: [],
+  avisos: [
+    {
+      texto:
+        'URBANIZACIÓN PEÑA ZORONGO 5 no tiene ninguna calle andable cerca en ' +
+        'nuestro mapa: desde ahí no podemos calcular una ruta.',
+    },
+  ],
+  metros: 0,
+  segundos: 0,
+};
+
+/** Y lo que contesta a un modo que todavía no atiende. También literal. */
+const MODO_SIN_ATENDER: Trayecto = {
+  modo: 'coche',
+  pasos: [],
+  geometria: [],
+  avisos: [{ texto: 'Todavía no calculamos rutas en modo «coche». Solo andando.' }],
+  metros: 0,
+  segundos: 0,
+};
+
+/** Los diez giros del contrato, en el orden en que están declarados. */
+const LOS_DIEZ_GIROS: readonly Giro[] = [
+  'salida',
+  'recto',
+  'ligera-derecha',
+  'derecha',
+  'cerrada-derecha',
+  'media-vuelta',
+  'cerrada-izquierda',
+  'izquierda',
+  'ligera-izquierda',
+  'llegada',
+];
+
+/** Un trayecto de mentira que usa LOS DIEZ giros, uno por paso. */
+const TRAYECTO_DE_LOS_DIEZ: Trayecto = {
+  ...TRAYECTO,
+  pasos: LOS_DIEZ_GIROS.map(
+    (giro): Paso => ({ giro, texto: `paso de ${giro}`, metros: 10 }),
+  ),
+};
+
+/** Rellena los cuatro campos por el camino de una persona, y deja listo el botón. */
+async function direccionEntera(fixture: any, http: HttpTestingController): Promise<void> {
+  await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
+  await elegirPortal(fixture, 'portalOrigen', '2');
+  await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+  await elegirPortal(fixture, 'portalDestino', '45');
+  await fixture.whenStable();
+}
+
+/**
+ * Los pasos que se leen en pantalla, cada uno con su flecha y sus metros.
+ *
+ * Las tres piezas se juntan con un espacio AQUÍ, y no lo hay en el DOM: quien
+ * las separa en pantalla es el `gap` de la caja flexible, no un carácter. Leer
+ * el `textContent` del `<li>` daría «↰Gira a la izquierda150 m», que es lo que
+ * hay, y no dice nada de si se ve bien.
+ */
+function pasosEnPantalla(raiz: HTMLElement): string[] {
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).map((p) =>
+    Array.from(p.querySelectorAll<HTMLElement>('span'))
+      .map((s) => s.textContent?.trim() ?? '')
+      .join(' ')
+      .trim(),
+  );
+}
+
+/** Las flechas, solo las flechas. */
+function flechasEnPantalla(raiz: HTMLElement): string[] {
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.paso__flecha')).map(
+    (f) => f.textContent?.trim() ?? '',
+  );
+}
+
+/** Los avisos ámbar del resultado, si los hay. */
+function avisosDeRuta(raiz: HTMLElement): string[] {
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.aviso-ruta')).map(
+    (a) => a.textContent?.trim() ?? '',
+  );
 }
 
 /**
@@ -408,43 +542,250 @@ describe('Buscador', () => {
     expect(botonGenerar(raiz).disabled).toBe(true);
   });
 
-  it('con las dos calles ELEGIDAS y los dos portales genera los tres pasos de prueba', async () => {
+  // ── LA RUTA DE VERDAD ─────────────────────────────────────────────────────
+  //
+  // Estas ocho sustituyen a las dos que fijaban la respuesta inventada del
+  // punto 2. No es que se hayan borrado dos pruebas: es que lo que fijaban
+  // —«genera los tres pasos de prueba», «el modo elegido se muestra»— ya no
+  // existe, y lo que hay en su sitio es una llamada al motor. El ajuste se dice
+  // aquí para que no parezca que la cobertura se ha encogido.
+
+  /**
+   * ⭐ LO PRIMERO, Y LO QUE MÁS IMPORTA: se piden los CUATRO CÓDIGOS.
+   *
+   * Es la ley de la entrada nº4 llegando al final del tubo. El formulario lleva
+   * desde el punto 4 negándose a desbloquear con texto; si la petición
+   * mandara los nombres, todo aquel cuidado no habría servido de nada.
+   */
+  it('«Generar» pide la ruta al motor con los cuatro códigos y el modo', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
-    await elegirPortal(fixture, 'portalOrigen', '2');
-    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
-    await elegirPortal(fixture, 'portalDestino', '45');
-    await fixture.whenStable();
-
+    await direccionEntera(fixture, http);
     expect(botonGenerar(raiz).disabled).toBe(false);
 
     botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    const peticion = http.expectOne('/api/ruta');
+    expect(peticion.request.method).toBe('POST');
+    expect(peticion.request.body).toEqual({
+      origen: { via: '5140', portal: 'Portales.5140a' },
+      destino: { via: '1900', portal: 'Portales.1900a' },
+      modo: 'andando',
+    });
+
+    peticion.flush(TRAYECTO);
+    await fixture.whenStable();
+  });
+
+  it('los pasos del motor se listan con su flecha y sus metros', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
     await fixture.whenStable();
 
-    expect(raiz.querySelectorAll('.pasos__lista li').length).toBe(3);
-    expect(raiz.querySelector('.aviso-prueba')?.textContent).toContain('DATOS DE PRUEBA');
+    expect(pasosEnPantalla(raiz)).toEqual([
+      '◉ Sal de CALLE BURGOS 2 y dirígete hacia el suroeste por Calle de Burgos 91 m',
+      '↰ Gira a la izquierda hacia la acera 150 m',
+      '↗ Gira ligeramente a la derecha hacia Avenida de Goya 96 m',
+      '⚑ AVENIDA GOYA 45 está a la izquierda',
+    ]);
+    // El paso de llegada no abre tramo: 0 metros no se escriben.
+    expect(pasosEnPantalla(raiz)[3]).not.toContain('0 m');
     expect(raiz.querySelector('.pasos__vacio')).toBeNull();
   });
 
-  it('el modo elegido es el que se muestra en el resultado', async () => {
+  /**
+   * Los diez giros del contrato tienen flecha, y son diez flechas DISTINTAS.
+   *
+   * La segunda mitad es la que de verdad vigila: un mapeo con dos giros
+   * apuntando al mismo glifo se lee igual de bien y miente igual de bien.
+   */
+  it('los diez giros del contrato tienen su flecha, y ninguna se repite', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO_DE_LOS_DIEZ);
+    await fixture.whenStable();
+
+    const flechas = flechasEnPantalla(raiz);
+    expect(flechas.length).toBe(10);
+    expect(flechas.every((f) => f !== '')).toBe(true);
+    expect(new Set(flechas).size).toBe(10);
+  });
+
+  it('la cabecera dice de dónde a dónde, cuánto, y el tiempo COMO DERIVADO', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await fixture.whenStable();
+
+    expect(raiz.querySelector('.ruta__origen')?.textContent).toContain('CALLE BURGOS 2');
+    expect(raiz.querySelector('.ruta__destino')?.textContent).toContain('AVENIDA GOYA 45');
+    expect(raiz.querySelector('.ruta__metros')?.textContent).toContain('342 m');
+
+    // 246 s son 4,1 min. Y lo que NO puede faltar es de dónde sale ese número:
+    // no está medido, es una división. Si algún día se enseña como una promesa
+    // —«4 min»— esta prueba se pone roja.
+    const duracion = raiz.querySelector('.ruta__duracion')?.textContent ?? '';
+    expect(duracion).toContain('4 min');
+    expect(duracion).toContain('5 km/h');
+  });
+
+  it('la geometría del motor llega al mapa, y regenerar retira la anterior', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(0);
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await fixture.whenStable();
+
+    expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(1);
+
+    // Segunda generación: una línea, no dos.
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await fixture.whenStable();
+
+    expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(1);
+
+    // Y una que NO trae geometría —una isla— deja el mapa limpio, no con la
+    // línea de la ruta anterior colgada debajo de un aviso que dice que no hay.
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(SIN_RUTA);
+    await fixture.whenStable();
+
+    expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(0);
+  });
+
+  it('mientras se genera, el botón lo dice y no se deja repulsar', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    expect(botonGenerar(raiz).disabled).toBe(true);
+    expect(botonGenerar(raiz).textContent).toContain('Generando');
+
+    // Y repulsarlo no manda una segunda petición.
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await fixture.whenStable();
+
+    expect(botonGenerar(raiz).disabled).toBe(false);
+    expect(botonGenerar(raiz).textContent).toContain('Generar ruta');
+  });
+
+  it('el aviso del motor se enseña en ámbar, y no se lista ningún paso', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(SIN_RUTA);
+    await fixture.whenStable();
+
+    expect(avisosDeRuta(raiz)[0]).toContain('PEÑA ZORONGO');
+    expect(avisosDeRuta(raiz)[0]).toContain('no tiene ninguna calle andable cerca');
+    expect(raiz.querySelectorAll('.paso').length).toBe(0);
+    expect(raiz.querySelector('.ruta__metros')).toBeNull();
+  });
+
+  /**
+   * El modo que se enseña es EL QUE CONTESTA EL MOTOR, no el que está pulsado.
+   * Los tres modos que faltan no dan ruta, y el motor lo dice con todas las
+   * letras: la pantalla enseña ese aviso tal cual, sin traducirlo ni suavizarlo.
+   */
+  it('un modo que el motor no atiende enseña SU aviso, no una ruta a pie', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
     raiz.querySelectorAll<HTMLButtonElement>('.modo')[3].click(); // Coche
-    await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
-    await elegirPortal(fixture, 'portalOrigen', '2');
-    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
-    await elegirPortal(fixture, 'portalDestino', '45');
-    await fixture.whenStable();
-
+    await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    const peticion = http.expectOne('/api/ruta');
+    expect((peticion.request.body as { modo: string }).modo).toBe('coche');
+    peticion.flush(MODO_SIN_ATENDER);
     await fixture.whenStable();
 
     expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Coche');
+    expect(avisosDeRuta(raiz)[0]).toContain('Todavía no calculamos rutas en modo «coche»');
+    expect(raiz.querySelectorAll('.paso').length).toBe(0);
+  });
+
+  it('si el motor no contesta, la ruta lo dice en ámbar y no pinta nada', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    http
+      .expectOne('/api/ruta')
+      .error(new ProgressEvent('error'), { status: 0, statusText: 'sin conexión' });
+    await fixture.whenStable();
+
+    expect(avisosDeRuta(raiz)[0]).toContain('No se pudo preguntar al motor');
+    expect(raiz.querySelectorAll('.paso').length).toBe(0);
+    expect(botonGenerar(raiz).disabled).toBe(false);
+    expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(0);
+  });
+
+  /**
+   * ⭐ EL ENTIERRO. La respuesta inventada del punto 2 no puede volver por la
+   * puerta de atrás: ni su aviso, ni sus frases, ni su trazado.
+   */
+  it('no queda rastro de la respuesta inventada: ni aviso, ni frases, ni trazado', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await fixture.whenStable();
+
+    expect(raiz.querySelector('.aviso-prueba')).toBeNull();
+    const todo = raiz.textContent ?? '';
+    expect(todo).not.toContain('DATOS DE PRUEBA');
+    expect(todo).not.toContain('parada de prueba');
+    expect(todo).not.toContain('línea de prueba');
   });
 
   // ── ⇅ INVERTIR ────────────────────────────────────────────────────────────
