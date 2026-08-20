@@ -588,17 +588,28 @@ pegada a un cruce → al nodo), y las islas fuera al estilo
 buscando; preferir c=0, solo a=1) · rotondas: SIN etiqueta en el grafo
 — quedan fuera, mejora futura declarada.
 
-**ENCARGO A — el dato de nombres (autorizado por Antonio el 20/08 al
-fijar el formato Google):**
-- [ ] El fichero de nombres OSM entra al repo: la respuesta Overpass de
-      la rama archivada (`2026-08-02_…_nombres.json`, 5 MB, 19.897 ways
-      con `name`) — ficha completa con: el desfase de UN DÍA con el
-      grafo (02/08 vs 03/08) declarado, la cobertura medida (16.994 de
-      47.758 ways del grafo → 40,8% de aristas, 37% de km — y que ese
-      40% es el TECHO real de OSM: el resto son aceras y pasos sin
-      nombre, no un fichero cojo), y el 19,4% de portales cuya vía OSM
-      DISCORDA del callejero (auditoría `cv`), declarado con la regla:
-      el interior habla OSM, los extremos hablan municipal
+**ENCARGO A — el dato de nombres — HECHO (20/08):**
+- [x] El fichero de nombres OSM, PROMOVIDO tal cual de la rama archivada
+      (copia por `git cat-file`, doble huella `ddd22f7d…` idéntica en
+      rama y destino, 5.023.094 bytes, 19.897 ways) a `motor/data/` —
+      decisión declarada: los pasos los redacta el motor, y `app/data/`
+      publica al navegador todo lo que pisa (`5e4a791`). ⭐ La
+      contraprueba que evitó la bitácora nº3 ANTES de ocurrir: la regla
+      `-text` del `.gitattributes` solo cubría `app/data/**` — sin
+      ampliarla, el clon habría reescrito los saltos (5.276.472 bytes,
+      otra huella, medido en clon desechable); la regla ampliada viaja
+      en el mismo commit. Los NUEVE recuentos de cobertura remedidos y
+      casando (16.994/47.758 ways · 40.316/98.774 aristas 40,8% · 2.404
+      km · 37.397/93.503 en el subgrafo útil). Ficha §1.14 (`558030d`):
+      el desfase medido fino (17 h 44 min, no «un día»; su riesgo
+      residual se manifiesta como arista-sin-nombre, caso que el 60% ya
+      obliga a tratar), el techo de OSM desglosado por highway, el 19,4%
+      discordante con la REGLA DE REPARTO escrita como norma (interior
+      OSM · extremos municipal), y el barrido de dato personal (15 ways
+      con tags de contacto, todos institucionales/comerciales, ninguna
+      persona). README a trece conjuntos / catorce fichas con el dato
+      declarado como lo que es: en el árbol, sin usar, primera pieza de
+      las rutas (`b5c25d9`)
 
 **ENCARGO B — el motor:**
 - [ ] **La proyección portal→arista, construida aquí** (el enganche se

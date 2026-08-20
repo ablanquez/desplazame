@@ -60,6 +60,13 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
+**Punto 7, pieza A HECHA (20/08):** los nombres OSM promovidos de la
+rama archivada a `motor/data/` (doble huella idéntica, nueve recuentos
+casando, ficha §1.14 con el desfase fino de 17 h 44 min y la regla de
+reparto interior-OSM/extremos-municipal) — y la contraprueba que evitó
+la bitácora nº3 antes de nacer: la regla `-text` ampliada a
+`motor/data/**` en el mismo commit. Quedan B (motor) y C (pantalla).
+
 **El punto 7, cerrada su preparación (20/08):** la consulta al grafo
 midió lo que hay (cero nombres en aristas · `p` clasifica el tipo · `m`
 verificado · el `enlaces.json` del enganche PERDIDO — la proyección se
