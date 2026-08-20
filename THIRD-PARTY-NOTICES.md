@@ -845,6 +845,11 @@ contradigan con el formulario:
 > | **2** | El `nombre_publico` del eje municipal más cercano (**§ 1.15**) | 34.675 | 37,1 % |
 > | **3** | El genérico por su `highway` real — «el carril bici», «las escaleras» | 21.431 | 22,9 % |
 >
+> **Y todo se escribe igual.** El nivel 2 llega en mayúscula administrativa y el 1 en caso
+> mixto; al narrarse, los dos pasan por la misma recomposición —significativas capitalizadas,
+> partículas en minúscula (IGN), romanos en mayúsculas (RAE), sin abreviar ni desabreviar (OSM
+> ES)—. **Es presentación: el dato no se toca y las comparaciones siguen sobre el nombre crudo.**
+>
 > **Con dos excepciones que se saltan el nivel 2, y son a propósito:** los **pasos de peatones**
 > y las **escaleras** narran por su tipo SIEMPRE, hereden lo que hereden. Una cebra CRUZA la
 > calle, no pertenece a ella, y decir «continúa por Avenida de Navarra» mientras se cruza Navarra

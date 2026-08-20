@@ -81,13 +81,13 @@
 > **⭐ Y la ruta se ve.** El motor la calcula —`POST /api/ruta` recibe las dos direcciones por
 > código— y la pantalla la enseña: la línea entera **de puerta a puerta** sobre el mapa, que se
 > encuadra solo alrededor de ella, y debajo las indicaciones al **formato de Google Maps**,
-> cada paso con su flecha, su frase y sus metros. De CALLE ALFONSO I 10 a PASEO INDEPENDENCIA
+> cada paso con su flecha, su frase y sus metros. De Calle Alfonso I 10 a Paseo Independencia
 > 3 —342 m, ~4 min— son estos cuatro:
 >
-> > ◉ Sal de CALLE ALFONSO I 10 y dirígete hacia el suroeste por Calle de Alfonso I · **91 m**
+> > ◉ Sal de Calle Alfonso I 10 y dirígete hacia el suroeste por Calle de Alfonso I · **91 m**
 > > ↰ Gira a la izquierda hacia la acera · **150 m**
 > > ↗ Gira ligeramente a la derecha hacia Plaza de España · **96 m**
-> > ⚑ PASEO INDEPENDENCIA 3 está a la izquierda
+> > ⚑ Paseo Independencia 3 está a la izquierda
 >
 > **La flecha sale del tipo de giro, no de la frase.** El motor manda el dato —`izquierda`,
 > `ligera-derecha`— y la pantalla elige el glifo; parsear el texto para ver si lleva la palabra
@@ -153,13 +153,30 @@
 > de Navarra» mientras se cruza Navarra le quita a quien anda justo el aviso que necesita.
 >
 > Así, una ruta de punta a punta deja de decir «hacia el carril bici · 1.270 m» y dice lo que se
-> anda de verdad: **AVENIDA ACADEMIA GENERAL MILITAR · 510 m** y **AVENIDA SAN JUAN DE LA PEÑA ·
+> anda de verdad: **Avenida Academia General Militar · 510 m** y **Avenida San Juan de la Peña ·
 > 1.810 m**, seguidas.
+>
+> **⭐ Y se escribe como se lee, no como se registra.** El callejero municipal publica en
+> mayúscula administrativa —`AVENIDA SAN JUAN DE LA PEÑA`— y OpenStreetMap en caso mixto;
+> mezclados en la misma lista, la ruta parecía escrita por dos personas. La última línea del
+> motor los recompone: **palabras significativas con mayúscula inicial y partículas en
+> minúscula** —el criterio de las directrices toponímicas del IGN—, **números romanos en
+> mayúsculas** —«Calle Alfonso I», que es lo que manda la RAE— y **ni una abreviatura nueva**:
+> lo que el censo escribe `NTRA. SRA.` se dice `Ntra. Sra.`, porque abreviar —y desabreviar— es
+> decisión de quien escribe el callejero, no nuestra. **El dato no se toca**: esto ocurre al
+> escribir el paso y en ningún sitio más, y las comprobaciones internas siguen operando sobre el
+> nombre crudo.
+>
+> ⚠️ **Dos cosas que salen discutibles, y se enseñan.** Con la regla del IGN, `CALLE EL COLOSO`
+> se escribe «Calle el Coloso», y ahí «El Coloso» es el nombre de un cuadro, no un artículo — no
+> hay señal en el dato para distinguirlo de «Paseo Isabel la Católica», donde la minúscula sí es
+> la correcta. Y de los 3.358 nombres del censo, **uno** queda peor que como venía: la sigla de
+> `GRUPO ALFÉREZ ROJAS (GP-F II)` se recompone a `(Gp-F II)`.
 >
 > **⭐ Y una calle se dice de UNA sola manera en toda la lista.** Los dos nombres vienen de dos
 > registros que escriben distinto —OpenStreetMap pone «Avenida de San José» y el municipal
 > «AVENIDA SAN JOSÉ»—, así que la misma avenida salía dos veces seguidas con dos ortografías: en
-> el **54,8 %** de las rutas, medido. Ahora se comparan por su **núcleo** —fuera la palabra de
+> el **54,8 %** de las rutas, medido. Se comparan por su **núcleo** —fuera la palabra de
 > tipo, fuera las partículas, fuera tildes y mayúsculas—, que es lo que hace OSRM al decidir si
 > un nombre ha cambiado de verdad; y cuando dos formas de la misma calle coinciden en una ruta,
 > **manda la municipal**, que es la que el usuario leyó en el formulario. Queda en el **2,5 %**,
