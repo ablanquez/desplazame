@@ -72,10 +72,19 @@
 > separe los dos grupos, así que el aviso habla de lo que sí se sabe: a cuántos metros está el
 > portal más cercano.
 >
+> **Y hay un dato nuevo en el árbol que todavía no hace nada.** Las aristas del grafo llevan el
+> id de calle de OpenStreetMap pero **ningún nombre**, así que un paso escrito con lo que hay
+> solo podría decir «sigue recto 200 m». La otra mitad —**19.897 calles con su nombre**— ya está
+> dentro, en `motor/data/`. **No se ha descargado nada**: el fichero llevaba desde el 02/08 en la
+> rama archivada del intento anterior, y aquí se ha promovido tal cual, con su huella y su ficha.
+> Cubre el **40,8 %** de las aristas — que es el **techo de OpenStreetMap**, no un fichero
+> incompleto: aceras y pasos de peatones no llevan nombre propio allí. **Hoy no lo usa nadie**;
+> es la primera pieza de las rutas.
+>
 > **Pero no calcula ninguna ruta**: eso no existe todavía. Tampoco se sabe aún qué líneas
 > pasan por cada poste.
 >
-> Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, doce
+> Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, trece
 > conjuntos de datos verificados, un motor que sugiere calles, sirve portales y sabe cuál cae
 > más cerca de un punto, y dos páginas
 > con andamio.**
@@ -220,15 +229,15 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son estas dos.
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
 
-> ℹ️ **Y las dos están en uso.** El repositorio lleva **doce conjuntos de datos dentro**: diez
+> ℹ️ **Y las dos están en uso.** El repositorio lleva **trece conjuntos de datos dentro**: diez
 > del Ayuntamiento de Zaragoza —el callejero, los portales, los carriles bici, los postes de
 > autobús, las estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento regulado,
-> las zonas reguladas y las reservas de espacio—, el grafo de continuidad derivado de
-> OpenStreetMap, y el GTFS del Punto de Acceso Nacional. A eso se suma la
+> las zonas reguladas y las reservas de espacio—, el grafo de continuidad y **los nombres de
+> vía**, los dos derivados de OpenStreetMap, y el GTFS del Punto de Acceso Nacional. A eso se suma la
 > **cartografía de OpenStreetMap**, que no es un fichero: el mapa la pinta en vivo.
 > **La atribución de OpenStreetMap se cumple en la pantalla**, en el control del mapa y con la
 > palabra «colaboradores» literal. La del dato municipal se cumple en
-> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —trece,
+> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —catorce,
 > contando la cartografía—: fuente, fecha de descarga, licencia y cómo volver a conseguirlo.
 
 > ⚠️ **Rectificación (18/08/2026).** Hasta hoy este párrafo decía que el repositorio **«no
