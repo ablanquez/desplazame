@@ -106,8 +106,9 @@
 > maniobras de la misma calle separadas por un giro que no es un giro son **una**; y una calle
 > que interrumpe a otra durante menos de **105 m** se absorbe entre sus dos mitades — los 105 m
 > son de OSRM, su `NAME_SEGMENT_CUTOFF_LENGTH`, leído de su fuente. En una ruta de 6,4 km de
-> punta a punta de la ciudad son **19 pasos que se quedan en 15**. Lo que **no** desaparece es un
-> giro de verdad aunque la calle se llame igual: ahí es justo donde hace falta la instrucción.
+> punta a punta de la ciudad, los **82 tramos de red** que se pisan se leen en **17 pasos**. Lo
+> que **no** desaparece es un giro de verdad aunque la calle se llame igual: ahí es justo donde
+> hace falta la instrucción.
 >
 > **Y el tiempo va dicho como lo que es**: «~4 min **a 5 km/h**». Es una división —los metros
 > entre la velocidad a pie de manual—, no un cronómetro: no entran cuestas, ni semáforos, ni el
@@ -117,8 +118,8 @@
 > OpenStreetMap pero **ningún nombre**. Las **19.897 calles con nombre** viven en `motor/data/`,
 > promovidas de la rama archivada sin descargar nada. Cubren el **40,8 %** de las aristas, que es
 > el **techo de OpenStreetMap** y no un fichero incompleto: aceras y pasos de peatones no llevan
-> nombre propio allí. Por eso lo que no tiene nombre se dice **por su tipo** —«el paso de
-> peatones», «las escaleras», «la acera»—, que es lo que hace Valhalla.
+> nombre propio allí. Lo que no tiene nombre **ni lo hereda** se dice **por su tipo** —«el paso
+> de peatones», «las escaleras», «la acera»—, que es lo que hace Valhalla.
 >
 > **Y por su tipo REAL, que no es lo mismo.** El grafo trae una etiqueta propia que mete en el
 > mismo saco la calzada, el carril bici, el camino de tierra y el vial de servicio: **4.671 de
@@ -127,6 +128,35 @@
 > Ahora manda la etiqueta `highway` de OpenStreetMap, con **los 27 valores traducidos uno a
 > uno**: «el carril bici», «el camino», «el vial de servicio», «la senda»… y «la calzada» solo
 > donde de verdad lo es. Está contado en [`docs/BITACORA.md`](docs/BITACORA.md), entrada nº7.
+>
+> **⭐ Y desde el 20/08 la mayoría ya no se dice por su tipo: se dice por su nombre.** «Hacia el
+> carril bici · 1.270 m» seguía siendo verdad y seguía sin servir, porque ese carril bici **es**
+> la Avenida Academia General Militar: va pegado a ella. El nombre no está en OpenStreetMap y no
+> va a estar —medido: **0 de 26.008** tramos mudos de Zaragoza declaran a qué calle pertenecen—,
+> pero sí está en el callejero municipal, que publica **la geometría de sus 3.359 vías**. Así que
+> el motor las descarga, y al arrancar **cada tramo mudo le pregunta a la calle que tiene al
+> lado**: se muestrea cada 15 m, cada muestra vota al eje municipal más cercano dentro de 25 m, y
+> gana el más votado. En **225 ms**, **19.358 de 29.206** tramos mudos cogen nombre, y las
+> aristas con nombre pasan del **40,0 % al 77,1 %**.
+>
+> **Con dos puertas, porque lo dudoso no se acepta solo.** Si el ganador no cubre la mitad del
+> tramo, no hereda; y si una segunda calle **con otro nombre** se lleva el 80 % de sus votos,
+> tampoco — ahí el tramo va entre dos calles y no se sabe de cuál es, así que se sigue diciendo
+> el genérico, que dice poco pero es cierto. Y los **pasos de peatones y las escaleras** no
+> heredan nunca: una cebra **cruza** la calle, no pertenece a ella, y decir «continúa por Avenida
+> de Navarra» mientras se cruza Navarra le quita a quien anda justo el aviso que necesita.
+>
+> Así, una ruta de punta a punta deja de decir «hacia el carril bici · 1.270 m» y dice lo que se
+> anda de verdad: **AVENIDA ACADEMIA GENERAL MILITAR · 430 m**, un tramo de 82 m que ninguna
+> calle reclama, y **AVENIDA SAN JUAN DE LA PEÑA · 760 m**.
+>
+> ⚠️ **Y trae un defecto conocido, que se dice en vez de esconderse.** Los nombres vienen de dos
+> registros distintos —OpenStreetMap escribe «Avenida de San José» y el municipal «AVENIDA SAN
+> JOSÉ»—, así que al pasar del carril heredado a la calzada nombrada, **la ruta dice la misma
+> calle dos veces seguidas con dos ortografías**. Medido sobre 400 rutas de 300 a 4.000 m: pasa
+> en el **54,8 %** de ellas y afecta al **6,5 %** de los pasos. No es falso —los dos nombres son
+> ciertos—, pero se lee mal, y unificarlo exige decidir **qué registro manda dentro de la ruta**.
+> Está declarado y sin decidir.
 >
 > **Y hay direcciones a las que el motor contesta que no puede, en vez de inventarse un camino.**
 > Son **581 portales** de catorce vías —460 de ellos en URBANIZACIÓN PEÑA ZORONGO— cuyas calles
@@ -137,7 +167,7 @@
 > **Lo que sigue sin existir**: rutas en bus, bici o coche —el motor lo dice cuando se las
 > piden—, y saber qué líneas pasan por cada poste.
 >
-> Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, trece
+> Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, catorce
 > conjuntos de datos verificados, y un buscador que de verdad busca — andando, de portal a
 > portal, con la ruta en el mapa y los pasos escritos debajo.**
 >
@@ -232,7 +262,7 @@ Cinco rutas vivas. Las que vengan las decide el plan, no esta lista:
 
 | | |
 |---|---|
-| `GET /api/salud` | si está vivo, y con qué dato: grafo, red andable, callejero y portales, con sus recuentos |
+| `GET /api/salud` | si está vivo, y con qué dato: grafo, red andable —con cuántos nombres trae de OpenStreetMap y cuántos hereda del callejero municipal—, callejero y portales, con sus recuentos |
 | `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
@@ -282,15 +312,16 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son estas dos.
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
 
-> ℹ️ **Y las dos están en uso.** El repositorio lleva **trece conjuntos de datos dentro**: diez
-> del Ayuntamiento de Zaragoza —el callejero, los portales, los carriles bici, los postes de
-> autobús, las estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento regulado,
-> las zonas reguladas y las reservas de espacio—, el grafo de continuidad y **los nombres de
-> vía**, los dos derivados de OpenStreetMap, y el GTFS del Punto de Acceso Nacional. A eso se suma la
+> ℹ️ **Y las dos están en uso.** El repositorio lleva **catorce conjuntos de datos dentro**:
+> **once** del Ayuntamiento de Zaragoza —el callejero, los portales, los carriles bici, los
+> postes de autobús, las estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento
+> regulado, las zonas reguladas, las reservas de espacio y **los ejes de vía**—, el grafo de
+> continuidad y **los nombres de vía**, los dos derivados de OpenStreetMap, y el GTFS del Punto
+> de Acceso Nacional. A eso se suma la
 > **cartografía de OpenStreetMap**, que no es un fichero: el mapa la pinta en vivo.
 > **La atribución de OpenStreetMap se cumple en la pantalla**, en el control del mapa y con la
 > palabra «colaboradores» literal. La del dato municipal se cumple en
-> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —catorce,
+> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —quince,
 > contando la cartografía—: fuente, fecha de descarga, licencia y cómo volver a conseguirlo.
 
 > ⚠️ **Rectificación (18/08/2026).** Hasta hoy este párrafo decía que el repositorio **«no

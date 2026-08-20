@@ -4,11 +4,11 @@ La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno*
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
 > ℹ️ **Estado a 20/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **trece** conjuntos de
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **catorce** conjuntos de
 > datos —los portales, **el callejero de vías**, los carriles bici, los postes de autobús, las
 > estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas
-> reguladas y **las reservas de espacio** del Ayuntamiento; el grafo de continuidad y **los
-> nombres de vía** derivados de OSM; y el GTFS del Punto de Acceso Nacional—. Quedan fuera las capas municipales de tranvía;
+> reguladas, **las reservas de espacio** y **los ejes de vía** del Ayuntamiento; el grafo de
+> continuidad y **los nombres de vía** derivados de OSM; y el GTFS del Punto de Acceso Nacional—. Quedan fuera las capas municipales de tranvía;
 > cada pieza llega con su autorización y su ficha.
 >
 > ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7).
@@ -793,7 +793,12 @@ sobre lo copiado:
 > peatones, sendas y caminos de servicio, y en OSM **eso normalmente no tiene nombre propio**: no
 > es que falten aquí, es que no existen allí.
 >
-> ⚠️ **Y ese 60 % se nombra por su tipo, pero por el tipo REAL** —la etiqueta `highway` que § 1.4
+> ✅ **Y desde el 20/08 ese 60 % ya no está condenado a hablar por tipo.** La mayor parte de esas
+> aceras y carriles van pegados a una calle que **sí** tiene nombre en el callejero municipal, y
+> lo heredan por vecindad: **§ 1.15**. El reparto queda 40,0 % OSM + 37,1 % municipal heredado =
+> **77,1 % de las aristas con nombre**, y solo el 22,9 % se dice por su tipo.
+>
+> ⚠️ **Y lo que sigue diciéndose por tipo, se dice por el tipo REAL** —la etiqueta `highway` que § 1.4
 > conserva en `h`—, **no por el perfil propio del grafo**. El perfil dice `eje-de-calzada` de
 > 46.643 aristas que son calzada, carril bici, camino de tierra y vial de servicio a la vez, y
 > fiándose de él el motor llegó a escribir «anda por la calzada» sobre un carril bici. Está
@@ -824,12 +829,34 @@ compara, portal a portal, el nombre municipal con el de OSM:
 callejero.** De ahí sale **la regla de reparto**, que es la única forma de que los pasos no se
 contradigan con el formulario:
 
-> **El interior de la ruta habla OSM. Los extremos hablan municipal.**
+> **Los extremos hablan MUNICIPAL. El interior habla OSM, y si OSM calla, municipal heredado,
+> y si tampoco, su tipo.**
 >
-> En medio se dice «sigue por Calle Delicias» porque es lo que el grafo sabe. Pero el origen y el
-> destino los eligió el usuario de nuestro callejero, con su código, y ahí se dice **su** nombre —
-> el que leyó al elegirlo—. Si en un extremo dijéramos el nombre de OSM, en el 19,4 % de los
+> Los **extremos** los eligió el usuario de nuestro callejero, con su código, y ahí se dice **su**
+> nombre — el que leyó al elegirlo. Si en un extremo dijéramos el de OSM, en el 19,4 % de los
 > casos le estaríamos nombrando una calle distinta de la que acaba de escribir.
+>
+> El **interior** son tres niveles y este es el orden, escrito en `comoSeLlama` de
+> [`motor/src/pasos.ts`](motor/src/pasos.ts):
+>
+> | | De dónde sale | Aristas | |
+> |---|---|---|---|
+> | **1** | El `name` del *way* en OSM | 37.397 | 40,0 % |
+> | **2** | El `nombre_publico` del eje municipal más cercano (**§ 1.15**) | 34.675 | 37,1 % |
+> | **3** | El genérico por su `highway` real — «el carril bici», «las escaleras» | 21.431 | 22,9 % |
+>
+> **Con dos excepciones que se saltan el nivel 2, y son a propósito:** los **pasos de peatones**
+> y las **escaleras** narran por su tipo SIEMPRE, hereden lo que hereden. Una cebra CRUZA la
+> calle, no pertenece a ella, y decir «continúa por Avenida de Navarra» mientras se cruza Navarra
+> le quita a quien anda justo el aviso que necesita.
+
+> ⚠️ **Y esto tiene una consecuencia visible que NO está resuelta.** Los niveles 1 y 2 son dos
+> registros distintos —OSM escribe «Avenida de San José», el municipal «AVENIDA SAN JOSÉ»—, así
+> que cuando una ruta pasa del carril bici heredado a la calzada nombrada por OSM, **dice la
+> misma calle dos veces seguidas con dos ortografías**. Medido sobre 400 rutas de 300 a 4.000 m:
+> pasa en el **54,8 % de las rutas** y afecta al **6,5 % de los pasos**. No es una mentira —los
+> dos nombres son ciertos—, pero se lee mal. **Está declarado y sin decidir**: unificarlos exige
+> elegir qué registro manda dentro de la ruta, y eso es decisión de producto, no de código.
 
 **3 · Y dos cosas menores, medidas.** 1.970 *ways* traen además `name:es`, que no se usa: manda
 `name`. Y cuatro llevan `addr:city` de **otro municipio** —Cuarte de Huerva, Villanueva de
