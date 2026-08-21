@@ -1097,9 +1097,14 @@ describe('Los pasos de una ruta real', () => {
     // la acera** y los dos trozos se funden en uno de 330 m: el giro que
     // partía la calle ya no se da. La cuenta que lo explica —soltar calzada
     // residencial y coger acera—:
-    //   residential 743,112 → 456,412  =  -286,700 m  ÷ 1,1  =  -260,636
-    //   footway     255,500 → 555,400  =  +299,900 m  ÷ 1,2  =  +249,917
-    //   Δ = 249,917 - 260,636 = -10,720 m-equivalentes = -7,718 s → minimiza.
+    //   h              shortest   prioridad         Δ m   prio    Δ m/prio
+    //   footway         255,500     555,400   +299,900    1,2    +249,917
+    //   living_street     7,300       7,300     +0,000    1,2      +0,000
+    //   pedestrian      264,919     264,919     +0,000    1,2      +0,000
+    //   residential     743,112     456,412   -286,700    1,1    -260,636
+    //   tertiary         36,600      36,600     +0,000    0,9      +0,000
+    //   SUMA           1307,431    1320,631    +13,200           -10,720
+    //   Δ coste = -10,720 / (5000/3600) = -7,718 s → minimiza.
     // Trece metros más (+1,0 %) por 286,7 m menos de calzada.
     const pasos = pasosDe(COLOSO, ZURIZA);
     const seguir = pasos.filter((paso) => paso.texto.includes(' para seguir por '));
@@ -1358,12 +1363,17 @@ describe('Los pasos de una ruta real', () => {
     //
     // ⚠️ AJUSTE (coste por prioridad). El sujeto era COLOSO → ARRUPE, que ya
     // **no pisa el paseo**: con el coste abandona el corredor central entero.
-    //   secondary 2476,400 →  115,200 = -2361,200 ÷ 0,9 = -2623,556
-    //   primary    637,900 →    0,000 =  -637,900 ÷ 0,9 =  -708,778
-    //   pedestrian 428,700 →    0,000 =  -428,700 ÷ 1,2 =  -357,250
-    //   footway   1537,700 → 6248,500 = +4710,800 ÷ 1,2 = +3925,667
-    //   (+ living_street, residential, service, tertiary)
-    //   Δ = -489,856 m-equivalentes = -352,696 s → minimiza.
+    //   h              shortest   prioridad         Δ m   prio    Δ m/prio
+    //   footway        1537,700    6248,500  +4710,800    1,2   +3925,667
+    //   living_street   841,900     262,700   -579,200    1,2    -482,667
+    //   pedestrian      428,700       0,000   -428,700    1,2    -357,250
+    //   primary         637,900       0,000   -637,900    0,9    -708,778
+    //   residential      80,027     174,327    +94,300    1,1     +85,727
+    //   secondary      2476,400     115,200  -2361,200    0,9   -2623,556
+    //   service         116,400       4,900   -111,500    0,9    -123,889
+    //   tertiary        252,300      67,700   -184,600    0,9    -205,111
+    //   SUMA           6371,327    6873,327   +502,000          -489,856
+    //   Δ coste = -489,856 / (5000/3600) = -352,696 s → minimiza.
     // Así que el guardián se muda a quien sí lo anda: PASEO INDEPENDENCIA 4 →
     // 34, que lo recorre de punta a punta.
     const pasos = pasosDe(INDEPENDENCIA_4, INDEPENDENCIA_34);
@@ -1510,10 +1520,13 @@ describe('Los pasos de una ruta real', () => {
     //
     // ⚠️ AJUSTE (coste por prioridad). Eran cuatro pasos y 341,917 m; ahora son
     // tres y 343,217 m. La cuenta, a mano y sin redondear:
-    //   tertiary       12,800 →   0,000 = -12,800 ÷ 0,9 = -14,222
-    //   living_street  53,541 →  17,741 = -35,800 ÷ 1,2 = -29,833
-    //   footway       202,076 → 251,976 = +49,900 ÷ 1,2 = +41,583
-    //   Δ = 41,583 - 44,056 = -2,472 m-equivalentes = -1,780 s → minimiza.
+    //   h              shortest   prioridad         Δ m   prio    Δ m/prio
+    //   footway         202,076     251,976    +49,900    1,2     +41,583
+    //   living_street    53,541      17,741    -35,800    1,2     -29,833
+    //   pedestrian       73,500      73,500     +0,000    1,2      +0,000
+    //   tertiary         12,800       0,000    -12,800    0,9     -14,222
+    //   SUMA            341,917     343,217     +1,300            -2,472
+    //   Δ coste = -2,472 / (5000/3600) = -1,780 s → minimiza.
     // Un metro y medio más (+0,4 %) por dejar de pisar calzada del todo: de
     // 96,3 % a **100 %** de vía peatonal. Es el «salvo cuando ésta no exista»
     // del art. 121.1 en acto. Y como el paso de «Plaza de España» desaparece
