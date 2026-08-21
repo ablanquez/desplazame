@@ -697,6 +697,39 @@ Antonio:**
       fase de datos, no producto (dicho por Antonio el 17/08). Qué
       visualización queda en la demo lo decide Antonio entonces
 
+**El acceso y el coste por modo** *(parlamentado el 21/08 con la doctrina
+delante: tabla de acceso de Valhalla [wiki OSM] · `foot.lua` y
+`bicycle.lua` de OSRM leídos de fuente · `pedestriancost.cc` de Valhalla
+leído de fuente)*. Lo que el motor hace hoy es el modo `shortest` de
+Valhalla — solo metros; documentado, pero NO el defecto de ningún motor.
+Consecuencia vista por Antonio: el peatón pisa el carril bici (prohibido
+al peatón en AMBOS motores) y compite con el eje de calzada. REGLA DE
+ANTONIO (21/08): andando = acera (y peatonal, pasos, escaleras) — nunca
+carril bici; bici = carril bici y/o calzada. La doctrina es de DOS capas:
+acceso por tipo (quién entra en la arista) + coste entre lo permitido
+(callejón ×2 · garaje ×5 · rotonda ×2 · escaleras +30 s · cruce +0-15 s;
+la acera NEUTRA por defecto — el «se favorece» es de la doc deprecated).
+Y la calzada peatonal se cierra donde su acera existe dibujada aparte
+(`sidewalk=separate` / `foot=use_sidepath` en OSRM; en Valhalla es el
+issue #4657, ABIERTO). Tres pasos que no se saltan:
+
+- [ ] **1 · Medición de solo lectura**: reparto de aristas por valor de
+      `p` dentro de `a=1` · de dónde sale el `cycleway` que narra ·
+      si existe rastro de «acera aparte» · qué tipos pisan las rutas
+      juez, paso a paso. Salida: una tabla. Cero decisiones, cero
+      ficheros tocados
+- [ ] **2 · La tabla decidida** (parlamento, decide Antonio con la
+      medición delante): un veredicto por valor de `p` y por modo —
+      prohibido · penalizado (con su factor) · neutro — y cada casilla
+      con su fila de doctrina citada o `[PROPIO]` declarado si la
+      doctrina calla. La tabla decidida se escribe AQUÍ, en su casilla
+- [ ] **3 · Construcción en el motor**: filtro de acceso por modo +
+      coste sobre lo permitido, rutas juez re-emitidas antes/después
+      para el ojo de Antonio, y el rojo que compra: una ruta que HOY
+      pisa el carril bici andando tiene que dejar de pisarlo. Si se
+      conserva el modo solo-metros como referencia, con su nombre de
+      doctrina (`shortest`), declarado — no ñapa
+
 ## 8 — Destinos con nombre: «de la calle X al hospital Y» *(nuevo, 18/08 — EN CONSTRUCCIÓN: Antonio irá añadiendo)*
 
 El destino puede ser un SITIO además de calle+portal: se está en un
@@ -743,6 +776,14 @@ portales — un sitio es una coordenada más entrando al mismo tubo.
 Carriles y continuidad ciclable sobre el mismo esqueleto del 7. La rueda
 pequeña comparte red (bici, patinete, BiZi — este último solo-bici).
 
+- [ ] **La tabla de acceso/coste del punto 7 se EXTIENDE aquí al modo
+      bici** (parlamentado el 21/08): carril bici y/o calzada [regla de
+      Antonio, coincide con ambos motores]; la calzada grande se
+      penaliza, no se prohíbe [OSRM `unsafe_highway_list`: primary 0.5 ·
+      secondary 0.65 · tertiary 0.8]. ⚠️ Discrepancia DECLARADA entre
+      motores sobre la acera en bici: OSRM la admite a velocidad de
+      peatón (desmontar) y Valhalla la prohíbe — se decide con la
+      medición y la ordenanza delante, no antes
 - [ ] **Verificar la ordenanza de Zaragoza sobre VMP antes de etiquetar
       tramos** (apuntado el 18/08): bici y patinete no van idénticos en
       toda vía (acera-bici, zonas peatonales, edades). Si hay diferencias
