@@ -14,6 +14,54 @@
 
 ---
 
+## [2026-08-21] 🔴 ABIERTA — La simulación del coste divide metros de geometría entre un `metros` que ya era coste, y el desvío de la céntrica sale 18 veces mayor
+
+**Categoría:** instrumento de medición con dos magnitudes en el mismo campo
+**Síntoma:** para simular el coste por prioridad sin tocar `motor/src/ruta.ts`,
+el script `sim.mjs` del scratchpad sustituye el campo `m` de cada arista por su
+coste —`m / (VEL × prioridad)`— y deja que el Dijkstra existente lo minimice.
+El camino que sale es correcto; **el recuento de metros no**. Los trozos de
+enganche traen metros de geometría verdaderos, y la línea que los reescala
+divide entre `ar.metros`, que en esa red **ya es coste**:
+`const suyos = tr.metros === ar.metros ? real : (tr.metros / (ar.metros || 1)) * real;`
+La ruta céntrica se reportó en **366 m (+24 sobre 342)**. Los metros verdaderos
+son **343,217 (+1,300)**: el desvío declarado salió **18 veces el real**. Y sobre
+esa cifra falsa recomendé **cambiar la expectativa del guardián de la ruta
+céntrica** — el rojo se iba a limpiar moviendo lo que el guardián espera.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** el propio `sim.mjs`, que no
+falla, no avisa y no deja ningún hueco: imprime las tres columnas cuadradas y
+creíbles, con A y B correctas —esas dos no sustituyen `m`— y solo C mentida.
+Ejecutado con el fallo vivo, antes de tocar nada:
+
+```
+$ node --max-old-space-size=8192 <scratchpad>/sim.mjs
+ALFONSO I 10 → P.º INDEPENDENCIA 3 (la céntrica)
+  A · hoy (metros)              342 m · cycleway     0 m (0.0%)
+     footway 202 · pedestrian 74 · living_street 54 · tertiary 13
+  B · sin cycleway (metros)     342 m · cycleway     0 m (0.0%)
+     footway 202 · pedestrian 74 · living_street 54 · tertiary 13
+  C · sin cycleway + prior.     366 m · cycleway     0 m (0.0%)
+     footway 262 · pedestrian 74 · living_street 30
+```
+
+**Cómo se cazó:** usuario — Antonio rehizo la aritmética de la fórmula sobre el
+desglose que le reporté (13 m tertiary + 24 m living_street sueltos, 60 m
+footway cogidos) y le salió Δ = +15,6: un Dijkstra que minimice ese coste **no**
+elegiría el camino nuevo. La cuenta no cuadraba porque los tres sumandos eran
+falsos.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** **una expectativa de guardián no se mueve con una
+cifra que no se ha cuadrado a mano contra su fórmula.** Y la que la precede:
+cuando un instrumento reutiliza un campo para guardar otra magnitud, **toda**
+lectura de ese campo queda sospechosa — no solo la que se cambió.
+**Traza:** `<scratchpad>/sim.mjs` (`conCoste`, y la línea de `suyos` dentro de
+`corre`); lo medido eran `motor/src/ruta.ts` (`calcularRuta`,
+`trozoDelEnganche`, `trozoEntero`) y `motor/src/red.ts` (`cargarRed`, el campo
+`metros` de `AristaUtil`).
+
+
 ## [2026-08-20] ✅ CERRADA — Un número romano pegado a un paréntesis deja de ser un número romano: `(GP-F II)` se escribe `(Gp-f Ii)`
 
 **Categoría:** regla aplicada al token equivocado
