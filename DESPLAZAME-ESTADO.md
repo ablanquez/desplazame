@@ -5,20 +5,24 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 18 de agosto de 2026 (noche)
+## ESTADO ACTUAL — 21 de agosto de 2026 (mañana)
 
-**⭐ PUNTO 5 CERRADO. Los puntos 1-5 están completos; lo siguiente es el
-punto 7: la primera ruta andando — ahí existe la demo.**
+**⭐ PUNTOS 1-6 CERRADOS Y EL 7 EN PIE: la demo calcula, pinta y narra
+rutas andando, y está PUBLICADA (`b027199..cb01522`, 20/08 noche). Del
+punto 7 solo queda la retirada de los andamios de carga.**
 
-Lo que existe y funciona, todo visto por el ojo de Antonio:
+Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
+levantado el 18/08 y des-caducado el 21):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
   corchetes), portal de lista real en orden natural, borrador marcado si
   se sale sin elegir, «Generar ruta» exigiendo los cuatro CÓDIGOS.
   Modos: Andando · Bus / Tranvía · Bici / Patinete · Coche (mayúscula
-  tras la barra: peso visual, decisión de Antonio). La respuesta de
-  generar sigue siendo el andamio ⚠️ DATOS DE PRUEBA (muere en el 7).
+  tras la barra: peso visual, decisión de Antonio). ⇅ invertir y «Mi
+  ubicación» dentro (punto 6). Y «Generar ruta» devuelve la RUTA REAL —
+  pintada, con los pasos escritos y las negritas por partes: la
+  respuesta falsa murió sin rastro (`2013c04`).
 - **El visor** (`/visor`): el mapa a ventana casi completa con las
   CATORCE capas apagables — portales, grafo, carriles, postes bus,
   trazados bus, tranvía ×2, BiZi, aparcabicis, aparcamotos, regulado
@@ -28,24 +32,27 @@ Lo que existe y funciona, todo visto por el ojo de Antonio:
 - **El motor**: workspaces npm, contrato en `@desplazame/tipos`,
   TypeScript SIN compilar, carga antes de `listen()` (grafo 98.774
   aristas ~190 ms · callejero 3.359 vías · 46.150 portales), ~248 MB de
-  RSS. Endpoints vivos: `/api/salud` · `/api/vias?q=` ·
-  `/api/portales?via=`. ⭐ N = 3.359 · M = 2.731 (la publicada).
-- **Los datos**: DOCE conjuntos (13 ficheros + GTFS + cartografía en
-  vivo), cada uno con ficha, huella sobre clon y atribución. CINCO
+  RSS (medido en el punto 5; el 7 sumó +344 ms de arranque y +11,1 MB de
+  heap — el RSS NO se ha vuelto a medir). Endpoints vivos, CINCO:
+  `/api/salud` · `/api/vias?q=` · `/api/portales?via=` ·
+  `/api/portal-cercano` · `POST /api/ruta`. ⭐ N = 3.359 · M = 2.731 (la publicada).
+- **Los datos**: TRECE conjuntos / catorce fichas — el decimotercero, los
+  nombres OSM, vive en `motor/data/` y NO viaja al navegador (§1.14);
+  cada uno con ficha, huella sobre clon y atribución. CINCO
   descargas propias (aparcabicis, aparcamotos, regulado, zonas, PMR),
   todas con la norma Set-Cookie. El callejero lleva 5 correcciones
   declaradas («están mal y punto»).
-- **La bitácora: 5 entradas, las 5 cerradas con ley.** Las guardias
+- **La bitácora: 8 entradas, las 8 cerradas con ley.** Las guardias
   (interfaz y motor) con rojos vistos, exigiendo las tres cargas.
 - **La carta y el README al día con la doc delante**: CLAUDE.md dice el
   motor real y apunta en vez de listar; el README tiene «Cómo arrancarlo
-  en local» PROBADO en clon limpio, los tres endpoints, los documentos
+  en local» PROBADO en clon limpio, los endpoints leídos de `servidor.ts`,
+  los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `16f40f1`. En local: el tramo final del punto 5**
-(visor y router, las cuatro capas de la tanda, la vista de cotejo, las
-capas apagadas, la etiqueta, el README — hasta `d56af44` más los cierres
-de plan/estado). El push de cierre del punto 5 es decisión de Antonio.
+**Publicado hasta `cb01522`** — push del 20/08 por la noche
+(`b027199..cb01522`, 242 objetos), y `main` emparejada con `origin/main`
+por fin. **En local no queda nada sin publicar.**
 
 **⭐ PUNTO 6 CERRADO (19/08).** El estado de los cuatro campos subió al
 padre con la doc de Angular delante (`model()` + atadura desazucarada —
@@ -111,13 +118,13 @@ futura). El plan lo estructura en TRES encargos: A el fichero de
 nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
 (pintado + pasos, y la respuesta falsa se retira).
 
-**Lo siguiente:** tres decisiones de Antonio pendientes — (1) el PUSH
-del punto 7 entero (nada publicado desde `b027199`); (2) la retirada de
-los andamios de carga del mapa (~34 MB al navegador — y qué
-visualización queda en la demo); (3) el parlamento del coste (hoy solo
-metros: elegir carril bici vs acera es accidente, no decisión). Con
-ellas, el punto 7 se cierra y el 8 (destinos con nombre) espera
-detrás, en construcción.
+**Lo siguiente:** DOS decisiones de Antonio pendientes — (1) la retirada
+de los andamios de carga del mapa (~34 MB al navegador — y qué
+visualización queda en la demo); (2) el parlamento del coste (hoy solo
+metros: elegir carril bici vs acera es accidente, no decisión). La
+tercera —el push— se ejecutó el 20/08 por la noche. Con las dos, el
+punto 7 se cierra y el 8 (destinos con nombre) espera detrás, en
+construcción.
 
 ---
 
@@ -171,8 +178,9 @@ colgadas de sus capas.
 ## 4 · El plan
 
 `PLAN-DESPLAZAME.md`, renumerado a enteros el 19/08 (fuera el «6B»):
-**1-5 CERRADOS** · 6 mi ubicación e invertir (parlamentado, lo
-inmediato) · 7 primera ruta andando (la demo) · 8 destinos con nombre
+**1-6 CERRADOS** · 7 primera ruta andando (LA DEMO EXISTE: piezas A, B
+y C hechas y publicadas; queda la casilla de los andamios) ·
+8 destinos con nombre
 (EN CONSTRUCCIÓN; ganó la regla del portal condicional y la opción de
 las 628 con trazados) · 9 bici/patinete (ordenanza VMP) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
@@ -205,32 +213,36 @@ Patinete» y «Bus / Tranvía» (mayúscula por peso visual; VMP descartado)
 
 ## 6 · Cabos abiertos
 
-**Punto 6 (lo inmediato):** los 124 portales sin enganche → `Aviso` ·
-los 628 con vía sin portal → candidato a `Aviso` · 170 componentes del
-grafo (169 islas) · `Via.nombre` crudo viaja sin usarse · la retirada de
-los andamios tiene su casilla (42 MB ya; la descarga perezosa quedó
-dicha como opción) · `enlaces.json` de la OLD referencia aristas por
-índice de ESTE grafo.
+**Punto 7 (lo que sigue vivo):** los **581** portales sin proyección →
+`Aviso` honesto con nombre (460 son URBANIZACIÓN PEÑA ZORONGO, la
+componente 39: el radio NO se sube) — sustituyen a los 124 del censo
+viejo · los 628 con vía sin portal → candidato a `Aviso`, y su casilla
+vive en el punto 8 · 170 componentes del grafo (169 islas) ·
+`Via.nombre` crudo viaja sin usarse (no re-verificado hoy) · la retirada
+de los andamios tiene su casilla (42 MB ya; la descarga perezosa quedó
+dicha como opción) · rotondas y plaza-hito, declaradas MEJORA FUTURA
+(sin etiqueta en el grafo) · ⚰️ `enlaces.json` de la OLD: cabo MUERTO —
+se perdió, y el punto 7 construyó la proyección por su cuenta.
 
 **Punto 8:** en construcción — el dato personal de farmacias tiene su
 salida apuntada («Farmacia» + dirección).
 
-**Punto 7:** la ordenanza VMP antes de etiquetar tramos · la doble
+**Punto 9:** la ordenanza VMP antes de etiquetar tramos · la doble
 capitalización «Senda ciclable/Ciclable».
 
-**Punto 8:** líneas por poste (sin guardián) · caducidad GTFS (05/10;
+**Punto 10:** líneas por poste (sin guardián) · caducidad GTFS (05/10;
 servicio 27/12) sin vigilante hasta el cron · la API viva de Bizi.
 
-**Punto 9:** parkings públicos (dos fuentes cojas) · parquímetros
+**Punto 11:** parkings públicos (dos fuentes cojas) · parquímetros
 reevaluables · las tres cuentas municipales que no cuadran.
 
-**Punto 10 (todo NO CONSTA, y creció):** versión Node del panel (el
+**Punto 12 (todo NO CONSTA, y creció):** versión Node del panel (el
 README ya advierte del `engines` sin declarar — candidato a declararlo
 aquí) · memoria (~248 MB y el 7 subirá) · proceso persistente ·
 index.html en rutas desconocidas (F5 en /visor) · symlink a lo
 construido · guardias solo-Windows si hicieran falta allí.
 
-**Punto 11:** color de marca (`NO CONSTA`) · title por ruta (la pestaña
+**Punto 13:** color de marca (`NO CONSTA`) · title por ruta (la pestaña
 dice «Desplázame» en las dos páginas) · capturas del README si se
 quieren.
 
