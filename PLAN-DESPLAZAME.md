@@ -713,11 +713,20 @@ Y la calzada peatonal se cierra donde su acera existe dibujada aparte
 (`sidewalk=separate` / `foot=use_sidepath` en OSRM; en Valhalla es el
 issue #4657, ABIERTO). Tres pasos que no se saltan:
 
-- [ ] **1 · Medición de solo lectura**: reparto de aristas por valor de
-      `p` dentro de `a=1` · de dónde sale el `cycleway` que narra ·
-      si existe rastro de «acera aparte» · qué tipos pisan las rutas
-      juez, paso a paso. Salida: una tabla. Cero decisiones, cero
-      ficheros tocados
+- [x] **1 · Medición de solo lectura — HECHA (21/08)**, git limpio
+      antes y después, totales cuadrando. ⭐ Cada arista lleva `h` (la
+      etiqueta `highway` de OSM), cargada y en uso para narrar: **la
+      tabla de la casilla 2 se escribe sobre `h`, no sobre `p`** (`p`
+      mete cycleway, track y residential en el mismo saco). `a` es
+      filtro de red, no de acceso: la calzada urbana entera está
+      dentro (71,3 % de los km útiles). Sexto valor de `p` aflorado
+      (`eje-con-acera-declarada`). ⚠️ Ningún campo de acceso OSM en la
+      arista (foot/access/oneway/surface): la doctrina de tipos
+      aplica; sus overrides, no. El antes: cycleway = 3,3 % de los km
+      y las juez lo pisan al 87,3 % y 64,7 % (la céntrica, cero); el
+      77,9 % de los carriles bici con acera propia a ≤25 m (track:
+      2,6 % — el campo no tiene acera). Detalle entero en el
+      checkpoint de la sesión del 21/08
 - [ ] **2 · La tabla decidida** (parlamento, decide Antonio con la
       medición delante): un veredicto por valor de `p` y por modo —
       prohibido · penalizado (con su factor) · neutro — y cada casilla
