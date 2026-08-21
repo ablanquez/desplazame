@@ -49,8 +49,8 @@
 >
 > Y ya hay **motor**: un servidor mínimo en Node que carga al arrancar el grafo de la ciudad,
 > el callejero y los **46.150 portales enteros**, y levanta con ellos la **red por la que de
-> verdad se puede andar** —93.503 aristas de las 98.774, ya con su adyacencia—, que es la que
-> rutea. Sirve lo que ves al rellenar el formulario
+> verdad se puede andar** —**89.047** aristas de las 98.774, ya con su adyacencia—, que es la
+> que rutea. Sirve lo que ves al rellenar el formulario
 > — de las 3.359 vías del callejero
 > ofrece las **2.731 que tienen algún portal**, porque sugerir una calle sin portales sería
 > prometer una dirección que después no se puede resolver. Cuando la calle está en un barrio
@@ -82,19 +82,18 @@
 > código— y la pantalla la enseña: la línea entera **de puerta a puerta** sobre el mapa, que se
 > encuadra solo alrededor de ella, y debajo las indicaciones al **formato de Google Maps**,
 > cada paso con su flecha, su frase y sus metros. De Calle Alfonso I 10 a Paseo Independencia
-> 3 —342 m, ~4 min— son estos cuatro:
+> 3 —343 m, ~4 min— son estos tres:
 >
 > > ◉ **Sal de** **Calle Alfonso I 10** y dirígete hacia el suroeste por **Calle de Alfonso I** · 91 m
-> > ↰ **Gira a la izquierda** hacia la acera · 150 m
-> > ↗ **Gira ligeramente a la derecha** hacia **Plaza de España** · 96 m
+> > ↰ **Gira a la izquierda** hacia la acera · 250 m
 > > ⚑ **Paseo Independencia 3** está a la izquierda
 >
 > **⭐ Y una calle puede torcer sin dejar de ser ella.** Cuando el giro no cambia de calle, el
-> paso lo dice: «Gira a la derecha **para seguir por** Calle Monasterio de Nuestra Señora de los
-> Ángeles», no «**hacia**» — que prometería una calle nueva y no la hay. Es la fórmula de
-> Valhalla, *«Turn right to stay on X»*, y **solo se usa cuando hay nombre**: por una acera
-> anónima no se «sigue», porque no había nada en lo que seguir. Pasa en el **44,5 %** de las
-> rutas medidas y afecta al **5,3 %** de los pasos.
+> paso lo dice: «Gira a la derecha **para seguir por** Calle Obón», no «**hacia**» — que
+> prometería una calle nueva y no la hay. Es la fórmula de Valhalla, *«Turn right to stay on
+> X»*, y **solo se usa cuando hay nombre**: por una acera anónima no se «sigue», porque no había
+> nada en lo que seguir. Pasa en el **57,4 %** de las rutas medidas y afecta al **6,7 %** de los
+> pasos.
 >
 > **La negrita no es adorno: es el formato de Google.** Lo que hay que hacer y por dónde, en
 > negrita; el pegamento de la frase, no. Y **el motor no manda HTML**: manda los trozos de la
@@ -121,14 +120,15 @@
 > que interrumpe a otra durante menos de **105 m** se absorbe entre sus dos mitades — los 105 m
 > son de OSRM, su `NAME_SEGMENT_CUTOFF_LENGTH`, leído de su fuente — y se absorbe **contra el
 > paso anterior sin exigir que las dos calles vecinas sean la misma**, que es la regla ancha de
-> OSRM. En una ruta de 6,4 km de punta a punta de la ciudad, los **82 tramos de red** que se
-> pisan se leen en **13 pasos**. Lo que **no** desaparece es un giro de verdad: ni el propio del
+> OSRM. En una ruta de 6,9 km de punta a punta de la ciudad, los **209 tramos de red** que se
+> pisan se leen en **25 pasos**. Lo que **no** desaparece es un giro de verdad: ni el propio del
 > tramo corto ni el que resultaría de sumar dos suaves seguidos, que se mide aparte.
 >
-> ⚠️ **Lo que la regla ancha sí se lleva: los nombres cortos que sirven para orientarse.** «Plaza
-> de España · 66 m» y «Plaza Basilio Paraíso · 62 m» dejan de aparecer en esa ruta — sus metros
-> se suman al paso anterior, pero sus nombres no se dicen. Es el precio declarado de seguir a
-> OSRM, y las dos plazas siguen viéndose en el mapa.
+> ⚠️ **Lo que la regla ancha sí se lleva: los nombres cortos que sirven para orientarse.** Un
+> tramo de plaza de sesenta o setenta metros entre dos calles —los dos casos medidos fueron
+> «Plaza de España · 66 m» y «Plaza Basilio Paraíso · 62 m»— suma sus metros al paso anterior,
+> pero su nombre no se dice. Es el precio declarado de seguir a OSRM, y esas plazas siguen
+> viéndose en el mapa.
 >
 > **Y el tiempo va dicho como lo que es**: «~4 min **a 5 km/h**». Es una división —los metros
 > entre la velocidad a pie de manual—, no un cronómetro: no entran cuestas, ni semáforos, ni el
@@ -136,7 +136,8 @@
 >
 > Para escribirlos hizo falta el otro medio dato: las aristas del grafo llevan el id de calle de
 > OpenStreetMap pero **ningún nombre**. Las **19.897 calles con nombre** viven en `motor/data/`,
-> promovidas de la rama archivada sin descargar nada. Cubren el **40,8 %** de las aristas, que es
+> promovidas de la rama archivada sin descargar nada. Cubren el **40,8 %** de las 98.774 aristas
+> del grafo, que es
 > el **techo de OpenStreetMap** y no un fichero incompleto: aceras y pasos de peatones no llevan
 > nombre propio allí. Lo que no tiene nombre **ni lo hereda** se dice **por su tipo** —«el paso
 > de peatones», «las escaleras», «la acera»—, que es lo que hace Valhalla.
@@ -156,8 +157,8 @@
 > pero sí está en el callejero municipal, que publica **la geometría de sus 3.359 vías**. Así que
 > el motor las descarga, y al arrancar **cada tramo mudo le pregunta a la calle que tiene al
 > lado**: se muestrea cada 15 m, cada muestra vota al eje municipal más cercano dentro de 25 m, y
-> gana el más votado. En **225 ms**, **19.358 de 29.206** tramos mudos cogen nombre, y las
-> aristas con nombre pasan del **40,0 % al 77,1 %**.
+> gana el más votado. En **unos 200 ms**, **18.779 de 28.554** tramos mudos cogen nombre, y las
+> aristas con nombre pasan del **39,4 % al 76,3 %**.
 >
 > **Con dos puertas, porque lo dudoso no se acepta solo.** Si el ganador no cubre la mitad del
 > tramo, no hereda; y si una segunda calle **con otro nombre** se lleva el 80 % de sus votos,
@@ -167,8 +168,37 @@
 > de Navarra» mientras se cruza Navarra le quita a quien anda justo el aviso que necesita.
 >
 > Así, una ruta de punta a punta deja de decir «hacia el carril bici · 1.270 m» y dice lo que se
-> anda de verdad: **Avenida Academia General Militar · 510 m** y **Avenida San Juan de la Peña ·
-> 1.810 m**, seguidas.
+> anda de verdad, avenida por avenida. Aquella frase, además, ya no puede salir por un segundo
+> motivo, que es el párrafo siguiente: **al peatón no se le deja entrar en un carril bici**.
+>
+> **⭐ Y desde el 21/08 el peatón va por donde le corresponde, no por donde se tarda menos.**
+> Hasta ahora el motor buscaba el camino **más corto en metros** —el modo que Valhalla llama
+> `shortest`—, y eso metía a quien anda por el carril bici siempre que fuera recto: en una ruta
+> medida, **el 87,3 % de sus metros**. El carril bici **no es sitio para un peatón**, y en eso
+> coinciden las tres fuentes: `graph.lua` de Valhalla le pone `pedestrian_forward = false`,
+> `foot.lua` de OSRM ni le da velocidad, y la Ordenanza de Circulación de Zaragoza (art. 25) no
+> lo cuenta como zona peatonal. Así que **se cierra**: 4.456 aristas fuera, la única prohibición
+> de una tabla que declara los 27 tipos de vía uno a uno.
+>
+> ⚠️ **Y se cobra un precio que se enseña.** Cerrarlo parte el grafo en 21 trozos y deja **20
+> portales sin ruta** —el 0,044 % de los 45.569 que resuelven—, repartidos en seis parcelas
+> donde el único enlace con el resto de la ciudad estaba dibujado como carril bici. Es un hueco
+> de OpenStreetMap, no una regla nuestra, y **no se les abre una excepción**: ninguna de las
+> fuentes leídas contiene la regla «reabrir la vía prohibida si es el único enlace», e
+> inventarla sería peor que el aviso honesto que ya reciben.
+>
+> **La calzada, en cambio, no se cierra: se pone detrás.** El reglamento de circulación dice que
+> el peatón va por la zona peatonal *«salvo cuando ésta no exista o no sea practicable»* (art.
+> 121.1), y ese **salvo** es un condicional — cerrar la calzada dejaría gente encerrada el día
+> que le falte un metro de acera dibujada. Se resuelve con el coste, que es la fórmula de
+> OSMAnd: `distancia / (velocidad × prioridad)`, con la acera a **×1,2**, la calle residencial a
+> ×1,1 y la calzada de verdad a **×0,9**. Esa razón —1,33— dice exactamente cuánto rodeo acepta
+> el motor por ir por la acera. Medido sobre 310 rutas: **el 79,4 % de los metros** se andan ya
+> por vía peatonal, y cuestan un **+1,9 %** de distancia. La céntrica de arriba deja de cruzar
+> por la calzada del todo, y le sale por **metro y medio**.
+>
+> **Los minutos no salen de ahí.** El coste elige el camino; el tiempo que lees sigue siendo
+> metros a 5 km/h. Son dos números distintos del mismo reloj, como en Valhalla.
 >
 > **⭐ Y se escribe como se lee, no como se registra.** El callejero municipal publica en
 > mayúscula administrativa —`AVENIDA SAN JUAN DE LA PEÑA`— y OpenStreetMap en caso mixto;
@@ -225,8 +255,10 @@
 > **Y hay direcciones a las que el motor contesta que no puede, en vez de inventarse un camino.**
 > Son **581 portales** de catorce vías —460 de ellos en URBANIZACIÓN PEÑA ZORONGO— cuyas calles
 > existen y son andables, pero forman **islas** del grafo: desde el resto de Zaragoza no se llega
-> andando. Ahí la pantalla enseña el aviso del motor en ámbar, con el nombre de la calle, y el
-> mapa se queda limpio. Ni una línea inventada para tapar el hueco.
+> andando. Y desde que el carril bici está cerrado al peatón, **20 más** en otras siete, por el
+> mismo motivo con otra causa: su único enlace estaba dibujado como carril. Ahí la pantalla
+> enseña el aviso del motor en ámbar, con el nombre de la calle, y el mapa se queda limpio. Ni
+> una línea inventada para tapar el hueco.
 >
 > **Lo que sigue sin existir**: rutas en bus, bici o coche —el motor lo dice cuando se las
 > piden—, y saber qué líneas pasan por cada poste.
@@ -330,7 +362,7 @@ Cinco rutas vivas. Las que vengan las decide el plan, no esta lista:
 | `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido de punta a punta: **p50 15 ms, p95 19**. Sin ruta, un aviso que dice por qué |
+| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 23 ms, p95 37**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**25,9 pasos y ~16 kB** de media—. Sin ruta, un aviso que dice por qué |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.

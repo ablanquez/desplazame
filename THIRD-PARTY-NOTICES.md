@@ -787,7 +787,7 @@ sobre lo copiado:
 | **De esos, con nombre aquí** | **16.994 · 35,6 %** |
 | **Aristas que quedan con nombre** | **40.316 de 98.774 · 40,8 %** |
 | Kilómetros con nombre | **2.404 de 6.500 · 37,0 %** |
-| En el subgrafo andable y conectado (`a=1` ∧ `c=0`) | **37.397 de 93.503 · 40,0 %** |
+| En el subgrafo que el peatón pisa (`a=1` ∧ `c=0` ∧ acceso) | **35.124 de 89.047 · 39,4 %** |
 
 > ℹ️ **Ese 40 % es el TECHO de OSM, no un fichero cojo.** El otro 60 % son aceras, pasos de
 > peatones, sendas y caminos de servicio, y en OSM **eso normalmente no tiene nombre propio**: no
@@ -795,8 +795,8 @@ sobre lo copiado:
 >
 > ✅ **Y desde el 20/08 ese 60 % ya no está condenado a hablar por tipo.** La mayor parte de esas
 > aceras y carriles van pegados a una calle que **sí** tiene nombre en el callejero municipal, y
-> lo heredan por vecindad: **§ 1.15**. El reparto queda 40,0 % OSM + 37,1 % municipal heredado =
-> **77,1 % de las aristas con nombre**, y solo el 22,9 % se dice por su tipo.
+> lo heredan por vecindad: **§ 1.15**. El reparto queda 39,4 % OSM + 36,8 % municipal heredado =
+> **76,3 % de las aristas con nombre**, y solo el 23,7 % se dice por su tipo.
 >
 > ⚠️ **Y lo que sigue diciéndose por tipo, se dice por el tipo REAL** —la etiqueta `highway` que § 1.4
 > conserva en `h`—, **no por el perfil propio del grafo**. El perfil dice `eje-de-calzada` de
@@ -841,9 +841,15 @@ contradigan con el formulario:
 >
 > | | De dónde sale | Aristas | |
 > |---|---|---|---|
-> | **1** | El `name` del *way* en OSM | 37.397 | 40,0 % |
-> | **2** | El `nombre_publico` del eje municipal más cercano (**§ 1.15**) | 34.675 | 37,1 % |
-> | **3** | El genérico por su `highway` real — «el carril bici», «las escaleras» | 21.431 | 22,9 % |
+> | **1** | El `name` del *way* en OSM | 35.124 | 39,4 % |
+> | **2** | El `nombre_publico` del eje municipal más cercano (**§ 1.15**) | 32.808 | 36,8 % |
+> | **3** | El genérico por su `highway` real — «el camino», «las escaleras» | 21.115 | 23,7 % |
+>
+> ⚠️ **Las cifras bajaron el 21/08 y no porque el cruce rinda menos.** La red pasó de 93.503
+> aristas a 89.047 al cerrarle al peatón el carril bici (`motor/src/andando.ts`), y con ella se
+> fueron 2.273 aristas de carril **con nombre en OSM** y 1.867 **con nombre heredado**. El
+> reparto entre los tres niveles apenas se mueve; lo que encoge es el universo. Y «el carril
+> bici» ya no puede salir en un paso: esa fila del nivel 3 existe, pero no se ejerce.
 >
 > **Y todo se escribe igual.** El nivel 2 llega en mayúscula administrativa y el 1 en caso
 > mixto; al narrarse, los dos pasan por la misma recomposición —significativas capitalizadas,
@@ -996,23 +1002,23 @@ ninguna otra calle se lo disputa. La regla, sus umbrales y sus citas están en
 
 | | *ways* | |
 |---|---|---|
-| *Ways* mudos del subgrafo útil | **29.206** | el universo del cruce |
-| ✅ **Heredan nombre municipal** | **19.358** | **66,3 %** |
-| Sin ningún eje a 25 m | 6.775 | 23,2 % — huerta, interior de manzana, parque |
-| Con eje, pero **poca cobertura** (<50 %) | 2.152 | 7,4 % |
-| **En disputa** — dos calles se lo reparten | 881 | 3,0 % |
+| *Ways* mudos del subgrafo que el peatón pisa | **28.554** | el universo del cruce |
+| ✅ **Heredan nombre municipal** | **18.779** | **65,8 %** |
+| Sin ningún eje a 25 m | 6.764 | 23,7 % — huerta, interior de manzana, parque |
+| Con eje, pero **poca cobertura** (<50 %) | 2.123 | 7,4 % |
+| **En disputa** — dos calles se lo reparten | 848 | 3,0 % |
 | Sin geometría que muestrear | 40 | 0,1 % |
 
 Y lo que eso le hace a los pasos, que es para lo que se ha traído:
 
-| Aristas del subgrafo andable | | |
+| Aristas del subgrafo que el peatón pisa | | |
 |---|---|---|
-| Con `name` de OSM (§ 1.14) | 37.397 | 40,0 % |
-| **+ nombre municipal heredado** | **34.675** | **+37,1 %** |
-| **= con nombre** | **72.072** | **77,1 %** · 2.915 de 5.651 km |
-| Siguen mudas, y se dicen por su tipo | 21.431 | 22,9 % |
+| Con `name` de OSM (§ 1.14) | 35.124 | 39,4 % |
+| **+ nombre municipal heredado** | **32.808** | **+36,8 %** |
+| **= con nombre** | **67.932** | **76,3 %** · 2.749,8 de 5.466,6 km |
+| Siguen mudas, y se dicen por su tipo | 21.115 | 23,7 % |
 
-**Cuesta 225 ms al arrancar y deja ~1,0 MB vivos.** El índice de los 67.583 segmentos de eje
+**Cuesta unos 200 ms al arrancar** —cinco medidas: 186, 190, 196, 204 y 215— **y deja ~1,0 MB vivos.** El índice de los 67.583 segmentos de eje
 **muere en cuanto termina el cruce**: lo único que sobrevive es el `Map` de *way* a nombre.
 
 **La distancia media al eje heredado es 4,9 m (p50)**, 14,4 en el p90 y 22,4 en el p99. Cuadra
@@ -1024,7 +1030,7 @@ se cree que se está casando.
 > duda es visible, pero un *way* pegado a una sola calle hereda **siempre**, y si el callejero lo
 > tiene mal, se hereda mal. El modo de fallo documentado del proyecto OpenSidewalks es
 > exactamente ese: heredar la calle de enfrente. **No se ha auditado caso a caso**, y hasta que
-> se haga, la cifra honrada es «77,1 % de aristas con nombre», no «77,1 % con el nombre correcto».
+> se haga, la cifra honrada es «76,3 % de aristas con nombre», no «76,3 % con el nombre correcto».
 
 ---
 
