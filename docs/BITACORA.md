@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-21] 🔴 ABIERTA — La simulación del coste divide metros de geometría entre un `metros` que ya era coste, y el desvío de la céntrica sale 18 veces mayor
+## [2026-08-21] ✅ CERRADA — La simulación del coste divide metros de geometría entre un `metros` que ya era coste, y el desvío de la céntrica sale 18 veces mayor
 
 **Categoría:** instrumento de medición con dos magnitudes en el mismo campo
 **Síntoma:** para simular el coste por prioridad sin tocar `motor/src/ruta.ts`,
@@ -49,13 +49,50 @@ desglose que le reporté (13 m tertiary + 24 m living_street sueltos, 60 m
 footway cogidos) y le salió Δ = +15,6: un Dijkstra que minimice ese coste **no**
 elegiría el camino nuevo. La cuenta no cuadraba porque los tres sumandos eran
 falsos.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** la simulación guardó el **coste dentro del campo llamado
+`metros`** (`AristaUtil.metros`, que viene de `AristaCruda.m`) para poder
+reutilizar el Dijkstra sin tocarlo. Un campo, dos magnitudes, y ningún sitio
+donde se notara. De ahí salieron **dos defectos, no uno**:
+
+1. **El recuento.** `(tr.metros / ar.metros) * real` divide metros de geometría
+   entre segundos. Sobre el camino de `prioridad` da **365,561 m** donde los
+   verdaderos son **343,217**. El desvío declarado fue `365,561 - 341,917 =
+   23,644` frente a `1,300` reales: **×18,2** — el «18 veces» del síntoma
+   cuadra sin redondeo.
+2. **El peso en el montículo**, que no llegué a ver al capturar. `puertasDe`
+   valoraba los trozos de enganche con `metrosHastaElEnganche` —geometría, o
+   sea metros— mientras las aristas enteras iban en segundos: un desajuste de
+   **×VEL×prioridad = ×1,667** en los dos extremos de cada ruta. En la céntrica
+   **no cambió el camino elegido**, porque los dos candidatos salían por las
+   MISMAS dos puertas y el sesgo se restaba solo. Eso no lo exonera: cuando las
+   cuatro combinaciones salen por puertas distintas, ese ×1,667 sí decide.
+
+**Arreglo aplicado:** la implementación de verdad mantiene las dos magnitudes
+separadas y en su unidad, en `motor/src/ruta.ts`: `Cuaderno` gana `metros:
+Float64Array` junto a `coste`, con el motivo escrito al lado; `Puerta` gana
+`coste` y se valora **con la misma fórmula que las aristas enteras** (`puertasDe`
+recibe el criterio), que es el arreglo directo del ×1,667; `Ruta.coste` se
+declara en segundos y `Ruta.metros` sigue siendo metros; y `red.costeAndando`
+(`motor/src/red.ts`) precalcula el coste por arista una vez al arrancar en vez
+de dividir en cada relajación. Comprobado por dos caminos independientes: el
+coste que el Dijkstra acumula en la céntrica y el que sale de refacturar sus
+trozos por fuera dan **205,930 s** los dos. `sim.mjs` no volvió a usarse para
+medir nada.
+**Commit:** `635131f` — *feat(motor): el coste por prioridad - la formula de
+osmand*.
 **Ley que sale de aquí:** **una expectativa de guardián no se mueve con una
 cifra que no se ha cuadrado a mano contra su fórmula.** Y la que la precede:
 cuando un instrumento reutiliza un campo para guardar otra magnitud, **toda**
 lectura de ese campo queda sospechosa — no solo la que se cambió.
+
+*Añadida al cerrar (2026-08-21):* **que el resultado saliera bien no exonera al
+instrumento.** El ×1,667 no cambió el camino de la céntrica de pura suerte —los
+dos candidatos compartían puertas—, y esa suerte es justo lo que habría dejado
+el defecto vivo si solo se hubiera mirado si el camino «parecía razonable». Un
+instrumento con dos unidades dentro se repara aunque su respuesta coincida con
+la buena. Y una tercera, del método: **el coste se guarda en segundos, no en
+«metros equivalentes»**; tener una unidad de verdad es lo que hace que mezclarla
+se note.
 **Traza:** `<scratchpad>/sim.mjs` (`conCoste`, y la línea de `suyos` dentro de
 `corre`); lo medido eran `motor/src/ruta.ts` (`calcularRuta`,
 `trozoDelEnganche`, `trozoEntero`) y `motor/src/red.ts` (`cargarRed`, el campo
