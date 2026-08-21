@@ -67,6 +67,30 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
+**Punto 7, casilla 1 del acceso/coste HECHA (21/08) — el censo del
+grafo, solo lectura, cero ficheros tocados.** ⭐ El hallazgo: cada
+arista lleva DOS etiquetas — `p` (6 valores gordos) y **`h`, que es la
+etiqueta `highway` de OSM**, ya cargada en memoria y ya usada para
+narrar (es de donde sale «el carril bici»: cadena de cinco eslabones
+con fichero y línea). `p` solo NO traduce la doctrina (mete 4.452
+carriles bici, 7.254 track y 12.574 residential en el mismo saco
+eje-de-calzada); **`h` sí: la tabla de la casilla 2 se calca sobre `h`
+fila a fila.** Descubrimientos al censo: sexto valor de `p` no
+catalogado (`eje-con-acera-declarada`, 2.385 útiles / 96,5 km) · `a`
+NO es acceso peatonal, es filtro de red (quita autopistas/enlaces/
+obras; deja dentro TODA la calzada urbana: 41.716 aristas de
+eje-de-calzada, el 71,3 % de los km útiles) · ⚠️ carencia sin arreglo
+con lo que hay: NINGÚN campo de acceso en la arista (foot/access/
+oneway/surface — nada): la doctrina de tipos es aplicable, sus
+overrides de OSM no. El antes, retratado: cycleway = 3,3 % de los km
+útiles y las rutas juez lo pisan al 87,3 % (Coloso→Zuriza) y 64,7 %
+(L. Romeo→Coloso); la céntrica, cero; **y el 77,9 % de los carriles
+bici tienen acera propia a ≤25 m** (la ciudad ~75-80 %, el track
+2,6 % — la regla absoluta dejaría al campo sin camino, por eso la
+doctrina la hace condicional). Totales cuadrando en todas las tablas;
+la alineación no-única de la ruta 3 declarada (4 m de 4.464, ningún
+`h` cambia).
+
 **Punto 7, pieza C HECHA (20/08) — EXISTE LA DEMO.** La pantalla pinta
 la ruta real, lista los pasos con flechas y negritas (partes
 estructuradas accion/via), y la respuesta falsa murió sin rastro. Seis
@@ -120,11 +144,12 @@ nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
 
 **Lo siguiente:** DOS decisiones de Antonio pendientes — (1) la retirada
 de los andamios de carga del mapa (~34 MB al navegador — y qué
-visualización queda en la demo); (2) el parlamento del coste (hoy solo
-metros: elegir carril bici vs acera es accidente, no decisión). La
-tercera —el push— se ejecutó el 20/08 por la noche. Con las dos, el
-punto 7 se cierra y el 8 (destinos con nombre) espera detrás, en
-construcción.
+visualización queda en la demo); (2) el parlamento del
+acceso/coste — su casilla 1 (medición) está HECHA y la casilla 2 es la
+tabla `h` → veredicto por modo, que se decide aquí fila a fila con la
+doctrina delante. La tercera —el push— se ejecutó el 20/08 por la
+noche. Con las dos, el punto 7 se cierra y el 8 (destinos con nombre)
+espera detrás, en construcción.
 
 ---
 
@@ -221,7 +246,11 @@ vive en el punto 8 · 170 componentes del grafo (169 islas) ·
 `Via.nombre` crudo viaja sin usarse (no re-verificado hoy) · la retirada
 de los andamios tiene su casilla (42 MB ya; la descarga perezosa quedó
 dicha como opción) · rotondas y plaza-hito, declaradas MEJORA FUTURA
-(sin etiqueta en el grafo) · ⚰️ `enlaces.json` de la OLD: cabo MUERTO —
+(sin etiqueta en el grafo) · la arista NO trae campos de acceso OSM
+(foot/access/oneway/surface): los overrides de la doctrina no son
+aplicables con el dato que hay — se trabaja con la tabla de tipos
+pelada o se decide traer el dato (casilla 2) · el sexto valor de `p`
+(`eje-con-acera-declarada`) existe y el estado ya lo cataloga · ⚰️ `enlaces.json` de la OLD: cabo MUERTO —
 se perdió, y el punto 7 construyó la proyección por su cuenta.
 
 **Punto 8:** en construcción — el dato personal de farmacias tiene su
