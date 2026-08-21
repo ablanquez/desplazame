@@ -7,9 +7,13 @@
  *
  * Tres cosas se hacen y ninguna más:
  *
- * 1. **Quedarse con el subgrafo útil** — `a=1` (andable) y `c=0` (la componente
- *    mayor). Es el estilo `minimum_reachability` de Valhalla: un candidato en
- *    una isla se descarta, porque una ruta que empieza en una isla no existe.
+ * 1. **Quedarse con el subgrafo por el que el peatón puede andar** — `a=1`
+ *    (andable), `c=0` (la componente mayor) **y la tabla de acceso por tipo**
+ *    (`andando.ts`). Los dos primeros son estilo `minimum_reachability` de
+ *    Valhalla: un candidato en una isla se descarta, porque una ruta que
+ *    empieza en una isla no existe. El tercero es la ley: por el carril bici
+ *    no se anda, y cerrarlo aquí —al construir la red, no al rutear— es lo que
+ *    hacen las dos implementaciones de referencia.
  * 2. **Reconstruir los nodos** por coincidencia EXACTA de coordenada entre los
  *    extremos de las aristas. Medido en la consulta del 19/08 sobre el grafo
  *    entero: 68.639 extremos distintos frente a los 68.649 que el fichero
@@ -27,6 +31,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { AristaCruda, GrafoEnMemoria } from './grafo.ts';
+import { ACCESO_ANDANDO, puedeAndar } from './andando.ts';
 import { heredarNombres, type Herencias } from './ejes.ts';
 // `nucleoDe` viene de `pasos.ts`, y no hay ciclo: `pasos.ts` solo importa de
 // aquí un **tipo**, que Node borra al ejecutar. Su única dependencia de valor
@@ -85,8 +90,9 @@ export interface RedEnMemoria {
    *
    * Tres cifras que son tres cosas distintas, y conviene no confundirlas:
    * 19.897 entradas en el fichero · **15.388 de los 44.594 *ways* del subgrafo
-   * útil** tienen nombre aquí · y eso son **37.397 de las 93.503 aristas**
-   * (40,0%), que es la cifra de la ficha § 1.14.
+   * útil** tienen nombre aquí · y eso son **35.124 de las 89.047 aristas**
+   * (39,4%). Eran 37.397 de 93.503 (40,0%) antes de que la tabla de acceso
+   * cerrara el carril bici: las 2.273 que faltan son carril CON nombre.
    */
   readonly nombreDeWay: ReadonlyMap<number, string>;
   /**
@@ -100,7 +106,7 @@ export interface RedEnMemoria {
    *
    * Va como `Map` por `w` y no como campo de cada arista **porque `h` es
    * constante dentro de un *way*** — verificado: 0 de las 98.774 aristas
-   * discrepan del `h` de su way—. Así son 47.758 entradas en vez de 93.503
+   * discrepan del `h` de su way—. Así son 47.758 entradas en vez de 89.047
    * punteros, y queda simétrico con `nombreDeWay`, que se llena igual y se
    * consulta igual.
    *
@@ -129,6 +135,20 @@ export interface RedEnMemoria {
    * Se usa **solo al escribir un paso**; no interviene en ninguna comparación.
    */
   readonly articulosPropios: ArticulosPropios;
+  /**
+   * ⭐ Cuántas aristas dejó fuera la **tabla de acceso** — y de qué tipo.
+   *
+   * Cuenta solo sobre las que ya habían pasado `a=1 ∧ c=0`: es el precio de la
+   * tabla, aislado de los otros dos filtros. Se publica porque una red que
+   * encoge sin que nadie lo note es justo lo que la tabla no quiere ser.
+   */
+  readonly cerradasPorTipo: ReadonlyMap<string, number>;
+  /**
+   * De esas, cuántas cayeron por **no tener fila en la tabla** en vez de por
+   * una prohibición declarada. **Tiene que ser 0**: si sube, es que el dato
+   * trae un tipo nuevo que nadie ha decidido, y hay que decidirlo.
+   */
+  readonly sinFilaEnLaTabla: number;
   /** Cuántos extremos sueltos quedan (grado 1): puntas del dato, no error. */
   readonly puntasSueltas: number;
   readonly cargadoEnMs: number;
@@ -157,12 +177,25 @@ function clave(punto: readonly [number, number]): string {
 export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
   const principio = performance.now();
 
-  // ── 1 · El subgrafo útil ───────────────────────────────────────────────────
+  // ── 1 · El subgrafo por el que el peatón puede andar ───────────────────────
+  // El orden importa para contar: `cerradasPorTipo` cuenta solo las que la
+  // tabla de acceso quita de lo que **iba a entrar**, no las que ya sobraban
+  // por `a` o por `c`. Sin ese orden, la cifra mezclaría tres motivos.
   const utiles: AristaCruda[] = [];
+  const cerradasPorTipo = new Map<string, number>();
+  let sinFilaEnLaTabla = 0;
   for (const cruda of memoria.grafo.aristas) {
-    if (cruda.a === 1 && cruda.c === 0) {
-      utiles.push(cruda);
+    if (cruda.a !== 1 || cruda.c !== 0) {
+      continue;
     }
+    if (!puedeAndar(cruda.h)) {
+      cerradasPorTipo.set(cruda.h, (cerradasPorTipo.get(cruda.h) ?? 0) + 1);
+      if (!(cruda.h in ACCESO_ANDANDO)) {
+        sinFilaEnLaTabla++;
+      }
+      continue;
+    }
+    utiles.push(cruda);
   }
 
   // ── 2 · Los nodos, por coincidencia exacta de coordenada ───────────────────
@@ -308,6 +341,8 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
     nombreHeredado: herencias.nombreHeredado,
     herencias,
     articulosPropios,
+    cerradasPorTipo,
+    sinFilaEnLaTabla,
     puntasSueltas,
     cargadoEnMs: performance.now() - principio,
   };

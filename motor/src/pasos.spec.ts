@@ -1059,7 +1059,12 @@ describe('Los pasos de una ruta real', () => {
     // Un paso de en medio: «Gira a la derecha» + « hacia » + la avenida.
     assert.deepEqual(papeles(1), ['accion', 'texto', 'via']);
     assert.equal(pasos[1]!.partes[0]!.texto, 'Gira a la derecha');
-    assert.equal(pasos[1]!.partes[2]!.texto, 'Avenida Academia General Militar');
+    // ⚠️ AJUSTE (tabla de acceso). Decía «Avenida Academia General Militar»,
+    // el nombre MUNICIPAL que el carril bici heredaba por vecindad. Cerrado el
+    // carril, la ruta va por la acera de la avenida — y esa acera **sí tiene
+    // nombre propio en OSM**, así que ahora el nombre sale del nivel 1 y no del
+    // 2. Es la misma avenida dicha por su otro registro.
+    assert.equal(pasos[1]!.partes[2]!.texto, 'Avenida de la Academia General Militar');
     // La llegada no lleva acción: es un estado, no una orden.
     assert.deepEqual(papeles(pasos.length - 1), ['via', 'texto']);
   });
@@ -1392,12 +1397,19 @@ describe('Los pasos de una ruta real', () => {
     // propio. Ahora se absorbe dentro de la primera: las dos avenidas van
     // SEGUIDAS. Los metros no se pierden, se suman a la Academia.
     const pasos = pasosDe(COLOSO, ARRUPE);
-    const academia = pasos.findIndex((p) => p.texto.endsWith('hacia Avenida Academia General Militar'));
-    const sanJuan = pasos.findIndex((p) => p.texto.endsWith('hacia Avenida San Juan de la Peña'));
-    assert.ok(academia >= 0, 'el carril bici de la Academia sigue sin nombre');
+    //
+    // ⚠️ AJUSTE (tabla de acceso). Ya no se anda por el carril: se anda por la
+    // acera de al lado, que en OSM se llama «Avenida de la Academia General
+    // Militar» y «Avenida de San Juan de la Peña». **Lo que esta prueba
+    // protege no cambia** — que las dos avenidas salgan seguidas y con nombre,
+    // no como un tramo mudo de 1.270 m.
+    const academia = pasos.findIndex((p) =>
+      p.texto.endsWith('hacia Avenida de la Academia General Militar'),
+    );
+    const sanJuan = pasos.findIndex((p) => p.texto.endsWith('hacia Avenida de San Juan de la Peña'));
+    assert.ok(academia >= 0, 'la Academia sigue sin nombre');
     assert.equal(sanJuan, academia + 1, 'entre las dos avenidas se ha colado un paso');
-    // 430 m de avenida + los 82 del carril absorbido, redondeados a la decena.
-    assert.equal(pasos[academia]!.metros, 510);
+    assert.equal(pasos[academia]!.metros, 500);
   });
 
   test('⭐ y la ruta larga ya no dice la MISMA avenida dos veces seguidas', () => {
@@ -1406,12 +1418,15 @@ describe('Los pasos de una ruta real', () => {
     // San Juan de la Peña · 1040 m» (de OSM, la calzada). Misma avenida, dos
     // registros, dos pasos. Ahora es uno, y con el nombre municipal.
     const pasos = pasosDe(COLOSO, ARRUPE);
+    //
+    // ⚠️ AJUSTE (tabla de acceso). Sigue saliendo UNA sola vez, que es lo que
+    // la prueba protege; el nombre lo pone ahora OSM —«Avenida de San Juan de
+    // la Peña»— en vez del censo municipal, porque la acera por la que se anda
+    // desde que el carril está cerrado sí está nombrada en OSM.
     const sanJuan = pasos.filter((p) => /SAN JUAN DE LA PEÑA$/i.test(p.texto));
     assert.equal(sanJuan.length, 1, `sale ${sanJuan.length} veces: ${sanJuan.map((p) => p.texto)}`);
-    // Y se escribe con el artículo de la partícula en minúscula, no con la
-    // mayúscula administrativa del censo: es el mismo nombre, presentado.
-    assert.match(sanJuan[0]!.texto, /hacia Avenida San Juan de la Peña$/);
-    assert.equal(sanJuan[0]!.metros, 1810, 'los 760 y los 1.040 tienen que sumarse');
+    assert.match(sanJuan[0]!.texto, /hacia Avenida de San Juan de la Peña$/);
+    assert.equal(sanJuan[0]!.metros, 1830, 'los dos trozos tienen que sumarse');
   });
 
   test('la ruta céntrica corta NO se toca: sigue en cuatro pasos', () => {

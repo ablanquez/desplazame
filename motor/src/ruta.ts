@@ -3,7 +3,7 @@
  *
  * Dijkstra unidireccional con montículo binario. **No hace falta más**, y no
  * es una corazonada: el bidireccional y las jerarquías de contracción existen
- * para grafos continentales, y esto es una ciudad de 93.503 aristas. La doc
+ * para grafos continentales, y esto es una ciudad de 89.047 aristas. La doc
  * del punto 7 lo dejó decidido; lo que aquí se hace es medirlo (ver
  * `ruta.spec.ts` y el checkpoint).
  *
@@ -141,7 +141,7 @@ class Monticulo {
 /**
  * Los arrays de trabajo del Dijkstra, reservados UNA vez.
  *
- * Reservar 65.697 huecos por petición sería medio megabyte de basura cada vez.
+ * Reservar 64.274 huecos por petición sería medio megabyte de basura cada vez.
  * En su lugar se guarda un sello por nodo: si el sello no es el de esta
  * consulta, el nodo cuenta como no visitado. Limpiar es sumar uno a un
  * contador.

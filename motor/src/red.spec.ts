@@ -13,6 +13,7 @@ import { test, before, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed, type RedEnMemoria } from './red.ts';
+import { puedeAndar } from './andando.ts';
 import type { GrafoEnMemoria } from './grafo.ts';
 
 let grafo: GrafoEnMemoria;
@@ -24,15 +25,21 @@ describe('La red', () => {
     red = cargarRed(grafo);
   });
 
-  test('se queda con el subgrafo útil: andable y en la componente mayor', () => {
-    assert.equal(red.aristas.length, 93503);
-    // Y ninguna se cuela: si alguna llegara con a=0 o c!=0, la ruta podría
-    // meter al usuario por una autopista o por una isla.
+  test('⭐ se queda con lo andable, lo conectado y lo PERMITIDO al peatón', () => {
+    // Eran 93.503 con `a=1 ∧ c=0`. La tabla de acceso (`andando.ts`) quita
+    // 4.456 más —todas `h=cycleway`, la única prohibición— y quedan 89.047.
+    assert.equal(red.aristas.length, 89047);
+    assert.equal([...red.cerradasPorTipo].flat().join(), 'cycleway,4456');
+    // ⭐ Y ninguna cayó por no tener fila: el hueco de la tabla es 0.
+    assert.equal(red.sinFilaEnLaTabla, 0);
+    // Y ninguna se cuela: si alguna llegara con a=0, c!=0 o prohibida, la ruta
+    // podría meter al usuario por una autopista, por una isla o por el carril.
     const crudas = new Map(grafo.grafo.aristas.map((a) => [a.i, a]));
     for (const arista of red.aristas) {
       const cruda = crudas.get(arista.i)!;
       assert.equal(cruda.a, 1);
       assert.equal(cruda.c, 0);
+      assert.equal(puedeAndar(cruda.h), true, `${cruda.h} no se anda y está dentro`);
     }
   });
 
@@ -42,8 +49,21 @@ describe('La red', () => {
     // prueba fija es que sigan siendo diez y no se conviertan en mil sin que
     // nadie se entere.
     assert.equal(grafo.grafo.contadores.tamanoMayor, 65707);
-    assert.equal(red.nodos, 65697);
-    assert.equal(grafo.grafo.contadores.tamanoMayor - red.nodos, 10);
+    // ⭐ El desajuste de 10 sigue vivo, y se mide donde se medía: sobre
+    // `a=1 ∧ c=0`, ANTES de que la tabla de acceso quite nada. Cambiar esta
+    // cuenta por la de la red nueva habría borrado el hallazgo en vez de
+    // conservarlo — son dos restas distintas y las dos importan.
+    const antesDeLaTabla = new Set<string>();
+    for (const a of grafo.grafo.aristas) {
+      if (a.a !== 1 || a.c !== 0) continue;
+      antesDeLaTabla.add(`${a.g[0]![0]},${a.g[0]![1]}`);
+      antesDeLaTabla.add(`${a.g[a.g.length - 1]![0]},${a.g[a.g.length - 1]![1]}`);
+    }
+    assert.equal(antesDeLaTabla.size, 65697);
+    assert.equal(grafo.grafo.contadores.tamanoMayor - antesDeLaTabla.size, 10);
+    // Y lo que la tabla de acceso se lleva por su cuenta: 1.423 nodos.
+    assert.equal(red.nodos, 64274);
+    assert.equal(antesDeLaTabla.size - red.nodos, 1423);
   });
 
   test('⭐ el cruce de artículos propios: 252 núcleos que OSM escribe altos', () => {
@@ -101,10 +121,13 @@ describe('La red', () => {
     }
   });
 
-  test('el cruce de nombres carga, y cubre las 37.397 aristas de la ficha', () => {
+  test('el cruce de nombres carga, y cubre 35.124 aristas de la red nueva', () => {
+    // El fichero no cambia —19.897 entradas—, pero la red sí: eran 37.397 de
+    // 93.503 (40,0 %) y ahora son 35.124 de 89.047 (39,4 %). Las 2.273 que
+    // faltan son carril bici CON nombre en OSM, que ya no está en la red.
     assert.equal(red.nombreDeWay.size, 19897);
     const conNombre = red.aristas.filter((a) => red.nombreDeWay.has(a.way)).length;
-    assert.equal(conNombre, 37397);
+    assert.equal(conNombre, 35124);
     // La que abrió el cruce en la consulta del 19/08.
     assert.equal(red.nombreDeWay.get(4759672), 'Calle de San Francisco de Borja');
   });

@@ -129,6 +129,7 @@ const servidor = createServer((peticion, respuesta) => {
         nodos: red.nodos,
         nombres: red.nombreDeWay.size,
         heredados: red.nombreHeredado.size,
+        cerradas: [...red.cerradasPorTipo.values()].reduce((t, n) => t + n, 0),
         celdas: rejilla.celdas.size,
         cargadoEnMs: Math.round(red.cargadoEnMs + rejilla.cargadoEnMs),
       },

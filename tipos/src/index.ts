@@ -322,6 +322,15 @@ export interface SaludRed {
   readonly nodos: number;
   readonly nombres: number;
   readonly heredados: number;
+  /**
+   * Cuántas aristas dejó fuera la **tabla de acceso del peatón**, sobre las que
+   * ya habían pasado `a=1 ∧ c=0`. Hoy son todas `h=cycleway`.
+   *
+   * Se publica porque es el precio de la tabla, y un precio que no se ve no se
+   * puede vigilar: si un día subiera sin que nadie hubiera cambiado la tabla,
+   * sería el dato el que cambió.
+   */
+  readonly cerradas: number;
   readonly celdas: number;
   readonly cargadoEnMs: number;
 }

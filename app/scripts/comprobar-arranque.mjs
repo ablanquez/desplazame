@@ -126,17 +126,29 @@ const CALLEJERO_ESPERADO = { vias: 3359, sugeribles: 2731, portales: 46150 };
  * hasta el punto 7 eso era exactamente lo que pasaba — por eso hace falta una
  * comprobación propia y no vale con mirar el grafo.
  *
- * `aristas` 93.503 es el subgrafo a=1 ∧ c=0; `nodos` 65.697 es lo que sale de
- * juntar coordenadas —diez menos que los 65.707 que el fichero declara, y esos
- * diez NO CONSTAN—; `nombres` 19.897 es el fichero de § 1.14 entero.
+ * `aristas` 89.047 es el subgrafo `a=1 ∧ c=0` **y permitido al peatón**: sobre
+ * las 93.503 de antes, la tabla de acceso de `andando.ts` cierra 4.456 de
+ * carril bici. `cerradas` es esa cifra, y va aquí porque una red que encoge sin
+ * que nadie lo note es justo lo que la tabla no quiere ser.
  *
- * `heredados` 19.358 son los *ways* mudos que cogen su nombre del callejero
+ * `nodos` 64.274 es lo que sale de juntar coordenadas. Antes de la tabla eran
+ * 65.697, diez menos que los 65.707 que el fichero declara, y esos diez siguen
+ * sin CONSTAR; los otros 1.423 los cierra la tabla. `nombres` 19.897 es el
+ * fichero de § 1.14 entero, que no depende de la red.
+ *
+ * `heredados` 18.779 son los *ways* mudos que cogen su nombre del callejero
  * municipal por vecindad (§ 1.15). Va aquí y no como adorno: es el número que
  * distingue un motor que cruzó los ejes de uno que arrancó sin ellos, y ese
  * segundo contesta rutas correctas con dos tercios de los pasos mudos — que
  * es justo la clase de fallo que no se ve mirando si el motor responde.
  */
-const RED_ESPERADA = { aristas: 93503, nodos: 65697, nombres: 19897, heredados: 19358 };
+const RED_ESPERADA = {
+  aristas: 89047,
+  nodos: 64274,
+  nombres: 19897,
+  heredados: 18779,
+  cerradas: 4456,
+};
 
 /**
  * Y lo que tienen que traer los portales, ahora que el motor los carga
