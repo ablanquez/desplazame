@@ -29,6 +29,7 @@
  */
 
 import type { RedEnMemoria } from './red.ts';
+import { costeDe } from './andando.ts';
 import {
   metrosDeLaGeometria,
   metrosHastaElEnganche,
@@ -38,6 +39,20 @@ import {
 
 /** Un punto en `[lon, lat]`, como el grafo. */
 type Punto = readonly [number, number];
+
+/**
+ * ⭐ Qué minimiza el Dijkstra.
+ *
+ * - `prioridad` — **el de la casa**: el coste de [DOC OSMAnd `routing.xml`],
+ *   `distancia / (velocidad × prioridad)`. Es lo que resuelve el «salvo cuando
+ *   ésta no exista» del [LEY RGC art. 121.1] sin cerrarle la calzada a nadie.
+ * - `shortest` — **solo metros**, que es lo que este motor hacía hasta ahora y
+ *   lo que Valhalla llama por ese nombre. **No se expone en la API**: se
+ *   conserva para poder contrastar en las pruebas cuánto separa la prioridad
+ *   del camino corto. Sin él, «la prioridad muerde» no sería comprobable —
+ *   habría que creerse un número en vez de medir la diferencia.
+ */
+export type Criterio = 'prioridad' | 'shortest';
 
 /**
  * Un trozo de la ruta que pertenece a una arista, ya en el sentido de la
@@ -54,6 +69,13 @@ export interface TrozoDeRuta {
 export interface Ruta {
   /** Metros de red. **No incluye los conectores**: ver `Conectores`. */
   readonly metros: number;
+  /**
+   * ⭐ Lo que el Dijkstra minimizó: **segundos** con `prioridad`, metros con
+   * `shortest`. No se publica en la API — los minutos que ve quien busca la
+   * ruta salen de `metros`, no de aquí. Existe para poder comparar dos caminos
+   * con la fórmula delante en vez de a ojo.
+   */
+  readonly coste: number;
   readonly trozos: readonly TrozoDeRuta[];
   /** De la puerta de origen a su proyección. */
   readonly conectorOrigen: readonly Punto[];
@@ -147,7 +169,17 @@ class Monticulo {
  * contador.
  */
 export interface Cuaderno {
+  /** Lo que se MINIMIZA: segundos con prioridad, o metros si `shortest`. */
   readonly coste: Float64Array;
+  /**
+   * ⭐ Los metros del mismo camino, arrastrados aparte.
+   *
+   * Van separados **a propósito**: en cuanto el coste dejó de ser una distancia,
+   * guardar los dos en el mismo sitio sería tener dos magnitudes en un campo
+   * —exactamente el fallo de la bitácora nº9—. El coste elige el camino; los
+   * metros son los que se publican y con los que se dicen los minutos.
+   */
+  readonly metros: Float64Array;
   readonly deArista: Int32Array;
   readonly deNodo: Int32Array;
   readonly sello: Int32Array;
@@ -157,6 +189,7 @@ export interface Cuaderno {
 export function cuadernoPara(red: RedEnMemoria): Cuaderno {
   return {
     coste: new Float64Array(red.nodos),
+    metros: new Float64Array(red.nodos),
     deArista: new Int32Array(red.nodos),
     deNodo: new Int32Array(red.nodos),
     sello: new Int32Array(red.nodos),
@@ -168,6 +201,15 @@ export function cuadernoPara(red: RedEnMemoria): Cuaderno {
 interface Puerta {
   readonly nodo: number;
   readonly metros: number;
+  /**
+   * ⭐ Lo que ese trozo cuesta, con la MISMA fórmula que las aristas enteras.
+   *
+   * No es un detalle: si la puerta entrara al montículo pesada en metros
+   * mientras el resto pesa en segundos, las cuatro combinaciones se compararían
+   * con dos varas distintas y la que sale por la puerta «cara» perdería sin
+   * merecerlo. Es el fallo que la bitácora nº9 registró en la simulación.
+   */
+  readonly coste: number;
   /** Si se sale hacia el final de la arista (`true`) o hacia el principio. */
   readonly haciaElFinal: boolean;
 }
@@ -179,16 +221,31 @@ interface Puerta {
  * enganchó por dentro de la arista, y esas dos son la mitad de las cuatro
  * combinaciones.
  */
-function puertasDe(red: RedEnMemoria, enganche: Enganche): readonly Puerta[] {
+function puertasDe(
+  red: RedEnMemoria,
+  enganche: Enganche,
+  criterio: Criterio,
+): readonly Puerta[] {
   const arista = red.aristas[enganche.arista]!;
+  const tipo = red.tipoDeWay.get(arista.way) ?? '';
+  const precio = (metros: number): number =>
+    criterio === 'shortest' ? metros : costeDe(metros, tipo);
   if (enganche.nodo !== null) {
-    return [{ nodo: enganche.nodo, metros: 0, haciaElFinal: enganche.nodo === arista.hasta }];
+    return [
+      {
+        nodo: enganche.nodo,
+        metros: 0,
+        coste: 0,
+        haciaElFinal: enganche.nodo === arista.hasta,
+      },
+    ];
   }
   const hastaAqui = metrosHastaElEnganche(red, enganche);
   const largo = metrosDeLaGeometria(arista.g);
+  const restante = Math.max(0, largo - hastaAqui);
   return [
-    { nodo: arista.desde, metros: hastaAqui, haciaElFinal: false },
-    { nodo: arista.hasta, metros: Math.max(0, largo - hastaAqui), haciaElFinal: true },
+    { nodo: arista.desde, metros: hastaAqui, coste: precio(hastaAqui), haciaElFinal: false },
+    { nodo: arista.hasta, metros: restante, coste: precio(restante), haciaElFinal: true },
   ];
 }
 
@@ -252,6 +309,7 @@ export function calcularRuta(
   puntoOrigen: Punto,
   destino: Enganche,
   puntoDestino: Punto,
+  criterio: Criterio = 'prioridad',
 ): Ruta | null {
   const conectorOrigen = conector(puntoOrigen, [origen.lon, origen.lat]);
   const conectorDestino = conector([destino.lon, destino.lat], puntoDestino);
@@ -261,6 +319,12 @@ export function calcularRuta(
     const trozo = trozoEntreDosEnganches(red, origen, destino);
     return {
       metros: trozo.metros,
+      // La misma arista: no hay nada que elegir, así que el criterio no pinta.
+      // El coste se da igual, con la fórmula, para que el campo no mienta.
+      coste:
+        criterio === 'shortest'
+          ? trozo.metros
+          : costeDe(trozo.metros, red.tipoDeWay.get(red.aristas[origen.arista]!.way) ?? ''),
       trozos: trozo.metros === 0 ? [] : [trozo],
       conectorOrigen,
       conectorDestino,
@@ -270,19 +334,24 @@ export function calcularRuta(
   }
 
   // ── Dijkstra, con las dos puertas del origen ya dentro ────────────────────
-  const salidas = puertasDe(red, origen);
-  const llegadas = puertasDe(red, destino);
+  const salidas = puertasDe(red, origen, criterio);
+  const llegadas = puertasDe(red, destino, criterio);
+  // Lo que pesa una arista entera. El coste va precalculado en la red: son
+  // ~187.000 medias aristas por consulta y no se dividen en cada una.
+  const pesoDe = (arista: number): number =>
+    criterio === 'shortest' ? red.aristas[arista]!.metros : red.costeAndando[arista]!;
 
   cuaderno.consulta++;
   const marca = cuaderno.consulta;
   const monticulo = new Monticulo();
   for (const salida of salidas) {
-    if (cuaderno.sello[salida.nodo] !== marca || cuaderno.coste[salida.nodo]! > salida.metros) {
+    if (cuaderno.sello[salida.nodo] !== marca || cuaderno.coste[salida.nodo]! > salida.coste) {
       cuaderno.sello[salida.nodo] = marca;
-      cuaderno.coste[salida.nodo] = salida.metros;
+      cuaderno.coste[salida.nodo] = salida.coste;
+      cuaderno.metros[salida.nodo] = salida.metros;
       cuaderno.deArista[salida.nodo] = -1;
       cuaderno.deNodo[salida.nodo] = -1;
-      monticulo.meter(salida.nodo, salida.metros);
+      monticulo.meter(salida.nodo, salida.coste);
     }
   }
 
@@ -318,10 +387,11 @@ export function calcularRuta(
         continue;
       }
       const arista = red.salidaArista[k]!;
-      const nuevo = coste + red.aristas[arista]!.metros;
+      const nuevo = coste + pesoDe(arista);
       if (cuaderno.sello[vecino] !== marca || nuevo < cuaderno.coste[vecino]!) {
         cuaderno.sello[vecino] = marca;
         cuaderno.coste[vecino] = nuevo;
+        cuaderno.metros[vecino] = cuaderno.metros[nodo]! + red.aristas[arista]!.metros;
         cuaderno.deArista[vecino] = arista;
         cuaderno.deNodo[vecino] = nodo;
         monticulo.meter(vecino, nuevo);
@@ -330,15 +400,19 @@ export function calcularRuta(
   }
 
   // ── Cuál de las combinaciones ganó ────────────────────────────────────────
+  // Gana el COSTE más bajo, no los metros. Los metros del ganador se
+  // arrastran aparte y son los que se publican.
   let mejorLlegada: Puerta | null = null;
-  let mejorTotal = Infinity;
+  let mejorCoste = Infinity;
+  let mejorMetros = 0;
   for (const llegada of llegadas) {
     if (cuaderno.sello[llegada.nodo] !== marca) {
       continue;
     }
-    const total = cuaderno.coste[llegada.nodo]! + llegada.metros;
-    if (total < mejorTotal) {
-      mejorTotal = total;
+    const total = cuaderno.coste[llegada.nodo]! + llegada.coste;
+    if (total < mejorCoste) {
+      mejorCoste = total;
+      mejorMetros = cuaderno.metros[llegada.nodo]! + llegada.metros;
       mejorLlegada = llegada;
     }
   }
@@ -378,7 +452,8 @@ export function calcularRuta(
   }
 
   return {
-    metros: mejorTotal,
+    metros: mejorMetros,
+    coste: mejorCoste,
     trozos,
     conectorOrigen,
     conectorDestino,

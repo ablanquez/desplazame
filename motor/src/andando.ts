@@ -123,3 +123,104 @@ export const ACCESO_ANDANDO: Readonly<Record<string, boolean>> = {
 export function puedeAndar(highway: string): boolean {
   return ACCESO_ANDANDO[highway] === true;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEGUNDA CAPA: EL COSTE
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * La velocidad del peatón. 5,0 km/h, y es **una sola** para todos los tipos.
+ *
+ * [DOC OSMAnd `routing.xml`, perfil `pedestrian`] La fórmula que este motor
+ * calca es `coste = distancia / (velocidad × prioridad)`, y ahí la velocidad no
+ * depende del tipo de vía: lo que cambia por tipo es la **prioridad**. Meter
+ * velocidades por tipo sería mezclar el mecanismo de otro motor.
+ *
+ * Es la misma constante con la que se dicen los minutos, y no es casualidad ni
+ * descuido: **el coste decide el camino y los segundos informan**, que es el
+ * patrón de [DOC Valhalla `pedestriancost.cc`], donde `EdgeCost` devuelve
+ * `{ sec × factor, sec }` — coste y tiempo, separados, del mismo reloj.
+ */
+export const VELOCIDAD_ANDANDO_MS = 5000 / 3600;
+
+/**
+ * ⭐ Cuánto le APETECE al peatón cada tipo de vía.
+ *
+ * [DOC OSMAnd `routing.xml`, perfil `pedestrian`, leído entero] Los valores van
+ * **tal cual**, sin ajustes y sin mezclar. Prioridad alta = vía preferida: como
+ * divide, un metro de acera cuesta menos que un metro de calzada.
+ *
+ * **Esto es lo que resuelve el «salvo» del [LEY RGC art. 121.1]** —*«salvo
+ * cuando ésta no exista o no sea practicable»*—. La acera no se impone
+ * cerrando la calzada, que dejaría gente encerrada: se pone delante. La razón
+ * 1,2/0,9 = 1,33 dice exactamente cuánto: el motor acepta hasta **un 33 % más
+ * de distancia** con tal de ir por la acera, y cuando la acera no existe o
+ * rodea más que eso, coge la calzada. El condicional de la ley, en un número.
+ *
+ * ── Lo que NO se implementa, y se declara ──────────────────────────────────
+ *
+ * `steps` va a **1,2**, igual que la acera, así que unas escaleras se prefieren
+ * a una calzada. Es lo que manda la fuente única y no se le suma nada de otra:
+ *
+ * - [DOC Valhalla `pedestriancost.cc`] castiga las escaleras con **+30 s**
+ *   fijos. **No implementado**: mezclarlo con la tabla de OSMAnd sería el
+ *   híbrido que ninguna de las dos fuentes respalda.
+ * - [DOC OSMAnd `routing.xml`] trae su propia mitigación dentro de la misma
+ *   fuente, el parámetro **`avoid_stairs`** (`access -1` opcional). **No
+ *   implementado tampoco**: es una preferencia del usuario, y hoy no hay dónde
+ *   elegirla.
+ *
+ * Las dos quedan anotadas aquí para que el día que se decida, se decida entre
+ * opciones que ya están leídas y no entre recuerdos.
+ */
+export const PRIORIDAD_ANDANDO: Readonly<Record<string, number>> = {
+  // ── ×1,2 · lo que se anda de gusto ───────────────────────────────────────
+  footway: 1.2,
+  pedestrian: 1.2,
+  path: 1.2,
+  living_street: 1.2,
+  steps: 1.2,
+
+  // ── ×1,1 ─────────────────────────────────────────────────────────────────
+  residential: 1.1,
+
+  // ── ×0,9 · calzada de verdad: se pasa, pero se prefiere no ───────────────
+  primary: 0.9,
+  secondary: 0.9,
+  tertiary: 0.9,
+  service: 0.9,
+
+  // ── ×0,7 · lo que un peatón no debería pisar ─────────────────────────────
+  // ⚠️ Ninguna de las dos existe en el subgrafo: llevan `a=0` y el filtro las
+  // quita antes. La fila viaja igual porque la tabla es la de la fuente, no un
+  // resumen de lo que hoy toca.
+  trunk: 0.7,
+  motorway: 0.7,
+};
+
+/**
+ * El defecto de la tabla: **×1,0**, ni preferida ni evitada.
+ *
+ * [DOC OSMAnd `routing.xml`] Lo que su perfil no nombra vale 1. Aquí caen
+ * `track` (2.156,7 km del subgrafo, casi todo rural), `unclassified`, los
+ * `_link`, `busway` y `corridor` — y `cycleway`, cuya fila **no se ejerce
+ * nunca** porque la primera capa ya no lo deja entrar.
+ */
+export const PRIORIDAD_POR_DEFECTO = 1.0;
+
+export function prioridadDe(highway: string): number {
+  return PRIORIDAD_ANDANDO[highway] ?? PRIORIDAD_POR_DEFECTO;
+}
+
+/**
+ * ⭐ Lo que cuesta andar unos metros por una vía de este tipo, **en segundos**.
+ *
+ * `distancia / (velocidad × prioridad)`, la fórmula literal de
+ * [DOC OSMAnd `routing.xml`]. Va en segundos y no en «metros equivalentes»
+ * porque así es como la escribe la fuente, y porque tener una unidad de verdad
+ * evita justo el fallo que la bitácora nº9 registró: un campo con dos
+ * magnitudes dentro que nadie distingue al leerlo.
+ */
+export function costeDe(metros: number, highway: string): number {
+  return metros / (VELOCIDAD_ANDANDO_MS * prioridadDe(highway));
+}
