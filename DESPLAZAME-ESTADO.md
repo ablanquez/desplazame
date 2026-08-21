@@ -67,6 +67,28 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
+**Punto 7, casilla 2 del acceso/coste RESUELTA POR DOCUMENTACIÓN
+(21/08, mediodía) — sin parlamento: la doctrina decidió sola.** La
+regla del peatón resultó ser el **art. 121.1 del RGC, literal**: la
+zona peatonal OBLIGA donde existe; donde no («no exista o no sea
+practicable»), arcén o calzada — la excepción que salva el campo la
+trae la LEY. El carril bici, prohibido al peatón por TRIPLE fuente
+(graph.lua de Valhalla: pedestrian_forward=false · foot.lua de OSRM:
+sin velocidad · Ordenanza de Zaragoza art. 25: «únicamente por
+ciclistas»). El matiz acera-bici (prioridad peatonal, 20 km/h en la
+nueva Ordenanza) casa con la clasificación calzada/acera/senda/calmado
+que la capa municipal de carriles YA trae. La bici quedó cerrada de
+rebote: jamás acera (Ordenanza + 121.5 RGC), y el que empuja es peatón
+— lo que disuelve la discrepancia OSRM/Valhalla. El mecanismo de
+«no existe acera» tiene dos implementaciones documentadas (cierre por
+tag [sin nuestro dato] · prioridad por tipo [OSMAnd, solo con `h`]) y
+se elige en la casilla 3 con las rutas juez delante. ⚠️ Dos
+caducidades vivas: el **RGC reformado (RD 518/2026) entra en vigor el
+01-10-2026** — mismo principio, las citas migran al texto nuevo — y la
+versión exacta de la ordenanza municipal que rige hoy es NO CONSTA
+(TSJA + Nueva Ordenanza de Movilidad; se verifica en el punto 9).
+Tabla completa con fuente por fila: en el plan, casilla 2.
+
 **Punto 7, casilla 1 del acceso/coste HECHA (21/08) — el censo del
 grafo, solo lectura, cero ficheros tocados.** ⭐ El hallazgo: cada
 arista lleva DOS etiquetas — `p` (6 valores gordos) y **`h`, que es la
@@ -144,10 +166,10 @@ nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
 
 **Lo siguiente:** DOS decisiones de Antonio pendientes — (1) la retirada
 de los andamios de carga del mapa (~34 MB al navegador — y qué
-visualización queda en la demo); (2) el parlamento del
-acceso/coste — su casilla 1 (medición) está HECHA y la casilla 2 es la
-tabla `h` → veredicto por modo, que se decide aquí fila a fila con la
-doctrina delante. La tercera —el push— se ejecutó el 20/08 por la
+visualización queda en la demo); (2) el acceso/coste
+andando — casillas 1 (medición) y 2 (tabla, resuelta por
+documentación) HECHAS; queda la casilla 3: llevar la tabla al motor,
+eligiendo el mecanismo documentado con las rutas juez como contraste. La tercera —el push— se ejecutó el 20/08 por la
 noche. Con las dos, el punto 7 se cierra y el 8 (destinos con nombre)
 espera detrás, en construcción.
 
@@ -274,6 +296,14 @@ construido · guardias solo-Windows si hicieran falta allí.
 **Punto 13:** color de marca (`NO CONSTA`) · title por ruta (la pestaña
 dice «Desplázame» en las dos páginas) · capturas del README si se
 quieren.
+
+**Las normas de circulación (contexto vivo, 21/08):** el RGC
+reformado por RD 518/2026 entra en vigor el **01-10-2026** (arts. 121
+y 122 reescritos, mismo principio para el peatón) — desde octubre las
+citas del proyecto apuntan al texto nuevo · la ordenanza municipal
+vigente arrastra artículos anulados por el TSJA y hay Nueva Ordenanza
+de Movilidad en camino: qué versión rige hoy, NO CONSTA (se verifica
+en el punto 9).
 
 **La ampliación del regulado (contexto vivo):** activación prevista de
 golpe en verano 2027 (~15.000 plazas nuevas hasta 21.745; recurso Tacpa

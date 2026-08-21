@@ -727,11 +727,51 @@ issue #4657, ABIERTO). Tres pasos que no se saltan:
       77,9 % de los carriles bici con acera propia a ≤25 m (track:
       2,6 % — el campo no tiene acera). Detalle entero en el
       checkpoint de la sesión del 21/08
-- [ ] **2 · La tabla decidida** (parlamento, decide Antonio con la
-      medición delante): un veredicto por valor de `p` y por modo —
-      prohibido · penalizado (con su factor) · neutro — y cada casilla
-      con su fila de doctrina citada o `[PROPIO]` declarado si la
-      doctrina calla. La tabla decidida se escribe AQUÍ, en su casilla
+- [x] **2 · La tabla ANDANDO, RESUELTA POR DOCUMENTACIÓN (21/08)** —
+      sin parlamento: se agotó la doctrina hasta que la doctrina
+      decidió sola. Fuentes leídas: `graph.lua` de Valhalla (master,
+      2.489 líneas) · `foot.lua` de OSRM · `pedestriancost.cc` ·
+      `routing.xml` de OSMAnd (perfil peatonal completo) · **art.
+      121 RGC (RD 1428/2003), texto literal** · Ordenanza de
+      Circulación de Peatones y Ciclistas de Zaragoza (art. 25) y la
+      noticia municipal de la nueva Ordenanza de Movilidad. La tabla,
+      sobre `h`, con su fuente por fila:
+      · footway (acera/peatonal/pasos) · pedestrian · path → **SÍ, es
+        LA vía del peatón** [art. 121.1 RGC: la zona peatonal OBLIGA
+        donde existe · los 3 motores]
+      · steps → SÍ con castigo [3 motores; Valhalla +30 s fijos]
+      · corridor → SÍ [graph.lua: pedestrian true, bike false]
+      · living_street → SÍ [3 motores; Valhalla uso 0,6]
+      · **cycleway → NO** [graph.lua: pedestrian_forward=false ·
+        foot.lua: sin velocidad = sin arista · Ordenanza Zaragoza
+        art. 25: los carriles bici «únicamente por ciclistas» ·
+        y el 121.1 obliga a la acera, que existe en el 77,9% de
+        nuestros carriles]. El matiz ACERA-BICI (plataforma a cota
+        de acera, prioridad peatonal, 20 km/h en la nueva Ordenanza)
+        se resuelve con la clasificación calzada/acera/senda/calmado
+        que la capa municipal de carriles YA trae (punto 4 → 9)
+      · calzada (residential · tertiary · secondary · primary ·
+        unclassified · service · track · *_link) → **SÍ CONDICIONAL**
+        [art. 121.1 LITERAL: «salvo cuando ésta no exista o no sea
+        practicable» → arcén o, en su defecto, calzada] — la excepción
+        que salva el campo (track: 2,6% con acera) la trae la LEY,
+        no un criterio nuestro
+      · motorway/trunk → no existen en el subgrafo (a=0 los quitó)
+      **El mecanismo de «no existe zona peatonal»** tiene dos
+      implementaciones documentadas: cierre por tag [OSRM
+      sidewalk=separate/use_sidepath — exige dato que NO tenemos] y
+      prioridad por tipo [OSMAnd routing.xml, leído: footway ×1,2 ·
+      residential ×1,1 · cycleway ×1,0 · grandes ×0,9 · trunk ×0,7,
+      coste = distancia/(velocidad×prioridad) — funciona solo con `h`,
+      que tenemos]. La elección de mecanismo se hace en la casilla 3
+      CON las rutas juez como contraste, no antes.
+      ⚠️ CADUCIDADES declaradas: el RGC reformado (RD 518/2026,
+      usuarios vulnerables) ENTRA EN VIGOR EL 01-10-2026 — mismo
+      principio (122.1: sin zona peatonal practicable → arcén
+      izquierdo o calzada), las citas apuntan al texto reformado desde
+      octubre · la Ordenanza vigente arrastra artículos anulados por
+      el TSJA y hay Nueva Ordenanza de Movilidad en camino — qué
+      versión rige hoy al detalle: NO CONSTA, se verifica en el 9
 - [ ] **3 · Construcción en el motor**: filtro de acceso por modo +
       coste sobre lo permitido, rutas juez re-emitidas antes/después
       para el ojo de Antonio, y el rojo que compra: una ruta que HOY
@@ -786,13 +826,21 @@ Carriles y continuidad ciclable sobre el mismo esqueleto del 7. La rueda
 pequeña comparte red (bici, patinete, BiZi — este último solo-bici).
 
 - [ ] **La tabla de acceso/coste del punto 7 se EXTIENDE aquí al modo
-      bici** (parlamentado el 21/08): carril bici y/o calzada [regla de
-      Antonio, coincide con ambos motores]; la calzada grande se
-      penaliza, no se prohíbe [OSRM `unsafe_highway_list`: primary 0.5 ·
-      secondary 0.65 · tertiary 0.8]. ⚠️ Discrepancia DECLARADA entre
-      motores sobre la acera en bici: OSRM la admite a velocidad de
-      peatón (desmontar) y Valhalla la prohíbe — se decide con la
-      medición y la ordenanza delante, no antes
+      bici**, y la ordenanza ya está leída en grueso (21/08): bici =
+      carril bici y/o calzada, **JAMÁS acera ni zona peatonal**
+      [Ordenanza de Zaragoza + nueva Ordenanza de Movilidad: se sigue
+      prohibiendo, única excepción menores de 12 acompañados a ≤5 km/h
+      · art. 121.5 RGC: ningún vehículo por las aceras]; la calzada
+      grande se penaliza, no se prohíbe [OSRM `unsafe_highway_list`:
+      primary 0.5 · secondary 0.65 · tertiary 0.8]; quien EMPUJA la
+      bici es peatón [FAQ municipal + Convención de Viena art. 20.5] —
+      eso resuelve la discrepancia entre motores (OSRM desmonta,
+      Valhalla prohíbe): en Zaragoza el desmontado va por la tabla del
+      PEATÓN. Acera-bici y plataforma compartida: la clasificación
+      calzada/acera/senda/calmado de la capa municipal es el dato
+      [nueva Ordenanza: 20 km/h a cota de acera]. Queda para aquí:
+      verificar qué versión de la ordenanza rige HOY (TSJA + Nueva
+      Ordenanza de Movilidad) y la letra fina de VMP
 - [ ] **Verificar la ordenanza de Zaragoza sobre VMP antes de etiquetar
       tramos** (apuntado el 18/08): bici y patinete no van idénticos en
       toda vía (acera-bici, zonas peatonales, edades). Si hay diferencias
