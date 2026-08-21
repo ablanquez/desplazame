@@ -67,6 +67,29 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
+**Punto 7, casilla 3 HECHA (21/08, tarde) — el motor andando cumple
+la tabla que la documentación dictó.** Seis commits
+(`2796232`→`52a55ff`, ahead 12): el ACCESO (`andando.ts`, 27 tipos
+citados fila a fila; la red andable pasa de 93.503 a **89.047**
+aristas, `cerradas` publicado en salud) y el COSTE (metros÷prioridad,
+OSMAnd; `shortest` como contraste interno). Las juez: **0 m de
+cycleway en las cinco**, máximo +7,9 % (Arrupe, que sube a 94,7 % de
+vía peatonal; la céntrica al 100 % por +1,3 m). Los 20 portales
+solo-cycleway caen con el Aviso (0,044 %, hueco de OSM). **Bitácora
+nº9** — la simulación medía en dos unidades y el desvío declarado
+salió ×18,2 — capturada en caliente y cerrada con segundo defecto
+hallado al releer (el ×1,667 de las puertas) y ley nueva: «que el
+resultado saliera bien no exonera al instrumento». Los 8 guardianes
+de forma movidos con la cuenta entera versionada en su comentario
+[GUIA: la evidencia se versiona] y contraprueba 8/8; el del colapso
+ahora vigila la RAZÓN (8,4, suelo 5), no un número muerto. Latencia
+re-medida y atribuida: p50 15→23 ms — es la respuesta (25,9 pasos,
+~16 kB), no el Dijkstra (9,1→10,2 ms). 160/160 · 84/84 · tsc y build
+limpios. Pasos de Arrupe 13→25: la narración de cruces queda en el
+plan como casilla propia con doctrina localizada (odin colapsa;
+`pedestrian_crossing` de serie). Sin push: el último publicado sigue
+siendo `cb01522`.
+
 **Punto 7, casilla 2 del acceso/coste RESUELTA POR DOCUMENTACIÓN
 (21/08, mediodía) — sin parlamento: la doctrina decidió sola.** La
 regla del peatón resultó ser el **art. 121.1 del RGC, literal**: la
@@ -164,14 +187,15 @@ futura). El plan lo estructura en TRES encargos: A el fichero de
 nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
 (pintado + pasos, y la respuesta falsa se retira).
 
-**Lo siguiente:** DOS decisiones de Antonio pendientes — (1) la retirada
-de los andamios de carga del mapa (~34 MB al navegador — y qué
-visualización queda en la demo); (2) el acceso/coste
-andando — casillas 1 (medición) y 2 (tabla, resuelta por
-documentación) HECHAS; queda la casilla 3: llevar la tabla al motor,
-eligiendo el mecanismo documentado con las rutas juez como contraste. La tercera —el push— se ejecutó el 20/08 por la
-noche. Con las dos, el punto 7 se cierra y el 8 (destinos con nombre)
-espera detrás, en construcción.
+**Lo siguiente:** el acceso/coste andando está COMPLETO (casillas
+1-2-3 hechas el 21/08). Sobre la mesa de Antonio — (1) la retirada de
+los andamios de carga del mapa (~34 MB al navegador — y qué
+visualización queda en la demo), la decisión que lleva esperando
+desde el punto 5; (2) el PUSH: la rama va **ahead 12** desde
+`cb01522`, todo el punto 7 tardío sin publicar; (3) detrás, sin
+prisa: la narración de los cruces (casilla nueva en el plan, doctrina
+localizada) y el punto 8 (destinos con nombre, en construcción). Con
+los andamios decididos, el punto 7 se cierra.
 
 ---
 

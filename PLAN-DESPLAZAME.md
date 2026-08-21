@@ -772,12 +772,39 @@ issue #4657, ABIERTO). Tres pasos que no se saltan:
       octubre · la Ordenanza vigente arrastra artículos anulados por
       el TSJA y hay Nueva Ordenanza de Movilidad en camino — qué
       versión rige hoy al detalle: NO CONSTA, se verifica en el 9
-- [ ] **3 · Construcción en el motor**: filtro de acceso por modo +
-      coste sobre lo permitido, rutas juez re-emitidas antes/después
-      para el ojo de Antonio, y el rojo que compra: una ruta que HOY
-      pisa el carril bici andando tiene que dejar de pisarlo. Si se
-      conserva el modo solo-metros como referencia, con su nombre de
-      doctrina (`shortest`), declarado — no ñapa
+- [x] **3 · Construcción en el motor — HECHA (21/08, tarde)**, en
+      seis commits (`2796232`→`52a55ff`). Las DOS capas de la
+      doctrina: ACCESO (`andando.ts`, los 27 tipos con su cita fila a
+      fila — la red andable queda en 89.047 aristas, `cerradas` en
+      `/api/salud`) y COSTE (`metros ÷ prioridad`, la fórmula de
+      OSMAnd con el `shortest` conservado como contraste interno). El
+      rojo que compraba, comprado: las juez con **0 m de cycleway** —
+      Zuriza +88,7 m (24,5→40,4 % de vía peatonal) · Arrupe +502 m
+      (44,1→**94,7 %**) · Leopoldo +91,8 m (37,8→74,2 %) · la céntrica
+      +1,3 m y al **100 %** soltando toda la calzada [art. 121.1 en
+      acto] · máximo +7,9 %, dentro del tope 33 % de la relación
+      1,2/0,9. Los 20 portales cuyo único enlace era un cycleway caen
+      con el Aviso honesto (0,044 %; hueco de OSM declarado en
+      comentario — ninguna doctrina trae la regla «reabrir si es el
+      único enlace»). Los 8 guardianes de forma movidos con su cuenta
+      ENTERA versionada en el comentario [GUIA: la evidencia se
+      versiona · L59 · L62] y contraprueba 8/8. **Bitácora nº9**
+      (capturada en caliente, cerrada con dos defectos y ley nueva:
+      «que el resultado saliera bien no exonera al instrumento»).
+      Latencia re-medida y ATRIBUIDA: p50 15→23 ms — no es el
+      Dijkstra (9,1→10,2 ms), es la respuesta más gorda (25,9 pasos ·
+      ~16 kB). README y notices al día en su commit
+- [ ] **La narración de los cruces** (nacida de la casilla 3, con
+      doctrina LOCALIZADA y pendiente de leer a fondo): el coste
+      serpentea acera→cruce→acera y los pasos crecen (Arrupe 13→25;
+      la razón de colapso 8,4 la vigila su guardián con suelo en 5).
+      La doctrina existe: en Valhalla la narración (odin) es fase
+      propia que colapsa la lista de maniobras a una lista concisa
+      [docs oficiales], y el modelo de maniobra trae
+      `pedestrian_crossing_` de serie [maneuver.h leído] — el cruce
+      peatonal es maniobra de tratamiento aparte, no un giro más.
+      Encargo futuro: leer cómo odin decide qué colapsa y calcarlo;
+      hasta entonces los 25 pasos son la verdad y NO se tocan
 
 ## 8 — Destinos con nombre: «de la calle X al hospital Y» *(nuevo, 18/08 — EN CONSTRUCCIÓN: Antonio irá añadiendo)*
 
