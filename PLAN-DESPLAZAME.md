@@ -1,6 +1,7 @@
 # PLAN — 004 Desplázame (reinicio)
 
-Estado a 16/08/2026 (tarde). Se tacha lo hecho y lo nuevo se añade en su punto.
+Estado a 20/08/2026 (noche), publicado en `cb01522`. Se tacha lo hecho y lo
+nuevo se añade en su punto.
 
 Reglas que cruzan todo el plan:
 - **Commits atómicos**, rutas escritas una a una, formato `tipo(ámbito): descripción`.
