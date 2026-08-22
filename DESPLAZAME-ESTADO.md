@@ -67,6 +67,27 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
+**Punto 7 — mínimo de distancia (22/08, tarde): la prioridad
+RETIRADA por el ojo de Antonio.** El paso 3 del ritmo se cumplió con
+las rutas vivas en el 4200: Arrupe pagaba +502 m (+6 min) rodeando el
+corredor central por la prioridad de OSMAnd — cuando por la avenida
+también se anda, por su acera. Decisión: mínimo de distancia entre lo
+PERMITIDO — el defecto documentado de Valhalla (walkway_factor 1,0
+neutral) y OSRM (sin factores). La capa se fue entera (nueve piezas,
+no a ×1,0) y `shortest` con ella; `andando.ts` 226→147 líneas con
+lápida en cabecera (qué fue, qué costó medido, y que volver exige
+medición nueva). La tabla de ACCESO intacta CON PRUEBA: diff cero
+contra HEAD y la red clavada en 89.047 — el carril bici sigue cerrado.
+8 guardianes de vuelta + el noveno: en verde con el comentario
+mintiendo («Arrupe ya no pisa el paseo»), cazado releyendo [L62]. Las
+seis juez al metro con la B (2.487 · 6.371 · 4.517 · 342 · 0 · Aviso),
+cycleway 0 en todas. Rojo visto (céntrica a 4 contra el motor viejo),
+contraprueba 8/8. README: la retirada CONTADA, no callada (el ×1,2
+solo vive en el párrafo que la cuenta); cifras re-medidas (vía
+peatonal 37,4 % · latencia p50 22 · 22,7 pasos). Commits `7d2ffcb` +
+`1067c6f`. Antonio: «ahora ya carga las rutas bien». RSS del motor
+observado al arrancar: 412 MB (anotado para el punto 12).
+
 **Punto 7, casilla 3 HECHA (21/08, tarde) — el motor andando cumple
 la tabla que la documentación dictó.** Seis commits
 (`2796232`→`52a55ff`, ahead 12): el ACCESO (`andando.ts`, 27 tipos
@@ -187,15 +208,13 @@ futura). El plan lo estructura en TRES encargos: A el fichero de
 nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
 (pintado + pasos, y la respuesta falsa se retira).
 
-**Lo siguiente:** el acceso/coste andando está COMPLETO (casillas
-1-2-3 hechas el 21/08). Sobre la mesa de Antonio — (1) la retirada de
-los andamios de carga del mapa (~34 MB al navegador — y qué
-visualización queda en la demo), la decisión que lleva esperando
-desde el punto 5; (2) el PUSH: la rama va **ahead 12** desde
-`cb01522`, todo el punto 7 tardío sin publicar; (3) detrás, sin
-prisa: la narración de los cruces (casilla nueva en el plan, doctrina
-localizada) y el punto 8 (destinos con nombre, en construcción). Con
-los andamios decididos, el punto 7 se cierra.
+**Lo siguiente:** el andando está COMPLETO y VISTO por el ojo de
+Antonio (22/08: «ahora ya carga las rutas bien»). Sobre la mesa —
+(1) la retirada de los andamios de carga del mapa (~34 MB al
+navegador — y qué visualización queda en la demo), LA decisión que
+cierra el punto 7; (2) el PUSH: ahead 2 (`7d2ffcb` + `1067c6f`);
+(3) detrás, sin prisa: la narración de los cruces (genéricos y
+zigzag, casilla con doctrina) y el punto 8. 
 
 ---
 
@@ -297,7 +316,11 @@ dicha como opción) · rotondas y plaza-hito, declaradas MEJORA FUTURA
 aplicables con el dato que hay — se trabaja con la tabla de tipos
 pelada o se decide traer el dato (casilla 2) · el sexto valor de `p`
 (`eje-con-acera-declarada`) existe y el estado ya lo cataloga · ⚰️ `enlaces.json` de la OLD: cabo MUERTO —
-se perdió, y el punto 7 construyó la proyección por su cuenta.
+se perdió, y el punto 7 construyó la proyección por su cuenta · la
+plaza dicha de dos maneras en pasos seguidos («Plaza del Emperador
+Carlos V» → «Plaza Emperador Carlos», visto el 22/08 en la ruta C
+retirada — si reproduce en rutas vivas: NO CONSTA; se mira con la
+narración, huele a núcleos que no casan por la «V»).
 
 **Punto 8:** en construcción — el dato personal de farmacias tiene su
 salida apuntada («Farmacia» + dirección).

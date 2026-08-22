@@ -794,10 +794,33 @@ issue #4657, ABIERTO). Tres pasos que no se saltan:
       Latencia re-medida y ATRIBUIDA: p50 15→23 ms — no es el
       Dijkstra (9,1→10,2 ms), es la respuesta más gorda (25,9 pasos ·
       ~16 kB). README y notices al día en su commit
+- [x] **La prioridad RETIRADA — mínimo de distancia (22/08)**, decisión
+      de Antonio con las rutas en la mano (paso 3 del ritmo): Arrupe
+      pagaba +502 m y +6 min rodeando el corredor central, cuando por
+      la avenida también se anda — por su acera. Se queda el defecto
+      documentado de Valhalla (`walkway_factor 1,0` «neutral»,
+      pedestriancost.cc) y OSRM (foot.lua sin factores): coste =
+      metros entre lo PERMITIDO. La capa se fue ENTERA, no a ×1,0
+      (nueve piezas — el «declarado y nunca cableado» de la GUIA), y
+      `shortest` con ella (sin coste no distingue nada). `andando.ts`
+      226→147 líneas con LÁPIDA en cabecera: qué fue la capa, qué
+      costó medido, y que volver a ponerla exige medición nueva. La
+      tabla de ACCESO intacta con prueba (diff contra HEAD: cero
+      diferencias; la red sigue en 89.047). 8 guardianes de vuelta
+      (el del colapso solo cambió números: la RAZÓN aguantó) + el
+      noveno: uno en VERDE con el comentario mintiendo («Arrupe ya no
+      pisa el paseo» — hoy lo pisa), cazado releyendo lo que el verde
+      no obliga a releer [L62]. Las seis juez clavadas a la B de ayer
+      (2.487 · 6.371 · 4.517 · 342 · 0 · Aviso), cycleway 0 en todas.
+      Commits `7d2ffcb` + `1067c6f` (el README cuenta la retirada, no
+      la calla)
 - [ ] **La narración de los cruces** (nacida de la casilla 3, con
-      doctrina LOCALIZADA y pendiente de leer a fondo): el coste
-      serpentea acera→cruce→acera y los pasos crecen (Arrupe 13→25;
-      la razón de colapso 8,4 la vigila su guardián con suelo en 5).
+      doctrina LOCALIZADA y pendiente de leer a fondo — y VIGENTE tras
+      la retirada de la prioridad, en tamaño menor): los genéricos
+      como destino de paso («hacia la acera» 250 m en la céntrica ·
+      «hacia la zona peatonal») y el zigzag A→B→A (Leopoldo, Marqués
+      de la Cadena → Enriqueta Castejón 180 m → Marqués otra vez). La
+      razón de colapso hoy: 6,7, guardián con suelo en 5.
       La doctrina existe: en Valhalla la narración (odin) es fase
       propia que colapsa la lista de maniobras a una lista concisa
       [docs oficiales], y el modelo de maniobra trae
