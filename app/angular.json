@@ -26,11 +26,6 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              },
-              {
-                "glob": "*.{json,js,txt}",
-                "input": "data",
-                "output": "datos"
               }
             ],
             "styles": [

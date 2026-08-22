@@ -6,28 +6,15 @@ import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
 import { rutas } from './rutas';
 
-/** Los textos de los enlaces de la barra, en orden. */
-function enlaces(raiz: HTMLElement): string[] {
-  return Array.from(raiz.querySelectorAll<HTMLAnchorElement>('.navegacion__enlace')).map(
-    (a) => a.textContent?.trim() ?? '',
-  );
-}
-
-/** Cuál está marcado como la página en la que estás. */
-function enlaceActivo(raiz: HTMLElement): string | null {
-  const a = raiz.querySelector<HTMLAnchorElement>('.navegacion__enlace--activo');
-  return a ? (a.textContent?.trim() ?? '') : null;
-}
-
-describe('App — la cáscara y sus dos rutas', () => {
+describe('App — la cáscara, su página y el comodín', () => {
   let http: HttpTestingController;
   let peticiones: string[];
   const fetchDeVerdad = globalThis.fetch;
 
   beforeEach(async () => {
-    // Las capas se piden con `fetch`, no con HttpClient. Aquí se cuenta cada
-    // llamada y no se contesta ninguna: lo que se mide es CUÁNTAS se piden al
-    // navegar, no qué traen.
+    // Se finge `fetch` —que es con lo que se pedían las capas, no con
+    // HttpClient— y se cuenta cada llamada sin contestar ninguna. Lo que se
+    // mide es CUÁNTAS se piden al montar la página, no qué traen.
     peticiones = [];
     globalThis.fetch = ((url: string) => {
       peticiones.push(String(url));
@@ -61,11 +48,6 @@ describe('App — la cáscara y sus dos rutas', () => {
     return { fixture, router, raiz: fixture.nativeElement as HTMLElement };
   }
 
-  it('la barra lleva a las dos páginas', async () => {
-    const { raiz } = await ir('/');
-    expect(enlaces(raiz)).toEqual(['Buscador', 'Visor de capas']);
-  });
-
   it('la ruta raíz sigue sirviendo el buscador, con sus cuatro campos', async () => {
     const { raiz } = await ir('/');
 
@@ -74,62 +56,44 @@ describe('App — la cáscara y sus dos rutas', () => {
     expect(nombres).toEqual(['calleOrigen', 'portalOrigen', 'calleDestino', 'portalDestino']);
   });
 
-  it('la ruta /visor sirve el visor', async () => {
-    const { raiz } = await ir('/visor');
-
-    expect(raiz.querySelector('app-visor')).not.toBeNull();
-    expect(raiz.querySelector('.visor__cabecera h1')?.textContent).toContain('Visor de capas');
-    expect(raiz.querySelector('app-buscador')).toBeNull();
-  });
-
-  it('la navegación va y vuelve', async () => {
-    const { fixture, router, raiz } = await ir('/');
-    expect(raiz.querySelector('app-buscador')).not.toBeNull();
-
-    await router.navigate(['/visor']);
-    await fixture.whenStable();
-    expect(raiz.querySelector('app-visor')).not.toBeNull();
-    expect(raiz.querySelector('app-buscador')).toBeNull();
-
-    await router.navigate(['/']);
-    await fixture.whenStable();
-    expect(raiz.querySelector('app-buscador')).not.toBeNull();
-    expect(raiz.querySelector('app-visor')).toBeNull();
-  });
-
-  it('la barra marca la página en la que estás', async () => {
-    const { fixture, router, raiz } = await ir('/');
-    expect(enlaceActivo(raiz)).toBe('Buscador');
-
-    await router.navigate(['/visor']);
-    await fixture.whenStable();
-    expect(enlaceActivo(raiz)).toBe('Visor de capas');
-  });
-
   it('una dirección que no existe cae en el buscador, no en una pantalla en blanco', async () => {
     const { raiz } = await ir('/loquesea');
     expect(raiz.querySelector('app-buscador')).not.toBeNull();
   });
 
   /**
-   * LO QUE PAGA LA SEGUNDA PÁGINA. El `RouterOutlet` destruye el componente al
-   * salir de su ruta y lo vuelve a crear al volver, así que si las capas se
-   * cargaran desde el componente, cada ida y vuelta se bajaría todo otra vez.
-   * Las diecisiete peticiones son: portales, grafo, carriles, postes, trazados,
-   * paradas, aparcabicis, aparcamotos, regulado, zonas, reservas y las SEIS del
-   * BiZi. El número
-   * sube con cada capa nueva, y que haya que tocarlo aquí es la señal de que
-   * esta prueba sigue contando de verdad.
+   * ⭐ Y `/visor` es desde el 22/08 una de esas direcciones que no existen.
+   *
+   * Era la segunda página, el instrumento con el que se verificaba cada dato
+   * que entraba; se retiró de la app y **se reserva para la intranet, punto 14
+   * del plan**. Quien la tenga en un marcador o le dé a F5 no se encuentra una
+   * pantalla en blanco ni un 404: cae en el buscador, por el mismo comodín que
+   * cubre cualquier otra. Esto se comprueba aquí y no solo a mano porque un
+   * comodín que dejara de cubrirla no se notaría hasta que alguien lo probara.
    */
-  it('ir al visor y volver NO vuelve a pedir las capas', async () => {
-    const { fixture, router } = await ir('/');
-    expect(peticiones.length).toBe(17);
+  it('⭐ /visor ya no existe, y cae en el buscador como cualquier otra', async () => {
+    const { raiz } = await ir('/visor');
+    expect(raiz.querySelector('app-buscador')).not.toBeNull();
+  });
 
-    await router.navigate(['/visor']);
-    await fixture.whenStable();
-    await router.navigate(['/']);
-    await fixture.whenStable();
-
-    expect(peticiones.length).toBe(17);
+  /**
+   * ⭐ LO QUE LA RAÍZ **NO** SE BAJA.
+   *
+   * Esta prueba vigilaba lo contrario: que las diecisiete capas de
+   * verificación —portales, grafo, carriles, postes, trazados, paradas,
+   * aparcabicis, aparcamotos, regulado, zonas, reservas y las seis del BiZi—
+   * no se volvieran a pedir al ir al visor y volver. **El visor se retiró de la
+   * app el 22/08** y se reserva para la intranet (punto 14 del plan), así que
+   * lo que vigilaba ya no existe.
+   *
+   * Su reverso sí existe, y es más importante: **abrir la raíz no baja ni un
+   * byte de `app/data/`**. Eran 40,70 MB en 17 peticiones, el 99,1 % de todo lo
+   * que descargaba la página. Se cuenta a cero y no «a pocas»: cualquier
+   * número distinto de cero significa que algo volvió a colgarse del andamio.
+   */
+  it('⭐ abrir la raíz NO pide ni un byte de /datos/', async () => {
+    await ir('/');
+    const datos = peticiones.filter((u) => u.includes('/datos/'));
+    expect(datos).toEqual([]);
   });
 });

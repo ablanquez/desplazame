@@ -2,5 +2,4 @@
   /* El alto de la barra de navegación, escrito UNA vez: la barra lo usa para
      medirse y el visor para descontarlo de la ventana. Si cambia aquí, el mapa
      grande sigue cuadrando solo. */
-  --alto-navegacion: 2.75rem;
 }

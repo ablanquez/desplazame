@@ -1,25 +1,4 @@
-/* CSS mínimo y funcional: que se vea en qué página estás y cómo ir a la otra.
-   La estética va al final del proyecto (punto 11). */
-
-.navegacion {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  height: var(--alto-navegacion);
-  padding: 0 0.75rem;
-  border-bottom: 1px solid #ccc;
-  box-sizing: border-box;
-}
-
-.navegacion__enlace {
-  color: #1a1a1a;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-/* En cuál estás no puede depender solo del color. */
-.navegacion__enlace--activo {
-  font-weight: bold;
-  text-decoration: underline;
-  text-underline-offset: 0.3rem;
-}
+/* La cáscara no pinta nada: solo monta la página. Tuvo la barra de las dos
+   pestañas, que se fue con el visor el 22/08 (se reserva para la intranet,
+   punto 14). Se deja el fichero porque el componente lo declara y porque aquí
+   irá el marco cuando llegue la estética (punto 11). */

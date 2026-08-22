@@ -12,7 +12,6 @@ import type {
   Via,
 } from '@desplazame/tipos';
 import { HttpClient } from '@angular/common/http';
-import { Capas } from './capas';
 import { Mapa } from './mapa';
 import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
@@ -265,14 +264,6 @@ function comoSeLeeLaDuracion(segundos: number): string {
 })
 export class Buscador {
   /**
-   * Las capas de verificación no las carga ya esta pantalla: viven en un
-   * servicio de aplicación porque el mapa las pinta desde donde sea que se le
-   * monte. Aquí solo se pide que estén; el servicio se encarga de bajarlas una
-   * sola vez.
-   */
-  private readonly capas = inject(Capas);
-
-  /**
    * Para preguntarle al motor por el portal más cercano.
    *
    * Aquí no vale `httpResource`, que es lo que usan los dos campos: aquel pide
@@ -334,10 +325,6 @@ export class Buscador {
    * limpio solo.
    */
   protected readonly trazado = computed(() => this.resultado()?.trayecto.geometria ?? []);
-
-  constructor() {
-    this.capas.cargar();
-  }
 
   /**
    * El usuario ha elegido —o ha deshecho— la calle de un lado.
