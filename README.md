@@ -82,18 +82,19 @@
 > código— y la pantalla la enseña: la línea entera **de puerta a puerta** sobre el mapa, que se
 > encuadra solo alrededor de ella, y debajo las indicaciones al **formato de Google Maps**,
 > cada paso con su flecha, su frase y sus metros. De Calle Alfonso I 10 a Paseo Independencia
-> 3 —343 m, ~4 min— son estos tres:
+> 3 —342 m, ~4 min— son estos cuatro:
 >
 > > ◉ **Sal de** **Calle Alfonso I 10** y dirígete hacia el suroeste por **Calle de Alfonso I** · 91 m
-> > ↰ **Gira a la izquierda** hacia la acera · 250 m
+> > ↰ **Gira a la izquierda** hacia la acera · 150 m
+> > ↗ **Gira ligeramente a la derecha** hacia **Plaza de España** · 96 m
 > > ⚑ **Paseo Independencia 3** está a la izquierda
 >
 > **⭐ Y una calle puede torcer sin dejar de ser ella.** Cuando el giro no cambia de calle, el
-> paso lo dice: «Gira a la derecha **para seguir por** Calle Obón», no «**hacia**» — que
-> prometería una calle nueva y no la hay. Es la fórmula de Valhalla, *«Turn right to stay on
-> X»*, y **solo se usa cuando hay nombre**: por una acera anónima no se «sigue», porque no había
-> nada en lo que seguir. Pasa en el **57,4 %** de las rutas medidas y afecta al **6,7 %** de los
-> pasos.
+> paso lo dice: «Gira a la derecha **para seguir por** Calle Monasterio de Nuestra Señora de los
+> Ángeles», no «**hacia**» — que prometería una calle nueva y no la hay. Es la fórmula de
+> Valhalla, *«Turn right to stay on X»*, y **solo se usa cuando hay nombre**: por una acera
+> anónima no se «sigue», porque no había nada en lo que seguir. Pasa en el **48,4 %** de las
+> rutas medidas y afecta al **5,7 %** de los pasos.
 >
 > **La negrita no es adorno: es el formato de Google.** Lo que hay que hacer y por dónde, en
 > negrita; el pegamento de la frase, no. Y **el motor no manda HTML**: manda los trozos de la
@@ -120,8 +121,8 @@
 > que interrumpe a otra durante menos de **105 m** se absorbe entre sus dos mitades — los 105 m
 > son de OSRM, su `NAME_SEGMENT_CUTOFF_LENGTH`, leído de su fuente — y se absorbe **contra el
 > paso anterior sin exigir que las dos calles vecinas sean la misma**, que es la regla ancha de
-> OSRM. En una ruta de 6,9 km de punta a punta de la ciudad, los **209 tramos de red** que se
-> pisan se leen en **25 pasos**. Lo que **no** desaparece es un giro de verdad: ni el propio del
+> OSRM. En una ruta de 6,4 km de punta a punta de la ciudad, los **87 tramos de red** que se
+> pisan se leen en **13 pasos**. Lo que **no** desaparece es un giro de verdad: ni el propio del
 > tramo corto ni el que resultaría de sumar dos suaves seguidos, que se mide aparte.
 >
 > ⚠️ **Lo que la regla ancha sí se lleva: los nombres cortos que sirven para orientarse.** Un
@@ -171,14 +172,14 @@
 > anda de verdad, avenida por avenida. Aquella frase, además, ya no puede salir por un segundo
 > motivo, que es el párrafo siguiente: **al peatón no se le deja entrar en un carril bici**.
 >
-> **⭐ Y desde el 21/08 el peatón va por donde le corresponde, no por donde se tarda menos.**
-> Hasta ahora el motor buscaba el camino **más corto en metros** —el modo que Valhalla llama
-> `shortest`—, y eso metía a quien anda por el carril bici siempre que fuera recto: en una ruta
-> medida, **el 87,3 % de sus metros**. El carril bici **no es sitio para un peatón**, y en eso
-> coinciden las tres fuentes: `graph.lua` de Valhalla le pone `pedestrian_forward = false`,
-> `foot.lua` de OSRM ni le da velocidad, y la Ordenanza de Circulación de Zaragoza (art. 25) no
-> lo cuenta como zona peatonal. Así que **se cierra**: 4.456 aristas fuera, la única prohibición
-> de una tabla que declara los 27 tipos de vía uno a uno.
+> **⭐ Y al peatón no se le mete por el carril bici.** El motor busca el camino más corto, y eso
+> lo metía por el carril siempre que fuera recto: en una ruta medida, **el 87,3 % de sus
+> metros**. El carril bici **no es sitio para un peatón**, y en eso coinciden las tres fuentes:
+> `graph.lua` de Valhalla le pone `pedestrian_forward = false`, `foot.lua` de OSRM ni le da
+> velocidad, y la Ordenanza de Circulación de Zaragoza (art. 25) no lo cuenta como zona
+> peatonal. Así que **se cierra al construir la red**: 4.456 aristas fuera, la única prohibición
+> de una tabla que declara los 27 tipos de vía uno a uno. Las rutas de arriba no pisan **ni un
+> metro** de carril.
 >
 > ⚠️ **Y se cobra un precio que se enseña.** Cerrarlo parte el grafo en 21 trozos y deja **20
 > portales sin ruta** —el 0,044 % de los 45.569 que resuelven—, repartidos en seis parcelas
@@ -187,18 +188,20 @@
 > fuentes leídas contiene la regla «reabrir la vía prohibida si es el único enlace», e
 > inventarla sería peor que el aviso honesto que ya reciben.
 >
-> **La calzada, en cambio, no se cierra: se pone detrás.** El reglamento de circulación dice que
-> el peatón va por la zona peatonal *«salvo cuando ésta no exista o no sea practicable»* (art.
-> 121.1), y ese **salvo** es un condicional — cerrar la calzada dejaría gente encerrada el día
-> que le falte un metro de acera dibujada. Se resuelve con el coste, que es la fórmula de
-> OSMAnd: `distancia / (velocidad × prioridad)`, con la acera a **×1,2**, la calle residencial a
-> ×1,1 y la calzada de verdad a **×0,9**. Esa razón —1,33— dice exactamente cuánto rodeo acepta
-> el motor por ir por la acera. Medido sobre 310 rutas: **el 79,4 % de los metros** se andan ya
-> por vía peatonal, y cuestan un **+1,9 %** de distancia. La céntrica de arriba deja de cruzar
-> por la calzada del todo, y le sale por **metro y medio**.
+> **La calzada, en cambio, no se cierra.** El reglamento dice que el peatón va por la zona
+> peatonal *«salvo cuando ésta no exista o no sea practicable»* (art. 121.1), y ese **salvo** es
+> un condicional: cerrar la calzada dejaría gente encerrada el día que le falte un metro de acera
+> dibujada. Se queda abierta, y la acera se anda porque está y porque es el camino corto — hoy,
+> el **37,4 % de los metros** de 310 rutas medidas.
 >
-> **Los minutos no salen de ahí.** El coste elige el camino; el tiempo que lees sigue siendo
-> metros a 5 km/h. Son dos números distintos del mismo reloj, como en Valhalla.
+> ⚠️ **Aquí vivió un día una capa más, y se retiró.** Del 21 al 22/08 el motor ponderó cada tipo
+> de vía con las prioridades de OSMAnd —acera ×1,2, calzada ×0,9— para empujar al peatón a la
+> acera. Subía la vía peatonal al 79,4 %, pero en las rutas vivas **cobraba hasta +502 m y seis
+> minutos** por rodear un corredor por cuya avenida también se anda, por su acera. **Fuera.**
+> Entre lo permitido, el camino es el más corto en metros, que es el defecto documentado de los
+> dos motores de referencia: Valhalla lleva su `walkway_factor` a **1,0, «neutral»**, y
+> `foot.lua` de OSRM no pondera por tipo. No queda tabla apagada ni bandera: la capa se fue
+> entera.
 >
 > **⭐ Y se escribe como se lee, no como se registra.** El callejero municipal publica en
 > mayúscula administrativa —`AVENIDA SAN JUAN DE LA PEÑA`— y OpenStreetMap en caso mixto;
@@ -362,7 +365,7 @@ Cinco rutas vivas. Las que vengan las decide el plan, no esta lista:
 | `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 23 ms, p95 37**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**25,9 pasos y ~16 kB** de media—. Sin ruta, un aviso que dice por qué |
+| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 36**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,7 pasos y ~13 kB** de media—. Sin ruta, un aviso que dice por qué |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
