@@ -25,27 +25,28 @@
 > La pantalla vive en [`app/`](app/): el formulario de cuatro campos, los cuatro modos, el mapa
 > y las indicaciones. **Los cuatro campos se rellenan contra el motor**, con el callejero de
 > verdad de Zaragoza: la calle se autocompleta al teclear, y el
-> portal se elige de la lista de los que esa calle tiene. El mapa ya es un mapa de verdad —Leaflet sobre
-> OpenStreetMap— y ya puede dibujar encima **once datos reales**: del Ayuntamiento de
-> Zaragoza, los **46.150 portales**, los **2.120 tramos de carril bici**, los **944 postes de
-> autobús**, las **276 estaciones BiZi**, los **2.158 aparcabicis**, los **2.146
-> aparcamotos**, el **estacionamiento regulado** —los **1.159 tramos** de zona azul y de
-> residentes, de un censo de 7.391—, los **13 perímetros de zona** y las **1.226 reservas
-> PMR** —dónde puede aparcar quien lleva tarjeta de movilidad reducida—; de OpenStreetMap, las
-> **98.774 aristas** del grafo de continuidad peatonal y ciclable; y del GTFS, los **89
-> trazados de línea** —tranvía
-> incluido, con sus 50 paradas—. **Catorce capas**, cada una con su casilla; **todas empiezan
-> apagadas** y se encienden a mano, porque las catorce a la vez no se leen. Una de ellas no es un
-> dato más: es una **vista de cotejo** del regulado —los 2.860 tramos libres cuya zona no tiene
-> perímetro publicado, que **quizá** sean la ampliación de zona azul que se prepara—, y está
-> ahí para contrastarla, no como afirmación. Ninguna de las catorce interviene en el cálculo:
-> son **para mirar**, no para rutar. La ruta la calcula el motor con su propio grafo en
-> memoria, y lo que el navegador recibe es la línea ya hecha.
+> portal se elige de la lista de los que esa calle tiene. El mapa es un mapa de verdad —Leaflet
+> sobre OpenStreetMap— y encima dibuja **una sola cosa: la ruta**. La calcula el motor con su
+> propio grafo en memoria, y lo que el navegador recibe es la línea ya hecha.
 >
-> **Y ya son dos páginas.** La de siempre —el buscador, en la raíz— y un **visor de capas** en
-> `/visor`: el mismo mapa y las mismas catorce capas, pero a ventana casi completa. No es
-> producto: es la herramienta con la que se verifica cada dato que entra, porque en el lienzo
-> pequeño de debajo del formulario no se ve nada. Se irá con el andamio.
+> **⭐ Y hasta el 22/08 dibujaba catorce capas más, que ya no están.** Eran los datos abiertos
+> del Ayuntamiento y del GTFS pintados encima del mapa —los 46.150 portales, las 98.774 aristas
+> del grafo, los carriles bici, los postes de bus, los trazados de línea, el BiZi, los
+> aparcabicis y aparcamotos, el estacionamiento regulado, las zonas, las reservas PMR—, cada una
+> con su casilla y todas apagadas de inicio. Y había una **segunda página**, el **visor de
+> capas** en `/visor`, con ese mismo mapa a ventana casi completa.
+>
+> **Fue el instrumento de la fase de datos**, no producto: con él se verificó, uno a uno, cada
+> conjunto que entró en el repositorio — que los 1.159 tramos de zona azul caían donde deben,
+> que el tranvía no se perdía al cruzar por `PA…`, que las reservas PMR retiradas no se
+> pintaban. Se **retiró de la app el 22/08** y **se reserva para la intranet, punto 14 del
+> plan**, que es donde una herramienta de verificación tiene sentido. No está comentado: está
+> borrado, y vive en la historia de git.
+>
+> Lo que la app gana con eso es lo que ya no baja: **de 41,07 MB en 20 peticiones al abrirla, a
+> 0,22 MB en 3**. Los datos siguen en el repositorio con sus fichas y sus huellas —son materia
+> de los puntos 9, 10 y 11, y de la propia intranet—; lo que dejó de hacerse es servírselos al
+> navegador.
 >
 > Y ya hay **motor**: un servidor mínimo en Node que carga al arrancar el grafo de la ciudad,
 > el callejero y los **46.150 portales enteros**, y levanta con ellos la **red por la que de
@@ -332,7 +333,9 @@ Con las dos arriba, en el navegador:
 | | |
 |---|---|
 | **<http://localhost:4200/>** | el buscador: el formulario, el mapa y las indicaciones |
-| **<http://localhost:4200/visor>** | el visor de capas: el mismo mapa a ventana completa |
+
+> Hay **una sola página**. Cualquier otra dirección —incluida `/visor`, que fue la segunda
+> hasta el 22/08— cae en el buscador por el comodín del router: ni pantalla en blanco ni 404.
 
 > ⚠️ **Solo hay rutas ANDANDO**, que es el modo que viene marcado al abrir. Con bus, bici o
 > coche la pantalla enseña el aviso del motor diciendo que ese modo todavía no se calcula — no

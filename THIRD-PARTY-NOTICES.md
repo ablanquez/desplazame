@@ -312,9 +312,15 @@ los límites de GitHub.
   **á**ngeles», «Ies **í**taca», «Marcelino **á**lvarez». No se corrige: el dato se copia tal cual.
 
 > ⚠️ **Y una tercera que salió al re-verificar, que no venía heredada: el feed se contradice
-> consigo mismo.** Declara `feed_end_date = 20261005`, pero su `calendar_dates` tiene servicio
-> hasta el **31/12/2026**. Son casi tres meses de servicio declarado más allá de la validez que
-> el propio feed se da. **Aquí se toma la fecha conservadora, la del publicador: 05/10/2026.**
+> consigo mismo.** Declara `feed_end_date = 20261005`, pero su `calendar_dates` llega hasta el
+> **31/12/2026**. Son casi tres meses más allá de la validez que el propio feed se da. **Aquí se
+> toma la fecha conservadora, la del publicador: 05/10/2026.**
+>
+> **Y el 31/12 no es siquiera servicio de verdad**, que es una precisión que faltaba aquí. De
+> los **1.458 `service_id`** de `calendar_dates`, solo **1.262 aparecen en `trips.txt`**: hay
+> **196 huérfanos** que no llevan ni un viaje. El último día con servicio que algún viaje usa de
+> verdad es el **27/12/2026**; el 28, el 29, el 30 y el 31 son **una línea de huérfano cada
+> uno**. Comprobado sobre el propio fichero, cruzando `calendar_dates.txt` con `trips.txt`.
 
 ### 1.8 · Estaciones BiZi — Ayuntamiento de Zaragoza (IDEZar)
 
@@ -565,11 +571,15 @@ La Almozara 398 · La ALmozara 2      null 28
 **No se normaliza**: el fichero se copia como vino. Quien agrupe por distrito sin unificar antes
 contará «Centro» dos veces y perderá un «CASCO HISTÓRICI» por el camino.
 
-**Lo que la aplicación pinta, y lo que no.** El visor y el buscador pintan **solo los 1.159
-tramos `ESRO` y `ESRE`** —azul los primeros, naranja los segundos, una sola casilla—. Los 6.204
-`LIBRE` y los 28 sin clasificar **no se pintan**: no son regulado, y pintarlos contestaría otra
-pregunta. Están en el fichero igualmente, y hay una prueba
-(`app/src/app/capas.spec.ts`) que se pone roja si alguien los cuela.
+**Lo que la aplicación pintaba, y lo que no.** Mientras el visor existió —hasta el 22/08, ver
+más abajo— se pintaban **solo los 1.159 tramos `ESRO` y `ESRE`** —azul los primeros, naranja los
+segundos, una sola casilla—. Los 6.204 `LIBRE` y los 28 sin clasificar **no se pintaban**: no
+son regulado, y pintarlos contestaría otra pregunta. Están en el fichero igualmente.
+
+> ℹ️ **Desde el 22/08 la app no pinta este dato ni ningún otro de estas fichas.** El visor de
+> capas se retiró y **se reserva para la intranet, punto 14 del plan**; con él se fue la prueba
+> que vigilaba este filtro (`app/src/app/capas.spec.ts`). El dato se queda en el repositorio con
+> su ficha y su huella: lo que se retiró es el instrumento que lo miraba, no el dato.
 
 Y de este mismo fichero sale una **segunda vista, de cotejo y temporal**: los **2.860 tramos
 `LIBRE` de las 19 zonas sin polígono** (21.268 plazas), en morado y discontinua, con la casilla
