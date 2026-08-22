@@ -1086,37 +1086,33 @@ describe('Los pasos de una ruta real', () => {
     assert.equal(pasos[0]!.partes.map((parte) => parte.texto).join(''), pasos[0]!.texto);
   });
 
-  test('⭐ COLOSO 2 → VALLE DE ZURIZA 1: el giro que no cambia de calle lo dice', () => {
-    // Los pasos 5 y 6 son dos giros por la MISMA calle: se entra en Calle Obón,
-    // se tuerce dentro de ella y se sigue. El segundo diría «Gira a la derecha
-    // HACIA Calle Obón», que promete una calle nueva y no la hay.
+  test('⭐ ABEDUL 1 → ALFARERÍA 6: el giro que no cambia de calle lo dice', () => {
+    // Los pasos 5 y 6 de esa ruta son dos giros por la MISMA calle: se sale de
+    // Calle Monasterio de Nuestra Señora de los Ángeles y se vuelve a entrar
+    // en ella. El segundo diría «Gira a la derecha HACIA Calle Monasterio…»,
+    // que promete una calle nueva y no la hay.
     //
-    // ⚠️ AJUSTE (coste por prioridad). El ejemplo era ABEDUL 1 → ALFARERÍA 6,
-    // donde Calle Monasterio de Nuestra Señora de los Ángeles salía en dos
-    // pasos de 150 m con un giro en medio. Con el coste, esa ruta **se pasa a
-    // la acera** y los dos trozos se funden en uno de 330 m: el giro que
-    // partía la calle ya no se da. La cuenta que lo explica —soltar calzada
-    // residencial y coger acera—:
-    //   h              shortest   prioridad         Δ m   prio    Δ m/prio
-    //   footway         255,500     555,400   +299,900    1,2    +249,917
-    //   living_street     7,300       7,300     +0,000    1,2      +0,000
-    //   pedestrian      264,919     264,919     +0,000    1,2      +0,000
-    //   residential     743,112     456,412   -286,700    1,1    -260,636
-    //   tertiary         36,600      36,600     +0,000    0,9      +0,000
-    //   SUMA           1307,431    1320,631    +13,200           -10,720
-    //   Δ coste = -10,720 / (5000/3600) = -7,718 s → minimiza.
-    // Trece metros más (+1,0 %) por 286,7 m menos de calzada.
-    const pasos = pasosDe(COLOSO, ZURIZA);
+    // ⚠️ AJUSTE (decisión de Antonio 22/08, mínimo de distancia). La capa de
+    // coste por prioridad que vivió aquí un día se retiró: cobraba hasta +502 m
+    // por rodear. El porqué entero y sus citas, en la cabecera de `andando.ts`.
+    // Ayer el sujeto era COLOSO → VALLE DE ZURIZA y Calle Obón, porque la
+    // prioridad fundía los dos trozos de Calle Monasterio en uno de 330 m al
+    // pasarse la ruta a la acera. Sin prioridad, ABEDUL vuelve a sus 1.307,431 m
+    // —13,200 menos que ayer— y el giro que parte la calle vuelve a darse.
+    const pasos = pasosDe(ABEDUL, ALFARERIA);
     const seguir = pasos.filter((paso) => paso.texto.includes(' para seguir por '));
     assert.equal(seguir.length, 1, `sale ${seguir.length} veces: ${seguir.map((p) => p.texto)}`);
-    assert.match(seguir[0]!.texto, /^Gira a la derecha para seguir por Calle Obón$/);
+    assert.match(
+      seguir[0]!.texto,
+      /^Gira a la derecha para seguir por Calle Monasterio de Nuestra Señora de los Ángeles$/,
+    );
     // El paso ANTERIOR sí entra en ella, y por eso dice «hacia».
     const k = pasos.indexOf(seguir[0]!);
-    assert.match(pasos[k - 1]!.texto, /^Gira a la izquierda hacia Calle Obón$/);
+    assert.match(pasos[k - 1]!.texto, /^Gira a la izquierda hacia Calle Monasterio /);
   });
 
   test('⭐ y sus partes se marcan igual: acción + vía', () => {
-    const pasos = pasosDe(COLOSO, ZURIZA);
+    const pasos = pasosDe(ABEDUL, ALFARERIA);
     const seguir = pasos.find((paso) => paso.texto.includes(' para seguir por '))!;
     assert.deepEqual(
       seguir.partes.map((parte) => parte.papel),
@@ -1127,13 +1123,15 @@ describe('Los pasos de una ruta real', () => {
     assert.equal(seguir.partes.map((parte) => parte.texto).join(''), seguir.texto);
   });
 
-  test('ABEDUL 1 → ALFARERÍA 6 NO usa la fórmula: cada giro cambia de calle', () => {
-    // ⚠️ AJUSTE (coste por prioridad). Las dos rutas se han cambiado el papel:
-    // el ejemplo negativo era COLOSO → ARRUPE, que **ahora sí la usa** —dice
-    // «para seguir por Calle Valle de Broto»— porque con el coste cambia de
-    // corredor entero. ABEDUL → ALFARERÍA la perdió por lo contrario: sus dos
-    // trozos de Calle Monasterio se fundieron en uno. Un caso a cada lado.
-    for (const paso of pasosDe(ABEDUL, ALFARERIA)) {
+  test('la ruta larga NO usa la fórmula: en ella cada giro cambia de calle', () => {
+    // ⚠️ AJUSTE (decisión de Antonio 22/08, mínimo de distancia). La capa de
+    // coste por prioridad que vivió aquí un día se retiró: cobraba hasta +502 m
+    // por rodear. El porqué entero y sus citas, en la cabecera de `andando.ts`.
+    // Ayer las dos rutas se habían cambiado el papel —COLOSO → ARRUPE decía
+    // «para seguir por Calle Valle de Broto» porque el coste la mandaba por
+    // otro corredor—. Retirada la prioridad vuelve al corredor central, y en
+    // sus 13 pasos cada giro cambia de calle de verdad.
+    for (const paso of pasosDe(COLOSO, ARRUPE)) {
       assert.equal(paso.texto.includes('para seguir por'), false, paso.texto);
     }
   });
@@ -1361,21 +1359,19 @@ describe('Los pasos de una ruta real', () => {
     // OSM corta la acera del paseo en cada calle que lo cruza. Quien anda ve
     // un paseo, y eso es lo que tiene que leer.
     //
-    // ⚠️ AJUSTE (coste por prioridad). El sujeto era COLOSO → ARRUPE, que ya
-    // **no pisa el paseo**: con el coste abandona el corredor central entero.
-    //   h              shortest   prioridad         Δ m   prio    Δ m/prio
-    //   footway        1537,700    6248,500  +4710,800    1,2   +3925,667
-    //   living_street   841,900     262,700   -579,200    1,2    -482,667
-    //   pedestrian      428,700       0,000   -428,700    1,2    -357,250
-    //   primary         637,900       0,000   -637,900    0,9    -708,778
-    //   residential      80,027     174,327    +94,300    1,1     +85,727
-    //   secondary      2476,400     115,200  -2361,200    0,9   -2623,556
-    //   service         116,400       4,900   -111,500    0,9    -123,889
-    //   tertiary        252,300      67,700   -184,600    0,9    -205,111
-    //   SUMA           6371,327    6873,327   +502,000          -489,856
-    //   Δ coste = -489,856 / (5000/3600) = -352,696 s → minimiza.
-    // Así que el guardián se muda a quien sí lo anda: PASEO INDEPENDENCIA 4 →
-    // 34, que lo recorre de punta a punta.
+    // El sujeto era COLOSO → ARRUPE, y ayer se mudó aquí porque con el coste por
+    // prioridad esa ruta abandonaba el corredor central y dejaba de pisar el
+    // paseo.
+    //
+    // ⚠️ AJUSTE (decisión de Antonio 22/08, mínimo de distancia). La capa de
+    // coste por prioridad que vivió aquí un día se retiró: cobraba hasta +502 m
+    // por rodear. El porqué entero y sus citas, en la cabecera de `andando.ts`.
+    // Retirada la prioridad, ARRUPE vuelve al paseo —su paso 7, «Paseo de la
+    // Independencia · 680 m»—, así que el sujeto de ayer volvería a servir.
+    // **Se queda igualmente PASEO INDEPENDENCIA 4 → 34**, y no por pereza: ese
+    // par lo recorre de punta a punta y hace pasar **nueve ways por un solo
+    // paso**, mientras que en ARRUPE el paseo es un tramo de paso. El guardián
+    // vigila más aquí, y no depende de por dónde decida ir la ruta larga.
     const pasos = pasosDe(INDEPENDENCIA_4, INDEPENDENCIA_34);
     const independencia = pasos.filter((p) => /Paseo Independencia$/.test(p.texto));
     assert.equal(independencia.length, 1, `el paseo sale ${independencia.length} veces`);
@@ -1391,18 +1387,20 @@ describe('Los pasos de una ruta real', () => {
     assert.equal(pasos.length, 2);
   });
 
-  test('⭐ la ruta larga colapsa 209 ways en 25 pasos, sin perder arranque ni llegada', () => {
-    // ⚠️ AJUSTE (coste por prioridad). Decía `pasos.length < 19`, y con el
-    // coste son 25. **Cambiar el 19 por un 26 habría sido enseñarle a mentir**:
-    // ese número no medía nada por sí solo, medía que el colapso funciona. Se
-    // mide ahora contra lo que colapsa, que es la magnitud de verdad: la ruta
-    // recorre **346 aristas en 209 ways** y se cuenta en **25 pasos** — una
-    // razón de 8,4 ways por paso. El límite se pone en 5, con holgura, para que
-    // enrojezca si el colapso se rompe y no cada vez que la ruta cambie.
+  test('⭐ la ruta larga colapsa 87 ways en 13 pasos, sin perder arranque ni llegada', () => {
+    // Esta prueba no mide un número de pasos: mide que **el colapso funciona**.
+    // Por eso se compara contra lo que colapsa y no contra una constante — un
+    // `pasos.length < N` habría que reescribirlo cada vez que la ruta se mueva,
+    // y reescribirlo es enseñarle a mentir.
     //
-    // Los 25 pasos son la verdad de hoy y se dejan a la vista: la ruta con el
-    // coste serpentea de acera en acera, y cada cambio es un paso. Acortar esa
-    // lista es narración —fase propia en Valhalla (odin)— y no es de aquí.
+    // ⚠️ AJUSTE (decisión de Antonio 22/08, mínimo de distancia). La capa de
+    // coste por prioridad que vivió aquí un día se retiró: cobraba hasta +502 m
+    // por rodear. El porqué entero y sus citas, en la cabecera de `andando.ts`.
+    // Ayer, con la prioridad, la ruta recorría 346 aristas en 209 ways y se
+    // contaba en 25 pasos. Hoy vuelve al corredor central: **199 aristas en 87
+    // ways, 13 pasos** — razón de 6,7 ways por paso, y 502,000 m menos. El
+    // límite se deja en 5, con holgura, para que enrojezca si el colapso se
+    // rompe y no cada vez que la ruta cambie.
     const uno = portales.donde.get(COLOSO)!;
     const otro = portales.donde.get(ARRUPE)!;
     const ea = enganchar(red, rejilla, uno.lon, uno.lat)!;
@@ -1410,8 +1408,8 @@ describe('Los pasos de una ruta real', () => {
     const ruta = calcularRuta(red, cuaderno, ea, [uno.lon, uno.lat], eb, [otro.lon, otro.lat])!;
     const ways = new Set(ruta.trozos.map((t) => red.aristas[t.arista]!.way)).size;
     const pasos = pasosDe(COLOSO, ARRUPE);
-    assert.equal(ways, 209);
-    assert.equal(pasos.length, 25);
+    assert.equal(ways, 87);
+    assert.equal(pasos.length, 13);
     assert.ok(pasos.length < ways / 5, `${ways} ways en ${pasos.length} pasos: el colapso no colapsa`);
     assert.equal(pasos[0]!.giro, 'salida');
     assert.equal(pasos[pasos.length - 1]!.giro, 'llegada');
@@ -1461,24 +1459,27 @@ describe('Los pasos de una ruta real', () => {
     // SEGUIDAS. Los metros no se pierden, se suman a la Academia.
     const pasos = pasosDe(COLOSO, ARRUPE);
     //
-    // ⚠️ AJUSTE (coste por prioridad). La segunda avenida ya no es San Juan de
-    // la Peña: con el coste, la ruta tuerce en la Academia hacia **Avenida
-    // Salvador Allende** y se va por otro corredor (la cuenta entera está en el
-    // guardián del Paseo: Δ = -352,696 s). Lo que esta prueba protege **no
-    // cambia** — que dos avenidas con nombre salgan SEGUIDAS, sin que la
+    // ⚠️ AJUSTE (decisión de Antonio 22/08, mínimo de distancia). La capa de
+    // coste por prioridad que vivió aquí un día se retiró: cobraba hasta +502 m
+    // por rodear. El porqué entero y sus citas, en la cabecera de `andando.ts`.
+    // Ayer la segunda avenida era Salvador Allende, porque el coste mandaba la
+    // ruta por otro corredor. Vuelve a ser **San Juan de la Peña**, que es el
+    // par original. Lo que esta prueba protege no ha cambiado en ninguno de los
+    // dos estados: que dos avenidas con nombre salgan SEGUIDAS, sin que la
     // absorción ancha deje un tramo mudo colado entre ellas.
     //
     // El escenario del carril bici de 1.270 m ya no existe en ninguna ruta: al
-    // peatón no se le deja entrar ahí. Lo que la bitácora nº7 fijó —que ese
-    // tramo no se llame «la calzada»— lo sigue guardando la prueba de arriba.
+    // peatón no se le deja entrar ahí, y **eso no se ha retirado**. Lo que la
+    // bitácora nº7 fijó —que ese tramo no se llame «la calzada»— lo sigue
+    // guardando la prueba de arriba.
     const academia = pasos.findIndex((p) =>
       p.texto.endsWith('hacia Avenida de la Academia General Militar'),
     );
-    const allende = pasos.findIndex((p) => p.texto.endsWith('hacia Avenida Salvador Allende'));
+    const sanJuan = pasos.findIndex((p) => p.texto.endsWith('hacia Avenida de San Juan de la Peña'));
     assert.ok(academia >= 0, 'la Academia sigue sin nombre');
-    assert.equal(allende, academia + 1, 'entre las dos avenidas se ha colado un paso');
-    assert.equal(pasos[academia]!.metros, 430);
-    assert.equal(pasos[allende]!.metros, 890);
+    assert.equal(sanJuan, academia + 1, 'entre las dos avenidas se ha colado un paso');
+    assert.equal(pasos[academia]!.metros, 500);
+    assert.equal(pasos[sanJuan]!.metros, 1830);
   });
 
   test('⭐ la ruta larga no dice la MISMA calle dos veces por dos grafías', () => {
@@ -1488,12 +1489,15 @@ describe('Los pasos de una ruta real', () => {
     // registros, dos pasos. Ahora es uno, y con el nombre municipal.
     const pasos = pasosDe(COLOSO, ARRUPE);
     //
-    // ⚠️ AJUSTE (coste por prioridad). San Juan de la Peña ya no está en esta
-    // ruta —ver la cuenta en el guardián del Paseo—, así que el guardián deja de
-    // vigilar UN par y pasa a vigilar **la regla entera sobre los 25 pasos**:
-    // dos pasos seguidos no pueden llamarse igual, y si de verdad son la misma
-    // calle con un giro real en medio, el segundo tiene que decirlo con «para
-    // seguir por». Es más fuerte que el par: no depende de por dónde vaya.
+    // ⚠️ AJUSTE (decisión de Antonio 22/08, mínimo de distancia). La capa de
+    // coste por prioridad que vivió aquí un día se retiró: cobraba hasta +502 m
+    // por rodear. El porqué entero y sus citas, en la cabecera de `andando.ts`.
+    // Ayer San Juan de la Peña no estaba en esta ruta y el guardián pasó de
+    // vigilar UN par a vigilar **la regla entera sobre todos los pasos**: dos
+    // seguidos no pueden llamarse igual, y si de verdad son la misma calle con
+    // un giro real en medio, el segundo tiene que decirlo con «para seguir
+    // por». Esa forma se queda —es más fuerte, y no depende de por dónde vaya
+    // la ruta— y recupera además su caso original.
     const via = (texto: string) => texto.replace(/^.*?(?: hacia | para seguir por | por )/, '');
     for (let k = 1; k < pasos.length - 1; k++) {
       const antes = pasos[k - 1]!;
@@ -1508,38 +1512,42 @@ describe('Los pasos de una ruta real', () => {
         `la misma calle dos veces: «${antes.texto}» y «${ahora.texto}»`,
       );
     }
-    // Y el caso vivo de esta ruta: Calle Valle de Broto, 150 m y luego 34 m
-    // con un giro de verdad en medio.
-    const broto = pasos.filter((p) => /Calle Valle de Broto$/.test(p.texto));
-    assert.equal(broto.length, 2, `sale ${broto.length} veces`);
-    assert.equal(broto[1]!.texto, 'Gira a la izquierda para seguir por Calle Valle de Broto');
+    // Y el caso original, que era el vicio que este remate vino a quitar:
+    // «AVENIDA SAN JUAN DE LA PEÑA · 760 m» (municipal, heredada) seguida de
+    // «Avenida de San Juan de la Peña · 1.040 m» (de OSM). Misma avenida, dos
+    // registros, dos pasos. Ahora es UNO, y con los dos trozos sumados.
+    const sanJuan = pasos.filter((p) => /SAN JUAN DE LA PEÑA$/i.test(p.texto));
+    assert.equal(sanJuan.length, 1, `sale ${sanJuan.length} veces: ${sanJuan.map((p) => p.texto)}`);
+    assert.match(sanJuan[0]!.texto, /hacia Avenida de San Juan de la Peña$/);
+    assert.equal(sanJuan[0]!.metros, 1830, 'los dos trozos tienen que sumarse');
   });
 
-  test('⭐ la ruta céntrica deja de cruzar por la calzada: tres pasos, no cuatro', () => {
-    // CALLE ALFONSO I 10 → PASEO INDEPENDENCIA 3. Es la del README.
+  test('la ruta céntrica corta: cuatro pasos, y son los del README', () => {
+    // CALLE ALFONSO I 10 → PASEO INDEPENDENCIA 3. Es la del README: si esta
+    // pasada la cambiara, habría que re-copiarla.
     //
-    // ⚠️ AJUSTE (coste por prioridad). Eran cuatro pasos y 341,917 m; ahora son
-    // tres y 343,217 m. La cuenta, a mano y sin redondear:
+    // ⚠️ AJUSTE (decisión de Antonio 22/08, mínimo de distancia). Ayer, con la
+    // prioridad de OSMAnd puesta, esta ruta salía en tres pasos y 343,217 m:
+    // rodeaba 49,9 m de acera para no cruzar 12,8 m de calzada. Retirada la
+    // prioridad, vuelve a los cuatro pasos y a los 341,917 m, que es el mínimo
+    // de distancia entre lo que el peatón tiene permitido. La cuenta de ayer,
+    // que ya no rige y queda para saber qué se retiró:
     //   h              shortest   prioridad         Δ m   prio    Δ m/prio
     //   footway         202,076     251,976    +49,900    1,2     +41,583
     //   living_street    53,541      17,741    -35,800    1,2     -29,833
     //   pedestrian       73,500      73,500     +0,000    1,2      +0,000
     //   tertiary         12,800       0,000    -12,800    0,9     -14,222
     //   SUMA            341,917     343,217     +1,300            -2,472
-    //   Δ coste = -2,472 / (5000/3600) = -1,780 s → minimiza.
-    // Un metro y medio más (+0,4 %) por dejar de pisar calzada del todo: de
-    // 96,3 % a **100 %** de vía peatonal. Es el «salvo cuando ésta no exista»
-    // del art. 121.1 en acto. Y como el paso de «Plaza de España» desaparece
-    // —era el cruce—, la acera pasa de 150 a 250 m de una pieza.
+    // El acceso NO se retira: esta ruta no pisa carril bici ni antes ni ahora.
     const pasos = pasosDe('Portales.104760', 'Portales.120461');
-    assert.equal(pasos.length, 3);
+    assert.equal(pasos.length, 4);
     assert.deepEqual(
       pasos.map((p) => p.giro),
-      ['salida', 'izquierda', 'llegada'],
+      ['salida', 'izquierda', 'ligera-derecha', 'llegada'],
     );
     assert.deepEqual(
       pasos.map((p) => p.metros),
-      [91, 250, 0],
+      [91, 150, 96, 0],
     );
   });
 });

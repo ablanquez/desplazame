@@ -31,7 +31,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { AristaCruda, GrafoEnMemoria } from './grafo.ts';
-import { ACCESO_ANDANDO, costeDe, puedeAndar } from './andando.ts';
+import { ACCESO_ANDANDO, puedeAndar } from './andando.ts';
 import { heredarNombres, type Herencias } from './ejes.ts';
 // `nucleoDe` viene de `pasos.ts`, y no hay ciclo: `pasos.ts` solo importa de
 // aquí un **tipo**, que Node borra al ejecutar. Su única dependencia de valor
@@ -149,16 +149,6 @@ export interface RedEnMemoria {
    * trae un tipo nuevo que nadie ha decidido, y hay que decidirlo.
    */
   readonly sinFilaEnLaTabla: number;
-  /**
-   * ⭐ Lo que cuesta cada arista al peatón, **en segundos**, en el mismo orden
-   * que `aristas`.
-   *
-   * Se calcula una vez al arrancar y no por petición: son 89.047 divisiones que
-   * no cambian nunca, y el Dijkstra las miraría ~187.000 veces en cada ruta.
-   * Va como `Float64Array` y no como campo de `AristaUtil` por lo mismo que la
-   * adyacencia va en CSR: un bloque en vez de 89.047 propiedades.
-   */
-  readonly costeAndando: Float64Array;
   /** Cuántos extremos sueltos quedan (grado 1): puntas del dato, no error. */
   readonly puntasSueltas: number;
   readonly cargadoEnMs: number;
@@ -192,7 +182,6 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
   // tabla de acceso quita de lo que **iba a entrar**, no las que ya sobraban
   // por `a` o por `c`. Sin ese orden, la cifra mezclaría tres motivos.
   const utiles: AristaCruda[] = [];
-  const tipoCrudo = new Map<number, string>();
   const cerradasPorTipo = new Map<string, number>();
   let sinFilaEnLaTabla = 0;
   for (const cruda of memoria.grafo.aristas) {
@@ -207,7 +196,6 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
       continue;
     }
     utiles.push(cruda);
-    tipoCrudo.set(cruda.i, cruda.h);
   }
 
   // ── 2 · Los nodos, por coincidencia exacta de coordenada ───────────────────
@@ -246,15 +234,6 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
   }
 
   const nodos = lon.length;
-
-  // ── 2 bis · El coste de cada arista, de una vez ─────────────────────────
-  // El tipo real es constante dentro de un way —verificado: 0 de 98.774
-  // discrepan—, así que se lee del propio crudo y no hace falta el índice.
-  const costeAndando = new Float64Array(aristas.length);
-  for (let k = 0; k < aristas.length; k++) {
-    const arista = aristas[k]!;
-    costeAndando[k] = costeDe(arista.metros, tipoCrudo.get(arista.i)!);
-  }
 
   // ── 3 · La adyacencia en CSR ───────────────────────────────────────────────
   // Se cuenta primero cuántas salen de cada nodo, se hace la suma acumulada, y
@@ -362,7 +341,6 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
     nombreHeredado: herencias.nombreHeredado,
     herencias,
     articulosPropios,
-    costeAndando,
     cerradasPorTipo,
     sinFilaEnLaTabla,
     puntasSueltas,
