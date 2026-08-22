@@ -181,7 +181,9 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       Re-verificado el reconocimiento heredado: 984 stops · 53 rutas ·
       34.427 trips · 89/27.603 shapes sin huérfanos ✓ — y la caducidad
       quedó en UNA vía, no dos: el feed se contradice (servicio real hasta
-      el 27/12; vale el 05/10 del publicador, la conservadora).
+      el 27/12; vale el 05/10 del publicador, la conservadora — y el
+      27/12 quedó VERIFICADO contra el dato el 22/08: los calendarios
+      del 28-31/12 son huérfanos sin viajes).
       ⭐ Misterio resuelto: 45 rutas CON viajes = 44 bus + tranvía — ahí
       estaban las «44 líneas» de ZetaBus. Las 8 sin ningún viaje (CEM, CE,
       LAN, EM1, EM2, V1, ES3, V4 — cementerio, estadio, sustitución del
@@ -689,13 +691,30 @@ Antonio:**
       · «para seguir por» cuando el giro no cambia de calle [Valhalla
         stay-on, solo con nombre] (`b9375a7`)
       Bitácora: 8 entradas, 8 cerradas. 153 motor + 84 interfaz
-- [ ] **Se retiran los andamios de carga del mapa de verificación**
-      (decidido el 18/08 en el punto 5): el navegador deja de bajarse los
-      ~34 MB (grafo 22,8 + portales 10,3 + carriles + shapes + stops +
-      BiZi + aparcabicis), sale la entrada `datos` de `angular.json`, y el
-      mapa de capas se replantea — las casillas eran verificación de la
-      fase de datos, no producto (dicho por Antonio el 17/08). Qué
-      visualización queda en la demo lo decide Antonio entonces
+- [x] **HECHA (22/08) — Se retiran los andamios de carga y la pestaña del visor**
+      (decidido el 18/08 en el punto 5; PARLAMENTADO el 22/08): el
+      navegador deja de bajarse los ~34 MB (grafo 22,8 + portales 10,3 +
+      carriles + shapes + stops + BiZi + aparcabicis), sale la entrada
+      `datos` de `angular.json`, y la página del visor sale del router —
+      las casillas eran verificación de la fase de datos, no producto
+      (dicho por Antonio el 17/08). ⭐ **El visor NO muere: SE RESERVA
+      para la Intranet (punto 14)** — decisión de Antonio del 22/08: será
+      herramienta interna al final del proyecto. Los DATOS se quedan en
+      el repo con sus fichas (materia de los puntos 9/10/11); lo que
+      sale es su publicación al navegador. RESULTADO (commits `6327e45`
+      + `1deaa86`): la raíz en frío pasa de **41,07 MB en 20 peticiones
+      a 0,22 MB en 3** — cero bytes de `app/data/` (las 17 URLs, 404) y
+      `main.js` adelgaza solo (0,36→0,21 MB al irse 1.173 líneas).
+      Borrado: capas.ts+spec (898) · visor (275) · los pinceles de
+      mapa.ts (847; 1.001→154 líneas) · la barra de navegación entera
+      (una página no navega) y 3 atribuciones que solo alimentaban
+      capas — la de OSM SE QUEDA (ODbL, el mapa base sigue siendo
+      suyo). Guardianes: 21 retirados con lo suyo · 1 INVERTIDO nacido
+      en rojo (la raíz pide CERO a /datos/) · 1 nacido (F5 en /visor
+      cae al comodín, 200 · 451 bytes). Los _cabeceras.txt murieron
+      solos con la entrada de angular.json (404, sin tocarlos). La
+      demo, intacta por el proxy: Arrupe 6.371 m · 13 pasos. 64/64
+      interfaz (eran 84) · 160/160 motor
 
 **El acceso y el coste por modo** *(parlamentado el 21/08 con la doctrina
 delante: tabla de acceso de Valhalla [wiki OSM] · `foot.lua` y
@@ -924,9 +943,12 @@ Dejado aquí desde el punto 4, para cuando toque:
 - [ ] **Los sentidos del tranvía NO se derivan del sufijo a ciegas**:
       tres saltos conocidos en los stop_code (`1311/1312`, `2322`, `2422`)
 - [ ] Al retirar los andamios de carga (~35,6 MB en el navegador), la
-      imprecisión menor del notices §1.6 (dice 31/12; el servicio real
-      usado llega al 27/12, el 31 es de huérfanos) se corrige en la misma
-      pasada que toque ese fichero
+      imprecisión menor del notices — que vivía en §1.7 (GTFS), no en
+      §1.6 como fichaba este plan: puntero corregido el 22/08 — quedó
+      CORREGIDA en `1deaa86`, verificada contra el dato y no copiada:
+      196 service_id huérfanos (sin ningún trip); el 28, 29, 30 y
+      31/12 son UNA línea huérfana cada uno — el 31/12 ni siquiera era
+      servicio. La conservadora (05/10) no cambia
 
 ## 11 — Modo COCHE *(en grueso)*
 
@@ -972,3 +994,25 @@ La capa visual que haga falta. La última, a propósito.
 - [ ] Color de marca del proyecto — hoy `NO CONSTA`; los badges del README
       llevan el gris neutro de la casa hasta que se decida. *Surgió en el
       checkpoint del 16/08.*
+
+## 14 — Intranet *(reservado para el final — nace el 22/08)*
+
+Punto grande, sin desarrollar. Decisión de Antonio (22/08, al retirar
+los andamios): **el visor de capas se muda aquí** — deja de ser página
+pública de la app y se reconstruye al final como herramienta interna.
+
+- [ ] **El visor de capas, reconstruido como intranet**: las catorce
+      capas de verificación y la vista de cotejo de la ampliación del
+      regulado (la morada — le tocará trabajar en 2027, cuando la
+      ampliación se active). El código retirado el 22/08 vive en la
+      historia de git; los datos siguen en el repo con sus fichas. La
+      carga perezosa (bajar cada capa al marcarla) quedó dicha como
+      opción el 18/08 y encaja aquí. ⭐ CÓMO RECUPERARLO (la doctrina:
+      la gente no busca commits sueltos — vuelve a un punto conocido;
+      este es el punto conocido): el borrado es `6327e45`; el estado
+      anterior completo vive en su padre —
+      `git show 6327e45^:app/src/app/capas.ts` (677 líneas) · ídem
+      `visor.ts/.html/.css/.spec.ts` · `capas.spec.ts` · y el mapa.ts
+      de entonces (1.001 líneas, los 14 pinceles en 261-972)
+- [ ] Alcance, acceso (¿protegido?, ¿solo local?) y qué más contiene la
+      intranet: `NO CONSTA` — se parlamenta al llegar

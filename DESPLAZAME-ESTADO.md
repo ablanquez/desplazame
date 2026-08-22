@@ -5,14 +5,16 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 21 de agosto de 2026 (mañana)
+## ESTADO ACTUAL — 22 de agosto de 2026 (tarde)
 
-**⭐ PUNTOS 1-6 CERRADOS Y EL 7 EN PIE: la demo calcula, pinta y narra
-rutas andando, y está PUBLICADA (`b027199..cb01522`, 20/08 noche). Del
-punto 7 solo queda la retirada de los andamios de carga.**
+**⭐ PUNTOS 1-6 CERRADOS Y EL 7 A FALTA DE UNA CASILLA: la demo calcula,
+pinta y narra rutas andando por donde manda la ley, VISTA por el ojo de
+Antonio («ahora ya carga las rutas bien») y LIGERA — 0,22 MB en frío,
+eran 41. Del punto 7 queda solo la casilla de la narración de cruces
+(sin prisa); su destino —esperarla o mudarla— lo decide Antonio.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
-levantado el 18/08 y des-caducado el 21):
+levantado el 18/08, des-caducado el 21 y el 22):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
@@ -22,13 +24,16 @@ levantado el 18/08 y des-caducado el 21):
   tras la barra: peso visual, decisión de Antonio). ⇅ invertir y «Mi
   ubicación» dentro (punto 6). Y «Generar ruta» devuelve la RUTA REAL —
   pintada, con los pasos escritos y las negritas por partes: la
-  respuesta falsa murió sin rastro (`2013c04`).
-- **El visor** (`/visor`): el mapa a ventana casi completa con las
-  CATORCE capas apagables — portales, grafo, carriles, postes bus,
-  trazados bus, tranvía ×2, BiZi, aparcabicis, aparcamotos, regulado
-  ESRO+ESRE, zonas, PMR, y la vista de cotejo de la ampliación. TODAS
-  desmarcadas por defecto. Router mínimo [DOC]; los 42 MB no se
-  re-descargan al navegar (medido).
+  respuesta falsa murió sin rastro (`2013c04`). Es la ÚNICA página —
+  sin barra de navegación; el comodín cubre cualquier otra ruta,
+  /visor incluida.
+- **El peso** (22/08): la raíz en frío baja **0,22 MB en 3
+  peticiones** — antes 41,07 MB en 20 (cifra FIJADA con comando; los
+  ~34 y ~42 que corrían por los papeles eran herencias). El visor y
+  sus catorce capas: RETIRADOS de la app, reservados para la
+  **Intranet (punto 14)**; recuperables de git (`6327e45^`, escrito en
+  el plan). Los DATOS siguen en el repo con sus fichas — lo que murió
+  es su publicación al navegador.
 - **El motor**: workspaces npm, contrato en `@desplazame/tipos`,
   TypeScript SIN compilar, carga antes de `listen()` (grafo 98.774
   aristas ~190 ms · callejero 3.359 vías · 46.150 portales), ~248 MB de
@@ -42,7 +47,7 @@ levantado el 18/08 y des-caducado el 21):
   descargas propias (aparcabicis, aparcamotos, regulado, zonas, PMR),
   todas con la norma Set-Cookie. El callejero lleva 5 correcciones
   declaradas («están mal y punto»).
-- **La bitácora: 8 entradas, las 8 cerradas con ley.** Las guardias
+- **La bitácora: 9 entradas, las 9 cerradas con ley.** Las guardias
   (interfaz y motor) con rojos vistos, exigiendo las tres cargas.
 - **La carta y el README al día con la doc delante**: CLAUDE.md dice el
   motor real y apunta en vez de listar; el README tiene «Cómo arrancarlo
@@ -50,9 +55,11 @@ levantado el 18/08 y des-caducado el 21):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `cb01522`** — push del 20/08 por la noche
-(`b027199..cb01522`, 242 objetos), y `main` emparejada con `origin/main`
-por fin. **En local no queda nada sin publicar.**
+**Publicado hasta `3109f13`** (push del 21/08 por la noche,
+`cb01522..3109f13`). **En local, sin publicar: los cinco commits del 22**
+(`7d2ffcb` · `1067c6f` · `ddcdb11` · `6327e45` · `1deaa86`) más el
+cierre de papeles de esta tarde, pendiente de su commit. El push es de
+Antonio.
 
 **⭐ PUNTO 6 CERRADO (19/08).** El estado de los cuatro campos subió al
 padre con la doc de Angular delante (`model()` + atadura desazucarada —
@@ -66,6 +73,26 @@ La prueba de fuego fue el sobremesa de Antonio: accuracy 5000 m (IP) →
 el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
+
+**Punto 7 — fuera el visor y los andamios (22/08, tarde): la app
+queda en 0,22 MB.** Parlamentado: el visor NO muere — se RESERVA para
+la Intranet, **punto 14 nuevo del plan** (con el hash de recuperación
+escrito: `6327e45`). El andamio no vivía en el visor: lo disparaba EL
+BUSCADOR en su constructor (hallazgo del PARA) — fuera de ahí, la raíz
+en frío pasa de 41,07 MB/20 peticiones a **0,22/3**, cero bytes de
+`app/data/`. Borradas 1.173 líneas (capas, visor, los 14 pinceles de
+mapa.ts —1.001→154—, la barra: una página no navega); la atribución
+OSM SE QUEDA (ODbL). Guardianes: 21 retirados · 1 INVERTIDO nacido en
+rojo (la raíz pide CERO a /datos/) · 1 nacido (F5 en /visor → comodín
+→ buscador). Cabo muerto por gravedad: los `_cabeceras.txt` (404 al
+irse la entrada de angular.json, sin tocarlos). Y dos hallazgos
+reportados sin tocar el plan [escritor único]: el puntero de la
+imprecisión era §1.7, no §1.6; y el «31/12» del GTFS eran calendarios
+HUÉRFANOS — 196 service_id sin ningún viaje, el servicio real acaba el
+27/12 (verificado contra el dato, no copiado). La demo, intacta por el
+proxy: Arrupe 6.371 m · 13 pasos. Docs: el visor en PASADO y con
+destino. Commits `6327e45` + `1deaa86` · 64/64 interfaz (eran 84) ·
+160/160 motor.
 
 **Punto 7 — mínimo de distancia (22/08, tarde): la prioridad
 RETIRADA por el ojo de Antonio.** El paso 3 del ritmo se cumplió con
@@ -208,13 +235,13 @@ futura). El plan lo estructura en TRES encargos: A el fichero de
 nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
 (pintado + pasos, y la respuesta falsa se retira).
 
-**Lo siguiente:** el andando está COMPLETO y VISTO por el ojo de
-Antonio (22/08: «ahora ya carga las rutas bien»). Sobre la mesa —
-(1) la retirada de los andamios de carga del mapa (~34 MB al
-navegador — y qué visualización queda en la demo), LA decisión que
-cierra el punto 7; (2) el PUSH: ahead 2 (`7d2ffcb` + `1067c6f`);
-(3) detrás, sin prisa: la narración de los cruces (genéricos y
-zigzag, casilla con doctrina) y el punto 8. 
+**Lo siguiente:** los andamios HECHOS — del punto 7 queda UNA casilla:
+la narración de los cruces (genéricos «hacia la acera» y zigzag,
+doctrina localizada, sin prisa). Sobre la mesa de Antonio — (1) el
+commit único del cierre de papeles y el PUSH (cinco commits del 22 +
+ese); (2) el destino de la narración: esperarla dentro del 7 o mudarla
+y cerrar el 7 ya; (3) detrás: el punto 8 (destinos con nombre, en
+construcción).
 
 ---
 
@@ -223,8 +250,9 @@ zigzag, casilla con doctrina) y el punto 8.
 **Qué es:** buscador de rutas para moverse por Zaragoza. Cuatro campos
 (calle y portal de origen y destino — todo elegido), cuatro modos
 excluyentes (andando · bus/tranvía · bici/patinete · coche), la ruta en
-el mapa y los pasos escritos. **Una sola pantalla de búsqueda** (más el
-visor como herramienta de verificación con caducidad). No es multimodal.
+el mapa y los pasos escritos. **Una sola pantalla de búsqueda** (el
+visor de verificación se retiró el 22/08: reservado para la Intranet,
+punto 14). No es multimodal.
 
 **Qué NO es:** no promete tiempos totales inventados. Para bus y tranvía
 rige D-G (14/08): componer sin prometer.
@@ -240,7 +268,7 @@ colgadas de sus capas.
 ## 2 · Stack (firme)
 
 - **Frontend:** Angular 22 standalone · Leaflet + OSM · router mínimo
-  (dos rutas + comodín).
+  (una ruta + comodín — /visor cae al comodín desde el 22/08).
 - **Motor:** Node + TS SIN compilar (no hay build — hecho de despliegue,
   ata el punto 12) · `node:http` · todo en memoria antes de `listen()`.
 - **Workspaces** de raíz única (`tipos/`+`motor/`+`app/`), lockfile
@@ -268,13 +296,14 @@ colgadas de sus capas.
 ## 4 · El plan
 
 `PLAN-DESPLAZAME.md`, renumerado a enteros el 19/08 (fuera el «6B»):
-**1-6 CERRADOS** · 7 primera ruta andando (LA DEMO EXISTE: piezas A, B
-y C hechas y publicadas; queda la casilla de los andamios) ·
-8 destinos con nombre
+**1-6 CERRADOS** · 7 primera ruta andando (TODO hecho — demo, tabla
+del peatón, mínimo de distancia, andamios fuera — salvo la casilla de
+narración) · 8 destinos con nombre
 (EN CONSTRUCCIÓN; ganó la regla del portal condicional y la opción de
 las 628 con trazados) · 9 bici/patinete (ordenanza VMP) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
-cuentas) · 12 despliegue (cargado) · 13 estética. La investigación de
+cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
+(nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
 datos abiertos vive en `docs/INVESTIGACION-EQUIPAMIENTOS.md`.
 
 ## 5 · Decisiones
@@ -308,9 +337,8 @@ Patinete» y «Bus / Tranvía» (mayúscula por peso visual; VMP descartado)
 componente 39: el radio NO se sube) — sustituyen a los 124 del censo
 viejo · los 628 con vía sin portal → candidato a `Aviso`, y su casilla
 vive en el punto 8 · 170 componentes del grafo (169 islas) ·
-`Via.nombre` crudo viaja sin usarse (no re-verificado hoy) · la retirada
-de los andamios tiene su casilla (42 MB ya; la descarga perezosa quedó
-dicha como opción) · rotondas y plaza-hito, declaradas MEJORA FUTURA
+`Via.nombre` crudo viaja sin usarse (no re-verificado hoy) · ⚰️ la retirada de los andamios: HECHA el
+22/08 (la perezosa quedó anotada en el punto 14) · rotondas y plaza-hito, declaradas MEJORA FUTURA
 (sin etiqueta en el grafo) · la arista NO trae campos de acceso OSM
 (foot/access/oneway/surface): los overrides de la doctrina no son
 aplicables con el dato que hay — se trabaja con la tabla de tipos
@@ -329,20 +357,22 @@ salida apuntada («Farmacia» + dirección).
 capitalización «Senda ciclable/Ciclable».
 
 **Punto 10:** líneas por poste (sin guardián) · caducidad GTFS (05/10;
-servicio 27/12) sin vigilante hasta el cron · la API viva de Bizi.
+servicio 27/12 — VERIFICADO el 22/08 contra el dato: 196 calendarios
+huérfanos, los del 28-31/12 sin ningún viaje) sin vigilante hasta el
+cron · la API viva de Bizi.
 
 **Punto 11:** parkings públicos (dos fuentes cojas) · parquímetros
 reevaluables · las tres cuentas municipales que no cuadran.
 
 **Punto 12 (todo NO CONSTA, y creció):** versión Node del panel (el
 README ya advierte del `engines` sin declarar — candidato a declararlo
-aquí) · memoria (~248 MB y el 7 subirá) · proceso persistente ·
-index.html en rutas desconocidas (F5 en /visor) · symlink a lo
+aquí) · memoria (412 MB observados el 22/08 al arrancar; eran ~248 en el
+punto 5) · proceso persistente · index.html en rutas desconocidas (en
+dev el comodín ya cubre; en Hostinger, NO CONSTA) · symlink a lo
 construido · guardias solo-Windows si hicieran falta allí.
 
-**Punto 13:** color de marca (`NO CONSTA`) · title por ruta (la pestaña
-dice «Desplázame» en las dos páginas) · capturas del README si se
-quieren.
+**Punto 13:** color de marca (`NO CONSTA`) · el title (la pestaña dice
+«Desplázame» a secas) · capturas del README si se quieren.
 
 **Las normas de circulación (contexto vivo, 21/08):** el RGC
 reformado por RD 518/2026 entra en vigor el **01-10-2026** (arts. 121
@@ -356,12 +386,14 @@ en el punto 9).
 golpe en verano 2027 (~15.000 plazas nuevas hasta 21.745; recurso Tacpa
 pendiente — Heraldo 14/07/2026). El regulado y las zonas caducarán DE
 GOLPE; los planos de Antonio traen zonas que el dato no enseña
-(pendiente de detallar si algún día toca). La vista de cotejo morada es
-la herramienta.
+(pendiente de detallar si algún día toca). La vista de cotejo morada —
+retirada con el visor el 22/08 — es la herramienta: se recupera de git
+(`6327e45^`) cuando la Intranet (punto 14) llegue, o cuando 2027 lo
+pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 60 pruebas sin CI · guardias manuales y solo-Windows (declarado ya
+§6) · 224 pruebas (160 motor + 64 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
@@ -369,7 +401,7 @@ lleva dentro la regla de tirar el portal, y si se montara en otro sitio
 el portal se quedaría pegado (comentado y fijado con prueba doble) · el
 eco de los 200 ms · datos municipales
 caducan (callejero mensual; regulado de golpe) · npm 11 bloquea scripts
-de 4 paquetes (no rompe el build, comprobado en clon) · TS rama 6 · los
-`_cabeceras.txt` se sirven en `/datos/` (inofensivo, anotado) ·
+de 4 paquetes (no rompe el build, comprobado en clon) · TS rama 6 · ⚰️ los
+`_cabeceras.txt`: muertos el 22/08 con la entrada de angular.json ·
 `nombrePublicoNorm` existe y no se usa · el tranvía municipal nunca
 descargado (opción futura).
