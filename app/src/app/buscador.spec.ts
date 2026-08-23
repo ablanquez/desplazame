@@ -421,6 +421,19 @@ describe('Buscador', () => {
   });
 
   afterEach(() => {
+    // ⭐ La capa de SITIOS se drena antes de verificar, y solo ella.
+    //
+    // Desde el 23/08 los DOS campos de calle ofrecen también sitios, así que
+    // cualquier prueba que teclee en uno dispara una petición que a ella no le
+    // importa. Estas pruebas son de calles y portales; que la capa de sitios
+    // pida lo que debe lo vigilan las de `destino-sitio.spec.ts`.
+    //
+    // Se drena **solo** `/api/sitios`: si una de estas dejara una petición de
+    // vías o de portales sin contestar, `verify()` sigue protestando, que es
+    // justo para lo que está.
+    for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
+      cap.flush([]);
+    }
     http.verify();
   });
 
@@ -930,6 +943,12 @@ describe('Buscador', () => {
     await new Promise((sigue) => setTimeout(sigue, 300));
     fixture.detectChanges();
     http.expectOne('/api/vias?q=burgos').flush([BURGOS]);
+    // Desde el 23/08 el origen pide también la capa de sitios: sin drenarla,
+    // `whenStable()` no vuelve. Se contesta vacía porque esta prueba mira el
+    // borrador de una CALLE.
+    for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
+      cap.flush([]);
+    }
     await fixture.whenStable();
     campoDe(raiz, 'calleOrigen').dispatchEvent(new Event('blur'));
     fixture.detectChanges();

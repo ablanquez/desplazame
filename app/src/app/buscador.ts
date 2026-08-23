@@ -189,6 +189,19 @@ function ladoVacio() {
     portal: signal<Portal | null>(null),
     /** Si ya se salió del campo de portal. */
     portalTocado: signal(false),
+    /**
+     * ⭐ El SITIO elegido en este lado, o `null` si aquí hay una dirección.
+     *
+     * Vive **dentro del lado** y no suelto, y esa es toda la mecánica de la
+     * simetría del 23/08: el ⇅ intercambia lados enteros, así que el sitio
+     * cruza con lo demás **sin una sola línea que hable de él**. Cuando estuvo
+     * fuera —un día— el botón tenía que decidir qué hacer con él, que es
+     * justamente la decisión que no había que tomar.
+     *
+     * Un lado tiene vía+portal **o** sitio, nunca las dos: elegir una cosa
+     * apaga la otra.
+     */
+    sitio: signal<Sitio | null>(null),
   };
 }
 
@@ -306,16 +319,6 @@ export class Buscador {
   protected readonly origen = ladoVacio();
   protected readonly destino = ladoVacio();
 
-  /**
-   * ⭐ El SITIO elegido como destino, o `null` si el destino es una dirección.
-   *
-   * Vive fuera de `destino` porque no es un lado más de la dirección: es **la
-   * otra manera de decir a dónde**, y las dos no pueden estar puestas a la vez.
-   * El origen no lo tiene, y eso es la decisión de esta tanda escrita en el
-   * código: el sitio como origen no entra todavía.
-   */
-  protected readonly sitioDestino = signal<Sitio | null>(null);
-
   /** Andando por defecto. */
   protected readonly modo = signal<Modo>('andando');
 
@@ -373,14 +376,23 @@ export class Buscador {
    * mandara una mezcla de las dos. Y al revés lo hace `alElegirVia`, que ya
    * limpiaba el portal cuando cambia la calle.
    */
-  protected alElegirSitio(sitio: Sitio | null): void {
-    this.sitioDestino.set(sitio);
-    if (sitio) {
-      this.destino.via.set(null);
-      this.destino.portal.set(null);
-      this.destino.portalTexto.set('');
-      this.destino.portalTocado.set(false);
-    }
+  /**
+   * ⭐ Al elegir un SITIO en un lado.
+   *
+   * Solo fija el sitio, y eso es **todo lo que hace falta**: para llegar a la
+   * lista hay que haber tecleado, y teclear ya suelta la vía —`alEscribir` del
+   * autocompletar pone la selección a `null`, y eso llega aquí como
+   * `alElegirVia(lado, null)`, que limpia el portal y su texto—. La casilla de
+   * portal se apaga sola por no tener vía, que es la regla del portal
+   * condicional cumpliéndose sin una línea que hable de ella.
+   *
+   * Aquí hubo cuatro líneas más que repetían esa limpieza. Se quitaron el
+   * 23/08: la contraprueba las mutó una a una y **las 98 pruebas seguían
+   * verdes**, porque ningún gesto de una persona puede llegar a ellas. Código
+   * que ninguna prueba puede tocar es código que nadie va a mantener.
+   */
+  protected alElegirSitio(lado: Lado, sitio: Sitio | null): void {
+    lado.sitio.set(sitio);
   }
 
   protected alElegirVia(lado: Lado, via: Via | null): void {
@@ -388,6 +400,11 @@ export class Buscador {
     lado.portalTexto.set('');
     lado.portal.set(null);
     lado.portalTocado.set(false);
+    // Elegir una calle apaga el sitio que hubiera: son las dos maneras de decir
+    // a dónde, y no pueden estar puestas a la vez.
+    if (via) {
+      lado.sitio.set(null);
+    }
   }
 
   /**
@@ -414,6 +431,8 @@ export class Buscador {
     intercambiar(this.origen.portalTexto, this.destino.portalTexto);
     intercambiar(this.origen.portal, this.destino.portal);
     intercambiar(this.origen.portalTocado, this.destino.portalTocado);
+    // Y el sitio, que es un campo más del lado desde el 23/08.
+    intercambiar(this.origen.sitio, this.destino.sitio);
   }
 
   /**
@@ -569,23 +588,14 @@ export class Buscador {
    * de antes como si fuera esta.
    */
   protected generarRuta(): void {
-    const via = this.origen.via();
-    const portal = this.origen.portal();
-    const sitio = this.sitioDestino();
-    const viaDestino = this.destino.via();
-    const portalDestino = this.destino.portal();
-    if (!via || !portal || this.generando()) {
+    if (this.generando()) {
       return;
     }
-    // ⭐ El destino, de una clase o de la otra. El sitio manda si está puesto:
-    // elegirlo apaga la vía en el autocompletar, así que no pueden estar las
-    // dos — y si de algún modo lo estuvieran, la última elección es el sitio.
-    const destino: ExtremoDeRuta | null = sitio
-      ? { sitio: sitio.codigo }
-      : viaDestino && portalDestino
-        ? { via: viaDestino.codigo, portal: portalDestino.codigo }
-        : null;
-    if (!destino) {
+    // ⭐ Los DOS extremos, por la misma función: la simetría del 23/08 aquí es
+    // que no hay dos caminos que mantener a la par.
+    const origen = this.extremoDe(this.origen);
+    const destino = this.extremoDe(this.destino);
+    if (!origen || !destino) {
       return;
     }
 
@@ -594,11 +604,7 @@ export class Buscador {
     // desbloquear con texto, y sería tirarlo todo mandar aquí los nombres. El
     // motor tampoco los aceptaría — los rechaza en `leerPeticion`. Un sitio
     // viaja igual: por su código, nunca por su presentación.
-    const peticion: PeticionDeRuta = {
-      origen: { via: via.codigo, portal: portal.codigo },
-      destino,
-      modo: this.modo(),
-    };
+    const peticion: PeticionDeRuta = { origen, destino, modo: this.modo() };
 
     this.avisoRuta.set(null);
     this.resultado.set(null);
@@ -608,14 +614,8 @@ export class Buscador {
       next: (trayecto) => {
         this.generando.set(false);
         this.resultado.set({
-          origen: comoSeLeeLaDireccion(via, portal),
-          // ⭐ El destino se lee de una manera o de la otra. Un sitio ya viene
-          // con su nombre compuesto por el motor —«Farmacia · calle»— y no se
-          // recompone aquí: la pantalla no fabrica nombres.
-          destino:
-            sitio !== null
-              ? sitio.presentacion
-              : comoSeLeeLaDireccion(viaDestino!, portalDestino!),
+          origen: this.comoSeLee(this.origen),
+          destino: this.comoSeLee(this.destino),
           trayecto,
         });
       },
@@ -640,14 +640,46 @@ export class Buscador {
    * —un «12» tecleado podía no existir en una calle de 31 portales—; los
    * códigos sí.
    */
+  /**
+   * ⭐ Un lado, convertido en el extremo que viaja: **códigos y nada más**.
+   *
+   * Es la ley de la entrada nº4 llegando al final del tubo: el formulario lleva
+   * desde el punto 4 negándose a desbloquear con texto, y sería tirarlo todo
+   * mandar aquí los nombres. Un sitio viaja igual, por su código y nunca por su
+   * presentación.
+   */
+  private extremoDe(lado: Lado): ExtremoDeRuta | null {
+    const sitio = lado.sitio();
+    if (sitio) {
+      return { sitio: sitio.codigo };
+    }
+    const via = lado.via();
+    const portal = lado.portal();
+    return via && portal ? { via: via.codigo, portal: portal.codigo } : null;
+  }
+
+  /**
+   * Cómo se lee un lado en la cabecera del resultado.
+   *
+   * Un sitio ya viene con su nombre **compuesto por el motor** —«Farmacia ·
+   * calle»— y no se recompone aquí: la pantalla no fabrica nombres, y menos
+   * uno cuyo dato crudo lleva el nombre de una persona.
+   */
+  private comoSeLee(lado: Lado): string {
+    const sitio = lado.sitio();
+    return sitio ? sitio.presentacion : comoSeLeeLaDireccion(lado.via()!, lado.portal()!);
+  }
+
   protected sePuedeGenerar(): boolean {
-    // ⭐ LA REGLA DEL PORTAL CONDICIONAL (19/08). Un sitio trae su propia
-    // coordenada, así que no hay portal que exigirle — y exigírselo dejaría el
-    // botón apagado para siempre, porque esa casilla ni siquiera se puede
-    // rellenar. Cuando el destino es un sitio, el destino ya está completo.
-    const destinoListo =
-      this.sitioDestino() !== null ||
-      (this.destino.via() !== null && this.destino.portal() !== null);
-    return this.origen.via() !== null && this.origen.portal() !== null && destinoListo;
+    // ⭐ LA REGLA DEL PORTAL CONDICIONAL (19/08), en los DOS lados. Un sitio
+    // trae su propia coordenada, así que no hay portal que exigirle — y
+    // exigírselo dejaría el botón apagado para siempre, porque esa casilla ni
+    // siquiera se puede rellenar. Un lado con sitio ya está completo.
+    return this.estaListo(this.origen) && this.estaListo(this.destino);
+  }
+
+  /** Un lado está listo si tiene un sitio, o la pareja vía+portal entera. */
+  private estaListo(lado: Lado): boolean {
+    return lado.sitio() !== null || (lado.via() !== null && lado.portal() !== null);
   }
 }

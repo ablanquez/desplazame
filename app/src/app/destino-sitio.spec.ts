@@ -5,23 +5,29 @@ import type { Portal, Sitio, Via } from '@desplazame/tipos';
 import { Buscador } from './buscador';
 
 /**
- * ⭐ EL DESTINO CON NOMBRE: el sitio como capa del autocompletar.
+ * ⭐ LOS SITIOS EN LA PANTALLA: destinos y orígenes con nombre.
  *
- * Tres cosas se vigilan, y son las tres del encargo:
+ * Cuatro cosas se vigilan aquí:
  *
- * 1. Que el destino ofrece **sitios además de vías**, y que se distinguen sin
- *    tener que leer el texto.
- * 2. Que al elegir un sitio **la casilla de portal se apaga** — la regla del
- *    portal condicional (19/08): un sitio trae su propia coordenada, así que
- *    pedirle un portal sería pedirle un dato que no tiene.
- * 3. Que la petición manda `{ sitio }` y **no** una pareja vía+portal
- *    inventada.
+ * 1. Que **los dos campos** ofrecen sitios además de calles, y que las dos
+ *    capas se distinguen sin tener que leer el texto.
+ * 2. Que al elegir un sitio **la casilla de portal de ese lado se apaga** — la
+ *    regla del portal condicional (19/08): un sitio trae su propia coordenada,
+ *    así que pedirle un portal sería pedirle un dato que no tiene.
+ * 3. Que el **⇅ cruza el sitio** como cruza todo lo demás, en todas sus
+ *    combinaciones.
+ * 4. Que lo que viaja son **códigos**, nunca la presentación.
  *
- * El ORIGEN no cambia, y también se vigila: sigue pidiendo una sola capa.
+ * ⚠️ **La simetría es del 23/08 y corrigió lo de la víspera.** El sitio nació
+ * solo en el destino y duró un día: el ⇅ intercambia los dos lados enteros
+ * desde el punto 6, así que un origen que no admitiera sitios lo dejaba
+ * teniendo que decidir qué tirar. Dos campos que se intercambian tienen que
+ * aceptar lo mismo.
  *
- * ⚠️ Aquí no se usa `whenStable()` mientras haya una petición sin contestar:
- * esperaría a que la resolviera alguien que es esta misma función unas líneas
- * más abajo. Es el abrazo mortal que `buscador.spec.ts` ya tiene documentado.
+ * ⚠️ Y aquí no se usa `whenStable()` mientras haya una petición sin contestar:
+ * esperaría a quien la resuelve unas líneas más abajo. Es el abrazo mortal que
+ * `buscador.spec.ts` documenta. Lo que hace falta tras un `flush` es **ceder el
+ * turno** —`setTimeout(0)`—, porque `httpResource` publica en una microtarea.
  */
 
 const BURGOS: Via = {
@@ -41,10 +47,16 @@ const FARMACIA: Sitio = {
   categoria: 'Farmacia',
 };
 
+const OTRA_FARMACIA: Sitio = {
+  codigo: 'Farmacias.8844',
+  presentacion: 'Farmacia · Pº de la Mina, 5',
+  categoria: 'Farmacia',
+};
+
 const campoDe = (raiz: HTMLElement, n: string): HTMLInputElement =>
   raiz.querySelector<HTMLInputElement>(`input[name="${n}"]`)!;
 
-describe('⭐ EL DESTINO puede ser un SITIO', () => {
+describe('⭐ LOS SITIOS en los dos extremos', () => {
   let http: HttpTestingController;
   let fixture: ReturnType<typeof TestBed.createComponent<Buscador>>;
   let raiz: HTMLElement;
@@ -74,20 +86,10 @@ describe('⭐ EL DESTINO puede ser un SITIO', () => {
     fixture.detectChanges();
   }
 
-  /**
-   * Contesta a las dos capas y deja la lista pintada. El `whenStable()` de
-   * aquí es seguro: en este punto ya no queda ninguna petición sin resolver,
-   * que es lo que provocaría el abrazo mortal.
-   */
+  /** Contesta a las dos capas y deja la lista pintada. */
   async function contestar(vias: readonly Via[], sitios: readonly Sitio[]): Promise<void> {
     for (const r of http.match((q) => q.url.startsWith('/api/vias'))) r.flush(vias);
     for (const r of http.match((q) => q.url.startsWith('/api/sitios'))) r.flush(sitios);
-    // ⚠️ Un TICK del bucle de eventos, no `whenStable()`. `httpResource`
-    // publica su valor en una microtarea, así que un `detectChanges()` síncrono
-    // justo después del `flush` todavía no lo ve y la lista sale vacía. Y
-    // `whenStable()` tampoco vale: aquí no queda ninguna petición viva —se ha
-    // comprobado— pero se queda esperando de todos modos. Ceder el turno es lo
-    // que hace falta, y es lo único que hace falta.
     await new Promise((sigue) => setTimeout(sigue, 0));
     fixture.detectChanges();
   }
@@ -101,7 +103,6 @@ describe('⭐ EL DESTINO puede ser un SITIO', () => {
     }));
   }
 
-  /** Pulsa una opción del desplegable. */
   function pulsar(campo: string, capa: string): void {
     raiz
       .querySelector<HTMLElement>(`[data-campo="${campo}"] .sugerencia[data-capa="${capa}"]`)!
@@ -118,15 +119,61 @@ describe('⭐ EL DESTINO puede ser un SITIO', () => {
     fixture.detectChanges();
   }
 
-  it('⭐ el DESTINO pide también los sitios, y el ORIGEN no', async () => {
+  /** Elige un sitio en el campo que se le diga. */
+  async function elegirSitioEn(campo: string, sitio: Sitio = FARMACIA): Promise<void> {
+    await teclear(campo, 'navarra');
+    await contestar([], [sitio]);
+    pulsar(campo, 'sitio');
+    await drenarEco();
+  }
+
+  /** Rellena un lado con la dirección entera, por el camino de siempre. */
+  async function elegirDireccionEn(campo: string, portal: string): Promise<void> {
+    await teclear(campo, 'burgos');
+    await contestar([BURGOS], []);
+    pulsar(campo, 'via');
+    await drenarEco();
+    for (const r of http.match(`/api/portales?via=${BURGOS.codigo}`)) r.flush(PORTALES_BURGOS);
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+    const casilla = campoDe(raiz, portal);
+    casilla.value = '2';
+    casilla.dispatchEvent(new Event('input'));
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+    casilla.closest('app-selector-portal')!
+      .querySelector<HTMLElement>('.portal')!
+      .dispatchEvent(new MouseEvent('mousedown'));
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+  }
+
+  const invertir = (): void => {
+    raiz.querySelector<HTMLButtonElement>('.invertir')!.click();
+    fixture.detectChanges();
+  };
+
+  const generar = (): HTMLButtonElement => raiz.querySelector<HTMLButtonElement>('.generar')!;
+
+  /** Drena lo que quede de las capas, para que `verify()` no lo cuente. */
+  function drenarTodo(): void {
+    for (const r of http.match((q) => q.url.startsWith('/api/'))) r.flush([]);
+  }
+
+  // ── LA CAPA ────────────────────────────────────────────────────────────────
+
+  it('⭐ LOS DOS campos piden la capa de sitios', async () => {
+    // Era la prueba de la asimetría —«el destino sí y el origen no»— y la
+    // corrección del 23/08 la derogó: ahora se exige lo contrario, que los dos
+    // pregunten. El motivo está en la cabecera.
     await teclear('calleDestino', 'navarra');
     expect(http.match((q) => q.url.startsWith('/api/sitios')).length).toBe(1);
     await contestar([], [FARMACIA]);
+    await drenarEco();
 
     await teclear('calleOrigen', 'navarra');
-    // El origen no ofrece sitios: no pregunta por ellos.
-    expect(http.match((q) => q.url.startsWith('/api/sitios')).length).toBe(0);
-    await contestar([], []);
+    expect(http.match((q) => q.url.startsWith('/api/sitios')).length).toBe(1);
+    await contestar([], [FARMACIA]);
     await drenarEco();
   });
 
@@ -143,56 +190,176 @@ describe('⭐ EL DESTINO puede ser un SITIO', () => {
     await drenarEco();
   });
 
-  it('⭐ al elegir un SITIO, la casilla de portal se DESACTIVA', async () => {
-    await teclear('calleDestino', 'navarra');
-    await contestar([], [FARMACIA]);
-    // Antes de elegir, la casilla está como estaba: apagada porque no hay vía.
-    pulsar('calleDestino', 'sitio');
+  // ── EL PORTAL CONDICIONAL, EN LOS DOS LADOS ────────────────────────────────
 
-    // La regla del portal condicional: el sitio trae su coordenada.
+  it('⭐ un sitio en el DESTINO apaga su casilla de portal', async () => {
+    await elegirSitioEn('calleDestino');
     expect(campoDe(raiz, 'portalDestino').disabled).toBe(true);
     expect(campoDe(raiz, 'calleDestino').value).toBe('Farmacia · Avda. de Navarra, 65');
+  });
+
+  it('⭐ y un sitio en el ORIGEN apaga la suya, igual', async () => {
+    await elegirSitioEn('calleOrigen');
+    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
+    expect(campoDe(raiz, 'calleOrigen').value).toBe('Farmacia · Avda. de Navarra, 65');
+  });
+
+  it('⭐ y lo APAGA el sitio, no la falta de vía: se comprueba estando encendida', async () => {
+    // ⚠️ La prueba de arriba pasaba por la razón equivocada, y lo destapó la
+    // contraprueba: sin vía elegida la casilla ya está apagada, así que
+    // comprobar que está apagada tras poner un sitio no dice nada. Aquí se
+    // rellena la dirección PRIMERO —la casilla queda encendida— y solo entonces
+    // se elige el sitio: si se apaga, es por el sitio.
+    await elegirDireccionEn('calleOrigen', 'portalOrigen');
+    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(false);
+
+    await elegirSitioEn('calleOrigen');
+    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
+    drenarTodo();
+  });
+
+  it('⭐ y elegir una CALLE apaga el sitio que hubiera: no se quedan los dos', async () => {
+    // Son las dos maneras de decir a dónde y no pueden estar puestas a la vez.
+    // Si el sitio sobreviviera a elegir una calle, «Generar» mandaría el sitio
+    // viejo mientras la pantalla enseña la calle nueva.
+    await elegirSitioEn('calleOrigen');
+    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
+
+    await elegirDireccionEn('calleOrigen', 'portalOrigen');
+    // La casilla vuelve a encenderse: ya no hay sitio que la apague.
+    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(false);
+    expect(campoDe(raiz, 'calleOrigen').value).toBe('CALLE BURGOS');
+
+    // Y lo que viaja es la dirección, no el sitio de antes.
+    await elegirSitioEn('calleDestino');
+    generar().click();
+    fixture.detectChanges();
+    const ruta = http.expectOne('/api/ruta');
+    expect(ruta.request.body.origen).toEqual({ via: '5140', portal: 'Portales.5140a' });
+    ruta.flush({ modo: 'andando', pasos: [], geometria: [], avisos: [], metros: 0, segundos: 0 });
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+    drenarTodo();
+  });
+
+  it('⭐ elegir un sitio DEJA LIMPIO el portal que hubiera escrito', async () => {
+    // La costura del encargo: ¿qué pasa con el portal escrito? Se limpia — y
+    // lo hace el camino del teclado, no una línea que hable del sitio: para
+    // ver la lista hay que teclear, teclear suelta la vía, y soltar la vía
+    // limpia su portal. Medido: antes «2», después «».
+    //
+    // Importa que quede fijado: si sobreviviera, al invertir cruzaría un
+    // portal huérfano al otro lado.
+    await elegirDireccionEn('calleOrigen', 'portalOrigen');
+    expect(campoDe(raiz, 'portalOrigen').value).toBe('2');
+    await elegirSitioEn('calleOrigen');
+    expect(campoDe(raiz, 'portalOrigen').value).toBe('');
+    drenarTodo();
+  });
+
+  it('⭐ tras elegir un sitio, TECLEAR otra cosa lo suelta: nada queda fijado a escondidas', async () => {
+    // El caso que ninguna prueba miraba: se elige un sitio, y luego se sigue
+    // escribiendo sin elegir nada. Si el sitio sobreviviera al tecleo, la
+    // pantalla enseñaría un texto y «Generar» mandaría OTRA COSA — la ruta
+    // saldría bien, pero a un sitio que no es el que se lee. Es el fallo de la
+    // entrada nº4 con el disfraz nuevo.
+    await elegirSitioEn('calleOrigen');
+    await elegirSitioEn('calleDestino');
+    expect(generar().disabled).toBe(false);
+
+    // Y ahora se teclea encima del origen, sin elegir.
+    await teclear('calleOrigen', 'otra cosa que no existe');
+    await contestar([], []);
+    expect(campoDe(raiz, 'calleOrigen').value).toBe('otra cosa que no existe');
+    // El sitio se ha soltado: el botón se apaga en vez de mandar el viejo.
+    expect(generar().disabled).toBe(true);
     await drenarEco();
   });
 
-  it('⭐ y «Generar» deja de exigir el portal del destino', async () => {
-    // El origen, completo por el camino de siempre.
-    await teclear('calleOrigen', 'burgos');
-    await contestar([BURGOS], []);
-    pulsar('calleOrigen', 'via');
-    await new Promise((sigue) => setTimeout(sigue, 250));
-    fixture.detectChanges();
-    for (const r of http.match((q) => q.url.startsWith('/api/vias'))) r.flush([BURGOS]);
-    http.expectOne(`/api/portales?via=${BURGOS.codigo}`).flush(PORTALES_BURGOS);
-    await fixture.whenStable();
+  // ── EL ⇅, SUS COMBINACIONES ────────────────────────────────────────────────
 
-    const portalOrigen = campoDe(raiz, 'portalOrigen');
-    portalOrigen.value = '2';
-    portalOrigen.dispatchEvent(new Event('input'));
-    await new Promise((sigue) => setTimeout(sigue, 0));
-    fixture.detectChanges();
-    raiz
-      .querySelector<HTMLElement>('app-selector-portal .portal')!
-      .dispatchEvent(new MouseEvent('mousedown'));
-    await new Promise((sigue) => setTimeout(sigue, 0));
-    fixture.detectChanges();
+  it('⭐ ⇅ sitio→vacío: el sitio cruza y el otro lado queda vacío', async () => {
+    await elegirSitioEn('calleOrigen');
+    invertir();
+    expect(campoDe(raiz, 'calleDestino').value).toBe('Farmacia · Avda. de Navarra, 65');
+    expect(campoDe(raiz, 'calleOrigen').value).toBe('');
+    // La casilla apagada viaja con su lado: ahora es la del destino.
+    expect(campoDe(raiz, 'portalDestino').disabled).toBe(true);
+  });
 
-    // El destino, por el camino nuevo.
-    await teclear('calleDestino', 'navarra');
-    await contestar([], [FARMACIA]);
-    pulsar('calleDestino', 'sitio');
+  it('⭐ ⇅ sitio↔dirección: se cruzan, y cada casilla queda como toca', async () => {
+    await elegirDireccionEn('calleOrigen', 'portalOrigen');
+    await elegirSitioEn('calleDestino');
+    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(false);
+    expect(campoDe(raiz, 'portalDestino').disabled).toBe(true);
+
+    invertir();
+
+    // El sitio está ahora en el origen y la dirección en el destino, y las dos
+    // casillas se han cambiado el estado con ellos.
+    expect(campoDe(raiz, 'calleOrigen').value).toBe('Farmacia · Avda. de Navarra, 65');
+    expect(campoDe(raiz, 'calleDestino').value).toBe('CALLE BURGOS');
+    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
+    expect(campoDe(raiz, 'portalDestino').disabled).toBe(false);
+    expect(campoDe(raiz, 'portalDestino').value).toBe('2');
+    // Y sigue pudiéndose generar: invertir no rompe una ruta que ya valía.
+    expect(generar().disabled).toBe(false);
+    drenarTodo();
+  });
+
+  it('⭐ ⇅ sitio↔sitio: los dos cruzan y ninguna casilla se enciende', async () => {
+    await elegirSitioEn('calleOrigen', FARMACIA);
+    await elegirSitioEn('calleDestino', OTRA_FARMACIA);
+    invertir();
+    expect(campoDe(raiz, 'calleOrigen').value).toBe('Farmacia · Pº de la Mina, 5');
+    expect(campoDe(raiz, 'calleDestino').value).toBe('Farmacia · Avda. de Navarra, 65');
+    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
+    expect(campoDe(raiz, 'portalDestino').disabled).toBe(true);
+    expect(generar().disabled).toBe(false);
+  });
+
+  it('⭐ ⇅ un BORRADOR cruza como borrador, sin inventarse un sitio', async () => {
+    // Texto escrito que no corresponde a nada: cruza siendo texto. Inventarle
+    // un sitio «porque ya estaba escrito» sería el fallo de la nº4 con otro
+    // disfraz.
+    await teclear('calleOrigen', 'farmacia que no existe');
+    await contestar([], []);
+    invertir();
+    expect(campoDe(raiz, 'calleDestino').value).toBe('farmacia que no existe');
+    expect(campoDe(raiz, 'calleOrigen').value).toBe('');
+    expect(generar().disabled).toBe(true);
     await drenarEco();
+  });
 
-    const generar = raiz.querySelector<HTMLButtonElement>('.generar')!;
-    expect(generar.disabled).toBe(false);
+  // ── LO QUE VIAJA ───────────────────────────────────────────────────────────
 
-    // Y lo que viaja es el CÓDIGO DEL SITIO, no una pareja inventada.
-    generar.click();
+  it('⭐ dirección → sitio manda la pareja y el código', async () => {
+    await elegirDireccionEn('calleOrigen', 'portalOrigen');
+    await elegirSitioEn('calleDestino');
+    expect(generar().disabled).toBe(false);
+    generar().click();
     fixture.detectChanges();
     const ruta = http.expectOne('/api/ruta');
-    expect(ruta.request.body.destino).toEqual({ sitio: 'Farmacias.8691' });
     expect(ruta.request.body.origen).toEqual({ via: '5140', portal: 'Portales.5140a' });
+    expect(ruta.request.body.destino).toEqual({ sitio: 'Farmacias.8691' });
     ruta.flush({ modo: 'andando', pasos: [], geometria: [], avisos: [], metros: 0, segundos: 0 });
-    await fixture.whenStable();
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+    drenarTodo();
+  });
+
+  it('⭐ y sitio → sitio manda los DOS códigos, nunca la presentación', async () => {
+    await elegirSitioEn('calleOrigen', FARMACIA);
+    await elegirSitioEn('calleDestino', OTRA_FARMACIA);
+    expect(generar().disabled).toBe(false);
+    generar().click();
+    fixture.detectChanges();
+    const ruta = http.expectOne('/api/ruta');
+    expect(ruta.request.body.origen).toEqual({ sitio: 'Farmacias.8691' });
+    expect(ruta.request.body.destino).toEqual({ sitio: 'Farmacias.8844' });
+    ruta.flush({ modo: 'andando', pasos: [], geometria: [], avisos: [], metros: 0, segundos: 0 });
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+    drenarTodo();
   });
 });

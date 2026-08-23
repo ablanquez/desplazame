@@ -10,12 +10,19 @@
       <!-- La atadura de `seleccion` va DESAZUCARADA a propósito: el padre
            necesita distinguir «lo cambió el usuario» de «lo escribí yo». El
            porqué entero está en `alElegirVia`, en `buscador.ts`. -->
+      <!--
+        ⭐ Los DOS extremos ofrecen sitios desde el 23/08, y con los mismos
+        parámetros: si el ⇅ los intercambia, tienen que aceptar lo mismo.
+      -->
       <app-autocompletar-via
         campo="calleOrigen"
-        etiqueta="Calle"
+        etiqueta="Calle o sitio"
+        [conSitios]="true"
         [(texto)]="origen.calle"
         [seleccion]="origen.via()"
         (seleccionChange)="alElegirVia(origen, $event)"
+        [sitio]="origen.sitio()"
+        (sitioChange)="alElegirSitio(origen, $event)"
         [(tocado)]="origen.calleTocada"
       />
       <app-selector-portal
@@ -66,21 +73,20 @@
         [(texto)]="destino.calle"
         [seleccion]="destino.via()"
         (seleccionChange)="alElegirVia(destino, $event)"
-        [sitio]="sitioDestino()"
-        (sitioChange)="alElegirSitio($event)"
+        [sitio]="destino.sitio()"
+        (sitioChange)="alElegirSitio(destino, $event)"
         [(tocado)]="destino.calleTocada"
       />
       <!--
         LA REGLA DEL PORTAL CONDICIONAL (19/08): con un sitio elegido, esta
-        casilla se apaga. Un sitio trae su propia coordenada, así que no hay
-        portal que pedirle — y dejarla encendida sería pedir un dato que no
-        existe y que nadie podría rellenar.
+        casilla se apaga sola — elegir un sitio suelta la vía del lado, y sin
+        vía el selector no se puede usar. Un sitio trae su propia coordenada,
+        así que no hay portal que pedirle.
       -->
       <app-selector-portal
         campo="portalDestino"
         etiqueta="Portal"
         [via]="destino.via()"
-        [apagado]="sitioDestino() !== null"
         [(texto)]="destino.portalTexto"
         [(seleccion)]="destino.portal"
         [(tocado)]="destino.portalTocado"

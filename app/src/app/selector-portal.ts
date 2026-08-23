@@ -50,17 +50,6 @@ export class SelectorPortal {
   readonly via = input<Via | null>(null);
 
   /**
-   * ⭐ Apagado a la fuerza, aunque hubiera vía: **la regla del portal
-   * condicional** (19/08).
-   *
-   * Cuando el destino es un SITIO, este campo no tiene nada que pedir — un
-   * sitio trae su propia coordenada— y dejarlo encendido sería ofrecer una
-   * casilla que nadie puede rellenar. Es un parámetro y no una deducción del
-   * componente: quien sabe qué clase de destino hay es el formulario.
-   */
-  readonly apagado = input(false);
-
-  /**
    * El portal elegido, o `null` mientras no se haya elegido ninguno. Lo que
    * separa «escrito» de «elegido», igual que en el campo de calle.
    *
@@ -116,7 +105,21 @@ export class SelectorPortal {
   });
 
   /** Hay vía fijada: el campo se puede usar. */
-  protected readonly listo = computed(() => this.via() !== null && !this.apagado());
+  /**
+   * Hay vía fijada: el campo se puede usar.
+   *
+   * ⭐ Y esto **es** la regla del portal condicional (19/08), sin necesitar
+   * nada más: elegir un sitio suelta la vía de ese lado —lo hace
+   * `alElegirSitio`, porque un lado tiene dirección o sitio, nunca los dos—, y
+   * sin vía la casilla se apaga sola.
+   *
+   * Hubo un `input` llamado `apagado` para forzarlo desde el formulario. Se
+   * quitó el 23/08: no cambiaba **nada** observable, y lo destapó la
+   * contraprueba — poniéndolo a `false` a la fuerza, las 98 pruebas seguían
+   * verdes. Un parámetro que no altera la conducta es el «declarado y nunca
+   * cableado» que la guía prohíbe.
+   */
+  protected readonly listo = computed(() => this.via() !== null);
 
   private readonly todos = computed<readonly Portal[]>(() => this.portales.value() ?? []);
 
