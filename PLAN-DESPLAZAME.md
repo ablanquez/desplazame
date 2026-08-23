@@ -1134,20 +1134,44 @@ generado vs disponible · umbral por conjunto, nunca universal ·
 cadencia declarada o APRENDIDA del comportamiento · el color es
 decisión con dueño).
 
-- [ ] **1 · El MANIFIESTO — la semilla y el formato de la verdad**: un
-      fichero único donde cada conjunto declara descargado-el ·
-      el-dato-dice-ser-de · regla de caducidad CON SU FUENTE · huella.
-      Se rellena leyendo las fichas que YA existen (ritual del punto
-      4). Todo lo demás lo LEE: el panel hoy, el cron del 12 mañana
-- [ ] **2 · La PESTAÑA del panel** (pública hoy — decisión D1 de
-      Antonio, 23/08; su destino se decide al llegar la intranet):
-      pinta el manifiesto con semáforo. REGLA FIRMADA (D2): color solo
-      con fuente declarada (GTFS rojo desde el 05/10 [publicador] ·
-      callejero ámbar pasado el mes [«mensual» municipal] · regulado
-      nota 2027) · lo sin regla = GRIS «NO CONSTA», y el gris enseña
-      su cadencia OBSERVADA cuando la haya, sin bautizarla de regla.
-      Solo lectura · carga SOLO su manifiesto (KB) · la portada NI SE
-      ENTERA (el guardián de «la raíz pide CERO a /datos/» sigue
-      mandando)
+- [x] **1 · El MANIFIESTO — HECHO (23/08, `133a3a9`)**:
+      `datapackage.json` en la raíz, 21 resources (entran los ejes de
+      vía; fuera los 5 _cabeceras.txt — recibos, no datos: 21 de 26
+      ficheros, declarado). Estándar VERIFICADO POR DOS VÍAS: el
+      ejecutor contra el schema oficial (8 mutaciones al validador, 8
+      rojos) y el estratega con validación INDEPENDIENTE (perfil
+      data-package del paquete de referencia, 0 errores; recuento de
+      todas las cifras del checkpoint: cuadran). Huellas sha256
+      recalculadas: 21/21 casan con las fichas. accrualPeriodicity en
+      URI del vocabulario europeo (…/frequency/MONTHLY), como DCAT
+      manda. Campos: modified 7 · descargadoEl 17 · caducaEl 3 —
+      lo que no consta SE OMITE. ⭐ Hallazgo: el timeStamp de los
+      GeoJSON del WFS es la hora en que GeoServer compone la
+      respuesta (coincide al segundo con la descarga), NO la fecha
+      del dato — guardado como descargadoEl, modified omitido.
+      ⚠️ El manifiesto vive DUPLICADO (raíz canónica + app/public/
+      porque Angular no publica fuera del workspace) con guardián
+      byte a byte: la duplicación no desaparece, deja de ser
+      silenciosa
+- [x] **2 · La PESTAÑA — HECHA (23/08, `9e5bd35`)**: /panel por URL,
+      lazy chunk de 7,43 kB, D1 y D2 aplicadas. La tabla con la regla
+      Y SU CITA debajo de cada fila; contadores arriba. Semáforo:
+      0 rojos · 0 ámbar · 4 verdes CON fuente (GTFS ×3 «vale hasta el
+      05-10, 44 d» · ejes «la copia tiene 3 días») · 17 GRISES
+      honestos — ⭐ el del callejero es el elocuente: regla mensual
+      CITADA y aun así gris, porque no consta cuándo se descargó esa
+      copia (vino del proyecto anterior): «hay contra qué medir,
+      falta con qué». La deducción posible (mayo + mensual → hay
+      versión más nueva) quedó DICHA y NO HECHA: esa regla no está
+      firmada. La portada ni se enteró — raíz en frío: 6 peticiones ·
+      459 KB · CERO de datos/manifiesto — y el guardián del 22/08
+      ENDURECIDO: ahora cuenta el total de peticiones, no solo
+      /datos/. F5 en /panel: 200 → comodín no; página propia.
+      Contraprueba 9/9 — la novena cazó su propia prueba floja (el
+      borde de caducidad a medianoche no mordía; endurecida a
+      mediodía con el porqué escrito). 86 interfaz · 179 motor ·
+      Antonio lo VIO en vivo («el tema diseño no es ahora») y el
+      estándar quedó verificado independientemente antes de este
+      destilado
 - [ ] 3 · El mantenimiento que re-descarga NO va aquí: vive en el
       punto 12 (el cron educado), leyendo este mismo manifiesto

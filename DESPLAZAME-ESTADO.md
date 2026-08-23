@@ -61,6 +61,26 @@ levantado el 18/08, des-caducado el 21, el 22 y el 23):
 `ab87224`) más el cierre de papeles de hoy, pendiente de su commit. El
 push es de Antonio.
 
+**El panel de frescura CONSTRUIDO (23/08, tarde) — las piezas 1 y 2
+del adelanto del punto 14.** `datapackage.json` en la raíz (Frictionless
++ términos DCAT): 21 resources, huellas 21/21 casando, campos solo
+donde constan (modified 7 · descargadoEl 17 · caducaEl 3),
+accrualPeriodicity en URI del vocabulario europeo. VERIFICADO POR DOS
+VÍAS: el validador del ejecutor (contraprueba de 8 mutaciones) y la
+validación INDEPENDIENTE del estratega contra el perfil oficial (0
+errores, recuento de afirmaciones cuadrado). Hallazgo: el timeStamp
+del WFS es hora de composición de GeoServer, no fecha del dato —
+modified omitido en los 10 del WFS. La pestaña /panel (lazy, 7,43 kB):
+0 rojos · 0 ámbar · 4 verdes con fuente · 17 grises honestos — el del
+callejero con regla citada y gris igualmente (no consta cuándo se
+descargó la copia; la deducción posible quedó dicha y no hecha). La
+raíz en frío: 6 peticiones · 459 KB · cero datos — guardián del 22/08
+endurecido (cuenta peticiones totales). El manifiesto duplicado
+(raíz + app/public/, Angular no publica fuera del workspace) con
+guardián byte a byte. Contraprueba 9/9 (la novena endureció su propia
+prueba del borde). 86+179 pruebas. Commits `133a3a9` · `9e5bd35` ·
+`4186f2f`. Antonio lo vio en vivo; el diseño «no es ahora».
+
 **Punto 8 ABIERTO y el panel de frescura parlamentado (23/08,
 tarde).** El 8 arrancó por doctrina [Nominatim: geocodificar y enrutar
 son dos oficios; centroide + #536 + entradas 2025] y dos sondas de
@@ -281,13 +301,15 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el commit de papeles y el PUSH del día; (2) el
-**parlamento del punto 8, abierto en su pregunta central**: la tanda 1
-de categorías y la hostelería (ya / tanda 2 / no — con OSM como única
-fuente con nombre+coordenada); (3) **el encargo del panel de
-frescura** (manifiesto + pestaña), parlamentado y listo para redactar;
-(4) flecos chicos: la ficha de Aragón (Antonio la pega del navegador y
-muere su NO CONSTA) · el descifre de `estado` del registro si la
+**Lo siguiente:** (1) el commit de papeles y el PUSH del día (va
+cargado: los papeles de mediodía + los tres del panel + este
+destilado); (2) **el encargo B: FARMACIAS** — la primera categoría del
+punto 8, FIRMADA por Antonio (313, coordenada al 99 %, la decisión del
+titular ya parlamentada: «Farmacia» + dirección) — el tubo se estrena
+con ella y el resto llega por tandas («vamos a acabar metiendo todo,
+pero primero algo pequeño»); la hostelería y las demás, en tandas
+siguientes; (3) flecos chicos: la ficha de Aragón (Antonio la pega del
+navegador) · el descifre de `estado` del registro si la
 hostelería-contexto entra. Detrás, el 9 con la ordenanza leída en
 grueso.
 
