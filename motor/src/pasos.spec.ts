@@ -32,6 +32,9 @@ import {
   NARRAN_SIEMPRE_POR_TIPO,
   nombreGenerico,
   UMBRAL_MICRO_M,
+  CONTINUE_CORTO_M,
+  SIN_ENCRUCIJADA,
+  type Encrucijada,
   type TramoFundido,
   type TramoLlano,
 } from './pasos.ts';
@@ -44,6 +47,15 @@ import type { Giro } from '@desplazame/tipos';
  */
 const tieneNombre = (nombre: string): boolean => !/^(la|el|las) /.test(nombre);
 
+/**
+ * Un cruce de mentira. El defecto es `SIN_ENCRUCIJADA` —NO CONSTA por los dos
+ * lados—, que es el que **no habilita nada**: así una prueba que no habla del
+ * cruce no puede disparar sin querer una regla que se pregunta por él.
+ */
+function cruce(salidas: number | null, otraDelMismoNombre = false): Encrucijada {
+  return { salidas, otraDelMismoNombre };
+}
+
 /** Un tramo llano de mentira, para probar la fusión con ángulos a mano. */
 function tramo(
   nombre: string,
@@ -51,8 +63,17 @@ function tramo(
   entrada: number,
   salida = entrada,
   esMunicipal = false,
+  encrucijada: Encrucijada = SIN_ENCRUCIJADA,
 ): TramoLlano {
-  return { nombre, conNombre: tieneNombre(nombre), esMunicipal, metros, entrada, salida };
+  return {
+    nombre,
+    conNombre: tieneNombre(nombre),
+    esMunicipal,
+    metros,
+    entrada,
+    salida,
+    encrucijada,
+  };
 }
 
 /**
@@ -69,8 +90,18 @@ function maniobra(
   entrada: number,
   salida = entrada,
   esMunicipal = false,
+  encrucijada: Encrucijada = SIN_ENCRUCIJADA,
 ): TramoFundido {
-  return { nombre, conNombre: tieneNombre(nombre), esMunicipal, metros, giro, entrada, salida };
+  return {
+    nombre,
+    conNombre: tieneNombre(nombre),
+    esMunicipal,
+    metros,
+    giro,
+    entrada,
+    salida,
+    encrucijada,
+  };
 }
 
 /** Los nombres que sobreviven a un colapso, en orden. */
@@ -671,6 +702,178 @@ describe('⭐ EL CANÓNICO — cuando las dos grafías se juntan, manda la munic
       maniobra('Calle de Don Jaime I', 100, 'recto', 0),
     ]);
     assert.deepEqual(nombresDe(colapsadas), ['Calle de Don Jaime I']);
+  });
+});
+
+describe('⭐ LOS COMBINES DE ODIN (a) — dos genéricos rectos son uno', () => {
+  test('dos «el camino» seguidos y rectos se funden', () => {
+    // [DOC Valhalla odin, Combine()] «Combine unnamed straight maneuvers».
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 300, 'salida', 90),
+      maniobra('el camino', 6234, 'izquierda', 0),
+      maniobra('el camino', 1263, 'recto', 0),
+    ]);
+    assert.deepEqual(nombresDe(colapsadas), ['CALLE UNA', 'el camino']);
+    assert.equal(colapsadas[1]!.metros, 7497);
+    // El giro que sobrevive es el de quien crece, no el del absorbido.
+    assert.equal(colapsadas[1]!.giro, 'izquierda');
+  });
+
+  test('⭐ VETO: dos genéricos DISTINTOS no se funden aunque vayan rectos', () => {
+    // Es la entrada nº7 de la bitácora puesta como regla: cuando un tramo se
+    // llama por su TIPO, el tipo es toda la información que lleva. «La
+    // calzada» de 373 m seguida de «el vial de servicio» de 297 m no son 670 m
+    // de calzada — son dos vías distintas, y decirlo de una sola es escribir
+    // una que no existe. Es el gemelo del veto de `trail_type` de odin.
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 300, 'salida', 90),
+      maniobra('la calzada', 373, 'izquierda', 0),
+      maniobra('el vial de servicio', 297, 'recto', 0),
+    ]);
+    assert.deepEqual(nombresDe(colapsadas), ['CALLE UNA', 'la calzada', 'el vial de servicio']);
+  });
+
+  test('⭐ VETO: las escaleras no se funden con nada, ni con otras escaleras', () => {
+    // Lo que importa de unas escaleras es que hay que subirlas. Fundirlas con
+    // lo de al lado borra el único aviso que quien anda necesita ahí. [odin
+    // veta las escaleras de interior; aquí valen todas.]
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 300, 'salida', 90),
+      maniobra('las escaleras', 30, 'izquierda', 0),
+      maniobra('las escaleras', 40, 'recto', 0),
+    ]);
+    assert.equal(colapsadas.length, 3);
+  });
+
+  test('⭐ VETO: el paso de peatones tiene fraseo propio y no se funde', () => {
+    // [DOC Valhalla narrativebuilder.cc, línea 4701] `pedestrian_crossing` va
+    // a un índice de diccionario aparte: no es un giro más. Su micro-fusión
+    // por debajo de 25 m es otra pasada y no se toca — aquí se prueba con 40 m,
+    // que ya la ha pasado.
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 300, 'salida', 90),
+      maniobra('el paso de peatones', 40, 'izquierda', 0),
+      maniobra('el paso de peatones', 40, 'recto', 0),
+    ]);
+    assert.equal(colapsadas.length, 3);
+  });
+
+  test('un genérico y una calle CON nombre no son dos genéricos', () => {
+    // La regla (a) exige que los dos sean huecos. Si el segundo tiene nombre,
+    // el caso es de la regla (c) y tiene sus propias condiciones.
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 300, 'salida', 90),
+      maniobra('el camino', 700, 'izquierda', 0),
+      maniobra('CALLE DOS', 700, 'recto', 0),
+    ]);
+    assert.equal(colapsadas.length, 3);
+  });
+});
+
+describe('⭐ LOS COMBINES DE ODIN (c) — el «Continúa» obvio deja su nombre', () => {
+  /**
+   * Un genérico delante y una calle con nombre detrás, recta.
+   *
+   * **Detrás va OTRO «Continúa» a propósito**, y no es un detalle de atrezo: la
+   * segunda condición pide que el continue esté encajado **entre dos maniobras
+   * que no son continues**, así que teniendo uno detrás queda apagada. Solo
+   * así una prueba de ① o de ③ mide ① o ③ y no la suma de las tres. La ②
+   * tiene su propia lista, más abajo, con maniobras de verdad a los dos lados.
+   */
+  const conCruce = (cruceDeLaCalle: Encrucijada, metrosDelGenerico = 100) => [
+    maniobra('CALLE UNA', 300, 'salida', 90),
+    maniobra('la zona peatonal', metrosDelGenerico, 'izquierda', 0),
+    maniobra('CALLE DOS', 400, 'recto', 0, 0, false, cruceDeLaCalle),
+    maniobra('CALLE TRES', 300, 'recto', 0),
+  ];
+
+  test('① del cruce no sale nada más que seguir: se absorbe y hereda', () => {
+    const colapsadas = colapsarManiobras(conCruce(cruce(1, true)));
+    assert.deepEqual(nombresDe(colapsadas), ['CALLE UNA', 'CALLE DOS', 'CALLE TRES']);
+    // Los metros se suman y el giro es el del genérico, que es quien crece.
+    assert.equal(colapsadas[1]!.metros, 500);
+    assert.equal(colapsadas[1]!.giro, 'izquierda');
+    assert.equal(colapsadas[1]!.conNombre, true);
+  });
+
+  test('③ ninguna otra rama del cruce se llama igual: se absorbe y hereda', () => {
+    assert.deepEqual(nombresDe(colapsarManiobras(conCruce(cruce(3, false)))), [
+      'CALLE UNA',
+      'CALLE DOS',
+      'CALLE TRES',
+    ]);
+  });
+
+  test('⭐ ninguna de las tres: se queda como estaba', () => {
+    // Del cruce salen tres cosas y otra rama se llama igual; y detrás viene
+    // otro continue, así que la ② tampoco. No hay nada obvio, y no se toca.
+    assert.equal(colapsarManiobras(conCruce(cruce(3, true))).length, 4);
+  });
+
+  test('⭐ ② el continue CORTO encajado entre dos que no son continues', () => {
+    // La segunda condición no mira el cruce: mira la forma de la lista. Un
+    // «Continúa» de menos de 0,6 km metido entre una maniobra de verdad y otra
+    // maniobra de verdad no es una instrucción, es el hueco entre las dos.
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 300, 'salida', 90),
+      maniobra('la acera', 49, 'izquierda', 0),
+      maniobra('CALLE DOS', CONTINUE_CORTO_M - 1, 'recto', 0, 0, false, cruce(3, true)),
+      maniobra('CALLE TRES', 300, 'derecha', 90),
+    ]);
+    assert.deepEqual(nombresDe(colapsadas), ['CALLE UNA', 'CALLE DOS', 'CALLE TRES']);
+  });
+
+  test(`⭐ y por encima de ${CONTINUE_CORTO_M} m la ② ya no vale`, () => {
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 300, 'salida', 90),
+      maniobra('la acera', 49, 'izquierda', 0),
+      maniobra('CALLE DOS', CONTINUE_CORTO_M, 'recto', 0, 0, false, cruce(3, true)),
+      maniobra('CALLE TRES', 300, 'derecha', 90),
+    ]);
+    assert.equal(colapsadas.length, 4);
+  });
+
+  test(`⭐ LA COTA: un genérico de ${CONTINUE_CORTO_M} m o más NO desaparece`, () => {
+    // [PROPIO] Lo que se absorbe se lleva el nombre del otro, así que el que
+    // pierde su línea es el genérico de delante. Si ese genérico es largo, era
+    // la única seña de un tramo grande. El caso medido: «el camino» de 1.262,6
+    // m seguido de «CAMINO EL POLLERO» de 36,4 saldría como «Camino El Pollero
+    // · 1.300 m», y eso es falso en 1.262,6 de sus 1.299 metros.
+    // La ① está encendida —del cruce no sale más que seguir—, así que lo único
+    // que lo frena es el metraje del que desaparecería.
+    const colapsadas = colapsarManiobras(conCruce(cruce(1, false), CONTINUE_CORTO_M));
+    assert.equal(colapsadas.length, 4);
+    // Y justo por debajo, sí.
+    assert.equal(colapsarManiobras(conCruce(cruce(1, false), CONTINUE_CORTO_M - 1)).length, 3);
+  });
+
+  test('⭐ un cruce que NO CONSTA no habilita nada', () => {
+    // `SIN_ENCRUCIJADA` es lo que se sabe del primer tramo de una ruta y de
+    // uno recortado por el enganche: nada. Y lo que no se sabe no puede ser la
+    // razón de borrar un paso.
+    const colapsadas = colapsarManiobras(conCruce(SIN_ENCRUCIJADA));
+    assert.equal(colapsadas.length, 4);
+    assert.equal(SIN_ENCRUCIJADA.salidas, null);
+  });
+
+  test('⭐ VETO: un genérico que son escaleras no hereda ningún nombre', () => {
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 300, 'salida', 90),
+      maniobra('las escaleras', 30, 'izquierda', 0),
+      maniobra('CALLE DOS', 400, 'recto', 0, 0, false, cruce(1, false)),
+      maniobra('CALLE TRES', 300, 'recto', 0),
+    ]);
+    assert.equal(colapsadas.length, 4);
+  });
+
+  test('el giro tiene que ser RECTO: un «Continúa» es lo único que se absorbe', () => {
+    const colapsadas = colapsarManiobras([
+      maniobra('CALLE UNA', 300, 'salida', 90),
+      maniobra('la zona peatonal', 100, 'izquierda', 0),
+      maniobra('CALLE DOS', 400, 'derecha', 90, 90, false, cruce(1, false)),
+      maniobra('CALLE TRES', 300, 'recto', 90),
+    ]);
+    assert.equal(colapsadas.length, 4);
   });
 });
 
@@ -1520,6 +1723,173 @@ describe('Los pasos de una ruta real', () => {
     assert.equal(sanJuan.length, 1, `sale ${sanJuan.length} veces: ${sanJuan.map((p) => p.texto)}`);
     assert.match(sanJuan[0]!.texto, /hacia Avenida de San Juan de la Peña$/);
     assert.equal(sanJuan[0]!.metros, 1830, 'los dos trozos tienen que sumarse');
+  });
+
+  // ── LOS COMBINES DE ODIN ─────────────────────────────────────────────────
+  //
+  // Tres rutas que no estaban aquí, y no por casualidad: son las que DISPARAN
+  // las reglas nuevas. Las de arriba no las disparan ninguna vez —lo cual es
+  // en sí un resultado, y va en el checkpoint—, así que una regla nueva
+  // probada solo contra ellas sería una regla sin probar.
+
+  /** CAMINO TORRE MORALES II 28 → CALLE LIBERTAD 4: 19,8 km de punta a punta. */
+  const TORRE_MORALES = 'Portales.117092';
+  const LIBERTAD = 'Portales.104772';
+  /** CALLE CABEZO DE BUENAVISTA 11 → CALLE CRISTO REY 7. */
+  const BUENAVISTA = 'Portales.102413';
+  const CRISTO_REY = 'Portales.112992';
+  /** CALLE CARDENAL CASCAJARES 5 → TRAVESÍA DEL VADO 23. */
+  const CASCAJARES = 'Portales.94213';
+  const VADO = 'Portales.89155';
+  /** CALLE BIEL 55 C32 → CALLE CERDEÑA 4: la que NO se toca, y por qué. */
+  const BIEL = 'Portales.103416';
+  const CERDENA = 'Portales.87147';
+
+  test('⭐ (a) dos «el camino» seguidos y rectos son UN camino, no dos', () => {
+    // [DOC Valhalla odin, Combine()] «Combine unnamed straight maneuvers». Dos
+    // maniobras seguidas SIN nombre propio y en línea recta son una sola.
+    //
+    // El caso, en TORRE MORALES II 28 → LIBERTAD 4: las maniobras 6 y 7 son
+    // las dos «el camino», la segunda entra RECTA, y salían como dos pasos de
+    // 6.234,1 y 1.262,6 m. Quien anda lee dos veces la misma frase y no hay
+    // nada entre ellas que hacer.
+    //
+    // La cuenta, a mano [ley de la bitácora nº9]:
+    //   6.234,100 + 1.262,600 = 7.496,700 m
+    //   metrosParaLeer(7496,700) = redondeo a la decena = 7.500 m
+    //   el giro que queda es el de la PRIMERA, «izquierda» — absorber alarga
+    //   hacia delante y no toca ni el giro ni la entrada de quien crece.
+    const pasos = pasosDe(TORRE_MORALES, LIBERTAD);
+    const caminos = pasos.filter((p) => /hacia el camino$/.test(p.texto));
+    const largo = caminos.find((p) => p.metros === 7500);
+    assert.ok(
+      largo,
+      `no está el camino de 7.500 m; hay ${caminos.length} caminos: ${caminos.map((p) => p.metros)}`,
+    );
+    assert.equal(largo!.giro, 'izquierda');
+  });
+
+  test('⭐ (c) un «Continúa» OBVIO se absorbe, y le deja su nombre al genérico', () => {
+    // [DOC Valhalla odin, IsNextManeuverObvious(), líneas 618-632] Un
+    // «Continúa» que no se puede desobedecer no es una instrucción. Y si la
+    // maniobra que lo absorbe no tenía nombre, HEREDA el suyo: la información
+    // no se pierde, cambia de sitio [GUIA L59].
+    //
+    // BUENAVISTA 11 → CRISTO REY 7 lo dispara DOS veces, y por condiciones
+    // distintas — que es justo lo que hace de ella una juez y no un ejemplo:
+    //
+    //   maniobras 16+17  «el camino» 106,800 + «CALLE CRISTO REY» 54,200
+    //                    = 161,000 m → decena → 160 m · giro «recto»
+    //                    dispara c1: del nodo no sale nada más que seguir
+    //   maniobras 18+19  «la acera» 48,900 + «CALLE CRISTO REY» 50,143
+    //                    = 99,043 m → por debajo de 100, al metro → 99 m
+    //                    giro «izquierda» · dispara c2: continue corto
+    //                    (<600 m) entre dos maniobras que no son continues
+    //
+    //   20 pasos − 2 absorciones = 18 pasos
+    //
+    // Y el segundo dice «para seguir por», no «hacia»: la calle ya se había
+    // anunciado y solo se tuerce. Eso no es de este encargo — es la regla que
+    // nació en `b9375a7`—, pero es la prueba de que las dos capas encajan.
+    const pasos = pasosDe(BUENAVISTA, CRISTO_REY);
+    assert.equal(pasos.length, 18);
+    assert.equal(
+      pasos.filter((p) => /hacia el camino$/.test(p.texto)).length,
+      0,
+      'el camino de 106,8 m sigue saliendo como paso propio',
+    );
+    assert.equal(
+      pasos.filter((p) => /hacia la acera$/.test(p.texto)).length,
+      0,
+      'la acera de 48,9 m sigue saliendo como paso propio',
+    );
+    const cristo = pasos.filter((p) => /Cristo Rey$/.test(p.texto));
+    assert.equal(cristo.length, 2, `Cristo Rey sale ${cristo.length} veces`);
+    assert.deepEqual(cristo.map((p) => p.metros), [160, 99]);
+    assert.deepEqual(cristo.map((p) => p.giro), ['recto', 'izquierda']);
+    assert.match(cristo[1]!.texto, / para seguir por /);
+  });
+
+  test('⭐ (c③) el «Continúa» que se absorbe puede ser LARGO: manda quién desaparece', () => {
+    // CARDENAL CASCAJARES 5 → TRAVESÍA DEL VADO 23, maniobras 17+18:
+    // «la zona peatonal» 107,700 m y «PARQUE LA ALJAFERÍA» 105,300 m.
+    //
+    //   107,700 + 105,300 = 213,000 m → decena → 210 m
+    //   el giro que queda es el de la PRIMERA: «ligera-izquierda»
+    //   32 pasos − 1 = 31
+    //
+    // Es la juez de la TERCERA condición y de ninguna otra: aquí no dispara c1
+    // —del cruce sale algo más que seguir— ni c2 —el continue no está encajado
+    // entre dos maniobras que no lo sean—. Solo c3: **ninguna otra rama de ese
+    // cruce se llama Aljafería**, así que decir «continúa por» no desambigua
+    // nada, porque no había nada que desambiguar.
+    //
+    // Y lo que se mira para dejarlo pasar es el metraje del que DESAPARECE
+    // (107,7 m), no el del que se traga: el nombre viaja con la absorción, así
+    // que absorber un tramo con nombre dentro de un genérico no pierde nada.
+    const pasos = pasosDe(CASCAJARES, VADO);
+    assert.equal(pasos.length, 31);
+    const aljaferia = pasos.filter((p) => /Aljafería$/.test(p.texto));
+    assert.equal(aljaferia.length, 1, `la Aljafería sale ${aljaferia.length} veces`);
+    assert.equal(aljaferia[0]!.giro, 'ligera-izquierda');
+    assert.equal(aljaferia[0]!.metros, 210);
+  });
+
+  test('⭐ (c③) y NO se absorbe cuando otra rama del cruce se llama IGUAL', () => {
+    // La contraprueba de la tercera condición, que es la que más se parece a
+    // una tautología si no se mira de frente: «ninguna otra rama se llama
+    // igual» tiene que poder salir que NO.
+    //
+    // BIEL 55 C32 → CERDEÑA 4, maniobras 6+7: «la zona peatonal» 97,300 m y
+    // «AVENIDA ALCALDE GÓMEZ LAGUNA» 690,900 m. Cumple todo lo demás —el
+    // genérico es corto, el giro es recto, hay nombre que heredar— y **aun así
+    // se queda como estaba**, porque del nodo 47040 salen DOS ramas de Alcalde
+    // Gómez Laguna: la que se sigue (arista 59781) y otra (58466). Con dos
+    // maneras de seguir por la misma avenida, seguir no es obvio.
+    //
+    // Tampoco la salva c1 —del cruce salen 2 cosas, no 1— ni c2 —el continue
+    // mide 690,9 m, por encima de los 600 de `CONTINUE_CORTO_M`—.
+    //
+    // Esta ruta estuvo a punto de entrar como la juez de arriba: la medición
+    // que la proponía contaba las ramas del cruce sin descontar las dos de la
+    // ruta. Es la **entrada nº10 de la bitácora**, y por eso se queda aquí:
+    // el caso que destapó el fallo del instrumento vale más como guardián que
+    // como anécdota.
+    const pasos = pasosDe(BIEL, CERDENA);
+    assert.equal(pasos.length, 24);
+    const gomez = pasos.filter((p) => /Alcalde Gómez Laguna$/i.test(p.texto));
+    assert.equal(gomez.length, 2, `Gómez Laguna sale ${gomez.length} veces`);
+    // Y la zona peatonal de 97,3 m sigue teniendo su propio paso, con su
+    // media vuelta, que es una maniobra de verdad y no se toca.
+    const media = pasos.find((p) => p.giro === 'media-vuelta');
+    assert.ok(media, 'ha desaparecido la media vuelta');
+    assert.match(media!.texto, /hacia la zona peatonal$/);
+    assert.equal(media!.metros, 97);
+  });
+
+  test('⭐ los combines NO tocan la geometría ni los metros de la ruta', () => {
+    // La guardia de lo intocable. Narrar es escribir lo que ya está calculado:
+    // si una regla de narración moviera un metro, sería que está tocando la
+    // ruta, y la ruta no es suya. Se comprueba contra el Dijkstra, que los
+    // calcula por su cuenta y no sabe nada de todo esto.
+    for (const [a, b] of [
+      [TORRE_MORALES, LIBERTAD],
+      [BUENAVISTA, CRISTO_REY],
+      [CASCAJARES, VADO],
+      [BIEL, CERDENA],
+    ] as const) {
+      const uno = portales.donde.get(a)!;
+      const otro = portales.donde.get(b)!;
+      const ea = enganchar(red, rejilla, uno.lon, uno.lat)!;
+      const eb = enganchar(red, rejilla, otro.lon, otro.lat)!;
+      const ruta = calcularRuta(red, cuaderno, ea, [uno.lon, uno.lat], eb, [otro.lon, otro.lat])!;
+      const pasos = escribirPasos(red, ruta, 'A', 'B', [otro.lon, otro.lat]);
+      const suma = pasos.reduce((t, p) => t + p.metros, 0);
+      assert.ok(
+        Math.abs(suma - ruta.metros) < 60,
+        `${a}→${b}: los pasos suman ${suma} m y la ruta mide ${ruta.metros.toFixed(0)}`,
+      );
+    }
   });
 
   test('la ruta céntrica corta: cuatro pasos, y son los del README', () => {

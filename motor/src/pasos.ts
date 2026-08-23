@@ -742,6 +742,19 @@ interface Tramo extends Denominacion {
   readonly perfil: string;
   readonly metros: number;
   readonly g: readonly Punto[];
+  /**
+   * El NODO por el que se entra en este tramo, que es la frontera con el
+   * anterior. `null` en el primero, que no tiene nada detrás.
+   *
+   * Existe por los combines de odin: dos de sus tres condiciones preguntan por
+   * el cruce —cuántas salidas tiene, si alguna se llama igual— y esas
+   * preguntas no se le pueden hacer a una lista de nombres y ángulos.
+   */
+  readonly nodoEntrada: number | null;
+  /** La primera arista del tramo: la que SALE del nodo de entrada. */
+  readonly aristaEntrada: number;
+  /** La última: la que LLEGA al nodo de entrada del siguiente. */
+  readonly aristaSalida: number;
 }
 
 /** La forma mutable con la que se agrupa y se une. */
@@ -753,27 +766,69 @@ type TramoEnObra = {
   nombre: string;
   conNombre: boolean;
   esMunicipal: boolean;
+  nodoEntrada: number | null;
+  aristaEntrada: number;
+  aristaSalida: number;
 };
+
+/**
+ * ⭐ EL NODO por el que se SALE de un trozo, o `null` si el trozo va recortado.
+ *
+ * El grafo no viene con nodos —`red.ts` los reconstruye por coincidencia
+ * EXACTA de coordenada— y el trozo de ruta no los lleva: lleva su geometría ya
+ * puesta en el sentido de la marcha. Así que se pregunta por el mismo criterio
+ * con el que se construyeron: si el último vértice del trozo es el primero de
+ * la arista, se sale por `desde`; si es el último, por `hasta`.
+ *
+ * Un trozo RECORTADO por el enganche del destino no termina en ningún nodo, y
+ * ahí la respuesta es `null` — que es la verdad, no un fallo.
+ *
+ * Verificado sobre 56.566 trozos de 300 rutas: **todos los que no son el
+ * último de su ruta resuelven, y el nodo que devuelven es extremo de la arista
+ * siguiente en los 56.276 casos. Cero excepciones.**
+ */
+function nodoDeSalida(red: RedEnMemoria, trozo: TrozoDeRuta): number | null {
+  const arista = red.aristas[trozo.arista]!;
+  const fin = trozo.g[trozo.g.length - 1]!;
+  const primero = arista.g[0]!;
+  const ultimo = arista.g[arista.g.length - 1]!;
+  if (fin[0] === ultimo[0] && fin[1] === ultimo[1]) {
+    return arista.hasta;
+  }
+  if (fin[0] === primero[0] && fin[1] === primero[1]) {
+    return arista.desde;
+  }
+  return null;
+}
 
 /** Junta las aristas consecutivas que comparten `w`. */
 function agrupar(red: RedEnMemoria, trozos: readonly TrozoDeRuta[]): readonly Tramo[] {
   const tramos: TramoEnObra[] = [];
+  // El nodo por el que se salió de lo anterior es por el que se entra en lo
+  // que venga. En el primer tramo no hay nada detrás: `null`.
+  let frontera: number | null = null;
   for (const trozo of trozos) {
     const arista = red.aristas[trozo.arista]!;
     const ultimo = tramos[tramos.length - 1];
+    const salida = nodoDeSalida(red, trozo);
     if (ultimo && ultimo.way === arista.way) {
       ultimo.metros += trozo.metros;
       // El primer punto del trozo es el último del anterior: no se repite.
       ultimo.g.push(...trozo.g.slice(1));
-      continue;
+      ultimo.aristaSalida = trozo.arista;
+    } else {
+      tramos.push({
+        way: arista.way,
+        perfil: arista.perfil,
+        metros: trozo.metros,
+        g: [...trozo.g],
+        ...comoSeLlama(red, arista.way, arista.perfil),
+        nodoEntrada: frontera,
+        aristaEntrada: trozo.arista,
+        aristaSalida: trozo.arista,
+      });
     }
-    tramos.push({
-      way: arista.way,
-      perfil: arista.perfil,
-      metros: trozo.metros,
-      g: [...trozo.g],
-      ...comoSeLlama(red, arista.way, arista.perfil),
-    });
+    frontera = salida;
   }
   return tramos;
 }
@@ -816,6 +871,9 @@ function unirLasQueSonLaMisma(tramos: readonly Tramo[]): readonly Tramo[] {
     ) {
       ultimo.metros += tramo.metros;
       ultimo.g.push(...tramo.g.slice(1));
+      // La frontera de ENTRADA no se toca: unir alarga hacia delante, y por
+      // donde se entró sigue siendo por donde se entró. La de salida sí avanza.
+      ultimo.aristaSalida = tramo.aristaSalida;
       if (equivalente) {
         const gana = canonico(ultimo, tramo);
         ultimo.nombre = gana.nombre;
@@ -831,6 +889,9 @@ function unirLasQueSonLaMisma(tramos: readonly Tramo[]): readonly Tramo[] {
       nombre: tramo.nombre,
       conNombre: tramo.conNombre,
       esMunicipal: tramo.esMunicipal,
+      nodoEntrada: tramo.nodoEntrada,
+      aristaEntrada: tramo.aristaEntrada,
+      aristaSalida: tramo.aristaSalida,
     });
   }
   return unidos;
@@ -861,6 +922,45 @@ function ladoDelDestino(ultimoTramo: readonly Punto[], puerta: Punto): 'derecha'
 }
 
 /**
+ * ⭐ EL CRUCE por el que se entra en una maniobra, reducido a las dos preguntas
+ * que los combines de odin le hacen.
+ *
+ * [DOC Valhalla odin, `IsNextManeuverObvious()`] Su criterio para saber si un
+ * «Continúa» hace falta decirlo NO está en la lista de maniobras: está en el
+ * cruce. Pregunta si desde ahí se puede hacer otra cosa que seguir, y si hay
+ * alguna otra rama que se llame igual —que es cuando seguir deja de ser obvio,
+ * porque hay dos calles del mismo nombre y hay que elegir—.
+ *
+ * Se resuelve **antes** de bajar a la forma llana, que es donde todavía hay red
+ * y geometría. Así la fusión y el colapso siguen siendo funciones puras sobre
+ * nombres, metros y ángulos: en las pruebas la encrucijada se inventa igual que
+ * se inventan los rumbos.
+ */
+export interface Encrucijada {
+  /**
+   * Cuántas salidas transitables tiene el cruce **sin contar aquella por la
+   * que se llegó**. Si vale 1, la única cosa que se puede hacer es seguir.
+   *
+   * `null` es **NO CONSTA**, no cero: el primer tramo de una ruta no tiene
+   * cruce detrás, y un tramo recortado por el enganche no termina en un nodo.
+   */
+  readonly salidas: number | null;
+  /**
+   * Si alguna rama del cruce que **no es** ni por la que se llega ni por la que
+   * se sigue lleva el mismo nombre que este tramo. Cuando la hay, seguir deja
+   * de ser obvio: hay dos maneras de seguir «por la misma calle».
+   */
+  readonly otraDelMismoNombre: boolean;
+}
+
+/**
+ * Lo que se sabe de un cruce que no se ha podido mirar: **nada, y por el lado
+ * que no habilita**. Con `salidas` a NO CONSTA no dispara la primera condición
+ * y con la otra rama declarada presente no dispara la tercera.
+ */
+export const SIN_ENCRUCIJADA: Encrucijada = { salidas: null, otraDelMismoNombre: true };
+
+/**
  * Un tramo reducido a lo que la fusión necesita: cómo se llama, cuánto mide, y
  * con qué rumbo se entra y se sale de él.
  *
@@ -873,6 +973,8 @@ export interface TramoLlano extends Denominacion {
   readonly metros: number;
   readonly entrada: number;
   readonly salida: number;
+  /** El cruce por el que se entra. Ver `Encrucijada`. */
+  readonly encrucijada: Encrucijada;
 }
 
 /** Lo que sobrevive a la fusión: un paso, con su giro ya combinado. */
@@ -890,6 +992,15 @@ export interface TramoFundido extends Denominacion {
    * que impide que colapsar se coma un giro de verdad.
    */
   readonly salida: number;
+  /**
+   * El cruce por el que se entra en la maniobra.
+   *
+   * Es el del primer tramo que la formó, y no hay que recalcularlo: fundir y
+   * absorber alargan **hacia delante**, así que por donde se entró no cambia.
+   * La única excepción es la regla del dominante, y ahí viaja con él — si el
+   * nombre pasa a ser el suyo, su cruce es el que corresponde a ese nombre.
+   */
+  readonly encrucijada: Encrucijada;
 }
 
 /**
@@ -943,6 +1054,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     giro: Giro;
     entrada: number;
     salida: number;
+    encrucijada: Encrucijada;
   }[] = [];
 
   for (const tramo of tramos) {
@@ -957,6 +1069,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
         giro: 'salida',
         entrada: tramo.entrada,
         salida: tramo.salida,
+        encrucijada: tramo.encrucijada,
       });
       continue;
     }
@@ -989,6 +1102,11 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
           ultimo.nombre = tramo.nombre;
           ultimo.conNombre = tramo.conNombre;
           ultimo.esMunicipal = tramo.esMunicipal;
+          // Y su cruce con él: una encrucijada dice algo del nombre que la
+          // acompaña —si alguna otra rama se llama igual—, así que dejar la
+          // vieja pegada a un nombre nuevo sería dejar una respuesta a una
+          // pregunta que ya no se hizo.
+          ultimo.encrucijada = tramo.encrucijada;
         }
       }
       if (equivalente) {
@@ -1008,18 +1126,22 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
       giro,
       entrada: tramo.entrada,
       salida: tramo.salida,
+      encrucijada: tramo.encrucijada,
     });
   }
 
-  return salen.map(({ nombre, conNombre, esMunicipal, metros, giro, entrada, salida }) => ({
-    nombre,
-    conNombre,
-    esMunicipal,
-    metros,
-    giro,
-    entrada,
-    salida,
-  }));
+  return salen.map(
+    ({ nombre, conNombre, esMunicipal, metros, giro, entrada, salida, encrucijada }) => ({
+      nombre,
+      conNombre,
+      esMunicipal,
+      metros,
+      giro,
+      entrada,
+      salida,
+      encrucijada,
+    }),
+  );
 }
 
 /** Los tres giros que NO son una maniobra: se sigue por donde se iba. */
@@ -1052,6 +1174,66 @@ const esSuave = (giro: Giro): boolean => GIROS_SUAVES.has(giro);
  */
 export const CORTE_DE_NOMBRE_M = 105;
 
+/**
+ * ⭐ Cuánto puede medir un «Continúa» para que valga la pena preguntarse si es
+ * OBVIO. **0,6 km, y el número es de odin**: es `kShortContinueThreshold`,
+ * leída de la fuente de `maneuversbuilder.cc`.
+ *
+ * Aquí hace **dos** trabajos, y conviene no confundirlos:
+ *
+ * 1. Es el umbral de la segunda condición, tal cual lo usa odin: un continue
+ *    corto encajado entre dos maniobras que no son continues.
+ * 2. **[PROPIO]** Es también la cota de lo que puede desaparecer. Odin absorbe
+ *    el continue dentro de la maniobra anterior y —cuando esta no tiene
+ *    nombre— le deja el suyo; el que se queda sin línea propia es el genérico
+ *    de delante. Si ese genérico es LARGO, era la única seña de un tramo
+ *    grande y callarlo empobrece la ruta. Medido sobre 387 rutas: sin esta
+ *    cota, **2 de 89** absorciones mienten, y la peor dice **«Camino El
+ *    Pollero · 1.300 m»** cuando 1.262,6 de esos metros son un camino que no
+ *    se llama así. Con la cota, esos dos se quedan como estaban — y las 87
+ *    que quedan son las que de verdad no pierden nada.
+ *
+ * El número se reutiliza porque es el que odin da para «un continue corto», y
+ * no porque venga bien: inventar un segundo umbral cuando ya hay uno medido
+ * para la misma pregunta sería añadir una constante sin fuente.
+ */
+export const CONTINUE_CORTO_M = 600;
+
+/**
+ * ⭐ Los dos genéricos que **no se combinan con nada**, ni por delante ni por
+ * detrás.
+ *
+ * [DOC Valhalla odin] Veta la combinación de tramos con `trail_type` distinto y
+ * la de las escaleras. Aquí valen las dos vetas y por la misma razón, que es la
+ * de la **entrada nº7 de la bitácora**: cuando un paso se llama por su TIPO, el
+ * tipo es toda la información que lleva, y fundir dos tipos distintos en uno
+ * escribe una vía que no existe. Lo que allí decía «la calzada» sobre 1.270 m
+ * de carril bici es exactamente lo que pasaría aquí.
+ *
+ * Las escaleras y el paso de peatones van además en su propia lista porque la
+ * regla general no basta con ellos:
+ *
+ * - **Las escaleras** son la maniobra, no el camino. Fundirlas con lo de al
+ *   lado —aunque lo de al lado también fueran escaleras— borra el aviso de que
+ *   hay que subir, que es lo único que quien anda necesita saber ahí.
+ * - **El paso de peatones** [DOC Valhalla `narrativebuilder.cc`, línea 4701]
+ *   tiene fraseo PROPIO en odin, con su índice de diccionario aparte
+ *   (`pedestrian_crossing`): no es un giro más, y por eso no se combina con sus
+ *   vecinos. Su micro-fusión por debajo de 25 m sigue viva y no se toca — esa
+ *   es otra pasada y otra pregunta.
+ *
+ * Se leen de `POR_PERFIL` y no se escriben otra vez: si algún día se cambia la
+ * redacción, esta lista la sigue sola.
+ */
+const NO_SE_COMBINAN: ReadonlySet<string> = new Set([
+  POR_PERFIL['escaleras']!,
+  POR_PERFIL['paso-de-peatones']!,
+]);
+
+/** Si una maniobra es de las que no se combinan. Ver `NO_SE_COMBINAN`. */
+const seCombina = (m: { nombre: string; conNombre: boolean }): boolean =>
+  m.conNombre || !NO_SE_COMBINAN.has(m.nombre);
+
 /** La forma mutable con la que se trabaja dentro del colapso. */
 type Maniobra = {
   nombre: string;
@@ -1061,6 +1243,7 @@ type Maniobra = {
   giro: Giro;
   entrada: number;
   salida: number;
+  encrucijada: Encrucijada;
 };
 
 /**
@@ -1130,17 +1313,78 @@ function absorber(crece: Maniobra, comido: Maniobra): void {
  * desaparece de la ruta larga, y esa plaza tiene nombre porque la gente la usa
  * para orientarse. Es el precio declarado de seguir a OSRM.
  *
+ * **Regla C — UNNAMED STRAIGHT** y **regla D — el CONTINUE OBVIO** son las de
+ * odin, y están escritas abajo con su cita y su medición. Van DESPUÉS de A y B
+ * porque A y B son el colapso de OSRM, que ya vivía aquí; el orden dentro de
+ * la vuelta no decide el resultado —el bucle itera hasta que nada cambia— pero
+ * sí el orden de lectura, y así se lee cada capa con su fuente detrás.
+ *
+ * ── Y la (b) de odin, que ya estaba viva antes de este encargo ───────────────
+ *
+ * De las tres reglas de `Combine()`, la segunda —**SAME-BASE STRAIGHT**: recta
+ * más nombre base común— **no se implementó aquí porque ya estaba**. Es la
+ * regla A de arriba y `unirLasQueSonLaMisma` más abajo, las dos apoyadas en
+ * `esLaMismaCalle`, que compara **núcleos** y no cadenas — que es exactamente
+ * el «common base name» de odin. Medido sobre los pasos ya escritos de 387
+ * rutas, antes y después de este encargo: **cero** parejas seguidas con el
+ * mismo núcleo y giro suave se quedan sin fundir. No había hueco que tapar, y
+ * añadir una cuarta regla que hiciera lo mismo habría sido escribir dos veces
+ * la misma verdad.
+ *
+ * ── ⚠️ Nuestro «Continúa» NO es el `kContinue` de Valhalla ──────────────────
+ *
+ * Es el hallazgo que decide el alcance de la regla D, y conviene tenerlo
+ * delante: **de los 1.511 «Continúa» que quedan en 387 rutas, CERO son la
+ * misma calle que la maniobra anterior** —eran 1.627 y cero antes de este
+ * encargo: la proporción no la mueven los combines—. No puede ser de otra
+ * manera, porque los que lo eran los fundió la regla A antes de llegar aquí.
+ * Así que cuando esta lista dice «Continúa», la calle está CAMBIANDO de nombre
+ * sin que tuerzas, que en Valhalla no es `kContinue` sino un nombre nuevo, y
+ * odin **no lo suprime**.
+ *
+ * Aplicarle igualmente la regla ancha de `IsNextManeuverObvious()` se midió
+ * antes de decidir: **1.099 nombres de calle desaparecerían**, 237 de ellos en
+ * tramos de más de 600 m, con casos como «Avenida de Cataluña · 2.971 m»
+ * absorbida dentro de «Paseo de la Ribera». Eso no es ser conciso: es callar la
+ * única seña de tres kilómetros. Por eso la regla D vive solo en su mitad que
+ * HEREDA — la que sustituye un genérico por un nombre de verdad—, y la ancha
+ * queda documentada y fuera, con sus números, para que la decisión sea de
+ * quien la lea y no del silencio.
+ *
+ * ── Lo que tampoco entra, y por qué ────────────────────────────────────────
+ *
+ * [DOC Valhalla odin] Su **multi-cue verbal** —encadenar dos instrucciones en
+ * un mismo aviso hablado cuando la segunda llega en menos de 13 s— **no se
+ * implementa**, y no por falta de doctrina: es una regla de la capa de VOZ,
+ * que decide cuándo se dice algo por un altavoz mientras alguien camina. Esta
+ * lista se lee en una pantalla, entera y de una vez; el tiempo entre dos pasos
+ * no significa nada aquí. Queda declarado para que nadie lo busque creyendo
+ * que se olvidó.
+ *
  * **Las salvaguardas, que es lo que hay que mirar si algún día esto miente.**
  * Un giro de verdad SE ANUNCIA: ni la regla A ni la B se aplican si el giro no
- * es suave. Y en la B no basta con que los giros sean suaves por separado —dos
+ * es suave, y la C y la D exigen «recto» a secas, que es más estrecho todavía.
+ * Y en la B no basta con que los giros sean suaves por separado —dos
  * «ligeramente a la derecha» de 30° suman una derecha de 60°—, así que se mide
  * **el ángulo combinado a través de lo que se suprime** y solo se colapsa si
  * TAMBIÉN es suave. El arranque nunca desaparece, y el último tampoco: sin
- * nadie detrás no hay ángulo combinado que comprobar, y se deja.
+ * nadie detrás no hay ángulo combinado que comprobar, y se deja. **La llegada
+ * no pasa por aquí**: se escribe aparte, en `escribirPasos`, así que el destino
+ * no se combina nunca — que es el tercer veto de odin, cumplido por
+ * construcción y no por una condición que alguien pueda borrar.
  *
  * Se repite hasta que una vuelta no cambie nada: absorber crea vecindades
  * nuevas —A·B·A·A acaba en una sola A— y una sola pasada las dejaría a medias.
  * Termina siempre, porque cada vuelta que hace algo acorta la lista.
+ *
+ * ⭐ **Y esa repetición no es teórica: se ve en el dato.** Los combines nuevos
+ * quitan 116 pasos de 9.348 en 387 rutas, y **114 son disparos directos: los
+ * otros 2 son de segunda vuelta**. El caso, entero: SAGRADA 24 → TORRE SILLERO
+ * 26 decía «Camino Antiguo de Alfocea · 1.630 m», «el camino · 570 m», «Camino
+ * Antiguo de Alfocea · 400 m». La regla D absorbe el tercero en el segundo y le
+ * deja su nombre; entonces el primero y el segundo son la misma calle en línea
+ * recta, y **la regla A los junta en la vuelta siguiente**: un solo paso de
+ * 2.610 m. Un disparo, dos pasos menos.
  */
 export function colapsarManiobras(
   entrada: readonly TramoFundido[],
@@ -1200,6 +1444,89 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
       // `despues` NO se salta: se procesa en su turno. Su giro se midió contra
       // la salida del corto, que acaba de pasar a ser la de `ultimo`, así que
       // sigue anunciando el ángulo correcto.
+      continue;
+    }
+
+    // ── Regla C — UNNAMED STRAIGHT ─────────────────────────────────────────
+    // [DOC Valhalla odin, `Combine()`] «Combine unnamed straight maneuvers».
+    // Dos maniobras seguidas sin nombre propio y en línea recta son una.
+    //
+    // **Y tienen que decir LO MISMO**, que es donde el calco se convierte en
+    // traducción. En Valhalla lo que compara son atributos del tramo —el
+    // `trail_type`, el `travel_type`— y su veto es que sean distintos. Aquí un
+    // tramo sin nombre se llama POR SU TIPO, así que el genérico ES el
+    // atributo: dos genéricos distintos son dos tipos distintos, y ese es
+    // justo el caso que el veto prohíbe. «La calzada» de 373 m seguida de «el
+    // vial de servicio» de 297 m no son 670 m de calzada.
+    //
+    // Que la regla A no llegue aquí no es un descuido suyo: exige
+    // `esLaMismaCalle`, que exige nombre en los dos lados —el
+    // `has_name_or_ref` de OSRM— y devuelve false para dos huecos. Y
+    // `fundirMicroTramos` sí junta dos genéricos iguales y rectos, pero solo
+    // los que ya estaban seguidos ANTES de colapsar; los que quedan pegados
+    // después de que el colapso se lleve lo de en medio no los vuelve a mirar
+    // nadie. Este es ese hueco, y en el dato aparece: 27 casos en 387 rutas,
+    // el mayor **«el camino» de 6.234 m seguido de otro de 1.263 m**.
+    if (
+      !ultimo.conNombre &&
+      !maniobra.conNombre &&
+      ultimo.nombre === maniobra.nombre &&
+      maniobra.giro === 'recto' &&
+      seCombina(ultimo) &&
+      seCombina(maniobra)
+    ) {
+      absorber(ultimo, maniobra);
+      continue;
+    }
+
+    // ── Regla D — el CONTINUE OBVIO que deja su nombre ─────────────────────
+    // [DOC Valhalla odin, `IsNextManeuverObvious()`, líneas 618-632] Un
+    // «Continúa» que no se puede desobedecer no es una instrucción: se absorbe
+    // en la maniobra anterior, y **si esa no tenía nombre y la absorbida sí,
+    // hereda el nombre**.
+    //
+    // ⚠️ **Aquí solo vive esa mitad, la que hereda, y el motivo está medido.**
+    // La regla ancha —absorber el continue también cuando el de delante ya
+    // tiene nombre— se probó sobre 387 rutas: se llevaría por delante **1.099
+    // nombres de calle**, 237 de ellos en tramos de más de 600 m, con casos
+    // como **«Avenida de Cataluña · 2.971 m» tragada por «Paseo de la
+    // Ribera»**. La razón por la que allí no vale y en odin sí está en la
+    // cabecera de `colapsarManiobras`: nuestro «Continúa» y el `kContinue` de
+    // Valhalla no son la misma maniobra. Antonio tiene los números.
+    //
+    // En esta mitad no se pierde nada: lo que desaparece es un genérico —un
+    // hueco de OSM dicho por su tipo— y lo que sobrevive es un nombre de
+    // calle. La información no se pierde, cambia de sitio [GUIA L59].
+    //
+    // Las tres condiciones son las de odin y basta con UNA:
+    const despuesDelObvio = maniobras[i + 1];
+    if (
+      maniobra.giro === 'recto' &&
+      !ultimo.conNombre &&
+      maniobra.conNombre &&
+      // La cota de lo que desaparece. Ver `CONTINUE_CORTO_M`.
+      ultimo.metros < CONTINUE_CORTO_M &&
+      seCombina(ultimo) &&
+      seCombina(maniobra) &&
+      // ① Del cruce no sale nada más que seguir: obedecer no es una decisión.
+      (maniobra.encrucijada.salidas === 1 ||
+        // ② Un continue CORTO encajado entre dos maniobras que no lo son.
+        (maniobra.metros < CONTINUE_CORTO_M &&
+          ultimo.giro !== 'recto' &&
+          (despuesDelObvio === undefined || despuesDelObvio.giro !== 'recto')) ||
+        // ③ Ninguna otra rama del cruce se llama igual: no hay dos maneras de
+        //    seguir «por esa calle», así que decirlo no desambigua nada.
+        !maniobra.encrucijada.otraDelMismoNombre)
+    ) {
+      const nombre = maniobra.nombre;
+      const esMunicipal = maniobra.esMunicipal;
+      absorber(ultimo, maniobra);
+      // La herencia. Va DESPUÉS de absorber porque `absorber` mira si las dos
+      // eran la misma calle, y un genérico no es la misma calle que nadie.
+      ultimo.nombre = nombre;
+      ultimo.conNombre = true;
+      ultimo.esMunicipal = esMunicipal;
+      ultimo.encrucijada = maniobra.encrucijada;
       continue;
     }
 
@@ -1269,6 +1596,55 @@ export function unificarElRegistro(
 }
 
 /**
+ * ⭐ Mira el CRUCE por el que se entra en un tramo y contesta las dos preguntas
+ * de odin. Ver `Encrucijada`.
+ *
+ * `salidas` sale del grado del nodo en la CSR menos uno: la red guarda una
+ * media arista por cada rama, y una de esas ramas es por la que se ha llegado.
+ * Lo que queda son las opciones de verdad.
+ *
+ * `otraDelMismoNombre` recorre las ramas saltándose las dos de la ruta —por la
+ * que se llega y por la que se sigue— y compara por **núcleo**, no por cadena:
+ * la rama puede venir de OSM y el tramo del callejero municipal, y `AVENIDA
+ * NAVARRA` y `Avenida de Navarra` tienen que contar como la misma. Es el mismo
+ * `nucleoDe` que decide si dos tramos son la misma calle, reutilizado y no
+ * reinventado.
+ *
+ * Un tramo genérico —sin nombre de verdad— no puede tener «otra rama del mismo
+ * nombre»: no hay nombre que repetir. Se contesta `false`, que es lo cierto.
+ */
+function encrucijadaDe(
+  red: RedEnMemoria,
+  nodo: number | null,
+  aristaQueLlega: number,
+  aristaQueSigue: number,
+  denominacion: Denominacion,
+): Encrucijada {
+  if (nodo === null) {
+    return SIN_ENCRUCIJADA;
+  }
+  const primera = red.inicio[nodo]!;
+  const ultima = red.inicio[nodo + 1]!;
+  const nucleo = denominacion.conNombre ? nucleoDe(denominacion.nombre) : '';
+  let otraDelMismoNombre = false;
+  if (nucleo !== '') {
+    for (let k = primera; k < ultima; k++) {
+      const cual = red.salidaArista[k]!;
+      if (cual === aristaQueLlega || cual === aristaQueSigue) {
+        continue;
+      }
+      const rama = red.aristas[cual]!;
+      const suya = comoSeLlama(red, rama.way, rama.perfil);
+      if (suya.conNombre && nucleoDe(suya.nombre) === nucleo) {
+        otraDelMismoNombre = true;
+        break;
+      }
+    }
+  }
+  return { salidas: ultima - primera - 1, otraDelMismoNombre };
+}
+
+/**
  * ⭐ Arma un paso a partir de sus PARTES, y compone el texto plano con ellas.
  *
  * El texto no se escribe aparte: se **deriva** de las partes concatenándolas.
@@ -1306,13 +1682,22 @@ export function escribirPasos(
 
   // Se bajan a la forma llana —nombre, metros y los dos rumbos— y se funden
   // los insignificantes. A partir de aquí ya no hay geometría: hay maniobras.
-  const llanos: TramoLlano[] = tramos.map((tramo) => ({
+  const llanos: TramoLlano[] = tramos.map((tramo, k) => ({
     nombre: tramo.nombre,
     conNombre: tramo.conNombre,
     esMunicipal: tramo.esMunicipal,
     metros: tramo.metros,
     entrada: rumboDeEntrada(tramo.g),
     salida: rumboDeSalida(tramo.g),
+    // El cruce se resuelve AQUÍ, que es la última línea donde todavía hay red:
+    // a partir del renglón siguiente solo hay nombres, metros y ángulos.
+    encrucijada: encrucijadaDe(
+      red,
+      tramo.nodoEntrada,
+      tramos[k - 1]?.aristaSalida ?? -1,
+      tramo.aristaEntrada,
+      tramo,
+    ),
   }));
   // TRES PASADAS, y en este orden. Las dos primeras son las de OSRM: se quitan
   // los trocitos que nadie percibe, y sobre lo que queda se colapsa lo que no
