@@ -18,6 +18,7 @@ import type { Salud } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
+import { cargarSitios, sugerirSitios } from './sitios.ts';
 import { portalCercano } from './cercano.ts';
 import { cargarRed } from './red.ts';
 import { cargarRejilla } from './proyeccion.ts';
@@ -84,12 +85,28 @@ console.log(
     `${rejilla.segArista.length} segmentos · ${rejilla.cargadoEnMs.toFixed(0)} ms`,
 );
 
+console.log('motor: cargando los sitios (destinos con nombre)…');
+const sitios = cargarSitios();
+console.log(
+  `motor: sitios en memoria — ${sitios.total} farmacias · ` +
+    `${sitios.conCoordenada} en el indice · ${sitios.cargadoEnMs.toFixed(0)} ms`,
+);
+// ⭐ La regla B, dicha en voz alta al arrancar. Los que no tienen punto no se
+// borran ni se editan: se cuentan aqui y no se sugieren jamas. Que la cifra
+// salga en el log es lo que impide que un dia sean cuarenta sin que nadie lo
+// note. Ver § 1.16 del notices.
+console.log(
+  `motor: ${sitios.sinCoordenada} sin coordenada, fuera del indice ` +
+    '(sin coordenada no existe: no se pueden enrutar, asi que no se sugieren)',
+);
+
 /** Todo lo que hace falta para contestar una ruta, junto. */
 const motor: Motor = {
   red,
   rejilla,
   portales,
   callejero,
+  sitios,
   // El cuaderno del Dijkstra se reserva UNA vez y se reutiliza. El motor
   // atiende de uno en uno —`node:http` es de un solo hilo—, así que no hay dos
   // rutas escribiéndolo a la vez.
@@ -154,6 +171,17 @@ const servidor = createServer((peticion, respuesta) => {
     // respuesta bien formada, no un error. Quien escribe todavía no ha dicho
     // bastante como para sugerirle nada.
     json(200, buscar(callejero, url.searchParams.get('q') ?? ''));
+    return;
+  }
+
+  if (peticion.method === 'GET' && url.pathname === '/api/sitios') {
+    // La capa de SITIOS del autocompletar, aparte de la de vias [DOC Pelias:
+    // `layers`]. Mismo trato que `/api/vias`: sin `q` bastante largo, lista
+    // vacia — una respuesta bien formada, no un error.
+    //
+    // ⭐ Solo salen los que tienen coordenada. Los tres que no la traen no
+    // estan en el indice y por aqui no pueden asomar.
+    json(200, sugerirSitios(sitios, url.searchParams.get('q') ?? ''));
     return;
   }
 

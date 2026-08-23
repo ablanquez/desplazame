@@ -134,9 +134,42 @@ export interface Aviso {
  * permite contestar «esa vía no existe» distinto de «ese portal no existe», y
  * es una comprobación cruzada gratis.
  */
+/** Un extremo elegido por dirección: la vía y el portal, los dos códigos. */
+export interface ExtremoPortal {
+  readonly via: string;
+  readonly portal: string;
+}
+
+/**
+ * Un extremo elegido por su NOMBRE: solo el código del sitio.
+ *
+ * No lleva vía ni portal, y no es un olvido: **un sitio trae su propia
+ * coordenada**, que es justo lo que hace que la casilla de portal se apague en
+ * la pantalla (la regla del portal condicional, 19/08). Pedirle un portal a un
+ * hospital sería pedirle un dato que no tiene.
+ */
+export interface ExtremoSitio {
+  readonly sitio: string;
+}
+
+/**
+ * Un extremo de la ruta: **o una dirección, o un sitio**.
+ *
+ * La unión obliga a la pantalla a decidir cuál manda antes de llamar, que es
+ * exactamente lo que se quería: si mañana se añade un tercer modo de elegir
+ * destino, esto deja de compilar hasta que alguien lo mire.
+ */
+export type ExtremoDeRuta = ExtremoPortal | ExtremoSitio;
+
 export interface PeticionDeRuta {
-  readonly origen: { readonly via: string; readonly portal: string };
-  readonly destino: { readonly via: string; readonly portal: string };
+  /**
+   * El origen es **siempre una dirección**, hoy. El sitio como origen no entra
+   * en esta tanda: se declara aquí para que se note que es una decisión y no
+   * una limitación escondida en el código.
+   */
+  readonly origen: ExtremoPortal;
+  /** El destino puede ser una dirección **o un sitio** desde el 23/08. */
+  readonly destino: ExtremoDeRuta;
   readonly modo: Modo;
 }
 
@@ -225,6 +258,37 @@ export interface Via {
 export interface Portal {
   readonly codigo: string;
   readonly numero: string;
+}
+
+/**
+ * Un SITIO que se puede elegir como destino por su nombre: lo que devuelve
+ * `GET /api/sitios?q=…`.
+ *
+ * [DOC Pelias] Un sitio es una **capa aparte** de las calles —`layers`, y
+ * `venue` es la de los establecimientos—: una calle y un local no son la misma
+ * clase de cosa aunque se escriban en la misma casilla. Por eso viaja en su
+ * propio tipo y la pantalla puede distinguirlos a la vista.
+ *
+ * `presentacion` es **lo único que se lee**, y viene compuesto por el motor:
+ * «Farmacia · Avda. de Navarra, 65». No es el título del dato — ese trae, en
+ * 274 de las 313 farmacias, el nombre de la persona titular, y **no sale del
+ * motor**. Se cuenta en la ficha de § 1.16 y se queda ahí. La interfaz no
+ * compone nombres ni parsea direcciones: lee lo que le dan.
+ *
+ * `categoria` va aparte de la presentación para que la pantalla pueda agrupar
+ * o poner un icono el día que haya más de una, sin volver a partir el texto.
+ *
+ * ⭐ **Solo se sugieren sitios CON coordenada.** «Sin coordenada no existe»: un
+ * destino que no se puede situar no se puede enrutar. Los que no la traen se
+ * cuentan en `/api/salud` y no llegan nunca a esta lista.
+ */
+export interface Sitio {
+  /** `Farmacias.8691`, con el mismo patrón que el código de portal. */
+  readonly codigo: string;
+  /** Lo que se enseña: «Farmacia · Avda. de Navarra, 65». */
+  readonly presentacion: string;
+  /** La categoría sola: «Farmacia». */
+  readonly categoria: string;
 }
 
 /**

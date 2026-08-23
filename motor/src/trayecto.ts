@@ -13,8 +13,17 @@
  * 400, porque la pantalla puede enseñarla.
  */
 
-import type { Aviso, Modo, PeticionDeRuta, Trayecto, Vertice } from '@desplazame/tipos';
+import type {
+  Aviso,
+  ExtremoDeRuta,
+  ExtremoPortal,
+  Modo,
+  PeticionDeRuta,
+  Trayecto,
+  Vertice,
+} from '@desplazame/tipos';
 import type { CallejeroEnMemoria } from './callejero.ts';
+import type { SitiosEnMemoria } from './sitios.ts';
 import type { PortalesEnMemoria, PortalSituado } from './portales.ts';
 import type { RedEnMemoria } from './red.ts';
 import { enganchar, type Rejilla } from './proyeccion.ts';
@@ -55,6 +64,7 @@ export interface Motor {
   readonly rejilla: Rejilla;
   readonly portales: PortalesEnMemoria;
   readonly callejero: CallejeroEnMemoria;
+  readonly sitios: SitiosEnMemoria;
   readonly cuaderno: Cuaderno;
 }
 
@@ -70,7 +80,7 @@ export function leerPeticion(cuerpo: unknown): PeticionDeRuta | null {
     return null;
   }
   const bruto = cuerpo as Record<string, unknown>;
-  const punto = (nombre: string): { via: string; portal: string } | null => {
+  const punto = (nombre: string): ExtremoPortal | null => {
     const valor = bruto[nombre];
     if (typeof valor !== 'object' || valor === null) {
       return null;
@@ -81,8 +91,23 @@ export function leerPeticion(cuerpo: unknown): PeticionDeRuta | null {
     }
     return { via, portal };
   };
+  /**
+   * Un extremo puede venir de dos formas, y se prueban **en este orden**: si
+   * trae `sitio`, es un sitio; si no, se le exige la pareja vía+portal. Lo que
+   * no sea ninguna de las dos no es una petición, y arriba eso es un aviso.
+   */
+  const extremo = (nombre: string): ExtremoDeRuta | null => {
+    const valor = bruto[nombre];
+    if (typeof valor === 'object' && valor !== null) {
+      const { sitio } = valor as Record<string, unknown>;
+      if (typeof sitio === 'string' && sitio !== '') {
+        return { sitio };
+      }
+    }
+    return punto(nombre);
+  };
   const origen = punto('origen');
-  const destino = punto('destino');
+  const destino = extremo('destino');
   const modo = bruto['modo'];
   if (!origen || !destino || typeof modo !== 'string') {
     return null;
@@ -90,11 +115,25 @@ export function leerPeticion(cuerpo: unknown): PeticionDeRuta | null {
   return { origen, destino, modo: modo as Modo };
 }
 
+/**
+ * ⭐ UN EXTREMO YA RESUELTO: un punto y cómo se llama.
+ *
+ * Es lo único que el cálculo necesita de un extremo, y por eso los dos —el
+ * portal y el sitio— acaban en la misma forma. A partir de aquí **no hay dos
+ * caminos**: la rejilla engancha una coordenada, el Dijkstra une dos nodos y
+ * `pasos.ts` escribe un nombre. Que el destino fuera una dirección o una
+ * farmacia deja de importar en cuanto se resuelve, que es como debe ser
+ * [DOC Nominatim: geocodificar y enrutar son dos oficios].
+ */
+interface Extremo {
+  readonly lon: number;
+  readonly lat: number;
+  /** Lo que se escribe en el paso de salida o de llegada. */
+  readonly nombre: string;
+}
+
 /** Busca un portal y comprueba que de verdad es de la vía que dicen. */
-function resolver(
-  motor: Motor,
-  punto: { readonly via: string; readonly portal: string },
-): PortalSituado | Aviso {
+function resolverPortal(motor: Motor, punto: ExtremoPortal): PortalSituado | Aviso {
   const portal = motor.portales.donde.get(punto.portal);
   if (!portal) {
     return { texto: `No conocemos ningún portal con el código ${punto.portal}.` };
@@ -109,6 +148,35 @@ function resolver(
 
 const esAviso = (x: PortalSituado | Aviso): x is Aviso =>
   (x as Aviso).texto !== undefined && (x as PortalSituado).codigo === undefined;
+
+/**
+ * ⭐ Resuelve un extremo, sea de la clase que sea.
+ *
+ * Un sitio que no está en el índice se contesta con un aviso y no con un
+ * error: puede ser un código inventado, pero **también puede ser uno de los
+ * que no tienen coordenada** (regla B), y esos no están. En los dos casos la
+ * respuesta honesta es la misma — no se puede ir ahí— y el motivo no cambia
+ * lo que la pantalla tiene que enseñar.
+ */
+function resolverExtremo(motor: Motor, extremo: ExtremoDeRuta): Extremo | Aviso {
+  if ('sitio' in extremo) {
+    const sitio = motor.sitios.donde.get(extremo.sitio);
+    if (!sitio) {
+      return { texto: `No conocemos ningún sitio con el código ${extremo.sitio}.` };
+    }
+    // 🔒 `presentacion`, nunca el título del dato: ahí va el nombre de la
+    // persona titular en 274 de las 313 farmacias. Ver § 1.16 del notices.
+    return { lon: sitio.lon, lat: sitio.lat, nombre: sitio.presentacion };
+  }
+  const portal = resolverPortal(motor, extremo);
+  if (esAviso(portal)) {
+    return portal;
+  }
+  return { lon: portal.lon, lat: portal.lat, nombre: comoSeLee(motor.callejero, portal) };
+}
+
+const esAvisoExtremo = (x: Extremo | Aviso): x is Aviso =>
+  (x as Aviso).texto !== undefined && (x as Extremo).lon === undefined;
 
 /** Calcula el trayecto. Nunca lanza. */
 export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null): Trayecto {
@@ -127,12 +195,12 @@ export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null):
     return conAviso(modo, `Todavía no calculamos rutas en modo «${modo}». Solo andando.`);
   }
 
-  const origen = resolver(motor, peticion.origen);
-  if (esAviso(origen)) {
+  const origen = resolverExtremo(motor, peticion.origen);
+  if (esAvisoExtremo(origen)) {
     return { ...conAviso(modo, origen.texto) };
   }
-  const destino = resolver(motor, peticion.destino);
-  if (esAviso(destino)) {
+  const destino = resolverExtremo(motor, peticion.destino);
+  if (esAvisoExtremo(destino)) {
     return { ...conAviso(modo, destino.texto) };
   }
 
@@ -140,7 +208,7 @@ export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null):
   if (!engancheOrigen) {
     return conAviso(
       modo,
-      `${comoSeLee(motor.callejero, origen)} no tiene ninguna calle andable cerca en ` +
+      `${origen.nombre} no tiene ninguna calle andable cerca en ` +
         'nuestro mapa: desde ahí no podemos calcular una ruta.',
     );
   }
@@ -148,7 +216,7 @@ export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null):
   if (!engancheDestino) {
     return conAviso(
       modo,
-      `${comoSeLee(motor.callejero, destino)} no tiene ninguna calle andable cerca en ` +
+      `${destino.nombre} no tiene ninguna calle andable cerca en ` +
         'nuestro mapa: hasta ahí no podemos calcular una ruta.',
     );
   }
@@ -164,16 +232,16 @@ export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null):
   if (!ruta) {
     return conAviso(
       modo,
-      `No hay forma de ir andando de ${comoSeLee(motor.callejero, origen)} a ` +
-        `${comoSeLee(motor.callejero, destino)} por las calles que conocemos.`,
+      `No hay forma de ir andando de ${origen.nombre} a ` +
+        `${destino.nombre} por las calles que conocemos.`,
     );
   }
 
   const pasos = escribirPasos(
     motor.red,
     ruta,
-    comoSeLee(motor.callejero, origen),
-    comoSeLee(motor.callejero, destino),
+    origen.nombre,
+    destino.nombre,
     [destino.lon, destino.lat],
   );
 

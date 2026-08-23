@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed } from './red.ts';
 import { cargarPortales } from './portales.ts';
+import { cargarSitios } from './sitios.ts';
 import { cargarCallejero } from './callejero.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
@@ -39,6 +40,7 @@ describe('El trayecto', () => {
       rejilla: cargarRejilla(red),
       portales,
       callejero: cargarCallejero(portales),
+      sitios: cargarSitios(),
       cuaderno: cuadernoPara(red),
     };
   });
@@ -130,6 +132,70 @@ describe('El trayecto', () => {
       assert.equal(t.metros, 0);
       assert.equal(t.avisos.length, 1, `${JSON.stringify(rota)} tenía que traer un aviso`);
     }
+  });
+
+  // ── EL DESTINO CON NOMBRE ────────────────────────────────────────────────
+  //
+  // La juez FIJA de los sitios, elegida el 23/08 y declarada aquí para que no
+  // cambie con el viento: **CALLE EL COLOSO 2 → Farmacias.8691**, la de la
+  // Avenida de Navarra 65, que está a 1,37 km en línea recta. Tiene coordenada
+  // —si no, no existiría— y está lejos de casa: una ruta corta no probaría que
+  // el tubo entero funciona.
+
+  /** CALLE EL COLOSO 2, el origen de las juez del punto 7. */
+  const COLOSO = { via: '8065', portal: 'Portales.93310' };
+  /** La farmacia juez: Avda. de Navarra, 65. */
+  const FARMACIA = { sitio: 'Farmacias.8691' };
+
+  test('⭐ de un portal a una FARMACIA: la ruta sale por el mismo tubo', () => {
+    const t = pedir({ origen: COLOSO, destino: FARMACIA, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.ok(t.pasos.length > 3, `solo ${t.pasos.length} pasos`);
+    assert.ok(t.geometria.length > 20);
+    // Está a 1,37 km en línea recta, así que andando tiene que ser más.
+    assert.ok(t.metros > 1370, `${t.metros} m es menos que la línea recta`);
+    assert.equal(t.segundos, Math.round(t.metros / (5000 / 3600)));
+  });
+
+  test('⭐ y la llegada dice el SITIO, no una dirección inventada', () => {
+    const t = pedir({ origen: COLOSO, destino: FARMACIA, modo: 'andando' });
+    const llegada = t.pasos[t.pasos.length - 1]!;
+    assert.equal(llegada.giro, 'llegada');
+    assert.equal(llegada.metros, 0);
+    // 🔒 La presentación, que es «Farmacia · calle» — nunca el título del dato.
+    assert.match(llegada.texto, /^Farmacia · Avda\. de Navarra, 65 está a la (derecha|izquierda)$/);
+  });
+
+  test('⭐ el arranque sigue diciendo el PORTAL: el origen no ha cambiado', () => {
+    const t = pedir({ origen: COLOSO, destino: FARMACIA, modo: 'andando' });
+    assert.match(t.pasos[0]!.texto, /^Sal de Calle El Coloso 2 /);
+  });
+
+  test('⭐ REGLA B — un sitio SIN coordenada no se puede elegir', () => {
+    // `Farmacias.8714` existe en el fichero y no tiene punto, así que no está
+    // en el índice. Pedirlo se contesta con un aviso, no con una ruta a ningún
+    // sitio: es la misma respuesta que un código inventado, y es la honesta.
+    for (const codigo of ['Farmacias.8714', 'Farmacias.29916', 'Farmacias.30105']) {
+      const t = pedir({ origen: COLOSO, destino: { sitio: codigo }, modo: 'andando' });
+      assert.equal(t.pasos.length, 0, `${codigo} ha devuelto una ruta`);
+      assert.equal(t.metros, 0);
+      assert.equal(t.avisos.length, 1);
+      assert.match(t.avisos[0]!.texto, /No conocemos ningún sitio con el código/);
+    }
+  });
+
+  test('un sitio inventado se contesta con aviso, no con una excepción', () => {
+    const t = pedir({ origen: COLOSO, destino: { sitio: 'Farmacias.999999' }, modo: 'andando' });
+    assert.equal(t.avisos.length, 1);
+    assert.match(t.avisos[0]!.texto, /No conocemos ningún sitio/);
+  });
+
+  test('el destino de siempre —vía y portal— sigue funcionando igual', () => {
+    // El contrato creció con una unión: lo que ya venía tiene que seguir
+    // entrando por donde entraba.
+    const t = pedir({ origen: LAPUYADE, destino: EN_MEDIO, modo: 'andando' });
+    assert.equal(t.avisos.length, 0);
+    assert.ok(t.pasos.length > 5);
   });
 
   test('el texto NO se acepta como dirección: es la ley de la entrada nº4', () => {
