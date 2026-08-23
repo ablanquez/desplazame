@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-23] 🔴 ABIERTA — El medidor de la tercera condición de odin cuenta las ramas del cruce sin descontar las dos de la ruta, y el disparo sale inflado
+## [2026-08-23] ✅ CERRADA — El medidor de la tercera condición de odin cuenta las ramas del cruce sin descontar las dos de la ruta, y el disparo sale inflado
 
 **Categoría:** instrumento que cuenta de más porque no excluye lo suyo
 **Síntoma:** para decidir el alcance de los combines de odin se midió cuántas
@@ -55,10 +55,45 @@ $ node scratchpad/medir-seguro.ts
 LARGO` se escribió con la cuenta a mano (24 − 1 = 23 pasos) sobre un disparo que
 el medidor declaraba, y salió ROJA contra el motor ya implementado: `24 !== 23`.
 El motor tenía razón y la expectativa venía de un insumo falso.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
-**Ley que sale de aquí:** ⏳ PENDIENTE
+**Causa raíz:** el medidor descontaba las ramas **por cantidad** (`<= 2`) en
+vez de **por identidad**. Un cruce no tiene siempre dos ramas con nombre, ni
+las que tiene son forzosamente las de la ruta: la de llegada puede ser un
+genérico —una acera, un paso— y entonces las dos con nombre son la que se sigue
+y una tercera que el filtro daba por contada. Excluir por índice de arista es
+la única forma de saber cuáles son las suyas.
+
+Y hubo un segundo defecto que solo se vio al re-medir con el filtro bueno:
+**los tres medidores no preguntaban lo mismo.** `medir-reglas.ts` y `dano-c.ts`
+comparaban el núcleo de la maniobra **anterior**; `medir-seguro.ts`, el de la
+**actual**. Por eso la cifra de la tercera condición apenas se movió al
+arreglar —1.350 → 1.351— mientras la que de verdad importaba, la de la
+herencia, caía de **123 a 87**: el error grande no estaba donde parecía.
+
+**Arreglo aplicado:** el filtro correcto se escribió en el motor desde el
+principio —`encrucijadaDe` en `motor/src/pasos.ts` excluye `aristaQueLlega` y
+`aristaQueSigue` por índice—, así que el código nunca llegó a llevar la lógica
+mala: lo que llevaba eran **las cifras** medidas con ella, en el comentario de
+`CONTINUE_CORTO_M` y en el de la regla D. Re-medido todo con el filtro por
+identidad y un solo criterio, y corregidas: 1.216 → **1.099** nombres que la
+regla ancha perdería, 254 → **237** en tramos de ≥600 m, «4 de 123» → **«2 de
+89»** absorciones que la cota evita. Y la ruta que destapó el caso —BIEL 55 C32
+→ CERDEÑA 4— se quedó en la spec como **guardián del veto**, no como anécdota:
+`⭐ (c③) y NO se absorbe cuando otra rama del cruce se llama IGUAL`.
+
+**Commit:** `0f01130` (esta entrada, en caliente) y `0225b4b` (el arreglo y
+las cifras corregidas).
+**Ley que sale de aquí:** **una contraprueba solo vale para lo que atraviesa.**
+La de aquí comparaba la réplica contra el motor y salía 387/387, pero el
+cálculo del cruce **no pasaba por el motor**: era código que solo existía en el
+medidor, y por eso ningún 387/387 podía hablar de él. Antes de fiarse de una
+contraprueba hay que preguntarle **qué piezas toca**, no cuántos casos pasa.
+
+Y una segunda, hermana de la nº9: **una cifra escrita en un comentario del
+código antes de que un guardián la muerda es una afirmación sin prueba.** Aquí
+las cifras entraron al fichero el mismo día que se midieron y sobrevivieron a
+un `tsc` limpio y a 165 tests en verde, porque ningún test las miraba. Lo único
+que las tocó fue volver a medirlas.
+
 **Traza:** el medidor `medir-reglas.ts` / `medir-seguro.ts` / `dano-c.ts` del
 scratchpad, función `nucleosDelNodo`; la contraprueba `contra2.ts`; y la cifra
 ya publicada en el comentario de la regla D en `motor/src/pasos.ts`.
