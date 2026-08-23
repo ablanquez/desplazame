@@ -269,6 +269,13 @@ async function elegirCalle(
   fixture.detectChanges();
 
   http.expectOne(`/api/vias?q=${encodeURIComponent(escrito)}`).flush([via]);
+  // ⭐ Desde el 23/08 el DESTINO pide también la capa de sitios. Se drena aquí
+  // vacía: estas pruebas miran las calles, y una capa sin contestar deja la
+  // aplicación inestable para siempre (`whenStable()` no vuelve). El origen no
+  // la pide, así que `match` no encuentra nada y no pasa nada.
+  for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
+    cap.flush([]);
+  }
   await fixture.whenStable();
 
   // Hay DOS autocompletar en la pantalla: se pulsa la sugerencia del que toca.
@@ -291,6 +298,9 @@ async function elegirCalle(
   fixture.detectChanges();
   for (const eco of http.match(`/api/vias?q=${encodeURIComponent(comoSeVe(via))}`)) {
     eco.flush([via]);
+  }
+  for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
+    cap.flush([]);
   }
 
   // Y fijar la calle despierta a SU selector de portales, que pide los suyos.

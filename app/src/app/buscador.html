@@ -54,18 +54,33 @@
 
     <fieldset class="punto">
       <legend>Destino</legend>
+      <!--
+        ⭐ El destino, y solo el destino, ofrece SITIOS además de calles. El
+        sitio como origen no entra en esta tanda, y por eso `conSitios` es un
+        parámetro y no una suposición del componente.
+      -->
       <app-autocompletar-via
         campo="calleDestino"
-        etiqueta="Calle"
+        etiqueta="Calle o sitio"
+        [conSitios]="true"
         [(texto)]="destino.calle"
         [seleccion]="destino.via()"
         (seleccionChange)="alElegirVia(destino, $event)"
+        [sitio]="sitioDestino()"
+        (sitioChange)="alElegirSitio($event)"
         [(tocado)]="destino.calleTocada"
       />
+      <!--
+        LA REGLA DEL PORTAL CONDICIONAL (19/08): con un sitio elegido, esta
+        casilla se apaga. Un sitio trae su propia coordenada, así que no hay
+        portal que pedirle — y dejarla encendida sería pedir un dato que no
+        existe y que nadie podría rellenar.
+      -->
       <app-selector-portal
         campo="portalDestino"
         etiqueta="Portal"
         [via]="destino.via()"
+        [apagado]="sitioDestino() !== null"
         [(texto)]="destino.portalTexto"
         [(seleccion)]="destino.portal"
         [(tocado)]="destino.portalTocado"

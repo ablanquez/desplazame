@@ -27,7 +27,12 @@
 </label>
 
 @if (hayQueMostrar()) {
-  <ul class="sugerencias" [id]="campo() + '-sugerencias'" role="listbox">
+  <ul
+    class="sugerencias"
+    [id]="campo() + '-sugerencias'"
+    [attr.data-campo]="campo()"
+    role="listbox"
+  >
     @if (sugerencias.isLoading()) {
       <li class="sugerencias__aviso">Buscando…</li>
     } @else if (sugerencias.error()) {
@@ -37,18 +42,25 @@
     } @else if (lista().length === 0) {
       <li class="sugerencias__aviso">Sin resultados</li>
     } @else {
-      @for (via of lista(); track via.codigo; let i = $index) {
+      @for (opcion of lista(); track opcion.clave; let i = $index) {
+        <!--
+          `data-capa` dice si es una calle o un sitio, y va en un ATRIBUTO y no
+          solo en el texto: así la pantalla puede pintarlas distinto y una
+          prueba puede distinguirlas sin leer prosa.
+        -->
         <li
           class="sugerencia"
           [class.sugerencia--activa]="i === activo()"
+          [class.sugerencia--sitio]="opcion.capa === 'sitio'"
+          [attr.data-capa]="opcion.capa"
           [id]="campo() + '-sug-' + i"
           role="option"
           [attr.aria-selected]="i === activo()"
-          (mousedown)="elegir(via)"
+          (mousedown)="elegir(opcion)"
           (mouseenter)="activo.set(i)"
         >
-          <span class="sugerencia__nombre">{{ comoSeVe(via) }}</span>
-          <span class="sugerencia__portales">{{ via.portales }}</span>
+          <span class="sugerencia__nombre">{{ opcion.texto }}</span>
+          <span class="sugerencia__portales">{{ opcion.extra }}</span>
         </li>
       }
     }

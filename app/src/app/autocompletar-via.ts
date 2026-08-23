@@ -1,6 +1,6 @@
 import { Component, computed, effect, input, model, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
-import type { Via } from '@desplazame/tipos';
+import type { Sitio, Via } from '@desplazame/tipos';
 
 /**
  * Cómo se enseña una vía: el nombre limpio y, si es de un núcleo, su nombre.
@@ -47,6 +47,17 @@ const ESPERA_MS = 200;
  * (`---CST`) no sale a pantalla, pero su significado sí — y hace falta: hay 52
  * nombres que se repiten entre la ciudad y los barrios rurales.
  */
+/** Una opción de la lista: de la capa de calles o de la de sitios. */
+interface Opcion {
+  readonly capa: 'via' | 'sitio';
+  readonly clave: string;
+  readonly texto: string;
+  /** La seña de la derecha: los portales de una vía, la categoría de un sitio. */
+  readonly extra: string;
+  readonly via?: Via;
+  readonly sitio?: Sitio;
+}
+
 @Component({
   selector: 'app-autocompletar-via',
   templateUrl: './autocompletar-via.html',
@@ -56,6 +67,26 @@ export class AutocompletarVia {
   /** El `name` del campo, que es también su identificador para la etiqueta. */
   readonly campo = input.required<string>();
   readonly etiqueta = input.required<string>();
+
+  /**
+   * ⭐ Si este campo ofrece también SITIOS — destinos con nombre.
+   *
+   * Va apagado por defecto, y hoy solo lo enciende el destino: **el sitio como
+   * origen no entra en esta tanda**. Que sea un `input` y no una suposición del
+   * componente es lo que permite que el origen siga pidiendo una sola cosa.
+   *
+   * [DOC Pelias] Los sitios son una **capa** aparte de las calles —`layers`, y
+   * `venue` es la suya—: se buscan a la vez, se enseñan juntos y se distinguen
+   * a la vista. No son «resultados mejores»: son de otra clase.
+   */
+  readonly conSitios = input(false);
+
+  /**
+   * El SITIO elegido, o `null`. Va **aparte de `seleccion`** a propósito: son
+   * dos clases de destino y elegir uno apaga el otro, así que el padre puede
+   * preguntar «¿qué han elegido?» sin desempaquetar una unión en la plantilla.
+   */
+  readonly sitio = model<Sitio | null>(null);
 
   /** Lo escrito. Doble sentido: la pantalla necesita saberlo para validar. */
   readonly texto = model('');
@@ -96,7 +127,7 @@ export class AutocompletarVia {
 
   /** Hay texto pero no hay vía: un borrador, que se conserva pero no vale. */
   private readonly esBorrador = computed(
-    () => this.texto().trim() !== '' && this.seleccion() === null,
+    () => this.texto().trim() !== '' && this.seleccion() === null && this.sitio() === null,
   );
 
   /**
@@ -129,7 +160,48 @@ export class AutocompletarVia {
     return q.length < MINIMO ? undefined : `/api/vias?q=${encodeURIComponent(q)}`;
   });
 
-  protected readonly lista = computed<readonly Via[]>(() => this.sugerencias.value() ?? []);
+  /**
+   * La otra capa. **No se pide si el campo no la ofrece**: devolver `undefined`
+   * en la URL es lo que le dice a `httpResource` que no hay nada que pedir, así
+   * que el origen no molesta al motor con una pregunta que no va a usar.
+   */
+  protected readonly sugerenciasSitios = httpResource<readonly Sitio[]>(() => {
+    const q = this.consulta().trim();
+    return !this.conSitios() || q.length < MINIMO
+      ? undefined
+      : `/api/sitios?q=${encodeURIComponent(q)}`;
+  });
+
+  /**
+   * ⭐ UNA OPCIÓN de la lista, sea de la capa que sea.
+   *
+   * Las dos capas se enseñan en la misma lista porque quien escribe no piensa
+   * en capas: piensa en «a dónde voy». Pero cada opción **dice de cuál es**, y
+   * lo dice en un atributo y no solo en el texto — así la pantalla puede
+   * pintarlas distinto y una prueba puede distinguirlas sin leer prosa.
+   */
+  protected readonly lista = computed<readonly Opcion[]>(() => {
+    const vias: Opcion[] = (this.sugerencias.value() ?? []).map((via) => ({
+      capa: 'via' as const,
+      clave: via.codigo,
+      texto: comoSeVeLaVia(via),
+      // Los portales de la vía: la seña que ya distinguía una calle de otra.
+      extra: String(via.portales),
+      via,
+    }));
+    const sitios: Opcion[] = (this.sugerenciasSitios.value() ?? []).map((sitio) => ({
+      capa: 'sitio' as const,
+      clave: sitio.codigo,
+      // 🔒 `presentacion` y nada más: el título del dato lleva, en 274 de las
+      // 313 farmacias, el nombre de la persona titular, y no sale del motor.
+      texto: sitio.presentacion,
+      extra: sitio.categoria,
+      sitio,
+    }));
+    // Las calles primero: es lo que más se busca en un buscador de rutas, y
+    // los sitios son la novedad, no el caso general.
+    return [...vias, ...sitios];
+  });
 
   /** Hay algo que enseñar en el desplegable: sugerencias, «buscando» o «nada». */
   protected readonly hayQueMostrar = computed(
@@ -145,14 +217,22 @@ export class AutocompletarVia {
     this.texto.set(valor);
     this.abierto.set(true);
     this.activo.set(-1);
-    // Lo escrito a mano ya no corresponde a la vía elegida antes: el código
-    // que había fijado deja de valer, aunque solo se haya tocado una letra.
+    // Lo escrito a mano ya no corresponde a lo elegido antes: el código que
+    // había fijado deja de valer, aunque solo se haya tocado una letra. Vale
+    // para las dos capas.
     this.seleccion.set(null);
+    this.sitio.set(null);
   }
 
-  protected elegir(via: Via): void {
-    this.texto.set(comoSeVeLaVia(via));
-    this.seleccion.set(via);
+  /**
+   * Elegir una opción, de la capa que sea. **Elegir una apaga la otra**: no se
+   * puede ir a la vez a una calle y a una farmacia, y dejar las dos puestas
+   * sería dejar que el padre decidiera cuál vale.
+   */
+  protected elegir(opcion: Opcion): void {
+    this.texto.set(opcion.texto);
+    this.seleccion.set(opcion.via ?? null);
+    this.sitio.set(opcion.sitio ?? null);
     this.abierto.set(false);
     this.activo.set(-1);
   }
@@ -177,9 +257,9 @@ export class AutocompletarVia {
     }
     if (evento.key === 'Enter' && this.activo() >= 0) {
       evento.preventDefault();
-      const via = this.lista()[this.activo()];
-      if (via) {
-        this.elegir(via);
+      const opcion = this.lista()[this.activo()];
+      if (opcion) {
+        this.elegir(opcion);
       }
     }
   }

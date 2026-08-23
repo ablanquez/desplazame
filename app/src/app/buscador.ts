@@ -10,6 +10,8 @@ import type {
   PortalCercano,
   Trayecto,
   Via,
+  ExtremoDeRuta,
+  Sitio,
 } from '@desplazame/tipos';
 import { HttpClient } from '@angular/common/http';
 import { Mapa } from './mapa';
@@ -304,6 +306,16 @@ export class Buscador {
   protected readonly origen = ladoVacio();
   protected readonly destino = ladoVacio();
 
+  /**
+   * ⭐ El SITIO elegido como destino, o `null` si el destino es una dirección.
+   *
+   * Vive fuera de `destino` porque no es un lado más de la dirección: es **la
+   * otra manera de decir a dónde**, y las dos no pueden estar puestas a la vez.
+   * El origen no lo tiene, y eso es la decisión de esta tanda escrita en el
+   * código: el sitio como origen no entra todavía.
+   */
+  protected readonly sitioDestino = signal<Sitio | null>(null);
+
   /** Andando por defecto. */
   protected readonly modo = signal<Modo>('andando');
 
@@ -353,6 +365,24 @@ export class Buscador {
    * la dirección que se está componiendo. La regla estaba dentro del selector
    * de portal y ha subido aquí entera.
    */
+  /**
+   * ⭐ Al elegir un SITIO como destino.
+   *
+   * Apaga la vía y el portal del destino, porque elegir un sitio es elegir
+   * OTRA COSA: dejar los restos de una dirección a medias haría que «Generar»
+   * mandara una mezcla de las dos. Y al revés lo hace `alElegirVia`, que ya
+   * limpiaba el portal cuando cambia la calle.
+   */
+  protected alElegirSitio(sitio: Sitio | null): void {
+    this.sitioDestino.set(sitio);
+    if (sitio) {
+      this.destino.via.set(null);
+      this.destino.portal.set(null);
+      this.destino.portalTexto.set('');
+      this.destino.portalTocado.set(false);
+    }
+  }
+
   protected alElegirVia(lado: Lado, via: Via | null): void {
     lado.via.set(via);
     lado.portalTexto.set('');
@@ -541,19 +571,32 @@ export class Buscador {
   protected generarRuta(): void {
     const via = this.origen.via();
     const portal = this.origen.portal();
+    const sitio = this.sitioDestino();
     const viaDestino = this.destino.via();
     const portalDestino = this.destino.portal();
-    if (!via || !portal || !viaDestino || !portalDestino || this.generando()) {
+    if (!via || !portal || this.generando()) {
+      return;
+    }
+    // ⭐ El destino, de una clase o de la otra. El sitio manda si está puesto:
+    // elegirlo apaga la vía en el autocompletar, así que no pueden estar las
+    // dos — y si de algún modo lo estuvieran, la última elección es el sitio.
+    const destino: ExtremoDeRuta | null = sitio
+      ? { sitio: sitio.codigo }
+      : viaDestino && portalDestino
+        ? { via: viaDestino.codigo, portal: portalDestino.codigo }
+        : null;
+    if (!destino) {
       return;
     }
 
-    // Los CUATRO CÓDIGOS, que es lo único que viaja. Es la ley de la entrada
-    // nº4 llegando al final del tubo: el formulario lleva desde el punto 4
-    // negándose a desbloquear con texto, y sería tirarlo todo mandar aquí los
-    // nombres. El motor tampoco los aceptaría — los rechaza en `leerPeticion`.
+    // CÓDIGOS, que es lo único que viaja. Es la ley de la entrada nº4 llegando
+    // al final del tubo: el formulario lleva desde el punto 4 negándose a
+    // desbloquear con texto, y sería tirarlo todo mandar aquí los nombres. El
+    // motor tampoco los aceptaría — los rechaza en `leerPeticion`. Un sitio
+    // viaja igual: por su código, nunca por su presentación.
     const peticion: PeticionDeRuta = {
       origen: { via: via.codigo, portal: portal.codigo },
-      destino: { via: viaDestino.codigo, portal: portalDestino.codigo },
+      destino,
       modo: this.modo(),
     };
 
@@ -566,7 +609,13 @@ export class Buscador {
         this.generando.set(false);
         this.resultado.set({
           origen: comoSeLeeLaDireccion(via, portal),
-          destino: comoSeLeeLaDireccion(viaDestino, portalDestino),
+          // ⭐ El destino se lee de una manera o de la otra. Un sitio ya viene
+          // con su nombre compuesto por el motor —«Farmacia · calle»— y no se
+          // recompone aquí: la pantalla no fabrica nombres.
+          destino:
+            sitio !== null
+              ? sitio.presentacion
+              : comoSeLeeLaDireccion(viaDestino!, portalDestino!),
           trayecto,
         });
       },
@@ -592,11 +641,13 @@ export class Buscador {
    * códigos sí.
    */
   protected sePuedeGenerar(): boolean {
-    return (
-      this.origen.via() !== null &&
-      this.origen.portal() !== null &&
-      this.destino.via() !== null &&
-      this.destino.portal() !== null
-    );
+    // ⭐ LA REGLA DEL PORTAL CONDICIONAL (19/08). Un sitio trae su propia
+    // coordenada, así que no hay portal que exigirle — y exigírselo dejaría el
+    // botón apagado para siempre, porque esa casilla ni siquiera se puede
+    // rellenar. Cuando el destino es un sitio, el destino ya está completo.
+    const destinoListo =
+      this.sitioDestino() !== null ||
+      (this.destino.via() !== null && this.destino.portal() !== null);
+    return this.origen.via() !== null && this.origen.portal() !== null && destinoListo;
   }
 }
