@@ -60,8 +60,11 @@
           (mouseenter)="activo.set(i)"
         >
           <!-- El icono va PRIMERO: se ve antes de leer, que es para lo que
-               está. Su color depende del papel del campo, no de la opción. -->
-          <app-icono-capa [capa]="opcion.capa" [papel]="papel()" />
+               está. Y va SIN PAPEL: en la lista esto no es todavía el origen
+               ni el destino, así que la chincheta va neutra. La cruz de
+               farmacia sí lleva su verde, que es de la farmacia y no del
+               papel. -->
+          <app-icono-capa [capa]="opcion.capa" papel="ninguno" />
           <span class="sugerencia__nombre">{{ opcion.texto }}</span>
           <span class="sugerencia__portales">{{ opcion.extra }}</span>
         </li>

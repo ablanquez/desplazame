@@ -19,21 +19,30 @@ import { Component, computed, input } from '@angular/core';
  * · **Cruz** — una farmacia. En España la cruz verde es la señal de farmacia en
  *   la calle, así que no hay nada que aprender.
  *
- * LOS COLORES, y por qué estos
- * · La chincheta va en **dos colores según el papel**: azul el origen, magenta
- *   el destino. Es la única pieza que distingue de dónde a dónde, y en el mapa
- *   hace falta: dos chinchetas del mismo color son dos puntos, no un trayecto.
- * · La cruz va **verde en los dos extremos**, y es una decisión de Antonio
- *   (23/08): el tipo ya la distingue, y una farmacia de un color en el origen y
- *   de otro en el destino sería inventarle dos identidades a la misma cosa.
+ * LOS COLORES, que NO se eligen aquí: se copian
+ * · **VERDE el origen, ROJO el destino** [osm.org, convención de sus
+ *   marcadores de ruta]. Nacieron azul y magenta el 23/08 y eso era invento
+ *   mío: dos colores que contrastaban, elegidos sin fuente. Duraron unas horas.
+ * · La chincheta de una SUGERENCIA no lleva ninguno de los dos: va **neutra**,
+ *   porque en la lista todavía no es origen ni destino — se convierte en uno u
+ *   otro al elegirla, y adelantarlo sería pintar de verde algo que va a acabar
+ *   en el destino la mitad de las veces.
+ * · La cruz va **verde en los dos papeles** —decisión de Antonio, 23/08—, y
+ *   comparte el verde del origen a propósito: no son dos verdes parecidos, es
+ *   el mismo. Lo que separa una farmacia de un origen no es el color sino la
+ *   FORMA, que es justo el segundo diferenciador que pide la doctrina.
  * · Los tres contrastan con el mapa —OSM es beige, blanco y verde pálido— y con
  *   la línea de la ruta, que es naranja quemado `#b45309`.
  *
- * ⚠️ **LÍMITE, dicho y no escondido:** azul y magenta se distinguen mal con
- * protanopia, donde el magenta tira a azulado. No es el par ideal, y aquí el
- * papel se sostiene además por la POSICIÓN —el origen es la primera línea del
- * itinerario— y por el `data-papel` que leen las pruebas. Afinarlo no entra
- * hoy; queda escrito para cuando entre.
+ * ⚠️ **EL LÍMITE, dicho y no escondido.** Verde contra rojo es el par que peor
+ * se distingue con protanopia y deuteranopia — el más extendido de los dos
+ * problemas. La doctrina lo sabe y lo contesta con una segunda seña que no sea
+ * color [issue #2787 de osm.org]: aquí esa seña existe en el ITINERARIO, donde
+ * la salida y la llegada llevan `◉` y `⚑` además del icono. **En el MAPA no**:
+ * dos chinchetas solo se diferencian por el color, y una forma distinta por
+ * papel —la bandera a cuadros de la llegada— está ANOTADA para el punto 13, no
+ * hecha hoy. Queda escrito aquí para que no se dé por resuelto lo que no lo
+ * está.
  */
 
 /** La chincheta: gota con la punta abajo, hueca en el centro. */
@@ -43,27 +52,56 @@ export const CAMINO_CHINCHETA =
 /** La cruz de farmacia: brazos iguales, como la de la calle. */
 export const CAMINO_CRUZ = 'M9.4 2.4h5.2v6.8h6.8v5.2h-6.8v6.8H9.4v-6.8H2.6V9.2h6.8z';
 
-/** Azul: el ORIGEN cuando es una dirección. */
-export const COLOR_ORIGEN = '#1d4ed8';
-/** Magenta: el DESTINO cuando es una dirección. */
-export const COLOR_DESTINO = '#be185d';
-/** Verde de farmacia. El mismo en los dos extremos, a propósito. */
-export const COLOR_SITIO = '#15803d';
+/**
+ * ⭐ EL VERDE, uno solo, y compartido a sabiendas.
+ *
+ * Lo llevan **el origen de la ruta** [osm.org] y **la farmacia** [la cruz verde
+ * es la señal de farmacia en España y en media Europa]. Son dos convenciones
+ * distintas que aterrizan en el mismo color, y en vez de inventar dos verdes
+ * parecidos —que se leerían como un error de imprenta— se declara uno.
+ *
+ * La consecuencia hay que decirla entera: en el mapa, **una cruz verde puede
+ * ser el origen o el destino**, y quien lo desempata es la otra chincheta —si
+ * es verde, la farmacia es el destino; si es roja, es el origen—. Con farmacia
+ * en los dos extremos no hay desempate. Antonio lo dio por bueno el 23/08.
+ */
+export const VERDE = '#1a7f37';
+
+/** Verde: el ORIGEN de la ruta [osm.org]. */
+export const COLOR_ORIGEN = VERDE;
+/** Rojo: el DESTINO de la ruta [osm.org]. */
+export const COLOR_DESTINO = '#c1121f';
+/** Verde: una farmacia, en cualquier papel. */
+export const COLOR_SITIO = VERDE;
+/**
+ * Gris: una chincheta que **todavía no tiene papel**.
+ *
+ * Es el de las sugerencias. No es un color de relleno: decir «verde» ahí sería
+ * afirmar que lo que se está mirando va al origen, y eso no se sabe hasta que
+ * se pulsa.
+ */
+export const COLOR_NEUTRO = '#44403c';
 
 /** De qué capa es un extremo. Los mismos dos valores que usa el autocompletar. */
 export type Capa = 'via' | 'sitio';
-/** Qué papel hace en la ruta. */
-export type Papel = 'origen' | 'destino';
+/**
+ * Qué papel hace en la ruta — y `ninguno`, que no es un hueco sino un estado:
+ * una sugerencia de la lista no es origen ni destino todavía.
+ */
+export type Papel = 'origen' | 'destino' | 'ninguno';
 
 /**
- * El color de un icono, que depende de la capa y —solo si es una dirección—
- * del papel. Un sitio no mira el papel: ver arriba.
+ * El color de un icono. Un sitio es verde siempre; una dirección depende de su
+ * papel, y sin papel es gris.
  */
 export function colorDeCapa(capa: Capa, papel: Papel): string {
   if (capa === 'sitio') {
     return COLOR_SITIO;
   }
-  return papel === 'origen' ? COLOR_ORIGEN : COLOR_DESTINO;
+  if (papel === 'origen') {
+    return COLOR_ORIGEN;
+  }
+  return papel === 'destino' ? COLOR_DESTINO : COLOR_NEUTRO;
 }
 
 /** El camino de la figura de una capa. */

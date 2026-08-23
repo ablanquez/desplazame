@@ -18,7 +18,6 @@ import { AutocompletarVia } from './autocompletar-via';
   template: `<app-autocompletar-via
     campo="calleOrigen"
     etiqueta="Calle"
-    papel="origen"
     [(texto)]="texto"
     [seleccion]="elegida()"
     (seleccionChange)="elegida.set($event)"

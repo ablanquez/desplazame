@@ -7,6 +7,7 @@ import {
   CAMINO_CHINCHETA,
   CAMINO_CRUZ,
   COLOR_DESTINO,
+  COLOR_NEUTRO,
   COLOR_ORIGEN,
   COLOR_SITIO,
 } from './iconos';
@@ -191,8 +192,8 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     await contestar([BURGOS], [FARMACIA]);
 
     expect(iconosDe('calleDestino')).toEqual([
-      { icono: 'via', papel: 'destino', color: COLOR_DESTINO },
-      { icono: 'sitio', papel: 'destino', color: COLOR_SITIO },
+      { icono: 'via', papel: 'ninguno', color: COLOR_NEUTRO },
+      { icono: 'sitio', papel: 'ninguno', color: COLOR_SITIO },
     ]);
   });
 
@@ -211,19 +212,30 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     );
   });
 
-  it('⭐ la chincheta del campo de ORIGEN es azul, la del DESTINO magenta', async () => {
-    await teclear('calleOrigen', 'burgos');
-    await contestar([BURGOS], []);
-    expect(iconosDe('calleOrigen')).toEqual([
-      { icono: 'via', papel: 'origen', color: COLOR_ORIGEN },
-    ]);
-    await drenarEco();
+  it('⭐ la chincheta de una SUGERENCIA es NEUTRA en los dos campos', async () => {
+    // Era la prueba de «azul en el origen, magenta en el destino», y la
+    // doctrina la derogó: en la lista todavía no hay papel. Pintar de verde lo
+    // que está en el campo de origen sería afirmar algo que no se sabe hasta
+    // que se pulsa — y que deja de ser cierto en cuanto se usa el ⇅.
+    for (const campo of ['calleOrigen', 'calleDestino']) {
+      await teclear(campo, 'burgos');
+      await contestar([BURGOS], []);
+      expect(iconosDe(campo)).toEqual([
+        { icono: 'via', papel: 'ninguno', color: COLOR_NEUTRO },
+      ]);
+      await drenarEco();
+    }
+  });
 
-    await teclear('calleDestino', 'burgos');
-    await contestar([BURGOS], []);
-    expect(iconosDe('calleDestino')).toEqual([
-      { icono: 'via', papel: 'destino', color: COLOR_DESTINO },
-    ]);
+  it('⭐ LA DOCTRINA: verde el origen, rojo el destino [osm.org]', async () => {
+    // La prueba que fija la convención, para que no vuelva a moverse por gusto.
+    // El verde del origen y el de la farmacia son EL MISMO a sabiendas: lo que
+    // los separa es la forma, no el color.
+    expect(COLOR_ORIGEN).toBe('#1a7f37');
+    expect(COLOR_DESTINO).toBe('#c1121f');
+    expect(COLOR_SITIO).toBe(COLOR_ORIGEN);
+    expect(COLOR_NEUTRO).not.toBe(COLOR_ORIGEN);
+    expect(COLOR_NEUTRO).not.toBe(COLOR_DESTINO);
   });
 
   it('la cruz de farmacia es VERDE en los dos campos: el papel no la cambia', async () => {
