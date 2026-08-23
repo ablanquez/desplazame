@@ -82,8 +82,16 @@ export interface SitioSituado {
   readonly calle: string;
   readonly lat: number;
   readonly lon: number;
-  /** La presentación normalizada, para comparar sin acentos ni mayúsculas. */
-  readonly comparable: string;
+  /**
+   * Los DOS campos contra los que se casa, ya normalizados: el nombre y la
+   * calle, por separado y no pegados.
+   *
+   * Pegados eran uno solo —la presentación entera— y por eso «farmacia bretón»
+   * no encontraba nada: entre las dos palabras que se escriben hay un «· C/
+   * Tomás » que nadie teclea. Separados, cada palabra busca en los dos.
+   */
+  readonly comparableNombre: string;
+  readonly comparableCalle: string;
 }
 
 export interface SitiosEnMemoria {
@@ -134,7 +142,8 @@ export function cargarSitios(): SitiosEnMemoria {
       calle,
       lon: c[0]!,
       lat: c[1]!,
-      comparable: normalizar(presentacion),
+      comparableNombre: normalizar(CATEGORIA),
+      comparableCalle: normalizar(calle),
     };
     indice.push(sitio);
     donde.set(sitio.codigo, sitio);
@@ -151,23 +160,62 @@ export function cargarSitios(): SitiosEnMemoria {
 }
 
 /**
- * Las sugerencias para lo que se lleva escrito.
+ * ⭐ LAS SUGERENCIAS: la consulta se **trocea en palabras**, y todas tienen que
+ * casar, cada una contra el nombre O contra la calle.
  *
- * Casa contra la **presentación entera** —categoría y dirección—, así que
- * «farmacia» las trae todas y «navarra» trae las de esa calle. Es la misma
- * comparación que el callejero: normalizada, sin acentos ni mayúsculas.
+ * [DOC Pelias] Su analizador no busca la frase entera en un campo: **parte la
+ * consulta y casa los trozos contra varios campos** —el nombre del sitio, la
+ * calle, la localidad—, y por eso encuentra escribiendo como se habla. Aquí se
+ * copia esa idea con los dos campos que hay.
+ *
+ * El caso que lo pedía es «farmacia bretón», que es como lo escribe cualquiera.
+ * Contra la presentación entera —«Farmacia · C/ Tomás Bretón, 36»— no casaba
+ * **nada**: la consulta no lleva el «· C/ Tomás » que hay entre las dos
+ * palabras. El fallo no era del dato ni de quien escribe; era comparar una
+ * frase pegada contra otra frase pegada.
+ *
+ * Las dos mitades de la regla, y por qué cada una:
+ *
+ * · **TODAS las palabras** (`every`), no alguna. Cada palabra que se añade es
+ *   una condición más: quien escribe dos quiere **menos** resultados, no más.
+ *   Con «alguna», «farmacia bretón» traería las 310 farmacias, y el segundo
+ *   término —el único que distingue— no serviría de nada.
+ *
+ * · **Contra cualquiera de los dos campos** (`some`), no contra uno fijo. Quien
+ *   escribe no sabe —ni tiene por qué— cuál de sus palabras es el nombre y cuál
+ *   la calle, y exigirle el orden sería pedirle que conozca la forma del dato.
+ *   Por eso «bretón farmacia» da exactamente lo mismo que «farmacia bretón».
+ *
+ * Se casa por `includes` y no por palabra entera: escribiendo se va por la
+ * mitad —«farma», «bret»— y una búsqueda que solo responde a la palabra
+ * terminada no sirve para sugerir mientras se teclea.
  *
  * Por debajo de `MINIMO_SITIOS` letras devuelve vacío: eso no es una búsqueda,
- * es alguien empezando a escribir.
+ * es alguien empezando a escribir. El corte se mide sobre la consulta entera,
+ * no palabra a palabra — «a b» son dos letras escritas, y traería media ciudad.
  */
 export function sugerirSitios(sitios: SitiosEnMemoria, consulta: string): readonly Sitio[] {
   const q = normalizar(consulta);
   if (q.length < MINIMO_SITIOS) {
     return [];
   }
+  // `\s+` y no un espacio suelto: se parte por CUALQUIER blanco y por rachas
+  // enteras. Un tabulador pegado desde otro sitio parte igual que un espacio,
+  // y «farmacia   bretón» no deja trozos vacíos por el camino.
+  //
+  // Aquí hubo un `.filter((p) => p !== '')` que se quitó el 23/08: la
+  // contraprueba lo mutó y las 14 pruebas siguieron verdes. No filtraba nada
+  // —`normalizar` ya recorta los extremos y `\s+` se traga las rachas, así que
+  // un trozo vacío no puede salir— y aunque saliera, `''` casa con todo y con
+  // `every` eso es no hacer nada. El comentario que lo acompañaba decía lo
+  // contrario, y era falso.
+  const palabras = q.split(/\s+/);
   const salen: Sitio[] = [];
   for (const s of sitios.indice) {
-    if (!s.comparable.includes(q)) {
+    const casa = palabras.every(
+      (p) => s.comparableNombre.includes(p) || s.comparableCalle.includes(p),
+    );
+    if (!casa) {
       continue;
     }
     salen.push({ codigo: s.codigo, presentacion: s.presentacion, categoria: s.categoria });

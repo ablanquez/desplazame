@@ -134,4 +134,68 @@ describe('Los sitios — farmacias', () => {
     );
     assert.ok(a.length > 0);
   });
+
+  /**
+   * ⭐ LA BÚSQUEDA POR PALABRAS.
+   *
+   * [DOC Pelias] Su analizador **trocea la consulta y casa los trozos contra
+   * varios campos**, en vez de exigir que la frase entera aparezca en uno.
+   * Aquí es lo que separa una búsqueda de un `includes`: «farmacia bretón» es
+   * lo que escribe cualquiera, y contra la presentación entera —«Farmacia ·
+   * C/ Tomás Bretón, 36»— no casa, porque entre las dos palabras hay un «· C/
+   * Tomás » que la consulta no lleva.
+   *
+   * La regla: **todas las palabras tienen que casar, cada una contra el nombre
+   * O contra la calle**. Todas, porque cada palabra que se escribe es una
+   * condición más —quien escribe dos quiere menos resultados, no más—; y
+   * contra cualquiera de los dos campos, porque quien escribe no sabe ni tiene
+   * por qué saber en cuál de ellos cae cada palabra.
+   */
+  test('⭐ «farmacia bretón»: una palabra al nombre y otra a la calle', () => {
+    const salen = sugerirSitios(sitios, 'farmacia bretón');
+    assert.ok(salen.length > 0, 'no encuentra nada con dos palabras de campos distintos');
+    for (const s of salen) {
+      assert.match(s.presentacion, /Breton|Bretón/, `no es de Bretón: ${s.presentacion}`);
+    }
+  });
+
+  test('⭐ el orden NO manda: «bretón farmacia» da lo mismo', () => {
+    const derecho = sugerirSitios(sitios, 'farmacia bretón');
+    const revés = sugerirSitios(sitios, 'bretón farmacia');
+    assert.deepEqual(
+      revés.map((s) => s.codigo),
+      derecho.map((s) => s.codigo),
+    );
+    assert.ok(derecho.length > 0);
+  });
+
+  test('cada palabra RECORTA: dos palabras no traen más que una', () => {
+    // Si «todas deben casar» se implementara como «alguna», esto crecería en
+    // vez de encoger. Con el límite en 10 la desigualdad se ve igual.
+    const una = sugerirSitios(sitios, 'bretón');
+    const dos = sugerirSitios(sitios, 'bretón sabinigo');
+    assert.ok(una.length > 0, 'la palabra sola no trae nada');
+    assert.equal(dos.length, 0, `«bretón sabinigo» no es ninguna: trae ${dos.length}`);
+  });
+
+  test('una palabra sola sigue funcionando como antes', () => {
+    assert.ok(sugerirSitios(sitios, 'farmacia').length > 0);
+    assert.ok(sugerirSitios(sitios, 'bretón').length > 0);
+  });
+
+  test('se parte por cualquier blanco, y por rachas enteras', () => {
+    // ⚠️ El tabulador está aquí a propósito. Con `split(' ')` esta prueba se
+    // pone roja y con `split(/\s+/)` no, que es la diferencia entre las dos:
+    // sin él, las dos formas dan lo mismo y la prueba no distinguiría nada.
+    // Se descubrió mutando: la versión de antes seguía verde con `split(' ')`.
+    const limpio = sugerirSitios(sitios, 'farmacia bretón');
+    for (const escrito of ['  farmacia   bretón  ', 'farmacia\tbretón']) {
+      assert.deepEqual(
+        sugerirSitios(sitios, escrito).map((s) => s.codigo),
+        limpio.map((s) => s.codigo),
+        `«${escrito}» no da lo mismo que «farmacia bretón»`,
+      );
+    }
+    assert.ok(limpio.length > 0);
+  });
 });
