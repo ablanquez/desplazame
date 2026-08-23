@@ -184,6 +184,45 @@ describe('El trayecto', () => {
     }
   });
 
+  /** La segunda farmacia juez: Pº de la Mina, 5, a 2,48 km de la primera. */
+  const FARMACIA_MINA = { sitio: 'Farmacias.8844' };
+
+  test('⭐ LA INVERSA: de una FARMACIA a un portal', () => {
+    // La simetría es el remate del 23/08: si el sitio vale de destino, tiene
+    // que valer de origen. Lo contrario deja tonto al ⇅, que cruza los dos
+    // lados desde el punto 6.
+    const t = pedir({ origen: FARMACIA, destino: COLOSO, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.ok(t.pasos.length > 3, `solo ${t.pasos.length} pasos`);
+    assert.ok(t.metros > 1370);
+  });
+
+  test('⭐ y el ARRANQUE dice el sitio, igual que la llegada decía el suyo', () => {
+    const t = pedir({ origen: FARMACIA, destino: COLOSO, modo: 'andando' });
+    // 🔒 La presentación, nunca el título del dato.
+    assert.match(t.pasos[0]!.texto, /^Sal de Farmacia · Avda\. de Navarra, 65 y dirígete/);
+    assert.match(t.pasos[t.pasos.length - 1]!.texto, /^Calle El Coloso 2 está a la /);
+  });
+
+  test('⭐ SITIO → SITIO: los dos extremos con nombre', () => {
+    const t = pedir({ origen: FARMACIA, destino: FARMACIA_MINA, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.ok(t.pasos.length > 3);
+    // 2,48 km en línea recta: andando, más.
+    assert.ok(t.metros > 2480, `${t.metros} m es menos que la línea recta`);
+    assert.match(t.pasos[0]!.texto, /^Sal de Farmacia · Avda\. de Navarra, 65 /);
+    assert.match(t.pasos[t.pasos.length - 1]!.texto, /^Farmacia · Pº de la Mina, 5 está a la /);
+  });
+
+  test('⭐ REGLA B también en el ORIGEN: sin coordenada no se puede salir', () => {
+    for (const codigo of ['Farmacias.8714', 'Farmacias.29916', 'Farmacias.30105']) {
+      const t = pedir({ origen: { sitio: codigo }, destino: COLOSO, modo: 'andando' });
+      assert.equal(t.pasos.length, 0, `${codigo} ha devuelto una ruta`);
+      assert.equal(t.avisos.length, 1);
+      assert.match(t.avisos[0]!.texto, /No conocemos ningún sitio con el código/);
+    }
+  });
+
   test('un sitio inventado se contesta con aviso, no con una excepción', () => {
     const t = pedir({ origen: COLOSO, destino: { sitio: 'Farmacias.999999' }, modo: 'andando' });
     assert.equal(t.avisos.length, 1);

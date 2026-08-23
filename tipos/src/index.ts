@@ -163,12 +163,16 @@ export type ExtremoDeRuta = ExtremoPortal | ExtremoSitio;
 
 export interface PeticionDeRuta {
   /**
-   * El origen es **siempre una dirección**, hoy. El sitio como origen no entra
-   * en esta tanda: se declara aquí para que se note que es una decisión y no
-   * una limitación escondida en el código.
+   * ⭐ Los DOS extremos admiten las dos clases, y son simétricos.
+   *
+   * Nacieron asimétricos —el sitio solo valía de destino— y duró un día:
+   * Antonio lo corrigió el 23/08 con la app delante, y el argumento no era de
+   * gusto sino de mecánica. El botón ⇅ **cruza los dos lados enteros** desde el
+   * punto 6; invertir hacia un origen que no admite sitios lo dejaba tonto,
+   * teniendo que decidir qué tirar. Dos campos que se intercambian tienen que
+   * aceptar lo mismo, o el intercambio no es tal.
    */
-  readonly origen: ExtremoPortal;
-  /** El destino puede ser una dirección **o un sitio** desde el 23/08. */
+  readonly origen: ExtremoDeRuta;
   readonly destino: ExtremoDeRuta;
   readonly modo: Modo;
 }

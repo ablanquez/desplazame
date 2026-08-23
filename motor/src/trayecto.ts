@@ -106,7 +106,8 @@ export function leerPeticion(cuerpo: unknown): PeticionDeRuta | null {
     }
     return punto(nombre);
   };
-  const origen = punto('origen');
+  // Los dos extremos, por el mismo camino: la simetría empieza aquí.
+  const origen = extremo('origen');
   const destino = extremo('destino');
   const modo = bruto['modo'];
   if (!origen || !destino || typeof modo !== 'string') {
