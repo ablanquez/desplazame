@@ -206,6 +206,12 @@ legend {
   color: #b45309;
 }
 
+/* La línea alinea por línea base, y un dibujo no tiene: sin esto el icono
+   cuelga por debajo del texto en vez de ir a su altura. */
+.ruta__punto app-icono-capa {
+  align-self: center;
+}
+
 .ruta__totales {
   margin: 0.5rem 0 0;
   padding-top: 0.5rem;

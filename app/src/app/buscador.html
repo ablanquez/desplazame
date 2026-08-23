@@ -18,6 +18,7 @@
         campo="calleOrigen"
         etiqueta="Calle o sitio"
         [conSitios]="true"
+        papel="origen"
         [(texto)]="origen.calle"
         [seleccion]="origen.via()"
         (seleccionChange)="alElegirVia(origen, $event)"
@@ -62,14 +63,14 @@
     <fieldset class="punto">
       <legend>Destino</legend>
       <!--
-        ⭐ El destino, y solo el destino, ofrece SITIOS además de calles. El
-        sitio como origen no entra en esta tanda, y por eso `conSitios` es un
-        parámetro y no una suposición del componente.
+        Mismos parámetros que el origen: las dos capas y, lo único distinto, el
+        `papel` — que no cambia lo que se busca, solo el color de la chincheta.
       -->
       <app-autocompletar-via
         campo="calleDestino"
         etiqueta="Calle o sitio"
         [conSitios]="true"
+        papel="destino"
         [(texto)]="destino.calle"
         [seleccion]="destino.via()"
         (seleccionChange)="alElegirVia(destino, $event)"
@@ -119,7 +120,14 @@
   </form>
 
   <section class="mapa" aria-label="Mapa">
-    <app-mapa [trazado]="trazado()" />
+    <!-- Las capas salen del RESULTADO, igual que el trazado: tocar el
+         formulario después de generar no repinta los marcadores de una ruta
+         que ya está dibujada. El porqué entero, en `Resultado`. -->
+    <app-mapa
+      [trazado]="trazado()"
+      [capaOrigen]="resultado()?.capaOrigen ?? null"
+      [capaDestino]="resultado()?.capaDestino ?? null"
+    />
   </section>
 
   <section class="pasos" aria-label="Indicaciones">
@@ -144,12 +152,18 @@
 
       @if (r.trayecto.pasos.length > 0) {
         <header class="ruta">
+          <!-- Dos marcas por línea, y cada una dice una cosa distinta: la
+               flecha, el PAPEL —de dónde se sale, dónde se llega—; el icono, la
+               CLASE. Con dos farmacias las dos cruces son iguales, así que sin
+               la flecha no quedaría nada que dijera cuál es cuál. -->
           <p class="ruta__punto ruta__origen">
             <span class="ruta__marca" aria-hidden="true">{{ flechaDe('salida') }}</span>
+            <app-icono-capa [capa]="r.capaOrigen" papel="origen" [lado]="18" />
             {{ r.origen }}
           </p>
           <p class="ruta__punto ruta__destino">
             <span class="ruta__marca" aria-hidden="true">{{ flechaDe('llegada') }}</span>
+            <app-icono-capa [capa]="r.capaDestino" papel="destino" [lado]="18" />
             {{ r.destino }}
           </p>
           <p class="ruta__totales">

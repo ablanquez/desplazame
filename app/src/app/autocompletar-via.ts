@@ -1,6 +1,7 @@
 import { Component, computed, effect, input, model, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import type { Sitio, Via } from '@desplazame/tipos';
+import { IconoCapa, type Papel } from './iconos';
 
 /**
  * Cómo se enseña una vía: el nombre limpio y, si es de un núcleo, su nombre.
@@ -60,6 +61,7 @@ interface Opcion {
 
 @Component({
   selector: 'app-autocompletar-via',
+  imports: [IconoCapa],
   templateUrl: './autocompletar-via.html',
   styleUrl: './autocompletar-via.css',
 })
@@ -69,17 +71,31 @@ export class AutocompletarVia {
   readonly etiqueta = input.required<string>();
 
   /**
-   * ⭐ Si este campo ofrece también SITIOS — destinos con nombre.
+   * ⭐ Si este campo ofrece también SITIOS — sitios con nombre.
    *
-   * Va apagado por defecto, y hoy solo lo enciende el destino: **el sitio como
-   * origen no entra en esta tanda**. Que sea un `input` y no una suposición del
-   * componente es lo que permite que el origen siga pidiendo una sola cosa.
+   * Va apagado por defecto y **los dos campos lo encienden** desde la simetría
+   * del 23/08. Sigue siendo un `input` y no una suposición del componente
+   * porque quien decide qué capas ofrece un campo es quien lo coloca, no el
+   * campo: el día que haya un formulario donde solo valga una dirección, este
+   * mismo componente sirve sin tocarlo.
    *
    * [DOC Pelias] Los sitios son una **capa** aparte de las calles —`layers`, y
    * `venue` es la suya—: se buscan a la vez, se enseñan juntos y se distinguen
    * a la vista. No son «resultados mejores»: son de otra clase.
    */
   readonly conSitios = input(false);
+
+  /**
+   * ⭐ Qué papel hace este campo en la ruta: `origen` o `destino`.
+   *
+   * No lo usa la búsqueda; lo usa **el color de las chinchetas** de la lista.
+   * Una sugerencia del campo de origen se pinta del azul con el que va a salir
+   * en el mapa, y una del destino, del magenta — así lo que se elige y lo que
+   * aparece luego son reconociblemente la misma cosa.
+   *
+   * Obligatorio: un valor por defecto elegiría color por quien no lo ha dicho.
+   */
+  readonly papel = input.required<Papel>();
 
   /**
    * El SITIO elegido, o `null`. Va **aparte de `seleccion`** a propósito: son

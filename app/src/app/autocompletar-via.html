@@ -59,6 +59,9 @@
           (mousedown)="elegir(opcion)"
           (mouseenter)="activo.set(i)"
         >
+          <!-- El icono va PRIMERO: se ve antes de leer, que es para lo que
+               está. Su color depende del papel del campo, no de la opción. -->
+          <app-icono-capa [capa]="opcion.capa" [papel]="papel()" />
           <span class="sugerencia__nombre">{{ opcion.texto }}</span>
           <span class="sugerencia__portales">{{ opcion.extra }}</span>
         </li>

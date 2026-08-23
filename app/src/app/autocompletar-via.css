@@ -55,9 +55,18 @@
 .sugerencia {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0.5rem;
   cursor: pointer;
+}
+
+/* ⭐ Con el icono delante son TRES piezas en la línea, y el `space-between` de
+   arriba las separaría a los dos extremos dejando el nombre flotando en medio,
+   despegado de su propio icono. Estirando el nombre, el icono y el nombre van
+   juntos a la izquierda y la seña de la derecha se queda donde estaba. */
+.sugerencia__nombre {
+  flex: 1;
 }
 
 .sugerencia--activa {

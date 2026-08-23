@@ -12,6 +12,7 @@ import * as L from 'leaflet';
 // El vértice lo define el contrato, no este componente: es la misma forma que
 // el motor devolverá en la geometría de un trayecto.
 import type { Vertice } from '@desplazame/tipos';
+import { svgDeCapa, type Capa } from './iconos';
 
 export type { Vertice };
 
@@ -29,6 +30,30 @@ const ZOOM = 12;
  * una ruta corta en el lienzo pequeño se queda sin sitio.
  */
 const HOLGURA_DEL_ENCUADRE: L.PointTuple = [30, 30];
+
+/**
+ * ⭐ EL MARCADOR: cuánto mide y por dónde agarra el punto.
+ *
+ * 32 px de lado. Es el tamaño al que una chincheta de 24 unidades de dibujo se
+ * lee sin acercarse y sigue dejando ver la calle de debajo; a 24 px la cruz de
+ * farmacia pierde los brazos sobre un mapa con texto.
+ *
+ * **El anclaje es lo que no puede salir a ojo.** [DOC] Leaflet: `iconAnchor` es
+ * *«the coordinates of the "tip" of the icon (relative to its top left
+ * corner)»*, y ese punto es el que se posa sobre la coordenada. Los dos iconos
+ * lo tienen en sitios distintos y por eso hay dos anclajes:
+ *
+ * · La **chincheta** señala con la PUNTA, que está abajo del todo: `[16, 32]`.
+ *   Centrarla dejaría el punto real 16 px por encima de donde se ve la punta —
+ *   media manzana de error a zoom de calle, y sin que nada lo delate.
+ * · La **cruz** no señala con ningún borde: es una marca, y va centrada en su
+ *   punto, `[16, 16]`.
+ */
+const LADO_DEL_MARCADOR = 32;
+const ANCLAJE: Readonly<Record<Capa, L.PointTuple>> = {
+  via: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR],
+  sitio: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
+};
 
 /**
  * Atribución de OpenStreetMap. Es obligación de la ODbL, no cortesía, y la
@@ -72,9 +97,24 @@ export class Mapa {
    */
   readonly alto = input('22rem');
 
+  /**
+   * ⭐ De qué CLASE es cada extremo de la ruta, para pintar su marcador.
+   *
+   * `null` es «no consta», y con «no consta» **no se pinta marcador**. No es
+   * pereza: el icono dice qué clase de sitio hay ahí, y un icono elegido por
+   * defecto diría una clase que nadie ha declarado. Quien no sabe, no dibuja.
+   *
+   * El punto sale de la geometría —el primer vértice y el último—, así que el
+   * mapa no necesita coordenadas aparte: son las mismas que ya dibuja la línea,
+   * y de ahí que no puedan discrepar.
+   */
+  readonly capaOrigen = input<Capa | null>(null);
+  readonly capaDestino = input<Capa | null>(null);
+
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
   private linea?: L.Polyline;
+  private marcas: L.Marker[] = [];
 
   constructor() {
     // [DOC] Angular: «Use afterNextRender to read or write the DOM once, for
@@ -93,6 +133,10 @@ export class Mapa {
     // nada: lo pinta el propio afterNextRender al terminar de montarlo.
     effect(() => {
       this.trazado();
+      // Se leen para que el efecto dependa de ellas: cambiar de una dirección a
+      // una farmacia sin mover la ruta tiene que repintar los marcadores.
+      this.capaOrigen();
+      this.capaDestino();
       this.pintarTrazado();
     });
 
@@ -106,6 +150,7 @@ export class Mapa {
     inject(DestroyRef).onDestroy(() => {
       this.mapa?.remove();
       this.mapa = undefined;
+      this.marcas = [];
     });
   }
 
@@ -130,6 +175,12 @@ export class Mapa {
 
     this.linea?.remove();
     this.linea = undefined;
+    // Los marcadores se quitan SIEMPRE antes de volver a ponerlos. Sin esto,
+    // cada ruta nueva deja los dos de la anterior encima del mapa.
+    for (const marca of this.marcas) {
+      marca.remove();
+    }
+    this.marcas = [];
 
     const vertices = this.trazado();
     if (vertices.length === 0) {
@@ -144,11 +195,46 @@ export class Mapa {
       dashArray: '10 8',
     }).addTo(this.mapa);
 
+    this.marcar(vertices[0]!, this.capaOrigen(), 'origen');
+    this.marcar(vertices[vertices.length - 1]!, this.capaDestino(), 'destino');
+
     // El encuadre. [DOC] Leaflet: «fitBounds(bounds, options): Sets a map view
     // that contains the given geographical bounds with the maximum zoom level
     // possible», y `padding` es «Equivalent of setting both top left and bottom
     // right padding to the same value». Sin holgura, los dos extremos de la
     // ruta —que son justo los que se quieren ver— quedan tocando el borde.
     this.mapa.fitBounds(this.linea.getBounds(), { padding: HOLGURA_DEL_ENCUADRE });
+  }
+
+  /**
+   * Un extremo, con el icono de su clase y su papel.
+   *
+   * [DOC] Leaflet: `divIcon` *«represents a lightweight icon for markers that
+   * uses a simple `<div>` element instead of an image»*. Es lo que permite que
+   * el marcador sea **el mismo SVG** que pinta la lista y el itinerario, en vez
+   * de un PNG aparte que habría que mantener a juego a mano.
+   *
+   * `className: ''` a propósito: por defecto Leaflet le pone `leaflet-div-icon`,
+   * que trae fondo blanco y borde gris — un recuadro alrededor de la chincheta.
+   * Vacío, solo queda el dibujo.
+   */
+  private marcar(vertice: Vertice, capa: Capa | null, papel: 'origen' | 'destino'): void {
+    if (!this.mapa || !capa) {
+      return;
+    }
+    const [lat, lon] = vertice;
+    const marca = L.marker([lat, lon], {
+      icon: L.divIcon({
+        html: svgDeCapa(capa, papel, LADO_DEL_MARCADOR),
+        className: '',
+        iconSize: [LADO_DEL_MARCADOR, LADO_DEL_MARCADOR],
+        iconAnchor: ANCLAJE[capa],
+      }),
+      // El marcador no se pulsa: es una seña, no un botón. Y sin esto se lleva
+      // el foco del teclado antes que los campos del formulario.
+      keyboard: false,
+      interactive: false,
+    }).addTo(this.mapa);
+    this.marcas.push(marca);
   }
 }

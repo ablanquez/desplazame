@@ -17,6 +17,7 @@ import { HttpClient } from '@angular/common/http';
 import { Mapa } from './mapa';
 import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
+import { IconoCapa, type Capa } from './iconos';
 
 /**
  * ⭐ EL MAPEO GIRO → FLECHA. Diez giros, diez glifos, y ni una dependencia.
@@ -231,6 +232,17 @@ function intercambiar<T>(a: WritableSignal<T>, b: WritableSignal<T>): void {
 interface Resultado {
   readonly origen: string;
   readonly destino: string;
+  /**
+   * ⭐ De qué clase era cada extremo **cuando se pidió la ruta**.
+   *
+   * Se guarda aquí por el mismo motivo que los nombres, y no es un detalle: si
+   * el icono se leyera del formulario, cambiar el destino a una farmacia
+   * después de generar pondría una cruz verde en el mapa de una ruta que va a
+   * un portal. La cabecera, los marcadores y los pasos cuentan siempre la
+   * misma ruta porque salen todos del mismo objeto.
+   */
+  readonly capaOrigen: Capa;
+  readonly capaDestino: Capa;
   readonly trayecto: Trayecto;
 }
 
@@ -273,7 +285,7 @@ function comoSeLeeLaDuracion(segundos: number): string {
 
 @Component({
   selector: 'app-buscador',
-  imports: [Mapa, AutocompletarVia, SelectorPortal],
+  imports: [Mapa, AutocompletarVia, SelectorPortal, IconoCapa],
   templateUrl: './buscador.html',
   styleUrl: './buscador.css',
 })
@@ -616,6 +628,8 @@ export class Buscador {
         this.resultado.set({
           origen: this.comoSeLee(this.origen),
           destino: this.comoSeLee(this.destino),
+          capaOrigen: this.capaDe(this.origen),
+          capaDestino: this.capaDe(this.destino),
           trayecto,
         });
       },
@@ -665,6 +679,15 @@ export class Buscador {
    * calle»— y no se recompone aquí: la pantalla no fabrica nombres, y menos
    * uno cuyo dato crudo lleva el nombre de una persona.
    */
+  /**
+   * De qué clase es un lado: la misma pregunta que responde `extremoDe`, pero
+   * para pintar en vez de para viajar. Un lado con sitio es de la capa
+   * `sitio`; cualquier otro, una dirección.
+   */
+  private capaDe(lado: Lado): Capa {
+    return lado.sitio() ? 'sitio' : 'via';
+  }
+
   private comoSeLee(lado: Lado): string {
     const sitio = lado.sitio();
     return sitio ? sitio.presentacion : comoSeLeeLaDireccion(lado.via()!, lado.portal()!);
