@@ -892,8 +892,73 @@ portales — un sitio es una coordenada más entrando al mismo tubo.
       cívicos, 46 mercados…), Ley 37/2007, coordenadas SOLO con
       `srsname=wgs84` (el parámetro en mayúsculas o EPSG se ignora en
       silencio)
-- [ ] Qué categorías entran: decide Antonio pieza a pieza (patrón del
-      punto 4: autorización, ficha, verificación)
+- [x] **La doctrina del geocodificador, leída (23/08)**: geocodificar
+      (nombre → sitio → PUNTO) y enrutar (punto → ruta) son DOS oficios
+      [Nominatim, blog de entradas 2025]; nuestro tubo del 7 es la
+      mitad router, este punto construye la mitad geocodificador. El
+      punto del sitio es el CENTROIDE por defecto, y su fallo está
+      documentado [Nominatim #536, 2016]: en sitios GRANDES el enganche
+      del centroide puede acabar lejos de toda entrada — la solución
+      moderna son las ENTRADAS (`entrance=*`, Nominatim las sirve desde
+      2025). Consecuencia: categorías de sitio chico van por el tubo
+      tal cual; las de recinto (hospitales, 17) verifican DÓNDE cae el
+      enganche, con las entradas OSM como arreglo si alguno cae mal. Y
+      el sitio es CAPA propia en la búsqueda (Nominatim separa
+      address/poi): tipo nuevo, no mezclado en silencio con calles
+- [x] **Las dos sondas de hostelería (23/08, solo lectura, cero
+      descargas)** — la foto completa para decidir:
+      · API equipamientos: BARRIDO COMPLETO de las 251 categorías — NO
+        existe censo de hostelería (lo del 18/08, ahora agotado, no
+        muestreado). Y recuentos movidos vs 18/08: Comercio Menor 50,
+        Educación 43, Cultura 33, SS 15; WFS 187 capas; 1543 Panaderías
+        en el menú con endpoint 404
+      · ⭐ Registro de Licencias — servicio REST abierto NO CATALOGADO,
+        cazado EN VIVO por Antonio (DevTools, 23/08):
+        `/sede/servicio/registro-licencia.json|.geojson` + `/calle` +
+        `/zona-saturada`. 42.303 locales · contador puro con rows=0
+        (37 bytes) · consultas compuestas VERIFICADAS por aritmética de
+        conjuntos (;=AND ,=OR, cuadre exacto) · hostelería: agr. 67 =
+        5.773 (⭐ 673.2 «otros cafés y bares» = 5.372) · agr. 68 = 146
+        · coordenadas WGS84 SIEMPRE · **codVia/codPortal = LOS
+        NUESTROS** (14860=Paseo Independencia ✓; 489/500 vías casan,
+        97,8 % — el cruce va por CÓDIGO, jamás por nombre: hay nombres
+        distintos con igual código) · zona-saturada: 15 polígonos que
+        cruzan (campo al 100 %) · CERO datos personales (20 claves,
+        sin titular/NIF) · ⚠️ PEROS: `estado` (0/1/2/3; el 1 = 31.446)
+        SIN DESCIFRAR — no se bautiza, y sin él no se distingue
+        abierto de cerrado · NO trae NOMBRES de local (es censo de
+        actividad, no de rótulos: nadie busca «Casa Pepe» ahí) · tope
+        de descarga raro (algunas consultas 100 filas, otras 10;
+        start pagina y totalCount siempre honesto)
+      · restaurante.json (catálogo 285): 1.537 (1.534 ids, 3 dupes) ·
+        title/tenedores/capacidad/tel 84 % · ⚠️ solo 39 % con
+        coordenada · frescura CONTRADICHA (ficha: 24/10/2019 mensual ·
+        dato: lastUpdated hasta 2026-07-28) — dos números, sin elegir
+      · veladores MU2: 712 · 100 % Point · NOMBRE_LOCAL 99,7 % · pero
+        HUÉRFANOS (sin id/licencia/catastro que los ate a nada) ·
+        mojibake real de origen (NÂº) — el del registro era falso
+        (terminal), corregido por el propio ejecutor
+      · OSM Overpass (municipio): 2.167 · 100 % coordenadas · name
+        98 % — restaurant 882 · cafe 529 · pub 322 · bar 245 ·
+        fast_food 189 · licencia ODbL YA integrada · vivo a diario
+      · Aragón cafeterías-y-restaurantes: fichero de Antonio
+        anatomizado (3,49 MB · 3.376 · Zaragoza-capital 1.466 · vivo a
+        jul-2026 · SIN COORDENADAS → exigiría geocodificar direcciones
+        de 25 años · datos personales: 2.999 tel, 788 email, cif) ·
+        ficha oficial NO CONSTA con causa (robots prohíbe /ckan/api ·
+        401 · cáscara JS) — Antonio puede pegar licencia/frecuencia de
+        su navegador y muere el NO CONSTA
+- [ ] **⚖️ PARLAMENTO ABIERTO — qué categorías entran (tanda 1)**:
+      decide Antonio pieza a pieza (patrón del punto 4: autorización,
+      ficha, verificación). Sobre la mesa: las municipales chicas con
+      nombre+coordenada (farmacias 313 · hospitales 17 · centros de
+      salud 56 · bibliotecas 75 · centros cívicos 25 · mercados 46 ·
+      museos 25…) · y la HOSTELERÍA: ¿entra ya, en tanda 2, o no? —
+      si entra, la fuente con nombre+coordenada es OSM (el registro de
+      licencias no trae rótulos: vale como contexto/censo, no como
+      buscable). El tubo se construye UNA vez con la primera
+      categoría; cada una después es coste marginal (autorización +
+      ficha + sus rarezas)
 - [ ] Decisión de presentación pendiente: 268/313 farmacias llevan
       nombre del titular (dato registral público; republicarlo es lícito
       pero es decisión consciente — la salida fácil: «Farmacia» +
@@ -1014,6 +1079,19 @@ Dejado aquí desde el punto 5 (17/08):
       ^24.15.0 || >=26`) · cómo arranca un proceso Node persistente (el
       grafo vive en memoria: proceso vivo, no CGI) · si permite DOS
       procesos o el motor sirve también los estáticos
+- [ ] **El mantenimiento de datos (el cron educado) — doctrina leída
+      el 23/08, se ejecuta aquí**: la cadencia es POR CONJUNTO y con
+      fuente (la declara el manifiesto del panel de frescura, punto
+      14-adelantado — una verdad, dos usos: color y planificación).
+      El patrón es el **GET CONDICIONAL** [MDN]: preguntar con
+      If-None-Match (ETag) / If-Modified-Since (Last-Modified) y solo
+      bajar si el servidor no contesta 304 — verificar QUÉ validadores
+      emiten nuestras fuentes reales (zaragoza.es, IGN, NAP: NO
+      CONSTA hasta medir). Reintentos con espera creciente; lo que
+      casi nunca cambia se vigila menos. La frescura se comprueba
+      sobre la HUELLA del dato, no sobre el «job OK» [ley nº10].
+      Precedente vivo de la casa: el cron de ZetaBus (02:00);
+      Hostinger: mínimo 15 min
 
 ## 13 — Estética *(en grueso)*
 
@@ -1044,3 +1122,32 @@ pública de la app y se reconstruye al final como herramienta interna.
       de entonces (1.001 líneas, los 14 pinceles en 261-972)
 - [ ] Alcance, acceso (¿protegido?, ¿solo local?) y qué más contiene la
       intranet: `NO CONSTA` — se parlamenta al llegar
+
+**⭐ ADELANTADO AL PRESENTE (parlamentado el 23/08): el panel de
+frescura de los datos.** Idea de Antonio: cada conjunto cargado
+necesita mantenimiento, y hace falta VER de un vistazo de cuándo es la
+última descarga y de cuándo dice ser el dato según el propio fichero.
+Mismo movimiento que el visor en su día — instrumento ahora, mudanza a
+la intranet después — con la lección aprendida: NACE SIN TOCAR LA
+PORTADA. Doctrina detrás: data observability / freshness (dos relojes:
+generado vs disponible · umbral por conjunto, nunca universal ·
+cadencia declarada o APRENDIDA del comportamiento · el color es
+decisión con dueño).
+
+- [ ] **1 · El MANIFIESTO — la semilla y el formato de la verdad**: un
+      fichero único donde cada conjunto declara descargado-el ·
+      el-dato-dice-ser-de · regla de caducidad CON SU FUENTE · huella.
+      Se rellena leyendo las fichas que YA existen (ritual del punto
+      4). Todo lo demás lo LEE: el panel hoy, el cron del 12 mañana
+- [ ] **2 · La PESTAÑA del panel** (pública hoy — decisión D1 de
+      Antonio, 23/08; su destino se decide al llegar la intranet):
+      pinta el manifiesto con semáforo. REGLA FIRMADA (D2): color solo
+      con fuente declarada (GTFS rojo desde el 05/10 [publicador] ·
+      callejero ámbar pasado el mes [«mensual» municipal] · regulado
+      nota 2027) · lo sin regla = GRIS «NO CONSTA», y el gris enseña
+      su cadencia OBSERVADA cuando la haya, sin bautizarla de regla.
+      Solo lectura · carga SOLO su manifiesto (KB) · la portada NI SE
+      ENTERA (el guardián de «la raíz pide CERO a /datos/» sigue
+      mandando)
+- [ ] 3 · El mantenimiento que re-descarga NO va aquí: vive en el
+      punto 12 (el cron educado), leyendo este mismo manifiesto

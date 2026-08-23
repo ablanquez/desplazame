@@ -61,6 +61,27 @@ levantado el 18/08, des-caducado el 21, el 22 y el 23):
 `ab87224`) más el cierre de papeles de hoy, pendiente de su commit. El
 push es de Antonio.
 
+**Punto 8 ABIERTO y el panel de frescura parlamentado (23/08,
+tarde).** El 8 arrancó por doctrina [Nominatim: geocodificar y enrutar
+son dos oficios; centroide + #536 + entradas 2025] y dos sondas de
+solo lectura cerraron la foto de hostelería. ⭐ La pieza gorda la cazó
+ANTONIO EN VIVO (DevTools): el Registro de Licencias tiene servicio
+REST abierto NO catalogado — 42.303 locales, 5.372 «otros cafés y
+bares» (673.2), coordenadas siempre, y codVia/codPortal = LOS NUESTROS
+(97,8 % de cruce por código); cero datos personales; peros: `estado`
+sin descifrar (no se bautiza), sin rótulos de local, tope de descarga
+raro. El resto de la foto: OSM 2.167 con nombre al 98 % (la única
+fuente que cumple nombre+coordenada+vivo) · restaurante.json 1.537
+con 39 % de coordenadas y frescura contradicha · veladores 712
+huérfanos · Aragón sin coordenadas y ficha NO CONSTA con causa. El
+barrido completo de las 251 categorías confirmó: la API municipal NO
+tiene censo de hostelería. Y de la idea de Antonio para la intranet
+nació EL PANEL DE FRESCURA, adelantado al presente (plan, punto 14):
+manifiesto (formato de la verdad) + pestaña pública con semáforo
+[D1 y D2 firmadas: color solo con fuente; gris NO CONSTA con cadencia
+observada] + el cron educado al punto 12 [GET condicional, MDN].
+Parlamento del 8 ABIERTO en la tanda 1 y la hostelería.
+
 **⭐ PUNTO 7 CERRADO (23/08) — la narración de cruces, última
 casilla, HECHA: los combines de odin calcados de fuente.** Tres reglas
 (unnamed straight · same-base · continue obvio 0,6 km con herencia de
@@ -260,12 +281,15 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** el PUNTO 7 CERRADO — sobre la mesa: (1) el commit
-único de papeles y el PUSH del día (seis commits del ejecutor + ese);
-(2) **el punto 8 — destinos con nombre** (EN CONSTRUCCIÓN en el plan:
-la regla del portal condicional ganada, la investigación de
-equipamientos hecha, la salida del dato personal de farmacias
-apuntada). Detrás, el 9 llega con la ordenanza ya leída en grueso.
+**Lo siguiente:** (1) el commit de papeles y el PUSH del día; (2) el
+**parlamento del punto 8, abierto en su pregunta central**: la tanda 1
+de categorías y la hostelería (ya / tanda 2 / no — con OSM como única
+fuente con nombre+coordenada); (3) **el encargo del panel de
+frescura** (manifiesto + pestaña), parlamentado y listo para redactar;
+(4) flecos chicos: la ficha de Aragón (Antonio la pega del navegador y
+muere su NO CONSTA) · el descifre de `estado` del registro si la
+hostelería-contexto entra. Detrás, el 9 con la ordenanza leída en
+grueso.
 
 ---
 
@@ -375,8 +399,15 @@ retirada): quedó FUERA del encargo de narración del 23/08 — no es de
 los combines, huele al NOMBRE ÚNICO (núcleos que no casan por la «V»).
 Si reproduce en rutas vivas: NO CONSTA. Cabo vivo, sin dueño.
 
-**Punto 8:** en construcción — el dato personal de farmacias tiene su
-salida apuntada («Farmacia» + dirección).
+**Punto 8:** parlamento abierto (tanda 1 · hostelería) — el dato
+personal de farmacias tiene su salida apuntada («Farmacia» +
+dirección) · `estado` del registro de licencias SIN DESCIFRAR (0/1/2/3,
+sin catálogo; quizá el visor de Urbanismo lo enseñe — otra caza de
+DevTools si hace falta) · el tope de descarga desigual del registro
+(100 vs 10 filas según consulta; totalCount siempre honesto) · la
+ficha de Aragón NO CONSTA (robots + 401; Antonio puede pegarla) ·
+recuentos de la API movidos desde el 18/08 (50/43/33/15; WFS 187;
+1543 con endpoint 404).
 
 **Punto 9:** la ordenanza VMP antes de etiquetar tramos · la doble
 capitalización «Senda ciclable/Ciclable».
