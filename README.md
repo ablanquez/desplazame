@@ -409,6 +409,63 @@ En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfa
 
 ---
 
+## Ir a un sitio, y no solo a un portal
+
+Los dos campos —origen y destino— admiten **calles o sitios**. Un sitio es un destino con
+nombre: hoy, **las 313 farmacias** del término municipal. Se escriben en la misma casilla y se
+buscan a la vez, pero salen marcados como lo que son, porque una calle y un local no son la
+misma clase de cosa aunque se escriban igual.
+
+> Escribiendo `navarra` en el destino salen las dos capas:
+>
+> ```
+>   CALLE NAVARRA                          31       ← calle
+>   Farmacia · C/ Doña Blanca de Navarra, 46-48     ← sitio
+>   Farmacia · Avda. de Navarra, 65                 ← sitio
+> ```
+
+**Al elegir un sitio, la casilla de portal de ese lado se apaga.** No es un adorno: un sitio
+trae su propia coordenada, así que no hay portal que pedirle — y dejar la casilla encendida
+sería ofrecer un campo que nadie puede rellenar. Es la **regla del portal condicional**, y
+funciona en los dos lados, así que el **⇅** los intercambia sin dejar botones muertos.
+
+**De dónde sale el dato.** De la [API de equipamientos del Ayuntamiento de
+Zaragoza](https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json), categoría 740.
+Su ficha entera —licencia, fecha, huella, recuentos— está en
+[§ 1.16 del THIRD-PARTY-NOTICES](THIRD-PARTY-NOTICES.md), y su frescura es la **fila 22** del
+manifiesto: descargado el 23/08/2026, y el dato dice ser del **08/06/2026** — lo declara la
+cabecera `Last-Modified`, que coincide al segundo con la fecha de modificación más reciente de
+sus registros. En el panel sale **gris**: la fuente no publica cada cuánto lo refresca, y una
+caducidad sin fuente no se inventa.
+
+### ⭐ Dos reglas que se ven poco y deciden mucho
+
+**Sin coordenada no existe.** De las 313 farmacias, **3 no traen punto**. No se sugieren, no se
+pueden elegir y no aparecen en ninguna pantalla. Un destino que no se puede situar no se puede
+enrutar, y ofrecerlo sería prometer una ruta que va a acabar en un aviso — es lo que hace un
+geocodificador de verdad: sin punto no hay nada que indexar. **Pero no se borran ni se editan**:
+siguen en el fichero, se cuentan en su ficha, y el motor las declara al arrancar:
+
+```
+motor: sitios en memoria — 313 farmacias · 310 en el indice · 1 ms
+motor: 3 sin coordenada, fuera del indice (sin coordenada no existe: …)
+```
+
+**Y el nombre de quien la regenta no sale de aquí.** El dato municipal trae el nombre de la
+persona titular en **274 de los 313** títulos. Es dato registral publicado como abierto y
+reutilizarlo es lícito, pero republicarlo no hace falta para nada de lo que esta pantalla hace.
+Así que la pantalla dice **«Farmacia» y la dirección**, y el título con el nombre **no sale a
+ninguna parte**: ni a la sugerencia, ni al paso de la ruta, ni al registro del motor, ni a una
+prueba. El fichero se queda íntegro — el dato entra como vino, y quien lo presenta decide qué se
+lee.
+
+Una ruta a un sitio se lee igual que cualquier otra, con el sitio nombrado en su extremo:
+
+> > ⬆ **Sal de** **Farmacia · Avda. de Navarra, 65** y dirígete hacia el este por
+> > **Avenida de Navarra** · 66 m
+> > …
+> > ⚑ **Calle El Coloso 2** está a la derecha
+
 ## El panel de frescura, y el manifiesto que lo sostiene
 
 Un dato descargado empieza a caducar el mismo día. Nada en un repositorio avisa de eso solo, así
