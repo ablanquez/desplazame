@@ -259,6 +259,18 @@ legend {
   color: #b45309;
 }
 
+/* ⭐ La columna del icono de capa, RESERVADA EN TODOS LOS PASOS aunque solo la
+   llenen dos. Es el mismo motivo que la columna de la flecha: si solo ocupara
+   sitio en la salida y en la llegada, esos dos textos empezarían más a la
+   derecha que los de enmedio y la lista quedaría con dos escalones. */
+.paso__capa {
+  width: 1rem;
+  flex: none;
+  display: flex;
+  align-items: center;
+  align-self: center;
+}
+
 .paso__texto {
   flex: 1 1 auto;
 }

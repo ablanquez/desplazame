@@ -223,6 +223,10 @@ function pasosEnPantalla(raiz: HTMLElement): string[] {
   return Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).map((p) =>
     Array.from(p.querySelectorAll<HTMLElement>('span'))
       .map((s) => s.textContent?.trim() ?? '')
+      // Los huecos NO cuentan. Un `<span>` sin texto —la columna del icono de
+      // capa, que solo se llena en las dos puntas— metía un espacio de más al
+      // unir, y esto compara LO QUE SE LEE. Lo que se lee no cambió.
+      .filter((t) => t !== '')
       .join(' ')
       .trim(),
   );

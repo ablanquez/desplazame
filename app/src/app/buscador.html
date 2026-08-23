@@ -181,6 +181,18 @@
                    («Gira a la izquierda»), así que a quien lea la pantalla en
                    voz alta se le ahorra. -->
               <span class="paso__flecha" aria-hidden="true">{{ flechaDe(paso.giro) }}</span>
+              <!-- ⭐ Y EN LAS DOS PUNTAS, el icono de su extremo, igual que en
+                   la cabecera. Se ancla por el GIRO, no por el índice: es lo
+                   que significa. En una ruta trivial hay un solo paso, de
+                   `llegada`, y le toca el del destino — que es lo correcto:
+                   ahí no se sale de ningún sitio, se está ya. -->
+              <span class="paso__capa">
+                @if (paso.giro === 'salida') {
+                  <app-icono-capa [capa]="r.capaOrigen" papel="origen" [lado]="16" />
+                } @else if (paso.giro === 'llegada') {
+                  <app-icono-capa [capa]="r.capaDestino" papel="destino" [lado]="16" />
+                }
+              </span>
               <!-- El formato de Google: la ACCIÓN y el NOMBRE DE LA VÍA en
                    negrita, el pegamento de la frase no. El motor no manda
                    HTML: manda los trozos con su papel (`partes`), y la

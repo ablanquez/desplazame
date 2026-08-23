@@ -74,6 +74,21 @@ const TRAYECTO: Trayecto = {
   ],
 };
 
+/** Uno con paso de enmedio: para comprobar que el icono va SOLO en las puntas. */
+const TRES_PASOS: Trayecto = {
+  ...TRAYECTO,
+  pasos: [
+    TRAYECTO.pasos[0]!,
+    {
+      giro: 'derecha',
+      texto: 'Gira a la derecha',
+      partes: [{ papel: 'texto', texto: 'Gira a la derecha' }],
+      metros: 40,
+    },
+    TRAYECTO.pasos[1]!,
+  ],
+};
+
 const campoDe = (raiz: HTMLElement, n: string): HTMLInputElement =>
   raiz.querySelector<HTMLInputElement>(`input[name="${n}"]`)!;
 
@@ -273,8 +288,18 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
   });
 
   // ── CASA 3: EL ITINERARIO ──────────────────────────────────────────────────
+  //
+  // ⚠️ EL ITINERARIO SON DOS COSAS, y hasta el 23/08 aquí solo se miraba una.
+  // Arriba va la CABECERA —`header.ruta`, dos líneas con «de dónde» y «a
+  // dónde»—; debajo va LA LISTA DE PASOS, que es lo que se lee para andar. El
+  // guardián de abajo apuntaba a `.ruta__origen`, que es la cabecera, y la dio
+  // por buena: los pasos primero y último llevaban el ◉ y el ⚑ a secas. Un
+  // volcado que miraba el mismo sitio equivocado confirmó al guardián, y dos
+  // instrumentos apuntando al mismo error se dan la razón entre ellos.
+  //
+  // Por eso ahora hay dos pruebas y cada una dice EN SU NOMBRE dónde mira.
 
-  it('⭐ las líneas de salida y llegada llevan el icono de su extremo', async () => {
+  it('la CABECERA lleva el icono de cada extremo', async () => {
     await elegirSitioEn('calleOrigen');
     await elegirDireccionEn('calleDestino', 'portalDestino');
     await generarYMirarElMapa();
@@ -286,6 +311,45 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     expect(salida?.querySelector('path')?.getAttribute('fill')).toBe(COLOR_SITIO);
     expect(llegada?.getAttribute('data-icono')).toBe('via');
     expect(llegada?.querySelector('path')?.getAttribute('fill')).toBe(COLOR_DESTINO);
+  });
+
+  it('⭐ LOS PASOS primero y último llevan el icono de su extremo', async () => {
+    // Es el defecto que Antonio vio en vivo: la cabecera lo tenía y los pasos
+    // no. Se ancla por el GIRO y no por el índice, que es lo que significa: el
+    // paso de `salida` es el del origen y el de `llegada`, el del destino. En
+    // una ruta trivial —el mismo portal en los dos extremos— hay UN paso, de
+    // `llegada`, y le toca el icono del destino: la lista sigue cuadrando.
+    await elegirSitioEn('calleOrigen');
+    await elegirDireccionEn('calleDestino', 'portalDestino');
+    await generarYMirarElMapa();
+
+    const pasos = raiz.querySelectorAll<HTMLElement>('.pasos__lista .paso');
+    expect(pasos.length).toBe(2);
+
+    const primero = pasos[0]!.querySelector<SVGElement>('svg[data-icono]');
+    const ultimo = pasos[pasos.length - 1]!.querySelector<SVGElement>('svg[data-icono]');
+
+    expect(primero?.getAttribute('data-icono')).toBe('sitio');
+    expect(primero?.getAttribute('data-papel')).toBe('origen');
+    expect(ultimo?.getAttribute('data-icono')).toBe('via');
+    expect(ultimo?.getAttribute('data-papel')).toBe('destino');
+  });
+
+  it('⭐ y los pasos DE ENMEDIO no llevan icono: no son extremos', async () => {
+    // Sin esto, «que los pasos lleven icono» se podría cumplir poniéndoselo a
+    // todos, y entonces el icono dejaría de señalar las dos puntas.
+    await elegirDireccionEn('calleOrigen', 'portalOrigen');
+    await elegirDireccionEn('calleDestino', 'portalDestino');
+    raiz.querySelector<HTMLButtonElement>('.generar')!.click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRES_PASOS);
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+
+    const conIcono = Array.from(
+      raiz.querySelectorAll<HTMLElement>('.pasos__lista .paso'),
+    ).map((li) => li.querySelector('svg[data-icono]') !== null);
+    expect(conIcono).toEqual([true, false, true]);
   });
 
   it('⭐ la FORMA corresponde a la capa, no solo el color', async () => {
