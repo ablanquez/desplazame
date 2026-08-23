@@ -15,7 +15,8 @@ import { cargarSitios } from './sitios.ts';
 import { cargarCallejero } from './callejero.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
-import { calcularTrayecto, leerPeticion, type Motor } from './trayecto.ts';
+import { calcularTrayecto, type Motor } from './trayecto.ts';
+import { leerPeticion } from './peticion.ts';
 
 let motor: Motor;
 

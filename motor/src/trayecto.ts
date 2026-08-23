@@ -69,54 +69,6 @@ export interface Motor {
 }
 
 /**
- * Lee la petición sin fiarse de nada de lo que trae.
- *
- * Llega de fuera, así que puede ser cualquier cosa: `null`, una lista, un
- * objeto sin campos, o campos que no son cadenas. Devuelve `null` si no es una
- * petición, y arriba eso se convierte en un aviso — no en un 400.
- */
-export function leerPeticion(cuerpo: unknown): PeticionDeRuta | null {
-  if (typeof cuerpo !== 'object' || cuerpo === null || Array.isArray(cuerpo)) {
-    return null;
-  }
-  const bruto = cuerpo as Record<string, unknown>;
-  const punto = (nombre: string): ExtremoPortal | null => {
-    const valor = bruto[nombre];
-    if (typeof valor !== 'object' || valor === null) {
-      return null;
-    }
-    const { via, portal } = valor as Record<string, unknown>;
-    if (typeof via !== 'string' || typeof portal !== 'string' || via === '' || portal === '') {
-      return null;
-    }
-    return { via, portal };
-  };
-  /**
-   * Un extremo puede venir de dos formas, y se prueban **en este orden**: si
-   * trae `sitio`, es un sitio; si no, se le exige la pareja vía+portal. Lo que
-   * no sea ninguna de las dos no es una petición, y arriba eso es un aviso.
-   */
-  const extremo = (nombre: string): ExtremoDeRuta | null => {
-    const valor = bruto[nombre];
-    if (typeof valor === 'object' && valor !== null) {
-      const { sitio } = valor as Record<string, unknown>;
-      if (typeof sitio === 'string' && sitio !== '') {
-        return { sitio };
-      }
-    }
-    return punto(nombre);
-  };
-  // Los dos extremos, por el mismo camino: la simetría empieza aquí.
-  const origen = extremo('origen');
-  const destino = extremo('destino');
-  const modo = bruto['modo'];
-  if (!origen || !destino || typeof modo !== 'string') {
-    return null;
-  }
-  return { origen, destino, modo: modo as Modo };
-}
-
-/**
  * ⭐ UN EXTREMO YA RESUELTO: un punto y cómo se llama.
  *
  * Es lo único que el cálculo necesita de un extremo, y por eso los dos —el

@@ -23,7 +23,8 @@ import { portalCercano } from './cercano.ts';
 import { cargarRed } from './red.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
-import { calcularTrayecto, leerPeticion, type Motor } from './trayecto.ts';
+import { calcularTrayecto, type Motor } from './trayecto.ts';
+import { leerPeticion } from './peticion.ts';
 
 /** Cuánto se acepta como cuerpo de una petición. Una ruta cabe de sobra. */
 const CUERPO_MAXIMO = 4096;
