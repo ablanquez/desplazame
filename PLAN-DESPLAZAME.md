@@ -833,13 +833,41 @@ issue #4657, ABIERTO). Tres pasos que no se saltan:
       (2.487 · 6.371 · 4.517 · 342 · 0 · Aviso), cycleway 0 en todas.
       Commits `7d2ffcb` + `1067c6f` (el README cuenta la retirada, no
       la calla)
-- [ ] **La narración de los cruces** (nacida de la casilla 3, con
-      doctrina LOCALIZADA y pendiente de leer a fondo — y VIGENTE tras
-      la retirada de la prioridad, en tamaño menor): los genéricos
-      como destino de paso («hacia la acera» 250 m en la céntrica ·
-      «hacia la zona peatonal») y el zigzag A→B→A (Leopoldo, Marqués
-      de la Cadena → Enriqueta Castejón 180 m → Marqués otra vez). La
-      razón de colapso hoy: 6,7, guardián con suelo en 5.
+- [x] **La narración de los cruces — HECHA (23/08): los combines de
+      odin calcados** (`0225b4b`→`ab87224`). Doctrina leída de fuente
+      (maneuversbuilder.cc 4.100 líneas · narrativebuilder.cc 4.958):
+      tres reglas calcadas — unnamed straight · same-base straight ·
+      continue obvio (umbral 0,6 km, constante leída) con la mitad que
+      HEREDA nombre — más los vetos (tipo real, escaleras, cruce con
+      fraseo propio, destino) y una cota [PROPIO] declarada (0,6 km al
+      genérico que desaparece; sin ella 2 de 89 mienten). Resultado
+      sobre 387 rutas: 9.348→9.232 pasos (−116, cuadrado regla a
+      regla), genéricos −7,9 %, 80 rutas bajan, CERO suben, geometrías
+      idénticas al byte (sha256). ⛔ La MITAD ANCHA de odin (absorber
+      perdiendo nombre) queda FUERA, FIRMADA por Antonio: nuestro
+      «Continúa» no es el kContinue de Valhalla (0 de 1.511 repiten
+      calle — semántica distinta, medida); habría borrado 1.099
+      nombres (Cataluña 2.971 m, San Juan de la Peña 1.203). Lápida
+      con cifras en el código: reabrirla exige medición que las
+      desmienta. El multi-cue verbal (13 s): declarado no implementado
+      (capa de voz). Bitácora nº10 (el medidor contaba ramas sin
+      descontar las de la ruta; cazado por la juez de Biel en rojo con
+      el motor teniendo razón) — ley: «una contraprueba solo vale para
+      lo que atraviesa». 19 guardianes nuevos, 15/15 contraprueba,
+      179/179. El ZIGZAG A→B→A no se toca: problema abierto del
+      ecosistema entero (listas OSM 2015/2020, #4657) — geometría
+      real, sin regla que calcar; se declaró y se queda. Dos flecos
+      parlamentados y cerrados: la frase caducada del 121.1 en
+      andando.ts (`a83441a`) y los porcentajes sin procedimiento fuera
+      del README (`ab87224`) — NORMA NUEVA: al README solo cifras con
+      comando y muestra declarados.
+
+**⭐ PUNTO 7 CERRADO ENTERO (23/08).** La demo andando: real, legal
+(art. 121.1 + tabla de acceso), mínima en metros (decisión del ojo,
+22/08), ligera (0,22 MB) y bien narrada (odin). Las bitácoras nº6-10
+son suyas. Lo aplazado con casilla propia: acera-bici (punto 9),
+narración fina de plaza-hito y rotondas (mejora futura declarada),
+visor→Intranet (punto 14).
       La doctrina existe: en Valhalla la narración (odin) es fase
       propia que colapsa la lista de maniobras a una lista concisa
       [docs oficiales], y el modelo de maniobra trae

@@ -5,16 +5,16 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 22 de agosto de 2026 (tarde)
+## ESTADO ACTUAL — 23 de agosto de 2026 (mediodía)
 
-**⭐ PUNTOS 1-6 CERRADOS Y EL 7 A FALTA DE UNA CASILLA: la demo calcula,
-pinta y narra rutas andando por donde manda la ley, VISTA por el ojo de
-Antonio («ahora ya carga las rutas bien») y LIGERA — 0,22 MB en frío,
-eran 41. Del punto 7 queda solo la casilla de la narración de cruces
-(sin prisa); su destino —esperarla o mudarla— lo decide Antonio.**
+**⭐ PUNTOS 1-7 CERRADOS (el 7, el 23/08). La demo andando está
+ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
+(el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
+(los combines de odin). Lo siguiente del plan: el punto 8 — destinos
+con nombre.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
-levantado el 18/08, des-caducado el 21 y el 22):
+levantado el 18/08, des-caducado el 21, el 22 y el 23):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
@@ -36,9 +36,9 @@ levantado el 18/08, des-caducado el 21 y el 22):
   es su publicación al navegador.
 - **El motor**: workspaces npm, contrato en `@desplazame/tipos`,
   TypeScript SIN compilar, carga antes de `listen()` (grafo 98.774
-  aristas ~190 ms · callejero 3.359 vías · 46.150 portales), ~248 MB de
-  RSS (medido en el punto 5; el 7 sumó +344 ms de arranque y +11,1 MB de
-  heap — el RSS NO se ha vuelto a medir). Endpoints vivos, CINCO:
+  aristas ~190 ms · callejero 3.359 vías · 46.150 portales), 412 MB de
+  RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
+  anotado para el punto 12). Endpoints vivos, CINCO:
   `/api/salud` · `/api/vias?q=` · `/api/portales?via=` ·
   `/api/portal-cercano` · `POST /api/ruta`. ⭐ N = 3.359 · M = 2.731 (la publicada).
 - **Los datos**: TRECE conjuntos / catorce fichas — el decimotercero, los
@@ -47,7 +47,7 @@ levantado el 18/08, des-caducado el 21 y el 22):
   descargas propias (aparcabicis, aparcamotos, regulado, zonas, PMR),
   todas con la norma Set-Cookie. El callejero lleva 5 correcciones
   declaradas («están mal y punto»).
-- **La bitácora: 9 entradas, las 9 cerradas con ley.** Las guardias
+- **La bitácora: 10 entradas, las 10 cerradas con ley.** Las guardias
   (interfaz y motor) con rojos vistos, exigiendo las tres cargas.
 - **La carta y el README al día con la doc delante**: CLAUDE.md dice el
   motor real y apunta en vez de listar; el README tiene «Cómo arrancarlo
@@ -55,24 +55,36 @@ levantado el 18/08, des-caducado el 21 y el 22):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `3109f13`** (push del 21/08 por la noche,
-`cb01522..3109f13`). **En local, sin publicar: los cinco commits del 22**
-(`7d2ffcb` · `1067c6f` · `ddcdb11` · `6327e45` · `1deaa86`) más el
-cierre de papeles de esta tarde, pendiente de su commit. El push es de
-Antonio.
+**Publicado hasta `f1e955f`** (push del 22/08 por la noche,
+`3109f13..f1e955f`). **En local, sin publicar: los seis commits del 23**
+(`0f01130` · `0225b4b` · `d6d176e` · `0a90eb5` · `a83441a` ·
+`ab87224`) más el cierre de papeles de hoy, pendiente de su commit. El
+push es de Antonio.
 
-**⭐ PUNTO 6 CERRADO (19/08).** El estado de los cuatro campos subió al
-padre con la doc de Angular delante (`model()` + atadura desazucarada —
-y cerró el hueco latente del model externo), ⇅ invertir cruza estados a
-medias incluidos, y «Mi ubicación» rellena por código vía
-`/api/portal-cercano` (1,35 ms medidos) con umbrales medidos (≤100 m de
-accuracy [DOC MDN] · ≤150 m al portal — y el hallazgo: no existe corte
-que separe Zaragoza de fuera, así que el mensaje dice la verdad medible:
-«el portal más cercano está a N metros»). Ocho mensajes dignos en total.
-La prueba de fuego fue el sobremesa de Antonio: accuracy 5000 m (IP) →
-el botón se negó con el número real dentro — el umbral funcionando en
-vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
-repintado sin zone.js verificado sin empujón.
+**⭐ PUNTO 7 CERRADO (23/08) — la narración de cruces, última
+casilla, HECHA: los combines de odin calcados de fuente.** Tres reglas
+(unnamed straight · same-base · continue obvio 0,6 km con herencia de
+nombre), los vetos, y una cota [PROPIO] declarada. Sobre 387 rutas:
+−116 pasos (9.348→9.232), genéricos −7,9 %, 80 rutas bajan y CERO
+suben, geometrías idénticas al byte. Las seis juez intactas — y como
+en ellas ninguna regla disparaba, el rojo se compró con TRES juez
+nuevas donde sí muerden (33→31 · 20→18 · 32→31) más la del veto
+(Biel). La MITAD ANCHA de odin, FUERA y firmada por Antonio: nuestro
+«Continúa» no es su kContinue (0/1.511 repiten calle) y habría
+borrado 1.099 nombres — lápida con cifras en el código. El zigzag
+A→B→A declarado sin regla: problema abierto del ecosistema (listas
+OSM, #4657), geometría real. **Bitácora nº10** (el medidor de cruces
+contaba ramas sin descontar las de la ruta; publicó cifras infladas
+que un comentario ya llevaba; la juez de Biel lo cazó en rojo con el
+motor teniendo razón) — ley: «una contraprueba solo vale para lo que
+atraviesa»; 10 entradas, 10 cerradas. 19 guardianes nuevos, 15/15,
+179/179 motor. Dos flecos parlamentados: la frase caducada del 121.1
+en andando.ts reescrita (`a83441a`) y los porcentajes sin
+procedimiento FUERA del README (`ab87224`) — NORMA: al README solo
+cifras con comando y muestra declarados. Commits del día: `0f01130` ·
+`0225b4b` · `d6d176e` · `0a90eb5` · `a83441a` · `ab87224`. Hallazgo
+sin dueño aún: dos cifras históricas del README no reproducían —
+resuelto quitándolas (decisión B de Antonio).
 
 **Punto 7 — fuera el visor y los andamios (22/08, tarde): la app
 queda en 0,22 MB.** Parlamentado: el visor NO muere — se RESERVA para
@@ -235,13 +247,25 @@ futura). El plan lo estructura en TRES encargos: A el fichero de
 nombres OSM (autorizado) · B el motor (`/api/ruta`) · C la pantalla
 (pintado + pasos, y la respuesta falsa se retira).
 
-**Lo siguiente:** los andamios HECHOS — del punto 7 queda UNA casilla:
-la narración de los cruces (genéricos «hacia la acera» y zigzag,
-doctrina localizada, sin prisa). Sobre la mesa de Antonio — (1) el
-commit único del cierre de papeles y el PUSH (cinco commits del 22 +
-ese); (2) el destino de la narración: esperarla dentro del 7 o mudarla
-y cerrar el 7 ya; (3) detrás: el punto 8 (destinos con nombre, en
-construcción).
+**⭐ PUNTO 6 CERRADO (19/08).** El estado de los cuatro campos subió al
+padre con la doc de Angular delante (`model()` + atadura desazucarada —
+y cerró el hueco latente del model externo), ⇅ invertir cruza estados a
+medias incluidos, y «Mi ubicación» rellena por código vía
+`/api/portal-cercano` (1,35 ms medidos) con umbrales medidos (≤100 m de
+accuracy [DOC MDN] · ≤150 m al portal — y el hallazgo: no existe corte
+que separe Zaragoza de fuera, así que el mensaje dice la verdad medible:
+«el portal más cercano está a N metros»). Ocho mensajes dignos en total.
+La prueba de fuego fue el sobremesa de Antonio: accuracy 5000 m (IP) →
+el botón se negó con el número real dentro — el umbral funcionando en
+vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
+repintado sin zone.js verificado sin empujón.
+
+**Lo siguiente:** el PUNTO 7 CERRADO — sobre la mesa: (1) el commit
+único de papeles y el PUSH del día (seis commits del ejecutor + ese);
+(2) **el punto 8 — destinos con nombre** (EN CONSTRUCCIÓN en el plan:
+la regla del portal condicional ganada, la investigación de
+equipamientos hecha, la salida del dato personal de farmacias
+apuntada). Detrás, el 9 llega con la ordenanza ya leída en grueso.
 
 ---
 
@@ -296,9 +320,9 @@ colgadas de sus capas.
 ## 4 · El plan
 
 `PLAN-DESPLAZAME.md`, renumerado a enteros el 19/08 (fuera el «6B»):
-**1-6 CERRADOS** · 7 primera ruta andando (TODO hecho — demo, tabla
-del peatón, mínimo de distancia, andamios fuera — salvo la casilla de
-narración) · 8 destinos con nombre
+**1-7 CERRADOS** (el 7 entero el 23/08: demo + tabla del peatón +
+mínimo de distancia + andamios fuera + narración de odin) ·
+8 destinos con nombre
 (EN CONSTRUCCIÓN; ganó la regla del portal condicional y la opción de
 las 628 con trazados) · 9 bici/patinete (ordenanza VMP) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
@@ -332,7 +356,7 @@ Patinete» y «Bus / Tranvía» (mayúscula por peso visual; VMP descartado)
 
 ## 6 · Cabos abiertos
 
-**Punto 7 (lo que sigue vivo):** los **581** portales sin proyección →
+**Punto 7 (CERRADO el 23/08 — cabos que le sobreviven):** los **581** portales sin proyección →
 `Aviso` honesto con nombre (460 son URBANIZACIÓN PEÑA ZORONGO, la
 componente 39: el radio NO se sube) — sustituyen a los 124 del censo
 viejo · los 628 con vía sin portal → candidato a `Aviso`, y su casilla
@@ -347,8 +371,9 @@ pelada o se decide traer el dato (casilla 2) · el sexto valor de `p`
 se perdió, y el punto 7 construyó la proyección por su cuenta · la
 plaza dicha de dos maneras en pasos seguidos («Plaza del Emperador
 Carlos V» → «Plaza Emperador Carlos», visto el 22/08 en la ruta C
-retirada — si reproduce en rutas vivas: NO CONSTA; se mira con la
-narración, huele a núcleos que no casan por la «V»).
+retirada): quedó FUERA del encargo de narración del 23/08 — no es de
+los combines, huele al NOMBRE ÚNICO (núcleos que no casan por la «V»).
+Si reproduce en rutas vivas: NO CONSTA. Cabo vivo, sin dueño.
 
 **Punto 8:** en construcción — el dato personal de farmacias tiene su
 salida apuntada («Farmacia» + dirección).
@@ -393,7 +418,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 224 pruebas (160 motor + 64 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
+§6) · 243 pruebas (179 motor + 64 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
