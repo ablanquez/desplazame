@@ -132,6 +132,37 @@
 > pero su nombre no se dice. Es el precio declarado de seguir a OSRM, y esas plazas siguen
 > viéndose en el mapa.
 >
+> **Y una tercera pasada, la de Valhalla: dos cosas que no son maniobras.** Hasta aquí todo venía
+> de OSRM; esto viene de **odin**, que es como Valhalla llama a su fase de narración, y de su
+> función `Combine()`. Son dos reglas y las dos quitan pasos que no dicen nada:
+>
+> - **Dos genéricos seguidos y rectos son uno.** Una ruta larga por las afueras decía «Continúa
+>   hacia el camino · 6.230 m» y justo después «Continúa hacia el camino · 1.260 m». Es el mismo
+>   camino contado dos veces porque OpenStreetMap lo parte, y ahora se lee **un solo paso de
+>   7.500 m**. ⚠️ Con una condición que no es un detalle: **tienen que decir lo mismo**. «La
+>   calzada» seguida de «el vial de servicio» no se funden, porque cuando un paso se llama por su
+>   tipo el tipo es toda la información que lleva, y juntarlos escribiría una vía que no existe.
+> - **Un «Continúa» que no se puede desobedecer se calla, y le deja su nombre al paso que se lo
+>   come.** Si vienes por un tramo sin nombre y desde el cruce no hay más que seguir —o ninguna
+>   otra rama se llama igual—, «Continúa hacia el camino · 107 m» y «Continúa hacia Calle Cristo
+>   Rey · 54 m» pasan a ser **«Continúa hacia Calle Cristo Rey · 160 m»**. No se pierde nada: lo
+>   que desaparece es el hueco y lo que queda es el nombre.
+>
+> **Lo que estas dos reglas NO hacen, y es la mitad del trabajo.** Valhalla también absorbe el
+> «Continúa» cuando el paso que se lo come **ya tenía nombre**, y eso aquí no entra. Medido sobre
+> 387 rutas antes de decidirlo: **desaparecerían 1.099 nombres de calle**, 237 de ellos en tramos
+> de más de 600 m, con casos como **«Avenida de Cataluña · 2.971 m» absorbida dentro de «Paseo de
+> la Ribera»**. La razón está en el dato: **de los 1.511 «Continúa» que quedan, ninguno repite la
+> calle del paso anterior** —esos ya los junta la regla de arriba—, así que aquí un «Continúa» es
+> siempre una calle que **cambia de nombre**, y callarlo sería callar la única seña de tres
+> kilómetros. Queda fuera con sus números escritos, no en silencio.
+>
+> **Lo que las tres pasadas juntas hacen, medido:** sobre 387 rutas reales, **9.348 pasos pasan a
+> 9.232** —80 rutas se acortan y **ninguna se alarga**— y los pasos que dicen un genérico bajan de
+> **1.420 a 1.308**. Y lo que no se mueve ni un byte: **la geometría y los metros de las 387 son
+> idénticos**, comprobados con la misma huella `sha256`. Narrar es escribir lo que ya está
+> calculado; el día que una regla de narración mueva un metro, será que está tocando la ruta.
+>
 > **Y el tiempo va dicho como lo que es**: «~4 min **a 5 km/h**». Es una división —los metros
 > entre la velocidad a pie de manual—, no un cronómetro: no entran cuestas, ni semáforos, ni el
 > rato que se tarda en cruzar. Un «4 min» a secas prometería algo que aquí no se ha medido.
@@ -368,7 +399,7 @@ Cinco rutas vivas. Las que vengan las decide el plan, no esta lista:
 | `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 36**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,7 pasos y ~13 kB** de media—. Sin ruta, un aviso que dice por qué |
+| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
