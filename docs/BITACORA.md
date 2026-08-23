@@ -14,6 +14,61 @@
 
 ---
 
+## [2026-08-23] 🔴 ABIERTA — El medidor de la tercera condición de odin cuenta las ramas del cruce sin descontar las dos de la ruta, y el disparo sale inflado
+
+**Categoría:** instrumento que cuenta de más porque no excluye lo suyo
+**Síntoma:** para decidir el alcance de los combines de odin se midió cuántas
+veces dispararía cada condición sobre 387 rutas reales. La tercera —«ninguna
+otra rama del cruce se llama igual»— se implementó en el medidor del scratchpad
+como `ramasConEseNucleo(nodo) <= 2`, dando por hecho que las dos que sobran son
+la de llegada y la de salida. **No siempre son dos, y no siempre son esas.** En
+el nodo 47040 de Zaragoza salen TRES ramas de Avenida Alcalde Gómez Laguna: la
+de llegada es genérica, así que las dos con nombre son la que se sigue (59781)
+y **otra rama distinta de la misma avenida** (58466). El medidor contó 2 y dijo
+«no hay otra»; hay otra, y por eso seguir ahí no es obvio. La cifra que se
+publicó —1.350 disparos de la tercera condición sobre 1.627 «Continúa», y las
+que de ella se derivaron: 123 casos limpios, 1.216 nombres perdidos, 4 casos
+mentirosos— **está medida sobre ese filtro y ya está escrita en un comentario
+de `motor/src/pasos.ts`**.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la contraprueba del
+instrumento, que se escribió justamente para no repetir la nº9. Ejecutada antes
+de tocar nada:
+
+```
+$ node scratchpad/contra2.ts contra
+rutas=387  reproducen pasos Y METROS: 387
+CONTRAPRUEBA 2 OK
+```
+
+387 de 387 con los metros al decimal. Y el medidor imprimía su cifra sin que
+nada la contradijera:
+
+```
+$ node scratchpad/medir-seguro.ts
+(c) el continue que HEREDA nombre  : 132
+      VETADOS (cruce o escaleras)   : 9
+      LIMPIOS, entran               : 123
+```
+
+**Cómo se cazó:** test — la juez `⭐ (c) el «Continúa» que se absorbe puede ser
+LARGO` se escribió con la cuenta a mano (24 − 1 = 23 pasos) sobre un disparo que
+el medidor declaraba, y salió ROJA contra el motor ya implementado: `24 !== 23`.
+El motor tenía razón y la expectativa venía de un insumo falso.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** ⏳ PENDIENTE
+**Traza:** el medidor `medir-reglas.ts` / `medir-seguro.ts` / `dano-c.ts` del
+scratchpad, función `nucleosDelNodo`; la contraprueba `contra2.ts`; y la cifra
+ya publicada en el comentario de la regla D en `motor/src/pasos.ts`.
+
+**Nota:** el arreglo ya había comenzado al abrir esta entrada — la regla D está
+escrita y en verde en dos de sus tres juez; lo que está mal es la cifra que la
+justifica en su comentario y la juez que salió del insumo falso.
+
+---
+
 ## [2026-08-21] ✅ CERRADA — La simulación del coste divide metros de geometría entre un `metros` que ya era coste, y el desvío de la céntrica sale 18 veces mayor
 
 **Categoría:** instrumento de medición con dos magnitudes en el mismo campo
