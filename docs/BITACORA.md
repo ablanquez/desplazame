@@ -14,6 +14,123 @@
 
 ---
 
+## [2026-08-23] ✅ CERRADA — El aviso «no trae un origen y un destino» lo daba un motor arrancado 36 minutos antes del commit que lo arreglaba: el código estaba bien, y las 298 pruebas también
+
+**Categoría:** guardián que existía, cubría el caso exacto, y nadie invocó
+
+**Síntoma:** con la app en la mano, elegir una farmacia como ORIGEN devolvía «La
+petición no trae un origen y un destino con su vía y su portal». Reproducido contra
+el proceso que estaba contestando, con códigos reales del propio motor:
+
+```
+$ curl -s -X POST http://localhost:3000/api/ruta -d '{"origen":{"sitio":"Farmacias.8691"},"destino":{"via":"8065","portal":"Portales.93310"},"modo":"andando"}'
+origen-sitio         metros 0 pasos 0 avisos ['La petición no trae un origen y un destino con su vía y su portal.']
+destino-sitio        metros 5076 pasos 22 avisos []
+```
+
+Lo delatado por el segundo renglón: ese motor acepta el sitio en el destino y no en
+el origen, que es **exactamente** `leerPeticion` en el commit `ffe9167` (`origen =
+punto('origen')`), no en el de hoy. El código del árbol no tiene ese fallo.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **todo**. Las dos suites enteras,
+ejecutadas con el aviso vivo en la pantalla de Antonio y antes de tocar nada:
+
+```
+$ cd motor && node --test "src/**/*.spec.ts"
+ℹ tests 198
+ℹ pass 198
+ℹ fail 0
+
+$ cd app && npx ng test --watch=false
+ Test Files  8 passed (8)
+      Tests  100 passed (100)
+```
+
+Y el cuerpo que la pantalla manda de verdad, sacado del `POST` con el formulario
+conducido a mano (farmacia en el origen, dirección en el destino):
+
+```
+CUERPO>>> {"origen":{"sitio":"Farmacias.8691"},"destino":{"via":"5140","portal":"Portales.5140a"},"modo":"andando"}
+```
+
+Es el cuerpo correcto: `leerPeticion` de hoy lo acepta. **Ninguna de las 298 pruebas
+cruza ese cuerpo con ese lector**, así que las 100 de la pantalla habrían seguido en
+verde con el origen roto de verdad.
+
+El que NO daba verde es el guardián del arranque, que cubre este caso desde el
+16/08 y **no se invocó**. Corrido ahora, en rojo a la primera:
+
+```
+$ npm run comprobar-arranque -- motor
+  MAL  el servidor arrancó ANTES de que cambiara src\trayecto.spec.ts: sirve configuración vieja
+       src\trayecto.spec.ts tocado a las 2026-08-23T16:31:06.081Z · PID 23004 arrancó a las 2026-08-23T16:25:27.664Z
+ROJO  (código 4)
+```
+
+**Cómo se cazó:** usuario. Antonio, con la app delante. El diagnóstico —que era el
+proceso y no el código— salió de cotejar la hora de arranque del PID 23004
+(18:25:27) con la del commit `3f6847c` (19:01:12).
+
+**Causa raíz:** dos, encajadas. **(1) El caso**: Node ejecuta el TypeScript
+directamente y no recarga nada, así que el motor que arrancó a las 18:25:27 siguió
+sirviendo `leerPeticion` de `ffe9167` después de que `3f6847c` (19:01:12) la
+cambiara. No hubo fallo de código: hubo un proceso de hace 36 minutos contestando
+con cara de actual. **(2) El fondo**, que es lo que hacía el caso invisible: el
+lector de la petición vivía dentro de `trayecto.ts`, que necesita el grafo, los
+portales y el callejero. Importarlo desde la pantalla arrastraba `node:fs`, así que
+**no se podía escribir la prueba que cruza las dos piezas** — y lo que no se puede
+probar, no se prueba. El hueco no era un olvido: era una consecuencia de dónde
+estaba puesta la función.
+
+**Arreglo aplicado:** tres capas. **(1) El caso**: se mató el PID 23004, se confirmó
+el puerto libre (`curl → 000`) y se arrancó de nuevo (PID 25056). Verificado por
+identidad, no por estado — `npm run comprobar-arranque -- motor` en VERDE, y las tres
+combinaciones contestando lo que dicen J8 y J9: `origen-sitio 5076 m / 21 pasos` ·
+`destino-sitio 5076 m / 22 pasos` · `sitio-sitio 2729 m / 11 pasos`, avisos vacíos.
+**(2) El fondo**: `leerPeticion` sale de `motor/src/trayecto.ts` a
+`motor/src/peticion.ts`, que no importa nada más que el contrato. `servidor.ts` y
+`trayecto.spec.ts` lo importan de su sitio nuevo; no queda reexportación de paso.
+**(3) La juez que faltaba**: `app/src/app/peticion-de-punta-a-punta.spec.ts` conduce
+el formulario a mano en las cuatro combinaciones, saca el cuerpo del `POST` tal como
+sale al cable —pasado por `JSON.stringify`, para que un `undefined` se vea
+desaparecer— y se lo da a leer a `leerPeticion`. **La de verdad, importada, no una
+copia.** Vista en rojo devolviendo `leerPeticion` a su versión de `ffe9167`: 2 rojas
+(`expected null to deeply equal {…}`), que es este fallo exacto reproducido; y
+mandando la presentación en vez del código desde la app: 5 rojas.
+
+**Commit:** `dbabafb` (`test(app): la juez de punta a punta — el cuerpo real contra
+el lector real`). La captura de esta entrada es anterior al arreglo.
+
+**Ley que sale de aquí:** dos, y las dos son de cobertura, no de código.
+**(1)** Las pruebas del motor prueban el motor y las de la pantalla prueban la
+pantalla; **entre las dos queda el cable, y ahí no vigila nadie**. Una petición que
+sale bien formada de la pantalla y un lector que la sabe leer pueden estar los dos
+en verde sin haberse visto nunca: hace falta una prueba que coja **el cuerpo real
+del `POST`** y se lo dé a **la función real del motor**.
+**(2)** Un guardián que hay que acordarse de invocar no es cobertura, es
+documentación. Este existía, cubría el caso y estaba rojo mientras se buscaba el
+fallo en el sitio equivocado. **Antes de dar por roto el código porque la pantalla
+falla, se corre el guardián del arranque** — cuesta 3 segundos y aquí habría
+contestado a la primera pregunta.
+
+*Añadido al cerrar (2026-08-23):* la ley (1) pedía una prueba que cruzara el cable, y
+al ir a escribirla apareció **por qué no existía**: no se podía. El lector estaba
+dentro del fichero que carga el grafo, y desde la pantalla eso arrastra `node:fs`.
+De ahí una tercera: **una función que valida lo que llega de fuera no debe vivir con
+las que leen del disco.** Si la única pieza que las dos mitades comparten no se puede
+importar desde las dos, la costura no es que esté mal vigilada — es que no se puede
+vigilar. Y la ley (2) se cobró sola: el guardián existía y estaba rojo mientras se
+buscaba el fallo en la app.
+
+**Traza:** `motor/src/trayecto.ts` (`leerPeticion`) · `app/src/app/buscador.ts`
+(`extremoDe`) · proceso `node src/servidor.ts` PID 23004, arrancado 2026-08-23
+18:25:27 · guardián `app/scripts/comprobar-arranque.mjs` (perfil `motor`) ·
+referencia cruzada: entrada del 2026-08-16 («El `200` de `localhost:4200` lo daba un
+servidor muerto»), que es este mismo fallo en la otra pieza y de la que salió el
+guardián.
+
+---
+
 ## [2026-08-23] ✅ CERRADA — El medidor de la tercera condición de odin cuenta las ramas del cruce sin descontar las dos de la ruta, y el disparo sale inflado
 
 **Categoría:** instrumento que cuenta de más porque no excluye lo suyo
