@@ -1,0 +1,558 @@
+{
+  "name": "desplazame-datos",
+  "title": "Desplazame — los conjuntos de datos que el proyecto consume",
+  "description": "Manifiesto de frescura: por cada conjunto, cuando se descargo, que fecha declara el dato de si mismo, con que regla caduca (y de donde sale esa regla) y su huella sha256. Sigue el descriptor Data Package v1 de Frictionless Data y toma de DCAT los terminos de frescura. Las propiedades en castellano son NUESTRAS y estan ahi porque el estandar calla: `descargadoEl`, `modifiedFuente`, `periodicidadFuente`, `caducaEl`, `caducidadFuente`. Lo que no consta se OMITE: la ausencia es el resultado, no un hueco que rellenar.",
+  "profile": "data-package",
+  "homepage": "https://www.zaragoza.es/sede/portal/datos-abiertos/",
+  "created": "2026-08-23",
+  "licenses": [
+    {
+      "name": "other-pd",
+      "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+      "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+    },
+    {
+      "name": "ODbL-1.0",
+      "title": "Open Database License 1.0",
+      "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+    },
+    {
+      "name": "other-open",
+      "title": "Licencia de datos abiertos del MITMS",
+      "path": "https://nap.mitma.es/"
+    }
+  ],
+  "sources": [
+    {
+      "title": "THIRD-PARTY-NOTICES.md — la ficha de cada conjunto, con su procedencia",
+      "path": "THIRD-PARTY-NOTICES.md"
+    }
+  ],
+  "resources": [
+    {
+      "name": "callejero-portales",
+      "path": "app/data/2026-05-13_zgzradar_callejero-portales-zaragoza.json",
+      "title": "Portales de Zaragoza (46.150)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 10835605,
+      "hash": "sha256:3c391d60cf91362c984ec2ac2e302f7eec2ce35d94deb42f6e42b678aef7cfdc",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS Urbanismo · capa urbanismo:Portales",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs"
+        }
+      ],
+      "modified": "2026-05-13T07:11:41.075Z",
+      "modifiedFuente": "metadato del conjunto de origen «callejero-zaragoza» v1.0, recogido en THIRD-PARTY-NOTICES.md § 1.2 — el fichero en si es un array plano y no lo declara",
+      "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/MONTHLY",
+      "periodicidadFuente": "THIRD-PARTY-NOTICES.md § 1.2: «el callejero municipal se refresca (politica declarada: mensual)»"
+    },
+    {
+      "name": "callejero-vias",
+      "path": "app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json",
+      "title": "Callejero de vias de Zaragoza (3.359)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 1025408,
+      "hash": "sha256:5f5df76a32098e088ad4c92126e72a9e84835663647f9c4f47300232dc038104",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS Urbanismo · capa urbanismo:Vias",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs"
+        }
+      ],
+      "modified": "2026-05-13T07:11:41.075Z",
+      "modifiedFuente": "mismo conjunto «callejero-zaragoza» v1.0 que los portales, THIRD-PARTY-NOTICES.md § 1.3 — el fichero es un array plano y no lo declara",
+      "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/MONTHLY",
+      "periodicidadFuente": "THIRD-PARTY-NOTICES.md § 1.2: «el callejero municipal se refresca (politica declarada: mensual)» (la cita habla del callejero municipal, que es lo que es esta capa)"
+    },
+    {
+      "name": "grafo-peatonal",
+      "path": "app/data/grafo-visor.js",
+      "title": "Grafo de continuidad peatonal y ciclable (68.649 nodos · 98.774 aristas)",
+      "format": "js",
+      "mediatype": "application/javascript",
+      "encoding": "utf-8",
+      "bytes": 23925689,
+      "hash": "sha256:d7d03aed71990d1ca5233955bff0940bda455422e6fd51dd755eb9c07f5cc717",
+      "licenses": [
+        {
+          "name": "ODbL-1.0",
+          "title": "Open Database License 1.0",
+          "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "OpenStreetMap, via Overpass — derivado",
+          "path": "https://www.openstreetmap.org/copyright"
+        }
+      ],
+      "modified": "2026-08-03T08:19:51Z",
+      "modifiedFuente": "el propio fichero lo declara en su campo `sello`"
+    },
+    {
+      "name": "carriles-bici",
+      "path": "app/data/2026-08-04_wfs_movilidad-MU2_carriles_bici.json",
+      "title": "Carriles bici y sendas ciclables (733)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 785975,
+      "hash": "sha256:65b356aa751fb4ec02c24dce43e8fbaf51ee350987c798142feabb6320ac3fd4",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU2_carriles_bici",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-04T11:52:40Z"
+    },
+    {
+      "name": "postes-bus",
+      "path": "app/data/2026-08-10_wfs_movilidad-MU3_paradas_bus_unicas.json",
+      "title": "Postes de autobus urbano (944)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 226540,
+      "hash": "sha256:f335b56d586a387bfd592abfa32d0536cc1bb1b8c3a2520d6cf68e0e05d43bad",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU3_paradas_bus_unicas",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-10T09:48:39Z"
+    },
+    {
+      "name": "aparcabicis",
+      "path": "app/data/2026-08-17_wfs_movilidad-MU2_aparcabicis.json",
+      "title": "Aparcabicis (2.158)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 695754,
+      "hash": "sha256:777036273a0227e34b3af7c7c97d44f4a46e2138a0f231c60e52475577675710",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU2_aparcabicis",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-17T12:34:30Z"
+    },
+    {
+      "name": "aparcamotos",
+      "path": "app/data/2026-08-18_wfs_movilidad-MU2_motos.json",
+      "title": "Aparcamotos (2.146 · 11.715 plazas)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 625297,
+      "hash": "sha256:8a0b4727b85fc7e2aa310641d9a3f7fcb56ba20a87ff3d464cb08e856c56a00b",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU2_motos",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-18T12:04:45Z"
+    },
+    {
+      "name": "regulado-tramos",
+      "path": "app/data/2026-08-18_wfs_movilidad-MU1_estacionamientos_calle.json",
+      "title": "Estacionamiento regulado en superficie (7.391 tramos)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 3178840,
+      "hash": "sha256:f45f394b2d2190e676ae7bea0fd74856d1fbbcb235a2b1579126e4a6cb8a467d",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estacionamientos_calle",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-18T12:26:53Z"
+    },
+    {
+      "name": "regulado-zonas",
+      "path": "app/data/2026-08-18_wfs_movilidad-MU1_zonas_reguladas.json",
+      "title": "Zonas reguladas (13 poligonos)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 27079,
+      "hash": "sha256:db6fba882b7135dc0469f75172288793be8746b9848602e4f0bc7989bcd50b08",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_zonas_reguladas",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-18T13:21:04Z"
+    },
+    {
+      "name": "reservas-espacio",
+      "path": "app/data/2026-08-18_wfs_movilidad-MU1_reservas.json",
+      "title": "Reservas de espacio, con las 1.226 PMR (2.636)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 746406,
+      "hash": "sha256:8aaf80c1d946bf891c5a6387a213cb56fa4581922ee07ebb5fd0e7aaa3500057",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_reservas",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-18T13:41:55Z"
+    },
+    {
+      "name": "bizi-pag0",
+      "path": "app/data/2026-08-02_wfs_bizi_pag0.json",
+      "title": "Estaciones BiZi — pagina 1 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 21848,
+      "hash": "sha256:7c26bc5679317044463335bf25a153cbaffed80aaaf30db75556caadbc6ac8a2",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag50",
+      "path": "app/data/2026-08-02_wfs_bizi_pag50.json",
+      "title": "Estaciones BiZi — pagina 2 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 22217,
+      "hash": "sha256:82633663b9c6abf68d7f517e34b1fefa459de30c8c03bfb91f8b0d75a36be98e",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag100",
+      "path": "app/data/2026-08-02_wfs_bizi_pag100.json",
+      "title": "Estaciones BiZi — pagina 3 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 22220,
+      "hash": "sha256:aeeb1448c9bfd7afca751c2c346af682933f988dc649a0e7005537cb656429bf",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag150",
+      "path": "app/data/2026-08-02_wfs_bizi_pag150.json",
+      "title": "Estaciones BiZi — pagina 4 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 22357,
+      "hash": "sha256:aeebdae28754910e2e57fd0b80c26a887a7340deeb118b1cb6772b9c389f5e23",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag200",
+      "path": "app/data/2026-08-02_wfs_bizi_pag200.json",
+      "title": "Estaciones BiZi — pagina 5 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 22483,
+      "hash": "sha256:215d8662231ab834733b7e1e4037dcef3e4ee0e0316efcbad504474e2cb9a368",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag250",
+      "path": "app/data/2026-08-02_wfs_bizi_pag250.json",
+      "title": "Estaciones BiZi — pagina 6 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 11786,
+      "hash": "sha256:61a54580f28d9cc94d6c48cbe609c2f49da7b4d9ee7134aeb9b0edff16e8c7ef",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "gtfs-zip",
+      "path": "app/data/2026-08-10_nap_gtfs-ficha1176.zip",
+      "title": "GTFS del transporte urbano (ficha 1176)",
+      "format": "zip",
+      "mediatype": "application/zip",
+      "bytes": 6883311,
+      "hash": "sha256:5c96992c97aac966bc9bc20babfbbbffb312f2a3cbcf9dd543982d2674cf3a82",
+      "licenses": [
+        {
+          "name": "other-open",
+          "title": "Licencia de datos abiertos del MITMS",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Punto de Acceso Nacional (NAP) · ficha 1176 · Avanza Zaragoza S.A.U",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "descargadoEl": "2026-08-10T09:44:51Z",
+      "modified": "2026-06-23",
+      "modifiedFuente": "feed_info.txt dentro del ZIP: feed_start_date=20260623, feed_version=20260623_AUZSA_Y_TRANVIA",
+      "caducaEl": "2026-10-05",
+      "caducidadFuente": "feed_info.txt dentro del ZIP: feed_end_date=20261005, declarado por el publicador"
+    },
+    {
+      "name": "gtfs-shapes",
+      "path": "app/data/2026-08-10_nap_gtfs-ficha1176_shapes.txt",
+      "title": "GTFS shapes.txt — 89 trazados, 27.603 puntos (extraido del ZIP)",
+      "format": "txt",
+      "mediatype": "text/csv",
+      "bytes": 1408077,
+      "hash": "sha256:f38397d36c98fb756b2ee5a3ca261fbfc712aea2e51903d51b7c9b4fddb18157",
+      "licenses": [
+        {
+          "name": "other-open",
+          "title": "Licencia de datos abiertos del MITMS",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Punto de Acceso Nacional (NAP) · ficha 1176 · Avanza Zaragoza S.A.U",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "descargadoEl": "2026-08-10T09:44:51Z",
+      "modified": "2026-06-23",
+      "modifiedFuente": "feed_info.txt dentro del ZIP: feed_start_date=20260623, feed_version=20260623_AUZSA_Y_TRANVIA",
+      "caducaEl": "2026-10-05",
+      "caducidadFuente": "feed_info.txt dentro del ZIP: feed_end_date=20261005, declarado por el publicador",
+      "encoding": "utf-8"
+    },
+    {
+      "name": "gtfs-stops",
+      "path": "app/data/2026-08-10_nap_gtfs-ficha1176_stops.txt",
+      "title": "GTFS stops.txt — 984 paradas, 50 de tranvia (extraido del ZIP)",
+      "format": "txt",
+      "mediatype": "text/csv",
+      "bytes": 99309,
+      "hash": "sha256:6d1a969ab25d7be41ffb9b8184589865407be671fd52fadc50206aa3917c957b",
+      "licenses": [
+        {
+          "name": "other-open",
+          "title": "Licencia de datos abiertos del MITMS",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Punto de Acceso Nacional (NAP) · ficha 1176 · Avanza Zaragoza S.A.U",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "descargadoEl": "2026-08-10T09:44:51Z",
+      "modified": "2026-06-23",
+      "modifiedFuente": "feed_info.txt dentro del ZIP: feed_start_date=20260623, feed_version=20260623_AUZSA_Y_TRANVIA",
+      "caducaEl": "2026-10-05",
+      "caducidadFuente": "feed_info.txt dentro del ZIP: feed_end_date=20261005, declarado por el publicador",
+      "encoding": "utf-8"
+    },
+    {
+      "name": "nombres-osm",
+      "path": "motor/data/2026-08-02_osm_overpass_zaragoza-termino_nombres.json",
+      "title": "Nombres de via de OpenStreetMap (19.897 ways)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 5023094,
+      "hash": "sha256:ddd22f7df3981b52e7762473e678b8a9b7e139fc92f3b7d6487f9b1a803fd2ef",
+      "licenses": [
+        {
+          "name": "ODbL-1.0",
+          "title": "Open Database License 1.0",
+          "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "OpenStreetMap via Overpass API 0.7.62.11",
+          "path": "https://overpass-api.de/"
+        }
+      ],
+      "modified": "2026-08-02T14:36:18Z",
+      "modifiedFuente": "el propio fichero lo declara en `osm3s.timestamp_osm_base`"
+    },
+    {
+      "name": "ejes-via",
+      "path": "motor/data/2026-08-20_idezar_wfs_urbanismo-vias_ejes.json",
+      "title": "Ejes de via municipales (3.358 con nombre)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 3434156,
+      "hash": "sha256:ebf6dabd47416b4f9f371317bdfe512d9cd977fa7ac454a078e5c307b38c3ae7",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS Urbanismo · capa urbanismo:Vias",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-20T14:35:52Z",
+      "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/MONTHLY",
+      "periodicidadFuente": "THIRD-PARTY-NOTICES.md § 1.15: «el callejero municipal se refresca (politica declarada: mensual)»"
+    }
+  ]
+}
