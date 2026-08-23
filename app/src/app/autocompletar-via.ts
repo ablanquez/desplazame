@@ -85,6 +85,20 @@ export class AutocompletarVia {
    */
   readonly conSitios = input(false);
 
+  /**
+   * ⭐ EL FOCO: el código del OTRO extremo, si ya está resuelto.
+   *
+   * [DOC Pelias] `focus.point` *«will prioritize results closer to the focus
+   * point»*. Buscando el destino, el foco es el origen ya elegido: «la
+   * farmacia» casi siempre quiere decir «la de al lado de donde estoy», y sin
+   * foco la lista contesta por orden alfabético, que no es lo que nadie busca.
+   *
+   * Va **el código y no un punto**: esta pantalla no conoce coordenadas —el
+   * contrato le da códigos— y quien sabe convertir uno en el otro es el motor.
+   * `null` mientras el otro lado esté a medias, que es el caso al empezar.
+   */
+  readonly foco = input<string | null>(null);
+
 
   /**
    * El SITIO elegido, o `null`. Va **aparte de `seleccion`** a propósito: son
@@ -172,8 +186,16 @@ export class AutocompletarVia {
    */
   protected readonly sugerenciasSitios = httpResource<readonly Sitio[]>(() => {
     const q = this.consulta().trim();
-    return !this.conSitios() || q.length < MINIMO
-      ? undefined
+    if (!this.conSitios() || q.length < MINIMO) {
+      return undefined;
+    }
+    // El foco entra en la URL, así que **cambiarlo vuelve a pedir**: elegir el
+    // origen reordena la lista del destino sin que haya que teclear otra vez.
+    // Es lo que hace `httpResource` de serie —lee señales y se rehace—, y aquí
+    // es justo lo que se quiere.
+    const foco = this.foco();
+    return foco
+      ? `/api/sitios?q=${encodeURIComponent(q)}&foco=${encodeURIComponent(foco)}`
       : `/api/sitios?q=${encodeURIComponent(q)}`;
   });
 

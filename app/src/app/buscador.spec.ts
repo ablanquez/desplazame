@@ -205,9 +205,9 @@ const TRAYECTO_DE_LOS_DIEZ: Trayecto = {
 /** Rellena los cuatro campos por el camino de una persona, y deja listo el botón. */
 async function direccionEntera(fixture: any, http: HttpTestingController): Promise<void> {
   await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
-  await elegirPortal(fixture, 'portalOrigen', '2');
+  await elegirPortal(fixture, http, 'portalOrigen', '2');
   await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
-  await elegirPortal(fixture, 'portalDestino', '45');
+  await elegirPortal(fixture, http, 'portalDestino', '45');
   await fixture.whenStable();
 }
 
@@ -315,6 +315,7 @@ async function elegirCalle(
 /** Elige un portal de la lista del campo que toca, como lo haría una persona. */
 async function elegirPortal(
   fixture: any,
+  http: HttpTestingController,
   nombre: string,
   numero: string,
 ): Promise<void> {
@@ -331,6 +332,26 @@ async function elegirPortal(
     throw new Error(`no está el portal ${numero} en ${nombre}`);
   }
   opcion.dispatchEvent(new MouseEvent('mousedown'));
+  // ⭐ Elegir un portal DESPIERTA AL OTRO CAMPO desde el 23/08: su código pasa
+  // a ser el foco de las sugerencias del lado contrario, y eso cambia la URL
+  // del recurso, que vuelve a pedir al instante [Pelias focus.point]. Sin
+  // drenarla, el `whenStable()` de la línea siguiente espera a una petición que
+  // nadie va a contestar y la prueba muere de tiempo. Es el abrazo mortal de
+  // siempre, estrenando disfraz.
+  //
+  // Solo `/api/sitios`: si aquí se colara una de vías o de portales, `verify()`
+  // tiene que seguir protestando.
+  //
+  // El `detectChanges()` va ANTES del drenaje y no es adorno: la petición del
+  // foco no existe todavía al soltar el ratón. Nace cuando corre el efecto del
+  // recurso, y el efecto corre en la detección de cambios — medido con una
+  // sonda: sin esta línea, la lista de pendientes sale VACÍA aquí y la
+  // petición aparece dentro del `whenStable()`, que es justo donde ya no se
+  // puede contestar.
+  fixture.detectChanges();
+  for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
+    cap.flush([]);
+  }
   await fixture.whenStable();
 }
 
@@ -350,7 +371,13 @@ async function drenar(fixture: any, http: HttpTestingController): Promise<void> 
   await new Promise((sigue) => setTimeout(sigue, 250));
   fixture.detectChanges();
   for (const pendiente of http.match(() => true)) {
-    pendiente.flush([]);
+    // ⭐ Las CANCELADAS no se contestan: contestarlas revienta. Desde el foco
+    // (23/08) una misma señal puede cambiar dos veces seguidas —el ⇅ mueve los
+    // dos lados— y `httpResource` aborta la petición vieja al recalcular la
+    // URL. `match()` las sigue devolviendo, pero ya no esperan respuesta.
+    if (!pendiente.cancelled) {
+      pendiente.flush([]);
+    }
   }
   await fixture.whenStable();
 }
@@ -571,9 +598,9 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
-    await elegirPortal(fixture, 'portalOrigen', '2');
+    await elegirPortal(fixture, http, 'portalOrigen', '2');
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
-    await elegirPortal(fixture, 'portalDestino', '45');
+    await elegirPortal(fixture, http, 'portalDestino', '45');
     await fixture.whenStable();
     expect(botonGenerar(raiz).disabled).toBe(false);
 
@@ -591,7 +618,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
-    await elegirPortal(fixture, 'portalOrigen', '2');
+    await elegirPortal(fixture, http, 'portalOrigen', '2');
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
     await fixture.whenStable();
 
@@ -911,9 +938,9 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
-    await elegirPortal(fixture, 'portalOrigen', '2');
+    await elegirPortal(fixture, http, 'portalOrigen', '2');
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
-    await elegirPortal(fixture, 'portalDestino', '45');
+    await elegirPortal(fixture, http, 'portalDestino', '45');
     await fixture.whenStable();
     expect(botonGenerar(raiz).disabled).toBe(false);
 
@@ -962,7 +989,7 @@ describe('Buscador', () => {
 
     // Destino entero.
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
-    await elegirPortal(fixture, 'portalDestino', '45');
+    await elegirPortal(fixture, http, 'portalDestino', '45');
     await fixture.whenStable();
 
     botonInvertir(raiz).click();
@@ -992,7 +1019,7 @@ describe('Buscador', () => {
 
     // El destino se pone a mano, para que solo falte el origen.
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
-    await elegirPortal(fixture, 'portalDestino', '45');
+    await elegirPortal(fixture, http, 'portalDestino', '45');
     await fixture.whenStable();
     expect(botonGenerar(raiz).disabled).toBe(true);
 

@@ -182,7 +182,29 @@ const servidor = createServer((peticion, respuesta) => {
     //
     // ⭐ Solo salen los que tienen coordenada. Los tres que no la traen no
     // estan en el indice y por aqui no pueden asomar.
-    json(200, sugerirSitios(sitios, url.searchParams.get('q') ?? ''));
+    //
+    // ⭐ `foco` es OPCIONAL y es UN CODIGO, no un par de coordenadas
+    // [DOC Pelias: `focus.point`]. Va el codigo del otro extremo —un portal o
+    // un sitio— porque la pantalla NO conoce coordenadas: el contrato le da
+    // codigos y nada mas, y mandar un `lat,lon` obligaria a metersela en el
+    // bolsillo solo para esto. Quien sabe convertir un codigo en un punto es
+    // el motor, que ya lo hace para calcular la ruta.
+    //
+    // Un `foco` que no se resuelve NO es un error: se ignora y se contesta sin
+    // foco. Es una preferencia de ordenacion, no un dato de la consulta, y una
+    // lista bien ordenada de menos vale mas que un 400.
+    const codigoFoco = url.searchParams.get('foco');
+    const desde = codigoFoco
+      ? (portales.donde.get(codigoFoco) ?? sitios.donde.get(codigoFoco) ?? null)
+      : null;
+    json(
+      200,
+      sugerirSitios(
+        sitios,
+        url.searchParams.get('q') ?? '',
+        desde ? { lon: desde.lon, lat: desde.lat } : null,
+      ),
+    );
     return;
   }
 

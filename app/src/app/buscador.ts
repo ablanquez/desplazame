@@ -680,6 +680,25 @@ export class Buscador {
    * uno cuyo dato crudo lleva el nombre de una persona.
    */
   /**
+   * ⭐ El código de un lado para usarlo como FOCO del otro, o `null`.
+   *
+   * Es la misma pregunta que `extremoDe` —«¿qué hay elegido aquí?»— pero para
+   * ORDENAR la lista del lado contrario, no para pedir una ruta. Por eso
+   * devuelve un código suelto y no un extremo: al motor le da igual de qué
+   * clase sea el punto desde el que se mide.
+   *
+   * Un lado a medias —calle sin portal— vale `null`: sin portal no hay punto,
+   * y la calle entera no es un sitio desde el que medir.
+   */
+  protected focoDe(lado: Lado): string | null {
+    const sitio = lado.sitio();
+    if (sitio) {
+      return sitio.codigo;
+    }
+    return lado.portal()?.codigo ?? null;
+  }
+
+  /**
    * De qué clase es un lado: la misma pregunta que responde `extremoDe`, pero
    * para pintar en vez de para viajar. Un lado con sitio es de la capa
    * `sitio`; cualquier otro, una dirección.

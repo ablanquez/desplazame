@@ -40,6 +40,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Sitio } from '@desplazame/tipos';
 import { normalizar } from './callejero.ts';
+import { metrosPlanos } from './proyeccion.ts';
 
 /** El fichero de farmacias. Vive en `app/data/`, con su ficha en § 1.16. */
 const FARMACIAS = fileURLToPath(
@@ -92,6 +93,15 @@ export interface SitioSituado {
    */
   readonly comparableNombre: string;
   readonly comparableCalle: string;
+  /**
+   * Los mismos dos campos partidos en PALABRAS, para puntuar la relevancia.
+   *
+   * Se guardan hechos porque puntuar recorre las 310 en cada tecla, y partir
+   * una cadena 620 veces por pulsación es trabajo que no cambia nunca: las
+   * palabras de una farmacia son las mismas toda la vida del proceso.
+   */
+  readonly palabrasNombre: readonly string[];
+  readonly palabrasCalle: readonly string[];
 }
 
 export interface SitiosEnMemoria {
@@ -144,6 +154,8 @@ export function cargarSitios(): SitiosEnMemoria {
       lat: c[1]!,
       comparableNombre: normalizar(CATEGORIA),
       comparableCalle: normalizar(calle),
+      palabrasNombre: enPalabras(normalizar(CATEGORIA)),
+      palabrasCalle: enPalabras(normalizar(calle)),
     };
     indice.push(sitio);
     donde.set(sitio.codigo, sitio);
@@ -157,6 +169,89 @@ export function cargarSitios(): SitiosEnMemoria {
     donde,
     cargadoEnMs: performance.now() - principio,
   };
+}
+
+/**
+ * Un texto partido en palabras: **por lo que no es letra ni número**.
+ *
+ * `\s+` no basta aquí. Una dirección viene con comas, barras y puntos —«C/
+ * Doña Blanca de Navarra, 46-48»— y si «navarra,» se queda con la coma pegada,
+ * entonces «navarra» no es la palabra entera y la puntuación decide el orden.
+ *
+ * Se exporta para que las pruebas puedan fabricar sitios de laboratorio **con
+ * el mismo troceador que usa el índice de verdad**, en vez de con una copia
+ * que se quedaría atrás en cuanto esto cambiara.
+ */
+export function enPalabras(texto: string): readonly string[] {
+  return texto.split(/[^a-z0-9ñç]+/).filter((p) => p !== '');
+}
+
+/**
+ * ⭐ CUÁNTO EXPLICA una palabra escrita a un campo. De mejor a peor.
+ *
+ * [DOC Pelias] Su constructor de consultas no puntúa igual una coincidencia
+ * completa que una parcial: da más peso a lo que casa entero y menos a lo que
+ * casa a trozos. Esta es esa idea con lo que aquí hay.
+ *
+ * La escala mira PALABRAS del campo, no la cadena entera, y ese es el detalle
+ * que la hace útil: las direcciones vienen con el tipo delante —«C/ …», «Avda.
+ * …»—, así que ningún campo empieza nunca por lo que la gente escribe. Contra
+ * la cadena entera todo sería `DENTRO` y la escala no separaría nada.
+ */
+const EXACTA = 3;
+const EMPIEZA_PALABRA = 2;
+const DENTRO = 1;
+const NADA = 0;
+
+function cuantoExplica(palabrasDelCampo: readonly string[], escrita: string): number {
+  let mejor = NADA;
+  for (const palabra of palabrasDelCampo) {
+    if (palabra === escrita) {
+      // No hay nada mejor: se puede parar.
+      return EXACTA;
+    }
+    if (palabra.startsWith(escrita)) {
+      mejor = Math.max(mejor, EMPIEZA_PALABRA);
+    } else if (palabra.includes(escrita)) {
+      mejor = Math.max(mejor, DENTRO);
+    }
+  }
+  return mejor;
+}
+
+/**
+ * La relevancia de un sitio para lo escrito: **la suma de lo que explica cada
+ * palabra**, cada una por su mejor campo.
+ *
+ * Se suma y no se promedia: quien escribe dos palabras que casan las dos a la
+ * perfección ha dicho más que quien acierta una. Y cada palabra elige el campo
+ * que mejor la explica —nombre o calle— porque quien escribe no sabe en cuál
+ * cae cada una; es la misma razón por la que casan contra los dos.
+ */
+function relevancia(sitio: SitioSituado, palabras: readonly string[]): number {
+  let total = 0;
+  for (const p of palabras) {
+    total += Math.max(cuantoExplica(sitio.palabrasNombre, p), cuantoExplica(sitio.palabrasCalle, p));
+  }
+  return total;
+}
+
+/**
+ * ⭐ EL FOCO: el otro extremo del formulario, cuando ya está resuelto.
+ *
+ * [DOC Pelias] `focus.point.lat`/`focus.point.lon` *«will prioritize results
+ * closer to the focus point»* — prioriza, **no filtra**: lo cercano sube y lo
+ * lejano sigue estando. Aquí se cumple al pie de la letra porque la distancia
+ * es un criterio de DESEMPATE, no un corte: nada se cae de la lista por lejos.
+ *
+ * Quién es el foco no lo decide el motor: lo manda la pantalla, y es el otro
+ * extremo. Buscando el destino, el foco es el origen ya elegido — que es donde
+ * está quien pregunta, y por eso «la farmacia» suele querer decir «la de al
+ * lado de casa» y no la primera del callejero.
+ */
+export interface Foco {
+  readonly lon: number;
+  readonly lat: number;
 }
 
 /**
@@ -194,7 +289,11 @@ export function cargarSitios(): SitiosEnMemoria {
  * es alguien empezando a escribir. El corte se mide sobre la consulta entera,
  * no palabra a palabra — «a b» son dos letras escritas, y traería media ciudad.
  */
-export function sugerirSitios(sitios: SitiosEnMemoria, consulta: string): readonly Sitio[] {
+export function sugerirSitios(
+  sitios: SitiosEnMemoria,
+  consulta: string,
+  foco: Foco | null = null,
+): readonly Sitio[] {
   const q = normalizar(consulta);
   if (q.length < MINIMO_SITIOS) {
     return [];
@@ -210,18 +309,64 @@ export function sugerirSitios(sitios: SitiosEnMemoria, consulta: string): readon
   // `every` eso es no hacer nada. El comentario que lo acompañaba decía lo
   // contrario, y era falso.
   const palabras = q.split(/\s+/);
-  const salen: Sitio[] = [];
-  for (const s of sitios.indice) {
-    const casa = palabras.every(
-      (p) => s.comparableNombre.includes(p) || s.comparableCalle.includes(p),
-    );
-    if (!casa) {
-      continue;
-    }
-    salen.push({ codigo: s.codigo, presentacion: s.presentacion, categoria: s.categoria });
-    if (salen.length === LIMITE_SITIOS) {
-      break;
+
+  // PRIMERO las que casan, TODAS. El corte viene después de ordenar, y esa es
+  // la corrección de fondo del 23/08: antes se cortaba a diez mientras se
+  // recorría el fichero, así que las diez que salían eran las diez primeras
+  // del JSON del Ayuntamiento — no las diez mejores de nada. Sondeado antes de
+  // tocarlo: «far» devolvía las posiciones 0..9 del fichero y tiraba 300.
+  const casan = sitios.indice.filter((s) =>
+    palabras.every((p) => s.comparableNombre.includes(p) || s.comparableCalle.includes(p)),
+  );
+
+  const puntos = new Map<string, number>();
+  for (const s of casan) {
+    puntos.set(s.codigo, relevancia(s, palabras));
+  }
+  const cerca = new Map<string, number>();
+  if (foco) {
+    for (const s of casan) {
+      cerca.set(s.codigo, metrosPlanos(foco.lon, foco.lat, s.lon, s.lat));
     }
   }
-  return salen;
+
+  /**
+   * ⭐ EL ORDEN, por capas y en este orden:
+   *
+   * 1. **La lengua** [Pelias]: lo que mejor explica lo escrito, primero.
+   * 2. **El foco** [Pelias focus.point], si el otro extremo está resuelto: a
+   *    igualdad de lengua, lo cercano sube. Nunca por delante de la lengua —
+   *    estar al lado no convierte una coincidencia peor en una mejor.
+   * 3. **Alfabético** por la dirección normalizada [PROPIO]. Aquí la doctrina
+   *    calla: Pelias desempata con la importancia del sitio, y **nosotros no
+   *    tenemos importancia** —el dato municipal no trae ni tamaño, ni visitas,
+   *    ni jerarquía, y ninguna de las 310 es «más farmacia» que otra—. El
+   *    factor NO se inventa: se declara ausente y se desempata por algo que sí
+   *    consta. Se compara la forma normalizada, no la original, para que el
+   *    orden no dependa del ICU de quien lo ejecute.
+   * 4. **Por código**, que es único. La última capa existe para que el orden
+   *    sea TOTAL: sin ella, dos direcciones idénticas quedarían empatadas y el
+   *    orden del fichero se colaría por el hueco. Es lo que hace que la lista
+   *    no baile entre teclas.
+   */
+  const ordenadas = [...casan].sort((a, b) => {
+    const porLengua = puntos.get(b.codigo)! - puntos.get(a.codigo)!;
+    if (porLengua !== 0) {
+      return porLengua;
+    }
+    if (foco) {
+      const porCerca = cerca.get(a.codigo)! - cerca.get(b.codigo)!;
+      if (porCerca !== 0) {
+        return porCerca;
+      }
+    }
+    if (a.comparableCalle !== b.comparableCalle) {
+      return a.comparableCalle < b.comparableCalle ? -1 : 1;
+    }
+    return a.codigo < b.codigo ? -1 : 1;
+  });
+
+  return ordenadas
+    .slice(0, LIMITE_SITIOS)
+    .map((s) => ({ codigo: s.codigo, presentacion: s.presentacion, categoria: s.categoria }));
 }

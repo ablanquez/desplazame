@@ -73,6 +73,24 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
   });
 
   afterEach(() => {
+    // ⭐ La capa de sitios se drena antes de verificar, y SOLO ella.
+    //
+    // Desde el foco (23/08) resolver un lado despierta al otro: su código pasa
+    // a ser el foco de las sugerencias del contrario, la URL del recurso
+    // cambia y se vuelve a pedir sin que nadie teclee [Pelias focus.point]. Es
+    // lo que se quería —elegir el origen reordena la lista del destino— y deja
+    // una petición al final de casi cada prueba de este fichero.
+    //
+    // Las CANCELADAS se saltan: el ⇅ mueve los dos lados de golpe y el recurso
+    // aborta la anterior al recalcular la URL. Contestar una cancelada revienta.
+    //
+    // Solo `/api/sitios`: una de vías o de portales sin contestar tiene que
+    // seguir haciendo protestar a `verify()`, que es para lo que está.
+    for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
+      if (!cap.cancelled) {
+        cap.flush([]);
+      }
+    }
     http.verify();
   });
 
@@ -88,8 +106,14 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
 
   /** Contesta a las dos capas y deja la lista pintada. */
   async function contestar(vias: readonly Via[], sitios: readonly Sitio[]): Promise<void> {
-    for (const r of http.match((q) => q.url.startsWith('/api/vias'))) r.flush(vias);
-    for (const r of http.match((q) => q.url.startsWith('/api/sitios'))) r.flush(sitios);
+    // Las canceladas se saltan: cambiar el foco mientras hay una en vuelo la
+    // aborta, y contestar a una abortada revienta. `match()` las sigue dando.
+    for (const r of http.match((q) => q.url.startsWith('/api/vias'))) {
+      if (!r.cancelled) r.flush(vias);
+    }
+    for (const r of http.match((q) => q.url.startsWith('/api/sitios'))) {
+      if (!r.cancelled) r.flush(sitios);
+    }
     await new Promise((sigue) => setTimeout(sigue, 0));
     fixture.detectChanges();
   }
@@ -114,8 +138,12 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
   async function drenarEco(): Promise<void> {
     await new Promise((sigue) => setTimeout(sigue, 250));
     fixture.detectChanges();
-    for (const r of http.match((q) => q.url.startsWith('/api/vias'))) r.flush([]);
-    for (const r of http.match((q) => q.url.startsWith('/api/sitios'))) r.flush([]);
+    for (const r of http.match((q) => q.url.startsWith('/api/vias'))) {
+      if (!r.cancelled) r.flush([]);
+    }
+    for (const r of http.match((q) => q.url.startsWith('/api/sitios'))) {
+      if (!r.cancelled) r.flush([]);
+    }
     fixture.detectChanges();
   }
 
@@ -161,6 +189,86 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
   }
 
   // ── LA CAPA ────────────────────────────────────────────────────────────────
+
+  // ── EL FOCO ────────────────────────────────────────────────────────────────
+  //
+  // ⭐ [DOC Pelias] `focus.point` *«will prioritize results closer to the focus
+  // point»*. Aquí el foco de un campo es EL OTRO EXTREMO, y viaja como CÓDIGO:
+  // la pantalla no conoce coordenadas —el contrato le da códigos— y quien sabe
+  // convertir uno en el otro es el motor.
+
+  /**
+   * La consulta de sitios que pidió ESTE texto.
+   *
+   * Se busca por la `q` y no por «la última», que fue el primer intento y era
+   * mentira: los dos campos piden a la vez —al elegir, el texto del otro
+   * cambia y su eco sale detrás—, así que «la última» era la del campo que no
+   * se estaba mirando.
+   */
+  function consultaDeSitiosCon(texto: string): string {
+    const suyas = http.match(
+      (r) => r.url.startsWith('/api/sitios') && r.url.includes(`q=${encodeURIComponent(texto)}`),
+    );
+    return suyas.length > 0 ? suyas[suyas.length - 1]!.request.urlWithParams : '(ninguna)';
+  }
+
+  it('⭐ EL FOCO VIAJA: con el origen resuelto, el destino lo manda', async () => {
+    await elegirDireccionEn('calleOrigen', 'portalOrigen');
+    await teclear('calleDestino', 'navarra');
+
+    expect(consultaDeSitiosCon('navarra')).toContain('foco=Portales.5140a');
+    await contestar([], []);
+  });
+
+  it('⭐ y un SITIO en el origen enfoca igual, por su código', async () => {
+    await elegirSitioEn('calleOrigen');
+    await teclear('calleDestino', 'navarra');
+
+    expect(consultaDeSitiosCon('navarra')).toContain('foco=Farmacias.8691');
+    await contestar([], []);
+  });
+
+  it('⭐ SIN el otro lado resuelto NO hay foco: no se inventa un punto', async () => {
+    await teclear('calleDestino', 'navarra');
+
+    expect(consultaDeSitiosCon('navarra')).not.toContain('foco=');
+    await contestar([], []);
+  });
+
+  it('⭐ MEDIO LADO no es un punto: calle sin portal no enfoca', async () => {
+    // Es la parte que se equivoca sola. Una calle elegida ya tiene código, y
+    // sería fácil mandarlo; pero una calle entera no es un sitio desde el que
+    // medir —Avenida de Navarra tiene más de un kilómetro—, así que hasta que
+    // no hay portal no hay foco.
+    await teclear('calleOrigen', 'burgos');
+    await contestar([BURGOS], []);
+    pulsar('calleOrigen', 'via');
+    await drenarEco();
+    for (const r of http.match(`/api/portales?via=${BURGOS.codigo}`)) r.flush(PORTALES_BURGOS);
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+
+    await teclear('calleDestino', 'navarra');
+    expect(consultaDeSitiosCon('navarra')).not.toContain('foco=');
+    await contestar([], []);
+  });
+
+  it('⭐ EL FOCO CRUZA CON EL ⇅, porque sale del lado y no del campo', async () => {
+    // El ⇅ intercambia los lados enteros, así que el que enfocaba pasa a estar
+    // enfocado. No hay una línea que hable de ello: `focoDe` pregunta al lado.
+    await elegirDireccionEn('calleOrigen', 'portalOrigen');
+    invertir();
+    // El ⇅ lleva la vía al otro lado, y allí despierta a SU selector de
+    // portales, que pide los suyos. No es cosa del foco: pasa desde el punto 6.
+    for (const r of http.match(`/api/portales?via=${BURGOS.codigo}`)) r.flush(PORTALES_BURGOS);
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+
+    await teclear('calleOrigen', 'navarra');
+
+    expect(consultaDeSitiosCon('navarra')).toContain('foco=Portales.5140a');
+    await contestar([], []);
+  });
 
   it('⭐ LOS DOS campos piden la capa de sitios', async () => {
     // Era la prueba de la asimetría —«el destino sí y el origen no»— y la
