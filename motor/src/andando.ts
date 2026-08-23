@@ -52,10 +52,18 @@
  *   podrán hacerlo por el arcén o, en su defecto, por la calzada»*.
  *
  * Ese **«salvo cuando ésta no exista»** es condicional, y un condicional **no
- * se resuelve en una puerta**: si la calzada se cerrase aquí, media ciudad se
- * quedaría sin ruta el día que le falte un metro de acera dibujada. Se resuelve
- * en el coste, poniendo la calzada detrás de la acera — que es exactamente el
- * mecanismo que la casilla siguiente trae de [DOC OSMAnd `routing.xml`].
+ * se resuelve cerrando la puerta**: si la calzada se cerrase aquí, media ciudad
+ * se quedaría sin ruta el día que le falte un metro de acera dibujada. Así que
+ * lo que esta capa hace con él es **dejar la calzada transitable**, que es lo
+ * que el artículo permite cuando la zona peatonal no existe o no es
+ * practicable.
+ *
+ * **Y ahí se acaba: no hay una segunda capa que ponga la calzada detrás de la
+ * acera.** Entre lo permitido decide el **mínimo de distancia**, y nada más —
+ * la lápida de arriba cuenta qué fue la capa de coste que lo hacía, qué costó
+ * medido y por qué se retiró el 22/08. En la práctica la acera se anda porque
+ * está y porque es la más corta; la calzada queda abierta para cuando no la
+ * hay, que es exactamente el caso que el artículo contempla.
  *
  * ── El precio, medido antes de aceptarlo ────────────────────────────────────
  *
