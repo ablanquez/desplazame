@@ -5,13 +5,14 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 23 de agosto de 2026 (mediodía)
+## ESTADO ACTUAL — 23 de agosto de 2026 (noche)
 
 **⭐ PUNTOS 1-7 CERRADOS (el 7, el 23/08). La demo andando está
 ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
 (el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
-(los combines de odin). Lo siguiente del plan: el punto 8 — destinos
-con nombre.**
+(los combines de odin). Y EL PUNTO 8 EN MARCHA: la primera categoría
+de sitios —FARMACIAS— entera el mismo día: destinos y orígenes con
+nombre, buscados por palabras, ordenados y señalados a doctrina.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
 levantado el 18/08, des-caducado el 21, el 22 y el 23):
@@ -19,7 +20,10 @@ levantado el 18/08, des-caducado el 21, el 22 y el 23):
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
   corchetes), portal de lista real en orden natural, borrador marcado si
-  se sale sin elegir, «Generar ruta» exigiendo los cuatro CÓDIGOS.
+  se sale sin elegir, «Generar ruta» exigiendo códigos resueltos (los
+  de calle+portal, o el del SITIO — el portal condicional apaga su
+  casilla). SITIOS en ambos campos (farmacias: «Farmacia · dirección»,
+  cruz verde; búsqueda por palabras; orden por foco al otro extremo).
   Modos: Andando · Bus / Tranvía · Bici / Patinete · Coche (mayúscula
   tras la barra: peso visual, decisión de Antonio). ⇅ invertir y «Mi
   ubicación» dentro (punto 6). Y «Generar ruta» devuelve la RUTA REAL —
@@ -38,16 +42,19 @@ levantado el 18/08, des-caducado el 21, el 22 y el 23):
   TypeScript SIN compilar, carga antes de `listen()` (grafo 98.774
   aristas ~190 ms · callejero 3.359 vías · 46.150 portales), 412 MB de
   RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
-  anotado para el punto 12). Endpoints vivos, CINCO:
+  anotado para el punto 12). Endpoints vivos, SEIS:
   `/api/salud` · `/api/vias?q=` · `/api/portales?via=` ·
-  `/api/portal-cercano` · `POST /api/ruta`. ⭐ N = 3.359 · M = 2.731 (la publicada).
-- **Los datos**: TRECE conjuntos / catorce fichas — el decimotercero, los
-  nombres OSM, vive en `motor/data/` y NO viaja al navegador (§1.14);
+  `/api/portal-cercano` · `/api/sitios?q=` (con foco opcional) ·
+  `POST /api/ruta` (sitio en cualquiera de los dos extremos). ⭐ N = 3.359 · M = 2.731 (la publicada).
+- **Los datos**: CATORCE conjuntos / dieciséis fichas — los nombres
+  OSM en `motor/data/` sin viajar al navegador (§1.14), los ejes
+  (§1.15) y las FARMACIAS (§1.16, la primera categoría del punto 8:
+  313 · 310 con coordenada · fila 22 del manifiesto);
   cada uno con ficha, huella sobre clon y atribución. CINCO
   descargas propias (aparcabicis, aparcamotos, regulado, zonas, PMR),
   todas con la norma Set-Cookie. El callejero lleva 5 correcciones
   declaradas («están mal y punto»).
-- **La bitácora: 10 entradas, las 10 cerradas con ley.** Las guardias
+- **La bitácora: 11 entradas, las 11 cerradas con ley.** Las guardias
   (interfaz y motor) con rojos vistos, exigiendo las tres cargas.
 - **La carta y el README al día con la doc delante**: CLAUDE.md dice el
   motor real y apunta en vez de listar; el README tiene «Cómo arrancarlo
@@ -55,11 +62,39 @@ levantado el 18/08, des-caducado el 21, el 22 y el 23):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `f1e955f`** (push del 22/08 por la noche,
-`3109f13..f1e955f`). **En local, sin publicar: los seis commits del 23**
-(`0f01130` · `0225b4b` · `d6d176e` · `0a90eb5` · `a83441a` ·
-`ab87224`) más el cierre de papeles de hoy, pendiente de su commit. El
-push es de Antonio.
+**Publicado hasta `78b6603`** (push del 23/08 a mediodía, con el
+punto 7 cerrado y el panel). **En local, sin publicar: los TRECE
+commits de farmacias** (`1bf560f`…`16cc9c1`, los cuatro encargos) más
+el cierre de papeles de esta noche. El push es de Antonio.
+
+**FARMACIAS: el tubo de sitios ENTERO (23/08, tarde-noche) — cuatro
+encargos, tres bitácoras de método y la primera categoría del punto 8
+viva.** El buscador acepta sitios en AMBOS extremos (J7 ida · J8
+inversa · J9 sitio→sitio, las nueve juez al byte), busca POR PALABRAS
+[Pelias], ordena A DOCTRINA [lingüística · foco al otro extremo ·
+alfabético [PROPIO] — antes NO había orden: posiciones del fichero
+municipal], y señala con ICONOS a doctrina [osm.org verde/rojo · cruz
+europea · forma además de color #2787] en sugerencias, mapa e
+itinerario (cabecera Y pasos — el guardián que solo miraba la
+cabecera, corregido: «dos instrumentos mal apuntados no son dos
+comprobaciones»). Regla B de Antonio: sin coordenada no existe (3
+fuera, contadas). El titular jamás se lee (guardián contra el crudo).
+**Bitácora nº11** — el «origen-sitio roto» era un motor arrancado 36
+minutos antes del commit; el guardián que lo sabía (comprobar-arranque)
+estaba en rojo y nadie lo invocó — ley: «un guardián que hay que
+acordarse de invocar es documentación, no cobertura»; de ahí la juez
+del CABLE (el cuerpo real contra el lector real, leerPeticion a
+peticion.ts). MISMO-PUNTO firmado: doctrina (Valhalla calcula las
+triviales; salida+llegada a 0 m es odin) — sin regla nueva. Hallazgo
+municipal fichado: 4 farmacias desplazadas 236 m con EL MISMO VECTOR
+(Δlat −0,00187/Δlon −0,00135 — huele a datum, causa NO CONSTA):
+20443 · 20444 · 20445 · 8671, rutas de hasta 401 m a su propia
+puerta. La protanopia del mapa ABIERTA (dos chinchetas solo por
+color; bandera a cuadros → punto 13). Foco a las vías: hallazgo
+anotado SIN hacer. 211+123 pruebas. Commits `1bf560f` `ffe9167`
+`a13b6eb` (B) · `3f6847c` `4cd0fcb` `cc0aade` (simetría) · `dbabafb`
+`892d9f1` `99cfa88` `f48c89c` (remate 2) · `64ba7a7` `207e81e`
+`16cc9c1` (remate 3).
 
 **El panel de frescura CONSTRUIDO (23/08, tarde) — las piezas 1 y 2
 del adelanto del punto 14.** `datapackage.json` en la raíz (Frictionless
@@ -301,17 +336,14 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el commit de papeles y el PUSH del día (va
-cargado: los papeles de mediodía + los tres del panel + este
-destilado); (2) **el encargo B: FARMACIAS** — la primera categoría del
-punto 8, FIRMADA por Antonio (313, coordenada al 99 %, la decisión del
-titular ya parlamentada: «Farmacia» + dirección) — el tubo se estrena
-con ella y el resto llega por tandas («vamos a acabar metiendo todo,
-pero primero algo pequeño»); la hostelería y las demás, en tandas
-siguientes; (3) flecos chicos: la ficha de Aragón (Antonio la pega del
+**Lo siguiente:** (1) el PUSH del día (muy cargado: panel + los
+trece commits de farmacias + papeles); (2) **las tandas siguientes
+del punto 8** — hostelería (OSM como fuente con nombre) y las
+categorías municipales que Antonio autorice, por el tubo ya
+estrenado; (3) flecos: la ficha de Aragón (Antonio la pega del
 navegador) · el descifre de `estado` del registro si la
-hostelería-contexto entra. Detrás, el 9 con la ordenanza leída en
-grueso.
+hostelería-contexto entra · el foco a las vías (hallazgo anotado, sin
+decidir). Detrás, el 9 con la ordenanza leída en grueso.
 
 ---
 
@@ -369,8 +401,9 @@ colgadas de sus capas.
 **1-7 CERRADOS** (el 7 entero el 23/08: demo + tabla del peatón +
 mínimo de distancia + andamios fuera + narración de odin) ·
 8 destinos con nombre
-(EN CONSTRUCCIÓN; ganó la regla del portal condicional y la opción de
-las 628 con trazados) · 9 bici/patinete (ordenanza VMP) ·
+(EN MARCHA: farmacias —la primera categoría— HECHA el 23/08 con el
+tubo entero; quedan las tandas siguientes, hostelería la primera
+candidata) · 9 bici/patinete (ordenanza VMP) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -421,9 +454,13 @@ retirada): quedó FUERA del encargo de narración del 23/08 — no es de
 los combines, huele al NOMBRE ÚNICO (núcleos que no casan por la «V»).
 Si reproduce en rutas vivas: NO CONSTA. Cabo vivo, sin dueño.
 
-**Punto 8:** parlamento abierto (tanda 1 · hostelería) — el dato
-personal de farmacias tiene su salida apuntada («Farmacia» +
-dirección) · `estado` del registro de licencias SIN DESCIFRAR (0/1/2/3,
+**Punto 8:** tanda 1 HECHA (farmacias); quedan las tandas (hostelería
+con OSM la primera candidata) · ⚠️ 4 farmacias desplazadas 236 m con
+EL MISMO VECTOR (20443 · 20444 · 20445 · 8671 — huele a datum, causa
+NO CONSTA; rutas de hasta 401 m a su propia puerta) · el foco a las
+VÍAS: hallazgo anotado, sin decidir (hoy la Calle Mayor de
+Garrapinillos y la del centro solo se distinguen por el [núcleo]) ·
+`estado` del registro de licencias SIN DESCIFRAR (0/1/2/3,
 sin catálogo; quizá el visor de Urbanismo lo enseñe — otra caza de
 DevTools si hace falta) · el tope de descarga desigual del registro
 (100 vs 10 filas según consulta; totalCount siempre honesto) · la
@@ -450,7 +487,10 @@ dev el comodín ya cubre; en Hostinger, NO CONSTA) · symlink a lo
 construido · guardias solo-Windows si hicieran falta allí.
 
 **Punto 13:** color de marca (`NO CONSTA`) · el title (la pestaña dice
-«Desplázame» a secas) · capturas del README si se quieren.
+«Desplázame» a secas) · capturas del README si se quieren · la
+protanopia del MAPA (dos chinchetas solo por color) con la bandera a
+cuadros como salida documentada [#2787 de osm.org, cycle.travel] —
+anotado el 23/08, ABIERTO.
 
 **Las normas de circulación (contexto vivo, 21/08):** el RGC
 reformado por RD 518/2026 entra en vigor el **01-10-2026** (arts. 121
@@ -471,7 +511,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 243 pruebas (179 motor + 64 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
+§6) · 334 pruebas (211 motor + 123 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

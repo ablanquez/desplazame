@@ -959,6 +959,39 @@ portales — un sitio es una coordenada más entrando al mismo tubo.
       buscable). El tubo se construye UNA vez con la primera
       categoría; cada una después es coste marginal (autorización +
       ficha + sus rarezas)
+- [x] **FARMACIAS — LA PRIMERA CATEGORÍA, HECHA ENTERA (23/08)**, en
+      cuatro encargos (B + tres remates; commits `1bf560f`→`16cc9c1`):
+      el TUBO DE SITIOS completo. Descarga con ritual (313 · 310 con
+      coordenada · ficha §1.16 · fila 22 del manifiesto en las dos
+      copias, con `modified` DEFENDIDO contra el precedente del WFS:
+      el Last-Modified coincide con el lastUpdated interno, no con la
+      descarga) · sitios en AMBOS extremos con el ⇅ cruzándolo todo
+      (el borrador cruza siendo texto) · regla B de Antonio: SIN
+      COORDENADA NO EXISTE (3 fuera del índice, contadas en el log) ·
+      presentación «Farmacia + dirección», el titular no se lee
+      (guardián contra el título crudo) · búsqueda POR PALABRAS
+      [Pelias multi-match: cada palabra recorta, el orden no manda] ·
+      ORDEN a doctrina [Pelias: lingüística primero · foco al otro
+      extremo cuando está resuelto (focus.point) · desempate
+      alfabético [PROPIO] — antes NO HABÍA orden: posiciones del
+      fichero municipal con corte previo] · ICONOS a doctrina en las
+      tres casas [osm.org: VERDE origen · ROJO destino · cruz verde
+      europea de farmacia · forma además de color #2787 — la
+      protanopia del mapa queda ABIERTA, dicha, con la bandera a
+      cuadros anotada para el 13] · regla del portal condicional por
+      estructura (el apagado explícito era código muerto: fuera) ·
+      JUECES J7/J8/J9 (ida, inversa, sitio→sitio) + la juez del CABLE
+      (el cuerpo real del formulario contra el lector real del motor,
+      leerPeticion importada — nació de la bitácora nº11) · MISMO
+      PUNTO resuelto por doctrina y FIRMADO (23/08): los motores
+      calculan las rutas triviales [Valhalla: algoritmo dedicado,
+      «super trivial» reparado en #3299] y salida+llegada a 0 m es la
+      narración canónica de odin — SIN regla nueva. **Bitácora nº11**
+      (el aviso lo daba un motor de hace 36 minutos; el guardián que
+      lo sabía —comprobar-arranque, rojo— nadie lo invocó): «un
+      guardián que hay que acordarse de invocar es documentación, no
+      cobertura» + la ley del cable + la de la pieza compartida
+      importable. 211 motor + 123 interfaz; las nueve juez al byte
 - [ ] Decisión de presentación pendiente: 268/313 farmacias llevan
       nombre del titular (dato registral público; republicarlo es lícito
       pero es decisión consciente — la salida fácil: «Farmacia» +
