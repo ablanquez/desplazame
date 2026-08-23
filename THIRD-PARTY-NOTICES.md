@@ -1044,7 +1044,77 @@ se cree que se está casando.
 
 ---
 
-### 1.16 · El resto del dato — todavía **ninguno**
+### 1.16 · Farmacias — Ayuntamiento de Zaragoza (API de equipamientos)
+
+| | |
+|---|---|
+| **Qué es** | Las **313 farmacias** del término municipal, con su dirección, su teléfono y —310 de ellas— su coordenada. Es el **primer destino con nombre** del buscador: el punto 8 empieza aquí porque es la categoría más pequeña que sirve para estrenar el tubo entero |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | **API REST de equipamientos**, no el WFS: `https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json` · categoría **740 «Farmacias»**, del tema *Comercio Menor*. El WFS de IDEZar **no publica equipamientos** —sus capas son cartografía, urbanismo y movilidad—, así que esta es la única puerta |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)**, la misma que el resto del dato municipal · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
+| **Dónde está cumplida** | En el control de atribución del mapa, junto a la de OpenStreetMap, y en esta ficha |
+| **Descarga** | **23/08/2026 15:33:54 GMT**, estado 200. Cabeceras en [`…_cabeceras.txt`](app/data/2026-08-23_zgzapi_equipamiento-farmacias_cabeceras.txt), con el `Set-Cookie` filtrado por norma. Pedida **dos veces con 29 segundos de diferencia**: byte a byte idéntica las dos |
+| **Fecha del dato** | ⭐ **08/06/2026 14:06:36**, y esta vez **sí es del dato**. La cabecera `Last-Modified` lo declara, y **coincide al segundo con el `lastUpdated` más reciente de los 311 registros que lo traen**. No es el caso del `timeStamp` del WFS (§ 1.15), que era cuándo se compuso la respuesta: aquí la fecha va **dos meses y medio por delante** de la descarga |
+| **Campos** | `id` · `title` · `calle` 312/313 · `tel` 310 · `geometry` 310 · `horario` 187 · `description` 44 · `email` 31 · `servicios` 5 · `url` 4 · `lastUpdated` 311 · y los técnicos `sameAs`, `uri`, `type`, `link` |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-23_zgzapi_equipamiento-farmacias.json`](app/data/2026-08-23_zgzapi_equipamiento-farmacias.json) · 185.805 bytes · sha256 `9c64ee1749de63c6d2231913948a7f8c02f2d7470b2fc3a9b7c7d277f86dc091` **verificado sobre un clon** |
+
+**La consulta EXACTA, que es lo único que hace esto reproducible:**
+
+```
+curl -o app/data/2026-08-23_zgzapi_equipamiento-farmacias.json \
+  "https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json?srsname=wgs84&start=0&rows=3000"
+```
+
+⚠️ **`srsname=wgs84`, en minúsculas y con ese alias, o la coordenada no sirve.** Es la trampa
+medida el 18/08: `srsname=EPSG:4326` devuelve **UTM 25830** y **el parámetro se ignora en
+silencio** —no hay error, no hay aviso, solo números que parecen coordenadas y no lo son—. Con
+`wgs84` llega `[-0.8963658…, 41.6449290…]`, el mismo sistema y el mismo orden que el grafo.
+
+Y va por la regla de bytes de `.gitattributes`: es **una sola línea de 185.805 bytes** sin un solo
+retorno de carro, y sin la regla el clon la devolvería con otro sha256 (bitácora nº3).
+
+#### Los recuentos, medidos sobre lo descargado
+
+| | |
+|---|---|
+| Registros | **313** |
+| **Con coordenada** | **310** |
+| **Sin coordenada** | **3** — ids `29916` (Cno. El Pilón, 57), `30105` (Avda. Tenor Fleta, 108) y `8714`, que además **no declara calle** |
+| Dentro del entorno de Zaragoza | **310 de 310**: ninguna coordenada se va del término |
+| `lastUpdated` | 311 de 313 · del **26/09/2023** al **08/06/2026** |
+
+Los tres primeros coinciden con la sonda de solo lectura del 18/08 (313 / 310), que es lo que se
+esperaba de un conjunto que su propio `Last-Modified` sitúa en junio.
+
+#### ⭐ Las tres sin coordenada NO se sugieren, y eso es doctrina
+
+**Regla de Antonio, 23/08: sin coordenada no existe.** Un destino que no se puede situar no se
+puede enrutar, y ofrecerlo en la lista sería prometer una ruta que va a acabar en un aviso. Es lo
+que hacen los geocodificadores: [DOC Pelias] indexa *venues* con su punto, y sin punto no hay
+documento que indexar.
+
+Así que las 310 con coordenada entran al índice de sugerencias y **las 3 restantes no aparecen
+jamás en la pantalla**. No se borran ni se editan: siguen en el fichero, se cuentan en esta ficha
+y el motor las declara al arrancar. **La ausencia se dice; el dato no se toca.**
+
+#### 🔒 Dato personal: se cuenta, no se enseña
+
+**274 de los 313 títulos llevan el nombre del titular** («Farmacia ‹Apellido, Nombre›»). Es dato
+registral publicado como abierto y reutilizarlo es lícito, pero republicarlo nos haría
+responsables del tratamiento sin necesidad ninguna.
+
+**Decisión parlamentada, y es de presentación, no de edición:** la pantalla dice **«Farmacia» + la
+dirección**, y el título con el titular **no sale a ninguna parte** — ni a la sugerencia, ni al
+paso de la ruta, ni al log del motor, ni a una prueba. El fichero se queda **íntegro**: es el
+patrón de los corchetes de § 1.3 — el dato entra como vino, y quien lo presenta decide qué se lee.
+
+> ℹ️ La sonda de solo lectura del 18/08 anotó **268** con nombre de titular y hoy la cuenta da
+> **274**. No se ajusta ninguno de los dos: la expresión que los cuenta no era la misma y el
+> conjunto pudo moverse entre medias. **Lo que rige es el recuento de hoy sobre ESTE fichero**,
+> que es el que está en el repositorio.
+
+### 1.17 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
