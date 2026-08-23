@@ -96,4 +96,28 @@ describe('App — la cáscara, su página y el comodín', () => {
     const datos = peticiones.filter((u) => u.includes('/datos/'));
     expect(datos).toEqual([]);
   });
+
+  /**
+   * ⭐ Y CERO peticiones, no «cero de `/datos/`».
+   *
+   * El 23/08 nació `/panel`, que lee el manifiesto de frescura. Es un fichero
+   * pequeño —unos 20 KB— y por eso mismo es la clase de cosa que se cuela en la
+   * portada sin que nadie lo note: no se ve en el cronómetro, pero rompe la
+   * regla igual. La ley del 22/08 no dice «poco»: dice **nada**.
+   *
+   * Se cuenta el total, no un patrón concreto, para que la próxima cosa que se
+   * quiera colgar de la raíz tampoco pueda hacerlo en silencio.
+   */
+  it('⭐ abrir la raíz no pide NADA por `fetch`: ni datos, ni el manifiesto', async () => {
+    await ir('/');
+    expect(peticiones).toEqual([]);
+  });
+
+  it('⭐ y el manifiesto se pide al entrar en /panel, que es su sitio', async () => {
+    // El contraste: la misma cáscara, la misma sesión, otra ruta. Si esto NO
+    // pidiera nada, la prueba de arriba estaría pasando por la razón
+    // equivocada — porque el panel no funciona, no porque la raíz sea limpia.
+    await ir('/panel');
+    expect(peticiones.filter((u) => u.includes('datapackage.json')).length).toBe(1);
+  });
 });

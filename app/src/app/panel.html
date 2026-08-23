@@ -1,0 +1,81 @@
+<section class="panel">
+  <h1>Frescura de los datos</h1>
+  <p class="panel__intro">
+    Lo que este proyecto tiene descargado, cuándo lo bajó, qué fecha declara el dato de sí mismo,
+    y con qué regla caduca. Las reglas <strong>salen de una fuente publicada</strong>; donde no
+    hay fuente, el conjunto sale en <strong>gris</strong> y dice <code>NO CONSTA</code> — que no
+    es un fallo del panel, es la verdad sobre ese conjunto.
+  </p>
+
+  @if (fallo(); as e) {
+    <p class="panel__fallo">No se ha podido leer el manifiesto: {{ e }}</p>
+  } @else if (filas(); as f) {
+    <p class="panel__resumen">
+      <span class="panel__estado panel__estado--rojo">{{ cuantos('rojo') }} caducados</span>
+      <span class="panel__estado panel__estado--ambar">{{ cuantos('ambar') }} por revisar</span>
+      <span class="panel__estado panel__estado--verde">{{ cuantos('verde') }} al día</span>
+      <span class="panel__estado panel__estado--gris">{{ cuantos('gris') }} sin regla</span>
+      <span class="panel__hoy">calculado el {{ soloElDia(hoy.toISOString()) }}</span>
+    </p>
+
+    <div class="panel__marco">
+      <table class="panel__tabla">
+        <thead>
+          <tr>
+            <th scope="col">Conjunto</th>
+            <th scope="col">Descargado</th>
+            <th scope="col">El dato dice ser de</th>
+            <th scope="col">Regla, y de dónde sale</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of f; track fila.r.name) {
+            <tr>
+              <th scope="row" class="panel__conjunto">
+                {{ fila.r.title }}
+                <code class="panel__ruta">{{ fila.r.path }}</code>
+              </th>
+              <td>
+                @if (fila.r.descargadoEl) {
+                  {{ soloElDia(fila.r.descargadoEl) }}
+                } @else {
+                  <span class="panel__noconsta">NO CONSTA</span>
+                }
+              </td>
+              <td>
+                @if (fila.r.modified) {
+                  {{ soloElDia(fila.r.modified) }}
+                  <small class="panel__fuente">{{ fila.r.modifiedFuente }}</small>
+                } @else {
+                  <span class="panel__noconsta">NO CONSTA</span>
+                }
+              </td>
+              <td>
+                @if (fila.e.regla) {
+                  {{ fila.e.regla }}
+                  <small class="panel__fuente">{{ fila.e.fuente }}</small>
+                } @else {
+                  <span class="panel__noconsta">sin regla publicada</span>
+                }
+              </td>
+              <td>
+                <span class="panel__estado panel__estado--{{ fila.e.color }}">{{ fila.e.texto }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="panel__pie">
+      El manifiesto sigue el descriptor <strong>Data Package v1</strong> de Frictionless Data y
+      toma de <strong>DCAT</strong> los términos de frescura. Vive en
+      <code>datapackage.json</code>, en la raíz del repositorio, y su huella <code>sha256</code>
+      se recalcula en cada prueba: si un fichero de datos cambiara sin actualizarlo, la prueba se
+      pondría roja.
+    </p>
+  } @else {
+    <p class="panel__cargando">Leyendo el manifiesto…</p>
+  }
+</section>
