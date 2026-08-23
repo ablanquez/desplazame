@@ -365,9 +365,11 @@ Con las dos arriba, en el navegador:
 | | |
 |---|---|
 | **<http://localhost:4200/>** | el buscador: el formulario, el mapa y las indicaciones |
+| **<http://localhost:4200/panel>** | el panel de frescura de los datos (ver abajo) |
 
-> Hay **una sola página**. Cualquier otra dirección —incluida `/visor`, que fue la segunda
-> hasta el 22/08— cae en el buscador por el comodín del router: ni pantalla en blanco ni 404.
+> Son **dos páginas y no hay barra que las una**: al panel se llega escribiendo su dirección.
+> Cualquier otra —incluida `/visor`, que fue una página hasta el 22/08— cae en el buscador por
+> el comodín del router: ni pantalla en blanco ni 404.
 
 > ⚠️ **Solo hay rutas ANDANDO**, que es el modo que viene marcado al abrir. Con bus, bici o
 > coche la pantalla enseña el aviso del motor diciendo que ese modo todavía no se calcula — no
@@ -406,6 +408,53 @@ En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfa
 `/api/…` y no sabe en qué puerto vive el motor.
 
 ---
+
+## El panel de frescura, y el manifiesto que lo sostiene
+
+Un dato descargado empieza a caducar el mismo día. Nada en un repositorio avisa de eso solo, así
+que el proyecto lo escribe: **`datapackage.json`, en la raíz**, dice de cada conjunto cuándo se
+descargó, qué fecha declara **el dato de sí mismo**, con qué regla caduca y **de dónde sale esa
+regla**, más su huella `sha256`.
+
+**El formato no se inventó, se adoptó.** Es el descriptor **Data Package v1** de
+[Frictionless Data](https://specs.frictionlessdata.io/data-package/) —un JSON en la raíz del
+paquete, con `resources[]` y sus `path`, `hash`, `bytes`, `licenses` y `sources`— y de
+[**DCAT**](https://www.w3.org/TR/vocab-dcat-3/) toma los términos de frescura: `accrualPeriodicity`
+con su vocabulario controlado y `modified`. **Valida contra el JSON Schema oficial**, sin errores.
+Solo hay propiedades nuestras donde el estándar calla, y van en castellano para que se note:
+`descargadoEl`, `modifiedFuente`, `periodicidadFuente`, `caducaEl`, `caducidadFuente`.
+
+**<http://localhost:4200/panel>** lo pinta con un semáforo, y la regla del semáforo es lo que
+tiene de particular:
+
+| | cuándo | ejemplo de hoy |
+|---|---|---|
+| 🔴 | el conjunto declara una fecha de caducidad y ya pasó | — |
+| 🟡 | se refresca cada X en origen y nuestra copia es más vieja | — |
+| 🟢 | hay regla con fuente y se cumple | el GTFS: «vale hasta el 2026-10-05» |
+| ⚪ | **NO CONSTA** | 17 de los 21 conjuntos |
+
+⭐ **El gris no es un fallo del panel: es la verdad, y la lista de deberes.** Un color solo se
+pinta si detrás hay una regla **publicada por alguien** — el `feed_end_date` del GTFS lo dice su
+publicador, el refresco mensual del callejero lo dice el Ayuntamiento—. Inventar un umbral
+«razonable» para que la tabla se vea bonita sería cambiar información por decoración, así que
+donde no hay fuente sale gris y **se dice por qué**.
+
+Un caso enseña bien la diferencia: **el callejero tiene regla y aun así sale gris**. Se sabe que
+en origen se refresca cada mes, pero no consta cuándo se descargó esta copia —no fue una
+descarga: llegó copiada del archivo del proyecto anterior—, así que no hay contra qué medirla. El
+panel no adivina: lo dice.
+
+**La portada no se entera de nada de esto.** Abrir la raíz sigue sin pedir un solo byte de datos
+—ni el manifiesto, que son 21 KB—: el panel se carga aparte (`loadComponent`) y pide su
+manifiesto solo cuando alguien entra en él. Medido sobre el `dist`: la raíz en frío son **6
+peticiones y 459 kB**, y **cero** de datos o de manifiesto. Hay dos guardianes que lo vigilan, y
+uno cuenta el total de peticiones, no un patrón — para que la próxima cosa que quiera colgarse de
+la portada tampoco pueda hacerlo en silencio.
+
+Y el manifiesto **no puede pudrirse en silencio**: una prueba recalcula el `sha256` de los 21
+ficheros en cada ejecución y los compara con lo declarado. Si un dato cambiara sin que nadie
+tocara el manifiesto, se pondría roja.
 
 ## Stack tecnológico
 
