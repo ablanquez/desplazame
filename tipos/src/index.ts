@@ -286,13 +286,36 @@ export interface Portal {
  * destino que no se puede situar no se puede enrutar. Los que no la traen se
  * cuentan en `/api/salud` y no llegan nunca a esta lista.
  */
+/**
+ * ⭐ QUÉ CLASE DE SITIO ES. La clave de máquina, no la etiqueta.
+ *
+ * Va aparte de `categoria` a propósito: `categoria` es **lo que se lee**
+ * —«Centro de salud»— y puede cambiar de redacción cualquier día; esto es lo
+ * que la pantalla usa para **elegir el icono**, y atar un dibujo a un texto
+ * visible sería atarlo a la redacción. La unión obliga además a que, el día que
+ * entre una cuarta clase, la tabla de iconos deje de compilar en vez de pintar
+ * un hueco — la misma mecánica que `Record<Giro, string>` en las flechas.
+ */
+export type TipoDeSitio = 'farmacia' | 'centro-salud' | 'hospital';
+
 export interface Sitio {
   /** `Farmacias.8691`, con el mismo patrón que el código de portal. */
   readonly codigo: string;
-  /** Lo que se enseña: «Farmacia · Avda. de Navarra, 65». */
+  /**
+   * Lo que se enseña. **No se compone igual en las tres clases**, y es
+   * decisión de presentación, no de dato:
+   *
+   * · farmacia → «Farmacia · Avda. de Navarra, 65». El título del dato lleva
+   *   el nombre de la persona titular y NO sale de aquí (§ 1.16).
+   * · centro de salud y hospital → «Hospital Universitario Miguel Servet ·
+   *   Avda. Isabel La Católica, 3». Aquí el título es institucional —el nombre
+   *   del edificio— y es justo lo que alguien escribe para buscarlo (§ 1.18).
+   */
   readonly presentacion: string;
-  /** La categoría sola: «Farmacia». */
+  /** La categoría como se lee: «Farmacia», «Centro de salud», «Hospital». */
   readonly categoria: string;
+  /** De qué clase es, para el icono. Ver `TipoDeSitio`. */
+  readonly tipo: TipoDeSitio;
 }
 
 /**

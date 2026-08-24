@@ -89,15 +89,22 @@ console.log(
 console.log('motor: cargando los sitios (destinos con nombre)…');
 const sitios = cargarSitios();
 console.log(
-  `motor: sitios en memoria — ${sitios.total} farmacias · ` +
+  `motor: sitios en memoria — ${sitios.total} en total · ` +
     `${sitios.conCoordenada} en el indice · ${sitios.cargadoEnMs.toFixed(0)} ms`,
 );
-// ⭐ La regla B, dicha en voz alta al arrancar. Los que no tienen punto no se
-// borran ni se editan: se cuentan aqui y no se sugieren jamas. Que la cifra
-// salga en el log es lo que impide que un dia sean cuarenta sin que nadie lo
-// note. Ver § 1.16 del notices.
+// ⭐ La regla B, dicha en voz alta al arrancar y AHORA POR CATEGORIA. Los que
+// no tienen punto no se borran ni se editan: se cuentan aqui y no se sugieren
+// jamas. Que la cifra salga en el log es lo que impide que un dia sean cuarenta
+// sin que nadie lo note — y desglosada, lo que impide que las cuarenta sean
+// todas de la misma categoria sin que se vea. Ver § 1.16, § 1.17 y § 1.18.
+for (const c of sitios.porCategoria) {
+  console.log(
+    `motor:   ${c.categoria.padEnd(16)} ${String(c.total).padStart(3)} · ` +
+      `${String(c.conCoordenada).padStart(3)} en el indice · ${c.sinCoordenada} sin coordenada`,
+  );
+}
 console.log(
-  `motor: ${sitios.sinCoordenada} sin coordenada, fuera del indice ` +
+  `motor: ${sitios.sinCoordenada} sin coordenada en total, fuera del indice ` +
     '(sin coordenada no existe: no se pueden enrutar, asi que no se sugieren)',
 );
 

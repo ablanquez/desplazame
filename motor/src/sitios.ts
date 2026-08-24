@@ -25,27 +25,87 @@
  * **Pero no se borran ni se editan**: siguen en el fichero, se cuentan aquí y
  * el motor las declara al arrancar. La ausencia se dice; el dato no se toca.
  *
- * ── 🔒 Y el titular no sale de aquí ────────────────────────────────────────
+ * ── 🔒 El título se lee en dos categorías de tres, y eso no es un descuido ──
  *
- * 274 de los 313 títulos traen el nombre de la persona titular. Es dato
- * registral abierto, pero republicarlo no hace falta para nada de lo que esta
- * pantalla hace. Así que **el `title` del dato no se usa para presentar**: la
- * presentación se compone con la categoría y la dirección, y el título con el
- * nombre se queda en el fichero, sin salir a la sugerencia, ni al paso de la
- * ruta, ni al log. Es el patrón de § 1.3: el dato entra como vino y quien lo
- * presenta decide qué se lee.
+ * **En farmacias NO.** 274 de los 313 títulos traen el nombre de la persona
+ * titular. Es dato registral abierto, pero republicarlo no hace falta para nada
+ * de lo que esta pantalla hace, así que su nombre visible se compone con la
+ * categoría y la dirección y el título se queda en el fichero — sin salir a la
+ * sugerencia, ni al paso de la ruta, ni al log.
+ *
+ * **En centros de salud y hospitales SÍ.** Ahí el título es el nombre del
+ * ESTABLECIMIENTO —«Hospital Universitario Miguel Servet», «Centro de Salud
+ * Actur Sur»— y es justo lo que alguien teclea para buscarlo; ocultarlo sería
+ * dejar la categoría entera imposible de encontrar. Que algunos lleven nombre
+ * de persona —Lozano Blesa, Royo Villanova— no cambia nada: es el nombre del
+ * edificio, no el titular de un negocio.
+ *
+ * La diferencia **se verificó antes de publicar**, sobre los 73 títulos de las
+ * dos categorías nuevas: 0 sin palabra institucional, 0 con el patrón
+ * «Apellido, Nombre» que usan las farmacias (§ 1.18). Quién lee su título lo
+ * dice `FUENTES`, categoría por categoría, y no una suposición del código.
  */
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { Sitio } from '@desplazame/tipos';
+import type { Sitio, TipoDeSitio } from '@desplazame/tipos';
 import { normalizar } from './callejero.ts';
 import { metrosPlanos } from './proyeccion.ts';
 
-/** El fichero de farmacias. Vive en `app/data/`, con su ficha en § 1.16. */
-const FARMACIAS = fileURLToPath(
-  new URL('../../app/data/2026-08-23_zgzapi_equipamiento-farmacias.json', import.meta.url),
-);
+/**
+ * ⭐ LAS TRES CATEGORÍAS, y lo que las diferencia.
+ *
+ * Las tres vienen de la misma puerta —la API de equipamientos del
+ * Ayuntamiento— y con la misma forma, así que se cargan con el mismo código.
+ * Lo único que cambia por categoría está en esta tabla, y está aquí para que se
+ * lea de un vistazo el día que entre la cuarta.
+ *
+ * **`leeElTitulo` es la línea importante.** En farmacias el título del dato
+ * trae el nombre de la persona titular en 274 de 313, y la decisión
+ * parlamentada (23/08) es que no salga de aquí: su nombre visible se compone
+ * con la categoría. En centros de salud y hospitales el título es
+ * **institucional** —«Hospital Universitario Miguel Servet»— y es justo lo que
+ * alguien teclea, así que se lee. Verificado sobre los 73 títulos de las dos
+ * categorías nuevas antes de publicarlos: ninguno sin palabra institucional,
+ * ninguno con el patrón «Apellido, Nombre» de las farmacias (§ 1.18).
+ */
+interface Fuente {
+  readonly tipo: TipoDeSitio;
+  /** Lo que se lee a la derecha de la sugerencia. */
+  readonly categoria: string;
+  /** El prefijo del código, con el mismo patrón que `Portales.96724`. */
+  readonly prefijo: string;
+  readonly fichero: string;
+  /** Si el `title` del dato se puede enseñar. Ver arriba. */
+  readonly leeElTitulo: boolean;
+}
+
+const FUENTES: readonly Fuente[] = [
+  {
+    tipo: 'farmacia',
+    categoria: 'Farmacia',
+    prefijo: 'Farmacias',
+    fichero: '2026-08-23_zgzapi_equipamiento-farmacias.json',
+    leeElTitulo: false,
+  },
+  {
+    tipo: 'centro-salud',
+    categoria: 'Centro de salud',
+    prefijo: 'CentrosSalud',
+    fichero: '2026-08-24_zgzapi_equipamiento-centros-salud.json',
+    leeElTitulo: true,
+  },
+  {
+    tipo: 'hospital',
+    categoria: 'Hospital',
+    prefijo: 'Hospitales',
+    fichero: '2026-08-24_zgzapi_equipamiento-hospitales.json',
+    leeElTitulo: true,
+  },
+];
+
+const rutaDe = (fichero: string): string =>
+  fileURLToPath(new URL(`../../app/data/${fichero}`, import.meta.url));
 
 /**
  * Cuántas sugerencias como mucho. [DOC Pelias] Su `size` por defecto es **10**,
@@ -60,9 +120,10 @@ export const MINIMO_SITIOS = 2;
 /**
  * Lo que el fichero de equipamientos trae por registro, de lo que aquí se mira.
  *
- * `title` está declarado y **a propósito no se lee**: es el campo que puede
- * llevar el nombre del titular. Se deja escrito para que quede claro que se
- * conoce y que la decisión de no usarlo es una decisión, no un descuido.
+ * `title` se lee **solo si la categoría lo permite** (`FUENTES.leeElTitulo`):
+ * en farmacias es el campo que puede llevar el nombre del titular y se queda
+ * sin leer; en las otras dos es el nombre del establecimiento. La decisión va
+ * en la tabla y no aquí, para que se vea de un vistazo cuál es cuál.
  */
 interface EquipamientoCrudo {
   readonly id: number;
@@ -77,8 +138,10 @@ export interface SitioSituado {
   readonly codigo: string;
   /** Lo que se lee en pantalla: «Farmacia · Avda. de Navarra, 65». */
   readonly presentacion: string;
-  /** La categoría sola, para poder agrupar el día que haya varias. */
+  /** La categoría como se lee: «Farmacia», «Centro de salud», «Hospital». */
   readonly categoria: string;
+  /** De qué clase es. Lo usa la pantalla para elegir el icono. */
+  readonly tipo: TipoDeSitio;
   /** La dirección, tal y como la publica el Ayuntamiento. */
   readonly calle: string;
   readonly lat: number;
@@ -104,13 +167,29 @@ export interface SitioSituado {
   readonly palabrasCalle: readonly string[];
 }
 
+/** Lo que se cuenta de UNA categoría, para poder declararlo al arrancar. */
+export interface RecuentoDeCategoria {
+  readonly tipo: TipoDeSitio;
+  readonly categoria: string;
+  readonly total: number;
+  readonly conCoordenada: number;
+  readonly sinCoordenada: number;
+}
+
 export interface SitiosEnMemoria {
-  /** Cuántos trae el fichero. */
+  /** Cuántos traen los ficheros, sumados. */
   readonly total: number;
   /** Cuántos tienen punto: los únicos que se pueden elegir. */
   readonly conCoordenada: number;
   /** Cuántos no lo tienen. Se cuentan y se declaran; no se sugieren. */
   readonly sinCoordenada: number;
+  /**
+   * ⭐ Y lo mismo POR CATEGORÍA. La suma sola escondería de cuál faltan: con
+   * tres ficheros, «5 sin coordenada» no dice si son cinco farmacias o dos
+   * hospitales y tres consultorios, y la regla B se declara por categoría en el
+   * arranque justamente para que se vea.
+   */
+  readonly porCategoria: readonly RecuentoDeCategoria[];
   /** El índice de sugerencias. **Solo los que tienen punto** — regla B. */
   readonly indice: readonly SitioSituado[];
   /** Los mismos objetos, por su código. */
@@ -118,53 +197,87 @@ export interface SitiosEnMemoria {
   readonly cargadoEnMs: number;
 }
 
-/** La categoría de este fichero. Cuando haya varias, vendrá de una tabla. */
-const CATEGORIA = 'Farmacia';
-
 export function cargarSitios(): SitiosEnMemoria {
   const principio = performance.now();
 
-  const crudo = JSON.parse(readFileSync(FARMACIAS, 'utf8')) as {
-    readonly equipamiento?: readonly EquipamientoCrudo[];
-  };
-  const registros = crudo.equipamiento ?? [];
-
   const indice: SitioSituado[] = [];
   const donde = new Map<string, SitioSituado>();
-  let sinCoordenada = 0;
+  const porCategoria: RecuentoDeCategoria[] = [];
 
-  for (const r of registros) {
-    const c = r.geometry?.coordinates;
-    // ⭐ REGLA B. El fichero da `[lon, lat]`, como todo GeoJSON.
-    if (!c || c.length < 2 || !Number.isFinite(c[0]) || !Number.isFinite(c[1])) {
-      sinCoordenada++;
-      continue;
-    }
-    // La dirección viene ya presentable del Ayuntamiento —«C/ Tomás Bretón,
-    // 36»—, así que no se reescribe: presentarla de otra manera sería editar el
-    // dato. Si faltara, se dice.
-    const calle = (r.calle ?? '').trim() || 'NO CONSTA';
-    const presentacion = `${CATEGORIA} · ${calle}`;
-    const sitio: SitioSituado = {
-      codigo: `Farmacias.${r.id}`,
-      presentacion,
-      categoria: CATEGORIA,
-      calle,
-      lon: c[0]!,
-      lat: c[1]!,
-      comparableNombre: normalizar(CATEGORIA),
-      comparableCalle: normalizar(calle),
-      palabrasNombre: enPalabras(normalizar(CATEGORIA)),
-      palabrasCalle: enPalabras(normalizar(calle)),
+  for (const fuente of FUENTES) {
+    const crudo = JSON.parse(readFileSync(rutaDe(fuente.fichero), 'utf8')) as {
+      readonly equipamiento?: readonly EquipamientoCrudo[];
     };
-    indice.push(sitio);
-    donde.set(sitio.codigo, sitio);
+    const registros = crudo.equipamiento ?? [];
+    let sinCoordenada = 0;
+
+    for (const r of registros) {
+      const c = r.geometry?.coordinates;
+      // ⭐ REGLA B. El fichero da `[lon, lat]`, como todo GeoJSON.
+      if (!c || c.length < 2 || !Number.isFinite(c[0]) || !Number.isFinite(c[1])) {
+        sinCoordenada++;
+        continue;
+      }
+      // La dirección viene ya presentable del Ayuntamiento —«C/ Tomás Bretón,
+      // 36»—, así que no se reescribe: presentarla de otra manera sería editar
+      // el dato. Si faltara, se dice.
+      const calle = (r.calle ?? '').trim() || 'NO CONSTA';
+      const titulo = (r.title ?? '').trim();
+
+      /**
+       * ⭐ EL NOMBRE, que es lo que se enseña Y lo primero contra lo que se
+       * busca. Sale del título solo si la categoría lo permite: ver `FUENTES`.
+       *
+       * Un título vacío en una categoría que lo lee cae a la categoría, que es
+       * peor nombre pero es verdad. Sin esto, la presentación empezaría por
+       * « · » y la sugerencia no diría qué es.
+       */
+      const nombre = fuente.leeElTitulo && titulo ? titulo : fuente.categoria;
+      const presentacion = `${nombre} · ${calle}`;
+
+      /**
+       * Y lo BUSCABLE es el nombre **más la categoría**, aunque la categoría no
+       * se pinte en la presentación de un hospital.
+       *
+       * [DOC Pelias] Un índice guarda más de lo que enseña: la capa y la
+       * categoría son campos indexados aparte del nombre. Aquí hace falta por
+       * un caso concreto — «hospital» tiene que traer también las **clínicas**,
+       * que son hospitales de la categoría 780 y no llevan la palabra en el
+       * título. Sin esto, buscar «hospital» dejaría fuera a la Quirón.
+       */
+      const buscable = nombre === fuente.categoria ? nombre : `${nombre} ${fuente.categoria}`;
+
+      const sitio: SitioSituado = {
+        codigo: `${fuente.prefijo}.${r.id}`,
+        presentacion,
+        categoria: fuente.categoria,
+        tipo: fuente.tipo,
+        calle,
+        lon: c[0]!,
+        lat: c[1]!,
+        comparableNombre: normalizar(buscable),
+        comparableCalle: normalizar(calle),
+        palabrasNombre: enPalabras(normalizar(buscable)),
+        palabrasCalle: enPalabras(normalizar(calle)),
+      };
+      indice.push(sitio);
+      donde.set(sitio.codigo, sitio);
+    }
+
+    porCategoria.push({
+      tipo: fuente.tipo,
+      categoria: fuente.categoria,
+      total: registros.length,
+      conCoordenada: registros.length - sinCoordenada,
+      sinCoordenada,
+    });
   }
 
   return {
-    total: registros.length,
+    total: porCategoria.reduce((t, c) => t + c.total, 0),
     conCoordenada: indice.length,
-    sinCoordenada,
+    sinCoordenada: porCategoria.reduce((t, c) => t + c.sinCoordenada, 0),
+    porCategoria,
     indice,
     donde,
     cargadoEnMs: performance.now() - principio,
@@ -368,5 +481,10 @@ export function sugerirSitios(
 
   return ordenadas
     .slice(0, LIMITE_SITIOS)
-    .map((s) => ({ codigo: s.codigo, presentacion: s.presentacion, categoria: s.categoria }));
+    .map((s) => ({
+      codigo: s.codigo,
+      presentacion: s.presentacion,
+      categoria: s.categoria,
+      tipo: s.tipo,
+    }));
 }

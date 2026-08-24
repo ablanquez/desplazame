@@ -46,6 +46,7 @@ const FARMACIA: Sitio = {
   codigo: 'Farmacias.8691',
   presentacion: 'Farmacia · Avda. de Navarra, 65',
   categoria: 'Farmacia',
+  tipo: 'farmacia',
 };
 
 /** Un trayecto de mentira con geometría: lo que hace falta para los marcadores. */

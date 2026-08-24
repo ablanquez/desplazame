@@ -24,12 +24,27 @@ describe('Los sitios — farmacias', () => {
     sitios = cargarSitios();
   });
 
-  test('carga las 313 del fichero, y dice cuántas tienen punto', () => {
-    // Los recuentos son los del dato, verificados el 23/08 sobre el fichero:
-    // 313 registros, 310 con coordenada, 3 sin.
-    assert.equal(sitios.total, 313);
-    assert.equal(sitios.conCoordenada, 310);
-    assert.equal(sitios.sinCoordenada, 3);
+  test('⭐ carga las TRES categorías, y las cuenta una a una', () => {
+    // ⚠️ Esta prueba decía «313 / 310 / 3» y era el fichero de farmacias solo.
+    // La segunda tanda (24/08) mete centros de salud y hospitales, así que la
+    // expectativa se mueve — y se mueve a MÁS detalle, no a menos: la suma
+    // sola escondería de qué categoría falta cada coordenada.
+    //
+    // Los tres recuentos son DEL DATO, medidos sobre lo descargado y escritos
+    // en las fichas § 1.16, § 1.17 y § 1.18.
+    assert.deepEqual(
+      sitios.porCategoria.map((c) => [c.tipo, c.total, c.conCoordenada, c.sinCoordenada]),
+      [
+        ['farmacia', 313, 310, 3],
+        ['centro-salud', 56, 56, 0],
+        ['hospital', 17, 15, 2],
+      ],
+    );
+    // Y la suma, que es lo que ve el resto del motor. Escrita a mano: si se
+    // calculara aquí, esto compararía el código consigo mismo.
+    assert.equal(sitios.total, 386);
+    assert.equal(sitios.conCoordenada, 381);
+    assert.equal(sitios.sinCoordenada, 5);
   });
 
   test('⭐ REGLA B — al índice solo entran los que tienen coordenada', () => {
@@ -37,7 +52,7 @@ describe('Los sitios — farmacias', () => {
     // situar no se puede enrutar, y sugerirlo sería prometer una ruta que
     // acaba en un aviso. [DOC Pelias] indexa *venues* con su punto; sin punto
     // no hay documento que indexar.
-    assert.equal(sitios.indice.length, 310);
+    assert.equal(sitios.indice.length, 381);
     assert.equal(sitios.indice.length, sitios.conCoordenada);
     for (const s of sitios.indice) {
       assert.ok(Number.isFinite(s.lat) && Number.isFinite(s.lon));
@@ -117,11 +132,32 @@ describe('Los sitios — farmacias', () => {
     });
     assert.equal(cuelan.length, 0, `${cuelan.length} presentaciones llevan el título del dato`);
 
-    // Y por el otro lado: la presentación se compone SIEMPRE igual.
-    for (const s of sitios.indice) {
+    // Y por el otro lado: la presentación de UNA FARMACIA se compone siempre
+    // igual. Se acota a las farmacias desde la segunda tanda (24/08): en
+    // centros de salud y hospitales el título SÍ se lee, porque es el nombre
+    // del establecimiento y no el de una persona (§ 1.18). Exigir aquí el
+    // mismo molde para las tres dejaría la mitad del índice sin nombre.
+    for (const s of sitios.indice.filter((x) => x.tipo === 'farmacia')) {
       assert.ok(
         s.presentacion === `Farmacia · ${s.calle}`,
-        'una presentación no es «Farmacia · calle»',
+        `una presentación de farmacia no es «Farmacia · calle»: ${s.presentacion}`,
+      );
+    }
+  });
+
+  test('⭐ y en las otras dos categorías el título SÍ se lee, y es el del dato', () => {
+    // La otra mitad de la decisión, y va con guardián propio para que no se
+    // pueda cumplir «no enseñar el título» apagándolo en todas partes.
+    const conTitulo = sitios.indice.filter((x) => x.tipo !== 'farmacia');
+    assert.equal(conTitulo.length, 71, 'no están los 56 + 15 con coordenada');
+    for (const s of conTitulo) {
+      assert.ok(
+        s.presentacion.endsWith(` · ${s.calle}`),
+        `la presentación no acaba en su calle: ${s.presentacion}`,
+      );
+      assert.ok(
+        !s.presentacion.startsWith(`${s.categoria} · `),
+        `«${s.presentacion}» se presenta con la categoría y no con su título`,
       );
     }
   });
@@ -239,9 +275,18 @@ describe('Los sitios — farmacias', () => {
   test('⭐ EN EMPATE Y SIN FOCO, alfabético por la dirección [PROPIO]', () => {
     // «navarra» casa con dos, y las dos con el mismo rango: la palabra entera.
     // La doctrina calla en el empate puro, así que se declara uno: alfabético.
+    // ⚠️ Eran dos hasta el 24/08 y ahora son TRES: la segunda tanda mete el
+    // Centro de Especialidades Inocencio Jiménez, que está en Avenida de
+    // Navarra 78. La expectativa se mueve porque cambió el DATO, no la regla —
+    // y el orden que se afirma sigue siendo el mismo criterio: alfabético por
+    // la dirección normalizada, «avda.» < «avenida» < «c/».
     assert.deepEqual(
       sugerirSitios(sitios, 'navarra').map((x) => x.presentacion),
-      ['Farmacia · Avda. de Navarra, 65', 'Farmacia · C/ Doña Blanca de Navarra, 46-48'],
+      [
+        'Farmacia · Avda. de Navarra, 65',
+        'Centro de Especialidades Inocencio Jiménez · Avenida de Navarra, 78',
+        'Farmacia · C/ Doña Blanca de Navarra, 46-48',
+      ],
     );
   });
 
@@ -249,17 +294,22 @@ describe('Los sitios — farmacias', () => {
     // El mismo empate de arriba, con el otro extremo ya resuelto. Puesto el
     // foco encima de Doña Blanca, esa pasa delante — y la otra NO desaparece,
     // que es lo que separa un foco de un filtro.
+    // Lo que se afirma no es una lista: es QUIÉN VA PRIMERO, y que la lejana
+    // sigue estando. Con tres candidatas desde el 24/08, escribir las tres
+    // enteras haría que esta prueba se rompiera cada vez que entre un dato
+    // nuevo por esa calle, sin que la regla haya cambiado.
     const juntoADonaBlanca = { lon: -0.898502, lat: 41.652574 };
-    assert.deepEqual(
-      sugerirSitios(sitios, 'navarra', juntoADonaBlanca).map((x) => x.presentacion),
-      ['Farmacia · C/ Doña Blanca de Navarra, 46-48', 'Farmacia · Avda. de Navarra, 65'],
-    );
+    const conFoco = sugerirSitios(sitios, 'navarra', juntoADonaBlanca);
+    assert.equal(conFoco[0]!.presentacion, 'Farmacia · C/ Doña Blanca de Navarra, 46-48');
+    assert.equal(conFoco.length, sugerirSitios(sitios, 'navarra').length, 'el foco ha filtrado');
 
-    // Y al revés, con el foco en la otra: vuelve el orden de antes.
+    // Y al revés, con el foco en la otra: la que sube es la otra.
     const juntoALaAvenida = { lon: -0.90672, lat: 41.655212 };
-    assert.deepEqual(
-      sugerirSitios(sitios, 'navarra', juntoALaAvenida).map((x) => x.presentacion),
-      ['Farmacia · Avda. de Navarra, 65', 'Farmacia · C/ Doña Blanca de Navarra, 46-48'],
+    const alReves = sugerirSitios(sitios, 'navarra', juntoALaAvenida);
+    assert.equal(alReves[0]!.presentacion, 'Farmacia · Avda. de Navarra, 65');
+    assert.ok(
+      alReves.some((x) => x.presentacion.includes('Doña Blanca')),
+      'la lejana ha desaparecido: el foco prioriza, no filtra',
     );
   });
 
@@ -285,27 +335,33 @@ describe('Los sitios — farmacias', () => {
     // Era el fallo de fondo del orden viejo: se cortaba a diez mientras se
     // recorría el fichero, así que las diez que salían eran las diez primeras
     // del JSON. Con foco, las diez tienen que ser las diez MÁS CERCANAS de
-    // todas las que casan, no las diez primeras que se encontraron.
-    const foco = { lon: -0.898502, lat: 41.652574 };
-    const salen = sugerirSitios(sitios, 'far', foco);
-    assert.equal(salen.length, LIMITE_SITIOS);
+    // todas las que casan.
+    //
+    // ⚠️ Esta prueba se escribió contra las 310 farmacias, y la segunda tanda
+    // la puso roja **por un fallo suyo**: comparaba las diez que salen contra
+    // el ÍNDICE ENTERO, y desde el 24/08 el índice tiene 71 sitios que no
+    // casan con «far». Reclamaba que un centro de salud cercano tenía que
+    // haber salido en una búsqueda que no casa con él.
+    //
+    // Se rehace con quince sitios de laboratorio que casan TODOS, puestos a
+    // distancias conocidas y crecientes. Así la prueba dice exactamente lo
+    // suyo —el corte se hace después de ordenar— sin depender de cuántas
+    // categorías haya ni de si casan.
+    const foco = { lon: -0.88, lat: 41.65 };
+    const quince = Array.from({ length: 15 }, (_, i) =>
+      // El nº 0 el más lejano y el 14 el más cercano, para que el orden del
+      // índice sea justo el CONTRARIO del que debe salir.
+      sitioDe(`Sitios.${100 + i}`, `C/ Igual, ${100 + i}`, foco.lon + (15 - i) * 0.01, foco.lat),
+    );
 
-    const distancia = (codigo: string): number => {
-      const s = sitios.donde.get(codigo)!;
-      return Math.hypot((s.lon - foco.lon) * 82000, (s.lat - foco.lat) * 111000);
-    };
-    // Las diez, ordenadas de cerca a lejos.
-    const suyas = salen.map((x) => distancia(x.codigo));
-    assert.deepEqual(suyas, [...suyas].sort((a, b) => a - b), 'no vienen de cerca a lejos');
-    // Y ninguna de las 300 que se quedan fuera está más cerca que la última.
-    const fuera = sitios.indice.filter((s) => !salen.some((x) => x.codigo === s.codigo));
-    const laUltima = suyas[suyas.length - 1]!;
-    for (const s of fuera) {
-      assert.ok(
-        distancia(s.codigo) >= laUltima,
-        `${s.presentacion} está más cerca que la última que sale`,
-      );
-    }
+    const salen = sugerirSitios(indiceDe(...quince), 'igual', foco);
+    assert.equal(salen.length, LIMITE_SITIOS);
+    // Las diez MÁS CERCANAS son las diez últimas del índice, de la más cercana
+    // a la más lejana: 114, 113, … 105.
+    assert.deepEqual(
+      salen.map((x) => x.codigo),
+      Array.from({ length: 10 }, (_, i) => `Sitios.${114 - i}`),
+    );
   });
 
   // ── DOS CASOS QUE EL DATO REAL NO PUEDE PROVOCAR ───────────────────────────
@@ -329,6 +385,7 @@ describe('Los sitios — farmacias', () => {
       codigo,
       presentacion: `Farmacia · ${calle}`,
       categoria: 'Farmacia',
+      tipo: 'farmacia',
       calle,
       lon,
       lat,
@@ -345,6 +402,15 @@ describe('Los sitios — farmacias', () => {
       total: unos.length,
       conCoordenada: unos.length,
       sinCoordenada: 0,
+      porCategoria: [
+        {
+          tipo: 'farmacia',
+          categoria: 'Farmacia',
+          total: unos.length,
+          conCoordenada: unos.length,
+          sinCoordenada: 0,
+        },
+      ],
       indice: unos,
       donde: new Map(unos.map((u) => [u.codigo, u])),
       cargadoEnMs: 0,

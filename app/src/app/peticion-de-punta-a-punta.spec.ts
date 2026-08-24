@@ -42,12 +42,14 @@ const FARMACIA: Sitio = {
   codigo: 'Farmacias.8691',
   presentacion: 'Farmacia · Avda. de Navarra, 65',
   categoria: 'Farmacia',
+  tipo: 'farmacia',
 };
 
 const OTRA_FARMACIA: Sitio = {
   codigo: 'Farmacias.8844',
   presentacion: 'Farmacia · Pº de la Mina, 5',
   categoria: 'Farmacia',
+  tipo: 'farmacia',
 };
 
 const campoDe = (raiz: HTMLElement, n: string): HTMLInputElement =>
