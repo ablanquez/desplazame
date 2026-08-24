@@ -394,13 +394,14 @@ Las dos son solo de Windows: leen el PID con `netstat` y la hora de arranque con
 
 ### La API del motor, hoy
 
-Cinco rutas vivas. Las que vengan las decide el plan, no esta lista:
+Seis rutas vivas. Las que vengan las decide el plan, no esta lista:
 
 | | |
 |---|---|
 | `GET /api/salud` | si está vivo, y con qué dato: grafo, red andable —con cuántos nombres trae de OpenStreetMap y cuántos hereda del callejero municipal—, callejero y portales, con sus recuentos |
 | `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
+| `GET /api/sitios?q=&capa=&foco=` | sugiere **sitios** desde 2 letras, hasta 10 resultados — la otra capa del autocompletar, la que sirve al desplegable de tipos. `capa` acota a una categoría (`farmacia`, `hospital`, `centro-salud`), y **una capa que no existe se ignora** en vez de dar error. `foco` es **el código del otro extremo** ya resuelto —un portal o un sitio, no un par de coordenadas—: a igualdad de coincidencia sube lo que está cerca de él, pero no descarta nada. Sin `q`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
 | `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué |
 
@@ -411,32 +412,57 @@ En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfa
 
 ## Ir a un sitio, y no solo a un portal
 
-Los dos campos —origen y destino— admiten **calles o sitios**. Un sitio es un destino con
-nombre: hoy, **las 313 farmacias** del término municipal. Se escriben en la misma casilla y se
-buscan a la vez, pero salen marcados como lo que son, porque una calle y un local no son la
-misma clase de cosa aunque se escriban igual.
+Los dos campos —origen y destino— admiten **una dirección o un sitio**. Un sitio es un destino
+con nombre, y hoy son **386 equipamientos** del término municipal en tres categorías —farmacias,
+hospitales y centros de salud—, de los que **380 se pueden elegir**.
 
-> Escribiendo `navarra` en el destino salen las dos capas:
+**Y no se mezclan: primero se dice de qué se está hablando.** Cada campo son cuatro piezas en
+fila —**📍 · tipo ▾ · cajetín · nº**— y el desplegable acota la búsqueda a **una sola** categoría:
+`Dirección`, `Farmacias`, `Hospitales` o `Centros de Salud`. Hasta el 24/08 las dos clases salían
+revueltas en la misma lista y quien miraba tenía que distinguirlas por un icono; ahora no hay nada
+que distinguir, porque **una lista es de una sola clase**. Cambiar de tipo **vacía el campo**: lo
+escrito bajo «Farmacias» no significa lo mismo bajo «Dirección», y arrastrarlo dejaría un texto
+contando algo que ya no es.
+
+> Con el tipo en **Farmacias** y `navarra` escrito, salen dos, y las dos son farmacias:
 >
 > ```
->   CALLE NAVARRA                          31       ← calle
->   Farmacia · C/ Doña Blanca de Navarra, 46-48     ← sitio
->   Farmacia · Avda. de Navarra, 65                 ← sitio
+>   Farmacia · Avda. de Navarra, 65
+>   Farmacia · C/ Doña Blanca de Navarra, 46-48
 > ```
+>
+> El mismo `navarra` en **Centros de Salud** trae uno —el Centro de Especialidades Inocencio
+> Jiménez, de Avenida de Navarra 78—, en **Hospitales** ninguno, y en **Dirección**, las dos calles
+> que se llaman así.
 
-**Al elegir un sitio, la casilla de portal de ese lado se apaga.** No es un adorno: un sitio
-trae su propia coordenada, así que no hay portal que pedirle — y dejar la casilla encendida
-sería ofrecer un campo que nadie puede rellenar. Es la **regla del portal condicional**, y
-funciona en los dos lados, así que el **⇅** los intercambia sin dejar botones muertos.
+**El número de portal no queda apagado: desaparece.** Con «Dirección» el campo existe y se rellena
+eligiendo de la lista; con una categoría de sitios **se va del formulario**, porque un sitio
+trae su propia coordenada y no hay portal que pedirle. Es el *revelado condicional* del sistema de
+diseño del GOV.UK, y la diferencia no es cosmética: una casilla apagada sigue diciendo «aquí falta
+algo», y una que no está dice la verdad, que es que ahí no hay nada que rellenar.
 
-**De dónde sale el dato.** De la [API de equipamientos del Ayuntamiento de
-Zaragoza](https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json), categoría 740.
-Su ficha entera —licencia, fecha, huella, recuentos— está en
-[§ 1.16 del THIRD-PARTY-NOTICES](THIRD-PARTY-NOTICES.md), y su frescura es la **fila 22** del
-manifiesto: descargado el 23/08/2026, y el dato dice ser del **08/06/2026** — lo declara la
-cabecera `Last-Modified`, que coincide al segundo con la fecha de modificación más reciente de
-sus registros. En el panel sale **gris**: la fuente no publica cada cuánto lo refresca, y una
-caducidad sin fuente no se inventa.
+**El ⇅ cruza los campos enteros**: el tipo, el texto, lo ya resuelto y el número. Si un lado era
+una dirección con su «2» y el otro un hospital, después de pulsarlo la casilla del número **se ha
+mudado de lado con su número dentro** — no queda ninguna apagada ni ningún botón muerto.
+
+**Y «Mi ubicación» vive en los dos campos**, no solo en el origen. Al usarla, ese lado pasa a
+**Dirección**, porque una ubicación *es* una dirección: lo que rellena son la calle y el portal más
+cercanos, los mismos códigos que fijaría elegirlos de la lista.
+
+**De dónde sale el dato.** De la **[API de equipamientos del Ayuntamiento de
+Zaragoza](https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json)**, una categoría
+por cada tipo: **740 farmacias**, **780 hospitales** y **781 centros de salud**. Sus fichas enteras
+—licencia, fecha, huella, recuentos y lo que traen de roto— están en
+**[§ 1.16, § 1.17 y § 1.18 del THIRD-PARTY-NOTICES](THIRD-PARTY-NOTICES.md)**, y su frescura son
+las **filas 22, 23 y 24** del manifiesto.
+
+Las tres se descargaron en agosto de 2026 y **cada una declara su fecha de otra manera**, que es
+justo lo que las fichas cuentan: farmacias y centros de salud traen un `Last-Modified` que
+**coincide al segundo** con la modificación más reciente de sus propios registros —08/06/2026 y
+20/05/2026—, así que se declara como fecha del dato; el de hospitales va **trece meses por delante**
+del registro más nuevo, así que no describe al dato y **se omite** en vez de copiarlo. En el panel
+las tres salen **grises**: ninguna fuente publica cada cuánto se refresca, y una caducidad sin
+fuente no se inventa.
 
 ### ⭐ Tres reglas que se ven poco y deciden mucho
 
