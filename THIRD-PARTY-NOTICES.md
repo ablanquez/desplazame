@@ -1114,7 +1114,130 @@ patrón de los corchetes de § 1.3 — el dato entra como vino, y quien lo prese
 > conjunto pudo moverse entre medias. **Lo que rige es el recuento de hoy sobre ESTE fichero**,
 > que es el que está en el repositorio.
 
-### 1.17 · El resto del dato — todavía **ninguno**
+### 1.17 · Centros de salud — Ayuntamiento de Zaragoza (API de equipamientos)
+
+| | |
+|---|---|
+| **Qué es** | Los **56 equipamientos** de la categoría municipal *Centros de Salud*: centros de salud propiamente dichos, **centros de especialidades**, **consultorios médicos** de los barrios rurales y algún centro de día. Los **56 traen coordenada** |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | **API REST de equipamientos**: `https://www.zaragoza.es/sede/servicio/equipamiento/category/781.json` · categoría **781 «Centros de Salud»**, del tema **4 «Salud Pública y Consumo»**. La misma puerta que las farmacias (§ 1.16) y por el mismo motivo: el WFS de IDEZar no publica equipamientos |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
+| **Dónde está cumplida** | En el control de atribución del mapa y en esta ficha |
+| **Descarga** | **24/08/2026 09:30:23 GMT**, estado 200. Cabeceras en [`…_cabeceras.txt`](app/data/2026-08-24_zgzapi_equipamiento-centros-salud_cabeceras.txt), con los **dos** `Set-Cookie` filtrados por norma. Pedida **dos veces**: byte a byte idéntica las dos |
+| **Fecha del dato** | ⭐ **20/05/2026 15:58:21**, y **es del dato**: la cabecera `Last-Modified` **coincide al segundo** con el `lastUpdated` más reciente de los 55 registros que lo traen. Es el mismo cotejo que se le hizo a farmacias, y aquí también sale |
+| **Campos** | `id` · `title` · `calle` · `geometry` · `type` · `link` · `uri` · `sameAs` **56/56** · `lastUpdated` 55 · `tel` 51 · `gradoacc` 17 · `accesibilidad` 16 · `horario` 4 · `description` 3 · `imagen` 3 · `email` 2 · y cinco más con un solo registro cada uno |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-24_zgzapi_equipamiento-centros-salud.json`](app/data/2026-08-24_zgzapi_equipamiento-centros-salud.json) · 75.702 bytes · sha256 `1683f1828fdb665f9df0804a0a4ab3369be71882d7d65672c62813fc10ec3428` **verificado sobre un clon** |
+
+```
+curl -o app/data/2026-08-24_zgzapi_equipamiento-centros-salud.json \
+  "https://www.zaragoza.es/sede/servicio/equipamiento/category/781.json?srsname=wgs84&start=0&rows=3000"
+```
+
+⚠️ **`srsname=wgs84` en minúsculas**, la trampa del 18/08: con `EPSG:4326` llega UTM 25830 y el
+parámetro **se ignora en silencio**. Está medida en § 1.16.
+
+#### Los recuentos, medidos sobre lo descargado
+
+| | |
+|---|---|
+| Registros | **56** |
+| **Con coordenada** | **56** — aquí no hay regla B que aplicar |
+| Sin coordenada | **0** |
+| `lastUpdated` | 55 de 56 · del **26/09/2023** al **20/05/2026** |
+
+#### ⚠️ Una coordenada está en PORTUGAL, y no se toca
+
+**`9090` «Centro de Salud Fernando El Católico», C/ Domingo Miral s/n** viene con
+`lon = -8.184875 · lat = 41.542373`. Eso no es Zaragoza: es **Portugal**, a unos **610 km** al
+oeste. Los otros 55 caen dentro del término.
+
+**No se corrige ni se borra.** El dato entra como vino —es la norma de la casa— y la regla B no lo
+caza, porque **coordenada tiene**: lo que no tiene es sentido. Lo que el motor hace con él está
+medido y escrito en el checkpoint del 24/08; el arreglo, si lo hay, es parlamento y no iniciativa.
+
+#### La categoría es más ancha que su nombre
+
+La 781 se llama «Centros de Salud» pero incluye **centros de especialidades** (Grande Covián,
+Inocencio Jiménez, Ramón y Cajal, San José), **consultorios médicos** de barrio rural (San Juan de
+Mozarrifar, Venta del Olivar, Villarrapa), un **centro de día** y el CMAPA. Se respeta la
+clasificación del Ayuntamiento: reagrupar por nuestra cuenta sería editar el dato.
+
+---
+
+### 1.18 · Hospitales — Ayuntamiento de Zaragoza (API de equipamientos)
+
+| | |
+|---|---|
+| **Qué es** | Los **17 hospitales y clínicas** de la categoría municipal. **15 traen coordenada**; 2 no |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | **API REST de equipamientos**: `https://www.zaragoza.es/sede/servicio/equipamiento/category/780.json` · categoría **780 «Hospitales»**, tema **4 «Salud Pública y Consumo»** |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
+| **Dónde está cumplida** | En el control de atribución del mapa y en esta ficha |
+| **Descarga** | **24/08/2026 09:30:24 GMT**, estado 200. Cabeceras en [`…_cabeceras.txt`](app/data/2026-08-24_zgzapi_equipamiento-hospitales_cabeceras.txt), con los dos `Set-Cookie` filtrados por norma. Pedida **dos veces**: byte a byte idéntica las dos |
+| **Fecha del dato** | ⚠️ **NO CONSTA**, y es un hallazgo — ver abajo |
+| **Campos** | `id` · `title` · `tel` · `lastUpdated` · `type` · `link` · `uri` · `sameAs` **17/17** · `calle` y `geometry` **15** · `url` 8 · `accesibilidad` y `gradoacc` 5 · `servicios` 4 · `email` 2 |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`app/data/2026-08-24_zgzapi_equipamiento-hospitales.json`](app/data/2026-08-24_zgzapi_equipamiento-hospitales.json) · 19.108 bytes · sha256 `46df1ff99a43a224f3b9fec4a4df76a6c38e6e4900ca21077644eba3efdd2dc8` **verificado sobre un clon** |
+
+```
+curl -o app/data/2026-08-24_zgzapi_equipamiento-hospitales.json \
+  "https://www.zaragoza.es/sede/servicio/equipamiento/category/780.json?srsname=wgs84&start=0&rows=3000"
+```
+
+#### ⭐ Por qué aquí la fecha del dato NO CONSTA
+
+En § 1.16 y en § 1.17 la cabecera `Last-Modified` se declara como fecha del dato **porque se
+cotejó**: coincide al segundo con el `lastUpdated` más reciente de los registros. **Aquí no
+coincide:**
+
+| | |
+|---|---|
+| `Last-Modified` de la respuesta | **25/04/2025 10:56:36** |
+| `lastUpdated` más reciente de los 17 | **15/03/2024 15:02:36** |
+| Diferencia | **trece meses** |
+
+Una cabecera que va trece meses por delante del registro más nuevo **no está describiendo al
+dato**: describe otra cosa —cuándo se tocó el recurso, cuándo se recompuso; no consta—. Así que
+`modified` **se omite** en el manifiesto en vez de copiarla, y la fila 24 del panel sale **gris**.
+La regla que rige desde el punto 8 se cumple aquí en su otra dirección: *una fecha sin cotejar no
+es la fecha del dato*.
+
+#### Los recuentos, medidos sobre lo descargado
+
+| | |
+|---|---|
+| Registros | **17** |
+| **Con coordenada** | **15** |
+| **Sin coordenada** | **2** — `12288` «Clínica Actur» y `12289` «Clínica Almozara», que **tampoco declaran calle** |
+| Dentro del entorno de Zaragoza | **15 de 15** |
+| `lastUpdated` | 17 de 17 · del **26/09/2023** al **15/03/2024** |
+
+**Regla B, otra vez:** las 2 sin coordenada no se sugieren, no se pueden elegir y no salen en
+ninguna pantalla. Ni se borran ni se editan: siguen en el fichero y el motor las declara al
+arrancar.
+
+#### 🔓 Aquí el título SÍ se lee, y por qué
+
+Al revés que en farmacias (§ 1.16), donde el título lleva el nombre de la persona titular y **no
+sale de la pantalla**, aquí el título es **institucional**: «Hospital Universitario Miguel Servet»,
+«Centro de Salud Actur Sur», «Clínica Quirón (La Floresta)». No es dato de una persona física: es
+el nombre del establecimiento, que es justo lo que alguien escribe para buscarlo.
+
+**Se verificó antes de publicarlo, sobre los 73 títulos de las dos categorías:**
+
+| | |
+|---|---|
+| Títulos **sin** ninguna palabra institucional | **0** de 73 |
+| Títulos con el patrón «Apellido, Nombre» —el de farmacias— | **0** de 73 |
+
+Que algunos lleven nombre de persona —Lozano Blesa, Royo Villanova, Miguel Servet— no cambia
+nada: son **el nombre del edificio**, puesto en honor de alguien que lleva un siglo muerto, no el
+titular de un negocio. La presentación es **título + dirección**.
+
+---
+
+### 1.19 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un

@@ -579,6 +579,57 @@
       "descargadoEl": "2026-08-23T15:33:54Z",
       "modified": "2026-06-08T14:06:36+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta (Mon, 08 Jun 2026 14:06:36 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 311 registros que lo traen — y va dos meses y medio por delante de la descarga, asi que no es la fecha de la respuesta"
+    },
+    {
+      "name": "centros-salud",
+      "path": "app/data/2026-08-24_zgzapi_equipamiento-centros-salud.json",
+      "title": "Centros de salud, especialidades y consultorios (56, las 56 con coordenada)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 75702,
+      "hash": "sha256:1683f1828fdb665f9df0804a0a4ab3369be71882d7d65672c62813fc10ec3428",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 781 «Centros de Salud», tema 4 «Salud Publica y Consumo»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/781.json"
+        }
+      ],
+      "descargadoEl": "2026-08-24T09:30:23Z",
+      "modified": "2026-05-20T15:58:21+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Wed, 20 May 2026 15:58:21 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 55 registros que lo traen — el mismo cotejo que se le hizo a farmacias, y aqui tambien sale"
+    },
+    {
+      "name": "hospitales",
+      "path": "app/data/2026-08-24_zgzapi_equipamiento-hospitales.json",
+      "title": "Hospitales y clinicas (17, de ellas 15 con coordenada)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 19108,
+      "hash": "sha256:46df1ff99a43a224f3b9fec4a4df76a6c38e6e4900ca21077644eba3efdd2dc8",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 780 «Hospitales», tema 4 «Salud Publica y Consumo»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/780.json"
+        }
+      ],
+      "descargadoEl": "2026-08-24T09:30:24Z",
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, pero el lastUpdated mas reciente de los 17 registros es 2024-03-15T15:02:36 — TRECE MESES antes. En farmacias y en centros de salud las dos fechas coinciden al segundo y por eso alli `modified` se declara; aqui la cabecera no describe al dato, asi que se omite en vez de copiarla"
     }
   ]
 }
