@@ -150,7 +150,25 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
   }
 
   /** Elige un sitio en el campo que se le diga. */
+
+  /**
+   * ⭐ Pone el TIPO de un campo, que desde el 24/08 hay que decirlo antes de
+   * buscar un sitio: el desplegable filtra el cajetín a una sola categoría y
+   * la búsqueda mezclada murió (decisión de Antonio, firmada). Sin esto, el
+   * campo pide vías y no llega a preguntar por sitios.
+   */
+  async function ponerTipo(campo: string, tipo: string): Promise<void> {
+    const cual = campo.replace('calle', '');
+    const select = raiz.querySelector<HTMLSelectElement>(`select[name="tipo${cual}"]`)!;
+    select.value = tipo;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+  }
+
   async function elegirSitioEn(campo: string, sitio: Sitio = FARMACIA): Promise<void> {
+    await ponerTipo(campo, 'farmacia');
     await teclear(campo, 'navarra');
     await contestar([], [sitio]);
     pulsar(campo, 'sitio');
@@ -216,6 +234,7 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
 
   it('⭐ EL FOCO VIAJA: con el origen resuelto, el destino lo manda', async () => {
     await elegirDireccionEn('calleOrigen', 'portalOrigen');
+    await ponerTipo('calleDestino', 'farmacia');
     await teclear('calleDestino', 'navarra');
 
     expect(consultaDeSitiosCon('navarra')).toContain('foco=Portales.5140a');
@@ -224,6 +243,7 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
 
   it('⭐ y un SITIO en el origen enfoca igual, por su código', async () => {
     await elegirSitioEn('calleOrigen');
+    await ponerTipo('calleDestino', 'farmacia');
     await teclear('calleDestino', 'navarra');
 
     expect(consultaDeSitiosCon('navarra')).toContain('foco=Farmacias.8691');
@@ -231,6 +251,7 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
   });
 
   it('⭐ SIN el otro lado resuelto NO hay foco: no se inventa un punto', async () => {
+    await ponerTipo('calleDestino', 'farmacia');
     await teclear('calleDestino', 'navarra');
 
     expect(consultaDeSitiosCon('navarra')).not.toContain('foco=');
@@ -250,6 +271,7 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
     await new Promise((sigue) => setTimeout(sigue, 0));
     fixture.detectChanges();
 
+    await ponerTipo('calleDestino', 'farmacia');
     await teclear('calleDestino', 'navarra');
     expect(consultaDeSitiosCon('navarra')).not.toContain('foco=');
     await contestar([], []);
@@ -266,6 +288,7 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
     await new Promise((sigue) => setTimeout(sigue, 0));
     fixture.detectChanges();
 
+    await ponerTipo('calleOrigen', 'farmacia');
     await teclear('calleOrigen', 'navarra');
 
     expect(consultaDeSitiosCon('navarra')).toContain('foco=Portales.5140a');
@@ -276,71 +299,71 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
     // Era la prueba de la asimetría —«el destino sí y el origen no»— y la
     // corrección del 23/08 la derogó: ahora se exige lo contrario, que los dos
     // pregunten. El motivo está en la cabecera.
+    await ponerTipo('calleDestino', 'farmacia');
     await teclear('calleDestino', 'navarra');
     expect(http.match((q) => q.url.startsWith('/api/sitios')).length).toBe(1);
     await contestar([], [FARMACIA]);
     await drenarEco();
 
+    await ponerTipo('calleOrigen', 'farmacia');
     await teclear('calleOrigen', 'navarra');
     expect(http.match((q) => q.url.startsWith('/api/sitios')).length).toBe(1);
     await contestar([], [FARMACIA]);
     await drenarEco();
   });
 
-  it('⭐ las dos capas se ven, y se distinguen por un atributo', async () => {
+  it('⭐ una lista NUNCA mezcla capas: la mezclada murió el 24/08', async () => {
+    // ⚠️ Esta prueba EXIGÍA LO CONTRARIO hasta el 24/08: que en la misma lista
+    // se vieran una calle y una farmacia, distinguidas por su `data-capa`. El
+    // buscador por tipos la deroga, y fue decisión de Antonio tomada a
+    // sabiendas: el desplegable elige una categoría y el cajetín deja de
+    // mezclar [DOC Pelias: `layers`].
+    //
+    // El atributo sigue —lo usan los iconos y estas pruebas— pero ahora todas
+    // las líneas de una lista traen el mismo valor. Se comprueba en las dos
+    // direcciones, porque el fallo puede ser por cualquiera de las dos: una
+    // calle colada bajo «Farmacias», o una farmacia bajo «Dirección».
+    await ponerTipo('calleDestino', 'farmacia');
     await teclear('calleDestino', 'navarra');
     await contestar([BURGOS], [FARMACIA]);
+    let o = opciones('calleDestino');
+    expect(o.length).toBe(1);
+    expect(o[0]!.capa).toBe('sitio');
+    await drenarEco();
 
-    const o = opciones('calleDestino');
-    expect(o.length).toBe(2);
-    // La capa NO se deduce del texto: va escrita.
-    expect(o.map((x) => x.capa).sort()).toEqual(['sitio', 'via']);
-    expect(o.find((x) => x.capa === 'sitio')!.texto).toContain('Farmacia · Avda. de Navarra, 65');
-    expect(o.find((x) => x.capa === 'via')!.texto).toContain('CALLE BURGOS');
+    await ponerTipo('calleDestino', 'via');
+    await teclear('calleDestino', 'navarra');
+    await contestar([BURGOS], [FARMACIA]);
+    o = opciones('calleDestino');
+    expect(o.length).toBe(1);
+    expect(o[0]!.capa).toBe('via');
     await drenarEco();
   });
 
-  // ── EL PORTAL CONDICIONAL, EN LOS DOS LADOS ────────────────────────────────
+  // ── EL PORTAL CONDICIONAL, ABSORBIDO POR EL REVELADO ───────────────────────
+  //
+  // ⚠️ Aquí había CUATRO pruebas de la regla del portal condicional (19/08):
+  // que un sitio APAGA la casilla de número, en los dos lados, y que la deja
+  // limpia. Las cuatro las deroga el revelado condicional del 24/08 [GOV.UK]:
+  // con un sitio **la casilla ya no existe**, así que no hay nada que apagar ni
+  // nada que limpiar. Su sucesora vive en `buscador-por-tipos.spec.ts` y exige
+  // lo que ahora es verdad — la ausencia por estructura.
+  //
+  // Lo que NO se pierde es la pregunta de fondo, que sigue teniendo respuesta:
+  // ¿lo que viaja es lo que se lee? Eso es la prueba de abajo.
 
-  it('⭐ un sitio en el DESTINO apaga su casilla de portal', async () => {
-    await elegirSitioEn('calleDestino');
-    expect(campoDe(raiz, 'portalDestino').disabled).toBe(true);
-    expect(campoDe(raiz, 'calleDestino').value).toBe('Farmacia · Avda. de Navarra, 65');
-  });
-
-  it('⭐ y un sitio en el ORIGEN apaga la suya, igual', async () => {
+  it('⭐ tras un sitio, volver a Dirección manda la DIRECCIÓN y no el sitio viejo', async () => {
+    // Era la mitad valiosa de «elegir una calle apaga el sitio»: ya no se puede
+    // tener las dos cosas puestas —el campo está en un carril o en el otro—,
+    // pero sí se puede cambiar de carril, y lo que viaje tiene que ser lo
+    // último que se ve, no lo primero que se eligió.
     await elegirSitioEn('calleOrigen');
-    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
     expect(campoDe(raiz, 'calleOrigen').value).toBe('Farmacia · Avda. de Navarra, 65');
-  });
 
-  it('⭐ y lo APAGA el sitio, no la falta de vía: se comprueba estando encendida', async () => {
-    // ⚠️ La prueba de arriba pasaba por la razón equivocada, y lo destapó la
-    // contraprueba: sin vía elegida la casilla ya está apagada, así que
-    // comprobar que está apagada tras poner un sitio no dice nada. Aquí se
-    // rellena la dirección PRIMERO —la casilla queda encendida— y solo entonces
-    // se elige el sitio: si se apaga, es por el sitio.
+    await ponerTipo('calleOrigen', 'via');
     await elegirDireccionEn('calleOrigen', 'portalOrigen');
-    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(false);
-
-    await elegirSitioEn('calleOrigen');
-    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
-    drenarTodo();
-  });
-
-  it('⭐ y elegir una CALLE apaga el sitio que hubiera: no se quedan los dos', async () => {
-    // Son las dos maneras de decir a dónde y no pueden estar puestas a la vez.
-    // Si el sitio sobreviviera a elegir una calle, «Generar» mandaría el sitio
-    // viejo mientras la pantalla enseña la calle nueva.
-    await elegirSitioEn('calleOrigen');
-    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
-
-    await elegirDireccionEn('calleOrigen', 'portalOrigen');
-    // La casilla vuelve a encenderse: ya no hay sitio que la apague.
-    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(false);
     expect(campoDe(raiz, 'calleOrigen').value).toBe('CALLE BURGOS');
 
-    // Y lo que viaja es la dirección, no el sitio de antes.
     await elegirSitioEn('calleDestino');
     generar().click();
     fixture.detectChanges();
@@ -349,21 +372,6 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
     ruta.flush({ modo: 'andando', pasos: [], geometria: [], avisos: [], metros: 0, segundos: 0 });
     await new Promise((sigue) => setTimeout(sigue, 0));
     fixture.detectChanges();
-    drenarTodo();
-  });
-
-  it('⭐ elegir un sitio DEJA LIMPIO el portal que hubiera escrito', async () => {
-    // La costura del encargo: ¿qué pasa con el portal escrito? Se limpia — y
-    // lo hace el camino del teclado, no una línea que hable del sitio: para
-    // ver la lista hay que teclear, teclear suelta la vía, y soltar la vía
-    // limpia su portal. Medido: antes «2», después «».
-    //
-    // Importa que quede fijado: si sobreviviera, al invertir cruzaría un
-    // portal huérfano al otro lado.
-    await elegirDireccionEn('calleOrigen', 'portalOrigen');
-    expect(campoDe(raiz, 'portalOrigen').value).toBe('2');
-    await elegirSitioEn('calleOrigen');
-    expect(campoDe(raiz, 'portalOrigen').value).toBe('');
     drenarTodo();
   });
 
@@ -393,15 +401,19 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
     invertir();
     expect(campoDe(raiz, 'calleDestino').value).toBe('Farmacia · Avda. de Navarra, 65');
     expect(campoDe(raiz, 'calleOrigen').value).toBe('');
-    // La casilla apagada viaja con su lado: ahora es la del destino.
-    expect(campoDe(raiz, 'portalDestino').disabled).toBe(true);
+    // ⚠️ Decía «la casilla APAGADA viaja con su lado». Con el revelado
+     // condicional (24/08) no hay casilla apagada que viajar: **la casilla no
+     // está**. Lo que se comprueba ahora es que se ha ido del lado donde está
+     // el sitio y ha vuelto al lado que quedó en Dirección.
+    expect(raiz.querySelector('input[name="portalDestino"]')).toBeNull();
+    expect(raiz.querySelector('input[name="portalOrigen"]')).not.toBeNull();
   });
 
   it('⭐ ⇅ sitio↔dirección: se cruzan, y cada casilla queda como toca', async () => {
     await elegirDireccionEn('calleOrigen', 'portalOrigen');
     await elegirSitioEn('calleDestino');
-    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(false);
-    expect(campoDe(raiz, 'portalDestino').disabled).toBe(true);
+    expect(campoDe(raiz, 'portalOrigen').value).toBe('2');
+    expect(raiz.querySelector('input[name="portalDestino"]')).toBeNull();
 
     invertir();
 
@@ -409,8 +421,9 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
     // casillas se han cambiado el estado con ellos.
     expect(campoDe(raiz, 'calleOrigen').value).toBe('Farmacia · Avda. de Navarra, 65');
     expect(campoDe(raiz, 'calleDestino').value).toBe('CALLE BURGOS');
-    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
-    expect(campoDe(raiz, 'portalDestino').disabled).toBe(false);
+    // La casilla se MUDA con su lado: desaparece de donde ahora hay un sitio
+    // y aparece donde ahora hay una dirección, con su número dentro.
+    expect(raiz.querySelector('input[name="portalOrigen"]')).toBeNull();
     expect(campoDe(raiz, 'portalDestino').value).toBe('2');
     // Y sigue pudiéndose generar: invertir no rompe una ruta que ya valía.
     expect(generar().disabled).toBe(false);
@@ -423,8 +436,9 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
     invertir();
     expect(campoDe(raiz, 'calleOrigen').value).toBe('Farmacia · Pº de la Mina, 5');
     expect(campoDe(raiz, 'calleDestino').value).toBe('Farmacia · Avda. de Navarra, 65');
-    expect(campoDe(raiz, 'portalOrigen').disabled).toBe(true);
-    expect(campoDe(raiz, 'portalDestino').disabled).toBe(true);
+    // Con sitio en los dos lados no hay ninguna casilla de número en la
+    // pantalla: ni apagada ni encendida, ninguna.
+    expect(raiz.querySelectorAll('app-selector-portal').length).toBe(0);
     expect(generar().disabled).toBe(false);
   });
 
@@ -432,6 +446,9 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
     // Texto escrito que no corresponde a nada: cruza siendo texto. Inventarle
     // un sitio «porque ya estaba escrito» sería el fallo de la nº4 con otro
     // disfraz.
+    // Se escribe con el campo en «Farmacias», que es donde alguien escribiría
+    // el nombre de una: el borrador es un nombre que no casa con nada.
+    await ponerTipo('calleOrigen', 'farmacia');
     await teclear('calleOrigen', 'farmacia que no existe');
     await contestar([], []);
     invertir();

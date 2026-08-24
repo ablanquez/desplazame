@@ -163,7 +163,25 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     fixture.detectChanges();
   }
 
+
+  /**
+   * ⭐ Pone el TIPO de un campo, que desde el 24/08 hay que decirlo antes de
+   * buscar un sitio: el desplegable filtra el cajetín a una sola categoría y
+   * la búsqueda mezclada murió (decisión de Antonio, firmada). Sin esto, el
+   * campo pide vías y no llega a preguntar por sitios.
+   */
+  async function ponerTipo(campo: string, tipo: string): Promise<void> {
+    const cual = campo.replace('calle', '');
+    const select = raiz.querySelector<HTMLSelectElement>(`select[name="tipo${cual}"]`)!;
+    select.value = tipo;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+  }
+
   async function elegirSitioEn(campo: string, sitio: Sitio = FARMACIA): Promise<void> {
+    await ponerTipo(campo, sitio.tipo);
     await teclear(campo, 'navarra');
     await contestar([], [sitio]);
     pulsar(campo, 'sitio');
@@ -206,13 +224,23 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
   // ── CASA 1: LAS SUGERENCIAS ────────────────────────────────────────────────
 
   it('⭐ cada sugerencia lleva su icono: chincheta la calle, cruz el sitio', async () => {
+    // ⚠️ Esto era UNA lista con las dos capas dentro. Desde el buscador por
+    // tipos (24/08) una lista es de una sola clase, así que se miran las dos
+    // listas — que es lo que de verdad se ve ahora.
+    //
+    // El `data-icono` dice QUÉ ES y no de qué índice salió: decía «sitio»
+    // hasta que hubo tres clases de sitio y dejó de identificar un dibujo.
     await teclear('calleDestino', 'navarra');
-    await contestar([BURGOS], [FARMACIA]);
-
-    // ⚠️ Decía `icono: 'sitio'` hasta el 24/08. Con tres clases de sitio,
-    // «sitio» ya no identifica un dibujo: el atributo dice ahora QUÉ ES.
+    await contestar([BURGOS], []);
     expect(iconosDe('calleDestino')).toEqual([
       { icono: 'via', papel: 'ninguno', color: COLOR_NEUTRO },
+    ]);
+    await drenarEco();
+
+    await ponerTipo('calleDestino', 'farmacia');
+    await teclear('calleDestino', 'navarra');
+    await contestar([], [FARMACIA]);
+    expect(iconosDe('calleDestino')).toEqual([
       { icono: 'farmacia', papel: 'ninguno', color: COLOR_SITIO },
     ]);
   });
@@ -221,6 +249,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     // El sitio en la línea es la mitad del encargo: un icono detrás del texto
     // se lee DESPUÉS, y entonces no ahorra la lectura que venía a ahorrar.
     // Es orden del DOM, que es lo único que una prueba sin pintar puede ver.
+    await ponerTipo('calleDestino', 'farmacia');
     await teclear('calleDestino', 'navarra');
     await contestar([], [FARMACIA]);
 
@@ -252,16 +281,23 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     // el mismo dibujo serían tres cosas que parecen la misma. Se miran las dos
     // señas a la vez —la forma y el color—, porque cada una sale de una tabla
     // distinta y cualquiera puede desmentir a la otra.
-    await teclear('calleDestino', 'salud');
-    await contestar([], [FARMACIA, CENTRO, HOSPITAL]);
-
-    const dibujos = Array.from(
-      raiz.querySelectorAll<SVGElement>('[data-campo="calleDestino"] .sugerencia svg'),
-    ).map((svg) => [
-      svg.getAttribute('data-icono'),
-      svg.querySelector('path')?.getAttribute('d'),
-      svg.querySelector('path')?.getAttribute('fill'),
-    ]);
+    // ⚠️ Las tres iban en una lista hasta el 24/08. Ya no caben juntas —una
+    // lista es de una sola clase—, así que se miran una a una y se junta el
+    // resultado: lo que se afirma sigue siendo lo mismo, que las tres se
+    // dibujan distinto.
+    const dibujos: unknown[] = [];
+    for (const sitio of [FARMACIA, CENTRO, HOSPITAL]) {
+      await ponerTipo('calleDestino', sitio.tipo);
+      await teclear('calleDestino', 'salud');
+      await contestar([], [sitio]);
+      const svg = raiz.querySelector<SVGElement>('[data-campo="calleDestino"] .sugerencia svg')!;
+      dibujos.push([
+        svg.getAttribute('data-icono'),
+        svg.querySelector('path')?.getAttribute('d'),
+        svg.querySelector('path')?.getAttribute('fill'),
+      ]);
+      await drenarEco();
+    }
 
     expect(dibujos).toEqual([
       ['farmacia', CAMINO_CRUZ, COLOR_SITIO],
@@ -274,6 +310,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     // El único icono de dos piezas. Sin la H, un cuadrado azul no es la S-23:
     // es un cuadrado azul. Y la H tiene que ir BLANCA — es lo que la hace
     // legible sobre el azul.
+    await ponerTipo('calleDestino', 'hospital');
     await teclear('calleDestino', 'salud');
     await contestar([], [HOSPITAL]);
 
@@ -288,6 +325,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     ]);
     // Y la cruz NO lleva nada encima: un solo camino.
     await drenarEco();
+    await ponerTipo('calleOrigen', 'centro-salud');
     await teclear('calleOrigen', 'salud');
     await contestar([], [CENTRO]);
     const cruz = raiz.querySelector<SVGElement>('[data-campo="calleOrigen"] .sugerencia svg')!;
@@ -320,11 +358,13 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
   });
 
   it('la cruz de farmacia es VERDE en los dos campos: el papel no la cambia', async () => {
+    await ponerTipo('calleOrigen', 'farmacia');
     await teclear('calleOrigen', 'navarra');
     await contestar([], [FARMACIA]);
     const enOrigen = iconosDe('calleOrigen');
     await drenarEco();
 
+    await ponerTipo('calleDestino', 'farmacia');
     await teclear('calleDestino', 'navarra');
     await contestar([], [FARMACIA]);
     const enDestino = iconosDe('calleDestino');
@@ -450,12 +490,18 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     // pruebas seguían verdes: miraban `data-icono` y el `fill`, que salen de
     // otro sitio. Un dibujo que no corresponde a lo que el atributo declara es
     // exactamente lo que nadie iba a ver.
-    await teclear('calleDestino', 'navarra');
-    await contestar([BURGOS], [FARMACIA]);
-
-    const caminos = Array.from(
-      raiz.querySelectorAll<SVGElement>('[data-campo="calleDestino"] .sugerencia svg'),
-    ).map((svg) => [svg.getAttribute('data-icono'), svg.querySelector('path')?.getAttribute('d')]);
+    const caminos: unknown[] = [];
+    for (const [tipo, quien] of [
+      ['via', null],
+      ['farmacia', FARMACIA],
+    ] as const) {
+      await ponerTipo('calleDestino', tipo);
+      await teclear('calleDestino', 'navarra');
+      await contestar(quien ? [] : [BURGOS], quien ? [quien] : []);
+      const svg = raiz.querySelector<SVGElement>('[data-campo="calleDestino"] .sugerencia svg')!;
+      caminos.push([svg.getAttribute('data-icono'), svg.querySelector('path')?.getAttribute('d')]);
+      await drenarEco();
+    }
 
     expect(caminos).toEqual([
       ['via', CAMINO_CHINCHETA],

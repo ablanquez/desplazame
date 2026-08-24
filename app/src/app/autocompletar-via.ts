@@ -81,19 +81,20 @@ export class AutocompletarVia {
   readonly etiqueta = input.required<string>();
 
   /**
-   * ⭐ Si este campo ofrece también SITIOS — sitios con nombre.
+   * ⭐ EN QUÉ CAPA busca este campo. **Una sola**, desde el 24/08.
    *
-   * Va apagado por defecto y **los dos campos lo encienden** desde la simetría
-   * del 23/08. Sigue siendo un `input` y no una suposición del componente
-   * porque quien decide qué capas ofrece un campo es quien lo coloca, no el
-   * campo: el día que haya un formulario donde solo valga una dirección, este
-   * mismo componente sirve sin tocarlo.
+   * `via` son las calles del callejero municipal; cualquier otro valor es una
+   * categoría de sitio. [DOC Pelias] `layers` es exactamente esto —acotar la
+   * búsqueda a una capa— y aquí lo elige quien mira, con el desplegable que
+   * hay delante del cajetín.
    *
-   * [DOC Pelias] Los sitios son una **capa** aparte de las calles —`layers`, y
-   * `venue` es la suya—: se buscan a la vez, se enseñan juntos y se distinguen
-   * a la vista. No son «resultados mejores»: son de otra clase.
+   * ⚠️ **La búsqueda mezclada murió aquí**, y fue decisión de Antonio tomada a
+   * sabiendas. Hasta el 24/08 este campo pedía LAS DOS capas y las enseñaba
+   * juntas; ahora pide una. Lo que se gana es que la lista no sorprenda —
+   * quien dice «Farmacias» ve farmacias— y lo que se pierde es encontrar una
+   * calle sin haber dicho que buscaba una calle. Está firmado.
    */
-  readonly conSitios = input(false);
+  readonly capa = input.required<Clase>();
 
   /**
    * ⭐ EL FOCO: el código del OTRO extremo, si ya está resuelto.
@@ -167,14 +168,34 @@ export class AutocompletarVia {
   protected readonly marcado = computed(() => this.tocado() && this.esBorrador());
 
   /** Lo escrito, pero con la espera aplicada: es lo que dispara la petición. */
-  private readonly consulta = signal('');
+  private readonly consultaConEspera = signal('');
+
+  /**
+   * ⭐ LO QUE DE VERDAD SE PREGUNTA: la consulta con espera, **pero solo si
+   * sigue siendo lo que hay escrito**.
+   *
+   * La espera y el texto van desacompasados 200 ms, y hasta el 24/08 eso no se
+   * notaba porque la URL solo dependía del texto. Ahora depende también de la
+   * CAPA, y la capa cambia sin espera: al pulsar el ⇅ —o al cambiar de tipo—
+   * el campo se quedaba un instante con **el texto viejo bajo la capa nueva** y
+   * salía a preguntar por él. Visto en una prueba:
+   * `GET /api/vias?q=Farmacia · Avda. de Navarra, 65` — una calle que se llama
+   * como una farmacia, que no existe y que nadie ha escrito.
+   *
+   * No era grave —200 ms después se corrige sola— pero es una pregunta que
+   * nadie ha hecho, y en una lista abierta se vería un parpadeo de resultados
+   * que no vienen de lo que se está escribiendo.
+   */
+  private readonly consulta = computed(() =>
+    this.consultaConEspera() === this.texto() ? this.consultaConEspera() : '',
+  );
 
   constructor() {
     let temporizador: ReturnType<typeof setTimeout> | undefined;
     effect((alLimpiar) => {
       const escrito = this.texto();
       clearTimeout(temporizador);
-      temporizador = setTimeout(() => this.consulta.set(escrito), ESPERA_MS);
+      temporizador = setTimeout(() => this.consultaConEspera.set(escrito), ESPERA_MS);
       alLimpiar(() => clearTimeout(temporizador));
     });
   }
@@ -186,17 +207,27 @@ export class AutocompletarVia {
    */
   protected readonly sugerencias = httpResource<readonly Via[]>(() => {
     const q = this.consulta().trim();
-    return q.length < MINIMO ? undefined : `/api/vias?q=${encodeURIComponent(q)}`;
+    // Y al revés: con una categoría de sitio, las VÍAS no se piden. Las dos
+    // capas se excluyen desde el 24/08 — el campo busca en una, la que diga su
+    // desplegable.
+    if (this.capa() !== 'via' || q.length < MINIMO) {
+      return undefined;
+    }
+    return `/api/vias?q=${encodeURIComponent(q)}`;
   });
 
   /**
-   * La otra capa. **No se pide si el campo no la ofrece**: devolver `undefined`
-   * en la URL es lo que le dice a `httpResource` que no hay nada que pedir, así
-   * que el origen no molesta al motor con una pregunta que no va a usar.
+   * La capa de sitios. **Solo se pide si el campo está en una categoría**:
+   * devolver `undefined` en la URL es lo que le dice a `httpResource` que no
+   * hay nada que pedir, y es lo que garantiza la pureza — no se pide y se
+   * descarta, es que no se pide.
    */
   protected readonly sugerenciasSitios = httpResource<readonly Sitio[]>(() => {
     const q = this.consulta().trim();
-    if (!this.conSitios() || q.length < MINIMO) {
+    // Con `via` no se pide la capa de sitios **en absoluto**: no es que se pida
+    // y se descarte, es que no se pide. Es lo que hace que la lista de una
+    // dirección no pueda traer una farmacia ni por accidente.
+    if (this.capa() === 'via' || q.length < MINIMO) {
       return undefined;
     }
     // El foco entra en la URL, así que **cambiarlo vuelve a pedir**: elegir el
@@ -204,9 +235,10 @@ export class AutocompletarVia {
     // Es lo que hace `httpResource` de serie —lee señales y se rehace—, y aquí
     // es justo lo que se quiere.
     const foco = this.foco();
+    const capa = `&capa=${encodeURIComponent(this.capa())}`;
     return foco
-      ? `/api/sitios?q=${encodeURIComponent(q)}&foco=${encodeURIComponent(foco)}`
-      : `/api/sitios?q=${encodeURIComponent(q)}`;
+      ? `/api/sitios?q=${encodeURIComponent(q)}${capa}&foco=${encodeURIComponent(foco)}`
+      : `/api/sitios?q=${encodeURIComponent(q)}${capa}`;
   });
 
   /**

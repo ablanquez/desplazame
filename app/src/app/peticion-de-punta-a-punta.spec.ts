@@ -107,7 +107,25 @@ describe('⭐ DE PUNTA A PUNTA: lo que manda la pantalla, leído por el motor', 
     fixture.detectChanges();
   }
 
+
+  /**
+   * ⭐ Pone el TIPO de un campo, que desde el 24/08 hay que decirlo antes de
+   * buscar un sitio: el desplegable filtra el cajetín a una sola categoría y
+   * la búsqueda mezclada murió (decisión de Antonio, firmada). Sin esto, el
+   * campo pide vías y no llega a preguntar por sitios.
+   */
+  async function ponerTipo(campo: string, tipo: string): Promise<void> {
+    const cual = campo.replace('calle', '');
+    const select = raiz.querySelector<HTMLSelectElement>(`select[name="tipo${cual}"]`)!;
+    select.value = tipo;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
+  }
+
   async function elegirSitioEn(campo: string, sitio: Sitio): Promise<void> {
+    await ponerTipo(campo, sitio.tipo);
     await teclear(campo, 'navarra');
     await contestar([], [sitio]);
     pulsar(campo, 'sitio');

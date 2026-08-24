@@ -7,17 +7,47 @@
   <form class="buscador" (submit)="$event.preventDefault()">
     <fieldset class="punto">
       <legend>Origen</legend>
-      <!-- La atadura de `seleccion` va DESAZUCARADA a propósito: el padre
-           necesita distinguir «lo cambió el usuario» de «lo escribí yo». El
-           porqué entero está en `alElegirVia`, en `buscador.ts`. -->
       <!--
-        ⭐ Los DOS extremos ofrecen sitios desde el 23/08, y con los mismos
-        parámetros: si el ⇅ los intercambia, tienen que aceptar lo mismo.
+        ⭐ EL CAMPO SON CUATRO PIEZAS desde el 24/08: la ubicación, el
+        desplegable de tipo, el cajetín y —solo con Dirección— el número.
+        El orden es el del encargo, y es también el de la lectura: primero
+        «dónde estoy», luego «qué busco», luego «cuál».
       -->
+      <button
+        type="button"
+        class="ubicacion"
+        [disabled]="buscandoUbicacion()"
+        (click)="miUbicacion(origen)"
+        [attr.aria-label]="'Usar mi ubicación como origen'"
+      >
+        {{ buscandoUbicacion() ? 'Buscando…' : '📍' }}
+      </button>
+
+      <!--
+        [DOC GOV.UK Design System · Select] Su ejemplo canónico es justo esto:
+        un filtro corto con una opción marcada por defecto. Su aviso contra los
+        `select` largos —«considera otro patrón si hay muchas opciones»— no
+        aplica: aquí hay cuatro.
+      -->
+      <label class="campo campo--tipo" for="tipoOrigen">
+        <span>Tipo</span>
+        <select
+          id="tipoOrigen"
+          name="tipoOrigen"
+          class="tipo"
+          [value]="origen.tipo()"
+          (change)="alCambiarTipo(origen, $any($event.target).value)"
+        >
+          @for (t of tipos; track t.id) {
+            <option [value]="t.id" [selected]="t.id === origen.tipo()">{{ t.etiqueta }}</option>
+          }
+        </select>
+      </label>
+
       <app-autocompletar-via
         campo="calleOrigen"
-        etiqueta="Calle o sitio"
-        [conSitios]="true"
+        [etiqueta]="origen.tipo() === 'via' ? 'Calle' : 'Nombre'"
+        [capa]="origen.tipo()"
         [foco]="focoDe(destino)"
         [(texto)]="origen.calle"
         [seleccion]="origen.via()"
@@ -26,22 +56,28 @@
         (sitioChange)="alElegirSitio(origen, $event)"
         [(tocado)]="origen.calleTocada"
       />
-      <app-selector-portal
-        campo="portalOrigen"
-        etiqueta="Portal"
-        [via]="origen.via()"
-        [(texto)]="origen.portalTexto"
-        [(seleccion)]="origen.portal"
-        [(tocado)]="origen.portalTocado"
-      />
-      <button
-        type="button"
-        class="ubicacion"
-        [disabled]="buscandoUbicacion()"
-        (click)="miUbicacion()"
-      >
-        {{ buscandoUbicacion() ? 'Buscando…' : '📍 Mi ubicación' }}
-      </button>
+
+      <!--
+        ⭐ EL NÚMERO, POR REVELADO CONDICIONAL [DOC GOV.UK: conditional reveal].
+        Con Dirección existe; con una categoría de sitio **NO EXISTE** — no está
+        apagado, no está. Un campo deshabilitado sigue en la página, ocupa su
+        hueco y se lee como «esto habría que rellenarlo»; un sitio no tiene
+        número que pedirle y la pantalla no debe insinuar que sí.
+
+        El patrón de GOV.UK pide que lo revelado sea **un solo campo**, y lo es.
+        La regla del portal condicional (19/08) queda absorbida por esto: no
+        hace falta apagar lo que no está.
+      -->
+      @if (origen.tipo() === 'via') {
+        <app-selector-portal
+          campo="portalOrigen"
+          etiqueta="Nº"
+          [via]="origen.via()"
+          [(texto)]="origen.portalTexto"
+          [(seleccion)]="origen.portal"
+          [(tocado)]="origen.portalTocado"
+        />
+      }
     </fieldset>
 
     <!-- El aviso va pegado al botón que lo produce, no arriba del todo: se lee
@@ -63,13 +99,46 @@
     <fieldset class="punto">
       <legend>Destino</legend>
       <!--
-        Mismos parámetros que el origen: las dos capas y, lo único distinto, el
-        `papel` — que no cambia lo que se busca, solo el color de la chincheta.
+        ⭐ EL CAMPO SON CUATRO PIEZAS desde el 24/08: la ubicación, el
+        desplegable de tipo, el cajetín y —solo con Dirección— el número.
+        El orden es el del encargo, y es también el de la lectura: primero
+        «dónde estoy», luego «qué busco», luego «cuál».
       -->
+      <button
+        type="button"
+        class="ubicacion"
+        [disabled]="buscandoUbicacion()"
+        (click)="miUbicacion(destino)"
+        [attr.aria-label]="'Usar mi ubicación como destino'"
+      >
+        {{ buscandoUbicacion() ? 'Buscando…' : '📍' }}
+      </button>
+
+      <!--
+        [DOC GOV.UK Design System · Select] Su ejemplo canónico es justo esto:
+        un filtro corto con una opción marcada por defecto. Su aviso contra los
+        `select` largos —«considera otro patrón si hay muchas opciones»— no
+        aplica: aquí hay cuatro.
+      -->
+      <label class="campo campo--tipo" for="tipoDestino">
+        <span>Tipo</span>
+        <select
+          id="tipoDestino"
+          name="tipoDestino"
+          class="tipo"
+          [value]="destino.tipo()"
+          (change)="alCambiarTipo(destino, $any($event.target).value)"
+        >
+          @for (t of tipos; track t.id) {
+            <option [value]="t.id" [selected]="t.id === destino.tipo()">{{ t.etiqueta }}</option>
+          }
+        </select>
+      </label>
+
       <app-autocompletar-via
         campo="calleDestino"
-        etiqueta="Calle o sitio"
-        [conSitios]="true"
+        [etiqueta]="destino.tipo() === 'via' ? 'Calle' : 'Nombre'"
+        [capa]="destino.tipo()"
         [foco]="focoDe(origen)"
         [(texto)]="destino.calle"
         [seleccion]="destino.via()"
@@ -78,20 +147,28 @@
         (sitioChange)="alElegirSitio(destino, $event)"
         [(tocado)]="destino.calleTocada"
       />
+
       <!--
-        LA REGLA DEL PORTAL CONDICIONAL (19/08): con un sitio elegido, esta
-        casilla se apaga sola — elegir un sitio suelta la vía del lado, y sin
-        vía el selector no se puede usar. Un sitio trae su propia coordenada,
-        así que no hay portal que pedirle.
+        ⭐ EL NÚMERO, POR REVELADO CONDICIONAL [DOC GOV.UK: conditional reveal].
+        Con Dirección existe; con una categoría de sitio **NO EXISTE** — no está
+        apagado, no está. Un campo deshabilitado sigue en la página, ocupa su
+        hueco y se lee como «esto habría que rellenarlo»; un sitio no tiene
+        número que pedirle y la pantalla no debe insinuar que sí.
+
+        El patrón de GOV.UK pide que lo revelado sea **un solo campo**, y lo es.
+        La regla del portal condicional (19/08) queda absorbida por esto: no
+        hace falta apagar lo que no está.
       -->
-      <app-selector-portal
-        campo="portalDestino"
-        etiqueta="Portal"
-        [via]="destino.via()"
-        [(texto)]="destino.portalTexto"
-        [(seleccion)]="destino.portal"
-        [(tocado)]="destino.portalTocado"
-      />
+      @if (destino.tipo() === 'via') {
+        <app-selector-portal
+          campo="portalDestino"
+          etiqueta="Nº"
+          [via]="destino.via()"
+          [(texto)]="destino.portalTexto"
+          [(seleccion)]="destino.portal"
+          [(tocado)]="destino.portalTocado"
+        />
+      }
     </fieldset>
 
     <fieldset class="modos">

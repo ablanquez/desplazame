@@ -174,6 +174,19 @@ const MENSAJES_DE_FALLO: Readonly<Record<number, string>> = {
  */
 function ladoVacio() {
   return {
+    /**
+     * ⭐ QUÉ SE ESTÁ BUSCANDO en este lado: una dirección o una categoría de
+     * sitio. Lo elige el desplegable que hay delante del cajetín.
+     *
+     * **`via` por defecto** —«Dirección»— y es [PROPIO] declarado: abrir la
+     * pantalla tiene que comportarse como se comportaba ayer. Quien nunca toque
+     * el desplegable no se entera de que existe.
+     *
+     * Es el mismo tipo que usan los iconos, y no una copia: lo que el campo
+     * BUSCA y lo que el icono DIBUJA son la misma pregunta —«¿qué clase de cosa
+     * es esto?»— y tenerlo dos veces sería tenerlo mal una de las dos.
+     */
+    tipo: signal<Clase>('via'),
     /** Lo escrito en el campo de calle. */
     calle: signal(''),
     /** La vía elegida de la lista. Guarda el CÓDIGO, no solo el texto. */
@@ -299,6 +312,13 @@ export class Buscador {
    */
   private readonly http = inject(HttpClient);
 
+  /**
+   * Qué lado pulsó «Mi ubicación». La geolocalización contesta por retrollamada
+   * y el motor por HTTP, así que entre la pulsación y el relleno hay dos saltos
+   * y nadie más lleva el dato.
+   */
+  private pidioUbicacion: Lado | null = null;
+
   /** Se está esperando a la posición o al motor: el botón no se repulsa. */
   protected readonly buscandoUbicacion = signal(false);
 
@@ -407,6 +427,38 @@ export class Buscador {
     lado.sitio.set(sitio);
   }
 
+  /**
+   * ⭐ Al cambiar el TIPO de un lado: se limpia el lado entero.
+   *
+   * Cambiar de carril es empezar la pregunta. Sin esto quedaría una farmacia
+   * resuelta bajo la etiqueta «Dirección» —o una calle bajo «Hospitales»—, y no
+   * sería solo feo: **«Generar» seguiría desbloqueado** y mandaría al motor un
+   * extremo que no es el que se lee en la pantalla. Es la ley de la entrada nº4
+   * otra vez, con el disfraz del 24/08.
+   *
+   * Se limpia TODO, incluidos los «tocado»: quien acaba de cambiar de tipo no
+   * ha tenido tiempo de equivocarse todavía, y regañarle por un campo vacío que
+   * él no ha vaciado sería regañarle por lo que hemos hecho nosotros.
+   */
+  protected alCambiarTipo(lado: Lado, tipo: Clase): void {
+    lado.tipo.set(tipo);
+    lado.calle.set('');
+    lado.via.set(null);
+    lado.calleTocada.set(false);
+    lado.portalTexto.set('');
+    lado.portal.set(null);
+    lado.portalTocado.set(false);
+    lado.sitio.set(null);
+  }
+
+  /** Lo que dice cada opción del desplegable. El orden es el del encargo. */
+  protected readonly tipos: ReadonlyArray<{ id: Clase; etiqueta: string }> = [
+    { id: 'via', etiqueta: 'Dirección' },
+    { id: 'farmacia', etiqueta: 'Farmacias' },
+    { id: 'hospital', etiqueta: 'Hospitales' },
+    { id: 'centro-salud', etiqueta: 'Centros de Salud' },
+  ];
+
   protected alElegirVia(lado: Lado, via: Via | null): void {
     lado.via.set(via);
     lado.portalTexto.set('');
@@ -437,6 +489,11 @@ export class Buscador {
    * pone en origen y se invierte.
    */
   protected invertir(): void {
+    // ⭐ El TIPO primero, que desde el 24/08 es lo que decide qué casillas hay.
+    // Cruzando el texto sin el tipo, el otro lado se quedaría con una farmacia
+    // escrita bajo la etiqueta «Dirección» y con una casilla de número que no
+    // le corresponde.
+    intercambiar(this.origen.tipo, this.destino.tipo);
     intercambiar(this.origen.calle, this.destino.calle);
     intercambiar(this.origen.via, this.destino.via);
     intercambiar(this.origen.calleTocada, this.destino.calleTocada);
@@ -455,11 +512,17 @@ export class Buscador {
    * `localhost`; en producción hará falta https, y eso es una casilla del
    * punto 12, no de aquí.
    *
-   * Va SOLO en origen. Para el otro lado está el ⇅: se pone la ubicación en
-   * origen y se invierte.
+   * ⚠️ Estuvo **solo en el origen** hasta el 24/08, con el argumento de que
+   * para el otro lado ya estaba el ⇅. Antonio lo corrigió: dar dos pasos para
+   * algo que cabe en uno no es economía, es un acertijo. Ahora está en los dos,
+   * con los mismos umbrales y los mismos mensajes.
    */
-  protected miUbicacion(): void {
+  protected miUbicacion(lado: Lado): void {
     this.avisoUbicacion.set(null);
+    // ⭐ Se apunta a QUIÉN lo pidió: hasta el 24/08 solo lo tenía el origen y
+    // el destino se llenaba con el ⇅. Ahora está en los dos, así que la
+    // respuesta —que llega dos saltos después— tiene que saber dónde caer.
+    this.pidioUbicacion = lado;
 
     // Sin contexto seguro la API ni siquiera existe. Un botón que no hace nada
     // y no dice por qué es peor que no tener botón.
@@ -543,12 +606,25 @@ export class Buscador {
       return;
     }
 
-    this.origen.calle.set(comoSeVeLaVia(cercano.via));
-    this.origen.via.set(cercano.via);
-    this.origen.calleTocada.set(false);
-    this.origen.portalTexto.set(cercano.portal.numero);
-    this.origen.portal.set(cercano.portal);
-    this.origen.portalTocado.set(false);
+    const lado = this.pidioUbicacion;
+    if (!lado) {
+      return;
+    }
+
+    // ⭐ Y EL TIPO SE PONE EN «DIRECCIÓN». Una ubicación ES una dirección: lo
+    // que devuelve `/api/portal-cercano` es una vía y un portal, y meterlos en
+    // un campo que dice «Hospitales» sería escribir una cosa bajo la etiqueta
+    // de otra. Cambiar el tipo aquí es además lo que hace aparecer la casilla
+    // del número, sin la cual el portal recién resuelto no se vería.
+    lado.tipo.set('via');
+    lado.sitio.set(null);
+
+    lado.calle.set(comoSeVeLaVia(cercano.via));
+    lado.via.set(cercano.via);
+    lado.calleTocada.set(false);
+    lado.portalTexto.set(cercano.portal.numero);
+    lado.portal.set(cercano.portal);
+    lado.portalTocado.set(false);
   }
 
   /** No hay posición, y la API dice por qué. Se traduce y se enseña. */

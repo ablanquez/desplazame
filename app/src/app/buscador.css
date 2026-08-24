@@ -49,6 +49,21 @@ legend {
   flex: 3 1 14rem;
 }
 
+/* ⭐ El desplegable de tipo: ancho fijo y NO se estira.
+   Sus cuatro opciones caben en 9,5 rem —«Centros de Salud» es la larga— y
+   dejarlo crecer le robaría sitio al cajetín, que es donde se escribe. */
+.campo--tipo {
+  flex: 0 0 9.5rem;
+}
+
+.tipo {
+  padding: 0.4rem 0.3rem;
+  border: 1px solid #999;
+  border-radius: 3px;
+  background: #fff;
+  font: inherit;
+}
+
 .campo--portal {
   flex: 1 1 6rem;
 }
@@ -64,8 +79,12 @@ legend {
 
 /* «Mi ubicación» es un atajo, no la forma normal de rellenar: va discreto,
    dentro del bloque de Origen y detrás de sus dos campos. */
+/* El botón va abajo del todo de su línea porque los campos que tiene al lado
+   llevan etiqueta encima: alineados por arriba quedaría a la altura del
+   rótulo y no a la de la casilla. */
 .ubicacion {
   align-self: flex-end;
+  flex: none;
   padding: 0.4rem 0.7rem;
   border: 1px solid #999;
   border-radius: 3px;
