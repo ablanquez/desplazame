@@ -17,7 +17,7 @@ import { HttpClient } from '@angular/common/http';
 import { Mapa } from './mapa';
 import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
-import { IconoCapa, type Capa } from './iconos';
+import { IconoCapa, type Clase } from './iconos';
 
 /**
  * ⭐ EL MAPEO GIRO → FLECHA. Diez giros, diez glifos, y ni una dependencia.
@@ -241,8 +241,8 @@ interface Resultado {
    * un portal. La cabecera, los marcadores y los pasos cuentan siempre la
    * misma ruta porque salen todos del mismo objeto.
    */
-  readonly capaOrigen: Capa;
-  readonly capaDestino: Capa;
+  readonly capaOrigen: Clase;
+  readonly capaDestino: Clase;
   readonly trayecto: Trayecto;
 }
 
@@ -703,8 +703,8 @@ export class Buscador {
    * para pintar en vez de para viajar. Un lado con sitio es de la capa
    * `sitio`; cualquier otro, una dirección.
    */
-  private capaDe(lado: Lado): Capa {
-    return lado.sitio() ? 'sitio' : 'via';
+  private capaDe(lado: Lado): Clase {
+    return lado.sitio()?.tipo ?? 'via';
   }
 
   private comoSeLee(lado: Lado): string {

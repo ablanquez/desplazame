@@ -1,7 +1,7 @@
 import { Component, computed, effect, input, model, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import type { Sitio, Via } from '@desplazame/tipos';
-import { IconoCapa } from './iconos';
+import { IconoCapa, type Clase } from './iconos';
 
 /**
  * Cómo se enseña una vía: el nombre limpio y, si es de un núcleo, su nombre.
@@ -50,7 +50,17 @@ const ESPERA_MS = 200;
  */
 /** Una opción de la lista: de la capa de calles o de la de sitios. */
 interface Opcion {
+  /**
+   * De qué CAPA salió: calles o sitios. Son dos índices distintos [DOC Pelias:
+   * `layers`], y es lo que dice el `data-capa` del `<li>`.
+   */
   readonly capa: 'via' | 'sitio';
+  /**
+   * ⭐ Y QUÉ ES, que no es lo mismo. La capa de sitios trae tres clases —
+   * farmacia, centro de salud, hospital— y cada una tiene su dibujo. Son dos
+   * preguntas: «¿de qué índice salió?» y «¿qué es?».
+   */
+  readonly clase: Clase;
   readonly clave: string;
   readonly texto: string;
   /** La seña de la derecha: los portales de una vía, la categoría de un sitio. */
@@ -210,6 +220,7 @@ export class AutocompletarVia {
   protected readonly lista = computed<readonly Opcion[]>(() => {
     const vias: Opcion[] = (this.sugerencias.value() ?? []).map((via) => ({
       capa: 'via' as const,
+      clase: 'via' as const,
       clave: via.codigo,
       texto: comoSeVeLaVia(via),
       // Los portales de la vía: la seña que ya distinguía una calle de otra.
@@ -218,6 +229,7 @@ export class AutocompletarVia {
     }));
     const sitios: Opcion[] = (this.sugerenciasSitios.value() ?? []).map((sitio) => ({
       capa: 'sitio' as const,
+      clase: sitio.tipo,
       clave: sitio.codigo,
       // 🔒 `presentacion` y nada más: el título del dato lleva, en 274 de las
       // 313 farmacias, el nombre de la persona titular, y no sale del motor.

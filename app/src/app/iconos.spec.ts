@@ -4,8 +4,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import type { Portal, Sitio, Trayecto, Via } from '@desplazame/tipos';
 import { Buscador } from './buscador';
 import {
+  AZUL,
   CAMINO_CHINCHETA,
   CAMINO_CRUZ,
+  CAMINO_CUADRADO,
+  CAMINO_H,
   COLOR_DESTINO,
   COLOR_NEUTRO,
   COLOR_ORIGEN,
@@ -91,6 +94,20 @@ const TRES_PASOS: Trayecto = {
   ],
 };
 
+const CENTRO: Sitio = {
+  codigo: 'CentrosSalud.9113',
+  presentacion: 'Centro de Salud Actur Sur · C/ Gertrudis Gómez de Avellaneda, 3',
+  categoria: 'Centro de salud',
+  tipo: 'centro-salud',
+};
+
+const HOSPITAL: Sitio = {
+  codigo: 'Hospitales.9040',
+  presentacion: 'Hospital Universitario Miguel Servet · Avda. Isabel La Católica, 3',
+  categoria: 'Hospital',
+  tipo: 'hospital',
+};
+
 const campoDe = (raiz: HTMLElement, n: string): HTMLInputElement =>
   raiz.querySelector<HTMLInputElement>(`input[name="${n}"]`)!;
 
@@ -146,9 +163,9 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     fixture.detectChanges();
   }
 
-  async function elegirSitioEn(campo: string): Promise<void> {
+  async function elegirSitioEn(campo: string, sitio: Sitio = FARMACIA): Promise<void> {
     await teclear(campo, 'navarra');
-    await contestar([], [FARMACIA]);
+    await contestar([], [sitio]);
     pulsar(campo, 'sitio');
     await drenarEco();
   }
@@ -192,9 +209,11 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     await teclear('calleDestino', 'navarra');
     await contestar([BURGOS], [FARMACIA]);
 
+    // ⚠️ Decía `icono: 'sitio'` hasta el 24/08. Con tres clases de sitio,
+    // «sitio» ya no identifica un dibujo: el atributo dice ahora QUÉ ES.
     expect(iconosDe('calleDestino')).toEqual([
       { icono: 'via', papel: 'ninguno', color: COLOR_NEUTRO },
-      { icono: 'sitio', papel: 'ninguno', color: COLOR_SITIO },
+      { icono: 'farmacia', papel: 'ninguno', color: COLOR_SITIO },
     ]);
   });
 
@@ -228,6 +247,64 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     }
   });
 
+  it('⭐ LAS TRES CLASES DE SITIO se dibujan distinto', async () => {
+    // Es lo que la segunda tanda añade y lo que puede mentir: tres clases con
+    // el mismo dibujo serían tres cosas que parecen la misma. Se miran las dos
+    // señas a la vez —la forma y el color—, porque cada una sale de una tabla
+    // distinta y cualquiera puede desmentir a la otra.
+    await teclear('calleDestino', 'salud');
+    await contestar([], [FARMACIA, CENTRO, HOSPITAL]);
+
+    const dibujos = Array.from(
+      raiz.querySelectorAll<SVGElement>('[data-campo="calleDestino"] .sugerencia svg'),
+    ).map((svg) => [
+      svg.getAttribute('data-icono'),
+      svg.querySelector('path')?.getAttribute('d'),
+      svg.querySelector('path')?.getAttribute('fill'),
+    ]);
+
+    expect(dibujos).toEqual([
+      ['farmacia', CAMINO_CRUZ, COLOR_SITIO],
+      ['centro-salud', CAMINO_CRUZ, AZUL],
+      ['hospital', CAMINO_CUADRADO, AZUL],
+    ]);
+  });
+
+  it('⭐ y el HOSPITAL lleva su H blanca encima, que es la señal entera', async () => {
+    // El único icono de dos piezas. Sin la H, un cuadrado azul no es la S-23:
+    // es un cuadrado azul. Y la H tiene que ir BLANCA — es lo que la hace
+    // legible sobre el azul.
+    await teclear('calleDestino', 'salud');
+    await contestar([], [HOSPITAL]);
+
+    const svg = raiz.querySelector<SVGElement>('[data-campo="calleDestino"] .sugerencia svg')!;
+    const caminos = Array.from(svg.querySelectorAll('path')).map((p) => [
+      p.getAttribute('d'),
+      p.getAttribute('fill'),
+    ]);
+    expect(caminos).toEqual([
+      [CAMINO_CUADRADO, AZUL],
+      [CAMINO_H, '#ffffff'],
+    ]);
+    // Y la cruz NO lleva nada encima: un solo camino.
+    await drenarEco();
+    await teclear('calleOrigen', 'salud');
+    await contestar([], [CENTRO]);
+    const cruz = raiz.querySelector<SVGElement>('[data-campo="calleOrigen"] .sugerencia svg')!;
+    expect(cruz.querySelectorAll('path').length).toBe(1);
+  });
+
+  it('⭐ un hospital es AZUL en los dos papeles, como la farmacia es verde', async () => {
+    // El papel pinta la chincheta, no la clase: un hospital no cambia de
+    // identidad al cruzarlo con el ⇅.
+    await elegirSitioEn('calleOrigen', HOSPITAL);
+    await elegirDireccionEn('calleDestino', 'portalDestino');
+    expect(await generarYMirarElMapa()).toEqual([
+      { icono: 'hospital', papel: 'origen', color: AZUL },
+      { icono: 'via', papel: 'destino', color: COLOR_DESTINO },
+    ]);
+  });
+
   it('⭐ LA DOCTRINA: verde el origen, rojo el destino [osm.org]', async () => {
     // La prueba que fija la convención, para que no vuelva a moverse por gusto.
     // El verde del origen y el de la farmacia son EL MISMO a sabiendas: lo que
@@ -237,6 +314,9 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     expect(COLOR_SITIO).toBe(COLOR_ORIGEN);
     expect(COLOR_NEUTRO).not.toBe(COLOR_ORIGEN);
     expect(COLOR_NEUTRO).not.toBe(COLOR_DESTINO);
+    // El azul sanitario, uno solo y distinto de los otros tres.
+    expect(AZUL).toBe('#0d47a1');
+    expect(new Set([COLOR_ORIGEN, COLOR_DESTINO, COLOR_NEUTRO, AZUL]).size).toBe(4);
   });
 
   it('la cruz de farmacia es VERDE en los dos campos: el papel no la cambia', async () => {
@@ -287,7 +367,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     await elegirDireccionEn('calleDestino', 'portalDestino');
 
     expect(await generarYMirarElMapa()).toEqual([
-      { icono: 'sitio', papel: 'origen', color: COLOR_SITIO },
+      { icono: 'farmacia', papel: 'origen', color: COLOR_SITIO },
       { icono: 'via', papel: 'destino', color: COLOR_DESTINO },
     ]);
   });
@@ -320,7 +400,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     const salida = raiz.querySelector<SVGElement>('.ruta__origen svg[data-icono]');
     const llegada = raiz.querySelector<SVGElement>('.ruta__destino svg[data-icono]');
 
-    expect(salida?.getAttribute('data-icono')).toBe('sitio');
+    expect(salida?.getAttribute('data-icono')).toBe('farmacia');
     expect(salida?.querySelector('path')?.getAttribute('fill')).toBe(COLOR_SITIO);
     expect(llegada?.getAttribute('data-icono')).toBe('via');
     expect(llegada?.querySelector('path')?.getAttribute('fill')).toBe(COLOR_DESTINO);
@@ -342,7 +422,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     const primero = pasos[0]!.querySelector<SVGElement>('svg[data-icono]');
     const ultimo = pasos[pasos.length - 1]!.querySelector<SVGElement>('svg[data-icono]');
 
-    expect(primero?.getAttribute('data-icono')).toBe('sitio');
+    expect(primero?.getAttribute('data-icono')).toBe('farmacia');
     expect(primero?.getAttribute('data-papel')).toBe('origen');
     expect(ultimo?.getAttribute('data-icono')).toBe('via');
     expect(ultimo?.getAttribute('data-papel')).toBe('destino');
@@ -379,7 +459,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
 
     expect(caminos).toEqual([
       ['via', CAMINO_CHINCHETA],
-      ['sitio', CAMINO_CRUZ],
+      ['farmacia', CAMINO_CRUZ],
     ]);
   });
 
@@ -399,6 +479,20 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     expect(margen(marcas[0]!)).toBe('-16px -16px');
     // La chincheta del destino: por la punta, [16, 32].
     expect(margen(marcas[1]!)).toBe('-16px -32px');
+  });
+
+  it('⭐ y el HOSPITAL también agarra por el centro, no por abajo', async () => {
+    // Sin esto la fila `hospital` de la tabla de anclajes no la tocaba nadie:
+    // la contraprueba la puso a `[16, 32]` y las 126 pruebas siguieron verdes.
+    // Un cuadrado colgando de su borde inferior deja la señal 16 px por encima
+    // del sitio que señala, que es el fallo silencioso de siempre.
+    await elegirSitioEn('calleOrigen', HOSPITAL);
+    await elegirDireccionEn('calleDestino', 'portalDestino');
+    await generarYMirarElMapa();
+
+    const marcas = raiz.querySelectorAll<HTMLElement>('.leaflet-marker-icon');
+    expect(marcas[0]!.querySelector('svg')?.getAttribute('data-icono')).toBe('hospital');
+    expect(`${marcas[0]!.style.marginLeft} ${marcas[0]!.style.marginTop}`).toBe('-16px -16px');
   });
 
   it('el itinerario NO pierde su flecha: el icono se suma, no sustituye', async () => {

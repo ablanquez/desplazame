@@ -12,7 +12,7 @@ import * as L from 'leaflet';
 // El vértice lo define el contrato, no este componente: es la misma forma que
 // el motor devolverá en la geometría de un trayecto.
 import type { Vertice } from '@desplazame/tipos';
-import { svgDeCapa, type Capa } from './iconos';
+import { svgDeCapa, type Clase } from './iconos';
 
 export type { Vertice };
 
@@ -46,13 +46,17 @@ const HOLGURA_DEL_ENCUADRE: L.PointTuple = [30, 30];
  * · La **chincheta** señala con la PUNTA, que está abajo del todo: `[16, 32]`.
  *   Centrarla dejaría el punto real 16 px por encima de donde se ve la punta —
  *   media manzana de error a zoom de calle, y sin que nada lo delate.
- * · La **cruz** no señala con ningún borde: es una marca, y va centrada en su
- *   punto, `[16, 16]`.
+ * · Las **tres figuras de sitio** —cruz verde, cruz azul y la H en su cuadrado—
+ *   no señalan con ningún borde: son marcas, y van centradas en su punto,
+ *   `[16, 16]`. Con `Record<Clase, …>` las cuatro son obligatorias, así que una
+ *   clase nueva no puede colarse sin que alguien decida por dónde agarra.
  */
 const LADO_DEL_MARCADOR = 32;
-const ANCLAJE: Readonly<Record<Capa, L.PointTuple>> = {
+const ANCLAJE: Readonly<Record<Clase, L.PointTuple>> = {
   via: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR],
-  sitio: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
+  farmacia: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
+  'centro-salud': [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
+  hospital: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
 };
 
 /**
@@ -108,8 +112,8 @@ export class Mapa {
    * mapa no necesita coordenadas aparte: son las mismas que ya dibuja la línea,
    * y de ahí que no puedan discrepar.
    */
-  readonly capaOrigen = input<Capa | null>(null);
-  readonly capaDestino = input<Capa | null>(null);
+  readonly capaOrigen = input<Clase | null>(null);
+  readonly capaDestino = input<Clase | null>(null);
 
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
@@ -218,7 +222,7 @@ export class Mapa {
    * que trae fondo blanco y borde gris — un recuadro alrededor de la chincheta.
    * Vacío, solo queda el dibujo.
    */
-  private marcar(vertice: Vertice, capa: Capa | null, papel: 'origen' | 'destino'): void {
+  private marcar(vertice: Vertice, capa: Clase | null, papel: 'origen' | 'destino'): void {
     if (!this.mapa || !capa) {
       return;
     }

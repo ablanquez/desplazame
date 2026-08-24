@@ -158,12 +158,12 @@
                la flecha no quedaría nada que dijera cuál es cuál. -->
           <p class="ruta__punto ruta__origen">
             <span class="ruta__marca" aria-hidden="true">{{ flechaDe('salida') }}</span>
-            <app-icono-capa [capa]="r.capaOrigen" papel="origen" [lado]="18" />
+            <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="18" />
             {{ r.origen }}
           </p>
           <p class="ruta__punto ruta__destino">
             <span class="ruta__marca" aria-hidden="true">{{ flechaDe('llegada') }}</span>
-            <app-icono-capa [capa]="r.capaDestino" papel="destino" [lado]="18" />
+            <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="18" />
             {{ r.destino }}
           </p>
           <p class="ruta__totales">
@@ -188,9 +188,9 @@
                    ahí no se sale de ningún sitio, se está ya. -->
               <span class="paso__capa">
                 @if (paso.giro === 'salida') {
-                  <app-icono-capa [capa]="r.capaOrigen" papel="origen" [lado]="16" />
+                  <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="16" />
                 } @else if (paso.giro === 'llegada') {
-                  <app-icono-capa [capa]="r.capaDestino" papel="destino" [lado]="16" />
+                  <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="16" />
                 }
               </span>
               <!-- El formato de Google: la ACCIÓN y el NOMBRE DE LA VÍA en
