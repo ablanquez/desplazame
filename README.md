@@ -438,18 +438,53 @@ cabecera `Last-Modified`, que coincide al segundo con la fecha de modificación 
 sus registros. En el panel sale **gris**: la fuente no publica cada cuánto lo refresca, y una
 caducidad sin fuente no se inventa.
 
-### ⭐ Dos reglas que se ven poco y deciden mucho
+### ⭐ Tres reglas que se ven poco y deciden mucho
 
-**Sin coordenada no existe.** De las 313 farmacias, **3 no traen punto**. No se sugieren, no se
-pueden elegir y no aparecen en ninguna pantalla. Un destino que no se puede situar no se puede
-enrutar, y ofrecerlo sería prometer una ruta que va a acabar en un aviso — es lo que hace un
-geocodificador de verdad: sin punto no hay nada que indexar. **Pero no se borran ni se editan**:
-siguen en el fichero, se cuentan en su ficha, y el motor las declara al arrancar:
+**Sin coordenada no existe.** De los 386 equipamientos de las tres categorías, **5 no traen
+punto**. No se sugieren, no se pueden elegir y no aparecen en ninguna pantalla. Un destino que no
+se puede situar no se puede enrutar, y ofrecerlo sería prometer una ruta que va a acabar en un
+aviso — es lo que hace un geocodificador de verdad: sin punto no hay nada que indexar. **Pero no
+se borran ni se editan**: siguen en el fichero, se cuentan en su ficha, y el motor los declara al
+arrancar.
+
+**⭐ Y tener punto no basta: el punto tiene que valer.** El dato municipal trae coordenadas rotas
+demostradas —un centro de salud en **Portugal**, a 610 km, y cuatro farmacias corridas todas por
+el mismo vector—, y la regla de arriba no las caza porque coordenada tienen. Así que al cargar hay
+un segundo portero, con dos comprobaciones que son las de la doctrina de calidad de
+geocodificación: **frontera** —¿cae dentro del rectángulo que ocupan los 46.150 portales del
+censo, con 250 m de margen?— y **distancia** —¿está a menos de **50 m** de la puerta que su propia
+dirección declara?—.
+
+Lo que falla se **vuelve a situar por el callejero municipal**, que es el gacetero de la casa: si
+el registro dice «C/ La Caza, 11» y el censo sabe dónde está el 11 de La Caza, esa es mejor
+coordenada que la publicada. Son **9 de 386**. Y lo que falla y **no** se puede resituar —porque su
+dirección es «s/n» o no resuelve— se trata como si no tuviera punto: fuera del índice, y a una
+lista de confirmación manual. Hoy es uno: el de Portugal.
+
+**Los hospitales quedan fuera del cheque de distancia**, y a propósito: un hospital no es una
+puerta, es un recinto con varias. El Miguel Servet está a 169 m del portal de su dirección y eso
+no es un error, es otra de sus entradas.
+
+**El fichero municipal no se toca.** Todo esto pasa en memoria al arrancar, y el motor lo dice
+entero — con qué se movió, desde dónde y cuántos metros:
 
 ```
-motor: sitios en memoria — 313 farmacias · 310 en el indice · 1 ms
-motor: 3 sin coordenada, fuera del indice (sin coordenada no existe: …)
+motor: sitios en memoria — 386 en total · 380 en el indice · 11 ms
+motor:   Farmacia         313 · 310 en el indice · 3 sin coordenada · 7 rescatados · 0 invalidas
+motor:   Centro de salud   56 ·  55 en el indice · 0 sin coordenada · 2 rescatados · 1 invalidas
+motor:   Hospital          17 ·  15 en el indice · 2 sin coordenada · 0 rescatados · 0 invalidas
+motor: 5 sin coordenada en total, fuera del indice (sin coordenada no existe: …)
+motor: 9 rescatados por callejero (coordenada a mas de 50 m de la puerta que su propia direccion declara)
+motor:   CentrosSalud.9080     497 m distancia Centro de Salud Almozara · C/ Batalla de Alman → CALLE BATALLA DE ALMANSA 17
+motor:   Farmacias.20445       236 m distancia Farmacia · C/ Joaquín Rodrigo, 17, portal 1    → CALLE JOAQUÍN RODRIGO 17
+…
+motor: 1 con coordenada INVALIDA y sin direccion que case: fuera del indice, a confirmacion manual
+motor:   CentrosSalud.9090    frontera  lon -8.184875 lat 41.542373  Centro de Salud Fernando El Católico · C/ Domingo Miral, s/n
 ```
+
+Lo que se gana se ve andando: la farmacia de Joaquín Rodrigo 17 estaba a **401 m de calles** de su
+propio portal, así que ir de su puerta a su puerta devolvía una ruta de cuatrocientos metros. Ahora
+devuelve cero.
 
 **Y el nombre de quien la regenta no sale de aquí.** El dato municipal trae el nombre de la
 persona titular en **274 de los 313** títulos. Es dato registral publicado como abierto y

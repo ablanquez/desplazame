@@ -1081,7 +1081,9 @@ retorno de carro, y sin la regla el clon la devolvería con otro sha256 (bitáco
 | Registros | **313** |
 | **Con coordenada** | **310** |
 | **Sin coordenada** | **3** — ids `29916` (Cno. El Pilón, 57), `30105` (Avda. Tenor Fleta, 108) y `8714`, que además **no declara calle** |
-| Dentro del entorno de Zaragoza | **310 de 310**: ninguna coordenada se va del término |
+| Dentro del entorno de Zaragoza | **310 de 310**: ninguna coordenada se va del término. El entorno es el rectángulo que ocupan los 46.150 portales del censo, ensanchado 250 m |
+| ⭐ **Rescatadas por el callejero** | **7** — estaban a más de 50 m de su propia dirección, ver abajo |
+| **En el índice del buscador** | **310** de 313 |
 | `lastUpdated` | 311 de 313 · del **26/09/2023** al **08/06/2026** |
 
 Los tres primeros coinciden con la sonda de solo lectura del 18/08 (313 / 310), que es lo que se
@@ -1097,6 +1099,40 @@ documento que indexar.
 Así que las 310 con coordenada entran al índice de sugerencias y **las 3 restantes no aparecen
 jamás en la pantalla**. No se borran ni se editan: siguen en el fichero, se cuentan en esta ficha
 y el motor las declara al arrancar. **La ausencia se dice; el dato no se toca.**
+
+#### ⭐ Y SIETE tienen coordenada que no vale: el callejero las vuelve a situar
+
+La regla B mira si **hay** punto. No mira si el punto **está donde dice**, y aquí siete no lo
+están: su coordenada publicada queda a más de **50 m** de la puerta que su propia dirección
+declara. Cuatro de ellas —las de Rosales del Canal— comparten **el mismo vector de desvío**
+(Δlon −0,001355 · Δlat −0,001868, con una milésima de milésima de diferencia entre ellas), que es
+la firma de un datum mal aplicado y no de siete erratas sueltas.
+
+**No se edita el fichero: se corrige al cargar.** El motor le pregunta al **callejero municipal**
+—46.150 portales con coordenada, del mismo Ayuntamiento— dónde está la dirección que el propio
+registro publica, y usa esa. Es el método del inventario panafricano de hospitales [Lancet Global
+Health], que geocodificó sus listas contra los gaceteros nacionales en vez de fiarse de las
+coordenadas que traían. La regla completa, con su umbral y sus fuentes, está en
+[`motor/src/gacetero.ts`](motor/src/gacetero.ts).
+
+| id | qué es (nunca su título — ver abajo) | coordenada municipal | portal del censo que se usa | desvío |
+|---|---|---|---|---|
+| `20445` | Farmacia · C/ Joaquín Rodrigo, 17, portal 1 | −0,948249 · 41,634777 | CALLE JOAQUÍN RODRIGO 17 (−0,946893 · 41,636646) | **236 m** |
+| `20443` | Farmacia · C/ Desayuno con Diamantes, 23 | −0,931442 · 41,620380 | CALLE DESAYUNO CON DIAMANTES 23 (−0,930088 · 41,622248) | **236 m** |
+| `8671` | Farmacia · C/ Ciudadano Kane, 31 | −0,926235 · 41,618571 | CALLE CIUDADANO KANE 31 (−0,924879 · 41,620438) | **236 m** |
+| `20444` | Farmacia · C/ La Caza, 11 | −0,926325 · 41,615041 | CALLE LA CAZA 11 (−0,924971 · 41,616909) | **236 m** |
+| `9013` | Farmacia · Avda. de la Ilustración, 14 | −0,933322 · 41,628981 | AVENIDA DE LA ILUSTRACIÓN 14 (−0,931025 · 41,629453) | **198 m** |
+| `20530` | Farmacia · C/ Luis Pinilla Soliveres, 10 | −0,870529 · 41,678682 | CALLE LUIS PINILLA SOLIVERES 10 (−0,870533 · 41,678001) | **76 m** |
+| `8939` | Farmacia · Avda. Alcalde Gómez Laguna, 28 | −0,912518 · 41,641210 | AVENIDA ALCALDE GÓMEZ LAGUNA 28 (−0,912066 · 41,641538) | **52 m** |
+
+**Lo que se gana se ve andando.** La de Joaquín Rodrigo estaba a **401 m de calles** de su propio
+portal: pedir la ruta desde su puerta hasta su puerta devolvía una ruta de cuatrocientos metros.
+Ahora devuelve cero, que es lo que hay que andar para llegar a donde ya se está.
+
+⚠️ **Y el umbral corta un continuo, no un hueco.** De las 201 direcciones que el emparejador
+resuelve en las tres categorías, la mediana del desvío es **1 m** y el p90 son **11 m** — pero
+entre los sanos hay casos de 24, 25, 38, 40, 42 y 45 m, justo debajo de la raya. Los 50 m son
+decisión firmada (Antonio, 24/08), no un escalón que el dato dibuje solo.
 
 #### 🔒 Dato personal: se cuenta, no se enseña
 
@@ -1144,17 +1180,41 @@ parámetro **se ignora en silencio**. Está medida en § 1.16.
 | Registros | **56** |
 | **Con coordenada** | **56** — aquí no hay regla B que aplicar |
 | Sin coordenada | **0** |
+| ⭐ **Con coordenada que no vale** | **1** — el de Portugal, ver abajo. Se queda fuera del índice |
+| ⭐ **Rescatados por el callejero** | **2** — `9080` y `28600`, ver abajo |
+| **En el índice del buscador** | **55** de 56 |
 | `lastUpdated` | 55 de 56 · del **26/09/2023** al **20/05/2026** |
 
-#### ⚠️ Una coordenada está en PORTUGAL, y no se toca
+#### ⚠️ Una coordenada está en PORTUGAL: fuera del índice, y el fichero intacto
 
 **`9090` «Centro de Salud Fernando El Católico», C/ Domingo Miral s/n** viene con
 `lon = -8.184875 · lat = 41.542373`. Eso no es Zaragoza: es **Portugal**, a unos **610 km** al
 oeste. Los otros 55 caen dentro del término.
 
-**No se corrige ni se borra.** El dato entra como vino —es la norma de la casa— y la regla B no lo
-caza, porque **coordenada tiene**: lo que no tiene es sentido. Lo que el motor hace con él está
-medido y escrito en el checkpoint del 24/08; el arreglo, si lo hay, es parlamento y no iniciativa.
+**No se corrige ni se borra: se deja de usar.** El fichero entra como vino —es la norma de la
+casa—, pero desde la validación espacial del 24/08 el motor **no lo mete en el índice**. El cheque
+de frontera lo caza —cae a 584 km del rectángulo que ocupan los 46.150 portales del censo— y el
+rescate no puede salvarlo, porque su dirección es **«C/ Domingo Miral, s/n»** y sin número no hay
+portal que devolverle. Coordenada inválida = sin coordenada: la regla B, extendida.
+
+Así que **el Centro de Salud Fernando el Católico no se puede elegir hoy en el buscador**, y eso
+es una pérdida que se dice en vez de taparse: mejor no ofrecerlo que enviar a alguien a Portugal.
+El motor lo declara al arrancar con nombre y coordenada, y esta es **la lista de confirmación
+manual** —hoy de uno— que hay que resolver mirando el terreno, que es lo que se hizo con la base
+sanitaria de Kenia: las coordenadas que el proceso no puede arreglar se le mandan a quien conoce
+el sitio. Ponerle a mano la coordenada buena sería editar el dato, y eso no se hace aquí.
+
+#### ⭐ Y dos más estaban lejos de su propia dirección
+
+| id | qué es | coordenada municipal | portal del censo que se usa | desvío |
+|---|---|---|---|---|
+| `9080` | Centro de Salud Almozara · C/ Batalla de Almansa, 17 | −0,904935 · 41,659571 | CALLE BATALLA DE ALMANSA 17 (−0,900023 · 41,662117) | **497 m** |
+| `28600` | Centro de Salud Amparo Poch (Actur Oeste) · C/ Emilia Pardo Bazan, 2 | −0,892048 · 41,671347 | CALLE EMILIA PARDO BAZÁN 2 (−0,892895 · 41,672107) | **110 m** |
+
+El de la Almozara es el desvío más grande de las tres categorías: su coordenada publicada cae
+junto a **AVENIDA AUTONOMÍA 5**, a 27 m de ese portal y a casi medio kilómetro de la calle que él
+mismo declara. La regla y sus fuentes, en [`motor/src/gacetero.ts`](motor/src/gacetero.ts); la
+lista entera con las farmacias, en § 1.16.
 
 #### La categoría es más ancha que su nombre
 
@@ -1211,11 +1271,29 @@ es la fecha del dato*.
 | **Con coordenada** | **15** |
 | **Sin coordenada** | **2** — `12288` «Clínica Actur» y `12289` «Clínica Almozara», que **tampoco declaran calle** |
 | Dentro del entorno de Zaragoza | **15 de 15** |
+| ⭐ Rescatados por el callejero | **0** — y no por casualidad: son recintos y quedan fuera del cheque de distancia, ver abajo |
 | `lastUpdated` | 17 de 17 · del **26/09/2023** al **15/03/2024** |
 
 **Regla B, otra vez:** las 2 sin coordenada no se sugieren, no se pueden elegir y no salen en
 ninguna pantalla. Ni se borran ni se editan: siguen en el fichero y el motor las declara al
 arrancar.
+
+#### ⭐ Y ninguno pasa por el cheque de distancia: son RECINTOS
+
+Las otras dos categorías comparan su coordenada con la puerta que su dirección declara y se
+rescatan si están a más de 50 m (§ 1.16). **Los hospitales no**, y es decisión firmada (Antonio,
+24/08).
+
+Un hospital no es una puerta: es un recinto con varias. El **Miguel Servet** publica su punto a
+**169 m** del portal de «Avda. Isabel La Católica, 3», y ese punto no está mal — cae a 1 m de
+**CALLE GONZALO CALAMITA 4**, que es otra de las calles por las que se entra al recinto.
+Rescatarlo lo movería de una entrada legítima a otra, con la ruta cambiando de lado del hospital
+sin que nada mejore. Es el caso que describe **[Nominatim #536](https://github.com/osm-search/Nominatim/issues/536)**, y su arreglo documentado son las
+entradas `entrance=*` de OpenStreetMap, que aquí **no están y no se inventan**.
+
+El cheque de **frontera**, en cambio, se les pasa igual que a los demás: un recinto grande tampoco
+puede estar en Portugal. Hoy los 15 con coordenada caen dentro, así que **0 rescatados y 0
+inválidos**.
 
 #### 🔓 Aquí el título SÍ se lee, y por qué
 
