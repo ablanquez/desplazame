@@ -204,12 +204,23 @@ const servidor = createServer((peticion, respuesta) => {
     const desde = codigoFoco
       ? (portales.donde.get(codigoFoco) ?? sitios.donde.get(codigoFoco) ?? null)
       : null;
+    // ⭐ `capa` acota a UNA categoria [DOC Pelias: `layers`]. Es el buscador
+    // por tipos del formulario, y va de PARAMETRO y no de endpoint nuevo: la
+    // busqueda es la misma y lo unico que cambia es sobre que se busca.
+    //
+    // Se valida contra las categorias QUE HAY CARGADAS, no contra una lista
+    // escrita aqui: asi el dia que entre una cuarta no hay dos sitios que
+    // acordarse de tocar. Una capa que no existe se trata como «ninguna» y no
+    // como error — mismo trato que un `foco` que no resuelve.
+    const pedida = url.searchParams.get('capa');
+    const capa = sitios.porCategoria.find((c) => c.tipo === pedida)?.tipo ?? null;
     json(
       200,
       sugerirSitios(
         sitios,
         url.searchParams.get('q') ?? '',
         desde ? { lon: desde.lon, lat: desde.lat } : null,
+        capa,
       ),
     );
     return;

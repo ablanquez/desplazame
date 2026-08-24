@@ -450,6 +450,66 @@ describe('Los sitios — farmacias', () => {
     );
   });
 
+  // ── EL FILTRO DE CAPA ──────────────────────────────────────────────────────
+  //
+  // ⭐ [DOC Pelias] `layers` acota la búsqueda a una capa —su ejemplo es
+  // `layers=address,venue`— y admite capas personalizadas. Aquí es lo que
+  // sostiene el buscador por tipos del 24/08: el desplegable del formulario
+  // elige una categoría y el cajetín deja de mezclar.
+  //
+  // Va como PARÁMETRO de `/api/sitios`, no como endpoint nuevo: la búsqueda es
+  // la misma —mismas palabras, mismo orden, mismo foco— y lo único que cambia
+  // es sobre qué se busca. Un `/api/farmacias` sería tres endpoints que hay que
+  // mantener a la par y que se separarían a la primera.
+
+  test('⭐ CON CAPA, solo salen los de esa categoría', () => {
+    // «navarra» sin filtro trae farmacias Y un centro de especialidades.
+    const todas = sugerirSitios(sitios, 'navarra');
+    assert.ok(
+      new Set(todas.map((x) => x.tipo)).size > 1,
+      'la prueba no vale: sin filtro ya salía una sola categoría',
+    );
+
+    const soloFarmacias = sugerirSitios(sitios, 'navarra', null, 'farmacia');
+    assert.ok(soloFarmacias.length > 0);
+    assert.deepEqual([...new Set(soloFarmacias.map((x) => x.tipo))], ['farmacia']);
+
+    const soloCentros = sugerirSitios(sitios, 'navarra', null, 'centro-salud');
+    assert.ok(soloCentros.length > 0);
+    assert.deepEqual([...new Set(soloCentros.map((x) => x.tipo))], ['centro-salud']);
+  });
+
+  test('⭐ el filtro NO cambia el orden de los que quedan', () => {
+    // La capa quita, no reordena: los que sobreviven vienen en el mismo orden
+    // relativo que traían sin filtro. Si el filtro se aplicara DESPUÉS del
+    // corte a diez, esto seguiría pasando pero faltarían resultados — por eso
+    // hay abajo una prueba aparte del corte.
+    const conFiltro = sugerirSitios(sitios, 'navarra', null, 'farmacia').map((x) => x.codigo);
+    const sinFiltro = sugerirSitios(sitios, 'navarra')
+      .filter((x) => x.tipo === 'farmacia')
+      .map((x) => x.codigo);
+    assert.deepEqual(conFiltro, sinFiltro);
+  });
+
+  test('⭐ el filtro va ANTES del corte, no después', () => {
+    // «far» casa con las 310 farmacias y con nada más, así que filtrar por
+    // hospital tiene que dar CERO — y no «las diez primeras, de las que
+    // ninguna es hospital», que es lo que saldría filtrando al final.
+    assert.equal(sugerirSitios(sitios, 'far', null, 'hospital').length, 0);
+    // Y al revés: «hospital» filtrado por hospital devuelve DIEZ, el tope, no
+    // los que queden de una primera tanda mezclada.
+    assert.equal(sugerirSitios(sitios, 'hospital', null, 'hospital').length, LIMITE_SITIOS);
+  });
+
+  test('sin capa, todo sigue igual que antes', () => {
+    // El filtro es opcional y su ausencia no cambia nada: es lo que permite
+    // que el resto de las pruebas de este fichero sigan valiendo.
+    assert.deepEqual(
+      sugerirSitios(sitios, 'navarra', null, null).map((x) => x.codigo),
+      sugerirSitios(sitios, 'navarra').map((x) => x.codigo),
+    );
+  });
+
   test('se parte por cualquier blanco, y por rachas enteras', () => {
     // ⚠️ El tabulador está aquí a propósito. Con `split(' ')` esta prueba se
     // pone roja y con `split(/\s+/)` no, que es la diferencia entre las dos:

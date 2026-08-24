@@ -398,6 +398,16 @@ export interface Foco {
  * mitad —«farma», «bret»— y una búsqueda que solo responde a la palabra
  * terminada no sirve para sugerir mientras se teclea.
  *
+ * ⭐ **`capa` acota a UNA categoría** [DOC Pelias: `layers`, cuyo ejemplo es
+ * `layers=address,venue` y que admite capas propias]. Es lo que sostiene el
+ * buscador por tipos del formulario: el desplegable elige una categoría y aquí
+ * deja de mezclarse. `null` es «todas», que es como se comportaba hasta el
+ * 24/08 y como sigue comportándose quien no lo pida.
+ *
+ * Va de parámetro y no de endpoint nuevo a propósito: la búsqueda es la misma
+ * —mismas palabras, mismo orden, mismo foco— y lo único que cambia es sobre qué
+ * se busca. Tres endpoints serían tres copias que se separan a la primera.
+ *
  * Por debajo de `MINIMO_SITIOS` letras devuelve vacío: eso no es una búsqueda,
  * es alguien empezando a escribir. El corte se mide sobre la consulta entera,
  * no palabra a palabra — «a b» son dos letras escritas, y traería media ciudad.
@@ -406,6 +416,7 @@ export function sugerirSitios(
   sitios: SitiosEnMemoria,
   consulta: string,
   foco: Foco | null = null,
+  capa: TipoDeSitio | null = null,
 ): readonly Sitio[] {
   const q = normalizar(consulta);
   if (q.length < MINIMO_SITIOS) {
@@ -428,8 +439,14 @@ export function sugerirSitios(
   // recorría el fichero, así que las diez que salían eran las diez primeras
   // del JSON del Ayuntamiento — no las diez mejores de nada. Sondeado antes de
   // tocarlo: «far» devolvía las posiciones 0..9 del fichero y tiraba 300.
-  const casan = sitios.indice.filter((s) =>
-    palabras.every((p) => s.comparableNombre.includes(p) || s.comparableCalle.includes(p)),
+  const casan = sitios.indice.filter(
+    (s) =>
+      // ⭐ LA CAPA PRIMERO, antes que las palabras y mucho antes que el corte
+      // [DOC Pelias: `layers` acota la búsqueda, no filtra su resultado]. Que
+      // vaya delante es lo que hace que «hospital» filtrado por hospital
+      // devuelva DIEZ y no «los que queden de una primera tanda mezclada».
+      (capa === null || s.tipo === capa) &&
+      palabras.every((p) => s.comparableNombre.includes(p) || s.comparableCalle.includes(p)),
   );
 
   const puntos = new Map<string, number>();
