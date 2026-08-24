@@ -215,6 +215,64 @@ describe('El trayecto', () => {
     assert.match(t.pasos[t.pasos.length - 1]!.texto, /^Farmacia · Pº de la Mina, 5 está a la /);
   });
 
+  // ── LA SEGUNDA TANDA: SANIDAD ──────────────────────────────────────────────
+  //
+  // Dos juez FIJAS, elegidas el 24/08 y declaradas aquí para que no se muevan
+  // con el viento:
+  //
+  // · **EL COLOSO 2 → Hospital Universitario Miguel Servet** (`Hospitales.9040`).
+  //   Es el hospital grande de la ciudad y está al otro lado del Ebro: cruza el
+  //   Puente de Piedra y el centro entero, así que si algo del tubo se rompe,
+  //   se rompe aquí.
+  // · **EL COLOSO 2 → Centro de Salud Actur Norte** (`CentrosSalud.9118`).
+  //   Elegido por estar a **1.436 m en línea recta** —el encargo pedía más de un
+  //   kilómetro— y por ser un centro de salud propiamente dicho y no un
+  //   consultorio ni un centro de especialidades, que en la categoría 781 los
+  //   hay. Va por el mismo lado del río, para que las dos no prueben lo mismo.
+
+  /** El Hospital Universitario Miguel Servet. */
+  const MIGUEL_SERVET = { sitio: 'Hospitales.9040' };
+  /** El Centro de Salud Actur Norte. */
+  const ACTUR_NORTE = { sitio: 'CentrosSalud.9118' };
+
+  test('⭐ COLOSO 2 → HOSPITAL: la ruta sale, y la llegada dice su nombre', () => {
+    const t = pedir({ origen: COLOSO, destino: MIGUEL_SERVET, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.ok(t.pasos.length > 5, `solo ${t.pasos.length} pasos`);
+    // 5,3 km en línea recta hasta el hospital: andando, más.
+    assert.ok(t.metros > 5300, `${t.metros} m es menos que la línea recta`);
+    // ⭐ El título INSTITUCIONAL se lee, al revés que en farmacias.
+    assert.match(
+      t.pasos[t.pasos.length - 1]!.texto,
+      /^Hospital Universitario Miguel Servet · /,
+      t.pasos[t.pasos.length - 1]!.texto,
+    );
+    // Y el arranque sigue siendo el portal: el origen no ha cambiado.
+    assert.match(t.pasos[0]!.texto, /^Sal de Calle El Coloso 2 /);
+  });
+
+  test('⭐ COLOSO 2 → CENTRO DE SALUD a más de un kilómetro', () => {
+    const t = pedir({ origen: COLOSO, destino: ACTUR_NORTE, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.ok(t.metros > 1436, `${t.metros} m es menos que los 1.436 de la recta`);
+    assert.match(
+      t.pasos[t.pasos.length - 1]!.texto,
+      /^Centro de Salud Actur Norte · /,
+      t.pasos[t.pasos.length - 1]!.texto,
+    );
+  });
+
+  test('⭐ REGLA B en las dos categorías nuevas: los que no tienen punto', () => {
+    // Las dos clínicas sin coordenada del fichero de hospitales (§ 1.18). Ni se
+    // pueden elegir ni se pueden enrutar: la respuesta es un aviso, no una
+    // excepción y no una ruta a ninguna parte.
+    for (const codigo of ['Hospitales.12288', 'Hospitales.12289']) {
+      const t = pedir({ origen: COLOSO, destino: { sitio: codigo }, modo: 'andando' });
+      assert.equal(t.pasos.length, 0, `${codigo} ha dado una ruta`);
+      assert.equal(t.avisos.length, 1);
+    }
+  });
+
   test('⭐ REGLA B también en el ORIGEN: sin coordenada no se puede salir', () => {
     for (const codigo of ['Farmacias.8714', 'Farmacias.29916', 'Farmacias.30105']) {
       const t = pedir({ origen: { sitio: codigo }, destino: COLOSO, modo: 'andando' });
