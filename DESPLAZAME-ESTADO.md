@@ -5,32 +5,39 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 23 de agosto de 2026 (noche)
+## ESTADO ACTUAL — 24 de agosto de 2026
 
 **⭐ PUNTOS 1-7 CERRADOS (el 7, el 23/08). La demo andando está
 ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
 (el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
-(los combines de odin). Y EL PUNTO 8 EN MARCHA: la primera categoría
-de sitios —FARMACIAS— entera el mismo día: destinos y orígenes con
-nombre, buscados por palabras, ordenados y señalados a doctrina.**
+(los combines de odin). Y EL PUNTO 8 EN MARCHA: TRES categorías de
+sitios vivas (farmacias · centros de salud · hospitales, 386 sitios,
+381 buscables) y EL BUSCADOR POR TIPOS de Antonio construido el mismo
+día que se parlamentó: [📍][tipo▾][cajetín][nº condicional] en ambos
+campos, cada tipo por su carril.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
-levantado el 18/08, des-caducado el 21, el 22 y el 23):
+levantado el 18/08, des-caducado el 21, el 22, el 23 y el 24):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
   corchetes), portal de lista real en orden natural, borrador marcado si
-  se sale sin elegir, «Generar ruta» exigiendo códigos resueltos (los
-  de calle+portal, o el del SITIO — el portal condicional apaga su
-  casilla). SITIOS en ambos campos (farmacias: «Farmacia · dirección»,
-  cruz verde; búsqueda por palabras; orden por foco al otro extremo).
+  se sale sin elegir, «Generar ruta» exigiendo códigos resueltos. CADA
+  CAMPO: [📍 ubicación][tipo ▾][cajetín][nº] — el tipo (Dirección ·
+  Farmacias · Hospitales · Centros de Salud) filtra el cajetín a UNA
+  capa [Pelias layers hecho interfaz]; el nº existe solo con
+  Dirección [GOV.UK revelado condicional]; «Mi ubicación» en ambos
+  (al usarla, el tipo salta a Dirección); el ⇅ cruza tipo+texto+nº.
+  Búsqueda por palabras, orden con foco al otro extremo, regla B e
+  iconos por categoría (cruz verde · cruz azul · H azul · chincheta).
   Modos: Andando · Bus / Tranvía · Bici / Patinete · Coche (mayúscula
   tras la barra: peso visual, decisión de Antonio). ⇅ invertir y «Mi
   ubicación» dentro (punto 6). Y «Generar ruta» devuelve la RUTA REAL —
   pintada, con los pasos escritos y las negritas por partes: la
-  respuesta falsa murió sin rastro (`2013c04`). Es la ÚNICA página —
-  sin barra de navegación; el comodín cubre cualquier otra ruta,
-  /visor incluida.
+  respuesta falsa murió sin rastro (`2013c04`). DOS páginas y sin
+  barra: el buscador (la raíz) y **/panel** (el panel de frescura,
+  por URL, lazy 7,43 kB — 24 filas desde la tanda 2); el comodín
+  cubre cualquier otra ruta, /visor incluida.
 - **El peso** (22/08): la raíz en frío baja **0,22 MB en 3
   peticiones** — antes 41,07 MB en 20 (cifra FIJADA con comando; los
   ~34 y ~42 que corrían por los papeles eran herencias). El visor y
@@ -44,12 +51,13 @@ levantado el 18/08, des-caducado el 21, el 22 y el 23):
   RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
   anotado para el punto 12). Endpoints vivos, SEIS:
   `/api/salud` · `/api/vias?q=` · `/api/portales?via=` ·
-  `/api/portal-cercano` · `/api/sitios?q=` (con foco opcional) ·
+  `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
   `POST /api/ruta` (sitio en cualquiera de los dos extremos). ⭐ N = 3.359 · M = 2.731 (la publicada).
-- **Los datos**: CATORCE conjuntos / dieciséis fichas — los nombres
+- **Los datos**: DIECISÉIS conjuntos / dieciocho fichas — los nombres
   OSM en `motor/data/` sin viajar al navegador (§1.14), los ejes
-  (§1.15) y las FARMACIAS (§1.16, la primera categoría del punto 8:
-  313 · 310 con coordenada · fila 22 del manifiesto);
+  (§1.15) y las TRES categorías de sitios del punto 8: farmacias
+  (§1.16, 313/310), centros de salud (§1.17, 56/56) y hospitales
+  (§1.18, 17/15) — filas 22-24 del manifiesto (24 resources);
   cada uno con ficha, huella sobre clon y atribución. CINCO
   descargas propias (aparcabicis, aparcamotos, regulado, zonas, PMR),
   todas con la norma Set-Cookie. El callejero lleva 5 correcciones
@@ -62,10 +70,42 @@ levantado el 18/08, des-caducado el 21, el 22 y el 23):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `78b6603`** (push del 23/08 a mediodía, con el
-punto 7 cerrado y el panel). **En local, sin publicar: los TRECE
-commits de farmacias** (`1bf560f`…`16cc9c1`, los cuatro encargos) más
-el cierre de papeles de esta noche. El push es de Antonio.
+**Publicado hasta `1fd70ff`** (push del 23/08 noche, con farmacias
+entera). **En local, sin publicar: los SEIS commits del 24**
+(`7074a20` `eb9b237` `81a2c14` `37d4f65` sanidad · `a6e28ca`
+`98d6b0a` buscador) más el cierre de papeles de hoy. El push es de
+Antonio.
+
+**TANDA 2 (sanidad) + EL BUSCADOR POR TIPOS (24/08).** Centros de
+salud (56) y hospitales (17, 15 al índice) por el tubo: fichas
+§1.17-1.18, filas 23-24, iconos FIRMADOS por Antonio (H blanca en
+cuadrado azul [señal S-23] · cruz azul [[PROPIO]: la roja vetada por
+Ginebra —osm-carto tiene el #3408 por evocarla—, la verde ocupada];
+un azul #0d47a1, contraste 8,63:1, separados POR FORMA [#2787]). El
+`modified` como jurisprudencia: centros declarado (coincide al
+segundo), hospitales omitido (13 meses de desfase). Los títulos SE
+LEEN (institucionales, 0 patrones de persona). ⭐ El RECINTO GRANDE
+[#536] medido: no aparece por el conector (la API publica punto de
+DIRECCIÓN, no centroide; mediana 5 m) pero SÍ como TEXTO ENGAÑOSO:
+J10 Coloso→Miguel Servet llega por Gonzalo Calamita (enganche
+legítimo) y la llegada dice «Avda. Isabel la Católica, 3» — esa
+puerta queda a 169 m al otro lado del bloque. PARLAMENTO FICHADO con
+la idea de Antonio (enganchar por la DIRECCIÓN cruzada con nuestro
+callejero; los s/n a mano; P1/P2 sin responder). J11 CS Actur Norte:
+limpia. Hallazgos: coordenada en PORTUGAL (id 9090, 610 km — B no lo
+caza: regla de ENTORNO fichada, decisión de Antonio) · 781 más ancha
+que su nombre · un git checkout en bucle revirtió mapa.ts (cazado;
+contraprueba con copias propias). — Y por la mañana, parlamentado y
+HECHO el mismo día: **EL BUSCADOR POR TIPOS** (mejora de Antonio):
+[📍][tipo▾][cajetín][nº] en ambos campos [GOV.UK Select + revelado
+condicional · Pelias layers como parámetro `capa`], la mezclada
+MUERTA (firmada, juez derogada con motivo), el nº que SE MUDA al
+invertir, ubicación en destino (salta a Dirección, declarado), y el
+fallo parido y muerto dentro del encargo (la petición fantasma del
+⇅, 200 ms) SIN bitácora: nada dio verde con él vivo. Antonio en
+vivo: «de momento no veo taras». 219+136 pruebas · las once juez +
+la del cable al byte. Commits `7074a20` `eb9b237` `81a2c14` `37d4f65`
+(sanidad) · `a6e28ca` `98d6b0a` (buscador).
 
 **FARMACIAS: el tubo de sitios ENTERO (23/08, tarde-noche) — cuatro
 encargos, tres bitácoras de método y la primera categoría del punto 8
@@ -336,14 +376,17 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el PUSH del día (muy cargado: panel + los
-trece commits de farmacias + papeles); (2) **las tandas siguientes
-del punto 8** — hostelería (OSM como fuente con nombre) y las
-categorías municipales que Antonio autorice, por el tubo ya
-estrenado; (3) flecos: la ficha de Aragón (Antonio la pega del
-navegador) · el descifre de `estado` del registro si la
-hostelería-contexto entra · el foco a las vías (hallazgo anotado, sin
-decidir). Detrás, el 9 con la ordenanza leída en grueso.
+**Lo siguiente:** (1) el PUSH (seis commits + papeles); (2) los DOS
+PARLAMENTOS fichados de la tanda 2: el Miguel Servet — la idea de
+Antonio de enganchar por la DIRECCIÓN cruzada con el callejero (P1:
+¿qué pasa cuando la dirección no casa — cae a coordenada declarado, o
+fuera del índice?; P2: ¿la dirección manda SIEMPRE, incluso cuando
+punto y dirección discrepan mucho, caso MAZ 187 m?) — y la regla de
+ENTORNO (Portugal + el datum de farmacias: ¿se escribe o queda
+fichado?); (3) las tandas siguientes del punto 8 (hostelería con OSM
+la primera candidata); (4) flecos: la ficha de Aragón · el `estado`
+del registro · el foco a las vías. Detrás, el 9 con la ordenanza
+leída en grueso.
 
 ---
 
@@ -401,9 +444,10 @@ colgadas de sus capas.
 **1-7 CERRADOS** (el 7 entero el 23/08: demo + tabla del peatón +
 mínimo de distancia + andamios fuera + narración de odin) ·
 8 destinos con nombre
-(EN MARCHA: farmacias —la primera categoría— HECHA el 23/08 con el
-tubo entero; quedan las tandas siguientes, hostelería la primera
-candidata) · 9 bici/patinete (ordenanza VMP) ·
+(EN MARCHA: tres categorías hechas —farmacias 23/08, sanidad 24/08—
+y el buscador por tipos construido; quedan las tandas siguientes y
+dos parlamentos fichados: Miguel Servet por dirección · regla de
+entorno) · 9 bici/patinete (ordenanza VMP) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -454,8 +498,12 @@ retirada): quedó FUERA del encargo de narración del 23/08 — no es de
 los combines, huele al NOMBRE ÚNICO (núcleos que no casan por la «V»).
 Si reproduce en rutas vivas: NO CONSTA. Cabo vivo, sin dueño.
 
-**Punto 8:** tanda 1 HECHA (farmacias); quedan las tandas (hostelería
-con OSM la primera candidata) · ⚠️ 4 farmacias desplazadas 236 m con
+**Punto 8:** tandas 1 y 2 HECHAS (farmacias · sanidad) + el buscador
+por tipos; quedan las tandas (hostelería con OSM la primera
+candidata) · el TEXTO ENGAÑOSO del recinto grande (Miguel Servet:
+llegada por Calamita, texto de Isabel la Católica — parlamento
+fichado con P1/P2) · la regla de ENTORNO sin decidir (Portugal id
+9090 + el datum) · la 781 más ancha que su nombre (respetada) · ⚠️ 4 farmacias desplazadas 236 m con
 EL MISMO VECTOR (20443 · 20444 · 20445 · 8671 — huele a datum, causa
 NO CONSTA; rutas de hasta 401 m a su propia puerta) · el foco a las
 VÍAS: hallazgo anotado, sin decidir (hoy la Calle Mayor de
@@ -511,7 +559,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 334 pruebas (211 motor + 123 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
+§6) · 355 pruebas (219 motor + 136 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

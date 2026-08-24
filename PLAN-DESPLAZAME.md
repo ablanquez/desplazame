@@ -959,6 +959,96 @@ portales — un sitio es una coordenada más entrando al mismo tubo.
       buscable). El tubo se construye UNA vez con la primera
       categoría; cada una después es coste marginal (autorización +
       ficha + sus rarezas)
+**⭐ EL BUSCADOR POR TIPOS — HECHO (24/08, `a6e28ca` + `98d6b0a`;
+visto por Antonio en vivo: «de momento no veo taras»).** Mejora de
+Antonio al buscador, parlamentada y ejecutada el mismo día. La forma
+de cada campo, ORIGEN y DESTINO por igual:
+
+```
+   [📍 ubicación] [ tipo ▾ ] [ cajetín de búsqueda ] [ nº ]
+                    Dirección · Farmacias · Hospitales ·
+                    Centros de Salud · (las que vengan)
+```
+
+- [x] **El desplegable de TIPO** [GOV.UK Select como filtro; defecto
+      «Dirección» [PROPIO]]: el cajetín sugiere SOLO la categoría
+      elegida — el filtro llega al motor como parámetro `capa` de
+      /api/sitios [Pelias: layers], capa desconocida se ignora. La
+      PUREZA medida por las dos caras: «navarra» capa=farmacia → solo
+      farmacias; y en pantalla, con Dirección la capa de sitios NI SE
+      PIDE (0 peticiones) y viceversa. La mezclada MURIÓ (firmada):
+      su juez vieja, derogada CON MOTIVO ESCRITO en el spec y
+      sustituida por «una lista nunca mezcla capas». Al cambiar de
+      tipo, el campo SE LIMPIA (cambiar de carril es empezar la
+      pregunta)
+- [x] **El Nº por revelado condicional** [GOV.UK: un solo campo,
+      presente o ausente del DOM — el ARIA extra no hizo falta, es la
+      forma que el patrón recomienda]: Dirección lo enseña, los
+      sitios ni lo pintan. Las cuatro juez del apagado viejo,
+      derogadas con motivo: la absorbe la AUSENCIA. Y al invertir, el
+      nº ya no se apaga: SE MUDA con su valor («BURGOS 2» cruza
+      entero)
+- [x] **«Mi ubicación» en LOS DOS campos**: mismo botón y varas del
+      punto 6 [MDN]. Al usarlo, el tipo salta a Dirección (declarado:
+      una ubicación ES una dirección — y es lo que hace aparecer la
+      casilla donde el portal resuelto se ve)
+- [x] **El ⇅ cruza tipo + texto + nº** — tabla completa verificada
+      (Dirección↔sitio · sitio↔sitio · borradores como texto ·
+      vacíos): ninguna combinación deja botones muertos. La
+      incoherencia del sábado, muerta de raíz. ⭐ Y el fallo que el
+      propio encargo parió, cazado en caliente SIN bitácora (nada dio
+      verde con él vivo — nació y murió dentro): al invertir, el
+      texto viejo bajo la capa nueva salía al cable
+      («/api/vias?q=Farmacia · …», 200 ms de petición fantasma) — la
+      consulta solo sale ahora si sigue siendo lo escrito; seis
+      pruebas esperándolo se pusieron verdes de golpe
+- [x] Lo heredado, intacto: orden/foco, regla B, iconos (ahora la
+      lista entera es de un tipo y el icono lo confirma). El contrato
+      del motor SIN TOCAR (al motor le sigue llegando vía+portal o
+      sitio). 219 motor + 136 interfaz; las once juez + la del cable
+      al byte; contraprueba entera mordiendo (el defecto a Farmacias
+      tira 49 pruebas · el nº-nunca, 44: el formulario descansa sobre
+      esas dos leyes y está MEDIDO)
+
+- [x] **TANDA 2 — CENTROS DE SALUD Y HOSPITALES, HECHA (24/08,
+      `7074a20`→`37d4f65`)**: categorías 781 (56, todos con
+      coordenada) y 780 (17, 15 al índice — 2 clínicas sin coordenada
+      NI calle, regla B). Fichas §1.17-1.18, filas 23-24 del
+      manifiesto (24 resources, schema oficial 0 errores). El
+      criterio del `modified` como JURISPRUDENCIA: centros SÍ
+      (Last-Modified = lastUpdated al segundo) · hospitales OMITIDO
+      (13 meses de diferencia — una cabecera que no describe al
+      dato). Los títulos SE LEEN (institucionales: «Miguel Servet» es
+      nombre de edificio, no titular — verificado: 0 patrones de
+      persona; la tabla FUENTES dice quién lee su título categoría a
+      categoría). ICONOS FIRMADOS: H blanca en cuadrado azul
+      [señal S-23 / convención universal] · cruz azul [[PROPIO]
+      firmado: cruz sanitaria + azul médico; la roja VETADA por
+      Ginebra — el propio osm-carto tiene el issue #3408 por evocarla
+      — y la verde ocupada por farmacia]; un solo azul #0d47a1
+      (contraste medido 8,63:1), separados POR FORMA [#2787].
+      ⭐ EL RECINTO GRANDE [#536], medido: NO aparece por el conector
+      (mediana 5 m — la API municipal publica punto de DIRECCIÓN, no
+      centroide: el trabajo que a Nominatim le falta, el Ayuntamiento
+      lo trae hecho) — pero SÍ por otro lado: J10 Coloso→Miguel
+      Servet (6.348 m · 12 pasos) llega por Gonzalo Calamita (bordea
+      el recinto, enganche legítimo a 2 m) y el texto dice «Avda.
+      Isabel la Católica, 3» — la puerta que ese texto nombra queda a
+      169 m al otro lado del bloque: correcto como rótulo, ENGAÑOSO
+      como indicación. PARLAMENTO FICHADO (la idea de Antonio:
+      enganchar por la DIRECCIÓN cruzada con nuestro callejero; los
+      s/n a mano con su dato — P1 y P2 pendientes de responder). J11
+      Coloso→CS Actur Norte (1.822 m · 7 pasos): limpia. Hallazgos:
+      ⚠️ coordenada en PORTUGAL (id 9090, «CS Fernando El Católico»,
+      610 km — la regla B no lo caza: coordenada tiene, sentido no;
+      NO filtrado: regla de entorno = decisión de Antonio, fichada) ·
+      la categoría 781 más ancha que su nombre (especialidades,
+      consultorios, CMAPA — se respeta la clasificación municipal) ·
+      un git checkout en bucle de contraprueba revirtió mapa.ts
+      (detectado en git status; la contraprueba restaura ahora con
+      copias propias). 215+127 pruebas; las nueve juez viejas al
+      byte + J10 `d47b0ea0` · J11 `b104cb55`
+
 - [x] **FARMACIAS — LA PRIMERA CATEGORÍA, HECHA ENTERA (23/08)**, en
       cuatro encargos (B + tres remates; commits `1bf560f`→`16cc9c1`):
       el TUBO DE SITIOS completo. Descarga con ritual (313 · 310 con
