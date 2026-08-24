@@ -66,12 +66,12 @@
 >
 > **Y el formulario gana dos atajos.** Un **⇅** entre origen y destino que los intercambia
 > enteros: el texto, el código y hasta la marca de «esto está a medias» viajan con su lado. Y un
-> **📍 Mi ubicación** en origen, que rellena la calle y el portal con donde estás. No escribe
-> texto: fija los mismos códigos que fijaría elegir de la lista, así que la validación ni se
-> entera de que ha habido GPS. Antes de fiarse comprueba **dos cosas**: que el navegador sepa
+> **📍 Mi ubicación** en **los dos campos**, que rellena la calle y el portal con donde estás. No
+> escribe texto: fija los mismos códigos que fijaría elegir de la lista, así que la validación ni
+> se entera de que ha habido GPS. Antes de fiarse comprueba **dos cosas**: que el navegador sepa
 > dónde estás con menos de **100 m** de margen, y que haya un portal a menos de **150 m**. Si no,
-> lo dice en ámbar y no toca ningún campo. Para poner la ubicación como **destino** no hay botón
-> aparte: se pone en origen y se pulsa el ⇅.
+> lo dice en ámbar y no toca ningún campo. Y al usarlo, ese lado pasa al tipo **Dirección**:
+> una ubicación es una dirección, y lo que se rellena son una calle y un portal.
 >
 > Lo que ese aviso **no** dice es si estás en Zaragoza, y no por prudencia: **con estos datos no
 > se puede saber**. El Polígono PLAZA está en Zaragoza y su portal más cercano queda a
