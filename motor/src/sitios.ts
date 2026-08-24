@@ -25,6 +25,17 @@
  * **Pero no se borran ni se editan**: siguen en el fichero, se cuentan aquí y
  * el motor las declara al arrancar. La ausencia se dice; el dato no se toca.
  *
+ * ── ⭐ Y EL SEGUNDO PORTERO: la validación espacial (24/08) ──────────────────
+ *
+ * La regla B mira si HAY punto. No mira si el punto **vale**, y el dato
+ * municipal trae puntos que no valen: uno en Portugal y cuatro farmacias
+ * desplazadas por el mismo vector. Así que antes de dar de alta se le pregunta
+ * al callejero, que es el gacetero de la casa: si la coordenada está fuera del
+ * término o a más de 50 m de la puerta que la propia dirección declara, se
+ * vuelve a situar por el portal; y si no hay dirección que resuelva, se trata
+ * como si no hubiera punto. La regla entera, con sus fuentes, vive en
+ * `gacetero.ts`; aquí solo se aplica y se cuenta.
+ *
  * ── 🔒 El título se lee en dos categorías de tres, y eso no es un descuido ──
  *
  * **En farmacias NO.** 274 de los 313 títulos traen el nombre de la persona
@@ -49,7 +60,9 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Sitio, TipoDeSitio } from '@desplazame/tipos';
-import { normalizar } from './callejero.ts';
+import { normalizar, type CallejeroEnMemoria } from './callejero.ts';
+import { cargarGacetero, validar } from './gacetero.ts';
+import type { PortalesEnMemoria } from './portales.ts';
 import { metrosPlanos } from './proyeccion.ts';
 
 /**
@@ -78,6 +91,16 @@ interface Fuente {
   readonly fichero: string;
   /** Si el `title` del dato se puede enseñar. Ver arriba. */
   readonly leeElTitulo: boolean;
+  /**
+   * ⭐ Si su coordenada se compara con la puerta que su dirección declara.
+   *
+   * **En hospitales NO, y está firmado (24/08).** Una farmacia es una puerta y
+   * un hospital es un recinto con varias: el Miguel Servet queda a 169 m del
+   * portal de su dirección y esa distancia no es un error, es otra entrada
+   * [Nominatim #536]. El cheque de FRONTERA, en cambio, se les pasa a los tres:
+   * un recinto grande tampoco puede estar en Portugal.
+   */
+  readonly mideLaDistancia: boolean;
 }
 
 const FUENTES: readonly Fuente[] = [
@@ -87,6 +110,7 @@ const FUENTES: readonly Fuente[] = [
     prefijo: 'Farmacias',
     fichero: '2026-08-23_zgzapi_equipamiento-farmacias.json',
     leeElTitulo: false,
+    mideLaDistancia: true,
   },
   {
     tipo: 'centro-salud',
@@ -94,6 +118,7 @@ const FUENTES: readonly Fuente[] = [
     prefijo: 'CentrosSalud',
     fichero: '2026-08-24_zgzapi_equipamiento-centros-salud.json',
     leeElTitulo: true,
+    mideLaDistancia: true,
   },
   {
     tipo: 'hospital',
@@ -101,6 +126,7 @@ const FUENTES: readonly Fuente[] = [
     prefijo: 'Hospitales',
     fichero: '2026-08-24_zgzapi_equipamiento-hospitales.json',
     leeElTitulo: true,
+    mideLaDistancia: false,
   },
 ];
 
@@ -172,16 +198,59 @@ export interface RecuentoDeCategoria {
   readonly tipo: TipoDeSitio;
   readonly categoria: string;
   readonly total: number;
+  /** Los que entran al índice: traen punto **y** el punto vale. */
   readonly conCoordenada: number;
+  /** Los que no traían punto. Regla B de siempre. */
   readonly sinCoordenada: number;
+  /** Los que traían un punto malo y el callejero los ha vuelto a situar. */
+  readonly rescatados: number;
+  /** Los que traían un punto malo y no se han podido rescatar: fuera. */
+  readonly invalidos: number;
+}
+
+/**
+ * Un sitio que se ha movido, con de dónde venía y a dónde ha ido.
+ *
+ * 🔒 Lo que se guarda es la **presentación**, nunca el `title` crudo: en
+ * farmacias ese campo lleva el nombre de la persona titular y esta lista sale
+ * al log del motor y a la ficha del dato. La regla es del campo, no de si el
+ * contenido de hoy parece un nombre.
+ */
+export interface Rescate {
+  readonly codigo: string;
+  readonly presentacion: string;
+  readonly tipo: TipoDeSitio;
+  /** Dónde lo ponía el Ayuntamiento. Se guarda para poder enseñar el desvío. */
+  readonly lonMunicipal: number;
+  readonly latMunicipal: number;
+  /** Y a qué portal del censo se ha ido. */
+  readonly portal: string;
+  readonly via: string;
+  readonly numero: string;
+  readonly metros: number;
+  readonly porQue: 'frontera' | 'distancia';
+}
+
+/** Un sitio cuya coordenada no vale y no se ha podido rescatar. */
+export interface Invalido {
+  readonly codigo: string;
+  readonly presentacion: string;
+  readonly tipo: TipoDeSitio;
+  readonly lon: number;
+  readonly lat: number;
+  readonly porQue: 'frontera';
 }
 
 export interface SitiosEnMemoria {
   /** Cuántos traen los ficheros, sumados. */
   readonly total: number;
-  /** Cuántos tienen punto: los únicos que se pueden elegir. */
+  /**
+   * Cuántos entran al índice: los únicos que se pueden elegir. Traen punto **y
+   * el punto vale** — desde la validación espacial son dos condiciones y no
+   * una.
+   */
   readonly conCoordenada: number;
-  /** Cuántos no lo tienen. Se cuentan y se declaran; no se sugieren. */
+  /** Cuántos no traían punto. Se cuentan y se declaran; no se sugieren. */
   readonly sinCoordenada: number;
   /**
    * ⭐ Y lo mismo POR CATEGORÍA. La suma sola escondería de cuál faltan: con
@@ -190,6 +259,18 @@ export interface SitiosEnMemoria {
    * arranque justamente para que se vea.
    */
   readonly porCategoria: readonly RecuentoDeCategoria[];
+  /**
+   * ⭐ Los que el callejero ha vuelto a situar, con su desvío. Se declaran en
+   * el arranque y en la ficha del dato: mover una coordenada en silencio sería
+   * peor que dejarla mal.
+   */
+  readonly rescatados: readonly Rescate[];
+  /**
+   * Y los que traían coordenada y no vale. **Esta es la lista que va a
+   * confirmación manual**: quien conoce el terreno es quien puede decir dónde
+   * está de verdad, y el motor no lo va a adivinar.
+   */
+  readonly invalidos: readonly Invalido[];
   /** El índice de sugerencias. **Solo los que tienen punto** — regla B. */
   readonly indice: readonly SitioSituado[];
   /** Los mismos objetos, por su código. */
@@ -197,12 +278,27 @@ export interface SitiosEnMemoria {
   readonly cargadoEnMs: number;
 }
 
-export function cargarSitios(): SitiosEnMemoria {
+/**
+ * Carga los tres ficheros y los valida contra el callejero.
+ *
+ * Recibe los portales y el callejero **ya cargados** en vez de leerlos otra
+ * vez: es el patrón de la casa desde que `callejero.ts` dejó de parsear los
+ * 10 MB del censo por su cuenta. Y los recibe porque los NECESITA — sin
+ * gacetero no hay validación espacial, y sin validación espacial una farmacia
+ * en Portugal entra al índice tan campante.
+ */
+export function cargarSitios(
+  portales: PortalesEnMemoria,
+  callejero: CallejeroEnMemoria,
+): SitiosEnMemoria {
   const principio = performance.now();
 
+  const gacetero = cargarGacetero(portales, callejero);
   const indice: SitioSituado[] = [];
   const donde = new Map<string, SitioSituado>();
   const porCategoria: RecuentoDeCategoria[] = [];
+  const rescatados: Rescate[] = [];
+  const invalidos: Invalido[] = [];
 
   for (const fuente of FUENTES) {
     const crudo = JSON.parse(readFileSync(rutaDe(fuente.fichero), 'utf8')) as {
@@ -210,6 +306,8 @@ export function cargarSitios(): SitiosEnMemoria {
     };
     const registros = crudo.equipamiento ?? [];
     let sinCoordenada = 0;
+    let rescatadosAqui = 0;
+    let invalidosAqui = 0;
 
     for (const r of registros) {
       const c = r.geometry?.coordinates;
@@ -247,14 +345,59 @@ export function cargarSitios(): SitiosEnMemoria {
        */
       const buscable = nombre === fuente.categoria ? nombre : `${nombre} ${fuente.categoria}`;
 
+      const codigo = `${fuente.prefijo}.${r.id}`;
+
+      /**
+       * ⭐ LA VALIDACIÓN ESPACIAL, justo antes de dar de alta. Es el segundo
+       * portero, detrás de la regla B: aquella mira si hay punto y esta mira
+       * si el punto vale.
+       */
+      const veredicto = validar(gacetero, c[0]!, c[1]!, calle, fuente.mideLaDistancia);
+      if (veredicto.estado === 'invalida') {
+        // Coordenada inválida = sin coordenada. No entra, no se sugiere, y se
+        // dice quién es: la lista de estos es la de confirmación manual.
+        invalidos.push({
+          codigo,
+          presentacion,
+          tipo: fuente.tipo,
+          lon: c[0]!,
+          lat: c[1]!,
+          porQue: veredicto.porQue,
+        });
+        invalidosAqui++;
+        continue;
+      }
+      // Y si se rescata, **la coordenada que vale es la del portal**: la del
+      // fichero se guarda aparte para poder enseñar de dónde venía, pero no
+      // vuelve a usarse. El fichero, mientras tanto, sigue intacto en disco.
+      let lon = c[0]!;
+      let lat = c[1]!;
+      if (veredicto.estado === 'rescatada') {
+        rescatados.push({
+          codigo,
+          presentacion,
+          tipo: fuente.tipo,
+          lonMunicipal: lon,
+          latMunicipal: lat,
+          portal: veredicto.portal.codigo,
+          via: gacetero.nombreDeVia.get(veredicto.portal.via) ?? `(vía ${veredicto.portal.via})`,
+          numero: veredicto.portal.numero,
+          metros: veredicto.metros,
+          porQue: veredicto.porQue,
+        });
+        rescatadosAqui++;
+        lon = veredicto.portal.lon;
+        lat = veredicto.portal.lat;
+      }
+
       const sitio: SitioSituado = {
-        codigo: `${fuente.prefijo}.${r.id}`,
+        codigo,
         presentacion,
         categoria: fuente.categoria,
         tipo: fuente.tipo,
         calle,
-        lon: c[0]!,
-        lat: c[1]!,
+        lon,
+        lat,
         comparableNombre: normalizar(buscable),
         comparableCalle: normalizar(calle),
         palabrasNombre: enPalabras(normalizar(buscable)),
@@ -268,8 +411,10 @@ export function cargarSitios(): SitiosEnMemoria {
       tipo: fuente.tipo,
       categoria: fuente.categoria,
       total: registros.length,
-      conCoordenada: registros.length - sinCoordenada,
+      conCoordenada: registros.length - sinCoordenada - invalidosAqui,
       sinCoordenada,
+      rescatados: rescatadosAqui,
+      invalidos: invalidosAqui,
     });
   }
 
@@ -278,6 +423,8 @@ export function cargarSitios(): SitiosEnMemoria {
     conCoordenada: indice.length,
     sinCoordenada: porCategoria.reduce((t, c) => t + c.sinCoordenada, 0),
     porCategoria,
+    rescatados,
+    invalidos,
     indice,
     donde,
     cargadoEnMs: performance.now() - principio,

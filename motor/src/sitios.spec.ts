@@ -15,13 +15,20 @@ import {
   type SitioSituado,
   type SitiosEnMemoria,
 } from './sitios.ts';
-import { normalizar } from './callejero.ts';
+import { cargarCallejero, normalizar } from './callejero.ts';
+import { cargarPortales } from './portales.ts';
 
 describe('Los sitios — farmacias', () => {
   let sitios: SitiosEnMemoria;
 
   before(() => {
-    sitios = cargarSitios();
+    // ⚠️ Desde la validación espacial (24/08) los sitios NO se cargan solos:
+    // necesitan el callejero para poder comprobar dónde cae cada coordenada y
+    // para rescatar la que esté mal. Recibirlos ya cargados es el patrón de la
+    // casa —lo mismo hace `cargarCallejero` con los portales—: nadie parsea
+    // dos veces los mismos 10 MB.
+    const portales = cargarPortales();
+    sitios = cargarSitios(portales, cargarCallejero(portales));
   });
 
   test('⭐ carga las TRES categorías, y las cuenta una a una', () => {
@@ -36,14 +43,19 @@ describe('Los sitios — farmacias', () => {
       sitios.porCategoria.map((c) => [c.tipo, c.total, c.conCoordenada, c.sinCoordenada]),
       [
         ['farmacia', 313, 310, 3],
-        ['centro-salud', 56, 56, 0],
+        // ⚠️ Este decía 56 con coordenada hasta la validación espacial del
+        // 24/08. Sigue habiendo 56 registros y 56 puntos en el fichero — el
+        // dato no se toca—, pero uno de ellos está en PORTUGAL y no se puede
+        // rescatar, así que no entra al índice. La cuenta de abajo lo separa:
+        // «sin coordenada» es «no venía», e «inválida» es «venía y no vale».
+        ['centro-salud', 56, 55, 0],
         ['hospital', 17, 15, 2],
       ],
     );
     // Y la suma, que es lo que ve el resto del motor. Escrita a mano: si se
     // calculara aquí, esto compararía el código consigo mismo.
     assert.equal(sitios.total, 386);
-    assert.equal(sitios.conCoordenada, 381);
+    assert.equal(sitios.conCoordenada, 380);
     assert.equal(sitios.sinCoordenada, 5);
   });
 
@@ -52,7 +64,7 @@ describe('Los sitios — farmacias', () => {
     // situar no se puede enrutar, y sugerirlo sería prometer una ruta que
     // acaba en un aviso. [DOC Pelias] indexa *venues* con su punto; sin punto
     // no hay documento que indexar.
-    assert.equal(sitios.indice.length, 381);
+    assert.equal(sitios.indice.length, 380);
     assert.equal(sitios.indice.length, sitios.conCoordenada);
     for (const s of sitios.indice) {
       assert.ok(Number.isFinite(s.lat) && Number.isFinite(s.lon));
@@ -149,7 +161,7 @@ describe('Los sitios — farmacias', () => {
     // La otra mitad de la decisión, y va con guardián propio para que no se
     // pueda cumplir «no enseñar el título» apagándolo en todas partes.
     const conTitulo = sitios.indice.filter((x) => x.tipo !== 'farmacia');
-    assert.equal(conTitulo.length, 71, 'no están los 56 + 15 con coordenada');
+    assert.equal(conTitulo.length, 70, 'no están los 55 + 15 que entran al índice');
     for (const s of conTitulo) {
       assert.ok(
         s.presentacion.endsWith(` · ${s.calle}`),
@@ -402,6 +414,8 @@ describe('Los sitios — farmacias', () => {
       total: unos.length,
       conCoordenada: unos.length,
       sinCoordenada: 0,
+      rescatados: [],
+      invalidos: [],
       porCategoria: [
         {
           tipo: 'farmacia',
@@ -409,6 +423,8 @@ describe('Los sitios — farmacias', () => {
           total: unos.length,
           conCoordenada: unos.length,
           sinCoordenada: 0,
+          rescatados: 0,
+          invalidos: 0,
         },
       ],
       indice: unos,
@@ -524,5 +540,146 @@ describe('Los sitios — farmacias', () => {
       );
     }
     assert.ok(limpio.length > 0);
+  });
+});
+
+describe('Los sitios — la validación espacial', () => {
+  let sitios: SitiosEnMemoria;
+
+  before(() => {
+    const portales = cargarPortales();
+    sitios = cargarSitios(portales, cargarCallejero(portales));
+  });
+
+  /** Lo que los tres ficheros municipales traen, sin pasar por el motor. */
+  function crudos(): Map<string, { calle: string; lon: number; lat: number }> {
+    const fuera = new Map<string, { calle: string; lon: number; lat: number }>();
+    const ficheros: [string, string][] = [
+      ['Farmacias', '2026-08-23_zgzapi_equipamiento-farmacias.json'],
+      ['CentrosSalud', '2026-08-24_zgzapi_equipamiento-centros-salud.json'],
+      ['Hospitales', '2026-08-24_zgzapi_equipamiento-hospitales.json'],
+    ];
+    for (const [prefijo, fichero] of ficheros) {
+      const crudo = JSON.parse(
+        readFileSync(fileURLToPath(new URL(`../../app/data/${fichero}`, import.meta.url)), 'utf8'),
+      ) as {
+        equipamiento: { id: number; calle?: string; geometry?: { coordinates?: number[] } }[];
+      };
+      for (const r of crudo.equipamiento) {
+        const c = r.geometry?.coordinates;
+        if (c && c.length >= 2) {
+          fuera.set(`${prefijo}.${r.id}`, { calle: r.calle ?? '', lon: c[0]!, lat: c[1]! });
+        }
+      }
+    }
+    return fuera;
+  }
+
+  test('⭐ LA TABLA de validación, categoría por categoría', () => {
+    // Revisadas = las que traen punto. De ellas, las rescatadas se mueven a su
+    // portal y las inválidas se caen del índice. Escritas a mano, una a una.
+    assert.deepEqual(
+      sitios.porCategoria.map((c) => [c.tipo, c.total - c.sinCoordenada, c.rescatados, c.invalidos]),
+      [
+        ['farmacia', 310, 7, 0],
+        ['centro-salud', 56, 2, 1],
+        // ⭐ CERO en hospitales, y no por casualidad: son recintos y quedan
+        // fuera del cheque de distancia por decisión firmada.
+        ['hospital', 15, 0, 0],
+      ],
+    );
+    assert.equal(sitios.rescatados.length, 9);
+    assert.equal(sitios.invalidos.length, 1);
+  });
+
+  test('⭐ el de PORTUGAL se cae del índice, y no se sugiere JAMÁS', () => {
+    // `9090` «Centro de Salud Fernando El Católico» trae `lon = -8,18`, que es
+    // Portugal (§ 1.17). Su dirección es «C/ Domingo Miral, s/n» y sin número
+    // no hay portal que le devuelva el sitio, así que no se puede rescatar:
+    // coordenada inválida = sin coordenada, y eso es la regla B.
+    assert.equal(sitios.donde.has('CentrosSalud.9090'), false);
+    for (const q of ['fernando el catolico', 'domingo miral', 'centro de salud']) {
+      for (const x of sugerirSitios(sitios, q)) {
+        assert.notEqual(x.codigo, 'CentrosSalud.9090', `«${q}» lo ha sugerido`);
+      }
+    }
+    // Y se declara, con su motivo, para que salga en el log y en la ficha.
+    assert.deepEqual(
+      sitios.invalidos.map((i) => [i.codigo, i.porQue]),
+      [['CentrosSalud.9090', 'frontera']],
+    );
+    // 🔒 Lo que se guarda de él es su PRESENTACIÓN, nunca el título crudo. En
+    // esta categoría coinciden, pero la regla es del campo, no del contenido.
+    assert.match(sitios.invalidos[0]!.presentacion, /^Centro de Salud Fernando El Católico · /);
+  });
+
+  test('⭐ LAS NUEVE RESCATADAS, una a una y con sus metros de desvío', () => {
+    assert.deepEqual(
+      [...sitios.rescatados]
+        .sort((a, b) => b.metros - a.metros)
+        .map((r) => [r.codigo, Math.round(r.metros), r.porQue]),
+      [
+        ['CentrosSalud.9080', 497, 'distancia'],
+        ['Farmacias.20445', 236, 'distancia'],
+        ['Farmacias.20443', 236, 'distancia'],
+        ['Farmacias.8671', 236, 'distancia'],
+        ['Farmacias.20444', 236, 'distancia'],
+        ['Farmacias.9013', 198, 'distancia'],
+        ['CentrosSalud.28600', 110, 'distancia'],
+        ['Farmacias.20530', 76, 'distancia'],
+        ['Farmacias.8939', 52, 'distancia'],
+      ],
+    );
+  });
+
+  test('⭐ una rescatada queda EXACTAMENTE en su portal, no cerca', () => {
+    // «C/ La Caza, 11»: el Ayuntamiento la publica 236 m al suroeste, con el
+    // mismo vector de desvío que otras tres del mismo barrio. Ahora vive donde
+    // el censo pone el 11 de La Caza.
+    const farmacia = sitios.donde.get('Farmacias.20444');
+    assert.ok(farmacia);
+    assert.equal(farmacia.lon, -0.924971);
+    assert.equal(farmacia.lat, 41.616909);
+    // Y su origen queda escrito: de dónde venía y a qué portal se fue.
+    const r = sitios.rescatados.find((x) => x.codigo === 'Farmacias.20444')!;
+    assert.equal(r.lonMunicipal, -0.9263253602068995);
+    assert.equal(r.latMunicipal, 41.6150414308692);
+    assert.equal(r.portal, 'Portales.98467');
+    assert.equal(r.via, 'CALLE LA CAZA');
+    assert.equal(r.numero, '11');
+  });
+
+  test('⭐ y NADIE MÁS se mueve: los otros 371 conservan su coordenada', () => {
+    // El guardián de la costura: el rescate solo toca ROTAS. Si un día una
+    // sana acabara movida, esto se pone rojo — se compara contra el fichero
+    // municipal, no contra otra parte del motor.
+    const delFichero = crudos();
+    const movidos = sitios.rescatados.map((r) => r.codigo);
+    let comprobados = 0;
+    for (const s of sitios.indice) {
+      if (movidos.includes(s.codigo)) {
+        continue;
+      }
+      const c = delFichero.get(s.codigo)!;
+      assert.equal(s.lon, c.lon, `${s.codigo} ha cambiado de longitud`);
+      assert.equal(s.lat, c.lat, `${s.codigo} ha cambiado de latitud`);
+      comprobados++;
+    }
+    assert.equal(comprobados, 371);
+  });
+
+  test('⭐ NINGÚN HOSPITAL se mueve: la partición firmada, vigilada', () => {
+    // El Miguel Servet está a 169 m del portal que su propia dirección declara
+    // y eso NO es un error: es otra de sus entradas [Nominatim #536]. Si un día
+    // alguien metiera los recintos en el cheque de distancia, esto lo caza —
+    // y con ello se caerían las juez J10 y J11 del banco.
+    const delFichero = crudos();
+    for (const s of sitios.indice.filter((x) => x.tipo === 'hospital')) {
+      const c = delFichero.get(s.codigo)!;
+      assert.equal(s.lon, c.lon, `${s.codigo} se ha movido`);
+      assert.equal(s.lat, c.lat, `${s.codigo} se ha movido`);
+    }
+    const servet = sitios.donde.get('Hospitales.9040')!;
+    assert.equal(servet.lon, delFichero.get('Hospitales.9040')!.lon);
   });
 });

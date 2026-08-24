@@ -36,12 +36,16 @@ describe('El trayecto', () => {
   before(() => {
     const red = cargarRed(cargarGrafo());
     const portales = cargarPortales();
+    // ⚠️ El callejero deja de ser solo del formulario: desde la validación
+    // espacial (24/08) los sitios lo necesitan para comprobar dónde cae cada
+    // coordenada y para rescatar la que esté mal. Por eso sale del literal.
+    const callejero = cargarCallejero(portales);
     motor = {
       red,
       rejilla: cargarRejilla(red),
       portales,
-      callejero: cargarCallejero(portales),
-      sitios: cargarSitios(),
+      callejero,
+      sitios: cargarSitios(portales, callejero),
       cuaderno: cuadernoPara(red),
     };
   });
@@ -280,6 +284,44 @@ describe('El trayecto', () => {
       assert.equal(t.avisos.length, 1);
       assert.match(t.avisos[0]!.texto, /No conocemos ningún sitio con el código/);
     }
+  });
+
+  // ── LA VALIDACIÓN ESPACIAL, vista desde una ruta ───────────────────────────
+
+  test('⭐ UNA RESCATADA anda hasta su propia puerta: de 401 m a ninguno', () => {
+    // `Farmacias.20445` declara «C/ Joaquín Rodrigo, 17» y el Ayuntamiento la
+    // publicaba a **236 m** de ese portal, con el mismo vector de desvío que
+    // otras tres del mismo barrio (§ 1.16). Andando, esos 236 m en línea recta
+    // eran **401 m de calles** — la ruta absurda de ir de una farmacia a su
+    // propio portal, medida el 24/08 antes de arreglar nada.
+    //
+    // Rescatada, la farmacia ESTÁ en su portal, así que los dos extremos
+    // enganchan en el mismo sitio y no hay nada que andar. El cero no es una
+    // cifra que se haya observado y copiado: sale de la fórmula —misma
+    // coordenada, mismo enganche, cero tramos— y `pasos.ts` ya tenía escrito
+    // qué se dice entonces.
+    const JOAQUIN_RODRIGO_17 = { via: '25755', portal: 'Portales.103883' };
+    const t = pedir({
+      origen: { sitio: 'Farmacias.20445' },
+      destino: JOAQUIN_RODRIGO_17,
+      modo: 'andando',
+    });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.equal(t.metros, 0, `todavía anda ${t.metros} m hasta su propia puerta`);
+    assert.equal(t.pasos.length, 1);
+    assert.match(t.pasos[0]!.texto, /es el mismo portal del que sales/);
+  });
+
+  test('⭐ y la que NO se rescató sigue exactamente donde estaba', () => {
+    // La contraparte, para que «rescatar» no se lea como «mover lo que haga
+    // falta»: la farmacia juez de todo el banco no ha cambiado de sitio, y su
+    // ruta desde EL COLOSO 2 es la misma que era.
+    const t = pedir({ origen: COLOSO, destino: FARMACIA, modo: 'andando' });
+    assert.equal(t.avisos.length, 0);
+    assert.ok(t.metros > 1370);
+    const s = motor.sitios.donde.get('Farmacias.8691')!;
+    assert.equal(s.lon, -0.9067201540347999);
+    assert.equal(s.lat, 41.6552124101774);
   });
 
   test('un sitio inventado se contesta con aviso, no con una excepción', () => {

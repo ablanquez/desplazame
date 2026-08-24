@@ -19,6 +19,7 @@ import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
 import { cargarSitios, sugerirSitios } from './sitios.ts';
+import { UMBRAL_DE_DESVIO_M } from './gacetero.ts';
 import { portalCercano } from './cercano.ts';
 import { cargarRed } from './red.ts';
 import { cargarRejilla } from './proyeccion.ts';
@@ -87,7 +88,7 @@ console.log(
 );
 
 console.log('motor: cargando los sitios (destinos con nombre)…');
-const sitios = cargarSitios();
+const sitios = cargarSitios(portales, callejero);
 console.log(
   `motor: sitios en memoria — ${sitios.total} en total · ` +
     `${sitios.conCoordenada} en el indice · ${sitios.cargadoEnMs.toFixed(0)} ms`,
@@ -100,13 +101,45 @@ console.log(
 for (const c of sitios.porCategoria) {
   console.log(
     `motor:   ${c.categoria.padEnd(16)} ${String(c.total).padStart(3)} · ` +
-      `${String(c.conCoordenada).padStart(3)} en el indice · ${c.sinCoordenada} sin coordenada`,
+      `${String(c.conCoordenada).padStart(3)} en el indice · ${c.sinCoordenada} sin coordenada · ` +
+      `${c.rescatados} rescatados · ${c.invalidos} invalidas`,
   );
 }
 console.log(
   `motor: ${sitios.sinCoordenada} sin coordenada en total, fuera del indice ` +
     '(sin coordenada no existe: no se pueden enrutar, asi que no se sugieren)',
 );
+
+// ⭐ LA VALIDACION ESPACIAL, dicha entera. Mover una coordenada publicada es
+// tocar el dato de cara al usuario, y eso no se hace en silencio: aqui salen
+// los nueve, uno a uno, con de donde venian y a que portal se han ido. La
+// misma lista esta en la ficha (§ 1.16 y § 1.17).
+//
+// 🔒 Lo que se escribe es la PRESENTACION —«Farmacia · calle»—, nunca el titulo
+// del dato: en farmacias ese campo lleva el nombre del titular y el log es uno
+// de los sitios por los que se dijo que no saldria.
+console.log(
+  `motor: ${sitios.rescatados.length} rescatados por callejero ` +
+    `(coordenada a mas de ${UMBRAL_DE_DESVIO_M} m de la puerta que su propia direccion declara)`,
+);
+for (const r of [...sitios.rescatados].sort((a, b) => b.metros - a.metros)) {
+  console.log(
+    `motor:   ${r.codigo.padEnd(20)} ${String(Math.round(r.metros)).padStart(4)} m ` +
+      `${r.porQue.padEnd(9)} ${r.presentacion.slice(0, 46).padEnd(47)}→ ${r.via} ${r.numero}`,
+  );
+}
+if (sitios.invalidos.length > 0) {
+  console.log(
+    `motor: ${sitios.invalidos.length} con coordenada INVALIDA y sin direccion que case: ` +
+      'fuera del indice, a confirmacion manual',
+  );
+  for (const i of sitios.invalidos) {
+    console.log(
+      `motor:   ${i.codigo.padEnd(20)} ${i.porQue.padEnd(9)} ` +
+        `lon ${i.lon.toFixed(6)} lat ${i.lat.toFixed(6)}  ${i.presentacion}`,
+    );
+  }
+}
 
 /** Todo lo que hace falta para contestar una ruta, junto. */
 const motor: Motor = {
