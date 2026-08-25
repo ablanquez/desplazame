@@ -14,6 +14,61 @@
 
 ---
 
+## [2026-08-25] 🔴 ABIERTA — El `tsc` con el que llevo tres checkpoints declarando «la interfaz compila limpia» no compila NI UN fichero
+
+**Categoría:** instrumento que daba verde sin mirar nada
+
+**Síntoma:** al meter la cuarta clase de sitio (`biblioteca`) en el contrato, el
+diseño exige que la interfaz **deje de compilar** hasta darle su icono, su color
+y su anclaje — son tres `Record<Clase, …>`. Lancé el comprobador de siempre,
+`npx tsc --noEmit -p tsconfig.json` desde `app/`, y salió **en verde**. El mismo
+código, con `tsconfig.app.json`, devuelve **tres errores**.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** el propio comprobador, con la
+app rota a propósito:
+
+```
+$ npx tsc --noEmit -p tsconfig.json
+codigo de salida: 0
+
+$ npx tsc --noEmit -p tsconfig.app.json
+src/app/iconos.ts(157,7): error TS2741: Property 'biblioteca' is missing in type '{ farmacia: string; 'centro-salud': string; hospital: string; }' but required in type 'Readonly<Record<TipoDeSitio, string>>'.
+src/app/iconos.ts(182,7): error TS2741: Property 'biblioteca' is missing in type '{ via: {…}; farmacia: {…}; 'centro-salud': {…}; hospital: {…}; }' but required in type 'Readonly<Record<Clase, {…}>>'.
+src/app/mapa.ts(55,7): error TS2741: Property 'biblioteca' is missing in type '{ via: [number, number]; farmacia: [number, number]; 'centro-salud': [number, number]; hospital: [number, number]; }' but required in type 'Readonly<Record<Clase, PointTuple>>'.
+codigo de salida: 2
+```
+
+Y el recuento de lo que mira cada uno, que es lo que lo cierra:
+
+```
+$ npx tsc --noEmit -p tsconfig.json     --listFiles | wc -l  →   0
+$ npx tsc --noEmit -p tsconfig.app.json --listFiles | wc -l  → 293
+```
+
+**Cómo se cazó:** instrumento — la app tenía que estar rota y salió verde. El
+verde fue la señal, no el error.
+
+**Causa raíz:** ⏳ PENDIENTE
+
+**Arreglo aplicado:** ⏳ PENDIENTE
+
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** **un comando que termina en silencio no es un verde
+hasta que se le ha visto contar lo que ha mirado.** La bitácora ya lo decía de
+las pruebas —«una ejecución sin salida NO es un verde»— y aquí sale de otra
+puerta: un compilador con cero ficheros de entrada también termina en silencio y
+con código 0. El comprobador se comprueba pidiéndole el censo de lo que compila
+(`--listFiles`), y esa cifra se declara igual que se declara una muestra.
+
+**Traza:** `app/tsconfig.json` (fichero solución: `files: []` + `references`) ·
+`app/tsconfig.app.json` · los checkpoints del 24 y 25/08, donde escribí «tsc
+limpio en los dos» apoyándome en este comando.
+
+**Nota:** el arreglo ya había comenzado al abrir esta entrada — el `tsc` bueno ya
+estaba lanzado cuando se vio lo que pasaba.
+
+
 ## [2026-08-23] ✅ CERRADA — El aviso «no trae un origen y un destino» lo daba un motor arrancado 36 minutos antes del commit que lo arreglaba: el código estaba bien, y las 298 pruebas también
 
 **Categoría:** guardián que existía, cubría el caso exacto, y nadie invocó
