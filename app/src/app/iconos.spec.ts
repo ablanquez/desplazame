@@ -5,6 +5,8 @@ import type { Portal, Sitio, Trayecto, Via } from '@desplazame/tipos';
 import { Buscador } from './buscador';
 import {
   AZUL,
+  MORADO,
+  CAMINO_LIBRO,
   CAMINO_CHINCHETA,
   CAMINO_CRUZ,
   CAMINO_CUADRADO,
@@ -106,6 +108,14 @@ const HOSPITAL: Sitio = {
   presentacion: 'Hospital Universitario Miguel Servet · Avda. Isabel La Católica, 3',
   categoria: 'Hospital',
   tipo: 'hospital',
+};
+
+/** La biblioteca juez de la interfaz: la Cubit, que es la del motor. */
+const BIBLIOTECA: Sitio = {
+  codigo: 'Bibliotecas.4946',
+  presentacion: 'Biblioteca para Jóvenes Cubit · C/ Mas de las Matas, 20',
+  categoria: 'Biblioteca',
+  tipo: 'biblioteca',
 };
 
 const campoDe = (raiz: HTMLElement, n: string): HTMLInputElement =>
@@ -286,7 +296,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     // resultado: lo que se afirma sigue siendo lo mismo, que las tres se
     // dibujan distinto.
     const dibujos: unknown[] = [];
-    for (const sitio of [FARMACIA, CENTRO, HOSPITAL]) {
+    for (const sitio of [FARMACIA, CENTRO, HOSPITAL, BIBLIOTECA]) {
       await ponerTipo('calleDestino', sitio.tipo);
       await teclear('calleDestino', 'salud');
       await contestar([], [sitio]);
@@ -303,6 +313,10 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
       ['farmacia', CAMINO_CRUZ, COLOR_SITIO],
       ['centro-salud', CAMINO_CRUZ, AZUL],
       ['hospital', CAMINO_CUADRADO, AZUL],
+      // ⭐ La cuarta (25/08). Ni la forma ni el color se repiten: el libro
+      // abierto es el glifo de biblioteca en osm-carto y en Maki, y el morado
+      // es de la familia de cultura, que no es ninguna de las otras dos.
+      ['biblioteca', CAMINO_LIBRO, MORADO],
     ]);
   });
 
@@ -332,6 +346,37 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     expect(cruz.querySelectorAll('path').length).toBe(1);
   });
 
+  it('⭐ EL LIBRO ABIERTO son DOS páginas y un lomo entre ellas', async () => {
+    // [osm-carto symbols/amenity/library.svg · Maki icons/library.svg] En los
+    // dos mapas de referencia el glifo de biblioteca es un libro abierto: dos
+    // hojas simétricas que salen de un lomo central. La convención es ESA, no
+    // el fichero, así que el camino está trazado aquí y no copiado.
+    //
+    // Lo que se comprueba es la simetría, que es lo que lo hace legible a 14 px:
+    // el camino tiene DOS subcaminos —dos `M`— y el hueco del lomo queda en
+    // medio. Un solo subcamino sería un libro cerrado, que es otro glifo.
+    await ponerTipo('calleDestino', 'biblioteca');
+    await teclear('calleDestino', 'cubit');
+    await contestar([], [BIBLIOTECA]);
+
+    const svg = raiz.querySelector<SVGElement>('[data-campo="calleDestino"] .sugerencia svg')!;
+    const caminos = Array.from(svg.querySelectorAll('path'));
+    // Una sola pieza, como la cruz: el lomo no se pinta, se deja sin pintar.
+    expect(caminos.length).toBe(1);
+    const d = caminos[0]!.getAttribute('d')!;
+    expect(d.match(/M/g)?.length).toBe(2);
+    expect(caminos[0]!.getAttribute('fill')).toBe(MORADO);
+  });
+
+  it('⭐ una biblioteca es MORADA en los dos papeles', async () => {
+    await elegirSitioEn('calleOrigen', BIBLIOTECA);
+    await elegirDireccionEn('calleDestino', 'portalDestino');
+    expect(await generarYMirarElMapa()).toEqual([
+      { icono: 'biblioteca', papel: 'origen', color: MORADO },
+      { icono: 'via', papel: 'destino', color: COLOR_DESTINO },
+    ]);
+  });
+
   it('⭐ un hospital es AZUL en los dos papeles, como la farmacia es verde', async () => {
     // El papel pinta la chincheta, no la clase: un hospital no cambia de
     // identidad al cruzarlo con el ⇅.
@@ -354,7 +399,9 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     expect(COLOR_NEUTRO).not.toBe(COLOR_DESTINO);
     // El azul sanitario, uno solo y distinto de los otros tres.
     expect(AZUL).toBe('#0d47a1');
-    expect(new Set([COLOR_ORIGEN, COLOR_DESTINO, COLOR_NEUTRO, AZUL]).size).toBe(4);
+    // Y el morado de cultura, distinto de los cuatro anteriores.
+    expect(MORADO).toBe('#6a1b9a');
+    expect(new Set([COLOR_ORIGEN, COLOR_DESTINO, COLOR_NEUTRO, AZUL, MORADO]).size).toBe(5);
   });
 
   it('la cruz de farmacia es VERDE en los dos campos: el papel no la cambia', async () => {
@@ -468,6 +515,27 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     expect(ultimo?.getAttribute('data-papel')).toBe('destino');
   });
 
+  it('⭐ LA BIBLIOTECA en la casa 3: cabecera y pasos, con su libro', async () => {
+    // La tercera casa con la clase nueva. Las otras dos pruebas del itinerario
+    // usan una farmacia, y una tabla de dibujos mal puesta se vería solo con la
+    // clase que no está probada aquí — que hasta hoy era esta.
+    await elegirSitioEn('calleOrigen', BIBLIOTECA);
+    await elegirDireccionEn('calleDestino', 'portalDestino');
+    await generarYMirarElMapa();
+
+    const cabecera = raiz.querySelector<SVGElement>('.ruta__origen svg[data-icono]');
+    expect(cabecera?.getAttribute('data-icono')).toBe('biblioteca');
+    expect(cabecera?.querySelector('path')?.getAttribute('d')).toBe(CAMINO_LIBRO);
+    expect(cabecera?.querySelector('path')?.getAttribute('fill')).toBe(MORADO);
+
+    const primero = raiz
+      .querySelectorAll<HTMLElement>('.pasos__lista .paso')[0]!
+      .querySelector<SVGElement>('svg[data-icono]');
+    expect(primero?.getAttribute('data-icono')).toBe('biblioteca');
+    expect(primero?.getAttribute('data-papel')).toBe('origen');
+    expect(primero?.querySelector('path')?.getAttribute('d')).toBe(CAMINO_LIBRO);
+  });
+
   it('⭐ y los pasos DE ENMEDIO no llevan icono: no son extremos', async () => {
     // Sin esto, «que los pasos lleven icono» se podría cumplir poniéndoselo a
     // todos, y entonces el icono dejaría de señalar las dos puntas.
@@ -538,6 +606,20 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
 
     const marcas = raiz.querySelectorAll<HTMLElement>('.leaflet-marker-icon');
     expect(marcas[0]!.querySelector('svg')?.getAttribute('data-icono')).toBe('hospital');
+    expect(`${marcas[0]!.style.marginLeft} ${marcas[0]!.style.marginTop}`).toBe('-16px -16px');
+  });
+
+  it('⭐ y la BIBLIOTECA también agarra por el centro', async () => {
+    // La misma historia que el hospital, y la caza el mismo método: la
+    // contraprueba puso la fila `biblioteca` de la tabla de anclajes a
+    // `[16, 32]` y las 140 pruebas siguieron verdes. Cada clase nueva estrena
+    // una fila que **nadie mira** hasta que se le escribe su guardián.
+    await elegirSitioEn('calleOrigen', BIBLIOTECA);
+    await elegirDireccionEn('calleDestino', 'portalDestino');
+    await generarYMirarElMapa();
+
+    const marcas = raiz.querySelectorAll<HTMLElement>('.leaflet-marker-icon');
+    expect(marcas[0]!.querySelector('svg')?.getAttribute('data-icono')).toBe('biblioteca');
     expect(`${marcas[0]!.style.marginLeft} ${marcas[0]!.style.marginTop}`).toBe('-16px -16px');
   });
 

@@ -78,6 +78,26 @@ export const CAMINO_CUADRADO =
 export const CAMINO_H = 'M7.5 6.5h2.5v4.25h4V6.5h2.5v11h-2.5v-4.25h-4V17.5H7.5z';
 
 /**
+ * ⭐ EL LIBRO ABIERTO: dos hojas simétricas que salen de un lomo central.
+ *
+ * **El libro abierto ES el glifo de biblioteca** en los dos mapas de
+ * referencia: [osm-carto `symbols/amenity/library.svg`, 14×14] y [Maki
+ * `icons/library.svg`, 15×15] dibujan lo mismo con la misma convención — dos
+ * páginas que arrancan de un lomo. Lo que se adopta es **la convención, no el
+ * fichero**: este camino está trazado aquí, en el mismo lienzo de 24×24 que los
+ * otros tres, y no copiado de ninguno de ellos.
+ *
+ * Son **dos subcaminos**, uno por página, y el lomo es el hueco que queda entre
+ * ellos — dos píxeles sin pintar en el centro. Pintarlo de blanco encima
+ * habría hecho falta un `Encima` nuevo y, peor, un lomo blanco sobre el mapa se
+ * ve como un corte; dejarlo sin pintar lo deja del color de lo que haya debajo,
+ * que es lo que hacen los dos originales.
+ */
+export const CAMINO_LIBRO =
+  'M11 6.2C9.2 4.9 6.6 4.2 3 4.2v13.6c3.6 0 6.2.7 8 2z' +
+  'M13 6.2c1.8-1.3 4.4-2 8-2v13.6c-3.6 0-6.2.7-8 2z';
+
+/**
  * ⭐ EL VERDE, uno solo, y compartido a sabiendas.
  *
  * Lo llevan **el origen de la ruta** [osm.org] y **la farmacia** [la cruz verde
@@ -108,6 +128,33 @@ export const COLOR_SITIO = VERDE;
  * de donde viene la H.
  */
 export const AZUL = '#0d47a1';
+
+/**
+ * ⭐ EL MORADO de la cultura, que es la familia de las bibliotecas.
+ *
+ * **El color va por FAMILIA, no por categoría** — es la doctrina de las hojas
+ * de estilo de osm-carto, que pinta los POI según a qué grupo pertenecen y no
+ * uno a uno. Lo sanitario ya tiene su azul; la cultura estrena el suyo aquí, y
+ * el día que entren museos o teatros lo comparten.
+ *
+ * **El tono concreto es PROPIO**, como el azul, y va medido y no a ojo:
+ * `#6a1b9a` da **9,39:1 sobre blanco** y **8,18:1 sobre el beige de las teselas
+ * de OSM** (`#f2efe9`). El mínimo documentado para un elemento que no es texto
+ * es **3:1** [WCAG 2.2, 1.4.11 *Non-text Contrast*]; el listón de esta casa es
+ * **≥7:1**, que es el precedente que dejó el azul sanitario con sus 8,63:1, y
+ * es el que se aplica.
+ *
+ * ⚠️ **Y por eso no se usa el marrón de osm-carto.** Su color de turismo y
+ * cultura es `#734a08`, que aquí da **7,74:1 sobre blanco pero 6,75:1 sobre el
+ * beige**: se queda por debajo del listón de la casa justo en el fondo sobre el
+ * que se va a ver. Además es un marrón oscuro y cálido, difícil de separar del
+ * gris `#44403c` de las chinchetas sin papel a 14 px. Se declara la doctrina
+ * (color por familia) y se cambia el tono, con la medida delante.
+ */
+export const MORADO = '#6a1b9a';
+
+/** Morado: una biblioteca [familia cultura]. */
+export const COLOR_BIBLIOTECA = MORADO;
 
 /** Azul: un hospital [señal S-23]. */
 export const COLOR_HOSPITAL = AZUL;
@@ -152,12 +199,13 @@ export type Papel = 'origen' | 'destino' | 'ninguno';
  * chincheta —que no es nada por sí misma— se pinta según el papel, y sin papel
  * va gris.
  *
- * `Record<Clase, …>` y no un `if` encadenado: obliga a que estén las cuatro.
+ * `Record<Clase, …>` y no un `if` encadenado: obliga a que estén todas.
  */
 const COLOR_DE_CLASE: Readonly<Record<TipoDeSitio, string>> = {
   farmacia: COLOR_SITIO,
   'centro-salud': COLOR_CENTRO_SALUD,
   hospital: COLOR_HOSPITAL,
+  biblioteca: COLOR_BIBLIOTECA,
 };
 
 export function colorDeCapa(clase: Clase, papel: Papel): string {
@@ -184,6 +232,7 @@ const FIGURA: Readonly<Record<Clase, { readonly camino: string; readonly encima:
   farmacia: { camino: CAMINO_CRUZ, encima: 'nada' },
   'centro-salud': { camino: CAMINO_CRUZ, encima: 'nada' },
   hospital: { camino: CAMINO_CUADRADO, encima: 'hache' },
+  biblioteca: { camino: CAMINO_LIBRO, encima: 'nada' },
 };
 
 /** El camino de la figura de una clase. */

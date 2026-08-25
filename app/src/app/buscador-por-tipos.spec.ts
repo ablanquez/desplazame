@@ -141,16 +141,29 @@ describe('⭐ EL BUSCADOR POR TIPOS', () => {
 
   // ── EL DESPLEGABLE ─────────────────────────────────────────────────────────
 
-  it('⭐ los DOS campos traen su desplegable, con las cuatro opciones', () => {
+  it('⭐ los DOS campos traen su desplegable, con sus cinco opciones', () => {
+    // ⚠️ Eran CUATRO hasta el 25/08 y ahora son cinco: entran las bibliotecas.
+    // Esta prueba existe para que una categoría nueva no se quede a medias — el
+    // día que esté en el motor y no aquí, el buscador la tendría y nadie
+    // podría pedirla.
+    //
+    // Se afirman las dos cosas, y son dos decisiones distintas: **el valor** lo
+    // fija el contrato del motor (`TipoDeSitio`) y **la etiqueta** la escribe
+    // quien hace la pantalla. Una lista que dijera «Bibliotecas» y mandara
+    // `farmacia` pasaría una comprobación de solo etiquetas.
     for (const lado of ['Origen', 'Destino'] as const) {
       const select = tipoDe(lado);
       expect(select, `falta el desplegable de ${lado}`).not.toBeNull();
-      expect(Array.from(select.options).map((o) => o.value)).toEqual([
-        'via',
-        'farmacia',
-        'hospital',
-        'centro-salud',
+      expect(Array.from(select.options).map((o) => [o.value, o.textContent?.trim()])).toEqual([
+        ['via', 'Dirección'],
+        ['farmacia', 'Farmacias'],
+        ['hospital', 'Hospitales'],
+        ['centro-salud', 'Centros de Salud'],
+        ['biblioteca', 'Bibliotecas'],
       ]);
+      // Y el que viene puesto al abrir sigue siendo Dirección, que es lo que
+      // busca casi todo el mundo [GOV.UK: el ejemplo canónico del `Select`].
+      expect(select.value).toBe('via');
     }
   });
 
@@ -206,6 +219,24 @@ describe('⭐ EL BUSCADOR POR TIPOS', () => {
       raiz.querySelectorAll<SVGElement>('[data-campo="calleDestino"] .sugerencia svg[data-icono]'),
     ).map((s) => s.getAttribute('data-icono'));
     expect(iconos).toEqual(['hospital']);
+    drenar();
+  });
+
+  // ── LA CAPA NUEVA, HASTA EL MOTOR ──────────────────────────────────────────
+
+  it('⭐ y la capa nueva llega al motor con su nombre', async () => {
+    // El desplegable no vale de nada si el filtro no viaja. `capa=biblioteca`
+    // es el nombre que el contrato le da, no una etiqueta traducida.
+    await elegirTipo('Destino', 'biblioteca');
+    await teclear('calleDestino', 'cubit');
+    const pedidas = http.match((q) => q.url.startsWith('/api/sitios'));
+    expect(pedidas.length).toBe(1);
+    expect(pedidas[0]!.request.url).toContain('capa=biblioteca');
+    // Y no se piden vías: una lista es de una sola clase.
+    expect(http.match((q) => q.url.startsWith('/api/vias')).length).toBe(0);
+    for (const r of pedidas) r.flush([]);
+    await new Promise((sigue) => setTimeout(sigue, 0));
+    fixture.detectChanges();
     drenar();
   });
 

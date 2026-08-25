@@ -457,6 +457,7 @@ export class Buscador {
     { id: 'farmacia', etiqueta: 'Farmacias' },
     { id: 'hospital', etiqueta: 'Hospitales' },
     { id: 'centro-salud', etiqueta: 'Centros de Salud' },
+    { id: 'biblioteca', etiqueta: 'Bibliotecas' },
   ];
 
   protected alElegirVia(lado: Lado, via: Via | null): void {
