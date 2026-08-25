@@ -102,13 +102,33 @@ for (const c of sitios.porCategoria) {
   console.log(
     `motor:   ${c.categoria.padEnd(16)} ${String(c.total).padStart(3)} · ` +
       `${String(c.conCoordenada).padStart(3)} en el indice · ${c.sinCoordenada} sin coordenada · ` +
-      `${c.rescatados} rescatados · ${c.invalidos} invalidas`,
+      `${c.corregidos} corregidos · ${c.rescatados} rescatados · ${c.invalidos} invalidas`,
   );
 }
 console.log(
   `motor: ${sitios.sinCoordenada} sin coordenada en total, fuera del indice ` +
     '(sin coordenada no existe: no se pueden enrutar, asi que no se sugieren)',
 );
+
+// ⭐ LA CORRECCION MANUAL, la primera en decirse porque es la primera en
+// aplicarse. Es lo que vuelve de la lista de confirmacion manual —lo que el
+// proceso no supo arreglar y si supo quien conoce el terreno—, y sale con su
+// FUENTE: un numero puesto a mano sin decir quien lo dice no vale nada.
+if (sitios.corregidos.length > 0) {
+  console.log(
+    `motor: ${sitios.corregidos.length} ` +
+      `${sitios.corregidos.length === 1 ? 'corregido' : 'corregidos'} a mano ` +
+      '(lista de confirmacion manual, § 1.17)',
+  );
+  for (const c of sitios.corregidos) {
+    console.log(`motor:   ${c.codigo.padEnd(20)} ${c.presentacion}`);
+    console.log(
+      `motor:   ${''.padEnd(20)} de [${c.lonMunicipal.toFixed(6)}, ${c.latMunicipal.toFixed(6)}] ` +
+        `a [${c.lon.toFixed(6)}, ${c.lat.toFixed(6)}] — ${c.motivo}`,
+    );
+    console.log(`motor:   ${''.padEnd(20)} fuente: ${c.fuente}`);
+  }
+}
 
 // ⭐ LA VALIDACION ESPACIAL, dicha entera. Mover una coordenada publicada es
 // tocar el dato de cara al usuario, y eso no se hace en silencio: aqui salen

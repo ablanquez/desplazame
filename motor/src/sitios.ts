@@ -61,6 +61,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Sitio, TipoDeSitio } from '@desplazame/tipos';
 import { normalizar, type CallejeroEnMemoria } from './callejero.ts';
+import {
+  correccionDe,
+  exigirQuePaseLosCheques,
+  exigirQueSigaValiendo,
+  type CorreccionDeSitio,
+} from './correcciones.ts';
 import { cargarGacetero, validar } from './gacetero.ts';
 import type { PortalesEnMemoria } from './portales.ts';
 import { metrosPlanos } from './proyeccion.ts';
@@ -202,6 +208,8 @@ export interface RecuentoDeCategoria {
   readonly conCoordenada: number;
   /** Los que no traían punto. Regla B de siempre. */
   readonly sinCoordenada: number;
+  /** Los que traían un punto malo y una mano lo ha corregido (§ 1.17). */
+  readonly corregidos: number;
   /** Los que traían un punto malo y el callejero los ha vuelto a situar. */
   readonly rescatados: number;
   /** Los que traían un punto malo y no se han podido rescatar: fuera. */
@@ -229,6 +237,18 @@ export interface Rescate {
   readonly numero: string;
   readonly metros: number;
   readonly porQue: 'frontera' | 'distancia';
+}
+
+/**
+ * Un sitio corregido a mano, con su corrección entera al lado.
+ *
+ * Se guarda la corrección tal cual —fuente y motivo incluidos— porque quien lea
+ * el log o la ficha tiene que poder ver **quién lo dice**, no solo que alguien
+ * lo dijo. Es el patrón de las cinco correcciones del callejero (§ 1.3).
+ */
+export interface Corregido extends CorreccionDeSitio {
+  readonly presentacion: string;
+  readonly tipo: TipoDeSitio;
 }
 
 /** Un sitio cuya coordenada no vale y no se ha podido rescatar. */
@@ -266,6 +286,12 @@ export interface SitiosEnMemoria {
    */
   readonly rescatados: readonly Rescate[];
   /**
+   * ⭐ Y los que ha corregido una mano, con su fuente. Es lo que vuelve de la
+   * lista de confirmación manual, y va declarado por el mismo motivo que el
+   * rescate: mover una coordenada en silencio sería peor que dejarla mal.
+   */
+  readonly corregidos: readonly Corregido[];
+  /**
    * Y los que traían coordenada y no vale. **Esta es la lista que va a
    * confirmación manual**: quien conoce el terreno es quien puede decir dónde
    * está de verdad, y el motor no lo va a adivinar.
@@ -298,6 +324,7 @@ export function cargarSitios(
   const donde = new Map<string, SitioSituado>();
   const porCategoria: RecuentoDeCategoria[] = [];
   const rescatados: Rescate[] = [];
+  const corregidos: Corregido[] = [];
   const invalidos: Invalido[] = [];
 
   for (const fuente of FUENTES) {
@@ -306,6 +333,7 @@ export function cargarSitios(
     };
     const registros = crudo.equipamiento ?? [];
     let sinCoordenada = 0;
+    let corregidosAqui = 0;
     let rescatadosAqui = 0;
     let invalidosAqui = 0;
 
@@ -346,32 +374,47 @@ export function cargarSitios(
       const buscable = nombre === fuente.categoria ? nombre : `${nombre} ${fuente.categoria}`;
 
       const codigo = `${fuente.prefijo}.${r.id}`;
+      let lon = c[0]!;
+      let lat = c[1]!;
+
+      /**
+       * ⭐ LA CORRECCIÓN MANUAL, **antes que nada**. Es lo que vuelve de la
+       * lista de confirmación manual —lo que el proceso no supo arreglar y sí
+       * supo quien conoce el terreno—, así que entra en el sitio donde habría
+       * estado la coordenada buena si el Ayuntamiento la publicara bien.
+       *
+       * Va delante de la validación **a propósito**: lo que se valida es lo que
+       * el motor va a usar, no lo que se descartó. Y se valida igual — una
+       * coordenada puesta a mano no tiene bula. Ver `correcciones.ts`.
+       */
+      const correccion = correccionDe(codigo);
+      if (correccion) {
+        exigirQueSigaValiendo(correccion, lon, lat);
+        corregidos.push({ ...correccion, presentacion, tipo: fuente.tipo });
+        corregidosAqui++;
+        lon = correccion.lon;
+        lat = correccion.lat;
+      }
 
       /**
        * ⭐ LA VALIDACIÓN ESPACIAL, justo antes de dar de alta. Es el segundo
        * portero, detrás de la regla B: aquella mira si hay punto y esta mira
        * si el punto vale.
        */
-      const veredicto = validar(gacetero, c[0]!, c[1]!, calle, fuente.mideLaDistancia);
+      const veredicto = validar(gacetero, lon, lat, calle, fuente.mideLaDistancia);
+      if (correccion) {
+        exigirQuePaseLosCheques(correccion, veredicto);
+      }
       if (veredicto.estado === 'invalida') {
         // Coordenada inválida = sin coordenada. No entra, no se sugiere, y se
         // dice quién es: la lista de estos es la de confirmación manual.
-        invalidos.push({
-          codigo,
-          presentacion,
-          tipo: fuente.tipo,
-          lon: c[0]!,
-          lat: c[1]!,
-          porQue: veredicto.porQue,
-        });
+        invalidos.push({ codigo, presentacion, tipo: fuente.tipo, lon, lat, porQue: veredicto.porQue });
         invalidosAqui++;
         continue;
       }
       // Y si se rescata, **la coordenada que vale es la del portal**: la del
       // fichero se guarda aparte para poder enseñar de dónde venía, pero no
       // vuelve a usarse. El fichero, mientras tanto, sigue intacto en disco.
-      let lon = c[0]!;
-      let lat = c[1]!;
       if (veredicto.estado === 'rescatada') {
         rescatados.push({
           codigo,
@@ -413,6 +456,7 @@ export function cargarSitios(
       total: registros.length,
       conCoordenada: registros.length - sinCoordenada - invalidosAqui,
       sinCoordenada,
+      corregidos: corregidosAqui,
       rescatados: rescatadosAqui,
       invalidos: invalidosAqui,
     });
@@ -424,6 +468,7 @@ export function cargarSitios(
     sinCoordenada: porCategoria.reduce((t, c) => t + c.sinCoordenada, 0),
     porCategoria,
     rescatados,
+    corregidos,
     invalidos,
     indice,
     donde,

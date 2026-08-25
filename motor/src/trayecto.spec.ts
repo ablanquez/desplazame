@@ -324,6 +324,38 @@ describe('El trayecto', () => {
     assert.equal(s.lat, 41.6552124101774);
   });
 
+  test('⭐ EL 9090 CORREGIDO A MANO: se puede elegir, y se llega andando', () => {
+    // `CentrosSalud.9090` «Centro de Salud Fernando El Católico» venía con la
+    // coordenada en PORTUGAL y la validación espacial lo dejaba fuera del
+    // índice: su dirección es «C/ Domingo Miral, s/n» y sin número no había
+    // portal que le devolviera el sitio. La confirmación manual de Antonio
+    // (24/08) le da la coordenada buena, y con ella vuelve a ser un destino.
+    //
+    // Es el remate del método: lo que el proceso no puede arreglar se le manda
+    // a quien conoce el terreno, y lo que vuelve confirmado entra declarado.
+    const t = pedir({ origen: COLOSO, destino: { sitio: 'CentrosSalud.9090' }, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.ok(t.pasos.length > 5, `solo ${t.pasos.length} pasos`);
+    // 5.229 m en línea recta desde EL COLOSO 2: andando, más.
+    assert.ok(t.metros > 5229, `${t.metros} m es menos que la línea recta`);
+    // ⚠️ «Fernando **el** Católico», con minúscula, y el título del dato dice
+    // «El». No es una errata de la prueba: el paso pasa por la recomposición
+    // que escribe los nombres como se leen —partículas en minúscula, criterio
+    // del IGN—, y ahí «El» de un apodo baja. Las otras dos juez de sanidad no
+    // lo enseñan porque «Miguel Servet» y «Actur Norte» no llevan partícula.
+    // La sugerencia sí conserva el título tal cual; se comprueba en
+    // `sitios.spec.ts`.
+    assert.match(
+      t.pasos[t.pasos.length - 1]!.texto,
+      /^Centro de Salud Fernando el Católico · /,
+      t.pasos[t.pasos.length - 1]!.texto,
+    );
+    // Y la llegada cae donde Antonio dijo, no donde decía el fichero.
+    const s = motor.sitios.donde.get('CentrosSalud.9090')!;
+    assert.equal(s.lat, 41.6402816);
+    assert.equal(s.lon, -0.9011954);
+  });
+
   test('un sitio inventado se contesta con aviso, no con una excepción', () => {
     const t = pedir({ origen: COLOSO, destino: { sitio: 'Farmacias.999999' }, modo: 'andando' });
     assert.equal(t.avisos.length, 1);
