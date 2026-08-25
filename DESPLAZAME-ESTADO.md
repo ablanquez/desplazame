@@ -12,7 +12,7 @@ ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
 (el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
 (los combines de odin). Y EL PUNTO 8 EN MARCHA: TRES categorías de
 sitios vivas (farmacias · centros de salud · hospitales, 386 sitios,
-381 buscables) y EL BUSCADOR POR TIPOS de Antonio construido el mismo
+380 buscables tras la validación espacial) y EL BUSCADOR POR TIPOS de Antonio construido el mismo
 día que se parlamentó: [📍][tipo▾][cajetín][nº condicional] en ambos
 campos, cada tipo por su carril.**
 
@@ -70,11 +70,31 @@ levantado el 18/08, des-caducado el 21, el 22, el 23 y el 24):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `1fd70ff`** (push del 23/08 noche, con farmacias
-entera). **En local, sin publicar: los SEIS commits del 24**
-(`7074a20` `eb9b237` `81a2c14` `37d4f65` sanidad · `a6e28ca`
-`98d6b0a` buscador) más el cierre de papeles de hoy. El push es de
-Antonio.
+**Publicado hasta `9f26f17`** (push del 24/08 mediodía, con la tanda
+2 y el buscador por tipos). **En local, sin publicar: los CUATRO
+commits de la tarde** (`4c4cae6` validación · `51eec72` `efa7081`
+`bfe0e36` README) más el cierre de papeles. El push es de Antonio.
+
+**LA VALIDACIÓN ESPACIAL con rescate por callejero (24/08, tarde).**
+La regla de entorno de Antonio, con la casuística LOCALIZADA en la
+literatura (las listas sanitarias oficiales con coordenadas sin
+verificar = nuestro mal; el arreglo de los inventarios sanitarios:
+re-geocodificar contra gacetero + confirmación manual local). Dos
+cheques [doctrina QA]: frontera (bbox de los 46.150 portales +250 m)
+y distancia (>50 m, SOLO chicos — hospitales fuera POR FIRMA: el
+Miguel Servet cae a 1 m de Gonzalo Calamita 4, OTRA de sus cinco
+puertas — cerrado por conocimiento local; J10 al byte). Umbral
+FIRMADO DOS VECES (la segunda con la distribución real: los 50 cortan
+un continuo, no un escalón — la premisa del «vacío» murió y se dijo).
+10 rotas de 386: 9 rescatadas al portal del callejero (los 4 del
+datum con el vector a la millonésima; el 20445 pasa de 401 m a 0 a su
+propia puerta) · 1 fuera (el 9090 de PORTUGAL, s/n irrescatable — ese
+centro NO se puede elegir; en lista manual de Antonio). El
+emparejador exige unicidad también en número (la 8881 sana se habría
+roto — cazada antes). Contraprueba 14/14 con un guardián-en-vacío
+destapado. 250+136 pruebas. README saneado en tres pasadas (sitios al
+buscador por tipos · la API a seis · la cabecera del 📍). Commits
+`4c4cae6` `51eec72` `efa7081` `bfe0e36`.
 
 **TANDA 2 (sanidad) + EL BUSCADOR POR TIPOS (24/08).** Centros de
 salud (56) y hospitales (17, 15 al índice) por el tubo: fichas
@@ -376,17 +396,15 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el PUSH (seis commits + papeles); (2) los DOS
-PARLAMENTOS fichados de la tanda 2: el Miguel Servet — la idea de
-Antonio de enganchar por la DIRECCIÓN cruzada con el callejero (P1:
-¿qué pasa cuando la dirección no casa — cae a coordenada declarado, o
-fuera del índice?; P2: ¿la dirección manda SIEMPRE, incluso cuando
-punto y dirección discrepan mucho, caso MAZ 187 m?) — y la regla de
-ENTORNO (Portugal + el datum de farmacias: ¿se escribe o queda
-fichado?); (3) las tandas siguientes del punto 8 (hostelería con OSM
-la primera candidata); (4) flecos: la ficha de Aragón · el `estado`
-del registro · el foco a las vías. Detrás, el 9 con la ordenanza
-leída en grueso.
+**Lo siguiente:** (1) el PUSH (cuatro commits + papeles); (2) el dato
+manual del 9090 cuando Antonio quiera (el centro de salud de Portugal,
+«está mal y punto»); (3) las tandas siguientes del punto 8
+(hostelería con OSM la primera candidata); (4) flecos: la ficha de
+Aragón · el `estado` del registro · el foco a las vías. Los DOS
+parlamentos de la tanda 2 quedaron CERRADOS hoy: el Miguel Servet por
+conocimiento local (otra puerta de cinco — P1/P2 sin objeto) y la
+regla de entorno HECHA (la validación espacial). Detrás, el 9 con la
+ordenanza leída en grueso.
 
 ---
 
@@ -444,10 +462,10 @@ colgadas de sus capas.
 **1-7 CERRADOS** (el 7 entero el 23/08: demo + tabla del peatón +
 mínimo de distancia + andamios fuera + narración de odin) ·
 8 destinos con nombre
-(EN MARCHA: tres categorías hechas —farmacias 23/08, sanidad 24/08—
-y el buscador por tipos construido; quedan las tandas siguientes y
-dos parlamentos fichados: Miguel Servet por dirección · regla de
-entorno) · 9 bici/patinete (ordenanza VMP) ·
+(EN MARCHA: tres categorías hechas —farmacias 23/08, sanidad 24/08—,
+el buscador por tipos y la validación espacial con rescate; los dos
+parlamentos de la tanda 2 CERRADOS el 24/08; quedan las tandas
+siguientes) · 9 bici/patinete (ordenanza VMP) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -498,14 +516,16 @@ retirada): quedó FUERA del encargo de narración del 23/08 — no es de
 los combines, huele al NOMBRE ÚNICO (núcleos que no casan por la «V»).
 Si reproduce en rutas vivas: NO CONSTA. Cabo vivo, sin dueño.
 
-**Punto 8:** tandas 1 y 2 HECHAS (farmacias · sanidad) + el buscador
-por tipos; quedan las tandas (hostelería con OSM la primera
-candidata) · el TEXTO ENGAÑOSO del recinto grande (Miguel Servet:
-llegada por Calamita, texto de Isabel la Católica — parlamento
-fichado con P1/P2) · la regla de ENTORNO sin decidir (Portugal id
-9090 + el datum) · la 781 más ancha que su nombre (respetada) · ⚠️ 4 farmacias desplazadas 236 m con
-EL MISMO VECTOR (20443 · 20444 · 20445 · 8671 — huele a datum, causa
-NO CONSTA; rutas de hasta 401 m a su propia puerta) · el foco a las
+**Punto 8:** tandas 1 y 2 HECHAS + el buscador por tipos + la
+VALIDACIÓN ESPACIAL; quedan las tandas (hostelería con OSM la primera
+candidata) · ⚰️ el Miguel Servet: CERRADO el 24/08 (otra puerta de
+cinco, conocimiento local — P1/P2 murieron sin objeto) · ⚰️ la regla
+de entorno: HECHA (frontera + distancia + rescate; los 4 del datum
+RESCATADOS — causa del vector sigue NO CONSTA pero ya no daña) ·
+**el 9090 en lista de confirmación manual** (Portugal, s/n — ese
+centro no se puede elegir hasta el dato de Antonio) · la 781 más
+ancha que su nombre (respetada, y ya buscable con provecho: el
+Inocencio Jiménez sale por «navarra») · el foco a las
 VÍAS: hallazgo anotado, sin decidir (hoy la Calle Mayor de
 Garrapinillos y la del centro solo se distinguen por el [núcleo]) ·
 `estado` del registro de licencias SIN DESCIFRAR (0/1/2/3,
@@ -559,7 +579,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 355 pruebas (219 motor + 136 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
+§6) · 386 pruebas (250 motor + 136 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

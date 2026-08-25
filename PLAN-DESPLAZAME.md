@@ -1010,6 +1010,49 @@ de cada campo, ORIGEN y DESTINO por igual:
       tira 49 pruebas · el nº-nunca, 44: el formulario descansa sobre
       esas dos leyes y está MEDIDO)
 
+- [x] **LA VALIDACIÓN ESPACIAL con rescate por callejero — HECHA
+      (24/08, `4c4cae6`→`bfe0e36`)**, la regla de entorno de Antonio
+      con doctrina de casuística localizada [el problema documentado
+      idéntico en las listas sanitarias oficiales de Kenia («sin
+      proceso de verificación de coordenadas»); la solución = la
+      dictada por Antonio: re-geocodificar contra gacetero
+      autoritativo (el método del inventario panafricano de
+      hospitales, Lancet GH) + confirmación manual local (el método
+      de la base de Kenia) — nuestro gacetero es el callejero].
+      DOS CHEQUES [doctrina QA]: FRONTERA (el bbox de los 46.150
+      portales + 250 m de margen = RADIO_MAXIMO, guardián de los
+      46.150 dentro) y DISTANCIA (>50 m al portal de su propia
+      dirección, SOLO chicos — los hospitales fuera POR FIRMA: el
+      Miguel Servet a 1 m de Gonzalo Calamita 4 es OTRA PUERTA de
+      sus cinco, cerrado por conocimiento local de Antonio; su J10
+      al byte como guardián de no-cambio). ⭐ UMBRAL 50 m FIRMADO DOS
+      VECES: la segunda con la distribución real delante — el «vacío
+      hasta 236» de la premisa NO existe con el emparejador completo
+      (casos en 24-45 bajo la raya y 52-110 encima: los 50 cortan un
+      CONTINUO), dicho por el ejecutor y re-firmado por Antonio.
+      RESULTADO: 10 rotas de 386 — 1 frontera (id 9090, PORTUGAL) +
+      9 distancia en dos grupos (5 en OTRA calle, los 4 del datum con
+      el vector clavado a la millonésima; 4 en su calle a otro
+      número) → 9 RESCATADAS al portal del callejero (log de arranque
+      como acta, uno a uno, sin titular) · 1 FUERA (el 9090: frontera
+      + s/n irrescatable — consecuencia dicha: ese centro NO se puede
+      elegir; en lista de confirmación manual de Antonio). El
+      antes/después del datum: Farmacias.20445 a su propia puerta,
+      401 m → 0 m. El emparejador exige unicidad TAMBIÉN en el número
+      (la 8881 sana con 23 portales en su dirección se habría
+      «rescatado» rota — cazada ANTES de escribir la regla). Medido y
+      NO hecho: relajar artículos daría +16 emparejadas y CERO rotas
+      nuevas. Contraprueba 14/14 (la única que no mordía destapó al
+      guardián del ambiguo vigilando en vacío — reapuntado a
+      C/ Madrid 1) · sin git checkout en el bucle (copias con
+      huella). 250 motor + 136 interfaz. Y el README saneado en TRES
+      pasadas (`51eec72` · `efa7081` · `bfe0e36`): la sección de
+      sitios al buscador por tipos, la API a SEIS rutas (la tabla no
+      traía /api/sitios), y la frase de la cabecera del 📍 — el
+      ejemplo nuevo salió del motor y de paso enseña la 781 ancha
+      funcionando (el C. de Especialidades Inocencio Jiménez,
+      buscable por «navarra»)
+
 - [x] **TANDA 2 — CENTROS DE SALUD Y HOSPITALES, HECHA (24/08,
       `7074a20`→`37d4f65`)**: categorías 781 (56, todos con
       coordenada) y 780 (17, 15 al índice — 2 clínicas sin coordenada
