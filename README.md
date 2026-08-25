@@ -414,7 +414,8 @@ En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfa
 
 Los dos campos —origen y destino— admiten **una dirección o un sitio**. Un sitio es un destino
 con nombre, y hoy son **386 equipamientos** del término municipal en tres categorías —farmacias,
-hospitales y centros de salud—, de los que **380 se pueden elegir**.
+hospitales y centros de salud—, de los que **381 se pueden elegir**: los **5 que no traen
+coordenada** se quedan fuera, y ninguno más.
 
 **Y no se mezclan: primero se dice de qué se está hablando.** Cada campo son cuatro piezas en
 fila —**📍 · tipo ▾ · cajetín · nº**— y el desplegable acota la búsqueda a **una sola** categoría:
@@ -485,7 +486,15 @@ Lo que falla se **vuelve a situar por el callejero municipal**, que es el gacete
 el registro dice «C/ La Caza, 11» y el censo sabe dónde está el 11 de La Caza, esa es mejor
 coordenada que la publicada. Son **9 de 386**. Y lo que falla y **no** se puede resituar —porque su
 dirección es «s/n» o no resuelve— se trata como si no tuviera punto: fuera del índice, y a una
-lista de confirmación manual. Hoy es uno: el de Portugal.
+**lista de confirmación manual**.
+
+**Esa lista hoy está vacía, y vaciarla es el ciclo completo de la regla.** El único que llegó a
+ella fue el centro de salud de Portugal: su dirección es «C/ Domingo Miral, s/n» y sin número no
+había portal que devolverle, así que el proceso automático no podía hacer más que apartarlo. Lo
+que sí se puede hacer con una lista corta es mirarla sobre el terreno, y eso es lo que pasó el
+24/08: **volvió con la coordenada confirmada a mano** (§ 1.17), va declarada con su fuente y su
+motivo, y pasa los dos cheques como cualquier otra — el fichero municipal sigue diciendo Portugal,
+intacto. Así que el centro de salud vuelve a ser un destino que se puede elegir.
 
 **Los hospitales quedan fuera del cheque de distancia**, y a propósito: un hospital no es una
 puerta, es un recinto con varias. El Miguel Servet está a 169 m del portal de su dirección y eso
@@ -495,17 +504,19 @@ no es un error, es otra de sus entradas.
 entero — con qué se movió, desde dónde y cuántos metros:
 
 ```
-motor: sitios en memoria — 386 en total · 380 en el indice · 11 ms
-motor:   Farmacia         313 · 310 en el indice · 3 sin coordenada · 7 rescatados · 0 invalidas
-motor:   Centro de salud   56 ·  55 en el indice · 0 sin coordenada · 2 rescatados · 1 invalidas
-motor:   Hospital          17 ·  15 en el indice · 2 sin coordenada · 0 rescatados · 0 invalidas
+motor: sitios en memoria — 386 en total · 381 en el indice · 23 ms
+motor:   Farmacia         313 · 310 en el indice · 3 sin coordenada · 0 corregidos · 7 rescatados · 0 invalidas
+motor:   Centro de salud   56 ·  56 en el indice · 0 sin coordenada · 1 corregidos · 2 rescatados · 0 invalidas
+motor:   Hospital          17 ·  15 en el indice · 2 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas
 motor: 5 sin coordenada en total, fuera del indice (sin coordenada no existe: …)
+motor: 1 corregido a mano (lista de confirmacion manual, § 1.17)
+motor:   CentrosSalud.9090    Centro de Salud Fernando El Católico · C/ Domingo Miral, s/n
+motor:                        de [-8.184875, 41.542373] a [-0.901195, 41.640282] — frontera: la coordenada municipal cae en Portugal
+motor:                        fuente: confirmación manual de Antonio, Google Maps, 24/08/2026
 motor: 9 rescatados por callejero (coordenada a mas de 50 m de la puerta que su propia direccion declara)
 motor:   CentrosSalud.9080     497 m distancia Centro de Salud Almozara · C/ Batalla de Alman → CALLE BATALLA DE ALMANSA 17
 motor:   Farmacias.20445       236 m distancia Farmacia · C/ Joaquín Rodrigo, 17, portal 1    → CALLE JOAQUÍN RODRIGO 17
 …
-motor: 1 con coordenada INVALIDA y sin direccion que case: fuera del indice, a confirmacion manual
-motor:   CentrosSalud.9090    frontera  lon -8.184875 lat 41.542373  Centro de Salud Fernando El Católico · C/ Domingo Miral, s/n
 ```
 
 Lo que se gana se ve andando: la farmacia de Joaquín Rodrigo 17 estaba a **401 m de calles** de su
