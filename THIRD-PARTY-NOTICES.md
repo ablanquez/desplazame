@@ -1180,29 +1180,53 @@ parámetro **se ignora en silencio**. Está medida en § 1.16.
 | Registros | **56** |
 | **Con coordenada** | **56** — aquí no hay regla B que aplicar |
 | Sin coordenada | **0** |
-| ⭐ **Con coordenada que no vale** | **1** — el de Portugal, ver abajo. Se queda fuera del índice |
+| ⭐ **Con coordenada que no vale** | **1** — el de Portugal, ver abajo |
+| ⭐ **Corregidos a mano** | **1** — ese mismo, con la coordenada confirmada sobre el terreno |
 | ⭐ **Rescatados por el callejero** | **2** — `9080` y `28600`, ver abajo |
-| **En el índice del buscador** | **55** de 56 |
+| **En el índice del buscador** | **56** de 56 |
 | `lastUpdated` | 55 de 56 · del **26/09/2023** al **20/05/2026** |
 
-#### ⚠️ Una coordenada está en PORTUGAL: fuera del índice, y el fichero intacto
+#### ⚠️ Una coordenada está en PORTUGAL, y se ha corregido A MANO
 
 **`9090` «Centro de Salud Fernando El Católico», C/ Domingo Miral s/n** viene con
 `lon = -8.184875 · lat = 41.542373`. Eso no es Zaragoza: es **Portugal**, a unos **610 km** al
 oeste. Los otros 55 caen dentro del término.
 
-**No se corrige ni se borra: se deja de usar.** El fichero entra como vino —es la norma de la
-casa—, pero desde la validación espacial del 24/08 el motor **no lo mete en el índice**. El cheque
-de frontera lo caza —cae a 584 km del rectángulo que ocupan los 46.150 portales del censo— y el
-rescate no puede salvarlo, porque su dirección es **«C/ Domingo Miral, s/n»** y sin número no hay
-portal que devolverle. Coordenada inválida = sin coordenada: la regla B, extendida.
+**El proceso automático no podía arreglarlo.** El cheque de frontera lo caza —cae a 584 km del
+rectángulo que ocupan los 46.150 portales del censo— pero el rescate por callejero no puede
+salvarlo, porque su dirección es **«C/ Domingo Miral, s/n»** y sin número no hay portal que
+devolverle. Coordenada inválida = sin coordenada, así que se quedó **fuera del índice**: el centro
+de salud no se podía elegir. Mejor no ofrecerlo que mandar a alguien a Portugal.
 
-Así que **el Centro de Salud Fernando el Católico no se puede elegir hoy en el buscador**, y eso
-es una pérdida que se dice en vez de taparse: mejor no ofrecerlo que enviar a alguien a Portugal.
-El motor lo declara al arrancar con nombre y coordenada, y esta es **la lista de confirmación
-manual** —hoy de uno— que hay que resolver mirando el terreno, que es lo que se hizo con la base
-sanitaria de Kenia: las coordenadas que el proceso no puede arreglar se le mandan a quien conoce
-el sitio. Ponerle a mano la coordenada buena sería editar el dato, y eso no se hace aquí.
+**Y de ahí salió a la lista de confirmación manual, que es el paso que faltaba.** Es el método de
+la base sanitaria de Kenia: lo que el proceso no puede arreglar se le manda **a quien conoce el
+terreno** y vuelve confirmado. Aquí volvió el 24/08:
+
+| | |
+|---|---|
+| Lo que dice el fichero municipal | `lon −8,184875 · lat 41,542373` — Portugal |
+| **La coordenada buena** | **`lon −0,9011954 · lat 41,6402816`** |
+| **Fuente** | **Confirmación manual de Antonio, Google Maps, 24/08/2026** |
+| Motivo | Frontera: la coordenada municipal cae en Portugal |
+| Comprobación independiente | La coordenada confirmada cae a **9 m del portal 11 de CALLE DOMINGO MIRAL**, que es justo la calle que el propio registro declara. La ida y vuelta, que con el punto publicado era imposible, ahora cierra |
+
+**El fichero municipal no se toca.** La corrección vive en
+[`motor/src/correcciones.ts`](motor/src/correcciones.ts) y se aplica **al cargar**, en memoria —el
+precedente que ya sentó la validación espacial—. Es el patrón de las cinco correcciones declaradas
+del callejero (§ 1.3) con una diferencia: allí se editó el fichero y aquí no hace falta.
+
+Y lleva **tres candados**, porque una coordenada escrita a mano es la puerta más peligrosa de todo
+esto. Los tres **impiden que el motor arranque** en vez de dejar pasar algo dudoso:
+
+1. **Se escribió contra una coordenada municipal concreta**, que va apuntada. Si el Ayuntamiento
+   publica otra, la corrección se escribió mirando otra cosa y hay que volver al caso.
+2. **Pasa los dos cheques**, los mismos que el resto. Ni frontera ni distancia se le perdonan por
+   venir de una persona.
+3. **Se declara entera** —fuente y motivo— en el log de arranque y en esta ficha.
+
+Con ella, el centro de salud vuelve al índice: se encuentra escribiendo «fernando el católico» con
+el tipo en **Centros de Salud**, y la ruta desde Calle El Coloso 2 sale **6.000 m, 16 pasos, sin
+avisos**.
 
 #### ⭐ Y dos más estaban lejos de su propia dirección
 
