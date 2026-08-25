@@ -12,7 +12,7 @@ ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
 (el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
 (los combines de odin). Y EL PUNTO 8 EN MARCHA: TRES categorías de
 sitios vivas (farmacias · centros de salud · hospitales, 386 sitios,
-380 buscables tras la validación espacial) y EL BUSCADOR POR TIPOS de Antonio construido el mismo
+381 buscables — la validación espacial rescató 9 y el único apartado volvió con corrección manual) y EL BUSCADOR POR TIPOS de Antonio construido el mismo
 día que se parlamentó: [📍][tipo▾][cajetín][nº condicional] en ambos
 campos, cada tipo por su carril.**
 
@@ -70,10 +70,25 @@ levantado el 18/08, des-caducado el 21, el 22, el 23 y el 24):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `9f26f17`** (push del 24/08 mediodía, con la tanda
-2 y el buscador por tipos). **En local, sin publicar: los CUATRO
-commits de la tarde** (`4c4cae6` validación · `51eec72` `efa7081`
-`bfe0e36` README) más el cierre de papeles. El push es de Antonio.
+**Publicado hasta `76c1404`** (push del 24/08 tarde, con la
+validación espacial). **En local, sin publicar: los TRES commits del
+9090** (`3f631fa` `71b4c39` `d766e15`) más el cierre de papeles. El
+push es de Antonio.
+
+**EL 9090 DE VUELTA — la corrección manual de Antonio (24/08,
+tarde).** El centro de salud de Portugal volvió al índice: Antonio
+confirmó la coordenada (Google Maps) y el callejero la respaldó solo
+(a 9 m del portal 11 de Domingo Miral, la calle del registro). Nació
+el mecanismo de correcciones manuales de sitios (correcciones.ts,
+patrón del callejero: fuente/fecha/motivo, aplicada ANTES de validar,
+tres candados que revientan el arranque si el origen cambia, si los
+cheques fallan o si no se declara). 381 en el índice · 0 inválidas ·
+la lista de confirmación manual VACÍA — el ciclo completo del método
+de Kenia: la lista corta se miró sobre el terreno y volvió
+confirmada. J14 (6.000 m, coherentes con 5.229 en recta) · 257+136
+pruebas · contraprueba 9/9 (el medidor ciego al throw-en-carga,
+cazado mirando la salida: 125 rojas). README en su cuarta pasada.
+Commits `3f631fa` `71b4c39` `d766e15`.
 
 **LA VALIDACIÓN ESPACIAL con rescate por callejero (24/08, tarde).**
 La regla de entorno de Antonio, con la casuística LOCALIZADA en la
@@ -396,15 +411,12 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el PUSH (cuatro commits + papeles); (2) el dato
-manual del 9090 cuando Antonio quiera (el centro de salud de Portugal,
-«está mal y punto»); (3) las tandas siguientes del punto 8
-(hostelería con OSM la primera candidata); (4) flecos: la ficha de
-Aragón · el `estado` del registro · el foco a las vías. Los DOS
-parlamentos de la tanda 2 quedaron CERRADOS hoy: el Miguel Servet por
-conocimiento local (otra puerta de cinco — P1/P2 sin objeto) y la
-regla de entorno HECHA (la validación espacial). Detrás, el 9 con la
-ordenanza leída en grueso.
+**Lo siguiente:** (1) el PUSH (tres commits + papeles); (2) las
+tandas siguientes del punto 8 (hostelería con OSM la primera
+candidata); (3) flecos: la ficha de Aragón · el `estado` del
+registro · el foco a las vías. ⚰️ El 9090: CERRADO con el dato de
+Antonio (la lista manual, vacía). Detrás, el 9 con la ordenanza leída
+en grueso.
 
 ---
 
@@ -522,8 +534,9 @@ candidata) · ⚰️ el Miguel Servet: CERRADO el 24/08 (otra puerta de
 cinco, conocimiento local — P1/P2 murieron sin objeto) · ⚰️ la regla
 de entorno: HECHA (frontera + distancia + rescate; los 4 del datum
 RESCATADOS — causa del vector sigue NO CONSTA pero ya no daña) ·
-**el 9090 en lista de confirmación manual** (Portugal, s/n — ese
-centro no se puede elegir hasta el dato de Antonio) · la 781 más
+⚰️ el 9090: DE VUELTA (24/08, corrección manual de Antonio —
+mecanismo de correcciones.ts con tres candados; la lista manual,
+VACÍA) · la 781 más
 ancha que su nombre (respetada, y ya buscable con provecho: el
 Inocencio Jiménez sale por «navarra») · el foco a las
 VÍAS: hallazgo anotado, sin decidir (hoy la Calle Mayor de
@@ -579,7 +592,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 386 pruebas (250 motor + 136 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
+§6) · 393 pruebas (257 motor + 136 interfaz) sin CI · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

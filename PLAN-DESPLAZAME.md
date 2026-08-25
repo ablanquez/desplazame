@@ -1051,7 +1051,22 @@ de cada campo, ORIGEN y DESTINO por igual:
       traía /api/sitios), y la frase de la cabecera del 📍 — el
       ejemplo nuevo salió del motor y de paso enseña la 781 ancha
       funcionando (el C. de Especialidades Inocencio Jiménez,
-      buscable por «navarra»)
+      buscable por «navarra»). ⭐ Y EL CICLO CERRADO (24/08 tarde,
+      `3f631fa`→`d766e15`): el 9090 VOLVIÓ — Antonio confirmó la
+      coordenada sobre el terreno (Google Maps; el callejero la
+      respaldó solo: cae a 9 m del portal 11 de Domingo Miral, la
+      calle que el registro declara) → mecanismo de CORRECCIONES
+      MANUALES de sitios (correcciones.ts, patrón del callejero:
+      declarada con fuente/fecha/motivo, aplicada ANTES de validar,
+      con TRES candados que revientan el arranque — atada a la
+      coordenada municipal que corrige, obligada a pasar los dos
+      cheques, y declarada en el log). 381 en el índice · 0
+      inválidas · la lista de confirmación manual VACÍA: volvió
+      confirmada [el ciclo completo del método de Kenia]. J14
+      (Coloso→9090: 6.000 m coherentes con 5.229 en recta) · 257
+      motor · contraprueba 9/9 (el medidor ciego al throw-en-carga,
+      cazado: las dos mutaciones gordas tiran 125 rojas) · el README
+      al día en la cuarta pasada (`d766e15`)
 
 - [x] **TANDA 2 — CENTROS DE SALUD Y HOSPITALES, HECHA (24/08,
       `7074a20`→`37d4f65`)**: categorías 781 (56, todos con
