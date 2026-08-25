@@ -102,7 +102,8 @@ for (const c of sitios.porCategoria) {
   console.log(
     `motor:   ${c.categoria.padEnd(16)} ${String(c.total).padStart(3)} · ` +
       `${String(c.conCoordenada).padStart(3)} en el indice · ${c.sinCoordenada} sin coordenada · ` +
-      `${c.corregidos} corregidos · ${c.rescatados} rescatados · ${c.invalidos} invalidas`,
+      `${c.corregidos} corregidos · ${c.rescatados} rescatados · ${c.invalidos} invalidas · ` +
+      `${c.duplicados} duplicados`,
   );
 }
 console.log(

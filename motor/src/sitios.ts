@@ -94,7 +94,18 @@ interface Fuente {
   readonly categoria: string;
   /** El prefijo del código, con el mismo patrón que `Portales.96724`. */
   readonly prefijo: string;
-  readonly fichero: string;
+  /**
+   * ⭐ Los ficheros de los que sale. **Una lista, y casi siempre de uno.**
+   *
+   * Es lista porque bibliotecas (25/08) no salen de una categoría municipal
+   * sino de dos —la 35 «Bibliotecas» y la 223 «Bibliotecas Especializadas»—, y
+   * en el buscador son **una sola cosa**: mismo tipo, mismo prefijo, misma
+   * lista de sugerencias. Que la fuente venga partida es un detalle del
+   * Ayuntamiento, no del producto.
+   *
+   * Componer obliga a **deduplicar por id**, y por eso se cuenta aparte.
+   */
+  readonly ficheros: readonly string[];
   /** Si el `title` del dato se puede enseñar. Ver arriba. */
   readonly leeElTitulo: boolean;
   /**
@@ -114,7 +125,7 @@ const FUENTES: readonly Fuente[] = [
     tipo: 'farmacia',
     categoria: 'Farmacia',
     prefijo: 'Farmacias',
-    fichero: '2026-08-23_zgzapi_equipamiento-farmacias.json',
+    ficheros: ['2026-08-23_zgzapi_equipamiento-farmacias.json'],
     leeElTitulo: false,
     mideLaDistancia: true,
   },
@@ -122,7 +133,7 @@ const FUENTES: readonly Fuente[] = [
     tipo: 'centro-salud',
     categoria: 'Centro de salud',
     prefijo: 'CentrosSalud',
-    fichero: '2026-08-24_zgzapi_equipamiento-centros-salud.json',
+    ficheros: ['2026-08-24_zgzapi_equipamiento-centros-salud.json'],
     leeElTitulo: true,
     mideLaDistancia: true,
   },
@@ -130,8 +141,30 @@ const FUENTES: readonly Fuente[] = [
     tipo: 'hospital',
     categoria: 'Hospital',
     prefijo: 'Hospitales',
-    fichero: '2026-08-24_zgzapi_equipamiento-hospitales.json',
+    ficheros: ['2026-08-24_zgzapi_equipamiento-hospitales.json'],
     leeElTitulo: true,
+    mideLaDistancia: false,
+  },
+  {
+    tipo: 'biblioteca',
+    categoria: 'Biblioteca',
+    prefijo: 'Bibliotecas',
+    // ⭐ DOS ficheros, una categoría. Ver `ficheros` y § 1.19.
+    ficheros: [
+      '2026-08-25_zgzapi_equipamiento-bibliotecas.json',
+      '2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas.json',
+    ],
+    leeElTitulo: true,
+    // ⭐ RECINTO, como los hospitales — y esta vez lo decidió el dato, no la
+    // analogía. Aplicándoles el cheque de chicos se movían OCHO, y la ida y
+    // vuelta demostró que las ocho estaban bien puestas: son un cuarto dentro
+    // de un edificio mayor —un hospital, una facultad, un campus— y su punto
+    // está en otra parte del recinto, no mal puesto. Una se habría ido 4.825 m.
+    //
+    // El caso que lo cerró: la biblioteca DEL HOSPITAL MIGUEL SERVET tiene el
+    // mismo desvío de 169 m que el hospital y su punto cae a 1 m del mismo
+    // portal. El hospital ya era recinto; su biblioteca, como «chico», se
+    // habría movido — el mismo edificio con dos criterios (§ 1.19).
     mideLaDistancia: false,
   },
 ];
@@ -214,6 +247,12 @@ export interface RecuentoDeCategoria {
   readonly rescatados: number;
   /** Los que traían un punto malo y no se han podido rescatar: fuera. */
   readonly invalidos: number;
+  /**
+   * Los que venían repetidos entre los ficheros de la categoría y han entrado
+   * una sola vez. Se cuenta aunque esté a cero: es la cifra que avisaría el día
+   * que el Ayuntamiento mueva un registro de una categoría a otra.
+   */
+  readonly duplicados: number;
 }
 
 /**
@@ -328,10 +367,18 @@ export function cargarSitios(
   const invalidos: Invalido[] = [];
 
   for (const fuente of FUENTES) {
-    const crudo = JSON.parse(readFileSync(rutaDe(fuente.fichero), 'utf8')) as {
-      readonly equipamiento?: readonly EquipamientoCrudo[];
-    };
-    const registros = crudo.equipamiento ?? [];
+    // Los ficheros de la categoría, uno detrás de otro y en una sola lista:
+    // desde aquí abajo da igual de cuántos venga, que es lo que hace que
+    // componer dos categorías municipales no le cambie la vida a nadie.
+    const leidos: EquipamientoCrudo[] = [];
+    for (const fichero of fuente.ficheros) {
+      const crudo = JSON.parse(readFileSync(rutaDe(fichero), 'utf8')) as {
+        readonly equipamiento?: readonly EquipamientoCrudo[];
+      };
+      leidos.push(...(crudo.equipamiento ?? []));
+    }
+    // ⭐ DEDUPLICAR por id, y contar cuántos se caen. Ver `sinRepetidos`.
+    const { unicos: registros, duplicados: duplicadosAqui } = sinRepetidos(leidos);
     let sinCoordenada = 0;
     let corregidosAqui = 0;
     let rescatadosAqui = 0;
@@ -453,12 +500,15 @@ export function cargarSitios(
     porCategoria.push({
       tipo: fuente.tipo,
       categoria: fuente.categoria,
+      // El total es el de registros DISTINTOS: los duplicados no cuentan dos
+      // veces, ni arriba ni abajo.
       total: registros.length,
       conCoordenada: registros.length - sinCoordenada - invalidosAqui,
       sinCoordenada,
       corregidos: corregidosAqui,
       rescatados: rescatadosAqui,
       invalidos: invalidosAqui,
+      duplicados: duplicadosAqui,
     });
   }
 
@@ -474,6 +524,37 @@ export function cargarSitios(
     donde,
     cargadoEnMs: performance.now() - principio,
   };
+}
+
+/**
+ * ⭐ Los registros de una categoría SIN REPETIDOS, y cuántos se han caído.
+ *
+ * Componer una categoría de varios ficheros municipales obliga a esto: un
+ * equipamiento que estuviera en dos de ellos saldría dos veces en la lista de
+ * sugerencias y pisaría su propia entrada en el índice. Gana **el primero**,
+ * que es el del fichero declarado primero en `FUENTES`.
+ *
+ * Se exporta porque **el dato de hoy no tiene ni un duplicado** —las dos
+ * categorías de bibliotecas no comparten ningún id— y una rama que nadie
+ * ejecuta es una rama sin vigilar: así las pruebas pueden darle registros de
+ * laboratorio y comprobar la regla de verdad. Es el mismo motivo por el que
+ * `enPalabras` está exportada.
+ */
+export function sinRepetidos<T extends { readonly id: number }>(
+  registros: readonly T[],
+): { readonly unicos: readonly T[]; readonly duplicados: number } {
+  const vistos = new Set<number>();
+  const unicos: T[] = [];
+  let duplicados = 0;
+  for (const r of registros) {
+    if (vistos.has(r.id)) {
+      duplicados++;
+      continue;
+    }
+    vistos.add(r.id);
+    unicos.push(r);
+  }
+  return { unicos, duplicados };
 }
 
 /**

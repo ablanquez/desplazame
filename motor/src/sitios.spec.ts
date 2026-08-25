@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import {
   cargarSitios,
   enPalabras,
+  sinRepetidos,
   sugerirSitios,
   LIMITE_SITIOS,
   type SitioSituado,
@@ -50,13 +51,16 @@ describe('Los sitios — farmacias', () => {
         // una coordenada buena** y esa sí pasa los dos cheques.
         ['centro-salud', 56, 56, 0],
         ['hospital', 17, 15, 2],
+        // ⭐ La cuarta (25/08), y la primera COMPUESTA: sus 77 salen de dos
+        // ficheros municipales —la categoría 35 y la 223— deduplicados por id.
+        ['biblioteca', 77, 75, 2],
       ],
     );
     // Y la suma, que es lo que ve el resto del motor. Escrita a mano: si se
     // calculara aquí, esto compararía el código consigo mismo.
-    assert.equal(sitios.total, 386);
-    assert.equal(sitios.conCoordenada, 381);
-    assert.equal(sitios.sinCoordenada, 5);
+    assert.equal(sitios.total, 463);
+    assert.equal(sitios.conCoordenada, 456);
+    assert.equal(sitios.sinCoordenada, 7);
   });
 
   test('⭐ REGLA B — al índice solo entran los que tienen coordenada', () => {
@@ -64,7 +68,7 @@ describe('Los sitios — farmacias', () => {
     // situar no se puede enrutar, y sugerirlo sería prometer una ruta que
     // acaba en un aviso. [DOC Pelias] indexa *venues* con su punto; sin punto
     // no hay documento que indexar.
-    assert.equal(sitios.indice.length, 381);
+    assert.equal(sitios.indice.length, 456);
     assert.equal(sitios.indice.length, sitios.conCoordenada);
     for (const s of sitios.indice) {
       assert.ok(Number.isFinite(s.lat) && Number.isFinite(s.lon));
@@ -161,7 +165,7 @@ describe('Los sitios — farmacias', () => {
     // La otra mitad de la decisión, y va con guardián propio para que no se
     // pueda cumplir «no enseñar el título» apagándolo en todas partes.
     const conTitulo = sitios.indice.filter((x) => x.tipo !== 'farmacia');
-    assert.equal(conTitulo.length, 71, 'no están los 56 + 15 que entran al índice');
+    assert.equal(conTitulo.length, 146, 'no están los 56 + 15 + 75 que entran al índice');
     for (const s of conTitulo) {
       assert.ok(
         s.presentacion.endsWith(` · ${s.calle}`),
@@ -287,17 +291,24 @@ describe('Los sitios — farmacias', () => {
   test('⭐ EN EMPATE Y SIN FOCO, alfabético por la dirección [PROPIO]', () => {
     // «navarra» casa con dos, y las dos con el mismo rango: la palabra entera.
     // La doctrina calla en el empate puro, así que se declara uno: alfabético.
-    // ⚠️ Eran dos hasta el 24/08 y ahora son TRES: la segunda tanda mete el
-    // Centro de Especialidades Inocencio Jiménez, que está en Avenida de
-    // Navarra 78. La expectativa se mueve porque cambió el DATO, no la regla —
-    // y el orden que se afirma sigue siendo el mismo criterio: alfabético por
-    // la dirección normalizada, «avda.» < «avenida» < «c/».
+    // ⚠️ Eran dos hasta el 24/08, tres con la segunda tanda y CUATRO desde el
+    // 25/08: las bibliotecas meten el Centro Meteorológico Territorial de
+    // Aragón, La Rioja y **Navarra**, que casa por el nombre y no por la calle.
+    // La expectativa se mueve porque cambió el DATO, no la regla.
+    //
+    // Y el orden se cuadra contra la fórmula, no contra lo que salga: las
+    // cuatro empatan a EXACTA —«navarra» es palabra entera en las cuatro, en la
+    // calle las tres primeras y en el nombre la cuarta—, así que manda el
+    // alfabético por la dirección normalizada:
+    //     «avda. de navarra» < «avenida de navarra» < «c/ dona blanca…» < «po del canal»
+    //          a                    a                     c                    p
     assert.deepEqual(
       sugerirSitios(sitios, 'navarra').map((x) => x.presentacion),
       [
         'Farmacia · Avda. de Navarra, 65',
         'Centro de Especialidades Inocencio Jiménez · Avenida de Navarra, 78',
         'Farmacia · C/ Doña Blanca de Navarra, 46-48',
+        'Biblioteca del Centro Meteorológico Territorial de Aragón, La Rioja y Navarra · Pº del Canal, 17',
       ],
     );
   });
@@ -427,6 +438,7 @@ describe('Los sitios — farmacias', () => {
           corregidos: 0,
           rescatados: 0,
           invalidos: 0,
+          duplicados: 0,
         },
       ],
       indice: unos,
@@ -560,6 +572,8 @@ describe('Los sitios — la validación espacial', () => {
       ['Farmacias', '2026-08-23_zgzapi_equipamiento-farmacias.json'],
       ['CentrosSalud', '2026-08-24_zgzapi_equipamiento-centros-salud.json'],
       ['Hospitales', '2026-08-24_zgzapi_equipamiento-hospitales.json'],
+      ['Bibliotecas', '2026-08-25_zgzapi_equipamiento-bibliotecas.json'],
+      ['Bibliotecas', '2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas.json'],
     ];
     for (const [prefijo, fichero] of ficheros) {
       const crudo = JSON.parse(
@@ -594,6 +608,10 @@ describe('Los sitios — la validación espacial', () => {
         // ⭐ CERO en hospitales, y no por casualidad: son recintos y quedan
         // fuera del cheque de distancia por decisión firmada.
         ['hospital', 15, 0, 0, 0],
+        // ⭐ Y CERO en bibliotecas por lo mismo (25/08): también son recintos.
+        // Aplicándoles el cheque de chicos se moverían OCHO, y la ida y vuelta
+        // dice que las ocho están bien puestas — una de ellas se iría 4.825 m.
+        ['biblioteca', 75, 0, 0, 0],
       ],
     );
     assert.equal(sitios.corregidos.length, 1);
@@ -686,7 +704,7 @@ describe('Los sitios — la validación espacial', () => {
   });
 
   test('⭐ y NADIE MÁS se mueve: los otros 371 conservan su coordenada', () => {
-    // 381 en el índice, menos los 9 rescatados y el 1 corregido a mano.
+    // 456 en el índice, menos los 9 rescatados y el 1 corregido a mano.
     // El guardián de la costura: el rescate solo toca ROTAS. Si un día una
     // sana acabara movida, esto se pone rojo — se compara contra el fichero
     // municipal, no contra otra parte del motor.
@@ -707,7 +725,80 @@ describe('Los sitios — la validación espacial', () => {
       assert.equal(s.lat, c.lat, `${s.codigo} ha cambiado de latitud`);
       comprobados++;
     }
-    assert.equal(comprobados, 371);
+    assert.equal(comprobados, 446);
+  });
+
+  test('⭐ LA CATEGORÍA COMPUESTA: dos ficheros municipales, un solo tipo', () => {
+    // Bibliotecas es la primera categoría del proyecto que no sale de un
+    // fichero sino de dos: la 35 «Bibliotecas» (75) y la 223 «Bibliotecas
+    // Especializadas» (2). En el índice son UNA sola cosa —mismo tipo, mismo
+    // prefijo de código, misma lista de sugerencias—, y los dos ficheros son
+    // un detalle de la fuente, no del producto.
+    const suyas = sitios.indice.filter((x) => x.tipo === 'biblioteca');
+    assert.equal(suyas.length, 75);
+    for (const b of suyas) {
+      assert.ok(b.codigo.startsWith('Bibliotecas.'), `${b.codigo} no lleva el prefijo`);
+    }
+    // Una de cada fichero, para que la prueba toque las dos fuentes: la
+    // Biblioteca para Jóvenes Cubit es de la 35, y la del Museo de Goya, de la
+    // 223. Si un día se cayera un fichero, esto se pone rojo.
+    assert.match(sitios.donde.get('Bibliotecas.4946')!.presentacion, /^Biblioteca para Jóvenes Cubit · /);
+    assert.match(sitios.donde.get('Bibliotecas.12239')!.presentacion, /^Biblioteca del Museo de Goya/);
+  });
+
+  test('⭐ LA DEDUPLICACIÓN, con registros de laboratorio', () => {
+    // ⚠️ El dato real no ejecuta esta rama: las dos categorías de bibliotecas
+    // no comparten ni un id, así que hoy no se cae ninguno. Una rama que nadie
+    // ejecuta es una rama sin vigilar, y por eso `sinRepetidos` está exportada
+    // y se le dan registros inventados — igual que `enPalabras`.
+    assert.deepEqual(sinRepetidos([]), { unicos: [], duplicados: 0 });
+
+    const a = { id: 1, quien: 'del primer fichero' };
+    const b = { id: 2, quien: 'otro' };
+    const aBis = { id: 1, quien: 'del segundo fichero' };
+    const r = sinRepetidos([a, b, aBis]);
+    assert.equal(r.duplicados, 1);
+    // ⭐ Gana EL PRIMERO, que es el del fichero declarado primero en `FUENTES`.
+    // No es un detalle: decide con qué título y con qué coordenada se queda.
+    assert.deepEqual(r.unicos, [a, b]);
+
+    // Y el caso feo: el mismo id tres veces son dos duplicados, no uno.
+    assert.equal(sinRepetidos([a, aBis, aBis]).duplicados, 2);
+    assert.equal(sinRepetidos([a, aBis, aBis]).unicos.length, 1);
+  });
+
+  test('⭐ y se DEDUPLICA por id: entra una vez aunque esté en las dos', () => {
+    // Componer dos fuentes obliga a deduplicar. Hoy no hay ni un duplicado
+    // —las dos categorías municipales no comparten ningún id—, y la cuenta se
+    // lleva igual: es la que avisaría el día que el Ayuntamiento mueva un
+    // registro de una categoría a la otra.
+    const suya = sitios.porCategoria.find((c) => c.tipo === 'biblioteca')!;
+    assert.equal(suya.duplicados, 0);
+    // Y por si acaso, contado desde el otro lado: ningún código repetido.
+    const codigos = sitios.indice.map((x) => x.codigo);
+    assert.equal(new Set(codigos).size, codigos.length);
+  });
+
+  test('⭐ NINGUNA BIBLIOTECA se mueve: recinto, como los hospitales', () => {
+    // ⚠️ El encargo las traía como «sitio chico» y el dato dijo que no. Ocho se
+    // habrían movido, y la ida y vuelta demostró que las ocho están BIEN: son
+    // cuartos dentro de recintos —un hospital, una facultad, un campus de
+    // investigación— y su punto está en otra parte del recinto, no mal puesto.
+    //
+    // El caso que lo cerró: `Bibliotecas.12320`, la biblioteca DEL HOSPITAL
+    // MIGUEL SERVET, con el mismo desvío de 169 m que el hospital y su punto a
+    // 1 m del mismo portal. El hospital ya era recinto y no se movía; su
+    // biblioteca, como «chico», sí. El mismo edificio con dos criterios.
+    const delFichero = crudos();
+    for (const s of sitios.indice.filter((x) => x.tipo === 'biblioteca')) {
+      const c = delFichero.get(s.codigo)!;
+      assert.equal(s.lon, c.lon, `${s.codigo} se ha movido`);
+      assert.equal(s.lat, c.lat, `${s.codigo} se ha movido`);
+    }
+    // Y el caso testigo, con su cifra: si alguien metiera las bibliotecas en el
+    // cheque de distancia, esta se iría 4.825 m a la otra punta de la avenida.
+    const cita = sitios.donde.get('Bibliotecas.12521')!;
+    assert.equal(cita.lon, delFichero.get('Bibliotecas.12521')!.lon);
   });
 
   test('⭐ NINGÚN HOSPITAL se mueve: la partición firmada, vigilada', () => {

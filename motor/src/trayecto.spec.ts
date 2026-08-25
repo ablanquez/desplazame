@@ -356,6 +356,51 @@ describe('El trayecto', () => {
     assert.equal(s.lon, -0.9011954);
   });
 
+  // ── LA TERCERA TANDA: BIBLIOTECAS ──────────────────────────────────────────
+  //
+  // La juez FIJA de la categoría, elegida el 25/08 y declarada aquí para que no
+  // se mueva con el viento: **la Biblioteca para Jóvenes Cubit**
+  // (`Bibliotecas.4946`, C/ Mas de las Matas, 20). Se eligió por tres cosas
+  // medidas: está a **2.029 m en línea recta** de EL COLOSO 2 —el encargo pedía
+  // más de un kilómetro—, engancha a la red **a 1 m**, y su nombre no se parece
+  // a ningún otro del índice, así que la sugerencia que la trae no puede
+  // confundirse con otra.
+
+  /** La Biblioteca para Jóvenes Cubit. */
+  const CUBIT = { sitio: 'Bibliotecas.4946' };
+
+  test('⭐ COLOSO 2 → BIBLIOTECA: la ruta sale, y la llegada dice su nombre', () => {
+    const t = pedir({ origen: COLOSO, destino: CUBIT, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    // ⚠️ Aquí puse `> 5` copiando la juez del hospital y salió roja con CINCO,
+    // que es lo que de verdad mide esta ruta: salida, un giro, un tramo largo
+    // de 1.370 m por San Juan de la Peña, otro giro y la llegada. No era el
+    // motor: era la expectativa, copiada de una ruta que cruza media ciudad.
+    assert.ok(t.pasos.length > 3, `solo ${t.pasos.length} pasos`);
+    // 2.029 m en línea recta: andando, más. Y no mucho más — si un día saliera
+    // el doble, sería que el enganche se ha ido a otra parte.
+    assert.ok(t.metros > 2029, `${t.metros} m es menos que la línea recta`);
+    assert.ok(t.metros < 4058, `${t.metros} m es el doble de la línea recta`);
+    assert.equal(t.segundos, Math.round(t.metros / (5000 / 3600)));
+    // ⭐ El título institucional se lee, como en sanidad.
+    assert.match(
+      t.pasos[t.pasos.length - 1]!.texto,
+      /^Biblioteca para Jóvenes Cubit · C\/ Mas de las Matas, 20 está a la (derecha|izquierda)$/,
+      t.pasos[t.pasos.length - 1]!.texto,
+    );
+    // Y el arranque sigue siendo el portal: el origen no ha cambiado.
+    assert.match(t.pasos[0]!.texto, /^Sal de Calle El Coloso 2 /);
+  });
+
+  test('⭐ y su coordenada es la del fichero, sin tocar: es RECINTO', () => {
+    // La contraparte de la juez de arriba. Bibliotecas no pasa por el cheque de
+    // distancia (25/08), así que la ruta llega a donde el Ayuntamiento la pone
+    // y no a la puerta que su dirección nombra.
+    const b = motor.sitios.donde.get('Bibliotecas.4946')!;
+    assert.equal(b.lon, -0.8678951683351173);
+    assert.equal(b.lat, 41.663689367443794);
+  });
+
   test('un sitio inventado se contesta con aviso, no con una excepción', () => {
     const t = pedir({ origen: COLOSO, destino: { sitio: 'Farmacias.999999' }, modo: 'andando' });
     assert.equal(t.avisos.length, 1);

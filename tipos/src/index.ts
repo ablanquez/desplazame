@@ -293,10 +293,11 @@ export interface Portal {
  * —«Centro de salud»— y puede cambiar de redacción cualquier día; esto es lo
  * que la pantalla usa para **elegir el icono**, y atar un dibujo a un texto
  * visible sería atarlo a la redacción. La unión obliga además a que, el día que
- * entre una cuarta clase, la tabla de iconos deje de compilar en vez de pintar
- * un hueco — la misma mecánica que `Record<Giro, string>` en las flechas.
+ * entre una clase nueva, la tabla de iconos deje de compilar en vez de pintar
+ * un hueco — la misma mecánica que `Record<Giro, string>` en las flechas. Y
+ * cumplió: la cuarta, `biblioteca` (25/08), no compiló hasta tener su dibujo.
  */
-export type TipoDeSitio = 'farmacia' | 'centro-salud' | 'hospital';
+export type TipoDeSitio = 'farmacia' | 'centro-salud' | 'hospital' | 'biblioteca';
 
 export interface Sitio {
   /** `Farmacias.8691`, con el mismo patrón que el código de portal. */
@@ -312,7 +313,7 @@ export interface Sitio {
    *   del edificio— y es justo lo que alguien escribe para buscarlo (§ 1.18).
    */
   readonly presentacion: string;
-  /** La categoría como se lee: «Farmacia», «Centro de salud», «Hospital». */
+  /** Como se lee: «Farmacia», «Centro de salud», «Hospital», «Biblioteca». */
   readonly categoria: string;
   /** De qué clase es, para el icono. Ver `TipoDeSitio`. */
   readonly tipo: TipoDeSitio;
