@@ -630,6 +630,57 @@
       ],
       "descargadoEl": "2026-08-24T09:30:24Z",
       "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, pero el lastUpdated mas reciente de los 17 registros es 2024-03-15T15:02:36 — TRECE MESES antes. En farmacias y en centros de salud las dos fechas coinciden al segundo y por eso alli `modified` se declara; aqui la cabecera no describe al dato, asi que se omite en vez de copiarla"
+    },
+    {
+      "name": "bibliotecas",
+      "path": "app/data/2026-08-25_zgzapi_equipamiento-bibliotecas.json",
+      "title": "Bibliotecas (75, de ellas 73 con coordenada) — la mitad grande de la categoria «biblioteca» del proyecto",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 152700,
+      "hash": "sha256:852eb219a5db3d633c7b995b01d66c9e83ed1465d1a464f7f4220c8e46378a67",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 35 «Bibliotecas», tema 9 «Cultura y Ocio»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/35.json"
+        }
+      ],
+      "descargadoEl": "2026-08-25T15:50:17Z",
+      "modified": "2026-06-23T13:46:18+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Tue, 23 Jun 2026 13:46:18 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 74 registros que lo traen — el mismo cotejo que en farmacias y en centros de salud, y aqui tambien sale"
+    },
+    {
+      "name": "bibliotecas-especializadas",
+      "path": "app/data/2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas.json",
+      "title": "Bibliotecas Especializadas (2, las dos con coordenada) — la otra mitad de la categoria «biblioteca» del proyecto",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 4503,
+      "hash": "sha256:355c5ffc5fb3fc3cfbdc2f896bd651112dc7fc6f91e0000baf9be47be6798d33",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 223 «Bibliotecas Especializadas», tema 13 «Informacion y Comunicacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/223.json"
+        }
+      ],
+      "descargadoEl": "2026-08-25T15:50:22Z",
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST y el lastUpdated de sus dos registros es 2023-09-26T14:48:29 — DIECINUEVE MESES antes. Y es LA MISMA cabecera, al segundo, que devuelve la categoria 780 de hospitales: una fecha que dos categorias distintas comparten no describe a ninguna de las dos. Se omite en vez de copiarla"
     }
   ]
 }

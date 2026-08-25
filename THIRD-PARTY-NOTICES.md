@@ -1339,7 +1339,162 @@ titular de un negocio. La presentación es **título + dirección**.
 
 ---
 
-### 1.19 · El resto del dato — todavía **ninguno**
+### 1.19 · Bibliotecas — Ayuntamiento de Zaragoza (API de equipamientos)
+
+> ⭐ **Esta categoría del proyecto se COMPONE de DOS categorías municipales**, y por eso la ficha
+> lleva dos ficheros, dos huellas y dos filas de manifiesto. Se dice aquí arriba porque es lo
+> primero que hace falta saber para leer los recuentos de abajo.
+
+| | |
+|---|---|
+| **Qué es** | Las **77 bibliotecas** del término municipal, **75 con coordenada**. Es la cuarta categoría de sitios y la primera de fuera de la sanidad: bibliotecas públicas de barrio, universitarias, de fundaciones, de hospitales y de institutos de investigación |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | **API REST de equipamientos**, **dos categorías**: `category/35.json` — **35 «Bibliotecas»**, tema 9 *Cultura y Ocio* (75 registros) — y `category/223.json` — **223 «Bibliotecas Especializadas»**, tema 13 *Información y Comunicación* (2 registros). La misma puerta que farmacias y sanidad (§ 1.16, § 1.17, § 1.18) |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
+| **Dónde está cumplida** | En el control de atribución del mapa y en esta ficha |
+| **Descarga** | **25/08/2026 15:50:17 GMT** (la 35) y **15:50:22 GMT** (la 223), estado 200 las dos. Cabeceras en [`…-bibliotecas_cabeceras.txt`](app/data/2026-08-25_zgzapi_equipamiento-bibliotecas_cabeceras.txt) y [`…-bibliotecas-especializadas_cabeceras.txt`](app/data/2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas_cabeceras.txt), con el `Set-Cookie` filtrado por norma. **Cada una pedida dos veces**: byte a byte idéntica las dos veces |
+| **Fecha del dato** | ⭐ **Distinta en cada fichero, y las dos por el mismo cotejo** — ver abajo |
+| **Campos** (la 35) | `sameAs` · `id` · `title` · `uri` · `calle` · `type` · `link` **75/75** · `tel` y `lastUpdated` 74 · `geometry` 73 · `url` 72 · `email` 70 · `horario` 46 · `description` 42 · `imagen` 33 · `servicios` 30 · `poblacion` y `tipo` 27 · `accesibilidad` 15 · `gradoacc` 9 · `relacionado` 8 · `historia` 2 |
+| **¿Está en este repo?** | ✅ **Sí, los dos tal cual**: [`…-bibliotecas.json`](app/data/2026-08-25_zgzapi_equipamiento-bibliotecas.json) · 152.700 bytes · sha256 `852eb219a5db3d633c7b995b01d66c9e83ed1465d1a464f7f4220c8e46378a67` · y [`…-bibliotecas-especializadas.json`](app/data/2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas.json) · 4.503 bytes · sha256 `355c5ffc5fb3fc3cfbdc2f896bd651112dc7fc6f91e0000baf9be47be6798d33`. Los dos **verificados sobre un clon** |
+
+**Las consultas EXACTAS, que es lo único que hace esto reproducible:**
+
+```
+curl -o app/data/2026-08-25_zgzapi_equipamiento-bibliotecas.json \
+  "https://www.zaragoza.es/sede/servicio/equipamiento/category/35.json?srsname=wgs84&start=0&rows=3000"
+
+curl -o app/data/2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas.json \
+  "https://www.zaragoza.es/sede/servicio/equipamiento/category/223.json?srsname=wgs84&start=0&rows=3000"
+```
+
+⚠️ **`srsname=wgs84` en minúsculas**, la trampa del 18/08: con `EPSG:4326` llega UTM 25830 y el
+parámetro **se ignora en silencio**. Está medida en § 1.16. Comprobado aquí sobre lo descargado:
+lon entre **−1,08357 y −0,79718**, lat entre **41,60563 y 41,76219** — grados, no metros.
+
+#### ⭐ Por qué son DOS categorías, y por qué la tercera queda fuera
+
+El catálogo municipal (`/sede/servicio/equipamiento.json`, 19 familias) tiene **tres** categorías
+con bibliotecas dentro. Se sondearon las tres antes de descargar nada:
+
+| id | título | familia | registros | con coordenada | ¿entra? |
+|---|---|---|---|---|---|
+| **35** | Bibliotecas | Cultura y Ocio | **75** | **73** | ✅ |
+| **223** | Bibliotecas Especializadas | Información y Comunicación | **2** | **2** | ✅ |
+| 4 | Archivos, bibliotecas y documentación | Educación | 55 | 54 | ❌ |
+
+**La 223 entra porque sus dos no están en ninguna otra parte** —la Biblioteca del Museo de Goya y
+El Kiosco de las Letras—, y son bibliotecas.
+
+**La 4 queda fuera, y el motivo se escribe:** de sus 55 registros, **35 ya están en la 35**, y sus
+**20 exclusivos son archivos, hemerotecas y unidades técnicas** —Archivo Histórico Provincial,
+Hemeroteca Municipal, «Unidad de Sistemas de Reproducción Documentos»—, ninguno de los cuales es
+una biblioteca a la que se vaya a por un libro. Decisión de Antonio, 25/08. Si algún día
+interesan, entran **como categoría propia con su icono**, no coladas en esta.
+
+**Y se deduplica por id**, porque componer dos fuentes obliga a ello: si un equipamiento
+apareciera en las dos, entraría una sola vez. Medido sobre lo descargado: **0 duplicados**
+—`35 ∩ 223 = 0`— y **0 ids repetidos dentro de cada fichero**. La cifra se cuenta igual, esté a
+cero o no: es la que avisaría el día que el Ayuntamiento mueva un registro de categoría.
+
+#### ⭐ La fecha del dato: la misma jurisprudencia, dos veredictos
+
+| | categoría 35 | categoría 223 |
+|---|---|---|
+| `Last-Modified` de la respuesta | **23/06/2026 13:46:18** | **25/04/2025 10:56:36** |
+| `lastUpdated` más reciente | **23/06/2026 13:46:18** (74 de 75 lo traen) | **26/09/2023 14:48:29** (los 2) |
+| Diferencia | **ninguna: coincide al segundo** | **diecinueve meses** |
+| `modified` en el manifiesto | **se declara** | **se omite**, y se dice por qué |
+
+⚠️ **Y hay un detalle que refuerza lo que § 1.18 ya sospechaba.** El `Last-Modified` de la 223 es
+**exactamente el mismo, al segundo, que el de la categoría 780 de hospitales**: `Fri, 25 Apr 2025
+10:56:36 CEST`. Una fecha que **dos categorías distintas comparten al segundo** no está
+describiendo a ninguna de las dos — describe otra cosa del servidor. Aquella lectura se hizo con
+un solo caso; ahora hay dos que la sostienen.
+
+#### Los recuentos, medidos sobre lo descargado
+
+| | |
+|---|---|
+| Registros | **77** = 75 (cat. 35) + 2 (cat. 223) |
+| **Duplicados por id entre las dos** | **0** |
+| **Con coordenada** | **75** |
+| **Sin coordenada** | **2** — `20362` «Biblioteca Ibercaja José Sinués» (Paseo Fernando el Católico, 1-3) y `20351` «Biblioteca de la Universidad San Jorge» (Autovía A-23, Km. 510). Las dos **sí declaran calle** |
+| Dentro del entorno de Zaragoza | **75 de 75** |
+| ⭐ Rescatadas por el callejero | **0** — y no por casualidad: son recintos, ver abajo |
+| **En el índice del buscador** | **75** de 77 |
+| `lastUpdated` | 76 de 77 |
+
+**Regla B, otra vez:** las 2 sin coordenada no se sugieren, no se pueden elegir y no salen en
+ninguna pantalla. Ni se borran ni se editan: siguen en el fichero y el motor las declara al
+arrancar.
+
+ℹ️ **Dos registros comparten título y son dos sitios distintos**: «Biblioteca de la Estación
+Experimental del Aula Dei» son los ids `12460` (Ctra. del aeropuerto, s/n) y `12280` (Avda.
+Montañana, 1005), a más de **20 km** el uno del otro. No es un duplicado: son dos sedes, y por eso
+la deduplicación va por **id** y no por título.
+
+#### ⭐ Las bibliotecas son RECINTO, no puerta — y eso lo decidió el dato
+
+Farmacias y centros de salud pasan por el **cheque de distancia**: si su coordenada queda a más de
+50 m del portal que su propia dirección declara, se les rescata al portal (§ 1.16). **Las
+bibliotecas no**, igual que los hospitales (§ 1.18), y por la misma razón: **muchas son un cuarto
+dentro de un edificio mayor** —de un hospital, de una facultad, de un instituto de investigación,
+de un centro cívico—, así que su punto no está «mal» cuando se aleja de la puerta que la dirección
+nombra: está **en otra parte del recinto**. Es el precedente firmado del Miguel Servet (24/08).
+
+Y esta vez la decisión no se tomó por analogía, sino **con el dato delante**. Aplicando el cheque
+de chicos se habrían movido **8**, y la ida y vuelta dice que **las 8 están bien puestas**:
+
+| id | qué es | desvío a su dirección | dónde cae su punto de verdad |
+|---|---|---|---|
+| `12521` | Biblioteca del CITA | **4.825 m** | a **19 m** de AVENIDA MONTAÑANA 216 |
+| `12280` | Estación Experimental Aula Dei | 346 m | a 149 m de AVENIDA MONTAÑANA 999 |
+| `12323` | Instituto Agronómico Mediterráneo | 346 m | al **mismo punto** que la anterior |
+| `12329` | Instituto Aragonés de Ciencias de la Salud | 297 m | a 4 m de CALLE GALÁN GIMÉNEZ 13 |
+| `12320` | **Biblioteca del Hospital Miguel Servet** | 169 m | a 1 m de CALLE GONZALO CALAMITA 4 |
+| `12282` | Instituto de Carboquímica | 142 m | a 41 m de CALLE MARÍA DE LUNA 8 |
+| `12284` | Instituto Aragonés de Antropología | 125 m | a 1 m de CALLE DOMINGO MIRAL 3 |
+| `8165` | María Moliner (Facultad de Filosofía y Letras) | 123 m | a 62 m de CALLE PEDRO CERBUNA 9 |
+
+**El caso que lo cierra es el quinto**: la biblioteca **del Hospital Miguel Servet** tiene el mismo
+desvío de 169 m que el hospital, y su punto cae a 1 m del mismo portal de la calle Gonzalo
+Calamita. El hospital ya está declarado recinto y **no se mueve**; su biblioteca, tratada como
+«chico», **sí se movería**. El mismo edificio, dos criterios distintos dentro del mismo motor.
+
+**Y no cuesta nada**, que es lo que cierra la decisión: de las bibliotecas que **sí** son un
+edificio con dirección propia —«Biblioteca Pública», «Municipal», «para Jóvenes»—, las 14 cuya
+dirección casa en el callejero tienen un desvío de **mediana 8 m y máximo 38 m**, por debajo del
+umbral. El cheque de distancia **no habría cazado ni una**.
+
+**El cheque de FRONTERA sí se les aplica**, como a todas: hoy las 75 caen dentro. Si alguna se
+saliera y no se pudiera rescatar por su dirección, iría a la **lista de confirmación manual** como
+le pasó al `9090` de § 1.17.
+
+#### 🔓 El título SÍ se lee, verificado antes de publicarlo
+
+Igual que en sanidad (§ 1.18) y al revés que en farmacias (§ 1.16), aquí el título es
+**institucional** y es justo lo que alguien teclea: «Biblioteca Pública Benjamín Jarnés
+(Actur-Rey Fernando)», «Biblioteca para Jóvenes Cubit». **Se verificó antes de publicarlo, sobre
+los 77:**
+
+| | |
+|---|---|
+| Títulos con el patrón «Apellido, Nombre» —el de farmacias— | **0** de 77 |
+| Títulos **sin** ninguna palabra institucional | **0** de 77 |
+
+Que muchos lleven nombre de persona —Benjamín Jarnés, Soledad Puértolas, Ricardo Magdalena— no
+cambia nada: es **el nombre del edificio**, puesto en honor de alguien, no el titular de un
+negocio. La presentación es **título + dirección**.
+
+> ⚠️ El primer contador dio **1 sin palabra institucional** —«Cáritas Diocesana»— y era **fallo del
+> contador**, no del dato: su lista de palabras llevaba `caritas` sin tilde y el título la lleva.
+> Corregido, salen 0. Se anota porque una verificación que se cree a la primera no es una
+> verificación.
+
+---
+
+### 1.20 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
