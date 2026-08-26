@@ -27,7 +27,23 @@
         [DOC GOV.UK Design System · Select] Su ejemplo canónico es justo esto:
         un filtro corto con una opción marcada por defecto. Su aviso contra los
         `select` largos —«considera otro patrón si hay muchas opciones»— no
-        aplica: aquí hay cuatro.
+        aplica: aquí hay cinco.
+
+        ⭐ Y cada opción lleva DENTRO el icono de su clase [MDN · Customizable
+        select elements]: con `appearance: base-select` el `option` admite
+        contenido, así que el dibujo se ve donde se ELIGE y no solo donde ya se
+        ha elegido. Es el `select` nativo con más cosas dentro — ni una
+        librería, ni un `div` disfrazado de desplegable.
+
+        El icono va `aria-hidden` y **el texto se queda**: es la regla de oro
+        del patrón, y es lo que hace que en un navegador sin soporte esto siga
+        siendo un desplegable de texto que funciona.
+
+        ⚠️ La chincheta de «Dirección» va con el PAPEL de su campo —verde en
+        origen, roja en destino [osm.org]—, así que el desplegable dice de qué
+        color va a salir eso en el mapa antes de elegirlo. Los cuatro iconos de
+        sitio son idénticos en los dos campos: una farmacia es verde vaya donde
+        vaya.
       -->
       <label class="campo campo--tipo" for="tipoOrigen">
         <span>Tipo</span>
@@ -39,7 +55,10 @@
           (change)="alCambiarTipo(origen, $any($event.target).value)"
         >
           @for (t of tipos; track t.id) {
-            <option [value]="t.id" [selected]="t.id === origen.tipo()">{{ t.etiqueta }}</option>
+            <option [value]="t.id" [selected]="t.id === origen.tipo()">
+              <app-icono-capa [clase]="t.id" papel="origen" [lado]="14" />
+              <span class="tipo__texto">{{ t.etiqueta }}</span>
+            </option>
           }
         </select>
       </label>
@@ -118,7 +137,23 @@
         [DOC GOV.UK Design System · Select] Su ejemplo canónico es justo esto:
         un filtro corto con una opción marcada por defecto. Su aviso contra los
         `select` largos —«considera otro patrón si hay muchas opciones»— no
-        aplica: aquí hay cuatro.
+        aplica: aquí hay cinco.
+
+        ⭐ Y cada opción lleva DENTRO el icono de su clase [MDN · Customizable
+        select elements]: con `appearance: base-select` el `option` admite
+        contenido, así que el dibujo se ve donde se ELIGE y no solo donde ya se
+        ha elegido. Es el `select` nativo con más cosas dentro — ni una
+        librería, ni un `div` disfrazado de desplegable.
+
+        El icono va `aria-hidden` y **el texto se queda**: es la regla de oro
+        del patrón, y es lo que hace que en un navegador sin soporte esto siga
+        siendo un desplegable de texto que funciona.
+
+        ⚠️ La chincheta de «Dirección» va con el PAPEL de su campo —verde en
+        origen, roja en destino [osm.org]—, así que el desplegable dice de qué
+        color va a salir eso en el mapa antes de elegirlo. Los cuatro iconos de
+        sitio son idénticos en los dos campos: una farmacia es verde vaya donde
+        vaya.
       -->
       <label class="campo campo--tipo" for="tipoDestino">
         <span>Tipo</span>
@@ -130,7 +165,10 @@
           (change)="alCambiarTipo(destino, $any($event.target).value)"
         >
           @for (t of tipos; track t.id) {
-            <option [value]="t.id" [selected]="t.id === destino.tipo()">{{ t.etiqueta }}</option>
+            <option [value]="t.id" [selected]="t.id === destino.tipo()">
+              <app-icono-capa [clase]="t.id" papel="destino" [lado]="14" />
+              <span class="tipo__texto">{{ t.etiqueta }}</span>
+            </option>
           }
         </select>
       </label>

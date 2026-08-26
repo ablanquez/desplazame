@@ -50,7 +50,7 @@ legend {
 }
 
 /* ⭐ El desplegable de tipo: ancho fijo y NO se estira.
-   Sus cuatro opciones caben en 9,5 rem —«Centros de Salud» es la larga— y
+   Sus cinco opciones caben en 9,5 rem —«Centros de Salud» es la larga— y
    dejarlo crecer le robaría sitio al cajetín, que es donde se escribe. */
 .campo--tipo {
   flex: 0 0 9.5rem;
@@ -62,6 +62,65 @@ legend {
   border-radius: 3px;
   background: #fff;
   font: inherit;
+}
+
+/* ⭐ EL DESPLEGABLE CON ICONOS DENTRO [MDN · Customizable select elements].
+   `appearance: base-select` cambia el `select` al modelo nuevo: el navegador
+   deja de dibujarlo con los widgets del sistema operativo y pasa a pintarlo
+   con CSS, y entonces —y solo entonces— el contenido de cada `option` se
+   respeta. Hacen falta los DOS: el `select` para el botón cerrado, y
+   `::picker(select)` para la lista desplegada.
+
+   ⭐ Va dentro de un `@supports`, y eso es la mejora progresiva escrita:
+   el navegador que no conozca `base-select` no entra aquí y pinta el
+   desplegable clásico, que sigue teniendo su texto y sigue funcionando. Lo
+   que se pierde es el dibujo, no la función. Comprobado en jsdom, que no lo
+   soporta: las opciones siguen diciendo «Dirección», «Bibliotecas»… */
+@supports (appearance: base-select) {
+  .tipo,
+  .tipo::picker(select) {
+    appearance: base-select;
+  }
+
+  .tipo {
+    /* El botón cerrado clona el contenido de la opción elegida, así que el
+       icono del tipo actual se ve sin abrir nada. */
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .tipo::picker(select) {
+    border: 1px solid #999;
+    border-radius: 3px;
+    background: #fff;
+    padding: 0.2rem;
+  }
+
+  .tipo option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.4rem;
+    border-radius: 3px;
+  }
+
+  .tipo option:checked,
+  .tipo option:hover {
+    background: #eef2f7;
+  }
+
+  /* La marca de «elegida» que el modelo nuevo pone de serie sobra: el icono ya
+     ocupa ese sitio y dos señales a la izquierda se estorban. */
+  .tipo option::checkmark {
+    display: none;
+  }
+}
+
+/* El texto de la opción, que NO se toca en ningún caso: es lo único que hay en
+   el desplegable clásico y es lo que lee quien escucha la pantalla. */
+.tipo__texto {
+  white-space: nowrap;
 }
 
 .campo--portal {

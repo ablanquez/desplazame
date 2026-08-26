@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import type { Portal, PortalCercano, Sitio, Via } from '@desplazame/tipos';
+import { COLOR_DESTINO, COLOR_ORIGEN } from './iconos';
 import { Buscador } from './buscador';
 
 /**
@@ -237,6 +238,88 @@ describe('⭐ EL BUSCADOR POR TIPOS', () => {
     ).map((s) => s.getAttribute('data-icono'));
     expect(iconos).toEqual(['hospital']);
     drenar();
+  });
+
+  // ── LOS ICONOS DENTRO DE LAS OPCIONES ──────────────────────────────────────
+  //
+  // [MDN · Customizable select elements] Un `select` con `appearance:
+  // base-select` deja meter contenido dentro de sus `option`, así que el icono
+  // de cada clase entra donde de verdad se elige y no solo donde ya se ha
+  // elegido. Sin librerías, sin `div` haciéndose pasar por un desplegable: es
+  // el `select` nativo, con más cosas dentro.
+  //
+  // ⚠️ Estas pruebas corren en jsdom, que **no soporta `base-select`**. Eso las
+  // hace más útiles de lo que parece: comprueban el DOM —que es lo que
+  // sobrevive en cualquier navegador— y de paso miran el caso degradado, que es
+  // el que ve quien no tenga soporte.
+
+  it('⭐ cada opción lleva EL ICONO de su clase, dentro de la opción', () => {
+    for (const lado of ['Origen', 'Destino'] as const) {
+      const iconos = Array.from(
+        tipoDe(lado).querySelectorAll<SVGElement>('option svg[data-icono]'),
+      ).map((svg) => svg.getAttribute('data-icono'));
+      expect(iconos, `los iconos del desplegable de ${lado}`).toEqual([
+        'via',
+        'biblioteca',
+        'centro-salud',
+        'farmacia',
+        'hospital',
+      ]);
+    }
+  });
+
+  it('⭐ LA CHINCHETA cambia de color según el campo: verde origen, rojo destino', () => {
+    // [osm.org] Es la convención ya firmada de la casa, y aquí gana su tercer
+    // sitio: el desplegable dice de qué color va a salir eso en el mapa ANTES
+    // de elegirlo. Los iconos de sitio, en cambio, son los mismos en los dos
+    // campos: una farmacia es verde vaya donde vaya.
+    const dePapel = (lado: 'Origen' | 'Destino', clase: string) =>
+      tipoDe(lado)
+        .querySelector(`option svg[data-icono="${clase}"] path`)!
+        .getAttribute('fill');
+
+    expect(dePapel('Origen', 'via')).toBe(COLOR_ORIGEN);
+    expect(dePapel('Destino', 'via')).toBe(COLOR_DESTINO);
+    expect(dePapel('Origen', 'via')).not.toBe(dePapel('Destino', 'via'));
+
+    // Y las cuatro clases de sitio, idénticas en los dos campos.
+    for (const clase of ['biblioteca', 'centro-salud', 'farmacia', 'hospital']) {
+      expect(dePapel('Origen', clase), clase).toBe(dePapel('Destino', clase));
+    }
+
+    // ⭐ Y el precio de esa convención, vigilado: en el desplegable del ORIGEN
+    // la chincheta y la cruz de farmacia salen **del mismo verde**. Es a
+    // sabiendas —son dos convenciones que aterrizan en el mismo color— y lo
+    // que las separa es la FORMA, que es el segundo diferenciador que pide
+    // [osm.org#2787]. Si algún día los dos caminos coincidieran, en ese
+    // desplegable habría dos opciones indistinguibles.
+    const forma = (lado: 'Origen' | 'Destino', clase: string) =>
+      tipoDe(lado).querySelector(`option svg[data-icono="${clase}"] path`)!.getAttribute('d');
+    expect(dePapel('Origen', 'via')).toBe(dePapel('Origen', 'farmacia'));
+    expect(forma('Origen', 'via')).not.toBe(forma('Origen', 'farmacia'));
+  });
+
+  it('⭐ LA REGLA DE ORO: cada opción conserva su texto, y el icono no se anuncia', () => {
+    // [WebKit, sobre el select personalizable] la opción **conserva su texto**:
+    // el icono se suma, no sustituye. Es lo que hace que esto siga funcionando
+    // en un navegador sin soporte —que pinta el select clásico y solo lee el
+    // texto— y lo que evita que un lector de pantalla anuncie la misma cosa
+    // dos veces: el SVG va `aria-hidden`.
+    for (const lado of ['Origen', 'Destino'] as const) {
+      const opciones = Array.from(tipoDe(lado).options);
+      // ⭐ `textContent` es EXACTAMENTE lo que enseña un select clásico: si el
+      // icono se hubiera comido la etiqueta, esto saldría vacío.
+      expect(opciones.map((o) => o.textContent?.trim())).toEqual([
+        'Dirección',
+        'Bibliotecas',
+        'Centros de Salud',
+        'Farmacias',
+        'Hospitales',
+      ]);
+      for (const o of opciones) {
+        expect(o.querySelector('svg')?.getAttribute('aria-hidden'), o.value).toBe('true');
+      }
+    }
   });
 
   // ── LA CAPA NUEVA, HASTA EL MOTOR ──────────────────────────────────────────
