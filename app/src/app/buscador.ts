@@ -451,13 +451,44 @@ export class Buscador {
     lado.sitio.set(null);
   }
 
-  /** Lo que dice cada opción del desplegable. El orden es el del encargo. */
+  /**
+   * ⭐ LO QUE DICE CADA OPCIÓN del desplegable, y **en qué orden se lee**.
+   *
+   * `Dirección` va **la primera y aparte**: es el defecto —lo que busca casi
+   * todo el mundo— y además no es de la misma clase que las otras. Las otras
+   * son categorías de sitio; esta es la calle y el portal de siempre. [GOV.UK
+   * Design System] el ejemplo canónico de su `Select` es justo esto, un filtro
+   * con su defecto marcado al principio.
+   *
+   * **Las demás van alfabéticas por su etiqueta** [PROPIO — la doctrina no dice
+   * nada del orden de un filtro y aquí no hay ninguna jerarquía que respetar:
+   * ninguna categoría es más importante que otra]. Hasta el 25/08 salían **en
+   * el orden en que fueron llegando al proyecto** —farmacias, hospitales,
+   * centros de salud, bibliotecas—, que es una historia nuestra y no le dice
+   * nada a quien mira la lista.
+   *
+   * ⭐ **Y el orden no se escribe: se calcula.** La lista de abajo puede ir
+   * como sea, porque `ordenadas` la ordena al construirla — así la categoría
+   * que entre mañana **cae sola en su sitio** y nadie tiene que acordarse de
+   * colocarla. Se ordena con `localeCompare('es')` y no comparando cadenas a
+   * pelo, porque «Centros» y «Farmacias» se separan igual pero una «Ó» o una
+   * «Ñ» no: el orden de un alfabeto lo decide su idioma, no su tabla de
+   * códigos.
+   */
+  private static ordenadas(
+    resto: ReadonlyArray<{ id: Clase; etiqueta: string }>,
+  ): ReadonlyArray<{ id: Clase; etiqueta: string }> {
+    return [...resto].sort((a, b) => a.etiqueta.localeCompare(b.etiqueta, 'es'));
+  }
+
   protected readonly tipos: ReadonlyArray<{ id: Clase; etiqueta: string }> = [
     { id: 'via', etiqueta: 'Dirección' },
-    { id: 'farmacia', etiqueta: 'Farmacias' },
-    { id: 'hospital', etiqueta: 'Hospitales' },
-    { id: 'centro-salud', etiqueta: 'Centros de Salud' },
-    { id: 'biblioteca', etiqueta: 'Bibliotecas' },
+    ...Buscador.ordenadas([
+      { id: 'farmacia', etiqueta: 'Farmacias' },
+      { id: 'hospital', etiqueta: 'Hospitales' },
+      { id: 'centro-salud', etiqueta: 'Centros de Salud' },
+      { id: 'biblioteca', etiqueta: 'Bibliotecas' },
+    ]),
   ];
 
   protected alElegirVia(lado: Lado, via: Via | null): void {

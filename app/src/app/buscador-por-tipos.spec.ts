@@ -141,8 +141,15 @@ describe('⭐ EL BUSCADOR POR TIPOS', () => {
 
   // ── EL DESPLEGABLE ─────────────────────────────────────────────────────────
 
-  it('⭐ los DOS campos traen su desplegable, con sus cinco opciones', () => {
+  it('⭐ los DOS campos traen su desplegable, ordenado y con sus cinco opciones', () => {
     // ⚠️ Eran CUATRO hasta el 25/08 y ahora son cinco: entran las bibliotecas.
+    //
+    // ⭐ Y desde el 25/08 van ORDENADAS: «Dirección» primera —es el defecto y
+    // es de otra clase que las demás, que son categorías de sitio [GOV.UK: el
+    // ejemplo canónico del `Select` es un filtro con su defecto marcado]— y el
+    // resto **alfabético por su etiqueta** [PROPIO]. Antes salían en el orden
+    // en que fueron llegando al proyecto, que no significa nada para quien mira
+    // la lista.
     // Esta prueba existe para que una categoría nueva no se quede a medias — el
     // día que esté en el motor y no aquí, el buscador la tendría y nadie
     // podría pedirla.
@@ -154,13 +161,23 @@ describe('⭐ EL BUSCADOR POR TIPOS', () => {
     for (const lado of ['Origen', 'Destino'] as const) {
       const select = tipoDe(lado);
       expect(select, `falta el desplegable de ${lado}`).not.toBeNull();
-      expect(Array.from(select.options).map((o) => [o.value, o.textContent?.trim()])).toEqual([
+      const opciones = Array.from(select.options).map((o) => [o.value, o.textContent?.trim()]);
+      expect(opciones).toEqual([
         ['via', 'Dirección'],
+        ['biblioteca', 'Bibliotecas'],
+        ['centro-salud', 'Centros de Salud'],
         ['farmacia', 'Farmacias'],
         ['hospital', 'Hospitales'],
-        ['centro-salud', 'Centros de Salud'],
-        ['biblioteca', 'Bibliotecas'],
       ]);
+
+      // ⭐ Y el orden no es una lista escrita a mano: es **la regla**. Se
+      // comprueba contra ella, no contra la copia de arriba — si mañana entra
+      // una quinta categoría y alguien la pega al final, esto se pone rojo
+      // aunque la lista literal se haya actualizado.
+      const [primera, ...resto] = opciones;
+      expect(primera).toEqual(['via', 'Dirección']);
+      const etiquetas = resto.map(([, etiqueta]) => etiqueta as string);
+      expect(etiquetas).toEqual([...etiquetas].sort((a, b) => a.localeCompare(b, 'es')));
       // Y el que viene puesto al abrir sigue siendo Dirección, que es lo que
       // busca casi todo el mundo [GOV.UK: el ejemplo canónico del `Select`].
       expect(select.value).toBe('via');
