@@ -1010,6 +1010,62 @@ de cada campo, ORIGEN y DESTINO por igual:
       tira 49 pruebas · el nº-nunca, 44: el formulario descansa sobre
       esas dos leyes y está MEDIDO)
 
+- [x] **TANDA 3 — BIBLIOTECAS, HECHA (25/08, `aae90f6`→`22ed779`)**,
+      con DOS paradas de costura que valieron la tanda: (1) el
+      catálogo tenía TRES categorías de biblioteca — Antonio eligió
+      35+223 (77 registros, 35∩223=0 verificado, 0 duplicados; la 4
+      «Archivos» FUERA con motivo: son archivos y hemerotecas, no
+      préstamo) — la ficha §1.19 declara la composición con los dos
+      ids, DOS filas del manifiesto (25-26, cada fichero su huella);
+      (2) el dato DESMINTIÓ la tabla de respaldo del encargo
+      («bibliotecas = sitio chico»): las 8 que la validación movería
+      estaban BIEN puestas — cuartos dentro de recintos (CITA,
+      cívicos) — Antonio firmó RECINTO (frontera sí, distancia no; 0
+      rescates; el precedente del Miguel Servet). Recuentos: 77 · 75
+      al índice (2 sin coordenada, regla B). El `modified` con su
+      TERCER caso y subida de nivel: la 223 comparte Last-Modified AL
+      SEGUNDO con hospitales — una fecha que dos categorías comparten
+      no describe a ninguna (la sospecha del redeploy, con dos
+      testigos). Títulos institucionales verificados (el contador
+      acusó a «Cáritas» por una tilde que le faltaba AL CONTADOR —
+      corregido y anotado). ICONO: libro abierto [fuente primaria:
+      los SVG de osm-carto y Maki leídos por el estratega — la
+      convención es el glifo, no el fichero] · color de CULTURA
+      #6a1b9a (9,39:1 / 8,18:1) — el marrón de carto DESCARTADO CON
+      LA MEDIDA (6,75:1 sobre el beige, bajo el listón ≥7:1 [PROPIO];
+      mínimo documentado 3:1 [WCAG 1.4.11]). El contrato hizo de
+      muralla: la interfaz NO COMPILÓ hasta dar a la clase nueva
+      dibujo, color y anclaje. Motor 463 sitios · 456 buscables ·
+      cuatro categorías. ⭐ BITÁCORA nº12 (ABIERTA en caliente,
+      CERRADA con arreglo `b45eaae`): el «tsc limpio» de TRES
+      checkpoints salía de un comando que miraba CERO ficheros
+      (tsconfig.json es fichero solución: files:[] + references →
+      código 0 sin trabajo) — cazado porque la app TENÍA que estar
+      rota y salió verde; el arreglo: comprobar-tipos con CENSO
+      declarado (290+353 ficheros) y guardián que protesta si el
+      censo es 0, contraprobado por los dos lados (y su propia trampa
+      de Windows —spawnSync sin shell → EINVAL → censo 0— cazada y
+      contada dentro). LEY nueva: «un comando que termina en
+      silencio no es un verde hasta que se le ha visto contar lo que
+      ha mirado» + «una costumbre de comprobación necesita un guion
+      del que tirar». Tres instrumentos, el mismo fallo con tres
+      caras (el tsc · el medidor ciego al throw · el vitest bajo
+      subprocess). Y LOS REMATES del buscador (25/08, `656f005` ·
+      `f624b31`, decisiones de Antonio): el desplegable ORDENADO
+      (Dirección primera [GOV.UK select con defecto] + resto
+      alfabético CALCULADO [localeCompare-es [PROPIO]] — el guardián
+      vigila LA REGLA, no la copia; dos mutaciones que hoy no muerden
+      DECLARADAS con su coincidencia: id vs etiqueta y tabla de
+      códigos empatan con las cuatro de hoy) e ICONOS DENTRO del
+      desplegable [Customizable Select, MDN: los option admiten
+      contenido; regla de oro de WebKit: texto siempre + aria-hidden;
+      mejora progresiva: todo en @supports, 5 dentro / 0 fuera —
+      jsdom no lo soporta, así que las 144 pruebas SON el caso
+      degradado] con la chincheta POR CAMPO (verde origen · roja
+      destino [osm.org]) y guardián nuevo de la colisión firmada
+      (chincheta y cruz de farmacia en el mismo verde: mismo fill,
+      distinto d [#2787]). 263 motor + 144 interfaz.
+
 - [x] **LA VALIDACIÓN ESPACIAL con rescate por callejero — HECHA
       (24/08, `4c4cae6`→`bfe0e36`)**, la regla de entorno de Antonio
       con doctrina de casuística localizada [el problema documentado
