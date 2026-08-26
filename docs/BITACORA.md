@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-25] 🔴 ABIERTA — El `tsc` con el que llevo tres checkpoints declarando «la interfaz compila limpia» no compila NI UN fichero
+## [2026-08-25] ✅ CERRADA — El `tsc` con el que llevo tres checkpoints declarando «la interfaz compila limpia» no compila NI UN fichero
 
 **Categoría:** instrumento que daba verde sin mirar nada
 
@@ -48,11 +48,52 @@ $ npx tsc --noEmit -p tsconfig.app.json --listFiles | wc -l  → 293
 **Cómo se cazó:** instrumento — la app tenía que estar rota y salió verde. El
 verde fue la señal, no el error.
 
-**Causa raíz:** ⏳ PENDIENTE
+**Causa raíz:** dos capas, y la de abajo es la que importa.
 
-**Arreglo aplicado:** ⏳ PENDIENTE
+La de arriba: `app/tsconfig.json` es un **fichero solución** —`files: []` más
+`references`—, el patrón con el que Angular reparte la aplicación y las pruebas
+en `tsconfig.app.json` y `tsconfig.spec.json`. Compilar el solución no compila
+ninguno de los dos: TypeScript solo sigue las `references` con `--build`, y
+`--noEmit -p` no lo es. Sin ficheros de entrada no hay nada que comprobar, y
+salir con código 0 es su comportamiento correcto.
 
-**Commit:** ⏳ PENDIENTE
+La de abajo, que es la que dejó pasar el fallo tres checkpoints: **el comando
+no vivía en ningún sitio**. El motor tenía su `comprobar-tipos` en el
+`package.json` y la interfaz no tenía ninguno, así que cada vez lo escribí de
+memoria — y de memoria salió el nombre del fichero que se ve en el árbol, no el
+que compila. Una costumbre sin guion del que tirar acaba siendo una costumbre
+distinta cada día.
+
+**Arreglo aplicado:** `app/scripts/comprobar-tipos.mjs` (nuevo) y el guion
+`comprobar-tipos` en `app/package.json`, al lado del de arranque. Compila **los
+dos proyectos que tienen ficheros dentro** y, antes de mirar los errores, le
+pide a cada uno el **censo** con `--listFiles`: lo imprime y **se pone rojo si
+sale cero**, que es la ley de esta entrada hecha código. `tsconfig.json` se
+queda fuera de la lista a propósito y con el motivo escrito.
+
+```
+comprobar-tipos · la interfaz, con censo
+
+  OK   tsconfig.app.json    limpio · 290 ficheros mirados
+  OK   tsconfig.spec.json   limpio · 353 ficheros mirados
+
+VERDE: la interfaz compila, y consta cuántos ficheros se han mirado.
+```
+
+Y se le hizo la contraprueba, una a una: apuntándolo a `tsconfig.json` sale
+**código 2** («censo de 0 ficheros — no está compilando NADA»), y con un error
+de tipos de verdad sale **código 1** con los errores y el censo delante.
+
+⚠️ **Y el guion estrenó su propia trampa al escribirlo**: la primera versión
+llamaba al compilador con `spawnSync('npx.cmd', …)` sin shell, que en Windows
+revienta con **EINVAL** y devuelve la salida vacía. El censo salió 0 y el guion
+se puso ROJO — hizo lo correcto por el motivo equivocado. Ahora llama al
+`bin/tsc` de TypeScript con este mismo Node y **comprueba antes que el proceso
+se ha podido ejecutar** (código 3). Un silencio con pinta de verde otra vez, y
+otra vez lo delató pedir la cifra.
+
+**Commit:** `b15f198` (esta entrada, en caliente) y el `fix(app): el tsc que no
+miraba nada` que la cierra, donde va este cierre.
 
 **Ley que sale de aquí:** **un comando que termina en silencio no es un verde
 hasta que se le ha visto contar lo que ha mirado.** La bitácora ya lo decía de
@@ -60,6 +101,11 @@ las pruebas —«una ejecución sin salida NO es un verde»— y aquí sale de o
 puerta: un compilador con cero ficheros de entrada también termina en silencio y
 con código 0. El comprobador se comprueba pidiéndole el censo de lo que compila
 (`--listFiles`), y esa cifra se declara igual que se declara una muestra.
+
+**Y una segunda, del cierre:** **una costumbre de comprobación necesita un guion
+del que tirar.** Lo que se teclea de memoria cada vez acaba tecleándose distinto,
+y el día que sale mal no hay nada que revisar porque no hay nada escrito. El
+comando vive en `package.json` o no vive.
 
 **Traza:** `app/tsconfig.json` (fichero solución: `files: []` + `references`) ·
 `app/tsconfig.app.json` · los checkpoints del 24 y 25/08, donde escribí «tsc

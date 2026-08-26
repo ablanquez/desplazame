@@ -7,6 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "comprobar-tipos": "node scripts/comprobar-tipos.mjs",
     "comprobar-arranque": "node scripts/comprobar-arranque.mjs"
   },
   "private": true,
