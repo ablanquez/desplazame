@@ -1494,7 +1494,224 @@ negocio. La presentación es **título + dirección**.
 
 ---
 
-### 1.20 · El resto del dato — todavía **ninguno**
+### 1.20 · Educación — Ayuntamiento de Zaragoza (API de equipamientos)
+
+> ⭐ **Aquí NO hay una categoría del proyecto, sino TRES**, y las tres salen de la misma familia
+> municipal (`tema` 11 «Educación»). Cada una compone sus propias categorías municipales: son
+> **once ficheros** para tres etiquetas. Se dice aquí arriba porque es lo primero que hace falta
+> saber para leer los recuentos de abajo.
+>
+> **La partición en tres es la de la taxonomía de OpenStreetMap**, firmada por Antonio el 25/08:
+> `amenity=school` cubre de los ~6 a los ~18 y **admite varios niveles en un elemento**,
+> `amenity=kindergarten` es el preescolar —`preschool` quedó obsoletado a su favor— y
+> `amenity=university` el campus terciario. La FP va con los institutos porque en España vive en
+> los IES y los CIFP.
+
+| | |
+|---|---|
+| **Qué es** | **354 centros de enseñanza** del término municipal, **343 con coordenada**, repartidos en tres categorías del buscador: **Colegios e Institutos** (261, 251 con coordenada), **Guarderías** (64, las 64) y **Universidades** (29, 28) |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | **API REST de equipamientos**, **once categorías** de la familia 11 «Educación». La misma puerta que farmacias, sanidad y bibliotecas (§ 1.16 a § 1.19) |
+| **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
+| **Dónde está cumplida** | En el control de atribución del mapa y en esta ficha |
+| **Descarga** | **27/08/2026, de 06:31:39 a 06:31:43 GMT**, estado 200 las once. Cabeceras en los once `…_cabeceras.txt` de [`app/data/`](app/data/), con el `Set-Cookie` filtrado por norma |
+| **Fecha del dato** | ⭐ **Nueve por `Last-Modified`, dos omitidas** — y esta vez la regla del servidor se pudo demostrar. Ver abajo |
+| **Campos** (Colegios) | `sameAs` · `id` · `title` · `uri` · `calle` · `type` · `link` **261/261** · `tel` y `lastUpdated` 259 · `geometry` 251 · `email` 233 · `url` 219 · `description` 168 · `servicios` 138 · `imagen` 120 · `horario` 60 · `tipo` 9 · `accesibilidad` 5 · `poblacion` 3 · `imagenPortada` 1 |
+| **Campos** (Guarderías) | `sameAs` · `id` · `title` · `tel` · `lastUpdated` · `uri` · `calle` · `geometry` · `type` · `link` **64/64** · `description` 63 · `email` 44 · `servicios` 31 · `url` 15 · `imagen` 13 · `horario` 12 · `poblacion` 11 · `tipo` 10 · `accesibilidad` 1 |
+| **Campos** (Universidades) | `sameAs` · `id` · `title` · `tel` · `lastUpdated` · `uri` · `calle` · `type` · `link` **29/29** · `geometry` 28 · `url` 27 · `email` 26 · `accesibilidad` 18 · `gradoacc` 4 · `description` y `servicios` 2 |
+| **¿Está en este repo?** | ✅ **Sí, los once tal cual**, 676.993 bytes en total. Uno a uno en la tabla de abajo, **verificados sobre un clon** |
+
+#### ⭐ LA COMPOSICIÓN TRIPLE: qué categoría municipal va a qué etiqueta
+
+| etiqueta del proyecto | id | categoría municipal | fichero | registros | sha256 |
+|---|---|---|---|---|---|
+| **Colegios e Institutos** | 61 | Educación Infantil | [`…-educacion-infantil.json`](app/data/2026-08-27_zgzapi_equipamiento-educacion-infantil.json) | 141 | `985eee846a92377cfd368bc227d98129ce08049dcc623b497914088806466fb0` |
+| | 62 | Educación Primaria | [`…-educacion-primaria.json`](app/data/2026-08-27_zgzapi_equipamiento-educacion-primaria.json) | 138 | `a4783cbc798084c3500bdbb9288bf6f2fb9688b54355455f8559ea890bd8f3bd` |
+| | 63 | Educación Secundaria | [`…-educacion-secundaria.json`](app/data/2026-08-27_zgzapi_equipamiento-educacion-secundaria.json) | 104 | `0423270c853d0989f8896708b46a1c3f4e02de22d30a3be3f935dbbcd57f2218` |
+| | 2060 | Bachillerato | [`…-bachillerato.json`](app/data/2026-08-27_zgzapi_equipamiento-bachillerato.json) | 7 | `080e51f8bae292a735b9ebdb579ee7abe1011da1ab1a00f173c08c2e358af926` |
+| | 2061 | Ciclos Formativos | [`…-ciclos-formativos.json`](app/data/2026-08-27_zgzapi_equipamiento-ciclos-formativos.json) | 56 | `8dcafa1fb3cb2855ec1e88c2cfc88b4bad0fec6764cf8a44f3497d96c7c62383` |
+| | 680 | Formación Profesional | [`…-formacion-profesional.json`](app/data/2026-08-27_zgzapi_equipamiento-formacion-profesional.json) | 49 | `bb9877b4596dc663434cd833c9f0edbf95174ec48000efb818dc1fa3602bbf2b` |
+| | 64 | Educación Especial | [`…-educacion-especial.json`](app/data/2026-08-27_zgzapi_equipamiento-educacion-especial.json) | 19 | `1570c9bc0333d92820ac69ada7aa7f566ef87a88cb9d4fba48b5b17f60512725` |
+| **Guarderías** | 460 | Escuela Infantil | [`…-escuela-infantil.json`](app/data/2026-08-27_zgzapi_equipamiento-escuela-infantil.json) | 65 | `6583a84f8168d978e515cdaded94175d54402f71981a31e65b3f0de3b501b46b` |
+| **Universidades** | 280 | Universitaria | [`…-universitaria.json`](app/data/2026-08-27_zgzapi_equipamiento-universitaria.json) | 14 | `cd6048ee69f86409e87c062541d669636b88d6b1e3ec7a5e91972351434c1699` |
+| | 2300 | Colegios mayores | [`…-colegios-mayores.json`](app/data/2026-08-27_zgzapi_equipamiento-colegios-mayores.json) | 8 | `60d8495fc891393500776136fd05884fbab94bc8fe24400f375796dea4619402` |
+| | 2280 | Residencias de Estudiantes | [`…-residencias-estudiantes.json`](app/data/2026-08-27_zgzapi_equipamiento-residencias-estudiantes.json) | 7 | `cd1087823a64f518d02dca6bc7522638fd87e62346f4e8ce7961925a6e892579` |
+
+**Y las tres cuentas, que no se deducen de la tabla porque hay que quitar repetidos:**
+
+```
+Colegios e Institutos   514 filas (141+138+104+7+56+49+19)
+                      − 234 repetidos   ← el mismo colegio fichado en varias etapas
+                      −  19 excluidos   ← ver el reparto de abajo
+                      = 261 distintos · 251 con coordenada · 10 sin
+
+Guarderías               65 filas − 1 excluido  =  64 · las 64 con coordenada
+Universidades            29 filas − 0 excluidos =  29 ·  28 con coordenada · 1 sin
+```
+
+Los **234 repetidos** son la partición de OSM funcionando: un centro que hace infantil, primaria y
+secundaria está fichado en las tres categorías municipales y aquí es **un colegio**, no tres.
+
+⚠️ Dos de las siete fuentes de Colegios —**62 «Educación Primaria»** y **2060 «Bachillerato»**— no
+aportan **ni un id exclusivo**: todo lo suyo entra ya por otra. Se declaran como fuente igualmente
+porque **aportan confirmación**, y porque el día que el Ayuntamiento fiche un colegio solo en una
+de ellas, entrará sin que nadie tenga que darse cuenta.
+
+#### ⭐ Las CUATRO decisiones de reparto, firmadas por Antonio el 25/08
+
+Las cuatro salieron de mirar el dato **antes** de descargarlo, y las cuatro se llevaron a la mesa
+porque el motor no debía resolverlas solo.
+
+**1 · La categoría 660 «Centros Educativos» queda FUERA.** Es un paraguas de 213 registros, y
+medido: **no aporta ni un centro escolar** que no venga ya por su etapa. Sus 29 exclusivos son
+13 facultades —que van a Universidades— y **16 que pertenecen a tags propios que esta tanda no
+trae**: cuatro conservatorios y tres escuelas municipales de música, danza y teatro
+(`amenity=music_school`), la E.O.I. Nº1 Extensión (`amenity=language_school`), los cuatro
+C.P.E.P.A. de adultos (`education=centre`), la Escuela Municipal de Jardinería El Pinar, la
+Universidad Popular, el «Aula Bosque del CEIP Valdespartera» —que es un aula y no un centro, y
+viola la regla de un-solo-elemento-por-colegio— y la empresa «Arqueología y Didáctica».
+
+**2 · Las 13 facultades, SOLO en Universidades.** `amenity=university` es el campus terciario y
+`school` es de 6 a 18. Entraban dos veces porque estaban en la 660 y en la 280; con la 660 fuera,
+el solape muere solo.
+
+**3 · Las cuatro escuelas infantiles del doble fichaje.** El municipio ficha cuatro registros a la
+vez en «Educación Infantil» (61) y en «Escuela Infantil» (460). Tres van a **Guarderías** —el
+4886, el 8566 y el 28948—, porque `kindergarten` es el tag del preescolar. El cuarto, el **8592
+«Col. Virgen de Guadalupe»**, es un colegio completo (infantil + primaria) y va a **Colegios e
+Institutos**, una sola vez.
+
+**4 · De los 19 de «Educación Especial», entran TRES.** Los colegios de necesidades especiales son
+`amenity=school`: el 2713 «C.E.E. Alborada», el 30195 «C.E.E. María Soriano» —que **no trae
+coordenada**, así que se cuenta y no se sugiere, regla B— y el 13944 «Col. San Germán (Aspace)».
+Los otros diez exclusivos quedan fuera con motivo: son **servicios sociosanitarios** —tres centros
+de día, seis fundaciones de atención a la discapacidad y el «Hospital de Día Infanto Juvenil
+Miguel Servet», que además ya vive en la categoría hospital—, y en la taxonomía son
+`social_facility` y `healthcare`, no centros de enseñanza.
+
+> ⚠️ **Y quedan TRES C.E.E. a la espera de decisión**, dicho aquí para que no se pierda: el **9609
+> (Jean Piaget)**, el **608 (Rincón de Goya)** y el **2715 (Ángel Rivière)**. Cuando se firmó la
+> lista de tres entraban por la categoría 660 —así que no aparecían como exclusivos de la 64— y la
+> misma firma sacó el 660. Son colegios como los otros tres. Añadirlos es escribir tres líneas en
+> `motor/src/sitios.ts`; hoy **no están**, y por eso los colegios son 261 y no 264.
+
+**Las consultas EXACTAS, que es lo único que hace esto reproducible:**
+
+```
+for id in 61 62 63 2060 2061 680 64 460 280 2300 2280; do
+  curl "https://www.zaragoza.es/sede/servicio/equipamiento/category/$id.json?srsname=wgs84&start=0&rows=3000"
+done
+```
+
+⚠️ **`srsname=wgs84` en minúsculas**, la trampa del 18/08: con `EPSG:4326` llega UTM 25830 y el
+parámetro **se ignora en silencio**. Está medida en § 1.16. Comprobado aquí sobre lo descargado:
+lon entre **−1,03516 y −0,78868**, lat entre **41,58676 y 41,72097** — grados, no metros.
+
+#### ⚠️ Estos ficheros NO se pueden volver a descargar idénticos, y no es culpa nuestra
+
+El ritual pide cada fichero **dos veces** y comparar. Aquí la comparación **falla en 7 de los 11**,
+y se investigó antes de escribir esta ficha:
+
+```
+identicas al BYTE ........................  4 de 11
+identicas como JSON ......................  4 de 11
+identicas ordenando el array `type` ...... 11 de 11
+```
+
+Lo único que se mueve es **el orden de las URLs dentro del array `type`** de cada registro: mismos
+ids, mismos valores, distinta permutación. El tamaño en bytes ni siquiera cambia. Dos peticiones
+seguidas sí salen iguales; entre una descarga y otra un rato después, no.
+
+Así que **el contenido es reproducible y el fichero no**, y las dos cosas se dicen. No afecta a
+nada de aquí dentro: el motor no lee `type`, y la prueba del manifiesto compara el `sha256` contra
+**el fichero en disco**, que no se mueve. Lo que deja de valer es la promesa de «descárgalo otra
+vez y te sale el mismo byte», que sí valía en § 1.19.
+
+#### ⭐ La regla del `Last-Modified` de esta API, por fin demostrada
+
+§ 1.18 sospechaba y § 1.19 confirmó que **dos categorías compartían fecha al segundo**. Con las 43
+categorías de la familia Educación delante se puede decir qué pasa, y no es una casualidad:
+
+```
+categorías con su registro más nuevo POSTERIOR al 2025-04-25 .... 26
+   de esas, Last-Modified coincide AL SEGUNDO con ese registro ... 26   (26 de 26)
+
+categorías con su registro más nuevo ANTERIOR .................... 14
+   de esas, devuelven «Fri, 25 Apr 2025 10:56:36 CEST» ........... 13
+categorías sin ningún `lastUpdated` ..............................  3
+   las tres devuelven esa misma fecha
+```
+
+**`Fri, 25 Apr 2025 10:56:36 CEST` es un SUELO del servidor**, no una fecha del dato: sale cuando
+nada se ha tocado desde entonces. La devuelven **dieciséis** categorías de esta familia, y también
+los hospitales (§ 1.18) y las bibliotecas especializadas (§ 1.19) — que es la tercera y la cuarta
+vez que aparece, y ahora se sabe por qué. La única excepción medida es la categoría 2140 «Espacio
+de formación», que devuelve una tercera fecha que tampoco describe a sus registros.
+
+Por eso aquí **nueve ficheros declaran `modified` y dos lo omiten**: `bachillerato` (2060) y
+`universitaria` (280) devuelven el suelo, y copiar una fecha de despliegue como fecha del dato
+sería inventar. Los otros nueve coinciden al segundo con su propio registro más reciente, cotejado
+uno a uno.
+
+⚠️ Y ahí sale otra pareja que **sí** es legítima: `educacion-infantil` (61) y `escuela-infantil`
+(460) declaran las dos `Tue, 26 May 2026 13:33:58 CEST`. No es el suelo — es que el registro más
+reciente de las dos categorías **es el mismo equipamiento**, fichado en ambas. Compartir fecha no
+es sospechoso por sí solo; lo sospechoso es compartirla sin que ningún registro la respalde.
+
+**Y ninguno declara `accrualPeriodicity`:** el Ayuntamiento no publica cada cuánto refresca estas
+categorías. En el panel salen **grises**, que es la verdad.
+
+#### 🔒 Los títulos: cero nombres de persona, verificado sobre los 354
+
+Igual que en sanidad y bibliotecas, y al revés que en farmacias (§ 1.16), aquí el título es
+**institucional** y se lee: es el nombre del centro y es lo que alguien teclea. «C.E.I.P. María
+Moliner» es el nombre del colegio, no su titular — el mismo caso que Miguel Servet o Lozano Blesa.
+
+Verificado antes de publicarlos, sobre los 354 que entran:
+
+- **6 con el patrón «Apellido, Nombre»** —el que dispara en farmacias— y **los seis son empresas**:
+  `Aneto, Sociedad Cooperativa Limitada` · `Ceserpi, SL` · `Emaragón, SL` · `Minueval, SL` ·
+  `Performance, SL` · `Umbela, SCDAD. COOP. LTDA.` La coma es de la forma jurídica, no de un
+  apellido. Son las empresas de FP dual: persona jurídica, y se leen.
+- **4 sin ninguna palabra ni sigla institucional**, y ninguno es una persona: `Condes de Aragón
+  (FP)` · `ETOPIA - Zaragoza Activa` · `Stylepack` · `Xior Zaragoza`.
+- **354 títulos distintos de 354**, y ninguno vacío.
+
+> ⚠️ **El contador de esta verificación falló dos veces antes de dar la cifra buena**, y se anota
+> por lo mismo que el «Cáritas» de § 1.19: sin las siglas punteadas en su lista —`C.E.I.P.`,
+> `I.E.S.`, `C.P.I.`, `C.E.E.`, `C.P.E.P.A.`, `E.O.I.`, `Col.`, `G.I.`— daba **325 falsos
+> positivos** sobre los mismos datos. Una verificación que se cree a la primera no es una
+> verificación.
+
+**Y esas mismas siglas obligaron a tocar el buscador.** El troceador parte por lo que no es letra
+ni número, así que «C.E.I.P. María Moliner» se troceaba en `c`, `e`, `i`, `p`, `maria`,
+`moliner` — y **escribir «ceip moliner» no encontraba nada**. Como la sigla *es* el nombre de un
+colegio, la categoría entera habría nacido inencontrable. Ahora lo buscable lleva **las dos
+formas**: la punteada del dato y la sigla entera (`conSiglasEnteras`, en `motor/src/sitios.ts`).
+
+#### La validación espacial: colegios y guarderías CHICOS, universidades RECINTO
+
+Firmado el 25/08 y aplicado: colegios y guarderías pasan **frontera y distancia** —un colegio
+tiene una puerta y su dirección es esa puerta—, y universidades solo **frontera**, como hospitales
+y bibliotecas: un campus tiene varias entradas y sus facultades están repartidas por dentro. Es el
+precedente firmado del Miguel Servet (24/08).
+
+**Ninguno de los 354 cae fuera del término municipal**: cero inválidas, y la lista de confirmación
+manual sigue vacía.
+
+> ⚠️⚠️ **Pero el cheque de distancia está EN DISPUTA desde el 27/08, y afecta a lo ya publicado.**
+> Los colegios disparan **19 rescates** y las guarderías 1, y al mirarlos uno a uno salió que
+> **22 de los 29 rescates de toda la casa mueven coordenadas que ya estaban a ≤50 m de un portal
+> de verdad**. El peor: el **C.E.I.P. Andrés Oliván** se va **7.666 m** desde San Juan de
+> Mozarrifar —donde su coordenada estaba a 11 m de «CALLE DOCTOR PALOMAR ---SJN 22», su portal—
+> hasta la calle homónima de la ciudad. Está abierto en [`docs/BITACORA.md`](docs/BITACORA.md)
+> (27/08) y **pendiente de decisión**: lo que hay escrito hoy es lo que el motor hace, no lo que
+> se ha decidido que haga.
+
+---
+
+### 1.21 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un

@@ -681,6 +681,290 @@
       ],
       "descargadoEl": "2026-08-25T15:50:22Z",
       "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST y el lastUpdated de sus dos registros es 2023-09-26T14:48:29 — DIECINUEVE MESES antes. Y es LA MISMA cabecera, al segundo, que devuelve la categoria 780 de hospitales: una fecha que dos categorias distintas comparten no describe a ninguna de las dos. Se omite en vez de copiarla"
+    },
+    {
+      "name": "educacion-infantil",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-educacion-infantil.json",
+      "title": "Educacion Infantil (141) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 152344,
+      "hash": "sha256:985eee846a92377cfd368bc227d98129ce08049dcc623b497914088806466fb0",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 61, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/61.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:39Z",
+      "modified": "2026-05-26T13:33:58+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 140 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "educacion-primaria",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-educacion-primaria.json",
+      "title": "Educacion Primaria (138) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 145658,
+      "hash": "sha256:a4783cbc798084c3500bdbb9288bf6f2fb9688b54355455f8559ea890bd8f3bd",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 62, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/62.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:40Z",
+      "modified": "2026-01-28T09:29:05+01:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 137 registros que lo traen (2026-01-28T09:29:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "educacion-secundaria",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-educacion-secundaria.json",
+      "title": "Educacion Secundaria (104) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 110824,
+      "hash": "sha256:0423270c853d0989f8896708b46a1c3f4e02de22d30a3be3f935dbbcd57f2218",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 63, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/63.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:40Z",
+      "modified": "2026-06-23T11:00:54+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 103 registros que lo traen (2026-06-23T11:00:54) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "bachillerato",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-bachillerato.json",
+      "title": "Bachillerato (7) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 7597,
+      "hash": "sha256:080e51f8bae292a735b9ebdb579ee7abe1011da1ab1a00f173c08c2e358af926",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 2060, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2060.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:41Z",
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla"
+    },
+    {
+      "name": "ciclos-formativos",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-ciclos-formativos.json",
+      "title": "Ciclos Formativos (56) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 46258,
+      "hash": "sha256:8dcafa1fb3cb2855ec1e88c2cfc88b4bad0fec6764cf8a44f3497d96c7c62383",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 2061, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2061.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:41Z",
+      "modified": "2025-09-02T14:46:25+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 56 registros que lo traen (2025-09-02T14:46:25) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "formacion-profesional",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-formacion-profesional.json",
+      "title": "Formacion Profesional (49) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 54845,
+      "hash": "sha256:bb9877b4596dc663434cd833c9f0edbf95174ec48000efb818dc1fa3602bbf2b",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 680, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/680.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:41Z",
+      "modified": "2026-06-23T10:47:16+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 48 registros que lo traen (2026-06-23T10:47:16) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "educacion-especial",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-educacion-especial.json",
+      "title": "Educacion Especial (19, de los que entran 3) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 13549,
+      "hash": "sha256:1570c9bc0333d92820ac69ada7aa7f566ef87a88cb9d4fba48b5b17f60512725",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 64, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/64.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:41Z",
+      "modified": "2026-04-13T15:57:05+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 19 registros que lo traen (2026-04-13T15:57:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "escuela-infantil",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-escuela-infantil.json",
+      "title": "Escuela Infantil (65) — una de las categorias municipales que componen «Guarderias» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 118570,
+      "hash": "sha256:6583a84f8168d978e515cdaded94175d54402f71981a31e65b3f0de3b501b46b",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 460, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/460.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:42Z",
+      "modified": "2026-05-26T13:33:58+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 65 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "universitaria",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-universitaria.json",
+      "title": "Universitaria (14) — una de las categorias municipales que componen «Universidades» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 14739,
+      "hash": "sha256:cd6048ee69f86409e87c062541d669636b88d6b1e3ec7a5e91972351434c1699",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 280, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/280.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:42Z",
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla"
+    },
+    {
+      "name": "colegios-mayores",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-colegios-mayores.json",
+      "title": "Colegios mayores (8) — una de las categorias municipales que componen «Universidades» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 6156,
+      "hash": "sha256:60d8495fc891393500776136fd05884fbab94bc8fe24400f375796dea4619402",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 2300, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2300.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:42Z",
+      "modified": "2025-09-15T12:01:05+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 8 registros que lo traen (2025-09-15T12:01:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "residencias-estudiantes",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-residencias-estudiantes.json",
+      "title": "Residencias de Estudiantes (7) — una de las categorias municipales que componen «Universidades» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 6453,
+      "hash": "sha256:cd1087823a64f518d02dca6bc7522638fd87e62346f4e8ce7961925a6e892579",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 2280, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2280.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:43Z",
+      "modified": "2025-09-15T12:27:31+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 7 registros que lo traen (2025-09-15T12:27:31) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
     }
   ]
 }

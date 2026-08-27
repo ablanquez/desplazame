@@ -1,0 +1,16 @@
+GET https://www.zaragoza.es/sede/servicio/equipamiento/category/64.json?srsname=wgs84&start=0&rows=3000
+HTTP 200
+Date: Thu, 27 Aug 2026 06:31:41 GMT
+Server: Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9
+Content-Length: 13549
+Last-Modified: Mon, 13 Apr 2026 15:57:05 CEST
+Access-Control-Allow-Methods: PATCH,OPTIONS,GET,HEAD,POST,PUT,DELETE
+Access-Control-Allow-Headers: Content-Type,Accept,X-password,clientId,HmacSHA1,Cache-Control,Pragma
+Allow: PATCH,OPTIONS,GET,HEAD,POST,PUT,DELETE
+[Set-Cookie omitido: identificador de sesion, se filtra por norma]
+X-Robots-Tag: noindex
+Access-Control-Allow-Origin: *
+X-UA-Compatible: IE=edge
+Connection: close
+Content-Type: application/json;charset=UTF-8
+[Set-Cookie omitido: identificador de sesion, se filtra por norma]
