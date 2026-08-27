@@ -598,7 +598,7 @@ tiene de particular:
 | 🔴 | el conjunto declara una fecha de caducidad y ya pasó | — |
 | 🟡 | se refresca cada X en origen y nuestra copia es más vieja | — |
 | 🟢 | hay regla con fuente y se cumple | el GTFS: «vale hasta el 2026-10-05» |
-| ⚪ | **NO CONSTA** | 31 de los 37 conjuntos |
+| ⚪ | **NO CONSTA** | 33 de los 37 conjuntos |
 
 ⭐ **El gris no es un fallo del panel: es la verdad, y la lista de deberes.** Un color solo se
 pinta si detrás hay una regla **publicada por alguien** — el `feed_end_date` del GTFS lo dice su
