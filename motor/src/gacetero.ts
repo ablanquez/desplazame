@@ -195,10 +195,36 @@ export function cargarGacetero(
   const viasPorNombre = new Map<string, string[]>();
   const nombresPorPrimeraPalabra = new Map<string, string[]>();
   const nombreDeVia = new Map<string, string>();
-  // Solo las vías CON portal, que son las que el callejero indexa. Una vía sin
-  // portales no puede dar una coordenada, así que no es candidata ni sirve para
-  // hacer ambigua a otra.
+  /**
+   * ⚠️ **Solo las vías CON portal**, y desde el 27/08 eso hay que filtrarlo a
+   * mano: `sugeribles` ya no significa «con portal» — incluye las 619 que se
+   * resuelven por su punto medio.
+   *
+   * El motivo de excluirlas no ha cambiado y es el de siempre: una vía sin
+   * portales **no puede dar una coordenada de portal**, así que no es candidata.
+   * Lo que este filtro protege es lo SEGUNDO que decía la línea de antes —**ni
+   * sirve para hacer ambigua a otra**—, y ahí sí habría cambio: de los 617
+   * nombres que traen las 619, **44 chocan con un nombre que ya tiene portal y
+   * 36 rompen una clave que hoy es ÚNICA**. PLAZA LOS SITIOS y PUENTE LOS
+   * SITIOS. CALLE DELICIAS y PARQUE DELICIAS. AVENIDA CÉSAR AUGUSTO y PLAZA
+   * CÉSAR AUGUSTO. Con esas 36 dejando de ser únicas, el escalón 4 de
+   * `portalDeLaDireccion` —«si ninguna candidata supera la guarda, se cae a la
+   * clave exacta ÚNICA»— dejaría de encontrar una única, y ese escalón es lo
+   * que sostiene los cuatro rescates del desvío del datum.
+   *
+   * ⚠️ **Medido, y hay que decirlo entero: HOY no cambia ni un rescate.** Con
+   * filtro y sin él salen los mismos 16, uno a uno y con los mismos metros —
+   * ninguna de las 386 direcciones de equipamientos nombra una de esas 36 por un
+   * camino que llegue al escalón 4. Así que esto no arregla un fallo vivo: es
+   * una precaución, y se declara como tal. Lo que la justifica es que la rotura
+   * que evita no se vería —compila, no lanza, y el único síntoma sería un
+   * número distinto en el log de arranque—, y que el dato de entrada cambia
+   * cada vez que entra una tanda de sitios nueva.
+   */
   for (const { via } of callejero.sugeribles) {
+    if (via.portales === 0) {
+      continue;
+    }
     nombreDeVia.set(via.codigo, via.limpio);
     const nombre = sinElTipo(paraComparar(via.limpio), TIPOS_DEL_CALLEJERO);
     const suyas = viasPorNombre.get(nombre);

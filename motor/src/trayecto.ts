@@ -48,14 +48,19 @@ function conAviso(modo: Modo, texto: string): Trayecto {
   return { modo, pasos: [], geometria: [], avisos: [{ texto }], metros: 0, segundos: 0 };
 }
 
+/** Cómo se nombra una vía: «CALLE BURGOS [CASETAS]». `null` si no se conoce. */
+function nombreDeLaVia(callejero: CallejeroEnMemoria, codigo: string): string | null {
+  const via = callejero.sugeribles.find((s) => s.via.codigo === codigo)?.via;
+  if (!via) {
+    return null;
+  }
+  return via.nucleo ? `${via.limpio} [${via.nucleo}]` : via.limpio;
+}
+
 /** Cómo se nombra una dirección municipal: «CALLE BURGOS [CASETAS] 4». */
 function comoSeLee(callejero: CallejeroEnMemoria, portal: PortalSituado): string {
-  const via = callejero.sugeribles.find((s) => s.via.codigo === portal.via)?.via;
-  if (!via) {
-    return portal.numero;
-  }
-  const nombre = via.nucleo ? `${via.limpio} [${via.nucleo}]` : via.limpio;
-  return `${nombre} ${portal.numero}`;
+  const nombre = nombreDeLaVia(callejero, portal.via);
+  return nombre ? `${nombre} ${portal.numero}` : portal.numero;
 }
 
 /** Lo que hace falta tener cargado para poder contestar. */
@@ -85,22 +90,65 @@ interface Extremo {
   readonly nombre: string;
 }
 
-/** Busca un portal y comprueba que de verdad es de la vía que dicen. */
-function resolverPortal(motor: Motor, punto: ExtremoPortal): PortalSituado | Aviso {
+/**
+ * ⭐ Resuelve un extremo dado por DIRECCIÓN, que desde el 27/08 son dos casos.
+ *
+ * ── El caso de siempre ──────────────────────────────────────────────────────
+ * `portal` es un código del censo (`Portales.104742`): se busca, se comprueba
+ * que de verdad es de la vía que dicen, y ese es el punto.
+ *
+ * ── ⭐ Y LA VÍA SIN PORTAL, sin tocar el contrato ───────────────────────────
+ * Las 619 vías que se resuelven por su punto medio **no tienen ningún código de
+ * portal que mandar**, porque no tienen ninguna puerta que nombrar. Y el
+ * contrato pide dos códigos, no uno.
+ *
+ * La salida es decir en voz alta lo que ya es verdad: **el punto de esa vía se
+ * identifica con el código de la vía**, así que viaja el mismo código en las
+ * dos casillas — `{ via: '23125', portal: '23125' }` es el PUENTE DE PIEDRA.
+ * No se inventa un código nuevo, no se hace opcional un campo, y la pantalla no
+ * compone nada: manda dos veces el único código que le dieron.
+ *
+ * Y no es una convención suelta de este sitio: es exactamente lo que el motor
+ * ya hace con `foco`, donde un código puede ser un portal, un sitio o —desde
+ * hoy— una vía, y quien lo convierte en un punto es siempre el motor. **El
+ * mismo código resuelve al mismo punto viaje por donde viaje**, que es la
+ * propiedad que hace que esto no sea un truco.
+ *
+ * La comprobación cruzada del contrato sigue viva y sigue distinguiendo los tres
+ * casos: un portal que no es de su vía, un punto de vía puesto en la vía
+ * equivocada, y un código que no conocemos.
+ */
+function resolverDireccion(motor: Motor, punto: ExtremoPortal): Extremo | Aviso {
   const portal = motor.portales.donde.get(punto.portal);
-  if (!portal) {
-    return { texto: `No conocemos ningún portal con el código ${punto.portal}.` };
+  if (portal) {
+    if (portal.via !== punto.via) {
+      return {
+        texto: `El portal ${punto.portal} no es de la vía ${punto.via}: es de la ${portal.via}.`,
+      };
+    }
+    return { lon: portal.lon, lat: portal.lat, nombre: comoSeLee(motor.callejero, portal) };
   }
-  if (portal.via !== punto.via) {
+
+  const medio = motor.callejero.puntoDeVia.get(punto.portal);
+  if (medio) {
+    if (punto.portal !== punto.via) {
+      return {
+        texto:
+          `El punto de la vía ${punto.portal} no es de la vía ${punto.via}: ` +
+          'una vía sin portales viaja con su propio código en las dos casillas.',
+      };
+    }
+    // Sin número: no hay ninguno que decir, y ponerle uno sería inventarlo. El
+    // paso de salida dirá «PUENTE DE PIEDRA», que es toda la dirección que hay.
     return {
-      texto: `El portal ${punto.portal} no es de la vía ${punto.via}: es de la ${portal.via}.`,
+      lon: medio.lon,
+      lat: medio.lat,
+      nombre: nombreDeLaVia(motor.callejero, punto.via) ?? punto.via,
     };
   }
-  return portal;
-}
 
-const esAviso = (x: PortalSituado | Aviso): x is Aviso =>
-  (x as Aviso).texto !== undefined && (x as PortalSituado).codigo === undefined;
+  return { texto: `No conocemos ningún portal con el código ${punto.portal}.` };
+}
 
 /**
  * ⭐ Resuelve un extremo, sea de la clase que sea.
@@ -121,11 +169,7 @@ function resolverExtremo(motor: Motor, extremo: ExtremoDeRuta): Extremo | Aviso 
     // persona titular en 274 de las 313 farmacias. Ver § 1.16 del notices.
     return { lon: sitio.lon, lat: sitio.lat, nombre: sitio.presentacion };
   }
-  const portal = resolverPortal(motor, extremo);
-  if (esAviso(portal)) {
-    return portal;
-  }
-  return { lon: portal.lon, lat: portal.lat, nombre: comoSeLee(motor.callejero, portal) };
+  return resolverDireccion(motor, extremo);
 }
 
 const esAvisoExtremo = (x: Extremo | Aviso): x is Aviso =>

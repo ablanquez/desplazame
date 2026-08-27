@@ -86,8 +86,20 @@
         El patrón de GOV.UK pide que lo revelado sea **un solo campo**, y lo es.
         La regla del portal condicional (19/08) queda absorbida por esto: no
         hace falta apagar lo que no está.
+
+        ⭐ Y desde el 27/08 la condición tiene DOS mitades, no una. Con
+        Dirección la casilla existe **salvo que la calle elegida no tenga
+        portales**: las 619 que se resuelven por el punto medio de su geometría
+        —el PUENTE DE PIEDRA, la PLAZA CÉSAR AUGUSTO, el PARQUE JOSÉ ANTONIO
+        LABORDETA— no tienen ni una puerta que ofrecer, y un desplegable vacío
+        pidiendo un número que no existe es peor que no tener casilla.
+
+        Es el mismo patrón y el mismo argumento que con los sitios: **la
+        AUSENCIA del campo, no el campo apagado**. Y por eso la ausencia se lee
+        del dato —`Via.portales`, contado por el motor— y no de una lista de
+        nombres escrita aquí.
       -->
-      @if (origen.tipo() === 'via') {
+      @if (origen.tipo() === 'via' && pideNumero(origen)) {
         <app-selector-portal
           campo="portalOrigen"
           etiqueta="Nº"
@@ -196,8 +208,20 @@
         El patrón de GOV.UK pide que lo revelado sea **un solo campo**, y lo es.
         La regla del portal condicional (19/08) queda absorbida por esto: no
         hace falta apagar lo que no está.
+
+        ⭐ Y desde el 27/08 la condición tiene DOS mitades, no una. Con
+        Dirección la casilla existe **salvo que la calle elegida no tenga
+        portales**: las 619 que se resuelven por el punto medio de su geometría
+        —el PUENTE DE PIEDRA, la PLAZA CÉSAR AUGUSTO, el PARQUE JOSÉ ANTONIO
+        LABORDETA— no tienen ni una puerta que ofrecer, y un desplegable vacío
+        pidiendo un número que no existe es peor que no tener casilla.
+
+        Es el mismo patrón y el mismo argumento que con los sitios: **la
+        AUSENCIA del campo, no el campo apagado**. Y por eso la ausencia se lee
+        del dato —`Via.portales`, contado por el motor— y no de una lista de
+        nombres escrita aquí.
       -->
-      @if (destino.tipo() === 'via') {
+      @if (destino.tipo() === 'via' && pideNumero(destino)) {
         <app-selector-portal
           campo="portalDestino"
           etiqueta="Nº"

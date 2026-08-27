@@ -71,6 +71,24 @@ const GOYA: Via = {
   portales: 120,
 };
 
+/**
+ * ⭐ Y UNA VÍA SIN NINGÚN PORTAL (27/08).
+ *
+ * El PUENTE DE PIEDRA es el caso real y el que lo explica solo: el puente más
+ * conocido de la ciudad, **cero portales** —un puente no tiene puertas— y por
+ * eso invisible para el buscador desde que existe. Desde hoy el motor lo
+ * resuelve por el punto medio de su geometría, y lo que aquí se comprueba es lo
+ * que la PANTALLA hace con un `portales: 0`.
+ */
+const PUENTE: Via = {
+  codigo: '23125',
+  nombre: 'PUENTE DE PIEDRA',
+  limpio: 'PUENTE DE PIEDRA',
+  nucleo: null,
+  tipo: 'PT',
+  portales: 0,
+};
+
 /** Los portales que sirve el motor fingido para cada una. */
 const PORTALES_BURGOS: readonly Portal[] = [
   { codigo: 'Portales.5140a', numero: '2' },
@@ -260,7 +278,13 @@ async function elegirCalle(
   nombre: string,
   escrito: string,
   via: Via,
-  portales: readonly Portal[],
+  /**
+   * Los portales que el motor sirve para esa vía — o **`null` si la vía no
+   * tiene ninguno** (27/08). No es lo mismo que una lista vacía: con `null` la
+   * casilla del Nº **no llega a existir**, así que nadie pide `/api/portales` y
+   * esperarla colgaría la prueba.
+   */
+  portales: readonly Portal[] | null,
 ): Promise<void> {
   const raiz = fixture.nativeElement as HTMLElement;
   const campo = raiz.querySelector<HTMLInputElement>(`input[name="${nombre}"]`)!;
@@ -317,8 +341,15 @@ async function elegirCalle(
     cap.flush([]);
   }
 
-  // Y fijar la calle despierta a SU selector de portales, que pide los suyos.
-  http.expectOne(`/api/portales?via=${via.codigo}`).flush(portales);
+  // Y fijar la calle despierta a SU selector de portales, que pide los suyos —
+  // salvo que no haya casilla que despertar, que es el caso de las vías sin
+  // portal. Ahí lo que se comprueba es que NADIE pregunte: `verify()` no cubre
+  // este hueco, porque una petición que no se hace no deja rastro.
+  if (portales) {
+    http.expectOne(`/api/portales?via=${via.codigo}`).flush(portales);
+  } else {
+    expect(http.match((r) => r.url.startsWith('/api/portales'))).toEqual([]);
+  }
   await asentar(fixture, http);
 }
 
@@ -1317,5 +1348,136 @@ describe('Buscador', () => {
     expect(avisoUbicacion(raiz)).toContain('No hemos podido situarte');
     expect(valor(raiz, 'calleOrigen')).toBe('');
     expect(botonGenerar(raiz).disabled).toBe(true);
+  });
+
+  // ── ⭐ LAS VÍAS SIN PORTAL (27/08) ────────────────────────────────────────
+
+  it('⭐ una vía SIN PORTALES no enseña la casilla del Nº: no está, no está apagada', async () => {
+    // [DOC GOV.UK: conditional reveal] Es el mismo patrón que ya rige para los
+    // sitios, y el mismo argumento: un campo deshabilitado sigue en la página,
+    // ocupa su hueco y se lee como «esto habría que rellenarlo». Al PUENTE DE
+    // PIEDRA no hay número que pedirle.
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // Antes de elegir nada la casilla SÍ está —apagada, diciendo «Elige antes
+    // la calle»—, y eso no cambia: quitarla mientras se escribe haría
+    // desaparecer media pantalla a cada tecla.
+    expect(raiz.querySelector('input[name="portalOrigen"]')).not.toBeNull();
+
+    await elegirCalle(fixture, http, 'calleOrigen', 'puente', PUENTE, null);
+
+    expect(raiz.querySelector('input[name="portalOrigen"]')).toBeNull();
+    // Y el otro lado, que no ha elegido nada, conserva la suya: la regla es del
+    // lado que eligió, no de la pantalla entera.
+    expect(raiz.querySelector('input[name="portalDestino"]')).not.toBeNull();
+  });
+
+  it('⭐ «Generar ruta» queda legal con la vía sola, y viaja SU CÓDIGO en las dos casillas', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await elegirCalle(fixture, http, 'calleOrigen', 'puente', PUENTE, null);
+    // Con un solo lado todavía no: la regla de los dos extremos no se afloja.
+    expect(botonGenerar(raiz).disabled).toBe(true);
+
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await elegirPortal(fixture, http, 'portalDestino', '45');
+    await asentar(fixture, http);
+
+    expect(botonGenerar(raiz).disabled).toBe(false);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    // ⭐ EL CUERPO, que es lo que este encargo decide. El contrato no se ha
+    // movido —`PeticionDeRuta` sigue pidiendo `via` y `portal`— y la pantalla no
+    // compone ningún código: manda dos veces el único que le dieron al elegir de
+    // la lista.
+    const peticion = http.expectOne('/api/ruta');
+    expect(peticion.request.body).toEqual({
+      origen: { via: '23125', portal: '23125' },
+      destino: { via: '1900', portal: 'Portales.1900a' },
+      modo: 'andando',
+    });
+    peticion.flush(TRAYECTO);
+    await asentar(fixture, http);
+  });
+
+  it('⭐ la cabecera del resultado lee la vía sola, sin un número inventado', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await elegirCalle(fixture, http, 'calleOrigen', 'puente', PUENTE, null);
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await elegirPortal(fixture, http, 'portalDestino', '45');
+    await asentar(fixture, http);
+
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await asentar(fixture, http);
+
+    const origen = raiz.querySelector('.ruta__origen')!.textContent!.trim();
+    expect(origen).toContain('PUENTE DE PIEDRA');
+    // Y NO se le cuelga un número detrás: no hay ninguno que decir.
+    expect(/PUENTE DE PIEDRA\s+\d/.test(origen)).toBe(false);
+    expect(raiz.querySelector('.ruta__destino')!.textContent).toContain('AVENIDA GOYA 45');
+  });
+
+  it('⭐ una vía sin portal sirve de FOCO al otro campo, igual que un portal', async () => {
+    // Es lo que hace que esto no sea un caso aparte: un lado con el PUENTE DE
+    // PIEDRA elegido **está entero**, no a medias, así que ordena la lista del
+    // campo contrario como lo haría cualquier extremo resuelto.
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await elegirCalle(fixture, http, 'calleOrigen', 'puente', PUENTE, null);
+
+    escribir(raiz, 'calleDestino', 'goya');
+    fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 300));
+    fixture.detectChanges();
+
+    const pedidas = http.match((r) => r.url.startsWith('/api/vias?q=goya'));
+    expect(pedidas.length).toBe(1);
+    expect(pedidas[0]!.request.url).toContain('foco=23125');
+    pedidas[0]!.flush([GOYA]);
+    await asentar(fixture, http);
+  });
+
+  it('⭐ el ⇅ la cruza como a cualquiera: el hueco del Nº se va con ella', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await elegirCalle(fixture, http, 'calleOrigen', 'puente', PUENTE, null);
+    await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
+    await elegirPortal(fixture, http, 'portalDestino', '45');
+    await asentar(fixture, http);
+
+    expect(raiz.querySelector('input[name="portalOrigen"]')).toBeNull();
+    expect(valor(raiz, 'portalDestino')).toBe('45');
+
+    botonInvertir(raiz).click();
+    fixture.detectChanges();
+
+    // El hueco viaja con su lado: ahora el que no tiene número es el destino.
+    expect(raiz.querySelector('input[name="portalDestino"]')).toBeNull();
+    expect(valor(raiz, 'calleDestino')).toBe('PUENTE DE PIEDRA');
+    expect(valor(raiz, 'calleOrigen')).toBe('AVENIDA GOYA');
+    // Y el portal de la que sí lo tiene cruza con ella, sin perderse.
+    expect(valor(raiz, 'portalOrigen')).toBe('45');
+    // El botón sigue legal: invertir no rompe lo que ya estaba entero.
+    expect(botonGenerar(raiz).disabled).toBe(false);
+
+    // Al invertir, el selector de portales del ORIGEN nace y pide los suyos.
+    for (const p of http.match((r) => r.url.startsWith('/api/portales'))) {
+      p.flush(PORTALES_GOYA);
+    }
+    await asentar(fixture, http);
   });
 });

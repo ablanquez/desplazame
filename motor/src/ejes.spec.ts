@@ -19,6 +19,8 @@ import {
   casar,
   indexar,
   heredarNombres,
+  puntoMedioDe,
+  puntosMediosDeVia,
   COBERTURA_MINIMA,
   PASO_DE_MUESTREO_M,
   RADIO_M,
@@ -272,5 +274,70 @@ describe('El cruce contra el grafo entero', () => {
     for (const [way, nombre] of red.nombreHeredado) {
       assert.equal(otra.nombreHeredado.get(way), nombre);
     }
+  });
+});
+
+describe('El punto medio de una vía — el punto de las que no tienen portal', () => {
+  test('⭐ está a MITAD DE RECORRIDO, no en el vértice del medio', () => {
+    /**
+     * La calle del banco sintético: **100 m rectos**, pero descritos con cuatro
+     * vértices repartidos a lo bruto — 0, 10, 20 y 100. Es el dibujo típico de
+     * una curva detallada seguida de una recta larga.
+     *
+     * · El vértice del medio está en el **15**.
+     * · La media de los cuatro vértices cae en el **32,5**.
+     * · La mitad del RECORRIDO está en el **50**, y es la única que significa
+     *   algo: es el punto que parte la calle en dos mitades andables.
+     *
+     * Los tres son distintos a propósito. Con una calle de vértices regulares
+     * los tres coincidirían y esta prueba no comprobaría nada.
+     */
+    const medio = puntoMedioDe([[punto(0, 0), punto(10, 0), punto(20, 0), punto(100, 0)]])!;
+    assert.ok(medio, 'no ha dado punto');
+    const metros = (medio.lon - -0.88) / GRADO_LON;
+    assert.ok(Math.abs(metros - 50) < 0.5, `cae en el metro ${metros.toFixed(1)}, no en el 50`);
+  });
+
+  test('⭐ y con VARIAS PARTES se recorren como si fueran una sola', () => {
+    // 113 de las 619 son multilínea. Dos tramos de 40 m separados por un hueco:
+    // la mitad del recorrido son 40 m, que es el final del primero.
+    const medio = puntoMedioDe([
+      [punto(0, 0), punto(40, 0)],
+      [punto(200, 0), punto(240, 0)],
+    ])!;
+    const metros = (medio.lon - -0.88) / GRADO_LON;
+    assert.ok(Math.abs(metros - 40) < 0.5, `cae en el metro ${metros.toFixed(1)}, no en el 40`);
+  });
+
+  test('⭐ el punto SIEMPRE cae sobre la línea, incluso en una vía en «L»', () => {
+    // Es la propiedad que descarta el centro del rectángulo que la contiene:
+    // en una «L» ese centro cae en el hueco, en la manzana de al lado. Aquí la
+    // «L» son 100 m al este y 100 al norte, y su mitad es la esquina.
+    const medio = puntoMedioDe([[punto(0, 0), punto(100, 0), punto(100, 100)]])!;
+    const este = (medio.lon - -0.88) / GRADO_LON;
+    const norte = (medio.lat - 41.65) / GRADO_LAT;
+    assert.ok(Math.abs(este - 100) < 0.5 && Math.abs(norte - 0) < 0.5, `(${este}, ${norte})`);
+  });
+
+  test('sin geometría NO se inventa un punto: NO CONSTA', () => {
+    assert.equal(puntoMedioDe([]), null);
+    assert.equal(puntoMedioDe([[]]), null);
+    // Un solo vértice no es una línea: no hay recorrido que partir por la
+    // mitad. Devolverlo sería inventarse que la vía está ahí.
+    assert.equal(puntoMedioDe([[punto(0, 0)]]), null);
+    // Y una línea de largo cero tampoco: los dos vértices son el mismo punto.
+    assert.equal(puntoMedioDe([[punto(0, 0), punto(0, 0)]]), null);
+  });
+
+  test('⭐ sobre la capa REAL: 3.359 entradas y 18 sin punto, las de § 1.15', () => {
+    const puntos = puntosMediosDeVia();
+    // Hay una entrada por vía de la capa AUNQUE no tenga punto: es lo que deja
+    // distinguir «no está en la capa» de «está y viene vacía».
+    assert.equal(puntos.size, 3359);
+    const sinPunto = [...puntos.values()].filter((p) => p === null).length;
+    // Las 18 `DISEMINADO DISEMINADO <núcleo>`, que llegan con `coordinates: []`
+    // y son coherentes: un diseminado no es una calle y no tiene eje que
+    // dibujar. Está contado en la ficha § 1.15.
+    assert.equal(sinPunto, 18);
   });
 });

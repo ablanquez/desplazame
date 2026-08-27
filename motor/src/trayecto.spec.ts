@@ -12,11 +12,12 @@ import { cargarGrafo } from './grafo.ts';
 import { cargarRed } from './red.ts';
 import { cargarPortales } from './portales.ts';
 import { cargarSitios, sugerirSitios } from './sitios.ts';
-import { cargarCallejero } from './callejero.ts';
+import { buscar, cargarCallejero } from './callejero.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
 import { leerPeticion } from './peticion.ts';
+import { metrosEntre } from './cercano.ts';
 
 let motor: Motor;
 
@@ -566,5 +567,116 @@ describe('El trayecto', () => {
     });
     assert.equal(t.pasos.length, 0);
     assert.match(t.avisos[0]!.texto, /No conocemos ningún portal con el código 3/);
+  });
+});
+
+describe('⭐ Una VÍA SIN PORTAL, de punta a punta (27/08)', () => {
+  before(() => {
+    const red = cargarRed(cargarGrafo());
+    const portales = cargarPortales();
+    const callejero = cargarCallejero(portales);
+    motor = {
+      red,
+      rejilla: cargarRejilla(red),
+      portales,
+      callejero,
+      sitios: cargarSitios(portales, callejero),
+      cuaderno: cuadernoPara(red),
+    };
+  });
+
+  /**
+   * ⭐ EL CASO, elegido del dato y declarado para que no se mueva.
+   *
+   * **PUENTE DE PIEDRA**, código de vía `23125`, **cero portales** — un puente
+   * no tiene portales, y por eso hasta hoy no se podía ni escribir. Su punto de
+   * resolución es el medio de su geometría en la capa de ejes:
+   * `[-0,875317, 41,657227]`, sobre el Ebro.
+   *
+   * El origen es **CALLE MAYOR 1** (`Portales.104742`), en el casco viejo, a
+   * `[-0,877335, 41,654165]`.
+   */
+  const PUENTE = { via: '23125', portal: '23125' };
+  const MAYOR_1 = { via: '18600', portal: 'Portales.104742' };
+
+  test('se puede pedir la ruta, y sale', () => {
+    const t = pedir({ origen: MAYOR_1, destino: PUENTE, modo: 'andando' });
+    assert.deepEqual(t.avisos, [], 'ha contestado con aviso en vez de con ruta');
+    assert.ok(t.pasos.length > 0);
+    assert.ok(t.geometria.length > 0);
+  });
+
+  test('⭐ y los METROS son coherentes con la recta: 402 andando para 379 en línea', () => {
+    /**
+     * La comprobación que separa «contesta algo» de «contesta bien». Del portal
+     * al punto medio del puente hay **379 m en línea recta** (haversine), y la
+     * ruta mide **402 m**: un factor de **1,06**.
+     *
+     * Ese factor es lo que se juzga, no el número suelto. Un punto medio mal
+     * calculado —el primer vértice, la media de los vértices— seguiría dando
+     * una ruta perfectamente válida; lo que delataría es que la ruta y la recta
+     * dejarían de parecerse a la ruta y la recta de ESTE punto.
+     */
+    const t = pedir({ origen: MAYOR_1, destino: PUENTE, modo: 'andando' });
+    const punto = motor.callejero.puntoDeVia.get('23125')!;
+    const salida = motor.portales.donde.get('Portales.104742')!;
+    const recta = metrosEntre(salida.lat, salida.lon, punto.lat, punto.lon);
+    assert.ok(Math.abs(recta - 379) <= 1, `la recta mide ${recta.toFixed(0)} m, no 379`);
+    assert.equal(t.metros, 402);
+    assert.ok(t.metros / recta < 1.3, `la ruta da un rodeo de ${(t.metros / recta).toFixed(2)}×`);
+  });
+
+  test('⭐ la LLEGADA lo nombra, y sin número: no hay ninguno que decir', () => {
+    const t = pedir({ origen: MAYOR_1, destino: PUENTE, modo: 'andando' });
+    const ultimo = t.pasos[t.pasos.length - 1]!;
+    assert.equal(ultimo.giro, 'llegada');
+    assert.match(ultimo.texto, /Puente de Piedra/);
+    // Y NO le cuelga un número inventado detrás del nombre.
+    assert.equal(/Puente de Piedra \d/.test(ultimo.texto), false, ultimo.texto);
+  });
+
+  test('⭐ la INVERSA: se sale del puente igual que se llega a él', () => {
+    const t = pedir({ origen: PUENTE, destino: MAYOR_1, modo: 'andando' });
+    assert.deepEqual(t.avisos, []);
+    assert.match(t.pasos[0]!.texto, /Puente de Piedra/);
+  });
+
+  test('⭐ y sirve de FOCO: el mismo código resuelve a punto donde sea que viaje', () => {
+    // Es la propiedad que hace que esto no sea un truco: elegir el puente en un
+    // campo tiene que ordenar la lista del otro. Si `puntoDeVia` no resolviera
+    // aquí, el campo contrario se quedaría sin foco y nada se pondría rojo.
+    const punto = motor.callejero.puntoDeVia.get('23125')!;
+    const cerca = buscar(motor.callejero, 'jaime', punto).map((v) => v.limpio);
+    const lejos = buscar(motor.callejero, 'jaime').map((v) => v.limpio);
+    assert.notDeepEqual(cerca, lejos, 'el foco en el puente no ha cambiado nada');
+  });
+
+  test('la comprobación cruzada distingue los TRES casos, y no los mezcla', () => {
+    // 1 · Un punto de vía puesto en la vía equivocada.
+    const cruzado = pedir({
+      origen: { via: '18600', portal: '23125' },
+      destino: MAYOR_1,
+      modo: 'andando',
+    });
+    assert.match(cruzado.avisos[0]!.texto, /no es de la vía 18600/);
+
+    // 2 · Una vía QUE SÍ TIENE PORTALES pedida por su código de vía. La puerta
+    //     de las sin-portal no se abre para las que sí los tienen: ahí hay que
+    //     elegir una puerta, que es lo que la casilla del Nº existe para hacer.
+    const conPortales = pedir({
+      origen: { via: '18600', portal: '18600' },
+      destino: PUENTE,
+      modo: 'andando',
+    });
+    assert.match(conPortales.avisos[0]!.texto, /No conocemos ningún portal con el código 18600/);
+
+    // 3 · Y una de las 9 que no se pueden situar sigue sin poderse pedir: la
+    //     GLORIETA LAS BANDERAS (3410), que la capa de ejes no conoce.
+    const sinPunto = pedir({
+      origen: { via: '3410', portal: '3410' },
+      destino: MAYOR_1,
+      modo: 'andando',
+    });
+    assert.match(sinPunto.avisos[0]!.texto, /No conocemos ningún portal con el código 3410/);
   });
 });

@@ -134,7 +134,27 @@ export interface Aviso {
  * permite contestar «esa vía no existe» distinto de «ese portal no existe», y
  * es una comprobación cruzada gratis.
  */
-/** Un extremo elegido por dirección: la vía y el portal, los dos códigos. */
+/**
+ * Un extremo elegido por dirección: la vía y el portal, los dos códigos.
+ *
+ * ⭐ **Y `portal` puede ser el código de la propia vía** (27/08). Las 619 vías
+ * sin ningún portal —el PUENTE DE PIEDRA, la PLAZA CÉSAR AUGUSTO— se resuelven
+ * por el punto medio de su geometría, y ese punto **no tiene código de portal
+ * porque no hay ninguna puerta que nombrar**. Así que se identifica con el
+ * código de la vía, y viaja el mismo en las dos casillas:
+ * `{ via: '23125', portal: '23125' }`.
+ *
+ * Esto **no cambia la forma del contrato** y es a propósito: no se hace
+ * opcional un campo, no se añade una tercera clase de extremo y la pantalla no
+ * compone ningún código — manda dos veces el único que le dieron. Y no es una
+ * excepción de aquí: en `foco` un código ya puede ser un portal, un sitio o una
+ * vía, y quien lo convierte en punto es siempre el motor. **El mismo código
+ * resuelve al mismo punto viaje por donde viaje.**
+ *
+ * La comprobación cruzada sigue haciendo su trabajo: el motor distingue «ese
+ * portal no es de esa vía» de «ese punto de vía no es de esa vía» y de «ese
+ * código no lo conocemos».
+ */
 export interface ExtremoPortal {
   readonly via: string;
   readonly portal: string;
@@ -229,8 +249,15 @@ export interface Trayecto {
  * motor; no sale al contrato.
  *
  * `portales` es cuántos portales tiene, contados sobre el censo municipal. No
- * es decoración: solo se sugieren vías con al menos uno, porque sugerir una
- * vía sin portales sería prometer una dirección que no se puede resolver.
+ * es decoración, y desde el 27/08 dice **más** que un recuento: **`0` significa
+ * que esta vía no tiene ninguna puerta que elegir**, y es lo que la pantalla
+ * mira para no enseñar la casilla del Nº — el revelado condicional de GOV.UK,
+ * el mismo que ya se aplica a los sitios.
+ *
+ * Antes, `0` no llegaba nunca: solo se sugerían vías con portal, porque
+ * sugerir una sin ellos era prometer una dirección irresoluble. Ya no lo es —
+ * esas vías se resuelven por el punto medio de su geometría—, así que el `0`
+ * viaja y hay que saber leerlo.
  */
 export interface Via {
   readonly codigo: string;
@@ -373,7 +400,9 @@ export interface PortalCercano {
  * comprueba que los dos números concuerdan, y así la redundancia trabaja.
  *
  * `vias` es cuántas vías tienen al menos un portal, y por la misma razón debe
- * coincidir con `SaludCallejero.sugeribles`.
+ * coincidir con `SaludCallejero.sugeribles` **menos
+ * `SaludCallejero.porPuntoMedio`**: hasta el 27/08 era `sugeribles` a secas,
+ * porque entonces sugerible y con-portal eran la misma cosa.
  */
 export interface SaludPortales {
   readonly total: number;
@@ -384,13 +413,23 @@ export interface SaludPortales {
 /**
  * Lo que el motor lleva del callejero, y lo que le costó cargarlo.
  *
- * Los dos números que importan y que llevan dos puntos del plan esperándose:
- * `vias` es el callejero entero, `sugeribles` las que tienen portal. **La que
- * se publica es `sugeribles`**: es lo único que el buscador puede cumplir.
+ * `vias` es el callejero entero y `sugeribles` lo que el buscador puede
+ * cumplir. **La que se publica es `sugeribles`**.
+ *
+ * ⭐ `porPuntoMedio` parte esa cifra en sus dos mitades (27/08), y el contrato
+ * crece porque el motor lo pide: desde que las vías sin portal entran,
+ * `sugeribles` ya no significa «las que tienen portal» y **la guardia se quedó
+ * sin poder cuadrar la redundancia**. Con esto vuelve a poder:
+ * `sugeribles − porPuntoMedio` tiene que valer exactamente
+ * `SaludPortales.vias`, y esa resta comprueba que la partición cierra.
+ *
+ * La diferencia `vias − sugeribles` son las que se quedan fuera por no poderse
+ * situar: sin eje en la capa municipal, o con la multilínea vacía.
  */
 export interface SaludCallejero {
   readonly vias: number;
   readonly sugeribles: number;
+  readonly porPuntoMedio: number;
   readonly portales: number;
   readonly cargadoEnMs: number;
 }

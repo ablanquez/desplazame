@@ -194,3 +194,119 @@ describe('El callejero — el autocompletar de vías', () => {
     assert.equal(salen[0], '16980', `la autovía no va primera: ${salen.join(', ')}`);
   });
 });
+
+describe('El callejero — las vías SIN PORTAL, que entran el 27/08', () => {
+  before(() => {
+    portales = cargarPortales();
+    callejero = cargarCallejero(portales);
+  });
+
+  test('⭐ LA PARTICIÓN CIERRA: 3.359 = 2.731 con portal + 619 por punto medio + 9 fuera', () => {
+    // Los cuatro números y su suma. Contados sobre el dato, no escritos:
+    //   node -e "…" sobre el callejero y los ejes → 628 sin portal, de las que
+    //   619 tienen geometría usable en la capa municipal.
+    assert.equal(callejero.vias, 3359);
+    assert.equal(callejero.sugeribles.length, 3350);
+    assert.equal(callejero.porPuntoMedio, 619);
+    const conPortal = callejero.sugeribles.filter((i) => i.via.portales > 0).length;
+    assert.equal(conPortal, 2731);
+    assert.equal(conPortal + callejero.porPuntoMedio, callejero.sugeribles.length);
+
+    // ⭐ Y LAS QUE SE QUEDAN FUERA, contadas y con su motivo separado — porque
+    // son dos cosas distintas y una zona sin situar también es un dato.
+    //
+    // · 1 SIN EJE: la GLORIETA LAS BANDERAS (cod. 3410). No es un fallo de
+    //   nadie: el callejero es una foto del 13/05/2026 y la capa de ejes del
+    //   20/08, y entre las dos fechas una glorieta salió y otra entró. Está
+    //   contado en la ficha § 1.15, y el reverso —un eje que el callejero no
+    //   conoce, la GLORIETA POLICÍA NACIONAL— también.
+    // · 8 CON LA MULTILÍNEA VACÍA: `DISEMINADO DISEMINADO <núcleo>`. La capa
+    //   trae 18; las otras 10 sí tienen portales y entran por la puerta de
+    //   siempre.
+    assert.equal(callejero.sinEje, 1);
+    assert.equal(callejero.sinGeometria, 8);
+    assert.equal(callejero.vias - callejero.sugeribles.length, 9);
+  });
+
+  test('⭐ EL PUENTE DE PIEDRA se puede buscar, y hasta hoy no se podía', () => {
+    // El caso que lo explica todo: el puente más conocido de la ciudad, cero
+    // portales, y por eso invisible para el buscador desde que existe.
+    const salen = buscar(callejero, 'puente de piedra');
+    assert.equal(salen.length, 1);
+    assert.equal(salen[0]!.codigo, '23125');
+    assert.equal(salen[0]!.limpio, 'PUENTE DE PIEDRA');
+    assert.equal(salen[0]!.portales, 0, 'si tuviera portales este caso no probaría nada');
+    // Y tiene punto por el que resolverse: sin él no se sugeriría.
+    assert.ok(callejero.puntoDeVia.has('23125'));
+  });
+
+  test('⭐ NINGUNA VÍA SUGERIBLE se queda sin punto, y ninguna sin portal se queda sin medio', () => {
+    // El guardián de la promesa entera: «solo se sugiere lo cumplible». Si una
+    // sola de las 3.350 no tuviera ni portal ni punto medio, `metrosALaVia`
+    // devolvería Infinity y el comparador del foco haría `Infinity − Infinity`
+    // = NaN. El orden se corrompería **sin ponerse rojo**: un comparador que
+    // devuelve NaN no lanza, solo deja de ordenar.
+    for (const { via } of callejero.sugeribles) {
+      const tienePortales = (portales.porVia.get(via.codigo)?.length ?? 0) > 0;
+      assert.equal(
+        tienePortales || callejero.puntoDeVia.has(via.codigo),
+        true,
+        `${via.codigo} ${via.limpio} no tiene ni portal ni punto medio`,
+      );
+      assert.equal(via.portales > 0, tienePortales, `${via.codigo}: el recuento miente`);
+    }
+    // Y al revés: el índice de puntos medios NO guarda ninguna vía con portal.
+    // Donde hay puertas manda la puerta.
+    for (const codigo of callejero.puntoDeVia.keys()) {
+      assert.equal(portales.porVia.has(codigo), false, `${codigo} tiene portales y también punto`);
+    }
+    assert.equal(callejero.puntoDeVia.size, callejero.porPuntoMedio);
+  });
+
+  test('⭐ SIN FOCO, «mayor» sigue dando EXACTAMENTE lo de ayer: ni una de las 619 casa', () => {
+    // El guardián que el encargo pedía. No basta con que la lista de diez no se
+    // mueva: hay que decir POR QUÉ no se mueve, porque si se moviera habría que
+    // declarar el cambio. Y la razón es que con «mayor» no casa ni una de las
+    // que entran hoy — las 22 candidatas siguen siendo las 22 de ayer.
+    assert.deepEqual(
+      buscar(callejero, 'mayor').map((v) => v.codigo),
+      SIN_FOCO,
+    );
+    const nuevasQueCasan = callejero.sugeribles.filter(
+      (i) => i.via.portales === 0 && i.norma.includes('mayor'),
+    );
+    assert.equal(nuevasQueCasan.length, 0, nuevasQueCasan.map((i) => i.via.limpio).join(' | '));
+  });
+
+  test('⭐ UNA VÍA SIN PORTAL SE ORDENA POR SU PUNTO MEDIO: la PLAZA CÉSAR AUGUSTO', () => {
+    /**
+     * El caso del foco, con los dos CÉSAR AUGUSTO de Zaragoza:
+     *
+     * · `7410` **AVENIDA** CÉSAR AUGUSTO, con 82 portales.
+     * · `7420` **PLAZA** CÉSAR AUGUSTO, con **cero**, que entra hoy.
+     *
+     * Sin foco salen por orden alfabético y la AVENIDA va primera. Con el foco
+     * en `Portales.100473` —CALLE 6, nº 22, a **22 m** del punto medio de la
+     * plaza— tiene que subir la PLAZA, y para eso hay que medirla por su punto
+     * medio: es lo único que tiene.
+     *
+     * ⚠️ Sin esa medida no bajaría un puesto: se iría al FINAL, porque una vía
+     * sin portales estaría a distancia infinita de todo.
+     */
+    const sinFoco = buscar(callejero, 'cesar augusto').map((v) => v.codigo);
+    assert.deepEqual(sinFoco, ['7410', '7420']);
+    const conFoco = buscar(callejero, 'cesar augusto', puntoDe('Portales.100473')).map(
+      (v) => v.codigo,
+    );
+    assert.deepEqual(conFoco, ['7420', '7410']);
+  });
+
+  test('⭐ y el foco sigue sin filtrar: la que se aleja BAJA, no desaparece', () => {
+    // La doctrina de Pelias, comprobada también con las nuevas: puesta la mira
+    // en el centro, el PUENTE DE PIEDRA sube a lo alto de «piedra» y las tres
+    // calles lejanas siguen todas en la lista.
+    const salen = buscar(callejero, 'piedra', puntoDe(EN_EL_CENTRO)).map((v) => v.codigo);
+    assert.equal(salen[0], '23125', `el puente no va primero: ${salen.join(', ')}`);
+    assert.equal(salen.length, buscar(callejero, 'piedra').length);
+  });
+});

@@ -786,8 +786,27 @@ export class Buscador {
       return { sitio: sitio.codigo };
     }
     const via = lado.via();
+    if (!via) {
+      return null;
+    }
     const portal = lado.portal();
-    return via && portal ? { via: via.codigo, portal: portal.codigo } : null;
+    if (portal) {
+      return { via: via.codigo, portal: portal.codigo };
+    }
+    /**
+     * ⭐ LA VÍA SIN PORTALES (27/08). No hay puerta que nombrar —el PUENTE DE
+     * PIEDRA no tiene ninguna—, así que **su propio código va en las dos
+     * casillas** y el motor lo resuelve por el punto medio de su geometría.
+     *
+     * La pantalla NO compone un código: manda dos veces el único que le dieron
+     * al elegir de la lista. Es la ley de la entrada nº4 intacta — de una lista
+     * se elige, no se escribe—, y el contrato tampoco se mueve: `PeticionDeRuta`
+     * sigue pidiendo `via` y `portal`, los dos, y los dos van.
+     *
+     * Y `portales === 0` no es una corazonada: es el dato del contrato, contado
+     * por el motor sobre el censo municipal.
+     */
+    return via.portales === 0 ? { via: via.codigo, portal: via.codigo } : null;
   }
 
   /**
@@ -813,7 +832,15 @@ export class Buscador {
     if (sitio) {
       return sitio.codigo;
     }
-    return lado.portal()?.codigo ?? null;
+    const portal = lado.portal();
+    if (portal) {
+      return portal.codigo;
+    }
+    // ⭐ Y una vía sin portales YA ES un punto: no está a medias, está entera.
+    // El motor resuelve su código igual que el de un portal o el de un sitio,
+    // así que sirve de foco como cualquier otro.
+    const via = lado.via();
+    return via && via.portales === 0 ? via.codigo : null;
   }
 
   /**
@@ -827,7 +854,13 @@ export class Buscador {
 
   private comoSeLee(lado: Lado): string {
     const sitio = lado.sitio();
-    return sitio ? sitio.presentacion : comoSeLeeLaDireccion(lado.via()!, lado.portal()!);
+    if (sitio) {
+      return sitio.presentacion;
+    }
+    const portal = lado.portal();
+    // Sin portal se lee la vía sola —«PUENTE DE PIEDRA»—, que es toda la
+    // dirección que hay. Ponerle un número sería inventárselo.
+    return portal ? comoSeLeeLaDireccion(lado.via()!, portal) : comoSeVeLaVia(lado.via()!);
   }
 
   protected sePuedeGenerar(): boolean {
@@ -838,8 +871,31 @@ export class Buscador {
     return this.estaListo(this.origen) && this.estaListo(this.destino);
   }
 
-  /** Un lado está listo si tiene un sitio, o la pareja vía+portal entera. */
+  /**
+   * ⭐ Un lado está listo **si de él sale un extremo que mandar**, y se
+   * pregunta con la MISMA función que lo compone.
+   *
+   * Antes era una lista aparte de condiciones —«un sitio, o la pareja vía+portal
+   * entera»— y estaba condenada a separarse de `extremoDe`: al entrar las vías
+   * sin portal (27/08) habría que acordarse de tocar las dos, y olvidar una
+   * dejaba el botón apagado con un extremo perfectamente válido detrás, o
+   * encendido sin nada que mandar. Una sola fuente no puede desincronizarse.
+   */
   private estaListo(lado: Lado): boolean {
-    return lado.sitio() !== null || (lado.via() !== null && lado.portal() !== null);
+    return this.extremoDe(lado) !== null;
+  }
+
+  /**
+   * ⭐ ¿Lleva este lado casilla de Nº? [DOC GOV.UK: conditional reveal]
+   *
+   * Sin vía elegida **sí**: es la casilla apagada que dice «Elige antes la
+   * calle», y quitarla haría desaparecer la mitad del formulario mientras se
+   * escribe. Con vía elegida, solo si esa vía tiene portales que ofrecer: el
+   * PUENTE DE PIEDRA no tiene ninguno, y enseñar un desplegable vacío sería
+   * pedir algo que no existe.
+   */
+  protected pideNumero(lado: Lado): boolean {
+    const via = lado.via();
+    return via === null || via.portales > 0;
   }
 }

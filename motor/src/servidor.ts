@@ -54,10 +54,22 @@ console.log(
 
 console.log('motor: cargando el callejero…');
 const callejero = cargarCallejero(portales);
+// ⭐ EL RECUENTO, PARTIDO EN DOS desde el 27/08. «Sugeribles» ya no quiere decir
+// «con portal»: son las que tienen portal MÁS las que se resuelven por el punto
+// medio de su geometría. Decir solo el total escondería justo lo que cambió.
 console.log(
   `motor: callejero en memoria — ${callejero.vias} vías, de las que ` +
-    `${callejero.sugeribles.length} tienen portal y se sugieren ` +
+    `${callejero.sugeribles.length} se sugieren: ` +
+    `${callejero.sugeribles.length - callejero.porPuntoMedio} con portal · ` +
+    `${callejero.porPuntoMedio} por punto medio ` +
     `(${callejero.portales} portales) · ${callejero.cargadoEnMs.toFixed(0)} ms`,
+);
+// Y las que se quedan fuera, con su motivo. Una zona del dato que no se puede
+// situar es un dato, no un silencio.
+console.log(
+  `motor: fuera del buscador — ${callejero.vias - callejero.sugeribles.length}: ` +
+    `${callejero.sinEje} sin eje en la capa municipal · ` +
+    `${callejero.sinGeometria} con la multilínea vacía (los DISEMINADO)`,
 );
 
 // La red va DESPUÉS del callejero porque necesita el grafo ya parseado, y
@@ -202,13 +214,25 @@ const ARRANCADO = new Date().toISOString();
  * `foco` es UN CODIGO, no un par de coordenadas [DOC Pelias: `focus.point`]:
  * la pantalla no conoce coordenadas, el contrato le da codigos. Y un codigo que
  * no resuelve **no es un error**: se ignora y se contesta sin foco.
+ *
+ * ⭐ Y las clases de codigo que resuelven son TRES desde el 27/08: un portal,
+ * un sitio, o **una via sin portales** —que se situa por el punto medio de su
+ * geometria—. Es la misma tabla que usa `POST /api/ruta` para resolver un
+ * extremo, y tiene que serlo: el codigo del PUENTE DE PIEDRA elegido como
+ * origen es el mismo que despues sirve de foco al otro campo, y si aqui no
+ * resolviera, elegir un puente dejaria al campo contrario sin foco sin que nada
+ * se pusiera rojo.
  */
 const focoDe = (url: URL): { readonly lon: number; readonly lat: number } | null => {
   const codigo = url.searchParams.get('foco');
   if (!codigo) {
     return null;
   }
-  const donde = portales.donde.get(codigo) ?? sitios.donde.get(codigo) ?? null;
+  const donde =
+    portales.donde.get(codigo) ??
+    sitios.donde.get(codigo) ??
+    callejero.puntoDeVia.get(codigo) ??
+    null;
   return donde ? { lon: donde.lon, lat: donde.lat } : null;
 };
 
@@ -243,6 +267,7 @@ const servidor = createServer((peticion, respuesta) => {
       callejero: {
         vias: callejero.vias,
         sugeribles: callejero.sugeribles.length,
+        porPuntoMedio: callejero.porPuntoMedio,
         portales: callejero.portales,
         cargadoEnMs: Math.round(callejero.cargadoEnMs),
       },
@@ -374,7 +399,10 @@ const servidor = createServer((peticion, respuesta) => {
 
 servidor.listen(PUERTO, () => {
   console.log(`motor: escuchando en http://localhost:${PUERTO} (pid ${process.pid})`);
-  console.log(`motor: /api/vias sugiere desde ${MINIMO} letras, hasta ${LIMITE} resultados`);
+  console.log(
+    `motor: /api/vias sugiere desde ${MINIMO} letras, hasta ${LIMITE} resultados, ` +
+      'y una vía sin portales viaja con su propio código en las dos casillas',
+  );
   console.log('motor: /api/portal-cercano barre los portales en memoria por haversine');
   console.log('motor: POST /api/ruta calcula andando, de portal a portal, por codigos');
   console.log(`motor: arrancado a las ${ARRANCADO}`);

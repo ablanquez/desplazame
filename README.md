@@ -52,12 +52,38 @@
 > el callejero y los **46.150 portales enteros**, y levanta con ellos la **red por la que de
 > verdad se puede andar** —**89.047** aristas de las 98.774, ya con su adyacencia—, que es la
 > que rutea. Sirve lo que ves al rellenar el formulario
-> — de las 3.359 vías del callejero
-> ofrece las **2.731 que tienen algún portal**, porque sugerir una calle sin portales sería
-> prometer una dirección que después no se puede resolver. Cuando la calle está en un barrio
-> rural lo dice: **CALLE BURGOS [CASETAS]**, que es distinta de la CALLE BURGOS de la ciudad.
-> Va entre corchetes y no entre paréntesis porque los paréntesis ya son del dato: hay 38 vías
-> que los traen en su propio nombre, 32 de ellas con portal.
+> — de las 3.359 vías del callejero ofrece **3.350**, que es casi el callejero entero. Cuando la
+> calle está en un barrio rural lo dice: **CALLE BURGOS [CASETAS]**, que es distinta de la CALLE
+> BURGOS de la ciudad. Va entre corchetes y no entre paréntesis porque los paréntesis ya son del
+> dato: hay 38 vías que los traen en su propio nombre, 32 de ellas con portal.
+>
+> **⭐ Y esas 3.350 son dos cosas sumadas, porque no toda calle tiene puertas.** Hasta el 27/08
+> solo se ofrecían las **2.731 con algún portal**: sugerir una sin ellos era prometer una
+> dirección que después no se podía resolver, así que **el PUENTE DE PIEDRA, la PLAZA CÉSAR
+> AUGUSTO y el PARQUE JOSÉ ANTONIO LABORDETA no se podían ni escribir**. Ahora las otras **619**
+> se resuelven por **el punto medio de su geometría** — el de la mitad del recorrido, que cae
+> siempre sobre la propia calle—, que es la respuesta documentada de Pelias a una dirección sin
+> número. Al elegir una de ellas **la casilla del Nº desaparece**: no hay ninguno que pedir.
+>
+> **Las 9 que faltan se quedan fuera, y se dicen.** Ocho son los `DISEMINADO`, que llegan con la
+> geometría vacía porque un diseminado no es una calle; la novena es la GLORIETA LAS BANDERAS,
+> que el callejero conoce y la capa de ejes todavía no —son dos fotos de fechas distintas, y está
+> contado en la ficha § 1.15—. **Sin coordenada no existe**, también aquí.
+>
+> ```
+> $ npm start --prefix motor
+> motor: callejero en memoria — 3359 vías, de las que 3350 se sugieren: 2731 con portal ·
+>        619 por punto medio (46150 portales) · 29 ms
+> motor: fuera del buscador — 9: 1 sin eje en la capa municipal · 8 con la multilínea vacía
+>
+> $ curl 'localhost:3000/api/vias?q=puente%20de'
+> PUENTE DE LA ALMOZARA · PUENTE DE LA UNIÓN · PUENTE DE LOS CANTAUTORES · PUENTE DE PIEDRA ·
+> PUENTE DEL GÁLLEGO · PUENTE DEL PILAR · PUENTE DEL TERCER MILENIO · AVENIDA PUENTE DE LOS
+> SUSPIROS · AVENIDA PUENTE DEL PILAR · CALLE PUENTE DE RIALTO
+> ```
+>
+> Los siete primeros tienen **cero portales**: ninguno de ellos existía para el buscador hasta
+> ese día.
 >
 > **El portal no se escribe: se elige.** Fijada la calle, el motor sirve sus portales reales y
 > el campo los ofrece en el orden en que se lee un callejero —1, 2, 3, 10, no 1, 10, 2—, con
@@ -399,11 +425,11 @@ Seis rutas vivas. Las que vengan las decide el plan, no esta lista:
 | | |
 |---|---|
 | `GET /api/salud` | si está vivo, y con qué dato: grafo, red andable —con cuántos nombres trae de OpenStreetMap y cuántos hereda del callejero municipal—, callejero y portales, con sus recuentos |
-| `GET /api/vias?q=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía |
-| `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía |
+| `GET /api/vias?q=&foco=` | sugiere vías desde 2 letras, hasta 10 resultados. Sin `q`, lista vacía. `foco` es **el código del otro extremo** ya resuelto —un portal, un sitio o una vía sin portales—: a igualdad de coincidencia sube lo que está cerca de él, y **no descarta nada**. Devuelve `portales`, y un **`0` significa que esa vía no tiene ninguna puerta que elegir**: se resuelve por el punto medio de su geometría |
+| `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía — y **lista vacía también en las 619 sin portal**, que es la verdad: no tienen ninguno |
 | `GET /api/sitios?q=&capa=&foco=` | sugiere **sitios** desde 2 letras, hasta 10 resultados — la otra capa del autocompletar, la que sirve al desplegable de tipos. `capa` acota a una categoría (`farmacia`, `hospital`, `centro-salud`), y **una capa que no existe se ignora** en vez de dar error. `foco` es **el código del otro extremo** ya resuelto —un portal o un sitio, no un par de coordenadas—: a igualdad de coincidencia sube lo que está cerca de él, pero no descarta nada. Sin `q`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta **andando** entre dos portales, por códigos: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué |
+| `POST /api/ruta` | la ruta **andando** entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
@@ -446,6 +472,12 @@ eligiendo de la lista; con una categoría de sitios **se va del formulario**, po
 trae su propia coordenada y no hay portal que pedirle. Es el *revelado condicional* del sistema de
 diseño del GOV.UK, y la diferencia no es cosmética: una casilla apagada sigue diciendo «aquí falta
 algo», y una que no está dice la verdad, que es que ahí no hay nada que rellenar.
+
+**⭐ Y desde el 27/08 también se va con una calle que no tiene portales.** Elegir el PUENTE DE
+PIEDRA quita la casilla del Nº y deja «Generar ruta» encendido con la calle sola: no es que falte
+el número, es que ese sitio no tiene ninguno. Mismo patrón, mismo argumento, y la ausencia se lee
+**del dato** —cuántos portales dice el motor que tiene— y no de una lista de nombres escrita en la
+pantalla.
 
 **El ⇅ cruza los campos enteros**: el tipo, el texto, lo ya resuelto y el número. Si un lado era
 una dirección con su «2» y el otro un hospital, después de pulsarlo la casilla del número **se ha

@@ -4,9 +4,17 @@
  * El censo municipal de portales no trae ni un nombre de calle: solo
  * `codigoVia`. Sin esta tabla no hay autocompletar posible.
  *
- * **Solo se sugiere lo cumplible.** De las vías del callejero, únicamente las
- * que tienen algún portal municipal — sugerir una vía sin portales sería
- * prometer una dirección que el punto 6 no va a poder resolver.
+ * **Solo se sugiere lo cumplible**, y desde el 27/08 eso es bastante más que
+ * antes. Hasta ese día se ofrecían solo las vías con algún portal municipal;
+ * las otras 628 —el PUENTE DE PIEDRA, la PLAZA CÉSAR AUGUSTO, el PARQUE JOSÉ
+ * ANTONIO LABORDETA— no se podían ni escribir, porque un parque no tiene
+ * portales y sugerirlo era prometer una dirección irresoluble.
+ *
+ * ⭐ Ya no lo es: una vía sin portales se resuelve por **el punto medio de su
+ * geometría** en la capa municipal de ejes (§ 1.15), que es la respuesta
+ * documentada de Pelias a una dirección sin número. Cumplible sigue
+ * significando lo mismo —que se pueda situar—; lo que ha cambiado es de dónde
+ * sale el punto cuando no hay puerta.
  */
 
 import { readFileSync } from 'node:fs';
@@ -14,6 +22,7 @@ import { fileURLToPath } from 'node:url';
 import type { Via } from '@desplazame/tipos';
 import type { PortalesEnMemoria } from './portales.ts';
 import { metrosPlanos } from './proyeccion.ts';
+import { puntosMediosDeVia, type PuntoDeVia } from './ejes.ts';
 
 const CALLEJERO = fileURLToPath(
   new URL('../../app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json', import.meta.url),
@@ -63,8 +72,20 @@ interface ViaIndexada {
 export interface CallejeroEnMemoria {
   /** Todas las vías del callejero: N. */
   readonly vias: number;
-  /** Las que tienen portal, las únicas que se sugieren: M. */
+  /**
+   * ⭐ Las que se sugieren: M. **Las que tienen portal MÁS las que se resuelven
+   * por su punto medio.** El reparto exacto está en `porPuntoMedio`.
+   */
   readonly sugeribles: readonly ViaIndexada[];
+  /** Cuántas de `sugeribles` entran por su punto medio, sin ningún portal. */
+  readonly porPuntoMedio: number;
+  /**
+   * Y las que se quedan fuera, con los dos motivos separados porque son dos
+   * cosas distintas: una vía del callejero que la capa de ejes **no conoce**, y
+   * una que sí conoce pero **trae la multilínea vacía**.
+   */
+  readonly sinEje: number;
+  readonly sinGeometria: number;
   readonly portales: number;
   /**
    * ⭐ El censo entero, la MISMA referencia que ya se recibe al cargar.
@@ -76,6 +97,16 @@ export interface CallejeroEnMemoria {
    * pedirle a quien la llama que arrastre un dato que el callejero ya tiene.
    */
   readonly censo: PortalesEnMemoria;
+  /**
+   * ⭐ El punto de las vías SIN PORTAL, y solo de esas.
+   *
+   * Es su punto de resolución: por dónde se entra a la red cuando alguien la
+   * elige, y desde dónde se mide su distancia al foco. Aquí no está ninguna de
+   * las 2.731 con portal, **y no es por ahorrar memoria**: donde hay puertas
+   * manda la puerta, y tener el punto medio a mano invitaría a usarlo en un
+   * sitio donde hay un dato mejor.
+   */
+  readonly puntoDeVia: ReadonlyMap<string, PuntoDeVia>;
   readonly cargadoEnMs: number;
 }
 
@@ -90,15 +121,45 @@ export function cargarCallejero(portales: PortalesEnMemoria): CallejeroEnMemoria
 
   const vias = JSON.parse(readFileSync(CALLEJERO, 'utf8')) as readonly ViaCruda[];
 
+  /**
+   * ⭐ El punto medio de cada vía de la capa de ejes. Se lee aquí y **se suelta
+   * al salir**: de los 3,4 MB solo sobreviven los puntos de las que no tienen
+   * portal. Cuesta 22 ms medidos —6 de leer, 16 de parsear—, y es la segunda
+   * lectura del fichero en el arranque: la primera la hace la herencia de
+   * nombre por vecindad, que quiere el índice espacial y no los puntos. Se
+   * pagan los 22 ms antes que atar dos módulos que no se necesitan.
+   */
+  const medios = puntosMediosDeVia();
+
   const sugeribles: ViaIndexada[] = [];
+  const puntoDeVia = new Map<string, PuntoDeVia>();
+  let porPuntoMedio = 0;
+  let sinEje = 0;
+  let sinGeometria = 0;
   for (const cruda of vias) {
     const codigo = String(cruda.codigoVia);
     // Cuántos portales tiene, contados de verdad sobre el censo municipal. El
     // callejero también lo declara en `numPortales` y coincide en las 3.359 —
     // pero manda lo contado, que es lo que se va a poder elegir.
-    const cuantos = portales.porVia.get(codigo)?.length;
-    if (!cuantos) {
-      continue;
+    const cuantos = portales.porVia.get(codigo)?.length ?? 0;
+    /**
+     * ⭐ SIN PORTALES, el punto medio de su geometría — y si tampoco lo hay,
+     * fuera y contada. **NO CONSTA antes que inventar**: una vía que la capa de
+     * ejes no conoce, o que llega con la multilínea vacía, no se puede situar, y
+     * sugerirla sería volver a prometer lo que no se puede cumplir.
+     */
+    if (cuantos === 0) {
+      if (!medios.has(codigo)) {
+        sinEje++;
+        continue;
+      }
+      const medio = medios.get(codigo);
+      if (!medio) {
+        sinGeometria++;
+        continue;
+      }
+      puntoDeVia.set(codigo, medio);
+      porPuntoMedio++;
     }
     sugeribles.push({
       via: {
@@ -120,8 +181,12 @@ export function cargarCallejero(portales: PortalesEnMemoria): CallejeroEnMemoria
   return {
     vias: vias.length,
     sugeribles,
+    porPuntoMedio,
+    sinEje,
+    sinGeometria,
     portales: portales.total,
     censo: portales,
+    puntoDeVia,
     cargadoEnMs: performance.now() - principio,
   };
 }
@@ -149,6 +214,19 @@ export interface Foco {
  *
  * No inventa geometría: usa los portales del censo, que es el dato que ya
  * decide qué vías se sugieren.
+ *
+ * ⭐ **Y las que no tienen portal se miden por su punto medio** (27/08). No es
+ * una regla nueva ni una excepción: es EL MISMO punto por el que esa vía se
+ * resuelve cuando alguien la elige, así que la distancia que se dice aquí es la
+ * distancia a donde de verdad va a caer la ruta. Que en una calle larga el
+ * punto medio mienta sigue siendo verdad — pero es que ahí no hay nada mejor
+ * que mirar, y el aviso del párrafo de arriba es contra elegirlo **teniendo**
+ * portales, no contra usarlo cuando es lo único que hay.
+ *
+ * Nunca devuelve `Infinity` para una vía sugerible: por construcción todas
+ * tienen o portales o punto medio, y hay un guardián que lo comprueba sobre las
+ * 3.350. Si lo devolviera, el comparador restaría `Infinity - Infinity` y el
+ * orden se volvería `NaN` — silencioso y sin rojo.
  */
 function metrosALaVia(callejero: CallejeroEnMemoria, via: string, foco: Foco): number {
   let mejor = Infinity;
@@ -161,6 +239,10 @@ function metrosALaVia(callejero: CallejeroEnMemoria, via: string, foco: Foco): n
     if (m < mejor) {
       mejor = m;
     }
+  }
+  if (mejor === Infinity) {
+    const medio = callejero.puntoDeVia.get(via);
+    return medio ? metrosPlanos(foco.lon, foco.lat, medio.lon, medio.lat) : Infinity;
   }
   return mejor;
 }

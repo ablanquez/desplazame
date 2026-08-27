@@ -232,18 +232,123 @@ interface RespuestaWfs {
   }[];
 }
 
+/**
+ * Lee la capa municipal del disco y la deja en la forma que aquí se mira.
+ *
+ * Se separa de `cargarEjes` porque desde el 27/08 hay **dos** consumidores de
+ * este fichero y quieren cosas distintas: la herencia de nombre quiere el
+ * índice espacial, y el callejero quiere el punto medio de unas cuantas vías.
+ * Ninguno de los dos necesita lo del otro.
+ */
+export function leerEjes(): readonly EjeCrudo[] {
+  const respuesta = JSON.parse(readFileSync(EJES, 'utf8')) as RespuestaWfs;
+  return respuesta.features.map((f) => ({
+    // El código viene numérico y se guarda como texto: es una etiqueta, no
+    // una cantidad, y así casa con el `codigoVia` del callejero.
+    codigo: String(f.properties.codigo),
+    nombre: f.properties.nombre_publico,
+    partes: f.geometry?.coordinates ?? [],
+  }));
+}
+
 /** Lee la capa municipal del disco y la indexa. Una vez, al arrancar. */
 export function cargarEjes(): IndiceDeEjes {
-  const respuesta = JSON.parse(readFileSync(EJES, 'utf8')) as RespuestaWfs;
-  return indexar(
-    respuesta.features.map((f) => ({
-      // El código viene numérico y se guarda como texto: es una etiqueta, no
-      // una cantidad, y así casa con el `codigoVia` del callejero.
-      codigo: String(f.properties.codigo),
-      nombre: f.properties.nombre_publico,
-      partes: f.geometry?.coordinates ?? [],
-    })),
-  );
+  return indexar(leerEjes());
+}
+
+/** Un punto de la ciudad, en `[lon, lat]` como el resto del motor. */
+export interface PuntoDeVia {
+  readonly lon: number;
+  readonly lat: number;
+}
+
+/**
+ * ⭐ EL PUNTO MEDIO de la geometría de una vía: el que está **a la mitad de su
+ * longitud recorrida**, no el centro de nada.
+ *
+ * [DOC Pelias] Es su respuesta al caso «una dirección sin número»: el árbol de
+ * decisión de su documento de diseño acaba en *«¿dio número? [no] → el centroide
+ * de la calle»*, y el blog de Mapzen lo dice ya sin ambigüedad — **«el punto
+ * medio de la geometría de la vía»**. Y hace falta la precisión, porque
+ * «centroide» tiene tres lecturas y dos son malas:
+ *
+ * · **La media de los vértices** pesa más donde el dibujante puso más puntos:
+ *   una curva descrita con quince vértices arrastra el resultado hacia ella
+ *   aunque mida diez metros.
+ * · **El centro del rectángulo que la contiene** puede caer literalmente fuera
+ *   de la calle: en una vía en «L», en la manzana de al lado.
+ * · **El punto a mitad de recorrido** siempre cae **sobre la propia línea**,
+ *   que es lo único que aquí sirve: se va a enganchar a la red desde él.
+ *
+ * Con varias partes —113 de las 619 son multilínea— se recorren **en el orden
+ * del fichero, como si fueran una sola**. No se cosen ni se ordenan: el
+ * resultado sigue cayendo sobre un tramo real de la vía, que es la propiedad
+ * que se necesita, y reordenarlas exigiría decidir por dónde empieza una calle
+ * — un dato que no está.
+ *
+ * Devuelve `null` si no hay con qué: sin dos vértices no hay longitud, y **NO
+ * CONSTA antes que inventar**.
+ */
+export function puntoMedioDe(partes: readonly (readonly Punto[])[]): PuntoDeVia | null {
+  let total = 0;
+  for (const parte of partes) {
+    for (let i = 1; i < parte.length; i++) {
+      total += largoDe(parte[i - 1]!, parte[i]!);
+    }
+  }
+  if (total === 0) {
+    return null;
+  }
+  const meta = total / 2;
+  let andado = 0;
+  for (const parte of partes) {
+    for (let i = 1; i < parte.length; i++) {
+      const largo = largoDe(parte[i - 1]!, parte[i]!);
+      if (andado + largo >= meta) {
+        // La fracción que falta del segmento donde cae la mitad. Se interpola
+        // en grados y no en metros: el tramo es corto y la diferencia queda
+        // por debajo del milímetro.
+        const parte0 = parte[i - 1]!;
+        const parte1 = parte[i]!;
+        const f = largo === 0 ? 0 : (meta - andado) / largo;
+        return {
+          lon: parte0[0] + f * (parte1[0] - parte0[0]),
+          lat: parte0[1] + f * (parte1[1] - parte0[1]),
+        };
+      }
+      andado += largo;
+    }
+  }
+  return null;
+}
+
+/** Los metros entre dos vértices, en el plano local. */
+function largoDe(a: Punto, b: Punto): number {
+  const [x1, y1] = aPlano(a[0], a[1]);
+  const [x2, y2] = aPlano(b[0], b[1]);
+  return Math.hypot(x2 - x1, y2 - y1);
+}
+
+/**
+ * ⭐ El punto medio de **cada vía de la capa**, o `null` si no tiene geometría
+ * con la que calcularlo. Una lectura del fichero, y el resultado cabe en un
+ * `Map`.
+ *
+ * Hay una entrada por vía de la capa **aunque no haya punto**, y esa
+ * diferencia importa: quien pregunte tiene que poder distinguir «esta vía no
+ * está en la capa municipal» de «está, pero llega con la multilínea vacía».
+ * Son dos motivos distintos de quedarse fuera y se cuentan por separado.
+ *
+ * No sabe nada de portales ni de cuáles hacen falta: eso lo decide el
+ * callejero, que es quien sabe cuáles no tienen puerta. Aquí solo se contesta
+ * «dónde está la mitad de esta vía», que es una pregunta de esta capa.
+ */
+export function puntosMediosDeVia(): ReadonlyMap<string, PuntoDeVia | null> {
+  const puntos = new Map<string, PuntoDeVia | null>();
+  for (const via of leerEjes()) {
+    puntos.set(via.codigo, puntoMedioDe(via.partes));
+  }
+  return puntos;
 }
 
 /** Distancia en metros de un punto a un segmento, en el plano local. */

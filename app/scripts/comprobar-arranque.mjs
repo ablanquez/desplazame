@@ -114,9 +114,17 @@ const GRAFO_ESPERADO = { nodos: 68649, aristas: 98774, vertices: 378222 };
 
 /**
  * Y lo que tiene que traer el callejero. `sugeribles` es el número que se
- * publica: las vías con portal, medidas en el cruce de esta casilla.
+ * publica, y desde el 27/08 son DOS cosas sumadas: las **2.731 con portal** y
+ * las **619 que se resuelven por el punto medio** de su geometría en la capa de
+ * ejes municipales. `porPuntoMedio` es la segunda mitad, y va aquí para que la
+ * suma se pueda cuadrar en vez de creérsela.
+ *
+ * Las **9** que faltan para las 3.359 son las que no se pueden situar de
+ * ninguna manera: **1** que la capa de ejes no conoce —GLORIETA LAS BANDERAS,
+ * cod. 3410, y el desfase está contado en § 1.15 de las fichas— y **8** que
+ * llegan con la multilínea vacía, los `DISEMINADO`.
  */
-const CALLEJERO_ESPERADO = { vias: 3359, sugeribles: 2731, portales: 46150 };
+const CALLEJERO_ESPERADO = { vias: 3359, sugeribles: 3350, porPuntoMedio: 619, portales: 46150 };
 
 /**
  * Y lo que tiene que traer LA RED ROUTABLE, que no es el grafo.
@@ -158,8 +166,13 @@ const RED_ESPERADA = {
  * Además se comprueba que CONCUERDAN con lo que declara el callejero: son el
  * mismo censo contado una sola vez, así que `portales.total` tiene que valer
  * lo mismo que `callejero.portales`, y `portales.vias` lo mismo que
- * `callejero.sugeribles`. Si un día dejaran de coincidir, es que alguien
- * volvió a contar por su cuenta.
+ * `callejero.sugeribles` **menos `callejero.porPuntoMedio`**. Si un día dejaran
+ * de coincidir, es que alguien volvió a contar por su cuenta.
+ *
+ * ⭐ Esa resta es la comprobación, y no una forma rebuscada de escribir 2.731:
+ * cuadra que la partición **cierre** —que toda vía sugerible sea o de portal o
+ * de punto medio, y ninguna de las dos ni de ninguna—, que es justo lo que un
+ * total suelto ya no puede decir.
  */
 const PORTALES_ESPERADO = { total: 46150, vias: 2731 };
 
@@ -270,7 +283,12 @@ async function comprobar() {
 
     // 1c · ¿Lleva el callejero, y es ESTE?
     const c = salud.callejero;
-    if (!c || typeof c.sugeribles !== 'number' || typeof c.vias !== 'number') {
+    if (
+      !c ||
+      typeof c.sugeribles !== 'number' ||
+      typeof c.vias !== 'number' ||
+      typeof c.porPuntoMedio !== 'number'
+    ) {
       mal(8, 'el motor contesta pero NO declara callejero: arrancó sin cargarlo', portada.cuerpo.slice(0, 200));
     }
     for (const [campo, esperado] of Object.entries(CALLEJERO_ESPERADO)) {
@@ -283,7 +301,8 @@ async function comprobar() {
       }
     }
     bien(
-      `lleva el callejero: ${c.vias} vías, ${c.sugeribles} sugeribles, ` +
+      `lleva el callejero: ${c.vias} vías, ${c.sugeribles} sugeribles ` +
+        `(${c.sugeribles - c.porPuntoMedio} con portal · ${c.porPuntoMedio} por punto medio), ` +
         `${c.portales} portales (cargado en ${c.cargadoEnMs} ms)`,
     );
 
@@ -307,11 +326,12 @@ async function comprobar() {
         );
       }
     }
-    if (p.total !== c.portales || p.vias !== c.sugeribles) {
+    if (p.total !== c.portales || p.vias !== c.sugeribles - c.porPuntoMedio) {
       mal(
         9,
         'los portales y el callejero NO concuerdan: alguien está contando dos veces',
-        `portales ${p.total}/${p.vias} · callejero ${c.portales}/${c.sugeribles}`,
+        `portales ${p.total}/${p.vias} · callejero ${c.portales}/` +
+          `${c.sugeribles}−${c.porPuntoMedio}=${c.sugeribles - c.porPuntoMedio}`,
       );
     }
     bien(
