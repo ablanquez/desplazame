@@ -7,16 +7,16 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ## ESTADO ACTUAL — 27 de agosto de 2026
 
-**⭐ PUNTOS 1-7 CERRADOS (el 7, el 23/08). La demo andando está
+**⭐ PUNTOS 1-8 CERRADOS (el 8, el 27/08). La demo andando está
 ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
 (el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
-(los combines de odin). Y EL PUNTO 8 EN MARCHA: SIETE categorías de
-sitios vivas (farmacias · centros de salud · hospitales ·
-bibliotecas · colegios e institutos · guarderías · universidades —
-820 sitios, 802 buscables) y EL BUSCADOR POR TIPOS de Antonio
-completo: [📍][tipo▾ con iconos][cajetín][nº condicional] en ambos
-campos, cada tipo por su carril, siglas buscables (ceip · ies ·
-cpi), el desplegable en alfabético con Dirección primera.**
+(los combines de odin). Y EL PUNTO 8 CERRADO con la poda de demo
+firmada: SIETE categorías de sitios (farmacias · centros de salud ·
+hospitales · bibliotecas · colegios e institutos · guarderías ·
+universidades — 820 sitios, 802 buscables), TODA calle sugerible
+(3.350: 2.731 con portal + 619 por punto medio — el Puente de Piedra
+se escribe), el buscador por tipos completo con siglas e iconos, el
+foco en las dos capas, y las 14 bitácoras cerradas.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
 levantado el 18/08, des-caducado del 21 al 27):
@@ -35,7 +35,10 @@ levantado el 18/08, des-caducado del 21 al 27):
   la chincheta de Dirección por campo (verde origen · roja destino);
   el nº existe solo con Dirección [GOV.UK revelado condicional]; «Mi
   ubicación» en ambos (al usarla, el tipo salta a Dirección); el ⇅
-  cruza tipo+texto+nº.
+  cruza tipo+texto+nº. TODA calle se sugiere [Pelias]: las 619 sin
+  portal por su punto medio (mitad del recorrido), sin casilla de Nº
+  [revelado]; el FOCO también en las vías (la Calle Mayor de
+  Garrapinillos primera desde Garrapinillos [TriMet]).
   Búsqueda por palabras, orden con foco al otro extremo, regla B e
   iconos por categoría (cruz verde · cruz azul · H azul · libro
   morado · lápiz-manzana, chupete y birrete en mostaza #614800 ·
@@ -60,9 +63,9 @@ levantado el 18/08, des-caducado del 21 al 27):
   aristas ~190 ms · callejero 3.359 vías · 46.150 portales), 412 MB de
   RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
   anotado para el punto 12). Endpoints vivos, SEIS:
-  `/api/salud` · `/api/vias?q=` · `/api/portales?via=` ·
+  `/api/salud` · `/api/vias?q=` (con `foco`) · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
-  `POST /api/ruta` (sitio en cualquiera de los dos extremos). ⭐ N = 3.359 · M = 2.731 (la publicada).
+  `POST /api/ruta` (sitio o vía-sin-portal en cualquiera de los dos extremos). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal + 619 por punto medio).
 - **Los datos**: VEINTINUEVE conjuntos / veinte fichas — los
   nombres OSM en `motor/data/` sin viajar al navegador (§1.14), los
   ejes (§1.15) y las SIETE categorías de sitios del punto 8:
@@ -76,7 +79,7 @@ levantado el 18/08, des-caducado del 21 al 27):
   descargas propias (aparcabicis, aparcamotos, regulado, zonas, PMR),
   todas con la norma Set-Cookie. El callejero lleva 5 correcciones
   declaradas («están mal y punto»).
-- **La bitácora: 14 entradas — 13 cerradas con ley y la nº14 ABIERTA** (el homónimo parcial del Andrés Oliván, con testigo). Las guardias
+- **La bitácora: 14 entradas, las 14 cerradas con ley** (la nº14 el 27/08: el testigo se cayó solo, que era para lo que estaba escrito). Las guardias
   (interfaz y motor) con rojos vistos, exigiendo las tres cargas.
 - **La carta y el README al día con la doc delante**: CLAUDE.md dice el
   motor real y apunta en vez de listar; el README tiene «Cómo arrancarlo
@@ -84,11 +87,39 @@ levantado el 18/08, des-caducado del 21 al 27):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `b295ede`** (push del 25/08, con bibliotecas y el
-buscador rematado). **En local, sin publicar: los DIEZ commits de la
-tanda 4** (`2a20ae0` `a190b23` `1c67e5f` `a2ebd80` `1c38945`
-`d85f1ba` educación · `5ddc841` `2e984f9` `779ec0f` `1d4d956` la nº13
-y los C.E.E.) más el cierre de papeles. El push es de Antonio.
+**Publicado hasta `1274fa6`** (push del 27/08, con la tanda 4
+entera). **En local, sin publicar: los CINCO commits del cierre del
+8** (`6f1fd08` `11564ba` la nº14 · `6f127f9` el foco en vías ·
+`4a4d3ab` las vías sin portal · `ace1bc7` la glorieta) más el cierre
+de papeles. El push es de Antonio.
+
+**EL CIERRE DEL PUNTO 8 (27/08).** Cuatro piezas y la poda. La nº14
+CERRADA: subsecuencia de palabras con LA GUARDA QUE CRECE [la nº13
+extendida] y el ESCALÓN DEL DATUM cazado por el ejecutor en el
+encargo (la guarda es desempate, no veto — sin él las 4 del datum
+dejaban de rescatarse); el Andrés Oliván en su barrio, el testigo
+caído solo, 16 rescates; y la mutación que desnudó al guardián del
+fantasma (la guarda tapaba el desastre: 277 verdes con la regla
+rota) — LEY: «una regla verificada solo por su efecto deja de estar
+verificada en cuanto otra cosa la protege». EL FOCO EN LAS VÍAS
+[Pelias autocomplete; el caso TriMet idéntico]: Garrapinillos
+primera desde Garrapinillos, la vía medida por su portal más cercano
+(la Autovía de Logroño desmiente al centroide), y nace
+callejero.spec.ts. LAS VÍAS SIN PORTAL [«toda calle indexada»; sin
+número → el centroide; punto medio = MITAD DEL RECORRIDO]: 619/628
+dentro (9 fuera con dos motivos separados), cruce POR CÓDIGO 1:1,
+contrato INTACTO ({via:X, portal:X}), el Puente de Piedra a factor
+1,06 de la recta. ⚠️ El cambio pasó invisible por 438 pruebas (17
+jueces en rojo a posteriori) y el emparejador casi se rompe sin
+rojo (filtro como precaución declarada; el «bajan a 15» escrito sin
+medir, medido, falso, corregido). LA GLORIETA 15912: se escribe
+pero NO con el nombre de la ficha (ejes vs callejero — falso
+conocido declarado) y la excepción del gacetero derivada del dato.
+LA PODA DE DEMO firmada: hostelería y municipales chicas FUERA con
+motivo (siete categorías demuestran el tubo; la octava no enseña
+nada) — a la nevera con sus flecos. servidor.ts sin spec → al punto
+12. 306+154 pruebas. Commits `6f1fd08` `11564ba` `6f127f9`
+`4a4d3ab` `ace1bc7`.
 
 **TANDA 4 — EDUCACIÓN, con la nº13 cerrada y la nº14 abierta
 (25-27/08).** Tres etiquetas desde la familia municipal (43
@@ -492,15 +523,14 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el PUSH (diez commits + papeles); (2) el
-PARLAMENTO de la nº14 cuando Antonio quiera (el homónimo parcial:
-la subsecuencia medida con su coste — doctrina nueva); (3) las
-tandas siguientes del punto 8 (hostelería con OSM la primera
-candidata; municipales chicas: cívicos 25 · museos 25 · mercados
-46 · teatros 11…); (4) flecos: la ficha de Aragón · el `estado` del
-registro · el foco a las vías. Detrás, el 9 con la ordenanza leída
-en grueso. En la nevera del taller: las leyes de la nº12 y la nº13
-para la guía v2.2.
+**Lo siguiente:** (1) el PUSH (cinco commits + papeles — y con él,
+el punto 8 CERRADO en el repo); (2) **el punto 9** (bici/patinete,
+con la ordenanza VMP leída en grueso) — el siguiente gordo; (3) el
+reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
+con motivo de demo: hostelería-OSM (2.167) · municipales chicas
+(cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
+juntas · OMIC) · la ficha de Aragón · el `estado` del registro. En
+la nevera del taller: las leyes de la nº12-nº14 para la guía v2.2.
 
 ---
 
@@ -555,13 +585,11 @@ colgadas de sus capas.
 ## 4 · El plan
 
 `PLAN-DESPLAZAME.md`, renumerado a enteros el 19/08 (fuera el «6B»):
-**1-7 CERRADOS** (el 7 entero el 23/08: demo + tabla del peatón +
-mínimo de distancia + andamios fuera + narración de odin) ·
-8 destinos con nombre
-(EN MARCHA: siete categorías —farmacias, sanidad, bibliotecas,
-educación con sus tres—, el buscador por tipos completo con siglas,
-la validación espacial con la nº13 cerrada; quedan las tandas
-siguientes y la nº14 en parlamento) · 9 bici/patinete (ordenanza VMP) ·
+**1-8 CERRADOS** (el 7 el 23/08; el 8 el 27/08: siete categorías,
+toda calle sugerible, el buscador por tipos completo, la validación
+espacial con sus cuatro bitácoras cerradas, y la poda de demo
+firmada — hostelería y municipales a la nevera con motivo) ·
+9 bici/patinete (ordenanza VMP) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -596,8 +624,9 @@ Patinete» y «Bus / Tranvía» (mayúscula por peso visual; VMP descartado)
 **Punto 7 (CERRADO el 23/08 — cabos que le sobreviven):** los **581** portales sin proyección →
 `Aviso` honesto con nombre (460 son URBANIZACIÓN PEÑA ZORONGO, la
 componente 39: el radio NO se sube) — sustituyen a los 124 del censo
-viejo · los 628 con vía sin portal → candidato a `Aviso`, y su casilla
-vive en el punto 8 · 170 componentes del grafo (169 islas) ·
+viejo · ⚰️ los 628 con vía sin portal: HECHOS el 27/08 en
+el cierre del 8 (619 por punto medio · 9 fuera con motivo; 3 de los
+619 no enganchan y reciben el Aviso, que era su destino de casilla) · 170 componentes del grafo (169 islas) ·
 `Via.nombre` crudo viaja sin usarse (no re-verificado hoy) · ⚰️ la retirada de los andamios: HECHA el
 22/08 (la perezosa quedó anotada en el punto 14) · rotondas y plaza-hito, declaradas MEJORA FUTURA
 (sin etiqueta en el grafo) · la arista NO trae campos de acceso OSM
@@ -612,15 +641,14 @@ retirada): quedó FUERA del encargo de narración del 23/08 — no es de
 los combines, huele al NOMBRE ÚNICO (núcleos que no casan por la «V»).
 Si reproduce en rutas vivas: NO CONSTA. Cabo vivo, sin dueño.
 
-**Punto 8:** tandas 1-4 HECHAS (farmacias · sanidad · bibliotecas ·
-educación) + el buscador por tipos completo con siglas + la
-VALIDACIÓN ESPACIAL con vía entera; quedan las tandas (hostelería con
-OSM la primera candidata; municipales chicas en lista) · ⚠️ la nº14
-ABIERTA en parlamento (el homónimo parcial del Andrés Oliván: la
-subsecuencia medida — devuelve al 549 pero mete un rescate malo; el
-testigo vigila) · el Last-Modified suelo-del-servidor (16 categorías
-— la jurisprudencia del modified lo neutraliza) · la re-descarga que
-no repite en type (declarada en §1.20) · dos mutaciones del orden del
+**Punto 8 (CERRADO 27/08):** tandas 1-4 + el buscador por tipos +
+la validación espacial + el foco en las dos capas + las vías sin
+portal; la nº14 cerrada (⚰️ el testigo caído solo) · la poda de demo
+FIRMADA (hostelería y municipales a la nevera con motivo — con la
+ficha de Aragón y el `estado` del registro como flecos suyos) · lo
+declarado que queda de él: el Last-Modified suelo-del-servidor (la
+jurisprudencia lo neutraliza) · la re-descarga que no repite en type
+(§1.20) · la 15912 con dos nombres (falso conocido, §1.15) · dos mutaciones del orden del
 desplegable que hoy no muerden (id/etiqueta y tabla de códigos
 empatan con las cuatro de hoy — despertarán con una categoría de
 inicial dispar o con Á/Ñ) · ⚰️ el Miguel Servet: CERRADO el 24/08 (otra puerta de
@@ -631,9 +659,9 @@ RESCATADOS — causa del vector sigue NO CONSTA pero ya no daña) ·
 mecanismo de correcciones.ts con tres candados; la lista manual,
 VACÍA) · la 781 más
 ancha que su nombre (respetada, y ya buscable con provecho: el
-Inocencio Jiménez sale por «navarra») · el foco a las
-VÍAS: hallazgo anotado, sin decidir (hoy la Calle Mayor de
-Garrapinillos y la del centro solo se distinguen por el [núcleo]) ·
+Inocencio Jiménez sale por «navarra») · ⚰️ el foco a las VÍAS: HECHO
+el 27/08 en el cierre (el patrón de Pelias/TriMet; Garrapinillos
+primera desde Garrapinillos, los corchetes se quedan) ·
 `estado` del registro de licencias SIN DESCIFRAR (0/1/2/3,
 sin catálogo; quizá el visor de Urbanismo lo enseñe — otra caza de
 DevTools si hace falta) · el tope de descarga desigual del registro
@@ -653,7 +681,10 @@ cron · la API viva de Bizi.
 **Punto 11:** parkings públicos (dos fuentes cojas) · parquímetros
 reevaluables · las tres cuentas municipales que no cuadran.
 
-**Punto 12 (todo NO CONSTA, y creció):** versión Node del panel (el
+**Punto 12 (todo NO CONSTA, y creció):** ⚠️ servidor.ts SIN SPEC (el
+único fichero del motor sin pruebas — quitar el foco del endpoint
+deja 460 verdes; visible desde el 27/08, su casa es la integración
+de este punto) · versión Node del panel (el
 README ya advierte del `engines` sin declarar — candidato a declararlo
 aquí) · memoria (412 MB observados el 22/08 al arrancar; eran ~248 en el
 punto 5) · proceso persistente · index.html en rutas desconocidas (en
@@ -685,7 +716,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 421 pruebas (273 motor + 148 interfaz) sin CI · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 460 pruebas (306 motor + 154 interfaz) sin CI · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

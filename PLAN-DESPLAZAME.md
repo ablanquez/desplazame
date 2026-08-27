@@ -1010,6 +1010,74 @@ de cada campo, ORIGEN y DESTINO por igual:
       tira 49 pruebas · el nº-nunca, 44: el formulario descansa sobre
       esas dos leyes y está MEDIDO)
 
+- [x] **⭐ EL PUNTO 8, CERRADO (27/08, `6f1fd08`→`ace1bc7`).** El
+      remate en cuatro piezas, todas a doctrina, y la poda de demo
+      firmada por Antonio («no nos vamos a estancar poniendo
+      categorías como si esto fuese el cuento de nunca acabar»):
+      (1) LA nº14 CERRADA — candidatas por SUBSECUENCIA de palabras
+      con LA GUARDA QUE CRECE [la geo-similitud de la nº13 extendida
+      a todas las candidatas], y el ESCALÓN DEL DATUM que el ejecutor
+      cazó en el encargo (la guarda es DESEMPATE entre candidatas, no
+      veto sobre lo que el dato afirma: sin él, las 4 del datum
+      dejaban de rescatarse — 24 pruebas lo sostienen). El Andrés
+      Oliván EN SU BARRIO (el testigo se cayó solo, que era para lo
+      que estaba escrito), el 8855 protegido, 16 rescates. Y la
+      mutación que desnudó un guardián: el fantasma mutado a trozos
+      dejaba 277 verdes porque LA GUARDA TAPABA EL DESASTRE —
+      esSubsecuencia exportada con prueba propia y los tres casos
+      históricos. LEY: «una guarda que tapa un fallo no es una prueba
+      de que no lo haya — una regla verificada solo por su efecto
+      deja de estar verificada en cuanto otra cosa la protege».
+      (2) EL FOCO EN LAS VÍAS [Pelias autocomplete: el foco
+      promociona lo cercano SIN dejar de mostrar lo lejano; el caso
+      TriMet/Portland idéntico al nuestro: «direcciones ambiguas
+      entre pueblos, ordenadas por cercanía al foco»]: /api/vias gana
+      foco opcional, la Calle Mayor de Garrapinillos PRIMERA desde
+      Garrapinillos y la del centro décima (el tope corta, el foco
+      solo ordena — declarado); la vía se mide por su PORTAL MÁS
+      CERCANO al foco, no por centroide (la Autovía de Logroño: 34
+      portales en 17 km — el medio miente). Dos guardianes desnudados
+      por la contraprueba (el if que nunca entraba; la medida sin
+      vigilante) y nace callejero.spec.ts (buscar() vivía sin una
+      prueba). (3) LAS VÍAS SIN PORTAL DENTRO [Pelias: «toda calle
+      indexada y recuperable»; el árbol de decisión: sin número → el
+      centroide de la calle; «máximo un resultado por calle»]: 619 de
+      628 por su PUNTO MEDIO (la lectura precisa del «centroide»: la
+      MITAD DEL RECORRIDO, siempre sobre la línea — la media de
+      vértices pesa donde el dibujante puso puntos y el centro del
+      rectángulo cae fuera en una vía en L), 9 fuera con dos motivos
+      separados (la glorieta huérfana del desfase 13/05-20/08, ya en
+      §1.15, re-medida: un huérfano por dirección · 8 DISEMINADO con
+      multilínea vacía); el cruce POR CÓDIGO (1:1 en las 3.359); el
+      contrato INTACTO ({via:X, portal:X} — el punto de la vía se
+      identifica con la vía); el Puente de Piedra ruteable (factor
+      1,06 contra la recta — se juzga la coherencia, no el número).
+      ⚠️ El cambio pasó INVISIBLE por 438 pruebas (nada vigilaba qué
+      significaba sugeribles — 17 jueces comprados en rojo a
+      posteriori) y el emparejador CASI se rompe sin ponerse rojo (44
+      nombres nuevos chocaban con claves de los rescates del datum —
+      filtro como precaución declarada; y la confesión: «bajan a 15»
+      escrito sin medir, medido, falso, corregido). (4) LA GLORIETA
+      15912 [fe de erratas §1.15]: SÍ se escribe pero NO con el
+      nombre de la ficha — los dos ficheros la nombran distinto
+      (ejes: «ÓSCAR LAÍNEZ HERNÁNDEZ» · callejero, el que se
+      escribe: «LAÍNEZ HERNÁNDEZ, ÓSCAR») — falso-conocido-declarado
+      [el precedente del ---CRT], y la excepción del gacetero («solo
+      una vía no empieza por su tipo») DERIVADA del dato entero.
+      LA PODA DE DEMO, declarada con motivo: hostelería-OSM (2.167) y
+      las municipales chicas (cívicos 25 · museos 25 · mercados 46 ·
+      teatros 11 · turismo · juntas · OMIC) quedan FUERA — siete
+      categorías demuestran todo lo que el tubo tenía que demostrar
+      (composición, validación, siglas, iconos a doctrina); la octava
+      no enseña nada nuevo. A la nevera sin remordimiento, con sus
+      flecos (la ficha de Aragón · el `estado` del registro de
+      licencias). Y el cabo de servidor.ts SIN SPEC (el único fichero
+      del motor sin pruebas — visible desde el foco a las vías) pasa
+      al PUNTO 12, su casa natural. SALDO DEL PUNTO: siete categorías
+      · 820 sitios · 802 buscables · 3.350 vías sugeribles (2.731 con
+      portal + 619 por punto medio) · 14 bitácoras cerradas · 306
+      motor + 154 interfaz.
+
 - [x] **TANDA 4 — EDUCACIÓN, HECHA (25-27/08, `2a20ae0`→`1d4d956`)**:
       TRES etiquetas nuevas desde la familia municipal de 43
       categorías, con la partición de la taxonomía OSM [Education
