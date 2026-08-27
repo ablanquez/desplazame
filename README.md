@@ -413,9 +413,9 @@ En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfa
 ## Ir a un sitio, y no solo a un portal
 
 Los dos campos —origen y destino— admiten **una dirección o un sitio**. Un sitio es un destino
-con nombre, y hoy son **817 equipamientos** del término municipal en **siete categorías**
+con nombre, y hoy son **820 equipamientos** del término municipal en **siete categorías**
 —farmacias, hospitales, centros de salud, bibliotecas, colegios e institutos, guarderías y
-universidades—, de los que **799 se pueden elegir**: los **18 que no traen coordenada** se quedan
+universidades—, de los que **802 se pueden elegir**: los **18 que no traen coordenada** se quedan
 fuera, y ninguno más.
 
 **Y no se mezclan: primero se dice de qué se está hablando.** Cada campo son cuatro piezas en
@@ -483,7 +483,7 @@ fuente no se inventa.
 
 ### ⭐ Tres reglas que se ven poco y deciden mucho
 
-**Sin coordenada no existe.** De los 817 equipamientos de las siete categorías, **18 no traen
+**Sin coordenada no existe.** De los 820 equipamientos de las siete categorías, **18 no traen
 punto**. No se sugieren, no se pueden elegir y no aparecen en ninguna pantalla. Un destino que no
 se puede situar no se puede enrutar, y ofrecerlo sería prometer una ruta que va a acabar en un
 aviso — es lo que hace un geocodificador de verdad: sin punto no hay nada que indexar. **Pero no
@@ -500,15 +500,22 @@ dirección declara?—.
 
 Lo que falla se **vuelve a situar por el callejero municipal**, que es el gacetero de la casa: si
 el registro dice «C/ La Caza, 11» y el censo sabe dónde está el 11 de La Caza, esa es mejor
-coordenada que la publicada. Son **29 de 817**.
+coordenada que la publicada. Son **17 de 820**.
 
-> ⚠️⚠️ **Y ese rescate está en revisión desde el 27/08.** Al entrar los colegios se miró la ida y
-> vuelta de los 29 —a cuántos metros de un portal de verdad estaba la coordenada ANTES de
-> moverla— y salió que **22 de los 29 ya estaban a 50 m o menos de una puerta**. El peor caso: el
-> **C.E.I.P. Andrés Oliván** se va **7.666 m** desde San Juan de Mozarrifar, donde su coordenada
-> caía a 11 m de su portal, hasta una calle de la ciudad que se llama casi igual. Está abierto en
-> [`docs/BITACORA.md`](docs/BITACORA.md) y **pendiente de decisión**: lo que el motor hace hoy es
-> lo que se cuenta aquí, no lo que se ha decidido que haga.
+**⭐ Y para moverlo hay que estar lejos de LA CALLE, no solo del número.** Es la lección que
+costó una entrada de bitácora: al entrar los colegios el rescate saltaba 29 veces, y midiendo la
+ida y la vuelta —a qué distancia estaba el punto ANTES de moverlo— salió que **22 de esas 29
+movían coordenadas que ya estaban en su sitio**. Un colegio tiene la fachada larga y su punto cae
+donde cae: que no coincida con el portal que su dirección declara no es un error, es el caso del
+Miguel Servet a escala de portal. Ahora, antes de mover nada, se mira si hay **cualquier puerta de
+esa misma calle** a menos de 50 m; si la hay, el punto se queda. De 29 rescates a 17.
+
+> ⚠️ **Y queda uno abierto, que es el que lo destapó.** El **C.E.I.P. Andrés Oliván** está en San
+> Juan de Mozarrifar y su coordenada cae a 11 m de su puerta, pero su dirección dice «C/ Doctor
+> Alejandro Palomar» y esa calle **es otra**, en la ciudad, a 7,6 km: la del barrio se llama
+> «DOCTOR PALOMAR ---SJN». Son dos nombres distintos, así que no hay homónimo que desambiguar y el
+> motor casa con la única que encuentra. Es la entrada **nº14** de
+> [`docs/BITACORA.md`](docs/BITACORA.md), abierta y medida.
 
 Y lo que falla y **no** se puede resituar —porque su
 dirección es «s/n» o no resuelve— se trata como si no tuviera punto: fuera del índice, y a una
@@ -533,12 +540,12 @@ son una puerta.
 entero — con qué se movió, desde dónde y cuántos metros:
 
 ```
-motor: sitios en memoria — 817 en total · 799 en el indice · 20 ms
-motor:   Farmacia            313 · 310 en el indice · 3 sin coordenada · 0 corregidos · 7 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
-motor:   Centro de salud      56 ·  56 en el indice · 0 sin coordenada · 1 corregidos · 2 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
+motor: sitios en memoria — 820 en total · 802 en el indice · 24 ms
+motor:   Farmacia            313 · 310 en el indice · 3 sin coordenada · 0 corregidos · 4 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
+motor:   Centro de salud      56 ·  56 en el indice · 0 sin coordenada · 1 corregidos · 1 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
 motor:   Hospital             17 ·  15 en el indice · 2 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
 motor:   Biblioteca           77 ·  75 en el indice · 2 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
-motor:   Colegio o instituto 261 · 251 en el indice · 10 sin coordenada · 0 corregidos · 19 rescatados · 0 invalidas · 234 duplicados · 19 excluidos
+motor:   Colegio o instituto 264 · 254 en el indice · 10 sin coordenada · 0 corregidos · 11 rescatados · 0 invalidas · 234 duplicados · 16 excluidos
 motor:   Guardería            64 ·  64 en el indice · 0 sin coordenada · 0 corregidos · 1 rescatados · 0 invalidas · 0 duplicados · 1 excluidos
 motor:   Universidad          29 ·  28 en el indice · 1 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
 motor: 18 sin coordenada en total, fuera del indice (sin coordenada no existe: no se pueden enrutar, asi que no se sugieren)
@@ -546,10 +553,10 @@ motor: 1 corregido a mano (lista de confirmacion manual, § 1.17)
 motor:   CentrosSalud.9090    Centro de Salud Fernando El Católico · C/ Domingo Miral, s/n
 motor:                        de [-8.184875, 41.542373] a [-0.901195, 41.640282] — frontera: la coordenada municipal cae en Portugal
 motor:                        fuente: confirmación manual de Antonio, Google Maps, 24/08/2026
-motor: 29 rescatados por callejero (coordenada a mas de 50 m de la puerta que su propia direccion declara)
+motor: 17 rescatados por callejero (coordenada a mas de 50 m de la puerta que su propia direccion declara)
 motor:   Colegios.549         7666 m distancia C.E.I.P. Andrés Oliván · C/ Doctor Alejandro P → CALLE DOCTOR ALEJANDRO PALOMAR 21
-motor:   Colegios.29276       1067 m distancia Escuela de Arte · Avda. María Zambrano, 5      → CALLE MARÍA ZAMBRANO 5
-motor:   Colegios.13811        691 m distancia Col. Cristo Rey · Avda. Academia General Milit → AVENIDA ACADEMIA GENERAL MILITAR 80
+motor:   Colegios.9008         587 m distancia Academia Izquierdo · c/ Bolonia, 14            → CALLE BOLONIA 14
+motor:   CentrosSalud.9080     497 m distancia Centro de Salud Almozara · C/ Batalla de Alman → CALLE BATALLA DE ALMANSA 17
 …
 ```
 

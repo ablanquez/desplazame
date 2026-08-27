@@ -1509,7 +1509,7 @@ negocio. La presentación es **título + dirección**.
 
 | | |
 |---|---|
-| **Qué es** | **354 centros de enseñanza** del término municipal, **343 con coordenada**, repartidos en tres categorías del buscador: **Colegios e Institutos** (261, 251 con coordenada), **Guarderías** (64, las 64) y **Universidades** (29, 28) |
+| **Qué es** | **357 centros de enseñanza** del término municipal, **346 con coordenada**, repartidos en tres categorías del buscador: **Colegios e Institutos** (264, 254 con coordenada), **Guarderías** (64, las 64) y **Universidades** (29, 28) |
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | **API REST de equipamientos**, **once categorías** de la familia 11 «Educación». La misma puerta que farmacias, sanidad y bibliotecas (§ 1.16 a § 1.19) |
 | **Licencia** | **Licencia general de reutilización del Ayuntamiento de Zaragoza — [Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** · [condiciones](https://www.zaragoza.es/sede/portal/aviso-legal#condiciones) |
@@ -1517,7 +1517,7 @@ negocio. La presentación es **título + dirección**.
 | **Dónde está cumplida** | En el control de atribución del mapa y en esta ficha |
 | **Descarga** | **27/08/2026, de 06:31:39 a 06:31:43 GMT**, estado 200 las once. Cabeceras en los once `…_cabeceras.txt` de [`app/data/`](app/data/), con el `Set-Cookie` filtrado por norma |
 | **Fecha del dato** | ⭐ **Nueve por `Last-Modified`, dos omitidas** — y esta vez la regla del servidor se pudo demostrar. Ver abajo |
-| **Campos** (Colegios) | `sameAs` · `id` · `title` · `uri` · `calle` · `type` · `link` **261/261** · `tel` y `lastUpdated` 259 · `geometry` 251 · `email` 233 · `url` 219 · `description` 168 · `servicios` 138 · `imagen` 120 · `horario` 60 · `tipo` 9 · `accesibilidad` 5 · `poblacion` 3 · `imagenPortada` 1 |
+| **Campos** (Colegios) | `sameAs` · `id` · `title` · `uri` · `calle` · `type` · `link` **264/264** · `tel` y `lastUpdated` 262 · `geometry` 254 · `email` 236 · `url` 222 · `description` 168 · `servicios` 140 · `imagen` 123 · `horario` 61 · `tipo` 9 · `accesibilidad` 5 · `poblacion` 3 · `imagenPortada` 1 |
 | **Campos** (Guarderías) | `sameAs` · `id` · `title` · `tel` · `lastUpdated` · `uri` · `calle` · `geometry` · `type` · `link` **64/64** · `description` 63 · `email` 44 · `servicios` 31 · `url` 15 · `imagen` 13 · `horario` 12 · `poblacion` 11 · `tipo` 10 · `accesibilidad` 1 |
 | **Campos** (Universidades) | `sameAs` · `id` · `title` · `tel` · `lastUpdated` · `uri` · `calle` · `type` · `link` **29/29** · `geometry` 28 · `url` 27 · `email` 26 · `accesibilidad` 18 · `gradoacc` 4 · `description` y `servicios` 2 |
 | **¿Está en este repo?** | ✅ **Sí, los once tal cual**, 676.993 bytes en total. Uno a uno en la tabla de abajo, **verificados sobre un clon** |
@@ -1532,7 +1532,7 @@ negocio. La presentación es **título + dirección**.
 | | 2060 | Bachillerato | [`…-bachillerato.json`](app/data/2026-08-27_zgzapi_equipamiento-bachillerato.json) | 7 | `080e51f8bae292a735b9ebdb579ee7abe1011da1ab1a00f173c08c2e358af926` |
 | | 2061 | Ciclos Formativos | [`…-ciclos-formativos.json`](app/data/2026-08-27_zgzapi_equipamiento-ciclos-formativos.json) | 56 | `8dcafa1fb3cb2855ec1e88c2cfc88b4bad0fec6764cf8a44f3497d96c7c62383` |
 | | 680 | Formación Profesional | [`…-formacion-profesional.json`](app/data/2026-08-27_zgzapi_equipamiento-formacion-profesional.json) | 49 | `bb9877b4596dc663434cd833c9f0edbf95174ec48000efb818dc1fa3602bbf2b` |
-| | 64 | Educación Especial | [`…-educacion-especial.json`](app/data/2026-08-27_zgzapi_equipamiento-educacion-especial.json) | 19 | `1570c9bc0333d92820ac69ada7aa7f566ef87a88cb9d4fba48b5b17f60512725` |
+| | | 64 | Educación Especial (de los 19 entran **6**) | [`…-educacion-especial.json`](app/data/2026-08-27_zgzapi_equipamiento-educacion-especial.json) | 19 | `1570c9bc0333d92820ac69ada7aa7f566ef87a88cb9d4fba48b5b17f60512725` |
 | **Guarderías** | 460 | Escuela Infantil | [`…-escuela-infantil.json`](app/data/2026-08-27_zgzapi_equipamiento-escuela-infantil.json) | 65 | `6583a84f8168d978e515cdaded94175d54402f71981a31e65b3f0de3b501b46b` |
 | **Universidades** | 280 | Universitaria | [`…-universitaria.json`](app/data/2026-08-27_zgzapi_equipamiento-universitaria.json) | 14 | `cd6048ee69f86409e87c062541d669636b88d6b1e3ec7a5e91972351434c1699` |
 | | 2300 | Colegios mayores | [`…-colegios-mayores.json`](app/data/2026-08-27_zgzapi_equipamiento-colegios-mayores.json) | 8 | `60d8495fc891393500776136fd05884fbab94bc8fe24400f375796dea4619402` |
@@ -1543,8 +1543,8 @@ negocio. La presentación es **título + dirección**.
 ```
 Colegios e Institutos   514 filas (141+138+104+7+56+49+19)
                       − 234 repetidos   ← el mismo colegio fichado en varias etapas
-                      −  19 excluidos   ← ver el reparto de abajo
-                      = 261 distintos · 251 con coordenada · 10 sin
+                      −  16 excluidos   ← ver el reparto de abajo
+                      = 264 distintos · 254 con coordenada · 10 sin
 
 Guarderías               65 filas − 1 excluido  =  64 · las 64 con coordenada
 Universidades            29 filas − 0 excluidos =  29 ·  28 con coordenada · 1 sin
@@ -1582,19 +1582,23 @@ vez en «Educación Infantil» (61) y en «Escuela Infantil» (460). Tres van a 
 «Col. Virgen de Guadalupe»**, es un colegio completo (infantil + primaria) y va a **Colegios e
 Institutos**, una sola vez.
 
-**4 · De los 19 de «Educación Especial», entran TRES.** Los colegios de necesidades especiales son
+**4 · De los 19 de «Educación Especial», entran SEIS.** Los colegios de necesidades especiales son
 `amenity=school`: el 2713 «C.E.E. Alborada», el 30195 «C.E.E. María Soriano» —que **no trae
-coordenada**, así que se cuenta y no se sugiere, regla B— y el 13944 «Col. San Germán (Aspace)».
-Los otros diez exclusivos quedan fuera con motivo: son **servicios sociosanitarios** —tres centros
-de día, seis fundaciones de atención a la discapacidad y el «Hospital de Día Infanto Juvenil
-Miguel Servet», que además ya vive en la categoría hospital—, y en la taxonomía son
-`social_facility` y `healthcare`, no centros de enseñanza.
+coordenada**, así que se cuenta y no se sugiere, regla B—, el 13944 «Col. San Germán (Aspace)», el
+9609 «C.E.E. Jean Piaget», el 608 «C.E.E. Rincón de Goya» y el 2715 «C.E.E. Ángel Rivière».
 
-> ⚠️ **Y quedan TRES C.E.E. a la espera de decisión**, dicho aquí para que no se pierda: el **9609
-> (Jean Piaget)**, el **608 (Rincón de Goya)** y el **2715 (Ángel Rivière)**. Cuando se firmó la
-> lista de tres entraban por la categoría 660 —así que no aparecían como exclusivos de la 64— y la
-> misma firma sacó el 660. Son colegios como los otros tres. Añadirlos es escribir tres líneas en
-> `motor/src/sitios.ts`; hoy **no están**, y por eso los colegios son 261 y no 264.
+Los otros trece quedan fuera. Diez son **servicios sociosanitarios** —tres centros de día, seis
+fundaciones de atención a la discapacidad y el «Hospital de Día Infanto Juvenil Miguel Servet»,
+que además ya vive en la categoría hospital—, y en la taxonomía son `social_facility` y
+`healthcare`, no centros de enseñanza. Los otros tres entran igualmente, pero por otra fuente:
+están fichados también en Ciclos Formativos o en FP.
+
+> ⚠️ **Los tres últimos llegaron con un día de retraso, y merece quedar escrito por qué.** La firma
+> del 25/08 decía «entran los tres C.E.E.» nombrando ids, porque en la mesa solo aparecían los que
+> llegaban en exclusiva por la 64 — y el 9609, el 608 y el 2715 llegaban **por la categoría 660**,
+> que **la misma firma sacó**. La letra los dejaba fuera y la doctrina los metía. Entraron el
+> 27/08, y por eso los colegios son 264 y no 261: **una lista de ids firmada sobre una mesa deja
+> de valer si otra decisión de la misma mesa cambia de dónde vienen**.
 
 **Las consultas EXACTAS, que es lo único que hace esto reproducible:**
 
@@ -1662,13 +1666,13 @@ es sospechoso por sí solo; lo sospechoso es compartirla sin que ningún registr
 **Y ninguno declara `accrualPeriodicity`:** el Ayuntamiento no publica cada cuánto refresca estas
 categorías. En el panel salen **grises**, que es la verdad.
 
-#### 🔒 Los títulos: cero nombres de persona, verificado sobre los 354
+#### 🔒 Los títulos: cero nombres de persona, verificado sobre los 357
 
 Igual que en sanidad y bibliotecas, y al revés que en farmacias (§ 1.16), aquí el título es
 **institucional** y se lee: es el nombre del centro y es lo que alguien teclea. «C.E.I.P. María
 Moliner» es el nombre del colegio, no su titular — el mismo caso que Miguel Servet o Lozano Blesa.
 
-Verificado antes de publicarlos, sobre los 354 que entran:
+Verificado antes de publicarlos, sobre los 357 que entran:
 
 - **6 con el patrón «Apellido, Nombre»** —el que dispara en farmacias— y **los seis son empresas**:
   `Aneto, Sociedad Cooperativa Limitada` · `Ceserpi, SL` · `Emaragón, SL` · `Minueval, SL` ·
@@ -1676,7 +1680,7 @@ Verificado antes de publicarlos, sobre los 354 que entran:
   apellido. Son las empresas de FP dual: persona jurídica, y se leen.
 - **4 sin ninguna palabra ni sigla institucional**, y ninguno es una persona: `Condes de Aragón
   (FP)` · `ETOPIA - Zaragoza Activa` · `Stylepack` · `Xior Zaragoza`.
-- **354 títulos distintos de 354**, y ninguno vacío.
+- **357 títulos distintos de 357**, y ninguno vacío.
 
 > ⚠️ **El contador de esta verificación falló dos veces antes de dar la cifra buena**, y se anota
 > por lo mismo que el «Cáritas» de § 1.19: sin las siglas punteadas en su lista —`C.E.I.P.`,
@@ -1697,17 +1701,21 @@ tiene una puerta y su dirección es esa puerta—, y universidades solo **fronte
 y bibliotecas: un campus tiene varias entradas y sus facultades están repartidas por dentro. Es el
 precedente firmado del Miguel Servet (24/08).
 
-**Ninguno de los 354 cae fuera del término municipal**: cero inválidas, y la lista de confirmación
+**Ninguno de los 357 cae fuera del término municipal**: cero inválidas, y la lista de confirmación
 manual sigue vacía.
 
-> ⚠️⚠️ **Pero el cheque de distancia está EN DISPUTA desde el 27/08, y afecta a lo ya publicado.**
-> Los colegios disparan **19 rescates** y las guarderías 1, y al mirarlos uno a uno salió que
-> **22 de los 29 rescates de toda la casa mueven coordenadas que ya estaban a ≤50 m de un portal
-> de verdad**. El peor: el **C.E.I.P. Andrés Oliván** se va **7.666 m** desde San Juan de
-> Mozarrifar —donde su coordenada estaba a 11 m de «CALLE DOCTOR PALOMAR ---SJN 22», su portal—
-> hasta la calle homónima de la ciudad. Está abierto en [`docs/BITACORA.md`](docs/BITACORA.md)
-> (27/08) y **pendiente de decisión**: lo que hay escrito hoy es lo que el motor hace, no lo que
-> se ha decidido que haga.
+⭐ **Y el cheque de distancia se arregló el mismo día que lo estrenaron.** Los colegios lo
+dispararon 19 veces, y al mirar los rescates uno a uno salió que **22 de los 29 de toda la casa
+movían coordenadas que ya estaban en su sitio**. Un colegio tiene la fachada larga y su punto cae
+donde cae: estar lejos del NÚMERO que la dirección declara no es un error si el punto está en esa
+misma calle. Desde el cierre de la nº13, el rescate exige que el punto esté lejos de **la vía
+entera**, y los rescates bajan de **29 a 17** — de ellos **11 de colegios y 1 de guarderías**.
+
+> ⚠️ **Queda uno abierto, y es el que lo empezó todo.** El **C.E.I.P. Andrés Oliván** sigue
+> aterrizando en la ciudad: su dirección dice «C/ Doctor Alejandro Palomar» y la calle donde está,
+> en San Juan de Mozarrifar, se llama «DOCTOR PALOMAR ---SJN». Son dos nombres distintos, así que
+> no hay homónimo que desambiguar. Es la entrada **nº14** de
+> [`docs/BITACORA.md`](docs/BITACORA.md), con la medición de lo que costaría arreglarlo.
 
 ---
 
