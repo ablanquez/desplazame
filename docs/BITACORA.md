@@ -14,6 +14,62 @@
 
 ---
 
+## [2026-08-27] 🔴 ABIERTA — El rescate por callejero mueve coordenadas que ya estaban BIEN puestas, y una se va 7,7 km
+
+**Categoría:** un arreglo que empeora lo que arregla
+
+**Síntoma:** al entrar los colegios (tanda 4), el motor rescata **29** sitios. El
+mayor: `Colegios.549` **C.E.I.P. Andrés Oliván**, movido **7.666 m**. Su
+coordenada municipal `[-0.84269, 41.71662]` estaba **a 11 m de «CALLE DOCTOR
+PALOMAR ---SJN 22»** —su portal de verdad, en San Juan de Mozarrifar— y el
+rescate lo lleva a «CALLE DOCTOR ALEJANDRO PALOMAR 21», la calle homónima de la
+ciudad. La ida y vuelta sobre los 29: **22 tenían su coordenada municipal a
+≤50 m de un portal real** y aun así se movieron; **10 la tenían a ≤10 m**. No es
+de hoy: de los 9 rescates que ya vivían en producción desde el 23-24/08,
+**7 movían un punto que ya estaba a ≤50 m de un portal** (5 farmacias, 2 centros
+de salud).
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** el guardián
+`⭐ LAS NUEVE RESCATADAS, una a una y con sus metros de desvío`
+(`motor/src/sitios.spec.ts:670`), que enumera los nueve rescates con su código,
+sus metros y su motivo — y ninguna de sus líneas pregunta si el sitio al que se
+va es mejor que aquel del que viene. Ejecutado sobre el estado anterior, con los
+siete rescates malos dentro:
+
+```
+$ cd motor && npm run probar
+  ✔ ⭐ una coordenada a más de 50 m de su propia puerta, RESCATADA al portal (0.148ms)
+  ✔ ⭐ y NADIE MÁS se mueve: los otros 371 conservan su coordenada (4.1587ms)
+  ✔ ⭐ NINGUNA BIBLIOTECA se mueve: recinto, como los hospitales (4.1192ms)
+  ✔ ⭐ NINGÚN HOSPITAL se mueve: la partición firmada, vigilada (4.9429ms)
+ℹ tests 263
+ℹ suites 33
+ℹ pass 263
+ℹ fail 0
+```
+
+Y el motor lo declaraba en el arranque como un logro, no como un aviso:
+`motor: 9 rescatados por callejero (coordenada a mas de 50 m de la puerta que su propia direccion declara)`.
+
+**Cómo se cazó:** instrumento — la ida y vuelta de la tanda 3 (bibliotecas)
+aplicada esta vez a los colegios, comparando cada coordenada municipal contra el
+portal más cercano A ELLA. Lo delató el tamaño: 7.666 m no se explican.
+
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** un guardián que enumera lo que un proceso HACE no
+vigila que lo que hace esté BIEN. La lista de los nueve rescates estaba
+completa, ordenada y al byte, y las nueve podrían haber sido disparates: para
+que un arreglo automático esté vigilado hay que medir **la ida y la vuelta** —a
+qué distancia estaba el punto de origen de un portal real—, no solo cuánto se ha
+movido.
+
+**Traza:** `motor/src/gacetero.ts` (`portalDeLaDireccion`, `validar`) ·
+`motor/src/sitios.ts` (`cargarSitios`, el bloque de `rescatados`) ·
+`motor/src/sitios.spec.ts:670`.
+
 ## [2026-08-25] ✅ CERRADA — El `tsc` con el que llevo tres checkpoints declarando «la interfaz compila limpia» no compila NI UN fichero
 
 **Categoría:** instrumento que daba verde sin mirar nada
