@@ -36,7 +36,7 @@
  * como si no hubiera punto. La regla entera, con sus fuentes, vive en
  * `gacetero.ts`; aquí solo se aplica y se cuenta.
  *
- * ── 🔒 El título se lee en dos categorías de tres, y eso no es un descuido ──
+ * ── 🔒 El título se lee en seis categorías de siete, y no es un descuido ────
  *
  * **En farmacias NO.** 274 de los 313 títulos traen el nombre de la persona
  * titular. Es dato registral abierto, pero republicarlo no hace falta para nada
@@ -44,17 +44,26 @@
  * categoría y la dirección y el título se queda en el fichero — sin salir a la
  * sugerencia, ni al paso de la ruta, ni al log.
  *
- * **En centros de salud y hospitales SÍ.** Ahí el título es el nombre del
- * ESTABLECIMIENTO —«Hospital Universitario Miguel Servet», «Centro de Salud
- * Actur Sur»— y es justo lo que alguien teclea para buscarlo; ocultarlo sería
+ * **En las otras seis SÍ.** Ahí el título es el nombre del ESTABLECIMIENTO
+ * —«Hospital Universitario Miguel Servet», «I.E.S. Goya», «Facultad de
+ * Veterinaria»— y es justo lo que alguien teclea para buscarlo; ocultarlo sería
  * dejar la categoría entera imposible de encontrar. Que algunos lleven nombre
- * de persona —Lozano Blesa, Royo Villanova— no cambia nada: es el nombre del
- * edificio, no el titular de un negocio.
+ * de persona —Lozano Blesa, Royo Villanova, «C.E.I.P. María Moliner»— no cambia
+ * nada: es el nombre del edificio, no el titular de un negocio.
  *
- * La diferencia **se verificó antes de publicar**, sobre los 73 títulos de las
- * dos categorías nuevas: 0 sin palabra institucional, 0 con el patrón
- * «Apellido, Nombre» que usan las farmacias (§ 1.18). Quién lee su título lo
- * dice `FUENTES`, categoría por categoría, y no una suposición del código.
+ * La diferencia **se verifica antes de publicar**, cada vez. En las tres de
+ * educación (27/08), sobre sus 354 títulos: **0 con nombre de persona física**.
+ * Seis llevan el patrón «Apellido, Nombre» que dispara en farmacias y los seis
+ * son **empresas** —«Ceserpi, SL», «Umbela, SCDAD. COOP. LTDA.»: la coma es de
+ * la forma jurídica, no de un apellido—, y son las empresas de FP dual, persona
+ * jurídica. Y cuatro no llevan ninguna palabra institucional —«Stylepack»,
+ * «Xior Zaragoza»— y tampoco son personas (§ 1.20).
+ *
+ * ⚠️ **Y el contador de esa verificación falló dos veces antes de dar la cifra
+ * buena**, así que la lista de siglas vive escrita: sin `C.E.I.P.`, `I.E.S.`,
+ * `C.P.E.P.A.`, `E.O.I.`, `Col.` ni `G.I.` daba **325 falsos positivos** sobre
+ * los mismos datos. Quién lee su título lo dice `FUENTES`, categoría por
+ * categoría, y no una suposición del código.
  */
 
 import { readFileSync } from 'node:fs';
@@ -72,22 +81,69 @@ import type { PortalesEnMemoria } from './portales.ts';
 import { metrosPlanos } from './proyeccion.ts';
 
 /**
- * ⭐ LAS TRES CATEGORÍAS, y lo que las diferencia.
+ * ⭐ LAS SIETE CATEGORÍAS, y lo que las diferencia.
  *
- * Las tres vienen de la misma puerta —la API de equipamientos del
+ * Las siete vienen de la misma puerta —la API de equipamientos del
  * Ayuntamiento— y con la misma forma, así que se cargan con el mismo código.
  * Lo único que cambia por categoría está en esta tabla, y está aquí para que se
- * lea de un vistazo el día que entre la cuarta.
+ * lea de un vistazo el día que entre la octava.
  *
- * **`leeElTitulo` es la línea importante.** En farmacias el título del dato
- * trae el nombre de la persona titular en 274 de 313, y la decisión
- * parlamentada (23/08) es que no salga de aquí: su nombre visible se compone
- * con la categoría. En centros de salud y hospitales el título es
- * **institucional** —«Hospital Universitario Miguel Servet»— y es justo lo que
- * alguien teclea, así que se lee. Verificado sobre los 73 títulos de las dos
- * categorías nuevas antes de publicarlos: ninguno sin palabra institucional,
- * ninguno con el patrón «Apellido, Nombre» de las farmacias (§ 1.18).
+ * **`leeElTitulo` es la línea importante**, y **`mideLaDistancia` la segunda**:
+ * la primera dice si el nombre del dato se puede enseñar, y la segunda si su
+ * coordenada se compara con la puerta de su dirección o no. Las dos van
+ * explicadas en su campo, con lo que se midió para decidirlas.
+ *
+ * ⚠️ **Y `ficheros` ya no es un detalle**: de las siete, cuatro se COMPONEN de
+ * varias categorías municipales —bibliotecas de dos, colegios de siete,
+ * universidades de tres— porque el Ayuntamiento reparte por temas de interés y
+ * el producto reparte por lo que la cosa es. Componer obliga a deduplicar, y
+ * deduplicar se cuenta.
  */
+/**
+ * ⭐ UN FICHERO MUNICIPAL, y qué parte de él entra.
+ *
+ * Casi siempre entra entero y basta con el nombre. Los dos filtros son la
+ * excepción, y existen porque **una categoría municipal no siempre es una
+ * categoría del producto**: el Ayuntamiento reparte por temas de interés y
+ * nosotros por lo que la cosa ES.
+ *
+ * Los dos llevan el id escrito y **el motivo al lado**, como las correcciones
+ * manuales (§ 1.17): quien lea esto tiene que poder ver quién lo decidió y por
+ * qué, no solo que alguien lo decidió. Y los dos son **listas cerradas**: lo
+ * que el Ayuntamiento añada mañana a la categoría entra o no entra por la regla
+ * de arriba, nunca en silencio por una lista que ya no mira nadie.
+ */
+interface FicheroFuente {
+  readonly fichero: string;
+  /**
+   * Si SOLO entran algunos ids del fichero, la lista firmada.
+   *
+   * Hoy la usa una sola categoría: la 64 «Educación Especial», donde de 19
+   * registros solo tres son colegios y el resto son centros de día,
+   * fundaciones de atención a la discapacidad y un hospital de día — servicios
+   * sociosanitarios, que en la taxonomía de OSM son `social_facility` y
+   * `healthcare`, no `amenity=school` (firma de Antonio, 25/08).
+   */
+  readonly soloEstos?: readonly Admitido[];
+  /**
+   * Y los que se caen uno a uno, con su motivo.
+   *
+   * Es el **reparto** entre dos categorías del producto cuando el municipio
+   * ficha el mismo equipamiento en las dos: una escuela infantil que también
+   * está en «Educación Infantil» es una guardería y no un colegio, y un colegio
+   * completo que además está fichado como escuela infantil es **un solo
+   * elemento** —la regla de un-solo-elemento-por-colegio de OSM—, así que se
+   * queda en colegios.
+   */
+  readonly fuera?: readonly Admitido[];
+}
+
+/** Un id nombrado en una lista de admisión, con quién lo dice y por qué. */
+interface Admitido {
+  readonly id: number;
+  readonly porQue: string;
+}
+
 interface Fuente {
   readonly tipo: TipoDeSitio;
   /** Lo que se lee a la derecha de la sugerencia. */
@@ -103,9 +159,15 @@ interface Fuente {
    * lista de sugerencias. Que la fuente venga partida es un detalle del
    * Ayuntamiento, no del producto.
    *
+   * Y con educación (27/08) la lista llega a **siete**: un colegio que hace
+   * infantil, primaria y secundaria está fichado en las tres categorías
+   * municipales y aquí es **un solo centro** — que es justo lo que dice la
+   * taxonomía de OSM, donde `amenity=school` cubre varios niveles en un
+   * elemento.
+   *
    * Componer obliga a **deduplicar por id**, y por eso se cuenta aparte.
    */
-  readonly ficheros: readonly string[];
+  readonly ficheros: readonly FicheroFuente[];
   /** Si el `title` del dato se puede enseñar. Ver arriba. */
   readonly leeElTitulo: boolean;
   /**
@@ -120,12 +182,15 @@ interface Fuente {
   readonly mideLaDistancia: boolean;
 }
 
+/** El prefijo comun de los once ficheros de educación, para no repetirlo once veces. */
+const D = '2026-08-27_zgzapi_equipamiento-';
+
 const FUENTES: readonly Fuente[] = [
   {
     tipo: 'farmacia',
     categoria: 'Farmacia',
     prefijo: 'Farmacias',
-    ficheros: ['2026-08-23_zgzapi_equipamiento-farmacias.json'],
+    ficheros: [{ fichero: '2026-08-23_zgzapi_equipamiento-farmacias.json' }],
     leeElTitulo: false,
     mideLaDistancia: true,
   },
@@ -133,7 +198,7 @@ const FUENTES: readonly Fuente[] = [
     tipo: 'centro-salud',
     categoria: 'Centro de salud',
     prefijo: 'CentrosSalud',
-    ficheros: ['2026-08-24_zgzapi_equipamiento-centros-salud.json'],
+    ficheros: [{ fichero: '2026-08-24_zgzapi_equipamiento-centros-salud.json' }],
     leeElTitulo: true,
     mideLaDistancia: true,
   },
@@ -141,7 +206,7 @@ const FUENTES: readonly Fuente[] = [
     tipo: 'hospital',
     categoria: 'Hospital',
     prefijo: 'Hospitales',
-    ficheros: ['2026-08-24_zgzapi_equipamiento-hospitales.json'],
+    ficheros: [{ fichero: '2026-08-24_zgzapi_equipamiento-hospitales.json' }],
     leeElTitulo: true,
     mideLaDistancia: false,
   },
@@ -151,8 +216,8 @@ const FUENTES: readonly Fuente[] = [
     prefijo: 'Bibliotecas',
     // ⭐ DOS ficheros, una categoría. Ver `ficheros` y § 1.19.
     ficheros: [
-      '2026-08-25_zgzapi_equipamiento-bibliotecas.json',
-      '2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas.json',
+      { fichero: '2026-08-25_zgzapi_equipamiento-bibliotecas.json' },
+      { fichero: '2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas.json' },
     ],
     leeElTitulo: true,
     // ⭐ RECINTO, como los hospitales — y esta vez lo decidió el dato, no la
@@ -165,6 +230,107 @@ const FUENTES: readonly Fuente[] = [
     // mismo desvío de 169 m que el hospital y su punto cae a 1 m del mismo
     // portal. El hospital ya era recinto; su biblioteca, como «chico», se
     // habría movido — el mismo edificio con dos criterios (§ 1.19).
+    mideLaDistancia: false,
+  },
+  {
+    tipo: 'colegio',
+    // Singular, como las otras, y con las DOS palabras: lo buscable es el
+    // nombre más la categoría, así que escribir «instituto» encuentra los IES
+    // aunque su título diga «I.E.S. Goya» y no lleve la palabra entera.
+    categoria: 'Colegio o instituto',
+    prefijo: 'Colegios',
+    /**
+     * ⭐ SIETE ficheros, uno por etapa. [OSM Education features] `amenity=school`
+     * cubre de los ~6 a los ~18 y **admite varios niveles en un elemento**, así
+     * que un centro que hace infantil, primaria y secundaria entra UNA vez: el
+     * municipio lo ficha en tres categorías y aquí es un colegio.
+     *
+     * ⚠️ La categoría **660 «Centros Educativos» NO está**, y se midió antes de
+     * dejarla fuera: de sus 213 registros **no aporta ni un centro escolar** que
+     * no venga ya por su etapa, y sus 29 exclusivos son 13 facultades —que van a
+     * universidades— y 16 que pertenecen a tags propios de la taxonomía que esta
+     * tanda no trae: `amenity=music_school` (cuatro conservatorios y tres
+     * escuelas municipales), `amenity=language_school` (la EOI) y
+     * `education=centre` (los cuatro C.P.E.P.A. de adultos). Firma de Antonio,
+     * 25/08 (§ 1.20).
+     */
+    ficheros: [
+      { fichero: `${D}educacion-infantil.json`,
+        fuera: [
+          { id: 4886, porQue: 'Escuela Infantil Municipal El Bosque → guarderías [kindergarten]' },
+          { id: 8566, porQue: 'Escuela de Educación Infantil Ntra. Sra. → guarderías [kindergarten]' },
+          { id: 28948, porQue: 'G.I. Santa María del Pilar → guarderías [kindergarten]' },
+        ] },
+      { fichero: `${D}educacion-primaria.json` },
+      { fichero: `${D}educacion-secundaria.json` },
+      { fichero: `${D}bachillerato.json` },
+      { fichero: `${D}ciclos-formativos.json` },
+      { fichero: `${D}formacion-profesional.json` },
+      /**
+       * ⭐ De los 19 de «Educación Especial», TRES. Los colegios de necesidades
+       * especiales son `amenity=school` y entran; el resto de la categoría son
+       * servicios sociosanitarios —diez: centros de día, seis fundaciones de
+       * atención a la discapacidad y un hospital de día que ya vive en la
+       * categoría «hospital»— y no son centros de enseñanza. Firma de Antonio,
+       * 25/08.
+       *
+       * ⚠️ **Y hay tres C.E.E. más que esta lista deja fuera**, dicho aquí para
+       * que no se pierda: el 9609 (Jean Piaget), el 608 (Rincón de Goya) y el
+       * 2715 (Ángel Rivière). Cuando se firmó la lista entraban por la categoría
+       * 660, y la misma firma sacó el 660. Están a la espera de decisión y
+       * añadirlos es escribir tres líneas aquí (§ 1.20).
+       */
+      { fichero: `${D}educacion-especial.json`,
+        soloEstos: [
+          { id: 2713, porQue: 'C.E.E. Alborada — es un colegio [amenity=school]' },
+          { id: 30195, porQue: 'C.E.E. María Soriano — es un colegio [amenity=school]' },
+          { id: 13944, porQue: 'Col. San Germán (Aspace) — es un colegio [amenity=school]' },
+        ] },
+    ],
+    leeElTitulo: true,
+    /**
+     * ⭐ CHICO, como las farmacias. Un colegio tiene una puerta y su dirección
+     * es esa puerta: no es el caso del recinto con varias entradas por el que
+     * hospitales y bibliotecas quedaron fuera del cheque.
+     */
+    mideLaDistancia: true,
+  },
+  {
+    tipo: 'guarderia',
+    categoria: 'Guardería',
+    prefijo: 'Guarderias',
+    ficheros: [
+      { fichero: `${D}escuela-infantil.json`,
+        fuera: [
+          {
+            id: 8592,
+            porQue:
+              'Col. Virgen de Guadalupe: es un colegio completo (infantil + primaria) que ' +
+              'el municipio ficha además como escuela infantil → colegios, una sola vez ' +
+              '[un solo elemento por colegio]',
+          },
+        ] },
+    ],
+    leeElTitulo: true,
+    /** Chico: una guardería es una puerta. [OSM] `amenity=kindergarten`. */
+    mideLaDistancia: true,
+  },
+  {
+    tipo: 'universidad',
+    categoria: 'Universidad',
+    prefijo: 'Universidades',
+    ficheros: [
+      { fichero: `${D}universitaria.json` },
+      { fichero: `${D}colegios-mayores.json` },
+      { fichero: `${D}residencias-estudiantes.json` },
+    ],
+    leeElTitulo: true,
+    /**
+     * ⭐ RECINTO, como los hospitales y las bibliotecas: un campus tiene varias
+     * puertas y sus facultades están repartidas por dentro. Es el precedente
+     * firmado del Miguel Servet (24/08). El cheque de FRONTERA sí se le pasa,
+     * como a todas.
+     */
     mideLaDistancia: false,
   },
 ];
@@ -253,6 +419,15 @@ export interface RecuentoDeCategoria {
    * que el Ayuntamiento mueva un registro de una categoría a otra.
    */
   readonly duplicados: number;
+  /**
+   * ⭐ Y los que el fichero traía y una firma deja fuera —el reparto entre dos
+   * categorías del producto, o una lista de admisión. Ver `FicheroFuente`.
+   *
+   * Se cuenta por el mismo motivo que los duplicados: **un registro que no
+   * entra tiene que verse**, o la diferencia entre lo que trae el fichero y lo
+   * que hay en el índice se vuelve un misterio con el tiempo.
+   */
+  readonly excluidos: number;
 }
 
 /**
@@ -344,7 +519,8 @@ export interface SitiosEnMemoria {
 }
 
 /**
- * Carga los tres ficheros y los valida contra el callejero.
+ * Carga los quince ficheros de las siete categorías y los valida contra el
+ * callejero.
  *
  * Recibe los portales y el callejero **ya cargados** en vez de leerlos otra
  * vez: es el patrón de la casa desde que `callejero.ts` dejó de parsear los
@@ -371,16 +547,29 @@ export function cargarSitios(
     // desde aquí abajo da igual de cuántos venga, que es lo que hace que
     // componer dos categorías municipales no le cambie la vida a nadie.
     const leidos: EquipamientoCrudo[] = [];
-    for (const fichero of fuente.ficheros) {
-      const crudo = JSON.parse(readFileSync(rutaDe(fichero), 'utf8')) as {
+    let excluidosAqui = 0;
+    for (const f of fuente.ficheros) {
+      const crudo = JSON.parse(readFileSync(rutaDe(f.fichero), 'utf8')) as {
         readonly equipamiento?: readonly EquipamientoCrudo[];
       };
-      leidos.push(...(crudo.equipamiento ?? []));
+      // ⭐ Los dos filtros firmados. Ver `FicheroFuente`: el fichero se lee
+      // entero y se queda intacto en disco; lo que se decide aquí es quién
+      // entra al índice, y cuántos se quedan fuera se cuenta y se declara.
+      const blanca = f.soloEstos && new Set(f.soloEstos.map((a) => a.id));
+      const negra = new Set((f.fuera ?? []).map((a) => a.id));
+      for (const r of crudo.equipamiento ?? []) {
+        if ((blanca && !blanca.has(r.id)) || negra.has(r.id)) {
+          excluidosAqui++;
+          continue;
+        }
+        leidos.push(r);
+      }
     }
     // ⭐ DEDUPLICAR por id, y contar cuántos se caen. Ver `sinRepetidos`.
     const { unicos: registros, duplicados: duplicadosAqui } = sinRepetidos(leidos);
     let sinCoordenada = 0;
     let corregidosAqui = 0;
+
     let rescatadosAqui = 0;
     let invalidosAqui = 0;
 
@@ -418,7 +607,9 @@ export function cargarSitios(
        * que son hospitales de la categoría 780 y no llevan la palabra en el
        * título. Sin esto, buscar «hospital» dejaría fuera a la Quirón.
        */
-      const buscable = nombre === fuente.categoria ? nombre : `${nombre} ${fuente.categoria}`;
+      const buscable = conSiglasEnteras(
+        nombre === fuente.categoria ? nombre : `${nombre} ${fuente.categoria}`,
+      );
 
       const codigo = `${fuente.prefijo}.${r.id}`;
       let lon = c[0]!;
@@ -509,6 +700,7 @@ export function cargarSitios(
       rescatados: rescatadosAqui,
       invalidos: invalidosAqui,
       duplicados: duplicadosAqui,
+      excluidos: excluidosAqui,
     });
   }
 
@@ -555,6 +747,39 @@ export function sinRepetidos<T extends { readonly id: number }>(
     unicos.push(r);
   }
   return { unicos, duplicados };
+}
+
+/**
+ * ⭐ LAS SIGLAS PUNTEADAS, añadidas ENTERAS a lo buscable.
+ *
+ * `enPalabras` parte por lo que no es letra ni número, así que «C.E.I.P. María
+ * Moliner» se trocea en `c`, `e`, `i`, `p`, `maria`, `moliner`: cuatro letras
+ * sueltas que no casan con nada, y **escribir «ceip moliner» no encontraba el
+ * colegio**. Es la única forma en que se busca un colegio —la sigla es su
+ * nombre, no una abreviatura decorativa—, así que la categoría entera habría
+ * nacido inencontrable.
+ *
+ * Lo que se hace es **sumar**, no sustituir: al texto buscable se le pega
+ * detrás la sigla sin puntos, y la de puntos sigue estando. Así casan las dos
+ * formas —«ceip» y «c.e.i.p.»— y el título que se enseña no se toca.
+ * `«C.E.I.P. María Moliner»` → `«C.E.I.P. María Moliner CEIP»`.
+ *
+ * La sigla se reconoce por su forma —dos o más grupos de «una letra y un
+ * punto»— y no por una lista de siglas conocidas: una lista se queda corta el
+ * día que el municipio publique un `C.R.A.` o un `C.I.F.P.`. Es la misma regla
+ * que se declaró en la sonda de títulos (§ 1.20), y ahí ya se midió qué caza:
+ * `C.E.I.P.`, `I.E.S.`, `C.P.I.`, `C.E.E.`, `E.O.I.`, `C.P.E.P.A.`, `G.I.` y
+ * las formas jurídicas `S.L.` y `S.A.`
+ *
+ * ⚠️ No caza `Col.` ni `Ctra.`: son abreviaturas de una palabra, no siglas, y
+ * ahí «col» ya sale como palabra entera del troceador normal.
+ */
+export function conSiglasEnteras(texto: string): string {
+  const siglas = texto.match(/(?:\b[\p{L}\d]\.){2,}/gu);
+  if (!siglas) {
+    return texto;
+  }
+  return `${texto} ${siglas.map((x) => x.replaceAll('.', '')).join(' ')}`;
 }
 
 /**

@@ -295,9 +295,26 @@ export interface Portal {
  * visible sería atarlo a la redacción. La unión obliga además a que, el día que
  * entre una clase nueva, la tabla de iconos deje de compilar en vez de pintar
  * un hueco — la misma mecánica que `Record<Giro, string>` en las flechas. Y
- * cumplió: la cuarta, `biblioteca` (25/08), no compiló hasta tener su dibujo.
+ * cumplió: la cuarta, `biblioteca` (25/08), no compiló hasta tener su dibujo, y
+ * las tres de educación (27/08) volvieron a no compilar las tres a la vez.
+ *
+ * ⭐ **Y la partición de educación en TRES no es nuestra**: es la de la
+ * taxonomía de OpenStreetMap [Education features], firmada por Antonio el
+ * 25/08. `amenity=school` cubre de los ~6 a los ~18 años y mete **varios
+ * niveles en un solo elemento** —por eso los 62 centros que hacen colegio e
+ * instituto a la vez no se parten en dos—, `amenity=kindergarten` es el
+ * preescolar (y `preschool` quedó obsoletado a su favor), y
+ * `amenity=university` es el campus terciario. La FP va con los institutos
+ * porque en España vive en los IES y los CIFP.
  */
-export type TipoDeSitio = 'farmacia' | 'centro-salud' | 'hospital' | 'biblioteca';
+export type TipoDeSitio =
+  | 'farmacia'
+  | 'centro-salud'
+  | 'hospital'
+  | 'biblioteca'
+  | 'colegio'
+  | 'guarderia'
+  | 'universidad';
 
 export interface Sitio {
   /** `Farmacias.8691`, con el mismo patrón que el código de portal. */
@@ -313,7 +330,10 @@ export interface Sitio {
    *   del edificio— y es justo lo que alguien escribe para buscarlo (§ 1.18).
    */
   readonly presentacion: string;
-  /** Como se lee: «Farmacia», «Centro de salud», «Hospital», «Biblioteca». */
+  /**
+   * Como se lee: «Farmacia», «Centro de salud», «Hospital», «Biblioteca»,
+   * «Colegio o instituto», «Guardería», «Universidad».
+   */
   readonly categoria: string;
   /** De qué clase es, para el icono. Ver `TipoDeSitio`. */
   readonly tipo: TipoDeSitio;

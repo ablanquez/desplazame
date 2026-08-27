@@ -18,6 +18,7 @@ import {
 } from './sitios.ts';
 import { cargarCallejero, normalizar } from './callejero.ts';
 import { cargarPortales } from './portales.ts';
+import { metrosEntre } from './cercano.ts';
 
 describe('Los sitios — farmacias', () => {
   let sitios: SitiosEnMemoria;
@@ -32,7 +33,7 @@ describe('Los sitios — farmacias', () => {
     sitios = cargarSitios(portales, cargarCallejero(portales));
   });
 
-  test('⭐ carga las TRES categorías, y las cuenta una a una', () => {
+  test('⭐ carga las SIETE categorías, y las cuenta una a una', () => {
     // ⚠️ Esta prueba decía «313 / 310 / 3» y era el fichero de farmacias solo.
     // La segunda tanda (24/08) mete centros de salud y hospitales, así que la
     // expectativa se mueve — y se mueve a MÁS detalle, no a menos: la suma
@@ -54,13 +55,100 @@ describe('Los sitios — farmacias', () => {
         // ⭐ La cuarta (25/08), y la primera COMPUESTA: sus 77 salen de dos
         // ficheros municipales —la categoría 35 y la 223— deduplicados por id.
         ['biblioteca', 77, 75, 2],
+        // ⭐ Y las tres de educación (27/08). `total` es el de registros
+        // DISTINTOS **después** del reparto firmado, no el de los ficheros:
+        // · colegio — 514 filas en siete ficheros municipales
+        //   (141+138+104+7+56+49+19), 234 repetidos —el colegio que hace
+        //   infantil, primaria y secundaria está fichado en las tres— y 19
+        //   excluidos por firma, dan 261 distintos.
+        // · guardería — 65 en su fichero menos el Col. Virgen de Guadalupe,
+        //   que es un colegio completo y se va a la otra etiqueta: 64.
+        // · universidad — 14 + 8 + 7 de tres ficheros, sin un solo repetido.
+        ['colegio', 261, 251, 10],
+        ['guarderia', 64, 64, 0],
+        ['universidad', 29, 28, 1],
       ],
     );
     // Y la suma, que es lo que ve el resto del motor. Escrita a mano: si se
     // calculara aquí, esto compararía el código consigo mismo.
-    assert.equal(sitios.total, 463);
-    assert.equal(sitios.conCoordenada, 456);
-    assert.equal(sitios.sinCoordenada, 7);
+    assert.equal(sitios.total, 817);
+    assert.equal(sitios.conCoordenada, 799);
+    assert.equal(sitios.sinCoordenada, 18);
+  });
+
+  test('⭐ EL REPARTO FIRMADO: cada id en UNA etiqueta y en la que le toca', () => {
+    // La costura del encargo del 27/08: un equipamiento que el municipio ficha
+    // en dos categorías no puede acabar en dos categorías del producto. Se
+    // comprueban los siete casos que se llevaron a la mesa, uno a uno, y
+    // además que NINGÚN código esté repetido en el índice entero.
+    const donde = (id: number): string[] =>
+      sitios.indice.filter((x) => x.codigo.endsWith(`.${id}`)).map((x) => x.tipo);
+    assert.deepEqual(donde(4886), ['guarderia'], 'Escuela Infantil Municipal El Bosque');
+    assert.deepEqual(donde(8566), ['guarderia'], 'Escuela de Ed. Infantil Ntra. Sra.');
+    assert.deepEqual(donde(28948), ['guarderia'], 'G.I. Santa María del Pilar');
+    // ⭐ El colegio completo que además está fichado como escuela infantil se
+    // queda en colegios, UNA vez [un solo elemento por colegio].
+    assert.deepEqual(donde(8592), ['colegio'], 'Col. Virgen de Guadalupe');
+    // ⭐ Y las trece facultades, SOLO en universidades: entraban también por la
+    // categoría paraguas 660, que por eso quedó fuera de colegios.
+    for (const id of [7305, 8195, 8226, 9067, 9068, 9069, 9070, 9071, 9072, 9073, 9074, 9075, 9076]) {
+      assert.deepEqual(donde(id), ['universidad'], `la facultad ${id}`);
+    }
+    // Y de los 19 de «Educación Especial», los tres colegios firmados están y
+    // el hospital de día NO: es sociosanitario y ya vive en otra categoría.
+    assert.deepEqual(donde(2713), ['colegio'], 'C.E.E. Alborada');
+    assert.deepEqual(donde(13944), ['colegio'], 'Col. San Germán (Aspace)');
+    assert.deepEqual(donde(30256), [], 'el HOSPITAL DE DÍA no entra como colegio');
+  });
+
+  test('⭐ LOS EXCLUIDOS SE CUENTAN, categoría por categoría', () => {
+    // ⚠️ Este guardián existe porque la contraprueba lo pidió: poniendo
+    // `excluidosAqui += 0` en `cargarSitios`, **las 271 pruebas seguían
+    // verdes**. Es la misma historia que la fila de anclaje del hospital y la
+    // de la biblioteca: un contador nuevo no lo mira nadie hasta que se le
+    // escribe su prueba, y un contador que nadie mira es un contador que puede
+    // decir cualquier cosa.
+    //
+    // Y esta cifra importa: es lo único que explica por qué el fichero
+    // municipal trae más registros que los que hay en el índice.
+    assert.deepEqual(
+      sitios.porCategoria.map((c) => [c.tipo, c.excluidos, c.duplicados]),
+      [
+        ['farmacia', 0, 0],
+        ['centro-salud', 0, 0],
+        ['hospital', 0, 0],
+        // Las dos categorías de biblioteca no comparten ni un id: el 0 de
+        // duplicados es el que avisaría si el Ayuntamiento moviera una.
+        ['biblioteca', 0, 0],
+        // ⭐ 19 excluidos: los 16 de «Educación Especial» que no son colegios
+        // y las 3 escuelas infantiles que se van a guarderías. Y 234
+        // duplicados, que es el colegio fichado en varias etapas entrando una
+        // sola vez [amenity=school admite varios niveles].
+        ['colegio', 19, 234],
+        // 1: el Col. Virgen de Guadalupe, que se va a colegios.
+        ['guarderia', 1, 0],
+        ['universidad', 0, 0],
+      ],
+    );
+    // Y la cuenta cuadra por los dos lados: lo que traen los ficheros menos lo
+    // repetido menos lo excluido es lo que se ha contado como total.
+    const filas = { colegio: 514, guarderia: 65, universidad: 29 };
+    for (const [tipo, enLosFicheros] of Object.entries(filas)) {
+      const c = sitios.porCategoria.find((x) => x.tipo === tipo)!;
+      assert.equal(
+        c.total + c.duplicados + c.excluidos,
+        enLosFicheros,
+        `${tipo}: ${c.total} + ${c.duplicados} + ${c.excluidos} no dan ${enLosFicheros}`,
+      );
+    }
+  });
+
+  test('⭐ y NINGÚN código sale dos veces del índice entero', () => {
+    // La red de seguridad de arriba: con siete categorías y quince ficheros,
+    // el reparto se comprueba caso a caso, pero esto lo comprueba de golpe.
+    const codigos = sitios.indice.map((x) => x.codigo);
+    assert.equal(new Set(codigos).size, codigos.length);
+    assert.equal(codigos.length, 799);
   });
 
   test('⭐ REGLA B — al índice solo entran los que tienen coordenada', () => {
@@ -68,7 +156,7 @@ describe('Los sitios — farmacias', () => {
     // situar no se puede enrutar, y sugerirlo sería prometer una ruta que
     // acaba en un aviso. [DOC Pelias] indexa *venues* con su punto; sin punto
     // no hay documento que indexar.
-    assert.equal(sitios.indice.length, 456);
+    assert.equal(sitios.indice.length, 799);
     assert.equal(sitios.indice.length, sitios.conCoordenada);
     for (const s of sitios.indice) {
       assert.ok(Number.isFinite(s.lat) && Number.isFinite(s.lon));
@@ -165,7 +253,11 @@ describe('Los sitios — farmacias', () => {
     // La otra mitad de la decisión, y va con guardián propio para que no se
     // pueda cumplir «no enseñar el título» apagándolo en todas partes.
     const conTitulo = sitios.indice.filter((x) => x.tipo !== 'farmacia');
-    assert.equal(conTitulo.length, 146, 'no están los 56 + 15 + 75 que entran al índice');
+    assert.equal(
+      conTitulo.length,
+      489,
+      'no están los 56 + 15 + 75 + 251 + 64 + 28 que entran al índice',
+    );
     for (const s of conTitulo) {
       assert.ok(
         s.presentacion.endsWith(` · ${s.calle}`),
@@ -291,21 +383,33 @@ describe('Los sitios — farmacias', () => {
   test('⭐ EN EMPATE Y SIN FOCO, alfabético por la dirección [PROPIO]', () => {
     // «navarra» casa con dos, y las dos con el mismo rango: la palabra entera.
     // La doctrina calla en el empate puro, así que se declara uno: alfabético.
-    // ⚠️ Eran dos hasta el 24/08, tres con la segunda tanda y CUATRO desde el
-    // 25/08: las bibliotecas meten el Centro Meteorológico Territorial de
-    // Aragón, La Rioja y **Navarra**, que casa por el nombre y no por la calle.
-    // La expectativa se mueve porque cambió el DATO, no la regla.
+    // ⚠️ Eran dos hasta el 24/08, tres con la segunda tanda, cuatro con las
+    // bibliotecas (25/08) y **SEIS** desde el 27/08: educación mete dos centros
+    // que comparten la misma dirección, Avda. Navarra 141. La expectativa se
+    // mueve porque cambió el DATO, no la regla.
     //
-    // Y el orden se cuadra contra la fórmula, no contra lo que salga: las
-    // cuatro empatan a EXACTA —«navarra» es palabra entera en las cuatro, en la
-    // calle las tres primeras y en el nombre la cuarta—, así que manda el
-    // alfabético por la dirección normalizada:
-    //     «avda. de navarra» < «avenida de navarra» < «c/ dona blanca…» < «po del canal»
-    //          a                    a                     c                    p
+    // Y el orden se cuadra contra la fórmula, no contra lo que salga. Las seis
+    // empatan a EXACTA —«navarra» es palabra entera en las seis: en la calle en
+    // cinco, y en el NOMBRE en la biblioteca—, así que manda el alfabético por
+    // la dirección normalizada:
+    //     «avda. de navarra, 65»      a-v-d-a-.-espacio-**d**
+    //     «avda. navarra, 141»  (×2)  a-v-d-a-.-espacio-**n**
+    //     «avenida de navarra, 78»    a-v-**e**
+    //     «c/ dona blanca de navarra, 46-48»
+    //     «po del canal, 17»
+    //
+    // ⭐ Y los DOS de Avda. Navarra 141 empatan también ahí —es la misma
+    // dirección, un colegio y un instituto puerta con puerta—, así que los
+    // desempata el último criterio, que es **el código como cadena**:
+    // `Colegios.579` < `Colegios.8012` porque «5» < «8». Es el primer empate de
+    // dirección que se da en el índice, y por eso esa línea del comparador no
+    // se había ejecutado nunca con datos de verdad.
     assert.deepEqual(
       sugerirSitios(sitios, 'navarra').map((x) => x.presentacion),
       [
         'Farmacia · Avda. de Navarra, 65',
+        'C.E.I.P. José Camón Aznar · Avda. Navarra, 141',
+        'I.E.S. Santiago Hernández · Avda. Navarra, 141',
         'Centro de Especialidades Inocencio Jiménez · Avenida de Navarra, 78',
         'Farmacia · C/ Doña Blanca de Navarra, 46-48',
         'Biblioteca del Centro Meteorológico Territorial de Aragón, La Rioja y Navarra · Pº del Canal, 17',
@@ -439,6 +543,7 @@ describe('Los sitios — farmacias', () => {
           rescatados: 0,
           invalidos: 0,
           duplicados: 0,
+          excluidos: 0,
         },
       ],
       indice: unos,
@@ -559,13 +664,16 @@ describe('Los sitios — farmacias', () => {
 
 describe('Los sitios — la validación espacial', () => {
   let sitios: SitiosEnMemoria;
+  // ⭐ Los portales se guardan, no solo se usan y se tiran: la prueba de la ida
+  // y vuelta necesita preguntarle al censo dónde caía cada coordenada.
+  let portales: ReturnType<typeof cargarPortales>;
 
   before(() => {
-    const portales = cargarPortales();
+    portales = cargarPortales();
     sitios = cargarSitios(portales, cargarCallejero(portales));
   });
 
-  /** Lo que los tres ficheros municipales traen, sin pasar por el motor. */
+  /** Lo que los QUINCE ficheros municipales traen, sin pasar por el motor. */
   function crudos(): Map<string, { calle: string; lon: number; lat: number }> {
     const fuera = new Map<string, { calle: string; lon: number; lat: number }>();
     const ficheros: [string, string][] = [
@@ -574,6 +682,21 @@ describe('Los sitios — la validación espacial', () => {
       ['Hospitales', '2026-08-24_zgzapi_equipamiento-hospitales.json'],
       ['Bibliotecas', '2026-08-25_zgzapi_equipamiento-bibliotecas.json'],
       ['Bibliotecas', '2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas.json'],
+      // ⭐ Los once de educación (27/08). Van escritos aquí uno a uno **a
+      // propósito**: leerlos de `FUENTES` sería comparar el motor consigo
+      // mismo, y lo que esta lista sostiene es justo lo contrario — el fichero
+      // en disco frente a lo que el motor tiene en memoria.
+      ['Colegios', '2026-08-27_zgzapi_equipamiento-educacion-infantil.json'],
+      ['Colegios', '2026-08-27_zgzapi_equipamiento-educacion-primaria.json'],
+      ['Colegios', '2026-08-27_zgzapi_equipamiento-educacion-secundaria.json'],
+      ['Colegios', '2026-08-27_zgzapi_equipamiento-bachillerato.json'],
+      ['Colegios', '2026-08-27_zgzapi_equipamiento-ciclos-formativos.json'],
+      ['Colegios', '2026-08-27_zgzapi_equipamiento-formacion-profesional.json'],
+      ['Colegios', '2026-08-27_zgzapi_equipamiento-educacion-especial.json'],
+      ['Guarderias', '2026-08-27_zgzapi_equipamiento-escuela-infantil.json'],
+      ['Universidades', '2026-08-27_zgzapi_equipamiento-universitaria.json'],
+      ['Universidades', '2026-08-27_zgzapi_equipamiento-colegios-mayores.json'],
+      ['Universidades', '2026-08-27_zgzapi_equipamiento-residencias-estudiantes.json'],
     ];
     for (const [prefijo, fichero] of ficheros) {
       const crudo = JSON.parse(
@@ -612,11 +735,26 @@ describe('Los sitios — la validación espacial', () => {
         // Aplicándoles el cheque de chicos se moverían OCHO, y la ida y vuelta
         // dice que las ocho están bien puestas — una de ellas se iría 4.825 m.
         ['biblioteca', 75, 0, 0, 0],
+        // ⭐ Y las tres de educación (27/08). Colegios y guarderías son CHICOS
+        // —tienen una puerta y su dirección es esa puerta— y universidades es
+        // RECINTO, como hospitales y bibliotecas: un campus tiene varias.
+        //
+        // ⚠️ ESOS 19 + 1 RESCATES ESTÁN EN DISPUTA, y esta prueba dice lo que
+        // el motor HACE hoy, no lo que debería hacer: la ida y vuelta encontró
+        // que 22 de los 29 rescates de la casa mueven coordenadas que ya
+        // estaban a ≤50 m de un portal de verdad, y uno se va **7.666 m** de
+        // San Juan de Mozarrifar a una calle homónima de la ciudad. Está
+        // abierto en `docs/BITACORA.md` (27/08) y pendiente de decisión. Si el
+        // criterio cambia, esta tabla cambia con él.
+        ['colegio', 251, 0, 19, 0],
+        ['guarderia', 64, 0, 1, 0],
+        ['universidad', 28, 0, 0, 0],
       ],
     );
     assert.equal(sitios.corregidos.length, 1);
-    assert.equal(sitios.rescatados.length, 9);
-    // ⭐ NINGUNA inválida ya: la única que había se corrigió a mano.
+    assert.equal(sitios.rescatados.length, 29);
+    // ⭐ NINGUNA inválida: la única que había se corrigió a mano, y ni un solo
+    // sitio de educación cae fuera del término municipal.
     assert.equal(sitios.invalidos.length, 0);
   });
 
@@ -667,23 +805,73 @@ describe('Los sitios — la validación espacial', () => {
     assert.equal(c.calle, 'C/ Domingo Miral, s/n');
   });
 
-  test('⭐ LAS NUEVE RESCATADAS, una a una y con sus metros de desvío', () => {
+  test('⭐ LAS 29 RESCATADAS, una a una y con sus metros de desvío', () => {
+    // ⚠️⚠️ ESTA LISTA ESTÁ EN DISPUTA, y la prueba lo dice para que nadie la
+    // lea como una aprobación: es **lo que el motor hace hoy**, no lo que se ha
+    // decidido que haga. Ver `docs/BITACORA.md` (27/08): 22 de estas 29 mueven
+    // una coordenada que ya estaba a ≤50 m de un portal de verdad, y la primera
+    // se va 7.666 m a otra calle. Enumerar no es aprobar — que esta prueba
+    // estuviera completa y al byte con siete rescates malos dentro es
+    // exactamente lo que cuenta esa entrada.
     assert.deepEqual(
       [...sitios.rescatados]
         .sort((a, b) => b.metros - a.metros)
         .map((r) => [r.codigo, Math.round(r.metros), r.porQue]),
       [
+        ['Colegios.549', 7666, 'distancia'],
+        ['Colegios.29276', 1067, 'distancia'],
+        ['Colegios.13811', 691, 'distancia'],
+        ['Colegios.9008', 587, 'distancia'],
         ['CentrosSalud.9080', 497, 'distancia'],
+        ['Colegios.112445', 478, 'distancia'],
+        ['Colegios.13948', 436, 'distancia'],
+        ['Colegios.13922', 376, 'distancia'],
         ['Farmacias.20445', 236, 'distancia'],
+        ['Guarderias.8557', 236, 'distancia'],
         ['Farmacias.20443', 236, 'distancia'],
         ['Farmacias.8671', 236, 'distancia'],
         ['Farmacias.20444', 236, 'distancia'],
         ['Farmacias.9013', 198, 'distancia'],
+        ['Colegios.580', 183, 'distancia'],
+        ['Colegios.28915', 143, 'distancia'],
+        ['Colegios.13920', 140, 'distancia'],
+        ['Colegios.13863', 117, 'distancia'],
         ['CentrosSalud.28600', 110, 'distancia'],
+        ['Colegios.13951', 101, 'distancia'],
+        ['Colegios.13906', 79, 'distancia'],
         ['Farmacias.20530', 76, 'distancia'],
+        ['Colegios.579', 75, 'distancia'],
+        ['Colegios.8014', 70, 'distancia'],
+        ['Colegios.28066', 70, 'distancia'],
+        ['Colegios.30014', 65, 'distancia'],
+        ['Colegios.2712', 57, 'distancia'],
+        ['Colegios.607', 57, 'distancia'],
         ['Farmacias.8939', 52, 'distancia'],
       ],
     );
+  });
+
+  test('⭐ LA IDA Y VUELTA: a qué distancia de un portal REAL estaba cada una', () => {
+    // ⭐ El instrumento que faltaba, y el que abre la entrada de la bitácora del
+    // 27/08. La lista de arriba dice cuánto se ha movido cada sitio; esta dice
+    // **de dónde venía**: a cuántos metros tenía un portal del censo la
+    // coordenada que el Ayuntamiento publica.
+    //
+    // Un rescate solo mejora las cosas si el punto de partida NO estaba junto a
+    // una puerta. Cuando sí lo estaba, mover el punto es cambiar una coordenada
+    // buena por otra, y el proceso lo hacía sin que nada protestara.
+    //
+    // No se exige aún un criterio —eso está pendiente de decisión— pero sí se
+    // deja la cifra escrita y vigilada: si mañana cambia, se verá.
+    const juntoAUnPortal = sitios.rescatados.filter((r) => {
+      let masCerca = Infinity;
+      for (const p of portales.situados) {
+        const m = metrosEntre(r.latMunicipal, r.lonMunicipal, p.lat, p.lon);
+        if (m < masCerca) masCerca = m;
+      }
+      return masCerca <= 50;
+    });
+    assert.equal(juntoAUnPortal.length, 22, 'ver docs/BITACORA.md, entrada del 27/08');
   });
 
   test('⭐ una rescatada queda EXACTAMENTE en su portal, no cerca', () => {
@@ -703,8 +891,8 @@ describe('Los sitios — la validación espacial', () => {
     assert.equal(r.numero, '11');
   });
 
-  test('⭐ y NADIE MÁS se mueve: los otros 371 conservan su coordenada', () => {
-    // 456 en el índice, menos los 9 rescatados y el 1 corregido a mano.
+  test('⭐ y NADIE MÁS se mueve: los otros 769 conservan su coordenada', () => {
+    // 799 en el índice, menos los 29 rescatados y el 1 corregido a mano.
     // El guardián de la costura: el rescate solo toca ROTAS. Si un día una
     // sana acabara movida, esto se pone rojo — se compara contra el fichero
     // municipal, no contra otra parte del motor.
@@ -725,7 +913,7 @@ describe('Los sitios — la validación espacial', () => {
       assert.equal(s.lat, c.lat, `${s.codigo} ha cambiado de latitud`);
       comprobados++;
     }
-    assert.equal(comprobados, 446);
+    assert.equal(comprobados, 769);
   });
 
   test('⭐ LA CATEGORÍA COMPUESTA: dos ficheros municipales, un solo tipo', () => {

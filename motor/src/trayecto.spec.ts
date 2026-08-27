@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed } from './red.ts';
 import { cargarPortales } from './portales.ts';
-import { cargarSitios } from './sitios.ts';
+import { cargarSitios, sugerirSitios } from './sitios.ts';
 import { cargarCallejero } from './callejero.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
@@ -399,6 +399,112 @@ describe('El trayecto', () => {
     const b = motor.sitios.donde.get('Bibliotecas.4946')!;
     assert.equal(b.lon, -0.8678951683351173);
     assert.equal(b.lat, 41.663689367443794);
+  });
+
+  // ── LA CUARTA TANDA: EDUCACIÓN ─────────────────────────────────────────────
+  //
+  // Tres juez FIJAS, una por categoría, declaradas aquí para que no se muevan
+  // con el viento. Las tres se eligieron con una condición medida: **ninguna
+  // de las tres está entre los rescatados**, porque lo que estas pruebas miran
+  // es la ruta y un sitio que además se mueve mezclaría dos historias.
+  //
+  // · **C.E.I.P. María Moliner** (`Colegios.591`, C/ Miraflores, 10). Se busca
+  //   por **sigla + palabra** —«ceip moliner»—, que es como se teclea un
+  //   colegio de verdad y lo que obliga a que la sigla del título sea
+  //   buscable. A 5.405 m en línea recta de EL COLOSO 2.
+  // · **C.E.I. Chicotes** (`Guarderias.8512`, C/ Balbino Orensanz, 55), a
+  //   3.453 m.
+  // · **Facultad de Veterinaria** (`Universidades.8226`, C/ Miguel Servet,
+  //   177), a 5.319 m — y es además el caso Miguel Servet otra vez, ahora en
+  //   la calle que lleva su nombre.
+
+  const MOLINER = { sitio: 'Colegios.591' };
+  const CHICOTES = { sitio: 'Guarderias.8512' };
+  const VETERINARIA = { sitio: 'Universidades.8226' };
+
+  test('⭐ COLOSO 2 → COLEGIO: la ruta sale, y la llegada dice su sigla entera', () => {
+    const t = pedir({ origen: COLOSO, destino: MOLINER, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    // Cruza media ciudad de norte a sur: 24 pasos medidos, y se exige bastante
+    // menos para que un combine de narración no ponga esto rojo sin motivo.
+    assert.ok(t.pasos.length > 10, `solo ${t.pasos.length} pasos`);
+    // 5.405 m en línea recta. Andando salen 5.972, que es ×1,10 — y el techo
+    // se pone en el doble, que es el que avisaría de un enganche perdido.
+    assert.ok(t.metros > 5405, `${t.metros} m es menos que la línea recta`);
+    assert.ok(t.metros < 10810, `${t.metros} m es el doble de la línea recta`);
+    assert.equal(t.segundos, Math.round(t.metros / (5000 / 3600)));
+    // ⭐ El título institucional se lee, y **con su sigla y sus puntos**: es la
+    // forma en que el municipio nombra un colegio y la que alguien teclea.
+    assert.match(
+      t.pasos[t.pasos.length - 1]!.texto,
+      /^C\.E\.I\.P\. María Moliner · C\/ Miraflores, 10 está a la (derecha|izquierda)$/,
+      t.pasos[t.pasos.length - 1]!.texto,
+    );
+    assert.match(t.pasos[0]!.texto, /^Sal de Calle El Coloso 2 /);
+  });
+
+  test('⭐ y se encuentra escribiendo SIGLA Y NOMBRE: «ceip moliner»', () => {
+    // La verificación de títulos dijo que las siglas punteadas son el nombre
+    // real de un colegio (§ 1.20). Si el troceador se comiera los puntos mal,
+    // «ceip» dejaría de casar y la categoría entera sería inencontrable por la
+    // única vía por la que la gente la busca.
+    const sale = sugerirSitios(motor.sitios, 'ceip moliner', null, 'colegio');
+    assert.ok(
+      sale.some((x) => x.codigo === 'Colegios.591'),
+      `«ceip moliner» no trae el 591: ${sale.map((x) => x.codigo).join(', ')}`,
+    );
+  });
+
+  test('⭐ COLOSO 2 → GUARDERÍA: la ruta sale y la llegada la nombra', () => {
+    const t = pedir({ origen: COLOSO, destino: CHICOTES, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.ok(t.pasos.length > 6, `solo ${t.pasos.length} pasos`);
+    // 3.453 m de recta; medidos 4.262, que es ×1,23.
+    assert.ok(t.metros > 3453, `${t.metros} m es menos que la línea recta`);
+    assert.ok(t.metros < 6906, `${t.metros} m es el doble de la línea recta`);
+    assert.equal(t.segundos, Math.round(t.metros / (5000 / 3600)));
+    assert.match(
+      t.pasos[t.pasos.length - 1]!.texto,
+      /^C\.E\.I\. Chicotes · C\/ Balbino Orensanz, 55 está a la (derecha|izquierda)$/,
+      t.pasos[t.pasos.length - 1]!.texto,
+    );
+  });
+
+  test('⭐ COLOSO 2 → UNIVERSIDAD: la ruta sale, y llega al RECINTO', () => {
+    const t = pedir({ origen: COLOSO, destino: VETERINARIA, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.ok(t.pasos.length > 10, `solo ${t.pasos.length} pasos`);
+    // 5.319 m de recta; medidos 6.838, que es ×1,29 — el más torcido de los
+    // tres, y se dice: el campus queda al otro lado del río y del Canal, así
+    // que el rodeo es la ciudad, no el motor.
+    assert.ok(t.metros > 5319, `${t.metros} m es menos que la línea recta`);
+    assert.ok(t.metros < 10638, `${t.metros} m es el doble de la línea recta`);
+    // ⚠️ Aquí NO vale la igualdad exacta que usan las otras juez, y esta ruta
+    // es la que lo destapó: `metros` y `segundos` se redondean **los dos por
+    // separado desde la misma cifra sin redondear** (`trayecto.ts`, 210-211),
+    // así que rehacer la división con los metros YA redondeados puede dar un
+    // segundo de menos. Aquí da 4.923 y el motor dice 4.924, porque los metros
+    // de verdad son 6.838,9 y no 6.838. Las otras juez pasan por los pelos.
+    // Se exige lo que de verdad se cumple siempre: un segundo de margen.
+    assert.ok(
+      Math.abs(t.segundos - Math.round(t.metros / (5000 / 3600))) <= 1,
+      `${t.segundos} s no cuadra con ${t.metros} m ni con un segundo de margen`,
+    );
+    assert.match(
+      t.pasos[t.pasos.length - 1]!.texto,
+      /^Facultad de Veterinaria · C\/ Miguel Servet, 177 está a la (derecha|izquierda)$/,
+      t.pasos[t.pasos.length - 1]!.texto,
+    );
+  });
+
+  test('⭐ y la universidad conserva su coordenada del fichero: es RECINTO', () => {
+    // La contraparte de la juez de arriba, igual que en bibliotecas: las
+    // universidades no pasan por el cheque de distancia (firma del 25/08), así
+    // que la ruta llega a donde el Ayuntamiento la pone y no a la puerta que su
+    // dirección nombra. Un campus tiene varias.
+    const u = motor.sitios.donde.get('Universidades.8226')!;
+    assert.equal(u.lon, -0.8614534089812746);
+    assert.equal(u.lat, 41.63448972768281);
   });
 
   test('un sitio inventado se contesta con aviso, no con una excepción', () => {

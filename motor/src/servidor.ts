@@ -93,6 +93,12 @@ console.log(
   `motor: sitios en memoria — ${sitios.total} en total · ` +
     `${sitios.conCoordenada} en el indice · ${sitios.cargadoEnMs.toFixed(0)} ms`,
 );
+// ⭐ Y `excluidos` es la ultima columna: los que el fichero municipal trae y una
+// firma deja fuera —el reparto entre dos categorias del producto, o una lista de
+// admision (§ 1.20)—. Va en el log por lo mismo que los duplicados: la
+// diferencia entre lo que trae el fichero y lo que hay en el indice tiene que
+// poder leerse, no deducirse.
+//
 // ⭐ La regla B, dicha en voz alta al arrancar y AHORA POR CATEGORIA. Los que
 // no tienen punto no se borran ni se editan: se cuentan aqui y no se sugieren
 // jamas. Que la cifra salga en el log es lo que impide que un dia sean cuarenta
@@ -100,10 +106,10 @@ console.log(
 // todas de la misma categoria sin que se vea. Ver § 1.16, § 1.17 y § 1.18.
 for (const c of sitios.porCategoria) {
   console.log(
-    `motor:   ${c.categoria.padEnd(16)} ${String(c.total).padStart(3)} · ` +
+    `motor:   ${c.categoria.padEnd(19)} ${String(c.total).padStart(3)} · ` +
       `${String(c.conCoordenada).padStart(3)} en el indice · ${c.sinCoordenada} sin coordenada · ` +
       `${c.corregidos} corregidos · ${c.rescatados} rescatados · ${c.invalidos} invalidas · ` +
-      `${c.duplicados} duplicados`,
+      `${c.duplicados} duplicados · ${c.excluidos} excluidos`,
   );
 }
 console.log(
