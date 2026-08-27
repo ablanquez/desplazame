@@ -213,7 +213,18 @@ export class AutocompletarVia {
     if (this.capa() !== 'via' || q.length < MINIMO) {
       return undefined;
     }
-    return `/api/vias?q=${encodeURIComponent(q)}`;
+    // ⭐ Y EL FOCO TAMBIÉN AQUÍ (27/08), igual que en la capa de sitios: se
+    // manda el código del otro extremo cuando está resuelto, y el motor sube
+    // lo cercano sin descartar nada. Es lo que hace que quien empieza una ruta
+    // en Garrapinillos y escribe «mayor» vea SU Calle Mayor la primera, y no
+    // la sexta detrás de la del centro.
+    //
+    // Cero cambios de contrato: el parámetro es el mismo, se resuelve igual, y
+    // un foco que no resuelve se ignora.
+    const foco = this.foco();
+    return foco
+      ? `/api/vias?q=${encodeURIComponent(q)}&foco=${encodeURIComponent(foco)}`
+      : `/api/vias?q=${encodeURIComponent(q)}`;
   });
 
   /**

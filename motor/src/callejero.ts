@@ -13,6 +13,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Via } from '@desplazame/tipos';
 import type { PortalesEnMemoria } from './portales.ts';
+import { metrosPlanos } from './proyeccion.ts';
 
 const CALLEJERO = fileURLToPath(
   new URL('../../app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json', import.meta.url),
@@ -65,6 +66,16 @@ export interface CallejeroEnMemoria {
   /** Las que tienen portal, las únicas que se sugieren: M. */
   readonly sugeribles: readonly ViaIndexada[];
   readonly portales: number;
+  /**
+   * ⭐ El censo entero, la MISMA referencia que ya se recibe al cargar.
+   *
+   * No duplica nada y hace falta para una sola cosa: medir a qué distancia
+   * está una vía de un punto. Se guarda aquí en vez de pasarlo por parámetro
+   * a `buscar` porque el callejero **ya depende** de los portales —sin ellos no
+   * sabría cuáles son sugeribles— y añadirlo a la firma de la búsqueda sería
+   * pedirle a quien la llama que arrastre un dato que el callejero ya tiene.
+   */
+  readonly censo: PortalesEnMemoria;
   readonly cargadoEnMs: number;
 }
 
@@ -110,6 +121,7 @@ export function cargarCallejero(portales: PortalesEnMemoria): CallejeroEnMemoria
     vias: vias.length,
     sugeribles,
     portales: portales.total,
+    censo: portales,
     cargadoEnMs: performance.now() - principio,
   };
 }
@@ -120,26 +132,120 @@ export const MINIMO = 2;
 /** Cuántas sugerencias devuelve como mucho. */
 export const LIMITE = 10;
 
+/** Un punto al que acercar las sugerencias. [DOC Pelias: `focus.point`] */
+export interface Foco {
+  readonly lon: number;
+  readonly lat: number;
+}
+
+/**
+ * ⭐ A qué distancia está una VÍA de un punto: **la de su portal más cercano**.
+ *
+ * Una calle no es un punto, así que hay que elegir cuál de los suyos la
+ * representa, y se elige el más cercano al foco en vez de un centroide **porque
+ * las calles largas mienten en el centro**: la Avenida de Cataluña mide
+ * kilómetros y su punto medio no dice nada de si tienes un portal suyo al lado.
+ * Con el más cercano, «esta calle está a X metros» significa lo que parece.
+ *
+ * No inventa geometría: usa los portales del censo, que es el dato que ya
+ * decide qué vías se sugieren.
+ */
+function metrosALaVia(callejero: CallejeroEnMemoria, via: string, foco: Foco): number {
+  let mejor = Infinity;
+  for (const p of callejero.censo.porVia.get(via) ?? []) {
+    const situado = callejero.censo.donde.get(p.codigo);
+    if (!situado) {
+      continue;
+    }
+    const m = metrosPlanos(foco.lon, foco.lat, situado.lon, situado.lat);
+    if (m < mejor) {
+      mejor = m;
+    }
+  }
+  return mejor;
+}
+
 /**
  * Busca por subcadena, no por prefijo: quien escribe «goya» espera encontrar
  * «AVENIDA DE GOYA» y «PASEO DE GOYA». Pero las que EMPIEZAN por lo escrito
  * van primero, porque con un tope de 10 el orden alfabético a secas escondería
  * lo más obvio.
+ *
+ * ── ⭐ EL FOCO (27/08), que completa el patrón ──────────────────────────────
+ *
+ * `foco` es **opcional** y es el punto del otro extremo, cuando ya está
+ * resuelto — el mismo criterio y el mismo parámetro que en `/api/sitios` desde
+ * la tanda 1. Con foco, **lo cercano sube; nada se descarta**: es literalmente
+ * lo que hace Pelias en su autocompletar —«promociona los resultados cercanos a
+ * lo alto de la lista, sin dejar de mostrar los de más lejos»— y lo que traen
+ * Photon (`lat`/`lon`), Google Places (*location bias*) y Geoapify
+ * (`proximity`).
+ *
+ * El caso que lo pedía es el nuestro y está documentado igual fuera: TriMet, en
+ * Portland, pidió esto mismo para las «direcciones ambiguas **entre pueblos**»
+ * (pelias#569). Aquí son las **siete Calles Mayor** de Zaragoza —la del centro
+ * y las de La Cartuja, Garrapinillos, Juslibol, Montañana, Miralbueno y
+ * Villarrapa—: quien empieza una ruta en Garrapinillos y escribe «mayor» quiere
+ * la suya, y hasta hoy le salía la sexta.
+ *
+ * ⚠️ **Los corchetes del núcleo NO se van.** `CALLE MAYOR [GARRAPINILLOS]`
+ * sigue diciendo cuál es cuál (18/08): el foco **reordena**, y el marcador
+ * **identifica**. Son dos trabajos distintos y hacen falta los dos — el orden
+ * ayuda a quien mira la lista de arriba abajo, y el corchete es lo que deja
+ * elegir sin equivocarse.
+ *
+ * ⚠️ Y el orden se calcula **antes** del tope, no después. Con «mayor» casan
+ * **22 vías** y se enseñan diez: ordenar después de cortar dejaría fuera
+ * justamente la que el foco tenía que subir.
  */
-export function buscar(callejero: CallejeroEnMemoria, consulta: string): readonly Via[] {
+export function buscar(
+  callejero: CallejeroEnMemoria,
+  consulta: string,
+  foco: Foco | null = null,
+): readonly Via[] {
   const norma = normalizar(consulta);
   if (norma.length < MINIMO) {
     return [];
   }
 
-  const empiezan: Via[] = [];
-  const contienen: Via[] = [];
+  const casan: { readonly via: Via; readonly empieza: boolean }[] = [];
   for (const indexada of callejero.sugeribles) {
     if (indexada.norma.startsWith(norma)) {
-      empiezan.push(indexada.via);
+      casan.push({ via: indexada.via, empieza: true });
     } else if (indexada.norma.includes(norma)) {
-      contienen.push(indexada.via);
+      casan.push({ via: indexada.via, empieza: false });
     }
   }
-  return [...empiezan, ...contienen].slice(0, LIMITE);
+
+  const cerca = new Map<string, number>();
+  if (foco) {
+    for (const { via } of casan) {
+      cerca.set(via.codigo, metrosALaVia(callejero, via.codigo, foco));
+    }
+  }
+
+  /**
+   * ⭐ EL ORDEN, por capas, y es el mismo que el de los sitios:
+   *
+   * 1. **La coincidencia**: lo que empieza por lo escrito, antes. El foco nunca
+   *    se pone por delante — estar al lado no convierte una coincidencia peor
+   *    en una mejor, que es la regla ya firmada en `sugerirSitios`.
+   * 2. **El foco**, si lo hay: a igualdad de coincidencia, lo cercano sube.
+   * 3. **Alfabético por el nombre**, que es el orden con el que `sugeribles` ya
+   *    viene ordenado. Sin foco, esta capa sola reproduce **exactamente** la
+   *    lista de siempre, y hay un guardián que lo comprueba.
+   */
+  casan.sort((a, b) => {
+    if (a.empieza !== b.empieza) {
+      return a.empieza ? -1 : 1;
+    }
+    if (foco) {
+      const porCerca = cerca.get(a.via.codigo)! - cerca.get(b.via.codigo)!;
+      if (porCerca !== 0) {
+        return porCerca;
+      }
+    }
+    return a.via.nombre.localeCompare(b.via.nombre, 'es');
+  });
+  return casan.slice(0, LIMITE).map(({ via }) => via);
 }

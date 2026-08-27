@@ -272,7 +272,11 @@ async function elegirCalle(
   await new Promise((sigue) => setTimeout(sigue, 300));
   fixture.detectChanges();
 
-  http.expectOne(`/api/vias?q=${encodeURIComponent(escrito)}`).flush([via]);
+  // ⭐ La URL lleva `&foco=…` cuando el OTRO lado ya está resuelto (27/08), así
+  // que se casa por el principio y no por la cadena entera.
+  http
+    .expectOne((r) => r.url.startsWith(`/api/vias?q=${encodeURIComponent(escrito)}`))
+    .flush([via]);
   // ⭐ Desde el 23/08 el DESTINO pide también la capa de sitios. Se drena aquí
   // vacía: estas pruebas miran las calles, y una capa sin contestar deja la
   // aplicación inestable para siempre (`whenStable()` no vuelve). El origen no
@@ -280,7 +284,11 @@ async function elegirCalle(
   for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
     cap.flush([]);
   }
-  await fixture.whenStable();
+  // ⚠️ `asentar` y no `whenStable()` (27/08). Con el OTRO lado ya resuelto, al
+  // teclear en este el campo contrario también se mueve —comparten foco— y deja
+  // una petición viva que `whenStable()` esperaría para siempre. Medido: la
+  // prueba del vaivén se colgaba **exactamente aquí**, en su quinto paso.
+  await asentar(fixture, http);
 
   // Hay DOS autocompletar en la pantalla: se pulsa la sugerencia del que toca.
   //
@@ -300,7 +308,9 @@ async function elegirCalle(
   // como una petición perdida.
   await new Promise((sigue) => setTimeout(sigue, 250));
   fixture.detectChanges();
-  for (const eco of http.match(`/api/vias?q=${encodeURIComponent(comoSeVe(via))}`)) {
+  for (const eco of http.match((r) =>
+    r.url.startsWith(`/api/vias?q=${encodeURIComponent(comoSeVe(via))}`),
+  )) {
     eco.flush([via]);
   }
   for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
@@ -309,7 +319,40 @@ async function elegirCalle(
 
   // Y fijar la calle despierta a SU selector de portales, que pide los suyos.
   http.expectOne(`/api/portales?via=${via.codigo}`).flush(portales);
-  await fixture.whenStable();
+  await asentar(fixture, http);
+}
+
+/**
+ * ⭐ ESPERA A QUE LA PANTALLA SE ASIENTE, DRENANDO EL VAIVÉN DEL FOCO (27/08).
+ *
+ * Sustituye al `whenStable()` de los dos ayudantes, y hace falta por una razón
+ * concreta: **`whenStable()` se bloquea con una petición HTTP viva**, y desde
+ * hoy siempre hay una a punto de nacer. El foco es el otro extremo, la capa de
+ * vías ya lo usa, y por tanto resolver un lado —o **dejar de tenerlo resuelto**,
+ * que cambiar una calle tira su portal— hace que el campo contrario vuelva a
+ * preguntar 200 ms después. Esa petición nace fuera de todo `detectChanges()`
+ * que se haya hecho antes, y `whenStable()` se queda esperándola para siempre.
+ *
+ * Así que se espera **a plazos cortos**, drenando lo que aparezca entre uno y
+ * otro. Solo las dos capas del autocompletar: si aquí se colara una petición de
+ * PORTALES, `verify()` tiene que seguir protestando.
+ */
+async function asentar(fixture: any, http: HttpTestingController): Promise<void> {
+  // Sale en cuanto pasan DOS vueltas seguidas sin nada que drenar. Dos y no
+  // una: la petición del foco nace 200 ms después de la última interacción, y
+  // una sola vuelta vacía puede ser simplemente que todavía no ha nacido.
+  let vacias = 0;
+  for (let vuelta = 0; vuelta < 8 && vacias < 2; vuelta++) {
+    await new Promise((sigue) => setTimeout(sigue, 120));
+    fixture.detectChanges();
+    const pendientes = http.match(
+      (r) => r.url.startsWith('/api/vias') || r.url.startsWith('/api/sitios'),
+    );
+    vacias = pendientes.length === 0 ? vacias + 1 : 0;
+    for (const p of pendientes) {
+      p.flush([]);
+    }
+  }
 }
 
 /** Elige un portal de la lista del campo que toca, como lo haría una persona. */
@@ -352,7 +395,7 @@ async function elegirPortal(
   for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
     cap.flush([]);
   }
-  await fixture.whenStable();
+  await asentar(fixture, http);
 }
 
 /**
@@ -459,10 +502,19 @@ describe('Buscador', () => {
     // importa. Estas pruebas son de calles y portales; que la capa de sitios
     // pida lo que debe lo vigilan las de `destino-sitio.spec.ts`.
     //
-    // Se drena **solo** `/api/sitios`: si una de estas dejara una petición de
-    // vías o de portales sin contestar, `verify()` sigue protestando, que es
-    // justo para lo que está.
-    for (const cap of http.match((r) => r.url.startsWith('/api/sitios'))) {
+    // ⚠️ **Y desde el 27/08, también `/api/vias`.** Es el mismo motivo que hizo
+    // entrar a sitios, con la otra capa: **la de vías ya depende del foco**, y
+    // el foco es el otro extremo. Resolver un lado —o dejar de tenerlo
+    // resuelto: cambiar una calle tira su portal— hace que el campo contrario
+    // vuelva a preguntar 200 ms después, fuera del alcance de la prueba.
+    //
+    // Lo que se pierde es real y se compensa: `verify()` deja de vigilar las
+    // peticiones de vías, así que **que el foco viaje** se comprueba en un
+    // guardián propio, más abajo. Las de PORTALES siguen sin drenarse aquí: en
+    // esas `verify()` sigue trabajando.
+    for (const cap of http.match(
+      (r) => r.url.startsWith('/api/sitios') || r.url.startsWith('/api/vias'),
+    )) {
       cap.flush([]);
     }
     http.verify();
@@ -601,16 +653,25 @@ describe('Buscador', () => {
     await elegirPortal(fixture, http, 'portalOrigen', '2');
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
     await elegirPortal(fixture, http, 'portalDestino', '45');
-    await fixture.whenStable();
+    await asentar(fixture, http);
     expect(botonGenerar(raiz).disabled).toBe(false);
 
     // Se cambia la calle de origen por otra: su portal deja de valer.
     await elegirCalle(fixture, http, 'calleOrigen', 'goya', GOYA, PORTALES_GOYA);
-    await fixture.whenStable();
+    // ⚠️ `asentar` y no `whenStable()`: esta prueba es la única que hace el
+    // vaivén completo —resolver los dos lados y luego DESHACER uno—, y al
+    // deshacerlo el destino **pierde el foco** y vuelve a preguntar. Un
+    // `whenStable()` se quedaría esperando esa petición para siempre.
+    await asentar(fixture, http);
 
     expect(botonGenerar(raiz).disabled).toBe(true);
     expect(raiz.querySelector<HTMLInputElement>('input[name="portalOrigen"]')!.value).toBe('');
-  });
+    // ⏱️ Esta prueba hace CINCO interacciones completas —dos calles, dos
+    // portales y un cambio de calle— y desde el 27/08 cada una espera además al
+    // vaivén del foco. Con los 5 s de por defecto no le da tiempo, y alargar el
+    // plazo es más honesto que quitarle pasos: lo que prueba es justo la
+    // secuencia larga.
+  }, 20000);
 
   it('con tres de los cuatro códigos, el botón sigue bloqueado', async () => {
     const fixture = TestBed.createComponent(Buscador);

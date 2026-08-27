@@ -22,9 +22,13 @@ import { AutocompletarVia } from './autocompletar-via';
     [(texto)]="texto"
     [seleccion]="elegida()"
     (seleccionChange)="elegida.set($event)"
+    [foco]="foco()"
   />`,
 })
 class Anfitrion {
+  /** El otro extremo, cuando lo hay. Por defecto ninguno, como al empezar. */
+  readonly foco = signal<string | null>(null);
+
   readonly texto = signal('');
   readonly elegida = signal<Via | null>(null);
 }
@@ -104,6 +108,43 @@ describe('AutocompletarVia', () => {
     entrada(fixture).dispatchEvent(new Event('focus'));
     fixture.detectChanges();
   }
+
+  it('⭐ LA CONSULTA DE VÍAS LLEVA EL FOCO del otro extremo', async () => {
+    // ⭐ El guardián del 27/08, y está aquí porque en `buscador.spec.ts` el
+    // `verify()` ya no vigila las peticiones de vías: al depender del foco, el
+    // vaivén de los dos campos deja peticiones que ninguna prueba de allí mira.
+    // Lo que de verdad importa —que el foco viaje— se comprueba aquí.
+    //
+    // [DOC Pelias] `focus.point`: el mismo parámetro y el mismo criterio que ya
+    // usaba la capa de sitios. Con el otro extremo resuelto, las vías cercanas
+    // suben; sin él, la URL va limpia y el orden es el de siempre.
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+
+    // Sin foco: la URL no lo lleva.
+    await escribir(fixture, 'burgos');
+    http.expectOne('/api/vias?q=burgos').flush([BURGOS_CIUDAD, BURGOS_CASETAS]);
+    await fixture.whenStable();
+
+    // Y en cuanto el otro lado se resuelve, la MISMA consulta lo lleva: el
+    // recurso relee la señal y vuelve a pedir sin que nadie teclee.
+    fixture.componentInstance.foco.set('Portales.107420');
+    fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 250));
+    fixture.detectChanges();
+    http
+      .expectOne('/api/vias?q=burgos&foco=Portales.107420')
+      .flush([BURGOS_CASETAS, BURGOS_CIUDAD]);
+    await fixture.whenStable();
+
+    // Y si el otro lado se deshace, la URL vuelve a ir limpia.
+    fixture.componentInstance.foco.set(null);
+    fixture.detectChanges();
+    await new Promise((sigue) => setTimeout(sigue, 250));
+    fixture.detectChanges();
+    http.expectOne('/api/vias?q=burgos').flush([BURGOS_CIUDAD, BURGOS_CASETAS]);
+    await fixture.whenStable();
+  });
 
   it('con menos de dos letras NO pregunta al motor', async () => {
     const fixture = TestBed.createComponent(Anfitrion);

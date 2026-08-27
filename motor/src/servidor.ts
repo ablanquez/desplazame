@@ -190,6 +190,28 @@ console.log(
 /** Cuándo arrancó este proceso. La guardia lo compara con las fuentes. */
 const ARRANCADO = new Date().toISOString();
 
+/**
+ * ⭐ EL FOCO de una peticion, resuelto: el punto del otro extremo.
+ *
+ * Vive aqui, en un solo sitio, porque lo usan **las dos capas** del
+ * autocompletar —`/api/vias` y `/api/sitios`— y tienen que resolverlo igual.
+ * Antes solo lo hacia la de sitios y estaba escrito dentro de su rama; al
+ * ganarlo las vias (27/08) se saco fuera en vez de copiarlo, que es como se
+ * separan dos cosas que deberian ser una.
+ *
+ * `foco` es UN CODIGO, no un par de coordenadas [DOC Pelias: `focus.point`]:
+ * la pantalla no conoce coordenadas, el contrato le da codigos. Y un codigo que
+ * no resuelve **no es un error**: se ignora y se contesta sin foco.
+ */
+const focoDe = (url: URL): { readonly lon: number; readonly lat: number } | null => {
+  const codigo = url.searchParams.get('foco');
+  if (!codigo) {
+    return null;
+  }
+  const donde = portales.donde.get(codigo) ?? sitios.donde.get(codigo) ?? null;
+  return donde ? { lon: donde.lon, lat: donde.lat } : null;
+};
+
 const servidor = createServer((peticion, respuesta) => {
   const json = (codigo: number, cuerpo: unknown): void => {
     respuesta.writeHead(codigo, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -238,7 +260,17 @@ const servidor = createServer((peticion, respuesta) => {
     // Sin `q`, o con menos de MINIMO letras, se devuelve lista vacía: es una
     // respuesta bien formada, no un error. Quien escribe todavía no ha dicho
     // bastante como para sugerirle nada.
-    json(200, buscar(callejero, url.searchParams.get('q') ?? ''));
+    //
+    // ⭐ Y `foco` (27/08), IGUAL que en `/api/sitios`: el codigo del otro
+    // extremo ya resuelto —un portal o un sitio—, no un par de coordenadas,
+    // porque la pantalla no conoce coordenadas. Con el, las vias cercanas suben
+    // y **ninguna se descarta** [DOC Pelias, autocomplete]. Sin el, el orden de
+    // siempre, al byte.
+    //
+    // Un `foco` que no resuelve se ignora y se contesta sin foco: es una
+    // preferencia de ordenacion, no un dato de la consulta. Mismo trato que
+    // alli, y por eso el codigo es el mismo.
+    json(200, buscar(callejero, url.searchParams.get('q') ?? '', focoDe(url)));
     return;
   }
 
@@ -260,10 +292,7 @@ const servidor = createServer((peticion, respuesta) => {
     // Un `foco` que no se resuelve NO es un error: se ignora y se contesta sin
     // foco. Es una preferencia de ordenacion, no un dato de la consulta, y una
     // lista bien ordenada de menos vale mas que un 400.
-    const codigoFoco = url.searchParams.get('foco');
-    const desde = codigoFoco
-      ? (portales.donde.get(codigoFoco) ?? sitios.donde.get(codigoFoco) ?? null)
-      : null;
+    const desde = focoDe(url);
     // ⭐ `capa` acota a UNA categoria [DOC Pelias: `layers`]. Es el buscador
     // por tipos del formulario, y va de PARAMETRO y no de endpoint nuevo: la
     // busqueda es la misma y lo unico que cambia es sobre que se busca.
@@ -279,7 +308,7 @@ const servidor = createServer((peticion, respuesta) => {
       sugerirSitios(
         sitios,
         url.searchParams.get('q') ?? '',
-        desde ? { lon: desde.lon, lat: desde.lat } : null,
+        desde,
         capa,
       ),
     );
