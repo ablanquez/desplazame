@@ -413,13 +413,18 @@ En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfa
 ## Ir a un sitio, y no solo a un portal
 
 Los dos campos —origen y destino— admiten **una dirección o un sitio**. Un sitio es un destino
-con nombre, y hoy son **386 equipamientos** del término municipal en tres categorías —farmacias,
-hospitales y centros de salud—, de los que **381 se pueden elegir**: los **5 que no traen
-coordenada** se quedan fuera, y ninguno más.
+con nombre, y hoy son **817 equipamientos** del término municipal en **siete categorías**
+—farmacias, hospitales, centros de salud, bibliotecas, colegios e institutos, guarderías y
+universidades—, de los que **799 se pueden elegir**: los **18 que no traen coordenada** se quedan
+fuera, y ninguno más.
 
 **Y no se mezclan: primero se dice de qué se está hablando.** Cada campo son cuatro piezas en
 fila —**📍 · tipo ▾ · cajetín · nº**— y el desplegable acota la búsqueda a **una sola** categoría:
-`Dirección`, `Farmacias`, `Hospitales` o `Centros de Salud`. Hasta el 24/08 las dos clases salían
+`Dirección` primero, y detrás las siete alfabéticas —`Bibliotecas`, `Centros de Salud`, `Colegios
+e Institutos`, `Farmacias`, `Guarderías`, `Hospitales`, `Universidades`—. **El orden no está
+escrito: se calcula**, así que la categoría que entre mañana cae sola en su sitio. Y cada opción
+lleva dentro **el icono de su clase** en los navegadores que soportan `appearance: base-select`;
+en los demás es un desplegable de texto y funciona igual. Hasta el 24/08 las dos clases salían
 revueltas en la misma lista y quien miraba tenía que distinguirlas por un icono; ahora no hay nada
 que distinguir, porque **una lista es de una sola clase**. Cambiar de tipo **vacía el campo**: lo
 escrito bajo «Farmacias» no significa lo mismo bajo «Dirección», y arrastrarlo dejaría un texto
@@ -451,11 +456,22 @@ mudado de lado con su número dentro** — no queda ninguna apagada ni ningún b
 cercanos, los mismos códigos que fijaría elegirlos de la lista.
 
 **De dónde sale el dato.** De la **[API de equipamientos del Ayuntamiento de
-Zaragoza](https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json)**, una categoría
-por cada tipo: **740 farmacias**, **780 hospitales** y **781 centros de salud**. Sus fichas enteras
-—licencia, fecha, huella, recuentos y lo que traen de roto— están en
-**[§ 1.16, § 1.17 y § 1.18 del THIRD-PARTY-NOTICES](THIRD-PARTY-NOTICES.md)**, y su frescura son
-las **filas 22, 23 y 24** del manifiesto.
+Zaragoza](https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json)**, y hacen falta
+**quince ficheros para siete categorías**: las tres de sanidad salen de una categoría municipal
+cada una —**740 farmacias**, **780 hospitales**, **781 centros de salud**—, pero las otras cuatro
+se **componen**. Bibliotecas sale de dos (la 35 y la 223) y las tres de educación de once, porque
+el Ayuntamiento reparte por temas de interés y aquí se reparte por lo que la cosa **es**: un
+colegio que hace infantil, primaria y secundaria está fichado en tres categorías municipales y en
+el buscador es **un colegio**.
+
+⭐ **La partición de educación no es nuestra: es la de OpenStreetMap.** `amenity=school` cubre de
+los ~6 a los ~18 y admite varios niveles en un elemento, `amenity=kindergarten` es el preescolar y
+`amenity=university` el campus terciario. La FP va con los institutos porque en España vive en los
+IES y los CIFP.
+
+Sus fichas enteras —licencia, fecha, huella, recuentos y lo que traen de roto— están en
+**[§ 1.16 a § 1.20 del THIRD-PARTY-NOTICES](THIRD-PARTY-NOTICES.md)**, y su frescura son las
+**filas 22 a 37** del manifiesto.
 
 Las tres se descargaron en agosto de 2026 y **cada una declara su fecha de otra manera**, que es
 justo lo que las fichas cuentan: farmacias y centros de salud traen un `Last-Modified` que
@@ -467,7 +483,7 @@ fuente no se inventa.
 
 ### ⭐ Tres reglas que se ven poco y deciden mucho
 
-**Sin coordenada no existe.** De los 386 equipamientos de las tres categorías, **5 no traen
+**Sin coordenada no existe.** De los 817 equipamientos de las siete categorías, **18 no traen
 punto**. No se sugieren, no se pueden elegir y no aparecen en ninguna pantalla. Un destino que no
 se puede situar no se puede enrutar, y ofrecerlo sería prometer una ruta que va a acabar en un
 aviso — es lo que hace un geocodificador de verdad: sin punto no hay nada que indexar. **Pero no
@@ -484,7 +500,17 @@ dirección declara?—.
 
 Lo que falla se **vuelve a situar por el callejero municipal**, que es el gacetero de la casa: si
 el registro dice «C/ La Caza, 11» y el censo sabe dónde está el 11 de La Caza, esa es mejor
-coordenada que la publicada. Son **9 de 386**. Y lo que falla y **no** se puede resituar —porque su
+coordenada que la publicada. Son **29 de 817**.
+
+> ⚠️⚠️ **Y ese rescate está en revisión desde el 27/08.** Al entrar los colegios se miró la ida y
+> vuelta de los 29 —a cuántos metros de un portal de verdad estaba la coordenada ANTES de
+> moverla— y salió que **22 de los 29 ya estaban a 50 m o menos de una puerta**. El peor caso: el
+> **C.E.I.P. Andrés Oliván** se va **7.666 m** desde San Juan de Mozarrifar, donde su coordenada
+> caía a 11 m de su portal, hasta una calle de la ciudad que se llama casi igual. Está abierto en
+> [`docs/BITACORA.md`](docs/BITACORA.md) y **pendiente de decisión**: lo que el motor hace hoy es
+> lo que se cuenta aquí, no lo que se ha decidido que haga.
+
+Y lo que falla y **no** se puede resituar —porque su
 dirección es «s/n» o no resuelve— se trata como si no tuviera punto: fuera del índice, y a una
 **lista de confirmación manual**.
 
@@ -496,26 +522,34 @@ que sí se puede hacer con una lista corta es mirarla sobre el terreno, y eso es
 motivo, y pasa los dos cheques como cualquier otra — el fichero municipal sigue diciendo Portugal,
 intacto. Así que el centro de salud vuelve a ser un destino que se puede elegir.
 
-**Los hospitales quedan fuera del cheque de distancia**, y a propósito: un hospital no es una
-puerta, es un recinto con varias. El Miguel Servet está a 169 m del portal de su dirección y eso
-no es un error, es otra de sus entradas.
+**Hospitales, bibliotecas y universidades quedan fuera del cheque de distancia**, y a propósito:
+no son una puerta, son un recinto con varias. El Miguel Servet está a 169 m del portal de su
+dirección y eso no es un error, es otra de sus entradas; una biblioteca es muchas veces un cuarto
+dentro de un edificio mayor, y un campus tiene sus facultades repartidas por dentro. Las otras
+cuatro categorías **sí** lo pasan: una farmacia, un centro de salud, un colegio y una guardería
+son una puerta.
 
 **El fichero municipal no se toca.** Todo esto pasa en memoria al arrancar, y el motor lo dice
 entero — con qué se movió, desde dónde y cuántos metros:
 
 ```
-motor: sitios en memoria — 386 en total · 381 en el indice · 23 ms
-motor:   Farmacia         313 · 310 en el indice · 3 sin coordenada · 0 corregidos · 7 rescatados · 0 invalidas
-motor:   Centro de salud   56 ·  56 en el indice · 0 sin coordenada · 1 corregidos · 2 rescatados · 0 invalidas
-motor:   Hospital          17 ·  15 en el indice · 2 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas
-motor: 5 sin coordenada en total, fuera del indice (sin coordenada no existe: …)
+motor: sitios en memoria — 817 en total · 799 en el indice · 20 ms
+motor:   Farmacia            313 · 310 en el indice · 3 sin coordenada · 0 corregidos · 7 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
+motor:   Centro de salud      56 ·  56 en el indice · 0 sin coordenada · 1 corregidos · 2 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
+motor:   Hospital             17 ·  15 en el indice · 2 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
+motor:   Biblioteca           77 ·  75 en el indice · 2 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
+motor:   Colegio o instituto 261 · 251 en el indice · 10 sin coordenada · 0 corregidos · 19 rescatados · 0 invalidas · 234 duplicados · 19 excluidos
+motor:   Guardería            64 ·  64 en el indice · 0 sin coordenada · 0 corregidos · 1 rescatados · 0 invalidas · 0 duplicados · 1 excluidos
+motor:   Universidad          29 ·  28 en el indice · 1 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
+motor: 18 sin coordenada en total, fuera del indice (sin coordenada no existe: no se pueden enrutar, asi que no se sugieren)
 motor: 1 corregido a mano (lista de confirmacion manual, § 1.17)
 motor:   CentrosSalud.9090    Centro de Salud Fernando El Católico · C/ Domingo Miral, s/n
 motor:                        de [-8.184875, 41.542373] a [-0.901195, 41.640282] — frontera: la coordenada municipal cae en Portugal
 motor:                        fuente: confirmación manual de Antonio, Google Maps, 24/08/2026
-motor: 9 rescatados por callejero (coordenada a mas de 50 m de la puerta que su propia direccion declara)
-motor:   CentrosSalud.9080     497 m distancia Centro de Salud Almozara · C/ Batalla de Alman → CALLE BATALLA DE ALMANSA 17
-motor:   Farmacias.20445       236 m distancia Farmacia · C/ Joaquín Rodrigo, 17, portal 1    → CALLE JOAQUÍN RODRIGO 17
+motor: 29 rescatados por callejero (coordenada a mas de 50 m de la puerta que su propia direccion declara)
+motor:   Colegios.549         7666 m distancia C.E.I.P. Andrés Oliván · C/ Doctor Alejandro P → CALLE DOCTOR ALEJANDRO PALOMAR 21
+motor:   Colegios.29276       1067 m distancia Escuela de Arte · Avda. María Zambrano, 5      → CALLE MARÍA ZAMBRANO 5
+motor:   Colegios.13811        691 m distancia Col. Cristo Rey · Avda. Academia General Milit → AVENIDA ACADEMIA GENERAL MILITAR 80
 …
 ```
 
@@ -523,8 +557,11 @@ Lo que se gana se ve andando: la farmacia de Joaquín Rodrigo 17 estaba a **401 
 propio portal, así que ir de su puerta a su puerta devolvía una ruta de cuatrocientos metros. Ahora
 devuelve cero.
 
-**Y el nombre de quien la regenta no sale de aquí.** El dato municipal trae el nombre de la
-persona titular en **274 de los 313** títulos. Es dato registral publicado como abierto y
+**Y el nombre de quien la regenta no sale de aquí.** Farmacias es la única de las siete donde el
+título no se lee: el dato municipal trae el nombre de la persona titular en **274 de los 313**
+títulos. En las otras seis el título es el nombre del establecimiento —«Hospital Universitario
+Miguel Servet», «C.E.I.P. María Moliner»— y se verifica categoría por categoría antes de
+publicarlo; en las tres de educación, sobre sus 354 títulos: **cero nombres de persona física**. Es dato registral publicado como abierto y
 reutilizarlo es lícito, pero republicarlo no hace falta para nada de lo que esta pantalla hace.
 Así que la pantalla dice **«Farmacia» y la dirección**, y el título con el nombre **no sale a
 ninguna parte**: ni a la sugerencia, ni al paso de la ruta, ni al registro del motor, ni a una
@@ -561,7 +598,7 @@ tiene de particular:
 | 🔴 | el conjunto declara una fecha de caducidad y ya pasó | — |
 | 🟡 | se refresca cada X en origen y nuestra copia es más vieja | — |
 | 🟢 | hay regla con fuente y se cumple | el GTFS: «vale hasta el 2026-10-05» |
-| ⚪ | **NO CONSTA** | 17 de los 21 conjuntos |
+| ⚪ | **NO CONSTA** | 31 de los 37 conjuntos |
 
 ⭐ **El gris no es un fallo del panel: es la verdad, y la lista de deberes.** Un color solo se
 pinta si detrás hay una regla **publicada por alguien** — el `feed_end_date` del GTFS lo dice su
@@ -575,13 +612,13 @@ descarga: llegó copiada del archivo del proyecto anterior—, así que no hay c
 panel no adivina: lo dice.
 
 **La portada no se entera de nada de esto.** Abrir la raíz sigue sin pedir un solo byte de datos
-—ni el manifiesto, que son 21 KB—: el panel se carga aparte (`loadComponent`) y pide su
+—ni el manifiesto, que son 37 KB—: el panel se carga aparte (`loadComponent`) y pide su
 manifiesto solo cuando alguien entra en él. Medido sobre el `dist`: la raíz en frío son **6
 peticiones y 459 kB**, y **cero** de datos o de manifiesto. Hay dos guardianes que lo vigilan, y
 uno cuenta el total de peticiones, no un patrón — para que la próxima cosa que quiera colgarse de
 la portada tampoco pueda hacerlo en silencio.
 
-Y el manifiesto **no puede pudrirse en silencio**: una prueba recalcula el `sha256` de los 21
+Y el manifiesto **no puede pudrirse en silencio**: una prueba recalcula el `sha256` de los 37
 ficheros en cada ejecución y los compara con lo declarado. Si un dato cambiara sin que nadie
 tocara el manifiesto, se pondría roja.
 
@@ -624,7 +661,7 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son estas dos.
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
 
-> ℹ️ **Y las dos están en uso.** El repositorio lleva **catorce conjuntos de datos dentro**:
+> ℹ️ **Y las dos están en uso.** El repositorio lleva **treinta conjuntos de datos dentro**:
 > **once** del Ayuntamiento de Zaragoza —el callejero, los portales, los carriles bici, los
 > postes de autobús, las estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento
 > regulado, las zonas reguladas, las reservas de espacio y **los ejes de vía**—, el grafo de
