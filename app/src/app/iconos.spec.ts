@@ -6,6 +6,10 @@ import { Buscador } from './buscador';
 import {
   AZUL,
   MORADO,
+  MOSTAZA,
+  CAMINO_COLEGIO,
+  CAMINO_GUARDERIA,
+  CAMINO_UNIVERSIDAD,
   CAMINO_LIBRO,
   CAMINO_CHINCHETA,
   CAMINO_CRUZ,
@@ -116,6 +120,32 @@ const BIBLIOTECA: Sitio = {
   presentacion: 'Biblioteca para Jóvenes Cubit · C/ Mas de las Matas, 20',
   categoria: 'Biblioteca',
   tipo: 'biblioteca',
+};
+
+/**
+ * Los tres jueces de educación (27/08). Ninguno de los tres está entre los
+ * rescatados: lo que se mira aquí es el dibujo, y un sitio que además se mueve
+ * mezclaría dos historias en la misma prueba.
+ */
+const COLEGIO: Sitio = {
+  codigo: 'Colegios.591',
+  presentacion: 'C.E.I.P. María Moliner · C/ Miraflores, 10',
+  categoria: 'Colegio o instituto',
+  tipo: 'colegio',
+};
+
+const GUARDERIA: Sitio = {
+  codigo: 'Guarderias.8512',
+  presentacion: 'C.E.I. Chicotes · C/ Balbino Orensanz, 55',
+  categoria: 'Guardería',
+  tipo: 'guarderia',
+};
+
+const UNIVERSIDAD: Sitio = {
+  codigo: 'Universidades.8226',
+  presentacion: 'Facultad de Veterinaria · C/ Miguel Servet, 177',
+  categoria: 'Universidad',
+  tipo: 'universidad',
 };
 
 const campoDe = (raiz: HTMLElement, n: string): HTMLInputElement =>
@@ -286,7 +316,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     }
   });
 
-  it('⭐ LAS TRES CLASES DE SITIO se dibujan distinto', async () => {
+  it('⭐ LAS SIETE CLASES DE SITIO se dibujan distinto', async () => {
     // Es lo que la segunda tanda añade y lo que puede mentir: tres clases con
     // el mismo dibujo serían tres cosas que parecen la misma. Se miran las dos
     // señas a la vez —la forma y el color—, porque cada una sale de una tabla
@@ -296,7 +326,7 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     // resultado: lo que se afirma sigue siendo lo mismo, que las tres se
     // dibujan distinto.
     const dibujos: unknown[] = [];
-    for (const sitio of [FARMACIA, CENTRO, HOSPITAL, BIBLIOTECA]) {
+    for (const sitio of [FARMACIA, CENTRO, HOSPITAL, BIBLIOTECA, COLEGIO, GUARDERIA, UNIVERSIDAD]) {
       await ponerTipo('calleDestino', sitio.tipo);
       await teclear('calleDestino', 'salud');
       await contestar([], [sitio]);
@@ -317,7 +347,25 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
       // abierto es el glifo de biblioteca en osm-carto y en Maki, y el morado
       // es de la familia de cultura, que no es ninguna de las otras dos.
       ['biblioteca', CAMINO_LIBRO, MORADO],
+      // ⭐ Y las tres de educación (27/08). Comparten COLOR —son una familia, y
+      // el color va por familia— y no comparten FORMA con nadie, que es lo que
+      // las distingue [#2787: la forma distingue, no solo el color]. Que las
+      // tres lleven el mismo mostaza es lo que esta prueba afirma A PROPÓSITO:
+      // si un día alguien le pone tres tonos, aquí se ve.
+      ['colegio', CAMINO_COLEGIO, MOSTAZA],
+      ['guarderia', CAMINO_GUARDERIA, MOSTAZA],
+      ['universidad', CAMINO_UNIVERSIDAD, MOSTAZA],
     ]);
+
+    // ⭐ Y las siete clases dan SEIS formas, no siete, y el número es la
+    // doctrina escrita: **farmacia y centro de salud comparten la cruz** y las
+    // separa el color —verde de farmacia, azul sanitario—, que es la única
+    // pareja que lo hace. Las otras cinco formas no se repiten con nadie.
+    // Contar aquí impide las dos averías simétricas: que una clase nueva copie
+    // el camino de otra (bajaría de 6), y que alguien le dé una forma propia a
+    // una de las dos cruces sin decirlo (subiría a 7).
+    const formas = new Set(dibujos.map((d) => (d as string[])[1]));
+    expect(formas.size).toBe(6);
   });
 
   it('⭐ y el HOSPITAL lleva su H blanca encima, que es la señal entera', async () => {
@@ -621,6 +669,47 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     const marcas = raiz.querySelectorAll<HTMLElement>('.leaflet-marker-icon');
     expect(marcas[0]!.querySelector('svg')?.getAttribute('data-icono')).toBe('biblioteca');
     expect(`${marcas[0]!.style.marginLeft} ${marcas[0]!.style.marginTop}`).toBe('-16px -16px');
+  });
+
+  // ⭐ Y LAS TRES FILAS NUEVAS de la tabla de anclajes, una prueba cada una.
+  //
+  // Es la tercera vez que se escriben estas pruebas y siempre por lo mismo: una
+  // fila nueva **no la mira nadie** hasta que se le pone guardián. Le pasó a
+  // `hospital` (24/08) y a `biblioteca` (25/08), con las 126 y las 140 pruebas
+  // en verde mientras la fila estaba mal.
+  //
+  // ⚠️ Y van separadas, no en un bucle: cada una genera una ruta entera, y
+  // encadenar tres en la misma prueba cancela las peticiones de la anterior
+  // («Cannot flush a cancelled request»). Se intentó primero con el bucle.
+  for (const sitio of [COLEGIO, GUARDERIA, UNIVERSIDAD]) {
+    it(`⭐ y ${sitio.tipo.toUpperCase()} agarra por el centro, no por abajo`, async () => {
+      await elegirSitioEn('calleOrigen', sitio);
+      await elegirDireccionEn('calleDestino', 'portalDestino');
+      await generarYMirarElMapa();
+
+      const marcas = raiz.querySelectorAll<HTMLElement>('.leaflet-marker-icon');
+      expect(marcas[0]!.querySelector('svg')?.getAttribute('data-icono')).toBe(sitio.tipo);
+      expect(`${marcas[0]!.style.marginLeft} ${marcas[0]!.style.marginTop}`).toBe('-16px -16px');
+    });
+  }
+
+  it('⭐ el MOSTAZA es el mismo en los dos papeles, y en las tres', async () => {
+    // Un sitio lleva el color de su CLASE y el papel no lo toca: una guardería
+    // es mostaza en el origen y en el destino, igual que la farmacia es verde y
+    // el hospital azul. Con el ⇅ los extremos se cruzan y el dibujo no puede
+    // cambiar de identidad por el camino.
+    for (const campo of ['calleOrigen', 'calleDestino'] as const) {
+      for (const sitio of [COLEGIO, GUARDERIA, UNIVERSIDAD]) {
+        await ponerTipo(campo, sitio.tipo);
+        await teclear(campo, 'moliner');
+        await contestar([], [sitio]);
+        const svg = raiz.querySelector<SVGElement>(`[data-campo="${campo}"] .sugerencia svg`)!;
+        expect(svg.querySelector('path')?.getAttribute('fill'), `${sitio.tipo} en ${campo}`).toBe(
+          MOSTAZA,
+        );
+        await drenarEco();
+      }
+    }
   });
 
   it('el itinerario NO pierde su flecha: el icono se suma, no sustituye', async () => {

@@ -474,6 +474,13 @@ export class Buscador {
    * pelo, porque «Centros» y «Farmacias» se separan igual pero una «Ó» o una
    * «Ñ» no: el orden de un alfabeto lo decide su idioma, no su tabla de
    * códigos.
+   *
+   * **Y cumplió a la primera vez que hizo falta.** Las tres de educación
+   * (27/08) se escribieron al final de la lista y salen donde les toca —
+   * «Colegios e Institutos» entre Centros de Salud y Farmacias, «Guarderías»
+   * entre Farmacias y Hospitales, «Universidades» al final—, sin tocar una
+   * línea del orden. `localeCompare('es')` es además lo que coloca
+   * «Guarderías» **antes** que «Hospitales» pese a la tilde.
    */
   private static ordenadas(
     resto: ReadonlyArray<{ id: Clase; etiqueta: string }>,
@@ -488,6 +495,9 @@ export class Buscador {
       { id: 'hospital', etiqueta: 'Hospitales' },
       { id: 'centro-salud', etiqueta: 'Centros de Salud' },
       { id: 'biblioteca', etiqueta: 'Bibliotecas' },
+      { id: 'colegio', etiqueta: 'Colegios e Institutos' },
+      { id: 'guarderia', etiqueta: 'Guarderías' },
+      { id: 'universidad', etiqueta: 'Universidades' },
     ]),
   ];
 

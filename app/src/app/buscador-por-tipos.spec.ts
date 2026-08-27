@@ -142,8 +142,9 @@ describe('⭐ EL BUSCADOR POR TIPOS', () => {
 
   // ── EL DESPLEGABLE ─────────────────────────────────────────────────────────
 
-  it('⭐ los DOS campos traen su desplegable, ordenado y con sus cinco opciones', () => {
-    // ⚠️ Eran CUATRO hasta el 25/08 y ahora son cinco: entran las bibliotecas.
+  it('⭐ los DOS campos traen su desplegable, ordenado y con sus ocho opciones', () => {
+    // ⚠️ Eran CUATRO hasta el 25/08, cinco con las bibliotecas y ocho desde el
+    // 27/08: entran colegios e institutos, guarderías y universidades.
     //
     // ⭐ Y desde el 25/08 van ORDENADAS: «Dirección» primera —es el defecto y
     // es de otra clase que las demás, que son categorías de sitio [GOV.UK: el
@@ -167,14 +168,24 @@ describe('⭐ EL BUSCADOR POR TIPOS', () => {
         ['via', 'Dirección'],
         ['biblioteca', 'Bibliotecas'],
         ['centro-salud', 'Centros de Salud'],
+        ['colegio', 'Colegios e Institutos'],
         ['farmacia', 'Farmacias'],
+        ['guarderia', 'Guarderías'],
         ['hospital', 'Hospitales'],
+        ['universidad', 'Universidades'],
       ]);
 
       // ⭐ Y el orden no es una lista escrita a mano: es **la regla**. Se
       // comprueba contra ella, no contra la copia de arriba — si mañana entra
-      // una quinta categoría y alguien la pega al final, esto se pone rojo
-      // aunque la lista literal se haya actualizado.
+      // una categoría más y alguien la pega al final, esto se pone rojo aunque
+      // la lista literal se haya actualizado.
+      //
+      // ⭐ Y cobró el 27/08: las tres de educación se escribieron al final de
+      // `tipos` y salen intercaladas —Colegios entre Centros de Salud y
+      // Farmacias, Guarderías entre Farmacias y Hospitales—, que es lo que esta
+      // regla promete y esta línea comprueba. Y «Guarderías» va **antes** que
+      // «Hospitales» con su tilde dentro, que es lo que `localeCompare('es')`
+      // hace y una comparación de cadenas a pelo no.
       const [primera, ...resto] = opciones;
       expect(primera).toEqual(['via', 'Dirección']);
       const etiquetas = resto.map(([, etiqueta]) => etiqueta as string);
@@ -262,8 +273,11 @@ describe('⭐ EL BUSCADOR POR TIPOS', () => {
         'via',
         'biblioteca',
         'centro-salud',
+        'colegio',
         'farmacia',
+        'guarderia',
         'hospital',
+        'universidad',
       ]);
     }
   });
@@ -313,8 +327,11 @@ describe('⭐ EL BUSCADOR POR TIPOS', () => {
         'Dirección',
         'Bibliotecas',
         'Centros de Salud',
+        'Colegios e Institutos',
         'Farmacias',
+        'Guarderías',
         'Hospitales',
+        'Universidades',
       ]);
       for (const o of opciones) {
         expect(o.querySelector('svg')?.getAttribute('aria-hidden'), o.value).toBe('true');

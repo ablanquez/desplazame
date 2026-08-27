@@ -46,11 +46,13 @@ const HOLGURA_DEL_ENCUADRE: L.PointTuple = [30, 30];
  * · La **chincheta** señala con la PUNTA, que está abajo del todo: `[16, 32]`.
  *   Centrarla dejaría el punto real 16 px por encima de donde se ve la punta —
  *   media manzana de error a zoom de calle, y sin que nada lo delate.
- * · Las **figuras de sitio** —cruz verde, cruz azul, la H en su cuadrado y el
- *   libro abierto— no señalan con ningún borde: son marcas, y van centradas en
- *   su punto, `[16, 16]`. Con `Record<Clase, …>` están todas obligadas, así que
- *   una clase nueva no puede colarse sin que alguien decida por dónde agarra —
- *   y con bibliotecas (25/08) se cumplió: no compiló hasta decidirlo.
+ * · Las **figuras de sitio** —las dos cruces, la H en su cuadrado, el libro
+ *   abierto, el lápiz con su manzana, el chupete y el birrete— no señalan con
+ *   ningún borde: son marcas, y van centradas en su punto, `[16, 16]`. Con
+ *   `Record<Clase, …>` están todas obligadas, así que una clase nueva no puede
+ *   colarse sin que alguien decida por dónde agarra — y se ha cumplido dos
+ *   veces: con bibliotecas (25/08) y con las tres de educación (27/08), que no
+ *   compilaron hasta tener su fila.
  */
 const LADO_DEL_MARCADOR = 32;
 const ANCLAJE: Readonly<Record<Clase, L.PointTuple>> = {
@@ -59,6 +61,9 @@ const ANCLAJE: Readonly<Record<Clase, L.PointTuple>> = {
   'centro-salud': [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
   hospital: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
   biblioteca: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
+  colegio: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
+  guarderia: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
+  universidad: [LADO_DEL_MARCADOR / 2, LADO_DEL_MARCADOR / 2],
 };
 
 /**

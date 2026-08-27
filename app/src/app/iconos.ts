@@ -9,10 +9,16 @@ import type { TipoDeSitio } from '@desplazame/tipos';
  * empieza igual de a menudo por la misma palabra. Hasta el 23/08 la única seña
  * era el `data-capa` del `<li>` —invisible— y un fondo apenas distinto.
  *
- * **Son cuatro formas y cuatro colores, dibujados a mano en SVG.** Ni una
+ * **Son ocho formas y cuatro colores, dibujados a mano en SVG.** Ni una
  * dependencia: la regla del repositorio es cero, y una familia de iconos entera
- * para traer cuatro figuras sería pagar cientos de kB por lo que cabe en cinco
- * `<path>`. Es la misma decisión que las flechas de los pasos, que son Unicode.
+ * para traer ocho figuras sería pagar cientos de kB por lo que cabe en unos
+ * pocos `<path>`. Es la misma decisión que las flechas de los pasos, que son
+ * Unicode.
+ *
+ * ⭐ **Cuatro colores para ocho formas, y eso es la doctrina, no un ahorro**:
+ * el color dice de qué FAMILIA es —sanitario, cultura, educación— y la forma
+ * dice qué es exactamente. Un tono por categoría daría ocho colores parecidos
+ * que nadie sabría separar; ocho formas sí se separan [#2787].
  *
  * LAS FORMAS — cuatro, y ninguna inventada de cero
  * · **Chincheta** — una dirección: calle y portal. Es la forma con la que
@@ -22,6 +28,12 @@ import type { TipoDeSitio } from '@desplazame/tipos';
  * · **H blanca en cuadrado azul** — un hospital. Es la **señal S-23** del
  *   catálogo español, y la misma que se usa en media Europa: quien conduce por
  *   Zaragoza la lleva vista mil veces.
+ * · **Libro abierto** — una biblioteca [osm-carto y Maki dibujan lo mismo].
+ * · **Lápiz y manzana** — un colegio o instituto [Maki `school`].
+ * · **Birrete** — una universidad [Maki `college`].
+ * · **Chupete** — una guardería. [PROPIO, y firmado como tal] Ni carto —que no
+ *   trae iconos de educación— ni Maki ni Temaki dibujan una guardería: el hueco
+ *   se comprobó antes de llenarlo.
  * · **Cruz azul** — un centro de salud. [PROPIO, y firmado como tal] Aquí la
  *   doctrina no da una señal hecha, así que se COMPONE con dos piezas que sí lo
  *   están: la cruz sanitaria y el azul médico. Las otras dos cruces posibles
@@ -93,6 +105,92 @@ export const CAMINO_H = 'M7.5 6.5h2.5v4.25h4V6.5h2.5v11h-2.5v-4.25h-4V17.5H7.5z'
  * ve como un corte; dejarlo sin pintar lo deja del color de lo que haya debajo,
  * que es lo que hacen los dos originales.
  */
+/**
+ * ⭐ EL LÁPIZ Y LA MANZANA: un colegio o un instituto.
+ *
+ * **Es el glifo de `school` de Maki**, leído de su fuente
+ * (`maki/icons/school.svg`, 15×15): un lápiz en diagonal y una manzana con su
+ * hoja. Lo que se adopta es **la convención, no el fichero** — este camino está
+ * trazado aquí, en el lienzo de 24×24 de la casa, y los números no son los
+ * suyos. Maki es CC0 y copiarlo sería lícito; no se copia igual, por lo mismo
+ * que el libro de bibliotecas: un dibujo que no se ha trazado no se sabe
+ * arreglar.
+ *
+ * Son **cinco subcaminos**: la goma, el cuerpo y la punta del lápiz, y la
+ * manzana con su hoja, que ocupa la esquina de abajo a la derecha — el reparto
+ * del original.
+ *
+ * ⚠️ **El lápiz va VERTICAL y ancho, y Maki lo pone en diagonal.** El primer
+ * trazado lo puso en diagonal como el suyo y **a 14 px no se leía**: un lápiz
+ * inclinado y estrecho, con el borde blanco de 1,4 que el marcador le pinta
+ * encima, se queda en un pelo. La convención que se adopta es «lápiz y
+ * manzana», no el ángulo.
+ *
+ * ⚠️ Y **hubo tres pasadas, mirándolo cada vez** en una hoja de contactos a 14,
+ * 32 y 64 px sobre blanco y sobre el beige de las teselas. La segunda salió con
+ * la manzana rota —una forma retorcida en vez de un círculo—, y la causa merece
+ * quedar escrita porque volverá: **el camino se había partido en medio de un
+ * número**. `'… 3.5 3' + '.3 0 …'` se concatena en `3.5 3.3 0`, que es otro
+ * dibujo. Desde aquí, **cada subcamino va en una sola cadena** y las sumas solo
+ * ocurren entre subcaminos, después de una `z`.
+ *
+ * Un tercer subcamino, el rabito de la manzana, se quitó: quedaba tapado por
+ * ella y no se veía a ningún tamaño. Un trazo que no se ve no se deja puesto.
+ */
+export const CAMINO_COLEGIO =
+  // el lápiz: goma, cuerpo y punta
+  'M2.4 2.2h5.8v3.1H2.4z' +
+  'M2.4 6.1h5.8v8.6H2.4z' +
+  'M2.4 15.5h5.8l-2.9 4.3z' +
+  // la manzana y su hoja
+  'M16.4 8.9a6 6 0 1 1 0 12 6 6 0 0 1 0-12z' +
+  'M17.2 7.6c.1-2.1 1.9-3.7 4-3.8.1 2.1-1.7 3.8-3.8 3.9z';
+
+/**
+ * ⭐ EL BIRRETE: una universidad.
+ *
+ * **Es el glifo de `college` de Maki**, leído de su fuente
+ * (`maki/icons/college.svg`, 15×15): la tabla en rombo, la copa debajo y la
+ * borla colgando. Trazado aquí, como el anterior.
+ *
+ * Son **cuatro subcaminos**: la tabla, la copa, el cordón de la borla y su
+ * bola. La borla cuelga por la derecha —en Maki cae por la izquierda—, y el
+ * cambio no es capricho: a la izquierda chocaría con el borde blanco que el
+ * marcador del mapa le pone a la figura.
+ */
+export const CAMINO_UNIVERSIDAD =
+  // la tabla, en rombo
+  'M12 1.9 23 6.9 12 11.9 1 6.9z' +
+  // la copa, que asoma por debajo
+  'M6.1 9.2 12 11.9 17.9 9.2v4.5c0 2.1-2.6 3.5-5.9 3.5s-5.9-1.4-5.9-3.5z' +
+  // el cordón de la borla y su bola
+  'M20.3 8.1h1.9v5.6h-1.9z' +
+  'M23.3 15.7a2.05 2.05 0 0 1-4.1 0 2.05 2.05 0 0 1 4.1 0z';
+
+/**
+ * ⭐ EL CHUPETE: una guardería. **PROPIO, y firmado como tal por Antonio.**
+ *
+ * Aquí no hay glifo que adoptar, y se comprobó antes de inventarlo: **ni
+ * osm-carto —que no trae ningún icono de educación— ni Maki ni Temaki dibujan
+ * una guardería**. `amenity=kindergarten` existe como tag y se pinta con el
+ * mismo símbolo que la escuela o con nada. Así que el hueco es real y el dibujo
+ * es de la casa, que es la misma situación que la cruz azul del centro de
+ * salud.
+ *
+ * Un chupete son **tres subcaminos**: la anilla —un aro, con su agujero
+ * trazado al revés para que el relleno lo respete—, el disco frontal y la
+ * tetina. Se elige porque es la señal universal del bebé y porque su silueta
+ * no se parece a ninguna de las otras seis a 14 px, que es el listón real.
+ */
+export const CAMINO_GUARDERIA =
+  // la anilla: el aro exterior, y su agujero al revés para que se reste
+  'M12 0.5a3.8 3.8 0 1 1 0 7.6 3.8 3.8 0 0 1 0-7.6z' +
+  'M12 2.6a1.7 1.7 0 1 0 0 3.4 1.7 1.7 0 0 0 0-3.4z' +
+  // el disco frontal
+  'M12 7.7c5 0 9 2.4 9 5.4s-4 5.4-9 5.4-9-2.4-9-5.4 4-5.4 9-5.4z' +
+  // la tetina
+  'M8.7 17.8h6.6c.5 2.1 1.4 2.9 1.4 4.1 0 2.1-2.1 3.2-4.7 3.2s-4.7-1.1-4.7-3.2c0-1.2.9-2 1.4-4.1z';
+
 export const CAMINO_LIBRO =
   'M11 6.2C9.2 4.9 6.6 4.2 3 4.2v13.6c3.6 0 6.2.7 8 2z' +
   'M13 6.2c1.8-1.3 4.4-2 8-2v13.6c-3.6 0-6.2.7-8 2z';
@@ -156,6 +254,41 @@ export const MORADO = '#6a1b9a';
 /** Morado: una biblioteca [familia cultura]. */
 export const COLOR_BIBLIOTECA = MORADO;
 
+/**
+ * ⭐ EL MOSTAZA OSCURO de la educación, uno solo para las tres categorías.
+ *
+ * **El color va por FAMILIA**, la misma doctrina que el azul sanitario y el
+ * morado de cultura: colegios, guarderías y universidades son una familia y
+ * comparten tono. Lo que las separa es **la forma** —lápiz y manzana, chupete,
+ * birrete—, que es el segundo diferenciador que pide la doctrina [#2787].
+ *
+ * **La familia cromática sí es de fuera**: osm-carto pinta los recintos
+ * escolares de amarillo, y de ahí sale el mostaza. **El tono exacto es
+ * PROPIO**, porque ese amarillo no aguanta el listón de la casa ni de lejos:
+ * medido, `#8a6d00` da **4,92:1 sobre blanco** y **4,29:1 sobre el beige**. Hay
+ * que oscurecerlo hasta que pase, y donde pasa es aquí.
+ *
+ * `#614800` da **8,62:1 sobre blanco** y **7,51:1 sobre el beige de las teselas
+ * de OSM** (`#f2efe9`). El mínimo documentado para un elemento que no es texto
+ * es **3:1** [WCAG 2.2, 1.4.11 *Non-text Contrast*]; el listón de esta casa es
+ * **≥7:1**. Y el par que sale es **el mismo que el azul sanitario al
+ * centésimo** —8,63 y 7,52—, que no se buscó: se eligió el tono más claro que
+ * pasaba y cayó ahí. Firmado por Antonio el 25/08.
+ *
+ * ⚠️ **Un mostaza más vivo no cabía.** El más claro que aún pasa el listón es
+ * `#654b00` (8,20 y 7,15), y de `#6b5000` para arriba ya se cae sobre el beige
+ * —7,57 pero **6,60**—, que es exactamente por donde se cayó el marrón de
+ * carto. Sobre el mapa, el fondo manda.
+ */
+export const MOSTAZA = '#614800';
+
+/** Mostaza: un colegio o instituto [familia educación]. */
+export const COLOR_COLEGIO = MOSTAZA;
+/** Mostaza: una guardería [familia educación]. */
+export const COLOR_GUARDERIA = MOSTAZA;
+/** Mostaza: una universidad [familia educación]. */
+export const COLOR_UNIVERSIDAD = MOSTAZA;
+
 /** Azul: un hospital [señal S-23]. */
 export const COLOR_HOSPITAL = AZUL;
 /** Azul: un centro de salud [PROPIO — ver la cabecera]. */
@@ -206,6 +339,9 @@ const COLOR_DE_CLASE: Readonly<Record<TipoDeSitio, string>> = {
   'centro-salud': COLOR_CENTRO_SALUD,
   hospital: COLOR_HOSPITAL,
   biblioteca: COLOR_BIBLIOTECA,
+  colegio: COLOR_COLEGIO,
+  guarderia: COLOR_GUARDERIA,
+  universidad: COLOR_UNIVERSIDAD,
 };
 
 export function colorDeCapa(clase: Clase, papel: Papel): string {
@@ -233,6 +369,9 @@ const FIGURA: Readonly<Record<Clase, { readonly camino: string; readonly encima:
   'centro-salud': { camino: CAMINO_CRUZ, encima: 'nada' },
   hospital: { camino: CAMINO_CUADRADO, encima: 'hache' },
   biblioteca: { camino: CAMINO_LIBRO, encima: 'nada' },
+  colegio: { camino: CAMINO_COLEGIO, encima: 'nada' },
+  guarderia: { camino: CAMINO_GUARDERIA, encima: 'nada' },
+  universidad: { camino: CAMINO_UNIVERSIDAD, encima: 'nada' },
 };
 
 /** El camino de la figura de una clase. */

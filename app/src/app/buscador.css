@@ -50,10 +50,14 @@ legend {
 }
 
 /* ⭐ El desplegable de tipo: ancho fijo y NO se estira.
-   Sus cinco opciones caben en 9,5 rem —«Centros de Salud» es la larga— y
-   dejarlo crecer le robaría sitio al cajetín, que es donde se escribe. */
+   Sus ocho opciones caben en 13 rem. La larga es «Colegios e Institutos»
+   (27/08), que desbancó a «Centros de Salud» y obligó a subir de 9,5 a 13: por
+   debajo de eso el navegador la recorta, y una opción recortada no dice qué
+   filtra. Dejarlo crecer más le robaría sitio al cajetín, que es donde se
+   escribe, así que el ancho sube hasta lo que mide la etiqueta más larga y ni
+   un pelo más. */
 .campo--tipo {
-  flex: 0 0 9.5rem;
+  flex: 0 0 13rem;
 }
 
 .tipo {
