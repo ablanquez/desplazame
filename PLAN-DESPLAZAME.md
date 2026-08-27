@@ -1010,6 +1010,92 @@ de cada campo, ORIGEN y DESTINO por igual:
       tira 49 pruebas · el nº-nunca, 44: el formulario descansa sobre
       esas dos leyes y está MEDIDO)
 
+- [x] **TANDA 4 — EDUCACIÓN, HECHA (25-27/08, `2a20ae0`→`1d4d956`)**:
+      TRES etiquetas nuevas desde la familia municipal de 43
+      categorías, con la partición de la taxonomía OSM [Education
+      features: school ~6-18 con varios niveles en UN elemento ·
+      kindergarten · university] FIRMADA por Antonio tras DOS sondas
+      (738 ids = 738 nombres verificado con mutación; el único
+      colapso, un espacio final del dato municipal) y un parlamento
+      de CINCO firmas con doctrina línea a línea: el 660 «Centros
+      Educativos» FUERA (cero aporte escolar exclusivo; sus 29
+      exclusivos son conservatorios/EOI/adultos con tag OSM propio
+      [music_school · language_school · education=centre]) · las 13
+      facultades SOLO en Universidades [university = campus
+      terciario] · las escuelas infantiles sueltas a Guarderías
+      [kindergarten; preschool obsoletado a su favor] y el 8592
+      (colegio completo) a Colegios [un elemento por colegio] · de
+      la 64 «especial» solo los C.E.E. [los colegios de necesidades
+      especiales son school] — los 10 sociosanitarios fuera con
+      motivo. RESULTADO: Colegios e Institutos 264 (514 brutas → 234
+      duplicados digeridos por la partición; los 62 mixtos dentro
+      sin partirse) · Guarderías 64 · Universidades 29 — CERO
+      solapes id a id, 802 códigos únicos en el índice de 820
+      sitios. Ficha §1.20 TRIPLE (once ficheros → tres etiquetas,
+      cada decisión con su cita) · manifiesto a 37 resources con el
+      VALIDADOR contraprobado (5 roturas plantadas, 5 cazadas). ⭐ El
+      Last-Modified compartido DEMOSTRADO como suelo del servidor
+      con las 43 categorías (26/26 posteriores coinciden al segundo;
+      13/14 anteriores devuelven LA MISMA fecha 25/04/2025): no era
+      la 3ª vez, era la 16ª — 9 ficheros declaran modified, 2 lo
+      omiten. ⚠️ La re-descarga idéntica FALLA en 7/11 (solo baila el
+      orden de las URLs del array type; mismos ids y valores —
+      declarado en ficha: la promesa de §1.19 aquí no vale). Títulos:
+      0 personas físicas en 354 (las 6 con coma son empresas de FP
+      dual; la verificación con las 75 siglas — la lección de
+      Cáritas). ⭐ Las SIGLAS obligaron a tocar el buscador: «ceip
+      moliner» no encontraba nada (el troceador partía C.E.I.P. en
+      letras) — lo buscable lleva ahora las dos formas
+      (conSiglasEnteras); volcados en vivo por etiqueta y con sigla.
+      ICONOS: lápiz-y-manzana [Maki school, SVG leído] · CHUPETE
+      [PROPIO firmado — hueco real: ni carto ni Maki ni Temaki traen
+      guardería] · birrete [Maki college] — los tres en MOSTAZA
+      OSCURO #614800 firmado (8,62/7,51 — el mismo par que el azul
+      sanitario al centésimo; el mostaza vivo no pasa el listón),
+      trazados a mano (la manzana torcida de la 2ª pasada: un path
+      partido en medio de un número — cada subcamino en una sola
+      cadena desde entonces); el desplegable ensanchado a 13 rem CON
+      MEDIDA. Validación espacial: colegios/guarderías chicos ·
+      universidades RECINTO [la partición firmada]. ⭐ BITÁCORA nº13
+      (abierta en caliente, CERRADA `5ddc841`): el rescate por
+      callejero MOVÍA COORDENADAS QUE YA ESTABAN BIEN — el CEIP
+      Andrés Oliván (San Juan de Mozarrifar) arrastrado 7,6 km a la
+      calle homónima de la ciudad; 22 de 29 rescatados tenían su
+      punto a ≤50 m de un portal real, y 7 de los 9 EN PRODUCCIÓN
+      desde el 23-24 eran del mismo tipo. Lo que daba verde: el
+      guardián que ENUMERABA los rescates al byte — «enumerar lo que
+      un proceso hace no vigila que lo que hace esté bien». EL
+      ARREGLO a doctrina [false positive del homónimo sin contexto
+      administrativo; la geo-similitud MANDA sobre la similitud de
+      nombres; location bias]: (1) desambiguación por cercanía ante
+      vías homónimas CON GUARDA (medida antes de creída: sola
+      empeoraba — 34/25; si la ganadora no tiene puerta a ≤50 m no
+      se elige ninguna) + (2) precondición de VÍA ENTERA (solo se
+      rescata lo que está a >50 m de CUALQUIER portal de su vía
+      desambiguada). 29 rescates → 17; los 4 del datum SIGUEN
+      rescatados (236 m de su vía); la métrica del encargo era
+      incumplible y se afinó con honradez (en barrio denso siempre
+      hay puerta AJENA cerca — la vara es la puerta de SU PROPIA
+      calle: 0 falsos POR CONSTRUCCIÓN). Ley del cierre: «medir la
+      ida y la vuelta no basta con medirla bien: hay que medir lo
+      que corresponde». ⚠️ BITÁCORA nº14 ABIERTA: el Andrés Oliván
+      NO se arregla — «doctor palomar» y «doctor alejandro palomar»
+      son DOS CLAVES distintas (no hay homónimo que desambiguar); la
+      puerta de la SUBSECUENCIA está MEDIDA (lo devuelve a su barrio
+      pero mete un rescate malo: la guarda tendría que crecer —
+      doctrina nueva, parlamento pendiente) y un TESTIGO lo vigila
+      («EL ANDRÉS OLIVÁN SIGUE ATERRIZANDO EN LA CIUDAD», escrito
+      para caerse solo el día del arreglo). Los SEIS C.E.E. dentro
+      (los 3 de la firma + los 3 que la salida del 660 dejó fuera
+      por accidente — moraleja en ficha: «una lista de ids deja de
+      valer si otra decisión de la misma mesa cambia de dónde
+      vienen»; las firmas nombran CRITERIOS, no listas). 273 motor +
+      148 interfaz · contraprueba 6/6 (quitar la guarda o la
+      precondición: 10 rojas cada una; los C.E.E.: 16) · las
+      dieciséis jueces al byte con la razón comprobable (ningún
+      sitio juez en las listas de rescate) · README al día de las
+      dos tandas [ley nº5] · el panel a 37 filas.
+
 - [x] **TANDA 3 — BIBLIOTECAS, HECHA (25/08, `aae90f6`→`22ed779`)**,
       con DOS paradas de costura que valieron la tanda: (1) el
       catálogo tenía TRES categorías de biblioteca — Antonio eligió

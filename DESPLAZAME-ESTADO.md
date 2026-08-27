@@ -5,43 +5,48 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 25 de agosto de 2026
+## ESTADO ACTUAL — 27 de agosto de 2026
 
 **⭐ PUNTOS 1-7 CERRADOS (el 7, el 23/08). La demo andando está
 ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
 (el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
-(los combines de odin). Y EL PUNTO 8 EN MARCHA: CUATRO categorías de
+(los combines de odin). Y EL PUNTO 8 EN MARCHA: SIETE categorías de
 sitios vivas (farmacias · centros de salud · hospitales ·
-bibliotecas — 463 sitios, 456 buscables) y EL BUSCADOR POR TIPOS de
-Antonio completo: [📍][tipo▾ con iconos][cajetín][nº condicional] en
-ambos campos, cada tipo por su carril, el desplegable en alfabético
-con Dirección primera.**
+bibliotecas · colegios e institutos · guarderías · universidades —
+820 sitios, 802 buscables) y EL BUSCADOR POR TIPOS de Antonio
+completo: [📍][tipo▾ con iconos][cajetín][nº condicional] en ambos
+campos, cada tipo por su carril, siglas buscables (ceip · ies ·
+cpi), el desplegable en alfabético con Dirección primera.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
-levantado el 18/08, des-caducado del 21 al 25):
+levantado el 18/08, des-caducado del 21 al 27):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
   corchetes), portal de lista real en orden natural, borrador marcado si
   se sale sin elegir, «Generar ruta» exigiendo códigos resueltos. CADA
   CAMPO: [📍 ubicación][tipo ▾][cajetín][nº] — el tipo (Dirección
-  primera + Bibliotecas · Centros de Salud · Farmacias · Hospitales,
-  alfabético calculado) filtra el cajetín a UNA capa [Pelias layers
-  hecho interfaz]; cada opción con su icono dentro [Customizable
+  primera + Bibliotecas · Centros de Salud · Colegios e Institutos ·
+  Farmacias · Guarderías · Hospitales · Universidades, alfabético
+  calculado) filtra el cajetín a UNA capa [Pelias layers hecho
+  interfaz], con las siglas buscables (conSiglasEnteras: «ceip
+  moliner» encuentra — el troceador las partía en letras); cada opción con su icono dentro [Customizable
   Select, texto siempre + aria-hidden; degrada a texto sin soporte] y
   la chincheta de Dirección por campo (verde origen · roja destino);
   el nº existe solo con Dirección [GOV.UK revelado condicional]; «Mi
   ubicación» en ambos (al usarla, el tipo salta a Dirección); el ⇅
   cruza tipo+texto+nº.
   Búsqueda por palabras, orden con foco al otro extremo, regla B e
-  iconos por categoría (cruz verde · cruz azul · H azul · chincheta).
+  iconos por categoría (cruz verde · cruz azul · H azul · libro
+  morado · lápiz-manzana, chupete y birrete en mostaza #614800 ·
+  chincheta).
   Modos: Andando · Bus / Tranvía · Bici / Patinete · Coche (mayúscula
   tras la barra: peso visual, decisión de Antonio). ⇅ invertir y «Mi
   ubicación» dentro (punto 6). Y «Generar ruta» devuelve la RUTA REAL —
   pintada, con los pasos escritos y las negritas por partes: la
   respuesta falsa murió sin rastro (`2013c04`). DOS páginas y sin
   barra: el buscador (la raíz) y **/panel** (el panel de frescura,
-  por URL, lazy 7,43 kB — 26 filas desde la tanda 3); el comodín
+  por URL, lazy 7,43 kB — 37 filas desde la tanda 4); el comodín
   cubre cualquier otra ruta, /visor incluida.
 - **El peso** (22/08): la raíz en frío baja **0,22 MB en 3
   peticiones** — antes 41,07 MB en 20 (cifra FIJADA con comando; los
@@ -58,18 +63,20 @@ levantado el 18/08, des-caducado del 21 al 25):
   `/api/salud` · `/api/vias?q=` · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
   `POST /api/ruta` (sitio en cualquiera de los dos extremos). ⭐ N = 3.359 · M = 2.731 (la publicada).
-- **Los datos**: DIECIOCHO conjuntos / diecinueve fichas — los
+- **Los datos**: VEINTINUEVE conjuntos / veinte fichas — los
   nombres OSM en `motor/data/` sin viajar al navegador (§1.14), los
-  ejes (§1.15) y las CUATRO categorías de sitios del punto 8:
+  ejes (§1.15) y las SIETE categorías de sitios del punto 8:
   farmacias (§1.16, 313/310), centros de salud (§1.17, 56/56),
-  hospitales (§1.18, 17/15) y bibliotecas (§1.19, compuesta de las
-  categorías municipales 35+223: 77/75, dos ficheros) — filas 22-26
-  del manifiesto (26 resources);
+  hospitales (§1.18, 17/15), bibliotecas (§1.19, 35+223: 77/75) y
+  las TRES de educación (§1.20 TRIPLE: once ficheros → colegios e
+  institutos 264/254 · guarderías 64/64 · universidades 29/28, con
+  cada decisión de reparto citada) — manifiesto a 37 resources con
+  validador contraprobado;
   cada uno con ficha, huella sobre clon y atribución. CINCO
   descargas propias (aparcabicis, aparcamotos, regulado, zonas, PMR),
   todas con la norma Set-Cookie. El callejero lleva 5 correcciones
   declaradas («están mal y punto»).
-- **La bitácora: 12 entradas, las 12 cerradas con ley.** Las guardias
+- **La bitácora: 14 entradas — 13 cerradas con ley y la nº14 ABIERTA** (el homónimo parcial del Andrés Oliván, con testigo). Las guardias
   (interfaz y motor) con rojos vistos, exigiendo las tres cargas.
 - **La carta y el README al día con la doc delante**: CLAUDE.md dice el
   motor real y apunta en vez de listar; el README tiene «Cómo arrancarlo
@@ -77,11 +84,48 @@ levantado el 18/08, des-caducado del 21 al 25):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `c421c8b`** (push del 24/08 noche, con el 9090 de
-vuelta). **En local, sin publicar: los SIETE commits del 25**
-(`aae90f6` `fc40cb2` `b15f198` `22ed779` bibliotecas+nº12 · `b45eaae`
-`656f005` `f624b31` remates) más el cierre de papeles. El push es de
-Antonio.
+**Publicado hasta `b295ede`** (push del 25/08, con bibliotecas y el
+buscador rematado). **En local, sin publicar: los DIEZ commits de la
+tanda 4** (`2a20ae0` `a190b23` `1c67e5f` `a2ebd80` `1c38945`
+`d85f1ba` educación · `5ddc841` `2e984f9` `779ec0f` `1d4d956` la nº13
+y los C.E.E.) más el cierre de papeles. El push es de Antonio.
+
+**TANDA 4 — EDUCACIÓN, con la nº13 cerrada y la nº14 abierta
+(25-27/08).** Tres etiquetas desde la familia municipal (43
+categorías, 738 ids = 738 nombres — dos sondas), con la taxonomía
+OSM firmada [school ~6-18 en UN elemento · kindergarten ·
+university] y cinco firmas con doctrina: el 660 FUERA (sus 29
+exclusivos tienen tag propio: music_school/language_school/adultos) ·
+facultades solo Universidades · infantiles sueltas a Guarderías, el
+8592 a Colegios · de la 64 solo los C.E.E. RESULTADO: 264 · 64 · 29
+(cero solapes id a id; 820 sitios, 802 buscables). Ficha §1.20
+triple · manifiesto 37 con validador contraprobado (5/5) · el
+Last-Modified DEMOSTRADO suelo del servidor (16 categorías con la
+fecha clavada) · la re-descarga no repite en 7/11 (solo el orden del
+array type — declarado). Siglas buscables («ceip moliner» no
+encontraba nada: el troceador partía C.E.I.P. en letras). Iconos:
+lápiz-manzana [Maki] · CHUPETE [PROPIO firmado, hueco real en la
+doctrina] · birrete [Maki], en mostaza #614800 (8,62/7,51 — el par
+del azul al centésimo). ⭐ BITÁCORA nº13 (CERRADA `5ddc841`): el
+rescate MOVÍA coordenadas que ya estaban bien (el Andrés Oliván de
+San Juan de Mozarrifar arrastrado 7,6 km a la homónima de la ciudad;
+22/29 de hoy y 7/9 de producción) — lo que daba verde: el guardián
+que ENUMERABA («enumerar lo que un proceso hace no vigila que esté
+bien»); arreglo a doctrina [geo-similitud manda sobre nombres +
+location bias]: desambiguación por cercanía CON GUARDA (medida antes
+de creída: sola empeoraba) + precondición de VÍA ENTERA. 29→17
+rescates, los 4 del datum siguen, 0 falsos POR CONSTRUCCIÓN (la vara:
+puerta de SU PROPIA calle — en barrio denso siempre hay puerta ajena
+cerca). Ley del cierre: «medir la ida y la vuelta no basta con
+medirla bien: hay que medir lo que corresponde». ⚠️ nº14 ABIERTA: el
+Andrés Oliván NO se arregla (dos claves distintas, no hay homónimo);
+la puerta de la subsecuencia MEDIDA (devuelve al 549 pero mete un
+rescate malo — doctrina nueva, parlamento pendiente) y el testigo
+escrito para caerse solo. Los SEIS C.E.E. (los 3 que la salida del
+660 dejó fuera — moraleja: las firmas nombran CRITERIOS, no listas
+de ids). 273+148 pruebas · contraprueba 6/6 · las dieciséis jueces
+al byte con razón comprobable · visto por Antonio en vivo («todo
+correcto»). Commits `2a20ae0`→`1d4d956`.
 
 **TANDA 3 (bibliotecas) + los remates del buscador + LA nº12
 (25/08).** Bibliotecas por el tubo con DOS paradas de costura: el
@@ -448,14 +492,15 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el PUSH (siete commits + papeles); (2) las
+**Lo siguiente:** (1) el PUSH (diez commits + papeles); (2) el
+PARLAMENTO de la nº14 cuando Antonio quiera (el homónimo parcial:
+la subsecuencia medida con su coste — doctrina nueva); (3) las
 tandas siguientes del punto 8 (hostelería con OSM la primera
-candidata; de las municipales chicas quedan centros cívicos 25 ·
-museos 25 · mercados 46 · teatros 11…); (3) flecos: la ficha de
-Aragón · el `estado` del registro · el foco a las vías. Detrás, el 9
-con la ordenanza leída en grueso. En la nevera del taller: las DOS
-leyes de la nº12 para la guía v2.2 (el comando silencioso · la
-costumbre necesita guion).
+candidata; municipales chicas: cívicos 25 · museos 25 · mercados
+46 · teatros 11…); (4) flecos: la ficha de Aragón · el `estado` del
+registro · el foco a las vías. Detrás, el 9 con la ordenanza leída
+en grueso. En la nevera del taller: las leyes de la nº12 y la nº13
+para la guía v2.2.
 
 ---
 
@@ -513,10 +558,10 @@ colgadas de sus capas.
 **1-7 CERRADOS** (el 7 entero el 23/08: demo + tabla del peatón +
 mínimo de distancia + andamios fuera + narración de odin) ·
 8 destinos con nombre
-(EN MARCHA: cuatro categorías —farmacias, sanidad, bibliotecas—, el
-buscador por tipos completo con iconos y orden, la validación
-espacial con rescate y la nº12 cerrada con su ley; quedan las tandas
-siguientes) · 9 bici/patinete (ordenanza VMP) ·
+(EN MARCHA: siete categorías —farmacias, sanidad, bibliotecas,
+educación con sus tres—, el buscador por tipos completo con siglas,
+la validación espacial con la nº13 cerrada; quedan las tandas
+siguientes y la nº14 en parlamento) · 9 bici/patinete (ordenanza VMP) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -567,10 +612,15 @@ retirada): quedó FUERA del encargo de narración del 23/08 — no es de
 los combines, huele al NOMBRE ÚNICO (núcleos que no casan por la «V»).
 Si reproduce en rutas vivas: NO CONSTA. Cabo vivo, sin dueño.
 
-**Punto 8:** tandas 1, 2 y 3 HECHAS (farmacias · sanidad ·
-bibliotecas) + el buscador por tipos completo + la VALIDACIÓN
-ESPACIAL; quedan las tandas (hostelería con OSM la primera candidata;
-municipales chicas en lista) · dos mutaciones del orden del
+**Punto 8:** tandas 1-4 HECHAS (farmacias · sanidad · bibliotecas ·
+educación) + el buscador por tipos completo con siglas + la
+VALIDACIÓN ESPACIAL con vía entera; quedan las tandas (hostelería con
+OSM la primera candidata; municipales chicas en lista) · ⚠️ la nº14
+ABIERTA en parlamento (el homónimo parcial del Andrés Oliván: la
+subsecuencia medida — devuelve al 549 pero mete un rescate malo; el
+testigo vigila) · el Last-Modified suelo-del-servidor (16 categorías
+— la jurisprudencia del modified lo neutraliza) · la re-descarga que
+no repite en type (declarada en §1.20) · dos mutaciones del orden del
 desplegable que hoy no muerden (id/etiqueta y tabla de códigos
 empatan con las cuatro de hoy — despertarán con una categoría de
 inicial dispar o con Á/Ñ) · ⚰️ el Miguel Servet: CERRADO el 24/08 (otra puerta de
@@ -635,7 +685,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 407 pruebas (263 motor + 144 interfaz) sin CI · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 421 pruebas (273 motor + 148 interfaz) sin CI · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
