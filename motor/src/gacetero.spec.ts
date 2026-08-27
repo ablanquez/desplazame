@@ -10,10 +10,12 @@ import { test, before, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { cargarCallejero } from './callejero.ts';
+import { metrosEntre } from './cercano.ts';
 import {
   cargarGacetero,
   dentroDelEntorno,
   portalDeLaDireccion,
+  metrosALaVia,
   validar,
   MARGEN_DEL_ENTORNO_M,
   UMBRAL_DE_DESVIO_M,
@@ -97,16 +99,27 @@ describe('El gacetero — el entorno', () => {
   });
 });
 
+/**
+ * Un punto del centro de Zaragoza, para las pruebas a las que la coordenada les
+ * da igual: las que miran si un nombre casa o si un número es único. Desde el
+ * 27/08 el emparejador **necesita** un punto —desambigua por cercanía—, así que
+ * ya no hay llamadas sin él, y las que no dependen de él lo dicen usando este.
+ */
+const EN_EL_CENTRO = { lon: -0.8773, lat: 41.6518 };
+
 describe('El gacetero — el emparejador estricto', () => {
   before(() => {
     portales = cargarPortales();
     gacetero = cargarGacetero(portales, cargarCallejero(portales));
   });
 
+  /** Donde el Ayuntamiento publica la farmacia de «C/ La Caza, 11». */
+  const LA_CAZA = { lon: -0.9263253602068995, lat: 41.6150414308692 };
+
   test('⭐ una dirección normal da SU portal, con su coordenada del censo', () => {
     // «C/ La Caza, 11» es una de las cuatro farmacias del desvío del datum, y
     // por eso está aquí: es la dirección que va a rescatarla.
-    const p = portalDeLaDireccion(gacetero, 'C/ La Caza, 11');
+    const p = portalDeLaDireccion(gacetero, 'C/ La Caza, 11', LA_CAZA.lon, LA_CAZA.lat);
     assert.ok(p, 'no ha casado');
     assert.equal(p.codigo, 'Portales.98467');
     assert.equal(p.numero, '11');
@@ -114,7 +127,7 @@ describe('El gacetero — el emparejador estricto', () => {
     assert.equal(p.lat, 41.616909);
   });
 
-  test('⭐ un NOMBRE AMBIGUO no casa: hay una AVENIDA MADRID y una CALLE MADRID', () => {
+  test('⭐ un NOMBRE AMBIGUO se desambigua por CERCANÍA: AVENIDA y CALLE MADRID', () => {
     // El equipamiento escribe «C/», pero fiarse del tipo pediría una tabla de
     // equivalencias que nadie publica. Antes que adivinar, no casar.
     //
@@ -134,12 +147,43 @@ describe('El gacetero — el emparejador estricto', () => {
     assert.equal(
       portales.porVia.get(madrid[0]!)!.filter((p) => p.numero === '1').length,
       1,
-      'la primera candidata ya no tiene un nº1 único: el caso deja de distinguir',
     );
-    assert.equal(portalDeLaDireccion(gacetero, 'C/ Madrid, 1'), null);
 
-    // Y el caso gordo, para que se vea el tamaño del problema: cuatro vías se
-    // llaman Aragón —dos calles en dos barrios y dos plazas—.
+    // ⭐ Y DESDE EL 27/08 SÍ CASA, porque manda la geografía. La misma
+    // dirección, «C/ Madrid, 1», da un portal u otro según DÓNDE esté el punto
+    // que la acompaña — que es justo lo que hace un geocodificador con un
+    // topónimo repetido [location bias].
+    // Se usa el nº 3, que existe y es único en las DOS —el 1 solo lo tiene la
+    // avenida, así que no distinguiría nada.
+    const a = portales.donde.get(
+      portales.porVia.get(madrid[0]!)!.find((p) => p.numero === '3')!.codigo,
+    )!;
+    const c = portales.donde.get(
+      portales.porVia.get(madrid[1]!)!.find((p) => p.numero === '3')!.codigo,
+    )!;
+    // Los dos «Madrid 3» están a 13.389 m: si estuvieran pegados, esta prueba
+    // no probaría nada.
+    assert.ok(
+      metrosEntre(a.lat, a.lon, c.lat, c.lon) > 10000,
+      'los dos Madrid 3 están demasiado cerca para que esto pruebe algo',
+    );
+    // La MISMA dirección da un portal u otro según dónde esté el punto.
+    assert.equal(portalDeLaDireccion(gacetero, 'C/ Madrid, 3', a.lon, a.lat)?.codigo, a.codigo);
+    assert.equal(portalDeLaDireccion(gacetero, 'C/ Madrid, 3', c.lon, c.lat)?.codigo, c.codigo);
+
+    // ⭐ Y LA GUARDA: si el punto no está cerca de NINGUNA de las candidatas,
+    // no se elige la menos mala — no se elige ninguna. Es la mitad que faltaba
+    // de «la geo-similitud manda»: sin ella, desambiguar por cercanía casaba
+    // direcciones que antes se descartaban y **metía cinco rescates nuevos, de
+    // los que tres eran falsos** (medido el 27/08 sobre las siete categorías).
+    assert.equal(
+      portalDeLaDireccion(gacetero, 'C/ Madrid, 3', PORTUGAL.lon, PORTUGAL.lat),
+      null,
+      'con el punto en Portugal no puede elegir un Madrid cualquiera',
+    );
+
+    // Y el caso gordo, que ahora también se resuelve: cuatro vías se llaman
+    // Aragón —dos calles en dos barrios y dos plazas—.
     assert.equal(gacetero.viasPorNombre.get('aragon')?.length, 4);
   });
 
@@ -148,31 +192,31 @@ describe('El gacetero — el emparejador estricto', () => {
     // el caso que enseñó por qué la unicidad del número también hace falta: sin
     // ella se elegía uno a suertes y la farmacia 8881 —que está BIEN puesta, a
     // 4 m de su bloque— salía «rota» a 53 m y se habría movido.
-    assert.equal(portalDeLaDireccion(gacetero, 'Avda. San Juan de la Peña, 181'), null);
+    assert.equal(portalDeLaDireccion(gacetero, 'Avda. San Juan de la Peña, 181', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat), null);
   });
 
   test('⭐ «s/n» no casa, y por eso el de Portugal no se puede rescatar', () => {
-    assert.equal(portalDeLaDireccion(gacetero, 'C/ Domingo Miral, s/n'), null);
+    assert.equal(portalDeLaDireccion(gacetero, 'C/ Domingo Miral, s/n', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat), null);
     // La vía existe y tiene portales: lo que falta es el número.
     assert.equal(gacetero.viasPorNombre.get('domingo miral')?.length, 1);
   });
 
   test('un número que esa vía no tiene, tampoco', () => {
-    assert.equal(portalDeLaDireccion(gacetero, 'C/ La Caza, 9999'), null);
+    assert.equal(portalDeLaDireccion(gacetero, 'C/ La Caza, 9999', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat), null);
   });
 
   test('una dirección vacía o sin nombre no revienta: devuelve null', () => {
-    assert.equal(portalDeLaDireccion(gacetero, ''), null);
-    assert.equal(portalDeLaDireccion(gacetero, 'NO CONSTA'), null);
-    assert.equal(portalDeLaDireccion(gacetero, '11'), null);
-    assert.equal(portalDeLaDireccion(gacetero, 'C/ 11'), null);
+    assert.equal(portalDeLaDireccion(gacetero, '', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat), null);
+    assert.equal(portalDeLaDireccion(gacetero, 'NO CONSTA', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat), null);
+    assert.equal(portalDeLaDireccion(gacetero, '11', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat), null);
+    assert.equal(portalDeLaDireccion(gacetero, 'C/ 11', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat), null);
   });
 
   test('⭐ EL CALLEJERO parte la dirección: «Puente del Pilar 31, local 6»', () => {
     // Hay dos números y ninguna coma que diga cuál es el portal. Se prueban los
     // dos cortes: «puente del pilar» + 31 resuelve, «puente del pilar 31, local»
     // + 6 no existe. Gana el único que resuelve.
-    const p = portalDeLaDireccion(gacetero, 'Avda. Puente del Pilar 31, local 6');
+    const p = portalDeLaDireccion(gacetero, 'Avda. Puente del Pilar 31, local 6', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat);
     assert.equal(p?.numero, '31');
   });
 
@@ -181,14 +225,14 @@ describe('El gacetero — el emparejador estricto', () => {
     // un nombre vacío. El callejero de Zaragoza además la escribe con letra
     // —CALLE CATORCE DE SEPTIEMBRE—, así que esta no casa por otro motivo; lo
     // que se comprueba aquí es que no revienta ni casa cualquier cosa.
-    assert.equal(portalDeLaDireccion(gacetero, 'C/ 14 de Septiembre, 4'), null);
+    assert.equal(portalDeLaDireccion(gacetero, 'C/ 14 de Septiembre, 4', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat), null);
   });
 
   test('el número del censo trae cola, y se compara por sus dígitos', () => {
     // «12-14» del equipamiento contra el portal «12» del censo; y al revés, un
     // portal «21-23» contra el «21» escrito.
-    assert.equal(portalDeLaDireccion(gacetero, 'Pº María Agustín, 12-14')?.numero, '12');
-    assert.equal(portalDeLaDireccion(gacetero, 'Pº María Agustín, 21-23')?.numero, '21-23');
+    assert.equal(portalDeLaDireccion(gacetero, 'Pº María Agustín, 12-14', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat)?.numero, '12');
+    assert.equal(portalDeLaDireccion(gacetero, 'Pº María Agustín, 21-23', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat)?.numero, '21-23');
   });
 
   test('⚠️ el ARTÍCULO que un registro escribe y el otro no, NO casa', () => {
@@ -197,7 +241,7 @@ describe('El gacetero — el emparejador estricto', () => {
     // «AVENIDA NAVARRA». Como los nombres tienen que ser idénticos, no casa —
     // y la farmacia de esa dirección se queda sin validar, que es exactamente
     // como estaba antes de existir el gacetero.
-    assert.equal(portalDeLaDireccion(gacetero, 'Avda. de Navarra, 65'), null);
+    assert.equal(portalDeLaDireccion(gacetero, 'Avda. de Navarra, 65', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat), null);
     assert.equal(gacetero.viasPorNombre.has('navarra'), true);
     assert.equal(gacetero.viasPorNombre.has('de navarra'), false);
   });
@@ -252,8 +296,8 @@ describe('El gacetero — dos cortes que resuelven: laboratorio', () => {
     // Sin la segunda vía, «C/ Uno 2 Dos 3» solo resuelve por un sitio: el 2 de
     // CALLE UNO. El «3» del final no lleva a ninguna parte y se descarta.
     const solo = gaceteroDeLaboratorio(false);
-    assert.equal(portalDeLaDireccion(solo, 'C/ Uno, 2')?.codigo, 'P.2');
-    assert.equal(portalDeLaDireccion(solo, 'C/ Uno 2 Dos 3')?.codigo, 'P.2');
+    assert.equal(portalDeLaDireccion(solo, 'C/ Uno, 2', 0, 0)?.codigo, 'P.2');
+    assert.equal(portalDeLaDireccion(solo, 'C/ Uno 2 Dos 3', 0, 0)?.codigo, 'P.2');
   });
 
   test('⭐ DOS cortes que resuelven: no casa NINGUNO', () => {
@@ -261,7 +305,7 @@ describe('El gacetero — dos cortes que resuelven: laboratorio', () => {
     // UNO y el 3 de UNO 2 DOS. No distingue, así que no se rescata nada — y se
     // ve que el `null` sale de la ambigüedad y no de no saber leerla, porque la
     // prueba de arriba la lee bien.
-    assert.equal(portalDeLaDireccion(gaceteroDeLaboratorio(), 'C/ Uno 2 Dos 3'), null);
+    assert.equal(portalDeLaDireccion(gaceteroDeLaboratorio(), 'C/ Uno 2 Dos 3', 0, 0), null);
   });
 });
 
@@ -273,6 +317,8 @@ describe('El gacetero — el veredicto', () => {
 
   /** El portal de «C/ La Caza, 11», que es donde debería estar la farmacia. */
   const LA_CAZA = { lon: -0.924971, lat: 41.616909 };
+  /** Su vía, que tiene TRECE portales — por eso la segunda medida importa. */
+  const LA_CAZA_VIA = '7045';
   /** Y donde el Ayuntamiento la publica, tal cual: 236 m al suroeste. */
   const LA_CAZA_MUNICIPAL = { lon: -0.9263253602068995, lat: 41.6150414308692 };
 
@@ -289,14 +335,35 @@ describe('El gacetero — el veredicto', () => {
     assert.equal(v.estado === 'rescatada' && v.portal.codigo, 'Portales.98467');
   });
 
-  test('⭐ el umbral es el firmado: 50 m no rescata, 51 sí', () => {
+  test('⭐ el umbral es el firmado, y ahora lo cruzan DOS medidas', () => {
     // Se camina hacia el norte desde el portal, en metros contados.
     const aLatitud = (metros: number) => LA_CAZA.lat + metros / 111132;
     const a = (metros: number) =>
       validar(gacetero, LA_CAZA.lon, aLatitud(metros), 'C/ La Caza, 11', true).estado;
-    assert.equal(UMBRAL_DE_DESVIO_M, 50);
+    const aLaVia = (metros: number) =>
+      Math.round(metrosALaVia(gacetero, LA_CAZA_VIA, LA_CAZA.lon, aLatitud(metros)));
+
+    assert.equal(UMBRAL_DE_DESVIO_M, 50, 'el umbral no se toca');
+
+    // 1) Por debajo del umbral contra SU NÚMERO: sana, como siempre.
     assert.equal(a(49), 'sana');
-    assert.equal(a(51), 'rescatada');
+
+    // 2) ⚠️ Y AQUÍ ESTÁ EL CAMBIO DEL 27/08. A 51 m del portal 11 esto se
+    //    rescataba, y ya no: la calle tiene trece portales y a esa altura hay
+    //    otro a 21 m. El punto está en su calle; lo único que discrepa es el
+    //    número, y eso no es un error que arreglar.
+    assert.equal(aLaVia(51), 21);
+    assert.equal(a(51), 'sana');
+
+    // 3) Y cuando **las dos** medidas pasan de 50, sí se rescata: a 100 m del
+    //    portal, la vía entera queda a 62 m.
+    assert.equal(aLaVia(100), 62);
+    assert.equal(a(100), 'rescatada');
+
+    // El borde de la segunda medida, por si alguien la mueve sin decirlo: a
+    // 80 m la vía está a 43 —sana— y a 100 m a 62 —rescatada—.
+    assert.equal(aLaVia(80), 43);
+    assert.equal(a(80), 'sana');
   });
 
   test('⭐ LA PARTICIÓN FIRMADA: sin cheque de distancia, la misma coordenada es sana', () => {

@@ -507,6 +507,37 @@ describe('El trayecto', () => {
     assert.equal(u.lat, 41.63448972768281);
   });
 
+  test('⚠️ EL ANDRÉS OLIVÁN SIGUE ATERRIZANDO EN LA CIUDAD — bitácora nº14', () => {
+    /**
+     * ⚠️ ESTA PRUEBA AFIRMA UN FALLO, y está escrita a propósito para que se
+     * caiga sola el día que se arregle. No es una expectativa: es un testigo.
+     *
+     * El caso que abrió la nº13 **no lo arregla la nº13**, y esa es su lección.
+     * Su coordenada municipal —`[-0.8426853752732937, 41.716620571592415]`—
+     * cae a 11 m de «CALLE DOCTOR PALOMAR ---SJN 22», su puerta de verdad en
+     * San Juan de Mozarrifar. Pero su dirección dice «C/ Doctor Alejandro
+     * Palomar» y **ese nombre no es el de esa calle**: es el de otra, a 7,6 km,
+     * en la ciudad. Así que no hay homónimo que desambiguar —«doctor palomar» y
+     * «doctor alejandro palomar» son dos claves distintas del índice— y el
+     * emparejador casa con la única que encuentra.
+     *
+     * La precondición de vía entera tampoco lo salva, y es coherente: el punto
+     * está a 7.640 m de la vía con la que ha casado. La regla funciona; lo que
+     * falla es antes, al elegir la vía.
+     *
+     * Queda abierto en `docs/BITACORA.md` como **nº14**, con la medición de lo
+     * que costaría arreglarlo.
+     */
+    const s = motor.sitios.donde.get('Colegios.549')!;
+    assert.equal(s.lon, -0.872152, 'si esto falla, quizá es que la nº14 se ha cerrado');
+    assert.equal(s.lat, 41.651282);
+    // Y lo que el fichero municipal dice, que sigue intacto y es lo correcto.
+    assert.equal(
+      motor.sitios.rescatados.find((r) => r.codigo === 'Colegios.549')?.lonMunicipal,
+      -0.8426853752732937,
+    );
+  });
+
   test('un sitio inventado se contesta con aviso, no con una excepción', () => {
     const t = pedir({ origen: COLOSO, destino: { sitio: 'Farmacias.999999' }, modo: 'andando' });
     assert.equal(t.avisos.length, 1);

@@ -230,12 +230,27 @@ export function dentroDelEntorno(entorno: Entorno, lon: number, lat: number): bo
  * —13.680 m de mentira—. **Mejor fuera que mal rescatada**: lo que no casa se
  * queda sin validar, que es como estaba antes de existir esto.
  *
- * Tres exigencias, y las tres son de unicidad:
+ * Tres exigencias, y dos son de unicidad:
  *
  * 1. **El nombre, entero e idéntico** una vez quitada la palabra de tipo. Ni
  *    subcadenas ni parecidos: «de navarra» casa con «de navarra» y con nada
- *    más. Y **una sola vía** puede llevarlo: hay nombres que llevan dos o más
- *    —AVENIDA AMÉRICA y CALLE AMÉRICA—, y ahí no se adivina.
+ *    más. Esto **no se toca**: es lo que impide el fantasma de «mina» ↔
+ *    CONTAMINA.
+ *
+ *    ⭐ **Pero que dos vías lo lleven ya NO descarta (27/08).** Hay 125 nombres
+ *    con dos o más vías —AVENIDA AMÉRICA y CALLE AMÉRICA, AVENIDA MADRID y
+ *    CALLE MADRID— y hasta hoy ahí no se adivinaba y se dejaba pasar. Ahora se
+ *    desambigua por **cercanía**: gana la vía que tenga un portal más cerca de
+ *    la coordenada que el Ayuntamiento publica.
+ *
+ *    No es un invento: es lo que hace cualquier geocodificador con un topónimo
+ *    repetido. [DOC Google Geocoding] usa `bounds`/`region` como *location
+ *    bias* justamente para eso, y [DOC Pelias] `focus.point` sube lo cercano —
+ *    el mismo `focus` que este proyecto ya usa en `/api/sitios`. Y la doctrina
+ *    de calidad lo dice más fuerte: ante un homónimo, **el clasificador
+ *    geográfico manda sobre el de cadenas**, porque la similitud de nombres es
+ *    justo la señal que produce el falso positivo. El caso de manual es el de
+ *    los dos St. Paul a 400 km, que se casan solos si nadie mira el mapa.
  * 2. **Un solo portal** con ese número en esa vía. San Juan de la Peña 181 son
  *    **23 portales** —bloques y escaleras de la misma dirección— repartidos a
  *    más de 50 m unos de otros: elegir uno sería elegir a suertes, y una
@@ -246,7 +261,12 @@ export function dentroDelEntorno(entorno: Entorno, lon: number, lat: number): bo
  *    los cortes y vale si **exactamente uno** resuelve. Si resuelven dos, la
  *    dirección no dice cuál es y no se rescata nada.
  */
-export function portalDeLaDireccion(gacetero: Gacetero, calle: string): PortalSituado | null {
+export function portalDeLaDireccion(
+  gacetero: Gacetero,
+  calle: string,
+  lon: number,
+  lat: number,
+): PortalSituado | null {
   // Lo que va entre paréntesis es apostilla del que escribe —«(Bº Santa
   // Isabel)», «(La Cartuja Baja)»— y no forma parte de la dirección.
   const escrita = paraComparar(calle.replace(/\([^)]*\)/g, ' '));
@@ -262,12 +282,22 @@ export function portalDeLaDireccion(gacetero: Gacetero, calle: string): PortalSi
       continue;
     }
     const vias = gacetero.viasPorNombre.get(nombre);
-    if (vias?.length !== 1) {
+    if (!vias || vias.length === 0) {
       continue;
+    }
+    // ⭐ Y si son varias, **manda la geografía**: la que tenga un portal más
+    // cerca del punto publicado. Ver la cabecera.
+    let via: string;
+    if (vias.length === 1) {
+      via = vias[0]!;
+    } else {
+      const cercana = laMasCercana(gacetero, vias, lon, lat);
+      if (metrosALaVia(gacetero, cercana, lon, lat) > UMBRAL_DE_DESVIO_M) { continue; }
+      via = cercana;
     }
     // El número del censo trae cola —«181 BL1-3», «71 TV C2»—, así que se
     // compara por sus dígitos de cabeza; y tiene que haber uno solo.
-    const suyos = (gacetero.portales.porVia.get(vias[0]!) ?? []).filter(
+    const suyos = (gacetero.portales.porVia.get(via) ?? []).filter(
       (p) => /^\d+/.exec(p.numero)?.[0] === numero,
     );
     if (suyos.length !== 1) {
@@ -280,6 +310,49 @@ export function portalDeLaDireccion(gacetero: Gacetero, calle: string): PortalSi
     hallado = gacetero.portales.donde.get(suyos[0]!.codigo) ?? null;
   }
   return hallado;
+}
+
+/**
+ * ⭐ A cuántos metros está un punto de la VÍA ENTERA: su portal más cercano.
+ *
+ * No de un número concreto, sino de cualquier puerta de esa calle. Es la
+ * medida que le faltaba al rescate, y la que separa las dos cosas que hasta el
+ * 27/08 se confundían: **un punto que está en otra parte de la ciudad** y **un
+ * punto que está en su calle pero no en el número que su dirección declara**.
+ * El segundo no es un error que arreglar.
+ */
+export function metrosALaVia(gacetero: Gacetero, via: string, lon: number, lat: number): number {
+  let mejor = Infinity;
+  for (const p of gacetero.portales.porVia.get(via) ?? []) {
+    const situado = gacetero.portales.donde.get(p.codigo);
+    if (!situado) {
+      continue;
+    }
+    const m = metrosEntre(lat, lon, situado.lat, situado.lon);
+    if (m < mejor) {
+      mejor = m;
+    }
+  }
+  return mejor;
+}
+
+/** De varias vías homónimas, la que tiene un portal más cerca del punto. */
+function laMasCercana(
+  gacetero: Gacetero,
+  vias: readonly string[],
+  lon: number,
+  lat: number,
+): string {
+  let ganadora = vias[0]!;
+  let mejor = Infinity;
+  for (const via of vias) {
+    const m = metrosALaVia(gacetero, via, lon, lat);
+    if (m < mejor) {
+      mejor = m;
+      ganadora = via;
+    }
+  }
+  return ganadora;
 }
 
 /** Qué se hace con una coordenada publicada. */
@@ -314,7 +387,7 @@ export function validar(
   calle: string,
   mideLaDistancia: boolean,
 ): Veredicto {
-  const portal = portalDeLaDireccion(gacetero, calle);
+  const portal = portalDeLaDireccion(gacetero, calle, lon, lat);
 
   if (!dentroDelEntorno(gacetero.entorno, lon, lat)) {
     return portal
@@ -330,7 +403,27 @@ export function validar(
     return { estado: 'sana' };
   }
   const metros = metrosEntre(lat, lon, portal.lat, portal.lon);
-  return metros > UMBRAL_DE_DESVIO_M
-    ? { estado: 'rescatada', porQue: 'distancia', portal, metros }
-    : { estado: 'sana' };
+  if (metros <= UMBRAL_DE_DESVIO_M) {
+    return { estado: 'sana' };
+  }
+
+  /**
+   * ⭐ LA PRECONDICIÓN DEL RESCATE (27/08, cierre de la nº13).
+   *
+   * Estar lejos del NÚMERO que la dirección declara no basta para mover nada.
+   * Lo que hay que preguntar es si el punto está lejos de **su calle entera**:
+   * si hay una puerta de esa misma vía a menos de 50 m, el punto ya está donde
+   * dice que está, y lo único que discrepa es el portal — que es el caso
+   * Miguel Servet a escala de portal, y no es un fallo.
+   *
+   * Medido antes de escribirlo: **22 de los 29 rescates** que el motor hacía el
+   * 27/08 movían coordenadas que ya tenían una puerta a 50 m o menos. Es la ley
+   * que salió de la entrada de la bitácora: **hay que medir la ida y la
+   * vuelta**, no solo cuánto se mueve algo.
+   */
+  const aLaVia = metrosALaVia(gacetero, portal.via, lon, lat);
+  if (aLaVia <= UMBRAL_DE_DESVIO_M) {
+    return { estado: 'sana' };
+  }
+  return { estado: 'rescatada', porQue: 'distancia', portal, metros };
 }

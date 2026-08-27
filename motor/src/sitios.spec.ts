@@ -19,6 +19,7 @@ import {
 import { cargarCallejero, normalizar } from './callejero.ts';
 import { cargarPortales } from './portales.ts';
 import { metrosEntre } from './cercano.ts';
+import { cargarGacetero, metrosALaVia } from './gacetero.ts';
 
 describe('Los sitios — farmacias', () => {
   let sitios: SitiosEnMemoria;
@@ -59,20 +60,20 @@ describe('Los sitios — farmacias', () => {
         // DISTINTOS **después** del reparto firmado, no el de los ficheros:
         // · colegio — 514 filas en siete ficheros municipales
         //   (141+138+104+7+56+49+19), 234 repetidos —el colegio que hace
-        //   infantil, primaria y secundaria está fichado en las tres— y 19
-        //   excluidos por firma, dan 261 distintos.
+        //   infantil, primaria y secundaria está fichado en las tres— y 16
+        //   excluidos por firma, dan 264 distintos.
         // · guardería — 65 en su fichero menos el Col. Virgen de Guadalupe,
         //   que es un colegio completo y se va a la otra etiqueta: 64.
         // · universidad — 14 + 8 + 7 de tres ficheros, sin un solo repetido.
-        ['colegio', 261, 251, 10],
+        ['colegio', 264, 254, 10],
         ['guarderia', 64, 64, 0],
         ['universidad', 29, 28, 1],
       ],
     );
     // Y la suma, que es lo que ve el resto del motor. Escrita a mano: si se
     // calculara aquí, esto compararía el código consigo mismo.
-    assert.equal(sitios.total, 817);
-    assert.equal(sitios.conCoordenada, 799);
+    assert.equal(sitios.total, 820);
+    assert.equal(sitios.conCoordenada, 802);
     assert.equal(sitios.sinCoordenada, 18);
   });
 
@@ -96,8 +97,17 @@ describe('Los sitios — farmacias', () => {
     }
     // Y de los 19 de «Educación Especial», los tres colegios firmados están y
     // el hospital de día NO: es sociosanitario y ya vive en otra categoría.
+    // ⭐ Los SEIS C.E.E., que son colegios [amenity=school]. Los tres últimos
+    // entraron el 27/08: la letra de la firma los dejó fuera porque llegaban
+    // por la categoría 660, y la misma firma sacó el 660.
+    for (const id of [2713, 30195, 13944, 9609, 608, 2715]) {
+      assert.deepEqual(donde(id).length <= 1, true, `el C.E.E. ${id} sale dos veces`);
+    }
     assert.deepEqual(donde(2713), ['colegio'], 'C.E.E. Alborada');
     assert.deepEqual(donde(13944), ['colegio'], 'Col. San Germán (Aspace)');
+    assert.deepEqual(donde(9609), ['colegio'], 'C.E.E. Jean Piaget');
+    assert.deepEqual(donde(608), ['colegio'], 'C.E.E. Rincón de Goya');
+    assert.deepEqual(donde(2715), ['colegio'], 'C.E.E. Ángel Rivière');
     assert.deepEqual(donde(30256), [], 'el HOSPITAL DE DÍA no entra como colegio');
   });
 
@@ -120,11 +130,12 @@ describe('Los sitios — farmacias', () => {
         // Las dos categorías de biblioteca no comparten ni un id: el 0 de
         // duplicados es el que avisaría si el Ayuntamiento moviera una.
         ['biblioteca', 0, 0],
-        // ⭐ 19 excluidos: los 16 de «Educación Especial» que no son colegios
-        // y las 3 escuelas infantiles que se van a guarderías. Y 234
+        // ⭐ 16 excluidos: los 13 de «Educación Especial» que no son colegios
+        // —los seis C.E.E. entran— y las 3 escuelas infantiles que se van a
+        // guarderías. Y 234
         // duplicados, que es el colegio fichado en varias etapas entrando una
         // sola vez [amenity=school admite varios niveles].
-        ['colegio', 19, 234],
+        ['colegio', 16, 234],
         // 1: el Col. Virgen de Guadalupe, que se va a colegios.
         ['guarderia', 1, 0],
         ['universidad', 0, 0],
@@ -148,7 +159,7 @@ describe('Los sitios — farmacias', () => {
     // el reparto se comprueba caso a caso, pero esto lo comprueba de golpe.
     const codigos = sitios.indice.map((x) => x.codigo);
     assert.equal(new Set(codigos).size, codigos.length);
-    assert.equal(codigos.length, 799);
+    assert.equal(codigos.length, 802);
   });
 
   test('⭐ REGLA B — al índice solo entran los que tienen coordenada', () => {
@@ -156,7 +167,7 @@ describe('Los sitios — farmacias', () => {
     // situar no se puede enrutar, y sugerirlo sería prometer una ruta que
     // acaba en un aviso. [DOC Pelias] indexa *venues* con su punto; sin punto
     // no hay documento que indexar.
-    assert.equal(sitios.indice.length, 799);
+    assert.equal(sitios.indice.length, 802);
     assert.equal(sitios.indice.length, sitios.conCoordenada);
     for (const s of sitios.indice) {
       assert.ok(Number.isFinite(s.lat) && Number.isFinite(s.lon));
@@ -255,8 +266,8 @@ describe('Los sitios — farmacias', () => {
     const conTitulo = sitios.indice.filter((x) => x.tipo !== 'farmacia');
     assert.equal(
       conTitulo.length,
-      489,
-      'no están los 56 + 15 + 75 + 251 + 64 + 28 que entran al índice',
+      492,
+      'no están los 56 + 15 + 75 + 254 + 64 + 28 que entran al índice',
     );
     for (const s of conTitulo) {
       assert.ok(
@@ -668,10 +679,17 @@ describe('Los sitios — la validación espacial', () => {
   // y vuelta necesita preguntarle al censo dónde caía cada coordenada.
   let portales: ReturnType<typeof cargarPortales>;
 
+  let gacetero: ReturnType<typeof cargarGacetero>;
+
   before(() => {
     portales = cargarPortales();
-    sitios = cargarSitios(portales, cargarCallejero(portales));
+    const callejero = cargarCallejero(portales);
+    gacetero = cargarGacetero(portales, callejero);
+    sitios = cargarSitios(portales, callejero);
   });
+
+  /** La vía a la que pertenece un portal, por su código. */
+  const viaDe = (codigo: string): string => portales.donde.get(codigo)!.via;
 
   /** Lo que los QUINCE ficheros municipales traen, sin pasar por el motor. */
   function crudos(): Map<string, { calle: string; lon: number; lat: number }> {
@@ -726,8 +744,8 @@ describe('Los sitios — la validación espacial', () => {
         c.invalidos,
       ]),
       [
-        ['farmacia', 310, 0, 7, 0],
-        ['centro-salud', 56, 1, 2, 0],
+        ['farmacia', 310, 0, 4, 0],
+        ['centro-salud', 56, 1, 1, 0],
         // ⭐ CERO en hospitales, y no por casualidad: son recintos y quedan
         // fuera del cheque de distancia por decisión firmada.
         ['hospital', 15, 0, 0, 0],
@@ -739,20 +757,18 @@ describe('Los sitios — la validación espacial', () => {
         // —tienen una puerta y su dirección es esa puerta— y universidades es
         // RECINTO, como hospitales y bibliotecas: un campus tiene varias.
         //
-        // ⚠️ ESOS 19 + 1 RESCATES ESTÁN EN DISPUTA, y esta prueba dice lo que
-        // el motor HACE hoy, no lo que debería hacer: la ida y vuelta encontró
-        // que 22 de los 29 rescates de la casa mueven coordenadas que ya
-        // estaban a ≤50 m de un portal de verdad, y uno se va **7.666 m** de
-        // San Juan de Mozarrifar a una calle homónima de la ciudad. Está
-        // abierto en `docs/BITACORA.md` (27/08) y pendiente de decisión. Si el
-        // criterio cambia, esta tabla cambia con él.
-        ['colegio', 251, 0, 19, 0],
+        // ⭐ Y estas cifras son las de DESPUÉS del cierre de la nº13 (27/08):
+        // el rescate ya no dispara con que el punto esté lejos de su NÚMERO,
+        // sino solo si está lejos de su VÍA ENTERA. De 29 rescates se pasó a
+        // 17, y los doce que se caen eran coordenadas que ya estaban en su
+        // calle.
+        ['colegio', 254, 0, 11, 0],
         ['guarderia', 64, 0, 1, 0],
         ['universidad', 28, 0, 0, 0],
       ],
     );
     assert.equal(sitios.corregidos.length, 1);
-    assert.equal(sitios.rescatados.length, 29);
+    assert.equal(sitios.rescatados.length, 17);
     // ⭐ NINGUNA inválida: la única que había se corrigió a mano, y ni un solo
     // sitio de educación cae fuera del término municipal.
     assert.equal(sitios.invalidos.length, 0);
@@ -805,65 +821,69 @@ describe('Los sitios — la validación espacial', () => {
     assert.equal(c.calle, 'C/ Domingo Miral, s/n');
   });
 
-  test('⭐ LAS 29 RESCATADAS, una a una y con sus metros de desvío', () => {
-    // ⚠️⚠️ ESTA LISTA ESTÁ EN DISPUTA, y la prueba lo dice para que nadie la
-    // lea como una aprobación: es **lo que el motor hace hoy**, no lo que se ha
-    // decidido que haga. Ver `docs/BITACORA.md` (27/08): 22 de estas 29 mueven
-    // una coordenada que ya estaba a ≤50 m de un portal de verdad, y la primera
-    // se va 7.666 m a otra calle. Enumerar no es aprobar — que esta prueba
-    // estuviera completa y al byte con siete rescates malos dentro es
-    // exactamente lo que cuenta esa entrada.
+  test('⭐ LAS 17 RESCATADAS, una a una y con sus metros de desvío', () => {
+    // ⭐ Eran 29 hasta el cierre de la nº13 (27/08). Las doce que se han caído
+    // no eran coordenadas malas: eran coordenadas que estaban EN SU CALLE y
+    // discrepaban del número. Ahora el rescate exige que el punto esté lejos
+    // de la vía entera, no solo de su portal.
     assert.deepEqual(
       [...sitios.rescatados]
         .sort((a, b) => b.metros - a.metros)
         .map((r) => [r.codigo, Math.round(r.metros), r.porQue]),
       [
+        // ⚠️ El primero sigue estando MAL, y no por el rescate: su dirección
+        // dice «Doctor Alejandro Palomar» y la calle donde está el colegio se
+        // llama «DOCTOR PALOMAR ---SJN». Son dos nombres distintos, así que no
+        // hay homónimo que desambiguar y el emparejador casa con la única que
+        // hay, que es la de la ciudad. Queda abierto en la bitácora (nº14).
         ['Colegios.549', 7666, 'distancia'],
-        ['Colegios.29276', 1067, 'distancia'],
-        ['Colegios.13811', 691, 'distancia'],
         ['Colegios.9008', 587, 'distancia'],
         ['CentrosSalud.9080', 497, 'distancia'],
         ['Colegios.112445', 478, 'distancia'],
         ['Colegios.13948', 436, 'distancia'],
-        ['Colegios.13922', 376, 'distancia'],
+        // ⭐ LOS CUATRO DEL DATUM, que TIENEN que moverse: cuatro farmacias
+        // corridas 236 m por el mismo vector. Que sigan aquí es la prueba de
+        // que la regla nueva no se ha llevado por delante lo que sí arreglaba.
         ['Farmacias.20445', 236, 'distancia'],
         ['Guarderias.8557', 236, 'distancia'],
         ['Farmacias.20443', 236, 'distancia'],
         ['Farmacias.8671', 236, 'distancia'],
         ['Farmacias.20444', 236, 'distancia'],
-        ['Farmacias.9013', 198, 'distancia'],
-        ['Colegios.580', 183, 'distancia'],
         ['Colegios.28915', 143, 'distancia'],
-        ['Colegios.13920', 140, 'distancia'],
         ['Colegios.13863', 117, 'distancia'],
-        ['CentrosSalud.28600', 110, 'distancia'],
-        ['Colegios.13951', 101, 'distancia'],
-        ['Colegios.13906', 79, 'distancia'],
-        ['Farmacias.20530', 76, 'distancia'],
         ['Colegios.579', 75, 'distancia'],
         ['Colegios.8014', 70, 'distancia'],
         ['Colegios.28066', 70, 'distancia'],
         ['Colegios.30014', 65, 'distancia'],
         ['Colegios.2712', 57, 'distancia'],
-        ['Colegios.607', 57, 'distancia'],
-        ['Farmacias.8939', 52, 'distancia'],
       ],
     );
   });
 
-  test('⭐ LA IDA Y VUELTA: a qué distancia de un portal REAL estaba cada una', () => {
-    // ⭐ El instrumento que faltaba, y el que abre la entrada de la bitácora del
-    // 27/08. La lista de arriba dice cuánto se ha movido cada sitio; esta dice
-    // **de dónde venía**: a cuántos metros tenía un portal del censo la
-    // coordenada que el Ayuntamiento publica.
+  test('⭐ LA IDA Y VUELTA: ninguna rescatada estaba ya en SU PROPIA calle', () => {
+    // ⭐ EL GUARDIÁN DE LA LEY DE LA Nº13, y la cifra que exige es CERO.
     //
-    // Un rescate solo mejora las cosas si el punto de partida NO estaba junto a
-    // una puerta. Cuando sí lo estaba, mover el punto es cambiar una coordenada
-    // buena por otra, y el proceso lo hacía sin que nada protestara.
+    // Lo que hay que medir no es si había ALGÚN portal cerca —en un barrio
+    // denso siempre lo hay, y las cuatro farmacias del datum tenían uno a
+    // 13-31 m estando desplazadas 236 m—, sino si había una puerta **de su
+    // propia vía**. Esa es la que dice «el punto ya está donde dice estar».
     //
-    // No se exige aún un criterio —eso está pendiente de decisión— pero sí se
-    // deja la cifra escrita y vigilada: si mañana cambia, se verá.
-    const juntoAUnPortal = sitios.rescatados.filter((r) => {
+    // Antes del arreglo esta cifra era 22 de 29. Ahora es 0 por construcción,
+    // y la prueba está para que se vea si alguien quita la precondición.
+    const enSuCalle = sitios.rescatados.filter(
+      (r) => metrosALaVia(gacetero, viaDe(r.portal), r.lonMunicipal, r.latMunicipal) <= 50,
+    );
+    assert.equal(
+      enSuCalle.length,
+      0,
+      `${enSuCalle.length} rescatados tenían una puerta de su propia vía a ≤50 m: ` +
+        enSuCalle.map((r) => r.codigo).join(', '),
+    );
+
+    // Y la otra cifra, la que NO puede ser cero y se declara para que no se
+    // confunda con la de arriba: cuántos tenían un portal de CUALQUIER vía
+    // cerca. Son 10, y cuatro de ellos son los del datum.
+    const cercaDeAlgo = sitios.rescatados.filter((r) => {
       let masCerca = Infinity;
       for (const p of portales.situados) {
         const m = metrosEntre(r.latMunicipal, r.lonMunicipal, p.lat, p.lon);
@@ -871,7 +891,7 @@ describe('Los sitios — la validación espacial', () => {
       }
       return masCerca <= 50;
     });
-    assert.equal(juntoAUnPortal.length, 22, 'ver docs/BITACORA.md, entrada del 27/08');
+    assert.equal(cercaDeAlgo.length, 10);
   });
 
   test('⭐ una rescatada queda EXACTAMENTE en su portal, no cerca', () => {
@@ -891,8 +911,8 @@ describe('Los sitios — la validación espacial', () => {
     assert.equal(r.numero, '11');
   });
 
-  test('⭐ y NADIE MÁS se mueve: los otros 769 conservan su coordenada', () => {
-    // 799 en el índice, menos los 29 rescatados y el 1 corregido a mano.
+  test('⭐ y NADIE MÁS se mueve: los otros 784 conservan su coordenada', () => {
+    // 802 en el índice, menos los 17 rescatados y el 1 corregido a mano.
     // El guardián de la costura: el rescate solo toca ROTAS. Si un día una
     // sana acabara movida, esto se pone rojo — se compara contra el fichero
     // municipal, no contra otra parte del motor.
@@ -913,7 +933,7 @@ describe('Los sitios — la validación espacial', () => {
       assert.equal(s.lat, c.lat, `${s.codigo} ha cambiado de latitud`);
       comprobados++;
     }
-    assert.equal(comprobados, 769);
+    assert.equal(comprobados, 784);
   });
 
   test('⭐ LA CATEGORÍA COMPUESTA: dos ficheros municipales, un solo tipo', () => {
