@@ -285,6 +285,14 @@ const FUENTES: readonly Fuente[] = [
           { id: 2713, porQue: 'C.E.E. Alborada — es un colegio [amenity=school]' },
           { id: 30195, porQue: 'C.E.E. María Soriano — es un colegio [amenity=school]' },
           { id: 13944, porQue: 'Col. San Germán (Aspace) — es un colegio [amenity=school]' },
+          // ⭐ Y los tres que la letra de la firma dejó fuera y su doctrina mete
+          // (27/08). Cuando se firmó «entran los tres C.E.E.» estos entraban
+          // por la categoría 660, así que no aparecían en la lista de los que
+          // solo llegaban por la 64 — y la misma firma sacó el 660. Son
+          // colegios como los otros tres.
+          { id: 9609, porQue: 'C.E.E. Jean Piaget — es un colegio [amenity=school]' },
+          { id: 608, porQue: 'C.E.E. Rincón de Goya — es un colegio [amenity=school]' },
+          { id: 2715, porQue: 'C.E.E. Ángel Rivière — es un colegio [amenity=school]' },
         ] },
     ],
     leeElTitulo: true,
