@@ -507,34 +507,39 @@ describe('El trayecto', () => {
     assert.equal(u.lat, 41.63448972768281);
   });
 
-  test('⚠️ EL ANDRÉS OLIVÁN SIGUE ATERRIZANDO EN LA CIUDAD — bitácora nº14', () => {
-    /**
-     * ⚠️ ESTA PRUEBA AFIRMA UN FALLO, y está escrita a propósito para que se
-     * caiga sola el día que se arregle. No es una expectativa: es un testigo.
-     *
-     * El caso que abrió la nº13 **no lo arregla la nº13**, y esa es su lección.
-     * Su coordenada municipal —`[-0.8426853752732937, 41.716620571592415]`—
-     * cae a 11 m de «CALLE DOCTOR PALOMAR ---SJN 22», su puerta de verdad en
-     * San Juan de Mozarrifar. Pero su dirección dice «C/ Doctor Alejandro
-     * Palomar» y **ese nombre no es el de esa calle**: es el de otra, a 7,6 km,
-     * en la ciudad. Así que no hay homónimo que desambiguar —«doctor palomar» y
-     * «doctor alejandro palomar» son dos claves distintas del índice— y el
-     * emparejador casa con la única que encuentra.
-     *
-     * La precondición de vía entera tampoco lo salva, y es coherente: el punto
-     * está a 7.640 m de la vía con la que ha casado. La regla funciona; lo que
-     * falla es antes, al elegir la vía.
-     *
-     * Queda abierto en `docs/BITACORA.md` como **nº14**, con la medición de lo
-     * que costaría arreglarlo.
-     */
+  test('⭐ EL ANDRÉS OLIVÁN llega a SAN JUAN DE MOZARRIFAR, su barrio', () => {
+    // ⭐ El reverso del testigo que vivió aquí un día. La nº14 se abrió con una
+    // prueba que AFIRMABA el fallo —el colegio aterrizando a 7,6 km, en la
+    // calle de la ciudad que se llama casi igual— y escrita para caerse sola el
+    // día que se arreglara. Se cayó, y esto es lo que la sustituye.
+    //
+    // Su coordenada es la del fichero municipal, sin tocar: ya no se rescata,
+    // porque el emparejador encuentra «CALLE DOCTOR PALOMAR ---SJN» —que tiene
+    // una puerta a 11 m— y esa gana a la homónima parcial de la ciudad.
     const s = motor.sitios.donde.get('Colegios.549')!;
-    assert.equal(s.lon, -0.872152, 'si esto falla, quizá es que la nº14 se ha cerrado');
-    assert.equal(s.lat, 41.651282);
-    // Y lo que el fichero municipal dice, que sigue intacto y es lo correcto.
+    assert.equal(s.lon, -0.8426853752732937);
+    assert.equal(s.lat, 41.716620571592415);
     assert.equal(
-      motor.sitios.rescatados.find((r) => r.codigo === 'Colegios.549')?.lonMunicipal,
-      -0.8426853752732937,
+      motor.sitios.rescatados.some((r) => r.codigo === 'Colegios.549'),
+      false,
+      'el Andrés Oliván ha vuelto a moverse',
+    );
+  });
+
+  test('⭐ y la RUTA hasta él sale, con los metros de una ruta a un barrio rural', () => {
+    const t = pedir({ origen: COLOSO, destino: { sitio: 'Colegios.549' }, modo: 'andando' });
+    assert.equal(t.avisos.length, 0, t.avisos[0]?.texto);
+    assert.ok(t.pasos.length > 4, `solo ${t.pasos.length} pasos`);
+    // EL COLOSO 2 está en Parque Goya, al norte, y San Juan de Mozarrifar
+    // también: son 4.437 m en línea recta, mucho menos que los 14 km que habría
+    // desde el centro. La ruta no puede ser más corta que la recta.
+    assert.ok(t.metros > 4437, `${t.metros} m es menos que la línea recta`);
+    assert.ok(t.metros < 8874, `${t.metros} m es el doble de la línea recta`);
+    assert.equal(t.segundos, Math.round(t.metros / (5000 / 3600)));
+    assert.match(
+      t.pasos[t.pasos.length - 1]!.texto,
+      /^C\.E\.I\.P\. Andrés Oliván · C\/ Doctor Alejandro Palomar, 21 está a la (derecha|izquierda)$/,
+      t.pasos[t.pasos.length - 1]!.texto,
     );
   });
 

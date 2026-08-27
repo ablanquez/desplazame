@@ -16,6 +16,7 @@ import {
   dentroDelEntorno,
   portalDeLaDireccion,
   metrosALaVia,
+  esSubsecuencia,
   validar,
   MARGEN_DEL_ENTORNO_M,
   UMBRAL_DE_DESVIO_M,
@@ -235,6 +236,88 @@ describe('El gacetero — el emparejador estricto', () => {
     assert.equal(portalDeLaDireccion(gacetero, 'Pº María Agustín, 21-23', EN_EL_CENTRO.lon, EN_EL_CENTRO.lat)?.numero, '21-23');
   });
 
+  test('⭐ LA REGLA DE LA SUBSECUENCIA, sola y sin red', () => {
+    // ⚠️ Esta prueba existe porque la contraprueba la pidió: mutando
+    // `esSubsecuencia` para comparar TROZOS en vez de palabras, las 277 pruebas
+    // seguían VERDES. La guarda de cercanía descarta después las candidatas
+    // absurdas, así que el resultado no se movía — pero la regla estaba rota y
+    // nadie la miraba. Aquí se mira sola.
+    const parte = (t: string): string[] => t.split(' ');
+
+    // ⭐ El caso de la nº14: el nombre de pila que el callejero no registra.
+    assert.equal(esSubsecuencia(parte('doctor palomar'), parte('doctor alejandro palomar')), true);
+    // En ORDEN, no en cualquier orden.
+    assert.equal(esSubsecuencia(parte('palomar doctor'), parte('doctor alejandro palomar')), false);
+    // Y no hace falta que vayan seguidas.
+    assert.equal(esSubsecuencia(parte('a d'), parte('a b c d')), true);
+
+    // ⚠️ EL FANTASMA DE LA TANDA 1, que es lo que esto no puede reabrir:
+    // «mina» está DENTRO de «taormina» como trozo de letras y no como palabra.
+    assert.equal(esSubsecuencia(parte('la mina'), parte('taormina')), false);
+    assert.equal(esSubsecuencia(parte('casa mayor'), parte('casamayor')), false);
+    assert.equal(esSubsecuencia(parte('santo domingo'), parte('isabel santodomingo')), false);
+
+    // ⭐ Y el mínimo de DOS palabras: un nombre de una sola cabría dentro de
+    // medio callejero —«mayor» está en cien direcciones— y no dice nada.
+    assert.equal(esSubsecuencia(parte('mayor'), parte('calle mayor de casetas')), false);
+    assert.equal(esSubsecuencia(parte('carmen'), parte('nuestra senora del carmen')), false);
+    // Con dos, sí.
+    assert.equal(esSubsecuencia(parte('del carmen'), parte('nuestra senora del carmen')), true);
+  });
+
+  test('⭐ LA SUBSECUENCIA compara PALABRAS, no trozos: el fantasma no vuelve', () => {
+    // ⚠️ La tanda 1 cerró la puerta a los parecidos porque un emparejador flojo
+    // casó «mina» con CONTAMINA y «mayor» con CASAMAYOR. La nº14 vuelve a
+    // abrirla, pero solo para **palabras enteras en orden**, y esta prueba es
+    // la que sostiene la diferencia.
+    //
+    // El callejero de Zaragoza trae el caso servido: «taormina» LLEVA DENTRO
+    // «mina» como trozo de letras, y son tres calles distintas.
+    for (const clave of ['taormina', 'la mina', 'minas']) {
+      assert.equal(gacetero.viasPorNombre.has(clave), true, `falta la clave ${clave}`);
+    }
+
+    // «C/ Taormina, 2» desde su propio punto da SU calle, no el Paseo la Mina.
+    const taormina = portales.donde.get(
+      portales.porVia.get(gacetero.viasPorNombre.get('taormina')![0]!)![0]!.codigo,
+    )!;
+    const casa = portalDeLaDireccion(gacetero, 'C/ Taormina, 2', taormina.lon, taormina.lat);
+    assert.equal(casa?.codigo, taormina.codigo);
+    assert.equal(gacetero.nombreDeVia.get(casa!.via), 'CALLE TAORMINA');
+
+    // Y al revés: puesto EN el Paseo la Mina, «C/ Taormina, 2» no casa —
+    // ninguna candidata tiene una puerta cerca, y la clave exacta única que
+    // queda es la de Taormina, que está a 10 km. Se rescataría, no se
+    // confundiría de calle.
+    const laMina = portales.donde.get(
+      portales.porVia.get(gacetero.viasPorNombre.get('la mina')![0]!)![0]!.codigo,
+    )!;
+    const desdeLaMina = portalDeLaDireccion(gacetero, 'C/ Taormina, 2', laMina.lon, laMina.lat);
+    assert.equal(desdeLaMina?.codigo, taormina.codigo, 'se ha ido a la calle equivocada');
+  });
+
+  test('⭐ EL TOPÓNIMO PARCIAL sí casa: «Doctor Alejandro Palomar» → DOCTOR PALOMAR', () => {
+    // El caso de la nº14. El Ayuntamiento escribe la dirección con el nombre de
+    // pila y el callejero registra la calle sin él, así que las dos claves son
+    // distintas y no hay homónimo que desambiguar. La subsecuencia de palabras
+    // las une, y la guarda decide cuál: desde San Juan de Mozarrifar gana la
+    // del barrio; desde la ciudad, la de la ciudad.
+    assert.equal(gacetero.viasPorNombre.get('doctor alejandro palomar')?.length, 1);
+    assert.equal(gacetero.viasPorNombre.get('doctor palomar')?.length, 1);
+
+    const enElBarrio = { lon: -0.8426853752732937, lat: 41.716620571592415 };
+    const casa = portalDeLaDireccion(gacetero, 'C/ Doctor Alejandro Palomar, 21', enElBarrio.lon, enElBarrio.lat);
+    // `nombreDeVia` guarda el nombre LIMPIO, sin el marcador de barrio rural:
+    // el crudo del censo es «CALLE DOCTOR PALOMAR ---SJN».
+    assert.equal(gacetero.nombreDeVia.get(casa!.via), 'CALLE DOCTOR PALOMAR');
+
+    // Y la clave exacta gana cuando ella sí supera la guarda: puesto en la
+    // calle de la ciudad, la misma dirección da la de la ciudad.
+    const enLaCiudad = { lon: -0.872152, lat: 41.651282 };
+    const otra = portalDeLaDireccion(gacetero, 'C/ Doctor Alejandro Palomar, 21', enLaCiudad.lon, enLaCiudad.lat);
+    assert.equal(gacetero.nombreDeVia.get(otra!.via), 'CALLE DOCTOR ALEJANDRO PALOMAR');
+  });
+
   test('⚠️ el ARTÍCULO que un registro escribe y el otro no, NO casa', () => {
     // Es la limitación declarada del emparejador, y está aquí escrita para que
     // se vea: el equipamiento dice «Avda. de Navarra» y el callejero municipal
@@ -273,6 +356,11 @@ describe('El gacetero — dos cortes que resuelven: laboratorio', () => {
               ['uno 2 dos', ['2']],
             ]
           : [['uno', ['1']]],
+      ),
+      // El mismo índice, agrupado por la primera palabra: es lo que usa la
+      // búsqueda por subsecuencia (nº14).
+      nombresPorPrimeraPalabra: new Map(
+        conLaSegundaVia ? [['uno', ['uno', 'uno 2 dos']]] : [['uno', ['uno']]],
       ),
       nombreDeVia: new Map([
         ['1', 'CALLE UNO'],

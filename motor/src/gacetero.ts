@@ -114,6 +114,16 @@ export interface Gacetero {
    */
   readonly viasPorNombre: ReadonlyMap<string, readonly string[]>;
   /**
+   * ⭐ Los nombres del callejero agrupados por su PRIMERA palabra.
+   *
+   * Es el índice que hace barata la búsqueda por subsecuencia (§ nº14): para
+   * saber qué nombres del censo caben dentro de «doctor alejandro palomar» no
+   * hace falta recorrer los 3.359, sino solo los que empiezan por «doctor»,
+   * por «alejandro» o por «palomar». Sin esto, cada dirección compararía contra
+   * el callejero entero y la carga se notaría.
+   */
+  readonly nombresPorPrimeraPalabra: ReadonlyMap<string, readonly string[]>;
+  /**
    * Y al revés: el código de vía → su nombre tal y como se lee. No lo usa el
    * emparejador; lo usa quien tiene que **declarar** un rescate, que no puede
    * decir «se ha movido a la vía 7045» y quedarse tan ancho.
@@ -183,6 +193,7 @@ export function cargarGacetero(
   const gradosLon = gradosLat / Math.cos((((latMin + latMax) / 2) * Math.PI) / 180);
 
   const viasPorNombre = new Map<string, string[]>();
+  const nombresPorPrimeraPalabra = new Map<string, string[]>();
   const nombreDeVia = new Map<string, string>();
   // Solo las vías CON portal, que son las que el callejero indexa. Una vía sin
   // portales no puede dar una coordenada, así que no es candidata ni sirve para
@@ -195,6 +206,13 @@ export function cargarGacetero(
       suyas.push(via.codigo);
     } else {
       viasPorNombre.set(nombre, [via.codigo]);
+      const primera = nombre.split(' ')[0]!;
+      const conEsa = nombresPorPrimeraPalabra.get(primera);
+      if (conEsa) {
+        conEsa.push(nombre);
+      } else {
+        nombresPorPrimeraPalabra.set(primera, [nombre]);
+      }
     }
   }
 
@@ -206,6 +224,7 @@ export function cargarGacetero(
       latMax: latMax + gradosLat,
     },
     viasPorNombre,
+    nombresPorPrimeraPalabra,
     nombreDeVia,
     portales,
     cargadoEnMs: performance.now() - principio,
@@ -281,19 +300,60 @@ export function portalDeLaDireccion(
     if (nombre === '') {
       continue;
     }
-    const vias = gacetero.viasPorNombre.get(nombre);
-    if (!vias || vias.length === 0) {
+    const exactas = gacetero.viasPorNombre.get(nombre) ?? [];
+
+    /**
+     * ⭐ Y LAS CANDIDATAS POR SUBSECUENCIA (nº14). Un nombre del callejero que
+     * quepa dentro del escrito también es candidato: «doctor palomar» dentro de
+     * «doctor alejandro palomar». Se buscan por el índice de primera palabra
+     * para no recorrer el callejero entero.
+     */
+    const palabras = nombre.split(' ');
+    const porDentro: string[] = [];
+    for (const palabra of palabras) {
+      for (const otro of gacetero.nombresPorPrimeraPalabra.get(palabra) ?? []) {
+        if (otro !== nombre && esSubsecuencia(otro.split(' '), palabras)) {
+          porDentro.push(...(gacetero.viasPorNombre.get(otro) ?? []));
+        }
+      }
+    }
+    if (exactas.length === 0 && porDentro.length === 0) {
       continue;
     }
-    // ⭐ Y si son varias, **manda la geografía**: la que tenga un portal más
-    // cerca del punto publicado. Ver la cabecera.
+
+    /**
+     * ⭐ LA ELECCIÓN, y su orden está declarado porque no es obvio.
+     *
+     * 1. **La guarda de cercanía se le pasa a TODAS las candidatas**, lleguen
+     *    por clave exacta o por subsecuencia: una vía sin ninguna puerta a
+     *    ≤50 m del punto no es la vía de ese punto. Es la regla de la nº13
+     *    —la geo-similitud manda sobre la de cadenas— aplicada sin excepción.
+     * 2. Entre las que la superan, **gana la clave exacta**: que el callejero
+     *    escriba el nombre igual es una afirmación más fuerte que una
+     *    subsecuencia, que es una inferencia nuestra.
+     * 3. Y entre varias subsecuencias, **la más cercana**.
+     *
+     * ⚠️ 4. **Si NINGUNA la supera, se cae a la clave exacta única**, y esto es
+     *    lo que protege el desvío del datum: las cuatro farmacias corridas 236 m
+     *    están a 53-236 m de su propia vía, así que ninguna candidata pasaría la
+     *    guarda y sin este escalón dejarían de rescatarse — que es justo lo que
+     *    la validación espacial existe para hacer. La guarda decide **entre**
+     *    candidatas; no es un veto sobre lo que el dato afirma por su nombre.
+     */
+    const cerca = (v: string): boolean =>
+      metrosALaVia(gacetero, v, lon, lat) <= UMBRAL_DE_DESVIO_M;
+    const exactasCerca = exactas.filter(cerca);
+    const dentroCerca = porDentro.filter(cerca);
+
     let via: string;
-    if (vias.length === 1) {
-      via = vias[0]!;
+    if (exactasCerca.length > 0) {
+      via = exactasCerca.length === 1 ? exactasCerca[0]! : laMasCercana(gacetero, exactasCerca, lon, lat);
+    } else if (dentroCerca.length > 0) {
+      via = dentroCerca.length === 1 ? dentroCerca[0]! : laMasCercana(gacetero, dentroCerca, lon, lat);
+    } else if (exactas.length === 1) {
+      via = exactas[0]!;
     } else {
-      const cercana = laMasCercana(gacetero, vias, lon, lat);
-      if (metrosALaVia(gacetero, cercana, lon, lat) > UMBRAL_DE_DESVIO_M) { continue; }
-      via = cercana;
+      continue;
     }
     // El número del censo trae cola —«181 BL1-3», «71 TV C2»—, así que se
     // compara por sus dígitos de cabeza; y tiene que haber uno solo.
@@ -334,6 +394,41 @@ export function metrosALaVia(gacetero: Gacetero, via: string, lon: number, lat: 
     }
   }
   return mejor;
+}
+
+/**
+ * ⭐ ¿Son las palabras de `dentro` una SUBSECUENCIA de las de `fuera`?
+ *
+ * En orden, y sin exigir que vayan seguidas: `[doctor, palomar]` cabe dentro de
+ * `[doctor, alejandro, palomar]`. Es lo que hace falta para el caso de la nº14,
+ * donde el Ayuntamiento escribe la dirección con el nombre de pila —«Doctor
+ * Alejandro Palomar»— y el callejero registra la calle sin él.
+ *
+ * ⚠️ **Compara PALABRAS ENTERAS, y por eso no reabre el fantasma de la tanda
+ * 1**: «mina» no cabe dentro de «contamina», porque no son la misma palabra —
+ * lo eran como subcadenas, que es lo que aquel emparejador flojo hacía y lo que
+ * costó 13.680 m de mentira. Y se exigen **dos palabras como mínimo**: un
+ * nombre de una sola cabría dentro de medio callejero.
+ *
+ * ⭐ **Se exporta para poder probarla sola, y hace falta.** La contraprueba lo
+ * pidió: cambiándola para que comparase TROZOS en vez de palabras, **las 277
+ * pruebas seguían verdes** — porque la guarda de cercanía descarta después las
+ * candidatas absurdas que eso genera, y el resultado final no se mueve. La
+ * guarda tapa el fallo, pero taparlo no es lo mismo que no tenerlo: el día que
+ * la guarda cambie, esta regla tiene que seguir siendo la que es. Es el mismo
+ * motivo por el que `enPalabras` y `sinRepetidos` están exportadas.
+ */
+export function esSubsecuencia(dentro: readonly string[], fuera: readonly string[]): boolean {
+  if (dentro.length < 2) {
+    return false;
+  }
+  let i = 0;
+  for (const palabra of fuera) {
+    if (i < dentro.length && dentro[i] === palabra) {
+      i++;
+    }
+  }
+  return i === dentro.length;
 }
 
 /** De varias vías homónimas, la que tiene un portal más cerca del punto. */
