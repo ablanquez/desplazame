@@ -14,7 +14,63 @@
 
 ---
 
-## [2026-08-27] 🔴 ABIERTA — El rescate por callejero mueve coordenadas que ya estaban BIEN puestas, y una se va 7,7 km
+## [2026-08-27] 🔴 ABIERTA — La dirección nombra una calle que no es la suya, y el emparejador casa con la homónima de la ciudad a 7,6 km
+
+**Categoría:** falso positivo de geocodificación por topónimo parcial
+
+**Síntoma:** el `Colegios.549` **C.E.I.P. Andrés Oliván** está en **San Juan de
+Mozarrifar** y su coordenada municipal `[-0.8426853752732937,
+41.716620571592415]` cae **a 11 m de «CALLE DOCTOR PALOMAR ---SJN 22»**, su
+puerta. Pero su dirección publicada dice **«C/ Doctor Alejandro Palomar, 21»**, y
+ese nombre **no es el de esa calle**: es el de otra, en la ciudad, a 7,6 km. El
+emparejador casa con la única que encuentra y el sitio acaba en
+`[-0.872152, 41.651282]`.
+
+**No es el fallo de la nº13 ni lo arregla su cierre**, y por eso va aparte: allí
+el rescate movía puntos que estaban en su calle; aquí el punto está en su calle y
+**la calle con la que se casa es otra**. Las dos claves del índice son distintas
+—`doctor palomar` y `doctor alejandro palomar`—, así que no hay homónimo que
+desambiguar: la geo-desambiguación del 27/08 no lo ve.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las **273** pruebas del motor,
+con el arreglo de la nº13 dentro y este caso encabezando la lista de rescates:
+
+```
+$ cd motor && npm run probar
+  ✔ ⭐ LAS 17 RESCATADAS, una a una y con sus metros de desvío (1.0764ms)
+  ✔ ⭐ LA IDA Y VUELTA: ninguna rescatada estaba ya en SU PROPIA calle (43.0994ms)
+ℹ tests 273
+ℹ pass 273
+ℹ fail 0
+```
+
+La lista de las 17 lleva `['Colegios.549', 7666, 'distancia']` **en primera
+línea** y la prueba pasa: enumerar 7.666 metros no es lo mismo que ponerlos en
+duda. Y el guardián de la ida y vuelta también da verde, porque mide lo que le
+toca —si el punto estaba en la vía CON LA QUE CASÓ— y en esa vía no estaba.
+
+**Cómo se cazó:** ojo humano sobre la tabla de rescates del cierre de la nº13:
+7.666 m siguen sin explicarse aunque la regla nueva los declare correctos.
+
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** SIN LEY TODAVÍA. Lo que sí queda medido es el precio de
+la puerta que habría que abrir: haciendo candidatas las vías cuyo nombre es
+**subsecuencia de palabras** del escrito —`[doctor, palomar]` dentro de `[doctor,
+alejandro, palomar]`, que no reabre el fantasma de «mina»↔CONTAMINA porque compara
+palabras enteras—, el 549 vuelve a San Juan de Mozarrifar. Pero **mete dos
+rescates nuevos** y uno de ellos es malo: `Farmacias.8855`, cuyo punto está a 1 m
+de su propio portal y aun así se movería, porque una candidata que llega por
+subsecuencia y es única **no pasa por la guarda de cercanía**. Es decir: la puerta
+se puede abrir, pero la guarda tiene que cubrir también esas candidatas.
+
+**Traza:** `motor/src/gacetero.ts` (`portalDeLaDireccion`, `viasPorNombre`) ·
+`motor/src/trayecto.spec.ts` (`⚠️ EL ANDRÉS OLIVÁN SIGUE ATERRIZANDO EN LA
+CIUDAD`, que es el testigo y se caerá solo cuando esto se arregle).
+
+## [2026-08-27] ✅ CERRADA — El rescate por callejero mueve coordenadas que ya estaban BIEN puestas, y una se va 7,7 km
 
 **Categoría:** un arreglo que empeora lo que arregla
 
@@ -55,9 +111,48 @@ Y el motor lo declaraba en el arranque como un logro, no como un aviso:
 aplicada esta vez a los colegios, comparando cada coordenada municipal contra el
 portal más cercano A ELLA. Lo delató el tamaño: 7.666 m no se explican.
 
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** el rescate medía **una sola distancia**: del punto publicado al
+**número** que la dirección declara. Y esa medida no distingue las dos cosas que
+hay que distinguir — un punto que está en otra parte de la ciudad y un punto que
+está en su propia calle pero no en el portal que dice. El segundo no es un error:
+es el caso Miguel Servet a escala de portal, y el dato lo trae a montones porque
+un colegio es un recinto con una fachada larga y su punto cae donde cae. Al no
+medir la vía entera, **el 76 % de los rescates (22 de 29) movían coordenadas
+buenas**.
+
+**Arreglo aplicado:** dos piezas en `motor/src/gacetero.ts`.
+
+1. **La precondición del rescate** (`validar`): antes de mover nada se mide
+   `metrosALaVia` —la distancia del punto a **cualquier** portal de la vía con la
+   que ha casado—; si hay una puerta a ≤50 m, el punto ya está en su calle y se
+   declara **sana**. El umbral no se toca: es el mismo 50 m firmado.
+2. **La geo-desambiguación** (`portalDeLaDireccion`): ante varias vías homónimas
+   —hay **125 nombres** con dos o más— gana la que tenga un portal más cerca del
+   punto, en vez de descartar el caso. Con **guarda**: si la ganadora tampoco
+   está a ≤50 m, no se elige la menos mala, no se elige ninguna.
+
+⚠️ **La guarda no estaba en el plan y la pidió la medición.** Sin ella, la
+desambiguación sola **empeoraba**: de 29 rescates subía a 34 y de 22 falsos a 25,
+porque casaba direcciones que antes se descartaban y elegía vías que seguían
+estando lejísimos —una a 12.639 m—. Medido con el motor real, apagando cada
+pieza:
+
+```
+                                       rescates   de ellos con la coordenada ya en su sitio
+HOY (ninguna de las dos) ..............   29        22
+solo la DESAMBIGUACIÓN sin guarda .....   34        25     ← peor
+solo la PRECONDICIÓN ..................   17        10
+LAS DOS, con guarda ...................   17        10
+```
+
+**Commit:** `5ddc841`
+
+**⚠️ Y el caso que abrió esta entrada NO lo arregla esta entrada.** El
+`Colegios.549` sigue aterrizando en la ciudad, por una causa distinta que tiene
+entrada propia: **la nº14**. Aquí se cierra lo que aquí se midió — que el rescate
+movía coordenadas buenas—, y eso sí está arreglado: **0 rescatados tienen hoy una
+puerta de su propia vía a ≤50 m**, y la prueba
+`⭐ LA IDA Y VUELTA: ninguna rescatada estaba ya en SU PROPIA calle` lo vigila.
 
 **Ley que sale de aquí:** un guardián que enumera lo que un proceso HACE no
 vigila que lo que hace esté BIEN. La lista de los nueve rescates estaba
@@ -66,9 +161,17 @@ que un arreglo automático esté vigilado hay que medir **la ida y la vuelta** �
 qué distancia estaba el punto de origen de un portal real—, no solo cuánto se ha
 movido.
 
-**Traza:** `motor/src/gacetero.ts` (`portalDeLaDireccion`, `validar`) ·
-`motor/src/sitios.ts` (`cargarSitios`, el bloque de `rescatados`) ·
-`motor/src/sitios.spec.ts:670`.
+**Ley que sale del CIERRE (2026-08-27), añadida sin borrar la de arriba:** medir
+la ida y la vuelta no basta con **medirla bien**: hay que medir **lo que
+corresponde**. La primera versión del guardián exigía que ningún rescatado
+hubiera tenido *algún* portal a ≤50 m, y esa cifra **no puede ser cero** — las
+cuatro farmacias del datum estaban desplazadas 236 m y aun así tenían un portal
+ajeno a 13 m. Lo que separa un rescate bueno de uno malo no es que hubiera una
+puerta cerca, sino que hubiera **una puerta de su propia calle**.
+
+**Traza:** `motor/src/gacetero.ts` (`portalDeLaDireccion`, `validar`,
+`metrosALaVia`, `laMasCercana`) · `motor/src/sitios.ts` (`cargarSitios`, el
+bloque de `rescatados`) · `motor/src/sitios.spec.ts:670`.
 
 ## [2026-08-25] ✅ CERRADA — El `tsc` con el que llevo tres checkpoints declarando «la interfaz compila limpia» no compila NI UN fichero
 
