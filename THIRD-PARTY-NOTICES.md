@@ -972,8 +972,37 @@ y no tiene eje que dibujar. **No prestan nombre a nadie**, y el cruce las cuenta
 
 **2 · Una vía sin `nombre_publico`.** Es la **`GLORIETA ÓSCAR LAÍNEZ HERNÁNDEZ`** (código 15912),
 que trae `nombre` y `nombre_completo` pero el campo público a `null`. **No puede prestar nada**:
-lo que caiga a su lado se queda con su nombre genérico. Es una glorieta sin portales, así que
-nadie la va a escribir en el formulario.
+lo que caiga a su lado se queda con su nombre genérico.
+
+⭐ **Y SÍ se puede escribir en el formulario, desde `4a4d3ab`** — aquí se decía lo contrario
+mientras las vías sin portal no se sugerían, y el 27/08 dejó de ser verdad. Ahora se resuelven
+por el punto medio de su geometría, y **el hueco de `nombre_publico` no le estorba para eso**:
+el nombre que se lee sale de § 1.3 y el punto de la geometría de aquí, que trae sus **23
+vértices en una sola parte**. Son dos campos distintos y solo falta uno.
+
+⚠️ **Lo que no sirve es buscarla por el nombre con el que esta ficha la llama.** `ÓSCAR LAÍNEZ
+HERNÁNDEZ` es el `nombre_completo` **de esta capa**; § 1.3, que es de donde sale lo que se
+escribe, la registra **por apellidos, con coma y sin la palabra GLORIETA**: `LAÍNEZ HERNÁNDEZ,
+ÓSCAR`. Por eso es **la única de las 3.359 que no empieza por la palabra de su tipo** —la misma
+excepción que cita `motor/src/gacetero.ts`—, y por eso «oscar lainez» no la encuentra y «lainez»
+sí. **Falso conocido, declarado** —igual que el `---CRT` del punto 4—: no se enmienda nada.
+
+```
+$ node -e "…agrupar las 3.359 por tipoVia y ver por qué palabra empieza cada grupo…"
+GL   31 empiezan por «glorieta»: 30  ← EXCEPCIONES: lainez x1
+TOTAL de vías que no empiezan por la palabra dominante de su tipo: 1
+
+$ curl 'localhost:3000/api/vias?q=oscar%20lainez'
+[]
+$ curl 'localhost:3000/api/vias?q=lainez'
+15912 LAÍNEZ HERNÁNDEZ, ÓSCAR (portales 0) · 20217 CALLE MANUEL MUJICA LÁINEZ (portales 23)
+
+$ POST /api/ruta  {origen: CALLE MAYOR 1, destino: {via:'15912', portal:'15912'}}
+4333 m · 3120 s · avisos []
+· Sal de Calle Mayor 1 y dirígete hacia el noroeste por Calle Espoz y Mina  (250 m)
+  … ocho pasos …
+· Laínez Hernández, Óscar está a la derecha
+```
 
 **3 · El desfase con § 1.3 es de UNA vía, y retrata que la fuente está viva.** Los dos ficheros
 declaran 3.359, pero no son las mismas 3.359:
