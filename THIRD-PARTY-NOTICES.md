@@ -1709,13 +1709,15 @@ dispararon 19 veces, y al mirar los rescates uno a uno salió que **22 de los 29
 movían coordenadas que ya estaban en su sitio**. Un colegio tiene la fachada larga y su punto cae
 donde cae: estar lejos del NÚMERO que la dirección declara no es un error si el punto está en esa
 misma calle. Desde el cierre de la nº13, el rescate exige que el punto esté lejos de **la vía
-entera**, y los rescates bajan de **29 a 17** — de ellos **11 de colegios y 1 de guarderías**.
+entera**, y los rescates bajan de **29 a 17**.
 
-> ⚠️ **Queda uno abierto, y es el que lo empezó todo.** El **C.E.I.P. Andrés Oliván** sigue
-> aterrizando en la ciudad: su dirección dice «C/ Doctor Alejandro Palomar» y la calle donde está,
-> en San Juan de Mozarrifar, se llama «DOCTOR PALOMAR ---SJN». Son dos nombres distintos, así que
-> no hay homónimo que desambiguar. Es la entrada **nº14** de
-> [`docs/BITACORA.md`](docs/BITACORA.md), con la medición de lo que costaría arreglarlo.
+⭐ **Y el mismo día se cerró el segundo, que era el que lo empezó todo.** El **C.E.I.P. Andrés
+Oliván** aterrizaba en la ciudad porque su dirección dice «C/ Doctor Alejandro Palomar» y la calle
+donde está, en San Juan de Mozarrifar, se llama **«Doctor Palomar»** — dos nombres distintos, sin
+homónimo que desambiguar. Desde la nº14, un nombre del callejero que quepa **dentro** del escrito
+—en orden y con palabras enteras, que es lo que impide que «mina» quepa en «taormina»— también es
+candidato, y gana el que tenga una puerta cerca. El colegio vuelve a su barrio y los rescates
+quedan en **16**: **10 de colegios y 1 de guarderías**.
 
 ---
 

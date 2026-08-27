@@ -500,7 +500,7 @@ dirección declara?—.
 
 Lo que falla se **vuelve a situar por el callejero municipal**, que es el gacetero de la casa: si
 el registro dice «C/ La Caza, 11» y el censo sabe dónde está el 11 de La Caza, esa es mejor
-coordenada que la publicada. Son **17 de 820**.
+coordenada que la publicada. Son **16 de 820**.
 
 **⭐ Y para moverlo hay que estar lejos de LA CALLE, no solo del número.** Es la lección que
 costó una entrada de bitácora: al entrar los colegios el rescate saltaba 29 veces, y midiendo la
@@ -510,12 +510,17 @@ donde cae: que no coincida con el portal que su dirección declara no es un erro
 Miguel Servet a escala de portal. Ahora, antes de mover nada, se mira si hay **cualquier puerta de
 esa misma calle** a menos de 50 m; si la hay, el punto se queda. De 29 rescates a 17.
 
-> ⚠️ **Y queda uno abierto, que es el que lo destapó.** El **C.E.I.P. Andrés Oliván** está en San
-> Juan de Mozarrifar y su coordenada cae a 11 m de su puerta, pero su dirección dice «C/ Doctor
-> Alejandro Palomar» y esa calle **es otra**, en la ciudad, a 7,6 km: la del barrio se llama
-> «DOCTOR PALOMAR ---SJN». Son dos nombres distintos, así que no hay homónimo que desambiguar y el
-> motor casa con la única que encuentra. Es la entrada **nº14** de
-> [`docs/BITACORA.md`](docs/BITACORA.md), abierta y medida.
+**⭐ Y la calle se encuentra aunque el dato la nombre con una palabra de más.** El caso que lo
+destapó: el **C.E.I.P. Andrés Oliván** está en San Juan de Mozarrifar, su coordenada cae a 11 m de
+su puerta, y su dirección dice «C/ Doctor Alejandro Palomar» — pero la calle del barrio se llama
+**«Doctor Palomar»**, sin el nombre de pila, y con ese nombre existe **otra** en la ciudad, a
+7,6 km. El colegio aterrizaba allí. Ahora un nombre del callejero que quepa **dentro** del escrito
+—en orden y con palabras enteras— también es candidato, y entre las candidatas gana la que tenga
+una puerta cerca del punto. El colegio se queda en su barrio, y los rescates bajan a **16**.
+
+⚠️ Lo de «palabras enteras» no es un detalle: **«mina» no cabe en «taormina»**, que son dos calles
+distintas de Zaragoza. Comparar trozos de letras es lo que un día casó «Pza. Santo Domingo» con
+CALLE ISABEL SANTO DOMINGO — 13.680 m de mentira—, y esa puerta sigue cerrada.
 
 Y lo que falla y **no** se puede resituar —porque su
 dirección es «s/n» o no resuelve— se trata como si no tuviera punto: fuera del índice, y a una
@@ -540,12 +545,12 @@ son una puerta.
 entero — con qué se movió, desde dónde y cuántos metros:
 
 ```
-motor: sitios en memoria — 820 en total · 802 en el indice · 24 ms
+motor: sitios en memoria — 820 en total · 802 en el indice · 33 ms
 motor:   Farmacia            313 · 310 en el indice · 3 sin coordenada · 0 corregidos · 4 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
 motor:   Centro de salud      56 ·  56 en el indice · 0 sin coordenada · 1 corregidos · 1 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
 motor:   Hospital             17 ·  15 en el indice · 2 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
 motor:   Biblioteca           77 ·  75 en el indice · 2 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
-motor:   Colegio o instituto 264 · 254 en el indice · 10 sin coordenada · 0 corregidos · 11 rescatados · 0 invalidas · 234 duplicados · 16 excluidos
+motor:   Colegio o instituto 264 · 254 en el indice · 10 sin coordenada · 0 corregidos · 10 rescatados · 0 invalidas · 234 duplicados · 16 excluidos
 motor:   Guardería            64 ·  64 en el indice · 0 sin coordenada · 0 corregidos · 1 rescatados · 0 invalidas · 0 duplicados · 1 excluidos
 motor:   Universidad          29 ·  28 en el indice · 1 sin coordenada · 0 corregidos · 0 rescatados · 0 invalidas · 0 duplicados · 0 excluidos
 motor: 18 sin coordenada en total, fuera del indice (sin coordenada no existe: no se pueden enrutar, asi que no se sugieren)
@@ -553,10 +558,10 @@ motor: 1 corregido a mano (lista de confirmacion manual, § 1.17)
 motor:   CentrosSalud.9090    Centro de Salud Fernando El Católico · C/ Domingo Miral, s/n
 motor:                        de [-8.184875, 41.542373] a [-0.901195, 41.640282] — frontera: la coordenada municipal cae en Portugal
 motor:                        fuente: confirmación manual de Antonio, Google Maps, 24/08/2026
-motor: 17 rescatados por callejero (coordenada a mas de 50 m de la puerta que su propia direccion declara)
-motor:   Colegios.549         7666 m distancia C.E.I.P. Andrés Oliván · C/ Doctor Alejandro P → CALLE DOCTOR ALEJANDRO PALOMAR 21
+motor: 16 rescatados por callejero (coordenada a mas de 50 m de la puerta que su propia direccion declara)
 motor:   Colegios.9008         587 m distancia Academia Izquierdo · c/ Bolonia, 14            → CALLE BOLONIA 14
 motor:   CentrosSalud.9080     497 m distancia Centro de Salud Almozara · C/ Batalla de Alman → CALLE BATALLA DE ALMANSA 17
+motor:   Colegios.112445       478 m distancia Col. La Salle Santo Ángel · C/ Tomás Anzano, 1 → CALLE TOMÁS ANZANO 1
 …
 ```
 

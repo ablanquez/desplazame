@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-27] 🔴 ABIERTA — La dirección nombra una calle que no es la suya, y el emparejador casa con la homónima de la ciudad a 7,6 km
+## [2026-08-27] ✅ CERRADA — La dirección nombra una calle que no es la suya, y el emparejador casa con la homónima de la ciudad a 7,6 km
 
 **Categoría:** falso positivo de geocodificación por topónimo parcial
 
@@ -52,23 +52,57 @@ toca —si el punto estaba en la vía CON LA QUE CASÓ— y en esa vía no estab
 **Cómo se cazó:** ojo humano sobre la tabla de rescates del cierre de la nº13:
 7.666 m siguen sin explicarse aunque la regla nueva los declare correctos.
 
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** el emparejador solo generaba candidatas por **clave exacta**, y
+con una clave única no había nada que desambiguar: la geo-desambiguación de la
+nº13 solo entraba en juego cuando dos vías se llamaban igual. Aquí las dos claves
+son distintas —`doctor palomar` y `doctor alejandro palomar`—, así que **la única
+candidata era la equivocada** y la puerta por la que habría entrado la correcta
+estaba cerrada. El punto correcto tenía una puerta a 11 m y el emparejador ni la
+miró, porque nunca llegó a considerarla.
 
-**Ley que sale de aquí:** SIN LEY TODAVÍA. Lo que sí queda medido es el precio de
-la puerta que habría que abrir: haciendo candidatas las vías cuyo nombre es
-**subsecuencia de palabras** del escrito —`[doctor, palomar]` dentro de `[doctor,
-alejandro, palomar]`, que no reabre el fantasma de «mina»↔CONTAMINA porque compara
-palabras enteras—, el 549 vuelve a San Juan de Mozarrifar. Pero **mete dos
-rescates nuevos** y uno de ellos es malo: `Farmacias.8855`, cuyo punto está a 1 m
-de su propio portal y aun así se movería, porque una candidata que llega por
-subsecuencia y es única **no pasa por la guarda de cercanía**. Es decir: la puerta
-se puede abrir, pero la guarda tiene que cubrir también esas candidatas.
+**Arreglo aplicado:** dos piezas en `motor/src/gacetero.ts`, y ninguna es
+doctrina nueva — son la de la nº13 extendida.
 
-**Traza:** `motor/src/gacetero.ts` (`portalDeLaDireccion`, `viasPorNombre`) ·
-`motor/src/trayecto.spec.ts` (`⚠️ EL ANDRÉS OLIVÁN SIGUE ATERRIZANDO EN LA
-CIUDAD`, que es el testigo y se caerá solo cuando esto se arregle).
+1. **Candidatas por subsecuencia de palabras** (`esSubsecuencia`): un nombre del
+   callejero que quepa **en orden y con palabras enteras** dentro del escrito
+   también es candidato. `[doctor, palomar]` cabe en `[doctor, alejandro,
+   palomar]`. Con dos condiciones que la hacen segura: **palabras enteras**, así
+   que «mina» no cabe en «taormina» —el fantasma de la tanda 1 no vuelve—, y
+   **mínimo dos palabras**, porque un nombre de una sola cabría dentro de medio
+   callejero. Y un índice nuevo, `nombresPorPrimeraPalabra`, para no recorrer los
+   3.359 nombres por dirección: la carga sube de 24 a 37 ms.
+2. **La guarda de cercanía cubre TODAS las candidatas**, lleguen por clave exacta
+   o por subsecuencia. Entre las que la superan gana la clave exacta; entre
+   varias subsecuencias, la más cercana.
+
+⚠️ **Y hay un escalón declarado que no es un olvido: si NINGUNA candidata supera
+la guarda, se cae a la clave exacta única.** Es lo que protege el desvío del
+datum — las cuatro farmacias corridas 236 m están a 53-236 m de su propia vía, y
+sin ese escalón dejarían de casar y de rescatarse, que es justo lo que la
+validación espacial existe para hacer. La guarda decide **entre** candidatas; no
+es un veto sobre lo que el dato afirma por su nombre.
+
+**Resultado:** el `Colegios.549` vuelve a `[-0.8426853752732937,
+41.716620571592415]` y **deja de rescatarse** — su vía real tiene una puerta a
+11 m—. Los rescates bajan de 17 a **16**, los cuatro del datum siguen, y
+`Farmacias.8855` —el caso que esta entrada dejó medido en rojo— **no se mueve**.
+
+**Commit:** `6f1fd08`
+
+**Ley que sale de aquí:** **una guarda que tapa un fallo no es una prueba de que
+no lo haya.** La contraprueba lo enseñó en el sitio: mutando `esSubsecuencia`
+para que comparase trozos de letras en vez de palabras —el fantasma entero de la
+tanda 1— **las 277 pruebas seguían verdes**, porque la guarda de cercanía
+descartaba después las candidatas absurdas y el resultado final no se movía. La
+regla estaba rota y el sistema daba el mismo resultado. Una regla que solo se
+verifica **por su efecto** deja de estar verificada en cuanto otra cosa la
+protege: hay que poder probarla **sola**, y por eso `esSubsecuencia` se exporta.
+
+**Traza:** `motor/src/gacetero.ts` (`portalDeLaDireccion`, `esSubsecuencia`,
+`nombresPorPrimeraPalabra`, `viasPorNombre`) · `motor/src/trayecto.spec.ts` — el
+testigo `⚠️ EL ANDRÉS OLIVÁN SIGUE ATERRIZANDO EN LA CIUDAD` **se cayó solo**, que
+era para lo que estaba escrito, y en su sitio está su reverso verde: `⭐ EL ANDRÉS
+OLIVÁN llega a SAN JUAN DE MOZARRIFAR, su barrio`.
 
 ## [2026-08-27] ✅ CERRADA — El rescate por callejero mueve coordenadas que ya estaban BIEN puestas, y una se va 7,7 km
 
