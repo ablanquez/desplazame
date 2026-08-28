@@ -590,10 +590,13 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
-9 RE-ESCRITO el 28/08 (dos productos con firma de Antonio: Bici/
-Patín privado puerta-a-puerta con remate de aparcabicis · BiZi
-estación-a-estación en tres tramos; selector a CINCO modos; prioridad
-al carril bici; ocho casillas 0-7 en el plan) ·
+9 RE-ESCRITO el 28/08 y su casilla 0 RESUELTA el mismo día (rige la
+Nueva Ordenanza de Movilidad desde el 11/09/2024 — el NO CONSTA del
+21/08 muere; TRES productos porque la ley separa las tablas: bici
+por cualquier calzada · patín SOLO ≤30 · BiZi = bici + contrato
+[30 min incluidos, 2 h, municipal, eléctricas, 16+]; selector a SEIS
+modos firmado + aviso de los 30 min [D-G]; ocho casillas en el
+plan) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -674,13 +677,18 @@ ficha de Aragón NO CONSTA (robots + 401; Antonio puede pegarla) ·
 recuentos de la API movidos desde el 18/08 (50/43/33/15; WFS 187;
 1543 con endpoint 404).
 
-**Punto 9 (re-escrito el 28/08, ocho casillas en el plan):** la
-ordenanza vigente por verificar (casilla 0, con el RGC nuevo del
-01/10) · ⚠️ ONEWAY ausente del grafo (la bici en calzada debe
-sentidos — al censo de la casilla 1) · las estaciones BiZi nunca
-descargadas · sin dato de elevación (declarado) · la doble
-capitalización «Senda ciclable/Ciclable» · la API viva de BiZi vive
-AQUÍ desde el 28/08 (mudada del punto 10).
+**Punto 9 (re-escrito el 28/08; casilla 0 RESUELTA):** ⚰️ la
+ordenanza vigente: la Nueva Ordenanza de Movilidad (11/09/2024, BOP
+21/08/2024) — quedan los ARTÍCULOS del BOP en fino para la tabla
+(casilla 2) · el RGC nuevo el 01/10 (las citas migran) · ⚠️ ONEWAY
+ausente del grafo (la bici en calzada debe sentidos — al censo) ·
+⚠️ el dato de VELOCIDAD DE VÍA: ¿existe? (el modo Patín depende de
+las calzadas ≤30 — al censo) · las estaciones BiZi nunca descargadas
+(el servicio NUEVO de 2025: 276 estaciones, eléctricas; fuente en el
+catálogo de datos abiertos) · velocidad de pedaleo asistido con
+fuente · sin dato de elevación (declarado) · la doble capitalización
+«Senda ciclable/Ciclable» · la API viva de BiZi vive AQUÍ desde el
+28/08 (mudada del punto 10).
 
 **Punto 10:** líneas por poste (sin guardián) · caducidad GTFS (05/10;
 servicio 27/12 — VERIFICADO el 22/08 contra el dato: 196 calendarios

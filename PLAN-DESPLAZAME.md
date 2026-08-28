@@ -1376,26 +1376,49 @@ de cada campo, ORIGEN y DESTINO por igual:
 ## 9 — Modo BICI/PATÍN PRIVADO y Modo BiZi *(re-escrito el 28/08
 con lo aprendido en el 7 y el 8; parlamentado con Antonio)*
 
-Dos productos distintos sobre el mismo esqueleto: la bici PROPIA va
-puerta a puerta y remata en un aparcabicis; el servicio BiZi va
-ESTACIÓN A ESTACIÓN en tres tramos y es solo-bici. Antonio firmó
-(28/08) el selector a CINCO modos y la prioridad al carril bici. Lo
-vigente del grueso del 21/08 se conserva dentro de sus casillas; lo
-que el punto 7 dejó caducado (la penalización por pesos de OSRM
-contra la decisión de mínimo-de-distancia) se re-parlamenta en la
-casilla 3 con las cifras delante, no se hereda a ciegas.
+TRES productos distintos sobre el mismo esqueleto — la casilla 0
+demostró que sus tablas de acceso difieren POR LEY O POR CONTRATO,
+así que se separan (fusionar obligaría a mentirle a alguien): la
+bici PROPIA va puerta a puerta por cualquier calzada y remata en
+aparcabicis; el PATÍN (VMP) solo puede pisar calzadas ≤30 km/h; el
+servicio BiZi va ESTACIÓN A ESTACIÓN en tres tramos, es solo-bici y
+lleva contrato encima (30 min incluidos · 2 h tope · término
+municipal · eléctricas · 16+). Antonio firmó (28/08): el SELECTOR A
+SEIS modos, la prioridad al carril bici, y el AVISO honesto de los
+30 minutos [D-G]. Lo que el punto 7 dejó caducado (la penalización
+por pesos de OSRM contra mínimo-de-distancia) se re-parlamenta en
+la casilla 3 con las cifras delante, no se hereda a ciegas.
 
-- [ ] **0 · LA LEY HOY, verificada y no supuesta:** qué versión de la
-      ordenanza municipal rige (TSJA + Nueva Ordenanza de Movilidad —
-      el NO CONSTA del 21/08 se resuelve aquí) · la letra fina de VMP
-      (edades, velocidades, por dónde puede ir el patinete) · y el
-      RELOJ: el RGC reformado (RD 518/2026) entra en vigor el
-      01-10-2026 — las citas del 121/121.5 migran al texto nuevo. Lo
-      ya leído en grueso que se re-verifica contra la versión
-      vigente: bici JAMÁS acera ni zona peatonal [Ordenanza + 121.5
-      RGC] · quien EMPUJA es peatón [FAQ municipal + Convención de
-      Viena art. 20.5] · acera-bici y plataforma a cota de acera
-      [20 km/h, la clasificación municipal]
+- [x] **0 · LA LEY HOY — RESUELTA (28/08, investigación del
+      estratega con fuentes):** rige la **Nueva Ordenanza de
+      Movilidad de Zaragoza, en vigor desde el 11/09/2024** (texto en
+      el BOP del 21/08/2024; agrupa las ordenanzas dispersas — el NO
+      CONSTA del 21/08 muere: la vieja del TSJA quedó sustituida).
+      LA LETRA que afecta a la ruta: los VMP van obligatoriamente
+      por carril bici/vías ciclistas y, como novedad, por calles de
+      más de un carril con límite ≤30 km/h (carril derecho, no el
+      reservado a transporte público) [web oficial de la Ordenanza];
+      la bici por CUALQUIER calzada (preferente carril derecho,
+      centro del carril) — ⇒ **bici y patinete NO comparten tabla**.
+      Lo personal (no afecta a la ruta, se declara y ya): casco
+      obligatorio en VMP · edad mínima 16 · seguro RC (BiZi exento).
+      FINURAS de narración fichadas: en pasos de peatones SIN paso
+      ciclista se cruza CON EL VEHÍCULO EN LA MANO (salvo
+      continuidad ciclista, donde se rueda cediendo prioridad) · en
+      zonas de especial protección peatonal, toda bicicleta
+      prohibida. BiZi (normas y tarifas del servicio nuevo, fuentes
+      oficiales): tabla de circulación = la de la bici (acera
+      prohibida incluso con la estación EN la acera: a mano hasta la
+      calzada) + ámbito ESTRICTAMENTE municipal (nuestra frontera,
+      reutilizable) + **tramo incluido 30 MINUTOS** (después: 0,50 €
+      la segunda media hora, 5 €/30 min pasada la hora) + tope 2 h +
+      pedaleo asistido (2.500 bicis, 276 estaciones desplegadas) +
+      prohibido a menores de 16. Sigue vigente del grueso: jamás
+      acera [Ordenanza + 121.5 RGC] · quien EMPUJA es peatón [FAQ +
+      Viena 20.5] · acera-bici a cota de acera [clasificación
+      municipal]. EL RELOJ: el RGC reformado (RD 518/2026) entra en
+      vigor el 01-10-2026 — las citas migran. Queda para la casilla
+      2: los ARTÍCULOS exactos del BOP para la tabla fila a fila
 - [ ] **1 · EL CENSO del dato, solo lectura (el patrón del arranque
       del 7):** el grafo (la etiqueta `h` para tipos ciclables ·
       ⚠️ ONEWAY AUSENTE — la arista no trae sentidos y la bici en
@@ -1408,11 +1431,12 @@ casilla 3 con las cifras delante, no se hereda a ciegas.
       5,0 km/h es del peatón) · la PENDIENTE: los motores de bici
       usan elevación y NO CONSTA de dato de elevación — declarado y
       fuera, sin disimulo
-- [ ] **2 · LA TABLA de acceso por modo, fila a fila con fuente**
-      (el patrón de la casilla 2 del 7): bici (jamás acera · carril
-      bici · calzada según ley) y PATINETE con lo que la casilla 0
-      diga — si difieren en algo que afecte a la ruta, se ve aquí y
-      se decide (desdoble o aviso honesto [D-G])
+- [ ] **2 · LAS TABLAS de acceso, TRES y fila a fila con artículo**
+      (el patrón de la casilla 2 del 7, contra el texto del BOP):
+      BICI (jamás acera · carril bici · cualquier calzada) · PATÍN
+      (jamás acera · carril bici · SOLO calzadas ≤30 [firmado con la
+      casilla 0]) · BiZi (la de bici + su contrato). El desdoble ya
+      NO es pregunta: lo firmó la ley
 - [ ] **3 · EL COSTE con PRIORIDAD AL CARRIL BICI [firma de Antonio,
       28/08]:** la doctrina de costing bici de los motores
       (Valhalla/OSRM prefieren cycleway — el REVERSO del peatón),
@@ -1422,24 +1446,33 @@ casilla 3 con las cifras delante, no se hereda a ciegas.
       7 retiró las prioridades del peatón por mínimo-de-distancia —
       si la bici hereda pesos o no ES el parlamento, con doctrina y
       firma, no una herencia
-- [ ] **4 · EL SELECTOR a CINCO modos [firma de Antonio, 28/08]:**
-      Andando · Bus/Tranvía · Bici/Patín privado · BiZi · Coche —
-      dos productos, dos entradas (excluyentes antes de pedir la
-      ruta; BiZi no exige tener vehículo y es solo-bici). Sustituye
-      la etiqueta «Bici / Patinete» del 18/08. El formulario y el ⇅,
+- [ ] **4 · EL SELECTOR a SEIS modos [firma de Antonio, 28/08 — la
+      segunda del día, sustituye a la de cinco de la mañana]:**
+      Andando · Bus/Tranvía · Bici privada · Patín (VMP) · BiZi ·
+      Coche — tres tablas distintas = tres entradas (fusionar
+      bici+patín obligaría a recortarle al ciclista o a mentirle al
+      patinetero, y la casa no miente en rutas). Sustituye la
+      etiqueta «Bici / Patinete» del 18/08. El formulario y el ⇅,
       intactos
-- [ ] **5 · EL MODO PRIVADO:** ruta puerta a puerta por su tabla y
-      su coste + el remate del APARCABICIS más cercano al destino
-      (el patrón portal-cercano sobre los 5.520) · la narración
-      verificada (¿los combines del 7 valen en calzada con giros y
-      sentidos?) · sus jueces en rojo primero
+- [ ] **5 · LOS MODOS PRIVADOS (bici · patín), cada uno por SU
+      tabla:** ruta puerta a puerta + el remate del APARCABICIS más
+      cercano al destino (el patrón portal-cercano sobre los 5.520;
+      el patín aparca en las mismas condiciones que la bici
+      [Ordenanza]) · la narración verificada (¿los combines del 7
+      valen en calzada con giros y sentidos? · los cruces
+      con-el-vehículo-en-la-mano de la casilla 0) · sus jueces en
+      rojo primero
 - [ ] **6 · EL MODO BiZi:** TRES tramos — andando → estación de
-      origen CON BICIS · pedaleando (solo-bici, su tabla) →
-      estación de destino CON ANCLAJES · andando → el destino
-      [el patrón bike-share de los planificadores (OTP y compañía),
-      verificado con doctrina en su encargo] · la disponibilidad en
-      vivo por la API de BiZi, con D-G si la API calla (componer
-      sin prometer) · sus jueces
+      origen CON BICIS · pedaleando (solo-bici, su tabla, velocidad
+      de PEDALEO ASISTIDO con fuente) → estación de destino CON
+      ANCLAJES · andando → el destino [el patrón bike-share de los
+      planificadores (OTP y compañía), verificado con doctrina en su
+      encargo] · **el AVISO de los 30 minutos [firmado, D-G]**: si
+      el pedaleo estimado supera el tramo incluido, se dice
+      («supera el tramo incluido del abono») sin inventar precios ·
+      la disponibilidad en vivo por la API de BiZi, con D-G si la
+      API calla · el ámbito municipal = nuestra frontera · sus
+      jueces
 - [ ] **7 · LA DEMO de los dos modos, vista por el ojo de Antonio**
 
 ## 10 — Modo BUS/TRANVÍA *(en grueso)*
