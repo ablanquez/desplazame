@@ -1829,7 +1829,89 @@ de sentidos, `unclassified` de 6 % a 22 %, `tertiary_link` de 33 % a **100 %**. 
 > Por el otro lado, **24 de los 47.758 *ways* del grafo ya no están** en esta descarga (el grafo
 > es del 03/08). Es el mismo riesgo residual que § 1.14 declara, con 25 días en vez de 17 horas.
 
-### 1.22 · El resto del dato — todavía **ninguno**
+### 1.22 · Jerarquía viaria municipal — Ayuntamiento de Zaragoza (IDEZar)
+
+| | |
+|---|---|
+| **Qué es** | Los **3.644 tramos** del viario rodado con **`limite_vel`** —el límite legal, en km/h— y con las categorías de la Ordenanza: `calle_z30`, `pacificada`, `plataforma`, `residencia`, `doble_sent`. Es **la única fuente de casa que dice el límite de velocidad**, y el modo Patín depende de saber qué calzadas son de ≤30 |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU1_jerarquia_viaria`** — el mismo servicio de § 1.5, § 1.8, § 1.9 y § 1.15 |
+| **Licencia** | ⚠️ **La capa NO declara la suya.** Su `GetCapabilities` no trae `ows:Fees` ni `ows:AccessConstraints`, y el `<Abstract/>` de la capa viene vacío. Lo que consta es **el régimen del servicio**: las cuatro capas ya fichadas de este mismo GeoServer van por **Ley 37/2007**, y así se declara aquí — pero **de la licencia propia de esta capa: NO CONSTA** |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»**, la misma del resto del servicio |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`motor/data/2026-08-28_idezar_wfs_movilidad-MU1_jerarquia_viaria.json`](motor/data/2026-08-28_idezar_wfs_movilidad-MU1_jerarquia_viaria.json) · 2.705.406 bytes · sha256 `57a31d0cffbe5f89d120e44a687acd3b2e2b5af7f232207b0b7fa993384a4a82` **verificado sobre un clon** · cabeceras en [`…_cabeceras.txt`](motor/data/2026-08-28_idezar_wfs_movilidad-MU1_jerarquia_viaria_cabeceras.txt) |
+
+**La consulta EXACTA:**
+
+```
+curl -o motor/data/2026-08-28_idezar_wfs_movilidad-MU1_jerarquia_viaria.json \\
+  "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_jerarquia_viaria&outputFormat=application/json&srsName=EPSG:4326"
+```
+
+⚠️ **`srsName=EPSG:4326` no es adorno, y aquí la trampa es peor que en § 1.15**: el
+`GetCapabilities` declara `DefaultCRS` **`EPSG:25830`**, metros UTM. Verificado **sobre lo
+descargado**: el primer vértice es `[-0,87148156, 41,64907146]` y el bbox de sus 22.138 vértices
+cae en **lon −1,0602…−0,7651 · lat 41,5480…41,7342** — grados, no metros. La trampa se esquivó.
+
+> ⚠️ **Se pidió DOS VECES y NO repite al byte.** Las dos miden **2.705.406 bytes exactos** y
+> difieren en **4 bytes**, todos dentro del `timeStamp` que el propio WFS estampa
+> (`15:26:44.503Z` frente a `15:26:48.274Z`). Los **3.644 rasgos son idénticos serializados**.
+> Mismo trato que § 1.21: se declara qué baila y entra la primera.
+>
+> Y la respuesta traía **una cookie de sesión**, que **se filtró** antes de guardar las cabeceras
+> —la norma de siempre—.
+
+#### Los recuentos, medidos sobre lo descargado
+
+| | |
+|---|---|
+| Rasgos | **3.644**, y `numberMatched` = `numberReturned` = 3.644: no hay paginación oculta |
+| Geometría | **3.644 `MultiLineString`** · 22.138 vértices · **EPSG:4326** |
+| Campos | **22**: `fid`, `codigo`, `tipo_via`, `direccion`, `capacidad`, `tramo`, `tipo`, `pacificada`, `calle_z30`, `residencia`, `plataforma`, `doble_sent`, `limite_vel`, `municipal`, `carril_bus`, `carril_vh`, `malla_basi`, `longitud`, `pma_12_5_1`, `pma_18`, `observacio`, `calle_2024`. **Ninguno personal** |
+| Longitud declarada | **1.119,3 km** en `longitud` |
+
+**`limite_vel`, que es a lo que se viene:**
+
+| | tramos | km | vías del callejero |
+|---|---|---|---|
+| **≤ 30 km/h** (y > 0) | **2.584** | **498,8** | **1.603** |
+| > 30 km/h | 659 | 569,7 | 299 |
+| = 0 | 400 | 50,9 | 334 |
+| sin dato | 1 | 0,0 | 1 |
+
+Sus valores, uno a uno: `30`=2.150 · `50`=616 · `0`=400 · `10`=271 · `20`=163 · `120`=16 ·
+`80`=14 · `70`=6 · `40`=2 · `60`=2 · `90`=2 · **`39`=1**.
+
+**El enganche: por `codigo`, y es perfecto.** **2.049 códigos distintos, los 2.049 en el
+callejero de § 1.3, cero huérfanos** — el mismo tipo de unión que los carriles bici de § 1.5.
+Cubre **2.049 de las 3.359 vías (61,0 %)**, que es lo coherente: es el viario **rodado**, no los
+andadores ni los parques. **21 tramos vienen sin `codigo`.**
+
+**`doble_sent`:** `SI` 1.263 · `NO` 2.376 · 5 nulos.
+
+#### Lo que trae de roto, dicho antes de usarlo
+
+**1 · ⚠️ `doble_sent` NO es un `oneway`, y confundirlos rompería rutas.** Dice **si** una calle es
+de sentido único; **no dice hacia dónde**. La dirección respecto a la geometría solo la da el
+`oneway`/`-1` de OSM (§ 1.21). Son fuentes **complementarias**: el límite legal es del
+Ayuntamiento, la dirección del sentido es de OSM. Es el reparto de fuentes del punto 7 —
+autoritativo municipal y colaborativo OSM, cada uno en lo suyo.
+
+**2 · ⚠️ Un `limite_vel` = 39, y es errata.** Un solo tramo: la **`CT HUESCA`** (código 14500),
+`03_Distribuidoras`, tramo «de rotonda a Jesús y María». No hay señal de 39 km/h en ninguna parte.
+**Falso conocido, declarado**: entra tal cual, como el `---CRT` de § 1.15.
+
+**3 · El `limite_vel` = 0 no es un hueco: es «aquí no se circula».** De los 400, **395 son
+`06_Peatonal`**; los otros cinco se reparten entre `05_Restringida` (2), `04_Urbana No
+Restringida` (2) y `01_CINTURON` (1).
+
+**4 · ⚠️ 141 rasgos traen el carácter de reemplazo `U+FFFD`, y está en los bytes.** No es una
+lectura mal hecha: el fichero lo contiene. Afecta a **dos campos y solo dos** — `tramo` (96
+valores) y `calle_2024` (67) —, con acentos comidos: `«DE BARTOLOM� LORENTE A ESTEBAN PUJASOL»`,
+`«CALLE ALFARER�A»`, `«RONDA DE BOLTA�A»`. Los otros **1.472 rasgos con acentos llegan sanos**, y
+**`direccion` y `codigo` están intactos**: el enganche va por `codigo`, que es numérico, así que
+**la rotura no toca nada de lo que se usa**. El fichero de § 1.21 no tiene ni uno.
+
+### 1.23 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un

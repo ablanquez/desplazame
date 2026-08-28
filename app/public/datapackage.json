@@ -990,6 +990,30 @@
       ],
       "modified": "2026-08-28T15:24:06Z",
       "modifiedFuente": "el propio fichero lo declara en `osm3s.timestamp_osm_base`"
+    },
+    {
+      "name": "jerarquia-viaria",
+      "path": "motor/data/2026-08-28_idezar_wfs_movilidad-MU1_jerarquia_viaria.json",
+      "title": "Jerarquia viaria municipal (3.644 tramos con limite de velocidad)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 2705406,
+      "hash": "sha256:57a31d0cffbe5f89d120e44a687acd3b2e2b5af7f232207b0b7fa993384a4a82",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_jerarquia_viaria",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-28T15:26:43Z"
     }
   ]
 }

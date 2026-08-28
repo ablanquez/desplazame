@@ -1,0 +1,8 @@
+HTTP/1.1 200 
+Access-Control-Allow-Origin: *
+X-Frame-Options: SAMEORIGIN
+Content-Disposition: inline; filename=MU1_jerarquia_viaria.json
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Fri, 28 Aug 2026 15:26:43 GMT
+
