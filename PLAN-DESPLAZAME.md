@@ -1373,32 +1373,74 @@ de cada campo, ORIGEN y DESTINO por igual:
       es el dato
 - [ ] *(hueco para lo que Antonio vaya añadiendo)*
 
-## 9 — Modo BICI / PATINETE *(en grueso)*
+## 9 — Modo BICI/PATÍN PRIVADO y Modo BiZi *(re-escrito el 28/08
+con lo aprendido en el 7 y el 8; parlamentado con Antonio)*
 
-Carriles y continuidad ciclable sobre el mismo esqueleto del 7. La rueda
-pequeña comparte red (bici, patinete, BiZi — este último solo-bici).
+Dos productos distintos sobre el mismo esqueleto: la bici PROPIA va
+puerta a puerta y remata en un aparcabicis; el servicio BiZi va
+ESTACIÓN A ESTACIÓN en tres tramos y es solo-bici. Antonio firmó
+(28/08) el selector a CINCO modos y la prioridad al carril bici. Lo
+vigente del grueso del 21/08 se conserva dentro de sus casillas; lo
+que el punto 7 dejó caducado (la penalización por pesos de OSRM
+contra la decisión de mínimo-de-distancia) se re-parlamenta en la
+casilla 3 con las cifras delante, no se hereda a ciegas.
 
-- [ ] **La tabla de acceso/coste del punto 7 se EXTIENDE aquí al modo
-      bici**, y la ordenanza ya está leída en grueso (21/08): bici =
-      carril bici y/o calzada, **JAMÁS acera ni zona peatonal**
-      [Ordenanza de Zaragoza + nueva Ordenanza de Movilidad: se sigue
-      prohibiendo, única excepción menores de 12 acompañados a ≤5 km/h
-      · art. 121.5 RGC: ningún vehículo por las aceras]; la calzada
-      grande se penaliza, no se prohíbe [OSRM `unsafe_highway_list`:
-      primary 0.5 · secondary 0.65 · tertiary 0.8]; quien EMPUJA la
-      bici es peatón [FAQ municipal + Convención de Viena art. 20.5] —
-      eso resuelve la discrepancia entre motores (OSRM desmonta,
-      Valhalla prohíbe): en Zaragoza el desmontado va por la tabla del
-      PEATÓN. Acera-bici y plataforma compartida: la clasificación
-      calzada/acera/senda/calmado de la capa municipal es el dato
-      [nueva Ordenanza: 20 km/h a cota de acera]. Queda para aquí:
-      verificar qué versión de la ordenanza rige HOY (TSJA + Nueva
-      Ordenanza de Movilidad) y la letra fina de VMP
-- [ ] **Verificar la ordenanza de Zaragoza sobre VMP antes de etiquetar
-      tramos** (apuntado el 18/08): bici y patinete no van idénticos en
-      toda vía (acera-bici, zonas peatonales, edades). Si hay diferencias
-      que afecten a la ruta: decidir si el modo se desdobla o basta el
-      aviso honesto (patrón D-G, componer sin prometer)
+- [ ] **0 · LA LEY HOY, verificada y no supuesta:** qué versión de la
+      ordenanza municipal rige (TSJA + Nueva Ordenanza de Movilidad —
+      el NO CONSTA del 21/08 se resuelve aquí) · la letra fina de VMP
+      (edades, velocidades, por dónde puede ir el patinete) · y el
+      RELOJ: el RGC reformado (RD 518/2026) entra en vigor el
+      01-10-2026 — las citas del 121/121.5 migran al texto nuevo. Lo
+      ya leído en grueso que se re-verifica contra la versión
+      vigente: bici JAMÁS acera ni zona peatonal [Ordenanza + 121.5
+      RGC] · quien EMPUJA es peatón [FAQ municipal + Convención de
+      Viena art. 20.5] · acera-bici y plataforma a cota de acera
+      [20 km/h, la clasificación municipal]
+- [ ] **1 · EL CENSO del dato, solo lectura (el patrón del arranque
+      del 7):** el grafo (la etiqueta `h` para tipos ciclables ·
+      ⚠️ ONEWAY AUSENTE — la arista no trae sentidos y la bici en
+      calzada los debe: qué se hace sin ellos, medido y a la mesa) ·
+      la capa municipal calzada/acera/senda/calmado (el dato del
+      acera-bici) · los APARCABICIS (5.520 anclajes, descargados el
+      18/08) · las ESTACIONES BiZi (nunca descargadas: fuente,
+      licencia, ficha — y su API viva de disponibilidad, que SE MUDA
+      aquí desde el punto 10) · la velocidad de bici con fuente (el
+      5,0 km/h es del peatón) · la PENDIENTE: los motores de bici
+      usan elevación y NO CONSTA de dato de elevación — declarado y
+      fuera, sin disimulo
+- [ ] **2 · LA TABLA de acceso por modo, fila a fila con fuente**
+      (el patrón de la casilla 2 del 7): bici (jamás acera · carril
+      bici · calzada según ley) y PATINETE con lo que la casilla 0
+      diga — si difieren en algo que afecte a la ruta, se ve aquí y
+      se decide (desdoble o aviso honesto [D-G])
+- [ ] **3 · EL COSTE con PRIORIDAD AL CARRIL BICI [firma de Antonio,
+      28/08]:** la doctrina de costing bici de los motores
+      (Valhalla/OSRM prefieren cycleway — el REVERSO del peatón),
+      parlamentada con las cifras de nuestra red delante. Ojo
+      declarado: el grueso viejo traía la penalización por pesos de
+      OSRM (primary 0.5 · secondary 0.65 · tertiary 0.8) y el punto
+      7 retiró las prioridades del peatón por mínimo-de-distancia —
+      si la bici hereda pesos o no ES el parlamento, con doctrina y
+      firma, no una herencia
+- [ ] **4 · EL SELECTOR a CINCO modos [firma de Antonio, 28/08]:**
+      Andando · Bus/Tranvía · Bici/Patín privado · BiZi · Coche —
+      dos productos, dos entradas (excluyentes antes de pedir la
+      ruta; BiZi no exige tener vehículo y es solo-bici). Sustituye
+      la etiqueta «Bici / Patinete» del 18/08. El formulario y el ⇅,
+      intactos
+- [ ] **5 · EL MODO PRIVADO:** ruta puerta a puerta por su tabla y
+      su coste + el remate del APARCABICIS más cercano al destino
+      (el patrón portal-cercano sobre los 5.520) · la narración
+      verificada (¿los combines del 7 valen en calzada con giros y
+      sentidos?) · sus jueces en rojo primero
+- [ ] **6 · EL MODO BiZi:** TRES tramos — andando → estación de
+      origen CON BICIS · pedaleando (solo-bici, su tabla) →
+      estación de destino CON ANCLAJES · andando → el destino
+      [el patrón bike-share de los planificadores (OTP y compañía),
+      verificado con doctrina en su encargo] · la disponibilidad en
+      vivo por la API de BiZi, con D-G si la API calla (componer
+      sin prometer) · sus jueces
+- [ ] **7 · LA DEMO de los dos modos, vista por el ojo de Antonio**
 
 ## 10 — Modo BUS/TRANVÍA *(en grueso)*
 

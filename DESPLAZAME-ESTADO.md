@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 27 de agosto de 2026
+## ESTADO ACTUAL — 28 de agosto de 2026
 
 **⭐ PUNTOS 1-8 CERRADOS (el 8, el 27/08). La demo andando está
 ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
@@ -523,9 +523,10 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el PUSH (cinco commits + papeles — y con él,
-el punto 8 CERRADO en el repo); (2) **el punto 9** (bici/patinete,
-con la ordenanza VMP leída en grueso) — el siguiente gordo; (3) el
+**Lo siguiente:** (1) el PUSH de los papeles del 9; (2) **el punto
+9 arranca por su casilla 0** (la ley vigente, verificada) y su
+casilla 1 (el censo del dato: oneway, BiZi, velocidad, elevación);
+(3) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -589,7 +590,10 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
-9 bici/patinete (ordenanza VMP) ·
+9 RE-ESCRITO el 28/08 (dos productos con firma de Antonio: Bici/
+Patín privado puerta-a-puerta con remate de aparcabicis · BiZi
+estación-a-estación en tres tramos; selector a CINCO modos; prioridad
+al carril bici; ocho casillas 0-7 en el plan) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -670,13 +674,18 @@ ficha de Aragón NO CONSTA (robots + 401; Antonio puede pegarla) ·
 recuentos de la API movidos desde el 18/08 (50/43/33/15; WFS 187;
 1543 con endpoint 404).
 
-**Punto 9:** la ordenanza VMP antes de etiquetar tramos · la doble
-capitalización «Senda ciclable/Ciclable».
+**Punto 9 (re-escrito el 28/08, ocho casillas en el plan):** la
+ordenanza vigente por verificar (casilla 0, con el RGC nuevo del
+01/10) · ⚠️ ONEWAY ausente del grafo (la bici en calzada debe
+sentidos — al censo de la casilla 1) · las estaciones BiZi nunca
+descargadas · sin dato de elevación (declarado) · la doble
+capitalización «Senda ciclable/Ciclable» · la API viva de BiZi vive
+AQUÍ desde el 28/08 (mudada del punto 10).
 
 **Punto 10:** líneas por poste (sin guardián) · caducidad GTFS (05/10;
 servicio 27/12 — VERIFICADO el 22/08 contra el dato: 196 calendarios
 huérfanos, los del 28-31/12 sin ningún viaje) sin vigilante hasta el
-cron · la API viva de Bizi.
+cron · ⚰️ la API viva de Bizi: MUDADA al punto 9 (28/08).
 
 **Punto 11:** parkings públicos (dos fuentes cojas) · parquímetros
 reevaluables · las tres cuentas municipales que no cuadran.
