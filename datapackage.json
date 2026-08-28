@@ -965,6 +965,31 @@
       "descargadoEl": "2026-08-27T06:31:43Z",
       "modified": "2025-09-15T12:27:31+02:00",
       "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 7 registros que lo traen (2025-09-15T12:27:31) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "viario-etiquetas-osm",
+      "path": "motor/data/2026-08-28_osm_overpass_zaragoza-bbox_viario-etiquetas.json",
+      "title": "Etiquetas del viario de OpenStreetMap (65.223 ways, sin filtro de nombre)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 11271911,
+      "hash": "sha256:4a1c4f9c15c9cc6de57f44742fdcf9adc6175e88bfbff1507c28c8eb34a6150d",
+      "licenses": [
+        {
+          "name": "ODbL-1.0",
+          "title": "Open Database License 1.0",
+          "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "OpenStreetMap via Overpass API 0.7.62.11",
+          "path": "https://overpass-api.de/"
+        }
+      ],
+      "modified": "2026-08-28T15:24:06Z",
+      "modifiedFuente": "el propio fichero lo declara en `osm3s.timestamp_osm_base`"
     }
   ]
 }

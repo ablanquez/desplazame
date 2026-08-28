@@ -1750,7 +1750,86 @@ quedan en **16**: **10 de colegios y 1 de guarderías**.
 
 ---
 
-### 1.21 · El resto del dato — todavía **ninguno**
+### 1.21 · Etiquetas del viario de OpenStreetMap — el sentido y la velocidad
+
+| | |
+|---|---|
+| **Qué es** | **Las 65.223 vías del ámbito del grafo con su juego de etiquetas ENTERO**: `oneway`, `maxspeed`, `bicycle`, `cycleway:*`, `access`, `surface`… Es lo que el grafo de § 1.4 **no lleva** —barridas sus 98.774 aristas, traen 9 campos y ninguno de sentido— y lo que la rueda necesita para saber por dónde puede ir y en qué dirección |
+| **Origen del dato** | **OpenStreetMap**, vía **Overpass API 0.7.62.11 87bfad18**. El fichero declara `timestamp_osm_base` **`2026-08-28T15:24:06Z`** |
+| **Licencia** | **ODbL 1.0**, como § 1.1, § 1.4 y § 1.14. El fichero **la trae escrita dentro**, en `osm3s.copyright` |
+| **Atribución** | Cumplida por el mapa base de § 1.1 —«© **colaboradores** de OpenStreetMap»—, siempre encendido |
+| **Zona** | bbox **41,4011–41,982 N · −1,2199–−0,6541 O**, que es **exactamente el declarado por § 1.4**: el ámbito a cubrir es el del grafo, y usar otro dejaría aristas suyas sin etiqueta |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`motor/data/2026-08-28_osm_overpass_zaragoza-bbox_viario-etiquetas.json`](motor/data/2026-08-28_osm_overpass_zaragoza-bbox_viario-etiquetas.json) · 11.271.911 bytes · sha256 `4a1c4f9c15c9cc6de57f44742fdcf9adc6175e88bfbff1507c28c8eb34a6150d` **verificado sobre un clon** · cabeceras en [`…_cabeceras.txt`](motor/data/2026-08-28_osm_overpass_zaragoza-bbox_viario-etiquetas_cabeceras.txt) |
+
+**La consulta EXACTA, que es lo único que hace esto reproducible:**
+
+```
+[out:json][timeout:300];
+way["highway"](41.4011,-1.2199,41.982,-0.6541);
+out tags;
+```
+
+Es **la de § 1.14 sin el filtro de nombre**, y de ahí sale todo lo demás. La doctrina de la
+extracción es la de **[DOC CycleStreets]**, el planificador ciclista de referencia, cuya tubería
+documentada rellena *«highway, cycleway, access, bicycle, foot y oneway desde sus tags OSM»*: son
+las etiquetas que se piden aquí, y se piden **todas**, sin filtrar ninguna — filtrar sería editar
+el dato antes de guardarlo.
+
+> ⚠️ **Se pidió DOS VECES y NO repite al byte.** Las dos descargas miden **11.271.911 bytes
+> exactos** y difieren en **un solo byte, el 125**: el minuto de `timestamp_osm_base`
+> (`15:24:06Z` frente a `15:25:06Z`). Los **65.223 elementos son idénticos serializados**. Es el
+> precedente de § 1.20: se declara qué baila, y lo que baila es el reloj del corte de la base,
+> no el dato. Entra la primera.
+
+#### Los recuentos, medidos sobre lo descargado
+
+| | |
+|---|---|
+| *Ways* | **65.223**, los 65.223 con `highway` |
+| Con `name` | 22.337 · **34,2 %** |
+| **Con `oneway`** | **15.956 · 24,5 %** — `yes` 14.391 · `no` 1.557 · **`-1` 8** |
+| **Con `maxspeed`** | **9.591 · 14,7 %** |
+| Con `bicycle` | 1.607 · con `access` 1.998 · con `foot` 2.469 |
+| Con `cycleway` | 550 · `cycleway:right` 551 · `cycleway:both` 249 · `cycleway:left` 204 |
+| **Con `oneway:bicycle`** | **20** — `no` 18, `yes` 2 |
+| Con `surface` | 31.660 · con `segregated` 149 · con `traffic_calming` 32 |
+
+⭐ **Los 20 `oneway:bicycle` son el CONTRAFLUJO, y se cuentan aparte a propósito.** [DOC
+CycleStreets] importa **bidireccionales para la bici** las `oneway=yes` que llevan etiqueta de
+contraflujo: son calles de sentido único por las que la bici sí puede ir en los dos. Si una
+limpieza de valores los aplastara contra el `oneway` de la calle, esas 18 desaparecerían sin que
+nadie lo notara. Hay un guardián que los cuenta.
+
+⚠️ **Y `-1` no es un valor sucio: es un sentido invertido.** Significa «al revés de como está
+dibujada la línea», así que aplicarlo como si fuera `yes` mandaría por esas 8 vías en dirección
+contraria. [DOC CycleStreets] repara `oneway=true` → `yes` y descarta lo no ruteable, pero `-1`
+**no se repara: se respeta**.
+
+#### El cruce con el grafo, y hasta dónde llega ahora
+
+| | antes (§ 1.14) | **ahora** |
+|---|---|---|
+| *Ways* del grafo con entrada | 16.994 de 47.758 · 35,6 % | **47.734 de 47.758 · 99,9 %** |
+| `oneway` en la calzada útil | 16.352 · 39,2 % | **22.473 · 53,9 %** |
+| `oneway` en la calzada URBANA | 16.352 · 39,2 % | **22.465 · 65,2 %** |
+| `maxspeed` en la calzada URBANA | 12.955 · 37,6 % | **14.365 · 41,7 %** |
+
+Por tipo de vía, donde más se nota es en lo que no tiene nombre: `service` pasa de **6 % a 55 %**
+de sentidos, `unclassified` de 6 % a 22 %, `tertiary_link` de 33 % a **100 %**. `track` sigue a
+**0 %** en las dos cosas, y no es un fallo: son 2.156 km de camino rural que OSM no etiqueta.
+
+> ⚠️ **Esto NO sustituye a § 1.14, y no es prudencia: está medido.** De sus 19.897 *ways*,
+> **30 ya no existen** en esta descarga —26 días de OSM por medio—, y **7 de esos 30 siguen en el
+> grafo**: la Plaza Salamero, cuatro trozos de la Calle de Marcelino Álvarez, la Calle de Tomás
+> Bretón y una senda BTT. Sus nombres **solo están en § 1.14**. Pisar aquel fichero, o
+> «evolucionarlo a v2», perdería esos siete nombres sin ganar nada: son dos fotos de fechas
+> distintas y las dos hacen falta. Los nombres siguen siendo de § 1.14; esto trae **el resto de
+> las etiquetas**.
+>
+> Por el otro lado, **24 de los 47.758 *ways* del grafo ya no están** en esta descarga (el grafo
+> es del 03/08). Es el mismo riesgo residual que § 1.14 declara, con 25 días en vez de 17 horas.
+
+### 1.22 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
