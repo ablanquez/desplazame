@@ -1490,12 +1490,55 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
         dato» → §1.23, borrada sin querer y recuperada); la ficha
         §1.14 se queda corta en su «Qué es» (dice «nombres», trae
         260 etiquetas) — vista, no tocada, dicha
-- [ ] **2 · LAS TABLAS de acceso, TRES y fila a fila con artículo**
-      (el patrón de la casilla 2 del 7, contra el texto del BOP):
-      BICI (jamás acera · carril bici · cualquier calzada) · PATÍN
-      (jamás acera · carril bici · SOLO calzadas ≤30 [firmado con la
-      casilla 0]) · BiZi (la de bici + su contrato). El desdoble ya
-      NO es pregunta: lo firmó la ley
+- [x] **2 · LAS TRES TABLAS — HECHAS (29/08) contra el ARTICULADO**
+      (el BOPZ nº192 del 21/08/2024 y el PDF de la sede bajados los
+      DOS y comparados al carácter en los diez pasajes que gobiernan:
+      10/10 idénticos; 116 artículos). ⚠️ DOS re-verificaciones que
+      CORRIGEN la casilla 0 — el texto manda: (a) el patín NO es
+      «solo ≤30»: el art. 56 es JERARQUÍA (56.2.c: obligatoriamente
+      por vía ciclista) + LISTA CERRADA subsidiaria (56.3: ciclo-
+      carriles · vías pacificadas/zona 30 · zonas 20 y residenciales
+      · y SOLO para multicarril el «≤30» — 56.3.d exige más de un
+      carril); la suerte: MU1 trae LAS CATEGORÍAS (pacificada 2.575
+      tr/497,1 km · calle_z30 · plataforma · residencia ·
+      carril_vh>1∧limite_vel≤30 = 178 tr/46,4 km); (b) la ordenanza
+      SE CONTRADICE en el carril bus (50.6 prohíbe · 67.1 permite ·
+      la bisagra del 16 exige resolución señalizada NO publicada:
+      MU1 dice dónde hay carril bus — 36 tr/15,3 km — nadie dice
+      cuáles autorizados → NO CONSTA). LAS TABLAS: BICI 18 filas
+      (cycleway 50.5.a/54.2 con prioridad de paso · toda calzada SÍ
+      por el carril derecho-centro 50.5.d/50.9 · living_street a 20
+      [23.c] · track rural SÍ [15.2.c.i] · aceras/peatonales NO
+      [50.6] · pasos en la mano salvo continuidad [54.4] · zonas
+      verdes ≥3 m ⚠️ sin dato de ancho · especial protección [47]
+      NO ⚠️ sin dato de dónde · motorway/trunk [PROPIO: fuera por
+      construcción, a=0]) · PATÍN montada SOBRE MU1 (la lista
+      cerrada campo a campo; >30 NO seco 659 tr; 16 años [56.2.a],
+      la excepción de menores de la bici no aplica) · BiZi = LA DE
+      BICI SIN UNA CELDA DISTINTA (verificado contra las normas del
+      servicio) + ⭐ EL ÁMBITO MUNICIPAL ES RESTRICCIÓN DE VÍA
+      (prohibido iniciar/finalizar/circular fuera — nuestra frontera
+      de la validación espacial, reutilizada). LOS SEIS HUECOS
+      CERRADOS POR DOCTRINA [las tablas de acceso-por-defecto legal
+      por vehículo×vía de la wiki de routing — «yes = permitido
+      salvo etiqueta en contra», codificadas por los motores (ORS
+      las trabaja; GraphHopper prefiere lo explícito)]: H1 track y
+      H2 los 5,2 km del patín → NO por lista cerrada (el defecto
+      fuera de lo enumerado es no; las tablas codifican la regla
+      escrita, no analogías) · H3 carril bus → NO por defecto (el
+      tag cycleway=share_busway es el mecanismo del autorizado, y
+      sin dato no hay tag) · H4 especial protección → limitación
+      DECLARADA (sin dato de dónde: cero capas, cero rutas) · H5
+      ancho zonas verdes → declarado no-modelable (width en 610 de
+      65.223) · H6 path → el defecto legal español por tipo de vía
+      de la tabla OSM. DOS MATICES: «empujando se es peatón» se
+      sostiene POR EL RGC (121.2 — la ordenanza no lo dice; su 43
+      define peatón a secas) ⚠️ y el RD 518/2026 lo migra al
+      122.2.a EL 01/10 (las citas RGC de estas tablas caducan esa
+      fecha) · la ordenanza da DOS velocidades al carril
+      (25 «segregación física» 50.1 · 30 «protegidos» 54.2.b —
+      verificado en los dos textos: NO CONSTA si son categorías
+      distintas; ambos coinciden en acera-bici 20)
 - [ ] **3 · EL COSTE con PRIORIDAD AL CARRIL BICI [firma 28/08] —
       EL PARLAMENTO PREVIO, CERRADO (29/08, cuatro sillas):**
       (1) EN EL 17,5 % DE DISCREPANCIA MANDA EL MUNICIPAL [maxspeed

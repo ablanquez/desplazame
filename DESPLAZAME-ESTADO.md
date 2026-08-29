@@ -548,11 +548,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 2**: las tres tablas de acceso
-fila a fila contra los ARTÍCULOS del BOP (el parlamento previo ya
-está cerrado); (2) detrás, el encargo del coste (casilla 3: el
-mecanismo de la preferencia al cycleway, medido en nuestra red);
-(3) el push cuando Antonio diga; (4) el
+**Lo siguiente:** (1) **la casilla 3**: el encargo del coste (el
+mecanismo de la preferencia al cycleway contra la doctrina Valhalla,
+medido en nuestra red, con las velocidades 18/20/18 y las fuentes
+municipal-manda); (2) detrás: selector a seis (casilla 4) y los
+modos (5-6); (3) el push cuando Antonio diga; (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -616,15 +616,16 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
-9 EN MARCHA (28/08: casilla 0 RESUELTA — rige la Nueva Ordenanza de
-Movilidad desde 11/09/2024; TRES productos porque la ley separa las
-tablas: bici cualquier calzada · patín SOLO ≤30 · BiZi = bici +
-contrato [30 min, 2 h, municipal, eléctricas, 16+]; selector a SEIS
-+ aviso 30 min firmados — · casilla 1 CENSO + LAS DOS DESCARGAS
-hechas [doctrina CycleStreets + reparto de fuentes]: §1.21 y §1.22
-en repo, sentido 65,2 %/velocidad 68,4 % de la calzada urbana,
-discrepancia 17,5 % donde ambas fuentes hablan — el parlamento de
-las casillas 2-3 con el dato delante) ·
+9 EN MARCHA (casillas 0-2 HECHAS + parlamento cerrado: la Nueva
+Ordenanza vigente [11/09/2024] leída EN ARTICULADO — el 56 corrigió
+a la casilla 0: el patín va por JERARQUÍA + LISTA CERRADA (las
+categorías están en MU1), y el carril bus es NO CONSTA por
+contradicción interna [50.6 vs 67.1]; las TRES tablas fila a fila
+con artículo; BiZi = bici + el ámbito municipal como restricción de
+vía [nuestra frontera]; los seis huecos cerrados por doctrina
+[tablas de acceso-por-defecto legal de la wiki de routing]; §1.21 y
+§1.22 en repo con sentido 65,2 %/velocidad 68,4 %; velocidades
+18/20/18 firmadas) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
