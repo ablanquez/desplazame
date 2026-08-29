@@ -213,12 +213,24 @@ export function cargarRejilla(red: RedEnMemoria): Rejilla {
  * Devuelve `null` cuando no hay ninguna arista útil dentro de `RADIO_MAXIMO_M`.
  * Eso no es un error: es la respuesta para un portal que no da a esta red, y
  * arriba se convierte en un `Aviso`.
+ *
+ * ⭐ `admite` (29/08) acota qué aristas pueden ser candidatas, y es
+ * **opcional**: sin él se engancha a la más cercana de todas, que es lo que
+ * hacía antes y lo que sigue haciendo el peatón, al byte.
+ *
+ * Lo pide el patín. Su tabla es una lista cerrada [ORD art. 56.3], así que
+ * buena parte de la calzada le está vedada — y sin filtro, la puerta de casa
+ * engancharía a la avenida de 50 por la que no puede circular y la ruta
+ * empezaría prohibida. El mecanismo no es nuestro: [DOC Valhalla, Loki] filtra
+ * los candidatos de una localización **por el modelo de coste**, de modo que
+ * una localización se pega a una arista por la que ese vehículo puede ir.
  */
 export function enganchar(
   red: RedEnMemoria,
   rejilla: Rejilla,
   lon: number,
   lat: number,
+  admite?: (arista: number) => boolean,
 ): Enganche | null {
   if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
     return null;
@@ -241,6 +253,9 @@ export function enganchar(
         }
         for (const id of lista) {
           const k = rejilla.segArista[id]!;
+          if (admite && !admite(k)) {
+            continue;
+          }
           const j = rejilla.segIndice[id]!;
           const g = red.aristas[k]!.g;
           const [ax, ay] = aPlano(g[j]![0], g[j]![1]);

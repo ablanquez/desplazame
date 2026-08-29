@@ -18,6 +18,8 @@ import { cuadernoPara } from './ruta.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
 import { leerPeticion } from './peticion.ts';
 import { metrosEntre } from './cercano.ts';
+import { cargarRedDeLaRueda } from './red-rueda.ts';
+import { entornoDe } from './gacetero.ts';
 
 let motor: Motor;
 
@@ -41,6 +43,11 @@ describe('El trayecto', () => {
     // espacial (24/08) los sitios lo necesitan para comprobar dónde cae cada
     // coordenada y para rescatar la que esté mal. Por eso sale del literal.
     const callejero = cargarCallejero(portales);
+    // ⭐ La rueda se carga TAMBIÉN aquí, y no por gusto de tener el motor
+    // entero: es lo que hace que la contraprueba valga. Si el peatón se
+    // probara con un motor sin rueda, «mutar la rueda no muerde al peatón»
+    // sería verdad por construcción y no demostraría nada.
+    const redRueda = cargarRedDeLaRueda(cargarGrafo(), red, entornoDe(portales));
     motor = {
       red,
       rejilla: cargarRejilla(red),
@@ -48,6 +55,9 @@ describe('El trayecto', () => {
       callejero,
       sitios: cargarSitios(portales, callejero),
       cuaderno: cuadernoPara(red),
+      redRueda,
+      rejillaRueda: cargarRejilla(redRueda),
+      cuadernoRueda: cuadernoPara(redRueda),
     };
   });
 
@@ -84,8 +94,14 @@ describe('El trayecto', () => {
     assert.match(t.avisos[0]!.texto, /PEÑA ZORONGO/);
   });
 
+  /**
+   * ⚠️ Eran TRES el 28/08 —`bus`, `bici` y `coche`— y hoy son dos: la casilla 3
+   * del punto 9 le dio ruta a la bici, al patín y a la BiZi. La expectativa se
+   * mueve porque el motor hace más, no porque la prueba estorbara; lo que la
+   * rueda contesta ahora tiene sus propias jueces en `rueda.spec.ts`.
+   */
   test('los otros modos se contestan con honradez, no con una ruta a pie', () => {
-    for (const modo of ['bus', 'bici', 'coche'] as const) {
+    for (const modo of ['bus', 'coche'] as const) {
       const t = pedir({ origen: LAPUYADE, destino: EN_MEDIO, modo });
       // Contesta con EL MODO QUE PIDIERON, para que la pantalla pueda decir
       // para cuál no hay ruta.
@@ -125,8 +141,12 @@ describe('El trayecto', () => {
       [],
       {},
       { origen: LAPUYADE },
-      { origen: LAPUYADE, destino: EN_MEDIO },
+      // ⚠️ `{origen, destino}` SIN modo salió de esta lista el 29/08: desde que
+      // `modo` es opcional, eso ya no es una petición rota sino una petición
+      // andando, y su prueba está en `rueda.spec.ts`. Lo que sigue roto —y por
+      // eso se queda— es un `modo` que viene y no es una cadena.
       { origen: LAPUYADE, destino: EN_MEDIO, modo: 7 },
+      { origen: LAPUYADE, destino: EN_MEDIO, modo: null },
       { origen: 'CALLE BURGOS', destino: EN_MEDIO, modo: 'andando' },
       { origen: { via: '16080' }, destino: EN_MEDIO, modo: 'andando' },
       { origen: { via: '', portal: '' }, destino: EN_MEDIO, modo: 'andando' },
@@ -575,6 +595,11 @@ describe('⭐ Una VÍA SIN PORTAL, de punta a punta (27/08)', () => {
     const red = cargarRed(cargarGrafo());
     const portales = cargarPortales();
     const callejero = cargarCallejero(portales);
+    // ⭐ La rueda se carga TAMBIÉN aquí, y no por gusto de tener el motor
+    // entero: es lo que hace que la contraprueba valga. Si el peatón se
+    // probara con un motor sin rueda, «mutar la rueda no muerde al peatón»
+    // sería verdad por construcción y no demostraría nada.
+    const redRueda = cargarRedDeLaRueda(cargarGrafo(), red, entornoDe(portales));
     motor = {
       red,
       rejilla: cargarRejilla(red),
@@ -582,6 +607,9 @@ describe('⭐ Una VÍA SIN PORTAL, de punta a punta (27/08)', () => {
       callejero,
       sitios: cargarSitios(portales, callejero),
       cuaderno: cuadernoPara(red),
+      redRueda,
+      rejillaRueda: cargarRejilla(redRueda),
+      cuadernoRueda: cuadernoPara(redRueda),
     };
   });
 

@@ -26,8 +26,11 @@ import type { CallejeroEnMemoria } from './callejero.ts';
 import type { SitiosEnMemoria } from './sitios.ts';
 import type { PortalesEnMemoria, PortalSituado } from './portales.ts';
 import type { RedEnMemoria } from './red.ts';
-import { enganchar, type Rejilla } from './proyeccion.ts';
-import { calcularRuta, geometriaDe, type Cuaderno } from './ruta.ts';
+import type { RedDeLaRueda } from './red-rueda.ts';
+import { enganchar, type Enganche, type Rejilla } from './proyeccion.ts';
+import { calcularRuta, geometriaDe, type Cuaderno, type Ruta } from './ruta.ts';
+import { admite, calcularRutaRodando, segundosRodando } from './rodando.ts';
+import { esDeLaRueda, type ModoDeRueda } from './rueda.ts';
 import { escribirPasos } from './pasos.ts';
 
 /**
@@ -40,8 +43,12 @@ import { escribirPasos } from './pasos.ts';
  */
 const VELOCIDAD_MS = 5000 / 3600;
 
-/** Los modos que hoy sabe calcular el motor. */
-const MODOS_ATENDIDOS: readonly Modo[] = ['andando'];
+/**
+ * Los modos que hoy sabe calcular el motor. **Cuatro desde el 29/08**: al
+ * andando se le suman los tres de la rueda. Faltan `bus` (punto 10) y `coche`
+ * (punto 11), y a esos se les sigue contestando con su Aviso honrado.
+ */
+const MODOS_ATENDIDOS: readonly Modo[] = ['andando', 'bici', 'patin', 'bizi'];
 
 /** Un trayecto vacío con su explicación. Es la respuesta a todo lo que falla. */
 function conAviso(modo: Modo, texto: string): Trayecto {
@@ -71,6 +78,17 @@ export interface Motor {
   readonly callejero: CallejeroEnMemoria;
   readonly sitios: SitiosEnMemoria;
   readonly cuaderno: Cuaderno;
+  /**
+   * ⭐ La red de la rueda, con su rejilla y su cuaderno propios (29/08).
+   *
+   * Van aparte de las del peatón y no es duplicación: son **otro subgrafo**
+   * —con carriles bici y sin aceras—, así que sus nodos son otros, su rejilla
+   * indexa otros segmentos y el cuaderno del Dijkstra tiene que tener el
+   * tamaño de SUS nodos. Compartirlos sería enganchar la bici a la acera.
+   */
+  readonly redRueda: RedDeLaRueda;
+  readonly rejillaRueda: Rejilla;
+  readonly cuadernoRueda: Cuaderno;
 }
 
 /**
@@ -183,13 +201,25 @@ export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null):
       'La petición no trae un origen y un destino con su vía y su portal.',
     );
   }
-  const { modo } = peticion;
+  // `modo` es opcional en el contrato desde el 29/08, y el defecto es el modo
+  // que existía cuando era obligatorio. `leerPeticion` ya lo rellena; se
+  // vuelve a rellenar aquí porque a esta función también se la llama con una
+  // petición construida a mano, y un defecto que solo vive en el lector es un
+  // defecto que la mitad de las llamadas no tiene.
+  const modo: Modo = peticion.modo ?? 'andando';
 
   if (!MODOS_ATENDIDOS.includes(modo)) {
     // Se contesta con el modo que pidieron, no con «andando»: la respuesta
     // dice para qué modo NO hay ruta, que es lo que la pantalla tiene que
-    // enseñar. Los otros tres son los puntos 9 y 10 del plan.
-    return conAviso(modo, `Todavía no calculamos rutas en modo «${modo}». Solo andando.`);
+    // enseñar. Los dos que faltan son los puntos 10 y 11 del plan.
+    //
+    // La lista de los que SÍ se calculan se compone de `MODOS_ATENDIDOS` y no
+    // se escribe a mano: hasta hoy decía «Solo andando», y el día que entró la
+    // rueda esa frase se quedó mintiendo sin que nada se pusiera rojo.
+    return conAviso(
+      modo,
+      `Todavía no calculamos rutas en modo «${modo}». Solo ${MODOS_ATENDIDOS.join(', ')}.`,
+    );
   }
 
   const origen = resolverExtremo(motor, peticion.origen);
@@ -199,6 +229,15 @@ export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null):
   const destino = resolverExtremo(motor, peticion.destino);
   if (esAvisoExtremo(destino)) {
     return { ...conAviso(modo, destino.texto) };
+  }
+
+  // ⭐ LA BIFURCACIÓN, y va aquí a propósito: los dos extremos se resuelven
+  // igual para todos los modos —una dirección es una dirección— y a partir de
+  // este punto **el peatón no vuelve a cruzarse con la rueda**. Ni comparte
+  // red, ni rejilla, ni cuaderno, ni una línea de este fichero: lo de abajo es
+  // exactamente lo que había el 28/08.
+  if (esDeLaRueda(modo)) {
+    return trayectoRodando(motor, modo, origen, destino);
   }
 
   const engancheOrigen = enganchar(motor.red, motor.rejilla, origen.lon, origen.lat);
@@ -254,4 +293,107 @@ export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null):
     metros: Math.round(ruta.metros),
     segundos: Math.round(ruta.metros / VELOCIDAD_MS),
   };
+}
+
+/**
+ * ⭐ EL TRAYECTO RODANDO: bici, patín o BiZi.
+ *
+ * Es la hermana de lo de arriba y hace los mismos cuatro pasos —enganchar,
+ * rutear, redactar, dar la vuelta a la geometría—, pero con la red de la
+ * rueda y diciendo lo que hay que decir en cada modo. No se ha metido dentro
+ * del camino del peatón con un `if` por medio: las redes son otras, los avisos
+ * son otros, y mezclarlas habría dejado al peatón atado a la rueda.
+ *
+ * Tres cosas que no se ven a simple vista y son las que hacen que esto sea
+ * correcto:
+ *
+ * 1. **El enganche filtra por modo** [DOC Valhalla, Loki]. Sin eso, un patín
+ *    engancharía a la avenida de 50 por la que no puede circular y la ruta
+ *    empezaría prohibida.
+ * 2. **Los metros son los metros.** Vienen recontados sobre los trozos, no del
+ *    montículo, que lleva segundos ponderados por la preferencia.
+ * 3. **Los segundos NO llevan la preferencia dentro.** Se vuelven a sumar sin
+ *    factor: preferir es una forma de elegir camino, no una predicción de lo
+ *    que se tarda.
+ */
+function trayectoRodando(
+  motor: Motor,
+  modo: ModoDeRueda,
+  origen: Extremo,
+  destino: Extremo,
+): Trayecto {
+  const red = motor.redRueda;
+  const admitida = (arista: number): boolean => admite(red, arista, modo);
+
+  const engancheOrigen: Enganche | null = enganchar(
+    red,
+    motor.rejillaRueda,
+    origen.lon,
+    origen.lat,
+    admitida,
+  );
+  if (!engancheOrigen) {
+    return conAviso(
+      modo,
+      `${origen.nombre} no tiene cerca ninguna calle por la que ` +
+        `${comoSeMueve(modo)} en nuestro mapa: desde ahí no podemos calcular una ruta.`,
+    );
+  }
+  const engancheDestino: Enganche | null = enganchar(
+    red,
+    motor.rejillaRueda,
+    destino.lon,
+    destino.lat,
+    admitida,
+  );
+  if (!engancheDestino) {
+    return conAviso(
+      modo,
+      `${destino.nombre} no tiene cerca ninguna calle por la que ` +
+        `${comoSeMueve(modo)} en nuestro mapa: hasta ahí no podemos calcular una ruta.`,
+    );
+  }
+
+  const ruta: Ruta | null = calcularRutaRodando(
+    red,
+    motor.cuadernoRueda,
+    modo,
+    engancheOrigen,
+    [origen.lon, origen.lat],
+    engancheDestino,
+    [destino.lon, destino.lat],
+  );
+  if (!ruta) {
+    return conAviso(
+      modo,
+      `No hay forma de ir de ${origen.nombre} a ${destino.nombre} ` +
+        `${comoSeMueve(modo)} por las calles que conocemos.`,
+    );
+  }
+
+  const pasos = escribirPasos(red, ruta, origen.nombre, destino.nombre, [
+    destino.lon,
+    destino.lat,
+  ]);
+  const geometria: Vertice[] = geometriaDe(ruta).map(([lon, lat]) => [lat, lon]);
+
+  return {
+    modo,
+    pasos,
+    geometria,
+    avisos: [],
+    metros: Math.round(ruta.metros),
+    segundos: Math.round(segundosRodando(red, ruta, modo)),
+  };
+}
+
+/**
+ * Cómo se dice el verbo de cada modo dentro de un aviso.
+ *
+ * Va aquí y no en la pantalla porque el aviso es una frase entera que compone
+ * el motor —como «no hay forma de ir andando»—, y partirla para que la
+ * interfaz meta el verbo obligaría a la interfaz a saber conjugar.
+ */
+function comoSeMueve(modo: ModoDeRueda): string {
+  return modo === 'patin' ? 'circular en patinete' : 'ir en bici';
 }

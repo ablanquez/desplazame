@@ -26,6 +26,22 @@
  * cientos de metros para ir a la puerta de al lado. En un grafo no dirigido
  * el trozo directo es siempre el más corto, así que el atajo no solo es más
  * barato, es que es la respuesta.
+ *
+ * ── Lo que se presta, y por qué se presta en vez de copiarse ────────────────
+ *
+ * `Monticulo`, `puertasDe`, `trozoDelEnganche`, `trozoEntero`, `conector` y
+ * `trozoEntreDosEnganches` **se exportan desde el 29/08**. Los usa `rodando.ts`,
+ * el Dijkstra de la rueda, que minimiza TIEMPO en vez de metros y respeta el
+ * sentido único: distinta función objetivo, misma topología y las mismas
+ * cuatro combinaciones.
+ *
+ * Copiarlos habría duplicado el montículo, el recorte de la geometría por el
+ * enganche y —lo peor— **la negación que NO va** en el trozo del destino, que
+ * es la entrada nº6 de la bitácora y costó 604,7 m de salto. Un fallo de
+ * geometría arreglado en un sitio y vivo en el otro no lo caza nadie.
+ *
+ * Añadir la palabra `export` no cambia una sola operación de lo que el peatón
+ * hace aquí, y los 313 guardianes lo dicen.
  */
 
 import type { RedEnMemoria } from './red.ts';
@@ -89,7 +105,7 @@ export interface Ruta {
 // sacarlo si ya trae un coste peor. Es lo normal en Dijkstra sobre montículo
 // binario, y ahorra el índice inverso.
 
-class Monticulo {
+export class Monticulo {
   private readonly nodos: number[] = [];
   private readonly costes: number[] = [];
 
@@ -187,7 +203,7 @@ export function cuadernoPara(red: RedEnMemoria): Cuaderno {
 }
 
 /** Por dónde se puede entrar a la red desde un enganche, y a qué precio. */
-interface Puerta {
+export interface Puerta {
   readonly nodo: number;
   /**
    * Los metros de ese trozo, que es también lo que pesa en el montículo: la
@@ -206,7 +222,7 @@ interface Puerta {
  * enganchó por dentro de la arista, y esas dos son la mitad de las cuatro
  * combinaciones.
  */
-function puertasDe(red: RedEnMemoria, enganche: Enganche): readonly Puerta[] {
+export function puertasDe(red: RedEnMemoria, enganche: Enganche): readonly Puerta[] {
   const arista = red.aristas[enganche.arista]!;
   if (enganche.nodo !== null) {
     return [{ nodo: enganche.nodo, metros: 0, haciaElFinal: enganche.nodo === arista.hasta }];
@@ -226,7 +242,7 @@ function puertasDe(red: RedEnMemoria, enganche: Enganche): readonly Puerta[] {
  * `saliendo` es para el origen (de la proyección al extremo) y su negación
  * para el destino (del extremo a la proyección).
  */
-function trozoDelEnganche(
+export function trozoDelEnganche(
   red: RedEnMemoria,
   enganche: Enganche,
   haciaElFinal: boolean,
@@ -255,14 +271,14 @@ function trozoDelEnganche(
 }
 
 /** La geometría de una arista entera, puesta en el sentido de la marcha. */
-function trozoEntero(red: RedEnMemoria, arista: number, desdeNodo: number): TrozoDeRuta {
+export function trozoEntero(red: RedEnMemoria, arista: number, desdeNodo: number): TrozoDeRuta {
   const a = red.aristas[arista]!;
   const g = a.desde === desdeNodo ? a.g : a.g.slice().reverse();
   return { arista, metros: a.metros, g };
 }
 
 /** El conector: de la puerta a la calzada. Dos puntos y ya. */
-function conector(desde: Punto, hasta: Punto): readonly Punto[] {
+export function conector(desde: Punto, hasta: Punto): readonly Punto[] {
   return metrosPlanos(desde[0], desde[1], hasta[0], hasta[1]) < 0.01 ? [] : [desde, hasta];
 }
 
@@ -415,7 +431,7 @@ export function calcularRuta(
 }
 
 /** El trozo de arista que hay entre dos enganches de la MISMA arista. */
-function trozoEntreDosEnganches(
+export function trozoEntreDosEnganches(
   red: RedEnMemoria,
   origen: Enganche,
   destino: Enganche,

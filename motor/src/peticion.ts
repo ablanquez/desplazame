@@ -59,9 +59,24 @@ export function leerPeticion(cuerpo: unknown): PeticionDeRuta | null {
   // Los dos extremos, por el mismo camino: la simetría empieza aquí.
   const origen = extremo('origen');
   const destino = extremo('destino');
-  const modo = bruto['modo'];
-  if (!origen || !destino || typeof modo !== 'string') {
+  /**
+   * ⭐ `modo` es OPCIONAL desde el 29/08, y las dos ausencias no son la misma.
+   *
+   * **No venir** es un cliente que no dice el modo, y ese tiene defecto:
+   * `andando`, que es el modo que existía cuando el campo era obligatorio.
+   * **Venir y no ser una cadena** es un cliente roto, y ese sigue sin ser una
+   * petición — un `7` ahí no es una omisión, es una equivocación.
+   *
+   * Lo que vale como texto no se valida aquí contra la lista de modos: eso lo
+   * hace el motor, que contesta con un Aviso honrado al modo que no atiende.
+   * Este fichero solo mira la forma.
+   */
+  const crudoModo = bruto['modo'];
+  if (crudoModo !== undefined && typeof crudoModo !== 'string') {
     return null;
   }
-  return { origen, destino, modo: modo as Modo };
+  if (!origen || !destino) {
+    return null;
+  }
+  return { origen, destino, modo: (crudoModo as Modo | undefined) ?? 'andando' };
 }

@@ -3,8 +3,14 @@
  *
  * Carga el grafo y el callejero UNA vez al arrancar y los deja en memoria;
  * después abre el puerto. Sugiere vías, sirve los portales de cada una, dice
- * cuál es el más cercano a un punto, **calcula rutas andando de portal a
- * portal**, y declara en `/api/salud` con qué dato lo hace.
+ * cuál es el más cercano a un punto, **calcula rutas de portal a portal
+ * andando, en bici, en patín y en BiZi**, y declara en `/api/salud` con qué
+ * dato lo hace.
+ *
+ * ⭐ Y carga **DOS redes**: la del peatón y la de la rueda (29/08). No es
+ * duplicación: son dos subgrafos distintos —la de la rueda tiene los carriles
+ * bici y no tiene las aceras—, así que sus nodos son otros y cada una necesita
+ * su rejilla y su cuaderno. El porqué entero, en `red-rueda.ts`.
  *
  * **El puerto no abre hasta que todo está cargado.** Es la decisión declarada:
  * así no existe el instante en que el motor contesta a medio cargar, y la
@@ -19,9 +25,10 @@ import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
 import { cargarSitios, sugerirSitios } from './sitios.ts';
-import { UMBRAL_DE_DESVIO_M } from './gacetero.ts';
+import { UMBRAL_DE_DESVIO_M, entornoDe } from './gacetero.ts';
 import { portalCercano } from './cercano.ts';
 import { cargarRed } from './red.ts';
+import { cargarRedDeLaRueda } from './red-rueda.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
@@ -97,6 +104,87 @@ const rejilla = cargarRejilla(red);
 console.log(
   `motor: rejilla en memoria — ${rejilla.celdas.size} celdas · ` +
     `${rejilla.segArista.length} segmentos · ${rejilla.cargadoEnMs.toFixed(0)} ms`,
+);
+
+// ⭐ LA RED DE LA RUEDA (29/08). Va después de la del peatón porque le presta
+// los cruces por *way* —nombre, tipo real y herencia municipal—, que no
+// dependen de qué subgrafo se ruteé, y volver a construirlos sería releer 5 MB
+// para llegar al mismo `Map`.
+console.log('motor: levantando la red de la rueda…');
+const entorno = entornoDe(portales);
+const redRueda = cargarRedDeLaRueda(memoria, red, entorno);
+const cuentas = redRueda.cuentas;
+console.log(
+  `motor: red de la rueda — ${redRueda.aristas.length} aristas rodables · ` +
+    `${redRueda.nodos} nodos · ${cuentas.km.toFixed(0)} km · ${redRueda.cargadoEnMs.toFixed(0)} ms`,
+);
+// El precio de la tabla de acceso, aislado: solo lo que la tabla quita de lo
+// que iba a entrar, no lo que ya sobraba por `a` o por `c`.
+console.log(
+  `motor: la tabla de la rueda cierra — ` +
+    [...redRueda.cerradasPorTipo]
+      .sort((a, b) => b[1] - a[1])
+      .map(([tipo, n]) => `${tipo} ${n}`)
+      .join(' · '),
+);
+console.log(
+  `motor:   sin fila en la tabla ${cuentas.sinFilaEnLaTabla} (tiene que ser 0) · ` +
+    `cerradas solo por el veto de p=acera ${cuentas.cerradasSoloPorPerfil}`,
+);
+// ⭐ EL SENTIDO, con su procedencia. La rotonda va aparte porque no viene de
+// ningún tag: es la implicación de `junction=roundabout`, y sin ella 1.390 de
+// las 1.393 aristas de rotonda se recorrerían en los dos sentidos.
+console.log(
+  `motor: sentido único en ${redRueda.aristas.length - cuentas.sinSentido} aristas — ` +
+    `${cuentas.sentidoPorTag} por el tag oneway · ${cuentas.sentidoAlReves} al revés (-1) · ` +
+    `${cuentas.sentidoPorRotonda} por rotonda implícita · ` +
+    `${cuentas.contraflujo} contraflujo abierto a la bici · ${cuentas.sinSentido} en los dos`,
+);
+// ⭐ EL TECHO LEGAL y SU FUENTE. El municipal manda donde habla y OSM rellena;
+// lo que queda a oscuras rueda a la velocidad de crucero sola, sin techo
+// inventado.
+console.log(
+  `motor: techo legal — ${cuentas.limiteMunicipal} aristas por limite_vel municipal · ` +
+    `${cuentas.limiteOsm} por maxspeed de OSM · ${cuentas.limiteAOscuras} a oscuras` +
+    (cuentas.maxspeedIlegible > 0 ? ` (${cuentas.maxspeedIlegible} con maxspeed ilegible)` : ''),
+);
+const jer = redRueda.jerarquia;
+console.log(
+  `motor: jerarquía municipal — ${jer.tramos} tramos en ${jer.porVia.size} vías ` +
+    `(${jer.tramosSinCodigo} sin código) · proyectada a ${jer.waysConJerarquia} de ` +
+    `${jer.waysMirados} ways (${jer.waysSinVia} sin vía que casar · ` +
+    `${jer.waysConViaSinJerarquia} en vía que MU1 no cubre) · ${jer.cargadoEnMs.toFixed(0)} ms`,
+);
+console.log(
+  `motor: por modo — patín ${cuentas.accesoPatin} aristas de ${redRueda.aristas.length} · ` +
+    `BiZi ${cuentas.enElTermino} dentro del término · ` +
+    `preferencia al carril en ${cuentas.conFactor} con tráfico`,
+);
+// ⚠️ EL ESTADO DE LA RED DEL PATÍN, dicho entero en cada arranque. Su lista
+// cerrada la parte en islas —la del peatón y la de la bici son conexas por
+// construcción, la suya no—, y de lo que le cierra, la mayor parte **no es la
+// ley: es que la jerarquía municipal no llega**. Las dos cifras son distintas
+// y por eso van separadas.
+console.log(
+  `motor:   el patín no pisa ${redRueda.aristas.length - cuentas.accesoPatin}: ` +
+    `${cuentas.patinSinJerarquia} sin jerarquía municipal que las evalúe · ` +
+    `${cuentas.patinConJerarquiaQueNoCumple} con jerarquía que dice que no`,
+);
+console.log(
+  `motor:   su red queda en ${cuentas.componentesDelPatin} trozos · ` +
+    `el mayor tiene ${cuentas.nodosEnLaMayorDelPatin} de ${redRueda.nodos} nodos ` +
+    `(${((cuentas.nodosEnLaMayorDelPatin / redRueda.nodos) * 100).toFixed(1)} %) · ` +
+    `y ${cuentas.nodosSueltosDelPatin} nodos no tocan ninguna arista suya`,
+);
+console.log(
+  `motor: pasos de peatones — ${cuentas.pasosEmpujando} se cruzan con el vehículo en la mano · ` +
+    `${cuentas.pasosConContinuidad} dan continuidad ciclista y se ruedan (art. 54.4)`,
+);
+console.log('motor: indexando la red de la rueda para enganchar portales…');
+const rejillaRueda = cargarRejilla(redRueda);
+console.log(
+  `motor: rejilla de la rueda — ${rejillaRueda.celdas.size} celdas · ` +
+    `${rejillaRueda.segArista.length} segmentos · ${rejillaRueda.cargadoEnMs.toFixed(0)} ms`,
 );
 
 console.log('motor: cargando los sitios (destinos con nombre)…');
@@ -191,6 +279,11 @@ const motor: Motor = {
   // atiende de uno en uno —`node:http` es de un solo hilo—, así que no hay dos
   // rutas escribiéndolo a la vez.
   cuaderno: cuadernoPara(red),
+  redRueda,
+  rejillaRueda,
+  // El cuaderno de la rueda es OTRO, y tiene que serlo: sus arrays van
+  // indexados por nodo, y la red de la rueda tiene sus propios nodos.
+  cuadernoRueda: cuadernoPara(redRueda),
 };
 
 const usoMemoria = process.memoryUsage();
@@ -404,6 +497,8 @@ servidor.listen(PUERTO, () => {
       'y una vía sin portales viaja con su propio código en las dos casillas',
   );
   console.log('motor: /api/portal-cercano barre los portales en memoria por haversine');
-  console.log('motor: POST /api/ruta calcula andando, de portal a portal, por codigos');
+  console.log(
+    'motor: POST /api/ruta calcula andando, bici, patin y bizi, de portal a portal, por codigos',
+  );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 });
