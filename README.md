@@ -8,19 +8,26 @@
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6)](https://www.typescriptlang.org/)
 [![Leaflet](https://img.shields.io/badge/Leaflet%20%2B%20OpenStreetMap-199900)](https://leafletjs.com/)
-[![Estado](https://img.shields.io/badge/estado-en%20construcci%C3%B3n-B45309)](#estado-ya-calcula-rutas-andando)
+[![Estado](https://img.shields.io/badge/estado-en%20construcci%C3%B3n-B45309)](#estado-ya-calcula-rutas-andando-y-sobre-ruedas)
 
 </div>
 
 ---
 
-## Estado: ya calcula rutas andando
+## Estado: ya calcula rutas andando y sobre ruedas
 
 > ⚠️ **Este repositorio está en construcción: arranca en local y no está publicado todavía en
 > ninguna dirección.** Lo que ya funciona de punta a punta es **el modo andando**: se escribe
 > de dónde a dónde, se pulsa «Generar ruta», y la pantalla dibuja la ruta de verdad en el mapa
-> y lista las indicaciones paso a paso. **Los otros tres modos —bus o tranvía, bici y coche—
-> todavía no calculan nada**, y el motor lo dice con esas palabras cuando se los piden.
+> y lista las indicaciones paso a paso.
+>
+> **⭐ Y desde el 29/08 el motor calcula también las tres rutas de la rueda** —bici propia,
+> patín (VMP) y BiZi—, cada una por su tabla de acceso legal, respetando el sentido único de la
+> calzada, con techo en el límite de velocidad de la vía y **prefiriendo el carril bici**. Es
+> motor: **el selector de la pantalla sigue teniendo cuatro botones** y su «Bici / Patinete»
+> manda `bici`, así que hoy un patinete recibe la ruta de una bici. Partirlo en seis es la
+> casilla siguiente. **Bus o tranvía y coche siguen sin calcular nada**, y el motor lo dice con
+> esas palabras cuando se los piden.
 >
 > La pantalla vive en [`app/`](app/): el formulario de cuatro campos, los cuatro modos, el mapa
 > y las indicaciones. **Los cuatro campos se rellenan contra el motor**, con el callejero de
@@ -429,7 +436,7 @@ Seis rutas vivas. Las que vengan las decide el plan, no esta lista:
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía — y **lista vacía también en las 619 sin portal**, que es la verdad: no tienen ninguno |
 | `GET /api/sitios?q=&capa=&foco=` | sugiere **sitios** desde 2 letras, hasta 10 resultados — la otra capa del autocompletar, la que sirve al desplegable de tipos. `capa` acota a una categoría (`farmacia`, `hospital`, `centro-salud`), y **una capa que no existe se ignora** en vez de dar error. `foco` es **el código del otro extremo** ya resuelto —un portal o un sitio, no un par de coordenadas—: a igualdad de coincidencia sube lo que está cerca de él, pero no descarta nada. Sin `q`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta **andando** entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué |
+| `POST /api/ruta` | la ruta entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué. **`modo` es opcional y vale `andando` si falta** (`andando` · `bici` · `patin` · `bizi`; `bus` y `coche` contestan que todavía no). Medido con las MISMAS 200 peticiones el 29/08: andando **p50 23,2 ms · p95 37,8**, bici **16,6 · 26,8**, BiZi **16,6 · 27,3**, patín **15,0 · 23,2**. ⚠️ Y en esas mismas 200: andando resuelve 196, bici 195, BiZi 195 y **el patín 35** — su lista cerrada legal deja la ciudad en islas, y el 70 % de lo que le cierra no es la ley sino que la jerarquía municipal no llega hasta ahí. El arranque lo declara |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
