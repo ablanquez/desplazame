@@ -17,15 +17,17 @@
 
 import { test, before, describe } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed, type RedEnMemoria } from './red.ts';
-import { cargarRedDeLaRueda, type RedDeLaRueda } from './red-rueda.ts';
+import { cargarRedDeLaRueda, DEFECTO_POR_TIPO, type RedDeLaRueda } from './red-rueda.ts';
 import { cargarRejilla, enganchar, type Rejilla } from './proyeccion.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { cargarCallejero } from './callejero.ts';
 import { cargarSitios } from './sitios.ts';
 import { entornoDe } from './gacetero.ts';
-import { calcularRuta, cuadernoPara, type Cuaderno, type Ruta } from './ruta.ts';
+import { calcularRuta, cuadernoPara, geometriaDe, type Cuaderno, type Ruta } from './ruta.ts';
+import { escribirPasos } from './pasos.ts';
 import { admite, calcularRutaRodando, segundosRodando } from './rodando.ts';
 import { VELOCIDAD_KMH } from './rueda.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
@@ -240,28 +242,59 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    *
    * El caso: **Portales.120344 → Portales.110047**. La bici va en 1.565 m
    * pisando **112,6 m de la Avenida de Madrid**; el patín no puede —no está en
-   * la lista cerrada del art. 56.3— y da 1.975 m, 410 más.
+   * la lista cerrada del art. 56.3— y da 1.972 m, 407 más.
    *
    * Lo que la prueba mira no es solo la diferencia de metros: mira **que la
    * ruta del patín no pise ni una arista vedada**. Una ruta más larga podría
    * serlo por casualidad; cero aristas prohibidas no es casualidad.
+   *
+   * ⚠️ **Y esta juez NO ha quedado al byte**, aunque el mini-encargo del 29/08
+   * por la tarde la pedía así. Cambian dos números y los dos cambian a mejor:
+   *
+   * - el patín pasa de **1.975 a 1.972 m** — 3 m de atajo;
+   * - y lo que la bici le pisa de vedado, de **113 a 63 m**.
+   *
+   * El porqué es que **la Avenida de Madrid no es uniforme**, y hasta hoy la
+   * tratábamos como si lo fuera. Sus cuatro tramos de esta ruta llevan los
+   * cuatro `limite_vel = 30` del dato municipal, pero `lanes` de OSM dice que
+   * dos tienen **dos carriles por sentido** y dos tienen **uno**. Y vía
+   * pacificada [ORD art. 15.2.a.ii] es un carril por sentido **Y** 30 km/h: los
+   * de un carril lo son y el patín puede pisarlos; los de dos, no.
+   *
+   * Así que no es que el defecto haya pisado a la señal —el 30 municipal manda
+   * y se usa—: es que ahora se sabe **cuántos carriles** tiene cada tramo, y esa
+   * es la otra mitad de la definición. Se dice, se cambian los números y se
+   * escribe por qué.
    */
-  test('⭐ 4 · el patín esquiva la Avenida de Madrid y la bici no: 1.565 vs 1.975 m', () => {
+  test('⭐ 4 · el patín esquiva la Avenida de Madrid y la bici no: 1.565 vs 1.972 m', () => {
     const a = donde('Portales.120344');
     const b = donde('Portales.110047');
 
     const bici = rodar('bici', a, b)!;
     const patin = rodar('patin', a, b)!;
     assert.equal(Math.round(bici.metros), 1565);
-    assert.equal(Math.round(patin.metros), 1975);
+    assert.equal(Math.round(patin.metros), 1972);
 
     const vedadasDeLaBici = bici.trozos.filter((t) => rueda.accesoPatin[t.arista] === 0);
     assert.ok(vedadasDeLaBici.length > 0, 'la bici tiene que pisar lo que el patín no puede');
     assert.equal(
       Math.round(vedadasDeLaBici.reduce((s, t) => s + t.metros, 0)),
-      113,
+      63,
       'los metros vedados que la bici sí pisa',
     );
+
+    // ⭐ Y el porqué, en la aserción y no solo en el comentario: los dos tramos
+    // vedados son los de DOS carriles por sentido, con el mismo 30 municipal
+    // que los abiertos. Es la definición del art. 15.2.a.ii entera, no su
+    // mitad de velocidad.
+    for (const t of vedadasDeLaBici) {
+      assert.equal(rueda.limiteKmh[t.arista], 30, 'el límite es 30 en los cuatro tramos');
+      assert.equal(rueda.fuenteLimite[t.arista], 1, 'y lo dice el municipal');
+      assert.ok(
+        rueda.carrilesPorSentido[t.arista]! >= 2,
+        'lo que veda no es la velocidad: son los carriles',
+      );
+    }
 
     // Y la del patín, ni uno. Esto es lo que de verdad se compra.
     assert.equal(patin.trozos.filter((t) => rueda.accesoPatin[t.arista] === 0).length, 0);
@@ -425,6 +458,135 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
     // Y la cifra que hace que esto importe: cuántas aristas dependen de la
     // implicación y no de ningún tag.
     assert.equal(rueda.cuentas.sentidoPorRotonda, 1390);
+  });
+
+  /**
+   * ⭐ JUEZ 9 — EL DEFECTO LEGAL LE ABRE AL PATÍN LA CALLE QUE NADIE FICHÓ.
+   *
+   * El caso: **Camino del Saso**, *way* 166001851, arista 19942, 1.410,3 m de
+   * `h=residential`. **MU1 no la conoce** —no tiene `pacificada`, ni zona 30,
+   * ni nada—, y hasta el 29/08 por la tarde el patín no podía pisarla.
+   *
+   * Ahora sí, y no por una analogía: sin límite expreso rige el **defecto del
+   * art. 50.b RGC** —un carril por sentido → 30 km/h—, y una vía de un carril
+   * por sentido a 30 **es vía pacificada por la definición del art. 15.2.a.ii**
+   * de la Ordenanza, que el art. 56.3.b abre al VMP.
+   *
+   * La juez lo comprueba por los dos lados: que el techo sale de la capa que
+   * dice, y que **cerrando esa arista el patín se queda sin ruta** — o sea,
+   * que la calle no era prescindible.
+   */
+  test('⭐ 9 · una residential sin señal es pacificada por el art. 50.b RGC, y el patín la pisa', () => {
+    const k = 19942;
+    const arista = rueda.aristas[k]!;
+    assert.equal(arista.way, 166001851, 'el Camino del Saso se ha movido de sitio');
+    assert.equal(rueda.tipoDeWay.get(arista.way), 'residential');
+    // Ni el Ayuntamiento ni OSM le ponen límite: el techo es el defecto legal.
+    assert.equal(rueda.fuenteLimite[k], DEFECTO_POR_TIPO);
+    assert.equal(rueda.limiteKmh[k], 30);
+    assert.equal(rueda.carrilesPorSentido[k], 1);
+    assert.equal(rueda.jerarquia.porWay.has(arista.way), false, 'MU1 no la cubre');
+    assert.equal(rueda.accesoPatin[k], 1);
+
+    const p0 = arista.g[0] as Punto;
+    const pN = arista.g[arista.g.length - 1] as Punto;
+    const patin = rodar('patin', p0, pN)!;
+    assert.ok(patin, 'el patín tiene que poder recorrerla');
+    assert.equal(Math.round(patin.metros), 1410);
+
+    // Y si se le cierra, no hay por dónde: la calle no era prescindible.
+    const cerrada: RedDeLaRueda = { ...rueda, accesoPatin: Uint8Array.from(rueda.accesoPatin) };
+    cerrada.accesoPatin[k] = 0;
+    assert.equal(rodar('patin', p0, pN, cerrada), null);
+  });
+
+  /**
+   * ⭐ JUEZ 10 — Y LA SEÑAL SIGUE MANDANDO: una >30 expresa sigue vedada.
+   *
+   * El caso: **Avenida de Montañana**, arista 4446, 1.164,6 m con
+   * `limite_vel = 50` **del dato municipal**. Es la otra mitad del defecto, y
+   * la que impide que este encargo sea una puerta trasera: el defecto llena el
+   * hueco, **no pisa a la señal**. Con dos carriles o con uno, un 50 expreso
+   * deja fuera al patín.
+   *
+   * Y el recuento entero, para que la afirmación no dependa de una calle:
+   * **5.544 aristas** tienen límite expreso de más de 30 y están vedadas.
+   */
+  test('⭐ 10 · una vía con 50 EXPRESO sigue vedada al patín, y son 5.544', () => {
+    const k = 4446;
+    assert.equal(rueda.limiteKmh[k], 50);
+    assert.equal(rueda.fuenteLimite[k], 1, 'el 50 lo dice el municipal');
+    assert.equal(rueda.accesoPatin[k], 0);
+
+    let vedadasExpresas = 0;
+    for (let i = 0; i < rueda.aristas.length; i++) {
+      const f = rueda.fuenteLimite[i]!;
+      if ((f === 1 || f === 2) && rueda.limiteKmh[i]! > 30 && rueda.accesoPatin[i] === 0) {
+        vedadasExpresas++;
+      }
+    }
+    assert.equal(vedadasExpresas, 5544);
+  });
+
+  /**
+   * ⭐ JUEZ 11 — LA MURALLA DEL PEATÓN, EN UN SOLO NÚMERO.
+   *
+   * No es un recuento de pruebas: es **el sha256 de 391 rutas del peatón**
+   * —sus metros, la lista de aristas, la geometría a siete decimales y el
+   * texto de sus 9.346 pasos—. Si cualquier cosa de la rueda le rozara el
+   * camino, esta cifra cambiaría.
+   *
+   * Se calculó por primera vez el 29/08 comparando el árbol de trabajo contra
+   * un clon de HEAD, y salió idéntica. Aquí queda dentro de la suite para que
+   * no haya que acordarse de comprobarlo a mano.
+   *
+   * ⚠️ Esta juez **debe** ponerse roja el día que alguien cambie el peatón a
+   * propósito. Cuando eso pase, se recalcula y se cambia el número **con la
+   * razón escrita**, nunca porque estorbe.
+   */
+  test('⭐ 11 · las 391 rutas del peatón, al byte', () => {
+    let semilla = 20260829;
+    const azar = (): number => {
+      semilla = (semilla * 1103515245 + 12345) & 0x7fffffff;
+      return semilla / 0x7fffffff;
+    };
+    const cuadernoPeaton = cuadernoPara(peaton);
+    const huella = createHash('sha256');
+    const s = portales.situados;
+    for (let n = 0; n < 400; n++) {
+      const A = s[Math.floor(azar() * s.length)]!;
+      const B = s[Math.floor(azar() * s.length)]!;
+      const a: Punto = [A.lon, A.lat];
+      const b: Punto = [B.lon, B.lat];
+      const eo = enganchar(peaton, rejillaPeaton, a[0], a[1]);
+      const ed = enganchar(peaton, rejillaPeaton, b[0], b[1]);
+      if (!eo || !ed) {
+        huella.update('sin-enganche\n');
+        continue;
+      }
+      const r = calcularRuta(peaton, cuadernoPeaton, eo, a, ed, b);
+      if (!r) {
+        huella.update('sin-ruta\n');
+        continue;
+      }
+      const pasos = escribirPasos(peaton, r, A.codigo, B.codigo, b);
+      huella.update(
+        r.metros.toFixed(6) +
+          '|' +
+          r.trozos.map((t) => t.arista).join(',') +
+          '|' +
+          geometriaDe(r)
+            .map((p) => p[0].toFixed(7) + ',' + p[1].toFixed(7))
+            .join(' ') +
+          '|' +
+          pasos.map((p) => p.giro + '~' + p.metros + '~' + p.texto).join('#') +
+          '\n',
+      );
+    }
+    assert.equal(
+      huella.digest('hex'),
+      'e7d98ff6238d4317ba7f0cdfbb258fd2ccbcc481158393ec8da017dfd7775689',
+    );
   });
 
   /**

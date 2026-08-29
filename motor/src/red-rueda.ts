@@ -45,9 +45,14 @@ import { dentroDelEntorno } from './gacetero.ts';
 import { cargarJerarquia, type JerarquiaEnMemoria } from './jerarquia.ts';
 import {
   ACCESO_RODANDO,
+  DEFECTO_PLATAFORMA_KMH,
+  DEFECTO_UN_CARRIL_KMH,
+  DEFECTO_VARIOS_CARRILES_KMH,
   FACTOR_DE_TRAFICO,
   PERFILES_VETADOS,
   PERFIL_DE_CRUCE,
+  UN_CARRIL_POR_TIPO,
+  carrilesPorSentidoDeOsm,
   factorDe,
   puedeRodar,
 } from './rueda.ts';
@@ -65,10 +70,26 @@ interface RespuestaOverpass {
   }[];
 }
 
-/** De dónde salió el techo legal de una arista. */
+/**
+ * ⭐ De dónde salió el techo legal de una arista, **en capas**.
+ *
+ * Las dos primeras son **dato expreso** —la señal—, y mandan siempre. Las
+ * cuatro siguientes son el **defecto legal del art. 50 RGC**, que solo entra
+ * donde no hay señal. Que cada una tenga su código es lo que permite decir en
+ * el arranque cuántas aristas debe su límite a qué, y distinguir «lo dice el
+ * Ayuntamiento» de «lo dice la ley porque nadie ha dicho otra cosa».
+ */
 export const SIN_FUENTE = 0;
 export const FUENTE_MUNICIPAL = 1;
 export const FUENTE_OSM = 2;
+/** Defecto 20: plataforma única [RGC 50.a], por `plataforma=SI` de MU1. */
+export const DEFECTO_PLATAFORMA = 3;
+/** Defecto 30: un carril por sentido [RGC 50.b], contado con `lanes` de OSM. */
+export const DEFECTO_UN_CARRIL = 4;
+/** Defecto 50: dos o más carriles por sentido [RGC 50.c], con `lanes` de OSM. */
+export const DEFECTO_VARIOS_CARRILES = 5;
+/** Defecto 30 por TIPO de vía. [PROPIO-por-tipo]: la capa menos apoyada. */
+export const DEFECTO_POR_TIPO = 6;
 
 /** Lo que la red de la rueda cuenta de sí misma al levantarse. */
 export interface CuentasDeLaRueda {
@@ -88,9 +109,18 @@ export interface CuentasDeLaRueda {
   readonly sentidoPorRotonda: number;
   readonly contraflujo: number;
   readonly sinSentido: number;
-  /** Aristas con techo legal, por fuente. */
+  /** Aristas con techo legal EXPRESO — la señal. */
   readonly limiteMunicipal: number;
   readonly limiteOsm: number;
+  /**
+   * ⭐ Y las que lo tienen por el **defecto legal del art. 50 RGC**, capa a
+   * capa. `defectoPorTipo` va aparte del resto porque es la única
+   * [PROPIO-por-tipo]: las otras tres salen de un atributo de la vía.
+   */
+  readonly defectoPlataforma: number;
+  readonly defectoUnCarril: number;
+  readonly defectoVariosCarriles: number;
+  readonly defectoPorTipo: number;
   readonly limiteAOscuras: number;
   /** Aristas cuyo `maxspeed` de OSM no es un número limpio: NO CONSTA. */
   readonly maxspeedIlegible: number;
@@ -152,8 +182,15 @@ export interface RedDeLaRueda extends RedEnMemoria {
   readonly sentido: Int8Array;
   /** El techo legal de cada arista, en km/h. **`0` es NO CONSTA.** */
   readonly limiteKmh: Float32Array;
-  /** De dónde salió ese techo: `SIN_FUENTE`, `FUENTE_MUNICIPAL`, `FUENTE_OSM`. */
+  /** De dónde salió ese techo: una de las siete capas de arriba. */
   readonly fuenteLimite: Uint8Array;
+  /**
+   * ⭐ Cuántos carriles por sentido tiene la vía, o `0` si NO CONSTA. Sale del
+   * `lanes` de OSM y, donde no está, del defecto por tipo. Lo necesita el
+   * patín: **vía pacificada** es un carril por sentido Y 30 km/h o menos
+   * [ORD art. 15.2.a.ii], y sin los carriles esa pregunta no se puede hacer.
+   */
+  readonly carrilesPorSentido: Uint8Array;
   /** El multiplicador de tiempo de cada arista. 1 donde no hay tráfico. */
   readonly factor: Float32Array;
   /** Si el patín puede entrar (`1`) o no (`0`). La bici puede en todas. */
@@ -318,6 +355,7 @@ export function cargarRedDeLaRueda(
   const sentido = new Int8Array(aristas.length);
   const limiteKmh = new Float32Array(aristas.length);
   const fuenteLimite = new Uint8Array(aristas.length);
+  const carrilesPorSentido = new Uint8Array(aristas.length);
   const factor = new Float32Array(aristas.length);
   const accesoPatin = new Uint8Array(aristas.length);
   const enElTermino = new Uint8Array(aristas.length);
@@ -329,6 +367,10 @@ export function cargarRedDeLaRueda(
   let contraflujo = 0;
   let limiteMunicipal = 0;
   let limiteOsm = 0;
+  let defectoPlataforma = 0;
+  let defectoUnCarril = 0;
+  let defectoVariosCarriles = 0;
+  let defectoPorTipo = 0;
   let maxspeedIlegible = 0;
   let conFactor = 0;
   let km = 0;
@@ -349,30 +391,73 @@ export function cargarRedDeLaRueda(
       else if (suyo.porQue === 'contraflujo') contraflujo++;
     }
 
-    // — El techo legal: el municipal manda donde habla, OSM rellena —
-    // Es la regla (1) del parlamento del 29/08: `maxspeed` de OSM se define
-    // como el límite LEGAL, y quien emite el límite urbano es el Ayuntamiento;
-    // MU1 es su registro. Donde los dos hablan y discrepan —el 17,5 % medido—,
-    // gana el municipal. Donde el municipal calla, OSM rellena. Y donde callan
-    // los dos, **la arista se queda a oscuras**: sin techo, con la velocidad de
-    // crucero sola, que es lo honrado — inventarle un límite genérico de 50
-    // sería escribir un dato que nadie ha publicado.
+    // ⭐ — EL TECHO LEGAL, EN CUATRO CAPAS Y POR ESE ORDEN —
+    //
+    // 1 y 2 · **EL DATO EXPRESO, que es la señal, y manda siempre.** Es la
+    //   regla (1) del parlamento del 29/08: `maxspeed` de OSM se define como
+    //   el límite LEGAL, y quien emite el límite urbano es el Ayuntamiento;
+    //   MU1 es su registro. Donde los dos hablan y discrepan —el 17,5 %
+    //   medido—, gana el municipal. Donde el municipal calla, OSM rellena.
+    //
+    // 3 y 4 · **EL DEFECTO LEGAL del art. 50 RGC**, y solo donde no hay señal.
+    //   Un límite genérico rige sin que nadie lo señalice, así que dejar la
+    //   arista «a oscuras» no era neutral: era ignorar la ley que sí aplica.
+    //   Plataforma única → 20 · un carril por sentido → 30 · dos o más → 50,
+    //   con los carriles del `lanes` de OSM y, donde tampoco está, con el
+    //   defecto por tipo, que va contado aparte por ser el menos apoyado.
+    //
+    // Y lo que **sigue a oscuras** se queda a oscuras: sin `lanes`, sin
+    // plataforma y sin un tipo del que se pueda deducir el carril, no hay
+    // regla del artículo que aplicar — y son sobre todo caminos rurales, que
+    // ni siquiera son vía urbana.
     const suVia = jerarquia.porWay.get(arista.way);
+    const carrilesOsm = carrilesPorSentidoDeOsm(
+      t['lanes'],
+      t['oneway'] === 'yes' || t['oneway'] === '-1',
+    );
     if (suVia && suVia.limiteKmh > 0) {
       limiteKmh[k] = suVia.limiteKmh;
       fuenteLimite[k] = FUENTE_MUNICIPAL;
       limiteMunicipal++;
+      carrilesPorSentido[k] = carrilesOsm;
     } else {
       const deOsm = limiteDeOsm(t['maxspeed']);
+      if (t['maxspeed'] !== undefined && deOsm === 0) {
+        maxspeedIlegible++;
+      }
       if (deOsm > 0) {
         limiteKmh[k] = deOsm;
         fuenteLimite[k] = FUENTE_OSM;
         limiteOsm++;
+        carrilesPorSentido[k] = carrilesOsm;
+      } else if (suVia?.zona20) {
+        // [RGC 50.a] plataforma única. La zona 20 de MU1 es exactamente eso.
+        limiteKmh[k] = DEFECTO_PLATAFORMA_KMH;
+        fuenteLimite[k] = DEFECTO_PLATAFORMA;
+        defectoPlataforma++;
+        carrilesPorSentido[k] = carrilesOsm || 1;
+      } else if (carrilesOsm === 1) {
+        // [RGC 50.b] un único carril por sentido.
+        limiteKmh[k] = DEFECTO_UN_CARRIL_KMH;
+        fuenteLimite[k] = DEFECTO_UN_CARRIL;
+        defectoUnCarril++;
+        carrilesPorSentido[k] = 1;
+      } else if (carrilesOsm >= 2) {
+        // [RGC 50.c] dos o más carriles por sentido.
+        limiteKmh[k] = DEFECTO_VARIOS_CARRILES_KMH;
+        fuenteLimite[k] = DEFECTO_VARIOS_CARRILES;
+        defectoVariosCarriles++;
+        carrilesPorSentido[k] = carrilesOsm;
+      } else if (UN_CARRIL_POR_TIPO.has(tipo)) {
+        // [PROPIO-por-tipo] la calle de barrio, el vial de servicio y la de
+        // convivencia no son vías de dos calzadas. Ver `rueda.ts`.
+        limiteKmh[k] = DEFECTO_UN_CARRIL_KMH;
+        fuenteLimite[k] = DEFECTO_POR_TIPO;
+        defectoPorTipo++;
+        carrilesPorSentido[k] = 1;
       } else {
-        if (t['maxspeed'] !== undefined) {
-          maxspeedIlegible++;
-        }
         fuenteLimite[k] = SIN_FUENTE;
+        carrilesPorSentido[k] = carrilesOsm;
       }
     }
 
@@ -383,7 +468,15 @@ export function cargarRedDeLaRueda(
     }
 
     // — El acceso del patín: la lista cerrada del art. 56 —
-    accesoPatin[k] = puedeElPatin(tipo, arista.perfil, suVia) ? 1 : 0;
+    accesoPatin[k] = puedeElPatin(
+      tipo,
+      arista.perfil,
+      suVia,
+      limiteKmh[k]!,
+      carrilesPorSentido[k]!,
+    )
+      ? 1
+      : 0;
 
     // — El término municipal, para la BiZi —
     // Entera dentro, no su punto medio: una arista que cruza la frontera se
@@ -505,6 +598,7 @@ export function cargarRedDeLaRueda(
     sentido,
     limiteKmh,
     fuenteLimite,
+    carrilesPorSentido,
     factor,
     accesoPatin,
     enElTermino,
@@ -521,7 +615,18 @@ export function cargarRedDeLaRueda(
       sinSentido,
       limiteMunicipal,
       limiteOsm,
-      limiteAOscuras: aristas.length - limiteMunicipal - limiteOsm,
+      defectoPlataforma,
+      defectoUnCarril,
+      defectoVariosCarriles,
+      defectoPorTipo,
+      limiteAOscuras:
+        aristas.length -
+        limiteMunicipal -
+        limiteOsm -
+        defectoPlataforma -
+        defectoUnCarril -
+        defectoVariosCarriles -
+        defectoPorTipo,
       maxspeedIlegible,
       accesoPatin: accesoPatinTotal,
       patinSinJerarquia,
@@ -572,6 +677,25 @@ export function cargarRedDeLaRueda(
  * ⚠️ Y el apartado e), **zonas verdes**, NO se implementa: exige un ancho de
  * vía de 3 m [art. 50.11] que no tenemos en ninguna fuente —`width` en 610 de
  * los 65.223 *ways*—. Hueco H5, declarado no modelable.
+ *
+ * ── ⭐ LA VÍA PACIFICADA DERIVADA (29/08, tarde) ────────────────────────────
+ *
+ * `pacificada=SI` de MU1 no es la única forma de ser vía pacificada: es la
+ * forma de **estar fichada** como tal. La Ordenanza la DEFINE en el
+ * art. 15.2.a.ii —*«todas aquellas vías de un carril de circulación por
+ * sentido y en las que la limitación genérica de velocidad es 30 km/h»*—, y esa
+ * definición calca el límite genérico del [LEY RGC art. 50.b]. Así que una
+ * calle de barrio sin señal **es pacificada por ley**, la haya fichado el
+ * Ayuntamiento o no, y el art. 56.3.b se la abre al VMP.
+ *
+ * Aquí se evalúa esa definición sobre el **límite efectivo** —expreso si lo
+ * hay, defecto legal si no— y sobre los **carriles por sentido**. Las dos
+ * condiciones, no una: una avenida de 30 con dos carriles por sentido no es
+ * pacificada, y para esa está el 56.3.d, que sigue exigiendo dato municipal.
+ *
+ * Y el orden importa: **el dato expreso sigue mandando**. Una `residential`
+ * señalizada a 50 tiene límite efectivo 50 y NO es pacificada, aunque el
+ * defecto por tipo le hubiera dado 30 de no haber señal.
  */
 function puedeElPatin(
   highway: string,
@@ -579,6 +703,8 @@ function puedeElPatin(
   via: { readonly pacificada: boolean; readonly zona30: boolean; readonly zona20: boolean;
     readonly residencial: boolean; readonly ciclocarril: boolean;
     readonly multicarrilCalmado: boolean } | undefined,
+  limiteEfectivoKmh: number,
+  carrilesPorSentido: number,
 ): boolean {
   // Cruzar un paso con el vehículo en la mano es de peatón, y el 54.4 nombra
   // «la bicicleta o VMP»: los dos cruzan igual.
@@ -594,13 +720,19 @@ function puedeElPatin(
   if (highway === 'living_street') {
     return true;
   }
+  // ⭐ 56.3.b vía la DEFINICIÓN del art. 15.2.a.ii: un carril por sentido y
+  // 30 km/h o menos. Va antes de mirar MU1 porque no lo necesita — es lo que
+  // le abre la calle de barrio que el Ayuntamiento no ha fichado.
+  if (carrilesPorSentido === 1 && limiteEfectivoKmh > 0 && limiteEfectivoKmh <= 30) {
+    return true;
+  }
   if (!via) {
     return false;
   }
   return (
     via.ciclocarril || // 56.3.a
     via.pacificada ||
-    via.zona30 || // 56.3.b
+    via.zona30 || // 56.3.b, fichada
     via.zona20 ||
     via.residencial || // 56.3.c
     via.multicarrilCalmado // 56.3.d

@@ -144,10 +144,20 @@ console.log(
 // lo que queda a oscuras rueda a la velocidad de crucero sola, sin techo
 // inventado.
 console.log(
-  `motor: techo legal — ${cuentas.limiteMunicipal} aristas por limite_vel municipal · ` +
-    `${cuentas.limiteOsm} por maxspeed de OSM · ${cuentas.limiteAOscuras} a oscuras` +
+  `motor: techo legal EXPRESO (la señal) — ${cuentas.limiteMunicipal} aristas por ` +
+    `limite_vel municipal · ${cuentas.limiteOsm} por maxspeed de OSM` +
     (cuentas.maxspeedIlegible > 0 ? ` (${cuentas.maxspeedIlegible} con maxspeed ilegible)` : ''),
 );
+// ⭐ Y EL DEFECTO LEGAL del art. 50 RGC donde no hay señal, capa a capa. La
+// última va aparte y con su marca: es la única [PROPIO-por-tipo], la que no
+// sale de un atributo de la vía sino de lo que su tipo implica.
+console.log(
+  `motor:   y por DEFECTO del art. 50 RGC — ${cuentas.defectoPlataforma} a 20 ` +
+    `(plataforma única) · ${cuentas.defectoUnCarril} a 30 (un carril por sentido, lanes) · ` +
+    `${cuentas.defectoVariosCarriles} a 50 (dos o más, lanes) · ` +
+    `${cuentas.defectoPorTipo} a 30 [PROPIO-por-tipo]`,
+);
+console.log(`motor:   siguen a oscuras ${cuentas.limiteAOscuras}, sin regla que aplicarles`);
 const jer = redRueda.jerarquia;
 console.log(
   `motor: jerarquía municipal — ${jer.tramos} tramos en ${jer.porVia.size} vías ` +

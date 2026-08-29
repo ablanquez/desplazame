@@ -276,3 +276,90 @@ export const FACTOR_DE_TRAFICO: Readonly<Record<string, number>> = {
 export function factorDe(highway: string): number {
   return FACTOR_DE_TRAFICO[highway] ?? 1;
 }
+
+/**
+ * ⭐ EL DEFECTO LEGAL NACIONAL: el art. 50 del RGC, por atributos de la vía.
+ *
+ * [LEY RGC art. 50, redacción del RD 970/2020, en vigor desde el 11/05/2021]
+ * fija el límite genérico en vías urbanas **sin necesidad de señal**:
+ *
+ * - **20 km/h** en vías de **plataforma única** de calzada y acera;
+ * - **30 km/h** en vías de **un único carril por sentido** de circulación;
+ * - **50 km/h** en vías de **dos o más carriles por sentido**.
+ *
+ * Y el propio artículo aclara que *«no se considerarán carriles los reservados
+ * para circulación, uso exclusivo o preferente»* de determinados vehículos.
+ *
+ * ── Por qué esto entra, y por qué no pisa a nadie ───────────────────────────
+ *
+ * Un límite genérico **rige sin que haya señal**: la señal es la excepción, no
+ * la regla. Nuestro dato expreso —`limite_vel` municipal y `maxspeed` de OSM—
+ * **es exactamente la señal**, así que sigue mandando donde exista: el defecto
+ * solo llena el hueco. Es la práctica que codifica
+ * [DOC osm-legal-default-speeds]: aplicar el defecto legal del país donde no
+ * hay ni señal ni etiqueta.
+ *
+ * ── Y por qué le importa al patín y no a la bici ────────────────────────────
+ *
+ * El art. 15.2.a.ii de la Ordenanza define **vía pacificada** con esta misma
+ * regla —*«un carril de circulación por sentido y… limitación genérica de
+ * velocidad de 30 km/h»*—, y el art. 56.3.b abre las vías pacificadas al VMP.
+ * Así que una calle de barrio sin señal **es pacificada por ley**, aunque MU1
+ * no la haya fichado, y el patín puede circular por ella.
+ *
+ * A la bici no le cambia el acceso —ya iba por toda la calzada— y **tampoco le
+ * cambia el reloj**: los tres defectos son 20, 30 y 50, y su crucero es 18
+ * (20 la BiZi), así que `min(velocidad, techo)` da lo mismo con defecto o sin
+ * él. Es un techo que existe, es correcto, y no mueve un segundo.
+ */
+export const DEFECTO_PLATAFORMA_KMH = 20;
+export const DEFECTO_UN_CARRIL_KMH = 30;
+export const DEFECTO_VARIOS_CARRILES_KMH = 50;
+
+/**
+ * ⭐ Los tipos que se cuentan como **un carril por sentido** cuando el dato no
+ * dice cuántos hay. **[PROPIO-por-tipo]**, y declarado como tal.
+ *
+ * No es una lectura del artículo: el artículo habla de carriles, no de tipos.
+ * Es la inferencia mínima que hace falta para que el defecto llegue a la calle
+ * de barrio, y se apoya en la definición de los propios tipos de OSM —
+ * `residential` es la calle de acceso a viviendas, `living_street` la calle de
+ * convivencia y `service` el vial de servicio o el acceso a un aparcamiento—,
+ * ninguno de los cuales es una vía de dos calzadas.
+ *
+ * **Alcanza a 7.227 aristas** de las 58.914 de la red (12,3 %), medido, y solo
+ * donde no hay ni límite expreso ni `lanes` de OSM. Va contado aparte en el
+ * arranque para que ese número se pueda mirar: es la capa menos apoyada de las
+ * tres y la única que no sale de un dato de la vía.
+ *
+ * `unclassified` **NO está**, a propósito: es la carretera menor, y las hay de
+ * dos carriles por sentido. Se queda a oscuras, que es la verdad.
+ */
+export const UN_CARRIL_POR_TIPO: ReadonlySet<string> = new Set([
+  'residential',
+  'living_street',
+  'service',
+]);
+
+/**
+ * Cuántos carriles por sentido declara OSM, o `0` si NO CONSTA.
+ *
+ * `lanes` en OSM cuenta **todos** los carriles de la vía, en los dos sentidos,
+ * salvo que sea de sentido único. De ahí la división.
+ *
+ * ⚠️ Y una diferencia con el artículo que se declara y no se disimula: el
+ * RGC **descuenta los carriles reservados** y `lanes` de OSM **los incluye**.
+ * No se descuentan aquí porque el dato de `lanes:bus` no está en la etiqueta
+ * de la mayoría; el efecto es contar de más, que empuja hacia el 50 — y el 50
+ * es el lado que **cierra** la vía al patín. Se equivoca hacia el lado seguro.
+ */
+export function carrilesPorSentidoDeOsm(lanes: string | undefined, oneway: boolean): number {
+  if (lanes === undefined || !/^\d+$/.test(lanes)) {
+    return 0;
+  }
+  const n = Number(lanes);
+  if (n <= 0) {
+    return 0;
+  }
+  return oneway ? n : Math.max(1, Math.round(n / 2));
+}
