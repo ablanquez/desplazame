@@ -1619,6 +1619,57 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       medido en nuestra red — la bici usa preferencia, no
       mínimo-de-distancia puro [doctrina Valhalla; el reverso del
       peatón, declarado]
+- [x] **3-bis · LA AUDITORÍA DE SENTIDOS — FASE 1 HECHA (29/08, dos
+      commits)**, nacida del OJO DE ANTONIO sobre una ruta (la bici
+      subía Monasterio de Siresa a contramano — way 24433275, OSM lo
+      declara al revés de la calle real; el diagnóstico previo
+      demostró que NO había fallo del motor: 79/79 sentidos a favor
+      DEL DATO, y el dato estaba mal — la clase de error que ningún
+      detector automático caza [QA wiki: un oneway invertido es
+      topológicamente limpio; verifica el local]). EL SISTEMA, no el
+      parche [Antonio: «de nada sirve ñapear Siresa sin referencia
+      de qué estaba mal y qué arregló la corrección entera»]:
+      (1) SIRESA CORREGIDA con mecanismo: sentidos-corregidos.ts
+      [el 9090 + la tabla de reparaciones de CycleStreets] — una
+      fila (yes→-1, fuente: conocimiento local 29/08), TRES
+      cerraduras (si §1.21 sana o el way muere, el motor NO
+      ARRANCA), el log declarando way+motivo, la ruta viva (COLOSO→
+      ROMEO ya sin pisar Siresa: 10 pasos) y EL GUARDIÁN DEL
+      DESHIELO (lee §1.21: el día que una re-descarga traiga el way
+      arreglado en OSM, rojo avisando de jubilar la corrección).
+      (2) LA SONDA-CYGNUS [Telenav: conflación del dato
+      gubernamental contra OSM, resultado para VERIFICAR — nunca a
+      ciegas; la clase de error con nombre: TrafficFlowDirection,
+      67.000 detectados/6 % falsos positivos] — doble_sent municipal
+      × oneway OSM sobre las 1.758 vías que se hablan: A1 71 vías/
+      8,5 km (MU1 único, OSM calla — la bici las remonta hoy) · A2
+      182 mixtas · B2 25/1,8 km (OSM único, MU1 doble — rodeos de
+      más) · B1 156 APARTADAS con medida (avenidas de doble calzada:
+      rumbo >120° entre ways = modelado legítimo, el 98,8 % de los
+      metros de la clase eran ruido — la confesión: la primera sonda
+      los contaba) · ⚠️ EL PUNTO CIEGO CUANTIFICADO: 1.185 vías/
+      299,8 km donde ambas dicen «único» y la sonda no ve el LADO —
+      la clase Siresa vive ahí (solo ojo o las trazas GTFS del 10).
+      LA LISTA (434 filas, scratchpad) espera EL OJO DE ANTONIO: ni
+      un candidato corregido sin verificar. (3) EL BANCO DE
+      REFERENCIA [el patrón del testigo del Andrés Oliván]: nueve
+      testigos ⚠️ EN VERDE documentando la conducta mala de HOY con
+      su ida y su vuelta medidas («Santiago Guallar: 15,5 m de calle
+      que cuestan un rodeo de 554,2») — escritos PARA CAERSE cuando
+      Antonio confirme y la fase 2 corrija: el acta de qué estaba
+      mal y qué lo arregló. La contraprueba 4/4 (la cerradura del
+      deshielo tira 58) — ⚠️ y el runner reincidió en el «fail 0»
+      con 58 sin pasar [la familia de la nº12: leer pass, no fail].
+      La muralla del peatón al byte. 332 motor.
+- [ ] **3-tris · FASE 2 (espera el ojo de Antonio):** las
+      correcciones EN TANDA contra la lista verificada — cada una
+      con su fila fuente-y-fecha, su testigo del banco cayéndose
+      (rojo→reescrito a la conducta buena) y su deshielo. Y aguas
+      arriba: los arreglos en osm.org que Antonio quiera (el flujo
+      canónico [Telenav/HOT: detectar → verificar → editar OSM]) —
+      la re-descarga futura los trae y los deshielos jubilan
+      correcciones.
+
 - [ ] **4 · EL SELECTOR a SEIS modos [firma de Antonio, 28/08 — la
       segunda del día, sustituye a la de cinco de la mañana]:**
       Andando · Bus/Tranvía · Bici privada · Patín (VMP) · BiZi ·
@@ -1649,6 +1700,14 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
 - [ ] **7 · LA DEMO de los dos modos, vista por el ojo de Antonio**
 
 ## 10 — Modo BUS/TRANVÍA *(en grueso)*
+
+*(Anotado el 29/08, de la auditoría de sentidos:)* las SHAPES del
+GTFS son trazas direccionales reales (el bus recorre la calle en su
+sentido) — cruzarlas contra el oneway de OSM caza los INVERTIDOS
+clase-Siresa en toda calle con línea [el método ImproveOSM: la
+direccionalidad de las trazas, umbral ~90 %; el punto ciego de la
+sonda-Cygnus: 1.185 vías donde ambas fuentes dicen «único» sin poder
+comparar el lado].
 
 Paradas, líneas y la decisión `G`: componer sin prometer, sin total
 inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
@@ -1683,6 +1742,19 @@ Dejado aquí desde el punto 4, para cuando toque:
       servicio. La conservadora (05/10) no cambia
 
 ## 11 — Modo COCHE *(en grueso)*
+
+*(Anotado el 29/08, del cruce de doctrina peatón/bici/coche:)* el
+coche HEREDA GRATIS la capa de sentidos y sus correcciones (Siresa
+incluida — misma capa de dato). Lo que exigirá y hoy NO existe, con
+la referencia delante [el car.lua de OSRM, literal]: las RELATIONS
+de restricción de giro OBLIGATORIAS [use_turn_restrictions=true; con
+variantes por vehículo restriction:hgv y excepciones except=bicycle
+— cuando entren, parlamentar si alguna aplica a la rueda] ·
+penalizaciones de giro 7,5 · media vuelta 20 · semáforo 2 · descarga
+nueva de Overpass (relations, mismo tubo) + transiciones arista-a-
+arista. Y la cobertura de sentidos (65 % de la calzada) deberá
+re-evaluarse con vara de coche: su 35 % a oscuras son contramanos
+potenciales, no calles menores.
 
 Dejado aquí el 18/08 (investigación de estacionamiento):
 

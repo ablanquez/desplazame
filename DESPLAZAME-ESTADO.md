@@ -101,6 +101,31 @@ las descargas (`4ca53e0` `f843ea2`), los CUATRO del ejecutor de la
 casilla 3 (la red de la rueda, el coste, el README y el defecto del
 RGC) y los tres de papeles. El push es de Antonio.
 
+**LA AUDITORÍA DE SENTIDOS — el ojo, la sonda y el banco (29/08
+tarde).** El ojo de Antonio cazó a la bici subiendo Monasterio de
+Siresa a contramano; el diagnóstico demostró que el motor obedecía
+AL DATO (79/79 a favor del tag) y que el dato está mal — la clase
+que ningún detector automático ve [QA wiki: el oneway invertido es
+topológicamente limpio]. Con la regla de Antonio («de nada sirve
+ñapear sin referencia de qué estaba mal»), EL SISTEMA: (1) Siresa
+corregida con mecanismo [9090 + CycleStreets]: sentidos-corregidos.ts
+con tres cerraduras (si §1.21 sana, el motor no arranca), el log
+declarando, la ruta viva sin pisarla, y el GUARDIÁN DEL DESHIELO;
+(2) la SONDA-CYGNUS [Telenav: conflación gubernamental×OSM para
+VERIFICAR] doble_sent×oneway: A1 71 vías/8,5 km · A2 182 · B2 25/
+1,8 km · B1 156 apartadas CON MEDIDA (avenidas de doble calzada,
+rumbo >120° — la 1ª sonda contaba el ruido, 98,8 % de los metros) ·
+⚠️ punto ciego cuantificado: 1.185 vías/300 km donde ambas dicen
+«único» (la clase Siresa — ojo o GTFS); la lista de 434 espera EL
+OJO; (3) el BANCO: nueve testigos ⚠️ en verde documentando la
+conducta mala de HOY (Santiago Guallar: 15,5 m que cuestan 554 de
+rodeo), escritos para caerse en fase 2 — el acta. El runner
+reincidió («fail 0» con 58 sin pasar — leer pass). Muralla al byte.
+El diagnóstico previo dejó además: 203 calles con pedestrian y
+residential bajo el mismo nombre (peatonalizaciones a medias en
+OSM; señal candidata: paving_stones 30,2 km) y el zombi reincidente
+(pid==pid ya de serie). 332 motor. Dos commits.
+
 **LA CASILLA 3 — EL COSTE DE LA RUEDA (29/08).** La demostración
 previa: el orden de vértices es el de OSM (112 rotondas antihorario/
 0 · 22.999 ways encadenados sin inversión — sin ella, 984 km a
@@ -575,7 +600,8 @@ repintado sin zone.js verificado sin empujón.
 **Lo siguiente:** (1) **la casilla 4 URGENTE** (el selector a seis —
 el botón viejo ya reparte rutas de bici a patinetes); (2) los modos
 5-6 (aparcabicis · BiZi tres tramos con su aviso de 30 min) y la
-demo (7); (3) el push cuando Antonio diga (nueve en local); (4) el
+demo (7); (3) LA FASE 2 de sentidos cuando el ojo confirme
+candidatos de la lista; (4) el push cuando Antonio diga; (5) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -727,8 +753,15 @@ ficha de Aragón NO CONSTA (robots + 401; Antonio puede pegarla) ·
 recuentos de la API movidos desde el 18/08 (50/43/33/15; WFS 187;
 1543 con endpoint 404).
 
-**Punto 9 (casillas 0-3 HECHAS; LA RUEDA RUTEA):** ⚠️ URGENTE la
-casilla 4: el botón viejo «Bici/Patinete» manda bici y desde la 3 un
+**Punto 9 (casillas 0-3 + auditoría fase 1 HECHAS; LA RUEDA
+RUTEA):** ⚠️ LA FASE 2 espera el ojo de Antonio (la lista de 434:
+A1 la bici remonta hoy 71 vías · B2 rodea de más 25 — cada
+confirmada: fila+testigo cayéndose+deshielo; y el arreglo aguas
+arriba en osm.org cuando quiera) · el punto ciego de la sonda
+(1.185 vías «único» en ambas — la clase Siresa: ojo o las shapes
+del GTFS, anotado en el 10) · las 203 calles a medio cartografiar
+(pedestrian+residential mismo nombre; señal paving_stones fichada) ·
+⚠️ URGENTE la casilla 4: el botón viejo «Bici/Patinete» manda bici y desde la 3 un
 patinete recibe ruta de bici (ilegal en las >30) — vivo en Chrome ·
 el RGC nuevo el 01/10 (las citas del 121/122 migran: las tablas y el
 paso-empujando) · los carriles bici narran «el carril bici» sin
@@ -760,8 +793,13 @@ servicio 27/12 — VERIFICADO el 22/08 contra el dato: 196 calendarios
 huérfanos, los del 28-31/12 sin ningún viaje) sin vigilante hasta el
 cron · ⚰️ la API viva de Bizi: MUDADA al punto 9 (28/08).
 
-**Punto 11:** parkings públicos (dos fuentes cojas) · parquímetros
-reevaluables · las tres cuentas municipales que no cuadran.
+**Punto 11:** hereda la capa de sentidos Y sus correcciones (Siresa
+gratis) · exigirá las RELATIONS de giro [car.lua: obligatorias, con
+except=bicycle a parlamentar para la rueda] + penalizaciones 7,5/20/
+2 + descarga de relations · la cobertura de sentidos re-evaluada con
+vara de coche (su 35 % a oscuras son contramanos potenciales) ·
+parkings públicos (dos fuentes cojas) · parquímetros reevaluables ·
+las tres cuentas municipales que no cuadran.
 
 **Punto 12 (todo NO CONSTA, y creció):** ⚠️ servidor.ts SIN SPEC (el
 único fichero del motor sin pruebas — quitar el foco del endpoint
@@ -798,7 +836,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 481 pruebas (327 motor + 154 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 486 pruebas (332 motor + 154 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
