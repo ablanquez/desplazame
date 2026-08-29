@@ -1539,8 +1539,63 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       (25 «segregación física» 50.1 · 30 «protegidos» 54.2.b —
       verificado en los dos textos: NO CONSTA si son categorías
       distintas; ambos coinciden en acera-bici 20)
-- [ ] **3 · EL COSTE con PRIORIDAD AL CARRIL BICI [firma 28/08] —
-      EL PARLAMENTO PREVIO, CERRADO (29/08, cuatro sillas):**
+- [x] **3 · EL COSTE DE LA RUEDA — HECHO (29/08, cuatro commits del
+      ejecutor) + EL DEFECTO LEGAL DEL ART. 50 RGC.** LA DEMOSTRACIÓN
+      PREVIA que el PARA exigía: el orden de vértices del grafo ES el
+      de OSM — 112 rotondas antihorario/0 horario · 22.999 ways
+      partidos encadenando cabeza-cola sin una inversión (sin esto,
+      984 km a contramano sin rojo). LA RED DE LA RUEDA APARTE
+      (58.914 aristas · 4.625 km · +478 ms): la rejilla no se filtra
+      — el portal habría enganchado a la acera; dos redes, dos
+      verdades. El SENTIDO con cuatro orígenes (22.867 oneway · 27
+      al revés · 1.390 rotonda implícita [junction=roundabout, la
+      implicación documentada] · 13 contraflujo) · TECHO legal
+      municipal-manda (34.014 · 2.007 OSM) · PREFERENCIA al carril
+      [factores OSRM unsafe como respaldo] en 8.147 con tráfico.
+      ⭐ EL DEFECTO DEL ART. 50 RGC [RD 970/2020, BOE: 20 plataforma
+      única · 30 UN carril por sentido · 50 dos o más; la señal
+      manda, el defecto rellena — la práctica de aplicar el defecto
+      legal donde no hay señal]: 125+2.234+598 por dato + 7.227
+      [PROPIO-por-tipo: residential/living_street/service = un
+      carril; unclassified FUERA a propósito — las hay de dos] ·
+      quedan 12.709 a oscuras (la verdad). carril_vh DESCARTADO con
+      contraejemplo (105 tramos incompatibles con toda lectura —
+      semántica NO CONSTA); los carriles, de lanes (que no descuenta
+      reservados: cuenta DE MÁS y empuja al 50 — se equivoca hacia
+      el lado que CIERRA al patín, declarado). EL PATÍN: 35/200 →
+      51/200 (164→243 sobre mil); su red 1.988 trozos, el mayor
+      45,4 %. ONCE JUECES con cifras (la preferencia paga +1,9 % y
+      compra 1.101 m de carril · contraflujo 63 vs 716 · ida 1.559/
+      vuelta 2.017 · el patín rodea la Avda. de Madrid · BiZi ni
+      engancha fuera · 20/18 exacto · Espronceda a 10 · la rotonda
+      al revés 548 vs 26 · el Camino del Saso por DEFECTO_POR_TIPO ·
+      la señal >30 veda 5.544 · LA MURALLA: sha256 de las 391 rutas
+      del peatón —geometría a 7 decimales y 9.346 pasos— IDÉNTICO a
+      HEAD, dentro de la suite). La juez 4 cambió A MEJOR con lupa
+      (la Avda. de Madrid no es uniforme: pacificada = un carril Y
+      ≤30, y ahora se saben los carriles por tramo — la derivación
+      por arista es más fina que mi agregado por vía, decisión
+      declarada). CONTRAPRUEBA 8+4 mutaciones — la de la rotonda NO
+      mordía (implicación puesta y sin vigilar: 1.390 aristas
+      abriéndose en silencio → juez 8, el patrón de la nº14) · cero
+      pruebas del peatón afectadas en las doce. DOS confesiones de
+      instrumento: el comentario «el veto p=acera no quita nada» y
+      el dato dijo 1 (Valle de Zuriza — reescrito con el caso) · ⚠️
+      MIDIÓ CONTRA UN MOTOR VIEJO (EADDRINUSE, zombi en el 3000: 35/
+      200 otra vez y cero rutas nuevas — cazado, y desde entonces
+      cada medida lleva pid-del-log == pid-que-contesta). Decisiones
+      declaradas: carril_bus NO cierra la vía (el campo dice que
+      TIENE carril reservado, no que lo SEA) · 10 de los 18
+      contraflujos en calle peatonal: manda la ley sobre el tag
+      [50.6], quedan 8 · MU1 heterogéneo al más restrictivo · pasos
+      empujando a 5 salvo 14 con continuidad evaluada en topología.
+      Flecos declarados: el botón viejo «Bici/Patinete» manda bici y
+      YA devuelve ruta (un patinete recibe ruta de bici — URGE la
+      casilla 4) · los carriles narran «el carril bici» sin nombre
+      hasta la 5 · /api/salud no publica la red nueva · doble_sent
+      sin uso · bicycle=no de OSM (29) fuera del alcance. 327 motor
+      · 154 interfaz. **EL PARLAMENTO PREVIO (29/08, cuatro
+      sillas):**
       (1) EN EL 17,5 % DE DISCREPANCIA MANDA EL MUNICIPAL [maxspeed
       de OSM se define como el límite LEGAL; el emisor del límite
       urbano es el Ayuntamiento y MU1 es su registro; la

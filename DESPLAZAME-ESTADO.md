@@ -10,8 +10,11 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 **⭐ PUNTOS 1-8 CERRADOS (el 8, el 27/08). La demo andando está
 ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
 (el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
-(los combines de odin). Y EL PUNTO 8 CERRADO con la poda de demo
-firmada: SIETE categorías de sitios (farmacias · centros de salud ·
+(los combines de odin). Y LA RUEDA YA RUTEA: red propia de 58.914
+aristas con sentido demostrado, tres modos (bici · patín · BiZi) por
+sus tablas con artículo, el defecto legal del art. 50 RGC, y la
+muralla del peatón intacta al byte (sha256 de sus 391 rutas). EL
+PUNTO 8 CERRADO con la poda de demo firmada: SIETE categorías de sitios (farmacias · centros de salud ·
 hospitales · bibliotecas · colegios e institutos · guarderías ·
 universidades — 820 sitios, 802 buscables), TODA calle sugerible
 (3.350: 2.731 con portal + 619 por punto medio — el Puente de Piedra
@@ -93,9 +96,30 @@ levantado el 18/08, des-caducado del 21 al 29):
   del método enlazados, y la frase de cierre veraz.
 
 **Publicado hasta `2f16442`** (push del 28/08 mañana, con la
-casilla 0; el cierre del 8 entero salió en `aba0cd3` el 27). **En
-local, sin publicar: los DOS commits de las descargas** (`4ca53e0`
-`f843ea2`) más el cierre de papeles. El push es de Antonio.
+casilla 0). **En local, sin publicar: NUEVE commits** — los dos de
+las descargas (`4ca53e0` `f843ea2`), los CUATRO del ejecutor de la
+casilla 3 (la red de la rueda, el coste, el README y el defecto del
+RGC) y los tres de papeles. El push es de Antonio.
+
+**LA CASILLA 3 — EL COSTE DE LA RUEDA (29/08).** La demostración
+previa: el orden de vértices es el de OSM (112 rotondas antihorario/
+0 · 22.999 ways encadenados sin inversión — sin ella, 984 km a
+contramano sin rojo). Red de la rueda APARTE (la rejilla no se
+filtra): 58.914 aristas/4.625 km. Sentido (oneway · -1 · rotonda
+implícita 1.390 · contraflujo, 10 de 18 cerrados por ley [50.6]) ·
+techo municipal-manda · preferencia al carril [factores OSRM]. ⭐ El
+DEFECTO del art. 50 RGC [RD 970/2020]: 30 a un-carril-por-sentido —
+7.227 [PROPIO-por-tipo declarado]; carril_vh descartado con
+contraejemplo (semántica NO CONSTA); el patín 35→51/200. ONCE jueces
+(preferencia +1,9 % · contraflujo 63/716 · ida≠vuelta · 20/18 exacto
+· el sha256-muralla de las 391 rutas del peatón IDÉNTICO a HEAD).
+Contraprueba 12 mutaciones — la rotonda implícita NO mordía (juez 8
+nacida del hueco); cero pruebas del peatón tocadas. Confesiones: el
+comentario que decía 0 y el dato dijo 1 (Valle de Zuriza) · ⚠️ midió
+contra un MOTOR ZOMBI (EADDRINUSE — cazado; desde entonces
+pid-del-log==pid-que-contesta). carril_bus NO cierra la vía · juez 4
+a mejor con lupa (pacificada = carriles Y techo, por arista).
+Commits: cuatro del ejecutor. 327 motor · 154 interfaz.
 
 **PUNTO 9 EN MARCHA — la casilla 1 y las dos descargas (28/08).**
 El CENSO: cycleway 191,5 km; oneway confirmado ausente; ⭐ §1.14
@@ -548,11 +572,10 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 3**: el encargo del coste (el
-mecanismo de la preferencia al cycleway contra la doctrina Valhalla,
-medido en nuestra red, con las velocidades 18/20/18 y las fuentes
-municipal-manda); (2) detrás: selector a seis (casilla 4) y los
-modos (5-6); (3) el push cuando Antonio diga; (4) el
+**Lo siguiente:** (1) **la casilla 4 URGENTE** (el selector a seis —
+el botón viejo ya reparte rutas de bici a patinetes); (2) los modos
+5-6 (aparcabicis · BiZi tres tramos con su aviso de 30 min) y la
+demo (7); (3) el push cuando Antonio diga (nueve en local); (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -616,16 +639,14 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
-9 EN MARCHA (casillas 0-2 HECHAS + parlamento cerrado: la Nueva
-Ordenanza vigente [11/09/2024] leída EN ARTICULADO — el 56 corrigió
-a la casilla 0: el patín va por JERARQUÍA + LISTA CERRADA (las
-categorías están en MU1), y el carril bus es NO CONSTA por
-contradicción interna [50.6 vs 67.1]; las TRES tablas fila a fila
-con artículo; BiZi = bici + el ámbito municipal como restricción de
-vía [nuestra frontera]; los seis huecos cerrados por doctrina
-[tablas de acceso-por-defecto legal de la wiki de routing]; §1.21 y
-§1.22 en repo con sentido 65,2 %/velocidad 68,4 %; velocidades
-18/20/18 firmadas) ·
+9 EN MARCHA (casillas 0-3 HECHAS — el COSTE DE LA RUEDA en el motor:
+red aparte con sentido demostrado [112 rotondas antihorario/0 ·
+22.999 encadenados], once jueces con cifras, la muralla sha256 del
+peatón, el patín 51/200 con el defecto del art. 50 RGC [RD 970/2020:
+30 un carril por sentido], carril_vh descartado con contraejemplo,
+pid-del-log==pid-que-contesta tras el susto del motor zombi; queda: el botón
+viejo «Bici/Patinete» manda bici y YA devuelve ruta — URGE el
+selector a seis [casilla 4] — y detrás los modos 5-6 y la demo) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -706,9 +727,21 @@ ficha de Aragón NO CONSTA (robots + 401; Antonio puede pegarla) ·
 recuentos de la API movidos desde el 18/08 (50/43/33/15; WFS 187;
 1543 con endpoint 404).
 
-**Punto 9 (casillas 0-1 HECHAS; el dato de la rueda EN CASA):**
-quedan los ARTÍCULOS del BOP en fino (casilla 2) · el RGC nuevo el
-01/10 (las citas migran) · ⚰️ EL PARLAMENTO 2-3 CERRADO (29/08,
+**Punto 9 (casillas 0-3 HECHAS; LA RUEDA RUTEA):** ⚠️ URGENTE la
+casilla 4: el botón viejo «Bici/Patinete» manda bici y desde la 3 un
+patinete recibe ruta de bici (ilegal en las >30) — vivo en Chrome ·
+el RGC nuevo el 01/10 (las citas del 121/122 migran: las tablas y el
+paso-empujando) · los carriles bici narran «el carril bici» sin
+nombre municipal (herencia cruzada sobre la red del peatón — a la
+casilla 5 con los combines) · /api/salud no publica la red de la
+rueda (el log sí) · doble_sent sin uso (no dice hacia dónde) · los
+bicycle=no de OSM (29 aristas) fuera del alcance de la 3 · la
+pacificada derivada por arista puede abrir tramos que mi agregado
+por vía cerraba (más fina y más veraz — decisión del ejecutor,
+declarada) · lanes no descuenta carriles reservados (cuenta de más →
+empuja al 50 → cierra al patín: el lado seguro, declarado) ·
+unclassified sin defecto a propósito (las hay de dos carriles) ·
+12.709 aristas siguen a oscuras de techo (la verdad) · ⚰️ EL PARLAMENTO 2-3 CERRADO (29/08,
 las cuatro sillas con doctrina): en el 17,5 % manda el MUNICIPAL
 (la fuente por arista declarada) · «carril bici» = h=cycleway
 (Calmado y Senda fuera de la prioridad) · velocidades 18/20/18
@@ -765,7 +798,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 467 pruebas (313 motor + 154 interfaz) sin CI · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 481 pruebas (327 motor + 154 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
