@@ -168,37 +168,34 @@ function clave(punto: readonly [number, number]): string {
 }
 
 /**
- * Levanta la red sobre un grafo ya cargado.
+ * ⭐ EL TEJIDO: aristas sueltas → nodos y adyacencia. Sin acceso ni coste.
  *
- * No lee el grafo del disco: lo recibe. Así el orden de arranque queda a la
- * vista en `servidor.ts` y no escondido en dos módulos que leen el mismo
- * fichero por su cuenta.
+ * Sale de dentro de `cargarRed` el 29/08 **sin cambiar una sola operación**:
+ * lo pide la red de la rueda, que se levanta sobre otro subconjunto de las
+ * mismas aristas crudas y necesita reconstruir sus nodos exactamente igual.
+ * Se saca en vez de copiarse porque dos reconstrucciones de nodos que
+ * deberían ser una acabarían no siéndolo — y una diferencia ahí no daría
+ * ningún error, solo dos redes que no se parecen.
+ *
+ * Los nodos salen por **coincidencia EXACTA de coordenada** entre los extremos
+ * de las aristas, y la adyacencia va en **CSR** (tres arrays planos): son
+ * ~187.000 medias aristas, y un array por nodo serían 68.639 objetos que el
+ * recolector tiene que mirar.
  */
-export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
-  const principio = performance.now();
+export interface Tejido {
+  readonly aristas: readonly AristaUtil[];
+  readonly nodos: number;
+  readonly nodoLon: Float64Array;
+  readonly nodoLat: Float64Array;
+  readonly inicio: Int32Array;
+  readonly salidaArista: Int32Array;
+  readonly salidaVecino: Int32Array;
+  /** Cuántos extremos sueltos quedan (grado 1): puntas del dato, no error. */
+  readonly puntasSueltas: number;
+}
 
-  // ── 1 · El subgrafo por el que el peatón puede andar ───────────────────────
-  // El orden importa para contar: `cerradasPorTipo` cuenta solo las que la
-  // tabla de acceso quita de lo que **iba a entrar**, no las que ya sobraban
-  // por `a` o por `c`. Sin ese orden, la cifra mezclaría tres motivos.
-  const utiles: AristaCruda[] = [];
-  const cerradasPorTipo = new Map<string, number>();
-  let sinFilaEnLaTabla = 0;
-  for (const cruda of memoria.grafo.aristas) {
-    if (cruda.a !== 1 || cruda.c !== 0) {
-      continue;
-    }
-    if (!puedeAndar(cruda.h)) {
-      cerradasPorTipo.set(cruda.h, (cerradasPorTipo.get(cruda.h) ?? 0) + 1);
-      if (!(cruda.h in ACCESO_ANDANDO)) {
-        sinFilaEnLaTabla++;
-      }
-      continue;
-    }
-    utiles.push(cruda);
-  }
-
-  // ── 2 · Los nodos, por coincidencia exacta de coordenada ───────────────────
+export function tejerLaRed(utiles: readonly AristaCruda[]): Tejido {
+  // ── Los nodos, por coincidencia exacta de coordenada ──────────────────────
   const idDeClave = new Map<string, number>();
   const lon: number[] = [];
   const lat: number[] = [];
@@ -235,7 +232,7 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
 
   const nodos = lon.length;
 
-  // ── 3 · La adyacencia en CSR ───────────────────────────────────────────────
+  // ── La adyacencia en CSR ──────────────────────────────────────────────────
   // Se cuenta primero cuántas salen de cada nodo, se hace la suma acumulada, y
   // se rellena. Dos pasadas, cero arrays intermedios.
   const grado = new Int32Array(nodos);
@@ -253,8 +250,12 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
   const hueco = Int32Array.from(inicio.subarray(0, nodos));
   for (let k = 0; k < aristas.length; k++) {
     const arista = aristas[k]!;
-    // Andando se anda en los dos sentidos: el grafo no trae direccionalidad
-    // utilizable y a pie tampoco importaría.
+    // ⭐ Las DOS medias aristas se meten siempre, también en la red de la
+    // rueda: el CSR describe la topología, no el permiso. **El sentido único
+    // no se resuelve quitando media arista**, sino mirando al relajar si el
+    // salto va de `desde` a `hasta` o al revés — que es dato que la media
+    // arista ya lleva. Quitarla aquí dejaría al enganche sin poder decir por
+    // qué extremo entra un portal a una calle de sentido único.
     const uno = hueco[arista.desde]!++;
     salidaArista[uno] = k;
     salidaVecino[uno] = arista.hasta;
@@ -269,6 +270,55 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
       puntasSueltas++;
     }
   }
+
+  return {
+    aristas,
+    nodos,
+    nodoLon: Float64Array.from(lon),
+    nodoLat: Float64Array.from(lat),
+    inicio,
+    salidaArista,
+    salidaVecino,
+    puntasSueltas,
+  };
+}
+
+/**
+ * Levanta la red sobre un grafo ya cargado.
+ *
+ * No lee el grafo del disco: lo recibe. Así el orden de arranque queda a la
+ * vista en `servidor.ts` y no escondido en dos módulos que leen el mismo
+ * fichero por su cuenta.
+ */
+export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
+  const principio = performance.now();
+
+  // ── 1 · El subgrafo por el que el peatón puede andar ───────────────────────
+  // El orden importa para contar: `cerradasPorTipo` cuenta solo las que la
+  // tabla de acceso quita de lo que **iba a entrar**, no las que ya sobraban
+  // por `a` o por `c`. Sin ese orden, la cifra mezclaría tres motivos.
+  const utiles: AristaCruda[] = [];
+  const cerradasPorTipo = new Map<string, number>();
+  let sinFilaEnLaTabla = 0;
+  for (const cruda of memoria.grafo.aristas) {
+    if (cruda.a !== 1 || cruda.c !== 0) {
+      continue;
+    }
+    if (!puedeAndar(cruda.h)) {
+      cerradasPorTipo.set(cruda.h, (cerradasPorTipo.get(cruda.h) ?? 0) + 1);
+      if (!(cruda.h in ACCESO_ANDANDO)) {
+        sinFilaEnLaTabla++;
+      }
+      continue;
+    }
+    utiles.push(cruda);
+  }
+
+  // ── 2 y 3 · Los nodos y la adyacencia ──────────────────────────────────────
+  // Andando se anda en los dos sentidos, y el tejido los mete los dos: el grafo
+  // no trae direccionalidad utilizable y a pie tampoco importaría.
+  const { aristas, nodos, nodoLon, nodoLat, inicio, salidaArista, salidaVecino, puntasSueltas } =
+    tejerLaRed(utiles);
 
   // ── 4 · El cruce way → nombre ──────────────────────────────────────────────
   const nombreDeWay = new Map<number, string>();
@@ -331,8 +381,8 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
   return {
     aristas,
     nodos,
-    nodoLon: Float64Array.from(lon),
-    nodoLat: Float64Array.from(lat),
+    nodoLon,
+    nodoLat,
     inicio,
     salidaArista,
     salidaVecino,

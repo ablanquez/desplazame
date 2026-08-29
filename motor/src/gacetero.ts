@@ -170,12 +170,16 @@ function sinElTipo(nombre: string, tipos: ReadonlySet<string>): string {
   return trozos.length > 1 && tipos.has(trozos[0]!) ? trozos.slice(1).join(' ') : nombre;
 }
 
-export function cargarGacetero(
-  portales: PortalesEnMemoria,
-  callejero: CallejeroEnMemoria,
-): Gacetero {
-  const principio = performance.now();
-
+/**
+ * ⭐ El rectángulo del término, calculado sobre los portales del censo.
+ *
+ * Sale de dentro de `cargarGacetero` el 29/08 **sin cambiar nada de lo que
+ * hace**: lo pide el modo BiZi, cuyo contrato limita el servicio al término
+ * municipal y necesita el mismo rectángulo para vetar las aristas de fuera.
+ * Se saca en vez de copiarse por la razón de siempre — dos fronteras que
+ * deberían ser una acabarían no siéndolo.
+ */
+export function entornoDe(portales: PortalesEnMemoria): Entorno {
   let lonMin = Infinity;
   let lonMax = -Infinity;
   let latMin = Infinity;
@@ -191,6 +195,21 @@ export function cargarGacetero(
   // la latitud del propio rectángulo y no a una de referencia.
   const gradosLat = MARGEN_DEL_ENTORNO_M / 111132;
   const gradosLon = gradosLat / Math.cos((((latMin + latMax) / 2) * Math.PI) / 180);
+  return {
+    lonMin: lonMin - gradosLon,
+    lonMax: lonMax + gradosLon,
+    latMin: latMin - gradosLat,
+    latMax: latMax + gradosLat,
+  };
+}
+
+export function cargarGacetero(
+  portales: PortalesEnMemoria,
+  callejero: CallejeroEnMemoria,
+): Gacetero {
+  const principio = performance.now();
+
+  const entorno = entornoDe(portales);
 
   const viasPorNombre = new Map<string, string[]>();
   const nombresPorPrimeraPalabra = new Map<string, string[]>();
@@ -243,12 +262,7 @@ export function cargarGacetero(
   }
 
   return {
-    entorno: {
-      lonMin: lonMin - gradosLon,
-      lonMax: lonMax + gradosLon,
-      latMin: latMin - gradosLat,
-      latMax: latMax + gradosLat,
-    },
+    entorno,
     viasPorNombre,
     nombresPorPrimeraPalabra,
     nombreDeVia,

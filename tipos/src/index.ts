@@ -14,10 +14,22 @@
  */
 
 /**
- * Los cuatro modos de transporte. Excluyentes: solo uno a la vez.
- * Derivado de la pantalla, que ya los maneja como estos cuatro literales.
+ * Los modos de transporte. Excluyentes: solo uno a la vez.
+ *
+ * Nacieron cuatro, derivados de la pantalla. **Son seis desde el 29/08**, y el
+ * contrato crece porque el motor lo pide: la casilla 2 del punto 9 demostró
+ * que la bici, el patín y la BiZi **no comparten tabla de acceso** —el VMP va
+ * obligatoriamente por vía ciclista y solo baja a la calzada en la lista
+ * cerrada del art. 56.3; la BiZi lleva encima el ámbito municipal de su
+ * contrato—, así que meterlos en un solo `bici` obligaría a recortarle al
+ * ciclista o a mentirle al patinetero.
+ *
+ * ⚠️ **La pantalla todavía enseña cuatro botones**, y es a propósito: el
+ * selector a seis es la casilla 4. Que la lista de `modos` del buscador sea un
+ * subconjunto no rompe nada —no es un `Record` exhaustivo—, y el día que se
+ * amplíe no habrá que tocar el contrato.
  */
-export type Modo = 'andando' | 'bus' | 'bici' | 'coche';
+export type Modo = 'andando' | 'bus' | 'bici' | 'patin' | 'bizi' | 'coche';
 
 /**
  * Un punto del mapa: **latitud y longitud, en ese orden** (EPSG:4326, el CRS
@@ -194,7 +206,19 @@ export interface PeticionDeRuta {
    */
   readonly origen: ExtremoDeRuta;
   readonly destino: ExtremoDeRuta;
-  readonly modo: Modo;
+  /**
+   * ⭐ **OPCIONAL desde el 29/08**, y `andando` cuando falta.
+   *
+   * Era obligatorio y una petición sin él no era una petición. Al entrar los
+   * modos de la rueda se abre, y el defecto es el modo que ya existía: quien
+   * pedía rutas antes las sigue pidiendo igual, y quien no dice nada recibe lo
+   * que recibía. **Compatibilidad hacia atrás, no comodidad.**
+   *
+   * Ojo con la diferencia que el lector sí distingue: `modo` **ausente** es el
+   * defecto; `modo` **presente y que no es una cadena** sigue sin ser una
+   * petición. Un `7` ahí es un cliente roto, no un cliente antiguo.
+   */
+  readonly modo?: Modo;
 }
 
 /**
