@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 28 de agosto de 2026
+## ESTADO ACTUAL — 29 de agosto de 2026
 
 **⭐ PUNTOS 1-8 CERRADOS (el 8, el 27/08). La demo andando está
 ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
@@ -19,7 +19,7 @@ se escribe), el buscador por tipos completo con siglas e iconos, el
 foco en las dos capas, y las 14 bitácoras cerradas.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
-levantado el 18/08, des-caducado del 21 al 28):
+levantado el 18/08, des-caducado del 21 al 29):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
@@ -548,11 +548,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el PARLAMENTO de las casillas 2-3** con el
-dato delante (las cuatro sillas: el 17,5 % · qué es «carril bici» ·
-la velocidad del asistido [PROPIO] · elevación fuera) y de ahí la
-tabla fila a fila contra el BOP; (2) el push cuando Antonio diga
-(siete commits + papeles); (3) el
+**Lo siguiente:** (1) **la casilla 2**: las tres tablas de acceso
+fila a fila contra los ARTÍCULOS del BOP (el parlamento previo ya
+está cerrado); (2) detrás, el encargo del coste (casilla 3: el
+mecanismo de la preferencia al cycleway, medido en nuestra red);
+(3) el push cuando Antonio diga; (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -707,12 +707,13 @@ recuentos de la API movidos desde el 18/08 (50/43/33/15; WFS 187;
 
 **Punto 9 (casillas 0-1 HECHAS; el dato de la rueda EN CASA):**
 quedan los ARTÍCULOS del BOP en fino (casilla 2) · el RGC nuevo el
-01/10 (las citas migran) · ⚠️ EL PARLAMENTO 2-3 pendiente con cuatro
-sillas: quién manda en el 17,5 % de discrepancia OSM/Ayto · qué es
-«carril bici» para la prioridad (los dos mundos: Calmado 8 % y Senda
-3 % NO son cycleway) · la velocidad del asistido [PROPIO por firmar;
-ancla legal 25] · elevación fuera declarada (sin fuente municipal;
-Valhalla usa servicio aparte) · ⚠️ estadoEstacion de BiZi roto en
+01/10 (las citas migran) · ⚰️ EL PARLAMENTO 2-3 CERRADO (29/08,
+las cuatro sillas con doctrina): en el 17,5 % manda el MUNICIPAL
+(la fuente por arista declarada) · «carril bici» = h=cycleway
+(Calmado y Senda fuera de la prioridad) · velocidades 18/20/18
+(BiZi y patín [PROPIO firmados]; corte legal de asistencia 25
+[UE 168/2013 · RD 970/2020 · EN 15194]) · elevación FUERA
+[precedente OSRM] · ⚠️ estadoEstacion de BiZi roto en
 las 276 (falso conocido; se usa estado) · la longitud_total
 unidireccional que mide el doble (1,99, NO CONSTA) · 141 U+FFFD en
 MU1 (confinados; codigo intacto) · la ficha §1.14 corta en su «Qué

@@ -1496,15 +1496,31 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       (jamás acera · carril bici · SOLO calzadas ≤30 [firmado con la
       casilla 0]) · BiZi (la de bici + su contrato). El desdoble ya
       NO es pregunta: lo firmó la ley
-- [ ] **3 · EL COSTE con PRIORIDAD AL CARRIL BICI [firma de Antonio,
-      28/08]:** la doctrina de costing bici de los motores
-      (Valhalla/OSRM prefieren cycleway — el REVERSO del peatón),
-      parlamentada con las cifras de nuestra red delante. Ojo
-      declarado: el grueso viejo traía la penalización por pesos de
-      OSRM (primary 0.5 · secondary 0.65 · tertiary 0.8) y el punto
-      7 retiró las prioridades del peatón por mínimo-de-distancia —
-      si la bici hereda pesos o no ES el parlamento, con doctrina y
-      firma, no una herencia
+- [ ] **3 · EL COSTE con PRIORIDAD AL CARRIL BICI [firma 28/08] —
+      EL PARLAMENTO PREVIO, CERRADO (29/08, cuatro sillas):**
+      (1) EN EL 17,5 % DE DISCREPANCIA MANDA EL MUNICIPAL [maxspeed
+      de OSM se define como el límite LEGAL; el emisor del límite
+      urbano es el Ayuntamiento y MU1 es su registro; la
+      investigación trata la exactitud de OSM como suposición
+      declarada; los consumidores completan OSM con conocimiento
+      legal] — limite_vel donde hable, OSM rellena, la fuente por
+      arista declarada. (2) «CARRIL BICI» PARA LA PRIORIDAD =
+      h=cycleway, la infraestructura dedicada [Valhalla: preferencia
+      por cycleways, favorecidos por defecto frente a calzadas] — el
+      Calmado es calzada sin bonus y la Senda camino modulado por
+      superficie; la capa §1.5 sirve al acera-bici y la narración,
+      no a la prioridad. (3) VELOCIDADES firmadas: privada 18
+      [Valhalla Hybrid/City, doctrina] · BiZi 20 [PROPIO firmado —
+      entre el 18 urbano y el corte legal de asistencia a 25
+      [UE 168/2013 · RD 970/2020 · EN 15194]] · patín 18 [PROPIO
+      firmado — sin perfil VMP en ningún motor, medido].
+      (4) ELEVACIÓN FUERA declarada [OSRM publica su perfil de bici
+      sin mencionar elevación: precedente de motor]. QUEDA para el
+      encargo del coste: el mecanismo concreto de la preferencia
+      (cuánto favorece el cycleway), diseñado contra la doctrina y
+      medido en nuestra red — la bici usa preferencia, no
+      mínimo-de-distancia puro [doctrina Valhalla; el reverso del
+      peatón, declarado]
 - [ ] **4 · EL SELECTOR a SEIS modos [firma de Antonio, 28/08 — la
       segunda del día, sustituye a la de cinco de la mañana]:**
       Andando · Bus/Tranvía · Bici privada · Patín (VMP) · BiZi ·
