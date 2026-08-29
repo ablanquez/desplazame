@@ -19,7 +19,7 @@ se escribe), el buscador por tipos completo con siglas e iconos, el
 foco en las dos capas, y las 14 bitácoras cerradas.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
-levantado el 18/08, des-caducado del 21 al 27):
+levantado el 18/08, des-caducado del 21 al 28):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
@@ -49,7 +49,8 @@ levantado el 18/08, des-caducado del 21 al 27):
   pintada, con los pasos escritos y las negritas por partes: la
   respuesta falsa murió sin rastro (`2013c04`). DOS páginas y sin
   barra: el buscador (la raíz) y **/panel** (el panel de frescura,
-  por URL, lazy 7,43 kB — 37 filas desde la tanda 4); el comodín
+  por URL, lazy 7,43 kB — 39 filas desde las descargas de la rueda,
+  las dos nuevas en gris NO CONSTA); el comodín
   cubre cualquier otra ruta, /visor incluida.
 - **El peso** (22/08): la raíz en frío baja **0,22 MB en 3
   peticiones** — antes 41,07 MB en 20 (cifra FIJADA con comando; los
@@ -66,14 +67,18 @@ levantado el 18/08, des-caducado del 21 al 27):
   `/api/salud` · `/api/vias?q=` (con `foco`) · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
   `POST /api/ruta` (sitio o vía-sin-portal en cualquiera de los dos extremos). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal + 619 por punto medio).
-- **Los datos**: VEINTINUEVE conjuntos / veinte fichas — los
-  nombres OSM en `motor/data/` sin viajar al navegador (§1.14), los
-  ejes (§1.15) y las SIETE categorías de sitios del punto 8:
+- **Los datos**: TREINTA Y UN conjuntos / veintidós fichas — los
+  nombres OSM en `motor/data/` sin viajar al navegador (§1.14), LA
+  RUEDA del punto 9 (§1.21 Overpass ampliada sin filtro de nombre:
+  oneway 65,2 %/maxspeed 41,7 % de la calzada urbana, 11,3 MB ·
+  §1.22 MU1_jerarquia_viaria: limite_vel en 3.644 tramos, enganche
+  2.049/2.049 — manifiesto a 39, las dos filas en gris NO CONSTA),
+  los ejes (§1.15) y las SIETE categorías de sitios del punto 8:
   farmacias (§1.16, 313/310), centros de salud (§1.17, 56/56),
   hospitales (§1.18, 17/15), bibliotecas (§1.19, 35+223: 77/75) y
   las TRES de educación (§1.20 TRIPLE: once ficheros → colegios e
   institutos 264/254 · guarderías 64/64 · universidades 29/28, con
-  cada decisión de reparto citada) — manifiesto a 37 resources con
+  cada decisión de reparto citada) — manifiesto a 39 resources con
   validador contraprobado;
   cada uno con ficha, huella sobre clon y atribución. CINCO
   descargas propias (aparcabicis, aparcamotos, regulado, zonas, PMR),
@@ -87,11 +92,31 @@ levantado el 18/08, des-caducado del 21 al 27):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `1274fa6`** (push del 27/08, con la tanda 4
-entera). **En local, sin publicar: los CINCO commits del cierre del
-8** (`6f1fd08` `11564ba` la nº14 · `6f127f9` el foco en vías ·
-`4a4d3ab` las vías sin portal · `ace1bc7` la glorieta) más el cierre
-de papeles. El push es de Antonio.
+**Publicado hasta `2f16442`** (push del 28/08 mañana, con la
+casilla 0; el cierre del 8 entero salió en `aba0cd3` el 27). **En
+local, sin publicar: los DOS commits de las descargas** (`4ca53e0`
+`f843ea2`) más el cierre de papeles. El push es de Antonio.
+
+**PUNTO 9 EN MARCHA — la casilla 1 y las dos descargas (28/08).**
+El CENSO: cycleway 191,5 km; oneway confirmado ausente; ⭐ §1.14
+traía el juego de etiquetas entero (se descargó «para nombres» y
+Overpass devolvió las 260); ⭐ fuente nueva MU1_jerarquia_viaria;
+carriles §1.5 en DOS MUNDOS (Calmado 8 %/Senda 3 % no son cycleway —
+134 km son el Anillo y calzada compartida); aparcabicis 14.544
+anclajes (la cifra del encargo era de otra ficha — recontada y
+corregida); BiZi: API viva NO-GBFS que casa 276/276, estadoEstacion
+roto en el 100 % (se usa estado); Valhalla 18/OSRM 15 citados,
+NINGÚN motor con perfil de asistido; elevación NO CONSTA medido. LAS
+DOS DESCARGAS [CycleStreets + reparto de fuentes — autorizadas POR
+DOCTRINA, la regla nueva]: §1.21 (65.223 ways, 99,9 % del grafo con
+entrada; oneway 39→65 %; no pisa §1.14: 7 ways solo viven allí) y
+§1.22 (2.049/2.049; ≤30 = 498,8 km/1.603 vías; 141 U+FFFD confinados;
+licencia NO CONSTA dicha). LA FOTO: sentido 65/35 · velocidad
+combinada 68/32 · ⚠️ discrepancia 17,5 % donde ambas hablan. Siete
+guardianes sin usar el dato; dos confesiones (el «fail 0» con 7 sin
+pasar — el runner cancela; la prueba del CRS nacida floja,
+reformulada mutando); manifiesto 39 con dos grises honestos. Motor
+313 · app 154. Commits `4ca53e0` `f843ea2`.
 
 **EL CIERRE DEL PUNTO 8 (27/08).** Cuatro piezas y la poda. La nº14
 CERRADA: subsecuencia de palabras con LA GUARDA QUE CRECE [la nº13
@@ -523,10 +548,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el PUSH de los papeles del 9; (2) **el punto
-9 arranca por su casilla 0** (la ley vigente, verificada) y su
-casilla 1 (el censo del dato: oneway, BiZi, velocidad, elevación);
-(3) el
+**Lo siguiente:** (1) **el PARLAMENTO de las casillas 2-3** con el
+dato delante (las cuatro sillas: el 17,5 % · qué es «carril bici» ·
+la velocidad del asistido [PROPIO] · elevación fuera) y de ahí la
+tabla fila a fila contra el BOP; (2) el push cuando Antonio diga
+(siete commits + papeles); (3) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -590,13 +616,15 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
-9 RE-ESCRITO el 28/08 y su casilla 0 RESUELTA el mismo día (rige la
-Nueva Ordenanza de Movilidad desde el 11/09/2024 — el NO CONSTA del
-21/08 muere; TRES productos porque la ley separa las tablas: bici
-por cualquier calzada · patín SOLO ≤30 · BiZi = bici + contrato
-[30 min incluidos, 2 h, municipal, eléctricas, 16+]; selector a SEIS
-modos firmado + aviso de los 30 min [D-G]; ocho casillas en el
-plan) ·
+9 EN MARCHA (28/08: casilla 0 RESUELTA — rige la Nueva Ordenanza de
+Movilidad desde 11/09/2024; TRES productos porque la ley separa las
+tablas: bici cualquier calzada · patín SOLO ≤30 · BiZi = bici +
+contrato [30 min, 2 h, municipal, eléctricas, 16+]; selector a SEIS
++ aviso 30 min firmados — · casilla 1 CENSO + LAS DOS DESCARGAS
+hechas [doctrina CycleStreets + reparto de fuentes]: §1.21 y §1.22
+en repo, sentido 65,2 %/velocidad 68,4 % de la calzada urbana,
+discrepancia 17,5 % donde ambas fuentes hablan — el parlamento de
+las casillas 2-3 con el dato delante) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -677,18 +705,20 @@ ficha de Aragón NO CONSTA (robots + 401; Antonio puede pegarla) ·
 recuentos de la API movidos desde el 18/08 (50/43/33/15; WFS 187;
 1543 con endpoint 404).
 
-**Punto 9 (re-escrito el 28/08; casilla 0 RESUELTA):** ⚰️ la
-ordenanza vigente: la Nueva Ordenanza de Movilidad (11/09/2024, BOP
-21/08/2024) — quedan los ARTÍCULOS del BOP en fino para la tabla
-(casilla 2) · el RGC nuevo el 01/10 (las citas migran) · ⚠️ ONEWAY
-ausente del grafo (la bici en calzada debe sentidos — al censo) ·
-⚠️ el dato de VELOCIDAD DE VÍA: ¿existe? (el modo Patín depende de
-las calzadas ≤30 — al censo) · las estaciones BiZi nunca descargadas
-(el servicio NUEVO de 2025: 276 estaciones, eléctricas; fuente en el
-catálogo de datos abiertos) · velocidad de pedaleo asistido con
-fuente · sin dato de elevación (declarado) · la doble capitalización
-«Senda ciclable/Ciclable» · la API viva de BiZi vive AQUÍ desde el
-28/08 (mudada del punto 10).
+**Punto 9 (casillas 0-1 HECHAS; el dato de la rueda EN CASA):**
+quedan los ARTÍCULOS del BOP en fino (casilla 2) · el RGC nuevo el
+01/10 (las citas migran) · ⚠️ EL PARLAMENTO 2-3 pendiente con cuatro
+sillas: quién manda en el 17,5 % de discrepancia OSM/Ayto · qué es
+«carril bici» para la prioridad (los dos mundos: Calmado 8 % y Senda
+3 % NO son cycleway) · la velocidad del asistido [PROPIO por firmar;
+ancla legal 25] · elevación fuera declarada (sin fuente municipal;
+Valhalla usa servicio aparte) · ⚠️ estadoEstacion de BiZi roto en
+las 276 (falso conocido; se usa estado) · la longitud_total
+unidireccional que mide el doble (1,99, NO CONSTA) · 141 U+FFFD en
+MU1 (confinados; codigo intacto) · la ficha §1.14 corta en su «Qué
+es» (dice nombres, trae 260 etiquetas) · la doble capitalización
+«Senda ciclable/Ciclable» · el contraflujo con candado (18 reales) ·
+la API viva de BiZi vive aquí (mudada del 10; NO es GBFS).
 
 **Punto 10:** líneas por poste (sin guardián) · caducidad GTFS (05/10;
 servicio 27/12 — VERIFICADO el 22/08 contra el dato: 196 calendarios
@@ -733,7 +763,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 460 pruebas (306 motor + 154 interfaz) sin CI · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 467 pruebas (313 motor + 154 interfaz) sin CI · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

@@ -1419,18 +1419,77 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       municipal]. EL RELOJ: el RGC reformado (RD 518/2026) entra en
       vigor el 01-10-2026 — las citas migran. Queda para la casilla
       2: los ARTÍCULOS exactos del BOP para la tabla fila a fila
-- [ ] **1 · EL CENSO del dato, solo lectura (el patrón del arranque
-      del 7):** el grafo (la etiqueta `h` para tipos ciclables ·
-      ⚠️ ONEWAY AUSENTE — la arista no trae sentidos y la bici en
-      calzada los debe: qué se hace sin ellos, medido y a la mesa) ·
-      la capa municipal calzada/acera/senda/calmado (el dato del
-      acera-bici) · los APARCABICIS (5.520 anclajes, descargados el
-      18/08) · las ESTACIONES BiZi (nunca descargadas: fuente,
-      licencia, ficha — y su API viva de disponibilidad, que SE MUDA
-      aquí desde el punto 10) · la velocidad de bici con fuente (el
-      5,0 km/h es del peatón) · la PENDIENTE: los motores de bici
-      usan elevación y NO CONSTA de dato de elevación — declarado y
-      fuera, sin disimulo
+- [x] **1 · EL CENSO — HECHO (28/08)** y seguido de LAS DOS
+      DESCARGAS autorizadas POR DOCTRINA (la regla nueva de Antonio:
+      la doctrina autoriza; su firma, solo para los huecos):
+      · EL GRAFO: cycleway 4.675/191,5 km; los 27 h contados; ONEWAY
+        confirmado ausente (9 campos barridos; el candidato d
+        descartado por estadística). ⭐ HALLAZGO: §1.14 traía el
+        juego de etiquetas ENTERO (oneway 9.875 · maxspeed 7.895 ·
+        oneway:bicycle 20) — cruce por w ya usado por el motor.
+      · ⭐ FUENTE NUEVA: MU1_jerarquia_viaria (WFS IDEZar, 3.644
+        tramos: limite_vel/doble_sent/pacificada/plataforma).
+      · CARRILES §1.5: casan por código 255/255 pero por geometría
+        DOS MUNDOS — unidireccional-acera 100 %/bidireccionales
+        88-97 % SON cycleway; Calmado 8 % y Senda 3 % NO (134 km son
+        tertiary/track/path: el Anillo y calzada compartida);
+        longitud_total de unidireccionales mide EL DOBLE (1,99, NO
+        CONSTA el porqué). Senda ciclable/Ciclable: la mayúscula.
+      · APARCABICIS §1.9: 2.158 puntos/14.544 anclajes (la cifra
+        «5.520» del encargo era de OTRA ficha — §1.8 BiZi; el
+        ejecutor recontó y corrigió), frontera 2.158/2.158.
+      · BiZi: inventario YA en repo (§1.8, 276/5.520); API viva
+        sondada — NO es GBFS (formato sede, sin clave, fresca al
+        minuto, casa 276/276, bicisDisponibles/anclajesDisponibles);
+        ⚠️ estadoEstacion ROTO en las 276 («no-operativa» el 100 %)
+        — se usa `estado`, falso conocido.
+      · VELOCIDADES citadas: Valhalla Hybrid 18 km/h defecto · OSRM
+        15; ⚠️ NINGÚN motor tiene perfil de pedaleo asistido (NO
+        CONSTA — la velocidad BiZi será [PROPIO]).
+      · ELEVACIÓN: NO CONSTA en casa (vértices 2D, 34 capas sin
+        cota); Valhalla usa servicio aparte (Skadi/use_hills) —
+        candidata a fuera declarada.
+      **LAS DOS DESCARGAS (28/08, `4ca53e0` `f843ea2`):**
+      · §1.21 Overpass AMPLIADA (sin filtro name; out count previo
+        65.223 = 3,3×, no desproporcionado; 11,3 MB; bbox del
+        grafo): ways con entrada 35,6 %→99,9 %; oneway calzada
+        urbana 39,2 %→65,2 % (1.030 km); maxspeed 37,6 %→41,7 %; la
+        ganancia en lo SIN nombre (service 6→55 %); track sigue 0 %
+        (2.156 km rurales sin etiquetar). NO pisa §1.14 MEDIDO: 30
+        ways ya no existen, 7 siguen en el grafo (Plaza Salamero…) —
+        dos fotos, las dos necesarias, guardián. Re-descarga: 1 byte
+        (el reloj del corte).
+      · §1.22 MU1_jerarquia (CRS verificado EN GRADOS sobre lo
+        descargado; enganche 2.049/2.049 — la costura pedía ≥95 %):
+        ≤30 → 2.584 tramos/498,8 km/1.603 vías · >30 → 659 · =0 →
+        400 (395 peatonales); el 39 errata declarada; ⚠️ 141 rasgos
+        con U+FFFD EN LOS BYTES (confinado a tramo/calle_2024;
+        codigo intacto — no toca lo usado); licencia: la capa no
+        declara (régimen Ley 37/2007 CON el NO CONSTA dicho).
+        Re-descarga: 4 bytes (timeStamp WFS).
+      · LA FOTO FINAL (calzada útil urbana 34.462/1.874 km): SENTIDO
+        65,2 % aristas/55,0 % km, a oscuras 34,8/45,0 · VELOCIDAD
+        combinadas 68,4/50,5, a oscuras 31,6/49,5 (con track todo
+        cae ~10 puntos). ⚠️ DISCREPANCIA 17,5 % donde ambas hablan
+        (2.283/13.057; primary con OSM 50 vs Ayto 30) — material del
+        parlamento.
+      · GUARDIANES: datos-de-la-rueda.spec.ts, 7 pruebas SIN
+        importar módulos del motor (nada lo lee aún — fabricar un
+        lector sería usarlo); contraprueba 7/7 tras DOS confesiones:
+        el runner dio «fail 0» con 7 sin pasar (before() lanza y las
+        CANCELA — la familia de la nº12) y la del CRS nació floja
+        (aflojó la aserción en vez de mutar el dato; reformulada
+        mutando el vértice a UTM, muerde). El contraflujo con
+        candado propio (18 reales: Armas, Cádiz, Postigo del Ebro).
+        El -1 no se aplasta (8).
+      · Manifiesto 39 resources; el panel pinta las dos filas en
+        gris NO CONSTA (sin periodicidad citable — aplicar la del
+        callejero sería citar política de otra capa). Ley nº3 sobre
+        clon autocrlf=true. Motor 313 · app 154.
+      · Por descubrimiento: §1.21 desplazó numeración («El resto del
+        dato» → §1.23, borrada sin querer y recuperada); la ficha
+        §1.14 se queda corta en su «Qué es» (dice «nombres», trae
+        260 etiquetas) — vista, no tocada, dicha
 - [ ] **2 · LAS TABLAS de acceso, TRES y fila a fila con artículo**
       (el patrón de la casilla 2 del 7, contra el texto del BOP):
       BICI (jamás acera · carril bici · cualquier calzada) · PATÍN
