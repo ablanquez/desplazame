@@ -29,6 +29,7 @@ import { UMBRAL_DE_DESVIO_M, entornoDe } from './gacetero.ts';
 import { portalCercano } from './cercano.ts';
 import { cargarRed } from './red.ts';
 import { cargarRedDeLaRueda } from './red-rueda.ts';
+import { SENTIDOS_CORREGIDOS } from './sentidos-corregidos.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
@@ -140,6 +141,18 @@ console.log(
     `${cuentas.sentidoPorRotonda} por rotonda implícita · ` +
     `${cuentas.contraflujo} contraflujo abierto a la bici · ${cuentas.sinSentido} en los dos`,
 );
+// ⭐ LAS CORRECCIONES VERIFICADAS A MANO, una a una y con su fuente. Es lo
+// único del sentido que no sale del fichero, así que es lo único que hay que
+// poder leer entero cada vez que el motor arranca.
+console.log(
+  `motor:   y ${cuentas.sentidoCorregido} aristas por CORRECCIÓN verificada ` +
+    `(${SENTIDOS_CORREGIDOS.length} ${SENTIDOS_CORREGIDOS.length === 1 ? 'way' : 'ways'} en la lista):`,
+);
+for (const c of SENTIDOS_CORREGIDOS) {
+  console.log(`motor:     way ${c.way} · OSM dice ${c.osmDiceHoy} → ${c.correccion} · ${c.fecha}`);
+  console.log(`motor:     ${c.motivo.replace(/\s+/g, ' ')}`);
+  console.log(`motor:     fuente: ${c.fuente.replace(/\s+/g, ' ')}`);
+}
 // ⭐ EL TECHO LEGAL y SU FUENTE. El municipal manda donde habla y OSM rellena;
 // lo que queda a oscuras rueda a la velocidad de crucero sola, sin techo
 // inventado.

@@ -43,6 +43,7 @@ import { tejerLaRed, type RedEnMemoria } from './red.ts';
 import type { Entorno } from './gacetero.ts';
 import { dentroDelEntorno } from './gacetero.ts';
 import { cargarJerarquia, type JerarquiaEnMemoria } from './jerarquia.ts';
+import { SENTIDOS_CORREGIDOS, sentidoCorregidoDe } from './sentidos-corregidos.ts';
 import {
   ACCESO_RODANDO,
   DEFECTO_PLATAFORMA_KMH,
@@ -108,6 +109,12 @@ export interface CuentasDeLaRueda {
   readonly sentidoAlReves: number;
   readonly sentidoPorRotonda: number;
   readonly contraflujo: number;
+  /**
+   * ⭐ Aristas cuyo sentido lo pone **una corrección verificada a mano**, no el
+   * fichero. Es la cifra que hay que poder mirar: cuanto más suba, más está
+   * este motor sosteniéndose sobre una lista escrita a mano.
+   */
+  readonly sentidoCorregido: number;
   readonly sinSentido: number;
   /** Aristas con techo legal EXPRESO — la señal. */
   readonly limiteMunicipal: number;
@@ -243,13 +250,37 @@ export interface RedDeLaRueda extends RedEnMemoria {
  */
 function sentidoDeLosWays(tags: ReadonlyMap<number, Readonly<Record<string, string>>>): Map<
   number,
-  { readonly sentido: -1 | 0 | 1; readonly porQue: 'tag' | 'reves' | 'rotonda' | 'contraflujo' }
+  {
+    readonly sentido: -1 | 0 | 1;
+    readonly porQue: 'tag' | 'reves' | 'rotonda' | 'contraflujo' | 'corregido';
+  }
 > {
   const fuera = new Map<
     number,
-    { sentido: -1 | 0 | 1; porQue: 'tag' | 'reves' | 'rotonda' | 'contraflujo' }
+    { sentido: -1 | 0 | 1; porQue: 'tag' | 'reves' | 'rotonda' | 'contraflujo' | 'corregido' }
   >();
+
+  // ⭐ LAS CORRECCIONES VERIFICADAS, antes que nada y por encima de todo.
+  //
+  // Van primero porque son lo único de esta función que no sale del fichero:
+  // son calles que alguien ha ido a mirar. Y llevan su cerradura dentro — si
+  // § 1.21 ya no dice lo que decía cuando se escribieron, `sentidoCorregidoDe`
+  // lanza y el motor no abre el puerto. Ver `sentidos-corregidos.ts`.
+  for (const fila of SENTIDOS_CORREGIDOS) {
+    const suyo = tags.get(fila.way);
+    const corregido = sentidoCorregidoDe(fila.way, suyo?.['oneway'], suyo !== undefined);
+    if (corregido !== undefined) {
+      fuera.set(fila.way, {
+        sentido: corregido === 'yes' ? 1 : corregido === '-1' ? -1 : 0,
+        porQue: 'corregido',
+      });
+    }
+  }
+
   for (const [way, t] of tags) {
+    if (fuera.has(way)) {
+      continue;
+    }
     const bici = t['oneway:bicycle'];
     if (bici === 'no') {
       fuera.set(way, { sentido: 0, porQue: 'contraflujo' });
@@ -365,6 +396,7 @@ export function cargarRedDeLaRueda(
   let sentidoAlReves = 0;
   let sentidoPorRotonda = 0;
   let contraflujo = 0;
+  let sentidoCorregido = 0;
   let limiteMunicipal = 0;
   let limiteOsm = 0;
   let defectoPlataforma = 0;
@@ -389,6 +421,7 @@ export function cargarRedDeLaRueda(
       else if (suyo.porQue === 'reves') sentidoAlReves++;
       else if (suyo.porQue === 'rotonda') sentidoPorRotonda++;
       else if (suyo.porQue === 'contraflujo') contraflujo++;
+      else if (suyo.porQue === 'corregido') sentidoCorregido++;
     }
 
     // ⭐ — EL TECHO LEGAL, EN CUATRO CAPAS Y POR ESE ORDEN —
@@ -612,6 +645,7 @@ export function cargarRedDeLaRueda(
       sentidoAlReves,
       sentidoPorRotonda,
       contraflujo,
+      sentidoCorregido,
       sinSentido,
       limiteMunicipal,
       limiteOsm,
