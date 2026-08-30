@@ -199,19 +199,59 @@ legend {
   cursor: pointer;
 }
 
+/* ⭐ Los SEIS modos, y siguen cabiendo en una fila.
+   Medido en Chrome (30/08) con la fuente real de la página —Times New Roman
+   16 px, que es la del navegador: la pantalla no declara ninguna—: las seis
+   opciones suman 567,2 px y sus cinco huecos 40, o sea **607,2 px de los 678
+   útiles** que deja el `fieldset` en la ventana de 752. Sobran 70,8.
+   Por debajo de eso el grupo se dobla solo, que es una de las salidas dignas
+   del patrón —dos filas del MISMO grupo, no dos controles—: a 360 px de móvil
+   son tres filas de dos, y **ninguna etiqueta se recorta ni se parte**, ni
+   siquiera a 320. Es lo que ya hacía `flex-wrap` con los cuatro de antes, que
+   a 500 px también doblaban. No hace falta cambiar nada. */
 .modos {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
+/* El vestido no cambia al pasar de `<button>` a `<label>` con radio dentro: es
+   el mismo relleno, el mismo borde y la misma tipografía. `inline-flex` porque
+   ahora hay un hijo —el `input`— y una etiqueta se alinea por su línea base;
+   así la caja mide igual que medía el botón. */
 .modo {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
   padding: 0.5rem 0.9rem;
   border: 1px solid #999;
   border-radius: 3px;
   background: #fff;
   font: inherit;
   cursor: pointer;
+}
+
+/* ⭐ El radio está, pero no se ve. La técnica de siempre: fuera de la vista sin
+   `display: none` ni `visibility: hidden`, que lo sacarían del orden de
+   tabulación y del árbol de accesibilidad — y ahí es justo donde tiene que
+   seguir, porque **él es el control**: es quien recibe el foco, quien se mueve
+   con las flechas y quien se anuncia como «Andando, opción 1 de 6». */
+.modo__radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Y como el foco cae en algo invisible, el anillo se lo pone la etiqueta. Sin
+   esto, quien navegue con el tabulador no vería dónde está: el navegador
+   dibujaría el suyo alrededor de un punto de 1 px. */
+.modo:has(.modo__radio:focus-visible) {
+  outline: 2px solid #1a1a1a;
+  outline-offset: 2px;
 }
 
 /* El modo activo tiene que distinguirse sin depender solo del color. */

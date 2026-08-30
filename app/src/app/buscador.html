@@ -233,18 +233,41 @@
       }
     </fieldset>
 
+    <!--
+      ⭐ EL SELECTOR ES UN GRUPO DE RADIOS desde el 30/08, y antes eran seis
+      —cuatro— `<button aria-pressed>` sueltos.
+
+      El cambio lo obliga el número. [DOC sistemas de diseño · control
+      segmentado] el rango del patrón es de **2 a 5 opciones con etiqueta**, y
+      con más de cinco mandan cambiar de patrón: «grupo de radios o
+      desplegable». Aquí hay seis y son excluyentes, así que toca radios.
+
+      Lo que se gana no es el dibujo —el vestido es el mismo, y el CSS también—:
+      es **la semántica**, y con ella el teclado. Seis botones sueltos eran seis
+      paradas de tabulador y las flechas no hacían nada. Un grupo de radios con
+      el mismo `name` es **una parada para el grupo, flechas entre opciones y
+      exclusión** — todo del navegador, sin una línea de JavaScript. El
+      `fieldset` + `legend` ya estaba y es justo el envoltorio que el patrón
+      pide: la leyenda «Cómo» es el nombre del grupo.
+
+      Nativo primero: `input type="radio"` de verdad, escondido a la vista pero
+      **presente para el teclado y para quien lea la pantalla**. Lo que se ve es
+      la `<label>` que lo envuelve, que es también lo que se pulsa.
+    -->
     <fieldset class="modos">
       <legend>Cómo</legend>
       @for (m of modos; track m.id) {
-        <button
-          type="button"
-          class="modo"
-          [class.modo--activo]="modo() === m.id"
-          [attr.aria-pressed]="modo() === m.id"
-          (click)="elegirModo(m.id)"
-        >
+        <label class="modo" [class.modo--activo]="modo() === m.id">
+          <input
+            type="radio"
+            name="modo"
+            class="modo__radio"
+            [value]="m.id"
+            [checked]="modo() === m.id"
+            (change)="elegirModo(m.id)"
+          />
           {{ m.etiqueta }}
-        </button>
+        </label>
       }
     </fieldset>
 

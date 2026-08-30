@@ -48,11 +48,19 @@ describe('App — la cáscara, su página y el comodín', () => {
     return { fixture, router, raiz: fixture.nativeElement as HTMLElement };
   }
 
+  /**
+   * ⚠️ Los radios del selector se descuentan desde el 30/08: al pasar los modos
+   * de `<button>` a grupo de radios entraron seis `<input>` que no son campos
+   * del formulario. Lo que esta juez vigila —que la raíz sirve el buscador con
+   * sus cuatro campos— no ha cambiado; el filtro solo dice cuáles son campos.
+   */
   it('la ruta raíz sigue sirviendo el buscador, con sus cuatro campos', async () => {
     const { raiz } = await ir('/');
 
     expect(raiz.querySelector('app-buscador')).not.toBeNull();
-    const nombres = Array.from(raiz.querySelectorAll<HTMLInputElement>('input')).map((i) => i.name);
+    const nombres = Array.from(raiz.querySelectorAll<HTMLInputElement>('input'))
+      .filter((i) => i.type !== 'radio')
+      .map((i) => i.name);
     expect(nombres).toEqual(['calleOrigen', 'portalOrigen', 'calleDestino', 'portalDestino']);
   });
 

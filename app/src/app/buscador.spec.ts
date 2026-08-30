@@ -12,11 +12,43 @@ import type {
 } from '@desplazame/tipos';
 import { Buscador } from './buscador';
 
-/** Devuelve los botones de modo que están marcados como activos. */
+/** Devuelve las opciones de modo que están marcadas como activas. */
 function modosActivos(raiz: HTMLElement): string[] {
-  return Array.from(raiz.querySelectorAll<HTMLButtonElement>('.modo--activo')).map(
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.modo--activo')).map(
     (b) => b.textContent?.trim() ?? '',
   );
+}
+
+/**
+ * ⭐ Los seis `input type="radio"` del grupo, en el orden del DOM.
+ *
+ * **Se buscan por lo que SON, no por su clase**: el encargo del 30/08 pide la
+ * semántica de grupo de radios, y una prueba que preguntara por `.modo` daría
+ * verde igual con seis `<button>` disfrazados. Aquí se pregunta por
+ * `input[type=radio][name=modo]`, que es lo único que le da al navegador la
+ * conducta del patrón — una parada de tabulador para el grupo, flechas dentro
+ * y exclusión sin una línea de JavaScript.
+ */
+function radiosDeModo(raiz: HTMLElement): HTMLInputElement[] {
+  return Array.from(raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="modo"]'));
+}
+
+/** Pulsa una opción del selector por su etiqueta, como quien hace clic. */
+function elegirModo(fixture: any, etiqueta: string): void {
+  const raiz = fixture.nativeElement as HTMLElement;
+  const radio = radiosDeModo(raiz).find(
+    (r) => r.closest('.modo')?.textContent?.trim() === etiqueta,
+  );
+  if (!radio) {
+    throw new Error(
+      `no hay ninguna opción de modo que se lea «${etiqueta}». Las que hay: ` +
+        radiosDeModo(raiz)
+          .map((r) => `«${r.closest('.modo')?.textContent?.trim()}»`)
+          .join(', '),
+    );
+  }
+  radio.click();
+  fixture.detectChanges();
 }
 
 /** Escribe en un campo como lo haría una persona: valor + evento de entrada. */
@@ -188,14 +220,50 @@ const SIN_RUTA: Trayecto = {
   segundos: 0,
 };
 
-/** Y lo que contesta a un modo que todavía no atiende. También literal. */
-const MODO_SIN_ATENDER: Trayecto = {
-  modo: 'coche',
-  pasos: [],
-  geometria: [],
-  avisos: [{ texto: 'Todavía no calculamos rutas en modo «coche». Solo andando.' }],
-  metros: 0,
-  segundos: 0,
+/**
+ * ⭐ LOS DOS TRAYECTOS DE LA JUEZ 4, para mirarla desde la pantalla.
+ *
+ * Son el caso `Portales.120344 → Portales.110047` de `rueda.spec.ts`: la bici
+ * cruza la Avenida de Madrid en **1.565 m** y el patín la rodea en **1.972**,
+ * porque dos de los cuatro tramos tienen dos carriles por sentido y ahí no es
+ * vía pacificada [ORD art. 15.2.a.ii]. Los metros son los del motor de verdad;
+ * los pasos van recortados a lo que la prueba mira — que la calle salga en una
+ * ruta y no en la otra.
+ *
+ * Aquí estaba `MODO_SIN_ATENDER`, lo que el motor contestaba a `modo: 'coche'`.
+ * Se ha borrado con su prueba: desde el 30/08 el coche no llega a preguntar.
+ */
+const POR_LA_AVENIDA_DE_MADRID: Trayecto = {
+  modo: 'bici',
+  pasos: [
+    paso('salida', 380, accion('Sal de'), llano(' '), via('Calle Burgos 2')),
+    paso('derecha', 1185, accion('Gira a la derecha'), llano(' hacia '), via('Avenida de Madrid')),
+    paso('llegada', 0, via('Avenida Goya 45'), llano(' está a la izquierda')),
+  ],
+  geometria: [
+    [41.6561, -0.8973],
+    [41.6555, -0.9051],
+  ],
+  avisos: [],
+  metros: 1565,
+  segundos: 313,
+};
+
+const RODEANDO_LA_AVENIDA_DE_MADRID: Trayecto = {
+  modo: 'patin',
+  pasos: [
+    paso('salida', 380, accion('Sal de'), llano(' '), via('Calle Burgos 2')),
+    paso('derecha', 812, accion('Gira a la derecha'), llano(' hacia '), via('Calle de Terminillo')),
+    paso('izquierda', 780, accion('Gira a la izquierda'), llano(' hacia '), via('Calle Unceta')),
+    paso('llegada', 0, via('Avenida Goya 45'), llano(' está a la izquierda')),
+  ],
+  geometria: [
+    [41.6561, -0.8973],
+    [41.6501, -0.9051],
+  ],
+  avisos: [],
+  metros: 1972,
+  segundos: 394,
 };
 
 /** Los diez giros del contrato, en el orden en que están declarados. */
@@ -563,13 +631,26 @@ describe('Buscador', () => {
     expect(raiz.querySelector('h1')?.textContent).toContain('Desplázame');
   });
 
+  /**
+   * ⚠️ **Se buscan los `input` que NO son del selector** desde el 30/08.
+   *
+   * Hasta hoy bastaba con enumerar todos los `<input>` de la pantalla, porque
+   * los únicos que había eran los cuatro campos: el selector de modo eran
+   * `<button>`. Al pasarlo a grupo de radios entraron seis `<input>` más, y
+   * esta prueba se puso roja diciendo que había diez campos.
+   *
+   * No es un ajuste para que pase: lo que vigila —**los campos del formulario
+   * son cuatro, estos, y en este orden**— sigue vigilado igual. Lo que cambia
+   * es que ahora hay que decir cuáles son campos, y los del grupo se cuentan
+   * en su propia juez, que exige exactamente seis.
+   */
   it('tiene los cuatro campos: calle y portal de origen y de destino', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
-    const nombres = Array.from(raiz.querySelectorAll<HTMLInputElement>('input')).map(
-      (i) => i.name,
-    );
+    const nombres = Array.from(raiz.querySelectorAll<HTMLInputElement>('input'))
+      .filter((i) => i.type !== 'radio')
+      .map((i) => i.name);
     expect(nombres).toEqual([
       'calleOrigen',
       'portalOrigen',
@@ -578,27 +659,95 @@ describe('Buscador', () => {
     ]);
   });
 
-  it('tiene los cuatro modos, con andando activo por defecto', async () => {
+  // ── EL SELECTOR A SEIS MODOS (30/08) ──────────────────────────────────────
+  //
+  // Hasta hoy eran cuatro `<button aria-pressed>`, y «Bici / Patinete» mandaba
+  // `bici` para los dos. Desde la casilla 3 el motor distingue tres ruedas con
+  // tres tablas legales distintas, así que un patinetero que pulsara ahí
+  // recibía una ruta de bici — legal para la bici por el art. 56.2.c de la
+  // Ordenanza, **ilegal para él** en cuanto la calle pasa de 30 [ORD art.
+  // 56.3.a-g, sobre el límite del art. 50 RGC]. Estas jueces son la muralla de
+  // que eso no vuelva.
+
+  it('el selector es un grupo de radios nativo, no seis botones sueltos', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
-    const botones = raiz.querySelectorAll<HTMLButtonElement>('.modo');
-    expect(botones.length).toBe(4);
+
+    // El envoltorio del patrón: `fieldset` + `legend`. Ya estaba, y se queda.
+    const grupo = raiz.querySelector<HTMLFieldSetElement>('fieldset.modos')!;
+    expect(grupo).not.toBeNull();
+    expect(grupo.querySelector('legend')?.textContent?.trim()).toBe('Cómo');
+
+    // ⭐ Y lo que NO estaba: seis radios de verdad, con el mismo `name`. Ese
+    // nombre compartido es TODO el mecanismo — es lo que hace que el navegador
+    // dé una sola parada de tabulador al grupo, mueva con las flechas y
+    // desmarque el anterior sin que nadie se lo pida.
+    const radios = radiosDeModo(raiz);
+    expect(radios.length).toBe(6);
+    expect(new Set(radios.map((r) => r.name)).size).toBe(1);
+
+    // Ninguno lleva `tabindex` puesto a mano: eso rompería la parada única.
+    for (const r of radios) {
+      expect(r.hasAttribute('tabindex')).toBe(false);
+    }
+
+    // Exactamente uno marcado, siempre. Es la exclusión, y la da el navegador.
+    expect(radios.filter((r) => r.checked).length).toBe(1);
+
+    // Y no queda ni un `<button class="modo">` del control viejo.
+    expect(raiz.querySelectorAll('button.modo').length).toBe(0);
+  });
+
+  /**
+   * Las seis etiquetas EXACTAS y en el orden firmado por Antonio el 28/08.
+   *
+   * El orden no es alfabético ni por velocidad: es el del encargo, y lo que
+   * ordena es el reparto legal — primero lo que no lleva vehículo, luego el
+   * colectivo, luego las tres ruedas (cada una con su tabla de acceso), y el
+   * coche al final.
+   */
+  it('tiene los seis modos, con las etiquetas y el orden firmados', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    const etiquetas = Array.from(raiz.querySelectorAll<HTMLElement>('.modo')).map(
+      (m) => m.textContent?.trim() ?? '',
+    );
+    expect(etiquetas).toEqual([
+      'Andando',
+      'Bus / Tranvía',
+      'Bici privada',
+      'Patín (VMP)',
+      'BiZi',
+      'Coche',
+    ]);
+  });
+
+  it('andando viene marcado al cargar, y es el único', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
     expect(modosActivos(raiz)).toEqual(['Andando']);
+    const marcados = radiosDeModo(raiz).filter((r) => r.checked);
+    expect(marcados.length).toBe(1);
+    expect(marcados[0].value).toBe('andando');
   });
 
   it('los modos son excluyentes: elegir uno apaga el anterior', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
-    const botones = raiz.querySelectorAll<HTMLButtonElement>('.modo');
 
-    botones[2].click(); // Bici
+    elegirModo(fixture, 'Bici privada');
     await fixture.whenStable();
 
-    expect(modosActivos(raiz)).toEqual(['Bici / Patinete']);
-    expect(botones[0].getAttribute('aria-pressed')).toBe('false');
-    expect(botones[2].getAttribute('aria-pressed')).toBe('true');
+    expect(modosActivos(raiz)).toEqual(['Bici privada']);
+    const marcados = radiosDeModo(raiz).filter((r) => r.checked);
+    expect(marcados.length).toBe(1);
+    expect(marcados[0].value).toBe('bici');
   });
 
   it('con campos vacíos el botón está bloqueado y no pinta nada', async () => {
@@ -955,29 +1104,174 @@ describe('Buscador', () => {
     expect(raiz.querySelector('.ruta__metros')).toBeNull();
   });
 
+  // ── EL CABLEADO: CADA RUEDA MANDA SU MODO (30/08) ─────────────────────────
+
   /**
-   * El modo que se enseña es EL QUE CONTESTA EL MOTOR, no el que está pulsado.
-   * Los tres modos que faltan no dan ruta, y el motor lo dice con todas las
-   * letras: la pantalla enseña ese aviso tal cual, sin traducirlo ni suavizarlo.
+   * ⭐ EL JUEZ DEL PATÍN, y **nace contra el cableado viejo**.
+   *
+   * Hasta el 30/08 el botón se leía «Bici / Patinete» y mandaba `bici` para los
+   * dos. El motor lleva desde la casilla 3 distinguiendo las tres ruedas, así
+   * que lo que llegaba al patinetero era la ruta de la bici: la misma que en la
+   * juez 4 del motor le hace pisar 63 m de la Avenida de Madrid con dos
+   * carriles por sentido, donde el art. 56.3 no le deja estar.
+   *
+   * Esta prueba se escribió ANTES de tocar el selector y falló diciendo que no
+   * había ninguna opción que se leyera «Patín (VMP)»; el único camino que le
+   * quedaba a un patinetero era el botón de la bici, y ese mandaba `bici`.
    */
-  it('un modo que el motor no atiende enseña SU aviso, no una ruta a pie', async () => {
+  it('⭐ el patín manda «patin», no «bici»', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    raiz.querySelectorAll<HTMLButtonElement>('.modo')[3].click(); // Coche
+    elegirModo(fixture, 'Patín (VMP)');
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
 
     const peticion = http.expectOne('/api/ruta');
-    expect((peticion.request.body as { modo: string }).modo).toBe('coche');
-    peticion.flush(MODO_SIN_ATENDER);
+    expect((peticion.request.body as { modo: string }).modo).toBe('patin');
+
+    peticion.flush({ ...TRAYECTO, modo: 'patin' });
+    await fixture.whenStable();
+    expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Patín (VMP)');
+  });
+
+  it('la bici privada manda «bici»', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'Bici privada');
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    const peticion = http.expectOne('/api/ruta');
+    expect((peticion.request.body as { modo: string }).modo).toBe('bici');
+    peticion.flush({ ...TRAYECTO, modo: 'bici' });
+    await fixture.whenStable();
+  });
+
+  it('la BiZi manda «bizi»', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'BiZi');
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    const peticion = http.expectOne('/api/ruta');
+    expect((peticion.request.body as { modo: string }).modo).toBe('bizi');
+    peticion.flush({ ...TRAYECTO, modo: 'bizi' });
+    await fixture.whenStable();
+  });
+
+  /**
+   * ⭐ BUS Y COCHE NO LLAMAN AL MOTOR, y lo dicen ellos.
+   *
+   * Hasta hoy sí llamaban, y el motor contestaba con su aviso —«Todavía no
+   * calculamos rutas en modo «coche». Solo andando, bici, patin, bizi.»—. Se
+   * enseñaba tal cual, y era honesto.
+   *
+   * Lo que cambia es **quién lo dice**, y por dos razones medidas:
+   *
+   * 1. Con el motor caído, ese viaje no contestaba «todavía no hacemos coche»
+   *    sino «No se pudo preguntar al motor», que es falso: el coche no
+   *    dependería del motor ni estando arrancado.
+   * 2. El aviso del motor enumera su lista interna —`andando, bici, patin,
+   *    bizi`, con los identificadores del contrato— y esos no son las palabras
+   *    de la pantalla, que dice «Bici privada» y «Patín (VMP)».
+   *
+   * Lo que NO cambia es la forma de lo que se pinta: sigue siendo un `Trayecto`
+   * con su modo, cero pasos y un aviso ámbar. Bus llega con el punto 10 del
+   * plan y coche con el 11; ese día la fila pierde su `todavia` y empieza a
+   * viajar como las demás.
+   */
+  it('el bus no llama a /api/ruta: lo dice la pantalla', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Coche');
-    expect(avisosDeRuta(raiz)[0]).toContain('Todavía no calculamos rutas en modo «coche»');
+    // NI UNA petición. `expectNone` es la aserción de verdad de esta juez.
+    http.expectNone('/api/ruta');
+
+    expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Bus / Tranvía');
+    expect(avisosDeRuta(raiz)[0]).toContain('Todavía no calculamos rutas en bus ni tranvía');
     expect(raiz.querySelectorAll('.paso').length).toBe(0);
+    // Y no se cuela la línea de metros de una ruta que no existe.
+    expect(raiz.querySelector('.ruta__metros')).toBeNull();
+  });
+
+  it('el coche no llama a /api/ruta: lo dice la pantalla', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'Coche');
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    http.expectNone('/api/ruta');
+    expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Coche');
+    expect(avisosDeRuta(raiz)[0]).toContain('Todavía no calculamos rutas en coche');
+    expect(raiz.querySelectorAll('.paso').length).toBe(0);
+  });
+
+  /**
+   * ⭐ LA JUEZ 4 DEL MOTOR, VISTA DESDE LA PANTALLA.
+   *
+   * El selector no vale nada si el modo viaja pero no cambia lo que se pinta.
+   * Aquí van **los mismos dos extremos** —los de la juez 4 de `rueda.spec.ts`,
+   * `Portales.120344 → Portales.110047`— con sus dos respuestas reales: la bici
+   * cruza la Avenida de Madrid en 1.565 m y el patín la rodea en 1.972.
+   *
+   * Lo que prueba es que la pantalla no arrastra el resultado anterior: se
+   * cambia SOLO el modo, con los cuatro códigos intactos, y lo que se lee
+   * debajo es lo otro — otros metros y otra calle en los pasos.
+   *
+   * Los números salen del motor de verdad; aquí el motor está fingido y lo
+   * único que se mira es el tubo. La cuenta la vigila la juez 4.
+   */
+  it('a extremos iguales, cambiar de modo cambia la ruta que se lee', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bici privada');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    const enBici = http.expectOne('/api/ruta');
+    expect((enBici.request.body as { modo: string }).modo).toBe('bici');
+    enBici.flush(POR_LA_AVENIDA_DE_MADRID);
+    await fixture.whenStable();
+
+    expect(raiz.querySelector('.ruta__metros')?.textContent).toContain('1,6 km');
+    expect(pasosEnPantalla(raiz).join(' | ')).toContain('Avenida de Madrid');
+
+    // El MISMO origen y el MISMO destino. Solo cambia la rueda.
+    elegirModo(fixture, 'Patín (VMP)');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    const enPatin = http.expectOne('/api/ruta');
+    expect(enPatin.request.body).toEqual({ ...enBici.request.body, modo: 'patin' });
+    enPatin.flush(RODEANDO_LA_AVENIDA_DE_MADRID);
+    await fixture.whenStable();
+
+    expect(raiz.querySelector('.ruta__metros')?.textContent).toContain('2,0 km');
+    expect(pasosEnPantalla(raiz).join(' | ')).not.toContain('Avenida de Madrid');
   });
 
   it('si el motor no contesta, la ruta lo dice en ámbar y no pinta nada', async () => {

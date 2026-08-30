@@ -326,25 +326,74 @@ export class Buscador {
   protected readonly avisoUbicacion = signal<string | null>(null);
 
   /**
-   * El orden en que se pintan los botones, y su texto.
+   * ⭐ LOS SEIS MODOS: el orden en que se pintan y su texto.
    *
-   * La `etiqueta` es lo ÚNICO visible, y sale por dos sitios: el botón y la
-   * línea «Modo:» del resultado. El `id` es del contrato (`Modo`) y no se
-   * toca: la rueda pequeña comparte la red ciclista, así que el patinete va
-   * por el mismo modo `bici` — lo que cambia es que ahora se dice.
+   * La `etiqueta` es lo ÚNICO visible, y sale por dos sitios: la opción y la
+   * línea «Modo:» del resultado. El `id` es del contrato (`Modo`) y es lo que
+   * viaja.
    *
-   * **La palabra que va tras la barra lleva mayúscula en los dos botones que
-   * la tienen**, y es una decisión de peso visual, no un despiste: la norma
-   * pediría minúscula. En el README, que es prosa y no botón, va en minúscula.
+   * ── Por qué seis, y por qué estos ───────────────────────────────────────
    *
-   * Y el de la bici no dice «VMP»: eso es jerga de ordenanza, y el botón habla
-   * el idioma de quien lo pulsa.
+   * Hasta el 30/08 eran cuatro, y **«Bici / Patinete» mandaba `bici` para los
+   * dos**. Aquello era verdad mientras el motor tenía una sola rueda; desde la
+   * casilla 3 tiene tres, porque **son tres tablas legales distintas**:
+   *
+   * - la **bici privada** puede ir por vía ciclista, calzada y calle
+   *   residencial [ORD art. 56.2.c];
+   * - el **patín (VMP)** solo por donde el art. 56.3 le deja, y en calzada
+   *   únicamente si es vía pacificada — un carril por sentido **y** 30 km/h
+   *   [ORD art. 15.2.a.ii], sobre el límite del art. 50 RGC;
+   * - la **BiZi** es la bici, pero **no sale del término municipal**, porque la
+   *   estación de vuelta está dentro.
+   *
+   * Un patinetero que pulsara el botón de la bici recibía una ruta legal para
+   * la bici e ilegal para él. Eso es lo que cierra esta casilla.
+   *
+   * ── El orden y las palabras ─────────────────────────────────────────────
+   *
+   * El orden es el que firmó Antonio el 28/08 y no es alfabético: va de lo que
+   * no lleva vehículo a lo que más ocupa — a pie, colectivo, las tres ruedas
+   * (cada una con su tabla) y el coche.
+   *
+   * **La palabra que va tras la barra lleva mayúscula**, y es una decisión de
+   * peso visual, no un despiste: la norma pediría minúscula. En el README, que
+   * es prosa y no botón, va en minúscula.
+   *
+   * Y aquí **el patín SÍ dice «VMP»**, al revés de lo que se decidió el 18/08
+   * para el botón viejo. Entonces se evitó la jerga porque el botón valía para
+   * los dos vehículos y la palabra corriente bastaba; ahora hay que distinguir
+   * tres ruedas a golpe de vista, y «VMP» es exactamente lo que dice la señal
+   * de la calle y la Ordenanza. La jerga que el usuario ya ha visto en la vía
+   * pública deja de ser jerga.
+   *
+   * ── `todavia`: los dos que no se le piden al motor ──────────────────────
+   *
+   * Bus y coche están en la pantalla desde el 18/08 por honestidad —el
+   * producto los promete—, y no hay motor detrás: llegan con los puntos 10 y
+   * 11 del plan. Su frase se escribe AQUÍ, y por eso no viajan.
+   *
+   * Es deliberado y tiene su prueba: pedirle al motor un modo que se sabe que
+   * no calcula gastaba un viaje para traer un aviso, y con el motor caído ese
+   * viaje contestaba «No se pudo preguntar al motor», que es falso — el coche
+   * no dependería del motor ni estando arrancado. El día que el punto 10
+   * aterrice, esta fila pierde su `todavia` y empieza a viajar como las demás.
    */
-  protected readonly modos: ReadonlyArray<{ id: Modo; etiqueta: string }> = [
-    { id: 'andando', etiqueta: 'Andando' },
-    { id: 'bus', etiqueta: 'Bus / Tranvía' },
-    { id: 'bici', etiqueta: 'Bici / Patinete' },
-    { id: 'coche', etiqueta: 'Coche' },
+  protected readonly modos: ReadonlyArray<{
+    id: Modo;
+    etiqueta: string;
+    /** Por qué no se le pide al motor, o `null` si sí se le pide. */
+    todavia: string | null;
+  }> = [
+    { id: 'andando', etiqueta: 'Andando', todavia: null },
+    {
+      id: 'bus',
+      etiqueta: 'Bus / Tranvía',
+      todavia: 'Todavía no calculamos rutas en bus ni tranvía.',
+    },
+    { id: 'bici', etiqueta: 'Bici privada', todavia: null },
+    { id: 'patin', etiqueta: 'Patín (VMP)', todavia: null },
+    { id: 'bizi', etiqueta: 'BiZi', todavia: null },
+    { id: 'coche', etiqueta: 'Coche', todavia: 'Todavía no calculamos rutas en coche.' },
   ];
 
   /** Los dos lados de la dirección. Misma forma, mismo trato. */
@@ -738,18 +787,33 @@ export class Buscador {
 
     this.avisoRuta.set(null);
     this.resultado.set(null);
+
+    // ⭐ BUS Y COCHE NO SALEN DE AQUÍ (30/08). El motor no los calcula, así que
+    // preguntárselo sería gastar un viaje para traer un «todavía no» — y con el
+    // motor caído traería «no se pudo preguntar», que sería mentir sobre la
+    // causa. La respuesta tiene la MISMA forma que la del motor: un trayecto
+    // con su modo, cero pasos y un aviso ámbar, así que se pinta por el mismo
+    // camino y no hay una segunda manera de enseñar lo mismo.
+    const modo = this.modo();
+    const todavia = this.modos.find((m) => m.id === modo)?.todavia;
+    if (todavia) {
+      this.pinta({
+        modo,
+        pasos: [],
+        geometria: [],
+        avisos: [{ texto: todavia }],
+        metros: 0,
+        segundos: 0,
+      });
+      return;
+    }
+
     this.generando.set(true);
 
     this.http.post<Trayecto>('/api/ruta', peticion).subscribe({
       next: (trayecto) => {
         this.generando.set(false);
-        this.resultado.set({
-          origen: this.comoSeLee(this.origen),
-          destino: this.comoSeLee(this.destino),
-          capaOrigen: this.capaDe(this.origen),
-          capaDestino: this.capaDe(this.destino),
-          trayecto,
-        });
+        this.pinta(trayecto);
       },
       // Que el motor no conteste no es lo mismo que no haber ruta: cuando no
       // hay ruta, el motor contesta un trayecto vacío con su aviso y eso entra
@@ -758,6 +822,23 @@ export class Buscador {
         this.generando.set(false);
         this.avisoRuta.set('No se pudo preguntar al motor. ¿Está arrancado?');
       },
+    });
+  }
+
+  /**
+   * Un trayecto, en la pantalla, con los dos extremos tal y como se leen.
+   *
+   * Sale del `next` del motor y también del corte de bus y coche: es **el único
+   * sitio** donde se compone un resultado, para que un trayecto que no viene
+   * del motor no pueda pintarse de otra manera que uno que sí.
+   */
+  private pinta(trayecto: Trayecto): void {
+    this.resultado.set({
+      origen: this.comoSeLee(this.origen),
+      destino: this.comoSeLee(this.destino),
+      capaOrigen: this.capaDe(this.origen),
+      capaDestino: this.capaDe(this.destino),
+      trayecto,
     });
   }
 
