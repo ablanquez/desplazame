@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-30] 🔴 ABIERTA — El aviso que hace legales los hitos sin número no lo vigila NADIE: borrarlo de la pantalla deja las 175 pruebas en verde
+## [2026-08-30] ✅ CERRADA — El aviso que hace legales los hitos sin número no lo vigila NADIE: borrarlo de la pantalla deja las 175 pruebas en verde
 
 **Categoría:** guardián que no existe sobre una regla firmada
 
@@ -73,13 +73,41 @@ escribí el checkpoint de las casillas 5-6 buscaba los avisos por
 Así que cuando aquel checkpoint decía que las rutas de bici, patín y BiZi salían
 «sin AVISO», **no es que no los hubiera: es que el instrumento no podía verlos**.
 
-**Causa raíz:** ⏳ PENDIENTE
+**Causa raíz:** el guardián se escribió cuando la regla que vigilaba era otra.
+Las tres pruebas de aviso nacieron entre el 20 y el 30/08, cuando un `Trayecto`
+con `avisos` **no podía tener pasos**: eran mutuamente excluyentes, así que
+comprobar «hay aviso» y «no hay ningún paso» en la misma prueba era comprobar lo
+mismo dos veces. El 30/08 las casillas 5 y 6 rompieron esa exclusión —el remate
+sin aparcabicis y el plan D-G del BiZi devuelven **ruta y aviso a la vez**— y
+ninguna prueba se enteró, porque ninguna se puso roja: la regla vieja seguía
+siendo cierta en sus casos. **Un guardián no falla cuando el mundo cambia
+debajo; simplemente deja de cubrirlo.**
 
-**Arreglo aplicado:** ⏳ PENDIENTE
+**Arreglo aplicado:** una juez en `app/src/app/buscador.spec.ts` —«⭐ el aviso se
+enseña TAMBIÉN cuando la ruta sale»— con los **dos** casos de la clase nueva, que
+son el mismo hueco: el D-G del BiZi con sus hitos pelados, y la bici sin
+aparcabicis cerca. Sus dos fixtures llevan la respuesta **real** del 30/08, no
+una inventada. La contraprueba es la misma mutación que abrió esta entrada
+—envolver el bloque de avisos en `@if (pasos.length === 0)`—, y ahora **pone la
+juez roja**: 175 de 176.
 
-**Commit:** ⏳ PENDIENTE
+⚠️ **El código de pantalla no se ha tocado, y es a propósito**: hacía lo correcto.
+Lo que faltaba era la prueba. Un arreglo que hubiera movido la plantilla habría
+tapado el hallazgo en vez de cerrarlo.
 
-**Ley que sale de aquí:** ⏳ PENDIENTE
+De paso, y porque es de la misma tarde: el `200` con cuerpo vacío queda nombrado
+donde se recoge (`motor/src/bizi.ts`) y en la ficha de la fuente
+(`THIRD-PARTY-NOTICES.md` § 1.23).
+
+**Commit:** `c452a8e`
+
+**Ley que sale de aquí:** **cuando una regla del contrato se ensancha, hay que ir
+a buscar a los guardianes que se apoyaban en la regla estrecha** — no van a
+avisar, porque siguen pasando. Aquí la regla vieja era «avisos y pasos son
+excluyentes» y no estaba escrita en ninguna parte: vivía en la forma de tres
+pruebas, en el `@else` de una plantilla y en la cabeza de quien las escribió. El
+día que dejó de ser cierta, lo único que lo habría delatado es preguntarle a cada
+guardián **qué compra hoy**, y esa pregunta no se hace sola.
 
 **Traza:** `app/src/app/buscador.html` (el `@for` de `r.trayecto.avisos` dentro
 del `@if (resultado(); as r)`) · `app/src/app/buscador.spec.ts` (las tres pruebas
