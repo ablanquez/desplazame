@@ -72,6 +72,10 @@ function tramo(
     metros,
     entrada,
     salida,
+    // Estas pruebas son de la fusión y del giro, no del empuje: van rodando,
+    // que es lo que hace el peatón siempre. El corte por cambio de modo tiene
+    // sus propias jueces en `empuje.spec.ts`.
+    empujando: false,
     encrucijada,
   };
 }
@@ -97,6 +101,7 @@ function maniobra(
     conNombre: tieneNombre(nombre),
     esMunicipal,
     metros,
+    empujando: false,
     giro,
     entrada,
     salida,

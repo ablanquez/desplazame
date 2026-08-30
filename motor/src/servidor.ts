@@ -30,6 +30,7 @@ import { portalCercano } from './cercano.ts';
 import { cargarRed } from './red.ts';
 import { cargarRedDeLaRueda } from './red-rueda.ts';
 import { SENTIDOS_CORREGIDOS } from './sentidos-corregidos.ts';
+import { FACTOR_DEL_EMPUJE, VELOCIDAD_EMPUJANDO_KMH } from './rueda.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
@@ -116,7 +117,7 @@ const entorno = entornoDe(portales);
 const redRueda = cargarRedDeLaRueda(memoria, red, entorno);
 const cuentas = redRueda.cuentas;
 console.log(
-  `motor: red de la rueda — ${redRueda.aristas.length} aristas rodables · ` +
+  `motor: red de la rueda — ${redRueda.aristas.length} aristas · ` +
     `${redRueda.nodos} nodos · ${cuentas.km.toFixed(0)} km · ${redRueda.cargadoEnMs.toFixed(0)} ms`,
 );
 // El precio de la tabla de acceso, aislado: solo lo que la tabla quita de lo
@@ -202,6 +203,19 @@ console.log(
 console.log(
   `motor: pasos de peatones — ${cuentas.pasosEmpujando} se cruzan con el vehículo en la mano · ` +
     `${cuentas.pasosConContinuidad} dan continuidad ciclista y se ruedan (art. 54.4)`,
+);
+// ⭐ EL EMPUJE (30/08). Va aparte de los pasos de cebra a propósito: aquello es
+// una celda del art. 54.4 y esto es la regla general del peatón [RGC 121.2],
+// que abre lo peatonal ENTERO a quien lleva el vehículo en la mano. Se declara
+// por tipo porque el día que la cifra salte habrá que saber de dónde.
+console.log(
+  `motor: EMPUJANDO — ${cuentas.empujando} aristas y ${cuentas.kmEmpujando.toFixed(1)} km que ` +
+    `solo se pisan con el vehículo en la mano, a ${VELOCIDAD_EMPUJANDO_KMH} km/h ` +
+    `(${[...cuentas.empujandoPorTipo].sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} ${n}`).join(' · ')})`,
+);
+console.log(
+  `motor:   con factor ${FACTOR_DEL_EMPUJE.toFixed(2)} para que solo puedan ganar por TIEMPO, ` +
+    `nunca por preferencia · no valen como puerta: una ruta no empieza ni acaba empujando`,
 );
 console.log('motor: indexando la red de la rueda para enganchar portales…');
 const rejillaRueda = cargarRejilla(redRueda);

@@ -43,7 +43,7 @@ import { cargarRejilla, enganchar, type Rejilla } from './proyeccion.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { entornoDe } from './gacetero.ts';
 import { cuadernoPara, type Ruta } from './ruta.ts';
-import { admite, calcularRutaRodando } from './rodando.ts';
+import { admiteComoPuerta, calcularRutaRodando } from './rodando.ts';
 import { SENTIDOS_CORREGIDOS, sentidoCorregidoDe } from './sentidos-corregidos.ts';
 
 let rueda: RedDeLaRueda;
@@ -63,8 +63,8 @@ function aristasDe(way: number): number[] {
 }
 
 function rodar(a: Punto, b: Punto): Ruta | null {
-  const eo = enganchar(rueda, rejilla, a[0], a[1], (x) => admite(rueda, x, 'bici'));
-  const ed = enganchar(rueda, rejilla, b[0], b[1], (x) => admite(rueda, x, 'bici'));
+  const eo = enganchar(rueda, rejilla, a[0], a[1], (x) => admiteComoPuerta(rueda, x, 'bici'));
+  const ed = enganchar(rueda, rejilla, b[0], b[1], (x) => admiteComoPuerta(rueda, x, 'bici'));
   if (!eo || !ed) return null;
   return calcularRutaRodando(rueda, cuadernoPara(rueda), 'bici', eo, a, ed, b);
 }
@@ -96,7 +96,13 @@ describe('⭐ LOS SENTIDOS: la corrección de Siresa y el banco de testigos', ()
    *
    * Antes de la corrección, `COLOSO 2 → LEOPOLDO ROMEO 27` en bici medía
    * **4.806,8 m y subía Siresa hacia Iranzo en tres trozos: 130,1 m a
-   * contramano**. Después mide 4.804,6 m y **no la pisa**.
+   * contramano**. Después midió 4.804,6 m y **no la pisa**.
+   *
+   * ⚠️ **Y desde el 30/08 mide 4.551 m**, que los bajó el empuje: la ruta
+   * cruza el Camino de las Torres con la bici en la mano en vez de rodearlo.
+   * Lo que esta juez compra no cambia —que Siresa no se pisa hacia Iranzo, y
+   * eso se sigue comprobando arista a arista—; lo que cambia es la ruta
+   * alrededor, y su cifra se mueve con ella.
    */
   test('⭐ el juez de Siresa: la ruta COLOSO→ROMEO ya no la recorre hacia Iranzo', () => {
     const ks = aristasDe(24433275);
@@ -112,7 +118,7 @@ describe('⭐ LOS SENTIDOS: la corrección de Siresa y el banco de testigos', ()
 
     const porSiresa = ruta.trozos.filter((t) => rueda.aristas[t.arista]!.way === 24433275);
     assert.deepEqual(porSiresa, [], 'la ruta NO puede volver a pisar Siresa hacia Iranzo');
-    assert.equal(Math.round(ruta.metros), 4805);
+    assert.equal(Math.round(ruta.metros), 4551);
 
     // Y el volcado del final, para que el cambio se pueda leer y no solo contar.
     const nombres = ruta.trozos

@@ -331,8 +331,10 @@
           <p class="ruta__totales">
             <span class="ruta__metros">{{ enMetros(r.trayecto.metros) }}</span>
             <!-- El tiempo NUNCA sale solo: va con la velocidad de la que se
-                 deriva. Ver `VELOCIDAD_DICHA` en `buscador.ts`. -->
-            <span class="ruta__duracion">{{ enTiempo(r.trayecto.segundos) }}</span>
+                 deriva **cuando hay una sola**. En los modos de rueda no la
+                 hay —se mezclan 18 rodando y 5 empujando—, y entonces no se
+                 dice ninguna. Ver `comoSeLeeLaDuracion`. -->
+            <span class="ruta__duracion">{{ enTiempo(r.trayecto.segundos, r.trayecto.modo) }}</span>
           </p>
         </header>
 

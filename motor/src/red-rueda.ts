@@ -9,9 +9,17 @@
  *    acceso el 21/08 —4.675 aristas, 191,5 km—, que es justo la
  *    infraestructura que la bici prefiere. Rutear la bici por la red del
  *    peatón sería rutearla por donde no puede ir y sin lo que sí es suyo.
- * 2. **Y tiene 16.816 aceras que la rueda no puede pisar** [ORD art. 50.6].
+ * 2. **Y tiene aceras que la rueda no puede pisar RODANDO** [ORD art. 50.6].
  *    Con ellas dentro, el enganche de un portal caería en la acera de su
  *    puerta y la ruta empezaría prohibida.
+ *
+ * ⭐ **Ese segundo punto se abrió a medias el 30/08, y la advertencia se
+ * cumplió al pie de la letra.** El empuje mete lo peatonal en la red —33.770
+ * aristas y 1.016,4 km— porque quien lleva el vehículo en la mano es peatón
+ * [RGC 121.2], y al hacerlo **1.371 de 3.000 portales pasaron a enganchar a su
+ * propia acera**. La solución no fue volver a cerrarlas: fue separar «por dónde
+ * se puede pasar» de «por dónde puede EMPEZAR una ruta». Ver `admiteComoPuerta`
+ * en `rodando.ts`, que lleva la medida entera.
  *
  * Compartir una red y filtrar al relajar no valía: el filtro no toca la
  * **rejilla**, así que el portal seguiría enganchando a la acera. Se paga una
@@ -56,6 +64,9 @@ import {
   carrilesPorSentidoDeOsm,
   factorDe,
   puedeRodar,
+  comoSeEntra,
+  ACCESO_EMPUJANDO,
+  FACTOR_DEL_EMPUJE,
 } from './rueda.ts';
 
 /** Las etiquetas del viario de OSM (§ 1.21). Vive en `motor/data/`. */
@@ -162,6 +173,16 @@ export interface CuentasDeLaRueda {
   readonly nodosSueltosDelPatin: number;
   /** Aristas dentro del término, por la frontera de la validación espacial. */
   readonly enElTermino: number;
+  /**
+   * ⭐ Las aristas que **solo se pisan empujando** —acera, zona peatonal— y sus
+   * km. No incluyen los pasos de peatones, que entran rodando y se cruzan
+   * empujando solo cuando no dan continuidad ciclista: esos van en
+   * `pasosEmpujando`, que es otra cifra y otra pregunta.
+   */
+  readonly empujando: number;
+  readonly kmEmpujando: number;
+  /** Y por qué entró cada una: su `h`, o `p=acera` cuando el tipo no lo explica. */
+  readonly empujandoPorTipo: ReadonlyMap<string, number>;
   /** Pasos de peatones: los que se cruzan empujando y los que dan continuidad. */
   readonly pasosEmpujando: number;
   readonly pasosConContinuidad: number;
@@ -206,6 +227,11 @@ export interface RedDeLaRueda extends RedEnMemoria {
   readonly enElTermino: Uint8Array;
   /** Si hay que cruzarla **con el vehículo en la mano** [ORD art. 54.4]. */
   readonly empujando: Uint8Array;
+  /**
+   * Las que **solo existen por el empuje** — acera y zona peatonal—, sin los
+   * pasos de cebra, que ya estaban. Es lo que no vale como puerta.
+   */
+  readonly soloEmpujando: Uint8Array;
   readonly jerarquia: JerarquiaEnMemoria;
   readonly cuentas: CuentasDeLaRueda;
 }
@@ -346,13 +372,26 @@ export function cargarRedDeLaRueda(
   // sobraba por `a` o por `c`. Sin ese orden, la cifra mezclaría tres motivos.
   const utiles: AristaCruda[] = [];
   const cerradasPorTipo = new Map<string, number>();
+  /**
+   * ⭐ Las aristas que entran EMPUJANDO, por su índice en el grafo crudo.
+   *
+   * Se apunta aquí y no en un array paralelo porque `tejerLaRed` puede saltarse
+   * una arista degenerada: el índice `i` es el nombre de la arista en todas
+   * partes, y casar por él no depende del orden.
+   */
+  const seEmpuja = new Set<number>();
+  const empujandoPorTipo = new Map<string, number>();
   let sinFilaEnLaTabla = 0;
   let cerradasSoloPorPerfil = 0;
   for (const cruda of memoria.grafo.aristas) {
     if (cruda.a !== 1 || cruda.c !== 0) {
       continue;
     }
-    if (!puedeRodar(cruda.h, cruda.p)) {
+    // ⭐ Tres puertas, y en este orden: se rueda, se empuja, o no se pasa. El
+    // orden es el de la ley — lo que se puede rodar se rueda, y solo lo que no
+    // se mira si se puede llevar en la mano. Ver `comoSeEntra` en `rueda.ts`.
+    const como = comoSeEntra(cruda.h, cruda.p);
+    if (como === null) {
       cerradasPorTipo.set(cruda.h, (cerradasPorTipo.get(cruda.h) ?? 0) + 1);
       if (!(cruda.h in ACCESO_RODANDO)) {
         sinFilaEnLaTabla++;
@@ -362,6 +401,12 @@ export function cargarRedDeLaRueda(
         cerradasSoloPorPerfil++;
       }
       continue;
+    }
+    if (como === 'empujando') {
+      seEmpuja.add(cruda.i);
+      // Por qué entró: el tipo, o `p=acera` cuando el tipo no lo explica.
+      const porQue = ACCESO_EMPUJANDO.has(cruda.h) ? cruda.h : 'p=' + cruda.p;
+      empujandoPorTipo.set(porQue, (empujandoPorTipo.get(porQue) ?? 0) + 1);
     }
     utiles.push(cruda);
   }
@@ -391,6 +436,16 @@ export function cargarRedDeLaRueda(
   const accesoPatin = new Uint8Array(aristas.length);
   const enElTermino = new Uint8Array(aristas.length);
   const empujando = new Uint8Array(aristas.length);
+  /**
+   * ⭐ Las que **solo existen por el empuje**: acera y zona peatonal.
+   *
+   * No es lo mismo que `empujando`, y la diferencia es la que evita una
+   * regresión: los 10.450 pasos de cebra también se cruzan empujando, pero
+   * estaban en la red **desde la casilla 3** y valían como puerta. Cerrarles
+   * esa puerta con la misma regla que a las aceras empeoraba 16 de 200 rutas
+   * de bici, medido contra un clon de HEAD. Ver `admiteComoPuerta`.
+   */
+  const soloEmpujando = new Uint8Array(aristas.length);
 
   let sentidoPorTag = 0;
   let sentidoAlReves = 0;
@@ -406,12 +461,58 @@ export function cargarRedDeLaRueda(
   let maxspeedIlegible = 0;
   let conFactor = 0;
   let km = 0;
+  /** Las que se pisan EMPUJANDO: cuántas son y cuántos km suman. */
+  let empujandoTotal = 0;
+  let kmEmpujando = 0;
 
   for (let k = 0; k < aristas.length; k++) {
     const arista = aristas[k]!;
     const t = tags.get(arista.way) ?? {};
     const tipo = peaton.tipoDeWay.get(arista.way) ?? '';
     km += arista.metros / 1000;
+
+    // ⭐ — LA ARISTA QUE SE EMPUJA NO TIENE CAPA DE CIRCULACIÓN —
+    //
+    // Quien empuja es peatón, y a un peatón no le aplica ni el sentido único,
+    // ni el techo de velocidad de la vía, ni la preferencia al carril bici:
+    // no está circulando. Así que estas aristas se saltan las cuatro capas
+    // enteras y salen del bucle con lo que les corresponde:
+    //
+    // - **sentido 0** — se anda en los dos sentidos [RGC 121.2];
+    // - **sin techo** — el que manda es el paso de quien anda, y ese lo pone
+    //   `segundosDe` con `VELOCIDAD_EMPUJANDO_KMH`;
+    // - **factor 1** — la preferencia al carril bici es de quien pedalea;
+    // - **acceso del patín: sí** — el art. 56.3 manda sobre ruedas, y esto no
+    //   es sobre ruedas. Los tres modos empujan igual.
+    //
+    // Y por eso **no cuentan en ninguna de las cifras del techo**: mezclarlas
+    // con las que sí circulan haría que «a oscuras» dijera miles donde no hay
+    // nada a oscuras, sino nada que preguntar.
+    if (seEmpuja.has(arista.i)) {
+      empujando[k] = 1;
+      soloEmpujando[k] = 1;
+      empujandoTotal++;
+      kmEmpujando += arista.metros / 1000;
+      sentido[k] = 0;
+      limiteKmh[k] = 0;
+      fuenteLimite[k] = SIN_FUENTE;
+      carrilesPorSentido[k] = 0;
+      // ⭐ El máximo de la tabla, no 1: el empuje solo puede ganar por tiempo.
+      // El porqué medido, en `FACTOR_DEL_EMPUJE`.
+      factor[k] = FACTOR_DEL_EMPUJE;
+      accesoPatin[k] = 1;
+      // El término sí se mira: el contrato de la BiZi prohíbe salir de él, y
+      // sacarla empujando la saca igual.
+      let dentroEmpujando = true;
+      for (const punto of arista.g) {
+        if (!dentroDelEntorno(entorno, punto[0], punto[1])) {
+          dentroEmpujando = false;
+          break;
+        }
+      }
+      enElTermino[k] = dentroEmpujando ? 1 : 0;
+      continue;
+    }
 
     // — El sentido —
     const suyo = sentidoDeWay.get(arista.way);
@@ -636,6 +737,7 @@ export function cargarRedDeLaRueda(
     accesoPatin,
     enElTermino,
     empujando,
+    soloEmpujando,
     jerarquia,
     cuentas: {
       cerradasPorTipo,
@@ -653,8 +755,13 @@ export function cargarRedDeLaRueda(
       defectoUnCarril,
       defectoVariosCarriles,
       defectoPorTipo,
+      // ⭐ Se descuentan las que se EMPUJAN: no es que su techo esté a
+      // oscuras, es que no tienen techo que preguntar — quien las pisa va
+      // andando. Contarlas aquí haría que esta cifra saltara a miles el
+      // 30/08 sin que ni una calle hubiera perdido su límite.
       limiteAOscuras:
         aristas.length -
+        empujandoTotal -
         limiteMunicipal -
         limiteOsm -
         defectoPlataforma -
@@ -671,6 +778,9 @@ export function cargarRedDeLaRueda(
       enElTermino: enElTerminoTotal,
       pasosEmpujando,
       pasosConContinuidad,
+      empujando: empujandoTotal,
+      empujandoPorTipo,
+      kmEmpujando,
       conFactor,
       km,
     },

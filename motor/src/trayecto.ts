@@ -29,7 +29,11 @@ import type { RedEnMemoria } from './red.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
 import { enganchar, type Enganche, type Rejilla } from './proyeccion.ts';
 import { calcularRuta, geometriaDe, type Cuaderno, type Ruta } from './ruta.ts';
-import { admite, calcularRutaRodando, segundosRodando } from './rodando.ts';
+import {
+  admiteComoPuerta,
+  calcularRutaRodando,
+  segundosRodando,
+} from './rodando.ts';
 import { esDeLaRueda, type ModoDeRueda } from './rueda.ts';
 import { escribirPasos } from './pasos.ts';
 
@@ -323,7 +327,10 @@ function trayectoRodando(
   destino: Extremo,
 ): Trayecto {
   const red = motor.redRueda;
-  const admitida = (arista: number): boolean => admite(red, arista, modo);
+  // ⭐ La PUERTA no es lo mismo que lo que se puede pisar: por una acera se
+  // puede pasar empujando, pero una ruta no empieza ni acaba ahí. Ver
+  // `admiteComoPuerta`, que lleva el porqué medido.
+  const admitida = (arista: number): boolean => admiteComoPuerta(red, arista, modo);
 
   const engancheOrigen: Enganche | null = enganchar(
     red,
@@ -371,10 +378,16 @@ function trayectoRodando(
     );
   }
 
-  const pasos = escribirPasos(red, ruta, origen.nombre, destino.nombre, [
-    destino.lon,
-    destino.lat,
-  ]);
+  const pasos = escribirPasos(
+    red,
+    ruta,
+    origen.nombre,
+    destino.nombre,
+    [destino.lon, destino.lat],
+    // ⭐ Cómo se narra el tramo que se empuja. El peatón no manda esto y su
+    // narración no cambia ni una letra: ver `Empuje` en `pasos.ts`.
+    { esEmpuje: (arista) => red.empujando[arista] === 1, enLaMano: EN_LA_MANO[modo] },
+  );
   const geometria: Vertice[] = geometriaDe(ruta).map(([lon, lat]) => [lat, lon]);
 
   return {
@@ -386,6 +399,23 @@ function trayectoRodando(
     segundos: Math.round(segundosRodando(red, ruta, modo)),
   };
 }
+
+/**
+ * ⭐ CÓMO SE DICE QUE SE VA EMPUJANDO, por modo.
+ *
+ * [ORD art. 54.4, literal] *«deberán cruzar con la bicicleta o VMP en la
+ * mano»*: la Ordenanza da la fórmula hecha y aquí se usa la suya, cambiando
+ * «VMP» por la palabra que el botón de la pantalla enseña — el texto es para
+ * quien va por la calle, no para quien redacta la ordenanza.
+ *
+ * La BiZi es una bici y se dice bici: quien la lleva no piensa en el nombre
+ * del servicio mientras la empuja.
+ */
+const EN_LA_MANO: Readonly<Record<ModoDeRueda, string>> = {
+  bici: 'con la bici en la mano',
+  bizi: 'con la bici en la mano',
+  patin: 'con el patín en la mano',
+};
 
 /**
  * Cómo se dice el verbo de cada modo dentro de un aviso.

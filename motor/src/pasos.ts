@@ -737,8 +737,31 @@ export const UMBRAL_MICRO_M = 25;
  * puede **cambiar**: cuando dos grafías de la misma calle se juntan, gana la
  * municipal (`canonico`), y eso hay que poder escribirlo en el tramo.
  */
+/**
+ * ⭐ CÓMO SE NARRA EL EMPUJE, o `undefined` si quien anda no empuja nada.
+ *
+ * Lo pasa la rueda; **el peatón manda `undefined` y no se entera de que esto
+ * existe** — su narración sale por el mismo sitio y con las mismas letras que
+ * antes del 30/08, y el sha256 de sus 391 rutas lo vigila.
+ *
+ * [DOC OSRM] su respuesta lleva un campo `mode` por paso y el tramo desmontado
+ * es un modo propio; su suite tiene una prueba *«de todos los empujes y cambios
+ * de modo»*. La razón no es de formato: **fundir el tramo que se empuja con el
+ * que se rueda escribiría un paso que dice dos cosas a la vez**, y quien lo lee
+ * no sabría dónde bajarse. Por eso el cambio de modo corta el tramo en las
+ * cuatro pasadas de fusión, igual que lo corta un cambio de calle.
+ */
+export interface Empuje {
+  /** Si esa arista se pisa con el vehículo en la mano. */
+  readonly esEmpuje: (arista: number) => boolean;
+  /** Cómo se dice: «con la bici en la mano», «con el patín en la mano». */
+  readonly enLaMano: string;
+}
+
 interface Tramo extends Denominacion {
   readonly way: number;
+  /** Si el tramo se recorre EMPUJANDO. Ver `Empuje`. */
+  readonly empujando: boolean;
   readonly perfil: string;
   readonly metros: number;
   readonly g: readonly Punto[];
@@ -760,6 +783,7 @@ interface Tramo extends Denominacion {
 /** La forma mutable con la que se agrupa y se une. */
 type TramoEnObra = {
   way: number;
+  empujando: boolean;
   perfil: string;
   metros: number;
   g: Punto[];
@@ -801,8 +825,18 @@ function nodoDeSalida(red: RedEnMemoria, trozo: TrozoDeRuta): number | null {
   return null;
 }
 
-/** Junta las aristas consecutivas que comparten `w`. */
-function agrupar(red: RedEnMemoria, trozos: readonly TrozoDeRuta[]): readonly Tramo[] {
+/**
+ * Junta las aristas consecutivas que comparten `w` **y modo**.
+ *
+ * ⭐ El modo entra en la condición el 30/08: dos aristas del mismo *way* pueden
+ * ser una de calzada y otra de acera —el perfil es de la arista, no del *way*—,
+ * y juntarlas escribiría un paso que se rueda y se empuja a la vez.
+ */
+function agrupar(
+  red: RedEnMemoria,
+  trozos: readonly TrozoDeRuta[],
+  empuje?: Empuje,
+): readonly Tramo[] {
   const tramos: TramoEnObra[] = [];
   // El nodo por el que se salió de lo anterior es por el que se entra en lo
   // que venga. En el primer tramo no hay nada detrás: `null`.
@@ -811,7 +845,8 @@ function agrupar(red: RedEnMemoria, trozos: readonly TrozoDeRuta[]): readonly Tr
     const arista = red.aristas[trozo.arista]!;
     const ultimo = tramos[tramos.length - 1];
     const salida = nodoDeSalida(red, trozo);
-    if (ultimo && ultimo.way === arista.way) {
+    const empujando = empuje !== undefined && empuje.esEmpuje(trozo.arista);
+    if (ultimo && ultimo.way === arista.way && ultimo.empujando === empujando) {
       ultimo.metros += trozo.metros;
       // El primer punto del trozo es el último del anterior: no se repite.
       ultimo.g.push(...trozo.g.slice(1));
@@ -819,6 +854,7 @@ function agrupar(red: RedEnMemoria, trozos: readonly TrozoDeRuta[]): readonly Tr
     } else {
       tramos.push({
         way: arista.way,
+        empujando,
         perfil: arista.perfil,
         metros: trozo.metros,
         g: [...trozo.g],
@@ -866,6 +902,8 @@ function unirLasQueSonLaMisma(tramos: readonly Tramo[]): readonly Tramo[] {
     const equivalente = ultimo !== undefined && esLaMismaCalle(ultimo, tramo);
     if (
       ultimo &&
+      // ⭐ Nunca a través del cambio rodando↔empujando: ver `Empuje`.
+      ultimo.empujando === tramo.empujando &&
       (ultimo.nombre === tramo.nombre || equivalente) &&
       giroDe(rumboDeSalida(ultimo.g), rumboDeEntrada(tramo.g)) === 'recto'
     ) {
@@ -883,6 +921,7 @@ function unirLasQueSonLaMisma(tramos: readonly Tramo[]): readonly Tramo[] {
     }
     unidos.push({
       way: tramo.way,
+      empujando: tramo.empujando,
       perfil: tramo.perfil,
       metros: tramo.metros,
       g: [...tramo.g],
@@ -973,6 +1012,8 @@ export interface TramoLlano extends Denominacion {
   readonly metros: number;
   readonly entrada: number;
   readonly salida: number;
+  /** Si se recorre EMPUJANDO. `false` en todo lo del peatón. Ver `Empuje`. */
+  readonly empujando: boolean;
   /** El cruce por el que se entra. Ver `Encrucijada`. */
   readonly encrucijada: Encrucijada;
 }
@@ -981,6 +1022,8 @@ export interface TramoLlano extends Denominacion {
 export interface TramoFundido extends Denominacion {
   readonly metros: number;
   readonly giro: Giro;
+  /** Si se recorre EMPUJANDO. `false` en todo lo del peatón. Ver `Empuje`. */
+  readonly empujando: boolean;
   /** El rumbo de entrada del que manda: de ahí sale el cardinal del arranque. */
   readonly entrada: number;
   /**
@@ -1054,6 +1097,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     giro: Giro;
     entrada: number;
     salida: number;
+    empujando: boolean;
     encrucijada: Encrucijada;
   }[] = [];
 
@@ -1069,6 +1113,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
         giro: 'salida',
         entrada: tramo.entrada,
         salida: tramo.salida,
+        empujando: tramo.empujando,
         encrucijada: tramo.encrucijada,
       });
       continue;
@@ -1086,8 +1131,12 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     // El arranque no se funde hacia atrás porque no hay atrás: traga hacia
     // delante. Regla 5.
     const arranqueInsignificante = salen.length === 1 && ultimo.metros < UMBRAL_MICRO_M;
+    // ⭐ Y NADA se funde a través del cambio rodando↔empujando, ni aunque mida
+    // dos metros: el aviso de bajarse del vehículo es justo lo que no se puede
+    // perder por insignificante. Ver `Empuje`.
+    const mismoModo = ultimo.empujando === tramo.empujando;
 
-    if (esMicro || esLaMisma || arranqueInsignificante) {
+    if (mismoModo && (esMicro || esLaMisma || arranqueInsignificante)) {
       ultimo.metros += tramo.metros;
       if (tramo.metros > ultimo.metrosPropios) {
         ultimo.metrosPropios = tramo.metros;
@@ -1126,12 +1175,13 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
       giro,
       entrada: tramo.entrada,
       salida: tramo.salida,
+      empujando: tramo.empujando,
       encrucijada: tramo.encrucijada,
     });
   }
 
   return salen.map(
-    ({ nombre, conNombre, esMunicipal, metros, giro, entrada, salida, encrucijada }) => ({
+    ({ nombre, conNombre, esMunicipal, metros, giro, entrada, salida, empujando, encrucijada }) => ({
       nombre,
       conNombre,
       esMunicipal,
@@ -1139,6 +1189,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
       giro,
       entrada,
       salida,
+      empujando,
       encrucijada,
     }),
   );
@@ -1243,6 +1294,7 @@ type Maniobra = {
   giro: Giro;
   entrada: number;
   salida: number;
+  empujando: boolean;
   encrucijada: Encrucijada;
 };
 
@@ -1410,10 +1462,16 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
       continue;
     }
 
+    // ⭐ NINGUNA regla cruza el cambio rodando↔empujando. Es el cuarto veto,
+    // hermano de los tres de odin, y por la misma razón que el de las
+    // escaleras: lo que el paso dice no es por dónde se va, es **cómo** — y
+    // fundirlo con el de al lado borra el aviso de bajarse. Ver `Empuje`.
+    const mismoModo = ultimo.empujando === maniobra.empujando;
+
     // ── Regla A ────────────────────────────────────────────────────────────
     // El giro de `maniobra` YA es el ángulo entre la salida de `ultimo` y su
     // entrada, así que preguntarle si es suave es preguntar por el combinado.
-    if (esLaMismaCalle(ultimo, maniobra) && esSuave(maniobra.giro)) {
+    if (mismoModo && esLaMismaCalle(ultimo, maniobra) && esSuave(maniobra.giro)) {
       absorber(ultimo, maniobra);
       continue;
     }
@@ -1426,6 +1484,10 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
     const despues = maniobras[i + 1];
     if (
       despues &&
+      mismoModo &&
+      // La absorbida y la de después también tienen que ir en el mismo modo:
+      // la regla B se come el de en medio, y comerse un empuje lo borraría.
+      maniobra.empujando === despues.empujando &&
       // ⭐ Y de nombre DISTINTO a sus dos vecinos. Contra el de atrás ya lo
       // garantiza la regla A, que va antes; contra el de delante hay que
       // decirlo: si el corto es la misma calle que lo que viene, no es una
@@ -1468,6 +1530,7 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
     // nadie. Este es ese hueco, y en el dato aparece: 27 casos en 387 rutas,
     // el mayor **«el camino» de 6.234 m seguido de otro de 1.263 m**.
     if (
+      mismoModo &&
       !ultimo.conNombre &&
       !maniobra.conNombre &&
       ultimo.nombre === maniobra.nombre &&
@@ -1501,6 +1564,7 @@ function unaVueltaDeColapso(maniobras: readonly Maniobra[]): Maniobra[] {
     // Las tres condiciones son las de odin y basta con UNA:
     const despuesDelObvio = maniobras[i + 1];
     if (
+      mismoModo &&
       maniobra.giro === 'recto' &&
       !ultimo.conNombre &&
       maniobra.conNombre &&
@@ -1667,8 +1731,10 @@ export function escribirPasos(
   nombreOrigen: string,
   nombreDestino: string,
   puertaDestino: Punto,
+  /** Cómo se narra el empuje, si el modo empuja. El peatón no manda nada. */
+  empuje?: Empuje,
 ): readonly Paso[] {
-  const tramos = unirLasQueSonLaMisma(agrupar(red, ruta.trozos));
+  const tramos = unirLasQueSonLaMisma(agrupar(red, ruta.trozos, empuje));
 
   // Una ruta trivial de cero metros: no hay nada que andar y se dice.
   if (tramos.length === 0) {
@@ -1686,6 +1752,7 @@ export function escribirPasos(
     nombre: tramo.nombre,
     conNombre: tramo.conNombre,
     esMunicipal: tramo.esMunicipal,
+    empujando: tramo.empujando,
     metros: tramo.metros,
     entrada: rumboDeEntrada(tramo.g),
     salida: rumboDeSalida(tramo.g),
@@ -1728,23 +1795,33 @@ export function escribirPasos(
       },
     );
   }
+  // ⭐ Y si ya el primer tramo se empuja, se dice desde el principio.
+  if (primero.empujando && empuje) {
+    arranque.push({ papel: 'texto', texto: `, ${empuje.enLaMano}` });
+  }
   pasos.push(pasoDe('salida', metrosParaLeer(primero.metros), arranque));
 
   // ── Un paso por cada maniobra que ha sobrevivido ─────────────────────────
   for (let k = 1; k < maniobras.length; k++) {
     const maniobra = maniobras[k]!;
-    pasos.push(
-      pasoDe(maniobra.giro, metrosParaLeer(maniobra.metros), [
-        { papel: 'accion', texto: COMO_SE_DICE[maniobra.giro] },
-        { papel: 'texto', texto: comoSeEnlaza(maniobras[k - 1], maniobra) },
-        {
-          // Un tramo que se narra por su tipo —«la acera»— no lleva `via`:
-          // destacarlo lo haría parecer un nombre, y no lo es.
-          papel: maniobra.conNombre ? 'via' : 'texto',
-          texto: comoSePresenta(maniobra.nombre, maniobra.esMunicipal, red.articulosPropios),
-        },
-      ]),
-    );
+    const partes: ParteDelPaso[] = [
+      { papel: 'accion', texto: COMO_SE_DICE[maniobra.giro] },
+      { papel: 'texto', texto: comoSeEnlaza(maniobras[k - 1], maniobra) },
+      {
+        // Un tramo que se narra por su tipo —«la acera»— no lleva `via`:
+        // destacarlo lo haría parecer un nombre, y no lo es.
+        papel: maniobra.conNombre ? 'via' : 'texto',
+        texto: comoSePresenta(maniobra.nombre, maniobra.esMunicipal, red.articulosPropios),
+      },
+    ];
+    // ⭐ EL EMPUJE SE DICE AL ENTRAR EN ÉL, y solo ahí: cuando el paso anterior
+    // ya empujaba no hace falta repetirlo — el tramo es uno, y lo que el
+    // siguiente paso anuncia es que se vuelve a rodar. Es lo que el encargo
+    // llama «al entrar se dice; al volver a rodar, se retoma».
+    if (empuje && maniobra.empujando && !maniobras[k - 1]!.empujando) {
+      partes.push({ papel: 'texto', texto: `, ${empuje.enLaMano}` });
+    }
+    pasos.push(pasoDe(maniobra.giro, metrosParaLeer(maniobra.metros), partes));
   }
 
   // ── El cierre: de qué lado queda la puerta ───────────────────────────────

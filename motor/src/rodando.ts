@@ -93,6 +93,56 @@ export function admite(red: RedDeLaRueda, arista: number, modo: ModoDeRueda): bo
 }
 
 /**
+ * ⭐ Si una arista puede ser **PUERTA**: por dónde una ruta empieza o acaba.
+ *
+ * Es `admite` **menos las aristas de empuje**, y la diferencia importa tanto
+ * que hace falta una función aparte.
+ *
+ * ── El fallo que evita, medido ──────────────────────────────────────────────
+ *
+ * El 30/08, al abrir lo peatonal al empuje, la rejilla pasó a tener 33.770
+ * aceras y zonas peatonales dentro. Y una acera está **más cerca de un portal
+ * que la calzada** —es la de su puerta—, así que el enganche empezó a caer
+ * ahí: **1.371 de 3.000 portales, el 45,7 %**. Cada ruta arrancaba y terminaba
+ * empujando por la acera de su propio portal.
+ *
+ * El efecto no era cosmético: movía los extremos del problema. La ruta de la
+ * juez 4 —`Portales.120344 → Portales.110047` en bici— pasó de **1.565 m y
+ * 344 s** a **1.733,8 m y 477 s**, que con un Dijkstra por tiempo solo puede
+ * significar una cosa: no era la misma pregunta.
+ *
+ * ⭐ Y la cabecera de `red-rueda.ts` lo tenía escrito desde la casilla 3, como
+ * una de las dos razones de que la rueda tenga red propia: *«con ellas dentro,
+ * el enganche de un portal caería en la acera de su puerta y la ruta empezaría
+ * prohibida»*. El empuje reabre esa puerta a propósito, y por eso hay que
+ * volver a cerrarla **en el enganche y solo ahí**.
+ *
+ * ── El modelo, que es el de la calle ────────────────────────────────────────
+ *
+ * Se sale de casa **a la calzada** —el conector de la puerta ya lleva ahí, y
+ * no se cobra— y, si por el camino compensa, se baja uno del vehículo. Lo que
+ * no pasa es empezar el viaje andando por la acera porque el algoritmo la
+ * tenía más a mano. El empuje se gana en mitad de la ruta compitiendo en
+ * tiempo; no se regala en las puntas.
+ *
+ * ── Y cierra SOLO lo que el empuje abrió ────────────────────────────────────
+ *
+ * Mira `soloEmpujando`, no `empujando`, y la diferencia también está medida.
+ * Los **10.450 pasos de cebra** se cruzan empujando desde la casilla 3 y
+ * **valían como puerta**; meterlos en esta regla les cerraba una que ya tenían,
+ * y eso **empeoraba 16 de 200 rutas de bici** —hasta 154 s en una— comparadas
+ * contra un clon de HEAD. Un encargo que abre algo no puede cerrar de paso lo
+ * que no le habían pedido.
+ */
+export function admiteComoPuerta(
+  red: RedDeLaRueda,
+  arista: number,
+  modo: ModoDeRueda,
+): boolean {
+  return red.soloEmpujando[arista] === 0 && admite(red, arista, modo);
+}
+
+/**
  * Si se puede recorrer una arista **en ese sentido**.
  *
  * `haciaDelante` es ir de `desde` a `hasta`, que es el sentido en que OSM
@@ -120,10 +170,14 @@ export function segundosDe(
   modo: ModoDeRueda,
   metros: number,
 ): number {
-  // Quien empuja es peatón, y va a 5 km/h. Ni el techo de la vía ni el factor
-  // le afectan: no está circulando.
+  // Quien empuja es peatón y va a 5 km/h: el techo de la vía no le afecta,
+  // porque no está circulando. El FACTOR sí, y no es una contradicción — no
+  // mide la vía, mide la preferencia, y el empuje tiene que competir en tiempo
+  // y no en gusto. Ver `FACTOR_DEL_EMPUJE`, que lleva la medida de lo que
+  // pasaba sin él. Como en todo lo demás, `segundosRodando` lo vuelve a
+  // dividir para que el tiempo que se dice sea el de verdad.
   if (red.empujando[arista] === 1) {
-    return metros / (VELOCIDAD_EMPUJANDO_KMH * AMS);
+    return (metros / (VELOCIDAD_EMPUJANDO_KMH * AMS)) * red.factor[arista]!;
   }
   const techo = red.limiteKmh[arista]!;
   const kmh = techo > 0 ? Math.min(VELOCIDAD_KMH[modo], techo) : VELOCIDAD_KMH[modo];

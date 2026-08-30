@@ -28,7 +28,7 @@ import { cargarSitios } from './sitios.ts';
 import { entornoDe } from './gacetero.ts';
 import { calcularRuta, cuadernoPara, geometriaDe, type Cuaderno, type Ruta } from './ruta.ts';
 import { escribirPasos } from './pasos.ts';
-import { admite, calcularRutaRodando, segundosRodando } from './rodando.ts';
+import { admiteComoPuerta, calcularRutaRodando, segundosRodando } from './rodando.ts';
 import { VELOCIDAD_KMH } from './rueda.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
 import { leerPeticion } from './peticion.ts';
@@ -62,12 +62,39 @@ function rodar(
   b: Punto,
   red: RedDeLaRueda = rueda,
 ): Ruta | null {
-  const eo = enganchar(red, motor.rejillaRueda, a[0], a[1], (x) => admite(red, x, modo));
-  const ed = enganchar(red, motor.rejillaRueda, b[0], b[1], (x) => admite(red, x, modo));
+  const eo = enganchar(red, motor.rejillaRueda, a[0], a[1], (x) => admiteComoPuerta(red, x, modo));
+  const ed = enganchar(red, motor.rejillaRueda, b[0], b[1], (x) => admiteComoPuerta(red, x, modo));
   if (!eo || !ed) {
     return null;
   }
   return calcularRutaRodando(red, cuadernoPara(red), modo, eo, a, ed, b);
+}
+
+/**
+ * ⭐ Las aristas de un *way*, por su id de OSM y en el orden de la red.
+ *
+ * ⚠️ **Existe porque el 30/08 se cayeron seis jueces de golpe**, y ninguna por
+ * un fallo: pinchaban el ÍNDICE de la arista —`rueda.aristas[7198]`—, y al
+ * entrar las 33.770 aristas de empuje la red pasó de 58.914 a 92.684 y se
+ * renumeró entera. Los guardianes seguían mirando, pero a otra calle.
+ *
+ * Un índice no es un nombre: es una posición en un array que cambia cada vez
+ * que la red crece. El *way* de OSM sí lo es —se puede abrir en `osm.org/way/…`
+ * y es el mismo mañana—, así que desde hoy los casos se anclan ahí.
+ */
+function aristasDe(way: number): number[] {
+  const ks: number[] = [];
+  for (let k = 0; k < rueda.aristas.length; k++) {
+    if (rueda.aristas[k]!.way === way) ks.push(k);
+  }
+  return ks;
+}
+
+/** La arista de un *way* que mide lo que se dice. Los *ways* largos van partidos. */
+function aristaDe(way: number, metros: number): number {
+  const k = aristasDe(way).find((i) => Math.abs(rueda.aristas[i]!.metros - metros) < 0.5);
+  assert.ok(k !== undefined, `no hay arista del way ${way} de ${metros} m`);
+  return k;
 }
 
 /** Cuántos metros de una ruta van por carril bici de verdad (`h=cycleway`). */
@@ -109,14 +136,20 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * Se comparan **tres rutas en la misma prueba**, que es lo que hace que esto
    * pruebe algo:
    *
-   * - la bici **con** la preferencia: 3.043 m, de los que **1.101 van por
+   * - la bici **con** la preferencia: 3.048,7 m, de los que **1.304,1 van por
    *   carril bici**;
    * - la misma red **con el factor a 1**: 2.986 m y **cero carril**;
    * - el peatón por su red: 2.986 m, y cero carril porque el suyo no lo tiene.
    *
-   * Los 57 m de más —un 1,9 %— son lo que la preferencia cuesta, y los 1.101 m
+   * Los 62 m de más —un 2,1 %— son lo que la preferencia cuesta, y los 1.304 m
    * de carril lo que compra. Sin ella la bici iría exactamente por donde va el
    * peatón, que es justo lo que Antonio no quería ver.
+   *
+   * ⚠️ **Las cifras se movieron el 30/08 con el empuje**, y a mejor: eran
+   * 3.043 m y 1.101 de carril. Lo que cambia es que **9,8 m con la bici en la
+   * mano** enlazan con 203 m más de carril bici que antes quedaban al otro
+   * lado. La ruta cuesta 6 m más de recorrido y compra 203 de carril; es
+   * exactamente lo que esta juez mide, así que sube.
    */
   test('⭐ 1 · la bici se va al carril y el peatón se queda donde iba', () => {
     const a = donde('Portales.99126');
@@ -124,7 +157,7 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
 
     const conPreferencia = rodar('bici', a, b)!;
     assert.ok(conPreferencia, 'la bici tiene que tener ruta');
-    assert.equal(Math.round(conPreferencia.metros), 3043);
+    assert.equal(Math.round(conPreferencia.metros), 3049);
     assert.ok(
       metrosDeCarril(conPreferencia) > 1000,
       `esperaba más de 1.000 m de carril y son ${metrosDeCarril(conPreferencia).toFixed(0)}`,
@@ -168,18 +201,25 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * ahí la Ordenanza prohíbe la bici [art. 50.6] aunque OSM etiquete el
    * contraflujo. Donde la etiqueta y la ley discrepan, manda la ley.
    *
-   * Se recorre el *way* **al revés de como está dibujado**: 63,2 m. Con el
-   * contraflujo aplastado contra el `oneway` de la calle, la misma vuelta
-   * cuesta **715,6 m** — hay que dar la vuelta a la manzana.
+   * Se recorre el *way* **al revés de como está dibujado**: 63,2 m en 13 s. Con
+   * el contraflujo aplastado contra el `oneway` de la calle, la misma vuelta
+   * cuesta **169,7 m y 37 s**.
+   *
+   * ⚠️ **Eran 715,6 m hasta el 30/08**, y los bajó el empuje: aplastado el
+   * contraflujo, ahora queda la salida de bajarse y andar 5,6 m por la acera en
+   * vez de dar la vuelta a la manzana entera. La juez **no pierde su tesis** —el
+   * contraflujo sigue ganando por 2,7 veces en metros y por 2,8 en tiempo—, y
+   * gana precisión: ahora se compara contra la mejor alternativa que existe, no
+   * contra la única que había.
    */
-  test('⭐ 2 · el contraflujo: 63 m a contramano, 716 si se aplasta', () => {
-    const primera = rueda.aristas[866]!;
-    const ultima = rueda.aristas[867]!;
-    assert.equal(primera.way, 23134100, 'la Avenida de Pirineos se ha movido de sitio');
-    assert.equal(ultima.way, 23134100);
+  test('⭐ 2 · el contraflujo: 63 m a contramano, 170 si se aplasta', () => {
+    const [kPrimera, kUltima] = aristasDe(23134100);
+    assert.equal(aristasDe(23134100).length, 2, 'la Avenida de Pirineos son dos aristas');
+    const primera = rueda.aristas[kPrimera!]!;
+    const ultima = rueda.aristas[kUltima!]!;
     // Las dos abiertas en los dos sentidos, pese a que la calle es de uno.
-    assert.equal(rueda.sentido[866], 0);
-    assert.equal(rueda.sentido[867], 0);
+    assert.equal(rueda.sentido[kPrimera!], 0);
+    assert.equal(rueda.sentido[kUltima!], 0);
 
     const desde = ultima.g[ultima.g.length - 1] as Punto;
     const hasta = primera.g[0] as Punto;
@@ -190,10 +230,10 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
     // Y si el contraflujo se aplastara contra el oneway de la calle, la vuelta
     // a la manzana. Es la contraprueba metida en la propia juez.
     const aplastado: RedDeLaRueda = { ...rueda, sentido: Int8Array.from(rueda.sentido) };
-    aplastado.sentido[866] = 1;
-    aplastado.sentido[867] = 1;
+    aplastado.sentido[kPrimera!] = 1;
+    aplastado.sentido[kUltima!] = 1;
     const rodeo = rodar('bici', desde, hasta, aplastado)!;
-    assert.equal(Math.round(rodeo.metros), 716);
+    assert.equal(Math.round(rodeo.metros), 170);
   });
 
   /**
@@ -241,8 +281,19 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * ⭐ JUEZ 4 — EL PATÍN RODEA LO QUE LA BICI ATRAVIESA.
    *
    * El caso: **Portales.120344 → Portales.110047**. La bici va en 1.565 m
-   * pisando **112,6 m de la Avenida de Madrid**; el patín no puede —no está en
-   * la lista cerrada del art. 56.3— y da 1.972 m, 407 más.
+   * pisando la Avenida de Madrid; el patín no puede RODAR por ella —no está en
+   * la lista cerrada del art. 56.3— y da **1.577,2 m**.
+   *
+   * ⭐ **Eran 1.972 m hasta el 30/08, y los bajó el empuje**: el patín ya no da
+   * el rodeo de 400 m, cruza los **33,1 m** que le faltaban **con el patín en
+   * la mano**, que es de peatón [RGC 121.2] y no de VMP. La tesis de la juez no
+   * se toca y es la de siempre: **el patín no RUEDA ni un metro por donde no
+   * puede** —cero aristas vedadas, y se sigue comprobando—; lo que ha ganado es
+   * una manera legal de pasar en vez de una vuelta larga.
+   *
+   * Los 12 m que le saca a la bici son lo que cuesta bajarse y volver a subirse
+   * dos veces. En tiempo la diferencia es mayor —402 s contra 344— porque esos
+   * 33 m van a 5 km/h y no a 18.
    *
    * Lo que la prueba mira no es solo la diferencia de metros: mira **que la
    * ruta del patín no pise ni una arista vedada**. Una ruta más larga podría
@@ -266,14 +317,14 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * es la otra mitad de la definición. Se dice, se cambian los números y se
    * escribe por qué.
    */
-  test('⭐ 4 · el patín esquiva la Avenida de Madrid y la bici no: 1.565 vs 1.972 m', () => {
+  test('⭐ 4 · el patín cruza la Avenida de Madrid en la mano: 1.565 vs 1.577 m', () => {
     const a = donde('Portales.120344');
     const b = donde('Portales.110047');
 
     const bici = rodar('bici', a, b)!;
     const patin = rodar('patin', a, b)!;
     assert.equal(Math.round(bici.metros), 1565);
-    assert.equal(Math.round(patin.metros), 1972);
+    assert.equal(Math.round(patin.metros), 1577);
 
     const vedadasDeLaBici = bici.trozos.filter((t) => rueda.accesoPatin[t.arista] === 0);
     assert.ok(vedadasDeLaBici.length > 0, 'la bici tiene que pisar lo que el patín no puede');
@@ -321,8 +372,9 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * municipal cubren el mismo sitio.
    */
   test('⭐ 5 · la frontera del contrato BiZi veta 954 aristas, y se nota donde hay que notarlo', () => {
-    assert.equal(rueda.enElTermino[22800], 0, 'la 22800 tiene que caer fuera del término');
-    const arista = rueda.aristas[22800]!;
+    const k = aristaDe(208770827, 11630.9);
+    assert.equal(rueda.enElTermino[k], 0, 'el way 208770827 tiene que caer fuera del término');
+    const arista = rueda.aristas[k]!;
     const p0 = arista.g[0] as Punto;
     const pN = arista.g[arista.g.length - 1] as Punto;
 
@@ -334,7 +386,7 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
     // La BiZi no encuentra por dónde empezar: [DOC Valhalla, Loki] el filtro
     // de candidatos es del modelo de coste, y ese modelo no admite esa arista.
     assert.equal(
-      enganchar(rueda, motor.rejillaRueda, p0[0], p0[1], (x) => admite(rueda, x, 'bizi')),
+      enganchar(rueda, motor.rejillaRueda, p0[0], p0[1], (x) => admiteComoPuerta(rueda, x, 'bizi')),
       null,
     );
     assert.equal(rodar('bizi', p0, pN), null);
@@ -401,11 +453,12 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * tiempo que la ley no permite.
    */
   test('⭐ 7 · una vía a 10 con crucero 18: manda el 10 (143,7 s, no 79,8)', () => {
-    assert.equal(rueda.limiteKmh[24919], 10);
-    assert.equal(rueda.fuenteLimite[24919], 1, 'el 10 lo dice el municipal, no OSM');
-    assert.equal(rueda.factor[24919], 1, 'no es vía con tráfico: sin factor de por medio');
+    const k = aristaDe(253503683, 399.2);
+    assert.equal(rueda.limiteKmh[k], 10);
+    assert.equal(rueda.fuenteLimite[k], 1, 'el 10 lo dice el municipal, no OSM');
+    assert.equal(rueda.factor[k], 1, 'no es vía con tráfico: sin factor de por medio');
 
-    const arista = rueda.aristas[24919]!;
+    const arista = rueda.aristas[k]!;
     const p0 = arista.g[0] as Punto;
     const pN = arista.g[arista.g.length - 1] as Punto;
     const ruta = rodar('bici', p0, pN)!;
@@ -433,13 +486,13 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * la bici cortaría por ahí en 25,5 m, a contramano de un anillo.
    */
   test('⭐ 8 · una rotonda sin tag `oneway` no se remonta: 548 m en vez de 25,5', () => {
-    const anillo = [7198, 7199, 7200, 7201, 7202];
+    const anillo = aristasDe(44110520);
+    assert.equal(anillo.length, 5, 'la rotonda son cinco aristas');
     for (const k of anillo) {
-      assert.equal(rueda.aristas[k]!.way, 44110520, `la arista ${k} ya no es de la rotonda`);
       assert.equal(rueda.sentido[k], 1, 'la rotonda va en el sentido en que está dibujada');
     }
 
-    const medio = rueda.aristas[7200]!;
+    const medio = rueda.aristas[aristaDe(44110520, 25.5)]!;
     assert.ok(Math.abs(medio.metros - 25.5) < 0.5);
     const desde = medio.g[medio.g.length - 1] as Punto;
     const hasta = medio.g[0] as Punto;
@@ -477,9 +530,8 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * que la calle no era prescindible.
    */
   test('⭐ 9 · una residential sin señal es pacificada por el art. 50.b RGC, y el patín la pisa', () => {
-    const k = 19942;
+    const k = aristaDe(166001851, 1410.3);
     const arista = rueda.aristas[k]!;
-    assert.equal(arista.way, 166001851, 'el Camino del Saso se ha movido de sitio');
     assert.equal(rueda.tipoDeWay.get(arista.way), 'residential');
     // Ni el Ayuntamiento ni OSM le ponen límite: el techo es el defecto legal.
     assert.equal(rueda.fuenteLimite[k], DEFECTO_POR_TIPO);
@@ -513,7 +565,7 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * **5.544 aristas** tienen límite expreso de más de 30 y están vedadas.
    */
   test('⭐ 10 · una vía con 50 EXPRESO sigue vedada al patín, y son 5.544', () => {
-    const k = 4446;
+    const k = aristaDe(31786791, 1164.6);
     assert.equal(rueda.limiteKmh[k], 50);
     assert.equal(rueda.fuenteLimite[k], 1, 'el 50 lo dice el municipal');
     assert.equal(rueda.accesoPatin[k], 0);
@@ -646,7 +698,15 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
     assert.notEqual(rueda.aristas, peaton.aristas);
     assert.notEqual(rueda.nodos, peaton.nodos);
     assert.equal(peaton.aristas.length, 89047);
-    assert.equal(rueda.aristas.length, 58914);
+    // ⭐ 92.684 desde el 30/08: 58.914 que se ruedan más 33.770 que solo se
+    // pisan EMPUJANDO —aceras y zonas peatonales, 1.016,4 km—. El peatón no se
+    // mueve: sigue en sus 89.047.
+    assert.equal(rueda.aristas.length, 92684);
+    assert.equal(
+      rueda.cuentas.empujando,
+      33770,
+      'las que solo se pisan con el vehículo en la mano',
+    );
     // Lo que sí se presta, y es a propósito: los cruces por *way*, que no
     // dependen de qué subgrafo se ruteé.
     assert.equal(rueda.nombreDeWay, peaton.nombreDeWay);

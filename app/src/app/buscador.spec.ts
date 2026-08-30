@@ -1137,6 +1137,38 @@ describe('Buscador', () => {
     expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Patín (VMP)');
   });
 
+  /**
+   * ⭐ EL RÓTULO NO MIENTE CON LA VELOCIDAD (30/08).
+   *
+   * Andando hay una sola velocidad y decirla es honesto: los minutos son
+   * `metros / 5 km/h`. Desde el empuje, una ruta en bici o en patín **mezcla
+   * dos** —18 o 20 rodando y 5 con el vehículo en la mano—, más el techo legal
+   * de cada vía. No hay una cifra verdadera que poner, así que no se pone
+   * ninguna. La velocidad por modo bien dicha es de la casilla 5.
+   */
+  it('⭐ el «a 5 km/h» se queda en andando y NO sale en los modos de rueda', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush(TRAYECTO);
+    await fixture.whenStable();
+    expect(raiz.querySelector('.ruta__duracion')?.textContent).toContain('a 5 km/h');
+
+    elegirModo(fixture, 'Patín (VMP)');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    http.expectOne('/api/ruta').flush({ ...TRAYECTO, modo: 'patin' });
+    await fixture.whenStable();
+
+    const duracion = raiz.querySelector('.ruta__duracion')?.textContent ?? '';
+    expect(duracion).not.toContain('km/h');
+    expect(duracion).toContain('min');
+  });
+
   it('la bici privada manda «bici»', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();

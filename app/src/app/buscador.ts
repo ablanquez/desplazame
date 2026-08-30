@@ -289,11 +289,23 @@ function comoSeLeenLosMetros(metros: number): string {
  * segundos hasta sesenta: se dice «menos de 1 min», que es verdad y es igual de
  * corto. El porqué del «a 5 km/h» está en `VELOCIDAD_DICHA`.
  */
-function comoSeLeeLaDuracion(segundos: number): string {
+function comoSeLeeLaDuracion(segundos: number, modo: Modo = 'andando'): string {
+  // ⭐ LA COLETILLA SE CAE EN LOS MODOS DE RUEDA (30/08), y es por no mentir.
+  //
+  // Andando hay UNA velocidad y decirla es honesto: los minutos son
+  // `metros / 5 km/h` y nada más. Desde el empuje, una ruta en bici o en patín
+  // **mezcla dos** —18 o 20 rodando, 5 con el vehículo en la mano— y encima el
+  // techo legal de cada vía recorta la primera. No hay una cifra que poner ahí
+  // que sea verdad, así que no se pone ninguna: los minutos son la suma real y
+  // se dan solos.
+  //
+  // Decir la velocidad por modo bien dicha es de la casilla 5. Hasta entonces,
+  // callar es lo correcto — el número que sobra es peor que el que falta.
+  const coletilla = modo === 'andando' ? ` a ${VELOCIDAD_DICHA}` : '';
   if (segundos < 60) {
-    return `menos de 1 min a ${VELOCIDAD_DICHA}`;
+    return `menos de 1 min${coletilla}`;
   }
-  return `~${Math.round(segundos / 60)} min a ${VELOCIDAD_DICHA}`;
+  return `~${Math.round(segundos / 60)} min${coletilla}`;
 }
 
 @Component({

@@ -238,6 +238,71 @@ export function puedeRodar(highway: string, perfil: string): boolean {
   return ACCESO_RODANDO[highway] === true;
 }
 
+// ── EL EMPUJE (30/08) ───────────────────────────────────────────────────────
+
+/**
+ * ⭐ LO QUE SE PUEDE PISAR **EMPUJANDO**, que no es lo mismo que rodando.
+ *
+ * Quien lleva el vehículo en la mano **no está circulando: está andando**, y
+ * por eso no le aplica ninguna de las tablas de arriba. Le aplica la del
+ * peatón, que es la de `andando.ts`.
+ *
+ * [DOC OSM, tabla canónica de acceso por defecto] lo dice con todas las
+ * letras: *«el acceso se concede en toda situación a quien va andando
+ * empujando su bicicleta; en consecuencia los ruteadores pueden
+ * considerar…»*. Y en la ley de aquí, [LEY RGC art. 121.2, vigente hoy] mete a
+ * quien *«empuje o arrastre un vehículo de reducidas dimensiones que no sea de
+ * motor»* dentro del capítulo del peatón. ⚠️ **Esa cita caduca el
+ * 01/10/2026**: el RD 518/2026 reescribe el 121 y lleva el caso al art.
+ * 122.2.a — la misma advertencia que lleva `VELOCIDAD_EMPUJANDO_KMH`.
+ *
+ * ── Esto no es nuevo: es la celda del 54.4, generalizada ────────────────────
+ *
+ * La rueda ya cruzaba los pasos de cebra empujando desde la casilla 3 [ORD
+ * art. 54.4: *«deberán cruzar con la bicicleta o VMP en la mano»*]. Lo que
+ * cambia el 30/08 es dejar de tratarlo como una excepción del paso de cebra y
+ * tratarlo como lo que es: **la regla del que va andando**, que vale igual en
+ * una acera y en una zona peatonal.
+ *
+ * ── Por qué SOLO estos tres ─────────────────────────────────────────────────
+ *
+ * Los tres que abre son los que el encargo nombra y los que el dato tiene como
+ * «suelo de peatón» de verdad. Lo demás sigue cerrado, y **por el mismo lado
+ * seguro de siempre**: `steps` no se abre —empujar una bici por unas escaleras
+ * no es andar, y meterlo aquí sería regalarle al Dijkstra un atajo que en la
+ * calle no existe—, y `corridor`, `construction` o la autovía tampoco. Lo que
+ * no está, no pasa.
+ *
+ * ⚠️ **Las zonas de especial protección NO se modelan.** La Ordenanza limita
+ * dónde y cuándo se puede estar en zona peatonal, pero **dónde están no consta
+ * en ningún dato que tengamos** [H4, ya declarado en ficha]: no hay nada que
+ * vigilar, y fingir una vigilancia sería peor que declarar el hueco.
+ */
+export const ACCESO_EMPUJANDO: ReadonlySet<string> = new Set(['footway', 'pedestrian']);
+
+/**
+ * Cómo se entra en una arista, o `null` si no se entra de ninguna manera.
+ *
+ * ⭐ **El orden importa y es el de la ley**: primero se mira si se puede
+ * RODAR, y solo lo que no se puede rodar se mira si se puede empujar. Así la
+ * acera nunca le quita sitio a la calzada, y el art. 56.3 sigue mandando sobre
+ * ruedas exactamente igual que ayer — empujado, se es peatón, y esa es otra
+ * pregunta.
+ *
+ * El `p=acera` entra aquí por la puerta de atrás: su `h` puede ser cualquier
+ * cosa —hay una `residential`, la de la Calle del Valle de Zuriza— y lo que la
+ * hace acera es el perfil que le puso el exportador, no el tipo.
+ */
+export function comoSeEntra(highway: string, perfil: string): 'rodando' | 'empujando' | null {
+  if (puedeRodar(highway, perfil)) {
+    return 'rodando';
+  }
+  if (PERFILES_VETADOS.has(perfil) || ACCESO_EMPUJANDO.has(highway)) {
+    return 'empujando';
+  }
+  return null;
+}
+
 /**
  * ⭐ EL FACTOR DE PREFERENCIA AL CARRIL BICI, y de dónde salen sus números.
  *
@@ -276,6 +341,52 @@ export const FACTOR_DE_TRAFICO: Readonly<Record<string, number>> = {
 export function factorDe(highway: string): number {
   return FACTOR_DE_TRAFICO[highway] ?? 1;
 }
+
+/**
+ * ⭐ EL FACTOR DEL EMPUJE: **el máximo de la tabla**, y no 1.
+ *
+ * No es un valor inventado —sale de `FACTOR_DE_TRAFICO`, del que es el mayor—
+ * y no es cosmético: sin él el empuje gana rutas que no debería, y está
+ * medido.
+ *
+ * ── Lo que pasaba con factor 1, el 30/08 ────────────────────────────────
+ *
+ * El factor infla el tiempo de la calzada con tráfico —×2 en una `primary`—
+ * para expresar una preferencia **entre maneras de RODAR**: mejor 2 km de
+ * carril bici que 1 de avenida. Una arista que se empuja no lleva tráfico en su
+ * `h` —es `footway`—, así que salía a factor 1 y el montículo leía que
+ * **andar es lo más barato de la ciudad**.
+ *
+ * El caso, medido en `Portales.120344 → Portales.110047` en bici:
+ *
+ * | | metros | empuje | coste del montículo | tiempo real |
+ * |---|---|---|---|---|
+ * | con factor 1 | 1.519,5 | 30,8 m | 361 s | **351 s** |
+ * | sin factor ninguno | 1.553,5 | **0 m** | 342 s | **342 s** |
+ *
+ * O sea que el empuje no lo compraba el tiempo: lo compraba el factor, y la
+ * ruta salía **9 s peor en tiempo real**. Eso es exactamente lo que el respaldo
+ * de este encargo dice que NO puede pasar —*«el empuje compite EN TIEMPO
+ * (5 vs 18/20) dentro del mismo Dijkstra»*—.
+ *
+ * ── Por qué el máximo, y no otro ─────────────────────────────────────
+ *
+ * Porque es el único valor de la tabla que garantiza la regla: **el empuje no
+ * puede ganar por preferencia, solo por tiempo**. Con cualquier otro habría
+ * una vía cuyo factor lo supera y volvería a comprarse el atajo.
+ *
+ * Y tiene sentido de calle, no solo de álgebra: la acera que se empuja va
+ * **pegada** a la calzada que el factor está penalizando. Un `footway` junto a
+ * una `primary` es el mismo ruido y los mismos humos; decir que es lo más
+ * agradable de la ciudad sería falso.
+ *
+ * ⚠️ **Es una decisión de modelo, y se declara como tal.** El factor de OSRM
+ * está calibrado entre maneras de rodar y **nadie lo ha calibrado contra
+ * andar**: NO CONSTA cuánto peor es empujar junto a una avenida que rodar por
+ * ella. Lo que sí consta es que factor 1 da rutas peores en tiempo real, y de
+ * las dos opciones sin medir, esta es la que no empeora ninguna ruta.
+ */
+export const FACTOR_DEL_EMPUJE = Math.max(...Object.values(FACTOR_DE_TRAFICO));
 
 /**
  * ⭐ EL DEFECTO LEGAL NACIONAL: el art. 50 del RGC, por atributos de la vía.
