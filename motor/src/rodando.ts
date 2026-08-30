@@ -443,9 +443,26 @@ export function segundosRodando(
   /** El tipo con el que se calculó: hay que dividir por SU factor, no por otro. */
   tipo?: TipoDeRuta,
 ): number {
+  return segundosDeLosTrozos(red, ruta.trozos, modo, tipo);
+}
+
+/**
+ * ⭐ Lo mismo, pero de **una rebanada** de trozos.
+ *
+ * Existe desde que la respuesta publica sus tramos (30/08): cada tramo tiene
+ * que decir sus propios segundos, y sus segundos son los de los trozos que
+ * caen dentro. `segundosRodando` es esta función con la ruta entera, para que
+ * la cuenta sea **la misma** en los dos sitios y no dos que se parecen.
+ */
+export function segundosDeLosTrozos(
+  red: RedDeLaRueda,
+  trozos: readonly TrozoDeRuta[],
+  modo: ModoDeRueda,
+  tipo?: TipoDeRuta,
+): number {
   const factor = red.factores[calibradoDe(modo, tipo)];
   let segundos = 0;
-  for (const trozo of ruta.trozos) {
+  for (const trozo of trozos) {
     // El paso que se cruza empujando no lleva factor —su `h` es `footway`, que
     // no está en la lista de tráfico—, así que dividir por 1 no le hace nada y
     // no hace falta un caso aparte.

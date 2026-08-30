@@ -517,6 +517,16 @@ export class Buscador {
   protected readonly trazado = computed(() => this.resultado()?.trayecto.geometria ?? []);
 
   /**
+   * ⭐ Y CÓMO SE RECORRE CADA TRECHO, para que el mapa lo pinte con su trazo.
+   *
+   * Sale del mismo sitio que la geometría —el resultado— y por la misma razón
+   * que aquella: **no se compone aquí nada**. El motor dice de qué vértice a
+   * qué vértice va cada tramo; la pantalla lo pinta. Derivarlo de los pasos era
+   * imposible sin errar el corte, y está medido en el contrato.
+   */
+  protected readonly tramos = computed(() => this.resultado()?.trayecto.tramos ?? []);
+
+  /**
    * El usuario ha elegido —o ha deshecho— la calle de un lado.
    *
    * Se cuelga de `(seleccionChange)`, y eso es **el camino del usuario**: el
@@ -940,6 +950,9 @@ export class Buscador {
         avisos: [{ texto: todavia }],
         metros: 0,
         segundos: 0,
+        // Sin geometría no hay nada que pintar, así que no hay tramos. Es la
+        // misma forma que el motor devuelve cuando no puede dar una ruta.
+        tramos: [],
       });
       return;
     }

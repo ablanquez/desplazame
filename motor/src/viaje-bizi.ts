@@ -131,6 +131,7 @@ function sinViajeEnBiZi(previos: readonly Aviso[], nuevos: readonly Aviso[]): Tr
     avisos: [...previos, ...nuevos],
     metros: 0,
     segundos: 0,
+    tramos: [],
   };
 }
 
@@ -246,7 +247,15 @@ export function viajeEnBiZi(
             'supera el tramo incluido del abono.',
         });
       }
-      return juntar({ modo: 'bizi', avisos }, [aLaEstacion, pedaleo, alDestino]);
+      // ⭐ Los dos hitos, cada uno en el tramo que muere en su estación: se
+      // coge la bici donde acaba el paseo de ida y se deja donde acaba el
+      // pedaleo. Quien pinta pone el icono en `geometria[tramo.hasta]`, que es
+      // el vértice que cae a 0,0 m de la estación.
+      return juntar({ modo: 'bizi', avisos }, [
+        { ...aLaEstacion, hito: 'coge' },
+        { ...pedaleo, hito: 'aparca' },
+        alDestino,
+      ]);
     }
   }
 

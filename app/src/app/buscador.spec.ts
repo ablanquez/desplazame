@@ -236,6 +236,7 @@ const TRAYECTO: Trayecto = {
   avisos: [],
   metros: 342,
   segundos: 246,
+  tramos: [{ comoSeVa: 'andando', desde: 0, hasta: 1, metros: 342, segundos: 246, hito: null }],
 };
 
 /**
@@ -244,6 +245,8 @@ const TRAYECTO: Trayecto = {
  */
 const SIN_RUTA: Trayecto = {
   modo: 'andando',
+  // Sin ruta no hay geometría, y sin geometría no hay tramos.
+  tramos: [],
   pasos: [],
   geometria: [],
   avisos: [
@@ -284,6 +287,7 @@ const POR_LA_AVENIDA_DE_MADRID: Trayecto = {
   avisos: [],
   metros: 1565,
   segundos: 313,
+  tramos: [{ comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 1565, segundos: 313, hito: null }],
 };
 
 const RODEANDO_LA_AVENIDA_DE_MADRID: Trayecto = {
@@ -301,6 +305,7 @@ const RODEANDO_LA_AVENIDA_DE_MADRID: Trayecto = {
   avisos: [],
   metros: 1972,
   segundos: 394,
+  tramos: [{ comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 1972, segundos: 394, hito: null }],
 };
 
 /**
@@ -356,11 +361,19 @@ const VIAJE_CON_REMATE: Trayecto = {
   ],
   geometria: [
     [41.6661, -0.8773],
+    // ⭐ El vértice de la costura: aquí está el aparcabicis, y aquí va su icono.
+    [41.6472, -0.8647],
     [41.6461, -0.8673],
   ],
   avisos: [],
   metros: 4587,
   segundos: 970,
+  // ⭐ Los dos tramos del remate, con el hito donde muere el que se rueda.
+  // Los metros son los del caso real: 4.535 rodando y 52 andando.
+  tramos: [
+    { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 4535, segundos: 933, hito: 'aparca' },
+    { comoSeVa: 'andando', desde: 1, hasta: 2, metros: 52, segundos: 37, hito: null },
+  ],
 };
 
 /**
@@ -385,11 +398,22 @@ const VIAJE_EN_BIZI: Trayecto = {
   ],
   geometria: [
     [41.6661, -0.8773],
+    // La estación donde se coge la bici.
+    [41.6826, -0.8712],
+    // Y la estación donde se deja.
+    [41.6476, -0.8641],
     [41.6461, -0.8673],
   ],
   avisos: [],
   metros: 4800,
   segundos: 1020,
+  // ⭐ Los tres tramos del viaje, con sus dos hitos. Las cifras son las de la
+  // ruta real: 127 m andando, 4.513 pedaleando y 160 andando.
+  tramos: [
+    { comoSeVa: 'andando', desde: 0, hasta: 1, metros: 127, segundos: 91, hito: 'coge' },
+    { comoSeVa: 'rodando', desde: 1, hasta: 2, metros: 4513, segundos: 813, hito: 'aparca' },
+    { comoSeVa: 'andando', desde: 2, hasta: 3, metros: 160, segundos: 116, hito: null },
+  ],
 };
 
 /** Rellena los cuatro campos por el camino de una persona, y deja listo el botón. */
@@ -745,6 +769,9 @@ const TRIO: Readonly<Record<TipoDeRuta, Trayecto>> = {
     avisos: [],
     metros: 1554,
     segundos: 342,
+    tramos: [
+      { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 1554, segundos: 342, hito: null },
+    ],
   },
   equilibrada: {
     modo: 'bici',
@@ -765,6 +792,9 @@ const TRIO: Readonly<Record<TipoDeRuta, Trayecto>> = {
     avisos: [],
     metros: 1565,
     segundos: 344,
+    tramos: [
+      { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 1565, segundos: 344, hito: null },
+    ],
   },
   tranquila: {
     modo: 'bici',
@@ -781,6 +811,9 @@ const TRIO: Readonly<Record<TipoDeRuta, Trayecto>> = {
     avisos: [],
     metros: 1710,
     segundos: 372,
+    tramos: [
+      { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 1710, segundos: 372, hito: null },
+    ],
   },
 };
 

@@ -64,6 +64,8 @@ const TRAYECTO: Trayecto = {
   metros: 120,
   segundos: 86,
   avisos: [],
+  // Andando es un tramo y cubre la geometría entera: sus tres vértices.
+  tramos: [{ comoSeVa: 'andando', desde: 0, hasta: 2, metros: 120, segundos: 86, hito: null }],
   geometria: [
     [41.6561, -0.8773],
     [41.6516, -0.879],

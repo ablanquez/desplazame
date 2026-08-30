@@ -11,7 +11,7 @@ import {
 import * as L from 'leaflet';
 // El vértice lo define el contrato, no este componente: es la misma forma que
 // el motor devolverá en la geometría de un trayecto.
-import type { Vertice } from '@desplazame/tipos';
+import type { TramoDelViaje, Vertice } from '@desplazame/tipos';
 import { svgDeCapa, type Clase } from './iconos';
 
 export type { Vertice };
@@ -67,6 +67,48 @@ const ANCLAJE: Readonly<Record<Clase, L.PointTuple>> = {
 };
 
 /**
+ * ⭐ CÓMO SE VISTE CADA TRAMO (30/08). Dos estilos, **un solo color**.
+ *
+ * [DOC Leaflet] `dashArray` es la opción de `L.Path` para los patrones simples
+ * de trazo, que es justo lo que hace falta: una raya y un hueco.
+ *
+ * [WCAG 1.4.1, *Use of Color*] el color no puede ser el único medio de
+ * transmitir una información. Aquí se cumple por el camino corto: **el color no
+ * transmite nada**, los dos tramos van del mismo, y lo único que los distingue
+ * es el trazo. En blanco y negro se lee igual.
+ *
+ * ⚠️ **Y el a-pie conserva el vestido de HOY, al píxel.** La línea única de
+ * antes de este encargo ya era `#b45309`, grosor 5 y `10 8` discontinuo, así
+ * que una ruta a pie de las de siempre se pinta exactamente igual que ayer. Lo
+ * que se estrena es el SÓLIDO del que va sobre ruedas. Ponerlo al revés
+ * —discontinuo nuevo para el a-pie— habría cambiado el andando puro sin que
+ * nadie lo hubiera pedido.
+ */
+const VESTIDO: Readonly<Record<TramoDelViaje['comoSeVa'], L.PolylineOptions>> = {
+  andando: { color: '#b45309', weight: 5, dashArray: '10 8' },
+  rodando: { color: '#b45309', weight: 5 },
+};
+
+/**
+ * ⭐ EL GLIFO DE CADA HITO, y son los MISMOS que la lista de pasos.
+ *
+ * Que el mapa y las indicaciones usen el mismo carácter no es coquetería: quien
+ * lee «🅿 Aparca en el aparcabicis de…» tiene que poder buscar esa misma marca
+ * en el plano sin traducir nada. `🅿` es la P de aparcamiento encerrada, que es
+ * la señal que hay en la calle; `🚲` es el vehículo que se toma.
+ *
+ * `Record` exhaustivo por la misma razón de siempre: si el contrato añadiera un
+ * hito, esta tabla dejaría de compilar en vez de dibujar un hueco.
+ */
+const GLIFO: Readonly<Record<'coge' | 'aparca', string>> = {
+  coge: '🚲',
+  aparca: '🅿',
+};
+
+/** El lado del icono de hito. Más pequeño que la chincheta: es una marca. */
+const LADO_DEL_HITO = 24;
+
+/**
  * Atribución de OpenStreetMap. Es obligación de la ODbL, no cortesía, y la
  * palabra «colaboradores» NO es opcional: el ejemplo oficial de Leaflet la
  * omite, y omitirla es incumplir.
@@ -101,6 +143,18 @@ export class Mapa {
   readonly trazado = input<readonly Vertice[]>([]);
 
   /**
+   * ⭐ **CÓMO SE RECORRE CADA TRECHO**, para pintarlo con su trazo (30/08).
+   *
+   * Viene del contrato tal cual: cada tramo dice de qué vértice a qué vértice
+   * va, cómo se va, y si muere en un hito. **Este componente no deriva nada**
+   * —ni parte por metros ni busca costuras a ojo—: lee lo que el motor dice.
+   *
+   * Vacío es «no consta», y entonces se pinta **una sola línea con el vestido
+   * del a-pie**, que es lo que había antes de que existieran los tramos.
+   */
+  readonly tramos = input<readonly TramoDelViaje[]>([]);
+
+  /**
    * El alto del lienzo, tal cual va al CSS. Leaflet exige una altura
    * DEFINIDA: si el contenedor no la tiene, el mapa se monta con 0 px de alto
    * y no se ve nada. Por defecto, el del formulario. El visor le pasa `100%`
@@ -124,7 +178,7 @@ export class Mapa {
 
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
-  private linea?: L.Polyline;
+  private lineas: L.Polyline[] = [];
   private marcas: L.Marker[] = [];
 
   constructor() {
@@ -184,8 +238,10 @@ export class Mapa {
       return;
     }
 
-    this.linea?.remove();
-    this.linea = undefined;
+    for (const linea of this.lineas) {
+      linea.remove();
+    }
+    this.lineas = [];
     // Los marcadores se quitan SIEMPRE antes de volver a ponerlos. Sin esto,
     // cada ruta nueva deja los dos de la anterior encima del mapa.
     for (const marca of this.marcas) {
@@ -200,21 +256,49 @@ export class Mapa {
     }
 
     const puntos: L.LatLngTuple[] = vertices.map(([lat, lon]) => [lat, lon]);
-    this.linea = L.polyline(puntos, {
-      color: '#b45309',
-      weight: 5,
-      dashArray: '10 8',
-    }).addTo(this.mapa);
+    // ⭐ UNA LÍNEA POR TRAMO. [DOC OTP] un itinerario es una lista de *legs*
+    // con su modo, y esto es pintarlos como lo que son. Sin tramos —una
+    // respuesta vieja, o una que no pudo dar ruta— se pinta la línea entera
+    // con el vestido del a-pie, que es lo que había.
+    const tramos = this.tramos();
+    if (tramos.length === 0) {
+      this.lineas.push(L.polyline(puntos, VESTIDO.andando).addTo(this.mapa));
+    }
+    for (const tramo of tramos) {
+      // `hasta` es inclusivo y el vértice de la costura es de los dos tramos,
+      // así que las líneas se tocan en vez de dejar un hueco entre ellas.
+      const trozo = puntos.slice(tramo.desde, tramo.hasta + 1);
+      if (trozo.length < 2) {
+        continue;
+      }
+      this.lineas.push(L.polyline(trozo, VESTIDO[tramo.comoSeVa]).addTo(this.mapa));
+    }
 
     this.marcar(vertices[0]!, this.capaOrigen(), 'origen');
     this.marcar(vertices[vertices.length - 1]!, this.capaDestino(), 'destino');
+    // ⭐ Y los HITOS, en el vértice que el motor señala: el que cae **a 0,0 m**
+    // de la estación o del aparcabicis. Ver `TramoDelViaje.hito`.
+    for (const tramo of tramos) {
+      if (tramo.hito !== null && vertices[tramo.hasta]) {
+        this.marcarHito(vertices[tramo.hasta]!, tramo.hito);
+      }
+    }
 
     // El encuadre. [DOC] Leaflet: «fitBounds(bounds, options): Sets a map view
     // that contains the given geographical bounds with the maximum zoom level
     // possible», y `padding` es «Equivalent of setting both top left and bottom
     // right padding to the same value». Sin holgura, los dos extremos de la
     // ruta —que son justo los que se quieren ver— quedan tocando el borde.
-    this.mapa.fitBounds(this.linea.getBounds(), { padding: HOLGURA_DEL_ENCUADRE });
+    // El encuadre abarca TODAS las líneas: con una sola bastaba `getBounds`,
+    // con varias hay que juntarlas o el mapa encuadraría solo la primera.
+    const todo = this.lineas.reduce(
+      (caja: L.LatLngBounds | null, linea) =>
+        caja ? caja.extend(linea.getBounds()) : linea.getBounds(),
+      null,
+    );
+    if (todo) {
+      this.mapa.fitBounds(todo, { padding: HOLGURA_DEL_ENCUADRE });
+    }
   }
 
   /**
@@ -243,6 +327,36 @@ export class Mapa {
       }),
       // El marcador no se pulsa: es una seña, no un botón. Y sin esto se lleva
       // el foco del teclado antes que los campos del formulario.
+      keyboard: false,
+      interactive: false,
+    }).addTo(this.mapa);
+    this.marcas.push(marca);
+  }
+
+  /**
+   * ⭐ UN HITO: donde se coge o se deja el vehículo.
+   *
+   * Mismo `L.divIcon` que los extremos —*«a lightweight icon for markers that
+   * uses a simple `<div>` element instead of an image»*— y por lo mismo: lo que
+   * se dibuja es el mismo carácter que la lista de pasos escribe, así que no
+   * hay dos cosas que mantener a juego.
+   *
+   * `iconAnchor` CENTRADO y no en la punta: esto no señala con ningún borde,
+   * es una marca, igual que las figuras de sitio. El punto que se posa sobre la
+   * coordenada es su centro.
+   */
+  private marcarHito(vertice: Vertice, hito: 'coge' | 'aparca'): void {
+    if (!this.mapa) {
+      return;
+    }
+    const [lat, lon] = vertice;
+    const marca = L.marker([lat, lon], {
+      icon: L.divIcon({
+        html: `<span class="hito" aria-hidden="true">${GLIFO[hito]}</span>`,
+        className: '',
+        iconSize: [LADO_DEL_HITO, LADO_DEL_HITO],
+        iconAnchor: [LADO_DEL_HITO / 2, LADO_DEL_HITO / 2],
+      }),
       keyboard: false,
       interactive: false,
     }).addTo(this.mapa);

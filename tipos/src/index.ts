@@ -307,6 +307,80 @@ export interface Trayecto {
   readonly avisos: readonly Aviso[];
   readonly metros: number;
   readonly segundos: number;
+  /**
+   * ⭐ **Los TRAMOS del viaje** (30/08), en el orden en que se recorren.
+   *
+   * El contrato crece porque el motor lo pide, y esta vez lo pidió **el
+   * pintado**: desde que un viaje puede cambiar de vehículo por el camino, la
+   * pantalla necesita dibujar cada tramo con su trazo —el a-pie discontinuo, el
+   * rodando sólido— y poner un icono donde se aparca o se coge la bici. Con una
+   * `geometria` plana eso no se podía: **la coordenada del hito viaja** —hay un
+   * vértice exactamente encima, a 0,0 m del dato— pero no se podía decir CUÁL.
+   *
+   * Derivarlo tampoco valía, y está medido: la única derivación posible —sumar
+   * los `metros` de los pasos— falla porque esos metros vienen **redondeados a
+   * propósito**. En el caso `COLOSO 2 → LEOPOLDO ROMEO 27` en BiZi la suma
+   * deriva **10 m** y pone el corte en el vértice 198 cuando el bueno es el
+   * 200: **6,9 m** de error, con el icono cayendo en mitad de la calle.
+   *
+   * **Siempre hay al menos uno.** Una ruta a pie de las de siempre trae un solo
+   * tramo que cubre la geometría entera; que sea obligatorio y no opcional es a
+   * propósito, para que quien pinta tenga un único camino y no dos.
+   */
+  readonly tramos: readonly TramoDelViaje[];
+}
+
+/**
+ * ⭐ UN TRAMO DEL VIAJE: un trecho que se recorre **de una sola manera**.
+ *
+ * [DOC OpenTripPlanner / Digitransit] su itinerario es una lista de `legs`, y
+ * cada *leg* lleva su `mode`. Esto es eso mismo: la respuesta ya venía partida
+ * por dentro —andar hasta la estación, pedalear, andar el resto— y lo único que
+ * cambia es que ahora se publica.
+ *
+ * ⭐ **Y el tramo que se EMPUJA es `andando`**, no un tercer estado. Quien lleva
+ * el vehículo en la mano es peatón [RGC art. 121.2] y va a paso de peatón, así
+ * que decir que va rodando sería falso. [DOC OSRM] su respuesta hace lo mismo:
+ * el tramo desmontado es **un modo propio** dentro de la ruta en bici, con su
+ * suite de pruebas de cambios de modo. La consecuencia buena es que quien pinta
+ * **no necesita saber que el empuje existe**: pinta lo que va a pie de una
+ * manera y lo que va sobre ruedas de otra.
+ */
+export interface TramoDelViaje {
+  /** Cómo se recorre este trecho. El empujado es `andando`: se va a pie. */
+  readonly comoSeVa: 'andando' | 'rodando';
+  /**
+   * Índice del **primer** vértice de este tramo dentro de `Trayecto.geometria`,
+   * y del **último**. Los dos son inclusivos y **el último de un tramo es el
+   * primero del siguiente**: el vértice de la costura pertenece a los dos, para
+   * que las líneas pintadas se toquen en vez de dejar un hueco.
+   *
+   * El primer tramo empieza en `0` y el último acaba en `geometria.length − 1`.
+   */
+  readonly desde: number;
+  readonly hasta: number;
+  /**
+   * Los metros y los segundos de ESTE tramo, ya redondeados. **Suman
+   * exactamente `Trayecto.metros` y `Trayecto.segundos`**: se redondean por
+   * fronteras acumuladas, no uno a uno, para que lo que se lee en pantalla
+   * cuadre al sumarlo.
+   */
+  readonly metros: number;
+  readonly segundos: number;
+  /**
+   * ⭐ El HITO en el que muere este tramo, o `null` si solo cambia la manera de
+   * ir.
+   *
+   * Va aquí y no se deduce, y esa es la diferencia entre pintar y adivinar: en
+   * un viaje en BiZi hay costuras de dos clases —donde se coge la bici y donde
+   * se deja de empujar—, y por `comoSeVa` son idénticas. Quien pinta pone el
+   * icono donde esto no es `null`, en `geometria[hasta]`, que es el vértice que
+   * cae **a 0,0 m** de la estación o del aparcabicis.
+   *
+   * Son los mismos dos valores que `Giro` usa para los pasos del hito, y es a
+   * propósito: el mismo suceso se llama igual en los dos sitios.
+   */
+  readonly hito: 'coge' | 'aparca' | null;
 }
 
 /**

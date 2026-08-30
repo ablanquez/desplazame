@@ -24,12 +24,25 @@
  * como **paso propio** con su campo `mode`, y eso es lo que son los hitos.
  */
 
-import type { Aviso, Paso, Trayecto, TipoDeRuta, Vertice } from '@desplazame/tipos';
+import type {
+  Aviso,
+  Paso,
+  TipoDeRuta,
+  TramoDelViaje,
+  Trayecto,
+  Vertice,
+} from '@desplazame/tipos';
 import type { Motor } from './trayecto.ts';
 import { enganchar } from './proyeccion.ts';
-import { calcularRuta, geometriaDe, type Ruta } from './ruta.ts';
-import { admiteComoPuerta, calcularRutaRodando, segundosRodando } from './rodando.ts';
+import { calcularRuta, geometriaDe, geometriaPorModo, type Ruta } from './ruta.ts';
+import {
+  admiteComoPuerta,
+  calcularRutaRodando,
+  segundosDeLosTrozos,
+  segundosRodando,
+} from './rodando.ts';
 import type { ModoDeRueda } from './rueda.ts';
+import type { RedDeLaRueda } from './red-rueda.ts';
 import { comoSePresenta, escribirPasos, type Costuras, type Empuje } from './pasos.ts';
 import { aparcabicisCercanos, type Aparcabici } from './aparcabicis.ts';
 import { metrosEntre } from './cercano.ts';
@@ -51,6 +64,22 @@ export interface Extremo {
   readonly nombre: string;
 }
 
+/**
+ * ⭐ Un sub-tramo de una etapa: **índices LOCALES y cifras SIN redondear**.
+ *
+ * Las dos cosas son a propósito. Los índices son locales porque una etapa no
+ * sabe en qué parte del viaje va a caer —eso lo decide `juntar`—, y las cifras
+ * van crudas porque redondearlas aquí haría que la suma de las partes no diera
+ * el total: el redondeo se hace **una sola vez y por fronteras**, al final.
+ */
+export interface TramoDeEtapa {
+  readonly comoSeVa: 'andando' | 'rodando';
+  readonly desde: number;
+  readonly hasta: number;
+  readonly metros: number;
+  readonly segundos: number;
+}
+
 /** Un tramo ya calculado y ya narrado. Lo que se suma para hacer el viaje. */
 export interface Etapa {
   readonly pasos: readonly Paso[];
@@ -58,6 +87,13 @@ export interface Etapa {
   readonly geometria: readonly Vertice[];
   readonly metros: number;
   readonly segundos: number;
+  /**
+   * ⭐ Cómo se recorre esta etapa por dentro. Una etapa a pie trae uno solo;
+   * una rodando trae tantos como veces se baje uno del vehículo.
+   */
+  readonly tramos: readonly TramoDeEtapa[];
+  /** El hito en el que muere la etapa, si muere en uno. Lo pone quien la pide. */
+  readonly hito?: 'coge' | 'aparca';
 }
 
 /**
@@ -122,6 +158,8 @@ export function etapaAndando(
   if (!ruta) {
     return null;
   }
+  const geometria = geometriaDe(ruta).map(([lon, lat]) => [lat, lon] as Vertice);
+  const segundos = ruta.metros / VELOCIDAD_MS;
   return {
     pasos: escribirPasos(
       motor.red,
@@ -132,9 +170,19 @@ export function etapaAndando(
       undefined,
       costuras,
     ),
-    geometria: geometriaDe(ruta).map(([lon, lat]) => [lat, lon] as Vertice),
+    geometria,
     metros: ruta.metros,
-    segundos: ruta.metros / VELOCIDAD_MS,
+    segundos,
+    // Andando no hay nada que partir: se va a pie de punta a punta.
+    tramos: [
+      {
+        comoSeVa: 'andando',
+        desde: 0,
+        hasta: Math.max(0, geometria.length - 1),
+        metros: ruta.metros,
+        segundos,
+      },
+    ],
   };
 }
 
@@ -168,6 +216,9 @@ export function etapaRodando(
   if (!trazado) {
     return null;
   }
+  // ⭐ La geometría y sus cortes salen de la MISMA vuelta, así que el corte no
+  // puede derivar de los puntos. Ver `geometriaPorModo`.
+  const rodado = loRodado(red, trazado, modo, tipo, empuje);
   return {
     pasos: escribirPasos(
       red,
@@ -178,11 +229,73 @@ export function etapaRodando(
       empuje,
       costuras,
     ),
-    geometria: geometriaDe(trazado).map(([lon, lat]) => [lat, lon] as Vertice),
+    geometria: rodado.geometria,
     metros: trazado.metros,
     // El reloj no lleva la preferencia dentro: `segundosRodando` la divide.
     segundos: segundosRodando(red, trazado, modo, tipo),
+    tramos: rodado.tramos,
   };
+}
+
+/**
+ * ⭐ Los sub-tramos de una etapa rodada, uno por cada vez que se cambia de
+ * manera de ir.
+ *
+ * **El empujado sale como `andando`, y no es una licencia**: quien lleva el
+ * vehículo en la mano es peatón [RGC art. 121.2] y va a paso de peatón. [DOC
+ * OSRM] su respuesta hace lo mismo — el tramo desmontado es un modo propio
+ * dentro de la ruta en bici—. La consecuencia buena es que quien pinta no
+ * necesita saber que el empuje existe.
+ *
+ * Los metros y los segundos de cada trozo salen de **las mismas funciones** que
+ * los del total, sobre la rebanada que le toca: si salieran de otra cuenta
+ * parecida, un día dejarían de sumar y nadie sabría cuál de las dos mentía.
+ */
+export function loRodado(
+  red: RedDeLaRueda,
+  trazado: Ruta,
+  modo: ModoDeRueda,
+  tipo: TipoDeRuta | undefined,
+  empuje: Empuje,
+): { readonly geometria: readonly Vertice[]; readonly tramos: readonly TramoDeEtapa[] } {
+  const troceada = geometriaPorModo(trazado, empuje.esEmpuje);
+  return {
+    geometria: troceada.puntos.map(([lon, lat]) => [lat, lon] as Vertice),
+    tramos: tramosDeLoRodado(red, trazado, modo, tipo, troceada),
+  };
+}
+
+function tramosDeLoRodado(
+  red: RedDeLaRueda,
+  trazado: Ruta,
+  modo: ModoDeRueda,
+  tipo: TipoDeRuta | undefined,
+  troceada: ReturnType<typeof geometriaPorModo>,
+): readonly TramoDeEtapa[] {
+  if (troceada.cortes.length === 0) {
+    // Una ruta sin trozos —los dos extremos en la misma arista— no tiene nada
+    // que partir. Se devuelve un tramo que cubre lo que haya, y no cero: el
+    // contrato exige al menos uno.
+    return [
+      {
+        comoSeVa: 'rodando',
+        desde: 0,
+        hasta: Math.max(0, troceada.puntos.length - 1),
+        metros: trazado.metros,
+        segundos: segundosRodando(red, trazado, modo, tipo),
+      },
+    ];
+  }
+  return troceada.cortes.map((corte) => {
+    const rebanada = trazado.trozos.slice(corte.primerTrozo, corte.ultimoTrozo + 1);
+    return {
+      comoSeVa: corte.empujando ? ('andando' as const) : ('rodando' as const),
+      desde: corte.desde,
+      hasta: corte.hasta,
+      metros: rebanada.reduce((s, t) => s + t.metros, 0),
+      segundos: segundosDeLosTrozos(red, rebanada, modo, tipo),
+    };
+  });
 }
 
 /**
@@ -193,25 +306,81 @@ export function etapaRodando(
  * de una etapa y la primera de la siguiente son la misma —el hito—, porque las
  * dos rutas llevan dibujado su conector hasta el punto exacto.
  */
-export function juntar(trayecto: Omit<Trayecto, 'pasos' | 'geometria' | 'metros' | 'segundos'>, etapas: readonly Etapa[]): Trayecto {
+export function juntar(
+  trayecto: Omit<Trayecto, 'pasos' | 'geometria' | 'metros' | 'segundos' | 'tramos'>,
+  etapas: readonly Etapa[],
+): Trayecto {
   const pasos: Paso[] = [];
   const geometria: Vertice[] = [];
-  let metros = 0;
-  let segundos = 0;
+  const crudos: (TramoDeEtapa & { hito: 'coge' | 'aparca' | null })[] = [];
   for (const etapa of etapas) {
     pasos.push(...etapa.pasos);
-    const trozo = geometria.length === 0 ? etapa.geometria : etapa.geometria.slice(1);
-    geometria.push(...trozo);
-    metros += etapa.metros;
-    segundos += etapa.segundos;
+    // ⭐ El desplazamiento de índices: la etapa que no es la primera comparte su
+    // vértice 0 con el último de la anterior —por eso se pega con `slice(1)`—,
+    // así que su índice local `i` cae en `base + i`.
+    const base = geometria.length === 0 ? 0 : geometria.length - 1;
+    geometria.push(...(geometria.length === 0 ? etapa.geometria : etapa.geometria.slice(1)));
+    etapa.tramos.forEach((t, k) => {
+      crudos.push({
+        ...t,
+        desde: base + t.desde,
+        hasta: base + t.hasta,
+        // ⚠️ El hito muere al final de la ETAPA, así que solo lo lleva su
+        // último sub-tramo. Los cortes de dentro —dejar de empujar— no son
+        // hitos y no llevan icono.
+        hito: k === etapa.tramos.length - 1 ? (etapa.hito ?? null) : null,
+      });
+    });
   }
-  return {
-    ...trayecto,
-    pasos,
-    geometria,
-    metros: Math.round(metros),
-    segundos: Math.round(segundos),
-  };
+
+  const { tramos, metros, segundos } = redondearTramos(crudos);
+  return { ...trayecto, pasos, geometria, metros, segundos, tramos };
+}
+
+/**
+ * ⭐ EL REDONDEO DE LOS TRAMOS, **por fronteras acumuladas y no uno a uno**.
+ *
+ * Redondeando cada parte por su cuenta, la suma de lo que se lee en pantalla
+ * podría no dar el total de la cabecera — hasta un metro por tramo, y un viaje
+ * en BiZi tiene cinco—. Aquí se redondea el ACUMULADO en cada frontera y se
+ * resta el anterior, así que la resta telescopa y **la suma de las partes es
+ * exactamente el total**, sin corregir nada a mano después.
+ *
+ * ⚠️ **El total se devuelve desde aquí, y es `Math.round` de la suma CRUDA**,
+ * no la suma de las partes ya redondeadas. La diferencia parece nula —con este
+ * redondeo dan lo mismo— y no lo es: si el total se calculara sumando las
+ * partes, «las partes suman el total» sería verdad haga lo que haga esta
+ * función, y la juez que lo vigila no podría fallar nunca. Se descubrió
+ * mutándola: con el redondeo ingenuo, la juez seguía en verde.
+ *
+ * `hito` viaja como venga: no es una cifra y no se toca.
+ */
+export function redondearTramos(
+  crudos: readonly (TramoDeEtapa & { readonly hito: 'coge' | 'aparca' | null })[],
+): { readonly tramos: readonly TramoDelViaje[]; readonly metros: number; readonly segundos: number } {
+  let metros = 0;
+  let segundos = 0;
+  let metrosPuestos = 0;
+  let segundosPuestos = 0;
+  const tramos = crudos.map((t) => {
+    metros += t.metros;
+    segundos += t.segundos;
+    const hastaAqui = Math.round(metros);
+    const hastaAquiS = Math.round(segundos);
+    const suyos = hastaAqui - metrosPuestos;
+    const suyosS = hastaAquiS - segundosPuestos;
+    metrosPuestos = hastaAqui;
+    segundosPuestos = hastaAquiS;
+    return {
+      comoSeVa: t.comoSeVa,
+      desde: t.desde,
+      hasta: t.hasta,
+      metros: suyos,
+      segundos: suyosS,
+      hito: t.hito,
+    };
+  });
+  return { tramos, metros: Math.round(metros), segundos: Math.round(segundos) };
 }
 
 /**
@@ -292,7 +461,9 @@ export function remataEnAparcabicis(
       continue;
     }
     return {
-      trayecto: juntar({ modo, avisos: [] }, [rodando, andando]),
+      // El tramo que se rueda MUERE en el aparcabicis: ahí va el icono. Y el
+      // que se anda muere en el portal, que ya lleva su chincheta de destino.
+      trayecto: juntar({ modo, avisos: [] }, [{ ...rodando, hito: 'aparca' }, andando]),
       donde,
     };
   }

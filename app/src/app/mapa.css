@@ -15,3 +15,20 @@
   font-size: 0.78rem;
   background: rgba(255, 255, 255, 0.9);
 }
+
+/* ⭐ EL ICONO DE HITO (30/08): el mismo carácter que la lista de pasos, sobre un
+   disco blanco. Sin el disco, un glifo oscuro sobre una calle oscura del mapa
+   base no se lee; con él, se lee sobre cualquier tesela. */
+:host ::ng-deep .hito {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #b45309;
+  box-sizing: border-box;
+  font-size: 13px;
+  line-height: 1;
+}

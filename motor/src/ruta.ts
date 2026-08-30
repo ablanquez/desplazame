@@ -480,3 +480,103 @@ export function geometriaDe(ruta: Ruta): readonly Punto[] {
   }
   return puntos;
 }
+
+/**
+ * ⭐ UN CORTE de la geometría: un trecho que se recorre de una sola manera.
+ *
+ * Lleva los índices sobre los puntos devueltos **y** el rango de trozos de la
+ * ruta que cae dentro, porque quien pregunta necesita las dos cosas: los
+ * índices para pintar y los trozos para sumar sus metros y sus segundos. Los
+ * dos rangos son **inclusivos**.
+ */
+export interface CorteDeGeometria {
+  readonly desde: number;
+  readonly hasta: number;
+  /** Si el trecho se recorre EMPUJANDO el vehículo, es decir, a pie. */
+  readonly empujando: boolean;
+  readonly primerTrozo: number;
+  readonly ultimoTrozo: number;
+}
+
+/**
+ * ⭐ LA GEOMETRÍA, Y DÓNDE CAMBIA LA MANERA DE IR (30/08).
+ *
+ * Devuelve **exactamente los mismos puntos que `geometriaDe`** —el bucle es el
+ * suyo, con la misma deduplicación— y además dice por dónde se corta cuando se
+ * pasa de rodar a empujar y al revés.
+ *
+ * Existe porque la pantalla no puede adivinarlo: `Paso.metros` viene redondeado
+ * a propósito, así que acumularlos deriva —medido: 10 m en el caso del ojo en
+ * BiZi, con el corte cayendo dos vértices antes de donde toca—. Aquí el corte
+ * sale de la misma vuelta que construye los puntos, así que no puede derivar.
+ *
+ * `esEmpuje` lo pone quien llama: es cosa de la red de la rueda, y `ruta.ts` no
+ * sabe ni tiene por qué saber qué aristas se cruzan con la bici en la mano. El
+ * peatón no llama nunca a esto.
+ *
+ * **El vértice de la costura pertenece a los dos cortes**: el `hasta` de uno es
+ * el `desde` del siguiente. Así las líneas pintadas se tocan en vez de dejar un
+ * hueco de un vértice entre ellas.
+ *
+ * Los **conectores** —el trocito entre la puerta y la calzada— se suman al
+ * corte que tienen al lado: el de origen al primero y el de destino al último.
+ * No son trozos de red y no tienen modo propio; lo que sí tienen es que hay que
+ * dibujarlos, y dibujarlos sueltos sería una tercera clase de línea que no
+ * significa nada.
+ */
+export function geometriaPorModo(
+  ruta: Ruta,
+  esEmpuje: (arista: number) => boolean,
+): { readonly puntos: readonly Punto[]; readonly cortes: readonly CorteDeGeometria[] } {
+  const puntos: Punto[] = [...ruta.conectorOrigen];
+  const cortes: {
+    desde: number;
+    hasta: number;
+    empujando: boolean;
+    primerTrozo: number;
+    ultimoTrozo: number;
+  }[] = [];
+
+  ruta.trozos.forEach((trozo, k) => {
+    const empujando = esEmpuje(trozo.arista);
+    const ultimo = cortes[cortes.length - 1];
+    if (!ultimo || ultimo.empujando !== empujando) {
+      cortes.push({
+        // ⭐ El corte nuevo arranca en el último vértice ya puesto: la costura,
+        // que pertenece a los dos lados. **Salvo el primero, que arranca en 0**
+        // — si no, el conector de origen se quedaría fuera de todos los cortes
+        // y habría un trocito de línea que nadie pinta. Medido antes de que
+        // pasara: sin esto el primer tramo salía `[1..160]` en vez de `[0..160]`
+        // y el siguiente ya no cerraba con él.
+        desde: cortes.length === 0 ? 0 : Math.max(0, puntos.length - 1),
+        hasta: Math.max(0, puntos.length - 1),
+        empujando,
+        primerTrozo: k,
+        ultimoTrozo: k,
+      });
+    }
+    for (const punto of trozo.g) {
+      const previo = puntos[puntos.length - 1];
+      if (previo && previo[0] === punto[0] && previo[1] === punto[1]) {
+        continue;
+      }
+      puntos.push(punto);
+    }
+    const actual = cortes[cortes.length - 1]!;
+    actual.hasta = puntos.length - 1;
+    actual.ultimoTrozo = k;
+  });
+
+  for (const punto of ruta.conectorDestino) {
+    const previo = puntos[puntos.length - 1];
+    if (previo && previo[0] === punto[0] && previo[1] === punto[1]) {
+      continue;
+    }
+    puntos.push(punto);
+  }
+  const cola = cortes[cortes.length - 1];
+  if (cola) {
+    cola.hasta = puntos.length - 1;
+  }
+  return { puntos, cortes };
+}

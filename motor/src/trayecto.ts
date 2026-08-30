@@ -43,6 +43,8 @@ import {
   VELOCIDAD_MS,
   aQueDistanciaElAparcabicis,
   avisoSinAparcabicis,
+  loRodado,
+  redondearTramos,
   remataEnAparcabicis,
   type Extremo,
 } from './etapas.ts';
@@ -57,7 +59,10 @@ const MODOS_ATENDIDOS: readonly Modo[] = ['andando', 'bici', 'patin', 'bizi'];
 
 /** Un trayecto vacío con su explicación. Es la respuesta a todo lo que falla. */
 function conAviso(modo: Modo, texto: string): Trayecto {
-  return { modo, pasos: [], geometria: [], avisos: [{ texto }], metros: 0, segundos: 0 };
+  // Sin geometría no hay nada que pintar, así que la lista de tramos va vacía.
+  // Es el único caso en el que puede estarlo, y quien pinta no llega ahí: antes
+  // mira si hay vértices.
+  return { modo, pasos: [], geometria: [], avisos: [{ texto }], metros: 0, segundos: 0, tramos: [] };
 }
 
 /** Cómo se nombra una vía: «CALLE BURGOS [CASETAS]». `null` si no se conoce. */
@@ -332,13 +337,28 @@ export function calcularTrayecto(
   // contrato [lat, lon].
   const geometria: Vertice[] = geometriaDe(ruta).map(([lon, lat]) => [lat, lon]);
 
+  const metros = Math.round(ruta.metros);
+  const segundos = Math.round(ruta.metros / VELOCIDAD_MS);
   return {
     modo,
     pasos,
     geometria,
     avisos: [],
-    metros: Math.round(ruta.metros),
-    segundos: Math.round(ruta.metros / VELOCIDAD_MS),
+    metros,
+    segundos,
+    // ⭐ Andando hay UN tramo y cubre la ruta entera. Va a mano y no por
+    // `juntar` a propósito: el camino del peatón no se toca —es la muralla—, y
+    // lo único que se le añade es decir en voz alta lo que siempre fue verdad.
+    tramos: [
+      {
+        comoSeVa: 'andando',
+        desde: 0,
+        hasta: Math.max(0, geometria.length - 1),
+        metros,
+        segundos,
+        hito: null,
+      },
+    ],
   };
 }
 
@@ -414,12 +434,10 @@ function trayectoRodando(
   // ruta directa no se llega a pedir, y son dos Dijkstra menos.
   //
   // La BiZi no pasa por aquí: no se aparca en un aparcabicis, se devuelve en su
-  // estación, y eso es la casilla 6.
-  if (modo !== 'bizi') {
-    const rematada = remataEnAparcabicis(motor, modo, origen, destino, ruta, empujeDe(modo, red));
-    if (rematada) {
-      return rematada.trayecto;
-    }
+  // estación, y eso es la casilla 6 — `calcularTrayecto` la desvía antes.
+  const rematada = remataEnAparcabicis(motor, modo, origen, destino, ruta, empujeDe(modo, red));
+  if (rematada) {
+    return rematada.trayecto;
   }
 
   const trazado: Ruta | null = calcularRutaRodando(
@@ -440,6 +458,7 @@ function trayectoRodando(
     );
   }
 
+  const empuje = empujeDe(modo, red);
   const pasos = escribirPasos(
     red,
     trazado,
@@ -448,26 +467,29 @@ function trayectoRodando(
     [destino.lon, destino.lat],
     // ⭐ Cómo se narra el tramo que se empuja. El peatón no manda esto y su
     // narración no cambia ni una letra: ver `Empuje` en `pasos.ts`.
-    empujeDe(modo, red),
+    empuje,
   );
-  const geometria: Vertice[] = geometriaDe(trazado).map(([lon, lat]) => [lat, lon]);
+  // ⭐ Aquí no hay remate —no había aparcabicis que valiera—, pero **sí puede
+  // haber empuje**, y el empuje también parte el viaje: lo que se cruza con el
+  // vehículo en la mano se va a pintar como lo que es, a pie. Sale de la misma
+  // función que lo usa dentro de una etapa, con el `trazado` que ya está
+  // calculado — no se vuelve a rutear nada.
+  const rodado = loRodado(red, trazado, modo, ruta, empuje);
 
   return {
     modo,
     pasos,
-    geometria,
+    geometria: rodado.geometria,
     // ⚠️ Si el modo remataba y ha llegado hasta aquí, es que NO había
     // aparcabicis que valiera. Se dice, con el número: la ruta acaba en la
     // puerta y quien la lee sabe por qué.
-    avisos:
-      modo === 'bizi'
-        ? []
-        : [avisoSinAparcabicis(destino, aQueDistanciaElAparcabicis(motor, destino))],
+    avisos: [avisoSinAparcabicis(destino, aQueDistanciaElAparcabicis(motor, destino))],
     metros: Math.round(trazado.metros),
     // ⭐ El reloj es el de siempre: el tipo de ruta cambia el PESO, no la
     // velocidad. `segundosRodando` divide el factor del calibrado que se usó,
     // así que lo que se contesta son los segundos reales de esta ruta.
     segundos: Math.round(segundosRodando(red, trazado, modo, ruta)),
+    tramos: redondearTramos(rodado.tramos.map((t) => ({ ...t, hito: null }))).tramos,
   };
 }
 
