@@ -34,8 +34,27 @@
 > **compite en tiempo** dentro del mismo Dijkstra, 5 km/h contra 18, y el rodeo largo pierde
 > igual que pierde el atajo por la acera. El tramo empujado es **un paso propio** y se dice
 > —«con el patín en la mano»—, y ninguna fusión de pasos lo cruza. Lo que abre es grande: el
-> caso que lo pidió, `COLOSO 2 → LEOPOLDO ROMEO 27` en patín, pasa de **5.741 m a 4.551** con
-> 45 m en la mano; y en 200 peticiones al azar el patín pasa de resolver 51 a **83**.
+> caso que lo pidió, `COLOSO 2 → LEOPOLDO ROMEO 27` en patín, pasa de **5.741 m a 4.832** con
+> 33 m en la mano; y en 200 peticiones al azar el patín pasa de resolver 51 a **83**.
+>
+> **⭐ Y desde el 30/08 la bici elige QUÉ CLASE de ruta quiere**: Rápida, Equilibrada o
+> Tranquila. El trío es el de CycleStreets —«minimizar tiempo · evitar tráfico · el compromiso
+> entre ambos»—, que además recomienda el equilibrado como defecto de la interfaz; y el
+> mecanismo del dial es el `use_roads` de Valhalla, cuyo defecto documentado es justo el punto
+> medio. **Rápida** no penaliza nada, **Equilibrada** es el calibrado firmado el 29/08 y
+> **Tranquila** es esa misma tabla al cuadrado: `primary` ×4, `secondary` ×2,37, `tertiary`
+> ×1,56 y el carril bici sin tocar. Lo que compra se ve en `Portales.99126 → Portales.126086`:
+> la Rápida va **2.986 m por la avenida sin pisar un metro de carril bici**, y por un 2 % más
+> de recorrido la Equilibrada compra **1.304 m de carril** y la Tranquila **1.339**.
+>
+> **El patín no elige, y no es un olvido**: su vía ciclista es obligatoria y la calzada solo
+> subsidiaria, así que lleva siempre el calibrado fuerte y el campo ni se le enseña — con él
+> hace la Avenida de Madrid en 1.972 m con **601 m de carril bici y CERO metros de vía con
+> tráfico**, contra los 1.577 y 381 que daba compartiendo calibrado con la bici.
+>
+> Y **al Generar en bici se piden las tres a la vez**: cambiar de opción después repinta al
+> instante, sin volver a preguntarle al motor. Es el planificador de CycleStreets —los tres
+> tipos del mismo viaje— y sale barato porque cada Dijkstra son ~20 ms.
 >
 > **⭐ Y desde el 30/08 el selector son seis y cada rueda manda la suya** —Andando · Bus /
 > Tranvía · Bici privada · Patín (VMP) · BiZi · Coche—. Hasta entonces eran cuatro botones y
@@ -375,6 +394,9 @@ dónde, se elige un modo de transporte, y devuelve la ruta en el mapa y los paso
 Una sola pantalla:
 
 - **Formulario de cuatro campos**: calle y portal de origen, calle y portal de destino.
+- **Tres clases de ruta** para la bici y la BiZi: Rápida, Equilibrada (marcada) y Tranquila.
+  Es otro grupo de radios, y **solo existe en esos dos modos** — el patín no elige por ley y
+  los demás no tienen ruta que calibrar.
 - **Seis modos, excluyentes**: andando, autobús/tranvía, bici privada, patín (VMP), BiZi y
   coche. Eran cuatro hasta el 30/08, con la bici y el patinete juntos; los separó el motor, que
   desde la casilla 3 les aplica **tres tablas de acceso legales distintas**. Son un **grupo de
@@ -461,7 +483,7 @@ Seis rutas vivas. Las que vengan las decide el plan, no esta lista:
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía — y **lista vacía también en las 619 sin portal**, que es la verdad: no tienen ninguno |
 | `GET /api/sitios?q=&capa=&foco=` | sugiere **sitios** desde 2 letras, hasta 10 resultados — la otra capa del autocompletar, la que sirve al desplegable de tipos. `capa` acota a una categoría (`farmacia`, `hospital`, `centro-salud`), y **una capa que no existe se ignora** en vez de dar error. `foco` es **el código del otro extremo** ya resuelto —un portal o un sitio, no un par de coordenadas—: a igualdad de coincidencia sube lo que está cerca de él, pero no descarta nada. Sin `q`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué. **`modo` es opcional y vale `andando` si falta** (`andando` · `bici` · `patin` · `bizi`; `bus` y `coche` contestan que todavía no). Medido con las MISMAS 200 peticiones el 30/08: andando **p50 23,3 ms · p95 37,4**, bici **23,2 · 37,5**, BiZi **24,1 · 39,4**, patín **18,3 · 35,5**. ⚠️ Y en esas mismas 200: andando resuelve 196, bici 196, BiZi 196 y **el patín 83** — eran 35 antes del **defecto legal del art. 50 RGC**, 51 después, y **83 desde el empuje**; su red pasó de 1.988 trozos con el mayor al 45,4 % a **721 trozos con el mayor al 70,1 %**. El arranque lo declara capa a capa |
+| `POST /api/ruta` | la ruta entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué. **`modo` es opcional y vale `andando` si falta** (`andando` · `bici` · `patin` · `bizi`; `bus` y `coche` contestan que todavía no). **`ruta` también es opcional y vale `equilibrada`** (`rapida` · `equilibrada` · `tranquila`): la miran `bici` y `bizi`, y **el `patin` la ignora** — su vía ciclista es obligatoria, así que lleva el calibrado fuerte pida lo que pida. Medido el 30/08 en `Portales.120344 → Portales.110047` en bici: rápida **1.554 m / 5,7 min / 150 m de Avenida de Madrid**, equilibrada **1.565 / 5,7 / 110**, tranquila **1.710 / 6,2 / ninguno**. Medido con las MISMAS 200 peticiones el 30/08: andando **p50 23,3 ms · p95 37,4**, bici **23,2 · 37,5**, BiZi **24,1 · 39,4**, patín **18,3 · 35,5**. ⚠️ Y en esas mismas 200: andando resuelve 196, bici 196, BiZi 196 y **el patín 83** — eran 35 antes del **defecto legal del art. 50 RGC**, 51 después, y **83 desde el empuje**; su red pasó de 1.988 trozos con el mayor al 45,4 % a **721 trozos con el mayor al 70,1 %**. El arranque lo declara capa a capa |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
