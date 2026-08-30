@@ -121,6 +121,21 @@ de ruta, las casillas 5-6, el pintado por tramos, el azul, las
 bitácoras nº15 y nº16 con la reversión de Siresa, y los papeles. El
 push es de Antonio.
 
+**EL AVISO TAMBIÉN JUNTO A LOS HITOS (30/08, tras el cierre;
+doctrina GOV.UK del doble sitio).** Con el D-G activo, los dos
+hitos de BiZi ganan la nota AL LADO (⚠ + la frase ENTERA del
+banner — el ejecutor frenó ante mi ejemplo corto y la doctrina le
+dio la razón: [DfE, Don't literal: «no tengas mensajes distintos en
+el resumen y junto al campo»; GOV.UK: el mismo texto en ambos]); el
+banner se queda (es el resumen del patrón); API viva = cero ámbar
+(verificado INTERCEPTANDO la respuesta en Chrome — la sede seguía
+caída y el caso bueno se vio con los ojos, no por deducción).
+Contrastes medidos 7,65/8,32/4,62 (AA pide 4,5); el ⚠ además del
+color, aria-hidden. Confesiones: una propiedad CSS muerta con
+comentario mentiroso (vista en la captura — fuera) · el aviso se
+reconoce por su TEXTO (Aviso={texto}) — fragilidad declarada en el
+código para cuando el contrato dé categorías. 181 interfaz.
+
 **SINGLE-FLIGHT EN LA DISPONIBILIDAD BiZi (30/08, tras el cierre;
 firmado por Antonio como optimización).** El trío de la precarga
 disparaba TRES consultas idénticas al Ayuntamiento por Generar
@@ -750,8 +765,8 @@ vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
 **Lo siguiente:** (1) el PUSH cuando Antonio diga (la tanda del 30
-entera, 22 commits); (2) las dos decisiones menores de la mesa (la
-colocación del aviso · sondar MU2_señalizacion_vertical); (3) LA
+entera, 22 commits); (2) la última decisión menor de la mesa: sondar
+MU2_señalizacion_vertical (encargada el 30/08 al cierre); (3) LA
 FASE 2 de sentidos como goteo de fondo (la lista de 434, con el
 atajo posible de la señalización vertical); (4) el punto 10 — EL
 RELOJ: el GTFS caduca el 05/10; (5) el
@@ -923,7 +938,9 @@ por el ojo el 30/08 — EL PUNTO 9 CERRADO; queda la fase 2 · LA MESA
 de decisiones de Antonio: ⚰️ el tope de 500 m FIRMADO el 30/08
 («hay muchos desperdigados por la ciudad») · ⚰️ FUNDIR las
 consultas: HECHO el 30/08 (single-flight — 3→1 por Generar, la
-frescura intacta, las tres rutas del mismo momento) · la colocación del aviso ámbar (lejos
+frescura intacta, las tres rutas del mismo momento) · ⚰️ LA
+COLOCACIÓN del aviso: HECHA el 30/08 (la nota junto a cada hito,
+texto idéntico al banner [GOV.UK doble sitio]) · la colocación del aviso ámbar (lejos
 de los hitos) · sondar MU2_señalizacion_vertical (la candidata a
 capa-de-direcciones) · ⚠️ la API municipal de BiZi es CAPRICHOSA
 (200 con cuerpo vacío durante horas el 30/08 — el D-G lo cubre) ·
@@ -1013,7 +1030,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 548 pruebas (372 motor + 176 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 553 pruebas (372 motor + 181 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
