@@ -28,6 +28,15 @@
 > 30 con un carril por sentido, 50 con dos o más—, que es lo que abre la calle de barrio al
 > patín.
 >
+> **⭐ Y desde el 30/08 la rueda puede BAJARSE**: quien empuja su vehículo es peatón [RGC art.
+> 121.2], así que las aceras y las zonas peatonales entran en la red **en modo empuje, a
+> 5 km/h** —33.770 aristas y 1.016,4 km—. No hay umbral de «hasta cuántos metros»: el empuje
+> **compite en tiempo** dentro del mismo Dijkstra, 5 km/h contra 18, y el rodeo largo pierde
+> igual que pierde el atajo por la acera. El tramo empujado es **un paso propio** y se dice
+> —«con el patín en la mano»—, y ninguna fusión de pasos lo cruza. Lo que abre es grande: el
+> caso que lo pidió, `COLOSO 2 → LEOPOLDO ROMEO 27` en patín, pasa de **5.741 m a 4.551** con
+> 45 m en la mano; y en 200 peticiones al azar el patín pasa de resolver 51 a **83**.
+>
 > **⭐ Y desde el 30/08 el selector son seis y cada rueda manda la suya** —Andando · Bus /
 > Tranvía · Bici privada · Patín (VMP) · BiZi · Coche—. Hasta entonces eran cuatro botones y
 > «Bici / Patinete» mandaba `bici`, así que un patinete recibía la ruta de una bici: legal para
@@ -452,7 +461,7 @@ Seis rutas vivas. Las que vengan las decide el plan, no esta lista:
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía — y **lista vacía también en las 619 sin portal**, que es la verdad: no tienen ninguno |
 | `GET /api/sitios?q=&capa=&foco=` | sugiere **sitios** desde 2 letras, hasta 10 resultados — la otra capa del autocompletar, la que sirve al desplegable de tipos. `capa` acota a una categoría (`farmacia`, `hospital`, `centro-salud`), y **una capa que no existe se ignora** en vez de dar error. `foco` es **el código del otro extremo** ya resuelto —un portal o un sitio, no un par de coordenadas—: a igualdad de coincidencia sube lo que está cerca de él, pero no descarta nada. Sin `q`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué. **`modo` es opcional y vale `andando` si falta** (`andando` · `bici` · `patin` · `bizi`; `bus` y `coche` contestan que todavía no). Medido con las MISMAS 200 peticiones el 29/08: andando **p50 23,2 ms · p95 37,8**, bici **16,6 · 26,8**, BiZi **16,6 · 27,3**, patín **15,0 · 23,2**. ⚠️ Y en esas mismas 200: andando resuelve 196, bici 195, BiZi 195 y **el patín 51** — eran 35 antes de que el motor aplicara el **defecto legal del art. 50 RGC** donde no hay señal; su lista cerrada sigue dejando la ciudad en 1.988 trozos, con el mayor al 45,4 %. El arranque lo declara capa a capa |
+| `POST /api/ruta` | la ruta entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué. **`modo` es opcional y vale `andando` si falta** (`andando` · `bici` · `patin` · `bizi`; `bus` y `coche` contestan que todavía no). Medido con las MISMAS 200 peticiones el 30/08: andando **p50 23,3 ms · p95 37,4**, bici **23,2 · 37,5**, BiZi **24,1 · 39,4**, patín **18,3 · 35,5**. ⚠️ Y en esas mismas 200: andando resuelve 196, bici 196, BiZi 196 y **el patín 83** — eran 35 antes del **defecto legal del art. 50 RGC**, 51 después, y **83 desde el empuje**; su red pasó de 1.988 trozos con el mayor al 45,4 % a **721 trozos con el mayor al 70,1 %**. El arranque lo declara capa a capa |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
