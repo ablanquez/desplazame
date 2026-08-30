@@ -113,6 +113,16 @@ de ruta, las casillas 5-6, el pintado por tramos, el azul, las
 bitácoras nº15 y nº16 con la reversión de Siresa, y los papeles. El
 push es de Antonio.
 
+**LAS DOS SONDAS DE LA SESERA DE ANTONIO (30/08 al cierre).** ¿Hay
+shapes del bus? ¿hay capa ZBE? — SÍ y SÍ, medido: el GTFS del repo
+trae shapes.txt CERRANDO por los dos lados (89 trazas/27.603
+puntos; el 100 % de los 34.427 trips con traza; cero huérfanas;
+frontera pasada; ⚠️ shape_dist_traveled columna VACÍA · ⚠️ 8 rutas
+sin viaje en el feed) → al punto 10; y la ZBE municipal es capa de
+DOS polígonos (FASE 1/FASE 2, el centro; solo geom+fase — vigencia,
+vehículos y excepciones son LETRA LEGAL del 11, no dato; CRS trampa
+viva) → al punto 11. Cero descargas; lectura pura.
+
 **LAS CASILLAS 5-6, EL PINTADO Y LA REVERSIÓN DE SIRESA (30/08
 tarde).** LOS PRIVADOS Y BiZi [OTP BICYCLE_PARK/vehicle-parking +
 modo alquiler + GBFS station_status]: el remate al aparcabicis
@@ -899,9 +909,16 @@ la API viva de BiZi vive aquí (mudada del 10; NO es GBFS).
 **Punto 10:** líneas por poste (sin guardián) · caducidad GTFS (05/10;
 servicio 27/12 — VERIFICADO el 22/08 contra el dato: 196 calendarios
 huérfanos, los del 28-31/12 sin ningún viaje) sin vigilante hasta el
-cron · ⚰️ la API viva de Bizi: MUDADA al punto 9 (28/08).
+cron · ⚰️ shapes.txt VERIFICADO el 30/08 (89 trazas cerrando al 100 %
+con los trips — la traza del bus calle-a-calle que Antonio preguntó,
+y las trazas direccionales para la fase 2 de sentidos) · ⚠️
+shape_dist_traveled vacía · ⚠️ 8 rutas de routes.txt sin viaje · ⚰️
+la API viva de Bizi: MUDADA al punto 9 (28/08).
 
-**Punto 11:** hereda la capa de sentidos Y sus correcciones (Siresa
+**Punto 11:** ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
+FASE 2, solo geom+fase — la letra legal de vigencia/vehículos/
+excepciones pendiente aquí; descarga al repo cuando el punto
+arranque) · hereda la capa de sentidos Y sus correcciones (Siresa
 gratis) · exigirá las RELATIONS de giro [car.lua: obligatorias, con
 except=bicycle a parlamentar para la rueda] + penalizaciones 7,5/20/
 2 + descarga de relations · la cobertura de sentidos re-evaluada con

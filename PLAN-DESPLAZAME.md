@@ -1910,6 +1910,19 @@ direccionalidad de las trazas, umbral ~90 %; el punto ciego de la
 sonda-Cygnus: 1.185 vías donde ambas fuentes dicen «único» sin poder
 comparar el lado].
 
+*(⭐ VERIFICADO el 30/08 con sonda de solo lectura sobre el feed del
+repo:)* **shapes.txt ESTÁ y cierra por los dos lados** — 89 trazas ·
+27.603 puntos (66-1.176 por traza) · el 100 % de los 34.427 trips
+con su shape_id · cero huérfanas y cero referencias rotas · frontera
+pasada (el bbox es la ciudad y su comarca). La pregunta de Antonio
+(«¿hay capa con la traza del bus calle a calle?») tiene el SÍ: la
+traza es la polilínea; el «calle a calle» con nombres sale de
+cruzarla contra el callejero — trabajo de este punto. ⚠️ Dos
+verrugas fichadas: shape_dist_traveled viene como columna VACÍA en
+los 27.603 (que la columna esté no es que el dato esté) · 8 rutas de
+routes.txt sin ni un viaje en el feed (53 rutas, 45 route_id en
+trips — por mirar aquí).
+
 Paradas, líneas y la decisión `G`: componer sin prometer, sin total
 inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
 02:00). Se detalla cuando el 7 y el 9 estén vistos funcionar.
@@ -1956,6 +1969,21 @@ nueva de Overpass (relations, mismo tubo) + transiciones arista-a-
 arista. Y la cobertura de sentidos (65 % de la calzada) deberá
 re-evaluarse con vara de coche: su 35 % a oscuras son contramanos
 potenciales, no calles menores.
+
+*(⭐ VERIFICADO el 30/08, de la pregunta de Antonio por la ZBE —
+sonda completa en scratchpad, cero descargas:)* **la capa municipal
+EXISTE y es limpia**: MU1_ZBE_Zona_Bajas_Emisiones (WFS movilidad,
+Ley 37/2007, keyword zbe_2025) — DOS rasgos MultiPolygon, fase=
+«FASE 1» (33 vértices, ~1.318×869 m) y «FASE 2» (59, ~1.957×1.360 m),
+el centro de la ciudad; la trampa del CRS viva (DefaultCRS 25830;
+con srsName=4326 entrega lon,lat). ⚠️ SOLO trae geom y fase: ni
+vigencia, ni distintivos, ni clases de vehículo, ni horarios, ni
+excepciones — NO CONSTA en el dato. Qué fase rige y a quién alcanza
+es LETRA LEGAL de este punto (la ordenanza ZBE, contra el articulado
+como se hizo con la de movilidad), no se deduce de que un bbox sea
+mayor que otro. El polígono veta/penaliza cuando el modo coche
+exista; la descarga al repo, con su ficha, cuando este punto
+arranque.
 
 Dejado aquí el 18/08 (investigación de estacionamiento):
 
