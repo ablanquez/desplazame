@@ -2027,10 +2027,34 @@ El encaje doctrinal a verificar en la casilla 0: el algoritmo de
 referencia optimiza por rondas=nº de vehículos de forma nativa
 [RAPTOR/OTP2 — verificar con fuente antes del encargo]; el
 desempate por composición = penalización de transbordo por par de
-modos. ⚠️ Matiz PENDIENTE de parlamento con cifras delante: cuánto
-de absoluta es la prioridad del vehículo único (¿gana aunque tarde
-25 min más? ¿hay límite?) — se decide con casos reales, como el
-calibrado del patín.
+modos. ⚰️ EL PARLAMENTO DE LA CASILLA 0, RESUELTO LA MISMA NOCHE (30/08,
+firmas 6-8 de Antonio):
+6. LA PRIORIDAD ES ABSOLUTA: evitar transbordos SIEMPRE gana a
+   hacerlos — sin límite de minutos (la jerarquía estricta, como
+   la ley del patín).
+7. SIN API DE TIEMPO REAL en este punto: el motor comprueba EN LA
+   CONSULTA, contra el propio horario GTFS, que la línea tiene
+   servicio en ese poste a esa hora — y si no lo tiene, EL AVISO
+   honesto y listo (el patrón BiZi: comprobar + advertir, sin
+   prometer).
+8. EL PINTADO = EL PATRÓN BiZi EXTENDIDO: andando en su ámbar
+   discontinuo · el POSTE de subida pintado · el tramo montado en
+   EL COLOR DE SU LÍNEA [firma 5] · el poste de bajada · si sigue
+   andando, ámbar; si sigue en otro bus/tranvía en ese mismo
+   poste, LA LÍNEA NUEVA con SU color — y así sucesivamente.
+Y EL TRANSBORDO A PIE, con la doctrina mirada la misma noche: el
+parámetro existe con nombre y SIN número universal
+[maxTransferWalkDistance de OTP: «la distancia máxima que el
+usuario anda en tramos de transbordo», defecto ILIMITADO; el andar
+por tramo en OTP2, defecto blando 2.000 m; la interfaz de
+referencia capa el acceso en 1.207 m]; lo que SÍ es canónico es el
+TIEMPO: 120 s de mínimo global entre bajar y subir [OTP, además
+del andar]; y capar corto está documentado como fuente de absurdos
+[«tramos de transporte inútiles para evitar andar»] — refuerza el
+radio-con-aviso de la casa. ⚠️ PROPUESTA A FIRMA DE ANTONIO
+(mañana): transbordo entre postes distintos con radio de búsqueda
+de 500 m [PROPIO: el paseo razonable único de la casa] + los 120 s
+mínimos [OTP, citado].
 
 Paradas, líneas y la decisión `G`: componer sin prometer, sin total
 inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
