@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 29 de agosto de 2026
+## ESTADO ACTUAL — 30 de agosto de 2026
 
 **⭐ PUNTOS 1-8 CERRADOS (el 8, el 27/08). La demo andando está
 ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
@@ -22,7 +22,7 @@ se escribe), el buscador por tipos completo con siglas e iconos, el
 foco en las dos capas, y las 14 bitácoras cerradas.**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
-levantado el 18/08, des-caducado del 21 al 29):
+levantado el 18/08, des-caducado del 21 al 30):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
@@ -46,8 +46,11 @@ levantado el 18/08, des-caducado del 21 al 29):
   iconos por categoría (cruz verde · cruz azul · H azul · libro
   morado · lápiz-manzana, chupete y birrete en mostaza #614800 ·
   chincheta).
-  Modos: Andando · Bus / Tranvía · Bici / Patinete · Coche (mayúscula
-  tras la barra: peso visual, decisión de Antonio). ⇅ invertir y «Mi
+  Modos (30/08): GRUPO DE RADIOS NATIVO a seis — Andando · Bus /
+  Tranvía · Bici privada · Patín (VMP) · BiZi · Coche (name
+  compartido: parada única de tab, flechas y exclusión del navegador;
+  cada rueda manda SU modo; bus y coche avisan sin preguntar al
+  motor). ⇅ invertir y «Mi
   ubicación» dentro (punto 6). Y «Generar ruta» devuelve la RUTA REAL —
   pintada, con los pasos escritos y las negritas por partes: la
   respuesta falsa murió sin rastro (`2013c04`). DOS páginas y sin
@@ -95,11 +98,28 @@ levantado el 18/08, des-caducado del 21 al 29):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `2f16442`** (push del 28/08 mañana, con la
-casilla 0). **En local, sin publicar: NUEVE commits** — los dos de
-las descargas (`4ca53e0` `f843ea2`), los CUATRO del ejecutor de la
-casilla 3 (la red de la rueda, el coste, el README y el defecto del
-RGC) y los tres de papeles. El push es de Antonio.
+**Publicado hasta `e418119`** (push del 29/08 noche, con la casilla
+3 entera y la auditoría de sentidos). **En local, sin publicar: los
+DOS commits del selector a seis más el de papeles** (`42efde6`). El
+push es de Antonio.
+
+**LA CASILLA 4 — EL SELECTOR A SEIS (30/08 mañana), hecho y VISTO.**
+El control viejo parecía grupo y no lo era (aria-pressed, tabs
+sueltos, flechas muertas); seis supera el techo del segmentado (2-5
+[Primer]) → GRUPO DE RADIOS NATIVO: name compartido = parada única +
+flechas + exclusión SIN JavaScript, vestido idéntico. Anchos por CDP
+con medidor contraprobado (recorte inyectado: cantó 3) · teclado por
+CDP real (jsdom no implementa radiogroup) · la juez estrella nacida
+en rojo contra el fallo vivo (el patinetero solo tenía el botón de
+la bici). Bus/coche avisan sin preguntar al motor (el mensaje viejo
+mentía con el motor caído — aceptado). La comparación del ojo
+(COLOSO→ROMEO): el patín +900 m por Camino de las Torres >30 — LA
+LEY dibujada (cruza solo por el paso, en la mano); de ahí nace la
+casilla 6-bis EL EMPUJE [doctrina: la tabla de acceso escribe el
+empujar-como-peatón · OSRM walking_speed=4 · OTP modo SCOOTER
+andar+rodar+andar · 121.2] para después de BiZi. Y dos vicios de
+pantalla a la 5: el rótulo «a 5 km/h» miente en rueda · el cruce
+debe narrarse «en la mano». 161 interfaz · 332 motor. Dos commits.
 
 **LA AUDITORÍA DE SENTIDOS — el ojo, la sonda y el banco (29/08
 tarde).** El ojo de Antonio cazó a la bici subiendo Monasterio de
@@ -597,11 +617,12 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 4 URGENTE** (el selector a seis —
-el botón viejo ya reparte rutas de bici a patinetes); (2) los modos
-5-6 (aparcabicis · BiZi tres tramos con su aviso de 30 min) y la
-demo (7); (3) LA FASE 2 de sentidos cuando el ojo confirme
-candidatos de la lista; (4) el push cuando Antonio diga; (5) el
+**Lo siguiente:** (1) **la casilla 5** (los modos privados: el
+aparcabicis + los metros andando + la narración de la rueda con sus
+dos vicios de pantalla); (2) la 6 (BiZi tres tramos + aviso 30 min)
+y la 6-bis (el empuje, con el andamiaje de BiZi); (3) la demo (7);
+(4) LA FASE 2 de sentidos cuando el ojo confirme candidatos; (5) el
+push cuando Antonio diga; (6) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -613,9 +634,9 @@ la nevera del taller: las leyes de la nº12-nº14 para la guía v2.2.
 ## 1 · Identidad
 
 **Qué es:** buscador de rutas para moverse por Zaragoza. Cuatro campos
-(calle y portal de origen y destino — todo elegido), cuatro modos
-excluyentes (andando · bus/tranvía · bici/patinete · coche), la ruta en
-el mapa y los pasos escritos. **Una sola pantalla de búsqueda** (el
+(calle y portal de origen y destino — todo elegido), seis modos
+excluyentes (andando · bus/tranvía · bici privada · patín VMP · BiZi ·
+coche), la ruta en el mapa y los pasos escritos. **Una sola pantalla de búsqueda** (el
 visor de verificación se retiró el 22/08: reservado para la Intranet,
 punto 14). No es multimodal.
 
@@ -665,14 +686,14 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
-9 EN MARCHA (casillas 0-3 HECHAS — el COSTE DE LA RUEDA en el motor:
+9 EN MARCHA (casillas 0-4 + auditoría fase 1 HECHAS — el COSTE DE LA RUEDA:
 red aparte con sentido demostrado [112 rotondas antihorario/0 ·
 22.999 encadenados], once jueces con cifras, la muralla sha256 del
 peatón, el patín 51/200 con el defecto del art. 50 RGC [RD 970/2020:
 30 un carril por sentido], carril_vh descartado con contraejemplo,
-pid-del-log==pid-que-contesta tras el susto del motor zombi; queda: el botón
-viejo «Bici/Patinete» manda bici y YA devuelve ruta — URGE el
-selector a seis [casilla 4] — y detrás los modos 5-6 y la demo) ·
+pid-del-log==pid-que-contesta tras el susto del motor zombi; queda: ⚰️ el
+selector a seis HECHO Y VISTO [casilla 4, 30/08] — quedan los modos
+5-6, el empuje [6-bis] y la demo) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -761,8 +782,12 @@ arriba en osm.org cuando quiera) · el punto ciego de la sonda
 (1.185 vías «único» en ambas — la clase Siresa: ojo o las shapes
 del GTFS, anotado en el 10) · las 203 calles a medio cartografiar
 (pedestrian+residential mismo nombre; señal paving_stones fichada) ·
-⚠️ URGENTE la casilla 4: el botón viejo «Bici/Patinete» manda bici y desde la 3 un
-patinete recibe ruta de bici (ilegal en las >30) — vivo en Chrome ·
+⚰️ la casilla 4 HECHA Y VISTA (30/08: el selector a seis como grupo
+de radios nativo — el patinetero ya tiene su botón legal) · la
+casilla 6-bis EL EMPUJE fichada con doctrina para después de BiZi
+(el caso Camino de las Torres: 900 m que ~50 de empuje matarían) ·
+los dos vicios de pantalla a la 5 (el rótulo «a 5 km/h» · el cruce
+narrado «en la mano») ·
 el RGC nuevo el 01/10 (las citas del 121/122 migran: las tablas y el
 paso-empujando) · los carriles bici narran «el carril bici» sin
 nombre municipal (herencia cruzada sobre la red del peatón — a la
@@ -817,13 +842,12 @@ protanopia del MAPA (dos chinchetas solo por color) con la bandera a
 cuadros como salida documentada [#2787 de osm.org, cycle.travel] —
 anotado el 23/08, ABIERTO.
 
-**Las normas de circulación (contexto vivo, 21/08):** el RGC
-reformado por RD 518/2026 entra en vigor el **01-10-2026** (arts. 121
-y 122 reescritos, mismo principio para el peatón) — desde octubre las
-citas del proyecto apuntan al texto nuevo · la ordenanza municipal
-vigente arrastra artículos anulados por el TSJA y hay Nueva Ordenanza
-de Movilidad en camino: qué versión rige hoy, NO CONSTA (se verifica
-en el punto 9).
+**Las normas de circulación (contexto vivo):** el RGC reformado por
+RD 518/2026 entra en vigor el **01-10-2026** (arts. 121 y 122
+reescritos) — desde octubre las citas del proyecto apuntan al texto
+nuevo · ⚰️ la duda de la ordenanza: RESUELTA el 28/08 en la casilla
+0 del punto 9 (rige la Nueva Ordenanza de Movilidad desde el
+11/09/2024, BOP 21/08/2024 — el NO CONSTA del 21/08 murió).
 
 **La ampliación del regulado (contexto vivo):** activación prevista de
 golpe en verano 2027 (~15.000 plazas nuevas hasta 21.745; recurso Tacpa
@@ -836,7 +860,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 486 pruebas (332 motor + 154 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 493 pruebas (332 motor + 161 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

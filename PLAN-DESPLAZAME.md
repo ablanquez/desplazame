@@ -1670,22 +1670,53 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       la re-descarga futura los trae y los deshielos jubilan
       correcciones.
 
-- [ ] **4 · EL SELECTOR a SEIS modos [firma de Antonio, 28/08 — la
-      segunda del día, sustituye a la de cinco de la mañana]:**
-      Andando · Bus/Tranvía · Bici privada · Patín (VMP) · BiZi ·
-      Coche — tres tablas distintas = tres entradas (fusionar
-      bici+patín obligaría a recortarle al ciclista o a mentirle al
-      patinetero, y la casa no miente en rutas). Sustituye la
-      etiqueta «Bici / Patinete» del 18/08. El formulario y el ⇅,
-      intactos
+- [x] **4 · EL SELECTOR A SEIS — HECHO (30/08, dos commits) y VISTO
+      por el ojo de Antonio.** El hallazgo semántico que obligaba a
+      migrar: el control viejo PARECÍA grupo (fieldset+legend) pero
+      no lo era — aria-pressed dice «pulsado», no «uno de un
+      conjunto»; cada botón su parada de tab, flechas muertas. Y
+      SEIS supera el techo documentado del control segmentado (2-5
+      con etiqueta [Primer/Gravity]) → GRUPO DE RADIOS NATIVO
+      [radiogroup de referencia; rango 2-7]: seis label+input
+      type=radio con name compartido — parada única, flechas y
+      exclusión LAS DA EL NAVEGADOR, cero JavaScript; el vestido
+      visual, idéntico. Etiquetas: Andando · Bus / Tranvía · Bici
+      privada · Patín (VMP) [la señal de la calle — sustituye al
+      «Patinete» del botón fusionado del 18/08] · BiZi · Coche.
+      ANCHOS medidos por CDP en Chrome real (una fila hasta 760 px;
+      dobla solo por el flex-wrap ya puesto; NADA truncado ni a 320
+      [«do not truncate»]) con el MEDIDOR CONTRAPROBADO (recorte
+      inyectado a la página viva: cantó 3; quitado: 0). El TECLADO
+      probado por CDP con eventos reales (jsdom no implementa las
+      flechas de un radiogroup): tab único, flechas recorren y
+      seleccionan, da la vuelta. La juez estrella NACIÓ en rojo
+      contra el fallo vivo («no hay ninguna opción que se lea Patín
+      (VMP)») — el patinetero solo tenía el botón de la bici. Diez
+      jueces + contraprueba 5/5 (el defecto sostiene 38). La juez 4
+      desde el tubo con pid verificado: bici 1.565 m pisando 110 de
+      la Avda. de Madrid · patín 1.972 y cero. ⚠️ BUS Y COCHE
+      cambian de conducta CON MEDIDA (visto y aceptado): la pantalla
+      avisa sin preguntar al motor — el mensaje viejo MENTÍA con el
+      motor caído («no se pudo preguntar» cuando el coche no
+      depende del motor) y el aviso del motor enumera palabras
+      internas; reversible en dos líneas si algún día toca. La
+      confesión: un git checkout sobre fichero sin commitear se
+      llevó la implementación a mitad de contraprueba — recuperada
+      de copia, contado. README al día en commit docs: aparte [la
+      atomicidad]. 161 interfaz · motor intacto 332
 - [ ] **5 · LOS MODOS PRIVADOS (bici · patín), cada uno por SU
       tabla:** ruta puerta a puerta + el remate del APARCABICIS más
-      cercano al destino (el patrón portal-cercano sobre los 5.520;
-      el patín aparca en las mismas condiciones que la bici
-      [Ordenanza]) · la narración verificada (¿los combines del 7
-      valen en calzada con giros y sentidos? · los cruces
-      con-el-vehículo-en-la-mano de la casilla 0) · sus jueces en
-      rojo primero
+      cercano al destino (el patrón portal-cercano sobre los 14.544
+      anclajes de §1.9; el patín aparca en las mismas condiciones
+      que la bici [Ordenanza]) · la narración verificada (¿los
+      combines del 7 valen en calzada con giros y sentidos? · los
+      cruces con-el-vehículo-en-la-mano NARRADOS como tales
+      [«cruza con el patín en la mano», no «gira hacia el paso»] ·
+      «el carril bici» con nombre si lo tiene) · ⚠️ el rótulo
+      «a 5 km/h» de la cabecera MIENTE en los modos de rueda
+      (visto por Antonio el 30/08: los minutos van bien a 18/20,
+      la coletilla es del peatón sin actualizar) — velocidad por
+      modo en el rótulo · sus jueces en rojo primero
 - [ ] **6 · EL MODO BiZi:** TRES tramos — andando → estación de
       origen CON BICIS · pedaleando (solo-bici, su tabla, velocidad
       de PEDALEO ASISTIDO con fuente) → estación de destino CON
@@ -1697,6 +1728,26 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       la disponibilidad en vivo por la API de BiZi, con D-G si la
       API calla · el ámbito municipal = nuestra frontera · sus
       jueces
+- [ ] **6-bis · EL EMPUJE (fichado el 30/08 del ojo de Antonio
+      sobre Camino de las Torres; SE HACE DESPUÉS DE BiZi, que
+      construye el andamiaje de tramos):** cuando el rodeo legal es
+      gordo, la ruta puede incluir TRAMOS EMPUJANDO el vehículo por
+      infraestructura peatonal a paso de peatón, narrados
+      («desmonta aquí»). DOCTRINA: la tabla canónica de acceso lo
+      escribe [«el acceso se concede en toda situación a quien va
+      andando empujando su bicicleta; en consecuencia los
+      ruteadores pueden considerar…»] · los perfiles de referencia
+      lo modelan [OSRM bicycle: walking_speed=4 junto al 15] · el
+      patrón multi-tramo existe con nombre [OTP modo SCOOTER:
+      andar+rodar+andar] · la base legal es nuestra [121.2 RGC:
+      quien empuja es peatón — ya en las tablas] · el límite
+      honesto: ningún motor publica perfil de kick-scooter con
+      desmonte (se extiende la doctrina de la bici, declarado). EL
+      CASO JUEZ: COLOSO→ROMEO en patín — los 900 m de carril + paso
+      + vuelta que ~50 m de empuje matarían (la comparación vista
+      por Antonio el 30/08: el rodeo es la ley + el dato de cruces,
+      y el empuje es la salida documentada)
+
 - [ ] **7 · LA DEMO de los dos modos, vista por el ojo de Antonio**
 
 ## 10 — Modo BUS/TRANVÍA *(en grueso)*
