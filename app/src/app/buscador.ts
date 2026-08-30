@@ -50,6 +50,16 @@ import { IconoCapa, type Clase } from './iconos';
  * símbolo que está en la calle; `coge` es la bicicleta (`🚲`), el vehículo que
  * se toma. Son caracteres, como el resto — sin dependencias.
  */
+/**
+ * ⭐ Por dónde se reconoce el aviso del plan D-G de BiZi.
+ *
+ * Es un trozo del texto que el motor escribe cuando la sede no contesta, y es
+ * el trozo que **nombra la condición** —no el que cuenta la anécdota—, así que
+ * sobrevive a un cambio de redacción en la primera mitad de la frase. Ver
+ * `notaDeDisponibilidad` para por qué esto se hace por texto y no por un campo.
+ */
+const MARCA_DE_DISPONIBILIDAD = 'disponibilidad no verificada';
+
 const FLECHAS: Readonly<Record<Giro, string>> = {
   salida: '◉',
   recto: '↑',
@@ -525,6 +535,41 @@ export class Buscador {
    * imposible sin errar el corte, y está medido en el contrato.
    */
   protected readonly tramos = computed(() => this.resultado()?.trayecto.tramos ?? []);
+
+  /**
+   * ⭐ LA NOTA QUE VIAJA CON EL HITO, o `null` si no hay nada que avisar.
+   *
+   * ── Por qué existe, con la doctrina y con el caso ────────────────────────
+   *
+   * [GOV.UK, *error summary* + *error message*] cuando hay un problema se
+   * enseñan **los dos**: el resumen en lo alto **y** el mensaje al lado de
+   * cada respuesta afectada, **con el mismo texto**. Y el porqué de la mitad
+   * de abajo, con sus palabras: *«general errors are not helpful»* — un aviso
+   * general **no tiene sentido fuera de contexto**.
+   *
+   * El caso de Antonio es ese exactamente: leyó «Coge una bici en la estación
+   * Tauromaquia» **quince pasos por debajo** del banner ámbar. El banner
+   * estaba y estaba bien; lo que no viajaba con el paso era la advertencia, y
+   * un hito solo promete un sitio donde coger una bici sin decir que no se
+   * sabe si queda alguna.
+   *
+   * ── Se COPIA el aviso, no se reescribe ──────────────────────────────────
+   *
+   * Devuelve el `texto` del aviso **tal cual**, para que los dos sitios digan
+   * lo mismo sin que nadie tenga que mantener dos frases a juego. Si el motor
+   * cambia esas palabras, cambian en los dos a la vez.
+   *
+   * ⚠️ **Y se reconoce por el texto, que es lo único que hay.** `Aviso` es
+   * `{ texto }` y nada más —sin categoría ni código—, así que no queda otra
+   * manera de saber cuál de los avisos es este. Es frágil y se dice: el día
+   * que el contrato dé categoría a los avisos, esto se cuelga de ella. Lo que
+   * lo hace tolerable es que la propia regla del doble sitio **exige** que el
+   * texto sea el mismo arriba y abajo, así que aquí el texto ya es la llave.
+   */
+  protected readonly notaDeDisponibilidad = computed<string | null>(() => {
+    const avisos = this.resultado()?.trayecto.avisos ?? [];
+    return avisos.find((a) => a.texto.includes(MARCA_DE_DISPONIBILIDAD))?.texto ?? null;
+  });
 
   /**
    * El usuario ha elegido —o ha deshecho— la calle de un lado.

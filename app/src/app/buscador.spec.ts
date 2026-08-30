@@ -1759,6 +1759,171 @@ describe('Buscador', () => {
    * Los dos casos de esta clase, en la misma juez porque es el mismo hueco: el
    * D-G del BiZi y el «no hay aparcabicis cerca» de la bici.
    */
+  /**
+   * ⭐ EL DOBLE SITIO: el aviso arriba **Y** al lado de cada hito (30/08).
+   *
+   * ── La doctrina ─────────────────────────────────────────────────────────
+   *
+   * [GOV.UK, *error summary* + *error message*] cuando hay un problema se
+   * enseñan **los dos**: el resumen en lo alto de la página **y** el mensaje
+   * **al lado de cada respuesta afectada**, con **el mismo texto** en los dos
+   * sitios. Y la razón de la mitad de abajo, con sus palabras: *«general
+   * errors are not helpful»* — un mensaje general **no tiene sentido fuera de
+   * contexto**.
+   *
+   * ── El caso que lo pedía es literal ─────────────────────────────────────
+   *
+   * Antonio leyó «Coge una bici en la estación Tauromaquia» **quince pasos
+   * por debajo** del banner ámbar. El banner estaba —eso ya lo compra la juez
+   * de aquí abajo, del 30/08 por la mañana— pero el hito, ahí solo, promete un
+   * sitio donde coger una bici sin decir que no se sabe si queda alguna. El
+   * resumen no viaja con el paso; la nota sí.
+   *
+   * ⚠️ **El banner NO se quita**: es el resumen del patrón, no un duplicado
+   * que sobre. El patrón son las dos cosas o no es el patrón.
+   */
+  it('⭐ 1 · con el D-G, los DOS hitos llevan la nota al lado', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'BiZi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
+    await fixture.whenStable();
+
+    // Los pasos que son hito, por su icono: coger y dejar.
+    const conNota = Array.from(raiz.querySelectorAll('.paso'))
+      .filter((li) => li.querySelector('.paso__nota') !== null)
+      .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
+
+    expect(conNota).toEqual([
+      'Coge una bici en la estación Tauromaquia',
+      'Deja la bici en la estación Mrio. Siresa: Dr. Iranzo',
+    ]);
+    // Y solo esos dos: ni el paso de salida ni los de girar llevan nota.
+    expect(raiz.querySelectorAll('.paso__nota').length).toBe(2);
+  });
+
+  /**
+   * ⭐ 2 · CON LA API VIVA NO CAMBIA NADA: ni banner ni notas.
+   *
+   * La no-regresión del caso bueno. Cuando la sede contesta, los hitos traen
+   * su número y su hora, y **no hay nada que avisar** — poner la nota entonces
+   * sería alarmar sin motivo.
+   */
+  it('⭐ 2 · con la API viva no hay ni banner ni nota', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'BiZi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI);
+    await fixture.whenStable();
+
+    expect(raiz.querySelectorAll('.paso').length).toBeGreaterThan(0);
+    expect(raiz.querySelectorAll('.paso__nota').length).toBe(0);
+    expect(raiz.querySelectorAll('.aviso-ruta').length).toBe(0);
+  });
+
+  /**
+   * ⭐ 3 · EL RESUMEN DE ARRIBA SIGUE ESTANDO.
+   *
+   * ⚠️ La juez que impide «arreglarlo» quitando el banner y dejando solo las
+   * notas. [GOV.UK] el resumen existe porque es **lo primero que se lee** y lo
+   * que recibe el foco; las notas son el contexto. Quitar cualquiera de los
+   * dos rompe el patrón.
+   */
+  it('⭐ 3 · con el D-G el banner de arriba NO se quita', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'BiZi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
+    await fixture.whenStable();
+
+    const banners = Array.from(raiz.querySelectorAll('.aviso-ruta')).map((a) =>
+      (a.textContent ?? '').trim(),
+    );
+    expect(banners).toContain(
+      'No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.',
+    );
+    // Y las notas también, que es la otra mitad: los DOS sitios.
+    expect(raiz.querySelectorAll('.paso__nota').length).toBe(2);
+  });
+
+  /**
+   * ⭐ 4 · EL MISMO TEXTO EN LOS DOS SITIOS, comprado literal.
+   *
+   * [GOV.UK] *«use the same wording»*: el resumen y el mensaje de al lado
+   * dicen **lo mismo**. Dos redacciones distintas para el mismo problema
+   * obligan a leer dos veces para descubrir que hablan de una sola cosa.
+   *
+   * Por eso la nota **no reescribe** el aviso: se lo copia. Lo que el motor
+   * escribe una vez sale igual en los dos sitios, y si el motor cambia esas
+   * palabras cambian las dos a la vez sin tocar nada aquí.
+   */
+  it('⭐ 4 · el texto de la nota es EL MISMO que el del banner', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'BiZi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
+    await fixture.whenStable();
+
+    const banner = (raiz.querySelector('.aviso-ruta')?.textContent ?? '').trim();
+    const notas = Array.from(raiz.querySelectorAll('.paso__nota')).map((n) =>
+      (n.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    expect(notas.length).toBe(2);
+    for (const nota of notas) {
+      // El ⚠ es del vestido, no del mensaje: se descuenta y lo que queda
+      // tiene que ser el banner palabra por palabra.
+      expect(nota.replace(/^⚠\s*/, '')).toBe(banner);
+    }
+  });
+
+  /**
+   * ⭐ 5 · LA NOTA LLEVA EL ⚠, no solo el ámbar.
+   *
+   * [GOV.UK *warning text*] el componente es **icono + texto**, y sus criterios
+   * de aceptación piden ≥4,5:1 de contraste. Y es nuestro 1.4.1 de siempre: el
+   * color no puede ser lo único que avise. Aquí el ⚠ va `aria-hidden` porque
+   * el texto ya dice lo que pasa — el icono es para el ojo, no para el oído.
+   */
+  it('⭐ 5 · la nota avisa con el ⚠ además del color', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'BiZi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
+    await fixture.whenStable();
+
+    const notas = Array.from(raiz.querySelectorAll('.paso__nota'));
+    expect(notas.length).toBe(2);
+    for (const nota of notas) {
+      const icono = nota.querySelector('[aria-hidden="true"]');
+      expect(icono?.textContent?.trim()).toBe('⚠');
+    }
+  });
+
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();

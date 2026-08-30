@@ -411,3 +411,32 @@ legend {
   color: #555;
   font-variant-numeric: tabular-nums;
 }
+
+/* ⭐ LA NOTA JUNTO AL HITO (30/08). El mismo ámbar del banner de arriba, porque
+   es el mismo aviso dicho en el otro sitio: si se vistiera distinto parecerían
+   dos problemas.
+
+   [GOV.UK *warning text*] el componente es **icono + texto**, y sus criterios
+   de aceptación piden ≥4,5:1. Medido: #7c3d00 sobre #fff4e5 da **7,65:1**, y
+   sobre el blanco de la lista **8,32:1**.
+
+   ⚠️ Va **al lado** de la indicación, no debajo: `.paso` es un `flex`, así que
+   la nota es un hermano más y se coloca a la derecha del texto. Es lo que se
+   pidió —la nota en el propio paso— y encaja porque los dos pasos de hito son
+   justamente los que **no llevan metros** (valen 0 y no se escriben), de modo
+   que no hay nada a la derecha con lo que pelearse. En pantallas estrechas el
+   texto del paso se parte en dos líneas para dejarle sitio, y se prefiere eso
+   a que la advertencia se vaya lejos del hito que explica. */
+.paso__nota {
+  margin-top: 0.3rem;
+  padding: 0.35rem 0.5rem;
+  border-left: 3px solid #b45309;
+  background: #fff4e5;
+  color: #7c3d00;
+  font-size: 0.9em;
+}
+
+.paso__nota-icono {
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
