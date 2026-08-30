@@ -253,6 +253,28 @@ export interface Denominacion {
   readonly conNombre: boolean;
   /** Si viene del callejero MUNICIPAL (heredado) y no de OSM. */
   readonly esMunicipal: boolean;
+  /**
+   * ⭐ Si lo que se pisa es **carril bici**, y por eso el nombre se viste:
+   * «el carril bici de Avenida de Casablanca» en vez de «Avenida de
+   * Casablanca» a secas.
+   *
+   * Hace falta porque el nombre de un carril bici **es el de la calle a la que
+   * acompaña** — medido sobre el dato: de los 780 *ways* de carril con `name`
+   * propio de OSM los más repetidos son «Avenida de Casablanca», «Vía
+   * Hispanidad», «Avenida de Madrid», y los 579 que heredan del municipal
+   * traen «RONDA HISPANIDAD», «AVENIDA CATALUÑA». Ninguno se llama a sí mismo
+   * carril. Sin el vestido, la indicación manda a la calzada de una avenida a
+   * quien va por su carril, que es justo lo que hay que distinguir.
+   *
+   * **Solo se pone cuando el tramo entero es carril**: al fundirse con la
+   * calzada de la misma avenida el campo se apaga (ver `absorber` y
+   * `unirLasQueSonLaMisma`), porque entonces lo que se recorre son las dos
+   * cosas y decir «el carril bici de X» durante 400 m de calzada sería mentir.
+   *
+   * `false` en todo lo del peatón: su red no tiene carriles bici — se los cierra
+   * su tabla de acceso—, así que ni uno solo de sus tramos puede encenderlo.
+   */
+  readonly esCarrilBici: boolean;
 }
 
 /**
@@ -584,21 +606,51 @@ interface Denominador {
  * grafías de la misma calle se juntan: ver `canonico`.
  */
 export function comoSeLlama(red: Denominador, way: number, perfil: string): Denominacion {
+  // ⭐ Si es carril bici, para vestir el nombre. Da igual de qué registro
+  // venga: los dos traen el nombre de la CALLE, no el del carril.
+  const esCarrilBici = red.tipoDeWay.get(way) === 'cycleway';
   const osm = red.nombreDeWay.get(way);
   if (osm !== undefined) {
-    return { nombre: osm, conNombre: true, esMunicipal: false };
+    return { nombre: osm, conNombre: true, esMunicipal: false, esCarrilBici };
   }
   if (!NARRAN_SIEMPRE_POR_TIPO.has(perfil)) {
     const heredado = red.nombreHeredado.get(way);
     if (heredado !== undefined) {
-      return { nombre: heredado, conNombre: true, esMunicipal: true };
+      return { nombre: heredado, conNombre: true, esMunicipal: true, esCarrilBici };
     }
   }
   return {
     nombre: nombreGenerico(perfil, red.tipoDeWay.get(way)),
     conNombre: false,
     esMunicipal: false,
+    // Sin nombre no hay nada que vestir: el genérico ya dice «el carril bici».
+    esCarrilBici: false,
   };
+}
+
+/**
+ * ⭐ EL VESTIDO DEL CARRIL: qué se dice ANTES del nombre de la calle.
+ *
+ * Devuelve `'el carril bici de '` cuando hay que vestir y `''` cuando no, para
+ * que el sitio que compone la frase solo tenga que concatenar.
+ *
+ * **El nombre de un carril bici es el de la calle a la que acompaña.** No es
+ * una suposición: de los 780 *ways* de carril con `name` propio de OSM los más
+ * repetidos son «Avenida de Casablanca», «Vía Hispanidad» y «Avenida de
+ * Madrid», y los 579 que heredan del callejero municipal traen «RONDA
+ * HISPANIDAD» o «AVENIDA CATALUÑA». **Ninguno se llama a sí mismo carril.**
+ * Así que decir el nombre a secas manda a la calzada a quien va por el carril.
+ *
+ * [DOC Valhalla] es su misma escuela —*«a generic description will be used…
+ * when a walkway, cycleway or trail is unnamed»*—, llevada un paso más allá:
+ * cuando el carril **sí** tiene nombre, el tipo no sustituye al nombre, lo
+ * acompaña. El vestido es [PROPIO] sobre herencia doctrinada.
+ *
+ * Va en `papel: 'texto'` y no dentro del `via`: lo que se destaca es el nombre
+ * de la calle, que es lo que se busca con la vista en un cartel.
+ */
+function vestidoDeCarril(tramo: Denominacion): string {
+  return tramo.esCarrilBici && tramo.conNombre ? 'el carril bici de ' : '';
 }
 
 /**
@@ -690,6 +742,11 @@ const COMO_SE_DICE: Readonly<Record<Giro, string>> = {
   'cerrada-izquierda': 'Gira bruscamente a la izquierda',
   izquierda: 'Gira a la izquierda',
   'ligera-izquierda': 'Gira ligeramente a la izquierda',
+  // ⭐ El hito. No es un giro y no se usa por esta tabla —el texto entero lo
+  // compone quien monta el trayecto de varios tramos, que es el único que sabe
+  // cuántos anclajes tiene el soporte—, pero está porque el `Record` lo exige
+  // y porque un hueco aquí sería un hueco que nadie ve.
+  aparca: 'Aparca',
   llegada: 'Has llegado',
 };
 
@@ -758,6 +815,32 @@ export interface Empuje {
   readonly enLaMano: string;
 }
 
+/**
+ * ⭐ LAS COSTURAS de un tramo que no va solo (30/08, casillas 5 y 6).
+ *
+ * Un trayecto de tres tramos —rodar, aparcar, andar— se calcula como tres rutas
+ * y se narra como una. Si cada tramo escribiera su propio principio y su propio
+ * final, la lista diría tres veces «Sal de…» y tres veces «… está a la
+ * derecha». Estas dos costuras son lo que evita eso, y **nada más**: un tramo
+ * sin costuras se narra exactamente igual que antes del 30/08.
+ *
+ * - `apertura` sustituye al «Sal de X y dirígete hacia el norte» del primer
+ *   paso por un verbo de continuación —«Sigue a pie», «Pedalea»—, porque de
+ *   donde se sale ya lo dijo el hito anterior.
+ * - `cierre` sustituye al paso de llegada por el HITO: «Aparca en el
+ *   aparcabicis de X — 10 anclajes». El destino de este tramo no es el destino
+ *   del viaje, así que decir «está a la derecha» sería decir que se ha llegado.
+ *
+ * [DOC OSRM] es su campo `mode` por paso llevado a la letra: el cambio de
+ * vehículo es una maniobra propia, no una nota al pie del paso anterior.
+ */
+export interface Costuras {
+  /** El verbo con el que arranca este tramo, si no es el primero del viaje. */
+  readonly apertura?: string;
+  /** El paso que cierra este tramo, si no es el último del viaje: el hito. */
+  readonly cierre?: Paso;
+}
+
 interface Tramo extends Denominacion {
   readonly way: number;
   /** Si el tramo se recorre EMPUJANDO. Ver `Empuje`. */
@@ -790,6 +873,7 @@ type TramoEnObra = {
   nombre: string;
   conNombre: boolean;
   esMunicipal: boolean;
+  esCarrilBici: boolean;
   nodoEntrada: number | null;
   aristaEntrada: number;
   aristaSalida: number;
@@ -912,6 +996,11 @@ function unirLasQueSonLaMisma(tramos: readonly Tramo[]): readonly Tramo[] {
       // La frontera de ENTRADA no se toca: unir alarga hacia delante, y por
       // donde se entró sigue siendo por donde se entró. La de salida sí avanza.
       ultimo.aristaSalida = tramo.aristaSalida;
+      // ⭐ El vestido de carril bici solo sobrevive si lo eran LOS DOS: es la
+      // fusión que junta el carril con la calzada de su misma avenida, y
+      // llamar «el carril bici de X» a un tramo que ya es medio calzada sería
+      // decirle a quien pedalea que siga por donde ya no va.
+      ultimo.esCarrilBici = ultimo.esCarrilBici && tramo.esCarrilBici;
       if (equivalente) {
         const gana = canonico(ultimo, tramo);
         ultimo.nombre = gana.nombre;
@@ -928,6 +1017,7 @@ function unirLasQueSonLaMisma(tramos: readonly Tramo[]): readonly Tramo[] {
       nombre: tramo.nombre,
       conNombre: tramo.conNombre,
       esMunicipal: tramo.esMunicipal,
+      esCarrilBici: tramo.esCarrilBici,
       nodoEntrada: tramo.nodoEntrada,
       aristaEntrada: tramo.aristaEntrada,
       aristaSalida: tramo.aristaSalida,
@@ -1092,6 +1182,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     nombre: string;
     conNombre: boolean;
     esMunicipal: boolean;
+    esCarrilBici: boolean;
     metros: number;
     metrosPropios: number;
     giro: Giro;
@@ -1114,6 +1205,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
         entrada: tramo.entrada,
         salida: tramo.salida,
         empujando: tramo.empujando,
+        esCarrilBici: tramo.esCarrilBici,
         encrucijada: tramo.encrucijada,
       });
       continue;
@@ -1158,6 +1250,8 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
           ultimo.encrucijada = tramo.encrucijada;
         }
       }
+      // La misma regla que arriba: el vestido solo sobrevive si lo eran los dos.
+      ultimo.esCarrilBici = ultimo.esCarrilBici && tramo.esCarrilBici;
       if (equivalente) {
         const gana = canonico(ultimo, tramo);
         ultimo.nombre = gana.nombre;
@@ -1170,6 +1264,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
       nombre: tramo.nombre,
       conNombre: tramo.conNombre,
       esMunicipal: tramo.esMunicipal,
+      esCarrilBici: tramo.esCarrilBici,
       metros: tramo.metros,
       metrosPropios: tramo.metros,
       giro,
@@ -1181,10 +1276,22 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
   }
 
   return salen.map(
-    ({ nombre, conNombre, esMunicipal, metros, giro, entrada, salida, empujando, encrucijada }) => ({
+    ({
       nombre,
       conNombre,
       esMunicipal,
+      esCarrilBici,
+      metros,
+      giro,
+      entrada,
+      salida,
+      empujando,
+      encrucijada,
+    }) => ({
+      nombre,
+      conNombre,
+      esMunicipal,
+      esCarrilBici,
       metros,
       giro,
       entrada,
@@ -1290,6 +1397,7 @@ type Maniobra = {
   nombre: string;
   conNombre: boolean;
   esMunicipal: boolean;
+  esCarrilBici: boolean;
   metros: number;
   giro: Giro;
   entrada: number;
@@ -1319,6 +1427,12 @@ function absorber(crece: Maniobra, comido: Maniobra): void {
   }
   crece.metros += comido.metros;
   crece.salida = comido.salida;
+  // ⭐ Y el vestido de carril bici solo sobrevive si lo eran los dos. Es la
+  // misma regla de las dos pasadas anteriores, y aquí es donde más falta hace:
+  // la regla C de odin absorbe el tramo de calzada que sigue al carril cuando
+  // la maniobra es obvia, y sin esto el paso resultante seguiría diciendo «el
+  // carril bici de X» con media avenida dentro.
+  crece.esCarrilBici = crece.esCarrilBici && comido.esCarrilBici;
 }
 
 /**
@@ -1733,6 +1847,8 @@ export function escribirPasos(
   puertaDestino: Punto,
   /** Cómo se narra el empuje, si el modo empuja. El peatón no manda nada. */
   empuje?: Empuje,
+  /** Cómo se cose con los tramos de al lado, si el viaje tiene más de uno. */
+  costuras?: Costuras,
 ): readonly Paso[] {
   const tramos = unirLasQueSonLaMisma(agrupar(red, ruta.trozos, empuje));
 
@@ -1752,6 +1868,7 @@ export function escribirPasos(
     nombre: tramo.nombre,
     conNombre: tramo.conNombre,
     esMunicipal: tramo.esMunicipal,
+    esCarrilBici: tramo.esCarrilBici,
     empujando: tramo.empujando,
     metros: tramo.metros,
     entrada: rumboDeEntrada(tramo.g),
@@ -1780,15 +1897,22 @@ export function escribirPasos(
   // El origen habla municipal: se sale del portal que el usuario eligió. Y el
   // «por X» solo si hay nombre de verdad: «dirígete hacia el sur por la acera»
   // no dice nada que el cardinal no dijera ya.
-  const arranque: ParteDelPaso[] = [
-    { papel: 'accion', texto: 'Sal de' },
-    { papel: 'texto', texto: ' ' },
-    { papel: 'via', texto: comoSePresenta(nombreOrigen, true, red.articulosPropios) },
-    { papel: 'texto', texto: ` y dirígete hacia el ${cardinal}` },
-  ];
+  // ⭐ Si el tramo viene de un hito, no se «sale» de ningún sitio: se sigue.
+  // Ver `Costuras`.
+  const arranque: ParteDelPaso[] = costuras?.apertura
+    ? [
+        { papel: 'accion', texto: costuras.apertura },
+        { papel: 'texto', texto: ` hacia el ${cardinal}` },
+      ]
+    : [
+        { papel: 'accion', texto: 'Sal de' },
+        { papel: 'texto', texto: ' ' },
+        { papel: 'via', texto: comoSePresenta(nombreOrigen, true, red.articulosPropios) },
+        { papel: 'texto', texto: ` y dirígete hacia el ${cardinal}` },
+      ];
   if (primero.conNombre) {
     arranque.push(
-      { papel: 'texto', texto: ' por ' },
+      { papel: 'texto', texto: ' por ' + vestidoDeCarril(primero) },
       {
         papel: 'via',
         texto: comoSePresenta(primero.nombre, primero.esMunicipal, red.articulosPropios),
@@ -1806,7 +1930,10 @@ export function escribirPasos(
     const maniobra = maniobras[k]!;
     const partes: ParteDelPaso[] = [
       { papel: 'accion', texto: COMO_SE_DICE[maniobra.giro] },
-      { papel: 'texto', texto: comoSeEnlaza(maniobras[k - 1], maniobra) },
+      {
+        papel: 'texto',
+        texto: comoSeEnlaza(maniobras[k - 1], maniobra) + vestidoDeCarril(maniobra),
+      },
       {
         // Un tramo que se narra por su tipo —«la acera»— no lleva `via`:
         // destacarlo lo haría parecer un nombre, y no lo es.
@@ -1830,11 +1957,14 @@ export function escribirPasos(
   // qué lado cae una puerta es geometría, y si el último trozo se fundió sigue
   // siendo por donde se llega.
   const ultimo = tramos[tramos.length - 1]!;
+  // ⭐ Y si este tramo no acaba el viaje, lo que va aquí es el HITO: dónde se
+  // aparca o dónde se coge la bici. Ver `Costuras`.
   pasos.push(
-    pasoDe('llegada', 0, [
-      { papel: 'via', texto: comoSePresenta(nombreDestino, true, red.articulosPropios) },
-      { papel: 'texto', texto: ` está a la ${ladoDelDestino(ultimo.g, puertaDestino)}` },
-    ]),
+    costuras?.cierre ??
+      pasoDe('llegada', 0, [
+        { papel: 'via', texto: comoSePresenta(nombreDestino, true, red.articulosPropios) },
+        { papel: 'texto', texto: ` está a la ${ladoDelDestino(ultimo.g, puertaDestino)}` },
+      ]),
   );
 
   return pasos;

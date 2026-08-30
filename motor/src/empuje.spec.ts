@@ -37,6 +37,7 @@ import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { cargarCallejero } from './callejero.ts';
 import { cargarSitios } from './sitios.ts';
 import { entornoDe } from './gacetero.ts';
+import { cargarAparcabicis } from './aparcabicis.ts';
 import { cuadernoPara } from './ruta.ts';
 import { admiteComoPuerta, calcularRutaRodando, segundosDe } from './rodando.ts';
 import { VELOCIDAD_EMPUJANDO_KMH, VELOCIDAD_KMH } from './rueda.ts';
@@ -65,6 +66,20 @@ function trayecto(modo: 'bici' | 'patin' | 'bizi', origen: string, destino: stri
     destino: extremo(destino),
     modo,
   });
+}
+
+/**
+ * ⭐ La ruta RODANDO pelada, sin el remate del aparcabicis.
+ *
+ * Hace falta desde el 30/08: `calcularTrayecto` ya no devuelve una ruta, sino
+ * un viaje de tres tramos —rodar, aparcar, andar—, y estas jueces son del
+ * EMPUJE, que solo ocurre en el tramo que se rueda. Medir el total sería medir
+ * además el paseo desde el aparcabicis, que no es lo que se está juzgando.
+ */
+function rodar(modo: 'bici' | 'patin' | 'bizi', a: Punto, b: Punto) {
+  const eo = enganchar(rueda, rejillaRueda, a[0], a[1], (x) => admiteComoPuerta(rueda, x, modo));
+  const ed = enganchar(rueda, rejillaRueda, b[0], b[1], (x) => admiteComoPuerta(rueda, x, modo));
+  return eo && ed ? calcularRutaRodando(rueda, cuadernoPara(rueda), modo, eo, a, ed, b) : null;
 }
 
 /** Dónde está un portal, en `[lon, lat]` como el grafo. */
@@ -111,6 +126,7 @@ describe('⭐ EL EMPUJE (30/08)', () => {
       redRueda: rueda,
       rejillaRueda,
       cuadernoRueda: cuadernoPara(rueda),
+      aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
     };
   });
 
@@ -125,6 +141,12 @@ describe('⭐ EL EMPUJE (30/08)', () => {
    *
    * Con el empuje, unos metros con el patín en la mano resuelven el cruce y la
    * ruta baja: la barrera no era el vehículo, era no poder bajarse de él.
+   *
+   * ⚠️ **Y desde el remate del aparcabicis (30/08, casilla 5) hay DOS cifras**,
+   * y las dos se fijan aquí porque son dos cosas distintas: el tramo que se
+   * rueda mide **4.832 m** y el viaje entero —rodar, aparcar, andar— mide
+   * **4.867**, los 35 m que se andan desde el aparcabicis hasta el portal.
+   * Lo que esta juez es —el empuje— vive en el primero.
    *
    * ⚠️ **La cifra se movió de 4.551 a 4.832 m el 30/08 por la tarde**, y no es
    * una regresión: el selector de ruta le dio al patín su calibrado propio —el
@@ -148,11 +170,16 @@ describe('⭐ EL EMPUJE (30/08)', () => {
       t.metros < 5741,
       `el patín seguía dando el rodeo: ${t.metros} m (antes del empuje eran 5.741)`,
     );
-    // Y la cifra exacta, para que el día que se mueva se sepa cuánto.
-    assert.equal(t.metros, 4832, 'los metros del caso, medidos el 30/08');
 
     const a = donde(COLOSO);
     const b = donde(ROMEO);
+    // Las dos cifras exactas, para que el día que se muevan se sepa cuál.
+    assert.equal(
+      Math.round(rodar('patin', a, b)!.metros),
+      4832,
+      'los metros RODADOS del caso, medidos el 30/08',
+    );
+    assert.equal(t.metros, 4867, 'y los del viaje entero, con el remate del aparcabicis');
     const empujados = metrosEmpujando('patin', a, b);
     assert.ok(empujados > 0, 'la ruta tiene que empujar en alguna parte');
 
@@ -184,6 +211,11 @@ describe('⭐ EL EMPUJE (30/08)', () => {
    * La juez exige las dos mitades: **ni un metro empujado**, y **los mismos
    * 1.565 m** que antes de que existiera el empuje. Abrir lo peatonal no puede
    * cambiar una ruta a la que no le hacía falta.
+   *
+   * ⚠️ Los 1.565 son los del tramo RODADO. Desde el remate del aparcabicis el
+   * viaje entero mide **1.721**: se pedalea 7 m más hasta el soporte de la
+   * Calle Jaca y se andan 149 hasta el portal. Se fija también, por lo mismo
+   * que en la juez 1 — dos cifras, dos cosas.
    */
   test('⭐ 2 · donde rodar es mejor, no se gana ni un metro de acera', () => {
     const a = donde('Portales.120344');
@@ -197,7 +229,12 @@ describe('⭐ EL EMPUJE (30/08)', () => {
       destino: extremo('Portales.110047'),
       modo: 'bici',
     });
-    assert.equal(t.metros, 1565, 'la ruta de la juez 4 no se mueve');
+    assert.equal(
+      Math.round(rodar('bici', a, b)!.metros),
+      1565,
+      'la ruta RODADA de la juez 4 no se mueve',
+    );
+    assert.equal(t.metros, 1721, 'y el viaje entero, con el remate del aparcabicis');
   });
 
   /**

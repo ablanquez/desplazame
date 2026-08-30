@@ -81,6 +81,21 @@ export type Vertice = readonly [number, number];
  *
  * `salida` y `llegada` no son giros: son el primer paso y el último, que en el
  * formato de Google llevan icono propio.
+ *
+ * ⭐ **Y desde el 30/08 hay uno más que tampoco es un giro: `aparca`.** Es el
+ * HITO de un trayecto que cambia de vehículo por el camino —dejar la bici en el
+ * aparcabicis y seguir a pie—, y el contrato crece porque el motor lo pide: la
+ * casilla 5 parte la ruta de la bici en tres tramos.
+ *
+ * [DOC OSRM] su respuesta lleva un **campo `mode` por paso** y el cambio de
+ * modo es un paso propio, con una suite entera *«de todos los empujes y cambios
+ * de modo»*. Aquí no se estrena un campo: el cambio de modo **es** la maniobra,
+ * y por eso viaja donde ya viajaba la clase de maniobra.
+ *
+ * Que vayan aquí y no en un campo aparte tiene además una consecuencia buscada:
+ * la tabla de iconos de la pantalla es un `Record<Giro, string>` y **deja de
+ * compilar** hasta que alguien les dibuje uno. Es la misma mecánica que cazó
+ * las tres clases de sitio de educación el 27/08.
  */
 export type Giro =
   | 'salida'
@@ -92,6 +107,8 @@ export type Giro =
   | 'cerrada-izquierda'
   | 'izquierda'
   | 'ligera-izquierda'
+  /** Se deja el vehículo: la bici propia, en el aparcabicis. */
+  | 'aparca'
   | 'llegada';
 
 /**

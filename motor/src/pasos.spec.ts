@@ -69,6 +69,10 @@ function tramo(
     nombre,
     conNombre: tieneNombre(nombre),
     esMunicipal,
+    // Y tampoco son del carril bici: el peatón no tiene ninguno —su tabla de
+    // acceso los cierra—, así que aquí siempre va apagado. El vestido tiene
+    // sus propias jueces en `carriles.spec.ts`.
+    esCarrilBici: false,
     metros,
     entrada,
     salida,
@@ -100,6 +104,7 @@ function maniobra(
     nombre,
     conNombre: tieneNombre(nombre),
     esMunicipal,
+    esCarrilBici: false,
     metros,
     empujando: false,
     giro,
@@ -503,6 +508,8 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
       nombre: 'Avenida de Navarra',
       conNombre: true,
       esMunicipal: false,
+      // Una `residential` no es carril bici: no hay nada que vestir.
+      esCarrilBici: false,
     });
   });
 
@@ -515,6 +522,10 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
       // ⭐ Y viene del registro MUNICIPAL, que es lo que le da preferencia
       // cuando se junta con la misma calle escrita por OSM.
       esMunicipal: true,
+      // ⭐ Y es CARRIL BICI, así que el nombre se viste: la ruta dirá «el
+      // carril bici de Avenida Academia General Militar» y no la avenida a
+      // secas, que mandaría a la calzada a quien va por el carril.
+      esCarrilBici: true,
     });
   });
 
@@ -531,6 +542,10 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
       nombre: 'el carril bici',
       conNombre: false,
       esMunicipal: false,
+      // ⭐ APAGADO, aunque sea carril: sin nombre no hay nada que vestir — el
+      // genérico ya dice «el carril bici». Encenderlo aquí escribiría «el
+      // carril bici de el carril bici».
+      esCarrilBici: false,
     });
   });
 
@@ -542,6 +557,7 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
       nombre: 'el paso de peatones',
       conNombre: false,
       esMunicipal: false,
+      esCarrilBici: false,
     });
   });
 
@@ -551,6 +567,7 @@ describe('⭐ NIVEL 3 — el nombre municipal heredado por vecindad', () => {
       nombre: 'las escaleras',
       conNombre: false,
       esMunicipal: false,
+      esCarrilBici: false,
     });
   });
 
@@ -623,12 +640,13 @@ describe('⭐ EL NÚCLEO — dos grafías de la misma calle son la misma calle',
     nombre,
     conNombre: true,
     esMunicipal,
+    esCarrilBici: false,
   });
 
   test('el vacío sigue sin casar: dos genéricos NO son la misma calle', () => {
     // La regla de OSRM que ya estaba: `// make sure empty is not involved`.
     // El núcleo no la deroga — «la acera» y «la acera» siguen sin casar.
-    const generico = { nombre: 'la acera', conNombre: false, esMunicipal: false };
+    const generico = { nombre: 'la acera', conNombre: false, esMunicipal: false, esCarrilBici: false };
     assert.equal(esLaMismaCalle(generico, generico), false);
     assert.equal(esLaMismaCalle(conNombre('CALLE MAYOR'), generico), false);
   });
@@ -1187,8 +1205,18 @@ describe('⭐ EL ARTÍCULO QUE ES NOMBRE PROPIO — «El Coloso», no «el Colos
 });
 
 describe('⭐ «PARA SEGUIR POR» — el giro que no cambia de calle', () => {
-  const conNombre = (nombre: string) => ({ nombre, conNombre: true, esMunicipal: false });
-  const generico = (nombre: string) => ({ nombre, conNombre: false, esMunicipal: false });
+  const conNombre = (nombre: string) => ({
+    nombre,
+    conNombre: true,
+    esMunicipal: false,
+    esCarrilBici: false,
+  });
+  const generico = (nombre: string) => ({
+    nombre,
+    conNombre: false,
+    esMunicipal: false,
+    esCarrilBici: false,
+  });
 
   test('mismo núcleo: se conserva el nombre con fórmula de permanencia', () => {
     // [DOC Valhalla] «Turn right to stay on X»: el giro se anuncia porque hay

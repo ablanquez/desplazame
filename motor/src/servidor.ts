@@ -24,6 +24,7 @@ import type { Salud } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
+import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
 import { cargarSitios, sugerirSitios } from './sitios.ts';
 import { UMBRAL_DE_DESVIO_M, entornoDe } from './gacetero.ts';
 import { portalCercano } from './cercano.ts';
@@ -138,6 +139,23 @@ console.log(
 console.log(
   `motor:   sin fila en la tabla ${cuentas.sinFilaEnLaTabla} (tiene que ser 0) · ` +
     `cerradas solo por el veto de p=acera ${cuentas.cerradasSoloPorPerfil}`,
+);
+// ⭐ LOS NOMBRES DE LO QUE SOLO PISA LA RUEDA (30/08). La herencia de § 1.15 se
+// cruzó siempre sobre las aristas del peatón, y su tabla cierra los carriles
+// bici: los *ways* que solo existen aquí nunca pasaron por el cruce. Ahora sí,
+// y esta línea dice a cuántos les ha servido.
+const herenciaRueda = cuentas.herenciaDeLaRueda;
+console.log(
+  `motor: nombres propios de la rueda — ${herenciaRueda.mudos} ways mudos que el peatón no vio · ` +
+    `${herenciaRueda.porMotivo.hereda} heredan (${cuentas.carrilesConNombre} son carril bici) · ` +
+    `${herenciaRueda.aristasHeredadas} aristas · ${herenciaRueda.kmHeredados.toFixed(1)} km · ` +
+    `${herenciaRueda.cargadoEnMs.toFixed(0)} ms`,
+);
+console.log(
+  `motor:   los que callan: ${herenciaRueda.porMotivo.disputa} por disputa · ` +
+    `${herenciaRueda['porMotivo']['poca-cobertura']} por poca cobertura · ` +
+    `${herenciaRueda['porMotivo']['sin-eje']} sin eje cerca — narran «el carril bici» a secas, ` +
+    'que es lo honesto donde el municipal no manda',
 );
 // ⭐ EL SENTIDO, con su procedencia. La rotonda va aparte porque no viene de
 // ningún tag: es la implicación de `junction=roundabout`, y sin ella 1.390 de
@@ -330,6 +348,26 @@ if (sitios.invalidos.length > 0) {
   }
 }
 
+// ⭐ LOS APARCABICIS (30/08, casilla 5): dónde acaba una ruta de bici propia.
+console.log('motor: cargando los aparcabicis…');
+const aparcabicis = cargarAparcabicis(callejero, entorno);
+console.log(
+  `motor: aparcabicis — ${aparcabicis.entrantes.length} entrantes de ${aparcabicis.total} · ` +
+    `${aparcabicis.anclajes} anclajes · ${aparcabicis.cargadoEnMs.toFixed(0)} ms`,
+);
+console.log(
+  'motor:   por estado — ' +
+    [...aparcabicis.porEstado]
+      .sort((a, b) => b[1] - a[1])
+      .map(([estado, n]) => `${estado} ${n}${ESTADOS_QUE_ENTRAN.has(estado) ? ' ✔' : ' ✘'}`)
+      .join(' · '),
+);
+console.log(
+  `motor:   nombran su vía con el callejero ${aparcabicis.conViaDelCallejero} ` +
+    `(los demás, con el nombre_reducido del dato, que viene abreviado) · ` +
+    `sin coordenada ${aparcabicis.sinCoordenada} · fuera del entorno ${aparcabicis.fueraDelEntorno}`,
+);
+
 /** Todo lo que hace falta para contestar una ruta, junto. */
 const motor: Motor = {
   red,
@@ -346,6 +384,7 @@ const motor: Motor = {
   // El cuaderno de la rueda es OTRO, y tiene que serlo: sus arrays van
   // indexados por nodo, y la red de la rueda tiene sus propios nodos.
   cuadernoRueda: cuadernoPara(redRueda),
+  aparcabicis,
 };
 
 const usoMemoria = process.memoryUsage();

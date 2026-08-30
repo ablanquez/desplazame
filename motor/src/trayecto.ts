@@ -28,6 +28,7 @@ import type { SitiosEnMemoria } from './sitios.ts';
 import type { PortalesEnMemoria, PortalSituado } from './portales.ts';
 import type { RedEnMemoria } from './red.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
+import type { AparcabicisEnMemoria } from './aparcabicis.ts';
 import { enganchar, type Enganche, type Rejilla } from './proyeccion.ts';
 import { calcularRuta, geometriaDe, type Cuaderno, type Ruta } from './ruta.ts';
 import {
@@ -36,17 +37,14 @@ import {
   segundosRodando,
 } from './rodando.ts';
 import { esDeLaRueda, type ModoDeRueda } from './rueda.ts';
-import { escribirPasos } from './pasos.ts';
-
-/**
- * Velocidad a pie para derivar la duración: **5,0 km/h**.
- *
- * [PROPIO, y declarado como tal en el contrato] Es la velocidad de manual, no
- * una medida: aquí no se ha cronometrado a nadie andando por Zaragoza. No
- * entran cuestas, ni semáforos, ni el rato que se tarda en cruzar. Si algún
- * día se mide de verdad, este es el sitio.
- */
-const VELOCIDAD_MS = 5000 / 3600;
+import { escribirPasos, type Empuje } from './pasos.ts';
+import {
+  VELOCIDAD_MS,
+  aQueDistanciaElAparcabicis,
+  avisoSinAparcabicis,
+  remataEnAparcabicis,
+  type Extremo,
+} from './etapas.ts';
 
 /**
  * Los modos que hoy sabe calcular el motor. **Cuatro desde el 29/08**: al
@@ -94,10 +92,19 @@ export interface Motor {
   readonly redRueda: RedDeLaRueda;
   readonly rejillaRueda: Rejilla;
   readonly cuadernoRueda: Cuaderno;
+  /**
+   * ⭐ Los aparcabicis municipales (§ 1.9), para el remate de los privados.
+   *
+   * No van dentro de la red y no es un descuido: **no son parte del grafo**,
+   * son puntos que se enganchan a él como se engancha un portal. Meterlos en la
+   * red obligaría a levantarla otra vez cada vez que el inventario cambie.
+   */
+  readonly aparcabicis: AparcabicisEnMemoria;
 }
 
 /**
- * ⭐ UN EXTREMO YA RESUELTO: un punto y cómo se llama.
+ * ⭐ UN EXTREMO YA RESUELTO: un punto y cómo se llama. Vive en `etapas.ts`,
+ * que es quien lo consume desde que un viaje puede tener tres tramos.
  *
  * Es lo único que el cálculo necesita de un extremo, y por eso los dos —el
  * portal y el sitio— acaban en la misma forma. A partir de aquí **no hay dos
@@ -106,12 +113,6 @@ export interface Motor {
  * farmacia deja de importar en cuanto se resuelve, que es como debe ser
  * [DOC Nominatim: geocodificar y enrutar son dos oficios].
  */
-interface Extremo {
-  readonly lon: number;
-  readonly lat: number;
-  /** Lo que se escribe en el paso de salida o de llegada. */
-  readonly nombre: string;
-}
 
 /**
  * ⭐ Resuelve un extremo dado por DIRECCIÓN, que desde el 27/08 son dos casos.
@@ -364,6 +365,22 @@ function trayectoRodando(
     );
   }
 
+  // ⭐ EL REMATE (30/08, casilla 5): la bici y el patín no acaban pedaleando en
+  // la puerta — se aparcan y se anda el resto.
+  //
+  // [DOC OTP, `BICYCLE_PARK`] *«deja la bicicleta y anda hasta el destino»*.
+  // Va ANTES de calcular la ruta directa y no después: si el remate sale, esa
+  // ruta directa no se llega a pedir, y son dos Dijkstra menos.
+  //
+  // La BiZi no pasa por aquí: no se aparca en un aparcabicis, se devuelve en su
+  // estación, y eso es la casilla 6.
+  if (modo !== 'bizi') {
+    const rematada = remataEnAparcabicis(motor, modo, origen, destino, ruta, empujeDe(modo, red));
+    if (rematada) {
+      return rematada.trayecto;
+    }
+  }
+
   const trazado: Ruta | null = calcularRutaRodando(
     red,
     motor.cuadernoRueda,
@@ -390,7 +407,7 @@ function trayectoRodando(
     [destino.lon, destino.lat],
     // ⭐ Cómo se narra el tramo que se empuja. El peatón no manda esto y su
     // narración no cambia ni una letra: ver `Empuje` en `pasos.ts`.
-    { esEmpuje: (arista) => red.empujando[arista] === 1, enLaMano: EN_LA_MANO[modo] },
+    empujeDe(modo, red),
   );
   const geometria: Vertice[] = geometriaDe(trazado).map(([lon, lat]) => [lat, lon]);
 
@@ -398,7 +415,13 @@ function trayectoRodando(
     modo,
     pasos,
     geometria,
-    avisos: [],
+    // ⚠️ Si el modo remataba y ha llegado hasta aquí, es que NO había
+    // aparcabicis que valiera. Se dice, con el número: la ruta acaba en la
+    // puerta y quien la lee sabe por qué.
+    avisos:
+      modo === 'bizi'
+        ? []
+        : [avisoSinAparcabicis(destino, aQueDistanciaElAparcabicis(motor, destino))],
     metros: Math.round(trazado.metros),
     // ⭐ El reloj es el de siempre: el tipo de ruta cambia el PESO, no la
     // velocidad. `segundosRodando` divide el factor del calibrado que se usó,
@@ -423,6 +446,11 @@ const EN_LA_MANO: Readonly<Record<ModoDeRueda, string>> = {
   bizi: 'con la bici en la mano',
   patin: 'con el patín en la mano',
 };
+
+/** El empuje de un modo, listo para pasárselo a la narración. */
+function empujeDe(modo: ModoDeRueda, red: RedDeLaRueda): Empuje {
+  return { esEmpuje: (arista) => red.empujando[arista] === 1, enLaMano: EN_LA_MANO[modo] };
+}
 
 /**
  * Cómo se dice el verbo de cada modo dentro de un aviso.

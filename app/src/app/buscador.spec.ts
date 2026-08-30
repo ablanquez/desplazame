@@ -303,8 +303,15 @@ const RODEANDO_LA_AVENIDA_DE_MADRID: Trayecto = {
   segundos: 394,
 };
 
-/** Los diez giros del contrato, en el orden en que están declarados. */
-const LOS_DIEZ_GIROS: readonly Giro[] = [
+/**
+ * ⭐ TODOS los giros del contrato, en el orden en que están declarados.
+ *
+ * Eran diez y **son once desde el 30/08**: el hito `aparca` entró con el remate
+ * del aparcabicis. La lista se escribe a mano a propósito: si el contrato
+ * creciera y esta lista no, la juez de las flechas dejaría de cubrir el giro
+ * nuevo sin que nada se pusiera rojo.
+ */
+const TODOS_LOS_GIROS: readonly Giro[] = [
   'salida',
   'recto',
   'ligera-derecha',
@@ -314,15 +321,45 @@ const LOS_DIEZ_GIROS: readonly Giro[] = [
   'cerrada-izquierda',
   'izquierda',
   'ligera-izquierda',
+  'aparca',
   'llegada',
 ];
 
-/** Un trayecto de mentira que usa LOS DIEZ giros, uno por paso. */
+/** Un trayecto de mentira que usa TODOS los giros, uno por paso. */
 const TRAYECTO_DE_LOS_DIEZ: Trayecto = {
   ...TRAYECTO,
-  pasos: LOS_DIEZ_GIROS.map((giro): Paso =>
+  pasos: TODOS_LOS_GIROS.map((giro): Paso =>
     paso(giro, 10, accion('paso'), llano(' de '), via(giro)),
   ),
+};
+
+/**
+ * ⭐ UNA RUTA CON REMATE, de tres tramos (30/08).
+ *
+ * Es la forma que el motor devuelve desde la casilla 5: se rueda hasta el
+ * aparcabicis, se aparca, y se anda el resto. Los números son los de la ruta
+ * real `COLOSO 2 → LEOPOLDO ROMEO 27` en bici, medida en Chrome el 30/08.
+ *
+ * ⚠️ Lo que esta pantalla tiene que saber leer de aquí es que **hay dos pasos
+ * de `salida` y solo uno es el origen**.
+ */
+const VIAJE_CON_REMATE: Trayecto = {
+  modo: 'bici',
+  pasos: [
+    paso('salida', 28, accion('Sal de'), llano(' '), via('Calle El Coloso 2'), llano(' y dirígete hacia el este')),
+    paso('derecha', 510, accion('Gira a la derecha'), llano(' hacia '), via('Avenida Academia General Militar')),
+    paso('recto', 1200, accion('Continúa'), llano(' hacia el carril bici de '), via('Avenida San Juan de la Peña')),
+    paso('aparca', 0, accion('Aparca'), llano(' en el aparcabicis de '), via('Calle Monasterio de la Rábida'), llano(' — 5 anclajes')),
+    paso('salida', 52, accion('Sigue a pie'), llano(' hacia el sur por '), via('Calle Monasterio de la Rábida')),
+    paso('llegada', 0, via('Calle Leopoldo Romeo 27'), llano(' está a la izquierda')),
+  ],
+  geometria: [
+    [41.6661, -0.8773],
+    [41.6461, -0.8673],
+  ],
+  avisos: [],
+  metros: 4587,
+  segundos: 970,
 };
 
 /** Rellena los cuatro campos por el camino de una persona, y deja listo el botón. */
@@ -1127,7 +1164,7 @@ describe('Buscador', () => {
    * La segunda mitad es la que de verdad vigila: un mapeo con dos giros
    * apuntando al mismo glifo se lee igual de bien y miente igual de bien.
    */
-  it('los diez giros del contrato tienen su flecha, y ninguna se repite', async () => {
+  it('TODOS los giros del contrato tienen su flecha, y ninguna se repite', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -1139,9 +1176,52 @@ describe('Buscador', () => {
     await fixture.whenStable();
 
     const flechas = flechasEnPantalla(raiz);
-    expect(flechas.length).toBe(10);
+    expect(flechas.length).toBe(TODOS_LOS_GIROS.length);
     expect(flechas.every((f) => f !== '')).toBe(true);
-    expect(new Set(flechas).size).toBe(10);
+    expect(new Set(flechas).size).toBe(TODOS_LOS_GIROS.length);
+    // Y son once desde el 30/08: el hito entró con el remate del aparcabicis.
+    expect(TODOS_LOS_GIROS.length).toBe(11);
+  });
+
+  /**
+   * ⭐ EL ORIGEN Y EL DESTINO SE PINTAN UNA VEZ, EN LAS PUNTAS DE VERDAD.
+   *
+   * ⚠️ **Esta juez sale de un fallo visto en Chrome el 30/08.** La chincheta se
+   * anclaba al giro `salida` —«es lo que significa»—, y era cierto mientras un
+   * viaje era una ruta. Desde que la bici remata en el aparcabicis hay **dos
+   * pasos de `salida`**, y la chincheta verde salía dos veces: en la puerta de
+   * casa y al bajarse de la bici. Decía «aquí empiezas» una vez de más.
+   *
+   * El origen es el PRIMER paso y el destino el ÚLTIMO. Eso sí es lo que
+   * significa, y es lo que esta juez fija.
+   */
+  it('⭐ en un viaje con remate la chincheta de origen sale UNA vez', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    elegirModo(fixture, 'Bici privada');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_REMATE);
+    await fixture.whenStable();
+
+    const capas = Array.from(raiz.querySelectorAll('.pasos__lista .paso__capa'));
+    expect(capas.length).toBe(VIAJE_CON_REMATE.pasos.length);
+    const conIcono = capas.filter((c) => c.querySelector('app-icono-capa') !== null);
+    expect(conIcono.length).toBe(2);
+    // Y son la primera y la última, no dos cualesquiera.
+    expect(capas.indexOf(conIcono[0]!)).toBe(0);
+    expect(capas.indexOf(conIcono[1]!)).toBe(capas.length - 1);
+
+    // De paso: el hito se lee entero, y NO lleva metros — no abre tramo.
+    const textos = Array.from(raiz.querySelectorAll('.paso__texto')).map((p) =>
+      (p.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    expect(textos).toContain('Aparca en el aparcabicis de Calle Monasterio de la Rábida — 5 anclajes');
+    const k = VIAJE_CON_REMATE.pasos.findIndex((p) => p.giro === 'aparca');
+    expect(raiz.querySelectorAll('.paso')[k]!.querySelector('.paso__metros')).toBeNull();
   });
 
   it('la cabecera dice de dónde a dónde, cuánto, y el tiempo COMO DERIVADO', async () => {
@@ -1470,15 +1550,22 @@ describe('Buscador', () => {
   });
 
   /**
-   * ⭐ EL RÓTULO NO MIENTE CON LA VELOCIDAD (30/08).
+   * ⭐ EL RÓTULO DICE LA VELOCIDAD, **y la dice como lo que es** (30/08).
    *
-   * Andando hay una sola velocidad y decirla es honesto: los minutos son
-   * `metros / 5 km/h`. Desde el empuje, una ruta en bici o en patín **mezcla
-   * dos** —18 o 20 rodando y 5 con el vehículo en la mano—, más el techo legal
-   * de cada vía. No hay una cifra verdadera que poner, así que no se pone
-   * ninguna. La velocidad por modo bien dicha es de la casilla 5.
+   * Andando hay una sola velocidad y los minutos son exactamente
+   * `metros / 5 km/h`: se escribe «a 5 km/h» y punto.
+   *
+   * Sobre ruedas **no hay una sola**: el techo legal de cada vía recorta la del
+   * modo, los tramos que se cruzan con el vehículo en la mano van a 5, y desde
+   * el remate del aparcabicis el viaje **acaba andando**. Por eso el empuje
+   * quitó la coletilla entera por la mañana; la casilla 5 la devuelve **con la
+   * palabra que la hace verdad**: es la velocidad DE CRUCERO, no la media.
+   *
+   * La juez exige las dos cosas a la vez —que el número esté y que la palabra
+   * esté—, porque una sin la otra es justo lo que se quería evitar: «~4 min a
+   * 18 km/h» sobre una ruta que acaba a pie vuelve a ser falso.
    */
-  it('⭐ el «a 5 km/h» se queda en andando y NO sale en los modos de rueda', async () => {
+  it('⭐ el rótulo dice el crucero por modo, y andando dice su velocidad exacta', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -1488,7 +1575,10 @@ describe('Buscador', () => {
     fixture.detectChanges();
     http.expectOne('/api/ruta').flush(TRAYECTO);
     await fixture.whenStable();
-    expect(raiz.querySelector('.ruta__duracion')?.textContent).toContain('a 5 km/h');
+    const aPie = raiz.querySelector('.ruta__duracion')?.textContent ?? '';
+    expect(aPie).toContain('a 5 km/h');
+    // Andando no lleva «de crucero»: ahí la cuenta es entera y no hay matiz.
+    expect(aPie).not.toContain('crucero');
 
     elegirModo(fixture, 'Patín (VMP)');
     botonGenerar(raiz).click();
@@ -1497,8 +1587,38 @@ describe('Buscador', () => {
     await fixture.whenStable();
 
     const duracion = raiz.querySelector('.ruta__duracion')?.textContent ?? '';
-    expect(duracion).not.toContain('km/h');
     expect(duracion).toContain('min');
+    expect(duracion).toContain('18 km/h');
+    expect(duracion).toContain('de crucero');
+    expect(duracion).not.toContain('a 5 km/h');
+  });
+
+  /**
+   * ⭐ Y LA BiZi DICE SU VELOCIDAD, que es OTRA (20, no 18).
+   *
+   * Sin esta juez, una tabla que devolviera la misma cadena para los tres modos
+   * de rueda daría verde con la de arriba. Las velocidades por modo se firmaron
+   * el 29/08 y son 18 bici · 20 BiZi · 18 patín.
+   */
+  it('⭐ la BiZi dice 20 km/h y la bici privada 18', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bici privada');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => ({ ...TRAYECTO, modo: 'bici' }));
+    await fixture.whenStable();
+    expect(raiz.querySelector('.ruta__duracion')?.textContent).toContain('18 km/h');
+
+    elegirModo(fixture, 'BiZi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => ({ ...TRAYECTO, modo: 'bizi' }));
+    await fixture.whenStable();
+    expect(raiz.querySelector('.ruta__duracion')?.textContent).toContain('20 km/h');
   });
 
   it('la bici privada manda «bici»', async () => {

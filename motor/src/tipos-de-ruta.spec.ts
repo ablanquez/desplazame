@@ -40,10 +40,12 @@ import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { cargarCallejero } from './callejero.ts';
 import { cargarSitios } from './sitios.ts';
 import { entornoDe } from './gacetero.ts';
-import { cuadernoPara, type Ruta } from './ruta.ts';
+import { aparcabicisCercanos, cargarAparcabicis } from './aparcabicis.ts';
+import { calcularRuta, cuadernoPara, type Ruta } from './ruta.ts';
 import { admiteComoPuerta, calcularRutaRodando, segundosRodando } from './rodando.ts';
 import { FACTOR_DE_TRAFICO, calibradoDe, type ModoDeRueda } from './rueda.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
+import { comoSePresenta } from './pasos.ts';
 import type { TipoDeRuta, Trayecto } from '@desplazame/tipos';
 
 let motor: Motor;
@@ -124,6 +126,33 @@ function huella(r: Ruta): string {
   return r.metros.toFixed(6) + '|' + r.trozos.map((t) => t.arista + ':' + t.metros.toFixed(6)).join(',');
 }
 
+/**
+ * ⭐ EL APARCABICIS QUE EL TRAYECTO ELIGIÓ, identificado por su propio hito.
+ *
+ * ⚠️ **No se coge el más cercano y ya**: el compositor prueba hasta cinco y se
+ * queda con el primero que da camino, así que el elegido puede no ser el
+ * primero de la lista. Se busca por el nombre que el hito escribe — que es,
+ * de paso, la comprobación de que el hito dice la verdad.
+ */
+function aparcabicisDelHito(t: Trayecto): { lon: number; lat: number } {
+  const hito = t.pasos.find((p) => p.giro === 'aparca');
+  assert.ok(hito, 'este trayecto no remata en ningún aparcabicis');
+  const b = donde(B);
+  const cerca = aparcabicisCercanos(motor.aparcabicis, b[0], b[1], 5).find((a) =>
+    hito.texto.includes(comoSePresenta(a.via, true, peaton.articulosPropios)),
+  );
+  assert.ok(cerca, `el hito nombra un aparcabicis que no está entre los cinco: «${hito.texto}»`);
+  return { lon: cerca.lon, lat: cerca.lat };
+}
+
+/** El paseo a pie entre dos puntos, con el motor del peatón. */
+function andar(a: Punto, b: Punto): Ruta {
+  const eo = enganchar(peaton, motor.rejilla, a[0], a[1]);
+  const ed = enganchar(peaton, motor.rejilla, b[0], b[1]);
+  assert.ok(eo && ed, 'los dos extremos tienen que enganchar a la red del peatón');
+  return calcularRuta(peaton, motor.cuaderno, eo, a, ed, b)!;
+}
+
 /** Un trayecto de punta a punta, como lo pide la pantalla. */
 function trayecto(modo: ModoDeRueda, ruta?: TipoDeRuta): Trayecto {
   return calcularTrayecto(motor, { origen: extremo(A), destino: extremo(B), modo, ruta });
@@ -147,6 +176,7 @@ describe('⭐ EL SELECTOR DE RUTA (30/08)', () => {
       redRueda: rueda,
       rejillaRueda,
       cuadernoRueda: cuadernoPara(rueda),
+      aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
     };
   });
 
@@ -333,16 +363,36 @@ describe('⭐ EL SELECTOR DE RUTA (30/08)', () => {
   test('⭐ 3 bis · el tipo cambia el peso, no el reloj', () => {
     const a = donde(A);
     const b = donde(B);
-    const tranquila = rodar('bici', a, b, 'tranquila')!;
     const t = calcularTrayecto(motor, {
       origen: extremo(A),
       destino: extremo(B),
       modo: 'bici',
       ruta: 'tranquila',
     });
-    // Los metros de la respuesta son los metros de la ruta, sin ponderar.
-    assert.equal(t.metros, Math.round(tranquila.metros));
-    // Y los segundos, los del reloj de siempre.
-    assert.equal(t.segundos, Math.round(segundosRodando(rueda, tranquila, 'bici', 'tranquila')));
+    // ⚠️ El trayecto es de DOS tramos desde el remate del aparcabicis (30/08,
+    // casilla 5): se pedalea hasta el soporte y se anda hasta la puerta. Los
+    // dos se recalculan aquí por su cuenta —**contra el aparcabicis, no contra
+    // el portal**, que es donde acaba de verdad el pedaleo— y el total tiene
+    // que salir de sumarlos. Así esta juez sigue diciendo lo que decía —el
+    // factor no se cuela en la respuesta— y además demuestra que **el total
+    // cuadra con sus tramos**, que es lo que pide la casilla.
+    const parada = aparcabicisDelHito(t);
+    const punto: Punto = [parada.lon, parada.lat];
+    const pedaleo = rodar('bici', a, punto, 'tranquila')!;
+    const paseo = andar(punto, b);
+
+    assert.equal(
+      t.metros,
+      Math.round(pedaleo.metros + paseo.metros),
+      'los metros de la respuesta son los de los dos tramos, sin ponderar',
+    );
+    // Y los segundos, los del reloj de siempre: el pedaleo con su calibrado y
+    // el paseo a 5,0 km/h. Nunca el tiempo ponderado.
+    assert.equal(
+      t.segundos,
+      Math.round(
+        segundosRodando(rueda, pedaleo, 'bici', 'tranquila') + paseo.metros / (5000 / 3600),
+      ),
+    );
   });
 });

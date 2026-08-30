@@ -39,9 +39,15 @@ import { IconoCapa, type Clase } from './iconos';
  * que llevan marca propia: el punto de partida y la bandera, como en la captura
  * de Google.
  *
- * `Record<Giro, string>` no es adorno de tipos: **obliga a que estén los diez**.
- * Si el motor añadiera un giro al contrato —una rotonda, por ejemplo—, esta
- * tabla dejaría de compilar en vez de pintar un hueco en blanco.
+ * `Record<Giro, string>` no es adorno de tipos: **obliga a que estén todos**.
+ * Si el motor añadiera un giro al contrato, esta tabla dejaría de compilar en
+ * vez de pintar un hueco en blanco. **Y cumplió el 30/08**: al partirse la ruta
+ * de la bici en tres tramos entró `aparca`, y lo primero que se puso rojo fue
+ * esta línea.
+ *
+ * ⭐ El hito no es un giro y no lleva flecha: lleva **la señal de lo que pasa
+ * ahí**. `aparca` es la `P` de aparcamiento encerrada (`🅿`), que es el símbolo
+ * que está en la calle. Es un carácter, como el resto — sin dependencias.
  */
 const FLECHAS: Readonly<Record<Giro, string>> = {
   salida: '◉',
@@ -53,24 +59,50 @@ const FLECHAS: Readonly<Record<Giro, string>> = {
   'cerrada-izquierda': '⬐',
   izquierda: '↰',
   'ligera-izquierda': '↖',
+  aparca: '🅿',
   llegada: '⚑',
 };
 
 /**
- * Cómo se dice la velocidad con la que el motor deriva la duración.
+ * ⭐ CÓMO SE DICE LA VELOCIDAD, **por modo** (30/08, casilla 5).
  *
- * **Va escrita al lado del tiempo, siempre**, y esa es toda su razón de ser: el
- * contrato dice de `Trayecto.segundos` que es *«DERIVADO, no medido»* —
- * `metros / 5,0 km/h`, sin cuestas, sin semáforos y sin esperas—. Un «4 min» a
- * secas se leería como una promesa cronometrada, y aquí no se ha cronometrado a
- * nadie andando por Zaragoza.
+ * Va escrita al lado del tiempo, y esa es toda su razón de ser: el contrato
+ * dice de `Trayecto.segundos` que es *«DERIVADO, no medido»*. Un «4 min» a
+ * secas se leería como una promesa cronometrada, y aquí no se ha cronometrado
+ * a nadie.
  *
- * Si el motor cambiara su velocidad, esta cadena se quedaría mintiendo: el
- * número vive en `motor/src/trayecto.ts` (`VELOCIDAD_MS`) y aquí solo se
- * REPITE. No hay forma de atarlos sin meter el número en el contrato, y meterlo
- * sería que la pantalla recalculara lo que el motor ya calculó.
+ * ── ⭐ Por qué la palabra «de crucero», y por qué andando no la lleva ───────
+ *
+ * Andando hay **una sola** velocidad y los minutos son exactamente
+ * `metros / 5 km/h`: ahí «a 5 km/h» es la cuenta entera y no hace falta más.
+ *
+ * Sobre ruedas **no**, y por tres razones a la vez: el techo legal de cada vía
+ * recorta la velocidad del modo, los tramos que se cruzan **con el vehículo en
+ * la mano** van a 5, y desde el remate del aparcabicis el viaje acaba
+ * **andando**. Poner «a 18 km/h» a secas al lado de los minutos sería
+ * exactamente la mentira que el empuje obligó a quitar el 30/08 por la mañana.
+ *
+ * «De crucero» es lo que lo hace verdad: dice que 18 es la velocidad a la que
+ * se va cuando se va, no la media del viaje. **Los minutos siguen siendo la
+ * suma real**, calculada tramo a tramo por el motor.
+ *
+ * ⚠️ Los números viven en `motor/src/rueda.ts` (`VELOCIDAD_KMH`) y en
+ * `motor/src/etapas.ts` (`VELOCIDAD_MS`), y aquí solo se REPITEN. No hay forma
+ * de atarlos sin meterlos en el contrato, y meterlos sería que la pantalla
+ * recalculara lo que el motor ya calculó. El `Record` exhaustivo es lo que
+ * queda: el día que entre un modo nuevo, esta tabla deja de compilar.
  */
-const VELOCIDAD_DICHA = '5 km/h';
+const VELOCIDAD_DICHA: Readonly<Record<Modo, string | null>> = {
+  andando: 'a 5 km/h',
+  bici: 'pedaleando a 18 km/h de crucero',
+  // La BiZi lleva otra velocidad —20— porque su calibrado es otro.
+  bizi: 'pedaleando a 20 km/h de crucero',
+  // El patín no se pedalea: se circula. La velocidad es la misma que la bici.
+  patin: 'a 18 km/h de crucero',
+  // Estos dos no calculan ruta todavía, así que no tienen duración que vestir.
+  bus: null,
+  coche: null,
+};
 
 /**
  * ⭐ EL UMBRAL DE PRECISIÓN: cuánto radio de confianza se acepta.
@@ -289,21 +321,14 @@ function comoSeLeenLosMetros(metros: number): string {
  *
  * Por debajo del minuto no se redondea a «~1 min», que sería inflar siete
  * segundos hasta sesenta: se dice «menos de 1 min», que es verdad y es igual de
- * corto. El porqué del «a 5 km/h» está en `VELOCIDAD_DICHA`.
+ * corto. El porqué de cada coletilla está en `VELOCIDAD_DICHA`.
  */
 function comoSeLeeLaDuracion(segundos: number, modo: Modo = 'andando'): string {
-  // ⭐ LA COLETILLA SE CAE EN LOS MODOS DE RUEDA (30/08), y es por no mentir.
-  //
-  // Andando hay UNA velocidad y decirla es honesto: los minutos son
-  // `metros / 5 km/h` y nada más. Desde el empuje, una ruta en bici o en patín
-  // **mezcla dos** —18 o 20 rodando, 5 con el vehículo en la mano— y encima el
-  // techo legal de cada vía recorta la primera. No hay una cifra que poner ahí
-  // que sea verdad, así que no se pone ninguna: los minutos son la suma real y
-  // se dan solos.
-  //
-  // Decir la velocidad por modo bien dicha es de la casilla 5. Hasta entonces,
-  // callar es lo correcto — el número que sobra es peor que el que falta.
-  const coletilla = modo === 'andando' ? ` a ${VELOCIDAD_DICHA}` : '';
+  // ⭐ LA COLETILLA, POR MODO (30/08, casilla 5). Se cayó entera con el empuje
+  // —«a 5 km/h» sobre ruedas era falso— y vuelve dicha como lo que es: la
+  // velocidad de CRUCERO, no la media del viaje. Ver `VELOCIDAD_DICHA`.
+  const dicha = VELOCIDAD_DICHA[modo];
+  const coletilla = dicha === null ? '' : ` ${dicha}`;
   if (segundos < 60) {
     return `menos de 1 min${coletilla}`;
   }

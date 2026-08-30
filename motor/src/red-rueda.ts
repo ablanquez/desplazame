@@ -48,6 +48,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { AristaCruda, GrafoEnMemoria } from './grafo.ts';
 import { tejerLaRed, type RedEnMemoria } from './red.ts';
+import { heredarNombres, type Herencias } from './ejes.ts';
 import type { TipoDeRuta } from '@desplazame/tipos';
 import type { Entorno } from './gacetero.ts';
 import { dentroDelEntorno } from './gacetero.ts';
@@ -164,6 +165,14 @@ export interface CuentasDeLaRueda {
    * puede ir a ninguna parte parezca que funciona.
    */
   readonly componentesDelPatin: number;
+  /**
+   * ⭐ Lo que costó darle nombre a lo que solo la rueda pisa, y con qué
+   * números. Es el cruce de § 1.15 sobre los *ways* que la red del peatón no
+   * vio nunca — los carriles bici, sobre todo. Ver la sección 1 bis.
+   */
+  readonly herenciaDeLaRueda: Herencias;
+  /** Cuántos de esos *ways* que heredan son carril bici de verdad. */
+  readonly carrilesConNombre: number;
   readonly nodosEnLaMayorDelPatin: number;
   /**
    * ⚠️ Y los nodos que **no tocan ni una arista** del patín, contados aparte.
@@ -423,6 +432,41 @@ export function cargarRedDeLaRueda(
 
   const tejido = tejerLaRed(utiles);
   const { aristas, nodos } = tejido;
+
+  // ── 1 bis · ⭐ LA HERENCIA DE NOMBRE, ahora también sobre ESTA red ────────
+  //
+  // Es el arreglo del fleco que Antonio vio en ruta viva el 30/08: «Continúa
+  // hacia el carril bici · 1.510 m», kilómetro y medio sin decir por dónde.
+  // La cabecera de esta función lo predecía desde el 29/08 — la herencia se
+  // cruzó sobre las aristas del PEATÓN, y la tabla del peatón cierra los
+  // carriles bici, así que a los *ways* que solo existen aquí **nunca se les
+  // preguntó**.
+  //
+  // Se cruzan **solo los que el peatón no vio**, y no toda la red otra vez,
+  // por dos razones que van juntas:
+  //
+  // 1. **Para no mover lo que ya estaba bien.** Un *way* compartido tiene en
+  //    las dos redes un juego de aristas distinto —la rueda parte donde el
+  //    peatón no—, y volver a votar con otra geometría podría darle otro
+  //    nombre. La narración del peatón y la de la rueda dirían cosas
+  //    distintas de la misma calle sin que nadie lo hubiera pedido.
+  // 2. **Porque es lo que falta, y nada más.** Lo demás ya está calculado.
+  //
+  // El `Map` del peatón se COPIA. Mutarlo cambiaría la narración de sus 391
+  // rutas por debajo, y esa es la muralla.
+  const waysDelPeaton = new Set<number>();
+  for (const arista of peaton.aristas) {
+    waysDelPeaton.add(arista.way);
+  }
+  const soloDeLaRueda = aristas.filter((a) => !waysDelPeaton.has(a.way));
+  const herenciasDeLaRueda = heredarNombres({
+    aristas: soloDeLaRueda,
+    nombreDeWay: peaton.nombreDeWay,
+  });
+  const nombreHeredado = new Map(peaton.nombreHeredado);
+  for (const [way, nombre] of herenciasDeLaRueda.nombreHeredado) {
+    nombreHeredado.set(way, nombre);
+  }
 
   // ── 2 · Las etiquetas de OSM, por way ─────────────────────────────────────
   const crudo = JSON.parse(readFileSync(VIARIO, 'utf8')) as RespuestaOverpass;
@@ -745,6 +789,14 @@ export function cargarRedDeLaRueda(
   for (const s of sentido) {
     if (s === 0) sinSentido++;
   }
+  // De lo que hereda solo la rueda, cuánto es carril bici de verdad. Es la
+  // cifra que dice si el cruce de 1 bis ha servido para lo que se puso.
+  let carrilesConNombre = 0;
+  for (const [way] of herenciasDeLaRueda.nombreHeredado) {
+    if (peaton.tipoDeWay.get(way) === 'cycleway') {
+      carrilesConNombre++;
+    }
+  }
 
   return {
     ...tejido,
@@ -752,7 +804,8 @@ export function cargarRedDeLaRueda(
     // way y no por arista, así que valen igual para las dos redes.
     nombreDeWay: peaton.nombreDeWay,
     tipoDeWay: peaton.tipoDeWay,
-    nombreHeredado: peaton.nombreHeredado,
+    // ⭐ Este NO se presta: es el del peatón más lo que solo la rueda pisa.
+    nombreHeredado,
     herencias: peaton.herencias,
     articulosPropios: peaton.articulosPropios,
     cerradasPorTipo,
@@ -801,6 +854,8 @@ export function cargarRedDeLaRueda(
       patinSinJerarquia,
       patinConJerarquiaQueNoCumple,
       componentesDelPatin,
+      herenciaDeLaRueda: herenciasDeLaRueda,
+      carrilesConNombre,
       nodosEnLaMayorDelPatin,
       nodosSueltosDelPatin,
       enElTermino: enElTerminoTotal,

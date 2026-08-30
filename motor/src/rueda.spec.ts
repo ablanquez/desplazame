@@ -26,6 +26,7 @@ import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { cargarCallejero } from './callejero.ts';
 import { cargarSitios } from './sitios.ts';
 import { entornoDe } from './gacetero.ts';
+import { cargarAparcabicis } from './aparcabicis.ts';
 import { calcularRuta, cuadernoPara, geometriaDe, type Cuaderno, type Ruta } from './ruta.ts';
 import { escribirPasos } from './pasos.ts';
 import { admiteComoPuerta, calcularRutaRodando, segundosRodando } from './rodando.ts';
@@ -123,6 +124,7 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
       cuaderno: cuadernoPara(peaton),
       redRueda: rueda,
       rejillaRueda,
+      aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
       cuadernoRueda: cuaderno,
     };
   });
@@ -255,19 +257,20 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * corto de A a B lo es también de B a A.
    */
   test('⭐ 3 · una calle de sentido único no se remonta: ida 1.559, vuelta 2.017', () => {
-    const ida = calcularTrayecto(motor, {
-      origen: extremo('Portales.97463'),
-      destino: extremo('Portales.110009'),
-      modo: 'bici',
-    });
-    const vuelta = calcularTrayecto(motor, {
-      origen: extremo('Portales.110009'),
-      destino: extremo('Portales.97463'),
-      modo: 'bici',
-    });
-    assert.equal(ida.metros, 1559);
-    assert.equal(vuelta.metros, 2017);
-    assert.ok(vuelta.metros > ida.metros + 400, 'la vuelta tiene que costar el sentido');
+    // ⚠️ Se miden las rutas RODADAS y no los trayectos enteros. Desde el
+    // remate del aparcabicis (30/08, casilla 5) un trayecto de bici lleva
+    // además el paseo desde el soporte hasta el portal, y ese paseo es
+    // DISTINTO en cada sentido —son dos aparcabicis distintos—, así que
+    // sumarlo metería en la resta algo que no es el sentido de la calle, que
+    // es lo único que esta juez mide.
+    const ida = rodar('bici', donde('Portales.97463'), donde('Portales.110009'))!;
+    const vuelta = rodar('bici', donde('Portales.110009'), donde('Portales.97463'))!;
+    assert.equal(Math.round(ida.metros), 1559);
+    assert.equal(Math.round(vuelta.metros), 2017);
+    assert.ok(
+      vuelta.metros > ida.metros + 400,
+      'la vuelta tiene que costar el sentido',
+    );
 
     // Y el peatón, por la misma pareja, va y vuelve igual: su red no tiene
     // sentido y no lo ha ganado.

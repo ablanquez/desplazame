@@ -377,14 +377,21 @@
                    voz alta se le ahorra. -->
               <span class="paso__flecha" aria-hidden="true">{{ flechaDe(paso.giro) }}</span>
               <!-- ⭐ Y EN LAS DOS PUNTAS, el icono de su extremo, igual que en
-                   la cabecera. Se ancla por el GIRO, no por el índice: es lo
-                   que significa. En una ruta trivial hay un solo paso, de
-                   `llegada`, y le toca el del destino — que es lo correcto:
-                   ahí no se sale de ningún sitio, se está ya. -->
+                   la cabecera.
+                   ⚠️ **Y en las puntas DE VERDAD, no en cada `salida`** (30/08).
+                   Se anclaba solo por el giro —«es lo que significa»— y era
+                   cierto mientras un viaje era una ruta. Desde que la bici
+                   remata en el aparcabicis y la BiZi va en tres tramos, cada
+                   tramo abre con un paso de `salida`, y la chincheta verde
+                   salía tres veces diciendo «aquí empiezas» en sitios donde
+                   solo se sigue. El origen es el PRIMER paso, y el destino el
+                   ÚLTIMO: eso sí es lo que significa.
+                   En una ruta trivial hay un solo paso, de `llegada`, y le toca
+                   el del destino — ahí no se sale de ningún sitio, se está ya. -->
               <span class="paso__capa">
-                @if (paso.giro === 'salida') {
+                @if ($first && paso.giro === 'salida') {
                   <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="16" />
-                } @else if (paso.giro === 'llegada') {
+                } @else if ($last && paso.giro === 'llegada') {
                   <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="16" />
                 }
               </span>
