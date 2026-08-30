@@ -2071,7 +2071,16 @@ semanal; los 196 huérfanos = service_id con fechas sin viajes.
 ENTERO (en el método alternativo puro no debería haber ningún 2
 —servicio quitado—, pero que la columna esté no es que el dato sea
 el esperado). LA CASILLA 0 ESTÁ COMPLETA: el primer encargo del
-punto es EL CENSO (casilla 1).
+punto es EL CENSO (casilla 1) — y EL CENSO SE APOYA EN ZETABUS
+(fichado el 30/08 a pregunta de Antonio): visita de SOLO LECTURA a
+F:\01_PROYECTOS\003_ZETABUS para cosechar (1) su lista de postes
+como TERCERA fuente del descuadre 984-feed vs 944-MU3 (triangular
+con testigos, no con teorías), (2) su solución de colores por línea
+[la firma 5: se hereda], (3) las mañas de la API de Avanza ya
+aprendidas allí (identificadores, el tranvía, rarezas). El matiz de
+método: ZetaBus es PRECEDENTE PROPIO verificado en producción, no
+doctrina de internet — se cita como lo que es, y donde feed y
+ZetaBus discrepen se INVESTIGA, no se supone.
 
 Paradas, líneas y la decisión `G`: componer sin prometer, sin total
 inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
