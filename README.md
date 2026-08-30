@@ -26,12 +26,15 @@
 > calzada, con techo en el límite de velocidad de la vía y **prefiriendo el carril bici**. Es
 > motor: donde no hay señal rige el **límite genérico del art. 50 RGC** —20 en plataforma única,
 > 30 con un carril por sentido, 50 con dos o más—, que es lo que abre la calle de barrio al
-> patín. **El selector de la pantalla sigue teniendo cuatro botones** y su «Bici / Patinete»
-> manda `bici`, así que hoy un patinete recibe la ruta de una bici. Partirlo en seis es la
-> casilla siguiente. **Bus o tranvía y coche siguen sin calcular nada**, y el motor lo dice con
-> esas palabras cuando se los piden.
+> patín.
 >
-> La pantalla vive en [`app/`](app/): el formulario de cuatro campos, los cuatro modos, el mapa
+> **⭐ Y desde el 30/08 el selector son seis y cada rueda manda la suya** —Andando · Bus /
+> Tranvía · Bici privada · Patín (VMP) · BiZi · Coche—. Hasta entonces eran cuatro botones y
+> «Bici / Patinete» mandaba `bici`, así que un patinete recibía la ruta de una bici: legal para
+> la bici, ilegal para él en cuanto la calle pasa de 30. **Bus o tranvía y coche siguen sin
+> calcular nada**, y ahora lo dice la propia pantalla sin llegar a preguntárselo al motor.
+>
+> La pantalla vive en [`app/`](app/): el formulario de cuatro campos, los seis modos, el mapa
 > y las indicaciones. **Los cuatro campos se rellenan contra el motor**, con el callejero de
 > verdad de Zaragoza: la calle se autocompleta al teclear, y el
 > portal se elige de la lista de los que esa calle tiene. El mapa es un mapa de verdad —Leaflet
@@ -363,7 +366,12 @@ dónde, se elige un modo de transporte, y devuelve la ruta en el mapa y los paso
 Una sola pantalla:
 
 - **Formulario de cuatro campos**: calle y portal de origen, calle y portal de destino.
-- **Cuatro botones de modo, excluyentes**: andando, autobús/tranvía, bici o patinete, coche.
+- **Seis modos, excluyentes**: andando, autobús/tranvía, bici privada, patín (VMP), BiZi y
+  coche. Eran cuatro hasta el 30/08, con la bici y el patinete juntos; los separó el motor, que
+  desde la casilla 3 les aplica **tres tablas de acceso legales distintas**. Son un **grupo de
+  radios** vestido de botones: seis pasan del rango del control segmentado —de 2 a 5 con
+  etiqueta—, y con radios el teclado sale de serie (una parada de tabulador para el grupo y
+  flechas entre las opciones).
 - **Mapa con la ruta**.
 - **Las indicaciones paso a paso**, debajo.
 
@@ -406,9 +414,15 @@ Con las dos arriba, en el navegador:
 > Cualquier otra —incluida `/visor`, que fue una página hasta el 22/08— cae en el buscador por
 > el comodín del router: ni pantalla en blanco ni 404.
 
-> ⚠️ **Solo hay rutas ANDANDO**, que es el modo que viene marcado al abrir. Con bus, bici o
-> coche la pantalla enseña el aviso del motor diciendo que ese modo todavía no se calcula — no
-> una ruta a pie disfrazada de otra cosa.
+> ⚠️ **Andando es el modo que viene marcado al abrir**, y las tres ruedas —bici privada, patín
+> y BiZi— dan ruta desde el 29/08. **Bus o tranvía y coche no**: ahí la pantalla dice que
+> todavía no se calcula, y no llega a preguntárselo al motor — nunca una ruta a pie disfrazada
+> de otra cosa.
+>
+> Los seis caben en una fila. Medido en Chrome sobre la página servida (30/08, sonda de
+> scratchpad por CDP): las seis opciones suman **567,2 px** y sus cinco huecos 40, o sea 607,2
+> de los **671 útiles** que quedan en una ventana de 760. Por debajo el grupo se dobla solo
+> —dos filas del mismo grupo, tres a 360 px— y **ninguna etiqueta se recorta ni se parte**.
 
 > ℹ️ **«Mi ubicación» solo funciona en `localhost`.** El navegador reserva la geolocalización a
 > los contextos seguros, y `localhost` cuenta como tal; si abres la interfaz por la IP de la
