@@ -63,10 +63,62 @@ export function normalizar(texto: string): string {
     .trim();
 }
 
+/**
+ * ⭐ LAS PALABRAS VACÍAS: las que NO deciden si una calle casa (30/08).
+ *
+ * Antonio escribió «rodrigo rebolledo» y no encontró **Calle Rodrigo de
+ * Rebolledo**, porque el casado pedía la consulta entera como subcadena
+ * literal y entre las dos palabras hay un ` de ` que nadie teclea. No es un
+ * caso raro: **1.076 de las 3.350 vías llevan partícula en medio**, y en
+ * **673** de ellas quitarla daba una consulta que no encontraba nada.
+ *
+ * [Pelias] el **`StopWordClassifier`** es una pieza con nombre propio de su
+ * analizador de consultas, listada entre sus *word classifiers* oficiales: el
+ * casado **no debe depender de la preposición**. El mecanismo es doctrina; la
+ * lista concreta en castellano es **[PROPIO declarado]**, y es corta a
+ * propósito — solo artículos, las dos preposiciones que de verdad aparecen en
+ * los nombres de calle, y la conjunción de los nombres dobles («Francisco
+ * Cantín **y** Gamboa»).
+ *
+ * ⚠️ **Vacía es «no decide», NO «no se enseña».** El nombre se pinta entero y
+ * sin tocar: «CALLE RODRIGO DE REBOLLEDO» se lee con su «de», porque lo que se
+ * normaliza es una copia para comparar y jamás el dato. Ver `Via.nombre`.
+ */
+export const PALABRAS_VACIAS: ReadonlySet<string> = new Set([
+  'de',
+  'del',
+  'la',
+  'las',
+  'los',
+  'el',
+  'y',
+]);
+
+/**
+ * El mismo texto sin las palabras que no deciden. Devuelve `''` si no queda
+ * nada, y ese vacío es significativo: ver la guarda de `buscar`.
+ *
+ * Se parte por espacios porque `normalizar` ya ha dejado el texto en
+ * minúsculas y sin acentos, y los nombres del callejero separan sus palabras
+ * con espacios simples. No se toca la puntuación: aquí no hay.
+ */
+export function sinVacias(norma: string): string {
+  return norma
+    .split(' ')
+    .filter((palabra) => palabra.length > 0 && !PALABRAS_VACIAS.has(palabra))
+    .join(' ');
+}
+
 /** Una vía sugerible, con su nombre normalizado guardado para no rehacerlo. */
 interface ViaIndexada {
   readonly via: Via;
   readonly norma: string;
+  /**
+   * ⭐ Y el mismo nombre **sin las partículas**, para que la preposición no
+   * esconda la calle. Se guarda hecho porque `buscar` recorre las 3.350 en
+   * cada tecla y el nombre de una vía no cambia en toda la vida del proceso.
+   */
+  readonly nucleoBuscable: string;
 }
 
 export interface CallejeroEnMemoria {
@@ -174,6 +226,7 @@ export function cargarCallejero(portales: PortalesEnMemoria): CallejeroEnMemoria
         portales: cuantos,
       },
       norma: normalizar(cruda.nombrePublico),
+      nucleoBuscable: sinVacias(normalizar(cruda.nombrePublico)),
     });
   }
   sugeribles.sort((a, b) => a.via.nombre.localeCompare(b.via.nombre, 'es'));
@@ -253,6 +306,12 @@ function metrosALaVia(callejero: CallejeroEnMemoria, via: string, foco: Foco): n
  * van primero, porque con un tope de 10 el orden alfabético a secas escondería
  * lo más obvio.
  *
+ * ── ⭐ Y LAS PARTÍCULAS NO DECIDEN (30/08) ──────────────────────────────────
+ *
+ * La subcadena sola pedía la consulta **entera y contigua**, así que «rodrigo
+ * rebolledo» no encontraba «Calle Rodrigo de Rebolledo». Desde hoy se compara
+ * también contra el nombre sin sus palabras vacías. Ver `PALABRAS_VACIAS`.
+ *
  * ── ⭐ EL FOCO (27/08), que completa el patrón ──────────────────────────────
  *
  * `foco` es **opcional** y es el punto del otro extremo, cuando ya está
@@ -290,11 +349,33 @@ export function buscar(
     return [];
   }
 
+  /**
+   * ⭐ LA CONSULTA SIN SUS PARTÍCULAS, y la guarda que la acompaña.
+   *
+   * ⚠️ Si lo escrito es **solo** palabras vacías —«de», «la», «de la»—, esto
+   * queda en blanco, y una cadena vacía es subcadena de todo: la puerta
+   * abierta al callejero entero. Por eso el camino de las vacías **solo se
+   * abre cuando queda algo**, y quien escriba «de» sigue teniendo la búsqueda
+   * literal de siempre con su tope de diez.
+   */
+  const nucleo = sinVacias(norma);
+  const usarNucleo = nucleo.length > 0;
+
   const casan: { readonly via: Via; readonly empieza: boolean }[] = [];
   for (const indexada of callejero.sugeribles) {
-    if (indexada.norma.startsWith(norma)) {
+    // ⭐ Los dos caminos, y el literal va primero: **este cambio solo AÑADE**.
+    // Lo que casaba ayer casa hoy exactamente igual y en la misma capa de
+    // orden; lo que se gana es la calle que la preposición escondía.
+    //
+    // Y una consulta de una sola palabra no puede cambiar de resultado por
+    // aquí: quitar vacías no crea letras nuevas ni junta palabras sin espacio,
+    // así que solo aparecen coincidencias **con espacio en medio**. Es la
+    // razón por la que «goya», «mayor» y «calle» dan lo mismo que ayer.
+    const empiezaLiteral = indexada.norma.startsWith(norma);
+    const empiezaNucleo = usarNucleo && indexada.nucleoBuscable.startsWith(nucleo);
+    if (empiezaLiteral || empiezaNucleo) {
       casan.push({ via: indexada.via, empieza: true });
-    } else if (indexada.norma.includes(norma)) {
+    } else if (indexada.norma.includes(norma) || (usarNucleo && indexada.nucleoBuscable.includes(nucleo))) {
       casan.push({ via: indexada.via, empieza: false });
     }
   }

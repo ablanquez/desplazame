@@ -70,6 +70,114 @@ describe('El callejero — el autocompletar de vías', () => {
     assert.ok(salen.every((v) => v.nombre.toLowerCase().includes('goya')));
   });
 
+  /**
+   * ⭐ LA PREPOSICIÓN NO ESCONDE LA CALLE (30/08).
+   *
+   * Antonio escribió «rodrigo rebolledo» y no encontró **Calle Rodrigo de
+   * Rebolledo**. El porqué, medido: `buscar` casaba por **subcadena contigua
+   * de la consulta entera**, espacios incluidos, y
+   * `'calle rodrigo de rebolledo'.includes('rodrigo rebolledo')` es `false` —
+   * entre las dos palabras hay un ` de ` que nadie teclea.
+   *
+   * No era un caso raro: **1.076 de las 3.350 vías llevan partícula en medio**,
+   * y en **673** quitarla da una consulta que no encontraba nada.
+   *
+   * [Pelias] el `StopWordClassifier` es una pieza con nombre propio de su
+   * analizador de consultas: **la preposición no decide el casado**. La lista
+   * concreta en castellano —de · del · la · las · los · el · y— es [PROPIO].
+   */
+  test('⭐ «rodrigo rebolledo» encuentra Rodrigo de Rebolledo', () => {
+    const salen = buscar(callejero, 'rodrigo rebolledo');
+    assert.ok(
+      salen.some((v) => v.nombre === 'CALLE RODRIGO DE REBOLLEDO'),
+      'la partícula de en medio estaba escondiendo la calle: ' + salen.map((v) => v.nombre).join(' | '),
+    );
+  });
+
+  /**
+   * ⭐ Y NO ES UN CASO SUELTO: la misma piedra con otra calle real.
+   *
+   * «Monasterio de Siresa» —la del sentido del 29 y 30 de agosto— tiene la
+   * partícula en el mismo sitio. Dos casos distintos de la misma clase, porque
+   * una juez con un solo ejemplo se arregla con un `if`.
+   */
+  test('⭐ «monasterio siresa» encuentra Monasterio de Siresa', () => {
+    const salen = buscar(callejero, 'monasterio siresa');
+    assert.ok(
+      salen.some((v) => v.nombre === 'CALLE MONASTERIO DE SIRESA'),
+      salen.map((v) => v.nombre).join(' | '),
+    );
+  });
+
+  /**
+   * ⭐ Y ESCRIBIENDO LA PARTÍCULA TAMBIÉN, que es como escribe media ciudad.
+   *
+   * ⚠️ Esto es la mitad que se olvida: hacer que las vacías no **decidan** no
+   * puede convertirlas en un estorbo. Quien las escribe tiene que encontrar
+   * exactamente lo mismo que quien no las escribe.
+   */
+  test('⭐ escribir la partícula sigue encontrando, y da lo mismo que sin ella', () => {
+    const con = buscar(callejero, 'rodrigo de rebolledo').map((v) => v.codigo);
+    const sin = buscar(callejero, 'rodrigo rebolledo').map((v) => v.codigo);
+    assert.ok(con.length > 0, 'con la partícula escrita tiene que encontrar');
+    assert.deepEqual(con, sin, 'escribir «de» o no escribirlo tiene que dar lo mismo');
+  });
+
+  /**
+   * ⭐ UNA CONSULTA SOLO DE VACÍAS NO ABRE LA PUERTA A TODO.
+   *
+   * ⚠️ El riesgo obvio del arreglo, y por eso tiene juez: si las vacías se
+   * quitan de la consulta, escribir «de» la dejaría **vacía**, y una consulta
+   * vacía casa con todo. Aquí «de» tiene que seguir comportándose como
+   * siempre —subcadena literal, con su tope de diez— y no convertirse en «dame
+   * el callejero entero».
+   */
+  test('⭐ una consulta SOLO de vacías no encuentra todo, pero SIGUE encontrando', () => {
+    // ⚠️ Esta juez nació floja y se apretó el mismo día. Decía «como mucho
+    // LIMITE» y «todas llevan de», y las dos cosas las cumple una lista
+    // VACÍA: con ella, mutar el arreglo para que el camino de las vacías
+    // SUSTITUYERA al literal —en vez de sumarse— dejaba las 22 en verde,
+    // porque «de» pasaba a no encontrar nada y nadie lo notaba. Lo que hay
+    // que comprar es que «de» siga dando exactamente lo de siempre.
+    for (const vacia of ['de', 'la', 'de la']) {
+      const salen = buscar(callejero, vacia);
+      assert.equal(salen.length, LIMITE, `«${vacia}» tiene que seguir llenando la lista`);
+    }
+    // Y lo que devuelve son vías que llevan «de» de verdad, no el callejero.
+    assert.ok(
+      buscar(callejero, 'de').every((v) => v.nombre.toLowerCase().includes('de')),
+      buscar(callejero, 'de').map((v) => v.nombre).join(' | '),
+    );
+    // La comprobación de fondo: NO casan las 3.350 — el tope corta de verdad.
+    assert.ok(callejero.sugeribles.length > LIMITE);
+  });
+
+  /**
+   * ⭐ Y LO SANO SIGUE SANO: una vía SIN partícula se encuentra igual.
+   *
+   * ⚠️ **Esta juez NO SE PUEDE PONER ROJA mutando el arreglo de hoy, y hay que
+   * decirlo aquí en vez de contarla como contraprueba.** Se intentó por los dos
+   * lados —metiendo «romeo» en `PALABRAS_VACIAS`, y borrando el camino literal
+   * para dejar solo el de las vacías— y las 22 siguieron en verde. La razón no
+   * es que la juez sea floja: es que **el cambio solo AÑADE**. El camino
+   * literal sigue intacto, así que lo que casaba ayer casa hoy; y una consulta
+   * sin partículas casa además por el otro camino, porque quitarle vacías a un
+   * nombre nunca le quita las palabras que la consulta sí trae. Están las dos
+   * puertas abiertas y hay que cerrar las dos para que se note.
+   *
+   * Se queda igualmente, y con la lista exacta: es el guardián del día en que
+   * alguien haga el casado **más estrecho** — ese día sí tendrá algo que decir.
+   */
+  test('⭐ una vía SIN partícula se sigue encontrando entera, y SOLA', () => {
+    // Lista exacta, no un `some`: así esta juez también caza la suciedad —si
+    // el camino de las vacías empezara a colar vías que no vienen a cuento,
+    // aquí aparecerían.
+    assert.deepEqual(
+      buscar(callejero, 'leopoldo romeo').map((v) => v.nombre),
+      ['CALLE LEOPOLDO ROMEO'],
+    );
+  });
+
   test('nunca más de LIMITE', () => {
     assert.equal(LIMITE, 10);
     assert.equal(buscar(callejero, 'calle').length, 10);
