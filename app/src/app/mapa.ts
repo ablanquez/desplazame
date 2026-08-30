@@ -67,26 +67,42 @@ const ANCLAJE: Readonly<Record<Clase, L.PointTuple>> = {
 };
 
 /**
- * ⭐ CÓMO SE VISTE CADA TRAMO (30/08). Dos estilos, **un solo color**.
+ * ⭐ CÓMO SE VISTE CADA TRAMO (30/08). Dos estilos que difieren **dos veces**:
+ * en el trazo y en el color.
  *
  * [DOC Leaflet] `dashArray` es la opción de `L.Path` para los patrones simples
  * de trazo, que es justo lo que hace falta: una raya y un hueco.
  *
  * [WCAG 1.4.1, *Use of Color*] el color no puede ser el único medio de
- * transmitir una información. Aquí se cumple por el camino corto: **el color no
- * transmite nada**, los dos tramos van del mismo, y lo único que los distingue
- * es el trazo. En blanco y negro se lee igual.
+ * transmitir una información. Aquí se cumple **de sobra**: el color distingue,
+ * sí, pero el trazo distingue también y por su cuenta. Quien no separe el ámbar
+ * del azul —o imprima esto en blanco y negro— sigue viendo un discontinuo y un
+ * sólido. Quítese cualquiera de los dos y el otro basta.
  *
  * ⚠️ **Y el a-pie conserva el vestido de HOY, al píxel.** La línea única de
- * antes de este encargo ya era `#b45309`, grosor 5 y `10 8` discontinuo, así
- * que una ruta a pie de las de siempre se pinta exactamente igual que ayer. Lo
- * que se estrena es el SÓLIDO del que va sobre ruedas. Ponerlo al revés
- * —discontinuo nuevo para el a-pie— habría cambiado el andando puro sin que
- * nadie lo hubiera pedido.
+ * antes ya era `#b45309`, grosor 5 y `10 8` discontinuo, así que una ruta a pie
+ * de las de siempre se pinta exactamente igual que ayer — y su juez de
+ * no-regresión lo vigila. Lo que se estrena es el vestido del que va sobre
+ * ruedas, no el del que anda.
+ *
+ * ── El azul, y por qué ESE azul ─────────────────────────────────────────────
+ *
+ * `#2563eb` [PROPIO, **firmado por Antonio el 30/08**: azul medio, «ni muy
+ * oscuro ni muy claro»]. El valor exacto sale de medir, no de elegir a ojo:
+ *
+ *   - Su **luminancia relativa es 0,1532**, y la del ámbar que ya lleva la casa
+ *     es **0,1591**. O sea: **el mismo peso visual**. Puestos uno al lado del
+ *     otro, ninguno pesa más que el otro, que es lo que «medio» quiere decir
+ *     aquí — un azul más oscuro (`#1d4ed8`, luminancia 0,1067) tira a marino y
+ *     uno más claro (`#3b82f6`, 0,2355) a celeste.
+ *   - **Contrasta 4,50 sobre la tierra de OSM** (`#f2efe9`) y 5,17 sobre la
+ *     calzada blanca, algo **mejor** que el propio ámbar (4,38 y 5,02), que ya
+ *     estaba aprobado y en uso. Sobre el agua (`#aad3df`) baja a 3,22, como le
+ *     pasa al ámbar (3,13) — y por ahí no va ninguna ruta.
  */
 const VESTIDO: Readonly<Record<TramoDelViaje['comoSeVa'], L.PolylineOptions>> = {
   andando: { color: '#b45309', weight: 5, dashArray: '10 8' },
-  rodando: { color: '#b45309', weight: 5 },
+  rodando: { color: '#2563eb', weight: 5 },
 };
 
 /**

@@ -185,14 +185,23 @@ describe('Mapa', () => {
   });
 
   /**
-   * ⭐ JUEZ 4 — LOS ESTILOS DIFIEREN POR TRAZO, no solo por color.
+   * ⭐ JUEZ 4 — LOS ESTILOS DIFIEREN DOS VECES: por trazo **y** por color.
    *
    * [WCAG 1.4.1, *Use of Color*] el color no puede ser el único medio para
-   * transmitir información. Aquí se cumple de sobra, y por el camino corto:
-   * **el color es el mismo en los dos** y lo único que los distingue es el
-   * trazo. Un daltónico y una impresión en blanco y negro ven lo mismo.
+   * transmitir información. Aquí se cumple **por partida doble**: el color
+   * separa, y el trazo separa también y por su cuenta. Un daltónico que no
+   * distinga el ámbar del azul sigue viendo un discontinuo y un sólido; una
+   * impresión en blanco y negro, igual. Quítese cualquiera de los dos y el
+   * otro basta — que es lo que la pauta pide de verdad.
+   *
+   * ⚠️ **Y aquí es donde los dos vestidos están clavados al píxel**, por valor
+   * exacto y no por «son distintos». Es lo que hace que mover cualquiera de
+   * los dos —el azul del rodando o, sobre todo, el ámbar del a-pie— ponga algo
+   * rojo. El `#2563eb` es el azul medio firmado por Antonio el 30/08; el
+   * `#b45309` con `10 8` es el vestido de siempre del que anda, que **no se
+   * toca**.
    */
-  it('⭐ 4 · a pie y rodando se distinguen por el TRAZO, con el mismo color', async () => {
+  it('⭐ 4 · a pie y rodando difieren en color Y en trazo, con los dos valores clavados', async () => {
     const fixture = TestBed.createComponent(Anfitrion);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -207,12 +216,24 @@ describe('Mapa', () => {
       color: p.getAttribute('stroke'),
       dash: p.getAttribute('stroke-dasharray'),
     }));
-    // Los tres del mismo color…
-    expect(new Set(trazos.map((t) => t.color)).size).toBe(1);
-    // …y dos trazos distintos: el discontinuo existe.
-    expect(new Set(trazos.map((t) => t.dash ?? '')).size).toBe(2);
-    // Y los DOS a pie llevan exactamente el mismo, que es el pedido literal.
-    expect(trazos[0]!.dash).toBe(trazos[2]!.dash);
+    // ⭐ EL A-PIE, AL PÍXEL: el ámbar de siempre y su discontinuo. Los dos
+    // paseos del viaje llevan EXACTAMENTE el mismo vestido, que es el pedido
+    // literal, y es el mismo que tenía la línea única antes de que existieran
+    // los tramos. Si esto se mueve, el andando puro ha cambiado.
+    for (const i of [0, 2]) {
+      expect(trazos[i]!.color).toBe('#b45309');
+      expect(trazos[i]!.dash).toBe('10 8');
+    }
+
+    // ⭐ Y EL RODANDO: el azul medio, sólido. `null` es «sin dashArray», que en
+    // Leaflet es la línea continua — no vale un dasharray vacío disfrazado.
+    expect(trazos[1]!.color).toBe('#2563eb');
+    expect(trazos[1]!.dash).toBe(null);
+
+    // Las dos separaciones, cada una por su cuenta: si mañana alguien igualara
+    // los colores, el trazo seguiría distinguiendo, y al revés.
+    expect(trazos[0]!.color).not.toBe(trazos[1]!.color);
+    expect(trazos[0]!.dash).not.toBe(trazos[1]!.dash);
   });
 
   /**
