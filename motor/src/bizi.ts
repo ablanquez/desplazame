@@ -281,6 +281,12 @@ export async function disponibilidadDeBiZi(): Promise<Disponibilidad | null> {
   } catch {
     // Red caída, DNS, TLS, tiempo agotado, JSON roto. Todos son lo mismo desde
     // aquí: la API no ha contestado, y la ruta sale igual.
+    //
+    // 🔴 **Y «JSON roto» incluye el cuerpo VACÍO, que se vio el 30/08 por la
+    // tarde**: la sede contestaba `200 OK` con `Content-Length: 0`, tres veces
+    // seguidas, cuando por la mañana devolvía 247.955 bytes. Un 200 no
+    // garantiza un cuerpo, así que `respuesta.ok` no basta y el `json()` es
+    // quien lo caza — lanzando aquí dentro, que es donde tiene que caer.
     return null;
   }
 }

@@ -14,6 +14,80 @@
 
 ---
 
+## [2026-08-30] 🔴 ABIERTA — El aviso que hace legales los hitos sin número no lo vigila NADIE: borrarlo de la pantalla deja las 175 pruebas en verde
+
+**Categoría:** guardián que no existe sobre una regla firmada
+
+**Síntoma:** Antonio ve en ruta viva `COLOSO 2 → LEOPOLDO ROMEO 27` en BiZi con
+los dos hitos **pelados** —«Coge una bici en la estación Tauromaquia», sin «N
+bicis disponibles a las HH:MM»— y reporta que **tampoco ve el aviso** de
+«disponibilidad no verificada», que es lo único que hace legales unos hitos sin
+número [plan D-G, firmado el 28/08].
+
+**Lo primero, el diagnóstico, y no es lo que parecía.** La API de la sede está
+contestando **`200 OK` con `Content-Length: 0`** — cuerpo vacío—, medido tres
+veces seguidas y también sin `?rows`:
+
+```
+$ curl -s -o /dev/null -w "http=%{http_code} bytes=%{size_download}\n" \
+    "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/estacion-bicicleta.json?rows=300"
+http=200 bytes=0
+http=200 bytes=0
+http=200 bytes=0
+```
+
+Dos horas antes devolvía **247.955 bytes**. Así que **el motor hizo lo correcto**
+—el `json()` sobre un cuerpo vacío lanza, `disponibilidadDeBiZi` devuelve `null`,
+el D-G salta— **y el aviso SÍ viaja en la respuesta y SÍ se pinta en pantalla**,
+comprobado por CDP sobre la página servida. **No hay regresión.**
+
+**El fallo es otro y es más callado: nada vigila que ese aviso se pinte.** Hasta
+las casillas 5 y 6 (30/08), `avisos` no vacío implicaba `pasos` vacío — un
+trayecto tenía ruta o tenía explicación, nunca las dos—. Desde el remate del
+aparcabicis y el modo BiZi **conviven**: la ruta sale y el aviso la matiza. Las
+tres pruebas que tocan avisos siguen siendo las de antes, las del caso sin ruta.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las **175** pruebas de la
+interfaz, con el aviso del motor **restringido a los trayectos sin pasos** — que
+es exactamente el estado en el que los hitos de BiZi saldrían sin número y sin
+una sola palabra que lo explicara:
+
+```
+$ cd app && npx ng test --watch=false
+# con `@if (r.trayecto.pasos.length === 0) { @for (aviso of r.trayecto.avisos) … }`
+ Test Files  11 passed (11)
+      Tests  175 passed (175)
+```
+
+Y borrando el bloque ENTERO sí caen tres —«el aviso del motor se enseña en ámbar,
+**y no se lista ningún paso**», el bus y el coche—: las tres compran el caso en el
+que **no hay ruta**. Ninguna compra el que sí la hay.
+
+**Cómo se cazó:** el ojo de Antonio sobre la ruta viva, y después la mutación
+exacta. Reproducir el síntoma llevó a que el sistema estaba bien; mutar el
+guardián enseñó que el sistema estaba bien **por casualidad**.
+
+⚠️ **Y un dato mío que hay que corregir de paso:** la sonda de Chrome con la que
+escribí el checkpoint de las casillas 5-6 buscaba los avisos por
+`.aviso, .pasos__aviso, .ruta__aviso`, y la clase de verdad es **`.aviso-ruta`**.
+Así que cuando aquel checkpoint decía que las rutas de bici, patín y BiZi salían
+«sin AVISO», **no es que no los hubiera: es que el instrumento no podía verlos**.
+
+**Causa raíz:** ⏳ PENDIENTE
+
+**Arreglo aplicado:** ⏳ PENDIENTE
+
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** ⏳ PENDIENTE
+
+**Traza:** `app/src/app/buscador.html` (el `@for` de `r.trayecto.avisos` dentro
+del `@if (resultado(); as r)`) · `app/src/app/buscador.spec.ts` (las tres pruebas
+de aviso, todas con `pasos: []`) · `motor/src/viaje-bizi.ts` (el aviso del D-G) ·
+`motor/src/bizi.ts` (`disponibilidadDeBiZi`, el `catch` que devuelve `null`).
+
+---
+
 ## [2026-08-27] ✅ CERRADA — La dirección nombra una calle que no es la suya, y el emparejador casa con la homónima de la ciudad a 7,6 km
 
 **Categoría:** falso positivo de geocodificación por topónimo parcial

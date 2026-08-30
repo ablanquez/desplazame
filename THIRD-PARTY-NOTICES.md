@@ -1951,6 +1951,14 @@ pública] separa exactamente por ahí: `station_information` es estático y `sta
 > mira. Con él, ninguna estación pasaría el filtro y **no habría ni una ruta de BiZi**: está
 > puesto por escrito en la juez 6 bis de `motor/src/bizi.spec.ts`, que nació de esa contraprueba.
 
+> 🔴 **Y el mismo 30/08, por la tarde, dejó de contestar: `200 OK` con
+> `Content-Length: 0`.** Cuerpo vacío, medido tres veces seguidas y también sin
+> `?rows`, cuando cuatro horas antes devolvía 247.955 bytes. **Un 200 no
+> garantiza un cuerpo**, y por eso el lector no se fía del código de estado: el
+> `json()` sobre el vacío lanza, se recoge, y la ruta sale por el plan D-G con
+> su aviso. Es la única vez que se ha visto, y queda escrito porque la próxima
+> vez que alguien mire este servicio conviene que sepa que puede pasar.
+
 > ⚠️ **Y una estación en `MAINTENANCE` puede venir SIN los campos de disponibilidad.** El 30/08,
 > la 276 (`Acuario Zaragoza`) llegaba sin `bicisDisponibles`, sin `anclajesDisponibles` y sin
 > `description`. Leerlos con un `?? 0` diría «no quedan bicis»; lo que pasa es que **no se sabe**,

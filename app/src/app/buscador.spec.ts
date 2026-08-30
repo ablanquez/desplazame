@@ -416,6 +416,50 @@ const VIAJE_EN_BIZI: Trayecto = {
   ],
 };
 
+/**
+ * ⭐ EL MISMO VIAJE EN BiZi, PERO CON LA API DE LA SEDE CALLADA (30/08).
+ *
+ * Es la respuesta **real** de ese día: la sede contestaba `200 OK` con
+ * `Content-Length: 0` —cuerpo vacío— y el plan D-G saltó como está firmado:
+ * la ruta sale con el inventario, los hitos van **sin número y sin hora**, y un
+ * aviso dice que la disponibilidad no está verificada.
+ *
+ * ⚠️ **Lo que hace legales unos hitos pelados es ese aviso.** Sin él, la
+ * pantalla estaría diciendo «coge una bici aquí» sin decir que no sabe si hay
+ * ninguna. Por eso este fixture existe: para que haya algo que se ponga rojo si
+ * el aviso deja de pintarse. Ver la entrada del 30/08 de `docs/BITACORA.md`.
+ */
+const VIAJE_EN_BIZI_A_CIEGAS: Trayecto = {
+  ...VIAJE_EN_BIZI,
+  pasos: VIAJE_EN_BIZI.pasos.map((p) =>
+    p.giro === 'coge'
+      ? paso('coge', 0, accion('Coge'), llano(' una bici en la estación '), via('Tauromaquia'))
+      : p.giro === 'aparca'
+        ? paso('aparca', 0, accion('Deja'), llano(' la bici en la estación '), via('Mrio. Siresa: Dr. Iranzo'))
+        : p,
+  ),
+  avisos: [
+    { texto: 'No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.' },
+  ],
+};
+
+/**
+ * ⭐ Y una ruta de BICI con su aviso: el destino sin aparcabicis cerca.
+ *
+ * El otro caso de la misma clase — desde las casillas 5 y 6, un trayecto puede
+ * traer **ruta Y aviso a la vez**, y hasta entonces no podía.
+ */
+const SIN_APARCABICIS_CERCA: Trayecto = {
+  ...POR_LA_AVENIDA_DE_MADRID,
+  avisos: [
+    {
+      texto:
+        'El aparcabicis más cercano a CALLE SAN MARCOS [TORRECILLA DE VALMADRID] 2 está a ' +
+        '11.641 m, más de los 500 que tiene sentido andar: la ruta llega hasta la puerta.',
+    },
+  ],
+};
+
 /** Rellena los cuatro campos por el camino de una persona, y deja listo el botón. */
 async function direccionEntera(fixture: any, http: HttpTestingController): Promise<void> {
   await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
@@ -1694,6 +1738,61 @@ describe('Buscador', () => {
     expect(duracion).toContain('18 km/h');
     expect(duracion).toContain('de crucero');
     expect(duracion).not.toContain('a 5 km/h');
+  });
+
+  /**
+   * ⭐ UN AVISO QUE CONVIVE CON UNA RUTA TAMBIÉN SE ENSEÑA (30/08).
+   *
+   * ⚠️ **Esta juez sale de una zona sin vigilar, cazada con una mutación.**
+   * Hasta las casillas 5 y 6, un trayecto tenía ruta **o** tenía aviso, nunca
+   * las dos cosas: las tres pruebas de aviso que había —la del motor sin ruta,
+   * el bus y el coche— compran todas el caso de `pasos: []`. Desde el remate
+   * del aparcabicis y el modo BiZi **conviven**, y nadie lo vigilaba: poniendo
+   * el bloque de avisos dentro de un `@if (pasos.length === 0)`, **las 175
+   * pruebas seguían en verde** y el aviso del plan D-G desaparecía de la
+   * pantalla sin que nada lo dijera.
+   *
+   * Lo que se perdía no es un adorno: **es lo único que hace legales unos hitos
+   * sin número**. «Coge una bici en la estación Tauromaquia» sin decir cuántas
+   * hay ni que no se ha podido preguntar es prometer lo que no se sabe.
+   *
+   * Los dos casos de esta clase, en la misma juez porque es el mismo hueco: el
+   * D-G del BiZi y el «no hay aparcabicis cerca» de la bici.
+   */
+  it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    // ── El D-G del BiZi: hay ruta, hay hitos, y hay que decir que se va a ciegas.
+    elegirModo(fixture, 'BiZi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
+    await fixture.whenStable();
+
+    const avisos = () =>
+      Array.from(raiz.querySelectorAll('.aviso-ruta')).map((a) => (a.textContent ?? '').trim());
+    expect(raiz.querySelectorAll('.paso').length).toBeGreaterThan(0);
+    expect(avisos()).toContain(
+      'No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.',
+    );
+    // Y los hitos, pelados: es lo que el aviso está explicando.
+    const textos = Array.from(raiz.querySelectorAll('.paso__texto')).map((p) =>
+      (p.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    expect(textos).toContain('Coge una bici en la estación Tauromaquia');
+
+    // ── Y el otro de la misma clase: la bici sin aparcabicis cerca.
+    elegirModo(fixture, 'Bici privada');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => SIN_APARCABICIS_CERCA);
+    await fixture.whenStable();
+
+    expect(raiz.querySelectorAll('.paso').length).toBeGreaterThan(0);
+    expect(avisos().join(' ')).toContain('la ruta llega hasta la puerta');
   });
 
   /**
