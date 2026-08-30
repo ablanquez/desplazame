@@ -21,6 +21,7 @@ import { metrosEntre } from './cercano.ts';
 import { cargarRedDeLaRueda } from './red-rueda.ts';
 import { entornoDe } from './gacetero.ts';
 import { cargarAparcabicis } from './aparcabicis.ts';
+import { cargarBiZi } from './bizi.ts';
 
 let motor: Motor;
 
@@ -60,6 +61,7 @@ describe('El trayecto', () => {
       rejillaRueda: cargarRejilla(redRueda),
       cuadernoRueda: cuadernoPara(redRueda),
       aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
+      bizi: cargarBiZi(entornoDe(portales)),
     };
   });
 
@@ -613,6 +615,7 @@ describe('⭐ Una VÍA SIN PORTAL, de punta a punta (27/08)', () => {
       rejillaRueda: cargarRejilla(redRueda),
       cuadernoRueda: cuadernoPara(redRueda),
       aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
+      bizi: cargarBiZi(entornoDe(portales)),
     };
   });
 

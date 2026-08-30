@@ -82,10 +82,11 @@ export type Vertice = readonly [number, number];
  * `salida` y `llegada` no son giros: son el primer paso y el último, que en el
  * formato de Google llevan icono propio.
  *
- * ⭐ **Y desde el 30/08 hay uno más que tampoco es un giro: `aparca`.** Es el
- * HITO de un trayecto que cambia de vehículo por el camino —dejar la bici en el
- * aparcabicis y seguir a pie—, y el contrato crece porque el motor lo pide: la
- * casilla 5 parte la ruta de la bici en tres tramos.
+ * ⭐ **Y desde el 30/08 hay dos más que tampoco son giros: `coge` y `aparca`.**
+ * Son los HITOS de un trayecto que cambia de vehículo por el camino — dejar la
+ * bici en el aparcabicis y seguir a pie, coger una BiZi en su estación, dejarla
+ * en la de destino—, y el contrato crece porque el motor lo pide: la casilla 5
+ * parte la ruta de la bici en tres tramos y la 6 hace lo mismo con la BiZi.
  *
  * [DOC OSRM] su respuesta lleva un **campo `mode` por paso** y el cambio de
  * modo es un paso propio, con una suite entera *«de todos los empujes y cambios
@@ -107,7 +108,9 @@ export type Giro =
   | 'cerrada-izquierda'
   | 'izquierda'
   | 'ligera-izquierda'
-  /** Se deja el vehículo: la bici propia, en el aparcabicis. */
+  /** Se coge el vehículo: la BiZi de su estación. Empieza a rodar. */
+  | 'coge'
+  /** Se deja: la bici propia en el aparcabicis, la BiZi en su anclaje. */
   | 'aparca'
   | 'llegada';
 

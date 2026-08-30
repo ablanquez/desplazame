@@ -742,10 +742,11 @@ const COMO_SE_DICE: Readonly<Record<Giro, string>> = {
   'cerrada-izquierda': 'Gira bruscamente a la izquierda',
   izquierda: 'Gira a la izquierda',
   'ligera-izquierda': 'Gira ligeramente a la izquierda',
-  // ⭐ El hito. No es un giro y no se usa por esta tabla —el texto entero lo
-  // compone quien monta el trayecto de varios tramos, que es el único que sabe
-  // cuántos anclajes tiene el soporte—, pero está porque el `Record` lo exige
-  // y porque un hueco aquí sería un hueco que nadie ve.
+  // ⭐ Los dos hitos. No son giros y no se usan por esta tabla —el texto entero
+  // lo compone quien monta el trayecto de varios tramos, que es el único que
+  // sabe cuántas bicis quedan y a qué hora—, pero están porque el `Record` los
+  // exige y porque un hueco aquí sería un hueco que nadie ve.
+  coge: 'Coge',
   aparca: 'Aparca',
   llegada: 'Has llegado',
 };

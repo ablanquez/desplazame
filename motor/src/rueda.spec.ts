@@ -27,6 +27,7 @@ import { cargarCallejero } from './callejero.ts';
 import { cargarSitios } from './sitios.ts';
 import { entornoDe } from './gacetero.ts';
 import { cargarAparcabicis } from './aparcabicis.ts';
+import { cargarBiZi } from './bizi.ts';
 import { calcularRuta, cuadernoPara, geometriaDe, type Cuaderno, type Ruta } from './ruta.ts';
 import { escribirPasos } from './pasos.ts';
 import { admiteComoPuerta, calcularRutaRodando, segundosRodando } from './rodando.ts';
@@ -125,6 +126,7 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
       redRueda: rueda,
       rejillaRueda,
       aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
+      bizi: cargarBiZi(entornoDe(portales)),
       cuadernoRueda: cuaderno,
     };
   });
@@ -451,14 +453,21 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
       Math.abs(razon - esperada) < 1e-6,
       `razón ${razon.toFixed(6)}, esperaba ${esperada.toFixed(6)}`,
     );
-    // Y de punta a punta, con el redondeo del contrato.
+    // ⚠️ **Y de punta a punta ya NO son 1.870 m**, desde la casilla 6: un
+    // trayecto de BiZi son tres tramos —andar a la estación, pedalear a la
+    // otra, andar el resto— y mide **2.382 m en 589 s**. La razón 20/18 que
+    // esta juez mide vive en el tramo que se pedalea, que es el que se acaba
+    // de comprobar arriba; aquí solo se fija que el viaje entero existe, es más
+    // largo que el pedaleo pelado, y lleva sus dos hitos.
     const t = calcularTrayecto(motor, {
       origen: extremo('Portales.122563'),
       destino: extremo('Portales.124841'),
       modo: 'bizi',
     });
-    assert.equal(t.metros, 1870);
-    assert.equal(t.segundos, 337);
+    assert.equal(t.metros, 2382);
+    assert.equal(t.segundos, 589);
+    assert.equal(t.pasos.filter((p) => p.giro === 'coge').length, 1);
+    assert.equal(t.pasos.filter((p) => p.giro === 'aparca').length, 1);
   });
 
   /**

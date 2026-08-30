@@ -42,12 +42,13 @@ import { IconoCapa, type Clase } from './iconos';
  * `Record<Giro, string>` no es adorno de tipos: **obliga a que estén todos**.
  * Si el motor añadiera un giro al contrato, esta tabla dejaría de compilar en
  * vez de pintar un hueco en blanco. **Y cumplió el 30/08**: al partirse la ruta
- * de la bici en tres tramos entró `aparca`, y lo primero que se puso rojo fue
- * esta línea.
+ * de la bici en tres tramos entraron `coge` y `aparca`, y lo primero que se
+ * puso rojo fue esta línea.
  *
- * ⭐ El hito no es un giro y no lleva flecha: lleva **la señal de lo que pasa
- * ahí**. `aparca` es la `P` de aparcamiento encerrada (`🅿`), que es el símbolo
- * que está en la calle. Es un carácter, como el resto — sin dependencias.
+ * ⭐ Los dos hitos no son giros y no llevan flecha: llevan **la señal de lo que
+ * pasa ahí**. `aparca` es la `P` de aparcamiento encerrada (`🅿`), que es el
+ * símbolo que está en la calle; `coge` es la bicicleta (`🚲`), el vehículo que
+ * se toma. Son caracteres, como el resto — sin dependencias.
  */
 const FLECHAS: Readonly<Record<Giro, string>> = {
   salida: '◉',
@@ -59,6 +60,7 @@ const FLECHAS: Readonly<Record<Giro, string>> = {
   'cerrada-izquierda': '⬐',
   izquierda: '↰',
   'ligera-izquierda': '↖',
+  coge: '🚲',
   aparca: '🅿',
   llegada: '⚑',
 };
@@ -95,7 +97,6 @@ const FLECHAS: Readonly<Record<Giro, string>> = {
 const VELOCIDAD_DICHA: Readonly<Record<Modo, string | null>> = {
   andando: 'a 5 km/h',
   bici: 'pedaleando a 18 km/h de crucero',
-  // La BiZi lleva otra velocidad —20— porque su calibrado es otro.
   bizi: 'pedaleando a 20 km/h de crucero',
   // El patín no se pedalea: se circula. La velocidad es la misma que la bici.
   patin: 'a 18 km/h de crucero',

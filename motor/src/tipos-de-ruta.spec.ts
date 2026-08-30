@@ -41,6 +41,7 @@ import { cargarCallejero } from './callejero.ts';
 import { cargarSitios } from './sitios.ts';
 import { entornoDe } from './gacetero.ts';
 import { aparcabicisCercanos, cargarAparcabicis } from './aparcabicis.ts';
+import { cargarBiZi } from './bizi.ts';
 import { calcularRuta, cuadernoPara, type Ruta } from './ruta.ts';
 import { admiteComoPuerta, calcularRutaRodando, segundosRodando } from './rodando.ts';
 import { FACTOR_DE_TRAFICO, calibradoDe, type ModoDeRueda } from './rueda.ts';
@@ -177,6 +178,7 @@ describe('⭐ EL SELECTOR DE RUTA (30/08)', () => {
       rejillaRueda,
       cuadernoRueda: cuadernoPara(rueda),
       aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
+      bizi: cargarBiZi(entornoDe(portales)),
     };
   });
 

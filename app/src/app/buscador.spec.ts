@@ -306,10 +306,10 @@ const RODEANDO_LA_AVENIDA_DE_MADRID: Trayecto = {
 /**
  * ⭐ TODOS los giros del contrato, en el orden en que están declarados.
  *
- * Eran diez y **son once desde el 30/08**: el hito `aparca` entró con el remate
- * del aparcabicis. La lista se escribe a mano a propósito: si el contrato
- * creciera y esta lista no, la juez de las flechas dejaría de cubrir el giro
- * nuevo sin que nada se pusiera rojo.
+ * Eran diez y **son doce desde el 30/08**: los dos hitos —`aparca` con el
+ * remate del aparcabicis y `coge` con el modo BiZi—. La lista se escribe a mano
+ * a propósito: si el contrato creciera y esta lista no, la juez de las flechas
+ * dejaría de cubrir el giro nuevo sin que nada se pusiera rojo.
  */
 const TODOS_LOS_GIROS: readonly Giro[] = [
   'salida',
@@ -321,6 +321,7 @@ const TODOS_LOS_GIROS: readonly Giro[] = [
   'cerrada-izquierda',
   'izquierda',
   'ligera-izquierda',
+  'coge',
   'aparca',
   'llegada',
 ];
@@ -360,6 +361,35 @@ const VIAJE_CON_REMATE: Trayecto = {
   avisos: [],
   metros: 4587,
   segundos: 970,
+};
+
+/**
+ * ⭐ UN VIAJE EN BiZi de tres tramos, con sus DOS hitos (30/08).
+ *
+ * Es la forma que el motor devuelve desde la casilla 6: se anda hasta una
+ * estación que tenga bicis, se pedalea hasta otra que tenga anclajes libres, y
+ * se anda el resto. Los textos son los de la ruta real `COLOSO 2 → LEOPOLDO
+ * ROMEO 27` leída en Chrome el 30/08 a las 12:57, con el dato vivo dentro.
+ */
+const VIAJE_EN_BIZI: Trayecto = {
+  modo: 'bizi',
+  pasos: [
+    paso('salida', 30, accion('Sal de'), llano(' '), via('Calle El Coloso 2'), llano(' y dirígete hacia el este')),
+    paso('izquierda', 97, accion('Gira a la izquierda'), llano(' hacia '), via('Avenida de la Academia General Militar')),
+    paso('coge', 0, accion('Coge'), llano(' una bici en la estación '), via('Tauromaquia'), llano(' — 11 bicis disponibles a las 12:57')),
+    paso('salida', 610, accion('Pedalea'), llano(' hacia el sur por '), via('Avenida Academia General Militar')),
+    paso('recto', 1200, accion('Continúa'), llano(' hacia el carril bici de '), via('Avenida San Juan de la Peña')),
+    paso('aparca', 0, accion('Deja'), llano(' la bici en la estación '), via('Mrio. Siresa: Dr. Iranzo'), llano(' — 16 anclajes libres a las 12:57')),
+    paso('salida', 64, accion('Sigue a pie'), llano(' hacia el oeste por '), via('Calle Monasterio de Siresa')),
+    paso('llegada', 0, via('Calle Leopoldo Romeo 27'), llano(' está a la izquierda')),
+  ],
+  geometria: [
+    [41.6661, -0.8773],
+    [41.6461, -0.8673],
+  ],
+  avisos: [],
+  metros: 4800,
+  segundos: 1020,
 };
 
 /** Rellena los cuatro campos por el camino de una persona, y deja listo el botón. */
@@ -1179,8 +1209,8 @@ describe('Buscador', () => {
     expect(flechas.length).toBe(TODOS_LOS_GIROS.length);
     expect(flechas.every((f) => f !== '')).toBe(true);
     expect(new Set(flechas).size).toBe(TODOS_LOS_GIROS.length);
-    // Y son once desde el 30/08: el hito entró con el remate del aparcabicis.
-    expect(TODOS_LOS_GIROS.length).toBe(11);
+    // Y son doce desde el 30/08: los dos hitos, el del remate y el de la BiZi.
+    expect(TODOS_LOS_GIROS.length).toBe(12);
   });
 
   /**
@@ -1222,6 +1252,46 @@ describe('Buscador', () => {
     expect(textos).toContain('Aparca en el aparcabicis de Calle Monasterio de la Rábida — 5 anclajes');
     const k = VIAJE_CON_REMATE.pasos.findIndex((p) => p.giro === 'aparca');
     expect(raiz.querySelectorAll('.paso')[k]!.querySelector('.paso__metros')).toBeNull();
+  });
+
+  /**
+   * ⭐ LOS DOS HITOS DE LA BiZi SE LEEN ENTEROS, con su cifra y su hora.
+   *
+   * Un viaje en BiZi tiene TRES pasos de `salida` —uno por tramo— y sigue
+   * teniendo **una sola chincheta de origen**. Y los dos hitos llevan lo que el
+   * motor midió: el nombre de la estación, cuántas bicis o anclajes había, y la
+   * hora del dato de ESA estación [GBFS: `last_reported` va por estación].
+   */
+  it('⭐ el viaje en BiZi enseña sus dos hitos y una sola chincheta', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    elegirModo(fixture, 'BiZi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI);
+    await fixture.whenStable();
+
+    const salidas = VIAJE_EN_BIZI.pasos.filter((p) => p.giro === 'salida').length;
+    expect(salidas).toBe(3);
+    const capas = Array.from(raiz.querySelectorAll('.pasos__lista .paso__capa'));
+    const conIcono = capas.filter((c) => c.querySelector('app-icono-capa') !== null);
+    expect(conIcono.length).toBe(2);
+    expect(capas.indexOf(conIcono[0]!)).toBe(0);
+    expect(capas.indexOf(conIcono[1]!)).toBe(capas.length - 1);
+
+    const textos = Array.from(raiz.querySelectorAll('.paso__texto')).map((p) =>
+      (p.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    expect(textos).toContain('Coge una bici en la estación Tauromaquia — 11 bicis disponibles a las 12:57');
+    expect(textos).toContain('Deja la bici en la estación Mrio. Siresa: Dr. Iranzo — 16 anclajes libres a las 12:57');
+    // Ninguno de los dos abre tramo, así que ninguno lleva metros.
+    for (const giro of ['coge', 'aparca'] as const) {
+      const k = VIAJE_EN_BIZI.pasos.findIndex((p) => p.giro === giro);
+      expect(raiz.querySelectorAll('.paso')[k]!.querySelector('.paso__metros')).toBeNull();
+    }
   });
 
   it('la cabecera dice de dónde a dónde, cuánto, y el tiempo COMO DERIVADO', async () => {

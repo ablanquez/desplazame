@@ -30,6 +30,7 @@ import { entornoDe } from './gacetero.ts';
 import { calcularRuta, cuadernoPara } from './ruta.ts';
 import { admiteComoPuerta, calcularRutaRodando, segundosRodando } from './rodando.ts';
 import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
+import { cargarBiZi } from './bizi.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
 import { VELOCIDAD_MS } from './etapas.ts';
 import type { ModoDeRueda } from './rueda.ts';
@@ -123,6 +124,7 @@ describe('⭐ EL REMATE DEL APARCABICIS (30/08)', () => {
       rejillaRueda: cargarRejilla(rueda),
       cuadernoRueda: cuadernoPara(rueda),
       aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
+      bizi: cargarBiZi(entornoDe(portales)),
     };
   });
 

@@ -38,6 +38,7 @@ import { cargarCallejero } from './callejero.ts';
 import { cargarSitios } from './sitios.ts';
 import { entornoDe } from './gacetero.ts';
 import { cargarAparcabicis } from './aparcabicis.ts';
+import { cargarBiZi } from './bizi.ts';
 import { cuadernoPara } from './ruta.ts';
 import { admiteComoPuerta, calcularRutaRodando, segundosDe } from './rodando.ts';
 import { VELOCIDAD_EMPUJANDO_KMH, VELOCIDAD_KMH } from './rueda.ts';
@@ -127,6 +128,7 @@ describe('⭐ EL EMPUJE (30/08)', () => {
       rejillaRueda,
       cuadernoRueda: cuadernoPara(rueda),
       aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
+      bizi: cargarBiZi(entornoDe(portales)),
     };
   });
 

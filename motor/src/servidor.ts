@@ -25,6 +25,7 @@ import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
 import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
+import { cargarBiZi, disponibilidadDeBiZi } from './bizi.ts';
 import { cargarSitios, sugerirSitios } from './sitios.ts';
 import { UMBRAL_DE_DESVIO_M, entornoDe } from './gacetero.ts';
 import { portalCercano } from './cercano.ts';
@@ -368,6 +369,21 @@ console.log(
     `sin coordenada ${aparcabicis.sinCoordenada} · fuera del entorno ${aparcabicis.fueraDelEntorno}`,
 );
 
+// ⭐ LAS ESTACIONES BiZi (30/08, casilla 6): el INVENTARIO, que no caduca. La
+// disponibilidad se pide en cada ruta y no se guarda: ver el manejador.
+console.log('motor: cargando las estaciones BiZi…');
+const bizi = cargarBiZi(entorno);
+console.log(
+  `motor: BiZi — ${bizi.estaciones.length} estaciones · ${bizi.anclajes} anclajes · ` +
+    `sin coordenada ${bizi.sinCoordenada} · fuera del entorno ${bizi.fueraDelEntorno} · ` +
+    `${bizi.cargadoEnMs.toFixed(0)} ms`,
+);
+console.log(
+  'motor:   la disponibilidad NO se carga aquí: se pregunta a la API de la sede en cada ' +
+    'ruta de BiZi [GBFS: station_status es dinámico], y si calla se rutea con el inventario ' +
+    'y se avisa',
+);
+
 /** Todo lo que hace falta para contestar una ruta, junto. */
 const motor: Motor = {
   red,
@@ -385,6 +401,7 @@ const motor: Motor = {
   // indexados por nodo, y la red de la rueda tiene sus propios nodos.
   cuadernoRueda: cuadernoPara(redRueda),
   aparcabicis,
+  bizi,
 };
 
 const usoMemoria = process.memoryUsage();
@@ -572,18 +589,32 @@ const servidor = createServer((peticion, respuesta) => {
       }
     });
     peticion.on('end', () => {
-      if (pasado) {
-        return;
-      }
-      // Un cuerpo que no es JSON no es un error del servidor: es una petición
-      // que no dice nada, y se contesta con el trayecto vacío que lo explica.
-      let crudo: unknown = null;
-      try {
-        crudo = JSON.parse(cuerpo);
-      } catch {
-        crudo = null;
-      }
-      json(200, calcularTrayecto(motor, leerPeticion(crudo)));
+      void (async () => {
+        if (pasado) {
+          return;
+        }
+        // Un cuerpo que no es JSON no es un error del servidor: es una petición
+        // que no dice nada, y se contesta con el trayecto vacío que lo explica.
+        let crudo: unknown = null;
+        try {
+          crudo = JSON.parse(cuerpo);
+        } catch {
+          crudo = null;
+        }
+        const leida = leerPeticion(crudo);
+        // ⭐ LA CONSULTA VIVA, **en cada ruta de BiZi y solo ahí** (30/08).
+        //
+        // [DOC GBFS] `station_status` es el feed dinámico y se consume en vivo;
+        // [DOC OTP] filtra las estaciones por disponibilidad en el momento de
+        // planificar. Guardarla entre peticiones sería contestar con un número
+        // que ya no es cierto — y el número es justo lo que se enseña.
+        //
+        // Va aquí y no dentro del motor a propósito: **el motor sigue siendo
+        // síncrono**. Una ruta a pie no tiene por qué esperar a una red, y las
+        // jueces pueden pasar una disponibilidad de mentira sin tocar internet.
+        const vivo = leida?.modo === 'bizi' ? await disponibilidadDeBiZi() : null;
+        json(200, calcularTrayecto(motor, leida, vivo));
+      })();
     });
     return;
   }

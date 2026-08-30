@@ -29,6 +29,7 @@ import type { PortalesEnMemoria, PortalSituado } from './portales.ts';
 import type { RedEnMemoria } from './red.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
 import type { AparcabicisEnMemoria } from './aparcabicis.ts';
+import type { BiZiEnMemoria, Disponibilidad } from './bizi.ts';
 import { enganchar, type Enganche, type Rejilla } from './proyeccion.ts';
 import { calcularRuta, geometriaDe, type Cuaderno, type Ruta } from './ruta.ts';
 import {
@@ -45,6 +46,7 @@ import {
   remataEnAparcabicis,
   type Extremo,
 } from './etapas.ts';
+import { viajeEnBiZi } from './viaje-bizi.ts';
 
 /**
  * Los modos que hoy sabe calcular el motor. **Cuatro desde el 29/08**: al
@@ -100,6 +102,12 @@ export interface Motor {
    * red obligaría a levantarla otra vez cada vez que el inventario cambie.
    */
   readonly aparcabicis: AparcabicisEnMemoria;
+  /**
+   * ⭐ El inventario de estaciones BiZi (§ 1.8). **Solo el inventario**: la
+   * disponibilidad en vivo no vive aquí ni puede, porque cambia cada minuto.
+   * Se pide en cada ruta y viaja como parámetro. Ver `bizi.ts`.
+   */
+  readonly bizi: BiZiEnMemoria;
 }
 
 /**
@@ -199,8 +207,28 @@ function resolverExtremo(motor: Motor, extremo: ExtremoDeRuta): Extremo | Aviso 
 const esAvisoExtremo = (x: Extremo | Aviso): x is Aviso =>
   (x as Aviso).texto !== undefined && (x as Extremo).lon === undefined;
 
-/** Calcula el trayecto. Nunca lanza. */
-export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null): Trayecto {
+/**
+ * Calcula el trayecto. Nunca lanza.
+ *
+ * ⭐ `vivo` es la disponibilidad de las estaciones BiZi **que ya ha pedido
+ * quien llama**, o `null` si la API calló. Se recibe y no se pide, por dos
+ * razones que van juntas:
+ *
+ * 1. **Esto sigue siendo síncrono.** Pedirla aquí obligaría a hacer `async`
+ *    toda la cadena —incluidas las rutas a pie, que no tienen nada que ver con
+ *    el BiZi— y a que cada prueba del peatón esperara a una red.
+ * 2. **Se puede mentir a propósito.** Las jueces de la estación vacía y de la
+ *    API caída pasan una disponibilidad de mentira, que es la única forma de
+ *    probar el filtro sin depender de cuántas bicis haya hoy en la calle.
+ *
+ * `undefined` y `null` valen lo mismo: nadie preguntó, o preguntó y no hubo
+ * respuesta. En los dos casos la ruta sale con el aviso de D-G.
+ */
+export function calcularTrayecto(
+  motor: Motor,
+  peticion: PeticionDeRuta | null,
+  vivo?: Disponibilidad | null,
+): Trayecto {
   if (!peticion) {
     return conAviso(
       'andando',
@@ -242,6 +270,19 @@ export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null):
   // este punto **el peatón no vuelve a cruzarse con la rueda**. Ni comparte
   // red, ni rejilla, ni cuaderno, ni una línea de este fichero: lo de abajo es
   // exactamente lo que había el 28/08.
+  // ⭐ EL BiZi VA POR SU CAMINO (30/08, casilla 6): no es una ruta, son tres
+  // tramos con dos estaciones por el medio, y la elección de esas estaciones
+  // depende de un dato que ni siquiera está en este proceso.
+  if (modo === 'bizi') {
+    return viajeEnBiZi(
+      motor,
+      origen,
+      destino,
+      peticion.ruta,
+      empujeDe('bizi', motor.redRueda),
+      vivo ?? null,
+    );
+  }
   if (esDeLaRueda(modo)) {
     return trayectoRodando(motor, modo, origen, destino, peticion.ruta);
   }

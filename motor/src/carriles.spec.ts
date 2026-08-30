@@ -46,6 +46,7 @@ import { cargarCallejero } from './callejero.ts';
 import { cargarSitios } from './sitios.ts';
 import { entornoDe } from './gacetero.ts';
 import { cargarAparcabicis } from './aparcabicis.ts';
+import { cargarBiZi } from './bizi.ts';
 import { cuadernoPara } from './ruta.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
 import type { Paso, Trayecto } from '@desplazame/tipos';
@@ -111,6 +112,7 @@ describe('⭐ LOS NOMBRES DEL CARRIL BICI (30/08)', () => {
       rejillaRueda: cargarRejilla(rueda),
       cuadernoRueda: cuadernoPara(rueda),
       aparcabicis: cargarAparcabicis(callejero, entornoDe(portales)),
+      bizi: cargarBiZi(entornoDe(portales)),
     };
   });
 
