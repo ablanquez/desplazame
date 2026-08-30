@@ -1967,6 +1967,34 @@ los 27.603 (que la columna esté no es que el dato esté) · 8 rutas de
 routes.txt sin ni un viaje en el feed (53 rutas, 45 route_id en
 trips — por mirar aquí).
 
+**⭐ FIRMAS DE ANTONIO (30/08, al cierre del 9 — las reglas del
+producto para cuando este punto arranque):**
+1. TRANSBORDOS SIEMPRE POSIBLES entre bus y tranvía (el
+   planificador completo, no el directo-solo).
+2. PRIORIDAD AL VEHÍCULO ÚNICO: si se puede llegar con un solo
+   medio, ese gana.
+3. A IGUAL NÚMERO DE VEHÍCULOS, LOS BUSES GANAN: 1 bus + 1 tranvía
+   pierde contra 2 buses.
+4. LOS RADIOS DE BÚSQUEDA DE POSTE (firmados el 30/08 con la
+   doctrina delante): **500 m al BUS · 800 m al TRANVÍA** — dentro
+   de la horquilla documentada [la regla de la industria 400/800:
+   El-Geneidy «bus y rail rules of thumb»; FHWA: 400-800 m
+   «generalmente aceptable»; y el matiz doctrinal «la gente anda
+   MÁS hacia el servicio más rápido» = más radio al tranvía]; los
+   500 del bus son la palabra de Antonio («5-6 minutos andando») y
+   la simetría de casa con el aparcabicis. Aplicados como allí:
+   radio de BÚSQUEDA con aviso honesto si no hay poste, no
+   frontera a cuchillo [la propia doctrina: mediana real 294 m,
+   p85 por encima de 400 — es radio razonable, no prohibición].
+El encaje doctrinal a verificar en la casilla 0: el algoritmo de
+referencia optimiza por rondas=nº de vehículos de forma nativa
+[RAPTOR/OTP2 — verificar con fuente antes del encargo]; el
+desempate por composición = penalización de transbordo por par de
+modos. ⚠️ Matiz PENDIENTE de parlamento con cifras delante: cuánto
+de absoluta es la prioridad del vehículo único (¿gana aunque tarde
+25 min más? ¿hay límite?) — se decide con casos reales, como el
+calibrado del patín.
+
 Paradas, líneas y la decisión `G`: componer sin prometer, sin total
 inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
 02:00). Se detalla cuando el 7 y el 9 estén vistos funcionar.
