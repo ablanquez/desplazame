@@ -1924,9 +1924,16 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
 
       **⭐ CON ESTO, EL PUNTO 9 QUEDA CERRADO** (las casillas 0-7
       con sus bis; quedan como trabajo de fondo la FASE 2 de
-      sentidos y las decisiones menores de la mesa: fundir
-      consultas · colocación del aviso · sonda de la señalización
-      vertical).
+      sentidos y dos decisiones menores de la mesa: la colocación
+      del aviso · la sonda de la señalización vertical. ⚰️ FUNDIR
+      LAS CONSULTAS: HECHO el mismo 30/08 [request coalescing /
+      single-flight, el patrón con nombre: las concurrentes
+      idénticas comparten UNA ejecución y la referencia se suelta
+      al resolver — no es caché]: 3→1 visitas al Ayuntamiento por
+      Generar, 6→2 en dos Generar (la frescura firmada intacta,
+      su juez re-corrida), el D-G compartido comprobado con la
+      sede aún caída, y el regalo no pedido: las tres rutas del
+      trío hablan del MISMO momento).
 
 ## 10 — Modo BUS/TRANVÍA *(en grueso)*
 

@@ -121,6 +121,26 @@ de ruta, las casillas 5-6, el pintado por tramos, el azul, las
 bitácoras nº15 y nº16 con la reversión de Siresa, y los papeles. El
 push es de Antonio.
 
+**SINGLE-FLIGHT EN LA DISPONIBILIDAD BiZi (30/08, tras el cierre;
+firmado por Antonio como optimización).** El trío de la precarga
+disparaba TRES consultas idénticas al Ayuntamiento por Generar
+[forkJoin, suscritas a la vez — la situación exacta del patrón] →
+request coalescing/single-flight [la doctrina con nombre: fusionar
+las concurrentes idénticas en UNA ejecución; canónico en Go
+singleflight; deduplica SOLO lo en vuelo — no es caché]: una
+variable enVuelo (no mapa: la consulta no lleva parámetros), la
+referencia SE SUELTA al resolver. Recuentos: 3→1 por Generar ·
+6→2 en dos Generar (la frescura VIVE — su juez re-corrida) · 3→1
+con la sede caída (el D-G compartido, comprobado en vivo con la
+API aún vacía). ⭐ El regalo no pedido: las tres rutas hablan del
+MISMO momento (antes cada una traía su foto y la sede podía
+cambiar entre la primera y la tercera). La caza conceptual de la
+contraprueba: no-soltar-la-referencia ES la caché eterna (misma
+mutación, dos escrituras — la juez de la frescura caza ambas).
+⚠️ Un zombi ajeno servía con código viejo al arrancar (EADDRINUSE,
+pid sin log) — visto, liberado, pid==pid del segundo intento. 372
+motor · 176 interfaz.
+
 **LAS PALABRAS VACÍAS DEL BUSCADOR (30/08 al cierre; cazado por el
 ojo de Antonio, VERIFICADO por él tras rearrancar el motor).**
 «rodrigo rebolledo» no encontraba «CALLE RODRIGO DE REBOLLEDO»: el
@@ -730,8 +750,8 @@ vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
 **Lo siguiente:** (1) el PUSH cuando Antonio diga (la tanda del 30
-entera, 22 commits); (2) las decisiones menores de la mesa (fundir
-consultas · el aviso · sondar MU2_señalizacion_vertical); (3) LA
+entera, 22 commits); (2) las dos decisiones menores de la mesa (la
+colocación del aviso · sondar MU2_señalizacion_vertical); (3) LA
 FASE 2 de sentidos como goteo de fondo (la lista de 434, con el
 atajo posible de la señalización vertical); (4) el punto 10 — EL
 RELOJ: el GTFS caduca el 05/10; (5) el
@@ -901,8 +921,9 @@ del aparcabicis · BiZi entero con disponibilidad viva · el pintado
 por tramos con el azul #2563eb) — ⚰️ LA DEMO (7) CONFIRMADA
 por el ojo el 30/08 — EL PUNTO 9 CERRADO; queda la fase 2 · LA MESA
 de decisiones de Antonio: ⚰️ el tope de 500 m FIRMADO el 30/08
-(«hay muchos desperdigados por la ciudad») · fundir las TRES consultas en-vuelo del trío
-BiZi en una [no es cachear] · la colocación del aviso ámbar (lejos
+(«hay muchos desperdigados por la ciudad») · ⚰️ FUNDIR las
+consultas: HECHO el 30/08 (single-flight — 3→1 por Generar, la
+frescura intacta, las tres rutas del mismo momento) · la colocación del aviso ámbar (lejos
 de los hitos) · sondar MU2_señalizacion_vertical (la candidata a
 capa-de-direcciones) · ⚠️ la API municipal de BiZi es CAPRICHOSA
 (200 con cuerpo vacío durante horas el 30/08 — el D-G lo cubre) ·
@@ -992,7 +1013,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 545 pruebas (369 motor + 176 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 548 pruebas (372 motor + 176 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
