@@ -2051,10 +2051,14 @@ referencia capa el acceso en 1.207 m]; lo que SÍ es canónico es el
 TIEMPO: 120 s de mínimo global entre bajar y subir [OTP, además
 del andar]; y capar corto está documentado como fuente de absurdos
 [«tramos de transporte inútiles para evitar andar»] — refuerza el
-radio-con-aviso de la casa. ⚠️ PROPUESTA A FIRMA DE ANTONIO
-(mañana): transbordo entre postes distintos con radio de búsqueda
-de 500 m [PROPIO: el paseo razonable único de la casa] + los 120 s
-mínimos [OTP, citado].
+radio-con-aviso de la casa. ⚰️ Y FIRMADO
+por Antonio la misma noche (firma 9): transbordo entre postes
+distintos con radio de búsqueda de 500 m [PROPIO firmado: el paseo
+razonable único de la casa — aparcabicis, bus, transbordo] + los
+120 s mínimos entre bajar y subir [OTP, citado]. CON ESTO, LA
+CASILLA 0 QUEDA SIN PARLAMENTOS PENDIENTES: nueve firmas, y solo
+resta la verificación técnica del calendario (calendar_dates-only)
+antes del primer encargo.
 
 Paradas, líneas y la decisión `G`: componer sin prometer, sin total
 inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
