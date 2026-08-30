@@ -1386,8 +1386,11 @@ de cada campo, ORIGEN y DESTINO por igual:
       es el dato
 - [ ] *(hueco para lo que Antonio vaya añadiendo)*
 
-## 9 — Modo BICI/PATÍN PRIVADO y Modo BiZi *(re-escrito el 28/08
-con lo aprendido en el 7 y el 8; parlamentado con Antonio)*
+## 9 — Modo BICI/PATÍN PRIVADO y Modo BiZi — **⭐ CERRADO el
+30/08** *(re-escrito el 28/08 con lo aprendido en el 7 y el 8;
+parlamentado con Antonio; casillas 0-7 con sus bis en tres días de
+tanda 28-30/08; la demo confirmada por el ojo; de fondo queda solo
+la fase 2 [3-tris])*
 
 TRES productos distintos sobre el mismo esqueleto — la casilla 0
 demostró que sus tablas de acceso difieren POR LEY O POR CONTRATO,
@@ -1516,9 +1519,15 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       oficial (= intensidad media laboral, AFOROS por sentido de
       circulación — no es la capa de sentidos; a la NEVERA como
       materia prima del calibrado Tranquila [CycleStreets puntúa
-      por busyness]); ⭐ la candidata real a capa-de-direcciones:
-      MU2_señalizacion_vertical (la señal física ES la fuente
-      legal del sentido) — NO CONSTA su contenido hasta sondarla.
+      por busyness]); ⚰️ MU2_señalizacion_vertical SONDADA
+      el 30/08 y DESCARTADA como capa-de-sentidos POR DISEÑO:
+      40.863 señales con 13 campos y NINGUNO de orientación (sin
+      hacia-dónde-mira, ni un código perfecto daría la dirección);
+      enganche a vía por texto sucio; las fotos por señal son otro
+      servicio y ojo humano. La horizontal (644.596): geometría con
+      color, cero semántica. EL ATAJO REAL de la fase 2: las shapes
+      del GTFS (verificadas el mismo día — 89 trazas direccionales
+      al 100 %), cuando el punto 10 arranque.
       · Manifiesto 39 resources; el panel pinta las dos filas en
         gris NO CONSTA (sin periodicidad citable — aplicar la del
         callejero sería citar política de otra capa). Ley nº3 sobre

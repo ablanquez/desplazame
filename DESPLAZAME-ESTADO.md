@@ -12,13 +12,14 @@ modos en pantalla, bici/patín/BiZi ruteando por sus tablas con
 empuje, selector de ruta, aparcabicis a ≤500 m firmados, BiZi vivo
 estación a estación, pintado por tramos con el azul #2563eb, y LA
 DEMO confirmada por el ojo: «las rutas, de puta madre»; de fondo
-quedan la fase 2 de sentidos y tres decisiones menores de mesa). La demo andando está
-ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
-(el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
-(los combines de odin). Y LA RUEDA YA RUTEA: red propia de 58.914
-aristas con sentido demostrado, tres modos (bici · patín · BiZi) por
-sus tablas con artículo, el defecto legal del art. 50 RGC, y la
-muralla del peatón intacta al byte (sha256 de sus 391 rutas). EL
+queda SOLO la fase 2 de sentidos — la mesa de decisiones se VACIÓ el
+mismo 30/08). La demo andando está ENTERA: real, legal (art. 121.1 +
+tabla de acceso), mínima en metros (el ojo de Antonio), ligera (0,22
+MB en frío, eran 41) y bien narrada (los combines de odin). Y LA
+RUEDA, del cierre: red propia de 92.684 aristas (58.914 rodando +
+33.770 empujando) con sentido demostrado, tres modos por sus tablas
+con artículo, el defecto legal del art. 50 RGC, y la muralla del
+peatón intacta al byte (sha256 de sus 391 rutas). EL
 PUNTO 8 CERRADO con la poda de demo firmada: SIETE categorías de sitios (farmacias · centros de salud ·
 hospitales · bibliotecas · colegios e institutos · guarderías ·
 universidades — 820 sitios, 802 buscables), TODA calle sugerible
@@ -88,8 +89,16 @@ levantado el 18/08, des-caducado del 21 al 30):
   anotado para el punto 12). Endpoints vivos, SEIS:
   `/api/salud` · `/api/vias?q=` (con `foco`) · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
-  `POST /api/ruta` (sitio o vía-sin-portal en cualquiera de los dos extremos). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal + 619 por punto medio).
-- **Los datos**: TREINTA Y UN conjuntos / veintidós fichas — los
+  `POST /api/ruta` (sitio o vía-sin-portal en cualquiera de los dos
+  extremos; `modo` opcional bici·patin·bizi y `ruta` opcional
+  rapida·equilibrada·tranquila desde el 30/08; la respuesta viaja EN
+  TRAMOS — TramoDelViaje con comoSeVa/desde/hasta/hito sobre la
+  geometría única). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal
+  + 619 por punto medio).
+- **Los datos**: TREINTA Y UN conjuntos descargados / veintitrés
+  fichas (la §1.23, nueva el 30/08: LA DISPONIBILIDAD VIVA de BiZi —
+  la primera fuente del proyecto que no se copia, se CONSULTA; §1.8
+  corregido en consecuencia) — los
   nombres OSM en `motor/data/` sin viajar al navegador (§1.14), LA
   RUEDA del punto 9 (§1.21 Overpass ampliada sin filtro de nombre:
   oneway 65,2 %/maxspeed 41,7 % de la calzada urbana, 11,3 MB ·
@@ -120,6 +129,25 @@ tanda del 30 entera** — el selector a seis, el empuje, el selector
 de ruta, las casillas 5-6, el pintado por tramos, el azul, las
 bitácoras nº15 y nº16 con la reversión de Siresa, y los papeles. El
 push es de Antonio.
+
+**LA SONDA DE LA SEÑALIZACIÓN — la candidata muere con honores
+(30/08, último acto).** MU2_señalizacion_vertical: 40.863 señales
+Point con 13 campos y NINGUNO de orientación/rumbo/sentido — sin
+saber hacia dónde mira la señal, ni un codigo perfecto daría la
+dirección: DESCARTADA como capa-de-sentidos POR DISEÑO. Los otros
+clavos: enganche a vía por texto sucio con formato propio
+(«PUENTE DE CLAVERIA· GRP.  CN» — coincidencia de subcadenas, no
+unión); tipo=cartel 25/25, codigo/grupo vacíos EN LA MUESTRA
+(⚠️ sesgada: 25 contiguos del oeste — lo de la capa entera NO
+CONSTA); las fotos por señal (imagen_url) son otro servicio y ojo
+humano, no dato. La horizontal: 644.596 geometrías con color y
+fecha, cero semántica. Confesión del ejecutor: su primera
+comprobación de enganche fue contra el fichero equivocado (el de
+portales no lleva nombres — el control «EL COLOSO» también dio
+falso y lo destapó), rehecha contra el de vías. ⇒ EL ATAJO REAL de
+la fase 2 sigue siendo el ya fichado: las SHAPES del GTFS (89
+trazas direccionales cerrando al 100 %) — la fase 2 queda como
+goteo del ojo + el cruce de shapes cuando el 10 arranque.
 
 **EL AVISO TAMBIÉN JUNTO A LOS HITOS (30/08, tras el cierre;
 doctrina GOV.UK del doble sitio).** Con el D-G activo, los dos
@@ -765,8 +793,9 @@ vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
 **Lo siguiente:** (1) el PUSH cuando Antonio diga (la tanda del 30
-entera, 22 commits); (2) la última decisión menor de la mesa: sondar
-MU2_señalizacion_vertical (encargada el 30/08 al cierre); (3) LA
+entera, 22 commits); (2) LA MESA VACIADA (las cuatro decisiones del 30/08 resueltas:
+500 firmado · single-flight hecho · el doble sitio hecho · la
+señalización sondada y descartada); (3) LA
 FASE 2 de sentidos como goteo de fondo (la lista de 434, con el
 atajo posible de la señalización vertical); (4) el punto 10 — EL
 RELOJ: el GTFS caduca el 05/10; (5) el
@@ -941,8 +970,9 @@ consultas: HECHO el 30/08 (single-flight — 3→1 por Generar, la
 frescura intacta, las tres rutas del mismo momento) · ⚰️ LA
 COLOCACIÓN del aviso: HECHA el 30/08 (la nota junto a cada hito,
 texto idéntico al banner [GOV.UK doble sitio]) · la colocación del aviso ámbar (lejos
-de los hitos) · sondar MU2_señalizacion_vertical (la candidata a
-capa-de-direcciones) · ⚠️ la API municipal de BiZi es CAPRICHOSA
+de los hitos) · ⚰️ MU2_señalizacion_vertical SONDADA Y DESCARTADA el 30/08
+(13 campos, ninguno de orientación — sin hacia-dónde-mira no hay
+sentido; el atajo real de la fase 2: las shapes del GTFS) · ⚠️ la API municipal de BiZi es CAPRICHOSA
 (200 con cuerpo vacío durante horas el 30/08 — el D-G lo cubre) ·
 ⚰️ IML Viales 2025 a la NEVERA (aforos oficiales por sentido:
 materia prima del Tranquila real [CycleStreets/busyness]) · ⚠️ EL DESAJUSTE DEL RELOJ declarado y sin tocar: el
