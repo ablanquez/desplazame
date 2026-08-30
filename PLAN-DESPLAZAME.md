@@ -2056,9 +2056,22 @@ por Antonio la misma noche (firma 9): transbordo entre postes
 distintos con radio de búsqueda de 500 m [PROPIO firmado: el paseo
 razonable único de la casa — aparcabicis, bus, transbordo] + los
 120 s mínimos entre bajar y subir [OTP, citado]. CON ESTO, LA
-CASILLA 0 QUEDA SIN PARLAMENTOS PENDIENTES: nueve firmas, y solo
-resta la verificación técnica del calendario (calendar_dates-only)
-antes del primer encargo.
+CASILLA 0 QUEDA SIN PARLAMENTOS PENDIENTES: nueve firmas. ⚰️ Y LA
+VERIFICACIÓN DEL CALENDARIO, HECHA LA MISMA NOCHE contra la
+referencia GTFS: nuestro feed usa EL MÉTODO «ALTERNATE» DOCUMENTADO
+[la referencia, literal: «omitir calendar.txt y especificar CADA
+fecha de servicio en calendar_dates.txt — permite variación
+considerable y acomoda servicio sin horarios semanales normales;
+el service_id es un ID propio»] — coherente con una ciudad donde
+el Pilar rompe la semana normal. Consecuencia para el motor: «¿qué
+opera hoy?» es búsqueda DIRECTA por fecha (los trips cuyo
+service_id tiene fila hoy con exception_type=1), sin lógica
+semanal; los 196 huérfanos = service_id con fechas sin viajes.
+⚠️ Cabo para el censo: contar los exception_type del fichero
+ENTERO (en el método alternativo puro no debería haber ningún 2
+—servicio quitado—, pero que la columna esté no es que el dato sea
+el esperado). LA CASILLA 0 ESTÁ COMPLETA: el primer encargo del
+punto es EL CENSO (casilla 1).
 
 Paradas, líneas y la decisión `G`: componer sin prometer, sin total
 inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
