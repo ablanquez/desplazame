@@ -8,12 +8,14 @@ import type {
   PeticionDeRuta,
   Portal,
   PortalCercano,
+  TipoDeRuta,
   Trayecto,
   Via,
   ExtremoDeRuta,
   Sitio,
 } from '@desplazame/tipos';
 import { HttpClient } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 import { Mapa } from './mapa';
 import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
@@ -415,6 +417,60 @@ export class Buscador {
   /** Andando por defecto. */
   protected readonly modo = signal<Modo>('andando');
 
+  /**
+   * ⭐ LAS TRES CLASES DE RUTA, y el trío no es nuestro.
+   *
+   * [DOC CycleStreets, API oficial] ofrece exactamente estos tres —*«minimizar
+   * tiempo · evitar tráfico · el compromiso entre ambos»*— y **recomienda el
+   * equilibrado como defecto de la interfaz**: *«práctica, equilibra velocidad
+   * y agrado»*. Su `fastest` es para el *«ciclista confiado»* y su `quietest`
+   * es *«más agradable, a menudo menos directa»*.
+   *
+   * Las etiquetas son de una palabra a propósito: son tres y van en una fila,
+   * y lo que las distingue se lee debajo, no dentro del botón.
+   */
+  protected readonly tiposDeRuta: ReadonlyArray<{ id: TipoDeRuta; etiqueta: string }> = [
+    { id: 'rapida', etiqueta: 'Rápida' },
+    { id: 'equilibrada', etiqueta: 'Equilibrada' },
+    { id: 'tranquila', etiqueta: 'Tranquila' },
+  ];
+
+  /** Equilibrada por defecto, que es lo que CycleStreets recomienda poner. */
+  protected readonly tipoDeRuta = signal<TipoDeRuta>('equilibrada');
+
+  /**
+   * ⭐ QUIÉN VE EL CAMPO: la bici y la BiZi, y nadie más.
+   *
+   * El **patín no elige** —su vía ciclista es OBLIGATORIA [ORD art. 56.2.c] y
+   * la calzada solo subsidiaria [56.3]—, así que enseñarle el campo sería
+   * ofrecerle desobedecer; el motor le pone el calibrado fuerte y ni mira lo
+   * que le manden. Andando, bus y coche no tienen ruta que calibrar.
+   *
+   * Y **no está apagado: no está** [DOC GOV.UK, revelado condicional], que es
+   * el mismo patrón y el mismo argumento que el número de portal.
+   */
+  protected readonly eligeRuta = computed(
+    () => this.modo() === 'bici' || this.modo() === 'bizi',
+  );
+
+  /**
+   * ⭐ LAS TRES RUTAS YA TRAÍDAS, y para qué pregunta valen.
+   *
+   * Es el patrón del planificador de [DOC CycleStreets]: los tres tipos **del
+   * mismo viaje**, y quien mira salta entre ellos sin replanificar. Que se
+   * traigan con tres peticiones en paralelo es traducción nuestra y se declara
+   * — a ~20 ms de Dijkstra cada una, las tres cuestan lo que esperar a una.
+   *
+   * La `clave` es la huella de la pregunta —los dos extremos y el modo—, y
+   * está por una razón que no es de eficiencia: **tres rutas traídas para un
+   * par de portales no valen para otro**. Sin ella, cambiar el destino y luego
+   * el radio pintaría la ruta de una dirección con el nombre de otra.
+   */
+  private readonly trio = signal<{
+    readonly clave: string;
+    readonly rutas: ReadonlyMap<TipoDeRuta, Trayecto>;
+  } | null>(null);
+
   /** Lo que contestó el motor la última vez. `null` mientras no se ha pedido. */
   protected readonly resultado = signal<Resultado | null>(null);
 
@@ -743,6 +799,48 @@ export class Buscador {
     this.modo.set(modo);
   }
 
+  /**
+   * ⭐ Se elige otra clase de ruta. **Y esto no pide nada al motor.**
+   *
+   * Es lo que compra la precarga: las tres ya están traídas, así que cambiar
+   * de una a otra es leer del mapa y repintar. Es el gesto del planificador de
+   * [DOC CycleStreets] — saltar entre los tres tipos del mismo viaje sin
+   * replanificar.
+   *
+   * Si el trío **no vale para la pregunta de ahora** —porque se ha tocado un
+   * extremo o el modo desde que se trajo— no se repinta nada: se queda lo que
+   * hay y el radio solo apunta lo que se querrá al pulsar «Generar». Pintar la
+   * ruta guardada de otra dirección sería la clase de mentira que este mapa
+   * lleva evitando desde el punto 7.
+   */
+  protected elegirTipoDeRuta(tipo: TipoDeRuta): void {
+    this.tipoDeRuta.set(tipo);
+    const guardado = this.trio();
+    if (!guardado || guardado.clave !== this.claveDeLaPregunta()) {
+      return;
+    }
+    const trayecto = guardado.rutas.get(tipo);
+    if (trayecto) {
+      this.pinta(trayecto);
+    }
+  }
+
+  /**
+   * La huella de la pregunta que hay AHORA en el formulario: los dos extremos
+   * y el modo. Es lo que decide si el trío guardado sigue valiendo.
+   *
+   * `null` cuando el formulario todavía no compone una pregunta entera; así no
+   * puede casar por accidente con una clave guardada.
+   */
+  private claveDeLaPregunta(): string | null {
+    const origen = this.extremoDe(this.origen);
+    const destino = this.extremoDe(this.destino);
+    if (!origen || !destino) {
+      return null;
+    }
+    return JSON.stringify({ origen, destino, modo: this.modo() });
+  }
+
   protected etiquetaDe(modo: Modo): string {
     return this.modos.find((m) => m.id === modo)?.etiqueta ?? modo;
   }
@@ -821,20 +919,64 @@ export class Buscador {
     }
 
     this.generando.set(true);
+    this.trio.set(null);
 
-    this.http.post<Trayecto>('/api/ruta', peticion).subscribe({
-      next: (trayecto) => {
+    // ⭐ LA PRECARGA (30/08): en bici y BiZi se piden LAS TRES rutas de una vez.
+    //
+    // Es el patrón del planificador de [DOC CycleStreets]: los tres tipos del
+    // MISMO viaje, y quien mira salta entre ellos sin replanificar. Las tres
+    // peticiones en paralelo son traducción nuestra y se declaran: el motor
+    // resuelve una ruta de bici en ~20 ms, así que las tres cuestan lo que
+    // cuesta esperar a la más lenta, y a cambio cambiar de opción es instantáneo
+    // y no depende de que el motor conteste otra vez.
+    //
+    // En los demás modos va UNA, como siempre: andando no elige, y el patín
+    // tampoco —su vía ciclista es obligatoria [ORD art. 56.2.c]—, así que pedir
+    // tres sería gastar dos Dijkstra para tirarlos.
+    if (!this.eligeRuta()) {
+      this.http.post<Trayecto>('/api/ruta', peticion).subscribe({
+        next: (trayecto) => {
+          this.generando.set(false);
+          this.pinta(trayecto);
+        },
+        error: () => this.noContesta(),
+      });
+      return;
+    }
+
+    const clave = this.claveDeLaPregunta();
+    // Los tres que la pantalla ofrece, que es su propia lista: la interfaz no
+    // importa nada del motor, y lo que se precarga es exactamente lo que se
+    // puede elegir. Si un día se ofrecen dos, se piden dos.
+    const tipos = this.tiposDeRuta.map((t) => t.id);
+    forkJoin(
+      tipos.map((tipo) => this.http.post<Trayecto>('/api/ruta', { ...peticion, ruta: tipo })),
+    ).subscribe({
+      next: (trayectos) => {
         this.generando.set(false);
-        this.pinta(trayecto);
+        const rutas = new Map<TipoDeRuta, Trayecto>();
+        tipos.forEach((tipo, i) => rutas.set(tipo, trayectos[i]!));
+        // La clave se guarda con el trío: es lo que dirá, más tarde, si estas
+        // tres siguen siendo las de la pregunta que hay en pantalla.
+        if (clave) {
+          this.trio.set({ clave, rutas });
+        }
+        const elegida = rutas.get(this.tipoDeRuta());
+        if (elegida) {
+          this.pinta(elegida);
+        }
       },
-      // Que el motor no conteste no es lo mismo que no haber ruta: cuando no
-      // hay ruta, el motor contesta un trayecto vacío con su aviso y eso entra
-      // por arriba. Aquí solo se cae cuando no hay nadie al otro lado.
-      error: () => {
-        this.generando.set(false);
-        this.avisoRuta.set('No se pudo preguntar al motor. ¿Está arrancado?');
-      },
+      error: () => this.noContesta(),
     });
+  }
+
+  /**
+   * No hay nadie al otro lado. Es distinto de «no hay ruta», que llega dentro
+   * de una respuesta bien formada con su aviso.
+   */
+  private noContesta(): void {
+    this.generando.set(false);
+    this.avisoRuta.set('No se pudo preguntar al motor. ¿Está arrancado?');
   }
 
   /**

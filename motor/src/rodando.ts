@@ -61,7 +61,13 @@ import {
   type Enganche,
 } from './proyeccion.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
-import { VELOCIDAD_EMPUJANDO_KMH, VELOCIDAD_KMH, type ModoDeRueda } from './rueda.ts';
+import {
+  VELOCIDAD_EMPUJANDO_KMH,
+  VELOCIDAD_KMH,
+  calibradoDe,
+  type ModoDeRueda,
+} from './rueda.ts';
+import type { TipoDeRuta } from '@desplazame/tipos';
 
 /** Un punto en `[lon, lat]`, como el grafo. */
 type Punto = readonly [number, number];
@@ -169,7 +175,18 @@ export function segundosDe(
   arista: number,
   modo: ModoDeRueda,
   metros: number,
+  /**
+   * ⭐ Qué clase de ruta se ha pedido. `undefined` es `equilibrada`, que es lo
+   * que había antes del 30/08 — la compatibilidad no es aproximada, es la
+   * misma tabla.
+   *
+   * **Es lo que se PIDE, no el calibrado**: quien traduce lo uno en lo otro es
+   * `calibradoDe`, y lo hace aquí dentro para que la ley del patín no dependa
+   * de que el que llama se acuerde. Ver `calibradoDe`.
+   */
+  ruta?: TipoDeRuta,
 ): number {
+  const factor = red.factores[calibradoDe(modo, ruta)];
   // Quien empuja es peatón y va a 5 km/h: el techo de la vía no le afecta,
   // porque no está circulando. El FACTOR sí, y no es una contradicción — no
   // mide la vía, mide la preferencia, y el empuje tiene que competir en tiempo
@@ -177,11 +194,11 @@ export function segundosDe(
   // pasaba sin él. Como en todo lo demás, `segundosRodando` lo vuelve a
   // dividir para que el tiempo que se dice sea el de verdad.
   if (red.empujando[arista] === 1) {
-    return (metros / (VELOCIDAD_EMPUJANDO_KMH * AMS)) * red.factor[arista]!;
+    return (metros / (VELOCIDAD_EMPUJANDO_KMH * AMS)) * factor[arista]!;
   }
   const techo = red.limiteKmh[arista]!;
   const kmh = techo > 0 ? Math.min(VELOCIDAD_KMH[modo], techo) : VELOCIDAD_KMH[modo];
-  return (metros / (kmh * AMS)) * red.factor[arista]!;
+  return (metros / (kmh * AMS)) * factor[arista]!;
 }
 
 /**
@@ -238,6 +255,8 @@ export function calcularRutaRodando(
   puntoOrigen: Punto,
   destino: Enganche,
   puntoDestino: Punto,
+  /** Qué clase de ruta se quiere. `undefined` es la equilibrada de siempre. */
+  tipo?: TipoDeRuta,
 ): Ruta | null {
   const conectorOrigen = conector(puntoOrigen, [origen.lon, origen.lat]);
   const conectorDestino = conector([destino.lon, destino.lat], puntoDestino);
@@ -275,7 +294,7 @@ export function calcularRutaRodando(
   // El coste de una puerta se mide con la MISMA vara que el de una arista
   // entera: sus metros, convertidos a segundos por la velocidad de SU arista.
   const costeDePuerta = (enganche: Enganche, puerta: Puerta): number =>
-    segundosDe(red, enganche.arista, modo, puerta.metros);
+    segundosDe(red, enganche.arista, modo, puerta.metros, tipo);
 
   cuaderno.consulta++;
   const marca = cuaderno.consulta;
@@ -329,7 +348,7 @@ export function calcularRutaRodando(
       if (!permiteElSentido(red, arista, a.desde === nodo)) {
         continue;
       }
-      const nuevo = coste + segundosDe(red, arista, modo, a.metros);
+      const nuevo = coste + segundosDe(red, arista, modo, a.metros, tipo);
       if (cuaderno.sello[vecino] !== marca || nuevo < cuaderno.coste[vecino]!) {
         cuaderno.sello[vecino] = marca;
         cuaderno.coste[vecino] = nuevo;
@@ -417,13 +436,20 @@ export function calcularRutaRodando(
  * distinción que hacen los motores entre el *coste* que guía la búsqueda y el
  * *tiempo* que se publica.
  */
-export function segundosRodando(red: RedDeLaRueda, ruta: Ruta, modo: ModoDeRueda): number {
+export function segundosRodando(
+  red: RedDeLaRueda,
+  ruta: Ruta,
+  modo: ModoDeRueda,
+  /** El tipo con el que se calculó: hay que dividir por SU factor, no por otro. */
+  tipo?: TipoDeRuta,
+): number {
+  const factor = red.factores[calibradoDe(modo, tipo)];
   let segundos = 0;
   for (const trozo of ruta.trozos) {
     // El paso que se cruza empujando no lleva factor —su `h` es `footway`, que
     // no está en la lista de tráfico—, así que dividir por 1 no le hace nada y
     // no hace falta un caso aparte.
-    segundos += segundosDe(red, trozo.arista, modo, trozo.metros) / red.factor[trozo.arista]!;
+    segundos += segundosDe(red, trozo.arista, modo, trozo.metros, tipo) / factor[trozo.arista]!;
   }
   return segundos;
 }

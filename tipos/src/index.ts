@@ -32,6 +32,32 @@
 export type Modo = 'andando' | 'bus' | 'bici' | 'patin' | 'bizi' | 'coche';
 
 /**
+ * ⭐ QUÉ CLASE DE RUTA se quiere, cuando el modo admite elegir.
+ *
+ * El trío es el de [DOC CycleStreets, API oficial], que ofrece exactamente
+ * estos tres —*«minimizar tiempo · evitar tráfico · el compromiso entre
+ * ambos»*— y **recomienda el equilibrado como defecto de la interfaz**:
+ * *«práctica, equilibra velocidad y agrado»*. Su `fastest` es para el
+ * *«ciclista confiado»* y su `quietest` es *«más agradable, a menudo menos
+ * directa»*.
+ *
+ * Tienen un cuarto, `shortest`, y **lo desaconsejan**. No está aquí: este
+ * motor minimiza tiempo desde la casilla 3, y que ellos desaconsejen la
+ * distancia es el aval de esa decisión.
+ *
+ * ⚠️ **Solo lo usan `bici` y `bizi`.** El `patin` lo ignora —su vía ciclista
+ * es OBLIGATORIA [ORD art. 56.2.c], no una preferencia— y los demás modos no
+ * lo miran. El motor no falla si llega en una petición de andando: sobra.
+ */
+export type TipoDeRuta =
+  /** Minimizar tiempo, sin preferencias. El «fastest» de CycleStreets. */
+  | 'rapida'
+  /** El compromiso, y el defecto. Es el calibrado firmado en la casilla 3. */
+  | 'equilibrada'
+  /** Evitar el tráfico aunque cueste. El «quietest». */
+  | 'tranquila';
+
+/**
  * Un punto del mapa: **latitud y longitud, en ese orden** (EPSG:4326, el CRS
  * de todos los datos del repositorio).
  *
@@ -219,6 +245,17 @@ export interface PeticionDeRuta {
    * petición. Un `7` ahí es un cliente roto, no un cliente antiguo.
    */
   readonly modo?: Modo;
+  /**
+   * ⭐ **OPCIONAL desde el 30/08**, y `equilibrada` cuando falta.
+   *
+   * Misma ley que `modo` el 29/08: quien pedía rutas antes las sigue pidiendo
+   * igual y recibe **lo que recibía** — el calibrado de la casilla 3 es
+   * exactamente el defecto, así que la compatibilidad es total y no aproximada.
+   *
+   * Lo miran `bici` y `bizi`. El `patin` lo ignora por ley [ORD art. 56.2.c] y
+   * los demás modos no tienen ruta que calibrar.
+   */
+  readonly ruta?: TipoDeRuta;
 }
 
 /**

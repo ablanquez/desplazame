@@ -30,7 +30,13 @@ import { portalCercano } from './cercano.ts';
 import { cargarRed } from './red.ts';
 import { cargarRedDeLaRueda } from './red-rueda.ts';
 import { SENTIDOS_CORREGIDOS } from './sentidos-corregidos.ts';
-import { FACTOR_DEL_EMPUJE, VELOCIDAD_EMPUJANDO_KMH } from './rueda.ts';
+import {
+  FACTOR_DEL_EMPUJE,
+  TIPOS_DE_RUTA,
+  VELOCIDAD_EMPUJANDO_KMH,
+  factorDelEmpuje,
+  factorSegun,
+} from './rueda.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
@@ -217,6 +223,25 @@ console.log(
   `motor:   con factor ${FACTOR_DEL_EMPUJE.toFixed(2)} para que solo puedan ganar por TIEMPO, ` +
     `nunca por preferencia · no valen como puerta: una ruta no empieza ni acaba empujando`,
 );
+// ⭐ LOS TRES CALIBRADOS (30/08) y QUIÉN LLEVA CADA UNO. Se declara aquí
+// porque es la única capa que el usuario elige, y porque el patín NO la elige:
+// que eso salga en el arranque es lo que impide que un día se le enseñe el
+// campo sin que nadie se acuerde de por qué no lo tenía.
+for (const tipo of TIPOS_DE_RUTA) {
+  const quien =
+    tipo === 'tranquila'
+      ? 'bici y BiZi si lo piden · SIEMPRE el patín [ORD 56.2.c: vía ciclista obligatoria]'
+      : tipo === 'equilibrada'
+        ? 'bici y BiZi por defecto — el calibrado firmado en la casilla 3'
+        : 'bici y BiZi si lo piden';
+  console.log(
+    `motor: calibrado «${tipo}» — ` +
+      ['primary', 'secondary', 'tertiary', 'cycleway']
+        .map((v) => `${v} ${factorSegun(tipo, v).toFixed(2)}`)
+        .join(' · ') +
+      ` · empuje ${factorDelEmpuje(tipo).toFixed(2)} · ${quien}`,
+  );
+}
 console.log('motor: indexando la red de la rueda para enganchar portales…');
 const rejillaRueda = cargarRejilla(redRueda);
 console.log(

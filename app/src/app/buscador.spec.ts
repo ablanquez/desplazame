@@ -1,8 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+  type TestRequest,
+} from '@angular/common/http/testing';
 import type {
   Giro,
+  TipoDeRuta,
   ParteDelPaso,
   Paso,
   Portal,
@@ -12,11 +17,19 @@ import type {
 } from '@desplazame/tipos';
 import { Buscador } from './buscador';
 
-/** Devuelve las opciones de modo que están marcadas como activas. */
+/**
+ * Devuelve las opciones de MODO que están marcadas como activas.
+ *
+ * ⚠️ Se busca dentro de `fieldset.modos:not(.rutas)` desde el 30/08: el
+ * selector de ruta usa el mismo vestido —es el mismo patrón— y por tanto la
+ * misma clase `.modo--activo`. Preguntando por la clase a secas, esta función
+ * devolvía «Bici privada, Equilibrada» y la juez de la exclusión se ponía roja
+ * sin que nada estuviera mal.
+ */
 function modosActivos(raiz: HTMLElement): string[] {
-  return Array.from(raiz.querySelectorAll<HTMLElement>('.modo--activo')).map(
-    (b) => b.textContent?.trim() ?? '',
-  );
+  return Array.from(
+    raiz.querySelectorAll<HTMLElement>('fieldset.modos:not(.rutas) .modo--activo'),
+  ).map((b) => b.textContent?.trim() ?? '');
 }
 
 /**
@@ -31,6 +44,30 @@ function modosActivos(raiz: HTMLElement): string[] {
  */
 function radiosDeModo(raiz: HTMLElement): HTMLInputElement[] {
   return Array.from(raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="modo"]'));
+}
+
+/**
+ * ⭐ Y el que CUENTA las peticiones de ruta, drenándolas con lo que toque.
+ *
+ * Existe porque desde el 30/08 «Generar» en bici dispara **tres** —la precarga
+ * del trío— y en los demás modos una. Las pruebas que solo querían una ruta no
+ * tienen por qué saberlo, pero sí tienen que dejar el `HttpTestingController`
+ * limpio o `verify()` las cazaría a todas.
+ */
+function drenarRutas(
+  /**
+   * ⚠️ **Las peticiones YA CASADAS, no el controlador.** `http.match()` las
+   * consume: llamarlo dos veces devuelve cero la segunda, y las rutas se
+   * quedan sin contestar sin que nada se ponga rojo — la prueba sigue, no hay
+   * resultado que pintar, y el fallo aparece tres aserciones más abajo
+   * diciendo otra cosa. Se pasa la lista para que no haya dos.
+   */
+  peticiones: readonly TestRequest[],
+  respuesta: (ruta?: TipoDeRuta) => Trayecto,
+): void {
+  for (const p of peticiones) {
+    p.flush(respuesta((p.request.body as { ruta?: TipoDeRuta }).ruta));
+  }
 }
 
 /** Pulsa una opción del selector por su etiqueta, como quien hace clic. */
@@ -579,6 +616,105 @@ const CERCA: PortalCercano = {
   via: BURGOS,
   portal: { codigo: 'Portales.5140a', numero: '2' },
   metros: 42,
+};
+
+/**
+ * ⭐ Los tres `input type="radio"` del selector de RUTA, en el orden del DOM.
+ *
+ * Se buscan por lo que son, igual que los del modo: el patrón es el mismo
+ * —grupo de radios, tres opciones dentro del rango 2-5— y una prueba que
+ * preguntara por la clase daría verde con tres botones disfrazados.
+ */
+function radiosDeRuta(raiz: HTMLElement): HTMLInputElement[] {
+  return Array.from(raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="ruta"]'));
+}
+
+/** Lo que se lee en cada opción de ruta. */
+function etiquetasDeRuta(raiz: HTMLElement): string[] {
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.ruta-opcion')).map(
+    (r) => r.textContent?.trim() ?? '',
+  );
+}
+
+/** Pulsa una opción de ruta por su etiqueta, como quien hace clic. */
+function elegirRuta(fixture: any, etiqueta: string): void {
+  const raiz = fixture.nativeElement as HTMLElement;
+  const radio = radiosDeRuta(raiz).find(
+    (r) => r.closest('.ruta-opcion')?.textContent?.trim() === etiqueta,
+  );
+  if (!radio) {
+    throw new Error(
+      `no hay ninguna opción de ruta que se lea «${etiqueta}». Las que hay: ` +
+        etiquetasDeRuta(raiz)
+          .map((e) => `«${e}»`)
+          .join(', ') || '(ninguna)',
+    );
+  }
+  radio.click();
+  fixture.detectChanges();
+}
+
+/**
+ * ⭐ EL TRÍO DE LA JUEZ 5, con los metros del motor de verdad.
+ *
+ * Son las tres rutas de `Portales.120344 → Portales.110047` medidas el 30/08 —
+ * la juez 1 de `tipos-de-ruta.spec.ts`—: rápida 1.554 m por la `primary`,
+ * equilibrada 1.565, tranquila 1.710 esquivando la avenida. Los pasos van
+ * recortados a lo que la prueba mira: que lo pintado cambie al cambiar el radio
+ * y que sea el que toca.
+ */
+const TRIO: Readonly<Record<TipoDeRuta, Trayecto>> = {
+  rapida: {
+    modo: 'bici',
+    pasos: [
+      paso('salida', 380, accion('Sal de'), llano(' '), via('Calle Burgos 2')),
+      paso('derecha', 1174, accion('Gira a la derecha'), llano(' hacia '), via('Avenida de Madrid')),
+      paso('llegada', 0, via('Avenida Goya 45'), llano(' está a la izquierda')),
+    ],
+    geometria: [
+      [41.6561, -0.8973],
+      [41.6555, -0.9051],
+    ],
+    avisos: [],
+    metros: 1554,
+    segundos: 342,
+  },
+  equilibrada: {
+    modo: 'bici',
+    pasos: [
+      paso('salida', 380, accion('Sal de'), llano(' '), via('Calle Burgos 2')),
+      paso('derecha', 1105, accion('Gira a la derecha'), llano(' hacia '), via('Avenida de Madrid')),
+      // ⭐ El tramo que la separa de la rápida, y no es de adorno: la medida
+      // dice que la equilibrada cambia 40 m de `primary` por 86 de `tertiary`.
+      // Va como GENÉRICO —«la calzada»— y no con nombre de calle: no se ha
+      // medido cuál es, y ponerle uno sería inventarlo.
+      paso('izquierda', 80, accion('Gira a la izquierda'), llano(' hacia '), llano('la calzada')),
+      paso('llegada', 0, via('Avenida Goya 45'), llano(' está a la izquierda')),
+    ],
+    geometria: [
+      [41.6561, -0.8973],
+      [41.6556, -0.9051],
+    ],
+    avisos: [],
+    metros: 1565,
+    segundos: 344,
+  },
+  tranquila: {
+    modo: 'bici',
+    pasos: [
+      paso('salida', 380, accion('Sal de'), llano(' '), via('Calle Burgos 2')),
+      paso('derecha', 950, accion('Gira a la derecha'), llano(' hacia '), via('Calle de Terminillo')),
+      paso('izquierda', 380, accion('Gira a la izquierda'), llano(' hacia '), via('Calle Unceta')),
+      paso('llegada', 0, via('Avenida Goya 45'), llano(' está a la izquierda')),
+    ],
+    geometria: [
+      [41.6561, -0.8973],
+      [41.6501, -0.9051],
+    ],
+    avisos: [],
+    metros: 1710,
+    segundos: 372,
+  },
 };
 
 describe('Buscador', () => {
@@ -1137,6 +1273,202 @@ describe('Buscador', () => {
     expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Patín (VMP)');
   });
 
+  // ── EL SELECTOR DE RUTA (30/08) ───────────────────────────────────────────
+  //
+  // Tres maneras de llegar al mismo sitio [DOC CycleStreets], y **solo para la
+  // bici y la BiZi**: el patín no elige porque su vía ciclista es obligatoria
+  // [ORD art. 56.2.c], y andando, bus y coche no tienen ruta que calibrar.
+
+  /**
+   * ⭐ JUEZ 4 — EL CAMPO SOLO EXISTE DONDE SE USA.
+   *
+   * Es el revelado condicional de [DOC GOV.UK], el mismo patrón que el número
+   * de portal: **no está apagado, no está**. Un grupo de radios deshabilitado
+   * en andando ocuparía sitio y se leería como «esto podrías tocarlo», y no
+   * podría; y enseñárselo al patín sería ofrecerle desobedecer la Ordenanza.
+   */
+  it('⭐ el selector de ruta solo existe en bici y BiZi', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // Al cargar el modo es andando: el campo no está.
+    expect(raiz.querySelector('.rutas')).toBeNull();
+    expect(radiosDeRuta(raiz).length).toBe(0);
+
+    elegirModo(fixture, 'Bici privada');
+    await fixture.whenStable();
+    expect(raiz.querySelector('.rutas')).not.toBeNull();
+    expect(etiquetasDeRuta(raiz)).toEqual(['Rápida', 'Equilibrada', 'Tranquila']);
+    expect(radiosDeRuta(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual([
+      'equilibrada',
+    ]);
+
+    elegirModo(fixture, 'BiZi');
+    await fixture.whenStable();
+    expect(radiosDeRuta(raiz).length).toBe(3);
+
+    // Y en el patín NO: su vía ciclista es obligatoria, no una preferencia.
+    elegirModo(fixture, 'Patín (VMP)');
+    await fixture.whenStable();
+    expect(raiz.querySelector('.rutas')).toBeNull();
+
+    elegirModo(fixture, 'Coche');
+    await fixture.whenStable();
+    expect(raiz.querySelector('.rutas')).toBeNull();
+  });
+
+  /**
+   * ⭐ JUEZ 5 — LA PRECARGA: tres peticiones al Generar, cero al cambiar.
+   *
+   * Es el patrón del planificador de [DOC CycleStreets]: los tres tipos **del
+   * mismo viaje**, y el usuario salta entre ellos sin replanificar. Que se
+   * traiga con tres peticiones en paralelo es traducción nuestra y se declara:
+   * a ~20 ms por Dijkstra, las tres salen por el precio de esperar una.
+   *
+   * La juez CUENTA las peticiones, que es la única manera de probar que no hay
+   * una escondida:
+   *
+   * - «Generar» en bici → **3**, una por tipo, con su `ruta` en el cuerpo;
+   * - cambiar el radio → **0**, y lo pintado cambia;
+   * - tocar un extremo → el trío deja de valer, y cambiar el radio ya no
+   *   repinta: hay que volver a Generar.
+   */
+  it('⭐ Generar en bici trae las TRES rutas, y cambiar el radio no pide nada', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'Bici privada');
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    // TRES peticiones, una por tipo, y cada una dice cuál es.
+    const peticiones = http.match('/api/ruta');
+    expect(peticiones.length).toBe(3);
+    const pedidos = peticiones.map((p) => (p.request.body as { ruta: string }).ruta);
+    expect([...pedidos].sort()).toEqual(['equilibrada', 'rapida', 'tranquila']);
+    for (const p of peticiones) {
+      expect((p.request.body as { modo: string }).modo).toBe('bici');
+    }
+
+    // Contestan las tres, cada una con sus metros.
+    for (const p of peticiones) {
+      const cual = (p.request.body as { ruta: TipoDeRuta }).ruta;
+      p.flush(TRIO[cual]);
+    }
+    await fixture.whenStable();
+
+    // Se pinta la equilibrada, que es la marcada: cuatro pasos y la avenida.
+    expect(raiz.querySelector('.ruta__metros')?.textContent).toContain('1,6 km');
+    expect(raiz.querySelectorAll('.paso').length).toBe(4);
+    expect(pasosEnPantalla(raiz).join(' | ')).toContain('Avenida de Madrid');
+
+    // ⭐ Y AHORA EL GESTO QUE COMPRA ESTE ENCARGO: cambiar el radio no pide.
+    elegirRuta(fixture, 'Tranquila');
+    await fixture.whenStable();
+    http.expectNone('/api/ruta');
+    expect(raiz.querySelector('.ruta__metros')?.textContent).toContain('1,7 km');
+    expect(pasosEnPantalla(raiz).join(' | ')).toContain('Calle de Terminillo');
+    expect(pasosEnPantalla(raiz).join(' | ')).not.toContain('Avenida de Madrid');
+
+    // ⚠️ Y la rápida se distingue por sus PASOS, no por sus metros: 1.554 y
+    // 1.565 se leen los dos «1,6 km». Es verdad de la pantalla y conviene
+    // saberla — el rótulo redondea a la décima de kilómetro, así que dos rutas
+    // separadas por 11 m dicen lo mismo. Lo que las separa se ve en el camino.
+    elegirRuta(fixture, 'Rápida');
+    await fixture.whenStable();
+    http.expectNone('/api/ruta');
+    expect(raiz.querySelector('.ruta__metros')?.textContent).toContain('1,6 km');
+    expect(raiz.querySelectorAll('.paso').length).toBe(3);
+    expect(pasosEnPantalla(raiz).join(' | ')).toContain('Avenida de Madrid');
+  });
+
+  /**
+   * ⭐ JUEZ 5 bis — EL TRÍO CADUCA CUANDO CAMBIA LA PREGUNTA.
+   *
+   * Tres rutas traídas para una pregunta no valen para otra. Si al cambiarla el
+   * radio siguiera repintando de lo guardado, la pantalla enseñaría la ruta de
+   * una dirección con el nombre de otra —o la de una bici bajo el rótulo de una
+   * BiZi—, que es exactamente la clase de mentira que el mapa lleva evitando
+   * desde el punto 7. Al cambiar la pregunta, el trío se tira y hace falta
+   * Generar.
+   *
+   * La huella de la pregunta son **los dos extremos y el modo**, y aquí se
+   * cambia el modo —que el encargo nombra entre los tres— porque es el gesto
+   * que esta suite puede hacer limpio: el desplegable de portales filtra por lo
+   * tecleado, así que pedirle otro número al mismo campo exige reescribirlo
+   * entero y la prueba mediría el autocompletar en vez del trío.
+   */
+  it('⭐ cambiar la pregunta caduca el trío: el radio ya no repinta', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'Bici privada');
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    for (const p of http.match('/api/ruta')) {
+      p.flush(TRIO[(p.request.body as { ruta: TipoDeRuta }).ruta]);
+    }
+    await fixture.whenStable();
+    expect(raiz.querySelectorAll('.paso').length).toBe(4);
+
+    // Se cambia el modo a BiZi: la pregunta ya es otra, y las tres guardadas
+    // son de una bici privada.
+    elegirModo(fixture, 'BiZi');
+    await fixture.whenStable();
+
+    // El radio ya no repinta de lo guardado: lo de la pantalla no se mueve.
+    elegirRuta(fixture, 'Tranquila');
+    await fixture.whenStable();
+    http.expectNone('/api/ruta');
+    // Sigue la equilibrada en pantalla: sus cuatro pasos y su avenida.
+    expect(raiz.querySelectorAll('.paso').length).toBe(4);
+    expect(pasosEnPantalla(raiz).join(' | ')).toContain('Avenida de Madrid');
+  });
+
+  /**
+   * En los demás modos, UNA petición como siempre: la precarga es de la bici y
+   * la BiZi, que son las que eligen. Pedir tres rutas de andando sería gastar
+   * dos Dijkstra para tirarlos.
+   */
+  it('en andando se pide UNA ruta, no tres', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    const peticiones = http.match('/api/ruta');
+    expect(peticiones.length).toBe(1);
+    expect((peticiones[0].request.body as { ruta?: string }).ruta).toBeUndefined();
+    peticiones[0].flush(TRAYECTO);
+    await fixture.whenStable();
+  });
+
+  /** Y el patín tampoco: no elige, así que una sola. */
+  it('en patín se pide UNA ruta: no elige', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'Patín (VMP)');
+    await direccionEntera(fixture, http);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    const peticiones = http.match('/api/ruta');
+    expect(peticiones.length).toBe(1);
+    expect((peticiones[0].request.body as { ruta?: string }).ruta).toBeUndefined();
+    peticiones[0].flush({ ...TRAYECTO, modo: 'patin' });
+    await fixture.whenStable();
+  });
+
   /**
    * ⭐ EL RÓTULO NO MIENTE CON LA VELOCIDAD (30/08).
    *
@@ -1179,9 +1511,14 @@ describe('Buscador', () => {
     botonGenerar(raiz).click();
     fixture.detectChanges();
 
-    const peticion = http.expectOne('/api/ruta');
-    expect((peticion.request.body as { modo: string }).modo).toBe('bici');
-    peticion.flush({ ...TRAYECTO, modo: 'bici' });
+    // ⭐ TRES desde el 30/08: la bici y la BiZi precargan el trío. Lo que esta
+    // juez mira es el MODO, y las tres tienen que decir el mismo.
+    const peticiones = http.match('/api/ruta');
+    expect(peticiones.length).toBe(3);
+    for (const p of peticiones) {
+      expect((p.request.body as { modo: string }).modo).toBe('bici');
+    }
+    drenarRutas(peticiones, () => ({ ...TRAYECTO, modo: 'bici' }));
     await fixture.whenStable();
   });
 
@@ -1195,9 +1532,14 @@ describe('Buscador', () => {
     botonGenerar(raiz).click();
     fixture.detectChanges();
 
-    const peticion = http.expectOne('/api/ruta');
-    expect((peticion.request.body as { modo: string }).modo).toBe('bizi');
-    peticion.flush({ ...TRAYECTO, modo: 'bizi' });
+    // ⭐ TRES desde el 30/08: la bici y la BiZi precargan el trío. Lo que esta
+    // juez mira es el MODO, y las tres tienen que decir el mismo.
+    const peticiones = http.match('/api/ruta');
+    expect(peticiones.length).toBe(3);
+    for (const p of peticiones) {
+      expect((p.request.body as { modo: string }).modo).toBe('bizi');
+    }
+    drenarRutas(peticiones, () => ({ ...TRAYECTO, modo: 'bizi' }));
     await fixture.whenStable();
   });
 
@@ -1285,9 +1627,14 @@ describe('Buscador', () => {
     elegirModo(fixture, 'Bici privada');
     botonGenerar(raiz).click();
     fixture.detectChanges();
-    const enBici = http.expectOne('/api/ruta');
-    expect((enBici.request.body as { modo: string }).modo).toBe('bici');
-    enBici.flush(POR_LA_AVENIDA_DE_MADRID);
+    // La bici precarga el trío: son tres, y las tres con el mismo cuerpo salvo
+    // el tipo de ruta. Se contesta a las tres la misma, que aquí no se mira.
+    const enBici = http.match('/api/ruta');
+    expect(enBici.length).toBe(3);
+    for (const p of enBici) {
+      expect((p.request.body as { modo: string }).modo).toBe('bici');
+    }
+    drenarRutas(enBici, () => POR_LA_AVENIDA_DE_MADRID);
     await fixture.whenStable();
 
     expect(raiz.querySelector('.ruta__metros')?.textContent).toContain('1,6 km');
@@ -1298,7 +1645,13 @@ describe('Buscador', () => {
     botonGenerar(raiz).click();
     fixture.detectChanges();
     const enPatin = http.expectOne('/api/ruta');
-    expect(enPatin.request.body).toEqual({ ...enBici.request.body, modo: 'patin' });
+    // El patín no elige ruta: su cuerpo es el de la bici sin `ruta` y con su modo.
+    const cuerpoBici = enBici[0].request.body as Record<string, unknown>;
+    expect(enPatin.request.body).toEqual({
+      origen: cuerpoBici['origen'],
+      destino: cuerpoBici['destino'],
+      modo: 'patin',
+    });
     enPatin.flush(RODEANDO_LA_AVENIDA_DE_MADRID);
     await fixture.whenStable();
 

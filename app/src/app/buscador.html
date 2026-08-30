@@ -271,6 +271,37 @@
       }
     </fieldset>
 
+    <!--
+      ⭐ EL SELECTOR DE RUTA, y **solo cuando el modo lo usa** [DOC GOV.UK,
+      revelado condicional]. Es el mismo patrón que el número de portal y el
+      mismo argumento: no está apagado, **no está**. Un grupo de radios
+      deshabilitado en andando ocuparía su hueco y se leería como «esto
+      podrías tocarlo», y no se puede; y enseñárselo al patín sería ofrecerle
+      desobedecer el art. 56.2.c, que le hace obligatoria la vía ciclista.
+
+      El control es el mismo de los modos: `fieldset` + `legend` con radios
+      nativos dentro, vestidos igual. Tres opciones caen de lleno en el rango
+      del patrón (2-5), así que aquí no hay nada que decidir.
+    -->
+    @if (eligeRuta()) {
+      <fieldset class="modos rutas">
+        <legend>¿Qué ruta prefieres?</legend>
+        @for (r of tiposDeRuta; track r.id) {
+          <label class="modo ruta-opcion" [class.modo--activo]="tipoDeRuta() === r.id">
+            <input
+              type="radio"
+              name="ruta"
+              class="modo__radio"
+              [value]="r.id"
+              [checked]="tipoDeRuta() === r.id"
+              (change)="elegirTipoDeRuta(r.id)"
+            />
+            {{ r.etiqueta }}
+          </label>
+        }
+      </fieldset>
+    }
+
     <button
       type="button"
       class="generar"

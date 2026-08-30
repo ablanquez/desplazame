@@ -36,7 +36,7 @@
  * carácter en los diez pasajes que gobiernan: 10 de 10 idénticos.
  */
 
-import type { Modo } from '@desplazame/tipos';
+import type { Modo, TipoDeRuta } from '@desplazame/tipos';
 
 /**
  * Los tres modos que ruedan. Es un subconjunto de `Modo`, no un tipo paralelo:
@@ -342,6 +342,80 @@ export function factorDe(highway: string): number {
   return FACTOR_DE_TRAFICO[highway] ?? 1;
 }
 
+// ── LOS TRES CALIBRADOS (30/08) ─────────────────────────────────────────────
+
+/**
+ * ⭐ LAS TRES TABLAS, y de dónde sale cada una.
+ *
+ * La de arriba deja de ser «la tabla» para ser **la de en medio**. El trío es
+ * de [DOC CycleStreets, API oficial] —*«minimizar tiempo · evitar tráfico · el
+ * compromiso entre ambos»*—, y el mecanismo del dial es de [DOC Valhalla], que
+ * lo tiene como `use_roads` de 0 a 1 **con defecto 0,5**: la preferencia de la
+ * casilla 3 es ese defecto documentado, y ahora tiene sus dos extremos.
+ *
+ * - **`rapida` — factor 1 en todo.** No es «una tabla suave»: es **ninguna
+ *   tabla**. `fastest` en CycleStreets es *«minimizar tiempo»*, literal, y un
+ *   coste-tiempo sin multiplicadores es exactamente eso. Para el *«ciclista
+ *   confiado»* que dice su documentación.
+ *
+ * - **`equilibrada` — la tabla de la casilla 3**, firmada el 29/08 con los
+ *   valores de la `unsafe_highway_list` de OSRM. Es el defecto, y es el
+ *   defecto que CycleStreets **recomienda** poner en la interfaz.
+ *
+ * - **`tranquila` — la misma tabla AL CUADRADO**: `primary` 4,00 ·
+ *   `secondary` 2,37 · `tertiary` 1,56, y el `cycleway` sigue en 1.
+ *
+ * ⭐ **Lo del cuadrado es [PROPIO, FIRMADO por Antonio el 30/08]**, y hay que
+ * decir qué parte es doctrina y qué parte es de casa. **La forma es doctrina**:
+ * [DOC CycleStreets] describe su `quietest` como una puntuación *inversa a la
+ * clasificación viaria* —`trunk` y `primary` *«muy hostiles»*, las menores y
+ * los carriles bici tranquilos—, que es la MISMA escala que ya tenemos. **El
+ * número es de casa**: elevar al cuadrado es aplicar esa escala dos veces, y
+ * conserva el orden, los ceros y el 1 del carril bici sin estrenar una segunda
+ * lista de valores que nadie ha publicado. Lo que NO se hace es inventar una
+ * tabla nueva: se reutiliza la única que tiene procedencia.
+ */
+export const TIPOS_DE_RUTA: readonly TipoDeRuta[] = ['rapida', 'equilibrada', 'tranquila'];
+
+export const CALIBRADOS: Readonly<Record<TipoDeRuta, Readonly<Record<string, number>>>> = {
+  rapida: {},
+  equilibrada: FACTOR_DE_TRAFICO,
+  tranquila: Object.fromEntries(
+    Object.entries(FACTOR_DE_TRAFICO).map(([via, f]) => [via, f * f]),
+  ),
+};
+
+/** El multiplicador de una vía **en un calibrado**. 1 en lo que no penaliza. */
+export function factorSegun(tipo: TipoDeRuta, highway: string): number {
+  return CALIBRADOS[tipo][highway] ?? 1;
+}
+
+/**
+ * ⭐ QUÉ CALIBRADO LE TOCA A CADA MODO, y por qué el patín no elige.
+ *
+ * **Vive aquí y no en quien llama** a propósito: es la única forma de que la
+ * ley del patín no dependa de que nadie se acuerde de aplicarla. Un caller que
+ * le pase `rapida` al patín recibe `tranquila`, y no hay manera de saltárselo.
+ *
+ * [ORD art. 56.2.c, literal] *«Los VMP circularán **obligatoriamente** por
+ * carriles bici o vías ciclistas o lugares específicos destinados a la
+ * circulación de bicicletas»*, y la calzada solo entra [56.3] *«cuando no
+ * exista vía ciclista»*. Eso **no es una preferencia que el usuario pueda
+ * cambiar**: es la jerarquía que manda la Ordenanza, y el calibrado fuerte es
+ * la manera de escribirla en el coste. Por eso el patín ni siquiera ve el
+ * campo en la pantalla — enseñárselo sería ofrecerle desobedecer.
+ *
+ * La bici y la BiZi sí eligen: para ellas la calzada es vía legal de pleno
+ * derecho [ORD art. 50.5.d], así que por dónde ir es un gusto, y el gusto se
+ * pregunta.
+ */
+export function calibradoDe(modo: ModoDeRueda, ruta: TipoDeRuta | undefined): TipoDeRuta {
+  if (modo === 'patin') {
+    return 'tranquila';
+  }
+  return ruta ?? 'equilibrada';
+}
+
 /**
  * ⭐ EL FACTOR DEL EMPUJE: **el máximo de la tabla**, y no 1.
  *
@@ -387,6 +461,25 @@ export function factorDe(highway: string): number {
  * las dos opciones sin medir, esta es la que no empeora ninguna ruta.
  */
 export const FACTOR_DEL_EMPUJE = Math.max(...Object.values(FACTOR_DE_TRAFICO));
+
+/**
+ * ⭐ Y el del empuje **en cada calibrado**, que es el máximo del suyo (30/08).
+ *
+ * La regla es la de arriba y no cambia: *el empuje no puede ganar por
+ * preferencia, solo por tiempo*. Lo que cambia es que ahora hay tres tablas, y
+ * el máximo de cada una es distinto — **1 en rápida, 2 en equilibrada, 4 en
+ * tranquila**. Fijar el 2 para las tres rompería la regla en los otros dos: en
+ * rápida penalizaría un empuje que ahí no compite contra ninguna preferencia,
+ * y en tranquila lo dejaría barato frente a una `primary` que vale 4.
+ *
+ * En `rapida` sale **1**, y es lo correcto: sin tabla no hay preferencia que
+ * batir, y el empuje compite contra el reloj y nada más. Que sea justo el trío
+ * el que lo hace evidente es una señal de que la regla estaba bien escrita.
+ */
+export function factorDelEmpuje(tipo: TipoDeRuta): number {
+  const tabla = Object.values(CALIBRADOS[tipo]);
+  return tabla.length === 0 ? 1 : Math.max(...tabla);
+}
 
 /**
  * ⭐ EL DEFECTO LEGAL NACIONAL: el art. 50 del RGC, por atributos de la vía.

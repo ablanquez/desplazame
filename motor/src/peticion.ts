@@ -16,7 +16,13 @@
  * ni un `import` que hable de disco.
  */
 
-import type { ExtremoDeRuta, ExtremoPortal, Modo, PeticionDeRuta } from '@desplazame/tipos';
+import type {
+  ExtremoDeRuta,
+  ExtremoPortal,
+  Modo,
+  PeticionDeRuta,
+  TipoDeRuta,
+} from '@desplazame/tipos';
 
 /**
  * Lee la petición sin fiarse de nada de lo que trae.
@@ -78,5 +84,17 @@ export function leerPeticion(cuerpo: unknown): PeticionDeRuta | null {
   if (!origen || !destino) {
     return null;
   }
-  return { origen, destino, modo: (crudoModo as Modo | undefined) ?? 'andando' };
+  // ⭐ `ruta` sigue la MISMA ley que `modo` (30/08): no venir es el defecto
+  // —`equilibrada`, el calibrado que existía cuando el campo no existía—, y
+  // venir con algo que no es una cadena es un cliente roto, no uno antiguo.
+  const crudoRuta = bruto['ruta'];
+  if (crudoRuta !== undefined && typeof crudoRuta !== 'string') {
+    return null;
+  }
+  return {
+    origen,
+    destino,
+    modo: (crudoModo as Modo | undefined) ?? 'andando',
+    ruta: crudoRuta as TipoDeRuta | undefined,
+  };
 }

@@ -48,6 +48,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { AristaCruda, GrafoEnMemoria } from './grafo.ts';
 import { tejerLaRed, type RedEnMemoria } from './red.ts';
+import type { TipoDeRuta } from '@desplazame/tipos';
 import type { Entorno } from './gacetero.ts';
 import { dentroDelEntorno } from './gacetero.ts';
 import { cargarJerarquia, type JerarquiaEnMemoria } from './jerarquia.ts';
@@ -62,11 +63,12 @@ import {
   PERFIL_DE_CRUCE,
   UN_CARRIL_POR_TIPO,
   carrilesPorSentidoDeOsm,
-  factorDe,
+  factorSegun,
+  factorDelEmpuje,
+  TIPOS_DE_RUTA,
   puedeRodar,
   comoSeEntra,
   ACCESO_EMPUJANDO,
-  FACTOR_DEL_EMPUJE,
 } from './rueda.ts';
 
 /** Las etiquetas del viario de OSM (§ 1.21). Vive en `motor/data/`. */
@@ -220,7 +222,15 @@ export interface RedDeLaRueda extends RedEnMemoria {
    */
   readonly carrilesPorSentido: Uint8Array;
   /** El multiplicador de tiempo de cada arista. 1 donde no hay tráfico. */
-  readonly factor: Float32Array;
+  /**
+   * ⭐ El multiplicador de preferencia por arista, **uno por calibrado**.
+   *
+   * Era un solo array hasta el 30/08 —había un solo calibrado— y ahora son
+   * tres: `rapida` (todo a 1), `equilibrada` (la tabla de la casilla 3) y
+   * `tranquila` (la misma al cuadrado). Cuál se usa lo decide `calibradoDe`
+   * con el modo y lo que pidan, y el patín no elige. Ver `CALIBRADOS`.
+   */
+  readonly factores: Readonly<Record<TipoDeRuta, Float32Array>>;
   /** Si el patín puede entrar (`1`) o no (`0`). La bici puede en todas. */
   readonly accesoPatin: Uint8Array;
   /** Si la arista cae entera dentro del término municipal. Lo mira la BiZi. */
@@ -432,7 +442,19 @@ export function cargarRedDeLaRueda(
   const limiteKmh = new Float32Array(aristas.length);
   const fuenteLimite = new Uint8Array(aristas.length);
   const carrilesPorSentido = new Uint8Array(aristas.length);
-  const factor = new Float32Array(aristas.length);
+  /**
+   * ⭐ TRES calibrados desde el 30/08, uno por tipo de ruta. Ver `CALIBRADOS`.
+   *
+   * Son arrays y no una función porque el Dijkstra los consulta en cada
+   * relajación: tiene que costar una lectura de array, no una búsqueda en un
+   * `Map` más una multiplicación. Son 92.684 × 4 bytes × 3 ≈ 1,1 MB, y se
+   * calculan una vez al arrancar como todo lo demás de esta capa.
+   */
+  const factores: Record<TipoDeRuta, Float32Array> = {
+    rapida: new Float32Array(aristas.length),
+    equilibrada: new Float32Array(aristas.length),
+    tranquila: new Float32Array(aristas.length),
+  };
   const accesoPatin = new Uint8Array(aristas.length);
   const enElTermino = new Uint8Array(aristas.length);
   const empujando = new Uint8Array(aristas.length);
@@ -498,8 +520,12 @@ export function cargarRedDeLaRueda(
       fuenteLimite[k] = SIN_FUENTE;
       carrilesPorSentido[k] = 0;
       // ⭐ El máximo de la tabla, no 1: el empuje solo puede ganar por tiempo.
-      // El porqué medido, en `FACTOR_DEL_EMPUJE`.
-      factor[k] = FACTOR_DEL_EMPUJE;
+      // El porqué medido, en `factorDelEmpuje`. Es **el máximo de SU calibrado**
+      // —1 en rápida, 2 en equilibrada, 4 en tranquila—, para que la regla se
+      // cumpla en los tres y no solo en el de en medio.
+      for (const tipo of TIPOS_DE_RUTA) {
+        factores[tipo][k] = factorDelEmpuje(tipo);
+      }
       accesoPatin[k] = 1;
       // El término sí se mira: el contrato de la BiZi prohíbe salir de él, y
       // sacarla empujando la saca igual.
@@ -595,9 +621,11 @@ export function cargarRedDeLaRueda(
       }
     }
 
-    // — El factor de preferencia —
-    factor[k] = factorDe(tipo);
-    if (factor[k] !== 1) {
+    // — El factor de preferencia, en los tres calibrados —
+    for (const cual of TIPOS_DE_RUTA) {
+      factores[cual][k] = factorSegun(cual, tipo);
+    }
+    if (factores.equilibrada[k] !== 1) {
       conFactor++;
     }
 
@@ -733,9 +761,9 @@ export function cargarRedDeLaRueda(
     limiteKmh,
     fuenteLimite,
     carrilesPorSentido,
-    factor,
     accesoPatin,
     enElTermino,
+    factores,
     empujando,
     soloEmpujando,
     jerarquia,

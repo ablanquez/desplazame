@@ -167,7 +167,14 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
     // la preferencia a 1, que es la única forma de aislar lo que compra.
     const sinPreferencia: RedDeLaRueda = {
       ...rueda,
-      factor: new Float32Array(rueda.factor.length).fill(1),
+      // ⭐ Los tres calibrados a 1: es lo que era «el factor» antes del 30/08.
+      // Se tocan los tres porque `segundosDe` elige según el modo y el tipo, y
+      // dejar uno vivo mediría otra cosa.
+      factores: {
+        rapida: new Float32Array(rueda.aristas.length).fill(1),
+        equilibrada: new Float32Array(rueda.aristas.length).fill(1),
+        tranquila: new Float32Array(rueda.aristas.length).fill(1),
+      },
     };
     const plana = rodar('bici', a, b, sinPreferencia)!;
     assert.equal(Math.round(plana.metros), 2986);
@@ -284,16 +291,27 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * pisando la Avenida de Madrid; el patín no puede RODAR por ella —no está en
    * la lista cerrada del art. 56.3— y da **1.577,2 m**.
    *
-   * ⭐ **Eran 1.972 m hasta el 30/08, y los bajó el empuje**: el patín ya no da
-   * el rodeo de 400 m, cruza los **33,1 m** que le faltaban **con el patín en
-   * la mano**, que es de peatón [RGC 121.2] y no de VMP. La tesis de la juez no
-   * se toca y es la de siempre: **el patín no RUEDA ni un metro por donde no
-   * puede** —cero aristas vedadas, y se sigue comprobando—; lo que ha ganado es
-   * una manera legal de pasar en vez de una vuelta larga.
+   * ⭐ **Eran 1.972 m hasta el 30/08 por la mañana; el empuje los bajó a 1.577
+   * cruzando 33,1 m con el patín en la mano; y por la tarde el selector de ruta
+   * los devolvió a 1.972.** Los tres números son correctos y el último es el
+   * mejor de los tres, aunque sea el más largo:
    *
-   * Los 12 m que le saca a la bici son lo que cuesta bajarse y volver a subirse
-   * dos veces. En tiempo la diferencia es mayor —402 s contra 344— porque esos
-   * 33 m van a 5 km/h y no a 18.
+   * | | metros | min | carril bici | metros de tráfico |
+   * |---|---|---|---|---|
+   * | con el calibrado de la bici | 1.577 | 6,7 | 381 | 113 `primary` + 86 `tertiary` |
+   * | con el suyo (el fuerte) | **1.972** | 7,1 | **601** | **0** |
+   *
+   * El patín dejó de compartir calibrado con la bici porque su vía ciclista es
+   * **OBLIGATORIA** [ORD art. 56.2.c] y la calzada solo subsidiaria [56.3]:
+   * eso no es un gusto que se pueda elegir, es la jerarquía que manda la
+   * Ordenanza. Con ella paga 395 m y compra **220 m más de carril bici y CERO
+   * metros de vía con tráfico**. Que la cifra coincida con la de antes del
+   * empuje es casualidad de la aritmética, no vuelta atrás: aquella iba por la
+   * calzada y esta va por el carril.
+   *
+   * La tesis de la juez no se toca y es la de siempre: **el patín no RUEDA ni
+   * un metro por donde no puede** — cero aristas vedadas, y se sigue
+   * comprobando.
    *
    * Lo que la prueba mira no es solo la diferencia de metros: mira **que la
    * ruta del patín no pise ni una arista vedada**. Una ruta más larga podría
@@ -317,14 +335,14 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * es la otra mitad de la definición. Se dice, se cambian los números y se
    * escribe por qué.
    */
-  test('⭐ 4 · el patín cruza la Avenida de Madrid en la mano: 1.565 vs 1.577 m', () => {
+  test('⭐ 4 · el patín no rueda por la Avenida de Madrid: 1.565 vs 1.972 m', () => {
     const a = donde('Portales.120344');
     const b = donde('Portales.110047');
 
     const bici = rodar('bici', a, b)!;
     const patin = rodar('patin', a, b)!;
     assert.equal(Math.round(bici.metros), 1565);
-    assert.equal(Math.round(patin.metros), 1577);
+    assert.equal(Math.round(patin.metros), 1972);
 
     const vedadasDeLaBici = bici.trozos.filter((t) => rueda.accesoPatin[t.arista] === 0);
     assert.ok(vedadasDeLaBici.length > 0, 'la bici tiene que pisar lo que el patín no puede');
@@ -456,7 +474,7 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
     const k = aristaDe(253503683, 399.2);
     assert.equal(rueda.limiteKmh[k], 10);
     assert.equal(rueda.fuenteLimite[k], 1, 'el 10 lo dice el municipal, no OSM');
-    assert.equal(rueda.factor[k], 1, 'no es vía con tráfico: sin factor de por medio');
+    assert.equal(rueda.factores.equilibrada[k], 1, 'no es vía con tráfico: sin factor de por medio');
 
     const arista = rueda.aristas[k]!;
     const p0 = arista.g[0] as Punto;

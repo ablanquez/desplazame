@@ -19,6 +19,7 @@ import type {
   ExtremoPortal,
   Modo,
   PeticionDeRuta,
+  TipoDeRuta,
   Trayecto,
   Vertice,
 } from '@desplazame/tipos';
@@ -241,7 +242,7 @@ export function calcularTrayecto(motor: Motor, peticion: PeticionDeRuta | null):
   // red, ni rejilla, ni cuaderno, ni una línea de este fichero: lo de abajo es
   // exactamente lo que había el 28/08.
   if (esDeLaRueda(modo)) {
-    return trayectoRodando(motor, modo, origen, destino);
+    return trayectoRodando(motor, modo, origen, destino, peticion.ruta);
   }
 
   const engancheOrigen = enganchar(motor.red, motor.rejilla, origen.lon, origen.lat);
@@ -325,6 +326,8 @@ function trayectoRodando(
   modo: ModoDeRueda,
   origen: Extremo,
   destino: Extremo,
+  /** Qué clase de ruta se pide. El patín lo ignora: ver `calibradoDe`. */
+  ruta: TipoDeRuta | undefined,
 ): Trayecto {
   const red = motor.redRueda;
   // ⭐ La PUERTA no es lo mismo que lo que se puede pisar: por una acera se
@@ -361,7 +364,7 @@ function trayectoRodando(
     );
   }
 
-  const ruta: Ruta | null = calcularRutaRodando(
+  const trazado: Ruta | null = calcularRutaRodando(
     red,
     motor.cuadernoRueda,
     modo,
@@ -369,8 +372,9 @@ function trayectoRodando(
     [origen.lon, origen.lat],
     engancheDestino,
     [destino.lon, destino.lat],
+    ruta,
   );
-  if (!ruta) {
+  if (!trazado) {
     return conAviso(
       modo,
       `No hay forma de ir de ${origen.nombre} a ${destino.nombre} ` +
@@ -380,7 +384,7 @@ function trayectoRodando(
 
   const pasos = escribirPasos(
     red,
-    ruta,
+    trazado,
     origen.nombre,
     destino.nombre,
     [destino.lon, destino.lat],
@@ -388,15 +392,18 @@ function trayectoRodando(
     // narración no cambia ni una letra: ver `Empuje` en `pasos.ts`.
     { esEmpuje: (arista) => red.empujando[arista] === 1, enLaMano: EN_LA_MANO[modo] },
   );
-  const geometria: Vertice[] = geometriaDe(ruta).map(([lon, lat]) => [lat, lon]);
+  const geometria: Vertice[] = geometriaDe(trazado).map(([lon, lat]) => [lat, lon]);
 
   return {
     modo,
     pasos,
     geometria,
     avisos: [],
-    metros: Math.round(ruta.metros),
-    segundos: Math.round(segundosRodando(red, ruta, modo)),
+    metros: Math.round(trazado.metros),
+    // ⭐ El reloj es el de siempre: el tipo de ruta cambia el PESO, no la
+    // velocidad. `segundosRodando` divide el factor del calibrado que se usó,
+    // así que lo que se contesta son los segundos reales de esta ruta.
+    segundos: Math.round(segundosRodando(red, trazado, modo, ruta)),
   };
 }
 

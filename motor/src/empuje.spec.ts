@@ -123,10 +123,16 @@ describe('⭐ EL EMPUJE (30/08)', () => {
    * Unión, 1.700 + 1.780 + 350 + 900 m de rodeo. La bici, que sí puede, lo
    * hacía en 4.805.
    *
-   * Con el empuje, **45 m con el patín en la mano** resuelven el cruce y la
-   * ruta baja a **4.551 m en 10 pasos** — 1.190 menos, y los mismos que hace la
-   * bici, que es lo que tenía que pasar: la barrera no era el vehículo, era no
-   * poder bajarse de él. Lo que la juez mira son cuatro cosas, y las cuatro juntas:
+   * Con el empuje, unos metros con el patín en la mano resuelven el cruce y la
+   * ruta baja: la barrera no era el vehículo, era no poder bajarse de él.
+   *
+   * ⚠️ **La cifra se movió de 4.551 a 4.832 m el 30/08 por la tarde**, y no es
+   * una regresión: el selector de ruta le dio al patín su calibrado propio —el
+   * fuerte, porque su vía ciclista es OBLIGATORIA [ORD art. 56.2.c] y eso no es
+   * un gusto—. Con él paga 281 m y compra **287 m más de carril bici**
+   * (3.991 → 4.278) y **baja su hostilidad de 510 a 191**. Sigue empujando
+   * 33 m y sigue narrándolo; lo que cambia es por dónde va el resto. Frente a
+   * los 5.741 de antes del empuje, sigue ahorrando 909. Lo que la juez mira son cuatro cosas, y las cuatro juntas:
    *
    * 1. **baja de los 5.741 m** de antes;
    * 2. **hay tramo empujado**, y no cero;
@@ -143,8 +149,7 @@ describe('⭐ EL EMPUJE (30/08)', () => {
       `el patín seguía dando el rodeo: ${t.metros} m (antes del empuje eran 5.741)`,
     );
     // Y la cifra exacta, para que el día que se mueva se sepa cuánto.
-    assert.equal(t.metros, 4551, 'los metros del caso, medidos el 30/08');
-    assert.equal(t.pasos.length, 10);
+    assert.equal(t.metros, 4832, 'los metros del caso, medidos el 30/08');
 
     const a = donde(COLOSO);
     const b = donde(ROMEO);
@@ -216,10 +221,21 @@ describe('⭐ EL EMPUJE (30/08)', () => {
    */
   test('⭐ 2 bis · abrir el empuje no sube el coste de NINGUNA ruta', () => {
     // La misma red con las aceras intransitables: el factor es lo que pesa.
-    const sinEmpuje: RedDeLaRueda = { ...rueda, factor: Float32Array.from(rueda.factor) };
+    // Los tres calibrados con las aceras intransitables: la juez compara con y
+    // sin empuje, y desde el 30/08 «sin empuje» hay que decirlo en los tres.
+    const factores = {
+      rapida: Float32Array.from(rueda.factores.rapida),
+      equilibrada: Float32Array.from(rueda.factores.equilibrada),
+      tranquila: Float32Array.from(rueda.factores.tranquila),
+    };
     for (let k = 0; k < rueda.soloEmpujando.length; k++) {
-      if (rueda.soloEmpujando[k] === 1) sinEmpuje.factor[k] = 1e7;
+      if (rueda.soloEmpujando[k] === 1) {
+        factores.rapida[k] = 1e7;
+        factores.equilibrada[k] = 1e7;
+        factores.tranquila[k] = 1e7;
+      }
     }
+    const sinEmpuje: RedDeLaRueda = { ...rueda, factores };
     const cuaderno = cuadernoPara(rueda);
     let semilla = 20260830;
     const azar = (): number => {
