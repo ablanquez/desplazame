@@ -7,7 +7,12 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ## ESTADO ACTUAL — 30 de agosto de 2026
 
-**⭐ PUNTOS 1-8 CERRADOS (el 8, el 27/08). La demo andando está
+**⭐ PUNTOS 1-9 CERRADOS (el 9, el 30/08: la rueda ENTERA — seis
+modos en pantalla, bici/patín/BiZi ruteando por sus tablas con
+empuje, selector de ruta, aparcabicis a ≤500 m firmados, BiZi vivo
+estación a estación, pintado por tramos con el azul #2563eb, y LA
+DEMO confirmada por el ojo: «las rutas, de puta madre»; de fondo
+quedan la fase 2 de sentidos y tres decisiones menores de mesa). La demo andando está
 ENTERA: real, legal (art. 121.1 + tabla de acceso), mínima en metros
 (el ojo de Antonio), ligera (0,22 MB en frío, eran 41) y bien narrada
 (los combines de odin). Y LA RUEDA YA RUTEA: red propia de 58.914
@@ -19,7 +24,7 @@ hospitales · bibliotecas · colegios e institutos · guarderías ·
 universidades — 820 sitios, 802 buscables), TODA calle sugerible
 (3.350: 2.731 con portal + 619 por punto medio — el Puente de Piedra
 se escribe), el buscador por tipos completo con siglas e iconos, el
-foco en las dos capas, y las 14 bitácoras cerradas.**
+foco en las dos capas, y las bitácoras cerradas (16/16 al 30/08).**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
 levantado el 18/08, des-caducado del 21 al 30):
@@ -724,12 +729,12 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **LA DEMO del punto 9** (casilla 7, el ojo de
-Antonio por los modos de la rueda); (2) las decisiones de la mesa
-(500 m · fundir consultas · el aviso · sondar
-MU2_señalizacion_vertical); (3) LA FASE 2 de sentidos cuando el ojo
-confirme candidatos; (4) el push cuando Antonio diga (la tanda del
-30 entera); (5) el
+**Lo siguiente:** (1) el PUSH cuando Antonio diga (la tanda del 30
+entera, 22 commits); (2) las decisiones menores de la mesa (fundir
+consultas · el aviso · sondar MU2_señalizacion_vertical); (3) LA
+FASE 2 de sentidos como goteo de fondo (la lista de 434, con el
+atajo posible de la señalización vertical); (4) el punto 10 — EL
+RELOJ: el GTFS caduca el 05/10; (5) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -793,7 +798,7 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
-9 EN MARCHA (casillas 0-4 + auditoría fase 1 HECHAS — el COSTE DE LA RUEDA:
+9 CERRADO el 30/08 (casillas 0-7 — el COSTE DE LA RUEDA:
 red aparte con sentido demostrado [112 rotondas antihorario/0 ·
 22.999 encadenados], once jueces con cifras, la muralla sha256 del
 peatón, el patín 51/200 con el defecto del art. 50 RGC [RD 970/2020:
@@ -893,9 +898,10 @@ del GTFS, anotado en el 10) · las 203 calles a medio cartografiar
 ⚰️ las casillas 4, 5, 6, 6-bis, 6-tris y 6-quater HECHAS (30/08:
 el selector a seis · el empuje · el selector de ruta · el remate
 del aparcabicis · BiZi entero con disponibilidad viva · el pintado
-por tramos con el azul #2563eb) — del punto 9 queda LA DEMO (7) y
-la fase 2 · LA MESA de decisiones de Antonio: el tope de 500 m
-[PROPIO, movible] · fundir las TRES consultas en-vuelo del trío
+por tramos con el azul #2563eb) — ⚰️ LA DEMO (7) CONFIRMADA
+por el ojo el 30/08 — EL PUNTO 9 CERRADO; queda la fase 2 · LA MESA
+de decisiones de Antonio: ⚰️ el tope de 500 m FIRMADO el 30/08
+(«hay muchos desperdigados por la ciudad») · fundir las TRES consultas en-vuelo del trío
 BiZi en una [no es cachear] · la colocación del aviso ámbar (lejos
 de los hitos) · sondar MU2_señalizacion_vertical (la candidata a
 capa-de-direcciones) · ⚠️ la API municipal de BiZi es CAPRICHOSA

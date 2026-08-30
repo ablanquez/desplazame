@@ -1909,9 +1909,24 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       por partida doble: color Y trazo separan cada uno por su
       cuenta. 364 motor · 176 interfaz
 
-- [ ] **7 · LA DEMO de los modos de la rueda, vista por el ojo de
-      Antonio** *(lo único abierto del punto 9 junto a la fase 2 de
-      sentidos y las decisiones de la mesa)*
+- [x] **7 · LA DEMO — VISTA Y CONFIRMADA por Antonio (30/08).** El
+      ojo pasó por los tres modos de la rueda con casos reales y sus
+      vueltas: bici con su remate de aparcabicis · patín con su
+      calibrado fuerte y el empuje cruzando en la mano · BiZi con
+      sus estaciones, sus números vivos y su D-G con la API caída ·
+      el selector de ruta saltando entre las tres precargadas · el
+      pintado por tramos con el azul y los hitos · el buscador con
+      las vacías. Veredictos literales: «las rutas, de puta madre» ·
+      «funciona muy bien» · «lo armé y ya vi que funciona». ⚰️ Y EL
+      TOPE DE 500 m FIRMADO por Antonio (30/08): «me parece correcto
+      porque hay muchos desperdigados por la ciudad» — deja de ser
+      [PROPIO del ejecutor] y pasa a decisión de producto.
+
+      **⭐ CON ESTO, EL PUNTO 9 QUEDA CERRADO** (las casillas 0-7
+      con sus bis; quedan como trabajo de fondo la FASE 2 de
+      sentidos y las decisiones menores de la mesa: fundir
+      consultas · colocación del aviso · sonda de la señalización
+      vertical).
 
 ## 10 — Modo BUS/TRANVÍA *(en grueso)*
 
