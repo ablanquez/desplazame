@@ -273,6 +273,159 @@ describe('⭐ EL MODO BiZi (30/08)', () => {
   });
 
   /**
+   * ⭐ JUEZ 6 ter — UN «GENERAR» EN BiZi ES **UNA** VISITA AL AYUNTAMIENTO.
+   *
+   * ── El patrón, que tiene nombre ─────────────────────────────────────────
+   *
+   * **Single-flight** (o *request coalescing*): fusionar las peticiones
+   * concurrentes **idénticas** en una sola ejecución real — la primera sale, y
+   * las que llegan mientras está en el aire se enganchan a su resultado. La
+   * implementación canónica es el paquete `singleflight` de Go
+   * (`golang.org/x/sync`); Varnish y Nginx lo traen de serie para lo cacheable.
+   *
+   * ⚠️ **Y NO es una caché, que es justo lo que hay que no confundir.** Un
+   * single-flight deduplica **solo lo que está en vuelo**: en cuanto la primera
+   * termina, una idéntica posterior **vuelve a salir a la red**. No guarda nada
+   * entre peticiones. La juez 6 de aquí arriba sigue comprando exactamente eso.
+   *
+   * ── Por qué hacía falta ─────────────────────────────────────────────────
+   *
+   * Cada `Generar` en BiZi dispara **tres** `/api/ruta` a la vez —el trío de la
+   * precarga, rápida · equilibrada · tranquila, con un `forkJoin` que las
+   * suscribe a las tres— y cada una llamaba por su cuenta a la sede. Tres
+   * visitas al Ayuntamiento para pintar **un** viaje, con tres respuestas que
+   * además podían no coincidir entre sí.
+   */
+  test('⭐ 6 ter · el trío de la precarga sale con UNA sola consulta', async () => {
+    const original = globalThis.fetch;
+    let veces = 0;
+    globalThis.fetch = (async () => {
+      veces++;
+      // Un respiro para que las tres coincidan en el aire, que es la situación
+      // que el patrón resuelve. Sin él, la primera podría resolverse antes de
+      // que la segunda llegue a pedir, y no habría nada que fusionar.
+      await new Promise((r) => setTimeout(r, 5));
+      return new Response(
+        JSON.stringify({
+          totalCount: 1,
+          result: [
+            {
+              title: '35- Comuneros',
+              estado: 'IN_SERVICE',
+              bicisDisponibles: 3,
+              anclajesDisponibles: 16,
+              lastUpdated: '2026-08-30T12:48:00',
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }) as typeof fetch;
+    try {
+      const trio = await Promise.all([
+        disponibilidadDeBiZi(),
+        disponibilidadDeBiZi(),
+        disponibilidadDeBiZi(),
+      ]);
+      assert.equal(veces, 1, `el trío ha ido ${veces} veces al Ayuntamiento en vez de una`);
+      // Y las tres traen lo mismo, que es la otra mitad del trato: no es solo
+      // ahorrar la visita, es que las tres rutas hablen del mismo momento.
+      for (const uno of trio) {
+        assert.ok(uno, 'las tres tienen que traer disponibilidad');
+        assert.equal(uno.porNumero.get(35)?.bicis, 3);
+      }
+      assert.equal(trio[0], trio[1], 'las tres comparten la MISMA respuesta');
+      assert.equal(trio[1], trio[2]);
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 6 quater — DOS «GENERAR» SON DOS VISITAS. La frescura VIVE.
+   *
+   * ⚠️ **Es la mitad que impide que el single-flight se convierta en caché.**
+   * Fusionar lo que vuela junto está bien; recordar la respuesta del `Generar`
+   * anterior sería contestar con un número que ya no es cierto, y el número es
+   * lo que el hito enseña. [DOC GBFS] `station_status` es feed **dinámico**.
+   *
+   * Dos tríos, uno **después** del otro: seis llamadas a la función, **dos**
+   * visitas a la sede. Ni seis ni una.
+   */
+  test('⭐ 6 quater · dos Generar seguidos son DOS consultas, no una recordada', async () => {
+    const original = globalThis.fetch;
+    let veces = 0;
+    globalThis.fetch = (async () => {
+      veces++;
+      await new Promise((r) => setTimeout(r, 5));
+      return new Response(
+        JSON.stringify({
+          totalCount: 1,
+          result: [
+            {
+              title: '35- Comuneros',
+              estado: 'IN_SERVICE',
+              bicisDisponibles: 3,
+              anclajesDisponibles: 16,
+              lastUpdated: '2026-08-30T12:48:00',
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }) as typeof fetch;
+    try {
+      const uno = await Promise.all([
+        disponibilidadDeBiZi(),
+        disponibilidadDeBiZi(),
+        disponibilidadDeBiZi(),
+      ]);
+      assert.equal(veces, 1, 'el primer Generar, una visita');
+      const dos = await Promise.all([
+        disponibilidadDeBiZi(),
+        disponibilidadDeBiZi(),
+        disponibilidadDeBiZi(),
+      ]);
+      assert.equal(veces, 2, `dos Generar tienen que ser dos visitas, y han sido ${veces}`);
+      // Y la segunda tanda es una respuesta NUEVA, no la guardada de la primera.
+      assert.notEqual(uno[0], dos[0], 'la segunda tanda no puede ser el objeto de la primera');
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 6 quinquies — LA CAÍDA TAMBIÉN SE COMPARTE.
+   *
+   * El plan D-G no cambia porque las tres compartan la consulta: si la sede
+   * calla, las tres se enteran a la vez y las tres salen con el aviso. El caso
+   * es el real del 30/08 —`200 OK` con el cuerpo vacío—, y aquí se comprueba
+   * que además **solo se intenta una vez**: no tiene sentido llamar tres veces
+   * a una puerta que no abre.
+   */
+  test('⭐ 6 quinquies · si la sede calla, las tres se enteran con UNA sola visita', async () => {
+    const original = globalThis.fetch;
+    let veces = 0;
+    globalThis.fetch = (async () => {
+      veces++;
+      await new Promise((r) => setTimeout(r, 5));
+      // El 200 con el cuerpo vacío, tal cual se vio.
+      return new Response('', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }) as typeof fetch;
+    try {
+      const trio = await Promise.all([
+        disponibilidadDeBiZi(),
+        disponibilidadDeBiZi(),
+        disponibilidadDeBiZi(),
+      ]);
+      assert.deepEqual(trio, [null, null, null], 'las tres tienen que caer al D-G');
+      assert.equal(veces, 1, `se ha llamado ${veces} veces a una puerta que no abre`);
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
+
+  /**
    * ⭐ JUEZ 6 bis — SE LEE `estado`, NUNCA `estadoEstacion`.
    *
    * ⚠️ **Esta juez existe porque la contraprueba encontró un hueco.** Mutar el

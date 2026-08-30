@@ -229,7 +229,7 @@ function numeroDe(title: string | undefined): number | null {
  * pondría a cero — un cero significaría «no quedan bicis», y lo que pasa es que
  * no se sabe.
  */
-export async function disponibilidadDeBiZi(): Promise<Disponibilidad | null> {
+async function consultarLaSede(): Promise<Disponibilidad | null> {
   const principio = performance.now();
   try {
     const respuesta = await fetch(API, { signal: AbortSignal.timeout(ESPERA_MS) });
@@ -289,6 +289,65 @@ export async function disponibilidadDeBiZi(): Promise<Disponibilidad | null> {
     // quien lo caza — lanzando aquí dentro, que es donde tiene que caer.
     return null;
   }
+}
+
+/**
+ * ⭐ LA CONSULTA EN VUELO, si hay una. `null` en cuanto se resuelve.
+ *
+ * Es **una sola** variable y no un mapa por clave porque **solo hay una
+ * consulta posible**: la petición a la sede no lleva ni un parámetro nuestro
+ * —es siempre el mismo URL con `rows=300`—, así que dos peticiones
+ * concurrentes son necesariamente idénticas y la clave sobraría.
+ */
+let enVuelo: Promise<Disponibilidad | null> | null = null;
+
+/**
+ * ⭐ LA DISPONIBILIDAD VIVA, con **single-flight** (30/08).
+ *
+ * ── El patrón, con su nombre ────────────────────────────────────────────────
+ *
+ * **Single-flight**, o *request coalescing*: fusionar las peticiones
+ * concurrentes **idénticas** en una sola ejecución real. La primera sale a la
+ * red; las que llegan mientras está en el aire se enganchan a su promesa y
+ * comparten la respuesta. La implementación canónica es el paquete
+ * `singleflight` de Go (`golang.org/x/sync`), y Varnish y Nginx lo traen de
+ * serie para lo cacheable.
+ *
+ * ── ⚠️ Y esto NO es una caché ───────────────────────────────────────────────
+ *
+ * La propia doctrina separa las dos cosas, y aquí es lo que más importa:
+ * **single-flight deduplica solo lo que está EN VUELO**. En cuanto la primera
+ * termina, `enVuelo` se suelta y una consulta idéntica posterior **vuelve a
+ * salir a la red**. Entre un `Generar` y el siguiente no queda memoria de nada.
+ *
+ * Eso deja intacta la conducta firmada: [DOC GBFS] `station_status` es el feed
+ * **dinámico** y se consulta en cada ruta pedida. Lo único que colapsa es el
+ * **triplete de la precarga** —las tres rutas del **mismo** viaje, que salen a
+ * la vez con un `forkJoin`— y colapsarlo es exactamente lo que
+ * [CycleStreets] hace con las tres del mismo viaje: son una pregunta, no tres.
+ *
+ * ── Lo que se gana, además de la visita ─────────────────────────────────────
+ *
+ * Las tres rutas del trío pasan a hablar **del mismo momento**. Antes cada una
+ * traía su propia foto de la disponibilidad, y entre la primera y la tercera la
+ * sede podía haber cambiado de opinión: la rápida decía «3 bicis» y la
+ * tranquila «2», para el mismo viaje y la misma estación.
+ */
+export function disponibilidadDeBiZi(): Promise<Disponibilidad | null> {
+  if (enVuelo !== null) {
+    return enVuelo;
+  }
+  const vuelo = consultarLaSede().finally(() => {
+    // ⚠️ **Soltar es la mitad del patrón.** Si esta línea no estuviera, la
+    // primera respuesta se quedaría pegada para siempre y esto sería una caché
+    // eterna: el segundo `Generar` contestaría con los números del primero.
+    // La comparación es por si acaso: solo la bandera de ESTE vuelo se borra.
+    if (enVuelo === vuelo) {
+      enVuelo = null;
+    }
+  });
+  enVuelo = vuelo;
+  return vuelo;
 }
 
 /**
