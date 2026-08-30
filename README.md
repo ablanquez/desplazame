@@ -17,9 +17,10 @@
 ## Estado: ya calcula rutas andando y sobre ruedas
 
 > ⚠️ **Este repositorio está en construcción: arranca en local y no está publicado todavía en
-> ninguna dirección.** Lo que ya funciona de punta a punta es **el modo andando**: se escribe
-> de dónde a dónde, se pulsa «Generar ruta», y la pantalla dibuja la ruta de verdad en el mapa
-> y lista las indicaciones paso a paso.
+> ninguna dirección.** Lo que ya funciona de punta a punta son **cuatro modos**: andando, bici
+> privada, patín (VMP) y BiZi. Se escribe de dónde a dónde, se elige el modo, se pulsa «Generar
+> ruta», y la pantalla dibuja la ruta de verdad en el mapa y lista las indicaciones paso a paso.
+> **Bus o tranvía y coche todavía no**, y la pantalla lo dice.
 >
 > **⭐ Y desde el 29/08 el motor calcula también las tres rutas de la rueda** —bici propia,
 > patín (VMP) y BiZi—, cada una por su tabla de acceso legal, respetando el sentido único de la
@@ -34,8 +35,8 @@
 > **compite en tiempo** dentro del mismo Dijkstra, 5 km/h contra 18, y el rodeo largo pierde
 > igual que pierde el atajo por la acera. El tramo empujado es **un paso propio** y se dice
 > —«con el patín en la mano»—, y ninguna fusión de pasos lo cruza. Lo que abre es grande: el
-> caso que lo pidió, `COLOSO 2 → LEOPOLDO ROMEO 27` en patín, pasa de **5.741 m a 4.832** con
-> 33 m en la mano; y en 200 peticiones al azar el patín pasa de resolver 51 a **83**.
+> caso que lo pidió, `COLOSO 2 → LEOPOLDO ROMEO 27` en patín, pasa de **5.741 m a 4.832** de
+> rodadura con 33 m en la mano; y en 200 peticiones al azar el patín pasa de resolver 51 a **83**.
 >
 > **⭐ Y desde el 30/08 la bici elige QUÉ CLASE de ruta quiere**: Rápida, Equilibrada o
 > Tranquila. El trío es el de CycleStreets —«minimizar tiempo · evitar tráfico · el compromiso
@@ -55,6 +56,62 @@
 > Y **al Generar en bici se piden las tres a la vez**: cambiar de opción después repinta al
 > instante, sin volver a preguntarle al motor. Es el planificador de CycleStreets —los tres
 > tipos del mismo viaje— y sale barato porque cada Dijkstra son ~20 ms.
+>
+> **⭐ Y desde el 30/08 una ruta de bici no acaba pedaleando en el portal: acaba APARCANDO.**
+> Se rueda hasta el aparcabicis municipal más cercano al destino, se dice dónde se deja el
+> vehículo y cuántos anclajes tiene, y el resto se anda. Es el `BICYCLE_PARK` de OpenTripPlanner
+> —*«deja la bicicleta y anda hasta el destino»*— sobre los **1.914 soportes** de § 1.9 que de
+> verdad entran: `Abierto` (1.906) y `Vigilado` (8), **12.117 anclajes**. Los 238 `Cerrado` se
+> quedan fuera porque **la capa no publica qué significa esa palabra** —¿clausurado, o un módulo
+> con cerramiento?— y mandar a alguien a un sitio que a lo mejor está cerrado es peor que
+> mandarlo doscientos metros más allá. El hito dice **«5 anclajes»** y no «5 huecos libres», y
+> esa palabra es toda la diferencia: § 1.9 publica capacidad, no disponibilidad.
+>
+> ⚠️ **Y hay un tope de 500 m andando desde el soporte, que sale de un absurdo cazado midiendo.**
+> Contra los 46.150 portales, el aparcabicis entrante más cercano queda a **p50 84 m** —el 58,2 %
+> lo tiene a menos de 100— pero la cola es larguísima: **p99 5.656 m y máximo 11.641**, porque en
+> los barrios rurales § 1.9 no llega. Sin tope, una ruta a `CALLE SAN MARCOS [TORRECILLA DE
+> VALMADRID] 2` habría dicho «pedalea hasta el aparcabicis y **anda 11,6 km** hasta tu casa».
+> Con tope, la ruta llega a la puerta como antes y **un aviso dice a cuántos metros estaba el más
+> cercano** — el número, no una excusa. El **86,3 %** de los portales se queda con remate.
+>
+> **⭐ Y desde el 30/08 el BiZi deja de rutear como una bici y rutea como lo que es: TRES
+> tramos.** Se anda hasta una estación **que tenga bicis**, se pedalea hasta otra **que tenga
+> anclajes libres**, y se anda el resto — el modo de alquiler de OpenTripPlanner, literal. Las
+> estaciones se filtran por disponibilidad **en el momento de planificar**, así que una llena no
+> sirve para devolver y una vacía no sirve para coger. Y los dos hitos llevan el dato vivo con
+> **la hora de ESA estación**:
+>
+> > 🚲 **Coge** una bici en la estación **Tauromaquia** — 11 bicis disponibles a las 12:57
+> > 🅿 **Deja** la bici en la estación **Mrio. Siresa: Dr. Iranzo** — 16 anclajes libres a las 12:57
+>
+> La disponibilidad **se pregunta en cada ruta de BiZi y no se guarda**: es el feed dinámico de
+> GBFS, y reutilizar la respuesta anterior sería contestar con un número que ya no es cierto. La
+> sirve la API de la sede de zaragoza.es (§ 1.23 del notices), **sin clave**, y es **la primera
+> fuente del proyecto que no se copia: se consulta**.
+>
+> ⚠️ **Si la API calla, la ruta sale igual y no se inventa nada**: se rutea con el inventario, un
+> aviso dice que **la disponibilidad no está verificada**, y los hitos salen **sin número y sin
+> hora**. Y si el pedaleo pasa de 30 minutos se dice que **supera el tramo incluido del abono**,
+> sin inventar precios — las tarifas cambian cuando el Ayuntamiento quiere y no están en este
+> repositorio.
+>
+> **⭐ Y los carriles bici ya dicen de qué calle son.** «Continúa hacia **el carril bici** ·
+> 1.510 m», kilómetro y medio sin decir por dónde: lo vio Antonio en ruta viva el 30/08. La causa
+> estaba escrita desde el día anterior en la cabecera del propio motor — la herencia de nombre del
+> callejero municipal se cruzó sobre las aristas **del peatón**, y la tabla del peatón cierra los
+> carriles bici, así que a los tramos que solo existen en la red de la rueda **nunca se les
+> preguntó**. Ahora se les pregunta: **652 tramos mudos que el peatón no veía, 579 heredan** —
+> todos carril bici—, **1.867 aristas y 71,8 km** con nombre. Y se viste, porque el nombre de un
+> carril **es el de la calle a la que acompaña**: «el carril bici de Avenida San Juan de la Peña».
+> Medido sobre 200 rutas al azar, los pasos que decían «el carril bici» a secas caen de **686 a
+> 81**. Los que siguen callando lo hacen por su motivo —33 por disputa entre dos calles, 29 por
+> poca cobertura, 11 sin eje cerca—, y ahí el genérico es lo honesto.
+>
+> **Y el rótulo vuelve a decir la velocidad, dicha como lo que es.** El empuje se la había
+> quitado a la rueda por no mentir; ahora dice **«~17 min pedaleando a 20 km/h de crucero»**. Las
+> dos palabras del final son las que la hacen verdad: 20 es la velocidad a la que se va cuando se
+> va, no la media de un viaje que empieza y acaba andando. Los minutos siguen siendo la suma real.
 >
 > **⭐ Y desde el 30/08 el selector son seis y cada rueda manda la suya** —Andando · Bus /
 > Tranvía · Bici privada · Patín (VMP) · BiZi · Coche—. Hasta entonces eran cuatro botones y
@@ -173,8 +230,11 @@
 >
 > **La flecha sale del tipo de giro, no de la frase.** El motor manda el dato —`izquierda`,
 > `ligera-derecha`— y la pantalla elige el glifo; parsear el texto para ver si lleva la palabra
-> «derecha» ataría el icono a la redacción. Son diez giros y diez caracteres Unicode, sin una
-> sola dependencia añadida.
+> «derecha» ataría el icono a la redacción. Son **doce** clases y doce caracteres Unicode, sin
+> una sola dependencia añadida. Diez son giros; las otras dos son los **hitos** —🅿 aparcar,
+> 🚲 coger la bici—, que no son maniobras sino cambios de vehículo, y llevan la señal de lo que
+> pasa ahí en vez de una flecha. La tabla es exhaustiva por tipos: el día que el contrato añada
+> una clase, **la pantalla deja de compilar** en vez de pintar un hueco. Cumplió el 30/08.
 >
 > **Cuatro, y no once.** Un cruce son siete piezas de red —bajas de la acera, cruzas, subes,
 > bordeas— y quien anda percibe **una** maniobra, así que lo que mide menos de **25 m** se funde
@@ -230,9 +290,13 @@
 > idénticos**, comprobados con la misma huella `sha256`. Narrar es escribir lo que ya está
 > calculado; el día que una regla de narración mueva un metro, será que está tocando la ruta.
 >
-> **Y el tiempo va dicho como lo que es**: «~4 min **a 5 km/h**». Es una división —los metros
-> entre la velocidad a pie de manual—, no un cronómetro: no entran cuestas, ni semáforos, ni el
-> rato que se tarda en cruzar. Un «4 min» a secas prometería algo que aquí no se ha medido.
+> **Y el tiempo va dicho como lo que es**: «~4 min **a 5 km/h**» andando. Es una división —los
+> metros entre la velocidad a pie de manual—, no un cronómetro: no entran cuestas, ni semáforos,
+> ni el rato que se tarda en cruzar. Un «4 min» a secas prometería algo que aquí no se ha medido.
+> **Sobre ruedas la coletilla es otra** —«pedaleando a 18 km/h **de crucero**», 20 en BiZi— y las
+> dos últimas palabras no son un adorno: ahí no hay una sola velocidad, porque el techo legal de
+> cada vía recorta la del modo, los cruces con el vehículo en la mano van a 5, y el viaje acaba
+> andando. Decir «a 18 km/h» a secas volvería a ser falso; decir el crucero, no.
 >
 > Para escribirlos hizo falta el otro medio dato: las aristas del grafo llevan el id de calle de
 > OpenStreetMap pero **ningún nombre**. Las **19.897 calles con nombre** viven en `motor/data/`,
@@ -362,8 +426,11 @@
 > enseña el aviso del motor en ámbar, con el nombre de la calle, y el mapa se queda limpio. Ni
 > una línea inventada para tapar el hueco.
 >
-> **Lo que sigue sin existir**: rutas en bus, bici o coche —el motor lo dice cuando se las
-> piden—, y saber qué líneas pasan por cada poste.
+> **Lo que sigue sin existir**: rutas en **bus o tranvía** y en **coche** —la pantalla lo dice
+> sin llegar a preguntárselo al motor—, y saber qué líneas pasan por cada poste. ⚠️ Este párrafo
+> decía «bus, bici o coche» hasta hoy: **la bici rutea desde el 29/08**, y llevaba día y medio
+> mintiendo tres pantallas por debajo del párrafo que sí se estaba releyendo. Es exactamente la
+> entrada nº5 de la bitácora repitiéndose, y por eso se corrige diciéndolo.
 >
 > Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, catorce
 > conjuntos de datos verificados, y un buscador que de verdad busca — andando, de portal a
@@ -404,7 +471,11 @@ Una sola pantalla:
   etiqueta—, y con radios el teclado sale de serie (una parada de tabulador para el grupo y
   flechas entre las opciones).
 - **Mapa con la ruta**.
-- **Las indicaciones paso a paso**, debajo.
+- **Las indicaciones paso a paso**, debajo — y **con hitos** cuando el viaje cambia de vehículo:
+  dónde se aparca la bici, dónde se coge y se deja la BiZi.
+- **Un aviso cuando hace falta**: que no hay aparcabicis cerca y a cuántos metros estaba el más
+  cercano, que la disponibilidad del BiZi no se ha podido verificar, o que el pedaleo supera el
+  tramo incluido del abono.
 
 Y nada más. El alcance es corto a propósito.
 
@@ -483,7 +554,7 @@ Seis rutas vivas. Las que vengan las decide el plan, no esta lista:
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía — y **lista vacía también en las 619 sin portal**, que es la verdad: no tienen ninguno |
 | `GET /api/sitios?q=&capa=&foco=` | sugiere **sitios** desde 2 letras, hasta 10 resultados — la otra capa del autocompletar, la que sirve al desplegable de tipos. `capa` acota a una categoría (`farmacia`, `hospital`, `centro-salud`), y **una capa que no existe se ignora** en vez de dar error. `foco` es **el código del otro extremo** ya resuelto —un portal o un sitio, no un par de coordenadas—: a igualdad de coincidencia sube lo que está cerca de él, pero no descarta nada. Sin `q`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué. **`modo` es opcional y vale `andando` si falta** (`andando` · `bici` · `patin` · `bizi`; `bus` y `coche` contestan que todavía no). **`ruta` también es opcional y vale `equilibrada`** (`rapida` · `equilibrada` · `tranquila`): la miran `bici` y `bizi`, y **el `patin` la ignora** — su vía ciclista es obligatoria, así que lleva el calibrado fuerte pida lo que pida. Medido el 30/08 en `Portales.120344 → Portales.110047` en bici: rápida **1.554 m / 5,7 min / 150 m de Avenida de Madrid**, equilibrada **1.565 / 5,7 / 110**, tranquila **1.710 / 6,2 / ninguno**. Medido con las MISMAS 200 peticiones el 30/08: andando **p50 23,3 ms · p95 37,4**, bici **23,2 · 37,5**, BiZi **24,1 · 39,4**, patín **18,3 · 35,5**. ⚠️ Y en esas mismas 200: andando resuelve 196, bici 196, BiZi 196 y **el patín 83** — eran 35 antes del **defecto legal del art. 50 RGC**, 51 después, y **83 desde el empuje**; su red pasó de 1.988 trozos con el mayor al 45,4 % a **721 trozos con el mayor al 70,1 %**. El arranque lo declara capa a capa |
+| `POST /api/ruta` | la ruta entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué. **`modo` es opcional y vale `andando` si falta** (`andando` · `bici` · `patin` · `bizi`; `bus` y `coche` contestan que todavía no). **`ruta` también es opcional y vale `equilibrada`** (`rapida` · `equilibrada` · `tranquila`): la miran `bici` y `bizi`, y **el `patin` la ignora** — su vía ciclista es obligatoria, así que lleva el calibrado fuerte pida lo que pida. Medido el 30/08 en `Portales.120344 → Portales.110047` en bici: rápida **1.554 m / 5,7 min / 150 m de Avenida de Madrid**, equilibrada **1.565 / 5,7 / 110**, tranquila **1.710 / 6,2 / ninguno**. ⭐ **Y desde el 30/08 la respuesta puede traer HITOS**: `aparca` en bici y patín —el aparcabicis donde se deja el vehículo— y `coge` + `aparca` en BiZi —las dos estaciones—. Un hito es un paso propio con `metros: 0`, porque no abre tramo: es una parada. Medido con las MISMAS 200 peticiones el 30/08 (semilla 7 sobre el censo): andando **p50 23,3 ms · p95 40,3**, bici **24,6 · 39,9**, patín **17,6 · 98,4**, BiZi **88,4 · 164,4**. ⚠️ **La BiZi cuesta cuatro veces más que las demás, y es la red**: cada ruta pregunta en vivo a la API de la sede (§ 1.23), que contesta en ~0,3 s la primera vez y en ~0,08 las siguientes. Es el precio de no mentir con un número guardado. Y en esas mismas 200: andando resuelve 197, bici 196, BiZi 197 y **el patín 98** — eran 35 antes del **defecto legal del art. 50 RGC**, 51 después, 83 desde el empuje, y **98 desde el remate**: al no necesitar ya una puerta rodable en el destino —le basta con llegar al aparcabicis y andar—, quince pares más tienen ruta. De las que resuelven, llevan hito **167 de 196** en bici y **196 de 197** en BiZi. El arranque lo declara capa a capa |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
@@ -759,17 +830,27 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son estas dos.
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
 
-> ℹ️ **Y las dos están en uso.** El repositorio lleva **treinta conjuntos de datos dentro**:
-> **once** del Ayuntamiento de Zaragoza —el callejero, los portales, los carriles bici, los
-> postes de autobús, las estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento
-> regulado, las zonas reguladas, las reservas de espacio y **los ejes de vía**—, el grafo de
-> continuidad y **los nombres de vía**, los dos derivados de OpenStreetMap, y el GTFS del Punto
-> de Acceso Nacional. A eso se suma la
-> **cartografía de OpenStreetMap**, que no es un fichero: el mapa la pinta en vivo.
+> ℹ️ **Y las dos están en uso.** El notices lleva **una ficha por conjunto, y hoy son 24**
+> (`grep -c '^### 1\.' THIRD-PARTY-NOTICES.md`): **dieciocho** del Ayuntamiento de Zaragoza —el
+> callejero, los portales, los carriles bici, los postes de autobús, las estaciones BiZi, los
+> aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas reguladas, las reservas de
+> espacio, los ejes de vía, la jerarquía viaria, las cinco de equipamientos y **la disponibilidad
+> viva del BiZi**—, **cuatro** de OpenStreetMap —la cartografía, el grafo de continuidad, los
+> nombres de vía y las etiquetas del viario—, el GTFS del Punto de Acceso Nacional, y la ficha
+> que declara lo que **todavía no** ha entrado.
+>
+> ⚠️ **Este párrafo decía «treinta conjuntos dentro» y «quince fichas», y las dos cifras se
+> habían quedado viejas** — el notices pasó de quince a veinticuatro fichas sin que esta línea
+> se enterara. Es la entrada nº5 de la bitácora otra vez: una regla de releída vale lo que su
+> alcance. Se corrige con el comando delante, que es como se cuenta aquí.
+>
+> ⭐ **Y desde el 30/08 no todo «está dentro»**: la disponibilidad del BiZi (§ 1.23) **no se
+> copia, se consulta** — caduca cada minuto y guardarla sería guardar una mentira con fecha.
+>
 > **La atribución de OpenStreetMap se cumple en la pantalla**, en el control del mapa y con la
 > palabra «colaboradores» literal. La del dato municipal se cumple en
-> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, con una ficha por conjunto —quince,
-> contando la cartografía—: fuente, fecha de descarga, licencia y cómo volver a conseguirlo.
+> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**: fuente, fecha de descarga, licencia y
+> cómo volver a conseguirlo.
 
 > ⚠️ **Rectificación (18/08/2026).** Hasta hoy este párrafo decía que el repositorio **«no
 > tiene ningún dato integrado —ni cartografía, ni callejero, ni paradas—, así que todavía no

@@ -352,15 +352,16 @@ derivar, no copiar. Entran los seis tal cual y es la aplicación la que los une 
 distintos y 276 números de estación distintos** — sin solapes ni huecos—, cero sin coordenada,
 5.520 anclajes en total.
 
-> ⚠️ **Hay una segunda fuente de estaciones en el archivo del intento anterior, y NO entra: la
-> API de zaragoza.es**, que sirve **dato vivo** (`bicisDisponibles`, `anclajesDisponibles`,
-> `estado`, `lastUpdated`). Eso no es esta pieza: la disponibilidad en tiempo real es otra cosa,
-> de otra vía y de otro punto del plan. Aquí entra **el inventario**, que no caduca cada minuto.
+> ⚠️ **Hay una segunda fuente de estaciones, y es OTRA COSA: la API de zaragoza.es**, que sirve
+> **dato vivo** (`bicisDisponibles`, `anclajesDisponibles`, `estado`, `lastUpdated`). Aquí entra
+> **el inventario**, que no caduca cada minuto; la disponibilidad en tiempo real tiene **su
+> propia ficha desde el 30/08 — § 1.23**, porque no se guarda en el repositorio: se consulta.
 >
-> Y de paso, un aviso sobre esa API por si algún día se usa: **se contradice dentro del mismo
-> rasgo**. En la estación «193- Pza. La Ermita» convivían `estado: "IN_SERVICE"`, un
-> `estadoEstacion` que apunta a la URI **`…/no-operativa`**, y una descripción que dice
-> «Estado: **Operativa**». Tres afirmaciones, y al menos dos no pueden ser ciertas a la vez.
+> Aquel aviso que esta ficha dejó escrito «por si algún día se usa» se ha cumplido, y por eso la
+> § 1.23 empieza por él: **la API se contradice dentro del mismo rasgo**. En la estación «193-
+> Pza. La Ermita» convivían `estado: "IN_SERVICE"`, un `estadoEstacion` que apunta a la URI
+> **`…/no-operativa`**, y una descripción que dice «Estado: **Operativa**». Tres afirmaciones, y
+> al menos dos no pueden ser ciertas a la vez.
 
 > ℹ️ **Estos seis ficheros no traen `_cabeceras.txt`**, al contrario que los carriles o el GTFS.
 > La procedencia se sostiene en lo que declara el propio dato: el `id` de cada rasgo
@@ -1911,7 +1912,62 @@ valores) y `calle_2024` (67) —, con acentos comidos: `«DE BARTOLOM� LORENTE
 **`direccion` y `codigo` están intactos**: el enganche va por `codigo`, que es numérico, así que
 **la rotura no toca nada de lo que se usa**. El fichero de § 1.21 no tiene ni uno.
 
-### 1.23 · El resto del dato — todavía **ninguno**
+### 1.23 · Disponibilidad del BiZi en vivo — Ayuntamiento de Zaragoza (sede electrónica)
+
+| | |
+|---|---|
+| **Qué es** | Cuántas **bicis** y cuántos **anclajes libres** tiene cada una de las 276 estaciones **en este segundo**, con la hora del dato. Es lo que el inventario de § 1.8 no puede llevar: aquello dice dónde está cada estación y cuántos anclajes tiene en total; esto, cuántos están ocupados ahora |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | Sede electrónica de zaragoza.es · servicio `urbanismo-infraestructuras/estacion-bicicleta` |
+| **Petición** | `https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/estacion-bicicleta.json?rows=300` — **sin clave y sin registro**. El `rows` está porque el defecto son 50 y las estaciones son 276 |
+| **Sondeada** | **30/08/2026 09:56:37 GMT**, estado 200, 45.264 bytes sin `rows` y 247.955 con él, en **0,31 s**. `Last-Modified: 30/08/2026 11:56:08 CEST` — **un minuto antes de la consulta** |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal. La capa no declara una propia: **NO CONSTA**, y se aplica el régimen general |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
+| **Campos** | `id`, `title`, `address`, `estado`, `estadoEstacion`, `bicisDisponibles`, `anclajesDisponibles`, `geometry`, `lastUpdated`, `description`, `descripcion`, `icon`, `about`, `tipoEquipamiento`. **Ninguno personal** |
+| **¿Está en este repo?** | ❌ **No, y no puede estar.** Es la **primera fuente que no se copia: se consulta** |
+
+**Por qué no entra en el repositorio.** Un fichero de dato se guarda porque es una foto que no
+caduca — los portales del 13/05, los carriles del 04/08—. Esto caduca **cada minuto**: guardarlo
+sería guardar una mentira con fecha. [DOC GBFS, la especificación de referencia de la bici
+pública] separa exactamente por ahí: `station_information` es estático y `station_status` es
+**dinámico**, con su `last_reported` por estación. Esta API es el segundo.
+
+> ⚠️ **NO es GBFS, y eso hay que decirlo antes que nada.** Es un formato propio de la sede. La
+> equivalencia campo a campo, para quien venga de la especificación:
+>
+> | Aquí | En GBFS | |
+> |---|---|---|
+> | `bicisDisponibles` | `num_bikes_available` | ✅ |
+> | `anclajesDisponibles` | `num_docks_available` | ✅ |
+> | `estado` (`IN_SERVICE` / `MAINTENANCE`) | `is_renting` / `is_installed` | ✅ el único que discrimina |
+> | `lastUpdated` | `last_reported` | ✅ **por estación**, no por feed |
+> | `estadoEstacion` | — | 🔴 **ROTO** |
+
+> 🔴 **El campo roto, medido dos veces.** `estadoEstacion` apunta a una URI del vocabulario de
+> datos abiertos y **en las 276 de 276 apunta a `…/no-operativa`**. Sondeado el 28/08 y vuelto a
+> sondear el **30/08**: sigue igual. La misma estación afirma a la vez `estado: "IN_SERVICE"`,
+> ese `estadoEstacion` que dice no-operativa, y una descripción que dice «Estado: Operativa».
+> **Se usa `estado`** — el 30/08 daba 275 `IN_SERVICE` y 1 `MAINTENANCE`—, y el campo roto no se
+> mira. Con él, ninguna estación pasaría el filtro y **no habría ni una ruta de BiZi**: está
+> puesto por escrito en la juez 6 bis de `motor/src/bizi.spec.ts`, que nació de esa contraprueba.
+
+> ⚠️ **Y una estación en `MAINTENANCE` puede venir SIN los campos de disponibilidad.** El 30/08,
+> la 276 (`Acuario Zaragoza`) llegaba sin `bicisDisponibles`, sin `anclajesDisponibles` y sin
+> `description`. Leerlos con un `?? 0` diría «no quedan bicis»; lo que pasa es que **no se sabe**,
+> y se trata como tal.
+
+**Casa con el inventario, comprobado.** El `title` abre con el número de estación —«193- Pza. La
+Ermita»— y ese número es la única clave que las dos fuentes comparten. Medido el 30/08: **las 276
+traen número legible y las 276 casan con § 1.8**, sin sobras ni faltas por ninguno de los dos
+lados.
+
+**Y si calla, la ruta sale igual.** Es el plan D-G firmado el 28/08 —*componer sin prometer*—:
+se rutea con el inventario de § 1.8, un aviso dice que **la disponibilidad no está verificada**, y
+los hitos salen **sin número y sin hora**. Nunca se inventa un «quedan 3 bicis».
+
+---
+
+### 1.24 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
