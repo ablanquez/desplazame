@@ -2032,11 +2032,21 @@ firmas 6-8 de Antonio):
 6. LA PRIORIDAD ES ABSOLUTA: evitar transbordos SIEMPRE gana a
    hacerlos — sin límite de minutos (la jerarquía estricta, como
    la ley del patín).
-7. SIN API DE TIEMPO REAL en este punto: el motor comprueba EN LA
-   CONSULTA, contra el propio horario GTFS, que la línea tiene
-   servicio en ese poste a esa hora — y si no lo tiene, EL AVISO
-   honesto y listo (el patrón BiZi: comprobar + advertir, sin
-   prometer).
+7. LA COMPROBACIÓN ES EN VIVO, COMO BiZi (v2 del 31/08 — la v1 la
+   codifiqué MAL: escribí «contra el horario, sin API» cuando
+   Antonio dijo LITERALMENTE «como hicimos con las estaciones
+   Bizi»; la ley de codificar la palabra, no la lectura): en cada
+   Generar se pregunta AL POSTE VIVO de Avanza si la línea le está
+   dando servicio ahora — si dice que no o calla, EL AVISO honesto
+   y listo (el patrón BiZi entero: consulta viva por petición +
+   single-flight + D-G sin inventar). Los horarios GTFS siguen
+   siendo la materia prima DE LA RED (qué postes sirve cada línea
+   y en qué orden) y DE LOS MINUTOS del tramo montado — cocinados
+   por el cron nocturno, nunca los 47 MB en caliente; la
+   advertencia, en cambio, sale del VIVO. La cosecha de ZetaBus
+   pasa a crítica: el endpoint de Avanza y sus cicatrices
+   (parse-poste.ts: HTML pegado, filas ×4, el contador de control
+   por triple canal) son el manual de esa consulta.
 8. EL PINTADO = EL PATRÓN BiZi EXTENDIDO: andando en su ámbar
    discontinuo · el POSTE de subida pintado · el tramo montado en
    EL COLOR DE SU LÍNEA [firma 5] · el poste de bajada · si sigue
