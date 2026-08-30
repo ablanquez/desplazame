@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-30] 🔴 ABIERTA — Corregí un `oneway` que estaba BIEN: Siresa quedó invertida, y hoy la calle SOLO se puede recorrer en el sentido que el terreno prohíbe
+## [2026-08-30] ✅ CERRADA — Corregí un `oneway` que estaba BIEN: Siresa quedó invertida, y hoy la calle SOLO se puede recorrer en el sentido que el terreno prohíbe
 
 **Categoría:** dato escrito a mano sobre un testimonio que no era del terreno
 
@@ -74,13 +74,55 @@ llegó a preguntar. La sonda-Cygnus tampoco podía: `doble_sent` de MU1 dice **s
 hay sentido único, no **cuál**, y ésta es precisamente una de las 1.185 vías del
 punto ciego que la propia prueba nº5 documenta.
 
-**Causa raíz:** ⏳ PENDIENTE
+**Causa raíz:** **el testimonio que se codificó no era el del terreno.** Antonio
+dijo el 29 que la ruta «subía la calle al revés»; yo escribí una fila de sentido
+a partir de eso. Pero una queja dice **que algo está mal**, no **hacia dónde va
+la calle**, y entre las dos frases hay un dato que nadie llegó a decir. Lo
+rellené con lo que parecía, y salió al revés — la ruta de la queja bajaba Siresa
+hacia Iranzo, que es lo legal, y lo que le pasaba era otra cosa.
 
-**Arreglo aplicado:** ⏳ PENDIENTE
+Y la juez que escribí para defender la fila heredó el mismo defecto: la escribí
+mirando **el resultado que quería ver** —que la ruta del caso dejara de pisar la
+calle— en vez del hecho que había que garantizar, que es en qué dirección se
+puede recorrer. Por eso podía estar verde con la calle del revés.
 
-**Commit:** ⏳ PENDIENTE
+**Arreglo aplicado:** la fila **fuera**, y la tabla se queda **vacía y viva** —
+las tres cerraduras, el deshielo y el log de arranque siguen enteros, probados
+ahora con una fila de mentira, porque lo que hace falta garantizar es que la
+próxima corrección nazca con su caducidad puesta. [CycleStreets] la *repair
+table* se **poda** cuando el testimonio que la sostenía cae. El log de arranque
+sabe decir el cero:
 
-**Ley que sale de aquí:** ⏳ PENDIENTE
+```
+motor:   y 0 aristas por CORRECCIÓN verificada: la tabla está VACÍA
+         (el mecanismo sigue puesto; hoy no hay ninguna calle mirada por el ojo)
+```
+
+Las jueces se rehicieron contra **la calle**, no contra la tabla, y miran
+**`t.g`** —la geometría en el orden en que se anduvo—: bajar Siresa hacia Iranzo
+son 414 m con sus 10 aristas; desde Iranzo hay que rodear 602 m **sin pisar ni
+un metro** de ella. Las siete expectativas nuevas muerden una a una, y volver a
+meter la fila invertida pone las tres jueces en rojo.
+
+⭐ **Y el cuadre que cierra el círculo.** Al retirar la fila, el patín del caso
+sube +2 m, y esos 2 m se explican arista a arista: sale el rodeo por Silvestre
+Pérez (131,2 m) + Doctor Iranzo (74,7 m) = **205,900 m**, y entra Monasterio de
+Siresa (**130,1 m**, aristas 3062/3063/3064) + Guadalupe (78,0 m) = **208,100 m**,
+con 0,000 de las comunes. Esos **130,1 m son exactamente los que la juez de ayer
+llamaba «130,1 m a contramano»** en su propio comentario: lo que el 29 se
+diagnosticó como el error era el comportamiento correcto, y la corrección lo
+quitó. Hoy vuelve.
+
+**Commit:** `84a6454`
+
+**Ley que sale de aquí:** **antes de escribir una fila de sentido se le pregunta
+al ojo la dirección exacta de la calle — no se deduce de la queja.** Una queja
+prueba que algo va mal; no dice hacia dónde va la calle, y ese hueco no se
+rellena con lo probable. Y su mitad gemela, que es la que dejó el fallo vivo un
+día entero: **un guardián de sentido compra la DIRECCIÓN en la que se puede
+andar, nunca el resultado que se esperaba ver.** «La ruta ya no pisa esa calle»
+es un resultado, y encima medido sobre una ruta que —comprobado— no la pisaba ni
+antes ni después: un juez así no puede ponerse rojo nunca.
 
 **Traza:** `motor/src/sentidos-corregidos.ts` (la fila del `way 24433275`) ·
 `motor/src/sentidos.spec.ts` (el juez que compraba el invariante equivocado) ·
