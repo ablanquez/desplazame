@@ -1962,7 +1962,15 @@ declara el rango 16/9/2025–27/12/2026 (la foto del calendario
 completo), y nuestro 05/10 es el feed_info DE DENTRO: hasta cuándo
 el editor GARANTIZA la información — lo de después existe pero
 viaja sin garantía. La conservadora era correcta; el cron de la
-casilla 2 vigilará ese «Actualizado el». Regalos de la ficha para
+casilla 2 vigilará ese «Actualizado el». ⭐ Y EL PORQUÉ, del
+conocimiento local de Antonio (30/08): la semana del 5 de octubre
+empiezan LAS FIESTAS DEL PILAR — horarios y rutas cambian por
+fiestas durante casi dos semanas, así que Avanza garantiza hasta la
+víspera y lo esperable es UN FEED NUEVO con los servicios del Pilar
+justo antes. Consecuencias: el cron tendrá cambio real que cazar en
+semanas (estreno con sentido), y la D-MAPA-DE-HOY firmada el 17/08
+luce exactamente ahí (los especiales de fiestas activados se
+pintan; lo suspendido, no). Regalos de la ficha para
 el censo: paradas declaradas 984 (vs 944 postes MU3 — el descuadre
 de 40 con número antes de empezar) · declara incluir TARIFAS y
 accesibilidad (a verificar en el zip) · 1 aviso de validación
