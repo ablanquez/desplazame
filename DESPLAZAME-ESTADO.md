@@ -53,7 +53,12 @@ levantado el 18/08, des-caducado del 21 al 30):
   motor). «¿Qué ruta prefieres?» (30/08): Rápida · Equilibrada
   (defecto) · Tranquila, SOLO en bici/BiZi [revelado GOV.UK;
   doctrina CycleStreets] — Generar trae las tres en paralelo y el
-  radio repinta sin nueva petición. ⇅ invertir y «Mi
+  radio repinta sin nueva petición. LA RUTA POR TRAMOS (30/08
+  tarde): a-pie ámbar discontinuo · rodando AZUL #2563eb sólido ·
+  el empuje ámbar en mitad del azul · hitos 🚲/🅿 en el dato; los
+  privados rematan en aparcabicis (tope 500 m andando) y BiZi va
+  estación↔estación con números y hora vivos (o el aviso D-G si la
+  API calla). ⇅ invertir y «Mi
   ubicación» dentro (punto 6). Y «Generar ruta» devuelve la RUTA REAL —
   pintada, con los pasos escritos y las negritas por partes: la
   respuesta falsa murió sin rastro (`2013c04`). DOS páginas y sin
@@ -102,9 +107,43 @@ levantado el 18/08, des-caducado del 21 al 30):
   del método enlazados, y la frase de cierre veraz.
 
 **Publicado hasta `e418119`** (push del 29/08 noche, con la casilla
-3 entera y la auditoría de sentidos). **En local, sin publicar: los
-DOS commits del selector a seis más el de papeles** (`42efde6`). El
+3 entera y la auditoría de sentidos). **En local, sin publicar: la
+tanda del 30 entera** — el selector a seis, el empuje, el selector
+de ruta, las casillas 5-6, el pintado por tramos, el azul, las
+bitácoras nº15 y nº16 con la reversión de Siresa, y los papeles. El
 push es de Antonio.
+
+**LAS CASILLAS 5-6, EL PINTADO Y LA REVERSIÓN DE SIRESA (30/08
+tarde).** LOS PRIVADOS Y BiZi [OTP BICYCLE_PARK/vehicle-parking +
+modo alquiler + GBFS station_status]: el remate al aparcabicis
+(1.914 entrantes de §1.9, tope 500 m [PROPIO con números en mesa],
+⭐ patín 83→98/200) · BiZi en tres tramos con consulta VIVA por
+Generar, hitos «Coge/Deja… N a las HH:MM» [last_reported], estación
+llena/vacía saltada, aviso 30 min, y el D-G VIVIDO (la API municipal
+horas en 200-cuerpo-VACÍO — bitácora nº15: nada vigilaba el aviso
+conviviendo con pasos; ley: al ensanchar una regla, busca a los
+guardianes de la estrecha) · los carriles CON nombre (herencia sobre
+la red de la rueda: 579/652; la regla del vestido vigilada tras
+cazarla la contraprueba). EL PINTADO [OTP legs + OSRM mode + Leaflet
+dashArray/divIcon + WCAG 1.4.1]: PARA de libro del ejecutor (el
+contrato no decía dónde cortar ni qué se empuja — los pasos van
+redondeados: derivar erraba 6,9 m) → `tramos` en el contrato
+(desde/hasta/hito; índices que cierran, sumas exactas, la juez
+tautológica cazada); a-pie ámbar discontinuo de siempre · rodando
+SÓLIDO AZUL #2563eb [firmado; elegido midiendo: peor caso 3,45:1 vs
+2,45 del ámbar] · el empuje sale ámbar en mitad del azul SIN
+programarlo · hitos 🚲/🅿 clavados al dato (encima del símbolo de
+OSM). LA REVERSIÓN (bitácora nº16): Antonio precisó — Siresa es
+ÚNICO HACIA Doctor Iranzo, OSM estaba BIEN: mi fila del 29 codificó
+la queja, no la dirección (la juez compraba el -1 como bueno Y
+vigilaba una ruta que no pisa Siresa); tabla vacía y viva, cuadre
++2,200 m/+0,4400 s = 5,000 m/s. LEY: al ojo se le pregunta LA
+DIRECCIÓN; el guardián compra la dirección andable, no el resultado
+esperado. LA SONDA de movilidad: 43 capas; IML Viales 2025 = AFOROS
+por sentido (ficha oficial — a la NEVERA para el Tranquila real);
+⭐ candidata a capa-de-direcciones: MU2_señalizacion_vertical (la
+señal física es la fuente legal), sin sondar. 364 motor · 176
+interfaz.
 
 **EL EMPUJE Y EL SELECTOR DE RUTA (30/08 mediodía), los dos VISTOS.**
 EL EMPUJE (adelantado POR ORDEN de Antonio; el encargo auditado
@@ -649,13 +688,12 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 5** (los modos privados: el
-APARCABICIS con su doctrina verificada antes del encargo + los
-metros andando + la narración de la rueda: carriles CON nombre,
-velocidad por modo, el «en la mano» fino); (2) la 6 (BiZi tres
-tramos + aviso 30 min); (3) la demo (7); (4) LA FASE 2 de sentidos
-cuando el ojo confirme candidatos; (5) el push cuando Antonio diga;
-(6) el
+**Lo siguiente:** (1) **LA DEMO del punto 9** (casilla 7, el ojo de
+Antonio por los modos de la rueda); (2) las decisiones de la mesa
+(500 m · fundir consultas · el aviso · sondar
+MU2_señalizacion_vertical); (3) LA FASE 2 de sentidos cuando el ojo
+confirme candidatos; (4) el push cuando Antonio diga (la tanda del
+30 entera); (5) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -725,8 +763,9 @@ red aparte con sentido demostrado [112 rotondas antihorario/0 ·
 peatón, el patín 51/200 con el defecto del art. 50 RGC [RD 970/2020:
 30 un carril por sentido], carril_vh descartado con contraejemplo,
 pid-del-log==pid-que-contesta tras el susto del motor zombi; queda: ⚰️ el
-selector a seis, EL EMPUJE y el selector de ruta HECHOS Y VISTOS
-[casillas 4/6-bis/6-tris, 30/08] — quedan los modos 5-6 y la demo) ·
+selector a seis, el empuje, el selector de ruta, LOS PRIVADOS CON
+SU APARCABICIS, BiZi ENTERO y el pintado por tramos HECHOS
+[casillas 4-6 y sus bis, 30/08] — del 9 queda LA DEMO) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -815,11 +854,18 @@ arriba en osm.org cuando quiera) · el punto ciego de la sonda
 (1.185 vías «único» en ambas — la clase Siresa: ojo o las shapes
 del GTFS, anotado en el 10) · las 203 calles a medio cartografiar
 (pedestrian+residential mismo nombre; señal paving_stones fichada) ·
-⚰️ las casillas 4, 6-bis y 6-tris HECHAS Y VISTAS (30/08: el
-selector a seis · EL EMPUJE adelantado por orden — patín 83/200,
-COLOSO→ROMEO igualando a la bici · el selector de ruta Rápida/
-Equilibrada/Tranquila [CycleStreets] con el patín SIEMPRE fuerte
-[56.2.c]) · ⚠️ EL DESAJUSTE DEL RELOJ declarado y sin tocar: el
+⚰️ las casillas 4, 5, 6, 6-bis, 6-tris y 6-quater HECHAS (30/08:
+el selector a seis · el empuje · el selector de ruta · el remate
+del aparcabicis · BiZi entero con disponibilidad viva · el pintado
+por tramos con el azul #2563eb) — del punto 9 queda LA DEMO (7) y
+la fase 2 · LA MESA de decisiones de Antonio: el tope de 500 m
+[PROPIO, movible] · fundir las TRES consultas en-vuelo del trío
+BiZi en una [no es cachear] · la colocación del aviso ámbar (lejos
+de los hitos) · sondar MU2_señalizacion_vertical (la candidata a
+capa-de-direcciones) · ⚠️ la API municipal de BiZi es CAPRICHOSA
+(200 con cuerpo vacío durante horas el 30/08 — el D-G lo cubre) ·
+⚰️ IML Viales 2025 a la NEVERA (aforos oficiales por sentido:
+materia prima del Tranquila real [CycleStreets/busyness]) · ⚠️ EL DESAJUSTE DEL RELOJ declarado y sin tocar: el
 montículo minimiza tiempo×factor y el reloj reportado va sin factor
 (159↓/18↑ en 282) — qué se reporta es parlamento pendiente · a la
 casilla 5: LOS CARRILES SIN NOMBRE (ojo de Antonio en ruta viva —
@@ -897,7 +943,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 509 pruebas (342 motor + 167 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 540 pruebas (364 motor + 176 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

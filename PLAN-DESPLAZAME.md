@@ -1482,6 +1482,30 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
         mutando el vértice a UTM, muerde). El contraflujo con
         candado propio (18 reales: Armas, Cádiz, Postigo del Ebro).
         El -1 no se aplasta (8).
+      ⚠️ LA CORRECCIÓN DE SIRESA, REVERTIDA EL 30/08 (bitácora
+      nº16): Antonio precisó la verdad del terreno — sentido ÚNICO
+      HACIA el Doctor Iranzo — y el oneway original de OSM
+      COINCIDÍA: mi fila del 29 codificó la QUEJA, no la
+      dirección, e invirtió un sentido sano (del 29 al 30, el
+      sentido verdadero no tenía ni ruta y el prohibido era el
+      único posible — medido). La juez que exigí compraba el
+      invariante equivocado DOS veces (afirmaba el -1 como
+      correcto, y vigilaba una ruta que no pisa Siresa: trozos=0
+      antes y después). LA LEY en dos mitades: al ojo se le
+      pregunta LA DIRECCIÓN exacta, no se deduce de la queja · un
+      guardián de sentido compra la dirección andable, nunca el
+      resultado esperado. La tabla queda VACÍA Y VIVA (mecanismo,
+      cerraduras y deshielo probados con fila de mentira); el
+      cuadre al milímetro (+2,200 m ÷ +0,4400 s = 5,000 m/s, el
+      crucero del patín clavado); re-meter la fila invertida =
+      rojo. Y LA SONDA de movilidad que salió del mismo hilo: 43
+      capas en el servicio; IML Viales 2025 RESUELTA con ficha
+      oficial (= intensidad media laboral, AFOROS por sentido de
+      circulación — no es la capa de sentidos; a la NEVERA como
+      materia prima del calibrado Tranquila [CycleStreets puntúa
+      por busyness]); ⭐ la candidata real a capa-de-direcciones:
+      MU2_señalizacion_vertical (la señal física ES la fuente
+      legal del sentido) — NO CONSTA su contenido hasta sondarla.
       · Manifiesto 39 resources; el panel pinta las dos filas en
         gris NO CONSTA (sin periodicidad citable — aplicar la del
         callejero sería citar política de otra capa). Ley nº3 sobre
@@ -1704,36 +1728,65 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       llevó la implementación a mitad de contraprueba — recuperada
       de copia, contado. README al día en commit docs: aparte [la
       atomicidad]. 161 interfaz · motor intacto 332
-- [ ] **5 · LOS MODOS PRIVADOS (bici · patín), cada uno por SU
-      tabla:** ruta puerta a puerta + el remate del APARCABICIS más
-      cercano al destino (el patrón portal-cercano sobre los 14.544
-      anclajes de §1.9; el patín aparca en las mismas condiciones
-      que la bici [Ordenanza]) · la narración verificada (¿los
-      combines del 7 valen en calzada con giros y sentidos? · los
-      cruces con-el-vehículo-en-la-mano NARRADOS como tales
-      [«cruza con el patín en la mano», no «gira hacia el paso» —
-      el genérico ya sale desde el empuje, queda el fino] · ⚠️ LOS
-      CARRILES SIN NOMBRE (confirmado por el ojo de Antonio el
-      30/08 en ruta viva: «el carril bici» a secas en la Academia
-      General Militar/San Juan de la Peña/Torres): la herencia
-      municipal de §1.15 se cruzó sobre la red del peatón y los
-      ways solo-carril no heredaron — apuntarla a la red de la
-      rueda, con el vestido del planificador («carril bici de
-      Avenida X»; el genérico honesto donde el municipal calle) ·
-      ⚠️ el rótulo de VELOCIDAD por modo (el «a 5 km/h» mentiroso
-      se QUITÓ en el empuje — no mentir ya está; decir la verdad
-      fina es de aquí) · sus jueces en rojo primero
-- [ ] **6 · EL MODO BiZi:** TRES tramos — andando → estación de
-      origen CON BICIS · pedaleando (solo-bici, su tabla, velocidad
-      de PEDALEO ASISTIDO con fuente) → estación de destino CON
-      ANCLAJES · andando → el destino [el patrón bike-share de los
-      planificadores (OTP y compañía), verificado con doctrina en su
-      encargo] · **el AVISO de los 30 minutos [firmado, D-G]**: si
-      el pedaleo estimado supera el tramo incluido, se dice
-      («supera el tramo incluido del abono») sin inventar precios ·
-      la disponibilidad en vivo por la API de BiZi, con D-G si la
-      API calla · el ámbito municipal = nuestra frontera · sus
-      jueces
+- [x] **5 · LOS MODOS PRIVADOS — HECHA (30/08, con la 6 en un
+      encargo doble [doctrina OTP BICYCLE_PARK/vehicle-parking:
+      «dejar la bicicleta y andar hasta el destino», con capacidad
+      y filtro de disponibilidad]).** EL REMATE: bici y patín van
+      en TRES tramos — rodando hasta el aparcabicis más cercano al
+      DESTINO (portal-cercano sobre los 1.914 ENTRANTES de §1.9:
+      Abierto+Vigilado; Cerrado FUERA por semántica NO CONSTA
+      [lado seguro]; 12.117 anclajes) · hito «Aparca en el
+      aparcabicis de [calle] — N anclajes» (dato estático: SIN
+      prometer hueco) · andando al destino por el motor del
+      peatón. ⚠️ TOPE de 500 m andando [PROPIO del ejecutor, con
+      números a la mesa: sin tope, p99 = 5,6 km y máximo «anda
+      11,6 km»; con 500 el 86,3 % de portales rematan y el resto
+      va a-la-puerta con aviso — Antonio puede mover la constante]
+      · ⭐ el patín pasó de 83 a 98/200 (el remate le quita la
+      exigencia de puerta rodable en destino). LOS NOMBRES: la
+      herencia §1.15 corre sobre la red de la rueda (652 ways
+      mudos → 579 heredan; los que callan: disputa 33/cobertura
+      29/sin eje 11), el name OSM propio manda, y el vestido «el
+      carril bici de X» [PROPIO] con su regla vigilada (solo si el
+      tramo entero es carril — la juez nació de la contraprueba:
+      quitarla dejaba 346 verdes cambiando 125/200 narraciones).
+      EL RÓTULO: «pedaleando a 18/20 km/h de crucero». El caso del
+      ojo: bici 4.587 m (4.535 + 52 a pie al aparcabicis de
+      Monasterio de la Rábida — 5 anclajes); patín 4.867 al mismo
+      soporte
+- [x] **6 · EL MODO BiZi — HECHA (30/08).** TRES tramos [OTP modo
+      alquiler: andar+pedalear+andar] — a la estación de ORIGEN más
+      cercana CON bicisDisponibles>0 e IN_SERVICE · pedaleando a 20
+      · a la de DESTINO CON anclajesDisponibles>0 (la llena/vacía
+      SE SALTA [el filtro de disponibilidad de OTP]) · andando al
+      destino. LA CONSULTA VIVA EN CADA Generar [GBFS:
+      station_status es feed DINÁMICO; el mapeo declarado:
+      bicisDisponibles≡num_bikes_available ·
+      anclajesDisponibles≡num_docks_available · estado≡renting;
+      estadoEstacion ROTO no se usa — y su lector probado con la
+      contradicción real dentro]. LOS HITOS con dato y hora de ESA
+      estación [GBFS last_reported]: «Coge una bici en la estación
+      X — N bicis disponibles a las HH:MM» / «Deja la bici en la
+      estación Y — M anclajes libres a las HH:MM». API caída → D-G
+      completo: hitos SIN número ni hora + AVISO «disponibilidad no
+      verificada» (⚠️ vivido el mismo 30/08: la API municipal
+      contestó 200 con CUERPO VACÍO horas seguidas — el D-G saltó
+      bien; la bitácora nº15 nació de que NADA vigilaba que el
+      aviso se pinte conviviendo con pasos [la regla vieja:
+      avisos ⇒ sin ruta; la ley: cuando una regla del contrato se
+      ENSANCHA, ve a buscar a los guardianes apoyados en la
+      estrecha — no van a avisar]; ⚠️ y la sonda del checkpoint 5-6
+      buscaba los avisos por clases que no existían: el
+      instrumento no podía verlos, dicho en la entrada). El aviso
+      de los 30 min DENTRO. La estación 276 (mantenimiento) llega
+      SIN campos → se lee con comprobación, no ?? 0 (cero ≠ no se
+      sabe). ⚠️ En BiZi el trío precargado dispara TRES consultas
+      al Ayuntamiento por Generar — la salida limpia (fundir las
+      en-vuelo, que NO es cachear) espera decisión de Antonio ·
+      ⚠️ el aviso ámbar queda lejos de los hitos (quince pasos) —
+      colocación, si Antonio quiere casilla. BiZi del caso: 4.774 m
+      (127 a pie + 4.545 pedaleando + 160 a pie; Tauromaquia →
+      Mrio. Siresa: Dr. Iranzo)
 - [x] **6-bis · EL EMPUJE — HECHO (30/08, ADELANTADO POR ORDEN DE
       ANTONIO; dos commits; auditado antes de mandar: la juez vacía
       de zonas de protección QUITADA [H4: sin dato no se vigila] y
@@ -1805,7 +1858,47 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       http.match que consume). comprobar-tipos PRIMERO, cumplido.
       342 motor · 167 interfaz
 
-- [ ] **7 · LA DEMO de los dos modos, vista por el ojo de Antonio**
+- [x] **6-quater · EL PINTADO POR TRAMOS Y LOS HITOS — HECHO
+      (30/08, con un PARA de libro en medio).** El ejecutor PARÓ
+      sin escribir una línea: el pintado exigía tres cosas que la
+      respuesta no decía (dónde acaba cada tramo — no derivable:
+      los metros de los pasos van redondeados y la derivación
+      erraba hasta 6,9 m; cuál de los 212 vértices es el hito; qué
+      trozos se empujan — solo vivía en el texto, y parsear la
+      frase está prohibido por contrato). LA SOLUCIÓN [el modelo de
+      la referencia: los itinerarios son LEGS tipados por modo
+      (OTP legs{mode}) y el empujado es paso propio (OSRM mode
+      «pushing bike»)]: el contrato gana `tramos`
+      (TramoDelViaje{comoSeVa·desde·hasta·metros·segundos·hito} —
+      el campo hito nació de necesidad demostrada: dos costuras
+      idénticas por comoSeVa) sobre la geometría única; los
+      índices CIERRAN y las cifras SUMAN el total (la juez
+      tautológica cazada por su contraprueba: el total salía de
+      sumar redondeados — rehecha, 969≠970 muerde). EL VESTIDO
+      [Leaflet dashArray + L.divIcon con iconAnchor; WCAG 1.4.1
+      verificado: el color no puede ser lo ÚNICO]: a-pie = el
+      ámbar discontinuo DE SIEMPRE (el andando puro, intacto al
+      píxel — su juez de no-regresión) · rodando = SÓLIDO, y desde
+      la tarde AZUL #2563eb [PROPIO firmado por Antonio: azul
+      medio — elegido MIDIENDO: misma luminancia que el ámbar
+      (0,153 vs 0,159), peor contraste 3,45:1 contra el 2,45 del
+      ámbar] · el empuje sale ámbar discontinuo EN MITAD del azul
+      sin programarlo aparte (la BiZi real pinta CINCO líneas, no
+      tres — el empuje partido). LOS HITOS 🚲/🅿 en
+      geometria[tramo.hasta] — el vértice a 0,0 m del dato (⭐ el
+      icono cae ENCIMA del símbolo de estación que OSM dibuja:
+      confirmación externa). Confesiones: el conector de la puerta
+      quedaba fuera de todos los tramos (cazado por el comprobante
+      de invariantes) · la juez del transform vacío en jsdom
+      (Leaflet coloca por left/top) rehecha a mover-el-índice ·
+      Leaflet RECORTA la geometría al viewport (el d del path mide
+      lo dibujado, no la ruta — leído bien, no como fallo). WCAG
+      por partida doble: color Y trazo separan cada uno por su
+      cuenta. 364 motor · 176 interfaz
+
+- [ ] **7 · LA DEMO de los modos de la rueda, vista por el ojo de
+      Antonio** *(lo único abierto del punto 9 junto a la fase 2 de
+      sentidos y las decisiones de la mesa)*
 
 ## 10 — Modo BUS/TRANVÍA *(en grueso)*
 
