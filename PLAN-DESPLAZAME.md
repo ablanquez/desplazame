@@ -1711,12 +1711,18 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       que la bici [Ordenanza]) · la narración verificada (¿los
       combines del 7 valen en calzada con giros y sentidos? · los
       cruces con-el-vehículo-en-la-mano NARRADOS como tales
-      [«cruza con el patín en la mano», no «gira hacia el paso»] ·
-      «el carril bici» con nombre si lo tiene) · ⚠️ el rótulo
-      «a 5 km/h» de la cabecera MIENTE en los modos de rueda
-      (visto por Antonio el 30/08: los minutos van bien a 18/20,
-      la coletilla es del peatón sin actualizar) — velocidad por
-      modo en el rótulo · sus jueces en rojo primero
+      [«cruza con el patín en la mano», no «gira hacia el paso» —
+      el genérico ya sale desde el empuje, queda el fino] · ⚠️ LOS
+      CARRILES SIN NOMBRE (confirmado por el ojo de Antonio el
+      30/08 en ruta viva: «el carril bici» a secas en la Academia
+      General Militar/San Juan de la Peña/Torres): la herencia
+      municipal de §1.15 se cruzó sobre la red del peatón y los
+      ways solo-carril no heredaron — apuntarla a la red de la
+      rueda, con el vestido del planificador («carril bici de
+      Avenida X»; el genérico honesto donde el municipal calle) ·
+      ⚠️ el rótulo de VELOCIDAD por modo (el «a 5 km/h» mentiroso
+      se QUITÓ en el empuje — no mentir ya está; decir la verdad
+      fina es de aquí) · sus jueces en rojo primero
 - [ ] **6 · EL MODO BiZi:** TRES tramos — andando → estación de
       origen CON BICIS · pedaleando (solo-bici, su tabla, velocidad
       de PEDALEO ASISTIDO con fuente) → estación de destino CON
@@ -1728,25 +1734,76 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       la disponibilidad en vivo por la API de BiZi, con D-G si la
       API calla · el ámbito municipal = nuestra frontera · sus
       jueces
-- [ ] **6-bis · EL EMPUJE (fichado el 30/08 del ojo de Antonio
-      sobre Camino de las Torres; SE HACE DESPUÉS DE BiZi, que
-      construye el andamiaje de tramos):** cuando el rodeo legal es
-      gordo, la ruta puede incluir TRAMOS EMPUJANDO el vehículo por
-      infraestructura peatonal a paso de peatón, narrados
-      («desmonta aquí»). DOCTRINA: la tabla canónica de acceso lo
-      escribe [«el acceso se concede en toda situación a quien va
-      andando empujando su bicicleta; en consecuencia los
-      ruteadores pueden considerar…»] · los perfiles de referencia
-      lo modelan [OSRM bicycle: walking_speed=4 junto al 15] · el
-      patrón multi-tramo existe con nombre [OTP modo SCOOTER:
-      andar+rodar+andar] · la base legal es nuestra [121.2 RGC:
-      quien empuja es peatón — ya en las tablas] · el límite
-      honesto: ningún motor publica perfil de kick-scooter con
-      desmonte (se extiende la doctrina de la bici, declarado). EL
-      CASO JUEZ: COLOSO→ROMEO en patín — los 900 m de carril + paso
-      + vuelta que ~50 m de empuje matarían (la comparación vista
-      por Antonio el 30/08: el rodeo es la ley + el dato de cruces,
-      y el empuje es la salida documentada)
+- [x] **6-bis · EL EMPUJE — HECHO (30/08, ADELANTADO POR ORDEN DE
+      ANTONIO; dos commits; auditado antes de mandar: la juez vacía
+      de zonas de protección QUITADA [H4: sin dato no se vigila] y
+      la narración CITADA).** DOCTRINA completa: la tabla canónica
+      de acceso [«el acceso se concede en toda situación a quien
+      empuja»] · OSRM bicycle walking_speed=4 · el tramo empujado
+      como PASO PROPIO [OSRM: campo mode por paso, «pushing bike»,
+      con suite de «todos los empujes y cambios de modo»; el
+      despliegue de Copenhague lo enseña] · OTP modo SCOOTER
+      (andar+rodar+andar) · 121.2 RGC · 5,0 km/h coherencia de casa
+      declarada (OSRM usa 4). LO HECHO: la red de la rueda gana
+      33.770 aristas/1.016 km peatonales en modo EMPUJANDO (a 5,
+      factor el MÁXIMO de la tabla — derivado por calibrado 1/2/4,
+      no fijo: solo puede ganar por tiempo); protección especial NO
+      modelada (H4 declarado). EL CASO DE ANTONIO: patín COLOSO→
+      ROMEO 5.741→4.551 m (45 m en la mano ahorran 1.190; iguala a
+      la bici — «la barrera no era el vehículo, era no poder
+      bajarse»); patín 51→83/200, su red 1.988→721 trozos (el mayor
+      45→70 %). La bici TAMBIÉN mejora (4.805→4.551 por el mismo
+      cruce legal — visto por Antonio). Cinco jueces + 2-bis el
+      INVARIANTE (282 rutas: el coste del montículo no sube en
+      ninguna) + contraprueba 5/5. TRES arreglos vistos midiendo:
+      el enganche caía en la acera del portal (45,7 % — la puerta
+      separada de lo transitable, admiteComoPuerta) · con factor 1
+      el empuje lo compraba la preferencia, no el tiempo (medido: 9
+      s peor — de ahí el factor-máximo) · 6 jueces pinchaban índice
+      de arista y la red creció (anclados al way). El rótulo «a 5
+      km/h» QUITADO en rueda (no mentir; el fino a la 5).
+      Confesión: los reconstructores de tramos se comieron el dato
+      nuevo en silencio ×3 — «los tipos primero» (lección del
+      ejecutor, aplicada en el encargo siguiente). ⚠️ DESAJUSTE
+      DECLARADO Y NO TOCADO (cabo): el montículo minimiza
+      tiempo×factor y la respuesta reporta el reloj SIN factor — la
+      ruta ganadora puede no ser la más rápida del reloj (159↓/18↑
+      en 282); arreglarlo es decidir QUÉ se reporta (parlamento
+      pendiente). 337 motor · 162 interfaz
+
+- [x] **6-tris · EL SELECTOR DE RUTA — HECHO (30/08, dos commits,
+      VISTO por Antonio; nacido de su pregunta «¿amateur o pro?»).**
+      DOCTRINA CycleStreets (el planificador de referencia), API
+      oficial: los tres tipos [balanced «recomendado como DEFECTO —
+      práctica, equilibra velocidad y agrado» · fastest «vías con
+      más tráfico, ciclista confiado» · quietest «más agradable, a
+      menudo menos directa»; shortest DESACONSEJADO — avala el
+      coste-por-tiempo]; la mecánica del tranquila [puntuación
+      INVERSA a la clasificación: primary «muy hostil» — nuestra
+      tabla de factores ES esa escala]; el dial en el motor
+      [Valhalla use_roads 0-1, defecto 0,5 = lo de hoy]; la
+      PRECARGA de los tres tipos del mismo viaje [el patrón del
+      planificador: saltar entre ellos sin replanificar]. FIRMAS de
+      Antonio (30/08): Tranquila = la tabla AL CUADRADO (4,0/2,37/
+      1,56/cycleway 1) [PROPIO] · el PATÍN SIN selector, SIEMPRE el
+      fuerte [56.2.c: vía ciclista obligatoria — no es gusto, es
+      ley]. Rápida = factor 1. /api/ruta con `ruta` opcional;
+      «¿Qué ruta prefieres?» solo en bici/BiZi [revelado GOV.UK];
+      Generar trae LAS TRES en paralelo y el radio repinta SIN
+      petición (contadas: 3 al generar, 0 al saltar). Las tres del
+      par juez: Rápida 2.986 m/0 carril («el confiado», literal) ·
+      Equilibrada 3.049/1.304 · Tranquila 3.048/1.339. El PATÍN
+      recalibrado por la firma: COLOSO→ROMEO 4.551→4.832 (compra
+      287 de carril, hostilidad 510→191; la Avda. de Madrid a CERO
+      tráfico) — sigue 909 mejor que pre-empuje. El factor del
+      empuje DERIVADO por calibrado (1/2/4 — la regla «el máximo»
+      entendida, no copiada). Honestidades escritas: la hostilidad
+      de Equilibrada > Rápida en un par (ninguna minimiza
+      hostilidad — en la juez para dentro de un mes) · el rótulo
+      redondea 1.554 y 1.565 a «1,6 km» los dos · dos tropiezos de
+      instrumento declarados (la métrica que medía otra cosa; el
+      http.match que consume). comprobar-tipos PRIMERO, cumplido.
+      342 motor · 167 interfaz
 
 - [ ] **7 · LA DEMO de los dos modos, vista por el ojo de Antonio**
 

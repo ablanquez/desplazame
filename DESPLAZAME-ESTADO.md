@@ -50,7 +50,10 @@ levantado el 18/08, des-caducado del 21 al 30):
   Tranvía · Bici privada · Patín (VMP) · BiZi · Coche (name
   compartido: parada única de tab, flechas y exclusión del navegador;
   cada rueda manda SU modo; bus y coche avisan sin preguntar al
-  motor). ⇅ invertir y «Mi
+  motor). «¿Qué ruta prefieres?» (30/08): Rápida · Equilibrada
+  (defecto) · Tranquila, SOLO en bici/BiZi [revelado GOV.UK;
+  doctrina CycleStreets] — Generar trae las tres en paralelo y el
+  radio repinta sin nueva petición. ⇅ invertir y «Mi
   ubicación» dentro (punto 6). Y «Generar ruta» devuelve la RUTA REAL —
   pintada, con los pasos escritos y las negritas por partes: la
   respuesta falsa murió sin rastro (`2013c04`). DOS páginas y sin
@@ -102,6 +105,35 @@ levantado el 18/08, des-caducado del 21 al 30):
 3 entera y la auditoría de sentidos). **En local, sin publicar: los
 DOS commits del selector a seis más el de papeles** (`42efde6`). El
 push es de Antonio.
+
+**EL EMPUJE Y EL SELECTOR DE RUTA (30/08 mediodía), los dos VISTOS.**
+EL EMPUJE (adelantado POR ORDEN de Antonio; el encargo auditado
+antes de mandar — la juez vacía de protección-especial quitada [H4],
+la narración citada [OSRM mode «pushing bike» por paso]): la red de
+la rueda gana 33.770 aristas peatonales EMPUJANDO a 5 (factor el
+máximo de la tabla — solo gana por tiempo); el caso COLOSO→ROMEO en
+patín 5.741→4.551 (45 m en la mano ahorran 1.190; iguala a la bici),
+patín 51→83/200 y su red 1.988→721 trozos; la bici también mejora
+(4.805→4.551, visto). Tres arreglos midiendo (la puerta separada de
+lo transitable tras caer 45,7 % de enganches en la acera del portal
+· el factor-máximo tras medir que la preferencia compraba el empuje
+· jueces ancladas al way al crecer la red). El rótulo «a 5 km/h»
+QUITADO en rueda. ⚠️ Cabo declarado sin tocar: el reloj reportado va
+SIN el factor del montículo (159↓/18↑ en 282) — qué se reporta es
+parlamento. EL SELECTOR DE RUTA (de la pregunta de Antonio
+«¿amateur o pro?»; doctrina CycleStreets con su API oficial:
+balanced recomendado defecto · fastest confiado · quietest amable;
+la precarga de los tres tipos del patrón del planificador): «¿Qué
+ruta prefieres?» solo en bici/BiZi, Generar trae LAS TRES y el radio
+repinta sin petición (3/0 contadas); FIRMAS: Tranquila = tabla al
+cuadrado [PROPIO] · el patín SIEMPRE fuerte [56.2.c — ley, no
+gusto]: COLOSO→ROMEO 4.551→4.832 comprando carril (Avda. de Madrid
+a CERO tráfico), 909 mejor que pre-empuje. El factor del empuje
+derivado por calibrado (la regla entendida). Honestidades en jueces
+(hostilidad no se minimiza · el rótulo redondea igual 1.554 y
+1.565). 342 motor · 167 interfaz. Cuatro commits. Y EL OJO cazó el
+fleco para la 5: los carriles narran «el carril bici» SIN nombre
+(la herencia de §1.15 vive en la red del peatón).
 
 **LA CASILLA 4 — EL SELECTOR A SEIS (30/08 mañana), hecho y VISTO.**
 El control viejo parecía grupo y no lo era (aria-pressed, tabs
@@ -618,11 +650,12 @@ vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
 **Lo siguiente:** (1) **la casilla 5** (los modos privados: el
-aparcabicis + los metros andando + la narración de la rueda con sus
-dos vicios de pantalla); (2) la 6 (BiZi tres tramos + aviso 30 min)
-y la 6-bis (el empuje, con el andamiaje de BiZi); (3) la demo (7);
-(4) LA FASE 2 de sentidos cuando el ojo confirme candidatos; (5) el
-push cuando Antonio diga; (6) el
+APARCABICIS con su doctrina verificada antes del encargo + los
+metros andando + la narración de la rueda: carriles CON nombre,
+velocidad por modo, el «en la mano» fino); (2) la 6 (BiZi tres
+tramos + aviso 30 min); (3) la demo (7); (4) LA FASE 2 de sentidos
+cuando el ojo confirme candidatos; (5) el push cuando Antonio diga;
+(6) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -692,8 +725,8 @@ red aparte con sentido demostrado [112 rotondas antihorario/0 ·
 peatón, el patín 51/200 con el defecto del art. 50 RGC [RD 970/2020:
 30 un carril por sentido], carril_vh descartado con contraejemplo,
 pid-del-log==pid-que-contesta tras el susto del motor zombi; queda: ⚰️ el
-selector a seis HECHO Y VISTO [casilla 4, 30/08] — quedan los modos
-5-6, el empuje [6-bis] y la demo) ·
+selector a seis, EL EMPUJE y el selector de ruta HECHOS Y VISTOS
+[casillas 4/6-bis/6-tris, 30/08] — quedan los modos 5-6 y la demo) ·
 10 bus/tranvía · 11 coche (cargado: parkings, parquímetros, las tres
 cuentas) · 12 despliegue (cargado) · 13 estética · **14 Intranet
 (nuevo el 22/08, reservado para el final: el visor vive ahí)**. La investigación de
@@ -782,12 +815,16 @@ arriba en osm.org cuando quiera) · el punto ciego de la sonda
 (1.185 vías «único» en ambas — la clase Siresa: ojo o las shapes
 del GTFS, anotado en el 10) · las 203 calles a medio cartografiar
 (pedestrian+residential mismo nombre; señal paving_stones fichada) ·
-⚰️ la casilla 4 HECHA Y VISTA (30/08: el selector a seis como grupo
-de radios nativo — el patinetero ya tiene su botón legal) · la
-casilla 6-bis EL EMPUJE fichada con doctrina para después de BiZi
-(el caso Camino de las Torres: 900 m que ~50 de empuje matarían) ·
-los dos vicios de pantalla a la 5 (el rótulo «a 5 km/h» · el cruce
-narrado «en la mano») ·
+⚰️ las casillas 4, 6-bis y 6-tris HECHAS Y VISTAS (30/08: el
+selector a seis · EL EMPUJE adelantado por orden — patín 83/200,
+COLOSO→ROMEO igualando a la bici · el selector de ruta Rápida/
+Equilibrada/Tranquila [CycleStreets] con el patín SIEMPRE fuerte
+[56.2.c]) · ⚠️ EL DESAJUSTE DEL RELOJ declarado y sin tocar: el
+montículo minimiza tiempo×factor y el reloj reportado va sin factor
+(159↓/18↑ en 282) — qué se reporta es parlamento pendiente · a la
+casilla 5: LOS CARRILES SIN NOMBRE (ojo de Antonio en ruta viva —
+la herencia §1.15 apuntada a la red de la rueda) + velocidad por
+modo en el rótulo + el «en la mano» fino ·
 el RGC nuevo el 01/10 (las citas del 121/122 migran: las tablas y el
 paso-empujando) · los carriles bici narran «el carril bici» sin
 nombre municipal (herencia cruzada sobre la red del peatón — a la
@@ -860,7 +897,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 493 pruebas (332 motor + 161 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 509 pruebas (342 motor + 167 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
