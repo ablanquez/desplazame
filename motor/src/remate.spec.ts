@@ -192,7 +192,12 @@ describe('⭐ EL REMATE DEL APARCABICIS (30/08)', () => {
    * El patín va por otro camino que la bici —lleva el calibrado fuerte por el
    * art. 56.2.c— y aun así **acaba en el mismo aparcabicis**, porque el soporte
    * se elige por su distancia al DESTINO y no por el camino que se traiga.
-   * Medido: **4.867 m y 1.019 s en 15 pasos**, con los mismos 52 m a pie.
+   * Medido: **4.869 m y 1.019 s en 15 pasos**, con los mismos 52 m a pie.
+   *
+   * ⭐ Eran 4.867 hasta el 30/08 por la tarde: **+2,200 m** de retirar la
+   * corrección invertida de la Calle Monasterio de Siresa, cuadrados arista a
+   * arista en `empuje.spec.ts`. El patín vuelve a bajar Siresa hacia el Doctor
+   * Iranzo, que es su sentido legal, en vez de rodearla por Silvestre Pérez.
    */
   test('⭐ 2 · el PATÍN remata en el mismo aparcabicis y con la misma frase', () => {
     const enBici = viaje('bici', COLOSO, ROMEO);
@@ -206,8 +211,13 @@ describe('⭐ EL REMATE DEL APARCABICIS (30/08)', () => {
 
     // Y el camino SÍ es otro: si fuera el mismo, la juez no probaría nada.
     assert.notEqual(enPatin.metros, enBici.metros);
-    assert.equal(enPatin.metros, 4867, 'los metros del caso del ojo en patín, medidos el 30/08');
-    assert.equal(enPatin.segundos, 1019);
+    assert.equal(enPatin.metros, 4869, 'los metros del caso del ojo en patín, medidos el 30/08');
+    // ⭐ Y +1 s, que también cuadra: rodando pasa de 983,3145 a 983,7545 s
+    // —**+0,4400 exactos**—, y 2,200 m ÷ 0,4400 s = **5,000 m/s**, que es el
+    // crucero del patín (18 km/h) clavado. El paseo del remate no se mueve
+    // —mismo aparcabicis, mismos 52 m—, así que ese 0,44 es todo el cambio del
+    // total, y le basta para cruzar la frontera del redondeo.
+    assert.equal(enPatin.segundos, 1020);
   });
 
   /**

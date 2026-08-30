@@ -171,8 +171,15 @@ console.log(
 // único del sentido que no sale del fichero, así que es lo único que hay que
 // poder leer entero cada vez que el motor arranca.
 console.log(
-  `motor:   y ${cuentas.sentidoCorregido} aristas por CORRECCIÓN verificada ` +
-    `(${SENTIDOS_CORREGIDOS.length} ${SENTIDOS_CORREGIDOS.length === 1 ? 'way' : 'ways'} en la lista):`,
+  SENTIDOS_CORREGIDOS.length === 0
+    ? // ⚠️ Vacía es un estado legítimo, y hay que poder leerlo: significa que
+      // **ninguna calle está verificada por el ojo**, no que el mecanismo se
+      // haya caído. Tuvo una fila el 29/08 y se retiró el 30 porque estaba
+      // mal — ver `sentidos-corregidos.ts`.
+      'motor:   y 0 aristas por CORRECCIÓN verificada: la tabla está VACÍA ' +
+        '(el mecanismo sigue puesto; hoy no hay ninguna calle mirada por el ojo)'
+    : `motor:   y ${cuentas.sentidoCorregido} aristas por CORRECCIÓN verificada ` +
+      `(${SENTIDOS_CORREGIDOS.length} ${SENTIDOS_CORREGIDOS.length === 1 ? 'way' : 'ways'} en la lista):`,
 );
 for (const c of SENTIDOS_CORREGIDOS) {
   console.log(`motor:     way ${c.way} · OSM dice ${c.osmDiceHoy} → ${c.correccion} · ${c.fecha}`);

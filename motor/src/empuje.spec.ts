@@ -176,12 +176,26 @@ describe('⭐ EL EMPUJE (30/08)', () => {
     const a = donde(COLOSO);
     const b = donde(ROMEO);
     // Las dos cifras exactas, para que el día que se muevan se sepa cuál.
+    //
+    // ⭐ **Se movieron +2 m el 30/08 por la tarde** (4.832 → 4.834 y 4.867 →
+    // 4.869), al retirar la corrección de sentido de la Calle Monasterio de
+    // Siresa, que estaba invertida. Cuadrado arista a arista contra el camino
+    // de antes y el de después:
+    //
+    //   sale el rodeo:  Silvestre Pérez 131,2 + Doctor Iranzo 74,7 = 205,900 m
+    //   entra el bueno: Monasterio de Siresa 130,1 + Guadalupe 78,0 = 208,100 m
+    //   ------------------------------------------------------------------
+    //   208,100 − 205,900 = +2,200 m, y las aristas comunes aportan 0,000
+    //
+    // Es decir: el patín vuelve a bajar Siresa hacia el Doctor Iranzo —que es
+    // su sentido legal— en vez de rodearla, y le cuesta 2,2 m más porque el
+    // rodeo era, por pura geometría, un pelo más corto. Ver bitácora del 30/08.
     assert.equal(
       Math.round(rodar('patin', a, b)!.metros),
-      4832,
+      4834,
       'los metros RODADOS del caso, medidos el 30/08',
     );
-    assert.equal(t.metros, 4867, 'y los del viaje entero, con el remate del aparcabicis');
+    assert.equal(t.metros, 4869, 'y los del viaje entero, con el remate del aparcabicis');
     const empujados = metrosEmpujando('patin', a, b);
     assert.ok(empujados > 0, 'la ruta tiene que empujar en alguna parte');
 

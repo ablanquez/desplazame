@@ -14,6 +14,81 @@
 
 ---
 
+## [2026-08-30] 🔴 ABIERTA — Corregí un `oneway` que estaba BIEN: Siresa quedó invertida, y hoy la calle SOLO se puede recorrer en el sentido que el terreno prohíbe
+
+**Categoría:** dato escrito a mano sobre un testimonio que no era del terreno
+
+**Síntoma:** el 29/08 metí en `SENTIDOS_CORREGIDOS` la Calle Monasterio de
+Siresa (`way 24433275`) con `correccion: '-1'` — o sea, **al revés del dibujo de
+OSM**—, a raíz de que Antonio mirara la ruta `COLOSO 2 → LEOPOLDO ROMEO 27` en
+bici y viera que «subía la calle al revés». Hoy, 30/08, Antonio precisa la
+dirección exacta: **Monasterio de Siresa es de sentido único HACIA el Doctor
+Iranzo; no se entra desde el Doctor Iranzo.** Ese es exactamente el
+`oneway=yes` que OSM ya traía. **La corrección invirtió un dato que estaba
+bien**, y el motor ha estado un día entero con la calle del revés.
+
+**Lo que el motor hace ahora mismo con esa calle**, medido punta a punta sobre
+la red de la rueda —el `way` va dibujado de oeste (`-0.866521, 41.647517`) a
+este (`-0.861679, 41.647264`), y es el extremo **este** el que da al Doctor
+Iranzo, a 185 m—:
+
+```
+$ node --test src/sonda-siresa.spec.ts
+SIRESA: aristas 10 sentido -1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+SIRESA A->B (dibujo, hacia Iranzo): SIN RUTA
+SIRESA B->A (contra el dibujo, DESDE Iranzo): 414.1 m | trozos por Siresa: 11 (424.0 m)
+```
+
+Las dos líneas dicen lo mismo desde los dos lados: **el único sentido en el que
+el motor deja recorrer Siresa es el que el terreno prohíbe**, y el sentido
+verdadero —hacia Iranzo— ni siquiera tiene ruta.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las **cinco** pruebas de
+`motor/src/sentidos.spec.ts`, con la corrección invertida puesta y aplicada:
+
+```
+$ cd motor && node --test src/sentidos.spec.ts
+▶ ⭐ LOS SENTIDOS: la corrección de Siresa y el banco de testigos
+  ✔ ⭐ el juez de Siresa: la ruta COLOSO→ROMEO ya no la recorre hacia Iranzo (11.9624ms)
+  ✔ ⭐ el deshielo: § 1.21 sigue diciendo lo que decía cuando se corrigió (64.1966ms)
+  ✔ ⚠️ TESTIGO A · siete calles que MU1 dice de un sentido y la bici remonta hoy (17.2727ms)
+  ✔ ⚠️ TESTIGO B · dos calles que MU1 dice de doble sentido y la bici rodea hoy (3.1296ms)
+  ✔ ⚠️ el punto ciego: 16.504 aristas de sentido único donde una inversión podría esconderse (6.6179ms)
+ℹ tests 5
+ℹ pass 5
+ℹ fail 0
+```
+
+⚠️ **Y la que más duele es la primera, que la exigí yo.** «El juez de Siresa»
+compra dos cosas: que las diez aristas valen `-1`, y que la ruta del caso **no
+pisa la calle**. Las dos son ciertas hoy y las dos son **el invariante
+equivocado**: la primera afirma como correcto justo el valor que está mal, y la
+segunda mira una ruta que —medido— **no pasa por Siresa ni antes ni después de
+la corrección** (`trozos por Siresa: 0` en la ida y en la vuelta). Un juez que
+vigila una calle por la que la ruta que examina no pasa no puede ponerse rojo
+nunca: **compraba el resultado, no la causa**.
+
+**Cómo se cazó:** no lo cazó ninguna prueba ni ninguna sonda — lo cazó Antonio
+volviendo a la calle y **diciendo la dirección**, que es el dato que el 29 no se
+llegó a preguntar. La sonda-Cygnus tampoco podía: `doble_sent` de MU1 dice **si**
+hay sentido único, no **cuál**, y ésta es precisamente una de las 1.185 vías del
+punto ciego que la propia prueba nº5 documenta.
+
+**Causa raíz:** ⏳ PENDIENTE
+
+**Arreglo aplicado:** ⏳ PENDIENTE
+
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** ⏳ PENDIENTE
+
+**Traza:** `motor/src/sentidos-corregidos.ts` (la fila del `way 24433275`) ·
+`motor/src/sentidos.spec.ts` (el juez que compraba el invariante equivocado) ·
+`motor/src/red-rueda.ts` (donde `sentidoCorregidoDe` se aplica al construir
+`rueda.sentido`).
+
+---
+
 ## [2026-08-30] ✅ CERRADA — El aviso que hace legales los hitos sin número no lo vigila NADIE: borrarlo de la pantalla deja las 175 pruebas en verde
 
 **Categoría:** guardián que no existe sobre una regla firmada

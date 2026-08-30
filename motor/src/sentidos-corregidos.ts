@@ -22,6 +22,13 @@
  * Antonio ha confirmado**. Una fila de este fichero es una calle que alguien ha
  * mirado.
  *
+ * ⚠️ **Y «mirado» quiere decir que ha dicho LA DIRECCIÓN.** La primera fila que
+ * tuvo esta tabla se escribió el 29/08 sobre una queja —«esta ruta sube la
+ * calle al revés»— dando por supuesto hacia dónde iba la calle. Iba al otro
+ * lado: OSM tenía razón y la corrección invirtió un dato bueno. Una queja dice
+ * que algo está mal; **solo el ojo dice hacia dónde va la calle**, y sin esa
+ * frase no se escribe una fila. Ver la entrada del 30/08 de `docs/BITACORA.md`.
+ *
  * ── Lo que la sonda NO puede ver, y es justo lo que más duele ───────────────
  *
  * El contraste municipal×OSM compara `doble_sent` (que dice SI/NO, no la
@@ -74,25 +81,26 @@ export interface CorreccionDeSentido {
 }
 
 /**
- * ⭐ LA TABLA. **Una sola fila**, y así se queda hasta que Antonio confirme
- * más: la lista de la sonda tiene 434 candidatos y ninguno está verificado.
+ * ⭐ LA TABLA, HOY **VACÍA**. Y vacía es un estado legítimo, no un pendiente.
+ *
+ * Tuvo una fila —la Calle Monasterio de Siresa, `way 24433275`, corregida a
+ * `-1` el 29/08— y **estaba mal**: el 30/08 Antonio precisó la dirección sobre
+ * el terreno —*sentido único **hacia** el Doctor Iranzo; no se entra desde
+ * él*— y eso es exactamente lo que OSM ya decía con su `oneway=yes`. La
+ * corrección invertía un dato correcto, y durante un día el motor solo dejó
+ * recorrer esa calle en el sentido que la señal prohíbe.
+ *
+ * [CycleStreets] la *repair table* es una tabla **mantenida**: corrige el dato
+ * malo, y **se retira cuando el testimonio que la sostenía cae**. Eso es lo que
+ * se hizo — no se ajustó el valor, se quitó la fila.
+ *
+ * ⚠️ **Lo que NO se retira es el mecanismo.** Las tres cerraduras, el deshielo
+ * y el log de arranque siguen enteros, probados con una fila de mentira en
+ * `sentidos.spec.ts`, para que la próxima corrección nazca con su caducidad
+ * puesta. Y la lista de la sonda tiene 434 candidatos: ninguno verificado, y
+ * ninguno entra hasta que un ojo diga **la dirección**, no la queja.
  */
-export const SENTIDOS_CORREGIDOS: readonly CorreccionDeSentido[] = [
-  {
-    way: 24433275,
-    osmDiceHoy: 'yes',
-    correccion: '-1',
-    fuente: 'Antonio, 29/08/2026, sobre el terreno — a raíz de mirar la ruta ' +
-      'COLOSO 2 → LEOPOLDO ROMEO 27 en bici, que subía la calle al revés',
-    fecha: '2026-08-29',
-    motivo:
-      'Calle Monasterio de Siresa: OSM la dibuja hacia el Doctor Iranzo y la ' +
-      'etiqueta oneway=yes, pero el sentido de circulación es el contrario. ' +
-      'MU1 (código 30820) dice doble_sent=NO, o sea sentido único, y coincide ' +
-      'con OSM en que lo es — el contraste de la sonda no lo podía ver, porque ' +
-      'doble_sent no dice la dirección.',
-  },
-];
+export const SENTIDOS_CORREGIDOS: readonly CorreccionDeSentido[] = [];
 
 /**
  * El `oneway` corregido de un *way*, o `undefined` si no está en la tabla.

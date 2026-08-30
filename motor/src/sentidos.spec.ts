@@ -1,15 +1,25 @@
 /**
- * ⭐ EL BANCO DE SENTIDOS (29/08): un juez, un deshielo y nueve testigos.
+ * ⭐ EL BANCO DE SENTIDOS (29/08, rehecho el 30/08): un juez, un mecanismo
+ * vacío y nueve testigos.
+ *
+ * ⚠️ **Este fichero nació el 29/08 defendiendo una corrección que estaba MAL.**
+ * La Calle Monasterio de Siresa se corrigió a `-1` —al revés del dibujo de
+ * OSM— y el 30/08 Antonio precisó la dirección exacta sobre el terreno: la
+ * calle es de sentido único **HACIA el Doctor Iranzo**, y no se entra desde
+ * él. Eso es exactamente lo que OSM ya decía con su `oneway=yes`. La fila se
+ * retiró y las jueces se rehicieron para comprar **la verdad del terreno** en
+ * vez del valor de la tabla. Ver la entrada del 30/08 de `docs/BITACORA.md`.
  *
  * Tres clases de prueba viven aquí, y conviene no confundirlas:
  *
- * 1. **EL JUEZ de la corrección de Siresa.** Verde porque la corrección está
- *    puesta. Si alguien la quita, se pone rojo.
- * 2. **EL GUARDIÁN DEL DESHIELO.** Comprueba que § 1.21 **sigue diciendo lo
- *    que decía** cuando la corrección se escribió. El día que OSM arregle la
- *    calle y se vuelva a descargar el fichero, este se pone rojo y la fila de
- *    la tabla hay que **borrarla**, no actualizarla: la corrección habrá dejado
- *    de hacer falta.
+ * 1. **EL JUEZ DE SIRESA.** Ya no vigila una corrección: vigila **la calle**.
+ *    Compra que solo se puede recorrer hacia el Doctor Iranzo, venga ese
+ *    sentido de donde venga —hoy, del fichero de OSM sin tocar—. Si alguien
+ *    vuelve a meter la fila invertida, se pone rojo.
+ * 2. **EL GUARDIÁN DEL MECANISMO.** La tabla está **vacía y viva**: las tres
+ *    cerraduras de `sentidos-corregidos.ts` siguen ahí, probadas con una fila
+ *    de mentira, para que la próxima corrección —la que sí venga del ojo—
+ *    nazca con su deshielo puesto.
  * 3. ⚠️ **LOS TESTIGOS**, y estos son al revés que todo lo demás de la casa:
  *    **documentan la conducta de HOY, que se sospecha equivocada**, y están
  *    escritos **para caerse** el día que la corrección llegue. Un testigo en
@@ -42,7 +52,7 @@ import { cargarRedDeLaRueda, type RedDeLaRueda } from './red-rueda.ts';
 import { cargarRejilla, enganchar, type Rejilla } from './proyeccion.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { entornoDe } from './gacetero.ts';
-import { cuadernoPara, type Ruta } from './ruta.ts';
+import { cuadernoPara, type Ruta, type TrozoDeRuta } from './ruta.ts';
 import { admiteComoPuerta, calcularRutaRodando } from './rodando.ts';
 import { SENTIDOS_CORREGIDOS, sentidoCorregidoDe } from './sentidos-corregidos.ts';
 
@@ -69,6 +79,39 @@ function rodar(a: Punto, b: Punto): Ruta | null {
   return calcularRutaRodando(rueda, cuadernoPara(rueda), 'bici', eo, a, ed, b);
 }
 
+/**
+ * Los trozos de una ruta que caen en Siresa **y avanzan**.
+ *
+ * ⚠️ Los de **cero metros** se quedan fuera, y no es un descarte de
+ * conveniencia: la puerta de un extremo deja un muñón cuya `g` es el mismo
+ * punto repetido —`[-0.861679,41.647264]` dos veces— y **un segmento de
+ * longitud cero no apunta a ninguna parte**. Preguntarle la dirección no da
+ * «oeste»: no da nada. Lo que sí se mira, y aquí importa, es que la suma de
+ * metros de esos trozos sea la que se espera.
+ */
+function porSiresa(r: Ruta): readonly TrozoDeRuta[] {
+  return r.trozos.filter((t) => rueda.aristas[t.arista]!.way === 24433275 && t.metros > 0);
+}
+
+/** Los metros de Siresa que una ruta se come, muñones incluidos. */
+function metrosDeSiresa(r: Ruta): number {
+  return r.trozos
+    .filter((t) => rueda.aristas[t.arista]!.way === 24433275)
+    .reduce((m, t) => m + t.metros, 0);
+}
+
+/**
+ * ⭐ ¿Ese trozo se anduvo hacia el ESTE? Es la pregunta entera de este fichero.
+ *
+ * `t.g` es la geometría **en el orden en que se recorrió**, no la de la arista:
+ * por eso sirve para saber la dirección real y la del `way` no. Siresa va casi
+ * recta de oeste a este —de `-0.8665` a `-0.8617`—, así que comparar la
+ * longitud de los extremos basta y no hace falta rumbo ninguno.
+ */
+function haciaElEste(t: TrozoDeRuta): boolean {
+  return t.g[t.g.length - 1]![0]! > t.g[0]![0]!;
+}
+
 /** Las dos puntas de un *way*, para recorrerlo entero en los dos sentidos. */
 function puntasDe(way: number): readonly [Punto, Punto] {
   const ks = aristasDe(way);
@@ -87,60 +130,135 @@ describe('⭐ LOS SENTIDOS: la corrección de Siresa y el banco de testigos', ()
   });
 
   /**
-   * ⭐ EL JUEZ DE SIRESA — la corrección hace lo que dice.
+   * ⭐ EL JUEZ DE SIRESA — **la calle solo se recorre hacia el Doctor Iranzo**.
    *
    * `way 24433275`, Calle Monasterio de Siresa, 10 aristas y 414,1 m. OSM la
-   * dibuja hacia el Doctor Iranzo y la etiqueta `oneway=yes`; **el sentido de
-   * circulación es el contrario**, verificado por Antonio sobre el terreno el
-   * 29/08 a raíz de mirar esta misma ruta.
+   * dibuja de **oeste a este** —de `-0.866521, 41.647517` a
+   * `-0.861679, 41.647264`— y la etiqueta `oneway=yes`. Antonio, sobre la
+   * calle, el 30/08: *sentido único **hacia** el Doctor Iranzo; no se entra
+   * desde el Doctor Iranzo*. **El sentido del dibujo es el bueno**, y por eso
+   * hoy no hay nada que corregir. (Ninguna de las dos puntas toca el Doctor
+   * Iranzo: la del oeste queda a 216 m y la del este a 185 m, medido sobre la
+   * red. Quien dice la dirección es el ojo, no esa diferencia de 31 m.)
    *
-   * Antes de la corrección, `COLOSO 2 → LEOPOLDO ROMEO 27` en bici medía
-   * **4.806,8 m y subía Siresa hacia Iranzo en tres trozos: 130,1 m a
-   * contramano**. Después midió 4.804,6 m y **no la pisa**.
+   * ⚠️ **Lo que esta juez compra es la verdad del terreno, no un valor de una
+   * tabla.** Da igual de dónde salga el sentido —hoy sale del `oneway=yes` de
+   * § 1.21, sin corrección ninguna—: lo que no puede pasar es que un trozo de
+   * ruta recorra Siresa hacia el oeste. Se mira **`t.g`**, la geometría del
+   * trozo en el orden en que se anduvo, no la de la arista.
    *
-   * ⚠️ **Y desde el 30/08 mide 4.551 m**, que los bajó el empuje: la ruta
-   * cruza el Camino de las Torres con la bici en la mano en vez de rodearlo.
-   * Lo que esta juez compra no cambia —que Siresa no se pisa hacia Iranzo, y
-   * eso se sigue comprobando arista a arista—; lo que cambia es la ruta
-   * alrededor, y su cifra se mueve con ella.
+   * Y por eso la juez de ayer no valía. Compraba `sentido === -1` y «la ruta
+   * no pisa la calle», que son las dos cosas que la corrección **equivocada**
+   * producía; con ella puesta, bajar Siresa hacia Iranzo era imposible
+   * —`SIN RUTA`— y lo único que el motor permitía era entrar desde Iranzo,
+   * 414,1 m a contramano. Estuvo verde el día entero. Ver bitácora del 30/08.
    */
-  test('⭐ el juez de Siresa: la ruta COLOSO→ROMEO ya no la recorre hacia Iranzo', () => {
+  test('⭐ el juez de Siresa: se baja hacia Iranzo y NO se remonta desde Iranzo', () => {
     const ks = aristasDe(24433275);
     assert.equal(ks.length, 10, 'la Calle Monasterio de Siresa tiene 10 aristas');
     for (const k of ks) {
-      assert.equal(rueda.sentido[k], -1, `la arista ${k} tiene que ir al revés del dibujo`);
+      assert.equal(
+        rueda.sentido[k],
+        1,
+        `la arista ${k} va en el sentido del dibujo (oeste→este, hacia Iranzo)`,
+      );
     }
 
-    const origen = portales.donde.get('Portales.93310')!;
-    const destino = portales.donde.get('Portales.79358')!;
-    const ruta = rodar([origen.lon, origen.lat], [destino.lon, destino.lat])!;
-    assert.ok(ruta, 'la ruta del ojo de Antonio tiene que existir');
+    // Las dos puntas de la calle, para recorrerla entera en los dos sentidos.
+    const [oeste, este] = puntasDe(24433275);
 
-    const porSiresa = ruta.trozos.filter((t) => rueda.aristas[t.arista]!.way === 24433275);
-    assert.deepEqual(porSiresa, [], 'la ruta NO puede volver a pisar Siresa hacia Iranzo');
-    assert.equal(Math.round(ruta.metros), 4551);
+    // ⭐ HACIA IRANZO (el sentido bueno): se baja la calle entera y punto.
+    const bajando = rodar(oeste, este)!;
+    assert.ok(bajando, 'hacia Iranzo tiene que haber ruta');
+    assert.equal(
+      new Set(porSiresa(bajando).map((t) => t.arista)).size,
+      10,
+      'se recorre la calle entera, arista a arista',
+    );
+    assert.equal(Math.round(bajando.metros), 414);
 
-    // Y el volcado del final, para que el cambio se pueda leer y no solo contar.
-    const nombres = ruta.trozos
-      .slice(-6)
-      .map((t) => rueda.nombreDeWay.get(rueda.aristas[t.arista]!.way) ?? '(mudo)');
-    assert.deepEqual(new Set(nombres), new Set(['Calle del Doctor Iranzo', 'Calle de Leopoldo Romeo']));
+    assert.ok(Math.abs(metrosDeSiresa(bajando) - 414.1) < 0.1, 'los 414,1 m de la calle');
+
+    // ⭐ DESDE IRANZO (el sentido prohibido): hay que RODEAR, y **no se
+    // recorre ni un metro de la calle**. Lo único de Siresa que aparece es el
+    // muñón de 0,00 m de la puerta del origen, que no es andar: es estar.
+    const remontando = rodar(este, oeste)!;
+    assert.ok(remontando, 'desde Iranzo tiene que haber ruta, aunque sea rodeando');
+    assert.equal(metrosDeSiresa(remontando), 0, 'ni un metro de Siresa se anda desde Iranzo');
+    assert.equal(Math.round(remontando.metros), 602);
+    assert.ok(
+      remontando.metros > bajando.metros,
+      `el rodeo tiene que costar: ${remontando.metros.toFixed(1)} vs ${bajando.metros.toFixed(1)}`,
+    );
+
+    // ⭐ Y EL INVARIANTE, el que la juez de ayer no miraba: NINGÚN trozo de
+    // Siresa se anda hacia el oeste. En ninguna de las dos rutas.
+    for (const [nombre, r] of [['bajando', bajando], ['remontando', remontando]] as const) {
+      for (const t of porSiresa(r)) {
+        assert.ok(
+          haciaElEste(t),
+          `${nombre}: la arista ${t.arista} se anduvo hacia el OESTE, y eso es contramano`,
+        );
+      }
+    }
   });
 
   /**
-   * ⭐ EL GUARDIÁN DEL DESHIELO — la corrección caduca sola.
+   * ⭐ LAS DOS RUTAS DEL CASO, volcadas con sus metros.
    *
-   * Comprueba, contra el fichero de § 1.21, que el *way* corregido **sigue
-   * diciendo lo que decía**. Es la cerradura nº1 de `correcciones.ts` calcada:
-   * una corrección se escribe mirando un dato concreto, y si ese dato cambia,
-   * la corrección se escribió mirando otra cosa.
+   * Es la ruta que empezó todo esto: `COLOSO 2 → LEOPOLDO ROMEO 27` en bici, y
+   * su vuelta. Se dejan aquí las dos con su cifra para que el día que algo las
+   * mueva se vea cuánto y hacia dónde.
    *
-   * ⚠️ El día que esto se ponga rojo, **la fila se borra**, no se actualiza: si
-   * OSM ya dice `-1`, la corrección sobra; si dice otra cosa, hay que volver a
-   * mirar la calle. Y el motor tampoco arrancaría — `sentidoCorregidoDe` lanza
-   * antes de abrir el puerto.
+   * Lo que la reversión les hizo, medido: **la ida no se movió ni un metro**
+   * —nunca pisó Siresa, ni con la corrección ni sin ella—, y **la vuelta bajó
+   * de 5.199,0 a 5.122,4 m**, 76,6 menos, porque ahora puede bajar Siresa
+   * hacia Iranzo en vez de rodearla.
+   *
+   * ⚠️ **Y esta juez NO exige que ninguna de las dos evite Siresa.** Bajar la
+   * calle hacia el Doctor Iranzo es legal; si el coste quiere pasar por ahí,
+   * que pase. Lo único que no se admite es que un trozo la remonte. Exigir que
+   * no la pise sería volver al error de ayer —comprar un resultado en vez de
+   * la causa— y ataría la ruta a un rodeo que nadie ha pedido.
    */
-  test('⭐ el deshielo: § 1.21 sigue diciendo lo que decía cuando se corrigió', () => {
+  test('⭐ las dos rutas del caso: sus metros, y ni un trozo a contramano', () => {
+    const origen = portales.donde.get('Portales.93310')!;
+    const destino = portales.donde.get('Portales.79358')!;
+    const ida = rodar([origen.lon, origen.lat], [destino.lon, destino.lat])!;
+    const vuelta = rodar([destino.lon, destino.lat], [origen.lon, origen.lat])!;
+    assert.ok(ida && vuelta, 'las dos rutas del ojo de Antonio tienen que existir');
+
+    assert.equal(Math.round(ida.metros), 4551, 'COLOSO 2 → LEOPOLDO ROMEO 27');
+    assert.equal(Math.round(vuelta.metros), 5122, 'LEOPOLDO ROMEO 27 → COLOSO 2');
+
+    for (const [nombre, r] of [['ida', ida], ['vuelta', vuelta]] as const) {
+      for (const t of porSiresa(r)) {
+        assert.ok(haciaElEste(t), `${nombre}: Siresa se anduvo hacia el OESTE, y eso es contramano`);
+      }
+    }
+  });
+
+  /**
+   * ⭐ EL MECANISMO, VACÍO Y VIVO — las tres cerraduras siguen cerrando.
+   *
+   * La tabla se quedó **sin filas** el 30/08, y eso no es que el mecanismo
+   * sobre: es que hoy no hay ninguna calle verificada por el ojo. Las
+   * cerraduras se prueban con una fila de mentira, porque lo que hay que
+   * garantizar es que **la próxima corrección nazca con su deshielo puesto**.
+   *
+   * [CycleStreets] la *repair table* es una tabla **mantenida**: corrige el
+   * dato malo y **se retira cuando el testimonio que la sostenía cae**. Eso es
+   * exactamente lo que pasó aquí.
+   */
+  test('⭐ el mecanismo: la tabla está vacía y las tres cerraduras siguen cerrando', () => {
+    assert.deepEqual(SENTIDOS_CORREGIDOS, [], 'hoy no hay ninguna calle verificada por el ojo');
+
+    // Un way que no está en la tabla no se toca: devuelve undefined y ya.
+    assert.equal(sentidoCorregidoDe(24433275, 'yes', true), undefined);
+
+    // Y el fichero de § 1.21 sigue diciendo del way de Siresa lo que decía —es
+    // el deshielo, que ahora no protege ninguna fila pero sí documenta por qué
+    // la de ayer sobraba: OSM ya decía lo que el terreno dice.
     const fichero = fileURLToPath(
       new URL('../data/2026-08-28_osm_overpass_zaragoza-bbox_viario-etiquetas.json', import.meta.url),
     );
@@ -148,24 +266,13 @@ describe('⭐ LOS SENTIDOS: la corrección de Siresa y el banco de testigos', ()
       id: number;
       tags?: Record<string, string>;
     }[];
-    const porId = new Map(elementos.map((w) => [w.id, w.tags ?? {}]));
-
-    assert.equal(SENTIDOS_CORREGIDOS.length, 1, 'solo Siresa está verificada');
-    for (const c of SENTIDOS_CORREGIDOS) {
-      const tags = porId.get(c.way);
-      assert.ok(tags, `el way ${c.way} tiene que seguir en § 1.21`);
-      assert.equal(
-        tags['oneway'],
-        c.osmDiceHoy,
-        `el way ${c.way} ya no dice lo que decía: la corrección hay que BORRARLA o revisarla`,
-      );
-      // Y el arranque no debe lanzar mientras eso se cumpla.
-      assert.equal(sentidoCorregidoDe(c.way, tags['oneway'], true), c.correccion);
-    }
-    // Y al revés: si el fichero dijera ya lo corregido, el motor tiene que
-    // reventar en vez de aplicar una corrección que sobra.
-    assert.throws(() => sentidoCorregidoDe(24433275, '-1', true), /caducada/);
-    assert.throws(() => sentidoCorregidoDe(24433275, 'yes', false), /caducada/);
+    const siresa = elementos.find((w) => w.id === 24433275);
+    assert.ok(siresa, 'el way de Siresa tiene que seguir en § 1.21');
+    assert.equal(
+      siresa.tags?.['oneway'],
+      'yes',
+      'OSM dice oneway=yes, que es la verdad del terreno: por eso no hay nada que corregir',
+    );
   });
 
   /**
