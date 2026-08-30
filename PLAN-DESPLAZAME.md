@@ -1954,6 +1954,21 @@ direccionalidad de las trazas, umbral ~90 %; el punto ciego de la
 sonda-Cygnus: 1.185 vías donde ambas fuentes dicen «único» sin poder
 comparar el lado].
 
+*(⭐ EL NAP COMPROBADO EN VIVO el 30/08 por la noche, del mosqueo de
+Antonio con el 05/10:)* la ficha pública del Transporte urbano de
+Zaragoza dice **«Actualizado el 30/6/2026»** — NO hay feed nuevo:
+lo servido sigue siendo la build que bajamos el 10/08. El NAP
+declara el rango 16/9/2025–27/12/2026 (la foto del calendario
+completo), y nuestro 05/10 es el feed_info DE DENTRO: hasta cuándo
+el editor GARANTIZA la información — lo de después existe pero
+viaja sin garantía. La conservadora era correcta; el cron de la
+casilla 2 vigilará ese «Actualizado el». Regalos de la ficha para
+el censo: paradas declaradas 984 (vs 944 postes MU3 — el descuadre
+de 40 con número antes de empezar) · declara incluir TARIFAS y
+accesibilidad (a verificar en el zip) · 1 aviso de validación
+(agency_url) · la ficha vive en el detalle 975 del NAP y nuestro
+fichero se llama ficha1176 — el porqué NO CONSTA, apuntado.
+
 *(⭐ VERIFICADO el 30/08 con sonda de solo lectura sobre el feed del
 repo:)* **shapes.txt ESTÁ y cierra por los dos lados** — 89 trazas ·
 27.603 puntos (66-1.176 por traza) · el 100 % de los 34.427 trips
