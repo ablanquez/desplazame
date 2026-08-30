@@ -1975,6 +1975,23 @@ producto para cuando este punto arranque):**
    medio, ese gana.
 3. A IGUAL NÚMERO DE VEHÍCULOS, LOS BUSES GANAN: 1 bus + 1 tranvía
    pierde contra 2 buses.
+4-bis. LOS COLORES DE LÍNEA, DE ZETABUS (anotado el 30/08 de la
+   sesera de Antonio): cada línea de bus tiene SU color oficial, y
+   ese color viste la línea pintada en el mapa Y el chip de la
+   línea en la narración/pantalla. La fuente es EL PROYECTO
+   ZETABUS de Antonio («está todo al milímetro») — cuando este
+   punto arranque, se le pregunta a ZetaBus cómo lo resuelve
+   (¿de dónde salen los colores: route_color del GTFS, tabla
+   propia, la API de Avanza?) y se hereda su solución, no se
+   reinventa. Encaja con la doctrina ya conocida: el GTFS estándar
+   trae route_color/route_text_color por ruta [a verificar en
+   NUESTRO feed en el censo de la casilla 1 — que la columna esté
+   no es que el dato esté] y con el pintado por tramos del 9 (el
+   tramo de bus se pinta del color de SU línea; el contraste
+   sobre el mapa, medido como el azul). ⚠️ Cheque WCAG de casa:
+   el color de línea NO puede ser lo único que identifique (el
+   chip lleva el NÚMERO — 1.4.1).
+
 4. LOS RADIOS DE BÚSQUEDA DE POSTE (firmados el 30/08 con la
    doctrina delante): **500 m al BUS · 800 m al TRANVÍA** — dentro
    de la horquilla documentada [la regla de la industria 400/800:
