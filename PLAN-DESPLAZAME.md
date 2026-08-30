@@ -1115,6 +1115,19 @@ de cada campo, ORIGEN y DESTINO por igual:
       moliner» no encontraba nada (el troceador partía C.E.I.P. en
       letras) — lo buscable lleva ahora las dos formas
       (conSiglasEnteras); volcados en vivo por etiqueta y con sigla.
+      ⭐ Y LAS PALABRAS VACÍAS (30/08, del ojo de Antonio, verificado
+      por él): «rodrigo rebolledo» no encontraba «RODRIGO DE
+      REBOLLEDO» — el callejero casaba por SUBCADENA CONTIGUA (el
+      «por palabras» era solo del tubo de sitios; la suite decía
+      «subcadena»: mejora, no bitácora). 1.076 vías con partícula en
+      medio, 673 escondidas. El arreglo [Pelias StopWordClassifier;
+      lista PROPIO de·del·la·las·los·el·y]: copia indexada sin
+      vacías, camino que SOLO AÑADE (el literal intacto), la guarda
+      del núcleo vacío («de» sigue dando sus diez), los nombres se
+      pintan enteros. La confesión con oficio: una contraprueba
+      pedida NO muerde (las dos puertas se cubren) y la juez queda
+      escrita para cuando alguien estreche el casado. 369 motor ·
+      suite del 8 al completo.
       ICONOS: lápiz-y-manzana [Maki school, SVG leído] · CHUPETE
       [PROPIO firmado — hueco real: ni carto ni Maki ni Temaki traen
       guardería] · birrete [Maki college] — los tres en MOSTAZA

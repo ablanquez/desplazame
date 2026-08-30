@@ -33,7 +33,10 @@ levantado el 18/08, des-caducado del 21 al 30):
   Farmacias · Guarderías · Hospitales · Universidades, alfabético
   calculado) filtra el cajetín a UNA capa [Pelias layers hecho
   interfaz], con las siglas buscables (conSiglasEnteras: «ceip
-  moliner» encuentra — el troceador las partía en letras); cada opción con su icono dentro [Customizable
+  moliner» encuentra — el troceador las partía en letras) y las
+  PALABRAS VACÍAS sin poder de veto en vías (30/08: «rodrigo
+  rebolledo» encuentra la calle con su «de» — copia indexada sin
+  de·del·la·las·los·el·y, camino que solo añade); cada opción con su icono dentro [Customizable
   Select, texto siempre + aria-hidden; degrada a texto sin soporte] y
   la chincheta de Dirección por campo (verde origen · roja destino);
   el nº existe solo con Dirección [GOV.UK revelado condicional]; «Mi
@@ -112,6 +115,29 @@ tanda del 30 entera** — el selector a seis, el empuje, el selector
 de ruta, las casillas 5-6, el pintado por tramos, el azul, las
 bitácoras nº15 y nº16 con la reversión de Siresa, y los papeles. El
 push es de Antonio.
+
+**LAS PALABRAS VACÍAS DEL BUSCADOR (30/08 al cierre; cazado por el
+ojo de Antonio, VERIFICADO por él tras rearrancar el motor).**
+«rodrigo rebolledo» no encontraba «CALLE RODRIGO DE REBOLLEDO»: el
+diagnóstico medido — `buscar` casaba vías por SUBCADENA CONTIGUA de
+la consulta entera (nunca hubo troceo en palabras en el callejero;
+el «por palabras» del punto 8 era del tubo de SITIOS y allí
+funciona; la suite decía «subcadena» — nada mintió: MEJORA, sin
+bitácora). El tamaño del mal: 1.076 vías con partícula en medio,
+673 ESCONDIDAS. El arreglo [mecanismo Pelias StopWordClassifier;
+lista PROPIO: de·del·la·las·los·el·y]: se indexa una copia sin
+vacías y se compara por los DOS caminos — solo AÑADE (lo de ayer
+casa igual), los nombres se PINTAN enteros, y la guarda del núcleo
+vacío («de» sigue dando sus diez). Confesiones del ejecutor: su
+juez de la guarda nacía floja (la contraprueba la destapó —
+apretada) y una contraprueba pedida NO muerde y lo dice (las dos
+puertas se cubren mutuamente; la juez queda escrita para el día en
+que alguien estreche el casado). 369 motor · 176 interfaz · la
+suite del 8 al completo 44/44 + comprobado a mano (ceip moliner ·
+ies goya). ⚠️ El tropiezo del despliegue: el motor en marcha era el
+VIEJO — el ojo probó, «sigue sin funcionar», y era el proceso, no
+el código (la lección del zombi, versión usuario: rearrancar el
+motor tras un fix de motor).
 
 **LAS DOS SONDAS DE LA SESERA DE ANTONIO (30/08 al cierre).** ¿Hay
 shapes del bus? ¿hay capa ZBE? — SÍ y SÍ, medido: el GTFS del repo
@@ -960,7 +986,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 540 pruebas (364 motor + 176 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 545 pruebas (369 motor + 176 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
