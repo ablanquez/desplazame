@@ -14,6 +14,66 @@
 
 ---
 
+## [2026-08-31] 🔴 ABIERTA — La búsqueda se sube en la primera parada marcada del patrón y no la reconsidera: anda 478 m para coger la misma línea que tenía a 60 m
+
+**Categoría:** regla de RAPTOR copiada sin traducir a costes
+
+**Síntoma:** Antonio pide `COLOSO 2 → I.E.S. Grande Covián` en bus y el motor le
+manda a **Bernardo Ramazzini / Maz, a 478 m**. A **60 m** de su portal está el
+poste `PA00033` (Av. Academia General Militar N.º 37), y lleva **la misma línea
+29, en la misma dirección, del mismo patrón `29|1|1`**. Medido:
+
+```
+POSTES A <=500 m DE COLOSO 2, POR EL PEATON
+  SI    39 m recta ·    60 m andando · PA00033 Av. Academia General Militar N.º 37 · 29← 35→
+  SI   398 m recta ·   478 m andando · PA01203 Bernardo Ramazzini / Maz            · 29←   <- el que elige
+indices en el patron 29|1|1:  Ramazzini = 8 · poste 33 = 10  (rodar del 8 al 10: 87 s)
+coste con walkReluctance 1: por Ramazzini 870 s · por el poste 33 482 s  -> el 33 gana por 388 s
+```
+
+Paga **418 m de más andando y 87 s de más rodando**, y con el peso que ya había.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la **juez 1 de la casilla 3b**,
+que es justamente la del caso del ojo y la que compra los postes. Ejecutada con
+el fallo vivo, antes de tocar nada:
+
+```
+$ node --test src/viaje-bus.spec.ts
+  ✔ ⭐ 1 · el caso del ojo sale en un vehículo, con sus postes y sus cifras (10.9446ms)
+ℹ tests 15
+ℹ pass 15
+ℹ fail 0
+```
+
+Y lo que compra, literal (`motor/src/viaje-bus.spec.ts:111-112`):
+
+```ts
+assert.equal(nombre.get(viaje.accesoAndando.parada), 'Bernardo Ramazzini / Maz');
+assert.equal(viaje.accesoAndando.metros, 478);
+```
+
+Ese `'Bernardo Ramazzini / Maz'` y ese `478` **los copié de lo que el motor
+devolvía**. La juez no compraba un viaje razonable: compraba el viaje que
+salía.
+
+**Cómo se cazó:** usuario — Antonio lo vio en localhost y dijo que tenía un poste
+de la 29 a veinte metros de casa.
+
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** **el guardián de un viaje compra los postes que
+cogeria un vecino, no los que el motor devolvió.** Un valor esperado copiado de
+la salida no es una expectativa: es un calco, y calca también el fallo. Cuando
+el esperado sea una elección —qué poste, qué línea— hay que poder decir **por
+qué ese y no el de al lado**, con el número delante.
+
+**Traza:** `motor/src/viaje-bus.ts` — `buscarViaje`, la fase de patrones (`la
+parada marcada más temprana del patrón`); `motor/src/viaje-bus.spec.ts` — juez 1.
+
+---
+
 ## [2026-08-31] ✅ CERRADA — Una juez escribe el cocinado de producción con una red cocinada SIN peatón, y el motor arranca sirviendo 0 transbordos
 
 **Categoría:** juez que escribe el dato del producto
