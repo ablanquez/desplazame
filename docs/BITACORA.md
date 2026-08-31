@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-31] ✅ CERRADA — Con dos vehículos desviados, las dos notas dicen lo del PRIMERO: el aviso de la 29 se pega al hito de la 22 porque nombra su poste
+## [2026-08-31] 🔁 REABIERTA — Con dos vehículos desviados, las dos notas dicen lo del PRIMERO: el aviso de la 29 se pega al hito de la 22 porque nombra su poste
 
 **Categoría:** dos reglas de casado en el orden equivocado
 
@@ -60,23 +60,59 @@ era la que ya existía para el BiZi. Y la de la línea es la que **no admite
 interpretación**: un texto que empieza por «La línea 22 » es de la 22 y de
 ninguna otra; un sitio lo pueden nombrar dos avisos distintos.
 
-**Arreglo aplicado:** `app/src/app/buscador.ts` — en `notaDelHito`, la regla de
-la línea pasa **delante** de la del sitio, con el porqué escrito al lado. Y de
-paso `motor/src/viaje-bus.ts` filtra los avisos por línea **y dirección**: una
-línea puede ir desviada en los dos sentidos con dos desvíos distintos, y el del
-sentido contrario nombra paradas por las que el viaje no pasa — se vio en la
-misma captura, con la 22 saliendo dos veces.
+**Arreglo aplicado:** ~~`app/src/app/buscador.ts` — en `notaDelHito`, la regla
+de la línea pasa **delante** de la del sitio, con el porqué escrito al lado. Y
+de paso `motor/src/viaje-bus.ts` filtra los avisos por línea **y dirección**.
+`app/src/app/buscador.spec.ts` gana la juez **12**, con el caso entero y la
+trampa dentro.~~ → ⏳ PENDIENTE (ver la reapertura)
 
-`app/src/app/buscador.spec.ts` gana la juez **12**, con **el caso entero y la
-trampa dentro**: dos líneas desviadas y el poste compartido. Contraprueba: con
-las dos reglas al revés, `1 failed | 70 passed`.
+**Commit:** ~~`519be6c`~~ → ⏳ PENDIENTE
 
-**Commit:** `519be6c`
+---
+
+### Nota de reapertura [2026-08-31] 🔁 — el cierre fue PARCIAL: se cambió el ORDEN de las dos reglas, pero la del sitio siguió viva
+
+**Qué la reabrió:** el caso `COLOSO 2 → OVIEDO 5`, que sale en **35 + 31**. Aquí
+**la 31 NO va desviada** y la 35 sí, y el aviso de la 35 nombra
+`Av. Francisco De Goya N.º 83` entre sus paradas provisionales — que es justo
+donde se sube a la 31. Con el arreglo del cierre anterior:
+
+1. la regla de la línea busca un aviso que empiece por «La línea 31 » → no hay;
+2. la regla del sitio busca uno que nombre `Av. Francisco De Goya N.º 83` →
+   **encuentra el de la 35**, y se lo cuelga a la subida de la 31.
+
+El orden estaba bien. Lo que sigue mal es que la regla del sitio exista para un
+aviso de desvío: **un desvío explica una línea, no un poste**. Cambiar el orden
+solo tapaba los casos en que la línea del hito también iba desviada.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo (2ª captura):** la juez **11** y
+la **12** —las dos del aviso de desvío— y con ellas la suite entera del
+buscador. Ejecutada con el fallo vivo:
+
+```
+$ npx ng test --include=src/app/buscador.spec.ts
+      Tests  71 passed (71)
+```
+
+⚠️ Y la 12 se escribió **para este mismo fallo**: trae dos líneas y el poste
+compartido. Lo que no trae es el caso que rompe — **una línea NO desviada
+subiendo en un poste que otra desviada nombra**. Sus dos líneas van desviadas,
+así que la regla de la línea casa siempre y la del sitio no llega a mirarse.
+
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
 
 **Ley que sale de aquí:** cuando hay **dos reglas** para casar un aviso con lo
 que explica, el orden entre ellas es parte de la regla — y hay que escribirlo y
 comprarlo con un caso donde **las dos apliquen y digan cosas distintas**. Una
 juez con un solo candidato no comprueba un casado: comprueba que hay texto.
+
+Y la que sale de la reapertura, que es más dura: **cambiar el ORDEN de dos
+reglas no arregla que una de ellas sobre.** Si la regla A puede dar una
+respuesta falsa, ponerla la segunda solo esconde el fallo detrás de los casos en
+que la B contesta — y el día que la B calle, vuelve. La pregunta al arreglar no
+es «cuál va primero» sino «¿esta regla puede acertar por casualidad?».
 
 **Traza:** `app/src/app/buscador.ts` — `notaDelHito`, `sitioDelHito`;
 `app/src/app/buscador.spec.ts` — juez 11.
