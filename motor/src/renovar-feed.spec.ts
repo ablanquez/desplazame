@@ -121,7 +121,15 @@ function napQueFunciona(opciones: {
         : respuesta(listaDelNap(opciones.fichero));
     }
     if (u.includes('/downloadLink/')) {
-      return respuesta(JSON.stringify('https://descargas.nap.example/1176.zip'));
+      // ⚠️ LA FORMA REAL, medida contra el NAP el 31/08: `text/plain`, el URL
+      // PELADO y SIN comillas —un enlace firmado de S3 de 397 caracteres—.
+      // El fixture decía `JSON.stringify(...)`, o sea con comillas y
+      // `application/json`, y por eso las trece pasaban mientras la descarga de
+      // verdad reventaba en el `.json()`. Ver bitácora del 31/08.
+      return new Response('https://descargas.nap.example/1176.zip?firma=abc', {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
     }
     const cuerpo = opciones.zip ?? ZIP_BUENO;
     // `Uint8Array` y no `Buffer`: `BodyInit` acepta el primero, y un Buffer ES
@@ -392,7 +400,7 @@ describe('⭐ LA RENOVACIÓN DEL FEED — el cron que lo trae del NAP', () => {
         'utf8',
       );
       process.env['DESPLAZAME_PRUEBA_B'] = 'el del entorno GANA';
-      const puestas = cargarEntornoLocal(ruta);
+      const puestas = cargarEntornoLocal([ruta]);
 
       assert.deepEqual(puestas, ['DESPLAZAME_PRUEBA_A'], 'solo pone lo que faltaba');
       assert.equal(process.env['DESPLAZAME_PRUEBA_A'], 'de-mentira');
@@ -400,10 +408,55 @@ describe('⭐ LA RENOVACIÓN DEL FEED — el cron que lo trae del NAP', () => {
       // Lo que devuelve son NOMBRES: ni un valor se escapa por ahí.
       assert.equal(puestas.join(' ').includes('de-mentira'), false);
       // Un fichero que no existe no es un error: en Hostinger no hay ninguno.
-      assert.deepEqual(cargarEntornoLocal(join(dir, 'no-existe')), []);
+      assert.deepEqual(cargarEntornoLocal([join(dir, 'no-existe')]), []);
     } finally {
       delete process.env['DESPLAZAME_PRUEBA_A'];
       delete process.env['DESPLAZAME_PRUEBA_B'];
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 13 — LA RUTA POR DEFECTO ES LA DEL MOTOR, y alguien la mira.
+   *
+   * ⚠️ **Esta juez sale de un fallo real, cazado el 31/08 por la prueba contra
+   * el NAP de verdad.** La juez 12 de aquí arriba compra que el *parser*
+   * funciona, y lo compra bien — pero llama **siempre con una ruta explícita**,
+   * un temporal que ella misma acaba de crear. El valor por defecto, que es el
+   * único que producción usa, no lo ejercía nadie: apuntaba a la raíz del
+   * repositorio, la clave estaba en `motor/.env.local`, y el fetch moría
+   * diciendo que faltaba `NAP_API_KEY`. Doce pruebas en verde. Ver la entrada
+   * del 31/08 de `docs/BITACORA.md`.
+   *
+   * El motor es un paquete del *workspace* con su propia raíz, así que su
+   * `.env.local` va **en `motor/`** — y se mira también el de la raíz del
+   * repositorio, porque las dos convenciones son razonables y elegir una sola
+   * es volver a apostar.
+   */
+  test('⭐ 13 · el .env.local por defecto es el del MOTOR, y también se mira el de la raíz', async () => {
+    const { FICHEROS_DE_ENTORNO, cargarEntornoLocal } = await import('./renovar-feed.ts');
+
+    // La lista por defecto: el del motor PRIMERO, y el de la raíz después.
+    const comoBarras = FICHEROS_DE_ENTORNO.map((r) => r.replace(/\\/g, '/'));
+    assert.equal(comoBarras.length, 2, comoBarras.join(' | '));
+    assert.match(comoBarras[0]!, /\/motor\/\.env\.local$/, 'el primero tiene que ser el del motor');
+    assert.match(comoBarras[1]!, /004_DESPLAZAME\/\.env\.local$/, 'y el segundo el de la raíz');
+
+    // Y con dos ficheros, el PRIMERO manda y el segundo completa.
+    const dir = mkdtempSync(join(tmpdir(), 'desplazame-env2-'));
+    try {
+      const uno = join(dir, 'uno.env');
+      const dos = join(dir, 'dos.env');
+      writeFileSync(uno, 'DESPLAZAME_P1=del-primero\n', 'utf8');
+      writeFileSync(dos, ['DESPLAZAME_P1=del-segundo', 'DESPLAZAME_P2=solo-en-el-segundo', ''].join('\n'), 'utf8');
+
+      const puestas = cargarEntornoLocal([uno, dos]);
+      assert.deepEqual([...puestas].sort(), ['DESPLAZAME_P1', 'DESPLAZAME_P2']);
+      assert.equal(process.env['DESPLAZAME_P1'], 'del-primero', 'el primero de la lista manda');
+      assert.equal(process.env['DESPLAZAME_P2'], 'solo-en-el-segundo');
+    } finally {
+      delete process.env['DESPLAZAME_P1'];
+      delete process.env['DESPLAZAME_P2'];
       rmSync(dir, { recursive: true, force: true });
     }
   });

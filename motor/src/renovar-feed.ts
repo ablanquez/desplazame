@@ -146,14 +146,46 @@ function elNuestro(lista: unknown): FicheroDelNap | null {
 }
 
 /**
- * El enlace que `downloadLink` devuelve.
+ * ⭐ EL ENLACE QUE `downloadLink` DEVUELVE, leído del TEXTO y no del JSON.
  *
- * ⚠️ Su esquema declara **`{"type": "string"}`** — un string pelado—, pero en la
- * lista de esquemas existe además un `FicheroDescargaEnlaceDto` con
- * `enlaceDescarga`. Como la ruta no declara ese objeto, **no consta** cuál
- * llega de verdad, así que se aceptan los dos y no se supone ninguno.
+ * ── Lo que el NAP manda de verdad, medido el 31/08 ──────────────────────────
+ *
+ * ```
+ * status 200 · content-type: text/plain; charset=utf-8 · 397 caracteres
+ * empieza por "https://mfom"  ·  ¿comillas? NO  ·  JSON.parse: FALLA
+ * host: mfomwpronapdata.s3.eu-west-1.amazonaws.com
+ * ```
+ *
+ * Es **un enlace firmado de S3 en texto plano**. Su esquema declara
+ * `{"type": "string"}` y eso es exacto — pero **un string no es un string
+ * JSON**, y el servidor no le pone comillas.
+ *
+ * ⚠️ **Aquí me estrellé una vez y queda escrito.** El código hacía `r.json()` y
+ * reventaba con `Unexpected token 'h'`; las trece pruebas pasaban porque **mi
+ * fixture había traducido «string» a `JSON.stringify(...)`**, con comillas y
+ * `application/json`, que es lo que hacen las otras rutas del mismo API. Leí el
+ * esquema y luego inventé la codificación. Ver la entrada del 31/08 de
+ * `docs/BITACORA.md`.
+ *
+ * Se lee como texto y se aceptan las tres formas que puede tomar —texto pelado,
+ * string JSON entrecomillado, u objeto con `enlaceDescarga`—, porque la que
+ * llega hoy está medida pero la de mañana no, y esto no vuelve a apostar.
  */
-function elEnlace(cuerpo: unknown): string | null {
+function elEnlace(texto: string): string | null {
+  const limpio = texto.trim();
+  if (limpio.length === 0) {
+    return null;
+  }
+  // El caso real: el URL pelado, sin comillas ni JSON alrededor.
+  if (/^https?:\/\//i.test(limpio)) {
+    return limpio;
+  }
+  let cuerpo: unknown;
+  try {
+    cuerpo = JSON.parse(limpio);
+  } catch {
+    return null;
+  }
   if (typeof cuerpo === 'string' && cuerpo.length > 0) {
     return cuerpo;
   }
@@ -235,7 +267,7 @@ export async function renovarFeed(m: Mundo): Promise<Renovacion> {
     if (!r.ok) {
       return sigueElViejo(m, `El NAP no da enlace de descarga (${r.status}).`);
     }
-    const enlace = elEnlace(await r.json());
+    const enlace = elEnlace(await r.text());
     if (!enlace) {
       return sigueElViejo(m, 'El NAP contestó al downloadLink sin un enlace dentro.');
     }
@@ -393,8 +425,28 @@ export function recocinar(): void {
 
 // ── LA CLAVE ─────────────────────────────────────────────────────────────────
 
-/** Dónde vive la clave en local. En Hostinger la pone el panel. */
-export const FICHERO_DE_ENTORNO = fileURLToPath(new URL('../../.env.local', import.meta.url));
+/**
+ * ⭐ DÓNDE VIVE LA CLAVE EN LOCAL, y son DOS sitios por orden.
+ *
+ * ⚠️ **Esto empezó siendo una sola ruta —la raíz del repositorio— y estaba
+ * mal.** El motor es un paquete del *workspace* con su propia raíz, así que su
+ * `.env.local` va en `motor/`, que es donde Antonio lo puso; el código miraba
+ * la raíz, no encontraba nada, y el fetch moría diciendo que faltaba la clave.
+ * Lo cazó la prueba real contra el NAP del 31/08, no la suite: la juez del
+ * lector llamaba siempre con una ruta explícita y **nunca ejercía este valor
+ * por defecto**. Ver la entrada del 31/08 de `docs/BITACORA.md`.
+ *
+ * Se miran los dos y en este orden porque **las dos convenciones son
+ * razonables** —el `.env.local` del paquete y el del repositorio— y elegir una
+ * sola es volver a apostar a que quien ponga la clave adivine cuál elegimos.
+ *
+ * En Hostinger no hay ninguno de los dos: la clave la pone el panel, y eso
+ * manda sobre cualquier fichero.
+ */
+export const FICHEROS_DE_ENTORNO: readonly string[] = [
+  fileURLToPath(new URL('../.env.local', import.meta.url)),
+  fileURLToPath(new URL('../../.env.local', import.meta.url)),
+];
 
 /**
  * ⭐ UN LECTOR DE `.env.local` DE CASA, porque las dependencias son CERO.
@@ -411,29 +463,35 @@ export const FICHERO_DE_ENTORNO = fileURLToPath(new URL('../../.env.local', impo
  * ⚠️ Y **no devuelve el valor de nada**: rellena `process.env` y calla. Aquí no
  * se imprime una clave ni por accidente.
  */
-export function cargarEntornoLocal(ruta = FICHERO_DE_ENTORNO): readonly string[] {
-  let crudo: string;
-  try {
-    crudo = readFileSync(ruta, 'utf8');
-  } catch {
-    return [];
-  }
+export function cargarEntornoLocal(rutas: readonly string[] = FICHEROS_DE_ENTORNO): readonly string[] {
   const puestas: string[] = [];
-  for (const linea of crudo.split(/\r?\n/)) {
-    const limpia = linea.trim();
-    if (limpia.length === 0 || limpia.startsWith('#')) {
+  for (const ruta of rutas) {
+    let crudo: string;
+    try {
+      crudo = readFileSync(ruta, 'utf8');
+    } catch {
+      // Ese fichero no está. No es un error: en Hostinger no hay ninguno, y en
+      // local basta con que esté uno de los dos.
       continue;
     }
-    const corte = limpia.indexOf('=');
-    if (corte <= 0) {
-      continue;
-    }
-    const nombre = limpia.slice(0, corte).trim();
-    const valor = limpia.slice(corte + 1).trim().replace(/^(['"])(.*)\1$/, '$2');
-    if (process.env[nombre] === undefined) {
-      process.env[nombre] = valor;
-      // Se anota el NOMBRE, jamás el valor.
-      puestas.push(nombre);
+    for (const linea of crudo.split(/\r?\n/)) {
+      const limpia = linea.trim();
+      if (limpia.length === 0 || limpia.startsWith('#')) {
+        continue;
+      }
+      const corte = limpia.indexOf('=');
+      if (corte <= 0) {
+        continue;
+      }
+      const nombre = limpia.slice(0, corte).trim();
+      const valor = limpia.slice(corte + 1).trim().replace(/^(['"])(.*)\1$/, '$2');
+      // `undefined` y no falsy: lo que ya está puesto manda, y eso incluye lo
+      // que puso el fichero anterior de la lista.
+      if (process.env[nombre] === undefined) {
+        process.env[nombre] = valor;
+        // Se anota el NOMBRE, jamás el valor.
+        puestas.push(nombre);
+      }
     }
   }
   return puestas;
