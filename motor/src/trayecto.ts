@@ -468,7 +468,14 @@ export async function calcularTrayectoVivo(
     previo.destino,
     hoyEnGtfs(new Date()),
     operativa
-      ? { suprimidas: operativa.suprimidas, avisos: operativa.desviadas.map(avisoDeDesvio) }
+      ? {
+          suprimidas: operativa.suprimidas,
+          avisos: operativa.desviadas.map((d) => ({
+            linea: d.linea,
+            direccion: d.direccion,
+            texto: avisoDeDesvio(d),
+          })),
+        }
       : undefined,
   );
   return preparado.conElVivo ? preparado.conElVivo(pedir) : preparado.trayecto();

@@ -718,20 +718,25 @@ export class Buscador {
     if (marcados.length === 0) {
       return null;
     }
+    // ⭐ EL ORDEN DE LAS DOS REGLAS ES PARTE DE LA REGLA, y va primero **la
+    // línea**. Se descubrió al revés el 31/08: el aviso de la 29 nombra
+    // «Asalto / Centro De Historias» como parada provisional, y ese poste es
+    // justo donde se sube a la 22 — así que la regla del sitio le colgaba al
+    // hito de la 22 el desvío de la 29. Un aviso que empieza por «La línea 22»
+    // es de la 22 y no hay nada que interpretar; el sitio, en cambio, lo pueden
+    // nombrar dos avisos. Ver la entrada del 31/08 de `docs/BITACORA.md`.
+    const suyas = paso.partes.filter((x) => x.papel === 'via').map((x) => x.texto);
+    const deSuLinea = marcados.find((a) =>
+      suyas.some((l) => a.texto.startsWith(`La línea ${l} `)),
+    );
+    if (deSuLinea) {
+      return deSuLinea.texto;
+    }
+    // Y si ningún aviso es de su línea, el que nombra su sitio.
     const suyo = sitioDelHito(paso);
     const propio = suyo ? marcados.find((a) => a.texto.includes(suyo)) : undefined;
     if (propio) {
       return propio.texto;
-    }
-    // ⭐ Y EL AVISO DE DESVÍO se reconoce por SU LÍNEA, no por un sitio: habla
-    // de las paradas que se salta, que por definición no son este hito. En el
-    // paso de subir la línea es una de sus partes `via`.
-    const suyas = paso.partes.filter((x) => x.papel === 'via').map((x) => x.texto);
-    const delDesvio = marcados.find(
-      (a) => a.texto.includes(MARCA_DE_DESVIO) && suyas.some((l) => a.texto.startsWith(`La línea ${l} `)),
-    );
-    if (delDesvio) {
-      return delDesvio.texto;
     }
     const sitios = (this.resultado()?.trayecto.pasos ?? [])
       .map((x) => sitioDelHito(x))

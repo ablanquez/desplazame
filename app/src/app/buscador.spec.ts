@@ -455,6 +455,23 @@ const VIAJE_EN_BIZI_A_CIEGAS: Trayecto = {
  * lo mejor que se sabe. Lo que hace legal esa estimación es el aviso, y el
  * aviso **nombra su poste**: por eso puede ir al lado de SU hito y no de otro.
  */
+const LINEA_29_APP = {
+  id: '29',
+  corto: '29',
+  largo: 'Camino de Las Torres - San Gregorio',
+  color: 'F5C100',
+  colorTexto: '000000',
+  modo: 'bus' as const,
+};
+const LINEA_22_APP = {
+  id: '22',
+  corto: '22',
+  largo: 'Parque Goya - Vadorrey',
+  color: '008A92',
+  colorTexto: 'FFFFFF',
+  modo: 'bus' as const,
+};
+
 const VIAJE_EN_BUS_SIN_LA_29: Trayecto = {
   modo: 'bus',
   pasos: [
@@ -519,6 +536,57 @@ const VIAJE_EN_BUS_DESVIADO: Trayecto = {
         'Plaza San Miguel: para provisionalmente en P. Echegaray Y Caballero N.º 112, ' +
         'Asalto / Centro De Historias.',
     },
+  ],
+};
+
+/**
+ * ⭐ DOS VEHÍCULOS Y LOS DOS DESVIADOS, con la trampa dentro (31/08).
+ *
+ * Es el caso del ojo tal como salió hoy: **29 + 22**, y las dos líneas van
+ * desviadas. ⚠️ Y la trampa es real, no inventada: **el aviso de la 29 nombra
+ * «Asalto / Centro De Historias» como parada provisional, y ese poste es justo
+ * donde se sube a la 22**. Si la regla del sitio se mira antes que la de la
+ * línea, el hito de la 22 se queda con el aviso de la 29.
+ */
+const VIAJE_EN_BUS_DOS_DESVIADAS: Trayecto = {
+  modo: 'bus',
+  pasos: [
+    paso('salida', 30, accion('Sal de'), llano(' '), via('Calle El Coloso 2')),
+    paso('sube', 0, accion('Sube'), llano(' a la línea '), via('29'), llano(' en el poste '), via('Av. Academia General Militar N.º 37'), llano(' — próximo en 2 min (dato de las 17:33)')),
+    paso('baja', 0, accion('Baja'), llano(' en el poste '), via('Asalto / Centro De Historias')),
+    paso('sube', 0, accion('Sube'), llano(' a la línea '), via('22'), llano(' en el poste '), via('Asalto / Centro De Historias'), llano(' — ~7 min de espera')),
+    paso('baja', 0, accion('Baja'), llano(' en el poste '), via('Av. Compromiso De Caspe N.º 48')),
+    paso('llegada', 0, via('Calle Leopoldo Romeo 27'), llano(' está a la izquierda')),
+  ],
+  geometria: [
+    [41.6661, -0.8773],
+    [41.6826, -0.8712],
+    [41.6557, -0.875],
+    [41.6476, -0.8641],
+    [41.6461, -0.8673],
+  ],
+  avisos: [
+    {
+      texto:
+        'La línea 22 va hoy desviada: no para en Plaza Aragón N.º 1, Plaza De España: ' +
+        'para provisionalmente en P. De La Constitución / Patio De La Infanta, ' +
+        'P. De La Mina / Centro De Mayores.',
+    },
+    {
+      texto:
+        'La línea 29 va hoy desviada: no para en Don Jaime I / Plaza De La Seo, Coso N.º 80, ' +
+        'Plaza San Miguel: para provisionalmente en P. Echegaray Y Caballero N.º 112, ' +
+        'Asalto / Centro De Historias.',
+    },
+  ],
+  metros: 6130,
+  segundos: 2532,
+  tramos: [
+    { comoSeVa: 'andando', desde: 0, hasta: 1, metros: 60, segundos: 43, hito: 'sube' },
+    { comoSeVa: 'montado', desde: 1, hasta: 2, metros: 4851, segundos: 1800, hito: 'baja', linea: LINEA_29_APP },
+    { comoSeVa: 'andando', desde: 2, hasta: 2, metros: 0, segundos: 120, hito: 'sube' },
+    { comoSeVa: 'montado', desde: 2, hasta: 3, metros: 931, segundos: 500, hito: 'baja', linea: LINEA_22_APP },
+    { comoSeVa: 'andando', desde: 3, hasta: 4, metros: 288, segundos: 69, hito: null },
   ],
 };
 
@@ -2227,6 +2295,56 @@ describe('Buscador', () => {
     ]);
     const nota = (raiz.querySelector('.paso__nota')?.textContent ?? '').replace(/\s+/g, ' ').trim();
     expect(nota.replace(/^⚠\s*/, '')).toBe(banner);
+  });
+
+  /**
+   * ⭐ 12 · CON DOS LÍNEAS DESVIADAS, CADA NOTA ES LA SUYA.
+   *
+   * ⚠️ **Esta juez nace de un fallo que la 11 dejó pasar**, y el porqué está en
+   * su fixture: tenía un vehículo y un aviso, así que la pregunta que falla
+   * —¿cuál de los dos avisos le toca a cada hito?— no se le llegaba a hacer.
+   * En Chrome, las dos notas decían lo de la 29. Ver la entrada del 31/08 de
+   * `docs/BITACORA.md`.
+   *
+   * La trampa va DENTRO del caso: el aviso de la 29 nombra
+   * `Asalto / Centro De Historias` como parada provisional, y ese poste es
+   * justo donde se sube a la 22. Con las dos reglas al revés —el sitio antes
+   * que la línea— el hito de la 22 se queda con el desvío de la 29.
+   */
+  it('⭐ 12 · con dos líneas desviadas, cada hito lleva el aviso de SU línea', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_DOS_DESVIADAS);
+    await fixture.whenStable();
+
+    // Los dos banners, con las dos líneas.
+    const banners = Array.from(raiz.querySelectorAll('.aviso-ruta')).map((a) =>
+      (a.textContent ?? '').trim(),
+    );
+    expect(banners.length).toBe(2);
+    expect(banners.some((b) => b.startsWith('La línea 22'))).toBe(true);
+    expect(banners.some((b) => b.startsWith('La línea 29'))).toBe(true);
+
+    // ⭐ Y CADA NOTA, LA DE SU LÍNEA. Dos hitos de subida, dos notas distintas.
+    const notas = Array.from(raiz.querySelectorAll('.paso'))
+      .filter((li) => li.querySelector('.paso__nota') !== null)
+      .map((li) => ({
+        paso: (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim(),
+        nota: (li.querySelector('.paso__nota')?.textContent ?? '').replace(/\s+/g, ' ').replace(/^⚠\s*/, '').trim(),
+      }));
+    expect(notas.length).toBe(2);
+    expect(notas[0]!.paso).toContain('Sube a la línea 29');
+    expect(notas[0]!.nota).toMatch(/^La línea 29 va hoy desviada/);
+    expect(notas[1]!.paso).toContain('Sube a la línea 22');
+    expect(notas[1]!.nota).toMatch(/^La línea 22 va hoy desviada/);
+    // Y no son la misma: es justo lo que fallaba.
+    expect(notas[0]!.nota).not.toBe(notas[1]!.nota);
   });
 
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {

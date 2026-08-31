@@ -892,7 +892,12 @@ export function prepararViajeEnBus(
   /** Lo que la ruta operativa de hoy dice, si se sabe. Ver `patron-operativo.ts`. */
   desvios?: {
     readonly suprimidas: ReadonlySet<string>;
-    readonly avisos: readonly string[];
+    /** Los avisos, cada uno con la línea Y LA DIRECCIÓN a la que pertenece. */
+    readonly avisos: readonly {
+      readonly linea: string;
+      readonly direccion: string;
+      readonly texto: string;
+    }[];
   },
 ): ViajeEnBusPreparado {
   /** Un trayecto sin ruta, con el motivo delante. */
@@ -997,13 +1002,21 @@ export function prepararViajeEnBus(
     // ⭐ EL AVISO DEL DESVÍO va PRIMERO: condiciona todo lo que se lee debajo,
     // y solo se escribe el de las líneas que este viaje usa — avisar de la 38
     // en un viaje que va en la 29 sería ruido.
-    const usadas = new Set(viaje.montados.map((m) => lineaDelViaje(red, m.patron).corto));
+    // ⚠️ Por línea **Y DIRECCIÓN**: una línea puede ir desviada en los dos
+    // sentidos con dos desvíos distintos, y meter el del sentido contrario es
+    // ruido — nombra paradas por las que este viaje no pasa.
+    const usadas = new Set(
+      viaje.montados.map((m) => `${lineaDelViaje(red, m.patron).corto}|${m.patron.direccion}`),
+    );
     const delDesvio = (desvios?.avisos ?? []).filter((a) =>
-      [...usadas].some((l) => a.startsWith(`La línea ${l} `)),
+      usadas.has(`${a.linea}|${a.direccion}`),
     );
     const cabecera = {
       modo: 'bus' as const,
-      avisos: [...delDesvio.map((texto) => ({ texto })), ...(vivas ? avisosDeLoVivo(vivas) : [])],
+      avisos: [
+        ...delDesvio.map((a) => ({ texto: a.texto })),
+        ...(vivas ? avisosDeLoVivo(vivas) : []),
+      ],
     };
     const perdido = (texto: string): Trayecto => juntar({ modo: 'bus', avisos: [{ texto }] }, []);
 
