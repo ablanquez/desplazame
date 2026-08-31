@@ -11,6 +11,7 @@ Thumbs.db
 # manifiesto — es lo que hace que un clon limpio arranque. El vivo la releva.
 app/data/nap_gtfs-ficha1176.vivo.zip
 app/data/nap_gtfs-ficha1176.registro.json
+app/data/nap_gtfs-ficha1176.cocinado.json
 
 # 🔒 LA CLAVE DEL NAP. Va aquí ANTES de que el fichero exista, que es cuando
 # sirve de algo: una cerradura puesta después de la primera vez ya no cierra
