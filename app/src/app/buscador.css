@@ -512,3 +512,47 @@ legend {
     transform: rotate(360deg);
   }
 }
+
+/* ⭐ LA REVELACIÓN PROGRESIVA DEL DESVÍO (31/08).
+
+   El botón va **dentro de la frase**, no debajo: es la continuación de lo que
+   se está leyendo —«la 35 va hoy desviada · detalles»— y ponerlo aparte lo
+   convertiría en una acción suelta que no se sabe de qué habla.
+
+   Subrayado y en el color del propio aviso, que es como se lee un disparador
+   de texto en las guías. Y el foco se ve: [WCAG 2.4.7] el indicador de foco
+   del navegador no se quita, se refuerza — quien navega con el tabulador tiene
+   que saber dónde está. */
+.detalles {
+  padding: 0;
+  margin-left: 0.4rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.detalles:hover {
+  text-decoration: none;
+}
+
+.detalles:focus-visible {
+  outline: 2px solid #7c3d00;
+  outline-offset: 2px;
+}
+
+/* El detalle, en su propia línea: es una enumeración larga y leerla a
+   continuación de la frase la haría parecer parte de ella.
+
+   ⚠️ Y va con `:not([hidden])`, que no es adorno: `[hidden] { display: none }`
+   es una regla del navegador y pesa lo mismo que una clase, así que un
+   `display: block` a secas la pisa por ir después — y el detalle se quedaba a
+   la vista con el atributo puesto y todo. Entrada del 31/08 en
+   `docs/BITACORA.md`. Con el `:not` la regla pesa más Y no llega a aplicarse
+   mientras está oculto: las dos cosas, y ni un `!important`. */
+.detalles__cuerpo:not([hidden]) {
+  display: block;
+  margin-top: 0.35rem;
+}

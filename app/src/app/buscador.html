@@ -1,3 +1,38 @@
+<!-- ⭐ EL AVISO EN DOS NIVELES, y **una sola plantilla para los dos sitios**.
+     [GOV.UK] el resumen arriba y el mensaje junto a lo afectado, con el MISMO
+     texto: teniendo un solo trozo de plantilla usada dos veces, eso deja de ser
+     una promesa y pasa a ser cómo está hecho.
+
+     La anatomía es la documentada [GOV.UK · sistema de diseño de la Comisión
+     Europea, `expandable`]: **botón + indicador de estado + contenedor
+     inicialmente oculto**. Un `<button>` nativo entra solo en el orden de
+     tabulación y se activa con Enter y con Espacio; `aria-expanded` dice si
+     está abierto y `aria-controls` dice qué abre. Un tooltip por hover no haría
+     ni lo uno ni lo otro, y no existe como componente en ninguna de las guías.
+
+     Se oculta con `hidden` y no con un `@if` a propósito: `aria-controls` tiene
+     que apuntar a un elemento que EXISTA, y con `@if` no habría nada a lo que
+     apuntar mientras está cerrado. -->
+<ng-template #avisoPartido let-texto let-clave="clave">
+  @if (dosNiveles(texto); as niveles) {
+    <span class="aviso-ruta__hecho">{{ niveles.hecho }}</span>
+    @if (niveles.detalle) {
+      <button
+        type="button"
+        class="detalles"
+        [attr.aria-expanded]="estaDesplegado(clave)"
+        [attr.aria-controls]="'detalle-' + clave"
+        (click)="alternarDetalle(clave)"
+      >
+        detalles
+      </button>
+      <span class="detalles__cuerpo" [id]="'detalle-' + clave" [hidden]="!estaDesplegado(clave)">{{
+        niveles.detalle
+      }}</span>
+    }
+  }
+</ng-template>
+
 <main class="pantalla">
   <header class="cabecera">
     <h1>Desplázame</h1>
@@ -355,7 +390,12 @@
       <!-- Los avisos del motor, en su ámbar y con sus palabras. No se traducen
            ni se resumen: el motor ya los escribe para leerse. -->
       @for (aviso of r.trayecto.avisos; track $index) {
-        <p class="aviso-ruta" role="status">{{ aviso.texto }}</p>
+        <p class="aviso-ruta" role="status">
+          <ng-container
+            [ngTemplateOutlet]="avisoPartido"
+            [ngTemplateOutletContext]="{ $implicit: aviso.texto, clave: 'banner-' + $index }"
+          />
+        </p>
       }
 
       @if (r.trayecto.pasos.length > 0) {
@@ -472,7 +512,10 @@
                 @if (notaDelHito(paso); as nota) {
                   <span class="paso__nota">
                     <span class="paso__nota-icono" aria-hidden="true">⚠</span>
-                    {{ nota }}
+                    <ng-container
+                      [ngTemplateOutlet]="avisoPartido"
+                      [ngTemplateOutletContext]="{ $implicit: nota, clave: 'hito-' + $index }"
+                    />
                   </span>
                 }
               }

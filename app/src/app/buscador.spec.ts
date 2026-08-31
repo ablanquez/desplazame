@@ -2487,6 +2487,175 @@ describe('Buscador', () => {
     expect(conNota[0]).not.toContain('transborda');
   });
 
+  /**
+   * ⭐ ¿ESTO SE VE? La pregunta es por el PÍXEL, no por el atributo.
+   *
+   * ⚠️ `elemento.hidden === true` dice que el atributo está puesto, y eso NO es
+   * que esté escondido: `[hidden] { display: none }` es una regla del navegador
+   * como cualquier otra, y una regla de la hoja del componente con la misma
+   * especificidad la pisa por ir después. Pasó el 31/08 y las tres jueces de
+   * abajo dieron verde con la lista entera a la vista. Ver `docs/BITACORA.md`.
+   */
+  const seVe = (e: HTMLElement): boolean => getComputedStyle(e).display !== 'none';
+
+  /**
+   * ⭐ 15 · EL DESVÍO EN DOS NIVELES: **el hecho siempre, la lista a un botón**.
+   *
+   * [GOV.UK, *progressive disclosure*] contenido oculto al cargar que se
+   * muestra al activar su disparador. Y sus dos límites, que son los que fijan
+   * dónde va el corte: *«no ocultes información importante que deba estar
+   * presente siempre»* y *«úsalo cuando el detalle solo beneficie a un grupo
+   * pequeño»*.
+   *
+   * El HECHO —«la 35 va hoy desviada»— es lo importante: quien no lo lea se
+   * planta en una parada por la que hoy no pasa nadie. La LISTA de los ocho
+   * postes solo le hace falta a quien vaya a alguno de ellos.
+   */
+  it('⭐ 15 · el hecho del desvío se ve siempre; la lista, no hasta pulsar', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
+    await fixture.whenStable();
+
+    const banner = raiz.querySelector<HTMLElement>('.aviso-ruta')!;
+    // ⭐ EL HECHO, en un elemento que NO está oculto.
+    const hecho = banner.querySelector<HTMLElement>('.aviso-ruta__hecho')!;
+    expect(hecho).toBeTruthy();
+    expect(seVe(hecho)).toBe(true);
+    expect(hecho.textContent?.trim()).toBe('La línea 35 va hoy desviada.');
+
+    // ⭐ Y LA LISTA, oculta al cargar — y sin el hecho dentro, que si no
+    // esconderlo detrás del botón pasaría por aquí sin que nadie se enterara.
+    const cuerpo = banner.querySelector<HTMLElement>('.detalles__cuerpo')!;
+    expect(cuerpo).toBeTruthy();
+    expect(seVe(cuerpo)).toBe(false);
+    expect(cuerpo.textContent).not.toContain('va hoy desviada');
+    expect(cuerpo.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'no para en Av. De Valencia N.º 8, Av. De Valencia N.º 38; ' +
+        'para provisionalmente en Av. Francisco De Goya N.º 83, Av. Francisco De Goya N.º 59.',
+    );
+
+    // ⚠️ Y UN AVISO QUE NO ES DE DESVÍO NO SE PARTE: el D-G del BiZi es una
+    // sola frase corta, y meterle un botón sería esconder lo único que dice.
+    const c = fixture.componentInstance as unknown as {
+      dosNiveles(t: string): { readonly hecho: string; readonly detalle: string | null };
+    };
+    expect(c.dosNiveles('Las bicis se han pedido a la sede: disponibilidad no verificada.').detalle).toBeNull();
+
+    // ⭐ Y EL POSTE CON DOS PUNTOS EN EL NOMBRE, que existe y es del feed:
+    // `Av. Del Cierzo / Av: Cañones De Zaragoza` —una errata de `Av.` que va
+    // en el dato—. Si el corte fuera «por el primer `: `», partiría aquí.
+    const conTrampa = c.dosNiveles(
+      'La línea 42 va hoy desviada: no para en Av. Del Cierzo / Av: Cañones De Zaragoza.',
+    );
+    expect(conTrampa.hecho).toBe('La línea 42 va hoy desviada.');
+    expect(conTrampa.detalle).toBe('no para en Av. Del Cierzo / Av: Cañones De Zaragoza.');
+  });
+
+  /**
+   * ⭐ 16 · EL DISPARADOR ES UN BOTÓN, y dice si está abierto.
+   *
+   * [GOV.UK / sistema de diseño de la Comisión Europea, *expandable*] la
+   * anatomía es **botón + indicador de estado + contenedor inicialmente
+   * oculto**, y tiene que funcionar con el teclado y anunciarse al lector.
+   *
+   * ⚠️ Por eso NO es un *tooltip* por hover: no existe como componente en
+   * ninguna de las dos guías, no se puede abrir con el tabulador y no expone
+   * estado ninguno. Un `<button>` nativo trae lo primero de balde —entra en el
+   * orden de tabulación y se activa con Enter y con Espacio sin escribir una
+   * línea—, y `aria-expanded` es lo segundo.
+   */
+  it('⭐ 16 · el botón se alcanza con el tabulador, dice su estado y alterna', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
+    await fixture.whenStable();
+
+    const banner = raiz.querySelector<HTMLElement>('.aviso-ruta')!;
+    const boton = banner.querySelector<HTMLElement>('.detalles')!;
+    const cuerpo = banner.querySelector<HTMLElement>('.detalles__cuerpo')!;
+
+    // ⭐ UN BOTÓN DE VERDAD: eso es lo que lo hace operable con el teclado.
+    expect(boton.tagName).toBe('BUTTON');
+    expect(boton.getAttribute('type')).toBe('button');
+    expect(boton.tabIndex).toBe(0);
+    expect(boton.textContent?.trim()).toBe('detalles');
+
+    // ⭐ EL ESTADO, expuesto, y apuntando a lo que abre.
+    expect(boton.getAttribute('aria-expanded')).toBe('false');
+    expect(cuerpo.id).toBeTruthy();
+    expect(boton.getAttribute('aria-controls')).toBe(cuerpo.id);
+
+    // ⭐ Y ALTERNA en los dos sentidos.
+    boton.click();
+    fixture.detectChanges();
+    expect(boton.getAttribute('aria-expanded')).toBe('true');
+    expect(seVe(cuerpo)).toBe(true);
+
+    boton.click();
+    fixture.detectChanges();
+    expect(boton.getAttribute('aria-expanded')).toBe('false');
+    expect(seVe(cuerpo)).toBe(false);
+  });
+
+  /**
+   * ⭐ 17 · EL DOBLE NIVEL VIVE EN LOS DOS SITIOS.
+   *
+   * [GOV.UK, ya comprado por la muralla] el resumen arriba **y** el mensaje
+   * junto a lo afectado, con el mismo texto. Si el corte se hiciera solo en el
+   * banner, la nota del hito seguiría ocupando cinco líneas debajo del paso, que
+   * es justo lo que se venía a arreglar.
+   *
+   * ⚠️ Y cada disparador lleva **su** estado: abrir el del banner no puede
+   * abrir el del paso quince líneas más abajo, porque nadie ha pedido eso y no
+   * se vería moverse.
+   */
+  it('⭐ 17 · el hito también parte en dos, y cada botón va por su cuenta', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
+    await fixture.whenStable();
+
+    const nota = raiz.querySelector<HTMLElement>('.paso__nota')!;
+    expect(nota).toBeTruthy();
+    const suHecho = nota.querySelector<HTMLElement>('.aviso-ruta__hecho')!;
+    const suBoton = nota.querySelector<HTMLElement>('.detalles')!;
+    const suCuerpo = nota.querySelector<HTMLElement>('.detalles__cuerpo')!;
+    expect(suHecho.textContent?.trim()).toBe('La línea 35 va hoy desviada.');
+    expect(suBoton.tagName).toBe('BUTTON');
+    expect(seVe(suCuerpo)).toBe(false);
+
+    // Y los dos cuerpos son elementos distintos con ids distintos.
+    const delBanner = raiz.querySelector<HTMLElement>('.aviso-ruta > .detalles__cuerpo')!;
+    expect(delBanner).toBeTruthy();
+    expect(delBanner.id).not.toBe(suCuerpo.id);
+
+    // ⭐ Abrir el del hito no abre el del banner.
+    suBoton.click();
+    fixture.detectChanges();
+    expect(seVe(suCuerpo)).toBe(true);
+    expect(seVe(delBanner)).toBe(false);
+    expect(raiz.querySelector('.aviso-ruta > .detalles')!.getAttribute('aria-expanded')).toBe('false');
+  });
+
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();

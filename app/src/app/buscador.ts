@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import type { WritableSignal } from '@angular/core';
 // El contrato manda: los tipos vienen del paquete compartido, no de copias
@@ -86,6 +87,53 @@ const MARCA_DE_SIN_SERVICIO = 'no anuncia ningún próximo';
  * no pasa nadie.
  */
 const MARCA_DE_DESVIO = 'va hoy desviada';
+
+/** Un aviso partido en lo que se ve siempre y lo que se ve si se pide. */
+export interface EnDosNiveles {
+  /** El hecho. Una frase, y siempre visible. */
+  readonly hecho: string;
+  /** El detalle, o `null` si este aviso no tiene nada que esconder. */
+  readonly detalle: string | null;
+}
+
+/**
+ * ⭐ EL AVISO DE DESVÍO, PARTIDO EN DOS NIVELES.
+ *
+ * [GOV.UK, *progressive disclosure*] esconder detrás de un disparador lo que no
+ * hace falta al cargar. Y sus dos límites son los que deciden **dónde** se
+ * corta: *«no ocultes información importante que deba estar presente siempre»* y
+ * *«úsalo cuando el detalle solo beneficie a un grupo pequeño»*. El hecho —«la
+ * 35 va hoy desviada»— es de los primeros: quien no lo lea se planta en una
+ * parada por la que hoy no pasa nadie. La lista de ocho postes es de los
+ * segundos: solo le sirve a quien fuera a uno de ellos.
+ *
+ * ⚠️ **Y el corte va por la marca, no por el primer `: `.** Hay un poste que
+ * lleva dos puntos en el nombre: `Av. Del Cierzo / Av: Cañones De Zaragoza` —una
+ * errata de `Av.` que viene en el feed, medida: 1 de 984—. Partir por el primer
+ * separador que apareciera le habría cortado el nombre por la mitad el día que
+ * ese poste saliera en un desvío.
+ *
+ * ⚠️ Y esto vuelve a leer el texto del aviso, como `notaDelHito`, por lo mismo:
+ * `Aviso` es `{ texto }` y nada más. El día que el contrato le dé categoría
+ * —y partes—, esto se cuelga de ella y deja de mirar palabras.
+ */
+export function enDosNiveles(texto: string): EnDosNiveles {
+  const i = texto.indexOf(MARCA_DE_DESVIO);
+  if (i < 0) {
+    return { hecho: texto, detalle: null };
+  }
+  const corte = i + MARCA_DE_DESVIO.length;
+  const resto = texto.slice(corte).replace(/^:\s*/, '');
+  if (resto === '' || resto === '.') {
+    return { hecho: texto, detalle: null };
+  }
+  return {
+    hecho: `${texto.slice(0, corte)}.`,
+    // El motor junta sus dos listas con `: `, y aquí son dos miembros de la
+    // misma enumeración, no una segunda frase: el punto y coma es su signo.
+    detalle: resto.replace(': para provisionalmente en ', '; para provisionalmente en '),
+  };
+}
 
 /**
  * El sitio del que habla un hito: su **última** parte `via`.
@@ -440,7 +488,7 @@ function comoSeLeeLaDuracion(segundos: number, modo: Modo = 'andando'): string {
 
 @Component({
   selector: 'app-buscador',
-  imports: [Mapa, AutocompletarVia, SelectorPortal, IconoCapa],
+  imports: [Mapa, AutocompletarVia, SelectorPortal, IconoCapa, NgTemplateOutlet],
   templateUrl: './buscador.html',
   styleUrl: './buscador.css',
 })
@@ -758,6 +806,35 @@ export class Buscador {
     });
     return mapa;
   });
+
+  /**
+   * ⭐ QUÉ DETALLES ESTÁN DESPLEGADOS, por clave.
+   *
+   * ⚠️ Cada disparador lleva **su** clave, y por eso el banner y el hito no se
+   * abren juntos aunque digan lo mismo: abrir uno y que se moviera otro quince
+   * líneas más abajo, fuera de la vista, sería una sorpresa que nadie ha pedido.
+   *
+   * Y se vacía en cada Generar: los detalles de la ruta anterior no siguen
+   * abiertos sobre una ruta que ya no es esa.
+   */
+  private readonly desplegados = signal<ReadonlySet<string>>(new Set());
+
+  protected estaDesplegado(clave: string): boolean {
+    return this.desplegados().has(clave);
+  }
+
+  protected alternarDetalle(clave: string): void {
+    const ahora = new Set(this.desplegados());
+    if (!ahora.delete(clave)) {
+      ahora.add(clave);
+    }
+    this.desplegados.set(ahora);
+  }
+
+  /** El aviso partido, para la plantilla. Ver `enDosNiveles`. */
+  protected dosNiveles(texto: string): EnDosNiveles {
+    return enDosNiveles(texto);
+  }
 
   protected notaDelHito(paso: Paso): string | null {
     const marcados = this.avisosDeHito();
@@ -1213,6 +1290,7 @@ export class Buscador {
 
     this.avisoRuta.set(null);
     this.resultado.set(null);
+    this.desplegados.set(new Set());
 
     // ⭐ BUS Y COCHE NO SALEN DE AQUÍ (30/08). El motor no los calcula, así que
     // preguntárselo sería gastar un viaje para traer un «todavía no» — y con el
