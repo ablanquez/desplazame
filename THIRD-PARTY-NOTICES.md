@@ -268,6 +268,21 @@ servicio, o de refuerzo, está en uno y no en el otro. Ninguno de los dos númer
 | **Atribución exigida** | *«Powered by MITRAMS»* con enlace a `https://www.transportes.gob.es/`, cita del MITMS como fuente, e **indicación de si el dato es bruto o procesado** |
 | **Dónde está cumplida** | Colgada de la capa de trazados: *«Trazados: GTFS de Avanza Zaragoza S.A.U. (dato bruto) · Powered by MITRAMS»* |
 | **¿Está en este repo?** | ✅ **Sí, el ZIP entero tal cual**: [`app/data/2026-08-10_nap_gtfs-ficha1176.zip`](app/data/2026-08-10_nap_gtfs-ficha1176.zip) · 6.883.311 bytes · sha256 `5c96992c97aac966bc9bc20babfbbbffb312f2a3cbcf9dd543982d2674cf3a82` **verificado sobre un clon** |
+| **⭐ Es la SEMILLA, y desde el 31/08 lo es a propósito** | El ZIP de esta fila es la **semilla fechada**: la descarga del **10/08/2026**, con su `feed_version` `20260623_AUZSA_Y_TRANVIA` y su vigencia **23/06 → 05/10/2026**. **No se toca nunca.** Es lo que hace que un clon limpio arranque sin pedirle una clave a nadie |
+| **Y el feed VIVO no está aquí** | El cron nocturno trae del NAP la última publicación y la escribe en `app/data/nap_gtfs-ficha1176.vivo.zip`, con su registro al lado — **ignorados por git y fuera de este manifiesto**. El vivo **releva** a la semilla: el motor lo sirve en cuanto existe y se deja leer |
+
+⭐ **Por qué relevo y no sobrescribir la semilla.** Se pensó primero que el cron pisara este
+mismo fichero. Se midió antes de escribirlo y no salía: el ZIP es un **recurso declarado del
+manifiesto** —`bytes`, `hash`, `caducaEl`— y **dos pruebas vivas lo recalculan**
+(`app/src/app/manifiesto.spec.ts` y `motor/src/datos-de-la-rueda.spec.ts`). Sobrescribirlo las
+pondría rojas la primera noche que el cron corriera y dejaría **cinco campos** de
+`datapackage.json` mintiendo (`bytes`, `hash`, `caducaEl`, `modified`, `descargadoEl`) — además
+de que el nombre del fichero seguiría diciendo `2026-08-10`. Con el relevo, el manifiesto sigue
+diciendo la verdad y el dato servido sigue siendo el de hoy. Decidido por Antonio el 31/08.
+
+[GTFS Schedule Best Practices] *«el dato se publica en iteraciones de modo que un único fichero
+en una ubicación estable contiene siempre la última descripción oficial del servicio»*: la
+ubicación estable es el vivo; la semilla es el suelo del que se parte.
 
 **Y dos copias de trabajo extraídas, solo dos**, porque el navegador no abre ZIP sin una
 dependencia nueva y no la hay:

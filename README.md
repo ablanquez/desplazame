@@ -767,6 +767,20 @@ tiene de particular:
 | 🔴 | el conjunto declara una fecha de caducidad y ya pasó | — |
 | 🟡 | se refresca cada X en origen y nuestra copia es más vieja | — |
 | 🟢 | hay regla con fuente y se cumple | el GTFS: «vale hasta el 2026-10-05» |
+
+> ⭐ **El GTFS son dos ficheros, y no son lo mismo (31/08).**
+>
+> - **La semilla** — `app/data/2026-08-10_nap_gtfs-ficha1176.zip`. Está en git y en el
+>   manifiesto con su `sha256` verificado sobre un clon. **No se toca nunca**: es lo que hace
+>   que un clon limpio arranque sin pedirle una clave a nadie.
+> - **El vivo** — `app/data/nap_gtfs-ficha1176.vivo.zip`, con su registro al lado. Lo trae del
+>   NAP el cron nocturno, está **ignorado por git** y **releva** a la semilla: el motor lo sirve
+>   en cuanto existe y se deja leer.
+>
+> El motor dice al arrancar cuál de los dos está sirviendo, con su `feed_version`, la fecha que
+> el NAP dio y los días que le quedan. Para que el cron funcione hace falta `NAP_API_KEY` en
+> `.env.local` (local) o en el panel de Hostinger (producción), y `DESPLAZAME_REGEN_TOKEN` para
+> el disparador. **Ninguna de las dos vive en el repositorio.**
 | ⚪ | **NO CONSTA** | 33 de los 37 conjuntos |
 
 ⭐ **El gris no es un fallo del panel: es la verdad, y la lista de deberes.** Un color solo se
