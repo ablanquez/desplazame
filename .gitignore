@@ -4,3 +4,17 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# ⭐ EL FEED VIVO Y SU REGISTRO (31/08). Los escribe el cron nocturno desde el
+# NAP, y NO se versionan: caducan, cambian cada pocos meses y pesan 6,6 MB.
+# La SEMILLA fechada (2026-08-10_nap_gtfs-ficha1176.zip) sí está en git y en el
+# manifiesto — es lo que hace que un clon limpio arranque. El vivo la releva.
+app/data/nap_gtfs-ficha1176.vivo.zip
+app/data/nap_gtfs-ficha1176.registro.json
+
+# 🔒 LA CLAVE DEL NAP. Va aquí ANTES de que el fichero exista, que es cuando
+# sirve de algo: una cerradura puesta después de la primera vez ya no cierra
+# nada. `NAP_API_KEY` vive aquí en local y en el panel de Hostinger en
+# producción — nunca en el repositorio, nunca en una URL, nunca en un log.
+.env.local
+.env
