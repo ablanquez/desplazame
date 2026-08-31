@@ -106,6 +106,22 @@ export interface PatronBus {
   readonly viajes: number;
   /** Los `service_id` de esos trips, sin repetir. */
   readonly servicios: readonly string[];
+  /**
+   * ⭐ POR SERVICIO: cuántos viajes y entre qué horas, para poder calcular el
+   * intervalo de un día concreto.
+   *
+   * Sin esto no hay espera que estimar: `E[W] = H/2` necesita **la H de HOY**,
+   * y la H de hoy es la franja de servicio de hoy dividida entre los viajes de
+   * hoy. Guardarlo por servicio y no por día cuesta unas 3.400 entradas en vez
+   * de 34.427, y da exactamente lo mismo — un día es un conjunto de servicios.
+   *
+   * `primera` y `ultima` son la salida del **primer poste** del patrón, en
+   * segundos desde medianoche del día de servicio (puede pasar de 86.400: son
+   * los búhos).
+   */
+  readonly porServicio: Readonly<
+    Record<string, { readonly viajes: number; readonly primera: number; readonly ultima: number }>
+  >;
   /** Los `shape_id` de esos trips, sin repetir. Para el pintado de la casilla 4. */
   readonly formas: readonly string[];
   /** El de más paradas de su (línea, dirección): el que se dibuja. */
@@ -590,6 +606,7 @@ export function agruparEnPatrones(crudo: Crudo, tiempos: Tiempos): PatronBus[] {
     const trozos: number[][] = Array.from({ length: caja.paradas.length - 1 }, () => []);
     const servicios = new Set<string>();
     const formas = new Set<string>();
+    const porServicio: Record<string, { viajes: number; primera: number; ultima: number }> = {};
     for (const tid of caja.viajes) {
       const meta = crudo.viajes.get(tid)!;
       servicios.add(meta.servicio);
@@ -597,6 +614,16 @@ export function agruparEnPatrones(crudo: Crudo, tiempos: Tiempos): PatronBus[] {
         formas.add(meta.forma);
       }
       const a = tiempos.desde[tiempos.deViaje.get(tid)!]!;
+      // La salida del primer poste: es la hora a la que ese viaje empieza.
+      const arranca = tiempos.salida[a]!;
+      const suyo = porServicio[meta.servicio];
+      if (suyo) {
+        suyo.viajes++;
+        suyo.primera = Math.min(suyo.primera, arranca);
+        suyo.ultima = Math.max(suyo.ultima, arranca);
+      } else {
+        porServicio[meta.servicio] = { viajes: 1, primera: arranca, ultima: arranca };
+      }
       for (let k = 0; k < trozos.length; k++) {
         // ⚠️ Sin normalizar las horas de más de 24:00:00: la resta funciona
         // igual y el día se atribuye al de servicio [referencia GTFS].
@@ -612,6 +639,9 @@ export function agruparEnPatrones(crudo: Crudo, tiempos: Tiempos): PatronBus[] {
       paradas: caja.paradas,
       viajes: caja.viajes.length,
       servicios: [...servicios].sort(),
+      porServicio: Object.fromEntries(
+        Object.entries(porServicio).sort((x, y) => x[0].localeCompare(y[0])),
+      ),
       formas: [...formas].sort(),
       principal: false,
       saltos: trozos.map((xs) => ({ tipico: mediana(xs), maximo: Math.max(...xs) })),
