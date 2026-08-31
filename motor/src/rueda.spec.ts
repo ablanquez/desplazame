@@ -698,11 +698,15 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
   });
 
   /**
-   * Y los dos que faltan siguen contestando con honradez — pero la frase ya no
-   * dice «solo andando», que desde hoy sería mentira.
+   * ⚠️ **Y hoy solo queda UNO.** Eran tres el 28/08, dos desde la rueda, y desde
+   * el 31/08 el bus tiene su propia búsqueda (casilla 3b del punto 10): el
+   * único que sigue sin ruta es el coche, que es el punto 11. La expectativa se
+   * mueve porque el motor hace más, no porque la prueba estorbara — y el aviso
+   * se sigue componiendo de `MODOS_ATENDIDOS`, así que enumera cinco sin que
+   * nadie haya tocado la frase.
    */
-  test('bus y coche siguen sin ruta, y el aviso enumera los que sí', () => {
-    for (const modo of ['bus', 'coche'] as const) {
+  test('el coche sigue sin ruta, y el aviso enumera los que sí', () => {
+    for (const modo of ['coche'] as const) {
       const t = calcularTrayecto(motor, {
         origen: extremo('Portales.99126'),
         destino: extremo('Portales.126086'),
@@ -711,7 +715,7 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
       assert.equal(t.modo, modo);
       assert.equal(t.pasos.length, 0);
       assert.match(t.avisos[0]!.texto, /Todavía no calculamos rutas en modo/);
-      assert.match(t.avisos[0]!.texto, /andando, bici, patin, bizi/);
+      assert.match(t.avisos[0]!.texto, /andando, bici, patin, bizi, bus/);
     }
   });
 

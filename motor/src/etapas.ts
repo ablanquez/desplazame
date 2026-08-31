@@ -31,6 +31,7 @@ import type {
   TramoDelViaje,
   Trayecto,
   Vertice,
+  LineaDelViaje,
 } from '@desplazame/tipos';
 import type { Motor } from './trayecto.ts';
 import { enganchar } from './proyeccion.ts';
@@ -72,12 +73,17 @@ export interface Extremo {
  * van crudas porque redondearlas aquí haría que la suma de las partes no diera
  * el total: el redondeo se hace **una sola vez y por fronteras**, al final.
  */
+/** Los cuatro hitos que un tramo puede cerrar, o ninguno. Ver el contrato. */
+export type HitoDeTramo = 'coge' | 'aparca' | 'sube' | 'baja' | null;
+
 export interface TramoDeEtapa {
-  readonly comoSeVa: 'andando' | 'rodando';
+  readonly comoSeVa: 'andando' | 'rodando' | 'montado';
   readonly desde: number;
   readonly hasta: number;
   readonly metros: number;
   readonly segundos: number;
+  /** Solo cuando se va `montado`: qué línea. Ver el contrato. */
+  readonly linea?: LineaDelViaje;
 }
 
 /** Un tramo ya calculado y ya narrado. Lo que se suma para hacer el viaje. */
@@ -93,7 +99,7 @@ export interface Etapa {
    */
   readonly tramos: readonly TramoDeEtapa[];
   /** El hito en el que muere la etapa, si muere en uno. Lo pone quien la pide. */
-  readonly hito?: 'coge' | 'aparca';
+  readonly hito?: NonNullable<HitoDeTramo>;
 }
 
 /**
@@ -312,7 +318,7 @@ export function juntar(
 ): Trayecto {
   const pasos: Paso[] = [];
   const geometria: Vertice[] = [];
-  const crudos: (TramoDeEtapa & { hito: 'coge' | 'aparca' | null })[] = [];
+  const crudos: (TramoDeEtapa & { hito: HitoDeTramo })[] = [];
   for (const etapa of etapas) {
     pasos.push(...etapa.pasos);
     // ⭐ El desplazamiento de índices: la etapa que no es la primera comparte su
@@ -356,7 +362,7 @@ export function juntar(
  * `hito` viaja como venga: no es una cifra y no se toca.
  */
 export function redondearTramos(
-  crudos: readonly (TramoDeEtapa & { readonly hito: 'coge' | 'aparca' | null })[],
+  crudos: readonly (TramoDeEtapa & { readonly hito: HitoDeTramo })[],
 ): { readonly tramos: readonly TramoDelViaje[]; readonly metros: number; readonly segundos: number } {
   let metros = 0;
   let segundos = 0;
@@ -378,6 +384,9 @@ export function redondearTramos(
       metros: suyos,
       segundos: suyosS,
       hito: t.hito,
+      // La línea solo viaja si la hay: un `linea: undefined` en el JSON de la
+      // respuesta diría «hay línea y está vacía», y no es lo mismo que no haber.
+      ...(t.linea ? { linea: t.linea } : {}),
     };
   });
   return { tramos, metros: Math.round(metros), segundos: Math.round(segundos) };

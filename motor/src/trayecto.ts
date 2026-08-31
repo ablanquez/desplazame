@@ -28,6 +28,8 @@ import type { SitiosEnMemoria } from './sitios.ts';
 import type { PortalesEnMemoria, PortalSituado } from './portales.ts';
 import type { RedEnMemoria } from './red.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
+import { laRedDeBus } from './red-bus.ts';
+import { viajeEnBus } from './viaje-bus.ts';
 import type { AparcabicisEnMemoria } from './aparcabicis.ts';
 import type { BiZiEnMemoria, Disponibilidad } from './bizi.ts';
 import { enganchar, type Enganche, type Rejilla } from './proyeccion.ts';
@@ -55,7 +57,7 @@ import { viajeEnBiZi } from './viaje-bizi.ts';
  * andando se le suman los tres de la rueda. Faltan `bus` (punto 10) y `coche`
  * (punto 11), y a esos se les sigue contestando con su Aviso honrado.
  */
-const MODOS_ATENDIDOS: readonly Modo[] = ['andando', 'bici', 'patin', 'bizi'];
+const MODOS_ATENDIDOS: readonly Modo[] = ['andando', 'bici', 'patin', 'bizi', 'bus'];
 
 /** Un trayecto vacío con su explicación. Es la respuesta a todo lo que falla. */
 function conAviso(modo: Modo, texto: string): Trayecto {
@@ -229,6 +231,17 @@ const esAvisoExtremo = (x: Extremo | Aviso): x is Aviso =>
  * `undefined` y `null` valen lo mismo: nadie preguntó, o preguntó y no hubo
  * respuesta. En los dos casos la ruta sale con el aviso de D-G.
  */
+/**
+ * La fecha de hoy en el formato del calendario de GTFS: `AAAAMMDD`.
+ *
+ * ⚠️ En hora LOCAL, no UTC: el día de servicio es el del reloj de la calle, y a
+ * las 00:30 de Zaragoza en UTC todavía es ayer.
+ */
+export function hoyEnGtfs(cuando: Date): string {
+  const dos = (n: number): string => String(n).padStart(2, '0');
+  return `${cuando.getFullYear()}${dos(cuando.getMonth() + 1)}${dos(cuando.getDate())}`;
+}
+
 export function calcularTrayecto(
   motor: Motor,
   peticion: PeticionDeRuta | null,
@@ -278,6 +291,22 @@ export function calcularTrayecto(
   // ⭐ EL BiZi VA POR SU CAMINO (30/08, casilla 6): no es una ruta, son tres
   // tramos con dos estaciones por el medio, y la elección de esas estaciones
   // depende de un dato que ni siquiera está en este proceso.
+  // ⭐ EL BUS Y EL TRANVÍA (31/08). Va antes que la rueda porque no comparte
+  // nada con ella: ni red, ni rejilla, ni cuaderno. Lo que necesita es la red
+  // COCINADA, que el servidor tiene servida, y la fecha de hoy — porque un
+  // patrón que no circula hoy no es una opción.
+  if (modo === 'bus') {
+    const red = laRedDeBus();
+    if (!red) {
+      return conAviso(
+        'bus',
+        'La red de bus todavía no está cocinada: el motor acaba de arrancar o el ' +
+          'feed no se ha podido leer.',
+      );
+    }
+    return viajeEnBus(motor, red, origen, destino, hoyEnGtfs(new Date()));
+  }
+
   if (modo === 'bizi') {
     return viajeEnBiZi(
       motor,

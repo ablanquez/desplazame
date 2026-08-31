@@ -99,13 +99,14 @@ describe('El trayecto', () => {
   });
 
   /**
-   * ⚠️ Eran TRES el 28/08 —`bus`, `bici` y `coche`— y hoy son dos: la casilla 3
-   * del punto 9 le dio ruta a la bici, al patín y a la BiZi. La expectativa se
-   * mueve porque el motor hace más, no porque la prueba estorbara; lo que la
-   * rueda contesta ahora tiene sus propias jueces en `rueda.spec.ts`.
+   * ⚠️ Eran TRES el 28/08 —`bus`, `bici` y `coche`—, dos desde la casilla 3 del
+   * punto 9, y desde el 31/08 **queda uno**: el bus estrenó búsqueda propia
+   * (casilla 3b del punto 10) y solo el coche sigue esperando su punto, el 11.
+   * La expectativa se mueve porque el motor hace más, no porque la prueba
+   * estorbara.
    */
-  test('los otros modos se contestan con honradez, no con una ruta a pie', () => {
-    for (const modo of ['bus', 'coche'] as const) {
+  test('el modo que falta se contesta con honradez, no con una ruta a pie', () => {
+    for (const modo of ['coche'] as const) {
       const t = pedir({ origen: LAPUYADE, destino: EN_MEDIO, modo });
       // Contesta con EL MODO QUE PIDIERON, para que la pantalla pueda decir
       // para cuál no hay ruta.

@@ -48,7 +48,13 @@
  * ese dato **sustituye** al `H/2` del primer vehículo: lo real desplaza a lo
  * programado, que es el principio de GTFS-Realtime.
  */
-import type { LineaDelViaje } from '@desplazame/tipos';
+import type { LineaDelViaje, Paso, Vertice } from '@desplazame/tipos';
+import type { Aviso, Trayecto } from '@desplazame/tipos';
+import { etapaAndando, juntar, type Etapa, type Extremo } from './etapas.ts';
+import { enganchar } from './proyeccion.ts';
+import { calcularRuta } from './ruta.ts';
+import type { Motor } from './trayecto.ts';
+import type { AndarEntre } from './red-bus.ts';
 import { operaEl, type ModoDeRed, type PatronBus, type RedDeBus } from './red-bus.ts';
 
 /**
@@ -467,4 +473,222 @@ export function lineaDelViaje(red: RedDeBus, patron: PatronBus): LineaDelViaje {
     colorTexto: l?.colorTexto ?? 'FFFFFF',
     modo: patron.modo,
   };
+}
+
+// ── LA COMPOSICIÓN: del viaje encontrado al trayecto del contrato ────────────
+
+/** Metros en línea recta entre dos puntos. Bastan para medir un tramo montado. */
+function metrosEntre(aLon: number, aLat: number, bLon: number, bLat: number): number {
+  return Math.hypot((bLon - aLon) * 82500, (bLat - aLat) * 111320);
+}
+
+/**
+ * ⭐ EL PASO DE SUBIR y el de BAJAR.
+ *
+ * La espera va con su `~` porque **es una estimación** —`H/2`, y la suposición
+ * se degrada con intervalos largos—, y el número que se dice es el de hoy. Sin
+ * intervalo que calcular no se escribe espera ninguna: mejor callar que
+ * inventar un «~10 min» que no sale de ningún sitio.
+ */
+export function pasoDeSubir(linea: LineaDelViaje, poste: string, espera: number | null): Paso {
+  const partes = [
+    { papel: 'accion' as const, texto: 'Sube' },
+    { papel: 'texto' as const, texto: ` a la ${linea.modo === 'tram' ? 'línea' : 'línea'} ` },
+    { papel: 'via' as const, texto: linea.corto },
+    { papel: 'texto' as const, texto: ' en el poste ' },
+    { papel: 'via' as const, texto: poste },
+  ];
+  if (espera !== null) {
+    partes.push({ papel: 'texto' as const, texto: ` — ~${Math.round(espera / 60)} min de espera` });
+  }
+  return { giro: 'sube', texto: partes.map((x) => x.texto).join(''), metros: 0, partes };
+}
+
+export function pasoDeBajar(poste: string): Paso {
+  const partes = [
+    { papel: 'accion' as const, texto: 'Baja' },
+    { papel: 'texto' as const, texto: ' en el poste ' },
+    { papel: 'via' as const, texto: poste },
+  ];
+  return { giro: 'baja', texto: partes.map((x) => x.texto).join(''), metros: 0, partes };
+}
+
+/**
+ * ⭐ LA ETAPA MONTADA: el trecho que se va dentro del vehículo.
+ *
+ * ⚠️ **Su geometría son los POSTES, no la traza del vehículo.** El feed trae la
+ * traza (`shape_id` por patrón, y la cocina los guarda), pero los puntos de esa
+ * traza no están cocinados todavía: eso es dato del pintado y lo pide la casilla
+ * 4. Mientras tanto, la línea se dibuja poste a poste — que es una recta entre
+ * paradas consecutivas y **no el recorrido real**. Los metros que se dicen salen
+ * de esa misma poligonal, así que son coherentes con lo que se pinta; lo que no
+ * son es los metros exactos del asfalto. Queda dicho y no maquillado.
+ */
+export function etapaMontada(
+  red: RedDeBus,
+  montado: TramoMontado,
+  espera: number | null,
+): Etapa {
+  const porId = new Map(red.paradas.map((p) => [p.id, p]));
+  const linea = lineaDelViaje(red, montado.patron);
+  const geometria: Vertice[] = [];
+  let metros = 0;
+  for (let k = montado.iDesde; k <= montado.iHasta; k++) {
+    const parada = porId.get(montado.patron.paradas[k]!);
+    if (!parada) {
+      continue;
+    }
+    if (geometria.length > 0) {
+      const antes = geometria[geometria.length - 1]!;
+      metros += metrosEntre(antes[1], antes[0], parada.lon, parada.lat);
+    }
+    geometria.push([parada.lat, parada.lon]);
+  }
+  const segundos = (espera ?? 0) + montado.rodando;
+  return {
+    pasos: [
+      pasoDeSubir(linea, porId.get(montado.desde)?.nombre ?? montado.desde, espera),
+      pasoDeBajar(porId.get(montado.hasta)?.nombre ?? montado.hasta),
+    ],
+    geometria,
+    metros,
+    segundos,
+    tramos: [
+      {
+        comoSeVa: 'montado',
+        desde: 0,
+        hasta: Math.max(0, geometria.length - 1),
+        metros,
+        segundos,
+        linea,
+      },
+    ],
+    hito: 'baja',
+  };
+}
+
+/** Los postes a los que se llega andando desde un punto, cada uno con su radio. */
+export function postesCerca(
+  red: RedDeBus,
+  andar: AndarEntre,
+  lon: number,
+  lat: number,
+): Acceso[] {
+  const salida: Acceso[] = [];
+  for (const p of red.paradas) {
+    const radio = RADIO_M[p.modos.includes('tram') ? 'tram' : 'bus'];
+    if (metrosEntre(lon, lat, p.lon, p.lat) > radio) {
+      continue;
+    }
+    const m = andar(lon, lat, p.lon, p.lat);
+    if (m !== null && m <= radio) {
+      salida.push({ parada: p.id, metros: Math.round(m) });
+    }
+  }
+  return salida;
+}
+
+/**
+ * ⭐ EL VIAJE EN BUS O TRANVÍA, entero: de los dos extremos al `Trayecto`.
+ *
+ * Y cuando no hay viaje **se dice por qué**, con la cifra delante: sin postes
+ * cerca es una cosa, sin servicio hoy es otra, y no encontrar combinación es una
+ * tercera. Un «no hay ruta» a secas obliga a adivinar cuál de las tres.
+ */
+export function viajeEnBus(
+  motor: Motor,
+  red: RedDeBus,
+  origen: Extremo,
+  destino: Extremo,
+  fecha: string,
+): Trayecto {
+  const cabecera = { modo: 'bus' as const, avisos: [] as Aviso[] };
+  /** Un trayecto sin ruta, con el motivo delante. */
+  const sinViaje = (texto: string): Trayecto =>
+    juntar({ modo: 'bus', avisos: [{ texto }] }, []);
+  const andar: AndarEntre = (aLon, aLat, bLon, bLat) => {
+    const eo = enganchar(motor.red, motor.rejilla, aLon, aLat);
+    const ed = enganchar(motor.red, motor.rejilla, bLon, bLat);
+    if (!eo || !ed) {
+      return null;
+    }
+    const r = calcularRuta(motor.red, motor.cuaderno, eo, [aLon, aLat], ed, [bLon, bLat]);
+    return r ? r.metros : null;
+  };
+
+  const acceso = postesCerca(red, andar, origen.lon, origen.lat);
+  const salida = postesCerca(red, andar, destino.lon, destino.lat);
+  const aPie = andar(origen.lon, origen.lat, destino.lon, destino.lat);
+  const enKm = aPie === null ? null : (aPie / 1000).toFixed(1).replace('.', ',');
+
+  if (acceso.length === 0 || salida.length === 0) {
+    const cual = acceso.length === 0 ? 'el origen' : 'el destino';
+    return sinViaje(
+            `No hay ningún poste de bus a menos de ${RADIO_M.bus} m de ${cual} ` +
+            `(ni de tranvía a ${RADIO_M.tram} m)` +
+            (enKm ? `: andando son ${enKm} km.` : '.'),
+    );
+  }
+
+  const viaje = buscarViaje({ red, fecha, acceso, salida });
+  if (!viaje) {
+    const hoy = red.patrones.some((p) => operaEl(red, p, fecha));
+    return sinViaje(hoy
+            ? `Sin bus razonable entre esos dos puntos${enKm ? `: andando son ${enKm} km.` : '.'}`
+            : 'Ese día el horario publicado no tiene servicio: el feed del operador no llega hasta ahí.');
+  }
+
+  // ── Las etapas, en orden ───────────────────────────────────────────────────
+  const porId = new Map(red.paradas.map((x) => [x.id, x]));
+  const comoExtremo = (id: string): Extremo => {
+    const p = porId.get(id)!;
+    return { lon: p.lon, lat: p.lat, nombre: p.nombre };
+  };
+
+  const etapas: Etapa[] = [];
+  const primera = etapaAndando(motor, origen, comoExtremo(viaje.montados[0]!.desde));
+  if (!primera) {
+    return sinViaje('No hay camino a pie hasta el poste donde habría que subir.');
+  }
+  etapas.push({ ...primera, hito: 'sube' });
+
+  for (let i = 0; i < viaje.montados.length; i++) {
+    const m = viaje.montados[i]!;
+    etapas.push(etapaMontada(red, m, esperaEstimada(m.patron, red, fecha)));
+    const siguiente = viaje.montados[i + 1];
+    if (siguiente) {
+      const aPieEntre = etapaAndando(motor, comoExtremo(m.hasta), comoExtremo(siguiente.desde));
+      if (!aPieEntre) {
+        return {
+          ...cabecera,
+          avisos: [{ texto: 'No hay camino a pie para el transbordo que hacía falta.' }],
+          pasos: [],
+          geometria: [],
+          tramos: [],
+          metros: 0,
+          segundos: 0,
+        };
+      }
+      // ⚠️ Los 120 s del transbordo [OTP] se suman AQUÍ, sobre lo que cuesta
+      // andarlo: son el rato de bajarse, orientarse y esperar a que el de
+      // enfrente abra la puerta, y no dependen de la distancia.
+      etapas.push({
+        ...aPieEntre,
+        segundos: aPieEntre.segundos + PENALIZACION_TRANSBORDO_S,
+        tramos: aPieEntre.tramos.map((t) => ({
+          ...t,
+          segundos: t.segundos + PENALIZACION_TRANSBORDO_S,
+        })),
+        hito: 'sube',
+      });
+    }
+  }
+
+  const ultima = etapaAndando(motor, comoExtremo(viaje.salidaAndando.parada), destino);
+  if (!ultima) {
+    return sinViaje('No hay camino a pie desde el último poste hasta el destino.');
+  }
+  etapas.push(ultima);
+
+  return juntar(cabecera, etapas);
 }
