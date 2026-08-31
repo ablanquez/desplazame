@@ -14,6 +14,201 @@
 
 ---
 
+## [2026-08-31] ✅ CERRADA — `downloadLink` manda `text/plain`, mi código pide `.json()`, y mi juez pasa porque el fixture inventó unas comillas que el NAP no pone
+
+**Categoría:** fixture que copia el esquema y no la respuesta
+
+**Síntoma:** con la clave ya encontrada, la primera descarga real del feed
+muere antes de bajar un byte:
+
+```
+$ node src/sonda-fetch.mjs
+NAP_API_KEY presente: true
+registro previo: NO (nunca se ha renovado)
+
+LANZO: Error
+  No se ha podido descargar del NAP: Unexpected token 'h', "https://mf"... is not valid JSON
+```
+
+**Lo que el NAP manda de verdad**, medido contra `downloadLink/1176`:
+
+```
+status      : 200
+content-type: text/plain; charset=utf-8
+largo       : 397 caracteres
+empieza por : "https://mfom"
+¿comillas?  : false
+JSON.parse  : FALLA → Unexpected token 'h', "https://mf"... is not valid JSON
+host        : mfomwpronapdata.s3.eu-west-1.amazonaws.com
+```
+
+Es **un enlace firmado de S3 en texto plano**, sin comillas. Mi código hacía
+`await r.json()` y reventaba ahí.
+
+⚠️ **Y lo peor es de dónde salió el error.** El OpenAPI declara para esa ruta
+`{"type": "string"}`, lo leí, y escribí en el comentario del código que devuelve
+«un string pelado» — que es exactamente lo que devuelve. Pero al construir el
+fixture traduje «string» a **string JSON**, con sus comillas y su
+`Content-Type: application/json`, porque es lo que hacen las otras rutas del
+mismo API. **Leí el esquema y luego inventé la codificación.**
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las **trece** pruebas de
+`renovar-feed.spec.ts`, con la juez 2 —la de la descarga— entre ellas:
+
+```
+$ node --test src/renovar-feed.spec.ts
+  ✔ ⭐ 2 · si la fecha cambió, descarga y deja el registro completo (15.102ms)
+ℹ tests 13
+ℹ pass 13
+ℹ fail 0
+```
+
+La juez 2 baja el zip, comprueba el `sha256`, el `feed_version`, los bytes y la
+fecha del registro. Todo correcto — **sobre una respuesta que el NAP no manda**.
+El fixture era:
+
+```
+return respuesta(JSON.stringify('https://descargas.nap.example/1176.zip'));
+```
+
+`JSON.stringify` de un string le pone comillas y `respuesta()` le cuelga un
+`Content-Type: application/json`. Dos decisiones mías, ninguna del servidor.
+
+**Cómo se cazó:** la prueba real contra el NAP, otra vez. La suite es de red
+cero a propósito y eso está bien; lo que enseña este caso es que **una suite sin
+red no puede validar la forma de una respuesta ajena** — solo puede validar que
+el código hace lo que el fixture describe. Si el fixture miente, el verde
+también.
+
+**Causa raíz:** **leí el esquema y después inventé la codificación.** El OpenAPI
+dice `{"type": "string"}`, y eso es cierto y suficiente para saber *qué* viaja —
+pero no dice *cómo*: si va entre comillas como valor JSON o pelado como
+`text/plain`. Rellené ese hueco con la costumbre de las otras rutas del mismo
+API, que sí devuelven JSON, en vez de con una medición. Y como el fixture lo
+escribí yo con esa misma suposición, la prueba y el código estaban de acuerdo
+**en el error**: dos piezas mías confirmándose la una a la otra.
+
+**Arreglo aplicado:** el enlace se lee con `r.text()` y `elEnlace` acepta **las
+tres formas** —URL pelada, string JSON entrecomillado, u objeto con
+`enlaceDescarga`—, porque la de hoy está medida y la de mañana no. El fixture
+pasa a mandar la forma real: `text/plain; charset=utf-8` con el URL sin
+comillas. Con ella puesta **caen tres jueces** (la 2, la 3 y la 4) contra el
+código viejo, que es lo que tenía que haber pasado desde el principio.
+
+Y la prueba real, entera, en dos pasadas:
+
+```
+1ª (sin registro previo) → renovado · sha256 5c96992c… · 20260623_AUZSA_Y_TRANVIA
+2ª (con registro)        → sin-cambios · 2026-06-30T13:20:04.661082
+```
+
+**Commit:** `de5bcba`
+
+**Ley que sale de aquí:** **un esquema dice el TIPO, no la codificación.**
+«String» no dice si viaja entre comillas, y esa diferencia rompe. La forma de
+una respuesta ajena **se mide una vez contra el servidor** y el fixture copia la
+medición, no la lectura del esquema. Y su corolario, que es el que duele: **una
+suite sin red no puede descubrir que un fixture miente** — solo comprueba que el
+código hace lo que el fixture describe. Red cero sigue siendo lo correcto para
+la suite; lo que hace falta al lado es **una prueba real, una sola, antes de
+cantar victoria**.
+
+**Traza:** `motor/src/renovar-feed.ts` (el `await r.json()` del bloque del
+enlace, y `elEnlace`) · `motor/src/renovar-feed.spec.ts` (`napQueFunciona`, el
+fixture del `downloadLink`).
+
+---
+
+## [2026-08-31] ✅ CERRADA — El lector de `.env.local` busca la clave donde no está, y su juez pasa porque nunca le pregunta por su ruta por defecto
+
+**Categoría:** guardián que prueba la función pero no el valor por defecto
+
+**Síntoma:** Antonio pone la clave del NAP en `motor/.env.local` y la prueba real
+del fetch muere sin salir a la red:
+
+```
+$ node src/sonda-fetch.mjs
+el fichero de entorno que el codigo mira: F:\01_PROYECTOS\004_DESPLAZAME\.env.local
+variables que .env.local ha aportado: (ninguna)
+NAP_API_KEY presente: false
+registro previo: NO (nunca se ha renovado)
+
+LANZO: ErrorDeConfiguracion
+  Falta NAP_API_KEY. Se para aquí aunque ya haya un zip: …
+```
+
+El fichero existe —`motor/.env.local`, 2.956 bytes— y está bien ignorado por
+git. Lo que está mal es **dónde mira el código**: `FICHERO_DE_ENTORNO` apunta a
+`../../.env.local`, o sea a la **raíz del repositorio**, y ahí no hay nada. El
+motor es un paquete del *workspace* con su propia raíz en `motor/`, que es donde
+una persona razonable pone el `.env.local` del motor — y donde lo puso Antonio.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las **doce** pruebas de
+`renovar-feed.spec.ts`, con la juez 12 —la del lector de entorno— la primera de
+la lista:
+
+```
+$ node --test src/renovar-feed.spec.ts
+  ✔ ⭐ 12 · .env.local rellena lo que falta, respeta lo que hay, y no devuelve valores (2.7195ms)
+ℹ tests 12
+ℹ pass 12
+ℹ fail 0
+```
+
+⚠️ **Y la razón de que pase es exacta y se ve en dos líneas.** La juez 12 llama
+siempre con una ruta explícita:
+
+```
+$ grep -n "cargarEntornoLocal(" src/renovar-feed.spec.ts
+395:      const puestas = cargarEntornoLocal(ruta);
+403:      assert.deepEqual(cargarEntornoLocal(join(dir, 'no-existe')), []);
+```
+
+Las dos pasan un directorio temporal que la propia prueba acaba de crear.
+**Nunca la llama sin argumento**, así que el valor por defecto —lo único que se
+usa en producción— no lo ejerce nadie. La juez compra que el *parser* funciona;
+lo que no compra es que el fichero que el motor va a abrir sea el que existe.
+
+**Cómo se cazó:** la prueba real del encargo. Ninguna prueba de la suite podía
+cazarlo, porque ninguna miraba la ruta por defecto — y la suite es de red cero,
+así que tampoco habría llegado nunca al NAP para notarlo.
+
+**Causa raíz:** escribí una ruta por defecto **sin preguntarme dónde la pondría
+quien tiene que ponerla**. Y la juez que cubría el lector la escribí igual de
+cómoda: pasándole una ruta explícita a un temporal, que es lo fácil de montar.
+Probar la función con un parámetro **no prueba el valor por defecto**, y el valor
+por defecto era lo único que producción iba a usar.
+
+**Arreglo aplicado:** `FICHEROS_DE_ENTORNO` pasa a ser **una lista de dos** —
+`motor/.env.local` primero, la raíz del repositorio después— y
+`cargarEntornoLocal` las recorre en orden, con lo ya puesto mandando siempre.
+Se miran las dos porque **las dos convenciones son razonables**: elegir una sola
+es volver a apostar a que quien ponga la clave adivine cuál elegimos.
+
+**Juez nueva, la 13**, que sí pregunta por el valor por defecto: compra que el
+primero de la lista es el del motor y el segundo el de la raíz, y que con dos
+ficheros el primero manda y el segundo completa. Con el código viejo se pone
+roja.
+
+Comprobado en vivo después: `motor: .env.local aporta 2 variable(s):
+NAP_API_KEY, DESPLAZAME_REGEN_TOKEN` — los **nombres**, nunca los valores.
+
+**Commit:** `de5bcba`
+
+**Ley que sale de aquí:** **un valor por defecto que producción usa necesita una
+juez que lo llame SIN argumento.** Una prueba que siempre pasa la ruta, el
+puerto o el fichero por parámetro está probando el mecanismo y dejando el
+*default* —que es la parte que nadie vuelve a mirar— sin vigilar. Si un
+parámetro tiene valor por defecto, ese valor es código, y el código sin juez es
+una apuesta.
+
+**Traza:** `motor/src/renovar-feed.ts` (`FICHERO_DE_ENTORNO`, y
+`cargarEntornoLocal` que lo usa por defecto) · `motor/src/renovar-feed.spec.ts`
+(la juez 12, que solo llama con ruta explícita) · `motor/src/servidor.ts` (donde
+se llama sin argumento al arrancar, que es el uso de verdad).
+
+---
+
 ## [2026-08-30] ✅ CERRADA — Corregí un `oneway` que estaba BIEN: Siresa quedó invertida, y hoy la calle SOLO se puede recorrer en el sentido que el terreno prohíbe
 
 **Categoría:** dato escrito a mano sobre un testimonio que no era del terreno
