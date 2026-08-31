@@ -185,12 +185,27 @@ export interface TransbordoBus {
  *
  *   1 — la cocina de la casilla 3a (paradas, líneas, patrones, saltos, fechas).
  *   2 — casilla 4: cada salto gana `traza`, `metros` y `recta`.
+ *   3 — la red dice si se cocinó con el peatón (`conPeaton`).
  */
-export const FORMATO_DEL_COCINADO = 2;
+export const FORMATO_DEL_COCINADO = 3;
 
 export interface RedDeBus {
   /** Ver `FORMATO_DEL_COCINADO`. Un cocinado sin él es de antes de que existiera. */
   readonly formato: number;
+  /**
+   * ⭐ ¿SE COCINÓ CON EL PEATÓN? Si no, **esta red no se puede servir**.
+   *
+   * ⚠️ **Nace de un fallo real (31/08), del mismo día que el `formato`.** Una
+   * juez guardó en el fichero de producción una red cocinada con `andar = null`
+   * —sin peatón, para no cargar 68.649 nodos— y el motor arrancó sirviendo
+   * **0 transbordos**: con la `F` de RAPTOR vacía, ningún viaje puede cambiar
+   * de vehículo andando. El formato cuadraba y el feed también, así que el
+   * guardián de al lado no vio nada. Ver la entrada del 31/08 de la bitácora.
+   *
+   * Es la diferencia entre «sé leer este fichero» y «este fichero está
+   * completo», y hacían falta las dos.
+   */
+  readonly conPeaton: boolean;
   readonly feedVersion: string;
   readonly paradas: readonly ParadaBus[];
   readonly lineas: readonly LineaBus[];
@@ -1064,6 +1079,7 @@ export async function cocinar(ruta: string, andar: AndarEntre | null): Promise<C
 
   const red: RedDeBus = {
     formato: FORMATO_DEL_COCINADO,
+    conPeaton: andar !== null,
     feedVersion: version,
     paradas,
     lineas,
@@ -1149,9 +1165,16 @@ export function servirEstaRed(red: RedDeBus): void {
 }
 
 /** Lee el cocinado del disco, o `null` si no está o no se deja leer. */
-export function cocinadoGuardado(): RedDeBus | null {
+/**
+ * El cocinado de disco, o `null` si no hay o no se puede leer.
+ *
+ * La ruta es un parámetro con el valor de producción por defecto [ley nº17: un
+ * defecto que producción usa necesita una juez que lo llame sin argumento], y
+ * **leer no estropea nada**, así que esa juez existe.
+ */
+export function cocinadoGuardado(ruta: string = COCINADO): RedDeBus | null {
   try {
-    return JSON.parse(readFileSync(COCINADO, 'utf8')) as RedDeBus;
+    return JSON.parse(readFileSync(ruta, 'utf8')) as RedDeBus;
   } catch {
     return null;
   }
@@ -1160,21 +1183,34 @@ export function cocinadoGuardado(): RedDeBus | null {
 /**
  * ¿Sirve el cocinado que hay en disco para el feed que se está sirviendo?
  *
- * Tres condiciones y las tres hacen falta: **el formato** que este código sabe
- * leer, **el feed** que se está sirviendo, y que no esté vacío. Va en su propia
- * función para que se pueda poner delante de una juez sin arrancar el motor.
+ * Cuatro condiciones y las cuatro hacen falta: **el formato** que este código
+ * sabe leer, **el feed** que se está sirviendo, que **se cocinara con el
+ * peatón** —sin él no hay transbordos y media red no se puede recorrer— y que
+ * no esté vacío. Va en su propia función para que se pueda poner delante de una
+ * juez sin arrancar el motor.
  */
 export function sirveElGuardado(guardado: RedDeBus | null, feedVersion: string): boolean {
   return (
     guardado !== null &&
     guardado.formato === FORMATO_DEL_COCINADO &&
+    guardado.conPeaton === true &&
     guardado.feedVersion === feedVersion &&
     guardado.patrones.length > 0
   );
 }
 
-export function guardarCocinado(red: RedDeBus): void {
-  writeFileSync(COCINADO, JSON.stringify(red), 'utf8');
+/**
+ * Guarda el cocinado. La ruta también es parámetro, y aquí sí importa:
+ *
+ * ⚠️ **Ninguna juez llama a este defecto**, y es a propósito. Escribir por él
+ * es escribir el fichero que el producto lee al arrancar, y una juez que deja
+ * el producto peor de lo que lo encontró no es una juez — el 31/08 una lo dejó
+ * con **0 transbordos** y la suite entera siguió en verde. El defecto es el
+ * MISMO `COCINADO` que lee `cocinadoGuardado`, y esa sí tiene juez sin
+ * argumento: entre las dos queda clavado.
+ */
+export function guardarCocinado(red: RedDeBus, ruta: string = COCINADO): void {
+  writeFileSync(ruta, JSON.stringify(red), 'utf8');
 }
 
 /**

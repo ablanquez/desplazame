@@ -10,6 +10,9 @@
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { elFeedQueSeSirve } from './feed.ts';
 import {
   calcularTransbordos,
@@ -341,44 +344,73 @@ describe('⭐ LA COCINA DE LA RED DE BUS Y TRANVÍA', () => {
    * hoy». Hacen falta las dos.
    */
   test('⭐ 11 · un cocinado de otro formato NO se sirve, aunque el feed sea el mismo', () => {
-    // El de verdad, recién cocinado, sí sirve.
-    assert.equal(sirveElGuardado(red, red.feedVersion), true);
+    // ⚠️ OJO: `red` se cocinó sin peatón, así que NO sirve — y esa es la
+    // segunda mitad de esta juez, del segundo fallo del día. La que sí sirve
+    // lleva el `conPeaton` puesto.
+    const buena: RedDeBus = { ...red, conPeaton: true };
+    assert.equal(sirveElGuardado(buena, red.feedVersion), true);
 
     // El mismo feed, formato viejo: NO.
-    assert.equal(sirveElGuardado({ ...red, formato: FORMATO_DEL_COCINADO - 1 }, red.feedVersion), false);
+    assert.equal(sirveElGuardado({ ...buena, formato: FORMATO_DEL_COCINADO - 1 }, red.feedVersion), false);
     // Y sin el campo siquiera, que es como está el fichero de antes de hoy.
-    const sinCampo: Record<string, unknown> = { ...red };
+    const sinCampo: Record<string, unknown> = { ...buena };
     delete sinCampo['formato'];
     assert.equal(sirveElGuardado(sinCampo as unknown as RedDeBus, red.feedVersion), false);
 
+    // ⭐ Y UNA RED SIN PEATÓN TAMPOCO, aunque el formato y el feed cuadren: sin
+    // transbordos la `F` de RAPTOR se queda vacía y ningún viaje puede cambiar
+    // de vehículo. Es exactamente lo que se sirvió el 31/08.
+    assert.equal(red.conPeaton, false, 'esta red se cocinó sin peatón a propósito');
+    assert.equal(red.transbordos.length, 0, 'y por eso no tiene transbordos');
+    assert.equal(sirveElGuardado(red, red.feedVersion), false);
+
     // Los guardianes de antes siguen: otro feed no sirve, y una red vacía tampoco.
-    assert.equal(sirveElGuardado(red, 'otro_feed'), false);
-    assert.equal(sirveElGuardado({ ...red, patrones: [] }, red.feedVersion), false);
+    assert.equal(sirveElGuardado(buena, 'otro_feed'), false);
+    assert.equal(sirveElGuardado({ ...buena, patrones: [] }, red.feedVersion), false);
     assert.equal(sirveElGuardado(null, red.feedVersion), false);
   });
 
   /**
-   * ⭐ JUEZ 12 — EL CAMINO DEL ARRANQUE, de punta a punta y **por defecto**.
+   * ⭐ JUEZ 12 — LO QUE SE GUARDA SE VUELVE A LEER, **y no en el fichero del
+   * producto**.
    *
-   * [Ley nº17] un valor por defecto que producción usa necesita una juez que lo
-   * llame **sin argumento**. `guardarCocinado` y `cocinadoGuardado` escriben y
-   * leen la ruta de producción, y es la que hay que probar: probar otra sería
-   * probar otra cosa.
+   * ⚠️ **La primera versión de esta juez escribía en la ruta de producción**, con
+   * el argumento de la ley nº17 —probar el defecto que producción usa—, y con
+   * una red cocinada **sin peatón**. El motor arrancó sirviendo **0
+   * transbordos** y las 423 jueces en verde. Ver la entrada del 31/08 de
+   * `docs/BITACORA.md`.
    *
-   * ⚠️ Sí, deja el fichero escrito. Escribe **exactamente lo que el arranque
-   * escribiría** —la red recién cocinada—, que es el fichero que debe haber.
+   * Así que aquí se escribe en un temporal. La ley nº17 se cumple por el lado
+   * que **no estropea nada**: `cocinadoGuardado()` se llama sin argumento un
+   * poco más abajo, y su defecto es la misma constante `COCINADO` que la de
+   * escribir — si alguien mueve una, la otra se queda sin sitio.
    */
   test('⭐ 12 · lo que se guarda se vuelve a leer con sus trazas', () => {
-    guardarCocinado(red);
-    const leido = cocinadoGuardado();
-    assert.ok(leido, 'el cocinado que se acaba de guardar tiene que leerse');
-    assert.equal(sirveElGuardado(leido, red.feedVersion), true);
-    assert.equal(leido!.formato, FORMATO_DEL_COCINADO);
+    const temporal = join(tmpdir(), `cocinado-de-la-juez-${process.pid}.json`);
+    try {
+      guardarCocinado({ ...red, conPeaton: true }, temporal);
+      const leido = cocinadoGuardado(temporal);
+      assert.ok(leido, 'el cocinado que se acaba de guardar tiene que leerse');
+      assert.equal(sirveElGuardado(leido, red.feedVersion), true);
+      assert.equal(leido!.formato, FORMATO_DEL_COCINADO);
 
-    const salto = leido!.patrones[0]!.saltos[0]!;
-    assert.ok(salto.traza.length >= 2, 'el salto leído del disco viene sin traza');
-    assert.ok(salto.metros > 0, 'y sin metros de asfalto');
-    assert.equal(salto.recta, false);
+      const salto = leido!.patrones[0]!.saltos[0]!;
+      assert.ok(salto.traza.length >= 2, 'el salto leído del disco viene sin traza');
+      assert.ok(salto.metros > 0, 'y sin metros de asfalto');
+      assert.equal(salto.recta, false);
+    } finally {
+      rmSync(temporal, { force: true });
+    }
+
+    // ⭐ Y EL DEFECTO DE PRODUCCIÓN, llamado sin argumento [ley nº17]. Lo que
+    // haya en disco puede ser cualquier cosa —o nada, en un clon recién
+    // hecho—, pero si hay algo, el guardián decide sobre ELLO y no revienta.
+    const deProduccion = cocinadoGuardado();
+    assert.equal(
+      typeof sirveElGuardado(deProduccion, red.feedVersion),
+      'boolean',
+      'la ruta de producción por defecto tiene que poder leerse sin lanzar',
+    );
   });
 
   test('⭐ 10 · el CSV se parte respetando comillas, y ningún nombre las arrastra', () => {
