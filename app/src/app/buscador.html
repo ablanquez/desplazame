@@ -416,12 +416,14 @@
               }
               <!-- ⭐ LA NOTA AL LADO DEL HITO [GOV.UK: resumen arriba Y mensaje
                    junto a lo afectado, con el MISMO texto en los dos sitios].
-                   Solo en los pasos de coger y dejar, que son los que prometen
-                   una disponibilidad, y solo cuando hay algo que advertir. El
+                   Solo en los hitos, que son los que prometen algo —una bici
+                   que haya, un bus que venga—, y solo cuando hay algo que
+                   advertir. Cuál le toca a cada uno lo decide `notaDelHito`,
+                   que desde el bus ya no es «el aviso» sino «SU aviso». El
                    ⚠ va aria-hidden: el texto ya dice lo que pasa, el icono es
                    para el ojo — es el 1.4.1 de siempre, no solo color. -->
-              @if (paso.giro === 'coge' || paso.giro === 'aparca') {
-                @if (notaDeDisponibilidad(); as nota) {
+              @if (paso.giro === 'coge' || paso.giro === 'aparca' || paso.giro === 'sube') {
+                @if (notaDelHito(paso); as nota) {
                   <span class="paso__nota">
                     <span class="paso__nota-icono" aria-hidden="true">⚠</span>
                     {{ nota }}

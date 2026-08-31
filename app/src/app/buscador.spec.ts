@@ -444,6 +444,66 @@ const VIAJE_EN_BIZI_A_CIEGAS: Trayecto = {
 };
 
 /**
+ * ⭐ UN VIAJE EN BUS con el aviso de que la línea no está pasando (31/08).
+ *
+ * Es el caso del ojo —`COLOSO 2 → LEOPOLDO ROMEO 27`, línea 29— con la
+ * respuesta **medida** del poste 1203 a las 13:16: `maquinas` con solo la
+ * parada y `tablatiempos` vacío. Ni un bus viniendo.
+ *
+ * ⚠️ Fíjate en lo que eso produce: la ruta sale entera y el hito **conserva su
+ * estimación** —«~7 min de espera»—, porque el horario publicado sigue siendo
+ * lo mejor que se sabe. Lo que hace legal esa estimación es el aviso, y el
+ * aviso **nombra su poste**: por eso puede ir al lado de SU hito y no de otro.
+ */
+const VIAJE_EN_BUS_SIN_LA_29: Trayecto = {
+  modo: 'bus',
+  pasos: [
+    paso('salida', 30, accion('Sal de'), llano(' '), via('Calle El Coloso 2'), llano(' y dirígete hacia el este')),
+    paso('recto', 448, accion('Continúa'), llano(' por '), via('Avenida de la Academia General Militar')),
+    paso('sube', 0, accion('Sube'), llano(' a la línea '), via('29'), llano(' en el poste '), via('Bernardo Ramazzini / Maz'), llano(' — ~7 min de espera')),
+    paso('baja', 0, accion('Baja'), llano(' en el poste '), via('Miguel Servet N.º 28')),
+    paso('llegada', 0, via('Calle Leopoldo Romeo 27'), llano(' está a la izquierda')),
+  ],
+  geometria: [
+    [41.6661, -0.8773],
+    // El poste donde se sube.
+    [41.6826, -0.8712],
+    // Y el poste donde se baja.
+    [41.6476, -0.8641],
+    [41.6461, -0.8673],
+  ],
+  avisos: [
+    {
+      texto:
+        'La línea 29 no está prestando servicio ahora en el poste Bernardo Ramazzini / Maz: ' +
+        'la espera que se dice sale del horario publicado.',
+    },
+  ],
+  metros: 6320,
+  segundos: 3106,
+  tramos: [
+    { comoSeVa: 'andando', desde: 0, hasta: 1, metros: 478, segundos: 344, hito: 'sube' },
+    {
+      comoSeVa: 'montado',
+      desde: 1,
+      hasta: 2,
+      metros: 4956,
+      segundos: 2124,
+      hito: 'baja',
+      linea: {
+        id: '29',
+        corto: '29',
+        largo: 'Camino de Las Torres - San Gregorio',
+        color: 'F5C100',
+        colorTexto: '000000',
+        modo: 'bus',
+      },
+    },
+    { comoSeVa: 'andando', desde: 2, hasta: 3, metros: 886, segundos: 638, hito: null },
+  ],
+};
+
+/**
  * ⭐ Y una ruta de BICI con su aviso: el destino sin aparcabicis cerca.
  *
  * El otro caso de la misma clase — desde las casillas 5 y 6, un trayecto puede
@@ -1924,6 +1984,68 @@ describe('Buscador', () => {
     }
   });
 
+  /**
+   * ⭐ 6 · EN BUS, LA NOTA VA AL LADO DEL HITO DE SUBIR — **y solo ahí**.
+   *
+   * El mismo patrón del BiZi con un requisito de más: aquí los avisos **son de
+   * un poste concreto**. Un viaje con transbordo tiene dos hitos de subida, y
+   * poner el mismo aviso en los dos diría que ninguna de las dos líneas está
+   * pasando cuando puede que sea solo una. [GOV.UK] *«general errors are not
+   * helpful»* — la nota tiene que ser de lo que la nota habla.
+   *
+   * La regla, y va escrita porque es la que sostiene esto: **un aviso vale para
+   * el hito cuyo sitio nombra**; y uno que no nombra el sitio de ningún hito
+   * —como el D-G del BiZi— vale para todos.
+   */
+  it('⭐ 6 · en bus, la nota va al lado del hito de SUBIR y solo ahí', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
+    await fixture.whenStable();
+
+    const conNota = Array.from(raiz.querySelectorAll('.paso'))
+      .filter((li) => li.querySelector('.paso__nota') !== null)
+      .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
+
+    expect(conNota).toEqual([
+      'Sube a la línea 29 en el poste Bernardo Ramazzini / Maz — ~7 min de espera',
+    ]);
+    // Ni el de bajar, ni el de salir, ni el de llegar.
+    expect(raiz.querySelectorAll('.paso__nota').length).toBe(1);
+  });
+
+  /**
+   * ⭐ 7 · Y EL BANNER SIGUE ARRIBA, con **el mismo texto**.
+   *
+   * [GOV.UK] el resumen y el mensaje de al lado dicen lo mismo: *«use the same
+   * wording»*. La nota no reescribe el aviso del motor, se lo copia.
+   */
+  it('⭐ 7 · en bus, el banner y la nota dicen exactamente lo mismo', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
+    await fixture.whenStable();
+
+    const banner = (raiz.querySelector('.aviso-ruta')?.textContent ?? '').trim();
+    expect(banner).toContain('La línea 29 no está prestando servicio ahora');
+    const nota = (raiz.querySelector('.paso__nota')?.textContent ?? '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    expect(nota.replace(/^⚠\s*/, '')).toBe(banner);
+  });
+
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
@@ -2031,27 +2153,19 @@ describe('Buscador', () => {
   });
 
   /**
-   * ⭐ BUS Y COCHE NO LLAMAN AL MOTOR, y lo dicen ellos.
+   * ⭐ EL BUS YA LLAMA AL MOTOR — el punto 10 aterrizó (31/08).
    *
-   * Hasta hoy sí llamaban, y el motor contestaba con su aviso —«Todavía no
-   * calculamos rutas en modo «coche». Solo andando, bici, patin, bizi.»—. Se
-   * enseñaba tal cual, y era honesto.
+   * ⚠️ **Esta juez decía lo contrario hasta hoy**, y la que decía lo contrario
+   * llevaba escrito el día en que dejaría de valer: *«Bus llega con el punto 10
+   * del plan y coche con el 11; ese día la fila pierde su `todavia` y empieza a
+   * viajar como las demás.»* El bus llegó —casilla 3b, y la 3c le enchufó el
+   * dato vivo—, así que la fila ha perdido su `todavia`.
    *
-   * Lo que cambia es **quién lo dice**, y por dos razones medidas:
-   *
-   * 1. Con el motor caído, ese viaje no contestaba «todavía no hacemos coche»
-   *    sino «No se pudo preguntar al motor», que es falso: el coche no
-   *    dependería del motor ni estando arrancado.
-   * 2. El aviso del motor enumera su lista interna —`andando, bici, patin,
-   *    bizi`, con los identificadores del contrato— y esos no son las palabras
-   *    de la pantalla, que dice «Bici privada» y «Patín (VMP)».
-   *
-   * Lo que NO cambia es la forma de lo que se pinta: sigue siendo un `Trayecto`
-   * con su modo, cero pasos y un aviso ámbar. Bus llega con el punto 10 del
-   * plan y coche con el 11; ese día la fila pierde su `todavia` y empieza a
-   * viajar como las demás.
+   * El coche NO: sigue cortándose en la pantalla, y su juez sigue viva justo
+   * debajo. Lo que se compra aquí es que el corte era del bus y del coche por
+   * separado y no un solo interruptor de los dos.
    */
-  it('el bus no llama a /api/ruta: lo dice la pantalla', async () => {
+  it('⭐ el bus YA llama a /api/ruta: el punto 10 aterrizó', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -2060,16 +2174,13 @@ describe('Buscador', () => {
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
     await fixture.whenStable();
 
-    // NI UNA petición. `expectNone` es la aserción de verdad de esta juez.
-    http.expectNone('/api/ruta');
-
     expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Bus / Tranvía');
-    expect(avisosDeRuta(raiz)[0]).toContain('Todavía no calculamos rutas en bus ni tranvía');
-    expect(raiz.querySelectorAll('.paso').length).toBe(0);
-    // Y no se cuela la línea de metros de una ruta que no existe.
-    expect(raiz.querySelector('.ruta__metros')).toBeNull();
+    // Y lo que se pinta es lo que el motor contestó, no un «todavía no».
+    expect(raiz.querySelectorAll('.paso').length).toBe(5);
+    expect(avisosDeRuta(raiz)[0]).not.toContain('Todavía no calculamos');
   });
 
   it('el coche no llama a /api/ruta: lo dice la pantalla', async () => {

@@ -3,8 +3,10 @@ import type { WritableSignal } from '@angular/core';
 // El contrato manda: los tipos vienen del paquete compartido, no de copias
 // locales. Si el motor cambia la forma, esta pantalla deja de compilar.
 import type {
+  Aviso,
   Giro,
   Modo,
+  Paso,
   PeticionDeRuta,
   Portal,
   PortalCercano,
@@ -59,6 +61,29 @@ import { IconoCapa, type Clase } from './iconos';
  * `notaDeDisponibilidad` para por qué esto se hace por texto y no por un campo.
  */
 const MARCA_DE_DISPONIBILIDAD = 'disponibilidad no verificada';
+
+/**
+ * ⭐ Y la del bus: la línea que ahora mismo no está pasando por su poste.
+ *
+ * Es otra condición, no otra redacción de la misma. `MARCA_DE_DISPONIBILIDAD`
+ * dice **no lo sabemos**; esta dice **lo sabemos, y no viene ninguno**. Las dos
+ * piden nota junto al hito, y por eso viven juntas aquí.
+ */
+const MARCA_DE_SIN_SERVICIO = 'no está prestando servicio ahora';
+
+/**
+ * El sitio del que habla un hito: su **última** parte `via`.
+ *
+ * `null` si el paso no es un hito. Los pasos de andar también traen `via` —el
+ * nombre de la calle—, y una calle no es un sitio del que se avise.
+ */
+function sitioDelHito(paso: Paso): string | null {
+  if (paso.giro !== 'coge' && paso.giro !== 'aparca' && paso.giro !== 'sube' && paso.giro !== 'baja') {
+    return null;
+  }
+  const vias = paso.partes.filter((p) => p.papel === 'via');
+  return vias.length > 0 ? vias[vias.length - 1]!.texto : null;
+}
 
 const FLECHAS: Readonly<Record<Giro, string>> = {
   salida: '◉',
@@ -437,11 +462,9 @@ export class Buscador {
     todavia: string | null;
   }> = [
     { id: 'andando', etiqueta: 'Andando', todavia: null },
-    {
-      id: 'bus',
-      etiqueta: 'Bus / Tranvía',
-      todavia: 'Todavía no calculamos rutas en bus ni tranvía.',
-    },
+    // ⭐ El bus perdió su `todavia` el 31/08: el punto 10 aterrizó y viaja
+    // como las demás. El coche sigue con el suyo hasta el punto 11.
+    { id: 'bus', etiqueta: 'Bus / Tranvía', todavia: null },
     { id: 'bici', etiqueta: 'Bici privada', todavia: null },
     { id: 'patin', etiqueta: 'Patín (VMP)', todavia: null },
     { id: 'bizi', etiqueta: 'BiZi', todavia: null },
@@ -568,10 +591,46 @@ export class Buscador {
    * lo hace tolerable es que la propia regla del doble sitio **exige** que el
    * texto sea el mismo arriba y abajo, así que aquí el texto ya es la llave.
    */
-  protected readonly notaDeDisponibilidad = computed<string | null>(() => {
-    const avisos = this.resultado()?.trayecto.avisos ?? [];
-    return avisos.find((a) => a.texto.includes(MARCA_DE_DISPONIBILIDAD))?.texto ?? null;
-  });
+  private readonly avisosDeHito = computed<readonly Aviso[]>(() =>
+    (this.resultado()?.trayecto.avisos ?? []).filter(
+      (a) => a.texto.includes(MARCA_DE_DISPONIBILIDAD) || a.texto.includes(MARCA_DE_SIN_SERVICIO),
+    ),
+  );
+
+  /**
+   * ⭐ QUÉ HITO SE QUEDA CON QUÉ AVISO — la regla, y va escrita.
+   *
+   * Con el BiZi bastaba con «hay aviso, hay nota»: era uno y valía para los
+   * dos hitos. Con el bus ya no, porque **sus avisos son de un poste
+   * concreto**: un viaje con transbordo tiene dos subidas, y colgar el mismo
+   * aviso de las dos diría que ninguna de las dos líneas está pasando cuando
+   * puede que sea solo una. [GOV.UK] *«general errors are not helpful»*.
+   *
+   * La regla es ésta, en dos líneas:
+   *
+   *   1. Un aviso vale para el hito **cuyo sitio nombra**.
+   *   2. Un aviso que no nombra el sitio de **ningún** hito vale para todos
+   *      —es el D-G del BiZi, que habla del viaje entero—.
+   *
+   * Y el sitio de un hito es **su última parte `via`**: en el BiZi es la
+   * estación, y en el bus, donde la primera `via` es el número de la línea, es
+   * el poste. Un `29` suelto casaría con medio texto; el nombre del poste, no.
+   */
+  protected notaDelHito(paso: Paso): string | null {
+    const marcados = this.avisosDeHito();
+    if (marcados.length === 0) {
+      return null;
+    }
+    const suyo = sitioDelHito(paso);
+    const propio = suyo ? marcados.find((a) => a.texto.includes(suyo)) : undefined;
+    if (propio) {
+      return propio.texto;
+    }
+    const sitios = (this.resultado()?.trayecto.pasos ?? [])
+      .map((x) => sitioDelHito(x))
+      .filter((x): x is string => x !== null);
+    return marcados.find((a) => !sitios.some((s) => a.texto.includes(s)))?.texto ?? null;
+  }
 
   /**
    * El usuario ha elegido —o ha deshecho— la calle de un lado.
