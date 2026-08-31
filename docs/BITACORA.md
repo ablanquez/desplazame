@@ -14,6 +14,75 @@
 
 ---
 
+## [2026-08-31] ✅ CERRADA — Con dos vehículos desviados, las dos notas dicen lo del PRIMERO: el aviso de la 29 se pega al hito de la 22 porque nombra su poste
+
+**Categoría:** dos reglas de casado en el orden equivocado
+
+**Síntoma:** en Chrome, el caso del ojo de hoy —`COLOSO 2 → LEOPOLDO ROMEO 27`,
+que sale en **29 + 22** y las **dos** líneas van desviadas— pinta dos notas junto
+a los hitos y **las dos son la de la 29**:
+
+```
+BANNER: La línea 22 va hoy desviada: no para en Plaza Aragón N.º 1, Plaza De España…
+BANNER: La línea 29 va hoy desviada: no para en Don Jaime I / Plaza De La Seo…
+NOTA  : ⚠ La línea 29 va hoy desviada: no para en Don Jaime I / Plaza De La Seo…
+NOTA  : ⚠ La línea 29 va hoy desviada: no para en Don Jaime I / Plaza De La Seo…
+```
+
+Los dos banners están bien. La segunda nota —la del hito **«Sube a la línea 22 en
+el poste Asalto / Centro De Historias»**— cuenta el desvío de la 29. Quien la
+lea creerá que la 22 se salta las paradas que se salta la 29.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la juez **11** de
+`buscador.spec.ts`, que es **exactamente la del aviso de desvío en el doble
+sitio**, y con ella la suite entera del buscador. Ejecutada con el fallo vivo:
+
+```
+$ npx ng test --include=src/app/buscador.spec.ts
+      Tests  70 passed (70)
+```
+
+Su fixture tiene **un solo vehículo y un solo aviso**, así que la pregunta que
+falla —¿cuál de los dos avisos le toca a cada hito?— no se le llega a hacer.
+
+**Cómo se cazó:** ojo humano — mirando la salida de la captura de Chrome antes
+de darla por buena.
+
+**Causa raíz:** `notaDelHito` tiene **dos reglas** para casar un aviso con el
+hito que explica —«el que nombra tu sitio» y «el que es de tu línea»— y estaban
+en el orden equivocado. Con un solo vehículo las dos dan lo mismo y da igual
+cuál vaya primero; con dos, no: **el aviso de la 29 nombra el poste donde se
+sube a la 22**, porque esa parada es una de sus provisionales. La regla del
+sitio casaba primero y se lo quedaba.
+
+El orden se eligió sin pensarlo, escribiendo la regla del sitio antes porque
+era la que ya existía para el BiZi. Y la de la línea es la que **no admite
+interpretación**: un texto que empieza por «La línea 22 » es de la 22 y de
+ninguna otra; un sitio lo pueden nombrar dos avisos distintos.
+
+**Arreglo aplicado:** `app/src/app/buscador.ts` — en `notaDelHito`, la regla de
+la línea pasa **delante** de la del sitio, con el porqué escrito al lado. Y de
+paso `motor/src/viaje-bus.ts` filtra los avisos por línea **y dirección**: una
+línea puede ir desviada en los dos sentidos con dos desvíos distintos, y el del
+sentido contrario nombra paradas por las que el viaje no pasa — se vio en la
+misma captura, con la 22 saliendo dos veces.
+
+`app/src/app/buscador.spec.ts` gana la juez **12**, con **el caso entero y la
+trampa dentro**: dos líneas desviadas y el poste compartido. Contraprueba: con
+las dos reglas al revés, `1 failed | 70 passed`.
+
+**Commit:** `519be6c`
+
+**Ley que sale de aquí:** cuando hay **dos reglas** para casar un aviso con lo
+que explica, el orden entre ellas es parte de la regla — y hay que escribirlo y
+comprarlo con un caso donde **las dos apliquen y digan cosas distintas**. Una
+juez con un solo candidato no comprueba un casado: comprueba que hay texto.
+
+**Traza:** `app/src/app/buscador.ts` — `notaDelHito`, `sitioDelHito`;
+`app/src/app/buscador.spec.ts` — juez 11.
+
+---
+
 ## [2026-08-31] ✅ CERRADA — La búsqueda se sube en la primera parada marcada del patrón y no la reconsidera: anda 478 m para coger la misma línea que tenía a 60 m
 
 **Categoría:** regla de RAPTOR copiada sin traducir a costes
