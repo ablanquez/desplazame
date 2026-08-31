@@ -2192,15 +2192,53 @@ NO CONSTA muerto con la referencia: las fechas del NAP (16/9/25→
 27/12/26) son COBERTURA del calendario; feed_end_date es la
 GARANTÍA [«información completa y fiable en el periodo»] — manda
 el feed_info, el reloj del 05/10 es el correcto. Registro pequeño
-junto al vivo (zip primero, registro después). recocinar() existe,
-VACÍO y declarado. ⚠️ CABO a la casilla 3: el zip nuevo se sirve al
-SIGUIENTE arranque del motor (el patrón OTP/ZetaBus) — recarga en
-caliente o reinicio, lo define la cocina. ⚠️ Mejora fichada: el
+junto al vivo (zip primero, registro después). recocinar() nació
+VACÍO y declarado (⚰️ ya cocina desde la 3a). ⚰️ El cabo del zip
+nuevo, RESUELTO en la 3a: recocinar() cocina y hace swap de
+referencia en caliente [PROPIO declarado; la alternativa documentada
+era reiniciar, patrón OTP/ZetaBus]. ⚠️ Mejora fichada: el
 registro no guarda los avisos del NAP (el GetList los trae). Para
 el panel de Hostinger al desplegar: POST …/api/renovar-feed,
 Authorization: Bearer <DESPLAZAME_REGEN_TOKEN>, ≥15 min, horario a
 criterio (ZetaBus 0 2 * * *). 385 motor · 181 interfaz · 18
 bitácoras, 0 abiertas.
+
+**⭐ CASILLA 3a · LA COCINA DE LA RED DE BUS — HECHA (31/08, dos
+commits; validada contra la literatura).** LA UNIDAD ES EL TRIP
+PATTERN [OTP: «grupo de trips de una ruta, misma dirección, misma
+secuencia de paradas»; en GTFS son implícitos y los deriva el
+consumidor por la secuencia ordenada de stop_id] — NO el «trip de
+más paradas» de ZetaBus (válido para pintar, no para rutear: los
+refuerzos y cortos son patrones legítimos). LO COCINADO (streaming,
+stop_times NO se materializa: 65 MB de montón frente a 185): 984
+paradas · 53 líneas (8 zombis con 0 patrones: CEM CE LAN EM1 EM2 V1
+ES3 V4) · 170 PATRONES (2-19 por línea, media 3,8; 26 de 45 líneas
+con refuerzos) · 3.362 SALTOS con running time TÍPICO = mediana y
+MÁXIMO sobre sus trips [PROPIO declarado; los búhos >24:00:00
+restan bien] · SERVICIO por patrón con operaEl(fecha) [Alternate] ·
+10.588 TRANSBORDOS F (5.294 pares × 2) a ≤500 m POR EL MOTOR DEL
+PEATÓN [firma 9 + RAPTOR foot-paths]: ⭐ de 7.992 pares en recta
+solo 5.294 (66 %) sobreviven andando — el río, las vías y las
+manzanas; los 18 a 0 m son andenes de tranvía legítimos · líneas
+con color 53/53 · tabla de modos 704→bus/900→tram que PARA ante lo
+desconocido. El cocinado: 1.272 KB en app/data/…cocinado.json
+(gitignored, se regenera; 4,3 s con el peatón, 7 ms el segundo
+arranque); recocinar() ya cocina y sustituye la referencia (recibe
+la cocina montada desde el servidor porque el peatón lo tiene él —
+si nadie se la pone, lo dice y no sirve media red). EL CASO 39: 8
+patrones, principales 22 y 30 paradas (647/631 viajes), 45,0 min
+típicos vs 58,6 del peor viaje; la perla 59|0|1: típico 0 s, máximo
+1.800 — media hora parado en un viaje de seis (la mediana
+trabajando). Determinista (mismo sha en dos pasadas). Honestidades:
+SIN rojo-primero en un módulo de datos contra stubs (declarado — la
+contraprueba fue la que mordió: cazó la juez 3 floja «≥» y la
+apretó con lo medido) · la mutación exception_type=2 NO PUEDE
+MORDER (el feed no tiene ningún 2 — dicho, no disfrazado; la guarda
+queda) · las comillas de stops.txt (934/984) cazadas por un volcado
+antes de que hubiera prueba → partidor RFC 4180 + red que revienta
+si los campos no cuadran (sin bitácora: nada dio verde) · dos
+commits y no tres (la cocina es una pasada; separar habría
+commiteado un estado que nunca existió). 395 motor · 181 interfaz.
 
 *(La regla del apoyo en ZetaBus —precedente propio en producción,
 solo lectura, se cita como lo que es y donde discrepe del feed se

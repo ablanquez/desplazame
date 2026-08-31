@@ -132,6 +132,21 @@ v2, el censo del feed destilado, la casilla 2 entera (cinco commits
 del ejecutor + las bitácoras nº17-18 con su fix) y los papeles. El
 push es de Antonio.
 
+**LA CASILLA 3a DEL 10 — LA COCINA DE LA RED DE BUS (31/08).** La
+unidad es el TRIP PATTERN [OTP: trips de una ruta, misma dirección,
+misma secuencia — implícitos en GTFS, los deriva el consumidor], no
+el «trip de más paradas» de ZetaBus (válido para pintar, no para
+rutear). Cocinado en streaming (65 MB de montón): 984 paradas · 170
+patrones (26 de 45 líneas con refuerzos; 8 zombis a 0) · 3.362
+saltos con típico=mediana y máximo · servicio por patrón (Alternate)
+· 10.588 transbordos a pie a ≤500 m POR EL PEATÓN (⭐ solo el 66 % de
+los pares en recta sobreviven andando) · 1.272 KB gitignored, 4,3 s
+(7 ms el segundo arranque); recocinar() ya cocina y hace swap de
+referencia. La 39: 8 patrones, 45 min típicos vs 58,6 del peor.
+Partidor RFC 4180 por las comillas de stops.txt. Sin rojo-primero
+en el módulo de datos (declarado; la contraprueba mordió y apretó
+una juez). 395 motor · 181 interfaz.
+
 **LA CASILLA 2 DEL 10 — EL CRON DE RENOVACIÓN (31/08), validada
 contra la literatura.** El fetch detecta por fechaActualizacion sin
 bajar [GTFS Best Practices: If-Modified-Since sobre la ubicación
@@ -837,11 +852,12 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el punto 10, casilla 3 — EL MOTOR COCINADO**
-(la red poste↔línea y los minutos, destilados de los horarios por
-recocinar(); el viaje canónico y la tabla de modos de ZetaBus; el
-zip nuevo en caliente o al arranque) y la consulta viva al poste
-[firma 7]; (2) la pantalla del bus (patrón BiZi + colores de línea)
+**Lo siguiente:** (1) **el punto 10, casilla 3b — EL VIAJE**: la
+búsqueda por rondas sobre la red cocinada [RAPTOR: rondas =
+transbordos; el vehículo único absoluto, los buses al empate — las
+firmas 6 y 3], la composición andar→bus→andar en tramos, y la
+consulta VIVA al poste de Avanza [firma 7, las cicatrices de
+ZetaBus]; (2) la pantalla del bus (patrón BiZi + colores de línea)
 y la demo; (3) LA FASE 2 de sentidos como goteo de fondo (las
 shapes como atajo); (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
@@ -1051,12 +1067,14 @@ es» (dice nombres, trae 260 etiquetas) · la doble capitalización
 «Senda ciclable/Ciclable» · el contraflujo con candado (18 reales) ·
 la API viva de BiZi vive aquí (mudada del 10; NO es GBFS).
 
-**Punto 10 (EN MARCHA desde el 30/08 — casillas 0, 1 y 2 HECHAS):**
+**Punto 10 (EN MARCHA desde el 30/08 — casillas 0, 1, 2 y 3a HECHAS;
+la red de bus ya está COCINADA: 170 patrones, 10.588 transbordos a
+pie):**
 ⚠️ EL FEED NO LLEGA AL PILAR (bus hasta el 05/10, cero del 10/10 en
 adelante) — ⚰️ EL CRON YA EXISTE y está probado contra el NAP real
 (la clave de Antonio en .env.local; el panel de Hostinger se
-configura al desplegar) · cabo a la 3: el zip nuevo se sirve al
-siguiente arranque · mejora: guardar los avisos del NAP en el
+configura al desplegar) · ⚰️ el zip nuevo ya entra en caliente
+(recocinar() con swap de referencia, 3a) · mejora: guardar los avisos del NAP en el
 registro · ⚰️ la caducidad ya no es duda sino
 medida · líneas por poste (sin guardián) · ⚰️ shapes.txt VERIFICADO el 30/08 (89 trazas cerrando al 100 %
 con los trips — la traza del bus calle-a-calle que Antonio preguntó,
@@ -1109,7 +1127,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 566 pruebas (385 motor + 181 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 576 pruebas (395 motor + 181 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
