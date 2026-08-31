@@ -88,7 +88,8 @@ levantado el 18/08, des-caducado del 21 al 31):
   RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
   anotado para el punto 12). Endpoints vivos, SIETE (el séptimo del
   31/08: `POST /api/renovar-feed`, el del cron — token Bearer en
-  cabecera, 503/401/409/202, single-flight de trabajo de fondo):
+  cabecera, 503/401/409/202, single-flight de trabajo de fondo; y
+  `POST /api/ruta` acepta `modo=bus` desde la 3b):
   `/api/salud` · `/api/vias?q=` (con `foco`) · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
   `POST /api/ruta` (sitio o vía-sin-portal en cualquiera de los dos
@@ -132,6 +133,33 @@ v2, el censo del feed destilado, la casilla 2 entera (cinco commits
 del ejecutor + las bitácoras nº17-18 con su fix) y los papeles. El
 push es de Antonio.
 
+**LA CASILLA 3b DEL 10 — EL VIAJE EN BUS/TRANVÍA (31/08 tarde): EL
+MODO BUS EXISTE.** RAPTOR en su estructura sobre la red cocinada
+[rondas = vehículos; OTP2 acceso→transporte→salida], sin casar
+horas: orden lexicográfico por las firmas (⭐ la firma 6 la impone la
+RONDA, no el comparador), espera E[W]=H/2 [Dial/Clerq/Wirasinghe]
+con «~», F + 120 s, radios 500/800 por el peatón, tope 3 rondas. El
+caso del ojo: 478 m → LÍNEA 29 → 886 m, 51,8 min, sumas exactas.
+Los pares medidos para el ojo: la firma 6 cuesta 0,9 min en un par;
+⚠️ la firma 3 cuesta 10,1 min en Asín y Palacios→La Fragua (el
+número queda en la juez). Contrato: 'montado' con línea + hitos
+sube/baja (la geometría son los postes; la traza es de la 4). LA
+CONSULTA VIVA [firma 7]: Avanza medida (text/html que es JSON; los
+fixtures son bytes medidos), single-flight, tope 3 s + D-G, CUATRO
+ESTADOS (llega → los minutos sustituyen al ~H/2 del primer vehículo
+y entran en el total · ausente → aviso doble sitio · mudo → D-G ·
+sinFuente el tranvía); las dos pruebas reales cayeron una en cada
+rama (la 29 ausente; la 53 «próximo en 4 min», 757 s). El botón Bus
+ya llama al motor (gris provisional hasta la 4). ⚠️⚠️ La bitácora
+del 25/08 REABIERTA: la comprobación de tipos de la interfaz no
+miraba nada — «tipos limpios en los dos lados» de las casillas 2 y
+3a ERA FALSO en la pantalla; un solo `npm run comprobar-tipos` en
+la raíz; ley: un arreglo que hay que acordarse de usar no es un
+arreglo del todo. Validado con doctrina para la 4: el aviso
+«ausente» debe decir lo medido [GTFS-RT: ausente = sin información,
+no sin servicio] · indicador de espera obligatorio [NN/g >1 s].
+415 motor · 183 interfaz.
+
 **LA CASILLA 3a DEL 10 — LA COCINA DE LA RED DE BUS (31/08).** La
 unidad es el TRIP PATTERN [OTP: trips de una ruta, misma dirección,
 misma secuencia — implícitos en GTFS, los deriva el consumidor], no
@@ -145,7 +173,7 @@ los pares en recta sobreviven andando) · 1.272 KB gitignored, 4,3 s
 referencia. La 39: 8 patrones, 45 min típicos vs 58,6 del peor.
 Partidor RFC 4180 por las comillas de stops.txt. Sin rojo-primero
 en el módulo de datos (declarado; la contraprueba mordió y apretó
-una juez). 395 motor · 181 interfaz.
+una juez). 395 motor · 181 interfaz [⚠️ misma corrección: tipos de interfaz sin comprobar aquí; ver la 3b].
 
 **LA CASILLA 2 DEL 10 — EL CRON DE RENOVACIÓN (31/08), validada
 contra la literatura.** El fetch detecta por fechaActualizacion sin
@@ -168,7 +196,7 @@ medición». El NAP en vivo: el sha del descargado = el de la semilla
 · 35 días → VIGENTE». ⚰️ Las fechas del NAP son cobertura;
 feed_end_date es la garantía [referencia GTFS] — manda el
 feed_info. Cabo a la 3: el zip nuevo entra al siguiente arranque.
-385 motor · 181 interfaz · 18/18 bitácoras cerradas.
+385 motor · 181 interfaz [⚠️ corrección del 31/08 tarde: los tipos de la INTERFAZ no se comprobaron aquí — el guion tecleado de memoria no miraba src/app; ver la 3b] · 18/18 bitácoras cerradas.
 
 **EL PUNTO 10 ARRANCA — la casilla 0 completa y el censo del feed
 (noche del 30/08 → 31/08).** NUEVE FIRMAS de Antonio antes de una
@@ -852,12 +880,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el punto 10, casilla 3b — EL VIAJE**: la
-búsqueda por rondas sobre la red cocinada [RAPTOR: rondas =
-transbordos; el vehículo único absoluto, los buses al empate — las
-firmas 6 y 3], la composición andar→bus→andar en tramos, y la
-consulta VIVA al poste de Avanza [firma 7, las cicatrices de
-ZetaBus]; (2) la pantalla del bus (patrón BiZi + colores de línea)
+**Lo siguiente:** (1) **el punto 10, casilla 4 — LA PANTALLA DEL
+BUS**: la traza real de las shapes cocinada por patrón, el tramo
+montado en EL COLOR DE SU LÍNEA con el chip (número + color, WCAG),
+los postes con icono, el indicador de espera [NN/g], el texto del
+aviso «ausente» dicho como lo medido [GTFS-RT]; (2) la pantalla del bus (patrón BiZi + colores de línea)
 y la demo; (3) LA FASE 2 de sentidos como goteo de fondo (las
 shapes como atajo); (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
@@ -1067,9 +1094,12 @@ es» (dice nombres, trae 260 etiquetas) · la doble capitalización
 «Senda ciclable/Ciclable» · el contraflujo con candado (18 reales) ·
 la API viva de BiZi vive aquí (mudada del 10; NO es GBFS).
 
-**Punto 10 (EN MARCHA desde el 30/08 — casillas 0, 1, 2 y 3a HECHAS;
-la red de bus ya está COCINADA: 170 patrones, 10.588 transbordos a
-pie):**
+**Punto 10 (EN MARCHA desde el 30/08 — casillas 0, 1, 2, 3a y 3b
+HECHAS: EL MODO BUS YA RUTEA con RAPTOR sobre la red cocinada y la
+consulta viva a Avanza; queda la 4 —el pintado con traza y
+colores, el indicador de espera, el texto del aviso ausente— y la
+demo):** ⚠️ la firma 3 cuesta 10,1 min en un par medido (Asín y
+Palacios→La Fragua) — el número está en la juez ·
 ⚠️ EL FEED NO LLEGA AL PILAR (bus hasta el 05/10, cero del 10/10 en
 adelante) — ⚰️ EL CRON YA EXISTE y está probado contra el NAP real
 (la clave de Antonio en .env.local; el panel de Hostinger se
@@ -1127,7 +1157,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 576 pruebas (395 motor + 181 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 598 pruebas (415 motor + 183 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

@@ -2200,7 +2200,7 @@ era reiniciar, patrón OTP/ZetaBus]. ⚠️ Mejora fichada: el
 registro no guarda los avisos del NAP (el GetList los trae). Para
 el panel de Hostinger al desplegar: POST …/api/renovar-feed,
 Authorization: Bearer <DESPLAZAME_REGEN_TOKEN>, ≥15 min, horario a
-criterio (ZetaBus 0 2 * * *). 385 motor · 181 interfaz · 18
+criterio (ZetaBus 0 2 * * *). 385 motor · 181 interfaz [⚠️ corrección del 31/08 tarde: los tipos de la INTERFAZ no se comprobaron aquí — el guion tecleado de memoria no miraba src/app; ver la 3b] · 18
 bitácoras, 0 abiertas.
 
 **⭐ CASILLA 3a · LA COCINA DE LA RED DE BUS — HECHA (31/08, dos
@@ -2238,7 +2238,73 @@ queda) · las comillas de stops.txt (934/984) cazadas por un volcado
 antes de que hubiera prueba → partidor RFC 4180 + red que revienta
 si los campos no cuadran (sin bitácora: nada dio verde) · dos
 commits y no tres (la cocina es una pasada; separar habría
-commiteado un estado que nunca existió). 395 motor · 181 interfaz.
+commiteado un estado que nunca existió). 395 motor · 181 interfaz [⚠️ misma corrección: tipos de interfaz sin comprobar aquí; ver la 3b].
+
+**⭐ CASILLA 3b · EL VIAJE EN BUS/TRANVÍA — HECHA (31/08, siete
+commits en dos encargos; validada contra la literatura).** LA
+BÚSQUEDA es RAPTOR en su estructura [rondas = vehículos; cada
+patrón una vez por ronda; fase de transbordos; OTP2: acceso →
+transporte → salida] sobre la red cocinada y solo patrones que
+operaEl(hoy); la variante SIN casar horas, declarada: coste = andar
++ Σ(espera + saltos típicos) + F (metros a 5 km/h + 120 s [OTP]);
+orden LEXICOGRÁFICO por las firmas (menos vehículos → menos
+tranvías → menos tiempo), tope 3 rondas [PROPIO]. ⭐ HALLAZGO: la
+firma 6 no la impone el comparador, LA IMPONE LA RONDA (se devuelve
+la primera que llega — el «menos transbordos» nativo de RAPTOR); el
+comparador solo hace falta para la firma 3. LA ESPERA: E[W]=H/2 [la
+suposición canónica: Dial 1967 · Clerq 1972 · Wirasinghe 1980; se
+degrada con intervalos >10-12 min — por eso es estimación y viaja
+con «~»], H del patrón HOY. EL CASO DEL OJO: COLOSO→ROMEO en bus =
+478 m a pie → LÍNEA 29 (#F5C100) 4.956 m → 886 m a pie · 6.320 m ·
+51,8 min · sumas exactas · pid==pid. LOS PARES DE LAS FIRMAS,
+MEDIDOS para que Antonio los vea: firma 6 en Av. de América→Madre
+Teresa: 1 vehículo 40,3 min gana a 2 vehículos 39,4 (cuesta 0,9
+min) · ⚠️ firma 3 en Asín y Palacios→La Fragua: bus+bus 63,9 min
+gana a bus+tranvía 53,8 — LA FIRMA CUESTA 10,1 MIN ahí; el número
+queda en la juez para discutirla algún día. EL CONTRATO: comoSeVa
+'montado' con su línea (id·nombre·color·texto·modo) y los hitos
+sube/baja. ⚠️ La geometría del tramo montado son LOS POSTES, no la
+traza (el shape_id está cocinado; sus puntos son dato de pintado —
+casilla 4). LA CONSULTA VIVA [firma 7]: Avanza MEDIDA antes de
+codificar (POST fRefrescaEmpresaExternos: text/html que en realidad
+es JSON; maquinas indexado con title «053 4937» y tablatiempos —
+los fixtures son los bytes medidos [ley nº18]; la cicatriz
+«053MIRALBUENO» comprobada; el contador de control por dos canales)
+· single-flight por poste · en cada Generar, nunca cacheada · tope
+3 s + D-G · ⭐ CUATRO ESTADOS, no dos: llega (sus minutos SUSTITUYEN
+al ~H/2 del PRIMER vehículo y entran en el total — «próximo en N
+min (dato de las HH:MM)») · ausente (contestó y esa línea no está →
+aviso en doble sitio, manda el horario) · mudo (no contestó → D-G
+«disponibilidad no verificada») · sinFuente (el tranvía: Avanza no
+lo cubre → nada que avisar) — confundir ausente con mudo convierte
+un fallo de red en «esa línea no pasa». LAS DOS PRUEBAS REALES
+salieron una en cada rama sin buscarlas: la 29 ausente a las 13:43
+(ruta entera + aviso) · la 53 en Emperador Carlos V «próximo en 4
+min» (757 s con el vivo, 785 con la estimación). Solo el PRIMER
+vehículo lleva el vivo («próximo en 3 min» a un poste al que llegas
+en 40 es un número cierto sobre un bus que no cogerás). El botón
+BUS ya llama al motor (la juez del «todavía no» llevaba escrito su
+vencimiento; la regla nº1: nada cuenta sin verse; gris provisional
+hasta la 4). Confesiones: el último «transbordo» de RAPTOR salía
+como tal sin llevar a vehículo (fundido con la salida, cazado en el
+caso del ojo) · el banner de arranque mentía (ahora sale de
+MODOS_ATENDIDOS; sin bitácora: nada lo vigilaba) · las jueces del
+motor nacieron rojas por «export no existe», no por conducta (la
+contraprueba es quien muerde: 11 mutaciones, todas rojas, una juez
+apretada). ⚠️⚠️ BITÁCORA DEL 25/08 REABIERTA Y CERRADA: la
+comprobación de tipos de la interfaz que el ejecutor tecleaba de
+memoria NO MIRABA NADA (cero ficheros de src/app) — el «tipos
+limpios en los dos lados» de las casillas 2 y 3a ERA FALSO en el
+lado de la pantalla; ahora un solo `npm run comprobar-tipos` en la
+raíz. LA LEY: un arreglo que hay que acordarse de usar no es un
+arreglo del todo. ⚰️ Doctrina pendiente para la 4 (validada aquí):
+el texto del aviso «ausente» debe decir lo MEDIDO, no lo inferido
+[GTFS-Realtime: entidad ausente = sin información en tiempo real,
+NO sin servicio] → «Avanza no anuncia ningún próximo de la línea X
+en este poste ahora mismo» · el Generar en bus tarda ~2 s
+variables → INDICADOR de espera obligatorio [NN/g: >1 s, indicar
+que se trabaja; más aún si el tiempo es variable]. 415 motor · 183
+interfaz.
 
 *(La regla del apoyo en ZetaBus —precedente propio en producción,
 solo lectura, se cita como lo que es y donde discrepe del feed se
