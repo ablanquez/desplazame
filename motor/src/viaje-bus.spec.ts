@@ -18,6 +18,11 @@ import { elFeedQueSeSirve } from './feed.ts';
 import { metrosEntre } from './cercano.ts';
 import {
   buscarViaje,
+  COSTE_DE_SUBIR,
+  PESO_DE_ANDAR,
+  PESO_DE_ESPERAR,
+  PESO_POR_MODO,
+  pesoDeAndar,
   esperaEstimada,
   etapaMontada,
   intervaloDeHoy,
@@ -52,6 +57,30 @@ let motor: Motor;
 
 /** Un martes cualquiera de septiembre, con la red entera operando. */
 const UN_MARTES = '20260907';
+
+/**
+ * ⭐ EL PESO DE UN VIAJE, con la fórmula de la casilla escrita entera:
+ *
+ *     walkReluctance × andar  +  Σ(boardCost + espera×1 + saltos)  +
+ *     Σ(transbordo×walkReluctance + 120)  +  walkReluctance × salir
+ *
+ * Se calcula aquí, a mano y aparte del motor, para que las jueces comparen
+ * contra la doctrina y no contra la implementación. Si el motor cambiara de
+ * fórmula sin querer, esto dejaría de cuadrar.
+ */
+function pesoDelViaje(v: {
+  readonly accesoAndando: { readonly metros: number };
+  readonly salidaAndando: { readonly metros: number };
+  readonly montados: readonly { readonly espera: number; readonly rodando: number }[];
+  readonly transbordos: readonly { readonly metros: number }[];
+}): number {
+  return (
+    pesoDeAndar(v.accesoAndando.metros) +
+    v.montados.reduce((n, m) => n + COSTE_DE_SUBIR + PESO_DE_ESPERAR * m.espera + m.rodando, 0) +
+    v.transbordos.reduce((n, t) => n + pesoDeAndar(t.metros) + PENALIZACION_TRANSBORDO_S, 0) +
+    pesoDeAndar(v.salidaAndando.metros)
+  );
+}
 
 /** Empezar y acabar EN una parada, para medir la búsqueda sin el ruido del paseo. */
 const enLaParada = (id: string): Acceso[] => [{ parada: id, metros: 0 }];
@@ -102,8 +131,14 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    *     Ramazzini cuesta 418 m más de andar **y 87 s más de rodar**.
    *
    * Ver la entrada del 31/08 de `docs/BITACORA.md`, y la ley que sale de ella.
+   *
+   * ⭐ **Y desde los pesos de OTP el viaje son DOS vehículos, no uno**, y es la
+   * doctrina haciendo su trabajo: el de un solo vehículo dejaba en la puerta un
+   * paseo final de **897 m**, que con `walkReluctance 4` pesa **2.583** —más de
+   * cuarenta minutos percibidos—. El de dos acaba a **194 m** y sale además
+   * **más rápido en segundos de verdad** (41,3 min contra 41,9).
    */
-  test('⭐ 1 · el caso del ojo sale en un vehículo, con sus postes y sus cifras', () => {
+  test('⭐ 1 · el caso del ojo: sube en el poste de la puerta y sale en dos vehículos', () => {
     const o = portales.donde.get('Portales.93310')!;
     const d = portales.donde.get('Portales.79358')!;
     const viaje = buscarViaje({
@@ -114,22 +149,21 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     })!;
     assert.ok(viaje, 'el caso del ojo tiene que tener viaje en bus');
 
-    assert.equal(viaje.vehiculos, 1);
+    assert.equal(viaje.vehiculos, 2);
     assert.equal(viaje.tranvias, 0);
-    assert.equal(viaje.transbordos.length, 0, 'con un vehículo no hay transbordo que valga');
+    assert.equal(viaje.transbordos.length, 1);
 
     const nombre = new Map(red.paradas.map((p) => [p.id, p.nombre]));
     assert.equal(nombre.get(viaje.accesoAndando.parada), 'Av. Academia General Militar N.º 37');
     assert.equal(viaje.accesoAndando.metros, 60, 'el poste que hay al salir del portal');
-    assert.equal(nombre.get(viaje.salidaAndando.parada), 'Miguel Servet N.º 28');
-    assert.equal(viaje.salidaAndando.metros, 897);
+    assert.equal(nombre.get(viaje.salidaAndando.parada), 'Doctor Iranzo N.º 61');
+    assert.equal(viaje.salidaAndando.metros, 194, 'y se baja casi en la puerta');
 
     const linea = lineaDelViaje(red, viaje.montados[0]!.patron);
     assert.equal(linea.corto, '29');
     assert.equal(linea.modo, 'bus');
     assert.equal(linea.color, 'F5C100', 'el color sale del feed, no de nosotros');
     assert.equal(viaje.montados[0]!.iDesde, 10, 'sube en el índice 10, no en el 8');
-    assert.equal(viaje.montados[0]!.iHasta - viaje.montados[0]!.iDesde, 14, 'catorce postes');
 
     // ⭐ Y EL CONTRASTE CON EL POSTE QUE SE ELEGÍA ANTES, con la cifra delante:
     // Ramazzini está en el mismo patrón y en la misma dirección, dos índices
@@ -145,14 +179,19 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
       'y estar dos índices antes en el MISMO patrón',
     );
 
-    // ⭐ Y LAS SUMAS CUADRAN: el total es exactamente lo que cuestan sus partes.
-    const m = viaje.montados[0]!;
+    // ⭐ Y LAS SUMAS CUADRAN, **en segundos de verdad**: los pesos son para
+    // elegir camino, no para el reloj. Andar 194 m sigue costando 140 s aunque
+    // para decidir cuenten como 559.
     const aMano =
       viaje.accesoAndando.metros / VELOCIDAD_PEATON_MS +
-      m.espera +
-      m.rodando +
+      viaje.montados.reduce((n, m) => n + m.espera + m.rodando, 0) +
+      viaje.transbordos.reduce(
+        (n, t) => n + t.metros / VELOCIDAD_PEATON_MS + PENALIZACION_TRANSBORDO_S,
+        0,
+      ) +
       viaje.salidaAndando.metros / VELOCIDAD_PEATON_MS;
     assert.equal(viaje.segundos, Math.round(aMano), 'el total no es la suma de sus partes');
+    assert.ok(pesoDelViaje(viaje) > viaje.segundos, 'el peso pesa más que el reloj');
   });
 
   /**
@@ -164,12 +203,14 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    * **40,3 min**; hay un dos-vehículos (**34+Ci1**) que tarda **35,8 min**.
    * **Gana el directo.** Es la firma haciendo lo que se firmó.
    *
-   * ⚠️ La cifra subió de 0,9 a **4,6 minutos** el 31/08, y no porque la firma
-   * cambiara: al reconsiderar la subida a lo largo del patrón, la alternativa
-   * de dos vehículos mejoró más que el directo. Cuanto mejor busca el motor,
-   * más cara sale esta firma.
+   * ⭐ **Y ya no gana por una llave, gana por el peso** (31/08). [DOC OTP,
+   * literal] *«no optimizamos por menos transbordos: lleva a resultados
+   * absurdos»*; la preferencia se expresa con `walkBoardCost`. Medido en este
+   * par: el de dos vehículos es **235 s más rápido de verdad** y pesa **1.087
+   * más** —600 del segundo billete, 142 m de transbordo y sus 120 s—, así que
+   * pierde. Pesos: **3.020** el directo, **4.107** el de dos.
    */
-  test('⭐ 2 · FIRMA 6: el directo gana al de dos aunque tarde 4,6 minutos más', () => {
+  test('⭐ 2 · el directo gana por PESO, no por una llave: el de dos ahorra menos de 600', () => {
     const desde = enLaParada('16572');
     const hasta = enLaParada('16867');
     const directo = buscarViaje({ red, fecha: UN_MARTES, acceso: desde, salida: hasta })!;
@@ -190,27 +231,45 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
       conDos.segundos < directo.segundos,
       `la alternativa tenía que ser más rápida: ${conDos.segundos} vs ${directo.segundos}`,
     );
-    // La firma cuesta esto, y queda escrito para que se pueda discutir con la cifra:
-    assert.equal(Math.round((directo.segundos - conDos.segundos) / 6) / 10, 4.6, 'minutos que cuesta la firma 6');
+    // ⭐ LA DOCTRINA, EN UNA RESTA: el de dos ahorra tiempo real, pero menos de
+    // lo que cuesta subirse otra vez. Ese «menos de 600» es TODA la regla.
+    const ahorroReal = directo.segundos - conDos.segundos;
+    assert.equal(ahorroReal, 235, 'los segundos de verdad que ahorra el de dos');
+    assert.ok(
+      ahorroReal < COSTE_DE_SUBIR,
+      `ahorra ${ahorroReal} s y subirse cuesta ${COSTE_DE_SUBIR}: por eso pierde`,
+    );
+    // Y los pesos, a mano y con la fórmula de la doctrina.
+    assert.equal(Math.round(pesoDelViaje(directo)), 3020);
+    assert.equal(Math.round(pesoDelViaje(conDos)), 4107);
+    assert.ok(pesoDelViaje(directo) < pesoDelViaje(conDos), 'gana el de menos peso');
   });
 
   /**
-   * ⭐ JUEZ 3 — **FIRMA 3**: a igual número de vehículos, menos tranvía gana.
+   * ⭐ JUEZ 3 — **LA FIRMA 3 ESTÁ RETIRADA**: el tranvía ya no penaliza.
    *
-   * ⚠️ **Y este caso cuesta caro, así que va con su cifra delante.**
-   * `Asín Y Palacios N.º 5` → `La Fragua / Parque Tapices De Goya`: bus+bus
-   * (**42+35**) tarda **56,4 min** y gana; bus+tranvía (**42+TRA**) tarda
-   * **52,1 min**. La firma 3 hace perder **4,3 minutos** para evitar un
-   * tranvía. Está medido y está dicho: si algún día se quiere revisar la firma,
-   * este es el número con el que discutirla.
+   * ⚠️ [DOC OTP, `transitReluctanceForMode`] la preferencia por modo existe y se
+   * expresa con un peso —no con un veto—, **pero su ejemplo va al revés del
+   * nuestro**: trae `RAIL 0,85`, o sea que el tren se PREFIERE. La doctrina no
+   * da ningún número para penalizar un tranvía, y la firma 3 no tenía más apoyo
+   * que la costumbre. Se retira, y lo que queda es `1,0` para los dos modos.
+   *
+   * El par de `Asín Y Palacios N.º 5` → `La Fragua / Parque Tapices De Goya`,
+   * que es donde la firma costaba dinero, se vuelve a medir con la firma fuera:
+   * el motor sigue eligiendo **bus+bus (42+35)** aunque el bus+tranvía tarde
+   * 4,3 min menos de reloj. ⭐ **Y ahora no es por el modo: es por el peso** —
+   * el del tranvía acaba a **353 m** de la puerta y el de bus+bus **a 0**.
    */
-  test('⭐ 3 · FIRMA 3: bus+bus gana a bus+tranvía, y cuesta 4,3 minutos', () => {
+  test('⭐ 3 · el tranvía ya no penaliza: los dos modos pesan 1', () => {
+    assert.equal(PESO_POR_MODO.bus, 1);
+    assert.equal(PESO_POR_MODO.tram, 1, 'la firma 3 está retirada, no rebajada');
+
     const desde = enLaParada('16524');
     const hasta = enLaParada('17664');
     const sinTranvia = buscarViaje({ red, fecha: UN_MARTES, acceso: desde, salida: hasta })!;
     assert.ok(sinTranvia);
     assert.equal(sinTranvia.vehiculos, 2);
-    assert.equal(sinTranvia.tranvias, 0, 'gana el que no usa tranvía');
+    assert.equal(sinTranvia.tranvias, 0);
     assert.deepEqual(
       sinTranvia.montados.map((m) => lineaDelViaje(red, m.patron).corto),
       ['42', '35'],
@@ -222,13 +281,15 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     };
     const conTranvia = buscarViaje({ red: sinEseBus, fecha: UN_MARTES, acceso: desde, salida: hasta })!;
     assert.ok(conTranvia);
-    assert.equal(conTranvia.vehiculos, 2, 'el mismo número de vehículos');
     assert.equal(conTranvia.tranvias, 1);
-    assert.ok(conTranvia.segundos < sinTranvia.segundos);
-    assert.equal(
-      Math.round((sinTranvia.segundos - conTranvia.segundos) / 6) / 10,
-      4.3,
-      'minutos que cuesta la firma 3 en este par',
+    assert.ok(conTranvia.segundos < sinTranvia.segundos, 'el del tranvía es más rápido de reloj');
+
+    // ⭐ Y PIERDE POR EL PASEO FINAL, no por ser tranvía: 353 m contra 0.
+    assert.equal(sinTranvia.salidaAndando.metros, 0);
+    assert.equal(conTranvia.salidaAndando.metros, 353);
+    assert.ok(
+      pesoDelViaje(sinTranvia) < pesoDelViaje(conTranvia),
+      `pesos: ${Math.round(pesoDelViaje(sinTranvia))} contra ${Math.round(pesoDelViaje(conTranvia))}`,
     );
   });
 
@@ -356,35 +417,37 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   });
 
   /**
-   * ⭐ JUEZ 9 — EL ORDEN LEXICOGRÁFICO, literal.
+   * ⭐ JUEZ 9 — **EL COSTE TOTAL DECIDE, y decide ENTRE RONDAS.**
    *
-   * Las tres capas, una a una y en su orden: **vehículos** manda sobre todo;
-   * **tranvías** desempata; **tiempo** decide al final. Las dos primeras ya se
-   * han comprado con casos reales en las jueces 2 y 3; aquí se compra que son
-   * un orden y no una mezcla, y que la tercera capa existe.
+   * ⚠️ Hasta el 31/08 la búsqueda devolvía **la primera ronda que llegara**,
+   * porque «menos vehículos» era una llave absoluta: la ronda 2 no podía ganarle
+   * a la 1 dijera lo que dijera el reloj. Ahora la preferencia vive dentro del
+   * coste —`COSTE_DE_SUBIR` por vehículo— y **todas las rondas compiten**.
+   *
+   * El caso del ojo es la prueba: la ronda 1 llega (un solo 29, acabando a 897 m
+   * de la puerta) y **aun así gana la ronda 2**, porque esos 897 m pesan 2.583.
    */
-  test('⭐ 9 · vehículos, luego tranvías, luego tiempo: en ese orden', () => {
-    assert.equal(RONDAS, 3, 'el tope de rondas es el tope de vehículos');
+  test('⭐ 9 · una ronda posterior puede ganar si su coste total es menor', () => {
+    assert.equal(RONDAS, 3, 'el tope de rondas sigue siendo el tope de vehículos');
 
-    // Capa 1 sobre capa 3: la juez 2 lo midió — 1 vehículo de 40,3 min gana a
-    // 2 de 39,4. Capa 2 sobre capa 3: la juez 3 — 0 tranvías de 63,9 gana a 1
-    // de 53,8. Aquí queda la comprobación de que la tercera capa ordena de
-    // verdad cuando las dos primeras empatan.
-    const desde = enLaParada('16572');
-    const hasta = enLaParada('16867');
-    const uno = buscarViaje({ red, fecha: UN_MARTES, acceso: desde, salida: hasta })!;
-    assert.equal(uno.vehiculos, 1);
+    const o = portales.donde.get('Portales.93310')!;
+    const d = portales.donde.get('Portales.79358')!;
+    const peticion = { red, fecha: UN_MARTES, acceso: accesos(o.lon, o.lat), salida: accesos(d.lon, d.lat) };
+    const dos = buscarViaje(peticion)!;
+    assert.equal(dos.vehiculos, 2, 'gana la ronda 2');
 
-    // Quitando su patrón, el siguiente de UN vehículo (si lo hay) tiene que ser
-    // más lento que él: si no, el orden por tiempo no estaría ordenando.
-    const sin: RedDeBus = {
+    // Que la ronda 1 LLEGABA se compra tapando el segundo vehículo: sigue
+    // habiendo viaje, y es peor de peso aunque use un vehículo menos.
+    const sinElSegundo: RedDeBus = {
       ...red,
-      patrones: red.patrones.filter((p) => p.id !== uno.montados[0]!.patron.id),
+      patrones: red.patrones.filter((p) => p.id !== dos.montados[1]!.patron.id),
     };
-    const otro = buscarViaje({ red: sin, fecha: UN_MARTES, acceso: desde, salida: hasta });
-    if (otro && otro.vehiculos === 1) {
-      assert.ok(otro.segundos >= uno.segundos, 'había un directo más rápido y no se eligió');
-    }
+    const otro = buscarViaje({ ...peticion, red: sinElSegundo })!;
+    assert.ok(otro, 'sin ese patrón sigue habiendo viaje');
+    assert.ok(
+      pesoDelViaje(dos) < pesoDelViaje(otro),
+      `el elegido tiene que pesar menos: ${Math.round(pesoDelViaje(dos))} contra ${Math.round(pesoDelViaje(otro))}`,
+    );
   });
 
   /**
@@ -634,8 +697,15 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     reiniciarVisitas();
     const { origen, destino } = elOjo();
     const preparado = prepararViajeEnBus(motor, red, origen, destino, UN_MARTES);
+    const primera = await preparado.conElVivo!(respondiendo(MEDIDO_POSTE_1203));
+    // ⚠️ Las visitas por «Generar» son **una por subida**, y cuántas subidas
+    // tiene el viaje lo decide la búsqueda — el 31/08 pasó de una a dos y este
+    // número, escrito a mano, murió sin tener nada que ver con la caché.
+    const subidas = primera.pasos.filter((x) => x.giro === 'sube').length;
+    assert.ok(subidas > 0, 'el viaje tiene al menos una subida');
+    assert.equal(visitasHechas(), subidas, 'una visita por subida en el primer Generar');
+
     await preparado.conElVivo!(respondiendo(MEDIDO_POSTE_1203));
-    await preparado.conElVivo!(respondiendo(MEDIDO_POSTE_1203));
-    assert.equal(visitasHechas(), 2, 'alguien ha guardado la respuesta entre peticiones');
+    assert.equal(visitasHechas(), subidas * 2, 'alguien ha guardado la respuesta entre peticiones');
   });
 });

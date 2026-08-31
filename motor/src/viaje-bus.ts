@@ -86,11 +86,68 @@ export const RADIO_M: Readonly<Record<ModoDeRed, number>> = { bus: 500, tram: 80
  */
 export const RONDAS = 3;
 
-/** Los 120 s que cuesta un transbordo, además de andarlo. [OTP.] */
-export const PENALIZACION_TRANSBORDO_S = 120;
-
 /** 5 km/h, la misma velocidad a pie que todo lo demás de la casa. */
 export const VELOCIDAD_PEATON_MS = 5000 / 3600;
+
+/** Los 120 s que cuesta un transbordo, además de andarlo. [OTP `transferSlack`.] */
+export const PENALIZACION_TRANSBORDO_S = 120;
+
+/**
+ * ⭐ LO MALO QUE ES ANDAR, COMPARADO CON IR SENTADO. **4,0** [OTP2].
+ *
+ * [DOC OpenTripPlanner, `walkReluctance`] es *«el multiplicador de lo malo que
+ * es andar frente a ir en transporte el mismo tiempo»*. El defecto de OTP1 era
+ * **2,0** y el de la configuración actual de OTP2 es **4,0**; de 10 a 20 es
+ * «no quiero andar». Se toma el 4,0, que es el defecto vigente, y queda dicho
+ * que el 2,0 es la alternativa documentada si el ojo la prefiere.
+ *
+ * ⚠️ **Esto pesa la BÚSQUEDA, no el reloj.** Los segundos que se contestan son
+ * los de verdad —ver `reconstruir`—: andar diez minutos sigue tardando diez
+ * minutos aunque para elegir camino cuenten como cuarenta.
+ */
+export const PESO_DE_ANDAR = 4;
+
+/**
+ * ⭐ LO QUE CUESTA SUBIRSE A UN VEHÍCULO. **600** de peso ≈ 10 minutos [OTP].
+ *
+ * [DOC OpenTripPlanner, `walkBoardCost`] *«evita transbordos innecesarios»*, y es
+ * *«el coste percibido usual de usar un vehículo»*: la molestia de esperar sin
+ * saber, de identificar el bus, de subir y validar.
+ *
+ * ⭐ **Y es lo que sustituye a la firma 6.** [DOC OTP, literal] *«no optimizamos
+ * por menos transbordos: lleva a resultados absurdos»* —su ejemplo es Nueva
+ * York—. Así que «menos vehículos» deja de ser una llave absoluta y pasa a ser
+ * una **preferencia fuerte**: un segundo vehículo tiene que ahorrar **más de 600
+ * de peso** para entrar. Con el peso de andar en 4, eso son más de diez minutos
+ * de viaje o dos minutos y medio de paseo.
+ */
+export const COSTE_DE_SUBIR = 600;
+
+/**
+ * Lo que pesa esperar: **1,0**, tal cual [OTP `waitReluctance`].
+ *
+ * ⚠️ Y su advertencia, que es la razón de que no se toque: subirlo hace que el
+ * planificador *«ande por la línea para evitar esperar»* — empieza a proponer
+ * paseos largos hasta la parada siguiente con tal de no quedarse quieto.
+ */
+export const PESO_DE_ESPERAR = 1;
+
+/**
+ * ⚠️ **LA PREFERENCIA POR MODO, RETIRADA** (31/08). Tranvía = **1,0**.
+ *
+ * [DOC OTP, `transitReluctanceForMode`] la preferencia por modo existe y se
+ * expresa con un peso, no con un veto — pero **su ejemplo va al revés del
+ * nuestro**: trae `RAIL 0,85`, es decir, el tren se PREFIERE. La doctrina no
+ * trae ningún número para penalizar el tranvía, y la firma 3 no tenía más
+ * apoyo que la costumbre. Se retira por falta de soporte documentado; el par de
+ * Asín y Palacios se vuelve a medir y se enseña con la firma fuera.
+ */
+export const PESO_POR_MODO: Readonly<Record<ModoDeRed, number>> = { bus: 1, tram: 1 };
+
+/** Lo que pesa andar `metros`: los segundos de verdad, por `PESO_DE_ANDAR`. */
+export function pesoDeAndar(metros: number): number {
+  return (PESO_DE_ANDAR * metros) / VELOCIDAD_PEATON_MS;
+}
 
 /** Una parada alcanzable a pie desde un extremo, con lo que cuesta llegar. */
 export interface Acceso {
@@ -243,11 +300,17 @@ interface Etiqueta {
   readonly ronda: number;
 }
 
-/** ¿Es `a` mejor que `b` por el orden de la casa, a igualdad de vehículos? */
-function mejorAlEmpate(a: Etiqueta, b: Etiqueta): boolean {
-  if (a.tranvias !== b.tranvias) {
-    return a.tranvias < b.tranvias;
-  }
+/**
+ * ¿Es `a` mejor que `b`? **Menos coste, y ya.**
+ *
+ * ⚠️ Hasta el 31/08 esto era un orden lexicográfico —vehículos, luego tranvías,
+ * luego tiempo— y ahora es una sola resta, porque **las preferencias se han
+ * metido dentro del coste**: cada vehículo suma `COSTE_DE_SUBIR` y cada metro
+ * andado pesa `PESO_DE_ANDAR`. [DOC OTP] *«no optimizamos por menos transbordos:
+ * lleva a resultados absurdos»* — una llave lexicográfica no se puede negociar,
+ * y un peso sí.
+ */
+function esMejor(a: Etiqueta, b: Etiqueta): boolean {
   return a.coste < b.coste;
 }
 
@@ -275,14 +338,14 @@ export function buscarViaje(p: Peticion): Viaje | null {
   let frontera = new Set<string>();
   for (const a of p.acceso) {
     const etiqueta: Etiqueta = {
-      coste: a.metros / VELOCIDAD_PEATON_MS,
+      coste: pesoDeAndar(a.metros),
       tranvias: 0,
       como: { clase: 'acceso', metros: a.metros },
       anterior: null,
       ronda: 0,
     };
     const previa = mejor.get(a.parada);
-    if (!previa || mejorAlEmpate(etiqueta, previa)) {
+    if (!previa || esMejor(etiqueta, previa)) {
       mejor.set(a.parada, etiqueta);
       frontera.add(a.parada);
     }
@@ -292,6 +355,8 @@ export function buscarViaje(p: Peticion): Viaje | null {
   }
 
   const alSalir = new Map(p.salida.map((s) => [s.parada, s.metros]));
+  /** El mejor viaje visto en CUALQUIER ronda, por coste total con salida. */
+  let campeon: { parada: string; metros: number; coste: number } | null = null;
 
   for (let ronda = 1; ronda <= RONDAS; ronda++) {
     const nuevas = new Map<string, Etiqueta>();
@@ -345,7 +410,10 @@ export function buscarViaje(p: Peticion): Viaje | null {
           // dos veces en la misma ronda sería contar un vehículo de menos.
           const suya = mejor.get(patron.paradas[k]!);
           if (suya && suya.ronda === ronda - 1) {
-            const candidato = suya.coste + espera - acumulado[k]!;
+            // ⭐ Aquí entran los dos pesos de la subida: el coste de usar un
+            // vehículo y la espera con su peso 1.
+            const candidato =
+              suya.coste + COSTE_DE_SUBIR + PESO_DE_ESPERAR * espera - acumulado[k]!;
             if (candidato < mejorSubida) {
               mejorSubida = candidato;
               iSubida = k;
@@ -358,7 +426,7 @@ export function buscarViaje(p: Peticion): Viaje | null {
           }
           const destino = patron.paradas[k]!;
           const etiqueta: Etiqueta = {
-            coste: mejorSubida + acumulado[k]!,
+            coste: mejorSubida + PESO_POR_MODO[patron.modo] * acumulado[k]!,
             tranvias: subida.tranvias + (patron.modo === 'tram' ? 1 : 0),
             como: {
               clase: 'montado',
@@ -373,7 +441,7 @@ export function buscarViaje(p: Peticion): Viaje | null {
             ronda,
           };
           const previa = nuevas.get(destino) ?? mejor.get(destino);
-          if (!previa || mejorAlEmpate(etiqueta, previa)) {
+          if (!previa || esMejor(etiqueta, previa)) {
             nuevas.set(destino, etiqueta);
           }
         }
@@ -384,14 +452,14 @@ export function buscarViaje(p: Peticion): Viaje | null {
     for (const [parada, etiqueta] of [...nuevas]) {
       for (const { hasta, metros } of indices.aPie.get(parada) ?? []) {
         const aPie: Etiqueta = {
-          coste: etiqueta.coste + metros / VELOCIDAD_PEATON_MS + PENALIZACION_TRANSBORDO_S,
+          coste: etiqueta.coste + pesoDeAndar(metros) + PENALIZACION_TRANSBORDO_S,
           tranvias: etiqueta.tranvias,
           como: { clase: 'aPie', desde: parada, metros },
           anterior: parada,
           ronda,
         };
         const previa = nuevas.get(hasta) ?? mejor.get(hasta);
-        if (!previa || mejorAlEmpate(aPie, previa)) {
+        if (!previa || esMejor(aPie, previa)) {
           nuevas.set(hasta, aPie);
         }
       }
@@ -401,30 +469,33 @@ export function buscarViaje(p: Peticion): Viaje | null {
       mejor.set(parada, etiqueta);
     }
     frontera = new Set(nuevas.keys());
-    if (frontera.size === 0) {
-      break;
-    }
 
-    // ¿Se llega ya? Si sí, esta ronda es la de menos vehículos posible.
-    let ganador: { etiqueta: Etiqueta; parada: string; metros: number } | null = null;
+    // ⭐ ¿SE LLEGA YA? Se apunta el mejor de ESTA ronda y **se sigue buscando**.
+    //
+    // ⚠️ Hasta el 31/08 aquí se devolvía la primera ronda que llegara, porque
+    // «menos vehículos» era una llave absoluta. Ya no: la preferencia vive en
+    // el `COSTE_DE_SUBIR`, así que una ronda más puede ganar — si ahorra más de
+    // 600 de peso por cada vehículo que añade. [DOC OTP] *«no optimizamos por
+    // menos transbordos: lleva a resultados absurdos»*.
     for (const [parada, metros] of alSalir) {
-      const etiqueta = nuevas.get(parada) ?? mejor.get(parada);
+      const etiqueta = mejor.get(parada);
       if (!etiqueta || etiqueta.como.clase === 'acceso') {
         continue;
       }
-      const conSalida: Etiqueta = {
-        ...etiqueta,
-        coste: etiqueta.coste + metros / VELOCIDAD_PEATON_MS,
-      };
-      if (!ganador || mejorAlEmpate(conSalida, { ...ganador.etiqueta, coste: ganador.etiqueta.coste + ganador.metros / VELOCIDAD_PEATON_MS })) {
-        ganador = { etiqueta, parada, metros };
+      const coste = etiqueta.coste + pesoDeAndar(metros);
+      if (!campeon || coste < campeon.coste) {
+        campeon = { parada, metros, coste };
       }
     }
-    if (ganador) {
-      return reconstruir(mejor, ganador.parada, ganador.metros, p);
+    if (frontera.size === 0) {
+      // Una ronda que no mejoró nada no va a mejorar la siguiente.
+      break;
     }
   }
-  return null;
+  // El campeón se reconstruye desde `mejor`, que a estas alturas tiene la mejor
+  // etiqueta de cada parada: si una ronda posterior mejoró esa parada, el
+  // campeón se actualizó con ella en la vuelta correspondiente.
+  return campeon ? reconstruir(mejor, campeon.parada, campeon.metros, p) : null;
 }
 
 /**
