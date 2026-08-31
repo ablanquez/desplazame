@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-31] 🔴 ABIERTA — La búsqueda se sube en la primera parada marcada del patrón y no la reconsidera: anda 478 m para coger la misma línea que tenía a 60 m
+## [2026-08-31] ✅ CERRADA — La búsqueda se sube en la primera parada marcada del patrón y no la reconsidera: anda 478 m para coger la misma línea que tenía a 60 m
 
 **Categoría:** regla de RAPTOR copiada sin traducir a costes
 
@@ -59,15 +59,46 @@ salía.
 **Cómo se cazó:** usuario — Antonio lo vio en localhost y dijo que tenía un poste
 de la 29 a veinte metros de casa.
 
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** una regla de RAPTOR copiada **sin traducirla**. En el RAPTOR de
+libro la etiqueta de una parada es una **hora de llegada**, y por eso *«subirse
+en la primera parada marcada»* es correcto: subir antes nunca hace llegar más
+tarde, y la regla de «coger un vehículo anterior» solo mira si en esta parada se
+puede coger uno que salga antes.
+
+Aquí la etiqueta es un **coste** y no hay horas — no se pregunta a qué hora
+sales [firmas 6 y 7]. Con costes, subir antes **cuesta más rodar**, así que
+«la primera marcada» deja de ser óptima y pasa a ser simplemente la primera. La
+regla existía en el código, con su cita, y lo que faltaba era la traducción.
+
+Y la juez no lo vio porque su valor esperado salió de la propia salida del
+motor: se escribió mirando lo que devolvía, no lo que tenía que devolver.
+
+**Arreglo aplicado:** `motor/src/viaje-bus.ts` — la fase de patrones se recorre
+con un **mínimo corrido**, `min_{k' <= k} (coste[k'] + espera − acumulado[k']) +
+acumulado[k]`, y la subida se reconsidera en cada parada; `acumuladoDe` da los
+segundos de rodar desde el principio del patrón. En `motor/src/viaje-bus.spec.ts`
+la juez 1 compra el poste **justificado** —y comprueba que Ramazzini sigue
+siendo un acceso posible, para no ganar por ausencia—, la 16 es nueva y compra
+el índice 10 contra el 8, y las 11, 12 y 14 sacan del viaje lo que antes tenían
+escrito a mano.
+
+Medido: el caso del ojo pasa de **51,8 a 43,0 min** con solo este arreglo, y el
+caso (A) de Antonio de **81 a 47**. Con la doctrina entera —pesos y acceso— el
+ojo acaba en **35,9** y el (A) en **39,5**.
+
+**Commit:** `bf59be4`
 
 **Ley que sale de aquí:** **el guardián de un viaje compra los postes que
 cogeria un vecino, no los que el motor devolvió.** Un valor esperado copiado de
 la salida no es una expectativa: es un calco, y calca también el fallo. Cuando
 el esperado sea una elección —qué poste, qué línea— hay que poder decir **por
 qué ese y no el de al lado**, con el número delante.
+
+Y una segunda, que salió al cerrar: **una regla prestada se traduce, no se
+copia.** El código traía la cita de RAPTOR correcta y la aplicaba sobre una
+etiqueta que no era la suya. Cuando se toma una regla de un algoritmo publicado,
+hay que escribir **qué supone** —aquí: que la etiqueta es una hora— y comprobar
+que eso se cumple en casa.
 
 **Traza:** `motor/src/viaje-bus.ts` — `buscarViaje`, la fase de patrones (`la
 parada marcada más temprana del patrón`); `motor/src/viaje-bus.spec.ts` — juez 1.
