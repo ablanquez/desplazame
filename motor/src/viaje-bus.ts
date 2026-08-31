@@ -64,16 +64,59 @@ import type { AndarEntre } from './red-bus.ts';
 import { operaEl, type ModoDeRed, type PatronBus, type RedDeBus } from './red-bus.ts';
 
 /**
- * ⭐ HASTA DÓNDE SE BUSCA UN POSTE, por modo. **Firma 4.**
+ * ⭐ HASTA DÓNDE SE BUSCA UN POSTE. **Un tope de RENDIMIENTO, no un veto.**
  *
- * Es un **radio de búsqueda, no una frontera**: si no hay poste dentro, no hay
- * viaje en bus y se dice; no se estira el radio «por esta vez».
+ * ⚠️ **Los 500/800 m por modo se retiran** (31/08). Eran una frontera: un poste
+ * a 501 m no existía para el motor, dijera lo que dijera el resto del viaje. Y
+ * eso no es lo que hace un router. [DOC OTP2] el límite de acceso y salida es
+ * **de rendimiento** —su consejo es *ponerlo alto*, y su defecto son **4 horas**—
+ * y **quien decide es `walkReluctance`**: andar 530 m no está prohibido, cuesta
+ * 1.526 de peso, y el viaje se lleva ese coste a la comparación como cualquier
+ * otro.
  *
- * El tranvía tiene más porque tiene menos paradas y más capacidad: andar 800 m
- * hasta un tranvía que pasa cada 5 minutos es un trato que la gente hace, y
- * andar 800 m hasta un bus que pasa cada 20 no.
+ * El caso que lo pidió: la línea 44 pasa a **530 m andando** del portal de
+ * Antonio. Con el veto no existía; ahora entra y compite.
+ *
+ * Aquí el tope se pone en **30 minutos andando** —no las 4 horas de OTP, que
+ * son para una región entera con tren; esto es una ciudad de 20 km de lado—.
+ * [PROPIO, declarado.]
  */
-export const RADIO_M: Readonly<Record<ModoDeRed, number>> = { bus: 500, tram: 800 };
+export const TOPE_DE_ACCESO_S = 30 * 60;
+
+/**
+ * ⚠️ Y EL OTRO TOPE, que es el que de verdad manda: **40 postes candidatos**.
+ *
+ * Es rendimiento puro y va medido. Cada candidato cuesta **un Dijkstra del
+ * peatón**, porque los metros de acceso son metros andando de verdad, nunca en
+ * recta. Medido el 31/08 desde tres portales:
+ *
+ * ```
+ * tope 2500 m: 181 postes en recta (barrio)  →  202 ms
+ *              438 postes en recta (centro)  → 1602 ms   ← por extremo
+ * ```
+ *
+ * Tres segundos y pico de Dijkstras por «Generar» no los paga nadie. OTP no
+ * tiene este problema porque hace **una** búsqueda callejera hacia fuera y
+ * recoge las paradas que alcanza; aquí la primitiva es punto a punto, así que
+ * el tope va en el número de candidatos. Se cogen los 40 más cercanos **en
+ * recta** —que es gratis— y a esos se les anda.
+ *
+ * 40 cubre más de 1.100 m en cualquiera de los tres portales medidos, muy por
+ * encima de lo que nadie anda hasta un bus. Si algún día la primitiva del
+ * peatón sepa alcanzar muchos destinos de una vez, este tope sobra.
+ */
+export const POSTES_CANDIDATOS = 40;
+
+/**
+ * Los 500 y 800 m de antes **siguen citados a propósito**: son el estándar de
+ * planeamiento —la distancia que se acepta al planificar una red de paradas—,
+ * y no eran un mal número. Lo que eran es un número de PLANEAMIENTO usado como
+ * regla de ROUTER, y eso sí estaba mal.
+ */
+export const ESTANDAR_DE_PLANEAMIENTO_M: Readonly<Record<ModoDeRed, number>> = {
+  bus: 500,
+  tram: 800,
+};
 
 /**
  * ⭐ TOPE DE RONDAS = 3 vehículos. [PROPIO declarado.]
@@ -725,21 +768,34 @@ export function etapaMontada(
   };
 }
 
-/** Los postes a los que se llega andando desde un punto, cada uno con su radio. */
+/**
+ * ⭐ LOS POSTES A LOS QUE SE LLEGA ANDANDO, con sus metros de verdad.
+ *
+ * Dos filtros y ninguno es un veto de modo:
+ *
+ *   1. **Los 40 más cercanos en recta** —`POSTES_CANDIDATOS`—, que es el tope
+ *      de rendimiento: la recta es gratis y el Dijkstra no.
+ *   2. **Los que caen dentro de `TOPE_DE_ACCESO_S` andando de verdad.**
+ *
+ * Quien decide cuál se usa no es esto: es el coste, con `PESO_DE_ANDAR`.
+ */
 export function postesCerca(
   red: RedDeBus,
   andar: AndarEntre,
   lon: number,
   lat: number,
 ): Acceso[] {
+  const tope = TOPE_DE_ACCESO_S * VELOCIDAD_PEATON_MS;
+  const candidatos = red.paradas
+    .map((p) => ({ p, recta: metrosEntre(lon, lat, p.lon, p.lat) }))
+    .filter((x) => x.recta <= tope)
+    .sort((a, b) => a.recta - b.recta)
+    .slice(0, POSTES_CANDIDATOS);
+
   const salida: Acceso[] = [];
-  for (const p of red.paradas) {
-    const radio = RADIO_M[p.modos.includes('tram') ? 'tram' : 'bus'];
-    if (metrosEntre(lon, lat, p.lon, p.lat) > radio) {
-      continue;
-    }
+  for (const { p } of candidatos) {
     const m = andar(lon, lat, p.lon, p.lat);
-    if (m !== null && m <= radio) {
+    if (m !== null && m <= tope) {
       salida.push({ parada: p.id, metros: Math.round(m) });
     }
   }
@@ -838,8 +894,8 @@ export function prepararViajeEnBus(
   if (acceso.length === 0 || salida.length === 0) {
     const cual = acceso.length === 0 ? 'el origen' : 'el destino';
     return sinViaje(
-      `No hay ningún poste de bus a menos de ${RADIO_M.bus} m de ${cual} ` +
-        `(ni de tranvía a ${RADIO_M.tram} m)` +
+      `No hay ningún poste de bus ni de tranvía a menos de ` +
+        `${Math.round(TOPE_DE_ACCESO_S / 60)} minutos andando de ${cual}` +
         (enKm ? `: andando son ${enKm} km.` : '.'),
     );
   }

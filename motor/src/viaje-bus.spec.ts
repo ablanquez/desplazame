@@ -23,6 +23,9 @@ import {
   PESO_DE_ESPERAR,
   PESO_POR_MODO,
   pesoDeAndar,
+  POSTES_CANDIDATOS,
+  ESTANDAR_DE_PLANEAMIENTO_M,
+  TOPE_DE_ACCESO_S,
   esperaEstimada,
   etapaMontada,
   intervaloDeHoy,
@@ -31,7 +34,6 @@ import {
   postesCerca,
   preguntarPorLasSubidas,
   prepararViajeEnBus,
-  RADIO_M,
   RONDAS,
   VELOCIDAD_PEATON_MS,
   type Acceso,
@@ -85,23 +87,15 @@ function pesoDelViaje(v: {
 /** Empezar y acabar EN una parada, para medir la búsqueda sin el ruido del paseo. */
 const enLaParada = (id: string): Acceso[] => [{ parada: id, metros: 0 }];
 
-/** Los postes a los que se llega andando desde un punto, con su radio por modo. */
-function accesos(lon: number, lat: number): Acceso[] {
-  const salida: Acceso[] = [];
-  for (const p of red.paradas) {
-    const radio = RADIO_M[p.modos.includes('tram') ? 'tram' : 'bus'];
-    const dx = (p.lon - lon) * 82500;
-    const dy = (p.lat - lat) * 111320;
-    if (Math.hypot(dx, dy) > radio) {
-      continue;
-    }
-    const m = andar(lon, lat, p.lon, p.lat);
-    if (m !== null && m <= radio) {
-      salida.push({ parada: p.id, metros: Math.round(m) });
-    }
-  }
-  return salida;
-}
+/**
+ * Los postes de acceso de un punto.
+ *
+ * ⚠️ Llama a `postesCerca`, el de producción, y no reimplementa nada. Hasta el
+ * 31/08 esto era una copia de la lógica del motor dentro de la prueba — así que
+ * el día que el motor cambió de regla, la copia siguió aplicando la vieja y las
+ * jueces medían un mundo que ya no existía.
+ */
+const accesos = (lon: number, lat: number): Acceso[] => postesCerca(red, andar, lon, lat);
 
 describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   before(async () => {
@@ -115,30 +109,26 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   });
 
   /**
-   * ⭐ JUEZ 1 — EL CASO DEL OJO: COLOSO 2 → LEOPOLDO ROMEO 27 en bus.
+   * ⭐ JUEZ 1 — EL CASO DEL OJO, y lo que Antonio dijo que tenía que salir.
    *
-   * El mismo par que lleva toda la semana sirviendo de piedra de toque, ahora en
-   * bus. Sale un viaje de **un solo vehículo**, la línea 29.
+   * `COLOSO 2 → LEOPOLDO ROMEO 27` en bus. Sale **un solo vehículo, la línea
+   * 44**, y **35,9 min**. Vale la pena escribir de dónde viene ese número,
+   * porque son tres arreglos seguidos sobre el mismo par:
    *
-   * ⚠️ **Y el poste de subida va JUSTIFICADO, no copiado de la salida.** Hasta el
-   * 31/08 esta juez compraba `Bernardo Ramazzini / Maz` **a 478 m**, que es lo
-   * que el motor devolvía — y lo que devolvía estaba mal. El poste que compra
-   * ahora es el que cogería un vecino, y se puede decir por qué:
+   * ```
+   * 51,8 min  con la subida sin reconsiderar y el veto de 500 m
+   * 43,0 min  cuando la subida se reconsideró (sube a 60 m, no a 478)
+   * 41,3 min  con los pesos de OTP (dos vehículos: 897 m de paseo final pesan 2.583)
+   * 35,9 min  sin el veto de los 500 m: la 44 pasa a 540 m y lleva a la puerta
+   * ```
    *
-   *   · `Av. Academia General Militar N.º 37` está **a 60 m** del portal;
-   *   · lleva **la misma línea 29 en la misma dirección** (patrón `29|1|1`);
-   *   · Ramazzini es el índice 8 de ese patrón y éste el 10, así que subir en
-   *     Ramazzini cuesta 418 m más de andar **y 87 s más de rodar**.
-   *
-   * Ver la entrada del 31/08 de `docs/BITACORA.md`, y la ley que sale de ella.
-   *
-   * ⭐ **Y desde los pesos de OTP el viaje son DOS vehículos, no uno**, y es la
-   * doctrina haciendo su trabajo: el de un solo vehículo dejaba en la puerta un
-   * paseo final de **897 m**, que con `walkReluctance 4` pesa **2.583** —más de
-   * cuarenta minutos percibidos—. El de dos acaba a **194 m** y sale además
-   * **más rápido en segundos de verdad** (41,3 min contra 41,9).
+   * ⚠️ **Y el poste de subida no está copiado de la salida** — la ley de la
+   * entrada del 31/08—: `Av. Salvador Allende / San Juan De La Peña` se compra
+   * porque **está a 540 m y lleva directo a 194 m del destino**, mientras que el
+   * poste de la puerta (60 m) obliga a acabar a 846 m. La juez 9 pone los pesos
+   * de las dos opciones uno al lado del otro.
    */
-  test('⭐ 1 · el caso del ojo: sube en el poste de la puerta y sale en dos vehículos', () => {
+  test('⭐ 1 · el caso del ojo: un solo vehículo, la 44, y a 194 m de la puerta', () => {
     const o = portales.donde.get('Portales.93310')!;
     const d = portales.donde.get('Portales.79358')!;
     const viaje = buscarViaje({
@@ -149,48 +139,31 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     })!;
     assert.ok(viaje, 'el caso del ojo tiene que tener viaje en bus');
 
-    assert.equal(viaje.vehiculos, 2);
+    assert.equal(viaje.vehiculos, 1);
     assert.equal(viaje.tranvias, 0);
-    assert.equal(viaje.transbordos.length, 1);
+    assert.equal(viaje.transbordos.length, 0);
 
-    const nombre = new Map(red.paradas.map((p) => [p.id, p.nombre]));
-    assert.equal(nombre.get(viaje.accesoAndando.parada), 'Av. Academia General Militar N.º 37');
-    assert.equal(viaje.accesoAndando.metros, 60, 'el poste que hay al salir del portal');
-    assert.equal(nombre.get(viaje.salidaAndando.parada), 'Doctor Iranzo N.º 61');
+    const porId = new Map(red.paradas.map((p) => [p.id, p]));
+    assert.equal(porId.get(viaje.accesoAndando.parada)!.codigo, 'PA00214');
+    assert.equal(viaje.accesoAndando.metros, 540, 'más de los 500 del veto que había');
+    assert.equal(porId.get(viaje.salidaAndando.parada)!.codigo, 'PA00430');
     assert.equal(viaje.salidaAndando.metros, 194, 'y se baja casi en la puerta');
 
     const linea = lineaDelViaje(red, viaje.montados[0]!.patron);
-    assert.equal(linea.corto, '29');
+    assert.equal(linea.corto, '44', 'la línea que Antonio dijo');
     assert.equal(linea.modo, 'bus');
-    assert.equal(linea.color, 'F5C100', 'el color sale del feed, no de nosotros');
-    assert.equal(viaje.montados[0]!.iDesde, 10, 'sube en el índice 10, no en el 8');
-
-    // ⭐ Y EL CONTRASTE CON EL POSTE QUE SE ELEGÍA ANTES, con la cifra delante:
-    // Ramazzini está en el mismo patrón y en la misma dirección, dos índices
-    // antes, y a 478 m. Que esté DENTRO del conjunto de acceso es lo que hace
-    // que esta juez valga: no gana por no estar, gana por costar menos.
-    const ramazzini = accesos(o.lon, o.lat).find(
-      (a) => nombre.get(a.parada) === 'Bernardo Ramazzini / Maz',
-    );
-    assert.ok(ramazzini, 'Ramazzini tiene que seguir siendo un acceso posible');
-    assert.equal(ramazzini!.metros, 478);
-    assert.ok(
-      viaje.montados[0]!.patron.paradas.indexOf(ramazzini!.parada) === 8,
-      'y estar dos índices antes en el MISMO patrón',
-    );
+    assert.equal(linea.color, '27A737', 'el color sale del feed, no de nosotros');
 
     // ⭐ Y LAS SUMAS CUADRAN, **en segundos de verdad**: los pesos son para
-    // elegir camino, no para el reloj. Andar 194 m sigue costando 140 s aunque
-    // para decidir cuenten como 559.
+    // elegir camino, no para el reloj.
+    const m = viaje.montados[0]!;
     const aMano =
       viaje.accesoAndando.metros / VELOCIDAD_PEATON_MS +
-      viaje.montados.reduce((n, m) => n + m.espera + m.rodando, 0) +
-      viaje.transbordos.reduce(
-        (n, t) => n + t.metros / VELOCIDAD_PEATON_MS + PENALIZACION_TRANSBORDO_S,
-        0,
-      ) +
+      m.espera +
+      m.rodando +
       viaje.salidaAndando.metros / VELOCIDAD_PEATON_MS;
     assert.equal(viaje.segundos, Math.round(aMano), 'el total no es la suma de sus partes');
+    assert.equal(viaje.segundos, 2153);
     assert.ok(pesoDelViaje(viaje) > viaje.segundos, 'el peso pesa más que el reloj');
   });
 
@@ -294,40 +267,50 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   });
 
   /**
-   * ⭐ JUEZ 4 — LOS RADIOS: 500 m para el bus, 800 para el tranvía. **Firma 4.**
+   * ⭐ JUEZ 4 — **EL ACCESO YA NO ES UN VETO**: la 44, a 530 m, entra.
    *
-   * Es un radio de búsqueda, no una frontera. Y son distintos porque el tranvía
-   * tiene menos paradas y más frecuencia: andar 800 m hasta un tranvía es un
-   * trato que se hace, y hasta un bus que pasa cada 20 minutos no.
+   * ⚠️ Esta juez decía lo contrario hasta el 31/08: compraba que un poste de bus
+   * a más de 500 m **no podía ser acceso**. Y ese era el fallo: [DOC OTP2] el
+   * límite de acceso y salida es **de rendimiento** —su consejo es *ponerlo
+   * alto*, y su defecto son 4 horas— y **quien decide es `walkReluctance`**.
+   * Un número de planeamiento usado como regla de router.
+   *
+   * El caso que lo pidió es literal: la **línea 44** pasa a **530 m andando** del
+   * portal de Antonio, y con el veto no existía. Ahora entra en el conjunto de
+   * acceso; que gane o no lo dice el coste — y su calendario, que hoy la deja
+   * fuera por otra razón.
+   *
+   * Los 500/800 siguen citados como lo que son: el estándar de planeamiento.
    */
-  test('⭐ 4 · un poste de bus a 600 m no es acceso; uno de tranvía a 700 sí', () => {
-    assert.equal(RADIO_M.bus, 500);
-    assert.equal(RADIO_M.tram, 800);
-    assert.ok(RADIO_M.tram > RADIO_M.bus);
+  test('⭐ 4 · un poste a más de 500 m SÍ es acceso, y el que decide es el peso', () => {
+    assert.equal(TOPE_DE_ACCESO_S, 1800, 'treinta minutos andando');
+    assert.equal(ESTANDAR_DE_PLANEAMIENTO_M.bus, 500, 'citado, no aplicado');
+    assert.equal(ESTANDAR_DE_PLANEAMIENTO_M.tram, 800);
 
-    // Sobre el dato: los accesos del caso del ojo están TODOS dentro de su radio.
     const o = portales.donde.get('Portales.93310')!;
-    const cerca = accesos(o.lon, o.lat);
-    assert.ok(cerca.length > 0);
+    const cerca = postesCerca(red, andar, o.lon, o.lat);
     const porId = new Map(red.paradas.map((p) => [p.id, p]));
+
+    // ⭐ EL POSTE DE LA 44, a 530 m: dentro. Es el caso de Antonio, literal.
+    const de44 = cerca.find((a) => porId.get(a.parada)!.codigo === 'PA00216');
+    assert.ok(de44, 'el poste de la 44 tiene que estar en el acceso');
+    assert.equal(de44!.metros, 530);
+    assert.ok(de44!.metros > ESTANDAR_DE_PLANEAMIENTO_M.bus, 'y está más allá de los 500');
+
+    // Ninguno pasa del tope de rendimiento, y no hay más de los que se piden.
+    assert.ok(cerca.length <= POSTES_CANDIDATOS, `${cerca.length} candidatos`);
     for (const a of cerca) {
-      const p = porId.get(a.parada)!;
-      const radio = RADIO_M[p.modos.includes('tram') ? 'tram' : 'bus'];
-      assert.ok(a.metros <= radio, `${p.nombre}: ${a.metros} m con radio ${radio}`);
+      assert.ok(
+        a.metros <= TOPE_DE_ACCESO_S * VELOCIDAD_PEATON_MS,
+        `${porId.get(a.parada)!.nombre}: ${a.metros} m`,
+      );
     }
-    // Y hay al menos un poste de bus entre 500 y 800 m que NO entró: la
-    // diferencia de radios no es decorativa.
-    const fuera = red.paradas.filter((p) => {
-      if (p.modos.includes('tram')) return false;
-      const dx = (p.lon - o.lon) * 82500;
-      const dy = (p.lat - o.lat) * 111320;
-      const recta = Math.hypot(dx, dy);
-      return recta > RADIO_M.bus && recta <= RADIO_M.tram;
-    });
-    assert.ok(fuera.length > 0, 'tiene que haber postes de bus en esa corona');
-    for (const p of fuera) {
-      assert.equal(cerca.some((a) => a.parada === p.id), false, `${p.nombre} no puede ser acceso`);
-    }
+
+    // ⭐ Y el que decide es el PESO: andar los 530 m del poste de la 44 pesa
+    // más que los 60 m del de la puerta, y esa diferencia es la que compite.
+    const puerta = cerca.find((a) => porId.get(a.parada)!.codigo === 'PA00033')!;
+    assert.equal(puerta.metros, 60);
+    assert.ok(pesoDeAndar(de44!.metros) > pesoDeAndar(puerta.metros) + COSTE_DE_SUBIR);
   });
 
   /**
@@ -341,12 +324,14 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(PENALIZACION_TRANSBORDO_S, 120);
     const posibles = new Set(red.transbordos.map((t) => `${t.desde}>${t.hasta}`));
 
-    // ⚠️ El par es **el caso (A) de Antonio** —`COLOSO 2 → I.E.S. Grande
-    // Covián`—, y desde el 31/08: el que usaba antes dejó de transbordar
-    // cuando la subida empezó a reconsiderarse, y una juez del transbordo
-    // sobre un viaje sin transbordo no comprueba nada.
-    const oA = portales.donde.get('Portales.93310')!;
-    const dA = portales.donde.get('Portales.100833')!;
+    // ⚠️ **El par ha cambiado dos veces hoy**, y las dos por lo mismo: cada
+    // arreglo de la búsqueda deja sin transbordo al par que servía de ejemplo,
+    // y una juez del transbordo sobre un viaje sin transbordo no comprueba
+    // nada. Este está barrido sobre la red con los pesos ya puestos:
+    // `ALDEBARÁN 56 → CARDENAL DE BARDAJÍ 24`, líneas 36+21, 28,7 min, con un
+    // transbordo de 163 m entre las dos aceras de la Avenida de Madrid.
+    const oA = portales.donde.get('Portales.91655')!;
+    const dA = portales.donde.get('Portales.107146')!;
     const viaje = buscarViaje({
       red,
       fecha: UN_MARTES,
@@ -424,30 +409,100 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    * a la 1 dijera lo que dijera el reloj. Ahora la preferencia vive dentro del
    * coste —`COSTE_DE_SUBIR` por vehículo— y **todas las rondas compiten**.
    *
-   * El caso del ojo es la prueba: la ronda 1 llega (un solo 29, acabando a 897 m
-   * de la puerta) y **aun así gana la ronda 2**, porque esos 897 m pesan 2.583.
+   * El caso se monta sobre el del ojo, tapando la 44 para que la elección sea
+   * entre uno y dos vehículos:
+   *
+   * ```
+   * un vehículo (solo la 29): 43,5 min, acaba a 846 m de la puerta → peso 5.167
+   * dos vehículos (35+30)   : 41,9 min, acaba a 288 m             → peso 4.608
+   * ```
+   *
+   * La ronda 1 **llega**, y aun así pierde: sus 846 m finales pesan 2.437 y el
+   * segundo billete solo cuesta 600.
    */
-  test('⭐ 9 · una ronda posterior puede ganar si su coste total es menor', () => {
+  test('⭐ 9 · una ronda posterior gana si su coste total es menor', () => {
     assert.equal(RONDAS, 3, 'el tope de rondas sigue siendo el tope de vehículos');
 
     const o = portales.donde.get('Portales.93310')!;
     const d = portales.donde.get('Portales.79358')!;
-    const peticion = { red, fecha: UN_MARTES, acceso: accesos(o.lon, o.lat), salida: accesos(d.lon, d.lat) };
-    const dos = buscarViaje(peticion)!;
+    const peticion = {
+      fecha: UN_MARTES,
+      acceso: accesos(o.lon, o.lat),
+      salida: accesos(d.lon, d.lat),
+    };
+
+    const sinLa44: RedDeBus = {
+      ...red,
+      patrones: red.patrones.filter((p) => lineaDelViaje(red, p).corto !== '44'),
+    };
+    const dos = buscarViaje({ ...peticion, red: sinLa44 })!;
     assert.equal(dos.vehiculos, 2, 'gana la ronda 2');
 
-    // Que la ronda 1 LLEGABA se compra tapando el segundo vehículo: sigue
-    // habiendo viaje, y es peor de peso aunque use un vehículo menos.
-    const sinElSegundo: RedDeBus = {
+    // Y la ronda 1 LLEGÁBAMOS: con solo la 29 hay viaje de un vehículo.
+    const soloLa29: RedDeBus = {
       ...red,
-      patrones: red.patrones.filter((p) => p.id !== dos.montados[1]!.patron.id),
+      patrones: red.patrones.filter((p) => lineaDelViaje(red, p).corto === '29'),
     };
-    const otro = buscarViaje({ ...peticion, red: sinElSegundo })!;
-    assert.ok(otro, 'sin ese patrón sigue habiendo viaje');
+    const uno = buscarViaje({ ...peticion, red: soloLa29 })!;
+    assert.ok(uno, 'la ronda 1 llegaba: hay viaje de un solo vehículo');
+    assert.equal(uno.vehiculos, 1);
+    assert.equal(uno.salidaAndando.metros, 846, 'pero deja 846 m de paseo final');
+
     assert.ok(
-      pesoDelViaje(dos) < pesoDelViaje(otro),
-      `el elegido tiene que pesar menos: ${Math.round(pesoDelViaje(dos))} contra ${Math.round(pesoDelViaje(otro))}`,
+      pesoDelViaje(dos) < pesoDelViaje(uno),
+      `el de dos tiene que pesar menos: ${Math.round(pesoDelViaje(dos))} contra ${Math.round(pesoDelViaje(uno))}`,
     );
+    // Y la razón, con la cifra: el paseo que se ahorra pesa más que el billete.
+    assert.ok(
+      pesoDeAndar(uno.salidaAndando.metros) - pesoDeAndar(dos.salidaAndando.metros) > COSTE_DE_SUBIR,
+    );
+  });
+
+  /**
+   * ⭐ JUEZ 16 — **LA SUBIDA SE RECONSIDERA**, y el caso que lo pidió.
+   *
+   * [RAPTOR, la regla de «coger un vehículo anterior», traducida a costes] al
+   * recorrer un patrón hay que volver a preguntarse en cada parada si conviene
+   * subir ahí. Con solo la 29 en la red —para que la elección sea dónde subir y
+   * no en qué línea— el motor sube en el poste **de la puerta**:
+   *
+   * ```
+   * PA00033 Av. Academia General Militar N.º 37 · 60 m · índice 10 del patrón
+   * PA01203 Bernardo Ramazzini / Maz            · 478 m · índice 8   ← el que elegía antes
+   * ```
+   *
+   * Los dos están en el conjunto de acceso y en el MISMO patrón, así que el 33
+   * no gana por estar solo: gana por costar menos.
+   */
+  test('⭐ 16 · se sube en el poste de la puerta, no en el primero del patrón', () => {
+    const o = portales.donde.get('Portales.93310')!;
+    const d = portales.donde.get('Portales.79358')!;
+    const soloLa29: RedDeBus = {
+      ...red,
+      patrones: red.patrones.filter((p) => lineaDelViaje(red, p).corto === '29'),
+    };
+    const viaje = buscarViaje({
+      red: soloLa29,
+      fecha: UN_MARTES,
+      acceso: accesos(o.lon, o.lat),
+      salida: accesos(d.lon, d.lat),
+    })!;
+    assert.ok(viaje);
+
+    const porId = new Map(red.paradas.map((p) => [p.id, p]));
+    const m = viaje.montados[0]!;
+    assert.equal(porId.get(m.desde)!.codigo, 'PA00033');
+    assert.equal(viaje.accesoAndando.metros, 60);
+    assert.equal(m.iDesde, 10, 'el índice 10, no el 8');
+
+    // ⭐ Y RAMAZZINI SIGUE SIENDO ACCESO POSIBLE, dos índices antes: si no
+    // estuviera, esta juez ganaría por ausencia y no probaría nada.
+    const ramazzini = accesos(o.lon, o.lat).find(
+      (a) => porId.get(a.parada)!.codigo === 'PA01203',
+    );
+    assert.ok(ramazzini, 'Ramazzini tiene que seguir en el conjunto de acceso');
+    assert.equal(ramazzini!.metros, 478);
+    assert.equal(m.patron.paradas.indexOf(ramazzini!.parada), 8);
   });
 
   /**
