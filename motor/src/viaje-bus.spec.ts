@@ -89,8 +89,19 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    * ⭐ JUEZ 1 — EL CASO DEL OJO: COLOSO 2 → LEOPOLDO ROMEO 27 en bus.
    *
    * El mismo par que lleva toda la semana sirviendo de piedra de toque, ahora en
-   * bus. Sale un viaje de **un solo vehículo**, la línea 29, y sus cifras son
-   * las que son: no se eligieron, se midieron.
+   * bus. Sale un viaje de **un solo vehículo**, la línea 29.
+   *
+   * ⚠️ **Y el poste de subida va JUSTIFICADO, no copiado de la salida.** Hasta el
+   * 31/08 esta juez compraba `Bernardo Ramazzini / Maz` **a 478 m**, que es lo
+   * que el motor devolvía — y lo que devolvía estaba mal. El poste que compra
+   * ahora es el que cogería un vecino, y se puede decir por qué:
+   *
+   *   · `Av. Academia General Militar N.º 37` está **a 60 m** del portal;
+   *   · lleva **la misma línea 29 en la misma dirección** (patrón `29|1|1`);
+   *   · Ramazzini es el índice 8 de ese patrón y éste el 10, así que subir en
+   *     Ramazzini cuesta 418 m más de andar **y 87 s más de rodar**.
+   *
+   * Ver la entrada del 31/08 de `docs/BITACORA.md`, y la ley que sale de ella.
    */
   test('⭐ 1 · el caso del ojo sale en un vehículo, con sus postes y sus cifras', () => {
     const o = portales.donde.get('Portales.93310')!;
@@ -108,8 +119,8 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(viaje.transbordos.length, 0, 'con un vehículo no hay transbordo que valga');
 
     const nombre = new Map(red.paradas.map((p) => [p.id, p.nombre]));
-    assert.equal(nombre.get(viaje.accesoAndando.parada), 'Bernardo Ramazzini / Maz');
-    assert.equal(viaje.accesoAndando.metros, 478);
+    assert.equal(nombre.get(viaje.accesoAndando.parada), 'Av. Academia General Militar N.º 37');
+    assert.equal(viaje.accesoAndando.metros, 60, 'el poste que hay al salir del portal');
     assert.equal(nombre.get(viaje.salidaAndando.parada), 'Miguel Servet N.º 28');
     assert.equal(viaje.salidaAndando.metros, 897);
 
@@ -117,7 +128,22 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(linea.corto, '29');
     assert.equal(linea.modo, 'bus');
     assert.equal(linea.color, 'F5C100', 'el color sale del feed, no de nosotros');
-    assert.equal(viaje.montados[0]!.iHasta - viaje.montados[0]!.iDesde, 16, 'dieciséis postes');
+    assert.equal(viaje.montados[0]!.iDesde, 10, 'sube en el índice 10, no en el 8');
+    assert.equal(viaje.montados[0]!.iHasta - viaje.montados[0]!.iDesde, 14, 'catorce postes');
+
+    // ⭐ Y EL CONTRASTE CON EL POSTE QUE SE ELEGÍA ANTES, con la cifra delante:
+    // Ramazzini está en el mismo patrón y en la misma dirección, dos índices
+    // antes, y a 478 m. Que esté DENTRO del conjunto de acceso es lo que hace
+    // que esta juez valga: no gana por no estar, gana por costar menos.
+    const ramazzini = accesos(o.lon, o.lat).find(
+      (a) => nombre.get(a.parada) === 'Bernardo Ramazzini / Maz',
+    );
+    assert.ok(ramazzini, 'Ramazzini tiene que seguir siendo un acceso posible');
+    assert.equal(ramazzini!.metros, 478);
+    assert.ok(
+      viaje.montados[0]!.patron.paradas.indexOf(ramazzini!.parada) === 8,
+      'y estar dos índices antes en el MISMO patrón',
+    );
 
     // ⭐ Y LAS SUMAS CUADRAN: el total es exactamente lo que cuestan sus partes.
     const m = viaje.montados[0]!;
@@ -135,10 +161,15 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    * ⚠️ El caso está **medido sobre la red real**, barriéndola hasta encontrar
    * uno donde la firma cueste dinero: `Av. De América N.º 69` →
    * `Madre Teresa De Calcuta N.º 3`. El directo de la **línea 33** tarda
-   * **40,3 min**; hay un bus+bus (**34+41**) que tarda **39,4 min**, casi un
-   * minuto menos. **Gana el directo.** Es la firma haciendo lo que se firmó.
+   * **40,3 min**; hay un dos-vehículos (**34+Ci1**) que tarda **35,8 min**.
+   * **Gana el directo.** Es la firma haciendo lo que se firmó.
+   *
+   * ⚠️ La cifra subió de 0,9 a **4,6 minutos** el 31/08, y no porque la firma
+   * cambiara: al reconsiderar la subida a lo largo del patrón, la alternativa
+   * de dos vehículos mejoró más que el directo. Cuanto mejor busca el motor,
+   * más cara sale esta firma.
    */
-  test('⭐ 2 · FIRMA 6: el directo gana al bus+bus aunque tarde casi un minuto más', () => {
+  test('⭐ 2 · FIRMA 6: el directo gana al de dos aunque tarde 4,6 minutos más', () => {
     const desde = enLaParada('16572');
     const hasta = enLaParada('16867');
     const directo = buscarViaje({ red, fecha: UN_MARTES, acceso: desde, salida: hasta })!;
@@ -160,7 +191,7 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
       `la alternativa tenía que ser más rápida: ${conDos.segundos} vs ${directo.segundos}`,
     );
     // La firma cuesta esto, y queda escrito para que se pueda discutir con la cifra:
-    assert.equal(Math.round((directo.segundos - conDos.segundos) / 6) / 10, 0.9, 'minutos que cuesta la firma 6');
+    assert.equal(Math.round((directo.segundos - conDos.segundos) / 6) / 10, 4.6, 'minutos que cuesta la firma 6');
   });
 
   /**
@@ -168,12 +199,12 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    *
    * ⚠️ **Y este caso cuesta caro, así que va con su cifra delante.**
    * `Asín Y Palacios N.º 5` → `La Fragua / Parque Tapices De Goya`: bus+bus
-   * (**42+35**) tarda **63,9 min** y gana; bus+tranvía (**42+TRA**) tarda
-   * **53,8 min**. La firma 3 hace perder **10,1 minutos** para evitar un
+   * (**42+35**) tarda **56,4 min** y gana; bus+tranvía (**42+TRA**) tarda
+   * **52,1 min**. La firma 3 hace perder **4,3 minutos** para evitar un
    * tranvía. Está medido y está dicho: si algún día se quiere revisar la firma,
    * este es el número con el que discutirla.
    */
-  test('⭐ 3 · FIRMA 3: bus+bus gana a bus+tranvía, y cuesta 10,1 minutos', () => {
+  test('⭐ 3 · FIRMA 3: bus+bus gana a bus+tranvía, y cuesta 4,3 minutos', () => {
     const desde = enLaParada('16524');
     const hasta = enLaParada('17664');
     const sinTranvia = buscarViaje({ red, fecha: UN_MARTES, acceso: desde, salida: hasta })!;
@@ -196,7 +227,7 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.ok(conTranvia.segundos < sinTranvia.segundos);
     assert.equal(
       Math.round((sinTranvia.segundos - conTranvia.segundos) / 6) / 10,
-      10.1,
+      4.3,
       'minutos que cuesta la firma 3 en este par',
     );
   });
@@ -249,11 +280,17 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(PENALIZACION_TRANSBORDO_S, 120);
     const posibles = new Set(red.transbordos.map((t) => `${t.desde}>${t.hasta}`));
 
+    // ⚠️ El par es **el caso (A) de Antonio** —`COLOSO 2 → I.E.S. Grande
+    // Covián`—, y desde el 31/08: el que usaba antes dejó de transbordar
+    // cuando la subida empezó a reconsiderarse, y una juez del transbordo
+    // sobre un viaje sin transbordo no comprueba nada.
+    const oA = portales.donde.get('Portales.93310')!;
+    const dA = portales.donde.get('Portales.100833')!;
     const viaje = buscarViaje({
       red,
       fecha: UN_MARTES,
-      acceso: enLaParada('16524'),
-      salida: enLaParada('17664'),
+      acceso: accesos(oA.lon, oA.lat),
+      salida: accesos(dA.lon, dA.lat),
     })!;
     assert.ok(viaje.transbordos.length > 0, 'este par transborda');
     for (const t of viaje.transbordos) {
@@ -464,11 +501,17 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.ok(aviso, `no se dijo que Avanza callaba. Avisos: ${JSON.stringify(conVivo.avisos)}`);
     // ⚠️ [GTFS-Realtime] AUSENTE es «sin información en tiempo real», no «sin
     // servicio». La juez compra el texto medido y NO la conclusión que tenía antes.
-    assert.match(aviso!.texto, /^Avanza no anuncia ningún próximo de la línea 29 /);
+    assert.match(aviso!.texto, /^Avanza no anuncia ningún próximo de la línea \S+ /);
     assert.ok(!aviso!.texto.includes('prestando servicio'), 'eso era una conclusión, no el dato');
+    // ⚠️ **El poste NO va escrito a mano.** Se saca del viaje que el motor
+    // acaba de devolver, porque lo que esta juez compra es que el aviso nombre
+    // el poste de SU subida — no cuál es ese poste. El 31/08 cambió al
+    // arreglarse la búsqueda, y escrito a mano habría muerto sin razón.
+    const subida = conVivo.pasos.find((x) => x.giro === 'sube')!;
+    const suPoste = subida.partes.filter((x) => x.papel === 'via').at(-1)!.texto;
     assert.ok(
-      aviso!.texto.includes('Bernardo Ramazzini / Maz'),
-      'el aviso tiene que nombrar SU poste para poder ir al lado de su hito',
+      aviso!.texto.includes(suPoste),
+      `el aviso tiene que nombrar SU poste (${suPoste}) para poder ir al lado de su hito`,
     );
 
     // La ruta no cambia: sin dato vivo que sustituya, manda el horario.
@@ -497,7 +540,9 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.ok(t.pasos.length > 0, 'componer sin prometer: la ruta sale igual');
     const aviso = t.avisos.find((a) => a.texto.includes('disponibilidad no verificada'));
     assert.ok(aviso, `sin D-G. Avisos: ${JSON.stringify(t.avisos)}`);
-    assert.ok(aviso!.texto.includes('Bernardo Ramazzini / Maz'), 'el D-G también nombra su poste');
+    const subida = t.pasos.find((x) => x.giro === 'sube')!;
+    const suPoste = subida.partes.filter((x) => x.papel === 'via').at(-1)!.texto;
+    assert.ok(aviso!.texto.includes(suPoste), `el D-G también nombra su poste (${suPoste})`);
   });
 
   /**

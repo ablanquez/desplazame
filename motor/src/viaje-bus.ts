@@ -161,6 +161,21 @@ export function esperaEstimada(patron: PatronBus, red: RedDeBus, fecha: string):
   return h === null ? null : Math.round(h / 2);
 }
 
+/**
+ * Los segundos de rodar desde el principio del patrón hasta cada parada.
+ *
+ * Es lo que permite comparar dos subidas distintas sin recorrer los saltos otra
+ * vez: rodar de `a` a `b` es `acumulado[b] − acumulado[a]`, y esa resta es la
+ * que hace que el mínimo corrido de la fase de patrones funcione.
+ */
+function acumuladoDe(patron: PatronBus): number[] {
+  const a = [0];
+  for (let k = 0; k < patron.saltos.length; k++) {
+    a.push(a[k]! + (patron.saltos[k]?.tipico ?? 0));
+  }
+  return a;
+}
+
 /** Los segundos típicos entre dos índices de un patrón, sumando sus saltos. */
 export function rodandoEntre(patron: PatronBus, desde: number, hasta: number): number {
   let s = 0;
@@ -281,39 +296,69 @@ export function buscarViaje(p: Peticion): Viaje | null {
   for (let ronda = 1; ronda <= RONDAS; ronda++) {
     const nuevas = new Map<string, Etiqueta>();
 
-    // ── Fase de patrones: cada uno UNA vez, desde su primera parada marcada ──
+    // ── Fase de patrones: cada uno UNA vez, con la subida RECONSIDERADA ─────
+    //
+    // ⭐ [RAPTOR, la regla de «coger un vehículo anterior»] al recorrer un patrón
+    // no basta con subirse en la primera parada marcada: en cada parada hay que
+    // volver a preguntarse si conviene subir **ahí**. En el RAPTOR de libro la
+    // etiqueta es una HORA de llegada y subirse antes nunca empeora, así que la
+    // pregunta se hace al revés —¿llego aquí antes de lo que llegaría el viaje
+    // que traigo?—. Aquí la etiqueta es un COSTE y no hay horas: subirse antes
+    // **cuesta más rodar**, así que la regla hay que traducirla.
+    //
+    // ⚠️ Y traducirla mal cuesta caro: hasta el 31/08 esto se subía en la
+    // primera parada marcada y ahí se quedaba. En el caso del ojo eso significaba
+    // **andar 478 m hasta Ramazzini** (índice 8 del patrón `29|1|1`) para coger la
+    // misma línea, en la misma dirección, que pasaba por un poste **a 60 m**
+    // (índice 10) — 418 m de más andando y 87 s de más rodando. Ver la entrada
+    // del 31/08 de `docs/BITACORA.md`.
+    //
+    // La traducción es un **mínimo corrido**: si `acumulado[k]` son los segundos
+    // de rodar desde el principio del patrón hasta `k`, el coste de llegar a `k`
+    // subiéndose en cualquier `k' <= k` es
+    //
+    //     min_{k' <= k} ( coste[k'] + espera − acumulado[k'] )  +  acumulado[k]
+    //
+    // y ese mínimo se lleva en una variable mientras se recorre el patrón. Una
+    // sola pasada, y la subida se reconsidera en **cada** parada.
     const yaVisto = new Set<string>();
     for (const parada of frontera) {
-      for (const { patron, i } of indices.porParada.get(parada) ?? []) {
+      for (const { patron } of indices.porParada.get(parada) ?? []) {
         if (yaVisto.has(patron.id)) {
           continue;
         }
         yaVisto.add(patron.id);
-        // Dónde subirse: la parada marcada más temprana del patrón.
-        let iSubida = -1;
-        let subida: Etiqueta | null = null;
-        for (let k = 0; k < patron.paradas.length; k++) {
-          const suya = mejor.get(patron.paradas[k]!);
-          if (suya && suya.ronda === ronda - 1) {
-            iSubida = k;
-            subida = suya;
-            break;
-          }
-        }
-        if (!subida || iSubida < 0) {
-          continue;
-        }
         const espera = esperaEstimada(patron, red, fecha);
         if (espera === null) {
           // Sin intervalo no se puede estimar la espera y no se inventa una.
           continue;
         }
-        void i;
-        for (let k = iSubida + 1; k < patron.paradas.length; k++) {
+        const acumulado = acumuladoDe(patron);
+
+        /** El mejor «coste de ir montado, descontando lo ya rodado» visto hasta aquí. */
+        let mejorSubida = Number.POSITIVE_INFINITY;
+        let iSubida = -1;
+        let subida: Etiqueta | null = null;
+
+        for (let k = 0; k < patron.paradas.length; k++) {
+          // ¿Conviene subir AQUÍ? Solo con etiqueta de la ronda anterior: subirse
+          // dos veces en la misma ronda sería contar un vehículo de menos.
+          const suya = mejor.get(patron.paradas[k]!);
+          if (suya && suya.ronda === ronda - 1) {
+            const candidato = suya.coste + espera - acumulado[k]!;
+            if (candidato < mejorSubida) {
+              mejorSubida = candidato;
+              iSubida = k;
+              subida = suya;
+            }
+          }
+          // ¿Y bajarse aquí? Solo si nos hemos subido en alguna parada ANTERIOR.
+          if (!subida || iSubida < 0 || k <= iSubida) {
+            continue;
+          }
           const destino = patron.paradas[k]!;
-          const rodando = rodandoEntre(patron, iSubida, k);
           const etiqueta: Etiqueta = {
-            coste: subida.coste + espera + rodando,
+            coste: mejorSubida + acumulado[k]!,
             tranvias: subida.tranvias + (patron.modo === 'tram' ? 1 : 0),
             como: {
               clase: 'montado',
@@ -322,7 +367,7 @@ export function buscarViaje(p: Peticion): Viaje | null {
               iDesde: iSubida,
               iHasta: k,
               espera,
-              rodando,
+              rodando: acumulado[k]! - acumulado[iSubida]!,
             },
             anterior: patron.paradas[iSubida]!,
             ronda,
