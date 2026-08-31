@@ -39,6 +39,9 @@ import { enganchar, type Rejilla } from './proyeccion.ts';
 import { geometriaDe, type Cuaderno } from './ruta.ts';
 import { admiteComoPuerta, calcularRutaRodando } from './rodando.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
+import type { Motor } from './trayecto.ts';
+import { coordenadaDelPoste } from './avanza.ts';
+import { desvioServido, refrescarDesvios, type CuentasDeDesvios } from './desvios.ts';
 
 /** Un camino entre dos puntos sobre el grafo vial, o `null` si no conecta. */
 export type RodarEntre = (
@@ -376,4 +379,61 @@ export function avisoDeDesvio(d: RedConDesvios['desviadas'][number]): string {
     partes.push(`para provisionalmente en ${d.hacia.join(', ')}`);
   }
   return partes.join(': ').replace(/: (no para)/, ': $1') + '.';
+}
+
+/**
+ * ⭐ EL REFRESCO ENTERO: pregunta, compone y sirve.
+ *
+ * Es lo que corre al arrancar y cada hora. ⚠️ **Nadie lo espera**: la búsqueda
+ * lee lo que haya servido, y mientras no haya nada usa la red del feed.
+ */
+export async function refrescarYServir(
+  motor: Motor,
+  red: RedDeBus,
+  fecha: string,
+  pedir: typeof fetch = fetch,
+  pausaMs = 250,
+): Promise<{ readonly deLaFuente: CuentasDeDesvios; readonly deLaRed: CuentasDelOperativo }> {
+  const deLaFuente = await refrescarDesvios(red, fecha, pedir, pausaMs);
+
+  // Las coordenadas de los postes que el GTFS no conoce, del `marcadorParada`
+  // de su feed de llegadas [técnica de ZetaBus]. Una petición por poste nuevo,
+  // y solo por los nuevos: los que el feed ya tiene no se preguntan.
+  const conocidos = new Set(
+    red.paradas.map((p) => posteDeCodigo(p.codigo)).filter((x): x is number => x !== null),
+  );
+  const nuevos = new Set<number>();
+  for (const l of red.lineas) {
+    for (const d of ['0', '1']) {
+      const v = desvioServido(l.corto, d)?.veredicto;
+      if (v?.tipo !== 'comparado') {
+        continue;
+      }
+      for (const p of v.hacia) {
+        if (!conocidos.has(p.poste)) {
+          nuevos.add(p.poste);
+        }
+      }
+    }
+  }
+  const donde = new Map<number, { readonly lat: number; readonly lon: number }>();
+  for (const poste of nuevos) {
+    const coord = await coordenadaDelPoste(poste, pedir);
+    if (coord) {
+      donde.set(poste, coord);
+    }
+    if (pausaMs > 0) {
+      await new Promise((sigue) => setTimeout(sigue, pausaMs));
+    }
+  }
+
+  const rodar = rodarConLaRueda(motor.redRueda, motor.rejillaRueda, motor.cuadernoRueda);
+  const compuesta = aplicarDesvios(
+    red,
+    (linea, direccion) => desvioServido(linea, direccion)?.veredicto ?? null,
+    donde,
+    rodar,
+  );
+  servirOperativa(compuesta);
+  return { deLaFuente, deLaRed: compuesta.cuentas };
 }

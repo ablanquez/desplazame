@@ -56,9 +56,12 @@ import { cuadernoPara } from './ruta.ts';
 import {
   calcularTrayecto,
   calcularTrayectoVivo,
+  hoyEnGtfs,
   MODOS_ATENDIDOS,
   type Motor,
 } from './trayecto.ts';
+import { refrescarYServir } from './patron-operativo.ts';
+import { TTL_DESVIOS_MS } from './desvios.ts';
 import { leerPeticion } from './peticion.ts';
 
 /** Cuánto se acepta como cuerpo de una petición. Una ruta cabe de sobra. */
@@ -805,4 +808,37 @@ servidor.listen(PUERTO, () => {
     `motor: POST /api/ruta calcula ${MODOS_ATENDIDOS.join(', ')}, de portal a portal, por codigos`,
   );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
+
+  // ⭐ EL REFRESCO DE LOS DESVÍOS, al arrancar y cada hora (31/08).
+  //
+  // ⚠️ Va DESPUÉS de escuchar y **nadie lo espera**: son medio centenar de
+  // peticiones a un servidor ajeno con su pausa entre medias, y quien busca una
+  // ruta no puede quedarse esperando a eso. Mientras no haya nada servido, la
+  // búsqueda usa la red del feed y **no avisa de ningún desvío** — no saber no
+  // es no haberlo.
+  const refrescarLosDesvios = (): void => {
+    const red = laRedDeBus();
+    if (!red) {
+      return;
+    }
+    void refrescarYServir(motor, red, hoyEnGtfs(new Date()))
+      .then(({ deLaFuente, deLaRed }) => {
+        console.log(
+          `motor: ruta operativa de hoy — ${deLaFuente.sentidos} sentidos · ` +
+            `${deLaFuente.desviados} desviados · ${deLaFuente.indeterminados} sin saber · ` +
+            `${Math.round(deLaFuente.ms / 1000)} s`,
+        );
+        console.log(
+          `motor:   ${deLaRed.patrones} patrones rehechos · ${deLaRed.saltosNuevos} saltos nuevos ` +
+            `(${deLaRed.reconstruidos} ruteados · ${deLaRed.rectas} en RECTA de reserva) · ` +
+            `${deLaRed.provisionales} postes provisionales · ${deLaRed.sinCoordenada} sin coordenada`,
+        );
+      })
+      .catch((e: unknown) => {
+        // Si la fuente está caída no pasa nada: se sigue con la red del feed.
+        console.log(`motor: no se ha podido leer la ruta operativa — ${(e as Error).message}`);
+      });
+  };
+  refrescarLosDesvios();
+  setInterval(refrescarLosDesvios, TTL_DESVIOS_MS).unref();
 });
