@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-31] 🔁 REABIERTA — Con dos vehículos desviados, las dos notas dicen lo del PRIMERO: el aviso de la 29 se pega al hito de la 22 porque nombra su poste
+## [2026-08-31] ✅ CERRADA — Con dos vehículos desviados, las dos notas dicen lo del PRIMERO: el aviso de la 29 se pega al hito de la 22 porque nombra su poste
 
 **Categoría:** dos reglas de casado en el orden equivocado
 
@@ -99,9 +99,33 @@ compartido. Lo que no trae es el caso que rompe — **una línea NO desviada
 subiendo en un poste que otra desviada nombra**. Sus dos líneas van desviadas,
 así que la regla de la línea casa siempre y la del sitio no llega a mirarse.
 
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz (la de verdad, la que el primer cierre no vio):** `notaDelHito`
+tenía **dos reglas** para casar un aviso, y una de ellas —«el que nombra tu
+sitio»— **no debía aplicarse a un desvío en absoluto**. Un desvío explica una
+línea; que nombre un poste es un accidente de su redacción, no una relación.
+
+El primer cierre trató el síntoma —la regla equivocada ganaba— y no la
+enfermedad —la regla equivocada existía—. Ponerla la segunda hizo que acertara
+mientras la primera contestara, y el día que la primera calló —una línea NO
+desviada— volvió el fallo entero.
+
+Y salió un tercero al arreglarlo, del mismo material: la regla de la línea
+preguntaba si **alguna** de las `via` del paso casaba, y un paso de transbordo
+tiene **dos líneas**. Así que el transbordo a la 31 se quedaba también el aviso
+de la 35 — correcto de casualidad, porque el de la 35 ya sale pegado a su
+propia subida. No basta con «alguna de sus líneas»: hay que decir **cuál es la
+línea de este hito**, y es a la que se SUBE.
+
+**Arreglo aplicado:** `app/src/app/buscador.ts` — la regla del sitio **excluye**
+los avisos de desvío (`!a.texto.includes(MARCA_DE_DESVIO)`), y nace
+`lineaDelHito`, que dice cuál es la línea de un hito: la primera `via` en un
+`sube`, la última en un `transborda`. `app/src/app/buscador.spec.ts` — la juez
+**14** trae el caso que faltaba: **la 31 NO desviada subiendo en el poste que la
+35 nombra**, que es justo el que la 12 no podía hacer porque sus dos líneas iban
+desviadas. Contraprueba: con la regla del sitio de vuelta, `1 failed | 72
+passed`.
+
+**Commit:** `8dad9e7`
 
 **Ley que sale de aquí:** cuando hay **dos reglas** para casar un aviso con lo
 que explica, el orden entre ellas es parte de la regla — y hay que escribirlo y
