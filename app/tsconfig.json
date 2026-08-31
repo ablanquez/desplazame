@@ -9,6 +9,14 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
+
+    /* ⭐ EL GUARDIÁN QUE FALTABA (31/08). Node ejecuta este TypeScript
+       BORRANDO TIPOS, sin compilar: lo que no sea borrable no arranca. Y
+       `tsc` no lo sabía — dio por bueno un `readonly status` en la lista de
+       parámetros de un constructor, que es azúcar que genera código, y Node
+       se negó a cargar el fichero con ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX.
+       Con esto, el comprobador comprueba lo que el ejecutor exige. */
+    "erasableSyntaxOnly": true,
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
