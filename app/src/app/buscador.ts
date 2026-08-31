@@ -58,7 +58,7 @@ import { IconoCapa, type Clase } from './iconos';
  * Es un trozo del texto que el motor escribe cuando la sede no contesta, y es
  * el trozo que **nombra la condición** —no el que cuenta la anécdota—, así que
  * sobrevive a un cambio de redacción en la primera mitad de la frase. Ver
- * `notaDeDisponibilidad` para por qué esto se hace por texto y no por un campo.
+ * `notaDelHito` para por qué esto se hace por texto y no por un campo.
  */
 const MARCA_DE_DISPONIBILIDAD = 'disponibilidad no verificada';
 
