@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-08-31] 🔴 ABIERTA — El detalle del desvío se ve con `hidden` puesto: mi `display: block` gana a la regla del navegador
+## [2026-08-31] ✅ CERRADA — El detalle del desvío se ve con `hidden` puesto: mi `display: block` gana a la regla del navegador
 
 **Categoría:** una regla de CSS que pisa al atributo que la tenía que apagar
 
@@ -51,12 +51,44 @@ preguntaba por `e.hidden`.
 salía **114 px cerrado y 114 px abierto**, y un aviso que no crece al desplegarlo
 no está desplegando nada.
 
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** `[hidden] { display: none }` **es una regla de CSS como
+cualquier otra**, no una propiedad del elemento, y pesa lo mismo que una clase
+—selector de atributo, especificidad (0,1,0)—. Mi `.detalles__cuerpo { display:
+block }` empataba con ella y ganaba por venir después: la hoja del autor va
+detrás de la del navegador. El atributo se ponía y no apagaba nada.
+
+Y las tres jueces no lo veían porque preguntaban `cuerpo.hidden === true`, que
+era **cierto**: el atributo estaba puesto. Medían lo que el código hacía, no lo
+que se prometía — «esto no se ve» no es un atributo, es un píxel.
+
+**Arreglo aplicado:** dos cosas, y ninguna es un `!important`:
+1. `app/src/app/buscador.css` — `.detalles__cuerpo` pasa a
+   `.detalles__cuerpo:not([hidden])`, que pesa (0,2,0) **y** deja de aplicarse
+   mientras está oculto.
+2. `app/src/app/buscador.spec.ts` — un ayudante `seVe(e)` que pregunta por
+   `getComputedStyle(e).display !== 'none'`, y las siete aserciones de las
+   jueces 15, 16 y 17 pasan a usarlo. Con el CSS todavía roto, las tres se
+   pusieron **rojas** antes de tocar la hoja.
+
+Medido en Chrome después: el banner baja de **114 px a 36 px** cerrado, y el
+detalle de 72 px a **0**:
+
+```
+CERRADO : {"atributoHidden":true,"display":"none","alto":0,"ancho":0,"altoDelBanner":36,"seVeElTexto":false}
+ABIERTO : {"atributoHidden":false,"display":"block","alto":72,"ancho":710,"altoDelBanner":114,"seVeElTexto":true}
+```
+
+**Commit:** `e87cbdd`
 
 **Ley que sale de aquí:** una prueba que pregunta por el ATRIBUTO no compra lo
 que se VE. Si lo que se promete es «esto no se ve», el juez mide píxeles.
+
+Y la que sale del cierre: **el atributo `hidden` no esconde nada por sí solo**
+—lo esconde una regla de CSS que cualquier hoja de autor puede pisar—, así que
+todo `display` sobre un elemento que se oculta con `hidden` se escribe
+`:not([hidden])`. Escribir la juez a la vez que el código no basta si las dos
+miran el mismo sitio equivocado: aquí el instrumento y el defecto nacieron el
+mismo día y del mismo malentendido.
 
 **Traza:** `app/src/app/buscador.css` (`.detalles__cuerpo`) ·
 `app/src/app/buscador.html` (`[hidden]`) · `app/src/app/buscador.spec.ts`
