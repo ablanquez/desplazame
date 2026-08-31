@@ -691,10 +691,32 @@ function comoSeEspera(intervalo: number | null, vivo?: EstadoVivo | null): strin
   return intervalo === null ? null : `frecuencia teórica: cada ${Math.round(intervalo / 60)} min`;
 }
 
+/**
+ * ⭐ CUÁNTAS PARADAS SE VA DENTRO, dicho como lo dice todo el mundo.
+ *
+ * [Google Directions API, `transit_details.num_stops`] *«el número de paradas
+ * de este paso; incluye la de llegada, pero no la de salida»* — su ejemplo
+ * literal: se sale de A, se pasa por B y por C, se llega a D, **son 3**. Sobre
+ * el patrón de hoy eso es exactamente `iHasta − iDesde`.
+ *
+ * ⚠️ Y es propiedad **del paso de transporte**, no del viaje: cada vehículo
+ * cuenta las suyas. Por eso lo dicen tanto el `sube` como el `transborda`, y en
+ * el segundo son las del que se COGE.
+ *
+ * `null` si no hay ninguna que contar: no se escribe «0 paradas».
+ */
+function comoSeCuentan(paradas: number): string | null {
+  if (paradas <= 0) {
+    return null;
+  }
+  return paradas === 1 ? '1 parada' : `${paradas} paradas`;
+}
+
 /** ⭐ EL PASO DE SUBIR. */
 export function pasoDeSubir(
   linea: LineaDelViaje,
   poste: string,
+  paradas: number,
   intervalo: number | null,
   vivo?: EstadoVivo | null,
 ): Paso {
@@ -705,6 +727,12 @@ export function pasoDeSubir(
     { papel: 'texto' as const, texto: ' en el poste ' },
     { papel: 'via' as const, texto: poste },
   ];
+  // Primero cuánto se va dentro, después cada cuánto pasa: la cuenta es fija
+  // y la espera es la parte que el dato vivo sustituye, así que cierra la frase.
+  const cuantas = comoSeCuentan(paradas);
+  if (cuantas !== null) {
+    partes.push({ papel: 'texto' as const, texto: ` — ${cuantas}` });
+  }
   const espera = comoSeEspera(intervalo, vivo);
   if (espera !== null) {
     partes.push({ papel: 'texto' as const, texto: ` — ${espera}` });
@@ -731,6 +759,7 @@ export function pasoDeTransbordo(
   poste: string,
   deLa: LineaDelViaje,
   aLa: LineaDelViaje,
+  paradas: number,
   intervalo: number | null,
   vivo?: EstadoVivo | null,
 ): Paso {
@@ -743,6 +772,12 @@ export function pasoDeTransbordo(
     { papel: 'texto' as const, texto: ' a la línea ' },
     { papel: 'via' as const, texto: aLa.corto },
   ];
+  // Las paradas que se cuentan son las del vehículo que se COGE, igual que la
+  // frecuencia: el que se deja ya se ha ido y su cuenta la dijo su propio paso.
+  const cuantas = comoSeCuentan(paradas);
+  if (cuantas !== null) {
+    partes.push({ papel: 'texto' as const, texto: ` — ${cuantas}` });
+  }
   const espera = comoSeEspera(intervalo, vivo);
   if (espera !== null) {
     // La frecuencia que importa es la del que se coge, no la del que se deja.
@@ -835,11 +870,15 @@ export function etapaMontada(red: RedDeBus, montado: TramoMontado, como: ComoSeM
     montado.rodando +
     (como.transbordandoDe ? PENALIZACION_TRANSBORDO_S : 0);
   const dondeSube = porId.get(montado.desde)?.nombre ?? montado.desde;
+  // ⭐ Las paradas de ESTE vehículo, sobre el patrón que recorre HOY: si la
+  // línea va desviada, el patrón es el operativo y la cuenta sale de él, así
+  // que las paradas que se dicen son las que de verdad se van a pasar.
+  const paradas = montado.iHasta - montado.iDesde;
   return {
     pasos: [
       como.transbordandoDe
-        ? pasoDeTransbordo(dondeSube, como.transbordandoDe, linea, intervalo, vivo)
-        : pasoDeSubir(linea, dondeSube, intervalo, vivo),
+        ? pasoDeTransbordo(dondeSube, como.transbordandoDe, linea, paradas, intervalo, vivo)
+        : pasoDeSubir(linea, dondeSube, paradas, intervalo, vivo),
       // Si de aquí se transborda en el mismo poste, el «Baja» lo dice el paso
       // de transbordo del siguiente: no se baja para volver a subir.
       ...(como.acabaEnTransbordo

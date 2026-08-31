@@ -18,6 +18,7 @@ import { elFeedQueSeSirve } from './feed.ts';
 import { metrosEntre } from './cercano.ts';
 import {
   buscarViaje,
+  pasoDeSubir,
   COSTE_DE_SUBIR,
   PESO_DE_ANDAR,
   PESO_DE_ESPERAR,
@@ -702,6 +703,79 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   });
 
   /**
+   * ⭐ JUEZ 21 — CUÁNTAS PARADAS SE VA DENTRO DE CADA VEHÍCULO.
+   *
+   * [Google Directions API, `transit_details.num_stops`] *«el número de paradas
+   * de este paso; incluye la de llegada, pero no la de salida»*, y su ejemplo
+   * literal: si se sale de A, se pasa por B y C y se llega a D, **son 3**.
+   *
+   * ⚠️ Y `num_stops` es propiedad **del paso de transporte**, no del viaje: cada
+   * vehículo lleva la cuenta del suyo. Nuestro `sube` y nuestro `transborda`
+   * arrancan cada uno un paso de transporte, así que cada uno dice **sus**
+   * paradas — la del `transborda` es la del vehículo que se COGE, igual que su
+   * frecuencia.
+   *
+   * `COLOSO 2 → OVIEDO 5` va en **35 + 39**. Aquí la convención se compra
+   * contando los nombres del recorrido de hoy, que es el ejemplo de Google con
+   * paradas de verdad: la 35 recorre **13** postes de `Av. Academia General
+   * Militar N.º 37` a `Plaza De Ariño`, y se dicen **12**.
+   */
+  test('⭐ 21 · cada vehículo dice sus paradas, sin la de salida y con la de llegada', () => {
+    const eo = extremo('Portales.93310', 'Origen');
+    const ed = extremo('Portales.98006', 'Destino');
+    const viaje = buscarViaje({
+      red,
+      fecha: UN_MARTES,
+      acceso: postesCerca(red, andar, eo.lon, eo.lat),
+      salida: postesCerca(red, andar, ed.lon, ed.lat),
+    })!;
+    assert.equal(viaje.montados.length, 2);
+
+    // ⭐ LA COMPRA DE LA CONVENCIÓN: A → B → C → D son 3, contando nombres.
+    const recorridos = viaje.montados.map((m) =>
+      m.patron.paradas.slice(m.iDesde, m.iHasta + 1),
+    );
+    assert.equal(recorridos[0]!.length, 13, 'los postes por los que pasa la 35, incluido el de subir');
+    assert.equal(recorridos[1]!.length, 17);
+
+    const t = elViajeDe('Portales.93310', 'Portales.98006');
+    const sube = t.pasos.find((x) => x.giro === 'sube')!;
+    const transborda = t.pasos.find((x) => x.giro === 'transborda')!;
+    assert.equal(
+      sube.texto,
+      'Sube a la línea 35 en el poste Av. Academia General Militar N.º 37 ' +
+        '— 12 paradas — frecuencia teórica: cada 8 min',
+    );
+    assert.equal(
+      transborda.texto,
+      'En el poste Plaza De Ariño, transborda de la línea 35 a la línea 39 ' +
+        '— 16 paradas — frecuencia teórica de la 39: cada 6 min',
+    );
+    // Y son las de cada uno: `recorrido − 1`, no las del viaje entero.
+    assert.equal(12, recorridos[0]!.length - 1);
+    assert.equal(16, recorridos[1]!.length - 1);
+
+    // ⚠️ La cuenta va en el texto, y **no toca el reloj**: el total sigue igual.
+    assert.equal(t.segundos, 3184);
+  });
+
+  /**
+   * ⭐ JUEZ 22 — UNA PARADA SE DICE EN SINGULAR, y cero no se dice.
+   *
+   * Se monta a mano porque la red no da hoy un salto de un solo poste entre dos
+   * portales, y la regla se compra igual: el texto lo escribe `pasoDeSubir`.
+   */
+  test('⭐ 22 · una parada va en singular; ninguna, no se nombra', () => {
+    const linea = { id: 'X', corto: '99', largo: 'Prueba', color: '000000', colorTexto: 'FFFFFF', modo: 'bus' as const };
+    assert.match(pasoDeSubir(linea, 'Un Poste', 1, 600).texto, /— 1 parada — frecuencia/);
+    assert.match(pasoDeSubir(linea, 'Un Poste', 2, 600).texto, /— 2 paradas — frecuencia/);
+    assert.equal(
+      pasoDeSubir(linea, 'Un Poste', 0, 600).texto,
+      'Sube a la línea 99 en el poste Un Poste — frecuencia teórica: cada 10 min',
+    );
+  });
+
+  /**
    * ⭐ JUEZ 17 — EL TRANSBORDO EN EL MISMO POSTE ES **UN SOLO PASO**.
    *
    * `COLOSO 2 → OVIEDO 5` sale en **35 + 39** y las dos se cogen en `Plaza De
@@ -720,7 +794,7 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(
       transbordos[0]!.texto,
       'En el poste Plaza De Ariño, transborda de la línea 35 a la línea 39 ' +
-        '— frecuencia teórica de la 39: cada 6 min',
+        '— 16 paradas — frecuencia teórica de la 39: cada 6 min',
     );
     // ⭐ Y los dos chips: las dos líneas van como partes `via`, en orden.
     assert.deepEqual(

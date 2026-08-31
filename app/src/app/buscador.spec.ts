@@ -622,8 +622,8 @@ const VIAJE_CON_TRANSBORDO_Y_DESVIO: Trayecto = {
   modo: 'bus',
   pasos: [
     paso('salida', 30, accion('Sal de'), llano(' '), via('Calle El Coloso 2')),
-    paso('sube', 0, accion('Sube'), llano(' a la línea '), via('35'), llano(' en el poste '), via('Av. Academia General Militar N.º 37'), llano(' — frecuencia teórica: cada 10 min')),
-    paso('transborda', 0, llano('En el poste '), via('Av. Francisco De Goya N.º 83'), accion(', transborda'), llano(' de la línea '), via('35'), llano(' a la línea '), via('31'), llano(' — frecuencia teórica de la 31: cada 14 min')),
+    paso('sube', 0, accion('Sube'), llano(' a la línea '), via('35'), llano(' en el poste '), via('Av. Academia General Militar N.º 37'), llano(' — 12 paradas — frecuencia teórica: cada 10 min')),
+    paso('transborda', 0, llano('En el poste '), via('Av. Francisco De Goya N.º 83'), accion(', transborda'), llano(' de la línea '), via('35'), llano(' a la línea '), via('31'), llano(' — 16 paradas — frecuencia teórica de la 31: cada 14 min')),
     paso('baja', 0, accion('Baja'), llano(' en el poste '), via('Villa De Ansó / Avenida De América')),
     paso('llegada', 0, via('Calle Oviedo 5'), llano(' está a la izquierda')),
   ],
@@ -2434,7 +2434,7 @@ describe('Buscador', () => {
     expect(elTransbordo).toBeTruthy();
     expect((elTransbordo.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim()).toBe(
       'En el poste Av. Francisco De Goya N.º 83, transborda de la línea 35 a la línea 31 ' +
-        '— frecuencia teórica de la 31: cada 14 min',
+        '— 16 paradas — frecuencia teórica de la 31: cada 14 min',
     );
 
     // ⭐ LOS DOS CHIPS, en orden: de la que se deja a la que se coge.
