@@ -53,7 +53,12 @@ import {
 } from './rueda.ts';
 import { cargarRejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
-import { calcularTrayecto, type Motor } from './trayecto.ts';
+import {
+  calcularTrayecto,
+  calcularTrayectoVivo,
+  MODOS_ATENDIDOS,
+  type Motor,
+} from './trayecto.ts';
 import { leerPeticion } from './peticion.ts';
 
 /** Cuánto se acepta como cuerpo de una petición. Una ruta cabe de sobra. */
@@ -635,7 +640,16 @@ const servidor = createServer((peticion, respuesta) => {
         // síncrono**. Una ruta a pie no tiene por qué esperar a una red, y las
         // jueces pueden pasar una disponibilidad de mentira sin tocar internet.
         const vivo = leida?.modo === 'bizi' ? await disponibilidadDeBiZi() : null;
-        json(200, calcularTrayecto(motor, leida, vivo));
+        // ⭐ Y EL BUS VA POR LA OTRA PUERTA (31/08). No se le puede pasar el
+        // dato vivo como al BiZi porque **a qué postes hay que preguntar no se
+        // sabe hasta que el viaje está buscado**: primero se elige la línea, y
+        // solo entonces hay un poste al que llamar. Ver `calcularTrayectoVivo`.
+        json(
+          200,
+          leida?.modo === 'bus'
+            ? await calcularTrayectoVivo(motor, leida)
+            : calcularTrayecto(motor, leida, vivo),
+        );
       })();
     });
     return;
@@ -784,7 +798,11 @@ servidor.listen(PUERTO, () => {
   );
   console.log('motor: /api/portal-cercano barre los portales en memoria por haversine');
   console.log(
-    'motor: POST /api/ruta calcula andando, bici, patin y bizi, de portal a portal, por codigos',
+    // ⚠️ La lista se COMPONE, no se escribe a mano. Escrita a mano lleva desde
+    // la casilla 3b diciendo «andando, bici, patin y bizi» con el bus ya vivo:
+    // una línea que miente sin que nada se ponga rojo. Es la misma lección que
+    // el aviso de la pantalla, que también dejó de escribirse a mano.
+    `motor: POST /api/ruta calcula ${MODOS_ATENDIDOS.join(', ')}, de portal a portal, por codigos`,
   );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 });

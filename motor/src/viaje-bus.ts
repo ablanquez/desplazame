@@ -50,7 +50,13 @@
  */
 import type { LineaDelViaje, Paso, Vertice } from '@desplazame/tipos';
 import type { Aviso, Trayecto } from '@desplazame/tipos';
-import { etapaAndando, juntar, type Etapa, type Extremo } from './etapas.ts';
+import { alMinuto, etapaAndando, juntar, type Etapa, type Extremo } from './etapas.ts';
+import {
+  estadoVivoDe,
+  llegadasDelPoste,
+  posteDeCodigo,
+  type EstadoVivo,
+} from './avanza.ts';
 import { enganchar } from './proyeccion.ts';
 import { calcularRuta } from './ruta.ts';
 import type { Motor } from './trayecto.ts';
@@ -490,7 +496,12 @@ function metrosEntre(aLon: number, aLat: number, bLon: number, bLat: number): nu
  * intervalo que calcular no se escribe espera ninguna: mejor callar que
  * inventar un «~10 min» que no sale de ningún sitio.
  */
-export function pasoDeSubir(linea: LineaDelViaje, poste: string, espera: number | null): Paso {
+export function pasoDeSubir(
+  linea: LineaDelViaje,
+  poste: string,
+  espera: number | null,
+  vivo?: EstadoVivo | null,
+): Paso {
   const partes = [
     { papel: 'accion' as const, texto: 'Sube' },
     { papel: 'texto' as const, texto: ` a la ${linea.modo === 'tram' ? 'línea' : 'línea'} ` },
@@ -498,7 +509,15 @@ export function pasoDeSubir(linea: LineaDelViaje, poste: string, espera: number 
     { papel: 'texto' as const, texto: ' en el poste ' },
     { papel: 'via' as const, texto: poste },
   ];
-  if (espera !== null) {
+  if (vivo?.clase === 'llega') {
+    // ⭐ El dato vivo **sustituye** a la estimación, no se suma a ella: son dos
+    // respuestas a la misma pregunta y la de la calle gana. Y va con su hora
+    // porque un «en 5 min» sin fecha envejece sin que se note.
+    partes.push({
+      papel: 'texto' as const,
+      texto: ` — próximo en ${vivo.minutos} min (dato de las ${alMinuto(vivo.cuando)})`,
+    });
+  } else if (espera !== null) {
     partes.push({ papel: 'texto' as const, texto: ` — ~${Math.round(espera / 60)} min de espera` });
   }
   return { giro: 'sube', texto: partes.map((x) => x.texto).join(''), metros: 0, partes };
@@ -528,6 +547,7 @@ export function etapaMontada(
   red: RedDeBus,
   montado: TramoMontado,
   espera: number | null,
+  vivo?: EstadoVivo | null,
 ): Etapa {
   const porId = new Map(red.paradas.map((p) => [p.id, p]));
   const linea = lineaDelViaje(red, montado.patron);
@@ -544,10 +564,13 @@ export function etapaMontada(
     }
     geometria.push([parada.lat, parada.lon]);
   }
-  const segundos = (espera ?? 0) + montado.rodando;
+  // ⭐ Y EL TOTAL TAMBIÉN CAMBIA, no solo el texto. Enseñar «próximo en 5 min»
+  // y seguir sumando los 4,5 de la estimación dejaría el paso diciendo una cosa
+  // y la cabecera otra — y quien lee se fía de la cabecera.
+  const segundos = (vivo?.clase === 'llega' ? vivo.minutos * 60 : (espera ?? 0)) + montado.rodando;
   return {
     pasos: [
-      pasoDeSubir(linea, porId.get(montado.desde)?.nombre ?? montado.desde, espera),
+      pasoDeSubir(linea, porId.get(montado.desde)?.nombre ?? montado.desde, espera, vivo),
       pasoDeBajar(porId.get(montado.hasta)?.nombre ?? montado.hasta),
     ],
     geometria,
@@ -589,23 +612,79 @@ export function postesCerca(
 }
 
 /**
+ * ⭐ A QUÉ POSTES SE PREGUNTA: a **todos** los de subida, y a la vez.
+ *
+ * Y hay dos decisiones dentro que se dicen en voz alta:
+ *
+ * 1. **Se pregunta por todos los vehículos, no solo por el primero.** Que la
+ *    línea 42 no esté pasando ahora por su poste es un hecho de la calle
+ *    aunque hasta ahí falten cuarenta minutos — puede que haya terminado su
+ *    servicio del día. Callarlo sería esconder lo único que la fuente sabe.
+ * 2. **Salen todas antes de que vuelva ninguna.** El `map` no lleva `await`
+ *    por medio a propósito: el single-flight de `avanza.ts` deduplica lo que
+ *    está **en vuelo**, así que preguntar en fila india lo dejaría inútil. Es
+ *    lo que compra la juez 13.
+ *
+ * El tranvía sale de aquí como `sinFuente` y no como `mudo`: su `stop_code` no
+ * es de los que Avanza entiende, así que no es que no lo sepamos — es que no
+ * hay a quién preguntar, y eso no se avisa.
+ */
+export async function preguntarPorLasSubidas(
+  red: RedDeBus,
+  montados: readonly TramoMontado[],
+  pedir: typeof fetch = fetch,
+): Promise<readonly EstadoVivo[]> {
+  const porId = new Map(red.paradas.map((p) => [p.id, p]));
+  return Promise.all(
+    montados.map((m): Promise<EstadoVivo> => {
+      const parada = porId.get(m.desde);
+      const poste = parada ? posteDeCodigo(parada.codigo) : null;
+      if (poste === null) {
+        return Promise.resolve<EstadoVivo>({ clase: 'sinFuente' });
+      }
+      const corto = lineaDelViaje(red, m.patron).corto;
+      return llegadasDelPoste(poste, pedir).then((lectura) => estadoVivoDe(lectura, corto));
+    }),
+  );
+}
+
+/**
+ * ⭐ UN VIAJE YA BUSCADO, listo para componerse **con o sin** lo que diga la calle.
+ *
+ * Las dos formas salen de la MISMA búsqueda: buscar es lo caro —170 patrones,
+ * tres rondas— y componer es barato. Por eso esto no es un `async` que se coma
+ * la cadena entera: `trayecto()` es lo de siempre, síncrono y sin red, y
+ * `conElVivo()` es lo mismo después de preguntar. La muralla del peatón no se
+ * entera de que existe una API.
+ *
+ * `conElVivo` es `null` cuando no hay viaje que enriquecer.
+ */
+export interface ViajeEnBusPreparado {
+  /** El trayecto con la espera del horario publicado. Es lo que sale si nadie pregunta. */
+  readonly trayecto: () => Trayecto;
+  /** El mismo viaje, con lo que Avanza diga de sus postes de subida. */
+  readonly conElVivo: ((pedir?: typeof fetch) => Promise<Trayecto>) | null;
+}
+
+/**
  * ⭐ EL VIAJE EN BUS O TRANVÍA, entero: de los dos extremos al `Trayecto`.
  *
  * Y cuando no hay viaje **se dice por qué**, con la cifra delante: sin postes
  * cerca es una cosa, sin servicio hoy es otra, y no encontrar combinación es una
  * tercera. Un «no hay ruta» a secas obliga a adivinar cuál de las tres.
  */
-export function viajeEnBus(
+export function prepararViajeEnBus(
   motor: Motor,
   red: RedDeBus,
   origen: Extremo,
   destino: Extremo,
   fecha: string,
-): Trayecto {
-  const cabecera = { modo: 'bus' as const, avisos: [] as Aviso[] };
+): ViajeEnBusPreparado {
   /** Un trayecto sin ruta, con el motivo delante. */
-  const sinViaje = (texto: string): Trayecto =>
-    juntar({ modo: 'bus', avisos: [{ texto }] }, []);
+  const sinViaje = (texto: string): ViajeEnBusPreparado => ({
+    trayecto: () => juntar({ modo: 'bus', avisos: [{ texto }] }, []),
+    conElVivo: null,
+  });
   const andar: AndarEntre = (aLon, aLat, bLon, bLat) => {
     const eo = enganchar(motor.red, motor.rejilla, aLon, aLat);
     const ed = enganchar(motor.red, motor.rejilla, bLon, bLat);
@@ -624,71 +703,138 @@ export function viajeEnBus(
   if (acceso.length === 0 || salida.length === 0) {
     const cual = acceso.length === 0 ? 'el origen' : 'el destino';
     return sinViaje(
-            `No hay ningún poste de bus a menos de ${RADIO_M.bus} m de ${cual} ` +
-            `(ni de tranvía a ${RADIO_M.tram} m)` +
-            (enKm ? `: andando son ${enKm} km.` : '.'),
+      `No hay ningún poste de bus a menos de ${RADIO_M.bus} m de ${cual} ` +
+        `(ni de tranvía a ${RADIO_M.tram} m)` +
+        (enKm ? `: andando son ${enKm} km.` : '.'),
     );
   }
 
   const viaje = buscarViaje({ red, fecha, acceso, salida });
   if (!viaje) {
     const hoy = red.patrones.some((p) => operaEl(red, p, fecha));
-    return sinViaje(hoy
-            ? `Sin bus razonable entre esos dos puntos${enKm ? `: andando son ${enKm} km.` : '.'}`
-            : 'Ese día el horario publicado no tiene servicio: el feed del operador no llega hasta ahí.');
+    return sinViaje(
+      hoy
+        ? `Sin bus razonable entre esos dos puntos${enKm ? `: andando son ${enKm} km.` : '.'}`
+        : 'Ese día el horario publicado no tiene servicio: el feed del operador no llega hasta ahí.',
+    );
   }
 
-  // ── Las etapas, en orden ───────────────────────────────────────────────────
   const porId = new Map(red.paradas.map((x) => [x.id, x]));
   const comoExtremo = (id: string): Extremo => {
     const p = porId.get(id)!;
     return { lon: p.lon, lat: p.lat, nombre: p.nombre };
   };
+  const nombreDelPoste = (id: string): string => porId.get(id)?.nombre ?? id;
 
-  const etapas: Etapa[] = [];
-  const primera = etapaAndando(motor, origen, comoExtremo(viaje.montados[0]!.desde));
-  if (!primera) {
-    return sinViaje('No hay camino a pie hasta el poste donde habría que subir.');
-  }
-  etapas.push({ ...primera, hito: 'sube' });
-
-  for (let i = 0; i < viaje.montados.length; i++) {
-    const m = viaje.montados[i]!;
-    etapas.push(etapaMontada(red, m, esperaEstimada(m.patron, red, fecha)));
-    const siguiente = viaje.montados[i + 1];
-    if (siguiente) {
-      const aPieEntre = etapaAndando(motor, comoExtremo(m.hasta), comoExtremo(siguiente.desde));
-      if (!aPieEntre) {
-        return {
-          ...cabecera,
-          avisos: [{ texto: 'No hay camino a pie para el transbordo que hacía falta.' }],
-          pasos: [],
-          geometria: [],
-          tramos: [],
-          metros: 0,
-          segundos: 0,
-        };
+  /**
+   * ⭐ LOS AVISOS DE LO VIVO, y **cada uno nombra su poste**.
+   *
+   * No es adorno: es lo que permite ponerlo al lado de SU hito y no de otro
+   * [GOV.UK, resumen arriba **y** mensaje junto a lo afectado, con el mismo
+   * texto]. Un «la línea no está pasando» genérico, con dos transbordos en la
+   * lista, obliga a adivinar de cuál habla — y *«general errors are not
+   * helpful»*.
+   */
+  const avisosDeLoVivo = (vivas: readonly EstadoVivo[]): Aviso[] => {
+    const avisos: Aviso[] = [];
+    viaje.montados.forEach((m, i) => {
+      const estado = vivas[i];
+      const corto = lineaDelViaje(red, m.patron).corto;
+      const poste = nombreDelPoste(m.desde);
+      if (estado?.clase === 'ausente') {
+        avisos.push({
+          texto:
+            `La línea ${corto} no está prestando servicio ahora en el poste ${poste}: ` +
+            'la espera que se dice sale del horario publicado.',
+        });
+      } else if (estado?.clase === 'mudo') {
+        // ⚠️ Las mismas palabras que el BiZi —«disponibilidad no verificada»—
+        // porque es la misma condición: se ha preguntado y no se sabe. Y no es
+        // lo mismo que `ausente`, donde la fuente contestó.
+        avisos.push({
+          texto:
+            `No hemos podido preguntar cuándo pasa la línea ${corto} por el poste ${poste}: ` +
+            'disponibilidad no verificada.',
+        });
       }
-      // ⚠️ Los 120 s del transbordo [OTP] se suman AQUÍ, sobre lo que cuesta
-      // andarlo: son el rato de bajarse, orientarse y esperar a que el de
-      // enfrente abra la puerta, y no dependen de la distancia.
-      etapas.push({
-        ...aPieEntre,
-        segundos: aPieEntre.segundos + PENALIZACION_TRANSBORDO_S,
-        tramos: aPieEntre.tramos.map((t) => ({
-          ...t,
-          segundos: t.segundos + PENALIZACION_TRANSBORDO_S,
-        })),
-        hito: 'sube',
-      });
+    });
+    return avisos;
+  };
+
+  /**
+   * Compone el viaje. Con `vivas` a `null` sale la versión del horario.
+   *
+   * ⚠️ **El dato vivo solo sustituye la espera del PRIMER vehículo.** Para los
+   * siguientes se sigue diciendo `~H/2`, y no es pereza: «próximo en 3 min» en
+   * un poste al que se llega dentro de cuarenta minutos es un número cierto
+   * sobre un autobús que no se va a coger. Lo que sí viaja de esos postes es
+   * el aviso, que habla de la línea y no del coche.
+   */
+  const componer = (vivas: readonly EstadoVivo[] | null): Trayecto => {
+    const cabecera = { modo: 'bus' as const, avisos: vivas ? avisosDeLoVivo(vivas) : [] };
+    const perdido = (texto: string): Trayecto => juntar({ modo: 'bus', avisos: [{ texto }] }, []);
+
+    const etapas: Etapa[] = [];
+    const primera = etapaAndando(motor, origen, comoExtremo(viaje.montados[0]!.desde));
+    if (!primera) {
+      return perdido('No hay camino a pie hasta el poste donde habría que subir.');
     }
-  }
+    etapas.push({ ...primera, hito: 'sube' });
 
-  const ultima = etapaAndando(motor, comoExtremo(viaje.salidaAndando.parada), destino);
-  if (!ultima) {
-    return sinViaje('No hay camino a pie desde el último poste hasta el destino.');
-  }
-  etapas.push(ultima);
+    for (let i = 0; i < viaje.montados.length; i++) {
+      const m = viaje.montados[i]!;
+      etapas.push(
+        etapaMontada(red, m, esperaEstimada(m.patron, red, fecha), i === 0 ? (vivas?.[0] ?? null) : null),
+      );
+      const siguiente = viaje.montados[i + 1];
+      if (siguiente) {
+        const aPieEntre = etapaAndando(motor, comoExtremo(m.hasta), comoExtremo(siguiente.desde));
+        if (!aPieEntre) {
+          return perdido('No hay camino a pie para el transbordo que hacía falta.');
+        }
+        // ⚠️ Los 120 s del transbordo [OTP] se suman AQUÍ, sobre lo que cuesta
+        // andarlo: son el rato de bajarse, orientarse y esperar a que el de
+        // enfrente abra la puerta, y no dependen de la distancia.
+        etapas.push({
+          ...aPieEntre,
+          segundos: aPieEntre.segundos + PENALIZACION_TRANSBORDO_S,
+          tramos: aPieEntre.tramos.map((t) => ({
+            ...t,
+            segundos: t.segundos + PENALIZACION_TRANSBORDO_S,
+          })),
+          hito: 'sube',
+        });
+      }
+    }
 
-  return juntar(cabecera, etapas);
+    const ultima = etapaAndando(motor, comoExtremo(viaje.salidaAndando.parada), destino);
+    if (!ultima) {
+      return perdido('No hay camino a pie desde el último poste hasta el destino.');
+    }
+    etapas.push(ultima);
+
+    return juntar(cabecera, etapas);
+  };
+
+  return {
+    trayecto: () => componer(null),
+    conElVivo: async (pedir: typeof fetch = fetch) =>
+      componer(await preguntarPorLasSubidas(red, viaje.montados, pedir)),
+  };
+}
+
+/**
+ * El viaje en bus **sin preguntar a nadie**: el del horario publicado.
+ *
+ * Es la puerta síncrona, la que usa `calcularTrayecto` y la que usan las
+ * jueces que no quieren saber nada de una API. Ver `prepararViajeEnBus`.
+ */
+export function viajeEnBus(
+  motor: Motor,
+  red: RedDeBus,
+  origen: Extremo,
+  destino: Extremo,
+  fecha: string,
+): Trayecto {
+  return prepararViajeEnBus(motor, red, origen, destino, fecha).trayecto();
 }

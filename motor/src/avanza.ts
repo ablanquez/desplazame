@@ -204,6 +204,53 @@ export function llegadasDelPoste(
   return vuelo;
 }
 
+/**
+ * ⭐ LO QUE AVANZA DICE DE **UNA LÍNEA** EN UN POSTE — y son CUATRO estados.
+ *
+ * Aplastar esto a «hay minutos / no hay minutos» sería mentir en tres de los
+ * cuatro casos, y los tres se leen distinto en pantalla:
+ *
+ *   · `llega` — la línea está en el poste y faltan N minutos. **Manda sobre el
+ *     horario** [GTFS-Realtime].
+ *   · `ausente` — la fuente contestó, y en su lista **esa línea no está**. Eso
+ *     es un hecho de ahora mismo, no un fallo: se dice y se sigue con la
+ *     estimación del horario.
+ *   · `mudo` — no contestó, o se contradijo. **No lo sabemos**, que es el plan
+ *     D-G. ⚠️ Confundirlo con `ausente` sería convertir un fallo de red en
+ *     «esa línea no pasa», que es justo la mentira que ZetaBus nos enseñó a no
+ *     cometer.
+ *   · `sinFuente` — ni se preguntó, porque Avanza **no cubre este poste**: el
+ *     tranvía no tiene `stop_code` de los suyos. No hay nada que avisar; lo
+ *     que falta no es el dato, es la fuente.
+ */
+export type EstadoVivo =
+  | { readonly clase: 'llega'; readonly minutos: number; readonly cuando: Date }
+  | { readonly clase: 'ausente'; readonly cuando: Date }
+  | { readonly clase: 'mudo' }
+  | { readonly clase: 'sinFuente' };
+
+/**
+ * Lee una lectura de poste buscando UNA línea. `corto` es el nombre del feed
+ * (`53`), y se normaliza el de Avanza (`053`) para poder cruzarlos.
+ *
+ * De los coches de esa línea se queda con **el primero que llega**, que es el
+ * que se va a coger.
+ */
+export function estadoVivoDe(lectura: LecturaDePoste | null, corto: string): EstadoVivo {
+  if (!lectura) {
+    return { clase: 'mudo' };
+  }
+  const suyas = lectura.llegadas.filter((l) => l.linea === normalizarLinea(corto));
+  if (suyas.length === 0) {
+    return { clase: 'ausente', cuando: lectura.cuando };
+  }
+  return {
+    clase: 'llega',
+    minutos: Math.min(...suyas.map((l) => l.minutos)),
+    cuando: lectura.cuando,
+  };
+}
+
 /** El número de poste que Avanza entiende, sacado del `stop_code` del feed. */
 export function posteDeCodigo(codigo: string): number | null {
   const m = /^PA0*(\d+)$/.exec(codigo.trim());

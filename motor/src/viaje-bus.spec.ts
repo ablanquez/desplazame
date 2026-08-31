@@ -18,20 +18,35 @@ import { elFeedQueSeSirve } from './feed.ts';
 import {
   buscarViaje,
   esperaEstimada,
+  etapaMontada,
   intervaloDeHoy,
   lineaDelViaje,
   PENALIZACION_TRANSBORDO_S,
+  preguntarPorLasSubidas,
+  prepararViajeEnBus,
   RADIO_M,
   RONDAS,
   VELOCIDAD_PEATON_MS,
   type Acceso,
 } from './viaje-bus.ts';
+import { reiniciarVisitas, visitasHechas } from './avanza.ts';
+import type { Motor } from './trayecto.ts';
+import type { Extremo } from './etapas.ts';
 
 let red: RedDeBus;
 let andar: AndarEntre;
 let portales: PortalesEnMemoria;
 let peaton: RedEnMemoria;
 let rejilla: Rejilla;
+/**
+ * ⭐ EL MOTOR MÍNIMO, y va con un `as` que se declara.
+ *
+ * El viaje en bus toca del motor **tres cosas y ninguna más** —la red del
+ * peatón, su rejilla y su cuaderno—, porque lo único que le pide es
+ * `etapaAndando`. Cargar el motor entero aquí sería levantar la rueda, el
+ * callejero, los sitios, los aparcabicis y el BiZi para no usarlos.
+ */
+let motor: Motor;
 
 /** Un martes cualquiera de septiembre, con la red entera operando. */
 const UN_MARTES = '20260907';
@@ -61,7 +76,9 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   before(async () => {
     peaton = cargarRed(cargarGrafo());
     rejilla = cargarRejilla(peaton);
-    andar = andarConElPeaton(peaton, rejilla, cuadernoPara(peaton));
+    const cuaderno = cuadernoPara(peaton);
+    andar = andarConElPeaton(peaton, rejilla, cuaderno);
+    motor = { red: peaton, rejilla, cuaderno } as unknown as Motor;
     portales = cargarPortales();
     red = (await cocinar(elFeedQueSeSirve().ruta, andar)).red;
   });
@@ -348,5 +365,169 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.ok(m !== null && m > 0);
     // Y la velocidad a pie es la de la casa, no una propia del bus.
     assert.equal(Math.round(VELOCIDAD_PEATON_MS * 3600), 5000);
+  });
+
+  /**
+   * ⭐ LAS DOS RESPUESTAS DE AVANZA, **MEDIDAS** el 31/08/2026 a las 13:16.
+   *
+   * [Ley nº18] un esquema dice el TIPO, no la codificación, y **el fixture
+   * copia la medición**. Estas dos son las que el servidor mandó, byte a byte,
+   * sin una coma puesta por mí:
+   *
+   *   · **poste 1000** (Plaza Emperador Carlos V / Intercambiador), 2.930
+   *     bytes: la línea `053` con dos coches, el 4937 a **5 min** y el 4669 a
+   *     **12 min**. Trae la cicatriz entera —`<strong>053<i…></i>MIRALBUENO`—.
+   *   · **poste 1203** (Bernardo Ramazzini / Maz), 219 bytes: `maquinas` con
+   *     **solo la parada** y `tablatiempos` **vacío**. Es el poste donde el
+   *     caso del ojo se sube a la 29, y a esa hora **no venía ni un bus**.
+   *
+   * ⚠️ La segunda es el caso que no me habría inventado nunca y salió a la
+   * primera medición: la respuesta legítima de un poste sin nada que decir.
+   */
+  const MEDIDO_POSTE_1000 = "{\"maquinas\":{\"0\":{\"coordenadas\":{\"0\":{\"LAT\":41.638001,\"LON\":-0.89869}},\"icon\":\"https:\\/\\/gps.avanzabus.com\\/img\\/bus_rojo.png\",\"info\":\"Plaza Emperador Carlos V \\/ Intercambiador\",\"title\":\"Plaza Emperador Carlos V \\/ Intercambiador\"},\"1\":{\"coordenadas\":{\"0\":{\"LAT\":41.640968435279994,\"LON\":-0.9102758371901934}},\"info\":\"<table border=\\\"0\\\">\\n                        <tr>\\n                            <td class=\\\"td_info\\\">Bus<\\/td>\\n                            <td class=\\\"td_info\\\">L\\u00ednea<\\/td>\\n                            <td class=\\\"td_info\\\">Tiempo<\\/td>\\n                            <td class=\\\"td_info\\\">Distancia<\\/td>\\n                        <\\/tr>\\n\\n                        <tr>\\n                            <td class=\\\"td_info2\\\">&nbsp4937<\\/td>\\n                            <td class=\\\"td_info2\\\">053->MIRALBUENO<\\/td>\\n                            <td class=\\\"td_info2\\\">5 min.<\\/td>\\n                            <td class=\\\"td_info2\\\">1 kms.<\\/td>\\n                        <\\/tr>\\n                    <\\/table>\",\"title\":\"053 4937\",\"icon\":\"https:\\/\\/gps.avanzabus.com\\/img\\/bus.png\"},\"2\":{\"coordenadas\":{\"0\":{\"LAT\":41.65174088377712,\"LON\":-0.9237253579670318}},\"info\":\"<table border=\\\"0\\\">\\n                        <tr>\\n                            <td class=\\\"td_info\\\">Bus<\\/td>\\n                            <td class=\\\"td_info\\\">L\\u00ednea<\\/td>\\n                            <td class=\\\"td_info\\\">Tiempo<\\/td>\\n                            <td class=\\\"td_info\\\">Distancia<\\/td>\\n                        <\\/tr>\\n\\n                        <tr>\\n                            <td class=\\\"td_info2\\\">&nbsp4669<\\/td>\\n                            <td class=\\\"td_info2\\\">053->MIRALBUENO<\\/td>\\n                            <td class=\\\"td_info2\\\">12 min.<\\/td>\\n                            <td class=\\\"td_info2\\\">2 kms.<\\/td>\\n                        <\\/tr>\\n                    <\\/table>\",\"title\":\"053 4669\",\"icon\":\"https:\\/\\/gps.avanzabus.com\\/img\\/bus.png\"}},\"tablatiempos\":\"<li>\\n                        <a href=\\\"#\\\">\\n                            <i class=\\\"fa fa-dot-circle-o\\\"><\\/i>\\n                            <strong>053\\n                            <i class=\\\"fa fa-long-arrow-right fa-fw\\\"><\\/i>MIRALBUENO\\n                            <\\/strong>\\n                        <\\/a><ul class=\\\"nav nav-second-level\\\">\\n                        <li>\\n                            <a href=\\\"https:\\/\\/gps.avanzabus.com\\/zaragoza\\/fParadas\\/1000\\/4937\\\">\\n\\n                            <i class=\\\"fa fa-map-marker fa-fw\\\"><\\/i>\\n                            4937 [5 mins]\\n                            <\\/a>\\n                        <\\/li><li>\\n                        <a href=\\\"https:\\/\\/gps.avanzabus.com\\/zaragoza\\/fParadas\\/1000\\/4669\\\">\\n\\n                        <i class=\\\"fa fa-map-marker fa-fw\\\"><\\/i>\\n                        4669 [12 mins]\\n                        <\\/a>\\n                    <\\/li><\\/ul><\\/li>\"}";
+  const MEDIDO_POSTE_1203 = "{\"maquinas\":{\"0\":{\"coordenadas\":{\"0\":{\"LAT\":41.685224,\"LON\":-0.870433}},\"icon\":\"https:\\/\\/gps.avanzabus.com\\/img\\/bus_rojo.png\",\"info\":\"Bernardo Ramazzini \\/ Maz\",\"title\":\"Bernardo Ramazzini \\/ Maz\"}},\"tablatiempos\":\"\"}";
+
+  /** Un `fetch` de mentira que contesta siempre con un cuerpo medido. */
+  const respondiendo = (cuerpo: string): typeof fetch =>
+    (async () => new Response(cuerpo, { status: 200 })) as unknown as typeof fetch;
+
+  /** Los dos extremos del caso del ojo, como los recibe el motor. */
+  const extremo = (codigo: string, nombre: string): Extremo => {
+    const p = portales.donde.get(codigo)!;
+    return { lon: p.lon, lat: p.lat, nombre };
+  };
+  const elOjo = (): { readonly origen: Extremo; readonly destino: Extremo } => ({
+    origen: extremo('Portales.93310', 'CALLE EL COLOSO 2'),
+    destino: extremo('Portales.79358', 'CALLE LEOPOLDO ROMEO 27'),
+  });
+
+  /**
+   * ⭐ JUEZ 8 — LA LÍNEA ESTÁ EN EL POSTE: los minutos vivos sustituyen al ~H/2.
+   *
+   * [GTFS-Realtime, el principio de la casa] **lo real desplaza a lo
+   * programado**. El caso está medido de punta a punta: `Plaza Emperador
+   * Carlos V / Intercambiador` → `Av. Gómez Laguna N.º 48`, un vehículo, la
+   * **línea 53**. El horario publicado da una espera estimada de **268 s**;
+   * Avanza, en ese mismo poste y a esa misma hora, dice **5 minutos**.
+   *
+   * ⚠️ Y lo que se compra no es el texto: **es el total**. 698 s con la
+   * estimación, **730 s** con el dato vivo. Enseñar los minutos y no sumarlos
+   * dejaría el paso diciendo una cosa y la cabecera otra.
+   */
+  test('⭐ 8 · con la línea en el poste, el hito lleva minutos y el total cambia', async () => {
+    reiniciarVisitas();
+    const viaje = buscarViaje({
+      red,
+      fecha: UN_MARTES,
+      acceso: enLaParada('17671'),
+      salida: enLaParada('16755'),
+    })!;
+    assert.equal(viaje.vehiculos, 1);
+    assert.equal(lineaDelViaje(red, viaje.montados[0]!.patron).corto, '53');
+    assert.equal(viaje.montados[0]!.espera, 268, 'la espera que el horario estima hoy');
+
+    const vivas = await preguntarPorLasSubidas(red, viaje.montados, respondiendo(MEDIDO_POSTE_1000));
+    assert.equal(vivas.length, 1);
+    assert.equal(vivas[0]!.clase, 'llega');
+    assert.equal((vivas[0] as { minutos: number }).minutos, 5, 'el primero de los dos coches');
+
+    const estimada = etapaMontada(red, viaje.montados[0]!, 268, null);
+    const viva = etapaMontada(red, viaje.montados[0]!, 268, vivas[0]!);
+    assert.equal(estimada.segundos, 698, 'la etapa con la espera estimada');
+    assert.equal(viva.segundos, 730, 'los 5 min vivos tienen que entrar en el total');
+
+    assert.match(estimada.pasos[0]!.texto, /~4 min de espera$/);
+    assert.match(viva.pasos[0]!.texto, /próximo en 5 min \(dato de las \d\d:\d\d\)$/);
+  });
+
+  /**
+   * ⭐ JUEZ 11 — LA LÍNEA NO ESTÁ: se dice, y la estimación se queda donde está.
+   *
+   * La medición del poste 1203 —el del caso del ojo— vino **vacía**: ni un
+   * coche. Eso **no es «no hay servicio nunca»** ni es «no lo sabemos»: es que
+   * ahora mismo no viene ninguno, y las tres cosas se dicen distinto.
+   *
+   * Entonces la ruta **sale igual** —componer sin prometer— con la espera del
+   * horario publicado, y el aviso nombra **la línea y el poste**, que es lo que
+   * permite ponerlo al lado de SU hito y no de otro [GOV.UK, doble sitio].
+   */
+  test('⭐ 11 · si la línea no está en el poste, se dice — y la ruta sale igual', async () => {
+    reiniciarVisitas();
+    const { origen, destino } = elOjo();
+    const preparado = prepararViajeEnBus(motor, red, origen, destino, UN_MARTES);
+    const conVivo = await preparado.conElVivo!(respondiendo(MEDIDO_POSTE_1203));
+    const sinPreguntar = preparado.trayecto();
+
+    const aviso = conVivo.avisos.find((a) => a.texto.includes('no está prestando servicio ahora'));
+    assert.ok(aviso, `no se dijo que la línea no venía. Avisos: ${JSON.stringify(conVivo.avisos)}`);
+    assert.match(aviso!.texto, /La línea 29 /);
+    assert.ok(
+      aviso!.texto.includes('Bernardo Ramazzini / Maz'),
+      'el aviso tiene que nombrar SU poste para poder ir al lado de su hito',
+    );
+
+    // La ruta no cambia: sin dato vivo que sustituya, manda el horario.
+    assert.equal(conVivo.segundos, sinPreguntar.segundos);
+    assert.equal(conVivo.metros, sinPreguntar.metros);
+    const sube = conVivo.pasos.find((x) => x.giro === 'sube')!;
+    assert.match(sube.texto, /~\d+ min de espera$/, 'la espera sigue siendo la estimada');
+  });
+
+  /**
+   * ⭐ JUEZ 12 — SI LA API CALLA, D-G: la ruta sale y no se promete nada.
+   *
+   * Es el plan firmado el 28/08 para el BiZi, con las mismas palabras —
+   * «disponibilidad no verificada»— porque es la misma condición: se ha
+   * preguntado y no se sabe. **Y no es lo mismo que la juez 11**: allí la
+   * fuente contestó y dijo que no venía nadie; aquí no contestó.
+   */
+  test('⭐ 12 · si la API calla, D-G: la ruta sale con su aviso y sin promesas', async () => {
+    reiniciarVisitas();
+    const { origen, destino } = elOjo();
+    const muda = (async () => {
+      throw new Error('ENOTFOUND');
+    }) as unknown as typeof fetch;
+    const t = await prepararViajeEnBus(motor, red, origen, destino, UN_MARTES).conElVivo!(muda);
+
+    assert.ok(t.pasos.length > 0, 'componer sin prometer: la ruta sale igual');
+    const aviso = t.avisos.find((a) => a.texto.includes('disponibilidad no verificada'));
+    assert.ok(aviso, `sin D-G. Avisos: ${JSON.stringify(t.avisos)}`);
+    assert.ok(aviso!.texto.includes('Bernardo Ramazzini / Maz'), 'el D-G también nombra su poste');
+  });
+
+  /**
+   * ⭐ JUEZ 13 — DOS SUBIDAS EN EL MISMO POSTE, **UNA** consulta.
+   *
+   * El single-flight de `avanza.ts` deduplica lo que está en vuelo, y eso solo
+   * sirve si las consultas **salen a la vez**. Preguntando en fila india esta
+   * juez daría 2: es la que obliga a que el `Promise.all` exista.
+   */
+  test('⭐ 13 · dos subidas en el mismo poste hacen UNA sola consulta', async () => {
+    reiniciarVisitas();
+    const viaje = buscarViaje({
+      red,
+      fecha: UN_MARTES,
+      acceso: enLaParada('17671'),
+      salida: enLaParada('16755'),
+    })!;
+    const dos = [viaje.montados[0]!, viaje.montados[0]!];
+    const vivas = await preguntarPorLasSubidas(red, dos, respondiendo(MEDIDO_POSTE_1000));
+    assert.equal(vivas.length, 2, 'las dos subidas tienen su respuesta');
+    assert.equal(visitasHechas(), 1, `dos subidas al mismo poste hicieron ${visitasHechas()} visitas`);
+  });
+
+  /**
+   * ⭐ JUEZ 14 — DOS «Generar», DOS consultas. Esto **no es una caché**.
+   *
+   * La frescura por petición es la conducta firmada, la misma que el BiZi: un
+   * minuto guardado es un minuto que ya no es cierto.
+   */
+  test('⭐ 14 · dos «Generar» son dos consultas, no una guardada', async () => {
+    reiniciarVisitas();
+    const { origen, destino } = elOjo();
+    const preparado = prepararViajeEnBus(motor, red, origen, destino, UN_MARTES);
+    await preparado.conElVivo!(respondiendo(MEDIDO_POSTE_1203));
+    await preparado.conElVivo!(respondiendo(MEDIDO_POSTE_1203));
+    assert.equal(visitasHechas(), 2, 'alguien ha guardado la respuesta entre peticiones');
   });
 });

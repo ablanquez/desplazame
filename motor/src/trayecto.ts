@@ -29,7 +29,7 @@ import type { PortalesEnMemoria, PortalSituado } from './portales.ts';
 import type { RedEnMemoria } from './red.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
 import { laRedDeBus } from './red-bus.ts';
-import { viajeEnBus } from './viaje-bus.ts';
+import { prepararViajeEnBus, viajeEnBus } from './viaje-bus.ts';
 import type { AparcabicisEnMemoria } from './aparcabicis.ts';
 import type { BiZiEnMemoria, Disponibilidad } from './bizi.ts';
 import { enganchar, type Enganche, type Rejilla } from './proyeccion.ts';
@@ -57,7 +57,7 @@ import { viajeEnBiZi } from './viaje-bizi.ts';
  * andando se le suman los tres de la rueda. Faltan `bus` (punto 10) y `coche`
  * (punto 11), y a esos se les sigue contestando con su Aviso honrado.
  */
-const MODOS_ATENDIDOS: readonly Modo[] = ['andando', 'bici', 'patin', 'bizi', 'bus'];
+export const MODOS_ATENDIDOS: readonly Modo[] = ['andando', 'bici', 'patin', 'bizi', 'bus'];
 
 /** Un trayecto vacío con su explicación. Es la respuesta a todo lo que falla. */
 function conAviso(modo: Modo, texto: string): Trayecto {
@@ -215,23 +215,6 @@ const esAvisoExtremo = (x: Extremo | Aviso): x is Aviso =>
   (x as Aviso).texto !== undefined && (x as Extremo).lon === undefined;
 
 /**
- * Calcula el trayecto. Nunca lanza.
- *
- * ⭐ `vivo` es la disponibilidad de las estaciones BiZi **que ya ha pedido
- * quien llama**, o `null` si la API calló. Se recibe y no se pide, por dos
- * razones que van juntas:
- *
- * 1. **Esto sigue siendo síncrono.** Pedirla aquí obligaría a hacer `async`
- *    toda la cadena —incluidas las rutas a pie, que no tienen nada que ver con
- *    el BiZi— y a que cada prueba del peatón esperara a una red.
- * 2. **Se puede mentir a propósito.** Las jueces de la estación vacía y de la
- *    API caída pasan una disponibilidad de mentira, que es la única forma de
- *    probar el filtro sin depender de cuántas bicis haya hoy en la calle.
- *
- * `undefined` y `null` valen lo mismo: nadie preguntó, o preguntó y no hubo
- * respuesta. En los dos casos la ruta sale con el aviso de D-G.
- */
-/**
  * La fecha de hoy en el formato del calendario de GTFS: `AAAAMMDD`.
  *
  * ⚠️ En hora LOCAL, no UTC: el día de servicio es el del reloj de la calle, y a
@@ -242,11 +225,25 @@ export function hoyEnGtfs(cuando: Date): string {
   return `${cuando.getFullYear()}${dos(cuando.getMonth() + 1)}${dos(cuando.getDate())}`;
 }
 
-export function calcularTrayecto(
-  motor: Motor,
-  peticion: PeticionDeRuta | null,
-  vivo?: Disponibilidad | null,
-): Trayecto {
+/**
+ * ⭐ LO QUE HAY ANTES DE BIFURCAR POR MODO: o los dos extremos, o el trayecto
+ * que explica por qué no los hay.
+ *
+ * Se ha sacado a su propia función porque desde el 31/08 hay **dos puertas**
+ * —la síncrona de siempre y la que espera a Avanza— y esto es idéntico en las
+ * dos. Duplicarlo habría dejado dos sitios donde arreglar el mismo aviso.
+ */
+interface Bifurcacion {
+  readonly modo: Modo;
+  readonly origen: Extremo;
+  readonly destino: Extremo;
+  readonly ruta: TipoDeRuta | undefined;
+}
+
+/** Un `Trayecto` se distingue de una `Bifurcacion` por tener pasos. */
+const esTrayecto = (x: Bifurcacion | Trayecto): x is Trayecto => 'pasos' in x;
+
+function antesDeBifurcar(motor: Motor, peticion: PeticionDeRuta | null): Bifurcacion | Trayecto {
   if (!peticion) {
     return conAviso(
       'andando',
@@ -282,7 +279,28 @@ export function calcularTrayecto(
   if (esAvisoExtremo(destino)) {
     return { ...conAviso(modo, destino.texto) };
   }
+  return { modo, origen, destino, ruta: peticion.ruta };
+}
 
+/**
+ * Calcula el trayecto con los dos extremos ya resueltos. **Nunca lanza.**
+ *
+ * ⭐ `vivo` es la disponibilidad de las estaciones BiZi **que ya ha pedido
+ * quien llama**, o `null` si la API calló. Se recibe y no se pide, por dos
+ * razones que van juntas:
+ *
+ * 1. **Esto sigue siendo síncrono.** Pedirla aquí obligaría a hacer `async`
+ *    toda la cadena —incluidas las rutas a pie, que no tienen nada que ver con
+ *    el BiZi— y a que cada prueba del peatón esperara a una red.
+ * 2. **Se puede mentir a propósito.** Las jueces de la estación vacía y de la
+ *    API caída pasan una disponibilidad de mentira, que es la única forma de
+ *    probar el filtro sin depender de cuántas bicis haya hoy en la calle.
+ *
+ * `undefined` y `null` valen lo mismo: nadie preguntó, o preguntó y no hubo
+ * respuesta. En los dos casos la ruta sale con el aviso de D-G.
+ */
+function porModo(motor: Motor, b: Bifurcacion, vivo: Disponibilidad | null): Trayecto {
+  const { modo, origen, destino } = b;
   // ⭐ LA BIFURCACIÓN, y va aquí a propósito: los dos extremos se resuelven
   // igual para todos los modos —una dirección es una dirección— y a partir de
   // este punto **el peatón no vuelve a cruzarse con la rueda**. Ni comparte
@@ -307,18 +325,19 @@ export function calcularTrayecto(
     return viajeEnBus(motor, red, origen, destino, hoyEnGtfs(new Date()));
   }
 
+
   if (modo === 'bizi') {
     return viajeEnBiZi(
       motor,
       origen,
       destino,
-      peticion.ruta,
+      b.ruta,
       empujeDe('bizi', motor.redRueda),
       vivo ?? null,
     );
   }
   if (esDeLaRueda(modo)) {
-    return trayectoRodando(motor, modo, origen, destino, peticion.ruta);
+    return trayectoRodando(motor, modo, origen, destino, b.ruta);
   }
 
   const engancheOrigen = enganchar(motor.red, motor.rejilla, origen.lon, origen.lat);
@@ -389,6 +408,62 @@ export function calcularTrayecto(
       },
     ],
   };
+}
+
+/**
+ * Calcula el trayecto. Nunca lanza. **La puerta síncrona**, la de siempre: con
+ * ella el bus contesta con la espera del horario publicado y nadie espera a
+ * una red. Es la que usan las jueces del peatón y de la rueda.
+ */
+export function calcularTrayecto(
+  motor: Motor,
+  peticion: PeticionDeRuta | null,
+  vivo?: Disponibilidad | null,
+): Trayecto {
+  const previo = antesDeBifurcar(motor, peticion);
+  return esTrayecto(previo) ? previo : porModo(motor, previo, vivo ?? null);
+}
+
+/**
+ * ⭐ LA OTRA PUERTA: el trayecto **después de preguntarle a la calle** (31/08).
+ *
+ * Solo el bus cambia de conducta aquí; los demás modos caen en la puerta de
+ * arriba sin enterarse. Y la asimetría con el BiZi —donde el dato vivo lo pide
+ * el servidor y llega como parámetro— tiene una razón exacta: **a qué postes
+ * hay que preguntar no se sabe hasta que el viaje está buscado**. El BiZi
+ * pregunta por 276 estaciones antes de elegir; el bus tiene que elegir para
+ * saber por dónde preguntar.
+ *
+ * Por eso se busca **una sola vez** y se compone dos: ver `prepararViajeEnBus`.
+ */
+export async function calcularTrayectoVivo(
+  motor: Motor,
+  peticion: PeticionDeRuta | null,
+  pedir: typeof fetch = fetch,
+): Promise<Trayecto> {
+  const previo = antesDeBifurcar(motor, peticion);
+  if (esTrayecto(previo)) {
+    return previo;
+  }
+  if (previo.modo !== 'bus') {
+    return porModo(motor, previo, null);
+  }
+  const red = laRedDeBus();
+  if (!red) {
+    return conAviso(
+      'bus',
+      'La red de bus todavía no está cocinada: el motor acaba de arrancar o el ' +
+        'feed no se ha podido leer.',
+    );
+  }
+  const preparado = prepararViajeEnBus(
+    motor,
+    red,
+    previo.origen,
+    previo.destino,
+    hoyEnGtfs(new Date()),
+  );
+  return preparado.conElVivo ? preparado.conElVivo(pedir) : preparado.trayecto();
 }
 
 /**

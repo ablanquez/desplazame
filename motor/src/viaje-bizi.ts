@@ -16,6 +16,7 @@ import type { Aviso, Paso, Trayecto, TipoDeRuta } from '@desplazame/tipos';
 import type { Motor } from './trayecto.ts';
 import type { Empuje } from './pasos.ts';
 import {
+  alMinuto,
   etapaAndando,
   etapaRodando,
   juntar,
@@ -57,19 +58,6 @@ function conUnidad(cuantos: number, singular: string, plural: string): string {
   return `${cuantos} ${cuantos === 1 ? singular : plural}`;
 }
 
-/**
- * La hora de un dato vivo, en local y al minuto: «11:56».
- *
- * ⚠️ Es la hora que la API declara **para esa estación**, no la de la consulta.
- * [DOC GBFS] `last_reported` va por estación y no por feed, y el 30/08 la
- * respuesta real traía **seis marcas distintas** entre sus 276 filas. Decir la
- * hora del dato es enseñar la verdad del feed; decir la de la consulta sería
- * fingir que todas se midieron a la vez.
- */
-function alMinuto(cuando: Date): string {
-  return cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-}
-
 /** Lo común a los dos hitos de estación. */
 function hitoDeEstacion(
   verbo: 'Coge' | 'Deja',
@@ -86,6 +74,10 @@ function hitoDeEstacion(
   if (estado) {
     partes.push({
       papel: 'texto' as const,
+      // ⚠️ `estado.cuando` es la hora que la API declara **para esa
+      // estación**, no la de la consulta. [DOC GBFS] `last_reported` va por
+      // estación y no por feed, y el 30/08 la respuesta real traía **seis
+      // marcas distintas** entre sus 276 filas.
       texto: ` — ${cifra(estado)} a las ${alMinuto(estado.cuando)}`,
     });
   }

@@ -57,6 +57,20 @@ import { metrosEntre } from './cercano.ts';
  */
 export const VELOCIDAD_MS = 5000 / 3600;
 
+/**
+ * Una hora en local y al minuto: «11:56». La usan los hitos que llevan dato
+ * vivo, para decir **de cuándo** es el número que enseñan.
+ *
+ * ⚠️ Vive aquí y no en cada viaje porque el formato es el mismo, pero **la
+ * hora que se le pasa no lo es**, y eso lo decide quien llama: el BiZi dice la
+ * que la API declara para esa estación [DOC GBFS, `last_reported` va por
+ * estación], y el bus dice la de nuestra propia lectura, porque Avanza no
+ * fecha sus minutos. Un número sin fecha envejece sin avisar.
+ */
+export function alMinuto(cuando: Date): string {
+  return cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+
 /** Un punto del viaje, con cómo se llama. Lo resuelve `trayecto.ts`. */
 export interface Extremo {
   readonly lon: number;
