@@ -13,11 +13,15 @@
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  BACKOFF_MS,
+  ESPERA_MS,
   leerRespuesta,
   llegadasDelPoste,
   normalizarLinea,
   posteDeCodigo,
+  reintentosHechos,
   reiniciarVisitas,
+  REINTENTOS,
   visitasHechas,
 } from './avanza.ts';
 
@@ -157,5 +161,68 @@ describe('⭐ LA CONSULTA VIVA AL POSTE DE AVANZA', () => {
       throw new Error('ENOTFOUND');
     }) as unknown as typeof fetch;
     assert.equal(await llegadasDelPoste(3000, rota), null);
+  });
+
+  /**
+   * ⭐ JUEZ 7 — UNA RESPUESTA DE 3,5 s YA NO ES «MUDO».
+   *
+   * ⚠️ **Nace de un caso de Antonio.** Vio la línea 30 marcada como muda en el
+   * poste de Jorge Cocci mientras la web de Avanza contestaba con cuatro
+   * coches. Medida la latencia real de ese poste: **mediana 2.139 ms y máximo
+   * 2.838** en cinco llamadas seguidas, con el tope en 3.000. No era la fuente.
+   *
+   * El tope pasa a los **4.000** de ZetaBus, que lleva meses en producción
+   * contra este mismo servidor [`transporte.ts:157`].
+   */
+  test('⭐ 7 · una respuesta que tarda 3,5 s se lee, no se descarta', async () => {
+    reiniciarVisitas();
+    assert.equal(ESPERA_MS, 4000, 'el tope de ZetaBus');
+    const lenta = (async () => {
+      await new Promise((r) => setTimeout(r, 3500));
+      return new Response(DEL_POSTE_1000, { status: 200 });
+    }) as unknown as typeof fetch;
+
+    const lectura = await llegadasDelPoste(7000, lenta);
+    assert.ok(lectura, '3,5 s está por debajo del tope: eso no es «no lo sabemos»');
+    assert.equal(lectura!.llegadas.length, 2);
+    assert.equal(reintentosHechos(), 0, 'y no hizo falta reintentar');
+  });
+
+  /**
+   * ⭐ JUEZ 8 — EL REINTENTO: un fallo suelto no deja el poste mudo.
+   *
+   * [ZetaBus, `transporte.ts:172`] *«una petición a Avanza, con timeout duro y
+   * un reintento»*, con `BACKOFF_MS = 300` entre los dos. **Uno, no tres**: la
+   * pantalla está esperando.
+   */
+  test('⭐ 8 · un fallo suelto se reintenta una vez, y solo una', async () => {
+    reiniciarVisitas();
+    assert.equal(REINTENTOS, 1);
+    assert.equal(BACKOFF_MS, 300);
+
+    let llamadas = 0;
+    const flaqueaUnaVez = (async () => {
+      llamadas++;
+      if (llamadas === 1) {
+        throw new Error('ECONNRESET');
+      }
+      return new Response(DEL_POSTE_1000, { status: 200 });
+    }) as unknown as typeof fetch;
+
+    const lectura = await llegadasDelPoste(7001, flaqueaUnaVez);
+    assert.ok(lectura, 'el segundo intento contestó');
+    assert.equal(llamadas, 2);
+    assert.equal(reintentosHechos(), 1);
+    assert.equal(visitasHechas(), 1, 'una visita es un poste preguntado, no una petición');
+
+    // Y si falla las dos, se rinde: no se reintenta sin fin.
+    reiniciarVisitas();
+    let siempreMal = 0;
+    const rota = (async () => {
+      siempreMal++;
+      throw new Error('ENOTFOUND');
+    }) as unknown as typeof fetch;
+    assert.equal(await llegadasDelPoste(7002, rota), null);
+    assert.equal(siempreMal, REINTENTOS + 1, 'un intento y un reintento, y ya');
   });
 });

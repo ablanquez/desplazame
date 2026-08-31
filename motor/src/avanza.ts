@@ -47,8 +47,31 @@
 /** El endpoint, el mismo que ZetaBus usa en producción. */
 export const URL_POSTE = 'https://gps.avanzabus.com/index.php/zaragoza/fRefrescaEmpresaExternos';
 
-/** Tres segundos: si tarda más, la pantalla se queda esperando por nada. */
-export const ESPERA_MS = 3000;
+/**
+ * ⭐ EL TOPE: **4 segundos**, y el número no es mío.
+ *
+ * ⚠️ Eran 3.000 hasta el 31/08, y se quedón cortos: medida la latencia real
+ * contra el mismo endpoint, el poste 532 (Jorge Cocci 17) da **mediana 2.139 ms
+ * y máximo 2.838** en cinco llamadas seguidas, y hasta **2.736** con dos
+ * peticiones en paralelo. Margen de 200 ms. Antonio vio la línea 30 marcada
+ * como «muda» en ese poste mientras la web de Avanza contestaba con **cuatro
+ * coches**: no era la fuente, era el tope.
+ *
+ * Los 4.000 son los de **ZetaBus**, que lleva meses en producción contra este
+ * mismo servidor [`003_ZETABUS/src/sources/avanza/transporte.ts:157`].
+ */
+export const ESPERA_MS = 4000;
+
+/**
+ * ⭐ Y UN REINTENTO, con **300 ms** de espera entre los dos [ZetaBus,
+ * `transporte.ts:159` y `:172` — *«una petición a Avanza, con timeout duro y un
+ * reintento»*].
+ *
+ * Uno, no tres: la pantalla está esperando, y el peor caso son 8,3 s. El
+ * indicador de espera existe justamente para ese rato.
+ */
+export const BACKOFF_MS = 300;
+export const REINTENTOS = 1;
 
 export interface LlegadaViva {
   /** El nombre corto de la línea, ya normalizado: `053` llega como `53`. */
@@ -163,10 +186,11 @@ export function visitasHechas(): number {
 
 export function reiniciarVisitas(): void {
   visitas = 0;
+  reintentos = 0;
 }
 
-async function consultar(poste: number, pedir: typeof fetch): Promise<LecturaDePoste | null> {
-  visitas++;
+/** Una sola petición, con su tope duro. `null` es «no lo sabemos». */
+async function unaVez(poste: number, pedir: typeof fetch): Promise<LecturaDePoste | null> {
   try {
     const r = await pedir(URL_POSTE, {
       method: 'POST',
@@ -182,8 +206,31 @@ async function consultar(poste: number, pedir: typeof fetch): Promise<LecturaDeP
     return leerRespuesta(poste, await r.text(), new Date());
   } catch {
     // Red caída, tiempo agotado, cuerpo ilegible. Todos son lo mismo desde
-    // aquí: la fuente no ha contestado, y el viaje sale igual sin sus minutos.
+    // aquí: la fuente no ha contestado.
     return null;
+  }
+}
+
+/** Cuántos reintentos se han gastado. Para poder contarlos en las jueces. */
+let reintentos = 0;
+
+export function reintentosHechos(): number {
+  return reintentos;
+}
+
+/**
+ * La consulta con su reintento [ZetaBus]. Una **visita** es un poste
+ * preguntado, no una petición HTTP: el reintento va dentro y se cuenta aparte.
+ */
+async function consultar(poste: number, pedir: typeof fetch): Promise<LecturaDePoste | null> {
+  visitas++;
+  for (let intento = 0; ; intento++) {
+    const lectura = await unaVez(poste, pedir);
+    if (lectura || intento >= REINTENTOS) {
+      return lectura;
+    }
+    reintentos++;
+    await new Promise((sigue) => setTimeout(sigue, BACKOFF_MS));
   }
 }
 
