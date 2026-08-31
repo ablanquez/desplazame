@@ -14,6 +14,94 @@
 
 ---
 
+## [2026-08-31] ✅ CERRADA — Una juez escribe el cocinado de producción con una red cocinada SIN peatón, y el motor arranca sirviendo 0 transbordos
+
+**Categoría:** juez que escribe el dato del producto
+
+**Síntoma:** el motor arranca y dice que la red no tiene ni un transbordo:
+
+```
+$ node src/servidor.ts
+motor: red de bus LEÍDA del cocinado — 984 paradas · 170 patrones · 0 transbordos · 14 ms
+motor: escuchando en http://localhost:3000 (pid 19108)
+```
+
+Deberían ser **10.588**. El fichero de disco lo confirma:
+
+```
+$ node -e "..."
+cocinado en disco: transbordos = 0 | formato 2 | feed 20260623_AUZSA_Y_TRANVIA | 2240344 bytes
+```
+
+Lo escribió la juez 12 de `red-bus.spec.ts`, que llama a `guardarCocinado(red)`
+con una red cocinada con `andar = null` —sin peatón, para no cargar 68.649
+nodos—. Es la juez que **yo acabo de escribir hoy** para cerrar la entrada de
+aquí abajo. Con la red así, la fase de transbordos de RAPTOR se queda sin
+aristas y **ningún viaje puede cambiar de vehículo andando**.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la suite del motor entera,
+**incluida la juez 12 que es la que rompe el dato**. Ejecutada con el fichero ya
+estropeado:
+
+```
+$ node --test "src/**/*.spec.ts"
+ℹ tests 423
+ℹ pass 423
+ℹ fail 0
+```
+
+Y el guardián nuevo del formato tampoco lo ve: el fichero es del `formato 2`
+correcto y del feed correcto. Lo único que le falta no se mira.
+
+**Cómo se cazó:** instrumento — la regla de la casa `pid del log == pid que
+contesta`. Al ir a medir el caso del ojo, el pid del log (22652) no era el que
+escuchaba (21636); al limpiar y arrancar uno solo, la primera línea del arranque
+decía `0 transbordos`.
+
+**Causa raíz:** dos cosas que se juntaron, y la primera es una ley mal aplicada.
+
+La nº17 dice que **un valor por defecto que producción usa necesita una juez que
+lo llame sin argumento**, y la leí como «hay que ejercitar el defecto» sin
+preguntarme qué hace ese defecto. `cocinadoGuardado` LEE —llamarla no estropea
+nada— y `guardarCocinado` ESCRIBE el fichero que el producto sirve. Ejercitar el
+defecto de la segunda es pisarle el dato al producto, y eso no lo pide ninguna
+ley. Encima con una red cocinada **sin peatón**, que la juez usaba a propósito
+para no cargar 68.649 nodos por una comprobación de ida y vuelta.
+
+La segunda: el guardián que acababa de nacer —`sirveElGuardado`— preguntaba **de
+qué versión** es el fichero, y no **si está completo**. Un cocinado sin peatón
+tiene el formato bueno y el feed bueno; lo único que le falta no se miraba.
+
+**Arreglo aplicado:** `motor/src/red-bus.ts` — `RedDeBus.conPeaton` (que
+`cocinar` rellena con `andar !== null`), exigido por `sirveElGuardado`; formato
+a **3**; y `guardarCocinado(red, ruta = COCINADO)` con la ruta por parámetro.
+`motor/src/red-bus.spec.ts` — la juez 12 escribe en un temporal de `tmpdir()` y
+lo borra; la 11 gana el caso de la red sin peatón. El defecto de escritura queda
+**sin juez a propósito**, y se dice en su comentario: es la misma constante que
+el de lectura, que sí se llama sin argumento.
+
+Comprobado como se rompió: borrado el cocinado, corrida la suite entera y el
+fichero **ya no aparece**; arrancado el motor, `10588 transbordos a pie` y
+`pid del log == pid que escucha` (21936).
+
+**Commit:** `a3a23e8`
+
+**Ley que sale de aquí:** una juez **no escribe el dato que el producto lee**.
+Si para probar el camino de escritura hace falta escribir, se escribe en otro
+sitio; y lo que el producto sirve tiene que poder decir por sí mismo si está
+completo, no solo de qué versión es.
+
+Y un añadido a la nº17, que salió al cerrar: **el defecto que se ejercita es el
+que no tiene efectos**. Una función que lee por defecto se prueba llamándola sin
+argumento; una que escribe, no — ahí lo que se clava es que las dos compartan
+la constante.
+
+**Traza:** `motor/src/red-bus.spec.ts` — juez 12; `motor/src/red-bus.ts` —
+`guardarCocinado`, `sirveElGuardado`, `cocinar`;
+`app/data/nap_gtfs-ficha1176.cocinado.json`.
+
+---
+
 ## [2026-08-31] ✅ CERRADA — El cocinado del disco se sirve tal cual aunque la cocina haya cambiado de forma: el motor arrancaría con saltos SIN traza y la suite entera en verde
 
 **Categoría:** caché en disco sin versión de su propio esquema
