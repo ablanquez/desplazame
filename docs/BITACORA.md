@@ -14,6 +14,55 @@
 
 ---
 
+## [2026-08-31] 🔴 ABIERTA — El detalle del desvío se ve con `hidden` puesto: mi `display: block` gana a la regla del navegador
+
+**Categoría:** una regla de CSS que pisa al atributo que la tenía que apagar
+
+**Síntoma:** el desvío se parte en dos niveles y la lista de los diez postes
+tiene que quedarse escondida hasta pulsar «detalles». En Chrome se ve entera
+desde el primer momento. Medido en el DOM vivo, antes y después de pulsar:
+
+```
+CERRADO : {"atributoHidden":true,"display":"block","alto":72,"ancho":710,"altoDelBanner":114,"seVeElTexto":true}
+ABIERTO : {"atributoHidden":false,"display":"block","alto":72,"ancho":710,"altoDelBanner":114,"seVeElTexto":true}
+```
+
+El atributo `hidden` sí cambia. El alto no se mueve: **72 px en los dos**, y el
+banner mide 114 px cerrado, que es lo que mide abierto.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las **tres jueces escritas
+para este pulido**, 15, 16 y 17, que son justo las que compran que la lista no
+se vea. Ejecutadas con el fallo delante, sin tocar nada:
+
+```
+$ npx ng test --include=src/app/buscador.spec.ts --filter="el desvío|el botón se alcanza|el hito también" --reporters=verbose
+ ✓  desplazame  src/app/buscador.spec.ts > Buscador > ⭐ 15 · el hecho del desvío se ve siempre; la lista, no hasta pulsar 3069ms
+ ✓  desplazame  src/app/buscador.spec.ts > Buscador > ⭐ 16 · el botón se alcanza con el tabulador, dice su estado y alterna 2875ms
+ ✓  desplazame  src/app/buscador.spec.ts > Buscador > ⭐ 17 · el hito también parte en dos, y cada botón va por su cuenta 2834ms
+ Test Files  1 passed (1)
+      Tests  3 passed | 73 skipped (76)
+```
+
+Y la muralla entera, `Tests  195 passed (195)`. La sonda de Chrome también dijo
+que estaba escondido — `CUERPO #detalle-banner-0 visible=false` — porque
+preguntaba por `e.hidden`.
+
+**Cómo se cazó:** ojo humano sobre una cifra de la sonda: el `alto del banner`
+salía **114 px cerrado y 114 px abierto**, y un aviso que no crece al desplegarlo
+no está desplegando nada.
+
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** una prueba que pregunta por el ATRIBUTO no compra lo
+que se VE. Si lo que se promete es «esto no se ve», el juez mide píxeles.
+
+**Traza:** `app/src/app/buscador.css` (`.detalles__cuerpo`) ·
+`app/src/app/buscador.html` (`[hidden]`) · `app/src/app/buscador.spec.ts`
+(jueces 15, 16 y 17).
+
+
 ## [2026-08-31] ✅ CERRADA — Con dos vehículos desviados, las dos notas dicen lo del PRIMERO: el aviso de la 29 se pega al hito de la 22 porque nombra su poste
 
 **Categoría:** dos reglas de casado en el orden equivocado
