@@ -103,13 +103,35 @@ const ANCLAJE: Readonly<Record<Clase, L.PointTuple>> = {
 const VESTIDO: Readonly<Record<TramoDelViaje['comoSeVa'], L.PolylineOptions>> = {
   andando: { color: '#b45309', weight: 5, dashArray: '10 8' },
   rodando: { color: '#2563eb', weight: 5 },
-  // ⚠️ **PROVISIONAL, y dicho: el vestido del montado lo decide la casilla 4.**
-  // Aquí solo está lo que hace falta para que esto compile con el contrato del
-  // 31/08. Lo único que ya se sabe es que el color no saldrá de esta tabla:
-  // cada línea trae el suyo en `TramoDelViaje.linea`, que es el que el feed
-  // publica. Este gris es un marcador de sitio, no una decisión.
+  /**
+   * ⭐ EL MONTADO **NO TIENE COLOR PROPIO**, y por eso el de aquí no se usa.
+   *
+   * El de cada tramo sale de `tramo.linea.color`, que es el `route_color` que
+   * el operador publica: la 29 es amarilla porque el feed dice que la 29 es
+   * amarilla, y quien conoce la ciudad reconoce su línea por eso. Elegirlo
+   * nosotros sería repintar la red.
+   *
+   * Este gris es lo que se pone cuando el tramo llega **sin línea** —una
+   * respuesta vieja, un feed sin `route_color`—: sigue siendo sólido, que es
+   * lo que lo distingue del a-pie y de la rueda, y no finge un color que no
+   * hay. `weight` sí sale de aquí para todos: 6, un punto más gordo que los
+   * demás, porque un vehículo compartido es el eje del viaje.
+   */
   montado: { color: '#6b7280', weight: 6 },
 };
+
+/**
+ * El vestido de un tramo, con el color de su línea cuando lo trae.
+ *
+ * [DOC] Leaflet: `color` es *«stroke color»* de la polilínea, y se pasa por
+ * opciones —no por CSS— porque lo que hay debajo es un `<path>` de SVG con su
+ * atributo `stroke`. El `#` se pone aquí: el feed publica `F5C100`, sin
+ * almohadilla [referencia GTFS, `route_color`].
+ */
+function vestidoDe(tramo: TramoDelViaje): L.PolylineOptions {
+  const base = VESTIDO[tramo.comoSeVa];
+  return tramo.linea ? { ...base, color: `#${tramo.linea.color}` } : base;
+}
 
 /**
  * ⭐ EL GLIFO DE CADA HITO, y son los MISMOS que la lista de pasos.
@@ -297,7 +319,7 @@ export class Mapa {
       if (trozo.length < 2) {
         continue;
       }
-      this.lineas.push(L.polyline(trozo, VESTIDO[tramo.comoSeVa]).addTo(this.mapa));
+      this.lineas.push(L.polyline(trozo, vestidoDe(tramo)).addTo(this.mapa));
     }
 
     this.marcar(vertices[0]!, this.capaOrigen(), 'origen');

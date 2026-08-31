@@ -40,6 +40,53 @@ const CON_REMATE: readonly TramoDelViaje[] = [
   { comoSeVa: 'andando', desde: 1, hasta: 2, metros: 52, segundos: 37, hito: null },
 ];
 
+/**
+ * ⭐ EL CASO DEL OJO EN BUS: andar, montar en la 29, andar.
+ *
+ * Los colores son los del feed, no nuestros: la **29** publica `route_color`
+ * `F5C100` y `route_text_color` `000000`. Ver `lineaDelViaje` en el motor.
+ */
+const LINEA_29 = {
+  id: '29',
+  corto: '29',
+  largo: 'Camino de Las Torres - San Gregorio',
+  color: 'F5C100',
+  colorTexto: '000000',
+  modo: 'bus' as const,
+};
+const LINEA_TRA = {
+  id: 'TRA',
+  corto: 'TRA',
+  largo: 'Tranvía',
+  color: '00CC00',
+  colorTexto: 'FFFFFF',
+  modo: 'tram' as const,
+};
+
+const EN_BUS: readonly TramoDelViaje[] = [
+  { comoSeVa: 'andando', desde: 0, hasta: 1, metros: 478, segundos: 344, hito: 'sube' },
+  { comoSeVa: 'montado', desde: 1, hasta: 2, metros: 4956, segundos: 2124, hito: 'baja', linea: LINEA_29 },
+  { comoSeVa: 'andando', desde: 2, hasta: 3, metros: 886, segundos: 638, hito: null },
+];
+
+/** Y uno CON TRANSBORDO: bus, paseo corto, tranvía. Cinco tramos. */
+const CON_TRANSBORDO: readonly TramoDelViaje[] = [
+  { comoSeVa: 'andando', desde: 0, hasta: 1, metros: 300, segundos: 216, hito: 'sube' },
+  { comoSeVa: 'montado', desde: 1, hasta: 2, metros: 2100, segundos: 900, hito: 'baja', linea: LINEA_29 },
+  { comoSeVa: 'andando', desde: 2, hasta: 3, metros: 180, segundos: 250, hito: 'sube' },
+  { comoSeVa: 'montado', desde: 3, hasta: 4, metros: 3200, segundos: 800, hito: 'baja', linea: LINEA_TRA },
+  { comoSeVa: 'andando', desde: 4, hasta: 5, metros: 90, segundos: 65, hito: null },
+];
+
+const SEIS: readonly Vertice[] = [
+  [41.6661, -0.8773],
+  [41.6826, -0.8712],
+  [41.6476, -0.8641],
+  [41.6461, -0.8673],
+  [41.6401, -0.8703],
+  [41.6388, -0.8721],
+];
+
 const CUATRO: readonly Vertice[] = [
   [41.6661, -0.8773],
   [41.6826, -0.8712],
@@ -53,6 +100,14 @@ function lineas(raiz: HTMLElement): { discontinua: boolean }[] {
     const trazo = p.getAttribute('stroke-dasharray');
     return { discontinua: trazo !== null && trazo !== '' && trazo !== 'none' };
   });
+}
+
+/** El vestido completo de cada línea pintada: color y trazo. */
+function vestidos(raiz: HTMLElement): { color: string | null; dash: string | null }[] {
+  return Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive')).map((p) => ({
+    color: p.getAttribute('stroke'),
+    dash: p.getAttribute('stroke-dasharray'),
+  }));
 }
 
 /** Los iconos de hito que hay sobre el mapa, por su glifo. */
@@ -182,6 +237,72 @@ describe('Mapa', () => {
     expect(pintadas.length).toBe(2);
     expect(pintadas.map((l) => l.discontinua)).toEqual([false, true]);
     expect(hitos(raiz)).toEqual(['🅿']);
+  });
+
+  /**
+   * ⭐ JUEZ 6 — EL CASO DEL OJO EN BUS: ámbar, la 29 en SU color, ámbar.
+   *
+   * El tramo montado **no tiene color propio**: lleva el que la línea publica
+   * en `route_color`, y por eso la tabla `VESTIDO` no puede decidirlo. La 29 es
+   * `#F5C100` y sale sólida; los dos paseos siguen siendo el ámbar discontinuo
+   * de siempre, que **no se toca**.
+   *
+   * Y los dos hitos del poste: 🚌 donde se sube y 🚏 donde se baja.
+   */
+  it('⭐ 6 · el bus pinta ámbar, la línea en SU color del feed, y ámbar', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    fixture.componentInstance.trazado.set(CUATRO);
+    fixture.componentInstance.tramos.set(EN_BUS);
+    await fixture.whenStable();
+
+    const trazos = vestidos(raiz);
+    expect(trazos.length).toBe(3);
+    // Los dos paseos: el vestido de siempre, al píxel.
+    for (const i of [0, 2]) {
+      expect(trazos[i]!.color).toBe('#b45309');
+      expect(trazos[i]!.dash).toBe('10 8');
+    }
+    // ⭐ Y el montado, con el color DEL FEED y sólido.
+    expect(trazos[1]!.color).toBe('#F5C100');
+    expect(trazos[1]!.dash).toBe(null);
+    // Que no es ni el ámbar del a-pie ni el azul de la rueda.
+    expect(trazos[1]!.color).not.toBe('#b45309');
+    expect(trazos[1]!.color).not.toBe('#2563eb');
+
+    expect(hitos(raiz)).toEqual(['🚌', '🚏']);
+  });
+
+  /**
+   * ⭐ JUEZ 7 — CON TRANSBORDO, DOS COLORES DE LÍNEA y el poste del cambio.
+   *
+   * Dos vehículos, dos colores distintos —cada uno el suyo—, y **tres** 🚌: el
+   * de subir al primero, el de subir al segundo (que es el poste del cambio) y
+   * los dos 🚏 de bajarse. Si el pintado usara un color por modo en vez de por
+   * línea, los dos montados saldrían iguales y esta juez lo vería.
+   */
+  it('⭐ 7 · con transbordo se pintan DOS colores de línea y el poste del cambio', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    fixture.componentInstance.trazado.set(SEIS);
+    fixture.componentInstance.tramos.set(CON_TRANSBORDO);
+    await fixture.whenStable();
+
+    const trazos = vestidos(raiz);
+    expect(trazos.length).toBe(5);
+    expect(trazos.map((t) => t.dash)).toEqual(['10 8', null, '10 8', null, '10 8']);
+    expect(trazos[1]!.color).toBe('#F5C100');
+    expect(trazos[3]!.color).toBe('#00CC00');
+    expect(trazos[1]!.color).not.toBe(trazos[3]!.color);
+    // El paseo del transbordo lleva el mismo ámbar que los otros dos.
+    expect(trazos[2]!.color).toBe('#b45309');
+
+    // 🚌 al subir a cada uno —el segundo es el poste del cambio— y 🚏 al bajar.
+    expect(hitos(raiz)).toEqual(['🚌', '🚏', '🚌', '🚏']);
   });
 
   /**

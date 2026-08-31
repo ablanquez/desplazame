@@ -475,8 +475,8 @@ const VIAJE_EN_BUS_SIN_LA_29: Trayecto = {
   avisos: [
     {
       texto:
-        'La línea 29 no está prestando servicio ahora en el poste Bernardo Ramazzini / Maz: ' +
-        'la espera que se dice sale del horario publicado.',
+        'Avanza no anuncia ningún próximo de la línea 29 en el poste Bernardo Ramazzini / Maz ' +
+        'ahora mismo — la espera sale del horario publicado.',
     },
   ],
   metros: 6320,
@@ -2039,11 +2039,135 @@ describe('Buscador', () => {
     await fixture.whenStable();
 
     const banner = (raiz.querySelector('.aviso-ruta')?.textContent ?? '').trim();
-    expect(banner).toContain('La línea 29 no está prestando servicio ahora');
+    // ⚠️ [GTFS-Realtime] una entidad ausente del feed en vivo es «sin
+    // información en tiempo real», NO «sin servicio». El banner dice lo medido.
+    expect(banner).toContain('Avanza no anuncia ningún próximo de la línea 29');
+    expect(banner).not.toContain('prestando servicio');
     const nota = (raiz.querySelector('.paso__nota')?.textContent ?? '')
       .replace(/\s+/g, ' ')
       .trim();
     expect(nota.replace(/^⚠\s*/, '')).toBe(banner);
+  });
+
+  /**
+   * ⭐ 8 · EL CHIP DE LA LÍNEA: número, color del feed y texto del feed.
+   *
+   * [WCAG 1.4.1, *Use of Color*] el color **nunca solo**: el chip lleva el
+   * número dentro, así que quien no distinga el amarillo de la 29 del verde del
+   * tranvía sigue leyendo «29». El color es reconocimiento, no información.
+   *
+   * Y los dos colores salen **del feed** —`route_color` y `route_text_color`—,
+   * no de nosotros: la 29 es amarilla porque el operador dice que lo es. En el
+   * feed van sin almohadilla (`F5C100`), y quien la pone es la pantalla.
+   *
+   * Va en **los dos sitios** que la casilla pide: la leyenda del viaje, que
+   * responde a «¿en qué me monto?» de un vistazo, y el paso de subida, que es
+   * donde se hace.
+   */
+  it('⭐ 8 · el chip lleva el número y los dos colores del feed, en la leyenda y en el paso', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
+    await fixture.whenStable();
+
+    const chips = Array.from(raiz.querySelectorAll<HTMLElement>('.chip-linea'));
+    expect(chips.length).toBe(2);
+    for (const chip of chips) {
+      // El número, que es lo que se lee sin depender del color.
+      expect(chip.textContent?.trim()).toBe('29');
+      // Y los dos colores del feed, con su almohadilla puesta aquí.
+      expect(chip.style.backgroundColor).toBe('rgb(245, 193, 0)');
+      expect(chip.style.color).toBe('rgb(0, 0, 0)');
+    }
+    // Uno en la leyenda de la cabecera y otro en el paso de subir.
+    expect(raiz.querySelectorAll('.ruta .chip-linea').length).toBe(1);
+    const subida = Array.from(raiz.querySelectorAll('.paso')).find((li) =>
+      /Sube a la línea/.test(li.textContent ?? ''),
+    );
+    expect(subida?.querySelector('.chip-linea')).not.toBeNull();
+  });
+
+  /**
+   * ⭐ 9 · EL INDICADOR DE ESPERA: aparece si tarda, y solo si tarda.
+   *
+   * [Nielsen Norman Group] *«para retrasos de más de 1 segundo hay que indicar
+   * que el sistema está trabajando; más aún si el tiempo es variable»*. Y aquí
+   * lo es: el Generar en bus paga una consulta a Avanza que tarda entre nada y
+   * tres segundos, y a veces no contesta.
+   *
+   * Las dos mitades, y la segunda es la que importa: **con respuesta rápida no
+   * aparece**. Un indicador que siempre está no informa de nada y parpadea en
+   * cada ruta a pie, que se calcula en 20 ms.
+   */
+  it('⭐ 9 · el indicador aparece si la respuesta tarda más de un segundo', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    // Todavía no ha pasado un segundo: no hay nada que anunciar.
+    expect(raiz.querySelector('.esperando')).toBeNull();
+
+    // La respuesta se hace esperar de verdad — sin relojes de mentira.
+    const peticiones = http.match('/api/ruta');
+    await new Promise((r) => setTimeout(r, 1100));
+    fixture.detectChanges();
+    const aviso = raiz.querySelector('.esperando');
+    expect(aviso).not.toBeNull();
+    // [WAI-ARIA] `status` es una región viva de cortesía: se anuncia sin
+    // interrumpir. Sin rol, un lector de pantalla no se entera de que apareció.
+    expect(aviso?.getAttribute('role')).toBe('status');
+    expect(aviso?.textContent).toContain('Avanza');
+
+    // Y al llegar la respuesta se retira.
+    drenarRutas(peticiones, () => VIAJE_EN_BUS_SIN_LA_29);
+    await fixture.whenStable();
+    expect(raiz.querySelector('.esperando')).toBeNull();
+    expect(raiz.querySelectorAll('.paso').length).toBe(5);
+  }, 10000);
+
+  /**
+   * ⭐ 10 · Y CON RESPUESTA RÁPIDA, NI SE ASOMA.
+   *
+   * La otra mitad de la 9, y la que caza un indicador que se enciende siempre.
+   *
+   * ⚠️ **Y la primera versión de esta juez no la cazaba.** Contestaba la
+   * petición en el mismo tick en que se pulsaba, así que el reloj —aunque
+   * fuera de 0 ms— se cancelaba antes de que le tocara correr: con
+   * `MS_ANTES_DE_AVISAR = 0` la juez seguía en verde. Se descubrió en la
+   * contraprueba, mutando esa constante a cero. Ahora se **espera de verdad**
+   * un rato que ninguna ruta a pie tarda —200 ms, y el motor resuelve en 20—
+   * y se mira ANTES de contestar: si el aviso hubiera salido, estaría ahí.
+   */
+  it('⭐ 10 · con respuesta rápida el indicador no aparece nunca', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+
+    // Diez veces lo que tarda una ruta a pie, y todavía por debajo del segundo.
+    const peticiones = http.match('/api/ruta');
+    await new Promise((r) => setTimeout(r, 200));
+    fixture.detectChanges();
+    expect(raiz.querySelector('.esperando')).toBeNull();
+
+    drenarRutas(peticiones, () => POR_LA_AVENIDA_DE_MADRID);
+    await fixture.whenStable();
+    expect(raiz.querySelector('.esperando')).toBeNull();
+    expect(raiz.querySelectorAll('.paso').length).toBeGreaterThan(0);
   });
 
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {

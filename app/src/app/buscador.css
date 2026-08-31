@@ -440,3 +440,75 @@ legend {
   font-weight: 700;
   margin-right: 0.25rem;
 }
+
+/* ⭐ EL CHIP DE LA LÍNEA (31/08). Los dos colores vienen del feed y se ponen
+   en línea, no aquí: `route_color` al fondo y `route_text_color` al número.
+   Aquí solo va la forma.
+
+   El borde translúcido no es adorno: hay líneas con `route_color` casi blanco
+   —o casi del color del papel—, y sin un borde el chip se disolvería en la
+   página y el número parecería suelto. Un borde en negro al 25 % oscurece un
+   poco los claros y se pierde en los oscuros, así que sirve para los dos sin
+   inventar un color por línea. */
+.chip-linea {
+  display: inline-block;
+  min-width: 2.1em;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid rgb(0 0 0 / 25%);
+  border-radius: 0.7em;
+  font-weight: 700;
+  font-size: 0.85em;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* La leyenda del viaje: «Se viaja en [29] [TRA]». */
+.ruta__lineas {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0;
+}
+
+.ruta__lineas-rotulo {
+  color: #555;
+  font-size: 0.9em;
+}
+
+/* ⭐ EL INDICADOR DE QUE SE ESTÁ TRABAJANDO. Sobrio a propósito: aparece a
+   partir del segundo y desaparece solo, así que no debe llamar más la atención
+   que el resultado que está a punto de llegar. La rueda gira con `transform`,
+   que es lo único que el navegador anima sin recalcular la página, y se para
+   entera si el sistema pide menos movimiento. */
+.esperando {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  color: #555;
+}
+
+.esperando__rueda {
+  width: 1em;
+  height: 1em;
+  border: 2px solid #ccc;
+  border-top-color: #555;
+  border-radius: 50%;
+  animation: gira 0.8s linear infinite;
+}
+
+/* [WCAG 2.3.3 / DOC MDN] `prefers-reduced-motion` es la señal de que quien
+   mira ha pedido menos movimiento. No se quita el indicador —hace falta—: se
+   queda quieto. */
+@media (prefers-reduced-motion: reduce) {
+  .esperando__rueda {
+    animation: none;
+  }
+}
+
+@keyframes gira {
+  to {
+    transform: rotate(360deg);
+  }
+}

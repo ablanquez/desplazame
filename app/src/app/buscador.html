@@ -333,6 +333,20 @@
       <p class="aviso-ruta" role="status">{{ aviso }}</p>
     }
 
+    <!-- ⭐ EL INDICADOR DE QUE SE ESTÁ TRABAJANDO [NN/g: por encima de 1 s hay
+         que decirlo, y más si el tiempo es variable]. `role="status"` porque
+         [WAI-ARIA] `status` es *«a type of live region whose content is
+         advisory information for the user but is not important enough to
+         justify an alert»*: se anuncia sin interrumpir lo que se esté leyendo.
+         El texto va dentro del elemento vivo, no fuera, o el anuncio se queda
+         sin contenido que leer. -->
+    @if (esperando(); as trabajando) {
+      <p class="esperando" role="status">
+        <span class="esperando__rueda" aria-hidden="true"></span>
+        {{ trabajando }}
+      </p>
+    }
+
     @if (resultado(); as r) {
       <!-- El modo que se dice es EL DE LA RESPUESTA, no el que está pulsado:
            es el que corresponde a lo que hay pintado debajo. -->
@@ -368,6 +382,23 @@
                  dice ninguna. Ver `comoSeLeeLaDuracion`. -->
             <span class="ruta__duracion">{{ enTiempo(r.trayecto.segundos, r.trayecto.modo) }}</span>
           </p>
+          <!-- ⭐ LA LEYENDA DEL VIAJE: en qué se monta, de un vistazo. El chip
+               lleva el NÚMERO dentro [WCAG 1.4.1: el color nunca solo] y los
+               dos colores salen del feed —`route_color` y `route_text_color`—,
+               que es lo que hace que la 29 se reconozca por amarilla. -->
+          @if (lineasDelViaje().length > 0) {
+            <p class="ruta__lineas">
+              <span class="ruta__lineas-rotulo">Se viaja en</span>
+              @for (linea of lineasDelViaje(); track $index) {
+                <span
+                  class="chip-linea"
+                  [style.background-color]="'#' + linea.color"
+                  [style.color]="'#' + linea.colorTexto"
+                  >{{ linea.corto }}</span
+                >
+              }
+            </p>
+          }
         </header>
 
         <ol class="pasos__lista">
@@ -401,6 +432,16 @@
                    HTML: manda los trozos con su papel (`partes`), y la
                    etiqueta la elige aquí. El `texto` plano sigue existiendo
                    en el contrato para quien no pinte nada. -->
+              <!-- Y el mismo chip junto al paso donde se sube: la leyenda
+                   dice en qué se monta y esto dice dónde. -->
+              @if (lineaPorPaso().get($index); as linea) {
+                <span
+                  class="chip-linea"
+                  [style.background-color]="'#' + linea.color"
+                  [style.color]="'#' + linea.colorTexto"
+                  >{{ linea.corto }}</span
+                >
+              }
               <span class="paso__texto">
                 @for (parte of paso.partes; track $index) {
                   @if (parte.papel === 'texto') {

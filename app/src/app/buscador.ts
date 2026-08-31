@@ -5,6 +5,7 @@ import type { WritableSignal } from '@angular/core';
 import type {
   Aviso,
   Giro,
+  LineaDelViaje,
   Modo,
   Paso,
   PeticionDeRuta,
@@ -66,10 +67,15 @@ const MARCA_DE_DISPONIBILIDAD = 'disponibilidad no verificada';
  * ⭐ Y la del bus: la línea que ahora mismo no está pasando por su poste.
  *
  * Es otra condición, no otra redacción de la misma. `MARCA_DE_DISPONIBILIDAD`
- * dice **no lo sabemos**; esta dice **lo sabemos, y no viene ninguno**. Las dos
- * piden nota junto al hito, y por eso viven juntas aquí.
+ * dice **no lo sabemos**; esta dice **la fuente contestó y no anuncia ninguno**.
+ * Las dos piden nota junto al hito, y por eso viven juntas aquí.
+ *
+ * ⚠️ Y el trozo elegido es el del **verbo de la fuente**, no una conclusión: el
+ * 31/08 este texto decía «no está prestando servicio ahora», que es lo que
+ * parecía y no es lo que se sabe — [GTFS-Realtime] una entidad ausente del feed
+ * en vivo significa **sin información en tiempo real**.
  */
-const MARCA_DE_SIN_SERVICIO = 'no está prestando servicio ahora';
+const MARCA_DE_SIN_SERVICIO = 'no anuncia ningún próximo';
 
 /**
  * El sitio del que habla un hito: su **última** parte `via`.
@@ -84,6 +90,18 @@ function sitioDelHito(paso: Paso): string | null {
   const vias = paso.partes.filter((p) => p.papel === 'via');
   return vias.length > 0 ? vias[vias.length - 1]!.texto : null;
 }
+
+/**
+ * ⭐ CUÁNTO SE ESPERA ANTES DE DECIR QUE SE ESTÁ TRABAJANDO: **un segundo**.
+ *
+ * [Nielsen Norman Group] *«para retrasos de más de 1 segundo hay que indicar
+ * que el sistema está trabajando; más aún si el tiempo es variable»*. Aquí lo
+ * es: el Generar en bus paga una consulta a Avanza que tarda entre nada y tres
+ * segundos, y a veces se agota. Los demás modos contestan en 20 ms y por eso
+ * el aviso no llega a asomar — que es justo lo que se quiere: un indicador que
+ * sale siempre no informa de nada.
+ */
+const MS_ANTES_DE_AVISAR = 1000;
 
 const FLECHAS: Readonly<Record<Giro, string>> = {
   salida: '◉',
@@ -616,6 +634,72 @@ export class Buscador {
    * estación, y en el bus, donde la primera `via` es el número de la línea, es
    * el poste. Un `29` suelto casaría con medio texto; el nombre del poste, no.
    */
+  /**
+   * ⭐ EL INDICADOR DE QUE SE ESTÁ TRABAJANDO, o `null` mientras no toca.
+   *
+   * Guarda **el texto** y no un `true` a propósito: lo que se dice depende del
+   * modo con el que se pulsó Generar, y ese modo puede haber cambiado en la
+   * pantalla mientras la respuesta viene de camino.
+   */
+  protected readonly esperando = signal<string | null>(null);
+  private relojDeEspera: ReturnType<typeof setTimeout> | null = null;
+
+  private empiezaLaEspera(modo: Modo): void {
+    this.acabaLaEspera();
+    const texto =
+      modo === 'bus'
+        ? 'Preguntando a Avanza cuándo pasa el próximo…'
+        : 'Calculando la ruta…';
+    this.relojDeEspera = setTimeout(() => this.esperando.set(texto), MS_ANTES_DE_AVISAR);
+  }
+
+  private acabaLaEspera(): void {
+    if (this.relojDeEspera !== null) {
+      clearTimeout(this.relojDeEspera);
+      this.relojDeEspera = null;
+    }
+    this.esperando.set(null);
+  }
+
+  /**
+   * ⭐ LAS LÍNEAS DEL VIAJE, en orden, para la leyenda de la cabecera.
+   *
+   * Una por tramo montado: un viaje con transbordo enseña dos chips, y si se
+   * repitiera la misma línea saldría dos veces — son dos vehículos.
+   */
+  protected readonly lineasDelViaje = computed<readonly LineaDelViaje[]>(() =>
+    (this.resultado()?.trayecto.tramos ?? [])
+      .filter((t) => t.comoSeVa === 'montado' && t.linea !== undefined)
+      .map((t) => t.linea!),
+  );
+
+  /**
+   * ⭐ QUÉ LÍNEA LE TOCA A CADA PASO DE SUBIR.
+   *
+   * El contrato no ata un paso con su tramo, y no hace falta: los pasos de
+   * `sube` **solo los escribe la etapa montada**, uno por vehículo y en orden,
+   * igual que los tramos `montado`. Así que el n-ésimo `sube` es el n-ésimo
+   * montado. ⚠️ El paseo de un transbordo también acaba en un tramo con
+   * `hito: 'sube'`, pero eso es un tramo, no un paso: no escribe ninguno.
+   */
+  protected readonly lineaPorPaso = computed<ReadonlyMap<number, LineaDelViaje>>(() => {
+    const trayecto = this.resultado()?.trayecto;
+    const mapa = new Map<number, LineaDelViaje>();
+    if (!trayecto) {
+      return mapa;
+    }
+    const lineas = this.lineasDelViaje();
+    let k = 0;
+    trayecto.pasos.forEach((paso, i) => {
+      const linea = lineas[k];
+      if (paso.giro === 'sube' && linea) {
+        mapa.set(i, linea);
+        k++;
+      }
+    });
+    return mapa;
+  });
+
   protected notaDelHito(paso: Paso): string | null {
     const marcados = this.avisosDeHito();
     if (marcados.length === 0) {
@@ -1064,6 +1148,7 @@ export class Buscador {
     }
 
     this.generando.set(true);
+    this.empiezaLaEspera(modo);
     this.trio.set(null);
 
     // ⭐ LA PRECARGA (30/08): en bici y BiZi se piden LAS TRES rutas de una vez.
@@ -1082,6 +1167,7 @@ export class Buscador {
       this.http.post<Trayecto>('/api/ruta', peticion).subscribe({
         next: (trayecto) => {
           this.generando.set(false);
+          this.acabaLaEspera();
           this.pinta(trayecto);
         },
         error: () => this.noContesta(),
@@ -1099,6 +1185,7 @@ export class Buscador {
     ).subscribe({
       next: (trayectos) => {
         this.generando.set(false);
+        this.acabaLaEspera();
         const rutas = new Map<TipoDeRuta, Trayecto>();
         tipos.forEach((tipo, i) => rutas.set(tipo, trayectos[i]!));
         // La clave se guarda con el trío: es lo que dirá, más tarde, si estas
@@ -1121,6 +1208,7 @@ export class Buscador {
    */
   private noContesta(): void {
     this.generando.set(false);
+    this.acabaLaEspera();
     this.avisoRuta.set('No se pudo preguntar al motor. ¿Está arrancado?');
   }
 
