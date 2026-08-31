@@ -25,7 +25,7 @@ hospitales · bibliotecas · colegios e institutos · guarderías ·
 universidades — 820 sitios, 802 buscables), TODA calle sugerible
 (3.350: 2.731 con portal + 619 por punto medio — el Puente de Piedra
 se escribe), el buscador por tipos completo con siglas e iconos, el
-foco en las dos capas, y las bitácoras cerradas (16/16 al 30/08).**
+foco en las dos capas, y las bitácoras cerradas (18/18 al 31/08).**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
 levantado el 18/08, des-caducado del 21 al 31):
@@ -86,7 +86,9 @@ levantado el 18/08, des-caducado del 21 al 31):
   TypeScript SIN compilar, carga antes de `listen()` (grafo 98.774
   aristas ~190 ms · callejero 3.359 vías · 46.150 portales), 412 MB de
   RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
-  anotado para el punto 12). Endpoints vivos, SEIS:
+  anotado para el punto 12). Endpoints vivos, SIETE (el séptimo del
+  31/08: `POST /api/renovar-feed`, el del cron — token Bearer en
+  cabecera, 503/401/409/202, single-flight de trabajo de fondo):
   `/api/salud` · `/api/vias?q=` (con `foco`) · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
   `POST /api/ruta` (sitio o vía-sin-portal en cualquiera de los dos
@@ -123,12 +125,35 @@ levantado el 18/08, des-caducado del 21 al 31):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `e418119`** (push del 29/08 noche, con la casilla
-3 entera y la auditoría de sentidos). **En local, sin publicar: la
-tanda del 30 entera** — el selector a seis, el empuje, el selector
-de ruta, las casillas 5-6, el pintado por tramos, el azul, las
-bitácoras nº15 y nº16 con la reversión de Siresa, y los papeles. El
+**Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
+entero, la casilla 0 del 10 con sus nueve firmas y el NAP
+comprobado). **En local, sin publicar: lo del 31/08** — la firma 7
+v2, el censo del feed destilado, la casilla 2 entera (cinco commits
+del ejecutor + las bitácoras nº17-18 con su fix) y los papeles. El
 push es de Antonio.
+
+**LA CASILLA 2 DEL 10 — EL CRON DE RENOVACIÓN (31/08), validada
+contra la literatura.** El fetch detecta por fechaActualizacion sin
+bajar [GTFS Best Practices: If-Modified-Since sobre la ubicación
+estable] y baja por downloadLink [la ruta NO obsoleta del OpenAPI
+del NAP]; guardas y reglas de fallo calcadas de ZetaBus; endpoint
+POST /api/renovar-feed con Bearer en cabecera (503/401/409/202);
+umbral 7/30 [validador]; EL RELEVO semilla/vivo (el ejecutor cazó
+que «pisar» la semilla rompía el datapackage y sus dos guardianes,
+preguntó, y el relevo cumple las tres doctrinas); .env.local
+gitignored antes de existir. LA PRUEBA REAL con la clave de Antonio
+cazó DOS fallos invisibles para la suite sin red — bitácoras nº17
+(el lector miraba en la raíz; la juez nunca ejercía el defecto) y
+nº18 (downloadLink es TEXTO PLANO, un enlace firmado de S3; el
+fixture había inventado JSON): las leyes «un defecto que producción
+usa necesita una juez sin argumento» y «el esquema dice el tipo, no
+la codificación: se mide contra el servidor y el fixture copia la
+medición». El NAP en vivo: el sha del descargado = el de la semilla
+(sigue la build del 30/6); el log dice «vivo (relevó a la semilla)
+· 35 días → VIGENTE». ⚰️ Las fechas del NAP son cobertura;
+feed_end_date es la garantía [referencia GTFS] — manda el
+feed_info. Cabo a la 3: el zip nuevo entra al siguiente arranque.
+385 motor · 181 interfaz · 18/18 bitácoras cerradas.
 
 **EL PUNTO 10 ARRANCA — la casilla 0 completa y el censo del feed
 (noche del 30/08 → 31/08).** NUEVE FIRMAS de Antonio antes de una
@@ -812,13 +837,13 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el punto 10, casilla 2 — EL CRON** (camino
-crítico: la renovación del feed antes del Pilar; primero la
-pregunta a ZetaBus de cómo renueva el suyo); (2) la casilla 3 — el
-motor cocinado (red poste↔línea + minutos por el cron nocturno) y
-la consulta viva al poste; (3) la pantalla del bus (patrón BiZi +
-colores) y la demo; (4) LA FASE 2 de sentidos como goteo de fondo
-(las shapes como atajo); (5) el
+**Lo siguiente:** (1) **el punto 10, casilla 3 — EL MOTOR COCINADO**
+(la red poste↔línea y los minutos, destilados de los horarios por
+recocinar(); el viaje canónico y la tabla de modos de ZetaBus; el
+zip nuevo en caliente o al arranque) y la consulta viva al poste
+[firma 7]; (2) la pantalla del bus (patrón BiZi + colores de línea)
+y la demo; (3) LA FASE 2 de sentidos como goteo de fondo (las
+shapes como atajo); (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -1026,11 +1051,13 @@ es» (dice nombres, trae 260 etiquetas) · la doble capitalización
 «Senda ciclable/Ciclable» · el contraflujo con candado (18 reales) ·
 la API viva de BiZi vive aquí (mudada del 10; NO es GBFS).
 
-**Punto 10 (EN MARCHA desde el 30/08 — casilla 0 completa con nueve
-firmas, casilla 1 el censo HECHA):** ⚠️⚠️ EL FEED NO LLEGA AL PILAR
-(bus hasta el 05/10, cero del 10/10 en adelante — el cron de la
-casilla 2 es CAMINO CRÍTICO; el NAP exige login: ¿cómo renueva
-ZetaBus? pregunta abierta) · ⚰️ la caducidad ya no es duda sino
+**Punto 10 (EN MARCHA desde el 30/08 — casillas 0, 1 y 2 HECHAS):**
+⚠️ EL FEED NO LLEGA AL PILAR (bus hasta el 05/10, cero del 10/10 en
+adelante) — ⚰️ EL CRON YA EXISTE y está probado contra el NAP real
+(la clave de Antonio en .env.local; el panel de Hostinger se
+configura al desplegar) · cabo a la 3: el zip nuevo se sirve al
+siguiente arranque · mejora: guardar los avisos del NAP en el
+registro · ⚰️ la caducidad ya no es duda sino
 medida · líneas por poste (sin guardián) · ⚰️ shapes.txt VERIFICADO el 30/08 (89 trazas cerrando al 100 %
 con los trips — la traza del bus calle-a-calle que Antonio preguntó,
 y las trazas direccionales para la fase 2 de sentidos) · ⚠️
@@ -1082,7 +1109,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 553 pruebas (372 motor + 181 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 566 pruebas (385 motor + 181 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

@@ -2151,20 +2151,67 @@ scratchpad/CENSO-DEL-FEED.md).** LO MEDIDO:
 - TRAZAS↔PARADAS: ninguna >100 m en tres trips (máx 16/11/41 m) —
   la best practice del validador, cumplida.
 
-EL CENSO SE APOYÓ EN ZETABUS como estaba fichado
-(fichado el 30/08 a pregunta de Antonio): visita de SOLO LECTURA a
-F:\01_PROYECTOS\003_ZETABUS para cosechar (1) su lista de postes
-como TERCERA fuente del descuadre 984-feed vs 944-MU3 (triangular
-con testigos, no con teorías), (2) su solución de colores por línea
-[la firma 5: se hereda], (3) las mañas de la API de Avanza ya
-aprendidas allí (identificadores, el tranvía, rarezas). El matiz de
-método: ZetaBus es PRECEDENTE PROPIO verificado en producción, no
-doctrina de internet — se cita como lo que es, y donde feed y
-ZetaBus discrepen se INVESTIGA, no se supone.
+**⭐ CASILLA 2 · EL CRON DE RENOVACIÓN — HECHA (31/08, cinco commits;
+VALIDADA contra la literatura, no contra la firma).** LA DOCTRINA
+que la sostiene, pieza a pieza: detección por fechaActualizacion
+sin bajar [GTFS Best Practices: la ubicación estable en
+iteraciones + el patrón If-Modified-Since; el NAP no da hash] ·
+descarga por /api/Fichero/downloadLink/{id} [la ruta no obsoleta
+del OpenAPI del NAP; download/{id} está DEPRECATED — la de ZetaBus]
+· guardas y reglas de fallo CALCADAS de ZetaBus (PK · ≥1 MB · 60 s ·
+escritura atómica · clave ausente = fallo cerrado · 401/403 sin
+tapar · NAP caído con zip = sigue diciendo la edad) · endpoint POST
+/api/renovar-feed con token Bearer en CABECERA, 503/401/409/202 [el
+README de ZetaBus: nunca en URL] · umbral ≤7 días aviso / 30 ideal
+[validador canónico] · EL RELEVO semilla/vivo [la síntesis firmada:
+la semilla fechada sigue en repo y el clon arranca; el vivo
+(gitignored) prevalece; el datapackage y sus dos guardianes siguen
+verdes — el ejecutor cazó que «pisar» rompía el manifiesto y
+preguntó] · .env.local (gitignored ANTES de existir) + lector
+propio que devuelve nombres, nunca valores; la clave del NAP de
+Antonio (la de ZetaBus), jamás en repo/URL/log. LA PRUEBA REAL
+contra el NAP (31/08, con la clave puesta por Antonio): ⭐ cazó DOS
+FALLOS que la suite sin red no podía ver — bitácora nº17 (el lector
+miraba en la raíz y la clave está en motor/: trece verdes porque la
+juez llamaba con ruta explícita y nunca ejercía el defecto) y nº18
+(downloadLink devuelve TEXTO PLANO —un enlace firmado de S3— y el
+fixture lo había inventado como JSON: «leí el esquema y después
+inventé la codificación»). LAS LEYES: un valor por defecto que
+producción usa necesita una juez que lo llame SIN argumento · el
+esquema dice el tipo, no la codificación — la forma de una
+respuesta ajena se MIDE una vez contra el servidor y el fixture
+copia la medición · corolario: una suite sin red no puede
+descubrir que un fixture miente. EL RESULTADO REAL: GetList del
+1176 = 2026-06-30T13:20:04 · 6.883.311 · 34.427/53/984 (cuadra con
+el censo al número) · primera pasada «renovado» (sin registro no
+hay con qué comparar — incondicional, como manda HTTP), segunda
+«sin-cambios» · el sha256 del descargado = EL DE LA SEMILLA
+(5c96992c…): el NAP sigue en la build del 30/6 · el log ya dice
+«feed GTFS vivo (relevó a la semilla) · 35 día(s) → VIGENTE». ⚰️
+NO CONSTA muerto con la referencia: las fechas del NAP (16/9/25→
+27/12/26) son COBERTURA del calendario; feed_end_date es la
+GARANTÍA [«información completa y fiable en el periodo»] — manda
+el feed_info, el reloj del 05/10 es el correcto. Registro pequeño
+junto al vivo (zip primero, registro después). recocinar() existe,
+VACÍO y declarado. ⚠️ CABO a la casilla 3: el zip nuevo se sirve al
+SIGUIENTE arranque del motor (el patrón OTP/ZetaBus) — recarga en
+caliente o reinicio, lo define la cocina. ⚠️ Mejora fichada: el
+registro no guarda los avisos del NAP (el GetList los trae). Para
+el panel de Hostinger al desplegar: POST …/api/renovar-feed,
+Authorization: Bearer <DESPLAZAME_REGEN_TOKEN>, ≥15 min, horario a
+criterio (ZetaBus 0 2 * * *). 385 motor · 181 interfaz · 18
+bitácoras, 0 abiertas.
 
-Paradas, líneas y la decisión `G`: componer sin prometer, sin total
-inventado. Barrido nocturno `POST /api/regenerar` (patrón ZetaBus, cron
-02:00). Se detalla cuando el 7 y el 9 estén vistos funcionar.
+*(La regla del apoyo en ZetaBus —precedente propio en producción,
+solo lectura, se cita como lo que es y donde discrepe del feed se
+investiga— quedó fichada el 30/08 y EJECUTADA en las casillas 1 y 2:
+la cosecha está arriba.)*
+
+LO QUE QUEDA DEL PUNTO (casillas 3-5): la decisión `G` sigue
+mandando — componer sin prometer, sin total inventado. El barrido
+nocturno YA EXISTE (`POST /api/renovar-feed`, casilla 2); lo que
+falta es que `recocinar()` cocine la red (casilla 3), la pantalla
+del bus (casilla 4) y la demo (casilla 5).
 
 Dejado aquí desde el punto 4, para cuando toque:
 
