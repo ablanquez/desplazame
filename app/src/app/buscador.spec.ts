@@ -2448,6 +2448,45 @@ describe('Buscador', () => {
     expect(pasos.filter((li) => /^Baja/.test((li.querySelector('.paso__texto')?.textContent ?? '').trim())).length).toBe(1);
   });
 
+  /**
+   * ⭐ 14 · EL AVISO DE DESVÍO SOLO VA CON SU LÍNEA — **la reapertura**.
+   *
+   * ⚠️ Esta es la juez que faltaba el 31/08 por la mañana, y su ausencia dejó
+   * cerrar la entrada en falso. La 12 traía dos líneas **las dos desviadas**, así
+   * que la regla de la línea casaba siempre y la del sitio no se llegaba a
+   * mirar. Aquí la **31 NO va desviada** y sube en el poste que la **35** nombra
+   * entre sus provisionales: si la regla del sitio siguiera abierta a los
+   * desvíos, el transbordo se comería el aviso de la 35.
+   *
+   * Un desvío explica una **línea**, no un poste.
+   */
+  it('⭐ 14 · una línea no desviada no hereda el aviso de la que nombra su poste', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
+    await fixture.whenStable();
+
+    // El banner sigue arriba: el resumen no se toca [GOV.UK, doble sitio].
+    const banners = Array.from(raiz.querySelectorAll('.aviso-ruta')).map((a) => (a.textContent ?? '').trim());
+    expect(banners.length).toBe(1);
+    expect(banners[0]).toContain('La línea 35 va hoy desviada');
+
+    // ⭐ Y UNA SOLA NOTA, la de la subida a la 35. El transbordo a la 31 no
+    // lleva ninguna, aunque su poste salga nombrado en el aviso de la 35.
+    const conNota = Array.from(raiz.querySelectorAll('.paso'))
+      .filter((li) => li.querySelector('.paso__nota') !== null)
+      .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
+    expect(conNota.length).toBe(1);
+    expect(conNota[0]).toContain('Sube a la línea 35');
+    expect(conNota[0]).not.toContain('transborda');
+  });
+
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();

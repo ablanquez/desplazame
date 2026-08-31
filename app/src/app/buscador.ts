@@ -93,6 +93,31 @@ const MARCA_DE_DESVIO = 'va hoy desviada';
  * `null` si el paso no es un hito. Los pasos de andar también traen `via` —el
  * nombre de la calle—, y una calle no es un sitio del que se avise.
  */
+/**
+ * ⭐ LA LÍNEA DE UN HITO: **a la que se sube**, no las que aparecen en su texto.
+ *
+ * ⚠️ En un transbordo hay **dos**: de la 35 a la 31. La del hito es la 31 — el
+ * aviso de la 35 explica el tramo que se acaba de terminar, y ya sale pegado a
+ * la subida de la 35. Colgarlo también aquí lo diría dos veces y en el sitio
+ * equivocado. Por eso no vale con «alguna de sus líneas»: hay que decir cuál.
+ *
+ *   `sube`       → `Sube a la línea 29 en el poste X`     → la PRIMERA `via`
+ *   `transborda` → `En el poste X, transborda de la 35 a la 31` → la ÚLTIMA
+ */
+function lineaDelHito(paso: Paso): string | null {
+  const vias = paso.partes.filter((p) => p.papel === 'via');
+  if (vias.length === 0) {
+    return null;
+  }
+  if (paso.giro === 'sube') {
+    return vias[0]!.texto;
+  }
+  if (paso.giro === 'transborda') {
+    return vias[vias.length - 1]!.texto;
+  }
+  return null;
+}
+
 function sitioDelHito(paso: Paso): string | null {
   const vias = paso.partes.filter((p) => p.papel === 'via');
   if (vias.length === 0) {
@@ -746,17 +771,28 @@ export class Buscador {
     // hito de la 22 el desvío de la 29. Un aviso que empieza por «La línea 22»
     // es de la 22 y no hay nada que interpretar; el sitio, en cambio, lo pueden
     // nombrar dos avisos. Ver la entrada del 31/08 de `docs/BITACORA.md`.
-    const suyas = paso.partes.filter((x) => x.papel === 'via').map((x) => x.texto);
-    const deSuLinea = marcados.find((a) =>
-      suyas.some((l) => a.texto.startsWith(`La línea ${l} `)),
-    );
+    const suLinea = lineaDelHito(paso);
+    const deSuLinea = suLinea
+      ? marcados.find((a) => a.texto.startsWith(`La línea ${suLinea} `))
+      : undefined;
     if (deSuLinea) {
       return deSuLinea.texto;
     }
     // Y si ningún aviso es de su línea, el que nombra su sitio.
     //
+    // ⚠️ **Pero NUNCA uno de desvío**, y esto es la reapertura de la entrada del
+    // 31/08: un desvío explica **una línea**, no un poste. El aviso de la 35
+    // nombra `Av. Francisco De Goya N.º 83` entre sus paradas provisionales, y
+    // ese poste es justo donde se sube a la **31**, que no va desviada — con la
+    // regla del sitio abierta a los desvíos, la 31 se comía el aviso de la 35.
+    //
+    // El cierre anterior cambió el ORDEN de las dos reglas, y eso solo tapaba
+    // los casos en que la línea del hito también iba desviada. La regla del
+    // sitio no tenía que ir después: tenía que **no aplicar** a un desvío.
     const suyo = sitioDelHito(paso);
-    const propio = suyo ? marcados.find((a) => a.texto.includes(suyo)) : undefined;
+    const propio = suyo
+      ? marcados.find((a) => !a.texto.includes(MARCA_DE_DESVIO) && a.texto.includes(suyo))
+      : undefined;
     if (propio) {
       return propio.texto;
     }
