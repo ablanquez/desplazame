@@ -27,10 +27,12 @@ import { cargarPortales, portalesDe } from './portales.ts';
 import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
 import { cargarBiZi, disponibilidadDeBiZi } from './bizi.ts';
 import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
+import { andarConElPeaton, cocinarYServir, laRedDeBus } from './red-bus.ts';
 import {
   atenderRenovacion,
   cargarEntornoLocal,
   elMundoDeVerdad,
+  ponerLaCocina,
   registroGuardado,
   renovarFeed,
   VARIABLE_DEL_TOKEN,
@@ -720,6 +722,59 @@ const servidor = createServer((peticion, respuesta) => {
     );
   }
 }
+
+// ⭐ LA RED DE BUS Y TRANVÍA, cocinada al arrancar (31/08).
+//
+// [RAPTOR] la búsqueda por transporte necesita paradas, patrones y transbordos
+// a pie. Esto los produce; la búsqueda es de la casilla 3b. Se usa el cocinado
+// del disco si es del mismo `feed_version`, y si no se cocina y se guarda.
+//
+// ⚠️ Va con `await` de nivel superior a propósito: **el motor no debe empezar a
+// contestar sin su red**. Una petición de bus contra una red a medio cocinar
+// devolvería «no hay ruta» en vez de esperar, y eso es una mentira rápida.
+{
+  const servido = elFeedQueSeSirve();
+  const t0 = performance.now();
+  const { cuentas, deDisco } = await cocinarYServir(
+    servido.ruta,
+    servido.info?.feedVersion ?? '',
+    andarConElPeaton(red, rejilla, cuadernoPara(red)),
+  );
+  const r = laRedDeBus();
+  if (deDisco) {
+    console.log(
+      `motor: red de bus LEÍDA del cocinado — ${r?.paradas.length} paradas · ` +
+        `${r?.patrones.length} patrones · ${r?.transbordos.length} transbordos · ` +
+        `${(performance.now() - t0).toFixed(0)} ms`,
+    );
+  } else if (cuentas) {
+    console.log(
+      `motor: red de bus COCINADA — ${cuentas.paradas} paradas · ${cuentas.lineas} líneas ` +
+        `(${cuentas.zombis} sin viajes) · ${cuentas.patrones} patrones · ${cuentas.saltos} saltos · ` +
+        `${cuentas.transbordos} transbordos a pie · ${cuentas.fechas} fechas`,
+    );
+    console.log(
+      `motor:   ${cuentas.ms.toFixed(0)} ms · ${cuentas.kb.toFixed(0)} KB · ` +
+        `${cuentas.heapMb.toFixed(0)} MB de montón (stop_times NO se materializa)`,
+    );
+  }
+}
+
+// ⭐ Y LA COSTURA CON LA CASILLA 2: cuando el cron traiga un zip nuevo,
+// `recocinar()` llamará aquí. La cocina se le pasa montada porque el peatón lo
+// tiene el servidor, no ella.
+ponerLaCocina(async () => {
+  const nuevo = elFeedQueSeSirve();
+  const { cuentas } = await cocinarYServir(
+    nuevo.ruta,
+    nuevo.info?.feedVersion ?? '',
+    andarConElPeaton(red, rejilla, cuadernoPara(red)),
+  );
+  console.log(
+    `motor: red de bus RECOCINADA — ${cuentas?.patrones ?? '?'} patrones · ` +
+      `${cuentas?.transbordos ?? '?'} transbordos · ${cuentas?.ms.toFixed(0) ?? '?'} ms`,
+  );
+});
 
 servidor.listen(PUERTO, () => {
   console.log(`motor: escuchando en http://localhost:${PUERTO} (pid ${process.pid})`);

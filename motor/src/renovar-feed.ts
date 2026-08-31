@@ -409,18 +409,33 @@ export function atenderRenovacion(
 // ── LA COSTURA CON LA CASILLA 3 ──────────────────────────────────────────────
 
 /**
- * ⭐ EL GANCHO DE RECOCINAR, **hoy vacío y a propósito**.
+ * ⭐ EL GANCHO DE RECOCINAR, que **desde el 31/08 ya no está vacío**.
  *
- * La casilla 3 cocina la red del bus a partir del feed. Esa cocina **no existe
- * todavía**, y no se inventa aquí: lo que esta casilla deja es el zip nuevo en
- * su sitio y **el sitio donde la 3 se engancha**, declarado, para que ese día
- * sea añadir el cuerpo y no buscar dónde.
+ * Tras un zip nuevo hay que rehacer la red de bus y **sustituir la que se está
+ * sirviendo**. La cocina vive en `red-bus.ts` (casilla 3a) y este gancho es lo
+ * único que la casilla 2 sabía de ella.
  *
- * ⚠️ No devuelve nada ni promete nada. Cuando la 3 llegue, aquí irá el
- * recocinado y este comentario se va con él.
+ * ⚠️ **Quién le pasa el peatón.** La cocina necesita andar de verdad entre
+ * paradas para los transbordos, y el motor del peatón lo carga el servidor. Por
+ * eso `recocinar` no cocina por su cuenta: recibe la cocina ya montada con
+ * `ponerLaCocina`, y si nadie se la ha puesto **lo dice y no hace nada** en vez
+ * de cocinar media red sin transbordos y servirla como si estuviera entera.
  */
-export function recocinar(): void {
-  // Vacío a propósito. Ver arriba.
+let laCocina: (() => Promise<void>) | null = null;
+
+export function ponerLaCocina(cocina: () => Promise<void>): void {
+  laCocina = cocina;
+}
+
+export async function recocinar(): Promise<void> {
+  if (!laCocina) {
+    console.warn(
+      'motor: ⚠️ hay un feed nuevo pero nadie ha puesto la cocina: la red de bus ' +
+        'sigue siendo la anterior. Se sirve al próximo arranque.',
+    );
+    return;
+  }
+  await laCocina();
 }
 
 // ── LA CLAVE ─────────────────────────────────────────────────────────────────
