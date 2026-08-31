@@ -755,7 +755,7 @@ otra vez lo delató pedir la cifra.
 **Commit:** ~~`b15f198` (esta entrada, en caliente) y el `fix(app): el tsc que no
 miraba nada` que la cierra, donde va este cierre.~~ (el del 25/08)
 
-**Commit:** `ac81592` — el de la reapertura del 31/08
+**Commit:** `5464e6a` — el de la reapertura del 31/08
 
 **Ley que sale de aquí:** ⭐ **un arreglo que hay que acordarse de usar no es
 un arreglo del todo.** El guion existía, funcionaba y cazaba los dos errores en
