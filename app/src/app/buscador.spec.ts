@@ -504,6 +504,25 @@ const VIAJE_EN_BUS_SIN_LA_29: Trayecto = {
 };
 
 /**
+ * ⭐ UN VIAJE EN BUS CON DESVÍO, con el texto que el motor escribe (31/08).
+ *
+ * La 29 va hoy desviada de verdad —medido contra `get_stops_list`—: no para en
+ * tres postes del Coso y para provisionalmente en otros dos. El aviso lo compone
+ * el motor entero; la pantalla no recompone nada.
+ */
+const VIAJE_EN_BUS_DESVIADO: Trayecto = {
+  ...VIAJE_EN_BUS_SIN_LA_29,
+  avisos: [
+    {
+      texto:
+        'La línea 29 va hoy desviada: no para en Don Jaime I / Plaza De La Seo, Coso N.º 80, ' +
+        'Plaza San Miguel: para provisionalmente en P. Echegaray Y Caballero N.º 112, ' +
+        'Asalto / Centro De Historias.',
+    },
+  ],
+};
+
+/**
  * ⭐ Y una ruta de BICI con su aviso: el destino sin aparcabicis cerca.
  *
  * El otro caso de la misma clase — desde las casillas 5 y 6, un trayecto puede
@@ -2168,6 +2187,46 @@ describe('Buscador', () => {
     await fixture.whenStable();
     expect(raiz.querySelector('.esperando')).toBeNull();
     expect(raiz.querySelectorAll('.paso').length).toBeGreaterThan(0);
+  });
+
+  /**
+   * ⭐ 11 · EL DESVÍO, EN EL DOBLE SITIO — y pegado a SU línea.
+   *
+   * [GOV.UK] resumen arriba **y** mensaje junto a lo afectado, con el mismo
+   * texto. Y aquí lo afectado no se reconoce por el sitio —el aviso habla de las
+   * paradas que **no** se hacen, que por definición no son este hito—: se
+   * reconoce por **la línea**, que en el paso de subir va en negrita.
+   *
+   * Es la nota más importante de las tres: las otras dos dicen *cuándo* pasa el
+   * autobús, y ésta *por dónde*. Sin ella alguien se planta en una parada por la
+   * que hoy no pasa nadie.
+   */
+  it('⭐ 11 · el aviso de desvío va arriba y junto al hito de su línea', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_DESVIADO);
+    await fixture.whenStable();
+
+    const banner = (raiz.querySelector('.aviso-ruta')?.textContent ?? '').trim();
+    expect(banner).toContain('La línea 29 va hoy desviada');
+    expect(banner).toContain('no para en Don Jaime I / Plaza De La Seo');
+    expect(banner).toContain('para provisionalmente en P. Echegaray');
+
+    // Y la nota, junto al hito de subir a la 29 — y solo ahí.
+    const conNota = Array.from(raiz.querySelectorAll('.paso'))
+      .filter((li) => li.querySelector('.paso__nota') !== null)
+      .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
+    expect(conNota).toEqual([
+      'Sube a la línea 29 en el poste Bernardo Ramazzini / Maz — ~7 min de espera',
+    ]);
+    const nota = (raiz.querySelector('.paso__nota')?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    expect(nota.replace(/^⚠\s*/, '')).toBe(banner);
   });
 
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {

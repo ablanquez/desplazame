@@ -78,6 +78,16 @@ const MARCA_DE_DISPONIBILIDAD = 'disponibilidad no verificada';
 const MARCA_DE_SIN_SERVICIO = 'no anuncia ningún próximo';
 
 /**
+ * ⭐ Y la del desvío: la línea que hoy no hace su recorrido de siempre.
+ *
+ * Es la tercera condición que pide nota junto al hito, y la más importante de
+ * las tres: las otras dos hablan de **cuándo** pasa el autobús, y esta de **por
+ * dónde**. Alguien que no la lea puede plantarse en una parada por la que hoy
+ * no pasa nadie.
+ */
+const MARCA_DE_DESVIO = 'va hoy desviada';
+
+/**
  * El sitio del que habla un hito: su **última** parte `via`.
  *
  * `null` si el paso no es un hito. Los pasos de andar también traen `via` —el
@@ -611,7 +621,10 @@ export class Buscador {
    */
   private readonly avisosDeHito = computed<readonly Aviso[]>(() =>
     (this.resultado()?.trayecto.avisos ?? []).filter(
-      (a) => a.texto.includes(MARCA_DE_DISPONIBILIDAD) || a.texto.includes(MARCA_DE_SIN_SERVICIO),
+      (a) =>
+        a.texto.includes(MARCA_DE_DISPONIBILIDAD) ||
+        a.texto.includes(MARCA_DE_SIN_SERVICIO) ||
+        a.texto.includes(MARCA_DE_DESVIO),
     ),
   );
 
@@ -710,10 +723,24 @@ export class Buscador {
     if (propio) {
       return propio.texto;
     }
+    // ⭐ Y EL AVISO DE DESVÍO se reconoce por SU LÍNEA, no por un sitio: habla
+    // de las paradas que se salta, que por definición no son este hito. En el
+    // paso de subir la línea es una de sus partes `via`.
+    const suyas = paso.partes.filter((x) => x.papel === 'via').map((x) => x.texto);
+    const delDesvio = marcados.find(
+      (a) => a.texto.includes(MARCA_DE_DESVIO) && suyas.some((l) => a.texto.startsWith(`La línea ${l} `)),
+    );
+    if (delDesvio) {
+      return delDesvio.texto;
+    }
     const sitios = (this.resultado()?.trayecto.pasos ?? [])
       .map((x) => sitioDelHito(x))
       .filter((x): x is string => x !== null);
-    return marcados.find((a) => !sitios.some((s) => a.texto.includes(s)))?.texto ?? null;
+    return (
+      marcados.find(
+        (a) => !a.texto.includes(MARCA_DE_DESVIO) && !sitios.some((s) => a.texto.includes(s)),
+      )?.texto ?? null
+    );
   }
 
   /**
