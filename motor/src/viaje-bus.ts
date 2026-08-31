@@ -293,7 +293,7 @@ export interface Indices {
   readonly aPie: Map<string, readonly { hasta: string; metros: number }[]>;
 }
 
-export function indexar(red: RedDeBus, fecha: string): Indices {
+export function indexar(red: RedDeBus, fecha: string, suprimidas?: ReadonlySet<string>): Indices {
   const porParada = new Map<string, { patron: PatronBus; i: number }[]>();
   for (const patron of red.patrones) {
     // ⭐ Solo lo que OPERA HOY. Un patrón que no circula no es una opción, y
@@ -302,6 +302,10 @@ export function indexar(red: RedDeBus, fecha: string): Indices {
       continue;
     }
     patron.paradas.forEach((parada, i) => {
+      if (suprimidas?.has(parada)) {
+        // Hoy no se para aquí: no es sitio donde subirse.
+        return;
+      }
       const suyos = porParada.get(parada);
       if (suyos) {
         suyos.push({ patron, i });
@@ -362,6 +366,12 @@ export interface Peticion {
   readonly fecha: string;
   readonly acceso: readonly Acceso[];
   readonly salida: readonly Acceso[];
+  /**
+   * ⭐ Los postes por los que hoy NO se pasa. [OTP2: parada suprimida =
+   * `SKIPPED`.] No se sube ni se baja en ellos, y **en ningún patrón**: si el
+   * autobús no pasa por la calle, no pasa para ningún refuerzo.
+   */
+  readonly suprimidas?: ReadonlySet<string>;
 }
 
 /**
@@ -374,7 +384,7 @@ export interface Peticion {
  */
 export function buscarViaje(p: Peticion): Viaje | null {
   const { red, fecha } = p;
-  const indices = indexar(red, fecha);
+  const indices = indexar(red, fecha, p.suprimidas);
 
   // Ronda 0: lo que se alcanza andando desde el origen.
   const mejor = new Map<string, Etiqueta>();
@@ -468,6 +478,10 @@ export function buscarViaje(p: Peticion): Viaje | null {
             continue;
           }
           const destino = patron.paradas[k]!;
+          if (p.suprimidas?.has(destino)) {
+            // Ni sitio donde bajarse.
+            continue;
+          }
           const etiqueta: Etiqueta = {
             coste: mejorSubida + PESO_POR_MODO[patron.modo] * acumulado[k]!,
             tranvias: subida.tranvias + (patron.modo === 'tram' ? 1 : 0),
@@ -784,6 +798,8 @@ export function postesCerca(
   andar: AndarEntre,
   lon: number,
   lat: number,
+  /** Los postes por los que hoy no se pasa: no valen ni de acceso ni de salida. */
+  suprimidas?: ReadonlySet<string>,
 ): Acceso[] {
   const tope = TOPE_DE_ACCESO_S * VELOCIDAD_PEATON_MS;
   const candidatos = red.paradas
@@ -794,6 +810,9 @@ export function postesCerca(
 
   const salida: Acceso[] = [];
   for (const { p } of candidatos) {
+    if (suprimidas?.has(p.id)) {
+      continue;
+    }
     const m = andar(lon, lat, p.lon, p.lat);
     if (m !== null && m <= tope) {
       salida.push({ parada: p.id, metros: Math.round(m) });
@@ -870,6 +889,11 @@ export function prepararViajeEnBus(
   origen: Extremo,
   destino: Extremo,
   fecha: string,
+  /** Lo que la ruta operativa de hoy dice, si se sabe. Ver `patron-operativo.ts`. */
+  desvios?: {
+    readonly suprimidas: ReadonlySet<string>;
+    readonly avisos: readonly string[];
+  },
 ): ViajeEnBusPreparado {
   /** Un trayecto sin ruta, con el motivo delante. */
   const sinViaje = (texto: string): ViajeEnBusPreparado => ({
@@ -886,8 +910,8 @@ export function prepararViajeEnBus(
     return r ? r.metros : null;
   };
 
-  const acceso = postesCerca(red, andar, origen.lon, origen.lat);
-  const salida = postesCerca(red, andar, destino.lon, destino.lat);
+  const acceso = postesCerca(red, andar, origen.lon, origen.lat, desvios?.suprimidas);
+  const salida = postesCerca(red, andar, destino.lon, destino.lat, desvios?.suprimidas);
   const aPie = andar(origen.lon, origen.lat, destino.lon, destino.lat);
   const enKm = aPie === null ? null : (aPie / 1000).toFixed(1).replace('.', ',');
 
@@ -900,7 +924,7 @@ export function prepararViajeEnBus(
     );
   }
 
-  const viaje = buscarViaje({ red, fecha, acceso, salida });
+  const viaje = buscarViaje({ red, fecha, acceso, salida, suprimidas: desvios?.suprimidas });
   if (!viaje) {
     const hoy = red.patrones.some((p) => operaEl(red, p, fecha));
     return sinViaje(
@@ -970,7 +994,17 @@ export function prepararViajeEnBus(
    * el aviso, que habla de la línea y no del coche.
    */
   const componer = (vivas: readonly EstadoVivo[] | null): Trayecto => {
-    const cabecera = { modo: 'bus' as const, avisos: vivas ? avisosDeLoVivo(vivas) : [] };
+    // ⭐ EL AVISO DEL DESVÍO va PRIMERO: condiciona todo lo que se lee debajo,
+    // y solo se escribe el de las líneas que este viaje usa — avisar de la 38
+    // en un viaje que va en la 29 sería ruido.
+    const usadas = new Set(viaje.montados.map((m) => lineaDelViaje(red, m.patron).corto));
+    const delDesvio = (desvios?.avisos ?? []).filter((a) =>
+      [...usadas].some((l) => a.startsWith(`La línea ${l} `)),
+    );
+    const cabecera = {
+      modo: 'bus' as const,
+      avisos: [...delDesvio.map((texto) => ({ texto })), ...(vivas ? avisosDeLoVivo(vivas) : [])],
+    };
     const perdido = (texto: string): Trayecto => juntar({ modo: 'bus', avisos: [{ texto }] }, []);
 
     const etapas: Etapa[] = [];

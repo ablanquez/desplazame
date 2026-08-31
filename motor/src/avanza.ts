@@ -298,6 +298,53 @@ export function estadoVivoDe(lectura: LecturaDePoste | null, corto: string): Est
   };
 }
 
+/**
+ * ⭐ LA COORDENADA DE UN POSTE, del mismo feed de llegadas.
+ *
+ * `maquinas["0"]` es **la parada misma**, y trae sus `coordenadas`. Es la
+ * técnica con la que ZetaBus fabricó su fichero de los nueve postes que solo
+ * existen en Avanza [`003_ZETABUS/data/postes-solo-barrido-coordenadas.json`]:
+ * *«del feed de LLEGADAS por poste, que devuelve el marcadorParada»*.
+ *
+ * Hace falta para las paradas **provisionales** de un desvío: existen hoy, el
+ * GTFS no las conoce, y sin coordenada no se pueden pintar ni rutear — regla B
+ * de la casa, **sin coordenada no existe**.
+ */
+export function coordenadaDe(cuerpo: string): { readonly lat: number; readonly lon: number } | null {
+  let json: { maquinas?: Record<string, unknown> };
+  try {
+    json = JSON.parse(cuerpo) as typeof json;
+  } catch {
+    return null;
+  }
+  const parada = json.maquinas?.['0'] as { coordenadas?: Record<string, unknown> } | undefined;
+  const punto = parada?.coordenadas?.['0'] as { LAT?: unknown; LON?: unknown } | undefined;
+  const lat = Number(punto?.LAT);
+  const lon = Number(punto?.LON);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0)) {
+    return null;
+  }
+  return { lat, lon };
+}
+
+/** La coordenada de un poste, preguntando. `null` si no se sabe. */
+export async function coordenadaDelPoste(
+  poste: number,
+  pedir: typeof fetch = fetch,
+): Promise<{ readonly lat: number; readonly lon: number } | null> {
+  try {
+    const r = await pedir(URL_POSTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ poste: String(poste), coche: '0' }).toString(),
+      signal: AbortSignal.timeout(ESPERA_MS),
+    });
+    return r.ok ? coordenadaDe(await r.text()) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** El número de poste que Avanza entiende, sacado del `stop_code` del feed. */
 export function posteDeCodigo(codigo: string): number | null {
   const m = /^PA0*(\d+)$/.exec(codigo.trim());

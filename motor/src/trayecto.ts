@@ -30,6 +30,7 @@ import type { RedEnMemoria } from './red.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
 import { laRedDeBus } from './red-bus.ts';
 import { prepararViajeEnBus, viajeEnBus } from './viaje-bus.ts';
+import { avisoDeDesvio, laOperativa } from './patron-operativo.ts';
 import type { AparcabicisEnMemoria } from './aparcabicis.ts';
 import type { BiZiEnMemoria, Disponibilidad } from './bizi.ts';
 import { enganchar, type Enganche, type Rejilla } from './proyeccion.ts';
@@ -448,20 +449,27 @@ export async function calcularTrayectoVivo(
   if (previo.modo !== 'bus') {
     return porModo(motor, previo, null);
   }
-  const red = laRedDeBus();
-  if (!red) {
+  const cocinada = laRedDeBus();
+  if (!cocinada) {
     return conAviso(
       'bus',
       'La red de bus todavía no está cocinada: el motor acaba de arrancar o el ' +
         'feed no se ha podido leer.',
     );
   }
+  // ⭐ LA RUTA OPERATIVA DE HOY MANDA cuando se sabe [ZetaBus]. Si no se sabe
+  // —el motor acaba de arrancar, la fuente está caída— se usa la del feed y **no
+  // se avisa de ningún desvío**: no saber no es no haberlo.
+  const operativa = laOperativa();
   const preparado = prepararViajeEnBus(
     motor,
-    red,
+    operativa?.red ?? cocinada,
     previo.origen,
     previo.destino,
     hoyEnGtfs(new Date()),
+    operativa
+      ? { suprimidas: operativa.suprimidas, avisos: operativa.desviadas.map(avisoDeDesvio) }
+      : undefined,
   );
   return preparado.conElVivo ? preparado.conElVivo(pedir) : preparado.trayecto();
 }
