@@ -26,6 +26,16 @@ import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
 import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
 import { cargarBiZi, disponibilidadDeBiZi } from './bizi.ts';
+import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
+import {
+  atenderRenovacion,
+  cargarEntornoLocal,
+  elMundoDeVerdad,
+  registroGuardado,
+  renovarFeed,
+  VARIABLE_DEL_TOKEN,
+  type EstadoDelCron,
+} from './renovar-feed.ts';
 import { cargarSitios, sugerirSitios } from './sitios.ts';
 import { UMBRAL_DE_DESVIO_M, entornoDe } from './gacetero.ts';
 import { portalCercano } from './cercano.ts';
@@ -49,6 +59,9 @@ const CUERPO_MAXIMO = 4096;
 
 /** El puerto del motor. La interfaz le habla por el proxy de `ng serve`. */
 const PUERTO = 3000;
+
+/** Si hay una renovación del feed corriendo. Dos crones solapados → 409. */
+const CRON: EstadoDelCron = { enCurso: false };
 
 console.log('motor: cargando el grafo…');
 const memoria = cargarGrafo();
@@ -626,8 +639,87 @@ const servidor = createServer((peticion, respuesta) => {
     return;
   }
 
+  // ⭐ EL DISPARADOR DEL CRON (31/08). En un hosting sin SSH un cron no puede
+  // lanzar `npm run …`: **solo puede pedir una URL** [precedente de ZetaBus].
+  // Por eso la renovación se dispara con un POST y un token EN CABECERA —jamás
+  // en la URL, que se queda en los logs—. Ver `atenderRenovacion`.
+  if (peticion.method === 'POST' && url.pathname === '/api/renovar-feed') {
+    const r = atenderRenovacion(
+      process.env[VARIABLE_DEL_TOKEN],
+      peticion.headers.authorization,
+      CRON,
+    );
+    json(r.codigo, r.cuerpo);
+    if (r.arranca) {
+      // 202 ya está contestado: el trabajo va de fondo para que no lo mate
+      // ningún timeout intermedio del hosting.
+      CRON.enCurso = true;
+      void renovarFeed(elMundoDeVerdad())
+        .then((res) => {
+          console.log(`motor: renovación del feed → ${res.clase}`);
+          if (res.clase === 'renovado') {
+            console.log(
+              `motor:   ${res.registro.feedVersion} · ${res.registro.bytes} bytes · ` +
+                `sha256 ${res.registro.sha256.slice(0, 16)}… · vence ${res.registro.feedEndDate}`,
+            );
+            console.log('motor:   ⚠️ el zip nuevo se sirve al PRÓXIMO arranque del motor.');
+          } else if (res.clase === 'sigue-el-viejo') {
+            console.warn(`motor:   ⚠️ ${res.motivo} (el zip que hay tiene ${res.dias} día(s))`);
+          }
+        })
+        .catch((e: unknown) => {
+          // Un error de configuración no puede tumbar el servidor entero: se
+          // grita en el log, que es la única ventana que hay en un panel remoto.
+          console.error(`motor: ⛔ la renovación del feed ha fallado: ${(e as Error).message}`);
+        })
+        .finally(() => {
+          CRON.enCurso = false;
+        });
+    }
+    return;
+  }
+
   json(404, { error: `no hay nada en ${peticion.method} ${peticion.url}` });
 });
+
+// 🔒 LA CLAVE Y EL TOKEN, de `.env.local` si están ahí. Lo que ya viene en el
+// entorno manda (en Hostinger lo pone el panel). Se dicen los NOMBRES leídos,
+// nunca los valores.
+{
+  const puestas = cargarEntornoLocal();
+  console.log(
+    puestas.length > 0
+      ? `motor: .env.local aporta ${puestas.length} variable(s): ${puestas.join(', ')}`
+      : 'motor: sin .env.local (o sin nada nuevo que aportar); manda el entorno',
+  );
+}
+
+// ⭐ EL FEED QUE SE SIRVE, dicho al arrancar (31/08).
+//
+// Las tres cosas que hacen falta para saber si lo que se está sirviendo vale:
+// qué versión es, de cuándo la trajo el NAP, y cuántos días le quedan. Es el
+// DATO de la casilla 4 — aquí solo se expone; la pantalla es de allí.
+{
+  const servido = elFeedQueSeSirve();
+  const registro = registroGuardado();
+  const fin = servido.info?.feedEndDate ?? '';
+  const dias = diasHastaCaducidad(fin, new Date());
+  const estado = estadoDeCaducidad(dias);
+  console.log(
+    `motor: feed GTFS ${servido.esSemilla ? 'SEMILLA del repo' : 'vivo (relevó a la semilla)'} — ` +
+      `${servido.info?.feedVersion || '(sin feed_info)'} · ${servido.bytes} bytes`,
+  );
+  console.log(
+    `motor:   NAP ${registro?.nap.fechaActualizacion ?? 'NO CONSTA (nunca se ha renovado)'} · ` +
+      `vence ${fin || 'NO CONSTA'} · ${Number.isNaN(dias) ? '?' : dias} día(s) → ${estado.toUpperCase()}`,
+  );
+  if (estado !== 'vigente') {
+    console.warn(
+      `motor:   ⚠️ el feed está ${estado}. El umbral de aviso son 7 días ` +
+        '[MobilityData GTFS Validator]. Dispara POST /api/renovar-feed o revisa el NAP.',
+    );
+  }
+}
 
 servidor.listen(PUERTO, () => {
   console.log(`motor: escuchando en http://localhost:${PUERTO} (pid ${process.pid})`);
