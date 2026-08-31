@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 30 de agosto de 2026
+## ESTADO ACTUAL — 31 de agosto de 2026
 
 **⭐ PUNTOS 1-9 CERRADOS (el 9, el 30/08: la rueda ENTERA — seis
 modos en pantalla, bici/patín/BiZi ruteando por sus tablas con
@@ -28,7 +28,7 @@ se escribe), el buscador por tipos completo con siglas e iconos, el
 foco en las dos capas, y las bitácoras cerradas (16/16 al 30/08).**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
-levantado el 18/08, des-caducado del 21 al 30):
+levantado el 18/08, des-caducado del 21 al 31):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
@@ -129,6 +129,26 @@ tanda del 30 entera** — el selector a seis, el empuje, el selector
 de ruta, las casillas 5-6, el pintado por tramos, el azul, las
 bitácoras nº15 y nº16 con la reversión de Siresa, y los papeles. El
 push es de Antonio.
+
+**EL PUNTO 10 ARRANCA — la casilla 0 completa y el censo del feed
+(noche del 30/08 → 31/08).** NUEVE FIRMAS de Antonio antes de una
+línea de código (transbordos siempre · vehículo único ABSOLUTO ·
+buses al empate · radios 500 bus/800 tranvía [El-Geneidy/FHWA] ·
+colores de línea de ZetaBus · la comprobación EN VIVO al poste como
+BiZi [firma 7 v2: la v1 la codifiqué mal con mi lectura — corregida
+con su palabra] · el pintado BiZi extendido · transbordo a pie 500 m
++ 120 s [OTP]) + el calendario verificado (método Alternate de la
+referencia) + el NAP comprobado en vivo (sin feed nuevo desde el
+30/6; el 05/10 = víspera del Pilar, palabra de Antonio). EL CENSO
+(medición pura, ficha en scratchpad): ⭐ el descuadre 984-944 CUADRA
+EXACTO (+50 tranvía −11 +1) · ⭐ route_type 704/900 extendidos (la
+trampa del 3 desactivada) · colores 53/53 · Alternate PURO (ni un
+exception_type 2) · ⭐ ZetaBus tiene EL MISMO feed byte a byte y
+regaló la tabla de modos, el streaming, el viaje canónico y las
+cicatrices de la API de Avanza · 185 MB/0,5 s materializar (se
+cocina de noche) · ⚠️⚠️ EL FEED NO LLEGA AL PILAR: bus hasta el
+05/10, cero viajes del 10/10 en adelante — el cron de la casilla 2
+es CAMINO CRÍTICO (y el NAP exige login: ¿cómo renueva ZetaBus?).
 
 **LA SONDA DE LA SEÑALIZACIÓN — la candidata muere con honores
 (30/08, último acto).** MU2_señalizacion_vertical: 40.863 señales
@@ -792,13 +812,13 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) el PUSH cuando Antonio diga (la tanda del 30
-entera, 22 commits); (2) LA MESA VACIADA (las cuatro decisiones del 30/08 resueltas:
-500 firmado · single-flight hecho · el doble sitio hecho · la
-señalización sondada y descartada); (3) LA
-FASE 2 de sentidos como goteo de fondo (la lista de 434, con el
-atajo posible de la señalización vertical); (4) el punto 10 — EL
-RELOJ: el GTFS caduca el 05/10; (5) el
+**Lo siguiente:** (1) **el punto 10, casilla 2 — EL CRON** (camino
+crítico: la renovación del feed antes del Pilar; primero la
+pregunta a ZetaBus de cómo renueva el suyo); (2) la casilla 3 — el
+motor cocinado (red poste↔línea + minutos por el cron nocturno) y
+la consulta viva al poste; (3) la pantalla del bus (patrón BiZi +
+colores) y la demo; (4) LA FASE 2 de sentidos como goteo de fondo
+(las shapes como atajo); (5) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
@@ -1006,10 +1026,12 @@ es» (dice nombres, trae 260 etiquetas) · la doble capitalización
 «Senda ciclable/Ciclable» · el contraflujo con candado (18 reales) ·
 la API viva de BiZi vive aquí (mudada del 10; NO es GBFS).
 
-**Punto 10:** líneas por poste (sin guardián) · caducidad GTFS (05/10;
-servicio 27/12 — VERIFICADO el 22/08 contra el dato: 196 calendarios
-huérfanos, los del 28-31/12 sin ningún viaje) sin vigilante hasta el
-cron · ⚰️ shapes.txt VERIFICADO el 30/08 (89 trazas cerrando al 100 %
+**Punto 10 (EN MARCHA desde el 30/08 — casilla 0 completa con nueve
+firmas, casilla 1 el censo HECHA):** ⚠️⚠️ EL FEED NO LLEGA AL PILAR
+(bus hasta el 05/10, cero del 10/10 en adelante — el cron de la
+casilla 2 es CAMINO CRÍTICO; el NAP exige login: ¿cómo renueva
+ZetaBus? pregunta abierta) · ⚰️ la caducidad ya no es duda sino
+medida · líneas por poste (sin guardián) · ⚰️ shapes.txt VERIFICADO el 30/08 (89 trazas cerrando al 100 %
 con los trips — la traza del bus calle-a-calle que Antonio preguntó,
 y las trazas direccionales para la fase 2 de sentidos) · ⚠️
 shape_dist_traveled vacía · ⚠️ 8 rutas de routes.txt sin viaje · ⚰️

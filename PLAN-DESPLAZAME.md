@@ -2080,8 +2080,78 @@ semanal; los 196 huérfanos = service_id con fechas sin viajes.
 ⚠️ Cabo para el censo: contar los exception_type del fichero
 ENTERO (en el método alternativo puro no debería haber ningún 2
 —servicio quitado—, pero que la columna esté no es que el dato sea
-el esperado). LA CASILLA 0 ESTÁ COMPLETA: el primer encargo del
-punto es EL CENSO (casilla 1) — y EL CENSO SE APOYA EN ZETABUS
+el esperado). LA CASILLA 0 ESTÁ COMPLETA.
+
+**⭐ CASILLA 1 · EL CENSO DEL FEED — HECHO (noche del 30/08, validado
+por Antonio el 31/08; medición pura, cero código, ficha en
+scratchpad/CENSO-DEL-FEED.md).** LO MEDIDO:
+- El inventario: 8 ficheros · stop_times 870.717 filas · ningún
+  fare_* ni calendar.txt · columnas presentes-pero-VACÍAS
+  declaradas (route_desc/url, shape_dist_traveled ×2,
+  stop_headsign, stop_desc/zone_id/stop_url/parent_station,
+  block_id) · parciales: location_type 50/984, trip_headsign
+  29.320/34.427 · ausentes: wheelchair_* (accesibilidad: nada).
+- ROUTES: ⭐ route_type es 704 (52) y 900 (1) — tipos EXTENDIDOS:
+  quien filtre por el clásico 3 no encuentra NI UN autobús (la
+  tabla de modos de ZetaBus: 0,900→tram · 704→bus) · colores
+  53/53 con dato (la firma 5 se sostiene; 46 distintos; texto solo
+  000000/FFFFFF) · las 8 zombis con nombre: CEM, CE, LAN
+  (Cementerio/Lanzadera), EM1/EM2 (Estadio Modular), V1/V4
+  (Valdespartera), ES3 (Parking Norte).
+- STOPS: 984 = el NAP · cero duplicados · cero fuera de marco · ⭐
+  la guarda del tranvía CONFIRMADA por el dato: los 50 con
+  location_type='0' son EXACTAMENTE los 50 de stop_code numérico
+  (la L1); los 934 restantes PA+5 dígitos · cero estaciones (=1).
+- ⭐ EL CRUCE A TRES PATAS CUADRA EXACTO: +50 tranvía (el MU3 es
+  solo-bus) − 11 postes que el MU3 tiene y el feed NO sirve + 1
+  (PA01320 Expo/Etopía, feed sí, MU3 no) = +40 = 984−944. Los 11:
+  seis del eje Parque de Atracciones/Duque de Alba (hecho medido:
+  es el eje que sirven CEM/CE/LAN, tres de las zombis — el
+  porqué NO CONSTA), PA01183, y cuatro de Ramón y Cajal/Conde
+  Aranda/Madre Ráfols.
+- LA TERCERA PATA, ZETABUS: ⭐ tiene EL MISMO FEED byte a byte
+  (sha256 5c96992c…) · conoce 9 postes vivos de Avanza que el GTFS
+  no trae (6 de los 11 solo-MU3 + 3 que solo existen para Avanza:
+  PA00736, PA01283, PA08138) · la COSECHA (nada copiado, rutas
+  citadas): src/sources/gtfs-nap/adapter.ts (el modo es TABLA no
+  if; fallback de color con dos grises distintos: «existe sin
+  color» ≠ «no existe») · los 47 MB en STREAMING sin materializar,
+  dos pasadas, el viaje canónico de cada (línea, sentido) = el de
+  MÁS paradas («los cortos son refuerzos») · las zombis se llaman
+  zombis · la API de Avanza: gps.avanzabus.com/…/
+  fRefrescaEmpresaExternos (poste.ts), parse-poste.ts con las
+  cicatrices (HTML no regex; «039VADORREY» pegado; el mismo hecho
+  por TRES canales = contador de control gratis), horario.ts (HTML
+  malformado, filas ×4).
+- STOP_TIMES: 15.661 llegadas ≥24:00:00 (los búhos, máx 27:35:40)
+  · orden sano · el tranvía con stop_sequence no correlativa pero
+  creciente (lo único que la referencia pide) · LA MEDIDA de
+  memoria: parsear entero 496 ms · 185 MB heap · 322 MB rss (Node
+  24.19) — medido, no diseñado; ⚰️ el parlamento se disuelve: se
+  cocina de noche, en caliente kilobytes.
+- CALENDAR_DATES: ⭐ exception_type = {1: 27.161}, NI UN 2 —
+  Alternate PURO (el cabo muerto) · 457 fechas · 1.458 service_id
+  · 196 huérfanos confirmados · cero referencias rotas.
+- ⚠️⚠️ EL HALLAZGO GORDO — EL FEED NO LLEGA AL PILAR: bus hasta el
+  05/10 (7.217 viajes ese día) · solo tranvía del 06 al 09/10
+  (1.500 viajes FUERA de la vigencia que el propio feed declara) ·
+  del 10/10 en adelante CERO · el 12/10 (Pilar) CERO. La
+  renovación del feed no es buena práctica: es LA CONDICIÓN de que
+  el modo bus exista en octubre → la casilla 2 (el cron) es CAMINO
+  CRÍTICO. Y pregunta abierta para ella: el NAP exige login para
+  descargar — ¿cómo renueva ZetaBus su feed?
+- FEED_INFO/AGENCY: 20260623→20261005 · version
+  20260623_AUZSA_Y_TRANVIA · es · Europe/Madrid · el aviso del NAP
+  reproducido (http://zaragoza.avanzagrupo.com NO conecta; con
+  https sí) · ⚠️ la web del tranvía redirige a http://127.0.0.1/.
+- TARIFAS: la contradicción declarada — el NAP dice «incluye
+  tarifas» y el zip no trae fare_*; sí agency_fare_url en las dos
+  (200). Cuál llama tarifas el NAP: NO CONSTA. Accesibilidad: ni
+  campos ni ficheros ni enlace.
+- TRAZAS↔PARADAS: ninguna >100 m en tres trips (máx 16/11/41 m) —
+  la best practice del validador, cumplida.
+
+EL CENSO SE APOYÓ EN ZETABUS como estaba fichado
 (fichado el 30/08 a pregunta de Antonio): visita de SOLO LECTURA a
 F:\01_PROYECTOS\003_ZETABUS para cosechar (1) su lista de postes
 como TERCERA fuente del descuadre 984-feed vs 944-MU3 (triangular
