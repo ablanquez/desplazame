@@ -103,6 +103,12 @@ const ANCLAJE: Readonly<Record<Clase, L.PointTuple>> = {
 const VESTIDO: Readonly<Record<TramoDelViaje['comoSeVa'], L.PolylineOptions>> = {
   andando: { color: '#b45309', weight: 5, dashArray: '10 8' },
   rodando: { color: '#2563eb', weight: 5 },
+  // ⚠️ **PROVISIONAL, y dicho: el vestido del montado lo decide la casilla 4.**
+  // Aquí solo está lo que hace falta para que esto compile con el contrato del
+  // 31/08. Lo único que ya se sabe es que el color no saldrá de esta tabla:
+  // cada línea trae el suyo en `TramoDelViaje.linea`, que es el que el feed
+  // publica. Este gris es un marcador de sitio, no una decisión.
+  montado: { color: '#6b7280', weight: 6 },
 };
 
 /**
@@ -116,9 +122,13 @@ const VESTIDO: Readonly<Record<TramoDelViaje['comoSeVa'], L.PolylineOptions>> = 
  * `Record` exhaustivo por la misma razón de siempre: si el contrato añadiera un
  * hito, esta tabla dejaría de compilar en vez de dibujar un hueco.
  */
-const GLIFO: Readonly<Record<'coge' | 'aparca', string>> = {
+const GLIFO: Readonly<Record<NonNullable<TramoDelViaje['hito']>, string>> = {
   coge: '🚲',
   aparca: '🅿',
+  // Los dos del poste. Mismos caracteres que la lista de pasos, por lo mismo de
+  // siempre: quien lee «🚌 Sube a la 39…» busca esa marca en el plano.
+  sube: '🚌',
+  baja: '🚏',
 };
 
 /** El lado del icono de hito. Más pequeño que la chincheta: es una marca. */
@@ -361,7 +371,7 @@ export class Mapa {
    * es una marca, igual que las figuras de sitio. El punto que se posa sobre la
    * coordenada es su centro.
    */
-  private marcarHito(vertice: Vertice, hito: 'coge' | 'aparca'): void {
+  private marcarHito(vertice: Vertice, hito: NonNullable<TramoDelViaje['hito']>): void {
     if (!this.mapa) {
       return;
     }

@@ -621,9 +621,62 @@ puerta cerca, sino que hubiera **una puerta de su propia calle**.
 `metrosALaVia`, `laMasCercana`) · `motor/src/sitios.ts` (`cargarSitios`, el
 bloque de `rescatados`) · `motor/src/sitios.spec.ts:670`.
 
-## [2026-08-25] ✅ CERRADA — El `tsc` con el que llevo tres checkpoints declarando «la interfaz compila limpia» no compila NI UN fichero
+## [2026-08-25] ✅ CERRADA (reabierta y vuelta a cerrar el 31/08) — El `tsc` con el que llevo tres checkpoints declarando «la interfaz compila limpia» no compila NI UN fichero
 
 **Categoría:** instrumento que daba verde sin mirar nada
+
+---
+
+> ### 🔁 REABIERTA el 2026-08-31 — el mismo síntoma, y el arreglo estaba puesto
+>
+> Al meter `'montado'` en el contrato, `app/src/app/mapa.ts` **deja de compilar**
+> a propósito: son dos sitios exhaustivos, el `Record` del vestido y el hito de
+> `marcarHito`. Lancé mi comprobación de siempre y salió verde. **Otra vez.**
+>
+> ```
+> $ cd app && npx tsc --noEmit -p tsconfig.json
+> (codigo 0)
+> $ npx tsc --noEmit -p tsconfig.json --listFiles | grep -c "src/app"
+> 0
+>
+> $ npm run comprobar-tipos
+>   MAL  tsconfig.spec.json: 356 ficheros mirados, y con errores:
+> src/app/mapa.ts(103,7): error TS2741: Property 'montado' is missing in type …
+> src/app/mapa.ts(299,49): error TS2345: Argument of type '"coge" | "aparca" | "sube" | "baja"' …
+> ROJO: ver arriba.
+> ```
+>
+> ⚠️ **Y lo que la reabre no es que el arreglo fallara: el arreglo funciona.**
+> `app/scripts/comprobar-tipos.mjs` y su guion existen, miran 356 ficheros y
+> cazan los dos errores en cuanto se les llama. Lo que falló es que **yo no lo
+> llamé**: escribí `npx tsc --noEmit -p tsconfig.json` de memoria, que es
+> literalmente la frase que esta entrada ya tenía escrita —«una costumbre sin
+> guion del que tirar acaba siendo una costumbre distinta cada día»— y que yo
+> he vuelto a hacer **con el guion ya escrito y a mano**.
+>
+> **⭐ Qué dio verde mientras el fallo estaba vivo (esta vez):** mis propios
+> checkpoints. En esta sesión he declarado «tipos limpios en los dos lados» en
+> las casillas 2, 3a y en el arranque de la 3b, y en todas ellas la comprobación
+> de la interfaz fue el comando que mira **cero ficheros**. Los del motor sí
+> valían —`npm run comprobar-tipos` está en su `package.json` desde siempre—;
+> los de la interfaz no comprobaban nada.
+>
+> **Lo que esto añade a la entrada:** un arreglo que hay que acordarse de usar
+> no es un arreglo del todo. El guion cierra el agujero **cuando se ejecuta**, y
+> nada obliga a ejecutarlo.
+>
+> **Arreglo de la reapertura (31/08):** `comprobar-tipos` y `probar` en el
+> `package.json` de la **raíz**, llamando a los dos espacios de trabajo. Se
+> acabó elegir: hay un comando, no dos parecidos.
+>
+> ```
+> $ npm run comprobar-tipos          # desde la raíz
+>   OK   tsconfig.app.json    limpio · 290 ficheros mirados
+>   OK   tsconfig.spec.json   limpio · 353 ficheros mirados
+> VERDE: la interfaz compila, y consta cuántos ficheros se han mirado.
+> ```
+
+---
 
 **Síntoma:** al meter la cuarta clase de sitio (`biblioteca`) en el contrato, el
 diseño exige que la interfaz **deje de compilar** hasta darle su icono, su color
@@ -699,20 +752,40 @@ se puso ROJO — hizo lo correcto por el motivo equivocado. Ahora llama al
 se ha podido ejecutar** (código 3). Un silencio con pinta de verde otra vez, y
 otra vez lo delató pedir la cifra.
 
-**Commit:** `b15f198` (esta entrada, en caliente) y el `fix(app): el tsc que no
-miraba nada` que la cierra, donde va este cierre.
+**Commit:** ~~`b15f198` (esta entrada, en caliente) y el `fix(app): el tsc que no
+miraba nada` que la cierra, donde va este cierre.~~ (el del 25/08)
 
-**Ley que sale de aquí:** **un comando que termina en silencio no es un verde
-hasta que se le ha visto contar lo que ha mirado.** La bitácora ya lo decía de
-las pruebas —«una ejecución sin salida NO es un verde»— y aquí sale de otra
-puerta: un compilador con cero ficheros de entrada también termina en silencio y
-con código 0. El comprobador se comprueba pidiéndole el censo de lo que compila
-(`--listFiles`), y esa cifra se declara igual que se declara una muestra.
+**Commit:** `ac81592` — el de la reapertura del 31/08
 
-**Y una segunda, del cierre:** **una costumbre de comprobación necesita un guion
-del que tirar.** Lo que se teclea de memoria cada vez acaba tecleándose distinto,
-y el día que sale mal no hay nada que revisar porque no hay nada escrito. El
-comando vive en `package.json` o no vive.
+**Ley que sale de aquí:** ⭐ **un arreglo que hay que acordarse de usar no es
+un arreglo del todo.** El guion existía, funcionaba y cazaba los dos errores en
+cuanto se le llamaba — y aun así el fallo volvió, porque entre el guion y yo
+había una decisión: **cuál de los dos comandos escribo**. Mientras haya dos
+sitios donde comprobar los tipos, escribir el bueno depende de la memoria, y la
+memoria es lo que ya falló el 25/08.
+
+El arreglo del 31/08 es quitar la decisión: **un solo `npm run comprobar-tipos`
+en la raíz del repositorio**, que llama a los dos espacios de trabajo. Ya no hay
+un comando bueno y otro malo que se parezcan: hay uno. Y su hermano `npm run
+probar`, por lo mismo.
+
+⚠️ Corolario, y es el que vale para lo que venga: **cuando un fallo se arregla
+con "acuérdate de usar X", el arreglo no ha terminado.** Termina cuando usar X
+es el único camino, o cuando no usarlo se pone rojo solo.
+
+> La del 25/08, que sigue siendo verdad y no bastó:
+>
+> **un comando que termina en silencio no es un verde
+> hasta que se le ha visto contar lo que ha mirado.** La bitácora ya lo decía de
+> las pruebas —«una ejecución sin salida NO es un verde»— y aquí sale de otra
+> puerta: un compilador con cero ficheros de entrada también termina en silencio y
+> con código 0. El comprobador se comprueba pidiéndole el censo de lo que compila
+> (`--listFiles`), y esa cifra se declara igual que se declara una muestra.
+> 
+> **Y una segunda, del cierre:** **una costumbre de comprobación necesita un guion
+> del que tirar.** Lo que se teclea de memoria cada vez acaba tecleándose distinto,
+> y el día que sale mal no hay nada que revisar porque no hay nada escrito. El
+> comando vive en `package.json` o no vive.
 
 **Traza:** `app/tsconfig.json` (fichero solución: `files: []` + `references`) ·
 `app/tsconfig.app.json` · los checkpoints del 24 y 25/08, donde escribí «tsc

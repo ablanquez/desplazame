@@ -749,6 +749,12 @@ const COMO_SE_DICE: Readonly<Record<Giro, string>> = {
   coge: 'Coge',
   aparca: 'Aparca',
   llegada: 'Has llegado',
+  // ⭐ Y los dos del transporte con conductor (31/08). Tampoco se usan por
+  // esta tabla: el paso de subir y el de bajar traen su frase entera, con la
+  // línea y el poste dentro, y meterlos aquí sería partir en dos algo que se
+  // escribe de una pieza.
+  sube: '',
+  baja: '',
 };
 
 /**

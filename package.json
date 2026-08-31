@@ -7,5 +7,9 @@
     "tipos",
     "motor",
     "app"
-  ]
+  ],
+  "scripts": {
+    "comprobar-tipos": "npm run comprobar-tipos --workspace @desplazame/motor && npm run comprobar-tipos --workspace desplazame",
+    "probar": "npm run probar --workspace @desplazame/motor && npm test --workspace desplazame"
+  }
 }

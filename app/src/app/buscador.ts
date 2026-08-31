@@ -72,6 +72,8 @@ const FLECHAS: Readonly<Record<Giro, string>> = {
   'ligera-izquierda': '↖',
   coge: '🚲',
   aparca: '🅿',
+  sube: '🚌',
+  baja: '🚏',
   llegada: '⚑',
 };
 

@@ -112,6 +112,10 @@ export type Giro =
   | 'coge'
   /** Se deja: la bici propia en el aparcabicis, la BiZi en su anclaje. */
   | 'aparca'
+  /** Se sube a un vehículo con conductor: el bus o el tranvía, en su poste. */
+  | 'sube'
+  /** Y se baja de él. */
+  | 'baja'
   | 'llegada';
 
 /**
@@ -346,9 +350,48 @@ export interface Trayecto {
  * **no necesita saber que el empuje existe**: pinta lo que va a pie de una
  * manera y lo que va sobre ruedas de otra.
  */
+/**
+ * ⭐ LA LÍNEA de un tramo que se va montado: lo que la pantalla necesita para
+ * decir «el 39» y pintarlo de su color, sin volver a preguntar.
+ *
+ * Los colores vienen **del feed**, no de nosotros: `route_color` y
+ * `route_text_color` los trae el GTFS con dato en las 53 rutas —medido en el
+ * censo—, así que un bus se pinta del color que el operador dice que es.
+ *
+ * ⚠️ Van los dos, el de la línea y el del texto encima, porque un `#FFDD00` con
+ * letras blancas no se lee. El feed ya resuelve esa pareja y sería tonto
+ * volver a decidirla aquí.
+ */
+export interface LineaDelViaje {
+  /** El `route_id` del feed. Identifica, no se enseña. */
+  readonly id: string;
+  /** Lo que la gente llama a la línea: `39`, `Ci1`, `N7`, `TRA`. */
+  readonly corto: string;
+  /** Su nombre entero: «Pinares de Venecia - Vadorrey». */
+  readonly largo: string;
+  /** `RRGGBB` sin almohadilla, tal como el feed lo da. */
+  readonly color: string;
+  readonly colorTexto: string;
+  /** Qué clase de vehículo es. Sale de la tabla de `route_type`. */
+  readonly modo: 'bus' | 'tram';
+}
+
 export interface TramoDelViaje {
-  /** Cómo se recorre este trecho. El empujado es `andando`: se va a pie. */
-  readonly comoSeVa: 'andando' | 'rodando';
+  /**
+   * Cómo se recorre este trecho. El empujado es `andando`: se va a pie.
+   *
+   * ⭐ `montado` es el tercero, y es el que no se pedalea: dentro de un bus o
+   * de un tranvía. Se separa de `rodando` porque **quien va montado no elige el
+   * camino** — lo elige la línea—, y porque se pinta del color de esa línea y
+   * no del de la casa.
+   */
+  readonly comoSeVa: 'andando' | 'rodando' | 'montado';
+  /**
+   * ⭐ La línea, **solo si `comoSeVa` es `montado`**. En los otros dos no hay
+   * línea que valga y va `undefined`: un campo vacío diría «hay línea y no la
+   * sabemos», que es otra cosa.
+   */
+  readonly linea?: LineaDelViaje;
   /**
    * Índice del **primer** vértice de este tramo dentro de `Trayecto.geometria`,
    * y del **último**. Los dos son inclusivos y **el último de un tramo es el
@@ -377,10 +420,12 @@ export interface TramoDelViaje {
    * icono donde esto no es `null`, en `geometria[hasta]`, que es el vértice que
    * cae **a 0,0 m** de la estación o del aparcabicis.
    *
-   * Son los mismos dos valores que `Giro` usa para los pasos del hito, y es a
-   * propósito: el mismo suceso se llama igual en los dos sitios.
+   * Son los mismos valores que `Giro` usa para los pasos del hito, y es a
+   * propósito: el mismo suceso se llama igual en los dos sitios. Desde el
+   * 31/08 son cuatro: `coge`/`aparca` para la bici, y `sube`/`baja` para el
+   * poste del bus o del tranvía.
    */
-  readonly hito: 'coge' | 'aparca' | null;
+  readonly hito: 'coge' | 'aparca' | 'sube' | 'baja' | null;
 }
 
 /**
