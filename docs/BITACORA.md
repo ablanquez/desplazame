@@ -14,6 +14,80 @@
 
 ---
 
+## [2026-08-31] ✅ CERRADA — El cocinado del disco se sirve tal cual aunque la cocina haya cambiado de forma: el motor arrancaría con saltos SIN traza y la suite entera en verde
+
+**Categoría:** caché en disco sin versión de su propio esquema
+
+**Síntoma:** la casilla 4 añade a cada `SaltoBus` su `traza`, sus `metros` de
+asfalto y su `recta`. Cocinando de cero salen. Pero el arranque de verdad no
+cocina: lee `app/data/nap_gtfs-ficha1176.cocinado.json`, y ese fichero es de
+antes del cambio. Ejecutado el camino del arranque, sin tocar nada:
+
+```
+$ node -e "cocinarYServir(feed, '20260623_AUZSA_Y_TRANVIA', null)"
+deDisco: true | salto[0] del patron 1|0|1: {"tipico":128,"maximo":147}
+```
+
+Ni `traza`, ni `metros`, ni `recta`. El motor serviría la geometría vieja —la
+recta de poste a poste— con el código nuevo dentro.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la suite del motor **entera**,
+incluidas las cinco jueces recién escritas de la traza y la 15 del asfalto.
+Ejecutada con el fallo vivo:
+
+```
+$ node --test "src/**/*.spec.ts"
+ℹ tests 421
+ℹ pass 421
+ℹ fail 0
+```
+
+Las jueces de la traza llaman a `cocinar()` directamente y ven las trazas; el
+arranque llama a `cocinarYServir()` y ve el fichero viejo. **Ninguna juez pasa
+por el camino que usa el producto.**
+
+**Cómo se cazó:** ojo humano — al ir a medir el caso del ojo por HTTP me acordé
+de que el cocinado se guarda en disco, y fui a mirar qué se sirve.
+
+**Causa raíz:** el guardián del cocinado comparaba **una sola cosa**: que el
+`feed_version` del fichero fuera el del zip que se sirve. Esa comparación
+responde a «el dato de origen no ha cambiado», que era la única pregunta que
+había que hacerse mientras la forma del cocinado no se moviera — y llevaba sin
+moverse desde que nació, ayer. En cuanto la forma cambió, la pregunta se quedó
+corta y nadie la amplió, porque el fichero **no decía de qué forma era**.
+
+Y la suite no lo vio por una razón aparte, que es la que la hace cómplice:
+**ninguna juez entraba por `cocinarYServir`**. Todas llamaban a `cocinar()`, que
+siempre da la forma de hoy porque la acaba de fabricar. El atajo del disco —que
+es lo que el producto usa **siempre** salvo la primera vez— no tenía juez.
+
+**Arreglo aplicado:** `motor/src/red-bus.ts` — `FORMATO_DEL_COCINADO` (hoy `2`),
+que viaja dentro del propio fichero en `RedDeBus.formato`, y `sirveElGuardado`,
+que junta las tres condiciones en una función a la que se le puede poner una
+juez delante sin arrancar el motor: formato, feed y no vacío. `cocinarYServir`
+la llama en vez de comparar a mano. Y dos jueces en `motor/src/red-bus.spec.ts`:
+la **11** rechaza un cocinado de otro formato —y uno sin el campo, que es como
+estaba el de ayer—, y la **12** entra por el camino del arranque de verdad,
+guardando y leyendo con la ruta de producción [ley nº17], y comprueba que lo
+que vuelve trae sus trazas.
+
+**Commit:** `c8e40c1`
+
+**Ley que sale de aquí:** un fichero derivado que se guarda para no recalcularlo
+necesita **la versión de su propio formato**, no solo la del dato de origen. La
+versión del origen dice «el dato no ha cambiado»; no dice «yo sé escribirlo como
+lo lee el código de hoy».
+
+Y una segunda, que salió al cerrar: **un atajo que el producto usa siempre
+necesita una juez que entre por él**. Aquí había doce jueces sobre la cocina y
+ninguna sobre el camino que de verdad se recorre al arrancar; probar la función
+que fabrica no es probar la que sirve.
+
+**Traza:** `motor/src/red-bus.ts` — `cocinadoGuardado`, `guardarCocinado`,
+`cocinarYServir`; `app/data/nap_gtfs-ficha1176.cocinado.json`.
+
+---
+
 ## [2026-08-31] ✅ CERRADA — `downloadLink` manda `text/plain`, mi código pide `.json()`, y mi juez pasa porque el fixture inventó unas comillas que el NAP no pone
 
 **Categoría:** fixture que copia el esquema y no la respuesta
