@@ -39,6 +39,15 @@ import { delZip } from './feed.ts';
 import type { RedEnMemoria } from './red.ts';
 import { enganchar, type Rejilla } from './proyeccion.ts';
 import { calcularRuta, type Cuaderno } from './ruta.ts';
+import type { Vertice } from '@desplazame/tipos';
+import {
+  cortar,
+  MAXIMO_DESVIO_M,
+  proyectarMonotono,
+  rectaEntre,
+  type Proyeccion,
+  type Traza,
+} from './trazas.ts';
 
 export type ModoDeRed = 'bus' | 'tram';
 
@@ -92,6 +101,19 @@ export interface SaltoBus {
   readonly tipico: number;
   /** Y el MÁXIMO, para no prometer lo que no siempre pasa. */
   readonly maximo: number;
+  /**
+   * ⭐ LA TRAZA DEL ASFALTO entre las dos paradas, `[lat, lon]` (31/08).
+   *
+   * Es el trozo de `shapes.txt` que va de una parada a la siguiente, cortado
+   * entre sus proyecciones. Ver `trazas.ts` para el porqué de la proyección
+   * monótona. El primer punto de un salto es **exactamente** el último del
+   * anterior: la concatenación no deja huecos.
+   */
+  readonly traza: readonly Vertice[];
+  /** Metros **por el asfalto**, no en línea recta entre postes. */
+  readonly metros: number;
+  /** ⚠️ `true` si es la RECTA de reserva porque la parada no cabía en la traza. */
+  readonly recta: boolean;
 }
 
 export interface PatronBus {
@@ -130,6 +152,18 @@ export interface PatronBus {
   readonly saltos: readonly SaltoBus[];
 }
 
+/**
+ * ⭐ Un salto y un patrón **antes de vestirse con su traza**.
+ *
+ * Existen para que el orden no se pueda equivocar: `agruparEnPatrones` no puede
+ * devolver un `PatronBus` porque todavía no ha visto `shapes.txt`, y quien
+ * intente saltarse `vestirConTrazas` no compila.
+ */
+export type SaltoSinTraza = Omit<SaltoBus, 'traza' | 'metros' | 'recta'>;
+export type PatronSinTraza = Omit<PatronBus, 'saltos'> & {
+  readonly saltos: readonly SaltoSinTraza[];
+};
+
 export interface TransbordoBus {
   readonly desde: string;
   readonly hasta: string;
@@ -137,7 +171,26 @@ export interface TransbordoBus {
   readonly metros: number;
 }
 
+/**
+ * ⭐ LA VERSIÓN DEL **FORMATO** del cocinado, y sube cuando cambia su forma.
+ *
+ * ⚠️ **Nace de un fallo real (31/08).** El cocinado en disco se servía con solo
+ * comprobar el `feed_version`, y el día que los saltos ganaron su traza el motor
+ * siguió arrancando con el fichero de ayer —sin trazas— mientras las 421 jueces
+ * daban verde: ellas llaman a `cocinar()` y el producto arranca por
+ * `cocinarYServir()`. Ver la entrada del 31/08 de `docs/BITACORA.md`.
+ *
+ * La versión del ORIGEN dice «el dato no ha cambiado». La del FORMATO dice «yo
+ * sé escribirlo como lo lee el código de hoy». Hacen falta las dos.
+ *
+ *   1 — la cocina de la casilla 3a (paradas, líneas, patrones, saltos, fechas).
+ *   2 — casilla 4: cada salto gana `traza`, `metros` y `recta`.
+ */
+export const FORMATO_DEL_COCINADO = 2;
+
 export interface RedDeBus {
+  /** Ver `FORMATO_DEL_COCINADO`. Un cocinado sin él es de antes de que existiera. */
+  readonly formato: number;
   readonly feedVersion: string;
   readonly paradas: readonly ParadaBus[];
   readonly lineas: readonly LineaBus[];
@@ -555,7 +608,7 @@ export async function leerLosTiempos(ruta: string, zip: Buffer): Promise<Tiempos
  * mediana no se mueve por ellos; se guarda también el **máximo**, para poder
  * decir «suele tardar X, a veces Y» sin prometer.
  */
-export function agruparEnPatrones(crudo: Crudo, tiempos: Tiempos): PatronBus[] {
+export function agruparEnPatrones(crudo: Crudo, tiempos: Tiempos): PatronSinTraza[] {
   const cajas = new Map<
     string,
     { linea: string; direccion: string; paradas: string[]; viajes: string[] }
@@ -588,7 +641,7 @@ export function agruparEnPatrones(crudo: Crudo, tiempos: Tiempos): PatronBus[] {
 
   // El ordinal por (línea, dirección), como OTP: ruta + dirección + n.
   const cuenta = new Map<string, number>();
-  const patrones: PatronBus[] = [];
+  const patrones: PatronSinTraza[] = [];
   // Orden estable: por línea, dirección y luego por secuencia. Es lo que hace
   // que dos cocinas del mismo zip den el MISMO fichero (ver la juez del sha).
   const ordenadas = [...cajas.entries()].sort((x, y) => x[0].localeCompare(y[0]));
@@ -652,12 +705,12 @@ export function agruparEnPatrones(crudo: Crudo, tiempos: Tiempos): PatronBus[] {
   // la casilla 4 dibujará. Un refuerzo pintado sería un recorrido truncado
   // [ZetaBus]. A igualdad de paradas gana el de más viajes, y luego el de id
   // menor: sin desempate, la cocina dejaría de ser determinista.
-  const porLineaDireccion = new Map<string, PatronBus[]>();
+  const porLineaDireccion = new Map<string, PatronSinTraza[]>();
   for (const p of patrones) {
     const llave = `${p.linea}|${p.direccion}`;
     (porLineaDireccion.get(llave) ?? porLineaDireccion.set(llave, []).get(llave)!).push(p);
   }
-  const conPrincipal: PatronBus[] = [];
+  const conPrincipal: PatronSinTraza[] = [];
   for (const p of patrones) {
     const suyos = porLineaDireccion.get(`${p.linea}|${p.direccion}`)!;
     const mejor = [...suyos].sort(
@@ -755,6 +808,160 @@ export function calcularTransbordos(
   return salida;
 }
 
+// ── LAS TRAZAS DEL ASFALTO ───────────────────────────────────────────────────
+
+/**
+ * ⭐ `shapes.txt` en flujo: 27.603 filas, 89 trazas, 1,4 MB descomprimidos.
+ *
+ * Se lee con el mismo lector de líneas que el resto —nada de materializar el
+ * fichero— y se ordena cada traza por `shape_pt_sequence`, que es lo único que
+ * garantiza el orden: [referencia GTFS] la secuencia manda, no el orden de las
+ * filas.
+ */
+export async function leerLasTrazas(ruta: string, zip: Buffer): Promise<Map<string, Traza>> {
+  const bruto = new Map<string, { seq: number; punto: Vertice }[]>();
+  await porLineas(ruta, zip, 'shapes.txt', (c, cab) => {
+    const [id, lat, lon, seq] = indices(cab, [
+      'shape_id',
+      'shape_pt_lat',
+      'shape_pt_lon',
+      'shape_pt_sequence',
+    ]);
+    const clave = c[id!]!;
+    const lista = bruto.get(clave) ?? bruto.set(clave, []).get(clave)!;
+    lista.push({ seq: Number(c[seq!]), punto: [Number(c[lat!]), Number(c[lon!])] });
+  });
+  const trazas = new Map<string, Traza>();
+  for (const [id, puntos] of bruto) {
+    puntos.sort((a, b) => a.seq - b.seq);
+    trazas.set(
+      id,
+      puntos.map((x) => x.punto),
+    );
+  }
+  return trazas;
+}
+
+/** Lo que se sabe de un patrón después de casarlo con su traza. */
+export interface Casada {
+  readonly forma: string;
+  readonly traza: Traza;
+  readonly proyecciones: readonly Proyeccion[];
+  /** El desvío de la parada que peor cae. Es lo que se compara con los 100 m. */
+  readonly peor: number;
+}
+
+/**
+ * ⭐ QUÉ TRAZA LE TOCA A UN PATRÓN, y **por qué no vale la primera**.
+ *
+ * 168 de los 170 patrones citan una sola forma y no hay nada que elegir. Los
+ * otros dos —`210|0|10` y `210|0|11`, que citan `210_I` y `210_V`— sí, y ahí la
+ * elección **no es cosmética**: con `210_I` la peor parada cae a **4.222 m** de
+ * la traza y con `210_V` a **14 m**. Coger la primera por orden alfabético
+ * habría metido 42 paradas por encima del límite de los 100 m.
+ *
+ * Así que se elige **la que mejor le queda**: la de menor desvío máximo, y al
+ * empate la de identificador menor para que la cocina siga siendo determinista.
+ * Si el patrón no cita ninguna forma que exista, se cae a la del **principal**
+ * de su (línea, dirección) — hoy no hace falta con ningún patrón, y el camino
+ * se deja porque el feed se renueva solo.
+ */
+export function casarConSuTraza(
+  patron: PatronSinTraza,
+  trazas: Map<string, Traza>,
+  donde: Map<string, Vertice>,
+  deReserva: readonly string[] = [],
+): Casada | null {
+  const paradas = patron.paradas.map((id) => donde.get(id)).filter((x): x is Vertice => !!x);
+  if (paradas.length !== patron.paradas.length) {
+    return null;
+  }
+  const candidatas = [...patron.formas, ...deReserva].filter((f) => trazas.has(f));
+  const casadas = candidatas
+    .map((forma) => {
+      const traza = trazas.get(forma)!;
+      const proyecciones = proyectarMonotono(traza, paradas);
+      const peor = proyecciones.reduce((m, q) => Math.max(m, q.desvio), 0);
+      return { forma, traza, proyecciones, peor };
+    })
+    .filter((x) => x.proyecciones.length === paradas.length)
+    .sort((a, b) => a.peor - b.peor || a.forma.localeCompare(b.forma));
+  return casadas[0] ?? null;
+}
+
+/** Lo que la cocina cuenta al vestir los saltos con su traza. */
+export interface CuentasDeTraza {
+  readonly puntos: number;
+  readonly enRecta: number;
+  readonly sinTraza: number;
+  readonly peorDesvio: number;
+  readonly kmDeAsfalto: number;
+}
+
+/**
+ * ⭐ VISTE CADA SALTO CON SU TROZO DE ASFALTO.
+ *
+ * Un salto cae a **recta declarada** cuando cualquiera de sus dos paradas se
+ * desvía más de `MAXIMO_DESVIO_M` de la traza: si la parada no está donde la
+ * traza pasa, el trozo entre ellas no es el camino de ese autobús.
+ */
+export function vestirConTrazas(
+  patrones: readonly PatronSinTraza[],
+  trazas: Map<string, Traza>,
+  donde: Map<string, Vertice>,
+): { readonly patrones: PatronBus[]; readonly cuentas: CuentasDeTraza } {
+  const principalDe = new Map<string, string[]>();
+  for (const p of patrones) {
+    if (p.principal) {
+      principalDe.set(`${p.linea}|${p.direccion}`, [...p.formas]);
+    }
+  }
+  let puntos = 0;
+  let enRecta = 0;
+  let sinTraza = 0;
+  let peorDesvio = 0;
+  let metrosDeAsfalto = 0;
+  const vestidos = patrones.map((p) => {
+    const casada = casarConSuTraza(p, trazas, donde, principalDe.get(`${p.linea}|${p.direccion}`) ?? []);
+    const saltos = p.saltos.map((salto, k) => {
+      const a = donde.get(p.paradas[k]!);
+      const b = donde.get(p.paradas[k + 1]!);
+      const cabe =
+        casada !== null &&
+        casada.proyecciones[k]!.desvio <= MAXIMO_DESVIO_M &&
+        casada.proyecciones[k + 1]!.desvio <= MAXIMO_DESVIO_M;
+      const trozo =
+        cabe && casada
+          ? cortar(casada.traza, casada.proyecciones[k]!, casada.proyecciones[k + 1]!)
+          : a && b
+            ? rectaEntre(a, b)
+            : { geometria: [], metros: 0 };
+      if (!cabe) {
+        enRecta++;
+      }
+      puntos += trozo.geometria.length;
+      metrosDeAsfalto += trozo.metros;
+      return { ...salto, traza: trozo.geometria, metros: trozo.metros, recta: !cabe };
+    });
+    if (!casada) {
+      sinTraza++;
+    } else {
+      peorDesvio = Math.max(peorDesvio, casada.peor);
+    }
+    return { ...p, saltos };
+  });
+  return {
+    patrones: vestidos,
+    cuentas: {
+      puntos,
+      enRecta,
+      sinTraza,
+      peorDesvio,
+      kmDeAsfalto: metrosDeAsfalto / 1000,
+    },
+  };
+}
+
 // ── EL ORQUESTADOR ───────────────────────────────────────────────────────────
 
 export interface Cuentas {
@@ -765,6 +972,15 @@ export interface Cuentas {
   readonly saltos: number;
   readonly transbordos: number;
   readonly fechas: number;
+  /** ⭐ Los puntos de traza guardados, sumando todos los saltos. */
+  readonly puntosDeTraza: number;
+  /** Saltos que van en RECTA porque su parada no cabía en la traza. */
+  readonly saltosEnRecta: number;
+  /** Patrones sin ninguna traza que casar. */
+  readonly patronesSinTraza: number;
+  /** El desvío de la parada que peor cae, en metros. El tope es 100. */
+  readonly peorDesvio: number;
+  readonly kmDeAsfalto: number;
   readonly ms: number;
   readonly kb: number;
   readonly heapMb: number;
@@ -788,7 +1004,13 @@ export async function cocinar(ruta: string, andar: AndarEntre | null): Promise<C
 
   const crudo = await leerLoPequeno(ruta, zip);
   const tiempos = await leerLosTiempos(ruta, zip);
-  const patrones = agruparEnPatrones(crudo, tiempos);
+  const enBruto = agruparEnPatrones(crudo, tiempos);
+  // ⭐ Y aquí el asfalto (31/08, casilla 4): cada salto con su trozo de traza.
+  const donde = new Map<string, Vertice>(
+    [...crudo.paradas.entries()].map(([id, p]) => [id, [p.lat, p.lon] as Vertice]),
+  );
+  const vestidos = vestirConTrazas(enBruto, await leerLasTrazas(ruta, zip), donde);
+  const patrones = vestidos.patrones;
 
   // Qué modos pasan por cada parada, de los patrones que la tocan.
   const modosDe = new Map<string, Set<ModoDeRed>>();
@@ -841,6 +1063,7 @@ export async function cocinar(ruta: string, andar: AndarEntre | null): Promise<C
   }
 
   const red: RedDeBus = {
+    formato: FORMATO_DEL_COCINADO,
     feedVersion: version,
     paradas,
     lineas,
@@ -860,6 +1083,11 @@ export async function cocinar(ruta: string, andar: AndarEntre | null): Promise<C
       saltos: patrones.reduce((n, p) => n + p.saltos.length, 0),
       transbordos: transbordos.length,
       fechas: Object.keys(porFecha).length,
+      puntosDeTraza: vestidos.cuentas.puntos,
+      saltosEnRecta: vestidos.cuentas.enRecta,
+      patronesSinTraza: vestidos.cuentas.sinTraza,
+      peorDesvio: vestidos.cuentas.peorDesvio,
+      kmDeAsfalto: vestidos.cuentas.kmDeAsfalto,
       ms,
       kb,
       heapMb: (process.memoryUsage().heapUsed - heapAntes) / 1024 / 1024,
@@ -929,6 +1157,22 @@ export function cocinadoGuardado(): RedDeBus | null {
   }
 }
 
+/**
+ * ¿Sirve el cocinado que hay en disco para el feed que se está sirviendo?
+ *
+ * Tres condiciones y las tres hacen falta: **el formato** que este código sabe
+ * leer, **el feed** que se está sirviendo, y que no esté vacío. Va en su propia
+ * función para que se pueda poner delante de una juez sin arrancar el motor.
+ */
+export function sirveElGuardado(guardado: RedDeBus | null, feedVersion: string): boolean {
+  return (
+    guardado !== null &&
+    guardado.formato === FORMATO_DEL_COCINADO &&
+    guardado.feedVersion === feedVersion &&
+    guardado.patrones.length > 0
+  );
+}
+
 export function guardarCocinado(red: RedDeBus): void {
   writeFileSync(COCINADO, JSON.stringify(red), 'utf8');
 }
@@ -936,10 +1180,10 @@ export function guardarCocinado(red: RedDeBus): void {
 /**
  * ⭐ COCINA Y SIRVE, con el cocinado del disco como atajo.
  *
- * Al arrancar se usa el fichero cocinado si existe **y es del mismo
- * `feed_version`** que el zip que se está sirviendo; si no, se cocina y se
- * guarda. Comparar la versión y no solo la existencia es lo que impide servir
- * una red cocinada de un feed que ya no está.
+ * Al arrancar se usa el fichero cocinado si **`sirveElGuardado`** lo admite:
+ * mismo feed, mismo FORMATO y no vacío. Comparar solo el feed dejó servir una
+ * red de la forma de ayer con el código de hoy — ver la entrada del 31/08 de
+ * `docs/BITACORA.md`.
  *
  * `recocinar()` (casilla 2) llama aquí después de traer un zip nuevo: cocina y
  * **sustituye la referencia**. Ver `servirEstaRed`.
@@ -950,8 +1194,8 @@ export async function cocinarYServir(
   andar: AndarEntre | null,
 ): Promise<{ readonly cuentas: Cuentas | null; readonly deDisco: boolean }> {
   const guardado = cocinadoGuardado();
-  if (guardado && guardado.feedVersion === feedVersion && guardado.patrones.length > 0) {
-    servirEstaRed(guardado);
+  if (sirveElGuardado(guardado, feedVersion)) {
+    servirEstaRed(guardado!);
     return { cuentas: null, deDisco: true };
   }
   const { red, cuentas } = await cocinar(ruta, andar);

@@ -21,6 +21,10 @@ import {
   operaEl,
   partirCsv,
   servirEstaRed,
+  sirveElGuardado,
+  cocinadoGuardado,
+  guardarCocinado,
+  FORMATO_DEL_COCINADO,
   laRedDeBus,
   type Cocinado,
   type ParadaBus,
@@ -323,6 +327,60 @@ describe('⭐ LA COCINA DE LA RED DE BUS Y TRANVÍA', () => {
    * del dato. [RFC 4180] un campo puede ir entrecomillado y una comilla dentro
    * se escribe doblada.
    */
+  /**
+   * ⭐ JUEZ 11 — EL COCINADO DEL DISCO SE RECHAZA SI ES DE OTRO FORMATO.
+   *
+   * ⚠️ **Nace de un fallo real, del mismo día.** Al añadir la traza a cada salto,
+   * el arranque siguió sirviendo el fichero viejo —`{"tipico":128,"maximo":147}`,
+   * sin traza— porque el único requisito era que el `feed_version` cuadrara. Y la
+   * suite entera daba verde: **las jueces llamaban a `cocinar()`, y el producto
+   * arranca por `cocinarYServir()`**. Ver la entrada del 31/08 de la bitácora.
+   *
+   * La lección va en el guardián: la versión del ORIGEN dice «el dato no ha
+   * cambiado»; la del FORMATO dice «yo sé escribirlo como lo lee el código de
+   * hoy». Hacen falta las dos.
+   */
+  test('⭐ 11 · un cocinado de otro formato NO se sirve, aunque el feed sea el mismo', () => {
+    // El de verdad, recién cocinado, sí sirve.
+    assert.equal(sirveElGuardado(red, red.feedVersion), true);
+
+    // El mismo feed, formato viejo: NO.
+    assert.equal(sirveElGuardado({ ...red, formato: FORMATO_DEL_COCINADO - 1 }, red.feedVersion), false);
+    // Y sin el campo siquiera, que es como está el fichero de antes de hoy.
+    const sinCampo: Record<string, unknown> = { ...red };
+    delete sinCampo['formato'];
+    assert.equal(sirveElGuardado(sinCampo as unknown as RedDeBus, red.feedVersion), false);
+
+    // Los guardianes de antes siguen: otro feed no sirve, y una red vacía tampoco.
+    assert.equal(sirveElGuardado(red, 'otro_feed'), false);
+    assert.equal(sirveElGuardado({ ...red, patrones: [] }, red.feedVersion), false);
+    assert.equal(sirveElGuardado(null, red.feedVersion), false);
+  });
+
+  /**
+   * ⭐ JUEZ 12 — EL CAMINO DEL ARRANQUE, de punta a punta y **por defecto**.
+   *
+   * [Ley nº17] un valor por defecto que producción usa necesita una juez que lo
+   * llame **sin argumento**. `guardarCocinado` y `cocinadoGuardado` escriben y
+   * leen la ruta de producción, y es la que hay que probar: probar otra sería
+   * probar otra cosa.
+   *
+   * ⚠️ Sí, deja el fichero escrito. Escribe **exactamente lo que el arranque
+   * escribiría** —la red recién cocinada—, que es el fichero que debe haber.
+   */
+  test('⭐ 12 · lo que se guarda se vuelve a leer con sus trazas', () => {
+    guardarCocinado(red);
+    const leido = cocinadoGuardado();
+    assert.ok(leido, 'el cocinado que se acaba de guardar tiene que leerse');
+    assert.equal(sirveElGuardado(leido, red.feedVersion), true);
+    assert.equal(leido!.formato, FORMATO_DEL_COCINADO);
+
+    const salto = leido!.patrones[0]!.saltos[0]!;
+    assert.ok(salto.traza.length >= 2, 'el salto leído del disco viene sin traza');
+    assert.ok(salto.metros > 0, 'y sin metros de asfalto');
+    assert.equal(salto.recta, false);
+  });
+
   test('⭐ 10 · el CSV se parte respetando comillas, y ningún nombre las arrastra', () => {
     assert.deepEqual(partirCsv('a,b,c'), ['a', 'b', 'c']);
     assert.deepEqual(partirCsv('"a","b"'), ['a', 'b']);
