@@ -535,13 +535,20 @@ export function pasoDeBajar(poste: string): Paso {
 /**
  * ⭐ LA ETAPA MONTADA: el trecho que se va dentro del vehículo.
  *
- * ⚠️ **Su geometría son los POSTES, no la traza del vehículo.** El feed trae la
- * traza (`shape_id` por patrón, y la cocina los guarda), pero los puntos de esa
- * traza no están cocinados todavía: eso es dato del pintado y lo pide la casilla
- * 4. Mientras tanto, la línea se dibuja poste a poste — que es una recta entre
- * paradas consecutivas y **no el recorrido real**. Los metros que se dicen salen
- * de esa misma poligonal, así que son coherentes con lo que se pinta; lo que no
- * son es los metros exactos del asfalto. Queda dicho y no maquillado.
+ * ⭐ **Su geometría es la del ASFALTO** desde la casilla 4 (31/08): la
+ * concatenación de las trazas de sus saltos, que la cocina corta de `shapes.txt`
+ * proyectando cada parada sobre la traza [DOC OTP, `TripPattern`: la geometría
+ * de un patrón es la concatenación de las de sus saltos]. Hasta ayer era una
+ * recta de poste a poste, que se pintaba cortando esquinas por encima de las
+ * manzanas. Y los metros son los de esa traza, no los de la cuerda.
+ *
+ * ⚠️ **Y la geometría empieza y acaba en el POSTE, no en la traza.** Una parada
+ * está hasta 40 m fuera del asfalto por el que pasa su autobús —medido: mediana
+ * 5,4 m, la peor 40,9—, así que si el tramo montado empezara en el pie de la
+ * proyección, la línea a pie acabaría en el poste y la del bus arrancaría unos
+ * metros más allá: un hueco a la vista. Se cosen con ese trocito, que es lo que
+ * de verdad hay entre el poste y la calzada. **No suma metros**: los que se
+ * dicen son los del asfalto, y lo andado hasta el poste ya lo contó su etapa.
  */
 export function etapaMontada(
   red: RedDeBus,
@@ -551,18 +558,30 @@ export function etapaMontada(
 ): Etapa {
   const porId = new Map(red.paradas.map((p) => [p.id, p]));
   const linea = lineaDelViaje(red, montado.patron);
-  const geometria: Vertice[] = [];
+  const primera = porId.get(montado.patron.paradas[montado.iDesde]!);
+  const ultima = porId.get(montado.patron.paradas[montado.iHasta]!);
+  const geometria: Vertice[] = primera ? [[primera.lat, primera.lon]] : [];
   let metros = 0;
-  for (let k = montado.iDesde; k <= montado.iHasta; k++) {
-    const parada = porId.get(montado.patron.paradas[k]!);
-    if (!parada) {
+  for (let k = montado.iDesde; k < montado.iHasta; k++) {
+    const salto = montado.patron.saltos[k];
+    if (!salto) {
       continue;
     }
-    if (geometria.length > 0) {
-      const antes = geometria[geometria.length - 1]!;
-      metros += metrosEntre(antes[1], antes[0], parada.lon, parada.lat);
+    // La costura entre saltos es el MISMO punto en los dos, así que el primero
+    // de cada uno se descarta —salvo que el anterior no dejara nada—.
+    for (const punto of salto.traza) {
+      const antes = geometria[geometria.length - 1];
+      if (!antes || antes[0] !== punto[0] || antes[1] !== punto[1]) {
+        geometria.push(punto);
+      }
     }
-    geometria.push([parada.lat, parada.lon]);
+    metros += salto.metros;
+  }
+  if (ultima) {
+    const antes = geometria[geometria.length - 1];
+    if (!antes || antes[0] !== ultima.lat || antes[1] !== ultima.lon) {
+      geometria.push([ultima.lat, ultima.lon]);
+    }
   }
   // ⭐ Y EL TOTAL TAMBIÉN CAMBIA, no solo el texto. Enseñar «próximo en 5 min»
   // y seguir sumando los 4,5 de la estimación dejaría el paso diciendo una cosa
@@ -742,10 +761,18 @@ export function prepararViajeEnBus(
       const corto = lineaDelViaje(red, m.patron).corto;
       const poste = nombreDelPoste(m.desde);
       if (estado?.clase === 'ausente') {
+        // ⚠️ **Lo que la fuente dice, no lo que parece.** [GTFS-Realtime] una
+        // entidad AUSENTE del feed en vivo significa **sin información en tiempo
+        // real**, no «sin servicio». Hasta el 31/08 esto decía «no está prestando
+        // servicio ahora», que es una conclusión —y puede ser falsa: el bus
+        // puede venir con el GPS mudo—. Ahora dice quién calla y qué calla.
+        //
+        // El poste va NOMBRADO donde el texto diría «este poste»: es lo que
+        // permite poner el aviso al lado de SU hito [GOV.UK, doble sitio].
         avisos.push({
           texto:
-            `La línea ${corto} no está prestando servicio ahora en el poste ${poste}: ` +
-            'la espera que se dice sale del horario publicado.',
+            `Avanza no anuncia ningún próximo de la línea ${corto} en el poste ${poste} ` +
+            'ahora mismo — la espera sale del horario publicado.',
         });
       } else if (estado?.clase === 'mudo') {
         // ⚠️ Las mismas palabras que el BiZi —«disponibilidad no verificada»—

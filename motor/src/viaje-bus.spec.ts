@@ -15,6 +15,7 @@ import { cuadernoPara } from './ruta.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { andarConElPeaton, cocinar, type AndarEntre, type RedDeBus } from './red-bus.ts';
 import { elFeedQueSeSirve } from './feed.ts';
+import { metrosEntre } from './cercano.ts';
 import {
   buscarViaje,
   esperaEstimada,
@@ -22,6 +23,7 @@ import {
   intervaloDeHoy,
   lineaDelViaje,
   PENALIZACION_TRANSBORDO_S,
+  postesCerca,
   preguntarPorLasSubidas,
   prepararViajeEnBus,
   RADIO_M,
@@ -458,9 +460,12 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     const conVivo = await preparado.conElVivo!(respondiendo(MEDIDO_POSTE_1203));
     const sinPreguntar = preparado.trayecto();
 
-    const aviso = conVivo.avisos.find((a) => a.texto.includes('no está prestando servicio ahora'));
-    assert.ok(aviso, `no se dijo que la línea no venía. Avisos: ${JSON.stringify(conVivo.avisos)}`);
-    assert.match(aviso!.texto, /La línea 29 /);
+    const aviso = conVivo.avisos.find((a) => a.texto.includes('no anuncia ningún próximo'));
+    assert.ok(aviso, `no se dijo que Avanza callaba. Avisos: ${JSON.stringify(conVivo.avisos)}`);
+    // ⚠️ [GTFS-Realtime] AUSENTE es «sin información en tiempo real», no «sin
+    // servicio». La juez compra el texto medido y NO la conclusión que tenía antes.
+    assert.match(aviso!.texto, /^Avanza no anuncia ningún próximo de la línea 29 /);
+    assert.ok(!aviso!.texto.includes('prestando servicio'), 'eso era una conclusión, no el dato');
     assert.ok(
       aviso!.texto.includes('Bernardo Ramazzini / Maz'),
       'el aviso tiene que nombrar SU poste para poder ir al lado de su hito',
@@ -522,6 +527,64 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    * La frescura por petición es la conducta firmada, la misma que el BiZi: un
    * minuto guardado es un minuto que ya no es cierto.
    */
+  /**
+   * ⭐ JUEZ 15 — EL MONTADO VA POR EL ASFALTO, y las sumas siguen cerrando.
+   *
+   * Desde la casilla 4 la geometría del tramo montado es la traza de verdad, no
+   * la recta de poste a poste. Dos cosas que tienen que ser ciertas a la vez:
+   *
+   * · **Más metros que la poligonal de postes.** El asfalto rodea manzanas que
+   *   la cuerda se saltaba. Si saliera menos, la traza no sería la de esa línea.
+   * · **Las sumas del contrato siguen exactas**: los tramos suman el total, y
+   *   los índices de cada tramo caen dentro de la geometría y se tocan en las
+   *   costuras. Es lo que `redondearTramos` promete, y ahora hay 470 vértices
+   *   donde había 47.
+   */
+  test('⭐ 15 · el montado va por el asfalto y las sumas del contrato cierran', () => {
+    const { origen, destino } = elOjo();
+    const t = prepararViajeEnBus(motor, red, origen, destino, UN_MARTES).trayecto();
+    const montado = t.tramos.find((x) => x.comoSeVa === 'montado')!;
+    assert.ok(montado, 'el caso del ojo tiene tramo montado');
+
+    // La poligonal de postes: lo que se dibujaba hasta ayer.
+    const viaje = buscarViaje({
+      red,
+      fecha: UN_MARTES,
+      acceso: postesCerca(red, andar, origen.lon, origen.lat),
+      salida: postesCerca(red, andar, destino.lon, destino.lat),
+    })!;
+    const m = viaje.montados[0]!;
+    const porId = new Map(red.paradas.map((p) => [p.id, p]));
+    let porLosPostes = 0;
+    for (let k = m.iDesde; k < m.iHasta; k++) {
+      const a = porId.get(m.patron.paradas[k]!)!;
+      const b = porId.get(m.patron.paradas[k + 1]!)!;
+      porLosPostes += metrosEntre(a.lat, a.lon, b.lat, b.lon);
+    }
+    assert.ok(
+      montado.metros > porLosPostes,
+      `el asfalto (${montado.metros} m) tendría que dar más que la cuerda (${Math.round(porLosPostes)} m)`,
+    );
+
+    // Las sumas y las costuras.
+    assert.equal(
+      t.tramos.reduce((n, x) => n + x.metros, 0),
+      t.metros,
+      'los tramos no suman los metros del viaje',
+    );
+    assert.equal(
+      t.tramos.reduce((n, x) => n + x.segundos, 0),
+      t.segundos,
+      'los tramos no suman los segundos del viaje',
+    );
+    t.tramos.forEach((x, i) => {
+      assert.ok(x.desde >= 0 && x.hasta < t.geometria.length, `el tramo ${i} se sale de la geometría`);
+      if (i > 0) {
+        assert.equal(x.desde, t.tramos[i - 1]!.hasta, `el tramo ${i} no cose con el anterior`);
+      }
+    });
+  });
+
   test('⭐ 14 · dos «Generar» son dos consultas, no una guardada', async () => {
     reiniciarVisitas();
     const { origen, destino } = elOjo();
