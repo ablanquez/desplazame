@@ -463,6 +463,14 @@ const LINEA_29_APP = {
   colorTexto: '000000',
   modo: 'bus' as const,
 };
+const LINEA_35_APP = {
+  id: '35',
+  corto: '35',
+  largo: 'Actur - Parque Venecia',
+  color: '445C9F',
+  colorTexto: 'FFFFFF',
+  modo: 'bus' as const,
+};
 const LINEA_22_APP = {
   id: '22',
   corto: '22',
@@ -587,6 +595,58 @@ const VIAJE_EN_BUS_DOS_DESVIADAS: Trayecto = {
     { comoSeVa: 'andando', desde: 2, hasta: 2, metros: 0, segundos: 120, hito: 'sube' },
     { comoSeVa: 'montado', desde: 2, hasta: 3, metros: 931, segundos: 500, hito: 'baja', linea: LINEA_22_APP },
     { comoSeVa: 'andando', desde: 3, hasta: 4, metros: 288, segundos: 69, hito: null },
+  ],
+};
+
+/**
+ * ⭐ EL CASO DE LA CAPTURA: transbordo en el mismo poste y una línea NO desviada
+ * subiendo en un poste que otra desviada nombra (31/08).
+ *
+ * `COLOSO 2 → OVIEDO 5` sale en **35 + 31**. La **35 va desviada** y la **31
+ * no**; y el aviso de la 35 nombra `Av. Francisco De Goya N.º 83` entre sus
+ * paradas provisionales — que es **justo donde se sube a la 31**.
+ *
+ * ⚠️ Es la trampa que reabrió la entrada del 31/08: con la regla del sitio
+ * abierta a los desvíos, la subida a la 31 se quedaba con el aviso de la 35.
+ */
+const LINEA_31_APP = {
+  id: '31',
+  corto: '31',
+  largo: 'Parque Goya - Rosales del Canal',
+  color: '95C11F',
+  colorTexto: '000000',
+  modo: 'bus' as const,
+};
+
+const VIAJE_CON_TRANSBORDO_Y_DESVIO: Trayecto = {
+  modo: 'bus',
+  pasos: [
+    paso('salida', 30, accion('Sal de'), llano(' '), via('Calle El Coloso 2')),
+    paso('sube', 0, accion('Sube'), llano(' a la línea '), via('35'), llano(' en el poste '), via('Av. Academia General Militar N.º 37'), llano(' — frecuencia teórica: cada 10 min')),
+    paso('transborda', 0, llano('En el poste '), via('Av. Francisco De Goya N.º 83'), accion(', transborda'), llano(' de la línea '), via('35'), llano(' a la línea '), via('31'), llano(' — frecuencia teórica de la 31: cada 14 min')),
+    paso('baja', 0, accion('Baja'), llano(' en el poste '), via('Villa De Ansó / Avenida De América')),
+    paso('llegada', 0, via('Calle Oviedo 5'), llano(' está a la izquierda')),
+  ],
+  geometria: [
+    [41.6817, -0.8715],
+    [41.6553, -0.8862],
+    [41.6357, -0.8878],
+    [41.6266, -0.8863],
+  ],
+  avisos: [
+    {
+      texto:
+        'La línea 35 va hoy desviada: no para en Av. De Valencia N.º 8, Av. De Valencia N.º 38: ' +
+        'para provisionalmente en Av. Francisco De Goya N.º 83, Av. Francisco De Goya N.º 59.',
+    },
+  ],
+  metros: 8267,
+  segundos: 3613,
+  tramos: [
+    { comoSeVa: 'andando', desde: 0, hasta: 1, metros: 60, segundos: 43, hito: 'sube' },
+    { comoSeVa: 'montado', desde: 1, hasta: 2, metros: 5320, segundos: 2400, hito: 'sube', linea: LINEA_35_APP },
+    { comoSeVa: 'montado', desde: 2, hasta: 3, metros: 2680, segundos: 1021, hito: 'baja', linea: LINEA_31_APP },
+    { comoSeVa: 'andando', desde: 3, hasta: 3, metros: 207, segundos: 149, hito: null },
   ],
 };
 
@@ -2345,6 +2405,47 @@ describe('Buscador', () => {
     expect(notas[1]!.nota).toMatch(/^La línea 22 va hoy desviada/);
     // Y no son la misma: es justo lo que fallaba.
     expect(notas[0]!.nota).not.toBe(notas[1]!.nota);
+  });
+
+  /**
+   * ⭐ 13 · EL TRANSBORDO EN EL MISMO POSTE: un paso y **dos chips**.
+   *
+   * [Referencia GTFS, `transfers.txt`] el transbordo es un elemento de primera
+   * clase entre dos rutas en una parada. En pantalla eso es **una línea de
+   * indicaciones**, no tres — y los dos chips dicen con el color lo que el texto
+   * dice con palabras: de la 35 a la 31.
+   */
+  it('⭐ 13 · el transbordo sale en un paso, con los dos chips', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
+    await fixture.whenStable();
+
+    const pasos = Array.from(raiz.querySelectorAll('.paso'));
+    expect(pasos.length).toBe(5);
+
+    const elTransbordo = pasos.find((li) => /transborda/.test(li.textContent ?? ''))!;
+    expect(elTransbordo).toBeTruthy();
+    expect((elTransbordo.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim()).toBe(
+      'En el poste Av. Francisco De Goya N.º 83, transborda de la línea 35 a la línea 31 ' +
+        '— frecuencia teórica de la 31: cada 14 min',
+    );
+
+    // ⭐ LOS DOS CHIPS, en orden: de la que se deja a la que se coge.
+    const chips = Array.from(elTransbordo.querySelectorAll<HTMLElement>('.chip-linea'));
+    expect(chips.map((c) => c.textContent?.trim())).toEqual(['35', '31']);
+    expect(chips[0]!.style.backgroundColor).toBe('rgb(68, 92, 159)');
+    expect(chips[1]!.style.backgroundColor).toBe('rgb(149, 193, 31)');
+
+    // Y no hay ni «Baja» de por medio ni el paso del portal repetido.
+    expect(raiz.textContent).not.toContain('es el mismo portal del que sales');
+    expect(pasos.filter((li) => /^Baja/.test((li.querySelector('.paso__texto')?.textContent ?? '').trim())).length).toBe(1);
   });
 
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {

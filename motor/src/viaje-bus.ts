@@ -662,38 +662,96 @@ function metrosEntre(aLon: number, aLat: number, bLon: number, bLat: number): nu
 }
 
 /**
- * ⭐ EL PASO DE SUBIR y el de BAJAR.
+ * ⭐ CÓMO SE DICE LO QUE SE VA A ESPERAR, y son dos cosas distintas.
  *
- * La espera va con su `~` porque **es una estimación** —`H/2`, y la suposición
- * se degrada con intervalos largos—, y el número que se dice es el de hoy. Sin
- * intervalo que calcular no se escribe espera ninguna: mejor callar que
- * inventar un «~10 min» que no sale de ningún sitio.
+ * · Con **dato vivo**: `próximo en 5 min (dato de las 18:32)`. Lo real desplaza
+ *   a lo programado [GTFS-Realtime], y va con su hora porque un «en 5 min» sin
+ *   fecha envejece sin que se note.
+ * · Sin él: **la frecuencia teórica**, `cada 8 min`. Es la cabecera `H` del
+ *   patrón HOY —lo que la cocina ya calcula— y es **el lenguaje del servicio**:
+ *   [Google Transit Partners] los servicios de frecuencia se describen por su
+ *   *headway*, «pasan cada 5-15 minutos», no por una espera concreta.
+ *
+ * ⚠️ **Y esto es solo el TEXTO.** El reloj del viaje sigue sumando `E[W] = H/2`
+ * [Dial 1967 · Clerq 1972 · Wirasinghe 1980], que es la espera media de quien
+ * llega al azar. Decir «cada 8 min» y sumar 4 no es una contradicción: son dos
+ * preguntas distintas —cada cuánto pasa, y cuánto se espera de media—.
+ *
+ * ⚠️ Y la convención alternativa queda citada y **no aplicada**: [Google
+ * Transit] para un servicio de frecuencia, tomar la cabecera **entera** como
+ * espera de peor caso. Duplicaría los tiempos de todos los viajes; si algún día
+ * se quiere el peor caso en vez de la media, el sitio es `esperaEstimada`.
+ *
+ * `null` cuando no hay ni una cosa ni la otra: mejor callar que inventar.
  */
+function comoSeEspera(intervalo: number | null, vivo?: EstadoVivo | null): string | null {
+  if (vivo?.clase === 'llega') {
+    return `próximo en ${vivo.minutos} min (dato de las ${alMinuto(vivo.cuando)})`;
+  }
+  return intervalo === null ? null : `frecuencia teórica: cada ${Math.round(intervalo / 60)} min`;
+}
+
+/** ⭐ EL PASO DE SUBIR. */
 export function pasoDeSubir(
   linea: LineaDelViaje,
   poste: string,
-  espera: number | null,
+  intervalo: number | null,
   vivo?: EstadoVivo | null,
 ): Paso {
   const partes = [
     { papel: 'accion' as const, texto: 'Sube' },
-    { papel: 'texto' as const, texto: ` a la ${linea.modo === 'tram' ? 'línea' : 'línea'} ` },
+    { papel: 'texto' as const, texto: ' a la línea ' },
     { papel: 'via' as const, texto: linea.corto },
     { papel: 'texto' as const, texto: ' en el poste ' },
     { papel: 'via' as const, texto: poste },
   ];
-  if (vivo?.clase === 'llega') {
-    // ⭐ El dato vivo **sustituye** a la estimación, no se suma a ella: son dos
-    // respuestas a la misma pregunta y la de la calle gana. Y va con su hora
-    // porque un «en 5 min» sin fecha envejece sin que se note.
-    partes.push({
-      papel: 'texto' as const,
-      texto: ` — próximo en ${vivo.minutos} min (dato de las ${alMinuto(vivo.cuando)})`,
-    });
-  } else if (espera !== null) {
-    partes.push({ papel: 'texto' as const, texto: ` — ~${Math.round(espera / 60)} min de espera` });
+  const espera = comoSeEspera(intervalo, vivo);
+  if (espera !== null) {
+    partes.push({ papel: 'texto' as const, texto: ` — ${espera}` });
   }
   return { giro: 'sube', texto: partes.map((x) => x.texto).join(''), metros: 0, partes };
+}
+
+/**
+ * ⭐ EL TRANSBORDO EN EL MISMO POSTE: **un acto, un paso**.
+ *
+ * [Referencia GTFS, `transfers.txt`] el transbordo es un elemento de primera
+ * clase entre dos rutas en una parada —*«recommended transfer point between
+ * routes»*— y en la misma parada `from_stop_id = to_stop_id`. Así que se narra
+ * como lo que es y no como tres cosas: hasta el 31/08 esto salía en pantalla
+ * como **«Baja» · «es el mismo portal del que sales» · «Sube»**, tres pasos y
+ * un paseo de cero metros para decir *cámbiate de autobús aquí*.
+ *
+ * ⚠️ Con paseo entre dos postes distintos **no** es esto: ahí sí se baja, se
+ * anda y se sube, y son tres pasos porque son tres cosas.
+ *
+ * La redacción es de casa [PROPIO]: la GTFS da el concepto, no las palabras.
+ */
+export function pasoDeTransbordo(
+  poste: string,
+  deLa: LineaDelViaje,
+  aLa: LineaDelViaje,
+  intervalo: number | null,
+  vivo?: EstadoVivo | null,
+): Paso {
+  const partes = [
+    { papel: 'texto' as const, texto: 'En el poste ' },
+    { papel: 'via' as const, texto: poste },
+    { papel: 'accion' as const, texto: ', transborda' },
+    { papel: 'texto' as const, texto: ' de la línea ' },
+    { papel: 'via' as const, texto: deLa.corto },
+    { papel: 'texto' as const, texto: ' a la línea ' },
+    { papel: 'via' as const, texto: aLa.corto },
+  ];
+  const espera = comoSeEspera(intervalo, vivo);
+  if (espera !== null) {
+    // La frecuencia que importa es la del que se coge, no la del que se deja.
+    partes.push({
+      papel: 'texto' as const,
+      texto: ` — ${espera.replace('frecuencia teórica:', `frecuencia teórica de la ${aLa.corto}:`)}`,
+    });
+  }
+  return { giro: 'transborda', texto: partes.map((x) => x.texto).join(''), metros: 0, partes };
 }
 
 export function pasoDeBajar(poste: string): Paso {
@@ -723,12 +781,22 @@ export function pasoDeBajar(poste: string): Paso {
  * de verdad hay entre el poste y la calzada. **No suma metros**: los que se
  * dicen son los del asfalto, y lo andado hasta el poste ya lo contó su etapa.
  */
-export function etapaMontada(
-  red: RedDeBus,
-  montado: TramoMontado,
-  espera: number | null,
-  vivo?: EstadoVivo | null,
-): Etapa {
+/** Cómo se monta este vehículo, y cómo se sale de él. */
+export interface ComoSeMonta {
+  /** `E[W] = H/2`: lo que suma al RELOJ. */
+  readonly espera: number | null;
+  /** `H`, la cabecera de hoy: lo que se DICE. Ver `comoSeEspera`. */
+  readonly intervalo: number | null;
+  /** Lo que Avanza diga, si se sabe. Solo del primer vehículo. */
+  readonly vivo?: EstadoVivo | null;
+  /** Si se llega a él **transbordando en el mismo poste**, de qué línea. */
+  readonly transbordandoDe?: LineaDelViaje;
+  /** Si se sale de él transbordando en el mismo poste: entonces no hay «Baja». */
+  readonly acabaEnTransbordo?: boolean;
+}
+
+export function etapaMontada(red: RedDeBus, montado: TramoMontado, como: ComoSeMonta): Etapa {
+  const { espera, intervalo, vivo } = como;
   const porId = new Map(red.paradas.map((p) => [p.id, p]));
   const linea = lineaDelViaje(red, montado.patron);
   const primera = porId.get(montado.patron.paradas[montado.iDesde]!);
@@ -759,11 +827,24 @@ export function etapaMontada(
   // ⭐ Y EL TOTAL TAMBIÉN CAMBIA, no solo el texto. Enseñar «próximo en 5 min»
   // y seguir sumando los 4,5 de la estimación dejaría el paso diciendo una cosa
   // y la cabecera otra — y quien lee se fía de la cabecera.
-  const segundos = (vivo?.clase === 'llega' ? vivo.minutos * 60 : (espera ?? 0)) + montado.rodando;
+  // ⚠️ Y los 120 s del transbordo [OTP `transferSlack`] se suman AQUÍ cuando se
+  // llega transbordando en el mismo poste: antes vivían en la etapa a pie de
+  // cero metros, que ha dejado de existir. El total del viaje no se mueve.
+  const segundos =
+    (vivo?.clase === 'llega' ? vivo.minutos * 60 : (espera ?? 0)) +
+    montado.rodando +
+    (como.transbordandoDe ? PENALIZACION_TRANSBORDO_S : 0);
+  const dondeSube = porId.get(montado.desde)?.nombre ?? montado.desde;
   return {
     pasos: [
-      pasoDeSubir(linea, porId.get(montado.desde)?.nombre ?? montado.desde, espera, vivo),
-      pasoDeBajar(porId.get(montado.hasta)?.nombre ?? montado.hasta),
+      como.transbordandoDe
+        ? pasoDeTransbordo(dondeSube, como.transbordandoDe, linea, intervalo, vivo)
+        : pasoDeSubir(linea, dondeSube, intervalo, vivo),
+      // Si de aquí se transborda en el mismo poste, el «Baja» lo dice el paso
+      // de transbordo del siguiente: no se baja para volver a subir.
+      ...(como.acabaEnTransbordo
+        ? []
+        : [pasoDeBajar(porId.get(montado.hasta)?.nombre ?? montado.hasta)]),
     ],
     geometria,
     metros,
@@ -778,7 +859,8 @@ export function etapaMontada(
         linea,
       },
     ],
-    hito: 'baja',
+    // Si acaba en transbordo, el icono del poste es el de subirse al siguiente.
+    hito: como.acabaEnTransbordo ? 'sube' : 'baja',
   };
 }
 
@@ -1029,11 +1111,22 @@ export function prepararViajeEnBus(
 
     for (let i = 0; i < viaje.montados.length; i++) {
       const m = viaje.montados[i]!;
-      etapas.push(
-        etapaMontada(red, m, esperaEstimada(m.patron, red, fecha), i === 0 ? (vivas?.[0] ?? null) : null),
-      );
+      const anterior = viaje.montados[i - 1];
       const siguiente = viaje.montados[i + 1];
-      if (siguiente) {
+      // ⭐ ¿Se cambia de vehículo SIN MOVERSE? Entonces es un solo acto, y ni
+      // hay etapa a pie ni hay «Baja» y «Sube» [GTFS `transfers.txt`].
+      const llegaTransbordando = anterior !== undefined && anterior.hasta === m.desde;
+      const saleTransbordando = siguiente !== undefined && m.hasta === siguiente.desde;
+      etapas.push(
+        etapaMontada(red, m, {
+          espera: esperaEstimada(m.patron, red, fecha),
+          intervalo: intervaloDeHoy(m.patron, red, fecha),
+          vivo: i === 0 ? (vivas?.[0] ?? null) : null,
+          ...(llegaTransbordando ? { transbordandoDe: lineaDelViaje(red, anterior.patron) } : {}),
+          acabaEnTransbordo: saleTransbordando,
+        }),
+      );
+      if (siguiente && !saleTransbordando) {
         const aPieEntre = etapaAndando(motor, comoExtremo(m.hasta), comoExtremo(siguiente.desde));
         if (!aPieEntre) {
           return perdido('No hay camino a pie para el transbordo que hacía falta.');

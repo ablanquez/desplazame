@@ -434,7 +434,7 @@
                    en el contrato para quien no pinte nada. -->
               <!-- Y el mismo chip junto al paso donde se sube: la leyenda
                    dice en qué se monta y esto dice dónde. -->
-              @if (lineaPorPaso().get($index); as linea) {
+              @for (linea of lineaPorPaso().get($index) ?? []; track $index) {
                 <span
                   class="chip-linea"
                   [style.background-color]="'#' + linea.color"
@@ -463,7 +463,12 @@
                    que desde el bus ya no es «el aviso» sino «SU aviso». El
                    ⚠ va aria-hidden: el texto ya dice lo que pasa, el icono es
                    para el ojo — es el 1.4.1 de siempre, no solo color. -->
-              @if (paso.giro === 'coge' || paso.giro === 'aparca' || paso.giro === 'sube') {
+              @if (
+                paso.giro === 'coge' ||
+                paso.giro === 'aparca' ||
+                paso.giro === 'sube' ||
+                paso.giro === 'transborda'
+              ) {
                 @if (notaDelHito(paso); as nota) {
                   <span class="paso__nota">
                     <span class="paso__nota-icono" aria-hidden="true">⚠</span>

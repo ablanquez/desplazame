@@ -755,6 +755,7 @@ const COMO_SE_DICE: Readonly<Record<Giro, string>> = {
   // escribe de una pieza.
   sube: '',
   baja: '',
+  transborda: '',
 };
 
 /**

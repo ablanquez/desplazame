@@ -94,11 +94,20 @@ const MARCA_DE_DESVIO = 'va hoy desviada';
  * nombre de la calle—, y una calle no es un sitio del que se avise.
  */
 function sitioDelHito(paso: Paso): string | null {
+  const vias = paso.partes.filter((p) => p.papel === 'via');
+  if (vias.length === 0) {
+    return null;
+  }
+  // ⚠️ En el paso de transbordo el poste va **el PRIMERO** —«En el poste X,
+  // transborda de la A a la B»— y las dos últimas `via` son líneas. En los
+  // demás hitos el sitio es la última. Es la única excepción y va escrita.
+  if (paso.giro === 'transborda') {
+    return vias[0]!.texto;
+  }
   if (paso.giro !== 'coge' && paso.giro !== 'aparca' && paso.giro !== 'sube' && paso.giro !== 'baja') {
     return null;
   }
-  const vias = paso.partes.filter((p) => p.papel === 'via');
-  return vias.length > 0 ? vias[vias.length - 1]!.texto : null;
+  return vias[vias.length - 1]!.texto;
 }
 
 /**
@@ -127,6 +136,9 @@ const FLECHAS: Readonly<Record<Giro, string>> = {
   aparca: '🅿',
   sube: '🚌',
   baja: '🚏',
+  // ⭐ El transbordo en el mismo poste: **un acto**, no dos flechas. Las dos
+  // puntas dicen de qué se baja y a qué se sube sin partir el paso en dos.
+  transborda: '⇄',
   llegada: '⚑',
 };
 
@@ -695,9 +707,9 @@ export class Buscador {
    * montado. ⚠️ El paseo de un transbordo también acaba en un tramo con
    * `hito: 'sube'`, pero eso es un tramo, no un paso: no escribe ninguno.
    */
-  protected readonly lineaPorPaso = computed<ReadonlyMap<number, LineaDelViaje>>(() => {
+  protected readonly lineaPorPaso = computed<ReadonlyMap<number, readonly LineaDelViaje[]>>(() => {
     const trayecto = this.resultado()?.trayecto;
-    const mapa = new Map<number, LineaDelViaje>();
+    const mapa = new Map<number, readonly LineaDelViaje[]>();
     if (!trayecto) {
       return mapa;
     }
@@ -705,8 +717,17 @@ export class Buscador {
     let k = 0;
     trayecto.pasos.forEach((paso, i) => {
       const linea = lineas[k];
-      if (paso.giro === 'sube' && linea) {
-        mapa.set(i, linea);
+      if (!linea) {
+        return;
+      }
+      if (paso.giro === 'sube') {
+        mapa.set(i, [linea]);
+        k++;
+      } else if (paso.giro === 'transborda') {
+        // ⭐ DOS CHIPS: de la que se deja a la que se coge. El paso lo dice con
+        // palabras —«de la 35 a la 39»— y los chips lo dicen con el color.
+        const anterior = lineas[k - 1];
+        mapa.set(i, anterior ? [anterior, linea] : [linea]);
         k++;
       }
     });
@@ -733,6 +754,7 @@ export class Buscador {
       return deSuLinea.texto;
     }
     // Y si ningún aviso es de su línea, el que nombra su sitio.
+    //
     const suyo = sitioDelHito(paso);
     const propio = suyo ? marcados.find((a) => a.texto.includes(suyo)) : undefined;
     if (propio) {

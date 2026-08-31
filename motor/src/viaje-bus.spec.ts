@@ -553,6 +553,16 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     const p = portales.donde.get(codigo)!;
     return { lon: p.lon, lat: p.lat, nombre };
   };
+  /** Un viaje entero entre dos portales, sin preguntar a nadie. */
+  const elViajeDe = (o: string, d: string) =>
+    prepararViajeEnBus(
+      motor,
+      red,
+      extremo(o, 'Origen'),
+      extremo(d, 'Destino'),
+      UN_MARTES,
+    ).trayecto();
+
   const elOjo = (): { readonly origen: Extremo; readonly destino: Extremo } => ({
     origen: extremo('Portales.93310', 'CALLE EL COLOSO 2'),
     destino: extremo('Portales.79358', 'CALLE LEOPOLDO ROMEO 27'),
@@ -588,12 +598,15 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(vivas[0]!.clase, 'llega');
     assert.equal((vivas[0] as { minutos: number }).minutos, 5, 'el primero de los dos coches');
 
-    const estimada = etapaMontada(red, viaje.montados[0]!, 268, null);
-    const viva = etapaMontada(red, viaje.montados[0]!, 268, vivas[0]!);
+    // ⚠️ El RELOJ usa `espera` (H/2 = 268 s) y el TEXTO usa `intervalo` (H =
+    // 536 s = cada 9 min). Son dos preguntas distintas y por eso van aparte.
+    const como = { espera: 268, intervalo: 536 };
+    const estimada = etapaMontada(red, viaje.montados[0]!, como);
+    const viva = etapaMontada(red, viaje.montados[0]!, { ...como, vivo: vivas[0]! });
     assert.equal(estimada.segundos, 698, 'la etapa con la espera estimada');
     assert.equal(viva.segundos, 730, 'los 5 min vivos tienen que entrar en el total');
 
-    assert.match(estimada.pasos[0]!.texto, /~4 min de espera$/);
+    assert.match(estimada.pasos[0]!.texto, /frecuencia teórica: cada 9 min$/);
     assert.match(viva.pasos[0]!.texto, /próximo en 5 min \(dato de las \d\d:\d\d\)$/);
   });
 
@@ -636,7 +649,11 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(conVivo.segundos, sinPreguntar.segundos);
     assert.equal(conVivo.metros, sinPreguntar.metros);
     const sube = conVivo.pasos.find((x) => x.giro === 'sube')!;
-    assert.match(sube.texto, /~\d+ min de espera$/, 'la espera sigue siendo la estimada');
+    assert.match(
+      sube.texto,
+      /frecuencia teórica: cada \d+ min$/,
+      'sin dato vivo se dice la frecuencia, que es el lenguaje del servicio',
+    );
   });
 
   /**
@@ -682,6 +699,128 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     const vivas = await preguntarPorLasSubidas(red, dos, respondiendo(MEDIDO_POSTE_1000));
     assert.equal(vivas.length, 2, 'las dos subidas tienen su respuesta');
     assert.equal(visitasHechas(), 1, `dos subidas al mismo poste hicieron ${visitasHechas()} visitas`);
+  });
+
+  /**
+   * ⭐ JUEZ 17 — EL TRANSBORDO EN EL MISMO POSTE ES **UN SOLO PASO**.
+   *
+   * `COLOSO 2 → OVIEDO 5` sale en **35 + 39** y las dos se cogen en `Plaza De
+   * Ariño`. Hasta el 31/08 eso se narraba en **tres** pasos —«Baja», «es el
+   * mismo portal del que sales», «Sube»— y un tramo a pie de **cero metros**.
+   *
+   * [Referencia GTFS, `transfers.txt`] el transbordo es un elemento de primera
+   * clase entre dos rutas en una parada, y en la misma parada `from_stop_id =
+   * to_stop_id`. Es un acto, y se cuenta como un acto.
+   */
+  test('⭐ 17 · cambiar de bus sin moverse es un paso, no tres', () => {
+    const t = elViajeDe('Portales.93310', 'Portales.98006');
+
+    const transbordos = t.pasos.filter((p) => p.giro === 'transborda');
+    assert.equal(transbordos.length, 1, 'un transbordo, un paso');
+    assert.equal(
+      transbordos[0]!.texto,
+      'En el poste Plaza De Ariño, transborda de la línea 35 a la línea 39 ' +
+        '— frecuencia teórica de la 39: cada 6 min',
+    );
+    // ⭐ Y los dos chips: las dos líneas van como partes `via`, en orden.
+    assert.deepEqual(
+      transbordos[0]!.partes.filter((x) => x.papel === 'via').map((x) => x.texto),
+      ['Plaza De Ariño', '35', '39'],
+    );
+
+    // Y los tres pasos viejos ya no están.
+    assert.equal(t.pasos.filter((p) => p.giro === 'baja').length, 1, 'solo se baja al final');
+    assert.equal(
+      t.pasos.some((p) => p.texto.includes('es el mismo portal del que sales')),
+      false,
+    );
+    assert.equal(t.pasos.length, 11, 'trece pasos eran antes del pulido');
+
+    // Y el tramo a pie de cero metros tampoco: cuatro tramos, no cinco.
+    assert.equal(t.tramos.length, 4);
+    assert.equal(t.tramos.filter((x) => x.metros === 0).length, 0, 'ni un tramo de 0 m');
+    // El icono del poste del cambio es el de subirse al siguiente.
+    assert.equal(t.tramos[1]!.hito, 'sube');
+  });
+
+  /**
+   * ⭐ JUEZ 18 — CON PASEO, LOS TRES PASOS SE QUEDAN.
+   *
+   * `ALDEBARÁN 56 → CARDENAL DE BARDAJÍ 24` cambia de la 36 a la 21 cruzando la
+   * Avenida de Madrid: **163 m**. Ahí sí se baja, se anda y se sube, y son tres
+   * cosas distintas que hay que hacer. El pulido de arriba **no las toca**.
+   */
+  test('⭐ 18 · un transbordo con paseo conserva bajar, andar y subir', () => {
+    const t = elViajeDe('Portales.91655', 'Portales.107146');
+
+    assert.equal(t.pasos.filter((p) => p.giro === 'transborda').length, 0, 'aquí hay que andar');
+    assert.equal(t.pasos.filter((p) => p.giro === 'sube').length, 2);
+    assert.equal(t.pasos.filter((p) => p.giro === 'baja').length, 2);
+    // El paseo del transbordo sigue siendo su tramo, con sus metros.
+    assert.equal(t.tramos.length, 5);
+    assert.equal(t.tramos[2]!.comoSeVa, 'andando');
+    assert.ok(t.tramos[2]!.metros > 100, `el paseo del transbordo: ${t.tramos[2]!.metros} m`);
+  });
+
+  /**
+   * ⭐ JUEZ 19 — LA FRECUENCIA ES EL LENGUAJE DEL SERVICIO.
+   *
+   * [Google Transit Partners] los servicios de frecuencia se describen por su
+   * cabecera —«pasan cada 5-15 minutos»—, no por una espera concreta. Así que
+   * las subidas dicen **cada N min**, y solo el dato vivo, cuando lo hay,
+   * sustituye eso por un minuto concreto.
+   *
+   * ⚠️ **Y el reloj no cambia**: el total sigue sumando `E[W] = H/2`. Decir
+   * «cada 8 min» y sumar 4 no es contradictorio — son dos preguntas distintas.
+   */
+  test('⭐ 19 · las subidas dicen la frecuencia; solo el vivo dice un minuto', async () => {
+    const t = elViajeDe('Portales.93310', 'Portales.98006');
+    const sube = t.pasos.find((p) => p.giro === 'sube')!;
+    assert.match(sube.texto, /frecuencia teórica: cada 8 min$/, 'la primera, sin vivo');
+    const transborda = t.pasos.find((p) => p.giro === 'transborda')!;
+    assert.match(transborda.texto, /frecuencia teórica de la 39: cada 6 min$/, 'y la segunda');
+    assert.equal(t.pasos.some((p) => p.texto.includes('min de espera')), false);
+
+    // Y con dato vivo, la PRIMERA dice el minuto concreto.
+    reiniciarVisitas();
+    const { origen, destino } = elOjo();
+    const conVivo = await prepararViajeEnBus(motor, red, origen, destino, UN_MARTES).conElVivo!(
+      respondiendo(MEDIDO_POSTE_1000),
+    );
+    const primera = conVivo.pasos.find((p) => p.giro === 'sube' || p.giro === 'transborda')!;
+    assert.match(primera.texto, /(próximo en \d+ min \(dato de las \d\d:\d\d\)|frecuencia teórica)/);
+  });
+
+  /**
+   * ⭐ JUEZ 20 — EL RELOJ NO SE HA MOVIDO, al segundo.
+   *
+   * El pulido es de **narración**. Los 120 s del transbordo, que vivían en el
+   * tramo a pie de cero metros, se han mudado dentro del vehículo siguiente; si
+   * se hubieran perdido por el camino, estos dos números lo dirían.
+   *
+   * Medidos con el código de **antes** del pulido, y otra vez después:
+   * `COLOSO 2 → OVIEDO 5` **3.184 s / 7.911 m**, y `ALDEBARÁN 56 → CARDENAL DE
+   * BARDAJÍ 24` **1.724 s / 3.445 m**.
+   */
+  test('⭐ 20 · el total del viaje es el mismo que antes del pulido', () => {
+    const conTransbordo = elViajeDe('Portales.93310', 'Portales.98006');
+    assert.equal(conTransbordo.segundos, 3184);
+    assert.equal(conTransbordo.metros, 7911);
+
+    const conPaseo = elViajeDe('Portales.91655', 'Portales.107146');
+    assert.equal(conPaseo.segundos, 1724);
+    assert.equal(conPaseo.metros, 3445);
+
+    // Y las sumas del contrato siguen cerrando en los dos.
+    for (const t of [conTransbordo, conPaseo]) {
+      assert.equal(t.tramos.reduce((n, x) => n + x.segundos, 0), t.segundos);
+      assert.equal(t.tramos.reduce((n, x) => n + x.metros, 0), t.metros);
+      t.tramos.forEach((x, i) => {
+        if (i > 0) {
+          assert.equal(x.desde, t.tramos[i - 1]!.hasta, `el tramo ${i} no cose con el anterior`);
+        }
+      });
+    }
   });
 
   /**

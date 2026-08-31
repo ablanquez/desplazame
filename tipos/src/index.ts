@@ -116,6 +116,18 @@ export type Giro =
   | 'sube'
   /** Y se baja de él. */
   | 'baja'
+  /**
+   * ⭐ Se cambia de vehículo **en el mismo poste**: un solo acto, un solo paso.
+   *
+   * [Referencia GTFS, `transfers.txt`] el transbordo es un elemento de primera
+   * clase entre dos rutas en una parada —*«recommended transfer point between
+   * routes»*— y en la misma parada `from_stop_id = to_stop_id`. Así que se
+   * narra como lo que es: no bajarse, andar cero metros y volver a subirse.
+   *
+   * ⚠️ Con paseo entre dos postes distintos **no** es esto: ahí sí se baja, se
+   * anda y se sube, y son tres pasos porque son tres cosas.
+   */
+  | 'transborda'
   | 'llegada';
 
 /**
