@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-01] 🔴 ABIERTA — El refresco de desvíos DETECTA 23 y APLICA 4: un viaje sube en un poste donde el autobús hoy no para
+## [2026-09-01] ✅ CERRADA — El refresco de desvíos DETECTA 23 y APLICA 4: un viaje sube en un poste donde el autobús hoy no para
 
 **Categoría:** una cuenta que dice «leído» y se lee como «hecho»
 
@@ -53,14 +53,70 @@ Y la muralla entera en verde: **454 en el motor**, `fail 0`.
 **Cómo se cazó:** ojo humano — Antonio vio que el viaje subía en Plaza de España
 estando la 22 desviada.
 
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** **el veredicto caducaba entre leerlo y aplicarlo.**
+
+`refrescarYServir` leía los 64 sentidos y después `aplicarDesvios` **los volvía a
+pedir a la caché**. Y la caché caduca mientras el pase corre, porque el pase
+tarda de 17 a 36 s y `TTL_DESVIOS_MS` era **la misma constante** que el periodo
+del refresco — `setInterval(refrescarLosDesvios, TTL_DESVIOS_MS)`—. Medido con
+reloj falso, un pase a `TTL − 10 s` del anterior:
+
+```
+   detectados: 64 desviados de 64 sentidos
+   visitas nuevas a la fuente: 0  (0 = todo de caché)
+   al aplicar,  5 s después del pase: 64 vivos · 64 con desvío
+   al aplicar, 11 s después del pase:  0 vivos ·  0 con desvío
+```
+
+El segundo pase encuentra la capa fresca por unos segundos, **no visita la fuente
+ni una vez** —así que tampoco renueva el `cuando` de nada—, cuenta los desvíos
+que ya tenía... y cuando termina, lo que iba a aplicar ya no existe.
+
+**Arreglo aplicado:** tres piezas, y la tercera es la del log.
+
+1. `motor/src/desvios.ts` — `refrescarDesvios` devuelve **`leido`**, un veredicto
+   por sentido, y `refrescarYServir` aplica **eso**. No hay ventana entre leer y
+   aplicar porque ya no hay segunda lectura. Los postes provisionales salen del
+   mismo sitio, por lo mismo.
+2. `motor/src/servidor.ts` — `CADA_CUANTO_SE_REFRESCA_MS = TTL / 2`: el refresco
+   renueva **antes** de que la caché caduque. ⚠️ No arregla el fallo por sí solo
+   —lo arregla lo anterior—, pero sin ello el sistema seguiría dependiendo de que
+   dos relojes no se rocen.
+3. `resumenDelRefresco` — el log dice **«N detectados · M aplicados»** en una
+   sola línea y con la misma palabra, y si no cuadran lo grita.
+
+Medido con el motor reiniciado, y ésta es la línea nueva:
+
+```
+motor: ruta operativa de hoy — 64 sentidos · 23 detectados · 23 aplicados · 0 sin saber · 34 s
+```
+
+Y el caso del ojo, con el mismo par de portales:
+
+```
+  [transborda] En el poste Asalto / Centro De Historias, transborda de la línea 29 a la línea 22
+  ¿alguien sube en Plaza De España? False
+  AVISO: La línea 22 va hoy desviada: no para en Plaza Aragón N.º 1, Plaza De España…
+```
+
+**Commit:** `5b5c9f8`
 
 **Ley que sale de aquí:** un log dice **lo que se aplicó**, no lo que se leyó. Y
 cuando imprime las dos cosas, la diferencia entre ellas se dice **en voz alta**:
 dos números correctos en dos líneas distintas no son una alarma — son un acertijo
 que nadie resuelve a las tres de la mañana.
+
+Y la del cierre, que la trajo la contraprueba: **quien lee un dato y quien lo
+aplica no pueden ir a buscarlo por separado si el dato caduca.** El que lo lee lo
+entrega. Una caché entre dos pasos del mismo trabajo es una ventana abierta, y
+basta con que el trabajo tarde más que ella.
+
+Y una tercera, sobre las jueces: ⚠️ **mutar el sitio arreglado no ponía roja
+ninguna juez**. Las tres que escribí probaban `aplicarDesvios` pasándole los
+veredictos a mano, que es justo lo que el arreglo hace bien — no que
+`refrescarYServir` lo hiciera. La juez 7, la que muerde, salió de la contraprueba
+y no de escribir la juez. **Una juez que no cubre la línea que se cambió no es
+una juez de ese cambio.**
 
 **Traza:** `motor/src/patron-operativo.ts` (`refrescarYServir`) ·
 `motor/src/desvios.ts` (`desvioServido`, `traerDesvio`, `TTL_DESVIOS_MS`) ·
