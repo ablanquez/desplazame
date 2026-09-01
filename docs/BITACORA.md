@@ -14,6 +14,67 @@
 
 ---
 
+## [2026-09-01] 🔴 ABIERTA — «Plaza Arag��n»: el lector del zip decodifica CADA TROZO del flujo por separado y parte las tildes que caen en la costura
+
+**Categoría:** una decodificación con estado, hecha sin estado
+
+**Síntoma:** la parada **1312** sale en pantalla como `Plaza Arag��n`. Y solo
+ella: la **1311**, que está en la fila de arriba y dice exactamente lo mismo,
+sale bien. Cocinado el feed vivo con el propio código del motor:
+
+```
+paradas leidas: 984
+paradas con caracteres de reemplazo: 1
+   id 1312 · "Plaza Arag��n" · 50 6c 61 7a 61 20 41 72 61 67 fffd fffd 6e
+1311: "Plaza Aragón"
+1312: "Plaza Arag��n"
+```
+
+⚠️ **Y el dato de origen está impecable.** Las dos filas del `stops.txt` del zip
+que se sirve traen los mismos bytes, y el fichero entero es UTF-8 válido:
+
+```
+   b'1311,1311,Plaza AragÃ³n,,41.647957954594006,...'
+   b'1312,1312,Plaza AragÃ³n,,41.64791411735438,...'
+  el fichero ENTERO es UTF-8 valido
+  bytes invalidos encontrados (tope 7): 0
+```
+
+Dos caracteres de reemplazo donde va **una** «ó» —que en UTF-8 son los dos bytes
+`c3 b3`— dicen que cada byte se rechazó por separado.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **la muralla entera del
+motor**, que cocina esa misma red en su `before` y la recorre en veintitantas
+jueces. Ejecutada con el nombre roto dentro:
+
+```
+$ npm run probar
+ℹ pass 446
+ℹ fail 0
+```
+
+Y las que miran `stops.txt` de cerca tampoco: la **juez 10** compra que el
+partidor de CSV entiende las comillas —*«934 de las 984 filas las traen»*— y ahí
+se quedó; las demás cuentan paradas, saltos y patrones. `grep` sobre las dos
+suites: **ninguna juez busca un carácter de reemplazo ni un nombre con tilde**.
+
+⚠️ Tampoco lo vio el manifiesto, y es coherente: comprueba el **sha256 del
+fichero**, que está bien. El fichero no es el que miente.
+
+**Cómo se cazó:** ojo humano — Antonio leyó «Plaza Arag��n» en la pantalla.
+
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** contar filas no es leer un fichero. Un lector que
+procesa **984 nombres** y solo se equivoca en **uno** no lo delata ninguna
+prueba que cuente cuántos hay: hace falta una que mire **qué dicen**.
+
+**Traza:** `motor/src/red-bus.ts` (`porLineas`, el bucle del flujo) ·
+`motor/src/red-bus.spec.ts` (juez 10).
+
+
 ## [2026-09-01] ✅ CERRADA — El contorno del chip no pinta ni un píxel negro: 0,7 px a 13,6 px de fuente se disuelve en el antialiasing
 
 **Categoría:** una promesa calculada en hexadecimal que el render no cumple
