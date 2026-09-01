@@ -2574,6 +2574,16 @@ jueces nuevas viven donde hay píxeles). Decisión declarada:
 aria-busy durante la carga ⇒ el lector oye el resultado, no el
 arranque. El ojo: «funciona perfecto». 470 motor · 217 interfaz ·
 28 bitácoras, 0 abiertas.
+**LA DECISIÓN SOBRE AVANZA (1/09, noche; Antonio):** su aviso legal
+prohíbe la extracción y reutilización (medido y transcrito en §1.24-
+1.25 del notices); la fuente municipal (sede, Ley 37/2007) no sustituye
+ni las llegadas (peores) ni la ruta operativa (GTFS de 2013 sin
+desvíos) — fichada en §1.26, no usada. «Es un dato público de un
+servicio público y esto es una demo: se atribuye y para adelante.»
+Hecho: la línea de créditos en el pie (Avanza · NAP/MITRAMS ·
+Ayuntamiento · OSM) y las fichas. El hueco del Pilar, corregido: 10-18
+de octubre sin ninguna fila; el tranvía vuelve el 19.
+
 **PULIDOS POST-CIERRE, fichados con su doctrina (no bloquean):** ·
 el RESUMEN ÚNICO arriba [GOV.UK error summary: UNA caja que lista
 todo, enlazando a cada paso; hoy hay una caja por aviso — el patrón

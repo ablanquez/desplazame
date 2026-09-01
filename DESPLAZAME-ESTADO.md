@@ -30,7 +30,7 @@ hospitales · bibliotecas · colegios e institutos · guarderías ·
 universidades — 820 sitios, 802 buscables), TODA calle sugerible
 (3.350: 2.731 con portal + 619 por punto medio — el Puente de Piedra
 se escribe), el buscador por tipos completo con siglas e iconos, el
-foco en las dos capas, y las bitácoras cerradas (28/28 al 1/09).**
+foco en las dos capas, y las bitácoras cerradas (29/29 al 1/09).**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
 levantado el 18/08, des-caducado del 21/08 al 1/09):
@@ -148,11 +148,31 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar: EL PUNTO 10 ENTERO**
+comprobado). **En local, sin publicar: EL PUNTO 10 ENTERO, los papeles públicos y
+la decisión sobre Avanza**
 (31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LOS PAPELES PÚBLICOS AL DÍA Y LA DECISIÓN SOBRE AVANZA (1/09,
+noche).** README y notices con el punto 10 dentro (cinco modos; la API
+de hoy con sus ocho rutas; el bus medido: p50 750 ms de los que 36 son
+motor; el hueco del Pilar CORREGIDO: del 10 al 18/10 sin ninguna fila,
+el tranvía vuelve el 19). La sonda legal cazó que el aviso legal de
+Avanza PROHÍBE la extracción/reutilización (sui generis; ZetaBus lo
+fichaba como «sin términos»); la fuente municipal del transporte
+(sede, Ley 37/2007) da llegadas pero peores (dos coches, texto libre,
+sin tranvía, 400 intermitentes) y su recorrido es el GTFS de 2013 sin
+desvíos. DECISIÓN DE ANTONIO: «es un dato público de un servicio
+público y esto es una demo — se atribuye y para adelante». Hecho: la
+línea de créditos en el pie (Avanza · NAP/MITRAMS —cuya atribución
+llevaba diez días sin cumplirse— · Ayuntamiento · OSM), las fichas
+§1.24 (llegadas) y §1.25 (ruta operativa) con la decisión y el aviso
+transcrito, §1.26 la fuente municipal fichada y no usada, 27 fichas.
+⚠️ Lección mía: convertí una línea de créditos en un encargo con
+sonda y contraprueba — megalomanía en versión pulido; Antonio lo
+dijo con razón. 470 motor · 230 interfaz · 29 bitácoras.
 
 **EL PARLAMENTO DE LA DEMO (1/09, tras cerrar el 10) → PUNTOS 11 y 13
 NUEVOS, RENUMERACIÓN.** Antonio: «esto va a ser una DEMO» — la
@@ -1301,7 +1321,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 687 pruebas (470 motor + 217 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 700 pruebas (470 motor + 230 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
