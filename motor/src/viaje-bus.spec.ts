@@ -703,6 +703,53 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   });
 
   /**
+   * ⭐ JUEZ 23 — DOS POSTES DISTINTOS: LAS DOS CONSULTAS, A LA VEZ.
+   *
+   * ⚠️ La juez 13 compra la **deduplicación** —dos subidas al MISMO poste hacen
+   * una sola visita—, y esa pasaría igual en fila india: si la segunda saliera
+   * después de volver la primera, el single-flight ya no tendría nada en vuelo
+   * que deduplicar... pero la caché tampoco, así que seguiría dando 1. Con dos
+   * postes **distintos** no hay nada que deduplicar y lo único que queda es el
+   * reloj: si salen a la vez, el total es **el mayor**; si van en fila, la suma.
+   *
+   * Y esto importa en la calle, no en abstracto: [NN/g] 10 s es el límite de la
+   * atención, y una consulta a Avanza puede agotar sus 4 s de espera y reintentar
+   * — medido, el peor Generar en bus llega a **8,4 s** con dos vehículos. En
+   * serie serían dieciséis y pico, y ahí ya nadie mira la pantalla.
+   */
+  test('⭐ 23 · dos postes distintos preguntan a la vez: el total es el mayor, no la suma', async () => {
+    reiniciarVisitas();
+    // Un viaje con transbordo, que son dos postes de subida distintos.
+    const viaje = buscarViaje({
+      red,
+      fecha: UN_MARTES,
+      acceso: enLaParada('17671'),
+      salida: enLaParada('16755'),
+    })!;
+    const dos = [viaje.montados[0]!, { ...viaje.montados[0]!, desde: '16755' }];
+    assert.notEqual(dos[0]!.desde, dos[1]!.desde, 'tienen que ser dos postes distintos');
+
+    const TARDA_MS = 300;
+    const lento: typeof fetch = (async () => {
+      await new Promise((sigue) => setTimeout(sigue, TARDA_MS));
+      return new Response(MEDIDO_POSTE_1000, { status: 200 });
+    }) as unknown as typeof fetch;
+
+    const arranque = Date.now();
+    const vivas = await preguntarPorLasSubidas(red, dos, lento);
+    const tardo = Date.now() - arranque;
+
+    assert.equal(vivas.length, 2);
+    assert.equal(visitasHechas(), 2, 'dos postes distintos son dos visitas');
+    // ⭐ El total se parece al MAYOR, no a la suma. El margen es generoso a
+    //    propósito: lo que se compra es que no sean dos esperas encadenadas.
+    assert.ok(
+      tardo < TARDA_MS * 1.7,
+      `las dos consultas tardaron ${tardo} ms; en fila india serían ~${TARDA_MS * 2}`,
+    );
+  });
+
+  /**
    * ⭐ JUEZ 21 — CUÁNTAS PARADAS SE VA DENTRO DE CADA VEHÍCULO.
    *
    * [Google Directions API, `transit_details.num_stops`] *«el número de paradas
