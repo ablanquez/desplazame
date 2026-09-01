@@ -110,7 +110,7 @@ en el navegador o no la tiene. Es la del 31/08 —«el atributo `hidden` no
 esconde nada por sí solo»— una vuelta más adentro: allí la juez miraba el
 atributo en vez del píxel; aquí miraba el DOM en vez del árbol.
 
-**Commit:** ⏳ PENDIENTE
+**Commit:** `177ae73` — *fix(app): la region de estado no se esconde ni vacia*
 
 **Ficheros:** `app/src/app/buscador.css` · `app/e2e/proximo-bus.mjs` ·
 `app/src/app/buscador.spec.ts`
