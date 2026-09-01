@@ -144,6 +144,29 @@ try {
     rotos.cuantos ? `${rotos.cuantos} · ${rotos.sitios.join(' | ')}` : 'ninguno',
   );
 
+  // ── JUEZ 3 · NINGÚN POSTE NOMBRADO SIN SU NÚMERO ─────────────────────────
+  //
+  // ⭐ [Referencia GTFS, `stop_code`] el número es el de la señal, y por eso se
+  //    enseña. Si apareciera unas veces sí y otras no, quien lo busca en la
+  //    marquesina no sabría si es que no existe o es que no se lo han dicho.
+  //    Se busca en el DOM entero: los pasos, los avisos y sus detalles.
+  const sinNumero = await m.evaluar(`(() => {
+    const malos = [];
+    for (const e of document.querySelectorAll('.paso__texto, .aviso-ruta, .detalles__cuerpo')) {
+      const t = e.textContent.replace(/\s+/g, ' ');
+      // Cada mención de «poste X» tiene que llevar «poste N · …».
+      for (const m of t.matchAll(/poste ([^,.·]{0,40})/g)) {
+        if (!/^\d/.test(m[1].trim())) malos.push(m[0].trim().slice(0, 60));
+      }
+    }
+    return malos;
+  })()`);
+  juez(
+    '3 · ningún poste se nombra sin su número',
+    sinNumero.length === 0,
+    sinNumero.length ? sinNumero.join(' | ') : 'todos con número',
+  );
+
   // ── JUEZ 1 y 2 · TODOS LOS CHIPS DE LA PANTALLA, EN EL PÍXEL ──────────────
   const cuantos = await m.evaluar(`document.querySelectorAll('.chip-linea').length`);
   console.log(`\n  chips en pantalla: ${cuantos}`);

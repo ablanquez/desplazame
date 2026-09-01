@@ -54,6 +54,7 @@ import { alMinuto, etapaAndando, juntar, type Etapa, type Extremo } from './etap
 import {
   estadoVivoDe,
   llegadasDelPoste,
+  nombrarPoste,
   posteDeCodigo,
   type EstadoVivo,
 } from './avanza.ts';
@@ -869,7 +870,17 @@ export function etapaMontada(red: RedDeBus, montado: TramoMontado, como: ComoSeM
     (vivo?.clase === 'llega' ? vivo.minutos * 60 : (espera ?? 0)) +
     montado.rodando +
     (como.transbordandoDe ? PENALIZACION_TRANSBORDO_S : 0);
-  const dondeSube = porId.get(montado.desde)?.nombre ?? montado.desde;
+  /**
+   * ⭐ EL POSTE SE NOMBRA CON SU NÚMERO [referencia GTFS, `stop_code`: el de la
+   * señal y los sistemas de información]. Ver `nombrarPoste` en `avanza.ts`: un
+   * solo sitio decide el formato, para que la subida, el transbordo, la bajada
+   * y los avisos digan el poste **igual**.
+   */
+  const comoSeLlama = (id: string): string => {
+    const suya = porId.get(id);
+    return suya ? nombrarPoste(suya.codigo, suya.nombre) : id;
+  };
+  const dondeSube = comoSeLlama(montado.desde);
   // ⭐ Las paradas de ESTE vehículo, sobre el patrón que recorre HOY: si la
   // línea va desviada, el patrón es el operativo y la cuenta sale de él, así
   // que las paradas que se dicen son las que de verdad se van a pasar.
@@ -883,7 +894,7 @@ export function etapaMontada(red: RedDeBus, montado: TramoMontado, como: ComoSeM
       // de transbordo del siguiente: no se baja para volver a subir.
       ...(como.acabaEnTransbordo
         ? []
-        : [pasoDeBajar(porId.get(montado.hasta)?.nombre ?? montado.hasta)]),
+        : [pasoDeBajar(comoSeLlama(montado.hasta))]),
     ],
     geometria,
     metros,
@@ -1065,7 +1076,16 @@ export function prepararViajeEnBus(
     const p = porId.get(id)!;
     return { lon: p.lon, lat: p.lat, nombre: p.nombre };
   };
-  const nombreDelPoste = (id: string): string => porId.get(id)?.nombre ?? id;
+  /**
+   * El poste, con su número, igual que en los hitos. Ver `nombrarPoste`: si el
+   * paso dice «poste 33 · Av. Academia» y el aviso dijera solo «Av. Academia»,
+   * nadie los casaría de un vistazo — y la regla del doble sitio [GOV.UK] pide
+   * exactamente que digan lo mismo.
+   */
+  const nombreDelPoste = (id: string): string => {
+    const suya = porId.get(id);
+    return suya ? nombrarPoste(suya.codigo, suya.nombre) : id;
+  };
 
   /**
    * ⭐ LOS AVISOS DE LO VIVO, y **cada uno nombra su poste**.

@@ -252,9 +252,12 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
     const texto = avisoDeDesvio(op.desviadas[0]!);
     assert.equal(
       texto,
-      'La línea 29 va hoy desviada: no para en Don Jaime I / Plaza De La Seo, Coso N.º 80, ' +
-        'Plaza San Miguel: para provisionalmente en P. Echegaray Y Caballero N.º 112, ' +
-        'Asalto / Centro De Historias.',
+      // ⚠️ Con el NÚMERO de poste delante desde el 1/09 [referencia GTFS,
+      //    `stop_code`: el de la señal]. Quien lee «no para en…» está decidiendo
+      //    si su poste es uno de ésos, y el número lo resuelve de un vistazo.
+      'La línea 29 va hoy desviada: no para en 433 · Don Jaime I / Plaza De La Seo, ' +
+        '1293 · Coso N.º 80, 745 · Plaza San Miguel: para provisionalmente en ' +
+        '654 · P. Echegaray Y Caballero N.º 112, 1285 · Asalto / Centro De Historias.',
     );
     // Las dos provisionales de la 29 están en el GTFS, así que no entra ninguna
     // parada nueva a la red.
@@ -379,6 +382,29 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
       `el segundo pase aplicó ${dos.deLaRed.patrones} de los ${dos.deLaFuente.desviados} que detectó`,
     );
     assert.deepEqual(segunda, primera, 'el segundo pase perdió supresiones que el primero sí puso');
+  });
+
+
+  /**
+   * ⭐ JUEZ 8 — LAS LISTAS DEL DESVÍO TAMBIÉN NOMBRAN EL POSTE CON SU NÚMERO.
+   *
+   * [Referencia GTFS, `stop_code`] el número es el de la señal. Y aquí importa
+   * más que en ningún sitio: el aviso dice «no para en …» y quien lo lee está
+   * decidiendo si su poste es uno de ésos. Con el nombre solo hay que comparar
+   * cadenas de texto largas —«Av. San Juan De La Peña N.º 181» contra «N.º 187»—;
+   * con el número, se mira el cartel.
+   */
+  test('⭐ 8 · «no para en» y «para provisionalmente en» llevan el número del poste', () => {
+    const r = aplicarDesvios(red, soloLa29, DONDE_ESTAN, rodar);
+    const suya = r.desviadas.find((d) => d.linea === '29')!;
+    assert.ok(suya.fuera.length > 0 && suya.hacia.length > 0);
+    for (const nombre of [...suya.fuera, ...suya.hacia]) {
+      assert.match(nombre, /^\d+ · /, `esta parada del desvío va sin número: ${nombre}`);
+    }
+    // Y el aviso entero, que es lo que se lee.
+    const texto = avisoDeDesvio(suya);
+    assert.match(texto, /no para en \d+ · /);
+    assert.match(texto, /para provisionalmente en \d+ · /);
   });
 
 });

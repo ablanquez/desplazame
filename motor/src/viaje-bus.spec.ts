@@ -39,7 +39,7 @@ import {
   VELOCIDAD_PEATON_MS,
   type Acceso,
 } from './viaje-bus.ts';
-import { reiniciarVisitas, visitasHechas } from './avanza.ts';
+import { nombrarPoste, numeroDePoste, reiniciarVisitas, visitasHechas } from './avanza.ts';
 import type { Motor } from './trayecto.ts';
 import type { Extremo } from './etapas.ts';
 
@@ -703,6 +703,88 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   });
 
   /**
+   * ⭐ JUEZ 24 — CADA POSTE NOMBRADO LLEVA SU NÚMERO.
+   *
+   * [Referencia GTFS, `stop_code`] es *«un texto corto o número que identifica
+   * la parada para los viajeros»*, el de **la señal y los sistemas de
+   * información**. En la calle, lo que hay escrito grande en la marquesina es
+   * ese número: decir «el poste Av. Academia General Militar N.º 37» y callarse
+   * el 33 es dar la mitad de la seña justo en el momento de buscarla.
+   *
+   * ⚠️ Y va en TODOS los sitios donde se nombra un poste, no solo en la subida:
+   * si el número apareciera unas veces sí y otras no, quien lo busca no sabría
+   * si es que no existe o es que no se lo han dicho.
+   */
+  test('⭐ 24 · sube, transborda y baja nombran el poste con su número', () => {
+    const t = elViajeDe('Portales.93310', 'Portales.98006');
+
+    const sube = t.pasos.find((p) => p.giro === 'sube')!;
+    assert.match(sube.texto, /en el poste 33 · Av\. Academia General Militar N\.º 37/);
+
+    const transborda = t.pasos.find((p) => p.giro === 'transborda')!;
+    assert.match(transborda.texto, /^En el poste \d+ · Plaza De Ariño, transborda/);
+
+    const baja = t.pasos.find((p) => p.giro === 'baja')!;
+    assert.match(baja.texto, /^Baja en el poste \d+ · /);
+
+    // ⭐ Y NINGUNO se queda sin número: se busca el patrón en todos.
+    for (const p of t.pasos.filter((x) => ['sube', 'baja', 'transborda'].includes(x.giro))) {
+      assert.match(p.texto, /poste \d+ · /, `este paso nombra un poste sin número: ${p.texto}`);
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 25 — EL BUS LLEVA EL NÚMERO DE AVANZA; EL TRANVÍA, EL SUYO.
+   *
+   * ⚠️ Son dos formas porque el feed trae dos, y **no se uniforman**: `PA00033`
+   * es el identificador de Avanza y en el cartel pone `33`; las 50 paradas de
+   * tranvía no llevan ese prefijo porque no son de Avanza, y ponerles uno sería
+   * inventar un identificador que no está en ninguna señal.
+   *
+   * Medido sobre el cocinado: **934 de 984** con `PAnnnnn` —la misma cuenta que
+   * ZetaBus— y 50 con código numérico a secas.
+   */
+  test('⭐ 25 · PA00033 se enseña como 33; el código del tranvía, tal cual', () => {
+    assert.equal(numeroDePoste('PA00033'), '33');
+    assert.equal(numeroDePoste('PA00719'), '719');
+    assert.equal(numeroDePoste('1312'), '1312');
+    assert.equal(numeroDePoste('0101'), '0101', 'el del tranvía no se recorta');
+    // Y lo que no es ninguna de las dos cosas no se inventa.
+    assert.equal(numeroDePoste('ABC'), null);
+    assert.equal(numeroDePoste(''), null);
+
+    assert.equal(nombrarPoste('PA00033', 'Av. Academia General Militar N.º 37'), '33 · Av. Academia General Militar N.º 37');
+    assert.equal(nombrarPoste('1312', 'Plaza Aragón'), '1312 · Plaza Aragón');
+    // Sin número, solo el nombre: nada de un hueco donde iría algo.
+    assert.equal(nombrarPoste('ABC', 'Un Sitio'), 'Un Sitio');
+
+    // ⭐ Y las 984 del feed: las que tienen número lo tienen bien.
+    const conNumero = red.paradas.filter((p) => numeroDePoste(p.codigo) !== null);
+    assert.equal(conNumero.length, red.paradas.length, 'toda parada del feed tiene número que enseñar');
+    const deAvanza = red.paradas.filter((p) => p.codigo.startsWith('PA'));
+    assert.equal(deAvanza.length, 934);
+    assert.equal(red.paradas.length - deAvanza.length, 50, 'las del tranvía');
+  });
+
+  /**
+   * ⭐ JUEZ 26 — LOS AVISOS DEL VIVO TAMBIÉN NOMBRAN EL POSTE CON SU NÚMERO.
+   *
+   * Es el mismo poste del que habla el hito, y la regla del doble sitio [GOV.UK]
+   * exige que digan lo mismo: si el paso dice «poste 33 · Av. Academia» y el
+   * aviso dice solo «Av. Academia», quien los lee no puede casarlos de un vistazo.
+   */
+  test('⭐ 26 · el aviso del vivo nombra el poste igual que el hito', async () => {
+    reiniciarVisitas();
+    const { origen, destino } = elOjo();
+    const conVivo = await prepararViajeEnBus(motor, red, origen, destino, UN_MARTES).conElVivo!(
+      respondiendo(MEDIDO_POSTE_1203),
+    );
+    for (const a of conVivo.avisos.filter((x) => /el poste/.test(x.texto))) {
+      assert.match(a.texto, /poste \d+ · /, `este aviso nombra un poste sin número: ${a.texto}`);
+    }
+  });
+
+  /**
    * ⭐ JUEZ 23 — DOS POSTES DISTINTOS: LAS DOS CONSULTAS, A LA VEZ.
    *
    * ⚠️ La juez 13 compra la **deduplicación** —dos subidas al MISMO poste hacen
@@ -790,12 +872,12 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     const transborda = t.pasos.find((x) => x.giro === 'transborda')!;
     assert.equal(
       sube.texto,
-      'Sube a la línea 35 en el poste Av. Academia General Militar N.º 37 ' +
+      'Sube a la línea 35 en el poste 33 · Av. Academia General Militar N.º 37 ' +
         '— 12 paradas — frecuencia teórica: cada 8 min',
     );
     assert.equal(
       transborda.texto,
-      'En el poste Plaza De Ariño, transborda de la línea 35 a la línea 39 ' +
+      'En el poste 432 · Plaza De Ariño, transborda de la línea 35 a la línea 39 ' +
         '— 16 paradas — frecuencia teórica de la 39: cada 6 min',
     );
     // Y son las de cada uno: `recorrido − 1`, no las del viaje entero.
@@ -840,13 +922,13 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(transbordos.length, 1, 'un transbordo, un paso');
     assert.equal(
       transbordos[0]!.texto,
-      'En el poste Plaza De Ariño, transborda de la línea 35 a la línea 39 ' +
+      'En el poste 432 · Plaza De Ariño, transborda de la línea 35 a la línea 39 ' +
         '— 16 paradas — frecuencia teórica de la 39: cada 6 min',
     );
     // ⭐ Y los dos chips: las dos líneas van como partes `via`, en orden.
     assert.deepEqual(
       transbordos[0]!.partes.filter((x) => x.papel === 'via').map((x) => x.texto),
-      ['Plaza De Ariño', '35', '39'],
+      ['432 · Plaza De Ariño', '35', '39'],
     );
 
     // Y los tres pasos viejos ya no están.

@@ -32,7 +32,7 @@
  */
 import type { Vertice } from '@desplazame/tipos';
 import type { ParadaBus, PatronBus, RedDeBus, SaltoBus } from './red-bus.ts';
-import { posteDeCodigo } from './avanza.ts';
+import { nombrarPoste, posteDeCodigo } from './avanza.ts';
 import type { ParadaDelDiff, Veredicto } from './desvios.ts';
 import { rectaEntre } from './trazas.ts';
 import { enganchar, type Rejilla } from './proyeccion.ts';
@@ -244,6 +244,11 @@ export interface RedConDesvios {
  * `veredictoDe` devuelve lo que se sepa de un sentido, o `null`. **No sale a la
  * red**: quien la trae es el refresco, y quien busca una ruta nunca espera.
  */
+/** El nombre de una parada del diff, con su número de poste delante. */
+function nombreConNumero(suya: ParadaBus | undefined, del: ParadaDelDiff): string {
+  return suya ? nombrarPoste(suya.codigo, suya.nombre) : `${del.poste} · ${del.nombre}`;
+}
+
 export function aplicarDesvios(
   red: RedDeBus,
   veredictoDe: (linea: string, direccion: string) => Veredicto | null,
@@ -329,8 +334,16 @@ export function aplicarDesvios(
     desviadas.push({
       linea: corto,
       direccion: patron.direccion,
-      fuera: v.fuera.map((p) => porPoste.get(p.poste)?.nombre ?? p.nombre),
-      hacia: v.hacia.map((p) => porPoste.get(p.poste)?.nombre ?? p.nombre),
+      // ⭐ CON SU NÚMERO [referencia GTFS, `stop_code`: el de la señal]. Aquí
+      //    importa más que en ningún sitio: quien lee «no para en …» está
+      //    decidiendo si SU poste es uno de ésos, y comparar «Av. San Juan De La
+      //    Peña N.º 181» con «N.º 187» a ojo es pedirle un trabajo que el número
+      //    del cartel resuelve de un vistazo. Ver `nombrarPoste`.
+      //
+      // ⚠️ El poste que Avanza nombra y el feed no conoce se queda con el
+      //    nombre de Avanza y su número, que es el que la fuente ya trae.
+      fuera: v.fuera.map((p) => nombreConNumero(porPoste.get(p.poste), p)),
+      hacia: v.hacia.map((p) => nombreConNumero(porPoste.get(p.poste), p)),
     });
   }
 
