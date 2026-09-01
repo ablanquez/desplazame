@@ -267,6 +267,21 @@ export function traerDesvio(
   return vuelo;
 }
 
+/**
+ * ⭐ LO QUE UN PASE DE REFRESCO **HA LEÍDO**, para que quien lo aplique no tenga
+ * que volver a pedirlo.
+ *
+ * ⚠️ **Nace de un fallo del 1/09.** El refresco leía los 64 sentidos y luego
+ * `aplicarDesvios` los volvía a pedir a la caché — que puede caducar **mientras
+ * el pase corre**, porque el pase tarda de 17 a 36 segundos y el TTL era el
+ * mismo que el periodo del refresco. Resultado medido: 23 desvíos detectados y
+ * **4** aplicados, y un viaje que mandaba subir donde el autobús no para.
+ *
+ * Un pase entrega lo suyo. No hay ventana entre leer y aplicar porque no hay
+ * segunda lectura.
+ */
+export type LoLeido = ReadonlyMap<string, Veredicto>;
+
 export interface CuentasDeDesvios {
   readonly sentidos: number;
   readonly desviados: number;
@@ -288,7 +303,9 @@ export async function refrescarDesvios(
   pedir: typeof fetch = fetch,
   pausaMs = 250,
   ahora: () => number = Date.now,
-): Promise<CuentasDeDesvios> {
+): Promise<CuentasDeDesvios & { readonly leido: LoLeido }> {
+  /** ⭐ Lo que este pase ha visto, con su clave. Ver `LoLeido`. */
+  const leido = new Map<string, Veredicto>();
   const t0 = ahora();
   let desviados = 0;
   let indeterminados = 0;
@@ -300,6 +317,7 @@ export async function refrescarDesvios(
     const linea = red.lineas.find((l) => l.id === patron.linea)?.corto ?? patron.linea;
     sentidos++;
     const d = await traerDesvio(red, patron, linea, pedir, ahora);
+    leido.set(claveDe(linea, patron.direccion), d.veredicto);
     if (d.veredicto.tipo === 'indeterminado') {
       indeterminados++;
     } else if (d.veredicto.hayDesvio) {
@@ -309,5 +327,5 @@ export async function refrescarDesvios(
       await new Promise((sigue) => setTimeout(sigue, pausaMs));
     }
   }
-  return { sentidos, desviados, indeterminados, ms: ahora() - t0 };
+  return { sentidos, desviados, indeterminados, ms: ahora() - t0, leido };
 }

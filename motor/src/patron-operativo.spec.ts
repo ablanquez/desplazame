@@ -21,9 +21,13 @@ import { buscarViaje, lineaDelViaje, postesCerca } from './viaje-bus.ts';
 import { compararRecorrido, oficialDe, type Veredicto } from './desvios.ts';
 import { leerPostes } from './recorrido.ts';
 import { metrosEntre } from './cercano.ts';
+import type { Motor } from './trayecto.ts';
+import { olvidarDesvios, TTL_DESVIOS_MS } from './desvios.ts';
 import {
   aplicarDesvios,
   avisoDeDesvio,
+  laOperativa,
+  refrescarYServir,
   idDeProvisional,
   patronOperativo,
   rodarConLaRueda,
@@ -49,6 +53,7 @@ let peaton: RedEnMemoria;
 let rodar: RodarEntre;
 let andar: ReturnType<typeof andarConElPeaton>;
 let laVeintinueve: PatronBus;
+let motorDeLaRueda: Motor;
 let veredicto: Veredicto;
 
 const soloLa29 = (linea: string, direccion: string): Veredicto | null =>
@@ -60,7 +65,12 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
     andar = andarConElPeaton(peaton, cargarRejilla(peaton), cuadernoPara(peaton));
     const portales = cargarPortales();
     const rueda = cargarRedDeLaRueda(cargarGrafo(), peaton, entornoDe(portales));
-    rodar = rodarConLaRueda(rueda, cargarRejilla(rueda), cuadernoPara(rueda));
+    const rejillaRueda = cargarRejilla(rueda);
+    const cuadernoRueda = cuadernoPara(rueda);
+    rodar = rodarConLaRueda(rueda, rejillaRueda, cuadernoRueda);
+    // ⭐ Lo MÍNIMO que `refrescarYServir` toca: la rueda y nada más. Va con un
+    //    `as` declarado, como el motor mínimo de `viaje-bus.spec.ts`.
+    motorDeLaRueda = { redRueda: rueda, rejillaRueda, cuadernoRueda } as unknown as Motor;
     red = (await cocinar(elFeedQueSeSirve().ruta, andar)).red;
     laVeintinueve = red.patrones.find(
       (p) => lineaDelViaje(red, p).corto === '29' && p.direccion === '1' && p.principal,
@@ -296,4 +306,79 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
       'sin coordenada no existe',
     );
   });
+
+  /**
+   * ⭐ JUEZ 7 — DOS PASES SEGUIDOS DEJAN LA MISMA RED. **La que faltaba.**
+   *
+   * ═══════════════════════════════════════════════════════════════════════════
+   *  ⚠️ Y hace falta que sea sobre `refrescarYServir`, no sobre `aplicarDesvios`:
+   *    el fallo del 1/09 no estaba en aplicar, estaba en **de dónde salían los
+   *    veredictos al aplicar**. Lo destapó la contraprueba — mutar
+   *    `refrescarYServir` para que volviera a leer de la caché **no ponía roja
+   *    ninguna juez**, porque las que había le pasaban los veredictos a mano.
+   *
+   *  El caso: el segundo pase llega a `TTL − 10 s` del primero, encuentra la capa
+   *  fresca por unos segundos, no visita la fuente ni una vez... y para cuando
+   *  termina, la capa ha caducado. Si aplicara lo que la capa tenga entonces,
+   *  aplicaría **cero**. Medido antes de arreglarlo: 23 detectados, 4 aplicados.
+   * ═══════════════════════════════════════════════════════════════════════════
+   */
+  test('⭐ 7 · un segundo pase a TTL − 10 s deja la red igual que el primero', async () => {
+    olvidarDesvios();
+
+    /** La fuente de mentira: cada sentido pierde su primera parada → desviado. */
+    const fuente: typeof fetch = (async (
+      _url: string,
+      opciones?: { body?: string },
+    ): Promise<Response> => {
+      const cuerpo = new URLSearchParams(opciones?.body ?? '');
+      const linea = cuerpo.get('selectLinea');
+      if (!linea) {
+        return new Response('<input id="avz_bus_ajax_nonce" value="fingido" />', { status: 200 });
+      }
+      const sentido = cuerpo.get('selectSentido');
+      const patron = red.patrones.find(
+        (x) =>
+          x.principal &&
+          x.modo === 'bus' &&
+          lineaDelViaje(red, x).corto === linea &&
+          (x.direccion === '0' ? '-1' : '-2') === sentido,
+      );
+      if (!patron) {
+        return new Response('', { status: 200 });
+      }
+      return new Response(
+        oficialDe(red, patron)
+          .slice(1)
+          .map((q) => `<option value="${q.poste}">${q.poste} - ${q.nombre}</option>`)
+          .join(''),
+        { status: 200 },
+      );
+    }) as unknown as typeof fetch;
+
+    // El día de más servicio del calendario: uno en el que de verdad circulan.
+    const cuando = Object.entries(red.porFecha).sort((a, b) => b[1].length - a[1].length)[0]![0];
+
+    const T0 = 1_700_000_000_000;
+    let reloj = T0;
+    const uno = await refrescarYServir(motorDeLaRueda, red, cuando, fuente, 0, () => reloj);
+    const primera = [...(laOperativa()?.suprimidas ?? [])].sort();
+    assert.ok(uno.deLaFuente.desviados > 0, 'la fuente de mentira tiene que dar desvíos');
+    assert.ok(primera.length > 0, 'el primer pase tiene que suprimir algo');
+
+    // ⭐ EL SEGUNDO PASE, justo antes de que caduque la capa del primero.
+    reloj = T0 + TTL_DESVIOS_MS - 10_000;
+    const dos = await refrescarYServir(motorDeLaRueda, red, cuando, fuente, 0, () => reloj);
+    const segunda = [...(laOperativa()?.suprimidas ?? [])].sort();
+
+    assert.equal(dos.deLaFuente.desviados, uno.deLaFuente.desviados, 'detecta los mismos');
+    // ⭐ Y APLICA LOS MISMOS: es lo que se perdía.
+    assert.equal(
+      dos.deLaRed.patrones,
+      uno.deLaRed.patrones,
+      `el segundo pase aplicó ${dos.deLaRed.patrones} de los ${dos.deLaFuente.desviados} que detectó`,
+    );
+    assert.deepEqual(segunda, primera, 'el segundo pase perdió supresiones que el primero sí puso');
+  });
+
 });

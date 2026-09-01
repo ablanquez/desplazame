@@ -41,7 +41,7 @@ import { admiteComoPuerta, calcularRutaRodando } from './rodando.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
 import type { Motor } from './trayecto.ts';
 import { coordenadaDelPoste } from './avanza.ts';
-import { desvioServido, refrescarDesvios, type CuentasDeDesvios } from './desvios.ts';
+import { claveDe, refrescarDesvios, type CuentasDeDesvios } from './desvios.ts';
 
 /** Un camino entre dos puntos sobre el grafo vial, o `null` si no conecta. */
 export type RodarEntre = (
@@ -387,14 +387,40 @@ export function avisoDeDesvio(d: RedConDesvios['desviadas'][number]): string {
  * Es lo que corre al arrancar y cada hora. ⚠️ **Nadie lo espera**: la búsqueda
  * lee lo que haya servido, y mientras no haya nada usa la red del feed.
  */
+/**
+ * ⭐ EL RESUMEN DEL REFRESCO, en UNA línea y con las DOS cuentas.
+ *
+ * ⚠️ **Esto es media entrada de bitácora.** El log decía «23 desviados» en una
+ * línea y «4 patrones rehechos» en la siguiente, y las dos eran ciertas: la
+ * primera cuenta lo que la FUENTE contestó y la segunda lo que se APLICÓ. Con
+ * palabras distintas y en renglones distintos, 19 desvíos perdidos no producían
+ * ni una señal — había que leer dos líneas, saber que deberían parecerse y
+ * restar de cabeza.
+ *
+ * Ahora van juntas, con la misma palabra, y **si no cuadran se dice**.
+ */
+export function resumenDelRefresco(cuentas: CuentasDeDesvios, aplicados: number): string {
+  const base =
+    `ruta operativa de hoy — ${cuentas.sentidos} sentidos · ` +
+    `${cuentas.desviados} detectados · ${aplicados} aplicados · ` +
+    `${cuentas.indeterminados} sin saber · ${Math.round(cuentas.ms / 1000)} s`;
+  const perdidos = cuentas.desviados - aplicados;
+  return perdidos === 0
+    ? base
+    : `${base} · ⚠ ${perdidos} DETECTADOS Y NO APLICADOS: hay viajes que pueden subir donde el bus hoy no para`;
+}
+
 export async function refrescarYServir(
   motor: Motor,
   red: RedDeBus,
   fecha: string,
   pedir: typeof fetch = fetch,
   pausaMs = 250,
+  /** ⚠️ Se acepta para poder PROBARLO: sin reloj falso no hay forma de montar
+   *     el caso de los dos pases seguidos, que es donde vivía el fallo. */
+  ahora: () => number = Date.now,
 ): Promise<{ readonly deLaFuente: CuentasDeDesvios; readonly deLaRed: CuentasDelOperativo }> {
-  const deLaFuente = await refrescarDesvios(red, fecha, pedir, pausaMs);
+  const deLaFuente = await refrescarDesvios(red, fecha, pedir, pausaMs, ahora);
 
   // Las coordenadas de los postes que el GTFS no conoce, del `marcadorParada`
   // de su feed de llegadas [técnica de ZetaBus]. Una petición por poste nuevo,
@@ -402,17 +428,17 @@ export async function refrescarYServir(
   const conocidos = new Set(
     red.paradas.map((p) => posteDeCodigo(p.codigo)).filter((x): x is number => x !== null),
   );
+  // ⚠️ Y los postes nuevos salen de **lo que este pase leyó**, por lo mismo: si
+  //    se pidieran a la caché, un pase largo se quedaría sin provisionales y los
+  //    patrones desviados no se podrían rehacer.
   const nuevos = new Set<number>();
-  for (const l of red.lineas) {
-    for (const d of ['0', '1']) {
-      const v = desvioServido(l.corto, d)?.veredicto;
-      if (v?.tipo !== 'comparado') {
-        continue;
-      }
-      for (const p of v.hacia) {
-        if (!conocidos.has(p.poste)) {
-          nuevos.add(p.poste);
-        }
+  for (const v of deLaFuente.leido.values()) {
+    if (v.tipo !== 'comparado') {
+      continue;
+    }
+    for (const p of v.hacia) {
+      if (!conocidos.has(p.poste)) {
+        nuevos.add(p.poste);
       }
     }
   }
@@ -428,9 +454,19 @@ export async function refrescarYServir(
   }
 
   const rodar = rodarConLaRueda(motor.redRueda, motor.rejillaRueda, motor.cuadernoRueda);
+  // ⭐ SE APLICA LO QUE ESTE PASE ACABA DE LEER, no lo que la caché tenga ahora.
+  //
+  // ⚠️ Aquí ponía `desvioServido(linea, direccion)`, o sea: se volvía a preguntar
+  //    a la capa **después** de un pase que tarda de 17 a 36 segundos. Y la capa
+  //    caduca — con un TTL que además era el mismo que el periodo del refresco—,
+  //    así que los veredictos servidos de caché al principio del pase, que
+  //    conservan su `cuando` viejo, morían en el camino. Medido con reloj falso:
+  //    64 detectados, 0 visitas nuevas a la fuente y **0 vivos a los 11 s**.
+  //    En producción eso fueron 23 desviados y 4 aplicados. Ver la entrada del
+  //    1/09 en `docs/BITACORA.md`.
   const compuesta = aplicarDesvios(
     red,
-    (linea, direccion) => desvioServido(linea, direccion)?.veredicto ?? null,
+    (linea, direccion) => deLaFuente.leido.get(claveDe(linea, direccion)) ?? null,
     donde,
     rodar,
   );

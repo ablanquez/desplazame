@@ -60,8 +60,27 @@ import {
   MODOS_ATENDIDOS,
   type Motor,
 } from './trayecto.ts';
-import { refrescarYServir } from './patron-operativo.ts';
+import { refrescarYServir, resumenDelRefresco } from './patron-operativo.ts';
 import { TTL_DESVIOS_MS } from './desvios.ts';
+
+/**
+ * ⭐ CADA CUÁNTO SE REFRESCA LA RUTA OPERATIVA. **Menos que su TTL, a propósito.**
+ *
+ * ⚠️ Aquí ponía `TTL_DESVIOS_MS` —el mismo valor, la misma constante—, y eso es
+ * una carrera perdida de antemano: el pase encontraba la capa fresca por unos
+ * segundos, no visitaba la fuente ni una vez, y la capa caducaba **mientras el
+ * pase corría**. Medido con reloj falso: a `TTL − 10 s`, cero visitas nuevas y
+ * cero veredictos vivos once segundos después.
+ *
+ * El pase tarda de **17 a 36 s** en producción, así que renovar cada medio TTL
+ * deja media hora de margen: cuando el refresco pasa, lo que hay en la capa
+ * lleva 30 minutos de vida y le quedan otros 30.
+ *
+ * ⚠️ Y esto por sí solo NO arregla el fallo —lo arregla que el refresco aplique
+ * lo que acaba de leer—, pero sin ello el sistema seguiría dependiendo de que
+ * dos relojes no se rocen. Las dos cosas, no una.
+ */
+const CADA_CUANTO_SE_REFRESCA_MS = TTL_DESVIOS_MS / 2;
 import { leerPeticion } from './peticion.ts';
 
 /** Cuánto se acepta como cuerpo de una petición. Una ruta cabe de sobra. */
@@ -833,13 +852,11 @@ servidor.listen(PUERTO, () => {
     }
     void refrescarYServir(motor, red, hoyEnGtfs(new Date()))
       .then(({ deLaFuente, deLaRed }) => {
+        // ⭐ DETECTADOS **Y** APLICADOS, en la misma línea y con la misma
+        //    palabra. Ver `resumenDelRefresco`: el log dice lo que se aplicó.
+        console.log('motor: ' + resumenDelRefresco(deLaFuente, deLaRed.patrones));
         console.log(
-          `motor: ruta operativa de hoy — ${deLaFuente.sentidos} sentidos · ` +
-            `${deLaFuente.desviados} desviados · ${deLaFuente.indeterminados} sin saber · ` +
-            `${Math.round(deLaFuente.ms / 1000)} s`,
-        );
-        console.log(
-          `motor:   ${deLaRed.patrones} patrones rehechos · ${deLaRed.saltosNuevos} saltos nuevos ` +
+          `motor:   ${deLaRed.saltosNuevos} saltos nuevos ` +
             `(${deLaRed.reconstruidos} ruteados · ${deLaRed.rectas} en RECTA de reserva) · ` +
             `${deLaRed.provisionales} postes provisionales · ${deLaRed.sinCoordenada} sin coordenada`,
         );
@@ -850,5 +867,5 @@ servidor.listen(PUERTO, () => {
       });
   };
   refrescarLosDesvios();
-  setInterval(refrescarLosDesvios, TTL_DESVIOS_MS).unref();
+  setInterval(refrescarLosDesvios, CADA_CUANTO_SE_REFRESCA_MS).unref();
 });

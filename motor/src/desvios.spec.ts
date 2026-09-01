@@ -13,6 +13,7 @@ import assert from 'node:assert/strict';
 import { elFeedQueSeSirve } from './feed.ts';
 import { cocinar, type PatronBus, type RedDeBus } from './red-bus.ts';
 import { lineaDelViaje } from './viaje-bus.ts';
+import { aplicarDesvios, resumenDelRefresco } from './patron-operativo.ts';
 import {
   claveDe,
   compararRecorrido,
@@ -23,6 +24,7 @@ import {
   traerDesvio,
   TTL_DESVIOS_MS,
   UMBRAL_ABSURDO,
+  refrescarDesvios,
   visitasAlRecorrido,
   type ParadaDelDiff,
 } from './desvios.ts';
@@ -311,3 +313,152 @@ describe('⭐ LA RUTA OPERATIVA DE HOY — lector y diff', () => {
     assert.equal(visitasAlRecorrido(), 0, 'y no se ha salido a la red ni una vez');
   });
 });
+
+/**
+ * ⭐ EL REFRESCO QUE PERDÍA LO QUE ACABABA DE LEER (1/09).
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  ⛔ EL FALLO, y estaba medido antes de tocarlo. El refresco corre **cada
+ *    `TTL_DESVIOS_MS`** —`setInterval(refrescarLosDesvios, TTL_DESVIOS_MS)`—, o
+ *    sea con el MISMO periodo que dura la caché. Y `traerDesvio`, cuando sirve
+ *    un veredicto de la capa, **no le renueva el `cuando`**.
+ *
+ *  ⇒ El segundo pase encuentra todo fresco por unos segundos, **no visita la
+ *    fuente ni una vez**, cuenta los desvíos que ya tenía... y cuando termina y
+ *    llega el momento de aplicarlos, ya han caducado. Medido con reloj falso, un
+ *    pase a `TTL − 10 s` del anterior:
+ *
+ *        detectados: 64 de 64 · visitas nuevas a la fuente: 0
+ *        al aplicar,  5 s después del pase: 64 vivos · 64 con desvío
+ *        al aplicar, 11 s después del pase:  0 vivos ·  0 con desvío
+ *
+ *    En producción el pase tarda **17-36 s**, así que `aplicarDesvios` llegaba
+ *    tarde siempre. El log del motor lo enseñó sin que nadie lo viera: los dos
+ *    refrescos dijeron «23 desviados» y aplicaron 23 y **4**.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+// ── EL REFRESCO QUE PERDÍA LO QUE ACABABA DE LEER ──────────────────────────
+  /**
+   * Un día en el que la red **de verdad opera**: el de más servicios del
+   * calendario. ⚠️ No vale «el primero»: el feed arrastra fechas sueltas de
+   * calendarios viejos —la primera es `20250916`— en las que no circula nadie, y
+   * el pase se quedaría en cero sentidos sin que eso dijera nada del refresco.
+   */
+  const hoyDelFeed = (): string =>
+    Object.entries(red.porFecha).sort((a, b) => b[1].length - a[1].length)[0]![0];
+
+  /** Una fuente de mentira: cada sentido pierde su primera parada → desviado. */
+  const fuente = (red: RedDeBus): typeof fetch =>
+    (async (_url: string, opciones?: { body?: string }): Promise<Response> => {
+      const cuerpo = new URLSearchParams(opciones?.body ?? '');
+      const linea = cuerpo.get('selectLinea');
+      if (!linea) {
+        return new Response('<input id="avz_bus_ajax_nonce" value="fingido" />', { status: 200 });
+      }
+      const sentido = cuerpo.get('selectSentido');
+      const patron = red.patrones.find(
+        (x) =>
+          x.principal &&
+          x.modo === 'bus' &&
+          (red.lineas.find((l) => l.id === x.linea)?.corto ?? x.linea) === linea &&
+          (x.direccion === '0' ? '-1' : '-2') === sentido,
+      );
+      const postes = oficialDe(red, patron!).slice(1);
+      return new Response(
+        postes.map((q) => `<option value="${q.poste}">${q.poste} - ${q.nombre}</option>`).join(''),
+        { status: 200 },
+      );
+    }) as unknown as typeof fetch;
+
+  /**
+   * ⭐ JUEZ 2 — EL SEGUNDO PASE A `TTL − 10 s` NO PIERDE NI UNO.
+   *
+   * Es el caso exacto de producción: el refresco vuelve justo cuando la caché
+   * está a punto de caducar, y el pase tarda medio minuto en terminar.
+   */
+  test('⭐ 2 · un pase a TTL − 10 s entrega sus veredictos, aunque tarde 30 s en aplicarlos', async () => {
+    olvidarDesvios();
+    const T0 = 1_700_000_000_000;
+    let reloj = T0;
+    const uno = await refrescarDesvios(red, hoyDelFeed(), fuente(red), 0, () => reloj);
+    assert.ok(uno.desviados > 0, `la fuente de mentira tiene que dar desvíos: sentidos=${uno.sentidos} desviados=${uno.desviados} indeterminados=${uno.indeterminados} fecha=${hoyDelFeed()}`);
+
+    // El segundo pase, justo antes de que caduque la capa.
+    reloj = T0 + TTL_DESVIOS_MS - 10_000;
+    const dos = await refrescarDesvios(red, hoyDelFeed(), fuente(red), 0, () => reloj);
+    assert.equal(dos.desviados, uno.desviados, 'detecta los mismos');
+
+    // ⭐ EL PASE ENTREGA LO SUYO: `leido` trae un veredicto por sentido.
+    assert.equal(dos.leido.size, dos.sentidos, 'el pase tiene que devolver lo que ha leído');
+    const conDesvio = [...dos.leido.values()].filter(
+      (v) => v.tipo === 'comparado' && v.hayDesvio,
+    ).length;
+    assert.equal(conDesvio, dos.desviados, 'y lo entregado son los que ha contado');
+
+    // ⚠️ Y ESTO ES LO QUE HACE FALTA LA ENTREGA: la capa, 30 s después de
+    //    empezar el pase —lo que tarda el de verdad—, ya no tiene nada. Si
+    //    `aplicarDesvios` volviera a preguntarle, encontraría CERO.
+    const alAplicar = reloj + 30_000;
+    let vivos = 0;
+    for (const l of red.lineas) {
+      for (const d of ['0', '1']) {
+        if (desvioServido(l.corto, d, alAplicar)) {
+          vivos++;
+        }
+      }
+    }
+    assert.equal(vivos, 0, 'la capa caduca durante el pase: por eso el pase entrega lo suyo');
+    // Y lo entregado sigue entero, que es lo único que importa.
+    assert.equal(dos.leido.size, dos.sentidos);
+  });
+
+  /**
+   * ⭐ JUEZ 1 — DOS PASES SEGUIDOS DEJAN LA MISMA LISTA DE SUPRIMIDAS.
+   *
+   * Un refresco que no cambia nada fuera no puede cambiar nada dentro. Si el
+   * segundo pase entrega menos, esta juez lo dice con los ids delante.
+   */
+  test('⭐ 1 · dos pases seguidos dejan las MISMAS suprimidas', async () => {
+    olvidarDesvios();
+    const T0 = 1_700_000_000_000;
+    let reloj = T0;
+    const conLoLeido = async (): Promise<string[]> => {
+      const cuentas = await refrescarDesvios(red, hoyDelFeed(), fuente(red), 0, () => reloj);
+      // ⭐ Se aplica LO QUE EL PASE ACABA DE LEER, que es lo que hace el motor
+      //    desde el 1/09. La capa, a estas alturas, puede estar ya vacía.
+      const r = aplicarDesvios(
+        red,
+        (linea, direccion) => cuentas.leido.get(claveDe(linea, direccion)) ?? null,
+        new Map(),
+        () => null,
+      );
+      assert.ok(cuentas.desviados > 0);
+      return [...r.suprimidas].sort();
+    };
+
+    const primera = await conLoLeido();
+    assert.ok(primera.length > 0, 'el primer pase tiene que suprimir algo');
+
+    reloj = T0 + TTL_DESVIOS_MS - 10_000;
+    const segunda = await conLoLeido();
+    assert.deepEqual(segunda, primera, 'el segundo pase perdió supresiones que el primero sí puso');
+  });
+
+  /**
+   * ⭐ JUEZ 3 — EL LOG DICE **DETECTADOS Y APLICADOS**, y grita si no cuadran.
+   *
+   * ⚠️ Aquí estaba la mentira que dejó el fallo vivo un día entero: las dos
+   * cifras existían —«23 desviados» y «23 patrones rehechos»— pero en líneas
+   * distintas y con palabras distintas, así que 23 detectados y 4 aplicados se
+   * leía como dos hechos normales en vez de como una alarma.
+   */
+  test('⭐ 3 · el resumen dice detectados y aplicados, y avisa cuando difieren', () => {
+    const cuadra = resumenDelRefresco({ sentidos: 64, desviados: 23, indeterminados: 0, ms: 36_000 }, 23);
+    assert.match(cuadra, /23 detectados · 23 aplicados/);
+    assert.equal(/no aplicado|⚠/.test(cuadra), false, 'si cuadran no hay nada que gritar');
+
+    const no = resumenDelRefresco({ sentidos: 64, desviados: 23, indeterminados: 0, ms: 17_000 }, 4);
+    assert.match(no, /23 detectados · 4 aplicados/);
+    assert.match(no, /19/, 'la diferencia se dice, no se deja restar');
+    assert.match(no, /⚠/, 'y se marca como lo que es');
+  });
