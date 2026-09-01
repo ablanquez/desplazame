@@ -10,7 +10,8 @@
  *    a base de aprobar un texto invisible; el nuestro lo comprueba antes de medir
  *    nada, en la primera juez de este fichero.
  */
-import { abrirChrome, contrasteReal, contrasteRgb, deHex, luminancia, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
+import { readFileSync } from 'node:fs';
+import { abrirChrome, contrasteReal, contrasteRgb, deHex, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
 
 const APP = 'http://localhost:4200/';
 /** La tierra de OpenStreetMap, sobre la que se pinta casi toda ruta. */
@@ -124,6 +125,57 @@ try {
     if (r.contraste < AA_TEXTO) flojos.push(`${linea} a ${r.contraste.toFixed(2)}:1`);
   }
   juez('1+2 · todo chip de la pantalla ≥ 4,5:1 medido en el píxel', flojos.length === 0, flojos.join(' · '));
+
+  // ── JUEZ 1 COMPLETA · LAS 53 LÍNEAS DEL FEED, EN EL PÍXEL ────────────────
+  //
+  // ⚠️ Un viaje enseña dos o tres chips, no 53. Así que los 53 se miden
+  //    **CLONANDO un chip de verdad de la página** y cambiándole el fondo: el
+  //    clon hereda el atributo de encapsulado de Angular, así que le aplica el
+  //    CSS REAL del producto —el mismo contorno, el mismo cuerpo, el mismo
+  //    suavizado—. Lo único que se pone desde fuera es el color del feed, que es
+  //    justo lo que varía entre líneas.
+  //
+  //    Lo que esto NO es: una pantalla del producto con 53 chips, que no existe.
+  //    Lo que SÍ es: el estilo del producto sometido a los 53 colores reales.
+  const cocinado = JSON.parse(
+    readFileSync(new URL('../data/nap_gtfs-ficha1176.cocinado.json', import.meta.url), 'utf-8'),
+  ).lineas;
+  console.log(`\n  las ${cocinado.length} líneas del feed, con el CSS del chip real:`);
+  await m.evaluar(`(() => {
+    const modelo = document.querySelector('.chip-linea');
+    const banco = document.createElement('div');
+    banco.id = 'banco';
+    banco.style.cssText = 'position:fixed;top:0;left:0;z-index:99999;background:#fff;padding:4px';
+    document.body.appendChild(banco);
+    window.__ponChip = (corto, fondo, texto, contorno) => {
+      banco.innerHTML = '';
+      const c = modelo.cloneNode(true);
+      c.textContent = corto;
+      c.style.backgroundColor = '#' + fondo;
+      c.style.color = '#' + texto;
+      c.classList.toggle('chip-linea--contorno', contorno);
+      c.className = c.className + ' medido';
+      banco.appendChild(c);
+    };
+  })()`);
+
+  const NOCHE = '1C1A42';
+  const malos = [];
+  for (const l of cocinado) {
+    const buho = /^N/i.test(l.corto);
+    const fondo = buho ? NOCHE : l.color;
+    const texto = buho ? l.color : 'FFFFFF';
+    await m.evaluar(`window.__ponChip(${JSON.stringify(l.corto)}, ${JSON.stringify(fondo)}, ${JSON.stringify(texto)}, ${!buho})`);
+    await m.dormir(60);
+    const r = await contrasteReal(m, '.medido');
+    if (r.contraste < AA_TEXTO) malos.push(`${l.corto} a ${r.contraste.toFixed(2)}:1`);
+  }
+  await m.evaluar(`document.querySelector('#banco')?.remove()`);
+  juez(
+    `1 · las ${cocinado.length} líneas del feed ≥ 4,5:1 con el CSS real, medidas en el píxel`,
+    malos.length === 0,
+    malos.length ? malos.join(' · ') : 'ninguna por debajo',
+  );
 
   // ── JUEZ 3 · LAS LÍNEAS DEL MAPA, contra la tierra de OSM ─────────────────
   const lineas = await m.evaluar(`[...document.querySelectorAll('path.leaflet-interactive')].map((p) => ({
