@@ -3,15 +3,30 @@
 La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno**, que conserva sus
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
-> ℹ️ **Estado a 20/08/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **catorce** conjuntos de
-> datos —los portales, **el callejero de vías**, los carriles bici, los postes de autobús, las
-> estaciones BiZi, los aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas
-> reguladas, **las reservas de espacio** y **los ejes de vía** del Ayuntamiento; el grafo de
-> continuidad y **los nombres de vía** derivados de OSM; y el GTFS del Punto de Acceso Nacional—. Quedan fuera las capas municipales de tranvía;
-> cada pieza llega con su autorización y su ficha.
+> ℹ️ **Estado a 01/09/2026.** El proyecto está en construcción. Hoy hay de terceros: las
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **veinticinco** conjuntos
+> de datos con ficha propia —§ 1.1 a § 1.25; la § 1.26 declara lo que **todavía no** ha entrado—.
+> Quedan fuera las capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
 >
-> ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7).
+> ⭐ **Y tres de esas veinticinco NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08
+> y que hoy separa el documento en dos mitades:
+>
+> | | Qué se consulta | Quién |
+> |---|---|---|
+> | § 1.23 | la disponibilidad del BiZi | Ayuntamiento de Zaragoza |
+> | § 1.24 | las llegadas al poste | **Avanza Zaragoza** |
+> | § 1.25 | la ruta operativa de hoy | **Avanza Zaragoza** |
+>
+> ⛔ **Y las dos de Avanza traen un aviso legal que PROHÍBE la extracción y la reutilización**,
+> medido y transcrito el 01/09 en su ficha. No se interpreta aquí: se lee ahí.
+>
+> ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7) — y no de golpe: el **bus** se acaba
+> ese día y el **tranvía** sigue. Está medido día a día en su ficha.
+>
+> ⚠️ **Este párrafo decía «catorce» conjuntos y «Estado a 20/08/2026», y las dos cosas se habían
+> quedado viejas**: el documento pasó de catorce fichas a veintiséis sin que esta línea se
+> enterara. Es la entrada nº5 de la bitácora otra vez —una regla de releída vale lo que su
+> alcance—, y se corrige con el comando delante: `grep -c '^### 1\.' THIRD-PARTY-NOTICES.md` → **26**.
 >
 > **Las huellas sha256 de esta página se verifican sobre un clon**, no sobre el disco de quien
 > las escribe: git puede reescribir bytes al hacer *checkout*. Ver `docs/BITACORA.md` nº3, y el
@@ -229,17 +244,27 @@ el mismo espacio de códigos, lo que permitirá cruzarlos sin inventar correspon
 
 > ⚠️ **Este fichero NO trae las líneas que pasan por cada poste.** Tiene tres campos y ninguno
 > es de líneas. No es un recorte: **no existen como fichero** en ningún sitio del que este
-> proyecto pueda copiarlas hoy. Queda anotado como **dependencia pendiente**.
+> proyecto pueda copiarlas hoy.
 
-**Dónde viven las líneas, para cuando toque:** en el **GTFS** —pieza propia todavía por
-autorizar en este mismo punto 4— y en el **barrido nocturno contra el operador**, que es el
-patrón ya construido y probado en ZetaBus y que aquí corresponde al punto 8. El puente entre
-unos y otros es el **`stop_code`**: el espacio de códigos `PA…` (p. ej. `PA00010`) es el mismo
-que usan el catálogo municipal y los artefactos del intento anterior, así que se podrán cruzar
-sin inventar correspondencias.
+**✅ Y esa dependencia está resuelta desde el 31/08** — se anotó como pendiente aquí y se cerró
+con tres piezas, cada una con su ficha:
+
+- **§ 1.7, el GTFS**: de ahí salen las líneas, el orden de las paradas y el calendario. Es lo que
+  el motor cocina en **170 patrones** y por lo que rutea.
+- **§ 1.25, la ruta operativa de hoy**: lo que cada línea hace HOY, para saber por dónde **no**
+  pasa.
+- **§ 1.24, las llegadas al poste**: cuándo pasa el próximo de verdad.
+
+El puente entre unos y otros es el **`stop_code`**, y ya está cruzado: el espacio `PA…` (p. ej.
+`PA00010`) es el mismo en el catálogo municipal y en el feed. ⭐ **Medido el 01/09 sobre el feed
+que se sirve: de sus 984 paradas, 934 traen `PA…`** — exactamente las de bus— **y las 50 restantes
+son el tranvía**, con códigos de cuatro cifras. Y es el mismo número que se enseña al viajero:
+`PA00033` se dice **«poste 33 · …»**, que es lo que hay escrito en la marquesina [referencia GTFS,
+`stop_code`].
 
 **Dos censos de la misma cosa, y los dos legítimos.** El proyecto anterior manejaba **~934**
-postes; aquí hay **944**. No es una discrepancia que haya que resolver: son **censos
+postes; aquí hay **944**. ⭐ **Y el 934 ya no es «~»**: el feed de § 1.7 trae **exactamente 934**
+paradas con `stop_code` `PA…`, medido el 01/09. No es una discrepancia que haya que resolver: son **censos
 distintos**. Los ~934 salían del cruce GTFS + barrido del operador —lo que el operador
 *anuncia*—; los 944 son lo que el Ayuntamiento *tiene inventariado*. Un poste fuera de
 servicio, o de refuerzo, está en uno y no en el otro. Ninguno de los dos números está mal.
@@ -254,7 +279,32 @@ servicio, o de refuerzo, está en uno y no en el otro. Ninguno de los dos númer
 > ## ⏳ ESTE DATO CADUCA EL **05/10/2026**
 > Lo declara el propio feed: `feed_info.feed_end_date = 20261005`. Es una **instantánea
 > autorizada**, no una fuente viva. Pasada esa fecha, lo que hay aquí describe una red que ya
-> no está vigente, y **nada en el repositorio lo va a avisar solo**.
+> no está vigente — y desde el 31/08 sí hay algo que lo avisa: **el cron nocturno trae la
+> publicación nueva del NAP en cuanto Avanza la publique**, y el motor la sirve al arrancar.
+>
+> ⭐ **Y la caducidad NO es un corte limpio: el bus y el tranvía mueren en días distintos.**
+> Medido el 01/09/2026 cruzando `calendar_dates.txt` con `trips.txt` sobre el feed que se sirve:
+>
+> ```
+> 20261005 — bus 7217 · tranvía 368     ← el ÚLTIMO día con viajes de BUS
+> 20261006 — bus    0 · tranvía 368
+> 20261007 — bus    0 · tranvía 368
+> 20261008 — bus    0 · tranvía 368
+> 20261009 — bus    0 · tranvía 396
+> 20261010 … 20261018 — SIN NI UNA FILA en calendar_dates
+> 20261019 — bus    0 · tranvía 368     ← el tranvía vuelve, el bus no
+> ```
+>
+> Tres cosas, y las tres son del dato:
+>
+> 1. **El bus se acaba el 05/10**, con **7.217 viajes** ese día. Del 06/10 en adelante, **cero**.
+> 2. **El tranvía sigue** hasta el **27/12/2026**, con un hueco en medio.
+> 3. **Del 10 al 18 de octubre no hay ni una fila** — ni bus ni tranvía—, y ahí dentro cae **el
+>    12/10, el Pilar**. No es que el servicio sea cero: es que **este feed no describe esos
+>    días**, y el operador publicará su calendario de fiestas por su cuenta.
+>
+> ⚠️ Escrito así porque «caduca el 05/10» a secas se lee como si el 06 se apagara todo, y lo
+> medido es otra cosa.
 
 | | |
 |---|---|
@@ -289,8 +339,8 @@ dependencia nueva y no la hay:
 
 | Miembro extraído | Bytes | sha256 | Para qué |
 |---|---|---|---|
-| [`…_shapes.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_shapes.txt) | 1.408.077 | `f38397d36c98fb756b2ee5a3ca261fbfc712aea2e51903d51b7c9b4fddb18157` | Los 89 trazados que se pintan |
-| [`…_stops.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_stops.txt) | 99.309 | `6d1a969ab25d7be41ffb9b8184589865407be671fd52fadc50206aa3917c957b` | **Las 50 paradas del tranvía**, que no están en ninguna otra fuente del repositorio: el MU3 municipal (§ 1.6) es solo bus. De sus 984 paradas se pintan **solo esas 50**; las 934 `PA…` de bus no, porque para eso manda el censo municipal |
+| [`…_shapes.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_shapes.txt) | 1.408.077 | `f38397d36c98fb756b2ee5a3ca261fbfc712aea2e51903d51b7c9b4fddb18157` | Los **89 trazados**. ⭐ **Desde el 31/08 no solo se pintan: se RUTEA con ellos** — el cocinado proyecta cada parada sobre su trazado y guarda **la traza de cada salto**, así que el bus va por el asfalto y no en línea recta. Medido: **3.362 saltos · 48.307 puntos** cocinados |
+| [`…_stops.txt`](app/data/2026-08-10_nap_gtfs-ficha1176_stops.txt) | 99.309 | `6d1a969ab25d7be41ffb9b8184589865407be671fd52fadc50206aa3917c957b` | **Las 50 paradas del tranvía**, que no están en ninguna otra fuente del repositorio: el MU3 municipal (§ 1.6) es solo bus. ⭐ **Y desde el 31/08 las 984 son la red por la que el motor RUTEA** —sube, transborda y baja entre ellas—; **en el PINTADO de postes sigue mandando el MU3**, que es el censo municipal, y ahí de las 984 se pintan solo esas 50 |
 
 **Extraer no es editar**: en los dos casos el hash del fichero en disco es idéntico al del miembro
 dentro del archivo, comprobado con `unzip -p … | sha256sum` antes y después.
@@ -311,8 +361,11 @@ los límites de GitHub.
 | Ficheros en el archivo | **8** (`agency`, `calendar_dates`, `feed_info`, `routes`, `shapes`, `stops`, `stop_times`, `trips`) |
 | `stops` | **984** = **934** con `stop_code` `PA…` + **50** con código de cuatro cifras (`0101`, `0201`…) |
 | `routes` | **53** = **52** de la agencia 1 (bus) + **1** de la agencia 11 (tranvía) |
+| `route_type` | **704 en 52** y **900 en 1**. Los dos son de la **extensión de tipos de ruta** de GTFS, no del enum básico: `704` es *«Local Bus Service»* y `900` *«Tram Service»*. Un lector que solo entienda los siete valores clásicos (`0` tranvía, `3` autobús) **no reconoce ninguna de las 53** |
 | `trips` | **34.427**, y **los 34.427 traen `shape_id`** |
+| Rutas **sin ni un viaje** | **8**, todas de la agencia 1 y todas `704`: `CEM`, `CE`, `LAN`, `EM1`, `EM2`, `V1`, `ES3`, `V4`. Están declaradas en `routes.txt` y no las recorre nadie — refuerzos y servicios especiales que este calendario no incluye. No se borran ni se cuentan como línea viva |
 | `shapes` | **89 trazados**, **27.603 puntos** |
+| `shape_dist_traveled` | La columna **existe y está VACÍA en los 27.603 puntos**. Es opcional en la especificación, así que no es un defecto — pero quien cuente con ella para medir distancia sobre el trazado no la tiene, y la casa proyecta las paradas por su cuenta |
 | Huérfanos | **0** en los dos sentidos: ningún viaje apunta a un trazado inexistente, ningún trazado se queda sin usar |
 | `calendar_dates` | 27.161 filas, **todas `exception_type=1`** (servicio añadido). Cero supresiones |
 
@@ -330,6 +383,36 @@ los límites de GitHub.
 > consigo mismo.** Declara `feed_end_date = 20261005`, pero su `calendar_dates` llega hasta el
 > **31/12/2026**. Son casi tres meses más allá de la validez que el propio feed se da. **Aquí se
 > toma la fecha conservadora, la del publicador: 05/10/2026.**
+>
+> ⚠️ **Y una cuarta, del canal y no del feed: el metadato del NAP dice OTRA fecha final.**
+> Lo que el NAP devuelve del fichero 1176, copiado del registro que el cron guarda al lado del
+> feed vivo:
+>
+> ```json
+> { "ficheroId": 1176, "fechaActualizacion": "2026-06-30T13:20:04.661082",
+>   "numeroViajes": 34427, "numeroRutas": 53, "numeroParadas": 984,
+>   "fechaDesde": "2025-09-16T00:00:00", "fechaHasta": "2026-12-27T00:00:00" }
+> ```
+>
+> Los tres recuentos **cuadran clavados** con lo medido aquí (34.427 · 53 · 984). La que no cuadra
+> es la fecha: el NAP dice **27/12/2026** y el feed se declara válido hasta el **05/10/2026**.
+> ⭐ **Y el 27/12 no es un error del NAP**: es exactamente **el último día que algún viaje usa**,
+> comprobado cruzando `calendar_dates` con `trips`. El NAP describe hasta dónde llega el
+> calendario; el feed, hasta dónde el publicador se hace responsable. **Aquí manda la del feed**,
+> que es la conservadora — y con el matiz de la caja de arriba: del 05/10 en adelante, lo que
+> queda es tranvía.
+>
+> ℹ️ **De las TARIFAS, NO CONSTA.** Los **8 miembros** del archivo son `agency`, `calendar_dates`,
+> `feed_info`, `routes`, `shapes`, `stops`, `stop_times` y `trips`: **ni `fare_attributes.txt`, ni
+> `fare_rules.txt`, ni `fare_products.txt`** — en este ZIP **no hay precios**, y por eso el
+> proyecto no dice ninguno. Si el catálogo del NAP anuncia tarifas para este conjunto **no se ha
+> podido comprobar**: `…/api/Fichero/1176` y `…/api/Conjunto/1176` contestan **401** sin la clave,
+> y la clave no se lee aquí. Queda como pregunta abierta, no como afirmación.
+>
+> ℹ️ **Y de la ficha 975, NO CONSTA también.** La descarga se hizo por
+> `…/api/Fichero/download/**1176**`, el fichero se llama `…gtfs-ficha1176.zip` y el registro del
+> NAP devuelve `ficheroId: 1176`. **En el repositorio no hay ni una traza de un 975**, y por lo
+> público del NAP no se puede mirar (401). No se afirma que exista otra ficha ni que no exista.
 >
 > **Y el 31/12 no es siquiera servicio de verdad**, que es una precisión que faltaba aquí. De
 > los **1.458 `service_id`** de `calendar_dates`, solo **1.262 aparecen en `trips.txt`**: hay
@@ -1939,7 +2022,7 @@ valores) y `calle_2024` (67) —, con acentos comidos: `«DE BARTOLOM� LORENTE
 | **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal. La capa no declara una propia: **NO CONSTA**, y se aplica el régimen general |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
 | **Campos** | `id`, `title`, `address`, `estado`, `estadoEstacion`, `bicisDisponibles`, `anclajesDisponibles`, `geometry`, `lastUpdated`, `description`, `descripcion`, `icon`, `about`, `tipoEquipamiento`. **Ninguno personal** |
-| **¿Está en este repo?** | ❌ **No, y no puede estar.** Es la **primera fuente que no se copia: se consulta** |
+| **¿Está en este repo?** | ❌ **No, y no puede estar.** Es la **primera fuente que no se copia: se consulta** — y desde el 31/08 **ya no es la única**: § 1.24 y § 1.25 son las otras dos, las dos de Avanza |
 
 **Por qué no entra en el repositorio.** Un fichero de dato se guarda porque es una foto que no
 caduca — los portales del 13/05, los carriles del 04/08—. Esto caduca **cada minuto**: guardarlo
@@ -1990,7 +2073,162 @@ los hitos salen **sin número y sin hora**. Nunca se inventa un «quedan 3 bicis
 
 ---
 
-### 1.24 · El resto del dato — todavía **ninguno**
+### 1.24 · Llegadas al poste en vivo — Avanza Zaragoza (`fRefrescaEmpresaExternos`)
+
+| | |
+|---|---|
+| **Qué es** | Los **próximos vehículos de un poste**, con sus minutos y su número de coche. Es el dato que **sustituye la espera estimada del PRIMER vehículo** —lo real desplaza a lo programado [GTFS-Realtime]— y el que contesta el botón **«Próximo bus»** de cada subida y cada transbordo |
+| **Titular** | **Avanza Zaragoza S.A.U.** (el mismo publicador del feed de § 1.7) |
+| **Fuente** | `gps.avanzabus.com` — el visor de posiciones del operador. **No es una API documentada**: es el endpoint que su propia página consulta |
+| **Petición** | `POST https://gps.avanzabus.com/index.php/zaragoza/fRefrescaEmpresaExternos` · `Content-Type: application/x-www-form-urlencoded` · cuerpo `poste=N&coche=0` |
+| **Sondeada** | **01/09/2026 15:44 GMT**, `Server: nginx`. Tres postes, tres respuestas: **poste 1000** → 200 · **2.929 bytes** · 0,908 s; **poste 1203** → 200 · **219 bytes** · 0,861 s; **poste 33** → 200 · **5.610 bytes** · 1,043 s. Y por el endpoint de la casa, con su tope y su reintento dentro: **2,26 s** y **2,38 s** |
+| **La forma, medida** | `Content-Type: text/html; charset=UTF-8` **y dentro va JSON** — se declara una cosa y se manda otra, y por eso el cuerpo se decodifica con el charset **declarado** y se parsea a mano. Dos claves raíz: `maquinas` (la parada en `["0"]` y un coche por cada una de las demás) y `tablatiempos` (HTML). Trae la cicatriz entera: `<strong>053 <i class="fa fa-long-arrow-right fa-fw"></i>MIRALBUENO`, cuyo texto plano sería `053MIRALBUENO` pegado |
+| **Licencia** | ⛔ **Medida, y NO es un NO CONSTA.** Ver el recuadro de abajo: el aviso legal de Avanza **prohíbe expresamente** la extracción y la reutilización |
+| **Atribución exigida** | **NO CONSTA**: el aviso legal no regula la reutilización con atribución — la prohíbe. No hay fórmula que cumplir porque no hay permiso que acompañar |
+| **Campos** | `maquinas[n].coordenadas`, `.info`, `.title`, `.icon` y el HTML de `tablatiempos`. **Ninguno personal**: lo que viaja son números de coche, líneas, minutos y posiciones de vehículo |
+| **¿Está en este repo?** | ❌ **No se copia: se consulta.** Es la segunda fuente viva, después del BiZi de § 1.23. ⚠️ **Con una excepción que se declara abajo**: hay bytes de sus respuestas en los *fixtures* de las pruebas |
+
+**Cómo se consulta, que es la mitad de la ficha.** El precedente entero es de ZetaBus
+[`003_ZETABUS/src/lib/transporte.ts`], y se aplica igual:
+
+- **Tope duro de 4.000 ms**, **un** reintento y **300 ms** entre los dos. El peor caso son 8,3 s,
+  que es lo que cabe dentro de los 10 s de atención de [NN/g].
+- **Single-flight por poste**: dos preguntas simultáneas por el mismo poste comparten **una sola
+  visita**. Sin caché: cada pulsación del botón vuelve a preguntar de verdad, y la respuesta del
+  endpoint propio va con `Cache-Control: no-store`.
+- **Y el Generar pregunta por UN solo poste**, el primero de subida. De los demás nunca se dijo el
+  minuto, así que consultarlos solo producía avisos y gastaba hasta 8,4 s por cabeza. Lo que
+  quiera saberse de ellos se pide a petición.
+
+**Los cuatro estados, y ninguno se aplasta contra otro.** Es la lectura de [GTFS-Realtime] llevada
+a una fuente que no lo es: **ausente ≠ sin servicio**.
+
+| | Qué significa | Qué se dice |
+|---|---|---|
+| `llega` | la línea está en el poste, faltan N minutos | «próximo en N min (dato de las HH:MM)» |
+| `ausente` | la fuente contestó y esa línea **no está en su lista** | «Avanza no anuncia ningún próximo…» — **sin información**, no «sin servicio» |
+| `mudo` | no contestó, o se contradijo a sí misma | «disponibilidad no verificada» — las mismas palabras que el BiZi |
+| `sinFuente` | ni se preguntó: el tranvía no tiene `stop_code` de los suyos | nada. Lo que falta no es el dato, es la fuente |
+
+⚠️ **Y el `mudo` lleva su motivo AL LOG y solo al log** —`tope`, `red`, `http`, `parseo`,
+`contador`—, con sus milisegundos. De cara afuera las cinco causas son lo mismo: se ha preguntado
+y no se sabe. Nació de un diagnóstico de media hora el 1/09.
+
+> ⛔ **LA LICENCIA, MEDIDA EL 01/09/2026 — y dice que no.**
+>
+> `gps.avanzabus.com` **no publica aviso legal propio**: `/aviso-legal` y `/robots.txt` devuelven
+> los mismos 70 bytes —*«Error 404. Usted está intentando acceder a una página que no existe.»*—
+> y la raíz redirige (303) a `/login`. El que rige es el de su casa,
+> **<https://www.avanzabus.com/informacion/aviso-legal/>** (200, 557.607 bytes, leído el
+> 01/09/2026), § 2.2 *Propiedad Industrial e Intelectual*, **literal**:
+>
+> > *«Los derechos de propiedad intelectual sobre la disposición de los contenidos del Sitio Web
+> > (derecho sui generis sobre la base de datos) […] corresponden a Avanza o a sus licenciantes.
+> > […] salvo en aquellos supuestos en los que esté legalmente permitido, queda expresamente
+> > prohibido al Usuario la reproducción, transformación, distribución, comunicación pública,
+> > puesta a disposición, **extracción y/o reutilización** del Sitio Web, sus contenidos y/o los
+> > signos distintivos de Avanza y/o de las sociedades del Grupo Avanza.»*
+>
+> **No se interpreta ni se matiza aquí**: se transcribe, con su URL y su fecha, y se deja a la
+> vista. Lo único que se añade es la constatación de que el *«salvo en aquellos supuestos en los
+> que esté legalmente permitido»* es una remisión a la ley, no un permiso otorgado por Avanza.
+>
+> ⚠️ **Esto corrige al precedente.** ZetaBus ficha estos mismos servicios como *«**Licencia:
+> NINGUNA.** Sin documentar, sin términos de uso publicados, sin permiso»*
+> [`003_ZETABUS/THIRD-PARTY-NOTICES.md`, § 4]. Medido hoy, **sí hay términos publicados** y lo
+> que dicen es más fuerte que «ninguna»: prohíben. La ficha de aquí es la exacta.
+
+> ⚠️ **Y LA DIVERGENCIA CON ZETABUS, que hay que decidir y no esconder.**
+>
+> ZetaBus escribe: *«¿Se redistribuye? ⛔ **NO. NI UN BYTE.** No hay respuestas cacheadas en este
+> repositorio, ni de ejemplo, ni de prueba, ni como *fixture*. El `.gitignore` lo impide
+> explícitamente.»* **Aquí no es así**, y se dice con el recuento delante:
+>
+> | Fichero | Qué guarda |
+> |---|---|
+> | `motor/src/avanza.spec.ts` | **1** respuesta literal del poste 1000 (3.216 caracteres de fuente) |
+> | `motor/src/viaje-bus.spec.ts` | **2** respuestas literales (postes 1000 y 1203) |
+> | `motor/src/desvios.spec.ts` · `motor/src/patron-operativo.spec.ts` | trozos de `<option>` de § 1.25 |
+>
+> Están ahí por la **ley nº18 de la casa** —*un fixture copia la medición, no la lectura de la
+> documentación*—, que es lo que impide inventarse una respuesta que Avanza nunca manda. Y son
+> **bytes de un tercero en un repositorio público**, que es exactamente lo que ZetaBus decidió no
+> hacer. **Las dos cosas son ciertas a la vez y el conflicto es real**: queda escrito aquí, con
+> los ficheros nombrados, para que se decida mirándolo — no se ha decidido en esta ficha.
+
+**Si Avanza pide que se deje de consultar, se deja.** Es la misma línea que ZetaBus escribió en su
+§ 4, y por la misma razón.
+
+### 1.25 · La ruta operativa de hoy — Avanza Zaragoza (`get_stops_list`)
+
+| | |
+|---|---|
+| **Qué es** | **Los postes por los que cada línea pasa HOY, en orden.** No es una fuente de desvíos: es la ruta de hoy. El desvío sale de **restarla contra el GTFS** —lo que el feed dice que la línea hace frente a lo que la web del operador dice que hace hoy—, y de esa resta salen las paradas **fuera de servicio** y las **provisionales** |
+| **Titular** | **Avanza Zaragoza S.A.U.** |
+| **Fuente** | `zaragoza.avanzagrupo.com` — el backend del selector de postes de su página de líneas y horarios. **No es una API documentada** |
+| **Petición** | `POST https://zaragoza.avanzagrupo.com/wp-admin/admin-ajax.php` con `action=get_stops_list`, `selectLinea`, `selectSentido` (`-1` ida, `-2` vuelta) y **`nonce`** |
+| **El nonce** | 🔒 Un nonce de WordPress, **re-scrapeado** del campo oculto `avz_bus_ajax_nonce` de <https://zaragoza.avanzagrupo.com/lineas-y-horarios/>. **Nunca va cableado en el código, ni en un fichero, ni en un log.** Se memoiza 30 min en memoria y se re-pide al primer 403 |
+| **Sondeada** | **01/09/2026 15:47 GMT**. La página del nonce: 200 · **132.744 bytes** · 510 ms, y **trae el campo**. **Sin nonce: `403` con cuerpo de 0 bytes** —medido, es lo que obliga al re-scrapeo—. Con nonce, línea 29 sentido `-1`: 200 · **2.005 bytes** · 286 ms |
+| **La forma, medida** | `Content-Type: text/html; charset=UTF-8`, y el cuerpo es **el trozo de HTML de un desplegable**: `<option value="posteDefault">Seleccionar poste</option>` y detrás un `<option id="posteValue" value="284">284 - Camino de Las Torres n.º 10</option>` por poste. En esa lectura, **24 `<option>`** = 1 de cabecera + **23 postes** |
+| **Licencia** | ⛔ **La misma medición de § 1.24, y aquí es la casa de Zaragoza**: <https://zaragoza.avanzagrupo.com/aviso-legal/> (200, 114.166 bytes, leído el 01/09/2026), § 3, con el mismo texto — *«queda expresamente prohibido […] la extracción y/o reutilización»*, *«derecho sui generis sobre la base de datos»* |
+| **Atribución exigida** | **NO CONSTA**, por lo mismo: no hay permiso al que acompañar una atribución |
+| **Campos** | El `value` del `<option>` (número de poste) y su texto (`número - nombre`). **Ninguno personal** |
+| **¿Está en este repo?** | ❌ **No se copia: se consulta**, y con **caché propia de 1 hora** —separada de la de § 1.24, que no tiene ninguna—. Los `<option>` de las pruebas son los medidos |
+
+> ℹ️ **Y su `robots.txt` abre esta puerta a propósito**, medido el 01/09/2026 en
+> <https://zaragoza.avanzagrupo.com/robots.txt>:
+>
+> ```
+> User-agent: *
+> Disallow: /wp-admin/
+> Allow: /wp-admin/admin-ajax.php
+> ```
+>
+> El `Allow` es **una excepción explícita al `Disallow` de la línea anterior**, y apunta
+> exactamente al fichero que esta ficha consulta. Se deja escrito como lo que es —**un dato
+> medido**— y no como una licencia: `robots.txt` gobierna el rastreo, no la reutilización, y el
+> aviso legal de arriba sigue diciendo lo que dice. Las dos cosas conviven y las dos constan.
+
+**Lo que se hace con la resta, y sus dos frenos [heredados de ZetaBus].**
+
+- ⭐ **SE AUTO-APAGA.** No hay lista de desvíos que mantener ni vigencia que vigilar: el día que
+  Avanza restaure la ruta, `get_stops_list` vuelve a coincidir con el GTFS, el diff sale vacío y
+  el aviso desaparece **solo**. *«Un sistema que hay que acordarse de apagar acaba mintiendo —
+  siempre.»*
+- ⭐ **EL UMBRAL DEL 50 %** (`UMBRAL_ABSURDO`). Si la ruta de hoy se deja fuera **más de la mitad**
+  de las paradas oficiales, eso **no es un desvío: es una lectura rota**, y el veredicto es
+  `indeterminado`. Un desvío de obras quita tres paradas, cinco, ocho; no quita el 70 % de la
+  línea. Y una lista vacía tampoco se compara, porque daría **todas** las paradas por suprimidas.
+
+> ⚠️ **LA ASIMETRÍA, y se dice en voz alta: esto detecta desvíos, NO detecta supresiones.**
+>
+> ```
+> DESVÍO DE RUTA       el autobús NO PASA por la calle
+>                      → la ruta operativa CAMBIA → get_stops_list lo refleja → DETECTABLE
+>
+> SUPRESIÓN DE PARADA  el autobús PASA pero NO PARA
+>                      → la ruta operativa NO cambia → sigue listando la parada → NO DETECTABLE
+> ```
+>
+> Está comprobado en la auditoría de ZetaBus: con el comunicado de Avanza diciendo **por escrito**
+> que las líneas 29 y 39 hacen *«su recorrido habitual pero sin realizar parada»* en el **poste
+> 744**, la API viva seguía anunciando «039 VADORREY, 0 minutos». Ponen el cartel en la marquesina
+> y no desconectan el poste. **Por ninguna fuente**, no solo por esta.
+
+⚠️ **Y aquí no entra ni un dato vivo de § 1.24.** Deducir un desvío de «ese poste lleva callado
+toda la mañana» sería un error: un poste callado puede ser un desvío, pueden ser las cuatro de la
+mañana, o puede ser un poste que Avanza no tiene dado de alta — y la fuente devuelve **lo mismo en
+los tres casos**. La comparación recibe **dos listas de postes y nada más**.
+
+**Lo que da hoy, medido** (`motor/src/patron-operativo.ts`, al arrancar y cada media hora):
+
+```
+motor: ruta operativa de hoy — 64 sentidos · 23 detectados · 23 aplicados · 0 sin saber · 17 s
+```
+
+---
+
+### 1.26 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
