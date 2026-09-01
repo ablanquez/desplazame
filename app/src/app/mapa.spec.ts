@@ -118,9 +118,24 @@ const CUATRO: readonly Vertice[] = [
   [41.6461, -0.8673],
 ];
 
+/**
+ * ⭐ SOLO LAS LÍNEAS DE ENCIMA: **una por tramo**.
+ *
+ * ⚠️ Desde el 1/09 cada tramo se pinta con DOS polilíneas —su ribete debajo y su
+ * color encima—, así que contar `path.leaflet-interactive` ya no cuenta tramos.
+ * Las jueces que hablan de tramos usan esto; las que hablan del ribete miran los
+ * trazos crudos, que para eso están. El casing de cada línea es el trazo
+ * inmediatamente anterior.
+ */
+function encima(raiz: HTMLElement): SVGPathElement[] {
+  return Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive')).filter(
+    (_, i) => i % 2 === 1,
+  );
+}
+
 /** Las líneas pintadas, con el `stroke-dasharray` que Leaflet les pone. */
 function lineas(raiz: HTMLElement): { discontinua: boolean }[] {
-  return Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive')).map((p) => {
+  return encima(raiz).map((p) => {
     const trazo = p.getAttribute('stroke-dasharray');
     return { discontinua: trazo !== null && trazo !== '' && trazo !== 'none' };
   });
@@ -128,7 +143,7 @@ function lineas(raiz: HTMLElement): { discontinua: boolean }[] {
 
 /** El vestido completo de cada línea pintada: color y trazo. */
 function vestidos(raiz: HTMLElement): { color: string | null; dash: string | null }[] {
-  return Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive')).map((p) => ({
+  return encima(raiz).map((p) => ({
     color: p.getAttribute('stroke'),
     dash: p.getAttribute('stroke-dasharray'),
   }));
@@ -203,7 +218,7 @@ describe('Mapa', () => {
    * puro habría cambiado sin que nadie lo pidiera. Lo que distingue al rodando
    * es el **sólido**; el a-pie no se toca.
    */
-  it('⭐ 3 · el andando puro pinta UNA línea y sigue siendo discontinua', async () => {
+  it('⭐ 5 · el andando puro: DOS líneas ahora, y la de arriba igual que ayer', async () => {
     const fixture = TestBed.createComponent(Anfitrion);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -212,9 +227,25 @@ describe('Mapa', () => {
     fixture.componentInstance.tramos.set(A_PIE);
     await fixture.whenStable();
 
-    const pintadas = lineas(raiz);
-    expect(pintadas.length).toBe(1);
-    expect(pintadas[0]!.discontinua).toBe(true);
+    // ⚠️ LA NO-REGRESIÓN, ACTUALIZADA A PROPÓSITO (1/09). Aquí se compraba que
+    // el andando puro pintaba **una** línea; ahora son dos, y lo que cambia es
+    // SOLO que se le ha puesto un casing debajo. La de arriba —color, grosor y
+    // trazo— es la misma que llevaba desde el punto 7, y eso es lo que esta juez
+    // sigue vigilando: las dos son discontinuas, y la de encima es el ámbar de
+    // siempre a grosor 5 con su `10 8`.
+    const crudos = Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive'));
+    expect(crudos.length).toBe(2);
+    // ⭐ LAS DOS SON DISCONTINUAS: el casing hereda el patrón, y por eso los
+    //    huecos siguen siendo huecos. Un casing sólido los rellenaría.
+    for (const p of crudos) {
+      expect(p.getAttribute('stroke-dasharray')).toBe('10 8');
+    }
+
+    const arriba = crudos[1]!;
+    expect(arriba.getAttribute('stroke')).toBe('#b45309');
+    expect(arriba.getAttribute('stroke-width')).toBe('5');
+    expect(arriba.getAttribute('stroke-dasharray')).toBe('10 8');
+
     // Y ni un icono de hito: andando no se aparca ni se coge nada.
     expect(hitos(raiz).length).toBe(0);
   });
@@ -290,21 +321,26 @@ describe('Mapa', () => {
     await fixture.whenStable();
 
     const trazos = vestidos(raiz);
-    expect(trazos.length).toBe(4);
-    // Los dos paseos: el vestido de siempre, al píxel. **No llevan ribete**:
-    // el ámbar da 4,38:1 sobre la tierra y ya pasa.
-    for (const i of [0, 3]) {
+    expect(trazos.length).toBe(3);
+    // Los dos paseos: el vestido de siempre, al píxel.
+    for (const i of [0, 2]) {
       expect(trazos[i]!.color).toBe('#b45309');
       expect(trazos[i]!.dash).toBe('10 8');
     }
-    // ⭐ El ribete, DEBAJO —va antes— y en negro por cálculo.
-    expect(trazos[1]!.color).toBe('#000000');
     // ⭐ Y el montado, con el color DEL FEED y sólido.
-    expect(trazos[2]!.color).toBe('#F5C100');
-    expect(trazos[2]!.dash).toBe(null);
+    expect(trazos[1]!.color).toBe('#F5C100');
+    expect(trazos[1]!.dash).toBe(null);
     // Que no es ni el ámbar del a-pie ni el azul de la rueda.
-    expect(trazos[2]!.color).not.toBe('#b45309');
-    expect(trazos[2]!.color).not.toBe('#2563eb');
+    expect(trazos[1]!.color).not.toBe('#b45309');
+    expect(trazos[1]!.color).not.toBe('#2563eb');
+    // ⭐ Y los TRES ribetes debajo, uno por tramo, todos negros por cálculo.
+    const todos = Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive'));
+    expect(todos.length).toBe(6);
+    expect(todos.filter((_, i) => i % 2 === 0).map((p) => p.getAttribute('stroke'))).toEqual([
+      '#000000',
+      '#000000',
+      '#000000',
+    ]);
 
     expect(hitos(raiz)).toEqual(['🚌', '🚏']);
   });
@@ -331,16 +367,23 @@ describe('Mapa', () => {
     // ribete delante. Los dos colores de línea siguen siendo distintos, que es
     // lo que esta juez viene a comprar.
     const trazos = vestidos(raiz);
-    expect(trazos.length).toBe(7);
-    expect(trazos.map((t) => t.dash)).toEqual(['10 8', null, null, '10 8', null, null, '10 8']);
-    expect(trazos[1]!.color).toBe('#000000');
-    expect(trazos[2]!.color).toBe('#F5C100');
-    expect(trazos[4]!.color).toBe('#000000');
-    expect(trazos[5]!.color).toBe('#00CC00');
+    expect(trazos.length).toBe(5);
+    expect(trazos.map((t) => t.dash)).toEqual(['10 8', null, '10 8', null, '10 8']);
+    expect(trazos[1]!.color).toBe('#F5C100');
+    expect(trazos[3]!.color).toBe('#00CC00');
     // ⭐ Los DOS colores de línea son distintos entre sí: cada vehículo el suyo.
-    expect(trazos[2]!.color).not.toBe(trazos[5]!.color);
+    expect(trazos[1]!.color).not.toBe(trazos[3]!.color);
     // El paseo del transbordo lleva el mismo ámbar que los otros dos.
-    expect(trazos[3]!.color).toBe('#b45309');
+    expect(trazos[2]!.color).toBe('#b45309');
+    // Y los cinco ribetes, uno por tramo, cada uno con el trazo de su línea.
+    const todos = Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive'));
+    expect(todos.length).toBe(10);
+    for (let i = 0; i < todos.length; i += 2) {
+      expect(todos[i]!.getAttribute('stroke')).toBe('#000000');
+      expect(todos[i]!.getAttribute('stroke-dasharray')).toBe(
+        todos[i + 1]!.getAttribute('stroke-dasharray'),
+      );
+    }
 
     // 🚌 al subir a cada uno —el segundo es el poste del cambio— y 🚏 al bajar.
     expect(hitos(raiz)).toEqual(['🚌', '🚏', '🚌', '🚏']);
@@ -372,9 +415,9 @@ describe('Mapa', () => {
     fixture.componentInstance.tramos.set(EN_BIZI);
     await fixture.whenStable();
 
-    const trazos = Array.from(
-      raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive'),
-    ).map((p) => ({
+    // ⚠️ `encima` porque desde el 1/09 cada tramo son DOS trazos: su ribete y
+    // su color. Lo que esta juez compra —el vestido de cada modo— vive arriba.
+    const trazos = encima(raiz).map((p) => ({
       color: p.getAttribute('stroke'),
       dash: p.getAttribute('stroke-dasharray'),
     }));
@@ -568,15 +611,25 @@ describe('Mapa', () => {
    * no llevan ribete: no se engorda lo que no hace falta engordar.
    */
   /**
-   * ⭐ JUEZ 4 — A PIE Y EN BICI, AL BYTE: **una sola polilínea, sin ribete**.
+   * ⭐ JUEZ 1 y 4 — A PIE Y EN BICI **TAMBIÉN LLEVAN RIBETE**, y el ámbar no cambia.
    *
-   * ⚠️ Y ahora esto se compra por el PINTADO y no por `ribeteDe`, porque el que
-   * decide ya no es el color: es el MODO. El ámbar y el azul no son colores de
-   * operador —los elegimos nosotros, y se eligieron midiendo: 4,38:1 y 4,50:1
-   * sobre la tierra—, así que no entran en la regla de uniformidad de las líneas
-   * de bus. Quien anda no lleva línea que identificar.
+   * ═══════════════════════════════════════════════════════════════════════════
+   *  ⛔ Aquí se compraba lo contrario, y duró medio día: que el ámbar y el azul
+   *    «ya llegaban» y por eso iban sin ribete. Llegaban **contra la tierra**
+   *    —4,38:1 y 4,50:1—, que es exactamente el error que dejó a la 21 sin el
+   *    suyo. Contra el peor color del plano, la primaria naranja `#f9b29c`:
+   *
+   *        ámbar #b45309 → 2,84:1     azul #2563eb → 2,92:1
+   *
+   *    [WCAG 1.4.11] los 3:1 son contra los colores **adyacentes**, y por esos
+   *    dos naranjas pasa media ciudad.
+   * ═══════════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ **Lo que NO cambia: el color ni el trazo.** El ámbar es color de la casa
+   * desde el punto 7 y el `10 8` es la identidad del a-pie [WCAG 1.4.1: el color
+   * nunca solo]. Se añade una capa debajo y nada más.
    */
-  it('⭐ 4 · a pie y en bici se pinta UNA polilínea, sin ribete', async () => {
+  it('⭐ 1+4 · a pie y en bici llevan ribete, y su color no se toca', async () => {
     for (const [comoSeVa, color] of [
       ['andando', '#b45309'],
       ['rodando', '#2563eb'],
@@ -591,11 +644,58 @@ describe('Mapa', () => {
       const trazos = Array.from(
         (fixture.nativeElement as HTMLElement).querySelectorAll('path.leaflet-interactive'),
       );
-      expect(trazos.length, comoSeVa).toBe(1);
-      expect(trazos[0]!.getAttribute('stroke'), comoSeVa).toBe(color);
-      // Y el color sigue llegando a 3:1 por su cuenta: por eso no le hace falta.
-      expect(contraste(color.slice(1), TIERRA_OSM)).toBeGreaterThanOrEqual(AA_GRAFICO);
+      expect(trazos.length, comoSeVa).toBe(2);
+      // ⭐ El ribete debajo, y la línea con SU color encima, sin tocar.
+      expect(trazos[0]!.getAttribute('stroke'), comoSeVa).toBe('#000000');
+      expect(trazos[1]!.getAttribute('stroke'), comoSeVa).toBe(color);
+      // ⭐ Y las dos condiciones de la regla, sobre el peor color del plano.
+      const suyo = color.slice(1);
+      expect(contraste(suyo, PLANO_MAS_OSCURO)).toBeLessThan(AA_GRAFICO);
+      expect(contraste(suyo, '000000')).toBeGreaterThanOrEqual(AA_GRAFICO);
+      expect(
+        Math.min(contraste('000000', PLANO_MAS_CLARO), contraste('000000', PLANO_MAS_OSCURO)),
+      ).toBeGreaterThanOrEqual(AA_GRAFICO);
     }
+  });
+
+  /**
+   * ⭐ JUEZ 2 — EL CASING DEL A-PIE ES **DISCONTINUO**, con el mismo patrón.
+   *
+   * ⚠️ Esto es lo que impide el arreglo fácil. Un casing sólido debajo de un
+   * trazo discontinuo **rellena los huecos** y el a-pie deja de distinguirse del
+   * que va en vehículo: la línea entera pasaría a leerse como sólida con
+   * salpicaduras ámbar encima. [WCAG 1.4.1] el trazo es el segundo canal del
+   * a-pie, y es el que sobrevive a un daltonismo o a una impresión en gris —
+   * perderlo para ganar contraste sería cambiar un criterio por otro.
+   *
+   * Así que las tres propiedades del trazo se copian: `dashArray`, `dashOffset`
+   * y `lineCap`. Lo único que cambia entre las dos capas es el color y el grosor.
+   */
+  it('⭐ 2 · el casing del a-pie comparte dashArray, dashOffset y lineCap', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    fixture.componentInstance.trazado.set(TRAMO);
+    fixture.componentInstance.tramos.set(A_PIE);
+    await fixture.whenStable();
+    const trazos = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<SVGPathElement>('path.leaflet-interactive'),
+    );
+    expect(trazos.length).toBe(2);
+    const [casing, linea] = trazos;
+
+    for (const atributo of ['stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap']) {
+      expect(casing!.getAttribute(atributo), atributo).toBe(linea!.getAttribute(atributo));
+    }
+    // Y el patrón es el de siempre, no uno nuevo.
+    expect(linea!.getAttribute('stroke-dasharray')).toBe('10 8');
+    // ⭐ Y el remate es RECTO, no redondeado: con `round` cada guión del casing
+    //    crece 4,5 px por lado —media anchura— y se come un hueco que mide 8.
+    //    Medido en el píxel: 24 % de hueco con `round`, 56 % con `butt`.
+    expect(linea!.getAttribute('stroke-linecap')).toBe('butt');
+    // El casing es más ancho: por eso asoma.
+    expect(Number(casing!.getAttribute('stroke-width'))).toBe(
+      Number(linea!.getAttribute('stroke-width')) + 2 * ASOMA_EL_RIBETE,
+    );
   });
 
   /**

@@ -1614,15 +1614,19 @@ describe('Buscador', () => {
     http.expectOne('/api/ruta').flush(TRAYECTO);
     await fixture.whenStable();
 
-    expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(1);
+    // ⚠️ DOS TRAZOS POR TRAMO desde el 1/09 —el ribete y la línea—, y este
+    // trayecto tiene uno solo. Lo que esta juez compra no cambia: que la
+    // geometría llega, que regenerar NO acumula y que sin ruta el mapa queda a
+    // cero. Ver `ribeteDe` en `mapa.ts`.
+    expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(2);
 
-    // Segunda generación: una línea, no dos.
+    // Segunda generación: el mismo tramo, no el doble.
     botonGenerar(raiz).click();
     fixture.detectChanges();
     http.expectOne('/api/ruta').flush(TRAYECTO);
     await fixture.whenStable();
 
-    expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(1);
+    expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(2);
 
     // Y una que NO trae geometría —una isla— deja el mapa limpio, no con la
     // línea de la ruta anterior colgada debajo de un aviso que dice que no hay.

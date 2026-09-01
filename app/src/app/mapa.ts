@@ -102,8 +102,29 @@ const ANCLAJE: Readonly<Record<Clase, L.PointTuple>> = {
  *     pasa al ámbar (3,13) — y por ahí no va ninguna ruta.
  */
 const VESTIDO: Readonly<Record<TramoDelViaje['comoSeVa'], L.PolylineOptions>> = {
-  andando: { color: '#b45309', weight: 5, dashArray: '10 8' },
-  rodando: { color: '#2563eb', weight: 5 },
+  /**
+   * ⚠️ `dashOffset` y `lineCap` van ESCRITOS, y no es redundancia: el ribete se
+   * construye con `{ ...vestido }`, así que lo que esté aquí lo hereda **por
+   * construcción**. Un casing sólido debajo de un trazo discontinuo le
+   * rellenaría los huecos y el a-pie dejaría de leerse como a-pie [WCAG 1.4.1:
+   * el trazo es su segundo canal, el que sobrevive a un daltonismo].
+   *
+   * ⭐ **Y el `lineCap` es `butt`, no el `round` de Leaflet, y está MEDIDO.** Con
+   * `round`, cada guión crece media anchura por cada extremo: el casing mide 9
+   * px, así que cada guión suyo se alarga **4,5 px por lado** y se come un hueco
+   * que mide 8. Recorrido el trazo píxel a píxel sobre la captura:
+   *
+   *     con `round` → 231 px de trazo · ámbar 154 · plano 56  → **24 %** de hueco
+   *     con `butt`  → 231 px de trazo · ámbar 102 · plano 129 → **56 %** de hueco
+   *
+   * El patrón `10 8` da un 44 % en el ideal. Con `round` el a-pie se estaba
+   * volviendo casi sólido; con `butt` los huecos vuelven.
+   *
+   * ⚠️ **Lo que cambia a la vista**: los extremos de cada guión pasan de
+   * redondeados a rectos. Es el precio, y es menor que perder el discontinuo.
+   */
+  andando: { color: '#b45309', weight: 5, dashArray: '10 8', dashOffset: '0', lineCap: 'butt' },
+  rodando: { color: '#2563eb', weight: 5, dashOffset: '0', lineCap: 'round' },
   /**
    * ⭐ EL MONTADO **NO TIENE COLOR PROPIO**, y por eso el de aquí no se usa.
    *
@@ -406,22 +427,26 @@ export class Mapa {
       // ⭐ EL RIBETE VA PRIMERO, que es lo que lo pone DEBAJO: Leaflet apila
       //    en el orden en que se añade. Ver `ribeteDe` para el porqué y el tono.
       //
-      // ⚠️ Y quien decide si lo lleva es **el MODO, no el color**: toda línea de
-      //    operador va con ribete y ninguna otra. El ámbar del a-pie y el azul de
-      //    la rueda no son colores de operador —los elegimos nosotros, midiendo—,
-      //    así que no entran en la regla y se quedan al byte como estaban.
-      //    Un tramo montado sin línea también lo lleva: sigue siendo un vehículo.
+      // ⭐ Y LO LLEVAN TODOS (1/09), no solo las líneas de operador. El ámbar del
+      //    a-pie y el azul de la rueda parecían llegar por su cuenta —4,38:1 y
+      //    4,50:1— porque se medían **contra la tierra**, que es el mismo error
+      //    que dejó a la 21 sin el suyo. Contra el peor color del plano, la
+      //    primaria naranja `#f9b29c`, dan **2,84:1** y **2,92:1**.
+      //
+      // ⚠️ El ribete se construye con `{ ...vestido }` y solo se le cambian el
+      //    color y el grosor. Eso es lo que le hace heredar `dashArray`,
+      //    `dashOffset` y `lineCap`: **el casing del a-pie es discontinuo**, con
+      //    el mismo patrón. Uno sólido rellenaría los huecos y el trazo dejaría
+      //    de distinguir al que anda del que va montado.
       const vestido = vestidoDe(tramo);
-      const ribete = tramo.comoSeVa === 'montado' ? ribeteDe(vestido.color!.replace('#', '')) : null;
-      if (ribete !== null) {
-        this.lineas.push(
-          L.polyline(trozo, {
-            ...vestido,
-            color: `#${ribete}`,
-            weight: (vestido.weight ?? 5) + 2 * ASOMA_EL_RIBETE,
-          }).addTo(this.mapa),
-        );
-      }
+      const ribete = ribeteDe(vestido.color!.replace('#', ''));
+      this.lineas.push(
+        L.polyline(trozo, {
+          ...vestido,
+          color: `#${ribete}`,
+          weight: (vestido.weight ?? 5) + 2 * ASOMA_EL_RIBETE,
+        }).addTo(this.mapa),
+      );
       this.lineas.push(L.polyline(trozo, vestido).addTo(this.mapa));
     }
 

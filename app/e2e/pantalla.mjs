@@ -11,7 +11,7 @@
  *    nada, en la primera juez de este fichero.
  */
 import { readFileSync } from 'node:fs';
-import { abrirChrome, contrasteReal, contrasteRgb, deHex, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
+import { abrirChrome, censoDe, contrasteReal, contrasteRgb, deHex, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
 
 const APP = 'http://localhost:4200/';
 /**
@@ -116,7 +116,10 @@ try {
   await escribir(1, process.argv[4] ?? 'CALLE OVIEDO');
   await elegir(1, process.argv[4] ?? 'CALLE OVIEDO');
   await portal(1, process.argv[5] ?? '5');
-  await m.evaluar(`document.querySelector('input[name=modo][value=bus]').click()`);
+  // El modo, por argumento: la juez de los huecos necesita un paseo largo, y el
+  // más largo lo da una ruta a pie entera.
+  const modo = process.argv[7] ?? 'bus';
+  await m.evaluar(`document.querySelector('input[name=modo][value=${modo}]').click()`);
   await m.dormir(300);
   await m.evaluar(`[...document.querySelectorAll('button')].find(b => b.textContent.includes('Generar')).click()`);
   await m.dormir(16000);
@@ -153,7 +156,13 @@ try {
     );
     if (r.contraste < AA_TEXTO) flojos.push(`${linea} a ${r.contraste.toFixed(2)}:1`);
   }
-  juez('1+2 · todo chip de la pantalla ≥ 4,5:1 medido en el píxel', flojos.length === 0, flojos.join(' · '));
+  // ⚠️ Con CERO chips esta juez sería vacuamente cierta: «todos» de un conjunto
+  //    vacío se cumple siempre. Se exige que haya alguno, o se dice que no aplica.
+  if (cuantos === 0) {
+    console.log('  ⓘ  este viaje no ha salido en bus: la juez de los chips no aplica');
+  } else {
+    juez('1+2 · todo chip de la pantalla ≥ 4,5:1 medido en el píxel', flojos.length === 0, flojos.join(' · '));
+  }
 
   // ── JUEZ 1 COMPLETA · LAS 53 LÍNEAS DEL FEED, EN EL PÍXEL ────────────────
   //
@@ -170,6 +179,11 @@ try {
     readFileSync(new URL('../data/nap_gtfs-ficha1176.cocinado.json', import.meta.url), 'utf-8'),
   ).lineas;
   console.log(`\n  las ${cocinado.length} líneas del feed, con el CSS del chip real:`);
+  // ⚠️ Sin un chip de verdad en la página no hay CSS real que clonar, y montar
+  //    uno a mano mediría un estilo inventado. Se dice y se sigue.
+  if (!(await m.evaluar(`document.querySelector('.chip-linea') !== null`))) {
+    console.log('  ⓘ  no hay ningún chip en pantalla del que clonar: esta juez no aplica');
+  } else {
   await m.evaluar(`(() => {
     const modelo = document.querySelector('.chip-linea');
     const banco = document.createElement('div');
@@ -205,6 +219,7 @@ try {
     malos.length === 0,
     malos.length ? malos.join(' · ') : 'ninguna por debajo',
   );
+  }
 
   // ── JUEZ 3 · LAS LÍNEAS DEL MAPA, contra la tierra de OSM ─────────────────
   const lineas = await m.evaluar(`[...document.querySelectorAll('path.leaflet-interactive')].map((p) => ({
@@ -217,25 +232,9 @@ try {
       contrasteRgb(deHex(hex), deHex(PLANO_CLARO)),
       contrasteRgb(deHex(hex), deHex(PLANO_OSCURO)),
     );
-  /**
-   * ⚠️ LOS DOS COLORES DE LA CASA, que NO son líneas de operador: el ámbar del
-   *    a-pie y el azul de la rueda. Se miden y se dicen, pero **no cuentan como
-   *    fallo de esta juez**: el encargo del 1/09 los declaró intactos, y una
-   *    decisión declarada no se convierte en rojo por la puerta de atrás. Lo que
-   *    salga de aquí va al reporte, no al arreglo.
-   */
-  const DE_LA_CASA = ['#b45309', '#2563eb'];
   const debiles = [];
-  const declarados = [];
   for (let i = 0; i < lineas.length; i++) {
     const l = lineas[i];
-    if (DE_LA_CASA.includes(l.color)) {
-      const c = sobreElPlano(l.color);
-      const nota = `${l.color} → ${c.toFixed(2)}:1 contra el peor color del plano${c < AA_GRAFICO ? '  ⚠ NO LLEGA' : ''}`;
-      if (!declarados.includes(nota)) declarados.push(nota);
-      console.log(`    ${nota}  · color de la casa, declarado intacto`);
-      continue;
-    }
     // ⚠️ Con halo, lo que se mide NO es la línea contra el plano: es la LÍNEA
     //    contra el halo [WCAG: «un halo puede usarse como fondo»]. Y quién es el
     //    halo de quién se lee del propio SVG: el ribete es la polilínea
@@ -261,12 +260,69 @@ try {
     if (delPar < AA_GRAFICO) debiles.push(`el par de ${l.color} a ${delPar.toFixed(2)}:1 sobre el plano`);
   }
   juez(
-    '3 · toda línea de operador ≥ 3:1 contra su vecino, y el par sobre el plano',
+    '3 · toda línea ≥ 3:1 contra su vecino, y el par sobre el plano',
     debiles.length === 0,
     debiles.join(' · '),
   );
-  for (const d of declarados) {
-    console.log(`  ⓘ  color de la casa (fuera de esta juez por encargo): ${d}`);
+
+  // ── JUEZ 3b · LOS HUECOS SIGUEN SIENDO HUECOS ────────────────────────────
+  //
+  // ⭐ El casing del a-pie es discontinuo con el mismo patrón, y esto lo compra
+  //    donde de verdad importa: en el píxel. Se recorre la caja de la polilínea
+  //    del a-pie y se cuenta cuánto plano se ve entre guiones. Un casing sólido
+  //    los habría rellenado de negro y aquí saldría cero.
+  // ⚠️ **NO por la caja del `<path>`**: `getBoundingClientRect()` de un path de
+  //    Leaflet devuelve una caja degenerada —medida: 1 píxel—, y sobre un píxel
+  //    cualquier porcentaje se cumple. Se recorre **el trazo**, con
+  //    `getPointAtLength` y el CTM, que da la coordenada de pantalla exacta.
+  const puntos = await m.evaluar(`(() => {
+    // ⚠️ EL MÁS LARGO de los tramos a pie, no el primero. El primero suele ser
+    //    el paseo hasta el poste —30 m, que al zoom de la ruta es **1 píxel**—, y
+    //    sobre un píxel cualquier porcentaje se cumple. Lo cazó la juez de al
+    //    lado al pedir que hubiera ámbar: sin ella, 3b daba verde sobre 2 píxeles.
+    const candidatos = [...document.querySelectorAll('path.leaflet-interactive')]
+      .filter((x) => x.getAttribute('stroke') === '#b45309');
+    const p = candidatos.sort((a, b) => b.getTotalLength() - a.getTotalLength())[0];
+    if (!p || p.getTotalLength() < 40) return null;
+    const ctm = p.getScreenCTM();
+    const largo = p.getTotalLength();
+    const salida = [];
+    for (let d = 0; d <= largo; d += 1) {
+      const q = p.getPointAtLength(d).matrixTransform(ctm);
+      salida.push([Math.round(q.x), Math.round(q.y)]);
+    }
+    return { largo, puntos: salida };
+  })()`);
+  if (puntos === null) {
+    console.log('\n  ⓘ  este viaje no trae tramo a pie: la juez de los huecos no aplica');
+  } else {
+    const png = await m.captura();
+    const enHex = ([x, y]) => {
+      const o = (y * png.ancho + x) * 4;
+      return [png.datos[o], png.datos[o + 1], png.datos[o + 2]]
+        .map((v) => v.toString(16).padStart(2, '0'))
+        .join('');
+    };
+    const cuenta = { ambar: 0, ribete: 0, plano: 0 };
+    for (const q of puntos.puntos) {
+      const hex = enHex(q);
+      if (hex === 'b45309') cuenta.ambar++;
+      else if (hex === '000000') cuenta.ribete++;
+      else cuenta.plano++;
+    }
+    const total = puntos.puntos.length;
+    console.log(
+      `\n  el trazo del a-pie: ${Math.round(puntos.largo)} px de largo · ámbar ${cuenta.ambar} · ribete ${cuenta.ribete} · plano ${cuenta.plano}`,
+    );
+    // ⭐ Con `10 8`, 8 de cada 18 píxeles del recorrido caen en un hueco: un 44 %
+    //    en el ideal. Se pide bastante menos —el suavizado de los extremos come
+    //    algo— pero lo suficiente para que un casing sólido, que daría 0, muerda.
+    juez(
+      '3b · entre los guiones del a-pie se sigue viendo el plano',
+      cuenta.plano > total * 0.25,
+      `${((100 * cuenta.plano) / total).toFixed(0)} % del recorrido es hueco (patrón 10 8 → 44 % ideal)`,
+    );
+    juez('3b-bis · y el ámbar sigue estando en el trazo', cuenta.ambar > total * 0.25, `${cuenta.ambar} px de ámbar`);
   }
 
   await m.guardar(process.argv[6] ?? 'contraste.png');
