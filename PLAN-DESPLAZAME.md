@@ -2438,12 +2438,44 @@ malentendido. El corte del aviso va por marca, no por el primer «:»
 (hay un poste «Av: Cañones De Zaragoza», 1/984). NO CONSTA el
 contorno de :focus-visible por CDP (el foco entra, medido). 24
 bitácoras, 0 abiertas. 445 motor · 195 interfaz.
-⚠️ PENDIENTE POR DOCTRINA, no por orden: 27/45 chips <4,5:1 [WCAG
-1.4.3 AA] y 23/45 líneas <3:1 sobre la tierra de OSM [1.4.11] —
-colores DEL FEED, reportados; los dos arreglos que no inventan
-colores de línea: texto negro/blanco por contraste, y ribete
-(casing) bajo la polilínea. ⚠️ Paralelizar las consultas Avanza (8,3
-s peor caso en fila india). ⚠️ 1203: NO CONSTA.
+**⭐ LOS CONTRASTES POR DOCTRINA — HECHOS (1/09, siete commits;
+sonda en ZetaBus PRIMERO, arreglo después).** Los denominadores
+corregidos: son 53 líneas (27 chips <4,5:1 obedeciendo al feed, la
+33 a 1,72:1). LA SONDA (ZetaBus, rutas citadas): la vía «negro o
+blanco por luminancia» (textoLegible) la RETIRÓ ZetaBus con razón
+escrita («la 29 en negro entre 30 blancas parecía un error» — la
+identificación consistente); su regla vigente: diurna = color de
+línea INTACTO + número BLANCO + contorno negro (la técnica que WCAG
+reconoce: el contorno cuenta como primer plano al medir) · BÚHO
+(/^N/i, grupos.ts) = fondo azul noche #1C1A42 (medido en la web de
+Avanza) + número EN EL COLOR de la línea («el color es identidad, la
+inversión es categoría; sin gastar un color»); contraste.ts con la
+fórmula WCAG linealizada (cuatro escrituras); ZetaBus NO pinta
+polilíneas → el ribete sin precedente, por WCAG 1.4.11. EL ARREGLO:
+chip diurno y búho heredados con cita → 53/53 ≥4,5:1 (peor búho N4
+4,70) · ribete = segunda polilínea debajo, más ancha, en el tono que
+gana por cuenta (negro 18,3:1 sobre la tierra; la línea ≥3:1 contra
+su ribete) — el ámbar (4,38) y el azul (4,50) ya llegaban y quedan
+al byte sin ribete · el route_color no cambia en ninguna de las 53.
+⭐ BITÁCORA nº25 (cazada por el instrumento recién heredado): el
+contorno de 0,7 px de ZetaBus NO PINTABA NI UN PÍXEL negro a
+nuestros 13,6 px (text-stroke centra el trazo, el relleno tapa la
+mitad, el subpíxel lo tiñe: la 44 a 3,15:1 con la clase puesta) —
+la juez compraba la clase; a 13,6 px hacen falta 2 px con
+suavizado en escala de grises (ampliado ×8, las cifras conservan la
+forma). EL INSTRUMENTO: medir en el PÍXEL de la captura, no en el
+CSS (getComputedStyle ignora opacity: un texto a 0.18 daba 21:1 y
+mide 1,54 — la juez 0 de la suite); y el medir.ts heredado traía su
+caso ciego (moda contra el más lejano falla con halo — ahora mide
+relleno contra halo). AVANZA: ⚠️ YA ERA PARALELO desde el 31/08
+(Promise.all) — faltaba la juez del reloj (dos postes = 326 ms); los
+8,4 s peor caso NO son serialización: son el presupuesto 4.000 + 300
++ 4.000 de UN poste que no contesta [los números de producción de
+ZetaBus; dentro del límite de 10 s de NN/g; con indicador] → SE
+QUEDA: bajarlo a ojo sería invent. app/e2e/ no entra en npm run
+probar (Chrome y motor vivos; a mano). 446 motor · 208 interfaz · 25
+bitácoras, 0 abiertas. ⚠️ Siguen: 16/45 líneas sin servicio entre
+semana en agosto (dato) · 1203 NO CONSTA.
 
 *(La regla del apoyo en ZetaBus —precedente propio en producción,
 solo lectura, se cita como lo que es y donde discrepe del feed se

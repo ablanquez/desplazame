@@ -25,7 +25,7 @@ hospitales · bibliotecas · colegios e institutos · guarderías ·
 universidades — 820 sitios, 802 buscables), TODA calle sugerible
 (3.350: 2.731 con portal + 619 por punto medio — el Puente de Piedra
 se escribe), el buscador por tipos completo con siglas e iconos, el
-foco en las dos capas, y las bitácoras cerradas (24/24 al 1/09).**
+foco en las dos capas, y las bitácoras cerradas (25/25 al 1/09).**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
 levantado el 18/08, des-caducado del 21/08 al 1/09):
@@ -139,6 +139,22 @@ comprobado). **En local, sin publicar: lo del 31/08** — la firma 7
 v2, el censo del feed destilado, la casilla 2 entera (cinco commits
 del ejecutor + las bitácoras nº17-18 con su fix) y los papeles. El
 push es de Antonio.
+
+**LOS CONTRASTES POR DOCTRINA (1/09).** Sonda en ZetaBus primero: la
+vía del cálculo negro/blanco la RETIRÓ ZetaBus (rompía la marca —
+identificación consistente); su regla, heredada con cita: diurna =
+color de línea intacto + número blanco + contorno (la técnica WCAG
+del contorno como primer plano) · búho /^N/i = azul noche #1C1A42 +
+número en el color de la línea. 53/53 chips ≥4,5:1 medidos en el
+PÍXEL (eran 27 por debajo; denominador corregido: 53, no 45). Ribete
+bajo la polilínea por WCAG 1.4.11 (sin precedente en ZetaBus, que no
+pinta trazas): negro por cuenta; el route_color no cambia. Bitácora
+nº25: el contorno de 0,7 px de ZetaBus no pintaba ni un píxel a
+nuestros 13,6 px — 2 px con suavizado en gris. El instrumento: medir
+en el píxel, nunca en getComputedStyle (opacity 0.18 → 21:1 falso).
+Avanza YA ERA paralelo; los 8,4 s son el presupuesto de reintento de
+ZetaBus sobre un poste mudo — dentro de NN/g 10 s, se queda. 446
+motor · 208 interfaz · 25 bitácoras, 0 abiertas.
 
 **LA TARDE-NOCHE DEL 31/08 — los pesos de OTP, los desvíos y los
 pulidos: EL MODO BUS RUTEA BIEN («va mejor», el ojo).** LOS PESOS:
@@ -921,11 +937,9 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **los contrastes por doctrina** (WCAG 1.4.3 /
-1.4.11: texto del chip negro/blanco por contraste y ribete bajo la
-línea — sin inventar colores de línea) y paralelizar Avanza; (2)
-LA DEMO del bus por el ojo (casilla 5) — con la 44 ya operando
-desde el 1/09; (3) la pantalla del bus (patrón BiZi + colores de línea)
+**Lo siguiente:** (1) **LA DEMO del bus por el ojo (casilla 5)** —
+con la 44 ya operando desde el 1/09; su vale cierra el punto 10;
+(2) la pantalla del bus (patrón BiZi + colores de línea)
 y la demo; (3) LA FASE 2 de sentidos como goteo de fondo (las
 shapes como atajo); (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
@@ -1139,10 +1153,11 @@ la API viva de BiZi vive aquí (mudada del 10; NO es GBFS).
 rutea con RAPTOR y los pesos de OTP, la consulta viva, los desvíos
 con la ruta operativa de hoy, el pintado con traza y colores, la
 narración pulida; queda LA DEMO del ojo y lo pendiente por
-doctrina):** ⚠️ CONTRASTES [WCAG]: 27/45 chips <4,5:1 y 23/45
-líneas <3:1 (colores del feed) — texto por contraste + ribete bajo
-la polilínea · ⚠️ paralelizar las consultas Avanza (8,3 s peor caso)
-· NO CONSTA por qué el poste 1203 no anuncia · 16/45 líneas sin
+doctrina):** ⚰️ CONTRASTES HECHOS el 1/09 (53/53 chips y todas las líneas
+≥ AA, medidos en el píxel; chip y búho heredados de ZetaBus; ribete
+por WCAG) · ⚰️ Avanza ya era paralelo; el peor caso (8,4 s) es el
+presupuesto de reintento de ZetaBus sobre un poste mudo — se queda
+[NN/g 10 s] · NO CONSTA por qué el poste 1203 no anuncia · 16/45 líneas sin
 servicio entre semana en agosto (calendario del feed, dato) · ⚰️
 la «firma 3» retirada por doctrina (los 10,1 min eran de la
 búsqueda rota) ·
@@ -1203,7 +1218,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 640 pruebas (445 motor + 195 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 654 pruebas (446 motor + 208 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
