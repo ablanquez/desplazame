@@ -656,3 +656,66 @@ legend {
 .vivo__tarda {
   font-size: 0.85rem;
 }
+
+/* ⭐ EL PIE DE CRÉDITOS (1/09).
+
+   Mismo ancho y mismo centrado que `.pantalla`, para que la línea caiga
+   debajo del contenido y no se despegue de él. **En el flujo y sin
+   `position`**: un pie fijo o pegajoso taparía el mapa, y el encargo pedía
+   justo lo contrario.
+
+   ⭐ **Y NO HAY UN COLOR DE ENLACE.** Los enlaces van con `color: inherit` y
+   subrayado, como el botón «detalles» de los avisos. Dos razones, y las dos
+   se pueden comprobar:
+
+   · [WCAG 1.4.1] lo que dice que ahí hay un enlace es **el subrayado**, no el
+     color. Un azul sobre gris cumpliría igual, pero entonces el subrayado
+     sería adorno; así es el mecanismo.
+   · **El instrumento puede medir.** Con una sola tinta en toda la línea, el
+     contraste que mide `app/e2e/creditos.mjs` —la moda contra el color más
+     lejano de los píxeles pintados— es EL par de verdad. Con dos tintas
+     mediría la mejor de las dos y daría verde sin haber mirado la peor.
+
+   #555 sobre el blanco de la página son **7,46:1** por la fórmula de
+   `contraste.ts`, con 4,5 exigidos [WCAG 1.4.3]. El número que vale es el
+   medido en Chrome, no éste. */
+.creditos {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 0 1rem 1.5rem;
+  border-top: 1px solid #ddd;
+  color: #555;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.creditos__linea {
+  margin: 1rem 0 0;
+}
+
+.creditos__fechas {
+  margin: 0.35rem 0 0;
+}
+
+/* El separador es adorno: quien lee la pantalla en voz alta ya tiene el
+   espacio entre partes, y «punto medio» cuatro veces no informa de nada.
+   Va `aria-hidden` en la plantilla y aquí solo se le da aire. */
+.creditos__punto {
+  margin: 0 0.15rem;
+}
+
+.creditos__enlace {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.creditos__enlace:hover {
+  text-decoration: none;
+}
+
+/* [WCAG 2.4.7] El foco no se quita: se refuerza. Es la misma regla, y el
+   mismo gesto, que en `.detalles` y en `.vivo__boton`. */
+.creditos__enlace:focus-visible {
+  outline: 2px solid #1a1a1a;
+  outline-offset: 2px;
+}

@@ -583,3 +583,108 @@
     }
   </section>
 </main>
+
+<!-- ⭐ LA LÍNEA DE CRÉDITOS (1/09), y está en la PANTALLA a propósito.
+
+     La atribución es una obligación con dos caras y ninguna vale sola. El
+     notices lleva la ficha entera de cada fuente —licencia, fecha, campos, lo
+     que trae de roto—, pero **un crédito que solo vive en un `.md` del
+     repositorio no lo lee ni quien despliega la página**. Aquí está la otra
+     cara: los cuatro titulares del dato que se está enseñando, con su nombre,
+     donde está quien mira.
+
+     Lo que cada uno exige, y por qué está escrito como está:
+
+     · **Avanza Zaragoza S.A.U.** — su aviso legal PROHÍBE la extracción y la
+       reutilización (§ 1.24 del notices, transcrito y fechado), así que esto
+       **no es una atribución que su licencia pida**: no hay licencia. Es la
+       decisión de Antonio del 1/09 —dato público de un servicio público
+       concesionado, y esto es una demo— llevada a su consecuencia honesta:
+       **se dice de quién es el dato**, que es lo contrario de disimularlo.
+     · **Punto de Acceso Nacional (MITMA)** — el GTFS de los horarios (§ 1.7), y
+       éste **sí trae una fórmula escrita que hay que cumplir**: *«Powered by
+       MITRAMS»* con enlace a `transportes.gob.es`, la cita del MITMS como
+       fuente, e **indicación de si el dato es bruto o procesado**. Aquí es
+       **las dos cosas**: la traza que se pinta sale de `shapes.txt` tal cual
+       (bruta, solo cortada por paradas) y los minutos salen de calcular sobre
+       `stop_times` (procesados).
+
+       ⚠️ **Y hasta hoy esta atribución NO SE ESTABA CUMPLIENDO.** § 1.7 la
+          declaraba *«colgada de la capa de trazados»* — la del **visor**, que
+          se retiró de la app el 22/08. La ficha decía «cumplida» y en la
+          pantalla no había ni una palabra. Se cumple desde aquí, y § 1.7
+          queda corregida.
+     · **Ayuntamiento de Zaragoza** — [Ley 37/2007] *«Debe citarse la fuente»*,
+       y la fórmula la fija su propio aviso legal.
+     · **colaboradores de OpenStreetMap** — [ODbL 1.0] la palabra
+       «colaboradores» NO es opcional y el enlace al copyright tampoco. Ya se
+       cumple en el control del mapa (`mapa.ts`), y se vuelve a cumplir aquí:
+       son dos sitios distintos y este pie no hereda aquél.
+
+     ⚠️ **Y NO LLEVA LA FECHA DEL GTFS SERVIDO, que es lo que el encargo pedía.**
+        No se calla por descuido: **la pantalla no la sabe**. El motor sirve la
+        semilla del repositorio o el zip vivo que trae el cron cada noche —lo
+        decide `elFeedQueSeSirve()` al arrancar—, y el contrato no publica cuál
+        de los dos. Escribir aquí la de la semilla sería verdad hasta la primera
+        noche que el cron corriera, y eso es inventar con fecha. Pedirla al
+        arrancar tampoco: **la raíz en frío no pide NADA** desde el 22/08, y hay
+        juez (`app.spec.ts`). Así que la fecha se dice donde consta medida, dato
+        a dato, que es `/panel` — y hasta ahí lleva el enlace.
+
+     El `<footer>` va FUERA de `<main>` para que sea de verdad un punto de
+     referencia `contentinfo`: [HTML] un `footer` solo lo es cuando su ancestro
+     de seccionado más cercano es `body`, y `<main>` lo rompería. Los elementos
+     propios de Angular que hay en medio no seccionan nada.
+
+     Va en el flujo, después de todo, y sin posición fija: **no tapa el mapa** —
+     lo mide `app/e2e/creditos.mjs` en un navegador de verdad, junto con el
+     contraste, porque el CSS del componente no se aplica en jsdom. -->
+<footer class="creditos">
+  <p class="creditos__linea">
+    <!-- ⭐ LOS `&ngsp;` NO SON ADORNO, y esto se descubrió MIDIENDO (1/09).
+
+         Angular borra el espacio en blanco que hay ENTRE elementos
+         (`preserveWhitespaces: false` es el defecto). Con la línea escrita sin
+         ellos, Chrome pintaba «Avanza Zaragoza S.A.U.·Horarios: GTFS…» — los
+         titulares pegados al punto, separados sólo por los 2,4 px del margen—,
+         y en el árbol de accesibilidad, donde el punto va oculto, quedaban
+         pegados el uno al otro sin nada en medio: «S.A.U.Horarios».
+
+         Es la misma cicatriz que § 1.24 del notices le documenta a Avanza
+         —`053MIRALBUENO`—, y aquí la habríamos puesto nosotros.
+
+         `&ngsp;` es la entidad de Angular para «un espacio que SÍ sobrevive».
+         Va fuera de los tramos ocultos, así que separa las dos cosas: lo que se
+         ve y lo que se lee en voz alta. -->
+    <span class="creditos__parte">Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.</span>&ngsp;<span
+      class="creditos__punto"
+      aria-hidden="true"
+      >·</span
+    >&ngsp;<span class="creditos__parte"
+      >Horarios: GTFS del Punto de Acceso Nacional (MITMA) —
+      <a
+        class="creditos__enlace"
+        href="https://www.transportes.gob.es/"
+        target="_blank"
+        rel="noopener"
+        >Powered by MITRAMS</a
+      >
+      (dato bruto y procesado)</span
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
+      >Datos municipales: Ayuntamiento de Zaragoza (Ley 37/2007)</span
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
+      >Cartografía: ©
+      <a
+        class="creditos__enlace"
+        href="https://www.openstreetmap.org/copyright"
+        target="_blank"
+        rel="noopener"
+        >colaboradores de OpenStreetMap</a
+      ></span
+    >
+  </p>
+  <p class="creditos__fechas">
+    La fecha de actualización de cada dato, medida una a una, está en
+    <a class="creditos__enlace" href="/panel">el panel de frescura</a>.
+  </p>
+</footer>
