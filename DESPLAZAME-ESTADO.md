@@ -7,7 +7,12 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ## ESTADO ACTUAL — 1 de septiembre de 2026
 
-**⭐ PUNTOS 1-9 CERRADOS (el 9, el 30/08: la rueda ENTERA — seis
+**⭐ PUNTOS 1-10 CERRADOS (el 10, el 1/09: EL BUS Y EL TRANVÍA
+ENTEROS — el feed del NAP con su cron probado, la red cocinada en
+patrones, RAPTOR con los pesos de OTP, la ruta operativa de hoy con
+los desvíos reconstruidos, la consulta viva a Avanza y el botón
+«Próximo bus», la pantalla con colores de línea, chips y ribetes por
+WCAG; 28 bitácoras; el ojo: «funciona perfecto». El 9, el 30/08: la rueda ENTERA — seis
 modos en pantalla, bici/patín/BiZi ruteando por sus tablas con
 empuje, selector de ruta, aparcabicis a ≤500 m firmados, BiZi vivo
 estación a estación, pintado por tramos con el azul #2563eb, y LA
@@ -25,7 +30,7 @@ hospitales · bibliotecas · colegios e institutos · guarderías ·
 universidades — 820 sitios, 802 buscables), TODA calle sugerible
 (3.350: 2.731 con portal + 619 por punto medio — el Puente de Piedra
 se escribe), el buscador por tipos completo con siglas e iconos, el
-foco en las dos capas, y las bitácoras cerradas (25/25 al 1/09).**
+foco en las dos capas, y las bitácoras cerradas (28/28 al 1/09).**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
 levantado el 18/08, des-caducado del 21/08 al 1/09):
@@ -66,7 +71,12 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   próximo en M min (dato de las HH:MM)» o su frecuencia teórica ·
   transbordo en el mismo poste como UN paso ⇄ · el desvío en dos
   niveles (el hecho siempre; «detalles» con botón accesible) · el
-  indicador de espera si Avanza tarda >1 s. «¿Qué ruta prefieres?» (30/08): Rápida · Equilibrada
+  indicador de espera si Avanza tarda >1 s · cada poste con SU
+  NÚMERO («poste 33 · Av. Academia…») · el botón «PRÓXIMO BUS» junto
+  a cada subida/transbordo de bus (región de estado accesible, cada
+  pulsación pregunta a Avanza) · los chips heredados de ZetaBus
+  (blanco con contorno; búhos en azul noche) · RIBETE bajo toda
+  línea montada y bajo el a-pie y la bici, por WCAG 1.4.11. «¿Qué ruta prefieres?» (30/08): Rápida · Equilibrada
   (defecto) · Tranquila, SOLO en bici/BiZi [revelado GOV.UK;
   doctrina CycleStreets] — Generar trae las tres en paralelo y el
   radio repinta sin nueva petición. LA RUTA POR TRAMOS (30/08
@@ -93,10 +103,13 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TypeScript SIN compilar, carga antes de `listen()` (grafo 98.774
   aristas ~190 ms · callejero 3.359 vías · 46.150 portales), 412 MB de
   RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
-  anotado para el punto 12). Endpoints vivos, SIETE (el séptimo del
+  anotado para el punto 12). Endpoints vivos, OCHO (el séptimo del
   31/08: `POST /api/renovar-feed`, el del cron — token Bearer en
-  cabecera, 503/401/409/202, single-flight de trabajo de fondo; y
-  `POST /api/ruta` acepta `modo=bus` desde la 3b):
+  cabecera, 503/401/409/202, single-flight de trabajo de fondo; el
+  octavo del 1/09: `GET /api/poste-vivo?poste&linea`, el del botón
+  «Próximo bus» — idempotente, no-store, single-flight, 400 si se
+  pregunta mal, mudo con motivo al log; y `POST /api/ruta` acepta
+  `modo=bus` desde la 3b):
   `/api/salud` · `/api/vias?q=` (con `foco`) · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
   `POST /api/ruta` (sitio o vía-sin-portal en cualquiera de los dos
@@ -135,10 +148,29 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar: lo del 31/08** — la firma 7
-v2, el censo del feed destilado, la casilla 2 entera (cinco commits
-del ejecutor + las bitácoras nº17-18 con su fix) y los papeles. El
+comprobado). **En local, sin publicar: EL PUNTO 10 ENTERO**
+(31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
+OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
+las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**EL CIERRE DEL 10 (1/09, la tarde).** Tres bugs del ojo, cerrados:
+el refresco de desvíos perdía lo detectado (setInterval = TTL; los
+veredictos caducaban entre leer y aplicar — medido con reloj falso;
+el log daba verde contando la fuente, no lo aplicado; ahora aplica
+lo que acaba de leer, periodo TTL/2, «detectados N · aplicados M»)
+· el poste mudo era el tope en una racha lenta de Avanza (medido:
+mediana 4.000 ms, luego 0/24) → el mudo con motivo al log · el
+número de poste en toda la narración [stop_code]. Y EL VIVO A
+PETICIÓN: el Generar consulta solo el primer poste; GET
+/api/poste-vivo; el botón «Próximo bus» con región role=status,
+aria-busy, nunca disabled, cada pulsación pregunta de nuevo [WCAG
+4.1.3; MDN]; medido: «cada 11 min» → «próximo en 6 min». Bitácora
+nº28 (:empty{display:none} sacaba la región viva del árbol). El
+ojo: «funciona perfecto» → EL PUNTO 10 CERRADO. Pulidos post-cierre
+fichados: el resumen único de avisos [GOV.UK], el minuto doble en la
+primera subida, el botón a petición para BiZi. 470 motor · 217
+interfaz · 28/28 bitácoras.
 
 **LOS CONTRASTES POR DOCTRINA (1/09).** Sonda en ZetaBus primero: la
 vía del cálculo negro/blanco la RETIRÓ ZetaBus (rompía la marca —
@@ -155,6 +187,21 @@ en el píxel, nunca en getComputedStyle (opacity 0.18 → 21:1 falso).
 Avanza YA ERA paralelo; los 8,4 s son el presupuesto de reintento de
 ZetaBus sobre un poste mudo — dentro de NN/g 10 s, se queda. 446
 motor · 208 interfaz · 25 bitácoras, 0 abiertas.
+
+**LA CASILLA 4 DEL 10 — LA PANTALLA DEL BUS (31/08 tarde; destilada
+el 1/09 tras la auditoría de Antonio).** Las trazas por salto
+cocinadas proyectando cada parada sobre la shape [OTP hop
+geometries; Google: «su mejor posición a lo largo de la traza»]:
+48.307 puntos, 1.277 km, cero paradas a >100 m, cero rectas;
+proyección MONÓTONA por programación dinámica (31/170 patrones
+saltaban atrás con el vecino más cercano); la shape se elige por
+ajuste, no por nombre (210|0|10: 4.222 m vs 14). El caso del ojo
+gana 816 m de asfalto real. Montado en route_color, chip, 🚌/🚏, el
+aviso medido [GTFS-RT], el indicador [NN/g]. DOS FALLOS reales: el
+cocinado sin formato (servía el de ayer con 421 verdes →
+FORMATO_DEL_COCINADO) y la juez que guardaba una red sin peatón en
+producción (0 transbordos con 423 verdes; cazado por pid≠pid →
+RedDeBus.conPeaton). 423 motor · 188 interfaz.
 
 **LA TARDE-NOCHE DEL 31/08 — los pesos de OTP, los desvíos y los
 pulidos: EL MODO BUS RUTEA BIEN («va mejor», el ojo).** LOS PESOS:
@@ -937,9 +984,9 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **LA DEMO del bus por el ojo (casilla 5)** —
-con la 44 ya operando desde el 1/09; su vale cierra el punto 10;
-(2) la pantalla del bus (patrón BiZi + colores de línea)
+**Lo siguiente:** (1) **EL PARLAMENTO previo al punto 11** (Antonio
+quiere hablar de otras cosas antes del coche); (2) el push de la
+tanda del 31/08-1/09 cuando Antonio lo nombre; (3) la pantalla del bus (patrón BiZi + colores de línea)
 y la demo; (3) LA FASE 2 de sentidos como goteo de fondo (las
 shapes como atajo); (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
@@ -1005,7 +1052,10 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
-9 CERRADO el 30/08 (casillas 0-7 — el COSTE DE LA RUEDA:
+10 CERRADO el 1/09 (casillas 0-5 y los pulidos — el bus entero: cron
++ cocina + RAPTOR con pesos OTP + desvíos operativos + vivo a
+petición + pantalla WCAG; ver el plan) · 9 CERRADO el 30/08 (casillas
+0-7 — el COSTE DE LA RUEDA:
 red aparte con sentido demostrado [112 rotondas antihorario/0 ·
 22.999 encadenados], once jueces con cifras, la muralla sha256 del
 peatón, el patín 51/200 con el defecto del art. 50 RGC [RD 970/2020:
@@ -1149,11 +1199,11 @@ es» (dice nombres, trae 260 etiquetas) · la doble capitalización
 «Senda ciclable/Ciclable» · el contraflujo con candado (18 reales) ·
 la API viva de BiZi vive aquí (mudada del 10; NO es GBFS).
 
-**Punto 10 (EN MARCHA desde el 30/08 — casillas 0-4 HECHAS: el bus
-rutea con RAPTOR y los pesos de OTP, la consulta viva, los desvíos
-con la ruta operativa de hoy, el pintado con traza y colores, la
-narración pulida; queda LA DEMO del ojo y lo pendiente por
-doctrina):** ⚰️ CONTRASTES HECHOS el 1/09 (53/53 chips y todas las líneas
+**Punto 10 (⭐ CERRADO el 1/09 — la demo confirmada: «funciona
+perfecto»; pulidos post-cierre fichados: el resumen único de avisos
+[GOV.UK error summary], el minuto doble de la primera subida, el
+botón a petición para BiZi; el cron en el panel de Hostinger al
+desplegar):** ⚰️ CONTRASTES HECHOS el 1/09 (53/53 chips y todas las líneas
 ≥ AA, medidos en el píxel; chip y búho heredados de ZetaBus; ribete
 por WCAG) · ⚰️ Avanza ya era paralelo; el peor caso (8,4 s) es el
 presupuesto de reintento de ZetaBus sobre un poste mudo — se queda
@@ -1218,7 +1268,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 654 pruebas (446 motor + 208 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 687 pruebas (470 motor + 217 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

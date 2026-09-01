@@ -1944,7 +1944,11 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       sede aún caída, y el regalo no pedido: las tres rutas del
       trío hablan del MISMO momento).
 
-## 10 — Modo BUS/TRANVÍA *(en grueso)*
+## 10 — Modo BUS/TRANVÍA — **⭐ CERRADO el 1/09/2026** *(arrancó la
+noche del 30/08 con nueve reglas y el calendario verificado; el
+censo, el cron, la cocina, el viaje, los desvíos, la pantalla y los
+pulidos en tres días; la demo confirmada por el ojo el 1/09:
+«funciona perfecto»)*
 
 *(Anotado el 29/08, de la auditoría de sentidos:)* las SHAPES del
 GTFS son trazas direccionales reales (el bus recorre la calle en su
@@ -2320,6 +2324,46 @@ variables → INDICADOR de espera obligatorio [NN/g: >1 s, indicar
 que se trabaja; más aún si el tiempo es variable]. 415 motor · 183
 interfaz.
 
+**⭐ CASILLA 4 · LA PANTALLA DEL BUS — HECHA (31/08 tarde, seis
+commits; NO destilada hasta el 1/09 — la auditoría de Antonio la
+cazó: «¿solo has rellenado y patadón?»).** LAS TRAZAS POR SALTO
+cocinadas [OTP TripPattern: la geometría del patrón = concatenación
+de hop geometries; sin shape_dist_traveled (0/27.603), cada parada se
+PROYECTA sobre la traza y se corta entre proyecciones — Google
+Transit Partners: «casar la parada con su mejor posición a lo largo
+de la traza»]: el cocinado 1.476 → 2.672 KB (+81 %), +137 ms
+(+3,3 %), 48.307 puntos, 1.277 km de asfalto; 3.532 proyecciones,
+mediana 5,4 m · p95 10,3 · peor 40,9 · CERO a >100 m [la best
+practice del validador] · cero rectas de reserva · cero patrones
+sin traza. ⭐ LA MONOTONÍA NO ES TEÓRICA: con el vecino más cercano
+31 de 170 patrones mandaban alguna parada al paso de vuelta (la 117
+saltaba 42 km atrás) → programación dinámica con mínimo de prefijo.
+⭐ LA FORMA SE ELIGE POR CÓMO LE QUEDA, no por su nombre: 210|0|10
+cita dos shapes; con 210_I su peor parada cae a 4.222 m, con 210_V a
+14 — coger formas[0] metía 42 paradas por encima del límite. EL CASO
+DEL OJO: 6.320 → 7.137 m, el montado gana 816 m (la cuerda cortaba
+esquinas por encima de las manzanas), 335 vértices, sumas exactas.
+LA PANTALLA: montado sólido en route_color · chip [29] (12,51:1
+entonces, en la leyenda y en el paso) · 🚌/🚏 en postes · el aviso
+«ausente» con el texto MEDIDO [GTFS-RT] en doble sitio · el
+INDICADOR de espera [NN/g >1 s] (salió en el par con transbordo,
+no en el del ojo que contestó <1 s). Reportado sin inventar: 27
+chips <4,5:1 y 23 líneas <3:1 (colores del feed) → resuelto el 1/09.
+⚠️ DOS FALLOS REALES, grabados y cerrados: (a) el cocinado del
+disco NO DECÍA SU FORMATO — al ganar los saltos su traza, el
+arranque siguió sirviendo el fichero de ayer (sin traza) con 421
+jueces en verde (todas llaman a cocinar(); el producto arranca por
+cocinarYServir()) → FORMATO_DEL_COCINADO; (b) el arreglo del (a)
+trajo el (b): la juez que lo cubría guardaba en el fichero de
+PRODUCCIÓN una red sin peatón → el motor arrancó sirviendo 0
+transbordos de 10.588 con 423 jueces en verde; lo cazó pid del log ≠
+pid que contesta → RedDeBus.conPeaton («este fichero está completo»,
+no solo «sé leerlo») y la escritura de la juez a un temporal.
+Confesión del ejecutor: sus primeras cifras salieron de un proceso
+sin log; todo re-medido con pid==pid; dos contrapruebas lanzadas a
+la vez sobre los mismos ficheros, repetida en serie. 423 motor ·
+188 interfaz.
+
 **⭐ LOS PESOS DE OTP — el enrutado corregido por doctrina (31/08
 tarde, tras la queja del ojo: «se me va a coger el bus a tomar por
 culo… busca doctrina que algo estás cagando»).** EL DIAGNÓSTICO
@@ -2477,16 +2521,76 @@ probar (Chrome y motor vivos; a mano). 446 motor · 208 interfaz · 25
 bitácoras, 0 abiertas. ⚠️ Siguen: 16/45 líneas sin servicio entre
 semana en agosto (dato) · 1203 NO CONSTA.
 
+**⭐ CASILLA 5 · LA DEMO — CONFIRMADA por el ojo (1/09): «funciona
+perfecto»**, tras dos días de casos reales de Antonio en localhost
+(COLOSO→ROMEO, COLOSO→Grande Covián, COLOSO→Oviedo 5,
+COLOSO→Compromiso de Caspe, Conde de Aranda→Leopoldo Romeo,
+Arcosur→Montañana) que cazaron seis fallos por el camino — todos
+cerrados con bitácora.
+
+**⭐ EL CIERRE DEL PUNTO 10 (1/09, la tarde): tres bugs cazados por el
+ojo y cerrados, y el vivo a petición.** (1) EL REFRESCO QUE PERDÍA
+DESVÍOS (bitácora): la 22 subía en Plaza de España estando
+suprimida; el diagnóstico descartó fuente, identidad (ids exactos
+17390/17391 suprimidos), dirección (solape 85/93 %) y alcance (la
+22 no tiene refuerzos) — era ESTADO DEL PROCESO: setInterval con el
+MISMO valor que el TTL de la caché; el segundo pase servía
+veredictos a segundos de caducar y al aplicar ya eran null (medido
+con reloj falso: 64 vivos a los 5 s, 0 a los 11); estrella: el log
+daba verde «23 desviados» dos veces mientras se aplicaban 4 — la
+cuenta impresa era la de la fuente, no la de lo aplicado. Arreglo:
+el refresco APLICA lo que acaba de leer (sin segunda lectura),
+periodo = TTL/2, y el log dice «detectados N · aplicados M» y grita
+si no cuadran; LEY: una juez que no cubre la línea que se cambió no
+es una juez de ese cambio (la contraprueba lo destapó: las tres
+jueces pasaban los veredictos a mano). (2) EL POSTE MUDO con Avanza
+en línea: diagnóstico medido — el tope, siempre el tope: una racha
+de Avanza con la mediana en 4.000 ms (5/10 fallos), veinte minutos
+después 0/24 con dos topes alternados; no es el poste, ni la
+concurrencia, ni el parseo; NO CONSTA por qué Avanza tuvo la racha.
+→ el mudo lleva MOTIVO al log (tope · red · http · parseo ·
+contador, con ms) [ZetaBus cuenta timeouts aparte]; el aviso al
+usuario idéntico. (3) EL NÚMERO DE POSTE en toda la narración
+[stop_code: «el número que el viajero ve en la señal», referencia
+GTFS]: bus PA00033 → 33, tranvía su código tal cual (sin PA
+inventado); en subida, transbordo, bajada, avisos y listas del
+desvío. (4) EL VIVO A PETICIÓN: el Generar consulta SOLO el primer
+poste de subida (los demás solo fabricaban avisos de un minuto que
+nunca se iba a decir; la juez 23 jubilada con su tema, escrito) ·
+GET /api/poste-vivo?poste&linea (idempotente, no-store, single-
+flight, 400 si se pregunta mal, mudo si el poste no existe) · el
+botón «Próximo bus» junto a cada subida y transbordo de bus (no en
+tranvía): región role=status creada al pintar el paso [WCAG 4.1.3],
+aria-busy durante la carga, el botón enfocable e interceptando
+clics en vuelo (nunca disabled), cada pulsación vuelve a preguntar;
+medido en vivo: «cada 11 min» → pulsar → «próximo en 6 min» en 1,9
+s. Bitácora nº28: `:empty{display:none}` sacaba la región viva del
+árbol de accesibilidad (2 status vacía, 3 con texto — la juez
+querySelector la encontraba igual; jsdom no aplica el CSS: las dos
+jueces nuevas viven donde hay píxeles). Decisión declarada:
+aria-busy durante la carga ⇒ el lector oye el resultado, no el
+arranque. El ojo: «funciona perfecto». 470 motor · 217 interfaz ·
+28 bitácoras, 0 abiertas.
+**PULIDOS POST-CIERRE, fichados con su doctrina (no bloquean):** ·
+el RESUMEN ÚNICO arriba [GOV.UK error summary: UNA caja que lista
+todo, enlazando a cada paso; hoy hay una caja por aviso — el patrón
+mal copiado] · la primera subida dice el minuto DOS veces (la frase
+del paso y la región; al refrescar la frase se queda vieja) —
+fundir cambia la narración del sube · «Ojalá lo hubiéramos hecho
+con BiZi» (Antonio): el mismo botón a petición para la
+disponibilidad de estaciones · el peor Generar sigue en 8,4 s si
+Avanza va lenta en el primer poste (presupuesto de ZetaBus; dentro
+de NN/g). NO CONSTA: el 1203 sin anunciar; las rachas de Avanza; 16
+líneas sin servicio entre semana en agosto (dato).
+
 *(La regla del apoyo en ZetaBus —precedente propio en producción,
 solo lectura, se cita como lo que es y donde discrepe del feed se
 investiga— quedó fichada el 30/08 y EJECUTADA en las casillas 1 y 2:
 la cosecha está arriba.)*
 
-LO QUE QUEDA DEL PUNTO (casillas 3-5): la decisión `G` sigue
-mandando — componer sin prometer, sin total inventado. El barrido
-nocturno YA EXISTE (`POST /api/renovar-feed`, casilla 2); lo que
-falta es que `recocinar()` cocine la red (casilla 3), la pantalla
-del bus (casilla 4) y la demo (casilla 5).
+*(Este párrafo decía «lo que queda: casillas 3-5»; al 1/09 todas
+están hechas y el punto cerrado — queda como historia. La decisión
+`G` se cumplió: componer sin prometer, sin total inventado.)*
 
 Dejado aquí desde el punto 4, para cuando toque:
 
