@@ -96,14 +96,14 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   peticiones** — antes 41,07 MB en 20 (cifra FIJADA con comando; los
   ~34 y ~42 que corrían por los papeles eran herencias). El visor y
   sus catorce capas: RETIRADOS de la app, reservados para la
-  **Intranet (punto 14)**; recuperables de git (`6327e45^`, escrito en
+  **Intranet (punto 16)**; recuperables de git (`6327e45^`, escrito en
   el plan). Los DATOS siguen en el repo con sus fichas — lo que murió
   es su publicación al navegador.
 - **El motor**: workspaces npm, contrato en `@desplazame/tipos`,
   TypeScript SIN compilar, carga antes de `listen()` (grafo 98.774
   aristas ~190 ms · callejero 3.359 vías · 46.150 portales), 412 MB de
   RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
-  anotado para el punto 12). Endpoints vivos, OCHO (el séptimo del
+  anotado para el punto 14). Endpoints vivos, OCHO (el séptimo del
   31/08: `POST /api/renovar-feed`, el del cron — token Bearer en
   cabecera, 503/401/409/202, single-flight de trabajo de fondo; el
   octavo del 1/09: `GET /api/poste-vivo?poste&linea`, el del botón
@@ -153,6 +153,22 @@ comprobado). **En local, sin publicar: EL PUNTO 10 ENTERO**
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**EL PARLAMENTO DE LA DEMO (1/09, tras cerrar el 10) → PUNTOS 11 y 13
+NUEVOS, RENUMERACIÓN.** Antonio: «esto va a ser una DEMO» — la
+botonera se reorganiza en modo + calificador [la taxonomía de OTP:
+bike/bike-rental/car-to-park…; GBFS form factors]: Bici → [Privada]
+[Pública BiZi] + las tres rutas (solo pantalla: los caminos ya
+existen) con los botones de disponibilidad a petición (bicis al
+coger, anclajes al dejar — el patrón «Próximo bus»); Coche → tipo de
+parking [Regulado] [Discapacitado] [Gratuito] (car-to-park; tres
+capas de dato a sondar — «gratuito» probablemente derivación, NO
+CONSTA); Moto → [Privada] [Pública YeGo] (nuevo modo; rueda por la
+red del coche; YeGo = ciclomotor compartido, GBFS moped? a sondar).
+Regla de la demo (nº1 del reinicio): la botonera enseña lo que
+existe. EL PLAN SE RENUMERA: 11 la botonera · 12 coche (era 11) · 13
+moto (nuevo) · 14 despliegue (era 12) · 15 estética (era 13) · 16
+intranet (era 14) — todas las referencias cruzadas movidas.
 
 **EL CIERRE DEL 10 (1/09, la tarde).** Tres bugs del ojo, cerrados:
 el refresco de desvíos perdía lo detectado (setInterval = TTL; los
@@ -407,7 +423,7 @@ frontera pasada; ⚠️ shape_dist_traveled columna VACÍA · ⚠️ 8 rutas
 sin viaje en el feed) → al punto 10; y la ZBE municipal es capa de
 DOS polígonos (FASE 1/FASE 2, el centro; solo geom+fase — vigencia,
 vehículos y excepciones son LETRA LEGAL del 11, no dato; CRS trampa
-viva) → al punto 11. Cero descargas; lectura pura.
+viva) → al punto 12. Cero descargas; lectura pura.
 
 **LAS CASILLAS 5-6, EL PINTADO Y LA REVERSIÓN DE SIRESA (30/08
 tarde).** LOS PRIVADOS Y BiZi [OTP BICYCLE_PARK/vehicle-parking +
@@ -738,14 +754,14 @@ municipal fichado: 4 farmacias desplazadas 236 m con EL MISMO VECTOR
 (Δlat −0,00187/Δlon −0,00135 — huele a datum, causa NO CONSTA):
 20443 · 20444 · 20445 · 8671, rutas de hasta 401 m a su propia
 puerta. La protanopia del mapa ABIERTA (dos chinchetas solo por
-color; bandera a cuadros → punto 13). Foco a las vías: hallazgo
+color; bandera a cuadros → punto 15). Foco a las vías: hallazgo
 anotado SIN hacer. 211+123 pruebas. Commits `1bf560f` `ffe9167`
 `a13b6eb` (B) · `3f6847c` `4cd0fcb` `cc0aade` (simetría) · `dbabafb`
 `892d9f1` `99cfa88` `f48c89c` (remate 2) · `64ba7a7` `207e81e`
 `16cc9c1` (remate 3).
 
 **El panel de frescura CONSTRUIDO (23/08, tarde) — las piezas 1 y 2
-del adelanto del punto 14.** `datapackage.json` en la raíz (Frictionless
+del adelanto del punto 16.** `datapackage.json` en la raíz (Frictionless
 + términos DCAT): 21 resources, huellas 21/21 casando, campos solo
 donde constan (modified 7 · descargadoEl 17 · caducaEl 3),
 accrualPeriodicity en URI del vocabulario europeo. VERIFICADO POR DOS
@@ -779,10 +795,10 @@ con 39 % de coordenadas y frescura contradicha · veladores 712
 huérfanos · Aragón sin coordenadas y ficha NO CONSTA con causa. El
 barrido completo de las 251 categorías confirmó: la API municipal NO
 tiene censo de hostelería. Y de la idea de Antonio para la intranet
-nació EL PANEL DE FRESCURA, adelantado al presente (plan, punto 14):
+nació EL PANEL DE FRESCURA, adelantado al presente (plan, punto 16):
 manifiesto (formato de la verdad) + pestaña pública con semáforo
 [D1 y D2 firmadas: color solo con fuente; gris NO CONSTA con cadencia
-observada] + el cron educado al punto 12 [GET condicional, MDN].
+observada] + el cron educado al punto 14 [GET condicional, MDN].
 Parlamento del 8 ABIERTO en la tanda 1 y la hostelería.
 
 **⭐ PUNTO 7 CERRADO (23/08) — la narración de cruces, última
@@ -812,7 +828,7 @@ resuelto quitándolas (decisión B de Antonio).
 
 **Punto 7 — fuera el visor y los andamios (22/08, tarde): la app
 queda en 0,22 MB.** Parlamentado: el visor NO muere — se RESERVA para
-la Intranet, **punto 14 nuevo del plan** (con el hash de recuperación
+la Intranet, **punto 16 nuevo del plan** (con el hash de recuperación
 escrito: `6327e45`). El andamio no vivía en el visor: lo disparaba EL
 BUSCADOR en su constructor (hallazgo del PARA) — fuera de ahí, la raíz
 en frío pasa de 41,07 MB/20 peticiones a **0,22/3**, cero bytes de
@@ -849,7 +865,7 @@ contraprueba 8/8. README: la retirada CONTADA, no callada (el ×1,2
 solo vive en el párrafo que la cuenta); cifras re-medidas (vía
 peatonal 37,4 % · latencia p50 22 · 22,7 pasos). Commits `7d2ffcb` +
 `1067c6f`. Antonio: «ahora ya carga las rutas bien». RSS del motor
-observado al arrancar: 412 MB (anotado para el punto 12).
+observado al arrancar: 412 MB (anotado para el punto 14).
 
 **Punto 7, casilla 3 HECHA (21/08, tarde) — el motor andando cumple
 la tabla que la documentación dictó.** Seis commits
@@ -984,9 +1000,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **EL PARLAMENTO previo al punto 11** (Antonio
-quiere hablar de otras cosas antes del coche); (2) el push de la
-tanda del 31/08-1/09 cuando Antonio lo nombre; (3) la pantalla del bus (patrón BiZi + colores de línea)
+**Lo siguiente:** (1) **el punto 11, casilla 1 — la bici en dos filas**
+(solo pantalla) y la 2 — los botones de disponibilidad de BiZi; (2)
+las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
+· YeGo) antes de prometer botones; (3) el push de la tanda del
+31/08-1/09 cuando Antonio lo nombre; (4) la pantalla del bus (patrón BiZi + colores de línea)
 y la demo; (3) LA FASE 2 de sentidos como goteo de fondo (las
 shapes como atajo); (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
@@ -1004,7 +1022,7 @@ la nevera del taller: las leyes de la nº12-nº14 para la guía v2.2.
 excluyentes (andando · bus/tranvía · bici privada · patín VMP · BiZi ·
 coche), la ruta en el mapa y los pasos escritos. **Una sola pantalla de búsqueda** (el
 visor de verificación se retiró el 22/08: reservado para la Intranet,
-punto 14). No es multimodal.
+punto 16). No es multimodal.
 
 **Qué NO es:** no promete tiempos totales inventados. Para bus y tranvía
 rige D-G (14/08): componer sin prometer.
@@ -1022,14 +1040,14 @@ colgadas de sus capas.
 - **Frontend:** Angular 22 standalone · Leaflet + OSM · router mínimo
   (una ruta + comodín — /visor cae al comodín desde el 22/08).
 - **Motor:** Node + TS SIN compilar (no hay build — hecho de despliegue,
-  ata el punto 12) · `node:http` · todo en memoria antes de `listen()`.
+  ata el punto 14) · `node:http` · todo en memoria antes de `listen()`.
 - **Workspaces** de raíz única (`tipos/`+`motor/`+`app/`), lockfile
   único · **contrato** por symlink: si el motor cambia, el front no
   compila, a propósito; crece cuando el motor lo pide.
 - **Endpoints:** bajo `/api`; los vivos los declara el motor, los
   previstos el plan (6 y 8). Proxy dev `/api/**` → 3000.
 - **Despliegue:** Hostinger plan Node — TODO en NO CONSTA hasta el
-  punto 12 (versión Node, memoria, proceso persistente, index.html en
+  punto 14 (versión Node, memoria, proceso persistente, index.html en
   rutas desconocidas, symlink a lo construido).
 
 ## 3 · Las reglas del reinicio
@@ -1102,7 +1120,7 @@ viejo · ⚰️ los 628 con vía sin portal: HECHOS el 27/08 en
 el cierre del 8 (619 por punto medio · 9 fuera con motivo; 3 de los
 619 no enganchan y reciben el Aviso, que era su destino de casilla) · 170 componentes del grafo (169 islas) ·
 `Via.nombre` crudo viaja sin usarse (no re-verificado hoy) · ⚰️ la retirada de los andamios: HECHA el
-22/08 (la perezosa quedó anotada en el punto 14) · rotondas y plaza-hito, declaradas MEJORA FUTURA
+22/08 (la perezosa quedó anotada en el punto 16) · rotondas y plaza-hito, declaradas MEJORA FUTURA
 (sin etiqueta en el grafo) · la arista NO trae campos de acceso OSM
 (foot/access/oneway/surface): los overrides de la doctrina no son
 aplicables con el dato que hay — se trabaja con la tabla de tipos
@@ -1223,7 +1241,14 @@ y las trazas direccionales para la fase 2 de sentidos) · ⚠️
 shape_dist_traveled vacía · ⚠️ 8 rutas de routes.txt sin viaje · ⚰️
 la API viva de Bizi: MUDADA al punto 9 (28/08).
 
-**Punto 11:** ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
+**Punto 11 (LA BOTONERA DE LA DEMO, nuevo el 1/09):** la bici en dos
+filas (solo pantalla) · los botones «Bicis ahora / Anclajes ahora» de
+BiZi (patrón Próximo bus) · el resumen único de avisos [GOV.UK] · el
+minuto doble · la demo. Regla: la botonera enseña lo que existe.
+
+**Punto 12 (COCHE — era el 11; con tipos de parking desde el 1/09):**
+sondas antes que botones: ESRO (regulado) · PMR (discapacitado) ·
+«gratuito» = derivación, NO CONSTA · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
 FASE 2, solo geom+fase — la letra legal de vigencia/vehículos/
 excepciones pendiente aquí; descarga al repo cuando el punto
 arranque) · hereda la capa de sentidos Y sus correcciones (Siresa
@@ -1234,7 +1259,11 @@ vara de coche (su 35 % a oscuras son contramanos potenciales) ·
 parkings públicos (dos fuentes cojas) · parquímetros reevaluables ·
 las tres cuentas municipales que no cuadran.
 
-**Punto 12 (todo NO CONSTA, y creció):** ⚠️ servidor.ts SIN SPEC (el
+**Punto 13 (MOTO, nuevo el 1/09; depende del 12):** sondas: capa de
+aparcamiento de motos (¿existe?) · YeGo (¿GBFS moped? ¿TTL 1 h?
+¿licencia?) · la letra legal de la moto (carril bus, ZBE, zonas 30).
+
+**Punto 14 (DESPLIEGUE — era el 12; todo NO CONSTA, y creció):** ⚠️ servidor.ts SIN SPEC (el
 único fichero del motor sin pruebas — quitar el foco del endpoint
 deja 460 verdes; visible desde el 27/08, su casa es la integración
 de este punto) · versión Node del panel (el
@@ -1244,7 +1273,7 @@ punto 5) · proceso persistente · index.html en rutas desconocidas (en
 dev el comodín ya cubre; en Hostinger, NO CONSTA) · symlink a lo
 construido · guardias solo-Windows si hicieran falta allí.
 
-**Punto 13:** color de marca (`NO CONSTA`) · el title (la pestaña dice
+**Punto 15:** color de marca (`NO CONSTA`) · el title (la pestaña dice
 «Desplázame» a secas) · capturas del README si se quieren · la
 protanopia del MAPA (dos chinchetas solo por color) con la bandera a
 cuadros como salida documentada [#2787 de osm.org, cycle.travel] —
@@ -1263,7 +1292,7 @@ pendiente — Heraldo 14/07/2026). El regulado y las zonas caducarán DE
 GOLPE; los planos de Antonio traen zonas que el dato no enseña
 (pendiente de detallar si algún día toca). La vista de cotejo morada —
 retirada con el visor el 22/08 — es la herramienta: se recupera de git
-(`6327e45^`) cuando la Intranet (punto 14) llegue, o cuando 2027 lo
+(`6327e45^`) cuando la Intranet (punto 16) llegue, o cuando 2027 lo
 pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo

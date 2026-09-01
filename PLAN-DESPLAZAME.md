@@ -242,7 +242,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       rastreador de Angular, cambio no documentado que falla en silencio),
       motor en el 3000. `motor/` fuera de la raíz web en cualquier
       despliegue. Conflicto del symlink de CLAUDE.md detectado y aplazado
-      al punto 12 con su decisión preliminar: `public_html` apuntará a lo
+      al punto 14 con su decisión preliminar: `public_html` apuntará a lo
       CONSTRUIDO, nunca a `app/` literal
 - [x] **La prueba del symlink PASÓ** (17/08): `ng build` atraviesa el
       symlink del workspace sin `preserveSymlinks`, y el rojo que compra
@@ -272,7 +272,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       cargar (`efb4dd9`). Cifras REALES: ~190 ms de arranque (~500 en
       frío), parse ~150 ms — el «6,5 s» heredado era CONSTRUIR, no cargar,
       y no se compara. Recuentos exactos contra el punto 4 (98.774 /
-      68.649 / 378.222). ⚠️ **196 MB de RSS** — dato para el punto 12: la
+      68.649 / 378.222). ⚠️ **196 MB de RSS** — dato para el punto 14: la
       memoria del plan de Hostinger es NO CONSTA y esto sube su urgencia.
       La salud declara el grafo que lleva (`cb6eda4`, el front sigue
       compilando) y la guardia lo EXIGE con dos rojos vistos: el motor
@@ -313,7 +313,7 @@ desde `004_DESPLAZAME-OLD` hacia `data/`. Se lee, no se edita a mano.
       instante · arrancado-sin-callejero) y vigila los TRES ficheros de
       datos (`8eccc9d`). Contrato crecido sin romper el front
       (`323c7c4`), README diciendo la verdad nueva (`b7a3347`).
-      Motor: 223 MB de RSS (+27) — el punto 12 acumula
+      Motor: 223 MB de RSS (+27) — el punto 14 acumula
 - [x] **El autocompletar en el formulario, VISTO por Antonio paso a paso**
       (17-18/08): `httpResource` de Angular 22 [DOC, no experimental] +
       espera de 200 ms propia, componente `AutocompletarVia`. Las
@@ -698,7 +698,7 @@ Antonio:**
       `datos` de `angular.json`, y la página del visor sale del router —
       las casillas eran verificación de la fase de datos, no producto
       (dicho por Antonio el 17/08). ⭐ **El visor NO muere: SE RESERVA
-      para la Intranet (punto 14)** — decisión de Antonio del 22/08: será
+      para la Intranet (punto 16)** — decisión de Antonio del 22/08: será
       herramienta interna al final del proyecto. Los DATOS se quedan en
       el repo con sus fichas (materia de los puntos 9/10/11); lo que
       sale es su publicación al navegador. RESULTADO (commits `6327e45`
@@ -867,7 +867,7 @@ issue #4657, ABIERTO). Tres pasos que no se saltan:
 22/08), ligera (0,22 MB) y bien narrada (odin). Las bitácoras nº6-10
 son suyas. Lo aplazado con casilla propia: acera-bici (punto 9),
 narración fina de plaza-hito y rotondas (mejora futura declarada),
-visor→Intranet (punto 14).
+visor→Intranet (punto 16).
       La doctrina existe: en Valhalla la narración (odin) es fase
       propia que colapsa la lista de maniobras a una lista concisa
       [docs oficiales], y el modelo de maniobra trae
@@ -2429,7 +2429,7 @@ concatenar, recta donde no conecta) · pfaedle (SIGSPATIAL 2018) ·
 bus-router/gtfs-shape-router (OSRM entre paradas) — todos en
 gtfs.org/producing-data]; tiempo = metros ÷ velocidad comercial del
 patrón [PROPIO: la doctrina da geometría, no horario]; la red de la
-rueda como grafo vial hasta el punto 11 (declarado). EL RESULTADO
+rueda como grafo vial hasta el punto 12 (declarado). EL RESULTADO
 HOY: 48 sentidos · 11 líneas desviadas (22 28 29 30 32 34 35 38 40
 41 52), 19 patrones rehechos · 71 saltos nuevos TODOS ruteados (0
 rectas de reserva) · 8 provisionales · 1 sin coordenada (se cae,
@@ -2620,7 +2620,63 @@ Dejado aquí desde el punto 4, para cuando toque:
       31/12 son UNA línea huérfana cada uno — el 31/12 ni siquiera era
       servicio. La conservadora (05/10) no cambia
 
-## 11 — Modo COCHE *(en grueso)*
+## 11 — LA BOTONERA DE LA DEMO *(nuevo, parlamentado el 1/09 al cerrar
+el 10 — «esto va a ser una DEMO»)*
+
+LA IDEA DE ANTONIO, y su encaje doctrinal: la botonera se reorganiza
+en modo + calificador — exactamente la taxonomía de la referencia
+[OTP RoutingModes: modo base con calificadores RENT/PARK — bike ·
+bike-to-park · bike-rental · scooter-rental · car · car-to-park ·
+car-rental; GBFS 2.2: form factors bicicleta / patinete / MOPED /
+coche]. El «Privada / Pública» es el calificador; los «tipos de
+parking» son el -to-park. La segunda fila se revela al elegir el
+modo [GOV.UK: radios con contenido revelado condicionalmente — el
+mismo patrón de «¿Qué ruta prefieres?»].
+
+```
+CÓMO   [Andando] [Bus / Tranvía] [Bici] [Patín VMP] [Moto] [Coche]
+
+Bici  → [Privada] [Pública BiZi]      + [Rápida] [Equilibrada] [Tranquila]
+Moto  → [Privada] [Pública YeGo]                       (punto 13)
+Coche → Tipo de parking: [Regulado] [Discapacitado] [Gratuito]   (punto 12)
+```
+
+REGLA DE LA DEMO (la nº1 del reinicio: nada cuenta sin verse): la
+botonera enseña LO QUE EXISTE; un grupo nuevo aparece cuando su
+motor llega, no antes — un «todavía no» en una demo es un cartel de
+obra. Hoy existen: Andando · Bus/Tranvía · Bici (privada y BiZi) ·
+Patín. Moto y Coche entran con los puntos 12 y 13.
+
+- [x] **0 · EL PARLAMENTO — hecho (1/09).** Lo de arriba.
+- [ ] **1 · LA BICI EN DOS FILAS — solo pantalla:** [Bici] despliega
+      [Privada] [Pública BiZi] y, debajo, las tres rutas. El motor NO
+      se toca: `modo=bici|bizi` y `ruta=` ya existen (los BOTONES
+      cambian, los CAMINOS no). Radiogrupos nativos como el selector
+      del 9 (teclado, exclusión, name compartido); el foco y el
+      estado anunciados; el andando/bus/patín intactos al byte.
+- [ ] **2 · LOS BOTONES DE DISPONIBILIDAD DE BiZi** (la palabra de
+      Antonio: «el mismo botón que el bus — enganches o bicicletas
+      según lo que necesitemos»): en el hito de COGER, «Bicis ahora»
+      (bicisDisponibles); en el de DEJAR, «Anclajes ahora»
+      (anclajesDisponibles); cada pulsación vuelve a consultar el
+      station_status [GBFS; una llamada para toda la red, como el
+      Generar] con el patrón del «Próximo bus»: región role=status
+      creada al pintar, aria-busy, botón nunca disabled, indicador
+      >1 s [WCAG 4.1.3 · MDN · NN/g], D-G si el Ayuntamiento calla. El
+      Generar sigue trayendo el dato de salida; el botón lo refresca.
+      El endpoint: GET de solo lectura, no-store, single-flight.
+- [ ] **3 · EL RESUMEN ÚNICO DE AVISOS** (pulido post-cierre del 10,
+      fichado con doctrina): arriba UNA caja que lista todos los
+      avisos del viaje enlazando a su paso [GOV.UK error summary: un
+      solo resumen, mensajes junto a lo que explican] — hoy hay una
+      caja por aviso, el patrón mal copiado.
+- [ ] **4 · EL MINUTO DOBLE de la primera subida:** la frase del paso
+      y la región dicen lo mismo; al refrescar la frase se queda
+      vieja. Una sola fuente de verdad en pantalla (fundir cambia la
+      narración del `sube` y su juez).
+- [ ] **5 · LA DEMO de la botonera por el ojo.**
+
+## 12 — Modo COCHE *(en grueso; parlamentado el 1/09: con TIPOS DE PARKING)*
 
 *(Anotado el 29/08, del cruce de doctrina peatón/bici/coche:)* el
 coche HEREDA GRATIS la capa de sentidos y sus correcciones (Siresa
@@ -2668,7 +2724,70 @@ Dejado aquí el 18/08 (investigación de estacionamiento):
 
 La red viaria. El último de los cuatro.
 
-## 12 — Despliegue *(en grueso)*
+**⭐ PARLAMENTADO EL 1/09 (Antonio): el coche lleva TIPO DE PARKING.**
+
+```
+Coche → Tipo de parking: [Regulado] [Discapacitado] [Gratuito]
+```
+
+El encaje: `car-to-park` [OTP: conducir hasta el aparcamiento y
+andar el resto — el mismo remate que el aparcabicis del 9]. Los tres
+son CAPAS DE DATO y ninguna se promete sin sonda:
+- [ ] **0 · LAS SONDAS de parking:** REGULADO (ESRO — zonas azul/
+      naranja: ¿capa municipal? ¿vigencia? la ampliación de zonas
+      anotada el 18/08) · DISCAPACITADO (plazas PMR: ¿capa? ¿con
+      coordenada por plaza?) · GRATUITO — el difícil: no suele
+      existir como capa; sería «calle sin regulación», una DERIVACIÓN
+      y no un dato → NO CONSTA hasta sondar; si no hay fuente, el
+      botón no se pinta (regla de la demo) · la ZBE: la letra legal
+      (qué fase rige, a quién alcanza) contra la ordenanza.
+- [ ] **1 · LA RED DEL COCHE:** lo anotado el 29/08 (relations de giro
+      [OSRM car.lua], penalizaciones, sentidos con vara de coche) +
+      el veto/penalización de la ZBE.
+- [ ] **2 · EL VIAJE en coche** (tablas legales con artículo; el
+      remate al parking del tipo elegido, con su radio andando por
+      doctrina).
+- [ ] **3 · LA PANTALLA:** el grupo [Coche] con su fila de parking
+      aparece cuando esto exista (regla de la demo del 11); las
+      trazas de desvío del bus pasan a rutearse sobre esta red.
+- [ ] **4 · LA DEMO por el ojo.**
+
+## 13 — Modo MOTO *(nuevo, parlamentado el 1/09; DEPENDE del 12: la
+moto rueda por la red del coche)*
+
+```
+Moto → [Privada] [Pública YeGo]
+```
+
+LA DOCTRINA de partida: la moto privada es vehículo a motor — la red,
+los sentidos y los giros del coche (RGC); su remate es el
+aparcamiento de motos a pie de calle (el patrón aparcabicis /
+car-to-park). La pública es alquiler compartido de ciclomotor
+eléctrico [GBFS 2.2: form_factor MOPED; OTP: el calificador RENT] —
+YeGo, en Zaragoza (palabra de Antonio), con dato que se actualiza
+una vez por hora (palabra de Antonio: qué publica y en qué forma, NO
+CONSTA hasta la sonda).
+
+- [ ] **0 · LAS SONDAS antes de prometer botones:** (a) ¿existe capa
+      municipal de APARCAMIENTO DE MOTOS a pie de calle? (el WFS de
+      movilidad: 43 capas censadas — se mira, no se supone) · (b)
+      YeGo: ¿publica GBFS (moped) u otra API? ¿estaciones o
+      free-floating? ¿qué significa «una vez por hora» (TTL del
+      feed)? ¿licencia? · (c) las reglas de la moto en la letra
+      legal (¿carril bus? ¿ZBE? ¿zonas 30?) contra el articulado, no
+      de memoria.
+- [ ] **1 · LA MOTO PRIVADA sobre la red del coche** (hereda el 12):
+      su tabla legal con artículo, el remate en aparcamoto ≤ X m
+      (el patrón del aparcabicis, X con doctrina), la narración.
+- [ ] **2 · YeGo:** el patrón BiZi (estación/vehículo de origen con
+      disponibilidad → pedaleo/rodadura → destino) con la frescura
+      que el feed dé y el aviso honesto de su edad; el botón de
+      disponibilidad a petición.
+- [ ] **3 · LA PANTALLA:** el grupo [Moto] aparece en la botonera
+      cuando esto exista (regla de la demo del 11).
+- [ ] **4 · LA DEMO por el ojo.**
+
+## 14 — Despliegue *(en grueso)*
 
 Hostinger plan Node (slot 2), dominio, cron. Público y usable.
 
@@ -2698,7 +2817,7 @@ Dejado aquí desde el punto 5 (17/08):
       Precedente vivo de la casa: el cron de ZetaBus (02:00);
       Hostinger: mínimo 15 min
 
-## 13 — Estética *(en grueso)*
+## 15 — Estética *(en grueso)*
 
 La capa visual que haga falta. La última, a propósito.
 
@@ -2706,7 +2825,7 @@ La capa visual que haga falta. La última, a propósito.
       llevan el gris neutro de la casa hasta que se decida. *Surgió en el
       checkpoint del 16/08.*
 
-## 14 — Intranet *(reservado para el final — nace el 22/08)*
+## 16 — Intranet *(reservado para el final — nace el 22/08)*
 
 Punto grande, sin desarrollar. Decisión de Antonio (22/08, al retirar
 los andamios): **el visor de capas se muda aquí** — deja de ser página
@@ -2779,4 +2898,4 @@ decisión con dueño).
       estándar quedó verificado independientemente antes de este
       destilado
 - [ ] 3 · El mantenimiento que re-descarga NO va aquí: vive en el
-      punto 12 (el cron educado), leyendo este mismo manifiesto
+      punto 14 (el cron educado), leyendo este mismo manifiesto
