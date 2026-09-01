@@ -2203,15 +2203,24 @@ describe('Buscador', () => {
    * número dentro, así que quien no distinga el amarillo de la 29 del verde del
    * tranvía sigue leyendo «29». El color es reconocimiento, no información.
    *
-   * Y los dos colores salen **del feed** —`route_color` y `route_text_color`—,
-   * no de nosotros: la 29 es amarilla porque el operador dice que lo es. En el
-   * feed van sin almohadilla (`F5C100`), y quien la pone es la pantalla.
+   * ⭐ **EL FONDO SALE DEL FEED Y NO SE TOCA** —`route_color`—: la 29 es amarilla
+   * porque el operador dice que lo es, y repintarla sería romper la identidad
+   * para salvar el texto. En el feed va sin almohadilla (`F5C100`), y quien la
+   * pone es la pantalla.
+   *
+   * ⚠️ **El `route_text_color`, en cambio, ya NO se obedece (1/09).** El feed
+   * pinta el número de la 29 en negro y el de las demás en blanco porque alguien
+   * lo decidió línea a línea, y medido sobre el cocinado eso dejaba **27 de 53
+   * chips por debajo de 4,5:1** —la 33 a 1,72:1—. La regla ahora es de marca y
+   * viene de ZetaBus: **toda diurna lleva el número blanco con un contorno
+   * negro**, que es lo que lo hace legible sobre cualquier tono sin tocar el
+   * fondo. Ver `src/app/chip.ts`.
    *
    * Va en **los dos sitios** que la casilla pide: la leyenda del viaje, que
    * responde a «¿en qué me monto?» de un vistazo, y el paso de subida, que es
    * donde se hace.
    */
-  it('⭐ 8 · el chip lleva el número y los dos colores del feed, en la leyenda y en el paso', async () => {
+  it('⭐ 8 · el chip lleva el número, el color del feed y el blanco con contorno', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -2228,9 +2237,11 @@ describe('Buscador', () => {
     for (const chip of chips) {
       // El número, que es lo que se lee sin depender del color.
       expect(chip.textContent?.trim()).toBe('29');
-      // Y los dos colores del feed, con su almohadilla puesta aquí.
+      // ⭐ El fondo, el del feed, con su almohadilla puesta aquí. INTACTO.
       expect(chip.style.backgroundColor).toBe('rgb(245, 193, 0)');
-      expect(chip.style.color).toBe('rgb(0, 0, 0)');
+      // ⭐ Y el número BLANCO con contorno — no el negro que manda el feed.
+      expect(chip.style.color).toBe('rgb(255, 255, 255)');
+      expect(chip.classList.contains('chip-linea--contorno')).toBe(true);
     }
     // Uno en la leyenda de la cabecera y otro en el paso de subir.
     expect(raiz.querySelectorAll('.ruta .chip-linea').length).toBe(1);

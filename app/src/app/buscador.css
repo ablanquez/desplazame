@@ -450,6 +450,37 @@ legend {
    página y el número parecería suelto. Un borde en negro al 25 % oscurece un
    poco los claros y se pierde en los oscuros, así que sirve para los dos sin
    inventar un color por línea. */
+/* ⭐ EL CONTORNO QUE HACE LEGIBLE EL NÚMERO BLANCO SOBRE CUALQUIER COLOR
+   [heredado de ZetaBus, `src/app/globals.css:188`; técnica admitida por la
+   WCAG: «el color de un contorno o borde puede usarse como primer plano al
+   medir»].
+
+   Relleno blanco y trazo negro: sobre un fondo claro manda el trazo, sobre uno
+   oscuro manda el relleno. `paint-order: stroke fill` pinta el trazo DEBAJO del
+   relleno, que es lo que evita que el negro se coma el grosor de la letra.
+
+   ⚠️ 0,7 px es el valor de ZetaBus y no se redondea a 1: a 1 px el trazo empieza
+   a cerrar los huecos de un «8» al tamaño de chip que usamos. Solo lo llevan los
+   números blancos —los búhos no—, y quién lo lleva lo decide `llevaContorno`. */
+.chip-linea--contorno {
+  /* ⚠️ DOS PX, NO LOS 0,7 DE ZETABUS, Y ESTÁ MEDIDO. `-webkit-text-stroke`
+     centra el trazo en el borde del glifo y `paint-order` pinta el relleno
+     encima, así que **fuera solo queda la mitad**: con 0,7 px eso son 0,35, que
+     no cubren un píxel entero ni por casualidad. Medido sobre el chip de la 44
+     (#27A737) a nuestros 13,6 px: con 0,7 salían 4 píxeles oscuros y ninguno
+     negro; con 2 px salen 66 y el más oscuro es rgb(0,0,0) exacto.
+     Su chip es de 24 a 48 px con `font-black`; el nuestro cabe en una línea de
+     indicaciones. El mismo trazo en otro cuerpo no es el mismo trazo.
+
+     ⚠️ Y el suavizado va en escala de GRISES, no por subpíxeles: con el de LCD
+     (el que trae Chrome por defecto) el trazo fino se reparte entre los canales
+     R, G y B y sale teñido —rgb(18,57,167) medido—, así que nunca llega a negro.
+     Ver la entrada del 1/09 en `docs/BITACORA.md`. */
+  -webkit-text-stroke: 2px #000;
+  paint-order: stroke fill;
+  -webkit-font-smoothing: antialiased;
+}
+
 .chip-linea {
   display: inline-block;
   min-width: 2.1em;

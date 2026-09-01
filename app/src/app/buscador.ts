@@ -24,6 +24,7 @@ import { Mapa } from './mapa';
 import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
 import { IconoCapa, type Clase } from './iconos';
+import { llevaContorno, tonosDeChip, type TonosDeChip } from './chip';
 
 /**
  * ⭐ EL MAPEO GIRO → FLECHA. Diez giros, diez glifos, y ni una dependencia.
@@ -830,6 +831,18 @@ export class Buscador {
     }
     this.desplegados.set(ahora);
   }
+
+  /**
+   * ⭐ LOS TONOS DE UN CHIP, para la plantilla. Ver `chip.ts`.
+   *
+   * ⚠️ Va por aquí y no por `linea.colorTexto` **a propósito**, y esto era un
+   * fallo de accesibilidad medido: obedeciendo al feed, **27 de las 53 líneas**
+   * salían por debajo de 4,5:1 — la 33 a 1,72:1—, porque el `route_text_color`
+   * del operador no está calculado. El campo sigue llegando en el contrato, que
+   * es el dato de Avanza y no se borra; simplemente aquí no decide.
+   */
+  protected readonly tonosDe = tonosDeChip;
+  protected readonly conContorno = llevaContorno;
 
   /** El aviso partido, para la plantilla. Ver `enDosNiveles`. */
   protected dosNiveles(texto: string): EnDosNiveles {

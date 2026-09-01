@@ -430,12 +430,15 @@
             <p class="ruta__lineas">
               <span class="ruta__lineas-rotulo">Se viaja en</span>
               @for (linea of lineasDelViaje(); track $index) {
-                <span
-                  class="chip-linea"
-                  [style.background-color]="'#' + linea.color"
-                  [style.color]="'#' + linea.colorTexto"
-                  >{{ linea.corto }}</span
-                >
+                @if (tonosDe(linea); as tonos) {
+                  <span
+                    class="chip-linea"
+                    [class.chip-linea--contorno]="conContorno(tonos.texto)"
+                    [style.background-color]="'#' + tonos.fondo"
+                    [style.color]="'#' + tonos.texto"
+                    >{{ linea.corto }}</span
+                  >
+                }
               }
             </p>
           }
@@ -475,12 +478,15 @@
               <!-- Y el mismo chip junto al paso donde se sube: la leyenda
                    dice en qué se monta y esto dice dónde. -->
               @for (linea of lineaPorPaso().get($index) ?? []; track $index) {
-                <span
-                  class="chip-linea"
-                  [style.background-color]="'#' + linea.color"
-                  [style.color]="'#' + linea.colorTexto"
-                  >{{ linea.corto }}</span
-                >
+                @if (tonosDe(linea); as tonos) {
+                  <span
+                    class="chip-linea"
+                    [class.chip-linea--contorno]="conContorno(tonos.texto)"
+                    [style.background-color]="'#' + tonos.fondo"
+                    [style.color]="'#' + tonos.texto"
+                    >{{ linea.corto }}</span
+                  >
+                }
               }
               <span class="paso__texto">
                 @for (parte of paso.partes; track $index) {
