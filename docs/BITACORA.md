@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-01] 🔴 ABIERTA — «Plaza Arag��n»: el lector del zip decodifica CADA TROZO del flujo por separado y parte las tildes que caen en la costura
+## [2026-09-01] ✅ CERRADA — «Plaza Arag��n»: el lector del zip decodifica CADA TROZO del flujo por separado y parte las tildes que caen en la costura
 
 **Categoría:** una decodificación con estado, hecha sin estado
 
@@ -63,13 +63,61 @@ fichero**, que está bien. El fichero no es el que miente.
 
 **Cómo se cazó:** ojo humano — Antonio leyó «Plaza Arag��n» en la pantalla.
 
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** **el troceado, no el charset.** `porLineas` descomprimía el zip
+en flujo y hacía `trozo.toString('utf8')` **a cada trozo por separado**. Un trozo
+del stream corta por donde le toca —no por donde acaba un carácter—, y cuando el
+corte separaba los dos bytes de una «ó» —`c3` y `b3`— **cada mitad era una
+secuencia inválida por su cuenta** y se convertía en un carácter de reemplazo.
+
+⇒ De ahí que salieran **dos** donde va una letra. Y de ahí que fallara **una de
+984**: solo una tilde cayó justo en la costura de dos trozos.
+
+⚠️ Y por eso ninguna prueba lo veía. Todas cuentan —984 paradas, 170 patrones,
+3.362 saltos— y contar sale bien: **el nombre roto también es un nombre**. La
+juez 10, que es la única que mira dentro de `stops.txt`, compra que el partidor
+entiende las comillas; el manifiesto comprueba el `sha256` del fichero, que está
+impecable. Nadie miraba lo que los nombres **decían**.
+
+**Arreglo aplicado:** cuatro cosas.
+
+1. `motor/src/red-bus.ts` — un `TextDecoder` **con estado**, `{ stream: true }`,
+   que se guarda los bytes sobrantes del trozo y los estrena con el siguiente. Y
+   se **vacía** al cerrar el flujo: si el zip acabara a mitad de una secuencia,
+   sale el reemplazo en vez de perderse en silencio.
+2. `motor/src/servidor.ts` — el mismo fallo, juntando el cuerpo de una petición.
+   Arreglado igual, antes de que lo pagara el nombre de un sitio.
+3. `FORMATO_DEL_COCINADO` **sube a 4**, que es el mecanismo previsto para esto:
+   el dato de un cocinado 3 es el mismo salvo por los nombres rotos que se
+   guardaron con él, y esos **no se arreglan releyendo el guardado**.
+4. `motor/src/texto.ts` — y de paso, lo que el encargo pedía: `textoDe` decodifica
+   por bytes con el charset **declarado**, porque [WHATWG Fetch] `Response.text()`
+   lo ignora y decodifica siempre UTF-8. Hoy no cambia nada —medido: las tres
+   fuentes de Avanza declaran y sirven UTF-8, con 0 caracteres de reemplazo—, así
+   que no arregla un fallo vivo: **quita uno mudo**.
+
+Medido tras reiniciar el motor, que **recocina** en vez de leer el guardado:
+
+```
+motor: red de bus COCINADA — 984 paradas · 53 líneas (8 sin viajes) · 170 patrones
+U+FFFD en el cocinado: 0
+formato: 4
+```
+
+Y en la pantalla, con el instrumento: `OK   5 · ni un carácter de reemplazo en la
+narración · ninguno`.
+
+**Commit:** `d79c170`
 
 **Ley que sale de aquí:** contar filas no es leer un fichero. Un lector que
 procesa **984 nombres** y solo se equivoca en **uno** no lo delata ninguna
 prueba que cuente cuántos hay: hace falta una que mire **qué dicen**.
+
+Y la del cierre, que es la que casi me hace arreglar lo que no estaba roto:
+**el síntoma nombra la fuente equivocada.** Un texto con acentos rotos parece un
+problema de charset, y el encargo señalaba a Avanza con toda la lógica del
+mundo. Avanza estaba **bien** —tres respuestas medidas, `charset=UTF-8`
+declarado y servido—: el roto era nuestro lector, tres capas más acá. Medir la
+fuente antes de tocarla no fue burocracia; fue lo que evitó el arreglo falso.
 
 **Traza:** `motor/src/red-bus.ts` (`porLineas`, el bucle del flujo) ·
 `motor/src/red-bus.spec.ts` (juez 10).
