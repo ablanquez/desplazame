@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
+import { contraste, AA_GRAFICO, TIERRA_OSM } from './contraste';
 // El vértice lo define el contrato, no este componente: es la misma forma que
 // el motor devolverá en la geometría de un trayecto.
 import type { TramoDelViaje, Vertice } from '@desplazame/tipos';
@@ -131,6 +132,62 @@ const VESTIDO: Readonly<Record<TramoDelViaje['comoSeVa'], L.PolylineOptions>> = 
 function vestidoDe(tramo: TramoDelViaje): L.PolylineOptions {
   const base = VESTIDO[tramo.comoSeVa];
   return tramo.linea ? { ...base, color: `#${tramo.linea.color}` } : base;
+}
+
+/** Cuánto asoma el ribete por cada lado de la línea, en píxeles. */
+export const ASOMA_EL_RIBETE = 2;
+
+/**
+ * ⭐ EL RIBETE BAJO LA LÍNEA, o `null` si esta línea no lo necesita.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  [WCAG 1.4.11 AA · W3C *Understanding Non-text Contrast*] un gráfico que
+ *  transporta información necesita **3:1** contra lo que tiene al lado — y una
+ *  polilínea de ruta es exactamente eso: si no se distingue del plano, el plano
+ *  no dice por dónde se va.
+ *
+ *  ⛔ Y 23 de las nuestras no llegan. Medido en pantalla, la 44 (`#27A737`) sale
+ *    a **2,74:1** sobre la tierra de OSM. La 29 (`#F5C100`) y la N7 (`#FFEB3D`),
+ *    que son amarillos, peor.
+ *
+ *  ⇒ **EL COLOR DE LA LÍNEA NO SE TOCA.** Es la identidad de Avanza: quien
+ *    conoce la ciudad reconoce su línea por el tono, y repintarla sería resolver
+ *    un problema de accesibilidad rompiendo la información que el color lleva.
+ *    Se pinta **una segunda polilínea debajo, más ancha**, que asoma 2 px por
+ *    cada lado. La WCAG lo admite en sus propias palabras: *«un halo puede
+ *    usarse como fondo»* al medir — así que lo que tiene que cumplir 3:1 no es
+ *    la línea contra el plano, sino **el ribete contra el plano** y **la línea
+ *    contra el ribete**.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ **Y el tono se CALCULA, no se fija.** Se prueban el negro y el blanco y gana
+ *    el que deja mejor el PEOR de sus dos contrastes — porque un ribete que se
+ *    ve sobre el plano pero se confunde con la línea no es un ribete, es una
+ *    línea más gorda. Sobre la tierra clara de OSM sale negro siempre, pero eso
+ *    es el resultado de la cuenta y no una decisión escrita a mano: el día que
+ *    el teselado cambie a un fondo oscuro, esta función cambia sola.
+ *
+ * ⚠️ Y devuelve `null` cuando la línea **ya llega**. El ámbar del a-pie (4,38:1)
+ *    y el azul de la rueda (4,50:1) pasan de sobra, así que se quedan **al byte**
+ *    como estaban: no se engorda lo que no hace falta engordar.
+ */
+export function ribeteDe(color: string): string | null {
+  const suyo = contraste(color, TIERRA_OSM);
+  if (suyo >= AA_GRAFICO) {
+    return null;
+  }
+  const candidatos = ['000000', 'FFFFFF'];
+  let gana = candidatos[0]!;
+  let mejor = -1;
+  for (const c of candidatos) {
+    // El peor de los dos: contra el plano, y contra la propia línea.
+    const suPeor = Math.min(contraste(c, TIERRA_OSM), contraste(c, color));
+    if (suPeor > mejor) {
+      mejor = suPeor;
+      gana = c;
+    }
+  }
+  return gana;
 }
 
 /**
@@ -319,7 +376,20 @@ export class Mapa {
       if (trozo.length < 2) {
         continue;
       }
-      this.lineas.push(L.polyline(trozo, vestidoDe(tramo)).addTo(this.mapa));
+      // ⭐ EL RIBETE VA PRIMERO, que es lo que lo pone DEBAJO: Leaflet apila
+      //    en el orden en que se añade. Ver `ribeteDe` para el porqué y el tono.
+      const vestido = vestidoDe(tramo);
+      const ribete = tramo.linea ? ribeteDe(tramo.linea.color) : null;
+      if (ribete !== null) {
+        this.lineas.push(
+          L.polyline(trozo, {
+            ...vestido,
+            color: `#${ribete}`,
+            weight: (vestido.weight ?? 5) + 2 * ASOMA_EL_RIBETE,
+          }).addTo(this.mapa),
+        );
+      }
+      this.lineas.push(L.polyline(trozo, vestido).addTo(this.mapa));
     }
 
     this.marcar(vertices[0]!, this.capaOrigen(), 'origen');

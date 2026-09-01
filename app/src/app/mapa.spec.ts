@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Mapa, type Vertice } from './mapa';
+import { ASOMA_EL_RIBETE, Mapa, ribeteDe, type Vertice } from './mapa';
+import { AA_GRAFICO, contraste, TIERRA_OSM } from './contraste';
 import type { TramoDelViaje } from '@desplazame/tipos';
 
 /** Anfitrión de prueba: permite cambiar el trazado como lo hace App. */
@@ -248,8 +249,15 @@ describe('Mapa', () => {
    * de siempre, que **no se toca**.
    *
    * Y los dos hitos del poste: 🚌 donde se sube y 🚏 donde se baja.
+   *
+   * ⚠️ **Y desde el 1/09 la 29 va con RIBETE debajo**, porque su amarillo da
+   * 1,46:1 sobre la tierra de OSM y la WCAG 1.4.11 pide 3. Así que los trazos
+   * son cuatro y no tres: el ribete negro va **antes** que su línea, que es lo
+   * que lo pone debajo. Lo que esta juez compra no cambia — el montado sigue
+   * llevando el color del feed y los paseos siguen intactos—; lo que cambia es
+   * que ahora también se mira quién va debajo. Ver `ribeteDe` en `mapa.ts`.
    */
-  it('⭐ 6 · el bus pinta ámbar, la línea en SU color del feed, y ámbar', async () => {
+  it('⭐ 6 · el bus pinta ámbar, el ribete, la línea en SU color del feed, y ámbar', async () => {
     const fixture = TestBed.createComponent(Anfitrion);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -259,18 +267,21 @@ describe('Mapa', () => {
     await fixture.whenStable();
 
     const trazos = vestidos(raiz);
-    expect(trazos.length).toBe(3);
-    // Los dos paseos: el vestido de siempre, al píxel.
-    for (const i of [0, 2]) {
+    expect(trazos.length).toBe(4);
+    // Los dos paseos: el vestido de siempre, al píxel. **No llevan ribete**:
+    // el ámbar da 4,38:1 sobre la tierra y ya pasa.
+    for (const i of [0, 3]) {
       expect(trazos[i]!.color).toBe('#b45309');
       expect(trazos[i]!.dash).toBe('10 8');
     }
+    // ⭐ El ribete, DEBAJO —va antes— y en negro por cálculo.
+    expect(trazos[1]!.color).toBe('#000000');
     // ⭐ Y el montado, con el color DEL FEED y sólido.
-    expect(trazos[1]!.color).toBe('#F5C100');
-    expect(trazos[1]!.dash).toBe(null);
+    expect(trazos[2]!.color).toBe('#F5C100');
+    expect(trazos[2]!.dash).toBe(null);
     // Que no es ni el ámbar del a-pie ni el azul de la rueda.
-    expect(trazos[1]!.color).not.toBe('#b45309');
-    expect(trazos[1]!.color).not.toBe('#2563eb');
+    expect(trazos[2]!.color).not.toBe('#b45309');
+    expect(trazos[2]!.color).not.toBe('#2563eb');
 
     expect(hitos(raiz)).toEqual(['🚌', '🚏']);
   });
@@ -292,14 +303,21 @@ describe('Mapa', () => {
     fixture.componentInstance.tramos.set(CON_TRANSBORDO);
     await fixture.whenStable();
 
+    // ⚠️ SIETE trazos, no cinco: las DOS líneas de este viaje son flojas sobre
+    // la tierra —la 29 a 1,46:1 y el tranvía a 1,90:1— y cada una lleva su
+    // ribete delante. Los dos colores de línea siguen siendo distintos, que es
+    // lo que esta juez viene a comprar.
     const trazos = vestidos(raiz);
-    expect(trazos.length).toBe(5);
-    expect(trazos.map((t) => t.dash)).toEqual(['10 8', null, '10 8', null, '10 8']);
-    expect(trazos[1]!.color).toBe('#F5C100');
-    expect(trazos[3]!.color).toBe('#00CC00');
-    expect(trazos[1]!.color).not.toBe(trazos[3]!.color);
+    expect(trazos.length).toBe(7);
+    expect(trazos.map((t) => t.dash)).toEqual(['10 8', null, null, '10 8', null, null, '10 8']);
+    expect(trazos[1]!.color).toBe('#000000');
+    expect(trazos[2]!.color).toBe('#F5C100');
+    expect(trazos[4]!.color).toBe('#000000');
+    expect(trazos[5]!.color).toBe('#00CC00');
+    // ⭐ Los DOS colores de línea son distintos entre sí: cada vehículo el suyo.
+    expect(trazos[2]!.color).not.toBe(trazos[5]!.color);
     // El paseo del transbordo lleva el mismo ámbar que los otros dos.
-    expect(trazos[2]!.color).toBe('#b45309');
+    expect(trazos[3]!.color).toBe('#b45309');
 
     // 🚌 al subir a cada uno —el segundo es el poste del cambio— y 🚏 al bajar.
     expect(hitos(raiz)).toEqual(['🚌', '🚏', '🚌', '🚏']);
@@ -402,6 +420,101 @@ describe('Mapa', () => {
     const despues = donde();
     expect(despues.length).toBe(2);
     expect(despues[0]).not.toBe(antes[0]);
+  });
+
+  /**
+   * ⭐ JUEZ 3 — EL RIBETE: la 29 y la N7 no llegan solas, y con él sí.
+   *
+   * [WCAG 1.4.11 AA] 3:1 para un gráfico que transporta información. Los dos
+   * casos son amarillos del feed, que es donde peor se porta la regla:
+   *
+   *     29  #F5C100 sobre la tierra de OSM (#f2efe9) → 1,46:1
+   *     N7  #FFEB3D                                  → 1,06:1
+   *
+   * Con el ribete negro debajo, lo que se mide ya no es la línea contra el
+   * plano: es el **ribete** contra el plano y la **línea** contra el ribete.
+   */
+  it('⭐ 3 · la 29 y la N7 no llegan a 3:1 solas; con su ribete, sí', () => {
+    for (const color of ['F5C100', 'FFEB3D']) {
+      expect(contraste(color, TIERRA_OSM), color).toBeLessThan(AA_GRAFICO);
+      const ribete = ribeteDe(color)!;
+      expect(ribete, color).not.toBeNull();
+      // El halo contra el plano, y la línea contra el halo. Las dos ≥ 3:1.
+      expect(contraste(ribete, TIERRA_OSM), color + ' · ribete sobre la tierra').toBeGreaterThanOrEqual(AA_GRAFICO);
+      expect(contraste(color, ribete), color + ' · línea sobre su ribete').toBeGreaterThanOrEqual(AA_GRAFICO);
+    }
+  });
+
+  it('⭐ 3b · el tono del ribete SE CALCULA: sobre la tierra clara gana el negro', () => {
+    expect(ribeteDe('F5C100')).toBe('000000');
+    expect(ribeteDe('27A737')).toBe('000000');
+  });
+
+  /**
+   * ⭐ JUEZ 6 — LOS DEMÁS MODOS, AL BYTE. El ámbar del a-pie y el azul de la
+   * rueda **ya pasan** —4,38:1 y 4,50:1, medidos cuando se eligieron—, así que
+   * no llevan ribete: no se engorda lo que no hace falta engordar.
+   */
+  it('⭐ 6 · el ámbar y el azul ya llegan, y no llevan ribete', () => {
+    for (const color of ['b45309', '2563eb']) {
+      expect(contraste(color, TIERRA_OSM), color).toBeGreaterThanOrEqual(AA_GRAFICO);
+      expect(ribeteDe(color), color).toBeNull();
+    }
+  });
+
+  /**
+   * ⭐ Y EL COLOR DE LA LÍNEA NO CAMBIA: el ribete es una polilínea APARTE, más
+   * ancha y debajo. Se compra mirando lo que Leaflet pinta.
+   */
+  it('⭐ 4 · con ribete se pintan DOS polilíneas, y la de arriba conserva el color', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    fixture.componentInstance.trazado.set(TRAMO);
+    fixture.componentInstance.tramos.set([
+      {
+        comoSeVa: 'montado',
+        desde: 0,
+        hasta: 2,
+        metros: 2000,
+        segundos: 400,
+        hito: 'baja',
+        linea: { id: '29', corto: '29', largo: 'La 29', color: 'F5C100', colorTexto: '000000', modo: 'bus' },
+      },
+    ]);
+    await fixture.whenStable();
+
+    const trazos = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('path.leaflet-interactive'),
+    ).map((p) => ({ color: p.getAttribute('stroke'), grosor: Number(p.getAttribute('stroke-width')) }));
+
+    expect(trazos.length).toBe(2);
+    // El ribete va primero (debajo) y es más ancho por 2 px a cada lado.
+    expect(trazos[0]!.color?.toUpperCase()).toBe('#000000');
+    expect(trazos[1]!.color?.toUpperCase()).toBe('#F5C100');
+    expect(trazos[0]!.grosor).toBe(trazos[1]!.grosor + 2 * ASOMA_EL_RIBETE);
+  });
+
+  it('⭐ 4b · una línea que ya llega se pinta con UNA sola polilínea', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    fixture.componentInstance.trazado.set(TRAMO);
+    fixture.componentInstance.tramos.set([
+      {
+        comoSeVa: 'montado',
+        desde: 0,
+        hasta: 2,
+        metros: 2000,
+        segundos: 400,
+        hito: 'baja',
+        linea: { id: '31', corto: '31', largo: 'La 31', color: 'D1221D', colorTexto: 'FFFFFF', modo: 'bus' },
+      },
+    ]);
+    await fixture.whenStable();
+    const trazos = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('path.leaflet-interactive'),
+    );
+    expect(trazos.length).toBe(1);
+    expect(trazos[0]!.getAttribute('stroke')?.toUpperCase()).toBe('#D1221D');
   });
 
   it('al destruirse el componente, Leaflet suelta su contenedor', async () => {
