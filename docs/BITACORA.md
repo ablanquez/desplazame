@@ -14,6 +14,89 @@
 
 ---
 
+## [2026-09-01] ✅ CERRADA — Los cuatro titulares de la línea de créditos salen PEGADOS al separador, y los nueve jueces que los buscan por nombre dan verde
+
+**Categoría:** un juez que busca un nombre no ve dónde termina ese nombre
+
+**Síntoma:** el pie de créditos nuevo nombra a los cuatro titulares del dato,
+separados por `·`. Medido en Chrome contra la página de verdad, lo que Angular
+pintaba era esto — el separador **pegado por los dos lados**, y sin el punto
+(que va `aria-hidden`) los titulares pegados **entre sí**:
+
+```
+a la vista:    …Avanza Zaragoza S.A.U.·Horarios: GTFS del Punto de Acceso Nacional (MITMA)…
+lo que se oye: …Avanza Zaragoza S.A.U.Horarios: GTFS del Punto de Acceso Nacional (MITMA)…
+```
+
+Angular borra el espacio en blanco que hay ENTRE elementos
+(`preserveWhitespaces: false` es el defecto), así que los saltos de línea de la
+plantilla entre `</span>` y `<span>` **no existen en el DOM**. Lo único que
+separaba las cuatro cosas eran los **2,4 px** de `margin: 0 0.15rem` del punto.
+
+Es la misma cicatriz que § 1.24 del notices le documenta a Avanza
+—`053MIRALBUENO`, el texto plano pegado—, y aquí la habríamos puesto nosotros.
+
+⭐ **Lo que daba verde mientras el fallo estaba vivo** — los cuatro jueces del
+navegador que compran justamente que los titulares están, ejecutados con los
+nombres pegados:
+
+```
+✔ nombra a «Avanza Zaragoza S.A.U.»
+✔ nombra a «Punto de Acceso Nacional (MITMA)»
+✔ nombra a «Ayuntamiento de Zaragoza»
+✔ nombra a «colaboradores de OpenStreetMap»
+✅ TODO VERDE
+```
+
+y los cinco de jsdom, en la misma pasada:
+
+```
+✓ ⭐ nombra a los CUATRO titulares del dato que se está enseñando
+     Tests  13 passed | 217 skipped (230)
+```
+
+**Cómo se cazó:** instrumento, y **de refilón**. `creditos.mjs` imprime la línea
+entera antes de juzgarla —`console.log(`   dice: «…»`)`— porque la prueba real de
+un texto es leerlo. El juez dijo verde; el `dice:` de encima, no.
+
+**Causa raíz:** `toContain('Avanza Zaragoza S.A.U.')` es cierto tanto si detrás
+hay un espacio como si hay una `H`. Un juez que busca una **subcadena** compra
+que el nombre está y **no compra nada sobre dónde termina** — y ahí es donde
+estaba el fallo. Los nueve decían la verdad, y ninguno decía lo que hacía falta.
+
+**Arreglo aplicado:** `&ngsp;` —la entidad de Angular para «un espacio que SÍ
+sobrevive»— a los dos lados de cada separador y **fuera** de los tramos
+`aria-hidden`, para que separe las dos cosas: lo que se ve y lo que se lee en voz
+alta. Y un juez nuevo que nombra **las tres juntas una a una**, sobre las dos
+versiones del texto: la pintada, y la misma sin lo oculto.
+
+⚠️ **Y el primer juez que escribí para eso daba ROJO sobre la línea buena.** Era
+un patrón —«una mayúscula pegada a un punto»— y **«S.A.U.» es exactamente eso**.
+Un juez que se equivoca con el caso normal no vale, aunque también cace el malo.
+Por eso las juntas van escritas una por una y no como regla.
+
+**Contraprueba** (los seis `&ngsp;` fuera, una sola vez):
+
+```
+✖ los tres cortes entre titulares llevan su espacio a la vista — pegados: S.A.U. · Horarios | (dato bruto y procesado) · Datos municipales | (Ley 37/2007) · Cartografía
+✖ los tres cortes … sin lo oculto (lo que lee un lector de pantalla) — pegados: S.A.U. Horarios | …
+   lo que se oye: «…Avanza Zaragoza S.A.U.Horarios: GTFS del Punto de Acceso Nacional (MITMA)…»
+```
+
+**Ley:** un juez que compra **presencia** con `toContain` no compra
+**separación**, y en un texto que se lee en voz alta la separación es la mitad
+del significado. Donde varias cosas se listan en una línea, lo que hay que
+nombrar en el juez son **las juntas**, no los elementos — y una a una: un patrón
+que las adivine se equivoca con la primera abreviatura que aparezca.
+
+**Commit:** `b57def1` — *feat(app): la linea de creditos — avanza nap ayuntamiento osm*
+
+**Ficheros:** `app/src/app/buscador.html` · `app/e2e/creditos.mjs`
+
+**Nota:** el arreglo ya había comenzado al abrir esta entrada.
+
+---
+
 ## [2026-09-01] ✅ CERRADA — La región de estado del botón «Próximo bus» nace FUERA del árbol de accesibilidad: `:empty { display: none }`
 
 **Categoría:** una región viva que no está viva hasta que ya es tarde
