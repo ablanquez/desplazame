@@ -14,6 +14,59 @@
 
 ---
 
+## [2026-09-01] 🔴 ABIERTA — El refresco de desvíos DETECTA 23 y APLICA 4: un viaje sube en un poste donde el autobús hoy no para
+
+**Categoría:** una cuenta que dice «leído» y se lee como «hecho»
+
+**Síntoma:** `COLOSO 2 → COMPROMISO DE CASPE 121` en bus manda subir a la
+**línea 22 en el poste Plaza De España**, y la 22 va hoy desviada precisamente
+por ahí. Medido contra la fuente en ese momento, los dos postes que se llaman
+así están suprimidos, cada uno en su dirección:
+
+```
+   dir 0 · poste 720 (17391): en el GTFS=true · en la ruta de hoy=false · SUPRIMIDO=true
+   dir 1 · poste 719 (17390): en el GTFS=true · en la ruta de hoy=false · SUPRIMIDO=true
+```
+
+Y el paso de subida **no llevaba el aviso del desvío**. Es el fallo más grave de
+los que hay: un viaje que manda esperar donde no pasa nadie.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **el log del propio motor**,
+que imprimió lo mismo en los dos refrescos del proceso mientras uno aplicaba 23
+desvíos y el otro 4:
+
+```
+motor: ruta operativa de hoy — 64 sentidos · 23 desviados · 0 sin saber · 36 s
+motor:   23 patrones rehechos · 78 saltos nuevos (78 ruteados · 0 en RECTA de reserva) · 5 postes provisionales · 5 sin coordenada
+motor: ruta operativa de hoy — 64 sentidos · 23 desviados · 0 sin saber · 17 s
+motor:   4 patrones rehechos · 10 saltos nuevos (10 ruteados · 0 en RECTA de reserva) · 1 postes provisionales · 0 sin coordenada
+```
+
+⚠️ **Las dos líneas dicen «23 desviados» y las dos son ciertas**: ésa es la
+cuenta de lo que la FUENTE contestó. Lo que se aplicó a la red va en la línea de
+abajo y con otra palabra —«patrones rehechos»—, así que **19 desvíos detectados
+y no aplicados no producen ni una señal**: hay que leer dos líneas, saber que la
+segunda debería parecerse a la primera, y restar de cabeza.
+
+Y la muralla entera en verde: **454 en el motor**, `fail 0`.
+
+**Cómo se cazó:** ojo humano — Antonio vio que el viaje subía en Plaza de España
+estando la 22 desviada.
+
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** un log dice **lo que se aplicó**, no lo que se leyó. Y
+cuando imprime las dos cosas, la diferencia entre ellas se dice **en voz alta**:
+dos números correctos en dos líneas distintas no son una alarma — son un acertijo
+que nadie resuelve a las tres de la mañana.
+
+**Traza:** `motor/src/patron-operativo.ts` (`refrescarYServir`) ·
+`motor/src/desvios.ts` (`desvioServido`, `traerDesvio`, `TTL_DESVIOS_MS`) ·
+`motor/src/servidor.ts` (las dos líneas del log).
+
+
 ## [2026-09-01] ✅ CERRADA — «Plaza Arag��n»: el lector del zip decodifica CADA TROZO del flujo por separado y parte las tildes que caen en la costura
 
 **Categoría:** una decodificación con estado, hecha sin estado
