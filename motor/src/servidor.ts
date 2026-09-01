@@ -81,6 +81,7 @@ import { TTL_DESVIOS_MS } from './desvios.ts';
  * dos relojes no se rocen. Las dos cosas, no una.
  */
 const CADA_CUANTO_SE_REFRESCA_MS = TTL_DESVIOS_MS / 2;
+import { ultimoMudo } from './avanza.ts';
 import { leerPeticion } from './peticion.ts';
 
 /** Cuánto se acepta como cuerpo de una petición. Una ruta cabe de sobra. */
@@ -676,11 +677,25 @@ const servidor = createServer((peticion, respuesta) => {
         // dato vivo como al BiZi porque **a qué postes hay que preguntar no se
         // sabe hasta que el viaje está buscado**: primero se elige la línea, y
         // solo entonces hay un poste al que llamar. Ver `calcularTrayectoVivo`.
-        json(
-          200,
+        // ⭐ Y SI ALGÚN POSTE SE QUEDÓ MUDO, EL MOTIVO AL LOG. De cara afuera
+        //    las cinco causas son la misma —«no hemos podido preguntar»—, pero
+        //    aquí dentro constan: el 1/09 costó media hora de mediciones contra
+        //    el servidor averiguar que había sido un tope. Ver `MotivoDelMudo`.
+        const trayecto =
           leida?.modo === 'bus'
             ? await calcularTrayectoVivo(motor, leida)
-            : calcularTrayecto(motor, leida, vivo),
+            : calcularTrayecto(motor, leida, vivo);
+        const calló = leida?.modo === 'bus' ? ultimoMudo() : null;
+        if (calló) {
+          console.log(
+            `motor: poste ${calló.poste} mudo por ${calló.motivo} · ${calló.ms} ms` +
+              (calló.status === undefined ? '' : ` · HTTP ${calló.status}`) +
+              (calló.bytes === undefined ? '' : ` · ${calló.bytes} bytes`),
+          );
+        }
+        json(
+          200,
+          trayecto,
         );
       })();
     });

@@ -15,12 +15,14 @@ import assert from 'node:assert/strict';
 import {
   BACKOFF_MS,
   ESPERA_MS,
+  estadoVivoDe,
   leerRespuesta,
   llegadasDelPoste,
   normalizarLinea,
   posteDeCodigo,
   reintentosHechos,
   reiniciarVisitas,
+  ultimoMudo,
   REINTENTOS,
   visitasHechas,
 } from './avanza.ts';
@@ -225,4 +227,105 @@ describe('⭐ LA CONSULTA VIVA AL POSTE DE AVANZA', () => {
     assert.equal(await llegadasDelPoste(7002, rota), null);
     assert.equal(siempreMal, REINTENTOS + 1, 'un intento y un reintento, y ya');
   });
+
+  /**
+   * ⭐ EL MUDO CON SU MOTIVO — las CINCO causas, distinguidas.
+   *
+   * ═══════════════════════════════════════════════════════════════════════════
+   *  ⛔ NACE DE UN DIAGNÓSTICO QUE COSTÓ MEDIA HORA (1/09). Un poste salió mudo
+   *    en un Generar y hubo que medir contra el servidor —treinta y tantas
+   *    llamadas— para saber cuál de las cinco cosas había pasado. Era un tope
+   *    agotado, y era la única de las cinco que se podía descartar mirando el
+   *    reloj: el Generar tardó **8.456 ms**, o sea `4000 + 300 + 4000`.
+   *
+   *  `unaVez` devolvía `null` para todo: el `catch` de red, el `!r.ok` y el
+   *  parseo fallido. Cinco causas, un solo silencio.
+   *
+   *  [GTFS-Realtime] separa «sin información» de «sin servicio»; ZetaBus cuenta
+   *  `timeouts`, `errores` y `reintentos` **por separado** (`transporte.ts`). El
+   *  motivo es para el log; **el aviso al usuario no cambia**: «no hemos podido
+   *  preguntar» sigue siendo lo honesto de cara afuera, porque de cara afuera
+   *  las cinco son lo mismo.
+   * ═══════════════════════════════════════════════════════════════════════════
+   */
+  test('⭐ las cinco causas del mudo dan cinco motivos distintos', async () => {
+    /** Un `fetch` que falla como se le diga. */
+    const cae = (como: string): typeof fetch =>
+      (async () => {
+        if (como === 'tope') {
+          const e = new Error('The operation was aborted due to timeout');
+          e.name = 'TimeoutError';
+          throw e;
+        }
+        if (como === 'red') {
+          throw new TypeError('fetch failed');
+        }
+        if (como === 'http') {
+          return new Response('lo que sea', { status: 503 });
+        }
+        if (como === 'parseo') {
+          return new Response('esto no es el JSON que esperaba', { status: 200 });
+        }
+        // «contador»: el fixture MEDIDO con un coche menos en `tablatiempos`.
+        //    Es la misma mutación que usa la juez 3, no una respuesta inventada.
+        return new Response(DEL_POSTE_1000.replace('4669 [7 mins]', '4669'), { status: 200 });
+      }) as unknown as typeof fetch;
+
+    const motivos = new Map<string, string>();
+    for (const causa of ['tope', 'red', 'http', 'parseo', 'contador']) {
+      reiniciarVisitas();
+      const r = await llegadasDelPoste(1000, cae(causa));
+      assert.equal(r, null, `«${causa}» tiene que salir mudo`);
+      const ultimo = ultimoMudo();
+      assert.ok(ultimo, `«${causa}» no ha dejado motivo`);
+      motivos.set(causa, ultimo!.motivo);
+    }
+
+    // ⭐ CINCO CAUSAS, CINCO MOTIVOS DISTINTOS. Si dos compartieran motivo, el
+    //    log volvería a obligar a medir contra el servidor para saber cuál fue.
+    assert.equal(new Set(motivos.values()).size, 5, `motivos: ${JSON.stringify([...motivos])}`);
+    assert.equal(motivos.get('tope'), 'tope');
+    assert.equal(motivos.get('red'), 'red');
+    assert.equal(motivos.get('http'), 'http');
+    assert.equal(motivos.get('parseo'), 'parseo');
+    assert.equal(motivos.get('contador'), 'contador');
+  });
+
+  /**
+   * ⭐ Y EL MOTIVO LLEVA EL DATO QUE HACE FALTA para no volver a medir: el HTTP
+   * su status, el parseo sus bytes, y todos sus milisegundos.
+   */
+  test('⭐ el motivo del mudo trae el dato de su causa', async () => {
+    reiniciarVisitas();
+    await llegadasDelPoste(1000, (async () => new Response('x', { status: 503 })) as unknown as typeof fetch);
+    const http = ultimoMudo()!;
+    assert.equal(http.motivo, 'http');
+    assert.equal(http.status, 503);
+    assert.ok(http.ms >= 0, 'y sus milisegundos');
+
+    reiniciarVisitas();
+    await llegadasDelPoste(
+      1000,
+      (async () => new Response('no es json', { status: 200 })) as unknown as typeof fetch,
+    );
+    const parseo = ultimoMudo()!;
+    assert.equal(parseo.motivo, 'parseo');
+    assert.equal(parseo.bytes, 'no es json'.length);
+  });
+
+  /**
+   * ⭐ Y EL AVISO AL USUARIO ES EL MISMO EN LAS CINCO.
+   *
+   * De cara afuera las cinco son lo mismo: se ha preguntado y no se sabe. Un
+   * aviso que dijera «error 503» no le sirve a quien espera un autobús, y uno
+   * que dijera «se agotó el tiempo» invitaría a pensar que reintentando saldría.
+   */
+  test('⭐ el aviso al usuario NO distingue la causa', () => {
+    for (const motivo of ['tope', 'red', 'http', 'parseo', 'contador'] as const) {
+      assert.equal(estadoVivoDe(null, '29').clase, 'mudo', `${motivo} sigue siendo mudo`);
+    }
+    // Y `EstadoVivo` no lleva el motivo: es del log, no del contrato.
+    assert.deepEqual(Object.keys(estadoVivoDe(null, '29')), ['clase']);
+  });
+
 });

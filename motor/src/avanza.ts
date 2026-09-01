@@ -190,10 +190,68 @@ export function visitasHechas(): number {
 export function reiniciarVisitas(): void {
   visitas = 0;
   reintentos = 0;
+  mudo = null;
+}
+
+/**
+ * ⭐ POR QUÉ SE QUEDÓ MUDO. **Cinco causas, cinco nombres.**
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  ⛔ NACE DE UN DIAGNÓSTICO DE MEDIA HORA (1/09). Un poste salió mudo en un
+ *    Generar y hubo que medir contra el servidor —treinta y tantas llamadas, con
+ *    topes alternados— para saber cuál de las cinco cosas había pasado. Era un
+ *    tope agotado, y solo se pudo descartar el resto mirando el reloj: el
+ *    Generar tardó **8.456 ms**, que es `4000 + 300 + 4000` exactos.
+ *
+ *  Hasta hoy `unaVez` devolvía `null` para todo: el `catch` de red, el `!r.ok` y
+ *  el parseo fallido caían en el mismo silencio.
+ *
+ *  [GTFS-Realtime] separa «sin información» de «sin servicio»; ZetaBus cuenta
+ *  `timeouts`, `errores` y `reintentos` por separado (`transporte.ts`). Aquí se
+ *  hace lo mismo, con el grano que hace falta para no volver a medir:
+ *
+ *    · `tope`     — se agotaron los 4 s. Lo más frecuente, y el que se confunde
+ *                   con «Avanza está caída» cuando en realidad va lenta.
+ *    · `red`      — no hubo conexión: DNS, socket, TLS.
+ *    · `http`     — contestó, pero con un status que no es 200. Lleva **cuál**.
+ *    · `parseo`   — contestó 200 y el cuerpo no es el JSON esperado. Lleva los
+ *                   **bytes**, que es lo que dice si llegó vacío o llegó otra cosa.
+ *    · `contador` — el JSON está bien pero **sus dos canales no cuadran**, que es
+ *                   el control que la propia fuente regala. Ver `leerRespuesta`.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ **Y esto NO sale al usuario.** De cara afuera las cinco son lo mismo —se ha
+ *    preguntado y no se sabe—, así que `EstadoVivo` sigue teniendo un solo
+ *    `mudo` sin motivo. Un aviso que dijera «error 503» no le sirve a quien
+ *    espera el autobús, y uno que dijera «se agotó el tiempo» invitaría a creer
+ *    que reintentando saldría. El motivo es **para el log**.
+ */
+export type MotivoDelMudo = 'tope' | 'red' | 'http' | 'parseo' | 'contador';
+
+export interface MudoPorque {
+  readonly poste: number;
+  readonly motivo: MotivoDelMudo;
+  readonly ms: number;
+  /** El status HTTP, cuando lo hubo. */
+  readonly status?: number;
+  /** Los bytes del cuerpo, cuando llegó uno. */
+  readonly bytes?: number;
+}
+
+/** El último mudo, para el log y para las jueces. Igual que `visitasHechas`. */
+let mudo: MudoPorque | null = null;
+
+export function ultimoMudo(): MudoPorque | null {
+  return mudo;
 }
 
 /** Una sola petición, con su tope duro. `null` es «no lo sabemos». */
 async function unaVez(poste: number, pedir: typeof fetch): Promise<LecturaDePoste | null> {
+  const t0 = Date.now();
+  const calla = (motivo: MotivoDelMudo, mas: { status?: number; bytes?: number } = {}): null => {
+    mudo = { poste, motivo, ms: Date.now() - t0, ...mas };
+    return null;
+  };
   try {
     const r = await pedir(URL_POSTE, {
       method: 'POST',
@@ -204,13 +262,31 @@ async function unaVez(poste: number, pedir: typeof fetch): Promise<LecturaDePost
     if (!r.ok) {
       // ⚠️ Un 500, un 403 del cortafuegos o un 302 a mantenimiento NO son «no
       // hay autobuses»: son «no lo sabemos». Se dicen distinto [ZetaBus].
-      return null;
+      return calla('http', { status: r.status });
     }
-    return leerRespuesta(poste, await textoDe(r), new Date());
+    const cuerpo = await textoDe(r);
+    const lectura = leerRespuesta(poste, cuerpo, new Date());
+    if (lectura === null) {
+      // ⚠️ Y aquí se separan las dos que caían juntas: un cuerpo que no es JSON
+      //    y un JSON cuyos dos canales no cuadran son fallos distintos —el
+      //    primero es de la página, el segundo del dato— y se dicen distinto.
+      return calla(esJson(cuerpo) ? 'contador' : 'parseo', { bytes: cuerpo.length });
+    }
+    return lectura;
+  } catch (e) {
+    // ⚠️ El tope y la red caída NO son lo mismo, y confundirlos fue lo que
+    //    costó media hora: `AbortSignal.timeout` lanza `TimeoutError`.
+    return calla((e as Error)?.name === 'TimeoutError' ? 'tope' : 'red');
+  }
+}
+
+/** ¿El cuerpo es JSON, aunque su contenido no cuadre? Separa `parseo` de `contador`. */
+function esJson(cuerpo: string): boolean {
+  try {
+    const x: unknown = JSON.parse(cuerpo);
+    return typeof x === 'object' && x !== null;
   } catch {
-    // Red caída, tiempo agotado, cuerpo ilegible. Todos son lo mismo desde
-    // aquí: la fuente no ha contestado.
-    return null;
+    return false;
   }
 }
 
@@ -352,4 +428,49 @@ export async function coordenadaDelPoste(
 export function posteDeCodigo(codigo: string): number | null {
   const m = /^PA0*(\d+)$/.exec(codigo.trim());
   return m ? Number(m[1]) : null;
+}
+
+/**
+ * ⭐ EL NÚMERO DE POSTE **TAL COMO LO VE EL VIAJERO**, para nombrarlo.
+ *
+ * [Referencia GTFS, `stop_code`] es *«un texto corto o número que identifica la
+ * parada para los viajeros»*, y añade que es **el que aparece en la señal y en
+ * los sistemas de información**. O sea: el que está escrito en el poste al que
+ * uno mira. Por eso se enseña, y por eso se enseña sin retocarlo.
+ *
+ * Dos formas, porque el feed trae dos:
+ *
+ *   · **Bus** — `PA00033` → `«33»`. Los ceros de relleno son del identificador,
+ *     no del cartel: en la marquesina pone 33. Son **934 de las 984** paradas,
+ *     la misma cuenta que ZetaBus midió (`identity.ts`).
+ *   · **Tranvía** — `1312` → `«1312»`, **tal cual**. Sus 50 paradas no llevan el
+ *     prefijo de Avanza porque no son de Avanza, y ponerles uno sería inventarse
+ *     un identificador que no existe en ninguna señal.
+ *
+ * `null` cuando el código no es ninguna de las dos cosas: entonces no hay número
+ * que enseñar, y se calla en vez de enseñar el `stop_id` interno —que **no** es
+ * lo que el viajero ve—.
+ */
+export function numeroDePoste(codigo: string): string | null {
+  const deAvanza = posteDeCodigo(codigo);
+  if (deAvanza !== null) {
+    return String(deAvanza);
+  }
+  const limpio = codigo.trim();
+  return /^\d+$/.test(limpio) ? limpio : null;
+}
+
+/**
+ * ⭐ CÓMO SE NOMBRA UN POSTE EN LA NARRACIÓN. Un solo sitio lo decide.
+ *
+ * `«poste 33 · Av. Academia General Militar N.º 37»` [PROPIO, redacción]. El
+ * número primero porque es lo que se busca con la vista en la calle —el cartel
+ * lo lleva grande—, y el nombre después porque es lo que confirma que es ése.
+ *
+ * ⚠️ Y si no hay número, **solo el nombre**: nada de «poste — Nombre» con un
+ * hueco donde debería ir algo.
+ */
+export function nombrarPoste(codigo: string, nombre: string): string {
+  const numero = numeroDePoste(codigo);
+  return numero === null ? nombre : `${numero} · ${nombre}`;
 }
