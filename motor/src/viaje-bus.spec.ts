@@ -691,6 +691,64 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   });
 
   /**
+   * ⭐ JUEZ 32 — EL MOTOR DICE **A QUIÉN PREGUNTAR**, y en tranvía a nadie.
+   *
+   * El botón «Próximo bus» necesita dos datos —el número de poste de Avanza y
+   * la línea— y **los manda el motor**, no los saca la pantalla leyendo la
+   * frase. La frase dice «en el poste 33 · Av. Academia General Militar N.º 37»
+   * y sacar el 33 de ahí ataría la interfaz a un formato que el motor puede
+   * cambiar mañana. Ver `aQuienPreguntar` en el contrato.
+   *
+   * ⚠️ **Y el tranvía no lo lleva**, que es lo que hace que el botón no exista
+   *    ahí. Su `stop_code` es `1312` y no un `PAnnnnn`: Avanza no cubre esos
+   *    postes, así que no es que no lo sepamos — es que no hay a quién
+   *    preguntar. Un botón que al pulsarlo solo pudiera decir «no lo sé» es
+   *    peor que no tenerlo: promete un dato que no existe.
+   *
+   * El caso del tranvía **se busca en la red**, no se escribe a mano: lo que se
+   * compra es que ningún montado de tranvía lleve a quién preguntar, no que un
+   * poste concreto no lo lleve.
+   */
+  test('⭐ 32 · el bus dice a quién preguntar; el tranvía no lleva a nadie', () => {
+    const montadoDe = (patron: (typeof red.patrones)[number]) => ({
+      patron,
+      desde: patron.paradas[0]!,
+      hasta: patron.paradas[1]!,
+      iDesde: 0,
+      iHasta: 1,
+      espera: 300,
+      rodando: 120,
+    });
+    const porId = new Map(red.paradas.map((x) => [x.id, x]));
+
+    // 1 · UN BUS: lleva el número del poste y su línea.
+    const deBus = red.patrones.find(
+      (x) => x.modo === 'bus' && /^PA\d+$/.test(porId.get(x.paradas[0]!)?.codigo ?? ''),
+    )!;
+    const sube = etapaMontada(red, montadoDe(deBus), { espera: 300, intervalo: 600 }).pasos[0]!;
+    assert.equal(sube.giro, 'sube');
+    const suPoste = numeroDePoste(porId.get(deBus.paradas[0]!)!.codigo);
+    assert.deepEqual(
+      sube.aQuienPreguntar,
+      { poste: Number(suPoste), linea: lineaDelViaje(red, deBus).corto },
+      'el bus manda el poste de Avanza y su línea',
+    );
+
+    // 2 · EL TRANVÍA: ninguno de los suyos lleva a quién preguntar.
+    const deTranvia = red.patrones.filter((x) => x.modo === 'tram');
+    assert.ok(deTranvia.length > 0, 'la red tiene que traer tranvía para que esto valga');
+    for (const patron of deTranvia) {
+      const paso = etapaMontada(red, montadoDe(patron), { espera: 300, intervalo: 600 }).pasos[0]!;
+      assert.equal(
+        paso.aQuienPreguntar,
+        undefined,
+        `el tranvía ${lineaDelViaje(red, patron).corto} no tiene fuente a la que preguntar, ` +
+          `y su poste es ${porId.get(patron.paradas[0]!)?.codigo}`,
+      );
+    }
+  });
+
+  /**
    * ⭐ JUEZ 27 — EL GENERAR PREGUNTA **SOLO POR EL PRIMER POSTE**.
    *
    * Es la regla de casa desde la 3b, dicha entera: **el dato vivo sustituye la

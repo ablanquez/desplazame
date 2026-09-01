@@ -165,6 +165,68 @@ export interface Paso {
    * concatenación de las partes, y quien no quiera pintar nada lo usa tal cual.
    */
   readonly partes: readonly ParteDelPaso[];
+  /**
+   * ⭐ A QUIÉN PREGUNTARLE POR EL PRÓXIMO VEHÍCULO DE ESTE PASO.
+   *
+   * Solo lo llevan los pasos de `sube` y `transborda`, y **solo cuando hay una
+   * fuente a la que preguntar**: el tranvía no lo lleva, porque su `stop_code`
+   * no es de los que Avanza entiende. Sin esto, la pantalla no pinta el botón —
+   * y así el botón que no puede contestar no llega a existir.
+   *
+   * ⚠️ **Va como dato y no como texto** a propósito. La pantalla podría sacar
+   *    el número del poste leyendo la frase del paso —«en el poste 33 · …»— y
+   *    eso sería atarla al formato de una frase que el motor puede cambiar. El
+   *    motor manda a quién se pregunta; la pantalla decide si pinta el botón.
+   */
+  readonly aQuienPreguntar?: AQuienPreguntar;
+  /**
+   * Lo que la fuente dijo **en el Generar**, si se le preguntó.
+   *
+   * Solo el primer vehículo lo lleva: es el único al que el Generar pregunta
+   * [ver `preguntarPorLaPrimeraSubida` en el motor]. Sirve para que la región
+   * de estado del botón **nazca con el dato** en vez de nacer vacía; lo que se
+   * pulse después lo refresca.
+   */
+  readonly vivo?: PosteVivo;
+}
+
+/**
+ * El poste y la línea por los que se le pregunta a la fuente en vivo.
+ *
+ * `poste` es el número **de Avanza** —`PA00033` → `33`—, que es el mismo que
+ * el viajero ve en la señal [referencia GTFS, `stop_code`]. `linea` es el corto
+ * del feed (`29`), y el motor ya sabe normalizarlo contra el de Avanza (`029`).
+ */
+export interface AQuienPreguntar {
+  readonly poste: number;
+  readonly linea: string;
+}
+
+/**
+ * ⭐ LO QUE CONTESTA `GET /api/poste-vivo`, y son **tres** estados.
+ *
+ * Los cuatro de `EstadoVivo` en el motor menos `sinFuente`, que aquí no puede
+ * pasar: sin fuente no hay `aQuienPreguntar`, y sin `aQuienPreguntar` no hay
+ * botón que pulsar. Que el tipo no lo admita es lo que impide inventarse un
+ * cuarto texto para un caso que no llega.
+ *
+ *   · `llega`   — la línea está en el poste y faltan N minutos.
+ *   · `ausente` — la fuente contestó y esa línea no está en su lista. Es un
+ *     hecho de ahora mismo, no un fallo [GTFS-Realtime: ausente es «sin
+ *     información en tiempo real», **no** «sin servicio»].
+ *   · `mudo`    — no contestó, o se contradijo. No lo sabemos.
+ *
+ * ⚠️ **`texto` viene compuesto por el motor**, y es a propósito: las mismas
+ *    frases se dicen ya en los avisos del Generar, y escribirlas otra vez en la
+ *    pantalla sería tener dos sitios donde cambiar una coma. `clase` viaja
+ *    aparte para que la pantalla decida el ⚠ y el papel de la región sin leer
+ *    la frase. Es el mismo trato que `Aviso`.
+ */
+export type ClaseDeVivo = 'llega' | 'ausente' | 'mudo';
+
+export interface PosteVivo {
+  readonly clase: ClaseDeVivo;
+  readonly texto: string;
 }
 
 /** Qué papel hace un trozo de la frase de un paso. */

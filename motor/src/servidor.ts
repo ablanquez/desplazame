@@ -82,6 +82,7 @@ import { TTL_DESVIOS_MS } from './desvios.ts';
  */
 const CADA_CUANTO_SE_REFRESCA_MS = TTL_DESVIOS_MS / 2;
 import { ultimoMudo } from './avanza.ts';
+import { atenderPosteVivo } from './poste-vivo.ts';
 import { leerPeticion } from './peticion.ts';
 
 /** Cuánto se acepta como cuerpo de una petición. Una ruta cabe de sobra. */
@@ -503,6 +504,23 @@ const servidor = createServer((peticion, respuesta) => {
     respuesta.end(JSON.stringify(cuerpo));
   };
 
+  /**
+   * Igual que `json`, pero **prohibiendo guardarlo**.
+   *
+   * Es para lo que caduca en segundos. Un GET es cacheable por defecto, y un
+   * «próximo en 3 min» servido de la caché del navegador cuarenta segundos
+   * después no es viejo: es **falso**, porque se lee como si fuera de ahora.
+   * `no-store` es el único que impide guardarlo del todo — `no-cache` permite
+   * guardarlo y solo obliga a revalidar.
+   */
+  const jsonSinGuardar = (codigo: number, cuerpo: unknown): void => {
+    respuesta.writeHead(codigo, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+    });
+    respuesta.end(JSON.stringify(cuerpo));
+  };
+
   const url = new URL(peticion.url ?? '/', `http://localhost:${PUERTO}`);
 
   if (peticion.method === 'GET' && url.pathname === '/api/salud') {
@@ -702,6 +720,40 @@ const servidor = createServer((peticion, respuesta) => {
     return;
   }
 
+  /**
+   * ⭐ EL POSTE VIVO **A PETICIÓN** (1/09).
+   *
+   * El Generar pregunta a Avanza por un solo poste —el primero de subida— para
+   * no gastar hasta 8,4 s por cada uno de los demás dentro de los 10 s que
+   * [NN/g] da de margen. Lo de los otros se pide aquí, **cuando quien mira
+   * pulsa el botón**: una acción iniciada por el usuario.
+   *
+   * Idempotente, sin caché y con single-flight por poste. Ver `poste-vivo.ts`.
+   */
+  if (peticion.method === 'GET' && url.pathname === '/api/poste-vivo') {
+    void (async () => {
+      const r = await atenderPosteVivo(
+        url.searchParams.get('poste'),
+        url.searchParams.get('linea'),
+      );
+      // ⚠️ El motivo del mudo va **al log y solo al log**: de cara afuera las
+      //    cinco causas son lo mismo —se preguntó y no se sabe—, y decir «error
+      //    503» a quien espera el autobús no le sirve de nada. Sin esta línea,
+      //    un poste que sale mudo obliga a medir contra el servidor para saber
+      //    cuál de las cinco fue: media hora, medida el 1/09.
+      const calló = 'clase' in r.cuerpo && r.cuerpo.clase === 'mudo' ? ultimoMudo() : null;
+      if (calló) {
+        console.log(
+          `motor: /api/poste-vivo · poste ${calló.poste} mudo por ${calló.motivo} · ${calló.ms} ms` +
+            (calló.status === undefined ? '' : ` · HTTP ${calló.status}`) +
+            (calló.bytes === undefined ? '' : ` · ${calló.bytes} bytes`),
+        );
+      }
+      jsonSinGuardar(r.codigo, r.cuerpo);
+    })();
+    return;
+  }
+
   // ⭐ EL DISPARADOR DEL CRON (31/08). En un hosting sin SSH un cron no puede
   // lanzar `npm run …`: **solo puede pedir una URL** [precedente de ZetaBus].
   // Por eso la renovación se dispara con un POST y un token EN CABECERA —jamás
@@ -850,6 +902,9 @@ servidor.listen(PUERTO, () => {
     // una línea que miente sin que nada se ponga rojo. Es la misma lección que
     // el aviso de la pantalla, que también dejó de escribirse a mano.
     `motor: POST /api/ruta calcula ${MODOS_ATENDIDOS.join(', ')}, de portal a portal, por codigos`,
+  );
+  console.log(
+    'motor: GET /api/poste-vivo?poste=N&linea=L pregunta a Avanza a peticion, sin guardar nada',
   );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 

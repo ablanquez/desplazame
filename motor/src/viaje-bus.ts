@@ -48,9 +48,10 @@
  * ese dato **sustituye** al `H/2` del primer vehículo: lo real desplaza a lo
  * programado, que es el principio de GTFS-Realtime.
  */
-import type { LineaDelViaje, Paso, Vertice } from '@desplazame/tipos';
+import type { AQuienPreguntar, LineaDelViaje, Paso, PosteVivo, Vertice } from '@desplazame/tipos';
 import type { Aviso, Trayecto } from '@desplazame/tipos';
-import { alMinuto, etapaAndando, juntar, type Etapa, type Extremo } from './etapas.ts';
+import { etapaAndando, juntar, type Etapa, type Extremo } from './etapas.ts';
+import { comoSeDiceElProximo, comoSeDiceLoVivo, ESTE_POSTE } from './poste-vivo.ts';
 import {
   estadoVivoDe,
   llegadasDelPoste,
@@ -687,7 +688,9 @@ function metrosEntre(aLon: number, aLat: number, bLon: number, bLat: number): nu
  */
 function comoSeEspera(intervalo: number | null, vivo?: EstadoVivo | null): string | null {
   if (vivo?.clase === 'llega') {
-    return `próximo en ${vivo.minutos} min (dato de las ${alMinuto(vivo.cuando)})`;
+    // La frase se compone en `poste-vivo.ts`, que es de donde sale también la
+    // del endpoint a petición: una sola frase, un solo sitio donde cambiarla.
+    return comoSeDiceElProximo(vivo.minutos, vivo.cuando);
   }
   return intervalo === null ? null : `frecuencia teórica: cada ${Math.round(intervalo / 60)} min`;
 }
@@ -713,13 +716,20 @@ function comoSeCuentan(paradas: number): string | null {
   return paradas === 1 ? '1 parada' : `${paradas} paradas`;
 }
 
-/** ⭐ EL PASO DE SUBIR. */
+/**
+ * ⭐ EL PASO DE SUBIR.
+ *
+ * `aQuien` es a quién le pregunta el botón «Próximo bus» por este vehículo, y
+ * es `null` cuando no hay fuente —el tranvía—: sin eso la pantalla no pinta el
+ * botón, que es como se evita un botón que solo pueda contestar «no lo sé».
+ */
 export function pasoDeSubir(
   linea: LineaDelViaje,
   poste: string,
   paradas: number,
   intervalo: number | null,
   vivo?: EstadoVivo | null,
+  aQuien?: AQuienPreguntar | null,
 ): Paso {
   const partes = [
     { papel: 'accion' as const, texto: 'Sube' },
@@ -738,7 +748,34 @@ export function pasoDeSubir(
   if (espera !== null) {
     partes.push({ papel: 'texto' as const, texto: ` — ${espera}` });
   }
-  return { giro: 'sube', texto: partes.map((x) => x.texto).join(''), metros: 0, partes };
+  return {
+    giro: 'sube',
+    texto: partes.map((x) => x.texto).join(''),
+    metros: 0,
+    partes,
+    ...conElVivoDelGenerar(aQuien, vivo, linea.corto),
+  };
+}
+
+/**
+ * Los dos campos que el paso lleva **para el botón**: a quién preguntar y lo
+ * que el Generar ya trajo.
+ *
+ * ⚠️ Van juntos porque se deciden juntos: sin `aQuien` no hay botón, y sin
+ *    botón no hay región donde poner el dato. Y ninguno de los dos se escribe
+ *    cuando no lo hay — `undefined` no viaja en el JSON, así que un paso de
+ *    tranvía sale del motor exactamente igual que antes de existir esto.
+ */
+function conElVivoDelGenerar(
+  aQuien: AQuienPreguntar | null | undefined,
+  vivo: EstadoVivo | null | undefined,
+  corto: string,
+): { aQuienPreguntar?: AQuienPreguntar; vivo?: PosteVivo } {
+  if (!aQuien) {
+    return {};
+  }
+  const dicho = vivo ? comoSeDiceLoVivo(vivo, corto, ESTE_POSTE) : null;
+  return { aQuienPreguntar: aQuien, ...(dicho ? { vivo: dicho } : {}) };
 }
 
 /**
@@ -763,6 +800,7 @@ export function pasoDeTransbordo(
   paradas: number,
   intervalo: number | null,
   vivo?: EstadoVivo | null,
+  aQuien?: AQuienPreguntar | null,
 ): Paso {
   const partes = [
     { papel: 'texto' as const, texto: 'En el poste ' },
@@ -787,7 +825,15 @@ export function pasoDeTransbordo(
       texto: ` — ${espera.replace('frecuencia teórica:', `frecuencia teórica de la ${aLa.corto}:`)}`,
     });
   }
-  return { giro: 'transborda', texto: partes.map((x) => x.texto).join(''), metros: 0, partes };
+  return {
+    giro: 'transborda',
+    texto: partes.map((x) => x.texto).join(''),
+    metros: 0,
+    partes,
+    // La línea por la que se pregunta es la que se COGE, igual que la
+    // frecuencia y que las paradas: la que se deja ya se ha ido.
+    ...conElVivoDelGenerar(aQuien, vivo, aLa.corto),
+  };
 }
 
 export function pasoDeBajar(poste: string): Paso {
@@ -881,6 +927,18 @@ export function etapaMontada(red: RedDeBus, montado: TramoMontado, como: ComoSeM
     return suya ? nombrarPoste(suya.codigo, suya.nombre) : id;
   };
   const dondeSube = comoSeLlama(montado.desde);
+  /**
+   * ⭐ A QUIÉN LE PREGUNTA EL BOTÓN por este vehículo, o `null` si a nadie.
+   *
+   * El número sale del `stop_code` por `posteDeCodigo`, que es el mismo camino
+   * por el que el Generar decide a quién preguntar: si de aquí sale `null` —el
+   * tranvía— tampoco había a quién preguntar entonces. Un solo sitio decide qué
+   * postes cubre Avanza, y por eso el botón y el Generar no se pueden desalinear.
+   */
+  const suPoste = porId.get(montado.desde);
+  const numero = suPoste ? posteDeCodigo(suPoste.codigo) : null;
+  const aQuien: AQuienPreguntar | null =
+    numero === null ? null : { poste: numero, linea: linea.corto };
   // ⭐ Las paradas de ESTE vehículo, sobre el patrón que recorre HOY: si la
   // línea va desviada, el patrón es el operativo y la cuenta sale de él, así
   // que las paradas que se dicen son las que de verdad se van a pasar.
@@ -888,8 +946,16 @@ export function etapaMontada(red: RedDeBus, montado: TramoMontado, como: ComoSeM
   return {
     pasos: [
       como.transbordandoDe
-        ? pasoDeTransbordo(dondeSube, como.transbordandoDe, linea, paradas, intervalo, vivo)
-        : pasoDeSubir(linea, dondeSube, paradas, intervalo, vivo),
+        ? pasoDeTransbordo(
+            dondeSube,
+            como.transbordandoDe,
+            linea,
+            paradas,
+            intervalo,
+            vivo,
+            aQuien,
+          )
+        : pasoDeSubir(linea, dondeSube, paradas, intervalo, vivo, aQuien),
       // Si de aquí se transborda en el mismo poste, el «Baja» lo dice el paso
       // de transbordo del siguiente: no se baja para volver a subir.
       ...(como.acabaEnTransbordo
@@ -1117,37 +1183,14 @@ export function prepararViajeEnBus(
       return [];
     }
     const corto = lineaDelViaje(red, m.patron).corto;
-    const poste = nombreDelPoste(m.desde);
-    if (vivo.clase === 'ausente') {
-      // ⚠️ **Lo que la fuente dice, no lo que parece.** [GTFS-Realtime] una
-      // entidad AUSENTE del feed en vivo significa **sin información en tiempo
-      // real**, no «sin servicio». Hasta el 31/08 esto decía «no está prestando
-      // servicio ahora», que es una conclusión —y puede ser falsa: el bus
-      // puede venir con el GPS mudo—. Ahora dice quién calla y qué calla.
-      //
-      // El poste va NOMBRADO donde el texto diría «este poste»: es lo que
-      // permite poner el aviso al lado de SU hito [GOV.UK, doble sitio].
-      return [
-        {
-          texto:
-            `Avanza no anuncia ningún próximo de la línea ${corto} en el poste ${poste} ` +
-            'ahora mismo — la espera sale del horario publicado.',
-        },
-      ];
-    }
-    if (vivo.clase === 'mudo') {
-      // ⚠️ Las mismas palabras que el BiZi —«disponibilidad no verificada»—
-      // porque es la misma condición: se ha preguntado y no se sabe. Y no es
-      // lo mismo que `ausente`, donde la fuente contestó.
-      return [
-        {
-          texto:
-            `No hemos podido preguntar cuándo pasa la línea ${corto} por el poste ${poste}: ` +
-            'disponibilidad no verificada.',
-        },
-      ];
-    }
-    return [];
+    // ⚠️ **El poste va NOMBRADO** aquí, y no «este poste». Este aviso vive en la
+    //    cabecera, lejos de los pasos: sin el nombre habría que adivinar de cuál
+    //    habla [GOV.UK, *«general errors are not helpful»*]. La respuesta del
+    //    endpoint, que se pinta DENTRO del paso, dice «este» — y las dos frases
+    //    salen del mismo sitio, `comoSeDiceLoVivo`, cambiando solo eso.
+    const dicho = comoSeDiceLoVivo(vivo, corto, `el poste ${nombreDelPoste(m.desde)}`);
+    // `llega` no es un aviso: es la buena noticia, y ya la dice el paso.
+    return dicho && dicho.clase !== 'llega' ? [{ texto: dicho.texto }] : [];
   };
 
   /**

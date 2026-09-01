@@ -26,6 +26,7 @@ import {
   REINTENTOS,
   visitasHechas,
 } from './avanza.ts';
+import { atenderPosteVivo, ESTE_POSTE } from './poste-vivo.ts';
 
 /**
  * ⭐ LA RESPUESTA DE VERDAD, del poste 1000 (Plaza Emperador Carlos V /
@@ -328,4 +329,136 @@ describe('⭐ LA CONSULTA VIVA AL POSTE DE AVANZA', () => {
     assert.deepEqual(Object.keys(estadoVivoDe(null, '29')), ['clase']);
   });
 
+});
+
+/**
+ * ⭐ LAS JUECES DEL ENDPOINT A PETICIÓN — `GET /api/poste-vivo` (1/09).
+ *
+ * Van aquí y no en un fichero propio porque **el fixture medido vive aquí**:
+ * copiarlo a un tercer sitio sería tener tres copias de una medición que solo
+ * se hizo una vez, y la que se quedara vieja sería la que engañara.
+ */
+describe('⭐ EL POSTE VIVO A PETICIÓN', () => {
+  beforeEach(() => reiniciarVisitas());
+
+  /** Un `fetch` de mentira que contesta siempre con el cuerpo medido. */
+  const respondiendo = (cuerpo: string): typeof fetch =>
+    (async () => new Response(cuerpo, { status: 200 })) as unknown as typeof fetch;
+
+  /**
+   * ⭐ LOS TRES ESTADOS, sobre la misma respuesta medida.
+   *
+   * Los tres salen del **mismo cuerpo** de Avanza, y eso es lo que los hace
+   * comparables: lo que cambia entre `llega` y `ausente` no es la fuente, es
+   * **por qué línea se pregunta**. Y `mudo` es la fuente que no contesta.
+   *
+   * ⚠️ Los tres textos son los de siempre —los que el Generar ya decía en sus
+   *    avisos—, y salen de `comoSeDiceLoVivo`, que es el único sitio donde se
+   *    escriben. Lo único que cambia es cómo se nombra el poste: aquí «este
+   *    poste», porque la respuesta se pinta dentro del paso que ya lo nombra.
+   */
+  test('⭐ 28 · el endpoint da los tres estados con el fixture medido', async () => {
+    // 1 · LLEGA. La 053 está en el poste 1000, con dos coches: 0 min y 7 min.
+    const llega = await atenderPosteVivo('1000', '53', respondiendo(DEL_POSTE_1000));
+    assert.equal(llega.codigo, 200);
+    assert.equal((llega.cuerpo as { clase: string }).clase, 'llega');
+    assert.match(
+      (llega.cuerpo as { texto: string }).texto,
+      /^próximo en 0 min \(dato de las \d\d:\d\d\)$/,
+      'el primero de los dos coches, con su hora',
+    );
+
+    // 2 · AUSENTE. La MISMA respuesta, preguntando por una línea que no está.
+    const ausente = await atenderPosteVivo('1000', '29', respondiendo(DEL_POSTE_1000));
+    assert.equal(ausente.codigo, 200);
+    assert.equal((ausente.cuerpo as { clase: string }).clase, 'ausente');
+    const suTexto = (ausente.cuerpo as { texto: string }).texto;
+    assert.match(suTexto, /^Avanza no anuncia ningún próximo de la línea 29 en este poste /);
+    assert.ok(
+      !/prestando servicio/.test(suTexto),
+      '[GTFS-Realtime] ausente es «sin información», no «sin servicio»',
+    );
+
+    // 3 · MUDO. La fuente no contesta: no lo sabemos, que no es lo mismo.
+    const muda = (async () => {
+      throw new Error('ENOTFOUND');
+    }) as unknown as typeof fetch;
+    const mudo = await atenderPosteVivo('1000', '53', muda);
+    assert.equal(mudo.codigo, 200, 'que Avanza calle no es un error del motor');
+    assert.equal((mudo.cuerpo as { clase: string }).clase, 'mudo');
+    assert.match((mudo.cuerpo as { texto: string }).texto, /disponibilidad no verificada\.$/);
+
+    // Y los tres nombran el poste igual: «este», porque el paso ya dice cuál.
+    for (const r of [ausente, mudo]) {
+      assert.ok((r.cuerpo as { texto: string }).texto.includes(ESTE_POSTE));
+    }
+  });
+
+  /**
+   * ⭐ DOS LLAMADAS A LA VEZ AL MISMO POSTE: **UNA** visita.
+   *
+   * Es el single-flight de `llegadasDelPoste` visto desde el endpoint, que es
+   * donde de verdad va a pasar: dos pulsaciones seguidas del botón «Próximo
+   * bus», o dos pestañas abiertas en la misma ruta. Sin esto, cada pulsación
+   * de más sería una visita de más a una fuente que tarda hasta 8,4 s.
+   */
+  test('⭐ 29 · dos peticiones simultáneas del mismo poste son una sola visita', async () => {
+    const responde = respondiendo(DEL_POSTE_1000);
+    const [a, b] = await Promise.all([
+      atenderPosteVivo('1000', '53', responde),
+      atenderPosteVivo('1000', '53', responde),
+    ]);
+    assert.equal(visitasHechas(), 1, `se hicieron ${visitasHechas()} visitas`);
+    assert.deepEqual(a.cuerpo, b.cuerpo, 'y las dos contestan lo mismo');
+  });
+
+  /**
+   * ⭐ DOS PULSACIONES SEPARADAS: **DOS** consultas. Nada se guarda.
+   *
+   * Es la regla del BiZi —**frescura por petición**— dicha en el bus: cada
+   * pulsación vuelve a preguntar. Un minuto guardado de hace cuarenta segundos
+   * es peor que no tenerlo, porque se lee como si fuera de ahora.
+   *
+   * ⚠️ Y la juez es al REVÉS que la 29 a propósito: allí las dos salen a la vez
+   *    y comparten el vuelo; aquí la segunda sale cuando la primera ya volvió, y
+   *    entonces no hay nada que compartir — hay que preguntar otra vez.
+   */
+  test('⭐ 30 · dos pulsaciones separadas son dos consultas, no una guardada', async () => {
+    const responde = respondiendo(DEL_POSTE_1000);
+    await atenderPosteVivo('1000', '53', responde);
+    assert.equal(visitasHechas(), 1);
+    await atenderPosteVivo('1000', '53', responde);
+    assert.equal(visitasHechas(), 2, `la segunda pulsación hizo ${visitasHechas()} visitas en total`);
+  });
+
+  /**
+   * ⭐ LA PETICIÓN MAL ESCRITA ES UN 400, y no se pregunta a nadie.
+   *
+   * `Number('')` vale **0** y `Number(' 3 ')` vale **3**: dejar que el
+   * constructor decida convertiría un parámetro que falta en el poste cero. Se
+   * exige lo que es —dígitos y nada más— y se contesta que la petición está mal.
+   *
+   * ⚠️ Y un poste que **no existe** en Avanza NO es esto: ese es un `mudo`,
+   *    porque la fuente contesta algo que no cuadra y eso es «no lo sabemos».
+   *    El 400 es para quien pregunta mal, no para lo que no se sabe.
+   */
+  test('⭐ 31 · sin poste o sin línea es 400, y no se visita a Avanza', async () => {
+    const nunca = (() => {
+      throw new Error('no se debía preguntar a nadie');
+    }) as unknown as typeof fetch;
+    for (const [poste, linea] of [
+      [null, '53'],
+      ['', '53'],
+      ['  ', '53'],
+      ['abc', '53'],
+      ['0', '53'],
+      ['1000', null],
+      ['1000', '   '],
+    ] as ReadonlyArray<readonly [string | null, string | null]>) {
+      const r = await atenderPosteVivo(poste, linea, nunca);
+      assert.equal(r.codigo, 400, `poste=${poste} linea=${linea} tenía que ser 400`);
+      assert.ok('error' in r.cuerpo, 'y el cuerpo dice qué falta');
+    }
+    assert.equal(visitasHechas(), 0, 'una petición mal escrita no gasta una visita');
+  });
 });
