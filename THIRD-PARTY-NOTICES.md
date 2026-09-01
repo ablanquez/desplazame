@@ -316,7 +316,7 @@ servicio, o de refuerzo, está en uno y no en el otro. Ninguno de los dos númer
 | **Agencias** | **Dos**: `1` Avanza Zaragoza S.A.U. y `11` **Tranvías Urbanos de Zaragoza S.L.** El tranvía viene dentro |
 | **Licencia** | **Licencia de datos abiertos del MITMS.** Permite redistribuir: *«Compartir (copiar, distribuir) los datos […] obtenidos del MITRAMS»*, incluida *«modificación, adaptación, extracción, reordenación y combinación»* |
 | **Atribución exigida** | *«Powered by MITRAMS»* con enlace a `https://www.transportes.gob.es/`, cita del MITMS como fuente, e **indicación de si el dato es bruto o procesado** |
-| **Dónde está cumplida** | Colgada de la capa de trazados: *«Trazados: GTFS de Avanza Zaragoza S.A.U. (dato bruto) · Powered by MITRAMS»* |
+| **Dónde está cumplida** | ⭐ **En el pie de créditos del buscador** (1/09): *«Horarios: GTFS del Punto de Acceso Nacional (MITMA) — Powered by MITRAMS (dato bruto y procesado)»*, con el enlace a `transportes.gob.es` puesto. Las dos naturalezas son ciertas a la vez: la traza que se pinta es `shapes.txt` **tal cual**, cortada por paradas; los minutos se **calculan** sobre `stop_times`. ⚠️ **Y esta fila decía otra cosa que dejó de ser verdad el 22/08**: decía *«colgada de la capa de trazados: "Trazados: GTFS de Avanza Zaragoza S.A.U. (dato bruto) · Powered by MITRAMS"»*, y esa capa era del **visor**, que se retiró de la app ese día. Desde entonces y hasta hoy la ficha declaraba cumplida una atribución que **no estaba en ninguna pantalla** — comprobado el 01/09 con `grep -rn "Powered by\|MITRAMS" app/src/`, que no devolvía nada. Se corrige aquí en vez de reescribirla en silencio |
 | **¿Está en este repo?** | ✅ **Sí, el ZIP entero tal cual**: [`app/data/2026-08-10_nap_gtfs-ficha1176.zip`](app/data/2026-08-10_nap_gtfs-ficha1176.zip) · 6.883.311 bytes · sha256 `5c96992c97aac966bc9bc20babfbbbffb312f2a3cbcf9dd543982d2674cf3a82` **verificado sobre un clon** |
 | **⭐ Es la SEMILLA, y desde el 31/08 lo es a propósito** | El ZIP de esta fila es la **semilla fechada**: la descarga del **10/08/2026**, con su `feed_version` `20260623_AUZSA_Y_TRANVIA` y su vigencia **23/06 → 05/10/2026**. **No se toca nunca.** Es lo que hace que un clon limpio arranque sin pedirle una clave a nadie |
 | **Y el feed VIVO no está aquí** | El cron nocturno trae del NAP la última publicación y la escribe en `app/data/nap_gtfs-ficha1176.vivo.zip`, con su registro al lado — **ignorados por git y fuera de este manifiesto**. El vivo **releva** a la semilla: el motor lo sirve en cuanto existe y se deja leer |
@@ -2085,6 +2085,7 @@ los hitos salen **sin número y sin hora**. Nunca se inventa un «quedan 3 bicis
 | **La forma, medida** | `Content-Type: text/html; charset=UTF-8` **y dentro va JSON** — se declara una cosa y se manda otra, y por eso el cuerpo se decodifica con el charset **declarado** y se parsea a mano. Dos claves raíz: `maquinas` (la parada en `["0"]` y un coche por cada una de las demás) y `tablatiempos` (HTML). Trae la cicatriz entera: `<strong>053 <i class="fa fa-long-arrow-right fa-fw"></i>MIRALBUENO`, cuyo texto plano sería `053MIRALBUENO` pegado |
 | **Licencia** | ⛔ **Medida, y NO es un NO CONSTA.** Ver el recuadro de abajo: el aviso legal de Avanza **prohíbe expresamente** la extracción y la reutilización |
 | **Atribución exigida** | **NO CONSTA**: el aviso legal no regula la reutilización con atribución — la prohíbe. No hay fórmula que cumplir porque no hay permiso que acompañar |
+| ⭐ **Decisión (1/09)** | **De Antonio, el 01/09/2026, y con el recuadro de abajo delante: «es dato público de un servicio público concesionado, y esto es una demo — se ATRIBUYE y se sigue».** Se decide **con los *fixtures* a la vista**, los del recuadro de la divergencia, y **se quedan como están**: `motor/src/avanza.spec.ts`, `motor/src/viaje-bus.spec.ts`, `motor/src/desvios.spec.ts` y `motor/src/patron-operativo.spec.ts`. Lo que cambia es que **el titular sale a la PANTALLA**: «Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.», en el pie de créditos del buscador. ⚠️ **Y no cambia lo que dice la licencia**: sigue diciendo que no. Esto no es cumplir una condición —no hay ninguna que cumplir— sino la consecuencia honesta de seguir usándolo: **se dice de quién es el dato**, que es lo contrario de disimularlo |
 | **Campos** | `maquinas[n].coordenadas`, `.info`, `.title`, `.icon` y el HTML de `tablatiempos`. **Ninguno personal**: lo que viaja son números de coche, líneas, minutos y posiciones de vehículo |
 | **¿Está en este repo?** | ❌ **No se copia: se consulta.** Es la segunda fuente viva, después del BiZi de § 1.23. ⚠️ **Con una excepción que se declara abajo**: hay bytes de sus respuestas en los *fixtures* de las pruebas |
 
@@ -2155,6 +2156,12 @@ y no se sabe. Nació de un diagnóstico de media hora el 1/09.
 > **bytes de un tercero en un repositorio público**, que es exactamente lo que ZetaBus decidió no
 > hacer. **Las dos cosas son ciertas a la vez y el conflicto es real**: queda escrito aquí, con
 > los ficheros nombrados, para que se decida mirándolo — no se ha decidido en esta ficha.
+>
+> ⭐ **DECIDIDO EL 01/09 — y la línea de arriba se queda escrita.** La decisión está en la fila
+> «Decisión (1/09)» de la tabla: se atribuye y se sigue, y los *fixtures* no se tocan. El *«no se
+> ha decidido en esta ficha»* **no se borra** porque era verdad cuando se escribió, y porque el
+> conflicto que describe no desaparece por haberse decidido: **sigue estando, decidido**. Quien
+> lea esta ficha tiene que poder ver las dos cosas — lo que se sabía y lo que se eligió.
 
 **Si Avanza pide que se deje de consultar, se deja.** Es la misma línea que ZetaBus escribió en su
 § 4, y por la misma razón.
@@ -2172,6 +2179,7 @@ y no se sabe. Nació de un diagnóstico de media hora el 1/09.
 | **La forma, medida** | `Content-Type: text/html; charset=UTF-8`, y el cuerpo es **el trozo de HTML de un desplegable**: `<option value="posteDefault">Seleccionar poste</option>` y detrás un `<option id="posteValue" value="284">284 - Camino de Las Torres n.º 10</option>` por poste. En esa lectura, **24 `<option>`** = 1 de cabecera + **23 postes** |
 | **Licencia** | ⛔ **La misma medición de § 1.24, y aquí es la casa de Zaragoza**: <https://zaragoza.avanzagrupo.com/aviso-legal/> (200, 114.166 bytes, leído el 01/09/2026), § 3, con el mismo texto — *«queda expresamente prohibido […] la extracción y/o reutilización»*, *«derecho sui generis sobre la base de datos»* |
 | **Atribución exigida** | **NO CONSTA**, por lo mismo: no hay permiso al que acompañar una atribución |
+| ⭐ **Decisión (1/09)** | **La misma de § 1.24, y con las mismas palabras de Antonio: «dato público de un servicio público concesionado; esto es una demo — se atribuye y se sigue».** Aquí el titular sale a la pantalla en la misma frase, porque es el mismo dato y el mismo dueño: «Llegadas y **recorrido operativo**: Avanza Zaragoza S.A.U.». Los `<option>` medidos que hay en `motor/src/desvios.spec.ts` y `motor/src/patron-operativo.spec.ts` **se quedan**, por la misma ley de la casa. ⚠️ **Y el aviso legal sigue prohibiendo**: la decisión no lo reinterpreta, lo asume |
 | **Campos** | El `value` del `<option>` (número de poste) y su texto (`número - nombre`). **Ninguno personal** |
 | **¿Está en este repo?** | ❌ **No se copia: se consulta**, y con **caché propia de 1 hora** —separada de la de § 1.24, que no tiene ninguna—. Los `<option>` de las pruebas son los medidos |
 
@@ -2228,7 +2236,117 @@ motor: ruta operativa de hoy — 64 sentidos · 23 detectados · 23 aplicados ·
 
 ---
 
-### 1.26 · El resto del dato — todavía **ninguno**
+### 1.26 · Líneas, paradas y tiempos de Autobús Urbano — Ayuntamiento de Zaragoza (sede)
+
+> ## 🔎 SONDADA EL 01/09/2026 · **NO SE USA HOY**
+> Es la **alternativa municipal a las dos fuentes de Avanza** (§ 1.24 y § 1.25): el mismo dato
+> —cuándo llega el próximo, por dónde va la línea— publicado por el Ayuntamiento, con licencia
+> abierta y sin clave. Se midió entera antes de decidir nada, **no se ha adoptado**, y se ficha
+> igual: el día que la puerta de Avanza se cierre, lo que decide es esta ficha y no una sonda que
+> haya que repetir. Lo que sigue es **medición, no recomendación**.
+
+| | |
+|---|---|
+| **Qué es** | El conjunto **«Líneas, paradas y tiempos de Autobús Urbano»** del portal de datos abiertos (catálogo **335**). Tres cosas: el **censo de postes** con su coordenada, los **tiempos de espera** de un poste, y el **recorrido con sus paradas** de una línea |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | ⚠️ **DOS árboles de URL distintos, y conviven.** `www.zaragoza.es/api/recurso/urbanismo-infraestructuras/transporte-urbano/…` sirve postes y tiempos; `www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/transporte-urbano/linea-autobus/{n}.json` sirve recorridos |
+| **Petición** | `GET …/api/recurso/…/transporte-urbano/poste.json` (censo entero) · `GET …/api/recurso/…/transporte-urbano/poste/tuzsa-{n}.json` (tiempos) · `GET …/sede/servicio/…/transporte-urbano/linea-autobus/{n}.json` (recorrido). **Sin clave y sin registro**, y con `Access-Control-Allow-Origin: *` — se puede llamar desde el navegador. ⚠️ `…/api/recurso/…/transporte-urbano/linea/{n}` da **400 en las cinco probadas** (29, 22, 35, C1 y 1), **incluidas las que su propio índice publica** |
+| **Sondeada** | **01/09/2026, 16:13–16:26 GMT.** `Content-Type: application/json; charset=UTF-8`. Censo: 200 · **333.135 bytes** · 654 ms, `totalCount 1271`. Tiempos del poste 532: 200 · **491 bytes** · 149 ms, con `Last-Modified` **igual al segundo de la consulta**. Recorrido de la 29: 200 · **42.234 bytes** · 290 ms |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal (§ 1.23). Las **«Condiciones de uso»** de la ficha 335 llevan a <https://www.zaragoza.es/sede/portal/aviso-legal> (200, 78.149 bytes, leído el 01/09/2026), y **permiten la reutilización comercial y no comercial**, literal: *«Las presentes condiciones generales permiten la reutilización de los documentos sometidos a ellas para fines comerciales y no comerciales»* |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»**, y —esto es propio de esta licencia— *«debe mencionarse la fecha de la última actualización»*, además de no *«desnaturalizar el sentido de la información»*. Los tres, literales del aviso legal |
+| **Campos** | Censo: `id` (`tuzsa-N` o `rural-N`), `title` (`(532) Jorge Cocci N.º 17 Líneas: 22, 30`), `geometry.coordinates` **en UTM EPSG:25830**, `link`, `icon`. Tiempos: `lastUpdated`, `destinos[].linea`, `.destino`, `.primero`, `.segundo`. Recorrido: `geometry`, `link`, `about`, `title`, `description`. **Ninguno personal** |
+| **¿Está en este repo?** | ❌ **No, y hoy tampoco se consulta.** Sondeada y fichada; los *fixtures* de la sonda se quedaron fuera del repositorio |
+
+**Las llegadas, cara a cara con Avanza y en el MISMO instante.** No se comparan dos capturas de
+dos momentos: las dos preguntas salen juntas.
+
+| Poste, y la hora | SEDE | AVANZA |
+|---|---|---|
+| **532** · 16:15:16 | 200 · 494 B · **149 ms** · `30` → «En la parada.» / 4 min · `22` → 15 / 20 | 200 · 5.565 B · 843 ms · `30` → **4** / 11 · `22` → 15 / **18** |
+| **1000** · 16:14 | 200 · 427 B · 129 ms · `53` → 7 / 14 min | 200 · 2.927 B · 2.460 ms · `53` → **6** / **12** |
+| **33** · 16:13 | 200 · 517 B · 28 ms · `29` → 7 / 15 · `35` → 12 / 15 | 200 · 5.638 B · 4.935 ms · `29` → 0 / 5 · `35` → 8 / 13 |
+| **1203** · 16:15 | **400 «Parametros incorrectos»** | 200 · 219 B (parada sin coches) |
+
+Tres diferencias que no son de matiz:
+
+1. ⚠️ **Los minutos NO coinciden**, en el mismo segundo, por 1-3 minutos.
+2. ⚠️ **La sede da exactamente DOS coches por línea** (`primero`, `segundo`); Avanza da todos los
+   que hay, y se le han visto cuatro.
+3. ⚠️ **`primero` es TEXTO LIBRE**: *«En la parada.»*, *«7 minutos.»* Un número hay que sacarlo de
+   una frase, y la frase puede no traerlo.
+
+**La fiabilidad, medida hoy — y esto corrige de raíz la idea de que «es 50 veces más rápida».**
+
+```
+20 llamadas al MISMO poste, seguidas       60 postes DISTINTOS, uno cada uno
+  1000 · SEDE   19/20 · p50    32 ms         SEDE  57/60 · p50 1.267 ms · p95 1.503
+  1000 · AVANZA 20/20 · p50   788 ms               3 en 400 PERMANENTE (3 de 3 reintentos):
+    33 · SEDE   20/20 · p50    36 ms               tuzsa-875, tuzsa-666, tuzsa-647
+    33 · AVANZA 20/20 · p50 1.808 ms
+   532 · SEDE   20/20 · p50    32 ms
+   532 · AVANZA 20/20 · p50 1.847 ms
+```
+
+⭐ **Los 32 ms son de la SEGUNDA vez que se pregunta por un poste, no de la primera.** Preguntando
+por sesenta postes distintos la mediana es **1.267 ms** — el mismo orden de magnitud que Avanza.
+La sede parece guardar la respuesta de cada poste; encadenar veinte preguntas iguales mide esa
+caché, no la fuente. **Queda escrito aquí porque el número rápido es el que se habría citado.**
+
+⚠️ **Y el 400 no siempre es permanente: hay una ventana en la que la fuente se cae y vuelve sola.**
+A las **16:15**, tres de los cuatro postes de la tabla —1000, 33 y 1203— contestaron
+`400 «Parametros incorrectos»` **tardando 6,1 s**, después de haber contestado 200 un minuto antes
+y antes de volver a contestar 200 dos minutos después. El 1203, en cambio, dio 400 las **cinco**
+veces que se le preguntó, **estando en el censo y con su coordenada**: eso ya no es una caída, es
+una contradicción de la fuente consigo misma.
+
+**El recorrido de una línea: es el GTFS, congelado en 2013.**
+
+```
+linea-autobus/29.json → 200 · 42.234 B · lastUpdated 2013-10-14T08:40:00   (idéntico en 22 y 35)
+  totalCount 51 = 2 MultiLineString (el trazado) + 49 Point (las paradas)
+  campos: geometry · link · about · title · description       ← SIN campo de sentido
+  el poste va dentro de `about`: …/poste/tuzsa-219            ← coordenadas ya en WGS84
+```
+
+El cruce, medido el 01/09 contra el feed que sirve el motor y contra Avanza:
+
+| | Postes | Que la sede NO tiene |
+|---|---|---|
+| GTFS · 29 dirección 0 | 23 | **0** |
+| GTFS · 29 dirección 1 | 26 | **0** |
+| **suma** | **49** | = los 49 `Point` de la sede, **exacto** |
+| Avanza hoy · sentido `-1` | 23 | **0** |
+| Avanza hoy · sentido `-2` | 25 | **2 → los postes 654 y 1285** |
+
+⭐ **La sede reproduce el GTFS oficial sin sobras ni faltas**, y por eso **no sirve para lo que
+sirve § 1.25**: los dos que le faltan son las paradas **provisionales del desvío de hoy** —1285 es
+«Asalto / Centro de Historias», que el motor ya está usando—. Y sin campo de sentido, los 49
+puntos son los dos sentidos mezclados y no hay forma de separarlos.
+
+**El censo de postes, y el tranvía.**
+
+```
+poste.json · totalCount 1271 = 983 tuzsa-N + 288 rural-N   ·  0 sin coordenada  ·  UTM EPSG:25830
+  las 944 del MU3 (§ 1.6) están las 944, y la sede trae 39 más
+  la documentación del catálogo: «los tiempos de espera sólo son para los postes con id tuzsa»
+```
+
+⛔ **El tranvía: 5 postes de 50.** Hay línea `TRA` y sus cinco paradas son de tranvía por nombre
+—Mago de Oz ×2, Plaza Aragón ×2, Un americano en París—, pero la L1 tiene **50**. Y hay una mina
+igual que la del `PA…` de § 1.6: **16 códigos de parada de tranvía chocan numéricamente con un
+`tuzsa-N`, y los 16 son FALSOS AMIGOS** — `tranvía 0101 «Avenida de la Academia»` contra
+`tuzsa-101 «Av. Cesáreo Alierta / Av. de San José»`. Cruzar por número perdería el tranvía **sin
+que nada se pusiera rojo**.
+
+**Alteraciones y desvíos municipales: NO CONSTA, y está buscado.** `alteracion.json`, `aviso.json`
+e `incidencia.json` dan **404**; la documentación del catálogo 335 declara **tres** recursos
+—`linea`, `linea-autobus/{n}`, `poste-autobus/{id}`— y ninguno es de avisos. El catálogo **2682**
+es un directorio de equipamientos de transporte con frecuencia de actualización **anual**. Se
+buscó y no está: eso es un dato, no un hueco.
+
+---
+
+### 1.27 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un

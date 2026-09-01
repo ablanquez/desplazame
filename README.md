@@ -980,36 +980,70 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son **tres regím
 |---|---|---|
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
-| ⛔ **Servicios en vivo de Avanza Zaragoza** (las llegadas al poste y la ruta operativa de hoy) | **Ninguna.** Su [aviso legal](https://www.avanzabus.com/informacion/aviso-legal/) —leído el 01/09/2026— **prohíbe expresamente** la *«extracción y/o reutilización»* y reclama el *«derecho sui generis sobre la base de datos»* | **No hay atribución que cumplir, porque no hay permiso.** Se **consultan** en tiempo de ejecución —como haría cualquier cliente de su web— y ni una respuesta se guarda como dato. ⚠️ **Con una excepción que se declara y no se ha decidido**: hay bytes de sus respuestas en los *fixtures* de las pruebas, puestos por la ley de la casa de que un fixture copia la medición. El texto legal literal y esa divergencia están en **§ 1.24** del notices |
+| ⛔ **Servicios en vivo de Avanza Zaragoza S.A.U.** (las llegadas al poste y la ruta operativa de hoy) | **Ninguna.** Su [aviso legal](https://www.avanzabus.com/informacion/aviso-legal/) —leído el 01/09/2026— **prohíbe expresamente** la *«extracción y/o reutilización»* y reclama el *«derecho sui generis sobre la base de datos»*. El texto literal, con su URL y su fecha, está en **§ 1.24** del notices | **Su licencia no pide atribución: no la contempla.** Y aun así **se atribuye**, en el pie de la pantalla: *«Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.»* ⭐ **Decisión de Antonio, 01/09/2026**: *«es dato público de un servicio público concesionado, y esto es una demo — se atribuye y se sigue»*. Se tomó con el aviso legal transcrito delante y con los *fixtures* nombrados uno a uno, y **los *fixtures* se quedan**: hay bytes de sus respuestas en `motor/src/avanza.spec.ts`, `viaje-bus.spec.ts`, `desvios.spec.ts` y `patron-operativo.spec.ts`, puestos por la ley de la casa de que un *fixture* copia la medición. Nada más se guarda: las dos fuentes se **consultan** en tiempo de ejecución, como haría cualquier cliente de su web |
 
-> ℹ️ **Y las tres están en uso.** El notices lleva **una ficha por conjunto, y hoy son 26**
-> (`grep -c '^### 1\.' THIRD-PARTY-NOTICES.md`): **dieciocho** del Ayuntamiento de Zaragoza —el
+> ℹ️ **Y las tres están en uso.** El notices lleva **una ficha por conjunto, y hoy son 27**
+> (`grep -c '^### 1\.' THIRD-PARTY-NOTICES.md`): **diecinueve** del Ayuntamiento de Zaragoza —el
 > callejero, los portales, los carriles bici, los postes de autobús, las estaciones BiZi, los
 > aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas reguladas, las reservas de
-> espacio, los ejes de vía, la jerarquía viaria, las cinco de equipamientos y **la disponibilidad
-> viva del BiZi**—, **cuatro** de OpenStreetMap —la cartografía, el grafo de continuidad, los
-> nombres de vía y las etiquetas del viario—, el GTFS del Punto de Acceso Nacional, **las dos
-> fuentes vivas de Avanza** —las llegadas al poste y la ruta operativa de hoy—, y la ficha que
-> declara lo que **todavía no** ha entrado.
+> espacio, los ejes de vía, la jerarquía viaria, las cinco de equipamientos, **la disponibilidad
+> viva del BiZi** y **la fuente municipal del transporte urbano** (§ 1.26, sondeada el 1/09 y sin
+> adoptar)—, **cuatro** de OpenStreetMap —la cartografía, el grafo de continuidad, los nombres de
+> vía y las etiquetas del viario—, el GTFS del Punto de Acceso Nacional, **las dos fuentes vivas
+> de Avanza** —las llegadas al poste y la ruta operativa de hoy—, y la ficha que declara lo que
+> **todavía no** ha entrado.
 >
-> ⚠️ **Este párrafo ha ido diciendo «quince», «veinticuatro» y ahora veintiséis**, y las dos
-> primeras se quedaron viejas donde estaban. Es la entrada nº5 de la bitácora repitiéndose: una
-> regla de releída vale lo que su alcance. Se corrige con el comando delante, que es como se
-> cuenta aquí.
+> ⚠️ **Este párrafo ha ido diciendo «quince», «veinticuatro», «veintiséis» y ahora veintisiete**, y
+> las tres primeras se quedaron viejas donde estaban. Es la entrada nº5 de la bitácora
+> repitiéndose: una regla de releída vale lo que su alcance. **Desde el 1/09 ya no depende de que
+> alguien relea**: `app/src/app/atribucion.spec.ts` cuenta las fichas del notices y las compara
+> con el número que dice esta línea. Si no cuadran, la suite se pone roja.
 >
 > ⭐ **Y desde el 30/08 no todo «está dentro»: hoy son TRES las que no se copian.** La
 > disponibilidad del BiZi (§ 1.23), las llegadas al poste (§ 1.24) y la ruta operativa de hoy
 > (§ 1.25) **se consultan** — caducan en segundos o en minutos, y guardarlas sería guardar una
 > mentira con fecha.
 >
+> 🔎 **Y desde el 1/09 hay una CUARTA que no se copia y que además no se consulta**: la fuente
+> municipal del transporte urbano (§ 1.26), la alternativa del Ayuntamiento a las dos de Avanza.
+> Se midió entera —licencia, llegadas cara a cara con Avanza en el mismo instante, recorridos,
+> censo de postes y alteraciones— y **no se ha adoptado**. Se ficha igual, con lo medido y con lo
+> que le falta: el día que la puerta de Avanza se cierre, lo que decide es esa ficha.
+>
 > ⛔ **Y las dos de Avanza traen algo que ninguna otra ficha tiene: un aviso legal que PROHÍBE
 > expresamente la extracción y la reutilización**, leído y transcrito el 01/09 con su URL y su
 > fecha. Ni se interpreta ni se resume aquí: está en § 1.24 del notices, literal.
 >
-> **La atribución de OpenStreetMap se cumple en la pantalla**, en el control del mapa y con la
-> palabra «colaboradores» literal. La del dato municipal se cumple en
-> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**: fuente, fecha de descarga, licencia y
-> cómo volver a conseguirlo.
+> ⭐ **Y DESDE EL 1/09 LA ATRIBUCIÓN ESTÁ EN LA PANTALLA, no solo en este fichero.** El buscador
+> lleva un pie de créditos con los cuatro titulares del dato que enseña:
+>
+> > Llegadas y recorrido operativo: Avanza Zaragoza S.A.U. · Horarios: GTFS del Punto de Acceso
+> > Nacional (MITMA) — Powered by MITRAMS (dato bruto y procesado) · Datos municipales:
+> > Ayuntamiento de Zaragoza (Ley 37/2007) · Cartografía: © colaboradores de OpenStreetMap
+>
+> Es un `<footer>` de verdad —punto de referencia `contentinfo`—, va en el flujo y **no tapa el
+> mapa**, y su contraste está **medido en Chrome**, no calculado: `app/e2e/creditos.mjs`. Que los
+> cuatro estén y que enlacen donde tienen que enlazar lo vigila
+> `app/src/app/atribucion.spec.ts`.
+>
+> ⚠️ **Y lo que NO lleva es la fecha del GTFS servido.** No es un descuido: **la pantalla no sabe
+> cuál sirve el motor** —la semilla del repositorio o el zip vivo que trae el cron cada noche—, y
+> el contrato no lo publica. Escribir la de la semilla sería verdad hasta la primera noche que el
+> cron corriera. Preguntárselo al motor al cargar tampoco: **la raíz en frío no pide nada** desde
+> el 22/08, y hay juez. Así que la fecha se dice donde consta medida, dato a dato, que es
+> **`/panel`** — y hasta ahí lleva el enlace del pie.
+>
+> ⚠️ **Esto arregla un incumplimiento real, y se cuenta en vez de taparlo.** La fórmula del MITMS
+> —*«Powered by MITRAMS»*, el enlace y la indicación de si el dato es bruto o procesado— la
+> declaraba § 1.7 como *«colgada de la capa de trazados»*: la del **visor**, retirado el 22/08.
+> Desde ese día la ficha decía «cumplida» y en la pantalla no había ni una palabra. Ahora está, y
+> § 1.7 dice dónde.
+>
+> La del **dato municipal** sigue cumpliéndose además en
+> **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, que es donde está lo que la Ley 37/2007
+> pide y una línea no cabe: fuente, **fecha de la última actualización**, licencia y cómo volver a
+> conseguirlo. La de OpenStreetMap se cumple **dos veces**, en el control del mapa y en el pie, y
+> las dos con la palabra «colaboradores» literal.
 
 > ⚠️ **Rectificación (18/08/2026).** Hasta hoy este párrafo decía que el repositorio **«no
 > tiene ningún dato integrado —ni cartografía, ni callejero, ni paradas—, así que todavía no
