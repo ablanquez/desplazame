@@ -14,6 +14,61 @@
 
 ---
 
+## [2026-09-01] 🔴 ABIERTA — El contorno del chip no pinta ni un píxel negro: 0,7 px a 13,6 px de fuente se disuelve en el antialiasing
+
+**Categoría:** una promesa calculada en hexadecimal que el render no cumple
+
+**Síntoma:** la regla nueva del chip dice que el número blanco se lee sobre
+cualquier color **por su trazo negro**. En pantalla, el chip de la línea 44
+(`#27A737`) sale a **3,15:1**, que es blanco contra verde a pelo — el trazo no
+está aportando nada. Censo de los 700 píxeles del chip, en la captura:
+
+```
+CHIP: { "clases": "chip-linea chip-linea--contorno",
+        "stroke": "0.7px rgb(0, 0, 0)", "paint": "stroke", "fuente": "13.6px" }
+censo del chip (color, veces, luminancia):
+   rgb(39,167,55) x700  lum=0.2834      <- el fondo
+   rgb(255,255,255) x71  lum=1.0000     <- el número
+   rgb(29,125,41) x60  lum=0.1509       <- lo más oscuro que hay: verde sucio
+```
+
+La clase está puesta y `-webkit-text-stroke` está aplicado. **No hay un solo
+píxel negro.** El trazo se reparte 0,35 px a cada lado del borde de la letra y
+no llega a cubrir ninguno entero.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la juez que compra
+exactamente esa promesa, sobre las 46 diurnas. Ejecutada con el chip a 3,15:1 en
+pantalla:
+
+```
+$ npx ng test --include=src/app/chip.spec.ts --filter="toda diurna" --reporters=verbose
+ ✓  desplazame  src/app/chip.spec.ts > ⭐ EL CHIP DE UNA LÍNEA — heredado de ZetaBus > ⭐ 1 · toda diurna lleva número BLANCO con contorno, y se lee 5ms
+      Tests  1 passed | 7 skipped (8)
+```
+
+Y con ella `legiblePorContorno`, que devuelve **6,67:1** para ese mismo verde. La
+muralla entera, `Tests  208 passed (208)`.
+
+**Cómo se cazó:** instrumento — el medidor de píxel recién heredado de ZetaBus
+(`app/e2e/pantalla.mjs`), en su primera pasada sobre la pantalla arreglada.
+
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** un cálculo de contraste sobre dos hexadecimales compra
+que **esos dos colores** se distinguen, no que el navegador vaya a pintarlos. Si
+uno de los dos lo produce un efecto de render —un trazo, una sombra, un borde
+fino— la promesa no está comprada hasta que se mide el píxel.
+
+Y la de al lado: **es el mismo error de ayer con otro traje** — la entrada del
+31/08 sobre `hidden` decía que preguntar por el atributo no compra lo que se ve.
+Aquí se pregunta por la aritmética.
+
+**Traza:** `app/src/app/buscador.css` (`.chip-linea--contorno`) ·
+`app/src/app/chip.ts` (`legiblePorContorno`) · `app/src/app/chip.spec.ts` (juez 1).
+
+
 ## [2026-08-31] ✅ CERRADA — El detalle del desvío se ve con `hidden` puesto: mi `display: block` gana a la regla del navegador
 
 **Categoría:** una regla de CSS que pisa al atributo que la tenía que apagar
