@@ -33,13 +33,19 @@ import {
   lineaDelViaje,
   PENALIZACION_TRANSBORDO_S,
   postesCerca,
-  preguntarPorLasSubidas,
+  preguntarPorLaPrimeraSubida,
   prepararViajeEnBus,
   RONDAS,
   VELOCIDAD_PEATON_MS,
   type Acceso,
 } from './viaje-bus.ts';
-import { nombrarPoste, numeroDePoste, reiniciarVisitas, visitasHechas } from './avanza.ts';
+import {
+  llegadasDelPoste,
+  nombrarPoste,
+  numeroDePoste,
+  reiniciarVisitas,
+  visitasHechas,
+} from './avanza.ts';
 import type { Motor } from './trayecto.ts';
 import type { Extremo } from './etapas.ts';
 
@@ -594,21 +600,24 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(lineaDelViaje(red, viaje.montados[0]!.patron).corto, '53');
     assert.equal(viaje.montados[0]!.espera, 268, 'la espera que el horario estima hoy');
 
-    const vivas = await preguntarPorLasSubidas(red, viaje.montados, respondiendo(MEDIDO_POSTE_1000));
-    assert.equal(vivas.length, 1);
-    assert.equal(vivas[0]!.clase, 'llega');
-    assert.equal((vivas[0] as { minutos: number }).minutos, 5, 'el primero de los dos coches');
+    const viva = await preguntarPorLaPrimeraSubida(
+      red,
+      viaje.montados,
+      respondiendo(MEDIDO_POSTE_1000),
+    );
+    assert.equal(viva.clase, 'llega');
+    assert.equal((viva as { minutos: number }).minutos, 5, 'el primero de los dos coches');
 
     // ⚠️ El RELOJ usa `espera` (H/2 = 268 s) y el TEXTO usa `intervalo` (H =
     // 536 s = cada 9 min). Son dos preguntas distintas y por eso van aparte.
     const como = { espera: 268, intervalo: 536 };
     const estimada = etapaMontada(red, viaje.montados[0]!, como);
-    const viva = etapaMontada(red, viaje.montados[0]!, { ...como, vivo: vivas[0]! });
+    const conViva = etapaMontada(red, viaje.montados[0]!, { ...como, vivo: viva });
     assert.equal(estimada.segundos, 698, 'la etapa con la espera estimada');
-    assert.equal(viva.segundos, 730, 'los 5 min vivos tienen que entrar en el total');
+    assert.equal(conViva.segundos, 730, 'los 5 min vivos tienen que entrar en el total');
 
     assert.match(estimada.pasos[0]!.texto, /frecuencia teórica: cada 9 min$/);
-    assert.match(viva.pasos[0]!.texto, /próximo en 5 min \(dato de las \d\d:\d\d\)$/);
+    assert.match(conViva.pasos[0]!.texto, /próximo en 5 min \(dato de las \d\d:\d\d\)$/);
   });
 
   /**
@@ -682,24 +691,93 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   });
 
   /**
-   * ⭐ JUEZ 13 — DOS SUBIDAS EN EL MISMO POSTE, **UNA** consulta.
+   * ⭐ JUEZ 27 — EL GENERAR PREGUNTA **SOLO POR EL PRIMER POSTE**.
    *
-   * El single-flight de `avanza.ts` deduplica lo que está en vuelo, y eso solo
-   * sirve si las consultas **salen a la vez**. Preguntando en fila india esta
-   * juez daría 2: es la que obliga a que el `Promise.all` exista.
+   * Es la regla de casa desde la 3b, dicha entera: **el dato vivo sustituye la
+   * espera del PRIMER vehículo**, y ya solo del primero. «Próximo en 3 min» en
+   * un poste al que se llega dentro de cuarenta minutos es un número cierto
+   * sobre un autobús que no se va a coger, así que los siguientes se dicen con
+   * la frecuencia teórica — eso ya era así.
+   *
+   * ⚠️ **Lo que cambia hoy es que tampoco se les pregunta.** Consultar el
+   * segundo poste solo servía para fabricar un aviso de algo que nunca se iba a
+   * decir: la línea 30 «no anuncia ningún próximo» en un poste al que faltan
+   * cuarenta minutos no es una noticia, es ruido, y encima cuesta otra visita a
+   * Avanza —hasta 8,4 s medidos— dentro del Generar. Lo que quiera saberse de
+   * ese poste se pide **a petición**, con su botón. Ver `/api/poste-vivo`.
+   *
+   * Y son DOS compras en una: **una sola visita** y **cero avisos** del
+   * segundo. La primera sin la segunda dejaría pasar una caché que respondiera
+   * sin red; la segunda sin la primera, una consulta que se hiciera y se tirara.
+   *
+   * ⚠️ **ESTA JUEZ JUBILA A LA 23**, que compraba lo contrario: *«dos postes
+   *    distintos preguntan a la vez; el total es el mayor, no la suma»*. Era
+   *    cierta y era necesaria mientras el Generar preguntaba a todos —evitaba
+   *    dos esperas de 8,4 s encadenadas—, y hoy no tiene sujeto: ya no hay dos
+   *    postes que preguntar. **No se ha debilitado: se ha quedado sin caso**, y
+   *    lo que la sustituye compra lo contrario por la misma razón de fondo (el
+   *    límite de 10 s de [NN/g]) — antes en paralelo, ahora no preguntando.
+   *    Su otra mitad, la deduplicación en vuelo, sigue viva en la juez 13.
    */
-  test('⭐ 13 · dos subidas en el mismo poste hacen UNA sola consulta', async () => {
+  test('⭐ 27 · el Generar consulta el primer poste y ninguno más', async () => {
     reiniciarVisitas();
+    let pedidas = 0;
+    const contando: typeof fetch = (async () => {
+      pedidas++;
+      return new Response(MEDIDO_POSTE_1203, { status: 200 });
+    }) as unknown as typeof fetch;
+
+    const eo = extremo('Portales.93310', 'Origen');
+    const ed = extremo('Portales.98006', 'Destino');
     const viaje = buscarViaje({
       red,
       fecha: UN_MARTES,
-      acceso: enLaParada('17671'),
-      salida: enLaParada('16755'),
+      acceso: postesCerca(red, andar, eo.lon, eo.lat),
+      salida: postesCerca(red, andar, ed.lon, ed.lat),
     })!;
-    const dos = [viaje.montados[0]!, viaje.montados[0]!];
-    const vivas = await preguntarPorLasSubidas(red, dos, respondiendo(MEDIDO_POSTE_1000));
-    assert.equal(vivas.length, 2, 'las dos subidas tienen su respuesta');
-    assert.equal(visitasHechas(), 1, `dos subidas al mismo poste hicieron ${visitasHechas()} visitas`);
+    assert.equal(viaje.vehiculos, 2, 'el caso tiene que ser de dos subidas');
+    const primera = lineaDelViaje(red, viaje.montados[0]!.patron).corto;
+    const segunda = lineaDelViaje(red, viaje.montados[1]!.patron).corto;
+    assert.notEqual(primera, segunda, 'y de dos lineas distintas, para poder distinguirlas');
+
+    const t = await prepararViajeEnBus(motor, red, eo, ed, UN_MARTES).conElVivo!(contando);
+
+    assert.equal(visitasHechas(), 1, `se visitaron ${visitasHechas()} postes; solo toca el primero`);
+    assert.equal(pedidas, 1, `se pidieron ${pedidas} respuestas a Avanza; solo toca una`);
+
+    // Y el aviso que sale es el del PRIMERO, no el del segundo.
+    const delVivo = t.avisos.filter((a) => /Avanza no anuncia|No hemos podido preguntar/.test(a.texto));
+    assert.equal(delVivo.length, 1, `avisos de lo vivo: ${JSON.stringify(delVivo)}`);
+    assert.match(delVivo[0]!.texto, new RegExp(`de la l\u00ednea ${primera} `));
+    assert.ok(
+      !delVivo.some((a) => new RegExp(`de la l\u00ednea ${segunda} `).test(a.texto)),
+      `la segunda subida no se consulta, asi que no puede tener aviso de lo vivo`,
+    );
+  });
+
+  /**
+   * ⭐ JUEZ 13 — DOS PREGUNTAS A LA VEZ POR EL MISMO POSTE, **UNA** consulta.
+   *
+   * El single-flight de `avanza.ts` deduplica lo que está **en vuelo**: dos
+   * peticiones simultáneas por el poste 1000 comparten una sola visita.
+   *
+   * ⚠️ **Antes esto se compraba a través de `preguntarPorLasSubidas`**, con dos
+   *    subidas al mismo poste dentro de un Generar. Desde el 1/09 el Generar
+   *    pregunta por uno solo (juez 27), así que ese camino ya no existe — pero
+   *    el que sí existe es **dos pulsaciones a la vez del botón «Próximo bus»**,
+   *    o dos pestañas del navegador, que llegan a `llegadasDelPoste` por
+   *    `/api/poste-vivo`. La compra es la misma y ahora se hace donde ocurre.
+   */
+  test('⭐ 13 · dos preguntas simultáneas por el mismo poste hacen UNA sola visita', async () => {
+    reiniciarVisitas();
+    const responde = respondiendo(MEDIDO_POSTE_1000);
+    const [a, b] = await Promise.all([
+      llegadasDelPoste(1000, responde),
+      llegadasDelPoste(1000, responde),
+    ]);
+    assert.ok(a && b, 'las dos preguntas tienen su respuesta');
+    assert.equal(a, b, 'y es LA MISMA lectura: es lo que significa estar en vuelo');
+    assert.equal(visitasHechas(), 1, `dos preguntas a la vez hicieron ${visitasHechas()} visitas`);
   });
 
   /**
@@ -782,53 +860,6 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     for (const a of conVivo.avisos.filter((x) => /el poste/.test(x.texto))) {
       assert.match(a.texto, /poste \d+ · /, `este aviso nombra un poste sin número: ${a.texto}`);
     }
-  });
-
-  /**
-   * ⭐ JUEZ 23 — DOS POSTES DISTINTOS: LAS DOS CONSULTAS, A LA VEZ.
-   *
-   * ⚠️ La juez 13 compra la **deduplicación** —dos subidas al MISMO poste hacen
-   * una sola visita—, y esa pasaría igual en fila india: si la segunda saliera
-   * después de volver la primera, el single-flight ya no tendría nada en vuelo
-   * que deduplicar... pero la caché tampoco, así que seguiría dando 1. Con dos
-   * postes **distintos** no hay nada que deduplicar y lo único que queda es el
-   * reloj: si salen a la vez, el total es **el mayor**; si van en fila, la suma.
-   *
-   * Y esto importa en la calle, no en abstracto: [NN/g] 10 s es el límite de la
-   * atención, y una consulta a Avanza puede agotar sus 4 s de espera y reintentar
-   * — medido, el peor Generar en bus llega a **8,4 s** con dos vehículos. En
-   * serie serían dieciséis y pico, y ahí ya nadie mira la pantalla.
-   */
-  test('⭐ 23 · dos postes distintos preguntan a la vez: el total es el mayor, no la suma', async () => {
-    reiniciarVisitas();
-    // Un viaje con transbordo, que son dos postes de subida distintos.
-    const viaje = buscarViaje({
-      red,
-      fecha: UN_MARTES,
-      acceso: enLaParada('17671'),
-      salida: enLaParada('16755'),
-    })!;
-    const dos = [viaje.montados[0]!, { ...viaje.montados[0]!, desde: '16755' }];
-    assert.notEqual(dos[0]!.desde, dos[1]!.desde, 'tienen que ser dos postes distintos');
-
-    const TARDA_MS = 300;
-    const lento: typeof fetch = (async () => {
-      await new Promise((sigue) => setTimeout(sigue, TARDA_MS));
-      return new Response(MEDIDO_POSTE_1000, { status: 200 });
-    }) as unknown as typeof fetch;
-
-    const arranque = Date.now();
-    const vivas = await preguntarPorLasSubidas(red, dos, lento);
-    const tardo = Date.now() - arranque;
-
-    assert.equal(vivas.length, 2);
-    assert.equal(visitasHechas(), 2, 'dos postes distintos son dos visitas');
-    // ⭐ El total se parece al MAYOR, no a la suma. El margen es generoso a
-    //    propósito: lo que se compra es que no sean dos esperas encadenadas.
-    assert.ok(
-      tardo < TARDA_MS * 1.7,
-      `las dos consultas tardaron ${tardo} ms; en fila india serían ~${TARDA_MS * 2}`,
-    );
   });
 
   /**

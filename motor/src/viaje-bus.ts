@@ -954,40 +954,50 @@ export function postesCerca(
 }
 
 /**
- * ⭐ A QUÉ POSTES SE PREGUNTA: a **todos** los de subida, y a la vez.
+ * ⭐ A QUÉ POSTE SE PREGUNTA EN EL GENERAR: **al primero, y a ninguno más** (1/09).
  *
- * Y hay dos decisiones dentro que se dicen en voz alta:
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  Hasta hoy se preguntaba a **todos** los postes de subida, con este
+ *  argumento: que la línea 42 no esté pasando ahora es un hecho de la calle
+ *  aunque hasta su poste falten cuarenta minutos. **Y era media razón.**
  *
- * 1. **Se pregunta por todos los vehículos, no solo por el primero.** Que la
- *    línea 42 no esté pasando ahora por su poste es un hecho de la calle
- *    aunque hasta ahí falten cuarenta minutos — puede que haya terminado su
- *    servicio del día. Callarlo sería esconder lo único que la fuente sabe.
- * 2. **Salen todas antes de que vuelva ninguna.** El `map` no lleva `await`
- *    por medio a propósito: el single-flight de `avanza.ts` deduplica lo que
- *    está **en vuelo**, así que preguntar en fila india lo dejaría inútil. Es
- *    lo que compra la juez 13.
+ *  La regla de casa —la de la 3b— dice que **el dato vivo sustituye la espera
+ *  del PRIMER vehículo**: «próximo en 3 min» en un poste al que se llega dentro
+ *  de cuarenta minutos es un número cierto sobre un autobús que no se va a
+ *  coger. De los demás nunca se dijo el minuto, así que consultarlos solo
+ *  producía **avisos** — y un aviso de que la 30 «no anuncia ningún próximo»
+ *  en un poste al que faltan cuarenta minutos no es una noticia: es ruido en
+ *  la cabecera, justo encima de lo que sí hay que leer.
+ *
+ *  Y cuesta. Cada poste son hasta **8,4 s** medidos —4.000 ms de tope, 300 de
+ *  espera y otros 4.000 del reintento— dentro del Generar, que es donde [NN/g]
+ *  pone el límite de la atención en 10 s.
+ *
+ *  Lo que quiera saberse de los demás postes se pide **a petición**, con su
+ *  botón, cuando quien mira lo quiere: `GET /api/poste-vivo`. Es la misma
+ *  regla del BiZi —frescura por petición— aplicada al bus.
+ * ═══════════════════════════════════════════════════════════════════════════
  *
  * El tranvía sale de aquí como `sinFuente` y no como `mudo`: su `stop_code` no
  * es de los que Avanza entiende, así que no es que no lo sepamos — es que no
  * hay a quién preguntar, y eso no se avisa.
  */
-export async function preguntarPorLasSubidas(
+export async function preguntarPorLaPrimeraSubida(
   red: RedDeBus,
   montados: readonly TramoMontado[],
   pedir: typeof fetch = fetch,
-): Promise<readonly EstadoVivo[]> {
-  const porId = new Map(red.paradas.map((p) => [p.id, p]));
-  return Promise.all(
-    montados.map((m): Promise<EstadoVivo> => {
-      const parada = porId.get(m.desde);
-      const poste = parada ? posteDeCodigo(parada.codigo) : null;
-      if (poste === null) {
-        return Promise.resolve<EstadoVivo>({ clase: 'sinFuente' });
-      }
-      const corto = lineaDelViaje(red, m.patron).corto;
-      return llegadasDelPoste(poste, pedir).then((lectura) => estadoVivoDe(lectura, corto));
-    }),
-  );
+): Promise<EstadoVivo> {
+  const primero = montados[0];
+  if (!primero) {
+    return { clase: 'sinFuente' };
+  }
+  const parada = new Map(red.paradas.map((p) => [p.id, p])).get(primero.desde);
+  const poste = parada ? posteDeCodigo(parada.codigo) : null;
+  if (poste === null) {
+    return { clase: 'sinFuente' };
+  }
+  const corto = lineaDelViaje(red, primero.patron).corto;
+  return estadoVivoDe(await llegadasDelPoste(poste, pedir), corto);
 }
 
 /**
@@ -1096,50 +1106,60 @@ export function prepararViajeEnBus(
    * lista, obliga a adivinar de cuál habla — y *«general errors are not
    * helpful»*.
    */
-  const avisosDeLoVivo = (vivas: readonly EstadoVivo[]): Aviso[] => {
-    const avisos: Aviso[] = [];
-    viaje.montados.forEach((m, i) => {
-      const estado = vivas[i];
-      const corto = lineaDelViaje(red, m.patron).corto;
-      const poste = nombreDelPoste(m.desde);
-      if (estado?.clase === 'ausente') {
-        // ⚠️ **Lo que la fuente dice, no lo que parece.** [GTFS-Realtime] una
-        // entidad AUSENTE del feed en vivo significa **sin información en tiempo
-        // real**, no «sin servicio». Hasta el 31/08 esto decía «no está prestando
-        // servicio ahora», que es una conclusión —y puede ser falsa: el bus
-        // puede venir con el GPS mudo—. Ahora dice quién calla y qué calla.
-        //
-        // El poste va NOMBRADO donde el texto diría «este poste»: es lo que
-        // permite poner el aviso al lado de SU hito [GOV.UK, doble sitio].
-        avisos.push({
+  const avisosDeLoVivo = (vivo: EstadoVivo): Aviso[] => {
+    // ⚠️ **Un solo vehículo: el primero.** Es a quien se le pregunta, y por eso
+    //    es el único que puede tener aviso. Hasta el 1/09 esto recorría todos
+    //    los montados y fabricaba un aviso por cada uno; los de los demás
+    //    hablaban de postes a los que faltaban cuarenta minutos. Ver
+    //    `preguntarPorLaPrimeraSubida`.
+    const m = viaje.montados[0];
+    if (!m) {
+      return [];
+    }
+    const corto = lineaDelViaje(red, m.patron).corto;
+    const poste = nombreDelPoste(m.desde);
+    if (vivo.clase === 'ausente') {
+      // ⚠️ **Lo que la fuente dice, no lo que parece.** [GTFS-Realtime] una
+      // entidad AUSENTE del feed en vivo significa **sin información en tiempo
+      // real**, no «sin servicio». Hasta el 31/08 esto decía «no está prestando
+      // servicio ahora», que es una conclusión —y puede ser falsa: el bus
+      // puede venir con el GPS mudo—. Ahora dice quién calla y qué calla.
+      //
+      // El poste va NOMBRADO donde el texto diría «este poste»: es lo que
+      // permite poner el aviso al lado de SU hito [GOV.UK, doble sitio].
+      return [
+        {
           texto:
             `Avanza no anuncia ningún próximo de la línea ${corto} en el poste ${poste} ` +
             'ahora mismo — la espera sale del horario publicado.',
-        });
-      } else if (estado?.clase === 'mudo') {
-        // ⚠️ Las mismas palabras que el BiZi —«disponibilidad no verificada»—
-        // porque es la misma condición: se ha preguntado y no se sabe. Y no es
-        // lo mismo que `ausente`, donde la fuente contestó.
-        avisos.push({
+        },
+      ];
+    }
+    if (vivo.clase === 'mudo') {
+      // ⚠️ Las mismas palabras que el BiZi —«disponibilidad no verificada»—
+      // porque es la misma condición: se ha preguntado y no se sabe. Y no es
+      // lo mismo que `ausente`, donde la fuente contestó.
+      return [
+        {
           texto:
             `No hemos podido preguntar cuándo pasa la línea ${corto} por el poste ${poste}: ` +
             'disponibilidad no verificada.',
-        });
-      }
-    });
-    return avisos;
+        },
+      ];
+    }
+    return [];
   };
 
   /**
-   * Compone el viaje. Con `vivas` a `null` sale la versión del horario.
+   * Compone el viaje. Con `vivo` a `null` sale la versión del horario.
    *
-   * ⚠️ **El dato vivo solo sustituye la espera del PRIMER vehículo.** Para los
-   * siguientes se sigue diciendo `~H/2`, y no es pereza: «próximo en 3 min» en
-   * un poste al que se llega dentro de cuarenta minutos es un número cierto
-   * sobre un autobús que no se va a coger. Lo que sí viaja de esos postes es
-   * el aviso, que habla de la línea y no del coche.
+   * ⚠️ **El dato vivo es el del PRIMER vehículo, y solo suyo.** Para los
+   * siguientes se dice `~H/2`, y no es pereza: «próximo en 3 min» en un poste
+   * al que se llega dentro de cuarenta minutos es un número cierto sobre un
+   * autobús que no se va a coger. Desde el 1/09 **tampoco se les pregunta**:
+   * lo suyo se pide a petición con `GET /api/poste-vivo`.
    */
-  const componer = (vivas: readonly EstadoVivo[] | null): Trayecto => {
+  const componer = (loVivo: EstadoVivo | null): Trayecto => {
     // ⭐ EL AVISO DEL DESVÍO va PRIMERO: condiciona todo lo que se lee debajo,
     // y solo se escribe el de las líneas que este viaje usa — avisar de la 38
     // en un viaje que va en la 29 sería ruido.
@@ -1156,7 +1176,7 @@ export function prepararViajeEnBus(
       modo: 'bus' as const,
       avisos: [
         ...delDesvio.map((a) => ({ texto: a.texto })),
-        ...(vivas ? avisosDeLoVivo(vivas) : []),
+        ...(loVivo ? avisosDeLoVivo(loVivo) : []),
       ],
     };
     const perdido = (texto: string): Trayecto => juntar({ modo: 'bus', avisos: [{ texto }] }, []);
@@ -1180,7 +1200,7 @@ export function prepararViajeEnBus(
         etapaMontada(red, m, {
           espera: esperaEstimada(m.patron, red, fecha),
           intervalo: intervaloDeHoy(m.patron, red, fecha),
-          vivo: i === 0 ? (vivas?.[0] ?? null) : null,
+          vivo: i === 0 ? loVivo : null,
           ...(llegaTransbordando ? { transbordandoDe: lineaDelViaje(red, anterior.patron) } : {}),
           acabaEnTransbordo: saleTransbordando,
         }),
@@ -1217,7 +1237,7 @@ export function prepararViajeEnBus(
   return {
     trayecto: () => componer(null),
     conElVivo: async (pedir: typeof fetch = fetch) =>
-      componer(await preguntarPorLasSubidas(red, viaje.montados, pedir)),
+      componer(await preguntarPorLaPrimeraSubida(red, viaje.montados, pedir)),
   };
 }
 
