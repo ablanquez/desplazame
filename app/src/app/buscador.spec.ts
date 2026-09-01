@@ -3472,6 +3472,21 @@ describe('Buscador', () => {
     expect(boton).not.toBeNull();
     expect(region).not.toBeNull();
     expect(region.getAttribute('role')).toBe('status');
+    // ⚠️ **Y `display` distinto de `none`, que es lo que de verdad se compra.**
+    //    `querySelector` encuentra el elemento igual esté pintado o no, y con eso
+    //    esta juez estuvo verde mientras `.vivo__estado:empty { display: none }`
+    //    dejaba la región vacía **fuera del árbol de accesibilidad** — medido en
+    //    Chrome: dos `role=status` con la región vacía, tres al darle texto. Una
+    //    región que entra en el árbol a la vez que su contenido no se anuncia,
+    //    que es justo lo que 4.1.3 prohíbe. Ver la entrada del 1/09 en
+    //    `docs/BITACORA.md`, y su hermana del 31/08 sobre `hidden`.
+    //
+    // ⚠️ **Y esa mitad NO se puede comprar aquí**, medido: jsdom no aplica el
+    //    CSS del componente, asi que un `getComputedStyle(region).display`
+    //    puesto en esta juez sale `block` con la regla mala dentro — lo probé y
+    //    la juez siguió verde. Vive donde hay pixeles: la juez 7 de
+    //    `app/e2e/proximo-bus.mjs`. Aqui se compra lo que aqui se puede ver.
+    expect(region.textContent).toBe('');
     // Y el botón dice CUÁL abre, por su id: sin esto, con dos subidas no se
     // sabría de cuál habla el anuncio.
     expect(boton.getAttribute('aria-controls')).toBe(region.id);

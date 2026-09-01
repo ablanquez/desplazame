@@ -107,17 +107,68 @@ try {
   );
   juez(
     '2 · la región existe antes de pulsar, con role=status',
-    anatomia.pares.every((p) => p.apunta && p.papel === 'status'),
+    anatomia.pares.length > 0 && anatomia.pares.every((p) => p.apunta && p.papel === 'status'),
     anatomia.pares.map((p) => `${p.papel}/${p.apunta}`).join(' · '),
   );
   juez(
     '3 · ningún botón nace deshabilitado',
-    anatomia.pares.every((p) => !p.bloqueado),
+    anatomia.pares.length > 0 && anatomia.pares.every((p) => !p.bloqueado),
     anatomia.pares.map((p) => `«${p.texto}»`).join(' · '),
   );
   for (const p of anatomia.pares) {
     console.log(`    · ${p.delPaso}\n      región: «${p.dice || '(vacía)'}» aria-busy=${p.ocupada}`);
   }
+
+  // ── 3 · Y LA REGIÓN VACÍA SIGUE EN EL ÁRBOL DE ACCESIBILIDAD ────────────
+  //
+  // ⭐ Es la juez que faltaba el 1/09 y por la que hay entrada en la bitácora.
+  //    `.vivo__estado:empty { display: none }` dejaba la región vacía FUERA del
+  //    árbol: dos `role=status` con ella vacía, tres al darle texto. Una región
+  //    que entra en el árbol a la vez que su contenido no se anuncia [WCAG
+  //    4.1.3], que es justo lo que el botón promete.
+  //
+  // ⚠️ Y esto NO se puede comprar en `buscador.spec.ts`: jsdom no aplica el CSS
+  //    del componente, así que allí `display` sale `block` con la regla mala
+  //    dentro. Se compra donde hay píxeles, que es aquí.
+  const pintadas = await m.evaluar(`(() => {
+    return [...document.querySelectorAll('.vivo__estado')].map((r) => ({
+      vacia: r.textContent.trim() === '',
+      display: getComputedStyle(r).display,
+    }));
+  })()`);
+  juez(
+    '7 · ninguna región de estado está en display:none, ni vacía',
+    pintadas.some((x) => x.vacia) && pintadas.every((x) => x.display !== 'none'),
+    pintadas.map((x) => `${x.vacia ? 'vacía' : 'con texto'}:${x.display}`).join(' · '),
+  );
+
+  await m.cdp('Accessibility.enable');
+  const cuantosStatus = async () =>
+    (await m.cdp('Accessibility.getFullAXTree')).nodes.filter(
+      (n) => (n.role?.value ?? '') === 'status' && !n.ignored,
+    ).length;
+  const conVacias = await cuantosStatus();
+  // ⚠️ Se escribe en el NODO DE TEXTO, no en `textContent`: asignar
+  //    `textContent` sustituye los hijos por uno nuevo y destruye el nodo que
+  //    Angular tiene cogido para su interpolación — la página se queda muda a
+  //    partir de ahí. Lo aprendí rompiéndolo: las jueces 5 y 6 se pusieron
+  //    rojas con «» y el fallo era de esta sonda, no de la pantalla.
+  await m.evaluar(
+    `document.querySelectorAll('.vivo__estado').forEach((r) => { if (!r.textContent.trim() && r.firstChild) r.firstChild.data = 'x'; })`,
+  );
+  await m.dormir(300);
+  const conTexto = await cuantosStatus();
+  juez(
+    '8 · las regiones ya están en el árbol de accesibilidad ANTES de tener texto',
+    conVacias > 0 && conVacias === conTexto,
+    `${conVacias} con las vacías · ${conTexto} al darles texto`,
+  );
+  // Se deshace la marca: lo que viene despues pulsa de verdad y tiene que
+  // encontrar la region como estaba.
+  await m.evaluar(
+    `document.querySelectorAll('.vivo__estado').forEach((r) => { if (r.firstChild?.data === 'x') r.firstChild.data = ''; })`,
+  );
+  await m.dormir(200);
 
   // ── 2 · SE PULSA EL ÚLTIMO, que es el que el Generar NO consultó ──────────
   const cual = anatomia.botones - 1;
@@ -168,11 +219,11 @@ try {
   // La captura va donde se le diga, y no se deja tirada en la raíz del
   // repositorio: una imagen suelta ahí se cuela en el siguiente `git add` sin
   // que nadie la mire.
-  const donde = process.argv[6] ?? 'proximo-bus.png';
+  const donde = process.argv[6] || 'proximo-bus.png';
   await m.guardar(donde);
   console.log('\ncaptura → ' + donde);
 } finally {
   m.cerrar();
 }
-console.log(malas === 0 ? '\nVERDE: las seis en verde.' : `\nROJO: ${malas} en rojo.`);
+console.log(malas === 0 ? '\nVERDE: las ocho en verde.' : `\nROJO: ${malas} en rojo.`);
 process.exit(malas === 0 ? 0 : 1);

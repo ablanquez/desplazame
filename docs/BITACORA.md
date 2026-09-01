@@ -14,6 +14,109 @@
 
 ---
 
+## [2026-09-01] ✅ CERRADA — La región de estado del botón «Próximo bus» nace FUERA del árbol de accesibilidad: `:empty { display: none }`
+
+**Categoría:** una región viva que no está viva hasta que ya es tarde
+
+**Síntoma:** el botón «Próximo bus» promete [WCAG 4.1.3] que su región
+`role="status"` está en el DOM **antes** de la actualización, que es lo único
+que hace que un lector de pantalla la esté observando cuando llega el
+resultado. Medido con Chrome contra la pantalla de verdad, el caso del ojo
+—`COLOSO 2 → OVIEDO 5` en bus, dos subidas—:
+
+```
+región 1 (la que el Generar lleno):  display "block"  ·  alto 16  ·  :empty false
+región 2 (la que nace vacía):        display "none"   ·  alto  0  ·  :empty true
+
+status en el árbol de accesibilidad — con la región vacía: 2  |  con texto: 3
+```
+
+La segunda región **no está en el árbol** mientras está vacía, y entra en él
+justo cuando recibe su contenido. Para un lector de pantalla eso no es una
+región viva que cambia: es una región que aparece ya escrita, y eso es
+exactamente lo que 4.1.3 dice que no se anuncia.
+
+⭐ **Lo que daba verde con el fallo vivo** — la juez que compra esa promesa,
+ejecutada con el fallo dentro:
+
+```
+ ✓  desplazame  src/app/buscador.spec.ts > Buscador > ⭐ 18 · la región de estado existe antes de pulsar, y el botón la señala 2887ms
+      Tests  2 passed | 79 skipped (81)
+```
+
+Y la sonda del navegador que lo destapó no era una juez: fue una duda mía
+mirando el CSS que había escrito una hora antes.
+
+**Cómo se cazó:** leyendo mi propio `buscador.css` después de darlo por bueno.
+`.vivo__estado:empty { display: none }` lo puse para que una región vacía no
+reservara sitio, sin pensar que `display: none` **saca el elemento del árbol de
+accesibilidad**. La juez 18 pregunta `querySelector('.vivo__estado')`, y eso
+encuentra el elemento igual esté pintado o no.
+
+⚠️ Es la misma familia que la entrada del 31/08 —«el detalle del desvío se ve
+con `hidden` puesto»— y la misma lección al revés: **allí la juez preguntaba
+por el atributo y no por lo que se ve; aquí pregunta por la existencia en el
+DOM y no por la existencia para quien no mira la pantalla.**
+
+**Causa raíz:** dos cosas, y la segunda es la que importa.
+
+1. `display: none` **saca el elemento del árbol de accesibilidad**, y una
+   región viva que no está en el árbol no está siendo observada por nadie. La
+   regla la escribí para un problema de maquetación —que un hueco vacío no
+   moviera la lista— sin caer en que el remedio tenía ese precio. No hacía
+   falta: un `<span>` vacío ya no ocupa ni ancho ni alto.
+
+2. **Y la juez preguntaba por la existencia en el DOM, no por la existencia
+   para quien no mira la pantalla.** `querySelector('.vivo__estado')` encuentra
+   el elemento igual esté pintado o no; `getAttribute('role')` devuelve
+   `status` igual. Las dos aserciones eran ciertas y ninguna compraba lo que la
+   juez dice comprar en su nombre.
+
+⚠️ **Y hay una tercera, que salió al arreglar:** intenté cerrar el hueco
+añadiendo `expect(getComputedStyle(region).display).not.toBe('none')` a la
+propia juez 18, y **siguió verde con la regla mala dentro** — medido, no
+supuesto. **jsdom no aplica el CSS del componente**, así que en `buscador.spec.ts`
+`display` sale `block` haga lo que haga la hoja de estilo. La aserción habría
+sido una segunda mentira encima de la primera, con mejor aspecto.
+
+**Arreglo aplicado:**
+
+1. `app/src/app/buscador.css` — fuera `.vivo__estado:empty { display: none }`, y
+   en su sitio el comentario que dice por qué no vuelve.
+2. `app/e2e/proximo-bus.mjs` — **dos jueces nuevas donde hay píxeles**: la 7
+   mide `getComputedStyle(...).display` de cada región **antes de pulsar** —y
+   exige que al menos una esté vacía, o no compraría nada—, y la 8 cuenta los
+   nodos `role=status` no ignorados del árbol de accesibilidad con las regiones
+   vacías y con texto, y exige que sean **los mismos**.
+3. `app/src/app/buscador.spec.ts` — la juez 18 conserva lo que **sí** puede ver
+   en jsdom (la región existe, su papel, su `id`, su texto vacío) y lleva
+   escrito, en el sitio donde uno iría a añadirla, que la mitad del píxel vive
+   en `proximo-bus.mjs` y por qué no puede vivir aquí.
+
+**Contraprueba** (la regla mala devuelta, una sola vez):
+
+```
+✖ 7 · ninguna región de estado está en display:none, ni vacía — con texto:block · vacía:none
+✖ 8 · las regiones ya están en el árbol de accesibilidad ANTES de tener texto — 2 con las vacías · 3 al darles texto
+ROJO: 2 en rojo.
+```
+
+**Ley:** una **región viva** no se compra preguntando si el elemento existe:
+se compra preguntando si **está en el árbol de accesibilidad antes de tener
+contenido**. Y de ahí sale la segunda mitad, que es la que se paga cara: **una
+juez en jsdom no puede comprar nada que dependa del CSS del componente**, así
+que toda promesa que se cumpla o se rompa en una hoja de estilo tiene su juez
+en el navegador o no la tiene. Es la del 31/08 —«el atributo `hidden` no
+esconde nada por sí solo»— una vuelta más adentro: allí la juez miraba el
+atributo en vez del píxel; aquí miraba el DOM en vez del árbol.
+
+**Commit:** ⏳ PENDIENTE
+
+**Ficheros:** `app/src/app/buscador.css` · `app/e2e/proximo-bus.mjs` ·
+`app/src/app/buscador.spec.ts`
+
+---
+
 ## [2026-09-01] ✅ CERRADA — El refresco de desvíos DETECTA 23 y APLICA 4: un viaje sube en un poste donde el autobús hoy no para
 
 **Categoría:** una cuenta que dice «leído» y se lee como «hecho»

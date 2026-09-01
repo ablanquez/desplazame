@@ -636,15 +636,21 @@ legend {
   outline-offset: 2px;
 }
 
-/* La región. Vacía no ocupa nada: un hueco reservado para un texto que aún no
-   existe movería la lista entera al primer resultado. */
+/* ⭐ LA REGIÓN, y **nunca `display: none`** — ni siquiera vacía (1/09).
+
+   Aquí había `.vivo__estado:empty { display: none }`, puesto para que una
+   región vacía no reservara sitio. Medido con Chrome: la región vacía quedaba
+   en `display: none` y **fuera del árbol de accesibilidad** —dos nodos
+   `role=status` con ella vacía, tres al darle texto—, así que para un lector
+   de pantalla no era una región viva que cambia, sino una que aparece ya
+   escrita. Y eso es exactamente lo que [WCAG 4.1.3] dice que no se anuncia.
+   Ver la entrada del 1/09 en `docs/BITACORA.md`.
+
+   No hacía falta: un `<span>` vacío ya no ocupa ancho ni alto, y el `gap` del
+   `.vivo` no se aplica a una caja de cero. */
 .vivo__estado {
   font-size: 0.85rem;
   color: #334155;
-}
-
-.vivo__estado:empty {
-  display: none;
 }
 
 .vivo__tarda {
