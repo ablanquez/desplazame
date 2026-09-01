@@ -1,7 +1,30 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ASOMA_EL_RIBETE, Mapa, ribeteDe, type Vertice } from './mapa';
-import { AA_GRAFICO, contraste, TIERRA_OSM } from './contraste';
+import { AA_GRAFICO, contraste, deHex, luminancia, PLANO_MAS_CLARO, PLANO_MAS_OSCURO, TIERRA_OSM } from './contraste';
+// @ts-expect-error — sin @types/node, el compilador no conoce el módulo
+import { readFileSync, existsSync } from 'node:fs';
+
+/** `process` es de Node y tampoco está tipado aquí. Solo se usa `cwd()`. */
+declare const process: { cwd(): string };
+
+/** Las 53 líneas del cocinado que sirve el motor. Ver `chip.spec.ts`. */
+const LINEAS_DEL_FEED: readonly { readonly corto: string; readonly color: string }[] = JSON.parse(
+  readFileSync(
+    ((): string => {
+      const suyo = '/app/data/nap_gtfs-ficha1176.cocinado.json';
+      let d = process.cwd().replaceAll('\\', '/');
+      for (let i = 0; i < 6; i++) {
+        if (existsSync(d + suyo)) {
+          return d + suyo;
+        }
+        d = d.slice(0, d.lastIndexOf('/'));
+      }
+      throw new Error('no encuentro el cocinado subiendo desde ' + process.cwd());
+    })(),
+    'utf-8',
+  ),
+).lineas;
 import type { TramoDelViaje } from '@desplazame/tipos';
 
 /** Anfitrión de prueba: permite cambiar el trazado como lo hace App. */
@@ -437,17 +460,106 @@ describe('Mapa', () => {
   it('⭐ 3 · la 29 y la N7 no llegan a 3:1 solas; con su ribete, sí', () => {
     for (const color of ['F5C100', 'FFEB3D']) {
       expect(contraste(color, TIERRA_OSM), color).toBeLessThan(AA_GRAFICO);
-      const ribete = ribeteDe(color)!;
-      expect(ribete, color).not.toBeNull();
+      const ribete = ribeteDe(color);
       // El halo contra el plano, y la línea contra el halo. Las dos ≥ 3:1.
       expect(contraste(ribete, TIERRA_OSM), color + ' · ribete sobre la tierra').toBeGreaterThanOrEqual(AA_GRAFICO);
       expect(contraste(color, ribete), color + ' · línea sobre su ribete').toBeGreaterThanOrEqual(AA_GRAFICO);
     }
   });
 
-  it('⭐ 3b · el tono del ribete SE CALCULA: sobre la tierra clara gana el negro', () => {
+  it('⭐ 3b · el tono del ribete SE CALCULA: sobre un plano claro gana el negro', () => {
     expect(ribeteDe('F5C100')).toBe('000000');
     expect(ribeteDe('27A737')).toBe('000000');
+  });
+
+  /**
+   * ⭐ JUEZ 2 y 3 — **LAS 53, TODAS CON RIBETE**, y cada una legible sobre el suyo.
+   *
+   * ⚠️ Hasta esta mañana el ribete solo se ponía si la línea no llegaba a 3:1
+   * **contra la tierra**, y eso dejaba **30 de las 53 sin él**. Lo cazó el ojo de
+   * Antonio: *«la 21 sin reborde»*. Y tenía razón por partida doble.
+   *
+   *   1. La 21 es `#978685` y da **3,02:1 contra la tierra**: pasaba el filtro
+   *      por **dos centésimas**.
+   *   2. Y el filtro estaba mal planteado. [WCAG 1.4.11 · W3C *Understanding
+   *      Non-text Contrast*] los 3:1 son contra los colores **adyacentes**, y una
+   *      traza de bus cruza el plano entero. Censado el teselado real de un viaje
+   *      de la 21 (259.072 píxeles de lienzo), la tierra es solo el **17,5 %**, y
+   *      contra **10 de los 14 colores más extendidos** la 21 NO llega:
+   *
+   *          #f9b29c (la primaria naranja) → 1,96:1
+   *          #c7c7b4 (zona industrial)     → 2,02:1
+   *          #d1c6bd (4,4 % del plano)     → 2,07:1
+   *          #fbd6a4 (la secundaria)       → 2,52:1
+   *
+   * ⇒ Medir contra un solo fondo no cumple el criterio. El ribete sí: garantiza
+   *   el 3:1 contra **cualquier** vecino, porque el vecino pasa a ser él.
+   */
+  it('⭐ 2+3 · las 53 líneas del feed llevan ribete, y se leen sobre él', () => {
+    /** Lo que un color se separa del plano, en su caso más desfavorable. */
+    const sobreElPlano = (c: string): number =>
+      Math.min(contraste(c, PLANO_MAS_CLARO), contraste(c, PLANO_MAS_OSCURO));
+
+    for (const l of LINEAS_DEL_FEED) {
+      const ribete = ribeteDe(l.color);
+      expect(ribete, l.corto).toBeTruthy();
+      // 1 · La línea se separa de su vecino inmediato, que es el ribete.
+      expect(contraste(l.color, ribete), l.corto + ' sobre su ribete').toBeGreaterThanOrEqual(AA_GRAFICO);
+      // 2 · Y el par se separa del plano entero: lo aporta el que pueda.
+      expect(
+        Math.max(sobreElPlano(ribete), sobreElPlano(l.color)),
+        l.corto + ' · el par sobre el plano',
+      ).toBeGreaterThanOrEqual(AA_GRAFICO);
+    }
+  });
+
+  /**
+   * ⭐ LAS DIECIOCHO OSCURAS SE RIBETEAN EN BLANCO, y por eso el tono se calcula.
+   *
+   * ⚠️ La Ci2 es `#702283`, de luminancia 0,062: contra un ribete negro da
+   * **2,25:1** y la forma de la línea se perdería dentro de su propio halo. Se
+   * ve sola sobre el plano claro —9,35:1 contra el blanco—, así que lo que le
+   * hace falta no es separarse del plano: es un perfil CLARO que la dibuje.
+   *
+   * ⚠️ Y son **18, no 9**. Nueve no llegan a 3:1 contra el negro y no hay
+   * discusión; las otras nueve —el azul `#0052CC` que comparten ocho servicios
+   * especiales, y la 35— **sí llegan** (3,08:1 y 3,28:1) pero **ganan más en
+   * blanco** (6,82:1 y 6,41:1), y el par sigue separándose del plano por la
+   * propia línea (3,86:1 y 3,62:1). El criterio no es «¿llega con negro?»: es
+   * cuál de los dos perfila mejor, que es lo que se maximiza.
+   */
+  it('⭐ 3c · las dieciocho líneas oscuras llevan ribete BLANCO; el resto, negro', () => {
+    const enBlanco = LINEAS_DEL_FEED.filter((l) => ribeteDe(l.color) === 'FFFFFF').map((l) => l.corto);
+    expect(enBlanco.sort()).toEqual([
+      '34', '35', '40', '52', '55', '57', '60',
+      'CE', 'CEM', 'Ci2', 'Ci3', 'Ci4', 'EM1', 'EM2', 'ES3', 'LAN', 'V1', 'V4',
+    ]);
+    // Y ninguna de las 18 pasa de 0,12 de luminancia: son oscuras de verdad.
+    for (const l of LINEAS_DEL_FEED.filter((x) => ribeteDe(x.color) === 'FFFFFF')) {
+      expect(luminancia(deHex(l.color)), l.corto).toBeLessThan(0.12);
+    }
+    expect(contraste('702283', '000000')).toBeLessThan(AA_GRAFICO);
+    expect(contraste('702283', 'FFFFFF')).toBeGreaterThanOrEqual(AA_GRAFICO);
+    // Y las claras siguen en negro: la 29, la 44, el tranvía.
+    for (const c of ['F5C100', '27A737', '00CC00', '978685']) {
+      expect(ribeteDe(c), c).toBe('000000');
+    }
+  });
+
+  /**
+   * ⭐ Y LA 21, LA QUE LO DESTAPÓ: pasaba por dos centésimas y no llega contra la
+   * carretera que pisa. Va aparte porque es el caso, no un color más.
+   */
+  it('⭐ 2b · la 21 pasaba contra la tierra por 0,02 y no llega contra la calzada', () => {
+    const l21 = LINEAS_DEL_FEED.find((l) => l.corto === '21')!;
+    expect(l21.color.toUpperCase()).toBe('978685');
+    expect(contraste(l21.color, TIERRA_OSM)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    expect(contraste(l21.color, TIERRA_OSM)).toBeLessThan(3.1);
+    // La secundaria amarilla y la primaria naranja, censadas del teselado.
+    expect(contraste(l21.color, 'fbd6a4')).toBeLessThan(AA_GRAFICO);
+    expect(contraste(l21.color, 'f9b29c')).toBeLessThan(AA_GRAFICO);
+    // Con ribete deja de depender de por dónde pase.
+    expect(contraste(l21.color, ribeteDe(l21.color))).toBeGreaterThanOrEqual(AA_GRAFICO);
   });
 
   /**
@@ -455,10 +567,34 @@ describe('Mapa', () => {
    * rueda **ya pasan** —4,38:1 y 4,50:1, medidos cuando se eligieron—, así que
    * no llevan ribete: no se engorda lo que no hace falta engordar.
    */
-  it('⭐ 6 · el ámbar y el azul ya llegan, y no llevan ribete', () => {
-    for (const color of ['b45309', '2563eb']) {
-      expect(contraste(color, TIERRA_OSM), color).toBeGreaterThanOrEqual(AA_GRAFICO);
-      expect(ribeteDe(color), color).toBeNull();
+  /**
+   * ⭐ JUEZ 4 — A PIE Y EN BICI, AL BYTE: **una sola polilínea, sin ribete**.
+   *
+   * ⚠️ Y ahora esto se compra por el PINTADO y no por `ribeteDe`, porque el que
+   * decide ya no es el color: es el MODO. El ámbar y el azul no son colores de
+   * operador —los elegimos nosotros, y se eligieron midiendo: 4,38:1 y 4,50:1
+   * sobre la tierra—, así que no entran en la regla de uniformidad de las líneas
+   * de bus. Quien anda no lleva línea que identificar.
+   */
+  it('⭐ 4 · a pie y en bici se pinta UNA polilínea, sin ribete', async () => {
+    for (const [comoSeVa, color] of [
+      ['andando', '#b45309'],
+      ['rodando', '#2563eb'],
+    ] as const) {
+      const fixture = TestBed.createComponent(Anfitrion);
+      await fixture.whenStable();
+      fixture.componentInstance.trazado.set(TRAMO);
+      fixture.componentInstance.tramos.set([
+        { comoSeVa, desde: 0, hasta: 2, metros: 400, segundos: 300, hito: null },
+      ]);
+      await fixture.whenStable();
+      const trazos = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll('path.leaflet-interactive'),
+      );
+      expect(trazos.length, comoSeVa).toBe(1);
+      expect(trazos[0]!.getAttribute('stroke'), comoSeVa).toBe(color);
+      // Y el color sigue llegando a 3:1 por su cuenta: por eso no le hace falta.
+      expect(contraste(color.slice(1), TIERRA_OSM)).toBeGreaterThanOrEqual(AA_GRAFICO);
     }
   });
 
@@ -494,7 +630,7 @@ describe('Mapa', () => {
     expect(trazos[0]!.grosor).toBe(trazos[1]!.grosor + 2 * ASOMA_EL_RIBETE);
   });
 
-  it('⭐ 4b · una línea que ya llega se pinta con UNA sola polilínea', async () => {
+  it('⭐ 2c · una línea que llega contra la tierra TAMBIÉN lleva su ribete', async () => {
     const fixture = TestBed.createComponent(Anfitrion);
     await fixture.whenStable();
     fixture.componentInstance.trazado.set(TRAMO);
@@ -513,8 +649,12 @@ describe('Mapa', () => {
     const trazos = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('path.leaflet-interactive'),
     );
-    expect(trazos.length).toBe(1);
-    expect(trazos[0]!.getAttribute('stroke')?.toUpperCase()).toBe('#D1221D');
+    // La 31 (#D1221D) da 4,62:1 contra la tierra y aun así lleva ribete: la
+    // uniformidad no es un capricho, es que el plano no es solo tierra.
+    expect(contraste('D1221D', TIERRA_OSM)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    expect(trazos.length).toBe(2);
+    expect(trazos[0]!.getAttribute('stroke')?.toUpperCase()).toBe('#000000');
+    expect(trazos[1]!.getAttribute('stroke')?.toUpperCase()).toBe('#D1221D');
   });
 
   it('al destruirse el componente, Leaflet suelta su contenedor', async () => {

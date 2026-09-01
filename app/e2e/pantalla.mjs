@@ -14,8 +14,17 @@ import { readFileSync } from 'node:fs';
 import { abrirChrome, contrasteReal, contrasteRgb, deHex, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
 
 const APP = 'http://localhost:4200/';
-/** La tierra de OpenStreetMap, sobre la que se pinta casi toda ruta. */
-const TIERRA = 'f2efe9';
+/**
+ * ⚠️ LOS DOS EXTREMOS DEL PLANO, no «la tierra».
+ *
+ * Censados del teselado real (ver `src/app/contraste.ts`): la tierra `#f2efe9`
+ * es solo el 17,5 % de lo que hay debajo de una traza, y [WCAG 1.4.11] los 3:1
+ * son contra los colores **adyacentes**. Medir contra un solo fondo aprueba
+ * líneas que no se ven sobre la carretera que pisan — la 21 daba 3,02:1 contra
+ * la tierra y 1,96:1 contra la primaria naranja.
+ */
+const PLANO_CLARO = 'ffffff';
+const PLANO_OSCURO = 'f9b29c';
 
 let fallos = 0;
 let pasadas = 0;
@@ -182,30 +191,63 @@ try {
     color: p.getAttribute('stroke'), grosor: p.getAttribute('stroke-width'), dash: p.getAttribute('stroke-dasharray'),
   }))`);
   console.log(`\n  polilíneas en el mapa: ${lineas.length}`);
-  const tierra = deHex(TIERRA);
+  /** Lo que un color se separa del plano, en su caso más desfavorable. */
+  const sobreElPlano = (hex) =>
+    Math.min(
+      contrasteRgb(deHex(hex), deHex(PLANO_CLARO)),
+      contrasteRgb(deHex(hex), deHex(PLANO_OSCURO)),
+    );
+  /**
+   * ⚠️ LOS DOS COLORES DE LA CASA, que NO son líneas de operador: el ámbar del
+   *    a-pie y el azul de la rueda. Se miden y se dicen, pero **no cuentan como
+   *    fallo de esta juez**: el encargo del 1/09 los declaró intactos, y una
+   *    decisión declarada no se convierte en rojo por la puerta de atrás. Lo que
+   *    salga de aquí va al reporte, no al arreglo.
+   */
+  const DE_LA_CASA = ['#b45309', '#2563eb'];
   const debiles = [];
+  const declarados = [];
   for (let i = 0; i < lineas.length; i++) {
     const l = lineas[i];
-    // ⚠️ Con halo, lo que se mide NO es la línea contra el plano: es el HALO
-    //    contra el plano y la LÍNEA contra el halo [WCAG: «un halo puede usarse
-    //    como fondo»]. Y quién es el halo de quién se lee del propio SVG: el
-    //    ribete es la polilínea inmediatamente anterior y más ancha.
+    if (DE_LA_CASA.includes(l.color)) {
+      const c = sobreElPlano(l.color);
+      const nota = `${l.color} → ${c.toFixed(2)}:1 contra el peor color del plano${c < AA_GRAFICO ? '  ⚠ NO LLEGA' : ''}`;
+      if (!declarados.includes(nota)) declarados.push(nota);
+      console.log(`    ${nota}  · color de la casa, declarado intacto`);
+      continue;
+    }
+    // ⚠️ Con halo, lo que se mide NO es la línea contra el plano: es la LÍNEA
+    //    contra el halo [WCAG: «un halo puede usarse como fondo»]. Y quién es el
+    //    halo de quién se lee del propio SVG: el ribete es la polilínea
+    //    inmediatamente anterior, más ancha y con el mismo trazo.
     const previa = lineas[i - 1];
     const suHalo =
       previa && Number(previa.grosor) > Number(l.grosor) && previa.dash === l.dash ? previa : null;
-    const contra = suHalo ? deHex(suHalo.color) : tierra;
-    const c = contrasteRgb(deHex(l.color), contra);
-    const donde = suHalo ? `su ribete ${suHalo.color}` : 'la tierra';
+    const esRibete =
+      lineas[i + 1] && Number(l.grosor) > Number(lineas[i + 1].grosor) && lineas[i + 1].dash === l.dash;
+    if (esRibete) {
+      // Un ribete no se juzga solo: se juzga con su línea, en la vuelta siguiente.
+      console.log(`    ${l.color} grosor ${l.grosor} · es el ribete del siguiente`);
+      continue;
+    }
+    // ⚠️ Y SIN HALO se mide contra el PLANO ENTERO, no contra la tierra: ese era
+    //    el fallo que dejó a la 21 sin ribete, y el instrumento lo repetía.
+    const c = suHalo ? contrasteRgb(deHex(l.color), deHex(suHalo.color)) : sobreElPlano(l.color);
+    const donde = suHalo ? `su ribete ${suHalo.color}` : 'el peor color del plano';
     console.log(`    ${l.color} grosor ${l.grosor}${l.dash ? ' dash ' + l.dash : ''} → ${c.toFixed(2)}:1 contra ${donde}`);
     if (c < AA_GRAFICO) debiles.push(`${l.color} a ${c.toFixed(2)}:1 contra ${donde}`);
-    // Y si es un ribete, tiene que verse él sobre el plano.
-    const esRibete = lineas[i + 1] && Number(l.grosor) > Number(lineas[i + 1].grosor) && lineas[i + 1].dash === l.dash;
-    if (esRibete) {
-      const cr = contrasteRgb(deHex(l.color), tierra);
-      if (cr < AA_GRAFICO) debiles.push(`el ribete ${l.color} a ${cr.toFixed(2)}:1 sobre la tierra`);
-    }
+    // Y el par se separa del plano: lo aporta el ribete, o la propia línea.
+    const delPar = Math.max(suHalo ? sobreElPlano(suHalo.color) : 0, sobreElPlano(l.color));
+    if (delPar < AA_GRAFICO) debiles.push(`el par de ${l.color} a ${delPar.toFixed(2)}:1 sobre el plano`);
   }
-  juez('3 · toda línea ≥ 3:1 contra lo que tiene detrás (su ribete o la tierra)', debiles.length === 0, debiles.join(' · '));
+  juez(
+    '3 · toda línea de operador ≥ 3:1 contra su vecino, y el par sobre el plano',
+    debiles.length === 0,
+    debiles.join(' · '),
+  );
+  for (const d of declarados) {
+    console.log(`  ⓘ  color de la casa (fuera de esta juez por encargo): ${d}`);
+  }
 
   await m.guardar(process.argv[6] ?? 'contraste.png');
 } finally {

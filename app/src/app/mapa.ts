@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
-import { contraste, AA_GRAFICO, TIERRA_OSM } from './contraste';
+import { contraste, AA_GRAFICO, PLANO_MAS_CLARO, PLANO_MAS_OSCURO } from './contraste';
 // El vértice lo define el contrato, no este componente: es la misma forma que
 // el motor devolverá en la geometría de un trayecto.
 import type { TramoDelViaje, Vertice } from '@desplazame/tipos';
@@ -138,50 +138,77 @@ function vestidoDe(tramo: TramoDelViaje): L.PolylineOptions {
 export const ASOMA_EL_RIBETE = 2;
 
 /**
- * ⭐ EL RIBETE BAJO LA LÍNEA, o `null` si esta línea no lo necesita.
+ * ⭐ EL RIBETE BAJO LA LÍNEA. **Lo lleva TODA línea de operador, siempre.**
  *
  * ═══════════════════════════════════════════════════════════════════════════
  *  [WCAG 1.4.11 AA · W3C *Understanding Non-text Contrast*] un gráfico que
- *  transporta información necesita **3:1** contra lo que tiene al lado — y una
- *  polilínea de ruta es exactamente eso: si no se distingue del plano, el plano
- *  no dice por dónde se va.
+ *  transporta información necesita **3:1 contra los colores ADYACENTES** — y esa
+ *  palabra es la que decide esta función, porque una traza de bus no cruza un
+ *  fondo: cruza el plano entero.
  *
- *  ⛔ Y 23 de las nuestras no llegan. Medido en pantalla, la 44 (`#27A737`) sale
- *    a **2,74:1** sobre la tierra de OSM. La 29 (`#F5C100`) y la N7 (`#FFEB3D`),
- *    que son amarillos, peor.
+ *  ⛔ **LA PRIMERA VERSIÓN DE ESTO SOLO PONÍA RIBETE SI LA LÍNEA NO LLEGABA A
+ *    3:1 CONTRA LA TIERRA, y estaba mal por partida doble.** Lo cazó el ojo de
+ *    Antonio el 1/09: *«la 21 sin reborde»*.
  *
- *  ⇒ **EL COLOR DE LA LÍNEA NO SE TOCA.** Es la identidad de Avanza: quien
- *    conoce la ciudad reconoce su línea por el tono, y repintarla sería resolver
- *    un problema de accesibilidad rompiendo la información que el color lleva.
- *    Se pinta **una segunda polilínea debajo, más ancha**, que asoma 2 px por
- *    cada lado. La WCAG lo admite en sus propias palabras: *«un halo puede
- *    usarse como fondo»* al medir — así que lo que tiene que cumplir 3:1 no es
- *    la línea contra el plano, sino **el ribete contra el plano** y **la línea
- *    contra el ribete**.
+ *    1. La 21 es `#978685` y da **3,02:1** contra la tierra. Pasaba el filtro
+ *       **por dos centésimas**. Y con ella, 30 de las 53.
+ *    2. Y el filtro preguntaba lo que no era. Censado el teselado real bajo un
+ *       viaje de la 21, **la tierra es el 17,5 %** de lo que hay debajo, y
+ *       contra 10 de los 14 colores más extendidos la 21 NO llega:
+ *
+ *           #f9b29c (la primaria naranja) → 1,96:1
+ *           #c7c7b4 (industrial)          → 2,02:1
+ *           #d1c6bd (edificado, 4,4 %)    → 2,07:1
+ *           #fbd6a4 (la secundaria)       → 2,52:1
+ *
+ *  ⇒ Contra un plano de doce colores no hay «esta línea ya llega»: **hay líneas
+ *    que llegan contra un trozo del plano**. El ribete convierte la pregunta en
+ *    una que sí tiene respuesta, porque el vecino de la línea pasa a ser él.
+ *
+ *  ⇒ **Y EL COLOR DE LA LÍNEA SIGUE SIN TOCARSE.** Es la identidad de Avanza:
+ *    quien conoce la ciudad reconoce su línea por el tono. Se pinta una segunda
+ *    polilínea debajo, más ancha, que asoma 2 px por cada lado. La WCAG lo
+ *    admite en sus palabras: *«un halo puede usarse como fondo»* al medir.
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * ⚠️ **Y el tono se CALCULA, no se fija.** Se prueban el negro y el blanco y gana
- *    el que deja mejor el PEOR de sus dos contrastes — porque un ribete que se
- *    ve sobre el plano pero se confunde con la línea no es un ribete, es una
- *    línea más gorda. Sobre la tierra clara de OSM sale negro siempre, pero eso
- *    es el resultado de la cuenta y no una decisión escrita a mano: el día que
- *    el teselado cambie a un fondo oscuro, esta función cambia sola.
+ * ⭐ Y la uniformidad tiene además un precedente propio: es el argumento con el
+ *    que ZetaBus decidió el chip —**todas las líneas del operador se visten
+ *    igual**, porque una que se viste distinta se lee como un error y no como
+ *    una categoría—. Ahí es doctrina de la casa, no criterio de la WCAG, y por
+ *    eso se dice separado.
  *
- * ⚠️ Y devuelve `null` cuando la línea **ya llega**. El ámbar del a-pie (4,38:1)
- *    y el azul de la rueda (4,50:1) pasan de sobra, así que se quedan **al byte**
- *    como estaban: no se engorda lo que no hace falta engordar.
+ * ⚠️ **El tono se CALCULA, no se fija**, y son DOS condiciones, no una:
+ *
+ *    1. **La línea tiene que separarse de su ribete**, que es su vecino
+ *       inmediato: un ribete que se confunde con la línea no es un ribete, es
+ *       una línea más gorda.
+ *    2. **El par tiene que separarse del plano** — y eso lo puede aportar
+ *       cualquiera de los dos. Sobre un plano claro, un ribete negro lo aporta
+ *       él; pero **una línea oscura lo aporta ella sola**, y entonces lo que le
+ *       hace falta es un ribete CLARO que la perfile.
+ *
+ * ⭐ Y esa segunda condición no estaba en la primera cuenta, que pedía a los dos
+ *    lo mismo. La cazó la juez de las 53: **la Ci2 (`#702283`, luminancia 0,062)
+ *    daba 2,25:1 contra un ribete negro**. Con ella hay **nueve** líneas oscuras
+ *    —Ci2, Ci3, Ci4, 34, 40, 52, 55, 57 y 60— que se ribetean en blanco y salen
+ *    todas por encima de 4,05:1.
+ *
+ * Sobre este teselado, las 44 restantes salen en negro; pero es el resultado de
+ * la cuenta y no una decisión escrita a mano: el día que OSM oscurezca su plano,
+ * esta función cambia sola.
  */
-export function ribeteDe(color: string): string | null {
-  const suyo = contraste(color, TIERRA_OSM);
-  if (suyo >= AA_GRAFICO) {
-    return null;
-  }
+export function ribeteDe(color: string): string {
+  /** Lo que un color se separa del plano, en su caso más desfavorable. */
+  const sobreElPlano = (c: string): number =>
+    Math.min(contraste(c, PLANO_MAS_CLARO), contraste(c, PLANO_MAS_OSCURO));
+
   const candidatos = ['000000', 'FFFFFF'];
   let gana = candidatos[0]!;
   let mejor = -1;
   for (const c of candidatos) {
-    // El peor de los dos: contra el plano, y contra la propia línea.
-    const suPeor = Math.min(contraste(c, TIERRA_OSM), contraste(c, color));
+    // Del plano separa el que pueda: el ribete si es oscuro, la línea si lo es.
+    const delPar = Math.max(sobreElPlano(c), sobreElPlano(color));
+    const suPeor = Math.min(contraste(c, color), delPar);
     if (suPeor > mejor) {
       mejor = suPeor;
       gana = c;
@@ -378,8 +405,14 @@ export class Mapa {
       }
       // ⭐ EL RIBETE VA PRIMERO, que es lo que lo pone DEBAJO: Leaflet apila
       //    en el orden en que se añade. Ver `ribeteDe` para el porqué y el tono.
+      //
+      // ⚠️ Y quien decide si lo lleva es **el MODO, no el color**: toda línea de
+      //    operador va con ribete y ninguna otra. El ámbar del a-pie y el azul de
+      //    la rueda no son colores de operador —los elegimos nosotros, midiendo—,
+      //    así que no entran en la regla y se quedan al byte como estaban.
+      //    Un tramo montado sin línea también lo lleva: sigue siendo un vehículo.
       const vestido = vestidoDe(tramo);
-      const ribete = tramo.linea ? ribeteDe(tramo.linea.color) : null;
+      const ribete = tramo.comoSeVa === 'montado' ? ribeteDe(vestido.color!.replace('#', '')) : null;
       if (ribete !== null) {
         this.lineas.push(
           L.polyline(trozo, {

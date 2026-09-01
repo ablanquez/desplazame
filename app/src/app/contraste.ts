@@ -107,3 +107,28 @@ export const AA_GRAFICO = 3;
  *    Sobre el agua no va ninguna ruta.
  */
 export const TIERRA_OSM = 'f2efe9';
+
+/**
+ * ⭐ LOS DOS EXTREMOS DEL PLANO, censados del teselado de verdad (1/09).
+ *
+ * ⚠️ **La tierra es solo el 17,5 % de lo que hay debajo de una traza.** Contado
+ * sobre los 259.072 píxeles del lienzo en un viaje de la 21, éstos son los
+ * colores que OpenStreetMap pone y cuánto ocupan:
+ *
+ *     #f2efe9  17,5 %  la tierra          #ffffff   1,6 %  calzada
+ *     #fefefe   7,8 %  calzada menor      #f7fabf   1,5 %  zona verde clara
+ *     #d1c6bd   4,4 %  edificado          #ebdbe8   1,5 %  ferrocarril
+ *     #e0dfdf   3,4 %  suelo urbano       #d4cbc4   1,3 %  edificado
+ *     #c7c7b4   2,2 %  industrial         #d4d3d3   1,1 %  suelo urbano
+ *     #fbd6a4   1,9 %  la secundaria      #f9b29c   1,0 %  la primaria
+ *
+ * [WCAG 1.4.11 · W3C *Understanding Non-text Contrast*] los 3:1 se miden contra
+ * los colores **adyacentes**, y una línea de bus los cruza todos. Así que medir
+ * contra la tierra y dar por bueno el resultado **no cumple el criterio**: la 21
+ * (`#978685`) da 3,02:1 contra la tierra y **1,96:1 contra la primaria naranja**.
+ *
+ * Estos dos valen para comprobar que un ribete se ve sobre el plano ENTERO: el
+ * más claro y el más oscuro de los que salen por encima del 1 %.
+ */
+export const PLANO_MAS_CLARO = 'ffffff';
+export const PLANO_MAS_OSCURO = 'f9b29c';
