@@ -35,6 +35,9 @@
  *   · `GET /api/Fichero/download/{id}` está **DEPRECATED** en la propia
  *     definición. Es la que usa ZetaBus; aquí se usa `downloadLink`.
  */
+// ⚠️ `Response.text()` ignora el charset declarado [WHATWG Fetch]. Ver `texto.ts`.
+import { textoDe } from './texto.ts';
+
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
@@ -267,7 +270,7 @@ export async function renovarFeed(m: Mundo): Promise<Renovacion> {
     if (!r.ok) {
       return sigueElViejo(m, `El NAP no da enlace de descarga (${r.status}).`);
     }
-    const enlace = elEnlace(await r.text());
+    const enlace = elEnlace(await textoDe(r));
     if (!enlace) {
       return sigueElViejo(m, 'El NAP contestó al downloadLink sin un enlace dentro.');
     }

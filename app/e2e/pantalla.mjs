@@ -121,6 +121,26 @@ try {
   await m.evaluar(`[...document.querySelectorAll('button')].find(b => b.textContent.includes('Generar')).click()`);
   await m.dormir(16000);
 
+  // ── JUEZ 5 · NI UN CARÁCTER DE REEMPLAZO EN TODA LA PANTALLA ─────────────
+  //
+  // ⭐ El caso del ojo del 1/09: «Plaza Arag��n». Un U+FFFD es lo que un
+  //    decodificador escribe cuando se le rompe una secuencia, así que buscarlo
+  //    en el DOM entero es preguntar «¿se ha roto algún texto por el camino?»
+  //    sin tener que saber de antemano cuál. Cuesta una línea y cubre todo.
+  const rotos = await m.evaluar(`(() => {
+    const t = document.body.innerText;
+    const sitios = [];
+    for (const li of document.querySelectorAll('.paso, .aviso-ruta, .ruta__punto, .chip-linea')) {
+      if (li.textContent.includes('\\uFFFD')) sitios.push(li.textContent.replace(/\\s+/g, ' ').trim().slice(0, 90));
+    }
+    return { cuantos: (t.match(/\\uFFFD/g) ?? []).length, sitios };
+  })()`);
+  juez(
+    '5 · ni un carácter de reemplazo en la narración',
+    rotos.cuantos === 0,
+    rotos.cuantos ? `${rotos.cuantos} · ${rotos.sitios.join(' | ')}` : 'ninguno',
+  );
+
   // ── JUEZ 1 y 2 · TODOS LOS CHIPS DE LA PANTALLA, EN EL PÍXEL ──────────────
   const cuantos = await m.evaluar(`document.querySelectorAll('.chip-linea').length`);
   console.log(`\n  chips en pantalla: ${cuantos}`);

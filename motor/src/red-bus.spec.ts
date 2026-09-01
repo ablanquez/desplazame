@@ -331,6 +331,65 @@ describe('⭐ LA COCINA DE LA RED DE BUS Y TRANVÍA', () => {
    * se escribe doblada.
    */
   /**
+   * ⭐ JUEZ 13 — LAS TILDES SOBREVIVEN AL TROCEADO DEL FLUJO.
+   *
+   * ═══════════════════════════════════════════════════════════════════════════
+   *  ⛔ NACE DE UN FALLO REAL, y lo cazó el ojo de Antonio: la parada **1312**
+   *    salía en pantalla como `Plaza Arag\uFFFD\uFFFDn`. Y **solo ella**, de 984.
+   *
+   *  El `stops.txt` del zip trae las dos filas idénticas y en UTF-8 impecable:
+   *
+   *      1311,1311,Plaza Arag\xc3\xb3n,,41.647957954594006,...
+   *      1312,1312,Plaza Arag\xc3\xb3n,,41.64791411735438,...
+   *
+   *  Lo que fallaba era el LECTOR: descomprimía en flujo y hacía
+   *  `trozo.toString('utf8')` **a cada trozo por separado**. Un trozo del stream
+   *  corta por donde le toca, y cuando el corte cae **entre los dos bytes de una
+   *  «ó»** —`c3` y `b3`— cada mitad es una secuencia inválida por su cuenta y se
+   *  convierte en un carácter de reemplazo. De ahí que salieran dos.
+   *
+   *  ⇒ Por eso fallaba UNA de 984: solo una tilde cayó en la costura.
+   * ═══════════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ Esta juez mira **qué dicen** los nombres, no cuántos hay. La juez 10
+   * compra que el partidor de CSV entiende las comillas y ninguna otra mira un
+   * nombre por dentro: por eso la muralla entera daba verde con esto vivo.
+   */
+  test('⭐ 13 · ningún nombre de parada trae caracteres de reemplazo', () => {
+    const rotas = red.paradas.filter((p) => p.nombre.includes('\uFFFD'));
+    assert.deepEqual(
+      rotas.map((p) => `${p.id}: ${p.nombre}`),
+      [],
+      'el lector ha partido una secuencia UTF-8 por la mitad',
+    );
+
+    // ⭐ Y EL CASO, con su nombre y su vecina: las dos dicen lo mismo.
+    const p1311 = red.paradas.find((p) => p.id === '1311');
+    const p1312 = red.paradas.find((p) => p.id === '1312');
+    assert.equal(p1311?.nombre, 'Plaza Aragón');
+    assert.equal(p1312?.nombre, 'Plaza Aragón');
+  });
+
+  /**
+   * ⭐ JUEZ 14 — Y LAS TILDES ESTÁN, no es que no haya ninguna.
+   *
+   * ⚠️ La juez de arriba pasaría también si el lector se comiera los acentos en
+   * vez de romperlos, o si el feed no tuviera ni uno. Esto compra que el dato
+   * **llega con sus tildes puestas**, que es lo que se estaba perdiendo.
+   */
+  test('⭐ 14 · los nombres llegan acentuados, y son unos cuantos', () => {
+    const conTilde = red.paradas.filter((p) => /[áéíóúüñÁÉÍÓÚÜÑ]/.test(p.nombre));
+    assert.ok(conTilde.length > 100, `solo ${conTilde.length} paradas con acento: sospechoso`);
+    // Tres que están y se buscan por su nombre entero, no por un trozo.
+    for (const nombre of ['Plaza Aragón', 'Villa De Ansó / Avenida De América']) {
+      assert.ok(
+        red.paradas.some((p) => p.nombre === nombre),
+        `no aparece ninguna parada llamada «${nombre}»`,
+      );
+    }
+  });
+
+  /**
    * ⭐ JUEZ 11 — EL COCINADO DEL DISCO SE RECHAZA SI ES DE OTRO FORMATO.
    *
    * ⚠️ **Nace de un fallo real, del mismo día.** Al añadir la traza a cada salto,

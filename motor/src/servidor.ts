@@ -609,10 +609,17 @@ const servidor = createServer((peticion, respuesta) => {
   if (peticion.method === 'POST' && url.pathname === '/api/ruta') {
     // El cuerpo se junta a trozos y con tope: sin él, una petición que no
     // acabara nunca dejaría al motor comiendo memoria.
+    //
+    // ⚠️ Y el decodificador es **uno solo, con estado**: `trozo.toString('utf8')`
+    // parte por la mitad cualquier carácter multibyte que caiga en la costura
+    // entre dos trozos. Es el mismo fallo que rompió «Plaza Aragón» al leer el
+    // zip, y aquí lo pagaría el nombre de un sitio en el cuerpo de la petición.
+    // Ver la entrada del 1/09 en `docs/BITACORA.md`.
+    const decodificador = new TextDecoder('utf-8');
     let cuerpo = '';
     let pasado = false;
     peticion.on('data', (trozo: Buffer) => {
-      cuerpo += trozo.toString('utf8');
+      cuerpo += decodificador.decode(trozo, { stream: true });
       if (cuerpo.length > CUERPO_MAXIMO) {
         pasado = true;
         peticion.destroy();
@@ -623,6 +630,9 @@ const servidor = createServer((peticion, respuesta) => {
         if (pasado) {
           return;
         }
+        // Se vacía el decodificador: si el cuerpo acabó a mitad de un carácter,
+        // sale el reemplazo y `JSON.parse` lo rechaza, en vez de perderse.
+        cuerpo += decodificador.decode();
         // Un cuerpo que no es JSON no es un error del servidor: es una petición
         // que no dice nada, y se contesta con el trayecto vacío que lo explica.
         let crudo: unknown = null;

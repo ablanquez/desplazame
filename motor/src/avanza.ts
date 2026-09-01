@@ -45,6 +45,9 @@
  */
 
 /** El endpoint, el mismo que ZetaBus usa en producción. */
+// ⚠️ `Response.text()` ignora el charset declarado [WHATWG Fetch]. Ver `texto.ts`.
+import { textoDe } from './texto.ts';
+
 export const URL_POSTE = 'https://gps.avanzabus.com/index.php/zaragoza/fRefrescaEmpresaExternos';
 
 /**
@@ -203,7 +206,7 @@ async function unaVez(poste: number, pedir: typeof fetch): Promise<LecturaDePost
       // hay autobuses»: son «no lo sabemos». Se dicen distinto [ZetaBus].
       return null;
     }
-    return leerRespuesta(poste, await r.text(), new Date());
+    return leerRespuesta(poste, await textoDe(r), new Date());
   } catch {
     // Red caída, tiempo agotado, cuerpo ilegible. Todos son lo mismo desde
     // aquí: la fuente no ha contestado.
@@ -339,7 +342,7 @@ export async function coordenadaDelPoste(
       body: new URLSearchParams({ poste: String(poste), coche: '0' }).toString(),
       signal: AbortSignal.timeout(ESPERA_MS),
     });
-    return r.ok ? coordenadaDe(await r.text()) : null;
+    return r.ok ? coordenadaDe(await textoDe(r)) : null;
   } catch {
     return null;
   }

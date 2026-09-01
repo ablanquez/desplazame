@@ -39,6 +39,9 @@
  */
 
 /** El endpoint, el mismo que ZetaBus usa en producción. */
+// ⚠️ `Response.text()` ignora el charset declarado [WHATWG Fetch]. Ver `texto.ts`.
+import { textoDe } from './texto.ts';
+
 export const URL_AJAX = 'https://zaragoza.avanzagrupo.com/wp-admin/admin-ajax.php';
 
 /** La página de la que sale el nonce. Sin él, 403 con cuerpo vacío. */
@@ -206,7 +209,7 @@ export async function obtenerNonce(
   if (!r.ok) {
     throw new RecorridoIlegible(`la página del nonce respondió HTTP ${r.status}`, URL_NONCE, r.status);
   }
-  nonce = { valor: leerNonceDe(await r.text()), expira: ahora() + TTL_NONCE_MS };
+  nonce = { valor: leerNonceDe(await textoDe(r)), expira: ahora() + TTL_NONCE_MS };
   return nonce.valor;
 }
 
@@ -238,7 +241,7 @@ export async function leerRecorrido(
       r.status,
     );
   }
-  return leerPostes(await r.text());
+  return leerPostes(await textoDe(r));
 }
 
 /**

@@ -186,8 +186,13 @@ export interface TransbordoBus {
  *   1 — la cocina de la casilla 3a (paradas, líneas, patrones, saltos, fechas).
  *   2 — casilla 4: cada salto gana `traza`, `metros` y `recta`.
  *   3 — la red dice si se cocinó con el peatón (`conPeaton`).
+ *   4 — los nombres se decodifican sin partir las tildes en la costura de los
+ *       trozos del flujo. El dato de un cocinado 3 es el mismo salvo por los
+ *       nombres rotos que se guardaron con él —«Plaza Arag��n»—, y esos no se
+ *       arreglan releyendo el guardado: hay que volver a cocinar. Ver la entrada
+ *       del 1/09 en `docs/BITACORA.md`.
  */
-export const FORMATO_DEL_COCINADO = 3;
+export const FORMATO_DEL_COCINADO = 4;
 
 export interface RedDeBus {
   /** Ver `FORMATO_DEL_COCINADO`. Un cocinado sin él es de antes de que existiera. */
@@ -330,11 +335,26 @@ export async function porLineas(
   });
   const flujo = donde.metodo === 0 ? bruto : bruto.pipe(createInflateRaw());
 
+  /**
+   * ⭐ EL DECODIFICADOR ES UNO SOLO Y **GUARDA ESTADO ENTRE TROZOS**.
+   *
+   * ⚠️ Aquí vivía `trozo.toString('utf8')`, uno por trozo, y partía las tildes
+   * que caían en la costura: un trozo del flujo corta por donde le toca, y
+   * cuando el corte separa los dos bytes de una «ó» —`c3` y `b3`— cada mitad es
+   * una secuencia inválida por su cuenta y sale un carácter de reemplazo. Salían
+   * dos, y solo en **una** parada de 984: la 1312, «Plaza Aragón». Ver la
+   * entrada del 1/09 en `docs/BITACORA.md`.
+   *
+   * `TextDecoder` con `{ stream: true }` es exactamente lo contrario: se guarda
+   * los bytes que le sobran al final del trozo y los estrena con el siguiente.
+   */
+  const decodificador = new TextDecoder('utf-8');
+
   let resto = '';
   let cabecera: string[] | null = null;
   let filas = 0;
   for await (const trozo of flujo) {
-    const texto = resto + (trozo as Buffer).toString('utf8');
+    const texto = resto + decodificador.decode(trozo as Buffer, { stream: true });
     const lineas = texto.split('\n');
     resto = lineas.pop() ?? '';
     for (const cruda of lineas) {
@@ -359,6 +379,12 @@ export async function porLineas(
       filas++;
     }
   }
+  // ⚠️ Y se VACÍA el decodificador al cerrar el flujo. Si el fichero acabara a
+  // mitad de una secuencia multibyte —un zip truncado—, esos bytes se quedarían
+  // dentro y desaparecerían **en silencio**; así salen como carácter de
+  // reemplazo, que es lo que la juez 13 sabe cazar.
+  resto += decodificador.decode();
+
   const ultima = resto.endsWith('\r') ? resto.slice(0, -1) : resto;
   if (ultima.length > 0 && cabecera !== null) {
     const campos = partirCsv(ultima);
