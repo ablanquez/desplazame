@@ -8,19 +8,83 @@
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6)](https://www.typescriptlang.org/)
 [![Leaflet](https://img.shields.io/badge/Leaflet%20%2B%20OpenStreetMap-199900)](https://leafletjs.com/)
-[![Estado](https://img.shields.io/badge/estado-en%20construcci%C3%B3n-B45309)](#estado-ya-calcula-rutas-andando-y-sobre-ruedas)
+[![Estado](https://img.shields.io/badge/estado-en%20construcci%C3%B3n-B45309)](#estado-cinco-modos-de-punta-a-punta)
 
 </div>
 
 ---
 
-## Estado: ya calcula rutas andando y sobre ruedas
+## Estado: cinco modos de punta a punta
 
 > ⚠️ **Este repositorio está en construcción: arranca en local y no está publicado todavía en
-> ninguna dirección.** Lo que ya funciona de punta a punta son **cuatro modos**: andando, bici
-> privada, patín (VMP) y BiZi. Se escribe de dónde a dónde, se elige el modo, se pulsa «Generar
-> ruta», y la pantalla dibuja la ruta de verdad en el mapa y lista las indicaciones paso a paso.
-> **Bus o tranvía y coche todavía no**, y la pantalla lo dice.
+> ninguna dirección.** Lo que ya funciona de punta a punta son **cinco modos**: andando, **bus y
+> tranvía**, bici privada, patín (VMP) y BiZi. Se escribe de dónde a dónde, se elige el modo, se
+> pulsa «Generar ruta», y la pantalla dibuja la ruta de verdad en el mapa y lista las indicaciones
+> paso a paso. **Solo el coche todavía no**, y la pantalla lo dice.
+>
+> **⭐ Y desde el 31/08 el bus y el tranvía están enteros.** No es «una ruta más»: es la primera
+> vez que el motor tiene que decidir **en qué te subes**, y eso trae media docena de piezas nuevas.
+>
+> **La red sale del GTFS y se cocina una vez.** Las **984 paradas** del feed —934 de bus y 50 de
+> tranvía— se agrupan en **170 patrones**, que es la secuencia ordenada de paradas que cada línea
+> recorre de verdad, con sus viajes y sus horas por servicio. El cocinado se guarda al lado del
+> zip, así que el motor arranca leyéndolo en **196 ms** en vez de volver a masticar 34.427 viajes.
+> Y los **89 trazados** del feed ya no solo se pintan: cada parada se proyecta sobre el suyo y se
+> guarda **la traza de cada salto** —**3.362 saltos, 48.307 puntos**—, de modo que el bus va por el
+> asfalto y no en línea recta de poste a poste.
+>
+> **La búsqueda es por rondas —RAPTOR—, y los pesos son de OpenTripPlanner.** Una ronda por
+> vehículo: se sale andando a los postes que quedan cerca, se recorre lo que se alcanza sin
+> transbordar, y así **tres rondas**. Lo que decide entre dos rutas no es la distancia: es el
+> coste, y ahí están los tres números que OTP publica —**`walkReluctance` 4**, que hace que andar
+> pese cuatro veces lo que ir sentado; **`boardCost` 600**, los diez minutos de fricción que cuesta
+> subirse a algo; y **`transferSlack` 120**, los dos minutos de bajarse, orientarse y esperar a
+> que el de enfrente abra la puerta—. Con ellos, un transbordo tiene que **ganarse** su sitio.
+>
+> **Y la ruta que se dice es la de HOY, no la del horario.** El feed dice por dónde pasa cada
+> línea; la web de Avanza dice por dónde pasa **hoy** (§ 1.25 del notices). Restando una contra
+> otra salen las paradas **fuera de servicio** y las **provisionales**, y con eso el motor no te
+> manda a subir donde el autobús hoy no para. La ruta desviada se **reconstruye entera**: las
+> paradas provisionales entran con su coordenada real —pedida a Avanza, porque el GTFS no las
+> conoce— y **los saltos nuevos se trazan por el viario**, respetando los sentidos únicos. Medido
+> al arrancar y cada media hora: `64 sentidos · 23 detectados · 23 aplicados · 0 sin saber · 17 s`.
+>
+> ⚠️ **Y esa reconstrucción va declarada por lo que es**: la red que se usa para rehacer el trozo
+> desviado incluye carriles y sendas por los que un autobús no cabe, así que el trazado nuevo es
+> *por dónde se puede ir respetando los sentidos*, no *por dónde va el autobús*. **Los saltos que
+> el feed sí trae conservan su traza intacta**, que es el asfalto de verdad. Y los segundos de un
+> salto nuevo salen de la **velocidad comercial del propio patrón** —sus metros entre sus
+> segundos—, no de una velocidad de manual.
+>
+> ⚠️ **Y lo que esto NO detecta va escrito**: un autobús que **pasa pero no para** deja la ruta
+> operativa igual, así que **ninguna fuente lo dice**. Se detectan desvíos, no supresiones.
+>
+> **⭐ Y el minuto de verdad, para el primer autobús.** Al generar, el motor le pregunta a Avanza
+> por **el primer poste de subida** cuántos minutos falta, y ese número **sustituye** a la espera
+> estimada del horario — lo real desplaza a lo programado, que es el principio de GTFS-Realtime.
+> Solo el primero: «próximo en 3 min» en un poste al que se llega dentro de cuarenta minutos es un
+> número cierto sobre un autobús que no se va a coger.
+>
+> > 🚌 **Sube** a la línea **35** en el poste **33 · Av. Academia General Militar N.º 37** — 17
+> > paradas — **próximo en 2 min** (dato de las 16:56)
+> > ⇄ En el poste **147 · Av. Francisco De Goya N.º 83**, **transborda** de la línea **35** a la
+> > **31** — 10 paradas — frecuencia teórica de la 31: cada 11 min
+> > 🚏 **Baja** en el poste **860 · Villa De Ansó / Avenida De América**
+>
+> **⭐ Y de los demás postes se pregunta A PETICIÓN**, con un botón **«Próximo bus»** al lado de
+> cada subida y cada transbordo. Cada pulsación vuelve a preguntar de verdad —nada se guarda—, y
+> el resultado aparece en una región `role="status"` que **ya estaba en el DOM antes** de tener
+> nada dentro, que es lo único que hace que un lector de pantalla lo anuncie [WCAG 4.1.3]. El
+> botón **no se deshabilita mientras carga**: eso lo sacaría del orden de tabulación justo al
+> pulsarlo. **En el tranvía no hay botón**, porque no hay a quién preguntar.
+>
+> **Y la pantalla dice la línea como se lee en la calle**: el chip con **su color**, el **número de
+> poste** junto al nombre —`PA00033` es el **33** de la marquesina—, cuántas paradas se va dentro,
+> y un **ribete** bajo cada tramo montado para que ninguna línea se pierda contra el mapa
+> [WCAG 1.4.11: 3:1 contra los colores **adyacentes**]. El aviso de desvío va **en dos niveles**
+> —el hecho siempre visible y el detalle detrás de un botón, la revelación progresiva del GOV.UK—
+> y aparece **dos veces con el mismo texto**: arriba en la cabecera y al lado del hito al que
+> afecta.
 >
 > **⭐ Y desde el 29/08 el motor calcula también las tres rutas de la rueda** —bici propia,
 > patín (VMP) y BiZi—, cada una por su tabla de acceso legal, respetando el sentido único de la
@@ -116,8 +180,9 @@
 > **⭐ Y desde el 30/08 el selector son seis y cada rueda manda la suya** —Andando · Bus /
 > Tranvía · Bici privada · Patín (VMP) · BiZi · Coche—. Hasta entonces eran cuatro botones y
 > «Bici / Patinete» mandaba `bici`, así que un patinete recibía la ruta de una bici: legal para
-> la bici, ilegal para él en cuanto la calle pasa de 30. **Bus o tranvía y coche siguen sin
-> calcular nada**, y ahora lo dice la propia pantalla sin llegar a preguntárselo al motor.
+> la bici, ilegal para él en cuanto la calle pasa de 30. **Solo el coche sigue sin calcular
+> nada**, y lo dice la propia pantalla sin llegar a preguntárselo al motor — el bus perdió ese
+> corte el 31/08 y viaja como los demás.
 >
 > La pantalla vive en [`app/`](app/): el formulario de cuatro campos, los seis modos, el mapa
 > y las indicaciones. **Los cuatro campos se rellenan contra el motor**, con el callejero de
@@ -426,15 +491,17 @@
 > enseña el aviso del motor en ámbar, con el nombre de la calle, y el mapa se queda limpio. Ni
 > una línea inventada para tapar el hueco.
 >
-> **Lo que sigue sin existir**: rutas en **bus o tranvía** y en **coche** —la pantalla lo dice
-> sin llegar a preguntárselo al motor—, y saber qué líneas pasan por cada poste. ⚠️ Este párrafo
-> decía «bus, bici o coche» hasta hoy: **la bici rutea desde el 29/08**, y llevaba día y medio
-> mintiendo tres pantallas por debajo del párrafo que sí se estaba releyendo. Es exactamente la
-> entrada nº5 de la bitácora repitiéndose, y por eso se corrige diciéndolo.
+> **Lo que sigue sin existir**: rutas en **coche**, y nada más — la pantalla lo dice sin llegar a
+> preguntárselo al motor. ⚠️ Este párrafo decía «bus o tranvía y coche» hasta el 1/09, y **el bus
+> ruteaba desde el 31/08**: es la tercera vez que una frase de este README envejece varias
+> pantallas por debajo del párrafo que sí se estaba releyendo. La primera fue la bici (29/08), y
+> antes la entrada nº5 de la bitácora. **Se corrige diciéndolo**, que es lo único que ha
+> funcionado hasta ahora.
 >
-> Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias, catorce
-> conjuntos de datos verificados, y un buscador que de verdad busca — andando, de portal a
-> portal, con la ruta en el mapa y los pasos escritos debajo.**
+> Así que hoy el repositorio es esto: **el método de trabajo, el plan, las licencias,
+> veinticinco conjuntos de datos con ficha —tres de ellos consultados en vivo, no copiados—, y un
+> buscador que de verdad busca: andando, en autobús o tranvía, en bici, en patín y en BiZi, de
+> portal a portal, con la ruta en el mapa y los pasos escritos debajo.**
 >
 > El README se publica igualmente desde el principio —el repositorio es público desde el
 > primer commit— y por eso dice lo que hay, no lo que habrá.
@@ -472,10 +539,12 @@ Una sola pantalla:
   flechas entre las opciones).
 - **Mapa con la ruta**.
 - **Las indicaciones paso a paso**, debajo — y **con hitos** cuando el viaje cambia de vehículo:
-  dónde se aparca la bici, dónde se coge y se deja la BiZi.
-- **Un aviso cuando hace falta**: que no hay aparcabicis cerca y a cuántos metros estaba el más
-  cercano, que la disponibilidad del BiZi no se ha podido verificar, o que el pedaleo supera el
-  tramo incluido del abono.
+  dónde se **sube**, dónde se **transborda** y dónde se **baja** del autobús o el tranvía, dónde se
+  aparca la bici, dónde se coge y se deja la BiZi.
+- **Un aviso cuando hace falta**: que la línea va hoy **desviada** y por dónde no para, que Avanza
+  no anuncia ningún próximo en ese poste, que no hay aparcabicis cerca y a cuántos metros estaba
+  el más cercano, que la disponibilidad del BiZi no se ha podido verificar, o que el pedaleo
+  supera el tramo incluido del abono.
 
 Y nada más. El alcance es corto a propósito.
 
@@ -494,6 +563,19 @@ git clone https://github.com/ablanquez/desplazame.git
 cd desplazame
 npm install          # en la RAÍZ: son workspaces, instala los tres a la vez
 ```
+
+> ⭐ **Y no hace falta ninguna clave para arrancar.** El GTFS entra en el repositorio como
+> **semilla fechada** —`app/data/2026-08-10_nap_gtfs-ficha1176.zip`—, así que un clon limpio
+> levanta el bus y el tranvía sin pedirle nada a nadie. Las dos variables de `motor/.env.local`
+> **solo hacen falta para renovarlo**, y el fichero **no está en el repositorio**:
+>
+> | | Para qué |
+> |---|---|
+> | `NAP_API_KEY` | que el cron pueda **descargar** del Punto de Acceso Nacional la publicación nueva |
+> | `DESPLAZAME_REGEN_TOKEN` | que `POST /api/renovar-feed` acepte **dispararlo** (`Authorization: Bearer …`) |
+>
+> Sin ellas el motor arranca igual y lo dice: sirve la semilla, y el cron no puede correr. En
+> producción viven en el panel de Hostinger.
 
 Y luego **dos terminales**, porque son dos procesos:
 
@@ -516,10 +598,14 @@ Con las dos arriba, en el navegador:
 > Cualquier otra —incluida `/visor`, que fue una página hasta el 22/08— cae en el buscador por
 > el comodín del router: ni pantalla en blanco ni 404.
 
-> ⚠️ **Andando es el modo que viene marcado al abrir**, y las tres ruedas —bici privada, patín
-> y BiZi— dan ruta desde el 29/08. **Bus o tranvía y coche no**: ahí la pantalla dice que
-> todavía no se calcula, y no llega a preguntárselo al motor — nunca una ruta a pie disfrazada
-> de otra cosa.
+> ⚠️ **Andando es el modo que viene marcado al abrir.** Las tres ruedas —bici privada, patín y
+> BiZi— dan ruta desde el 29/08 y el **bus y el tranvía desde el 31/08**. **Solo el coche no**:
+> ahí la pantalla dice que todavía no se calcula, y no llega a preguntárselo al motor — nunca una
+> ruta a pie disfrazada de otra cosa.
+>
+> ⏱️ **Y el bus tarda más que los demás a propósito**: pregunta a Avanza por el primer poste antes
+> de contestar. Medido hoy sobre 200 peticiones: **p50 750 ms**, contra los **36 ms** que cuesta
+> el mismo viaje sin salir a la red. La diferencia es la fuente, no el motor.
 >
 > Los seis caben en una fila. Medido en Chrome sobre la página servida (30/08, sonda de
 > scratchpad por CDP): las seis opciones suman **567,2 px** y sus cinco huecos 40, o sea 607,2
@@ -543,9 +629,54 @@ npm run comprobar-arranque -- motor   # el motor: ¿lleva el dato, y sabe rutear
 
 Las dos son solo de Windows: leen el PID con `netstat` y la hora de arranque con PowerShell.
 
+**Y los tipos se comprueban desde la RAÍZ, con uno solo**: encadena el del motor y el de la
+interfaz, y el contrato de `@desplazame/tipos` entra por dentro de los dos, que es lo que hace que
+un cambio en él rompa por los dos lados a la vez. Además **cuenta cuántos ficheros ha mirado**,
+para que un `tsconfig` mal apuntado no dé verde mirando cero:
+
+```bash
+npm run comprobar-tipos     # en la RAÍZ, no dentro de app/ ni de motor/
+```
+
+```
+comprobar-tipos · la interfaz, con censo
+  OK   tsconfig.app.json    limpio · 292 ficheros mirados
+  OK   tsconfig.spec.json   limpio · 356 ficheros mirados
+```
+
+**Y las pruebas de pantalla, a mano.** Lo que vive en [`app/e2e/`](app/e2e/) no entra en
+`npm test`: son guiones que conducen un **Chrome de verdad** por CDP —sin una dependencia
+añadida— y necesitan **el motor y `ng serve` levantados**. Miden lo que solo se ve en el píxel:
+el contraste real de los chips, los huecos del trazado, y el botón «Próximo bus» contra Avanza en
+vivo.
+
+```bash
+node app/e2e/proximo-bus.mjs      # el botón, de punta a punta y con la fuente viva
+```
+
+### El arranque del bus, que es su comprobación
+
+El motor declara al arrancar de dónde sale cada pieza del bus. Si algo falta, se ve aquí y no tres
+pantallas más adelante:
+
+```
+motor: feed GTFS vivo (relevó a la semilla) — 20260623_AUZSA_Y_TRANVIA · 6883311 bytes
+motor:   NAP 2026-06-30T13:20:04.661082 · vence 20261005 · 34 día(s) → VIGENTE
+motor: red de bus LEÍDA del cocinado — 984 paradas · 170 patrones · 10588 transbordos · 196 ms
+motor: escuchando en http://localhost:3000 (pid 23576)
+motor: GET /api/poste-vivo?poste=N&linea=L pregunta a Avanza a peticion, sin guardar nada
+motor: ruta operativa de hoy — 64 sentidos · 23 detectados · 23 aplicados · 0 sin saber · 17 s
+```
+
+Cuatro cosas: **qué feed se está sirviendo** —la semilla o el vivo— y cuántos días le quedan; **la
+red cocinada**; **el puerto y el pid**, que es contra lo que se comprueba que contesta el proceso
+de ahora; y **la ruta operativa de hoy**, que llega **después** de escuchar y sin que nadie la
+espere — son medio centenar de peticiones a Avanza y el motor ya está sirviendo mientras tanto.
+
 ### La API del motor, hoy
 
-Seis rutas vivas. Las que vengan las decide el plan, no esta lista:
+**Ocho rutas vivas** (`grep -cE "url\.pathname === '/api/" motor/src/servidor.ts`). Las que
+vengan las decide el plan, no esta lista:
 
 | | |
 |---|---|
@@ -554,7 +685,9 @@ Seis rutas vivas. Las que vengan las decide el plan, no esta lista:
 | `GET /api/portales?via=` | todos los portales de esa vía, ya ordenados. Sin `via`, lista vacía — y **lista vacía también en las 619 sin portal**, que es la verdad: no tienen ninguno |
 | `GET /api/sitios?q=&capa=&foco=` | sugiere **sitios** desde 2 letras, hasta 10 resultados — la otra capa del autocompletar, la que sirve al desplegable de tipos. `capa` acota a una categoría (`farmacia`, `hospital`, `centro-salud`), y **una capa que no existe se ignora** en vez de dar error. `foco` es **el código del otro extremo** ya resuelto —un portal o un sitio, no un par de coordenadas—: a igualdad de coincidencia sube lo que está cerca de él, pero no descarta nada. Sin `q`, lista vacía |
 | `GET /api/portal-cercano?lat=&lon=` | el portal más cercano a un punto, con su vía y sus metros. Barre los 46.150 en **1,35 ms** medidos. Sin coordenadas válidas, `null` |
-| `POST /api/ruta` | la ruta entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué. **`modo` es opcional y vale `andando` si falta** (`andando` · `bici` · `patin` · `bizi`; `bus` y `coche` contestan que todavía no). **`ruta` también es opcional y vale `equilibrada`** (`rapida` · `equilibrada` · `tranquila`): la miran `bici` y `bizi`, y **el `patin` la ignora** — su vía ciclista es obligatoria, así que lleva el calibrado fuerte pida lo que pida. Medido el 30/08 en `Portales.120344 → Portales.110047` en bici: rápida **1.554 m / 5,7 min / 150 m de Avenida de Madrid**, equilibrada **1.565 / 5,7 / 110**, tranquila **1.710 / 6,2 / ninguno**. ⭐ **Y desde el 30/08 la respuesta puede traer HITOS**: `aparca` en bici y patín —el aparcabicis donde se deja el vehículo— y `coge` + `aparca` en BiZi —las dos estaciones—. Un hito es un paso propio con `metros: 0`, porque no abre tramo: es una parada. Medido con las MISMAS 200 peticiones el 30/08 (semilla 7 sobre el censo): andando **p50 23,3 ms · p95 40,3**, bici **24,6 · 39,9**, patín **17,6 · 98,4**, BiZi **88,4 · 164,4**. ⚠️ **La BiZi cuesta cuatro veces más que las demás, y es la red**: cada ruta pregunta en vivo a la API de la sede (§ 1.23), que contesta en ~0,3 s la primera vez y en ~0,08 las siguientes. Es el precio de no mentir con un número guardado. Y en esas mismas 200: andando resuelve 197, bici 196, BiZi 197 y **el patín 98** — eran 35 antes del **defecto legal del art. 50 RGC**, 51 después, 83 desde el empuje, y **98 desde el remate**: al no necesitar ya una puerta rodable en el destino —le basta con llegar al aparcabicis y andar—, quince pares más tienen ruta. De las que resuelven, llevan hito **167 de 196** en bici y **196 de 197** en BiZi. El arranque lo declara capa a capa |
+| `POST /api/ruta` | la ruta entre dos extremos, por códigos —un portal, un sitio, o **una vía sin portales, que viaja con su propio código en las dos casillas** (`{via: '23125', portal: '23125'}` es el Puente de Piedra)—: geometría, pasos escritos, metros y duración derivada. **Es la que llama «Generar ruta»**. Medido sobre 200 peticiones HTTP a portales al azar de toda la ciudad: **p50 22 ms, p95 35**. El Dijkstra son ~10 de esos milisegundos; el resto es escribir los pasos y serializar —**22,9 pasos y 13,5 kB** de media, que eran **23,3 pasos** en las mismas 200 peticiones antes de los combines de odin—. Sin ruta, un aviso que dice por qué. **`modo` es opcional y vale `andando` si falta** (`andando` · `bus` · `bici` · `patin` · `bizi`; **solo `coche`** contesta que todavía no). ⭐ **Con `bus` la respuesta trae tramos MONTADOS**: cada uno con su `linea` —código corto, nombre largo, color y modo `bus`/`tram`— y sus pasos de hito `sube`, `transborda` y `baja`, con el número de poste, cuántas paradas se va dentro y la espera. Medido hoy sobre 200 peticiones HTTP a portales al azar (semilla 7, el mismo método que las demás filas): **p50 750 ms, p95 2.810, máximo 6.370**, y **133 de 200** dan ruta en autobús. ⚠️ **De esos 750 ms, el motor pone 36**: el mismo viaje resuelto sin salir a la red da **p50 36 ms y p95 74** — con las mismas 133 resueltas—, así que **lo demás es la consulta viva a Avanza** del primer poste. Es el precio de decir un minuto de verdad en vez de una estimación, y va dicho en vez de escondido. **`ruta` también es opcional y vale `equilibrada`** (`rapida` · `equilibrada` · `tranquila`): la miran `bici` y `bizi`, y **el `patin` la ignora** — su vía ciclista es obligatoria, así que lleva el calibrado fuerte pida lo que pida. Medido el 30/08 en `Portales.120344 → Portales.110047` en bici: rápida **1.554 m / 5,7 min / 150 m de Avenida de Madrid**, equilibrada **1.565 / 5,7 / 110**, tranquila **1.710 / 6,2 / ninguno**. ⭐ **Y desde el 30/08 la respuesta puede traer HITOS**: `aparca` en bici y patín —el aparcabicis donde se deja el vehículo— y `coge` + `aparca` en BiZi —las dos estaciones—. Un hito es un paso propio con `metros: 0`, porque no abre tramo: es una parada. Medido con las MISMAS 200 peticiones el 30/08 (semilla 7 sobre el censo): andando **p50 23,3 ms · p95 40,3**, bici **24,6 · 39,9**, patín **17,6 · 98,4**, BiZi **88,4 · 164,4**. ⚠️ **La BiZi cuesta cuatro veces más que las demás, y es la red**: cada ruta pregunta en vivo a la API de la sede (§ 1.23), que contesta en ~0,3 s la primera vez y en ~0,08 las siguientes. Es el precio de no mentir con un número guardado. Y en esas mismas 200: andando resuelve 197, bici 196, BiZi 197 y **el patín 98** — eran 35 antes del **defecto legal del art. 50 RGC**, 51 después, 83 desde el empuje, y **98 desde el remate**: al no necesitar ya una puerta rodable en el destino —le basta con llegar al aparcabicis y andar—, quince pares más tienen ruta. De las que resuelven, llevan hito **167 de 196** en bici y **196 de 197** en BiZi. El arranque lo declara capa a capa |
+| `GET /api/poste-vivo?poste=&linea=` | **Cuándo pasa el próximo de esa línea por ese poste**, preguntado a Avanza **en el momento** (§ 1.24 del notices). Es lo que contesta el botón «Próximo bus». **Idempotente** y con `Cache-Control: no-store`: cada pulsación vuelve a preguntar de verdad — un «en 3 min» servido de la caché cuarenta segundos después no es viejo, es **falso**. **Single-flight por poste**: dos peticiones simultáneas del mismo poste comparten una sola visita a la fuente. Contesta uno de **tres estados**, con su frase ya compuesta: `llega` («próximo en 4 min (dato de las 16:29)»), `ausente` («Avanza no anuncia ningún próximo…» — que es **sin información**, no «sin servicio») y `mudo` («disponibilidad no verificada»). Un poste o una línea que faltan son **400**; un poste que Avanza no conoce es `mudo` y **200**, porque no saberlo no es un error de quien pregunta. Medido hoy contra la fuente viva: poste 1203 línea 29 → `ausente` en **2,26 s**; poste 1000 línea 53 → `llega`, «próximo en 4 min», en **2,38 s** |
+| `POST /api/renovar-feed` | **El disparador del cron nocturno**, que trae del NAP la última publicación del GTFS y la escribe al lado de la semilla. El token va **en la cabecera `Authorization: Bearer …`** y nunca en la URL, que se queda en los logs. **`503`** si no hay token configurado en el servidor —falla cerrado y no ejecuta nada—, **`401`** si el que llega no es el bueno, **`409`** si ya hay una renovación en curso, y **`202`** cuando arranca: se contesta antes de empezar para que ningún *timeout* del hosting mate el trabajo a medias. El zip nuevo **se sirve al próximo arranque**, no en caliente |
 
 En desarrollo el `4200` las reenvía al `3000` con un proxy, así que la interfaz siempre pide a
 `/api/…` y no sabe en qué puerto vive el motor.
@@ -767,6 +900,7 @@ tiene de particular:
 | 🔴 | el conjunto declara una fecha de caducidad y ya pasó | — |
 | 🟡 | se refresca cada X en origen y nuestra copia es más vieja | — |
 | 🟢 | hay regla con fuente y se cumple | el GTFS: «vale hasta el 2026-10-05» |
+| ⚪ | **NO CONSTA** | **33 de los 39** recursos del manifiesto |
 
 > ⭐ **El GTFS son dos ficheros, y no son lo mismo (31/08).**
 >
@@ -781,7 +915,6 @@ tiene de particular:
 > el NAP dio y los días que le quedan. Para que el cron funcione hace falta `NAP_API_KEY` en
 > `.env.local` (local) o en el panel de Hostinger (producción), y `DESPLAZAME_REGEN_TOKEN` para
 > el disparador. **Ninguna de las dos vive en el repositorio.**
-| ⚪ | **NO CONSTA** | 33 de los 37 conjuntos |
 
 ⭐ **El gris no es un fallo del panel: es la verdad, y la lista de deberes.** Un color solo se
 pinta si detrás hay una regla **publicada por alguien** — el `feed_end_date` del GTFS lo dice su
@@ -795,15 +928,19 @@ descarga: llegó copiada del archivo del proyecto anterior—, así que no hay c
 panel no adivina: lo dice.
 
 **La portada no se entera de nada de esto.** Abrir la raíz sigue sin pedir un solo byte de datos
-—ni el manifiesto, que son 37 KB—: el panel se carga aparte (`loadComponent`) y pide su
+—ni el manifiesto, que son **44 KB**—: el panel se carga aparte (`loadComponent`) y pide su
 manifiesto solo cuando alguien entra en él. Medido sobre el `dist`: la raíz en frío son **6
 peticiones y 459 kB**, y **cero** de datos o de manifiesto. Hay dos guardianes que lo vigilan, y
 uno cuenta el total de peticiones, no un patrón — para que la próxima cosa que quiera colgarse de
 la portada tampoco pueda hacerlo en silencio.
 
-Y el manifiesto **no puede pudrirse en silencio**: una prueba recalcula el `sha256` de los 37
-ficheros en cada ejecución y los compara con lo declarado. Si un dato cambiara sin que nadie
+Y el manifiesto **no puede pudrirse en silencio**: una prueba recalcula el `sha256` de **los 39
+recursos** en cada ejecución y los compara con lo declarado. Si un dato cambiara sin que nadie
 tocara el manifiesto, se pondría roja.
+
+⚠️ **Aquí decía «37» en tres sitios, y son 39** (`node -e "console.log(require('./datapackage.json').resources.length)"`).
+El manifiesto creció y estas tres líneas no se enteraron — la misma clase de descuido que la
+entrada nº5 de la bitácora, corregida con el comando delante en vez de a ojo.
 
 ## Stack tecnológico
 
@@ -837,29 +974,37 @@ Código: **[Apache 2.0](LICENSE)** · © 2026 **Antonio Blánquez Cabeza** —
 Las dependencias de terceros conservan sus propias condiciones, una por una, en
 **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**.
 
-Los datos **no** van bajo esa licencia: conservan las suyas, y son estas dos.
+Los datos **no** van bajo esa licencia: conservan las suyas, y son **tres regímenes distintos**.
 
 | Dato | Licencia | Obligación |
 |---|---|---|
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
+| ⛔ **Servicios en vivo de Avanza Zaragoza** (las llegadas al poste y la ruta operativa de hoy) | **Ninguna.** Su [aviso legal](https://www.avanzabus.com/informacion/aviso-legal/) —leído el 01/09/2026— **prohíbe expresamente** la *«extracción y/o reutilización»* y reclama el *«derecho sui generis sobre la base de datos»* | **No hay atribución que cumplir, porque no hay permiso.** Se **consultan** en tiempo de ejecución —como haría cualquier cliente de su web— y ni una respuesta se guarda como dato. ⚠️ **Con una excepción que se declara y no se ha decidido**: hay bytes de sus respuestas en los *fixtures* de las pruebas, puestos por la ley de la casa de que un fixture copia la medición. El texto legal literal y esa divergencia están en **§ 1.24** del notices |
 
-> ℹ️ **Y las dos están en uso.** El notices lleva **una ficha por conjunto, y hoy son 24**
+> ℹ️ **Y las tres están en uso.** El notices lleva **una ficha por conjunto, y hoy son 26**
 > (`grep -c '^### 1\.' THIRD-PARTY-NOTICES.md`): **dieciocho** del Ayuntamiento de Zaragoza —el
 > callejero, los portales, los carriles bici, los postes de autobús, las estaciones BiZi, los
 > aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas reguladas, las reservas de
 > espacio, los ejes de vía, la jerarquía viaria, las cinco de equipamientos y **la disponibilidad
 > viva del BiZi**—, **cuatro** de OpenStreetMap —la cartografía, el grafo de continuidad, los
-> nombres de vía y las etiquetas del viario—, el GTFS del Punto de Acceso Nacional, y la ficha
-> que declara lo que **todavía no** ha entrado.
+> nombres de vía y las etiquetas del viario—, el GTFS del Punto de Acceso Nacional, **las dos
+> fuentes vivas de Avanza** —las llegadas al poste y la ruta operativa de hoy—, y la ficha que
+> declara lo que **todavía no** ha entrado.
 >
-> ⚠️ **Este párrafo decía «treinta conjuntos dentro» y «quince fichas», y las dos cifras se
-> habían quedado viejas** — el notices pasó de quince a veinticuatro fichas sin que esta línea
-> se enterara. Es la entrada nº5 de la bitácora otra vez: una regla de releída vale lo que su
-> alcance. Se corrige con el comando delante, que es como se cuenta aquí.
+> ⚠️ **Este párrafo ha ido diciendo «quince», «veinticuatro» y ahora veintiséis**, y las dos
+> primeras se quedaron viejas donde estaban. Es la entrada nº5 de la bitácora repitiéndose: una
+> regla de releída vale lo que su alcance. Se corrige con el comando delante, que es como se
+> cuenta aquí.
 >
-> ⭐ **Y desde el 30/08 no todo «está dentro»**: la disponibilidad del BiZi (§ 1.23) **no se
-> copia, se consulta** — caduca cada minuto y guardarla sería guardar una mentira con fecha.
+> ⭐ **Y desde el 30/08 no todo «está dentro»: hoy son TRES las que no se copian.** La
+> disponibilidad del BiZi (§ 1.23), las llegadas al poste (§ 1.24) y la ruta operativa de hoy
+> (§ 1.25) **se consultan** — caducan en segundos o en minutos, y guardarlas sería guardar una
+> mentira con fecha.
+>
+> ⛔ **Y las dos de Avanza traen algo que ninguna otra ficha tiene: un aviso legal que PROHÍBE
+> expresamente la extracción y la reutilización**, leído y transcrito el 01/09 con su URL y su
+> fecha. Ni se interpreta ni se resume aquí: está en § 1.24 del notices, literal.
 >
 > **La atribución de OpenStreetMap se cumple en la pantalla**, en el control del mapa y con la
 > palabra «colaboradores» literal. La del dato municipal se cumple en
