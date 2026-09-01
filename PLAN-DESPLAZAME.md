@@ -1990,8 +1990,22 @@ los 27.603 (que la columna esté no es que el dato esté) · 8 rutas de
 routes.txt sin ni un viaje en el feed (53 rutas, 45 route_id en
 trips — por mirar aquí).
 
-**⭐ FIRMAS DE ANTONIO (30/08, al cierre del 9 — las reglas del
-producto para cuando este punto arranque):**
+**⚠️ ESTADO DE LAS REGLAS AL 31/08 — «NO HAY FIRMAS, HAY DOCTRINA»
+(palabra de Antonio, repetida con razón): las nueve de abajo se
+escribieron el 30/08 como «firmas»; el 31/08 la literatura las
+revisó una a una:** 1 transbordos siempre → vigente · 2 vehículo
+único → REFORMULADA: no absoluto («no optimizamos por menos
+transbordos: absurdos» [OTP]) sino boardCost 600 por subida · 3
+buses al empate → RETIRADA (la doctrina no trae número para
+penalizar el tranvía; su ejemplo va al revés, RAIL 0,85) · 4 radios
+500/800 → DEGRADADOS a estándar de planeamiento (el límite de
+acceso es de RENDIMIENTO [OTP2, «ponerlo alto»]; decide
+walkReluctance 4) · 5 colores de ZetaBus → vigente · 6 = la 2 · 7
+comprobación en vivo → vigente (v2) · 8 pintado BiZi extendido →
+vigente · 9 transbordo 500 m + 120 s → vigente. Lo que sigue es el
+texto original, conservado como historia.
+
+**⭐ REGLAS DE PRODUCTO (30/08, al cierre del 9 — el texto original):**
 1. TRANSBORDOS SIEMPRE POSIBLES entre bus y tranvía (el
    planificador completo, no el directo-solo).
 2. PRIORIDAD AL VEHÍCULO ÚNICO: si se puede llegar con un solo
@@ -2305,6 +2319,131 @@ en este poste ahora mismo» · el Generar en bus tarda ~2 s
 variables → INDICADOR de espera obligatorio [NN/g: >1 s, indicar
 que se trabaja; más aún si el tiempo es variable]. 415 motor · 183
 interfaz.
+
+**⭐ LOS PESOS DE OTP — el enrutado corregido por doctrina (31/08
+tarde, tras la queja del ojo: «se me va a coger el bus a tomar por
+culo… busca doctrina que algo estás cagando»).** EL DIAGNÓSTICO
+medido antes de tocar: (bitácora nº19) RAPTOR se subía en la
+primera parada marcada del patrón — correcto con etiquetas de HORA
+(subir antes nunca empeora), FALSO con etiquetas de COSTE (subir
+antes cuesta más rodar): el poste PA00033 a 60 m andando perdía
+contra Ramazzini a 478 m pese a ganar por 6,5 min incluso con peso
+1; estrella: la juez del caso del ojo compraba Ramazzini (esperado
+copiado del motor — ley nº16). La 44: su poste a 530 m andando
+(fuera del veto 500 por 30 m) y HOY no circula (calendario de
+verano: 16 de 45 líneas sin servicio el 31/08 — 21 23 33 39 44 Ci*
+N* — dato del feed, no del código). Avanza «mudo» falso: el tope 3 s
+corto (latencias medidas hasta 2.838 ms; ZetaBus usa 4.000 +
+reintento 300). EL ARREGLO: la subida se RECONSIDERA a lo largo del
+patrón (mínimo corrido de coste[k]+espera−acumulado[k], la regla de
+«coger un vehículo anterior» de RAPTOR traducida a costes) ·
+walkReluctance 4,0 [OTP2 actual; OTP1 2,0] · walkBoardCost 600
+[OTP: «evita transbordos innecesarios»] · waitReluctance 1,0 ·
+transferSlack 120 · tranvía 1,0 (preferencia RETIRADA; el par de
+Asín y Palacios re-medido elige bus+bus por el paseo final 0 vs 353
+m, no por el modo — los 10,1 min «de firma» eran de la búsqueda
+rota) · el COSTE TOTAL decide entre rondas (lexicográfico FUERA) ·
+el veto 500/800 FUERA [OTP2: límite de acceso = rendimiento, defecto
+4 h] → topes de rendimiento declarados: 30 min andando + 40
+candidatos por cercanía (con 2.500 m el centro daba 438 y 1,6 s) ·
+Avanza 4.000 ms + 1 reintento 300. EL CASO DEL OJO en cuatro
+paradas: 51,8 min (lo que veía) → 43,0 (subida reconsiderada: sube
+a 60 m) → 41,3 (pesos) → 35,9 con la 44 directa el 1/09 (hoy 31,
+sin la 44: 43,8 subiendo en la puerta). El par de la antigua firma
+6: 1 vehículo 40,3 min gana a 2 con 39,4 (pesa 3.020 vs 4.107 — «el
+segundo entra si ahorra >600»). Los pesos ELIGEN; el reloj que se
+contesta es el real. Coste medido: motor 31 ms de mediana; el
+Generar en bus 2.990 ms mediana · 8.374 peor (dos postes en fila
+india → ⚠️ paralelizar, anotado). NO CONSTA por qué el poste 1203 no
+anuncia nada y el 33, dos paradas después del mismo patrón, anuncia
+dos coches. 426 motor · 188 interfaz.
+
+**⭐ CASILLA 3c · LOS DESVÍOS — LA RUTA OPERATIVA DE HOY MANDA
+(31/08; validado por el ojo: «probado y funciona bien»).** Antonio
+frenó mi primer encargo (GTFS-RT alerts, página de alteraciones):
+«en ZetaBus tenemos el itinerario alternativo». LA SONDA en ZetaBus
+(solo lectura, rutas citadas): ⭐ NO HAY FUENTE DE DESVÍOS — se lee
+LA RUTA OPERATIVA DE HOY (POST zaragoza.avanzagrupo.com/wp-admin/
+admin-ajax.php action=get_stops_list selectLinea selectSentido -1/-2
++ nonce re-scrapeado de /lineas-y-horarios/, 403 sin él, memo 30
+min; HTML de <option> sin <select>; recorrido.ts) y se RESTA del
+GTFS (desvios.ts): fuera (en GTFS y no hoy) · provisionales (hoy y no
+en GTFS, con el nombre de Avanza) · sentido→direction_id por SOLAPE
+medido (91-93 %) · UMBRAL_ABSURDO >50 % → indeterminado («preferimos
+decir NO LO SÉ a tachar 30 paradas») · la ruta real MANDA siempre
+que se pueda leer (el fallo más grave de ZetaBus escrito: «le decía
+a alguien que su bus para en una calle CORTADA. No petaba. Pintaba»)
+· caché 1 h SEPARADA de la de llegadas · se AUTO-APAGA (diff vacío)
+· asimetría declarada: detecta desvíos de RUTA, no supresiones de
+parada en prosa (el poste 744). Los 9 postes solo-Avanza con
+coordenada del marcadorParada (data/postes-solo-barrido-
+coordenadas.json). Sin GTFS-RT en el NAP para Zaragoza (medido).
+LA TRAZA DE LOS SALTOS NUEVOS se RECONSTRUYE ruteando entre postes
+consecutivos sobre la red de la rueda y concatenando [el patrón
+documentado: Freiburg GTFS-mapper (A* entre paradas consecutivas +
+concatenar, recta donde no conecta) · pfaedle (SIGSPATIAL 2018) ·
+bus-router/gtfs-shape-router (OSRM entre paradas) — todos en
+gtfs.org/producing-data]; tiempo = metros ÷ velocidad comercial del
+patrón [PROPIO: la doctrina da geometría, no horario]; la red de la
+rueda como grafo vial hasta el punto 11 (declarado). EL RESULTADO
+HOY: 48 sentidos · 11 líneas desviadas (22 28 29 30 32 34 35 38 40
+41 52), 19 patrones rehechos · 71 saltos nuevos TODOS ruteados (0
+rectas de reserva) · 8 provisionales · 1 sin coordenada (se cae,
+regla B) · 27 s de precalentado. La 29 dir 1: fuera [433 1293 745],
+provisionales [654 1285] — y el 1203 NO está suprimido (sigue NO
+CONSTA). El caso del ojo: 29 + 22, BAJA EN UNA PARADA PROVISIONAL
+(Asalto / Centro de Historias) — la operativa manda de verdad. Sin
+parser copiable (cero deps): contador independiente de <option> +
+rechazo de <optgroup>. ⚠️ erasableSyntaxOnly activado en los dos
+tsconfig (un readonly en parámetro de constructor: tsc aprobaba,
+Node no cargaba — sin verde que mintiera, se vio a la primera).
+Bitácora nº22 (el aviso de la 35 pegado a la subida de la 31):
+cerrada PARCIAL aquí, reabierta en los pulidos. 439 motor · 190
+interfaz.
+
+**⭐ LOS PULIDOS DE LA NARRACIÓN DEL BUS (31/08 noche, cuatro
+tandas, validadas «lo veo chachi» / «va mejor»).** (1) TRANSBORDO EN
+EL MISMO POSTE = UN paso «En el poste X, transborda de la línea A a
+la B — frecuencia teórica de la B: cada N min» con dos chips [GTFS
+transfers.txt: el transbordo es elemento de primera clase entre
+rutas en una parada; misma parada from=to]; con paseo se queda baja
+· andar · sube; 9 pasos donde había 11, el tramo de 0 m fuera, los
+120 s mudados al vehículo siguiente, el total idéntico al segundo.
+(2) SUBIDAS SUCESIVAS: «frecuencia teórica: cada H min» [GTFS
+frequencies/headway] en vez de «~N min de espera»; la primera lleva
+el vivo; H/2 sigue en el total [Dial/Clerq/Wirasinghe], y la
+convención alternativa (Google: cabecera entera como peor caso)
+citada en el código, NO aplicada. (3) nº22 REABIERTA Y CERRADA DE
+VERDAD: la causa no era el orden de las reglas — la regla del SITIO
+SOBRABA para un desvío (un desvío explica UNA línea); nace
+lineaDelHito (primera via en sube, última en transborda); LEY:
+cambiar el orden de dos reglas no arregla que una sobre — la
+pregunta es «¿esta regla puede acertar por casualidad?». (4) LAS
+PARADAS POR VEHÍCULO con la convención num_stops [Google Directions:
+incluye llegada, no salida; A→B→C→D = 3; es propiedad del PASO de
+transporte → sube y transborda llevan cada uno la de SU vehículo]
+sobre el patrón OPERATIVO (la 35 dice 17 hoy porque va desviada).
+(5) EL DESVÍO EN DOS NIVELES: el hecho «⚠ La línea 35 va hoy
+desviada» SIEMPRE visible + botón «detalles» [GOV.UK progressive
+disclosure; límites: «no ocultar lo importante», «solo cuando el
+detalle beneficie a pocos»; botón con aria-expanded/aria-controls,
+foco medido, NO tooltip]; una plantilla para los dos sitios; el
+banner de 114 → 36 px cerrado. ⭐ BITÁCORA nº24: tres jueces en
+verde con la lista A LA VISTA — preguntaban cuerpo.hidden===true
+(cierto) y el CSS .detalles__cuerpo{display:block} pisaba a
+[hidden]; lo delató la sonda (114 px cerrado = 114 abierto); LEY: una
+prueba que pregunta por el ATRIBUTO no compra lo que se VE (la de
+Linaje, en vivo); el instrumento y el defecto nacieron del mismo
+malentendido. El corte del aviso va por marca, no por el primer «:»
+(hay un poste «Av: Cañones De Zaragoza», 1/984). NO CONSTA el
+contorno de :focus-visible por CDP (el foco entra, medido). 24
+bitácoras, 0 abiertas. 445 motor · 195 interfaz.
+⚠️ PENDIENTE POR DOCTRINA, no por orden: 27/45 chips <4,5:1 [WCAG
+1.4.3 AA] y 23/45 líneas <3:1 sobre la tierra de OSM [1.4.11] —
+colores DEL FEED, reportados; los dos arreglos que no inventan
+colores de línea: texto negro/blanco por contraste, y ribete
+(casing) bajo la polilínea. ⚠️ Paralelizar las consultas Avanza (8,3
+s peor caso en fila india). ⚠️ 1203: NO CONSTA.
 
 *(La regla del apoyo en ZetaBus —precedente propio en producción,
 solo lectura, se cita como lo que es y donde discrepe del feed se

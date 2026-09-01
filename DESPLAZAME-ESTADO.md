@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 31 de agosto de 2026
+## ESTADO ACTUAL — 1 de septiembre de 2026
 
 **⭐ PUNTOS 1-9 CERRADOS (el 9, el 30/08: la rueda ENTERA — seis
 modos en pantalla, bici/patín/BiZi ruteando por sus tablas con
@@ -25,10 +25,10 @@ hospitales · bibliotecas · colegios e institutos · guarderías ·
 universidades — 820 sitios, 802 buscables), TODA calle sugerible
 (3.350: 2.731 con portal + 619 por punto medio — el Puente de Piedra
 se escribe), el buscador por tipos completo con siglas e iconos, el
-foco en las dos capas, y las bitácoras cerradas (18/18 al 31/08).**
+foco en las dos capas, y las bitácoras cerradas (24/24 al 1/09).**
 
 Lo que existe y funciona, todo visto por el ojo de Antonio (inventario
-levantado el 18/08, des-caducado del 21 al 31):
+levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 - **La pantalla** (el buscador, en la raíz): formulario donde TODO se
   elige — calles con autocompletar contra el motor («LIMPIO [NÚCLEO]»,
@@ -58,8 +58,15 @@ levantado el 18/08, des-caducado del 21 al 31):
   Modos (30/08): GRUPO DE RADIOS NATIVO a seis — Andando · Bus /
   Tranvía · Bici privada · Patín (VMP) · BiZi · Coche (name
   compartido: parada única de tab, flechas y exclusión del navegador;
-  cada rueda manda SU modo; bus y coche avisan sin preguntar al
-  motor). «¿Qué ruta prefieres?» (30/08): Rápida · Equilibrada
+  cada rueda manda SU modo; desde el 31/08 BUS/TRANVÍA llama al
+  motor —solo coche avisa sin preguntar). EL BUS EN PANTALLA
+  (31/08): tramos a pie ámbar · cada tramo montado en EL COLOR DE
+  SU LÍNEA con su traza real · chips [29] con número y color ·
+  postes 🚌/🚏 · «Sube a la línea X en el poste Y — N paradas —
+  próximo en M min (dato de las HH:MM)» o su frecuencia teórica ·
+  transbordo en el mismo poste como UN paso ⇄ · el desvío en dos
+  niveles (el hecho siempre; «detalles» con botón accesible) · el
+  indicador de espera si Avanza tarda >1 s. «¿Qué ruta prefieres?» (30/08): Rápida · Equilibrada
   (defecto) · Tranquila, SOLO en bici/BiZi [revelado GOV.UK;
   doctrina CycleStreets] — Generar trae las tres en paralelo y el
   radio repinta sin nueva petición. LA RUTA POR TRAMOS (30/08
@@ -132,6 +139,40 @@ comprobado). **En local, sin publicar: lo del 31/08** — la firma 7
 v2, el censo del feed destilado, la casilla 2 entera (cinco commits
 del ejecutor + las bitácoras nº17-18 con su fix) y los papeles. El
 push es de Antonio.
+
+**LA TARDE-NOCHE DEL 31/08 — los pesos de OTP, los desvíos y los
+pulidos: EL MODO BUS RUTEA BIEN («va mejor», el ojo).** LOS PESOS:
+la queja del ojo destapó (nº19) que RAPTOR subía en la primera
+parada marcada — correcto con horas, falso con costes — y que mis
+pesos eran anti-doctrina: walkReluctance 1 (OTP: 2/4), boardCost 0
+(OTP: 600), el vehículo único ABSOLUTO (OTP literal: «no optimizamos
+por menos transbordos: absurdos»), el veto 500/800 a cuchillo (OTP2:
+el límite de acceso es de RENDIMIENTO). Arreglado por doctrina:
+subida reconsiderada · walkReluctance 4 · boardCost 600 · coste
+total entre rondas · veto fuera (topes de rendimiento 30 min/40
+candidatos) · Avanza 4.000+300 [ZetaBus]. El caso del ojo:
+51,8→43→41,3→35,9 min (con la 44 el 1/09). Las «firmas» 3 y 6
+RETIRADA/REFORMULADA; 4 degradada a planeamiento — NO HAY FIRMAS,
+HAY DOCTRINA (palabra de Antonio). LOS DESVÍOS (casilla 3c): Antonio
+frenó mi encargo — ZetaBus ya lo resuelve: se lee LA RUTA OPERATIVA
+DE HOY (get_stops_list + nonce) y se resta del GTFS (fuera ·
+provisionales · umbral 50 % · la real MANDA · auto-apagado · caché
+1 h separada); la traza de los saltos nuevos RECONSTRUIDA ruteando
+entre postes sobre la red de la rueda [Freiburg/pfaedle/gtfs.org];
+hoy 11 líneas desviadas, 19 patrones rehechos, 71 saltos ruteados,
+0 rectas; el caso del ojo BAJA EN UNA PARADA PROVISIONAL.
+erasableSyntaxOnly activado. LOS PULIDOS: transbordo mismo poste =
+UN paso [GTFS transfers.txt] · frecuencias teóricas [GTFS headway]
+en vez de esperas (H/2 sigue en el total) · el aviso solo junto a SU
+línea (nº22 reabierta y cerrada de verdad — la regla del sitio
+SOBRABA) · paradas por vehículo [num_stops] sobre el patrón
+operativo · el desvío en dos niveles con botón accesible [GOV.UK
+progressive disclosure] — y la bitácora nº24 (tres jueces en verde
+con la lista a la vista: preguntaban por el atributo hidden, no por
+lo que se ve — la ley de Linaje en vivo). PENDIENTE POR DOCTRINA:
+los contrastes del feed (27 chips <4,5:1 · 23 líneas <3:1 — WCAG) ·
+paralelizar Avanza (8,3 s peor) · NO CONSTA el 1203. 24 bitácoras,
+0 abiertas. 445 motor · 195 interfaz.
 
 **LA CASILLA 3b DEL 10 — EL VIAJE EN BUS/TRANVÍA (31/08 tarde): EL
 MODO BUS EXISTE.** RAPTOR en su estructura sobre la red cocinada
@@ -880,11 +921,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el punto 10, casilla 4 — LA PANTALLA DEL
-BUS**: la traza real de las shapes cocinada por patrón, el tramo
-montado en EL COLOR DE SU LÍNEA con el chip (número + color, WCAG),
-los postes con icono, el indicador de espera [NN/g], el texto del
-aviso «ausente» dicho como lo medido [GTFS-RT]; (2) la pantalla del bus (patrón BiZi + colores de línea)
+**Lo siguiente:** (1) **los contrastes por doctrina** (WCAG 1.4.3 /
+1.4.11: texto del chip negro/blanco por contraste y ribete bajo la
+línea — sin inventar colores de línea) y paralelizar Avanza; (2)
+LA DEMO del bus por el ojo (casilla 5) — con la 44 ya operando
+desde el 1/09; (3) la pantalla del bus (patrón BiZi + colores de línea)
 y la demo; (3) LA FASE 2 de sentidos como goteo de fondo (las
 shapes como atajo); (4) el
 reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
@@ -1094,12 +1135,17 @@ es» (dice nombres, trae 260 etiquetas) · la doble capitalización
 «Senda ciclable/Ciclable» · el contraflujo con candado (18 reales) ·
 la API viva de BiZi vive aquí (mudada del 10; NO es GBFS).
 
-**Punto 10 (EN MARCHA desde el 30/08 — casillas 0, 1, 2, 3a y 3b
-HECHAS: EL MODO BUS YA RUTEA con RAPTOR sobre la red cocinada y la
-consulta viva a Avanza; queda la 4 —el pintado con traza y
-colores, el indicador de espera, el texto del aviso ausente— y la
-demo):** ⚠️ la firma 3 cuesta 10,1 min en un par medido (Asín y
-Palacios→La Fragua) — el número está en la juez ·
+**Punto 10 (EN MARCHA desde el 30/08 — casillas 0-4 HECHAS: el bus
+rutea con RAPTOR y los pesos de OTP, la consulta viva, los desvíos
+con la ruta operativa de hoy, el pintado con traza y colores, la
+narración pulida; queda LA DEMO del ojo y lo pendiente por
+doctrina):** ⚠️ CONTRASTES [WCAG]: 27/45 chips <4,5:1 y 23/45
+líneas <3:1 (colores del feed) — texto por contraste + ribete bajo
+la polilínea · ⚠️ paralelizar las consultas Avanza (8,3 s peor caso)
+· NO CONSTA por qué el poste 1203 no anuncia · 16/45 líneas sin
+servicio entre semana en agosto (calendario del feed, dato) · ⚰️
+la «firma 3» retirada por doctrina (los 10,1 min eran de la
+búsqueda rota) ·
 ⚠️ EL FEED NO LLEGA AL PILAR (bus hasta el 05/10, cero del 10/10 en
 adelante) — ⚰️ EL CRON YA EXISTE y está probado contra el NAP real
 (la clave de Antonio en .env.local; el panel de Hostinger se
@@ -1157,7 +1203,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 598 pruebas (415 motor + 183 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 640 pruebas (445 motor + 195 interfaz) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
