@@ -361,6 +361,12 @@ legend {
 
 .paso {
   display: flex;
+  /* ⚠️ Envuelve desde el 1/09, y es lo que le da su propia línea al botón
+     «Próximo bus»: la indicación, sus metros y su nota siguen donde estaban
+     —caben de sobra—, y lo que sí baja es el botón con su región. Ponerlo a la
+     derecha lo dejaría peleando por el sitio con la nota ámbar del hito, que es
+     justo el paso donde las dos cosas coinciden. */
+  flex-wrap: wrap;
   gap: 0.5rem;
   align-items: baseline;
   padding: 0.4rem 0;
@@ -586,4 +592,61 @@ legend {
 .detalles__cuerpo:not([hidden]) {
   display: block;
   margin-top: 0.35rem;
+}
+
+/* ⭐ EL BOTÓN «PRÓXIMO BUS» Y SU REGIÓN DE ESTADO (1/09).
+
+   El botón es un chip: pequeño, al lado de su paso y sin peso de acción
+   principal — la principal sigue siendo «Generar ruta», y dos botones que
+   pesaran igual competirían.
+
+   ⚠️ El foco se ve, y se ve SIEMPRE [WCAG 2.4.7]: el botón no se deshabilita
+      durante la carga precisamente para no perderlo, así que quitarle el
+      contorno lo desharía todo. */
+.vivo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  /* Su propia línea entera, debajo de la indicación: ver el `flex-wrap` de
+     `.paso`. Los 2,2rem de sangría lo alinean con el texto del paso, no con
+     la flecha — es un añadido de ESE paso, no otro paso. */
+  flex: 1 0 100%;
+  margin: 0.35rem 0 0 2.2rem;
+}
+
+.vivo__boton {
+  flex: none;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid #64748b;
+  border-radius: 999px;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.vivo__boton:hover {
+  background: #f1f5f9;
+}
+
+.vivo__boton:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+/* La región. Vacía no ocupa nada: un hueco reservado para un texto que aún no
+   existe movería la lista entera al primer resultado. */
+.vivo__estado {
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.vivo__estado:empty {
+  display: none;
+}
+
+.vivo__tarda {
+  font-size: 0.85rem;
 }

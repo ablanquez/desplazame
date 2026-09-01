@@ -501,6 +501,53 @@
               @if (paso.metros > 0) {
                 <span class="paso__metros">{{ enMetros(paso.metros) }}</span>
               }
+              <!-- ⭐ EL BOTÓN «PRÓXIMO BUS» Y SU REGIÓN DE ESTADO (1/09).
+
+                   El Generar pregunta a Avanza por UN solo poste —el primero—,
+                   porque de los demás nunca se dijo el minuto y cada uno cuesta
+                   hasta 8,4 s medidos dentro de los 10 s que [NN/g] da de
+                   margen. Lo de los demás se pide aquí, **cuando quien mira lo
+                   quiere**: una acción iniciada por el usuario.
+
+                   La anatomía es la de [WCAG 4.1.3 Status Messages]: la región
+                   `role="status"` está en el DOM **antes** de la actualización
+                   —si naciera con su contenido no habría nada que el lector
+                   estuviera observando, y no anunciaría nada—, y el botón dice
+                   cuál es la suya con `aria-controls`.
+
+                   ⚠️ **El botón NO se deshabilita mientras carga**: `disabled`
+                      lo saca del orden de tabulación, y quien navega con teclado
+                      pierde el sitio justo al pulsar. Sigue enfocable y los
+                      clics de más se interceptan en vuelo.
+
+                   ⚠️ Y sin `aQuienPreguntar` no se pinta nada: el tranvía no
+                      tiene fuente, y un botón que solo pudiera contestar «no lo
+                      sé» promete un dato que no existe. -->
+              @if (paso.aQuienPreguntar; as aQuien) {
+                <span class="vivo">
+                  <button
+                    type="button"
+                    class="vivo__boton"
+                    [attr.aria-controls]="'vivo-' + $index"
+                    (click)="preguntarPorElProximo(aQuien, $index)"
+                  >
+                    Próximo bus
+                  </button>
+                  <!-- El indicador de que tarda. Va `aria-hidden` porque es el
+                       estado intermedio: la región, ocupada, no lo anuncia, y
+                       decirlo dos veces sería anunciar el trámite. -->
+                  @if (tardaLaConsulta($index)) {
+                    <span class="vivo__tarda" aria-hidden="true">⏳</span>
+                  }
+                  <span
+                    class="vivo__estado"
+                    [id]="'vivo-' + $index"
+                    role="status"
+                    [attr.aria-busy]="consultando($index)"
+                    >{{ loVivoDe(paso, $index) }}</span
+                  >
+                </span>
+              }
               <!-- ⭐ LA NOTA AL LADO DEL HITO [GOV.UK: resumen arriba Y mensaje
                    junto a lo afectado, con el MISMO texto en los dos sitios].
                    Solo en los hitos, que son los que prometen algo —una bici

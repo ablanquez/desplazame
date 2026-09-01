@@ -4,6 +4,8 @@ import type { WritableSignal } from '@angular/core';
 // El contrato manda: los tipos vienen del paquete compartido, no de copias
 // locales. Si el motor cambia la forma, esta pantalla deja de compilar.
 import type {
+  AQuienPreguntar,
+  PosteVivo,
   Aviso,
   Giro,
   LineaDelViaje,
@@ -96,6 +98,32 @@ export interface EnDosNiveles {
   /** El detalle, o `null` si este aviso no tiene nada que esconder. */
   readonly detalle: string | null;
 }
+
+/**
+ * ⭐ EN QUÉ ANDA LA CONSULTA DE UN POSTE, para su región de estado.
+ *
+ * `tarda` es aparte de `cargando` a propósito: cargando se está desde el primer
+ * milisegundo, y **decirlo** solo hace falta pasado un segundo [NN/g: por
+ * debajo la respuesta se siente inmediata; por encima hay que indicar que se
+ * trabaja]. Un indicador que parpadeara en cada consulta rápida sería ruido.
+ */
+interface LaConsultaDelPoste {
+  readonly cargando: boolean;
+  readonly tarda: boolean;
+  /** Lo que se lee en la región: el texto que compone el motor. */
+  readonly texto: string;
+}
+
+/**
+ * ⭐ CUÁNDO SE DICE QUE ESTÁ TARDANDO. [NN/g] el umbral es **un segundo**: por
+ * debajo la respuesta se siente inmediata y avisar sobraría; por encima, sin
+ * indicador, la pantalla parece rota. Avanza tarda entre 0 y 8,4 s medidos.
+ */
+export const CUANDO_SE_DICE_QUE_TARDA_MS = 1000;
+
+/** Lo que se lee mientras se pregunta. Conciso: es un estado, no una frase. */
+export const MIENTRAS_SE_PREGUNTA = 'Preguntando a Avanza…';
+
 
 /**
  * ⭐ EL AVISO DE DESVÍO, PARTIDO EN DOS NIVELES.
@@ -833,6 +861,100 @@ export class Buscador {
   }
 
   /**
+   * ⭐ EL VIVO A PETICIÓN, por paso: qué se ha preguntado y qué se sabe.
+   *
+   * ═══════════════════════════════════════════════════════════════════════════
+   *  El Generar pregunta a Avanza **por un solo poste**, el primero: de los
+   *  demás nunca se dijo el minuto, y consultarlos costaba hasta 8,4 s cada uno
+   *  dentro de los 10 s que [NN/g] da de margen. Así que lo de los demás se pide
+   *  **cuando quien mira lo quiere**, con su botón — una acción iniciada por el
+   *  usuario, y por eso cada pulsación vuelve a preguntar de verdad: **nada se
+   *  guarda aquí**. Es la regla del BiZi, y el motor la respalda con
+   *  `Cache-Control: no-store`.
+   *
+   *  Se vacía en cada Generar, igual que `desplegados`: un «próximo en 3 min»
+   *  de la ruta anterior sobre una ruta nueva sería un número cierto sobre otro
+   *  viaje.
+   * ═══════════════════════════════════════════════════════════════════════════
+   */
+  private readonly consultasDePoste = signal<ReadonlyMap<number, LaConsultaDelPoste>>(new Map());
+
+  /** Los avisadores de «está tardando» en vuelo, para poder cancelarlos. */
+  private readonly relojes = new Map<number, ReturnType<typeof setTimeout>>();
+
+  protected consultando(i: number): boolean {
+    return this.consultasDePoste().get(i)?.cargando ?? false;
+  }
+
+  protected tardaLaConsulta(i: number): boolean {
+    return this.consultasDePoste().get(i)?.tarda ?? false;
+  }
+
+  /**
+   * Lo que se lee en la región de un paso.
+   *
+   * ⚠️ **La región nace con lo que el Generar ya trajo** (`paso.vivo`), y solo
+   *    del primer poste, que es al único al que se preguntó. Nacer vacía
+   *    obligaría a pulsar para ver algo que ya se sabe, y peor: la primera
+   *    pulsación no parecería cambiar nada.
+   */
+  protected loVivoDe(paso: Paso, i: number): string {
+    const consulta = this.consultasDePoste().get(i);
+    return consulta ? consulta.texto : (paso.vivo?.texto ?? '');
+  }
+
+  /**
+   * ⭐ PREGUNTAR POR EL PRÓXIMO, al pulsar.
+   *
+   * ⚠️ **El botón no se deshabilita mientras carga**: un `disabled` lo saca del
+   *    orden de tabulación, y quien navega con teclado pierde el sitio justo
+   *    cuando acaba de pulsar. Los clics de más se interceptan **aquí**, en
+   *    vuelo, que es la variante «loading button» documentada: el botón sigue
+   *    presente, enfocable y con su estado dicho.
+   */
+  protected preguntarPorElProximo(aQuien: AQuienPreguntar, i: number): void {
+    if (this.consultando(i)) {
+      return;
+    }
+    // El inicio se ANUNCIA: la región recibe su texto antes que nada
+    // [WCAG 4.1.3]. Y `aria-busy` pasa a `true` para que lo que venga después
+    // —el indicador de que tarda— no se anuncie como un cambio más.
+    this.ponerConsulta(i, { cargando: true, tarda: false, texto: MIENTRAS_SE_PREGUNTA });
+    clearTimeout(this.relojes.get(i));
+    this.relojes.set(
+      i,
+      setTimeout(() => {
+        if (this.consultando(i)) {
+          this.ponerConsulta(i, { cargando: true, tarda: true, texto: MIENTRAS_SE_PREGUNTA });
+        }
+      }, CUANDO_SE_DICE_QUE_TARDA_MS),
+    );
+
+    const acabar = (texto: string): void => {
+      clearTimeout(this.relojes.get(i));
+      this.relojes.delete(i);
+      this.ponerConsulta(i, { cargando: false, tarda: false, texto });
+    };
+    this.http
+      .get<PosteVivo>('/api/poste-vivo', {
+        params: { poste: String(aQuien.poste), linea: aQuien.linea },
+      })
+      .subscribe({
+        next: (vivo) => acabar(vivo.texto),
+        // ⚠️ Que el MOTOR no conteste no es lo mismo que Avanza callando, y se
+        //    dice distinto: aquello lo cuenta el motor con sus palabras, esto es
+        //    que no hay nadie a quien preguntárselo.
+        error: () => acabar('No se pudo preguntar al motor. ¿Está arrancado?'),
+      });
+  }
+
+  private ponerConsulta(i: number, estado: LaConsultaDelPoste): void {
+    const ahora = new Map(this.consultasDePoste());
+    ahora.set(i, estado);
+    this.consultasDePoste.set(ahora);
+  }
+
+  /**
    * ⭐ LOS TONOS DE UN CHIP, para la plantilla. Ver `chip.ts`.
    *
    * ⚠️ Va por aquí y no por `linea.colorTexto` **a propósito**, y esto era un
@@ -1304,6 +1426,13 @@ export class Buscador {
     this.avisoRuta.set(null);
     this.resultado.set(null);
     this.desplegados.set(new Set());
+    // Lo vivo de la ruta anterior no sobrevive a la siguiente: un «próximo en
+    // 3 min» que se quedara pegado sería un número cierto sobre otro viaje.
+    for (const reloj of this.relojes.values()) {
+      clearTimeout(reloj);
+    }
+    this.relojes.clear();
+    this.consultasDePoste.set(new Map());
 
     // ⭐ BUS Y COCHE NO SALEN DE AQUÍ (30/08). El motor no los calcula, así que
     // preguntárselo sería gastar un viaje para traer un «todavía no» — y con el

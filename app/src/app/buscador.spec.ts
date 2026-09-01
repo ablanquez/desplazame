@@ -7,6 +7,7 @@ import {
 } from '@angular/common/http/testing';
 import type {
   Giro,
+  PosteVivo,
   TipoDeRuta,
   ParteDelPaso,
   Paso,
@@ -15,7 +16,7 @@ import type {
   Trayecto,
   Via,
 } from '@desplazame/tipos';
-import { Buscador } from './buscador';
+import { Buscador, CUANDO_SE_DICE_QUE_TARDA_MS } from './buscador';
 
 /**
  * Devuelve las opciones de MODO que están marcadas como activas.
@@ -527,6 +528,49 @@ const VIAJE_EN_BUS_SIN_LA_29: Trayecto = {
     { comoSeVa: 'andando', desde: 2, hasta: 3, metros: 886, segundos: 638, hito: null },
   ],
 };
+
+/**
+ * ⭐ EL MISMO VIAJE, con **a quién preguntar** en el paso de subir (1/09).
+ *
+ * Es lo que el motor manda desde que el Generar dejó de consultar todos los
+ * postes: el número de poste de Avanza y la línea, como DATO. El poste 1203 es
+ * el de verdad —Bernardo Ramazzini / Maz—, el mismo del caso del ojo.
+ */
+const VIAJE_EN_BUS_CON_BOTON: Trayecto = {
+  ...VIAJE_EN_BUS_SIN_LA_29,
+  avisos: [],
+  pasos: VIAJE_EN_BUS_SIN_LA_29.pasos.map((x) =>
+    x.giro === 'sube' ? { ...x, aQuienPreguntar: { poste: 1203, linea: '29' } } : x,
+  ),
+};
+
+/**
+ * ⭐ Y EL TRANVÍA, que **no lleva a quién preguntar**.
+ *
+ * Su `stop_code` es `1312` y no un `PAnnnnn`: Avanza no cubre esos postes. El
+ * motor no manda `aQuienPreguntar`, y sin eso no puede haber botón — uno que
+ * al pulsarlo solo pudiera decir «no lo sé» promete un dato que no existe.
+ */
+const VIAJE_EN_TRANVIA: Trayecto = {
+  ...VIAJE_EN_BUS_SIN_LA_29,
+  avisos: [],
+  pasos: VIAJE_EN_BUS_SIN_LA_29.pasos.map((x) =>
+    x.giro === 'sube'
+      ? paso(
+          'sube',
+          0,
+          accion('Sube'),
+          llano(' a la línea '),
+          via('L1'),
+          llano(' en el poste '),
+          via('1312 · Plaza España'),
+        )
+      : x,
+  ),
+};
+
+/** Lo que contesta `GET /api/poste-vivo` cuando la línea sí está. */
+const LLEGA: PosteVivo = { clase: 'llega', texto: 'próximo en 4 min (dato de las 15:45)' };
 
 /**
  * ⭐ UN VIAJE EN BUS CON DESVÍO, con el texto que el motor escribe (31/08).
@@ -3382,4 +3426,207 @@ describe('Buscador', () => {
     }
     await asentar(fixture, http);
   });
+
+  // ══ EL BOTÓN «PRÓXIMO BUS» Y SU REGIÓN DE ESTADO (1/09) ═══════════════════
+  //
+  // El Generar pregunta a Avanza por un solo poste —el primero—, así que lo de
+  // los demás se pide **a petición**: una acción iniciada por quien mira. Eso
+  // arrastra la anatomía accesible entera, y es lo que estas cinco compran.
+
+  /** Deja la pantalla con el viaje en bus pintado y devuelve su raíz. */
+  async function conElViajeEnBus(fixture: any, t: Trayecto): Promise<HTMLElement> {
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+    elegirModo(fixture, 'Bus / Tranvía');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => t);
+    await fixture.whenStable();
+    return raiz;
+  }
+
+  const botonVivo = (raiz: HTMLElement): HTMLButtonElement =>
+    raiz.querySelector<HTMLButtonElement>('.vivo__boton')!;
+  const regionVivo = (raiz: HTMLElement): HTMLElement =>
+    raiz.querySelector<HTMLElement>('.vivo__estado')!;
+
+  /**
+   * ⭐ 18 · LA REGIÓN EXISTE **ANTES** DE PULSAR.
+   *
+   * [WCAG 4.1.3 Status Messages] un mensaje de estado tiene que poder anunciarse
+   * sin robar el foco, y para eso la región viva tiene que estar **en el DOM
+   * antes de la actualización**: si se crea al mismo tiempo que su contenido, el
+   * lector de pantalla no tiene nada que estuviera observando y no anuncia nada.
+   *
+   * Es la misma mecánica del `hidden` del desvío —el contenedor existe cerrado—
+   * y por la misma razón: `aria-controls` y `aria-live` necesitan un elemento
+   * que exista, no uno que aparecerá.
+   */
+  it('⭐ 18 · la región de estado existe antes de pulsar, y el botón la señala', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = await conElViajeEnBus(fixture, VIAJE_EN_BUS_CON_BOTON);
+
+    const boton = botonVivo(raiz);
+    const region = regionVivo(raiz);
+    expect(boton).not.toBeNull();
+    expect(region).not.toBeNull();
+    expect(region.getAttribute('role')).toBe('status');
+    // Y el botón dice CUÁL abre, por su id: sin esto, con dos subidas no se
+    // sabría de cuál habla el anuncio.
+    expect(boton.getAttribute('aria-controls')).toBe(region.id);
+    expect(region.id).not.toBe('');
+
+    // Al pulsar, la región se llena con el texto que el motor compone.
+    boton.click();
+    fixture.detectChanges();
+    const pedida = http.expectOne((r) => r.url === '/api/poste-vivo');
+    expect(pedida.request.method).toBe('GET');
+    expect(pedida.request.params.get('poste')).toBe('1203');
+    expect(pedida.request.params.get('linea')).toBe('29');
+    pedida.flush(LLEGA);
+    await fixture.whenStable();
+
+    expect(regionVivo(raiz).textContent).toContain('próximo en 4 min (dato de las 15:45)');
+  });
+
+  /**
+   * ⭐ 19 · DURANTE LA CARGA: `aria-busy`, el botón **enfocable**, y un clic de
+   * más que no dispara nada.
+   *
+   * [MDN `aria-busy`] mientras vale `true` la región no se anuncia a medias; al
+   * pasar a `false` se anuncia el resultado, una vez.
+   *
+   * ⚠️ **Y el botón NO se deshabilita.** Un `disabled` lo saca del orden de
+   *    tabulación, y quien navega con teclado pierde el sitio donde estaba
+   *    justo cuando acaba de pulsar. Es la variante «loading button» de siempre:
+   *    el botón sigue ahí, sigue enfocable, y los clics de más **se interceptan
+   *    en vuelo** — que es lo que aquí se compra contando peticiones.
+   */
+  it('⭐ 19 · durante la carga: aria-busy, botón enfocable y sin consulta doble', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = await conElViajeEnBus(fixture, VIAJE_EN_BUS_CON_BOTON);
+
+    expect(regionVivo(raiz).getAttribute('aria-busy')).toBe('false');
+
+    botonVivo(raiz).click();
+    fixture.detectChanges();
+
+    expect(regionVivo(raiz).getAttribute('aria-busy')).toBe('true');
+    expect(botonVivo(raiz).disabled).toBe(false);
+    expect(botonVivo(raiz).hasAttribute('disabled')).toBe(false);
+
+    // El clic de más, en vuelo: no sale una segunda petición.
+    botonVivo(raiz).click();
+    fixture.detectChanges();
+    const enVuelo = http.match((r) => r.url === '/api/poste-vivo');
+    expect(enVuelo.length).toBe(1);
+
+    enVuelo[0].flush(LLEGA);
+    await fixture.whenStable();
+    expect(regionVivo(raiz).getAttribute('aria-busy')).toBe('false');
+
+    // Y al terminar vuelve a disparar: pulsar otra vez es preguntar otra vez.
+    // ⚠️ **Nada se guarda** — es la regla del BiZi: un minuto de hace cuarenta
+    //    segundos se lee como si fuera de ahora, y por eso es peor que no tenerlo.
+    botonVivo(raiz).click();
+    fixture.detectChanges();
+    const segunda = http.match((r) => r.url === '/api/poste-vivo');
+    expect(segunda.length).toBe(1);
+    segunda[0].flush({ clase: 'ausente', texto: 'Avanza no anuncia ningún próximo…' });
+    await fixture.whenStable();
+    expect(regionVivo(raiz).textContent).toContain('Avanza no anuncia');
+  });
+
+  /**
+   * ⭐ 20 · EN EL TRANVÍA NO HAY BOTÓN.
+   *
+   * Sin `aQuienPreguntar` no hay a quién preguntar, y un botón que solo pudiera
+   * contestar «no lo sé» promete un dato que no existe. El motor no manda el
+   * campo y la pantalla no pinta el botón: una sola decisión, tomada donde se
+   * sabe qué postes cubre Avanza.
+   */
+  it('⭐ 20 · en tranvía no se pinta el botón ni su región', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = await conElViajeEnBus(fixture, VIAJE_EN_TRANVIA);
+
+    expect(raiz.querySelector('.paso')).not.toBeNull();
+    expect(raiz.querySelectorAll('.vivo__boton').length).toBe(0);
+    expect(raiz.querySelectorAll('.vivo__estado').length).toBe(0);
+  });
+
+  /**
+   * ⭐ 21 · EL INDICADOR APARECE SI TARDA, y no si contesta rápido.
+   *
+   * [NN/g] por debajo de un segundo la respuesta se siente inmediata y no hace
+   * falta decir nada; **por encima de uno hay que indicar que se está
+   * trabajando**, o la pantalla parece rota. Avanza tarda entre 0 y 8 s
+   * medidos, así que los dos casos ocurren de verdad.
+   *
+   * ⚠️ El indicador va `aria-hidden`: es el estado intermedio que la región,
+   *    ocupada, no anuncia. Decirlo dos veces sería anunciar el trámite.
+   */
+  it('⭐ 21 · el indicador sale con respuesta lenta y no con rápida', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = await conElViajeEnBus(fixture, VIAJE_EN_BUS_CON_BOTON);
+
+    // 1 · RÁPIDA: se contesta enseguida, y no se llega a decir nada.
+    botonVivo(raiz).click();
+    fixture.detectChanges();
+    expect(raiz.querySelector('.vivo__tarda')).toBeNull();
+    http.expectOne((r) => r.url === '/api/poste-vivo').flush(LLEGA);
+    await fixture.whenStable();
+    expect(raiz.querySelector('.vivo__tarda')).toBeNull();
+
+    // 2 · LENTA: pasa el segundo con la respuesta sin llegar.
+    //
+    // ⚠️ **Con el reloj de VERDAD, y cuesta 1,1 s de prueba.** Los relojes
+    //    falsos de Vitest congelan también los `setTimeout` con los que Angular
+    //    programa su detección de cambios, y la juez moría en «timed out» sin
+    //    llegar a mirar nada. Se paga el segundo y se mide el umbral real, que
+    //    además es lo que se quiere comprar: que sea ESE umbral y no otro.
+    botonVivo(raiz).click();
+    fixture.detectChanges();
+    const enVuelo = http.expectOne((r) => r.url === '/api/poste-vivo');
+    await new Promise((sigue) => setTimeout(sigue, CUANDO_SE_DICE_QUE_TARDA_MS + 150));
+    fixture.detectChanges();
+
+    const tarda = raiz.querySelector('.vivo__tarda');
+    expect(tarda).not.toBeNull();
+    expect(tarda!.getAttribute('aria-hidden')).toBe('true');
+
+    // Y cuando llega, el indicador se va.
+    enVuelo.flush(LLEGA);
+    await fixture.whenStable();
+    expect(raiz.querySelector('.vivo__tarda')).toBeNull();
+    expect(regionVivo(raiz).textContent).toContain('próximo en 4 min');
+  });
+
+  /**
+   * ⭐ 22 · LA REGIÓN **NACE CON EL DATO** que el Generar ya trajo.
+   *
+   * Del primer poste sí se preguntó en el Generar, y ese dato viaja en el paso.
+   * Nacer vacía obligaría a pulsar para ver algo que ya se sabe — y peor: la
+   * primera pulsación no parecería cambiar nada.
+   */
+  it('⭐ 22 · la región nace con lo que el Generar ya trajo del primer poste', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const conElVivo: Trayecto = {
+      ...VIAJE_EN_BUS_CON_BOTON,
+      pasos: VIAJE_EN_BUS_CON_BOTON.pasos.map((x) =>
+        x.giro === 'sube' ? { ...x, vivo: LLEGA } : x,
+      ),
+    };
+    const raiz = await conElViajeEnBus(fixture, conElVivo);
+
+    expect(regionVivo(raiz).textContent).toContain('próximo en 4 min (dato de las 15:45)');
+    // Y sin haber pulsado nada: el Generar no vuelve a preguntar por su cuenta.
+    http.expectNone((r) => r.url === '/api/poste-vivo');
+  });
+
+
 });
