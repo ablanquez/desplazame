@@ -1004,10 +1004,12 @@ repintado sin zone.js verificado sin empujón.
 (solo pantalla) y la 2 — los botones de disponibilidad de BiZi; (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
-31/08-1/09 cuando Antonio lo nombre; (4) la pantalla del bus (patrón BiZi + colores de línea)
-y la demo; (3) LA FASE 2 de sentidos como goteo de fondo (las
-shapes como atajo); (4) el
-reloj de fondo: el GTFS caduca el 05/10 (punto 10). EN LA NEVERA,
+31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
+(el cron lo coge solo cuando Avanza lo suba), el cron en el panel de
+Hostinger al desplegar (punto 14), el RGC nuevo el 1/10 (migrar
+citas). EN LA NEVERA: LA FASE 2 DE SENTIDOS (mantenimiento del dato
+a goteo — la lista de 434 candidatas y el atajo de las shapes del bus;
+fuera del punto 9 por orden de Antonio el 1/09) ·
 con motivo de demo: hostelería-OSM (2.167) · municipales chicas
 (cívicos 25 · museos 25 · mercados 46 · teatros 11 · turismo ·
 juntas · OMIC) · la ficha de Aragón · el `estado` del registro. En
@@ -1174,7 +1176,9 @@ del GTFS, anotado en el 10) · las 203 calles a medio cartografiar
 el selector a seis · el empuje · el selector de ruta · el remate
 del aparcabicis · BiZi entero con disponibilidad viva · el pintado
 por tramos con el azul #2563eb) — ⚰️ LA DEMO (7) CONFIRMADA
-por el ojo el 30/08 — EL PUNTO 9 CERRADO; queda la fase 2 · LA MESA
+por el ojo el 30/08 — EL PUNTO 9 CERRADO — ⚰️ la fase 2 de sentidos SALE del punto (1/09,
+Antonio: «tiene que estar cerrado»): mantenimiento del dato a goteo →
+NEVERA · LA MESA
 de decisiones de Antonio: ⚰️ el tope de 500 m FIRMADO el 30/08
 («hay muchos desperdigados por la ciudad») · ⚰️ FUNDIR las
 consultas: HECHO el 30/08 (single-flight — 3→1 por Generar, la

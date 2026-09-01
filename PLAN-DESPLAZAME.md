@@ -876,7 +876,10 @@ visor→Intranet (punto 16).
       Encargo futuro: leer cómo odin decide qué colapsa y calcarlo;
       hasta entonces los 25 pasos son la verdad y NO se tocan
 
-## 8 — Destinos con nombre: «de la calle X al hospital Y» *(nuevo, 18/08 — EN CONSTRUCCIÓN: Antonio irá añadiendo)*
+## 8 — Destinos con nombre: «de la calle X al hospital Y» — **⭐ CERRADO
+el 27/08** *(nació el 18/08; las casillas de planificación de abajo
+quedaron sin tachar al escribir el cierre como bloque aparte — se
+tacharon el 1/09 con su destino real; nada pendiente)*
 
 El destino puede ser un SITIO además de calle+portal: se está en un
 portal y se quiere ir al Hospital Miguel Servet, a una farmacia, a un
@@ -885,7 +888,7 @@ autocompletar (elegir-fija-código, mismo componente que calles y
 portales) y el enganche coordenada→grafo que el 7 construye para los
 portales — un sitio es una coordenada más entrando al mismo tubo.
 
-- [ ] Fuente investigada (18/08, informe en
+- [x] ⚰️ HECHA (fichas del notices; ver el cierre) · Fuente investigada (18/08, informe en
       `docs/INVESTIGACION-EQUIPAMIENTOS.md`): la API de equipamientos de
       zaragoza.es — ~250 categorías en 19 familias (313 farmacias, 17
       hospitales, 56 centros de salud, 75 bibliotecas, 25 centros
@@ -948,7 +951,7 @@ portales — un sitio es una coordenada más entrando al mismo tubo.
         ficha oficial NO CONSTA con causa (robots prohíbe /ckan/api ·
         401 · cáscara JS) — Antonio puede pegar licencia/frecuencia de
         su navegador y muere el NO CONSTA
-- [ ] **⚖️ PARLAMENTO ABIERTO — qué categorías entran (tanda 1)**:
+- [x] ⚰️ RESUELTO el 27/08 con la PODA firmada por Antonio (las categorías que entran son las del cierre; el resto, fuera) · **⚖️ PARLAMENTO — qué categorías entran (tanda 1)**:
       decide Antonio pieza a pieza (patrón del punto 4: autorización,
       ficha, verificación). Sobre la mesa: las municipales chicas con
       nombre+coordenada (farmacias 313 · hospitales 17 · centros de
@@ -1363,28 +1366,28 @@ de cada campo, ORIGEN y DESTINO por igual:
       guardián que hay que acordarse de invocar es documentación, no
       cobertura» + la ley del cable + la de la pieza compartida
       importable. 211 motor + 123 interfaz; las nueve juez al byte
-- [ ] Decisión de presentación pendiente: 268/313 farmacias llevan
+- [x] ⚰️ RESUELTA («Farmacia + dirección», sin el titular — ver el cierre) · Decisión de presentación: 268/313 farmacias llevan
       nombre del titular (dato registral público; republicarlo es lícito
       pero es decisión consciente — la salida fácil: «Farmacia» +
       dirección al mostrar, sin editar el dato)
-- [ ] El destino en el formulario: un tipo de destino nuevo (sitio) con
+- [x] ⚰️ HECHA (el buscador por tipos con siglas e iconos) · El destino en el formulario: un tipo de destino nuevo (sitio) con
       el autocompletar existente; el contrato crece con el tipo del sitio
-- [ ] El motor: cargar las categorías autorizadas, sugerirlas, y
+- [x] ⚰️ HECHA (/api/sitios y el enganche al grafo) · El motor: cargar las categorías autorizadas, sugerirlas, y
       resolver sitio → coordenada → enganche al grafo (el del punto 7)
-- [ ] **La regla del portal condicional** (parlamentada el 19/08): la
+- [x] ⚰️ HECHA (la casilla de portal se desactiva con sitio o vía sin portal) · **La regla del portal condicional** (parlamentada el 19/08): la
       casilla de portal se DESACTIVA y «Generar» no lo exige cuando el
       destino elegido no tiene portales — porque trae su propia
       coordenada (un hospital no tiene portal). La regla nace AQUÍ, con
       su primer caso real: construirla antes dejaría elegir destinos sin
       punto, cosa que ningún geocodificador permite
-- [ ] **(Opcional, autorización pendiente) Las 628 vías sin portal,
+- [x] ⚰️ HECHA por otra vía (las vías sin portal entran por PUNTO MEDIO: 619 sugeribles — ver el cierre; la pieza de trazados no hizo falta) · **Las 628 vías sin portal,
       elegibles**: exige la pieza de TRAZADOS
       (`wfs_urbanismo-Vias`, ~3,4 MB MultiLineString, localizada en la
       investigación) y el patrón estándar [DOC Nominatim]: calle sin
       número → geometría → CENTROIDE como punto → enganche a la red.
       Sin la geometría no puede resolverlo ni el estándar — el requisito
       es el dato
-- [ ] *(hueco para lo que Antonio vaya añadiendo)*
+- [x] ⚰️ El hueco se cerró con la poda del 27/08; lo que Antonio añadió después fueron las palabras vacías del buscador (30/08), ya dentro.
 
 ## 9 — Modo BICI/PATÍN PRIVADO y Modo BiZi — **⭐ CERRADO el
 30/08** *(re-escrito el 28/08 con lo aprendido en el 7 y el 8;
@@ -1707,7 +1710,7 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
       deshielo tira 58) — ⚠️ y el runner reincidió en el «fail 0»
       con 58 sin pasar [la familia de la nº12: leer pass, no fail].
       La muralla del peatón al byte. 332 motor.
-- [ ] **3-tris · FASE 2 (espera el ojo de Antonio):** las
+- [x] ⚰️ FUERA DEL PUNTO (1/09, por orden de Antonio: «tiene que estar cerrado»): la fase 2 no es casilla del 9 — es MANTENIMIENTO DEL DATO a goteo, fichado en la NEVERA del estado (la lista de 434 y el atajo de las shapes del bus). · **3-tris · FASE 2:** las
       correcciones EN TANDA contra la lista verificada — cada una
       con su fila fuente-y-fecha, su testigo del banco cayéndose
       (rojo→reescrito a la conducta buena) y su deshielo. Y aguas
@@ -2594,25 +2597,25 @@ están hechas y el punto cerrado — queda como historia. La decisión
 
 Dejado aquí desde el punto 4, para cuando toque:
 
-- [ ] **D-MAPA-DE-HOY (decidida por Antonio el 17/08, se construye aquí):**
+- [x] ⚰️ HECHA (operaEl(fecha) sobre el cocinado + la ruta operativa de hoy — la 3a y la 3c) · **D-MAPA-DE-HOY (decidida por Antonio el 17/08):**
       el mapa pinta la red operativa DEL DÍA, no el catálogo — el cron
       nocturno recalcula qué líneas tienen viajes hoy (cruce trips +
       calendar_dates contra la fecha) y el pintado sigue a ese cálculo.
       Un búho en martes no se pinta; una especial activada, sí
-- [ ] **La comprobación de la fecha viva**: el cron mide en cada feed
+- [x] ⚰️ HECHA (casilla 2: feed_end_date y días hasta caducidad en el log de arranque; el registro del fetch) · **La comprobación de la fecha viva**: el cron mide en cada feed
       hasta cuándo llega el servicio REAL (hoy: 27/12, con el feed
       declarando 05/10 — se contradice) y lo reporta; la caducidad deja
       de vigilarse a mano
-- [ ] **El cruce líneas↔postes** (routes+trips+stop_times contra los 944
+- [x] ⚰️ HECHO (el censo a tres patas: +50 tranvía −11 +1 = 40 exacto; la guarda del tranvía confirmada por el dato) · **El cruce líneas↔postes** (routes+trips+stop_times contra los 944
       del MU3): la dependencia anotada en tres sitios sin guardián.
       El puente es el stop_code PA… — que MIENTE sobre el tranvía (los 50
       numéricos): el cruce lleva la guarda o pierde el tranvía en silencio
-- [ ] **Un listado ingenuo de líneas ofrecería 8 que no llevan a ninguna
+- [x] ⚰️ HECHO (las 8 zombis con 0 patrones, declaradas; el motor solo rutea patrones que operan hoy) · **Un listado ingenuo de líneas ofrecería 8 que no llevan a ninguna
       parte**: las operativas son 45 (44 bus + tranvía), las 8 especiales
       están declaradas sin viajes. El buscador lista lo que opera
-- [ ] **Los sentidos del tranvía NO se derivan del sufijo a ciegas**:
+- [x] ⚰️ HECHO (los patrones se derivan por SECUENCIA de paradas, nunca por sufijo — la 3a) · **Los sentidos del tranvía NO se derivan del sufijo a ciegas**:
       tres saltos conocidos en los stop_code (`1311/1312`, `2322`, `2422`)
-- [ ] Al retirar los andamios de carga (~35,6 MB en el navegador), la
+- [x] ⚰️ Nota histórica, ya sin tarea (el puntero del notices se corrigió el 22/08; los 196 huérfanos quedaron confirmados por el censo) · Al retirar los andamios de carga (~35,6 MB en el navegador), la
       imprecisión menor del notices — que vivía en §1.7 (GTFS), no en
       §1.6 como fichaba este plan: puntero corregido el 22/08 — quedó
       CORREGIDA en `1deaa86`, verificada contra el dato y no copiada:
