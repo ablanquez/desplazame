@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-01] 🔴 ABIERTA — El contorno del chip no pinta ni un píxel negro: 0,7 px a 13,6 px de fuente se disuelve en el antialiasing
+## [2026-09-01] ✅ CERRADA — El contorno del chip no pinta ni un píxel negro: 0,7 px a 13,6 px de fuente se disuelve en el antialiasing
 
 **Categoría:** una promesa calculada en hexadecimal que el render no cumple
 
@@ -52,9 +52,57 @@ muralla entera, `Tests  208 passed (208)`.
 **Cómo se cazó:** instrumento — el medidor de píxel recién heredado de ZetaBus
 (`app/e2e/pantalla.mjs`), en su primera pasada sobre la pantalla arreglada.
 
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** dos cosas, y hacían falta las dos para que fallara.
+
+1. **`-webkit-text-stroke` centra el trazo en el borde del glifo**, y
+   `paint-order: stroke fill` pinta el relleno encima — así que **por fuera
+   solo queda la mitad**. Con 0,7 px eso son 0,35 px, que no cubren un píxel
+   entero ni con la alineación perfecta. El trazo de ZetaBus funciona porque su
+   chip mide de 24 a 48 px con `font-black`; el nuestro son 13,6 px en una línea
+   de indicaciones. **El mismo trazo en otro cuerpo no es el mismo trazo.**
+2. Y Chrome suaviza por **subpíxeles** (LCD) por defecto: reparte el trazo entre
+   los canales R, G y B, así que lo poco que pinta sale teñido — medidos
+   `rgb(18,57,167)` y `rgb(23,67,17)`— y nunca llega a negro.
+
+⚠️ Y había un tercero, en el instrumento: `contrasteReal` medía «la moda contra
+el más lejano en luminancia», que es lo correcto para un texto plano y **no para
+uno con halo**. Con tres colores, el fondo adyacente al relleno blanco ya no es
+el verde del chip: es el trazo. Y como el blanco está más lejos del verde que el
+negro, el instrumento elegía el blanco y devolvía justo el contraste que el halo
+viene a arreglar. Medía bien, pero **la pregunta era otra**.
+
+**Arreglo aplicado:** tres, todos con la cifra delante.
+
+1. `app/src/app/buscador.css` — trazo de **2 px** en vez de 0,7, y
+   `-webkit-font-smoothing: antialiased` para que el suavizado vaya en escala de
+   grises. Barrido medido sobre el chip de la 44, contando píxeles con
+   luminancia < 0,15 y buscando el más oscuro que salga ≥3 veces:
+
+   ```
+     fuente peso grosor   px oscuros(lum<0.15)   el mas oscuro        contraste blanco/ese
+     13.6   700  1.5          45            (ninguno x3)        —
+     13.6   700  2            66            rgb(0,0,0)          21.00:1
+     16     700  1.5          71            rgb(0,0,0)          21.00:1
+   ```
+
+   A nuestro cuerpo hacen falta **2 px**. Y el número **se sigue leyendo**:
+   ampliado ×8, el «44», el «33» y el «29» conservan su forma — el relleno va
+   encima, así que el trazo solo crece hacia fuera.
+2. `app/e2e/medir.mjs` — `contrasteReal` **le pregunta a la página si hay trazo**
+   (`webkitTextStrokeWidth > 0`) y, si lo hay, mide **el más claro contra el más
+   oscuro** de los que se ven, que es el relleno contra su halo.
+3. `app/e2e/pantalla.mjs` — la misma corrección para las líneas del mapa: con
+   ribete, lo que se mide es el ribete contra el plano y la línea contra el
+   ribete, y quién es el halo de quién se lee del propio SVG.
+
+Medido en la pantalla después, con el motor vivo:
+
+```
+    [44] fondo rgb(0,0,0) · número rgb(255,255,255) → 21.00:1
+  OK   1+2 · todo chip de la pantalla ≥ 4,5:1 medido en el píxel
+```
+
+**Commit:** `d7dfd5d`
 
 **Ley que sale de aquí:** un cálculo de contraste sobre dos hexadecimales compra
 que **esos dos colores** se distinguen, no que el navegador vaya a pintarlos. Si
@@ -64,6 +112,13 @@ fino— la promesa no está comprada hasta que se mide el píxel.
 Y la de al lado: **es el mismo error de ayer con otro traje** — la entrada del
 31/08 sobre `hidden` decía que preguntar por el atributo no compra lo que se ve.
 Aquí se pregunta por la aritmética.
+
+Y la que sale del cierre, que es la que no me esperaba: **un instrumento heredado
+trae consigo el caso para el que fue escrito**. El de ZetaBus mide texto plano
+sobre fondo plano y lo hace impecablemente; el primer día que le puse delante un
+texto con halo devolvió un número correcto **de la pregunta equivocada**, sin
+avisar. Heredar una herramienta obliga a comprobar que su pregunta sigue siendo
+la nuestra.
 
 **Traza:** `app/src/app/buscador.css` (`.chip-linea--contorno`) ·
 `app/src/app/chip.ts` (`legiblePorContorno`) · `app/src/app/chip.spec.ts` (juez 1).
