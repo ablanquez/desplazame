@@ -181,11 +181,25 @@ try {
 
   // ── 5 · Y LA RAÍZ SIGUE FRÍA ──────────────────────────────────────────────
   //
-  // La ley del 22/08: abrir la portada no pide nada. El juez de `app.spec.ts`
-  // cuenta llamadas a `fetch`, y **HttpClient no va por `fetch`** —va por XHR
-  // mientras no se ponga `withFetch()`—, así que allí una petición nueva se
-  // colaría sin ponerse roja. Aquí se cuenta lo que el navegador pide DE
-  // VERDAD, que es lo único que no se puede esquivar.
+  // La ley del 22/08: abrir la portada no pide nada.
+  //
+  // ⚠️ **CORRECCIÓN DEL 2/09.** Aquí ponía que el juez de `app.spec.ts` tenía
+  //    un agujero —«cuenta `fetch` y HttpClient va por XHR»—. **Las dos
+  //    mitades eran falsas y se han medido:**
+  //
+  //    · En Chrome, con los dos espías puestos a la vez, una petición de
+  //      HttpClient sale por `fetch`: `{ xhr: 0, fetch: 2 }`.
+  //    · Y en la suite no se cuela: metida una petición de HttpClient al
+  //      construir la raíz, `app.spec.ts` se pone ROJO.
+  //
+  //    Lo que sí es cierto, y es más fino: **no lo caza el contador de
+  //    `fetch`** —`provideHttpClientTesting` sustituye el transporte, así que
+  //    ahí no llega ninguna llamada real— sino `http.verify()` del `afterEach`:
+  //    *«Expected no open requests, found 1: GET /api/salud»*. El guardián
+  //    existe; no es el que su nombre dice.
+  //
+  // Esto de aquí sigue teniendo sentido por otra razón: mide lo que el
+  // navegador pide DE VERDAD, sin backend fingido en medio.
   const pedidas = await m.evaluar(
     `performance.getEntriesByType('resource').map(r => r.name).filter(u => u.includes('/api/') || u.includes('/datos/') || u.includes('datapackage'))`,
   );
