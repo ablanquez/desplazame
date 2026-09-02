@@ -2793,14 +2793,26 @@ Coche → Tipo de parking: [Regulado] [Discapacitado] [Gratuito]
 El encaje: `car-to-park` [OTP: conducir hasta el aparcamiento y
 andar el resto — el mismo remate que el aparcabicis del 9]. Los tres
 son CAPAS DE DATO y ninguna se promete sin sonda:
-- [ ] **0 · LAS SONDAS de parking:** REGULADO (ESRO — zonas azul/
-      naranja: ¿capa municipal? ¿vigencia? la ampliación de zonas
-      anotada el 18/08) · DISCAPACITADO (plazas PMR: ¿capa? ¿con
-      coordenada por plaza?) · GRATUITO — el difícil: no suele
-      existir como capa; sería «calle sin regulación», una DERIVACIÓN
-      y no un dato → NO CONSTA hasta sondar; si no hay fuente, el
-      botón no se pinta (regla de la demo) · la ZBE: la letra legal
-      (qué fase rige, a quién alcanza) contra la ordenanza.
+- [x] **⭐ 0 · LAS SONDAS de parking — HECHAS (2/09; 44 fixtures;
+      fichas §1.10-1.13 re-medidas).** REGULADO ✅: 1.159 tramos
+      ESRO/ESRE con geometría y plazas (WFS MU1_estacionamientos_
+      calle: ESRO 664 · ESRE 495) + 13 zonas; ⚠️ SIN tarifa ni
+      horario en ningún campo («aquí se paga», no cuánto ni cuándo);
+      ⚠️ zona_reguladora ≠ regulado (5.049 tramos LIBRE la traen >0 —
+      es la zona administrativa); ⛔ la ocupación publicada, muerta
+      desde 06/2023 con frecuencia declarada «Instantaneo»; la
+      ampliación de zonas NO está (WFS idéntico al 18/08). ·
+      DISCAPACITADO ✅ (el mejor dato): 1.226 plazas PMR con
+      coordenada, 0 sin ella, DOS fuentes que cuadran; ⚠️ el horario
+      en 104 escrituras («PERMANENTE»/«0-24»…) — normalizar. ·
+      GRATUITO: ⛔ no existe como dato (barridos los 438 conjuntos) —
+      ⭐ DECISIÓN DE ANTONIO (2/09): «donde no hay regulado hay
+      gratuito» → gratuito = el complemento: los 6.204 tramos LIBRE
+      (49.222 plazas) del censo de calzada; los 28 tramos con tipo
+      nulo, fuera de los dos montones y declarados; la palabra en
+      pantalla se ve en la demo. · ⚠️ QUEDA DE ESTA CASILLA: la letra
+      legal de la ZBE (qué fase rige, a quién alcanza) contra la
+      ordenanza — no entró en las cinco sondas.
 - [ ] **1 · LA RED DEL COCHE:** lo anotado el 29/08 (relations de giro
       [OSRM car.lua], penalizaciones, sentidos con vara de coche) +
       el veto/penalización de la ZBE.
@@ -2828,14 +2840,23 @@ YeGo, en Zaragoza (palabra de Antonio), con dato que se actualiza
 una vez por hora (palabra de Antonio: qué publica y en qué forma, NO
 CONSTA hasta la sonda).
 
-- [ ] **0 · LAS SONDAS antes de prometer botones:** (a) ¿existe capa
-      municipal de APARCAMIENTO DE MOTOS a pie de calle? (el WFS de
-      movilidad: 43 capas censadas — se mira, no se supone) · (b)
-      YeGo: ¿publica GBFS (moped) u otra API? ¿estaciones o
-      free-floating? ¿qué significa «una vez por hora» (TTL del
-      feed)? ¿licencia? · (c) las reglas de la moto en la letra
-      legal (¿carril bus? ¿ZBE? ¿zonas 30?) contra el articulado, no
-      de memoria.
+- [x] **⭐ 0 · LAS SONDAS — HECHAS (2/09) salvo la letra legal.** (a)
+      APARCAMOTOS ✅: 2.146 con coordenada y 11.715 plazas (WFS
+      MU2_motos; la sede dice 2.115 — 31 de diferencia, ⚠️ elegir
+      cuál manda como se hizo con los postes; ⭐ la sede se movió
+      ayer). · (b) YeGo ✅ EL DATO / ⛔ LA LICENCIA: tiene GBFS 2.3
+      OFICIAL (services.rideyego.com/gbfs/2-3/zaragoza/es/gbfs) no
+      registrado en systems.csv — 147 motos free-floating con
+      posición, batería y autonomía, form_factor moped, ttl 240
+      (cadencia real medida ~4,2 min), 0,31 €/min, geofencing, CERO
+      campos personales; ⚠️ el «hora a hora» de la web es un fichero
+      de folleto en S3 (dice 200 motos, trae 129); ⛔ sin license_url
+      en el feed NI aviso legal en la web (sus términos de usuario no
+      dicen nada de reutilización) → la decisión de fuente, de
+      Antonio, cuando el 13 arranque. · ⭐ De propina: BiZi tiene GBFS
+      v3.0 oficial (ttl 1, las mismas 276 estaciones) — fichado, no
+      se usa hoy. · (c) ⚠️ QUEDA: la letra legal de la moto (carril
+      bus, ZBE, zonas 30) contra el articulado.
 - [ ] **1 · LA MOTO PRIVADA sobre la red del coche** (hereda el 12):
       su tabla legal con artículo, el remate en aparcamoto ≤ X m
       (el patrón del aparcabicis, X con doctrina), la narración.

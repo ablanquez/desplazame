@@ -162,6 +162,21 @@ OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
 
+**LAS CINCO SONDAS DEL COCHE Y LA MOTO (2/09, tarde — solo lectura,
+44 fixtures).** REGULADO ✅ 1.159 tramos ESRO/ESRE + 13 zonas (sin
+tarifa ni horario; la ocupación municipal muerta desde 2023) ·
+DISCAPACITADO ✅ 1.226 plazas PMR con coordenada, dos fuentes que
+cuadran (el horario en 104 escrituras) · GRATUITO ⛔ no existe como
+dato → ⭐ DECISIÓN DE ANTONIO: «donde no hay regulado hay gratuito» =
+los 6.204 tramos LIBRE (49.222 plazas), los 28 nulos fuera ·
+APARCAMOTOS ✅ 2.146/11.715 plazas (la sede dice 2.115 — elegir cuál
+manda) · YeGo: ⭐ GBFS 2.3 OFICIAL no registrado (147 motos, ttl 240,
+~4,2 min real, cero personal; el «hora a hora» de su web es folleto
+S3) pero ⛔ SIN licencia (ni license_url ni aviso legal — decisión de
+Antonio cuando el 13 arranque) · de propina: BiZi tiene GBFS v3.0
+oficial, fichado y sin usar. Quedan de las casillas 0: la letra
+legal de la ZBE y la de la moto, contra el articulado.
+
 **LAS CASILLAS 2-4 DEL 11 (2/09, un solo encargo corto).** BiZi gana
 sus botones «Bicis ahora / Anclajes ahora» (GET /api/estacion-viva,
 patrón Próximo-bus calcado; «ausente» nunca se traduce a «0 bicis»
@@ -1045,10 +1060,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **las SONDAS del 12 y del 13** (ESRO · PMR ·
-«gratuito» · aparcamiento de motos · YeGo) — solo lectura, un encargo;
-con ellas delante se decide qué botones puede prometer el coche y si
-la moto es viable; (2)
+**Lo siguiente:** (1) **el punto 12 — EL COCHE, casilla 1: la red**
+(las relations de giro [OSRM car.lua], sentidos con vara de coche, la
+ZBE — y su letra legal, que quedó de la casilla 0); los tres botones
+de parking tienen dato (regulado 1.159 · PMR 1.226 · gratuito = el
+complemento, por la regla de Antonio); (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
