@@ -14,6 +14,73 @@
 
 ---
 
+## [2026-09-02] 🔴 ABIERTA — Dos portales del mismo cruce dan 635 m en coche, o «no hay forma», y las 509 jueces en verde
+
+**Categoría:** un caso que sí está vigilado en un modo y no en el modo nuevo
+
+**Síntoma:** dos direcciones que enganchan al MISMO nodo de la red del coche no
+se resuelven como lo que son —el mismo sitio—: o se rodea la manzana, o se
+contesta que no hay camino. Medido antes de tocar nada, con los tres modos sobre
+los mismos dos pares:
+
+```
+Portales.115617 (CAMINO ABEJAR 71 TV C9) -> Portales.118293 (CAMINO ABEJAR 71 TV C11) · 45.9 m en linea recta
+  los dos enganchan al MISMO nodo del coche: 20400 == 20400
+  andando  -> 0 m · 0 s · 1 pasos
+  coche    -> 635 m · 119 s · 2 pasos
+
+Portales.90046 (CALLE ABEDUL 1) -> Portales.114182 (CALLE ABEDUL 2) · 11.0 m en linea recta
+  los dos enganchan al MISMO nodo del coche: 23373 == 23373
+  andando  -> 1 m · 1 s · 2 pasos
+  coche    -> 0 m · 0 s · 0 pasos · No hay forma de ir en coche de CALLE ABEDUL 1 a CALLE ABEDUL 2 por las calles que conocemos.
+```
+
+**Son 672 nodos** de la red del coche con más de un portal pegado por el
+`node_snap`, de los 4.121 portales que enganchan a un cruce.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las **509 jueces del motor**,
+incluidas las diez del coche recién escritas, y —esto es lo que duele— **la juez
+del peatón que cubre exactamente este caso**, que lleva viva desde el 24/08 y
+sigue en verde porque solo mira `andando`. Ejecutadas antes de tocar nada:
+
+```
+$ node --test motor/src/viaje-coche.spec.ts
+ℹ tests 10
+ℹ pass 10
+ℹ fail 0
+
+$ node --test --test-name-pattern "UNA RESCATADA" motor/src/trayecto.spec.ts
+  ✔ ⭐ UNA RESCATADA anda hasta su propia puerta: de 401 m a ninguno (3.8688ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+```
+
+Y la juez 7 del coche —«un destino al que el coche no puede llegar se contesta,
+no se rompe»— compraba en verde un «No hay forma» legítimo mientras en el mismo
+camino de código salía otro que no lo era.
+
+**Cómo se cazó:** instrumento — una sonda de bordes escrita a mano al terminar
+el encargo, buscando qué pasa cuando los dos enganches caen en el mismo cruce.
+Ninguna juez lo pedía.
+
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** cuando un modo nuevo estrena su propia búsqueda, **las
+jueces de borde de los modos viejos son la lista de la compra**: los extremos
+que caen en el mismo sitio, la isla, el portal que no existe. Escribir jueces
+nuevas para lo que el modo trae de nuevo —los vetos, el sentido, la ZBE— y no
+re-correr las viejas deja vigilado lo llamativo y a oscuras lo básico.
+
+**Traza:** `motor/src/viaje-coche.ts`, `calcularRutaEnCoche` — el caso trivial
+busca una arista que sea a la vez salida y llegada, y dos enganches pegados al
+mismo NODO no comparten ninguna: las salidas son las que salen de él y las
+llegadas las que llegan.
+
+---
+
 ## [2026-09-01] ✅ CERRADA — Los cuatro titulares de la línea de créditos salen PEGADOS al separador, y los nueve jueces que los buscan por nombre dan verde
 
 **Categoría:** un juez que busca un nombre no ve dónde termina ese nombre

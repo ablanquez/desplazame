@@ -94,6 +94,20 @@ const BLANCO_CORDERO_7 = 'Portales.96490';
 const PIRINEOS_2 = 'Portales.125463';
 const PALENCIA_2 = 'Portales.84756';
 
+// Y dos pares que caen en el MISMO cruce por el `node_snap`: CAMINO ABEJAR 71
+// TV C9 y C11 están a 45,9 m en línea recta, y CALLE ABEDUL 1 y 2 a 11,0 m. Los
+// dos pares son la entrada nº30 de `docs/BITACORA.md`.
+const ABEJAR_C9 = 'Portales.115617';
+const ABEJAR_C11 = 'Portales.118293';
+const ABEDUL_1 = 'Portales.90046';
+const ABEDUL_2 = 'Portales.114182';
+// Y su contrapartida, que es la mitad que faltaba: dos direcciones que TAMBIÉN
+// enganchan a un cruce, pero **a cruces distintos** (7313 y 4288). Sin ella, un
+// corte que se tragara cualquier par de enganches pegados a un nodo pasaba las
+// once jueces en verde — medido, contraprueba 5 del encargo.
+const CONDE_DE_ARANDA_101 = 'Portales.109255';
+const OSA_MAYOR_4 = 'Portales.91645';
+
 // PEDRO LAPUYADE 3 está fuera del casco; ABEN AIRE 33, dentro de la ZBE; y
 // CAMINO DE EN MEDIO 120 al otro extremo de la ciudad, sin pisarla.
 const LAPUYADE_3 = 'Portales.84476';
@@ -366,6 +380,65 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
     // `turn.duration`. Sin ellas, 1.644 m a la velocidad de la tabla saldrían
     // por debajo de estos segundos.
     assert.ok(t.segundos >= 180, `${t.segundos} s: las transiciones no se están cobrando`);
+  });
+
+  /**
+   * ⭐ JUEZ 8 — DOS DIRECCIONES DEL MISMO CRUCE NO DAN LA VUELTA A LA MANZANA.
+   *
+   * ⚠️ Es la **entrada nº30 de `docs/BITACORA.md`**, y lo que la hace valer la
+   *    pena no es el fallo: es que **el peatón tenía este caso vigilado desde el
+   *    24/08** —«UNA RESCATADA anda hasta su propia puerta»— y su juez siguió en
+   *    verde, porque solo mira `andando`. Medido con el fallo vivo: CAMINO
+   *    ABEJAR 71 TV C9 → C11, a 45,9 m en línea recta, daba **635 m y 119 s**;
+   *    CALLE ABEDUL 1 → 2, a 11,0 m, daba **«no hay forma»**.
+   *
+   * Son **672 nodos** de la red con más de un portal pegado, así que no es un
+   * caso de laboratorio: es el bloque de pisos con dos portales en la esquina.
+   */
+  test('⭐ 8 · dos direcciones pegadas al mismo cruce están a cero metros', () => {
+    for (const [o, d] of [
+      [ABEJAR_C9, ABEJAR_C11],
+      [ABEDUL_1, ABEDUL_2],
+    ] as const) {
+      // El caso es el que es: los dos enganches caen en el MISMO nodo. Si algún
+      // día dejaran de hacerlo, la juez lo dice en vez de pasar de largo.
+      const eo = extremo(o);
+      const ed = extremo(d);
+      const a = enganchar(coche.comoRed, coche.rejilla, eo.lon, eo.lat)!;
+      const b = enganchar(coche.comoRed, coche.rejilla, ed.lon, ed.lat)!;
+      assert.equal(a.nodo, b.nodo, `${o} y ${d} ya no enganchan al mismo cruce`);
+      assert.notEqual(a.nodo, null, 'el caso pide que el node_snap actúe');
+
+      const t = viaje(o, d);
+      assert.deepEqual(t.avisos, [], `${o}→${d}: ${t.avisos[0]?.texto}`);
+      assert.equal(t.metros, 0, `${o}→${d}: todavía conduce ${t.metros} m hasta la puerta de al lado`);
+      assert.equal(t.pasos.length, 1);
+      assert.match(t.pasos[0]!.texto, /es el mismo portal del que sales/);
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 8 bis — Y DOS CRUCES DISTINTOS SIGUEN SIENDO UN VIAJE.
+   *
+   * La otra mitad, y hace falta: la juez de arriba compra que el corte actúe, y
+   * ésta que **no se pase**. CALLE CONDE DE ARANDA 101 y CALLE OSA MAYOR 4
+   * enganchan las dos a un cruce —el 7313 y el 4288—, y entre ellas hay 4.740 m
+   * de ciudad. Un corte que mirara «los dos van pegados a un nodo» sin comparar
+   * cuál las dejaría a cero, y las once jueces seguirían en verde.
+   */
+  test('⭐ 8 bis · dos direcciones pegadas a cruces DISTINTOS siguen teniendo viaje', () => {
+    const eo = extremo(CONDE_DE_ARANDA_101);
+    const ed = extremo(OSA_MAYOR_4);
+    const a = enganchar(coche.comoRed, coche.rejilla, eo.lon, eo.lat)!;
+    const b = enganchar(coche.comoRed, coche.rejilla, ed.lon, ed.lat)!;
+    assert.notEqual(a.nodo, null, 'el caso pide que el node_snap actúe en los dos');
+    assert.notEqual(b.nodo, null, 'el caso pide que el node_snap actúe en los dos');
+    assert.notEqual(a.nodo, b.nodo, 'y que sean cruces DISTINTOS');
+
+    const t = viaje(CONDE_DE_ARANDA_101, OSA_MAYOR_4);
+    assert.equal(t.metros, 4740);
+    assert.equal(t.segundos, 478);
+    assert.equal(t.pasos.length, 13);
   });
 
   /**

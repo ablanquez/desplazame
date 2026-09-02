@@ -283,6 +283,30 @@ export function calcularRutaEnCoche(
   const conectorOrigen = conector(puntoOrigen, [origen.lon, origen.lat]);
   const conectorDestino = conector([destino.lon, destino.lat], puntoDestino);
 
+  // ── ⭐ LOS DOS EN EL MISMO CRUCE: no hay nada que conducir ────────────────
+  //
+  // ⚠️ **Entrada nº30 de `docs/BITACORA.md`.** El caso trivial de más abajo
+  //    busca una arista que sea a la vez salida y llegada, y dos enganches
+  //    pegados al MISMO NODO no comparten ninguna: las salidas son las que
+  //    salen de él y las llegadas las que llegan a él. Sin este corte, la
+  //    búsqueda tenía que irse del cruce y volver — 635 m para ir de CAMINO
+  //    ABEJAR 71 TV C9 al C11, que están a 45,9 m—, o contestar que no había
+  //    camino cuando el nodo no tiene por dónde volver.
+  //
+  // Son **672 nodos** de la red con más de un portal pegado. El peatón nunca lo
+  // tuvo: su Dijkstra arranca y termina en el mismo nodo y el coste sale cero.
+  if (origen.nodo !== null && origen.nodo === destino.nodo) {
+    return {
+      metros: 0,
+      trozos: [],
+      conectorOrigen,
+      conectorDestino,
+      trivial: true,
+      nodosVisitados: 0,
+      segundos: 0,
+    };
+  }
+
   const salidas = salidasDelCoche(servida, origen);
   const llegadas = llegadasDelCoche(servida, destino);
   if (salidas.length === 0 || llegadas.length === 0) {
