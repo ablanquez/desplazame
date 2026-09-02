@@ -125,8 +125,9 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TRAMOS — TramoDelViaje con comoSeVa/desde/hasta/hito sobre la
   geometría única). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal
   + 619 por punto medio).
-- **Los datos**: TREINTA Y UN conjuntos descargados / veintitrés
-  fichas (la §1.23, nueva el 30/08: LA DISPONIBILIDAD VIVA de BiZi —
+- **Los datos**: TREINTA Y DOS conjuntos descargados (el 32º, del
+  2/09: EL VIARIO RODABLE con ids — 20 MB, la base del coche; y la
+  ZBE al repo) / TREINTA Y UNA fichas (la §1.23, nueva el 30/08: LA DISPONIBILIDAD VIVA de BiZi —
   la primera fuente del proyecto que no se copia, se CONSULTA; §1.8
   corregido en consecuencia) — los
   nombres OSM en `motor/data/` sin viajar al navegador (§1.14), LA
@@ -161,6 +162,22 @@ la decisión sobre Avanza**
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LA CASILLA 1a DEL 12 — LA RED DEL COCHE COCINADA (2/09, tarde).**
+El ejecutor PARÓ en el censo (bien): el grafo del peatón no trae ids
+de nodo y solo casaba el 68,3 % de las restricciones de giro —
+Antonio eligió el viario rodable con geometría e ids (20 MB al repo
+con ficha; la doctrina OSRM; 96,6 % aplicables). Zaragoza: 1.283
+restricciones (ni una no_entry/no_exit — las que OSRM ignora no
+existen aquí), 1.214 aplicadas → 1.378 transiciones vetadas; 57.390
+aristas dirigidas, 14.407 de sentido único; la ZBE marcada (200
+aristas; el aviso con la letra oficial —L-V 8-20, sanciones desde
+12/12/2025, B/C/ECO/CERO libres— va en la 1b); todo lo que pesa
+copiado de car.lua con URL. ⭐ El semáforo de OSM está donde el
+POSTE, no en el cruce (1.298/1.360 en nodo interior) → también parte
+la vía, o sus 2 s no se cobrarían nunca. 13 jueces con ids reales;
+una endurecida por la contraprueba (Calle Morería). 498 motor · 31
+fichas. Queda la 1b: el viaje en coche.
 
 **LA SONDA DEL CATÁLOGO 55 — PARKINGS PÚBLICOS (2/09, tarde).** 41
 puntos con coordenada y horario (Ley 37/2007) pero sellados en 2013,
@@ -1074,11 +1091,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el punto 12 — EL COCHE, casilla 1: la red**
-(las relations de giro [OSRM car.lua], sentidos con vara de coche, la
-ZBE — y su letra legal, que quedó de la casilla 0); los tres botones
-de parking tienen dato (regulado 1.159 · PMR 1.226 · gratuito = el
-complemento, por la regla de Antonio); (2)
+**Lo siguiente:** (1) **la casilla 1b del 12 — EL VIAJE EN COCHE**
+(/api/ruta modo=coche sobre la red cocinada: camino mínimo con vetos
+y penalizaciones, narración con tablas legales, el aviso de la ZBE
+con la letra citada); después la 2 (el remate al parking por tipo:
+regulado 1.159 · PMR 1.226 · gratuito = el complemento); (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1330,11 +1347,13 @@ botonera enseña lo que existe; [Moto] entra con el 13 y la fila de
 parking con el 12.
 
 **Punto 12 (COCHE — era el 11; con tipos de parking desde el 1/09):**
-⚰️ sondas HECHAS el 2/09: regulado 1.159 tramos (sin tarifa/horario)
-· PMR 1.226 plazas · gratuito = el complemento LIBRE (regla de
-Antonio) · parkings públicos: 41 sellados en 2013 que MEZCLAN de todo
-→ si entran, lista de inclusión declarada (demo delante) · quedan las
-letras legales (ZBE y moto) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
+⚰️ sondas HECHAS el 2/09 (regulado 1.159 · PMR 1.226 · gratuito = el
+complemento LIBRE · parkings 41 que mezclan → lista de inclusión) ·
+⚰️ la RED COCINADA el 2/09 (casilla 1a: 57.390 aristas, 1.378 giros
+vetados, ZBE marcada) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
+oficial (L-V 8-20 · sanciones desde 12/12/2025 · B/C/ECO/CERO libres
+sin registro → la app AVISA, no veta: no sabe la etiqueta) · queda la
+letra legal de la MOTO (punto 13) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
 FASE 2, solo geom+fase — la letra legal de vigencia/vehículos/
 excepciones pendiente aquí; descarga al repo cuando el punto
 arranque) · hereda la capa de sentidos Y sus correcciones (Siresa
@@ -1383,7 +1402,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 731 pruebas (485 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 744 pruebas (498 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

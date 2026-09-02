@@ -2738,18 +2738,15 @@ se queda hasta que el 12 lo llene.
 
 ## 12 — Modo COCHE *(en grueso; parlamentado el 1/09: con TIPOS DE PARKING)*
 
-*(Anotado el 29/08, del cruce de doctrina peatón/bici/coche:)* el
-coche HEREDA GRATIS la capa de sentidos y sus correcciones (Siresa
-incluida — misma capa de dato). Lo que exigirá y hoy NO existe, con
-la referencia delante [el car.lua de OSRM, literal]: las RELATIONS
-de restricción de giro OBLIGATORIAS [use_turn_restrictions=true; con
-variantes por vehículo restriction:hgv y excepciones except=bicycle
-— cuando entren, parlamentar si alguna aplica a la rueda] ·
-penalizaciones de giro 7,5 · media vuelta 20 · semáforo 2 · descarga
-nueva de Overpass (relations, mismo tubo) + transiciones arista-a-
-arista. Y la cobertura de sentidos (65 % de la calzada) deberá
-re-evaluarse con vara de coche: su 35 % a oscuras son contramanos
-potenciales, no calles menores.
+*(Anotado el 29/08 — ⚰️ CUMPLIDO el 2/09 en la casilla 1a, con un
+matiz que el censo impuso: el coche NO heredó el grafo del peatón —
+sin ids de nodo solo aplicaba el 68,3 % de las restricciones — sino
+que cocina sobre el VIARIO RODABLE descargado con geometría e ids
+[la doctrina de OSRM: construir desde las ways], decidido por
+Antonio con la medición delante: 96,6 % aplicables. El resto del
+párrafo original, cumplido tal cual: relations obligatorias,
+penalizaciones de car.lua copiadas con URL, transiciones
+arista-a-arista.)*
 
 *(⭐ VERIFICADO el 30/08, de la pregunta de Antonio por la ZBE —
 sonda completa en scratchpad, cero descargas:)* **la capa municipal
@@ -2830,9 +2827,50 @@ son CAPAS DE DATO y ninguna se promete sin sonda:
       pantalla se ve en la demo. · ⚠️ QUEDA DE ESTA CASILLA: la letra
       legal de la ZBE (qué fase rige, a quién alcanza) contra la
       ordenanza — no entró en las cinco sondas.
-- [ ] **1 · LA RED DEL COCHE:** lo anotado el 29/08 (relations de giro
-      [OSRM car.lua], penalizaciones, sentidos con vara de coche) +
-      el veto/penalización de la ZBE.
+- [x] **⭐ 1a · LA RED DEL COCHE — COCINADA (2/09, tres commits).**
+      LA BASE, decidida por Antonio con el censo delante: el viario
+      rodable de Overpass con geometría e ids (25.242 ways · 174.893
+      vértices · 138.553 nodos · 19,96 MB al repo con ficha) — el
+      grafo del peatón no trae ids y solo casaba el 68,3 % de
+      restricciones; por id casan el 96,6 %. EL CENSO de Zaragoza:
+      1.283 restricciones (only_straight_on 580 · no_left 317 ·
+      no_u_turn 221 · no_right 89 · only_right 52 · only_left 18 ·
+      no_straight 6) · ⭐ NI UNA no_entry/no_exit (las que OSRM
+      ignora: aquí no existen — decisión que no hay que tomar) · 11
+      con via-way (contadas, no aplicadas) · 16 con except (solo 3
+      motorcar) · 2 condicionales (aplicadas como incondicionales,
+      conservador declarado). LA COCINA (177 ms · 13.959 KB ·
+      determinista): 23.922 ways rodables → 57.390 aristas dirigidas
+      · 14.407 de sentido único (8 con oneway=-1) · 1.214
+      restricciones APLICADAS → 1.378 transiciones vetadas · 200
+      aristas dentro de la ZBE marcadas · TODO lo que pesa copiado
+      de car.lua con URL (tabla speeds 16 filas · default 10 ·
+      turn_penalty 7,5 · turn_bias 1,075 · u_turn 20 con su
+      limitación escrita · sigmoide literal · semáforo 2 s de
+      lib/obstacles.lua): los vetos son dato y van al cocinado; las
+      penalizaciones son fórmula. ⭐ EL HALLAZGO: el traffic_signals
+      de OSM está DONDE ESTÁ EL POSTE, no en el cruce (1.298 de
+      1.360 en nodo interior) — partiendo solo por cruces los 2 s no
+      se cobrarían nunca: el semáforo también parte la vía (lo cazó
+      la juez 6 en rojo con «26 casados»). LA ZBE: los 2 polígonos
+      al repo con ficha; las aristas marcadas; el AVISO (no veto: la
+      app no sabe la etiqueta del usuario) con la letra oficial
+      medida [FAQ de la sede: L-V 8:00-20:00, sanciones desde el
+      12/12/2025, B/C/ECO/CERO libres sin registro] queda para la
+      1b. 13 jueces con ids reales (no_left 1211840 Asalto→Heroísmo
+      · only 545214 Ctra. Logroño · except=bicycle 1243522 César
+      Augusto — la juez 3 ENDURECIDA por la contraprueba: ahora
+      nombra Calle Morería y el contador exacto) · 498 motor · 31
+      fichas en el notices. Honestidades: el redondeo de semáforos
+      corregido antes de reportar (7 vs 6 decimales); la juez del
+      cierre del notices reescrita para comprar «cierra la lista»,
+      no un número.
+- [ ] **1b · EL VIAJE EN COCHE:** /api/ruta con modo=coche sobre la
+      red cocinada — el camino mínimo con los vetos y las
+      penalizaciones, la narración por pasos (tablas legales con
+      artículo), el AVISO de la ZBE con la letra citada cuando la
+      ruta la pise [componer sin prometer], y el remate al parking
+      queda para la casilla 2.
 - [ ] **2 · EL VIAJE en coche** (tablas legales con artículo; el
       remate al parking del tipo elegido, con su radio andando por
       doctrina).
