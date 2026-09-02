@@ -2633,8 +2633,10 @@ Dejado aquí desde el punto 4, para cuando toque:
       31/12 son UNA línea huérfana cada uno — el 31/12 ni siquiera era
       servicio. La conservadora (05/10) no cambia
 
-## 11 — LA BOTONERA DE LA DEMO *(nuevo, parlamentado el 1/09 al cerrar
-el 10 — «esto va a ser una DEMO»)*
+## 11 — LA BOTONERA DE LA DEMO — **⭐ CERRADO el 2/09/2026** *(nació
+del parlamento del 1/09 al cerrar el 10 — «esto va a ser una DEMO»;
+cinco casillas en un día y medio; el ojo: «la botonera la veo bien
+así»)*
 
 LA IDEA DE ANTONIO, y su encaje doctrinal: la botonera se reorganiza
 en modo + calificador — exactamente la taxonomía de la referencia
@@ -2729,7 +2731,10 @@ se queda hasta que el 12 lo llene.
       y la región dicen lo mismo; al refrescar la frase se queda
       vieja. Una sola fuente de verdad en pantalla (fundir cambia la
       narración del `sube` y su juez).
-- [ ] **5 · LA DEMO de la botonera por el ojo.**
+- [x] **⭐ 5 · LA DEMO — CONFIRMADA por el ojo (2/09): «la botonera la
+      veo bien así»** (la bici en dos filas con sus rutas, los botones
+      de BiZi con la cifra doble por decisión suya, el resumen único y
+      el minuto una vez, vistos en localhost).
 
 ## 12 — Modo COCHE *(en grueso; parlamentado el 1/09: con TIPOS DE PARKING)*
 

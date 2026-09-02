@@ -7,7 +7,10 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ## ESTADO ACTUAL — 1 de septiembre de 2026
 
-**⭐ PUNTOS 1-10 CERRADOS (el 10, el 1/09: EL BUS Y EL TRANVÍA
+**⭐ PUNTOS 1-11 CERRADOS (el 11, el 2/09: LA BOTONERA DE LA DEMO —
+la bici en dos filas [Privada|Pública BiZi] con sus tres rutas, los
+botones «Bicis ahora / Anclajes ahora», el resumen único de avisos y
+el minuto una sola vez; el ojo: «la botonera la veo bien así». El 10, el 1/09: EL BUS Y EL TRANVÍA
 ENTEROS — el feed del NAP con su cron probado, la red cocinada en
 patrones, RAPTOR con los pesos de OTP, la ruta operativa de hoy con
 los desvíos reconstruidos, la consulta viva a Avanza y el botón
@@ -1042,9 +1045,10 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 5 del 11 — la demo de la botonera
-por el ojo** (con el vale, el punto 11 se cierra) y las SONDAS del 12
-y del 13 (ESRO · PMR · gratuito · parking de motos · YeGo); (2)
+**Lo siguiente:** (1) **las SONDAS del 12 y del 13** (ESRO · PMR ·
+«gratuito» · aparcamiento de motos · YeGo) — solo lectura, un encargo;
+con ellas delante se decide qué botones puede prometer el coche y si
+la moto es viable; (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1115,6 +1119,8 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
+11 CERRADO el 2/09 (las cinco casillas — la botonera de la demo: dos
+filas, BiZi a petición, resumen único, minuto una vez; ver el plan) ·
 10 CERRADO el 1/09 (casillas 0-5 y los pulidos — el bus entero: cron
 + cocina + RAPTOR con pesos OTP + desvíos operativos + vivo a
 petición + pantalla WCAG; ver el plan) · 9 CERRADO el 30/08 (casillas
@@ -1288,10 +1294,10 @@ y las trazas direccionales para la fase 2 de sentidos) · ⚠️
 shape_dist_traveled vacía · ⚠️ 8 rutas de routes.txt sin viaje · ⚰️
 la API viva de Bizi: MUDADA al punto 9 (28/08).
 
-**Punto 11 (LA BOTONERA DE LA DEMO, nuevo el 1/09):** la bici en dos
-filas (solo pantalla) · los botones «Bicis ahora / Anclajes ahora» de
-BiZi (patrón Próximo bus) · el resumen único de avisos [GOV.UK] · el
-minuto doble · la demo. Regla: la botonera enseña lo que existe.
+**Punto 11 (⭐ CERRADO el 2/09 — la demo confirmada: «la botonera la
+veo bien así»):** la regla queda viva para los que vienen: la
+botonera enseña lo que existe; [Moto] entra con el 13 y la fila de
+parking con el 12.
 
 **Punto 12 (COCHE — era el 11; con tipos de parking desde el 1/09):**
 sondas antes que botones: ESRO (regulado) · PMR (discapacitado) ·
