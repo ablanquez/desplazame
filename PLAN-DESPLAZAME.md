@@ -2768,12 +2768,29 @@ arranque.
 
 Dejado aquí el 18/08 (investigación de estacionamiento):
 
-- [ ] **Parkings públicos, si entran, es aquí** («aparca en el parking
-      X», patrón aparcamotos/moto). Las dos fuentes conocidas y ninguna
-      redonda: los 104 «Público» de `MU1_parking` (censo de garajes/vados
-      — 7.129 privados que NO se pintan; varios públicos sin calle) vs
-      los 41 de la API con nombre y horario pero sellados en 2013. Se
-      decide con la demo delante
+- [x] **⭐ Parkings públicos — SONDADO A FONDO (2/09, catálogo 55) y
+      con la decisión encaminada.** LO MEDIDO: el directorio son 41
+      puntos con coordenada, nombre y horario (Ley 37/2007) pero ⛔
+      SELLADO EN 2013, sin plazas, sin tarifa, sin capacidad y SIN
+      CAMPO DE TIPO — y la lista mezcla de todo (dicho por Antonio:
+      «parkings de pago públicos con parkings de hotel, de centros
+      comerciales y demás»): 8 concesiones municipales (ids 1-8, las
+      de Indigo/ex-VINCI — y El Carmen y San Ignacio repetidos en el
+      bloque 100: los 10 de Indigo están), 2 disuasorios del tranvía,
+      ~15 de rotación céntricos, centros comerciales/súpers, 3
+      hoteles, un colegio y el Quirón. ⛔ LA OCUPACIÓN «VINCI» está
+      MUERTA desde 17/11/2020 (121 bytes idénticos en 6 lecturas/70
+      min; 5 de 41; value sin unidad ni capacidad con que
+      interpretarlo; la ficha declara «cada segundo» — la periodicidad
+      del catálogo es una intención, no un dato, como la del ESRO).
+      Los agregadores comerciales (Parclick/Onepark) traen precios DE
+      RESERVA y cero ocupación — plataformas privadas sin licencia:
+      como mucho, ENLACE saliente. ⇒ LA REGLA SI ENTRA (pantalla,
+      casilla 3): entra por LISTA DE INCLUSIÓN DECLARADA por Antonio
+      (la poda del 8, aplicada aquí) — el dato no distingue,
+      distinguimos nosotros por lista escrita con su porqué; solo
+      «dónde y a qué hora abre», nunca plazas ni precio. Se decide
+      con la demo delante.
 - [ ] **Parquímetros: NO entran hoy** (312, solo-API, sellados en 2015 y
       con la ampliación de zonas en puerta — entrarían caducados). Se
       reevalúa si el Ayuntamiento los refresca

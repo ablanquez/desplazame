@@ -162,6 +162,20 @@ OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
 
+**LA SONDA DEL CATÁLOGO 55 — PARKINGS PÚBLICOS (2/09, tarde).** 41
+puntos con coordenada y horario (Ley 37/2007) pero sellados en 2013,
+sin plazas/tarifa/capacidad NI CAMPO DE TIPO: la lista mezcla las 8
+concesiones municipales (Indigo/ex-VINCI; con El Carmen y San Ignacio
+son los 10 de Indigo), 2 disuasorios del tranvía, rotación céntrica,
+centros comerciales, hoteles, un colegio y el Quirón — «mezcla
+parkings de pago con parkings de hotel y demás» (Antonio). La
+ocupación VINCI, muerta desde 11/2020 (5 de 41, value sin unidad; la
+ficha declara «cada segundo» — la periodicidad del catálogo es
+intención, no dato). Los agregadores (Parclick/Onepark): precios DE
+RESERVA, cero ocupación, sin licencia — como mucho enlace saliente.
+⇒ Si entra (casilla 3 del 12): por LISTA DE INCLUSIÓN declarada por
+Antonio, solo «dónde y horario»; se decide con la demo delante.
+
 **LAS CINCO SONDAS DEL COCHE Y LA MOTO (2/09, tarde — solo lectura,
 44 fixtures).** REGULADO ✅ 1.159 tramos ESRO/ESRE + 13 zonas (sin
 tarifa ni horario; la ocupación municipal muerta desde 2023) ·
@@ -1316,8 +1330,11 @@ botonera enseña lo que existe; [Moto] entra con el 13 y la fila de
 parking con el 12.
 
 **Punto 12 (COCHE — era el 11; con tipos de parking desde el 1/09):**
-sondas antes que botones: ESRO (regulado) · PMR (discapacitado) ·
-«gratuito» = derivación, NO CONSTA · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
+⚰️ sondas HECHAS el 2/09: regulado 1.159 tramos (sin tarifa/horario)
+· PMR 1.226 plazas · gratuito = el complemento LIBRE (regla de
+Antonio) · parkings públicos: 41 sellados en 2013 que MEZCLAN de todo
+→ si entran, lista de inclusión declarada (demo delante) · quedan las
+letras legales (ZBE y moto) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
 FASE 2, solo geom+fase — la letra legal de vigencia/vehículos/
 excepciones pendiente aquí; descarga al repo cuando el punto
 arranque) · hereda la capa de sentidos Y sus correcciones (Siresa
