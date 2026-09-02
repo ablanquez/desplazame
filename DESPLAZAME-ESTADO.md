@@ -120,7 +120,9 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   `/api/salud` · `/api/vias?q=` (con `foco`) · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
   `POST /api/ruta` (sitio o vía-sin-portal en cualquiera de los dos
-  extremos; `modo` opcional bici·patin·bizi y `ruta` opcional
+  extremos; `modo` opcional bici·patin·bizi·bus·coche (el coche
+  desde el 2/09, con Aviso.paso para señalar el paso que entra a la
+  ZBE) y `ruta` opcional
   rapida·equilibrada·tranquila desde el 30/08; la respuesta viaja EN
   TRAMOS — TramoDelViaje con comoSeVa/desde/hasta/hito sobre la
   geometría única). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal
@@ -156,12 +158,32 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar: EL PUNTO 10 ENTERO, los papeles públicos y
-la decisión sobre Avanza**
+comprobado). **En local, sin publicar** *(al cierre del 2/09; el push de hoy lo
+nombró Antonio)*: **el punto 11 entero, las sondas del coche y la
+moto, y las casillas 0-1b del 12 — EL COCHE RUTEA en el motor**
 (31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LA CASILLA 1b DEL 12 — EL COCHE RUTEA (2/09, tarde-noche).** Sin
+campo nuevo en el tramo (Trayecto.modo separa; el conductor elige,
+no va «montado»); tipos ganó Aviso.paso?: number (elegido por
+Antonio: el aviso dice a qué paso pertenece — general, opcional,
+mata el reparto por cadenas). Búsqueda por TRANSICIONES [edge-based]:
+de 200 pares, 86 cambian de ruta por los giros vetados (43 % — un
+Dijkstra por nodos estaría mal en todos ellos). El aviso ZBE con la
+letra oficial y su paso, en doble sitio. Bitácora nº30: dos portales
+del MISMO cruce (672 nodos) daban 635 m para ir a 45 — el peatón lo
+vigilaba desde el 24/08 solo para andando; arreglado con juez nueva.
+⚠️ 2 cruces que OSM cierra del todo (Leopoldo Romeo 27 sin ruta en
+coche; dato, no motor — a la nevera como corrección de vecino en
+OSM). p50 26 ms · 98,15 % de portales ida-y-vuelta · muralla de los
+cinco modos idéntica al byte. ⭐ PARLAMENTO de cierre del día
+(Antonio): la ZBE será SELECCIONABLE («¿puede entrar? sí/no») para
+hacer bien los cálculos — con NO se vetan las aristas y con el
+horario L-V 8-20 por reloj; va en la casilla 2 (motor) y 3
+(control). 511 motor · 246 interfaz · 30 bitácoras.
 
 **LA CASILLA 1a DEL 12 — LA RED DEL COCHE COCINADA (2/09, tarde).**
 El ejecutor PARÓ en el censo (bien): el grafo del peatón no trae ids
@@ -1091,11 +1113,10 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 1b del 12 — EL VIAJE EN COCHE**
-(/api/ruta modo=coche sobre la red cocinada: camino mínimo con vetos
-y penalizaciones, narración con tablas legales, el aviso de la ZBE
-con la letra citada); después la 2 (el remate al parking por tipo:
-regulado 1.159 · PMR 1.226 · gratuito = el complemento); (2)
+**Lo siguiente:** (1) **la casilla 2 del 12 — el remate al parking y
+la ZBE seleccionable** (el parámetro sí/no con vetos y horario por
+reloj; el car-to-park al parking del tipo elegido: regulado 1.159 ·
+PMR 1.226 · gratuito = el complemento); (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1349,8 +1370,11 @@ parking con el 12.
 **Punto 12 (COCHE — era el 11; con tipos de parking desde el 1/09):**
 ⚰️ sondas HECHAS el 2/09 (regulado 1.159 · PMR 1.226 · gratuito = el
 complemento LIBRE · parkings 41 que mezclan → lista de inclusión) ·
-⚰️ la RED COCINADA el 2/09 (casilla 1a: 57.390 aristas, 1.378 giros
-vetados, ZBE marcada) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
+⚰️ la RED COCINADA el 2/09 (1a: 57.390 aristas, 1.378 giros vetados,
+ZBE marcada) · ⚰️ EL COCHE RUTEA desde el 2/09 (1b: 86/200 rutas
+cambian por los giros; nº30 cerrada; 2 cruces que OSM cierra — dato)
+· ⭐ la ZBE seleccionable PARLAMENTADA (sí/no + horario por reloj →
+casillas 2 y 3) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
 oficial (L-V 8-20 · sanciones desde 12/12/2025 · B/C/ECO/CERO libres
 sin registro → la app AVISA, no veta: no sabe la etiqueta) · queda la
 letra legal de la MOTO (punto 13) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
@@ -1402,7 +1426,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 744 pruebas (498 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 757 pruebas (511 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

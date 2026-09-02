@@ -2865,15 +2865,57 @@ son CAPAS DE DATO y ninguna se promete sin sonda:
       corregido antes de reportar (7 vs 6 decimales); la juez del
       cierre del notices reescrita para comprar «cierra la lista»,
       no un número.
-- [ ] **1b · EL VIAJE EN COCHE:** /api/ruta con modo=coche sobre la
-      red cocinada — el camino mínimo con los vetos y las
-      penalizaciones, la narración por pasos (tablas legales con
-      artículo), el AVISO de la ZBE con la letra citada cuando la
-      ruta la pise [componer sin prometer], y el remate al parking
-      queda para la casilla 2.
-- [ ] **2 · EL VIAJE en coche** (tablas legales con artículo; el
-      remate al parking del tipo elegido, con su radio andando por
-      doctrina).
+- [x] **⭐ 1b · EL VIAJE EN COCHE — HECHO (2/09, seis commits): EL
+      COCHE RUTEA.** Sin campo nuevo en el tramo (el contrato ya
+      separa por Trayecto.modo; «quien va montado no elige el camino,
+      lo elige la línea» — el conductor elige); lo que sí entró en
+      tipos fue Aviso.paso?: number, elegido por Antonio de tres
+      opciones: el aviso dice a qué paso pertenece — general para
+      todos, opcional, mata el reparto por cadenas (la lección de la
+      nº22). LA BÚSQUEDA por TRANSICIONES arista-a-arista [el modelo
+      edge-based que las restricciones exigen], y el dato lo
+      justifica: de 200 pares al azar, 86 CAMBIAN de ruta por los
+      giros vetados (rodeo medio 194 m, el peor 6.949) — un Dijkstra
+      por nodos daría verde y estaría mal en el 43 %. EL AVISO ZBE
+      con la letra oficial [FAQ de la sede] y paso: entra en «gira a
+      la derecha hacia Calle San Blas» (el caso real); doble sitio.
+      12 jueces (la no_left 1211840 rodea 1.644 vs 1.225 · el
+      oneway:bicycle=no way 23134100: la bici sí, el coche no · las
+      penalizaciones cobran, no cierran · inalcanzable se contesta) ·
+      dos jueces endurecidas por su contraprueba (iban a
+      viajeEnCoche a pelo; ahora por calcularTrayecto, la puerta de
+      verdad). ⭐ BITÁCORA nº30, cazada midiendo los bordes: dos
+      portales colgando del MISMO cruce (672 nodos así) daban 635 m
+      para ir a 45, o «no hay forma» — el peatón lo tenía vigilado
+      desde el 24/08 y su juez solo miraba andando; arreglado con la
+      8bis (las aristas se buscan por way+cruce, nunca por índice).
+      ⚠️ DATO, no motor: 2 cruces de Zaragoza que OSM cierra del todo
+      (4 relations tapan las 4 salidas) — Doctor Iranzo × Leopoldo
+      Romeo es uno: LEOPOLDO ROMEO 27 no tiene ruta en coche; NO
+      CONSTA si es error de mapeo (a la nevera: corregirlo en OSM
+      como vecino). MEDIDAS: p50 26 ms · p95 ~55 · 98,15 % de
+      portales con ida y vuelta · 97,9/98,2 % de alcance · rss 537
+      MB con las cuatro redes · 14.511 ways con nombre (57,5 %). La
+      muralla de los cinco modos IDÉNTICA al byte (sha 631d50bc…). El
+      ejecutor mató un motor zombi en el 3000 con código de cuatro
+      commits atrás (pid==pid trabajando). 511 motor · 246 interfaz ·
+      30 bitácoras, 0 abiertas.
+- [ ] **2 · EL REMATE AL PARKING y la ZBE SELECCIONABLE** *(redefinida
+      el 2/09: el viaje ya existe — la 1b)*: (a) ⭐ PARLAMENTADO por
+      Antonio: «tendremos que seleccionar si el coche puede entrar a
+      la ZBE o no para hacer bien los cálculos» → /api/ruta gana el
+      parámetro (¿puede entrar? sí/no — la traducción binaria de la
+      FAQ: B/C/ECO/CERO sí sin registro; sin etiqueta no, salvo
+      autorización); con NO, las 200 aristas ZBE se VETAN y la ruta
+      rodea (si solo existe cruzando: aviso honesto de que no hay
+      ruta sin entrar); con SÍ, como hoy; y el HORARIO por reloj
+      [L-V 8:00-20:00, FAQ]: fuera de franja la ZBE no aplica y no se
+      veta, con su aviso (el operaEl del bus, aplicado aquí). El
+      control en pantalla va en la casilla 3 (segunda fila revelada,
+      el patrón de la bici). (b) EL REMATE al parking del tipo
+      elegido [car-to-park]: conducir al parking (regulado 1.159 ·
+      PMR 1.226 · gratuito = el complemento) + andar el resto, con
+      su radio por doctrina; tablas legales con artículo.
 - [ ] **3 · LA PANTALLA:** el grupo [Coche] con su fila de parking
       aparece cuando esto exista (regla de la demo del 11); las
       trazas de desvío del bus pasan a rutearse sobre esta red.
