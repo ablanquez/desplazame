@@ -1,0 +1,7 @@
+connection: close
+content-encoding: gzip
+content-length: 22156
+content-type: application/json
+date: Wed, 02 Sep 2026 15:42:06 GMT
+server: Apache/2.4.68 (Debian)
+vary: Accept-Encoding

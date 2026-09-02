@@ -1,0 +1,9 @@
+access-control-allow-origin: *
+connection: keep-alive
+content-disposition: inline; filename=MU1_ZBE_Zona_Bajas_Emisiones.json
+content-encoding: gzip
+content-length: 1614
+content-type: application/json;charset=UTF-8
+date: Wed, 02 Sep 2026 15:43:42 GMT
+keep-alive: timeout=20
+x-frame-options: SAMEORIGIN
