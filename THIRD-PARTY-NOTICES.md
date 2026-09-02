@@ -2503,8 +2503,9 @@ municipal. **Pidiendo `srsName=EPSG:4326` el WFS reproyecta él**, y lo que lleg
 es lon/lat: el primer vértice es `[-0.88930788, 41.65869065]`. No se reproyecta
 nada a mano, que es donde se cometen los errores.
 
-> ⭐ **LA ZBE AVISA, NO VETA — y la letra es oficial.** [FAQ de la sede,
-> medida] es de aplicación **L-V 8:00-20:00**, con sanciones desde el
+> ⭐ **LA ZBE AVISA, NO VETA — y la letra es oficial.** [**FAQ de la sede**,
+> `https://www.zaragoza.es/sede/portal/movilidad/bajas-emisiones/faq`, **leída el
+> 02/09/2026**] es de aplicación **L-V 8:00-20:00**, con sanciones desde el
 > **12/12/2025**, y **B, C, ECO y CERO circulan libres sin registro**: a quien
 > alcanza es a los **SIN etiqueta**, salvo excepciones con registro. La **Fase 1**
 > es la vigente; la Fase 2, futura.
@@ -2513,6 +2514,16 @@ nada a mano, que es donde se cometen los errores.
 > **marca** las aristas de dentro y el viaje **avisa con la letra citada**; vetar
 > sería prohibirle el paso a un coche ECO que puede entrar. Es componer sin
 > prometer, y es la misma regla del D-G del BiZi.
+
+⭐ **Dónde está cumplida (2/09).** La frase que se le enseña a quien busca vive
+en **una sola constante**, `AVISO_ZBE` de
+[`motor/src/viaje-coche.ts`](motor/src/viaje-coche.ts), con la URL de la FAQ y la
+fecha de lectura en su comentario. Va en `Trayecto.avisos` **con el índice del
+paso por el que se entra en la zona** —el campo `paso` que el contrato estrena
+hoy—, para que la pantalla pueda ponerlo arriba y junto a ese paso sin adivinar
+nada leyendo el texto. La ruta **se devuelve entera**: 200 aristas de las 57.390
+caen dentro de la fase 1, y en 200 peticiones al azar el aviso salió en **25 de
+las 189** que dieron ruta.
 
 ---
 
