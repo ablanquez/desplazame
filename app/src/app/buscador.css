@@ -235,7 +235,12 @@ legend {
    `display: none` ni `visibility: hidden`, que lo sacarían del orden de
    tabulación y del árbol de accesibilidad — y ahí es justo donde tiene que
    seguir, porque **él es el control**: es quien recibe el foco, quien se mueve
-   con las flechas y quien se anuncia como «Andando, opción 1 de 6». */
+   con las flechas y quien se anuncia como «Andando, opción 1 de 5».
+
+   ⚠️ «de 5», no «de 6», desde el 2/09: la fila bajó a cinco familias y las dos
+   bicis se fueron a la suya (punto 11). Ese número lo cuenta el navegador solo,
+   por `name` compartido — que es justo por lo que la segunda fila tiene el suyo:
+   si compartieran nombre, diría «opción 1 de 7» y serían un solo grupo. */
 .modo__radio {
   position: absolute;
   width: 1px;

@@ -515,6 +515,32 @@ function comoSeLeeLaDuracion(segundos: number, modo: Modo = 'andando'): string {
   return `~${Math.round(segundos / 60)} min${coletilla}`;
 }
 
+/**
+ * ⭐ LAS CINCO FAMILIAS DE LA PRIMERA FILA (2/09, punto 11).
+ *
+ * ⚠️ **Esto NO es del contrato y no debe llegar a serlo.** `Modo` es lo que el
+ *    motor entiende y son seis; `Familia` es cómo se pregunta en la pantalla y
+ *    son cinco, porque la bici se pregunta en dos pasos. Es una palabra de
+ *    maquetación: si algún día se colara en `@desplazame/tipos`, el motor
+ *    tendría que saber cómo está repartida una botonera, que es exactamente lo
+ *    que no le importa.
+ *
+ * Los cuatro nombres que coinciden con un `Modo` lo hacen porque esas familias
+ * tienen una sola opción, no porque sean lo mismo.
+ */
+type Familia = 'andando' | 'bus' | 'bici' | 'patin' | 'coche';
+
+/**
+ * De qué familia es un modo. **La única línea donde vive el reparto**, y por
+ * eso está fuera del componente: la usan la pantalla y sus jueces.
+ *
+ * `bizi` es la única que no se llama como su familia — es una bici, y por eso
+ * comparte botón con la privada.
+ */
+function familiaDe(modo: Modo): Familia {
+  return modo === 'bizi' ? 'bici' : modo;
+}
+
 @Component({
   selector: 'app-buscador',
   imports: [Mapa, AutocompletarVia, SelectorPortal, IconoCapa, NgTemplateOutlet],
@@ -613,12 +639,77 @@ export class Buscador {
     { id: 'coche', etiqueta: 'Coche', todavia: 'Todavía no calculamos rutas en coche.' },
   ];
 
+  /**
+   * ⭐ LA PRIMERA FILA, QUE DESDE EL 2/09 YA NO ES LA LISTA DE MODOS (punto 11).
+   *
+   * Seis botones en una fila era uno más de los que el patrón aguanta —[DOC
+   * sistemas de diseño · control segmentado] el rango es de **2 a 5 opciones
+   * con etiqueta**—, y encima repartía mal: **«Bici privada» y «BiZi» son la
+   * misma pregunta** —¿en qué te mueves? en bici— con dos respuestas a una
+   * segunda pregunta —¿tuya o de la ciudad?—. Puestas al mismo nivel que
+   * «Andando» y «Coche», obligaban a leer las seis para descubrir que dos eran
+   * hermanas.
+   *
+   * Así que la fila baja a **CINCO**, que es el tope del patrón, y la segunda
+   * pregunta se revela **solo cuando se ha contestado la primera** [DOC GOV.UK,
+   * revelado condicional]: es el mismo mecanismo que el número de portal y que
+   * «¿Qué ruta prefieres?», y el mismo argumento — lo que no aplica **no está**,
+   * no está apagado.
+   *
+   * ⚠️ **Y el contrato NO se entera.** `Familia` es una palabra de esta
+   *    pantalla y no existe en `@desplazame/tipos`: lo que viaja a `/api/ruta`
+   *    sigue siendo `Modo`, y sigue siendo `bici` o `bizi` como el 30/08. El
+   *    motor no se ha tocado.
+   *
+   * `porDefecto` es el modo con el que se ENTRA en la familia. Solo la bici
+   * tiene dos, y entra por la privada: es la que no depende de que haya una
+   * estación cerca ni una bici suelta en ella.
+   */
+  protected readonly familias: ReadonlyArray<{
+    id: Familia;
+    etiqueta: string;
+    porDefecto: Modo;
+  }> = [
+    { id: 'andando', etiqueta: 'Andando', porDefecto: 'andando' },
+    { id: 'bus', etiqueta: 'Bus / Tranvía', porDefecto: 'bus' },
+    { id: 'bici', etiqueta: 'Bici', porDefecto: 'bici' },
+    { id: 'patin', etiqueta: 'Patín (VMP)', porDefecto: 'patin' },
+    { id: 'coche', etiqueta: 'Coche', porDefecto: 'coche' },
+  ];
+
+  /**
+   * ⭐ LA SEGUNDA FILA, y **sus dos ids SON los del contrato**, no una
+   * traducción. Lo que se marca aquí es literalmente lo que se le manda al
+   * motor; no hay tabla en medio que pueda desalinearse.
+   *
+   * Las etiquetas son cortas porque la primera fila ya ha dicho «Bici»: leídas
+   * en cadena dan «Bici privada» y «Bici pública BiZi», que es como se llaman.
+   * **«Pública» va delante de «BiZi»** porque es lo que distingue —la marca
+   * sola no dice de quién es la bici a quien no la conozca—.
+   */
+  protected readonly bicis: ReadonlyArray<{ id: Modo; etiqueta: string }> = [
+    { id: 'bici', etiqueta: 'Privada' },
+    { id: 'bizi', etiqueta: 'Pública BiZi' },
+  ];
+
   /** Los dos lados de la dirección. Misma forma, mismo trato. */
   protected readonly origen = ladoVacio();
   protected readonly destino = ladoVacio();
 
   /** Andando por defecto. */
   protected readonly modo = signal<Modo>('andando');
+
+  /**
+   * ⭐ EN QUÉ FAMILIA ESTAMOS, **derivado del modo y no guardado aparte**.
+   *
+   * Es la decisión que sostiene todo lo demás: **el estado sigue siendo UNO**,
+   * `modo`, el que viaja al motor. La familia se calcula de él. Guardarla en su
+   * propia señal habría creado dos verdades que hay que mantener de acuerdo, y
+   * el día que se desincronizaran la pantalla enseñaría un botón marcado y
+   * mandaría otro modo — sin que nada se pusiera rojo, porque las dos señales
+   * serían coherentes cada una consigo misma.
+   */
+  protected readonly familia = computed<Familia>(() => familiaDe(this.modo()));
 
   /**
    * ⭐ LAS TRES CLASES DE RUTA, y el trío no es nuestro.
@@ -1325,6 +1416,32 @@ export class Buscador {
 
   protected elegirModo(modo: Modo): void {
     this.modo.set(modo);
+  }
+
+  /**
+   * ⭐ Se elige una familia en la primera fila: se entra por su `porDefecto`.
+   *
+   * Dos conductas salen de aquí, y conviene no confundirlas:
+   *
+   * · **Repulsar la familia en la que ya estás NO te mueve.** Quien esté en
+   *   «Pública BiZi» y pulse «Bici» sigue en BiZi — porque el control es un
+   *   radio nativo y **un radio ya marcado no dispara `change`**, así que esta
+   *   función ni se llama. Lo da el navegador, no una línea de aquí, y se
+   *   escribe porque es la clase de cosa que alguien «arregla» sin saber que
+   *   era intencionada.
+   * · **Salir de la familia y volver SÍ te devuelve al defecto.** No hay dónde
+   *   recordar la bici elegida: el estado es uno, `modo`, y al irse a
+   *   `andando` la elección de dentro deja de existir. Es a propósito —
+   *   guardarla exigiría una segunda señal viva mientras el modo dice otra
+   *   cosa, que es la puerta a que el botón marcado y el modo que viaja dejen
+   *   de coincidir—. El encargo dice «Privada por defecto» y aquí se aplica
+   *   **cada vez que se entra**, que es lo único que no puede envejecer mal.
+   */
+  protected elegirFamilia(familia: Familia): void {
+    const suya = this.familias.find((f) => f.id === familia);
+    if (suya) {
+      this.modo.set(suya.porDefecto);
+    }
   }
 
   /**

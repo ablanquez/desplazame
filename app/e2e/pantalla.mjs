@@ -119,8 +119,17 @@ try {
   // El modo, por argumento: la juez de los huecos necesita un paseo largo, y el
   // más largo lo da una ruta a pie entera.
   const modo = process.argv[7] ?? 'bus';
-  await m.evaluar(`document.querySelector('input[name=modo][value=${modo}]').click()`);
+  // ⭐ DOS FILAS DESDE EL 2/09 (punto 11): la primera pregunta la FAMILIA y la
+  //    segunda, solo con Bici, cuál de las dos. Así que elegir `bizi` son dos
+  //    clics, y el segundo solo existe después del primero — la fila se revela,
+  //    no está apagada. Se pulsa como pulsaría una persona.
+  const familia = modo === 'bizi' ? 'bici' : modo;
+  await m.evaluar(`document.querySelector('input[name=familia][value=${familia}]').click()`);
   await m.dormir(300);
+  if (familia === 'bici') {
+    await m.evaluar(`document.querySelector('input[name=bici][value=${modo}]').click()`);
+    await m.dormir(300);
+  }
   await m.evaluar(`[...document.querySelectorAll('button')].find(b => b.textContent.includes('Generar')).click()`);
   await m.dormir(16000);
 

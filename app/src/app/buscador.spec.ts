@@ -7,6 +7,7 @@ import {
 } from '@angular/common/http/testing';
 import type {
   Giro,
+  Modo,
   PosteVivo,
   TipoDeRuta,
   ParteDelPaso,
@@ -21,30 +22,55 @@ import { Buscador, CUANDO_SE_DICE_QUE_TARDA_MS } from './buscador';
 /**
  * Devuelve las opciones de MODO que están marcadas como activas.
  *
- * ⚠️ Se busca dentro de `fieldset.modos:not(.rutas)` desde el 30/08: el
- * selector de ruta usa el mismo vestido —es el mismo patrón— y por tanto la
- * misma clase `.modo--activo`. Preguntando por la clase a secas, esta función
- * devolvía «Bici privada, Equilibrada» y la juez de la exclusión se ponía roja
- * sin que nada estuviera mal.
+ * ⚠️ Se busca dentro de `fieldset.modos.familias` desde el 30/08: el selector
+ * de ruta usa el mismo vestido —es el mismo patrón— y por tanto la misma clase
+ * `.modo--activo`. Preguntando por la clase a secas, esta función devolvía
+ * «Bici privada, Equilibrada» y la juez de la exclusión se ponía roja sin que
+ * nada estuviera mal.
+ *
+ * ⚠️ **Y desde el 2/09 hay una TERCERA fila con el mismo vestido**: la de
+ * «Privada / Pública BiZi». El filtro pasa de excluir a la de rutas
+ * (`:not(.rutas)`) a NOMBRAR la que se quiere (`.familias`) — excluir obliga a
+ * acordarse de cada fila nueva; nombrar, no.
  */
 function modosActivos(raiz: HTMLElement): string[] {
   return Array.from(
-    raiz.querySelectorAll<HTMLElement>('fieldset.modos:not(.rutas) .modo--activo'),
+    raiz.querySelectorAll<HTMLElement>('fieldset.modos.familias .modo--activo'),
+  ).map((b) => b.textContent?.trim() ?? '');
+}
+
+/** Lo mismo, en la segunda fila: qué bici está marcada. */
+function bicisActivas(raiz: HTMLElement): string[] {
+  return Array.from(
+    raiz.querySelectorAll<HTMLElement>('fieldset.modos.bicis .modo--activo'),
   ).map((b) => b.textContent?.trim() ?? '');
 }
 
 /**
- * ⭐ Los seis `input type="radio"` del grupo, en el orden del DOM.
+ * ⭐ Los cinco `input type="radio"` de la PRIMERA fila, en el orden del DOM.
  *
  * **Se buscan por lo que SON, no por su clase**: el encargo del 30/08 pide la
  * semántica de grupo de radios, y una prueba que preguntara por `.modo` daría
- * verde igual con seis `<button>` disfrazados. Aquí se pregunta por
- * `input[type=radio][name=modo]`, que es lo único que le da al navegador la
+ * verde igual con `<button>` disfrazados. Aquí se pregunta por
+ * `input[type=radio][name=familia]`, que es lo único que le da al navegador la
  * conducta del patrón — una parada de tabulador para el grupo, flechas dentro
  * y exclusión sin una línea de JavaScript.
+ *
+ * ⚠️ El `name` es `familia` desde el 2/09, no `modo`: la primera fila ya no
+ *    pregunta el modo, pregunta la familia. Los dos modos de la bici viven en
+ *    la segunda, con su propio `name`.
  */
-function radiosDeModo(raiz: HTMLElement): HTMLInputElement[] {
-  return Array.from(raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="modo"]'));
+function radiosDeFamilia(raiz: HTMLElement): HTMLInputElement[] {
+  return Array.from(raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="familia"]'));
+}
+
+/**
+ * Los de la SEGUNDA fila. **Solo existen con Bici elegida**: el revelado
+ * condicional quita el grupo entero, no lo apaga, así que aquí la lista vacía
+ * es una respuesta y no un fallo.
+ */
+function radiosDeBici(raiz: HTMLElement): HTMLInputElement[] {
+  return Array.from(raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="bici"]'));
 }
 
 /**
@@ -71,21 +97,52 @@ function drenarRutas(
   }
 }
 
-/** Pulsa una opción del selector por su etiqueta, como quien hace clic. */
-function elegirModo(fixture: any, etiqueta: string): void {
+/**
+ * ⭐ Deja el selector en el modo que se le pida, **pulsando** — una fila o dos.
+ *
+ * Toma el `Modo` del contrato y no una etiqueta, que es lo que estas jueces
+ * quieren decir de verdad: «ponte en bizi», no «pulsa el botón que pone BiZi».
+ * Desde el 2/09 esas dos frases ya no son la misma, porque para llegar a `bizi`
+ * hay que pulsar **dos** cosas — la familia y luego la opción—, y ninguna de
+ * las cuarenta jueces que llaman aquí tiene por qué saberlo.
+ *
+ * Lo que sí hace es pulsar de verdad, las dos veces: nadie toca la señal por
+ * dentro. Si el revelado condicional dejara de revelar, esto explota con el
+ * nombre de lo que buscaba, que es lo que se quiere.
+ */
+function elegirModo(fixture: any, modo: Modo): void {
   const raiz = fixture.nativeElement as HTMLElement;
-  const radio = radiosDeModo(raiz).find(
-    (r) => r.closest('.modo')?.textContent?.trim() === etiqueta,
-  );
-  if (!radio) {
+  const familia = modo === 'bizi' ? 'bici' : modo;
+
+  const suyo = radiosDeFamilia(raiz).find((r) => r.value === familia);
+  if (!suyo) {
     throw new Error(
-      `no hay ninguna opción de modo que se lea «${etiqueta}». Las que hay: ` +
-        radiosDeModo(raiz)
-          .map((r) => `«${r.closest('.modo')?.textContent?.trim()}»`)
+      `no hay ninguna familia «${familia}». Las que hay: ` +
+        radiosDeFamilia(raiz)
+          .map((r) => r.value)
           .join(', '),
     );
   }
-  radio.click();
+  // ⚠️ Un radio YA marcado no dispara `change` al pulsarlo, y eso es justo lo
+  //    que se quiere: venir de `bizi` y pedir `bici` no debe reiniciar la
+  //    familia, solo cambiar de opción dentro de ella.
+  suyo.click();
+  fixture.detectChanges();
+
+  if (familia !== 'bici') {
+    return;
+  }
+  const cual = radiosDeBici(raiz).find((r) => r.value === modo);
+  if (!cual) {
+    throw new Error(
+      `elegida la familia bici, no aparece la opción «${modo}». Las que hay: ` +
+        radiosDeBici(raiz)
+          .map((r) => r.value)
+          .join(', ') +
+        ' (si está vacío, la segunda fila no se ha revelado)',
+    );
+  }
+  cual.click();
   fixture.detectChanges();
 }
 
@@ -1200,22 +1257,26 @@ describe('Buscador', () => {
   // 56.3.a-g, sobre el límite del art. 50 RGC]. Estas jueces son la muralla de
   // que eso no vuelva.
 
-  it('el selector es un grupo de radios nativo, no seis botones sueltos', async () => {
+  it('la primera fila es un grupo de radios nativo, no cinco botones sueltos', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
     // El envoltorio del patrón: `fieldset` + `legend`. Ya estaba, y se queda.
-    const grupo = raiz.querySelector<HTMLFieldSetElement>('fieldset.modos')!;
+    const grupo = raiz.querySelector<HTMLFieldSetElement>('fieldset.modos.familias')!;
     expect(grupo).not.toBeNull();
     expect(grupo.querySelector('legend')?.textContent?.trim()).toBe('Cómo');
 
-    // ⭐ Y lo que NO estaba: seis radios de verdad, con el mismo `name`. Ese
-    // nombre compartido es TODO el mecanismo — es lo que hace que el navegador
-    // dé una sola parada de tabulador al grupo, mueva con las flechas y
-    // desmarque el anterior sin que nadie se lo pida.
-    const radios = radiosDeModo(raiz);
-    expect(radios.length).toBe(6);
+    // ⭐ Y lo que NO estaba: radios de verdad, con el mismo `name`. Ese nombre
+    // compartido es TODO el mecanismo — es lo que hace que el navegador dé una
+    // sola parada de tabulador al grupo, mueva con las flechas y desmarque el
+    // anterior sin que nadie se lo pida.
+    //
+    // ⚠️ **CINCO desde el 2/09, no seis**, y esa es la razón del cambio: [DOC
+    //    sistemas de diseño · control segmentado] el rango del patrón es de 2 a
+    //    5 opciones con etiqueta. Con seis estaba fuera.
+    const radios = radiosDeFamilia(raiz);
+    expect(radios.length).toBe(5);
     expect(new Set(radios.map((r) => r.name)).size).toBe(1);
 
     // Ninguno lleva `tabindex` puesto a mano: eso rompería la parada única.
@@ -1231,29 +1292,26 @@ describe('Buscador', () => {
   });
 
   /**
-   * Las seis etiquetas EXACTAS y en el orden firmado por Antonio el 28/08.
+   * Las cinco etiquetas EXACTAS y en el orden firmado por Antonio el 28/08.
    *
    * El orden no es alfabético ni por velocidad: es el del encargo, y lo que
    * ordena es el reparto legal — primero lo que no lleva vehículo, luego el
-   * colectivo, luego las tres ruedas (cada una con su tabla de acceso), y el
-   * coche al final.
+   * colectivo, luego las ruedas (cada una con su tabla de acceso), y el coche
+   * al final.
+   *
+   * ⚠️ **«Bici privada» y «BiZi» han dejado de estar aquí** (2/09): son la
+   *    misma familia y bajan a la segunda fila. Lo que queda en su sitio es
+   *    «Bici», entre el bus y el patín — el orden legal no se ha movido.
    */
-  it('tiene los seis modos, con las etiquetas y el orden firmados', async () => {
+  it('la primera fila tiene las cinco familias, con las etiquetas y el orden firmados', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    const etiquetas = Array.from(raiz.querySelectorAll<HTMLElement>('.modo')).map(
-      (m) => m.textContent?.trim() ?? '',
-    );
-    expect(etiquetas).toEqual([
-      'Andando',
-      'Bus / Tranvía',
-      'Bici privada',
-      'Patín (VMP)',
-      'BiZi',
-      'Coche',
-    ]);
+    const etiquetas = Array.from(
+      raiz.querySelectorAll<HTMLElement>('fieldset.modos.familias .modo'),
+    ).map((m) => m.textContent?.trim() ?? '');
+    expect(etiquetas).toEqual(['Andando', 'Bus / Tranvía', 'Bici', 'Patín (VMP)', 'Coche']);
   });
 
   it('andando viene marcado al cargar, y es el único', async () => {
@@ -1262,23 +1320,328 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     expect(modosActivos(raiz)).toEqual(['Andando']);
-    const marcados = radiosDeModo(raiz).filter((r) => r.checked);
+    const marcados = radiosDeFamilia(raiz).filter((r) => r.checked);
     expect(marcados.length).toBe(1);
     expect(marcados[0].value).toBe('andando');
   });
 
-  it('los modos son excluyentes: elegir uno apaga el anterior', async () => {
+  it('las familias son excluyentes: elegir una apaga la anterior', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    elegirModo(fixture, 'Bici privada');
+    elegirModo(fixture, 'bici');
     await fixture.whenStable();
 
-    expect(modosActivos(raiz)).toEqual(['Bici privada']);
-    const marcados = radiosDeModo(raiz).filter((r) => r.checked);
+    expect(modosActivos(raiz)).toEqual(['Bici']);
+    const marcados = radiosDeFamilia(raiz).filter((r) => r.checked);
     expect(marcados.length).toBe(1);
     expect(marcados[0].value).toBe('bici');
+  });
+
+  // ── LA BICI EN DOS FILAS (2/09, punto 11) ─────────────────────────────────
+  //
+  // El revelado condicional [DOC GOV.UK] es el mismo patrón del número de
+  // portal y de «¿Qué ruta prefieres?», y lo que promete es fuerte: **lo que
+  // no aplica NO ESTÁ**, no está apagado. Un grupo deshabilitado seguiría en
+  // la página, ocuparía su hueco y se leería como «esto podrías tocarlo».
+
+  it('⭐ la segunda fila NO existe con andando, bus, patín ni coche', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    for (const modo of ['andando', 'bus', 'patin', 'coche'] as const) {
+      elegirModo(fixture, modo);
+      await fixture.whenStable();
+      expect(raiz.querySelector('fieldset.modos.bicis')).toBeNull();
+      // Y no es que esté escondida: no hay ni un radio suyo en el documento.
+      expect(radiosDeBici(raiz).length).toBe(0);
+    }
+  });
+
+  it('⭐ elegir Bici revela la segunda fila, con Privada marcada por defecto', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    expect(raiz.querySelector('fieldset.modos.bicis')).toBeNull();
+
+    // Se pulsa la familia y NADA MÁS: lo que se compra es el defecto.
+    radiosDeFamilia(raiz).find((r) => r.value === 'bici')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const fila = raiz.querySelector<HTMLFieldSetElement>('fieldset.modos.bicis')!;
+    expect(fila).not.toBeNull();
+    expect(fila.querySelector('legend')?.textContent?.trim()).toBe('¿Qué bici?');
+
+    const etiquetas = Array.from(fila.querySelectorAll<HTMLElement>('.modo')).map(
+      (m) => m.textContent?.trim() ?? '',
+    );
+    expect(etiquetas).toEqual(['Privada', 'Pública BiZi']);
+    expect(bicisActivas(raiz)).toEqual(['Privada']);
+  });
+
+  /**
+   * ⭐ El grupo de la segunda fila es SUYO, y esto es lo que más se puede
+   * romper sin que se note: si compartiera `name` con la primera, el navegador
+   * trataría las siete opciones como **un solo grupo**, marcar «Privada»
+   * desmarcaría «Bici» y el reparto en dos preguntas se vendría abajo dejando
+   * la pantalla con dos radios marcados y ninguno mandando lo que dice.
+   */
+  it('⭐ la segunda fila es su propio grupo de radios, con su propio `name`', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'bici');
+    await fixture.whenStable();
+
+    const suyos = radiosDeBici(raiz);
+    expect(suyos.length).toBe(2);
+    expect(new Set(suyos.map((r) => r.name)).size).toBe(1);
+    expect(suyos[0].name).not.toBe(radiosDeFamilia(raiz)[0].name);
+
+    // El teclado, igual que en la primera fila: ni un `tabindex` a mano, y
+    // exactamente uno marcado.
+    for (const r of suyos) {
+      expect(r.hasAttribute('tabindex')).toBe(false);
+    }
+    expect(suyos.filter((r) => r.checked).length).toBe(1);
+
+    // Y la primera fila SIGUE con su único marcado: son dos grupos, no uno.
+    expect(radiosDeFamilia(raiz).filter((r) => r.checked).length).toBe(1);
+    expect(radiosDeFamilia(raiz).find((r) => r.checked)?.value).toBe('bici');
+  });
+
+  /**
+   * ⭐ Y los `value` de la segunda fila **son los del contrato**: `bici` y
+   * `bizi`, los mismos que viajan en el cuerpo de `/api/ruta`. No hay tabla de
+   * traducción en medio, y esta juez es la que impide que la haya.
+   */
+  it('⭐ los dos radios de la bici llevan los ids del contrato, no etiquetas', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'bici');
+    await fixture.whenStable();
+
+    expect(radiosDeBici(raiz).map((r) => r.value)).toEqual(['bici', 'bizi']);
+  });
+
+  /**
+   * ⭐ Pulsar «Pública BiZi» cambia el modo **sin tocar la familia**, y volver
+   * a «Privada» lo devuelve. Es el ir y venir dentro de la familia, que es lo
+   * único que la segunda fila existe para hacer.
+   */
+  it('⭐ dentro de la bici se va y se vuelve, y la familia no se mueve', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'bici');
+    await fixture.whenStable();
+
+    radiosDeBici(raiz).find((r) => r.value === 'bizi')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(bicisActivas(raiz)).toEqual(['Pública BiZi']);
+    expect(modosActivos(raiz)).toEqual(['Bici']);
+
+    radiosDeBici(raiz).find((r) => r.value === 'bici')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(bicisActivas(raiz)).toEqual(['Privada']);
+    expect(modosActivos(raiz)).toEqual(['Bici']);
+  });
+
+  /**
+   * ⭐ SALIR DE LA BICI Y VOLVER ENTRA OTRA VEZ POR PRIVADA — **y no es un
+   * olvido: es la consecuencia de que el estado sea UNO.**
+   *
+   * ⚠️ Esta juez nació al revés. Se escribió comprando que volver de Andando
+   *    devolvía a «Pública BiZi» —que es lo que haría un control con memoria— y
+   *    **se puso roja**: `expected [ 'Privada' ] to deeply equal [ 'Pública
+   *    BiZi' ]`. El código tenía razón y la juez no.
+   *
+   *    Recordarlo exigiría una segunda señal —«la última bici elegida»— viva
+   *    mientras el modo dice `andando`. Eso es justo lo que `familia` evita
+   *    siendo un `computed`: dos verdades que hay que mantener de acuerdo, y
+   *    una pantalla que el día que se desincronizaran enseñaría un botón
+   *    marcado y mandaría otro modo. El encargo dice «Privada por defecto»; se
+   *    aplica CADA VEZ que se entra, que es lo único que no puede mentir.
+   *
+   * Lo que sí se conserva es la elección **mientras se está dentro**, y eso lo
+   * da el radio nativo: un radio ya marcado no dispara `change`, así que volver
+   * a pulsar «Bici» estando en BiZi no mueve nada. Se compra abajo.
+   */
+  it('⭐ salir de la bici y volver entra otra vez por Privada', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'bizi');
+    await fixture.whenStable();
+    expect(bicisActivas(raiz)).toEqual(['Pública BiZi']);
+
+    elegirModo(fixture, 'andando');
+    await fixture.whenStable();
+    expect(radiosDeBici(raiz).length).toBe(0);
+
+    radiosDeFamilia(raiz).find((r) => r.value === 'bici')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(bicisActivas(raiz)).toEqual(['Privada']);
+  });
+
+  /**
+   * ⭐ Y estando DENTRO, repulsar «Bici» no te devuelve a Privada.
+   *
+   * Es la otra mitad de la de arriba, y la que hace que la de arriba no sea un
+   * defecto: lo que se pierde al salir de la familia no se pierde por tocar el
+   * botón padre. Lo da el radio nativo, no una línea de la casa — por eso se
+   * compra: el día que alguien cambie los radios por `<button>`, esto se pone
+   * rojo y dice que se ha perdido una conducta que nadie había escrito.
+   */
+  it('⭐ repulsar «Bici» estando en Pública BiZi no la devuelve a Privada', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'bizi');
+    await fixture.whenStable();
+    expect(bicisActivas(raiz)).toEqual(['Pública BiZi']);
+
+    radiosDeFamilia(raiz).find((r) => r.value === 'bici')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(bicisActivas(raiz)).toEqual(['Pública BiZi']);
+    expect(modosActivos(raiz)).toEqual(['Bici']);
+  });
+
+  /**
+   * ⭐ LAS TRES RUTAS SIGUEN, y con las DOS bicis.
+   *
+   * Es la juez de que la fila nueva no se ha comido a la de siempre: quien
+   * elige bici —privada o pública— sigue pudiendo pedir rápida, equilibrada o
+   * tranquila, y quien no, sigue sin verlas.
+   */
+  it('⭐ las tres rutas siguen apareciendo con Privada y con Pública BiZi', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    const rutas = () =>
+      Array.from(raiz.querySelectorAll<HTMLElement>('fieldset.modos.rutas .modo')).map(
+        (m) => m.textContent?.trim() ?? '',
+      );
+
+    expect(rutas()).toEqual([]);
+
+    elegirModo(fixture, 'bici');
+    await fixture.whenStable();
+    expect(rutas()).toEqual(['Rápida', 'Equilibrada', 'Tranquila']);
+
+    elegirModo(fixture, 'bizi');
+    await fixture.whenStable();
+    expect(rutas()).toEqual(['Rápida', 'Equilibrada', 'Tranquila']);
+
+    elegirModo(fixture, 'patin');
+    await fixture.whenStable();
+    expect(rutas()).toEqual([]);
+  });
+
+  /**
+   * ⭐ LA MURALLA: andando, bus y patín viajan **AL BYTE** como antes del 2/09.
+   *
+   * El encargo de la casilla 1 del punto 11 es *«solo pantalla, el motor NO se
+   * toca»*, y esto es lo que compra esa frase. Repartir la botonera en dos
+   * filas es maquetación; el día que se colara en el cuerpo de `/api/ruta` —una
+   * `familia`, un `ruta` de más donde no lo había, un `modo` con otro nombre—
+   * dejaría de serlo, y el motor tendría que enterarse de cómo está repartida
+   * una fila de botones.
+   *
+   * Se compra el cuerpo ENTERO —claves y valores—, no solo `modo`: lo que se
+   * teme no es que `modo` cambie (eso lo cazan veinte jueces), sino que
+   * aparezca **una clave nueva** que nadie mire.
+   */
+  it('⭐ LA MURALLA · andando, bus y patín mandan el mismo cuerpo que antes, al byte', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+
+    for (const modo of ['andando', 'bus', 'patin'] as const) {
+      elegirModo(fixture, modo);
+      await fixture.whenStable();
+
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+
+      // UNA petición, no tres: la precarga del trío es de la bici y solo de
+      // la bici. Que aquí hubiera tres sería el motor pagando por la fila
+      // nueva.
+      const peticiones = http.match('/api/ruta');
+      expect(peticiones.length).toBe(1);
+
+      const cuerpo = peticiones[0].request.body as Record<string, unknown>;
+      expect(Object.keys(cuerpo).sort()).toEqual(['destino', 'modo', 'origen']);
+      expect(cuerpo['modo']).toBe(modo);
+      expect(cuerpo['origen']).toEqual({ via: '5140', portal: 'Portales.5140a' });
+      expect(cuerpo['destino']).toEqual({ via: '1900', portal: 'Portales.1900a' });
+
+      peticiones[0].flush(TRAYECTO);
+      await fixture.whenStable();
+    }
+  });
+
+  /**
+   * ⭐ Y LAS DOS BICIS SÍ MANDAN LO SUYO, cada una la suya, por la segunda fila.
+   *
+   * Es el reverso exacto de la muralla: lo que la primera fila NO puede tocar,
+   * la segunda tiene que decidirlo. Se pulsa el radio de la segunda fila
+   * directamente —no el ayudante— para que lo que se compre sea **ese clic**.
+   */
+  it('⭐ Privada manda `bici` y Pública BiZi manda `bizi`, con sus tres rutas', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    await direccionEntera(fixture, http);
+    radiosDeFamilia(raiz).find((r) => r.value === 'bici')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    for (const esperado of ['bici', 'bizi'] as const) {
+      radiosDeBici(raiz).find((r) => r.value === esperado)!.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+
+      // Tres, que es la precarga del trío de siempre, y las tres con el mismo
+      // modo y una ruta cada una.
+      const peticiones = http.match('/api/ruta');
+      expect(peticiones.length).toBe(3);
+      for (const p of peticiones) {
+        const cuerpo = p.request.body as Record<string, unknown>;
+        expect(Object.keys(cuerpo).sort()).toEqual(['destino', 'modo', 'origen', 'ruta']);
+        expect(cuerpo['modo']).toBe(esperado);
+      }
+      expect(peticiones.map((p) => (p.request.body as { ruta: string }).ruta).sort()).toEqual([
+        'equilibrada',
+        'rapida',
+        'tranquila',
+      ]);
+
+      drenarRutas(peticiones, () => TRAYECTO);
+      await fixture.whenStable();
+    }
   });
 
   it('con campos vacíos el botón está bloqueado y no pinta nada', async () => {
@@ -1559,7 +1922,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     await direccionEntera(fixture, http);
-    elegirModo(fixture, 'Bici privada');
+    elegirModo(fixture, 'bici');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_REMATE);
@@ -1596,7 +1959,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     await direccionEntera(fixture, http);
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI);
@@ -1742,7 +2105,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    elegirModo(fixture, 'Patín (VMP)');
+    elegirModo(fixture, 'patin');
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
@@ -1778,7 +2141,7 @@ describe('Buscador', () => {
     expect(raiz.querySelector('.rutas')).toBeNull();
     expect(radiosDeRuta(raiz).length).toBe(0);
 
-    elegirModo(fixture, 'Bici privada');
+    elegirModo(fixture, 'bici');
     await fixture.whenStable();
     expect(raiz.querySelector('.rutas')).not.toBeNull();
     expect(etiquetasDeRuta(raiz)).toEqual(['Rápida', 'Equilibrada', 'Tranquila']);
@@ -1786,16 +2149,16 @@ describe('Buscador', () => {
       'equilibrada',
     ]);
 
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     await fixture.whenStable();
     expect(radiosDeRuta(raiz).length).toBe(3);
 
     // Y en el patín NO: su vía ciclista es obligatoria, no una preferencia.
-    elegirModo(fixture, 'Patín (VMP)');
+    elegirModo(fixture, 'patin');
     await fixture.whenStable();
     expect(raiz.querySelector('.rutas')).toBeNull();
 
-    elegirModo(fixture, 'Coche');
+    elegirModo(fixture, 'coche');
     await fixture.whenStable();
     expect(raiz.querySelector('.rutas')).toBeNull();
   });
@@ -1821,7 +2184,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    elegirModo(fixture, 'Bici privada');
+    elegirModo(fixture, 'bici');
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
@@ -1888,7 +2251,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    elegirModo(fixture, 'Bici privada');
+    elegirModo(fixture, 'bici');
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
@@ -1900,7 +2263,7 @@ describe('Buscador', () => {
 
     // Se cambia el modo a BiZi: la pregunta ya es otra, y las tres guardadas
     // son de una bici privada.
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     await fixture.whenStable();
 
     // El radio ya no repinta de lo guardado: lo de la pantalla no se mueve.
@@ -1939,7 +2302,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    elegirModo(fixture, 'Patín (VMP)');
+    elegirModo(fixture, 'patin');
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
@@ -1982,7 +2345,7 @@ describe('Buscador', () => {
     // Andando no lleva «de crucero»: ahí la cuenta es entera y no hay matiz.
     expect(aPie).not.toContain('crucero');
 
-    elegirModo(fixture, 'Patín (VMP)');
+    elegirModo(fixture, 'patin');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     http.expectOne('/api/ruta').flush({ ...TRAYECTO, modo: 'patin' });
@@ -2043,7 +2406,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
@@ -2075,7 +2438,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI);
@@ -2100,7 +2463,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
@@ -2133,7 +2496,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
@@ -2165,7 +2528,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
@@ -2198,7 +2561,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
@@ -2227,7 +2590,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
@@ -2274,7 +2637,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
@@ -2317,7 +2680,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
 
@@ -2394,7 +2757,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_DESVIADO);
@@ -2436,7 +2799,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_DOS_DESVIADAS);
@@ -2480,7 +2843,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
@@ -2525,7 +2888,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
@@ -2576,7 +2939,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
@@ -2636,7 +2999,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
@@ -2687,7 +3050,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
@@ -2722,7 +3085,7 @@ describe('Buscador', () => {
     await direccionEntera(fixture, http);
 
     // ── El D-G del BiZi: hay ruta, hay hitos, y hay que decir que se va a ciegas.
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
@@ -2741,7 +3104,7 @@ describe('Buscador', () => {
     expect(textos).toContain('Coge una bici en la estación Tauromaquia');
 
     // ── Y el otro de la misma clase: la bici sin aparcabicis cerca.
-    elegirModo(fixture, 'Bici privada');
+    elegirModo(fixture, 'bici');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => SIN_APARCABICIS_CERCA);
@@ -2764,14 +3127,14 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bici privada');
+    elegirModo(fixture, 'bici');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => ({ ...TRAYECTO, modo: 'bici' }));
     await fixture.whenStable();
     expect(raiz.querySelector('.ruta__duracion')?.textContent).toContain('18 km/h');
 
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => ({ ...TRAYECTO, modo: 'bizi' }));
@@ -2784,7 +3147,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    elegirModo(fixture, 'Bici privada');
+    elegirModo(fixture, 'bici');
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
@@ -2805,7 +3168,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    elegirModo(fixture, 'BiZi');
+    elegirModo(fixture, 'bizi');
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
@@ -2839,7 +3202,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
@@ -2857,7 +3220,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    elegirModo(fixture, 'Coche');
+    elegirModo(fixture, 'coche');
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
@@ -2891,7 +3254,7 @@ describe('Buscador', () => {
 
     await direccionEntera(fixture, http);
 
-    elegirModo(fixture, 'Bici privada');
+    elegirModo(fixture, 'bici');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     // La bici precarga el trío: son tres, y las tres con el mismo cuerpo salvo
@@ -2908,7 +3271,7 @@ describe('Buscador', () => {
     expect(pasosEnPantalla(raiz).join(' | ')).toContain('Avenida de Madrid');
 
     // El MISMO origen y el MISMO destino. Solo cambia la rueda.
-    elegirModo(fixture, 'Patín (VMP)');
+    elegirModo(fixture, 'patin');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     const enPatin = http.expectOne('/api/ruta');
@@ -3437,7 +3800,7 @@ describe('Buscador', () => {
   async function conElViajeEnBus(fixture: any, t: Trayecto): Promise<HTMLElement> {
     const raiz = fixture.nativeElement as HTMLElement;
     await direccionEntera(fixture, http);
-    elegirModo(fixture, 'Bus / Tranvía');
+    elegirModo(fixture, 'bus');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => t);

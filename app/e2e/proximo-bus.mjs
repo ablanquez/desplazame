@@ -64,7 +64,9 @@ try {
   await escribir(1, process.argv[4] ?? 'CALLE OVIEDO');
   await elegir(1, process.argv[4] ?? 'CALLE OVIEDO');
   await portal(1, process.argv[5] ?? '5');
-  await m.evaluar(`document.querySelector('input[name=modo][value=bus]').click()`);
+  // El grupo de la primera fila se llama `familia` desde el 2/09 (punto 11):
+  // el bus no tiene segunda fila, así que aquí sigue siendo un solo clic.
+  await m.evaluar(`document.querySelector('input[name=familia][value=bus]').click()`);
   await m.dormir(300);
 
   const arranque = Date.now();
