@@ -2685,7 +2685,20 @@ se queda hasta que el 12 lo llene.
       cambian, los CAMINOS no). Radiogrupos nativos como el selector
       del 9 (teclado, exclusión, name compartido); el foco y el
       estado anunciados; el andando/bus/patín intactos al byte.
-- [ ] **2 · LOS BOTONES DE DISPONIBILIDAD DE BiZi** (la palabra de
+- [x] **⭐ 2 · LOS BOTONES DE BiZi — HECHOS (2/09).** «Bicis ahora» al
+      coger · «Anclajes ahora» al dejar; GET /api/estacion-viva
+      (?estacion&pide=bicis|anclajes), calcado de poste-vivo, apoyado
+      en el single-flight que disponibilidadDeBiZi() ya llevaba; los
+      estados con su hora; ⭐ «ausente» NO se traduce a «0 bicis»
+      [GTFS-RT: sin información ≠ sin bicis], con juez. 15 jueces
+      motor + 20 en Chrome contra sede y Avanza vivas. La contraprueba
+      cazó una zona sin vigilar (los hitos con fixture a mano: nadie
+      compraba estación y pregunta del trayecto real — juez nueva) y
+      un fixture que violaba el contrato (Trayecto sin avisos; se
+      arregló el fixture, no se toleró en el computed). DECISIÓN DEL
+      OJO (2/09): la cifra se dice en la frase Y en la región — cada
+      una con su hora; se queda así. · **(el texto original) LOS
+      BOTONES DE DISPONIBILIDAD DE BiZi** (la palabra de
       Antonio: «el mismo botón que el bus — enganches o bicicletas
       según lo que necesitemos»): en el hito de COGER, «Bicis ahora»
       (bicisDisponibles); en el de DEJAR, «Anclajes ahora»
@@ -2696,12 +2709,23 @@ se queda hasta que el 12 lo llene.
       >1 s [WCAG 4.1.3 · MDN · NN/g], D-G si el Ayuntamiento calla. El
       Generar sigue trayendo el dato de salida; el botón lo refresca.
       El endpoint: GET de solo lectura, no-store, single-flight.
-- [ ] **3 · EL RESUMEN ÚNICO DE AVISOS** (pulido post-cierre del 10,
+- [x] **⭐ 3 · EL RESUMEN ÚNICO — HECHO (2/09).** UNA caja role=status
+      «Avisos de este viaje:», una línea por aviso que ENLAZA al paso
+      (el foco se mueve, no solo la página); a qué paso lleva lo
+      decide la MISMA regla que pinta la nota, invertida (dos reglas
+      = enlace a un paso y nota en otro); sin disparador de detalles
+      arriba (el detalle vive en el hito); el aviso sin hito (coche)
+      sale sin enlace. · **(el texto original) EL RESUMEN ÚNICO DE
+      AVISOS** (pulido post-cierre del 10,
       fichado con doctrina): arriba UNA caja que lista todos los
       avisos del viaje enlazando a su paso [GOV.UK error summary: un
       solo resumen, mensajes junto a lo que explican] — hoy hay una
       caja por aviso, el patrón mal copiado.
-- [ ] **4 · EL MINUTO DOBLE de la primera subida:** la frase del paso
+- [x] **⭐ 4 · EL MINUTO UNA SOLA VEZ — HECHO (2/09).** El minuto vivo
+      solo en la región (única voz que se refresca); la frase del paso
+      dice la FRECUENCIA — no son el mismo dato (cada cuánto pasa vs
+      cuándo viene) y el reloj del viaje sigue usando el vivo. ·
+      **(el texto original) EL MINUTO DOBLE de la primera subida:** la frase del paso
       y la región dicen lo mismo; al refrescar la frase se queda
       vieja. Una sola fuente de verdad en pantalla (fundir cambia la
       narración del `sube` y su juez).

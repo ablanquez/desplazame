@@ -105,13 +105,15 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TypeScript SIN compilar, carga antes de `listen()` (grafo 98.774
   aristas ~190 ms · callejero 3.359 vías · 46.150 portales), 412 MB de
   RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
-  anotado para el punto 14). Endpoints vivos, OCHO (el séptimo del
+  anotado para el punto 14). Endpoints vivos, NUEVE (el séptimo del
   31/08: `POST /api/renovar-feed`, el del cron — token Bearer en
   cabecera, 503/401/409/202, single-flight de trabajo de fondo; el
   octavo del 1/09: `GET /api/poste-vivo?poste&linea`, el del botón
   «Próximo bus» — idempotente, no-store, single-flight, 400 si se
-  pregunta mal, mudo con motivo al log; y `POST /api/ruta` acepta
-  `modo=bus` desde la 3b):
+  pregunta mal, mudo con motivo al log; el noveno del 2/09: `GET
+  /api/estacion-viva?estacion&pide=bicis|anclajes`, el de los botones
+  de BiZi — mismo régimen; y `POST /api/ruta` acepta `modo=bus` desde
+  la 3b):
   `/api/salud` · `/api/vias?q=` (con `foco`) · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
   `POST /api/ruta` (sitio o vía-sin-portal en cualquiera de los dos
@@ -156,6 +158,17 @@ la decisión sobre Avanza**
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LAS CASILLAS 2-4 DEL 11 (2/09, un solo encargo corto).** BiZi gana
+sus botones «Bicis ahora / Anclajes ahora» (GET /api/estacion-viva,
+patrón Próximo-bus calcado; «ausente» nunca se traduce a «0 bicis»
+[GTFS-RT]); el resumen ÚNICO de avisos [GOV.UK]: una caja, una línea
+por aviso enlazando al paso con la MISMA regla que pinta la nota,
+invertida; el minuto vivo UNA sola vez (la región; la frase dice
+frecuencia). Decisión del ojo: en BiZi la cifra va en frase Y región,
+cada una con su hora. La contraprueba cazó una zona sin vigilar y un
+fixture que violaba el contrato (se arregló el fixture). 485 motor ·
+246 interfaz. Visto por el ojo: «yo lo veo bien así».
 
 **LA BICI EN DOS FILAS (2/09 — punto 11, casilla 1).** [Bici] revela
 [Privada|Pública BiZi] + las tres rutas [GOV.UK revelado condicional];
@@ -1029,9 +1042,9 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el punto 11, casilla 2 — los botones «Bicis
-ahora / Anclajes ahora» de BiZi** (patrón Próximo bus sobre el
-station_status); (2)
+**Lo siguiente:** (1) **la casilla 5 del 11 — la demo de la botonera
+por el ojo** (con el vale, el punto 11 se cierra) y las SONDAS del 12
+y del 13 (ESRO · PMR · gratuito · parking de motos · YeGo); (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1331,7 +1344,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 710 pruebas (470 motor + 240 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 731 pruebas (485 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
