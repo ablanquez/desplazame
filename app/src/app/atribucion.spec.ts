@@ -226,9 +226,26 @@ describe('La atribución — las fichas del notices y el recuento del README', (
     expect(f).not.toContain('| **Dónde está cumplida** | Colgada de la capa de trazados');
   });
 
-  it('«El resto del dato» se ha corrido a § 1.27 y sigue estando', () => {
-    expect(ficha('1.27')).toContain('El resto del dato');
-    expect(ficha('1.26')).not.toContain('El resto del dato');
+  /**
+   * ⭐ «El resto del dato» es SIEMPRE LA ÚLTIMA, y por eso se compra así.
+   *
+   * ⚠️ Esta juez nombraba el número —«se ha corrido a § 1.27»— y se puso roja el
+   *    2/09 al entrar las cuatro fichas del coche, que la empujaron a la § 1.31.
+   *    Estaba comprando la cosa equivocada: lo que importa de esa ficha no es
+   *    qué número tiene, sino **que cierra la lista**. Renumerarla a mano cada
+   *    vez que entra un dato era trabajo garantizado y un rojo garantizado.
+   */
+  it('⭐ «El resto del dato» cierra la lista, sea cual sea su número', () => {
+    const fichas = [...NOTICES.matchAll(/^### (1\.\d+) · (.+)$/gm)].map((m) => ({
+      n: Number(m[1]!.slice(2)),
+      titulo: m[2]!,
+    }));
+    expect(fichas.length).toBeGreaterThan(0);
+    expect(fichas[fichas.length - 1]!.titulo).toContain('El resto del dato');
+    // Es UNA sola, la de cierre.
+    expect(fichas.filter((x) => x.titulo.includes('El resto del dato')).length).toBe(1);
+    // Y los números van seguidos: ni saltos ni repetidos.
+    expect(fichas.map((x) => x.n)).toEqual(fichas.map((_, i) => i + 1));
   });
 
   /**

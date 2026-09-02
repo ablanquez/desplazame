@@ -2346,7 +2346,177 @@ buscó y no está: eso es un dato, no un hueco.
 
 ---
 
-### 1.27 · El resto del dato — todavía **ninguno**
+### 1.27 · Viario rodable del coche — OpenStreetMap (Overpass)
+
+| | |
+|---|---|
+| **Qué es** | **Las 25.242 vías por las que rueda un coche**, con su geometría, **sus ids de nodo** y sus etiquetas enteras. Es la base de la red del coche del punto 12, y trae lo que § 1.21 no puede dar: la **topología**. Sin ids de nodo, una restricción de giro no se puede aplicar |
+| **Origen del dato** | **OpenStreetMap**, vía **Overpass API 0.7.62.11 87bfad18**. El fichero declara `timestamp_osm_base` **`2026-09-02T15:38:39Z`** |
+| **Licencia** | **ODbL 1.0**, como § 1.1, § 1.4, § 1.14 y § 1.21. El fichero **la trae escrita dentro**, en `osm3s.copyright` |
+| **Atribución** | Cumplida en el pie de créditos del buscador y en el control del mapa: «© **colaboradores** de OpenStreetMap» |
+| **Zona** | bbox **41,4011–41,982 N · −1,2199–−0,6541 O**, el mismo de § 1.4 y § 1.21 |
+| **Campos** | `id` · `nodes` (los ids, en orden) · `geometry` (`lat`/`lon` punto a punto) · `tags`. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ **Sí, tal cual**: [`motor/data/2026-09-02_osm_overpass_zaragoza-bbox_viario-coche.json`](motor/data/2026-09-02_osm_overpass_zaragoza-bbox_viario-coche.json) · 19.960.302 bytes · sha256 `1422908732a7a3b3de1cc1ec3ddab2cae25349b080af0a3f83c66265460bf0de` · cabeceras al lado |
+
+**La consulta EXACTA:**
+
+```
+[out:json][timeout:900];
+way["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link)$"](41.4011,-1.2199,41.982,-0.6541);
+out geom;
+```
+
+⭐ **`out geom` en vez de `out tags`, y ahí está toda la diferencia.** Devuelve
+`nodes` **y** `geometry` **y** `tags` en el mismo elemento: los ids permiten casar
+las restricciones de § 1.28 y los semáforos de § 1.29 **por identidad**, no por
+coordenada. Medido: por id casan **1.240 de 1.283 restricciones**; por coordenada
+contra el grafo de § 1.4, **876**.
+
+> ⚠️ **Y por eso la red del coche NO se cocina sobre el grafo de § 1.4.** Aquél es
+> el grafo del PEATÓN: no trae ids de nodo y no pone vértice en todos los cruces
+> de OSM. La decisión es de Antonio, del 2/09, tomada con esas dos cifras
+> delante. No sustituye a § 1.4 ni a § 1.21: son tres fotos para tres redes.
+
+> ⚠️ **Se pidió DOS VECES y NO repite al byte.** Las dos miden **19.960.302
+> bytes exactos** y difieren en **el byte 124**: el `timestamp_osm_base`
+> (`15:38:39Z` frente a `15:41:41Z`). Los **25.242 elementos son idénticos
+> serializados**. Es el precedente de § 1.20 y § 1.21: lo que baila es el reloj
+> del corte de la base, no el dato.
+
+#### Los recuentos, medidos sobre lo descargado
+
+| | |
+|---|---|
+| *Ways* | **25.242** |
+| Rodables tras mirar el acceso | **23.922** — 1.320 caen por `access`/`motor_vehicle`/`motorcar` |
+| Por tipo | `residential` 9.835 · `service` 5.440 · `tertiary` 1.855 · `unclassified` 1.773 · `primary` 1.258 · `secondary` 1.255 · `trunk` 890 · `living_street` 862 · `motorway` 783 · `motorway_link` 783 · `trunk_link` 247 · `primary_link` 123 · `secondary_link` 76 · `tertiary_link` 62 |
+| Vértices | **174.893** · nodos distintos **138.553** |
+| Sentido único | **14.407** ways · de ellas **8** con `oneway=-1` |
+
+⚠️ **Y las `oneway:bicycle` NO se aplican aquí.** Son 9 en este viario, y para el
+coche esas calles son de **un solo sentido**: la excepción exime a la bici, no al
+coche. Aplicarla mandaría el coche a contramano por una calle donde solo la bici
+puede. Es la diferencia entre esta red y la de la rueda, y tiene juez.
+
+---
+
+### 1.28 · Restricciones de giro — OpenStreetMap (Overpass)
+
+| | |
+|---|---|
+| **Qué es** | Las **1.283 `relation type=restriction`** del ámbito: los giros que **están prohibidos**. [OSRM, palabra de su desarrollador] las penalizaciones no prohíben; lo que prohíbe son las *relations* |
+| **Origen del dato** | **OpenStreetMap**, vía Overpass. `timestamp_osm_base` **`2026-09-02T15:38:39Z`** |
+| **Licencia** | **ODbL 1.0**, dentro del fichero |
+| **Campos** | De cada *relation*: `id`, `members` (con `role` `from`/`via`/`to`) y `tags`. Y **los 1.036 nodos `via` con su coordenada**, que van en el mismo fichero. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ [`motor/data/2026-09-02_osm_overpass_zaragoza-bbox_restricciones-giro.json`](motor/data/2026-09-02_osm_overpass_zaragoza-bbox_restricciones-giro.json) · 574.549 bytes · sha256 `29dfeb2b670eddd91549df92e68342937729a1d633892fc10c9d7ce1b617aafe` |
+
+```
+[out:json][timeout:600];
+rel["type"="restriction"](41.4011,-1.2199,41.982,-0.6541)->.r;
+.r out body;
+node(r.r);
+out body;
+```
+
+#### El censo, medido antes de cocinar
+
+| Tipo | |
+|---|---|
+| `only_straight_on` | **580** |
+| `no_left_turn` | **317** |
+| `no_u_turn` | **221** |
+| `no_right_turn` | **89** |
+| `only_right_turn` | **52** |
+| `only_left_turn` | **18** |
+| `no_straight_on` | **6** |
+
+⭐ **NI UNA `no_entry` NI UNA `no_exit`.** La doctrina avisaba de que OSRM las
+ignora por completo [wiki OSM] y de que aquí había que contarlas y decidir con el
+dato delante. El dato dice que **en Zaragoza no existen**, así que no hay nada que
+decidir. Se cuenta y se declara.
+
+| | |
+|---|---|
+| Con **1** `from` y **1** `to` | **las 1.283** — ni una con varios |
+| `via` de **un nodo** | **1.272** |
+| ⚠️ `via` con **way(s)** | **11** — se **cuentan y NO se aplican**: [wiki OSM] la via-way es más compleja que el via-nodo, y se hereda la limitación escrita en vez de inventar |
+| Con `except` | **16** — `bus` 4 · `motorcar` 3 · `psv` 3 · `taxi` 2 · `bicycle;small_electric_vehicle` 1 · `taxi;bicycle` 1 · `bus;taxi` 1 · `emergency` 1 |
+| **Condicionales** | **2** — `rel 1243522` (`restriction:motor_vehicle:conditional = none @ (delivery AND weightrating<=3.5)` y `restriction:taxi:conditional = none @ (occupants>1)`) y `rel 3755137` (`except:conditional = bus @ (permit "authorized events")`) |
+| Variantes por vehículo | **2**, y las dos son las condicionales de arriba. Ni una `restriction:hgv` ni parecidas |
+
+⭐ **`except` exime a QUIEN NOMBRA, no al coche.** Solo **3** de las 16 llevan
+`except=motorcar` —`1244752`, `2204334` y `9451064`— y solo ésas dejan pasar al
+coche. Una `except=bicycle` sigue prohibiendo el giro a quien conduce.
+
+⚠️ **Las condicionales se aplican como INCONDICIONALES** [PROPIO, conservador y
+declarado]: si una prohíbe solo unas franjas, se prohíbe siempre. Mejor no mandar
+por donde a esa hora no se puede que mandar y que no se pueda. Son 2 y se cuentan.
+
+---
+
+### 1.29 · Semáforos — OpenStreetMap (Overpass)
+
+| | |
+|---|---|
+| **Qué es** | Los **1.360 nodos `highway=traffic_signals`** del ámbito. Cada uno cuesta **2 s** al pasar [`car.lua` de OSRM, vía `lib/obstacles.lua`] |
+| **Origen del dato** | **OpenStreetMap**, vía Overpass. `timestamp_osm_base` **`2026-09-02T15:40:40Z`** |
+| **Licencia** | **ODbL 1.0**, dentro del fichero |
+| **Campos** | `id` · `lat` · `lon` · `tags`. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ [`motor/data/2026-09-02_osm_overpass_zaragoza-bbox_semaforos.json`](motor/data/2026-09-02_osm_overpass_zaragoza-bbox_semaforos.json) · 231.503 bytes · sha256 `436ae7931167793b71e9c6ed475afaea48cceba4e3df0214202c6ba189f6c8f3` |
+
+⭐ **EL SEMÁFORO NO ESTÁ EN EL CRUCE, y eso cambió la cocina.** Medido sobre este
+fichero: de los 1.360, **1.298 caen en un nodo INTERIOR de una sola vía** y solo
+**28** en un nodo compartido por dos. En OSM el `traffic_signals` va donde está el
+poste, no en el centro geométrico del cruce.
+
+La consecuencia es directa: partiendo las vías **solo por los cruces**, el nodo
+del semáforo no sería el final de ninguna arista y **sus 2 s no se podrían cobrar
+nunca**. Por eso el semáforo **también parte la vía**. Lo cazó la juez 6 en rojo,
+con «semáforos casados: 26».
+
+| | |
+|---|---|
+| Casados con un nodo del viario de § 1.27 | **1.298** |
+| Sueltos (fuera del viario rodable) | **62** |
+| Con `traffic_signals:direction` | 240 |
+| Con `crossing` | 42 |
+
+---
+
+### 1.30 · Zona de Bajas Emisiones — Ayuntamiento de Zaragoza (IDEZar)
+
+| | |
+|---|---|
+| **Qué es** | Los **2 polígonos** de la ZBE: **FASE 1**, la vigente (el casco), y **FASE 2**, futura. El motor marca las aristas que caen dentro de la fase 1 |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU1_ZBE_Zona_Bajas_Emisiones`** |
+| **Petición** | `https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_ZBE_Zona_Bajas_Emisiones&outputFormat=application/json&srsName=EPSG:4326` |
+| **Descarga** | **02/09/2026 15:31 GMT**, estado 200 · `timeStamp` del WFS `2026-09-02T15:31:21.774Z` · geometría `MultiPolygon` |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
+| **Campos** | `fase` — y nada más. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ [`app/data/2026-09-02_wfs_movilidad-MU1_ZBE.json`](app/data/2026-09-02_wfs_movilidad-MU1_ZBE.json) · 2.909 bytes · sha256 `7fd19d79f02f693d17531c8997599c03c891efd27d72b3302bcc763b16f34b06` |
+
+⚠️ **La trampa del CRS, y cómo se esquiva.** La ficha del catálogo declara
+**EPSG:25830** (UTM), que es el mismo pie con el que tropieza el resto del dato
+municipal. **Pidiendo `srsName=EPSG:4326` el WFS reproyecta él**, y lo que llega
+es lon/lat: el primer vértice es `[-0.88930788, 41.65869065]`. No se reproyecta
+nada a mano, que es donde se cometen los errores.
+
+> ⭐ **LA ZBE AVISA, NO VETA — y la letra es oficial.** [FAQ de la sede,
+> medida] es de aplicación **L-V 8:00-20:00**, con sanciones desde el
+> **12/12/2025**, y **B, C, ECO y CERO circulan libres sin registro**: a quien
+> alcanza es a los **SIN etiqueta**, salvo excepciones con registro. La **Fase 1**
+> es la vigente; la Fase 2, futura.
+>
+> ⚠️ **La app NO SABE la etiqueta ambiental de quien conduce.** Así que la red
+> **marca** las aristas de dentro y el viaje **avisa con la letra citada**; vetar
+> sería prohibirle el paso a un coche ECO que puede entrar. Es componer sin
+> prometer, y es la misma regla del D-G del BiZi.
+
+---
+
+### 1.31 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
