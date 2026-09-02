@@ -59,6 +59,8 @@ let bizi: BiZiEnMemoria;
 /** El caso del ojo de Antonio: COLOSO 2 → LEOPOLDO ROMEO 27. */
 const COLOSO = 'Portales.93310';
 const ROMEO = 'Portales.79358';
+/** Y el destino del coche, por lo que explica `destinoDe`. */
+const EN_MEDIO = 'Portales.82922';
 
 function extremo(codigo: string): { via: string; portal: string } {
   const p = portales.donde.get(codigo)!;
@@ -83,9 +85,27 @@ function vivoDeMentira(): Disponibilidad {
 function viaje(modo: Modo): Trayecto {
   return calcularTrayecto(
     motor,
-    { origen: extremo(COLOSO), destino: extremo(ROMEO), modo },
+    { origen: extremo(COLOSO), destino: extremo(destinoDe(modo)), modo },
     vivoDeMentira(),
   );
+}
+
+/**
+ * ⚠️ **EL COCHE NO PUEDE IR AL CASO DEL OJO, y el motivo es del dato.**
+ *
+ * A `LEOPOLDO ROMEO 27` se llega por la way 672283905, y su único cruce —el
+ * nodo OSM **265560582**, con Calle del Doctor Iranzo— tiene **cuatro
+ * relations** de OSM (9347855, 9347856, 9347857 y 9347858) que entre las cuatro
+ * prohíben **las cuatro** transiciones posibles. El cruce queda cerrado al
+ * coche y esa calle, incomunicada. No es del motor: es lo que OSM dice.
+ *
+ * Así que el coche corre las mismas dos jueces con el mismo origen y **otro
+ * destino** —`CAMINO DE EN MEDIO 120`, 7.326 m por la Ronda Hispanidad—. Poner
+ * aquí un destino irresoluble haría que estas jueces compraran «no hay ruta»,
+ * que es lo contrario de lo que vigilan.
+ */
+function destinoDe(modo: Modo): string {
+  return modo === 'coche' ? EN_MEDIO : ROMEO;
 }
 
 describe('⭐ LOS TRAMOS DEL VIAJE (30/08)', () => {
@@ -112,14 +132,15 @@ describe('⭐ LOS TRAMOS DEL VIAJE (30/08)', () => {
   });
 
   /**
-   * ⭐ JUEZ A — LOS ÍNDICES CIERRAN, en los cuatro modos.
+   * ⭐ JUEZ A — LOS ÍNDICES CIERRAN, en los CINCO modos.
    *
-   * Se comprueban los cuatro y no uno: el andando trae un tramo, la bici y el
-   * patín traen los del empuje más el remate, y la BiZi los de sus tres etapas.
-   * Un arreglo que solo cuadrara en uno pasaría media juez.
+   * Se comprueban todos y no uno: el andando trae un tramo, la bici y el patín
+   * traen los del empuje más el remate, la BiZi los de sus tres etapas, y el
+   * coche —desde el 2/09— vuelve a traer uno solo. Un arreglo que solo cuadrara
+   * en uno pasaría media juez.
    */
   test('A · los índices cierran y cubren la geometría entera', () => {
-    for (const modo of ['andando', 'bici', 'patin', 'bizi'] as const) {
+    for (const modo of ['andando', 'bici', 'patin', 'bizi', 'coche'] as const) {
       const t = viaje(modo);
       assert.ok(t.tramos.length > 0, `${modo} no trae ni un tramo`);
       assert.equal(t.tramos[0]!.desde, 0, `${modo}: el primer tramo no empieza en el vértice 0`);
@@ -150,7 +171,7 @@ describe('⭐ LOS TRAMOS DEL VIAJE (30/08)', () => {
    * en pantalla no llegaría a la cifra de la cabecera.
    */
   test('B · los metros y los segundos de los tramos suman el total', () => {
-    for (const modo of ['andando', 'bici', 'patin', 'bizi'] as const) {
+    for (const modo of ['andando', 'bici', 'patin', 'bizi', 'coche'] as const) {
       const t = viaje(modo);
       assert.equal(
         t.tramos.reduce((s, x) => s + x.metros, 0),

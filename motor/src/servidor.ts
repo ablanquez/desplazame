@@ -44,6 +44,7 @@ import { UMBRAL_DE_DESVIO_M, entornoDe } from './gacetero.ts';
 import { portalCercano } from './cercano.ts';
 import { cargarRed } from './red.ts';
 import { cargarRedDeLaRueda } from './red-rueda.ts';
+import { laRedDeCoche } from './coche.ts';
 import { SENTIDOS_CORREGIDOS } from './sentidos-corregidos.ts';
 import {
   FACTOR_DEL_EMPUJE,
@@ -434,6 +435,30 @@ console.log(
   'motor:   la disponibilidad NO se carga aquí: se pregunta a la API de la sede en cada ' +
     'ruta de BiZi [GBFS: station_status es dinámico], y si calla se rutea con el inventario ' +
     'y se avisa',
+);
+
+// ⭐ LA RED DEL COCHE (2/09, casilla 1b del punto 12): la cocinada de la 1a,
+//    cargada AQUÍ para que la primera ruta no la pague y para que conste lo que
+//    cuesta. No entra en `Motor` —igual que la del bus—: solo la mira un modo.
+console.log('motor: cargando la red del coche…');
+const coche = laRedDeCoche();
+console.log(
+  `motor: coche — ${coche.cocinada.contadores.aristas} aristas dirigidas · ` +
+    `${coche.cocinada.contadores.nodos} nodos · ${coche.cocinada.contadores.vetos} transiciones ` +
+    `vetadas · ${coche.cocinada.contadores.enZbe} aristas en la ZBE · ` +
+    `${coche.cargadoEnMs.toFixed(0)} ms`,
+);
+console.log(
+  `motor:   sello del viario ${coche.cocinada.sello} · ` +
+    `${coche.conNombre} ways con nombre de OSM y ${coche.sinNombre} sin él ` +
+    '(esas se narran por su tipo: el coche no hereda del callejero municipal)',
+);
+console.log(
+  `motor:   restricciones aplicadas ${coche.cocinada.contadores.restriccionesAplicadas} ` +
+    `de ${coche.cocinada.contadores.restriccionesLeidas} · ` +
+    `via-way ${coche.cocinada.contadores.restriccionesViaWay} · ` +
+    `exentas ${coche.cocinada.contadores.restriccionesExentas} · ` +
+    `fuera ${coche.cocinada.contadores.restriccionesFuera}`,
 );
 
 /** Todo lo que hace falta para contestar una ruta, junto. */
@@ -930,6 +955,10 @@ servidor.listen(PUERTO, () => {
   );
   console.log(
     'motor: GET /api/estacion-viva?estacion=N&pide=bicis|anclajes pregunta a la sede igual',
+  );
+  console.log(
+    'motor:   el coche busca por TRANSICIONES —las restricciones de giro lo exigen— y ' +
+      'la ZBE AVISA, no veta: la app no sabe qué distintivo lleva el vehículo',
   );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 

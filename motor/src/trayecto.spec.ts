@@ -100,20 +100,31 @@ describe('El trayecto', () => {
 
   /**
    * ⚠️ Eran TRES el 28/08 —`bus`, `bici` y `coche`—, dos desde la casilla 3 del
-   * punto 9, y desde el 31/08 **queda uno**: el bus estrenó búsqueda propia
-   * (casilla 3b del punto 10) y solo el coche sigue esperando su punto, el 11.
-   * La expectativa se mueve porque el motor hace más, no porque la prueba
-   * estorbara.
+   * punto 9, uno desde el 31/08, y **desde el 2/09 no queda ninguno**: la
+   * casilla 1b del punto 12 le dio búsqueda al coche. La expectativa se mueve
+   * porque el motor hace más, no porque la prueba estorbara.
+   *
+   * ⭐ Lo que la juez vigila **no era el coche**: era que un modo que el motor
+   * no calcula se conteste con un `Trayecto` honrado —con el modo que pidieron
+   * dentro— y no con una ruta a pie disfrazada. Ese borde sigue existiendo para
+   * cualquier modo que llegue de un cliente roto, y ahí sigue puesta.
    */
-  test('el modo que falta se contesta con honradez, no con una ruta a pie', () => {
-    for (const modo of ['coche'] as const) {
-      const t = pedir({ origen: LAPUYADE, destino: EN_MEDIO, modo });
-      // Contesta con EL MODO QUE PIDIERON, para que la pantalla pueda decir
-      // para cuál no hay ruta.
-      assert.equal(t.modo, modo);
-      assert.equal(t.pasos.length, 0);
-      assert.match(t.avisos[0]!.texto, /Todavía no calculamos rutas en modo/);
-    }
+  test('un modo que el motor no calcula se contesta con honradez, no con una ruta a pie', () => {
+    const t = pedir({ origen: LAPUYADE, destino: EN_MEDIO, modo: 'helicoptero' });
+    // Contesta con EL MODO QUE PIDIERON, para que la pantalla pueda decir
+    // para cuál no hay ruta.
+    assert.equal(t.modo, 'helicoptero');
+    assert.equal(t.pasos.length, 0);
+    assert.match(t.avisos[0]!.texto, /Todavía no calculamos rutas en modo/);
+  });
+
+  /** Y el coche, que era el último que faltaba, ya contesta con una ruta. */
+  test('⭐ el coche ya trae ruta, pasos y tramo (2/09)', () => {
+    const t = pedir({ origen: LAPUYADE, destino: EN_MEDIO, modo: 'coche' });
+    assert.equal(t.modo, 'coche');
+    assert.ok(t.metros > 0, 'el coche tiene que traer metros');
+    assert.ok(t.pasos.length > 2, `solo ${t.pasos.length} pasos`);
+    assert.deepEqual(t.tramos.map((x) => x.comoSeVa), ['rodando']);
   });
 
   test('un portal que no existe se dice, y no se confunde con «no hay camino»', () => {

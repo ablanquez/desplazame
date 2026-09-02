@@ -31,7 +31,7 @@
  * él leyó. Decirle otro sería contradecir su propio formulario.
  */
 
-import type { RedEnMemoria } from './red.ts';
+import type { RedNarrable } from './red.ts';
 import type { Giro, ParteDelPaso, Paso } from '@desplazame/tipos';
 import { metrosPlanos } from './proyeccion.ts';
 import type { Ruta, TrozoDeRuta } from './ruta.ts';
@@ -903,7 +903,7 @@ type TramoEnObra = {
  * último de su ruta resuelven, y el nodo que devuelven es extremo de la arista
  * siguiente en los 56.276 casos. Cero excepciones.**
  */
-function nodoDeSalida(red: RedEnMemoria, trozo: TrozoDeRuta): number | null {
+function nodoDeSalida(red: RedNarrable, trozo: TrozoDeRuta): number | null {
   const arista = red.aristas[trozo.arista]!;
   const fin = trozo.g[trozo.g.length - 1]!;
   const primero = arista.g[0]!;
@@ -925,7 +925,7 @@ function nodoDeSalida(red: RedEnMemoria, trozo: TrozoDeRuta): number | null {
  * y juntarlas escribiría un paso que se rueda y se empuja a la vez.
  */
 function agrupar(
-  red: RedEnMemoria,
+  red: RedNarrable,
   trozos: readonly TrozoDeRuta[],
   empuje?: Empuje,
 ): readonly Tramo[] {
@@ -1800,7 +1800,7 @@ export function unificarElRegistro(
  * nombre»: no hay nombre que repetir. Se contesta `false`, que es lo cierto.
  */
 function encrucijadaDe(
-  red: RedEnMemoria,
+  red: RedNarrable,
   nodo: number | null,
   aristaQueLlega: number,
   aristaQueSigue: number,
@@ -1848,7 +1848,7 @@ function pasoDe(giro: Giro, metros: number, partes: readonly ParteDelPaso[]): Pa
  * son lo único que se dice en los extremos. Ver la regla 3 de arriba.
  */
 export function escribirPasos(
-  red: RedEnMemoria,
+  red: RedNarrable,
   ruta: Ruta,
   nombreOrigen: string,
   nombreDestino: string,

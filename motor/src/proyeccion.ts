@@ -25,7 +25,7 @@
  * coste**, porque el que anda los anda de todos modos salga por donde salga.
  */
 
-import type { RedEnMemoria } from './red.ts';
+import type { RedNarrable } from './red.ts';
 
 /**
  * [DOC Valhalla] `node_snap_tolerance`: *«during edge correlation this is the
@@ -160,7 +160,7 @@ function claveCelda(x: number, y: number): number {
 }
 
 /** Construye la rejilla. Una vez, al arrancar. */
-export function cargarRejilla(red: RedEnMemoria): Rejilla {
+export function cargarRejilla(red: RedNarrable): Rejilla {
   const principio = performance.now();
 
   let cuantos = 0;
@@ -226,7 +226,7 @@ export function cargarRejilla(red: RedEnMemoria): Rejilla {
  * una localización se pega a una arista por la que ese vehículo puede ir.
  */
 export function enganchar(
-  red: RedEnMemoria,
+  red: RedNarrable,
   rejilla: Rejilla,
   lon: number,
   lat: number,
@@ -304,7 +304,7 @@ export function enganchar(
  * produce un primer «tramo» de 30 cm que luego habría que redactar como paso.
  * Pegándolo al cruce, la ruta empieza en el cruce y ya está.
  */
-function conNodeSnap(red: RedEnMemoria, enganche: Enganche): Enganche {
+function conNodeSnap(red: RedNarrable, enganche: Enganche): Enganche {
   const arista = red.aristas[enganche.arista]!;
   const primero = arista.g[0]!;
   const ultimo = arista.g[arista.g.length - 1]!;
@@ -345,7 +345,7 @@ function conNodeSnap(red: RedEnMemoria, enganche: Enganche): Enganche {
  * hace falta el reparto. Los dos concuerdan: la desviación media entre la suma
  * de la geometría y `m` está medida en 0,097 m.
  */
-export function metrosHastaElEnganche(red: RedEnMemoria, enganche: Enganche): number {
+export function metrosHastaElEnganche(red: RedNarrable, enganche: Enganche): number {
   const g = red.aristas[enganche.arista]!.g;
   let acumulado = 0;
   for (let j = 0; j < enganche.segmento; j++) {

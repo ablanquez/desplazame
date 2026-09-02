@@ -154,6 +154,32 @@ export interface RedEnMemoria {
   readonly cargadoEnMs: number;
 }
 
+/**
+ * ⭐ LO QUE HACE FALTA PARA PROYECTAR Y PARA NARRAR — y nada más.
+ *
+ * Es `RedEnMemoria` menos todo lo que solo sirve para contarla: las cuentas de
+ * carga, la herencia municipal medida, las puntas sueltas. `proyeccion.ts`,
+ * los ayudantes de `ruta.ts` y `pasos.ts` piden esto en vez de la red entera,
+ * y **no cambia una sola operación**: `RedEnMemoria` lo cumple, así que los
+ * cinco modos que ya llamaban ahí siguen llamando igual.
+ *
+ * Existe porque el coche (2/09) trae **otra red** —la cocinada de la casilla
+ * 1a, con sus aristas dirigidas— y quiere la misma narración. Sin esto habría
+ * que rellenarle a mano las cuentas del peatón con ceros inventados, que es
+ * justo lo que esta casa no hace: un `herencias` de mentira diría que el coche
+ * heredó nombres del callejero municipal, y no hereda ninguno.
+ */
+export type RedNarrable = Pick<
+  RedEnMemoria,
+  | 'aristas'
+  | 'nombreDeWay'
+  | 'tipoDeWay'
+  | 'nombreHeredado'
+  | 'articulosPropios'
+  | 'inicio'
+  | 'salidaArista'
+>;
+
 // Lo que la red añade al montón **NO se mide desde aquí**, y el primer intento
 // dio 89 MB: mientras esta función corre, el JSON de nombres recién parseado
 // sigue vivo en su propio ámbito y se cuenta. Medido desde fuera, con el
@@ -161,6 +187,46 @@ export interface RedEnMemoria {
 
 /** Los cuatro artículos que pueden formar parte de un nombre propio. */
 const ARTICULOS: ReadonlySet<string> = new Set(['EL', 'LA', 'LOS', 'LAS']);
+
+/**
+ * ⭐ QUÉ ARTÍCULOS ESCRIBE OSM EN MAYÚSCULA, por núcleo de nombre.
+ *
+ * Solo los INTERMEDIOS: el que abre un nombre va alto siempre y no dice nada.
+ *
+ * Sale de dentro de `cargarRed` el 2/09 **sin cambiar una sola operación**: lo
+ * pide la red del coche, que trae sus propios nombres de OSM y quiere la misma
+ * respuesta. Se saca en vez de copiarse porque dos tablas de artículos que
+ * deberían ser una acabarían no siéndolo, y la diferencia no daría ningún
+ * error: solo un «Calle El Coloso» escrito de dos maneras según el modo.
+ */
+export function articulosDeEstosNombres(nombres: Iterable<string>): ArticulosPropios {
+  const articulosPropios = new Map<string, Set<string>>();
+  for (const nombre of nombres) {
+    const palabras = nombre.split(/[^\p{L}\p{N}]+/u).filter((palabra) => palabra !== '');
+    let nucleo: string | null = null;
+    for (let k = 1; k < palabras.length; k++) {
+      const palabra = palabras[k]!;
+      const comparable = palabra
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase();
+      if (!ARTICULOS.has(comparable) || palabra === palabra.toLowerCase()) {
+        continue;
+      }
+      nucleo ??= nucleoDe(nombre);
+      if (nucleo === '') {
+        break;
+      }
+      const ya = articulosPropios.get(nucleo);
+      if (ya) {
+        ya.add(comparable);
+      } else {
+        articulosPropios.set(nucleo, new Set([comparable]));
+      }
+    }
+  }
+  return articulosPropios;
+}
 
 /** La clave de un punto: su coordenada literal, tal cual la escribió el dato. */
 function clave(punto: readonly [number, number]): string {
@@ -342,35 +408,11 @@ export function cargarRed(memoria: GrafoEnMemoria): RedEnMemoria {
   // Se recorre el fichero de nombres una vez más y se anota, por núcleo, qué
   // artículos intermedios lleva OSM en mayúscula. Solo los intermedios: el que
   // abre el nombre va alto siempre y no dice nada.
-  const articulosPropios = new Map<string, Set<string>>();
-  for (const elemento of respuesta.elements) {
-    const nombre = elemento.tags?.name;
-    if (!nombre) {
-      continue;
-    }
-    const palabras = nombre.split(/[^\p{L}\p{N}]+/u).filter((palabra) => palabra !== '');
-    let nucleo: string | null = null;
-    for (let k = 1; k < palabras.length; k++) {
-      const palabra = palabras[k]!;
-      const comparable = palabra
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toUpperCase();
-      if (!ARTICULOS.has(comparable) || palabra === palabra.toLowerCase()) {
-        continue;
-      }
-      nucleo ??= nucleoDe(nombre);
-      if (nucleo === '') {
-        break;
-      }
-      const ya = articulosPropios.get(nucleo);
-      if (ya) {
-        ya.add(comparable);
-      } else {
-        articulosPropios.set(nucleo, new Set([comparable]));
-      }
-    }
-  }
+  const articulosPropios = articulosDeEstosNombres(
+    respuesta.elements
+      .map((elemento) => elemento.tags?.name)
+      .filter((nombre) => nombre !== undefined),
+  );
 
   // ── 6 · La herencia por vecindad ───────────────────────────────────────────
   // Va la última porque necesita las aristas ya filtradas y los nombres de OSM

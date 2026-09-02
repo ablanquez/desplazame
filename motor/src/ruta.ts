@@ -44,7 +44,7 @@
  * hace aquí, y los 313 guardianes lo dicen.
  */
 
-import type { RedEnMemoria } from './red.ts';
+import type { RedEnMemoria, RedNarrable } from './red.ts';
 import {
   metrosDeLaGeometria,
   metrosHastaElEnganche,
@@ -222,7 +222,7 @@ export interface Puerta {
  * enganchó por dentro de la arista, y esas dos son la mitad de las cuatro
  * combinaciones.
  */
-export function puertasDe(red: RedEnMemoria, enganche: Enganche): readonly Puerta[] {
+export function puertasDe(red: RedNarrable, enganche: Enganche): readonly Puerta[] {
   const arista = red.aristas[enganche.arista]!;
   if (enganche.nodo !== null) {
     return [{ nodo: enganche.nodo, metros: 0, haciaElFinal: enganche.nodo === arista.hasta }];
@@ -243,7 +243,7 @@ export function puertasDe(red: RedEnMemoria, enganche: Enganche): readonly Puert
  * para el destino (del extremo a la proyección).
  */
 export function trozoDelEnganche(
-  red: RedEnMemoria,
+  red: RedNarrable,
   enganche: Enganche,
   haciaElFinal: boolean,
   saliendo: boolean,
@@ -271,7 +271,7 @@ export function trozoDelEnganche(
 }
 
 /** La geometría de una arista entera, puesta en el sentido de la marcha. */
-export function trozoEntero(red: RedEnMemoria, arista: number, desdeNodo: number): TrozoDeRuta {
+export function trozoEntero(red: RedNarrable, arista: number, desdeNodo: number): TrozoDeRuta {
   const a = red.aristas[arista]!;
   const g = a.desde === desdeNodo ? a.g : a.g.slice().reverse();
   return { arista, metros: a.metros, g };
@@ -432,7 +432,7 @@ export function calcularRuta(
 
 /** El trozo de arista que hay entre dos enganches de la MISMA arista. */
 export function trozoEntreDosEnganches(
-  red: RedEnMemoria,
+  red: RedNarrable,
   origen: Enganche,
   destino: Enganche,
 ): TrozoDeRuta {

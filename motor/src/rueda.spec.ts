@@ -32,8 +32,9 @@ import { calcularRuta, cuadernoPara, geometriaDe, type Cuaderno, type Ruta } fro
 import { escribirPasos } from './pasos.ts';
 import { admiteComoPuerta, calcularRutaRodando, segundosRodando } from './rodando.ts';
 import { VELOCIDAD_KMH } from './rueda.ts';
-import { calcularTrayecto, type Motor } from './trayecto.ts';
+import { MODOS_ATENDIDOS, calcularTrayecto, type Motor } from './trayecto.ts';
 import { leerPeticion } from './peticion.ts';
+import type { Modo } from '@desplazame/tipos';
 
 let motor: Motor;
 let rueda: RedDeLaRueda;
@@ -719,25 +720,36 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
   });
 
   /**
-   * ⚠️ **Y hoy solo queda UNO.** Eran tres el 28/08, dos desde la rueda, y desde
-   * el 31/08 el bus tiene su propia búsqueda (casilla 3b del punto 10): el
-   * único que sigue sin ruta es el coche, que es el punto 11. La expectativa se
-   * mueve porque el motor hace más, no porque la prueba estorbara — y el aviso
-   * se sigue componiendo de `MODOS_ATENDIDOS`, así que enumera cinco sin que
-   * nadie haya tocado la frase.
+   * ⭐ **Y HOY NO QUEDA NINGUNO** (2/09). Eran tres el 28/08, dos desde la
+   * rueda, uno desde que el bus tuvo su búsqueda el 31/08, y con la casilla 1b
+   * del punto 12 el coche también rutea. Esta juez ya no puede comprar que
+   * falte uno: compra que **no falte ninguno**, que es lo que sustituye a la
+   * expectativa vieja sin dejar el hueco sin vigilar.
+   *
+   * Se recorre `Modo` del contrato a mano y a propósito: el día que el contrato
+   * estrene un séptimo modo, esta juez se pone roja hasta que alguien decida si
+   * se calcula o si se contesta con su aviso. Un `MODOS_ATENDIDOS.length === 6`
+   * no cazaría eso.
    */
-  test('el coche sigue sin ruta, y el aviso enumera los que sí', () => {
-    for (const modo of ['coche'] as const) {
-      const t = calcularTrayecto(motor, {
-        origen: extremo('Portales.99126'),
-        destino: extremo('Portales.126086'),
-        modo,
-      });
-      assert.equal(t.modo, modo);
-      assert.equal(t.pasos.length, 0);
-      assert.match(t.avisos[0]!.texto, /Todavía no calculamos rutas en modo/);
-      assert.match(t.avisos[0]!.texto, /andando, bici, patin, bizi, bus/);
+  test('⭐ ya no queda ningún modo del contrato sin ruta', () => {
+    const delContrato: readonly Modo[] = ['andando', 'bus', 'bici', 'patin', 'bizi', 'coche'];
+    for (const modo of delContrato) {
+      assert.ok(
+        MODOS_ATENDIDOS.includes(modo),
+        `el modo «${modo}» del contrato no lo calcula nadie`,
+      );
     }
+    assert.equal(MODOS_ATENDIDOS.length, delContrato.length, 'sobra un modo en la lista');
+    // Y el aviso de «todavía no» sigue vivo para el modo que no existe: es lo
+    // que contesta a un cliente roto, y se compone de la lista, no a mano.
+    const t = calcularTrayecto(motor, {
+      origen: extremo('Portales.99126'),
+      destino: extremo('Portales.126086'),
+      modo: 'helicoptero' as Modo,
+    });
+    assert.equal(t.pasos.length, 0);
+    assert.match(t.avisos[0]!.texto, /Todavía no calculamos rutas en modo «helicoptero»/);
+    assert.match(t.avisos[0]!.texto, /andando, bici, patin, bizi, bus, coche/);
   });
 
   /**

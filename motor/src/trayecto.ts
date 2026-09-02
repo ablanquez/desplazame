@@ -52,13 +52,26 @@ import {
   type Extremo,
 } from './etapas.ts';
 import { viajeEnBiZi } from './viaje-bizi.ts';
+import { laRedDeCoche } from './coche.ts';
+import { viajeEnCoche } from './viaje-coche.ts';
 
 /**
- * Los modos que hoy sabe calcular el motor. **Cuatro desde el 29/08**: al
- * andando se le suman los tres de la rueda. Faltan `bus` (punto 10) y `coche`
- * (punto 11), y a esos se les sigue contestando con su Aviso honrado.
+ * Los modos que hoy sabe calcular el motor. **Los SEIS desde el 2/09**: eran
+ * cuatro el 29/08 —el andando más los tres de la rueda—, cinco el 31/08 con el
+ * bus, y hoy entra el coche con la casilla 1b del punto 12.
+ *
+ * ⭐ Ya no falta ninguno, y la lista se queda igualmente: el aviso de «todavía
+ * no calculamos» se compone de aquí, así que el día que el contrato estrene un
+ * séptimo modo la frase dirá la verdad sin que nadie la reescriba.
  */
-export const MODOS_ATENDIDOS: readonly Modo[] = ['andando', 'bici', 'patin', 'bizi', 'bus'];
+export const MODOS_ATENDIDOS: readonly Modo[] = [
+  'andando',
+  'bici',
+  'patin',
+  'bizi',
+  'bus',
+  'coche',
+];
 
 /** Un trayecto vacío con su explicación. Es la respuesta a todo lo que falla. */
 function conAviso(modo: Modo, texto: string): Trayecto {
@@ -324,6 +337,19 @@ function porModo(motor: Motor, b: Bifurcacion, vivo: Disponibilidad | null): Tra
       );
     }
     return viajeEnBus(motor, red, origen, destino, hoyEnGtfs(new Date()));
+  }
+
+  // ⭐ EL COCHE (2/09, punto 12 casilla 1b). Va por su propia red —la cocinada
+  // de la casilla 1a— y no comparte nada con lo de abajo: ni grafo, ni rejilla,
+  // ni cuaderno. Y su búsqueda no es la de nadie más: va **por transiciones**,
+  // porque una restricción de giro no prohíbe una arista, prohíbe pasar de una
+  // a otra. Ver `viaje-coche.ts`.
+  //
+  // La red se pide aquí y no viaja en `Motor` por lo mismo que la del bus: solo
+  // la mira un modo, y meterla dentro obligaría a que cada juez del peatón la
+  // levantara para poder construir su motor.
+  if (modo === 'coche') {
+    return viajeEnCoche(laRedDeCoche(), origen, destino);
   }
 
 
