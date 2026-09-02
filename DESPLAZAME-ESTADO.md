@@ -60,11 +60,13 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   iconos por categoría (cruz verde · cruz azul · H azul · libro
   morado · lápiz-manzana, chupete y birrete en mostaza #614800 ·
   chincheta).
-  Modos (30/08): GRUPO DE RADIOS NATIVO a seis — Andando · Bus /
-  Tranvía · Bici privada · Patín (VMP) · BiZi · Coche (name
-  compartido: parada única de tab, flechas y exclusión del navegador;
-  cada rueda manda SU modo; desde el 31/08 BUS/TRANVÍA llama al
-  motor —solo coche avisa sin preguntar). EL BUS EN PANTALLA
+  Modos (30/08; en DOS FILAS desde el 2/09): CINCO familias —
+  [Andando] [Bus / Tranvía] [Bici] [Patín (VMP)] [Coche] — y al
+  elegir [Bici] se revela «¿Qué bici?» [Privada | Pública BiZi]
+  (Privada por defecto) [GOV.UK revelado condicional]; radiogrupos
+  nativos (name propio por fila, parada única de tab, flechas,
+  exclusión); el estado es UNO (familia = computed de modo); desde el
+  31/08 BUS/TRANVÍA llama al motor — solo coche avisa sin preguntar. EL BUS EN PANTALLA
   (31/08): tramos a pie ámbar · cada tramo montado en EL COLOR DE
   SU LÍNEA con su traza real · chips [29] con número y color ·
   postes 🚌/🚏 · «Sube a la línea X en el poste Y — N paradas —
@@ -154,6 +156,13 @@ la decisión sobre Avanza**
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LA BICI EN DOS FILAS (2/09 — punto 11, casilla 1).** [Bici] revela
+[Privada|Pública BiZi] + las tres rutas [GOV.UK revelado condicional];
+el estado sigue siendo UNO (familia = computed de modo, no señal);
+values del contrato bici|bizi; motor y contrato intactos (muralla).
+240 interfaz (+10) · 18 jueces en Chrome. El «agujero» del guardián
+de la raíz (1/09) corregido: no existe — HttpClient sale por fetch.
 
 **LOS PAPELES PÚBLICOS AL DÍA Y LA DECISIÓN SOBRE AVANZA (1/09,
 noche).** README y notices con el punto 10 dentro (cinco modos; la API
@@ -1020,8 +1029,9 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el punto 11, casilla 1 — la bici en dos filas**
-(solo pantalla) y la 2 — los botones de disponibilidad de BiZi; (2)
+**Lo siguiente:** (1) **el punto 11, casilla 2 — los botones «Bicis
+ahora / Anclajes ahora» de BiZi** (patrón Próximo bus sobre el
+station_status); (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1321,7 +1331,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 700 pruebas (470 motor + 230 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 710 pruebas (470 motor + 240 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

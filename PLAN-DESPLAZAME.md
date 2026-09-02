@@ -2658,10 +2658,28 @@ REGLA DE LA DEMO (la nº1 del reinicio: nada cuenta sin verse): la
 botonera enseña LO QUE EXISTE; un grupo nuevo aparece cuando su
 motor llega, no antes — un «todavía no» en una demo es un cartel de
 obra. Hoy existen: Andando · Bus/Tranvía · Bici (privada y BiZi) ·
-Patín. Moto y Coche entran con los puntos 12 y 13.
+Patín. La regla aplica a los grupos NUEVOS: [Moto] entra con el punto
+13 y la fila de parking del coche con el 12; el botón [Coche] ya
+existía con su aviso desde antes de la regla (decisión del 30/08) y
+se queda hasta que el 12 lo llene.
 
 - [x] **0 · EL PARLAMENTO — hecho (1/09).** Lo de arriba.
-- [ ] **1 · LA BICI EN DOS FILAS — solo pantalla:** [Bici] despliega
+- [x] **⭐ 1 · LA BICI EN DOS FILAS — HECHA (2/09).** [Bici] revela
+      «¿Qué bici?» [Privada|Pública BiZi] (Privada por defecto) + las
+      tres rutas; cinco familias arriba. La decisión que lo sostiene:
+      EL ESTADO SIGUE SIENDO UNO — modo es lo que viaja, familia es un
+      computed derivado (dos señales = la puerta a que el botón y el
+      modo dejen de coincidir sin rojo). Los value son los del
+      contrato (bici|bizi), sin tabla de traducción. Cero cambios en
+      motor/contrato (muralla: el cuerpo sigue destino,modo,origen).
+      10 jueces jsdom + 18 Chrome + 5 contrapruebas; una juez del
+      ejecutor estaba equivocada (quería memoria al salir y volver —
+      el computed hace bien en no tenerla) y quedó reescrita. De
+      propina: el «agujero» del guardián de la raíz reportado el 1/09
+      NO existe (HttpClient sale por fetch; el matiz real: en jsdom
+      quien caza es http.verify(), no el contador — escrito).
+      *(el encargo fue corto y salió corto — la regla nueva funcionando)*
+      · **1 · LA BICI EN DOS FILAS (el texto original):** [Bici] despliega
       [Privada] [Pública BiZi] y, debajo, las tres rutas. El motor NO
       se toca: `modo=bici|bizi` y `ruta=` ya existen (los BOTONES
       cambian, los CAMINOS no). Radiogrupos nativos como el selector
