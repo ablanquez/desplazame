@@ -617,7 +617,20 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     assert.equal(conViva.segundos, 730, 'los 5 min vivos tienen que entrar en el total');
 
     assert.match(estimada.pasos[0]!.texto, /frecuencia teórica: cada 9 min$/);
-    assert.match(conViva.pasos[0]!.texto, /próximo en 5 min \(dato de las \d\d:\d\d\)$/);
+
+    // ⭐ EL MINUTO VIVO **YA NO ESTÁ EN LA FRASE DEL PASO** (2/09). Está en la
+    // región del botón «Próximo bus», que es donde se puede refrescar — y el
+    // paso se queda con lo que no caduca: cada cuánto pasa la línea.
+    assert.match(conViva.pasos[0]!.texto, /frecuencia teórica: cada 9 min$/, 'la frase, sin minuto');
+    assert.doesNotMatch(conViva.pasos[0]!.texto, /próximo en/, 'y sin el minuto DOS veces');
+    assert.match(
+      conViva.pasos[0]!.vivo!.texto,
+      /^próximo en 5 min \(dato de las \d\d:\d\d\)$/,
+      'el minuto viaja en `vivo`, que es lo que llena la región',
+    );
+
+    // ⚠️ Y el RELOJ sí lo sigue usando: lo que se quitó fue la repetición del
+    //    texto, no el dato. Son los 730 s de arriba contra los 698 estimados.
   });
 
   /**
@@ -1080,7 +1093,10 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
       respondiendo(MEDIDO_POSTE_1000),
     );
     const primera = conVivo.pasos.find((p) => p.giro === 'sube' || p.giro === 'transborda')!;
-    assert.match(primera.texto, /(próximo en \d+ min \(dato de las \d\d:\d\d\)|frecuencia teórica)/);
+    // ⭐ Desde el 2/09 la frase dice SIEMPRE la frecuencia, tenga dato vivo o
+    //    no: el minuto vive en `vivo`, que es lo que la región enseña.
+    assert.match(primera.texto, /frecuencia teórica/);
+    assert.doesNotMatch(primera.texto, /próximo en/);
   });
 
   /**

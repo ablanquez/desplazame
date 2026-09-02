@@ -27,6 +27,7 @@ import { cargarPortales, portalesDe } from './portales.ts';
 import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
 import { cargarBiZi, disponibilidadDeBiZi } from './bizi.ts';
 import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
+import { atenderEstacionViva } from './estacion-viva.ts';
 import { andarConElPeaton, cocinarYServir, laRedDeBus } from './red-bus.ts';
 import {
   atenderRenovacion,
@@ -754,6 +755,27 @@ const servidor = createServer((peticion, respuesta) => {
     return;
   }
 
+  /**
+   * ⭐ `GET /api/estacion-viva?estacion=N&pide=bicis|anclajes` (2/09).
+   *
+   * El hermano del anterior para la BiZi, y **el mismo trato**: idempotente,
+   * `Cache-Control: no-store` y single-flight — que aquí no se añade, porque
+   * `disponibilidadDeBiZi()` ya lo lleva dentro desde el 30/08.
+   *
+   * Lo contesta el botón «Bicis ahora» del hito de coger y el «Anclajes ahora»
+   * del de dejar. Ver `estacion-viva.ts`.
+   */
+  if (peticion.method === 'GET' && url.pathname === '/api/estacion-viva') {
+    void (async () => {
+      const r = await atenderEstacionViva(
+        url.searchParams.get('estacion'),
+        url.searchParams.get('pide'),
+      );
+      jsonSinGuardar(r.codigo, r.cuerpo);
+    })();
+    return;
+  }
+
   // ⭐ EL DISPARADOR DEL CRON (31/08). En un hosting sin SSH un cron no puede
   // lanzar `npm run …`: **solo puede pedir una URL** [precedente de ZetaBus].
   // Por eso la renovación se dispara con un POST y un token EN CABECERA —jamás
@@ -905,6 +927,9 @@ servidor.listen(PUERTO, () => {
   );
   console.log(
     'motor: GET /api/poste-vivo?poste=N&linea=L pregunta a Avanza a peticion, sin guardar nada',
+  );
+  console.log(
+    'motor: GET /api/estacion-viva?estacion=N&pide=bicis|anclajes pregunta a la sede igual',
   );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 

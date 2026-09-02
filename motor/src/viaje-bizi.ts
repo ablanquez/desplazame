@@ -12,7 +12,8 @@
  * el feed dinámico `station_status`, con su marca de tiempo **por estación**.
  */
 
-import type { Aviso, Paso, Trayecto, TipoDeRuta } from '@desplazame/tipos';
+import type { Aviso, Paso, QueSePide, Trayecto, TipoDeRuta } from '@desplazame/tipos';
+import { laCifra } from './estacion-viva.ts';
 import type { Motor } from './trayecto.ts';
 import type { Empuje } from './pasos.ts';
 import {
@@ -53,18 +54,21 @@ const ESTACIONES_CANDIDATAS = 10;
  */
 const TRAMO_DEL_ABONO_S = 30 * 60;
 
-/** Cómo se dice una cantidad con su singular. «1 bici», «8 bicis». */
-function conUnidad(cuantos: number, singular: string, plural: string): string {
-  return `${cuantos} ${cuantos === 1 ? singular : plural}`;
-}
-
-/** Lo común a los dos hitos de estación. */
+/**
+ * Lo común a los dos hitos de estación.
+ *
+ * ⭐ `pide` hace dos cosas a la vez, y por eso es un solo parámetro: elige la
+ * cifra que se dice —bicis al coger, anclajes al dejar— **y** viaja al paso
+ * como `aQueEstacion`, que es lo que la pantalla necesita para pintar el botón
+ * «Bicis ahora» / «Anclajes ahora» (2/09). Que salga de un solo sitio impide
+ * que el botón pregunte una cosa y el texto diga otra.
+ */
 function hitoDeEstacion(
   verbo: 'Coge' | 'Deja',
   enlace: string,
   estacion: EstacionBiZi,
   estado: EstadoDeEstacion | null,
-  cifra: (e: EstadoDeEstacion) => string,
+  pide: QueSePide,
 ): Paso {
   const partes = [
     { papel: 'accion' as const, texto: verbo },
@@ -78,7 +82,13 @@ function hitoDeEstacion(
       // estación**, no la de la consulta. [DOC GBFS] `last_reported` va por
       // estación y no por feed, y el 30/08 la respuesta real traía **seis
       // marcas distintas** entre sus 276 filas.
-      texto: ` — ${cifra(estado)} a las ${alMinuto(estado.cuando)}`,
+      //
+      // ⭐ Y por eso este número NO se quita al llegar el botón (2/09), al
+      //    revés que el minuto del bus: **lleva su hora dentro**. Un «8 bicis a
+      //    las 11:56» no envejece a escondidas — dice cuándo era verdad—,
+      //    mientras que «próximo en 5 min» sí, y por eso aquél se fue a la
+      //    región y éste se queda. Dos datos fechados no son un dato doble.
+      texto: ` — ${laCifra(estado, pide)} a las ${alMinuto(estado.cuando)}`,
     });
   }
   return {
@@ -86,6 +96,9 @@ function hitoDeEstacion(
     texto: partes.map((p) => p.texto).join(''),
     metros: 0,
     partes,
+    // ⭐ Siempre, y no solo cuando hay dato: la fuente existe aunque hoy calle.
+    //    Ver `estacion-viva.ts` para por qué esto se diferencia del bus.
+    aQueEstacion: { estacion: estacion.numero, pide },
   };
 }
 
@@ -97,16 +110,12 @@ function hitoDeEstacion(
  * y sin hora**. Es el plan D-G firmado: componer sin prometer.
  */
 function hitoDeCoger(estacion: EstacionBiZi, estado: EstadoDeEstacion | null): Paso {
-  return hitoDeEstacion('Coge', ' una bici en la estación ', estacion, estado, (e) =>
-    conUnidad(e.bicis, 'bici disponible', 'bicis disponibles'),
-  );
+  return hitoDeEstacion('Coge', ' una bici en la estación ', estacion, estado, 'bicis');
 }
 
 /** ⭐ EL HITO DE DEJARLA, con los anclajes libres en vez de las bicis. */
 function hitoDeDejar(estacion: EstacionBiZi, estado: EstadoDeEstacion | null): Paso {
-  return hitoDeEstacion('Deja', ' la bici en la estación ', estacion, estado, (e) =>
-    conUnidad(e.anclajesLibres, 'anclaje libre', 'anclajes libres'),
-  );
+  return hitoDeEstacion('Deja', ' la bici en la estación ', estacion, estado, 'anclajes');
 }
 
 /** Una estación convertida en extremo, con el nombre que se leerá. */

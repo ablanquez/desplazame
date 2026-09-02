@@ -664,34 +664,40 @@ function metrosEntre(aLon: number, aLat: number, bLon: number, bLat: number): nu
 }
 
 /**
- * ⭐ CÓMO SE DICE LO QUE SE VA A ESPERAR, y son dos cosas distintas.
+ * ⭐ CÓMO SE DICE LO QUE SE VA A ESPERAR: **la frecuencia teórica, siempre**.
  *
- * · Con **dato vivo**: `próximo en 5 min (dato de las 18:32)`. Lo real desplaza
- *   a lo programado [GTFS-Realtime], y va con su hora porque un «en 5 min» sin
- *   fecha envejece sin que se note.
- * · Sin él: **la frecuencia teórica**, `cada 8 min`. Es la cabecera `H` del
- *   patrón HOY —lo que la cocina ya calcula— y es **el lenguaje del servicio**:
- *   [Google Transit Partners] los servicios de frecuencia se describen por su
- *   *headway*, «pasan cada 5-15 minutos», no por una espera concreta.
+ * `cada 8 min`. Es la cabecera `H` del patrón HOY —lo que la cocina ya calcula—
+ * y es **el lenguaje del servicio**: [Google Transit Partners] los servicios de
+ * frecuencia se describen por su *headway*, «pasan cada 5-15 minutos», no por
+ * una espera concreta.
  *
- * ⚠️ **Y esto es solo el TEXTO.** El reloj del viaje sigue sumando `E[W] = H/2`
- * [Dial 1967 · Clerq 1972 · Wirasinghe 1980], que es la espera media de quien
- * llega al azar. Decir «cada 8 min» y sumar 4 no es una contradicción: son dos
- * preguntas distintas —cada cuánto pasa, y cuánto se espera de media—.
+ * ⚠️ **Y HASTA EL 2/09 ESTA FRASE TAMBIÉN DECÍA EL MINUTO VIVO** —`próximo en 5
+ *    min (dato de las 18:32)`— cuando lo había. Ya no, y no es una pérdida:
+ *    **es que se decía DOS VECES**. Desde el 1/09 el mismo minuto está en la
+ *    región `role="status"` del botón «Próximo bus», tres palabras más a la
+ *    derecha, y ahí es donde tiene que estar por una razón que la frase del
+ *    paso no puede cumplir: **la región se refresca al pulsar y la frase no**.
+ *    Con las dos, la primera pulsación dejaba la pantalla diciendo «próximo en
+ *    5 min» en el paso y «próximo en 2 min» en la región, un minuto al lado del
+ *    otro, y el viejo con la misma pinta de nuevo.
+ *
+ *    Así que el dato vivo tiene **una sola voz** —la región— y el paso se queda
+ *    con lo que no caduca: cada cuánto pasa esa línea. No son el mismo dato.
+ *
+ * ⚠️ **Y esto es solo el TEXTO.** El reloj del viaje sigue usando el minuto
+ * vivo cuando lo hay, y en su ausencia `E[W] = H/2` [Dial 1967 · Clerq 1972 ·
+ * Wirasinghe 1980], que es la espera media de quien llega al azar. Decir «cada
+ * 8 min» y sumar 4 no es una contradicción: son dos preguntas distintas —cada
+ * cuánto pasa, y cuánto se espera de media—.
  *
  * ⚠️ Y la convención alternativa queda citada y **no aplicada**: [Google
  * Transit] para un servicio de frecuencia, tomar la cabecera **entera** como
  * espera de peor caso. Duplicaría los tiempos de todos los viajes; si algún día
  * se quiere el peor caso en vez de la media, el sitio es `esperaEstimada`.
  *
- * `null` cuando no hay ni una cosa ni la otra: mejor callar que inventar.
+ * `null` cuando no hay intervalo: mejor callar que inventar.
  */
-function comoSeEspera(intervalo: number | null, vivo?: EstadoVivo | null): string | null {
-  if (vivo?.clase === 'llega') {
-    // La frase se compone en `poste-vivo.ts`, que es de donde sale también la
-    // del endpoint a petición: una sola frase, un solo sitio donde cambiarla.
-    return comoSeDiceElProximo(vivo.minutos, vivo.cuando);
-  }
+function comoSeEspera(intervalo: number | null): string | null {
   return intervalo === null ? null : `frecuencia teórica: cada ${Math.round(intervalo / 60)} min`;
 }
 
@@ -744,7 +750,7 @@ export function pasoDeSubir(
   if (cuantas !== null) {
     partes.push({ papel: 'texto' as const, texto: ` — ${cuantas}` });
   }
-  const espera = comoSeEspera(intervalo, vivo);
+  const espera = comoSeEspera(intervalo);
   if (espera !== null) {
     partes.push({ papel: 'texto' as const, texto: ` — ${espera}` });
   }
@@ -817,7 +823,7 @@ export function pasoDeTransbordo(
   if (cuantas !== null) {
     partes.push({ papel: 'texto' as const, texto: ` — ${cuantas}` });
   }
-  const espera = comoSeEspera(intervalo, vivo);
+  const espera = comoSeEspera(intervalo);
   if (espera !== null) {
     // La frecuencia que importa es la del que se coge, no la del que se deja.
     partes.push({
@@ -906,9 +912,13 @@ export function etapaMontada(red: RedDeBus, montado: TramoMontado, como: ComoSeM
       geometria.push([ultima.lat, ultima.lon]);
     }
   }
-  // ⭐ Y EL TOTAL TAMBIÉN CAMBIA, no solo el texto. Enseñar «próximo en 5 min»
-  // y seguir sumando los 4,5 de la estimación dejaría el paso diciendo una cosa
-  // y la cabecera otra — y quien lee se fía de la cabecera.
+  // ⭐ Y EL TOTAL USA EL MINUTO VIVO cuando lo hay. Enseñar «próximo en 5 min»
+  // en la región y seguir sumando los 4,5 de la estimación dejaría la pantalla
+  // diciendo una cosa y la cabecera otra — y quien lee se fía de la cabecera.
+  //
+  // ⚠️ Desde el 2/09 el minuto ya **no está en la frase del paso** —está solo
+  //    en la región del botón—, pero sigue estando aquí: lo que se quitó fue la
+  //    repetición del texto, no el dato. El reloj nunca lo dijo dos veces.
   // ⚠️ Y los 120 s del transbordo [OTP `transferSlack`] se suman AQUÍ cuando se
   // llega transbordando en el mismo poste: antes vivían en la etapa a pie de
   // cero metros, que ha dejado de existir. El total del viaje no se mueve.

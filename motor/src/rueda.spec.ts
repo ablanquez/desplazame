@@ -468,6 +468,27 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
     assert.equal(t.segundos, 589);
     assert.equal(t.pasos.filter((p) => p.giro === 'coge').length, 1);
     assert.equal(t.pasos.filter((p) => p.giro === 'aparca').length, 1);
+
+    // ⭐ Y CADA HITO SABE A QUIÉN PREGUNTAR, Y QUÉ (2/09, punto 11).
+    //
+    // Es lo que hace que la pantalla pinte «Bicis ahora» donde se coge y
+    // «Anclajes ahora» donde se deja. ⚠️ Y va aquí, sobre el trayecto REAL,
+    // porque el fixture de la interfaz se lo escribe a mano: si el motor
+    // cruzara las dos preguntas —anclajes donde se coge— la pantalla enseñaría
+    // un número creíble contestando otra cosa, y ninguna juez de allí lo vería.
+    const coge = t.pasos.find((p) => p.giro === 'coge')!;
+    const deja = t.pasos.find((p) => p.giro === 'aparca')!;
+    assert.equal(coge.aQueEstacion?.pide, 'bicis');
+    assert.equal(deja.aQueEstacion?.pide, 'anclajes');
+    assert.ok(
+      typeof coge.aQueEstacion?.estacion === 'number' && coge.aQueEstacion.estacion > 0,
+      'el hito de coger lleva el número de SU estación',
+    );
+    assert.notEqual(
+      coge.aQueEstacion?.estacion,
+      deja.aQueEstacion?.estacion,
+      'y no es la misma en los dos: se coge en una y se deja en otra',
+    );
   });
 
   /**

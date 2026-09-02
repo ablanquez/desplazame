@@ -188,6 +188,22 @@ export interface Paso {
    * pulse después lo refresca.
    */
   readonly vivo?: PosteVivo;
+  /**
+   * ⭐ A QUÉ ESTACIÓN DE BiZi PREGUNTARLE, Y QUÉ (2/09).
+   *
+   * El hermano de `aQuienPreguntar` para los dos hitos de la BiZi: el de
+   * **coger** pregunta bicis y el de **dejar**, anclajes libres. Es la misma
+   * idea y por la misma razón — **va como dato y no como texto**: la pantalla
+   * podría sacar el número de la estación leyendo la frase del hito, y eso la
+   * ataría al formato de una frase que el motor puede cambiar.
+   *
+   * ⚠️ Y aquí **siempre está**, al revés que en el bus. Allí falta cuando no
+   *    hay fuente —el tranvía no tiene `stop_code` de Avanza— y sin fuente no
+   *    se pinta botón. La BiZi siempre tiene fuente: la sede del Ayuntamiento.
+   *    Que hoy no conteste no es que no exista, y esa diferencia es la que
+   *    separa un `mudo` de un botón que no debería existir.
+   */
+  readonly aQueEstacion?: AQueEstacionPreguntar;
 }
 
 /**
@@ -226,6 +242,47 @@ export type ClaseDeVivo = 'llega' | 'ausente' | 'mudo';
 
 export interface PosteVivo {
   readonly clase: ClaseDeVivo;
+  readonly texto: string;
+}
+
+/**
+ * Qué se le pregunta a una estación de BiZi. Son las dos mitades del mismo
+ * número [DOC GBFS]: `num_bikes_available` y `num_docks_available`.
+ *
+ * Y son **dos preguntas distintas y no una**: una estación llena no sirve para
+ * devolver y una vacía no sirve para coger, aunque sea la de la puerta.
+ */
+export type QueSePide = 'bicis' | 'anclajes';
+
+/** La estación y qué se le pregunta. `estacion` es el número de la calle. */
+export interface AQueEstacionPreguntar {
+  readonly estacion: number;
+  readonly pide: QueSePide;
+}
+
+/**
+ * ⭐ LO QUE CONTESTA `GET /api/estacion-viva`, y son **tres** estados.
+ *
+ * Los mismos tres del poste con otros nombres, porque son la misma pregunta
+ * hecha a otra fuente:
+ *
+ *   · `hay`     — la sede publica la estación: «8 bicis disponibles a las
+ *     11:56». La hora es la que la API declara **para esa estación** [DOC
+ *     GBFS, `last_reported` va por estación], no la de la consulta.
+ *   · `ausente` — la sede contestó y esa estación no está en su respuesta. Es
+ *     falta de información, **no** de bicis — la misma lectura que hace
+ *     [GTFS-Realtime] de una entidad ausente.
+ *   · `mudo`    — la sede no contestó, o contestó algo ilegible. No lo
+ *     sabemos, y se dice con las palabras del plan D-G: *«disponibilidad no
+ *     verificada»*.
+ *
+ * ⚠️ `texto` viene compuesto por el motor, igual que en `PosteVivo` y por lo
+ *    mismo: las mismas frases se dicen ya en los hitos del Generar.
+ */
+export type ClaseDeEstacion = 'hay' | 'ausente' | 'mudo';
+
+export interface EstacionViva {
+  readonly clase: ClaseDeEstacion;
   readonly texto: string;
 }
 
