@@ -313,6 +313,31 @@ export interface ParteDelPaso {
  */
 export interface Aviso {
   readonly texto: string;
+  /**
+   * ⭐ EL PASO AL QUE PERTENECE, si pertenece a uno (2/09).
+   *
+   * Índice dentro de `Trayecto.pasos`. `undefined` es un aviso **del viaje
+   * entero** — «no hay ruta», «la disponibilidad no está verificada»—, que es
+   * lo que hasta hoy eran todos.
+   *
+   * El contrato crece porque el motor lo pide: el aviso de la Zona de Bajas
+   * Emisiones va **en dos sitios** [el patrón de los desvíos, GOV.UK] —arriba en
+   * el resumen y junto al paso que entra en ella— y ese paso **no es un hito**.
+   * La pantalla reparte hoy los avisos leyendo su TEXTO (`notaDelHito`), y esa
+   * regla solo sabe de hitos: lo dice su propio comentario, *«el día que el
+   * contrato le dé categoría, esto se cuelga de ella y deja de mirar
+   * palabras»*. Este es ese día para el reparto.
+   *
+   * ⚠️ **Opcional a propósito.** Los avisos que ya viajaban no lo llevan y
+   *    siguen siendo válidos; la pantalla de hoy no lo mira y no deja de
+   *    compilar. Misma ley que `modo` el 29/08: compatibilidad hacia atrás, no
+   *    comodidad.
+   *
+   * Y **no lo calcula quien pinta**: qué paso abre dónde solo se sabe dentro
+   * del motor —sumar los `metros` de los pasos no vale, que vienen redondeados
+   * a propósito, y es el mismo error de 6,9 m que obligó a publicar `tramos`.
+   */
+  readonly paso?: number;
 }
 
 /**

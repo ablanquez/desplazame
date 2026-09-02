@@ -41,13 +41,9 @@
  * `car.lua` la sigmoide y el semáforo se suman a `turn.duration`, no solo al
  * peso. Aquí no hay nada como el factor de preferencia de la rueda —que sí hay
  * que quitar antes de publicar—: todo lo que se suma son segundos que se tardan.
- *
- * ⚠️ **Todavía sin avisos**: la Zona de Bajas Emisiones entra en el commit de al
- *    lado, que es el que trae su letra oficial y el campo del contrato en el que
- *    viaja. Aquí `avisos` va vacío a propósito, no por olvido.
  */
 
-import type { Paso, Trayecto, Vertice } from '@desplazame/tipos';
+import type { Aviso, Paso, Trayecto, Vertice } from '@desplazame/tipos';
 import {
   Monticulo,
   conector,
@@ -71,6 +67,33 @@ import type { Extremo } from './etapas.ts';
 
 /** Un punto en `[lon, lat]`, como el grafo. */
 type Punto = readonly [number, number];
+
+/**
+ * ⭐ LA LETRA DE LA ZONA DE BAJAS EMISIONES, y **avisa: no veta**.
+ *
+ * La app no sabe qué distintivo lleva el coche de quien pregunta, y no hay
+ * forma de que lo sepa. Así que la ruta **se devuelve igual** y lo que se hace
+ * es contar la norma con su condición delante, que es componer sin prometer
+ * [D-G]. Vetar sería decidir por el usuario que su coche no puede pasar;
+ * callar sería mandarlo a una multa.
+ *
+ * ── De dónde sale, palabra por palabra ──────────────────────────────────────
+ *
+ * De la **FAQ oficial del Ayuntamiento de Zaragoza**, leída el **2/09/2026**:
+ * `https://www.zaragoza.es/sede/portal/movilidad/bajas-emisiones/faq`
+ *
+ *   · *«de aplicación de lunes a viernes de 8:00 a 20:00 horas»* → el horario.
+ *   · *«B, C, ECO o CERO: libre acceso, circulación y estacionamiento sin
+ *     necesidad de registrarse»* → los cuatro que circulan libres.
+ *   · Los **sin distintivo** necesitan autorización.
+ *   · Las sanciones se aplican **desde el 12/12/2025**, y la **Fase 1** es la
+ *     vigente — que es la que trae marcada la geometría del WFS (§ 1.30).
+ *
+ * ⚠️ Lo que aquí NO se dice es a quién le toca: eso es justo lo que no se sabe.
+ */
+export const AVISO_ZBE =
+  'La ruta atraviesa la Zona de Bajas Emisiones: de lunes a viernes de 8:00 a 20:00 ' +
+  'los vehículos sin distintivo necesitan autorización; B, C, ECO y CERO circulan libres';
 
 /**
  * El cuaderno del Dijkstra del coche. **Va por ARISTA**, no por nodo, porque el
@@ -440,6 +463,38 @@ function conAviso(texto: string): Trayecto {
 }
 
 /**
+ * ⭐ LOS AVISOS DEL VIAJE — hoy, uno: la Zona de Bajas Emisiones.
+ *
+ * Va **en el doble sitio** [GOV.UK, el patrón de los desvíos]: arriba en el
+ * resumen único, y junto al paso por el que se entra. Aquí se dice una sola
+ * vez, con `paso` puesto, y quien pinta lo pone en los dos — que es exactamente
+ * lo que el contrato estrena hoy para no tener que adivinarlo leyendo el texto.
+ *
+ * El paso es **el que cubre el primer trozo dentro de la zona**, no el que
+ * empieza en él: se entra en mitad de una calle, y el paso que lo cuenta es el
+ * que se está siguiendo. La llegada se queda fuera de la búsqueda a propósito:
+ * no abre ningún tramo, así que no se «entra» en ella.
+ */
+export function avisosDelCoche(
+  servida: RedDeCocheServida,
+  trozos: readonly TrozoDeRuta[],
+  aperturas: readonly number[],
+): readonly Aviso[] {
+  const primero = trozos.findIndex((t) => servida.cocinada.aristas[t.arista]!.zbe);
+  if (primero < 0) {
+    return [];
+  }
+  let paso = 0;
+  const cuantos = Math.max(1, aperturas.length - 1);
+  for (let k = 0; k < cuantos; k++) {
+    if (aperturas[k]! <= primero) {
+      paso = k;
+    }
+  }
+  return [{ texto: AVISO_ZBE, paso }];
+}
+
+/**
  * ⭐ EL VIAJE EN COCHE, de punta a punta.
  *
  * Un solo tramo, `comoSeVa: 'rodando'`. Y eso **no es un campo nuevo**: el
@@ -482,12 +537,19 @@ export function viajeEnCoche(
     );
   }
 
+  // ⭐ `aperturas` dice por qué trozo abre cada paso, y eso solo lo sabe
+  // `escribirPasos`: fundir y colapsar se llevan maniobras por delante. Es lo
+  // que permite que el aviso de la ZBE diga a qué paso pertenece.
+  const aperturas: number[] = [];
   const pasos: readonly Paso[] = escribirPasos(
     servida.comoRed,
     ruta,
     origen.nombre,
     destino.nombre,
     [destino.lon, destino.lat],
+    undefined,
+    undefined,
+    aperturas,
   );
 
   // La geometría se da la vuelta AQUÍ y solo aquí: la red va [lon, lat] y el
@@ -500,7 +562,7 @@ export function viajeEnCoche(
     modo: 'coche',
     pasos,
     geometria,
-    avisos: [],
+    avisos: avisosDelCoche(servida, ruta.trozos, aperturas),
     metros,
     segundos,
     // Un solo tramo, y cubre la geometría entera: en coche no hay costuras.

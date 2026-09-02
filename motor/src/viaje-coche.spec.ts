@@ -29,8 +29,9 @@ import { entornoDe } from './gacetero.ts';
 import { cargarRedDeCoche, type RedDeCocheServida } from './coche.ts';
 import { cargarRejilla, enganchar } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
+import { escribirPasos } from './pasos.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
-import { calcularRutaEnCoche } from './viaje-coche.ts';
+import { calcularRutaEnCoche, AVISO_ZBE } from './viaje-coche.ts';
 import type { Extremo } from './etapas.ts';
 
 let portales: PortalesEnMemoria;
@@ -213,6 +214,46 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
   });
 
   /**
+   * ⭐ JUEZ 3 — EL AVISO DE LA ZBE, EN EL DOBLE SITIO. Y solo cuando toca.
+   *
+   * «El doble sitio» son el resumen de arriba y el paso por el que se entra
+   * [GOV.UK, el patrón de los desvíos]. El motor lo dice **una vez** con su
+   * `paso` puesto, y eso es lo que permite pintarlo en los dos sin adivinar.
+   *
+   * `LAPUYADE 3 → ABEN AIRE 33` entra en el casco por **Calle San Blas**, y ése
+   * es el paso que se compra — no el primero de la ruta ni el último.
+   */
+  test('⭐ 3 · el viaje que cruza el casco trae el aviso, con el paso donde entra', () => {
+    const t = viaje(LAPUYADE_3, ABEN_AIRE_33);
+    assert.equal(t.avisos.length, 1, 'un viaje por el casco trae el aviso de la ZBE, y uno solo');
+    const aviso = t.avisos[0]!;
+    assert.equal(aviso.texto, AVISO_ZBE);
+    // La letra de la FAQ oficial, medida el 2/09. Si alguien la suaviza, rojo.
+    assert.match(aviso.texto, /de lunes a viernes de 8:00 a 20:00/);
+    assert.match(aviso.texto, /sin distintivo necesitan autorización/);
+    assert.match(aviso.texto, /B, C, ECO y CERO circulan libres/);
+
+    // ⭐ EL SEGUNDO SITIO: el paso, y es el que ENTRA.
+    assert.equal(typeof aviso.paso, 'number', 'sin `paso` no hay doble sitio, hay uno');
+    const paso = t.pasos[aviso.paso!];
+    assert.ok(paso, `el aviso apunta al paso ${aviso.paso}, que no existe`);
+    assert.ok(
+      paso.texto.includes('San Blas'),
+      `el aviso cuelga de «${paso.texto}», y se entra en la zona por Calle San Blas`,
+    );
+    assert.notEqual(paso.giro, 'llegada', 'en la llegada no se entra en ninguna parte');
+
+    // Y la ruta se devuelve igual: AVISA, NO VETA.
+    assert.ok(t.metros > 0 && t.pasos.length > 3, 'la ruta por la ZBE se devuelve entera');
+  });
+
+  test('⭐ 3 bis · el viaje que no la pisa no lo trae', () => {
+    const t = viaje(LAPUYADE_3, EN_MEDIO_120);
+    assert.ok(t.metros > 0, 'ese viaje existe');
+    assert.deepEqual(t.avisos, [], `un viaje que no cruza el casco no avisa: ${JSON.stringify(t.avisos)}`);
+  });
+
+  /**
    * ⭐ JUEZ 4 — LAS SUMAS DEL CONTRATO CUADRAN Y LOS ÍNDICES CIERRAN.
    *
    * Son las jueces A y B de `tramos.spec.ts`, aplicadas al modo nuevo. Aquí van
@@ -259,6 +300,9 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
    * **b · Por los objetos.** La red del coche no comparte ni una estructura con
    * las otras: sus nodos son otros, sus aristas son otras.
    *
+   * **c · Por el añadido a la narración.** `escribirPasos` estrena un parámetro
+   * —`aperturas`— y hay que comprar que **rellenarlo no cambia la respuesta**:
+   * es lo único de este encargo que toca un fichero que los cinco modos usan.
    */
   test('⭐ 5a · el coche no importa el grafo del peatón, ni la rueda, ni el bus', () => {
     for (const fichero of ['coche.ts', 'viaje-coche.ts']) {
@@ -287,6 +331,23 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
     assert.equal(coche.comoRed.nombreHeredado.size, 0);
     assert.equal(coche.conNombre, 14511);
     assert.equal(coche.sinNombre, 10731);
+  });
+
+  test('⭐ 5c · rellenar `aperturas` no mueve un byte de los pasos', () => {
+    const o = extremo(LAPUYADE_3);
+    const d = extremo(ABEN_AIRE_33);
+    const eo = enganchar(coche.comoRed, coche.rejilla, o.lon, o.lat)!;
+    const ed = enganchar(coche.comoRed, coche.rejilla, d.lon, d.lat)!;
+    const r = calcularRutaEnCoche(coche, eo, [o.lon, o.lat], ed, [d.lon, d.lat])!;
+    const sin = escribirPasos(coche.comoRed, r, 'A', 'B', [d.lon, d.lat]);
+    const aperturas: number[] = [];
+    const con = escribirPasos(coche.comoRed, r, 'A', 'B', [d.lon, d.lat], undefined, undefined, aperturas);
+    assert.equal(JSON.stringify(con), JSON.stringify(sin));
+    // Y lo que rellena es una entrada por paso, sin retroceder nunca.
+    assert.equal(aperturas.length, con.length);
+    for (let k = 1; k < aperturas.length; k++) {
+      assert.ok(aperturas[k]! >= aperturas[k - 1]!, 'las aperturas no pueden ir hacia atrás');
+    }
   });
 
   /**

@@ -869,6 +869,18 @@ interface Tramo extends Denominacion {
   readonly aristaEntrada: number;
   /** La última: la que LLEGA al nodo de entrada del siguiente. */
   readonly aristaSalida: number;
+  /**
+   * ⭐ EL ÍNDICE, dentro de `ruta.trozos`, DEL PRIMERO QUE ESTE TRAMO CUBRE.
+   *
+   * Lo pide el coche (2/09) y no se puede derivar fuera: fundir y colapsar se
+   * llevan tramos por delante, así que **qué paso cubre qué trozo solo se sabe
+   * aquí dentro**. Sumar los `metros` de los pasos no vale —vienen redondeados
+   * a propósito, y es el mismo error de 6,9 m que obligó a publicar `tramos`.
+   *
+   * Unir, fundir y colapsar alargan **hacia delante**, así que el superviviente
+   * se queda con el suyo: por donde se entró no cambia.
+   */
+  readonly abre: number;
 }
 
 /** La forma mutable con la que se agrupa y se une. */
@@ -885,6 +897,7 @@ type TramoEnObra = {
   nodoEntrada: number | null;
   aristaEntrada: number;
   aristaSalida: number;
+  abre: number;
 };
 
 /**
@@ -933,7 +946,8 @@ function agrupar(
   // El nodo por el que se salió de lo anterior es por el que se entra en lo
   // que venga. En el primer tramo no hay nada detrás: `null`.
   let frontera: number | null = null;
-  for (const trozo of trozos) {
+  for (let t = 0; t < trozos.length; t++) {
+    const trozo = trozos[t]!;
     const arista = red.aristas[trozo.arista]!;
     const ultimo = tramos[tramos.length - 1];
     const salida = nodoDeSalida(red, trozo);
@@ -954,6 +968,7 @@ function agrupar(
         nodoEntrada: frontera,
         aristaEntrada: trozo.arista,
         aristaSalida: trozo.arista,
+        abre: t,
       });
     }
     frontera = salida;
@@ -1029,6 +1044,7 @@ function unirLasQueSonLaMisma(tramos: readonly Tramo[]): readonly Tramo[] {
       nodoEntrada: tramo.nodoEntrada,
       aristaEntrada: tramo.aristaEntrada,
       aristaSalida: tramo.aristaSalida,
+      abre: tramo.abre,
     });
   }
   return unidos;
@@ -1114,6 +1130,15 @@ export interface TramoLlano extends Denominacion {
   readonly empujando: boolean;
   /** El cruce por el que se entra. Ver `Encrucijada`. */
   readonly encrucijada: Encrucijada;
+  /**
+   * ⭐ Por qué trozo de `ruta.trozos` abre. Ver `Tramo.abre`.
+   *
+   * **Opcional aquí y solo aquí**: la fusión es una función pura que las
+   * jueces prueban con ángulos inventados y tramos escritos a mano, sin ruta
+   * ninguna detrás. Exigirlo obligaría a inventarle un índice a un tramo que
+   * no viene de ningún trozo, que es peor que no tenerlo.
+   */
+  readonly abre?: number;
 }
 
 /** Lo que sobrevive a la fusión: un paso, con su giro ya combinado. */
@@ -1142,6 +1167,8 @@ export interface TramoFundido extends Denominacion {
    * nombre pasa a ser el suyo, su cruce es el que corresponde a ese nombre.
    */
   readonly encrucijada: Encrucijada;
+  /** Por qué trozo abre esta maniobra. Ver `TramoLlano.abre`. */
+  readonly abre?: number;
 }
 
 /**
@@ -1198,6 +1225,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
     salida: number;
     empujando: boolean;
     encrucijada: Encrucijada;
+    abre: number | undefined;
   }[] = [];
 
   for (const tramo of tramos) {
@@ -1215,6 +1243,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
         empujando: tramo.empujando,
         esCarrilBici: tramo.esCarrilBici,
         encrucijada: tramo.encrucijada,
+        abre: tramo.abre,
       });
       continue;
     }
@@ -1280,6 +1309,10 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
       salida: tramo.salida,
       empujando: tramo.empujando,
       encrucijada: tramo.encrucijada,
+      // ⭐ El `abre` NO viaja con la regla del dominante ni con el canónico:
+      // el dominante decide el NOMBRE y los RUMBOS, no por dónde se entró.
+      // Fundir alarga hacia delante, así que quien absorbe conserva el suyo.
+      abre: tramo.abre,
     });
   }
 
@@ -1295,6 +1328,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
       salida,
       empujando,
       encrucijada,
+      abre,
     }) => ({
       nombre,
       conNombre,
@@ -1306,6 +1340,7 @@ export function fundirMicroTramos(tramos: readonly TramoLlano[]): readonly Tramo
       salida,
       empujando,
       encrucijada,
+      abre,
     }),
   );
 }
@@ -1412,6 +1447,7 @@ type Maniobra = {
   salida: number;
   empujando: boolean;
   encrucijada: Encrucijada;
+  abre?: number;
 };
 
 /**
@@ -1857,11 +1893,27 @@ export function escribirPasos(
   empuje?: Empuje,
   /** Cómo se cose con los tramos de al lado, si el viaje tiene más de uno. */
   costuras?: Costuras,
+  /**
+   * ⭐ DÓNDE ABRE CADA PASO, para quien lo necesite (2/09).
+   *
+   * Se rellena con un número por paso y en el mismo orden: el índice, dentro de
+   * `ruta.trozos`, del primer trozo que ese paso cubre. Ver `Tramo.abre`.
+   *
+   * ⚠️ Va como array que se rellena y **no como valor devuelto** para no
+   *    cambiarle la firma a los cinco modos que ya llaman aquí: quien no lo
+   *    pasa no se entera de que existe, y la respuesta no cambia ni un byte.
+   *
+   * Lo pide el coche: el aviso de la Zona de Bajas Emisiones tiene que decir
+   * **junto a qué paso** va [contrato, `Aviso.paso`], y eso es exactamente
+   * «qué paso cubre el trozo por el que se entra en la zona».
+   */
+  aperturas?: number[],
 ): readonly Paso[] {
   const tramos = unirLasQueSonLaMisma(agrupar(red, ruta.trozos, empuje));
 
   // Una ruta trivial de cero metros: no hay nada que andar y se dice.
   if (tramos.length === 0) {
+    aperturas?.push(0);
     return [
       pasoDe('llegada', 0, [
         { papel: 'via', texto: comoSePresenta(nombreDestino, true, red.articulosPropios) },
@@ -1879,6 +1931,7 @@ export function escribirPasos(
     esCarrilBici: tramo.esCarrilBici,
     empujando: tramo.empujando,
     metros: tramo.metros,
+    abre: tramo.abre,
     entrada: rumboDeEntrada(tramo.g),
     salida: rumboDeSalida(tramo.g),
     // El cruce se resuelve AQUÍ, que es la última línea donde todavía hay red:
@@ -1932,6 +1985,7 @@ export function escribirPasos(
     arranque.push({ papel: 'texto', texto: `, ${empuje.enLaMano}` });
   }
   pasos.push(pasoDe('salida', metrosParaLeer(primero.metros), arranque));
+  aperturas?.push(primero.abre ?? 0);
 
   // ── Un paso por cada maniobra que ha sobrevivido ─────────────────────────
   for (let k = 1; k < maniobras.length; k++) {
@@ -1957,6 +2011,7 @@ export function escribirPasos(
       partes.push({ papel: 'texto', texto: `, ${empuje.enLaMano}` });
     }
     pasos.push(pasoDe(maniobra.giro, metrosParaLeer(maniobra.metros), partes));
+    aperturas?.push(maniobra.abre ?? 0);
   }
 
   // ── El cierre: de qué lado queda la puerta ───────────────────────────────
@@ -1974,6 +2029,10 @@ export function escribirPasos(
         { papel: 'texto', texto: ` está a la ${ladoDelDestino(ultimo.g, puertaDestino)}` },
       ]),
   );
+  // La llegada no abre ningún tramo: se llega. Se le da el último trozo de la
+  // ruta, que es donde cae, para que la lista tenga una entrada por paso y
+  // nadie tenga que acordarse de que a la última le falta.
+  aperturas?.push(ultimo.abre);
 
   return pasos;
 }
