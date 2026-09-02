@@ -5,6 +5,7 @@ import type { WritableSignal } from '@angular/core';
 // locales. Si el motor cambia la forma, esta pantalla deja de compilar.
 import type {
   AQuienPreguntar,
+  EstacionViva,
   PosteVivo,
   Aviso,
   Giro,
@@ -107,7 +108,7 @@ export interface EnDosNiveles {
  * debajo la respuesta se siente inmediata; por encima hay que indicar que se
  * trabaja]. Un indicador que parpadeara en cada consulta rápida sería ruido.
  */
-interface LaConsultaDelPoste {
+interface LaConsultaViva {
   readonly cargando: boolean;
   readonly tarda: boolean;
   /** Lo que se lee en la región: el texto que compone el motor. */
@@ -123,6 +124,16 @@ export const CUANDO_SE_DICE_QUE_TARDA_MS = 1000;
 
 /** Lo que se lee mientras se pregunta. Conciso: es un estado, no una frase. */
 export const MIENTRAS_SE_PREGUNTA = 'Preguntando a Avanza…';
+
+/**
+ * ⭐ Y la de la BiZi (2/09), que nombra a OTRO (§ 1.23 del notices).
+ *
+ * No es un adorno: son dos fuentes distintas con dos regímenes distintos, y
+ * quien espera tiene derecho a saber a quién se le está preguntando. Decir
+ * «Preguntando a Avanza…» mientras se consulta la sede del Ayuntamiento sería
+ * atribuir el dato a quien no es.
+ */
+export const MIENTRAS_SE_PREGUNTA_AL_AYUNTAMIENTO = 'Preguntando al Ayuntamiento…';
 
 
 /**
@@ -162,6 +173,20 @@ export function enDosNiveles(texto: string): EnDosNiveles {
     // misma enumeración, no una segunda frase: el punto y coma es su signo.
     detalle: resto.replace(': para provisionalmente en ', '; para provisionalmente en '),
   };
+}
+
+/**
+ * ⭐ LOS CUATRO HITOS: los pasos que **prometen algo** — una bici que haya, un
+ * anclaje libre, un bus que venga.
+ *
+ * Escrito UNA vez porque lo preguntan tres sitios: la nota ámbar de la
+ * plantilla, el resumen de arriba y el reparto de avisos. Tres copias de la
+ * misma lista serían tres sitios donde olvidarse de añadir el quinto.
+ */
+const HITOS: ReadonlySet<Giro> = new Set<Giro>(['coge', 'aparca', 'sube', 'transborda']);
+
+function esHito(paso: Paso): boolean {
+  return HITOS.has(paso.giro);
 }
 
 /**
@@ -968,17 +993,17 @@ export class Buscador {
    *  viaje.
    * ═══════════════════════════════════════════════════════════════════════════
    */
-  private readonly consultasDePoste = signal<ReadonlyMap<number, LaConsultaDelPoste>>(new Map());
+  private readonly consultasVivas = signal<ReadonlyMap<number, LaConsultaViva>>(new Map());
 
   /** Los avisadores de «está tardando» en vuelo, para poder cancelarlos. */
   private readonly relojes = new Map<number, ReturnType<typeof setTimeout>>();
 
   protected consultando(i: number): boolean {
-    return this.consultasDePoste().get(i)?.cargando ?? false;
+    return this.consultasVivas().get(i)?.cargando ?? false;
   }
 
   protected tardaLaConsulta(i: number): boolean {
-    return this.consultasDePoste().get(i)?.tarda ?? false;
+    return this.consultasVivas().get(i)?.tarda ?? false;
   }
 
   /**
@@ -990,7 +1015,7 @@ export class Buscador {
    *    pulsación no parecería cambiar nada.
    */
   protected loVivoDe(paso: Paso, i: number): string {
-    const consulta = this.consultasDePoste().get(i);
+    const consulta = this.consultasVivas().get(i);
     return consulta ? consulta.texto : (paso.vivo?.texto ?? '');
   }
 
@@ -1003,20 +1028,81 @@ export class Buscador {
    *    vuelo, que es la variante «loading button» documentada: el botón sigue
    *    presente, enfocable y con su estado dicho.
    */
-  protected preguntarPorElProximo(aQuien: AQuienPreguntar, i: number): void {
+  /**
+   * ⭐ QUÉ DICE EL BOTÓN DE UN PASO, o `null` si ese paso no lleva ninguno.
+   *
+   * Las tres etiquetas salen de **lo que el motor manda como dato**, nunca de
+   * leer la frase del paso: `aQuienPreguntar` para el bus y `aQueEstacion` para
+   * la BiZi. Un paso sin ninguno de los dos no pinta botón — el tranvía, y
+   * cualquier paso de andar.
+   *
+   * ⚠️ Y son **un solo bloque de plantilla**, no dos. Duplicar la anatomía
+   *    —botón + indicador + región `role="status"` con su `aria-busy`— sería
+   *    duplicar cuatro promesas de accesibilidad en dos sitios que se separan.
+   *    Lo único que cambia entre bus y bici es la etiqueta y a quién se le
+   *    pregunta, y las dos cosas se deciden aquí.
+   */
+  protected etiquetaDelBotonVivo(paso: Paso): string | null {
+    if (paso.aQuienPreguntar) {
+      return 'Próximo bus';
+    }
+    if (paso.aQueEstacion) {
+      return paso.aQueEstacion.pide === 'bicis' ? 'Bicis ahora' : 'Anclajes ahora';
+    }
+    return null;
+  }
+
+  /**
+   * ⭐ PREGUNTAR, al pulsar — al bus o a la estación, según lo que traiga el paso.
+   *
+   * ⚠️ **El botón no se deshabilita mientras carga**: un `disabled` lo saca del
+   *    orden de tabulación, y quien navega con teclado pierde el sitio justo
+   *    cuando acaba de pulsar. Los clics de más se interceptan **aquí**, en
+   *    vuelo, que es la variante «loading button» documentada: el botón sigue
+   *    presente, enfocable y con su estado dicho.
+   */
+  protected pulsarVivo(paso: Paso, i: number): void {
+    if (paso.aQuienPreguntar) {
+      this.consultar(i, MIENTRAS_SE_PREGUNTA, '/api/poste-vivo', {
+        poste: String(paso.aQuienPreguntar.poste),
+        linea: paso.aQuienPreguntar.linea,
+      });
+      return;
+    }
+    if (paso.aQueEstacion) {
+      this.consultar(i, MIENTRAS_SE_PREGUNTA_AL_AYUNTAMIENTO, '/api/estacion-viva', {
+        estacion: String(paso.aQueEstacion.estacion),
+        pide: paso.aQueEstacion.pide,
+      });
+    }
+  }
+
+  /**
+   * La consulta viva de un paso, **con su ceremonia entera** — y una sola vez
+   * escrita para las dos fuentes.
+   *
+   * `mientras` es lo único que cambia entre ellas de cara a quien espera: a
+   * quién se le está preguntando.
+   */
+  private consultar(
+    i: number,
+    mientras: string,
+    ruta: string,
+    params: Record<string, string>,
+  ): void {
     if (this.consultando(i)) {
       return;
     }
     // El inicio se ANUNCIA: la región recibe su texto antes que nada
     // [WCAG 4.1.3]. Y `aria-busy` pasa a `true` para que lo que venga después
     // —el indicador de que tarda— no se anuncie como un cambio más.
-    this.ponerConsulta(i, { cargando: true, tarda: false, texto: MIENTRAS_SE_PREGUNTA });
+    this.ponerConsulta(i, { cargando: true, tarda: false, texto: mientras });
     clearTimeout(this.relojes.get(i));
     this.relojes.set(
       i,
       setTimeout(() => {
         if (this.consultando(i)) {
-          this.ponerConsulta(i, { cargando: true, tarda: true, texto: MIENTRAS_SE_PREGUNTA });
+          this.ponerConsulta(i, { cargando: true, tarda: true, texto: mientras });
         }
       }, CUANDO_SE_DICE_QUE_TARDA_MS),
     );
@@ -1026,23 +1112,19 @@ export class Buscador {
       this.relojes.delete(i);
       this.ponerConsulta(i, { cargando: false, tarda: false, texto });
     };
-    this.http
-      .get<PosteVivo>('/api/poste-vivo', {
-        params: { poste: String(aQuien.poste), linea: aQuien.linea },
-      })
-      .subscribe({
-        next: (vivo) => acabar(vivo.texto),
-        // ⚠️ Que el MOTOR no conteste no es lo mismo que Avanza callando, y se
-        //    dice distinto: aquello lo cuenta el motor con sus palabras, esto es
-        //    que no hay nadie a quien preguntárselo.
-        error: () => acabar('No se pudo preguntar al motor. ¿Está arrancado?'),
-      });
+    this.http.get<PosteVivo | EstacionViva>(ruta, { params }).subscribe({
+      next: (vivo) => acabar(vivo.texto),
+      // ⚠️ Que el MOTOR no conteste no es lo mismo que la fuente callando, y se
+      //    dice distinto: aquello lo cuenta el motor con sus palabras, esto es
+      //    que no hay nadie a quien preguntárselo.
+      error: () => acabar('No se pudo preguntar al motor. ¿Está arrancado?'),
+    });
   }
 
-  private ponerConsulta(i: number, estado: LaConsultaDelPoste): void {
-    const ahora = new Map(this.consultasDePoste());
+  private ponerConsulta(i: number, estado: LaConsultaViva): void {
+    const ahora = new Map(this.consultasVivas());
     ahora.set(i, estado);
-    this.consultasDePoste.set(ahora);
+    this.consultasVivas.set(ahora);
   }
 
   /**
@@ -1060,6 +1142,56 @@ export class Buscador {
   /** El aviso partido, para la plantilla. Ver `enDosNiveles`. */
   protected dosNiveles(texto: string): EnDosNiveles {
     return enDosNiveles(texto);
+  }
+
+  /**
+   * ⭐ EL RESUMEN DE ARRIBA: una línea por aviso, y a qué paso lleva (2/09).
+   *
+   * [GOV.UK · error summary] una caja arriba que lista lo que pasa, con un
+   * enlace por línea al sitio donde vive el detalle. Aquí ese sitio es **el
+   * paso al que el aviso afecta**, y quién es se decide con la MISMA regla que
+   * pinta la nota junto al hito —`notaDelHito`— y no con otra parecida: dos
+   * reglas para el mismo reparto acabarían mandando el enlace a un paso y la
+   * nota a otro, y nadie lo vería hasta que pasara.
+   *
+   * Por eso esto **invierte** la regla en vez de reescribirla: se recorre cada
+   * hito, se le pregunta cuál es su nota, y de ahí sale el mapa
+   * `texto del aviso → índice del paso`. Lo que no case con ningún hito sale
+   * con `paso: null` y se pinta **sin enlace**.
+   *
+   * Y lo que se lee en el resumen es solo el **hecho** (`enDosNiveles(...).hecho`):
+   * la lista de postes provisionales se queda abajo, junto al hito, que es a
+   * donde lleva el enlace. Repetirla arriba sería el mismo texto dos veces.
+   */
+  protected readonly resumenDeAvisos = computed<
+    readonly { readonly texto: string; readonly paso: number | null }[]
+  >(() => {
+    const trayecto = this.resultado()?.trayecto;
+    if (!trayecto) {
+      return [];
+    }
+    const donde = new Map<string, number>();
+    trayecto.pasos.forEach((paso, i) => {
+      if (!esHito(paso)) {
+        return;
+      }
+      const nota = this.notaDelHito(paso);
+      // El PRIMERO que se la queda, que es el que la pinta: `notaDelHito` puede
+      // devolver el mismo aviso para dos hitos, y el enlace tiene que llevar a
+      // uno solo.
+      if (nota !== null && !donde.has(nota)) {
+        donde.set(nota, i);
+      }
+    });
+    return trayecto.avisos.map((a) => ({
+      texto: enDosNiveles(a.texto).hecho,
+      paso: donde.get(a.texto) ?? null,
+    }));
+  });
+
+  /** Si un paso es de los que prometen algo: los cuatro hitos. */
+  protected esHito(paso: Paso): boolean {
+    return esHito(paso);
   }
 
   protected notaDelHito(paso: Paso): string | null {
@@ -1549,7 +1681,7 @@ export class Buscador {
       clearTimeout(reloj);
     }
     this.relojes.clear();
-    this.consultasDePoste.set(new Map());
+    this.consultasVivas.set(new Map());
 
     // ⭐ BUS Y COCHE NO SALEN DE AQUÍ (30/08). El motor no los calcula, así que
     // preguntárselo sería gastar un viaje para traer un «todavía no» — y con el

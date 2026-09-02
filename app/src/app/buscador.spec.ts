@@ -6,6 +6,7 @@ import {
   type TestRequest,
 } from '@angular/common/http/testing';
 import type {
+  EstacionViva,
   Giro,
   Modo,
   PosteVivo,
@@ -630,6 +631,43 @@ const VIAJE_EN_TRANVIA: Trayecto = {
 const LLEGA: PosteVivo = { clase: 'llega', texto: 'próximo en 4 min (dato de las 15:45)' };
 
 /**
+ * ⭐ EL VIAJE EN BiZi CON SUS DOS BOTONES (2/09).
+ *
+ * Los números son los de la estación de verdad: **Tauromaquia es la 42** al
+ * coger y **Mrio. Siresa: Dr. Iranzo la 87** al dejar. Y cada hito pide **lo
+ * suyo**: bicis donde se coge, anclajes donde se deja. Que sean dos preguntas
+ * distintas es el filtro de [DOC OTP] llevado al botón — una estación llena no
+ * sirve para devolver y una vacía no sirve para coger.
+ */
+const VIAJE_EN_BIZI_CON_BOTONES: Trayecto = {
+  ...VIAJE_EN_BIZI,
+  pasos: VIAJE_EN_BIZI.pasos.map((p) =>
+    p.giro === 'coge'
+      ? { ...p, aQueEstacion: { estacion: 42, pide: 'bicis' as const } }
+      : p.giro === 'aparca'
+        ? { ...p, aQueEstacion: { estacion: 87, pide: 'anclajes' as const } }
+        : p,
+  ),
+};
+
+/** Lo que contesta `GET /api/estacion-viva` con dato. */
+const HAY_BICIS: EstacionViva = { clase: 'hay', texto: '8 bicis disponibles a las 11:56' };
+
+/**
+ * ⭐ EL VIAJE EN BUS CON EL MINUTO VIVO DEL GENERAR (2/09).
+ *
+ * Es la forma que el motor manda desde hoy: **la frase dice la frecuencia** y
+ * el minuto viaja aparte, en `vivo`, que es lo que llena la región. Antes el
+ * minuto estaba en los dos sitios, y solo uno de ellos se podía refrescar.
+ */
+const VIAJE_EN_BUS_CON_MINUTO_VIVO: Trayecto = {
+  ...VIAJE_EN_BUS_CON_BOTON,
+  pasos: VIAJE_EN_BUS_CON_BOTON.pasos.map((x) =>
+    x.giro === 'sube' ? { ...x, vivo: LLEGA } : x,
+  ),
+};
+
+/**
  * ⭐ UN VIAJE EN BUS CON DESVÍO, con el texto que el motor escribe (31/08).
  *
  * La 29 va hoy desviada de verdad —medido contra `get_stops_list`—: no para en
@@ -661,7 +699,7 @@ const VIAJE_EN_BUS_DOS_DESVIADAS: Trayecto = {
   modo: 'bus',
   pasos: [
     paso('salida', 30, accion('Sal de'), llano(' '), via('Calle El Coloso 2')),
-    paso('sube', 0, accion('Sube'), llano(' a la línea '), via('29'), llano(' en el poste '), via('Av. Academia General Militar N.º 37'), llano(' — próximo en 2 min (dato de las 17:33)')),
+    paso('sube', 0, accion('Sube'), llano(' a la línea '), via('29'), llano(' en el poste '), via('Av. Academia General Militar N.º 37'), llano(' — frecuencia teórica: cada 8 min')),
     paso('baja', 0, accion('Baja'), llano(' en el poste '), via('Asalto / Centro De Historias')),
     paso('sube', 0, accion('Sube'), llano(' a la línea '), via('22'), llano(' en el poste '), via('Asalto / Centro De Historias'), llano(' — ~7 min de espera')),
     paso('baja', 0, accion('Baja'), llano(' en el poste '), via('Av. Compromiso De Caspe N.º 48')),
@@ -805,10 +843,37 @@ function flechasEnPantalla(raiz: HTMLElement): string[] {
   );
 }
 
-/** Los avisos ámbar del resultado, si los hay. */
+/**
+ * El aviso ámbar **de la pantalla**: que el motor no contesta, o que un modo
+ * todavía no se calcula.
+ *
+ * ⚠️ Desde el 2/09 esto ya NO trae los avisos del motor. Aquéllos viven en el
+ *    resumen único de arriba y se leen con `resumenEnPantalla`. Son dos cosas
+ *    distintas y por eso se leen aparte: uno lo escribe la pantalla porque no
+ *    ha podido preguntar; los otros los escribe el motor sobre el viaje.
+ */
 function avisosDeRuta(raiz: HTMLElement): string[] {
   return Array.from(raiz.querySelectorAll<HTMLElement>('.aviso-ruta')).map(
     (a) => a.textContent?.trim() ?? '',
+  );
+}
+
+/**
+ * ⭐ LAS LÍNEAS DEL RESUMEN ÚNICO (2/09), en el orden en el que se leen.
+ *
+ * [GOV.UK · error summary] una caja arriba con una línea por aviso. Lo que cada
+ * línea dice es el **hecho**; el detalle vive junto al hito, a un enlace.
+ */
+function resumenEnPantalla(raiz: HTMLElement): string[] {
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.resumen__linea')).map((l) =>
+    (l.textContent ?? '').replace(/\s+/g, ' ').trim(),
+  );
+}
+
+/** A qué paso lleva cada línea del resumen, por su `href`. `null` si no enlaza. */
+function adondeLlevaElResumen(raiz: HTMLElement): (string | null)[] {
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.resumen__linea')).map(
+    (l) => l.querySelector<HTMLAnchorElement>('a')?.getAttribute('href') ?? null,
   );
 }
 
@@ -1554,6 +1619,237 @@ describe('Buscador', () => {
     expect(rutas()).toEqual([]);
   });
 
+  // ══ LOS BOTONES DE LA BiZi (2/09, punto 11 casilla 2) ═══════════════════
+  //
+  // El patrón «Próximo bus» calcado, y la anatomía se compra una sola vez
+  // porque es **un solo bloque de plantilla**: lo que aquí se juzga es lo que
+  // cambia entre las dos fuentes — la etiqueta y a quién se le pregunta.
+
+  it('⭐ el hito de COGER lleva «Bicis ahora» y el de DEJAR «Anclajes ahora»', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bizi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_CON_BOTONES);
+    await fixture.whenStable();
+
+    const botones = Array.from(raiz.querySelectorAll<HTMLElement>('.vivo__boton'));
+    expect(botones.map((b) => b.textContent?.trim())).toEqual(['Bicis ahora', 'Anclajes ahora']);
+
+    // Y cada uno está en SU paso: el de bicis donde se coge, el de anclajes
+    // donde se deja. Cruzarlos preguntaría anclajes para saber si hay bici.
+    const conBoton = Array.from(raiz.querySelectorAll('.paso'))
+      .filter((li) => li.querySelector('.vivo__boton') !== null)
+      .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
+    expect(conBoton[0]).toContain('Coge una bici');
+    expect(conBoton[1]).toContain('Deja la bici');
+  });
+
+  /**
+   * ⭐ Y CADA BOTÓN PIDE LO SUYO, con el número de SU estación.
+   *
+   * Es la juez que impide el fallo silencioso: dos botones que preguntaran a la
+   * misma estación, o los dos por bicis, darían dos números creíbles y uno
+   * estaría contestando otra pregunta.
+   */
+  it('⭐ cada botón pide su estación y su cosa a /api/estacion-viva', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bizi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_CON_BOTONES);
+    await fixture.whenStable();
+
+    const botones = Array.from(raiz.querySelectorAll<HTMLElement>('.vivo__boton'));
+
+    botones[0]!.click();
+    fixture.detectChanges();
+    const deBicis = http.expectOne((r) => r.url === '/api/estacion-viva');
+    expect(deBicis.request.params.get('estacion')).toBe('42');
+    expect(deBicis.request.params.get('pide')).toBe('bicis');
+    deBicis.flush(HAY_BICIS);
+    await fixture.whenStable();
+
+    botones[1]!.click();
+    fixture.detectChanges();
+    const deAnclajes = http.expectOne((r) => r.url === '/api/estacion-viva');
+    expect(deAnclajes.request.params.get('estacion')).toBe('87');
+    expect(deAnclajes.request.params.get('pide')).toBe('anclajes');
+    deAnclajes.flush({ clase: 'hay', texto: '12 anclajes libres a las 11:56' });
+    await fixture.whenStable();
+
+    // Y cada respuesta cae en SU región, no las dos en la primera.
+    const regiones = Array.from(raiz.querySelectorAll<HTMLElement>('.vivo__estado')).map((r) =>
+      (r.textContent ?? '').trim(),
+    );
+    expect(regiones).toEqual(['8 bicis disponibles a las 11:56', '12 anclajes libres a las 11:56']);
+  });
+
+  /**
+   * ⭐ DOS PULSACIONES SON DOS CONSULTAS — la regla del BiZi, en la pantalla.
+   *
+   * Frescura por petición y nunca caché: un «8 bicis» de hace cuarenta segundos
+   * es peor que no tenerlo, porque parece de ahora. Y lo que se compra aquí es
+   * lo que se ve: **el número cambia**.
+   */
+  it('⭐ dos pulsaciones son DOS consultas, y la región se queda con la última', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bizi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_CON_BOTONES);
+    await fixture.whenStable();
+
+    const boton = raiz.querySelector<HTMLElement>('.vivo__boton')!;
+
+    boton.click();
+    fixture.detectChanges();
+    http.expectOne((r) => r.url === '/api/estacion-viva').flush(HAY_BICIS);
+    await fixture.whenStable();
+    expect(raiz.querySelector('.vivo__estado')?.textContent?.trim()).toBe(
+      '8 bicis disponibles a las 11:56',
+    );
+
+    boton.click();
+    fixture.detectChanges();
+    http
+      .expectOne((r) => r.url === '/api/estacion-viva')
+      .flush({ clase: 'hay', texto: '5 bicis disponibles a las 11:59' });
+    await fixture.whenStable();
+    expect(raiz.querySelector('.vivo__estado')?.textContent?.trim()).toBe(
+      '5 bicis disponibles a las 11:59',
+    );
+  });
+
+  // ══ EL RESUMEN ÚNICO (2/09, punto 11 casilla 3) ═════════════════════════
+
+  /**
+   * ⭐ UNA CAJA CON N LÍNEAS, Y CADA UNA ENLAZA A SU PASO.
+   *
+   * [GOV.UK · error summary] el patrón entero en una juez: **una** caja, tantas
+   * líneas como avisos, y cada línea con su enlace al sitio donde vive el
+   * detalle. Con dos líneas desviadas, dos enlaces **distintos**.
+   */
+  it('⭐ los avisos salen en UNA caja, con una línea por aviso que enlaza a su paso', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_DOS_DESVIADAS);
+    await fixture.whenStable();
+
+    // UNA caja, no dos.
+    expect(raiz.querySelectorAll('.resumen').length).toBe(1);
+    expect(raiz.querySelector('.resumen__titulo')?.textContent?.trim()).toBe(
+      'Avisos de este viaje:',
+    );
+
+    // DOS líneas, una por aviso, y con el hecho de cada una.
+    const lineas = resumenEnPantalla(raiz);
+    expect(lineas.length).toBe(2);
+    expect(lineas[0]).toMatch(/^La línea 22 va hoy desviada/);
+    expect(lineas[1]).toMatch(/^La línea 29 va hoy desviada/);
+
+    // Y DOS enlaces distintos, cada uno al paso que lleva su nota.
+    const adonde = adondeLlevaElResumen(raiz);
+    expect(adonde.length).toBe(2);
+    expect(adonde[0]).not.toBe(adonde[1]);
+    for (const href of adonde) {
+      expect(href).toMatch(/^#paso-\d+$/);
+      const destino = raiz.querySelector(`#${href!.slice(1)}`);
+      expect(destino).not.toBeNull();
+      // ⭐ El destino EXISTE y es enfocable por programa [GOV.UK]: sin esto la
+      //    página baja pero el foco se queda arriba.
+      expect(destino!.getAttribute('tabindex')).toBe('-1');
+      expect(destino!.querySelector('.paso__nota')).not.toBeNull();
+    }
+  });
+
+  // ══ EL MINUTO, UNA SOLA VEZ (2/09, punto 11 casilla 4) ══════════════════
+
+  /**
+   * ⭐ EL MINUTO VIVO SE DICE **UNA** VEZ, y en la región.
+   *
+   * Hasta hoy se decía dos: la frase del paso lo llevaba dentro y la región lo
+   * repetía tres palabras más a la derecha. Y la mitad de arriba **no se podía
+   * refrescar**: al pulsar, la región decía «próximo en 2 min» y el paso seguía
+   * diciendo «próximo en 5», con la misma pinta de nuevo.
+   */
+  it('⭐ el minuto vivo está en la región y NO en la frase del paso', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_CON_MINUTO_VIVO);
+    await fixture.whenStable();
+
+    const conBoton = Array.from(raiz.querySelectorAll('.paso')).find(
+      (li) => li.querySelector('.vivo__boton') !== null,
+    )!;
+    const frase = (conBoton.querySelector('.paso__texto')?.textContent ?? '').trim();
+    const region = (conBoton.querySelector('.vivo__estado')?.textContent ?? '').trim();
+
+    expect(region).toBe('próximo en 4 min (dato de las 15:45)');
+    expect(frase).not.toContain('próximo en');
+    // ⚠️ Que la frase diga la FRECUENCIA en su lugar lo compra el motor
+    //    (`viaje-bus.spec.ts`), que es quien la compone. Aquí lo que se juzga es
+    //    la pantalla: que el minuto no esté dos veces.
+
+    // Y en toda la pantalla, el minuto aparece UNA vez.
+    const veces = ((raiz.textContent ?? '').match(/próximo en 4 min/g) ?? []).length;
+    expect(veces).toBe(1);
+  });
+
+  /**
+   * ⭐ Y AL REFRESCAR, CAMBIA DONDE ESTÁ — que es la razón de haberlo movido.
+   */
+  it('⭐ pulsar refresca el minuto en la región, y no deja otro viejo detrás', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_CON_MINUTO_VIVO);
+    await fixture.whenStable();
+
+    raiz.querySelector<HTMLElement>('.vivo__boton')!.click();
+    fixture.detectChanges();
+    http
+      .expectOne((r) => r.url === '/api/poste-vivo')
+      .flush({ clase: 'llega', texto: 'próximo en 2 min (dato de las 15:49)' });
+    await fixture.whenStable();
+
+    expect(raiz.querySelector('.vivo__estado')?.textContent?.trim()).toBe(
+      'próximo en 2 min (dato de las 15:49)',
+    );
+    // ⭐ Y EL VIEJO NO SE HA QUEDADO EN NINGÚN SITIO. Es lo que pasaba antes:
+    //    dos minutos distintos del mismo autobús, uno al lado del otro.
+    expect(raiz.textContent).not.toContain('próximo en 4 min');
+  });
+
   /**
    * ⭐ LA MURALLA: andando, bus y patín viajan **AL BYTE** como antes del 2/09.
    *
@@ -2079,8 +2375,8 @@ describe('Buscador', () => {
     http.expectOne('/api/ruta').flush(SIN_RUTA);
     await fixture.whenStable();
 
-    expect(avisosDeRuta(raiz)[0]).toContain('PEÑA ZORONGO');
-    expect(avisosDeRuta(raiz)[0]).toContain('no tiene ninguna calle andable cerca');
+    expect(resumenEnPantalla(raiz)[0]).toContain('PEÑA ZORONGO');
+    expect(resumenEnPantalla(raiz)[0]).toContain('no tiene ninguna calle andable cerca');
     expect(raiz.querySelectorAll('.paso').length).toBe(0);
     expect(raiz.querySelector('.ruta__metros')).toBeNull();
   });
@@ -2446,6 +2742,8 @@ describe('Buscador', () => {
 
     expect(raiz.querySelectorAll('.paso').length).toBeGreaterThan(0);
     expect(raiz.querySelectorAll('.paso__nota').length).toBe(0);
+    // Y sin avisos no hay caja: el resumen no existe vacío.
+    expect(raiz.querySelector('.resumen')).toBeNull();
     expect(raiz.querySelectorAll('.aviso-ruta').length).toBe(0);
   });
 
@@ -2469,10 +2767,7 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
     await fixture.whenStable();
 
-    const banners = Array.from(raiz.querySelectorAll('.aviso-ruta')).map((a) =>
-      (a.textContent ?? '').trim(),
-    );
-    expect(banners).toContain(
+    expect(resumenEnPantalla(raiz)).toContain(
       'No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.',
     );
     // Y las notas también, que es la otra mitad: los DOS sitios.
@@ -2502,7 +2797,7 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
     await fixture.whenStable();
 
-    const banner = (raiz.querySelector('.aviso-ruta')?.textContent ?? '').trim();
+    const banner = resumenEnPantalla(raiz)[0]!;
     const notas = Array.from(raiz.querySelectorAll('.paso__nota')).map((n) =>
       (n.textContent ?? '').replace(/\s+/g, ' ').trim(),
     );
@@ -2596,7 +2891,7 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
     await fixture.whenStable();
 
-    const banner = (raiz.querySelector('.aviso-ruta')?.textContent ?? '').trim();
+    const banner = resumenEnPantalla(raiz)[0]!;
     // ⚠️ [GTFS-Realtime] una entidad ausente del feed en vivo es «sin
     // información en tiempo real», NO «sin servicio». El banner dice lo medido.
     expect(banner).toContain('Avanza no anuncia ningún próximo de la línea 29');
@@ -2763,12 +3058,15 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_DESVIADO);
     await fixture.whenStable();
 
-    const banner = (raiz.querySelector('.aviso-ruta')?.textContent ?? '').trim();
-    expect(banner).toContain('La línea 29 va hoy desviada');
-    expect(banner).toContain('no para en Don Jaime I / Plaza De La Seo');
-    expect(banner).toContain('para provisionalmente en P. Echegaray');
+    // ⭐ ARRIBA, EL HECHO Y SOLO EL HECHO (2/09). La lista de postes se quedó
+    //    junto al hito: repetirla en el resumen sería el mismo texto dos veces,
+    //    y era justo lo que hacía que cuatro desvíos llenaran la pantalla.
+    const resumen = resumenEnPantalla(raiz);
+    expect(resumen.length).toBe(1);
+    expect(resumen[0]).toBe('La línea 29 va hoy desviada.');
+    expect(resumen[0]).not.toContain('no para en Don Jaime I / Plaza De La Seo');
 
-    // Y la nota, junto al hito de subir a la 29 — y solo ahí.
+    // Y la nota, junto al hito de subir a la 29 — y solo ahí, con la lista.
     const conNota = Array.from(raiz.querySelectorAll('.paso'))
       .filter((li) => li.querySelector('.paso__nota') !== null)
       .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
@@ -2776,7 +3074,14 @@ describe('Buscador', () => {
       'Sube a la línea 29 en el poste Bernardo Ramazzini / Maz — ~7 min de espera',
     ]);
     const nota = (raiz.querySelector('.paso__nota')?.textContent ?? '').replace(/\s+/g, ' ').trim();
-    expect(nota.replace(/^⚠\s*/, '')).toBe(banner);
+    expect(nota).toContain('no para en Don Jaime I / Plaza De La Seo');
+    expect(nota).toContain('para provisionalmente en P. Echegaray');
+
+    // ⭐ Y EL ENLACE DEL RESUMEN LLEVA A ESE PASO, no a otro.
+    const paso = Array.from(raiz.querySelectorAll('.paso')).findIndex(
+      (li) => li.querySelector('.paso__nota') !== null,
+    );
+    expect(adondeLlevaElResumen(raiz)).toEqual([`#paso-${paso}`]);
   });
 
   /**
@@ -2805,8 +3110,8 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_DOS_DESVIADAS);
     await fixture.whenStable();
 
-    // Los dos banners, con las dos líneas.
-    const banners = Array.from(raiz.querySelectorAll('.aviso-ruta')).map((a) =>
+    // Las dos líneas del resumen, con las dos líneas de bus.
+    const banners = Array.from(raiz.querySelectorAll('.resumen__linea')).map((a) =>
       (a.textContent ?? '').trim(),
     );
     expect(banners.length).toBe(2);
@@ -2894,8 +3199,8 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
     await fixture.whenStable();
 
-    // El banner sigue arriba: el resumen no se toca [GOV.UK, doble sitio].
-    const banners = Array.from(raiz.querySelectorAll('.aviso-ruta')).map((a) => (a.textContent ?? '').trim());
+    // El resumen sigue arriba: los DOS sitios [GOV.UK, doble sitio].
+    const banners = resumenEnPantalla(raiz);
     expect(banners.length).toBe(1);
     expect(banners[0]).toContain('La línea 35 va hoy desviada');
 
@@ -2945,7 +3250,10 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
     await fixture.whenStable();
 
-    const banner = raiz.querySelector<HTMLElement>('.aviso-ruta')!;
+    // ⚠️ **En el HITO, no arriba** (2/09). El resumen dejó de llevar el doble
+    //    nivel: dice el hecho y enlaza. El detalle vive en un solo sitio, que
+    //    es el que está pegado a lo que explica.
+    const banner = raiz.querySelector<HTMLElement>('.paso__nota')!;
     // ⭐ EL HECHO, en un elemento que NO está oculto.
     const hecho = banner.querySelector<HTMLElement>('.aviso-ruta__hecho')!;
     expect(hecho).toBeTruthy();
@@ -3005,7 +3313,8 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
     await fixture.whenStable();
 
-    const banner = raiz.querySelector<HTMLElement>('.aviso-ruta')!;
+    // El único disparador que queda, y está donde tiene que estar: en el hito.
+    const banner = raiz.querySelector<HTMLElement>('.paso__nota')!;
     const boton = banner.querySelector<HTMLElement>('.detalles')!;
     const cuerpo = banner.querySelector<HTMLElement>('.detalles__cuerpo')!;
 
@@ -3033,18 +3342,19 @@ describe('Buscador', () => {
   });
 
   /**
-   * ⭐ 17 · EL DOBLE NIVEL VIVE EN LOS DOS SITIOS.
+   * ⭐ 17 · EL DETALLE VIVE EN **UN SOLO SITIO**, y es el hito.
    *
-   * [GOV.UK, ya comprado por la muralla] el resumen arriba **y** el mensaje
-   * junto a lo afectado, con el mismo texto. Si el corte se hiciera solo en el
-   * banner, la nota del hito seguiría ocupando cinco líneas debajo del paso, que
-   * es justo lo que se venía a arreglar.
+   * ⚠️ Esta juez decía lo contrario hasta el 2/09 —«el doble nivel vive en los
+   *    dos sitios»— y era verdad mientras arriba había una caja por aviso, cada
+   *    una con su botón «detalles». Con el resumen único [GOV.UK · error
+   *    summary] arriba va **el hecho y un enlace**, y el detalle se queda abajo:
+   *    dos disparadores para la misma lista eran dos sitios donde abrirla y dos
+   *    estados que mantener de acuerdo.
    *
-   * ⚠️ Y cada disparador lleva **su** estado: abrir el del banner no puede
-   * abrir el del paso quince líneas más abajo, porque nadie ha pedido eso y no
-   * se vería moverse.
+   * Lo que se compra ahora es justo eso: que arriba NO haya disparador, y que
+   * el de abajo funcione solo.
    */
-  it('⭐ 17 · el hito también parte en dos, y cada botón va por su cuenta', async () => {
+  it('⭐ 17 · el detalle está SOLO junto al hito: arriba no hay botón', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -3065,17 +3375,22 @@ describe('Buscador', () => {
     expect(suBoton.tagName).toBe('BUTTON');
     expect(seVe(suCuerpo)).toBe(false);
 
-    // Y los dos cuerpos son elementos distintos con ids distintos.
-    const delBanner = raiz.querySelector<HTMLElement>('.aviso-ruta > .detalles__cuerpo')!;
-    expect(delBanner).toBeTruthy();
-    expect(delBanner.id).not.toBe(suCuerpo.id);
+    // ⭐ ARRIBA NO HAY NI BOTÓN NI CUERPO: el resumen no despliega nada.
+    const resumen = raiz.querySelector<HTMLElement>('.resumen')!;
+    expect(resumen).toBeTruthy();
+    expect(resumen.querySelector('.detalles')).toBeNull();
+    expect(resumen.querySelector('.detalles__cuerpo')).toBeNull();
 
-    // ⭐ Abrir el del hito no abre el del banner.
+    // ⭐ Y hay UN solo disparador en toda la pantalla, el del hito.
+    expect(raiz.querySelectorAll('.detalles').length).toBe(1);
+
+    // El de abajo abre y cierra lo suyo.
     suBoton.click();
     fixture.detectChanges();
     expect(seVe(suCuerpo)).toBe(true);
-    expect(seVe(delBanner)).toBe(false);
-    expect(raiz.querySelector('.aviso-ruta > .detalles')!.getAttribute('aria-expanded')).toBe('false');
+    suBoton.click();
+    fixture.detectChanges();
+    expect(seVe(suCuerpo)).toBe(false);
   });
 
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {
@@ -3091,8 +3406,7 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
     await fixture.whenStable();
 
-    const avisos = () =>
-      Array.from(raiz.querySelectorAll('.aviso-ruta')).map((a) => (a.textContent ?? '').trim());
+    const avisos = () => resumenEnPantalla(raiz);
     expect(raiz.querySelectorAll('.paso').length).toBeGreaterThan(0);
     expect(avisos()).toContain(
       'No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.',
@@ -3212,7 +3526,9 @@ describe('Buscador', () => {
     expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Bus / Tranvía');
     // Y lo que se pinta es lo que el motor contestó, no un «todavía no».
     expect(raiz.querySelectorAll('.paso').length).toBe(5);
-    expect(avisosDeRuta(raiz)[0]).not.toContain('Todavía no calculamos');
+    // El bus ya viaja: lo que hay arriba son los avisos del motor sobre el
+    // viaje, no un «todavía no» de la pantalla.
+    expect(avisosDeRuta(raiz)).toEqual([]);
   });
 
   it('el coche no llama a /api/ruta: lo dice la pantalla', async () => {
@@ -3228,7 +3544,12 @@ describe('Buscador', () => {
 
     http.expectNone('/api/ruta');
     expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Coche');
-    expect(avisosDeRuta(raiz)[0]).toContain('Todavía no calculamos rutas en coche');
+    // ⚠️ El «todavía no» del coche **es un aviso del trayecto** —la pantalla
+    //    compone un trayecto vacío con él dentro—, así que desde el 2/09 se
+    //    lee en el resumen de arriba y no en el ámbar de «no contesta».
+    expect(resumenEnPantalla(raiz)[0]).toContain('Todavía no calculamos rutas en coche');
+    // Y sin hito al que llevar, la línea NO enlaza a ninguna parte.
+    expect(adondeLlevaElResumen(raiz)).toEqual([null]);
     expect(raiz.querySelectorAll('.paso').length).toBe(0);
   });
 

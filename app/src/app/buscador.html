@@ -437,15 +437,45 @@
            es el que corresponde a lo que hay pintado debajo. -->
       <p class="pasos__modo">Modo: {{ etiquetaDe(r.trayecto.modo) }}</p>
 
-      <!-- Los avisos del motor, en su ámbar y con sus palabras. No se traducen
-           ni se resumen: el motor ya los escribe para leerse. -->
-      @for (aviso of r.trayecto.avisos; track $index) {
-        <p class="aviso-ruta" role="status">
-          <ng-container
-            [ngTemplateOutlet]="avisoPartido"
-            [ngTemplateOutletContext]="{ $implicit: aviso.texto, clave: 'banner-' + $index }"
-          />
-        </p>
+      <!-- ⭐ EL RESUMEN ÚNICO DE AVISOS (2/09), y antes eran N cajas iguales.
+
+           [GOV.UK · error summary] el patrón es **una sola caja arriba** que
+           lista lo que pasa, con **un enlace por línea al sitio donde se
+           arregla**. Aquí no se arregla nada —son avisos, no errores— pero la
+           forma es la misma y resuelve lo mismo: con cuatro desvíos, la
+           pantalla abría con cuatro cajas ámbar idénticas en tamaño y color, y
+           quien leía tenía que compararlas para saber cuál le tocaba. Una caja
+           con cuatro líneas se lee de un vistazo.
+
+           ⭐ **Y cada línea ENLAZA a su paso**, que es la mitad que hace que
+              esto no sea solo más corto: el resumen dice el HECHO —«la 35 va
+              hoy desviada»— y el enlace lleva a la nota completa, que sigue
+              donde estaba, pegada al hito al que afecta. [GOV.UK] el doble
+              sitio no desaparece: se abrevia arriba y se conserva abajo.
+
+           ⚠️ Los avisos que no son de ningún hito —«Todavía no calculamos
+              rutas en coche»— salen igual, **sin enlace**: un enlace que no
+              lleve a ninguna parte es peor que no tenerlo.
+
+           ⚠️ Y ya no hay botón «detalles» aquí. Lo tenía cada caja para abrir
+              la lista de postes provisionales; ahora esa lista vive **solo**
+              junto al hito, que es a donde lleva el enlace. Dos disparadores
+              para el mismo detalle eran dos sitios donde abrirlo. -->
+      @if (resumenDeAvisos().length > 0) {
+        <section class="resumen" role="status" aria-labelledby="resumen-titulo">
+          <h3 class="resumen__titulo" id="resumen-titulo">Avisos de este viaje:</h3>
+          <ul class="resumen__lista">
+            @for (linea of resumenDeAvisos(); track $index) {
+              <li class="resumen__linea">
+                @if (linea.paso !== null) {
+                  <a class="resumen__enlace" [href]="'#paso-' + linea.paso">{{ linea.texto }}</a>
+                } @else {
+                  {{ linea.texto }}
+                }
+              </li>
+            }
+          </ul>
+        </section>
       }
 
       @if (r.trayecto.pasos.length > 0) {
@@ -496,7 +526,14 @@
 
         <ol class="pasos__lista">
           @for (paso of r.trayecto.pasos; track $index) {
-            <li class="paso">
+            <!-- ⚠️ El `tabindex="-1"` no es para el tabulador: es para el FOCO.
+                 [GOV.UK · error summary] al seguir un enlace del resumen, el
+                 navegador solo mueve el foco si el destino puede recibirlo; sin
+                 esto la página baja pero el foco se queda arriba, y quien
+                 navega con teclado sigue en el resumen sin saberlo. El `-1` lo
+                 hace enfocable **por programa** sin meterlo en el orden de
+                 tabulación, que es exactamente lo que hace falta. -->
+            <li class="paso" [id]="'paso-' + $index" tabindex="-1">
               <!-- La flecha es un duplicado visual de lo que ya dice el texto
                    («Gira a la izquierda»), así que a quien lea la pantalla en
                    voz alta se le ahorra. -->
@@ -551,7 +588,16 @@
               @if (paso.metros > 0) {
                 <span class="paso__metros">{{ enMetros(paso.metros) }}</span>
               }
-              <!-- ⭐ EL BOTÓN «PRÓXIMO BUS» Y SU REGIÓN DE ESTADO (1/09).
+              <!-- ⭐ EL BOTÓN DEL DATO VIVO Y SU REGIÓN DE ESTADO (1/09,
+                   ampliado a la BiZi el 2/09).
+
+                   Son TRES botones y **un solo bloque de plantilla**: «Próximo
+                   bus» en cada subida, «Bicis ahora» en el hito de coger y
+                   «Anclajes ahora» en el de dejar. Duplicar la anatomía por
+                   fuente sería duplicar cuatro promesas de accesibilidad en dos
+                   sitios que acabarían separándose; lo único que cambia es la
+                   etiqueta y a quién se pregunta, y las dos cosas las decide el
+                   componente a partir de lo que el motor manda **como dato**.
 
                    El Generar pregunta a Avanza por UN solo poste —el primero—,
                    porque de los demás nunca se dijo el minuto y cada uno cuesta
@@ -570,18 +616,21 @@
                       pierde el sitio justo al pulsar. Sigue enfocable y los
                       clics de más se interceptan en vuelo.
 
-                   ⚠️ Y sin `aQuienPreguntar` no se pinta nada: el tranvía no
-                      tiene fuente, y un botón que solo pudiera contestar «no lo
-                      sé» promete un dato que no existe. -->
-              @if (paso.aQuienPreguntar; as aQuien) {
+                   ⚠️ Y sin `aQuienPreguntar` ni `aQueEstacion` no se pinta
+                      nada: el tranvía no tiene fuente, y un botón que solo
+                      pudiera contestar «no lo sé» promete un dato que no
+                      existe. La BiZi **sí la tiene siempre** —la sede—, así que
+                      sus dos hitos llevan botón aunque hoy no conteste: eso es
+                      un `mudo`, no una ausencia de fuente. -->
+              @if (etiquetaDelBotonVivo(paso); as etiqueta) {
                 <span class="vivo">
                   <button
                     type="button"
                     class="vivo__boton"
                     [attr.aria-controls]="'vivo-' + $index"
-                    (click)="preguntarPorElProximo(aQuien, $index)"
+                    (click)="pulsarVivo(paso, $index)"
                   >
-                    Próximo bus
+                    {{ etiqueta }}
                   </button>
                   <!-- El indicador de que tarda. Va `aria-hidden` porque es el
                        estado intermedio: la región, ocupada, no lo anuncia, y
@@ -606,12 +655,7 @@
                    que desde el bus ya no es «el aviso» sino «SU aviso». El
                    ⚠ va aria-hidden: el texto ya dice lo que pasa, el icono es
                    para el ojo — es el 1.4.1 de siempre, no solo color. -->
-              @if (
-                paso.giro === 'coge' ||
-                paso.giro === 'aparca' ||
-                paso.giro === 'sube' ||
-                paso.giro === 'transborda'
-              ) {
+              @if (esHito(paso)) {
                 @if (notaDelHito(paso); as nota) {
                   <span class="paso__nota">
                     <span class="paso__nota-icono" aria-hidden="true">⚠</span>

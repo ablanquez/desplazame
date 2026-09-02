@@ -169,7 +169,8 @@ legend {
    sitios que dan malas noticias — el botón de ubicación y la ruta—, y lo
    comparten de verdad: una sola regla, no dos copias que se separan. */
 .aviso-ubicacion,
-.aviso-ruta {
+.aviso-ruta,
+.resumen {
   margin: 0;
   padding: 0.5rem 0.75rem;
   border: 1px solid #b45309;
@@ -178,7 +179,8 @@ legend {
   color: #7c3d00;
 }
 
-.aviso-ruta {
+.aviso-ruta,
+.resumen {
   margin-bottom: 0.75rem;
 }
 
@@ -723,4 +725,57 @@ legend {
 .creditos__enlace:focus-visible {
   outline: 2px solid #1a1a1a;
   outline-offset: 2px;
+}
+
+/* ⭐ EL RESUMEN ÚNICO DE AVISOS (2/09).
+
+   Hereda `.aviso-ruta` —el ámbar de siempre, y de verdad: la misma regla, no
+   una copia— y solo añade lo que una caja con lista necesita. Que el color
+   salga del mismo sitio es lo que impide que un día haya dos ámbares distintos
+   dando la misma clase de noticia. */
+.resumen__titulo {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.resumen__lista {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.resumen__linea + .resumen__linea {
+  margin-top: 0.2rem;
+}
+
+/* El enlace hereda el ámbar del texto y se distingue por el subrayado, no por
+   el color [WCAG 1.4.1]. Un azul aquí dentro rompería el bloque y encima
+   habría que medirle el contraste contra el fondo ámbar. */
+.resumen__enlace {
+  color: inherit;
+}
+
+.resumen__enlace:hover {
+  text-decoration: none;
+}
+
+.resumen__enlace:focus-visible {
+  outline: 2px solid #7c3d00;
+  outline-offset: 2px;
+}
+
+/* ⚠️ Y el destino del enlace **no dibuja anillo al recibir el foco**: lo recibe
+   por programa (`tabindex="-1"`), no por tabulación, y un recuadro alrededor
+   del paso entero al llegar de un enlace se lee como si algo se hubiera
+   seleccionado. Lo que tiene que ver quien llega es el paso, y para eso ya
+   sirve el salto. */
+.paso:focus {
+  outline: none;
+}
+
+/* Pero si alguien llega con el TECLADO —que aquí no puede, y mañana quién
+   sabe— el anillo vuelve: `:focus-visible` es el navegador decidiendo que el
+   foco hay que verlo. */
+.paso:focus-visible {
+  outline: 2px solid #1a1a1a;
+  outline-offset: -2px;
 }

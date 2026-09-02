@@ -167,7 +167,18 @@ describe('⭐ DE PUNTA A PUNTA: lo que manda la pantalla, leído por el motor', 
     fixture.detectChanges();
     const peticion = http.expectOne('/api/ruta');
     const cuerpo: unknown = JSON.parse(JSON.stringify(peticion.request.body));
-    peticion.flush({ modo: 'andando', metros: 0, segundos: 0, pasos: [], geometria: [] });
+    // ⚠️ `avisos: []` NO es decoración: el contrato lo exige y este fixture lo
+    //    omitía. Sobrevivía porque `@for` de Angular trata `undefined` como
+    //    lista vacía; el `computed` del resumen (2/09) no, y ahí saltó. Un
+    //    trayecto sin `avisos` no es un trayecto que el motor pueda mandar.
+    peticion.flush({
+      modo: 'andando',
+      metros: 0,
+      segundos: 0,
+      pasos: [],
+      geometria: [],
+      avisos: [],
+    });
     fixture.detectChanges();
     return cuerpo;
   }
