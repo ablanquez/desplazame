@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-02] 🔴 ABIERTA — Dos portales del mismo cruce dan 635 m en coche, o «no hay forma», y las 509 jueces en verde
+## [2026-09-02] ✅ CERRADA — Dos portales del mismo cruce dan 635 m en coche, o «no hay forma», y las 509 jueces en verde
 
 **Categoría:** un caso que sí está vigilado en un modo y no en el modo nuevo
 
@@ -64,15 +64,41 @@ camino de código salía otro que no lo era.
 el encargo, buscando qué pasa cuando los dos enganches caen en el mismo cruce.
 Ninguna juez lo pedía.
 
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** el caso trivial de `calcularRutaEnCoche` busca **una arista que
+sea a la vez salida y llegada**, y esa condición es la correcta cuando los dos
+enganches caen DENTRO de una calle. Pegados al mismo NODO no comparten ninguna:
+`salidasDelCoche` devuelve las que SALEN del cruce y `llegadasDelCoche` las que
+LLEGAN a él, y son conjuntos disjuntos salvo bucle. Sin arista común, la
+búsqueda se iba al Dijkstra, que solo sabe salir del cruce y volver — o
+contestar que no hay camino cuando el sentido único no deja volver.
+
+El peatón nunca lo tuvo porque su Dijkstra es **por nodos**: arranca y termina
+en el mismo y el coste sale cero sin ningún caso especial. El del coche es **por
+transiciones**, y ahí el nodo no es un estado.
+
+**Arreglo aplicado:** un corte antes de construir las puertas, en
+`motor/src/viaje-coche.ts` (`calcularRutaEnCoche`): si `origen.nodo` no es
+`null` y coincide con `destino.nodo`, se devuelve la ruta de cero metros con sus
+dos conectores, y `escribirPasos` dice lo que ya decía para el peatón — «es el
+mismo portal del que sales». **24 líneas, comentario incluido.**
+
+Con él, **jueces 8 y 8 bis** en `motor/src/viaje-coche.spec.ts`: la primera
+compra que el corte actúe sobre los dos pares medidos, y la segunda que **no se
+pase** — CONDE DE ARANDA 101 y OSA MAYOR 4 enganchan las dos a un cruce, a
+cruces DISTINTOS, y siguen teniendo sus 4.740 m.
+
+**Commit:** `30626ea` — *fix(motor): dos direcciones del mismo cruce no dan la vuelta a la manzana*
 
 **Ley que sale de aquí:** cuando un modo nuevo estrena su propia búsqueda, **las
 jueces de borde de los modos viejos son la lista de la compra**: los extremos
 que caen en el mismo sitio, la isla, el portal que no existe. Escribir jueces
 nuevas para lo que el modo trae de nuevo —los vetos, el sentido, la ZBE— y no
 re-correr las viejas deja vigilado lo llamativo y a oscuras lo básico.
+
+**Y una segunda, del cierre:** un corte que se activa **comparando dos cosas**
+necesita dos jueces, no una. La que compra que actúe se escribe sola; la que
+compra que **no se pase** hay que ir a buscarla, y sin ella la contraprueba del
+propio arreglo —quitarle la comparación— pasaba **las once en verde**.
 
 **Traza:** `motor/src/viaje-coche.ts`, `calcularRutaEnCoche` — el caso trivial
 busca una arista que sea a la vez salida y llegada, y dos enganches pegados al
