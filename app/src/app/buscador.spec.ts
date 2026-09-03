@@ -4933,4 +4933,167 @@ describe('Buscador', () => {
     await fixture.whenStable();
   });
 
+  /**
+   * ⭐ JUEZ 6 — LA PANTALLA MARCA EL RADIO SEGÚN LA RESPUESTA, y no lo toca
+   * cuando la DGT no sabe.
+   *
+   * Con etiqueta o sin ella, la respuesta **contesta la pregunta que hay en
+   * pantalla**: dejarla sin marcar obligaría a contestarla dos veces. Con
+   * `noExiste` o `mudo` no se toca nada — marcar cualquier cosa sería decidir
+   * por quien pregunta— y el selector manual se queda donde estaba.
+   */
+  it('⭐ 6 · la matrícula marca el distintivo, y con mudo no toca nada', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    elegirModo(fixture, 'coche');
+
+    const campo = raiz.querySelector<HTMLInputElement>('input[name="matricula"]')!;
+    const boton = raiz.querySelector<HTMLButtonElement>('.matricula__boton')!;
+    const region = raiz.querySelector<HTMLElement>('.matricula__estado')!;
+    // La región existe ANTES de la respuesta: es lo que la hace anunciable.
+    expect(region.getAttribute('role')).toBe('status');
+    expect(boton.getAttribute('aria-controls')).toBe(region.id);
+
+    const escribir = (v: string): void => {
+      campo.value = v;
+      campo.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    };
+    const contesta = (cuerpo: object): void => {
+      http.expectOne((r) => r.url === '/api/distintivo').flush(cuerpo);
+      fixture.detectChanges();
+    };
+
+    // (a) Con etiqueta: se marca su radio y se dice, citando a la DGT.
+    escribir('0000BBM');
+    boton.click();
+    fixture.detectChanges();
+    expect(region.getAttribute('aria-busy')).toBe('true');
+    const conC = http.expectOne((r) => r.url === '/api/distintivo');
+    expect(conC.request.params.get('matricula')).toBe('0000BBM');
+    conC.flush({
+      clase: 'etiqueta',
+      distintivo: 'C',
+      texto:
+        'El vehículo 0000BBM cumple con los requisitos para obtener el Distintivo Ambiental C.',
+      fuente: 'DGT',
+      cuando: new Date().toISOString(),
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(radiosDeDistintivo(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['c']);
+    expect(region.textContent).toContain('Distintivo Ambiental C');
+    expect(region.textContent).toContain('Fuente: DGT');
+    expect(region.getAttribute('aria-busy')).toBe('false');
+
+    // (b) Sin distintivo: marca «sin», y con él aparece su pregunta.
+    escribir('0000BBC');
+    boton.click();
+    fixture.detectChanges();
+    contesta({
+      clase: 'sinDistintivo',
+      texto: 'Sin distintivo. Tu vehículo no cumple los requisitos para ser etiquetado.',
+      fuente: 'DGT',
+      cuando: new Date().toISOString(),
+    });
+    await fixture.whenStable();
+    expect(radiosDeDistintivo(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['sin']);
+    expect(radiosDeAutorizacion(raiz).length).toBe(2);
+
+    // (c) No existe: NO se toca el selector, y se dice lo que la DGT dijo.
+    escribir('0000BBB');
+    boton.click();
+    fixture.detectChanges();
+    contesta({
+      clase: 'noExiste',
+      texto: 'No se ha encontrado ningún resultado para la matrícula introducida.',
+      fuente: 'DGT',
+      cuando: new Date().toISOString(),
+    });
+    await fixture.whenStable();
+    expect(radiosDeDistintivo(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['sin']);
+    expect(region.textContent).toContain('No se ha encontrado');
+
+    // (d) Mudo: tampoco, y el texto manda a elegir a mano.
+    escribir('0002BGP');
+    boton.click();
+    fixture.detectChanges();
+    contesta({
+      clase: 'mudo',
+      texto: 'La DGT no ha contestado. Elige tu distintivo a mano, o vuelve a intentarlo.',
+      fuente: 'DGT',
+      cuando: new Date().toISOString(),
+    });
+    await fixture.whenStable();
+    expect(radiosDeDistintivo(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['sin']);
+    expect(region.textContent).toContain('a mano');
+
+    // ⭐ Y CADA PULSACIÓN CONSULTA: no hay caché ni comparación con la anterior.
+    escribir('0000BBM');
+    boton.click();
+    fixture.detectChanges();
+    contesta({
+      clase: 'etiqueta',
+      distintivo: 'C',
+      texto:
+        'El vehículo 0000BBM cumple con los requisitos para obtener el Distintivo Ambiental C.',
+      fuente: 'DGT',
+      cuando: new Date().toISOString(),
+    });
+    await fixture.whenStable();
+    boton.click();
+    fixture.detectChanges();
+    contesta({
+      clase: 'etiqueta',
+      distintivo: 'C',
+      texto:
+        'El vehículo 0000BBM cumple con los requisitos para obtener el Distintivo Ambiental C.',
+      fuente: 'DGT',
+      cuando: new Date().toISOString(),
+    });
+    await fixture.whenStable();
+  });
+
+  /**
+   * ⭐ JUEZ 7 (pantalla) — LA MATRÍCULA NO SE LE CUELA A `/api/ruta`.
+   *
+   * Va a un sitio y a uno solo. Ni al cuerpo de la ruta, ni a su URL. Lo que sí
+   * viaja es **la consecuencia**: que con una B se puede entrar.
+   */
+  it('⭐ 7 · la matrícula no viaja a /api/ruta ni a ningún otro sitio', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    elegirModo(fixture, 'coche');
+    await direccionEntera(fixture, http);
+
+    const campo = raiz.querySelector<HTMLInputElement>('input[name="matricula"]')!;
+    campo.value = '0000BBM';
+    campo.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    raiz.querySelector<HTMLButtonElement>('.matricula__boton')!.click();
+    fixture.detectChanges();
+    http.expectOne((r) => r.url === '/api/distintivo').flush({
+      clase: 'etiqueta',
+      distintivo: 'B',
+      texto: 'El vehículo 0000BBM cumple con los requisitos para obtener el Distintivo Ambiental B.',
+      fuente: 'DGT',
+      cuando: new Date().toISOString(),
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    const peticiones = http.match('/api/ruta');
+    for (const p of peticiones) {
+      expect(JSON.stringify(p.request.body)).not.toContain('0000BBM');
+      expect(p.request.urlWithParams).not.toContain('0000BBM');
+    }
+    expect(cuerpoDeLaRuta(peticiones)['puedeEntrarEnLaZbe']).toBe(true);
+    drenarRutas(peticiones, () => VIAJE_EN_COCHE_POR_LA_ZBE);
+    await fixture.whenStable();
+  });
+
 });

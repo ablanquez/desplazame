@@ -15,6 +15,7 @@ import type {
   PeticionDeRuta,
   Portal,
   PortalCercano,
+  DistintivoConsultado,
   TipoDeAparcamiento,
   TipoDeRuta,
   Trayecto,
@@ -614,6 +615,13 @@ const MARCA_DE_ZBE = 'Zona de Bajas Emisiones';
  */
 const CAPA_DE_LA_ZBE = 'data/2026-09-02_wfs_movilidad-MU1_ZBE.json';
 
+/** La hora de un instante ISO, para decir de cuándo es un dato de ahora. */
+function horaDe(iso: string): string {
+  const cuando = new Date(iso);
+  const dos = (n: number): string => String(n).padStart(2, '0');
+  return `${dos(cuando.getHours())}:${dos(cuando.getMinutes())}`;
+}
+
 /**
  * De qué familia es un modo. **La única línea donde vive el reparto**, y por
  * eso está fuera del componente: la usan la pantalla y sus jueces.
@@ -866,6 +874,118 @@ export class Buscador {
   protected elegirAutorizacion(cual: Autorizacion): void {
     this.autorizacion.set(cual);
   }
+
+  // ── ⭐ LA MATRÍCULA (3/09) ──────────────────────────────────────────────────
+  //
+  // ⛔ **No se guarda en ningún sitio.** Vive en una señal mientras la pantalla
+  //    está abierta, viaja una vez a `/api/distintivo` y ya. Ni `localStorage`,
+  //    ni la URL, ni el aviso: es un dato personal indirecto.
+
+  protected readonly matricula = signal('');
+
+  /** Lo último que la DGT contestó, o `null` si aún no se ha preguntado. */
+  protected readonly loDeLaDgt = signal<DistintivoConsultado | null>(null);
+  protected readonly consultandoDgt = signal(false);
+  /** Solo para el indicador de espera: aparece si tarda más de un segundo. */
+  protected readonly tardaLaDgt = signal(false);
+  private relojDeLaDgt: ReturnType<typeof setTimeout> | null = null;
+
+  protected escribirMatricula(valor: string): void {
+    this.matricula.set(valor.toUpperCase());
+  }
+
+  /** Con el campo vacío no se pregunta: el botón no hace nada que contar. */
+  protected readonly sePuedeConsultar = computed(() => this.matricula().trim() !== '');
+
+  /**
+   * ⭐ CADA PULSACIÓN CONSULTA, y es a propósito [el patrón del vivo, 1/09].
+   *
+   * No se cachea la respuesta ni se compara con la anterior: quien vuelve a
+   * pulsar quiere saber **ahora**. El motor deduplica lo que esté en vuelo, que
+   * es otra cosa que guardar.
+   *
+   * ⚠️ **El botón NO se deshabilita mientras carga**: `disabled` lo saca del
+   *    orden de tabulación y quien navega con teclado pierde el sitio justo al
+   *    pulsar. Sigue enfocable, y la región dice en qué estado está.
+   */
+  protected consultarDistintivo(): void {
+    const matricula = this.matricula().trim();
+    if (matricula === '') {
+      return;
+    }
+    this.consultandoDgt.set(true);
+    this.loDeLaDgt.set(null);
+    if (this.relojDeLaDgt !== null) {
+      clearTimeout(this.relojDeLaDgt);
+    }
+    this.tardaLaDgt.set(false);
+    this.relojDeLaDgt = setTimeout(() => this.tardaLaDgt.set(true), 1000);
+
+    this.http
+      .get<DistintivoConsultado>('/api/distintivo', { params: { matricula } })
+      .subscribe({
+        next: (r) => this.acabaLaDgt(r),
+        // ⚠️ El 400 del formato llega por aquí —es un error HTTP— y su cuerpo es
+        //    una respuesta buena: se enseña igual. Lo que no se puede es callar.
+        error: (fallo: { readonly error?: DistintivoConsultado }) =>
+          this.acabaLaDgt(
+            fallo.error && typeof fallo.error === 'object' && 'clase' in fallo.error
+              ? fallo.error
+              : {
+                  clase: 'mudo',
+                  texto: 'No se pudo preguntar a la DGT. Elige tu distintivo a mano.',
+                  fuente: 'DGT',
+                  cuando: new Date().toISOString(),
+                },
+          ),
+      });
+  }
+
+  /**
+   * ⭐ LO QUE LA RESPUESTA HACE EN LA PANTALLA.
+   *
+   * Con etiqueta o sin ella, **se marca el radio que toca**: es la respuesta a
+   * la pregunta que hay en pantalla, y dejarla sin marcar obligaría a
+   * contestarla dos veces. Con `noExiste`, `formato` o `mudo` **no se toca
+   * nada**: no se sabe, y marcar cualquier cosa sería decidir por quien pregunta.
+   */
+  private acabaLaDgt(r: DistintivoConsultado): void {
+    this.consultandoDgt.set(false);
+    if (this.relojDeLaDgt !== null) {
+      clearTimeout(this.relojDeLaDgt);
+      this.relojDeLaDgt = null;
+    }
+    this.tardaLaDgt.set(false);
+    this.loDeLaDgt.set(r);
+    const cual: Readonly<Record<string, Distintivo>> = {
+      '0': 'cero',
+      ECO: 'eco',
+      C: 'c',
+      B: 'b',
+    };
+    if (r.clase === 'etiqueta' && r.distintivo && cual[r.distintivo]) {
+      this.distintivo.set(cual[r.distintivo]!);
+      this.autorizacion.set(null);
+    } else if (r.clase === 'sinDistintivo') {
+      this.distintivo.set('sin');
+    }
+  }
+
+  /** Lo que se lee en la región de estado, en una frase. */
+  protected readonly loDeLaDgtEnPalabras = computed<string>(() => {
+    if (this.consultandoDgt()) {
+      return 'Preguntando a la DGT…';
+    }
+    const r = this.loDeLaDgt();
+    if (r === null) {
+      return '';
+    }
+    // El texto de la DGT va **tal cual**: su aviso legal pide reproducción fiel
+    // y cita de la fuente. Lo nuestro es la cita, no la frase.
+    return r.clase === 'etiqueta' || r.clase === 'sinDistintivo'
+      ? `${r.texto} (Fuente: DGT, ${horaDe(r.cuando)})`
+      : r.texto;
+  });
 
   /** El enlace de la DGT, para la plantilla. Ver `DGT_DISTINTIVO`. */
   protected readonly enlaceDgt = DGT_DISTINTIVO;

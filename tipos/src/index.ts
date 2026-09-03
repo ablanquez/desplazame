@@ -692,6 +692,37 @@ export interface TramoDelViaje {
 }
 
 /**
+ * ⭐ LO QUE LA DGT DICE DE UNA MATRÍCULA: `GET /api/distintivo?matricula=…`.
+ *
+ * ⛔ **La matrícula NO viaja de vuelta**, ni aquí ni en ningún sitio. Es un dato
+ * personal indirecto: entra por la URL, se usa para preguntar y se tira. Lo que
+ * vuelve es lo que la DGT contestó y de quién es.
+ *
+ * `texto` es **la frase de la sede tal cual**, sin reescribir: su aviso legal
+ * pide reproducción *«fiel, sin manipular ni alterar los contenidos»* y cita de
+ * la fuente. `clase` es nuestra lectura de esa frase, para que la pantalla no
+ * tenga que leerla ella.
+ */
+export interface DistintivoConsultado {
+  /**
+   * · `etiqueta` — tiene distintivo, y cuál viene en `distintivo`.
+   * · `sinDistintivo` — la DGT dice que no cumple los requisitos.
+   * · `noExiste` — esa matrícula no está en su censo.
+   * · `formato` — no se llegó a preguntar: la matrícula no tiene forma de tal.
+   * · `mudo` — la fuente no contestó, o contestó algo que no sabemos leer.
+   */
+  readonly clase: 'etiqueta' | 'sinDistintivo' | 'noExiste' | 'formato' | 'mudo';
+  /** Solo con `etiqueta`. Los cuatro que la DGT emite. */
+  readonly distintivo?: '0' | 'ECO' | 'C' | 'B';
+  /** La frase, para enseñarla. Con `formato` y `mudo` es nuestra y lo parece. */
+  readonly texto: string;
+  /** Siempre `DGT`: la cita que su aviso legal exige. */
+  readonly fuente: 'DGT';
+  /** Cuándo se preguntó, en ISO. Un dato de ahora lleva su hora. */
+  readonly cuando: string;
+}
+
+/**
  * Una vía que se puede sugerir al escribir la dirección: lo que devuelve
  * `GET /api/vias?q=…`.
  *

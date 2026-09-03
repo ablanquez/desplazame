@@ -419,6 +419,48 @@
              Sale en pestaña nueva porque saca de la aplicación con el
              formulario a medio rellenar, y se distingue por el SUBRAYADO y no
              por el color, como los otros dos enlaces de esta pantalla. -->
+        <!-- ⭐ Y EL ATAJO: la matrícula, que lo contesta sin salir de aquí.
+             El patrón entero del dato vivo [WCAG 4.1.3 Status Messages]: la
+             región `role="status"` está en el DOM **antes** de la respuesta —si
+             naciera con ella, no habría nada que el lector estuviera
+             observando—, el botón dice cuál es la suya con `aria-controls`, y
+             **no se deshabilita** mientras carga: `disabled` lo saca del orden
+             de tabulación y quien navega con teclado pierde el sitio al pulsar.
+
+             ⛔ La matrícula NO se guarda: ni aquí, ni en el motor, ni en el log.
+                Viaja una vez y se tira. -->
+        <span class="matricula">
+          <label class="matricula__etiqueta" for="matricula">Matrícula</label>
+          <input
+            id="matricula"
+            name="matricula"
+            class="matricula__campo"
+            type="text"
+            autocomplete="off"
+            placeholder="0000XXX"
+            [value]="matricula()"
+            (input)="escribirMatricula($any($event.target).value)"
+          />
+          <button
+            type="button"
+            class="matricula__boton"
+            aria-controls="lo-de-la-dgt"
+            [disabled]="!sePuedeConsultar()"
+            (click)="consultarDistintivo()"
+          >
+            Consultar distintivo
+          </button>
+          @if (tardaLaDgt()) {
+            <span class="matricula__tarda" aria-hidden="true">⏳</span>
+          }
+          <span
+            class="matricula__estado"
+            id="lo-de-la-dgt"
+            role="status"
+            [attr.aria-busy]="consultandoDgt()"
+            >{{ loDeLaDgtEnPalabras() }}</span
+          >
+        </span>
         <a
           class="distintivo__dgt"
           [href]="enlaceDgt"

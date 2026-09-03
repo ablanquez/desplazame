@@ -28,6 +28,7 @@ import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
 import { cargarBiZi, disponibilidadDeBiZi } from './bizi.ts';
 import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
 import { atenderEstacionViva } from './estacion-viva.ts';
+import { atenderDistintivo } from './distintivo.ts';
 import { andarConElPeaton, cocinarYServir, laRedDeBus } from './red-bus.ts';
 import {
   atenderRenovacion,
@@ -816,6 +817,26 @@ const servidor = createServer((peticion, respuesta) => {
     return;
   }
 
+  /**
+   * ⭐ `GET /api/distintivo?matricula=0000XXX` (3/09).
+   *
+   * El tercero de la familia del vivo, y el mismo trato: idempotente,
+   * `Cache-Control: no-store` y single-flight —éste por matrícula, que lo lleva
+   * dentro `atenderDistintivo`—.
+   *
+   * ⛔ **Y la matrícula no se guarda ni se escribe en el log.** Es un dato
+   *    personal indirecto: entra por la URL, se usa para preguntar a la DGT y se
+   *    tira. `no-store` es aquí más que higiene de frescura — es que **nadie**,
+   *    ni el navegador ni un intermediario, se quede una copia.
+   */
+  if (peticion.method === 'GET' && url.pathname === '/api/distintivo') {
+    void (async () => {
+      const r = await atenderDistintivo(url.searchParams.get('matricula'));
+      jsonSinGuardar(r.codigo, r.cuerpo);
+    })();
+    return;
+  }
+
   // ⭐ EL DISPARADOR DEL CRON (31/08). En un hosting sin SSH un cron no puede
   // lanzar `npm run …`: **solo puede pedir una URL** [precedente de ZetaBus].
   // Por eso la renovación se dispara con un POST y un token EN CABECERA —jamás
@@ -990,6 +1011,13 @@ servidor.listen(PUERTO, () => {
   console.log(
     'motor:   ahí la zona se ENTRA, no se ATRAVIESA — se prohíbe la transición dentro→fuera, ' +
       'salvo para rematar; el origen dentro sigue sin ruta, que de ahí no se sale',
+  );
+  console.log(
+    'motor: GET /api/distintivo?matricula=0000XXX pregunta a la sede de la DGT y devuelve su frase',
+  );
+  console.log(
+    'motor:   ⛔ la matrícula NO se guarda y NO se escribe en el log: el log cuenta la consulta, ' +
+      'no de quién es',
   );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 
