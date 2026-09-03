@@ -1,6 +1,16 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ASOMA_EL_RIBETE, Mapa, ribeteDe, type Vertice } from './mapa';
+import {
+  ASOMA_EL_RIBETE,
+  BORDE_DE_LA_ZONA,
+  Mapa,
+  RELLENO_DE_LA_ZONA,
+  ribeteDe,
+  ROJO_DE_LA_ZONA,
+  TINTA_DEL_RELLENO,
+  type Anillo,
+  type Vertice,
+} from './mapa';
 import { AA_GRAFICO, contraste, deHex, luminancia, PLANO_MAS_CLARO, PLANO_MAS_OSCURO, TIERRA_OSM } from './contraste';
 // @ts-expect-error — sin @types/node, el compilador no conoce el módulo
 import { readFileSync, existsSync } from 'node:fs';
@@ -30,11 +40,44 @@ import type { TramoDelViaje } from '@desplazame/tipos';
 /** Anfitrión de prueba: permite cambiar el trazado como lo hace App. */
 @Component({
   imports: [Mapa],
-  template: `<app-mapa [trazado]="trazado()" [tramos]="tramos()" />`,
+  template: `<app-mapa [trazado]="trazado()" [tramos]="tramos()" [zona]="zona()" />`,
 })
 class Anfitrion {
   readonly trazado = signal<readonly Vertice[]>([]);
   readonly tramos = signal<readonly TramoDelViaje[]>([]);
+  readonly zona = signal<readonly Anillo[]>([]);
+}
+
+/** El polígono de la fase 1, leído del MISMO fichero que marca las aristas. */
+function laFase1(): readonly Anillo[] {
+  const capa = JSON.parse(
+    readFileSync(
+      ((): string => {
+        const suyo = '/app/data/2026-09-02_wfs_movilidad-MU1_ZBE.json';
+        let d = process.cwd().replaceAll('\\', '/');
+        for (let i = 0; i < 6; i++) {
+          if (existsSync(d + suyo)) {
+            return d + suyo;
+          }
+          d = d.slice(0, d.lastIndexOf('/'));
+        }
+        throw new Error('no encuentro la capa de la ZBE');
+      })(),
+      'utf-8',
+    ),
+  ) as {
+    features: { properties: Record<string, string>; geometry: { coordinates: number[][][][] } }[];
+  };
+  const fase1 = capa.features.find((f) => f.properties['fase'] === 'FASE 1')!;
+  // El WFS da `[lon, lat]`; el mapa quiere `[lat, lon]`, como el contrato.
+  return fase1.geometry.coordinates.flatMap((poli) =>
+    poli.map((anillo) => anillo.map(([lon, lat]) => [lat, lon] as Vertice)),
+  );
+}
+
+/** El polígono pintado, si lo hay. */
+function zonaPintada(raiz: HTMLElement): SVGPathElement | null {
+  return raiz.querySelector<SVGPathElement>('.leaflet-zbe-pane path');
 }
 
 const TRAMO: readonly Vertice[] = [
@@ -769,5 +812,124 @@ describe('Mapa', () => {
     fixture.destroy();
 
     expect(lienzo._leaflet_id).toBeUndefined();
+  });
+
+  /**
+   * ⭐ JUEZ 1 — EL POLÍGONO SE PINTA CUANDO SE LE DA, y no cuando no.
+   *
+   * [Patrón de serie: TomTom «Mostrar en mapa → LEZ»] la zona se dibuja para
+   * que se vea dónde está. Aquí el mapa no decide cuándo: **lo decide quien lo
+   * usa** —solo en coche—, y el mapa pinta lo que le den. Es la misma ley que
+   * el resto de esta pantalla: el componente no adivina.
+   */
+  it('⭐ 1 · el polígono se pinta solo cuando se le pasa la zona', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // Sin zona, ni un polígono.
+    expect(zonaPintada(raiz)).toBeNull();
+
+    fixture.componentInstance.zona.set(laFase1());
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const poligono = zonaPintada(raiz);
+    expect(poligono).not.toBeNull();
+    // ⚠️ **No intercepta el ratón**: es un fondo, no un control. Sin esto se
+    //    come los clics del mapa que hay debajo.
+    expect(poligono!.classList.contains('leaflet-interactive')).toBe(false);
+    expect(poligono!.getAttribute('stroke')).toBe(`#${BORDE_DE_LA_ZONA}`);
+    expect(poligono!.getAttribute('fill')).toBe(`#${TINTA_DEL_RELLENO}`);
+    expect(Number(poligono!.getAttribute('fill-opacity'))).toBeCloseTo(RELLENO_DE_LA_ZONA, 3);
+
+    // Y al quitarla, se va.
+    fixture.componentInstance.zona.set([]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(zonaPintada(raiz)).toBeNull();
+  });
+
+  /**
+   * ⭐ JUEZ 2 — LA TRAZA DENTRO DE LA ZONA VA EN ROJO; la de fuera, en azul.
+   *
+   * Y el corte **no lo calcula el mapa**: viene en `TramoDelViaje.zbe`, que lo
+   * pone el motor a partir de la marca de la arista. Ver el contrato.
+   */
+  it('⭐ 2 · el tramo dentro de la zona se pinta de rojo y el resto de azul', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    fixture.componentInstance.trazado.set(SEIS);
+    fixture.componentInstance.tramos.set([
+      { comoSeVa: 'rodando', desde: 0, hasta: 2, metros: 100, segundos: 10, hito: null, zbe: false },
+      { comoSeVa: 'rodando', desde: 2, hasta: 4, metros: 100, segundos: 10, hito: null, zbe: true },
+      { comoSeVa: 'rodando', desde: 4, hasta: 5, metros: 100, segundos: 10, hito: null, zbe: false },
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(vestidos(raiz).map((v) => v.color)).toEqual([
+      '#2563eb',
+      `#${ROJO_DE_LA_ZONA}`,
+      '#2563eb',
+    ]);
+    // Y ninguno es discontinuo: se conduce todo, dentro y fuera.
+    expect(vestidos(raiz).every((v) => v.dash === null || v.dash === '')).toBe(true);
+
+    // El mismo viaje sin pisar la zona: un solo color.
+    fixture.componentInstance.tramos.set([
+      { comoSeVa: 'rodando', desde: 0, hasta: 5, metros: 300, segundos: 30, hito: null, zbe: false },
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(vestidos(raiz).map((v) => v.color)).toEqual(['#2563eb']);
+  });
+
+  /**
+   * ⭐ JUEZ 8 — LOS TONOS, MEDIDOS CON EL INSTRUMENTO [WCAG 1.4.11, 1/09].
+   *
+   * ⚠️ **Y lo primero que se mide es que el rojo NO BASTA.** Contra el azul de
+   *    la rueda da **1,07:1**: son el mismo peso visual, y quien no distinga
+   *    rojo de azul no ve ninguna diferencia entre los dos trazos. Por eso el
+   *    color **no va solo** [WCAG 1.4.1] y la zona se dice tres veces: el
+   *    polígono la dibuja, el aviso la nombra, y el corte la parte.
+   */
+  it('⭐ 8 · los tonos de la zona, medidos', () => {
+    // El rojo pesa lo mismo que el azul y que el ámbar: es de la misma familia.
+    expect(luminancia(deHex(ROJO_DE_LA_ZONA))).toBeCloseTo(0.1609, 3);
+    expect(contraste(ROJO_DE_LA_ZONA, '2563eb')).toBeLessThan(1.1);
+
+    // ⭐ El BORDE del polígono sí llega a 3:1 contra el peor color del plano, y
+    //    por eso no necesita ribete: es el único trazo de esta pantalla que se
+    //    dibuja sin uno.
+    expect(contraste(BORDE_DE_LA_ZONA, PLANO_MAS_OSCURO)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    expect(contraste(BORDE_DE_LA_ZONA, TIERRA_OSM)).toBeGreaterThanOrEqual(AA_GRAFICO);
+
+    // Y el relleno es un TINTE: apenas se separa de la tierra —1,12:1— para no
+    // competir con las trazas que van encima.
+    const mezcla = (tinta: string, alfa: number, fondo: string): string => {
+      const t = deHex(tinta);
+      const f = deHex(fondo);
+      const dos = (n: number): string => Math.round(n).toString(16).padStart(2, '0');
+      return (
+        dos(t.r * alfa + f.r * (1 - alfa)) +
+        dos(t.g * alfa + f.g * (1 - alfa)) +
+        dos(t.b * alfa + f.b * (1 - alfa))
+      );
+    };
+    const sobreTierra = mezcla(TINTA_DEL_RELLENO, RELLENO_DE_LA_ZONA, TIERRA_OSM);
+    expect(contraste(sobreTierra, TIERRA_OSM)).toBeLessThan(1.2);
+
+    // ⭐ Y LO QUE IMPORTA: las trazas siguen leyéndose ENCIMA del relleno.
+    for (const traza of ['2563eb', 'b45309', ROJO_DE_LA_ZONA]) {
+      expect(contraste(traza, sobreTierra)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    }
+    // Sobre el peor color del plano no llegan —ni llegaban antes—, y para eso
+    // está el ribete, que se comprueba en su propia juez.
+    expect(contraste(ROJO_DE_LA_ZONA, mezcla(TINTA_DEL_RELLENO, RELLENO_DE_LA_ZONA, PLANO_MAS_CLARO)))
+      .toBeGreaterThanOrEqual(AA_GRAFICO);
+    expect(ribeteDe(ROJO_DE_LA_ZONA)).toBeTruthy();
   });
 });

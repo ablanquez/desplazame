@@ -24,7 +24,7 @@ import type {
 } from '@desplazame/tipos';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
-import { Mapa } from './mapa';
+import { Mapa, type Vertice } from './mapa';
 import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
 import { IconoCapa, type Clase } from './iconos';
@@ -597,6 +597,14 @@ const DGT_DISTINTIVO =
 const MARCA_DE_ZBE = 'Zona de Bajas Emisiones';
 
 /**
+ * ⭐ DÓNDE VIVE LA CAPA DE LA ZONA, servida como asset desde `app/data/`.
+ *
+ * Es el mismo fichero que el motor cocina y con el que marca las aristas
+ * (§ 1.30). Se sirve **solo éste** de toda la carpeta: ver `angular.json`.
+ */
+const CAPA_DE_LA_ZBE = 'data/2026-09-02_wfs_movilidad-MU1_ZBE.json';
+
+/**
  * De qué familia es un modo. **La única línea donde vive el reparto**, y por
  * eso está fuera del componente: la usan la pantalla y sus jueces.
  *
@@ -825,6 +833,62 @@ export class Buscador {
 
   /** El enlace de la DGT, para la plantilla. Ver `DGT_DISTINTIVO`. */
   protected readonly enlaceDgt = DGT_DISTINTIVO;
+
+  /**
+   * ⭐ EL POLÍGONO DE LA ZONA, bajado UNA VEZ y solo cuando hace falta (3/09).
+   *
+   * Es **el mismo fichero** con el que el motor marca las aristas (§ 1.30), no
+   * una copia: si se copiaran los 33 vértices aquí, el día que la capa cambie
+   * el mapa pintaría una zona y el motor cortaría por otra.
+   *
+   * ⚠️ **Se pide al elegir «Coche», no al arrancar.** Son 2,9 kB, pero quien
+   *    entra a mirar una ruta a pie no tiene por qué pagarlos — y el mapa nace
+   *    antes de que se elija modo. Una vez pedido, se queda.
+   */
+  private readonly zonaZbe = signal<readonly (readonly Vertice[])[]>([]);
+  private pidiendoLaZona = false;
+
+  /** Lo que se le pasa al mapa: la zona **solo en coche**. Ver `Mapa.zona`. */
+  protected readonly zonaDelMapa = computed<readonly (readonly Vertice[])[]>(() =>
+    this.eligeCoche() ? this.zonaZbe() : [],
+  );
+
+  /**
+   * La trae la primera vez que se elige coche. Si falla, **no se avisa**: el
+   * polígono es contexto, y una ruta sin él sigue siendo una ruta correcta —el
+   * corte de la traza y el aviso siguen ahí, que son los otros dos canales—.
+   */
+  private traerLaZona(): void {
+    if (this.pidiendoLaZona || this.zonaZbe().length > 0) {
+      return;
+    }
+    this.pidiendoLaZona = true;
+    this.http
+      .get<{
+        readonly features: readonly {
+          readonly properties: Record<string, string>;
+          readonly geometry: { readonly coordinates: readonly (readonly (readonly number[])[])[][] };
+        }[];
+      }>(CAPA_DE_LA_ZBE)
+      .subscribe({
+        next: (capa) => {
+          const fase1 = capa.features.find((f) => f['properties']['fase'] === 'FASE 1');
+          if (!fase1) {
+            return;
+          }
+          // El WFS da `[lon, lat]`; el mapa quiere `[lat, lon]`, como el contrato.
+          this.zonaZbe.set(
+            fase1.geometry.coordinates.flatMap((poli) =>
+              poli.map((anillo) => anillo.map(([lon, lat]) => [lat!, lon!] as Vertice)),
+            ),
+          );
+        },
+        error: () => {
+          // Se deja pedir otra vez: puede haber sido un corte de red.
+          this.pidiendoLaZona = false;
+        },
+      });
+  }
 
   /** Los dos lados de la dirección. Misma forma, mismo trato. */
   protected readonly origen = ladoVacio();
@@ -1792,7 +1856,16 @@ export class Buscador {
    *   de coincidir—. El encargo dice «Privada por defecto» y aquí se aplica
    *   **cada vez que se entra**, que es lo único que no puede envejecer mal.
    */
+  /**
+   * ⭐ Al pasar a coche se pide el polígono. Va aquí y no en un `effect` porque
+   * es **una acción del usuario**, como «Generar» o «Mi ubicación»: un efecto
+   * que dispare peticiones al leer una señal es justo lo que esta pantalla evita
+   * desde el punto 4. Ver el comentario de `generarRuta`.
+   */
   protected elegirFamilia(familia: Familia): void {
+    if (familia === 'coche') {
+      this.traerLaZona();
+    }
     const suya = this.familias.find((f) => f.id === familia);
     if (suya) {
       this.modo.set(suya.porDefecto);

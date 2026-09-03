@@ -945,6 +945,37 @@ const VIAJE_EN_COCHE_LEJOS: Trayecto = {
   tramos: [{ comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 4241, segundos: 512, hito: null }],
 };
 
+/**
+ * La capa de la ZBE tal y como la sirve el WFS: dos fases, `[lon, lat]`. Aquí
+ * va recortada a cuatro vértices por fase — lo que se compra es el reparto, no
+ * la geometría, que ya tiene su juez en `mapa.spec.ts` contra el fichero real.
+ */
+const LA_FASE_1 = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      properties: { fase: 'FASE 1' },
+      geometry: {
+        type: 'MultiPolygon',
+        coordinates: [
+          [
+            [
+              [-0.8893, 41.6587],
+              [-0.8734, 41.6551],
+              [-0.8771, 41.6509],
+              [-0.8893, 41.6587],
+            ],
+          ],
+        ],
+      },
+    },
+    {
+      properties: { fase: 'FASE 2' },
+      geometry: { type: 'MultiPolygon', coordinates: [[[[-0.8923, 41.6592], [-0.8717, 41.6544], [-0.8700, 41.6490], [-0.8923, 41.6592]]]] },
+    },
+  ],
+};
+
 async function direccionEntera(fixture: any, http: HttpTestingController): Promise<void> {
   await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
   await elegirPortal(fixture, http, 'portalOrigen', '2');
@@ -1402,8 +1433,16 @@ describe('Buscador', () => {
     // peticiones de vías, así que **que el foco viaje** se comprueba en un
     // guardián propio, más abajo. Las de PORTALES siguen sin drenarse aquí: en
     // esas `verify()` sigue trabajando.
+    //
+    // ⚠️ **Y desde el 3/09, la capa de la ZBE.** Elegir «Coche» la pide una
+    // vez —es el polígono que el mapa pinta—, y a las cuarenta jueces que
+    // solo querían cambiar de modo eso no les importa. Que se pida **una
+    // sola vez y solo con coche** lo vigila su propia juez, que no drena.
     for (const cap of http.match(
-      (r) => r.url.startsWith('/api/sitios') || r.url.startsWith('/api/vias'),
+      (r) =>
+        r.url.startsWith('/api/sitios') ||
+        r.url.startsWith('/api/vias') ||
+        r.url.includes('MU1_ZBE'),
     )) {
       cap.flush([]);
     }
@@ -4771,6 +4810,43 @@ describe('Buscador', () => {
       drenarRutas(peticiones, () => ({ ...TRAYECTO, modo }));
       await fixture.whenStable();
     }
+  });
+
+  /**
+   * ⭐ JUEZ 1 (pantalla) — LA ZONA SOLO LLEGA AL MAPA CON COCHE.
+   *
+   * Y se pide **una sola vez**: es un fichero estático de 2,9 kB, el mismo con
+   * el que el motor marca las aristas (§ 1.30). Volver a pedirlo cada vez que
+   * se toca el selector sería tráfico por nada.
+   */
+  it('⭐ 1 · el polígono de la zona se baja con coche, una vez, y no llega a los demás', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // Al arrancar en andando, nadie pide la capa.
+    http.expectNone((r) => r.url.includes('MU1_ZBE'));
+    expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(0);
+
+    elegirModo(fixture, 'coche');
+    const capa = http.expectOne((r) => r.url.includes('MU1_ZBE'));
+    expect(capa.request.method).toBe('GET');
+    capa.flush(LA_FASE_1);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+
+    // Al salirse del coche, el polígono se va — pero no se vuelve a pedir.
+    elegirModo(fixture, 'andando');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(0);
+
+    elegirModo(fixture, 'coche');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    http.expectNone((r) => r.url.includes('MU1_ZBE'));
+    expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
   });
 
 });

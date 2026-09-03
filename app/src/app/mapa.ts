@@ -143,6 +143,54 @@ const VESTIDO: Readonly<Record<TramoDelViaje['comoSeVa'], L.PolylineOptions>> = 
 };
 
 /**
+ * ⭐ EL ROJO DE LA ZONA DE BAJAS EMISIONES (3/09), medido con el instrumento.
+ *
+ * **Luminancia 0,1609**, que es el mismo peso visual que el azul de la rueda
+ * (0,1532) y que el ámbar del a-pie (0,1591): puestos uno al lado del otro,
+ * ninguno pesa más que el otro. Contra la tierra de OSM da **4,34:1** y contra
+ * la calzada blanca **4,98**, en la misma horquilla que los otros dos.
+ *
+ * ⛔ **Y NO BASTA, y esto es lo importante.** Contra el azul de la rueda da
+ *    **1,07:1**: para quien no distinga rojo de azul, los dos trazos son el
+ *    mismo. [WCAG 1.4.1] el color no puede ser el único canal, así que la zona
+ *    se dice **tres veces**: el polígono la dibuja, el aviso la nombra con
+ *    palabras, y el propio corte parte la línea en dos donde empieza. Quitar
+ *    cualquiera de los tres deja el rojo solo, y solo no vale.
+ *
+ * Como toda línea de esta pantalla, lleva su ribete: contra el peor color del
+ * plano (`#f9b29c`) da 2,82:1, igual que el azul (2,92) y el ámbar (2,84).
+ */
+export const ROJO_DE_LA_ZONA = 'd32f2f';
+
+/**
+ * ⭐ EL BORDE DEL POLÍGONO, y **es el único trazo sin ribete de la pantalla**.
+ *
+ * Puede permitírselo porque llega solo: `#b91c1c` da **3,66:1 contra el peor
+ * color del plano** y **5,64 contra la tierra**, así que cumple el 3:1 de [WCAG
+ * 1.4.11] sin que nadie le ponga nada debajo. El rojo de la traza no llega
+ * (2,82) y por eso la traza sí lo lleva.
+ */
+export const BORDE_DE_LA_ZONA = 'b91c1c';
+
+/**
+ * ⭐ EL RELLENO: un TINTE, no un bloque.
+ *
+ * Con `0,08` de opacidad, sobre la tierra de OSM el resultado es `#f0e0da`, que
+ * da **1,12:1 contra la propia tierra** — se ve que hay algo y no se lee como
+ * una mancha. Es deliberado: lo que tiene que leerse encima son las trazas, y
+ * medido sobre esa mezcla el azul conserva **4,03:1** y el rojo **3,88**, los
+ * dos por encima del 3:1.
+ *
+ * Un relleno más fuerte los bajaba: con `0,15` el rojo se queda en 3,49 sobre
+ * la tierra teñida y en 2,39 sobre la primaria.
+ */
+export const RELLENO_DE_LA_ZONA = 0.08;
+export const TINTA_DEL_RELLENO = 'd32f2f';
+
+/** Un anillo del polígono: sus vértices en `[lat, lon]`, como el contrato. */
+export type Anillo = readonly Vertice[];
+
+/**
  * El vestido de un tramo, con el color de su línea cuando lo trae.
  *
  * [DOC] Leaflet: `color` es *«stroke color»* de la polilínea, y se pasa por
@@ -152,8 +200,17 @@ const VESTIDO: Readonly<Record<TramoDelViaje['comoSeVa'], L.PolylineOptions>> = 
  */
 function vestidoDe(tramo: TramoDelViaje): L.PolylineOptions {
   const base = VESTIDO[tramo.comoSeVa];
-  return tramo.linea ? { ...base, color: `#${tramo.linea.color}` } : base;
+  if (tramo.linea) {
+    return { ...base, color: `#${tramo.linea.color}` };
+  }
+  // ⭐ Y el trecho que va DENTRO de la zona, en rojo (3/09). El corte no se
+  //    calcula aquí: viene en `TramoDelViaje.zbe`, que lo pone el motor con la
+  //    marca de la arista. Ver el contrato y `ROJO_DE_LA_ZONA`.
+  return tramo.zbe === true ? { ...base, color: `#${ROJO_DE_LA_ZONA}` } : base;
 }
+
+/** El nombre del panel donde vive el polígono de la zona. Ver dónde se crea. */
+const PANE_ZONA = 'zbe';
 
 /** Cuánto asoma el ribete por cada lado de la línea, en píxeles. */
 export const ASOMA_EL_RIBETE = 2;
@@ -308,6 +365,19 @@ export class Mapa {
   readonly tramos = input<readonly TramoDelViaje[]>([]);
 
   /**
+   * ⭐ LA ZONA DE BAJAS EMISIONES, si hay que pintarla (3/09).
+   *
+   * Los anillos del polígono, en `[lat, lon]`. Vacío es «no la pintes», y es lo
+   * que llega en todos los modos que no son coche: **el mapa no decide cuándo
+   * se ve**, igual que no decide dónde se corta una traza. Quien lo usa se lo
+   * da o no se lo da.
+   *
+   * [Patrón de serie] TomTom lo ofrece como «Mostrar en mapa → LEZ»: dibujar la
+   * zona es la manera de que se entienda por qué la ruta hace lo que hace.
+   */
+  readonly zona = input<readonly Anillo[]>([]);
+
+  /**
    * El alto del lienzo, tal cual va al CSS. Leaflet exige una altura
    * DEFINIDA: si el contenedor no la tiene, el mapa se monta con 0 px de alto
    * y no se ve nada. Por defecto, el del formulario. El visor le pasa `100%`
@@ -333,6 +403,8 @@ export class Mapa {
   private mapa?: L.Map;
   private lineas: L.Polyline[] = [];
   private marcas: L.Marker[] = [];
+  /** El polígono de la zona, aparte: no se borra con las trazas por azar. */
+  private zonas: L.Polygon[] = [];
 
   constructor() {
     // [DOC] Angular: «Use afterNextRender to read or write the DOM once, for
@@ -344,6 +416,13 @@ export class Mapa {
         maxZoom: 19,
         attribution: ATRIBUCION,
       }).addTo(this.mapa);
+      // ⭐ EL PANEL DE LA ZONA, **entre las teselas y las trazas** [DOC Leaflet,
+      //    *map panes*]: `tilePane` va en 200 y `overlayPane` —donde viven las
+      //    polilíneas— en 400. En 350 el polígono tapa el plano y **nunca** una
+      //    traza. Si compartiera panel con ellas, el orden lo decidiría quién se
+      //    añadió antes, y eso cambia con cada ruta.
+      const panel = this.mapa.createPane(PANE_ZONA);
+      panel.style.zIndex = '350';
       this.pintarTrazado();
     });
 
@@ -355,6 +434,8 @@ export class Mapa {
       // una farmacia sin mover la ruta tiene que repintar los marcadores.
       this.capaOrigen();
       this.capaDestino();
+      // Y la zona: al pasar a coche aparece sin tocar la ruta.
+      this.zona();
       this.pintarTrazado();
     });
 
@@ -401,6 +482,33 @@ export class Mapa {
       marca.remove();
     }
     this.marcas = [];
+    for (const trozo of this.zonas) {
+      trozo.remove();
+    }
+    this.zonas = [];
+
+    // ⭐ LA ZONA VA PRIMERO Y VA SIEMPRE QUE SE DÉ, haya ruta o no: quien elige
+    //    «Coche» tiene que poder ver dónde está el casco **antes** de generar
+    //    nada. Por eso se pinta antes del corte de «sin trazado».
+    const anillos = this.zona();
+    if (anillos.length > 0) {
+      this.zonas.push(
+        L.polygon(
+          anillos.map((anillo) => anillo.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
+          {
+            pane: PANE_ZONA,
+            color: `#${BORDE_DE_LA_ZONA}`,
+            weight: 2,
+            fillColor: `#${TINTA_DEL_RELLENO}`,
+            fillOpacity: RELLENO_DE_LA_ZONA,
+            // ⚠️ **No intercepta el ratón.** Es un fondo, no un control: sin
+            //    esto se come los clics y los arrastres del mapa que hay debajo,
+            //    y el polígono cubre medio centro.
+            interactive: false,
+          },
+        ).addTo(this.mapa),
+      );
+    }
 
     const vertices = this.trazado();
     if (vertices.length === 0) {
