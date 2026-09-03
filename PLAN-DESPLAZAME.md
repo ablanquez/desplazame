@@ -3039,49 +3039,54 @@ son CAPAS DE DATO y ninguna se promete sin sonda:
       módulo y comprada por la juez 9. README corregido en commit
       declarado (afirmaba el corte de pantalla). 534 motor · 252
       interfaz · sin bitácora (nada dio verde con fallo vivo).
-- [ ] **3-bis · EL REPLANTEO DEL OJO (parlamentado el 3/09 tras sus
-      pruebas — cuatro piezas, con la doctrina delante):**
-      (a) EL POLÍGONO PINTADO en modo coche [patrón de serie en la
-      industria: TomTom «Mostrar en mapa → Zonas de bajas emisiones»;
-      Google Maps la señala con icono y aviso; ZBEMaps pinta las
-      zonas y filtra por etiqueta DGT]: la Fase 1 (la que actúa) con
-      la capa §1.30 que ya vive en el repo; si la Fase 2 se pinta
-      tenue («desde 2030») lo decide el ojo en la demo.
-      (b) LA TRAZA ROJA DENTRO: el tramo de ruta que pisa la ZBE
-      cambia de azul a rojo — EL CORTE LO DICE EL MOTOR (él sabe qué
-      aristas pisan; la pantalla parte el trazo donde le digan, como
-      montado/a-pie — nunca adivinando por geometría [la perla de la
-      2-bis: el polígono y la arista marcada no son la misma
-      pregunta]); el color NO va solo [WCAG 1.4.1]: polígono + aviso
-      + corte dicen lo mismo; el rojo pasa por el instrumento de
-      contraste con su ribete como todos los colores de la casa.
-      (c) LA TERCERA PREGUNTA — LA AUTORIZACIÓN: revelada SOLO al
-      marcar [Sin etiqueta] [GOV.UK: revelar solo preguntas]:
-      «¿Tienes autorización registrada en la ZBE? (residente, plaza
-      de garaje, comercio…)» [Sí][No] — los 14 casos de §1.32; con
-      SÍ la ruta entra normal con aviso suave («entras con tu
-      autorización registrada»); con NO, el flujo del remate. El
-      motor sigue binario.
-      (d) ⭐ LA CONSULTA DE MATRÍCULA EN CASA (decisión de Antonio:
-      fuera el enlace — «quiero que pongamos nosotros la consulta y
-      nos devuelva modelo y distintivo») — CON SONDA ANTES DE
-      PROMETER (sonda B): la propia DGT declara que publica «el
-      fichero que contiene todas las matrículas, con sus distintivos»
-      en DGT en Cifras [texto de la sede, capturado 3/09] → medir:
-      URL, tamaño (~30M de filas: vive en el motor, no en el
-      navegador), campos (¿trae marca/modelo o solo distintivo?),
-      licencia, frescura; y la alternativa: la consulta de la sede
-      por matrícula (¿endpoint limpio o formulario con captcha?
-      ¿términos?). REGLA FIJADA desde ya: la matrícula del usuario NO
-      SE GUARDA — se consulta y se tira, declarado. Con la sonda
-      delante, Antonio decide el camino (fichero cocinado · consulta
-      en vivo · no compensa).
-      (e) LA RECETA DE PRUEBA del remate, escrita (Antonio la corrió
-      el 3/09 y «funciona bien»): laborable dentro de la franja 8-20
-      · [Coche] · [Sin etiqueta] · (autorización [No]) · destino del
-      casco → remata; fuera de franja la app dice honesta que no
-      está en vigor Y NO SE FALSEA en producción — el reloj falso
-      vive solo en las jueces (las cuatro ramas compradas a diario).
+- [x] **⭐ 3-bis · EL REPLANTEO DEL OJO — HECHO (3/09, ocho commits +
+      la sonda B): el polígono, la traza roja, la autorización y LA
+      MATRÍCULA EN CASA.** LA SONDA B primero (solo lectura): el
+      fichero de la DGT existe («Microdatos de Distintivo Ambiental»,
+      CC BY 4.0, diario ~09:03, ventana de 5 días) pero pesa 605 MB/
+      día (37,8 M matrículas) y NO trae marca/modelo; la consulta de
+      la sede es un GET limpio (sin captcha ni sesión, 0,45-1 s,
+      solo la etiqueta; aviso legal: reproducción fiel + cita, la
+      consulta automatizada NO CONSTA); ⚠️ el blanco del fichero NO
+      es «sin distintivo» (····BGP en blanco y la sede dice B) · el
+      MODELO no existe en fuente pública — Autodoc lo enseña porque
+      paga TecAlliance, cuyo pie PROHÍBE expresamente copiar la base
+      («acciones legales») → el modelo se cae con su porqué; Antonio:
+      «solo nos hace falta la matrícula, no hay mayor problema» →
+      LA CONSULTA EN VIVO, en casa. LO CONSTRUIDO: (a) el polígono de
+      Fase 1 pintado en modo coche ANTES de generar (interactive:
+      false, bajo las trazas); (b) TramoDelViaje.zbe?: boolean
+      (elegido por Antonio contra un comoSeVa nuevo: ir por la zona
+      no es OTRA manera de ir — se conduce igual, cambia dónde; los
+      cinco modos viejos al byte) → la traza ROJA #d32f2f con ribete
+      donde zbe, azul fuera; (c) la pregunta de la autorización
+      revelada solo con [Sin etiqueta] (los 14 casos §1.32; Sí ⇒
+      entra con su aviso; No ⇒ el remate); (d) GET /api/distintivo
+      ?matricula= — valida los TRES formatos DGT, no-store, single-
+      flight, tope+reintento, LA MATRÍCULA NI SE GUARDA NI VA AL LOG
+      (juez 7 con grep sobre salida real); la pantalla marca el radio
+      sola («Distintivo C — Fuente: DGT, hora»), con sinDistintivo
+      marca [Sin etiqueta], con noExiste/mudo no toca nada; el enlace
+      «Consulta tu etiqueta en la DGT» RETIRADO después (140c1d2:
+      redundante con la consulta en casa; su juez retirada con el
+      porqué escrito; la atribución «Fuente: DGT» se queda — la exige
+      su aviso legal). ⭐ BITÁCORA nº32: el motor no sabía leer la
+      respuesta BUENA de la sede (la frase del éxito vive en OTRO div
+      que los avisos) — cuatro jueces verdes porque los fixtures
+      tenían el texto medido y LA ESTRUCTURA COMPUESTA por el
+      ejecutor; lo cazó pid==pid contra la sede real. LEY: un fixture
+      de fuente ajena SE COPIA ENTERO, no se compone — medir el texto
+      y no el HTML es medir la mitad. La contraprueba endureció dos
+      jueces flojas (la del corte compraba CUÁNTAS rachas, no DÓNDE —
+      173 m de rojo de más habrían colado; la del ribete medía
+      constantes, no el dibujo). LOS TONOS medidos: rojo 4,34 tierra
+      · borde 3,66 peor-del-plano (el único sin ribete, llega solo) ·
+      relleno al 8 % = tinte 1,12 que conserva 4,03/3,88 encima · ⛔
+      rojo vs azul 1,07:1 → por eso la zona se dice TRES VECES
+      (polígono + aviso + corte) [WCAG 1.4.1 de verdad]. La capa ZBE
+      servida como asset único para que mapa y motor corten por el
+      MISMO fichero (descubrimiento declarado, angular.json). 541
+      motor · 258 interfaz · 32 bitácoras, 0 abiertas.
 - [ ] **4 · LA DEMO por el ojo.**
 
 ## 13 — Modo MOTO *(nuevo, parlamentado el 1/09; DEPENDE del 12: la

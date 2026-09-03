@@ -108,14 +108,17 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TypeScript SIN compilar, carga antes de `listen()` (grafo 98.774
   aristas ~190 ms · callejero 3.359 vías · 46.150 portales), 412 MB de
   RSS observados el 22/08 al arrancar (eran ~248 en el punto 5;
-  anotado para el punto 14). Endpoints vivos, NUEVE (el séptimo del
+  anotado para el punto 14). Endpoints vivos, DIEZ (el séptimo del
   31/08: `POST /api/renovar-feed`, el del cron — token Bearer en
   cabecera, 503/401/409/202, single-flight de trabajo de fondo; el
   octavo del 1/09: `GET /api/poste-vivo?poste&linea`, el del botón
   «Próximo bus» — idempotente, no-store, single-flight, 400 si se
   pregunta mal, mudo con motivo al log; el noveno del 2/09: `GET
   /api/estacion-viva?estacion&pide=bicis|anclajes`, el de los botones
-  de BiZi — mismo régimen; y `POST /api/ruta` acepta `modo=bus` desde
+  de BiZi — mismo régimen; el décimo del 3/09: `GET /api/distintivo
+  ?matricula=` — la consulta a la sede DGT (etiqueta por matrícula;
+  la matrícula ni se guarda ni se loguea; los tres formatos
+  validados); y `POST /api/ruta` acepta `modo=bus` desde
   la 3b):
   `/api/salud` · `/api/vias?q=` (con `foco`) · `/api/portales?via=` ·
   `/api/portal-cercano` · `/api/sitios?q=` (foco y `capa` opcionales) ·
@@ -159,13 +162,35 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar** *(al cierre del 2/09; el push de hoy lo
-nombró Antonio)*: **el punto 11 entero, las sondas del coche y la
-moto, y las casillas 0-1b del 12 — EL COCHE RUTEA en el motor**
+comprobado). **En local, sin publicar** *(al cierre del 3/09; el push del 2/09 lo
+nombró Antonio — publicado hasta `8763c64`)*: **las casillas 2,
+2-bis, 3 y 3-bis del 12 ENTERAS — el coche aparca por tipo, remata
+en parking público, se ve en pantalla con el polígono y la traza
+roja, y consulta el distintivo por matrícula; las bitácoras nº31-32
+con sus leyes; los papeles al día**
 (31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LA CASILLA 3-bis DEL 12 — HECHA (3/09, noche): EL COCHE COMPLETO
+EN PANTALLA.** El polígono del casco pintado antes de generar; la
+traza roja con ribete donde el trayecto pisa (TramoDelViaje.zbe?:
+boolean, elegido por Antonio — los cinco modos viejos al byte); la
+pregunta de la autorización solo con [Sin etiqueta]; y LA MATRÍCULA
+EN CASA: GET /api/distintivo (la consulta de la sede DGT — GET
+limpio medido en la sonda B; la matrícula ni se guarda ni va al log;
+«Fuente: DGT» como su aviso legal exige; el radio se marca solo). El
+MODELO se cayó con su porqué (no existe en fuente pública; Autodoc lo
+paga a TecAlliance, que prohíbe copiar — «solo nos hace falta la
+matrícula», Antonio). El enlace a la DGT retirado después
+(redundante). Bitácora nº32 con ley: un fixture de fuente ajena SE
+COPIA ENTERO, no se compone (el motor no leía la respuesta buena; lo
+cazó pid==pid). Dos jueces endurecidas por la contraprueba. Rojo vs
+azul 1,07:1 → la zona se dice tres veces (polígono+aviso+corte). 541
+motor · 258 interfaz · 32 bitácoras. QUEDA LA DEMO (casilla 4): el
+ojo decide la palabra del «gratuito», la lista de parkings y la Fase
+2 pintada o no.
 
 **LA CASILLA 3 DEL 12 Y EL REPLANTEO DEL OJO (3/09, tarde).** LA
 PANTALLA DEL COCHE hecha: dos preguntas reveladas (parking ·
@@ -1192,10 +1217,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 3-bis del 12 — el replanteo del
-ojo**: el ENCARGO A (el polígono F1 pintado + la traza roja con el
-corte del motor + la pregunta de la autorización) y la SONDA B (la
-matrícula: DGT en Cifras vs consulta de la sede — solo lectura); (2)
+**Lo siguiente:** (1) **la casilla 4 del 12 — LA DEMO DEL COCHE por
+el ojo** (los tres tipos de parking · la matrícula · el remate · la
+traza roja; y sus decisiones: la palabra del «gratuito», la lista de
+inclusión de parkings, la Fase 2 pintada o no) — con el vale, el 12
+se cierra; (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1450,11 +1476,10 @@ parking con el 12.
 ⚰️ sondas HECHAS el 2/09 (regulado 1.159 · PMR 1.226 · gratuito = el
 complemento LIBRE · parkings 41 que mezclan → lista de inclusión) ·
 ⚰️ la RED COCINADA el 2/09 (1a: 57.390 aristas, 1.378 giros vetados,
-ZBE marcada) · ⚰️ EL COCHE RUTEA (1b), APARCA POR TIPO (2), REMATA EN PARKING
-PÚBLICO (2-bis) Y SE VE EN PANTALLA (3, 3/09 — dos preguntas,
-Aviso.paso, las trazas del bus por su red) · ⭐ el REPLANTEO del ojo
-en la 3-bis (polígono pintado · traza roja · autorización · la
-matrícula en casa con sonda) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
+ZBE marcada) · ⚰️ EL COCHE ENTERO: rutea (1b), aparca por tipo (2), remata en
+parking público (2-bis), se ve (3) y el replanteo del ojo HECHO
+(3-bis: polígono · traza roja · autorización · matrícula en casa —
+nº32 con su ley) · queda LA DEMO (4) con sus tres decisiones · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
 oficial (L-V 8-20 · sanciones desde 12/12/2025 · B/C/ECO/CERO libres
 sin registro → la app AVISA, no veta: no sabe la etiqueta) · queda la
 letra legal de la MOTO (punto 13) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
@@ -1506,7 +1531,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 786 pruebas (534 motor + 252 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 799 pruebas (541 motor + 258 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
