@@ -581,23 +581,6 @@ type Distintivo = 'cero' | 'eco' | 'c' | 'b' | 'sin' | 'nolose';
 type Autorizacion = 'si' | 'no';
 
 /**
- * ⭐ DÓNDE SE CONSULTA LA ETIQUETA, medido el 03/09/2026.
- *
- * `https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/`
- * — estado 200, 134.338 bytes, título *«Sede Electrónica DGT - Consulta del
- * distintivo ambiental de un vehículo»*. La página dice, literal, que se
- * consulta *«Por internet, sin identificación previa»* y que *«lo único que
- * necesitas es conocer su matrícula»*.
- *
- * ⚠️ **La URL se midió porque la de manual no existe.** `.../vehiculos/
- *    distintivo-ambiental/` contesta **200 con una página «Page Not Found»** —un
- *    404 blando—, así que un enlace escrito de memoria habría salido a
- *    producción roto y pareciendo bueno.
- */
-const DGT_DISTINTIVO =
-  'https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/';
-
-/**
  * ⭐ POR DÓNDE SE RECONOCE UN AVISO DE LA ZONA DE BAJAS EMISIONES.
  *
  * Es la misma llave frágil que `MARCA_DE_DESVIO` y compañía, y por lo mismo:
@@ -986,9 +969,6 @@ export class Buscador {
       ? `${r.texto} (Fuente: DGT, ${horaDe(r.cuando)})`
       : r.texto;
   });
-
-  /** El enlace de la DGT, para la plantilla. Ver `DGT_DISTINTIVO`. */
-  protected readonly enlaceDgt = DGT_DISTINTIVO;
 
   /**
    * ⭐ EL POLÍGONO DE LA ZONA, bajado UNA VEZ y solo cuando hace falta (3/09).

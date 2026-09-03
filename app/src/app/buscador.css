@@ -779,27 +779,3 @@ legend {
   outline: 2px solid #1a1a1a;
   outline-offset: -2px;
 }
-
-/* ⭐ EL ENLACE A LA DGT, dentro de la pregunta del distintivo (3/09).
-
-   Hereda el color como los demás enlaces de la pantalla y se distingue por el
-   SUBRAYADO [WCAG 1.4.1: no solo color]. Va en su propia línea porque los
-   radios de arriba son cajas y un enlace metido entre ellas se leería como una
-   opción más — y no lo es: no contesta la pregunta, lleva a averiguarla. */
-.distintivo__dgt {
-  flex-basis: 100%;
-  margin-top: 0.35rem;
-  font-size: 0.85rem;
-  color: inherit;
-  text-decoration: underline;
-}
-
-.distintivo__dgt:hover {
-  text-decoration: none;
-}
-
-/* [WCAG 2.4.7] El foco no se quita: se refuerza, como en `.creditos__enlace`. */
-.distintivo__dgt:focus-visible {
-  outline: 2px solid #1a1a1a;
-  outline-offset: 2px;
-}

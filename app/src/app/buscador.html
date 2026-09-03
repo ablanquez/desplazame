@@ -412,14 +412,17 @@
             {{ e.etiqueta }}
           </label>
         }
-        <!-- ⭐ Y EL SITIO DONDE SE AVERIGUA, junto a la opción que lo necesita.
-             Quien no sabe su etiqueta no puede contestar la pregunta, y la
-             pregunta se contesta en la sede de la DGT: por matrícula y **sin
-             identificación previa** —medido el 3/09, ver `DGT_DISTINTIVO`—.
-             Sale en pestaña nueva porque saca de la aplicación con el
-             formulario a medio rellenar, y se distingue por el SUBRAYADO y no
-             por el color, como los otros dos enlaces de esta pantalla. -->
-        <!-- ⭐ Y EL ATAJO: la matrícula, que lo contesta sin salir de aquí.
+        <!-- ⭐ Y CÓMO SE AVERIGUA, sin salir de aquí: la matrícula.
+             ⚠️ **Aquí hubo un enlace a la sede de la DGT** —«Consulta tu
+                etiqueta en la DGT»— y sobró en cuanto la consulta entró en casa
+                (`cdc49d8`): mandaba fuera, en pestaña nueva y con el formulario
+                a medio rellenar, a hacer exactamente lo que ahora hace el botón
+                de aquí al lado. Lo que sí se queda es la **cita a la DGT** en la
+                región de estado, que es la atribución que su aviso legal exige.
+
+             El patrón entero del dato vivo [WCAG 4.1.3 Status Messages]: la
+             región `role="status"` está en el DOM **antes** de la respuesta —si
+             naciera con ella, no habría nada que el lector estuviera
              El patrón entero del dato vivo [WCAG 4.1.3 Status Messages]: la
              región `role="status"` está en el DOM **antes** de la respuesta —si
              naciera con ella, no habría nada que el lector estuviera
@@ -461,13 +464,6 @@
             >{{ loDeLaDgtEnPalabras() }}</span
           >
         </span>
-        <a
-          class="distintivo__dgt"
-          [href]="enlaceDgt"
-          target="_blank"
-          rel="noopener"
-          >Consulta tu etiqueta en la DGT</a
-        >
       </fieldset>
 
       <!--

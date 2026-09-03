@@ -4738,35 +4738,23 @@ describe('Buscador', () => {
   });
 
   /**
-   * ⭐ JUEZ 5 — EL ENLACE A LA DGT, junto a «No lo sé» y **saliente**.
+   * ⚠️ **AQUÍ VIVÍA LA JUEZ 5 DE LA CASILLA 3, Y SE HA IDO CON SU TEMA** (3/09).
    *
-   * Quien no sabe su etiqueta necesita poder averiguarla, y se averigua en un
-   * sitio: la sede de la DGT, por matrícula y **sin identificación previa**
-   * —medido el 3/09, ver el comentario del componente—. Va con `target="_blank"`
-   * porque saca de la aplicación en mitad de un formulario a medio rellenar, y
-   * con `rel="noopener"` como los otros dos enlaces salientes de la pantalla.
+   * Compraba el enlace «Consulta tu etiqueta en la DGT» que colgaba de la
+   * pregunta del distintivo: que existiera solo con coche, que saliera en
+   * pestaña nueva y que su URL fuera la medida —la de manual contesta 200 con
+   * una página «Page Not Found»—.
+   *
+   * El enlace sobró en cuanto **la consulta entró en casa** (`cdc49d8`): el
+   * botón «Consultar distintivo» hace aquí, sin salir de la pantalla, lo mismo
+   * que aquel enlace mandaba a hacer fuera. Una juez de algo que ya no existe
+   * es una juez que solo puede ponerse roja el día que alguien limpie, así que
+   * se retira con lo que vigilaba.
+   *
+   * **Lo que NO se ha ido es la cita a la DGT**: la región de estado dice
+   * «Fuente: DGT» con su hora, y eso es la atribución que su aviso legal exige
+   * —reproducción fiel y cita de la fuente—. La compra la juez 6.
    */
-  it('⭐ 5 · el enlace a la DGT vive con la pregunta del distintivo y sale fuera', async () => {
-    const fixture = TestBed.createComponent(Buscador);
-    await fixture.whenStable();
-    const raiz = fixture.nativeElement as HTMLElement;
-
-    // Sin coche, la pregunta no está y el enlace tampoco.
-    elegirModo(fixture, 'andando');
-    expect(raiz.querySelector('.distintivo__dgt')).toBeNull();
-
-    elegirModo(fixture, 'coche');
-    const enlace = raiz.querySelector<HTMLAnchorElement>('.distintivo__dgt');
-    expect(enlace).not.toBeNull();
-    expect(enlace!.textContent?.trim()).toBe('Consulta tu etiqueta en la DGT');
-    expect(enlace!.getAttribute('href')).toBe(
-      'https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/',
-    );
-    expect(enlace!.getAttribute('target')).toBe('_blank');
-    expect(enlace!.getAttribute('rel')).toBe('noopener');
-    // Y va dentro del grupo del distintivo: es de esa pregunta, no del formulario.
-    expect(raiz.querySelector('fieldset.distintivos .distintivo__dgt')).not.toBeNull();
-  });
 
   /**
    * ⭐ JUEZ 7 — LA MURALLA: las dos preguntas nuevas no se le cuelan a nadie.
