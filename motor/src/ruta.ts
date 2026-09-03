@@ -492,8 +492,13 @@ export function geometriaDe(ruta: Ruta): readonly Punto[] {
 export interface CorteDeGeometria {
   readonly desde: number;
   readonly hasta: number;
-  /** Si el trecho se recorre EMPUJANDO el vehículo, es decir, a pie. */
-  readonly empujando: boolean;
+  /**
+   * Si los trozos de este corte están **marcados**. Qué significa la marca lo
+   * pone quien llama: para la rueda es «se va empujando» y para el coche «se va
+   * dentro de la Zona de Bajas Emisiones». Lo único que este fichero sabe es
+   * que el corte cambia donde cambia la marca.
+   */
+  readonly marcado: boolean;
   readonly primerTrozo: number;
   readonly ultimoTrozo: number;
 }
@@ -510,9 +515,10 @@ export interface CorteDeGeometria {
  * BiZi, con el corte cayendo dos vértices antes de donde toca—. Aquí el corte
  * sale de la misma vuelta que construye los puntos, así que no puede derivar.
  *
- * `esEmpuje` lo pone quien llama: es cosa de la red de la rueda, y `ruta.ts` no
- * sabe ni tiene por qué saber qué aristas se cruzan con la bici en la mano. El
- * peatón no llama nunca a esto.
+ * `marcada` lo pone quien llama: `ruta.ts` no sabe ni tiene por qué saber qué
+ * aristas se cruzan con la bici en la mano ni cuáles caen dentro de la Zona de
+ * Bajas Emisiones. Desde el 3/09 tiene **dos** clientes con marcas distintas —la
+ * rueda y el coche— y por eso el nombre es genérico. El peatón no llama nunca.
  *
  * **El vértice de la costura pertenece a los dos cortes**: el `hasta` de uno es
  * el `desde` del siguiente. Así las líneas pintadas se tocan en vez de dejar un
@@ -526,21 +532,21 @@ export interface CorteDeGeometria {
  */
 export function geometriaPorModo(
   ruta: Ruta,
-  esEmpuje: (arista: number) => boolean,
+  marcada: (arista: number) => boolean,
 ): { readonly puntos: readonly Punto[]; readonly cortes: readonly CorteDeGeometria[] } {
   const puntos: Punto[] = [...ruta.conectorOrigen];
   const cortes: {
     desde: number;
     hasta: number;
-    empujando: boolean;
+    marcado: boolean;
     primerTrozo: number;
     ultimoTrozo: number;
   }[] = [];
 
   ruta.trozos.forEach((trozo, k) => {
-    const empujando = esEmpuje(trozo.arista);
+    const marcado = marcada(trozo.arista);
     const ultimo = cortes[cortes.length - 1];
-    if (!ultimo || ultimo.empujando !== empujando) {
+    if (!ultimo || ultimo.marcado !== marcado) {
       cortes.push({
         // ⭐ El corte nuevo arranca en el último vértice ya puesto: la costura,
         // que pertenece a los dos lados. **Salvo el primero, que arranca en 0**
@@ -550,7 +556,7 @@ export function geometriaPorModo(
         // y el siguiente ya no cerraba con él.
         desde: cortes.length === 0 ? 0 : Math.max(0, puntos.length - 1),
         hasta: Math.max(0, puntos.length - 1),
-        empujando,
+        marcado,
         primerTrozo: k,
         ultimoTrozo: k,
       });

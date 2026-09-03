@@ -54,7 +54,7 @@ import type {
 import {
   Monticulo,
   conector,
-  geometriaDe,
+  geometriaPorModo,
   trozoDelEnganche,
   trozoEntero,
   trozoEntreDosEnganches,
@@ -1004,7 +1004,43 @@ function hitoDeAparcarEnParking(nombre: string): Paso {
   };
 }
 
-/** La etapa que se conduce, ya narrada y con sus tramos. */
+/**
+ * ⭐ LOS SEGUNDOS DE CADA TROZO, con la transición que lleva hasta él.
+ *
+ * Se calcula **con la misma fórmula con la que se armó `ruta.segundos`** —el
+ * primero y el último son trechos parciales del enganche, los de en medio son
+ * aristas enteras, y cada uno paga la transición por la que se llegó—, así que
+ * la suma de todos es exactamente el total. Si saliera de otra cuenta parecida,
+ * un día dejarían de sumar y nadie sabría cuál de las dos miente.
+ */
+function segundosPorTrozo(servida: RedDeCocheServida, ruta: RutaDeCoche): readonly number[] {
+  const cocinada = servida.cocinada;
+  const cuantos = ruta.trozos.length;
+  return ruta.trozos.map((trozo, k) => {
+    const propio =
+      k === 0 || k === cuantos - 1
+        ? segundosDeUnTrecho(servida, trozo.arista, trozo.metros)
+        : cocinada.aristas[trozo.arista]!.segundos;
+    const antes = k === 0 ? 0 : (costeDeTransicion(cocinada, ruta.trozos[k - 1]!.arista, trozo.arista) ?? 0);
+    return propio + antes;
+  });
+}
+
+/**
+ * La etapa que se conduce, ya narrada y **partida por la Zona de Bajas
+ * Emisiones** (3/09, casilla 3-bis).
+ *
+ * ⭐ **El corte lo da el motor y sale de la MARCA de la arista**, no de cruzar
+ * la línea con el polígono. Las dos preguntas no dan lo mismo: la cocina marca
+ * una arista por su punto medio (§ 1.30), así que las calles del borde —Coso,
+ * Echegaray, César Augusto— entran y salen del polígono sin estar marcadas.
+ * Medido el 3/09: la ruta a `CALLE CASTA ÁLVAREZ 41` entra **cuatro veces** en
+ * el polígono y pisa **una sola racha** de aristas marcadas.
+ *
+ * Y se usa `geometriaPorModo`, que es la misma máquina con la que la rueda
+ * separa lo empujado: el corte sale **de la misma vuelta que construye los
+ * puntos**, así que no puede derivar de ellos. Ver su cabecera.
+ */
 function etapaEnCoche(
   servida: RedDeCocheServida,
   ruta: RutaDeCoche,
@@ -1023,23 +1059,46 @@ function etapaEnCoche(
     costuras,
     aperturas,
   );
-  const geometria: Vertice[] = geometriaDe(ruta).map(([lon, lat]) => [lat, lon]);
+  const troceada = geometriaPorModo(
+    ruta,
+    (arista) => servida.cocinada.aristas[arista]!.zbe === true,
+  );
+  const geometria: Vertice[] = troceada.puntos.map(([lon, lat]) => [lat, lon]);
+  const porTrozo = segundosPorTrozo(servida, ruta);
   return {
     etapa: {
       pasos,
       geometria,
       metros: ruta.metros,
       segundos: ruta.segundos,
-      // En coche no hay empuje ni cambio de vehículo: un solo sub-tramo.
-      tramos: [
-        {
-          comoSeVa: 'rodando',
-          desde: 0,
-          hasta: Math.max(0, geometria.length - 1),
-          metros: ruta.metros,
-          segundos: ruta.segundos,
-        },
-      ],
+      tramos:
+        troceada.cortes.length === 0
+          ? // Una ruta sin trozos —los dos extremos en el mismo cruce— no tiene
+            // nada que partir, y el contrato exige al menos un tramo.
+            [
+              {
+                comoSeVa: 'rodando' as const,
+                desde: 0,
+                hasta: Math.max(0, geometria.length - 1),
+                metros: ruta.metros,
+                segundos: ruta.segundos,
+                zbe: false,
+              },
+            ]
+          : troceada.cortes.map((corte) => ({
+              // En coche no hay empuje ni cambio de vehículo: se conduce todo, y
+              // lo que cambia entre un corte y otro no es la manera sino el sitio.
+              comoSeVa: 'rodando' as const,
+              desde: corte.desde,
+              hasta: corte.hasta,
+              metros: ruta.trozos
+                .slice(corte.primerTrozo, corte.ultimoTrozo + 1)
+                .reduce((suma, t) => suma + t.metros, 0),
+              segundos: porTrozo
+                .slice(corte.primerTrozo, corte.ultimoTrozo + 1)
+                .reduce((suma, x) => suma + x, 0),
+              zbe: corte.marcado,
+            })),
     },
     aperturas,
   };

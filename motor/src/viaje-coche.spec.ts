@@ -99,6 +99,39 @@ function viaje(
 const MARTES_A_LAS_10 = new Date(2026, 8, 1, 10, 0, 0);
 const DOMINGO_A_LAS_10 = new Date(2026, 8, 6, 10, 0, 0);
 
+/**
+ * ⭐ LAS MANERAS DE IR, con las repeticiones seguidas colapsadas (3/09).
+ *
+ * Desde la casilla 3-bis el trecho que se conduce viene **partido por la Zona
+ * de Bajas Emisiones**, así que un viaje con remate ya no es
+ * `['rodando', 'andando']` sino `['rodando', 'rodando', 'andando']` o más. Lo
+ * que estas jueces quieren decir sigue siendo «se conduce y luego se anda», y
+ * eso es lo que esto mide: **cuántas veces cambia la manera**, no cuántos
+ * tramos hay.
+ */
+function comoSeVan(t: Trayecto): readonly string[] {
+  const fuera: string[] = [];
+  for (const tramo of t.tramos) {
+    if (fuera[fuera.length - 1] !== tramo.comoSeVa) {
+      fuera.push(tramo.comoSeVa);
+    }
+  }
+  return fuera;
+}
+
+/**
+ * ⭐ EL TRAMO EN EL QUE SE DEJA EL COCHE: el que muere en el hito.
+ *
+ * ⚠️ **Era `tramos[0]` y dejó de valer el 3/09**: con el corte de la zona, el
+ *    trecho conducido son varios tramos y el hito vive en el ÚLTIMO. Lo pone
+ *    `juntar`, y siempre lo puso; lo que pasaba es que en coche solo había uno.
+ *    La pantalla nunca lo leyó así —busca el tramo con `hito`—, así que esto
+ *    era una suposición de las pruebas y de nadie más.
+ */
+function tramoDelHito(t: Trayecto): { readonly hasta: number } | null {
+  return t.tramos.find((x) => x.hito === 'aparca') ?? null;
+}
+
 /** Dónde acabó aparcando un viaje: el `id` del WFS del sitio que ganó. */
 function dondeAparca(t: Trayecto, tipo: TipoDeAparcamiento): string | null {
   const hito = t.pasos.find((x) => x.giro === 'aparca');
@@ -108,7 +141,10 @@ function dondeAparca(t: Trayecto, tipo: TipoDeAparcamiento): string | null {
   // El hito lleva el nombre y el detalle, no el id: el id se recupera buscando
   // el sitio que cae encima del vértice del hito, que es donde el contrato dice
   // que está — `geometria[tramo.hasta]`, a 0,0 m del dato.
-  const corte = t.tramos[0]!.hasta;
+  const corte = tramoDelHito(t)?.hasta;
+  if (corte === undefined) {
+    return null;
+  }
   const [lat, lon] = t.geometria[corte]!;
   const [cerca] = dondeAparcarCerca(elAparcamiento(), tipo, lon, lat, 1);
   return cerca ? cerca.id : null;
@@ -135,8 +171,8 @@ function selloDe(t: Trayecto): string {
 
 /** Si el coche se ha quedado aparcado DENTRO de la zona. */
 function aparcaDentroDeLaZbe(t: Trayecto): boolean {
-  const corte = t.tramos[0]?.hasta;
-  if (corte === undefined || t.tramos[0]!.hito !== 'aparca') {
+  const corte = tramoDelHito(t)?.hasta;
+  if (corte === undefined) {
     return false;
   }
   // El vértice del hito cae a 0,0 m del sitio donde se deja el coche.
@@ -225,8 +261,8 @@ function comoBuscaElRemate(destino: string): { readonly trozos: readonly { reado
 
 /** El aparcamiento público donde remató el viaje, por su `id` del catálogo. */
 function parkingDelRemate(t: Trayecto): ParkingCocinado | null {
-  const tramo = t.tramos[0];
-  if (!tramo || tramo.hito !== 'aparca') {
+  const tramo = tramoDelHito(t);
+  if (!tramo) {
     return null;
   }
   const [lat, lon] = t.geometria[tramo.hasta]!;
@@ -291,6 +327,9 @@ const ABEN_AIRE_33 = 'Portales.100601';
 // Y tres del casco donde el coste y la recta discrepan, o donde la geometría
 // del borde engaña: CASTA ÁLVAREZ 105, ALFONSO I 28 y HERMANOS ARGENSOLA 2.
 const CASTA_ALVAREZ_105 = 'Portales.81308';
+// Y CASTA ÁLVAREZ 41, que es donde el polígono y la MARCA no dicen lo mismo:
+// la ruta entra 4 veces en el polígono y pisa 1 sola racha de aristas marcadas.
+const CASTA_ALVAREZ_41 = 'Portales.91519';
 const ALFONSO_I_28 = 'Portales.87605';
 const HERMANOS_ARGENSOLA_2 = 'Portales.113971';
 const EN_MEDIO_120 = 'Portales.82922';
@@ -475,12 +514,15 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       assert.equal(t.tramos[t.tramos.length - 1]!.hasta, t.geometria.length - 1);
       assert.equal(t.tramos.reduce((s, x) => s + x.metros, 0), t.metros);
       assert.equal(t.tramos.reduce((s, x) => s + x.segundos, 0), t.segundos);
-      // El coche va `rodando` y sin hitos: no se baja de él por el camino.
-      assert.deepEqual(
-        t.tramos.map((x) => x.comoSeVa),
-        ['rodando'],
-      );
-      assert.equal(t.tramos[0]!.hito, null);
+      // El coche va `rodando` y sin hitos: no se baja de él por el camino. Los
+      // tramos pueden ser varios desde la casilla 3-bis —el corte de la zona—,
+      // pero la MANERA de ir es una sola.
+      assert.deepEqual(comoSeVan(t), ['rodando']);
+      assert.deepEqual(t.tramos.map((x) => x.hito), t.tramos.map(() => null));
+      // ⭐ Y los tramos se tocan: el `hasta` de uno es el `desde` del siguiente.
+      for (let k = 1; k < t.tramos.length; k++) {
+        assert.equal(t.tramos[k]!.desde, t.tramos[k - 1]!.hasta, `${o}→${d}: hueco entre tramos`);
+      }
       // Y los pasos abren y cierran como en todos los modos.
       assert.equal(t.pasos[0]!.giro, 'salida');
       assert.equal(t.pasos[t.pasos.length - 1]!.giro, 'llegada');
@@ -671,21 +713,22 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       const reg = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'regulado' });
       const gra = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'gratuito' });
 
-      // Dos tramos: se conduce y se anda. Y el primero muere en el hito.
+      // Se conduce y se anda, y el coche se deja donde muere lo conducido.
       for (const [nombre, t] of [['regulado', reg], ['gratuito', gra]] as const) {
         assert.deepEqual(
-          t.tramos.map((x) => x.comoSeVa),
+          comoSeVan(t),
           ['rodando', 'andando'],
           `${nombre}: el viaje con aparcamiento son dos tramos`,
         );
-        assert.equal(t.tramos[0]!.hito, 'aparca', `${nombre}: el coche se deja al final del primero`);
-        assert.equal(t.tramos[1]!.hito, null);
+        assert.equal(tramoDelHito(t) !== null, true, `${nombre}: no hay tramo que muera en el hito`);
+        // Y el que se anda no lleva hito: el viaje muere en el portal, no en un sitio.
+        assert.equal(t.tramos[t.tramos.length - 1]!.hito, null);
         // Las sumas del contrato, exactas.
         assert.equal(t.tramos.reduce((a, x) => a + x.metros, 0), t.metros, `${nombre}: metros`);
         assert.equal(t.tramos.reduce((a, x) => a + x.segundos, 0), t.segundos, `${nombre}: segundos`);
         // Y los índices cierran sobre la geometría entera.
         assert.equal(t.tramos[0]!.desde, 0);
-        assert.equal(t.tramos[1]!.hasta, t.geometria.length - 1);
+        assert.equal(t.tramos[t.tramos.length - 1]!.hasta, t.geometria.length - 1);
         assert.equal(t.tramos[1]!.desde, t.tramos[0]!.hasta, `${nombre}: hay un hueco entre tramos`);
       }
 
@@ -715,9 +758,12 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       // ⭐ Los DOS tipos son dos sitios distintos, y el gratuito anda más: en el
       //    casco no hay bordillo libre, y eso es el dato hablando.
       assert.notEqual(reg.metros, gra.metros);
+      // El paseo es el ÚLTIMO tramo: lo conducido puede venir en varios desde
+      // que la zona lo parte. Ver `comoSeVan`.
+      const paseo = (t: Trayecto): number => t.tramos[t.tramos.length - 1]!.metros;
       assert.ok(
-        gra.tramos[1]!.metros > reg.tramos[1]!.metros,
-        `el gratuito anda ${gra.tramos[1]!.metros} m y el regulado ${reg.tramos[1]!.metros}`,
+        paseo(gra) > paseo(reg),
+        `el gratuito anda ${paseo(gra)} m y el regulado ${paseo(reg)}`,
       );
 
       // Y son los tramos que son, citados por su id.
@@ -733,8 +779,8 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
      */
     test('⭐ 2 · discapacitado remata en una plaza PMR real, con su horario literal', () => {
       const t = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'discapacitado' });
-      assert.deepEqual(t.tramos.map((x) => x.comoSeVa), ['rodando', 'andando']);
-      assert.equal(t.tramos[0]!.hito, 'aparca');
+      assert.deepEqual(comoSeVan(t), ['rodando', 'andando']);
+      assert.equal(tramoDelHito(t) !== null, true);
       const hito = t.pasos.find((x) => x.giro === 'aparca')!;
       assert.match(hito.texto, /plaza PMR \(horario: permanente\)$/);
       assert.equal(dondeAparca(t, 'discapacitado'), PMR_ECHEGARAY);
@@ -851,8 +897,8 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       );
       assert.ok(vetado.metros > 0, 'sigue habiendo viaje: el destino está fuera');
       assert.equal(aparcaDentroDeLaZbe(vetado), false, 'ha aparcado dentro de la zona vetada');
-      assert.deepEqual(vetado.tramos.map((x) => x.comoSeVa), ['rodando', 'andando']);
-      assert.equal(vetado.tramos[0]!.hito, 'aparca');
+      assert.deepEqual(comoSeVan(vetado), ['rodando', 'andando']);
+      assert.equal(tramoDelHito(vetado) !== null, true);
       assert.equal(vetado.metros, 2421);
     });
 
@@ -893,8 +939,8 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
 
       // Y con el DESTINO dentro, lo que se conserva: el coche no llega al portal.
       const rematado = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
-      assert.deepEqual(rematado.tramos.map((x) => x.comoSeVa), ['rodando', 'andando']);
-      assert.equal(rematado.tramos[0]!.hito, 'aparca');
+      assert.deepEqual(comoSeVan(rematado), ['rodando', 'andando']);
+      assert.equal(tramoDelHito(rematado) !== null, true);
     });
 
     /**
@@ -911,8 +957,8 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       assert.equal(cruzando.segundos, 423);
       assert.equal(cruzando.pasos.length, 14);
       assert.equal(cruzando.geometria.length, 251);
-      assert.deepEqual(cruzando.tramos.map((x) => x.comoSeVa), ['rodando']);
-      assert.equal(cruzando.tramos[0]!.hito, null);
+      assert.deepEqual(comoSeVan(cruzando), ['rodando']);
+      assert.deepEqual(cruzando.tramos.map((x) => x.hito), cruzando.tramos.map(() => null));
       assert.equal(cruzando.avisos.length, 1);
       assert.equal(cruzando.avisos[0]!.paso, 9);
 
@@ -939,9 +985,26 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
        *    lugar en vez de en cuarto. Ni un valor cambia — se midió el 3/09
        *    sobre 36 trayectos de los seis modos—, pero el orden de las claves
        *    de un objeto JSON sí, y eso no es parte de ninguna promesa.
+       *
+       * ⚠️ **Y desde la casilla 3-bis tampoco es «al byte» del todo**: cada
+       *    tramo del coche estrena `zbe`, y eso cambia el sello. Lo que sigue
+       *    comprándose es que **no cambia nada MÁS**: se quita el campo y el
+       *    sello vuelve a ser el de `8763c64`.
        */
-      assert.equal(selloDe(cruzando), '105b67ff1310534103331880501cfcbefa472c658fed083d02d4316a72f6f963');
-      assert.equal(selloDe(sinCasco), 'aa2225aed85848e8f66f62c442f0b8aabde47360ae1914fb9141290dd5f1d3d8');
+      assert.equal(selloDe(cruzando), '3435caa525cad21d2e1334cba765cb46fa5082a8e001a5b85b69260d4f700774');
+      assert.equal(selloDe(sinCasco), '354b9984a90ceec9531c482a7cb019e85317d54db3028fa840ebf0ddfd91a55f');
+      const sinElCampo = (t: Trayecto): Trayecto => ({
+        ...t,
+        tramos: t.tramos.map(({ zbe, ...resto }) => {
+          void zbe;
+          return resto;
+        }),
+      });
+      assert.equal(
+        selloDe(sinElCampo(sinCasco)),
+        'aa2225aed85848e8f66f62c442f0b8aabde47360ae1914fb9141290dd5f1d3d8',
+        'quitando `zbe`, la respuesta tiene que ser la de la casilla 1b',
+      );
     });
 
     /**
@@ -992,8 +1055,8 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
     test('⭐ 1 · el destino dentro de la zona remata en un parking público', () => {
       const t = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
 
-      assert.deepEqual(t.tramos.map((x) => x.comoSeVa), ['rodando', 'andando']);
-      assert.equal(t.tramos[0]!.hito, 'aparca');
+      assert.deepEqual(comoSeVan(t), ['rodando', 'andando']);
+      assert.equal(tramoDelHito(t) !== null, true);
 
       const parking = parkingDelRemate(t);
       assert.ok(parking, 'el viaje no ha rematado en ningún aparcamiento del catálogo');
@@ -1031,10 +1094,11 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       const gana = parkingDelRemate(otro);
       assert.ok(gana);
       assert.equal(gana.id, 1, 'el coste tiene que mandar a Plaza del Pilar - Juzgados');
+      // El portal está en el ÚLTIMO vértice: ahí muere lo que se anda.
+      const [latFin, lonFin] = otro.geometria[otro.geometria.length - 1]!;
       const enRecta = [...losParkingsDeLaZbe().filter((x) => x.dentroDeFase1)].sort(
         (a, b) =>
-          Math.hypot(a.lon - otro.geometria[otro.tramos[1]!.hasta]![1], a.lat - otro.geometria[otro.tramos[1]!.hasta]![0]) -
-          Math.hypot(b.lon - otro.geometria[otro.tramos[1]!.hasta]![1], b.lat - otro.geometria[otro.tramos[1]!.hasta]![0]),
+          Math.hypot(a.lon - lonFin, a.lat - latFin) - Math.hypot(b.lon - lonFin, b.lat - latFin),
       )[0]!;
       assert.equal(enRecta.id, 3, 'el más cercano en recta tiene que ser César Augusto');
       assert.notEqual(gana.id, enRecta.id, 'si coinciden, esta juez no compra nada');
@@ -1055,10 +1119,10 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
        *    entera y cierran ese hueco.
        */
       const SELLOS: readonly (readonly [string, string])[] = [
-        [ABEN_AIRE_33, '790feb26d1c3b6893111233f7d5c6454c8fbd4a11dc3b8802f0afc89c11815fd'],
-        [CASTA_ALVAREZ_105, 'c667c11c16f8c53be824e2eac5b7c2d28320b7f290f78312e4a210ed134d1e28'],
-        [ALFONSO_I_28, '6ece0642e62b7e33804b2d88adec8188fab4250a0fc740008f189796d14af7ad'],
-        [HERMANOS_ARGENSOLA_2, 'cf86936409adfc91eb5235b3663fa34621871e5837c1f778017f4e6eb92bc272'],
+        [ABEN_AIRE_33, '3bd7269b879095d7c835b9b35b0c4517de5916a4ca3a9b04f2c7be3d7eb3bce7'],
+        [CASTA_ALVAREZ_105, '85ec5ba4bab248516551a4475a611b3cf9258def5ecd5c932357771f5546b419'],
+        [ALFONSO_I_28, '42a101650a5650ddffc2469962ed73da201ac78bc84dd2b8925c41026df579b0'],
+        [HERMANOS_ARGENSOLA_2, 'e792b7017b2738d0f404308192bfed393d17144a84fc95f05246ac4478344990'],
       ];
       for (const [donde, huella] of SELLOS) {
         const respuesta = viaje(LAPUYADE_3, donde, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
@@ -1088,12 +1152,12 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
      */
     test('⭐ 2 · con «sí puede entrar» se entra directo, sin remate', () => {
       const conSi = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: true }, MARTES_A_LAS_10);
-      assert.equal(conSi.tramos.length, 1);
-      assert.equal(conSi.tramos[0]!.hito, null);
+      assert.deepEqual(comoSeVan(conSi), ['rodando']);
+      assert.deepEqual(conSi.tramos.map((x) => x.hito), conSi.tramos.map(() => null));
       assert.equal(parkingDelRemate(conSi), null);
       assert.equal(
         selloDe(conSi),
-        '105b67ff1310534103331880501cfcbefa472c658fed083d02d4316a72f6f963',
+        '3435caa525cad21d2e1334cba765cb46fa5082a8e001a5b85b69260d4f700774',
         'la respuesta de quien SÍ puede entrar ha cambiado',
       );
       assert.equal(selloDe(conSi), selloDe(viaje(LAPUYADE_3, ABEN_AIRE_33)));
@@ -1107,13 +1171,13 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
      */
     test('⭐ 3 · en domingo no se veta nada y no se remata', () => {
       const t = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, DOMINGO_A_LAS_10);
-      assert.equal(t.tramos.length, 1);
+      assert.deepEqual(comoSeVan(t), ['rodando']);
       assert.equal(parkingDelRemate(t), null);
       assert.equal(t.avisos.length, 1);
       assert.match(t.avisos[0]!.texto, /pero ahora no está en vigor/);
       assert.equal(
         selloDe(t),
-        '21ad0282367f7c27e753d545d5e3715af2e7cbfc29dbdf4cc8d47829a8d216f0',
+        'd2beccde8e5d3ac169625c935b673970ca2606475e5393b50390ed216ed11557',
         'la respuesta del domingo ha cambiado',
       );
     });
@@ -1128,7 +1192,7 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       const pelado = viaje(LAPUYADE_3, PALENCIA_2, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
       assert.equal(
         selloDe(pelado),
-        'd6d1ffed2ad985617592a097e29e4faadf8f0a9777c8e5db28c1058fbc71ec3d',
+        '3578fef2e1530324865c04e4f40a2ed676a6238d754c5034e79f99ce9562d2d7',
       );
       const conParking = viaje(
         LAPUYADE_3,
@@ -1138,7 +1202,7 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       );
       assert.equal(
         selloDe(conParking),
-        '68b1997c80a20688960a81295792e83a9f436cab8d05c61bfc1367edafa627c3',
+        'dcefcd2ab3a182ee29966d8b5630db6b25b29738407c254634f970355698dd37',
       );
     });
 
@@ -1207,6 +1271,139 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
       viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false, aparcamiento: 'gratuito' }, MARTES_A_LAS_10);
       assert.equal(losSeis(), antes, 'el remate al parking ha movido lo que contestan los demás');
+    });
+  });
+
+  describe('⭐ EL CORTE DE LA ZONA EN EL TRAYECTO (casilla 3-bis)', () => {
+    /**
+     * ⭐ JUEZ 2 — EL VIAJE QUE PISA LA ZONA VIENE PARTIDO; el que no, entero.
+     *
+     * Es la misma ley que ya rige `montado` y `andando`: **el corte lo da el
+     * motor** y la pantalla parte donde le digan. Lo que cambia es que aquí el
+     * corte no es una manera de ir —se conduce igual dentro y fuera— sino un
+     * sitio, y por eso viaja en su propio campo. Ver `TramoDelViaje.zbe`.
+     */
+    test('⭐ 2 · el viaje que pisa la zona trae el corte; el que no, un solo tramo', () => {
+      const cruzando = viaje(LAPUYADE_3, ABEN_AIRE_33);
+      assert.ok(cruzando.tramos.length > 1, 'una ruta que cruza el casco tiene que venir partida');
+      assert.deepEqual(
+        cruzando.tramos.map((t) => t.comoSeVa),
+        cruzando.tramos.map(() => 'rodando'),
+        'todos los trozos se conducen: la zona no es otra manera de ir',
+      );
+      const dentro = cruzando.tramos.filter((t) => t.zbe === true);
+      assert.equal(dentro.length, 1, 'una sola racha dentro de la zona');
+      // Y los de fuera lo dicen: `false` es «se ha mirado», `undefined` sería
+      // «no aplica», y en coche siempre aplica.
+      assert.equal(
+        cruzando.tramos.filter((t) => t.comoSeVa === 'rodando').every((t) => typeof t.zbe === 'boolean'),
+        true,
+        'lo que se CONDUCE contesta siempre a la pregunta de la zona',
+      );
+      // ⚠️ Y lo que se anda NO la contesta: a la zona se entra a pie sin
+      //    permiso de nadie, así que ahí la pregunta no aplica.
+      const conRemate = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+      assert.equal(conRemate.tramos[conRemate.tramos.length - 1]!.comoSeVa, 'andando');
+      assert.equal(conRemate.tramos[conRemate.tramos.length - 1]!.zbe, undefined);
+
+      // Y el que no la pisa: un tramo, y su `zbe` es `false`, no `undefined`.
+      const lejos = viaje(LAPUYADE_3, EN_MEDIO_120);
+      assert.equal(lejos.tramos.length, 1);
+      assert.equal(lejos.tramos[0]!.zbe, false);
+
+      // ⚠️ Y los demás modos NO contestan: la zona no les alcanza.
+      for (const modo of ['andando', 'bici', 'patin', 'bizi'] as const) {
+        const otro = calcularTrayecto(motor, {
+          origen: porCodigos(LAPUYADE_3),
+          destino: porCodigos(EN_MEDIO_120),
+          modo,
+        });
+        for (const t of otro.tramos) {
+          assert.equal(t.zbe, undefined, `${modo} no tiene por qué hablar de la ZBE`);
+        }
+      }
+    });
+
+    /**
+     * ⭐ JUEZ 3 — EL CORTE ES EL DE LAS ARISTAS MARCADAS, **no el del polígono**.
+     *
+     * Y no son la misma pregunta. La cocina marca una arista por su **punto
+     * medio** (§ 1.30), así que las calles del borde —Coso, Echegaray, César
+     * Augusto— entran y salen del polígono sin estar marcadas.
+     *
+     * El caso es real y citado: `CALLE CASTA ÁLVAREZ 41`. Su ruta entra **cuatro
+     * veces** en el polígono de la fase 1 y pisa **una sola racha** de aristas
+     * marcadas. Una pantalla que cortara por geometría pintaría cuatro trozos
+     * rojos donde el motor ve uno.
+     */
+    test('⭐ 3 · el corte sigue la marca de la arista, no el polígono', () => {
+      const t = viaje(LAPUYADE_3, CASTA_ALVAREZ_41);
+      const dentro = t.tramos.filter((x) => x.zbe === true);
+      assert.equal(dentro.length, 1, 'la marca dice una racha');
+
+      // Y lo que diría el polígono sobre la MISMA geometría publicada.
+      const zona = poligonoDeLaFase1();
+      let entradas = 0;
+      let previo = false;
+      for (let k = 0; k + 1 < t.geometria.length; k++) {
+        const [latA, lonA] = t.geometria[k]!;
+        const [latB, lonB] = t.geometria[k + 1]!;
+        const d = dentroDeLaZbe((lonA + lonB) / 2, (latA + latB) / 2, zona);
+        if (d && !previo) {
+          entradas++;
+        }
+        previo = d;
+      }
+      assert.equal(entradas, 4, 'el polígono corta cuatro veces esta misma ruta');
+      assert.notEqual(entradas, dentro.length, 'si coincidieran, esta juez no compra nada');
+
+      // Y el tramo marcado NO empieza donde el polígono: si la pantalla cortara
+      // por geometría, el primer trozo rojo empezaría antes.
+      const primeroDentro = t.tramos.findIndex((x) => x.zbe === true);
+      assert.ok(primeroDentro > 0, 'se entra en la zona después de haber salido de casa');
+    });
+
+    /**
+     * ⭐ JUEZ 9 — LA MURALLA: el corte no se le cuela a nadie más.
+     *
+     * Los cinco modos que no son coche siguen contestando **al byte** — sus
+     * sellos son los que se midieron el 3/09 antes de esta casilla—. El del
+     * coche cambia, y cambia **a propósito**: es el campo del corte.
+     */
+    test('⭐ 9 · los otros cinco modos, al byte; el del coche cambia y se declara', () => {
+      const SELLOS: readonly (readonly [string, string])[] = [
+        ['andando', '2b7a1044387263f3b0c187941783bae7b5c4b27fc87ff70c617fd1f216bf7710'],
+        ['bici', '1759c4243b6dc5e8cecec348923c52058fb8493c00f229280ef88862b411a4a3'],
+        ['patin', '12d8af642a0b475908fd12534ec11061706906c0898f628391e8a8e247096593'],
+        ['bizi', 'f5aca31bf70df0e8f6a44ea4f3faaf55f1d2ed2d4f8b72eac148be1eccb491fe'],
+        ['bus', '94302b636c242dfd2c7f59738241f2f50c8ebe8b029c48e67e644cb1947faf0e'],
+      ];
+      for (const [modo, huella] of SELLOS) {
+        const t = calcularTrayecto(motor, {
+          origen: porCodigos(LAPUYADE_3),
+          destino: porCodigos(EN_MEDIO_120),
+          modo: modo as Trayecto['modo'],
+        });
+        assert.equal(selloDe(t), huella, `${modo} ha cambiado y no debía`);
+      }
+      // Y el del coche: lo único que se mueve es el campo nuevo.
+      const coche = calcularTrayecto(motor, {
+        origen: porCodigos(LAPUYADE_3),
+        destino: porCodigos(EN_MEDIO_120),
+        modo: 'coche',
+      });
+      const sinElCampo = {
+        ...coche,
+        tramos: coche.tramos.map(({ zbe, ...resto }) => {
+          void zbe;
+          return resto;
+        }),
+      };
+      assert.equal(
+        selloDe(sinElCampo as Trayecto),
+        'aa2225aed85848e8f66f62c442f0b8aabde47360ae1914fb9141290dd5f1d3d8',
+        'quitando `zbe`, el coche tiene que dar exactamente lo de antes',
+      );
     });
   });
 

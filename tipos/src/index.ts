@@ -620,6 +620,36 @@ export interface TramoDelViaje {
    */
   readonly linea?: LineaDelViaje;
   /**
+   * ⭐ SI ESTE TRECHO VA **DENTRO DE LA ZONA DE BAJAS EMISIONES** (3/09).
+   *
+   * Solo lo pone el coche, y `undefined` es «no aplica» — andando, en bici o en
+   * autobús la zona no alcanza—. No es lo mismo que `false`, que es «se ha
+   * mirado y va por fuera».
+   *
+   * ── Por qué es un campo y no un `comoSeVa` nuevo ────────────────────────────
+   *
+   * `comoSeVa` contesta **cómo** se recorre el trecho, y dentro de la zona se
+   * conduce exactamente igual que fuera: lo que cambia no es la manera, es el
+   * sitio. Meterlo ahí obligaría además a que cada `switch` exhaustivo del que
+   * pinta tratara «ir por la zona» como una forma de moverse, y el día que otro
+   * modo pisara la zona habría que inventar un valor por modo.
+   *
+   * ⚠️ **Y EL CORTE LO DA EL MOTOR, no la geometría.** Quien pinta NO puede
+   *    calcular esto cruzando la línea con el polígono: la marca es de la
+   *    ARISTA —la cocina la pone por el punto medio de cada arista, § 1.30— y
+   *    las dos preguntas no dan lo mismo. Medido el 3/09: sobre 122 viajes al
+   *    casco, **45 entran dos veces en el polígono** aunque ninguno pise dos
+   *    veces la zona marcada, porque las calles del borde —Coso, Echegaray,
+   *    César Augusto— entran y salen del polígono sin estar marcadas. Una
+   *    pantalla que cortara por geometría pintaría de rojo trozos que el motor
+   *    no considera dentro.
+   *
+   * Es la misma ley que ya rige `montado` y `andando`: **la pantalla parte
+   * donde le digan**, y el sitio del corte va en `desde`/`hasta` como el de
+   * todos los demás.
+   */
+  readonly zbe?: boolean;
+  /**
    * Índice del **primer** vértice de este tramo dentro de `Trayecto.geometria`,
    * y del **último**. Los dos son inclusivos y **el último de un tramo es el
    * primero del siguiente**: el vértice de la costura pertenece a los dos, para

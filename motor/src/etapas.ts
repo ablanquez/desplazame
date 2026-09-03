@@ -98,6 +98,8 @@ export interface TramoDeEtapa {
   readonly segundos: number;
   /** Solo cuando se va `montado`: qué línea. Ver el contrato. */
   readonly linea?: LineaDelViaje;
+  /** Solo el coche: si este trecho va dentro de la ZBE. Ver el contrato. */
+  readonly zbe?: boolean;
 }
 
 /** Un tramo ya calculado y ya narrado. Lo que se suma para hacer el viaje. */
@@ -309,7 +311,8 @@ function tramosDeLoRodado(
   return troceada.cortes.map((corte) => {
     const rebanada = trazado.trozos.slice(corte.primerTrozo, corte.ultimoTrozo + 1);
     return {
-      comoSeVa: corte.empujando ? ('andando' as const) : ('rodando' as const),
+      // Aquí la marca significa «se va empujando». Ver `CorteDeGeometria`.
+      comoSeVa: corte.marcado ? ('andando' as const) : ('rodando' as const),
       desde: corte.desde,
       hasta: corte.hasta,
       metros: rebanada.reduce((s, t) => s + t.metros, 0),
@@ -398,6 +401,9 @@ export function redondearTramos(
       metros: suyos,
       segundos: suyosS,
       hito: t.hito,
+      // ⚠️ Solo si viene: `undefined` es «no aplica», y meterlo siempre haría
+      //    que los cinco modos que no son coche estrenaran una clave.
+      ...(t.zbe === undefined ? {} : { zbe: t.zbe }),
       // La línea solo viaja si la hay: un `linea: undefined` en el JSON de la
       // respuesta diría «hay línea y está vacía», y no es lo mismo que no haber.
       ...(t.linea ? { linea: t.linea } : {}),
