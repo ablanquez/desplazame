@@ -680,6 +680,23 @@ son regulado, y pintarlos contestaría otra pregunta. Están en el fichero igual
 > que vigilaba este filtro (`app/src/app/capas.spec.ts`). El dato se queda en el repositorio con
 > su ficha y su huella: lo que se retiró es el instrumento que lo miraba, no el dato.
 
+> ⭐ **EN USO DESDE EL 3/09, y ya no para pintar: para RUTEAR** (punto 12, casilla
+> 2). `POST /api/ruta` con `modo=coche` y `aparcamiento=regulado` conduce hasta
+> uno de estos **1.159 tramos** y anda el resto [*car-to-park*, DOC OTP2]; con
+> `aparcamiento=gratuito`, hasta uno de los **6.204 `LIBRE`**. Lo lee
+> [`motor/src/aparcamiento.ts`](motor/src/aparcamiento.ts), que filtra por
+> **`tipo_actual`** y solo por él — la trampa de arriba tiene ahora una juez que
+> se pone roja si alguien mira `zona_reguladora`.
+>
+> ⚠️ **Los 28 sin clasificar no entran en ningún montón**, y hay una juez que lo
+> compra por sus ids: el censo no dice qué son, y leer ese silencio como
+> «gratuito» sería inventarse 226 plazas.
+>
+> ⚠️ **Y el paso que se escribe no dice ni tarifa ni horario**, porque esta capa
+> no los trae: dice «zona regulada (ESRO)» y «zona regulada de residentes
+> (ESRE)», y se calla lo que costaría. Hay una juez que se pone roja si aparece
+> un € o una franja en esa frase.
+
 Y de este mismo fichero sale una **segunda vista, de cotejo y temporal**: los **2.860 tramos
 `LIBRE` de las 19 zonas sin polígono** (21.268 plazas), en morado y discontinua, con la casilla
 «¿Ampliación? zonas sin activar». **No es otro dato ni otra descarga**: es otra lectura de estas
@@ -858,6 +875,19 @@ nada, solo horarios. Eso sí, **escritos de 472 maneras**: `PERMANENTE`, `Perman
 **Cómo se pinta.** Solo las **1.226 PMR**, en discos rosa con aro blanco. El resto del censo viaja
 en el fichero sin pintarse, y hay una prueba (`app/src/app/capas.spec.ts`) que se pone roja si una
 retirada o una denegada se cuela.
+
+> ⭐ **EN USO DESDE EL 3/09, para RUTEAR** (punto 12, casilla 2). `POST /api/ruta`
+> con `modo=coche` y `aparcamiento=discapacitado` conduce hasta una de estas
+> **1.226 plazas** y anda el resto. Lo lee
+> [`motor/src/aparcamiento.ts`](motor/src/aparcamiento.ts), y **filtra por
+> `TIPO === '14_PMR'`**: hay una juez que cuenta las **158 retiradas o denegadas
+> que dicen `SUBTIPO: 'PMR general'`** y se pone roja si alguna entra.
+>
+> ⚠️ **El `HORARIO` se enseña TAL CUAL viene.** Entre las 1.226 hay **104 formas
+> distintas** —`PERMANENTE`, `Permanente`, `permanente`, `0-24`, `0-24 H.`,
+> `n/a`, `VER OBSERVACIONES`—, y el paso dice «plaza PMR (horario: …)» con la
+> cadena del censo dentro, recortada a 40 caracteres y sin interpretar. Hay una
+> juez que compra que `VER OBSERVACIONES` llega entero hasta la frase.
 
 ### 1.14 · Nombres de vía de OpenStreetMap — la otra mitad del grafo
 
