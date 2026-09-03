@@ -79,6 +79,7 @@ import {
   elAparcamiento,
   type DondeAparcar,
 } from './aparcamiento.ts';
+import { losParkingsDeLaFase1, type ParkingCocinado } from './parkings-zbe.ts';
 
 /** Un punto en `[lon, lat]`, como el grafo. */
 type Punto = readonly [number, number];
@@ -208,6 +209,34 @@ function segundosDeUnTrecho(
  * `vetoDeLaZbe`.
  */
 export type AristaVetada = (arista: number) => boolean;
+
+/**
+ * ⭐ EL PESTILLO: un conjunto de aristas **del que no se sale**.
+ *
+ * Devuelve `true` para las aristas de dentro. Entrar está permitido; volver a
+ * salir, no — la búsqueda prohíbe la transición «de dentro a fuera» y ninguna
+ * otra.
+ *
+ * ── Por qué esto y no un veto ni una penalización ───────────────────────────
+ *
+ * El caso es el remate en un aparcamiento público de la Zona de Bajas
+ * Emisiones. El aparcamiento **está dentro**, así que llegar a su puerta pisa
+ * aristas de la zona por fuerza: vetarlas dejaría el destino incomunicado.
+ * Encarecerlas tampoco vale — una penalización lo bastante grande para que no
+ * se atraviese es un veto disfrazado, y una lo bastante pequeña para no serlo
+ * no impide el atajo—.
+ *
+ * Lo que la norma permite es **entrar hacia el aparcamiento**, y lo que prohíbe
+ * es **atravesar de paso**. Eso no es una cuestión de precio: es una cuestión
+ * de forma del camino, y por eso se prohíbe la forma. Con el pestillo puesto,
+ * todo camino o no entra, o entra una vez y **termina dentro** — y el único
+ * final que la búsqueda acepta es el aparcamiento.
+ *
+ * ⚠️ **Vale porque la marca es de la arista, no del camino.** «Estar dentro» se
+ *    lee de la propia arista que se acaba de recorrer, así que no hace falta
+ *    duplicar el estado del Dijkstra: sigue siendo una arista dirigida.
+ */
+export type Pestillo = (arista: number) => boolean;
 
 /** Las dos caras de un enganche: la arista en la que cayó y su reverso. */
 function lasDosCaras(servida: RedDeCocheServida, enganche: Enganche): Enganche[] {
@@ -351,6 +380,7 @@ function buscarEnCoche(
   puntoOrigen: Punto,
   destinos: readonly DestinoDelCoche[],
   vetada?: AristaVetada,
+  pestillo?: Pestillo,
 ): RutaAlDestino | null {
   const red = servida.comoRed;
   const cocinada = servida.cocinada;
@@ -521,6 +551,29 @@ function buscarEnCoche(
       if (vetada?.(siguiente)) {
         continue;
       }
+      /**
+       * ⭐ EL PESTILLO: de dentro **solo se sale para rematar**, y ahí se acaba.
+       *
+       * La transición prohibida es dentro → fuera, y con ella se cae la única
+       * forma que tenía el camino de atravesar la zona en vez de entrar en ella.
+       *
+       * ⚠️ **Con una excepción, y está medida.** La puerta de un aparcamiento
+       *    puede caer en una arista que NO está marcada aunque el aparcamiento
+       *    sí esté dentro: `Puerta Cinegia` engancha a **58,6 m**, en Plaza
+       *    España, a una arista de fuera a la que solo se llega desde dentro.
+       *    Con el pestillo a secas ese aparcamiento se quedaba **sin ruta** y
+       *    desaparecía del reparto — y es el que deja el paseo más corto de los
+       *    cuatro. Salir para terminar no es atravesar: no hay «después».
+       *
+       *    Por eso se permite el salto **solo si `siguiente` remata**, y por eso
+       *    de esa arista **no se sigue conduciendo** (el `continue` de abajo).
+       *    Sin ese segundo corte, un remate de fuera sería un puente para cruzar
+       *    la zona y seguir, que es justo lo que esto prohíbe.
+       */
+      const saliendo = pestillo !== undefined && pestillo(arista) && !pestillo(siguiente);
+      if (saliendo && !alFinal.has(siguiente)) {
+        continue;
+      }
       // ⭐ AQUÍ es donde el veto prohíbe y la penalización cobra: `null` es que
       //    no se puede, y un número es lo que cuesta.
       const transicion = costeDeTransicion(cocinada, arista, siguiente);
@@ -546,6 +599,11 @@ function buscarEnCoche(
           mejorCual = remate.cual;
           trivial = null;
         }
+      }
+
+      // ⭐ Y si se ha salido de la zona, aquí se acaba el viaje: ver arriba.
+      if (saliendo) {
+        continue;
       }
 
       if (libreta.cerrada[siguiente] === marca) {
@@ -671,6 +729,7 @@ export function rutaAlMejorAparcamiento(
   candidatos: readonly { readonly enganche: Enganche; readonly punto: Punto }[],
   paseos: readonly number[],
   vetada?: AristaVetada,
+  pestillo?: Pestillo,
 ): RutaAlDestino | null {
   if (candidatos.length === 0) {
     return null;
@@ -681,6 +740,7 @@ export function rutaAlMejorAparcamiento(
     puntoOrigen,
     candidatos.map((c, k) => ({ ...c, extra: PESO_DE_ANDAR * (paseos[k] ?? 0) })),
     vetada,
+    pestillo,
   );
 }
 
@@ -716,11 +776,36 @@ export function avisosDeLaZbe(
   aperturas: readonly number[],
   zbe: EstadoDeLaZbe,
 ): readonly Aviso[] {
-  const primero = trozos.findIndex((t) => servida.cocinada.aristas[t.arista]!.zbe);
-  if (primero < 0) {
+  const paso = pasoDelPrimerTrozoEnLaZbe(servida, trozos, aperturas);
+  if (paso === null) {
     // ⭐ Y si NO la pisa habiéndose pedido evitarla, se dice: quien preguntó
     //    tomó una decisión y tiene derecho a saber que se ha respetado.
     return zbe.noEntra && zbe.enVigor ? [{ texto: AVISO_ZBE_EVITADA }] : [];
+  }
+  // ⭐ Se dijo que el coche no entra y la ruta entra igual: entonces es que la
+  //    zona no está en vigor ahora, y lo que hay que contar es el reloj.
+  const texto = zbe.noEntra && !zbe.enVigor ? avisoDelRelojDeLaZbe(zbe.cuando) : AVISO_ZBE;
+  return [{ texto, paso }];
+}
+
+/**
+ * El índice del paso que cubre **el primer trozo que cae dentro de la zona**, o
+ * `null` si la ruta no la pisa.
+ *
+ * Se saca aparte porque el remate en un aparcamiento público lo necesita igual y
+ * con la misma regla: el paso que lo cuenta es el que se está siguiendo cuando
+ * se entra, no el que empieza ahí. Sumar los `metros` redondeados de los pasos
+ * para deducirlo es lo que dio el error de 6,9 m; por eso `escribirPasos`
+ * devuelve las aperturas.
+ */
+function pasoDelPrimerTrozoEnLaZbe(
+  servida: RedDeCocheServida,
+  trozos: readonly TrozoDeRuta[],
+  aperturas: readonly number[],
+): number | null {
+  const primero = trozos.findIndex((t) => servida.cocinada.aristas[t.arista]!.zbe);
+  if (primero < 0) {
+    return null;
   }
   let paso = 0;
   const cuantos = Math.max(1, aperturas.length - 1);
@@ -729,10 +814,7 @@ export function avisosDeLaZbe(
       paso = k;
     }
   }
-  // ⭐ Se dijo que el coche no entra y la ruta entra igual: entonces es que la
-  //    zona no está en vigor ahora, y lo que hay que contar es el reloj.
-  const texto = zbe.noEntra && !zbe.enVigor ? avisoDelRelojDeLaZbe(zbe.cuando) : AVISO_ZBE;
-  return [{ texto, paso }];
+  return paso;
 }
 
 /**
@@ -786,6 +868,55 @@ function vetoDeLaZbe(servida: RedDeCocheServida): AristaVetada {
 export const AVISO_ZBE_EVITADA =
   'Esta ruta se ha buscado sin entrar en la Zona de Bajas Emisiones, porque el vehículo no ' +
   'puede: de lunes a viernes de 8:00 a 20:00 los vehículos sin distintivo necesitan autorización';
+
+/**
+ * ⭐ EL AVISO DEL REMATE EN UN APARCAMIENTO PÚBLICO (3/09, casilla 2-bis).
+ *
+ * ── Por qué existe, y por qué no es un rodeo ────────────────────────────────
+ *
+ * La respuesta anterior a un destino de dentro era «no hay forma de llegar sin
+ * entrar». Es verdad **a medias**, y la mitad que falta es la que importa: la
+ * norma municipal permite entrar precisamente para ir a un aparcamiento
+ * público. Callarla es lo que hace la industria —[TomTom SDK, literal] *«la
+ * evitación no está garantizada si no existe ruta alternativa»*, y entra en la
+ * zona sin decir nada—; aquí la alternativa **es legal y se ofrece**.
+ *
+ * ── De dónde sale, palabra por palabra ──────────────────────────────────────
+ *
+ * Del **trámite municipal 42155** («Zona de Bajas Emisiones: registro»),
+ * `https://www.zaragoza.es/sede/servicio/tramite/42155`, **leído el
+ * 03/09/2026** (ver § 1.32). Entre los casos que pueden obtener autorización
+ * registral figura, literal:
+ *
+ *   *«Vehículos que accedan a estacionamientos públicos con sistema de control
+ *   de acceso conectado.»*
+ *
+ * Y los otros que el aviso enumera son de la misma lista: *«Vehículo asociado a
+ * plaza de garajes dentro de la ZBE»*, *«Vehículo con tarjeta de residente de
+ * estacionamiento regulado dentro de la ZBE»*, *«Vehículo Transporta Persona
+ * con Movilidad Reducida PMR»*.
+ *
+ * ⚠️ **Lo que el aviso NO dice, porque el dato no lo sabe.** Ni que ese
+ *    aparcamiento tenga «sistema de control de acceso conectado» —el catálogo
+ *    55 no trae ese campo—, ni que siga abierto: sus filas están selladas en
+ *    **2013-07-08**. Por eso la frase describe **la norma**, no promete la
+ *    plaza, y dice «con registro municipal», que es lo que hay que hacer.
+ */
+export function avisoDelRemateEnParking(nombre: string): string {
+  return (
+    'Tu destino queda dentro de la Zona de Bajas Emisiones. Sin distintivo solo se puede entrar ' +
+    'con autorización (residentes, plaza de garaje, PMR, o acceso a aparcamiento público ' +
+    `conectado — con registro municipal). Esta ruta remata en el aparcamiento público ${nombre}.`
+  );
+}
+
+/** Y el hito, con la misma cautela: la norma, nunca la promesa de la plaza. */
+export function textoDeAparcarEnParking(nombre: string): string {
+  return (
+    `Aparca en el aparcamiento público ${nombre} — la ZBE permite el acceso a ` +
+    'aparcamientos públicos conectados, con registro municipal'
+  );
+}
 
 /** Y cuando no hay forma de llegar sin entrar: se dice, y no se entra. */
 export const AVISO_ZBE_SIN_RUTA =
@@ -843,6 +974,31 @@ function hitoDeAparcar(motor: Motor, donde: DondeAparcar): Paso {
     texto: partes.map((x) => x.texto).join(''),
     // Un hito no abre tramo: es una parada. Los metros del paseo los lleva el
     // paso que lo abre, como en el aparcabicis y en la estación de BiZi.
+    metros: 0,
+    partes,
+  };
+}
+
+/**
+ * ⭐ EL HITO DEL APARCAMIENTO PÚBLICO, con la norma detrás y ninguna promesa.
+ *
+ * El nombre va con `papel: 'via'` como el de una estación de BiZi o el de un
+ * poste: es **la cosa que se nombra**, y la pantalla ya sabe destacarla.
+ */
+function hitoDeAparcarEnParking(nombre: string): Paso {
+  const partes: ParteDelPaso[] = [
+    { papel: 'accion', texto: 'Aparca' },
+    { papel: 'texto', texto: ' en el aparcamiento público ' },
+    { papel: 'via', texto: nombre },
+    {
+      papel: 'texto',
+      texto:
+        ' — la ZBE permite el acceso a aparcamientos públicos conectados, con registro municipal',
+    },
+  ];
+  return {
+    giro: 'aparca',
+    texto: partes.map((x) => x.texto).join(''),
     metros: 0,
     partes,
   };
@@ -946,10 +1102,9 @@ export function viajeEnCoche(
     return crudo !== null && vetada(crudo.arista);
   };
   if (dentroDeLaZona(origen)) {
+    // Del origen no hay remate posible: el coche ya está dentro, y sacarlo sin
+    // pisar la zona es justo lo que no se puede.
     return sinRuta(`${AVISO_ZBE_SIN_RUTA}. ${origen.nombre} queda dentro de la zona.`);
-  }
-  if (dentroDeLaZona(destino)) {
-    return sinRuta(`${AVISO_ZBE_SIN_RUTA}. ${destino.nombre} queda dentro de la zona.`);
   }
 
   const engancheOrigen = enganchar(
@@ -966,6 +1121,39 @@ export function viajeEnCoche(
         : `${origen.nombre} no tiene cerca ninguna calle por la que pueda circular un ` +
             'coche en nuestro mapa: desde ahí no podemos calcular una ruta en coche.',
     );
+  }
+
+  /**
+   * ⭐ EL DESTINO DENTRO DE LA ZONA: **se remata en un aparcamiento público**.
+   *
+   * Hasta la casilla 2 esto contestaba «no hay forma de llegar sin entrar». Era
+   * verdad y era corto: la ordenanza deja entrar precisamente para ir a un
+   * aparcamiento público conectado [§ 1.32], así que la ruta existe y se da.
+   *
+   * ⚠️ **Manda sobre `aparcamiento`.** Si además se pidió bordillo de un tipo,
+   *    no se mira: los bordillos de dentro están vetados —aparcar ahí es la
+   *    sanción por estar— y los de fuera dejarían el coche antes de la zona sin
+   *    contar que la alternativa legal existía.
+   *
+   * El `vetada &&` de delante no es defensivo: `dentroDeLaZona` ya devuelve
+   * `false` sin veto. Está para que el tipo llegue estrechado a la función, que
+   * lo necesita **no como veto sino como pestillo**.
+   */
+  if (vetada && dentroDeLaZona(destino)) {
+    const alParking = viajeAlParkingDeLaZbe(
+      servida,
+      motor,
+      origen,
+      destino,
+      engancheOrigen,
+      vetada,
+    );
+    if (alParking) {
+      return alParking;
+    }
+    // Sin ningún aparcamiento público al que llegar Y desde el que andar, se
+    // vuelve a la respuesta honrada de la casilla 2.
+    return sinRuta(`${AVISO_ZBE_SIN_RUTA}. ${destino.nombre} queda dentro de la zona.`);
   }
 
   if (opciones?.aparcamiento) {
@@ -1126,6 +1314,105 @@ function viajeConAparcamiento(
     // se anda muere en el portal, que ya lleva su chincheta de destino.
     [{ ...etapa, hito: 'aparca' }, aPie],
   );
+}
+
+/**
+ * ⭐ EL REMATE EN UN APARCAMIENTO PÚBLICO DE LA ZONA (3/09, casilla 2-bis).
+ *
+ * Conducir hasta el mejor **por coste** de los aparcamientos públicos que caen
+ * dentro de la fase 1, dejar el coche, y andar el resto. La elección es la misma
+ * del *car-to-park* de la casilla 2 —conducir más andar por `PESO_DE_ANDAR`—, y
+ * los candidatos son **los cuatro**: no hace falta acotar por cercanía porque
+ * cuatro caben enteros.
+ *
+ * ── La geometría manda, y hay que decirla ───────────────────────────────────
+ *
+ * El aparcamiento **está dentro de la zona**: llegar a su puerta pisa aristas de
+ * la ZBE, y eso es exactamente lo que la excepción permite. Lo que no se puede
+ * es **atravesarla de paso**, y por eso la búsqueda va con `Pestillo` y no con
+ * veto: se entra una vez, y de dentro ya no se sale. Ver `Pestillo`.
+ *
+ * ⚠️ **Lo que NO se promete.** Ni que el aparcamiento siga abierto —el catálogo
+ *    55 sella sus filas en 2013— ni que tenga el «sistema de control de acceso
+ *    conectado» que la norma pide: ese campo no existe en el dato. El aviso
+ *    cuenta la norma y manda al registro municipal; no vende la plaza.
+ *
+ * Devuelve `null` si no hay ninguno al que se pueda conducir y desde el que se
+ * pueda andar hasta el portal — y entonces quien llama contesta lo de antes.
+ */
+function viajeAlParkingDeLaZbe(
+  servida: RedDeCocheServida,
+  motor: Motor,
+  origen: Extremo,
+  destino: Extremo,
+  engancheOrigen: Enganche,
+  enLaZona: AristaVetada,
+): Trayecto | null {
+  const utiles: {
+    readonly parking: ParkingCocinado;
+    readonly enganche: Enganche;
+    readonly paseo: number;
+  }[] = [];
+  for (const parking of losParkingsDeLaFase1()) {
+    // ⭐ Sin filtro: la arista del aparcamiento ES de la zona, y eso es el caso.
+    const enCoche = enganchar(servida.comoRed, servida.rejilla, parking.lon, parking.lat);
+    if (!enCoche) {
+      continue;
+    }
+    const aPie = etapaAndando(motor, extremoDelParking(parking), destino, {
+      apertura: 'Sal andando',
+    });
+    if (!aPie) {
+      continue;
+    }
+    utiles.push({ parking, enganche: enCoche, paseo: aPie.segundos });
+  }
+  if (utiles.length === 0) {
+    return null;
+  }
+
+  const mejor = rutaAlMejorAparcamiento(
+    servida,
+    engancheOrigen,
+    [origen.lon, origen.lat],
+    utiles.map((u) => ({
+      enganche: u.enganche,
+      punto: [u.parking.lon, u.parking.lat] as Punto,
+    })),
+    utiles.map((u) => u.paseo),
+    // Ninguna calle cerrada —al aparcamiento hay que entrar— y el pestillo
+    // puesto: entrar, sí; atravesar, no.
+    undefined,
+    enLaZona,
+  );
+  if (!mejor) {
+    return null;
+  }
+
+  const gana = utiles[mejor.cual]!;
+  const parada = extremoDelParking(gana.parking);
+  const { etapa, aperturas } = etapaEnCoche(servida, mejor, origen, parada, {
+    cierre: hitoDeAparcarEnParking(gana.parking.nombre),
+  });
+  const aPie = etapaAndando(motor, parada, destino, { apertura: 'Sal andando' });
+  if (!aPie) {
+    return null;
+  }
+  const paso = pasoDelPrimerTrozoEnLaZbe(servida, mejor.trozos, aperturas);
+  const aviso: Aviso =
+    paso === null
+      ? { texto: avisoDelRemateEnParking(gana.parking.nombre) }
+      : { texto: avisoDelRemateEnParking(gana.parking.nombre), paso };
+  return juntar({ modo: 'coche', avisos: [aviso] }, [{ ...etapa, hito: 'aparca' }, aPie]);
+}
+
+/** Cómo se nombra un aparcamiento público en los pasos y en los extremos. */
+function extremoDelParking(parking: ParkingCocinado): Extremo {
+  return {
+    lon: parking.lon,
+    lat: parking.lat,
+    nombre: `el aparcamiento público ${parking.nombre}`,
+  };
 }
 
 /** Cómo se llama el sitio donde se deja el coche, para los pasos. */

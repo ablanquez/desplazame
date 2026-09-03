@@ -35,11 +35,15 @@ import { calcularTrayecto, type Motor } from './trayecto.ts';
 import {
   AVISO_ZBE,
   AVISO_ZBE_EVITADA,
+  avisoDelRemateEnParking,
   calcularRutaEnCoche,
   laZbeEstaEnVigor,
+  rutaAlMejorAparcamiento,
 } from './viaje-coche.ts';
+import { dentroDeLaZbe } from './red-coche.ts';
+import { losParkingsDeLaZbe, type ParkingCocinado } from './parkings-zbe.ts';
 import { dondeAparcarCerca, elAparcamiento } from './aparcamiento.ts';
-import type { Extremo } from './etapas.ts';
+import { etapaAndando, type Extremo } from './etapas.ts';
 
 let portales: PortalesEnMemoria;
 let coche: RedDeCocheServida;
@@ -146,6 +150,99 @@ function pisaLaZbe(t: Trayecto): boolean {
   return t.avisos.some((a) => a.texto.includes('Zona de Bajas Emisiones') && a.paso !== undefined);
 }
 
+/**
+ * ⭐ EL POLÍGONO DE LA FASE 1, leído del fichero **y no del motor**.
+ *
+ * Estas jueces miran la geometría que se publica contra la capa municipal. Si
+ * preguntaran por las banderas que el motor ya calculó, comprarían que el motor
+ * hace lo que el motor hace.
+ */
+function poligonoDeLaFase1(): readonly (readonly (readonly (readonly number[])[])[])[] {
+  const capa = JSON.parse(
+    readFileSync(
+      fileURLToPath(new URL('../../app/data/2026-09-02_wfs_movilidad-MU1_ZBE.json', import.meta.url)),
+      'utf8',
+    ),
+  ) as {
+    features: { properties: Record<string, string>; geometry: { coordinates: number[][][][] } }[];
+  };
+  const fase1 = capa.features.find((f) => f.properties['fase'] === 'FASE 1');
+  assert.ok(fase1, 'la capa tiene que traer la FASE 1');
+  return fase1.geometry.coordinates;
+}
+
+/**
+ * ⭐ LA MISMA BÚSQUEDA QUE HACE EL REMATE, para poder mirarle las aristas.
+ *
+ * ⚠️ **Y por qué no se mide sobre la geometría publicada.** Se intentó, y la
+ *    propiedad NO es cierta ahí: medido sobre 122 portales del casco, **45
+ *    rutas entran dos veces en el polígono** aunque ninguna pise dos veces la
+ *    zona *marcada*. No es un agujero: es que el polígono y la marca no son la
+ *    misma pregunta —la cocina marca una arista por su punto medio, y las
+ *    calles del borde (Coso, Echegaray, César Augusto) entran y salen del
+ *    polígono sin que su arista esté marcada—. Una juez sobre la geometría
+ *    compraría suerte del caso: pasaba con `ABEN AIRE 33` y habría fallado con
+ *    `ALFONSO I 28`.
+ *
+ * Lo que el pestillo promete es sobre **la marca**, y ahí se mide: 0 de 128.
+ * El resultado se ancla al del contrato —tiene que ganar el mismo
+ * aparcamiento—, y por eso esta ruta es la del motor y no una parecida.
+ */
+function comoBuscaElRemate(destino: string): { readonly trozos: readonly { readonly arista: number }[]; readonly cual: number; readonly nombres: readonly string[] } {
+  const d = extremo(destino);
+  const o = extremo(LAPUYADE_3);
+  const eo = enganchar(coche.comoRed, coche.rejilla, o.lon, o.lat);
+  assert.ok(eo);
+  const candidatos: { enganche: ReturnType<typeof enganchar> & object; punto: readonly [number, number] }[] = [];
+  const paseos: number[] = [];
+  const nombres: string[] = [];
+  for (const k of losParkingsDeLaZbe().filter((x) => x.dentroDeFase1)) {
+    const e = enganchar(coche.comoRed, coche.rejilla, k.lon, k.lat);
+    if (!e) continue;
+    const aPie = etapaAndando(
+      motor,
+      { lon: k.lon, lat: k.lat, nombre: `el aparcamiento público ${k.nombre}` },
+      d,
+      { apertura: 'Sal andando' },
+    );
+    if (!aPie) continue;
+    candidatos.push({ enganche: e, punto: [k.lon, k.lat] });
+    paseos.push(aPie.segundos);
+    nombres.push(k.nombre);
+  }
+  const r = rutaAlMejorAparcamiento(
+    coche,
+    eo,
+    [o.lon, o.lat],
+    candidatos,
+    paseos,
+    undefined,
+    (a: number) => coche.cocinada.aristas[a]!.zbe === true,
+  );
+  assert.ok(r, `sin ruta al parking para ${destino}`);
+  return { trozos: r.trozos, cual: r.cual, nombres };
+}
+
+/** El aparcamiento público donde remató el viaje, por su `id` del catálogo. */
+function parkingDelRemate(t: Trayecto): ParkingCocinado | null {
+  const tramo = t.tramos[0];
+  if (!tramo || tramo.hito !== 'aparca') {
+    return null;
+  }
+  const [lat, lon] = t.geometria[tramo.hasta]!;
+  let mejor: ParkingCocinado | null = null;
+  let cerca = Infinity;
+  for (const p of losParkingsDeLaZbe()) {
+    const d = (p.lon - lon) * (p.lon - lon) + (p.lat - lat) * (p.lat - lat);
+    if (d < cerca) {
+      cerca = d;
+      mejor = p;
+    }
+  }
+  // A 0,0 m del dato: el vértice del hito ES el punto del aparcamiento.
+  return cerca < 1e-10 ? mejor : null;
+}
+
 /** Los índices de arista que la ruta recorre, en orden. */
 function porDonde(origen: string, destino: string, red = coche): readonly number[] {
   const o = extremo(origen);
@@ -191,6 +288,11 @@ const LAPUYADE_3 = 'Portales.84476';
 // Y uno pegado al casco pero FUERA: su mejor aparcamiento regulado cae dentro.
 const SAN_VICENTE_DE_PAUL_3 = 'Portales.79057';
 const ABEN_AIRE_33 = 'Portales.100601';
+// Y tres del casco donde el coste y la recta discrepan, o donde la geometría
+// del borde engaña: CASTA ÁLVAREZ 105, ALFONSO I 28 y HERMANOS ARGENSOLA 2.
+const CASTA_ALVAREZ_105 = 'Portales.81308';
+const ALFONSO_I_28 = 'Portales.87605';
+const HERMANOS_ARGENSOLA_2 = 'Portales.113971';
 const EN_MEDIO_120 = 'Portales.82922';
 
 /** Las ways de OSM del cruce de la `no_left_turn` 1211840. */
@@ -755,15 +857,20 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
     });
 
     /**
-     * ⭐ JUEZ 5 — UN DESTINO **DENTRO** DEL CASCO, sin poder entrar: se dice.
+     * ⭐ JUEZ 5 — UN **ORIGEN** DENTRO DEL CASCO, sin poder entrar: se dice.
      *
-     * `CALLE ABEN AIRE 33` está dentro de la zona. La respuesta honrada es que no
-     * hay ruta en coche sin entrar, **no** una ruta que deja a alguien en el borde
-     * sin avisarle de que su portal está dentro.
+     * ⚠️ **ESTA JUEZ SE ESCRIBIÓ AL REVÉS Y CAMBIÓ EL 3/09** (casilla 2-bis).
+     *    Compraba que un DESTINO de dentro se contestara con «no hay forma de
+     *    llegar sin entrar», y esa respuesta ya no es la buena: la ordenanza deja
+     *    entrar hacia un aparcamiento público conectado, así que ahora se remata
+     *    en uno —lo compra la juez 1 de la casilla 2-bis—. Lo que sigue siendo
+     *    verdad, y es lo que queda aquí, es **el origen**: quien tiene el coche
+     *    dentro no puede sacarlo sin pisar la zona, y no hay remate que lo
+     *    arregle.
      *
-     * ⚠️ Y vale también **con aparcamiento pedido**: aparcar fuera y andar hasta
-     *    un portal de dentro sigue siendo entrar en la zona a pie —que es legal—,
-     *    pero la ruta en coche no llega, y eso es lo que se contesta.
+     * Del caso del destino se conserva lo que no cambió: la ruta en coche **no
+     * llega al portal**. Antes porque no había ruta; ahora porque muere en el
+     * aparcamiento y el resto se anda.
      */
     test('⭐ 5 · a un portal de dentro no se le inventa una ruta que no entra', () => {
       for (const extra of [
@@ -771,7 +878,7 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
         { puedeEntrarEnLaZbe: false, aparcamiento: 'regulado' as const },
         { puedeEntrarEnLaZbe: false, aparcamiento: 'gratuito' as const },
       ]) {
-        const t = viaje(LAPUYADE_3, ABEN_AIRE_33, extra, MARTES_A_LAS_10);
+        const t = viaje(ABEN_AIRE_33, LAPUYADE_3, extra, MARTES_A_LAS_10);
         assert.equal(t.pasos.length, 0, JSON.stringify(extra));
         assert.equal(t.geometria.length, 0);
         assert.deepEqual(t.tramos, []);
@@ -781,8 +888,13 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       }
       // Y el mismo portal, pudiendo entrar, sí tiene ruta: el veto es del
       // distintivo, no del sitio.
-      const pudiendo = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: true }, MARTES_A_LAS_10);
+      const pudiendo = viaje(ABEN_AIRE_33, LAPUYADE_3, { puedeEntrarEnLaZbe: true }, MARTES_A_LAS_10);
       assert.ok(pudiendo.metros > 0);
+
+      // Y con el DESTINO dentro, lo que se conserva: el coche no llega al portal.
+      const rematado = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+      assert.deepEqual(rematado.tramos.map((x) => x.comoSeVa), ['rodando', 'andando']);
+      assert.equal(rematado.tramos[0]!.hito, 'aparca');
     });
 
     /**
@@ -856,6 +968,245 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       viaje(LAPUYADE_3, PALENCIA_2, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
       const despues = deLosCinco();
       assert.equal(despues, antes, 'una ruta de coche ha movido lo que contestan los demás modos');
+    });
+  });
+
+  describe('⭐ EL REMATE AL PARKING PÚBLICO DE LA ZBE (casilla 2-bis)', () => {
+    /**
+     * ⭐ JUEZ 1 — SIN DISTINTIVO Y CON EL DESTINO DENTRO: se remata en uno de
+     * los cuatro aparcamientos públicos de la fase 1, y se anda el resto.
+     *
+     * Es el cambio de la casilla 2-bis. Hasta hoy la respuesta era «no hay forma
+     * de llegar sin entrar», que era verdad a medias: **la alternativa legal
+     * existe** —[trámite 42155] *«Vehículos que accedan a estacionamientos
+     * públicos con sistema de control de acceso conectado»*— y callarla es lo
+     * que hace la industria [TomTom SDK: *«avoidance is not guaranteed if no
+     * alternative route exists»*], no lo que hacemos nosotros.
+     *
+     * ⚠️ **Y LA ZONA SOLO SE PISA PARA ENTRAR AL PARKING.** El aparcamiento está
+     *    dentro, así que llegar a su puerta pisa aristas de la zona por fuerza;
+     *    lo que no puede pasar es **atravesarla de paso**. Se mide sobre la
+     *    geometría publicada, tramo a tramo y con el polígono municipal en la
+     *    mano: una vez dentro, ya no se vuelve a salir.
+     */
+    test('⭐ 1 · el destino dentro de la zona remata en un parking público', () => {
+      const t = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+
+      assert.deepEqual(t.tramos.map((x) => x.comoSeVa), ['rodando', 'andando']);
+      assert.equal(t.tramos[0]!.hito, 'aparca');
+
+      const parking = parkingDelRemate(t);
+      assert.ok(parking, 'el viaje no ha rematado en ningún aparcamiento del catálogo');
+      assert.equal(parking.dentroDeFase1, true, 'ha rematado en uno que NO está en la fase 1');
+      assert.ok(
+        [1, 2, 3, 105].includes(parking.id),
+        `ha rematado en el ${parking.id}, que no es uno de los cuatro`,
+      );
+
+      // El hito lo nombra y cita la excepción, sin prometer que siga abierto.
+      const hito = t.pasos.find((x) => x.giro === 'aparca');
+      assert.ok(hito);
+      assert.equal(
+        hito.texto,
+        `Aparca en el aparcamiento público ${parking.nombre} — la ZBE permite el acceso a ` +
+          'aparcamientos públicos conectados, con registro municipal',
+      );
+
+      // El aviso, en el doble sitio: con `paso`, como el de la casilla 1b.
+      assert.equal(t.avisos.length, 1);
+      assert.equal(t.avisos[0]!.texto, avisoDelRemateEnParking(parking.nombre));
+      assert.ok(t.avisos[0]!.paso !== undefined, 'el aviso tiene que decir por qué paso se entra');
+
+      // Y se anda hasta el portal: el segundo tramo muere en el destino.
+      assert.ok(t.tramos[1]!.metros > 0, 'el paseo hasta el portal no puede ser de cero metros');
+
+      /**
+       * ⭐ Y SE ELIGE POR COSTE, no por cercanía. `CALLE CASTA ÁLVAREZ 105`
+       * tiene a `César Augusto` más cerca en línea recta y gana
+       * `Plaza del Pilar - Juzgados`: conducir hasta él sale más barato de lo
+       * que cuesta el paseo de más, con `walkReluctance` 4,0. Medido sobre 122
+       * portales del casco, el coste elige distinto que la recta en **17**.
+       */
+      const otro = viaje(LAPUYADE_3, CASTA_ALVAREZ_105, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+      const gana = parkingDelRemate(otro);
+      assert.ok(gana);
+      assert.equal(gana.id, 1, 'el coste tiene que mandar a Plaza del Pilar - Juzgados');
+      const enRecta = [...losParkingsDeLaZbe().filter((x) => x.dentroDeFase1)].sort(
+        (a, b) =>
+          Math.hypot(a.lon - otro.geometria[otro.tramos[1]!.hasta]![1], a.lat - otro.geometria[otro.tramos[1]!.hasta]![0]) -
+          Math.hypot(b.lon - otro.geometria[otro.tramos[1]!.hasta]![1], b.lat - otro.geometria[otro.tramos[1]!.hasta]![0]),
+      )[0]!;
+      assert.equal(enRecta.id, 3, 'el más cercano en recta tiene que ser César Augusto');
+      assert.notEqual(gana.id, enRecta.id, 'si coinciden, esta juez no compra nada');
+
+      /**
+       * ⭐ Y LA ZONA NO SE ATRAVIESA: **las aristas marcadas van seguidas y
+       * hasta el final**. De dentro solo se sale para rematar —el último trozo,
+       * cuando la puerta del aparcamiento cae en una arista de fuera, que es lo
+       * que le pasa a `Puerta Cinegia` en Plaza España—, y ahí se acaba.
+       */
+      /**
+       * ⚠️ **Y EL SELLO DE LA RESPUESTA DEL MOTOR, que no estaba y hacía falta.**
+       *    La comprobación de las aristas de abajo llama a la búsqueda pasándole
+       *    el pestillo **desde aquí**, así que no ve el sitio donde el motor lo
+       *    pone: quitarlo de `viajeAlParkingDeLaZbe` dejaba las 27 jueces en
+       *    verde —medido, contraprueba 4 del encargo— aunque **28 de 128 rutas
+       *    pasaran a atravesar la zona**. Los cuatro sellos son de la respuesta
+       *    entera y cierran ese hueco.
+       */
+      const SELLOS: readonly (readonly [string, string])[] = [
+        [ABEN_AIRE_33, '790feb26d1c3b6893111233f7d5c6454c8fbd4a11dc3b8802f0afc89c11815fd'],
+        [CASTA_ALVAREZ_105, 'c667c11c16f8c53be824e2eac5b7c2d28320b7f290f78312e4a210ed134d1e28'],
+        [ALFONSO_I_28, '6ece0642e62b7e33804b2d88adec8188fab4250a0fc740008f189796d14af7ad'],
+        [HERMANOS_ARGENSOLA_2, 'cf86936409adfc91eb5235b3663fa34621871e5837c1f778017f4e6eb92bc272'],
+      ];
+      for (const [donde, huella] of SELLOS) {
+        const respuesta = viaje(LAPUYADE_3, donde, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+        assert.equal(selloDe(respuesta), huella, `${donde}: la respuesta del remate ha cambiado`);
+
+        const r = comoBuscaElRemate(donde);
+        const marcadas = r.trozos.map((x) => coche.cocinada.aristas[x.arista]!.zbe);
+        const entra = marcadas.indexOf(true);
+        assert.ok(entra >= 0, `para llegar al parking de ${donde} hay que entrar en la zona`);
+        for (let k = entra; k < marcadas.length; k++) {
+          assert.ok(
+            marcadas[k] || k === marcadas.length - 1,
+            `${donde}: la ruta sale de la zona en el trozo ${k} de ${marcadas.length} y sigue`,
+          );
+        }
+        // Y el que gana aquí es el mismo que dijo el contrato: la búsqueda de
+        // esta juez es la del motor, no una parecida.
+        assert.equal(r.nombres[r.cual], parkingDelRemate(respuesta)?.nombre, `${donde}: gana otro`);
+      }
+    });
+
+    /**
+     * ⭐ JUEZ 2 — EL MISMO VIAJE **PUDIENDO ENTRAR**: entra, y no hay remate.
+     *
+     * Al byte el de la casilla 2: el sello es el que se midió antes de tocar
+     * nada, y `true` tiene que dar exactamente lo mismo que no decir nada.
+     */
+    test('⭐ 2 · con «sí puede entrar» se entra directo, sin remate', () => {
+      const conSi = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: true }, MARTES_A_LAS_10);
+      assert.equal(conSi.tramos.length, 1);
+      assert.equal(conSi.tramos[0]!.hito, null);
+      assert.equal(parkingDelRemate(conSi), null);
+      assert.equal(
+        selloDe(conSi),
+        '105b67ff1310534103331880501cfcbefa472c658fed083d02d4316a72f6f963',
+        'la respuesta de quien SÍ puede entrar ha cambiado',
+      );
+      assert.equal(selloDe(conSi), selloDe(viaje(LAPUYADE_3, ABEN_AIRE_33)));
+    });
+
+    /**
+     * ⭐ JUEZ 3 — DOMINGO: no hay franja, así que no hay veto **ni remate**.
+     *
+     * El remate solo aparece cuando el veto aplica. Sin franja no hay nada que
+     * esquivar, y lo que se cuenta es el reloj — el aviso de la casilla 2.
+     */
+    test('⭐ 3 · en domingo no se veta nada y no se remata', () => {
+      const t = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, DOMINGO_A_LAS_10);
+      assert.equal(t.tramos.length, 1);
+      assert.equal(parkingDelRemate(t), null);
+      assert.equal(t.avisos.length, 1);
+      assert.match(t.avisos[0]!.texto, /pero ahora no está en vigor/);
+      assert.equal(
+        selloDe(t),
+        '21ad0282367f7c27e753d545d5e3715af2e7cbfc29dbdf4cc8d47829a8d216f0',
+        'la respuesta del domingo ha cambiado',
+      );
+    });
+
+    /**
+     * ⭐ JUEZ 4 — DESTINO **FUERA**: la respuesta de la casilla 2, al byte.
+     *
+     * Los dos sellos se midieron sobre el árbol de antes del remate. Si el
+     * remate se cuela en un viaje que no lo pide, aquí se ve.
+     */
+    test('⭐ 4 · con el destino fuera de la zona no cambia ni un byte', () => {
+      const pelado = viaje(LAPUYADE_3, PALENCIA_2, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+      assert.equal(
+        selloDe(pelado),
+        'd6d1ffed2ad985617592a097e29e4faadf8f0a9777c8e5db28c1058fbc71ec3d',
+      );
+      const conParking = viaje(
+        LAPUYADE_3,
+        PALENCIA_2,
+        { puedeEntrarEnLaZbe: false, aparcamiento: 'regulado' },
+        MARTES_A_LAS_10,
+      );
+      assert.equal(
+        selloDe(conParking),
+        '68b1997c80a20688960a81295792e83a9f436cab8d05c61bfc1367edafa627c3',
+      );
+    });
+
+    /**
+     * ⭐ JUEZ 5 — LAS BANDERAS DEL COCINADO, CONTRA EL CRUCE EN VIVO.
+     *
+     * El fichero se cocinó a mano y se subió al repo: nadie lo vuelve a calcular
+     * al arrancar. Esta juez lo recalcula desde la capa municipal y compara las
+     * 41 filas — y además compra **por id** los cuatro de la fase 1 y los siete
+     * que solo están en la 2, que son los que restringirán en 2030 y hoy no.
+     */
+    test('⭐ 5 · las banderas cocinadas son las que da el cruce en vivo', () => {
+      const zona1 = poligonoDeLaFase1();
+      const capa = JSON.parse(
+        readFileSync(
+          fileURLToPath(
+            new URL('../../app/data/2026-09-02_wfs_movilidad-MU1_ZBE.json', import.meta.url),
+          ),
+          'utf8',
+        ),
+      ) as { features: { properties: Record<string, string>; geometry: { coordinates: number[][][][] } }[] };
+      const fase2 = capa.features.find((f) => f.properties['fase'] === 'FASE 2');
+      assert.ok(fase2);
+
+      const parkings = losParkingsDeLaZbe();
+      assert.equal(parkings.length, 41, 'el catálogo 55 trae 41 aparcamientos');
+      for (const p of parkings) {
+        assert.equal(p.dentroDeFase1, dentroDeLaZbe(p.lon, p.lat, zona1), `fase 1 del ${p.id}`);
+        assert.equal(
+          p.dentroDeFase2,
+          dentroDeLaZbe(p.lon, p.lat, fase2.geometry.coordinates),
+          `fase 2 del ${p.id}`,
+        );
+        // La 2 contiene a la 1: estar dentro de la 1 y fuera de la 2 es imposible.
+        assert.ok(!(p.dentroDeFase1 && !p.dentroDeFase2), `el ${p.id} está en la 1 y no en la 2`);
+      }
+      assert.deepEqual(
+        parkings.filter((x) => x.dentroDeFase1).map((x) => x.id),
+        [1, 2, 3, 105],
+      );
+      assert.deepEqual(
+        parkings.filter((x) => !x.dentroDeFase1 && x.dentroDeFase2).map((x) => x.id),
+        [4, 103, 112, 113, 118, 119, 122],
+      );
+    });
+
+    /**
+     * ⭐ JUEZ 6 — LA MURALLA DE LOS SEIS MODOS.
+     *
+     * El remate usa el Dijkstra del peatón para medir el paseo, igual que el
+     * aparcamiento de bordillo. Se piden los seis modos, se mete un remate por
+     * el medio, y se vuelven a pedir: byte a byte.
+     */
+    test('⭐ 6 · rematar en un parking no mueve a ninguno de los seis modos', () => {
+      const losSeis = (): string =>
+        JSON.stringify(
+          (['andando', 'bici', 'patin', 'bizi', 'bus', 'coche'] as const).map((modo) =>
+            calcularTrayecto(motor, {
+              origen: porCodigos(LAPUYADE_3),
+              destino: porCodigos(EN_MEDIO_120),
+              modo,
+            }),
+          ),
+        );
+      const antes = losSeis();
+      viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+      viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false, aparcamiento: 'gratuito' }, MARTES_A_LAS_10);
+      assert.equal(losSeis(), antes, 'el remate al parking ha movido lo que contestan los demás');
     });
   });
 
