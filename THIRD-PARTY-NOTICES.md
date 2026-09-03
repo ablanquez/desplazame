@@ -3,12 +3,13 @@
 La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno**, que conserva sus
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
-> ℹ️ **Estado a 01/09/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, y **veinticinco** conjuntos
-> de datos con ficha propia —§ 1.1 a § 1.25; la § 1.26 declara lo que **todavía no** ha entrado—.
+> ℹ️ **Estado a 03/09/2026.** El proyecto está en construcción. Hoy hay de terceros: las
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y un** conjuntos
+> de datos con ficha propia —§ 1.1 a § 1.31— y **una norma citada** (§ 1.32); la § 1.33 declara
+> lo que **todavía no** ha entrado.
 > Quedan fuera las capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
 >
-> ⭐ **Y tres de esas veinticinco NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08
+> ⭐ **Y tres de esas treinta y una NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08
 > y que hoy separa el documento en dos mitades:
 >
 > | | Qué se consulta | Quién |
@@ -2557,7 +2558,119 @@ las 189** que dieron ruta.
 
 ---
 
-### 1.31 · El resto del dato — todavía **ninguno**
+### 1.31 · Aparcamientos públicos y su cruce con la ZBE — Ayuntamiento de Zaragoza (catálogo 55)
+
+| | |
+|---|---|
+| **Qué es** | Los **41 aparcamientos públicos** del catálogo municipal —nombre, horario y punto en WGS84— **cruzados con los dos polígonos de la ZBE** (§ 1.30). El motor los usa para rematar la ruta en coche cuando el destino cae dentro de la zona y el vehículo no puede entrar |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | API de la sede · conjunto **55 «Aparcamientos Públicos»** · servicio `equipamiento/aparcamiento-publico` |
+| **Petición** | `https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/equipamiento/aparcamiento-publico.json?srsname=wgs84&start=0&rows=500` |
+| **Descarga** | **02/09/2026**, estado 200 · 20.585 bytes · `totalCount` 41 · 41 filas con punto, **ninguna sin coordenada** |
+| **Licencia** | **Ley 37/2007** · la ficha del catálogo declara `https://www.zaragoza.es/sede/portal/aviso-legal#condiciones` |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
+| **Campos que se guardan** | `id` · `nombre` · `lon`/`lat` · `horario` · `dentroDeFase1` · `dentroDeFase2`. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ [`app/data/parkings-zbe.json`](app/data/parkings-zbe.json) · 6.956 bytes · sha256 `9d71d1e2dbde722558bea2abd6e36eddded86538cee52fda12291aad77391061` |
+
+⭐ **EL CRUCE ES NUESTRO, y por eso se declara aquí con fecha.** Las dos banderas
+no vienen del Ayuntamiento: las calcula
+[`motor/src/cocinar-parkings-zbe.ts`](motor/src/cocinar-parkings-zbe.ts) el
+**03/09/2026** con `dentroDeLaZbe` de
+[`motor/src/red-coche.ts`](motor/src/red-coche.ts) —**el mismo punto-en-polígono
+que marca las 200 aristas del coche**, para que la respuesta en el borde no
+dependa de qué función se pregunte—. Resultado: **4 dentro de la fase 1**
+(`1` Plaza del Pilar - Juzgados · `2` Ayuntamiento · `3` César Augusto ·
+`105` Puerta Cinegia), **7 solo dentro de la fase 2** (`4` · `103` · `112` ·
+`113` · `118` · `119` · `122`) y **30 fuera**. La juez 5 de
+`viaje-coche.spec.ts` recalcula las 41 filas contra la capa y las compara.
+
+⚠️ **EL DATO ESTÁ SELLADO EN 2013 y dice DÓNDE, no que sigan abiertos.** Las 41
+filas traen `lastUpdated` **2013-07-08** —trece años—, aunque el registro del
+catálogo se tocara el **2026-01-20**. El `horario` viaja **literal, en sus 11
+formas** («24 horas», «24 horas.», «comercial.», «L-J 9,00 a 2,00 V-S-FyVis 9,00
+a 4,00 Domingos 11,00 a 2,00.», …) y **una ficha no lo trae**: no se normaliza ni
+se rellena.
+
+⚠️ **Y NO TRAE lo que la norma pide.** El § 1.32 exige «sistema de control de
+acceso conectado» para poder entrar en la ZBE hacia un aparcamiento, y **ese
+campo no existe en este censo**: `NO CONSTA` cuáles lo tienen. Tampoco hay
+tarifas, ni plazas, ni ocupación. Por eso el aviso del motor cuenta **la norma**
+y manda al registro municipal; no promete la plaza.
+
+⚠️ **El crudo NO está en el repo.** Es una descarga, y aquí solo entra dato
+declarado: lo que entra es el **cocinado**, y el crudo se vuelve a bajar de la
+petición de arriba y se pasa por ruta —
+`node src/cocinar-parkings-zbe.ts <crudo.json>`—. La cocina es **determinista**:
+ordenada por `id`, claves en orden fijo y **sin fecha de generación dentro**; dos
+pasadas dan el mismo sha256.
+
+---
+
+### 1.32 · La autorización para entrar en la ZBE — Ayuntamiento de Zaragoza (trámite 42155)
+
+| | |
+|---|---|
+| **Qué es** | La página del trámite **«Zona de Bajas Emisiones: registro»**, que enumera **quién puede obtener autorización** para acceder a la ZBE sin distintivo ambiental. Es la base de la ruta que remata en un aparcamiento público |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | Sede electrónica · trámite **42155** |
+| **Petición** | `https://www.zaragoza.es/sede/servicio/tramite/42155` |
+| **Lectura** | **03/09/2026 09:07 GMT**, estado **200** · **131.795 bytes** · `text/html;charset=UTF-8` · título «Zona de Bajas Emisiones: registro. Trámites y servicios. Ayuntamiento de Zaragoza» |
+| **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
+| **¿Está en este repo?** | ❌ **No.** Es una página, no un dato: lo que entra es **la cita**, en el comentario de `avisoDelRemateEnParking` |
+
+> ⭐ **LA LISTA, TRANSCRITA — no resumida.** Bajo *«Requisitos»*: *«Si su
+> vehículo NO tiene derecho a distintivo ambiental, PUEDE OBTENER autorización
+> registral para acceder, circular y estacionar en ZBE de Zaragoza si su vehículo
+> se encuentra en alguno de estos casos:»*
+>
+> 1. *«Vehículo Transporta Persona con Movilidad Reducida PMR.»*
+> 2. *«Vehículo asociado a plaza de garajes dentro de la ZBE.»*
+> 3. *«Vehículo asociado a local con actividad comercial dentro de la ZBE.»*
+> 4. *«Vehículo con tarjeta de residente de estacionamiento regulado dentro de la ZBE.»*
+> 5. *«Vehículo de Servicio de emergencia y esenciales. (Servicios médicos, Ambulancias, Grúa Municipal, funeraria, protección civil y salvamento, bomberos, policía y cuerpos y fuerzas de seguridad del estado y militares, limpieza pública, alumbrado, semáforos y obra pública o Servicios públicos esenciales.»*
+> 6. *«Vehículos de matrícula extranjera.»*
+> 7. *«Vehículos que transportan personas enfermas»*
+> 8. *«Vehículos que accedan a estacionamientos públicos con sistema de control de acceso conectado.»*
+> 9. *«Vehículos que accedan a reservas de hoteles con sistema de control de acceso conectado.»*
+> 10. *«Vehículos de servicio singular. (Autoescuelas, blindados, emisoras de radio o televisión, talleres o laboratorios, bibliotecas volantes, tiendas volantes, grúas de arrastre, grúas de elevación, hormigoneras, vehículos para ferias, riego asfáltico, pinta-líneas, quitanieves¿)»*
+> 11. *«Taxis adaptados»*
+> 12. *«Vehículos históricos»*
+> 13. *«Vehículos con permiso diario sin mas justificación (máximo 8 al mes).»*
+> 14. *«Vehículos de titulares de plazas de estacionamiento municipales para residentes dentro de la ZBE de Zaragoza»*
+>
+> Y bajo *«¿Con qué frecuencia hay que renovar la autorización de acceso a la
+> ZBE?»*: *«Autorizaciones puntuales: como los accesos diarios con límite de 8 al
+> mes, o accesos vinculados a estancias en hoteles o aparcamientos públicos
+> conectados.»*
+>
+> La página también dice qué calles la delimitan: *«La Zona de Bajas Emisiones
+> (ZBE) está delimitada por el Paseo Echegaray y Caballero, San Vicente de Paúl,
+> Coso, Plaza de España, Conde Aranda, Mayoral, Plaza de Santo Domingo y la calle
+> Ramón Celma, que conecta nuevamente con Echegaray.»*
+
+⚠️ **Se transcribe tal cual, erratas incluidas.** El punto 10 acaba en
+`quitanieves¿)` y el 5 abre un paréntesis que no cierra: **están así en la
+página**. Corregirlas sería empezar a interpretar, y lo que aquí vale es la
+letra.
+
+⚠️ **La ordenanza general de movilidad NO sirve para esto.** Su propia
+exposición de motivos dice que *«dicha Zona de Bajas Emisiones no se encuentra
+dentro del contenido de esta ordenanza»*, porque la regula su reglamento propio
+(pleno de **25 de julio de 2024**). Antes de este encargo, la excepción del
+aparcamiento público **NO CONSTABA** en el repositorio.
+
+⭐ **Dónde está cumplida (3/09).** En dos constantes de
+[`motor/src/viaje-coche.ts`](motor/src/viaje-coche.ts) —`avisoDelRemateEnParking`
+y `textoDeAparcarEnParking`—, con la URL y la fecha de lectura en su comentario.
+El aviso enumera **cuatro** de los catorce casos (residentes, plaza de garaje,
+PMR y aparcamiento público conectado) porque son los que caben en una frase; los
+catorce están arriba. **No se afirma que el aparcamiento elegido esté
+conectado** — eso § 1.31 no lo sabe—: se dice la norma y se manda al registro.
+
+---
+
+### 1.33 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
