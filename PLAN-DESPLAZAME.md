@@ -2949,19 +2949,75 @@ son CAPAS DE DATO y ninguna se promete sin sonda:
       aplica una excepción — modelarlas sería inventar su situación);
       lo que crece es EL TEXTO del aviso cuando no puede y el destino
       queda dentro: nombrar la puerta que la ordenanza abre, con
-      fuente. → casilla 3, junto con EL CRUCE pendiente: qué parkings
-      del catálogo 55 caen DENTRO de los polígonos ZBE (cruce
-      geométrico con lo que ya está en casa — alimenta el aviso y la
-      lista de inclusión de Antonio).
+      fuente. → El CRUCE se hizo esa misma tarde (abajo) y el resto
+      bajó a las casillas 2-bis y 3.
+- [x] **⭐ EL CRUCE parkings-55 ∩ ZBE — HECHO (3/09, solo lectura, con
+      el dentroDeLaZbe del motor, no una copia):** DENTRO DE FASE 1
+      (restringen HOY): 4 — Puerta Cinegia (105) · César Augusto (3)
+      · Plaza del Pilar-Juzgados (1) · Ayuntamiento (2). SOLO EN FASE
+      2 (libres hasta 2030): 7 — Plaza de Toros (103) · Sanclemente
+      (112) · El Carmen (113) · Santo Domingo (118) · Hotel Reino de
+      Aragón (119) · Corte Inglés Independencia (122) · Salamero (4).
+      FUERA: 30. La Fase 2 contiene entera a la 1 (0 anomalías).
+      Contrapruebas mordidas (coordenadas cambiadas, polígono corrido
+      1 km, y el bbox como método malo: se traga 8). ⭐ CONFIRMADO
+      leyendo red-coche.ts (no supuesto): las 200 aristas del
+      cocinado se marcaron SOLO con fase='FASE 1' — la vigente; con
+      Fase 2 serían 884 (4,4×, medido y guardado para 2030). Las 4 de
+      diferencia 200/204 del recuento: las gemelas de longitud par
+      (punto medio calculado una vez sobre la ida) — nada que
+      arreglar. ⚠️ NO CONSTA en el repo la excepción del
+      «aparcamiento público conectado»: la capa ZBE no trae
+      excepciones y la ordenanza descargada remite fuera — la fuente
+      (trámite 42155) hay que traerla CON FICHA (→ 2-bis).
+- [ ] **2-bis · EL REMATE AL PARKING PÚBLICO DE LA ZBE (motor)** —
+      *parlamentado el 3/09 (los 4 puntos de Antonio), con la
+      doctrina de la industria delante: TomTom Routing API trae el
+      patrón entero de serie (avoid=lowEmissionZones para evitar la
+      zona como quien evita peajes · sectionType=lowEmissionZone
+      para reportar qué tramos la pisan — nuestro Aviso.paso literal
+      · avisos de aproximación), y la etiqueta OSM
+      boundary=low_emission_zone nació con la justificación escrita:
+      «debe poderse evitar la zona en el ruteo — considera la sanción
+      un peaje». El remate es el car-to-park de OTP sobre lista
+      declarada (el park-and-ride de toda la vida).* LO QUE ENTRA:
+      (a) el fichero COCINADO parkings-zbe.json al repo con su ficha
+      [el patrón OTP: los aparcamientos «presentes en el fichero de
+      entrada al construir el grafo» — build-time, cero consultas en
+      caliente]: los 41 del catálogo 55 con id · nombre · coordenada
+      · horario · dentroDeFase1 · dentroDeFase2 (banderas de cocina
+      con el dentroDeLaZbe del motor; juez de que cocinado y cruce en
+      vivo coinciden); la ficha honesta: fuente Ley 37/2007,
+      lastUpdated 2013 («dónde están, no si siguen abiertos»), el
+      cruce propio con fecha. (b) LA FICHA del trámite 42155 (la
+      página de las excepciones, medida: bytes, fecha, la lista
+      transcrita) — la fuente que hoy NO CONSTA. (c) EL REMATE: con
+      puedeEntrarEnLaZbe=false y destino DENTRO de la fase vigente,
+      el motor deja de contestar «sin ruta» y remata en el MEJOR de
+      los 4 parkings de Fase 1 [por coste, el car-to-park de la
+      casilla 2 sobre la lista declarada] + andar el resto; el aviso
+      nombra la puerta: «sin distintivo solo con autorización; una es
+      el acceso a aparcamiento público conectado (con registro
+      municipal)» [fuente fichada], sin prometer que el parking siga
+      abierto (dato de 2013, dicho). (d) JUECES: el caso no+dentro
+      remata en parking F1 real por id y anda; el caso no+fuera no
+      cambia; sí+dentro no cambia; las banderas del cocinado = el
+      cruce en vivo; la muralla.*
 - [ ] **3 · LA PANTALLA:** el grupo [Coche] con su fila de parking
-      [Regulado] [Discapacitado] [Gratuito] y el control de la ZBE
-      («¿puede entrar?» sí/no — el patrón de la bici en dos filas)
-      aparece ahora que el motor existe (regla de la demo del 11) ·
-      el texto del aviso «no puede + destino dentro» nombra las
-      excepciones de la ordenanza (residentes · garaje · PMR ·
-      aparcamiento público conectado — con fuente) [parlamento 3/09]
-      · EL CRUCE previo: qué parkings del catálogo 55 caen dentro de
-      los polígonos ZBE (geométrico, con lo de casa) · las trazas de
+      [Regulado] [Discapacitado] [Gratuito] y, debajo, EL SELECTOR DE
+      ETIQUETA *(parlamento 3/09, punto 2 de Antonio; el patrón del
+      toggle de TomTom — «el usuario declara su situación», nosotros
+      con la traducción OFICIAL de la FAQ)*: [CERO] [ECO] [C] [B]
+      [Sin etiqueta] [No lo sé] → B/C/ECO/CERO = puede entrar, con
+      AVISO POSITIVO («tu distintivo circula libre por la ZBE, sin
+      registro» [FAQ]); Sin etiqueta = no puede → el flujo del remate
+      de la 2-bis; [No lo sé] → ENLACE SALIENTE a la consulta oficial
+      de la DGT por matrícula [sede.dgt.gob.es, «por internet, sin
+      identificación previa», gratuita, al día — verificada 3/09; la
+      matrícula NO entra en la app: datos personales sin necesidad y
+      términos de consulta automatizada NO CONSTAN]. El motor sigue
+      BINARIO: la pantalla traduce. · el patrón de la bici en dos
+      filas [GOV.UK] · la regla de la demo del 11 · las trazas de
       desvío del bus pasan a rutearse sobre esta red.
 - [ ] **4 · LA DEMO por el ojo.**
 

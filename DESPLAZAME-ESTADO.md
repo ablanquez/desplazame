@@ -166,6 +166,27 @@ OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
 
+**EL PARLAMENTO ZBE DEL 3/09 (mediodía) — LOS 4 PUNTOS DE ANTONIO,
+CON DOCTRINA Y EL CRUCE HECHO.** (1) Con «no puede entrar» y destino
+dentro: rematar en el parking público de la zona nombrando la
+excepción de la ordenanza [TomTom: avoid=lowEmissionZones +
+sectionType — el patrón entero existe de serie; OSM
+boundary=low_emission_zone: «considera la sanción un peaje»; el
+remate = car-to-park sobre lista declarada]. (2) SELECTOR DE ETIQUETA
+en pantalla (CERO/ECO/C/B/Sin/No-lo-sé → el booleano del motor; el
+patrón del toggle de TomTom con la traducción oficial de la FAQ;
+aviso positivo cuando puede). (3) La consulta por matrícula: la sede
+de la DGT, oficial, gratuita, sin identificación — ENLACE saliente;
+la matrícula no entra en la app. (4) Cero consultas en caliente: el
+fichero parkings-zbe.json COCINADO con banderas dentroDeFase1/2 [el
+patrón build-time de OTP]. EL CRUCE, hecho en solo-lectura: 4
+parkings en Fase 1 (Puerta Cinegia · César Augusto · Pilar-Juzgados ·
+Ayuntamiento) · 7 solo-Fase-2 (2030) · 30 fuera; confirmado leyendo
+red-coche.ts que las 200 aristas son SOLO Fase 1 (con F2 serían 884);
+NO CONSTA en repo la excepción del trámite 42155 → su ficha va en la
+2-bis. El plan gana la casilla 2-bis (motor) y la 3 crece con el
+selector.
+
 **LA CASILLA 2 DEL 12 — EL COCHE APARCA POR TIPO Y LA ZBE SE
 PREGUNTA (3/09, mañana).** Dos parámetros opcionales (aparcamiento ·
 puedeEntrarEnLaZbe, el primer booleano del contrato); el hito
@@ -1130,10 +1151,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 3 del 12 — LA PANTALLA DEL COCHE**
-(la fila de parking + el control ZBE con el patrón de la bici; el
-texto del aviso con las excepciones de la ordenanza; el cruce previo
-parkings-55 ∩ ZBE); (2)
+**Lo siguiente:** (1) **la casilla 2-bis del 12 — el remate al
+parking público de la ZBE** (parkings-zbe.json cocinado con ficha ·
+la ficha del trámite 42155 · el remate no+dentro a los 4 de Fase 1);
+(2) la casilla 3 — la pantalla del coche (fila de parking + selector
+de etiqueta con enlace DGT); (3)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
