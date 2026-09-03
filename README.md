@@ -22,10 +22,12 @@
 > pulsa «Generar ruta», y la pantalla dibuja la ruta de verdad en el mapa y lista las indicaciones
 > paso a paso.
 >
-> ⭐ **Y el coche ya rutea en el MOTOR desde el 2/09** —`POST /api/ruta` con `modo=coche` contesta
-> geometría, pasos y tiempos, con las restricciones de giro de OpenStreetMap respetadas y el aviso
-> de la Zona de Bajas Emisiones—, pero **la pantalla sigue cortada a propósito**: el botón dice
-> «todavía no» y no llega a preguntar. Descoserlo es la casilla 3 del punto 12. Aquí se distingue
+> ⭐ **Y EL COCHE ESTÁ ENTERO DESDE EL 3/09** — motor y pantalla. Rutea con las restricciones de
+> giro de OpenStreetMap respetadas, remata en un aparcamiento de bordillo o en uno **público** si el
+> destino cae dentro de la Zona de Bajas Emisiones y el vehículo no puede entrar, y **se ve en
+> Chrome**: elegir «Coche» revela dos preguntas —dónde aparcar y qué distintivo ambiental— y el
+> viaje se pinta con su hito de aparcar, su tramo a pie y el aviso de la zona junto al paso por el
+> que se entra. **Ya no queda ningún modo cortado en la pantalla.** Aquí se sigue distinguiendo
 > **lo que el motor calcula** de **lo que se ve en Chrome**, porque no son lo mismo y confundirlos
 > es como este README ha envejecido tres veces.
 >
@@ -498,11 +500,11 @@
 > enseña el aviso del motor en ámbar, con el nombre de la calle, y el mapa se queda limpio. Ni
 > una línea inventada para tapar el hueco.
 >
-> **Lo que sigue sin verse en la pantalla**: el **coche**, y nada más — el botón lo dice sin
-> llegar a preguntárselo al motor, que desde el 2/09 sí sabe contestar. ⚠️ Este párrafo decía «bus
-> o tranvía y coche» hasta el 1/09, y **el bus ruteaba desde el 31/08**: es la tercera vez que una
-> frase de este README envejece varias pantallas por debajo del párrafo que sí se estaba
-> releyendo. La primera fue la bici (29/08), y antes la entrada nº5 de la bitácora. **Se corrige
+> **Lo que sigue sin verse en la pantalla: NADA.** Los seis modos viajan al motor y se pintan —el
+> coche fue el último, el 3/09—. ⚠️ Este párrafo decía «bus o tranvía y coche» hasta el 1/09 y
+> «el coche, y nada más» hasta el 3/09, y las dos veces **el motor ya sabía contestar**: es la
+> tercera y la cuarta vez que una frase de este README envejece varias pantallas por debajo del
+> párrafo que sí se estaba releyendo. La primera fue la bici (29/08), y antes la entrada nº5 de la bitácora. **Se corrige
 > diciéndolo**, que es lo único que ha funcionado hasta ahora — y por eso la frase de arriba ya no
 > dice «no existe» sino «no se ve»: son dos cosas distintas.
 >
