@@ -77,28 +77,45 @@ export const ESPERA_MS = 4000;
 export const BACKOFF_MS = 300;
 
 /**
- * ⭐ LO QUE SE LEE DE LA PÁGINA: el `div.avisos_msg` y nada más.
+ * ⭐ LO QUE SE LEE DE LA PÁGINA, y **son DOS sitios, no uno**.
  *
- * Se saca con dos cortes de cadena y no con un analizador de HTML: la casa no
- * tiene dependencias, y lo que se busca es un bloque con una clase fija que la
- * sede lleva usando en todas sus páginas. Si un día cambia, esto devuelve
- * `null` y la respuesta será `mudo` con motivo `parseo` — que es exactamente lo
- * que hay que enterarse.
+ * ⛔ **Entrada nº32 de `docs/BITACORA.md`.** Esto solo miraba `avisos_msg`, y la
+ *    sede lo usa **únicamente para los avisos** — sin distintivo, no encontrado,
+ *    formato malo—. Cuando el vehículo SÍ tiene etiqueta, la frase vive en otro
+ *    sitio y sin ninguna alerta:
+ *
+ *      con etiqueta  → `<div class="align-self-center text-success">`
+ *                        `<p class="ms-3 my-auto">El vehículo <strong>…`
+ *      los otros tres → `<div class="avisos_msg"> <div class="alert alert-…">`
+ *                        `<p class="my-auto"><span…></span>&nbsp;&nbsp;…`
+ *
+ *    Medido el 3/09 bajando las cuatro respuestas. El caso bueno devolvía
+ *    `mudo (parseo)` contra el motor vivo mientras las cuatro jueces estaban en
+ *    verde, porque el *fixture* del caso bueno lo había compuesto yo con la
+ *    forma del de al lado.
+ *
+ * Se saca con cortes de cadena y no con un analizador de HTML: la casa no tiene
+ * dependencias. Si los dos anclajes fallan devuelve `null`, y la respuesta será
+ * `mudo` con motivo `parseo` — que es de lo que hay que enterarse.
  */
 export function fraseDeLaSede(html: string): string | null {
-  const i = html.indexOf('avisos_msg');
-  if (i < 0) {
-    return null;
+  for (const ancla of ['text-success', 'avisos_msg']) {
+    const i = html.indexOf(ancla);
+    if (i < 0) {
+      continue;
+    }
+    const trozo = html.slice(i, i + 2000);
+    const abre = trozo.indexOf('<p');
+    const cierra = trozo.indexOf('</p>');
+    if (abre < 0 || cierra < 0 || cierra < abre) {
+      continue;
+    }
+    const limpio = sinEtiquetas(trozo.slice(trozo.indexOf('>', abre) + 1, cierra));
+    if (limpio !== '') {
+      return limpio;
+    }
   }
-  const trozo = html.slice(i, i + 2000);
-  const abre = trozo.indexOf('<p');
-  const cierra = trozo.indexOf('</p>');
-  if (abre < 0 || cierra < 0 || cierra < abre) {
-    return null;
-  }
-  const dentro = trozo.slice(trozo.indexOf('>', abre) + 1, cierra);
-  const limpio = sinEtiquetas(dentro);
-  return limpio === '' ? null : limpio;
+  return null;
 }
 
 /** Quita etiquetas y devuelve las entidades a su letra. Sin dependencias. */

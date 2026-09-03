@@ -18,26 +18,20 @@ import {
   type Pedir,
 } from './distintivo.ts';
 
-/** El bloque de la sede, con la frase que toque dentro. */
-const comoContesta = (frase: string): string =>
-  `<form id="distintivoAmbientalForm">…</form> <div class="avisos_msg"> ` +
-  `<div class="alert alert-warning alert-dismissible" role="alert"> ` +
-  `<p class="my-auto"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>` +
-  `&nbsp;&nbsp;${frase}</p> </div> </div> <script>…</script>`;
-
-/** Las cuatro, literales, medidas el 3/09. */
-const CON_ETIQUETA_C = comoContesta(
-  'El veh&iacute;culo 0000BBM cumple con los requisitos para obtener el Distintivo Ambiental C. ' +
-    'Pulsa en la imagen del distintivo para conocer la informaci&oacute;n contenida en la etiqueta ' +
-    'y los veh&iacute;culos que tienen derecho a su obtenci&oacute;n.',
-);
-const SIN_DISTINTIVO = comoContesta(
-  'Sin distintivo. Tu veh&iacute;culo no cumple los requisitos para ser etiquetado como ' +
-    'veh&iacute;culo limpio.',
-);
-const NO_EXISTE = comoContesta(
-  'No se ha encontrado ning&uacute;n resultado para la matr&iacute;cula introducida.',
-);
+/**
+ * ⭐ LOS CUATRO BLOQUES, **BAJADOS DE LA SEDE Y PEGADOS TAL CUAL** el 3/09.
+ *
+ * ⛔ **Antes estaban compuestos, y por eso la juez 5 mentía** (entrada nº32 de
+ *    la bitácora): el texto salía de la sonda pero la estructura la escribí yo,
+ *    envolviendo el caso bueno en el `avisos_msg` del caso de al lado. La sede
+ *    usa **dos envoltorios distintos** —`text-success` cuando hay etiqueta y
+ *    `avisos_msg` en los otros tres—, y así se ve aquí sin tener que creerme.
+ */
+const CON_ETIQUETA_C = '<div class="align-self-center text-success"> <p class="ms-3 my-auto">El veh&iacute;culo <strong>0000BBM</strong> cumple con los requisitos para obtener el <strong>Distintivo Ambiental C.</strong> Pulsa en la imagen del distintivo para conocer la informaci&oacute;n contenida en la etiqueta y los veh&iacute;culos que tienen derecho a su obtenci&oacute;n.</p>';
+const SIN_DISTINTIVO = '<div class="avisos_msg"> <div class="alert alert-warning alert-dismissible" role="alert"> <p class="my-auto"><span class="fa fa-exclamation-triangle" aria-hidden="true"></span>&nbsp;&nbsp;Sin distintivo. Tu veh&iacute;culo no cumple los requisitos para ser etiquetado como veh&iacute;culo limpio.</p>';
+const NO_EXISTE = '<div class="avisos_msg"> <div class="alert alert-danger alert-dismissible" role="alert"> <p class="my-auto"><span class="fa fa-times-circle" aria-hidden="true"></span>&nbsp;&nbsp;No se ha encontrado ning&uacute;n resultado para la matr&iacute;cula introducida.</p>';
+/** Éste no se llega a usar —el formato se valida antes—, y se guarda igual. */
+const FORMATO_MALO = '<div class="avisos_msg"> <div class="alert alert-danger alert-dismissible" role="alert"> <p class="my-auto"><span class="fa fa-times-circle" aria-hidden="true"></span>&nbsp;&nbsp;Formato de matrícula incorrecto. Escribe la matr&iacute;cula sin guiones ni espacios (0000XXX / XX0000XX / C0000XXX)</p>';
 
 /** Un `Pedir` de mentira que cuenta las visitas y contesta lo que se le diga. */
 function fuente(cuerpo: string): { pedir: Pedir; visitas: () => number; urls: string[] } {
