@@ -30,10 +30,13 @@ import {
   refrescarYServir,
   idDeProvisional,
   patronOperativo,
+  rodarConElCoche,
   rodarConLaRueda,
   velocidadComercial,
   type RodarEntre,
 } from './patron-operativo.ts';
+import { cargarRedDeCoche, type RedDeCocheServida } from './coche.ts';
+import { enganchar } from './proyeccion.ts';
 
 /** El recorrido MEDIDO de la 29 sentido −2, el 31/08 a las 16:52. */
 const RECORRIDO_29 = "\t\t<option value=\"posteDefault\">Seleccionar poste</option>\n\t\t<option id=\"posteValue\" value=\"219\">219 - Hospital Royo Villanova</option>\n\t\t<option id=\"posteValue\" value=\"529\">529 - Jes\u00fas Y Mar\u00eda n.\u00ba 89</option>\n\t\t<option id=\"posteValue\" value=\"528\">528 - Jes\u00fas Y Mar\u00eda n.\u00ba 61</option>\n\t\t<option id=\"posteValue\" value=\"346\">346 - Cristo Rey n.\u00ba 23</option>\n\t\t<option id=\"posteValue\" value=\"347\">347 - Cristo Rey n.\u00ba 77</option>\n\t\t<option id=\"posteValue\" value=\"883\">883 - Camino de Los Molinos n.\u00ba 150</option>\n\t\t<option id=\"posteValue\" value=\"898\">898 - Camino de Los Molinos n.\u00ba 165</option>\n\t\t<option id=\"posteValue\" value=\"365\">365 - Bernardo Ramazzini n.\u00ba 5</option>\n\t\t<option id=\"posteValue\" value=\"1203\">1203 - Bernardo Ramazzini / Maz</option>\n\t\t<option id=\"posteValue\" value=\"36\">36 - Av. Academia General Militar / Maz (Dir. Centro)</option>\n\t\t<option id=\"posteValue\" value=\"33\">33 - Av. Academia General Militar n.\u00ba 37</option>\n\t\t<option id=\"posteValue\" value=\"3508\">3508 - Av. Academia General Militar n.\u00ba 7</option>\n\t\t<option id=\"posteValue\" value=\"216\">216 - Av. Salvador Allende n.\u00ba 107</option>\n\t\t<option id=\"posteValue\" value=\"215\">215 - Av. Salvador Allende n.\u00ba 85</option>\n\t\t<option id=\"posteValue\" value=\"212\">212 - Av. Salvador Allende n.\u00ba 67</option>\n\t\t<option id=\"posteValue\" value=\"3012\">3012 - Av. Salvador Allende n.\u00ba 33</option>\n\t\t<option id=\"posteValue\" value=\"210\">210 - Av. Salvador Allende n.\u00ba 5</option>\n\t\t<option id=\"posteValue\" value=\"811\">811 - Valle de Broto n.\u00ba 18 / Av. Salvador Allende</option>\n\t\t<option id=\"posteValue\" value=\"131\">131 - Av. de Los Pirineos / Valle Broto</option>\n\t\t<option id=\"posteValue\" value=\"124\">124 - Av. de Los Pirineos / Colegio</option>\n\t\t<option id=\"posteValue\" value=\"659\">659 - P. Echegaray Y Caballero / Plaza del Pilar</option>\n\t\t<option id=\"posteValue\" value=\"654\">654 - P. Echegaray y Caballero n.\u00ba 112</option>\n\t\t<option id=\"posteValue\" value=\"1285\">1285 - Asalto / Centro de Historias</option>\n\t\t<option id=\"posteValue\" value=\"585\">585 - Miguel Servet n.\u00ba 28</option>\n\t\t<option id=\"posteValue\" value=\"284\">284 - Camino de Las Torres n.\u00ba 10</option>\n";
@@ -55,6 +58,8 @@ let andar: ReturnType<typeof andarConElPeaton>;
 let laVeintinueve: PatronBus;
 let motorDeLaRueda: Motor;
 let veredicto: Veredicto;
+let coche: RedDeCocheServida;
+let rodarPorCalzada: RodarEntre;
 
 const soloLa29 = (linea: string, direccion: string): Veredicto | null =>
   linea === '29' && direccion === '1' ? veredicto : null;
@@ -68,6 +73,8 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
     const rejillaRueda = cargarRejilla(rueda);
     const cuadernoRueda = cuadernoPara(rueda);
     rodar = rodarConLaRueda(rueda, rejillaRueda, cuadernoRueda);
+    coche = cargarRedDeCoche();
+    rodarPorCalzada = rodarConElCoche(coche);
     // ⭐ Lo MÍNIMO que `refrescarYServir` toca: la rueda y nada más. Va con un
     //    `as` declarado, como el motor mínimo de `viaje-bus.spec.ts`.
     motorDeLaRueda = { redRueda: rueda, rejillaRueda, cuadernoRueda } as unknown as Motor;
@@ -407,4 +414,101 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
     assert.match(texto, /para provisionalmente en \d+ · /);
   });
 
+
+  /**
+   * ⭐ JUEZ 6 — LA TRAZA VA POR CALZADA, no por donde puede una bici (3/09).
+   *
+   * El pendiente estaba escrito en la cabecera de `patron-operativo.ts` desde el
+   * 31/08: la red de la rueda *«incluye carriles bici y sendas que un autobús no
+   * puede usar»*. El caso que se compra aquí es **real y citado**: el salto de
+   * la **línea N6** entre `Ctra. Castellón / Pol. Ind. San Valero` y
+   * `Ctra. Castellón / Cementerio`, dos paradas consecutivas de su patrón
+   * principal.
+   *
+   * Se mide con el mismo criterio con el que se descubrió: **a qué distancia
+   * está cada vértice de la calzada más cercana**. Con la rueda hay vértices a
+   * más de 100 m de cualquier calle por la que quepa un autobús; con el coche,
+   * ninguno — porque cada vértice ES de una calle.
+   *
+   * ⚠️ **Y se compra también lo que cuesta**, que no es cero: la red del coche
+   *    trae los sentidos únicos DEL COCHE, y el autobús tiene carril bus y
+   *    contrasentidos que el coche no. En el casco eso se paga — `Plaza De
+   *    España → Coso N.º 126` pasa de 693 m a 2.055—, y se compra aquí para que
+   *    el día que llegue una red de autobús con sus carriles esta juez se ponga
+   *    roja y alguien la lea.
+   */
+  test('⭐ 9 · una traza de desvío se rutea por calzada, y el casco lo paga', () => {
+    const porId = new Map(red.paradas.map((p) => [p.id, p]));
+    /** Las dos paradas de un salto consecutivo, por sus nombres. */
+    const saltoDe = (linea: string, dir: string, deA: string, aB: string) => {
+      for (const patron of red.patrones) {
+        if (!patron.principal || patron.direccion !== dir) continue;
+        if (lineaDelViaje(red, patron).corto !== linea) continue;
+        for (let k = 0; k + 1 < patron.paradas.length; k++) {
+          const a = porId.get(patron.paradas[k]!)!;
+          const b = porId.get(patron.paradas[k + 1]!)!;
+          if (a.nombre === deA && b.nombre === aB) return { a, b };
+        }
+      }
+      return null;
+    };
+
+    /** A cuántos metros está un punto de la calzada más cercana. */
+    const aLaCalzada = (lat: number, lon: number): number => {
+      const e = enganchar(coche.comoRed, coche.rejilla, lon, lat);
+      return e ? e.metros : Infinity;
+    };
+    const fueraDeCalzada = (geometria: readonly (readonly [number, number])[]): number =>
+      geometria.filter(([lat, lon]) => aLaCalzada(lat, lon) > 10).length;
+
+    // ── EL CASO: la N6 por la carretera de Castellón ───────────────────────
+    const n6 = saltoDe(
+      'N6',
+      '1',
+      'Ctra. Castellón / Pol. Ind. San Valero',
+      'Ctra. Castellón / Cementerio',
+    );
+    assert.ok(n6, 'el salto de la N6 tiene que existir en el patrón principal');
+    const conRueda = rodar(n6.a.lon, n6.a.lat, n6.b.lon, n6.b.lat);
+    const conCalzada = rodarPorCalzada(n6.a.lon, n6.a.lat, n6.b.lon, n6.b.lat);
+    assert.ok(conRueda && conCalzada, 'las dos redes tienen que saber llegar');
+
+    assert.ok(
+      fueraDeCalzada(conRueda.geometria) > 50,
+      `la rueda deja ${fueraDeCalzada(conRueda.geometria)} vértices fuera de la calzada; ` +
+        'si esto baja, el caso ha dejado de ser el que se midió',
+    );
+    assert.equal(
+      fueraDeCalzada(conCalzada.geometria),
+      0,
+      'ni un vértice de la traza por calzada puede caer fuera de una calle',
+    );
+    // Y además es más corta: la senda no era un atajo, era otro sitio.
+    assert.ok(conCalzada.metros < conRueda.metros);
+
+    // ── LO QUE CUESTA: el Coso, que el autobús baja y el coche no ──────────
+    const coso = saltoDe('35', '1', 'Plaza De España', 'Coso N.º 126');
+    assert.ok(coso, 'el salto del Coso tiene que existir');
+    const cosoRueda = rodar(coso.a.lon, coso.a.lat, coso.b.lon, coso.b.lat);
+    const cosoCalzada = rodarPorCalzada(coso.a.lon, coso.a.lat, coso.b.lon, coso.b.lat);
+    assert.ok(cosoRueda && cosoCalzada);
+    assert.ok(
+      cosoCalzada.metros > cosoRueda.metros * 2,
+      'el precio del casco medido el 3/09 era 693 m → 2.055; si ya no lo es, hay red nueva',
+    );
+
+    // ── Y la 29 entera se sigue reconstruyendo, ahora por calzada ──────────
+    const op = aplicarDesvios(red, soloLa29, DONDE_ESTAN, rodarPorCalzada)!;
+    assert.equal(op.cuentas.reconstruidos, op.cuentas.saltosNuevos);
+    assert.equal(op.cuentas.rectas, 0);
+    const hoy = op.red.patrones.find((p) => p.id === `${laVeintinueve.id}#hoy`)!;
+    for (const salto of hoy.saltos) {
+      if (laVeintinueve.saltos.some((o) => o.traza === salto.traza)) continue;
+      assert.equal(
+        fueraDeCalzada(salto.traza),
+        0,
+        'un salto reconstruido de la 29 se sale de la calzada',
+      );
+    }
+  });
 });

@@ -14,13 +14,36 @@
  * conecta, **recta** — y aquí la recta se **cuenta y se marca**, nunca es
  * silenciosa [OTP #2987].
  *
- * ⚠️ **Y el grafo vial que hay en casa es el de la RUEDA, no el del coche.**
- * El del coche llega con el punto 11. La rueda son calzadas con su sentido
- * demostrado —lo que hace falta para no dibujar un autobús subiendo una calle
- * al revés—, pero **incluye carriles bici y sendas que un autobús no puede
- * usar**. Queda declarado: la geometría reconstruida es *por dónde se puede ir
- * respetando los sentidos*, no *por dónde va el autobús*. Lo del asfalto de
- * verdad son las trazas del feed, y esas se conservan intactas donde existen.
+ * ⭐ **Y DESDE EL 3/09 SE RUTEA SOBRE LA RED DEL COCHE** (punto 12, casilla 3).
+ *
+ * El pendiente estaba escrito aquí desde el 31/08: *«el grafo vial que hay en
+ * casa es el de la RUEDA»*, que incluye **carriles bici y sendas que un autobús
+ * no puede usar**. El del coche llegó con el punto 12, y es calzada.
+ *
+ * Medido el 3/09 sobre **399 pares de paradas consecutivas** de la red real,
+ * ruteados con las dos: **147 tramos** llevaban el autobús a más de 10 m de
+ * cualquier calzada con la rueda —el peor, **174 m** fuera, en la N6 entre
+ * `Ctra. Castellón / Pol. Ind. San Valero` y `Ctra. Castellón / Cementerio`, que
+ * además daba **2.132 m** contra los 1.429 del coche—. Con la red del coche
+ * esos tramos caen a cero.
+ *
+ * ⚠️ **Y TIENE UN PRECIO, medido y declarado: el casco.** La red del coche
+ *    trae los sentidos únicos **del coche**, y un autobús no los tiene todos —
+ *    hay carril bus y contrasentidos que le pertenecen—. En el mismo barrido, el
+ *    salto `Plaza De España → Coso N.º 126` (líneas 21, 32 y 35) pasa de **693 m
+ *    con la rueda a 2.055 con el coche**, y `Plaza San Miguel → Coso N.º 55` de
+ *    511 a 2.167: el coche tiene que rodear lo que el autobús baja de frente.
+ *
+ *    Ninguna de las dos redes es la del autobús. La que haría falta es calzada
+ *    **más** carriles bus y sus contrasentidos, y ese dato no está en casa. Se
+ *    elige la del coche porque el error que quita —meter un autobús por una
+ *    senda— es de clase peor que el que deja —rodear una manzana del casco—, y
+ *    porque el que deja **se ve en el mapa** y el otro no. Queda escrito para
+ *    quien traiga el dato que falta.
+ *
+ * Lo del asfalto de verdad son las trazas del feed, y esas se conservan
+ * intactas donde existen: esto solo reconstruye los saltos que el feed NO
+ * tiene.
  *
  * ── El tiempo, que la doctrina no da ────────────────────────────────────────
  *
@@ -39,6 +62,8 @@ import { enganchar, type Rejilla } from './proyeccion.ts';
 import { geometriaDe, type Cuaderno } from './ruta.ts';
 import { admiteComoPuerta, calcularRutaRodando } from './rodando.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
+import { laRedDeCoche, type RedDeCocheServida } from './coche.ts';
+import { calcularRutaEnCoche } from './viaje-coche.ts';
 import type { Motor } from './trayecto.ts';
 import { coordenadaDelPoste } from './avanza.ts';
 import { claveDe, refrescarDesvios, type CuentasDeDesvios } from './desvios.ts';
@@ -80,6 +105,32 @@ export function rodarConLaRueda(
       [bLon, bLat],
       'rapida',
     );
+    if (!r) {
+      return null;
+    }
+    return {
+      geometria: geometriaDe(r).map(([lon, lat]) => [lat, lon] as Vertice),
+      metros: r.metros,
+    };
+  };
+}
+
+/**
+ * ⭐ EL MISMO OFICIO, CON LA RED DEL COCHE (3/09). Ver la cabecera.
+ *
+ * No hay filtro de puerta que poner: en la red del coche **todo lo que hay es
+ * calzada**, que es justamente lo que se quería. Y no se le pasa ningún veto:
+ * la Zona de Bajas Emisiones no alcanza al transporte público, y ponérsela sería
+ * inventarle una restricción al autobús.
+ */
+export function rodarConElCoche(servida: RedDeCocheServida): RodarEntre {
+  return (aLon, aLat, bLon, bLat) => {
+    const eo = enganchar(servida.comoRed, servida.rejilla, aLon, aLat);
+    const ed = enganchar(servida.comoRed, servida.rejilla, bLon, bLat);
+    if (!eo || !ed) {
+      return null;
+    }
+    const r = calcularRutaEnCoche(servida, eo, [aLon, aLat], ed, [bLon, bLat]);
     if (!r) {
       return null;
     }
@@ -466,7 +517,9 @@ export async function refrescarYServir(
     }
   }
 
-  const rodar = rodarConLaRueda(motor.redRueda, motor.rejillaRueda, motor.cuadernoRueda);
+  // ⭐ POR CALZADA, no por donde puede una bici. Ver la cabecera: el pendiente
+  //    del 31/08 y lo que cuesta cumplirlo.
+  const rodar = rodarConElCoche(laRedDeCoche());
   // ⭐ SE APLICA LO QUE ESTE PASE ACABA DE LEER, no lo que la caché tenga ahora.
   //
   // ⚠️ Aquí ponía `desvioServido(linea, direccion)`, o sea: se volvía a preguntar
