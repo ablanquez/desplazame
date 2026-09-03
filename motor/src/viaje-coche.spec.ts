@@ -1357,6 +1357,22 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       assert.equal(entradas, 4, 'el polígono corta cuatro veces esta misma ruta');
       assert.notEqual(entradas, dentro.length, 'si coincidieran, esta juez no compra nada');
 
+      /**
+       * ⭐ Y DÓNDE CAE EL CORTE, que es lo que de verdad separa las dos
+       * preguntas. **Contar rachas no bastaba**: medido con la contraprueba
+       * del encargo —cortar por geometría, marcando la arista si CUALQUIER
+       * trozo suyo cae dentro del polígono— siguen saliendo una racha y
+       * cuatro entradas, y esta juez se quedaba verde.
+       *
+       * Lo que cambia es el SITIO: por la marca se entra en el vértice 206
+       * y se conducen 516 m dentro; por geometría, en el 196 y 689 m — 173
+       * metros de más pintados de rojo.
+       */
+      const suyo = t.tramos.find((x) => x.zbe === true)!;
+      assert.equal(suyo.desde, 206, 'el corte cae donde la marca lo pone');
+      assert.equal(suyo.hasta, t.geometria.length - 1);
+      assert.equal(suyo.metros, 516);
+
       // Y el tramo marcado NO empieza donde el polígono: si la pantalla cortara
       // por geometría, el primer trozo rojo empezaría antes.
       const primeroDentro = t.tramos.findIndex((x) => x.zbe === true);

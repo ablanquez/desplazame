@@ -896,7 +896,32 @@ describe('Mapa', () => {
    *    color **no va solo** [WCAG 1.4.1] y la zona se dice tres veces: el
    *    polígono la dibuja, el aviso la nombra, y el corte la parte.
    */
-  it('⭐ 8 · los tonos de la zona, medidos', () => {
+  it('⭐ 8 · los tonos de la zona, medidos', async () => {
+    /**
+     * ⚠️ **Y LO PRIMERO, QUE EL ROJO LLEVE SU RIBETE PINTADO.** Medir el tono
+     *    y no mirar el dibujo dejaba un hueco: quitarle el casing al rojo
+     *    pasaba esta juez entera —medido, contraprueba del encargo— y solo se
+     *    caía de rebote en la juez del color, porque se descuadraba el par
+     *    ribete/línea. Aquí se compra el par.
+     */
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    fixture.componentInstance.trazado.set(SEIS);
+    fixture.componentInstance.tramos.set([
+      { comoSeVa: 'rodando', desde: 0, hasta: 2, metros: 100, segundos: 10, hito: null, zbe: false },
+      { comoSeVa: 'rodando', desde: 2, hasta: 5, metros: 100, segundos: 10, hito: null, zbe: true },
+    ]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const trazos = Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive'));
+    expect(trazos.length).toBe(4);  // dos tramos × (ribete + línea)
+    expect(trazos[2]!.getAttribute('stroke')).toBe(`#${ribeteDe(ROJO_DE_LA_ZONA)}`);
+    expect(trazos[3]!.getAttribute('stroke')).toBe(`#${ROJO_DE_LA_ZONA}`);
+    expect(Number(trazos[2]!.getAttribute('stroke-width'))).toBe(
+      Number(trazos[3]!.getAttribute('stroke-width')) + 2 * ASOMA_EL_RIBETE,
+    );
+
     // El rojo pesa lo mismo que el azul y que el ámbar: es de la misma familia.
     expect(luminancia(deHex(ROJO_DE_LA_ZONA))).toBeCloseTo(0.1609, 3);
     expect(contraste(ROJO_DE_LA_ZONA, '2563eb')).toBeLessThan(1.1);
