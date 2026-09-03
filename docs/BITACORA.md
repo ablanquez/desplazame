@@ -14,6 +14,69 @@
 
 ---
 
+## [2026-09-03] ✅ CERRADA — El motor no sabe leer la respuesta BUENA de la DGT, y las cuatro jueces en verde
+
+**Categoría:** un fixture que copia el texto medido y se inventa la estructura
+
+**Síntoma:** contra el motor vivo (pid 26144),
+`GET /api/distintivo?matricula=0000BBM` devuelve `{"clase":"mudo","texto":"La DGT
+no ha contestado. Elige tu distintivo a mano…"}` **cuando la sede sí contesta**:
+la misma consulta por `curl` da 200 en 425 ms con la etiqueta C dentro. El log
+del motor dice `distintivo — mudo (parseo · 135017 bytes)`, o sea que llegó la
+página entera y no se supo leer.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las **cuatro** jueces de
+`motor/src/distintivo.spec.ts`, y entre ellas la que dice comprar justo esto —
+«los cuatro caminos de la consulta»—. Ejecutadas con el fallo vivo, antes de
+tocar nada:
+
+```
+  ✔ ⭐ 5 · los cuatro caminos de la consulta (2.4332ms)
+  ✔ ⭐ 5 bis · dos consultas simultáneas son una visita; la de después, otra (0.8241ms)
+  ✔ ⭐ 5 ter · un fallo se reintenta una vez; dos, y se dice que no se sabe (929.5166ms)
+  ✔ ⭐ 7 · ni la respuesta ni el log llevan la matrícula (310.1775ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+```
+
+Y el motor vivo, en el mismo minuto:
+
+```
+motor: distintivo — mudo (parseo · 135017 bytes)
+motor: distintivo — mudo (parseo · 135016 bytes)
+```
+
+**Cómo se cazó:** la prueba real contra el motor vivo, la del `pid == pid` del
+encargo. Ninguna juez lo vio.
+
+**Causa raíz:** `fraseDeLaSede` anclaba en `avisos_msg`, y **la sede usa dos
+envoltorios distintos**: `avisos_msg` para los tres avisos —sin distintivo, no
+encontrado, formato malo— y `<div class="align-self-center text-success">` para
+el caso bueno, que no lleva alerta ninguna. Bajadas las cuatro respuestas el
+3/09, la del vehículo con etiqueta **no contiene la cadena `avisos_msg` ni una
+sola vez**. El *fixture* de ese caso no lo destapó porque lo compuse yo con la
+forma del de al lado: el texto era el medido, el envoltorio no.
+
+**Arreglo aplicado:** dos anclajes en `fraseDeLaSede`, `text-success` primero y
+`avisos_msg` después, cada uno con su marcado real escrito en el comentario. Y
+los cuatro *fixtures* de `distintivo.spec.ts` cambiados por **los trozos bajados
+de la sede y pegados tal cual**, desde el anclaje que el motor busca. Verificado
+contra el motor vivo (pid 14712): `etiqueta C` · `sinDistintivo` · `noExiste` ·
+`formato`, los cuatro.
+
+**Commit:** `489327e`
+
+**Ley que sale de aquí:** un *fixture* de una fuente ajena **se copia entero, no
+se compone**. El texto de las cuatro respuestas salió de la sonda y es exacto;
+la estructura que lo envuelve la escribí yo copiando la del caso de al lado, y
+por ahí se coló. Medir el texto y no medir el HTML es medir la mitad.
+
+**Traza:** `motor/src/distintivo.ts` — `fraseDeLaSede`;
+`motor/src/distintivo.spec.ts` — `comoContesta` y la juez 5.
+
+---
+
 ## [2026-09-03] ✅ CERRADA — Uno de los cuatro aparcamientos de la ZBE se quedaba sin ruta, en silencio, y las 27 jueces en verde
 
 **Categoría:** un candidato que desaparece del reparto sin que nadie lo diga
