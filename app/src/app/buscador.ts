@@ -15,6 +15,7 @@ import type {
   PeticionDeRuta,
   Portal,
   PortalCercano,
+  TipoDeAparcamiento,
   TipoDeRuta,
   Trayecto,
   Via,
@@ -556,6 +557,36 @@ function comoSeLeeLaDuracion(segundos: number, modo: Modo = 'andando'): string {
 type Familia = 'andando' | 'bus' | 'bici' | 'patin' | 'coche';
 
 /**
+ * ⭐ EL DISTINTIVO AMBIENTAL, y **es palabra de esta pantalla**, no del contrato.
+ *
+ * Al motor no le importa qué etiqueta lleva el coche: le importa **si puede
+ * entrar en la Zona de Bajas Emisiones**, que es una sola pregunta de sí o no
+ * —`puedeEntrarEnLaZbe`— y es lo único que viaja. La traducción de las seis
+ * respuestas a esa pregunta vive aquí y en un solo sitio, la tabla
+ * `distintivos`, para que no haya dos maneras de contestarla.
+ *
+ * ⚠️ Y `nolose` **no es un `false`**: es la ausencia del parámetro. Ver la tabla.
+ */
+type Distintivo = 'cero' | 'eco' | 'c' | 'b' | 'sin' | 'nolose';
+
+/**
+ * ⭐ DÓNDE SE CONSULTA LA ETIQUETA, medido el 03/09/2026.
+ *
+ * `https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/`
+ * — estado 200, 134.338 bytes, título *«Sede Electrónica DGT - Consulta del
+ * distintivo ambiental de un vehículo»*. La página dice, literal, que se
+ * consulta *«Por internet, sin identificación previa»* y que *«lo único que
+ * necesitas es conocer su matrícula»*.
+ *
+ * ⚠️ **La URL se midió porque la de manual no existe.** `.../vehiculos/
+ *    distintivo-ambiental/` contesta **200 con una página «Page Not Found»** —un
+ *    404 blando—, así que un enlace escrito de memoria habría salido a
+ *    producción roto y pareciendo bueno.
+ */
+const DGT_DISTINTIVO =
+  'https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/';
+
+/**
  * De qué familia es un modo. **La única línea donde vive el reparto**, y por
  * eso está fuera del componente: la usan la pantalla y sus jueces.
  *
@@ -661,7 +692,10 @@ export class Buscador {
     { id: 'bici', etiqueta: 'Bici privada', todavia: null },
     { id: 'patin', etiqueta: 'Patín (VMP)', todavia: null },
     { id: 'bizi', etiqueta: 'BiZi', todavia: null },
-    { id: 'coche', etiqueta: 'Coche', todavia: 'Todavía no calculamos rutas en coche.' },
+    // ⭐ Y el coche perdió el suyo el 3/09: el punto 12 aterrizó —casillas 1a,
+    // 1b y 2— y viaja como las demás. Ya no queda ninguno con `todavia`; el
+    // campo se queda porque el mecanismo sigue siendo el bueno para el próximo.
+    { id: 'coche', etiqueta: 'Coche', todavia: null },
   ];
 
   /**
@@ -717,6 +751,71 @@ export class Buscador {
     { id: 'bizi', etiqueta: 'Pública BiZi' },
   ];
 
+  /**
+   * ⭐ LA PREGUNTA DEL APARCAMIENTO, y **sus tres ids SON los del contrato**.
+   *
+   * Como los dos de la bici: lo que se marca aquí es literalmente lo que viaja
+   * en `PeticionDeRuta.aparcamiento`, sin tabla en medio que pueda mentir.
+   *
+   * Las etiquetas son las del censo municipal leídas en cristiano: `regulado`
+   * es la zona azul y naranja, `discapacitado` las plazas PMR y `gratuito` el
+   * bordillo sin regulación.
+   */
+  protected readonly aparcamientos: ReadonlyArray<{ id: TipoDeAparcamiento; etiqueta: string }> = [
+    { id: 'regulado', etiqueta: 'Regulado' },
+    { id: 'discapacitado', etiqueta: 'Discapacitado' },
+    { id: 'gratuito', etiqueta: 'Gratuito' },
+  ];
+
+  /**
+   * ⭐ SIN NADA MARCADO, y eso es la respuesta por defecto: **no se aparca**.
+   *
+   * [GOV.UK] en una pregunta no se preinfluye. Marcar «Regulado» de antemano le
+   * pondría al viaje un remate que nadie ha pedido —y le cambiaría el destino
+   * real, que pasaría a ser un bordillo—. Sin tocarlo, el parámetro **se omite**
+   * y sale el viaje hasta la puerta, que es el de la casilla 1b.
+   */
+  protected readonly aparcamiento = signal<TipoDeAparcamiento | null>(null);
+
+  /**
+   * ⭐ LA PREGUNTA DEL DISTINTIVO, y su traducción a la única que el motor hace.
+   *
+   * `puedeEntrar` es lo que viaja: `true` para las cuatro etiquetas que [FAQ de
+   * la sede, leída el 2/09] declara con *«libre acceso, circulación y
+   * estacionamiento sin necesidad de registrarse»*, `false` para los que no
+   * tienen ninguna, y **`null` para «No lo sé»: entonces el parámetro NO
+   * VIAJA**.
+   *
+   * ⚠️ Traducir «No lo sé» a `false` sería decidir por quien no ha decidido, y
+   *    encima por el lado caro: le mandaría a rodear la zona o a rematar en un
+   *    aparcamiento público sin que su coche lo necesite. Omitirlo deja la
+   *    conducta de siempre — el motor avisa de la norma y no veta nada—.
+   *
+   * ⚠️ Y son SEIS, que pasa de las cinco del control segmentado de arriba. No
+   *    es el mismo patrón: aquello es una fila de modos, y esto es una pregunta
+   *    con sus respuestas. [GOV.UK] para una lista corta van radios, y el
+   *    desplegable es *«el último recurso»*.
+   */
+  protected readonly distintivos: ReadonlyArray<{
+    id: Distintivo;
+    etiqueta: string;
+    /** Lo que se le manda al motor. `null` es «no se manda nada». */
+    puedeEntrar: boolean | null;
+  }> = [
+    { id: 'cero', etiqueta: 'CERO', puedeEntrar: true },
+    { id: 'eco', etiqueta: 'ECO', puedeEntrar: true },
+    { id: 'c', etiqueta: 'C', puedeEntrar: true },
+    { id: 'b', etiqueta: 'B', puedeEntrar: true },
+    { id: 'sin', etiqueta: 'Sin etiqueta', puedeEntrar: false },
+    { id: 'nolose', etiqueta: 'No lo sé', puedeEntrar: null },
+  ];
+
+  /** Tampoco viene marcado ninguno: es una pregunta, no un ajuste. */
+  protected readonly distintivo = signal<Distintivo | null>(null);
+
+  /** El enlace de la DGT, para la plantilla. Ver `DGT_DISTINTIVO`. */
+  protected readonly enlaceDgt = DGT_DISTINTIVO;
+
   /** Los dos lados de la dirección. Misma forma, mismo trato. */
   protected readonly origen = ladoVacio();
   protected readonly destino = ladoVacio();
@@ -771,6 +870,43 @@ export class Buscador {
   protected readonly eligeRuta = computed(
     () => this.modo() === 'bici' || this.modo() === 'bizi',
   );
+
+  /**
+   * ⭐ QUIÉN VE LAS DOS PREGUNTAS DEL COCHE: el coche, y nadie más.
+   *
+   * Mismo patrón y mismo argumento que los otros tres revelados de esta
+   * pantalla [DOC GOV.UK, revelado condicional]: lo que no aplica **no está**.
+   * Andando no aparca un coche y la ZBE no le alcanza.
+   */
+  protected readonly eligeCoche = computed(() => this.modo() === 'coche');
+
+  protected elegirAparcamiento(tipo: TipoDeAparcamiento): void {
+    this.aparcamiento.set(tipo);
+  }
+
+  protected elegirDistintivo(cual: Distintivo): void {
+    this.distintivo.set(cual);
+  }
+
+  /**
+   * ⭐ LO QUE EL COCHE AÑADE A LA PETICIÓN — y **solo lo contestado**.
+   *
+   * Un campo sin contestar no viaja como `undefined`: **no viaja**. Es la misma
+   * ley del contrato —los dos parámetros son opcionales y su ausencia es la
+   * conducta de la casilla 1b— y la que hace que la muralla de los otros modos
+   * se pueda comprar mirando las claves del cuerpo.
+   */
+  private loDelCoche(): Partial<PeticionDeRuta> {
+    if (!this.eligeCoche()) {
+      return {};
+    }
+    const donde = this.aparcamiento();
+    const cual = this.distintivos.find((x) => x.id === this.distintivo());
+    return {
+      ...(donde !== null ? { aparcamiento: donde } : {}),
+      ...(cual && cual.puedeEntrar !== null ? { puedeEntrarEnLaZbe: cual.puedeEntrar } : {}),
+    };
+  }
 
   /**
    * ⭐ LAS TRES RUTAS YA TRAÍDAS, y para qué pregunta valen.
@@ -1670,7 +1806,13 @@ export class Buscador {
     // desbloquear con texto, y sería tirarlo todo mandar aquí los nombres. El
     // motor tampoco los aceptaría — los rechaza en `leerPeticion`. Un sitio
     // viaja igual: por su código, nunca por su presentación.
-    const peticion: PeticionDeRuta = { origen, destino, modo: this.modo() };
+    const peticion: PeticionDeRuta = {
+      origen,
+      destino,
+      modo: this.modo(),
+      // ⭐ Y lo del coche, **solo si se ha contestado**. Ver `loDelCoche`.
+      ...this.loDelCoche(),
+    };
 
     this.avisoRuta.set(null);
     this.resultado.set(null);

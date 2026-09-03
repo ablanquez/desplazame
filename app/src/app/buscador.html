@@ -357,6 +357,79 @@
     }
 
     <!--
+      ⭐ LAS DOS PREGUNTAS DEL COCHE, y **solo con Coche** (3/09, punto 12).
+
+      Es el cuarto sitio del mismo patrón [DOC GOV.UK, revelado condicional] —el
+      número de portal, «¿Qué ruta prefieres?», «¿Qué bici?» y esto—, con el
+      argumento de siempre: lo que no aplica **no está**, no está en gris.
+
+      ⚠️ **Ninguna de las dos viene marcada**, y eso es deliberado [GOV.UK: en
+         una pregunta no se preinfluye]. Sin tocarlas, el motor recibe el viaje
+         de la casilla 1b: hasta la puerta, y con el aviso de la zona sin vetar
+         nada. Marcar «Regulado» de antemano le cambiaría el destino a quien no
+         ha pedido aparcar, y marcar «Sin etiqueta» le mandaría a rodear una zona
+         que su coche quizá puede pisar.
+
+      ⚠️ Los `name` son `aparcamiento` y `distintivo`, cada uno el suyo: si
+         compartieran nombre el navegador los trataría como **un solo grupo de
+         nueve** y marcar «CERO» desmarcaría «Regulado».
+
+      ⚠️ Y el distintivo tiene SEIS opciones, que pasa de las cinco del control
+         segmentado de la primera fila. No es el mismo patrón: aquello es una
+         fila de modos y esto es una pregunta con sus respuestas — [GOV.UK] para
+         una lista corta van radios, y el desplegable es «el último recurso».
+    -->
+    @if (eligeCoche()) {
+      <fieldset class="modos aparcamientos">
+        <legend>¿Dónde quieres aparcar?</legend>
+        @for (a of aparcamientos; track a.id) {
+          <label class="modo" [class.modo--activo]="aparcamiento() === a.id">
+            <input
+              type="radio"
+              name="aparcamiento"
+              class="modo__radio"
+              [value]="a.id"
+              [checked]="aparcamiento() === a.id"
+              (change)="elegirAparcamiento(a.id)"
+            />
+            {{ a.etiqueta }}
+          </label>
+        }
+      </fieldset>
+
+      <fieldset class="modos distintivos">
+        <legend>¿Distintivo ambiental?</legend>
+        @for (e of distintivos; track e.id) {
+          <label class="modo" [class.modo--activo]="distintivo() === e.id">
+            <input
+              type="radio"
+              name="distintivo"
+              class="modo__radio"
+              [value]="e.id"
+              [checked]="distintivo() === e.id"
+              (change)="elegirDistintivo(e.id)"
+            />
+            {{ e.etiqueta }}
+          </label>
+        }
+        <!-- ⭐ Y EL SITIO DONDE SE AVERIGUA, junto a la opción que lo necesita.
+             Quien no sabe su etiqueta no puede contestar la pregunta, y la
+             pregunta se contesta en la sede de la DGT: por matrícula y **sin
+             identificación previa** —medido el 3/09, ver `DGT_DISTINTIVO`—.
+             Sale en pestaña nueva porque saca de la aplicación con el
+             formulario a medio rellenar, y se distingue por el SUBRAYADO y no
+             por el color, como los otros dos enlaces de esta pantalla. -->
+        <a
+          class="distintivo__dgt"
+          [href]="enlaceDgt"
+          target="_blank"
+          rel="noopener"
+          >Consulta tu etiqueta en la DGT</a
+        >
+      </fieldset>
+    }
+
+    <!--
       ⭐ EL SELECTOR DE RUTA, y **solo cuando el modo lo usa** [DOC GOV.UK,
       revelado condicional]. Es el mismo patrón que el número de portal y el
       mismo argumento: no está apagado, **no está**. Un grupo de radios
@@ -648,13 +721,7 @@
                 </span>
               }
               <!-- ⭐ LA NOTA AL LADO DEL HITO [GOV.UK: resumen arriba Y mensaje
-                   junto a lo afectado, con el MISMO texto en los dos sitios].
-                   Solo en los hitos, que son los que prometen algo —una bici
-                   que haya, un bus que venga—, y solo cuando hay algo que
-                   advertir. Cuál le toca a cada uno lo decide `notaDelHito`,
-                   que desde el bus ya no es «el aviso» sino «SU aviso». El
-                   ⚠ va aria-hidden: el texto ya dice lo que pasa, el icono es
-                   para el ojo — es el 1.4.1 de siempre, no solo color. -->
+                   junto a lo afectado, con el MISMO texto en los dos sitios]. -->
               @if (esHito(paso)) {
                 @if (notaDelHito(paso); as nota) {
                   <span class="paso__nota">

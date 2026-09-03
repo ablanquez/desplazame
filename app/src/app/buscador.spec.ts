@@ -75,6 +75,42 @@ function radiosDeBici(raiz: HTMLElement): HTMLInputElement[] {
 }
 
 /**
+ * Los radios de «¿Dónde quieres aparcar?». **Solo existen con Coche elegido**:
+ * el revelado condicional quita el grupo entero, así que la lista vacía es una
+ * respuesta y no un fallo.
+ */
+function radiosDeAparcamiento(raiz: HTMLElement): HTMLInputElement[] {
+  return Array.from(
+    raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="aparcamiento"]'),
+  );
+}
+
+/** Y los de «¿Distintivo ambiental?», con la misma ley. */
+function radiosDeDistintivo(raiz: HTMLElement): HTMLInputElement[] {
+  return Array.from(
+    raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="distintivo"]'),
+  );
+}
+
+/** Pulsa una opción de un grupo por su `value`, y falla diciendo qué había. */
+function pulsar(fixture: any, radios: HTMLInputElement[], valor: string): void {
+  const suyo = radios.find((r) => r.value === valor);
+  if (!suyo) {
+    throw new Error(
+      `no hay ninguna opción «${valor}». Las que hay: ${radios.map((r) => r.value).join(', ')}` +
+        ' (si está vacío, el grupo no se ha revelado)',
+    );
+  }
+  suyo.click();
+  fixture.detectChanges();
+}
+
+/** El cuerpo de la ÚLTIMA petición de ruta que se hizo. */
+function cuerpoDeLaRuta(peticiones: readonly TestRequest[]): Record<string, unknown> {
+  return peticiones[peticiones.length - 1]!.request.body as Record<string, unknown>;
+}
+
+/**
  * ⭐ Y el que CUENTA las peticiones de ruta, drenándolas con lo que toque.
  *
  * Existe porque desde el 30/08 «Generar» en bici dispara **tres** —la precarga
@@ -807,6 +843,96 @@ const SIN_APARCABICIS_CERCA: Trayecto = {
 };
 
 /** Rellena los cuatro campos por el camino de una persona, y deja listo el botón. */
+/**
+ * ⭐ EL VIAJE EN COCHE QUE REMATA EN UN APARCAMIENTO PÚBLICO (casilla 2-bis).
+ *
+ * Los textos y las cifras son **los del motor vivo**, leídos por HTTP el 3/09
+ * (`pid` del log = `pid` que contesta): `PEDRO LAPUYADE 3 → CALLE ABEN AIRE 33`
+ * con `puedeEntrarEnLaZbe: false` da 4.834 m en dos tramos, rodando 4.538 y
+ * andando 296.
+ *
+ * ⚠️ **El aviso lleva `paso: 2`, y el 2 NO ES UN HITO.** Es lo que esta casilla
+ *    compra: hasta hoy la nota solo podía colgarse de un hito, porque el reparto
+ *    se hacía leyendo el texto y solo los hitos nombran sitios. El motor sabe
+ *    por qué paso se entra en la zona desde la casilla 1b y lo dice en
+ *    `Aviso.paso`; la pantalla ya no lo adivina.
+ */
+const VIAJE_EN_COCHE_CON_REMATE: Trayecto = {
+  modo: 'coche',
+  pasos: [
+    paso('salida', 240, accion('Sal de'), llano(' '), via('Calle Pedro Lapuyade 3'), llano(' y dirígete hacia el noroeste')),
+    paso('derecha', 780, accion('Gira a la derecha'), llano(' hacia '), via('Avenida de Goya')),
+    paso('recto', 3518, accion('Continúa'), llano(' por '), via('Paseo de la Independencia')),
+    paso('aparca', 0, accion('Aparca'), llano(' en el aparcamiento público '), via('Plaza del Pilar - Juzgados'), llano(' — la ZBE permite el acceso a aparcamientos públicos conectados, con registro municipal')),
+    paso('salida', 296, accion('Sal andando'), llano(' hacia el este por '), via('Calle Don Jaime I')),
+    paso('llegada', 0, via('Calle Aben Aire 33'), llano(' está a la derecha')),
+  ],
+  geometria: [
+    [41.6404, -0.8965],
+    // El vértice donde muere lo que se conduce: ahí está el aparcamiento.
+    [41.6572, -0.8811],
+    [41.6576, -0.8831],
+  ],
+  avisos: [
+    {
+      texto:
+        'Tu destino queda dentro de la Zona de Bajas Emisiones. Sin distintivo solo se puede ' +
+        'entrar con autorización (residentes, plaza de garaje, PMR, o acceso a aparcamiento ' +
+        'público conectado — con registro municipal). Esta ruta remata en el aparcamiento ' +
+        'público Plaza del Pilar - Juzgados.',
+      paso: 2,
+    },
+  ],
+  metros: 4834,
+  segundos: 644,
+  tramos: [
+    { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 4538, segundos: 431, hito: 'aparca' },
+    { comoSeVa: 'andando', desde: 1, hasta: 2, metros: 296, segundos: 213, hito: null },
+  ],
+};
+
+/** El mismo viaje pudiendo entrar: se entra, y el aviso es el de la norma. */
+const VIAJE_EN_COCHE_POR_LA_ZBE: Trayecto = {
+  modo: 'coche',
+  pasos: [
+    paso('salida', 240, accion('Sal de'), llano(' '), via('Calle Pedro Lapuyade 3'), llano(' y dirígete hacia el noroeste')),
+    paso('recto', 3146, accion('Continúa'), llano(' por '), via('Paseo de la Independencia')),
+    paso('llegada', 0, via('Calle Aben Aire 33'), llano(' está a la derecha')),
+  ],
+  geometria: [
+    [41.6404, -0.8965],
+    [41.6576, -0.8831],
+  ],
+  avisos: [
+    {
+      texto:
+        'La ruta atraviesa la Zona de Bajas Emisiones: de lunes a viernes de 8:00 a 20:00 los ' +
+        'vehículos sin distintivo necesitan autorización; B, C, ECO y CERO circulan libres',
+      paso: 1,
+    },
+  ],
+  metros: 3386,
+  segundos: 423,
+  tramos: [{ comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 3386, segundos: 423, hito: null }],
+};
+
+/** Y uno que no la pisa: sin aviso ninguno. */
+const VIAJE_EN_COCHE_LEJOS: Trayecto = {
+  modo: 'coche',
+  pasos: [
+    paso('salida', 240, accion('Sal de'), llano(' '), via('Calle Pedro Lapuyade 3'), llano(' y dirígete hacia el oeste')),
+    paso('llegada', 0, via('Camino de en Medio 120'), llano(' está a la izquierda')),
+  ],
+  geometria: [
+    [41.6404, -0.8965],
+    [41.6501, -0.9401],
+  ],
+  avisos: [],
+  metros: 4241,
+  segundos: 512,
+  tramos: [{ comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 4241, segundos: 512, hito: null }],
+};
+
 async function direccionEntera(fixture: any, http: HttpTestingController): Promise<void> {
   await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
   await elegirPortal(fixture, http, 'portalOrigen', '2');
@@ -3507,9 +3633,11 @@ describe('Buscador', () => {
    * viajar como las demás.»* El bus llegó —casilla 3b, y la 3c le enchufó el
    * dato vivo—, así que la fila ha perdido su `todavia`.
    *
-   * El coche NO: sigue cortándose en la pantalla, y su juez sigue viva justo
-   * debajo. Lo que se compra aquí es que el corte era del bus y del coche por
-   * separado y no un solo interruptor de los dos.
+   * ⚠️ **Y el coche tampoco, desde el 3/09**: el punto 12 aterrizó —casillas 1a,
+   * 1b y 2— y su fila perdió el `todavia` igual que la del bus. La juez que
+   * compraba el corte está justo debajo, dada la vuelta. Lo que se compra aquí
+   * sigue siendo que el corte era de cada uno por su lado y no un interruptor
+   * de los dos: el bus dejó de cortarse el 31/08 y el coche tres días después.
    */
   it('⭐ el bus YA llama a /api/ruta: el punto 10 aterrizó', async () => {
     const fixture = TestBed.createComponent(Buscador);
@@ -3531,7 +3659,19 @@ describe('Buscador', () => {
     expect(avisosDeRuta(raiz)).toEqual([]);
   });
 
-  it('el coche no llama a /api/ruta: lo dice la pantalla', async () => {
+  /**
+   * ⭐ EL COCHE YA LLAMA AL MOTOR — el punto 12 aterrizó (3/09).
+   *
+   * ⚠️ **Esta juez decía lo contrario hasta hoy**, y la que lo decía llevaba
+   * escrito el día en que dejaría de valer: *«coche llega con el punto 11; ese
+   * día la fila pierde su `todavia` y empieza a viajar como las demás»*. Llegó
+   * con el 12 —la 1a cocinó la red, la 1b hizo el viaje y la 2 el remate—, así
+   * que ya no hay ningún modo con `todavia`: los seis viajan.
+   *
+   * Lo que se compra es que **lo que se pinta es lo que el motor contestó**, y
+   * no una frase escrita en la pantalla.
+   */
+  it('⭐ el coche YA llama a /api/ruta: el punto 12 aterrizó', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -3540,17 +3680,17 @@ describe('Buscador', () => {
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
+    const peticiones = http.match('/api/ruta');
+    expect(peticiones.length).toBe(1);
+    expect((peticiones[0]!.request.body as { modo: string }).modo).toBe('coche');
+    drenarRutas(peticiones, () => VIAJE_EN_COCHE_LEJOS);
     await fixture.whenStable();
 
-    http.expectNone('/api/ruta');
     expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Coche');
-    // ⚠️ El «todavía no» del coche **es un aviso del trayecto** —la pantalla
-    //    compone un trayecto vacío con él dentro—, así que desde el 2/09 se
-    //    lee en el resumen de arriba y no en el ámbar de «no contesta».
-    expect(resumenEnPantalla(raiz)[0]).toContain('Todavía no calculamos rutas en coche');
-    // Y sin hito al que llevar, la línea NO enlaza a ninguna parte.
-    expect(adondeLlevaElResumen(raiz)).toEqual([null]);
-    expect(raiz.querySelectorAll('.paso').length).toBe(0);
+    // Y lo que hay debajo son SUS pasos, no un «todavía no».
+    expect(raiz.querySelectorAll('.paso').length).toBe(2);
+    expect(resumenEnPantalla(raiz)).toEqual([]);
+    expect(avisosDeRuta(raiz)).toEqual([]);
   });
 
   /**
@@ -4327,5 +4467,212 @@ describe('Buscador', () => {
     http.expectNone((r) => r.url === '/api/poste-vivo');
   });
 
+
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   *  LA PANTALLA DEL COCHE (3/09, punto 12 casilla 3)
+   * ═════════════════════════════════════════════════════════════════════════
+   */
+
+  /**
+   * ⭐ JUEZ 1 — ELEGIR COCHE REVELA DOS PREGUNTAS, y los demás modos ninguna.
+   *
+   * Es el cuarto sitio donde vive el mismo patrón [DOC GOV.UK, revelado
+   * condicional] —el número de portal, «¿Qué ruta prefieres?», «¿Qué bici?» y
+   * esto—, y el argumento es el de siempre: lo que no aplica **no está**, no
+   * está en gris. Dos grupos de radios colgando bajo «Andando» ocuparían su
+   * hueco y se leerían como «esto podrías tocarlo».
+   */
+  it('⭐ 1 · el coche revela las dos preguntas, y los otros modos no', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    for (const modo of ['andando', 'bus', 'bici', 'bizi', 'patin'] as const) {
+      elegirModo(fixture, modo);
+      expect(radiosDeAparcamiento(raiz).length).toBe(0);
+      expect(radiosDeDistintivo(raiz).length).toBe(0);
+    }
+
+    elegirModo(fixture, 'coche');
+    expect(radiosDeAparcamiento(raiz).map((r) => r.value)).toEqual([
+      'regulado',
+      'discapacitado',
+      'gratuito',
+    ]);
+    expect(radiosDeDistintivo(raiz).map((r) => r.value)).toEqual([
+      'cero',
+      'eco',
+      'c',
+      'b',
+      'sin',
+      'nolose',
+    ]);
+    // Y las dos preguntas son GRUPOS DE VERDAD: `fieldset` con su leyenda, que
+    // es lo que le da al navegador la conducta del patrón y al lector el nombre
+    // de la pregunta.
+    expect(raiz.querySelector('fieldset.aparcamientos legend')?.textContent).toContain(
+      '¿Dónde quieres aparcar?',
+    );
+    expect(raiz.querySelector('fieldset.distintivos legend')?.textContent).toContain(
+      '¿Distintivo ambiental?',
+    );
+
+    // Y al salirse del coche desaparecen otra vez.
+    elegirModo(fixture, 'andando');
+    expect(radiosDeAparcamiento(raiz).length).toBe(0);
+    expect(radiosDeDistintivo(raiz).length).toBe(0);
+  });
+
+  /**
+   * ⭐ JUEZ 2 — CADA RESPUESTA MANDA LO SUYO, y **nada viene preseleccionado**.
+   *
+   * [GOV.UK] en una pregunta no se preinfluye: marcar «Sin etiqueta» de
+   * antemano le diría al motor que el coche de quien pregunta no puede entrar
+   * en la ZBE sin que nadie lo haya dicho, y marcar «Regulado» le pondría un
+   * remate que no ha pedido. Sin tocar nada, **los dos parámetros se omiten** y
+   * lo que sale es el viaje de la casilla 1b.
+   *
+   * Y «No lo sé» **no es un `false`**: es la ausencia del parámetro, que es la
+   * conducta de siempre —el motor avisa y no veta—. Traducirlo a `false` sería
+   * decidir por quien no ha querido decidir.
+   */
+  it('⭐ 2 · cada etiqueta y cada parking mandan lo suyo; nada preseleccionado', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'coche');
+    await direccionEntera(fixture, http);
+
+    // Nada marcado al llegar.
+    expect(radiosDeAparcamiento(raiz).filter((r) => r.checked).length).toBe(0);
+    expect(radiosDeDistintivo(raiz).filter((r) => r.checked).length).toBe(0);
+
+    // Y sin tocar nada, los dos parámetros NO viajan.
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    const pelada = http.match('/api/ruta');
+    expect(Object.keys(cuerpoDeLaRuta(pelada)).sort()).toEqual(['destino', 'modo', 'origen']);
+    drenarRutas(pelada, () => VIAJE_EN_COCHE_LEJOS);
+    await fixture.whenStable();
+
+    // Las seis etiquetas, una a una, con lo que cada una significa.
+    const loQueManda: readonly (readonly [string, boolean | undefined])[] = [
+      ['cero', true],
+      ['eco', true],
+      ['c', true],
+      ['b', true],
+      ['sin', false],
+      ['nolose', undefined],
+    ];
+    for (const [etiqueta, espera] of loQueManda) {
+      pulsar(fixture, radiosDeDistintivo(raiz), etiqueta);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const peticiones = http.match('/api/ruta');
+      const cuerpo = cuerpoDeLaRuta(peticiones);
+      expect(cuerpo['puedeEntrarEnLaZbe']).toBe(espera);
+      if (espera === undefined) {
+        expect('puedeEntrarEnLaZbe' in cuerpo).toBe(false);
+      }
+      drenarRutas(peticiones, () => VIAJE_EN_COCHE_LEJOS);
+      await fixture.whenStable();
+    }
+
+    // Y los tres tipos de aparcamiento, que viajan tal cual: sus ids SON los
+    // del contrato, no una traducción.
+    for (const tipo of ['regulado', 'discapacitado', 'gratuito'] as const) {
+      pulsar(fixture, radiosDeAparcamiento(raiz), tipo);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const peticiones = http.match('/api/ruta');
+      expect(cuerpoDeLaRuta(peticiones)['aparcamiento']).toBe(tipo);
+      drenarRutas(peticiones, () => VIAJE_EN_COCHE_LEJOS);
+      await fixture.whenStable();
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 5 — EL ENLACE A LA DGT, junto a «No lo sé» y **saliente**.
+   *
+   * Quien no sabe su etiqueta necesita poder averiguarla, y se averigua en un
+   * sitio: la sede de la DGT, por matrícula y **sin identificación previa**
+   * —medido el 3/09, ver el comentario del componente—. Va con `target="_blank"`
+   * porque saca de la aplicación en mitad de un formulario a medio rellenar, y
+   * con `rel="noopener"` como los otros dos enlaces salientes de la pantalla.
+   */
+  it('⭐ 5 · el enlace a la DGT vive con la pregunta del distintivo y sale fuera', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // Sin coche, la pregunta no está y el enlace tampoco.
+    elegirModo(fixture, 'andando');
+    expect(raiz.querySelector('.distintivo__dgt')).toBeNull();
+
+    elegirModo(fixture, 'coche');
+    const enlace = raiz.querySelector<HTMLAnchorElement>('.distintivo__dgt');
+    expect(enlace).not.toBeNull();
+    expect(enlace!.textContent?.trim()).toBe('Consulta tu etiqueta en la DGT');
+    expect(enlace!.getAttribute('href')).toBe(
+      'https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/',
+    );
+    expect(enlace!.getAttribute('target')).toBe('_blank');
+    expect(enlace!.getAttribute('rel')).toBe('noopener');
+    // Y va dentro del grupo del distintivo: es de esa pregunta, no del formulario.
+    expect(raiz.querySelector('fieldset.distintivos .distintivo__dgt')).not.toBeNull();
+  });
+
+  /**
+   * ⭐ JUEZ 7 — LA MURALLA: las dos preguntas nuevas no se le cuelan a nadie.
+   *
+   * Ni al cuerpo de la petición de los otros cinco modos —que sigue siendo
+   * `origen`, `destino`, `modo` y, en los que eligen, `ruta`— ni a la pantalla.
+   */
+  it('⭐ 7 · los otros cinco modos mandan lo mismo que mandaban', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // Se contesta la pregunta del coche PRIMERO, para que se note si se filtra.
+    elegirModo(fixture, 'coche');
+    await direccionEntera(fixture, http);
+    pulsar(fixture, radiosDeDistintivo(raiz), 'sin');
+    pulsar(fixture, radiosDeAparcamiento(raiz), 'regulado');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_COCHE_CON_REMATE);
+    await fixture.whenStable();
+
+    for (const modo of ['andando', 'bus', 'patin'] as const) {
+      elegirModo(fixture, modo);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const peticiones = http.match('/api/ruta');
+      expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+        'destino',
+        'modo',
+        'origen',
+      ]);
+      drenarRutas(peticiones, () => ({ ...TRAYECTO, modo }));
+      await fixture.whenStable();
+    }
+
+    for (const modo of ['bici', 'bizi'] as const) {
+      elegirModo(fixture, modo);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const peticiones = http.match('/api/ruta');
+      expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+        'destino',
+        'modo',
+        'origen',
+        'ruta',
+      ]);
+      drenarRutas(peticiones, () => ({ ...TRAYECTO, modo }));
+      await fixture.whenStable();
+    }
+  });
 
 });
