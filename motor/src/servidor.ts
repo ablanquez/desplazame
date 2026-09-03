@@ -983,6 +983,14 @@ servidor.listen(PUERTO, () => {
     'motor:   con `puedeEntrarEnLaZbe: false` la zona se veta —en la búsqueda y como sitio ' +
       'donde aparcar— solo dentro de la franja: L-V de 8:00 a 20:00, por el reloj de la calle',
   );
+  console.log(
+    'motor:   y si el DESTINO cae dentro de la zona, la ruta remata en uno de los 4 ' +
+      'aparcamientos públicos de la fase 1: la ordenanza deja entrar para eso (§ 1.32)',
+  );
+  console.log(
+    'motor:   ahí la zona se ENTRA, no se ATRAVIESA — se prohíbe la transición dentro→fuera, ' +
+      'salvo para rematar; el origen dentro sigue sin ruta, que de ahí no se sale',
+  );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 
   // ⭐ EL REFRESCO DE LOS DESVÍOS, al arrancar y cada hora (31/08).
