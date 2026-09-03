@@ -45,6 +45,7 @@ import { portalCercano } from './cercano.ts';
 import { cargarRed } from './red.ts';
 import { cargarRedDeLaRueda } from './red-rueda.ts';
 import { laRedDeCoche } from './coche.ts';
+import { elAparcamiento } from './aparcamiento.ts';
 import { SENTIDOS_CORREGIDOS } from './sentidos-corregidos.ts';
 import {
   FACTOR_DEL_EMPUJE,
@@ -459,6 +460,20 @@ console.log(
     `via-way ${coche.cocinada.contadores.restriccionesViaWay} · ` +
     `exentas ${coche.cocinada.contadores.restriccionesExentas} · ` +
     `fuera ${coche.cocinada.contadores.restriccionesFuera}`,
+);
+
+// ⭐ DÓNDE SE DEJA EL COCHE (3/09, casilla 2): los dos censos municipales que
+//    ya estaban en el repositorio desde el 18/08, repartidos en tres montones.
+console.log('motor: cargando dónde se aparca…');
+const aparcamiento = elAparcamiento();
+console.log(
+  `motor: aparcamiento — regulado ${aparcamiento.regulado.length} tramos ` +
+    `(ESRO + ESRE) · gratuito ${aparcamiento.gratuito.length} · ` +
+    `PMR ${aparcamiento.pmr.length} plazas · ${aparcamiento.cargadoEnMs.toFixed(0)} ms`,
+);
+console.log(
+  `motor:   ${aparcamiento.sinClasificar} tramos sin clasificar NO entran en ningún montón: ` +
+    'el censo no dice qué son, y leer ese silencio como «gratuito» sería inventarlo',
 );
 
 /** Todo lo que hace falta para contestar una ruta, junto. */
@@ -959,6 +974,10 @@ servidor.listen(PUERTO, () => {
   console.log(
     'motor:   el coche busca por TRANSICIONES —las restricciones de giro lo exigen— y ' +
       'la ZBE AVISA, no veta: la app no sabe qué distintivo lleva el vehículo',
+  );
+  console.log(
+    'motor:   y con `aparcamiento` (regulado|discapacitado|gratuito) remata car-to-park: ' +
+      'conducir al mejor sitio POR COSTE y andar el resto',
   );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 

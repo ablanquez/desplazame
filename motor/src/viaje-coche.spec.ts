@@ -16,7 +16,7 @@ import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { Trayecto } from '@desplazame/tipos';
+import type { TipoDeAparcamiento, Trayecto } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed } from './red.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
@@ -31,7 +31,8 @@ import { cargarRejilla, enganchar } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
 import { escribirPasos } from './pasos.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
-import { calcularRutaEnCoche, AVISO_ZBE } from './viaje-coche.ts';
+import { AVISO_ZBE, calcularRutaEnCoche } from './viaje-coche.ts';
+import { dondeAparcarCerca, elAparcamiento } from './aparcamiento.ts';
 import type { Extremo } from './etapas.ts';
 
 let portales: PortalesEnMemoria;
@@ -61,12 +62,37 @@ function porCodigos(codigo: string): { via: string; portal: string } {
 }
 
 /** Un viaje en coche entre dos portales, **por la puerta de verdad**. */
-function viaje(origen: string, destino: string): Trayecto {
+function viaje(
+  origen: string,
+  destino: string,
+  extra?: { readonly aparcamiento?: TipoDeAparcamiento },
+): Trayecto {
   return calcularTrayecto(motor, {
     origen: porCodigos(origen),
     destino: porCodigos(destino),
     modo: 'coche',
+    ...extra,
   });
+}
+
+/** Dónde acabó aparcando un viaje: el `id` del WFS del sitio que ganó. */
+function dondeAparca(t: Trayecto, tipo: TipoDeAparcamiento): string | null {
+  const hito = t.pasos.find((x) => x.giro === 'aparca');
+  if (!hito) {
+    return null;
+  }
+  // El hito lleva el nombre y el detalle, no el id: el id se recupera buscando
+  // el sitio que cae encima del vértice del hito, que es donde el contrato dice
+  // que está — `geometria[tramo.hasta]`, a 0,0 m del dato.
+  const corte = t.tramos[0]!.hasta;
+  const [lat, lon] = t.geometria[corte]!;
+  const [cerca] = dondeAparcarCerca(elAparcamiento(), tipo, lon, lat, 1);
+  return cerca ? cerca.id : null;
+}
+
+/** Si la ruta pisa alguna arista marcada como Zona de Bajas Emisiones. */
+function pisaLaZbe(t: Trayecto): boolean {
+  return t.avisos.some((a) => a.texto.includes('Zona de Bajas Emisiones') && a.paso !== undefined);
 }
 
 /** Los índices de arista que la ruta recorre, en orden. */
@@ -119,6 +145,14 @@ const ASALTO = 92741333;
 const HEROISMO = 80733755;
 /** La way de sentido único de la juez 4 de la casilla 1a. */
 const PIRINEOS = 23134100;
+
+// ── Los sitios donde el coche acaba aparcando, citados por su id del WFS ────
+//
+// Salen de medir, no de elegir: son los que el COSTE elige para el viaje
+// `PEDRO LAPUYADE 3 → CALLE ABEN AIRE 33` con cada tipo. Ver la juez 1.
+const ESRE_MOSEN_PEDRO_DOSSET = 'MU1_estacionamientos_calle.46777';
+const LIBRE_ARQUITECTO_LA_FIGUERA = 'MU1_estacionamientos_calle.45408';
+const PMR_ECHEGARAY = 'MU1_reservas.43011';
 
 describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
   before(() => {
@@ -461,4 +495,157 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
     assert.equal(t.avisos.length, 1);
     assert.match(t.avisos[0]!.texto, /No hay forma de ir en coche/);
   });
+
+  describe('⭐ EL REMATE AL PARKING Y LA ZBE SELECCIONABLE (casilla 2)', () => {
+    /**
+     * ⭐ JUEZ 1 DEL ENCARGO — EL REMATE AL PARKING, y **por coste, no por radio**.
+     *
+     * `PEDRO LAPUYADE 3 → CALLE ABEN AIRE 33` con cada tipo aparca en un sitio
+     * distinto, y los tres son reales y se citan por su `id` del WFS:
+     *
+     * | tipo | dónde | conducir | andar |
+     * |---|---|---|---|
+     * | `regulado` | `…46777` ESRE, CALLE MOSEN PEDRO DOSSET | 3.248 m | 140 m |
+     * | `gratuito` | `…45408` LIBRE, CALLE ARQUITECTO LA FIGUERA | 4.316 m | 509 m |
+     *
+     * ⚠️ **Y el regulado NO es el más cercano en línea recta**: ése es el
+     *    `…46776`, a 67 m del portal. Gana el `…46777` porque el viaje entero sale
+     *    más barato. Es la juez que la contraprueba del radio muerde.
+     */
+    test('⭐ 1 · regulado y gratuito aparcan en tramos reales y distintos', () => {
+      const reg = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'regulado' });
+      const gra = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'gratuito' });
+
+      // Dos tramos: se conduce y se anda. Y el primero muere en el hito.
+      for (const [nombre, t] of [['regulado', reg], ['gratuito', gra]] as const) {
+        assert.deepEqual(
+          t.tramos.map((x) => x.comoSeVa),
+          ['rodando', 'andando'],
+          `${nombre}: el viaje con aparcamiento son dos tramos`,
+        );
+        assert.equal(t.tramos[0]!.hito, 'aparca', `${nombre}: el coche se deja al final del primero`);
+        assert.equal(t.tramos[1]!.hito, null);
+        // Las sumas del contrato, exactas.
+        assert.equal(t.tramos.reduce((a, x) => a + x.metros, 0), t.metros, `${nombre}: metros`);
+        assert.equal(t.tramos.reduce((a, x) => a + x.segundos, 0), t.segundos, `${nombre}: segundos`);
+        // Y los índices cierran sobre la geometría entera.
+        assert.equal(t.tramos[0]!.desde, 0);
+        assert.equal(t.tramos[1]!.hasta, t.geometria.length - 1);
+        assert.equal(t.tramos[1]!.desde, t.tramos[0]!.hasta, `${nombre}: hay un hueco entre tramos`);
+      }
+
+      // El paso del hito dice DÓNDE y QUÉ es, con la palabra del censo.
+      const hitoReg = reg.pasos.find((x) => x.giro === 'aparca')!;
+      assert.match(hitoReg.texto, /^Aparca en /);
+      assert.match(hitoReg.texto, /zona regulada de residentes \(ESRE\)$/);
+      assert.match(hitoReg.texto, /Mosen Pedro Dosset/);
+      assert.equal(hitoReg.metros, 0, 'un hito no abre tramo');
+
+      const hitoGra = gra.pasos.find((x) => x.giro === 'aparca')!;
+      assert.match(hitoGra.texto, /estacionamiento sin regulación$/);
+
+      // ⭐ Y NINGUNO DE LOS DOS INVENTA UN PRECIO NI UNA FRANJA: § 1.11 no trae
+      //    ni tarifa ni horario, así que decir cualquiera de las dos sería
+      //    ponerle al Ayuntamiento en la boca algo que no ha dicho.
+      for (const hito of [hitoReg, hitoGra]) {
+        assert.equal(/[€$]|euro|\d\s*[.,]\d+\s*€|\/\s*hora/i.test(hito.texto), false, hito.texto);
+        assert.equal(/\d{1,2}[:.]\d{2}/.test(hito.texto), false, `${hito.texto} promete una franja`);
+      }
+
+      // Y detrás del hito, el paseo: dicho, y con sus metros.
+      const aPieReg = reg.pasos[reg.pasos.indexOf(hitoReg) + 1]!;
+      assert.match(aPieReg.texto, /^Sal andando hacia /);
+      assert.ok(aPieReg.metros > 0, 'el paseo tiene que decir cuánto se anda');
+
+      // ⭐ Los DOS tipos son dos sitios distintos, y el gratuito anda más: en el
+      //    casco no hay bordillo libre, y eso es el dato hablando.
+      assert.notEqual(reg.metros, gra.metros);
+      assert.ok(
+        gra.tramos[1]!.metros > reg.tramos[1]!.metros,
+        `el gratuito anda ${gra.tramos[1]!.metros} m y el regulado ${reg.tramos[1]!.metros}`,
+      );
+
+      // Y son los tramos que son, citados por su id.
+      assert.equal(dondeAparca(reg, 'regulado'), ESRE_MOSEN_PEDRO_DOSSET);
+      assert.equal(dondeAparca(gra, 'gratuito'), LIBRE_ARQUITECTO_LA_FIGUERA);
+    });
+
+    /**
+     * ⭐ JUEZ 2 — `discapacitado` remata en una PMR real, con **su horario tal
+     * cual**: `permanente`, en minúsculas, como el censo lo escribe.
+     *
+     * Normalizarlo a `PERMANENTE` sería empezar a interpretar 104 cadenas.
+     */
+    test('⭐ 2 · discapacitado remata en una plaza PMR real, con su horario literal', () => {
+      const t = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'discapacitado' });
+      assert.deepEqual(t.tramos.map((x) => x.comoSeVa), ['rodando', 'andando']);
+      assert.equal(t.tramos[0]!.hito, 'aparca');
+      const hito = t.pasos.find((x) => x.giro === 'aparca')!;
+      assert.match(hito.texto, /plaza PMR \(horario: permanente\)$/);
+      assert.equal(dondeAparca(t, 'discapacitado'), PMR_ECHEGARAY);
+      // Es una de las 1.226 en vigor, no una retirada ni una denegada.
+      assert.ok(elAparcamiento().pmr.some((x) => x.id === PMR_ECHEGARAY));
+    });
+
+    /**
+     * ⭐ JUEZ 6 — SIN PARÁMETROS, LA RESPUESTA DE LA CASILLA 1b. Al byte.
+     *
+     * Las cifras son las que el checkpoint del 2/09 midió por HTTP contra el
+     * motor vivo, y aquí se compran una a una. Y además se compra lo que de
+     * verdad quiere decir «al byte»: que **pasar los dos campos como `undefined`
+     * dé exactamente el mismo JSON** que no pasarlos.
+     */
+    test('⭐ 6 · sin aparcamiento ni distintivo, la respuesta es la de la 1b', () => {
+      const cruzando = viaje(LAPUYADE_3, ABEN_AIRE_33);
+      assert.equal(cruzando.metros, 3386);
+      assert.equal(cruzando.segundos, 423);
+      assert.equal(cruzando.pasos.length, 14);
+      assert.equal(cruzando.geometria.length, 251);
+      assert.deepEqual(cruzando.tramos.map((x) => x.comoSeVa), ['rodando']);
+      assert.equal(cruzando.tramos[0]!.hito, null);
+      assert.equal(cruzando.avisos.length, 1);
+      assert.equal(cruzando.avisos[0]!.paso, 9);
+
+      const sinCasco = viaje(LAPUYADE_3, EN_MEDIO_120);
+      assert.equal(sinCasco.metros, 4241);
+      assert.equal(sinCasco.segundos, 400);
+      assert.equal(sinCasco.pasos.length, 8);
+      assert.deepEqual(sinCasco.avisos, []);
+
+      // Ausente y `undefined` son lo mismo, y tienen que serlo: es la
+      // compatibilidad hacia atrás dicha en bytes.
+      assert.equal(
+        JSON.stringify(viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: undefined })),
+        JSON.stringify(cruzando),
+      );
+
+    });
+
+    /**
+     * ⭐ JUEZ 7 — LA MURALLA: pedir un coche con aparcamiento no mueve a nadie.
+     *
+     * El remate usa **el motor del peatón** —`etapaAndando`, el mismo Dijkstra y
+     * el mismo cuaderno que una ruta a pie—, así que esta es la juez que caza que
+     * el coche le deje el cuaderno como se lo encontró. Se pide una ruta a pie,
+     * se mete un coche con parking por el medio, y se vuelve a pedir la misma.
+     */
+    test('⭐ 7 · el coche con aparcamiento no mueve a los otros cinco modos', () => {
+      const deLosCinco = (): string =>
+        JSON.stringify(
+          (['andando', 'bici', 'patin', 'bizi'] as const).map((modo) =>
+            calcularTrayecto(motor, {
+              origen: porCodigos(LAPUYADE_3),
+              destino: porCodigos(EN_MEDIO_120),
+              modo,
+            }),
+          ),
+        );
+      const antes = deLosCinco();
+      viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'regulado' });
+      viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'discapacitado' });
+      const despues = deLosCinco();
+      assert.equal(despues, antes, 'una ruta de coche ha movido lo que contestan los demás modos');
+    });
+  });
+
 });

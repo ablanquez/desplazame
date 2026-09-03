@@ -21,6 +21,7 @@ import type {
   ExtremoPortal,
   Modo,
   PeticionDeRuta,
+  TipoDeAparcamiento,
   TipoDeRuta,
 } from '@desplazame/tipos';
 
@@ -91,10 +92,18 @@ export function leerPeticion(cuerpo: unknown): PeticionDeRuta | null {
   if (crudoRuta !== undefined && typeof crudoRuta !== 'string') {
     return null;
   }
+  // ⭐ `aparcamiento` sigue la MISMA ley que los dos de arriba (3/09): no venir
+  // es el defecto —la ruta llega hasta la puerta, que es lo que hacía la
+  // casilla 1b—, y venir con algo que no es una cadena es un cliente roto.
+  const crudoAparcamiento = bruto['aparcamiento'];
+  if (crudoAparcamiento !== undefined && typeof crudoAparcamiento !== 'string') {
+    return null;
+  }
   return {
     origen,
     destino,
     modo: (crudoModo as Modo | undefined) ?? 'andando',
     ruta: crudoRuta as TipoDeRuta | undefined,
+    aparcamiento: crudoAparcamiento as TipoDeAparcamiento | undefined,
   };
 }

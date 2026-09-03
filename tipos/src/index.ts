@@ -58,6 +58,34 @@ export type TipoDeRuta =
   | 'tranquila';
 
 /**
+ * ⭐ DÓNDE SE DEJA EL COCHE, cuando se quiere dejar (3/09).
+ *
+ * Los tres montones del dato municipal, y **son montones, no gustos**: cada uno
+ * sale de un campo concreto de una capa concreta y no de una preferencia.
+ *
+ *   · `regulado` — los **1.159 tramos** de bordillo `ESRO` (rotación, la zona
+ *     azul) y `ESRE` (residentes) de § 1.11. Manda `tipo_actual`, que es el
+ *     único campo que dice si se paga: filtrar por `zona_reguladora` se lleva
+ *     5.049 bordillos gratuitos pintados como de pago.
+ *   · `discapacitado` — las **1.226 reservas PMR** de § 1.13, filtradas por
+ *     `TIPO === '14_PMR'`. Por `SUBTIPO` se colarían 158 retiradas o denegadas,
+ *     y a esas plazas no existe quien menos puede permitirse el viaje en balde.
+ *   · `gratuito` — el complemento: los **6.204 tramos `LIBRE`**. Donde no hay
+ *     regulado, hay gratuito.
+ *
+ * ⚠️ **Los 28 tramos con `tipo_actual` nulo no están en ninguno de los tres**, y
+ *    eso es un dato y no un descarte: el censo no dice qué son, así que no se
+ *    les puede mandar a nadie ni como regulado ni como gratis.
+ *
+ * ⚠️ **Y lo que el dato NO da no se dice.** El censo de § 1.11 **no trae tarifa
+ *    ni horario** del regulado — medido—, así que la narración dice «zona
+ *    regulada (ESRO)» y se calla el precio. El horario de las PMR sí viene, en
+ *    **104 formas distintas** entre las 1.226, y por eso se enseña **tal cual**
+ *    en vez de interpretarse.
+ */
+export type TipoDeAparcamiento = 'regulado' | 'discapacitado' | 'gratuito';
+
+/**
  * Un punto del mapa: **latitud y longitud, en ese orden** (EPSG:4326, el CRS
  * de todos los datos del repositorio).
  *
@@ -436,6 +464,28 @@ export interface PeticionDeRuta {
    * los demás modos no tienen ruta que calibrar.
    */
   readonly ruta?: TipoDeRuta;
+  /**
+   * ⭐ **DÓNDE APARCAR EL COCHE** (3/09), y **OPCIONAL** como los otros dos.
+   *
+   * Sin él, el viaje en coche llega hasta la puerta, que es lo que hacía la
+   * casilla 1b: misma ley que `modo` el 29/08 y que `ruta` el 30/08 — quien
+   * pedía rutas antes recibe **lo que recibía**, al byte.
+   *
+   * Con él, el viaje son **dos tramos**: se conduce hasta el mejor sitio de ese
+   * tipo y se anda el resto [DOC OTP2, *car-to-park*: *«conducir al aparcamiento
+   * y andar el resto»*, y es un modo de primera clase, no un apaño].
+   *
+   * ⚠️ **«El mejor» se decide POR COSTE, no por radio.** Conducir hasta el sitio
+   *    más andar hasta la puerta, con el paseo multiplicado por lo malo que es
+   *    andar [OTP `walkReluctance` 4,0]. Un tope de distancia sería la misma
+   *    anti-doctrina que los 500/800 m del bus, retirados el 31/08: *«el límite
+   *    de acceso es de RENDIMIENTO»*, y quien decide es el peso.
+   *
+   * Solo lo mira `coche`. Los demás modos no tienen coche que dejar — la bici y
+   * el patín rematan en su aparcabicis y la BiZi en su estación, y eso ya lo
+   * hacen sin pedir permiso.
+   */
+  readonly aparcamiento?: TipoDeAparcamiento;
 }
 
 /**
@@ -580,6 +630,12 @@ export interface TramoDelViaje {
    * propósito: el mismo suceso se llama igual en los dos sitios. Desde el
    * 31/08 son cuatro: `coge`/`aparca` para la bici, y `sube`/`baja` para el
    * poste del bus o del tranvía.
+   *
+   * ⭐ **Y desde el 3/09 el coche usa `aparca`, el mismo** (casilla 2 del punto
+   * 12). No estrena valor y no lo necesita: dejar el coche en un bordillo y
+   * dejar la bici en su soporte son **el mismo suceso** para quien pinta —un
+   * icono donde se abandona el vehículo y un cambio de trazo detrás—, y darle
+   * un quinto valor obligaría a la pantalla a dibujar dos veces lo mismo.
    */
   readonly hito: 'coge' | 'aparca' | 'sube' | 'baja' | null;
 }

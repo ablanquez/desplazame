@@ -43,7 +43,14 @@
  * que quitar antes de publicar—: todo lo que se suma son segundos que se tardan.
  */
 
-import type { Aviso, Paso, Trayecto, Vertice } from '@desplazame/tipos';
+import type {
+  Aviso,
+  ParteDelPaso,
+  Paso,
+  TipoDeAparcamiento,
+  Trayecto,
+  Vertice,
+} from '@desplazame/tipos';
 import {
   Monticulo,
   conector,
@@ -62,8 +69,16 @@ import {
 } from './proyeccion.ts';
 import { costeDeTransicion } from './red-coche.ts';
 import type { RedDeCocheServida } from './coche.ts';
-import { escribirPasos } from './pasos.ts';
-import type { Extremo } from './etapas.ts';
+import { comoSePresenta, escribirPasos } from './pasos.ts';
+import { etapaAndando, juntar, type Etapa, type Extremo } from './etapas.ts';
+import type { Costuras } from './pasos.ts';
+import type { Motor } from './trayecto.ts';
+import { PESO_DE_ANDAR } from './viaje-bus.ts';
+import {
+  dondeAparcarCerca,
+  elAparcamiento,
+  type DondeAparcar,
+} from './aparcamiento.ts';
 
 /** Un punto en `[lon, lat]`, como el grafo. */
 type Punto = readonly [number, number];
@@ -266,56 +281,123 @@ export interface RutaDeCoche extends Ruta {
 }
 
 /**
- * Calcula la ruta en coche entre dos enganches. `null` si no hay camino.
+ * ⭐ UN DESTINO DE LA BÚSQUEDA, con lo que cuesta lo que venga DESPUÉS de él.
  *
- * Como en los demás modos, `null` no es un error: es el resultado para dos
- * puntos que el coche no comunica.
+ * `extra` son segundos que se suman al comparar y que **no se conducen**: es el
+ * paseo desde el aparcamiento hasta la puerta, ya multiplicado por lo malo que
+ * es andar. Con un solo destino vale `0` y la comparación es la de siempre.
  */
-export function calcularRutaEnCoche(
+export interface DestinoDelCoche {
+  readonly enganche: Enganche;
+  readonly punto: Punto;
+  readonly extra: number;
+}
+
+/** Una ruta ya resuelta, con cuál de los destinos ganó. */
+export interface RutaAlDestino extends RutaDeCoche {
+  /** El índice dentro de `destinos`. Con uno solo, siempre `0`. */
+  readonly cual: number;
+  /** Lo que costó comparar: conducir MÁS el `extra` del que ganó. */
+  readonly total: number;
+}
+
+/**
+ * ⭐ LA BÚSQUEDA, y **acepta varios destinos de una sola pasada**.
+ *
+ * Uno solo es el viaje de la casilla 1b. Varios son los aparcamientos
+ * candidatos de la 2, y hacerlo en una pasada es la diferencia entre una
+ * respuesta y una espera: cuarenta búsquedas punto a punto serían cuarenta
+ * Dijkstras del coche, y aquí es **uno**.
+ *
+ * Lo que se minimiza es `conducir + extra`, así que la comparación es la del
+ * *car-to-park*: el aparcamiento que gana no es el más cercano al destino ni el
+ * más cercano al origen, es el que **hace el viaje entero más barato**.
+ *
+ * ⚠️ **Con un solo destino, el caso trivial devuelve ahí mismo** — como hacía
+ *    antes de existir esto—: el trecho directo por la misma calle es óptimo y
+ *    no hay con qué compararlo. Con varios no se puede parar, porque otro
+ *    candidato puede salir más barato aunque a éste se llegue de una tacada.
+ */
+function buscarEnCoche(
   servida: RedDeCocheServida,
   origen: Enganche,
   puntoOrigen: Punto,
-  destino: Enganche,
-  puntoDestino: Punto,
-): RutaDeCoche | null {
+  destinos: readonly DestinoDelCoche[],
+): RutaAlDestino | null {
   const red = servida.comoRed;
   const cocinada = servida.cocinada;
+  const unoSolo = destinos.length === 1;
   const conectorOrigen = conector(puntoOrigen, [origen.lon, origen.lat]);
-  const conectorDestino = conector([destino.lon, destino.lat], puntoDestino);
+  const conectorDe = (cual: number): readonly Punto[] =>
+    conector([destinos[cual]!.enganche.lon, destinos[cual]!.enganche.lat], destinos[cual]!.punto);
+
+  let mejorTotal = Infinity;
+  let mejorLlegada = -1;
+  let mejorAntes = -1;
+  let mejorCual = -1;
+  /** El trecho directo que va ganando, si alguno gana. */
+  let trivial: { readonly trozo: TrozoDeRuta; readonly arista: number; readonly cual: number } | null =
+    null;
 
   // ── ⭐ LOS DOS EN EL MISMO CRUCE: no hay nada que conducir ────────────────
   //
-  // ⚠️ **Entrada nº30 de `docs/BITACORA.md`.** El caso trivial de más abajo
-  //    busca una arista que sea a la vez salida y llegada, y dos enganches
-  //    pegados al MISMO NODO no comparten ninguna: las salidas son las que
-  //    salen de él y las llegadas las que llegan a él. Sin este corte, la
-  //    búsqueda tenía que irse del cruce y volver — 635 m para ir de CAMINO
-  //    ABEJAR 71 TV C9 al C11, que están a 45,9 m—, o contestar que no había
-  //    camino cuando el nodo no tiene por dónde volver.
-  //
-  // Son **672 nodos** de la red con más de un portal pegado. El peatón nunca lo
-  // tuvo: su Dijkstra arranca y termina en el mismo nodo y el coste sale cero.
-  if (origen.nodo !== null && origen.nodo === destino.nodo) {
-    return {
-      metros: 0,
-      trozos: [],
-      conectorOrigen,
-      conectorDestino,
-      trivial: true,
-      nodosVisitados: 0,
-      segundos: 0,
-    };
+  // ⚠️ **Entrada nº30 de `docs/BITACORA.md`.** El caso trivial de abajo busca
+  //    una arista que sea a la vez salida y llegada, y dos enganches pegados al
+  //    MISMO NODO no comparten ninguna: las salidas son las que salen de él y
+  //    las llegadas las que llegan a él. Sin este corte, la búsqueda tenía que
+  //    irse del cruce y volver — 635 m para ir de CAMINO ABEJAR 71 TV C9 al
+  //    C11, que están a 45,9 m—, o contestar que no había camino cuando el nodo
+  //    no tiene por dónde volver. Son **672 nodos** con más de un portal pegado.
+  for (let cual = 0; cual < destinos.length; cual++) {
+    const d = destinos[cual]!;
+    if (origen.nodo === null || d.enganche.nodo !== origen.nodo) {
+      continue;
+    }
+    if (unoSolo) {
+      return {
+        metros: 0,
+        trozos: [],
+        conectorOrigen,
+        conectorDestino: conectorDe(cual),
+        trivial: true,
+        nodosVisitados: 0,
+        segundos: 0,
+        cual,
+        total: d.extra,
+      };
+    }
+    if (d.extra < mejorTotal) {
+      mejorTotal = d.extra;
+      mejorCual = cual;
+      trivial = { trozo: { arista: -1, metros: 0, g: [] }, arista: -1, cual };
+    }
   }
 
   const salidas = salidasDelCoche(servida, origen);
-  const llegadas = llegadasDelCoche(servida, destino);
-  if (salidas.length === 0 || llegadas.length === 0) {
+  if (salidas.length === 0) {
     return null;
   }
-  /** Por arista de llegada, la puerta: dos enganches no caen en la misma. */
-  const alFinal = new Map<number, PuertaDeCoche>();
-  for (const llegada of llegadas) {
-    alFinal.set(llegada.arista, llegada);
+
+  /**
+   * Por arista de llegada, el remate más barato que la usa.
+   *
+   * ⚠️ Dos candidatos pueden caer en la MISMA arista —dos tramos de bordillo de
+   *    la misma calle lo hacen a menudo—, y entonces manda el que salga más
+   *    barato de aquí en adelante. El otro no se pierde: es que ese trozo de
+   *    calle ya está representado por el mejor de los dos.
+   */
+  const alFinal = new Map<number, { puerta: PuertaDeCoche; cual: number; extra: number }>();
+  for (let cual = 0; cual < destinos.length; cual++) {
+    const d = destinos[cual]!;
+    for (const llegada of llegadasDelCoche(servida, d.enganche)) {
+      const ya = alFinal.get(llegada.arista);
+      if (!ya || llegada.segundos + d.extra < ya.puerta.segundos + ya.extra) {
+        alFinal.set(llegada.arista, { puerta: llegada, cual, extra: d.extra });
+      }
+    }
+  }
+  if (alFinal.size === 0) {
+    return null;
   }
 
   // ── EL CASO TRIVIAL: los dos en la misma arista, y en el sentido bueno ────
@@ -331,20 +413,44 @@ export function calcularRutaEnCoche(
       continue;
     }
     const desdeAqui = metrosHastaElEnganche(red, salida.enganche);
-    const hastaAlli = metrosHastaElEnganche(red, remate.enganche);
+    const hastaAlli = metrosHastaElEnganche(red, remate.puerta.enganche);
     if (hastaAlli < desdeAqui) {
       continue;
     }
-    const trozo = trozoEntreDosEnganches(red, salida.enganche, remate.enganche);
-    return {
-      metros: trozo.metros,
-      trozos: trozo.metros === 0 ? [] : [trozo],
-      conectorOrigen,
-      conectorDestino,
-      trivial: true,
-      nodosVisitados: 0,
-      segundos: segundosDeUnTrecho(servida, salida.arista, trozo.metros),
-    };
+    const trozo = trozoEntreDosEnganches(red, salida.enganche, remate.puerta.enganche);
+    const segundos = segundosDeUnTrecho(servida, salida.arista, trozo.metros);
+    if (unoSolo) {
+      return {
+        metros: trozo.metros,
+        trozos: trozo.metros === 0 ? [] : [trozo],
+        conectorOrigen,
+        conectorDestino: conectorDe(remate.cual),
+        trivial: true,
+        nodosVisitados: 0,
+        segundos,
+        cual: remate.cual,
+        total: segundos + remate.extra,
+      };
+    }
+    if (segundos + remate.extra < mejorTotal) {
+      mejorTotal = segundos + remate.extra;
+      mejorCual = remate.cual;
+      trivial = { trozo, arista: salida.arista, cual: remate.cual };
+    }
+  }
+
+  /**
+   * ⭐ LA COTA que permite parar: **lo menos que puede costar lo que viene
+   * después de cualquier destino todavía sin resolver**.
+   *
+   * Sacar una arista que ya cuesta `mejorTotal − esto` significa que ni el
+   * candidato con el paseo más barato podría mejorar lo que ya se tiene. Es la
+   * misma idea que el `break` de la búsqueda de un solo destino, con el paseo
+   * dentro; sin ella, cuarenta candidatos obligarían a barrer la ciudad entera.
+   */
+  let cotaExtra = Infinity;
+  for (const d of destinos) {
+    cotaExtra = Math.min(cotaExtra, d.extra);
   }
 
   // ── Dijkstra POR TRANSICIONES, con las aristas de salida ya dentro ────────
@@ -363,15 +469,12 @@ export function calcularRutaEnCoche(
     }
   }
 
-  let mejorTotal = Infinity;
-  let mejorLlegada = -1;
-  let mejorAntes = -1;
   let aristasVisitadas = 0;
 
   while (monticulo.tamano > 0) {
     const sacado = monticulo.sacar()!;
     const [arista, coste] = sacado;
-    if (coste >= mejorTotal) {
+    if (coste + cotaExtra >= mejorTotal) {
       // Lo que queda cuesta al menos esto: ya no puede mejorar la llegada.
       break;
     }
@@ -402,11 +505,13 @@ export function calcularRutaEnCoche(
       //    de verdad costó llegar.
       const remate = alFinal.get(siguiente);
       if (remate) {
-        const total = hastaElCruce + remate.segundos;
+        const total = hastaElCruce + remate.puerta.segundos + remate.extra;
         if (total < mejorTotal) {
           mejorTotal = total;
           mejorLlegada = siguiente;
           mejorAntes = arista;
+          mejorCual = remate.cual;
+          trivial = null;
         }
       }
 
@@ -421,6 +526,24 @@ export function calcularRutaEnCoche(
         monticulo.meter(siguiente, nuevo);
       }
     }
+  }
+
+  // ⭐ Si el que gana es un trecho directo, se devuelve ése: la búsqueda no lo
+  //    mejoró y rehacer el camino desde la semilla no tendría de dónde.
+  if (trivial) {
+    const segundos =
+      trivial.arista < 0 ? 0 : segundosDeUnTrecho(servida, trivial.arista, trivial.trozo.metros);
+    return {
+      metros: trivial.trozo.metros,
+      trozos: trivial.trozo.metros === 0 ? [] : [trivial.trozo],
+      conectorOrigen,
+      conectorDestino: conectorDe(trivial.cual),
+      trivial: true,
+      nodosVisitados: aristasVisitadas,
+      segundos,
+      cual: trivial.cual,
+      total: mejorTotal,
+    };
   }
 
   if (mejorLlegada < 0) {
@@ -454,8 +577,8 @@ export function calcularRutaEnCoche(
     segundos += cocinada.aristas[esta]!.segundos;
   }
   segundos += costeDeTransicion(cocinada, alReves[0]!, mejorLlegada) ?? 0;
-  segundos += remate.segundos;
-  trozos.push(remate.trozo);
+  segundos += remate.puerta.segundos;
+  trozos.push(remate.puerta.trozo);
 
   let metros = 0;
   for (const trozo of trozos) {
@@ -466,11 +589,58 @@ export function calcularRutaEnCoche(
     metros,
     trozos,
     conectorOrigen,
-    conectorDestino,
+    conectorDestino: conectorDe(mejorCual),
     trivial: false,
     nodosVisitados: aristasVisitadas,
     segundos,
+    cual: mejorCual,
+    total: mejorTotal,
   };
+}
+
+/**
+ * Calcula la ruta en coche entre dos enganches. `null` si no hay camino.
+ *
+ * Como en los demás modos, `null` no es un error: es el resultado para dos
+ * puntos que el coche no comunica.
+ */
+export function calcularRutaEnCoche(
+  servida: RedDeCocheServida,
+  origen: Enganche,
+  puntoOrigen: Punto,
+  destino: Enganche,
+  puntoDestino: Punto,
+): RutaDeCoche | null {
+  return buscarEnCoche(servida, origen, puntoOrigen, [
+    { enganche: destino, punto: puntoDestino, extra: 0 },
+  ]);
+}
+
+/**
+ * ⭐ EL MEJOR APARCAMIENTO, de una sola búsqueda: la ruta hasta él y cuál es.
+ *
+ * `paseos` son los segundos de andar desde cada candidato hasta la puerta, y
+ * entran **multiplicados por lo malo que es andar** [OTP `walkReluctance`, el
+ * 4,0 que la casa ya usa en el bus desde el 31/08]. Esa multiplicación es toda
+ * la decisión: sin ella el motor aparcaría en el primer hueco de la ciudad y
+ * mandaría a andar un kilómetro.
+ */
+export function rutaAlMejorAparcamiento(
+  servida: RedDeCocheServida,
+  origen: Enganche,
+  puntoOrigen: Punto,
+  candidatos: readonly { readonly enganche: Enganche; readonly punto: Punto }[],
+  paseos: readonly number[],
+): RutaAlDestino | null {
+  if (candidatos.length === 0) {
+    return null;
+  }
+  return buscarEnCoche(
+    servida,
+    origen,
+    puntoOrigen,
+    candidatos.map((c, k) => ({ ...c, extra: PESO_DE_ANDAR * (paseos[k] ?? 0) })),
+  );
 }
 
 /** Un trayecto vacío con su explicación, como en el resto de los modos. */
@@ -519,29 +689,151 @@ export function avisosDelCoche(
 }
 
 /**
+ * ⚠️ **CUÁNTOS APARCAMIENTOS SE PRUEBAN: 40. Y es RENDIMIENTO, no un radio.**
+ *
+ * No hay ninguna distancia a partir de la cual un aparcamiento «no existe»:
+ * quien elige es el coste. Lo que hay es un límite a cuántos se calculan, y es
+ * exactamente el papel de los 40 postes candidatos del bus desde el 31/08
+ * —[DOC OTP2] *«el límite de acceso es de rendimiento»*, y [OTP #3555] recomienda
+ * *«limitar el número de aparcamientos»* por lo mismo—.
+ *
+ * Cada candidato cuesta **un Dijkstra del peatón** —los metros del paseo son
+ * metros andados de verdad, nunca en recta—; conducir hasta los cuarenta, en
+ * cambio, cuesta **una sola** búsqueda del coche. Ver `buscarEnCoche`.
+ */
+export const APARCAMIENTOS_CANDIDATOS = 40;
+
+/** ⭐ EL HITO: «Aparca en CALLE X: zona regulada (ESRO)». */
+function hitoDeAparcar(motor: Motor, donde: DondeAparcar): Paso {
+  const partes: ParteDelPaso[] = [{ papel: 'accion', texto: 'Aparca' }];
+  if (donde.via !== null && donde.via.trim() !== '') {
+    partes.push(
+      { papel: 'texto', texto: ' en ' },
+      { papel: 'via', texto: comoSePresenta(donde.via, true, motor.red.articulosPropios) },
+    );
+  }
+  // ⚠️ Y detrás, lo que el DATO dice de ese sitio y nada más: ni tarifa ni
+  //    franja en el regulado —el censo no las trae—, y el horario de la PMR tal
+  //    cual viene. Ver la cabecera de `aparcamiento.ts`.
+  partes.push({ papel: 'texto', texto: `: ${donde.detalle}` });
+  return {
+    giro: 'aparca',
+    texto: partes.map((x) => x.texto).join(''),
+    // Un hito no abre tramo: es una parada. Los metros del paseo los lleva el
+    // paso que lo abre, como en el aparcabicis y en la estación de BiZi.
+    metros: 0,
+    partes,
+  };
+}
+
+/** La etapa que se conduce, ya narrada y con sus tramos. */
+function etapaEnCoche(
+  servida: RedDeCocheServida,
+  ruta: RutaDeCoche,
+  origen: Extremo,
+  destino: Extremo,
+  costuras?: Costuras,
+): { readonly etapa: Etapa; readonly aperturas: readonly number[] } {
+  const aperturas: number[] = [];
+  const pasos = escribirPasos(
+    servida.comoRed,
+    ruta,
+    origen.nombre,
+    destino.nombre,
+    [destino.lon, destino.lat],
+    undefined,
+    costuras,
+    aperturas,
+  );
+  const geometria: Vertice[] = geometriaDe(ruta).map(([lon, lat]) => [lat, lon]);
+  return {
+    etapa: {
+      pasos,
+      geometria,
+      metros: ruta.metros,
+      segundos: ruta.segundos,
+      // En coche no hay empuje ni cambio de vehículo: un solo sub-tramo.
+      tramos: [
+        {
+          comoSeVa: 'rodando',
+          desde: 0,
+          hasta: Math.max(0, geometria.length - 1),
+          metros: ruta.metros,
+          segundos: ruta.segundos,
+        },
+      ],
+    },
+    aperturas,
+  };
+}
+
+/** Lo que se puede pedir además de ir de un sitio a otro. */
+export interface OpcionesDelCoche {
+  /** Dónde dejar el coche. Sin esto, la ruta llega hasta la puerta (1b). */
+  readonly aparcamiento?: TipoDeAparcamiento;
+}
+
+/**
  * ⭐ EL VIAJE EN COCHE, de punta a punta.
  *
- * Un solo tramo, `comoSeVa: 'rodando'`. Y eso **no es un campo nuevo**: el
- * contrato separa la bici, el patín y la BiZi por `Trayecto.modo`, no por el
- * tramo — los tres son `rodando`—, y el criterio de `montado` está escrito y es
- * explícito: *«quien va montado no elige el camino, lo elige la línea»*, y se
- * pinta del color de esa línea. El conductor elige el camino y no hay línea.
+ * Sin `aparcamiento`, **un solo tramo** `comoSeVa: 'rodando'` hasta la puerta,
+ * que es lo que hacía la casilla 1b y sigue saliendo al byte. Con él, **dos**:
+ * se conduce hasta el mejor sitio de ese tipo y se anda el resto [DOC OTP2,
+ * *car-to-park*].
+ *
+ * Y `rodando` **no es un campo nuevo**: el contrato separa la bici, el patín y
+ * la BiZi por `Trayecto.modo`, no por el tramo — los tres son `rodando`—, y el
+ * criterio de `montado` está escrito y es explícito: *«quien va montado no
+ * elige el camino, lo elige la línea»*. El conductor elige y no hay línea. El
+ * hito de dejar el coche es `aparca`, **el mismo que el de la bici**: es el
+ * mismo suceso para quien pinta.
  */
 export function viajeEnCoche(
   servida: RedDeCocheServida,
+  motor: Motor,
   origen: Extremo,
   destino: Extremo,
+  opciones?: OpcionesDelCoche,
 ): Trayecto {
-  const engancheOrigen = enganchar(servida.comoRed, servida.rejilla, origen.lon, origen.lat);
+  const sinRuta = (texto: string): Trayecto => conAviso(texto);
+
+  const engancheOrigen = enganchar(
+    servida.comoRed,
+    servida.rejilla,
+    origen.lon,
+    origen.lat,
+  );
   if (!engancheOrigen) {
-    return conAviso(
+    return sinRuta(
       `${origen.nombre} no tiene cerca ninguna calle por la que pueda circular un ` +
         'coche en nuestro mapa: desde ahí no podemos calcular una ruta en coche.',
     );
   }
-  const engancheDestino = enganchar(servida.comoRed, servida.rejilla, destino.lon, destino.lat);
+
+  if (opciones?.aparcamiento) {
+    const conParking = viajeConAparcamiento(
+      servida,
+      motor,
+      origen,
+      destino,
+      engancheOrigen,
+      opciones.aparcamiento,
+    );
+    if (conParking) {
+      return conParking;
+    }
+    // Sin sitio donde dejar el coche del tipo pedido, la ruta no se maquilla:
+    // se cae al viaje hasta la puerta y **se dice** por qué, más abajo.
+  }
+
+  const engancheDestino = enganchar(
+    servida.comoRed,
+    servida.rejilla,
+    destino.lon,
+    destino.lat,
+  );
   if (!engancheDestino) {
-    return conAviso(
+    return sinRuta(
       `${destino.nombre} no tiene cerca ninguna calle por la que pueda circular un ` +
         'coche en nuestro mapa: hasta ahí no podemos calcular una ruta en coche.',
     );
@@ -555,50 +847,100 @@ export function viajeEnCoche(
     [destino.lon, destino.lat],
   );
   if (!ruta) {
-    return conAviso(
+    return sinRuta(
       `No hay forma de ir en coche de ${origen.nombre} a ${destino.nombre} ` +
         'por las calles que conocemos.',
     );
   }
 
-  // ⭐ `aperturas` dice por qué trozo abre cada paso, y eso solo lo sabe
-  // `escribirPasos`: fundir y colapsar se llevan maniobras por delante. Es lo
-  // que permite que el aviso de la ZBE diga a qué paso pertenece.
-  const aperturas: number[] = [];
-  const pasos: readonly Paso[] = escribirPasos(
-    servida.comoRed,
-    ruta,
-    origen.nombre,
-    destino.nombre,
-    [destino.lon, destino.lat],
-    undefined,
-    undefined,
-    aperturas,
+  const { etapa, aperturas } = etapaEnCoche(servida, ruta, origen, destino);
+  return juntar(
+    {
+      modo: 'coche',
+      avisos: avisosDelCoche(servida, ruta.trozos, aperturas),
+    },
+    [etapa],
+  );
+}
+
+/**
+ * ⭐ EL VIAJE CON APARCAMIENTO: conducir, dejar el coche, y andar.
+ *
+ * Devuelve `null` cuando no hay ningún sitio de ese tipo al que se pueda
+ * conducir Y desde el que se pueda andar. No decide avisos ni maquilla nada:
+ * quien llama se cae al viaje hasta la puerta.
+ */
+function viajeConAparcamiento(
+  servida: RedDeCocheServida,
+  motor: Motor,
+  origen: Extremo,
+  destino: Extremo,
+  engancheOrigen: Enganche,
+  tipo: TipoDeAparcamiento,
+): Trayecto | null {
+  const candidatos = dondeAparcarCerca(
+    elAparcamiento(),
+    tipo,
+    destino.lon,
+    destino.lat,
+    APARCAMIENTOS_CANDIDATOS,
   );
 
-  // La geometría se da la vuelta AQUÍ y solo aquí: la red va [lon, lat] y el
-  // contrato [lat, lon].
-  const geometria: Vertice[] = geometriaDe(ruta).map(([lon, lat]) => [lat, lon]);
-  const metros = Math.round(ruta.metros);
-  const segundos = Math.round(ruta.segundos);
+  const utiles: { readonly donde: DondeAparcar; readonly enganche: Enganche; readonly paseo: number }[] =
+    [];
+  for (const donde of candidatos) {
+    const enCoche = enganchar(servida.comoRed, servida.rejilla, donde.lon, donde.lat);
+    if (!enCoche) {
+      continue;
+    }
+    const parada: Extremo = { lon: donde.lon, lat: donde.lat, nombre: nombreDelSitio(donde) };
+    const aPie = etapaAndando(motor, parada, destino, { apertura: 'Sal andando' });
+    if (!aPie) {
+      continue;
+    }
+    utiles.push({ donde, enganche: enCoche, paseo: aPie.segundos });
+  }
+  if (utiles.length === 0) {
+    return null;
+  }
 
-  return {
-    modo: 'coche',
-    pasos,
-    geometria,
-    avisos: avisosDelCoche(servida, ruta.trozos, aperturas),
-    metros,
-    segundos,
-    // Un solo tramo, y cubre la geometría entera: en coche no hay costuras.
-    tramos: [
-      {
-        comoSeVa: 'rodando',
-        desde: 0,
-        hasta: Math.max(0, geometria.length - 1),
-        metros,
-        segundos,
-        hito: null,
-      },
-    ],
+  const mejor = rutaAlMejorAparcamiento(
+    servida,
+    engancheOrigen,
+    [origen.lon, origen.lat],
+    utiles.map((u) => ({ enganche: u.enganche, punto: [u.donde.lon, u.donde.lat] as Punto })),
+    utiles.map((u) => u.paseo),
+  );
+  if (!mejor) {
+    return null;
+  }
+  const gana = utiles[mejor.cual]!;
+  const parada: Extremo = {
+    lon: gana.donde.lon,
+    lat: gana.donde.lat,
+    nombre: nombreDelSitio(gana.donde),
   };
+  const { etapa, aperturas } = etapaEnCoche(servida, mejor, origen, parada, {
+    cierre: hitoDeAparcar(motor, gana.donde),
+  });
+  const aPie = etapaAndando(motor, parada, destino, { apertura: 'Sal andando' });
+  if (!aPie) {
+    return null;
+  }
+  return juntar(
+    {
+      modo: 'coche',
+      avisos: avisosDelCoche(servida, mejor.trozos, aperturas),
+    },
+    // El tramo que se conduce MUERE en el aparcamiento: ahí va el icono. El que
+    // se anda muere en el portal, que ya lleva su chincheta de destino.
+    [{ ...etapa, hito: 'aparca' }, aPie],
+  );
+}
+
+/** Cómo se llama el sitio donde se deja el coche, para los pasos. */
+function nombreDelSitio(donde: DondeAparcar): string {
+  return donde.via !== null && donde.via.trim() !== ''
+    ? `el aparcamiento de ${donde.via}`
+    : 'el aparcamiento';
 }

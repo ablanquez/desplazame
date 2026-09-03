@@ -19,6 +19,7 @@ import type {
   ExtremoPortal,
   Modo,
   PeticionDeRuta,
+  TipoDeAparcamiento,
   TipoDeRuta,
   Trayecto,
   Vertice,
@@ -252,6 +253,8 @@ interface Bifurcacion {
   readonly origen: Extremo;
   readonly destino: Extremo;
   readonly ruta: TipoDeRuta | undefined;
+  /** ⭐ El del coche (3/09). Los demás modos ni lo miran. */
+  readonly aparcamiento: TipoDeAparcamiento | undefined;
 }
 
 /** Un `Trayecto` se distingue de una `Bifurcacion` por tener pasos. */
@@ -293,7 +296,13 @@ function antesDeBifurcar(motor: Motor, peticion: PeticionDeRuta | null): Bifurca
   if (esAvisoExtremo(destino)) {
     return { ...conAviso(modo, destino.texto) };
   }
-  return { modo, origen, destino, ruta: peticion.ruta };
+  return {
+    modo,
+    origen,
+    destino,
+    ruta: peticion.ruta,
+    aparcamiento: peticion.aparcamiento,
+  };
 }
 
 /**
@@ -349,7 +358,9 @@ function porModo(motor: Motor, b: Bifurcacion, vivo: Disponibilidad | null): Tra
   // la mira un modo, y meterla dentro obligaría a que cada juez del peatón la
   // levantara para poder construir su motor.
   if (modo === 'coche') {
-    return viajeEnCoche(laRedDeCoche(), origen, destino);
+    return viajeEnCoche(laRedDeCoche(), motor, origen, destino, {
+      aparcamiento: b.aparcamiento,
+    });
   }
 
 
