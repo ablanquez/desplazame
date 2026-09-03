@@ -570,6 +570,16 @@ type Familia = 'andando' | 'bus' | 'bici' | 'patin' | 'coche';
 type Distintivo = 'cero' | 'eco' | 'c' | 'b' | 'sin' | 'nolose';
 
 /**
+ * ⭐ SI EL COCHE SIN DISTINTIVO ESTÁ REGISTRADO EN LA ZBE.
+ *
+ * Los catorce casos del trámite 42155 —residente, plaza de garaje, local
+ * comercial, PMR, matrícula extranjera, histórico, taxi adaptado…— caben en una
+ * sola pregunta desde donde el motor mira: **si puede entrar o no**. Enumerarlos
+ * en la pantalla sería pedirle a quien busca una ruta que se clasifique.
+ */
+type Autorizacion = 'si' | 'no';
+
+/**
  * ⭐ DÓNDE SE CONSULTA LA ETIQUETA, medido el 03/09/2026.
  *
  * `https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/`
@@ -831,6 +841,32 @@ export class Buscador {
   /** Tampoco viene marcado ninguno: es una pregunta, no un ajuste. */
   protected readonly distintivo = signal<Distintivo | null>(null);
 
+  /**
+   * ⭐ LA QUINTA PREGUNTA REVELADA, y **solo con «Sin etiqueta»** (3/09).
+   *
+   * A quien ha dicho que lleva una B, preguntarle si está registrado sería
+   * ofrecerle un trámite que no existe para él: [§ 1.32, literal] *«Si su
+   * vehículo tiene derecho a distintivo ambiental, NO NECESITA Y NO PUEDE
+   * OBTENER autorización registral»*. Y a quien ha dicho «No lo sé» tampoco:
+   * primero hay que saber si hace falta.
+   */
+  protected readonly autorizaciones: ReadonlyArray<{ id: Autorizacion; etiqueta: string }> = [
+    { id: 'si', etiqueta: 'Sí' },
+    { id: 'no', etiqueta: 'No' },
+  ];
+
+  /** Sin marcar, como las otras dos. Ver `loDelCoche` para qué manda el vacío. */
+  protected readonly autorizacion = signal<Autorizacion | null>(null);
+
+  /** Quién ve la pregunta: el coche sin distintivo, y nadie más. */
+  protected readonly preguntaAutorizacion = computed(
+    () => this.eligeCoche() && this.distintivo() === 'sin',
+  );
+
+  protected elegirAutorizacion(cual: Autorizacion): void {
+    this.autorizacion.set(cual);
+  }
+
   /** El enlace de la DGT, para la plantilla. Ver `DGT_DISTINTIVO`. */
   protected readonly enlaceDgt = DGT_DISTINTIVO;
 
@@ -976,9 +1012,15 @@ export class Buscador {
     }
     const donde = this.aparcamiento();
     const cual = this.distintivos.find((x) => x.id === this.distintivo());
+    // ⭐ Y la autorización, que **solo puede darle la vuelta al «Sin etiqueta»**:
+    //    quien está registrado sí entra. Sin contestarla manda lo que «Sin
+    //    etiqueta» ya decía por su cuenta —`false`—, que no es preinfluir: es
+    //    que la respuesta ya estaba dada y esto solo la refina.
+    const puedeEntrar =
+      cual?.id === 'sin' ? this.autorizacion() === 'si' : (cual?.puedeEntrar ?? null);
     return {
       ...(donde !== null ? { aparcamiento: donde } : {}),
-      ...(cual && cual.puedeEntrar !== null ? { puedeEntrarEnLaZbe: cual.puedeEntrar } : {}),
+      ...(puedeEntrar !== null ? { puedeEntrarEnLaZbe: puedeEntrar } : {}),
     };
   }
 
@@ -1004,7 +1046,12 @@ export class Buscador {
       return null;
     }
     const cual = this.distintivos.find((x) => x.id === this.distintivo());
-    if (!cual || cual.puedeEntrar !== true) {
+    // ⭐ Dos maneras de poder entrar, y cada una se dice con sus palabras: la
+    //    etiqueta buena circula libre **sin registro**, y la autorización es
+    //    justo lo contrario — se entra PORQUE hay registro—.
+    const porLaEtiqueta = cual?.puedeEntrar === true;
+    const porElRegistro = cual?.id === 'sin' && this.autorizacion() === 'si';
+    if (!porLaEtiqueta && !porElRegistro) {
       return null;
     }
     const deLaZona = trayecto.avisos.find((a) => a.texto.includes(MARCA_DE_ZBE));
@@ -1012,7 +1059,9 @@ export class Buscador {
       return null;
     }
     const aviso: Aviso = {
-      texto: `Tu distintivo ${cual.etiqueta} circula libre por la ZBE, sin registro`,
+      texto: porLaEtiqueta
+        ? `Tu distintivo ${cual!.etiqueta} circula libre por la ZBE, sin registro`
+        : 'Entras con tu autorización registrada en la ZBE',
     };
     // Va al mismo paso que el aviso que lo motiva: son la misma noticia contada
     // desde los dos lados, y separarlos mandaría a quien lea a dos sitios.

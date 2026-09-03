@@ -85,6 +85,13 @@ function radiosDeAparcamiento(raiz: HTMLElement): HTMLInputElement[] {
   );
 }
 
+/** Los de «¿Tienes autorización…?». Solo existen con [Sin etiqueta] marcada. */
+function radiosDeAutorizacion(raiz: HTMLElement): HTMLInputElement[] {
+  return Array.from(
+    raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="autorizacion"]'),
+  );
+}
+
 /** Y los de «¿Distintivo ambiental?», con la misma ley. */
 function radiosDeDistintivo(raiz: HTMLElement): HTMLInputElement[] {
   return Array.from(
@@ -4847,6 +4854,83 @@ describe('Buscador', () => {
     await fixture.whenStable();
     http.expectNone((r) => r.url.includes('MU1_ZBE'));
     expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+  });
+
+  /**
+   * ⭐ JUEZ 4 — LA PREGUNTA DE LA AUTORIZACIÓN, solo con [Sin etiqueta].
+   *
+   * Es el quinto revelado condicional de esta pantalla [GOV.UK], y el que más
+   * se justifica: **solo tiene sentido para quien no tiene distintivo**. A quien
+   * ha dicho que lleva una B preguntarle si está registrado sería ofrecerle un
+   * trámite que no necesita — [§ 1.32] *«Si su vehículo tiene derecho a
+   * distintivo ambiental, NO NECESITA Y NO PUEDE OBTENER autorización
+   * registral»*, literal.
+   *
+   * Y el motor sigue siendo binario: de los catorce casos del trámite, lo único
+   * que puede preguntar es si se puede entrar o no.
+   */
+  it('⭐ 4 · la autorización se pregunta solo sin etiqueta, y manda lo suyo', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'coche');
+    await direccionEntera(fixture, http);
+
+    // Sin contestar el distintivo, la pregunta no está.
+    expect(radiosDeAutorizacion(raiz).length).toBe(0);
+
+    // Ni con una etiqueta buena: quien la tiene no puede registrarse.
+    for (const etiqueta of ['cero', 'eco', 'c', 'b'] as const) {
+      pulsar(fixture, radiosDeDistintivo(raiz), etiqueta);
+      expect(radiosDeAutorizacion(raiz).length).toBe(0);
+    }
+
+    // Con «No lo sé» tampoco: no se sabe si hace falta.
+    pulsar(fixture, radiosDeDistintivo(raiz), 'nolose');
+    expect(radiosDeAutorizacion(raiz).length).toBe(0);
+
+    // ⭐ Y con «Sin etiqueta», sí — y sin nada marcado.
+    pulsar(fixture, radiosDeDistintivo(raiz), 'sin');
+    expect(radiosDeAutorizacion(raiz).map((r) => r.value)).toEqual(['si', 'no']);
+    expect(radiosDeAutorizacion(raiz).filter((r) => r.checked).length).toBe(0);
+    expect(raiz.querySelector('fieldset.autorizaciones legend')?.textContent).toContain(
+      '¿Tienes autorización registrada en la ZBE?',
+    );
+
+    // Sin contestarla, lo que viaja es lo que «Sin etiqueta» ya decía: false.
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    const sinContestar = http.match('/api/ruta');
+    expect(cuerpoDeLaRuta(sinContestar)['puedeEntrarEnLaZbe']).toBe(false);
+    drenarRutas(sinContestar, () => VIAJE_EN_COCHE_LEJOS);
+    await fixture.whenStable();
+
+    // «No» dice lo mismo, y «Sí» lo contrario.
+    for (const [respuesta, espera] of [['no', false], ['si', true]] as const) {
+      pulsar(fixture, radiosDeAutorizacion(raiz), respuesta);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const peticiones = http.match('/api/ruta');
+      expect(cuerpoDeLaRuta(peticiones)['puedeEntrarEnLaZbe']).toBe(espera);
+      drenarRutas(peticiones, () => VIAJE_EN_COCHE_POR_LA_ZBE);
+      await fixture.whenStable();
+    }
+
+    // ⭐ Y con «Sí» y una ruta que pisa la zona, se dice por qué se entra.
+    expect(resumenEnPantalla(raiz).join(' | ')).toContain(
+      'Entras con tu autorización registrada en la ZBE',
+    );
+
+    // Al cambiar a una etiqueta buena, la pregunta se va y su respuesta no manda.
+    pulsar(fixture, radiosDeDistintivo(raiz), 'b');
+    expect(radiosDeAutorizacion(raiz).length).toBe(0);
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    const conB = http.match('/api/ruta');
+    expect(cuerpoDeLaRuta(conB)['puedeEntrarEnLaZbe']).toBe(true);
+    drenarRutas(conB, () => VIAJE_EN_COCHE_POR_LA_ZBE);
+    await fixture.whenStable();
   });
 
 });

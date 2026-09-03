@@ -427,6 +427,35 @@
           >Consulta tu etiqueta en la DGT</a
         >
       </fieldset>
+
+      <!--
+        ⭐ LA QUINTA PREGUNTA, y solo para quien ha dicho que no tiene etiqueta.
+        [§ 1.32, literal] «Si su vehículo tiene derecho a distintivo ambiental,
+        NO NECESITA Y NO PUEDE OBTENER autorización registral»: enseñársela a
+        quien lleva una B sería ofrecerle un trámite que no existe para él.
+
+        Los ejemplos van en la leyenda y no en las opciones: los catorce casos
+        del trámite caben en un sí o un no desde donde el motor mira, y
+        enumerarlos aquí sería pedirle a quien busca una ruta que se clasifique.
+      -->
+      @if (preguntaAutorizacion()) {
+        <fieldset class="modos autorizaciones">
+          <legend>¿Tienes autorización registrada en la ZBE? (residente, plaza de garaje, comercio…)</legend>
+          @for (a of autorizaciones; track a.id) {
+            <label class="modo" [class.modo--activo]="autorizacion() === a.id">
+              <input
+                type="radio"
+                name="autorizacion"
+                class="modo__radio"
+                [value]="a.id"
+                [checked]="autorizacion() === a.id"
+                (change)="elegirAutorizacion(a.id)"
+              />
+              {{ a.etiqueta }}
+            </label>
+          }
+        </fieldset>
+      }
     }
 
     <!--
