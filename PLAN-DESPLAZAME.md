@@ -2900,25 +2900,69 @@ son CAPAS DE DATO y ninguna se promete sin sonda:
       ejecutor mató un motor zombi en el 3000 con código de cuatro
       commits atrás (pid==pid trabajando). 511 motor · 246 interfaz ·
       30 bitácoras, 0 abiertas.
-- [ ] **2 · EL REMATE AL PARKING y la ZBE SELECCIONABLE** *(redefinida
-      el 2/09: el viaje ya existe — la 1b)*: (a) ⭐ PARLAMENTADO por
-      Antonio: «tendremos que seleccionar si el coche puede entrar a
-      la ZBE o no para hacer bien los cálculos» → /api/ruta gana el
-      parámetro (¿puede entrar? sí/no — la traducción binaria de la
-      FAQ: B/C/ECO/CERO sí sin registro; sin etiqueta no, salvo
-      autorización); con NO, las 200 aristas ZBE se VETAN y la ruta
-      rodea (si solo existe cruzando: aviso honesto de que no hay
-      ruta sin entrar); con SÍ, como hoy; y el HORARIO por reloj
-      [L-V 8:00-20:00, FAQ]: fuera de franja la ZBE no aplica y no se
-      veta, con su aviso (el operaEl del bus, aplicado aquí). El
-      control en pantalla va en la casilla 3 (segunda fila revelada,
-      el patrón de la bici). (b) EL REMATE al parking del tipo
-      elegido [car-to-park]: conducir al parking (regulado 1.159 ·
-      PMR 1.226 · gratuito = el complemento) + andar el resto, con
-      su radio por doctrina; tablas legales con artículo.
+- [x] **⭐ 2 · EL REMATE AL PARKING y la ZBE SELECCIONABLE — HECHA
+      (3/09, tres commits): EL COCHE APARCA POR TIPO Y LA ZBE SE
+      PREGUNTA.** El contrato ya tenía la forma (hito 'aparca' — dejar
+      el coche y dejar la bici son el mismo suceso para quien pinta;
+      la cláusula PARA no llegó a dispararse); crecen dos parámetros
+      opcionales: aparcamiento (regulado·discapacitado·gratuito) y
+      puedeEntrarEnLaZbe (el primer booleano del contrato — un
+      'false' de texto no cuela). LOS TRES MONTONES del dato que
+      llevaba tres semanas sin usarse [§1.11/§1.13]: 1.159 ESRO/ESRE ·
+      6.204 LIBRE [la regla de Antonio] · 1.226 PMR; los 28 nulos en
+      NINGUNO con juez por ids («leer ese silencio como gratuito
+      sería inventarse 226 plazas»). LA ELECCIÓN POR COSTE [car-to-
+      park de OTP; conducir + andar×4], candidatos acotados a 40 por
+      rendimiento — y MEDIDO que no sobran: con 5, el ganador cambia
+      en 32 de 58 viajes del gratuito (recortar = el radio a cuchillo
+      por la puerta de atrás). EL CASO TRIPLE al mismo destino:
+      regulado aparca a 140 m andando · PMR a 74 · gratuito a 509 —
+      el trade-off a la vista. LA ZBE con su reloj [FAQ]: entra (aviso
+      informativo) · rodea («esta ruta se ha buscado sin entrar») ·
+      domingo a las 10 no aplica (aviso del reloj) · portal de dentro
+      = respuesta honesta sin ruta. LA NARRACIÓN sin inventar: «zona
+      regulada (ESRE)» sin tarifa ni franja (el dato no las trae) ·
+      la PMR con su horario literal · «estacionamiento sin
+      regulación» (la palabra del gratuito se afina en la demo).
+      ⚠️ UN AVISO QUE MENTÍA, cazado midiendo (zona sin vigilar, no
+      instrumento — sin bitácora, como el banner del 31/08): con el
+      veto, el aviso de rodeo salía en 178/178 rutas incluidas las
+      que ni se acercan al casco → el texto pasó a «se ha buscado sin
+      entrar» (lo que consta; afirmar rodeo pediría una segunda
+      búsqueda) y la juez 4-quater compra el caso que lo destapó.
+      Perlas: los DOS VETOS no son independientes (para aparcar
+      dentro hay que pisar dentro — la 4-ter no puede morder;
+      redundancia declarada como intención) · el parking RESCATA
+      portales (195/200 con ruta vs 189: bolsillos que OSM cierra al
+      coche con bordillo al lado) · el coste del remate medido: 324
+      de 332 ms son los 40 Dijkstras del peatón (si algún día pesa:
+      búsqueda peatonal multi-destino, anotado). p50 26-262 ms por
+      tipo · 527 motor · 246 interfaz (sin cambio) · muralla de los
+      SEIS modos idéntica (sha aed16b24…) · 30 bitácoras.
+      **⭐ PARLAMENTO del 3/09 (Antonio + la ordenanza delante): las
+      EXCEPCIONES de la ZBE.** La ordenanza (Anexo 2 + el trámite
+      municipal) contempla autorizaciones para vehículos sin
+      distintivo: residentes · plaza de garaje propia · PMR · DUM ·
+      comercios · 8 accesos/mes · ⭐ «acceso a APARCAMIENTOS PÚBLICOS
+      conectados dentro de la ZBE» (con registro). La pregunta
+      binaria sigue siendo la correcta (solo el usuario sabe si le
+      aplica una excepción — modelarlas sería inventar su situación);
+      lo que crece es EL TEXTO del aviso cuando no puede y el destino
+      queda dentro: nombrar la puerta que la ordenanza abre, con
+      fuente. → casilla 3, junto con EL CRUCE pendiente: qué parkings
+      del catálogo 55 caen DENTRO de los polígonos ZBE (cruce
+      geométrico con lo que ya está en casa — alimenta el aviso y la
+      lista de inclusión de Antonio).
 - [ ] **3 · LA PANTALLA:** el grupo [Coche] con su fila de parking
-      aparece cuando esto exista (regla de la demo del 11); las
-      trazas de desvío del bus pasan a rutearse sobre esta red.
+      [Regulado] [Discapacitado] [Gratuito] y el control de la ZBE
+      («¿puede entrar?» sí/no — el patrón de la bici en dos filas)
+      aparece ahora que el motor existe (regla de la demo del 11) ·
+      el texto del aviso «no puede + destino dentro» nombra las
+      excepciones de la ordenanza (residentes · garaje · PMR ·
+      aparcamiento público conectado — con fuente) [parlamento 3/09]
+      · EL CRUCE previo: qué parkings del catálogo 55 caen dentro de
+      los polígonos ZBE (geométrico, con lo de casa) · las trazas de
+      desvío del bus pasan a rutearse sobre esta red.
 - [ ] **4 · LA DEMO por el ojo.**
 
 ## 13 — Modo MOTO *(nuevo, parlamentado el 1/09; DEPENDE del 12: la

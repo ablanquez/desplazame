@@ -166,6 +166,23 @@ OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
 
+**LA CASILLA 2 DEL 12 — EL COCHE APARCA POR TIPO Y LA ZBE SE
+PREGUNTA (3/09, mañana).** Dos parámetros opcionales (aparcamiento ·
+puedeEntrarEnLaZbe, el primer booleano del contrato); el hito
+'aparca' ya existía. Los tres montones [§1.11/§1.13]: 1.159 ESRO/ESRE
+· 6.204 LIBRE · 1.226 PMR; los 28 nulos en ninguno (juez por ids).
+Elección POR COSTE [car-to-park], 40 candidatos medidos como
+necesarios (con 5 cambia el ganador en 32/58). El caso triple: 140 /
+74 / 509 m andando según tipo. La ZBE con reloj: entra · «buscada
+sin entrar» · domingo no aplica · dentro = honesto. Un aviso que
+mentía (rodeo en 178/178) corregido a lo que consta — zona sin
+vigilar, sin bitácora. El parking RESCATA portales (195 vs 189).
+⭐ PARLAMENTO 3/09: las EXCEPCIONES de la ordenanza (residentes ·
+garaje · PMR · aparcamientos públicos CONECTADOS dentro, con
+registro) van al TEXTO del aviso (casilla 3) — la pregunta binaria
+sigue siendo la correcta; y queda EL CRUCE: qué parkings del 55 caen
+dentro de la ZBE. 527 motor · 246 interfaz · 30 bitácoras.
+
 **LA CASILLA 1b DEL 12 — EL COCHE RUTEA (2/09, tarde-noche).** Sin
 campo nuevo en el tramo (Trayecto.modo separa; el conductor elige,
 no va «montado»); tipos ganó Aviso.paso?: number (elegido por
@@ -1113,10 +1130,10 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 2 del 12 — el remate al parking y
-la ZBE seleccionable** (el parámetro sí/no con vetos y horario por
-reloj; el car-to-park al parking del tipo elegido: regulado 1.159 ·
-PMR 1.226 · gratuito = el complemento); (2)
+**Lo siguiente:** (1) **la casilla 3 del 12 — LA PANTALLA DEL COCHE**
+(la fila de parking + el control ZBE con el patrón de la bici; el
+texto del aviso con las excepciones de la ordenanza; el cruce previo
+parkings-55 ∩ ZBE); (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1371,10 +1388,9 @@ parking con el 12.
 ⚰️ sondas HECHAS el 2/09 (regulado 1.159 · PMR 1.226 · gratuito = el
 complemento LIBRE · parkings 41 que mezclan → lista de inclusión) ·
 ⚰️ la RED COCINADA el 2/09 (1a: 57.390 aristas, 1.378 giros vetados,
-ZBE marcada) · ⚰️ EL COCHE RUTEA desde el 2/09 (1b: 86/200 rutas
-cambian por los giros; nº30 cerrada; 2 cruces que OSM cierra — dato)
-· ⭐ la ZBE seleccionable PARLAMENTADA (sí/no + horario por reloj →
-casillas 2 y 3) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
+ZBE marcada) · ⚰️ EL COCHE RUTEA (1b, 2/09) Y APARCA POR TIPO con la ZBE
+preguntada (2, 3/09) · ⭐ las EXCEPCIONES de la ordenanza al texto
+del aviso + el cruce parkings-55-dentro-de-ZBE → casilla 3 · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
 oficial (L-V 8-20 · sanciones desde 12/12/2025 · B/C/ECO/CERO libres
 sin registro → la app AVISA, no veta: no sabe la etiqueta) · queda la
 letra legal de la MOTO (punto 13) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
@@ -1426,7 +1442,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 757 pruebas (511 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 773 pruebas (527 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
