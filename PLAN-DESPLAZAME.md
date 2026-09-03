@@ -2970,39 +2970,47 @@ son CAPAS DE DATO y ninguna se promete sin sonda:
       «aparcamiento público conectado»: la capa ZBE no trae
       excepciones y la ordenanza descargada remite fuera — la fuente
       (trámite 42155) hay que traerla CON FICHA (→ 2-bis).
-- [ ] **2-bis · EL REMATE AL PARKING PÚBLICO DE LA ZBE (motor)** —
-      *parlamentado el 3/09 (los 4 puntos de Antonio), con la
-      doctrina de la industria delante: TomTom Routing API trae el
-      patrón entero de serie (avoid=lowEmissionZones para evitar la
-      zona como quien evita peajes · sectionType=lowEmissionZone
-      para reportar qué tramos la pisan — nuestro Aviso.paso literal
-      · avisos de aproximación), y la etiqueta OSM
-      boundary=low_emission_zone nació con la justificación escrita:
-      «debe poderse evitar la zona en el ruteo — considera la sanción
-      un peaje». El remate es el car-to-park de OTP sobre lista
-      declarada (el park-and-ride de toda la vida).* LO QUE ENTRA:
-      (a) el fichero COCINADO parkings-zbe.json al repo con su ficha
-      [el patrón OTP: los aparcamientos «presentes en el fichero de
-      entrada al construir el grafo» — build-time, cero consultas en
-      caliente]: los 41 del catálogo 55 con id · nombre · coordenada
-      · horario · dentroDeFase1 · dentroDeFase2 (banderas de cocina
-      con el dentroDeLaZbe del motor; juez de que cocinado y cruce en
-      vivo coinciden); la ficha honesta: fuente Ley 37/2007,
-      lastUpdated 2013 («dónde están, no si siguen abiertos»), el
-      cruce propio con fecha. (b) LA FICHA del trámite 42155 (la
-      página de las excepciones, medida: bytes, fecha, la lista
-      transcrita) — la fuente que hoy NO CONSTA. (c) EL REMATE: con
-      puedeEntrarEnLaZbe=false y destino DENTRO de la fase vigente,
-      el motor deja de contestar «sin ruta» y remata en el MEJOR de
-      los 4 parkings de Fase 1 [por coste, el car-to-park de la
-      casilla 2 sobre la lista declarada] + andar el resto; el aviso
-      nombra la puerta: «sin distintivo solo con autorización; una es
-      el acceso a aparcamiento público conectado (con registro
-      municipal)» [fuente fichada], sin prometer que el parking siga
-      abierto (dato de 2013, dicho). (d) JUECES: el caso no+dentro
-      remata en parking F1 real por id y anda; el caso no+fuera no
-      cambia; sí+dentro no cambia; las banderas del cocinado = el
-      cruce en vivo; la muralla.*
+- [x] **⭐ 2-bis · EL REMATE AL PARKING PÚBLICO DE LA ZBE — HECHO
+      (3/09, siete commits): un destino dentro ya no es «sin ruta».**
+      parkings-zbe.json cocinado al repo (41 con banderas F1/F2, sha
+      9d71d1e2…, determinista; ficha §1.31: el cruce ES NUESTRO con
+      fecha, el mismo punto-en-polígono del motor) · la ficha §1.32
+      del trámite 42155 con LOS 14 CASOS TRANSCRITOS tal cual,
+      erratas incluidas («quitanieves¿») — la nº8 sostiene el remate:
+      «vehículos que accedan a estacionamientos públicos con sistema
+      de control de acceso conectado» · EL REMATE: no+dentro+franja →
+      conducir sin pisar la zona hasta el mejor POR COSTE de los 4 de
+      Fase 1 y andar (el caso: Pilar-Juzgados, 4.538+296 m, aviso con
+      paso 10/17; con sí: 3.386 m al byte de la casilla 2) · EL CÓMO
+      es EL PESTILLO: no veto ni penalización — transición dentro→
+      fuera prohibida (todo camino o no entra o entra una vez y
+      termina dentro; «estar dentro» se lee de la arista recorrida,
+      sin duplicar el estado del Dijkstra), con UNA excepción medida:
+      salir PARA rematar (bitácora nº31: Puerta Cinegia engancha a
+      58,6 m FUERA, a una arista a la que solo se llega desde dentro
+      — sin la excepción desaparecía del reparto EN SILENCIO con 27
+      jueces en verde y el motor daba un parking peor; lo cazó un
+      barrido cuyo recuento de ganadores tenía tres nombres donde
+      debía haber cuatro). MEDIDO sobre 122 portales del casco: 0
+      travesías · el coste ≠ la recta en 17 · ganan los cuatro (CA 52
+      · PC 30 · PJ 25 · Ayto 15). ⭐ PERLA para la guía: EL POLÍGONO Y
+      LA ARISTA MARCADA NO SON LA MISMA PREGUNTA (45/122 rutas
+      «entran dos veces» en la geometría sin pisar dos veces la zona
+      marcada — una juez sobre el polígono compraría suerte del
+      caso). La contraprueba «sin pestillo» NO MORDÍA (la juez le
+      pasaba el pestillo desde el spec — no veía dónde el motor lo
+      pone; endurecida con los sellos de la respuesta entera: 28/128
+      rutas atravesaban con 27 jueces en verde). El README y el log
+      de arranque corregidos en dos commits no encargados y
+      declarados (afirmaban el «sin ruta» que acababa de dejar de ser
+      verdad); el guardián de las fichas pilló el 31→33 (tarde — se
+      corrió la suite de app al final con trabajo solo de motor:
+      dato para el método). Lo que NO se promete, escrito: ni que el
+      parking siga abierto (2013) ni el «control conectado» (campo
+      que el dato no trae) — el aviso cuenta la norma y manda al
+      registro. El ORIGEN dentro sigue sin remate (de ahí no se sale
+      sin pisar). 533 motor · 246 interfaz · 33 fichas · 31
+      bitácoras, 0 abiertas.
 - [ ] **3 · LA PANTALLA:** el grupo [Coche] con su fila de parking
       [Regulado] [Discapacitado] [Gratuito] y, debajo, EL SELECTOR DE
       ETIQUETA *(parlamento 3/09, punto 2 de Antonio; el patrón del

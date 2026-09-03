@@ -127,9 +127,10 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TRAMOS — TramoDelViaje con comoSeVa/desde/hasta/hito sobre la
   geometría única). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal
   + 619 por punto medio).
-- **Los datos**: TREINTA Y DOS conjuntos descargados (el 32º, del
-  2/09: EL VIARIO RODABLE con ids — 20 MB, la base del coche; y la
-  ZBE al repo) / TREINTA Y UNA fichas (la §1.23, nueva el 30/08: LA DISPONIBILIDAD VIVA de BiZi —
+- **Los datos**: TREINTA Y TRES conjuntos descargados (los últimos:
+  el viario rodable con ids —20 MB, la base del coche—, la ZBE, y
+  parkings-zbe.json con el cruce propio §1.31) / TREINTA Y TRES
+  fichas (la §1.23, nueva el 30/08: LA DISPONIBILIDAD VIVA de BiZi —
   la primera fuente del proyecto que no se copia, se CONSULTA; §1.8
   corregido en consecuencia) — los
   nombres OSM en `motor/data/` sin viajar al navegador (§1.14), LA
@@ -165,6 +166,23 @@ moto, y las casillas 0-1b del 12 — EL COCHE RUTEA en el motor**
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LA CASILLA 2-bis DEL 12 — EL REMATE AL PARKING PÚBLICO (3/09,
+mediodía-tarde).** Un destino dentro con «no puede entrar» ya no es
+«sin ruta»: remata en el mejor por coste de los 4 de Fase 1 (el caso:
+Pilar-Juzgados, 4.538 rodando + 296 andando; con «sí», 3.386 al byte)
+— la ordenanza lo permite (§1.32, los 14 casos transcritos con
+erratas; la nº8 es la del parking conectado) y la industria calla
+[TomTom: «avoidance is not guaranteed…»]. El CÓMO es el PESTILLO
+(transición dentro-fuera prohibida; una excepción medida: salir PARA
+rematar — bitácora nº31: Puerta Cinegia enganchaba FUERA a 58,6 m y
+desaparecía del reparto en silencio). 122 portales: 0 travesías, los
+cuatro ganan. Perla: el polígono y la arista marcada no son la misma
+pregunta (45/122). parkings-zbe.json cocinado (§1.31, el cruce
+nuestro con fecha). README y log corregidos (dos commits no
+encargados, declarados: afirmaban el «sin ruta» viejo); el guardián
+de fichas pilló 31 a 33 tarde (suite de app al final — dato para el
+método). 533 motor · 246 interfaz · 33 fichas · 31 bitácoras.
 
 **EL PARLAMENTO ZBE DEL 3/09 (mediodía) — LOS 4 PUNTOS DE ANTONIO,
 CON DOCTRINA Y EL CRUCE HECHO.** (1) Con «no puede entrar» y destino
@@ -1151,11 +1169,10 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 2-bis del 12 — el remate al
-parking público de la ZBE** (parkings-zbe.json cocinado con ficha ·
-la ficha del trámite 42155 · el remate no+dentro a los 4 de Fase 1);
-(2) la casilla 3 — la pantalla del coche (fila de parking + selector
-de etiqueta con enlace DGT); (3)
+**Lo siguiente:** (1) **la casilla 3 del 12 — LA PANTALLA DEL COCHE**
+(la fila [Regulado][Discapacitado][Gratuito] + el selector de
+etiqueta [CERO][ECO][C][B][Sin][No lo sé] con su traducción oficial y
+el enlace DGT; las trazas de desvío del bus a la red del coche); (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1410,9 +1427,9 @@ parking con el 12.
 ⚰️ sondas HECHAS el 2/09 (regulado 1.159 · PMR 1.226 · gratuito = el
 complemento LIBRE · parkings 41 que mezclan → lista de inclusión) ·
 ⚰️ la RED COCINADA el 2/09 (1a: 57.390 aristas, 1.378 giros vetados,
-ZBE marcada) · ⚰️ EL COCHE RUTEA (1b, 2/09) Y APARCA POR TIPO con la ZBE
-preguntada (2, 3/09) · ⭐ las EXCEPCIONES de la ordenanza al texto
-del aviso + el cruce parkings-55-dentro-de-ZBE → casilla 3 · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
+ZBE marcada) · ⚰️ EL COCHE RUTEA (1b), APARCA POR TIPO (2) Y REMATA EN PARKING
+PÚBLICO cuando no puede entrar (2-bis, 3/09 — el pestillo, la nº31,
+las fichas §1.31-1.32) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
 oficial (L-V 8-20 · sanciones desde 12/12/2025 · B/C/ECO/CERO libres
 sin registro → la app AVISA, no veta: no sabe la etiqueta) · queda la
 letra legal de la MOTO (punto 13) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
@@ -1464,7 +1481,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 773 pruebas (527 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 779 pruebas (533 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
