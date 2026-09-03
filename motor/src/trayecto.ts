@@ -253,8 +253,9 @@ interface Bifurcacion {
   readonly origen: Extremo;
   readonly destino: Extremo;
   readonly ruta: TipoDeRuta | undefined;
-  /** ⭐ El del coche (3/09). Los demás modos ni lo miran. */
+  /** ⭐ Los dos del coche (3/09). Los demás modos ni los miran. */
   readonly aparcamiento: TipoDeAparcamiento | undefined;
+  readonly puedeEntrarEnLaZbe: boolean | undefined;
 }
 
 /** Un `Trayecto` se distingue de una `Bifurcacion` por tener pasos. */
@@ -302,6 +303,7 @@ function antesDeBifurcar(motor: Motor, peticion: PeticionDeRuta | null): Bifurca
     destino,
     ruta: peticion.ruta,
     aparcamiento: peticion.aparcamiento,
+    puedeEntrarEnLaZbe: peticion.puedeEntrarEnLaZbe,
   };
 }
 
@@ -322,7 +324,12 @@ function antesDeBifurcar(motor: Motor, peticion: PeticionDeRuta | null): Bifurca
  * `undefined` y `null` valen lo mismo: nadie preguntó, o preguntó y no hubo
  * respuesta. En los dos casos la ruta sale con el aviso de D-G.
  */
-function porModo(motor: Motor, b: Bifurcacion, vivo: Disponibilidad | null): Trayecto {
+function porModo(
+  motor: Motor,
+  b: Bifurcacion,
+  vivo: Disponibilidad | null,
+  cuando?: Date,
+): Trayecto {
   const { modo, origen, destino } = b;
   // ⭐ LA BIFURCACIÓN, y va aquí a propósito: los dos extremos se resuelven
   // igual para todos los modos —una dirección es una dirección— y a partir de
@@ -360,6 +367,8 @@ function porModo(motor: Motor, b: Bifurcacion, vivo: Disponibilidad | null): Tra
   if (modo === 'coche') {
     return viajeEnCoche(laRedDeCoche(), motor, origen, destino, {
       aparcamiento: b.aparcamiento,
+      puedeEntrarEnLaZbe: b.puedeEntrarEnLaZbe,
+      cuando,
     });
   }
 
@@ -457,9 +466,21 @@ export function calcularTrayecto(
   motor: Motor,
   peticion: PeticionDeRuta | null,
   vivo?: Disponibilidad | null,
+  /**
+   * ⭐ EL RELOJ, y se inyecta **para poder mentirle** (3/09).
+   *
+   * Lo mira la Zona de Bajas Emisiones, que solo está en vigor de lunes a
+   * viernes de 8:00 a 20:00: sin esto, la juez de la franja solo se podría
+   * correr los martes por la mañana. Es el mismo trato que la fecha del bus,
+   * que entra por parámetro en `viajeEnBus` por la misma razón.
+   *
+   * Ausente es `new Date()`, que es lo que hacía cuando el parámetro no
+   * existía. Compatibilidad hacia atrás, no comodidad.
+   */
+  cuando?: Date,
 ): Trayecto {
   const previo = antesDeBifurcar(motor, peticion);
-  return esTrayecto(previo) ? previo : porModo(motor, previo, vivo ?? null);
+  return esTrayecto(previo) ? previo : porModo(motor, previo, vivo ?? null, cuando);
 }
 
 /**

@@ -979,6 +979,10 @@ servidor.listen(PUERTO, () => {
     'motor:   y con `aparcamiento` (regulado|discapacitado|gratuito) remata car-to-park: ' +
       'conducir al mejor sitio POR COSTE y andar el resto',
   );
+  console.log(
+    'motor:   con `puedeEntrarEnLaZbe: false` la zona se veta —en la búsqueda y como sitio ' +
+      'donde aparcar— solo dentro de la franja: L-V de 8:00 a 20:00, por el reloj de la calle',
+  );
   console.log(`motor: arrancado a las ${ARRANCADO}`);
 
   // ⭐ EL REFRESCO DE LOS DESVÍOS, al arrancar y cada hora (31/08).

@@ -14,6 +14,7 @@
 
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { TipoDeAparcamiento, Trayecto } from '@desplazame/tipos';
@@ -31,7 +32,12 @@ import { cargarRejilla, enganchar } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
 import { escribirPasos } from './pasos.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
-import { AVISO_ZBE, calcularRutaEnCoche } from './viaje-coche.ts';
+import {
+  AVISO_ZBE,
+  AVISO_ZBE_EVITADA,
+  calcularRutaEnCoche,
+  laZbeEstaEnVigor,
+} from './viaje-coche.ts';
 import { dondeAparcarCerca, elAparcamiento } from './aparcamiento.ts';
 import type { Extremo } from './etapas.ts';
 
@@ -65,15 +71,29 @@ function porCodigos(codigo: string): { via: string; portal: string } {
 function viaje(
   origen: string,
   destino: string,
-  extra?: { readonly aparcamiento?: TipoDeAparcamiento },
+  extra?: {
+    readonly aparcamiento?: TipoDeAparcamiento;
+    readonly puedeEntrarEnLaZbe?: boolean;
+  },
+  cuando?: Date,
 ): Trayecto {
-  return calcularTrayecto(motor, {
-    origen: porCodigos(origen),
-    destino: porCodigos(destino),
-    modo: 'coche',
-    ...extra,
-  });
+  return calcularTrayecto(
+    motor,
+    { origen: porCodigos(origen), destino: porCodigos(destino), modo: 'coche', ...extra },
+    null,
+    cuando,
+  );
 }
+
+/**
+ * ⭐ DOS RELOJES DE MENTIRA, y por eso el reloj entra por parámetro.
+ *
+ * El **1 de septiembre de 2026 es martes** y el **6, domingo**. Sin poder
+ * mentirle al reloj, la juez de la franja solo se podría correr entre semana y
+ * de 8 a 20 — que es como no poder correrla.
+ */
+const MARTES_A_LAS_10 = new Date(2026, 8, 1, 10, 0, 0);
+const DOMINGO_A_LAS_10 = new Date(2026, 8, 6, 10, 0, 0);
 
 /** Dónde acabó aparcando un viaje: el `id` del WFS del sitio que ganó. */
 function dondeAparca(t: Trayecto, tipo: TipoDeAparcamiento): string | null {
@@ -88,6 +108,37 @@ function dondeAparca(t: Trayecto, tipo: TipoDeAparcamiento): string | null {
   const [lat, lon] = t.geometria[corte]!;
   const [cerca] = dondeAparcarCerca(elAparcamiento(), tipo, lon, lat, 1);
   return cerca ? cerca.id : null;
+}
+
+/**
+ * El sha256 de un trayecto, **con las claves de cada objeto ordenadas**.
+ *
+ * Un objeto JSON no promete el orden de sus claves, así que compararlo tal cual
+ * confunde «ha cambiado la respuesta» con «se ha montado de otra manera».
+ */
+function selloDe(t: Trayecto): string {
+  const canonico = JSON.stringify(t, (_k, v: unknown) =>
+    v !== null && typeof v === 'object' && !Array.isArray(v)
+      ? Object.fromEntries(
+          Object.keys(v as Record<string, unknown>)
+            .sort()
+            .map((k) => [k, (v as Record<string, unknown>)[k]]),
+        )
+      : v,
+  );
+  return createHash('sha256').update(canonico).digest('hex');
+}
+
+/** Si el coche se ha quedado aparcado DENTRO de la zona. */
+function aparcaDentroDeLaZbe(t: Trayecto): boolean {
+  const corte = t.tramos[0]?.hasta;
+  if (corte === undefined || t.tramos[0]!.hito !== 'aparca') {
+    return false;
+  }
+  // El vértice del hito cae a 0,0 m del sitio donde se deja el coche.
+  const [lat, lon] = t.geometria[corte]!;
+  const e = enganchar(coche.comoRed, coche.rejilla, lon, lat);
+  return e !== null && coche.cocinada.aristas[e.arista]!.zbe;
 }
 
 /** Si la ruta pisa alguna arista marcada como Zona de Bajas Emisiones. */
@@ -137,6 +188,8 @@ const OSA_MAYOR_4 = 'Portales.91645';
 // PEDRO LAPUYADE 3 está fuera del casco; ABEN AIRE 33, dentro de la ZBE; y
 // CAMINO DE EN MEDIO 120 al otro extremo de la ciudad, sin pisarla.
 const LAPUYADE_3 = 'Portales.84476';
+// Y uno pegado al casco pero FUERA: su mejor aparcamiento regulado cae dentro.
+const SAN_VICENTE_DE_PAUL_3 = 'Portales.79057';
 const ABEN_AIRE_33 = 'Portales.100601';
 const EN_MEDIO_120 = 'Portales.82922';
 
@@ -588,6 +641,151 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
     });
 
     /**
+     * ⭐ JUEZ 4 — LA ZBE SELECCIONABLE, con su reloj.
+     *
+     * Tres estados sobre el mismo viaje —`PEDRO LAPUYADE 3 → CALLE PALENCIA 2-4`,
+     * que por el camino corto atraviesa el casco—:
+     *
+     *   · sin decir nada → entra, y lo avisa (lo de la casilla 1b).
+     *   · «no puede entrar» un **martes a las 10** → **rodea** por el Puente de la
+     *     Almozara: 4.304 m y 407 s, contra 4.439 m y 370 s por dentro.
+     *   · lo mismo un **domingo a las 10** → **no se veta nada** y entra, con el
+     *     aviso del reloj, que dice la hora que ha mirado.
+     */
+    test('⭐ 4 · con «no puede entrar» y dentro de la franja, la ruta rodea la zona', () => {
+      const dentro = viaje(LAPUYADE_3, PALENCIA_2, undefined, MARTES_A_LAS_10);
+      const rodeando = viaje(LAPUYADE_3, PALENCIA_2, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+
+      assert.ok(pisaLaZbe(dentro), 'el caso pide un viaje que por el camino corto entre en la zona');
+      assert.equal(dentro.avisos[0]!.texto, AVISO_ZBE);
+      assert.equal(typeof dentro.avisos[0]!.paso, 'number');
+
+      assert.equal(pisaLaZbe(rodeando), false, 'con el veto puesto no se pisa ni una arista de la zona');
+      assert.deepEqual(rodeando.avisos, [{ texto: AVISO_ZBE_EVITADA }]);
+      // ⚠️ Y el aviso NO puede decir que la ruta «rodea» nada: ver abajo.
+      assert.equal(/rodea|evita/i.test(AVISO_ZBE_EVITADA), false, AVISO_ZBE_EVITADA);
+      assert.ok(rodeando.metros > 0 && rodeando.pasos.length > 3, 'y hay ruta, no un aviso a secas');
+      assert.ok(
+        rodeando.segundos > dentro.segundos,
+        `rodear tiene que costar más: ${rodeando.segundos} s contra ${dentro.segundos}`,
+      );
+      assert.ok(
+        rodeando.pasos.some((x) => x.texto.includes('Almozara')),
+        'este caso rodea por el Puente de la Almozara',
+      );
+
+      // Y con «sí puede entrar», entra: el mismo viaje, sin veto.
+      const entrando = viaje(LAPUYADE_3, PALENCIA_2, { puedeEntrarEnLaZbe: true }, MARTES_A_LAS_10);
+      assert.equal(pisaLaZbe(entrando), true);
+      assert.equal(entrando.metros, dentro.metros);
+    });
+
+    test('⭐ 4 bis · fuera de la franja no se veta nada, y el aviso lo dice con la hora', () => {
+      const domingo = viaje(LAPUYADE_3, PALENCIA_2, { puedeEntrarEnLaZbe: false }, DOMINGO_A_LAS_10);
+      assert.equal(pisaLaZbe(domingo), true, 'un domingo la zona no está en vigor: no hay qué vetar');
+      assert.equal(domingo.avisos.length, 1);
+      const aviso = domingo.avisos[0]!;
+      assert.match(aviso.texto, /pero ahora no está en vigor/);
+      assert.match(aviso.texto, /de lunes a viernes de 8:00 a 20:00/);
+      assert.match(aviso.texto, /son las 10:00 del domingo/);
+      // Sigue siendo un aviso del DOBLE SITIO: dice a qué paso pertenece.
+      assert.equal(typeof aviso.paso, 'number');
+      assert.ok(domingo.pasos[aviso.paso!]);
+      // Y el reloj es el que decide: `laZbeEstaEnVigor` no adivina.
+      assert.equal(laZbeEstaEnVigor(MARTES_A_LAS_10), true);
+      assert.equal(laZbeEstaEnVigor(DOMINGO_A_LAS_10), false);
+      assert.equal(laZbeEstaEnVigor(new Date(2026, 8, 1, 7, 59)), false, 'a las 7:59 todavía no');
+      assert.equal(laZbeEstaEnVigor(new Date(2026, 8, 1, 20, 0)), false, 'a las 20:00 ya no');
+    });
+
+    /**
+     * ⭐ JUEZ 4 quater — EL AVISO DEL VETO **NO PUEDE PROMETER UN RODEO**.
+     *
+     * ⚠️ Lo cazó una medición, no una juez: con el veto puesto, el aviso salía
+     *    en **178 de 178** rutas de 200 peticiones al azar — entre ellas
+     *    `PEDRO LAPUYADE 3 → CAMINO DE EN MEDIO 120`, que cruza la ciudad de
+     *    punta a punta **sin acercarse al casco**. Decía «la ruta rodea la Zona
+     *    de Bajas Emisiones» y esa ruta no rodeaba nada.
+     *
+     * Lo que sí es cierto en las 178 es que **se ha buscado con la zona
+     * cerrada**, y eso es lo que el aviso dice ahora. Esta juez lo compra sobre
+     * el caso que lo destapó.
+     */
+    test('⭐ 4 quater · el aviso del veto es cierto también lejos del casco', () => {
+      const lejos = viaje(LAPUYADE_3, EN_MEDIO_120, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+      assert.ok(lejos.metros > 0);
+      assert.equal(pisaLaZbe(lejos), false, 'este viaje no se acerca a la zona');
+      // Sale el aviso —el veto se ha aplicado— y no promete ningún desvío.
+      assert.deepEqual(lejos.avisos, [{ texto: AVISO_ZBE_EVITADA }]);
+      assert.match(lejos.avisos[0]!.texto, /se ha buscado sin entrar/);
+      // Y sin el veto, ese mismo viaje no trae aviso ninguno: la 1b, intacta.
+      assert.deepEqual(viaje(LAPUYADE_3, EN_MEDIO_120).avisos, []);
+    });
+
+    /**
+     * ⭐ JUEZ 4 ter — Y LA ZONA SE VETA **TAMBIÉN COMO SITIO DONDE APARCAR**.
+     *
+     * Vetarla solo en la búsqueda dejaría al coche aparcado dentro después de
+     * haberla rodeado, que es peor que no haberla rodeado: **la sanción es por
+     * estar**, no por pasar.
+     *
+     * El caso: `CALLE SAN VICENTE DE PAÚL 3DP` está FUERA de la zona, pero su
+     * mejor aparcamiento regulado cae DENTRO. Con el veto puesto, el coche
+     * aparca fuera y anda — 2.421 m de viaje en vez de los de dentro.
+     */
+    test('⭐ 4 ter · con el veto puesto, tampoco se aparca dentro de la zona', () => {
+      const suelto = viaje(LAPUYADE_3, SAN_VICENTE_DE_PAUL_3, { aparcamiento: 'regulado' }, MARTES_A_LAS_10);
+      assert.equal(
+        aparcaDentroDeLaZbe(suelto),
+        true,
+        'el caso pide un destino cuyo mejor aparcamiento regulado caiga DENTRO',
+      );
+
+      const vetado = viaje(
+        LAPUYADE_3,
+        SAN_VICENTE_DE_PAUL_3,
+        { aparcamiento: 'regulado', puedeEntrarEnLaZbe: false },
+        MARTES_A_LAS_10,
+      );
+      assert.ok(vetado.metros > 0, 'sigue habiendo viaje: el destino está fuera');
+      assert.equal(aparcaDentroDeLaZbe(vetado), false, 'ha aparcado dentro de la zona vetada');
+      assert.deepEqual(vetado.tramos.map((x) => x.comoSeVa), ['rodando', 'andando']);
+      assert.equal(vetado.tramos[0]!.hito, 'aparca');
+      assert.equal(vetado.metros, 2421);
+    });
+
+    /**
+     * ⭐ JUEZ 5 — UN DESTINO **DENTRO** DEL CASCO, sin poder entrar: se dice.
+     *
+     * `CALLE ABEN AIRE 33` está dentro de la zona. La respuesta honrada es que no
+     * hay ruta en coche sin entrar, **no** una ruta que deja a alguien en el borde
+     * sin avisarle de que su portal está dentro.
+     *
+     * ⚠️ Y vale también **con aparcamiento pedido**: aparcar fuera y andar hasta
+     *    un portal de dentro sigue siendo entrar en la zona a pie —que es legal—,
+     *    pero la ruta en coche no llega, y eso es lo que se contesta.
+     */
+    test('⭐ 5 · a un portal de dentro no se le inventa una ruta que no entra', () => {
+      for (const extra of [
+        { puedeEntrarEnLaZbe: false },
+        { puedeEntrarEnLaZbe: false, aparcamiento: 'regulado' as const },
+        { puedeEntrarEnLaZbe: false, aparcamiento: 'gratuito' as const },
+      ]) {
+        const t = viaje(LAPUYADE_3, ABEN_AIRE_33, extra, MARTES_A_LAS_10);
+        assert.equal(t.pasos.length, 0, JSON.stringify(extra));
+        assert.equal(t.geometria.length, 0);
+        assert.deepEqual(t.tramos, []);
+        assert.equal(t.avisos.length, 1);
+        assert.match(t.avisos[0]!.texto, /No hay forma de llegar en coche sin entrar/);
+        assert.match(t.avisos[0]!.texto, /queda dentro de la zona/);
+      }
+      // Y el mismo portal, pudiendo entrar, sí tiene ruta: el veto es del
+      // distintivo, no del sitio.
+      const pudiendo = viaje(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: true }, MARTES_A_LAS_10);
+      assert.ok(pudiendo.metros > 0);
+    });
+
+    /**
      * ⭐ JUEZ 6 — SIN PARÁMETROS, LA RESPUESTA DE LA CASILLA 1b. Al byte.
      *
      * Las cifras son las que el checkpoint del 2/09 midió por HTTP contra el
@@ -615,10 +813,23 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       // Ausente y `undefined` son lo mismo, y tienen que serlo: es la
       // compatibilidad hacia atrás dicha en bytes.
       assert.equal(
-        JSON.stringify(viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: undefined })),
+        JSON.stringify(viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: undefined, puedeEntrarEnLaZbe: undefined })),
         JSON.stringify(cruzando),
       );
 
+      /**
+       * ⭐ Y AL BYTE DE VERDAD: el sha256 de la respuesta ENTERA, medido contra
+       * el commit de la casilla 1b (`8763c64`).
+       *
+       * ⚠️ Las claves se ordenan antes de serializar, y **esa vuelta hace
+       *    falta**: el montaje del coche pasa ahora por `juntar`, como los
+       *    demás modos de varios tramos, y `juntar` lista `avisos` en segundo
+       *    lugar en vez de en cuarto. Ni un valor cambia — se midió el 3/09
+       *    sobre 36 trayectos de los seis modos—, pero el orden de las claves
+       *    de un objeto JSON sí, y eso no es parte de ninguna promesa.
+       */
+      assert.equal(selloDe(cruzando), '105b67ff1310534103331880501cfcbefa472c658fed083d02d4316a72f6f963');
+      assert.equal(selloDe(sinCasco), 'aa2225aed85848e8f66f62c442f0b8aabde47360ae1914fb9141290dd5f1d3d8');
     });
 
     /**
@@ -642,7 +853,7 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
         );
       const antes = deLosCinco();
       viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'regulado' });
-      viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'discapacitado' });
+      viaje(LAPUYADE_3, PALENCIA_2, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
       const despues = deLosCinco();
       assert.equal(despues, antes, 'una ruta de coche ha movido lo que contestan los demás modos');
     });

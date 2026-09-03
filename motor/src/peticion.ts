@@ -99,11 +99,25 @@ export function leerPeticion(cuerpo: unknown): PeticionDeRuta | null {
   if (crudoAparcamiento !== undefined && typeof crudoAparcamiento !== 'string') {
     return null;
   }
+  /**
+   * ⭐ Y `puedeEntrarEnLaZbe` es el primero que NO es una cadena: es un sí/no.
+   *
+   * Así que la ley se traduce en su tipo, no se copia: no venir es el defecto
+   * —«no lo sabemos», y entonces la zona se avisa y no se veta—, y venir con
+   * algo que no es un booleano es un cliente roto. ⚠️ **Un `'false'` de texto
+   * NO cuela**: es justo el error que un formulario mal cableado cometería, y
+   * dejarlo pasar lo convertiría en `true` por ser una cadena no vacía.
+   */
+  const crudoZbe = bruto['puedeEntrarEnLaZbe'];
+  if (crudoZbe !== undefined && typeof crudoZbe !== 'boolean') {
+    return null;
+  }
   return {
     origen,
     destino,
     modo: (crudoModo as Modo | undefined) ?? 'andando',
     ruta: crudoRuta as TipoDeRuta | undefined,
     aparcamiento: crudoAparcamiento as TipoDeAparcamiento | undefined,
+    puedeEntrarEnLaZbe: crudoZbe,
   };
 }

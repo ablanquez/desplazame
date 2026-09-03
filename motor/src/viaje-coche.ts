@@ -196,6 +196,19 @@ function segundosDeUnTrecho(
   return a.segundos * (metros / largo);
 }
 
+/**
+ * ⭐ QUÉ ARISTAS NO SE PUEDEN PISAR EN ESTE VIAJE, si alguna.
+ *
+ * Devuelve `true` para lo que está cerrado. `undefined` es «nada cerrado», que
+ * es el viaje de la casilla 1b: **la función ni se llama**, así que la búsqueda
+ * de siempre no paga ni una comprobación de más.
+ *
+ * Hoy solo lo usa la Zona de Bajas Emisiones, y solo cuando quien pregunta dice
+ * que su coche NO puede entrar y el reloj cae dentro de la franja. Ver
+ * `vetoDeLaZbe`.
+ */
+export type AristaVetada = (arista: number) => boolean;
+
 /** Las dos caras de un enganche: la arista en la que cayó y su reverso. */
 function lasDosCaras(servida: RedDeCocheServida, enganche: Enganche): Enganche[] {
   const caras = [enganche];
@@ -241,12 +254,20 @@ function porElFinal(servida: RedDeCocheServida, arista: number): Enganche {
  * dirigida solo se recorre en su sentido, y quien quiera el otro lo tiene en la
  * gemela. Enganchado a un cruce, todas las que salen de él, enteras.
  */
-function salidasDelCoche(servida: RedDeCocheServida, enganche: Enganche): PuertaDeCoche[] {
+function salidasDelCoche(
+  servida: RedDeCocheServida,
+  enganche: Enganche,
+  vetada?: AristaVetada,
+): PuertaDeCoche[] {
   const donde: Enganche[] =
     enganche.nodo !== null
       ? (servida.cocinada.salidas.get(enganche.nodo) ?? []).map((i) => porElPrincipio(servida, i))
       : lasDosCaras(servida, enganche);
-  return donde.map((cara) => {
+  // ⚠️ El veto se aplica TAMBIÉN aquí y no solo al relajar: una puerta vetada
+  //    metería el viaje en la zona antes de que el Dijkstra empezara.
+  return donde
+    .filter((cara) => !vetada?.(cara.arista))
+    .map((cara) => {
     const trozo = trozoDelEnganche(servida.comoRed, cara, true, true);
     return {
       arista: cara.arista,
@@ -258,12 +279,18 @@ function salidasDelCoche(servida: RedDeCocheServida, enganche: Enganche): Puerta
 }
 
 /** Por dónde TERMINA: las aristas que dejan en la puerta del destino. */
-function llegadasDelCoche(servida: RedDeCocheServida, enganche: Enganche): PuertaDeCoche[] {
+function llegadasDelCoche(
+  servida: RedDeCocheServida,
+  enganche: Enganche,
+  vetada?: AristaVetada,
+): PuertaDeCoche[] {
   const donde: Enganche[] =
     enganche.nodo !== null
       ? (servida.entradas.get(enganche.nodo) ?? []).map((i) => porElFinal(servida, i))
       : lasDosCaras(servida, enganche);
-  return donde.map((cara) => {
+  return donde
+    .filter((cara) => !vetada?.(cara.arista))
+    .map((cara) => {
     const trozo = trozoDelEnganche(servida.comoRed, cara, false, false);
     return {
       arista: cara.arista,
@@ -323,6 +350,7 @@ function buscarEnCoche(
   origen: Enganche,
   puntoOrigen: Punto,
   destinos: readonly DestinoDelCoche[],
+  vetada?: AristaVetada,
 ): RutaAlDestino | null {
   const red = servida.comoRed;
   const cocinada = servida.cocinada;
@@ -373,7 +401,7 @@ function buscarEnCoche(
     }
   }
 
-  const salidas = salidasDelCoche(servida, origen);
+  const salidas = salidasDelCoche(servida, origen, vetada);
   if (salidas.length === 0) {
     return null;
   }
@@ -389,7 +417,7 @@ function buscarEnCoche(
   const alFinal = new Map<number, { puerta: PuertaDeCoche; cual: number; extra: number }>();
   for (let cual = 0; cual < destinos.length; cual++) {
     const d = destinos[cual]!;
-    for (const llegada of llegadasDelCoche(servida, d.enganche)) {
+    for (const llegada of llegadasDelCoche(servida, d.enganche, vetada)) {
       const ya = alFinal.get(llegada.arista);
       if (!ya || llegada.segundos + d.extra < ya.puerta.segundos + ya.extra) {
         alFinal.set(llegada.arista, { puerta: llegada, cual, extra: d.extra });
@@ -488,6 +516,11 @@ function buscarEnCoche(
     aristasVisitadas++;
 
     for (const siguiente of cocinada.salidas.get(cocinada.aristas[arista]!.hasta) ?? []) {
+      // ⭐ Y el veto del VIAJE, que es otra cosa que el de la relation: aquél
+      //    prohíbe un giro, éste prohíbe una calle entera para este coche.
+      if (vetada?.(siguiente)) {
+        continue;
+      }
       // ⭐ AQUÍ es donde el veto prohíbe y la penalización cobra: `null` es que
       //    no se puede, y un número es lo que cuesta.
       const transicion = costeDeTransicion(cocinada, arista, siguiente);
@@ -610,10 +643,16 @@ export function calcularRutaEnCoche(
   puntoOrigen: Punto,
   destino: Enganche,
   puntoDestino: Punto,
+  /** Lo que este viaje no puede pisar. Ver `AristaVetada`. */
+  vetada?: AristaVetada,
 ): RutaDeCoche | null {
-  return buscarEnCoche(servida, origen, puntoOrigen, [
-    { enganche: destino, punto: puntoDestino, extra: 0 },
-  ]);
+  return buscarEnCoche(
+    servida,
+    origen,
+    puntoOrigen,
+    [{ enganche: destino, punto: puntoDestino, extra: 0 }],
+    vetada,
+  );
 }
 
 /**
@@ -631,6 +670,7 @@ export function rutaAlMejorAparcamiento(
   puntoOrigen: Punto,
   candidatos: readonly { readonly enganche: Enganche; readonly punto: Punto }[],
   paseos: readonly number[],
+  vetada?: AristaVetada,
 ): RutaAlDestino | null {
   if (candidatos.length === 0) {
     return null;
@@ -640,6 +680,7 @@ export function rutaAlMejorAparcamiento(
     origen,
     puntoOrigen,
     candidatos.map((c, k) => ({ ...c, extra: PESO_DE_ANDAR * (paseos[k] ?? 0) })),
+    vetada,
   );
 }
 
@@ -669,14 +710,17 @@ function conAviso(texto: string): Trayecto {
  * que se está siguiendo. La llegada se queda fuera de la búsqueda a propósito:
  * no abre ningún tramo, así que no se «entra» en ella.
  */
-export function avisosDelCoche(
+export function avisosDeLaZbe(
   servida: RedDeCocheServida,
   trozos: readonly TrozoDeRuta[],
   aperturas: readonly number[],
+  zbe: EstadoDeLaZbe,
 ): readonly Aviso[] {
   const primero = trozos.findIndex((t) => servida.cocinada.aristas[t.arista]!.zbe);
   if (primero < 0) {
-    return [];
+    // ⭐ Y si NO la pisa habiéndose pedido evitarla, se dice: quien preguntó
+    //    tomó una decisión y tiene derecho a saber que se ha respetado.
+    return zbe.noEntra && zbe.enVigor ? [{ texto: AVISO_ZBE_EVITADA }] : [];
   }
   let paso = 0;
   const cuantos = Math.max(1, aperturas.length - 1);
@@ -685,8 +729,86 @@ export function avisosDelCoche(
       paso = k;
     }
   }
-  return [{ texto: AVISO_ZBE, paso }];
+  // ⭐ Se dijo que el coche no entra y la ruta entra igual: entonces es que la
+  //    zona no está en vigor ahora, y lo que hay que contar es el reloj.
+  const texto = zbe.noEntra && !zbe.enVigor ? avisoDelRelojDeLaZbe(zbe.cuando) : AVISO_ZBE;
+  return [{ texto, paso }];
 }
+
+/**
+ * ⭐ CUÁNDO ESTÁ EN VIGOR LA ZONA DE BAJAS EMISIONES.
+ *
+ * [FAQ oficial del Ayuntamiento, leída el 2/09/2026] *«de aplicación de lunes a
+ * viernes de 8:00 a 20:00 horas»*. Fuera de esa franja **no hay nada que
+ * vetar**, y vetar igualmente sería inventarse una restricción.
+ *
+ * ⚠️ **Por el reloj de la calle, no por UTC.** A las 00:30 de Zaragoza en UTC
+ *    todavía es el día anterior, y el mismo cuidado tiene `hoyEnGtfs` para el
+ *    día de servicio del bus. Es el patrón de `operaEl`: la fecha entra como
+ *    parámetro para que una juez pueda mentirle al reloj sin esperar al martes.
+ */
+export const ZBE_DESDE_H = 8;
+export const ZBE_HASTA_H = 20;
+
+export function laZbeEstaEnVigor(cuando: Date): boolean {
+  const dia = cuando.getDay();
+  // 0 es domingo y 6 sábado: la franja es de lunes a viernes.
+  if (dia === 0 || dia === 6) {
+    return false;
+  }
+  const hora = cuando.getHours() + cuando.getMinutes() / 60;
+  return hora >= ZBE_DESDE_H && hora < ZBE_HASTA_H;
+}
+
+/** ⭐ Lo que se veta cuando el coche no puede entrar: las aristas de la zona. */
+function vetoDeLaZbe(servida: RedDeCocheServida): AristaVetada {
+  return (arista: number): boolean => servida.cocinada.aristas[arista]!.zbe === true;
+}
+
+/**
+ * ⭐ EL AVISO DE LA RUTA BUSCADA **SIN ENTRAR** en la zona.
+ *
+ * No es el mismo que el de la que la atraviesa: aquél informa de una norma,
+ * éste confirma que se ha respetado lo que quien pregunta contestó.
+ *
+ * ⚠️ **Y NO DICE «RODEA», que es lo que decía y era falso.** Medido el 3/09
+ *    sobre 200 peticiones: con el veto puesto, el aviso salía en **178 de 178**
+ *    rutas — también en `PEDRO LAPUYADE 3 → CAMINO DE EN MEDIO 120`, que se va
+ *    al otro extremo de la ciudad y no se acerca al casco—. Decirle a alguien
+ *    que su ruta rodea algo que no tenía por delante es una molestia pequeña y
+ *    una mentira entera. Lo que SÍ es cierto siempre es que se ha buscado con
+ *    la zona cerrada, y eso es lo que dice.
+ *
+ * Saber si además ha habido rodeo de verdad costaría **una segunda búsqueda**
+ * —la misma ruta sin el veto, para compararlas—, y eso no lo pide nadie
+ * todavía. Queda escrito por si algún día lo pide.
+ */
+export const AVISO_ZBE_EVITADA =
+  'Esta ruta se ha buscado sin entrar en la Zona de Bajas Emisiones, porque el vehículo no ' +
+  'puede: de lunes a viernes de 8:00 a 20:00 los vehículos sin distintivo necesitan autorización';
+
+/** Y cuando no hay forma de llegar sin entrar: se dice, y no se entra. */
+export const AVISO_ZBE_SIN_RUTA =
+  'No hay forma de llegar en coche sin entrar en la Zona de Bajas Emisiones, y de lunes a ' +
+  'viernes de 8:00 a 20:00 los vehículos sin distintivo necesitan autorización';
+
+/**
+ * ⭐ Y EL DEL RELOJ: se dijo que el coche no puede entrar, pero **ahora la zona
+ * no está en vigor**, así que no se ha vetado nada y la ruta la atraviesa.
+ *
+ * Dice la hora que se ha mirado. Sin ella, quien lo lea no sabe si el motor ha
+ * mirado el reloj o se lo ha saltado.
+ */
+export function avisoDelRelojDeLaZbe(cuando: Date): string {
+  const dos = (n: number): string => String(n).padStart(2, '0');
+  return (
+    'La ruta atraviesa la Zona de Bajas Emisiones, pero ahora no está en vigor: se aplica de ' +
+    `lunes a viernes de ${ZBE_DESDE_H}:00 a ${ZBE_HASTA_H}:00, y son las ` +
+    `${dos(cuando.getHours())}:${dos(cuando.getMinutes())} del ${DIAS[cuando.getDay()]!}`
+  );
+}
+
+const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'] as const;
 
 /**
  * ⚠️ **CUÁNTOS APARCAMIENTOS SE PRUEBAN: 40. Y es RENDIMIENTO, no un radio.**
@@ -771,6 +893,10 @@ function etapaEnCoche(
 export interface OpcionesDelCoche {
   /** Dónde dejar el coche. Sin esto, la ruta llega hasta la puerta (1b). */
   readonly aparcamiento?: TipoDeAparcamiento;
+  /** Si el coche puede entrar en la ZBE. Sin esto, se avisa y no se veta. */
+  readonly puedeEntrarEnLaZbe?: boolean;
+  /** El reloj con el que se mira la franja. Se inyecta para poder mentirle. */
+  readonly cuando?: Date;
 }
 
 /**
@@ -795,18 +921,50 @@ export function viajeEnCoche(
   destino: Extremo,
   opciones?: OpcionesDelCoche,
 ): Trayecto {
+  const cuando = opciones?.cuando ?? new Date();
+  const enVigor = laZbeEstaEnVigor(cuando);
+  const noEntra = opciones?.puedeEntrarEnLaZbe === false;
+  // ⭐ Se veta **solo si las dos cosas**: que el coche no pueda entrar y que la
+  //    zona esté en vigor. Fuera de la franja no hay nada que vetar.
+  const vetada = noEntra && enVigor ? vetoDeLaZbe(servida) : undefined;
   const sinRuta = (texto: string): Trayecto => conAviso(texto);
+
+  /**
+   * ⭐ UN EXTREMO QUE CAE DENTRO DE LA ZONA se dice, no se disimula.
+   *
+   * ⚠️ Y hay que mirarlo **sobre el enganche SIN filtrar**. Con el filtro
+   *    puesto, un portal del casco engancharía a la primera calle de fuera que
+   *    pillara —hasta 250 m—, y la respuesta sería una ruta que deja a alguien
+   *    en el borde de la zona sin decirle que su portal está dentro. Eso no es
+   *    una ruta: es una ruta a otro sitio.
+   */
+  const dentroDeLaZona = (donde: Extremo): boolean => {
+    if (!vetada) {
+      return false;
+    }
+    const crudo = enganchar(servida.comoRed, servida.rejilla, donde.lon, donde.lat);
+    return crudo !== null && vetada(crudo.arista);
+  };
+  if (dentroDeLaZona(origen)) {
+    return sinRuta(`${AVISO_ZBE_SIN_RUTA}. ${origen.nombre} queda dentro de la zona.`);
+  }
+  if (dentroDeLaZona(destino)) {
+    return sinRuta(`${AVISO_ZBE_SIN_RUTA}. ${destino.nombre} queda dentro de la zona.`);
+  }
 
   const engancheOrigen = enganchar(
     servida.comoRed,
     servida.rejilla,
     origen.lon,
     origen.lat,
+    vetada && ((arista: number): boolean => !vetada(arista)),
   );
   if (!engancheOrigen) {
     return sinRuta(
-      `${origen.nombre} no tiene cerca ninguna calle por la que pueda circular un ` +
-        'coche en nuestro mapa: desde ahí no podemos calcular una ruta en coche.',
+      vetada
+        ? AVISO_ZBE_SIN_RUTA
+        : `${origen.nombre} no tiene cerca ninguna calle por la que pueda circular un ` +
+            'coche en nuestro mapa: desde ahí no podemos calcular una ruta en coche.',
     );
   }
 
@@ -818,6 +976,8 @@ export function viajeEnCoche(
       destino,
       engancheOrigen,
       opciones.aparcamiento,
+      vetada,
+      { enVigor, noEntra, cuando },
     );
     if (conParking) {
       return conParking;
@@ -831,11 +991,14 @@ export function viajeEnCoche(
     servida.rejilla,
     destino.lon,
     destino.lat,
+    vetada && ((arista: number): boolean => !vetada(arista)),
   );
   if (!engancheDestino) {
     return sinRuta(
-      `${destino.nombre} no tiene cerca ninguna calle por la que pueda circular un ` +
-        'coche en nuestro mapa: hasta ahí no podemos calcular una ruta en coche.',
+      vetada
+        ? AVISO_ZBE_SIN_RUTA
+        : `${destino.nombre} no tiene cerca ninguna calle por la que pueda circular un ` +
+            'coche en nuestro mapa: hasta ahí no podemos calcular una ruta en coche.',
     );
   }
 
@@ -845,11 +1008,14 @@ export function viajeEnCoche(
     [origen.lon, origen.lat],
     engancheDestino,
     [destino.lon, destino.lat],
+    vetada,
   );
   if (!ruta) {
     return sinRuta(
-      `No hay forma de ir en coche de ${origen.nombre} a ${destino.nombre} ` +
-        'por las calles que conocemos.',
+      vetada
+        ? AVISO_ZBE_SIN_RUTA
+        : `No hay forma de ir en coche de ${origen.nombre} a ${destino.nombre} ` +
+            'por las calles que conocemos.',
     );
   }
 
@@ -857,10 +1023,17 @@ export function viajeEnCoche(
   return juntar(
     {
       modo: 'coche',
-      avisos: avisosDelCoche(servida, ruta.trozos, aperturas),
+      avisos: avisosDeLaZbe(servida, ruta.trozos, aperturas, { enVigor, noEntra, cuando }),
     },
     [etapa],
   );
+}
+
+/** Lo que hace falta saber del reloj y del distintivo para redactar el aviso. */
+interface EstadoDeLaZbe {
+  readonly enVigor: boolean;
+  readonly noEntra: boolean;
+  readonly cuando: Date;
 }
 
 /**
@@ -877,6 +1050,8 @@ function viajeConAparcamiento(
   destino: Extremo,
   engancheOrigen: Enganche,
   tipo: TipoDeAparcamiento,
+  vetada: AristaVetada | undefined,
+  zbe: EstadoDeLaZbe,
 ): Trayecto | null {
   const candidatos = dondeAparcarCerca(
     elAparcamiento(),
@@ -891,6 +1066,20 @@ function viajeConAparcamiento(
   for (const donde of candidatos) {
     const enCoche = enganchar(servida.comoRed, servida.rejilla, donde.lon, donde.lat);
     if (!enCoche) {
+      continue;
+    }
+    // ⭐ **Y LA ZONA SE VETA TAMBIÉN COMO SITIO DONDE APARCAR.** Vetarla solo en
+    //    la búsqueda dejaría al coche aparcado dentro después de haberla
+    //    rodeado, que es peor que no haberla rodeado: la sanción es por estar.
+    //
+    // ⚠️ **Medido: hoy esto es REDUNDANTE, y se queda.** La contraprueba del
+    //    encargo —vetar solo la búsqueda— no consigue aparcar dentro, porque
+    //    para llegar a un bordillo de la zona hay que pisar una arista de la
+    //    zona y la relajación no deja. Se escribe igual por dos razones: dice
+    //    la intención en el sitio donde alguien la buscaría, y el día que el
+    //    veto de la búsqueda se afloje —una ZBE con excepciones por calle, por
+    //    ejemplo— esto sigue siendo verdad sin que nadie tenga que acordarse.
+    if (vetada && vetada(enCoche.arista)) {
       continue;
     }
     const parada: Extremo = { lon: donde.lon, lat: donde.lat, nombre: nombreDelSitio(donde) };
@@ -910,6 +1099,7 @@ function viajeConAparcamiento(
     [origen.lon, origen.lat],
     utiles.map((u) => ({ enganche: u.enganche, punto: [u.donde.lon, u.donde.lat] as Punto })),
     utiles.map((u) => u.paseo),
+    vetada,
   );
   if (!mejor) {
     return null;
@@ -930,7 +1120,7 @@ function viajeConAparcamiento(
   return juntar(
     {
       modo: 'coche',
-      avisos: avisosDelCoche(servida, mejor.trozos, aperturas),
+      avisos: avisosDeLaZbe(servida, mejor.trozos, aperturas, zbe),
     },
     // El tramo que se conduce MUERE en el aparcamiento: ahí va el icono. El que
     // se anda muere en el portal, que ya lleva su chincheta de destino.

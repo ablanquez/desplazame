@@ -486,6 +486,27 @@ export interface PeticionDeRuta {
    * hacen sin pedir permiso.
    */
   readonly aparcamiento?: TipoDeAparcamiento;
+  /**
+   * ⭐ **SI EL COCHE PUEDE ENTRAR EN LA ZONA DE BAJAS EMISIONES** (3/09).
+   *
+   * La app no sabe qué distintivo lleva el vehículo de quien pregunta, y no hay
+   * forma de que lo sepa. Así que **se pregunta**, y la pregunta es binaria
+   * porque la norma lo es [FAQ oficial: **B, C, ECO o CERO** tienen *«libre
+   * acceso, circulación y estacionamiento sin necesidad de registrarse»*; los
+   * **sin distintivo** necesitan autorización].
+   *
+   * `true` o ausente → la ruta va por donde va y, si atraviesa la zona, lo
+   * **avisa** (lo de la casilla 1b, sin cambios). `false` → dentro de la franja
+   * horaria la zona **se veta**: ni se atraviesa ni se aparca dentro. Y si al
+   * destino solo se llega entrando, se contesta que no hay ruta sin entrar —
+   * que es la verdad— en vez de una ruta que entra.
+   *
+   * ⚠️ **La franja se mira por el reloj** [FAQ: *«de aplicación de lunes a
+   *    viernes de 8:00 a 20:00 horas»*]. Fuera de ella **no se veta nada**,
+   *    porque no hay nada que vetar, y se dice con su aviso. Es el mismo trato
+   *    que el bus le da a un patrón que hoy no circula.
+   */
+  readonly puedeEntrarEnLaZbe?: boolean;
 }
 
 /**
