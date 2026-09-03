@@ -14,6 +14,91 @@
 
 ---
 
+## [2026-09-03] ✅ CERRADA — Uno de los cuatro aparcamientos de la ZBE se quedaba sin ruta, en silencio, y las 27 jueces en verde
+
+**Categoría:** un candidato que desaparece del reparto sin que nadie lo diga
+
+**Síntoma:** con el remate al aparcamiento público recién puesto (casilla 2-bis),
+`Puerta Cinegia` (id 105) no ganaba **ni una vez** en un barrido de 128 portales
+del casco. Pedida su ruta a solas, `rutaAlMejorAparcamiento` devolvía `SIN RUTA`
+con el pestillo puesto y `2199.05 m / 244 s` sin él. Para `CALLE ALFONSO I 2` el
+motor contestaba `César Augusto` —paseo 220 m, coste ponderado 870— cuando
+`Puerta Cinegia` costaba **649** con 140 m de paseo. La respuesta no era un
+error: era peor de lo que el dato permitía, y no lo decía.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las **27 jueces** de
+`motor/src/viaje-coche.spec.ts`, las seis nuevas de la casilla 2-bis incluidas.
+Ejecutadas con el fallo vivo, antes de tocar nada:
+
+```
+  ▶ ⭐ EL REMATE AL PARKING PÚBLICO DE LA ZBE (casilla 2-bis)
+    ✔ ⭐ 1 · el destino dentro de la zona remata en un parking público (16.9292ms)
+    ✔ ⭐ 2 · con «sí puede entrar» se entra directo, sin remate (20.2315ms)
+    ✔ ⭐ 3 · en domingo no se veta nada y no se remata (8.7609ms)
+    ✔ ⭐ 4 · con el destino fuera de la zona no cambia ni un byte (23.9474ms)
+    ✔ ⭐ 5 · las banderas cocinadas son las que da el cruce en vivo (0.5978ms)
+    ✔ ⭐ 6 · rematar en un parking no mueve a ninguno de los seis modos (143.5338ms)
+  ✔ ⭐ EL REMATE AL PARKING PÚBLICO DE LA ZBE (casilla 2-bis) (214.2771ms)
+✔ ⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE (3442.1051ms)
+ℹ tests 27
+ℹ pass 27
+ℹ fail 0
+```
+
+La juez 1 miraba que se rematara en **uno** de los cuatro y que fuera el que el
+coste elige entre **los que quedaban**; que uno de los cuatro no llegara nunca a
+la comparación no lo miraba nadie.
+
+**Cómo se cazó:** instrumento — un barrido de 128 portales del casco escrito para
+otra cosa (comparar el coste contra la cercanía en recta). Su recuento de
+ganadores solo tenía tres nombres:
+
+```
+con remate: 122 · sin ruta: 6 · 2181 ms
+quién gana:
+    70 · César Augusto (id 3)
+    27 · Ayuntamiento (id 2)
+    25 · Plaza del Pilar - Juzgados (id 1)
+```
+
+**Causa raíz:** el pestillo prohibía la transición «dentro de la zona → fuera»
+para que la ruta no atravesara la ZBE de paso. Pero **la puerta de un
+aparcamiento de dentro puede caer en una arista de fuera**: `Puerta Cinegia` está
+en Plaza España, en el borde, y engancha a **58,6 m** a la arista `10898`, que no
+está marcada como ZBE y a la que solo se llega desde dentro. Llegar a ella era,
+para el pestillo, salir — y salir estaba prohibido. El candidato no fallaba: se
+descartaba, y `rutaAlMejorAparcamiento` seguía contestando con los otros tres.
+Verde, porque la juez preguntaba por el mejor de los que había, no por los
+cuatro.
+
+**Arreglo aplicado:** en `buscarEnCoche` (`motor/src/viaje-coche.ts`), la
+transición dentro → fuera se permite **solo si `siguiente` remata**
+(`alFinal.has(siguiente)`), y en ese caso **no se sigue conduciendo**: un
+`continue` después de evaluar la llegada. Salir para terminar no es atravesar,
+porque no hay «después»; sin el segundo corte, un remate de fuera habría sido un
+puente para cruzar la zona y seguir. Medido tras el arreglo: los cuatro ganan
+(César Augusto 52 · Puerta Cinegia 30 · Pilar-Juzgados 25 · Ayuntamiento 15) y
+**0 de 128 rutas atraviesan la zona**.
+
+**Commit:** `4cc06be`
+
+**Ley que sale de aquí:** cuando una regla descarta candidatos, la juez tiene que
+mirar **cuántos entran en la comparación**, no solo si el que gana es el mejor de
+los que entraron. Un candidato que desaparece no rompe nada: hace que la
+respuesta sea peor en silencio, que es el fallo que ningún verde enseña.
+
+Y la segunda, del dato: **la puerta de un sitio no está donde está el sitio.** El
+punto de un aparcamiento y la calle por la que se entra pueden caer a lados
+distintos de una frontera; en el borde de una zona, esos metros deciden.
+
+**Traza:** `motor/src/viaje-coche.ts` — `buscarEnCoche` (el pestillo) y
+`viajeAlParkingDeLaZbe`; `motor/src/viaje-coche.spec.ts` — la juez 1 de la
+casilla 2-bis; `app/data/parkings-zbe.json` — el id 105.
+
+**Nota:** el arreglo ya había comenzado al abrir esta entrada.
+
+---
+
 ## [2026-09-02] ✅ CERRADA — Dos portales del mismo cruce dan 635 m en coche, o «no hay forma», y las 509 jueces en verde
 
 **Categoría:** un caso que sí está vigilado en un modo y no en el modo nuevo
