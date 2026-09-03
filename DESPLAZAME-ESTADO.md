@@ -167,6 +167,29 @@ OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
 
+**LA CASILLA 3 DEL 12 Y EL REPLANTEO DEL OJO (3/09, tarde).** LA
+PANTALLA DEL COCHE hecha: dos preguntas reveladas (parking ·
+distintivo, nada preseleccionado), Aviso.paso pagando (la nota del
+remate cuelga de un paso sin nombre), el positivo solo con etiqueta
+buena y ruta que pisa, el enlace DGT medido antes de escribirlo (la
+URL de manual era una página fantasma). El hallazgo de las trazas
+del bus por la red del coche: CERO tramos fuera de calzada (antes
+147) a cambio de rodeos visibles en el casco donde el bus usa carril
+bus — se queda, escrito para el día de una red con carriles. 534
+motor · 252 interfaz. ANTONIO PROBÓ («funciona bien» el remate; la
+duda de la B resuelta con la letra: Zaragoza hoy solo veta SIN
+etiqueta — el titular que asustaba era de otra ciudad; el
+endurecimiento por letras es tendencia real SIN fecha aquí, NO
+CONSTA) Y REPLANTEÓ — cuatro piezas parlamentadas con doctrina
+[TomTom pinta la LEZ de serie; ZBEMaps pinta y filtra por etiqueta]:
+el polígono F1 pintado en modo coche · la traza ROJA dentro (el
+corte lo dice el motor) · la tercera pregunta de la AUTORIZACIÓN
+revelada solo con [Sin etiqueta] (los 14 casos §1.32) · y FUERA el
+enlace DGT: la consulta de matrícula EN CASA (sonda B primero: el
+fichero de DGT en Cifras que la propia DGT declara, o la consulta de
+la sede; la matrícula NO se guarda). Todo en la casilla 3-bis del
+plan.
+
 **LA CASILLA 2-bis DEL 12 — EL REMATE AL PARKING PÚBLICO (3/09,
 mediodía-tarde).** Un destino dentro con «no puede entrar» ya no es
 «sin ruta»: remata en el mejor por coste de los 4 de Fase 1 (el caso:
@@ -1169,10 +1192,10 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 3 del 12 — LA PANTALLA DEL COCHE**
-(la fila [Regulado][Discapacitado][Gratuito] + el selector de
-etiqueta [CERO][ECO][C][B][Sin][No lo sé] con su traducción oficial y
-el enlace DGT; las trazas de desvío del bus a la red del coche); (2)
+**Lo siguiente:** (1) **la casilla 3-bis del 12 — el replanteo del
+ojo**: el ENCARGO A (el polígono F1 pintado + la traza roja con el
+corte del motor + la pregunta de la autorización) y la SONDA B (la
+matrícula: DGT en Cifras vs consulta de la sede — solo lectura); (2)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1427,9 +1450,11 @@ parking con el 12.
 ⚰️ sondas HECHAS el 2/09 (regulado 1.159 · PMR 1.226 · gratuito = el
 complemento LIBRE · parkings 41 que mezclan → lista de inclusión) ·
 ⚰️ la RED COCINADA el 2/09 (1a: 57.390 aristas, 1.378 giros vetados,
-ZBE marcada) · ⚰️ EL COCHE RUTEA (1b), APARCA POR TIPO (2) Y REMATA EN PARKING
-PÚBLICO cuando no puede entrar (2-bis, 3/09 — el pestillo, la nº31,
-las fichas §1.31-1.32) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
+ZBE marcada) · ⚰️ EL COCHE RUTEA (1b), APARCA POR TIPO (2), REMATA EN PARKING
+PÚBLICO (2-bis) Y SE VE EN PANTALLA (3, 3/09 — dos preguntas,
+Aviso.paso, las trazas del bus por su red) · ⭐ el REPLANTEO del ojo
+en la 3-bis (polígono pintado · traza roja · autorización · la
+matrícula en casa con sonda) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
 oficial (L-V 8-20 · sanciones desde 12/12/2025 · B/C/ECO/CERO libres
 sin registro → la app AVISA, no veta: no sabe la etiqueta) · queda la
 letra legal de la MOTO (punto 13) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
@@ -1481,7 +1506,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 779 pruebas (533 motor + 246 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 786 pruebas (534 motor + 252 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

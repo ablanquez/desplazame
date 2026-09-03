@@ -3011,22 +3011,77 @@ son CAPAS DE DATO y ninguna se promete sin sonda:
       registro. El ORIGEN dentro sigue sin remate (de ahí no se sale
       sin pisar). 533 motor · 246 interfaz · 33 fichas · 31
       bitácoras, 0 abiertas.
-- [ ] **3 · LA PANTALLA:** el grupo [Coche] con su fila de parking
-      [Regulado] [Discapacitado] [Gratuito] y, debajo, EL SELECTOR DE
-      ETIQUETA *(parlamento 3/09, punto 2 de Antonio; el patrón del
-      toggle de TomTom — «el usuario declara su situación», nosotros
-      con la traducción OFICIAL de la FAQ)*: [CERO] [ECO] [C] [B]
-      [Sin etiqueta] [No lo sé] → B/C/ECO/CERO = puede entrar, con
-      AVISO POSITIVO («tu distintivo circula libre por la ZBE, sin
-      registro» [FAQ]); Sin etiqueta = no puede → el flujo del remate
-      de la 2-bis; [No lo sé] → ENLACE SALIENTE a la consulta oficial
-      de la DGT por matrícula [sede.dgt.gob.es, «por internet, sin
-      identificación previa», gratuita, al día — verificada 3/09; la
-      matrícula NO entra en la app: datos personales sin necesidad y
-      términos de consulta automatizada NO CONSTAN]. El motor sigue
-      BINARIO: la pantalla traduce. · el patrón de la bici en dos
-      filas [GOV.UK] · la regla de la demo del 11 · las trazas de
-      desvío del bus pasan a rutearse sobre esta red.
+- [x] **⭐ 3 · LA PANTALLA DEL COCHE — HECHA (3/09, cuatro commits).**
+      [Coche] revela DOS preguntas (radios, nada preseleccionado
+      [GOV.UK: en preguntas no se preinfluye]): «¿Dónde quieres
+      aparcar?» y «¿Distintivo ambiental?» [CERO][ECO][C][B][Sin
+      etiqueta][No lo sé] — CERO/ECO/C/B ⇒ true · Sin ⇒ false · No lo
+      sé ⇒ se omite (la conducta informativa); las dos se omiten si
+      no se tocan (el viaje de la 1b sigue existiendo). ⭐ Aviso.paso
+      PAGANDO: la nota del remate cuelga del paso 10 («gira hacia
+      Echegaray») — un paso sin nombre al que el reparto por texto
+      jamás habría llegado. El aviso POSITIVO solo con etiqueta buena
+      Y ruta que pisa. El hito 🅿 y el andando en ámbar discontinuo.
+      6 de 7 jueces nacieron en rojo; contrapruebas una a una (una
+      mutación rehecha porque no compilaba y el grep no veía errores
+      — cazado). ⭐ EL ENLACE DGT MEDIDO ANTES DE ESCRIBIRLO: la URL
+      «de manual» da 200 con «Page Not Found»; la buena es
+      /vehiculos/informacion-de-vehiculos/distintivo-ambiental/
+      (134.338 B, «por internet, sin identificación previa»). ⚠️ EL
+      HALLAZGO DE LAS TRAZAS (d), medido sobre 399 pares: por la red
+      del coche CERO tramos con el bus a >10 m de calzada (antes 147,
+      peor 174 m por sendas — el error grave, invisible), pero el bus
+      usa carril bus y contrasentidos que el coche no: en el casco se
+      pinta rodeo (693 m reales → 2.055 en Plaza España→Coso 126) —
+      el error menor, visible y honesto. Decisión del ejecutor
+      respaldada: se queda por la red del coche; la solución de
+      verdad es una red con carriles bus, escrita en la cabecera del
+      módulo y comprada por la juez 9. README corregido en commit
+      declarado (afirmaba el corte de pantalla). 534 motor · 252
+      interfaz · sin bitácora (nada dio verde con fallo vivo).
+- [ ] **3-bis · EL REPLANTEO DEL OJO (parlamentado el 3/09 tras sus
+      pruebas — cuatro piezas, con la doctrina delante):**
+      (a) EL POLÍGONO PINTADO en modo coche [patrón de serie en la
+      industria: TomTom «Mostrar en mapa → Zonas de bajas emisiones»;
+      Google Maps la señala con icono y aviso; ZBEMaps pinta las
+      zonas y filtra por etiqueta DGT]: la Fase 1 (la que actúa) con
+      la capa §1.30 que ya vive en el repo; si la Fase 2 se pinta
+      tenue («desde 2030») lo decide el ojo en la demo.
+      (b) LA TRAZA ROJA DENTRO: el tramo de ruta que pisa la ZBE
+      cambia de azul a rojo — EL CORTE LO DICE EL MOTOR (él sabe qué
+      aristas pisan; la pantalla parte el trazo donde le digan, como
+      montado/a-pie — nunca adivinando por geometría [la perla de la
+      2-bis: el polígono y la arista marcada no son la misma
+      pregunta]); el color NO va solo [WCAG 1.4.1]: polígono + aviso
+      + corte dicen lo mismo; el rojo pasa por el instrumento de
+      contraste con su ribete como todos los colores de la casa.
+      (c) LA TERCERA PREGUNTA — LA AUTORIZACIÓN: revelada SOLO al
+      marcar [Sin etiqueta] [GOV.UK: revelar solo preguntas]:
+      «¿Tienes autorización registrada en la ZBE? (residente, plaza
+      de garaje, comercio…)» [Sí][No] — los 14 casos de §1.32; con
+      SÍ la ruta entra normal con aviso suave («entras con tu
+      autorización registrada»); con NO, el flujo del remate. El
+      motor sigue binario.
+      (d) ⭐ LA CONSULTA DE MATRÍCULA EN CASA (decisión de Antonio:
+      fuera el enlace — «quiero que pongamos nosotros la consulta y
+      nos devuelva modelo y distintivo») — CON SONDA ANTES DE
+      PROMETER (sonda B): la propia DGT declara que publica «el
+      fichero que contiene todas las matrículas, con sus distintivos»
+      en DGT en Cifras [texto de la sede, capturado 3/09] → medir:
+      URL, tamaño (~30M de filas: vive en el motor, no en el
+      navegador), campos (¿trae marca/modelo o solo distintivo?),
+      licencia, frescura; y la alternativa: la consulta de la sede
+      por matrícula (¿endpoint limpio o formulario con captcha?
+      ¿términos?). REGLA FIJADA desde ya: la matrícula del usuario NO
+      SE GUARDA — se consulta y se tira, declarado. Con la sonda
+      delante, Antonio decide el camino (fichero cocinado · consulta
+      en vivo · no compensa).
+      (e) LA RECETA DE PRUEBA del remate, escrita (Antonio la corrió
+      el 3/09 y «funciona bien»): laborable dentro de la franja 8-20
+      · [Coche] · [Sin etiqueta] · (autorización [No]) · destino del
+      casco → remata; fuera de franja la app dice honesta que no
+      está en vigor Y NO SE FALSEA en producción — el reloj falso
+      vive solo en las jueces (las cuatro ramas compradas a diario).
 - [ ] **4 · LA DEMO por el ojo.**
 
 ## 13 — Modo MOTO *(nuevo, parlamentado el 1/09; DEPENDE del 12: la
