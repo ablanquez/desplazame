@@ -990,20 +990,22 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son **tres regím
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
 | ⛔ **Servicios en vivo de Avanza Zaragoza S.A.U.** (las llegadas al poste y la ruta operativa de hoy) | **Ninguna.** Su [aviso legal](https://www.avanzabus.com/informacion/aviso-legal/) —leído el 01/09/2026— **prohíbe expresamente** la *«extracción y/o reutilización»* y reclama el *«derecho sui generis sobre la base de datos»*. El texto literal, con su URL y su fecha, está en **§ 1.24** del notices | **Su licencia no pide atribución: no la contempla.** Y aun así **se atribuye**, en el pie de la pantalla: *«Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.»* ⭐ **Decisión de Antonio, 01/09/2026**: *«es dato público de un servicio público concesionado, y esto es una demo — se atribuye y se sigue»*. Se tomó con el aviso legal transcrito delante y con los *fixtures* nombrados uno a uno, y **los *fixtures* se quedan**: hay bytes de sus respuestas en `motor/src/avanza.spec.ts`, `viaje-bus.spec.ts`, `desvios.spec.ts` y `patron-operativo.spec.ts`, puestos por la ley de la casa de que un *fixture* copia la medición. Nada más se guarda: las dos fuentes se **consultan** en tiempo de ejecución, como haría cualquier cliente de su web |
 
-> ℹ️ **Y las tres están en uso.** El notices lleva **una ficha por conjunto, y hoy son 31**
-> (`grep -c '^### 1\.' THIRD-PARTY-NOTICES.md`): **veinte** del Ayuntamiento de Zaragoza —el
+> ℹ️ **Y las tres están en uso.** El notices lleva **una ficha por conjunto, y hoy son 33**
+> (`grep -c '^### 1\.' THIRD-PARTY-NOTICES.md`): **veintidós** del Ayuntamiento de Zaragoza —el
 > callejero, los portales, los carriles bici, los postes de autobús, las estaciones BiZi, los
 > aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas reguladas, las reservas de
 > espacio, los ejes de vía, la jerarquía viaria, las cinco de equipamientos, **la disponibilidad
 > viva del BiZi** y **la fuente municipal del transporte urbano** (§ 1.26, sondeada el 1/09 y sin
-> adoptar)—, **cuatro** de OpenStreetMap —la cartografía, el grafo de continuidad, los nombres de
-> vía y las etiquetas del viario— **más las tres del coche** (§ 1.27 el viario rodable, § 1.28 las
+> adoptar), y desde el 3/09 **los aparcamientos públicos cruzados con la ZBE** (§ 1.31) y
+> **la autorización para entrar en ella** (§ 1.32, que no es un conjunto de datos sino una
+> norma citada)—, **cuatro** de OpenStreetMap —la cartografía, el grafo de continuidad,
+> los nombres de vía y las etiquetas del viario— **más las tres del coche** (§ 1.27 el viario rodable, § 1.28 las
 > restricciones de giro y § 1.29 los semáforos, las tres de OpenStreetMap), el GTFS del Punto de
 > Acceso Nacional, **las dos fuentes vivas de Avanza** —las llegadas al poste y la ruta operativa
 > de hoy—, y la ficha que declara lo que **todavía no** ha entrado.
 >
-> ⚠️ **Este párrafo ha ido diciendo «quince», «veinticuatro», «veintiséis», «veintisiete» y ahora
-> treinta y uno**, y
+> ⚠️ **Este párrafo ha ido diciendo «quince», «veinticuatro», «veintiséis», «veintisiete»,
+> «treinta y uno» y ahora treinta y tres**, y
 > las tres primeras se quedaron viejas donde estaban. Es la entrada nº5 de la bitácora
 > repitiéndose: una regla de releída vale lo que su alcance. **Desde el 1/09 ya no depende de que
 > alguien relea**: `app/src/app/atribucion.spec.ts` cuenta las fichas del notices y las compara
