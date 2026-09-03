@@ -587,6 +587,16 @@ const DGT_DISTINTIVO =
   'https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/';
 
 /**
+ * ⭐ POR DÓNDE SE RECONOCE UN AVISO DE LA ZONA DE BAJAS EMISIONES.
+ *
+ * Es la misma llave frágil que `MARCA_DE_DESVIO` y compañía, y por lo mismo:
+ * `Aviso` es `{ texto, paso? }` y no trae categoría. Lo que **sí** trae desde la
+ * casilla 1b es `paso`, y eso es lo que se usa para repartir; esta marca solo
+ * decide si **añadir** el aviso positivo del distintivo, que es otra pregunta.
+ */
+const MARCA_DE_ZBE = 'Zona de Bajas Emisiones';
+
+/**
  * De qué familia es un modo. **La única línea donde vive el reparto**, y por
  * eso está fuera del componente: la usan la pantalla y sus jueces.
  *
@@ -907,6 +917,57 @@ export class Buscador {
       ...(cual && cual.puedeEntrar !== null ? { puedeEntrarEnLaZbe: cual.puedeEntrar } : {}),
     };
   }
+
+  /**
+   * ⭐ EL AVISO POSITIVO DEL DISTINTIVO (3/09).
+   *
+   * [FAQ de la sede] *«B, C, ECO o CERO: libre acceso, circulación y
+   * estacionamiento sin necesidad de registrarse»*. Quien ha dicho que tiene una
+   * de las cuatro y ve una ruta que cruza la zona merece que se le conteste su
+   * pregunta —«¿y yo puedo?»— en vez de leer la norma general y deducirlo.
+   *
+   * ⚠️ **Solo si la ruta PISA la zona.** Decírselo a quien va por Miralbueno
+   *    sería ruido sobre algo que no va a ver, y el resumen de avisos vale
+   *    justamente por ser corto.
+   *
+   * ⚠️ Y lo pone la PANTALLA, no el motor, porque el motor no sabe la etiqueta:
+   *    solo le llegó un `puedeEntrarEnLaZbe: true`. Quien tiene el dato es quien
+   *    hizo la pregunta.
+   */
+  private readonly avisoDelDistintivo = computed<Aviso | null>(() => {
+    const trayecto = this.resultado()?.trayecto;
+    if (!trayecto) {
+      return null;
+    }
+    const cual = this.distintivos.find((x) => x.id === this.distintivo());
+    if (!cual || cual.puedeEntrar !== true) {
+      return null;
+    }
+    const deLaZona = trayecto.avisos.find((a) => a.texto.includes(MARCA_DE_ZBE));
+    if (!deLaZona) {
+      return null;
+    }
+    const aviso: Aviso = {
+      texto: `Tu distintivo ${cual.etiqueta} circula libre por la ZBE, sin registro`,
+    };
+    // Va al mismo paso que el aviso que lo motiva: son la misma noticia contada
+    // desde los dos lados, y separarlos mandaría a quien lea a dos sitios.
+    return deLaZona.paso === undefined ? aviso : { ...aviso, paso: deLaZona.paso };
+  });
+
+  /**
+   * Los avisos que se pintan: los del motor **más** el positivo del distintivo,
+   * si toca. Es el único sitio donde se compone la lista, para que el resumen de
+   * arriba y las notas de abajo no puedan discrepar.
+   */
+  protected readonly avisosDelViaje = computed<readonly Aviso[]>(() => {
+    const trayecto = this.resultado()?.trayecto;
+    if (!trayecto) {
+      return [];
+    }
+    const positivo = this.avisoDelDistintivo();
+    return positivo ? [...trayecto.avisos, positivo] : trayecto.avisos;
+  });
 
   /**
    * ⭐ LAS TRES RUTAS YA TRAÍDAS, y para qué pregunta valen.
@@ -1319,11 +1380,37 @@ export class Buscador {
         donde.set(nota, i);
       }
     });
-    return trayecto.avisos.map((a) => ({
+    return this.avisosDelViaje().map((a) => ({
       texto: enDosNiveles(a.texto).hecho,
-      paso: donde.get(a.texto) ?? null,
+      // ⭐ `Aviso.paso` MANDA, y el texto es solo la reserva (3/09).
+      //
+      // El motor sabe por qué paso se entra en la Zona de Bajas Emisiones —lo
+      // calcula con las aperturas de `escribirPasos`, que es el único sitio
+      // donde consta— y lo dice desde la casilla 1b. Adivinarlo aquí leyendo la
+      // frase no solo era frágil: **era imposible**, porque ese paso no es un
+      // hito y la regla del texto solo sabe de hitos.
+      //
+      // La reserva se queda para los avisos que NO traen `paso`: los del bus y
+      // los del BiZi, que se reparten por el sitio que nombran.
+      paso: a.paso ?? donde.get(a.texto) ?? null,
     }));
   });
+
+  /**
+   * ⭐ LA NOTA QUE LE TOCA A UN PASO, por su índice (3/09).
+   *
+   * Primero `Aviso.paso`, que es dato; y si ningún aviso lo trae, la regla de
+   * siempre para los hitos. Los dos caminos devuelven el texto **tal cual**,
+   * que es lo que hace que arriba y abajo digan lo mismo sin mantener dos
+   * frases a juego.
+   */
+  protected notaDelPaso(indice: number, paso: Paso): string | null {
+    const suyo = this.avisosDelViaje().find((a) => a.paso === indice);
+    if (suyo) {
+      return suyo.texto;
+    }
+    return esHito(paso) ? this.notaDelHito(paso) : null;
+  }
 
   /** Si un paso es de los que prometen algo: los cuatro hitos. */
   protected esHito(paso: Paso): boolean {

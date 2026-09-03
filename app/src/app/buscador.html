@@ -720,18 +720,28 @@
                   >
                 </span>
               }
-              <!-- ⭐ LA NOTA AL LADO DEL HITO [GOV.UK: resumen arriba Y mensaje
-                   junto a lo afectado, con el MISMO texto en los dos sitios]. -->
-              @if (esHito(paso)) {
-                @if (notaDelHito(paso); as nota) {
-                  <span class="paso__nota">
-                    <span class="paso__nota-icono" aria-hidden="true">⚠</span>
-                    <ng-container
-                      [ngTemplateOutlet]="avisoPartido"
-                      [ngTemplateOutletContext]="{ $implicit: nota, clave: 'hito-' + $index }"
-                    />
-                  </span>
-                }
+              <!-- ⭐ LA NOTA AL LADO DE SU PASO [GOV.UK: resumen arriba Y
+                   mensaje junto a lo afectado, con el MISMO texto en los dos
+                   sitios]. El ⚠ va aria-hidden: el texto ya dice lo que pasa, el
+                   icono es para el ojo — es el 1.4.1 de siempre, no solo color.
+
+                   ⚠️ **Y ya no es «la nota del hito»** (3/09). Lo era mientras
+                      el reparto se hacía leyendo el texto del aviso y buscando
+                      el sitio que nombra, porque solo los hitos nombran sitios.
+                      El aviso de la Zona de Bajas Emisiones va colgado de un
+                      paso que NO es hito —«Continúa por el Paseo de la
+                      Independencia»— y viene con `Aviso.paso` puesto desde la
+                      casilla 1b: ahí no hay nada que adivinar. `notaDelPaso`
+                      mira primero el dato y deja la regla del texto de reserva
+                      para el bus y el BiZi. -->
+              @if (notaDelPaso($index, paso); as nota) {
+                <span class="paso__nota">
+                  <span class="paso__nota-icono" aria-hidden="true">⚠</span>
+                  <ng-container
+                    [ngTemplateOutlet]="avisoPartido"
+                    [ngTemplateOutletContext]="{ $implicit: nota, clave: 'paso-nota-' + $index }"
+                  />
+                </span>
               }
             </li>
           }

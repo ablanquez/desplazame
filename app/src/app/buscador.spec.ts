@@ -110,6 +110,18 @@ function cuerpoDeLaRuta(peticiones: readonly TestRequest[]): Record<string, unkn
   return peticiones[peticiones.length - 1]!.request.body as Record<string, unknown>;
 }
 
+/** El texto de la nota ámbar de cada paso, por el índice del paso que la lleva. */
+function notasPorPaso(raiz: HTMLElement): ReadonlyMap<number, string> {
+  const notas = new Map<number, string>();
+  Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).forEach((li, i) => {
+    const nota = li.querySelector<HTMLElement>('.paso__nota');
+    if (nota) {
+      notas.set(i, (nota.textContent ?? '').replace(/\s+/g, ' ').replace('⚠ ', '').trim());
+    }
+  });
+  return notas;
+}
+
 /**
  * ⭐ Y el que CUENTA las peticiones de ruta, drenándolas con lo que toque.
  *
@@ -4591,6 +4603,92 @@ describe('Buscador', () => {
       drenarRutas(peticiones, () => VIAJE_EN_COCHE_LEJOS);
       await fixture.whenStable();
     }
+  });
+
+  /**
+   * ⭐ JUEZ 3 — EL REMATE, PINTADO: el hito y el aviso **en su paso**.
+   *
+   * El aviso del motor viene con `paso: 2`, y el 2 **no es un hito**. Hasta hoy
+   * la nota solo se colgaba de un hito porque el reparto se hacía leyendo el
+   * texto del aviso y buscando el sitio que nombra — y un paso de «Continúa por
+   * el Paseo de la Independencia» no nombra nada. Con `Aviso.paso` no hay nada
+   * que adivinar.
+   */
+  it('⭐ 3 · el destino dentro de la zona pinta el remate y el aviso en su paso', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'coche');
+    await direccionEntera(fixture, http);
+    pulsar(fixture, radiosDeDistintivo(raiz), 'sin');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_COCHE_CON_REMATE);
+    await fixture.whenStable();
+
+    // El hito, con su frase del motor y su icono, como el de la bici.
+    const hito = Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).find((li) =>
+      (li.querySelector('.paso__texto')?.textContent ?? '').startsWith('Aparca'),
+    );
+    expect(hito).toBeTruthy();
+    expect((hito!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ')).toContain(
+      'Aparca en el aparcamiento público Plaza del Pilar - Juzgados',
+    );
+    expect(hito!.querySelector('.paso__flecha')?.textContent?.trim()).not.toBe('');
+
+    // ⭐ Y LA NOTA VA EN EL PASO 2, que es el que dice `Aviso.paso`.
+    const notas = notasPorPaso(raiz);
+    expect([...notas.keys()]).toEqual([2]);
+    expect(notas.get(2)).toContain('Tu destino queda dentro de la Zona de Bajas Emisiones');
+
+    // Y arriba, el resumen enlaza a ese mismo paso.
+    expect(resumenEnPantalla(raiz)[0]).toContain('Esta ruta remata en el aparcamiento público');
+    expect(adondeLlevaElResumen(raiz)).toEqual(['#paso-2']);
+  });
+
+  /**
+   * ⭐ JUEZ 4 — EL AVISO POSITIVO: solo con etiqueta buena **Y** ruta que pisa.
+   *
+   * [FAQ de la sede] *«B, C, ECO o CERO: libre acceso, circulación y
+   * estacionamiento sin necesidad de registrarse»*. Decírselo a quien ha dicho
+   * que tiene una de las cuatro es contestar su pregunta; decírselo a quien va
+   * por Miralbueno es ruido sobre una zona que no va a ver.
+   */
+  it('⭐ 4 · el aviso positivo, solo con etiqueta buena y ruta que pisa la zona', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'coche');
+    await direccionEntera(fixture, http);
+
+    // (a) etiqueta buena + ruta que pisa → sale.
+    pulsar(fixture, radiosDeDistintivo(raiz), 'b');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_COCHE_POR_LA_ZBE);
+    await fixture.whenStable();
+    expect(resumenEnPantalla(raiz).join(' | ')).toContain(
+      'Tu distintivo B circula libre por la ZBE, sin registro',
+    );
+
+    // (b) la misma etiqueta, ruta que NO pisa → no sale.
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_COCHE_LEJOS);
+    await fixture.whenStable();
+    expect(resumenEnPantalla(raiz).join(' | ')).not.toContain('circula libre por la ZBE');
+
+    // (c) ruta que pisa, pero SIN etiqueta buena → tampoco.
+    pulsar(fixture, radiosDeDistintivo(raiz), 'nolose');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_COCHE_POR_LA_ZBE);
+    await fixture.whenStable();
+    expect(resumenEnPantalla(raiz).join(' | ')).not.toContain('circula libre por la ZBE');
+    // Y lo que sí sale es el aviso del motor, que informa de la norma.
+    expect(resumenEnPantalla(raiz)[0]).toContain('La ruta atraviesa la Zona de Bajas Emisiones');
   });
 
   /**
