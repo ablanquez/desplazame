@@ -324,7 +324,8 @@ export function puntoMasCercanoDeLaLinea(
  *    `tipo_actual` del dato, en `ClaseDeTramo`, en la cabecera de este fichero y
  *    en el arranque del motor. En el paso, lo que se lee es la calle.
  *
- * ⚠️ Ni tarifa ni franja: el censo NO las trae. Ver la cabecera.
+ * ⚠️ Ni tarifa ni franja: el censo NO las trae. Ver la cabecera. Y lo que sí se
+ *    puede decir del gratuito es que no cuesta: ver el `return` de abajo.
  */
 function detalleDelTramo(clase: ClaseDeTramo): string {
   if (clase === 'ESRO') {
@@ -333,9 +334,15 @@ function detalleDelTramo(clase: ClaseDeTramo): string {
   if (clase === 'ESRE') {
     return 'zona naranja (residentes)';
   }
-  // ⏳ La palabra del gratuito se afina en la demo: lo que el dato dice es que
-  // ese bordillo no está regulado, no que aparcar allí sea gratis para siempre.
-  return 'estacionamiento sin regulación';
+  // ⭐ **Y EL GRATUITO SE LLAMA GRATUITO** (4/09, decisión de Antonio en la
+  //    demo). Decía «estacionamiento sin regulación», que es la traducción
+  //    literal del `LIBRE` del censo y **no la contestación a la pregunta**:
+  //    quien busca sitio quiere saber si le va a costar dinero, y «sin
+  //    regulación» le obliga a deducirlo. La regla es la de la casa —«donde no
+  //    hay regulado hay gratuito»— aplicada donde vale: sobre lo que el censo
+  //    **sí** clasifica. Los 28 que no clasifica siguen fuera de los cuatro
+  //    montones, y por eso la regla no se estira hasta ellos (ver la cabecera).
+  return 'estacionamiento gratuito (sin coste)';
 }
 
 /** Y una plaza PMR, con su horario **literal**. */

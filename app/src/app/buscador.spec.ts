@@ -4993,6 +4993,28 @@ describe('Buscador', () => {
   });
 
   /**
+   * ⭐ LOS DOS TEXTOS QUE LA DGT MANDA, **enteros y medidos** (4/09).
+   *
+   * No están escritos a mano: salen de pasarle a `atenderDistintivo` los dos
+   * cuerpos de la sede que `motor/src/distintivo.spec.ts` guarda —los mismos que
+   * se bajaron verbatim el 3/09— y copiar lo que devolvió. Se usan **enteros**
+   * porque lo que esta juez compra es justamente que la segunda mitad NO llega a
+   * la pantalla: con el texto recortado, la aserción no valdría nada.
+   *
+   * ⚠️ Esa segunda mitad —*«Pulsa en la imagen del distintivo…»*— es una
+   *    instrucción de la web de la DGT, no un dato del vehículo. Aquí no hay
+   *    imagen que pulsar. Lo que sí se queda es la cita de la fuente, que es lo
+   *    que su aviso legal exige.
+   */
+  const LA_DGT_CON_UNA_C =
+    'El vehículo 0000BBM cumple con los requisitos para obtener el Distintivo ' +
+    'Ambiental C. Pulsa en la imagen del distintivo para conocer la información ' +
+    'contenida en la etiqueta y los vehículos que tienen derecho a su obtención.';
+  const LA_DGT_SIN_DISTINTIVO =
+    'Sin distintivo. Tu vehículo no cumple los requisitos para ser etiquetado ' +
+    'como vehículo limpio.';
+
+  /**
    * ⭐ JUEZ 6 — LA PANTALLA MARCA EL RADIO SEGÚN LA RESPUESTA, y no lo toca
    * cuando la DGT no sabe.
    *
@@ -5034,15 +5056,20 @@ describe('Buscador', () => {
     conC.flush({
       clase: 'etiqueta',
       distintivo: 'C',
-      texto:
-        'El vehículo 0000BBM cumple con los requisitos para obtener el Distintivo Ambiental C.',
+      texto: LA_DGT_CON_UNA_C,
       fuente: 'DGT',
-      cuando: new Date().toISOString(),
+      cuando: new Date('2026-09-04T14:53:00').toISOString(),
     });
     fixture.detectChanges();
     await fixture.whenStable();
     expect(radiosDeDistintivo(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['c']);
-    expect(region.textContent).toContain('Distintivo Ambiental C');
+    // ⭐ LA FRASE ES NUESTRA Y ES CORTA (4/09): la letra y la cita, nada más.
+    expect(region.textContent?.trim()).toBe('Distintivo ambiental C (Fuente: DGT, 14:53)');
+    // ⭐ Y la prosa de la sede **no se pinta**: manda a pulsar una imagen que
+    //    aquí no existe. Es instrucción de SU página, no dato del vehículo.
+    expect(region.textContent).not.toContain('Pulsa en la imagen');
+    expect(region.textContent).not.toContain('tienen derecho a su obtención');
+    // La atribución, en cambio, se queda: es lo que su aviso legal exige.
     expect(region.textContent).toContain('Fuente: DGT');
     expect(region.getAttribute('aria-busy')).toBe('false');
 
@@ -5052,13 +5079,16 @@ describe('Buscador', () => {
     fixture.detectChanges();
     contesta({
       clase: 'sinDistintivo',
-      texto: 'Sin distintivo. Tu vehículo no cumple los requisitos para ser etiquetado.',
+      texto: LA_DGT_SIN_DISTINTIVO,
       fuente: 'DGT',
-      cuando: new Date().toISOString(),
+      cuando: new Date('2026-09-04T14:53:00').toISOString(),
     });
     await fixture.whenStable();
     expect(radiosDeDistintivo(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['sin']);
     expect(radiosDeAutorizacion(raiz).length).toBe(2);
+    // Y su frase, también nuestra y también corta.
+    expect(region.textContent?.trim()).toBe('Sin distintivo ambiental (Fuente: DGT, 14:53)');
+    expect(region.textContent).not.toContain('vehículo limpio');
 
     // (c) No existe: NO se toca el selector, y se dice lo que la DGT dijo.
     escribir('0000BBB');
@@ -5072,7 +5102,11 @@ describe('Buscador', () => {
     });
     await fixture.whenStable();
     expect(radiosDeDistintivo(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['sin']);
-    expect(region.textContent).toContain('No se ha encontrado');
+    // ⭐ Y aquí el texto SÍ se pinta entero, porque no hay letra que decir: lo
+    //    único que hay que contar es lo que pasó. Ver `loDeLaDgtEnPalabras`.
+    expect(region.textContent?.trim()).toBe(
+      'No se ha encontrado ningún resultado para la matrícula introducida.',
+    );
 
     // (d) Mudo: tampoco, y el texto manda a elegir a mano.
     escribir('0002BGP');
@@ -5086,7 +5120,9 @@ describe('Buscador', () => {
     });
     await fixture.whenStable();
     expect(radiosDeDistintivo(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['sin']);
-    expect(region.textContent).toContain('a mano');
+    expect(region.textContent?.trim()).toBe(
+      'La DGT no ha contestado. Elige tu distintivo a mano, o vuelve a intentarlo.',
+    );
 
     // ⭐ Y CADA PULSACIÓN CONSULTA: no hay caché ni comparación con la anterior.
     escribir('0000BBM');
@@ -5095,8 +5131,7 @@ describe('Buscador', () => {
     contesta({
       clase: 'etiqueta',
       distintivo: 'C',
-      texto:
-        'El vehículo 0000BBM cumple con los requisitos para obtener el Distintivo Ambiental C.',
+      texto: LA_DGT_CON_UNA_C,
       fuente: 'DGT',
       cuando: new Date().toISOString(),
     });
@@ -5106,8 +5141,7 @@ describe('Buscador', () => {
     contesta({
       clase: 'etiqueta',
       distintivo: 'C',
-      texto:
-        'El vehículo 0000BBM cumple con los requisitos para obtener el Distintivo Ambiental C.',
+      texto: LA_DGT_CON_UNA_C,
       fuente: 'DGT',
       cuando: new Date().toISOString(),
     });

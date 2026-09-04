@@ -612,6 +612,22 @@ const MARCA_DE_ZBE = 'Zona de Bajas Emisiones';
  */
 const CAPA_DE_LA_ZBE = 'data/2026-09-02_wfs_movilidad-MU1_ZBE.json';
 
+/**
+ * ⭐ DE LA LETRA QUE LA DGT USA AL RADIO DE LA PANTALLA.
+ *
+ * Vivía dentro de `acabaLaDgt` cuando solo marcaba el radio. Desde el 4/09 la
+ * región también lo mira —para decir «Distintivo ambiental CERO» con la misma
+ * palabra que lleva el botón que se acaba de marcar—, así que sube aquí: dos
+ * copias de esta tabla es exactamente la manera de que un día la región diga
+ * una cosa y la botonera otra.
+ */
+const EL_RADIO_DE_LA_LETRA: Readonly<Record<string, Distintivo>> = {
+  '0': 'cero',
+  ECO: 'eco',
+  C: 'c',
+  B: 'b',
+};
+
 /** La hora de un instante ISO, para decir de cuándo es un dato de ahora. */
 function horaDe(iso: string): string {
   const cuando = new Date(iso);
@@ -960,12 +976,7 @@ export class Buscador {
     }
     this.tardaLaDgt.set(false);
     this.loDeLaDgt.set(r);
-    const cual: Readonly<Record<string, Distintivo>> = {
-      '0': 'cero',
-      ECO: 'eco',
-      C: 'c',
-      B: 'b',
-    };
+    const cual = EL_RADIO_DE_LA_LETRA;
     if (r.clase === 'etiqueta' && r.distintivo && cual[r.distintivo]) {
       this.distintivo.set(cual[r.distintivo]!);
       this.autorizacion.set(null);
@@ -974,7 +985,36 @@ export class Buscador {
     }
   }
 
-  /** Lo que se lee en la región de estado, en una frase. */
+  /**
+   * Lo que se lee en la región de estado, en una frase.
+   *
+   * ⭐ **LA LETRA, NO LA PROSA DE LA SEDE** (4/09, decisión del ojo en la demo).
+   *
+   * Aquí se pintaba el párrafo entero que la DGT devuelve, que es una retahíla
+   * de 220 caracteres y **acaba dando una instrucción de SU página**:
+   *
+   *   *«El vehículo 0000BBM cumple con los requisitos para obtener el Distintivo
+   *   Ambiental C. Pulsa en la imagen del distintivo para conocer la información
+   *   contenida en la etiqueta y los vehículos que tienen derecho a su
+   *   obtención.»*
+   *
+   * Aquí no hay ninguna imagen que pulsar. Esa segunda mitad no es el dato: es
+   * la navegación de la web de donde salió, y reproducirla manda a quien lee a
+   * buscar algo que no existe en esta pantalla.
+   *
+   * ⚠️ **Y esto NO afeita la atribución.** Lo que su aviso legal exige es la
+   *    cita de la fuente, y la cita se queda: «(Fuente: DGT, 14:53)», con la
+   *    hora en que se preguntó. Lo que se deja de pintar es su prosa, que no es
+   *    lo mismo — **el dato es la letra**, y la letra se dice entera.
+   *
+   * ⚠️ Y **solo en las dos clases que traen letra**. `noExiste`, `formato` y
+   *    `mudo` no traen ninguna: ahí lo único que hay que decir es lo que pasó, y
+   *    eso ya lo dice el `texto` que el motor redacta —esas tres frases son
+   *    nuestras, no de la sede—.
+   *
+   * La palabra del distintivo sale de `distintivos`, que es la misma lista que
+   * pinta los botones: así la región y el botón marcado dicen «CERO» los dos.
+   */
   protected readonly loDeLaDgtEnPalabras = computed<string>(() => {
     if (this.consultandoDgt()) {
       return 'Preguntando a la DGT…';
@@ -983,11 +1023,17 @@ export class Buscador {
     if (r === null) {
       return '';
     }
-    // El texto de la DGT va **tal cual**: su aviso legal pide reproducción fiel
-    // y cita de la fuente. Lo nuestro es la cita, no la frase.
-    return r.clase === 'etiqueta' || r.clase === 'sinDistintivo'
-      ? `${r.texto} (Fuente: DGT, ${horaDe(r.cuando)})`
-      : r.texto;
+    const cita = `(Fuente: DGT, ${horaDe(r.cuando)})`;
+    if (r.clase === 'etiqueta' && r.distintivo) {
+      const suyo = this.distintivos.find((x) => x.id === EL_RADIO_DE_LA_LETRA[r.distintivo!]);
+      if (suyo) {
+        return `Distintivo ambiental ${suyo.etiqueta} ${cita}`;
+      }
+    }
+    if (r.clase === 'sinDistintivo') {
+      return `Sin distintivo ambiental ${cita}`;
+    }
+    return r.texto;
   });
 
   /**

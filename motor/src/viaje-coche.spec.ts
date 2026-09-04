@@ -767,7 +767,11 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       assert.equal(/ESRO|ESRE/.test(hitoAzul.texto + hitoNar.texto), false);
 
       const hitoGra = gra.pasos.find((x) => x.giro === 'aparca')!;
-      assert.match(hitoGra.texto, /estacionamiento sin regulación$/);
+      // ⭐ Y el gratuito **contesta la pregunta**: si cuesta o no (4/09). Decía
+      //    «estacionamiento sin regulación», que era la traducción del `LIBRE`
+      //    del censo y le dejaba la deducción a quien aparca.
+      assert.match(hitoGra.texto, /estacionamiento gratuito \(sin coste\)$/);
+      assert.equal(/sin regulación/.test(hitoGra.texto), false);
 
       // ⭐ Y NINGUNO DE LOS TRES INVENTA UN PRECIO NI UNA FRANJA: § 1.11 no trae
       //    ni tarifa ni horario, así que decir cualquiera de las dos sería
