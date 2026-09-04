@@ -2670,7 +2670,68 @@ conectado** — eso § 1.31 no lo sabe—: se dice la norma y se manda al regist
 
 ---
 
-### 1.33 · El resto del dato — todavía **ninguno**
+### 1.33 · Aparcamotos cocinados — Ayuntamiento de Zaragoza (sede electrónica)
+
+| | |
+|---|---|
+| **Qué es** | Los **2.115 aparcamotos** públicos reducidos a lo que el motor mira: dónde están, cuántas plazas tienen y cuándo se volcó la tabla — **11.543 plazas**. Es donde la moto remata su viaje (punto 13, casilla 1) |
+| **Titular** | **Ayuntamiento de Zaragoza** |
+| **Fuente** | API de la sede · servicio `urbanismo-infraestructuras/equipamiento/aparcamiento-moto` |
+| **Petición** | `https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/equipamiento/aparcamiento-moto.json?srsname=wgs84&start=<N>&rows=500` · ⚠️ **el servicio topa en 500 filas** aunque se le pidan 3.000 (medido: `rows=3000` contesta `"rows":500`), así que se baja en **cinco páginas** — `start` 0, 500, 1000, 1500 y 2000 |
+| **Descarga** | **04/09/2026 14:39:03 GMT**, estado 200 en las cinco · `totalCount` **2.115** · 2.115 filas con punto y con plazas, **ninguna descartada** · `Last-Modified: Thu, 03 Sep 2026 23:15:08 CEST` |
+| **Licencia** | **Ley 37/2007** · la sede declara `https://www.zaragoza.es/sede/portal/aviso-legal#condiciones` |
+| **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza»** |
+| **Campos del origen** | `id`, `title`, `description`, `plazas`, `lastUpdated`, `geometry`, `icon`. **Ninguno personal**. El `title` es *«Estacionamiento para Motos»* en las 2.115 |
+| **Campos que se guardan** | `id` · `via` (el `description`, verbatim) · `plazas` · `lon`/`lat` · `lastUpdated`. Se tiran `title` —constante— e `icon` —una URL de imagen de su web— |
+| **¿Está en este repo?** | ✅ [`app/data/aparcamotos.json`](app/data/aparcamotos.json) · 301.036 bytes · sha256 `6c0e5fe78367039f4339e50fc065950304b1b63a35f9654160d631ef9c3ac5e7`. El crudo **no**: son cinco páginas de descarga, y aquí solo entra dato declarado con ficha |
+
+**El cocinado es determinista** —[`motor/src/cocinar-aparcamotos.ts`](motor/src/cocinar-aparcamotos.ts)—:
+ordena por `id` numérico, escribe las claves en orden fijo y **no mira el reloj**. Comprobado
+dándole las cinco páginas **en orden inverso**: el mismo sha256. Así el `git diff` sirve para ver
+si el dato ha cambiado, que es para lo que se usa.
+
+#### Se eligió la SEDE, y el 18/08 se había elegido el WFS
+
+§ 1.10 mide la misma cosa por la otra puerta —el WFS `movilidad:MU2_motos`, **2.146 soportes y
+11.715 plazas**— y **se quedó con ella**. Esta casilla cambia de puerta. La razón declarada es la
+frescura: la sede publica `Last-Modified` y un `lastUpdated` por registro, y del WFS § 1.10 dice
+literalmente *«Frescura: NO CONSTA»*.
+
+**El cruce, rehecho el 04/09/2026** por vecino más próximo —no hay identificador común: los del
+WFS son correlativos de GeoServer y los de la sede ids de tabla con huecos—:
+
+| | |
+|---|---|
+| Casan a ≤ 20 m | **2.114** |
+| Solo en el WFS | **32** — la sede todavía no los ha volcado |
+| Solo en la sede | **1** — `MANUEL LASALA, F 44`, id 1198, 2 plazas: el WFS lo quitó |
+| Casan pero **movidos** | **7**, entre 1,2 y 14,9 m |
+| Casan con **plazas distintas** | **1** — `MIGUEL LABORDETA, 1`: la sede dice **5** y el WFS **6** |
+
+Las cuentas cierran por los dos lados: 2.114 + 1 = 2.115 (sede) y 2.114 + 32 = 2.146 (WFS).
+Los 32 están listados uno a uno en
+[`motor/src/aparcamotos.spec.ts`](motor/src/aparcamotos.spec.ts), y la juez recalcula el cruce
+entero contra los dos ficheros del repositorio.
+
+> ⚠️ **Y esto cuesta 32 sitios.** Cada uno de esos 32 es un aparcamiento de motos real al que
+> este motor **no va a mandar a nadie**, porque el directorio de la sede no lo trae. Va dicho
+> aquí, no escondido: es el precio de la puerta elegida.
+
+#### ⚠️ Lo que `lastUpdated` NO dice, medido
+
+Los **2.115 registros llevan una marca del 3/09 entre las 23:13:30 y las 23:15:16** — el
+catálogo entero sellado en **106 segundos**, con 107 valores distintos. Eso es la firma de un
+**volcado nocturno de la tabla**, no el historial de cada plaza: `lastUpdated` dice cuándo se
+republicó el registro, y **no se puede leer como «este aparcamoto se tocó ayer»**.
+
+Y hay un segundo dato que va en la misma dirección, medido el 04/09: **ninguna de las dos
+fuentes ha cambiado de contenido en 17 días.** El WFS servido hoy trae los mismos 2.146 rasgos
+que la copia del 18/08 —firma idéntica sobre `id`, geometría y propiedades; lo único que cambia
+en la respuesta es su `timeStamp`— y la sede sigue en 2.115 y 11.543 plazas, los mismos números
+que § 1.10 midió aquel día. Así que **lo que respira cada noche en la sede son las marcas de
+tiempo, no los aparcamotos**. La elección de puerta se declara con eso delante.
+
+### 1.34 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
