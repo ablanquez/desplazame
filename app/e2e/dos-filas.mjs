@@ -57,21 +57,25 @@ const pulsar = async (nombre, valor) => {
 try {
   await m.ir(APP, 5000);
 
-  // ── 1 · LA PRIMERA FILA SON CINCO, Y LAS DE SIEMPRE ───────────────────────
+  // ── 1 · LA PRIMERA FILA SON SEIS, Y LAS DE SIEMPRE ────────────────────────
+  //
+  // ⚠️ **Eran CINCO hasta el 4/09.** La moto entró con el punto 13 (casilla 3) y
+  //    esta línea se puso roja sola, que es lo que se le pide a una prueba real.
+  //    Lo de la moto lo compra `app/e2e/moto.mjs`; aquí solo se cuenta.
   const inicio = await foto();
   juez(
-    'la primera fila son CINCO familias, con «Cómo» y su propio `name`',
-    inicio.familias?.cuantas === 5 && inicio.familias.leyenda === 'Cómo',
+    'la primera fila son SEIS familias, con «Cómo» y su propio `name`',
+    inicio.familias?.cuantas === 6 && inicio.familias.leyenda === 'Cómo',
     `${inicio.familias?.cuantas} · «${inicio.familias?.leyenda}» · name=${inicio.familias?.nombre}`,
   );
   console.log(`   son: ${inicio.familias?.opciones.join(' | ')}`);
   juez('andando viene marcada al cargar', inicio.familias?.marcada === 'andando');
 
-  // ── 2 · Y LA SEGUNDA NO ESTÁ CON NINGUNA DE LAS OTRAS CUATRO ──────────────
+  // ── 2 · Y LA SEGUNDA NO ESTÁ CON NINGUNA DE LAS OTRAS CINCO ───────────────
   //
-  // ⚠️ Se comprueba con las CUATRO, no con una: el revelado condicional que
-  //    solo falla con el patín no lo caza una prueba que solo mire «andando».
-  for (const familia of ['andando', 'bus', 'patin', 'coche']) {
+  // ⚠️ Se comprueba con las CINCO, no con una: el revelado condicional que solo
+  //    falla con el patín no lo caza una prueba que solo mire «andando».
+  for (const familia of ['andando', 'bus', 'patin', 'moto', 'coche']) {
     await pulsar('familia', familia);
     const ahora = await foto();
     juez(`con «${familia}» la segunda fila NO está`, ahora.bicis === null);

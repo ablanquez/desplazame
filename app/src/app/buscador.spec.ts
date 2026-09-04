@@ -112,6 +112,21 @@ function pulsar(fixture: any, radios: HTMLInputElement[], valor: string): void {
   fixture.detectChanges();
 }
 
+/**
+ * ⭐ EL COLOR DE CADA TRAMO PINTADO, y **solo las líneas de encima**.
+ *
+ * Cada tramo se pinta con DOS polilíneas desde el 1/09 —su ribete debajo y su
+ * color encima—, así que contar `path.leaflet-interactive` no cuenta tramos.
+ * Es el mismo `encima` que `mapa.spec.ts` usa para lo mismo, y aquí hace falta
+ * porque la traza roja de la ZBE es **la mitad de lo que compra la juez 6**: el
+ * hito dice dónde se aparca y el color dice por dónde se ha pasado.
+ */
+function coloresDeLosTramos(raiz: HTMLElement): (string | null)[] {
+  return Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive'))
+    .filter((_, i) => i % 2 === 1)
+    .map((p) => p.getAttribute('stroke'));
+}
+
 /** El cuerpo de la ÚLTIMA petición de ruta que se hizo. */
 function cuerpoDeLaRuta(peticiones: readonly TestRequest[]): Record<string, unknown> {
   return peticiones[peticiones.length - 1]!.request.body as Record<string, unknown>;
@@ -1023,6 +1038,68 @@ const VIAJE_EN_COCHE_LEJOS: Trayecto = {
 };
 
 /**
+ * ⭐ EL VIAJE EN MOTO DEL CASO DEL OJO, **medido por HTTP** (4/09, casilla 3).
+ *
+ * Ni una cifra ni una frase están escritas a mano: salen del motor vivo —`pid`
+ * del log 17908 = `pid` que contesta— pidiéndole el par de siempre, `CALLE PEDRO
+ * LAPUYADE 3 → CALLE ABEN AIRE 33` con `modo: 'moto'` y sin contestar nada más:
+ * **3.513 m · 525 s · 17 pasos · 261 vértices**, tres tramos —2.782 rodando
+ * fuera, 592 rodando dentro, 139 andando— y el remate en `MU2_motos.1876`.
+ *
+ * Lo que se abrevia y por qué, dicho para que nadie lo confunda con inventar:
+ *
+ * · **Los pasos son 6 de los 17**, y los seis van con sus `partes` VERBATIM —el
+ *   de salida, el que lleva el aviso, el previo al hito, el hito, el de salir
+ *   andando y el de llegada—. Los once giros intermedios no dicen nada que esta
+ *   pantalla no pruebe ya con otros viajes.
+ * · **`Aviso.paso` sigue apuntando al paso que le toca**: en el viaje entero es
+ *   el 9 —«Gira a la derecha hacia Calle San Blas»—, y aquí ese mismo paso es
+ *   el 1. Se mueve el índice porque se mueve el paso, no porque se elija otro.
+ * · **La geometría se reduce a sus cuatro costuras** —el arranque, el vértice
+ *   206 donde se entra en la zona, el 240 donde está el aparcamoto y el 260 del
+ *   final—, que es el mismo trato que reciben los dos viajes de bordillo. La
+ *   pantalla no mide vértices; lo que mira es **de dónde a dónde va cada tramo**
+ *   y de qué color sale.
+ *
+ * ⚠️ El `zbe: true` del segundo tramo no es adorno: es lo que hace que la traza
+ *    salga roja, y es exactamente lo que la juez 6 compra. **El dato ya venía**
+ *    —la moto hereda la ZBE entera del coche—, así que aquí no hay nada nuevo
+ *    que el motor tenga que aprender: solo que la pantalla lo deje pasar.
+ */
+const VIAJE_EN_MOTO: Trayecto = {
+  modo: 'moto',
+  pasos: [
+    paso('salida', 50, accion('Sal de'), llano(' '), via('Calle Pedro Lapuyade 3'), llano(' y dirígete hacia el noroeste'), llano(' por '), via('Calle de Pedro Lapuyade')),
+    paso('derecha', 380, accion('Gira a la derecha'), llano(' hacia '), via('Calle San Blas')),
+    paso('izquierda', 64, accion('Gira a la izquierda'), llano(' hacia '), via('Calle de Predicadores')),
+    paso('aparca', 0, accion('Aparca'), llano(' en el aparcamiento de motos de '), via('Predicadores 28'), llano(' (sin coste)')),
+    paso('salida', 64, accion('Sal andando'), llano(' hacia el este'), llano(' por '), via('Calle de Predicadores')),
+    paso('llegada', 0, via('Calle Aben Aire 33'), llano(' está a la derecha')),
+  ],
+  geometria: [
+    [41.636197, -0.884024],
+    [41.6568254, -0.8888968],
+    [41.65739909, -0.88439588],
+    [41.65758, -0.883141],
+  ],
+  avisos: [
+    {
+      texto:
+        'La ruta atraviesa la Zona de Bajas Emisiones: de lunes a viernes de 8:00 a 20:00 los ' +
+        'vehículos sin distintivo necesitan autorización; B, C, ECO y CERO circulan libres',
+      paso: 1,
+    },
+  ],
+  metros: 3513,
+  segundos: 525,
+  tramos: [
+    { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 2782, segundos: 304, hito: null, zbe: false },
+    { comoSeVa: 'rodando', desde: 1, hasta: 2, metros: 592, segundos: 120, hito: 'aparca', zbe: true },
+    { comoSeVa: 'andando', desde: 2, hasta: 3, metros: 139, segundos: 101, hito: null },
+  ],
+};
+
+/**
  * La capa de la ZBE tal y como la sirve el WFS: dos fases, `[lon, lat]`. Aquí
  * va recortada a cuatro vértices por fase — lo que se compra es el reparto, no
  * la geometría, que ya tiene su juez en `mapa.spec.ts` contra el fichero real.
@@ -1576,7 +1653,7 @@ describe('Buscador', () => {
   // 56.3.a-g, sobre el límite del art. 50 RGC]. Estas jueces son la muralla de
   // que eso no vuelva.
 
-  it('la primera fila es un grupo de radios nativo, no cinco botones sueltos', async () => {
+  it('la primera fila es un grupo de radios nativo, no seis botones sueltos', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -1591,11 +1668,14 @@ describe('Buscador', () => {
     // sola parada de tabulador al grupo, mueva con las flechas y desmarque el
     // anterior sin que nadie se lo pida.
     //
-    // ⚠️ **CINCO desde el 2/09, no seis**, y esa es la razón del cambio: [DOC
-    //    sistemas de diseño · control segmentado] el rango del patrón es de 2 a
-    //    5 opciones con etiqueta. Con seis estaba fuera.
+    // ⚠️ **SEIS desde el 4/09**, y el número tiene historia: eran seis hasta el
+    //    2/09, bajaron a cinco porque [DOC sistemas de diseño · control
+    //    segmentado] el rango del patrón es de 2 a 5 opciones con etiqueta, y
+    //    vuelven a seis con la moto (punto 13, casilla 3). **Esta línea se puso
+    //    roja sola al entrar la moto**, que es exactamente para lo que está: el
+    //    día que alguien meta la séptima, se entera aquí antes que en la calle.
     const radios = radiosDeFamilia(raiz);
-    expect(radios.length).toBe(5);
+    expect(radios.length).toBe(6);
     expect(new Set(radios.map((r) => r.name)).size).toBe(1);
 
     // Ninguno lleva `tabindex` puesto a mano: eso rompería la parada única.
@@ -1611,18 +1691,22 @@ describe('Buscador', () => {
   });
 
   /**
-   * Las cinco etiquetas EXACTAS y en el orden firmado por Antonio el 28/08.
+   * Las seis etiquetas EXACTAS y en el orden firmado por Antonio el 28/08.
    *
    * El orden no es alfabético ni por velocidad: es el del encargo, y lo que
    * ordena es el reparto legal — primero lo que no lleva vehículo, luego el
-   * colectivo, luego las ruedas (cada una con su tabla de acceso), y el coche
-   * al final.
+   * colectivo, luego las ruedas (cada una con su tabla de acceso), y los dos
+   * vehículos de motor al final.
    *
    * ⚠️ **«Bici privada» y «BiZi» han dejado de estar aquí** (2/09): son la
    *    misma familia y bajan a la segunda fila. Lo que queda en su sitio es
    *    «Bici», entre el bus y el patín — el orden legal no se ha movido.
+   *
+   * ⭐ **Y «Moto» entra el 4/09, entre el patín y el coche** (punto 13, casilla
+   *    3): es el primer vehículo de motor, y el coche sigue cerrando la fila.
+   *    Esta juez se puso roja sola al entrar, con las seis contra las cinco.
    */
-  it('la primera fila tiene las cinco familias, con las etiquetas y el orden firmados', async () => {
+  it('la primera fila tiene las seis familias, con las etiquetas y el orden firmados', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -1630,7 +1714,14 @@ describe('Buscador', () => {
     const etiquetas = Array.from(
       raiz.querySelectorAll<HTMLElement>('fieldset.modos.familias .modo'),
     ).map((m) => m.textContent?.trim() ?? '');
-    expect(etiquetas).toEqual(['Andando', 'Bus / Tranvía', 'Bici', 'Patín (VMP)', 'Coche']);
+    expect(etiquetas).toEqual([
+      'Andando',
+      'Bus / Tranvía',
+      'Bici',
+      'Patín (VMP)',
+      'Moto',
+      'Coche',
+    ]);
   });
 
   it('andando viene marcado al cargar, y es el único', async () => {
@@ -5404,6 +5495,493 @@ describe('Buscador', () => {
         fixture.detectChanges();
         expect(botonSugerir(raiz)).toBeNull();
       }
+    });
+  });
+
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   *  ⭐ EL GRUPO [Moto] EN LA BOTONERA (4/09, punto 13 casilla 3)
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * El motor ya sabía andar en moto desde la casilla 1: `modo: 'moto'` viaja,
+   * rueda por la red del coche y remata siempre en un aparcamoto. Lo que aquí
+   * se compra es **la puerta**: que se pueda pedir desde la pantalla, que las
+   * preguntas de la ZBE sean LAS MISMAS que las del coche —no una copia— y que
+   * la del aparcamiento no aparezca, porque la moto no elige dónde deja.
+   */
+  describe('⭐ EL GRUPO MOTO EN LA BOTONERA (4/09, punto 13 casilla 3)', () => {
+    /** Las etiquetas de la primera fila, tal y como se leen. */
+    const etiquetasDeFamilia = (raiz: HTMLElement): string[] =>
+      Array.from(raiz.querySelectorAll<HTMLElement>('fieldset.modos.familias .modo')).map(
+        (m) => m.textContent?.trim() ?? '',
+      );
+
+    /** La región de estado de la DGT, que es una sola en toda la pantalla. */
+    const regionDgt = (raiz: HTMLElement): HTMLElement | null =>
+      raiz.querySelector<HTMLElement>('.matricula__estado');
+
+    /**
+     * ⭐ SE TRAGA LA CAPA DE LA ZBE que elegir un vehículo de motor dispara.
+     *
+     * ⚠️ **No es cosmética de la prueba.** Una petición dejada en vuelo se
+     *    resuelve sola al desmontar el `TestBed`, y `traerLaZona` la recibe con
+     *    el cuerpo vacío: `capa.features.find` revienta **después** de que la
+     *    juez haya terminado, así que sale como «unhandled error» sin tumbar a
+     *    nadie y sin decir de dónde viene.
+     *
+     *    Medido el 4/09: la suite arrastra **16 de esos** de las cinco jueces
+     *    del coche que ya lo hacían. No se tocan aquí —no es de este encargo—,
+     *    pero **las nuevas no suman ninguno**.
+     */
+    const tragarLaZona = (): void => {
+      for (const p of http.match((r) => r.url.includes('MU1_ZBE'))) {
+        p.flush(LA_FASE_1);
+      }
+    };
+
+    /** Contesta a la DGT con una etiqueta, como lo hace la juez 6 del coche. */
+    const consultarLaDgt = (fixture: any, raiz: HTMLElement, cuerpo: object): void => {
+      const campo = raiz.querySelector<HTMLInputElement>('input[name="matricula"]')!;
+      campo.value = '0000BBM';
+      campo.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      raiz.querySelector<HTMLButtonElement>('.matricula__boton')!.click();
+      fixture.detectChanges();
+      http.expectOne((r) => r.url === '/api/distintivo').flush(cuerpo);
+      fixture.detectChanges();
+    };
+
+    /**
+     * ⭐ JUEZ 1 — SEIS FAMILIAS, y [Moto] manda `modo: 'moto'`.
+     *
+     * El orden es el del parlamento del 1/09 y sigue siendo el mismo criterio
+     * que firmó Antonio el 28/08: de lo que no lleva vehículo a lo que más
+     * ocupa. La moto entra **entre el patín y el coche**, que es su sitio — es
+     * el primer vehículo de motor de la fila.
+     *
+     * ⚠️ **Y son SEIS, que es una más de las cinco del control segmentado.** El
+     *    2/09 la fila bajó de seis a cinco justamente porque [DOC sistemas de
+     *    diseño] el rango del patrón es de 2 a 5 opciones con etiqueta. Vuelve a
+     *    seis por decisión del encargo, y se escribe aquí para que la próxima
+     *    familia no entre sin que nadie mire este número.
+     */
+    it('⭐ 1 · la primera fila son SEIS familias, y Moto manda modo=moto', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      const radios = radiosDeFamilia(raiz);
+      expect(radios.length).toBe(6);
+      expect(radios.map((r) => r.value)).toEqual([
+        'andando',
+        'bus',
+        'bici',
+        'patin',
+        'moto',
+        'coche',
+      ]);
+      expect(etiquetasDeFamilia(raiz)).toEqual([
+        'Andando',
+        'Bus / Tranvía',
+        'Bici',
+        'Patín (VMP)',
+        'Moto',
+        'Coche',
+      ]);
+      // Sigue siendo UN grupo: un solo `name`, una sola parada de tabulador.
+      expect(new Set(radios.map((r) => r.name)).size).toBe(1);
+      expect(radios.filter((r) => r.checked).length).toBe(1);
+
+      // Y lo que viaja es el modo del contrato, sin nada más pegado.
+      elegirModo(fixture, 'moto');
+      tragarLaZona();
+      await direccionEntera(fixture, http);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const peticiones = http.match('/api/ruta');
+      expect(cuerpoDeLaRuta(peticiones)['modo']).toBe('moto');
+      expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+        'destino',
+        'modo',
+        'origen',
+      ]);
+      drenarRutas(peticiones, () => VIAJE_EN_MOTO);
+      await fixture.whenStable();
+
+      // Y el resultado se rotula con su palabra, no con el id del contrato.
+      expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Modo: Moto');
+    });
+
+    /**
+     * ⭐ JUEZ 2 — CON [Moto] LA PREGUNTA DEL DISTINTIVO EXISTE Y LA DE PARKING NO.
+     *
+     * La ZBE le alcanza igual que al coche —es un vehículo de motor y la
+     * ordenanza no distingue—, así que la pregunta es la misma. El aparcamiento
+     * **no**: la moto remata siempre en un aparcamoto, y el motor ni mira el
+     * parámetro. Enseñar «¿Dónde quieres aparcar?» a quien va en moto sería
+     * pedirle que elija algo que no se le va a hacer caso.
+     *
+     * Y no está en gris: **no está** [DOC GOV.UK, revelado condicional].
+     */
+    it('⭐ 2 · con Moto se pregunta el distintivo y NO el aparcamiento', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      elegirModo(fixture, 'moto');
+      tragarLaZona();
+      expect(radiosDeDistintivo(raiz).map((r) => r.value)).toEqual([
+        'cero',
+        'eco',
+        'c',
+        'b',
+        'sin',
+        'nolose',
+      ]);
+      expect(raiz.querySelector('fieldset.distintivos legend')?.textContent).toContain(
+        '¿Distintivo ambiental?',
+      );
+      // La del aparcamiento no está, y no es que esté apagada: no hay ni un
+      // radio suyo ni el `fieldset` que los envolvería.
+      expect(radiosDeAparcamiento(raiz).length).toBe(0);
+      expect(raiz.querySelector('fieldset.aparcamientos')).toBeNull();
+
+      // El coche sigue teniendo las dos: lo de la moto no le ha quitado nada.
+      elegirModo(fixture, 'coche');
+      expect(radiosDeAparcamiento(raiz).length).toBe(4);
+      expect(radiosDeDistintivo(raiz).length).toBe(6);
+
+      // Y al salirse a un modo sin motor, no queda ninguna de las dos.
+      elegirModo(fixture, 'andando');
+      expect(radiosDeAparcamiento(raiz).length).toBe(0);
+      expect(radiosDeDistintivo(raiz).length).toBe(0);
+    });
+
+    /**
+     * ⭐ JUEZ 3 — ES **EL MISMO SELECTOR**, no dos que se parecen.
+     *
+     * Un segundo grupo de radios para la moto habría sido lo fácil, y es
+     * exactamente lo que esta juez prohíbe: dos listas de seis etiquetas, dos
+     * campos de matrícula y dos regiones de estado que un día dirían cosas
+     * distintas. **Una sola fuente de verdad**, que es el precedente de la lista
+     * única región/botones del 4/09.
+     *
+     * Se compra por el DOM —un solo `fieldset.distintivos`, un solo
+     * `input#matricula`, una sola región— y por la conducta: la matrícula marca
+     * el radio en moto exactamente igual que en coche.
+     */
+    it('⭐ 3 · el selector del distintivo es UNO, y la matrícula lo marca en moto', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      elegirModo(fixture, 'moto');
+      tragarLaZona();
+      // Uno de cada, ni dos ni ninguno.
+      expect(raiz.querySelectorAll('fieldset.distintivos').length).toBe(1);
+      expect(raiz.querySelectorAll('input[name="matricula"]').length).toBe(1);
+      expect(raiz.querySelectorAll('.matricula__estado').length).toBe(1);
+      // Y el `name` del grupo es el mismo que el del coche: si fueran dos
+      // grupos con dos nombres, el navegador los trataría como preguntas
+      // distintas y marcar en uno no desmarcaría en el otro.
+      expect(new Set(radiosDeDistintivo(raiz).map((r) => r.name))).toEqual(new Set(['distintivo']));
+
+      const region = regionDgt(raiz)!;
+      expect(region.getAttribute('role')).toBe('status');
+      expect(raiz.querySelector('.matricula__boton')?.getAttribute('aria-controls')).toBe(region.id);
+
+      consultarLaDgt(fixture, raiz, {
+        clase: 'etiqueta',
+        distintivo: 'C',
+        texto: LA_DGT_CON_UNA_C,
+        fuente: 'DGT',
+        cuando: new Date('2026-09-04T14:53:00').toISOString(),
+      });
+      await fixture.whenStable();
+
+      expect(radiosDeDistintivo(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['c']);
+      expect(regionDgt(raiz)!.textContent?.trim()).toBe(
+        'Distintivo ambiental C (Fuente: DGT, 14:53)',
+      );
+      // La prosa de la sede sigue sin pintarse aquí tampoco.
+      expect(regionDgt(raiz)!.textContent).not.toContain('Pulsa en la imagen');
+
+      // Y lo que se ha contestado VIAJA en moto, que es lo que hace que esto no
+      // sea solo un adorno compartido.
+      await direccionEntera(fixture, http);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const peticiones = http.match('/api/ruta');
+      expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+        'destino',
+        'modo',
+        'origen',
+        'puedeEntrarEnLaZbe',
+      ]);
+      expect(cuerpoDeLaRuta(peticiones)['puedeEntrarEnLaZbe']).toBe(true);
+      // ⛔ Y la matrícula NO se cuela en la ruta, tampoco desde la moto.
+      expect(JSON.stringify(peticiones.map((p) => p.request.body))).not.toContain('0000BBM');
+      drenarRutas(peticiones, () => VIAJE_EN_MOTO);
+      await fixture.whenStable();
+    });
+
+    /**
+     * ⭐ JUEZ 4 — CAMBIAR DE FAMILIA DEVUELVE LAS RESPUESTAS A SIN-ELEGIR.
+     *
+     * [PROPIO, declarado en el encargo] **cada vehículo el suyo**: la etiqueta
+     * ambiental es del coche que se conduce, y quien pasa de su coche a su moto
+     * está hablando de otro vehículo. Arrastrar la respuesta le mandaría al motor
+     * un `puedeEntrarEnLaZbe` que nadie ha contestado para ESE vehículo, que es
+     * justo lo que «nada preseleccionado» lleva prohibiendo desde el 3/09.
+     *
+     * Y se resetean las tres a la vez —distintivo, matrícula y autorización—
+     * porque son una sola respuesta contada en tres cajas: dejar la matrícula
+     * puesta con el radio en blanco enseñaría un vehículo sin respuesta.
+     */
+    it('⭐ 4 · cambiar coche→moto resetea distintivo, matrícula y autorización', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      elegirModo(fixture, 'coche');
+      tragarLaZona();
+      pulsar(fixture, radiosDeDistintivo(raiz), 'sin');
+      expect(radiosDeAutorizacion(raiz).length).toBe(2);
+      pulsar(fixture, radiosDeAutorizacion(raiz), 'si');
+      const campo = raiz.querySelector<HTMLInputElement>('input[name="matricula"]')!;
+      campo.value = '0000BBM';
+      campo.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(campo.value).toBe('0000BBM');
+
+      // Se cambia de vehículo: las tres respuestas se quedan atrás.
+      elegirModo(fixture, 'moto');
+      expect(radiosDeDistintivo(raiz).filter((r) => r.checked).length).toBe(0);
+      expect(radiosDeAutorizacion(raiz).length).toBe(0);
+      expect(raiz.querySelector<HTMLInputElement>('input[name="matricula"]')!.value).toBe('');
+      expect(regionDgt(raiz)!.textContent?.trim()).toBe('');
+
+      // Y sin contestar, el parámetro NO viaja: es la conducta de la casilla 1b.
+      await direccionEntera(fixture, http);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const enMoto = http.match('/api/ruta');
+      expect(Object.keys(cuerpoDeLaRuta(enMoto)).sort()).toEqual(['destino', 'modo', 'origen']);
+      drenarRutas(enMoto, () => VIAJE_EN_MOTO);
+      await fixture.whenStable();
+
+      // Y al revés vale igual: lo contestado en moto no se hereda en coche.
+      pulsar(fixture, radiosDeDistintivo(raiz), 'b');
+      elegirModo(fixture, 'coche');
+      expect(radiosDeDistintivo(raiz).filter((r) => r.checked).length).toBe(0);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const enCoche = http.match('/api/ruta');
+      expect(Object.keys(cuerpoDeLaRuta(enCoche)).sort()).toEqual(['destino', 'modo', 'origen']);
+      drenarRutas(enCoche, () => VIAJE_EN_COCHE_LEJOS);
+      await fixture.whenStable();
+    });
+
+    /**
+     * ⭐ JUEZ 5 — EL POLÍGONO DE LA ZONA SE PINTA TAMBIÉN CON [Moto].
+     *
+     * La Zona de Bajas Emisiones vale para todo vehículo de motor [ordenanza],
+     * así que enseñársela al coche y esconderla a la moto sería enseñar media
+     * verdad. Y es el mismo fichero, pedido **una sola vez**: § 1.30, el que el
+     * motor usa para marcar las aristas.
+     *
+     * A los cuatro modos sin motor no les llega, y eso también se compra: quien
+     * va andando no tiene por qué pagar 2,9 kB de un polígono que no le afecta.
+     */
+    it('⭐ 5 · el polígono se pinta con Moto, y no con andando, bus, bici ni patín', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      // Al arrancar en andando nadie pide la capa.
+      http.expectNone((r) => r.url.includes('MU1_ZBE'));
+
+      elegirModo(fixture, 'moto');
+      const capa = http.expectOne((r) => r.url.includes('MU1_ZBE'));
+      expect(capa.request.method).toBe('GET');
+      capa.flush(LA_FASE_1);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+
+      for (const modo of ['andando', 'bus', 'bici', 'patin'] as const) {
+        elegirModo(fixture, modo);
+        fixture.detectChanges();
+        await fixture.whenStable();
+        expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(0);
+      }
+
+      // Se vuelve a la moto: el polígono está, y NO se ha vuelto a pedir.
+      elegirModo(fixture, 'moto');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      http.expectNone((r) => r.url.includes('MU1_ZBE'));
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+
+      // Y el coche lo sigue teniendo, con la misma capa ya traída.
+      elegirModo(fixture, 'coche');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+    });
+
+    /**
+     * ⭐ JUEZ 6 — EL CASO DEL OJO: el hito del aparcamoto y la traza roja.
+     *
+     * Es el viaje que se mira en Chrome, y aquí se compra entero con el trayecto
+     * MEDIDO: la frase que el motor escribe —«Aparca en el aparcamiento de motos
+     * de Predicadores 28 (sin coste)»—, su flecha 🅿, el aviso de la zona colgado
+     * de su paso, y **el corte del color**: azul fuera, rojo dentro, ámbar
+     * discontinuo el paseo del final.
+     *
+     * ⚠️ El corte no lo calcula la pantalla: viene en `TramoDelViaje.zbe`, que
+     *    lo pone el motor. Lo que esta juez compra es que la moto **lo deja
+     *    pasar** — el dato ya venía desde la casilla 1.
+     *
+     * ⚠️ Y **no hay atajo de zona cruzada**: la moto no elige aparcamiento, así
+     *    que no hay ninguna otra zona que sugerir. El botón no existe.
+     */
+    it('⭐ 6 · el caso del ojo: hito del aparcamoto, aviso en su paso y traza roja', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      elegirModo(fixture, 'moto');
+      http.expectOne((r) => r.url.includes('MU1_ZBE')).flush(LA_FASE_1);
+      await direccionEntera(fixture, http);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_MOTO);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      // El hito, con su frase entera y su marca.
+      const hito = Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).find((li) =>
+        (li.querySelector('.paso__texto')?.textContent ?? '').startsWith('Aparca'),
+      );
+      expect(hito).toBeTruthy();
+      expect(
+        (hito!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      ).toBe('Aparca en el aparcamiento de motos de Predicadores 28 (sin coste)');
+      expect(hito!.querySelector('.paso__flecha')?.textContent?.trim()).toBe('🅿');
+
+      // El aviso de la zona, en el paso que dice `Aviso.paso`.
+      const notas = notasPorPaso(raiz);
+      expect([...notas.keys()]).toEqual([1]);
+      expect(notas.get(1)).toContain('La ruta atraviesa la Zona de Bajas Emisiones');
+
+      // ⭐ Y LA TRAZA: azul fuera, ROJA dentro, ámbar el paseo.
+      expect(coloresDeLosTramos(raiz)).toEqual(['#2563eb', '#d32f2f', '#b45309']);
+      // Y el polígono sigue debajo, que es el tercer canal de la misma noticia.
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+
+      // La moto no elige aparcamiento: no hay otra zona que sugerir.
+      expect(botonSugerir(raiz)).toBeNull();
+    });
+
+    /**
+     * ⭐ JUEZ 7 — LA MURALLA: la moto no le cambia el cuerpo a nadie.
+     *
+     * Ni a los cinco modos sin motor —`origen`, `destino`, `modo` y, en los que
+     * eligen, `ruta`— ni al coche, que sigue mandando sus dos parámetros cuando
+     * se le contestan.
+     *
+     * ⚠️ Y la vuelta al coche llega **con el distintivo en blanco y el parking
+     *    donde estaba**, que es la juez 4 vista desde aquí. El reseteo es de las
+     *    respuestas de la ZBE —distintivo, matrícula y autorización—, porque son
+     *    del VEHÍCULO y el vehículo ha cambiado. El aparcamiento no: es una
+     *    pregunta del coche y solo del coche, así que volver al coche es volver
+     *    al mismo sitio donde se dejó.
+     *
+     *    ⚠️ **Esta juez compraba las dos cosas en blanco y se equivocaba.** Lo
+     *       escribí así antes de implementar, se puso roja —`expected 1 to be
+     *       +0`— y el rojo tenía razón: el encargo dice «distintivo, matrícula y
+     *       autorización», tres cosas, no cuatro. Se corrige la juez, no el
+     *       código: borrar de paso una respuesta que nadie ha pedido borrar
+     *       habría sido cambiar la conducta del coche de antes del 4/09.
+     */
+    it('⭐ 7 · los cinco modos sin motor y el coche siguen mandando lo suyo', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      elegirModo(fixture, 'coche');
+      tragarLaZona();
+      await direccionEntera(fixture, http);
+      pulsar(fixture, radiosDeDistintivo(raiz), 'sin');
+      pulsar(fixture, radiosDeAutorizacion(raiz), 'si');
+      pulsar(fixture, radiosDeAparcamiento(raiz), 'azul');
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const delCoche = http.match('/api/ruta');
+      expect(Object.keys(cuerpoDeLaRuta(delCoche)).sort()).toEqual([
+        'aparcamiento',
+        'destino',
+        'modo',
+        'origen',
+        'puedeEntrarEnLaZbe',
+      ]);
+      expect(cuerpoDeLaRuta(delCoche)['aparcamiento']).toBe('azul');
+      expect(cuerpoDeLaRuta(delCoche)['puedeEntrarEnLaZbe']).toBe(true);
+      drenarRutas(delCoche, () => VIAJE_APARCANDO_EN_AZUL);
+      await fixture.whenStable();
+
+      for (const modo of ['andando', 'bus', 'patin'] as const) {
+        elegirModo(fixture, modo);
+        botonGenerar(raiz).click();
+        fixture.detectChanges();
+        const peticiones = http.match('/api/ruta');
+        expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+          'destino',
+          'modo',
+          'origen',
+        ]);
+        drenarRutas(peticiones, () => ({ ...TRAYECTO, modo }));
+        await fixture.whenStable();
+      }
+
+      for (const modo of ['bici', 'bizi'] as const) {
+        elegirModo(fixture, modo);
+        botonGenerar(raiz).click();
+        fixture.detectChanges();
+        const peticiones = http.match('/api/ruta');
+        expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+          'destino',
+          'modo',
+          'origen',
+          'ruta',
+        ]);
+        drenarRutas(peticiones, () => ({ ...TRAYECTO, modo }));
+        await fixture.whenStable();
+      }
+
+      // Y el coche, al volver: el distintivo en blanco —hay que contestarlo
+      // otra vez— y el parking donde se dejó, que es «azul» y sigue marcado.
+      elegirModo(fixture, 'coche');
+      expect(radiosDeDistintivo(raiz).filter((r) => r.checked).length).toBe(0);
+      expect(radiosDeAparcamiento(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual([
+        'azul',
+      ]);
+      pulsar(fixture, radiosDeDistintivo(raiz), 'b');
+      pulsar(fixture, radiosDeAparcamiento(raiz), 'naranja');
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const otraVez = http.match('/api/ruta');
+      expect(Object.keys(cuerpoDeLaRuta(otraVez)).sort()).toEqual([
+        'aparcamiento',
+        'destino',
+        'modo',
+        'origen',
+        'puedeEntrarEnLaZbe',
+      ]);
+      expect(cuerpoDeLaRuta(otraVez)['aparcamiento']).toBe('naranja');
+      drenarRutas(otraVez, () => VIAJE_APARCANDO_EN_NARANJA);
+      await fixture.whenStable();
     });
   });
 

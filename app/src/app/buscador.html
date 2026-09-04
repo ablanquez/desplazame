@@ -357,27 +357,26 @@
     }
 
     <!--
-      ⭐ LAS DOS PREGUNTAS DEL COCHE, y **solo con Coche** (3/09, punto 12).
+      ⭐ DÓNDE APARCAR, y **solo con Coche** (3/09, punto 12).
 
       Es el cuarto sitio del mismo patrón [DOC GOV.UK, revelado condicional] —el
       número de portal, «¿Qué ruta prefieres?», «¿Qué bici?» y esto—, con el
       argumento de siempre: lo que no aplica **no está**, no está en gris.
 
-      ⚠️ **Ninguna de las dos viene marcada**, y eso es deliberado [GOV.UK: en
-         una pregunta no se preinfluye]. Sin tocarlas, el motor recibe el viaje
-         de la casilla 1b: hasta la puerta, y con el aviso de la zona sin vetar
-         nada. Marcar «Zona azul» de antemano le cambiaría el destino a quien no
-         ha pedido aparcar, y marcar «Sin etiqueta» le mandaría a rodear una zona
-         que su coche quizá puede pisar.
+      ⚠️ **Ninguna opción viene marcada**, y eso es deliberado [GOV.UK: en una
+         pregunta no se preinfluye]. Sin tocarla, el motor recibe el viaje de la
+         casilla 1b: hasta la puerta. Marcar «Zona azul» de antemano le cambiaría
+         el destino a quien no ha pedido aparcar.
+
+      ⚠️ **Y con [Moto] esta pregunta NO ESTÁ** (4/09, casilla 3), aunque sí esté
+         la de la ZBE de aquí abajo. La moto no elige dónde deja: remata siempre
+         en un aparcamoto [OMUZ art. 32] y el motor ignora el parámetro. Por eso
+         son dos `@if` y no uno — lo que comparten los dos vehículos es la Zona
+         de Bajas Emisiones, no el aparcamiento.
 
       ⚠️ Los `name` son `aparcamiento` y `distintivo`, cada uno el suyo: si
          compartieran nombre el navegador los trataría como **un solo grupo de
          diez** y marcar «CERO» desmarcaría «Zona azul».
-
-      ⚠️ Y el distintivo tiene SEIS opciones, que pasa de las cinco del control
-         segmentado de la primera fila. No es el mismo patrón: aquello es una
-         fila de modos y esto es una pregunta con sus respuestas — [GOV.UK] para
-         una lista corta van radios, y el desplegable es «el último recurso».
     -->
     @if (eligeCoche()) {
       <fieldset class="modos aparcamientos">
@@ -396,7 +395,28 @@
           </label>
         }
       </fieldset>
+    }
 
+    <!--
+      ⭐ EL DISTINTIVO AMBIENTAL, y **es LA MISMA pregunta para el coche y para
+      la moto** (4/09, punto 13 casilla 3).
+
+      No es un grupo parecido: es **el mismo grupo de radios en el DOM**, con el
+      mismo `name`, el mismo campo de matrícula y la misma región de estado.
+      Duplicarlo para la moto habría sido tener dos listas de seis etiquetas que
+      un día dirían cosas distintas, y lo que se contesta aquí **viaja al motor**.
+
+      Y la razón no es de código: [OMUZ] la Zona de Bajas Emisiones no distingue
+      entre coche y moto — el distintivo, la matrícula y la autorización
+      registral son el mismo trámite para los dos, y lo que el motor recibe es un
+      `puedeEntrarEnLaZbe` de sí o no en los dos casos.
+
+      ⚠️ Tiene SEIS opciones, que pasa de las cinco del control segmentado de la
+         primera fila. No es el mismo patrón: aquello es una fila de modos y esto
+         es una pregunta con sus respuestas — [GOV.UK] para una lista corta van
+         radios, y el desplegable es «el último recurso».
+    -->
+    @if (preguntaLaZbe()) {
       <fieldset class="modos distintivos">
         <legend>¿Distintivo ambiental?</legend>
         @for (e of distintivos; track e.id) {

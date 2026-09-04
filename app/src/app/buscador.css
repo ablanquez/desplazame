@@ -201,7 +201,7 @@ legend {
   cursor: pointer;
 }
 
-/* ⭐ Los SEIS modos, y siguen cabiendo en una fila.
+/* ⭐ Las SEIS familias, y siguen cabiendo en una fila.
    Medido en Chrome (30/08) con la fuente real de la página —Times New Roman
    16 px, que es la del navegador: la pantalla no declara ninguna—: las seis
    opciones suman 567,2 px y sus cinco huecos 40, o sea **607,2 px de los 678
@@ -210,7 +210,20 @@ legend {
    del patrón —dos filas del MISMO grupo, no dos controles—: a 360 px de móvil
    son tres filas de dos, y **ninguna etiqueta se recorta ni se parte**, ni
    siquiera a 320. Es lo que ya hacía `flex-wrap` con los cuatro de antes, que
-   a 500 px también doblaban. No hace falta cambiar nada. */
+   a 500 px también doblaban. No hace falta cambiar nada.
+
+   ⭐ **VUELTAS A MEDIR EL 4/09**, cuando la fila pasó de cinco a seis con la
+   moto (punto 13, casilla 3). Las etiquetas no son las de aquel día —dos bicis
+   se fueron a su fila el 2/09 y entró «Moto»—, así que la cifra es otra: las
+   seis suman **520,5 px** y sus cinco huecos 40, o sea **560,5 de los 710
+   útiles** en la ventana de 1280. Sobran 149,5 y sale **una sola fila**, sin
+   una etiqueta recortada. Lo mide `app/e2e/moto.mjs` en Chrome de verdad, y no
+   se copia de aquí: se vuelve a contar cada vez que se ejecuta.
+
+   ⚠️ Lo que el ancho NO contesta es si seis se LEEN de un vistazo: [DOC
+   sistemas de diseño · control segmentado] el rango del patrón es de 2 a 5, y
+   ése fue el argumento del 2/09 para bajar de seis a cinco. Caben; el patrón
+   sigue diciendo cinco. Ver la cabecera de `familias` en `buscador.ts`. */
 .modos {
   display: flex;
   gap: 0.5rem;
@@ -237,12 +250,13 @@ legend {
    `display: none` ni `visibility: hidden`, que lo sacarían del orden de
    tabulación y del árbol de accesibilidad — y ahí es justo donde tiene que
    seguir, porque **él es el control**: es quien recibe el foco, quien se mueve
-   con las flechas y quien se anuncia como «Andando, opción 1 de 5».
+   con las flechas y quien se anuncia como «Andando, opción 1 de 6».
 
-   ⚠️ «de 5», no «de 6», desde el 2/09: la fila bajó a cinco familias y las dos
-   bicis se fueron a la suya (punto 11). Ese número lo cuenta el navegador solo,
-   por `name` compartido — que es justo por lo que la segunda fila tiene el suyo:
-   si compartieran nombre, diría «opción 1 de 7» y serían un solo grupo. */
+   ⚠️ El número lo cuenta el navegador solo, por `name` compartido, y por eso ha
+   ido cambiando: «de 6» hasta el 2/09, «de 5» cuando las dos bicis se fueron a
+   su propia fila (punto 11), y «de 6» otra vez desde el 4/09 con la moto (punto
+   13). Es justo por lo que la segunda fila tiene su propio `name`: si
+   compartieran nombre, diría «opción 1 de 8» y serían un solo grupo. */
 .modo__radio {
   position: absolute;
   width: 1px;

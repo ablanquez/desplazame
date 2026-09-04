@@ -513,9 +513,10 @@ interface Resultado {
    * cercana». La cabecera, los marcadores, los pasos y el atajo cuentan siempre
    * la misma ruta porque salen todos del mismo objeto.
    *
-   * Es **lo que viajó**, no lo que el formulario tenía: sale de `loDelCoche()`,
-   * que es la misma función que arma la petición, así que en los otros cinco
-   * modos vale `null` aunque el radio del coche se hubiera quedado marcado.
+   * Es **lo que viajó**, no lo que el formulario tenía: sale de
+   * `loDelVehiculo()`, que es la misma función que arma la petición, así que en
+   * los otros seis modos vale `null` aunque el radio del coche se hubiera
+   * quedado marcado — **la moto incluida**, que no elige dónde deja.
    */
   readonly aparcamiento: TipoDeAparcamiento | null;
   readonly trayecto: Trayecto;
@@ -575,11 +576,11 @@ function comoSeLeeLaDuracion(segundos: number, modo: Modo = 'andando'): string {
  * Los nombres que coinciden con un `Modo` lo hacen porque esas familias tienen
  * una sola opción, no porque sean lo mismo — la bici se pregunta en dos pasos.
  *
- * ⚠️ **`moto` está aquí y NO tiene botón todavía** (4/09). Entró porque
- *    `familiaDe` es total sobre `Modo` y el contrato estrenó el séptimo; el
- *    botón es la casilla 3 del punto 13. Así que hoy la primera fila enseña
- *    **cinco** de las seis, y lo que decide cuáles es la lista `modos`, no este
- *    tipo. Una familia sin botón no pinta nada: nadie itera esta unión.
+ * ⭐ **Y `moto` YA TIENE BOTÓN** (4/09, casilla 3). Entró en el tipo el mismo
+ *    día que el contrato estrenó el séptimo modo —`familiaDe` es total sobre
+ *    `Modo`— y estuvo unas horas sin fila: la primera enseñaba cinco de las
+ *    seis. Ahora las seis están, y quien decide cuáles se pintan sigue siendo
+ *    la lista `familias`, no este tipo — nadie itera una unión.
  */
 type Familia = 'andando' | 'bus' | 'bici' | 'patin' | 'coche' | 'moto';
 
@@ -688,11 +689,12 @@ export class Buscador {
   protected readonly avisoUbicacion = signal<string | null>(null);
 
   /**
-   * ⭐ LOS SEIS MODOS: el orden en que se pintan y su texto.
+   * ⭐ LOS SIETE MODOS: su texto, y el porqué de cada uno.
    *
-   * La `etiqueta` es lo ÚNICO visible, y sale por dos sitios: la opción y la
-   * línea «Modo:» del resultado. El `id` es del contrato (`Modo`) y es lo que
-   * viaja.
+   * La `etiqueta` es lo ÚNICO visible, y desde el 2/09 sale por **un** sitio: la
+   * línea «Modo:» del resultado. Quien pinta la primera fila es `familias`, y
+   * quien pinta la segunda, `bicis`. El `id` es del contrato (`Modo`) y es lo
+   * que viaja.
    *
    * ── Por qué seis, y por qué estos ───────────────────────────────────────
    *
@@ -753,6 +755,10 @@ export class Buscador {
     { id: 'bici', etiqueta: 'Bici privada', todavia: null },
     { id: 'patin', etiqueta: 'Patín (VMP)', todavia: null },
     { id: 'bizi', etiqueta: 'BiZi', todavia: null },
+    // ⭐ La moto entró el 4/09 con la casilla 1 del punto 13: rueda por la red
+    // del coche y remata siempre en un aparcamoto. Nació sin `todavia` — el
+    // motor ya la sabía andar antes de que existiera su botón.
+    { id: 'moto', etiqueta: 'Moto', todavia: null },
     // ⭐ Y el coche perdió el suyo el 3/09: el punto 12 aterrizó —casillas 1a,
     // 1b y 2— y viaja como las demás. Ya no queda ninguno con `todavia`; el
     // campo se queda porque el mecanismo sigue siendo el bueno para el próximo.
@@ -784,6 +790,25 @@ export class Buscador {
    * `porDefecto` es el modo con el que se ENTRA en la familia. Solo la bici
    * tiene dos, y entra por la privada: es la que no depende de que haya una
    * estación cerca ni una bici suelta en ella.
+   *
+   * ── ⭐ Y VUELVEN A SER SEIS (4/09, punto 13 casilla 3) ───────────────────
+   *
+   * La moto entra **entre el patín y el coche**, que es su sitio en el criterio
+   * que ordena esta fila desde el 28/08: de lo que no lleva vehículo a lo que
+   * más ocupa. Es el primer vehículo de motor, y el coche sigue cerrando.
+   *
+   * ⚠️ **Seis pasa de las cinco del patrón, y hay que decirlo.** [DOC sistemas
+   *    de diseño · control segmentado] el rango es de 2 a 5 opciones con
+   *    etiqueta, y **ese fue el argumento entero del 2/09** para bajar de seis a
+   *    cinco llevándose las dos bicis a su propia fila. La sexta vuelve por
+   *    decisión del encargo, no por descuido: la moto **no es la segunda mitad
+   *    de ninguna otra pregunta** —no hay «¿qué moto?» que revelar—, así que
+   *    partirla en dos filas habría sido inventar una pregunta para que cupiera.
+   *
+   *    Lo que hay que vigilar es la SÉPTIMA. La caja se dobla sola —`flex-wrap`,
+   *    y a 360 px ya salían tres filas de dos—, así que el ancho no es el
+   *    problema; el problema es que una fila de siete deja de leerse de un
+   *    vistazo. La medida en Chrome está en `app/e2e/moto.mjs`.
    */
   protected readonly familias: ReadonlyArray<{
     id: Familia;
@@ -794,6 +819,7 @@ export class Buscador {
     { id: 'bus', etiqueta: 'Bus / Tranvía', porDefecto: 'bus' },
     { id: 'bici', etiqueta: 'Bici', porDefecto: 'bici' },
     { id: 'patin', etiqueta: 'Patín (VMP)', porDefecto: 'patin' },
+    { id: 'moto', etiqueta: 'Moto', porDefecto: 'moto' },
     { id: 'coche', etiqueta: 'Coche', porDefecto: 'coche' },
   ];
 
@@ -894,12 +920,18 @@ export class Buscador {
     { id: 'no', etiqueta: 'No' },
   ];
 
-  /** Sin marcar, como las otras dos. Ver `loDelCoche` para qué manda el vacío. */
+  /** Sin marcar, como las otras dos. Ver `loDelVehiculo` para qué manda el vacío. */
   protected readonly autorizacion = signal<Autorizacion | null>(null);
 
-  /** Quién ve la pregunta: el coche sin distintivo, y nadie más. */
+  /**
+   * Quién ve la pregunta: **el vehículo de motor sin distintivo**, y nadie más.
+   *
+   * Cuelga de `preguntaLaZbe` y no de `eligeCoche` porque cuelga de la respuesta
+   * anterior: quien ha dicho «Sin etiqueta» tiene la misma duda vaya en coche o
+   * en moto, y el registro de la ZBE es el mismo trámite 42155 para los dos.
+   */
   protected readonly preguntaAutorizacion = computed(
-    () => this.eligeCoche() && this.distintivo() === 'sin',
+    () => this.preguntaLaZbe() && this.distintivo() === 'sin',
   );
 
   protected elegirAutorizacion(cual: Autorizacion): void {
@@ -1055,16 +1087,25 @@ export class Buscador {
    * una copia: si se copiaran los 33 vértices aquí, el día que la capa cambie
    * el mapa pintaría una zona y el motor cortaría por otra.
    *
-   * ⚠️ **Se pide al elegir «Coche», no al arrancar.** Son 2,9 kB, pero quien
-   *    entra a mirar una ruta a pie no tiene por qué pagarlos — y el mapa nace
-   *    antes de que se elija modo. Una vez pedido, se queda.
+   * ⚠️ **Se pide al elegir un vehículo de motor, no al arrancar.** Son 2,9 kB,
+   *    pero quien entra a mirar una ruta a pie no tiene por qué pagarlos — y el
+   *    mapa nace antes de que se elija modo. Una vez pedido, se queda: el coche
+   *    y la moto se lo encuentran traído el uno al otro.
    */
   private readonly zonaZbe = signal<readonly (readonly Vertice[])[]>([]);
   private pidiendoLaZona = false;
 
-  /** Lo que se le pasa al mapa: la zona **solo en coche**. Ver `Mapa.zona`. */
+  /**
+   * Lo que se le pasa al mapa: la zona **en los dos vehículos de motor**.
+   *
+   * ⭐ Y con la moto también, desde el 4/09: la Zona de Bajas Emisiones vale para
+   * todo vehículo de motor [ordenanza], así que dibujársela al coche y
+   * escondérsela a la moto sería enseñar media verdad a quien tiene el mismo
+   * problema. La traza roja corta igual sin tocar nada — el corte viene en
+   * `TramoDelViaje.zbe`, que lo pone el motor. Ver `Mapa.zona`.
+   */
   protected readonly zonaDelMapa = computed<readonly (readonly Vertice[])[]>(() =>
-    this.eligeCoche() ? this.zonaZbe() : [],
+    this.preguntaLaZbe() ? this.zonaZbe() : [],
   );
 
   /**
@@ -1160,13 +1201,41 @@ export class Buscador {
   );
 
   /**
-   * ⭐ QUIÉN VE LAS DOS PREGUNTAS DEL COCHE: el coche, y nadie más.
+   * ⭐ QUIÉN VE LA PREGUNTA DEL APARCAMIENTO: **el coche, y nadie más**.
    *
-   * Mismo patrón y mismo argumento que los otros tres revelados de esta
-   * pantalla [DOC GOV.UK, revelado condicional]: lo que no aplica **no está**.
-   * Andando no aparca un coche y la ZBE no le alcanza.
+   * Mismo patrón y mismo argumento que los otros revelados de esta pantalla
+   * [DOC GOV.UK, revelado condicional]: lo que no aplica **no está**. Andando no
+   * aparca un coche.
+   *
+   * ⚠️ **Y la moto tampoco la ve** (4/09, casilla 3), aunque sí vea la de la
+   *    ZBE. No es un olvido: la moto **no elige dónde deja** — remata siempre en
+   *    un aparcamoto, que es lo que manda el art. 32 de la OMUZ, y el motor
+   *    ignora el parámetro si le llega. Enseñar «¿Dónde quieres aparcar?» a
+   *    quien va en moto sería pedirle que elija algo a lo que no se le va a
+   *    hacer caso, que es peor que no preguntar.
    */
   protected readonly eligeCoche = computed(() => this.modo() === 'coche');
+
+  /**
+   * ⭐ QUIÉN VE LA PREGUNTA DE LA ZBE: **los dos vehículos de motor** (4/09).
+   *
+   * El coche y la moto, y **es literalmente la misma pregunta**: el mismo grupo
+   * de radios en el DOM, el mismo campo de matrícula, la misma región de estado
+   * y las mismas señales detrás. Duplicarla para la moto habría sido tener dos
+   * listas de seis etiquetas que un día dirían cosas distintas — es el
+   * precedente de la lista única región/botones, y aquí pesa más todavía porque
+   * lo que se contesta viaja al motor.
+   *
+   * Y la razón de que sea la misma no es de código: [OMUZ] la Zona de Bajas
+   * Emisiones no distingue entre coche y moto — el distintivo, la matrícula y la
+   * autorización registral son **el mismo trámite** para los dos. Lo que le
+   * llega al motor también es lo mismo: un `puedeEntrarEnLaZbe` de sí o no.
+   *
+   * ⚠️ Lo que NO comparten es el aparcamiento. Ver `eligeCoche`.
+   */
+  protected readonly preguntaLaZbe = computed(
+    () => this.modo() === 'coche' || this.modo() === 'moto',
+  );
 
   protected elegirAparcamiento(tipo: TipoDeAparcamiento): void {
     this.aparcamiento.set(tipo);
@@ -1255,18 +1324,27 @@ export class Buscador {
   });
 
   /**
-   * ⭐ LO QUE EL COCHE AÑADE A LA PETICIÓN — y **solo lo contestado**.
+   * ⭐ LO QUE EL VEHÍCULO DE MOTOR AÑADE A LA PETICIÓN — y **solo lo contestado**.
    *
    * Un campo sin contestar no viaja como `undefined`: **no viaja**. Es la misma
    * ley del contrato —los dos parámetros son opcionales y su ausencia es la
    * conducta de la casilla 1b— y la que hace que la muralla de los otros modos
    * se pueda comprar mirando las claves del cuerpo.
+   *
+   * ⚠️ **Y los dos parámetros no van juntos** (4/09). `puedeEntrarEnLaZbe` es de
+   *    los dos vehículos; `aparcamiento` es **solo del coche**. El contrato dice
+   *    que la moto no lo mira —y que si le llega lo ignora en vez de contestar
+   *    con error—, pero eso no es razón para mandárselo: lo que no se ha
+   *    preguntado no viaja, y la muralla se compra contando claves.
    */
-  private loDelCoche(): Partial<PeticionDeRuta> {
-    if (!this.eligeCoche()) {
+  private loDelVehiculo(): Partial<PeticionDeRuta> {
+    if (!this.preguntaLaZbe()) {
       return {};
     }
-    const donde = this.aparcamiento();
+    // Solo el coche tiene esta pregunta en pantalla, así que solo del coche
+    // sale una respuesta. Si el radio se quedó marcado de antes, no cuenta: no
+    // se está preguntando.
+    const donde = this.eligeCoche() ? this.aparcamiento() : null;
     const cual = this.distintivos.find((x) => x.id === this.distintivo());
     // ⭐ Y la autorización, que **solo puede darle la vuelta al «Sin etiqueta»**:
     //    quien está registrado sí entra. Sin contestarla manda lo que «Sin
@@ -2162,19 +2240,51 @@ export class Buscador {
    *   **cada vez que se entra**, que es lo único que no puede envejecer mal.
    */
   /**
-   * ⭐ Al pasar a coche se pide el polígono. Va aquí y no en un `effect` porque
-   * es **una acción del usuario**, como «Generar» o «Mi ubicación»: un efecto
-   * que dispare peticiones al leer una señal es justo lo que esta pantalla evita
-   * desde el punto 4. Ver el comentario de `generarRuta`.
+   * ⭐ Al pasar a un vehículo de motor se pide el polígono. Va aquí y no en un
+   * `effect` porque es **una acción del usuario**, como «Generar» o «Mi
+   * ubicación»: un efecto que dispare peticiones al leer una señal es justo lo
+   * que esta pantalla evita desde el punto 4. Ver el comentario de `generarRuta`.
    */
   protected elegirFamilia(familia: Familia): void {
-    if (familia === 'coche') {
+    if (familia === 'coche' || familia === 'moto') {
       this.traerLaZona();
     }
+    this.olvidarElVehiculo();
     const suya = this.familias.find((f) => f.id === familia);
     if (suya) {
       this.modo.set(suya.porDefecto);
     }
+  }
+
+  /**
+   * ⭐ CAMBIAR DE FAMILIA DEVUELVE LAS RESPUESTAS DE LA ZBE A SIN-ELEGIR.
+   *
+   * [PROPIO, declarado en el encargo del 4/09] **cada vehículo el suyo**: la
+   * etiqueta ambiental es del coche que se conduce, y quien pasa de su coche a
+   * su moto está hablando de otro vehículo. Arrastrar la respuesta le mandaría
+   * al motor un `puedeEntrarEnLaZbe` que nadie ha contestado para ESE vehículo,
+   * que es exactamente lo que «nada preseleccionado» [GOV.UK] lleva prohibiendo
+   * desde el 3/09 — y por el lado caro: le haría rodear la zona o rematar en un
+   * aparcamiento que su vehículo no necesita.
+   *
+   * Las tres se borran a la vez porque **son una sola respuesta en tres cajas**:
+   * dejar la matrícula puesta con el radio en blanco enseñaría un vehículo sin
+   * respuesta, y dejar la región diciendo «Distintivo ambiental C» sería peor —
+   * un dato de la DGT sobre una matrícula que ya no está en pantalla.
+   *
+   * ⚠️ **El radio del aparcamiento NO se toca**, y es a propósito: es una
+   *    pregunta del coche y solo del coche, así que salir a otra familia y
+   *    volver no cambia de vehículo respecto de ella. Es la conducta que tenía
+   *    antes del 4/09 y no se altera de paso.
+   *
+   * ⛔ La matrícula se borra de la señal, que es el único sitio donde ha estado:
+   *    no hay caché, ni URL, ni `localStorage` de donde borrarla.
+   */
+  private olvidarElVehiculo(): void {
+    this.distintivo.set(null);
+    this.autorizacion.set(null);
+    this.matricula.set('');
+    this.loDeLaDgt.set(null);
   }
 
   /**
@@ -2275,8 +2385,9 @@ export class Buscador {
       origen,
       destino,
       modo: this.modo(),
-      // ⭐ Y lo del coche, **solo si se ha contestado**. Ver `loDelCoche`.
-      ...this.loDelCoche(),
+      // ⭐ Y lo del vehículo de motor, **solo si se ha contestado**. Ver
+      // `loDelVehiculo`.
+      ...this.loDelVehiculo(),
     };
 
     this.avisoRuta.set(null);
@@ -2391,7 +2502,7 @@ export class Buscador {
       destino: this.comoSeLee(this.destino),
       capaOrigen: this.capaDe(this.origen),
       capaDestino: this.capaDe(this.destino),
-      aparcamiento: this.loDelCoche().aparcamiento ?? null,
+      aparcamiento: this.loDelVehiculo().aparcamiento ?? null,
       trayecto,
     });
   }
