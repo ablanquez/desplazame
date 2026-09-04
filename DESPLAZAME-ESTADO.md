@@ -7,7 +7,14 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ## ESTADO ACTUAL — 1 de septiembre de 2026
 
-**⭐ PUNTOS 1-11 CERRADOS (el 11, el 2/09: LA BOTONERA DE LA DEMO —
+**⭐ PUNTOS 1-12 CERRADOS (el 12, el 4/09: EL COCHE ENTERO — la red
+con las 1.283 restricciones de giro reales y los pesos de car.lua,
+el viaje por transiciones, el aparcado por CUATRO tipos con la
+palabra del reglamento (zona azul · zona naranja · discapacitado ·
+gratuito) y la sugerencia cruzada, el pestillo de la ZBE con el
+remate al parking público que la ordenanza permite, el distintivo
+por matrícula con la DGT como fuente, el polígono pintado y la traza
+roja; 32 bitácoras; la demo del ojo el 4/09. El 11, el 2/09: LA BOTONERA DE LA DEMO —
 la bici en dos filas [Privada|Pública BiZi] con sus tres rutas, los
 botones «Bicis ahora / Anclajes ahora», el resumen único de avisos y
 el minuto una sola vez; el ojo: «la botonera la veo bien así». El 10, el 1/09: EL BUS Y EL TRANVÍA
@@ -172,6 +179,20 @@ con sus leyes; los papeles al día**
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**⭐ EL PUNTO 12 CERRADO (4/09): LA DEMO DEL OJO CON DOS APAÑOS.**
+(1) Zona azul y zona naranja — la palabra del reglamento [normativa
+13291] en frases Y botonera (tipos separados; la migración cerró el
+else que tragaba cadenas desconocidas como gratuito) + la sugerencia
+cruzada como atajo (marca el radio contrario y regenera; el foco
+devuelto, cazado por su juez). (2) Frases llanas: «estacionamiento
+gratuito (sin coste)» y el distintivo corto (la prosa de la DGT no
+es dato; una sola lista para región y botones; fixtures enteros [ley
+nº32]; contraprueba sobre la juez). DECISIONES: Gratuito como
+palabra · los parkings-55 como capa a la NEVERA · la Fase 2 NO se
+pinta («ahora no existe y para 2030 veremos») — el dato duerme
+cocinado. 542 motor · 263 interfaz. → QUEDA EL 13 (la moto) como
+siguiente modo.
 
 **LA CASILLA 3-bis DEL 12 — HECHA (3/09, noche): EL COCHE COMPLETO
 EN PANTALLA.** El polígono del casco pintado antes de generar; la
@@ -1217,11 +1238,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 4 del 12 — LA DEMO DEL COCHE por
-el ojo** (los tres tipos de parking · la matrícula · el remate · la
-traza roja; y sus decisiones: la palabra del «gratuito», la lista de
-inclusión de parkings, la Fase 2 pintada o no) — con el vale, el 12
-se cierra; (2)
+**Lo siguiente:** (1) **el punto 13 — LA MOTO** (casilla 0 pendiente:
+la letra legal de la moto contra el articulado — carril bus, ZBE,
+zonas 30; luego la privada sobre la red del coche con su remate en
+aparcamoto, y YeGo con la decisión de licencia de Antonio); (2) el
+push de la tanda del 4/09 cuando Antonio lo nombre; (3)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1292,7 +1313,10 @@ colgadas de sus capas.
 toda calle sugerible, el buscador por tipos completo, la validación
 espacial con sus cuatro bitácoras cerradas, y la poda de demo
 firmada — hostelería y municipales a la nevera con motivo) ·
-11 CERRADO el 2/09 (las cinco casillas — la botonera de la demo: dos
+12 CERRADO el 4/09 (el coche entero: sondas · red · viaje · parking
+por tipos · ZBE con pestillo y remate · pantalla · matrícula · la
+demo con sus apaños azul/naranja y frases llanas; ver el plan) · 11
+CERRADO el 2/09 (las cinco casillas — la botonera de la demo: dos
 filas, BiZi a petición, resumen único, minuto una vez; ver el plan) ·
 10 CERRADO el 1/09 (casillas 0-5 y los pulidos — el bus entero: cron
 + cocina + RAPTOR con pesos OTP + desvíos operativos + vivo a
@@ -1476,10 +1500,11 @@ parking con el 12.
 ⚰️ sondas HECHAS el 2/09 (regulado 1.159 · PMR 1.226 · gratuito = el
 complemento LIBRE · parkings 41 que mezclan → lista de inclusión) ·
 ⚰️ la RED COCINADA el 2/09 (1a: 57.390 aristas, 1.378 giros vetados,
-ZBE marcada) · ⚰️ EL COCHE ENTERO: rutea (1b), aparca por tipo (2), remata en
-parking público (2-bis), se ve (3) y el replanteo del ojo HECHO
-(3-bis: polígono · traza roja · autorización · matrícula en casa —
-nº32 con su ley) · queda LA DEMO (4) con sus tres decisiones · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
+ZBE marcada) · ⚰️ **PUNTO 12 CERRADO el 4/09** — el coche entero con la demo del
+ojo (azul/naranja en botonera con sugerencia cruzada · frases llanas
+· Fase 2 sin pintar por decisión: «veremos qué acaban haciendo») ·
+a la NEVERA: los parkings-55 como capa informativa · los
+parquímetros (sellados 2015) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
 oficial (L-V 8-20 · sanciones desde 12/12/2025 · B/C/ECO/CERO libres
 sin registro → la app AVISA, no veta: no sabe la etiqueta) · queda la
 letra legal de la MOTO (punto 13) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
@@ -1531,7 +1556,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 799 pruebas (541 motor + 258 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 805 pruebas (542 motor + 263 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

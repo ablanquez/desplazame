@@ -2736,7 +2736,12 @@ se queda hasta que el 12 lo llene.
       de BiZi con la cifra doble por decisión suya, el resumen único y
       el minuto una vez, vistos en localhost).
 
-## 12 — Modo COCHE *(en grueso; parlamentado el 1/09: con TIPOS DE PARKING)*
+## 12 — Modo COCHE — **⭐ CERRADO el 4/09/2026** *(arrancó el 2/09 con
+las sondas y la red; el coche entero en tres días: rutea con los
+giros reales, aparca por cuatro tipos, remata en parking público
+cuando la ZBE no deja, consulta el distintivo por matrícula, y se ve
+con su polígono y su traza roja; la demo del ojo el 4/09 con dos
+apaños en caliente y sus decisiones tomadas)*
 
 *(Anotado el 29/08 — ⚰️ CUMPLIDO el 2/09 en la casilla 1a, con un
 matiz que el censo impuso: el coche NO heredó el grafo del peatón —
@@ -2786,15 +2791,17 @@ Dejado aquí el 18/08 (investigación de estacionamiento):
       casilla 3): entra por LISTA DE INCLUSIÓN DECLARADA por Antonio
       (la poda del 8, aplicada aquí) — el dato no distingue,
       distinguimos nosotros por lista escrita con su porqué; solo
-      «dónde y a qué hora abre», nunca plazas ni precio. Se decide
-      con la demo delante.
-- [ ] **Parquímetros: NO entran hoy** (312, solo-API, sellados en 2015 y
-      con la ampliación de zonas en puerta — entrarían caducados). Se
-      reevalúa si el Ayuntamiento los refresca
-- [ ] Aviso heredado de la investigación: la serie estadística mensual
-      oficial NO cuadra con las capas geográficas (Libre: 31.676 vs
-      49.222; Motos: 8.644, tercer número). Toda ficha declara la cifra
-      DE SU fuente, nunca «las plazas de Zaragoza»
+      «dónde y a qué hora abre», nunca plazas ni precio.
+      ⚰️ DECIDIDO en la demo (4/09): la capa NO entra por ahora — a
+      la NEVERA (el remate ZBE ya usa los 4 que importan).
+- [x] ⚰️ **Parquímetros: NO entran** (312, solo-API, sellados en 2015)
+      — decisión firme del 18/08, sin cambio al cierre; se reevalúa
+      solo si el Ayuntamiento los refresca (NEVERA).
+- [x] ⚰️ **Aviso de las series, CUMPLIDO como regla permanente:** la
+      serie mensual oficial no cuadra con las capas (Libre 31.676 vs
+      49.222; Motos 8.644) — toda ficha declara la cifra DE SU
+      fuente, nunca «las plazas de Zaragoza»; así se ha hecho en las
+      §1.10-1.13 y §1.31.
 
 La red viaria. El último de los cuatro.
 
@@ -3087,7 +3094,33 @@ son CAPAS DE DATO y ninguna se promete sin sonda:
       servida como asset único para que mapa y motor corten por el
       MISMO fichero (descubrimiento declarado, angular.json). 541
       motor · 258 interfaz · 32 bitácoras, 0 abiertas.
-- [ ] **4 · LA DEMO por el ojo.**
+- [x] **⭐ 4 · LA DEMO — CONFIRMADA por el ojo (4/09), con dos apaños
+      en caliente y las tres decisiones tomadas.** LOS APAÑOS: (1)
+      ZONA AZUL Y ZONA NARANJA con la palabra del reglamento
+      [normativa 13291, literal] — primero en las frases del hito
+      (597ae31; el ojo cazó un motor viejo en el 3000: rearranque y
+      listo), y luego EN LA BOTONERA como tipos separados (azul 664 ·
+      naranja 495; la migración de 'regulado' CERRÓ un agujero vivo
+      desde el 3/09: el else que trataba cualquier cadena desconocida
+      como gratuito — ahora lo desconocido no elige montón y se ve;
+      cliente viejo recibe el viaje a la puerta) + LA SUGERENCIA
+      CRUZADA como atajo (el botón marca el radio contrario y
+      regenera — cero estado propio; el foco devuelto tras regenerar,
+      cazado por su propia juez). (2) DOS FRASES LLANAS: «estacionamiento
+      gratuito (sin coste)» [la regla de Antonio, con su límite: los
+      28 sin clasificar fuera] y el distintivo CORTO («Distintivo
+      ambiental B (Fuente: DGT, hora)» — la prosa de la web de la
+      DGT no es dato; la palabra de la región sale de LA MISMA lista
+      que los botones: una fuente de verdad; los fixtures, enteros y
+      medidos [la ley de la nº32]; la contraprueba SOBRE LA JUEZ
+      cuando código y juez cambian juntos). LAS DECISIONES DEL OJO:
+      «Gratuito» como palabra de botón e hito · los parkings del 55
+      como capa, a la NEVERA (el remate ZBE ya usa los 4 que
+      importan) · ⭐ LA FASE 2 NO SE PINTA: «ahora no existe y para
+      2030 veremos qué acaban haciendo» — el dato duerme cocinado
+      (banderas F2, 884 aristas medidas) para ese día. Al cierre:
+      542 motor · 263 interfaz · 32 bitácoras, 0 abiertas · DIEZ
+      endpoints · la muralla de los seis modos.
 
 ## 13 — Modo MOTO *(nuevo, parlamentado el 1/09; DEPENDE del 12: la
 moto rueda por la red del coche)*
