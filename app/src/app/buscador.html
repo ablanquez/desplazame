@@ -366,13 +366,13 @@
       ⚠️ **Ninguna de las dos viene marcada**, y eso es deliberado [GOV.UK: en
          una pregunta no se preinfluye]. Sin tocarlas, el motor recibe el viaje
          de la casilla 1b: hasta la puerta, y con el aviso de la zona sin vetar
-         nada. Marcar «Regulado» de antemano le cambiaría el destino a quien no
+         nada. Marcar «Zona azul» de antemano le cambiaría el destino a quien no
          ha pedido aparcar, y marcar «Sin etiqueta» le mandaría a rodear una zona
          que su coche quizá puede pisar.
 
       ⚠️ Los `name` son `aparcamiento` y `distintivo`, cada uno el suyo: si
          compartieran nombre el navegador los trataría como **un solo grupo de
-         nueve** y marcar «CERO» desmarcaría «Regulado».
+         diez** y marcar «CERO» desmarcaría «Zona azul».
 
       ⚠️ Y el distintivo tiene SEIS opciones, que pasa de las cinco del control
          segmentado de la primera fila. No es el mismo patrón: aquello es una
@@ -786,6 +786,35 @@
                     [attr.aria-busy]="consultando($index)"
                     >{{ loVivoDe(paso, $index) }}</span
                   >
+                </span>
+              }
+              <!-- ⭐ EL ATAJO A LA OTRA ZONA, colgado del hito 🅿 (4/09).
+
+                   La zona azul y la naranja son la misma pregunta con dos
+                   respuestas: quien busca sitio en una y lo tiene lejos quiere
+                   probar la otra, y hacerlo a mano es bajar a la botonera,
+                   cambiar el radio y volver a generar. Esto es ese camino en un
+                   clic, y **no es nada más que ese camino**: marca el radio y
+                   llama al mismo `generarRuta` del botón grande.
+
+                   ⚠️ Va aquí y no en la botonera porque **es del resultado**:
+                      sin ruta pintada no hay ninguna otra zona que sugerir. Y
+                      dice a dónde lleva —«Sugerir zona naranja cercana»— porque
+                      [NN/g] una acción se nombra por lo que consigue.
+
+                   ⚠️ Y **no está en discapacitado ni en gratuito**: ahí no hay
+                      zona contraria, así que no está — no está en gris [GOV.UK,
+                      revelado condicional]. Lo decide `laOtraZona`. -->
+              @if (paso.giro === 'aparca' && laOtraZona()) {
+                <span class="sugerencia">
+                  <button
+                    #atajo
+                    type="button"
+                    class="sugerencia__boton"
+                    (click)="sugerirLaOtraZona()"
+                  >
+                    Sugerir {{ laOtraZonaEnPalabras() }} cercana
+                  </button>
                 </span>
               }
               <!-- ⭐ LA NOTA AL LADO DE SU PASO [GOV.UK: resumen arriba Y

@@ -779,3 +779,42 @@ legend {
   outline: 2px solid #1a1a1a;
   outline-offset: -2px;
 }
+
+/* ⭐ EL ATAJO A LA OTRA ZONA, junto al hito 🅿 (4/09).
+
+   **La anatomía es la del botón «Próximo bus»**, y no por parecido: es el mismo
+   problema. Un añadido de ESE paso que necesita su propia línea —el `flex-wrap`
+   de `.paso`— pero que **no debe ocupar el ancho entero**: un botón de borde a
+   borde se lee como la acción principal de la pantalla, y la principal es
+   «Generar ruta». Así que la línea la pone el `span` (`flex: 1 0 100%`) y el
+   botón se ajusta a su texto (`flex: none`), con los mismos 2,2rem de sangría
+   que alinean el añadido con el texto del paso y no con la flecha.
+
+   El foco no se quita: se refuerza [WCAG 2.4.7]. Y el botón no se distingue
+   solo por el color — tiene borde y forma de botón [WCAG 1.4.1]. */
+.sugerencia {
+  display: flex;
+  flex: 1 0 100%;
+  margin: 0.35rem 0 0 2.2rem;
+}
+
+.sugerencia__boton {
+  flex: none;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid #64748b;
+  border-radius: 999px;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.sugerencia__boton:hover {
+  background: #f1f5f9;
+}
+
+.sugerencia__boton:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}

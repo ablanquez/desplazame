@@ -213,6 +213,11 @@ function botonGenerar(raiz: HTMLElement): HTMLButtonElement {
   return raiz.querySelector<HTMLButtonElement>('.generar')!;
 }
 
+/** El botón de la sugerencia cruzada, si está. Vive junto al hito 🅿. */
+function botonSugerir(raiz: HTMLElement): HTMLButtonElement | null {
+  return raiz.querySelector<HTMLButtonElement>('.sugerencia__boton');
+}
+
 function botonInvertir(raiz: HTMLElement): HTMLButtonElement {
   return raiz.querySelector<HTMLButtonElement>('.invertir')!;
 }
@@ -907,6 +912,71 @@ const VIAJE_EN_COCHE_CON_REMATE: Trayecto = {
   tramos: [
     { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 4538, segundos: 431, hito: 'aparca' },
     { comoSeVa: 'andando', desde: 1, hasta: 2, metros: 296, segundos: 213, hito: null },
+  ],
+};
+
+/**
+ * ⭐ LOS DOS VIAJES DE BORDILLO, azul y naranja (4/09).
+ *
+ * Los textos y las cifras son **los del motor vivo**, leídos por HTTP el 4/09
+ * (`pid` del log 22032 = `pid` que contesta): el mismo par de siempre, `PEDRO
+ * LAPUYADE 3 → CALLE ABEN AIRE 33`, con `aparcamiento: 'azul'` da **3.381 m /
+ * 578 s** y remata en `Calle San Blas`, y con `'naranja'` da **3.388 / 478** y
+ * remata en `Calle Mosen Pedro Dosset`. Los tres tramos y sus cifras son los que
+ * el motor manda; la geometría se reduce a sus esquinas, como en el viaje del
+ * aparcamiento público de aquí arriba — la pantalla no mide vértices.
+ *
+ * ⚠️ **Los dos rematan en sitios DISTINTOS y con frases distintas**, y eso es lo
+ *    que la sugerencia cruzada tiene que enseñar: pulsar el botón no repinta lo
+ *    mismo con otro nombre, trae otro viaje.
+ */
+const VIAJE_APARCANDO_EN_AZUL: Trayecto = {
+  modo: 'coche',
+  pasos: [
+    paso('salida', 240, accion('Sal de'), llano(' '), via('Calle Pedro Lapuyade 3'), llano(' y dirígete hacia el noroeste')),
+    paso('recto', 2821, accion('Continúa'), llano(' por '), via('Paseo de la Independencia')),
+    paso('aparca', 0, accion('Aparca'), llano(' en '), via('Calle San Blas'), llano(': zona azul (rotación)')),
+    paso('salida', 320, accion('Sal andando'), llano(' hacia el este por '), via('Calle Don Jaime I')),
+    paso('llegada', 0, via('Calle Aben Aire 33'), llano(' está a la derecha')),
+  ],
+  geometria: [
+    [41.6404, -0.8965],
+    [41.6549, -0.8829],
+    [41.6572, -0.8811],
+    [41.6576, -0.8831],
+  ],
+  avisos: [],
+  metros: 3381,
+  segundos: 578,
+  tramos: [
+    { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 2782, segundos: 304, hito: null, zbe: false },
+    { comoSeVa: 'rodando', desde: 1, hasta: 2, metros: 279, segundos: 44, hito: 'aparca', zbe: true },
+    { comoSeVa: 'andando', desde: 2, hasta: 3, metros: 320, segundos: 230, hito: null },
+  ],
+};
+
+const VIAJE_APARCANDO_EN_NARANJA: Trayecto = {
+  modo: 'coche',
+  pasos: [
+    paso('salida', 240, accion('Sal de'), llano(' '), via('Calle Pedro Lapuyade 3'), llano(' y dirígete hacia el noroeste')),
+    paso('recto', 3008, accion('Continúa'), llano(' por '), via('Paseo de la Independencia')),
+    paso('aparca', 0, accion('Aparca'), llano(' en '), via('Calle Mosen Pedro Dosset'), llano(': zona naranja (residentes)')),
+    paso('salida', 140, accion('Sal andando'), llano(' hacia el este por '), via('Calle Don Jaime I')),
+    paso('llegada', 0, via('Calle Aben Aire 33'), llano(' está a la derecha')),
+  ],
+  geometria: [
+    [41.6404, -0.8965],
+    [41.6549, -0.8829],
+    [41.6581, -0.8797],
+    [41.6576, -0.8831],
+  ],
+  avisos: [],
+  metros: 3388,
+  segundos: 478,
+  tramos: [
+    { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 2782, segundos: 304, hito: null, zbe: false },
+    { comoSeVa: 'rodando', desde: 1, hasta: 2, metros: 466, segundos: 73, hito: 'aparca', zbe: true },
+    { comoSeVa: 'andando', desde: 2, hasta: 3, metros: 140, segundos: 101, hito: null },
   ],
 };
 
@@ -4554,7 +4624,8 @@ describe('Buscador', () => {
 
     elegirModo(fixture, 'coche');
     expect(radiosDeAparcamiento(raiz).map((r) => r.value)).toEqual([
-      'regulado',
+      'azul',
+      'naranja',
       'discapacitado',
       'gratuito',
     ]);
@@ -4587,7 +4658,7 @@ describe('Buscador', () => {
    *
    * [GOV.UK] en una pregunta no se preinfluye: marcar «Sin etiqueta» de
    * antemano le diría al motor que el coche de quien pregunta no puede entrar
-   * en la ZBE sin que nadie lo haya dicho, y marcar «Regulado» le pondría un
+   * en la ZBE sin que nadie lo haya dicho, y marcar «Zona azul» le pondría un
    * remate que no ha pedido. Sin tocar nada, **los dos parámetros se omiten** y
    * lo que sale es el viaje de la casilla 1b.
    *
@@ -4638,9 +4709,9 @@ describe('Buscador', () => {
       await fixture.whenStable();
     }
 
-    // Y los tres tipos de aparcamiento, que viajan tal cual: sus ids SON los
+    // Y los cuatro tipos de aparcamiento, que viajan tal cual: sus ids SON los
     // del contrato, no una traducción.
-    for (const tipo of ['regulado', 'discapacitado', 'gratuito'] as const) {
+    for (const tipo of ['azul', 'naranja', 'discapacitado', 'gratuito'] as const) {
       pulsar(fixture, radiosDeAparcamiento(raiz), tipo);
       botonGenerar(raiz).click();
       fixture.detectChanges();
@@ -4771,7 +4842,7 @@ describe('Buscador', () => {
     elegirModo(fixture, 'coche');
     await direccionEntera(fixture, http);
     pulsar(fixture, radiosDeDistintivo(raiz), 'sin');
-    pulsar(fixture, radiosDeAparcamiento(raiz), 'regulado');
+    pulsar(fixture, radiosDeAparcamiento(raiz), 'azul');
     botonGenerar(raiz).click();
     fixture.detectChanges();
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_COCHE_CON_REMATE);
@@ -5082,6 +5153,224 @@ describe('Buscador', () => {
     expect(cuerpoDeLaRuta(peticiones)['puedeEntrarEnLaZbe']).toBe(true);
     drenarRutas(peticiones, () => VIAJE_EN_COCHE_POR_LA_ZBE);
     await fixture.whenStable();
+  });
+
+  describe('⭐ LA SUGERENCIA CRUZADA AZUL-NARANJA (4/09, punto 12)', () => {
+    /**
+     * Deja una ruta de coche pintada aparcando en `tipo`, y devuelve la raíz.
+     *
+     * Es el camino de una persona entero —dirección, modo, radio, Generar— para
+     * que la pantalla llegue a la sugerencia por donde se llega de verdad.
+     */
+    const conRutaAparcando = async (
+      fixture: any,
+      tipo: 'azul' | 'naranja' | 'discapacitado' | 'gratuito',
+    ): Promise<HTMLElement> => {
+      const raiz = fixture.nativeElement as HTMLElement;
+      pulsar(fixture, radiosDeAparcamiento(raiz), tipo);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const peticiones = http.match('/api/ruta');
+      expect(cuerpoDeLaRuta(peticiones)['aparcamiento']).toBe(tipo);
+      drenarRutas(peticiones, () =>
+        tipo === 'naranja' ? VIAJE_APARCANDO_EN_NARANJA : VIAJE_APARCANDO_EN_AZUL,
+      );
+      await fixture.whenStable();
+      fixture.detectChanges();
+      return raiz;
+    };
+
+    /** El texto del hito 🅿 que se está viendo. */
+    const hitoPintado = (raiz: HTMLElement): string | null => {
+      const textos = Array.from(raiz.querySelectorAll('.paso__texto')).map((e) =>
+        (e.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      );
+      return textos.find((t) => t.startsWith('Aparca')) ?? null;
+    };
+
+    /**
+     * ⭐ JUEZ 2 — EL BOTÓN EXISTE **SOLO CON UNA DE LAS DOS ZONAS GENERADA**, y
+     * nombra la contraria.
+     *
+     * No es un botón de la botonera: es un atajo que cuelga del hito 🅿 de una
+     * ruta que ya existe, así que sin ruta no tiene de qué ser el atajo. Y dice
+     * a dónde lleva —«Sugerir zona naranja cercana»— porque [NN/g] una acción se
+     * nombra por su resultado, no por su mecanismo.
+     */
+    it('⭐ 2 · el botón solo está con azul o naranja pintada, y nombra la otra', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+      elegirModo(fixture, 'coche');
+      await direccionEntera(fixture, http);
+
+      // Sin ruta generada no hay nada de qué sugerir la vuelta.
+      expect(botonSugerir(raiz)).toBeNull();
+
+      await conRutaAparcando(fixture, 'azul');
+      expect(botonSugerir(raiz)).not.toBeNull();
+      expect(botonSugerir(raiz)!.textContent?.trim()).toBe('Sugerir zona naranja cercana');
+      // Y cuelga del paso del hito, no del formulario ni del pie.
+      expect(raiz.querySelector('.paso .sugerencia__boton')).not.toBeNull();
+
+      await conRutaAparcando(fixture, 'naranja');
+      expect(botonSugerir(raiz)!.textContent?.trim()).toBe('Sugerir zona azul cercana');
+    });
+
+    /**
+     * ⭐ JUEZ 3 — PULSARLO **MUEVE EL RADIO Y GENERA**, que es todo lo que hace.
+     *
+     * El atajo no tiene camino propio: hace lo mismo que haría una persona
+     * marcando la otra opción y pulsando «Generar ruta». Por eso se compran las
+     * tres cosas a la vez —el radio marcado, la petición con el otro tipo, y el
+     * hito nuevo pintado—: si hiciera dos de las tres, la botonera estaría
+     * diciendo una cosa y el mapa otra.
+     */
+    it('⭐ 3 · pulsarlo marca el radio contrario y dispara un Generar', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+      elegirModo(fixture, 'coche');
+      await direccionEntera(fixture, http);
+      await conRutaAparcando(fixture, 'azul');
+      expect(hitoPintado(raiz)).toBe('Aparca en Calle San Blas: zona azul (rotación)');
+
+      // Se pulsa **con el foco puesto**, que es como llega quien va con el
+      // teclado: el botón reemplaza todo lo que hay debajo de él, así que si al
+      // volver la ruta desapareciera del DOM el foco se caería al `body` y
+      // quien navega sin ratón se quedaría al principio de la página sin saber
+      // que algo ha cambiado [WCAG 2.4.3, orden del foco].
+      botonSugerir(raiz)!.focus();
+      botonSugerir(raiz)!.click();
+      fixture.detectChanges();
+
+      // 1 · el radio: la botonera dice la verdad de lo que se va a ver.
+      const marcados = radiosDeAparcamiento(raiz).filter((r) => r.checked).map((r) => r.value);
+      expect(marcados).toEqual(['naranja']);
+      // 2 · la petición: lleva el otro tipo, y es una petición de verdad.
+      const peticiones = http.match('/api/ruta');
+      expect(peticiones.length).toBe(1);
+      expect(cuerpoDeLaRuta(peticiones)['aparcamiento']).toBe('naranja');
+      // 3 · el hito nuevo, que es de otro montón y lo dice con otra palabra.
+      drenarRutas(peticiones, () => VIAJE_APARCANDO_EN_NARANJA);
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(hitoPintado(raiz)).toBe(
+        'Aparca en Calle Mosen Pedro Dosset: zona naranja (residentes)',
+      );
+      // Y el botón se da la vuelta con la ruta: ahora ofrece volver.
+      expect(botonSugerir(raiz)!.textContent?.trim()).toBe('Sugerir zona azul cercana');
+      // 4 · y el foco sigue en él: se puede pulsar otra vez sin buscarlo.
+      expect(document.activeElement).toBe(botonSugerir(raiz));
+    });
+
+    /**
+     * ⭐ JUEZ 4 — IDA Y VUELTA SON **DOS GENERACIONES**, cada una con la suya.
+     *
+     * ⚠️ **Y es lo que la contraprueba del caché muerde.** Guardar la respuesta
+     *    de la ida para devolverla en la vuelta parece un ahorro y es una
+     *    mentira: la ruta del bordillo depende de dónde queda libre el mejor
+     *    tramo, y eso es una pregunta al motor, no un recuerdo. `generarRuta` no
+     *    cachea nada — lo primero que hace es tirar el resultado anterior— y
+     *    este atajo no puede ser la excepción.
+     */
+    it('⭐ 4 · dos pulsaciones son dos generaciones, con sus dos peticiones', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+      elegirModo(fixture, 'coche');
+      await direccionEntera(fixture, http);
+      await conRutaAparcando(fixture, 'azul');
+
+      const pedidos: unknown[] = [];
+      for (const respuesta of [VIAJE_APARCANDO_EN_NARANJA, VIAJE_APARCANDO_EN_AZUL]) {
+        botonSugerir(raiz)!.click();
+        fixture.detectChanges();
+        const peticiones = http.match('/api/ruta');
+        expect(peticiones.length).toBe(1);
+        pedidos.push(cuerpoDeLaRuta(peticiones)['aparcamiento']);
+        drenarRutas(peticiones, () => respuesta);
+        await fixture.whenStable();
+        fixture.detectChanges();
+      }
+      expect(pedidos).toEqual(['naranja', 'azul']);
+      // Y se acaba donde se empezó, con la ruta pedida otra vez y no recordada.
+      expect(hitoPintado(raiz)).toBe('Aparca en Calle San Blas: zona azul (rotación)');
+      expect(radiosDeAparcamiento(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual([
+        'azul',
+      ]);
+    });
+
+    /**
+     * ⭐ JUEZ 5 — EN DISCAPACITADO Y EN GRATUITO **NO HAY BOTÓN**.
+     *
+     * El cruce que se pidió es azul ↔ naranja, y no hay ninguno más que tenga
+     * sentido: una plaza PMR no tiene «la de al lado de otro color», y el
+     * bordillo libre no es una zona. Ofrecerlo igualmente sería un botón que
+     * lleva a una respuesta que nadie ha pedido.
+     */
+    it('⭐ 5 · con discapacitado y con gratuito el botón no existe', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+      elegirModo(fixture, 'coche');
+      await direccionEntera(fixture, http);
+
+      for (const tipo of ['discapacitado', 'gratuito'] as const) {
+        await conRutaAparcando(fixture, tipo);
+        // El viaje SÍ tiene hito 🅿 —se pinta—, y aun así no hay atajo.
+        expect(hitoPintado(raiz)).not.toBeNull();
+        expect(botonSugerir(raiz)).toBeNull();
+      }
+    });
+
+    /**
+     * ⭐ JUEZ 6 — LA MURALLA: los otros modos y los otros tipos, intactos.
+     *
+     * ⚠️ **Con una excepción declarada, y es el valor del contrato**: donde
+     *    había `regulado` hay ahora `azul` y `naranja`. Es la migración del
+     *    4/09 y se compra aquí en vez de esconderse: los cuatro ids del grupo
+     *    son exactamente los cuatro del contrato, en su orden.
+     */
+    it('⭐ 6 · los cuatro tipos son los del contrato y los otros modos no cambian', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      elegirModo(fixture, 'coche');
+      expect(radiosDeAparcamiento(raiz).map((r) => r.value)).toEqual([
+        'azul',
+        'naranja',
+        'discapacitado',
+        'gratuito',
+      ]);
+      expect(radiosDeAparcamiento(raiz).map((r) => r.closest('label')!.textContent!.trim())).toEqual(
+        ['Zona azul', 'Zona naranja', 'Discapacitado', 'Gratuito'],
+      );
+      // Y `regulado` no vive ya en ninguna parte de la pantalla.
+      expect(raiz.innerHTML).not.toContain('regulado');
+
+      await direccionEntera(fixture, http);
+      await conRutaAparcando(fixture, 'azul');
+      expect(botonSugerir(raiz)).not.toBeNull();
+
+      // Los otros cinco modos mandan lo que mandaban, y no traen atajo ninguno.
+      for (const modo of ['andando', 'bus', 'patin'] as const) {
+        elegirModo(fixture, modo);
+        botonGenerar(raiz).click();
+        fixture.detectChanges();
+        const peticiones = http.match('/api/ruta');
+        expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+          'destino',
+          'modo',
+          'origen',
+        ]);
+        drenarRutas(peticiones, () => ({ ...TRAYECTO, modo }));
+        await fixture.whenStable();
+        fixture.detectChanges();
+        expect(botonSugerir(raiz)).toBeNull();
+      }
+    });
   });
 
 });

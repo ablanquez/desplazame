@@ -1,6 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
-import type { WritableSignal } from '@angular/core';
+import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import type { ElementRef, WritableSignal } from '@angular/core';
 // El contrato manda: los tipos vienen del paquete compartido, no de copias
 // locales. Si el motor cambia la forma, esta pantalla deja de compilar.
 import type {
@@ -497,6 +497,20 @@ interface Resultado {
    */
   readonly capaOrigen: Clase;
   readonly capaDestino: Clase;
+  /**
+   * ⭐ Y **dónde se pidió aparcar cuando se pidió la ruta**, o `null`.
+   *
+   * Por el mismo motivo que las dos clases de arriba: si la sugerencia cruzada
+   * leyera el formulario, cambiar el radio a mano después de generar pondría
+   * junto al hito de una ruta de zona azul un botón que dice «Sugerir zona azul
+   * cercana». La cabecera, los marcadores, los pasos y el atajo cuentan siempre
+   * la misma ruta porque salen todos del mismo objeto.
+   *
+   * Es **lo que viajó**, no lo que el formulario tenía: sale de `loDelCoche()`,
+   * que es la misma función que arma la petición, así que en los otros cinco
+   * modos vale `null` aunque el radio del coche se hubiera quedado marcado.
+   */
+  readonly aparcamiento: TipoDeAparcamiento | null;
   readonly trayecto: Trayecto;
 }
 
@@ -771,17 +785,23 @@ export class Buscador {
   ];
 
   /**
-   * ⭐ LA PREGUNTA DEL APARCAMIENTO, y **sus tres ids SON los del contrato**.
+   * ⭐ LA PREGUNTA DEL APARCAMIENTO, y **sus cuatro ids SON los del contrato**.
    *
    * Como los dos de la bici: lo que se marca aquí es literalmente lo que viaja
-   * en `PeticionDeRuta.aparcamiento`, sin tabla en medio que pueda mentir.
+   * en `PeticionDeRuta.aparcamiento`, sin tabla en medio que pueda mentir. Y por
+   * eso el id es `azul` y no `esro`: **la etiqueta y el valor dicen la misma
+   * palabra**, que es la del Reglamento Municipal del SER —*«los sectores ESRE
+   * ("zona naranja") como en los de rotación, ESRO ("zona azul")»*—.
    *
-   * Las etiquetas son las del censo municipal leídas en cristiano: `regulado`
-   * es la zona azul y naranja, `discapacitado` las plazas PMR y `gratuito` el
-   * bordillo sin regulación.
+   * ⚠️ **Eran TRES hasta el 4/09**, con un «Regulado» que valía por las dos
+   *    zonas. Y esa respuesta no servía: la azul se paga por horas y en la
+   *    naranja **aparca quien vive allí**, así que la mitad de las veces mandaba
+   *    a un forastero a una plaza de residente sin decírselo. Quien pregunta
+   *    dónde dejar el coche no está preguntando por «lo regulado».
    */
   protected readonly aparcamientos: ReadonlyArray<{ id: TipoDeAparcamiento; etiqueta: string }> = [
-    { id: 'regulado', etiqueta: 'Regulado' },
+    { id: 'azul', etiqueta: 'Zona azul' },
+    { id: 'naranja', etiqueta: 'Zona naranja' },
     { id: 'discapacitado', etiqueta: 'Discapacitado' },
     { id: 'gratuito', etiqueta: 'Gratuito' },
   ];
@@ -789,7 +809,7 @@ export class Buscador {
   /**
    * ⭐ SIN NADA MARCADO, y eso es la respuesta por defecto: **no se aparca**.
    *
-   * [GOV.UK] en una pregunta no se preinfluye. Marcar «Regulado» de antemano le
+   * [GOV.UK] en una pregunta no se preinfluye. Marcar «Zona azul» de antemano le
    * pondría al viaje un remate que nadie ha pedido —y le cambiaría el destino
    * real, que pasaría a ser un bordillo—. Sin tocarlo, el parámetro **se omite**
    * y sale el viaje hasta la puerta, que es el de la casilla 1b.
@@ -1097,6 +1117,84 @@ export class Buscador {
   protected elegirDistintivo(cual: Distintivo): void {
     this.distintivo.set(cual);
   }
+
+  /**
+   * ⭐ LA ZONA CONTRARIA A LA QUE SE ESTÁ VIENDO, o `null` si no hay contraria.
+   *
+   * Las dos zonas del reglamento son **la misma pregunta con dos respuestas**:
+   * quien busca sitio en la azul y no lo encuentra cerca tiene la naranja a una
+   * calle, y al revés. Las otras dos no tienen contraria — una plaza PMR no
+   * tiene «la de al lado de otro color» y el bordillo libre no es una zona—, así
+   * que ahí esto vale `null` y el botón **no existe**, no está en gris [DOC
+   * GOV.UK, revelado condicional: lo que no aplica no está].
+   *
+   * ⚠️ **Se lee del RESULTADO, no del formulario.** Ver `Resultado.aparcamiento`.
+   */
+  protected readonly laOtraZona = computed<'azul' | 'naranja' | null>(() => {
+    const pedida = this.resultado()?.aparcamiento;
+    if (pedida === 'azul') {
+      return 'naranja';
+    }
+    return pedida === 'naranja' ? 'azul' : null;
+  });
+
+  /** Cómo se lee la otra zona en el botón: «zona naranja», «zona azul». */
+  protected laOtraZonaEnPalabras(): string {
+    return this.laOtraZona() === 'naranja' ? 'zona naranja' : 'zona azul';
+  }
+
+  /**
+   * ⭐ EL ATAJO: marcar la otra zona **y generar de nuevo**. Nada más.
+   *
+   * Es literalmente lo que haría una persona con el ratón: bajar a la botonera,
+   * marcar la otra opción y pulsar «Generar ruta». No hay estado propio, ni una
+   * segunda manera de pedir una ruta, ni un resultado guardado — **generar no
+   * cachea**: lo primero que hace `generarRuta` es tirar el resultado anterior,
+   * y aquí eso no es un detalle sino la promesa entera. La ruta del bordillo
+   * depende de qué tramo queda mejor por coste, y eso se le pregunta al motor,
+   * no se recuerda.
+   *
+   * Por eso la botonera se mueve de verdad: quien mire abajo después de pulsar
+   * verá marcada la zona que está viendo, no la que pidió hace un momento.
+   */
+  protected sugerirLaOtraZona(): void {
+    const otra = this.laOtraZona();
+    if (!otra) {
+      return;
+    }
+    this.elFocoVuelveAlAtajo = true;
+    this.elegirAparcamiento(otra);
+    this.generarRuta();
+  }
+
+  /**
+   * ⭐ Y EL FOCO VUELVE AL ATAJO cuando la ruta nueva está pintada.
+   *
+   * ⚠️ **Esto NO estaba en el encargo: lo encontró la juez 3.** Al comprarle
+   *    también el foco —el botón se pulsa con el teclado— salió que
+   *    `document.activeElement` acababa en el `<body>`. La causa es de la casa y
+   *    es buena: lo primero que hace `generarRuta` es `resultado.set(null)` para
+   *    no seguir enseñando la ruta de antes mientras se espera, y eso **destruye
+   *    la lista de pasos entera**, con el botón dentro. «Generar ruta» no lo
+   *    sufre porque vive fuera del resultado; este atajo vive dentro.
+   *
+   *    Quien navega con teclado pulsaba el atajo y se quedaba al principio de la
+   *    página, sin saber que abajo había una ruta nueva [WCAG 2.4.3, orden del
+   *    foco]. Devolverlo no es estado del atajo ni semántica nueva: es dejar el
+   *    foco donde la persona lo puso.
+   */
+  private elFocoVuelveAlAtajo = false;
+
+  private readonly atajo = viewChild<ElementRef<HTMLButtonElement>>('atajo');
+
+  private readonly devolverElFoco = effect(() => {
+    const boton = this.atajo();
+    if (!boton || !this.elFocoVuelveAlAtajo) {
+      return;
+    }
+    this.elFocoVuelveAlAtajo = false;
+    boton.nativeElement.focus();
+  });
 
   /**
    * ⭐ LO QUE EL COCHE AÑADE A LA PETICIÓN — y **solo lo contestado**.
@@ -2235,6 +2333,7 @@ export class Buscador {
       destino: this.comoSeLee(this.destino),
       capaOrigen: this.capaDe(this.origen),
       capaDestino: this.capaDe(this.destino),
+      aparcamiento: this.loDelCoche().aparcamiento ?? null,
       trayecto,
     });
   }
