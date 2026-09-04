@@ -180,6 +180,18 @@ OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
 
+**LA CASILLA 0 DEL 13 — LA LETRA LEGAL DE LA MOTO, MEDIDA (4/09,
+tarde; OMUZ normativa 13296).** Cuatro respuestas y todas
+simplifican: carril bus NO por defecto (solo «multiuso» señalizado →
+la moto rueda por la red del coche tal cual) · ZBE mismo régimen (la
+consulta de matrícula ya vale: C0000XXX es el formato de ciclomotor;
+el fichero DGT trae las L) · estacionamiento art. 32: si hay
+aparcamoto, la acera no vale — refuerza el remate a los 2.146 (la
+acera no se modela: sin dato) · zonas 30 en el maxspeed, nada
+moto-específico. La casilla 1 queda afinada: herencia del 12 entero
++ remate en aparcamoto por coste (decidir WFS 2.146 vs sede 2.115).
+Pendiente del 13: la decisión de licencia de YeGo (Antonio).
+
 **⭐ EL PUNTO 12 CERRADO (4/09): LA DEMO DEL OJO CON DOS APAÑOS.**
 (1) Zona azul y zona naranja — la palabra del reglamento [normativa
 13291] en frases Y botonera (tipos separados; la migración cerró el
@@ -1238,11 +1250,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el punto 13 — LA MOTO** (casilla 0 pendiente:
-la letra legal de la moto contra el articulado — carril bus, ZBE,
-zonas 30; luego la privada sobre la red del coche con su remate en
-aparcamoto, y YeGo con la decisión de licencia de Antonio); (2) el
-push de la tanda del 4/09 cuando Antonio lo nombre; (3)
+**Lo siguiente:** (1) **la casilla 1 del 13 — LA MOTO PRIVADA**
+(herencia del 12 entero + el remate en aparcamoto por coste; antes
+del encargo: decidir cuál manda entre WFS 2.146 y sede 2.115); (2)
+la casilla 2 — YeGo, con la decisión de licencia de Antonio; (3) el
+push de la tanda del 4/09 cuando Antonio lo nombre; (4)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1506,8 +1518,9 @@ ojo (azul/naranja en botonera con sugerencia cruzada · frases llanas
 a la NEVERA: los parkings-55 como capa informativa · los
 parquímetros (sellados 2015) · ⚰️ la letra de la ZBE, MEDIDA en la FAQ
 oficial (L-V 8-20 · sanciones desde 12/12/2025 · B/C/ECO/CERO libres
-sin registro → la app AVISA, no veta: no sabe la etiqueta) · queda la
-letra legal de la MOTO (punto 13) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
+sin registro → la app AVISA, no veta: no sabe la etiqueta) · ⚰️ la letra
+legal de la MOTO, medida el 4/09 (OMUZ: red del coche tal cual, ZBE
+heredada, el aparcamoto manda — ver cabos del 13) · ⚰️ la ZBE VERIFICADA el 30/08 (dos polígonos FASE 1/
 FASE 2, solo geom+fase — la letra legal de vigencia/vehículos/
 excepciones pendiente aquí; descarga al repo cuando el punto
 arranque) · hereda la capa de sentidos Y sus correcciones (Siresa

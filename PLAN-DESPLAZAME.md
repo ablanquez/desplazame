@@ -3153,11 +3153,41 @@ CONSTA hasta la sonda).
       dicen nada de reutilización) → la decisión de fuente, de
       Antonio, cuando el 13 arranque. · ⭐ De propina: BiZi tiene GBFS
       v3.0 oficial (ttl 1, las mismas 276 estaciones) — fichado, no
-      se usa hoy. · (c) ⚠️ QUEDA: la letra legal de la moto (carril
-      bus, ZBE, zonas 30) contra el articulado.
-- [ ] **1 · LA MOTO PRIVADA sobre la red del coche** (hereda el 12):
-      su tabla legal con artículo, el remate en aparcamoto ≤ X m
-      (el patrón del aparcabicis, X con doctrina), la narración.
+      se usa hoy. · (c) ⭐ LA LETRA LEGAL — MEDIDA el 4/09 contra la
+      OMUZ vigente [Ordenanza de Movilidad Urbana, normativa 13296,
+      texto definitivo BOPZ 21/08/2024], cuatro respuestas y todas
+      simplifican: **CARRIL BUS: NO por defecto** — la moto solo
+      entra en «carriles multiuso» expresamente autorizados (estudio
+      técnico IT-MOV-10 + señalización); sin esa señal, el carril bus
+      es bus/taxi → LA MOTO RUEDA POR LA RED DEL COCHE TAL CUAL,
+      ninguna red nueva (el «nos dejarán rodar por el carril bus» de
+      2024 era del borrador y no llegó al texto). **ZBE: MISMO
+      RÉGIMEN** — «todo vehículo que acceda exhibirá el distintivo»;
+      sin distintivo fuera (salvo las 14 de §1.32), B/C/ECO/CERO
+      libres; y la consulta de matrícula YA VALE para motos (el
+      formato C0000XXX del validador es el de ciclomotores; el
+      fichero DGT trae las categorías L) → selector, pestillo y
+      remate ZBE heredados al 100 %. **ESTACIONAMIENTO [art. 32]: EL
+      APARCAMOTO MANDA** — norma general prohibido en acera;
+      excepción para motos de dos ruedas SOLO SI no hay prohibición
+      señalizada Y «no existan espacios específicos disponibles» en
+      el tramo Y la acera tiene >3 m de paso libre (entonces paralela
+      al bordillo) — la propia ordenanza dice que si hay aparcamoto,
+      la acera no vale: refuerza el remate a los 2.146; la acera NO
+      se modela (sin dato de anchos ni señales) y la letra queda para
+      la narración. **ZONAS 30/20**: aplican a todos por igual — ya
+      viven en el maxspeed de OSM; nada moto-específico. (Perla
+      menor, no ruteo: las líneas adelantadas de los semáforos
+      también son para motos [OMUZ].)
+- [ ] **1 · LA MOTO PRIVADA sobre la red del coche** (hereda el 12
+      ENTERO, con la letra del 4/09 delante): la red, los giros y las
+      velocidades del coche tal cual (carril bus NO aplica por
+      defecto) · la ZBE heredada (selector de distintivo, matrícula
+      con C0000XXX, pestillo, remate al parking público — mismo
+      régimen [OMUZ]) · EL REMATE en aparcamoto POR COSTE (el
+      car-to-park sobre MU2_motos; ⚠️ decidir cuál manda: WFS 2.146
+      vs sede 2.115, como se hizo con los postes) · la narración con
+      su artículo [art. 32: si hay aparcamoto, la acera no vale].
 - [ ] **2 · YeGo:** el patrón BiZi (estación/vehículo de origen con
       disponibilidad → pedaleo/rodadura → destino) con la frescura
       que el feed dé y el aviso honesto de su edad; el botón de
