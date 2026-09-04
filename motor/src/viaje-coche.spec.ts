@@ -33,6 +33,7 @@ import { cuadernoPara } from './ruta.ts';
 import { escribirPasos } from './pasos.ts';
 import { calcularTrayecto, type Motor } from './trayecto.ts';
 import {
+  APARCAMIENTOS_CANDIDATOS,
   AVISO_ZBE,
   AVISO_ZBE_EVITADA,
   avisoDelRemateEnParking,
@@ -344,6 +345,11 @@ const PIRINEOS = 23134100;
 //
 // Salen de medir, no de elegir: son los que el COSTE elige para el viaje
 // `PEDRO LAPUYADE 3 → CALLE ABEN AIRE 33` con cada tipo. Ver la juez 1.
+//
+// ⚠️ El de la azul se conduce MENOS y se anda MÁS —3.061 m y 320— que el de la
+//    naranja —3.248 y 140—. Son dos montones distintos, no dos filtros del
+//    mismo, y por eso los gana un sitio que no se parece al otro.
+const ESRO_SAN_BLAS = 'MU1_estacionamientos_calle.50612';
 const ESRE_MOSEN_PEDRO_DOSSET = 'MU1_estacionamientos_calle.46777';
 const LIBRE_ARQUITECTO_LA_FIGUERA = 'MU1_estacionamientos_calle.45408';
 const PMR_ECHEGARAY = 'MU1_reservas.43011';
@@ -695,26 +701,39 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
 
   describe('⭐ EL REMATE AL PARKING Y LA ZBE SELECCIONABLE (casilla 2)', () => {
     /**
-     * ⭐ JUEZ 1 DEL ENCARGO — EL REMATE AL PARKING, y **por coste, no por radio**.
+     * ⭐ JUEZ 1 DEL ENCARGO — CADA TIPO REMATA EN SU MONTÓN, y **solo** en el suyo.
      *
      * `PEDRO LAPUYADE 3 → CALLE ABEN AIRE 33` con cada tipo aparca en un sitio
      * distinto, y los tres son reales y se citan por su `id` del WFS:
      *
      * | tipo | dónde | conducir | andar |
      * |---|---|---|---|
-     * | `regulado` | `…46777` ESRE, CALLE MOSEN PEDRO DOSSET | 3.248 m | 140 m |
+     * | `azul` | `…50612` ESRO, CALLE SAN BLAS 40 | 3.061 m | 320 m |
+     * | `naranja` | `…46777` ESRE, CALLE MOSEN PEDRO DOSSET | 3.248 m | 140 m |
      * | `gratuito` | `…45408` LIBRE, CALLE ARQUITECTO LA FIGUERA | 4.316 m | 509 m |
      *
-     * ⚠️ **Y el regulado NO es el más cercano en línea recta**: ése es el
+     * ⚠️ **El `…46777` es el que el viejo `regulado` elegía** (4/09), y sigue
+     *    ganando con `naranja`: es un ESRE, y el montón de la naranja son los
+     *    ESRE. Que el número no se mueva al partir el montón es la prueba de que
+     *    lo que ha cambiado es a QUIÉN se le pregunta, no CÓMO se elige.
+     *
+     * ⚠️ **Y el naranja NO es el más cercano en línea recta**: ése es el
      *    `…46776`, a 67 m del portal. Gana el `…46777` porque el viaje entero sale
      *    más barato. Es la juez que la contraprueba del radio muerde.
+     *
+     * ⚠️ **Y «solo en el suyo» no se compra con el ganador.** Un ganador puede
+     *    ser de la clase buena por casualidad —si el montón estuviera mezclado y
+     *    el mejor cayera del lado correcto—, así que se compran **los cuarenta
+     *    candidatos** de cada tipo: todos ESRO en el azul, todos ESRE en la
+     *    naranja. Eso ya no cuadra por azar.
      */
-    test('⭐ 1 · regulado y gratuito aparcan en tramos reales y distintos', () => {
-      const reg = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'regulado' });
+    test('⭐ 1 · azul remata en un ESRO, naranja en un ESRE, y nunca al revés', () => {
+      const azu = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'azul' });
+      const nar = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'naranja' });
       const gra = viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'gratuito' });
 
       // Se conduce y se anda, y el coche se deja donde muere lo conducido.
-      for (const [nombre, t] of [['regulado', reg], ['gratuito', gra]] as const) {
+      for (const [nombre, t] of [['azul', azu], ['naranja', nar], ['gratuito', gra]] as const) {
         assert.deepEqual(
           comoSeVan(t),
           ['rodando', 'andando'],
@@ -735,44 +754,70 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       // El paso del hito dice DÓNDE y QUÉ es, **con la palabra del reglamento**:
       // «los sectores ESRE ("zona naranja") como en los de rotación, ESRO
       // ("zona azul")» [Reglamento Municipal del SER, el vigente].
-      const hitoReg = reg.pasos.find((x) => x.giro === 'aparca')!;
-      assert.match(hitoReg.texto, /^Aparca en /);
-      assert.match(hitoReg.texto, /zona naranja \(residentes\)$/);
-      // Y la sigla no sale por ninguna parte de la frase.
-      assert.equal(/ESRO|ESRE/.test(hitoReg.texto), false);
-      assert.match(hitoReg.texto, /Mosen Pedro Dosset/);
-      assert.equal(hitoReg.metros, 0, 'un hito no abre tramo');
+      const hitoAzul = azu.pasos.find((x) => x.giro === 'aparca')!;
+      assert.match(hitoAzul.texto, /^Aparca en /);
+      assert.match(hitoAzul.texto, /zona azul \(rotación\)$/);
+      assert.equal(hitoAzul.metros, 0, 'un hito no abre tramo');
+
+      const hitoNar = nar.pasos.find((x) => x.giro === 'aparca')!;
+      assert.match(hitoNar.texto, /^Aparca en /);
+      assert.match(hitoNar.texto, /zona naranja \(residentes\)$/);
+      assert.match(hitoNar.texto, /Mosen Pedro Dosset/);
+      // Y la sigla no sale por ninguna parte de las dos frases.
+      assert.equal(/ESRO|ESRE/.test(hitoAzul.texto + hitoNar.texto), false);
 
       const hitoGra = gra.pasos.find((x) => x.giro === 'aparca')!;
       assert.match(hitoGra.texto, /estacionamiento sin regulación$/);
 
-      // ⭐ Y NINGUNO DE LOS DOS INVENTA UN PRECIO NI UNA FRANJA: § 1.11 no trae
+      // ⭐ Y NINGUNO DE LOS TRES INVENTA UN PRECIO NI UNA FRANJA: § 1.11 no trae
       //    ni tarifa ni horario, así que decir cualquiera de las dos sería
       //    ponerle al Ayuntamiento en la boca algo que no ha dicho.
-      for (const hito of [hitoReg, hitoGra]) {
+      for (const hito of [hitoAzul, hitoNar, hitoGra]) {
         assert.equal(/[€$]|euro|\d\s*[.,]\d+\s*€|\/\s*hora/i.test(hito.texto), false, hito.texto);
         assert.equal(/\d{1,2}[:.]\d{2}/.test(hito.texto), false, `${hito.texto} promete una franja`);
       }
 
       // Y detrás del hito, el paseo: dicho, y con sus metros.
-      const aPieReg = reg.pasos[reg.pasos.indexOf(hitoReg) + 1]!;
-      assert.match(aPieReg.texto, /^Sal andando hacia /);
-      assert.ok(aPieReg.metros > 0, 'el paseo tiene que decir cuánto se anda');
+      const aPieNar = nar.pasos[nar.pasos.indexOf(hitoNar) + 1]!;
+      assert.match(aPieNar.texto, /^Sal andando hacia /);
+      assert.ok(aPieNar.metros > 0, 'el paseo tiene que decir cuánto se anda');
 
-      // ⭐ Los DOS tipos son dos sitios distintos, y el gratuito anda más: en el
-      //    casco no hay bordillo libre, y eso es el dato hablando.
-      assert.notEqual(reg.metros, gra.metros);
+      // ⭐ Los TRES tipos son tres sitios distintos, y el gratuito anda más: en
+      //    el casco no hay bordillo libre, y eso es el dato hablando.
+      assert.equal(new Set([azu.metros, nar.metros, gra.metros]).size, 3);
       // El paseo es el ÚLTIMO tramo: lo conducido puede venir en varios desde
       // que la zona lo parte. Ver `comoSeVan`.
       const paseo = (t: Trayecto): number => t.tramos[t.tramos.length - 1]!.metros;
       assert.ok(
-        paseo(gra) > paseo(reg),
-        `el gratuito anda ${paseo(gra)} m y el regulado ${paseo(reg)}`,
+        paseo(gra) > paseo(nar),
+        `el gratuito anda ${paseo(gra)} m y la naranja ${paseo(nar)}`,
       );
 
-      // Y son los tramos que son, citados por su id.
-      assert.equal(dondeAparca(reg, 'regulado'), ESRE_MOSEN_PEDRO_DOSSET);
+      // ── ⭐ CADA UNO EN SU MONTÓN, y citado por su id del WFS ───────────────
+      const inv = elAparcamiento();
+      const elAzul = dondeAparca(azu, 'azul');
+      const elNaranja = dondeAparca(nar, 'naranja');
+      assert.equal(elAzul, ESRO_SAN_BLAS);
+      assert.equal(elNaranja, ESRE_MOSEN_PEDRO_DOSSET);
       assert.equal(dondeAparca(gra, 'gratuito'), LIBRE_ARQUITECTO_LA_FIGUERA);
+      assert.equal(inv.azul.find((x) => x.id === elAzul)?.clase, 'ESRO');
+      assert.equal(inv.naranja.find((x) => x.id === elNaranja)?.clase, 'ESRE');
+
+      // ⭐ Y NUNCA AL REVÉS: el sitio de uno no aparece en el montón del otro.
+      assert.equal(inv.naranja.some((x) => x.id === elAzul), false, 'el azul aparcó en un ESRE');
+      assert.equal(inv.azul.some((x) => x.id === elNaranja), false, 'la naranja aparcó en un ESRO');
+
+      // Y no es cosa del ganador: **los cuarenta candidatos** de cada tipo son
+      // de su clase. Ver la cabecera de esta juez.
+      const claseDe = (id: string): string | undefined =>
+        [...inv.azul, ...inv.naranja, ...inv.gratuito].find((x) => x.id === id)?.clase;
+      for (const [tipo, clase] of [['azul', 'ESRO'], ['naranja', 'ESRE']] as const) {
+        const lista = dondeAparcarCerca(inv, tipo, -0.8779, 41.656, APARCAMIENTOS_CANDIDATOS);
+        assert.equal(lista.length, APARCAMIENTOS_CANDIDATOS, `${tipo}: no hay 40 candidatos`);
+        for (const c of lista) {
+          assert.equal(claseDe(c.id), clase, `${tipo}: el candidato ${c.id} no es ${clase}`);
+        }
+      }
     });
 
     /**
@@ -882,28 +927,28 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
      * estar**, no por pasar.
      *
      * El caso: `CALLE SAN VICENTE DE PAÚL 3DP` está FUERA de la zona, pero su
-     * mejor aparcamiento regulado cae DENTRO. Con el veto puesto, el coche
+     * mejor aparcamiento de zona azul cae DENTRO. Con el veto puesto, el coche
      * aparca fuera y anda — 2.421 m de viaje en vez de los de dentro.
      */
     test('⭐ 4 ter · con el veto puesto, tampoco se aparca dentro de la zona', () => {
-      const suelto = viaje(LAPUYADE_3, SAN_VICENTE_DE_PAUL_3, { aparcamiento: 'regulado' }, MARTES_A_LAS_10);
+      const suelto = viaje(LAPUYADE_3, SAN_VICENTE_DE_PAUL_3, { aparcamiento: 'azul' }, MARTES_A_LAS_10);
       assert.equal(
         aparcaDentroDeLaZbe(suelto),
         true,
-        'el caso pide un destino cuyo mejor aparcamiento regulado caiga DENTRO',
+        'el caso pide un destino cuyo mejor aparcamiento de zona azul caiga DENTRO',
       );
 
       const vetado = viaje(
         LAPUYADE_3,
         SAN_VICENTE_DE_PAUL_3,
-        { aparcamiento: 'regulado', puedeEntrarEnLaZbe: false },
+        { aparcamiento: 'azul', puedeEntrarEnLaZbe: false },
         MARTES_A_LAS_10,
       );
       assert.ok(vetado.metros > 0, 'sigue habiendo viaje: el destino está fuera');
       assert.equal(aparcaDentroDeLaZbe(vetado), false, 'ha aparcado dentro de la zona vetada');
       assert.deepEqual(comoSeVan(vetado), ['rodando', 'andando']);
       assert.equal(tramoDelHito(vetado) !== null, true);
-      assert.equal(vetado.metros, 2421);
+      assert.equal(vetado.metros, 2486);
     });
 
     /**
@@ -925,7 +970,8 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
     test('⭐ 5 · a un portal de dentro no se le inventa una ruta que no entra', () => {
       for (const extra of [
         { puedeEntrarEnLaZbe: false },
-        { puedeEntrarEnLaZbe: false, aparcamiento: 'regulado' as const },
+        { puedeEntrarEnLaZbe: false, aparcamiento: 'azul' as const },
+        { puedeEntrarEnLaZbe: false, aparcamiento: 'naranja' as const },
         { puedeEntrarEnLaZbe: false, aparcamiento: 'gratuito' as const },
       ]) {
         const t = viaje(ABEN_AIRE_33, LAPUYADE_3, extra, MARTES_A_LAS_10);
@@ -1031,7 +1077,7 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
           ),
         );
       const antes = deLosCinco();
-      viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'regulado' });
+      viaje(LAPUYADE_3, ABEN_AIRE_33, { aparcamiento: 'azul' });
       viaje(LAPUYADE_3, PALENCIA_2, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
       const despues = deLosCinco();
       assert.equal(despues, antes, 'una ruta de coche ha movido lo que contestan los demás modos');
@@ -1201,18 +1247,66 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       const conParking = viaje(
         LAPUYADE_3,
         PALENCIA_2,
-        { puedeEntrarEnLaZbe: false, aparcamiento: 'regulado' },
+        { puedeEntrarEnLaZbe: false, aparcamiento: 'azul' },
         MARTES_A_LAS_10,
       );
-      // ⚠️ Este sello cambió el 4/09 y **solo por la palabra**: el hito pasó de
-      //    «zona regulada (ESRO)» a «zona azul (rotación)». Ni un metro, ni un
-      //    segundo, ni un vértice se mueven — lo compra la línea de abajo.
+      // ⚠️ **Este sello se ha movido DOS veces, y las dos por su razón.** El
+      //    4/09 por la mañana cambió solo por la palabra —el hito pasó de «zona
+      //    regulada (ESRO)» a «zona azul (rotación)»— y los metros y los
+      //    vértices se quedaron donde estaban. Esta segunda vez cambia **porque
+      //    el montón es otro**: el viejo `regulado` elegía entre los 1.159 y la
+      //    `azul` elige entre 664, así que puede ganar otro bordillo y el viaje
+      //    entero es otro. Por eso los metros y los vértices se vuelven a
+      //    comprar aquí abajo: para que el día que este sello se mueva sin que
+      //    cambie ninguno de los dos, se sepa que fue la letra.
       assert.equal(
         selloDe(conParking),
-        '1429553724ab4e7993587c50bf424fc7d0dcde1b38557ef5a04e8bb1abccdf85',
+        'c4c4f4889c3f02a242874f8e86c16a8f539d0fbb72407264a2c387732293ea23',
       );
-      assert.equal(conParking.metros, 4341);
-      assert.equal(conParking.geometria.length, 306);
+      // Y cambian los dos: 4.341 m y 306 vértices eran los del bordillo que
+      // ganaba entre los 1.159. Entre los 664 de la azul gana otro.
+      assert.equal(conParking.metros, 3604);
+      assert.equal(conParking.geometria.length, 327);
+    });
+
+    /**
+     * ⭐ Y EL `regulado` VIEJO YA NO ELIGE MONTÓN: **se cae al viaje de la
+     * puerta**, que es el de la casilla 1b, y se ve.
+     *
+     * Es la juez de la migración del 4/09. El contrato ya no tiene `regulado`
+     * —el tipo lo impide en compilación—, pero por HTTP entra una cadena:
+     * `leerPeticion` mira la FORMA y no la lista, igual que con `modo`. Así que
+     * la pregunta «¿y qué recibe un cliente viejo?» tiene una respuesta y hay
+     * que enseñarla.
+     *
+     * ⚠️ **Y la respuesta buena NO es la de antes de la migración.** Medido el
+     *    4/09 con el ternario viejo: un tipo desconocido caía en su `else` y
+     *    **aparcaba en el gratuito sin decirlo**. Eso es lo que esta juez impide
+     *    que vuelva: sin montón no hay candidatos, y sin candidatos el viaje es
+     *    el de la puerta — un solo tramo, ningún hito 🅿 —, byte a byte el mismo
+     *    que si nadie hubiera pedido aparcar.
+     */
+    test('⭐ un tipo de aparcamiento que el contrato ya no tiene no aparca en ninguno', () => {
+      const pelado = viaje(LAPUYADE_3, PALENCIA_2, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+      const viejo = viaje(
+        LAPUYADE_3,
+        PALENCIA_2,
+        // El `as` es el cliente viejo: por HTTP esto llega como cadena.
+        { puedeEntrarEnLaZbe: false, aparcamiento: 'regulado' as unknown as TipoDeAparcamiento },
+        MARTES_A_LAS_10,
+      );
+      assert.equal(selloDe(viejo), selloDe(pelado), 'un tipo desconocido ha cambiado el viaje');
+      assert.equal(viejo.pasos.some((x) => x.giro === 'aparca'), false, 'ha aparcado igualmente');
+      assert.deepEqual(comoSeVan(viejo), ['rodando']);
+      // Y **no es el gratuito**, que es donde caía antes: el gratuito sí aparca.
+      const gratis = viaje(
+        LAPUYADE_3,
+        PALENCIA_2,
+        { puedeEntrarEnLaZbe: false, aparcamiento: 'gratuito' },
+        MARTES_A_LAS_10,
+      );
+      assert.deepEqual(comoSeVan(gratis), ['rodando', 'andando']);
+      assert.notEqual(selloDe(viejo), selloDe(gratis));
     });
 
     /**

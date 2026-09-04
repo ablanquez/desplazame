@@ -28,7 +28,7 @@ const crudo = (fichero: string): { features: { id: string; properties: Record<st
     readFileSync(fileURLToPath(new URL(`../../app/data/${fichero}`, import.meta.url)), 'utf8'),
   ) as { features: { id: string; properties: Record<string, unknown> }[] };
 
-describe('⭐ DÓNDE SE DEJA EL COCHE — los tres montones', () => {
+describe('⭐ DÓNDE SE DEJA EL COCHE — los cuatro montones', () => {
   before(() => {
     inventario = cargarAparcamiento();
   });
@@ -39,13 +39,20 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los tres montones', () => {
    * No son números redondos elegidos por gusto: son los del fichero que está en
    * el repositorio, con su sha256 en la ficha.
    */
-  test('⭐ los tres montones son 1.159, 6.204 y 1.226', () => {
-    assert.equal(inventario.regulado.length, 1159, 'el regulado son 664 ESRO + 495 ESRE');
-    assert.equal(inventario.regulado.filter((t) => t.clase === 'ESRO').length, 664);
-    assert.equal(inventario.regulado.filter((t) => t.clase === 'ESRE').length, 495);
+  test('⭐ los cuatro montones son 664, 495, 6.204 y 1.226', () => {
+    assert.equal(inventario.azul.length, 664, 'la zona azul son los ESRO');
+    assert.equal(inventario.naranja.length, 495, 'la zona naranja son los ESRE');
     assert.equal(inventario.gratuito.length, 6204, 'el gratuito son los LIBRE');
-    assert.equal(inventario.gratuito.every((t) => t.clase === 'LIBRE'), true);
     assert.equal(inventario.pmr.length, 1226, 'las PMR en vigor');
+    // ⭐ Y CADA MONTÓN ES DE SU CLASE ENTERO, no «de su clase el que ganó»: es
+    //    lo que el reparto por nombre promete, y lo que el ternario con `else`
+    //    no podía prometer. Ver `dondeAparcarCerca`.
+    assert.equal(inventario.azul.every((t) => t.clase === 'ESRO'), true);
+    assert.equal(inventario.naranja.every((t) => t.clase === 'ESRE'), true);
+    assert.equal(inventario.gratuito.every((t) => t.clase === 'LIBRE'), true);
+    // Y ningún tramo está en dos montones: 664 + 495 + 6.204 ids distintos.
+    const todos = [...inventario.azul, ...inventario.naranja, ...inventario.gratuito];
+    assert.equal(new Set(todos.map((t) => t.id)).size, 664 + 495 + 6204);
   });
 
   /**
@@ -64,14 +71,18 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los tres montones', () => {
     );
     assert.equal(sinTipo.length, 28, 'el fichero tiene que traer 28 sin `tipo_actual`');
     const dentro = new Set([
-      ...inventario.regulado.map((t) => t.id),
+      ...inventario.azul.map((t) => t.id),
+      ...inventario.naranja.map((t) => t.id),
       ...inventario.gratuito.map((t) => t.id),
     ]);
     for (const f of sinTipo) {
       assert.equal(dentro.has(f.id), false, `el tramo ${f.id} no tiene tipo y está en un montón`);
     }
-    // Y la cuenta cierra: 7.391 del fichero = 1.159 + 6.204 + 28.
-    assert.equal(inventario.regulado.length + inventario.gratuito.length + 28, 7391);
+    // Y la cuenta cierra: 7.391 del fichero = 664 + 495 + 6.204 + 28.
+    assert.equal(
+      inventario.azul.length + inventario.naranja.length + inventario.gratuito.length + 28,
+      7391,
+    );
   });
 
   /**
@@ -145,7 +156,7 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los tres montones', () => {
    * § 1.11 no trae ninguna de las dos, así que ninguna puede aparecer en un
    * texto. Esta juez es la que la contraprueba «tarifa inventada» muerde.
    */
-  test('⭐ el regulado no dice precio ni horario: el censo no los trae', () => {
+  test('⭐ la azul y la naranja no dicen precio ni horario: el censo no los trae', () => {
     const campos = new Set<string>();
     for (const f of crudo('2026-08-18_wfs_movilidad-MU1_estacionamientos_calle.json').features.slice(
       0,
@@ -162,8 +173,8 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los tres montones', () => {
         `el censo trae un campo «${prohibido}»: habría que decidir si se enseña`,
       );
     }
-    const esro = inventario.regulado.find((t) => t.clase === 'ESRO')!;
-    const [suyo] = dondeAparcarCerca(inventario, 'regulado', esro.g[0]![0], esro.g[0]![1], 1);
+    const esro = inventario.azul[0]!;
+    const [suyo] = dondeAparcarCerca(inventario, 'azul', esro.g[0]![0], esro.g[0]![1], 1);
     // ⭐ La palabra es la del REGLAMENTO, no una traducción nuestra: el
     //    Reglamento Municipal del Servicio de Estacionamiento Regulado escribe
     //    «los sectores ESRE ("zona naranja") como en los de rotación, ESRO
@@ -172,9 +183,16 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los tres montones', () => {
     // Y la sigla ya NO encabeza la frase: quien aparca no tiene por qué
     // traducir un código del censo para saber de qué acera se le habla.
     assert.equal(suyo!.detalle.includes('ESRO'), false);
-    const esre = inventario.regulado.find((t) => t.clase === 'ESRE')!;
-    const [deResidentes] = dondeAparcarCerca(inventario, 'regulado', esre.g[0]![0], esre.g[0]![1], 1);
+    const esre = inventario.naranja[0]!;
+    const [deResidentes] = dondeAparcarCerca(inventario, 'naranja', esre.g[0]![0], esre.g[0]![1], 1);
     assert.equal(deResidentes!.detalle, 'zona naranja (residentes)');
+    // ⭐ Y **pedirle a un montón el sitio del otro no lo da**: el punto de un
+    //    ESRO preguntado a la naranja contesta un ESRE, y al revés. Es la
+    //    separación mirada desde el otro lado que la juez 1 del viaje.
+    assert.equal(deResidentes!.id !== suyo!.id, true);
+    const [alRevés] = dondeAparcarCerca(inventario, 'naranja', esro.g[0]![0], esro.g[0]![1], 1);
+    assert.equal(alRevés!.detalle, 'zona naranja (residentes)');
+    assert.equal(inventario.azul.some((t) => t.id === alRevés!.id), false);
     for (const inventado of ['€', 'euro', 'hora', ':', 'tarifa']) {
       assert.equal(
         suyo!.detalle.toLowerCase().includes(inventado),
@@ -210,7 +228,7 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los tres montones', () => {
    * recta decide: **podar**. Quien elige es el coste, y eso pasa en el viaje.
    */
   test('⭐ los candidatos vienen del más cercano al más lejano', () => {
-    for (const tipo of ['regulado', 'gratuito', 'discapacitado'] as const) {
+    for (const tipo of ['azul', 'naranja', 'gratuito', 'discapacitado'] as const) {
       const lista = dondeAparcarCerca(inventario, tipo, -0.8779, 41.656, 20);
       assert.equal(lista.length, 20, `${tipo}: no hay 20 candidatos en el centro`);
       for (let k = 1; k < lista.length; k++) {

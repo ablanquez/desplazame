@@ -468,8 +468,9 @@ console.log(
 console.log('motor: cargando dónde se aparca…');
 const aparcamiento = elAparcamiento();
 console.log(
-  `motor: aparcamiento — regulado ${aparcamiento.regulado.length} tramos ` +
-    `(ESRO + ESRE) · gratuito ${aparcamiento.gratuito.length} · ` +
+  `motor: aparcamiento — azul ${aparcamiento.azul.length} tramos (ESRO) · ` +
+    `naranja ${aparcamiento.naranja.length} (ESRE) · ` +
+    `gratuito ${aparcamiento.gratuito.length} · ` +
     `PMR ${aparcamiento.pmr.length} plazas · ${aparcamiento.cargadoEnMs.toFixed(0)} ms`,
 );
 console.log(
@@ -997,7 +998,7 @@ servidor.listen(PUERTO, () => {
       'la ZBE AVISA, no veta: la app no sabe qué distintivo lleva el vehículo',
   );
   console.log(
-    'motor:   y con `aparcamiento` (regulado|discapacitado|gratuito) remata car-to-park: ' +
+    'motor:   y con `aparcamiento` (azul|naranja|discapacitado|gratuito) remata car-to-park: ' +
       'conducir al mejor sitio POR COSTE y andar el resto',
   );
   console.log(

@@ -58,32 +58,57 @@ export type TipoDeRuta =
   | 'tranquila';
 
 /**
- * ⭐ DÓNDE SE DEJA EL COCHE, cuando se quiere dejar (3/09).
+ * ⭐ DÓNDE SE DEJA EL COCHE, cuando se quiere dejar (3/09; partido el 4/09).
  *
- * Los tres montones del dato municipal, y **son montones, no gustos**: cada uno
- * sale de un campo concreto de una capa concreta y no de una preferencia.
+ * Los cuatro montones del dato municipal, y **son montones, no gustos**: cada
+ * uno sale de un campo concreto de una capa concreta y no de una preferencia.
  *
- *   · `regulado` — los **1.159 tramos** de bordillo `ESRO` (rotación, la zona
- *     azul) y `ESRE` (residentes) de § 1.11. Manda `tipo_actual`, que es el
- *     único campo que dice si se paga: filtrar por `zona_reguladora` se lleva
- *     5.049 bordillos gratuitos pintados como de pago.
+ *   · `azul` — los **664 tramos `ESRO`** de § 1.11, los de rotación.
+ *   · `naranja` — los **495 tramos `ESRE`**, los de residentes.
  *   · `discapacitado` — las **1.226 reservas PMR** de § 1.13, filtradas por
  *     `TIPO === '14_PMR'`. Por `SUBTIPO` se colarían 158 retiradas o denegadas,
  *     y a esas plazas no existe quien menos puede permitirse el viaje en balde.
  *   · `gratuito` — el complemento: los **6.204 tramos `LIBRE`**. Donde no hay
- *     regulado, hay gratuito.
+ *     regulación, hay gratuito.
  *
- * ⚠️ **Los 28 tramos con `tipo_actual` nulo no están en ninguno de los tres**, y
- *    eso es un dato y no un descarte: el censo no dice qué son, así que no se
+ * En los dos primeros manda `tipo_actual`, que es el único campo que dice si se
+ * paga: filtrar por `zona_reguladora` se lleva 5.049 bordillos gratuitos
+ * pintados como de pago.
+ *
+ * ⭐ **LOS NOMBRES SON LOS DEL REGLAMENTO, no un apodo.** El Reglamento
+ * Municipal del Servicio de Estacionamiento Regulado —el vigente,
+ * `zaragoza.es/sede/servicio/normativa/13291`— escribe la equivalencia él
+ * mismo, literal: *«los sectores ESRE ("zona naranja") como en los de rotación,
+ * ESRO ("zona azul")»*. Así que el valor del contrato, el botón de la pantalla y
+ * la frase del paso dicen **la misma palabra**, y esa palabra es la de la norma.
+ *
+ * ⚠️ **AQUÍ HUBO UN `regulado` QUE ERA LOS DOS A LA VEZ, y se ha ido** (4/09).
+ *    Mandaba al mejor bordillo de los 1.159 sin mirar cuál de los dos era, y eso
+ *    es una respuesta que no sirve: la zona azul se paga por horas y en la
+ *    naranja **aparca quien vive allí**. Quien pregunta dónde dejar el coche no
+ *    está preguntando por «lo regulado», está preguntando por una de las dos.
+ *
+ *    Y la migración **no deja un agujero callado, lo cierra**. Medido el 4/09:
+ *    hoy un tipo que el contrato no tiene —`azul` antes de existir— caía en el
+ *    `else` de `dondeAparcarCerca` y **aparcaba en el gratuito sin decir nada**
+ *    («Aparca en Calle Arquitecto la Figuera: estacionamiento sin regulación»).
+ *    Desde el reparto, cada valor elige su montón por su nombre y lo que no es
+ *    ninguno de los cuatro **no elige montón**: se cae al viaje hasta la puerta,
+ *    que es el de la casilla 1b y se ve —un solo tramo y ningún hito 🅿—. Un
+ *    cliente viejo que todavía mande `regulado` recibe eso, no un aparcamiento
+ *    que nadie le ha buscado.
+ *
+ * ⚠️ **Los 28 tramos con `tipo_actual` nulo no están en ninguno de los cuatro**,
+ *    y eso es un dato y no un descarte: el censo no dice qué son, así que no se
  *    les puede mandar a nadie ni como regulado ni como gratis.
  *
  * ⚠️ **Y lo que el dato NO da no se dice.** El censo de § 1.11 **no trae tarifa
- *    ni horario** del regulado — medido—, así que la narración dice «zona
- *    regulada (ESRO)» y se calla el precio. El horario de las PMR sí viene, en
- *    **104 formas distintas** entre las 1.226, y por eso se enseña **tal cual**
- *    en vez de interpretarse.
+ *    ni horario** — medido—, así que la narración dice «zona azul (rotación)» y
+ *    se calla el precio. El horario de las PMR sí viene, en **104 formas
+ *    distintas** entre las 1.226, y por eso se enseña **tal cual** en vez de
+ *    interpretarse.
  */
-export type TipoDeAparcamiento = 'regulado' | 'discapacitado' | 'gratuito';
+export type TipoDeAparcamiento = 'azul' | 'naranja' | 'discapacitado' | 'gratuito';
 
 /**
  * Un punto del mapa: **latitud y longitud, en ese orden** (EPSG:4326, el CRS

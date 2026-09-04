@@ -1,18 +1,31 @@
 /**
- * ⭐ DÓNDE SE DEJA EL COCHE (3/09, punto 12 casilla 2): los tres montones.
+ * ⭐ DÓNDE SE DEJA EL COCHE (3/09, punto 12 casilla 2): los cuatro montones.
  *
  * Es la pieza que le falta al *car-to-park* [DOC OTP2: *«conducir al
  * aparcamiento y andar el resto»*]. No rutea nada — eso es `viaje-coche.ts`—:
  * lee los dos censos municipales que ya están en el repositorio, los reparte en
- * los tres montones del contrato, y sabe decir cuáles quedan cerca de un punto.
+ * los montones del contrato, y sabe decir cuáles quedan cerca de un punto.
  *
- * ── Los tres montones, y de qué campo sale cada uno ─────────────────────────
+ * ── Los cuatro montones, y de qué campo sale cada uno ───────────────────────
  *
  * | contrato | dato | filtro | cuántos |
  * |---|---|---|---|
- * | `regulado` | § 1.11, tramos de bordillo | `tipo_actual` ∈ {ESRO, ESRE} | 664 + 495 |
+ * | `azul` | § 1.11, tramos de bordillo | `tipo_actual` = ESRO | 664 |
+ * | `naranja` | § 1.11, los mismos | `tipo_actual` = ESRE | 495 |
  * | `gratuito` | § 1.11, los mismos | `tipo_actual` = LIBRE | 6.204 |
  * | `discapacitado` | § 1.13, reservas | `TIPO` = `14_PMR` | 1.226 |
+ *
+ * ⭐ **ESRO ES LA AZUL Y ESRE LA NARANJA, y lo dice la norma.** El Reglamento
+ * Municipal del Servicio de Estacionamiento Regulado —el vigente,
+ * `zaragoza.es/sede/servicio/normativa/13291`— escribe la equivalencia él
+ * mismo: *«los sectores ESRE ("zona naranja") como en los de rotación, ESRO
+ * ("zona azul")»*. La sigla se queda en `tipo_actual` y en `ClaseDeTramo`, que
+ * es donde nombra al dato; el contrato y la pantalla usan la palabra.
+ *
+ * ⚠️ **Eran DOS montones hasta el 4/09** —un `regulado` con los 1.159 juntos—,
+ *    y separarlos no es cosmético: en la azul se paga por horas y en la naranja
+ *    **aparca quien vive allí**. Mandar a un forastero al mejor bordillo de los
+ *    1.159 es mandarle la mitad de las veces a una plaza de residente.
  *
  * 🚨 **LOS DOS FILTROS SON LOS QUE SON, y las dos fichas explican por qué.**
  *
@@ -27,7 +40,7 @@
  * toca a quien menos puede permitirse el viaje en balde.
  *
  * ⚠️ **Y LOS 28 SIN CLASIFICAR NO ESTÁN EN NINGÚN MONTÓN.** El censo no dice qué
- *    son. No se les puede llamar gratuitos —«donde no hay regulado hay
+ *    son. No se les puede llamar gratuitos —«donde no hay regulación hay
  *    gratuito» vale para lo que el dato clasifica, no para lo que calla— ni
  *    regulados. Se cuentan, se declaran, y se quedan fuera.
  *
@@ -93,10 +106,12 @@ export interface PlazaPmr {
   readonly lat: number;
 }
 
-/** Los tres montones, con lo que se quedó fuera contado. */
+/** Los cuatro montones, con lo que se quedó fuera contado. */
 export interface AparcamientoEnMemoria {
-  /** ESRO + ESRE, en ese orden de lectura del fichero. */
-  readonly regulado: readonly TramoDeAparcamiento[];
+  /** ⭐ Los `ESRO`, los de rotación. La **zona azul** del reglamento. */
+  readonly azul: readonly TramoDeAparcamiento[];
+  /** ⭐ Los `ESRE`, los de residentes. La **zona naranja**. */
+  readonly naranja: readonly TramoDeAparcamiento[];
   readonly gratuito: readonly TramoDeAparcamiento[];
   readonly pmr: readonly PlazaPmr[];
   /** ⭐ Los 28 tramos con `tipo_actual` nulo. En ningún montón, y contados. */
@@ -131,8 +146,6 @@ interface RasgoDeReserva {
   };
 }
 
-const REGULADAS: ReadonlySet<string> = new Set(['ESRO', 'ESRE']);
-
 /** Lee los dos censos y los reparte. **Una vez**, al arrancar. */
 export function cargarAparcamiento(): AparcamientoEnMemoria {
   const principio = performance.now();
@@ -140,7 +153,8 @@ export function cargarAparcamiento(): AparcamientoEnMemoria {
   const tramos = JSON.parse(readFileSync(TRAMOS, 'utf8')) as {
     readonly features?: readonly RasgoDeTramo[];
   };
-  const regulado: TramoDeAparcamiento[] = [];
+  const azul: TramoDeAparcamiento[] = [];
+  const naranja: TramoDeAparcamiento[] = [];
   const gratuito: TramoDeAparcamiento[] = [];
   let sinClasificar = 0;
   for (const rasgo of tramos.features ?? []) {
@@ -167,7 +181,9 @@ export function cargarAparcamiento(): AparcamientoEnMemoria {
       plazas: rasgo.properties?.plazas ?? null,
       g: g.map((p) => [p[0], p[1]] as Punto),
     };
-    (REGULADAS.has(clase) ? regulado : gratuito).push(tramo);
+    // ⭐ El reparto por la clase, y **una clase, un montón**: el `switch` del
+    //    censo, no un «si no es esto, lo otro». Ver la cabecera.
+    (clase === 'ESRO' ? azul : clase === 'ESRE' ? naranja : gratuito).push(tramo);
   }
 
   const reservas = JSON.parse(readFileSync(RESERVAS, 'utf8')) as {
@@ -193,7 +209,8 @@ export function cargarAparcamiento(): AparcamientoEnMemoria {
   }
 
   return {
-    regulado,
+    azul,
+    naranja,
     gratuito,
     pmr,
     sinClasificar,
@@ -364,7 +381,32 @@ export function dondeAparcarCerca(
         enRecta: m,
       }));
   }
-  const monton = tipo === 'regulado' ? inventario.regulado : inventario.gratuito;
+  /**
+   * ⭐ **EL MONTÓN SE ELIGE POR SU NOMBRE, uno a uno** (4/09).
+   *
+   * Aquí había un `tipo === 'regulado' ? regulado : gratuito`, y ese ternario
+   * tenía un `else` que se tragaba **cualquier cosa**: medido el 4/09, pedir un
+   * tipo que el contrato no tiene devolvía un viaje que aparcaba en el gratuito
+   * sin decirlo —«Aparca en Calle Arquitecto la Figuera: estacionamiento sin
+   * regulación»—. El tipo lo garantiza en compilación, pero por HTTP entra una
+   * cadena: `peticion.ts` mira la FORMA y no la lista, como con `modo`.
+   *
+   * Con la elección por nombre, lo que no es ninguno de los cuatro **no elige
+   * montón**: se va sin candidatos, `viajeConAparcamiento` devuelve `null` y el
+   * viaje se cae al de la puerta —un solo tramo, ningún hito 🅿—. Es la conducta
+   * de la casilla 1b, y se ve. Callar y aparcar donde nadie pidió, no.
+   */
+  const monton =
+    tipo === 'azul'
+      ? inventario.azul
+      : tipo === 'naranja'
+        ? inventario.naranja
+        : tipo === 'gratuito'
+          ? inventario.gratuito
+          : null;
+  if (!monton) {
+    return [];
+  }
   return monton
     .map((t) => {
       const q = puntoMasCercanoDeLaLinea(t.g, lon, lat);
