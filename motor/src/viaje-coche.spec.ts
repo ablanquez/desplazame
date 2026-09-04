@@ -378,8 +378,15 @@ const ESRO_SAN_BLAS = 'MU1_estacionamientos_calle.50612';
 const ESRE_MOSEN_PEDRO_DOSSET = 'MU1_estacionamientos_calle.46777';
 const LIBRE_ARQUITECTO_LA_FIGUERA = 'MU1_estacionamientos_calle.45408';
 const PMR_ECHEGARAY = 'MU1_reservas.43011';
-/** Y el aparcamoto donde la MOTO remata ese mismo viaje. Medido, no elegido. */
-const APARCAMOTO_DE_ABEN_AIRE = '2008';
+/**
+ * Y el aparcamoto donde la MOTO remata ese mismo viaje. Medido, no elegido.
+ *
+ * ⚠️ **El id cambió el 4/09 al pasar la fuente al WFS, y el SITIO no.** Era
+ *    `2008` cuando mandaba el directorio de la sede y es `MU2_motos.1876` desde
+ *    que manda la capa: **PREDICADORES 28, 6 plazas, a 0,0 m** — el mismo
+ *    soporte con otro número. Lo que cambió es la puerta, no el sitio.
+ */
+const APARCAMOTO_DE_ABEN_AIRE = 'MU2_motos.1876';
 
 describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
   before(() => {
@@ -1663,10 +1670,13 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
        *    daría exactamente la misma respuesta. Medido el 4/09 sobre 25 destinos
        *    repartidos por la ciudad: **en 8 de los 25 discrepan**.
        *
-       * El caso citado es `Portales.105703`: gana el `1719` de CORONA DE ARAGÓN
-       * 2, y el más cercano en recta es el `935` de LUIS DEL VALLE 3, **a 59 m**
-       * del portal. Es la juez que la contraprueba «el remate ignorando el
-       * coste» muerde.
+       * El caso citado es `Portales.105703`: gana el `MU2_motos.1575` de CORONA
+       * DE ARAGÓN 2, y el más cercano en recta es el `MU2_motos.858` de LUIS DEL
+       * VALLE 3, **a menos de 70 m** del portal. Es la juez que la contraprueba
+       * «el remate ignorando el coste» muerde.
+       *
+       * ⚠️ Los dos ids cambiaron el 4/09 con la fuente —eran `1719` y `935` en
+       *    el directorio de la sede— y **los dos sitios son los mismos, a 0,0 m**.
        */
       const DISCREPAN = 'Portales.105703';
       const otro = enMoto(LAPUYADE_3, DISCREPAN);
@@ -1675,8 +1685,8 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       const gana = aparcamotosCerca(laLon, laLat, 1)[0]!;
       const suExtremo = extremo(DISCREPAN);
       const masCerca = aparcamotosCerca(suExtremo.lon, suExtremo.lat, 1)[0]!;
-      assert.equal(gana.id, '1719');
-      assert.equal(masCerca.id, '935');
+      assert.equal(gana.id, 'MU2_motos.1575');
+      assert.equal(masCerca.id, 'MU2_motos.858');
       assert.notEqual(gana.id, masCerca.id, 'si ganara el más cercano, el coste no decidiría');
       assert.ok(masCerca.enRecta < 70, `el más cercano está a ${masCerca.enRecta} m`);
     });

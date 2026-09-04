@@ -52,13 +52,13 @@
  * más simple que el caso del coche, y lo es porque la norma da menos.
  */
 
-import type { Aviso, ParteDelPaso, Paso, Trayecto } from '@desplazame/tipos';
-import { aparcamotosCerca, type AparcamotoCerca } from './aparcamotos.ts';
-import type { RedDeCocheServida } from './coche.ts';
-import { etapaAndando, juntar, type Extremo } from './etapas.ts';
-import type { Motor } from './trayecto.ts';
-import { comoSePresenta } from './pasos.ts';
-import { enganchar, type Enganche } from './proyeccion.ts';
+import type { Aviso, ParteDelPaso, Paso, Trayecto } from "@desplazame/tipos";
+import { aparcamotosCerca, type AparcamotoCerca } from "./aparcamotos.ts";
+import type { RedDeCocheServida } from "./coche.ts";
+import { etapaAndando, juntar, type Extremo } from "./etapas.ts";
+import type { Motor } from "./trayecto.ts";
+import { comoSePresenta } from "./pasos.ts";
+import { enganchar, type Enganche } from "./proyeccion.ts";
 
 /** Un punto del mapa en el orden de los ficheros: `[lon, lat]`. */
 type Punto = readonly [number, number];
@@ -70,7 +70,7 @@ import {
   rutaAlMejorAparcamiento,
   vetoDeLaZbe,
   type AristaVetada,
-} from './viaje-coche.ts';
+} from "./viaje-coche.ts";
 
 /** Lo que se puede pedir además de ir de un sitio a otro. */
 export interface OpcionesDeLaMoto {
@@ -100,42 +100,69 @@ export interface OpcionesDeLaMoto {
 export const APARCAMOTOS_CANDIDATOS = 40;
 
 /**
- * ⭐ CÓMO SE LEE EL SITIO donde se deja la moto.
+ * ⭐ CÓMO SE LEE EL SITIO donde se deja la moto: **la calle y el portal**.
  *
- * La sede escribe la dirección como `"CALANDA, 9"` —calle y portal, en
- * mayúsculas y sin tipo de vía—. Se presenta con `comoSePresenta`, que es
- * **exactamente el mismo trato** que el bordillo del coche recibe para su
- * `direccion` del censo: pasar de mayúsculas plenas a como se lee. No es una
- * interpretación nueva, es la de siempre aplicada a otro campo.
+ * El WFS los trae en dos campos, `Nombre_calle` en mayúsculas —`"PREDICADORES"`—
+ * y `Portal` tal cual —`"28"`, `"s/n"`, `"88 DP"`—. Se juntan con un espacio,
+ * que es **como esta casa escribe una dirección** en todas partes, y el nombre
+ * pasa por `comoSePresenta`, que es el mismo trato que el bordillo del coche
+ * recibe para su `direccion` del censo: de mayúsculas plenas a como se lee.
+ *
+ * ⚠️ **El `Tipo_via` no entra**, ni aquí ni en el cocinado: expandir `CL` a
+ *    «Calle» sería inventarse una tabla que este repositorio no tiene.
+ *
+ * ⚠️ Y **6 de los 2.146 no traen calle** —§ 1.10 los declara—: ésos se nombran
+ *    «el aparcamiento de motos», sin más. Un sitio sin nombre se dice sin
+ *    nombre; ponerle el portal a secas sería peor que callar.
  */
 export function nombreDelAparcamoto(a: AparcamotoCerca, motor: Motor): string {
+  const suyo = comoSeLeeElSitio(a, motor);
+  return suyo === null
+    ? "el aparcamiento de motos"
+    : `el aparcamiento de motos de ${suyo}`;
+}
+
+/** La calle presentada más el portal, o `null` si el WFS no da calle. */
+function comoSeLeeElSitio(a: AparcamotoCerca, motor: Motor): string | null {
   const via = a.via.trim();
-  if (via === '') {
-    return 'el aparcamiento de motos';
+  if (via === "") {
+    return null;
   }
-  return `el aparcamiento de motos de ${comoSePresenta(via, true, motor.red.articulosPropios)}`;
+  const comoSeVe = comoSePresenta(via, true, motor.red.articulosPropios);
+  const portal = a.portal.trim();
+  return portal === "" ? comoSeVe : `${comoSeVe} ${portal}`;
 }
 
 /**
- * ⭐ EL HITO: «Aparca en el aparcamiento de motos de Calanda, 9 (sin coste)».
+ * ⭐ EL HITO: «Aparca en el aparcamiento de motos de Predicadores 28 (sin coste)».
  *
  * El «(sin coste)» no es una promesa nuestra: el Reglamento Municipal del SER
  * deja a las motocicletas **exentas de la tasa**, así que dejarla ahí no cuesta
  * dinero. Es la única cifra que se puede decir de un aparcamiento en esta
  * aplicación, y por eso se dice — del bordillo regulado se calla el precio
  * porque el censo no lo trae; aquí no hay precio que traer.
+ *
+ * ⚠️ Y **sin calle, el hito no la inventa**: dice «Aparca en el aparcamiento de
+ *    motos (sin coste)» y ya está. Son 6 de los 2.146.
  */
 function hitoDeAparcarLaMoto(a: AparcamotoCerca, motor: Motor): Paso {
-  const partes: ParteDelPaso[] = [
-    { papel: 'accion', texto: 'Aparca' },
-    { papel: 'texto', texto: ' en el aparcamiento de motos de ' },
-    { papel: 'via', texto: comoSePresenta(a.via.trim(), true, motor.red.articulosPropios) },
-    { papel: 'texto', texto: ' (sin coste)' },
-  ];
+  const suyo = comoSeLeeElSitio(a, motor);
+  const partes: ParteDelPaso[] =
+    suyo === null
+      ? [
+          { papel: "accion", texto: "Aparca" },
+          { papel: "texto", texto: " en el aparcamiento de motos (sin coste)" },
+        ]
+      : [
+          { papel: "accion", texto: "Aparca" },
+          { papel: "texto", texto: " en el aparcamiento de motos de " },
+          { papel: "via", texto: suyo },
+          { papel: "texto", texto: " (sin coste)" },
+        ];
   return {
-    giro: 'aparca',
+    giro: "aparca",
     // Un hito no abre tramo: es una parada, como el aparcabicis y la estación.
-    texto: partes.map((x) => x.texto).join(''),
+    texto: partes.map((x) => x.texto).join(""),
     metros: 0,
     partes,
   };
@@ -151,17 +178,17 @@ function hitoDeAparcarLaMoto(a: AparcamotoCerca, motor: Motor): Paso {
  */
 export function avisoDelRemateFueraDeLaZona(donde: string): string {
   return (
-    'Tu destino queda dentro de la Zona de Bajas Emisiones. Sin distintivo solo se puede ' +
-    'entrar con autorización, y un aparcamiento de motos de calle no es de los que la ' +
+    "Tu destino queda dentro de la Zona de Bajas Emisiones. Sin distintivo solo se puede " +
+    "entrar con autorización, y un aparcamiento de motos de calle no es de los que la " +
     `ordenanza deja entrar a usar: esta ruta remata en ${donde}, fuera de la zona, y el ` +
-    'resto se anda.'
+    "resto se anda."
   );
 }
 
 /** Un trayecto vacío con su explicación, como en el resto de los modos. */
 function sinRuta(texto: string): Trayecto {
   return {
-    modo: 'moto',
+    modo: "moto",
     pasos: [],
     geometria: [],
     avisos: [{ texto }],
@@ -189,7 +216,8 @@ export function viajeEnMoto(
   const noEntra = opciones?.puedeEntrarEnLaZbe === false;
   // Se veta solo si las dos cosas, igual que el coche: fuera de la franja no hay
   // nada que vetar, y vetar igualmente sería inventarse una restricción.
-  const vetada: AristaVetada | undefined = noEntra && enVigor ? vetoDeLaZbe(servida) : undefined;
+  const vetada: AristaVetada | undefined =
+    noEntra && enVigor ? vetoDeLaZbe(servida) : undefined;
 
   /**
    * Un extremo que cae dentro de la zona se mira **sobre el enganche SIN
@@ -201,13 +229,20 @@ export function viajeEnMoto(
     if (!vetada) {
       return false;
     }
-    const crudo = enganchar(servida.comoRed, servida.rejilla, donde.lon, donde.lat);
+    const crudo = enganchar(
+      servida.comoRed,
+      servida.rejilla,
+      donde.lon,
+      donde.lat,
+    );
     return crudo !== null && vetada(crudo.arista);
   };
   if (dentroDeLaZona(origen)) {
     // Del origen no hay remate posible: la moto ya está dentro, y sacarla sin
     // pisar la zona es justo lo que no se puede.
-    return sinRuta(`${AVISO_ZBE_SIN_RUTA}. ${origen.nombre} queda dentro de la zona.`);
+    return sinRuta(
+      `${AVISO_ZBE_SIN_RUTA}. ${origen.nombre} queda dentro de la zona.`,
+    );
   }
   const destinoDentro = dentroDeLaZona(destino);
 
@@ -223,7 +258,7 @@ export function viajeEnMoto(
       vetada
         ? AVISO_ZBE_SIN_RUTA
         : `${origen.nombre} no tiene cerca ninguna calle por la que pueda circular una ` +
-            'moto en nuestro mapa: desde ahí no podemos calcular una ruta en moto.',
+            "moto en nuestro mapa: desde ahí no podemos calcular una ruta en moto.",
     );
   }
 
@@ -233,8 +268,17 @@ export function viajeEnMoto(
     readonly enganche: Enganche;
     readonly paseo: number;
   }[] = [];
-  for (const donde of aparcamotosCerca(destino.lon, destino.lat, APARCAMOTOS_CANDIDATOS)) {
-    const enMoto = enganchar(servida.comoRed, servida.rejilla, donde.lon, donde.lat);
+  for (const donde of aparcamotosCerca(
+    destino.lon,
+    destino.lat,
+    APARCAMOTOS_CANDIDATOS,
+  )) {
+    const enMoto = enganchar(
+      servida.comoRed,
+      servida.rejilla,
+      donde.lon,
+      donde.lat,
+    );
     if (!enMoto) {
       continue;
     }
@@ -257,8 +301,14 @@ export function viajeEnMoto(
     if (vetada && vetada(enMoto.arista)) {
       continue;
     }
-    const parada: Extremo = { lon: donde.lon, lat: donde.lat, nombre: nombreDelAparcamoto(donde, motor) };
-    const aPie = etapaAndando(motor, parada, destino, { apertura: 'Sal andando' });
+    const parada: Extremo = {
+      lon: donde.lon,
+      lat: donde.lat,
+      nombre: nombreDelAparcamoto(donde, motor),
+    };
+    const aPie = etapaAndando(motor, parada, destino, {
+      apertura: "Sal andando",
+    });
     if (!aPie) {
       continue;
     }
@@ -270,7 +320,7 @@ export function viajeEnMoto(
         ? `${AVISO_ZBE_SIN_RUTA}. No hay ningún aparcamiento de motos fuera de la zona al que ` +
             `se pueda llegar y desde el que se pueda andar hasta ${destino.nombre}.`
         : `No hay ningún aparcamiento de motos cerca de ${destino.nombre} al que se pueda ` +
-            'llegar en moto y desde el que se pueda andar hasta la puerta.',
+            "llegar en moto y desde el que se pueda andar hasta la puerta.",
     );
   }
 
@@ -278,7 +328,10 @@ export function viajeEnMoto(
     servida,
     engancheOrigen,
     [origen.lon, origen.lat],
-    utiles.map((u) => ({ enganche: u.enganche, punto: [u.donde.lon, u.donde.lat] as Punto })),
+    utiles.map((u) => ({
+      enganche: u.enganche,
+      punto: [u.donde.lon, u.donde.lat] as Punto,
+    })),
     utiles.map((u) => u.paseo),
     vetada,
   );
@@ -287,7 +340,7 @@ export function viajeEnMoto(
       vetada
         ? AVISO_ZBE_SIN_RUTA
         : `No hay forma de ir en moto de ${origen.nombre} a ${destino.nombre} por las calles ` +
-            'que conocemos.',
+            "que conocemos.",
     );
   }
 
@@ -300,7 +353,9 @@ export function viajeEnMoto(
   const { etapa, aperturas } = etapaEnCoche(servida, mejor, origen, parada, {
     cierre: hitoDeAparcarLaMoto(gana.donde, motor),
   });
-  const aPie = etapaAndando(motor, parada, destino, { apertura: 'Sal andando' });
+  const aPie = etapaAndando(motor, parada, destino, {
+    apertura: "Sal andando",
+  });
   if (!aPie) {
     return sinRuta(
       `No se puede andar desde ${parada.nombre} hasta ${destino.nombre} en nuestro mapa.`,
@@ -318,12 +373,16 @@ export function viajeEnMoto(
   const avisos: readonly Aviso[] =
     vetada && destinoDentro
       ? [{ texto: avisoDelRemateFueraDeLaZona(parada.nombre) }]
-      : avisosDeLaZbe(servida, mejor.trozos, aperturas, { enVigor, noEntra, cuando });
+      : avisosDeLaZbe(servida, mejor.trozos, aperturas, {
+          enVigor,
+          noEntra,
+          cuando,
+        });
 
   return juntar(
-    { modo: 'moto', avisos },
+    { modo: "moto", avisos },
     // El tramo que se conduce MUERE en el aparcamoto: ahí va el icono. El que se
     // anda muere en el portal, que ya lleva su chincheta de destino.
-    [{ ...etapa, hito: 'aparca' }, aPie],
+    [{ ...etapa, hito: "aparca" }, aPie],
   );
 }
