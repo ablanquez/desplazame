@@ -956,7 +956,7 @@ const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', '
  */
 export const APARCAMIENTOS_CANDIDATOS = 40;
 
-/** ⭐ EL HITO: «Aparca en CALLE X: zona regulada (ESRO)». */
+/** ⭐ EL HITO: «Aparca en CALLE X: zona azul (rotación)». */
 function hitoDeAparcar(motor: Motor, donde: DondeAparcar): Paso {
   const partes: ParteDelPaso[] = [{ papel: 'accion', texto: 'Aparca' }];
   if (donde.via !== null && donde.via.trim() !== '') {

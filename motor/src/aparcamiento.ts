@@ -36,7 +36,7 @@
  * § 1.11 **no trae tarifa ni horario**: sus campos son `tipo_actual`,
  * `direccion`, `portal`, `forma_estacionar`, `longitud`, `plazas`,
  * `zona_reguladora`, `distrito`, `codigo` y `tipo_via`, y ninguno es un precio
- * ni una franja. Así que el paso dice «zona regulada (ESRO)» y **se calla lo
+ * ni una franja. Así que el paso dice «zona azul (rotación)» y **se calla lo
  * que costaría**, que es lo único honrado que se puede decir.
  *
  * El horario de las PMR sí viene, y viene sucio: **104 formas distintas** entre
@@ -287,14 +287,34 @@ export function puntoMasCercanoDeLaLinea(
   return { lon: mejor[0], lat: mejor[1] };
 }
 
-/** Cómo se lee un tramo regulado o gratuito en el paso del hito. */
+/**
+ * Cómo se lee un tramo regulado o gratuito en el paso del hito.
+ *
+ * ⭐ **ZONA AZUL Y ZONA NARANJA, y la palabra no es nuestra: es la del
+ * reglamento** (4/09). El Reglamento Municipal del Servicio de Estacionamiento
+ * Regulado —el vigente, `zaragoza.es/sede/servicio/normativa/13291`— escribe la
+ * equivalencia él mismo, literal:
+ *
+ *   *«los sectores ESRE ("zona naranja") como en los de rotación, ESRO ("zona
+ *   azul")»*
+ *
+ * Así que lo que la gente dice **y** lo que la norma dice son lo mismo, y no
+ * hay que elegir entre hablar claro y ser fiel.
+ *
+ * ⚠️ **Y la sigla se va de la frase.** Encabezaba —«zona regulada (ESRO)»— y
+ *    eso obligaba a quien aparca a traducir un código del censo para entender
+ *    de qué acera se le habla. La sigla sigue viva donde tiene sentido: en el
+ *    `tipo_actual` del dato, en `ClaseDeTramo`, en la cabecera de este fichero y
+ *    en el arranque del motor. En el paso, lo que se lee es la calle.
+ *
+ * ⚠️ Ni tarifa ni franja: el censo NO las trae. Ver la cabecera.
+ */
 function detalleDelTramo(clase: ClaseDeTramo): string {
-  // ⚠️ Ni tarifa ni franja: el censo NO las trae. Ver la cabecera.
   if (clase === 'ESRO') {
-    return 'zona regulada (ESRO)';
+    return 'zona azul (rotación)';
   }
   if (clase === 'ESRE') {
-    return 'zona regulada de residentes (ESRE)';
+    return 'zona naranja (residentes)';
   }
   // ⏳ La palabra del gratuito se afina en la demo: lo que el dato dice es que
   // ese bordillo no está regulado, no que aparcar allí sea gratis para siempre.

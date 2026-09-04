@@ -732,10 +732,14 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
         assert.equal(t.tramos[1]!.desde, t.tramos[0]!.hasta, `${nombre}: hay un hueco entre tramos`);
       }
 
-      // El paso del hito dice DÓNDE y QUÉ es, con la palabra del censo.
+      // El paso del hito dice DÓNDE y QUÉ es, **con la palabra del reglamento**:
+      // «los sectores ESRE ("zona naranja") como en los de rotación, ESRO
+      // ("zona azul")» [Reglamento Municipal del SER, el vigente].
       const hitoReg = reg.pasos.find((x) => x.giro === 'aparca')!;
       assert.match(hitoReg.texto, /^Aparca en /);
-      assert.match(hitoReg.texto, /zona regulada de residentes \(ESRE\)$/);
+      assert.match(hitoReg.texto, /zona naranja \(residentes\)$/);
+      // Y la sigla no sale por ninguna parte de la frase.
+      assert.equal(/ESRO|ESRE/.test(hitoReg.texto), false);
       assert.match(hitoReg.texto, /Mosen Pedro Dosset/);
       assert.equal(hitoReg.metros, 0, 'un hito no abre tramo');
 
@@ -1200,10 +1204,15 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
         { puedeEntrarEnLaZbe: false, aparcamiento: 'regulado' },
         MARTES_A_LAS_10,
       );
+      // ⚠️ Este sello cambió el 4/09 y **solo por la palabra**: el hito pasó de
+      //    «zona regulada (ESRO)» a «zona azul (rotación)». Ni un metro, ni un
+      //    segundo, ni un vértice se mueven — lo compra la línea de abajo.
       assert.equal(
         selloDe(conParking),
-        'dcefcd2ab3a182ee29966d8b5630db6b25b29738407c254634f970355698dd37',
+        '1429553724ab4e7993587c50bf424fc7d0dcde1b38557ef5a04e8bb1abccdf85',
       );
+      assert.equal(conParking.metros, 4341);
+      assert.equal(conParking.geometria.length, 306);
     });
 
     /**

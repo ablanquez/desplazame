@@ -164,7 +164,17 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los tres montones', () => {
     }
     const esro = inventario.regulado.find((t) => t.clase === 'ESRO')!;
     const [suyo] = dondeAparcarCerca(inventario, 'regulado', esro.g[0]![0], esro.g[0]![1], 1);
-    assert.equal(suyo!.detalle, 'zona regulada (ESRO)');
+    // ⭐ La palabra es la del REGLAMENTO, no una traducción nuestra: el
+    //    Reglamento Municipal del Servicio de Estacionamiento Regulado escribe
+    //    «los sectores ESRE ("zona naranja") como en los de rotación, ESRO
+    //    ("zona azul")». Ver `detalleDelTramo`.
+    assert.equal(suyo!.detalle, 'zona azul (rotación)');
+    // Y la sigla ya NO encabeza la frase: quien aparca no tiene por qué
+    // traducir un código del censo para saber de qué acera se le habla.
+    assert.equal(suyo!.detalle.includes('ESRO'), false);
+    const esre = inventario.regulado.find((t) => t.clase === 'ESRE')!;
+    const [deResidentes] = dondeAparcarCerca(inventario, 'regulado', esre.g[0]![0], esre.g[0]![1], 1);
+    assert.equal(deResidentes!.detalle, 'zona naranja (residentes)');
     for (const inventado of ['€', 'euro', 'hora', ':', 'tarifa']) {
       assert.equal(
         suyo!.detalle.toLowerCase().includes(inventado),
