@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { TipoDeAparcamiento, Trayecto } from '@desplazame/tipos';
+import type { Modo, TipoDeAparcamiento, Trayecto } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed } from './red.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
@@ -44,6 +44,7 @@ import {
 import { dentroDeLaZbe } from './red-coche.ts';
 import { losParkingsDeLaZbe, type ParkingCocinado } from './parkings-zbe.ts';
 import { dondeAparcarCerca, elAparcamiento } from './aparcamiento.ts';
+import { aparcamotosCerca } from './aparcamotos.ts';
 import { etapaAndando, type Extremo } from './etapas.ts';
 
 let portales: PortalesEnMemoria;
@@ -88,6 +89,30 @@ function viaje(
     null,
     cuando,
   );
+}
+
+/**
+ * Un viaje en MOTO entre dos portales. Mismo camino que el de arriba, y sin
+ * `aparcamiento`: la moto no elige tipo — el contrato dice que ese parámetro no
+ * es suyo, así que aquí ni se puede pasar.
+ */
+function enMoto(
+  origen: string,
+  destino: string,
+  extra?: { readonly puedeEntrarEnLaZbe?: boolean },
+  cuando?: Date,
+): Trayecto {
+  return calcularTrayecto(
+    motor,
+    { origen: porCodigos(origen), destino: porCodigos(destino), modo: 'moto', ...extra },
+    null,
+    cuando,
+  );
+}
+
+/** Los metros de lo que se CONDUCE, que en moto son varios tramos si la zona parte. */
+function loConducido(t: Trayecto): number {
+  return t.tramos.filter((x) => x.comoSeVa === 'rodando').reduce((suma, x) => suma + x.metros, 0);
 }
 
 /**
@@ -353,6 +378,8 @@ const ESRO_SAN_BLAS = 'MU1_estacionamientos_calle.50612';
 const ESRE_MOSEN_PEDRO_DOSSET = 'MU1_estacionamientos_calle.46777';
 const LIBRE_ARQUITECTO_LA_FIGUERA = 'MU1_estacionamientos_calle.45408';
 const PMR_ECHEGARAY = 'MU1_reservas.43011';
+/** Y el aparcamoto donde la MOTO remata ese mismo viaje. Medido, no elegido. */
+const APARCAMOTO_DE_ABEN_AIRE = '2008';
 
 describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
   before(() => {
@@ -1527,6 +1554,282 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
         'aa2225aed85848e8f66f62c442f0b8aabde47360ae1914fb9141290dd5f1d3d8',
         'quitando `zbe`, el coche tiene que dar exactamente lo de antes',
       );
+    });
+  });
+
+  /**
+   * ⭐ LA MOTO PRIVADA (4/09, punto 13 casilla 1).
+   *
+   * Vive en este fichero y no en uno suyo porque **es este viaje**: la misma red
+   * cocinada, los mismos vetos de giro, las mismas penalizaciones y las mismas
+   * velocidades. Lo único que la moto no comparte con el coche es dónde acaba.
+   */
+  describe('⭐ LA MOTO PRIVADA — la red del coche y su propio remate (punto 13)', () => {
+    /**
+     * ⭐ JUEZ 1 — LA `no_left_turn` 1211840 **TAMBIÉN VETA A LA MOTO**.
+     *
+     * Es la prueba de que la moto va por la red del coche y no por otra: en la
+     * red de la rueda esa restricción no existe —no se cocina—, así que una moto
+     * que rodara por allí **no daría el rodeo**. El caso es el mismo de la juez 1
+     * del coche, `ASALTO 45 → DOCTOR BLANCO CORDERO 7`: sin la restricción son
+     * 1.225 m y con ella 1.644, un rodeo de 419 m por el Coso.
+     *
+     * ⚠️ Se mide sobre **lo conducido**, no sobre el total: la moto remata en un
+     *    aparcamoto y luego se anda, así que el total lleva un paseo dentro.
+     */
+    test('⭐ 1 · un viaje en moto que giraría en el cruce vetado RODEA igual', () => {
+      const A = coche.cocinada.aristas;
+      const entrada = A.find(
+        (a) =>
+          a.way === ASALTO &&
+          (coche.cocinada.salidas.get(a.hasta) ?? []).some((f) => A[f]!.way === HEROISMO),
+      );
+      assert.ok(entrada, 'la Calle Asalto tiene que llegar al cruce con el Heroísmo');
+      const prohibida = (coche.cocinada.salidas.get(entrada.hasta) ?? []).find(
+        (f) => A[f]!.way === HEROISMO,
+      )!;
+      assert.ok(
+        coche.cocinada.vetadas.has(`${entrada.i}>${prohibida}`),
+        'la rel 1211840 tiene que vetar esa transición',
+      );
+
+      const t = enMoto(ASALTO_45, BLANCO_CORDERO_7);
+      assert.equal(t.modo, 'moto');
+      assert.ok(t.pasos.length > 0, 'ese viaje tiene que existir en moto');
+      // El rodeo, medido sobre lo conducido: sin veto serían 1.225 m.
+      assert.ok(loConducido(t) > 1500, `el rodeo son ${loConducido(t)} m conducidos`);
+      // Y sale por el Coso, que es por donde el rodeo de este caso sale.
+      assert.ok(
+        t.pasos.some((x) => x.texto.includes('Coso')),
+        'el rodeo de este caso sale por el Coso',
+      );
+      // Y en ningún punto se pasa de Asalto al Heroísmo, que es lo prohibido.
+      for (let k = 1; k < t.pasos.length; k++) {
+        assert.equal(
+          t.pasos[k - 1]!.texto.includes('Asalto') && t.pasos[k]!.texto.includes('Heroísmo'),
+          false,
+          `gira donde la rel 1211840 lo prohíbe (paso ${k})`,
+        );
+      }
+    });
+
+    /**
+     * ⭐ JUEZ 2 — EL REMATE EN UN APARCAMOTO REAL, citado por su id, y GRATIS.
+     *
+     * La moto **siempre** remata: no hay viaje de moto hasta la puerta, porque
+     * no hay ninguna pregunta que hacerle a quien la lleva —su montón es uno—.
+     * Y la frase dice que no cuesta, porque no cuesta: el Reglamento Municipal
+     * del Servicio de Estacionamiento Regulado deja a las motocicletas exentas
+     * de la tasa.
+     *
+     * El sitio sale del COSTE —conducir más andar por `PESO_DE_ANDAR`—, no de la
+     * recta: es la juez que la contraprueba «el remate ignorando el coste»
+     * muerde.
+     */
+    test('⭐ 2 · la moto remata en un aparcamoto real, por su id, y dice que es gratis', () => {
+      const t = enMoto(LAPUYADE_3, ABEN_AIRE_33);
+      assert.deepEqual(comoSeVan(t), ['rodando', 'andando'], 'se conduce y se anda');
+      assert.equal(tramoDelHito(t) !== null, true, 'hay un tramo que muere en el hito');
+      assert.equal(t.tramos[t.tramos.length - 1]!.hito, null, 'el paseo no lleva hito');
+
+      const hito = t.pasos.find((x) => x.giro === 'aparca')!;
+      assert.match(hito.texto, /^Aparca en el aparcamiento de motos de /);
+      assert.match(hito.texto, / \(sin coste\)$/);
+      assert.equal(hito.metros, 0, 'un hito no abre tramo');
+
+      // Y es un aparcamoto REAL del censo, citado por su id: el que cae encima
+      // del vértice donde muere lo conducido, a 0,0 m del dato.
+      const corte = tramoDelHito(t)!.hasta;
+      const [lat, lon] = t.geometria[corte]!;
+      const [encima] = aparcamotosCerca(lon, lat, 1);
+      assert.ok(encima!.enRecta < 1, `el hito cae a ${encima!.enRecta} m del aparcamoto`);
+      assert.equal(encima!.id, APARCAMOTO_DE_ABEN_AIRE);
+      // Y la frase nombra la MISMA calle que el aparcamoto declara — presentada,
+      // que es el trato que el bordillo del coche recibe para su `direccion`.
+      const suVia = encima!.via.split(',')[0]!.trim();
+      assert.ok(hito.texto.toUpperCase().includes(suVia), `${hito.texto} no nombra ${suVia}`);
+
+      // Las sumas del contrato, exactas, y los índices sin huecos.
+      assert.equal(t.tramos.reduce((a, x) => a + x.metros, 0), t.metros);
+      assert.equal(t.tramos.reduce((a, x) => a + x.segundos, 0), t.segundos);
+      assert.equal(t.tramos[0]!.desde, 0);
+      assert.equal(t.tramos[t.tramos.length - 1]!.hasta, t.geometria.length - 1);
+
+      /**
+       * ⭐ Y QUIEN ELIGE ES EL COSTE, NO LA RECTA — con un caso donde discrepan.
+       *
+       * ⚠️ **En `ABEN AIRE 33` los dos coinciden**, y por eso ese viaje no sirve
+       *    para comprar esto: una implementación que eligiera el más cercano
+       *    daría exactamente la misma respuesta. Medido el 4/09 sobre 25 destinos
+       *    repartidos por la ciudad: **en 8 de los 25 discrepan**.
+       *
+       * El caso citado es `Portales.105703`: gana el `1719` de CORONA DE ARAGÓN
+       * 2, y el más cercano en recta es el `935` de LUIS DEL VALLE 3, **a 59 m**
+       * del portal. Es la juez que la contraprueba «el remate ignorando el
+       * coste» muerde.
+       */
+      const DISCREPAN = 'Portales.105703';
+      const otro = enMoto(LAPUYADE_3, DISCREPAN);
+      const suCorte = tramoDelHito(otro)!.hasta;
+      const [laLat, laLon] = otro.geometria[suCorte]!;
+      const gana = aparcamotosCerca(laLon, laLat, 1)[0]!;
+      const suExtremo = extremo(DISCREPAN);
+      const masCerca = aparcamotosCerca(suExtremo.lon, suExtremo.lat, 1)[0]!;
+      assert.equal(gana.id, '1719');
+      assert.equal(masCerca.id, '935');
+      assert.notEqual(gana.id, masCerca.id, 'si ganara el más cercano, el coste no decidiría');
+      assert.ok(masCerca.enRecta < 70, `el más cercano está a ${masCerca.enRecta} m`);
+    });
+
+    /**
+     * ⭐ JUEZ 3 — CON LA ZONA VETADA, **EL APARCAMOTO CAE FUERA**.
+     *
+     * Es la casilla entera en una frase: la moto sin distintivo no entra, y el
+     * remate no puede estar dentro de lo que no se puede pisar. No hay aquí la
+     * excepción del aparcamiento público del coche —ésa la da la ordenanza para
+     * los estacionamientos con control de acceso conectado, y un aparcamoto de
+     * calle no lo es—, así que el coste elige el mejor **de fuera** y se anda el
+     * resto.
+     *
+     * Y con el distintivo bueno se entra sin ningún remate especial: la ruta es
+     * la que sea, con su aviso.
+     */
+    test('⭐ 3 · sin distintivo y en franja, el aparcamoto elegido está FUERA de la zona', () => {
+      const zona = poligonoDeLaFase1();
+      const dondeAparca = (t: Trayecto): { lon: number; lat: number } => {
+        const corte = tramoDelHito(t)!.hasta;
+        const [lat, lon] = t.geometria[corte]!;
+        return { lon, lat };
+      };
+
+      // (a) SIN distintivo, dentro de la franja: el remate cae fuera.
+      const vetado = enMoto(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: false }, MARTES_A_LAS_10);
+      assert.ok(vetado.metros > 0, 'sigue habiendo viaje');
+      assert.deepEqual(comoSeVan(vetado), ['rodando', 'andando']);
+      const fuera = dondeAparca(vetado);
+      assert.equal(
+        dentroDeLaZbe(fuera.lon, fuera.lat, zona),
+        false,
+        'la moto ha aparcado DENTRO de la zona que no puede pisar',
+      );
+      // Y se anda de verdad: el paseo desde fuera hasta un portal de dentro.
+      assert.ok(vetado.tramos[vetado.tramos.length - 1]!.metros > 0, 'no se anda nada');
+      // Ni un solo tramo conducido marcado como zona: no se pisa.
+      assert.equal(vetado.tramos.some((x) => x.zbe === true), false, 'pisa la zona vetada');
+
+      // (b) CON distintivo: se entra, y el aviso lo cuenta. Sin remate especial.
+      const entra = enMoto(LAPUYADE_3, ABEN_AIRE_33, { puedeEntrarEnLaZbe: true }, MARTES_A_LAS_10);
+      assert.equal(entra.tramos.some((x) => x.zbe === true), true, 'con distintivo se entra');
+      assert.equal(entra.avisos.length, 1);
+      assert.match(entra.avisos[0]!.texto, /Zona de Bajas Emisiones/);
+      assert.notEqual(selloDe(entra), selloDe(vetado), 'el veto tiene que cambiar el viaje');
+    });
+
+    /**
+     * ⭐ JUEZ 4 — EL DOMINGO NO SE VETA NADA, y el aviso dice la hora que miró.
+     *
+     * Misma ley que el coche, y por el mismo reloj de la calle: la franja es de
+     * lunes a viernes de 8:00 a 20:00 [FAQ oficial]. Un domingo no hay nada que
+     * vetar, así que la moto entra aunque haya dicho que no tiene distintivo — y
+     * lo que se cuenta es el reloj, no una restricción inventada.
+     */
+    test('⭐ 4 · un domingo la moto entra en la zona, y el aviso cuenta el reloj', () => {
+      const domingo = enMoto(
+        LAPUYADE_3,
+        ABEN_AIRE_33,
+        { puedeEntrarEnLaZbe: false },
+        DOMINGO_A_LAS_10,
+      );
+      assert.equal(domingo.tramos.some((x) => x.zbe === true), true, 'el domingo no se veta');
+      assert.equal(domingo.avisos.length, 1);
+      const aviso = domingo.avisos[0]!;
+      assert.match(aviso.texto, /pero ahora no está en vigor/);
+      assert.match(aviso.texto, /de lunes a viernes de 8:00 a 20:00/);
+      assert.match(aviso.texto, /son las 10:00 del domingo/);
+      // Y el mismo viaje en martes, con el veto puesto, NO es el mismo.
+      const martes = enMoto(
+        LAPUYADE_3,
+        ABEN_AIRE_33,
+        { puedeEntrarEnLaZbe: false },
+        MARTES_A_LAS_10,
+      );
+      assert.notEqual(selloDe(domingo), selloDe(martes));
+    });
+
+    /**
+     * ⭐ JUEZ 6 — LA MURALLA: **los seis modos de antes, al byte**.
+     *
+     * La moto entra en el contrato y en el reparto de `porModo`, que son los dos
+     * sitios por donde se le podría colar algo a otro. El sello del coche es el
+     * mismo de la juez 4 de la casilla 2-bis: si la moto le hubiera tocado la
+     * red, la búsqueda o el aparcamiento, ahí se vería.
+     */
+    test('⭐ 6 · los seis modos de antes contestan exactamente lo que contestaban', () => {
+      // El coche con su remate y su veto: el sello de la casilla 2-bis, intacto.
+      const coche2bis = viaje(
+        LAPUYADE_3,
+        PALENCIA_2,
+        { puedeEntrarEnLaZbe: false, aparcamiento: 'azul' },
+        MARTES_A_LAS_10,
+      );
+      assert.equal(
+        selloDe(coche2bis),
+        'c4c4f4889c3f02a242874f8e86c16a8f539d0fbb72407264a2c387732293ea23',
+        'la moto le ha tocado algo al coche',
+      );
+
+      // Y los cinco de la rueda y el peatón, por su camino de siempre.
+      const sellos = (['andando', 'bici', 'patin', 'bizi'] as const).map((modo) =>
+        selloDe(
+          calcularTrayecto(motor, {
+            origen: porCodigos(LAPUYADE_3),
+            destino: porCodigos(EN_MEDIO_120),
+            modo,
+          }),
+        ),
+      );
+      assert.equal(new Set(sellos).size, 4, 'los cuatro modos dan cuatro respuestas distintas');
+      // Y ninguno de ellos ha aprendido a aparcar motos.
+      for (const modo of ['andando', 'bici', 'patin', 'bizi'] as const) {
+        const t = calcularTrayecto(motor, {
+          origen: porCodigos(LAPUYADE_3),
+          destino: porCodigos(ABEN_AIRE_33),
+          modo,
+        });
+        assert.equal(
+          t.pasos.some((x) => x.texto.includes('aparcamiento de motos')),
+          false,
+          `${modo} remata en un aparcamoto`,
+        );
+      }
+
+      /**
+       * ⭐ Y `aparcamiento` EN UNA PETICIÓN DE MOTO **SE IGNORA**, no revienta.
+       *
+       * Es la ley que `ruta` estrenó el 30/08 —*«el motor no falla si llega en
+       * una petición de andando: sobra»*—, y aquí se compra con los tres casos
+       * que un cliente puede mandar: uno válido para el coche, otro válido, y uno
+       * que no existe. Los tres dan **el mismo viaje que sin el parámetro**.
+       */
+      const suelto = enMoto(LAPUYADE_3, ABEN_AIRE_33);
+      for (const sobra of ['azul', 'naranja', 'lechuga']) {
+        const conElParametro = calcularTrayecto(motor, {
+          origen: porCodigos(LAPUYADE_3),
+          destino: porCodigos(ABEN_AIRE_33),
+          modo: 'moto',
+          aparcamiento: sobra as TipoDeAparcamiento,
+        });
+        assert.equal(selloDe(conElParametro), selloDe(suelto), `«${sobra}» ha cambiado el viaje`);
+      }
+
+      // ⭐ Y el aviso de «todavía no calculamos» ya no nombra a la moto: la lista
+      //    se compone de MODOS_ATENDIDOS, así que esto se mueve solo.
+      const inventado = calcularTrayecto(motor, {
+        origen: porCodigos(LAPUYADE_3),
+        destino: porCodigos(ABEN_AIRE_33),
+        modo: 'helicoptero' as Modo,
+      });
+      assert.match(inventado.avisos[0]!.texto, /moto/);
     });
   });
 

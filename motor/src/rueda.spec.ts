@@ -727,12 +727,25 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
    * expectativa vieja sin dejar el hueco sin vigilar.
    *
    * Se recorre `Modo` del contrato a mano y a propósito: el día que el contrato
-   * estrene un séptimo modo, esta juez se pone roja hasta que alguien decida si
-   * se calcula o si se contesta con su aviso. Un `MODOS_ATENDIDOS.length === 6`
-   * no cazaría eso.
+   * estrene un modo nuevo, esta juez se pone roja hasta que alguien decida si se
+   * calcula o si se contesta con su aviso. Un `MODOS_ATENDIDOS.length === 6` no
+   * cazaría eso.
+   *
+   * ⭐ **Y así pasó, el 4/09.** El contrato estrenó `moto` (punto 13, casilla 1)
+   * y esta juez se puso roja con `sobra un modo en la lista` antes de que nadie
+   * la mirara. La decisión fue calcularla —va por la red del coche y remata en
+   * un aparcamoto—, y por eso entra abajo. La lista sigue escrita a mano.
    */
   test('⭐ ya no queda ningún modo del contrato sin ruta', () => {
-    const delContrato: readonly Modo[] = ['andando', 'bus', 'bici', 'patin', 'bizi', 'coche'];
+    const delContrato: readonly Modo[] = [
+      'andando',
+      'bus',
+      'bici',
+      'patin',
+      'bizi',
+      'coche',
+      'moto',
+    ];
     for (const modo of delContrato) {
       assert.ok(
         MODOS_ATENDIDOS.includes(modo),

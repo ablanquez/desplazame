@@ -306,9 +306,16 @@ const VELOCIDAD_DICHA: Readonly<Record<Modo, string | null>> = {
   bizi: 'pedaleando a 20 km/h de crucero',
   // El patín no se pedalea: se circula. La velocidad es la misma que la bici.
   patin: 'a 18 km/h de crucero',
-  // Estos dos no calculan ruta todavía, así que no tienen duración que vestir.
+  // Estos tres no llevan coletilla: el bus la lleva en su propio resumen, y el
+  // coche y la moto no ruedan a una velocidad de crucero que se pueda decir en
+  // una frase — su tiempo sale de las penalizaciones de cada giro y de cada
+  // semáforo, no de una media.
   bus: null,
   coche: null,
+  // ⭐ La moto entró en el contrato el 4/09 y **esta tabla dejó de compilar**,
+  //    que es exactamente para lo que está: el `Record` exhaustivo obliga a
+  //    pasar por aquí. Va como el coche porque rueda como el coche.
+  moto: null,
 };
 
 /**
@@ -557,19 +564,24 @@ function comoSeLeeLaDuracion(segundos: number, modo: Modo = 'andando'): string {
 }
 
 /**
- * ⭐ LAS CINCO FAMILIAS DE LA PRIMERA FILA (2/09, punto 11).
+ * ⭐ LAS FAMILIAS DE LA PRIMERA FILA (2/09, punto 11).
  *
  * ⚠️ **Esto NO es del contrato y no debe llegar a serlo.** `Modo` es lo que el
- *    motor entiende y son seis; `Familia` es cómo se pregunta en la pantalla y
- *    son cinco, porque la bici se pregunta en dos pasos. Es una palabra de
- *    maquetación: si algún día se colara en `@desplazame/tipos`, el motor
- *    tendría que saber cómo está repartida una botonera, que es exactamente lo
- *    que no le importa.
+ *    motor entiende y son siete; `Familia` es cómo se pregunta en la pantalla.
+ *    Es una palabra de maquetación: si algún día se colara en
+ *    `@desplazame/tipos`, el motor tendría que saber cómo está repartida una
+ *    botonera, que es exactamente lo que no le importa.
  *
- * Los cuatro nombres que coinciden con un `Modo` lo hacen porque esas familias
- * tienen una sola opción, no porque sean lo mismo.
+ * Los nombres que coinciden con un `Modo` lo hacen porque esas familias tienen
+ * una sola opción, no porque sean lo mismo — la bici se pregunta en dos pasos.
+ *
+ * ⚠️ **`moto` está aquí y NO tiene botón todavía** (4/09). Entró porque
+ *    `familiaDe` es total sobre `Modo` y el contrato estrenó el séptimo; el
+ *    botón es la casilla 3 del punto 13. Así que hoy la primera fila enseña
+ *    **cinco** de las seis, y lo que decide cuáles es la lista `modos`, no este
+ *    tipo. Una familia sin botón no pinta nada: nadie itera esta unión.
  */
-type Familia = 'andando' | 'bus' | 'bici' | 'patin' | 'coche';
+type Familia = 'andando' | 'bus' | 'bici' | 'patin' | 'coche' | 'moto';
 
 /**
  * ⭐ EL DISTINTIVO AMBIENTAL, y **es palabra de esta pantalla**, no del contrato.

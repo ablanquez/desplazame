@@ -28,8 +28,20 @@
  * selector a seis es la casilla 4. Que la lista de `modos` del buscador sea un
  * subconjunto no rompe nada —no es un `Record` exhaustivo—, y el día que se
  * amplíe no habrá que tocar el contrato.
+ *
+ * ⭐ **Y son SIETE desde el 4/09**, con la moto privada (punto 13, casilla 1).
+ * El motor vuelve a pedirlo, y por una razón que no es de comodidad: la moto
+ * **rueda como el coche y aparca donde el coche no puede**. Comparte la red
+ * entera —los vetos de giro, las penalizaciones y las velocidades de `car.lua`,
+ * heredadas [PROPIO, declarado: no hay perfil de moto de referencia, y en urbano
+ * la moto legal rueda como el coche]— y no comparte el remate: la moto termina
+ * **siempre** en un aparcamoto, que es el suyo y es gratis. Meterla dentro de
+ * `coche` habría obligado a que un parámetro del coche significara dos cosas.
+ *
+ * ⚠️ **La moto NO trae `aparcamiento`.** No es que se le olvide: no tiene tipo
+ *    que elegir. Ver el campo.
  */
-export type Modo = 'andando' | 'bus' | 'bici' | 'patin' | 'bizi' | 'coche';
+export type Modo = 'andando' | 'bus' | 'bici' | 'patin' | 'bizi' | 'coche' | 'moto';
 
 /**
  * ⭐ QUÉ CLASE DE RUTA se quiere, cuando el modo admite elegir.
@@ -509,10 +521,21 @@ export interface PeticionDeRuta {
    * Solo lo mira `coche`. Los demás modos no tienen coche que dejar — la bici y
    * el patín rematan en su aparcabicis y la BiZi en su estación, y eso ya lo
    * hacen sin pedir permiso.
+   *
+   * ⚠️ **Y la `moto` tampoco lo mira, aunque también aparque** (4/09). Su
+   *    remate es siempre el mismo montón —el aparcamoto, y en él no se paga
+   *    [Reglamento Municipal del SER, normativa 13291: las motocicletas están
+   *    exentas de la tasa]—, así que no hay tipo que elegir. Si llega en una
+   *    petición de moto **se ignora, y no se contesta con un error**: es la ley
+   *    que `ruta` estrenó el 30/08 —*«el motor no falla si llega en una petición
+   *    de andando: sobra»*— y la misma que `modo` aplica a los parámetros que su
+   *    modo no mira. Un 400 obligaría a cada cliente a saber qué modo mira qué
+   *    campo, que es justo lo que el contrato no debe pedir.
    */
   readonly aparcamiento?: TipoDeAparcamiento;
   /**
-   * ⭐ **SI EL COCHE PUEDE ENTRAR EN LA ZONA DE BAJAS EMISIONES** (3/09).
+   * ⭐ **SI EL VEHÍCULO PUEDE ENTRAR EN LA ZONA DE BAJAS EMISIONES** (3/09; la
+   * moto también, desde el 4/09).
    *
    * La app no sabe qué distintivo lleva el vehículo de quien pregunta, y no hay
    * forma de que lo sepa. Así que **se pregunta**, y la pregunta es binaria

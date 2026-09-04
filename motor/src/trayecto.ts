@@ -55,15 +55,17 @@ import {
 import { viajeEnBiZi } from './viaje-bizi.ts';
 import { laRedDeCoche } from './coche.ts';
 import { viajeEnCoche } from './viaje-coche.ts';
+import { viajeEnMoto } from './viaje-moto.ts';
 
 /**
- * Los modos que hoy sabe calcular el motor. **Los SEIS desde el 2/09**: eran
+ * Los modos que hoy sabe calcular el motor. **Los SIETE desde el 4/09**: eran
  * cuatro el 29/08 —el andando más los tres de la rueda—, cinco el 31/08 con el
- * bus, y hoy entra el coche con la casilla 1b del punto 12.
+ * bus, seis el 2/09 con el coche, y hoy entra la moto con la casilla 1 del
+ * punto 13.
  *
- * ⭐ Ya no falta ninguno, y la lista se queda igualmente: el aviso de «todavía
- * no calculamos» se compone de aquí, así que el día que el contrato estrene un
- * séptimo modo la frase dirá la verdad sin que nadie la reescriba.
+ * ⭐ Y el séptimo llegó sin que nadie reescribiera la frase: el aviso de
+ * «todavía no calculamos» se compone de esta lista, así que el día que el
+ * contrato estrene el octavo dirá la verdad igual.
  */
 export const MODOS_ATENDIDOS: readonly Modo[] = [
   'andando',
@@ -72,6 +74,7 @@ export const MODOS_ATENDIDOS: readonly Modo[] = [
   'bizi',
   'bus',
   'coche',
+  'moto',
 ];
 
 /** Un trayecto vacío con su explicación. Es la respuesta a todo lo que falla. */
@@ -367,6 +370,21 @@ function porModo(
   if (modo === 'coche') {
     return viajeEnCoche(laRedDeCoche(), motor, origen, destino, {
       aparcamiento: b.aparcamiento,
+      puedeEntrarEnLaZbe: b.puedeEntrarEnLaZbe,
+      cuando,
+    });
+  }
+
+  // ⭐ LA MOTO (4/09, punto 13 casilla 1). Va por la MISMA red que el coche
+  // —vetos de giro, penalizaciones y velocidades— y por eso comparte fichero de
+  // red y de búsqueda. Lo que no comparte es el remate: la moto acaba siempre en
+  // un aparcamoto, y no hay tipo que elegir. Ver `viaje-moto.ts`.
+  //
+  // ⚠️ `b.aparcamiento` NO se le pasa, y no es un olvido: el contrato dice que
+  //    en una petición de moto ese parámetro sobra. Pasárselo obligaría a
+  //    `viajeEnMoto` a tener una opinión sobre algo que no es suyo.
+  if (modo === 'moto') {
+    return viajeEnMoto(laRedDeCoche(), motor, origen, destino, {
       puedeEntrarEnLaZbe: b.puedeEntrarEnLaZbe,
       cuando,
     });

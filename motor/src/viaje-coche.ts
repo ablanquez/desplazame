@@ -843,7 +843,7 @@ export function laZbeEstaEnVigor(cuando: Date): boolean {
 }
 
 /** ⭐ Lo que se veta cuando el coche no puede entrar: las aristas de la zona. */
-function vetoDeLaZbe(servida: RedDeCocheServida): AristaVetada {
+export function vetoDeLaZbe(servida: RedDeCocheServida): AristaVetada {
   return (arista: number): boolean => servida.cocinada.aristas[arista]!.zbe === true;
 }
 
@@ -1041,7 +1041,7 @@ function segundosPorTrozo(servida: RedDeCocheServida, ruta: RutaDeCoche): readon
  * separa lo empujado: el corte sale **de la misma vuelta que construye los
  * puntos**, así que no puede derivar de ellos. Ver su cabecera.
  */
-function etapaEnCoche(
+export function etapaEnCoche(
   servida: RedDeCocheServida,
   ruta: RutaDeCoche,
   origen: Extremo,
