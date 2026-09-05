@@ -2810,7 +2810,7 @@ la frescura sigue siendo `NO CONSTA`.
 | **Fuente** | Autodiscovery GBFS: `https://services.rideyego.com/gbfs/2-3/zaragoza/es/gbfs` |
 | **Petición** | El autodiscovery, y de sus seis feeds el motor solo pide **`free_bike_status`**: `https://services.rideyego.com/gbfs/2-3/zaragoza/es/free_bike_status` — **sin clave y sin registro** |
 | **Sondeada** | **05/09/2026 08:11:34 GMT**, estado **200** los seis. Tamaños: `gbfs` 2.069 · `system_information` 847 · `vehicle_types` 1.746 · `free_bike_status` **59.201** · `system_pricing_plans` 398 · `geofencing_zones` 4.319 · `gbfs_versions` 535 bytes |
-| **Licencia** | ⚠️ **`NO CONSTA`** — ver abajo. Ni `license_id` ni `license_url` en `system_information`, y `grep -i license` sobre los **seis** feeds no encuentra nada |
+| **Licencia** | ⚠️ **`NO CONSTA`, y ahora con el contrato leído** — ver abajo. Ni `license_id` ni `license_url` en `system_information`, `grep -i license` sobre los **seis** feeds no encuentra nada, y las 62 páginas de sus condiciones (leídas el **5/09**) **no mencionan el feed GBFS**: ni lo autorizan ni lo prohíben |
 | **Atribución exigida** | Ninguna que consta. **Se atribuye igual**: «Motos compartidas: **Yego**». Es la misma decisión que con Avanza — se dice de quién es el dato, que es lo contrario de disimularlo |
 | **Campos** | Por vehículo: `bike_id`, `is_reserved`, `is_disabled`, `lat`, `lon`, `vehicle_type_id`, `current_range_meters`, `current_fuel_percent`, `last_reported`, `pricing_plan_id`, `rental_uris`. **Ninguno personal** |
 | **¿Está en este repo?** | ❌ **No, y no puede estar.** Caduca cada cuatro minutos. Lo que sí está son **los fixtures de las jueces, copiados enteros del feed real** |
@@ -2834,13 +2834,23 @@ para aplicaciones de cara al consumidor»*— y este feed se sirve sin clave ni 
   `https://yugo-assets.s3.amazonaws.com/legal/termsandconditions_yego_es.pdf` · 968.369 bytes ·
   `Last-Modified: 19/05/2025` · sha256 `8e349dcfbc2958df434f7e71d2dae76390903ce9595f022868066bbea66020f2` ·
   **62 páginas**.
-- ⚠️ **Y ese PDF NO SE HA LEÍDO: `NO CONSTA` lo que diga sobre reutilizar el feed.** Se bajó y se
-  intentó extraer su texto de dos maneras sin dependencias; solo salen las fuentes incrustadas, y
-  la máquina donde se trabaja no tiene lector de PDF. **No se infiere que no diga nada.** Queda
-  apuntado con su sha256 para que alguien lo lea.
+- ⭐ **Y ESE PDF SE LEYÓ EL 5/09** — *General Contract Conditions*, **v-2025/05/20**, el mismo
+  fichero que el sha256 de arriba identifica. Lo que dice sobre reutilizar el feed es: **nada**.
+  Es un contrato **entre la aplicación y quien alquila una moto** —registro, tarifas, seguro,
+  responsabilidad, zonas de uso— y en sus 62 páginas **el feed GBFS no aparece**: ni lo autoriza
+  ni lo prohíbe.
 
-  Esto no es celo de más: **§ 1.24 es el precedente**. El aviso legal de Avanza, cuando se leyó,
-  **prohibía la extracción y la reutilización** — y hasta que se leyó nadie lo sospechaba.
+  ⚠️ **Así que la licencia sigue siendo `NO CONSTA`, y ahora se sabe por qué.** No es que no se
+  haya mirado: es que la única documentación pública del operador no habla de esto. Lo que
+  cambia es la clase de `NO CONSTA` — antes era *«no lo hemos podido leer»*, ahora es *«se ha
+  leído y no lo dice»*.
+
+  Y el celo tenía su razón: **§ 1.24 es el precedente**. El aviso legal de Avanza, cuando se
+  leyó, **prohibía la extracción y la reutilización** — y hasta que se leyó nadie lo sospechaba.
+  Aquí se leyó, y no prohíbe nada.
+
+- ⭐ **Lo que sí dice el contrato, y es lo que cambió el motor**: el § 3.2.2 define la **Service
+  Zone** y dónde puede terminar un viaje. Ver el apartado del geofencing, más abajo.
 
 #### La política de consumo: la caché ES la doctrina, al revés que con la BiZi
 
@@ -2906,6 +2916,7 @@ rules: [{ vehicle_type_id: [yego_scooter, yego_bike, yego_kick],
 | | |
 |---|---|
 | polígonos | **10** · 163 vértices · bbox lon −0,938…−0,854 · lat 41,607…41,678 |
+| anillos | nueve manchas de uno · **la del centro, de tres: exterior y DOS HUECOS** |
 | áreas | 7,84 km² · 3,26 · 0,07 · 0,05 · 0,04 · 0,02 ×3 · 0,01 · 0,00 |
 | **motos dentro** | **161 de 166** — 98 en la grande, 45 en la segunda |
 | motos fuera | 5, ninguna deshabilitada |
@@ -2914,14 +2925,74 @@ rules: [{ vehicle_type_id: [yego_scooter, yego_bike, yego_kick],
 centro. Ningún operador tiene su flota aparcada donde tiene prohibido dejarla: **las manchas son
 el área de servicio**, las `rules` dicen la verdad y el nombre es un rótulo interno equivocado.
 
-Así que **mandan las reglas**, que es además lo que la especificación pide: con
-`ride_allowed: true` **no hay ninguna restricción que aplicar**, y el viaje acaba donde se pidió.
+#### ⭐ Y LO QUE EL FEED NO DICE, LO DICE EL CONTRATO (5/09)
 
-⚠️ **Y no se inventa la de al lado.** Sería fácil razonar que, si las manchas son el área de
-servicio, *fuera* de ellas no se puede terminar — pero **eso no está en el dato**: GBFS 2.3 no
-tiene `global_rules` (llegó en la 3.0), así que del «fuera de zona» el feed no dice nada. Lo que
-no está en el dato es `NO CONSTA`, y una restricción inferida que dejara sin destino válido media
-ciudad sería exactamente la clase de invención que esta casa no hace.
+⚠️ **Hasta el 5/09 el motor no aplicaba ninguna restricción, y con lo que había delante era lo
+correcto.** El razonamiento escrito aquí el 4/09 fue: mandan las `rules`, y del *«fuera de las
+manchas»* el feed no dice nada —GBFS 2.3 no tiene `global_rules`, que llegó en la 3.0—, así que
+no se inventa la prohibición de al lado. **Lo que faltaba no era otra medición: era leer el
+contrato.**
+
+Y el contrato lo dice con todas las letras [**GCC v-2025/05/20, § 3.2.2**, transcrito]:
+
+> «Pausing and/or ending a ride is only allowed within the Service Zone»
+>
+> «Vehicles may indeed leave the Service Zone; however, the User must return and complete the
+> Trip within»
+
+Dos frases y dos reglas, que son las que el motor aplica: **rodar fuera sí, terminar fuera no**.
+
+**Y que estas manchas SON la Service Zone** no lo dice el feed —que las llama «no go zone»— sino
+la documentación del operador: el contrato la nombra y **su web la pinta**, *«las áreas
+sombreadas en oscuro están fuera de cobertura»* [rideyego.com, *how-it-works/zaragoza*,
+transcrito el 5/09]. El dato lo respalda con las 161 de 166 motos de la tabla de arriba.
+
+⚠️ **Así que la regla viene de la DOCUMENTACIÓN DEL OPERADOR, no del feed**, y por eso se
+transcribe aquí con su fecha, su versión y el sha256 del fichero del que sale. El feed pone la
+geometría; el contrato dice qué significa. Ninguno de los dos por su cuenta habría bastado.
+
+#### ⚠️ Cuatro clases de zona en el contrato, **una en el feed**
+
+El § 3.2.2.2 define **cuatro**, y el feed publica una:
+
+| zona del contrato | ¿está en `geofencing_zones`? |
+|---|---|
+| **Service Zone** — donde se puede terminar el viaje | ✔ las diez manchas (así se leen, ver arriba) |
+| **Restricted Circulation Zone** | ❌ **`NO CONSTA` en el dato** |
+| **Unauthorized Parking Zone** | ❌ **`NO CONSTA` en el dato** |
+| **Mandatory Parking Zone** | ❌ **`NO CONSTA` en el dato** |
+
+**Y las tres que faltan no se simulan.** Que el contrato las defina no dice dónde están, y sin
+geometría no hay nada que aplicar: el motor no inventa un aparcamiento obligatorio ni una calle
+restringida porque el contrato mencione que pueden existir. Lo que no está en el dato es
+`NO CONSTA`.
+
+#### 🕳️ Los dos huecos del centro, medidos
+
+La mancha grande no es un polígono simple: trae **dos anillos interiores** [RFC 7946 § 3.1.6], y
+un consumidor que los aplanara pintaría como área de servicio justo lo que está recortado de
+ella. Lo que hay dentro, medido contra el callejero el 5/09:
+
+| | |
+|---|---|
+| **hueco 1** (14 vértices) | Paseo de la Independencia (**27 portales**), Plaza de Aragón (9), Plaza de España (5), Coso (1) |
+| **hueco 2** (5 vértices) | ningún portal |
+| **motos aparcadas en los huecos** | **1 de 164** — frente a las 157 que están en el área |
+
+**Son recortes de verdad**, no un artefacto del formato: el hueco 1 cubre exactamente el eje
+peatonal del centro, y la flota lo respeta. Por eso el motor usa el punto-en-polígono de la casa
+—el mismo que marca las aristas de la Zona de Bajas Emisiones—, que resta los huecos.
+
+#### 📐 Lo que la regla deja fuera, dicho con su número
+
+**15.877 de los 46.150 portales del callejero caen dentro del área: el 34,4 %.** Los otros
+30.273 **no pueden ser destino de un viaje en YeGo**, y entre ellos está el Paseo de la
+Independencia por los huecos de arriba.
+
+⚠️ Es una consecuencia grande y se deja escrita en vez de disimularla: **la restricción no es
+nuestra**, es la del operador, y lo único que el motor hace es no ofrecer un viaje que su
+contrato no permite terminar. Lo que sí es nuestro es **decirlo**: cuando el destino cae fuera,
+la respuesta lleva el motivo con las palabras del contrato en vez de un «no hay ruta» a secas.
 
 ---
 
