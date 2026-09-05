@@ -187,8 +187,71 @@ export const BORDE_DE_LA_ZONA = 'b91c1c';
 export const RELLENO_DE_LA_ZONA = 0.08;
 export const TINTA_DEL_RELLENO = 'd32f2f';
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  ⭐ EL ÁREA DE SERVICIO DE YeGo (5/09), y **es una capa distinta de la ZBE**
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Las dos son polígonos de contexto, las dos van debajo de las trazas, y **las
+ * dos pueden estar en pantalla a la vez** — con «Pública YeGo» se pintan las
+ * dos. Así que lo primero que hubo que medir no fue si el verde se ve: fue si se
+ * distingue del rojo.
+ *
+ * ── ⛔ Y NO SE DISTINGUE POR EL COLOR. Ninguno lo haría ─────────────────────
+ *
+ * `#166534` contra el `#b91c1c` del borde de la ZBE da **1,10:1**. Y no es que
+ * este verde sea mala elección: **no existe ningún color que llegue a 3:1
+ * contra ese rojo** y que además se lea sobre el plano. La cuenta es cerrada —
+ * para llegar a 3 haría falta una luminancia ≥ 0,384 (un tono casi blanco, que
+ * se pierde sobre la calzada) o ≤ 0, que no existe. Medido con el instrumento,
+ * no razonado.
+ *
+ * ⭐ **Por eso el segundo canal no es un adorno: es obligatorio** [WCAG 1.4.1,
+ *    *el color no puede ser el único canal*]. El borde del área va **a rayas** y
+ *    el de la Zona de Bajas Emisiones sigue continuo. Quien no distinga rojo de
+ *    verde ve igual cuál es cuál — que es exactamente el mismo argumento que
+ *    hace discontinuo el trazo del a-pie.
+ *
+ * ── Y lo que sí cumple, medido ──────────────────────────────────────────────
+ *
+ * **El borde `#166534`** [WCAG 1.4.11, 3:1 contra los adyacentes]: **6,21:1**
+ * contra la tierra de OSM, **7,13** contra la calzada blanca y **4,03** contra
+ * el peor color del plano (`#f9b29c`) — por encima del 3,66 que da el borde de
+ * la ZBE, que ya estaba aprobado. Y como aquél, **va sin ribete**: no lo
+ * necesita.
+ *
+ * **El relleno `#15803d` al 0,08**: sobre la tierra queda en `#e0e6db`, que da
+ * **1,11:1** contra la propia tierra — se ve que hay algo y no se lee como una
+ * mancha. Y lo que va encima sigue leyéndose: ámbar **3,95**, azul **4,06**,
+ * rojo de la zona **3,91**.
+ *
+ * ⭐ **Y los dos rellenos ENCIMADOS también se midieron**, que es el caso que de
+ *    verdad se ve en YeGo: `#dfd7cd`, y sobre él ámbar **3,52**, azul **3,63** y
+ *    rojo **3,49**. Los tres siguen por encima del 3:1. Con un relleno más
+ *    fuerte no lo estarían: es la misma razón por la que el de la ZBE es 0,08.
+ */
+export const BORDE_DEL_AREA = '166534';
+export const TINTA_DEL_AREA = '15803d';
+export const RELLENO_DEL_AREA = 0.08;
+
+/**
+ * El patrón del borde del área, en píxeles [DOC SVG `stroke-dasharray`].
+ *
+ * ⚠️ Es **más corto que el `10 8` del a-pie**, y a propósito: aquél dibuja un
+ *    recorrido y quiere leerse como pasos; éste dibuja un contorno y solo tiene
+ *    que no confundirse con la línea continua de la Zona de Bajas Emisiones.
+ */
+export const RAYA_DEL_AREA = '6 4';
+
 /** Un anillo del polígono: sus vértices en `[lat, lon]`, como el contrato. */
 export type Anillo = readonly Vertice[];
+
+/**
+ * Una mancha del área: **el anillo exterior primero y sus huecos detrás**
+ * [RFC 7946 § 3.1.6], que es además como Leaflet lo quiere — `L.polygon` lee el
+ * primer anillo como contorno y los demás como agujeros.
+ */
+export type Mancha = readonly Anillo[];
 
 /**
  * El vestido de un tramo, con el color de su línea cuando lo trae.
@@ -378,6 +441,22 @@ export class Mapa {
   readonly zona = input<readonly Anillo[]>([]);
 
   /**
+   * ⭐ EL ÁREA DE SERVICIO DE YeGo, si hay que pintarla (5/09).
+   *
+   * Las manchas donde el contrato del operador deja **terminar** un viaje. Vacío
+   * es «no la pintes», y es lo que llega en los otros siete modos.
+   *
+   * ⚠️ Va **aparte de `zona`** y no en la misma lista, aunque las dos sean
+   *    polígonos de contexto que viven en el mismo panel. Dos razones, y las dos
+   *    de fondo: **son dos capas distintas con dos colores distintos** —juntarlas
+   *    obligaría a llevar el color dentro del dato— y **`zona` es una lista de
+   *    anillos y esto es una lista de MANCHAS**, cada una con sus huecos. Meter
+   *    las manchas en `zona` aplanaría los huecos del centro y el mapa pintaría
+   *    como área de servicio justo lo que está recortado de ella.
+   */
+  readonly area = input<readonly Mancha[]>([]);
+
+  /**
    * El alto del lienzo, tal cual va al CSS. Leaflet exige una altura
    * DEFINIDA: si el contenedor no la tiene, el mapa se monta con 0 px de alto
    * y no se ve nada. Por defecto, el del formulario. El visor le pasa `100%`
@@ -403,7 +482,12 @@ export class Mapa {
   private mapa?: L.Map;
   private lineas: L.Polyline[] = [];
   private marcas: L.Marker[] = [];
-  /** El polígono de la zona, aparte: no se borra con las trazas por azar. */
+  /**
+   * Los polígonos de contexto —la Zona de Bajas Emisiones y las manchas del área
+   * de YeGo—, aparte: no se borran con las trazas por azar. Van juntos en una
+   * lista porque **se quitan juntos**, que es lo único que esta lista decide;
+   * cada uno se pinta con su color y su borde donde le toca.
+   */
   private zonas: L.Polygon[] = [];
 
   constructor() {
@@ -436,6 +520,8 @@ export class Mapa {
       this.capaDestino();
       // Y la zona: al pasar a coche aparece sin tocar la ruta.
       this.zona();
+      // Y el área de YeGo, por lo mismo: aparece al elegir «Pública YeGo».
+      this.area();
       this.pintarTrazado();
     });
 
@@ -504,6 +590,33 @@ export class Mapa {
             // ⚠️ **No intercepta el ratón.** Es un fondo, no un control: sin
             //    esto se come los clics y los arrastres del mapa que hay debajo,
             //    y el polígono cubre medio centro.
+            interactive: false,
+          },
+        ).addTo(this.mapa),
+      );
+    }
+
+    /**
+     * ⭐ Y EL ÁREA DE SERVICIO, en el mismo panel y con la misma regla: va antes
+     * del corte de «sin trazado», porque quien elige «Pública YeGo» tiene que
+     * ver hasta dónde llega **antes** de pedir nada.
+     *
+     * ⚠️ Cada mancha es su propio `L.polygon` y **no se aplanan en uno solo**:
+     *    con todos los anillos en una sola llamada, Leaflet leería el primero
+     *    como contorno y los otros doce como agujeros suyos.
+     */
+    for (const mancha of this.area()) {
+      this.zonas.push(
+        L.polygon(
+          mancha.map((anillo) => anillo.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
+          {
+            pane: PANE_ZONA,
+            color: `#${BORDE_DEL_AREA}`,
+            weight: 2,
+            dashArray: RAYA_DEL_AREA,
+            fillColor: `#${TINTA_DEL_AREA}`,
+            fillOpacity: RELLENO_DEL_AREA,
+            // Un fondo, no un control. Lo mismo que la zona de al lado.
             interactive: false,
           },
         ).addTo(this.mapa),

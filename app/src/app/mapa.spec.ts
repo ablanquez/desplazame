@@ -3,12 +3,17 @@ import { TestBed } from '@angular/core/testing';
 import {
   ASOMA_EL_RIBETE,
   BORDE_DE_LA_ZONA,
+  BORDE_DEL_AREA,
   Mapa,
+  RAYA_DEL_AREA,
   RELLENO_DE_LA_ZONA,
+  RELLENO_DEL_AREA,
   ribeteDe,
   ROJO_DE_LA_ZONA,
+  TINTA_DEL_AREA,
   TINTA_DEL_RELLENO,
   type Anillo,
+  type Mancha,
   type Vertice,
 } from './mapa';
 import { AA_GRAFICO, contraste, deHex, luminancia, PLANO_MAS_CLARO, PLANO_MAS_OSCURO, TIERRA_OSM } from './contraste';
@@ -40,12 +45,18 @@ import type { TramoDelViaje } from '@desplazame/tipos';
 /** Anfitrión de prueba: permite cambiar el trazado como lo hace App. */
 @Component({
   imports: [Mapa],
-  template: `<app-mapa [trazado]="trazado()" [tramos]="tramos()" [zona]="zona()" />`,
+  template: `<app-mapa
+    [trazado]="trazado()"
+    [tramos]="tramos()"
+    [zona]="zona()"
+    [area]="area()"
+  />`,
 })
 class Anfitrion {
   readonly trazado = signal<readonly Vertice[]>([]);
   readonly tramos = signal<readonly TramoDelViaje[]>([]);
   readonly zona = signal<readonly Anillo[]>([]);
+  readonly area = signal<readonly Mancha[]>([]);
 }
 
 /** El polígono de la fase 1, leído del MISMO fichero que marca las aristas. */
@@ -79,6 +90,63 @@ function laFase1(): readonly Anillo[] {
 function zonaPintada(raiz: HTMLElement): SVGPathElement | null {
   return raiz.querySelector<SVGPathElement>('.leaflet-zbe-pane path');
 }
+
+/** Todo lo que hay en el panel de los polígonos de contexto, en orden. */
+function poligonosDeContexto(raiz: HTMLElement): SVGPathElement[] {
+  return Array.from(raiz.querySelectorAll<SVGPathElement>('.leaflet-zbe-pane path'));
+}
+
+/**
+ * ⭐ DOS MANCHAS DEL FEED DE YeGo, copiadas enteras — sonda del 05/09/2026
+ * 14:30:39 GMT, § 1.34, dadas la vuelta a `[lat, lon]` como el contrato.
+ *
+ * La primera es **la del centro, con sus dos huecos**: es la que prueba que un
+ * agujero se pinta como agujero y no como una mancha más. La segunda es una de
+ * las pequeñas, para que haya dos polígonos que contar.
+ */
+const DOS_MANCHAS: readonly Mancha[] = [
+  // ── mancha 3 del feed · la del centro: exterior de 52 vértices y DOS huecos (52 + 14 + 5)
+  [
+    [
+      [41.658376, -0.921336], [41.657665, -0.916061], [41.658213, -0.915759],
+      [41.659503, -0.915787], [41.661146, -0.914473], [41.660206, -0.910034],
+      [41.662076, -0.907715], [41.662981, -0.906542], [41.664515, -0.905541],
+      [41.664475, -0.900543], [41.66171, -0.894687], [41.660344, -0.892704],
+      [41.65894, -0.891074], [41.658707, -0.888758], [41.658096, -0.884664],
+      [41.65795, -0.881507], [41.657551, -0.878925], [41.656179, -0.876021],
+      [41.654291, -0.870847], [41.65304, -0.86695], [41.65246, -0.865426],
+      [41.650088, -0.855712], [41.649405, -0.856033], [41.640207, -0.859148],
+      [41.640093, -0.860794], [41.639654, -0.861585], [41.639177, -0.862071],
+      [41.638433, -0.862581], [41.638127, -0.863348], [41.636123, -0.862122],
+      [41.635093, -0.864727], [41.637173, -0.868737], [41.636257, -0.870831],
+      [41.63536, -0.873385], [41.636054, -0.874641], [41.63724, -0.876957],
+      [41.63473, -0.880111], [41.638104, -0.884718], [41.638859, -0.886333],
+      [41.639659, -0.886912], [41.640558, -0.88924], [41.641054, -0.892674],
+      [41.641933, -0.894307], [41.63737, -0.898367], [41.632921, -0.904904],
+      [41.635832, -0.911826], [41.64033, -0.914123], [41.64937, -0.917524],
+      [41.650477, -0.917199], [41.652098, -0.918768], [41.657467, -0.920772],
+      [41.658376, -0.921336],
+    ],
+    [
+      [41.647896, -0.885959], [41.647351, -0.885488], [41.647975, -0.884167],
+      [41.648486, -0.884076], [41.648781, -0.883924], [41.650267, -0.882405],
+      [41.651549, -0.881099], [41.65173, -0.880188], [41.65232, -0.880507],
+      [41.652683, -0.881585], [41.651889, -0.881676], [41.649155, -0.884364],
+      [41.648962, -0.884865], [41.647896, -0.885959],
+    ],
+    [
+      [41.656913, -0.880591], [41.655794, -0.878304], [41.656076, -0.878055],
+      [41.657099, -0.880431], [41.656913, -0.880591],
+    ]
+  ],
+  // ── mancha 5 del feed · la pequeña de Delicias: un anillo de 5
+  [
+    [
+      [41.634147, -0.900517], [41.634261, -0.900406], [41.63363, -0.899675],
+      [41.633538, -0.899778], [41.634147, -0.900517],
+    ]
+  ],
+];
 
 const TRAMO: readonly Vertice[] = [
   [41.6561, -0.8773],
@@ -956,5 +1024,117 @@ describe('Mapa', () => {
     expect(contraste(ROJO_DE_LA_ZONA, mezcla(TINTA_DEL_RELLENO, RELLENO_DE_LA_ZONA, PLANO_MAS_CLARO)))
       .toBeGreaterThanOrEqual(AA_GRAFICO);
     expect(ribeteDe(ROJO_DE_LA_ZONA)).toBeTruthy();
+  });
+
+  /**
+   * ⭐ JUEZ 9 (la 5 del encargo) — LOS TONOS DEL ÁREA DE YeGo, Y QUE LOS DOS
+   * POLÍGONOS CONVIVEN DISTINGUIBLES (5/09).
+   *
+   * ⚠️ **Lo primero que se mide aquí es una imposibilidad.** El borde del área y
+   *    el de la Zona de Bajas Emisiones dan **1,10:1** entre ellos, y no hay
+   *    color que arregle eso: para llegar a 3:1 contra `#b91c1c` haría falta una
+   *    luminancia ≥ 0,384 —un tono casi blanco, que se pierde sobre la calzada—
+   *    o ≤ 0, que no existe. Así que **el segundo canal no es opcional** [WCAG
+   *    1.4.1]: el del área va a rayas y el de la zona sigue continuo.
+   *
+   * Y lo que sí se cumple, con el instrumento: el borde por encima del 3:1 de
+   * [WCAG 1.4.11] contra el peor color del plano, el relleno como un tinte, y
+   * **los dos rellenos encimados** —que es lo que se ve de verdad con «Pública
+   * YeGo»— dejando las tres trazas por encima del 3:1.
+   */
+  it('⭐ 9 · el área se pinta con su tono, y convive con la zona sin confundirse', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    // Sin área, ni un polígono. Es el mismo trato que la zona.
+    expect(poligonosDeContexto(raiz).length).toBe(0);
+
+    fixture.componentInstance.area.set(DOS_MANCHAS);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // ⭐ UNA MANCHA, UN POLÍGONO. Aplanarlas en uno solo dejaría la segunda
+    //    mancha convertida en un agujero de la primera.
+    const soloElArea = poligonosDeContexto(raiz);
+    expect(soloElArea.length).toBe(2);
+    for (const mancha of soloElArea) {
+      expect(mancha.getAttribute('stroke')).toBe(`#${BORDE_DEL_AREA}`);
+      expect(mancha.getAttribute('fill')).toBe(`#${TINTA_DEL_AREA}`);
+      expect(Number(mancha.getAttribute('fill-opacity'))).toBeCloseTo(RELLENO_DEL_AREA, 3);
+      // ⭐ Y LA RAYA, que es el canal que no depende del color.
+      expect(mancha.getAttribute('stroke-dasharray')).toBe(RAYA_DEL_AREA);
+    }
+    // ⭐ Y LOS ANILLOS NO SE APLANAN. Las dos manchas suman **cuatro anillos**
+    //    —exterior + dos huecos + exterior—, y siguen siendo **dos** polígonos:
+    //    aplanarlos todos en uno daría 1, y hacer un polígono por anillo daría
+    //    4. Cualquiera de los dos errores convertiría un hueco en área.
+    expect(DOS_MANCHAS.reduce((suma, m) => suma + m.length, 0)).toBe(4);
+    expect(soloElArea.length).toBe(2);
+
+    // ⚠️ **Y por qué no se mira el `d` del SVG**, que sería lo directo: en esta
+    //    prueba el mapa **no tiene tamaño** —no hay navegador que se lo dé— y
+    //    Leaflet recorta lo que dibuja a la vista. Medido: el trazado que sale
+    //    es `M-2 2L-2 -2L2 -2L2 2z`, una caja de cuatro píxeles, con anillos o
+    //    sin ellos. Que los huecos se dibujen como huecos se comprueba en
+    //    Chrome de verdad, en `app/e2e/yego.mjs`.
+
+    // ⭐ LOS DOS A LA VEZ, que es lo que se ve con «Pública YeGo»: tres
+    //    polígonos —la zona y las dos manchas— y la zona SIN raya.
+    fixture.componentInstance.zona.set(laFase1());
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const todos = poligonosDeContexto(raiz);
+    expect(todos.length).toBe(3);
+    const conRaya = todos.filter((x) => x.getAttribute('stroke-dasharray') !== null);
+    expect(conRaya.length).toBe(2);
+    expect(
+      todos.find((x) => x.getAttribute('stroke') === `#${BORDE_DE_LA_ZONA}`)!
+        .getAttribute('stroke-dasharray'),
+    ).toBeNull();
+
+    // Y quitar el área deja la zona sola: se pintan y se borran por separado.
+    fixture.componentInstance.area.set([]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(poligonosDeContexto(raiz).length).toBe(1);
+    expect(zonaPintada(raiz)!.getAttribute('stroke')).toBe(`#${BORDE_DE_LA_ZONA}`);
+
+    // ═══ Y AHORA LOS NÚMEROS ═══════════════════════════════════════════════
+    //
+    // ⛔ Los dos bordes no se distinguen por el color, y no puede arreglarse.
+    expect(contraste(BORDE_DEL_AREA, BORDE_DE_LA_ZONA)).toBeLessThan(1.2);
+    // Por eso uno va a rayas y el otro no. Es el segundo canal.
+    expect(RAYA_DEL_AREA).toBeTruthy();
+
+    // El borde del área cumple el 3:1 sin ribete, como el de la zona.
+    expect(contraste(BORDE_DEL_AREA, PLANO_MAS_OSCURO)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    expect(contraste(BORDE_DEL_AREA, TIERRA_OSM)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    expect(contraste(BORDE_DEL_AREA, PLANO_MAS_CLARO)).toBeGreaterThanOrEqual(AA_GRAFICO);
+
+    // El relleno es un TINTE: apenas se separa de la tierra.
+    const mezcla = (tinta: string, alfa: number, fondo: string): string => {
+      const t = deHex(tinta);
+      const f = deHex(fondo);
+      const dos = (n: number): string => Math.round(n).toString(16).padStart(2, '0');
+      return (
+        dos(t.r * alfa + f.r * (1 - alfa)) +
+        dos(t.g * alfa + f.g * (1 - alfa)) +
+        dos(t.b * alfa + f.b * (1 - alfa))
+      );
+    };
+    const soloYego = mezcla(TINTA_DEL_AREA, RELLENO_DEL_AREA, TIERRA_OSM);
+    expect(contraste(soloYego, TIERRA_OSM)).toBeLessThan(1.2);
+
+    // ⭐ Y LO QUE DE VERDAD IMPORTA: LOS DOS RELLENOS ENCIMADOS. Es el caso de
+    //    «Pública YeGo» dentro del casco, y las tres trazas siguen legibles.
+    const encimados = mezcla(TINTA_DEL_RELLENO, RELLENO_DE_LA_ZONA, soloYego);
+    for (const traza of ['2563eb', 'b45309', ROJO_DE_LA_ZONA]) {
+      expect(contraste(traza, soloYego)).toBeGreaterThanOrEqual(AA_GRAFICO);
+      expect(contraste(traza, encimados)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    }
+    // Y los dos bordes se siguen leyendo sobre esa doble capa.
+    expect(contraste(BORDE_DEL_AREA, encimados)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    expect(contraste(BORDE_DE_LA_ZONA, encimados)).toBeGreaterThanOrEqual(AA_GRAFICO);
   });
 });

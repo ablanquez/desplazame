@@ -16,6 +16,7 @@ import type {
   Portal,
   PortalCercano,
   Trayecto,
+  Vertice,
   Via,
 } from '@desplazame/tipos';
 import { Buscador, CUANDO_SE_DICE_QUE_TARDA_MS } from './buscador';
@@ -1190,6 +1191,57 @@ const FUERA_DEL_AREA_DE_YEGO: Trayecto = {
 };
 
 /**
+ * ⭐ DOS MANCHAS DEL FEED DE YeGo, copiadas enteras — sonda del 05/09/2026
+ * 14:30:39 GMT, § 1.34, en `[lat, lon]` como las sirve el motor.
+ *
+ * La primera es **la del centro, con sus dos huecos**; la segunda, una de las
+ * pequeñas. Con las dos hay algo que contar y algo que agujerear.
+ */
+const DOS_MANCHAS: readonly (readonly (readonly Vertice[])[])[] = [
+  // ── mancha 3 del feed · la del centro: exterior de 52 vértices y DOS huecos (52 + 14 + 5)
+  [
+    [
+      [41.658376, -0.921336], [41.657665, -0.916061], [41.658213, -0.915759],
+      [41.659503, -0.915787], [41.661146, -0.914473], [41.660206, -0.910034],
+      [41.662076, -0.907715], [41.662981, -0.906542], [41.664515, -0.905541],
+      [41.664475, -0.900543], [41.66171, -0.894687], [41.660344, -0.892704],
+      [41.65894, -0.891074], [41.658707, -0.888758], [41.658096, -0.884664],
+      [41.65795, -0.881507], [41.657551, -0.878925], [41.656179, -0.876021],
+      [41.654291, -0.870847], [41.65304, -0.86695], [41.65246, -0.865426],
+      [41.650088, -0.855712], [41.649405, -0.856033], [41.640207, -0.859148],
+      [41.640093, -0.860794], [41.639654, -0.861585], [41.639177, -0.862071],
+      [41.638433, -0.862581], [41.638127, -0.863348], [41.636123, -0.862122],
+      [41.635093, -0.864727], [41.637173, -0.868737], [41.636257, -0.870831],
+      [41.63536, -0.873385], [41.636054, -0.874641], [41.63724, -0.876957],
+      [41.63473, -0.880111], [41.638104, -0.884718], [41.638859, -0.886333],
+      [41.639659, -0.886912], [41.640558, -0.88924], [41.641054, -0.892674],
+      [41.641933, -0.894307], [41.63737, -0.898367], [41.632921, -0.904904],
+      [41.635832, -0.911826], [41.64033, -0.914123], [41.64937, -0.917524],
+      [41.650477, -0.917199], [41.652098, -0.918768], [41.657467, -0.920772],
+      [41.658376, -0.921336],
+    ],
+    [
+      [41.647896, -0.885959], [41.647351, -0.885488], [41.647975, -0.884167],
+      [41.648486, -0.884076], [41.648781, -0.883924], [41.650267, -0.882405],
+      [41.651549, -0.881099], [41.65173, -0.880188], [41.65232, -0.880507],
+      [41.652683, -0.881585], [41.651889, -0.881676], [41.649155, -0.884364],
+      [41.648962, -0.884865], [41.647896, -0.885959],
+    ],
+    [
+      [41.656913, -0.880591], [41.655794, -0.878304], [41.656076, -0.878055],
+      [41.657099, -0.880431], [41.656913, -0.880591],
+    ]
+  ],
+  // ── mancha 5 del feed · la pequeña de Delicias: un anillo de 5
+  [
+    [
+      [41.634147, -0.900517], [41.634261, -0.900406], [41.63363, -0.899675],
+      [41.633538, -0.899778], [41.634147, -0.900517],
+    ]
+  ],
+];
+
+/**
  * La capa de la ZBE tal y como la sirve el WFS: dos fases, `[lon, lat]`. Aquí
  * va recortada a cuatro vértices por fase — lo que se compra es el reparto, no
  * la geometría, que ya tiene su juez en `mapa.spec.ts` contra el fichero real.
@@ -1675,6 +1727,19 @@ describe('Buscador', () => {
     }
   };
 
+  /**
+   * ⭐ Y SE TRAGA EL ÁREA DE YeGo, que elegir «Pública YeGo» pide (5/09).
+   *
+   * Igual que la de la zona, con una diferencia: **ésta se pide más de una
+   * vez** — al elegir el modo y en cada «Generar»—, porque es un feed vivo y no
+   * un fichero. Por eso es una tragada y no un `expectOne`.
+   */
+  const tragarElArea = (manchas: readonly unknown[] = []): void => {
+    for (const p of http.match((r) => r.url === '/api/area-yego')) {
+      p.flush({ manchas });
+    }
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Buscador],
@@ -1714,6 +1779,16 @@ describe('Buscador', () => {
         r.url.includes('MU1_ZBE'),
     )) {
       cap.flush([]);
+    }
+    // ⚠️ **Y desde el 5/09, el área de YeGo.** Mismo motivo que la capa de la
+    // zona y misma cautela: se le contesta con un cuerpo **bien formado y
+    // vacío**, no con `[]`. Dejarla en vuelo la resolvería sola al desmontar el
+    // TestBed y `traerElArea` leería `manchas` de un `undefined` — que es
+    // exactamente el fallo que dejó 16 «unhandled» el 4/09.
+    // Que se pida **solo con YeGo y en cada consulta** lo vigila su juez, que
+    // no drena.
+    for (const cap of http.match((r) => r.url === '/api/area-yego')) {
+      cap.flush({ manchas: [] });
     }
     http.verify();
   });
@@ -5960,9 +6035,11 @@ describe('Buscador', () => {
 
       elegirModo(fixture, 'yego');
       tragarLaZona();
+      tragarElArea();
       await direccionEntera(fixture, http);
       botonGenerar(raiz).click();
       fixture.detectChanges();
+      tragarElArea();
       drenarRutas(http.match('/api/ruta'), () => FUERA_DEL_AREA_DE_YEGO);
       await fixture.whenStable();
       fixture.detectChanges();
@@ -5986,6 +6063,88 @@ describe('Buscador', () => {
       expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(0);
     });
 
+    /**
+     * ⭐ JUEZ H (las 3 y 4 del encargo del 5/09) — EL ÁREA PINTADA, **Y DEL
+     * MISMO SITIO QUE EL FILTRO**.
+     *
+     * Dos cosas a la vez, porque son la misma:
+     *
+     *   · **Se pinta con «Pública YeGo» y con nadie más.** Con la privada, con
+     *     el coche y con los cinco sin motor, el área no está.
+     *   · **Sale de `GET /api/area-yego`**, que en el motor es la misma
+     *     `elAreaDeServicio()` con la que `viaje-yego.ts` decide si un destino
+     *     vale. Si esto se pintara desde una copia en `app/data/`, esta juez
+     *     seguiría viendo el polígono — pero no vería la petición, y ahí es
+     *     donde muerde.
+     *
+     * ⭐ Y **cada mancha es su propio polígono, con sus huecos**: la del centro
+     *    trae tres anillos, y de ellos salen tres subcaminos. Aplanarlos
+     *    convertiría el Paseo de la Independencia en área de servicio.
+     */
+    it('⭐ H · el área se pide al motor y se pinta solo con Pública YeGo', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      // Con la familia Moto —privada— hay zona y NO hay área.
+      radiosDeFamilia(raiz).find((r) => r.value === 'moto')!.click();
+      fixture.detectChanges();
+      tragarLaZona();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(http.match((r) => r.url === '/api/area-yego').length).toBe(0);
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+
+      // ⭐ Se pasa a «Pública YeGo»: **ahora sí se le pide al motor**.
+      pulsar(fixture, radiosDeMoto(raiz), 'yego');
+      const pide = http.expectOne((r) => r.url === '/api/area-yego');
+      expect(pide.request.method).toBe('GET');
+      pide.flush({ manchas: DOS_MANCHAS });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      // La zona sigue, y encima las dos manchas: tres polígonos.
+      const dibujados = Array.from(
+        raiz.querySelectorAll<SVGPathElement>('.leaflet-zbe-pane path'),
+      );
+      expect(dibujados.length).toBe(3);
+      // ⭐ Y los anillos no se aplanan: las dos manchas suman cuatro anillos y
+      //    siguen siendo dos polígonos, más el de la zona. Aplanarlos daría dos
+      //    en total, y uno por anillo daría cinco.
+      expect(DOS_MANCHAS.reduce((suma, m) => suma + m.length, 0)).toBe(4);
+
+      // Volver a la privada la quita, sin tocar la zona.
+      pulsar(fixture, radiosDeMoto(raiz), 'moto');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+
+      // Y en el coche y en los sin motor, tampoco — ni se vuelve a pedir.
+      for (const modo of ['coche', 'andando', 'bus', 'bici', 'patin'] as const) {
+        elegirModo(fixture, modo);
+        fixture.detectChanges();
+        tragarLaZona();
+        await fixture.whenStable();
+        expect(http.match((r) => r.url === '/api/area-yego').length).toBe(0);
+        const cuantos = modo === 'coche' ? 1 : 0;
+        expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(cuantos);
+      }
+
+      // ⭐ Y AL GENERAR EN YeGo SE VUELVE A PEDIR: es un feed vivo, no un
+      //    fichero. Sin esto, quien deja la pantalla abierta media hora ve un
+      //    contorno viejo mientras el motor filtra con el de ahora.
+      elegirModo(fixture, 'yego');
+      tragarLaZona();
+      http.expectOne((r) => r.url === '/api/area-yego').flush({ manchas: DOS_MANCHAS });
+      await direccionEntera(fixture, http);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      http.expectOne((r) => r.url === '/api/area-yego').flush({ manchas: DOS_MANCHAS });
+      drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_YEGO);
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(3);
+    });
   });
 
   describe('⭐ EL GRUPO MOTO EN LA BOTONERA (4/09, punto 13 casilla 3)', () => {

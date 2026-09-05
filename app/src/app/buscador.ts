@@ -5,6 +5,7 @@ import type { ElementRef, WritableSignal } from '@angular/core';
 // locales. Si el motor cambia la forma, esta pantalla deja de compilar.
 import type {
   AQuienPreguntar,
+  AreaDeYego,
   EstacionViva,
   PosteVivo,
   Aviso,
@@ -25,7 +26,7 @@ import type {
 } from '@desplazame/tipos';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
-import { Mapa, type Vertice } from './mapa';
+import { Mapa, type Mancha, type Vertice } from './mapa';
 import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
 import { IconoCapa, type Clase } from './iconos';
@@ -1155,6 +1156,60 @@ export class Buscador {
   protected readonly zonaDelMapa = computed<readonly (readonly Vertice[])[]>(() =>
     this.pintaLaZona() ? this.zonaZbe() : [],
   );
+
+  /**
+   * ⭐ EL ÁREA DE SERVICIO DE YeGo (5/09), y **se pide al motor, no a un
+   * fichero**.
+   *
+   * ⚠️ Ésta es la diferencia que la hace correcta, y no es de comodidad. El
+   *    polígono de la Zona de Bajas Emisiones se baja de `app/data/`: es una
+   *    capa oficial con fecha, y el motor la lee del **mismo fichero**. El área
+   *    de YeGo **no tiene fichero**: caduca cada cuatro minutos y vive en el
+   *    feed. Copiarla aquí sería tener dos verdades — el mapa pintaría un
+   *    contorno y el motor rechazaría destinos por otro— y el día que YeGo mueva
+   *    una línea nadie se enteraría.
+   *
+   *    Por eso `GET /api/area-yego`, que sirve **el mismo objeto** que
+   *    `viaje-yego.ts` usa para filtrar. Una fuente.
+   */
+  private readonly areaDeYego = signal<readonly Mancha[]>([]);
+  private pidiendoElArea = false;
+
+  /** Lo que se le pasa al mapa: las manchas, y **solo con «Pública YeGo»**. */
+  protected readonly areaDelMapa = computed<readonly Mancha[]>(() =>
+    this.modo() === 'yego' ? this.areaDeYego() : [],
+  );
+
+  /**
+   * ⭐ Y SE VUELVE A PEDIR EN CADA CONSULTA, al revés que la capa de la ZBE.
+   *
+   * `traerLaZona` se guarda de repetirse porque baja un fichero que no cambia.
+   * Esto es un feed vivo: pedirlo otra vez es lo correcto, y **no cuesta una
+   * salida a la red** — el motor lo tiene guardado los 240 s que el propio YeGo
+   * declara en su `ttl`, así que lo normal es que conteste con lo que ya tenía.
+   *
+   * La bandera solo evita **las peticiones a la vez**, no las de después: es el
+   * mismo reparto de papeles que el single-flight del motor.
+   *
+   * Si falla, **no se avisa**: el polígono es contexto, igual que el de la zona.
+   * Lo que sí se dice —y lo dice el motor, en un aviso del trayecto— es cuando
+   * el área no se ha podido comprobar para el viaje que se pidió.
+   */
+  private traerElArea(): void {
+    if (this.pidiendoElArea) {
+      return;
+    }
+    this.pidiendoElArea = true;
+    this.http.get<AreaDeYego>('/api/area-yego').subscribe({
+      next: (area) => {
+        this.pidiendoElArea = false;
+        this.areaDeYego.set(area.manchas ?? []);
+      },
+      error: () => {
+        this.pidiendoElArea = false;
+      },
+    });
+  }
 
   /**
    * La trae la primera vez que se elige coche. Si falla, **no se avisa**: el
@@ -2292,6 +2347,12 @@ export class Buscador {
   }
 
   protected elegirModo(modo: Modo): void {
+    // ⭐ Y al entrar en «Pública YeGo» se pide su área. Va aquí y no en un
+    //    `effect` por lo mismo que la capa de la zona: es **una acción del
+    //    usuario**, y esta pantalla no dispara peticiones desde efectos.
+    if (modo === 'yego') {
+      this.traerElArea();
+    }
     this.modo.set(modo);
   }
 
@@ -2464,6 +2525,16 @@ export class Buscador {
       // `loDelVehiculo`.
       ...this.loDelVehiculo(),
     };
+
+    // ⭐ Y EN YeGo, EL ÁREA SE REFRESCA CON LA CONSULTA (5/09).
+    //
+    // Se pidió al elegir «Pública YeGo», y se vuelve a pedir aquí: si no, quien
+    // deja la pantalla abierta media hora vería el contorno de hace media hora
+    // mientras el motor filtra con el de ahora — **dos verdades otra vez**. No
+    // cuesta una salida a la red: el motor lo tiene guardado sus 240 s.
+    if (this.modo() === 'yego') {
+      this.traerElArea();
+    }
 
     this.avisoRuta.set(null);
     this.resultado.set(null);

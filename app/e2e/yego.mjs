@@ -8,6 +8,13 @@
  * Y hace la foto que el checkpoint pide: la fila [Privada] [Pública YeGo], el
  * polígono de la zona, y el hito con la autonomía de la moto que ha ganado.
  *
+ * ⭐ Y DESDE EL 5/09, **el área de servicio pintada y el destino que se rechaza**
+ * — las dos cosas que el contrato del operador trajo [GCC v-2025/05/20 § 3.2.2].
+ * Aquí es además donde se comprueba que **los huecos se dibujan como huecos**:
+ * en las pruebas de unidad el mapa no tiene tamaño y Leaflet lo recorta todo a
+ * una caja de cuatro píxeles, así que la única manera de verlo es un navegador
+ * de verdad.
+ *
  * Se ejecuta con el motor levantado y `ng serve` en el 4200:
  *
  *     node app/e2e/yego.mjs
@@ -49,7 +56,25 @@ const foto = () =>
       motos: grupo('fieldset.modos.motos'),
       distintivos: grupo('fieldset.modos.distintivos'),
       aparcamientos: grupo('fieldset.modos.aparcamientos'),
-      poligonos: document.querySelectorAll('.leaflet-zbe-pane path').length,
+      // ⭐ Los dos polígonos de contexto se cuentan **por su borde**, no por su
+      //    número: el de la ZBE es continuo y los del área de YeGo van a rayas.
+      //    Contarlos a bulto ataría la prueba a cuántas manchas publique hoy.
+      poligonos: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+        (x) => x.getAttribute('stroke-dasharray') === null,
+      ).length,
+      manchas: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+        (x) => x.getAttribute('stroke-dasharray') !== null,
+      ).length,
+      // Cuántos subcaminos tiene la mancha más partida: los huecos.
+      anillosDeLaMayor: Math.max(
+        0,
+        ...[...document.querySelectorAll('.leaflet-zbe-pane path')]
+          .filter((x) => x.getAttribute('stroke-dasharray') !== null)
+          .map((x) => (x.getAttribute('d') ?? '').match(/M/g)?.length ?? 0),
+      ),
+      bordeDelArea: [...document.querySelectorAll('.leaflet-zbe-pane path')]
+        .find((x) => x.getAttribute('stroke-dasharray') !== null)
+        ?.getAttribute('stroke') ?? null,
     };
   })()`);
 
@@ -81,6 +106,8 @@ try {
     `${enMoto.familias?.nombre} vs ${enMoto.motos?.nombre}`,
   );
   juez('con Privada, la pregunta del distintivo SÍ está', enMoto.distintivos !== null);
+  juez('⭐ y con Privada el área de YeGo NO se pinta', enMoto.manchas === 0,
+    `${enMoto.manchas} manchas`);
 
   // ── 2 · CON YeGo NO HAY DISTINTIVO, Y EL POLÍGONO SIGUE ───────────────────
   await pulsar('moto', 'yego');
@@ -90,6 +117,17 @@ try {
   juez('⭐ y el polígono de la ZBE se sigue pintando', enYego.poligonos === 1,
     `${enYego.poligonos} polígonos`);
   juez('y la fila de la moto sigue, con YeGo marcada', enYego.motos?.marcada === 'yego');
+
+  // ── 2-bis · EL ÁREA DE SERVICIO, PINTADA Y CON SUS HUECOS ─────────────────
+  juez('⭐ con YeGo se pintan las manchas del área de servicio', enYego.manchas > 0,
+    `${enYego.manchas} manchas`);
+  juez('⭐ y su borde va a rayas, que es lo que lo distingue del de la ZBE',
+    enYego.bordeDelArea === '#166534', enYego.bordeDelArea ?? 'sin borde');
+  juez(
+    '⭐ y los HUECOS se dibujan como huecos: la mancha del centro trae tres anillos',
+    enYego.anillosDeLaMayor >= 3,
+    `${enYego.anillosDeLaMayor} subcaminos en la más partida`,
+  );
 
   // ── 3 · UN VIAJE DE VERDAD, CONTRA LA FLOTA DE VERDAD ─────────────────────
   const escribir = async (i, texto) => {
@@ -169,7 +207,12 @@ try {
       deja: texto(pasos.find((li) => (li.querySelector('.paso__texto')?.textContent ?? '').startsWith('Deja'))),
       resumen: [...document.querySelectorAll('.resumen__linea')].map((l) => l.textContent.replace(/\\s+/g, ' ').trim()),
       colores: encima.map((p) => p.getAttribute('stroke')),
-      poligonos: document.querySelectorAll('.leaflet-zbe-pane path').length,
+      poligonos: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+        (x) => x.getAttribute('stroke-dasharray') === null,
+      ).length,
+      manchas: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+        (x) => x.getAttribute('stroke-dasharray') !== null,
+      ).length,
       hayUuid: /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-/.test(document.body.innerHTML),
     };
   })()`);
@@ -186,8 +229,10 @@ try {
     pintado.coge ?? 'no hay hito',
   );
   juez(
-    '⭐ y el remate es dejarla en el destino, no en un aparcamoto',
-    /^Deja la moto en .+, donde esté permitido aparcar$/.test(pintado.deja ?? ''),
+    '⭐ y el remate es dejarla en el destino, dentro del área y con el consejo de YeGo',
+    /^Deja la moto en .+, dentro del área de YeGo — prioriza un aparcamiento de motos$/.test(
+      pintado.deja ?? '',
+    ),
     pintado.deja ?? 'no hay remate',
   );
   juez(
@@ -196,6 +241,8 @@ try {
     pintado.resumen[0] ?? '',
   );
   juez('el polígono sigue debajo del trazo', pintado.poligonos === 1, `${pintado.poligonos}`);
+  juez('⭐ y el área de servicio sigue pintada con la ruta encima', pintado.manchas > 0,
+    `${pintado.manchas} manchas`);
   juez('empieza andando (ámbar) y sigue rodando', pintado.colores[0] === '#b45309');
   juez('⛔ ni un identificador de moto en la página', pintado.hayUuid === false);
 
@@ -204,6 +251,47 @@ try {
   await m.dormir(500);
   await m.guardar(FOTO);
   console.log(`   foto en ${FOTO}`);
+
+  // ── 5 · ⭐ UN DESTINO FUERA DEL ÁREA, Y LA PANTALLA LO DICE ────────────────
+  //
+  // `PASEO INDEPENDENCIA 3` está en pleno centro **y dentro de un hueco** del
+  // área de servicio [§ 1.34]. Es el caso que más se parece a un fallo y no lo
+  // es: el contrato de YeGo no deja terminar ahí. Lo que se compra es que el
+  // motivo llegue a la cara con las palabras del contrato.
+  await escribir(1, 'PASEO INDEPENDENCIA');
+  await elegir(1, 'PASEO INDEPENDENCIA');
+  await portal(1, '3');
+  await m.evaluar(`window.__cuerpos = []`);
+  await m.evaluar(
+    `[...document.querySelectorAll('button')].find(b => b.textContent.includes('Generar')).click()`,
+  );
+  await m.dormir(6000);
+
+  const rechazo = await m.evaluar(`(() => ({
+    pasos: document.querySelectorAll('.paso').length,
+    trazas: document.querySelectorAll('path.leaflet-interactive').length,
+    resumen: [...document.querySelectorAll('.resumen__linea')].map((l) => l.textContent.replace(/\\s+/g, ' ').trim()),
+    manchas: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+      (x) => x.getAttribute('stroke-dasharray') !== null,
+    ).length,
+  }))()`);
+  console.log(`   RECHAZO: ${rechazo.resumen.join(' | ')}`);
+  juez(
+    '⭐ un destino dentro de un hueco del área se rechaza con las palabras del contrato',
+    rechazo.resumen.some((l) =>
+      l.includes(
+        'El área de servicio de YeGo no llega a tu destino: su contrato solo permite terminar ' +
+          'el viaje dentro de su zona.',
+      ),
+    ),
+    rechazo.resumen.join(' | ') || 'sin resumen',
+  );
+  juez('⛔ y no queda ni un paso ni una traza que finjan un viaje',
+    rechazo.pasos === 0 && rechazo.trazas === 0, `${rechazo.pasos} pasos · ${rechazo.trazas} trazas`);
+  juez('y el área se sigue viendo, que es lo que explica el «no»', rechazo.manchas > 0,
+    `${rechazo.manchas} manchas`);
+  await m.guardar(FOTO.replace('.png', '-fuera.png'));
+  console.log(`   foto del rechazo en ${FOTO.replace('.png', '-fuera.png')}`);
 } finally {
   await m.cerrar();
 }

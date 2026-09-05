@@ -20,7 +20,7 @@
  */
 
 import { createServer } from 'node:http';
-import type { Salud } from '@desplazame/tipos';
+import type { AreaDeYego, Salud, Vertice } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
@@ -853,6 +853,35 @@ const servidor = createServer((peticion, respuesta) => {
     void (async () => {
       const r = await atenderDistintivo(url.searchParams.get('matricula'));
       jsonSinGuardar(r.codigo, r.cuerpo);
+    })();
+    return;
+  }
+
+  /**
+   * ⭐ `GET /api/area-yego` (5/09) — **el área de servicio, para pintarla**.
+   *
+   * ⚠️ **Sale de `elAreaDeServicio()`, que es exactamente la misma función con
+   *    la que `viaje-yego.ts` filtra el destino.** No es una casualidad de
+   *    implementación: es lo único que impide que el mapa pinte una zona y el
+   *    motor corte por otra. Con la caché caliente —lo normal— esto no sale a la
+   *    red: devuelve el mismo objeto que la última ruta ya usó.
+   *
+   * La vuelta a `[lat, lon]` se da **aquí y solo aquí**, al escribir la
+   * respuesta: el GeoJSON viene en `[lon, lat]` y todo `Vertice` del contrato va
+   * al revés. Es la misma costura que la geometría de un trayecto.
+   *
+   * Y `no-store`, como los otros tres del vivo: lo que caduca en cuatro minutos
+   * no se guarda en la caché de nadie.
+   */
+  if (peticion.method === 'GET' && url.pathname === '/api/area-yego') {
+    void (async () => {
+      const area = await elAreaDeServicio();
+      const cuerpo: AreaDeYego = {
+        manchas: (area?.manchas ?? []).map((mancha) =>
+          mancha.map((anillo) => anillo.map(([lon, lat]) => [lat!, lon!] as Vertice)),
+        ),
+      };
+      jsonSinGuardar(200, cuerpo);
     })();
     return;
   }

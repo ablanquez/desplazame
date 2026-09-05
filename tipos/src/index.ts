@@ -162,6 +162,36 @@ export type TipoDeAparcamiento = 'azul' | 'naranja' | 'discapacitado' | 'gratuit
 export type Vertice = readonly [number, number];
 
 /**
+ * ⭐ UNA MANCHA DEL ÁREA DE SERVICIO DE YeGo (5/09): **el anillo exterior
+ * primero y sus huecos detrás** [RFC 7946 § 3.1.6].
+ *
+ * Y los huecos importan: la mancha que cubre el centro trae dos, y dentro de
+ * ellos están el Paseo de la Independencia, la Plaza de Aragón y la Plaza de
+ * España — **41 portales que quedan fuera del área** [medido el 5/09, § 1.34].
+ * Aplanar los anillos aquí los convertiría en manchas más, y el mapa pintaría
+ * como zona de servicio justo lo que no lo es.
+ */
+export type ManchaDeYego = readonly (readonly Vertice[])[];
+
+/**
+ * ⭐ EL ÁREA DE SERVICIO DE YeGo, tal y como la sirve `GET /api/area-yego`.
+ *
+ * Es la **Service Zone** del contrato del operador — [GCC v-2025/05/20, § 3.2.2:
+ * *«Pausing and/or ending a ride is only allowed within the Service Zone»*] —, y
+ * el motor la usa para dos cosas a la vez: **filtrar el destino** de un viaje en
+ * YeGo y **dársela a la pantalla para que la pinte**. Es el mismo objeto leído
+ * del mismo feed, y ésa es la razón de que exista este endpoint en vez de una
+ * copia en `app/data/`: dos copias se separan el día que YeGo mueva una línea.
+ *
+ * `manchas` vacío es «no se ha podido preguntar» **o** «no hay». La pantalla
+ * hace lo mismo con los dos: no pintar. El polígono es contexto — igual que el
+ * de la Zona de Bajas Emisiones, que tampoco avisa si no llega.
+ */
+export interface AreaDeYego {
+  readonly manchas: readonly ManchaDeYego[];
+}
+
+/**
  * La clase de giro de un paso. **La pantalla dibuja la flecha a partir de
  * esto**, no del texto: parsear una frase para saber si va una flecha a la
  * derecha sería atarse a la redacción.
