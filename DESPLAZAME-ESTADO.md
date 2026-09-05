@@ -122,7 +122,10 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   «Próximo bus» — idempotente, no-store, single-flight, 400 si se
   pregunta mal, mudo con motivo al log; el noveno del 2/09: `GET
   /api/estacion-viva?estacion&pide=bicis|anclajes`, el de los botones
-  de BiZi — mismo régimen; el décimo del 3/09: `GET /api/distintivo
+  de BiZi — mismo régimen; el undécimo y el duodécimo del 4-5/09: la consulta viva a YeGo
+  (free_bike_status con caché 240 s doctrinal) y `GET /api/area-yego`
+  (las 10 manchas de la MISMA función que filtra el fin de viaje);
+  el décimo del 3/09: `GET /api/distintivo
   ?matricula=` — la consulta a la sede DGT (etiqueta por matrícula;
   la matrícula ni se guarda ni se loguea; los tres formatos
   validados); y `POST /api/ruta` acepta `modo=bus` desde
@@ -137,7 +140,10 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TRAMOS — TramoDelViaje con comoSeVa/desde/hasta/hito sobre la
   geometría única). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal
   + 619 por punto medio).
-- **Los datos**: TREINTA Y CUATRO conjuntos descargados (el 34º, del
+- **Los datos**: TREINTA Y CINCO conjuntos con ficha (el 35º, del
+  4/09: YeGo §1.34 — la QUINTA fuente que no se copia: SE CONSULTA,
+  GBFS 2.3 con su NO CONSTA de licencia documentado tras leer el
+  contrato; el 34º, del
   4/09: LOS APARCAMOTOS cocinados del WFS — 2.146/11.715, sha
   5021e2b7, con los 6 nombres por conflación declarada; y antes:
   el viario rodable con ids —20 MB, la base del coche—, la ZBE, y
@@ -171,16 +177,38 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar** *(al cierre del 3/09; el push del 2/09 lo
-nombró Antonio — publicado hasta `8763c64`)*: **las casillas 2,
-2-bis, 3 y 3-bis del 12 ENTERAS — el coche aparca por tipo, remata
-en parking público, se ve en pantalla con el polígono y la traza
-roja, y consulta el distintivo por matrícula; las bitácoras nº31-32
-con sus leyes; los papeles al día**
-(31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
+comprobado). **En local, sin publicar** *(al cierre del 5/09 mediodía; el push del
+3/09 noche llegó hasta `8442284`)*: **la tanda del 4-5/09 entera — la
+demo del 12 con sus apaños (azul/naranja + sugerencia cruzada +
+frases llanas), EL PUNTO 12 CERRADO, la moto (casillas 0-3: letra
+OMUZ, privada sobre la red del coche, aparcamotos por conflación,
+grupo en botonera) y YeGo entero con el contrato leído y el área
+pintada; los papeles al día.** *(Las tandas ya publicadas: el push
+del 3/09 noche llevó las casillas 2 a 3-bis del 12 — el coche entero
+con las bitácoras nº31-32; el del 2/09, el punto 11 y el coche
+ruteando; 31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LA CASILLA 2 DEL 13 — YeGo ENTERO, probado por el ojo (4-5/09).**
+Modo yego (octavo): dos etapas, la moto viable por coste con su
+autonomía, capado a 45 capando la red (vista, el coche intacto),
+caché 240 s doctrinal (803→114 ms), la edad del dato dicha. El feed
+declara el distintivo (eco_sticker 0) → sin pregunta en YeGo. Fallo
+real cazado midiendo: el aviso ZBE colgaba del paso de COGER (la
+primera juez daba verde: 8>4 colaba; la definitiva ata a los
+metros). EL CONTRATO LEÍDO (GCC 62 págs): fin de viaje DENTRO del
+área [§3.2.2 literal], rodar fuera intacto, el NO CONSTA de licencia
+documentado (el GCC no menciona el feed). El área PINTADA de la
+misma función que filtra (una fuente). ⚠️ La noticia: dos anillos
+interiores excluyen Independencia/Pl. Aragón/Pl. España, y SOLO el
+34,4 % de los portales son destino válido en YeGo — escrito sin
+disimulo; la restricción es del operador. Sin bitácora por el
+4→5/09: cambio de regla por fuente nueva, no instrumento tapando
+fallo (respaldado). Tres rarezas del feed declaradas (last_reported
+= sello del volcado · form_factor cruzados · clave 3.0 en 2.3). 576
+motor · 279 interfaz · yego.mjs 28 · DOCE endpoints.
 
 **LAS CASILLAS 1 Y 3 DEL 13 — LA MOTO RUEDA, APARCA Y SE VE (4/09,
 tarde-noche).** modo=moto sobre la red del coche (velocidades
@@ -1272,14 +1300,11 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 2 del 13 — YeGo** (ADELANTE por
-decisión de Antonio; el encargo con la doctrina GBFS: ttl 240
-respetado, la edad del dato dicha, atribución a YeGo, la ficha con
-el NO CONSTA de licencia transcrito; free-floating con
-free_bike_status, 147 motos); (2) la casilla 4 — la demo de la moto
-por el ojo (y la frase del «S/N»); (3) la contabilidad del notices
-(31 vs 34; los «se consultan» son 4) antes del cierre del 13; (4) el
-push de la tanda del 4/09 cuando Antonio lo nombre; (5)
+**Lo siguiente:** (1) **la casilla 4 del 13 — LA DEMO DE LA MOTO por
+el ojo** (privada + YeGo; la frase del «S/N» a su decisión) — con el
+vale, el 13 se cierra; (2) el saco del notices (la cabecera dice 31
+habiendo 35; los «se consultan» son CINCO ya: BiZi · poste · ruta
+operativa · DGT · YeGo); (3)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1594,7 +1619,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 824 pruebas (554 motor + 270 interfaz; e2e moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 855 pruebas (576 motor + 279 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

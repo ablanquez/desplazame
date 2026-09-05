@@ -3217,23 +3217,69 @@ CONSTA hasta la sonda).
       de frase para la demo) · la contabilidad del notices (dice 31
       habiendo 34 secciones; los «se consultan» son 4 con la DGT) —
       al saco antes del cierre del 13.
-- [ ] **2 · YeGo — ADELANTE (decisión de Antonio, 4/09), con la
-      doctrina GBFS delante:** el propio estándar se declara
-      «especificación de datos PÚBLICOS en tiempo real para
-      aplicaciones de cara al consumidor», su FAQ dice que «exigir
-      autenticación disminuye enormemente su valor como fuente de
-      información pública» y que «GBFS no contiene datos personales»;
-      la licencia abierta es RECOMENDACIÓN al publicador — su
-      ausencia en YeGo es NO CONSTA, transcrito en la ficha, con
-      atribución al operador de todas formas. El consumo con sus
-      reglas escritas: respetar el ttl (240 s en YeGo), enseñar la
-      edad del dato (last_updated), nunca >5 min de desfase. El
-      diseño: free-floating (la moto YeGo está donde está, no en
-      estación — free_bike_status con 147), el patrón BiZi adaptado:
-      andar a la moto viva más razonable → rodar → aparcar donde el
-      destino (geofencing del feed si lo trae, NO CONSTA aún) · la
-      fila [Privada] [Pública YeGo] en la botonera al llegar esto ·
-      el botón de disponibilidad a petición con su región.
+- [x] **⭐ 2 · YeGo — HECHO (4-5/09, siete commits, probado por el
+      ojo): LA MOTO COMPARTIDA ENTERA.** LA MEDICIÓN previa: el
+      autodiscovery publica SEIS feeds (no 3); 166 vehículos (147 el
+      2/09 — la flota respira), 0 reservadas · 28 deshabilitadas ·
+      138 VIABLES, autonomía 7,5-48 km; ttl 240 real (tres lecturas a
+      20 s, mismo last_updated); ni Cache-Control ni ETag — la caché
+      la llevamos nosotros. TRES RAREZAS declaradas en §1.34:
+      last_reported = el sello del volcado (no la edad de cada moto)
+      · form_factor CRUZADOS (la «bicicleta» dice scooter y el
+      «patinete» bicycle — se selecciona por vehicle_type_id, nunca
+      por la forma) · station_parking (clave 3.0) en un feed 2.3. ⭐
+      El distintivo lo declara EL PROPIO FEED (eco_sticker:
+      distintivo_ambiental_0 · g_CO2_KM: 0) — mejor fuente que su
+      web → sin pregunta de distintivo en YeGo. EL MOTOR: modo yego
+      (octavo; el precedente bizi), dos etapas (andar→moto→destino),
+      la moto VIABLE por coste (andar×4+rodar; 8 candidatas — el
+      coste ≠ la recta en 11 de 40) con su AUTONOMÍA respetada
+      (criba por recta + metros de verdad) · capado a 45 km/h
+      CAPANDO LA RED, no la búsqueda (comoLaVeUnCiclomotor devuelve
+      una vista — el corazón del coche intacto; 7.854 aristas del
+      coche van a más) · caché 240 s + single-flight (803→114 ms) ·
+      el silencio no se guarda · la edad del dato dicha («datos de
+      hace X min»). ⭐ FALLO REAL cazado midiendo (zona sin vigilar,
+      sin bitácora): el aviso ZBE colgaba del paso de COGER la moto
+      (la etapa conducida va detrás del paseo y la numeración no se
+      desplazaba) — y la primera juez daba verde con el fallo vivo
+      (compraba «índice > coge»: 8>4 colaba); la contraprueba la
+      cazó y la definitiva ata el aviso A LOS METROS. LA PANTALLA:
+      fila [Privada][Pública YeGo], la región de la moto (batería y
+      edad), 28 e2e verdes. **EL CONTRATO LEÍDO (5/09, GCC
+      v-2025/05/20, 62 págs, sha fichado):** §3.2.2 literal
+      «Pausing and/or ending a ride is only allowed within the
+      Service Zone» · «Vehicles may indeed leave… must return and
+      complete the Trip within» → EL FIN DE VIAJE DENTRO del área
+      (rechazo honesto en 4 ms con las palabras del contrato); RODAR
+      fuera intacto (258/336 vértices fuera en el caso medido, viaje
+      legal); el origen libre. El GCC es contrato App↔Usuario y NO
+      MENCIONA el feed GBFS: el NO CONSTA de licencia queda
+      DOCUMENTADO con el contrato leído (antes era por falta de
+      lector). El contrato define 4 tipos de zona; el feed publica 1
+      (las otras: NO CONSTA). EL ÁREA PINTADA con [Pública YeGo]:
+      /api/area-yego sirve la MISMA elAreaDeServicio() del filtro
+      (una fuente); tonos medidos (borde #166534 a 4,03; los dos
+      bordes entre sí 1,10 — imposibilidad declarada: la raya no es
+      adorno). ⚠️ LA NOTICIA: la mancha del centro trae DOS ANILLOS
+      INTERIORES — Independencia (27 portales), Pl. Aragón (9) y Pl.
+      España (5) EXCLUIDOS del área (la flota lo respeta: 1/164
+      dentro); en total SOLO EL 34,4 % de los portales son destino
+      válido en YeGo (15.877/46.150) — escrito en §1.34 sin
+      disimulo; la restricción es del operador, lo nuestro es
+      decirla. Decisiones del ejecutor declaradas y respaldadas: sin
+      área leída el viaje se ofrece con aviso (el área es
+      restricción, no inventario — aplicar una no leída sería
+      inventar la prohibición) · SIN BITÁCORA por el 4→5/09 (nada
+      mintió: la juez decía la verdad sobre el código y el código
+      sobre el feed; cambio de regla por FUENTE NUEVA, no
+      instrumento tapando fallo) · dos jueces se pusieron rojas
+      solas al cambiar la fuente (el caso bueno del guardián). El
+      geofencing decidido por Antonio con la medición delante: las
+      reglas mandan (ride_allowed=true), el nombre «no go zone» es
+      rótulo — 161/166 motos dentro lo confirmaron; sin importar
+      semántica 3.0 a un feed 2.3. 576 motor · 279 interfaz ·
+      yego.mjs 28 · DOCE endpoints.
 - [x] **⭐ 3 · LA PANTALLA — HECHA (4/09, un commit): el grupo [Moto]
       EN LA BOTONERA.** SEIS familias (Andando · Bus/Tranvía · Bici ·
       Patín · Moto · Coche — la moto como TIPO DE VEHÍCULO [Google
