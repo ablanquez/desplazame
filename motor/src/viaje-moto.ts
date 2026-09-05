@@ -111,9 +111,13 @@ export const APARCAMOTOS_CANDIDATOS = 40;
  * ⚠️ **El `Tipo_via` no entra**, ni aquí ni en el cocinado: expandir `CL` a
  *    «Calle» sería inventarse una tabla que este repositorio no tiene.
  *
- * ⚠️ Y **6 de los 2.146 no traen calle** —§ 1.10 los declara—: ésos se nombran
- *    «el aparcamiento de motos», sin más. Un sitio sin nombre se dice sin
- *    nombre; ponerle el portal a secas sería peor que callar.
+ * ⚠️ **Y desde el 4/09 no queda ninguno sin calle.** Los 6 que el WFS deja sin
+ *    `Nombre_calle` —§ 1.10 los declara— se completan en el cocinado por
+ *    **conflación de atributos** desde el listado de la sede, casados a
+ *    milímetros y marcados con `nombreDe: 'sede'`. El camino del sitio sin
+ *    nombre se queda escrito y vigilado: si el origen mueve uno de los seis, el
+ *    relleno se apaga solo y esa frase vuelve a hacer falta. Un sitio sin
+ *    nombre se dice sin nombre; ponerle el portal a secas sería peor que callar.
  */
 export function nombreDelAparcamoto(a: AparcamotoCerca, motor: Motor): string {
   const suyo = comoSeLeeElSitio(a, motor);

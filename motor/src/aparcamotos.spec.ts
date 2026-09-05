@@ -10,10 +10,12 @@
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import {
   cocinarAparcamotos,
   comoSeGuarda,
+  CONFLADOS,
   FICHERO_DEL_WFS,
   type CapaDeMotos,
 } from './cocinar-aparcamotos.ts';
@@ -32,27 +34,40 @@ let cocinados: readonly AparcamotoCocinado[];
 let wfs: readonly RasgoCrudo[];
 
 /**
- * ⭐ LOS 6 QUE EL PROPIO WFS DEJA SIN NOMBRE DE CALLE, citados por su id.
+ * ⭐ LOS 6 QUE EL WFS DEJA SIN NOMBRE DE CALLE, y **el nombre que ya llevan**.
  *
  * § 1.10 los declara: son los mismos que llevan los 2 códigos de vía huérfanos
- * (25000 y 9740). No es un fallo del cocinado, es un agujero del origen — y se
- * escribe uno a uno para que el día que el origen lo tape, la juez avise.
+ * (25000 y 9740). El agujero es del origen, no del cocinado.
  *
- * ⚠️ **Y los seis SÍ tienen nombre en la otra puerta**, medido el 4/09 casándolos
- *    por posición a 0,0 m: cinco son `DE RANILLAS, S/N` y el sexto `GRUPO
- *    ARZOBISPO DOMENECH, 23`. Es parte del precio de la puerta elegida, y está
- *    en la ficha § 1.33 con la tabla. **No se rellenan con el de la sede**:
- *    mezclar las dos puertas para tapar el hueco de una es lo que la doctrina de
- *    procedencia evita.
+ * ⭐ **Y desde el 4/09 el hueco se rellena por CONFLACIÓN DE ATRIBUTOS** [OSM
+ *    wiki: *«combinar fuentes solapadas para retener el dato preciso»*;
+ *    Hootenanny/NGA: *«mantener la procedencia de geometría y atributos en los
+ *    rasgos combinados»*, el flujo *Differential-With-Tags*]. El listado de la
+ *    sede nombra estos seis, y **casan uno a uno a milímetros**: la geometría
+ *    sigue siendo del WFS —la doctrina de procedencia no se toca— y lo único
+ *    que entra de la otra puerta es **el atributo que falta**, marcado.
+ *
+ * ⚠️ Y se escriben uno a uno con su nombre para que el día que el origen tape
+ *    el agujero por su cuenta —o mueva uno de los seis— esto se ponga rojo.
  */
-const SIN_NOMBRE_DE_CALLE = [
-  'MU2_motos.138',
-  'MU2_motos.171',
-  'MU2_motos.172',
-  'MU2_motos.173',
-  'MU2_motos.222',
-  'MU2_motos.1483',
-] as const;
+const LOS_SEIS_CONFLADOS: ReadonlyArray<readonly [string, string]> = [
+  ['MU2_motos.138', 'DE RANILLAS'],
+  ['MU2_motos.171', 'DE RANILLAS'],
+  ['MU2_motos.172', 'DE RANILLAS'],
+  ['MU2_motos.173', 'DE RANILLAS'],
+  ['MU2_motos.222', 'DE RANILLAS'],
+  ['MU2_motos.1483', 'GRUPO ARZOBISPO DOMENECH'],
+];
+
+const SIN_NOMBRE_DE_CALLE = LOS_SEIS_CONFLADOS.map(([id]) => id);
+
+/**
+ * ⭐ EL SHA256 DEL COCINADO, para que un cambio del dato se vea de una vez.
+ *
+ * No es paranoia: el fichero se regenera con un script y **el `git diff` de
+ * 2.146 líneas no se lee**. El sello sí. Medido el 4/09 tras la conflación.
+ */
+const SELLO_DEL_COCINADO = '5021e2b736d98a43adfdbaecea6a40672eb70239b2867e011afdf88ee43842b4';
 
 /**
  * ⭐ EL ÚNICO QUE LA SEDE TIENE Y EL WFS NO: `MANUEL LASALA, F 44`, id 1198 de
@@ -115,22 +130,89 @@ describe('⭐ LOS APARCAMOTOS — la capa maestra como fuente, y lo que cuesta',
   });
 
   /**
-   * ⭐ EL AGUJERO DEL ORIGEN SE COPIA, NO SE TAPA: los 6 sin nombre de calle.
+   * ⭐ EL AGUJERO DEL ORIGEN SE TAPA POR CONFLACIÓN, y **se ve quién lo tapó**.
    *
-   * El cocinado no les inventa una vía ni los descarta. Son sitios reales donde
-   * dejar la moto, y el motor los nombra «el aparcamiento de motos».
+   * Los 6 salen con su nombre de calle y con `nombreDe: 'sede'` puesto. La
+   * marca no es decoración: es lo que hace que esto sea conflación declarada y
+   * no una mezcla silenciosa de dos puertas — [Hootenanny/NGA] *«mantener la
+   * procedencia de geometría y atributos en los rasgos combinados»*.
+   *
+   * ⚠️ **Y EXACTAMENTE ESOS SEIS**, ni uno más. Es la mitad que importa: el
+   *    listado de la sede casa con 2.114 rasgos del WFS, y rellenar «todo lo
+   *    que case» sería sustituir el catálogo entero por el de la otra puerta
+   *    sin decirlo. Lo que entra es el atributo que **falta**, donde falta.
    */
-  test('⭐ 5b · los 6 que el WFS deja sin calle salen con la calle vacía', () => {
-    const sinVia = cocinados.filter((a) => a.via === '').map((a) => a.id);
-    assert.deepEqual(sinVia.sort(), [...SIN_NOMBRE_DE_CALLE].sort());
-    // Y siguen teniendo lo que importa: un punto y unas plazas.
-    for (const id of SIN_NOMBRE_DE_CALLE) {
+  test('⭐ 5b · los 6 sin calle salen con su nombre y su marca de procedencia', () => {
+    // Ya no queda ni uno sin calle.
+    assert.deepEqual(cocinados.filter((a) => a.via === '').map((a) => a.id), []);
+
+    for (const [id, via] of LOS_SEIS_CONFLADOS) {
       const suyo = cocinados.find((a) => a.id === id)!;
+      assert.equal(suyo.via, via, `${id} no lleva su calle`);
+      assert.equal(suyo.nombreDe, 'sede', `${id} sin marca de procedencia`);
+      // Y siguen teniendo lo que ya tenían: su punto y sus plazas, del WFS.
       assert.ok(suyo.plazas >= 1, `${id} sin plazas`);
       assert.ok(Number.isFinite(suyo.lon) && Number.isFinite(suyo.lat), `${id} sin punto`);
     }
-    // El portal sí falta en más: 8 de los 2.146, y también va vacío.
+
+    // ⭐ NI UN SÉPTIMO. La marca está en seis registros y en seis nada más.
+    const marcados = cocinados.filter((a) => a.nombreDe !== undefined).map((a) => a.id);
+    assert.deepEqual([...marcados].sort(), [...SIN_NOMBRE_DE_CALLE].sort());
+    assert.equal(marcados.length, 6);
+    // Y el único valor posible de la marca es «sede»: no hay una tercera puerta.
+    assert.deepEqual(
+      [...new Set(cocinados.map((a) => a.nombreDe).filter((x) => x !== undefined))],
+      ['sede'],
+    );
+
+    // ⚠️ **El portal NO se rellena con nada**: los 8 que el WFS deja vacíos
+    //    siguen vacíos. La sede da el portal de los 6 conflados y COINCIDE con
+    //    el que el WFS ya traía —es la corroboración del casado, no un relleno—.
     assert.equal(cocinados.filter((a) => a.portal === '').length, 8);
+    for (const c of CONFLADOS) {
+      assert.equal(cocinados.find((a) => a.id === c.id)!.portal, c.portal);
+    }
+  });
+
+  /**
+   * ⭐ 5f · EL CASADO ES UNO A UNO Y A MILÍMETROS, y se puede contar.
+   *
+   * La tabla de conflación lleva la coordenada de la sede, y el cocinado solo
+   * rellena si el rasgo del WFS está **a 1 m o menos** de ella y además le
+   * coinciden el portal y las plazas. Medido el 4/09: los seis casan entre
+   * **0,0019 y 0,0065 m** — milímetros—, así que el margen de 1 m es holgura,
+   * no tolerancia.
+   *
+   * ⚠️ Lo que compra esta juez es que **si el WFS mueve uno de los seis, el
+   *    relleno se apaga solo** en vez de ponerle a un sitio el nombre de otro.
+   */
+  test('⭐ 5f · la tabla de conflación casa uno a uno, a milímetros del WFS', () => {
+    assert.equal(CONFLADOS.length, 6);
+    assert.equal(new Set(CONFLADOS.map((c) => c.id)).size, 6);
+    for (const c of CONFLADOS) {
+      const rasgo = wfs.find((r) => r.id === c.id)!;
+      const [lon, lat] = rasgo.geometry.coordinates as readonly number[];
+      const cuanto = metros(c.lon, c.lat, lon!, lat!);
+      assert.ok(cuanto <= 0.01, `${c.id} casa a ${cuanto.toFixed(4)} m: ya no son milímetros`);
+      // Y el WFS sigue sin darle nombre: si lo diera, el relleno sobraría.
+      const suyo = rasgo.properties['Nombre_calle'];
+      assert.ok(
+        suyo === null || suyo === undefined || String(suyo).trim() === '',
+        `${c.id} ya trae nombre en el WFS: la conflación sobra`,
+      );
+    }
+  });
+
+  /**
+   * ⭐ 5g · EL SELLO DEL COCINADO, para que un cambio del dato no pase de largo.
+   *
+   * 2.146 líneas de `git diff` no las lee nadie. Un sha256 que cambia, sí.
+   */
+  test('⭐ 5g · el fichero cocinado es exactamente el sellado', () => {
+    const bytes = readFileSync(
+      fileURLToPath(new URL('../../app/data/aparcamotos.json', import.meta.url)),
+    );
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), SELLO_DEL_COCINADO);
   });
 
   /**
@@ -192,6 +274,12 @@ describe('⭐ LOS APARCAMOTOS — la capa maestra como fuente, y lo que cuesta',
     // Y los dos que no tienen sitio o no tienen plazas se quedan fuera.
     assert.equal(cocinarAparcamotos(capa).aparcamotos.length, 2);
     assert.equal(comoSeGuarda(cocinarAparcamotos(capa)).endsWith('\n'), true, 'salto final');
+    // Y a un rasgo que NO está en la tabla de conflación no se le pone marca:
+    // ninguno de estos dos lo está, y ninguno sale marcado.
+    assert.deepEqual(
+      cocinarAparcamotos(capa).aparcamotos.map((a) => a.nombreDe),
+      [undefined, undefined],
+    );
   });
 
   /**

@@ -1722,6 +1722,16 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
         false,
         'la moto ha aparcado DENTRO de la zona que no puede pisar',
       );
+      // ⭐ Y EL HITO DICE SU CALLE (4/09, la conflación de los 6).
+      //
+      // Este remate cae en `MU2_motos.171`, que es **uno de los seis que el WFS
+      // deja sin `Nombre_calle`**: hasta la conflación, la frase era «Aparca en
+      // el aparcamiento de motos (sin coste)», un sitio sin nombre. Con el
+      // atributo traído de la sede vuelve a decir dónde es.
+      const suHito = vetado.pasos.find((x) => x.giro === 'aparca')!;
+      assert.match(suHito.texto, /^Aparca en el aparcamiento de motos de De Ranillas/);
+      assert.match(suHito.texto, / \(sin coste\)$/);
+
       // Y se anda de verdad: el paseo desde fuera hasta un portal de dentro.
       assert.ok(vetado.tramos[vetado.tramos.length - 1]!.metros > 0, 'no se anda nada');
       // Ni un solo tramo conducido marcado como zona: no se pisa.

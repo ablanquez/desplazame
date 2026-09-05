@@ -1,7 +1,7 @@
 /**
  * ⭐ LOS APARCAMOTOS, LEÍDOS UNA VEZ (4/09, punto 13 casilla 1).
  *
- * Aquí no se cocina nada: el directorio de la sede ya está reducido y ordenado
+ * Aquí no se cocina nada: la capa municipal ya está reducida y ordenada
  * —`cocinar-aparcamotos.ts`, y su fichero en `app/data/aparcamotos.json`—. Esto
  * solo lo carga la primera vez que hace falta y lo deja en memoria, como el
  * resto del dato del motor.
@@ -25,7 +25,7 @@ const FICHERO = fileURLToPath(new URL('../../app/data/aparcamotos.json', import.
 
 let cargados: readonly AparcamotoCocinado[] | null = null;
 
-/** Los 2.115 de la sede, ordenados por su `id`. Se lee una sola vez. */
+/** Los 2.146 de la capa, ordenados por su `id`. Se lee una sola vez. */
 export function losAparcamotos(): readonly AparcamotoCocinado[] {
   if (cargados === null) {
     const crudo = JSON.parse(readFileSync(FICHERO, 'utf8')) as AparcamotosCocinados;
@@ -50,7 +50,7 @@ export interface AparcamotoCerca extends AparcamotoCocinado {
  * ⚠️ **La recta solo PODA, y el número es de RENDIMIENTO.** No es un radio: no
  *    hay ninguna distancia a partir de la cual un aparcamoto «no existe». Quien
  *    elige es el coste —conducir más andar por su peso—, y esta lista solo evita
- *    hacer ese cálculo 2.115 veces. Mismo papel y misma razón que los 40
+ *    hacer ese cálculo 2.146 veces. Mismo papel y misma razón que los 40
  *    candidatos del coche y que los 40 postes del bus.
  */
 export function aparcamotosCerca(

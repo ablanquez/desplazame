@@ -567,6 +567,36 @@ sus altas son recientes y suyas son las correcciones de posición.
   registros que el propio origen deja sin `Nombre_calle`**: un agujero suyo, coherente consigo
   mismo. Ese enganche **todavía no se usa para nada**; viaja en el dato para el día del modo
   coche/moto.
+
+  > ⭐ **Y esos 6 nombres se completan por CONFLACIÓN DE ATRIBUTOS (4/09).** 6 rasgos sin
+  > `Nombre_calle` completados desde el listado de la sede electrónica —conflación de atributos,
+  > casados a 0,0 m, 4/09—. El fichero de esta ficha **no se toca**: la conflación vive en el
+  > cocinado de § 1.33, que es donde se escribe el dato derivado.
+  >
+  > Es la práctica corriente cuando dos fuentes se solapan [OSM wiki, *conflation*: *«combinar
+  > fuentes solapadas para retener el dato preciso»*; Hootenanny/NGA: *«mantener la procedencia de
+  > geometría y atributos en los rasgos combinados»*, el flujo *Differential-With-Tags* — añadir a
+  > un rasgo existente el atributo que le falta, casado uno a uno], y **no cambia quién manda**:
+  > la geometría, las plazas y los portales siguen siendo de esta capa, y la sede no añade ni un
+  > soporte —el que solo ella tiene sigue fuera—. Lo que entra es **un atributo, donde falta**.
+  >
+  > | WFS | sede | distancia | plazas | portal | nombre que entra |
+  > |---|---|---|---|---|---|
+  > | `MU2_motos.138` | 150 | 0,0033 m | 15 | `S/N` | `DE RANILLAS` |
+  > | `MU2_motos.171` | 185 | 0,0041 m | 20 | `S/N` | `DE RANILLAS` |
+  > | `MU2_motos.172` | 186 | 0,0033 m | 20 | `S/N` | `DE RANILLAS` |
+  > | `MU2_motos.173` | 187 | 0,0019 m | 20 | `S/N` | `DE RANILLAS` |
+  > | `MU2_motos.222` | 266 | 0,0065 m | 8 | `S/N` | `DE RANILLAS` |
+  > | `MU2_motos.1483` | 1655 | 0,0047 m | 4 | `23` | `GRUPO ARZOBISPO DOMENECH` |
+  >
+  > ⚠️ **El portal no se rellena: ya lo trae esta capa**, y coincide carácter a carácter con el
+  > que la sede escribe tras la coma — igual que las plazas. Esas dos coincidencias son **la
+  > corroboración del casado**, no un relleno: el cocinado exige las tres cosas —≤ 1 m, mismo
+  > portal, mismas plazas— y si alguna falla **no rellena**, que es preferible a nombrar mal un
+  > sitio.
+  >
+  > ⚠️ Y **cada registro conflado lo dice de sí mismo**: lleva `nombreDe: "sede"` en el fichero
+  > cocinado. Son 6 de 2.146, y se pueden contar sin fiarse de esta tabla.
 - **`Fecha_instalacion` solo en 616 de los 2.146** (el 29 %): 2020 → 111, 2021 → 261, 2022 → 65,
   2023 → 93, 2024 → 84, 2025 → 1.
 - **🐞 Una fecha imposible, que viaja tal cual**: el aparcamoto de **AV TENOR FLETA 134** declara
@@ -2680,9 +2710,9 @@ conectado** — eso § 1.31 no lo sabe—: se dice la norma y se manda al regist
 | **Petición** | La de § 1.10, y por eso el cocinado **se puede repetir sin red** |
 | **Licencia** | **Ley 37/2007**, la de § 1.10 |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
-| **Campos que se guardan** | `id` (el del WFS, `MU2_motos.N`) · `via` (`Nombre_calle`, verbatim) · `portal` (`Portal`, verbatim) · `plazas` · `lon`/`lat`. **Ninguno personal** |
+| **Campos que se guardan** | `id` (el del WFS, `MU2_motos.N`) · `via` (`Nombre_calle`, verbatim) · `portal` (`Portal`, verbatim) · `plazas` · `lon`/`lat` · **`nombreDe`** —solo en los **6 conflados**: dice que el nombre de la vía viene del listado de la sede y no de la capa (§ 1.10)—. **Ninguno personal** |
 | **Campos que NO entran** | `Codigo_calle` —el enganche al callejero; hoy no hace falta, el nombre viene en la misma fila—, `Fecha_instalacion` —solo en 616 de 2.146, y § 1.10 declara una fecha imposible dentro— y `Poligono` —en 33 de 2.146, y es el distrito—. Y el `Tipo_via`: expandir `CL` a «Calle» sería inventarse una tabla que este repositorio no tiene |
-| **¿Está en este repo?** | ✅ [`app/data/aparcamotos.json`](app/data/aparcamotos.json) · 239.156 bytes · sha256 `415d54403abcc232256c9bac3e5832d0063d9ef54607cf69a37ce76eb1783ea6` |
+| **¿Está en este repo?** | ✅ [`app/data/aparcamotos.json`](app/data/aparcamotos.json) · 239.343 bytes · sha256 `5021e2b736d98a43adfdbaecea6a40672eb70239b2867e011afdf88ee43842b4` · ⚠️ **sellado nuevo el 4/09** con la conflación de los 6 nombres: el anterior era 239.156 y `415d5440…`, y el `git diff` entre los dos son **6 líneas** |
 
 **El cocinado es determinista** —[`motor/src/cocinar-aparcamotos.ts`](motor/src/cocinar-aparcamotos.ts)—:
 ordena por el **número** del `id` —como texto, el `MU2_motos.10` iría antes que el `MU2_motos.9`—,
@@ -2690,10 +2720,10 @@ escribe las claves en orden fijo y **no mira el reloj**. Comprobado dándole los
 inverso**: los mismos bytes. Así el `git diff` sirve para ver si el dato ha cambiado, que es para
 lo que se usa.
 
-**Y el agujero del origen se copia, no se tapa**: **6 de los 2.146 no traen `Nombre_calle`** —los
-mismos que llevan los 2 códigos de vía huérfanos de § 1.10— y **8 no traen `Portal`**. Salen con
-el campo vacío, y el motor los nombra «el aparcamiento de motos», sin calle. Inventarles una vía
-sería peor que callar.
+**Y el agujero del origen no se tapa inventando**: **6 de los 2.146 no traen `Nombre_calle`** —los
+mismos que llevan los 2 códigos de vía huérfanos de § 1.10— y **8 no traen `Portal`**. Los 8 sin
+portal salen con el campo vacío: inventarles un número sería peor que callar. Los 6 sin calle
+**sí se completan, y no inventando: por conflación declarada** — ver abajo.
 
 > ⚠️ **Y esos 6 SÍ tienen nombre en la sede**, medido el 04/09 casándolos por posición: los seis
 > caen a **0,0 m** de un registro del directorio que sí los nombra.
@@ -2707,12 +2737,17 @@ sería peor que callar.
 > | `MU2_motos.222` | 8 | `DE RANILLAS, S/N` |
 > | `MU2_motos.1483` | 4 | `GRUPO ARZOBISPO DOMENECH, 23` |
 >
-> Así que **el precio de esta puerta no es solo un soporte: son también seis nombres de calle**.
-> Y no es teórico — es exactamente el caso `no + destino dentro` del punto 13: el remate cae en el
-> `MU2_motos.171`, y la frase pasó de «el aparcamiento de motos de De Ranillas, S/N» a «el
-> aparcamiento de motos», el mismo sitio sin nombre. **No se rellena con el de la sede**: mezclar
-> las dos puertas para tapar el hueco de una es exactamente lo que la doctrina de procedencia
-> evita, y el día que se decida hacerlo será una decisión escrita, no un apaño.
+> Así que **el precio de esta puerta no era solo un soporte: eran también seis nombres de calle**.
+> Y no era teórico — es exactamente el caso `no + destino dentro` del punto 13: el remate cae en
+> el `MU2_motos.171`, y la frase pasó de «el aparcamiento de motos de De Ranillas, S/N» a «el
+> aparcamiento de motos», el mismo sitio sin nombre.
+>
+> ⭐ **Y el 4/09 se escribió la decisión, que es lo que esta nota pedía**: los seis se completan
+> por **conflación de atributos** desde el listado de la sede — la nota entera, con la tabla del
+> casado y las tres condiciones que se exigen, está en **§ 1.10**. No es mezclar las dos puertas:
+> la geometría, las plazas y los portales siguen siendo de la capa, entra **un atributo donde
+> falta**, y cada registro conflado lo declara con `nombreDe: "sede"`. El hito de aquel caso
+> vuelve a decir dónde es: «Aparca en el aparcamiento de motos de De Ranillas S/N (sin coste)».
 
 #### Manda la CAPA, y es doctrina de procedencia
 

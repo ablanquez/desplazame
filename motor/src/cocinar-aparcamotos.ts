@@ -30,6 +30,32 @@
  * El precio de esta puerta está declarado en la ficha: **1 soporte** que la sede
  * tiene y el WFS no.
  *
+ * ── ⭐ Y LOS 6 NOMBRES QUE FALTAN, POR CONFLACIÓN DE ATRIBUTOS (4/09) ───────
+ *
+ * La capa deja **6 rasgos sin `Nombre_calle`**, y el listado de la sede sí los
+ * nombra. Desde el 4/09 ese hueco se rellena, y no es un cambio de fuente: es
+ * una **conflación de atributos** [OSM wiki: *«combinar fuentes solapadas para
+ * retener el dato preciso»*; Hootenanny/NGA: *«mantener la procedencia de
+ * geometría y atributos en los rasgos combinados»*, el flujo
+ * *Differential-With-Tags* — añadir a un rasgo existente el atributo que le
+ * falta, casado uno a uno].
+ *
+ * **La doctrina de procedencia no se toca**, y conviene ver por qué no:
+ *
+ *   · **Quién manda sigue siendo el WFS.** El catálogo son sus 2.146 rasgos,
+ *     con su geometría, sus plazas y sus portales. La sede no añade ni un
+ *     soporte —el que solo ella tiene sigue fuera— ni corrige ninguno.
+ *   · **Lo que entra es UN atributo, donde FALTA.** Seis nombres de calle en
+ *     seis registros que no tienen ninguno. Rellenar «todo lo que case» sería
+ *     otra cosa: la sede casa con 2.114 de los 2.146, y aceptar sus nombres en
+ *     todos sería sustituir el catálogo por el de la otra puerta sin decirlo.
+ *   · **Y se dice quién lo trajo**, registro a registro: `nombreDe: 'sede'`.
+ *     Una conflación sin procedencia es exactamente la mezcla silenciosa que
+ *     la regla de casa prohíbe; con ella, cualquiera puede contar cuántos
+ *     campos no son del origen y de dónde salieron.
+ *
+ * El casado es **uno a uno y a milímetros** — ver `CONFLADOS`.
+ *
  * ── Lo que NO entra en el cocinado, y por qué ───────────────────────────────
  *
  *   · **`Codigo_calle`** — el enganche al callejero de § 1.3, que casa 2.140 de
@@ -63,9 +89,10 @@ export interface AparcamotoCocinado {
   /**
    * `Nombre_calle` **verbatim**, en mayúsculas y sin el tipo de vía: `"PREDICADORES"`.
    *
-   * ⚠️ **6 de los 2.146 lo traen vacío**, y § 1.10 los declara: son los mismos
-   *    que llevan los 2 códigos de vía huérfanos. Aquí quedan como `""` y el
-   *    motor los nombra «el aparcamiento de motos», sin calle.
+   * ⚠️ **6 de los 2.146 lo traen vacío en el origen**, y § 1.10 los declara: son
+   *    los mismos que llevan los 2 códigos de vía huérfanos. Desde el 4/09 esos
+   *    seis salen con el nombre que da la sede, por conflación de atributos, y
+   *    **lo dicen en `nombreDe`**. Ver `CONFLADOS`.
    *
    * El `Tipo_via` (`CL`, `AV`, `PS`…) **no se guarda**: expandir la abreviatura
    * sería inventarse una tabla que este repositorio no tiene, y el nombre solo
@@ -77,6 +104,95 @@ export interface AparcamotoCocinado {
   readonly plazas: number;
   readonly lon: number;
   readonly lat: number;
+  /**
+   * ⭐ DE DÓNDE SALIÓ EL NOMBRE DE LA VÍA, **cuando no es del WFS**.
+   *
+   * Ausente en 2.140 de los 2.146 —ahí el nombre es del origen y no hay nada
+   * que declarar— y `'sede'` en los 6 conflados. Es la mitad que convierte
+   * esto en conflación declarada en vez de una mezcla silenciosa de dos
+   * puertas [Hootenanny/NGA: *«mantener la procedencia … en los rasgos
+   * combinados»*].
+   *
+   * ⚠️ **Va en el registro y no en una nota aparte** a propósito: el dato
+   *    viaja al motor, y la procedencia tiene que viajar con él. Una tabla en
+   *    el notices se queda en el repositorio; esto llega hasta donde llegue el
+   *    aparcamoto.
+   */
+  readonly nombreDe?: 'sede';
+}
+
+/** Un nombre que la sede da y el WFS no, con lo que hace falta para casarlo. */
+export interface Conflado {
+  /** El rasgo del WFS al que le falta el nombre. */
+  readonly id: string;
+  /** El nombre que la sede le da, **verbatim** y sin el portal. */
+  readonly via: string;
+  /** El portal que la sede da. **Tiene que coincidir con el del WFS**. */
+  readonly portal: string;
+  /** Las plazas que la sede declara. **También tienen que coincidir**. */
+  readonly plazas: number;
+  /** La coordenada de la SEDE, contra la que se mide el casado. */
+  readonly lon: number;
+  readonly lat: number;
+}
+
+/**
+ * ⭐ LOS 6 NOMBRES QUE ENTRAN DE LA SEDE, uno a uno y con qué casarlos.
+ *
+ * Medido el 4/09 contra el listado de la sede (2.115 registros, bajados el
+ * mismo día): los seis rasgos que el WFS deja sin `Nombre_calle` tienen cada
+ * uno **un registro de la sede a menos de 7 milímetros**, y no uno cualquiera:
+ * el portal y las plazas coinciden también, carácter a carácter.
+ *
+ * | WFS | sede | distancia | plazas | portal |
+ * |---|---|---|---|---|
+ * | `MU2_motos.138` | 150 · `DE RANILLAS, S/N` | 0,0033 m | 15 | `S/N` |
+ * | `MU2_motos.171` | 185 · `DE RANILLAS, S/N` | 0,0041 m | 20 | `S/N` |
+ * | `MU2_motos.172` | 186 · `DE RANILLAS, S/N` | 0,0033 m | 20 | `S/N` |
+ * | `MU2_motos.173` | 187 · `DE RANILLAS, S/N` | 0,0019 m | 20 | `S/N` |
+ * | `MU2_motos.222` | 266 · `DE RANILLAS, S/N` | 0,0065 m | 8 | `S/N` |
+ * | `MU2_motos.1483` | 1655 · `GRUPO ARZOBISPO DOMENECH, 23` | 0,0047 m | 4 | `23` |
+ *
+ * ⚠️ **El portal NO se rellena: ya lo trae el WFS**, y es la corroboración del
+ *    casado. Los seis tienen `Portal` en el origen —cinco `S/N` y uno `23`— y
+ *    es exactamente el que la sede escribe tras la coma. Lo único que falta y
+ *    lo único que entra es **el nombre de la calle**.
+ *
+ * ⚠️ **La tabla vive aquí y no en un fichero de datos** porque no es un dato:
+ *    es el RESULTADO de un cruce, con seis filas, y escribirlo es lo que lo
+ *    hace auditable. Meter el listado entero de la sede en `app/data/` para
+ *    sacar seis nombres sería traerse la puerta que la doctrina descartó, y
+ *    encima obligaría al cocinado a leer dos catálogos para tapar seis huecos.
+ *
+ * ⚠️ Y el casado **se comprueba en cada cocinado**, no se da por hecho. Si el
+ *    WFS mueve uno de los seis, le cambia el portal o le cambia las plazas, el
+ *    relleno **se apaga solo** para ése: vale más un sitio sin nombre que un
+ *    sitio con el nombre de otro.
+ */
+export const CONFLADOS: readonly Conflado[] = [
+  { id: 'MU2_motos.138', via: 'DE RANILLAS', portal: 'S/N', plazas: 15, lon: -0.8823684219244057, lat: 41.65932238688491 },
+  { id: 'MU2_motos.171', via: 'DE RANILLAS', portal: 'S/N', plazas: 20, lon: -0.8967995728328523, lat: 41.67032589732411 },
+  { id: 'MU2_motos.172', via: 'DE RANILLAS', portal: 'S/N', plazas: 20, lon: -0.8970603652236163, lat: 41.67029599640652 },
+  { id: 'MU2_motos.173', via: 'DE RANILLAS', portal: 'S/N', plazas: 20, lon: -0.8969785087823561, lat: 41.670054205346126 },
+  { id: 'MU2_motos.222', via: 'DE RANILLAS', portal: 'S/N', plazas: 8, lon: -0.8981100664511863, lat: 41.67247811008692 },
+  { id: 'MU2_motos.1483', via: 'GRUPO ARZOBISPO DOMENECH', portal: '23', plazas: 4, lon: -0.8881610666709993, lat: 41.64359613768448 },
+];
+
+/**
+ * ⭐ CUÁNTO SE ACEPTA DE SEPARACIÓN AL CASAR: **un metro**.
+ *
+ * Los seis casan a milímetros —de 0,0019 a 0,0065 m—, así que esto no es una
+ * tolerancia: es holgura frente al redondeo de coordenadas, con tres órdenes
+ * de magnitud de margen. Un aparcamoto que se moviera de verdad se saldría de
+ * aquí y perdería su nombre, que es lo que tiene que pasar.
+ */
+export const CASADO_A_LO_SUMO_M = 1;
+
+/** Metros entre dos puntos, en el plano local. Basta para casar soportes. */
+function metrosEntre(ax: number, ay: number, bx: number, by: number): number {
+  const dy = (ay - by) * 111320;
+  const dx = (ax - bx) * 111320 * Math.cos(((ay + by) / 2) * (Math.PI / 180));
+  return Math.hypot(dx, dy);
 }
 
 export interface AparcamotosCocinados {
@@ -137,13 +253,34 @@ export function cocinarAparcamotos(capa: CapaDeMotos): AparcamotosCocinados {
       continue;
     }
     vistos.add(rasgo.id);
+    const lon = punto[0]!;
+    const lat = punto[1]!;
+    const plazas = rasgo.properties.Numero_plazas;
+    const portal = (rasgo.properties.Portal ?? '').trim();
+    const suyo = (rasgo.properties.Nombre_calle ?? '').trim();
+    // ⭐ LA CONFLACIÓN, y **solo donde falta el nombre**. Ver `CONFLADOS`: el
+    //    rasgo tiene que estar a 1 m o menos del punto de la sede y coincidirle
+    //    el portal y las plazas. Con cualquiera de las tres cosas distinta, no
+    //    se rellena: vale más un sitio sin nombre que un sitio mal nombrado.
+    const deLaSede =
+      suyo === ''
+        ? CONFLADOS.find(
+            (c) =>
+              c.id === rasgo.id &&
+              c.portal === portal &&
+              c.plazas === plazas &&
+              metrosEntre(c.lon, c.lat, lon, lat) <= CASADO_A_LO_SUMO_M,
+          )
+        : undefined;
     aparcamotos.push({
       id: rasgo.id,
-      via: (rasgo.properties.Nombre_calle ?? '').trim(),
-      portal: (rasgo.properties.Portal ?? '').trim(),
-      plazas: rasgo.properties.Numero_plazas,
-      lon: punto[0]!,
-      lat: punto[1]!,
+      via: deLaSede ? deLaSede.via : suyo,
+      portal,
+      plazas,
+      lon,
+      lat,
+      // La marca solo existe donde hay algo que declarar: 6 de 2.146.
+      ...(deLaSede ? { nombreDe: 'sede' as const } : {}),
     });
   }
   // Por el NÚMERO del id, no por su texto: como texto, `MU2_motos.10` iría antes
@@ -179,9 +316,11 @@ function main(): void {
   writeFileSync(DESTINO, comoSeGuarda(cocinado));
   const plazas = cocinado.aparcamotos.reduce((suma, a) => suma + a.plazas, 0);
   const sinVia = cocinado.aparcamotos.filter((a) => a.via === '').length;
+  const conflados = cocinado.aparcamotos.filter((a) => a.nombreDe !== undefined).length;
   console.log(
     `${cocinado.aparcamotos.length} aparcamotos · ${plazas} plazas · ` +
-      `${sinVia} sin nombre de calle · de ${capa.features?.length ?? 0} rasgos`,
+      `${sinVia} sin nombre de calle · ${conflados} con el nombre de la sede · ` +
+      `de ${capa.features?.length ?? 0} rasgos`,
   );
   console.log(`escrito ${DESTINO}`);
 }
