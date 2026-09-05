@@ -2801,7 +2801,131 @@ aparcamotos**.
 decía cuándo se volcó la tabla y no cuándo cambió la plaza — pero se pierde igual, y de esta capa
 la frescura sigue siendo `NO CONSTA`.
 
-### 1.34 · El resto del dato — todavía **ninguno**
+### 1.34 · Motos compartidas YeGo en vivo — Yego (GBFS 2.3)
+
+| | |
+|---|---|
+| **Qué es** | Dónde está **cada moto compartida de YeGo en este segundo**, si se puede coger, y **cuánta autonomía le queda**. Es la cuarta fuente que se consulta en vez de copiarse, y la **primera que habla GBFS de verdad** — § 1.23 usa la especificación como vara de medir, pero es un formato propio de la sede; esto es GBFS **2.3** servido por el operador |
+| **Titular** | **Yego** (`operator: "Yego"`, `system_id: "yego zaragoza"`, en servicio desde el **14/07/2021**) |
+| **Fuente** | Autodiscovery GBFS: `https://services.rideyego.com/gbfs/2-3/zaragoza/es/gbfs` |
+| **Petición** | El autodiscovery, y de sus seis feeds el motor solo pide **`free_bike_status`**: `https://services.rideyego.com/gbfs/2-3/zaragoza/es/free_bike_status` — **sin clave y sin registro** |
+| **Sondeada** | **05/09/2026 08:11:34 GMT**, estado **200** los seis. Tamaños: `gbfs` 2.069 · `system_information` 847 · `vehicle_types` 1.746 · `free_bike_status` **59.201** · `system_pricing_plans` 398 · `geofencing_zones` 4.319 · `gbfs_versions` 535 bytes |
+| **Licencia** | ⚠️ **`NO CONSTA`** — ver abajo. Ni `license_id` ni `license_url` en `system_information`, y `grep -i license` sobre los **seis** feeds no encuentra nada |
+| **Atribución exigida** | Ninguna que consta. **Se atribuye igual**: «Motos compartidas: **Yego**». Es la misma decisión que con Avanza — se dice de quién es el dato, que es lo contrario de disimularlo |
+| **Campos** | Por vehículo: `bike_id`, `is_reserved`, `is_disabled`, `lat`, `lon`, `vehicle_type_id`, `current_range_meters`, `current_fuel_percent`, `last_reported`, `pricing_plan_id`, `rental_uris`. **Ninguno personal** |
+| **¿Está en este repo?** | ❌ **No, y no puede estar.** Caduca cada cuatro minutos. Lo que sí está son **los fixtures de las jueces, copiados enteros del feed real** |
+
+**Los seis feeds que publica**, transcritos del autodiscovery (tres idiomas, `en`/`es`/`fr`, con
+los mismos seis cada uno): `system_information` · `vehicle_types` · `free_bike_status` ·
+`system_pricing_plans` · `geofencing_zones` · `gbfs_versions`. **No publica
+`station_information` ni `station_status`**: es *free-floating* puro, y por eso el viaje se
+parece al de la BiZi solo por fuera — allí se va a una estación, aquí a una moto suelta.
+`gbfs_versions` ofrece de la **1.1** a la **2.3**; se consume la 2.3, que es la que sirve.
+
+#### ⚠️ La licencia: `NO CONSTA`, y lo que se ha mirado para decirlo
+
+GBFS existe para ser consumido —la especificación se define sobre *«datos públicos en tiempo real
+para aplicaciones de cara al consumidor»*— y este feed se sirve sin clave ni registro. Pero
+**eso no es una licencia**, y aquí no se da por buena ninguna que no se haya leído:
+
+- **En los seis feeds no hay licencia declarada.** El campo existe en la especificación
+  (`license_id`, `license_url`) y **YeGo lo deja vacío**. Medido, no supuesto.
+- **`system_information` sí da `terms_url`**, un PDF de condiciones del servicio:
+  `https://yugo-assets.s3.amazonaws.com/legal/termsandconditions_yego_es.pdf` · 968.369 bytes ·
+  `Last-Modified: 19/05/2025` · sha256 `8e349dcfbc2958df434f7e71d2dae76390903ce9595f022868066bbea66020f2` ·
+  **62 páginas**.
+- ⚠️ **Y ese PDF NO SE HA LEÍDO: `NO CONSTA` lo que diga sobre reutilizar el feed.** Se bajó y se
+  intentó extraer su texto de dos maneras sin dependencias; solo salen las fuentes incrustadas, y
+  la máquina donde se trabaja no tiene lector de PDF. **No se infiere que no diga nada.** Queda
+  apuntado con su sha256 para que alguien lo lea.
+
+  Esto no es celo de más: **§ 1.24 es el precedente**. El aviso legal de Avanza, cuando se leyó,
+  **prohibía la extracción y la reutilización** — y hasta que se leyó nadie lo sospechaba.
+
+#### La política de consumo: la caché ES la doctrina, al revés que con la BiZi
+
+El feed declara **`ttl: 240`** en los seis. Y las cabeceras **no ayudan nada**: no traen
+`Cache-Control`, ni `ETag`, ni `Last-Modified` — solo `Date` y `Content-Length` —, así que **el
+único contrato de frescura es el `ttl` del cuerpo** y respetarlo es cosa nuestra.
+
+⚠️ **Y aquí cachear es lo correcto, mientras que con la BiZi era mentir.** No es una excepción a
+la regla de casa: es la regla aplicada a otro dato. § 1.23 se pregunta en cada ruta porque
+*«cuántas bicis quedan»* cambia entre dos personas que miran a la vez y la fuente no dice cada
+cuánto se actualiza. Aquí **la fuente sí lo dice**: publica cada 240 s y en tres lecturas
+separadas 20 s devolvió **el mismo `last_updated`**. Pedirlo más a menudo no trae dato nuevo:
+trae el mismo fichero de 59 kB y le cuesta el ancho de banda al operador.
+
+Así que **caché de 240 s más *single-flight*** —una sola petición en vuelo aunque lleguen diez
+rutas a la vez—, y **la edad del dato se enseña**: «datos de YeGo de hace X min». Es la mitad que
+hace honesta a la otra.
+
+#### ⚠️ Tres cosas que el feed trae de roto
+
+- **🐞 `last_reported` no es de cada moto.** Las **166** traen el mismo valor **al segundo**, e
+  idéntico al `last_updated` del feed: es el sello del volcado, no la hora en que reportó cada
+  vehículo. Es el mismo defecto que el directorio de la sede en § 1.33 —2.115 registros sellados
+  en 106 s— y aquí es más redondo todavía. **Consecuencia**: no se puede saber si una moto lleva
+  tres días parada, y la única edad que se puede decir con verdad es **la del feed**.
+- **🐞 Los `form_factor` de `vehicle_types` están cruzados.** Publica tres tipos, y dos se
+  contradicen con su propio nombre:
+
+  | `vehicle_type_id` | `form_factor` | nombre | `max_permitted_speed` |
+  |---|---|---|---|
+  | `yego_scooter` | `moped` ✔ | Scooter electrico | 45 |
+  | `yego_bike` | `scooter` ✖ | Bicicleta eléctrica | 25 |
+  | `yego_kick` | `bicycle` ✖ | Patinete eléctrico | 25 |
+
+  La «bicicleta» se declara `scooter` y el «patinete» se declara `bicycle`. Un consumidor que
+  seleccionara por `form_factor` cogería el vehículo equivocado. **Aquí no muerde** —la flota de
+  Zaragoza es **166 de 166 `yego_scooter`**, cuyo `moped` sí es el correcto— y el motor selecciona
+  por **`vehicle_type_id`**, nunca por `form_factor`. Se declara para el día que muerda.
+- **🐞 `station_parking: false` en una zona de geofencing.** Es una clave de **GBFS 3.0** en un
+  feed que se declara 2.3. Se ignora.
+
+#### El distintivo CERO lo dice el propio feed
+
+`vehicle_types` declara para los tres tipos `propulsion_type: "electric"`, `g_CO2_KM: 0` y
+`eco_label: [{ country_code: "ES", eco_sticker: "distintivo_ambiental_0" }]`. Es mejor fuente que
+la web del operador: **el dato lo afirma él mismo, en el campo que la especificación tiene para
+eso**. De ahí sale que en YeGo **no se pregunte el distintivo** — un CERO entra libre en la Zona
+de Bajas Emisiones [FAQ de la sede].
+
+#### 🛑 `geofencing_zones`: el nombre dice una cosa y las reglas la contraria
+
+Publica **una sola zona con diez polígonos** y esto dentro:
+
+```
+name:  "no go zone"
+rules: [{ vehicle_type_id: [yego_scooter, yego_bike, yego_kick],
+          ride_allowed: true, ride_through_allowed: true }]
+```
+
+**El nombre dice «prohibido» y las reglas dicen «permitido».** No trae `start`/`end` ni
+`maximum_speed_kph`. Se midió para desempatar, y el dato es concluyente:
+
+| | |
+|---|---|
+| polígonos | **10** · 163 vértices · bbox lon −0,938…−0,854 · lat 41,607…41,678 |
+| áreas | 7,84 km² · 3,26 · 0,07 · 0,05 · 0,04 · 0,02 ×3 · 0,01 · 0,00 |
+| **motos dentro** | **161 de 166** — 98 en la grande, 45 en la segunda |
+| motos fuera | 5, ninguna deshabilitada |
+
+**El 97 % de la flota está aparcada dentro de las manchas**, 98 de ellas en la que cubre el
+centro. Ningún operador tiene su flota aparcada donde tiene prohibido dejarla: **las manchas son
+el área de servicio**, las `rules` dicen la verdad y el nombre es un rótulo interno equivocado.
+
+Así que **mandan las reglas**, que es además lo que la especificación pide: con
+`ride_allowed: true` **no hay ninguna restricción que aplicar**, y el viaje acaba donde se pidió.
+
+⚠️ **Y no se inventa la de al lado.** Sería fácil razonar que, si las manchas son el área de
+servicio, *fuera* de ellas no se puede terminar — pero **eso no está en el dato**: GBFS 2.3 no
+tiene `global_rules` (llegó en la 3.0), así que del «fuera de zona» el feed no dice nada. Lo que
+no está en el dato es `NO CONSTA`, y una restricción inferida que dejara sin destino válido media
+ciudad sería exactamente la clase de invención que esta casa no hace.
+
+---
+
+### 1.35 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
