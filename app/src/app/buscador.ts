@@ -316,6 +316,16 @@ const VELOCIDAD_DICHA: Readonly<Record<Modo, string | null>> = {
   //    que es exactamente para lo que está: el `Record` exhaustivo obliga a
   //    pasar por aquí. Va como el coche porque rueda como el coche.
   moto: null,
+  // ⭐ Y la compartida el mismo día, con la casilla 2. **Volvió a dejar de
+  //    compilar**, que es la segunda vez que este `Record` hace su trabajo.
+  //
+  //    ⚠️ Aquí SÍ habría una cifra que decir —los ciclomotores van capados a
+  //       **45 km/h** por construcción [L1e-B], y el motor lo aplica arista a
+  //       arista—, y aun así se calla. Un «a 45 km/h de crucero» sería la misma
+  //       mentira que el empuje obligó a quitar el 30/08: el viaje empieza
+  //       **andando** hasta la moto, y ese tramo pesa. Los minutos siguen siendo
+  //       la suma real, calculada tramo a tramo.
+  yego: null,
 };
 
 /**
@@ -652,11 +662,22 @@ function horaDe(iso: string): string {
  * De qué familia es un modo. **La única línea donde vive el reparto**, y por
  * eso está fuera del componente: la usan la pantalla y sus jueces.
  *
- * `bizi` es la única que no se llama como su familia — es una bici, y por eso
- * comparte botón con la privada.
+ * ⭐ **Dos modos no se llaman como su familia**, y son los dos compartidos:
+ * `bizi` es una bici y `yego` es una moto. No es casualidad — un sistema
+ * compartido no es otro vehículo, es el mismo vehículo con otra manera de
+ * conseguirlo, y por eso comparte botón con el privado.
+ *
+ * ⚠️ Esta función **dejó de compilar el 4/09** al entrar `yego` en el contrato,
+ *    con `Type '"yego"' is not assignable to type 'Familia'`. Es la segunda vez
+ *    que pasa —la primera fue con `moto`— y es exactamente para lo que el tipo
+ *    es una unión cerrada: el día que entre un modo nuevo, alguien tiene que
+ *    decidir en qué fila va en vez de que aparezca solo.
  */
 function familiaDe(modo: Modo): Familia {
-  return modo === 'bizi' ? 'bici' : modo;
+  if (modo === 'bizi') {
+    return 'bici';
+  }
+  return modo === 'yego' ? 'moto' : modo;
 }
 
 @Component({
@@ -759,6 +780,10 @@ export class Buscador {
     // del coche y remata siempre en un aparcamoto. Nació sin `todavia` — el
     // motor ya la sabía andar antes de que existiera su botón.
     { id: 'moto', etiqueta: 'Moto', todavia: null },
+    // ⭐ Y la compartida, con la casilla 2 del mismo día. La etiqueta es la
+    // marca a secas: en el resultado se lee «Modo: YeGo», y en la segunda fila
+    // «Pública YeGo» — leídas en cadena con «Moto» de arriba, dicen lo que son.
+    { id: 'yego', etiqueta: 'YeGo', todavia: null },
     // ⭐ Y el coche perdió el suyo el 3/09: el punto 12 aterrizó —casillas 1a,
     // 1b y 2— y viaja como las demás. Ya no queda ninguno con `todavia`; el
     // campo se queda porque el mecanismo sigue siendo el bueno para el próximo.
@@ -836,6 +861,29 @@ export class Buscador {
   protected readonly bicis: ReadonlyArray<{ id: Modo; etiqueta: string }> = [
     { id: 'bici', etiqueta: 'Privada' },
     { id: 'bizi', etiqueta: 'Pública BiZi' },
+  ];
+
+  /**
+   * ⭐ Y LA SEGUNDA FILA DE LA MOTO (4/09, punto 13 casilla 2), **con la misma
+   * anatomía y por la misma razón**.
+   *
+   * `moto` y `yego` son la misma pregunta contestada dos veces —«¿en qué te
+   * mueves?» en moto, «¿tuya o de la ciudad?»—, igual que las dos bicis.
+   * Ponerlas al mismo nivel arriba subiría la primera fila a **siete**, que es
+   * dos por encima del rango del control segmentado [DOC sistemas de diseño: de
+   * 2 a 5 con etiqueta], y obligaría a leerlas todas para descubrir que dos son
+   * hermanas — que es el fallo que el 2/09 se arregló con la bici.
+   *
+   * Las etiquetas son cortas porque la primera fila ya ha dicho «Moto»: leídas
+   * en cadena dan «Moto privada» y «Moto pública YeGo». **«Pública» va delante
+   * de «YeGo»** por lo mismo que va delante de «BiZi»: la marca sola no dice de
+   * quién es la moto a quien no la conozca.
+   *
+   * Y **sus dos ids SON los del contrato**, sin tabla en medio que pueda mentir.
+   */
+  protected readonly motos: ReadonlyArray<{ id: Modo; etiqueta: string }> = [
+    { id: 'moto', etiqueta: 'Privada' },
+    { id: 'yego', etiqueta: 'Pública YeGo' },
   ];
 
   /**
@@ -1105,7 +1153,7 @@ export class Buscador {
    * `TramoDelViaje.zbe`, que lo pone el motor. Ver `Mapa.zona`.
    */
   protected readonly zonaDelMapa = computed<readonly (readonly Vertice[])[]>(() =>
-    this.preguntaLaZbe() ? this.zonaZbe() : [],
+    this.pintaLaZona() ? this.zonaZbe() : [],
   );
 
   /**
@@ -1236,6 +1284,33 @@ export class Buscador {
   protected readonly preguntaLaZbe = computed(
     () => this.modo() === 'coche' || this.modo() === 'moto',
   );
+
+  /**
+   * ⭐ QUIÉN VE LA SEGUNDA FILA DE LA MOTO: la familia moto, y nadie más.
+   *
+   * Mismo revelado condicional que «¿Qué bici?» [DOC GOV.UK], y por eso cuelga
+   * de la FAMILIA y no del modo: estando en «Pública YeGo» la fila tiene que
+   * seguir ahí, o no habría manera de volver a la privada.
+   */
+  protected readonly eligeMoto = computed(() => this.familia() === 'moto');
+
+  /**
+   * ⭐ A QUIÉN SE LE PINTA LA ZONA, que **no es lo mismo que a quién se le
+   * pregunta** (4/09, casilla 2).
+   *
+   * Hasta hoy iban juntas porque coincidían: coche y moto privada ven el
+   * polígono y contestan el distintivo. YeGo rompe el empate — **se le pinta la
+   * zona y no se le pregunta nada**—, y confundir las dos habría escondido el
+   * polígono justo al modo que más cruza el centro.
+   *
+   * Las dos preguntas y sus dos respuestas:
+   *
+   *   · *¿te afecta la ZBE?* → a todo vehículo de motor, YeGo incluido: se pinta.
+   *   · *¿hay que preguntarte el distintivo?* → solo si no se sabe ya. Con YeGo
+   *     **se sabe**: el feed declara `distintivo_ambiental_0` para la flota
+   *     entera (§ 1.34), así que entra libre y no hay nada que preguntar.
+   */
+  protected readonly pintaLaZona = computed(() => this.familia() === 'moto' || this.eligeCoche());
 
   protected elegirAparcamiento(tipo: TipoDeAparcamiento): void {
     this.aparcamiento.set(tipo);

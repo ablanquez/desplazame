@@ -1028,9 +1028,10 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son **tres regím
 |---|---|---|
 | **OpenStreetMap** (cartografía, teselas y datos derivados) | **ODbL 1.0** | Atribución **literal**: «© **colaboradores** de OpenStreetMap», con enlace a [openstreetmap.org/copyright](https://www.openstreetmap.org/copyright). La palabra *«colaboradores»* **no es opcional** |
 | **Dato municipal del Ayuntamiento de Zaragoza** (callejero, portales y demás datos públicos) | Reutilización regida por la **[Ley 37/2007](https://www.boe.es/buscar/act.php?id=BOE-A-2007-19814)** | Citar la fuente y la fecha de actualización, y no desnaturalizar el sentido de la información |
+| **Motos compartidas de YeGo** (dónde hay una libre, ahora mismo) | ⚠️ **`NO CONSTA`.** El feed es GBFS público y sin clave, pero **YeGo no declara licencia**: ni `license_id` ni `license_url` en ninguno de sus seis feeds. Y su PDF de condiciones **no se ha leído** —62 páginas, y esta máquina no tiene lector—, así que de lo que diga sobre reutilizar el dato: `NO CONSTA`. Todo medido en **§ 1.34** | **Su feed no pide atribución: no la contempla.** Y aun así **se atribuye**, por lo mismo que con Avanza. § 1.24 es el precedente de por qué no se da por buena una licencia que no se ha leído |
 | ⛔ **Servicios en vivo de Avanza Zaragoza S.A.U.** (las llegadas al poste y la ruta operativa de hoy) | **Ninguna.** Su [aviso legal](https://www.avanzabus.com/informacion/aviso-legal/) —leído el 01/09/2026— **prohíbe expresamente** la *«extracción y/o reutilización»* y reclama el *«derecho sui generis sobre la base de datos»*. El texto literal, con su URL y su fecha, está en **§ 1.24** del notices | **Su licencia no pide atribución: no la contempla.** Y aun así **se atribuye**, en el pie de la pantalla: *«Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.»* ⭐ **Decisión de Antonio, 01/09/2026**: *«es dato público de un servicio público concesionado, y esto es una demo — se atribuye y se sigue»*. Se tomó con el aviso legal transcrito delante y con los *fixtures* nombrados uno a uno, y **los *fixtures* se quedan**: hay bytes de sus respuestas en `motor/src/avanza.spec.ts`, `viaje-bus.spec.ts`, `desvios.spec.ts` y `patron-operativo.spec.ts`, puestos por la ley de la casa de que un *fixture* copia la medición. Nada más se guarda: las dos fuentes se **consultan** en tiempo de ejecución, como haría cualquier cliente de su web |
 
-> ℹ️ **Y las tres están en uso.** El notices lleva **una ficha por conjunto, y hoy son 34**
+> ℹ️ **Y las tres están en uso.** El notices lleva **una ficha por conjunto, y hoy son 35**
 > (`grep -c '^### 1\.' THIRD-PARTY-NOTICES.md`): **veintidós** del Ayuntamiento de Zaragoza —el
 > callejero, los portales, los carriles bici, los postes de autobús, las estaciones BiZi, los
 > aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas reguladas, las reservas de
@@ -1042,10 +1043,11 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son **tres regím
 > los nombres de vía y las etiquetas del viario— **más las tres del coche** (§ 1.27 el viario rodable, § 1.28 las
 > restricciones de giro y § 1.29 los semáforos, las tres de OpenStreetMap), el GTFS del Punto de
 > Acceso Nacional, **las dos fuentes vivas de Avanza** —las llegadas al poste y la ruta operativa
-> de hoy—, y la ficha que declara lo que **todavía no** ha entrado.
+> de hoy—, **la flota viva de YeGo** (§ 1.34, la cuarta que se consulta en vez de copiarse y la
+> primera que habla GBFS de verdad), y la ficha que declara lo que **todavía no** ha entrado.
 >
 > ⚠️ **Este párrafo ha ido diciendo «quince», «veinticuatro», «veintiséis», «veintisiete»,
-> «treinta y uno» y ahora treinta y tres**, y
+> «treinta y uno», «treinta y tres», «treinta y cuatro» y ahora treinta y cinco**, y
 > las tres primeras se quedaron viejas donde estaban. Es la entrada nº5 de la bitácora
 > repitiéndose: una regla de releída vale lo que su alcance. **Desde el 1/09 ya no depende de que
 > alguien relea**: `app/src/app/atribucion.spec.ts` cuenta las fichas del notices y las compara

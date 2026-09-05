@@ -75,6 +75,14 @@ function radiosDeBici(raiz: HTMLElement): HTMLInputElement[] {
 }
 
 /**
+ * Los de la segunda fila de la MOTO. **Solo existen con Moto elegida**, igual
+ * que los de la bici: el revelado condicional quita el grupo entero.
+ */
+function radiosDeMoto(raiz: HTMLElement): HTMLInputElement[] {
+  return Array.from(raiz.querySelectorAll<HTMLInputElement>('input[type="radio"][name="moto"]'));
+}
+
+/**
  * Los radios de «¿Dónde quieres aparcar?». **Solo existen con Coche elegido**:
  * el revelado condicional quita el grupo entero, así que la lista vacía es una
  * respuesta y no un fallo.
@@ -183,7 +191,9 @@ function drenarRutas(
  */
 function elegirModo(fixture: any, modo: Modo): void {
   const raiz = fixture.nativeElement as HTMLElement;
-  const familia = modo === 'bizi' ? 'bici' : modo;
+  // ⭐ Dos familias tienen segunda fila: la bici —privada y BiZi— y, desde el
+  //    4/09, la moto —privada y YeGo—. Las demás son un solo modo.
+  const familia = modo === 'bizi' ? 'bici' : modo === 'yego' ? 'moto' : modo;
 
   const suyo = radiosDeFamilia(raiz).find((r) => r.value === familia);
   if (!suyo) {
@@ -200,16 +210,15 @@ function elegirModo(fixture: any, modo: Modo): void {
   suyo.click();
   fixture.detectChanges();
 
-  if (familia !== 'bici') {
+  if (familia !== 'bici' && familia !== 'moto') {
     return;
   }
-  const cual = radiosDeBici(raiz).find((r) => r.value === modo);
+  const segunda = familia === 'bici' ? radiosDeBici(raiz) : radiosDeMoto(raiz);
+  const cual = segunda.find((r) => r.value === modo);
   if (!cual) {
     throw new Error(
-      `elegida la familia bici, no aparece la opción «${modo}». Las que hay: ` +
-        radiosDeBici(raiz)
-          .map((r) => r.value)
-          .join(', ') +
+      `elegida la familia ${familia}, no aparece la opción «${modo}». Las que hay: ` +
+        segunda.map((r) => r.value).join(', ') +
         ' (si está vacío, la segunda fila no se ha revelado)',
     );
   }
@@ -1096,6 +1105,62 @@ const VIAJE_EN_MOTO: Trayecto = {
     { comoSeVa: 'rodando', desde: 0, hasta: 1, metros: 2782, segundos: 304, hito: null, zbe: false },
     { comoSeVa: 'rodando', desde: 1, hasta: 2, metros: 592, segundos: 120, hito: 'aparca', zbe: true },
     { comoSeVa: 'andando', desde: 2, hasta: 3, metros: 139, segundos: 101, hito: null },
+  ],
+};
+
+/**
+ * ⭐ EL VIAJE EN YeGo, **medido por HTTP contra el motor y YeGo vivos** (5/09).
+ *
+ * `pid` del log 11856 = `pid` que contesta. El par de siempre, `CALLE PEDRO
+ * LAPUYADE 3 → CALLE ABEN AIRE 33` con `modo: 'yego'`: **3.895 m · 863 s · 19
+ * pasos · 305 vértices**, cinco tramos —uno andando y cuatro rodando, porque la
+ * Zona de Bajas Emisiones parte lo conducido— y la moto que ganó tenía **45 km
+ * de autonomía**. El feed decía **135 libres**.
+ *
+ * Se abrevia igual que el de la moto privada y con las mismas reglas: los pasos
+ * que quedan van con sus `partes` VERBATIM, `Aviso.paso` sigue apuntando al paso
+ * que le toca, y la geometría se reduce a sus costuras. Lo que la pantalla mira
+ * es de dónde a dónde va cada tramo y de qué color sale.
+ *
+ * ⛔ Y el `bike_id` **no aparece**, porque el motor no lo manda: es el único
+ *    campo que el operador rota por privacidad, y a quien busca una ruta no le
+ *    dice nada. Lo que se enseña es la autonomía.
+ */
+const VIAJE_EN_YEGO: Trayecto = {
+  modo: 'yego',
+  pasos: [
+    paso('salida', 38, accion('Sal de'), llano(' '), via('Calle Pedro Lapuyade 3'), llano(' y dirígete hacia el noroeste'), llano(' por '), via('Calle de Pedro Lapuyade')),
+    paso('derecha', 48, accion('Gira a la derecha'), llano(' hacia '), via('Paseo Cuéllar')),
+    paso('coge', 0, accion('Coge'), llano(' la moto de YeGo '), via('(45 km de autonomía)')),
+    paso('salida', 120, accion('Arranca'), llano(' hacia el noreste'), llano(' por '), via('Calle de Uncastillo')),
+    paso('recto', 472, accion('Continúa'), llano(' por '), via('Paseo de la Independencia')),
+    paso('aparca', 0, accion('Deja la moto'), llano(' en '), via('CALLE ABEN AIRE 33'), llano(', donde esté permitido aparcar')),
+  ],
+  geometria: [
+    [41.636197, -0.884024],
+    [41.639508, -0.88057],
+    [41.6512, -0.8846],
+    [41.6549, -0.8829],
+    [41.6562, -0.8818],
+    [41.65758, -0.883141],
+  ],
+  avisos: [
+    { texto: 'Motos de YeGo: 135 libres, datos de hace menos de 1 min.' },
+    {
+      texto:
+        'La ruta atraviesa la Zona de Bajas Emisiones: de lunes a viernes de 8:00 a 20:00 los ' +
+        'vehículos sin distintivo necesitan autorización; B, C, ECO y CERO circulan libres',
+      paso: 4,
+    },
+  ],
+  metros: 3895,
+  segundos: 863,
+  tramos: [
+    { comoSeVa: 'andando', desde: 0, hasta: 1, metros: 562, segundos: 405, hito: 'coge' },
+    { comoSeVa: 'rodando', desde: 1, hasta: 2, metros: 2092, segundos: 267, hito: null, zbe: false },
+    { comoSeVa: 'rodando', desde: 2, hasta: 3, metros: 472, segundos: 45, hito: null, zbe: true },
+    { comoSeVa: 'rodando', desde: 3, hasta: 4, metros: 165, segundos: 27, hito: null, zbe: false },
+    { comoSeVa: 'rodando', desde: 4, hasta: 5, metros: 604, segundos: 119, hito: 'aparca', zbe: true },
   ],
 };
 
@@ -5551,6 +5616,310 @@ describe('Buscador', () => {
    * preguntas de la ZBE sean LAS MISMAS que las del coche —no una copia— y que
    * la del aparcamiento no aparezca, porque la moto no elige dónde deja.
    */
+
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   *  ⭐ LA FILA DE LA MOTO: [Privada] [Pública YeGo] (4/09, punto 13 casilla 2)
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * Es el **mismo patrón que la bici**, y no por comodidad: son la misma
+   * pregunta contestada dos veces —«¿en qué te mueves?» en moto, «¿tuya o de la
+   * ciudad?»—. Poner «Moto» y «YeGo» al mismo nivel en la primera fila la
+   * subiría a siete y obligaría a leerlas todas para descubrir que dos son
+   * hermanas, que es exactamente lo que el 2/09 se arregló con la bici.
+   */
+  describe('⭐ LA FILA DE LA MOTO — Privada y Pública YeGo (4/09, punto 13)', () => {
+    /** Deja el formulario listo y pinta un viaje en YeGo. */
+    const conViajeEnYego = async (fixture: any): Promise<HTMLElement> => {
+      const raiz = fixture.nativeElement as HTMLElement;
+      elegirModo(fixture, 'yego');
+      for (const p of http.match((r) => r.url.includes('MU1_ZBE'))) {
+        p.flush(LA_FASE_1);
+      }
+      await direccionEntera(fixture, http);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_YEGO);
+      await fixture.whenStable();
+      fixture.detectChanges();
+      return raiz;
+    };
+
+    /**
+     * ⭐ JUEZ A — LA SEGUNDA FILA DE LA MOTO, con Privada por defecto.
+     *
+     * La primera fila **sigue siendo seis**: la moto compartida no añade botón
+     * arriba, se revela debajo. Y se entra por la privada, que es la que no
+     * depende de que haya una moto suelta cerca — el mismo criterio que hace que
+     * la bici entre por la privada y no por la BiZi.
+     */
+    it('⭐ A · elegir Moto revela [Privada] [Pública YeGo], con Privada marcada', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      // La primera fila no crece: sigue en seis familias.
+      expect(radiosDeFamilia(raiz).length).toBe(6);
+      expect(raiz.querySelector('fieldset.modos.motos')).toBeNull();
+
+      // Se pulsa la familia y NADA MÁS: lo que se compra es el defecto.
+      radiosDeFamilia(raiz).find((r) => r.value === 'moto')!.click();
+      fixture.detectChanges();
+      for (const p of http.match((r) => r.url.includes('MU1_ZBE'))) {
+        p.flush(LA_FASE_1);
+      }
+      await fixture.whenStable();
+
+      const fila = raiz.querySelector<HTMLFieldSetElement>('fieldset.modos.motos')!;
+      expect(fila).not.toBeNull();
+      expect(fila.querySelector('legend')?.textContent?.trim()).toBe('¿Qué moto?');
+      expect(
+        Array.from(fila.querySelectorAll<HTMLElement>('.modo')).map((m) => m.textContent?.trim()),
+      ).toEqual(['Privada', 'Pública YeGo']);
+      // ⭐ Y sus `value` son LOS DEL CONTRATO, sin tabla en medio que mienta.
+      expect(radiosDeMoto(raiz).map((r) => r.value)).toEqual(['moto', 'yego']);
+      expect(radiosDeMoto(raiz).filter((r) => r.checked).map((r) => r.value)).toEqual(['moto']);
+
+      // ⚠️ Su `name` es `moto` y NO `familia`: si compartieran nombre, el
+      //    navegador los trataría como un solo grupo de ocho y marcar «Privada»
+      //    desmarcaría «Moto». Es la misma cautela que la fila de la bici.
+      expect(new Set(radiosDeMoto(raiz).map((r) => r.name))).toEqual(new Set(['moto']));
+      expect(radiosDeFamilia(raiz).find((r) => r.checked)?.value).toBe('moto');
+
+      // Y con cualquier otra familia, la fila no está.
+      for (const modo of ['andando', 'bus', 'patin', 'coche'] as const) {
+        elegirModo(fixture, modo);
+        tragarLaZona();
+        expect(raiz.querySelector('fieldset.modos.motos')).toBeNull();
+        expect(radiosDeMoto(raiz).length).toBe(0);
+      }
+    });
+
+    /**
+     * ⭐ JUEZ B (la 7 del encargo) — CON YeGo **NO** SE PREGUNTA EL DISTINTIVO,
+     * y con Privada **SÍ**.
+     *
+     * No es una simplificación: **la respuesta ya la da el dato**. § 1.34 mide
+     * que el feed declara `eco_sticker: "distintivo_ambiental_0"` para toda la
+     * flota, con `propulsion_type: electric` y `g_CO2_KM: 0`. Un CERO entra libre
+     * [FAQ de la sede], así que preguntarlo sería pedirle a quien busca una ruta
+     * un dato que ya está contestado — y peor: dejarle contestar mal.
+     */
+    it('⭐ B · con YeGo no existe la pregunta del distintivo; con Privada sí', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      elegirModo(fixture, 'moto');
+      tragarLaZona();
+      expect(radiosDeDistintivo(raiz).length).toBe(6);
+      expect(raiz.querySelector('fieldset.distintivos')).not.toBeNull();
+
+      elegirModo(fixture, 'yego');
+      expect(radiosDeDistintivo(raiz).length).toBe(0);
+      expect(raiz.querySelector('fieldset.distintivos')).toBeNull();
+      // Ni la matrícula, que vive dentro de esa pregunta.
+      expect(raiz.querySelectorAll('input[name="matricula"]').length).toBe(0);
+      // Y tampoco la del aparcamiento: la moto compartida no elige dónde deja.
+      expect(radiosDeAparcamiento(raiz).length).toBe(0);
+
+      // Y al volver a Privada, la pregunta está otra vez.
+      elegirModo(fixture, 'moto');
+      expect(radiosDeDistintivo(raiz).length).toBe(6);
+    });
+
+    /**
+     * ⭐ JUEZ C — LO QUE VIAJA ES `yego`, **y nada más**.
+     *
+     * Ni `puedeEntrarEnLaZbe` ni `aparcamiento`: las dos preguntas están
+     * contestadas de antemano —por el feed la primera, por el free-floating la
+     * segunda—, así que no hay respuesta que mandar. Y **lo contestado en
+     * Privada no se le cuela**: cambiar de moto es cambiar de vehículo.
+     */
+    it('⭐ C · YeGo manda `modo: yego` y ni un parámetro más', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      // Se contesta el distintivo en la moto privada, para que se note si pasa.
+      elegirModo(fixture, 'moto');
+      tragarLaZona();
+      await direccionEntera(fixture, http);
+      pulsar(fixture, radiosDeDistintivo(raiz), 'sin');
+
+      elegirModo(fixture, 'yego');
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const peticiones = http.match('/api/ruta');
+      expect(cuerpoDeLaRuta(peticiones)['modo']).toBe('yego');
+      expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+        'destino',
+        'modo',
+        'origen',
+      ]);
+      drenarRutas(peticiones, () => VIAJE_EN_YEGO);
+      await fixture.whenStable();
+
+      // Y el rótulo del resultado dice su palabra, no el id del contrato.
+      expect(raiz.querySelector('.pasos__modo')?.textContent).toContain('Modo: YeGo');
+    });
+
+    /**
+     * ⭐ JUEZ D — LA MOTO ELEGIDA SE CUENTA: su autonomía y la edad del dato.
+     *
+     * Las dos cosas vienen del motor y se pintan donde ya se pinta el estado de
+     * un viaje: **el hito lleva la autonomía** y **el resumen de avisos lleva la
+     * edad**, que es la región `role="status"` que esta pantalla tiene desde el
+     * 2/09. No se estrena un cuarto sitio donde poner estado.
+     *
+     * ⚠️ La edad es la mitad que hace honesta a la caché de 240 s: si el dato
+     *    puede tener cuatro minutos, quien lo lee tiene que poder saberlo.
+     *
+     * ⛔ Y el `bike_id` **no aparece en ninguna parte**: es el único campo que el
+     *    operador rota por privacidad.
+     */
+    it('⭐ D · el hito dice la autonomía y el resumen dice la edad del dato', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = await conViajeEnYego(fixture);
+
+      const hito = Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).find((li) =>
+        (li.querySelector('.paso__texto')?.textContent ?? '').startsWith('Coge'),
+      );
+      expect(hito).toBeTruthy();
+      expect(
+        (hito!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      ).toBe('Coge la moto de YeGo (45 km de autonomía)');
+      expect(hito!.querySelector('.paso__flecha')?.textContent?.trim()).toBe('🚲');
+
+      // Y el remate, que es dejarla en el destino y no en un aparcamoto.
+      const deja = Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).find((li) =>
+        (li.querySelector('.paso__texto')?.textContent ?? '').startsWith('Deja la moto'),
+      );
+      expect(deja).toBeTruthy();
+      expect(
+        (deja!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      ).toBe('Deja la moto en CALLE ABEN AIRE 33, donde esté permitido aparcar');
+
+      // La edad, en el resumen de avisos, que es la región que ya existe.
+      expect(resumenEnPantalla(raiz).join(' ')).toContain(
+        'Motos de YeGo: 135 libres, datos de hace menos de 1 min.',
+      );
+
+      // ⛔ Ni rastro de identificadores.
+      expect(raiz.innerHTML).not.toContain('bike_id');
+      expect(/[0-9a-f]{8}-[0-9a-f]{4}-/.test(raiz.innerHTML)).toBe(false);
+    });
+
+    /**
+     * ⭐ JUEZ E — EL POLÍGONO Y LA TRAZA, como en la moto privada.
+     *
+     * La zona **se pinta** aunque a YeGo no se le pregunte el distintivo: la
+     * flota entra libre, pero saber por dónde va la ruta no es una restricción,
+     * es contexto. Y el corte rojo lo trae el dato del motor.
+     */
+    it('⭐ E · con YeGo se pinta el polígono y la traza corta en rojo', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = await conViajeEnYego(fixture);
+
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+      // Andando ámbar, y lo rodado azul o rojo según pise la zona.
+      expect(coloresDeLosTramos(raiz)).toEqual([
+        '#b45309',
+        '#2563eb',
+        '#d32f2f',
+        '#2563eb',
+        '#d32f2f',
+      ]);
+
+      // Y el aviso de la zona va colgado de su paso, no del de coger la moto.
+      const notas = notasPorPaso(raiz);
+      expect([...notas.keys()]).toEqual([4]);
+      expect(notas.get(4)).toContain('La ruta atraviesa la Zona de Bajas Emisiones');
+    });
+
+    /**
+     * ⭐ JUEZ F (la 9 del encargo) — LA MURALLA: YeGo no le cambia el cuerpo a
+     * nadie, **y la moto privada la primera**.
+     */
+    it('⭐ F · la privada, el coche y los demás siguen mandando lo suyo', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      elegirModo(fixture, 'yego');
+      tragarLaZona();
+      await direccionEntera(fixture, http);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_YEGO);
+      await fixture.whenStable();
+
+      // La moto privada: su distintivo vuelve, y viaja cuando se contesta.
+      elegirModo(fixture, 'moto');
+      pulsar(fixture, radiosDeDistintivo(raiz), 'b');
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const privada = http.match('/api/ruta');
+      expect(Object.keys(cuerpoDeLaRuta(privada)).sort()).toEqual([
+        'destino',
+        'modo',
+        'origen',
+        'puedeEntrarEnLaZbe',
+      ]);
+      expect(cuerpoDeLaRuta(privada)['modo']).toBe('moto');
+      drenarRutas(privada, () => VIAJE_EN_MOTO);
+      await fixture.whenStable();
+
+      // El coche, con sus dos preguntas.
+      elegirModo(fixture, 'coche');
+      pulsar(fixture, radiosDeDistintivo(raiz), 'b');
+      pulsar(fixture, radiosDeAparcamiento(raiz), 'azul');
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      const coche = http.match('/api/ruta');
+      expect(Object.keys(cuerpoDeLaRuta(coche)).sort()).toEqual([
+        'aparcamiento',
+        'destino',
+        'modo',
+        'origen',
+        'puedeEntrarEnLaZbe',
+      ]);
+      drenarRutas(coche, () => VIAJE_APARCANDO_EN_AZUL);
+      await fixture.whenStable();
+
+      // Y los cinco sin motor, al byte.
+      for (const modo of ['andando', 'bus', 'patin'] as const) {
+        elegirModo(fixture, modo);
+        botonGenerar(raiz).click();
+        fixture.detectChanges();
+        const peticiones = http.match('/api/ruta');
+        expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+          'destino',
+          'modo',
+          'origen',
+        ]);
+        drenarRutas(peticiones, () => ({ ...TRAYECTO, modo }));
+        await fixture.whenStable();
+      }
+      for (const modo of ['bici', 'bizi'] as const) {
+        elegirModo(fixture, modo);
+        botonGenerar(raiz).click();
+        fixture.detectChanges();
+        const peticiones = http.match('/api/ruta');
+        expect(Object.keys(cuerpoDeLaRuta(peticiones)).sort()).toEqual([
+          'destino',
+          'modo',
+          'origen',
+          'ruta',
+        ]);
+        drenarRutas(peticiones, () => ({ ...TRAYECTO, modo }));
+        await fixture.whenStable();
+      }
+    });
+  });
+
   describe('⭐ EL GRUPO MOTO EN LA BOTONERA (4/09, punto 13 casilla 3)', () => {
     /** Las etiquetas de la primera fila, tal y como se leen. */
     const etiquetasDeFamilia = (raiz: HTMLElement): string[] =>

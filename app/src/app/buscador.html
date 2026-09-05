@@ -357,6 +357,39 @@
     }
 
     <!--
+      ⭐ LA SEGUNDA FILA DE LA MOTO, y **solo con Moto** (4/09, punto 13).
+
+      El mismo patrón que la de la bici, con la misma anatomía y el mismo
+      argumento: `moto` y `yego` son la misma pregunta contestada dos veces, y
+      ponerlas arriba subiría la primera fila a siete.
+
+      ⚠️ El `name` es `moto` y NO `familia`: si compartieran nombre, el navegador
+         las trataría como **un solo grupo de ocho** y marcar «Privada»
+         desmarcaría «Moto».
+
+      ⚠️ Y lo que se manda al motor no se traduce aquí: los `value` de estos dos
+         radios **son** `moto` y `yego`, los del contrato.
+    -->
+    @if (eligeMoto()) {
+      <fieldset class="modos motos">
+        <legend>¿Qué moto?</legend>
+        @for (m of motos; track m.id) {
+          <label class="modo" [class.modo--activo]="modo() === m.id">
+            <input
+              type="radio"
+              name="moto"
+              class="modo__radio"
+              [value]="m.id"
+              [checked]="modo() === m.id"
+              (change)="elegirModo(m.id)"
+            />
+            {{ m.etiqueta }}
+          </label>
+        }
+      </fieldset>
+    }
+
+    <!--
       ⭐ DÓNDE APARCAR, y **solo con Coche** (3/09, punto 12).
 
       Es el cuarto sitio del mismo patrón [DOC GOV.UK, revelado condicional] —el
