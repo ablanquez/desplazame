@@ -310,6 +310,58 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
    * haberla pedido. Si capara en el sitio, esto se pondría rojo y con él se
    * caerían el coche y la moto privada.
    */
+  /**
+   * ⭐ JUEZ 8-bis — EL AVISO DE LA ZONA APUNTA AL PASO POR EL QUE SE ENTRA.
+   *
+   * ⚠️ **Esta juez nace de un fallo medido el 5/09**, no de una precaución: el
+   *    aviso salía con `paso: 5`, que en este viaje es el hito de **coger la
+   *    moto** — un paso del paseo, donde no hay zona que pisar—. `avisosDeLaZbe`
+   *    numera los pasos de la etapa conducida, y en YeGo esa etapa va **detrás
+   *    del paseo**; en el coche y en la moto privada va primera y los dos
+   *    índices coinciden, así que el desfase no existía hasta hoy.
+   *
+   * Lo que se compra: que el paso que el aviso señala sea **de los que se
+   * conducen**, y no uno de los de andar.
+   */
+  test('⭐ 8-bis · el aviso de la ZBE apunta a un paso de los que se conducen', () => {
+    const t = enYego(LAPUYADE_3, ABEN_AIRE_33);
+    const deLaZona = t.avisos.find((a) => a.texto.includes('Zona de Bajas Emisiones'));
+    assert.ok(deLaZona, 'este viaje tiene que cruzar la zona');
+    assert.equal(typeof deLaZona.paso, 'number');
+
+    // (a) Cae después del hito de coger: los pasos de antes son del paseo.
+    const dondeSeCoge = t.pasos.findIndex((x) => x.giro === 'coge');
+    assert.ok(dondeSeCoge >= 0, 'no hay hito de coger');
+    assert.ok(
+      deLaZona.paso! > dondeSeCoge,
+      `el aviso cuelga del paso ${deLaZona.paso}, y la moto se coge en el ${dondeSeCoge}`,
+    );
+    assert.ok(deLaZona.paso! < t.pasos.length, 'el aviso apunta fuera de la lista');
+
+    // ⭐ (b) Y CAE DONDE SE ENTRA DE VERDAD, medido **en metros**.
+    //
+    // ⚠️ La comprobación de (a) sola **no basta, y se descubrió con la
+    //    contraprueba**: quitando el desplazamiento el aviso pasaba del paso 13
+    //    al 8, y el 8 sigue siendo mayor que el 4 del `coge`. La juez daba verde
+    //    con el fallo vivo. Lo que sí lo ata es la distancia: el paso que el
+    //    aviso señala tiene que estar **donde empieza el primer tramo de zona**,
+    //    y eso no depende de cómo se numeren los pasos.
+    const hastaLaZona = t.tramos
+      .slice(0, t.tramos.findIndex((x) => x.zbe === true))
+      .reduce((suma, x) => suma + x.metros, 0);
+    const hastaElAviso = t.pasos
+      .slice(0, deLaZona.paso!)
+      .reduce((suma, x) => suma + x.metros, 0);
+    // Un paso de holgura: el corte de la zona cae dentro de una arista y el paso
+    // que la contiene empieza un poco antes. Se acota con el paso más largo del
+    // viaje, que es lo máximo que se puede desviar por esa razón.
+    const elMasLargo = Math.max(...t.pasos.map((x) => x.metros));
+    assert.ok(
+      Math.abs(hastaElAviso - hastaLaZona) <= elMasLargo,
+      `el aviso cuelga a ${hastaElAviso} m del arranque y la zona empieza a ${hastaLaZona} m`,
+    );
+  });
+
   test('⭐ 9 · la red del coche no se entera de que existe el ciclomotor', () => {
     const antes = coche.cocinada.aristas.slice(0, 500).map((a) => a.segundos);
     olvidarLaRedCapada();

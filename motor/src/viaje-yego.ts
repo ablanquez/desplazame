@@ -382,7 +382,30 @@ export function viajeEnYego(
     cuando: opciones?.cuando ?? ahora,
   });
 
-  return juntar({ modo: 'yego', avisos: [deLaEdad, ...deLaZona] }, [
+  /**
+   * ⭐ Y EL `paso` DEL AVISO SE DESPLAZA POR EL PASEO. Sin esto, mal.
+   *
+   * ⚠️ **Encontrado midiendo el 5/09, y era un fallo de verdad**: el aviso de la
+   *    Zona de Bajas Emisiones salía con `paso: 5`, que en este viaje es el hito
+   *    de **coger la moto** — un paso del paseo, donde no se entra en ninguna
+   *    zona. La pantalla lo habría pintado ahí.
+   *
+   *    La causa es de nacimiento y no se ve hasta que un modo la pisa:
+   *    `avisosDeLaZbe` numera los pasos **de la etapa que se conduce**, porque en
+   *    el coche y en la moto privada esa etapa es la primera y los dos índices
+   *    coinciden. Aquí **va detrás del paseo**, así que hay que sumarle los pasos
+   *    que van antes. `juntar` concatena y no toca los avisos — y hace bien: no
+   *    tiene por qué saber a qué etapa se refería cada uno.
+   *
+   * ⚠️ Y **no había juez que lo cazara**: ninguna miraba el `paso` de este aviso.
+   *    Era zona sin vigilar, no un verde mentiroso. Ahora la hay.
+   */
+  const antesDeRodar = aPie.pasos.length;
+  const conSuPaso: readonly Aviso[] = deLaZona.map((a) =>
+    a.paso === undefined ? a : { ...a, paso: a.paso + antesDeRodar },
+  );
+
+  return juntar({ modo: 'yego', avisos: [deLaEdad, ...conSuPaso] }, [
     // El paseo MUERE en la moto: ahí va el icono de coger.
     { ...aPie, hito: 'coge' },
     // Y lo rodado muere en el destino, que ya lleva su chincheta.
