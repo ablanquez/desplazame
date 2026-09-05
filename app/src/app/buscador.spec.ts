@@ -1165,6 +1165,31 @@ const VIAJE_EN_YEGO: Trayecto = {
 };
 
 /**
+ * ⭐ EL «NO» DE YeGo CUANDO EL DESTINO CAE FUERA DEL ÁREA (5/09).
+ *
+ * **Medido por HTTP contra el motor y YeGo vivos**, mismo origen de siempre y
+ * `AVENIDA LAS HEROÍNAS DE LOS SITIOS 17` de destino. Es la forma de todos los
+ * «no» de esta casa: trayecto bien formado, cero pasos, cero geometría, y el
+ * porqué en los avisos.
+ */
+const FUERA_DEL_AREA_DE_YEGO: Trayecto = {
+  modo: 'yego',
+  pasos: [],
+  geometria: [],
+  avisos: [
+    { texto: 'Motos de YeGo: 144 libres, datos de hace menos de 1 min.' },
+    {
+      texto:
+        'El área de servicio de YeGo no llega a tu destino: su contrato solo permite ' +
+        'terminar el viaje dentro de su zona.',
+    },
+  ],
+  metros: 0,
+  segundos: 0,
+  tramos: [],
+};
+
+/**
  * La capa de la ZBE tal y como la sirve el WFS: dos fases, `[lon, lat]`. Aquí
  * va recortada a cuatro vértices por fase — lo que se compra es el reparto, no
  * la geometría, que ya tiene su juez en `mapa.spec.ts` contra el fichero real.
@@ -5918,6 +5943,49 @@ describe('Buscador', () => {
         await fixture.whenStable();
       }
     });
+
+    /**
+     * ⭐ JUEZ G (la 1 del encargo del 5/09) — UN DESTINO FUERA DEL ÁREA SE
+     * RECHAZA, **Y LA PANTALLA LO ENSEÑA**.
+     *
+     * El motor devuelve un trayecto vacío con su motivo, que es la forma que
+     * esta casa le da a todos los «no» desde el 30/08. Lo que aquí se compra es
+     * que ese motivo **llegue a la cara**: una línea en el resumen, con el texto
+     * del contrato, y ni un paso ni una traza que hagan pensar que hay viaje.
+     */
+    it('⭐ G · un destino fuera del área de YeGo se enseña con su motivo', async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+
+      elegirModo(fixture, 'yego');
+      tragarLaZona();
+      await direccionEntera(fixture, http);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      drenarRutas(http.match('/api/ruta'), () => FUERA_DEL_AREA_DE_YEGO);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      // El motivo, en el resumen y con las palabras del contrato.
+      const lineas = resumenEnPantalla(raiz);
+      expect(
+        lineas.some((l) =>
+          l.includes(
+            'El área de servicio de YeGo no llega a tu destino: su contrato solo permite ' +
+              'terminar el viaje dentro de su zona.',
+          ),
+        ),
+      ).toBe(true);
+
+      // Y la edad del dato sigue estando: un «no» también lleva su fecha.
+      expect(lineas.some((l) => /^Motos de YeGo: \d+ libres, datos de/.test(l))).toBe(true);
+
+      // ⛔ Y NADA que parezca un viaje: ni pasos, ni traza.
+      expect(raiz.querySelectorAll('.paso').length).toBe(0);
+      expect(raiz.querySelectorAll('path.leaflet-interactive').length).toBe(0);
+    });
+
   });
 
   describe('⭐ EL GRUPO MOTO EN LA BOTONERA (4/09, punto 13 casilla 3)', () => {

@@ -41,10 +41,28 @@
  */
 
 import { metrosEntre } from './cercano.ts';
+// ⭐ El punto-en-polígono de la casa, **el mismo** con el que se marcan las
+//    aristas de la Zona de Bajas Emisiones y se sitúan los parkings. Nació con
+//    la ZBE y de ahí le viene el nombre, pero lo que hace es genérico: un
+//    multipolígono con sus huecos [RFC 7946 § 3.1.6]. Escribir un segundo sería
+//    tener dos respuestas para «¿está dentro?».
+import { dentroDeLaZbe } from './red-coche.ts';
 
-/** El feed que el motor pide. Los otros cinco se leyeron una vez, en § 1.34. */
+/** El feed de la flota. De los seis, es el que dice dónde hay una moto. */
 export const URL_FLOTA =
   'https://services.rideyego.com/gbfs/2-3/zaragoza/es/free_bike_status';
+
+/**
+ * ⭐ Y EL SEGUNDO FEED QUE EL MOTOR PIDE: **el área de servicio** (5/09).
+ *
+ * Hasta hoy se leía una vez y se dejaba. Entra porque **el contrato de YeGo la
+ * convierte en una regla**, no porque el feed lo diga: la [GCC v-2025/05/20,
+ * § 3.2.2] dice *«Pausing and/or ending a ride is only allowed within the
+ * Service Zone»*, y estas manchas son esa Service Zone. El feed publica la
+ * geometría; el contrato dice qué significa. Ver § 1.34 y `viaje-yego.ts`.
+ */
+export const URL_ZONAS =
+  'https://services.rideyego.com/gbfs/2-3/zaragoza/es/geofencing_zones';
 
 /**
  * ⭐ LO QUE EL PROPIO FEED DICE QUE DURA: **240 segundos**.
@@ -252,64 +270,245 @@ const porLaRed: Pedir = async (url) => {
   }
 };
 
-/** Lo guardado, con hasta cuándo vale. `null` mientras no se ha pedido nada. */
-let guardada: { readonly flota: FlotaViva; readonly hasta: number } | null = null;
+/**
+ * ⭐ LA CAJA QUE GUARDA Y NO DEJA VOLAR DOS VECES, **y hay UNA SOLA** (5/09).
+ *
+ * Los dos mecanismos se suman y no son el mismo: **la caché evita las consultas
+ * que llegan DESPUÉS** y el *single-flight* **las que llegan A LA VEZ**. Sin el
+ * segundo, diez rutas simultáneas con la caché fría harían diez peticiones.
+ *
+ * ⚠️ **Está escrita una vez porque desde hoy hacía falta dos**, y eso es el
+ *    precedente de `contraste.ts` en la pantalla: allí la fórmula del contraste
+ *    estaba copiada cuatro veces y *«la cuarta no era la misma»* — tres copias
+ *    buenas y una divergente que coincide casi siempre es peor que cuatro malas.
+ *    Dos cachés gemelas escritas a mano son ese mismo camino.
+ *
+ * ⚠️ **Y EL SILENCIO NO SE GUARDA.** Cuando `traer` devuelve `null`, lo guardado
+ *    se queda como estaba y la siguiente consulta vuelve a salir: guardar un
+ *    fallo cuatro minutos dejaría la aplicación muda por un corte de un segundo.
+ */
+function guardaConVuelo<T>(ttlS: number): {
+  readonly olvidar: () => void;
+  readonly pedir: (traer: () => Promise<T | null>) => Promise<T | null>;
+} {
+  let guardado: { readonly valor: T; readonly hasta: number } | null = null;
+  let enVuelo: Promise<T | null> | null = null;
+  return {
+    olvidar: (): void => {
+      guardado = null;
+      enVuelo = null;
+    },
+    pedir: (traer): Promise<T | null> => {
+      if (guardado !== null && Date.now() < guardado.hasta) {
+        return Promise.resolve(guardado.valor);
+      }
+      if (enVuelo !== null) {
+        return enVuelo;
+      }
+      const vuelo = traer()
+        .then((valor) => {
+          if (valor !== null) {
+            guardado = { valor, hasta: Date.now() + ttlS * 1000 };
+          }
+          return valor;
+        })
+        .finally(() => {
+          // Solo la bandera de ESTE vuelo se borra: si otro entró por medio, es suyo.
+          if (enVuelo === vuelo) {
+            enVuelo = null;
+          }
+        });
+      enVuelo = vuelo;
+      return vuelo;
+    },
+  };
+}
 
-/** El vuelo en curso, si lo hay. Es el *single-flight*, igual que en la BiZi. */
-let enVuelo: Promise<FlotaViva | null> | null = null;
+/** Una pasada a un feed, con su reintento. `null` si no hay nada de fiar. */
+async function consultarAYego<T>(
+  pedir: Pedir,
+  url: string,
+  leer: (cuerpo: unknown) => T | null,
+): Promise<T | null> {
+  for (let intento = 0; ; intento++) {
+    const respuesta = await pedir(url);
+    const leido = respuesta.ok ? leer(respuesta.cuerpo) : null;
+    if (leido !== null || intento >= REINTENTOS) {
+      return leido;
+    }
+    await new Promise((sigue) => setTimeout(sigue, BACKOFF_MS));
+  }
+}
+
+const LA_FLOTA = guardaConVuelo<FlotaViva>(TTL_S);
 
 /**
  * ⭐ Tira lo guardado. **Solo para las jueces**, que si no se contaminan entre
  * sí: la caché es de módulo y sobrevive de un `test` al siguiente.
  */
 export function olvidarLaFlota(): void {
-  guardada = null;
-  enVuelo = null;
+  LA_FLOTA.olvidar();
 }
 
-/** Una pasada al feed, con su reintento. `null` si no hay nada de fiar. */
-async function consultarAYego(pedir: Pedir): Promise<FlotaViva | null> {
-  for (let intento = 0; ; intento++) {
-    const respuesta = await pedir(URL_FLOTA);
-    const flota = respuesta.ok ? leerFlota(respuesta.cuerpo) : null;
-    if (flota || intento >= REINTENTOS) {
-      return flota;
-    }
-    await new Promise((sigue) => setTimeout(sigue, BACKOFF_MS));
-  }
+/** ⭐ LA FLOTA, con caché de `ttl` y *single-flight*. Ver `guardaConVuelo`. */
+export function laFlotaViva(pedir: Pedir = porLaRed): Promise<FlotaViva | null> {
+  return LA_FLOTA.pedir(() => consultarAYego(pedir, URL_FLOTA, leerFlota));
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ⭐ EL ÁREA DE SERVICIO (5/09) — DÓNDE SE PUEDE TERMINAR UN VIAJE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+//  ⚠️ **Esto no lo dice el feed: lo dice el contrato.** Y por eso llega hoy y
+//     no el 4/09, cuando la zona se midió y se dejó pasar.
+//
+//  El feed publica una zona llamada `"no go zone"` cuyas reglas dicen
+//  `ride_allowed: true`, y con eso solo delante la conclusión del 4/09 fue la
+//  correcta: mandan las reglas, no hay restricción, y **no se inventa la de al
+//  lado** porque GBFS 2.3 no tiene `global_rules`. Lo que faltaba no era otra
+//  medición: era **leer el contrato**, y el 5/09 se leyó.
+//
+//  [GCC de YeGo v-2025/05/20, § 3.2.2], literal:
+//
+//      «Pausing and/or ending a ride is only allowed within the Service Zone»
+//      «Vehicles may indeed leave the Service Zone; however, the User must
+//       return and complete the Trip within»
+//
+//  Las dos frases juntas dicen exactamente lo que el motor hace: **rodar fuera
+//  sí, terminar fuera no**. Y que estas manchas SON la Service Zone lo dicen el
+//  propio contrato —que la nombra— y la web del operador, que las pinta. El
+//  dato lo respalda: **161 de 166 motos aparcadas dentro** [§ 1.34].
+//
+//  ⚠️ Así que la regla viene de la DOCUMENTACIÓN DEL OPERADOR, transcrita en
+//     § 1.34 con su fecha y su sha256. El feed pone la geometría; el contrato
+//     dice qué significa. Ninguno de los dos solo habría bastado.
+
+/** Un anillo tal y como lo da el GeoJSON: posiciones `[lon, lat]`, y cerrado. */
+export type AnilloDelArea = readonly (readonly number[])[];
+
+/**
+ * Una mancha: **el anillo exterior primero y sus huecos detrás** [RFC 7946
+ * § 3.1.6]. Y los huecos son de verdad, no una curiosidad del formato: § 1.34
+ * mide que la mancha del centro trae **dos**, y que dentro de ellos hay **1
+ * moto de 164** frente a las 157 del área. Son recortes reales.
+ */
+export type ManchaDelArea = readonly AnilloDelArea[];
+
+export interface AreaDeServicio {
+  /** Las manchas, en `[lon, lat]` como el GeoJSON las da. */
+  readonly manchas: readonly ManchaDelArea[];
+  /** El `last_updated` del feed. La hora del dato, igual que en la flota. */
+  readonly cuando: Date;
+}
+
+/** Un anillo que sirve: cerrado, y con al menos tres esquinas de verdad. */
+function esAnillo(cosa: unknown): cosa is AnilloDelArea {
+  return (
+    Array.isArray(cosa) &&
+    cosa.length >= 4 &&
+    cosa.every(
+      (v) =>
+        Array.isArray(v) &&
+        v.length >= 2 &&
+        typeof v[0] === 'number' &&
+        typeof v[1] === 'number' &&
+        Number.isFinite(v[0]) &&
+        Number.isFinite(v[1]),
+    )
+  );
 }
 
 /**
- * ⭐ LA FLOTA, con caché de `ttl` y *single-flight*.
+ * ⭐ LEE EL ÁREA, o `null` si no se puede fiar.
  *
- * Los dos mecanismos se suman y no son el mismo: **la caché evita las consultas
- * que llegan DESPUÉS** y el single-flight **las que llegan A LA VEZ**. Sin el
- * segundo, diez rutas simultáneas con la caché fría harían diez peticiones.
+ * Mismas cautelas que `leerFlota`, y una propia: **un área sin ninguna mancha
+ * no es un área**, es un feed roto — y devolverla vacía dejaría a
+ * `dentroDelArea` diciendo que no hay destino válido en toda la ciudad. Antes
+ * callar.
  *
- * ⚠️ **El silencio no se guarda**: cuando no hay flota, `guardada` se queda como
- *    estaba y la siguiente consulta vuelve a salir. Ver la cabecera.
+ * ⚠️ **Se toman TODAS las manchas que el feed publique.** Hoy hay una sola zona
+ *    con diez, y el contrato dice que la Service Zone es una. GBFS 2.3 no tiene
+ *    forma de decir *«esta zona es el área de servicio»*, así que no hay campo
+ *    que mirar: se lee lo que hay. El día que YeGo publique una zona **de
+ *    verdad** prohibida junto a la de servicio, esto la sumaría — y para que ese
+ *    día se vea, § 1.34 deja escrito que hoy la zona es exactamente una.
  */
-export async function laFlotaViva(pedir: Pedir = porLaRed): Promise<FlotaViva | null> {
-  const ahora = Date.now();
-  if (guardada !== null && ahora < guardada.hasta) {
-    return guardada.flota;
+export function leerArea(cuerpo: unknown): AreaDeServicio | null {
+  if (typeof cuerpo !== 'object' || cuerpo === null) {
+    return null;
   }
-  if (enVuelo !== null) {
-    return enVuelo;
+  const sobre = cuerpo as { readonly last_updated?: unknown; readonly data?: unknown };
+  if (typeof sobre.last_updated !== 'number' || !Number.isFinite(sobre.last_updated)) {
+    return null;
   }
-  const vuelo = consultarAYego(pedir)
-    .then((flota) => {
-      if (flota) {
-        guardada = { flota, hasta: Date.now() + TTL_S * 1000 };
+  const datos = sobre.data;
+  if (typeof datos !== 'object' || datos === null) {
+    return null;
+  }
+  const capa = (datos as { readonly geofencing_zones?: unknown }).geofencing_zones;
+  if (typeof capa !== 'object' || capa === null) {
+    return null;
+  }
+  const rasgos = (capa as { readonly features?: unknown }).features;
+  if (!Array.isArray(rasgos)) {
+    return null;
+  }
+  const manchas: ManchaDelArea[] = [];
+  for (const rasgo of rasgos) {
+    const geometria = (rasgo as { readonly geometry?: unknown }).geometry;
+    if (typeof geometria !== 'object' || geometria === null) {
+      continue;
+    }
+    const { type, coordinates } = geometria as {
+      readonly type?: unknown;
+      readonly coordinates?: unknown;
+    };
+    if (!Array.isArray(coordinates)) {
+      continue;
+    }
+    // Un `Polygon` es una mancha y un `MultiPolygon` son varias. Los dos son
+    // legales en `geofencing_zones`; hoy YeGo manda el segundo.
+    const candidatas: unknown[] = type === 'MultiPolygon' ? coordinates : [coordinates];
+    for (const candidata of candidatas) {
+      if (Array.isArray(candidata) && candidata.length > 0 && candidata.every(esAnillo)) {
+        manchas.push(candidata as ManchaDelArea);
       }
-      return flota;
-    })
-    .finally(() => {
-      // Solo la bandera de ESTE vuelo se borra: si otro entró por medio, es suyo.
-      if (enVuelo === vuelo) {
-        enVuelo = null;
-      }
-    });
-  enVuelo = vuelo;
-  return vuelo;
+    }
+  }
+  if (manchas.length === 0) {
+    return null;
+  }
+  return { manchas, cuando: new Date(sobre.last_updated * 1000) };
+}
+
+/**
+ * ⭐ ¿ESTE PUNTO ESTÁ EN EL ÁREA? Con los huecos contando como fuera.
+ *
+ * Una línea, y a propósito: lo que decide es `dentroDeLaZbe`, el punto-en-
+ * polígono que ya marca las aristas de la Zona de Bajas Emisiones. Aquí no se
+ * escribe geometría nueva — se le pasa otro multipolígono.
+ */
+export function dentroDelArea(area: AreaDeServicio, lon: number, lat: number): boolean {
+  return dentroDeLaZbe(lon, lat, area.manchas);
+}
+
+const EL_AREA = guardaConVuelo<AreaDeServicio>(TTL_S);
+
+/** Tira lo guardado del área. Solo para las jueces, como `olvidarLaFlota`. */
+export function olvidarElArea(): void {
+  EL_AREA.olvidar();
+}
+
+/**
+ * ⭐ EL ÁREA, con la misma caché y el mismo vuelo que la flota.
+ *
+ * ⚠️ **Y con el mismo `ttl`, aunque la geometría cambie una vez al año.** El
+ *    feed declara `ttl: 240` también aquí, y respetarlo es lo que se hace con lo
+ *    que la fuente dice de sí misma: elegir nosotros un número más largo *«que
+ *    total, esto no se mueve»* sería justo la inferencia que esta casa no hace.
+ *    Son 4,3 kB cada cuatro minutos como mucho.
+ */
+export function elAreaDeServicio(pedir: Pedir = porLaRed): Promise<AreaDeServicio | null> {
+  return EL_AREA.pedir(() => consultarAYego(pedir, URL_ZONAS, leerArea));
 }

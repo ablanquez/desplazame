@@ -57,7 +57,7 @@ import { laRedDeCoche } from './coche.ts';
 import { viajeEnCoche } from './viaje-coche.ts';
 import { viajeEnMoto } from './viaje-moto.ts';
 import { viajeEnYego } from './viaje-yego.ts';
-import type { FlotaViva } from './yego.ts';
+import type { AreaDeServicio, FlotaViva } from './yego.ts';
 
 /**
  * Los modos que hoy sabe calcular el motor. **Los SIETE desde el 4/09**: eran
@@ -337,6 +337,8 @@ function porModo(
   cuando?: Date,
   /** La flota de YeGo, si se ha podido preguntar. Solo la mira `yego`. */
   flota?: FlotaViva | null,
+  /** Y su área de servicio, del otro feed. También solo la mira `yego`. */
+  area?: AreaDeServicio | null,
 ): Trayecto {
   const { modo, origen, destino } = b;
   // ⭐ LA BIFURCACIÓN, y va aquí a propósito: los dos extremos se resuelven
@@ -404,7 +406,9 @@ function porModo(
   //    *free-floating*— y su flota es CERO, así que entra libre y el distintivo
   //    ya está contestado por el propio feed (§ 1.34).
   if (modo === 'yego') {
-    return viajeEnYego(laRedDeCoche(), motor, origen, destino, flota ?? null, { cuando });
+    return viajeEnYego(laRedDeCoche(), motor, origen, destino, flota ?? null, area ?? null, {
+      cuando,
+    });
   }
 
 
@@ -521,9 +525,20 @@ export function calcularTrayecto(
    * Solo la mira `yego`. Los otros siete modos no se enteran de que existe.
    */
   flota?: FlotaViva | null,
+  /**
+   * ⭐ Y EL ÁREA DE SERVICIO DE YeGo (5/09), por la misma puerta y por la misma
+   * razón: el segundo feed del operador, ya resuelto, o `null` si calló.
+   *
+   * Es la que decide si el destino que se ha pedido es un final de viaje legal
+   * — el contrato de YeGo solo deja terminar dentro de su zona. Ver
+   * `viaje-yego.ts`.
+   */
+  area?: AreaDeServicio | null,
 ): Trayecto {
   const previo = antesDeBifurcar(motor, peticion);
-  return esTrayecto(previo) ? previo : porModo(motor, previo, vivo ?? null, cuando, flota);
+  return esTrayecto(previo)
+    ? previo
+    : porModo(motor, previo, vivo ?? null, cuando, flota, area);
 }
 
 /**

@@ -66,19 +66,43 @@
  *    Bajas Emisiones aunque a él le dejen pasar — es la misma noticia que recibe
  *    un coche con etiqueta C.
  *
- * ── ⭐ El geofencing: se lee, y no restringe ────────────────────────────────
+ * ── ⭐ EL VIAJE TERMINA DENTRO DEL ÁREA, y lo dice el CONTRATO ──────────────
  *
- * § 1.34 lo mide entero. YeGo publica **una zona con diez polígonos** llamada
- * `"no go zone"` cuyas reglas dicen `ride_allowed: true` y
- * `ride_through_allowed: true`. El nombre y las reglas se contradicen, y el dato
- * desempata: **161 de las 166 motos están aparcadas dentro** de esas manchas, 98
- * en la que cubre el centro. Son el **área de servicio**, no una prohibición.
+ * ⚠️ **Esta regla cambió el 5/09, y el cambio es de fuente, no de opinión.**
  *
- * Así que mandan las reglas —que es lo que la especificación pide— y **no hay
- * ninguna restricción que aplicar al final del viaje**. Y no se inventa la de al
- * lado: GBFS 2.3 no tiene `global_rules` —llegó en la 3.0—, así que del «fuera
- * de las manchas» el feed **no dice nada**, y lo que no está en el dato es
- * `NO CONSTA`.
+ * El 4/09 el motor no restringía nada, y con lo que había delante era lo
+ * correcto: el feed publica una zona llamada `"no go zone"` cuyas reglas dicen
+ * `ride_allowed: true`, mandan las reglas, y **no se inventa la restricción de
+ * al lado** porque GBFS 2.3 no tiene `global_rules`. Quedó escrito así, y quedó
+ * una juez —la 8— comprando que ningún destino se rechazara.
+ *
+ * Lo que faltaba no era medir más: era **leer el contrato del operador**. Se
+ * leyó el 5/09 [GCC v-2025/05/20, § 3.2.2, transcrito en § 1.34]:
+ *
+ *     «Pausing and/or ending a ride is only allowed within the Service Zone»
+ *     «Vehicles may indeed leave the Service Zone; however, the User must
+ *      return and complete the Trip within»
+ *
+ * Y las manchas del feed **son** esa Service Zone: el contrato la nombra, la web
+ * del operador la pinta, y 161 de las 166 motos están aparcadas dentro [§ 1.34].
+ *
+ * De ahí salen exactamente dos reglas, ni una más:
+ *
+ *   · **El DESTINO tiene que estar dentro.** Fuera no hay viaje, y se dice por
+ *     qué. No es nuestra norma: es la del que alquila la moto.
+ *   · **RODAR por fuera no se toca.** El contrato lo permite con todas las
+ *     letras, así que la ruta puede salirse del área tanto como haga falta — y
+ *     lo hace: de `CALLE PEDRO LAPUYADE 3` a `AVENIDA ISLA DE MURANO 1`, **258
+ *     de 336 vértices rodados caen fuera** y el viaje es perfectamente legal.
+ *
+ * ⚠️ Y **el ORIGEN tampoco se mira**. Andar hasta una moto no es un viaje en
+ *    moto: quien está fuera del área camina hasta la más cercana y arranca. El
+ *    par de siempre lo estrena — `CALLE PEDRO LAPUYADE 3` está fuera.
+ *
+ * ⚠️ **Lo que sigue sin inventarse son los huecos que el feed no publica.** El
+ *    contrato define cuatro clases de zona —Service, Restricted Circulation,
+ *    Unauthorized Parking y Mandatory Parking [§ 3.2.2.2]— y el feed publica
+ *    **una**. De las otras tres, `NO CONSTA` en el dato: no se simulan.
  */
 
 import type { Aviso, Paso, Trayecto } from '@desplazame/tipos';
@@ -96,9 +120,11 @@ import {
   type RutaDeCoche,
 } from './viaje-coche.ts';
 import {
+  dentroDelArea,
   edadEnPalabras,
   motosCerca,
   TOPE_KMH,
+  type AreaDeServicio,
   type FlotaViva,
   type MotoCerca,
 } from './yego.ts';
@@ -199,23 +225,33 @@ function hitoDeCoger(moto: MotoCerca): Paso {
 }
 
 /**
- * Y el de dejarla, que cierra el viaje.
+ * Y el de dejarla, que cierra el viaje. **Con dos redacciones, y la que sale
+ * depende de lo que se haya podido comprobar** (5/09).
  *
- * ⭐ **«Déjala donde puedas aparcar»**, y esa cautela es del dato: § 1.34 mide
- * que el geofencing publicado **no restringe nada**, así que el motor no puede
- * decir «déjala aquí mismo» con la autoridad del feed — pero tampoco puede
- * inventarse una prohibición. Lo honrado es no prometer la plaza.
+ * ⭐ Cuando el área se ha leído y el destino está dentro, el hito lo dice: *«…
+ * dentro del área de YeGo — prioriza un aparcamiento de motos»*. La primera
+ * mitad es un hecho comprobado por el motor; la segunda es **consejo del propio
+ * operador** [FAQ de YeGo, `/es/faq/parking`], y por eso se da como consejo y no
+ * como orden: quien manda ahí es el ayuntamiento, no nosotros.
+ *
+ * ⚠️ Y cuando **no se ha podido leer el área** vuelve la frase de antes, *«donde
+ *    esté permitido aparcar»*. No es un detalle: decir «dentro del área» sin
+ *    haberlo comprobado sería prometer con la autoridad de un dato que no se
+ *    tiene. Lo que no se ha mirado, no se afirma.
  */
-function hitoDeDejarla(destino: Extremo): Paso {
+function hitoDeDejarla(destino: Extremo, comprobada: boolean): Paso {
+  const cola = comprobada
+    ? ', dentro del área de YeGo — prioriza un aparcamiento de motos'
+    : ', donde esté permitido aparcar';
   return {
     giro: 'aparca',
     metros: 0,
-    texto: `Deja la moto en ${destino.nombre}, donde esté permitido aparcar`,
+    texto: `Deja la moto en ${destino.nombre}${cola}`,
     partes: [
       { papel: 'accion', texto: 'Deja la moto' },
       { papel: 'texto', texto: ' en ' },
       { papel: 'via', texto: destino.nombre },
-      { papel: 'texto', texto: ', donde esté permitido aparcar' },
+      { papel: 'texto', texto: cola },
     ],
   };
 }
@@ -241,6 +277,13 @@ export interface OpcionesDeYego {
  * `flota` es `null` cuando YeGo no ha contestado, y entonces **no hay viaje que
  * ofrecer**: al revés que la BiZi, aquí la fuente viva no es un adorno sobre un
  * inventario — es el inventario. Sin ella no se sabe dónde hay una sola moto.
+ *
+ * ⭐ `area` es la Service Zone, y **se trata al revés que la flota**: sin ella
+ * el viaje se ofrece igual. La diferencia es qué clase de cosa falta. La flota
+ * es el inventario —sin ella no hay moto que coger, y ofrecer una sería
+ * inventársela—; el área es una **restricción**, y aplicar una restricción que
+ * no se ha podido leer sería inventarse la prohibición. Así que sin área se
+ * rutea, se avisa de que no se ha podido comprobar, y el hito no promete nada.
  */
 export function viajeEnYego(
   servida: RedDeCocheServida,
@@ -248,6 +291,7 @@ export function viajeEnYego(
   origen: Extremo,
   destino: Extremo,
   flota: FlotaViva | null,
+  area: AreaDeServicio | null,
   opciones?: OpcionesDeYego,
 ): Trayecto {
   const ahora = opciones?.ahora ?? new Date();
@@ -270,6 +314,27 @@ export function viajeEnYego(
   const deLaEdad: Aviso = {
     texto: `Motos de YeGo: ${flota.motos.length} libres, datos de ${edad}.`,
   };
+
+  /**
+   * ⭐ EL DESTINO, DENTRO DEL ÁREA. La única puerta que el contrato cierra.
+   *
+   * Va **antes de buscar nada**: es una comprobación de un punto contra diez
+   * polígonos, y ahorra las ocho búsquedas del coche que vienen detrás.
+   *
+   * ⚠️ Y se mira **solo el destino**. Ni el origen —andar hasta la moto es
+   *    libre— ni la ruta —el contrato deja salirse del área con todas las
+   *    letras—. Cada línea de más aquí sería una prohibición inventada.
+   */
+  if (area !== null && !dentroDelArea(area, destino.lon, destino.lat)) {
+    return sinRuta([
+      deLaEdad,
+      {
+        texto:
+          'El área de servicio de YeGo no llega a tu destino: su contrato solo ' +
+          'permite terminar el viaje dentro de su zona.',
+      },
+    ]);
+  }
 
   const candidatas = motosCerca(flota, origen.lon, origen.lat, MOTOS_CANDIDATAS);
   if (candidatas.length === 0) {
@@ -365,7 +430,7 @@ export function viajeEnYego(
   }
   const { etapa, aperturas } = etapaEnCoche(red, gana.ruta, punto, destino, {
     apertura: 'Arranca',
-    cierre: hitoDeDejarla(destino),
+    cierre: hitoDeDejarla(destino, area !== null),
   });
 
   /**
@@ -405,7 +470,27 @@ export function viajeEnYego(
     a.paso === undefined ? a : { ...a, paso: a.paso + antesDeRodar },
   );
 
-  return juntar({ modo: 'yego', avisos: [deLaEdad, ...conSuPaso] }, [
+  /**
+   * ⭐ Y SI EL ÁREA NO SE HA PODIDO LEER, SE DICE. No se calla ni se inventa.
+   *
+   * Quien mira tiene delante un viaje que puede acabar donde su contrato no le
+   * deja, y eso es una noticia suya. Es la misma doctrina del mudo honesto que
+   * usa el poste de autobús: cuando no se ha podido preguntar, lo que se enseña
+   * es que no se ha podido preguntar.
+   */
+  const sinComprobar: readonly Aviso[] =
+    area === null
+      ? [
+          {
+            texto:
+              'No hemos podido comprobar el área de servicio de YeGo: su contrato solo ' +
+              'permite terminar el viaje dentro de su zona, y ahora mismo no sabemos ' +
+              'hasta dónde llega.',
+          },
+        ]
+      : [];
+
+  return juntar({ modo: 'yego', avisos: [deLaEdad, ...sinComprobar, ...conSuPaso] }, [
     // El paseo MUERE en la moto: ahí va el icono de coger.
     { ...aPie, hito: 'coge' },
     // Y lo rodado muere en el destino, que ya lleva su chincheta.

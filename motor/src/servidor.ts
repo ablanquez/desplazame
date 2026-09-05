@@ -26,7 +26,7 @@ import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
 import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
 import { cargarBiZi, disponibilidadDeBiZi } from './bizi.ts';
-import { laFlotaViva } from './yego.ts';
+import { elAreaDeServicio, laFlotaViva } from './yego.ts';
 import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
 import { atenderEstacionViva } from './estacion-viva.ts';
 import { atenderDistintivo } from './distintivo.ts';
@@ -743,7 +743,16 @@ const servidor = createServer((peticion, respuesta) => {
         // el propio YeGo declara en su `ttl`, así que lo normal es que devuelva
         // lo que ya tiene. Ver la cabecera de `yego.ts` para por qué aquí
         // cachear es la doctrina y con la BiZi era mentir.
-        const flota = leida?.modo === 'yego' ? await laFlotaViva() : null;
+        // ⭐ Y CON ELLA EL ÁREA DE SERVICIO (5/09), **en la misma espera**. Son
+        //    dos feeds del mismo operador y ninguno depende del otro, así que
+        //    pedirlos en fila sería sumar dos redondeos de red para nada. Con la
+        //    caché caliente —lo normal— las dos vuelven sin salir a ninguna
+        //    parte. El área es la que decide si el destino es un final de viaje
+        //    legal: ver `viaje-yego.ts` y el § 3.2.2 del contrato de YeGo.
+        const [flota, area] =
+          leida?.modo === 'yego'
+            ? await Promise.all([laFlotaViva(), elAreaDeServicio()])
+            : [null, null];
         // ⭐ Y EL BUS VA POR LA OTRA PUERTA (31/08). No se le puede pasar el
         // dato vivo como al BiZi porque **a qué postes hay que preguntar no se
         // sabe hasta que el viaje está buscado**: primero se elige la línea, y
@@ -755,7 +764,7 @@ const servidor = createServer((peticion, respuesta) => {
         const trayecto =
           leida?.modo === 'bus'
             ? await calcularTrayectoVivo(motor, leida)
-            : calcularTrayecto(motor, leida, vivo, undefined, flota);
+            : calcularTrayecto(motor, leida, vivo, undefined, flota, area);
         const calló = leida?.modo === 'bus' ? ultimoMudo() : null;
         if (calló) {
           console.log(

@@ -17,10 +17,14 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  dentroDelArea,
   edadEnPalabras,
+  elAreaDeServicio,
   laFlotaViva,
+  leerArea,
   leerFlota,
   motosCerca,
+  olvidarElArea,
   olvidarLaFlota,
   TIPO_QUE_SE_USA,
   TTL_S,
@@ -243,5 +247,305 @@ describe('⭐ LA FLOTA VIVA DE YeGo — el feed, la caché y la edad', () => {
     assert.equal(edadEnPalabras(t, new Date(t.getTime() + 185_000)), 'hace 3 min');
     // Y un reloj que va para atrás no produce «hace -2 min».
     assert.equal(edadEnPalabras(t, new Date(t.getTime() - 60_000)), 'hace menos de 1 min');
+  });
+});
+
+
+/**
+ * ⭐ EL FEED DE ZONAS ENTERO, PEGADO TAL CUAL — sonda del 05/09/2026 14:30:39
+ * GMT, 4.319 bytes, § 1.34.
+ *
+ * ⚠️ **Aquí no hay selección que valga: está el feed completo.** El de la flota
+ *    trae doce motos de 166 porque 166 no caben; éste cabe entero, y entero
+ *    entra — sobre, `rules`, el `station_parking` que es de GBFS 3.0 en un feed
+ *    2.3, y las diez manchas con sus 163 vértices. Los comentarios de cada
+ *    mancha son cuentas sobre lo que hay debajo, no dato.
+ *
+ * ⭐ **Y la mancha 3 trae DOS HUECOS**, que es lo que hace a este fixture algo
+ *    más que geometría de relleno: dentro de ellos están el Paseo de la
+ *    Independencia, la Plaza de Aragón y la Plaza de España — 41 portales del
+ *    centro que **quedan fuera del área** [medido el 5/09]. Un punto-en-polígono
+ *    que se saltara los huecos daría verde diciendo lo contrario.
+ */
+const DEL_FEED_DE_ZONAS = {
+  last_updated: 1788618639,
+  ttl: 240,
+  version: '2.3',
+  data: {
+    geofencing_zones: {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {
+            name: 'no go zone',
+            rules: [
+              {
+                vehicle_type_id: ['yego_scooter', 'yego_bike', 'yego_kick'],
+                ride_allowed: true,
+                ride_through_allowed: true,
+              },
+            ],
+            station_parking: false,
+          },
+          geometry: {
+            type: 'MultiPolygon',
+            coordinates: [
+              // ── mancha 0 · un anillo · 5 vértices
+              [
+                [
+                  [-0.937605, 41.642958], [-0.933955, 41.643188], [-0.933909, 41.642958],
+                  [-0.937421, 41.642683], [-0.937605, 41.642958],
+                ]
+              ],
+              // ── mancha 1 · un anillo · 5 vértices
+              [
+                [
+                  [-0.9349, 41.659535], [-0.931497, 41.659523], [-0.931553, 41.658588],
+                  [-0.934894, 41.658725], [-0.9349, 41.659535],
+                ]
+              ],
+              // ── mancha 2 · un anillo · 5 vértices
+              [
+                [
+                  [-0.931232, 41.640727], [-0.929274, 41.642206], [-0.927912, 41.641793],
+                  [-0.929046, 41.639959], [-0.931232, 41.640727],
+                ]
+              ],
+              // ── mancha 3 · 3 anillos (exterior + 2 huecos) · 52 + 14 + 5 vértices
+              [
+                [
+                  [-0.921336, 41.658376], [-0.916061, 41.657665], [-0.915759, 41.658213],
+                  [-0.915787, 41.659503], [-0.914473, 41.661146], [-0.910034, 41.660206],
+                  [-0.907715, 41.662076], [-0.906542, 41.662981], [-0.905541, 41.664515],
+                  [-0.900543, 41.664475], [-0.894687, 41.66171], [-0.892704, 41.660344],
+                  [-0.891074, 41.65894], [-0.888758, 41.658707], [-0.884664, 41.658096],
+                  [-0.881507, 41.65795], [-0.878925, 41.657551], [-0.876021, 41.656179],
+                  [-0.870847, 41.654291], [-0.86695, 41.65304], [-0.865426, 41.65246],
+                  [-0.855712, 41.650088], [-0.856033, 41.649405], [-0.859148, 41.640207],
+                  [-0.860794, 41.640093], [-0.861585, 41.639654], [-0.862071, 41.639177],
+                  [-0.862581, 41.638433], [-0.863348, 41.638127], [-0.862122, 41.636123],
+                  [-0.864727, 41.635093], [-0.868737, 41.637173], [-0.870831, 41.636257],
+                  [-0.873385, 41.63536], [-0.874641, 41.636054], [-0.876957, 41.63724],
+                  [-0.880111, 41.63473], [-0.884718, 41.638104], [-0.886333, 41.638859],
+                  [-0.886912, 41.639659], [-0.88924, 41.640558], [-0.892674, 41.641054],
+                  [-0.894307, 41.641933], [-0.898367, 41.63737], [-0.904904, 41.632921],
+                  [-0.911826, 41.635832], [-0.914123, 41.64033], [-0.917524, 41.64937],
+                  [-0.917199, 41.650477], [-0.918768, 41.652098], [-0.920772, 41.657467],
+                  [-0.921336, 41.658376],
+                ],
+                [
+                  [-0.885959, 41.647896], [-0.885488, 41.647351], [-0.884167, 41.647975],
+                  [-0.884076, 41.648486], [-0.883924, 41.648781], [-0.882405, 41.650267],
+                  [-0.881099, 41.651549], [-0.880188, 41.65173], [-0.880507, 41.65232],
+                  [-0.881585, 41.652683], [-0.881676, 41.651889], [-0.884364, 41.649155],
+                  [-0.884865, 41.648962], [-0.885959, 41.647896],
+                ],
+                [
+                  [-0.880591, 41.656913], [-0.878304, 41.655794], [-0.878055, 41.656076],
+                  [-0.880431, 41.657099], [-0.880591, 41.656913],
+                ]
+              ],
+              // ── mancha 4 · un anillo · 40 vértices
+              [
+                [
+                  [-0.907632, 41.669767], [-0.906452, 41.670041], [-0.898313, 41.671882],
+                  [-0.897158, 41.672465], [-0.898041, 41.676111], [-0.890782, 41.676152],
+                  [-0.890762, 41.678166], [-0.889269, 41.678134], [-0.889079, 41.676129],
+                  [-0.884453, 41.675906], [-0.884252, 41.673215], [-0.877446, 41.673279],
+                  [-0.877477, 41.673949], [-0.876742, 41.674524], [-0.871401, 41.67441],
+                  [-0.87102, 41.674379], [-0.871365, 41.666752], [-0.868164, 41.665798],
+                  [-0.865097, 41.662266], [-0.857872, 41.665095], [-0.853574, 41.657485],
+                  [-0.85516, 41.652229], [-0.861556, 41.653999], [-0.866431, 41.65503],
+                  [-0.869932, 41.656412], [-0.874824, 41.658239], [-0.876803, 41.658512],
+                  [-0.878435, 41.659489], [-0.879438, 41.660327], [-0.881122, 41.660284],
+                  [-0.881907, 41.660917], [-0.884996, 41.661176], [-0.888777, 41.662279],
+                  [-0.890296, 41.663177], [-0.8925, 41.664463], [-0.89477, 41.666364],
+                  [-0.89696, 41.668617], [-0.897984, 41.671245], [-0.907316, 41.669451],
+                  [-0.907632, 41.669767],
+                ]
+              ],
+              // ── mancha 5 · un anillo · 5 vértices
+              [
+                [
+                  [-0.900517, 41.634147], [-0.900406, 41.634261], [-0.899675, 41.63363],
+                  [-0.899778, 41.633538], [-0.900517, 41.634147],
+                ]
+              ],
+              // ── mancha 6 · un anillo · 5 vértices
+              [
+                [
+                  [-0.890536, 41.633454], [-0.890468, 41.633975], [-0.884339, 41.633425],
+                  [-0.884417, 41.632896], [-0.890536, 41.633454],
+                ]
+              ],
+              // ── mancha 7 · un anillo · 12 vértices
+              [
+                [
+                  [-0.88862, 41.60693], [-0.888443, 41.607556], [-0.885333, 41.607045],
+                  [-0.883899, 41.607424], [-0.88412, 41.609123], [-0.887009, 41.609634],
+                  [-0.886767, 41.610326], [-0.880877, 41.609271], [-0.880304, 41.60815],
+                  [-0.885443, 41.606847], [-0.888068, 41.606666], [-0.88862, 41.60693],
+                ]
+              ],
+              // ── mancha 8 · un anillo · 5 vértices
+              [
+                [
+                  [-0.874411, 41.616164], [-0.872324, 41.618269], [-0.870135, 41.617255],
+                  [-0.872274, 41.614973], [-0.874411, 41.616164],
+                ]
+              ],
+              // ── mancha 9 · un anillo · 10 vértices
+              [
+                [
+                  [-0.862195, 41.63479], [-0.861483, 41.635575], [-0.861232, 41.636206],
+                  [-0.860919, 41.63637], [-0.859542, 41.63506], [-0.858333, 41.635247],
+                  [-0.857321, 41.634272], [-0.858919, 41.633347], [-0.860704, 41.633486],
+                  [-0.862195, 41.63479],
+                ]
+              ],
+            ],
+          },
+        },
+      ],
+    },
+  },
+};
+
+/** Tres puntos medidos contra ese feed, para no repetirlos en cada juez. */
+const ABEN_AIRE_33: readonly [number, number] = [-0.883141, 41.65758];
+const INDEPENDENCIA_3: readonly [number, number] = [-0.881158, 41.651557];
+const HEROINAS_17: readonly [number, number] = [-0.962188, 41.627303];
+
+describe('⭐ EL ÁREA DE SERVICIO DE YeGo — la Service Zone que el contrato manda', () => {
+  /**
+   * ⭐ JUEZ H — SE LEEN LAS DIEZ MANCHAS, **y los huecos siguen ahí**.
+   *
+   * Lo que se compra no es que el JSON se parsee: es que la forma que sale de
+   * `leerArea` sea la que el punto-en-polígono espera — una lista de manchas,
+   * cada una con su anillo exterior primero y sus huecos detrás [RFC 7946
+   * § 3.1.6]. Aplanar los anillos sería lo cómodo, y convertiría los dos huecos
+   * del centro en dos manchas más.
+   */
+  test('⭐ H · el feed da diez manchas, 163 vértices y la del centro con sus dos huecos', () => {
+    const area = leerArea(DEL_FEED_DE_ZONAS);
+    assert.ok(area, 'el área no se ha leído');
+    assert.equal(area.manchas.length, 10);
+    const vertices = area.manchas.reduce(
+      (suma, m) => suma + m.reduce((t, anillo) => t + anillo.length, 0),
+      0,
+    );
+    assert.equal(vertices, 163);
+    // Nueve manchas de un anillo y una de tres: exterior y dos huecos.
+    assert.deepEqual(
+      area.manchas.map((m) => m.length).sort((a, b) => a - b),
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
+    );
+    // Y la hora del dato es la del sobre, como en la flota.
+    assert.equal(area.cuando.getTime(), 1788618639 * 1000);
+  });
+
+  /**
+   * ⭐ JUEZ I — LO QUE NO SE PUEDE FIAR SE DEVUELVE COMO `null`.
+   *
+   * Mismo trato que la flota, y con un caso propio: **un área sin ninguna
+   * mancha no es «no hay restricción», es un feed roto**. Devolverla vacía haría
+   * que `dentroDelArea` dijera que no, y el motor rechazaría todos los destinos
+   * de la ciudad por un fallo de lectura.
+   */
+  test('⭐ I · sin hora, sin manchas o con anillos rotos, el área es `null`', () => {
+    const { data } = DEL_FEED_DE_ZONAS;
+    // (a) Sin `last_updated` no hay hora del dato.
+    assert.equal(leerArea({ data }), null);
+    // (b) Sin `features` no hay nada que leer.
+    assert.equal(
+      leerArea({ last_updated: 1, data: { geofencing_zones: { type: 'FeatureCollection' } } }),
+      null,
+    );
+    // (c) Cero manchas NO es un área vacía: es un feed roto.
+    assert.equal(
+      leerArea({
+        last_updated: 1,
+        data: { geofencing_zones: { type: 'FeatureCollection', features: [] } },
+      }),
+      null,
+    );
+    // (d) Y un anillo de tres esquinas o con coordenadas que no son números se
+    //     tira: un polígono mal cerrado haría mentir al punto-en-polígono.
+    const roto = (coordinates: unknown) => ({
+      last_updated: 1,
+      data: {
+        geofencing_zones: {
+          type: 'FeatureCollection',
+          features: [{ type: 'Feature', geometry: { type: 'MultiPolygon', coordinates } }],
+        },
+      },
+    });
+    assert.equal(leerArea(roto([[[[-0.88, 41.65], [-0.87, 41.65], [-0.88, 41.65]]]])), null);
+    assert.equal(
+      leerArea(roto([[[['-0.88', 41.65], [-0.87, 41.65], [-0.87, 41.66], [-0.88, 41.65]]]])),
+      null,
+    );
+  });
+
+  /**
+   * ⭐ JUEZ J — DENTRO, FUERA, **Y EL HUECO CUENTA COMO FUERA**.
+   *
+   * La tercera es la que importa. `CALLE ABEN AIRE 33` y `PASEO INDEPENDENCIA 3`
+   * están las dos dentro del anillo exterior de la mancha del centro; la segunda
+   * cae además dentro de un hueco, y por eso está **fuera del área**. Sin los
+   * huecos, las dos darían lo mismo.
+   */
+  test('⭐ J · el hueco del centro cuenta como fuera del área', () => {
+    const area = leerArea(DEL_FEED_DE_ZONAS)!;
+    assert.equal(dentroDelArea(area, ...ABEN_AIRE_33), true, 'Aben Aire 33 está dentro');
+    assert.equal(dentroDelArea(area, ...HEROINAS_17), false, 'Heroínas de los Sitios está fuera');
+    // ⭐ El Paseo de la Independencia: dentro del anillo exterior y dentro de un
+    //    hueco. La respuesta buena es **fuera**.
+    const soloElExterior = { ...area, manchas: area.manchas.map((m) => [m[0]!]) };
+    assert.equal(
+      dentroDelArea(soloElExterior, ...INDEPENDENCIA_3),
+      true,
+      'sin huecos, la Independencia caería dentro — si esto falla el fixture ha cambiado',
+    );
+    assert.equal(dentroDelArea(area, ...INDEPENDENCIA_3), false, 'y con huecos, fuera');
+  });
+
+  /**
+   * ⭐ JUEZ K — EL ÁREA SE GUARDA IGUAL QUE LA FLOTA, **y en su propia caja**.
+   *
+   * Las dos usan `guardaConVuelo`, que está escrita una vez. Lo que esta juez
+   * compra es que compartir el mecanismo no sea compartir el cajón: olvidar la
+   * flota no puede tirar el área, ni al revés — si lo hiciera, cada ruta de YeGo
+   * pediría los dos feeds otra vez.
+   */
+  test('⭐ K · dos consultas del área son una salida, y su caché es la suya', async () => {
+    olvidarElArea();
+    olvidarLaFlota();
+    const zonas = fuente(DEL_FEED_DE_ZONAS);
+    const flota = fuente(DEL_FEED);
+
+    const primera = await elAreaDeServicio(zonas.pedir);
+    assert.ok(primera);
+    assert.equal(await elAreaDeServicio(zonas.pedir), primera, 'la segunda no viene de la caché');
+    assert.equal(zonas.visitas(), 1, `${zonas.visitas()} salidas a YeGo, y el ttl son ${TTL_S} s`);
+
+    // Y la flota es otro cajón: pedirla no toca lo guardado del área.
+    assert.ok(await laFlotaViva(flota.pedir));
+    assert.equal(await elAreaDeServicio(zonas.pedir), primera);
+    assert.equal(zonas.visitas(), 1);
+
+    // ⚠️ El silencio tampoco se guarda aquí. Con la caché tirada y YeGo mudo,
+    //    la siguiente vuelve a salir en vez de servir un `null` de hace un rato.
+    olvidarElArea();
+    let mudo = 0;
+    const calla: Pedir = async () => {
+      mudo++;
+      return { ok: false, cuerpo: null };
+    };
+    assert.equal(await elAreaDeServicio(calla), null);
+    assert.equal(await elAreaDeServicio(calla), null);
+    // Dos consultas × (un intento + un reintento) = cuatro salidas.
+    assert.equal(mudo, 4, `${mudo} salidas: el silencio se ha guardado`);
   });
 });

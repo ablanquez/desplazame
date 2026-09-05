@@ -29,7 +29,14 @@ import { cuadernoPara } from './ruta.ts';
 import type { Motor } from './trayecto.ts';
 import type { Extremo } from './etapas.ts';
 import { comoLaVeUnCiclomotor, olvidarLaRedCapada, viajeEnYego } from './viaje-yego.ts';
-import { leerFlota, TOPE_KMH, type FlotaViva } from './yego.ts';
+import {
+  dentroDelArea,
+  leerArea,
+  leerFlota,
+  TOPE_KMH,
+  type AreaDeServicio,
+  type FlotaViva,
+} from './yego.ts';
 
 let motor: Motor;
 let coche: RedDeCocheServida;
@@ -44,6 +51,12 @@ function extremo(codigo: string): Extremo {
 
 const LAPUYADE_3 = 'Portales.84476';
 const ABEN_AIRE_33 = 'Portales.100601';
+/** `AVENIDA ISLA DE MURANO 1`, en Arcosur: **dentro**, pero en su propia mancha. */
+const ISLA_DE_MURANO_1 = 'Portales.99681';
+/** `AVENIDA LAS HEROÍNAS DE LOS SITIOS 17`: fuera de las diez manchas. */
+const HEROINAS_17 = 'Portales.115483';
+/** `PASEO INDEPENDENCIA 3`: en pleno centro y **dentro de un hueco**. */
+const INDEPENDENCIA_3 = 'Portales.120461';
 
 /** El sobre y las doce motos del feed real. Ver la cabecera. */
 const DEL_FEED = {
@@ -68,14 +81,174 @@ const DEL_FEED = {
   },
 };
 
+/**
+ * ⭐ EL FEED DE ZONAS ENTERO — sonda del 05/09/2026 14:30:39 GMT, 4.319 bytes.
+ *
+ * Está copiado tal cual y completo, igual que en `yego.spec.ts`: diez manchas,
+ * 163 vértices, y **la del centro con sus dos huecos**. Se duplica a propósito —
+ * importar un fixture de otro `.spec.ts` haría correr sus jueces dos veces.
+ */
+const DEL_FEED_DE_ZONAS = {
+  last_updated: 1788618639,
+  ttl: 240,
+  version: '2.3',
+  data: {
+    geofencing_zones: {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {
+            name: 'no go zone',
+            rules: [
+              {
+                vehicle_type_id: ['yego_scooter', 'yego_bike', 'yego_kick'],
+                ride_allowed: true,
+                ride_through_allowed: true,
+              },
+            ],
+            station_parking: false,
+          },
+          geometry: {
+            type: 'MultiPolygon',
+            coordinates: [
+              // ── mancha 0 · un anillo · 5 vértices
+              [
+                [
+                  [-0.937605, 41.642958], [-0.933955, 41.643188], [-0.933909, 41.642958],
+                  [-0.937421, 41.642683], [-0.937605, 41.642958],
+                ]
+              ],
+              // ── mancha 1 · un anillo · 5 vértices
+              [
+                [
+                  [-0.9349, 41.659535], [-0.931497, 41.659523], [-0.931553, 41.658588],
+                  [-0.934894, 41.658725], [-0.9349, 41.659535],
+                ]
+              ],
+              // ── mancha 2 · un anillo · 5 vértices
+              [
+                [
+                  [-0.931232, 41.640727], [-0.929274, 41.642206], [-0.927912, 41.641793],
+                  [-0.929046, 41.639959], [-0.931232, 41.640727],
+                ]
+              ],
+              // ── mancha 3 · 3 anillos (exterior + 2 huecos) · 52 + 14 + 5 vértices
+              [
+                [
+                  [-0.921336, 41.658376], [-0.916061, 41.657665], [-0.915759, 41.658213],
+                  [-0.915787, 41.659503], [-0.914473, 41.661146], [-0.910034, 41.660206],
+                  [-0.907715, 41.662076], [-0.906542, 41.662981], [-0.905541, 41.664515],
+                  [-0.900543, 41.664475], [-0.894687, 41.66171], [-0.892704, 41.660344],
+                  [-0.891074, 41.65894], [-0.888758, 41.658707], [-0.884664, 41.658096],
+                  [-0.881507, 41.65795], [-0.878925, 41.657551], [-0.876021, 41.656179],
+                  [-0.870847, 41.654291], [-0.86695, 41.65304], [-0.865426, 41.65246],
+                  [-0.855712, 41.650088], [-0.856033, 41.649405], [-0.859148, 41.640207],
+                  [-0.860794, 41.640093], [-0.861585, 41.639654], [-0.862071, 41.639177],
+                  [-0.862581, 41.638433], [-0.863348, 41.638127], [-0.862122, 41.636123],
+                  [-0.864727, 41.635093], [-0.868737, 41.637173], [-0.870831, 41.636257],
+                  [-0.873385, 41.63536], [-0.874641, 41.636054], [-0.876957, 41.63724],
+                  [-0.880111, 41.63473], [-0.884718, 41.638104], [-0.886333, 41.638859],
+                  [-0.886912, 41.639659], [-0.88924, 41.640558], [-0.892674, 41.641054],
+                  [-0.894307, 41.641933], [-0.898367, 41.63737], [-0.904904, 41.632921],
+                  [-0.911826, 41.635832], [-0.914123, 41.64033], [-0.917524, 41.64937],
+                  [-0.917199, 41.650477], [-0.918768, 41.652098], [-0.920772, 41.657467],
+                  [-0.921336, 41.658376],
+                ],
+                [
+                  [-0.885959, 41.647896], [-0.885488, 41.647351], [-0.884167, 41.647975],
+                  [-0.884076, 41.648486], [-0.883924, 41.648781], [-0.882405, 41.650267],
+                  [-0.881099, 41.651549], [-0.880188, 41.65173], [-0.880507, 41.65232],
+                  [-0.881585, 41.652683], [-0.881676, 41.651889], [-0.884364, 41.649155],
+                  [-0.884865, 41.648962], [-0.885959, 41.647896],
+                ],
+                [
+                  [-0.880591, 41.656913], [-0.878304, 41.655794], [-0.878055, 41.656076],
+                  [-0.880431, 41.657099], [-0.880591, 41.656913],
+                ]
+              ],
+              // ── mancha 4 · un anillo · 40 vértices
+              [
+                [
+                  [-0.907632, 41.669767], [-0.906452, 41.670041], [-0.898313, 41.671882],
+                  [-0.897158, 41.672465], [-0.898041, 41.676111], [-0.890782, 41.676152],
+                  [-0.890762, 41.678166], [-0.889269, 41.678134], [-0.889079, 41.676129],
+                  [-0.884453, 41.675906], [-0.884252, 41.673215], [-0.877446, 41.673279],
+                  [-0.877477, 41.673949], [-0.876742, 41.674524], [-0.871401, 41.67441],
+                  [-0.87102, 41.674379], [-0.871365, 41.666752], [-0.868164, 41.665798],
+                  [-0.865097, 41.662266], [-0.857872, 41.665095], [-0.853574, 41.657485],
+                  [-0.85516, 41.652229], [-0.861556, 41.653999], [-0.866431, 41.65503],
+                  [-0.869932, 41.656412], [-0.874824, 41.658239], [-0.876803, 41.658512],
+                  [-0.878435, 41.659489], [-0.879438, 41.660327], [-0.881122, 41.660284],
+                  [-0.881907, 41.660917], [-0.884996, 41.661176], [-0.888777, 41.662279],
+                  [-0.890296, 41.663177], [-0.8925, 41.664463], [-0.89477, 41.666364],
+                  [-0.89696, 41.668617], [-0.897984, 41.671245], [-0.907316, 41.669451],
+                  [-0.907632, 41.669767],
+                ]
+              ],
+              // ── mancha 5 · un anillo · 5 vértices
+              [
+                [
+                  [-0.900517, 41.634147], [-0.900406, 41.634261], [-0.899675, 41.63363],
+                  [-0.899778, 41.633538], [-0.900517, 41.634147],
+                ]
+              ],
+              // ── mancha 6 · un anillo · 5 vértices
+              [
+                [
+                  [-0.890536, 41.633454], [-0.890468, 41.633975], [-0.884339, 41.633425],
+                  [-0.884417, 41.632896], [-0.890536, 41.633454],
+                ]
+              ],
+              // ── mancha 7 · un anillo · 12 vértices
+              [
+                [
+                  [-0.88862, 41.60693], [-0.888443, 41.607556], [-0.885333, 41.607045],
+                  [-0.883899, 41.607424], [-0.88412, 41.609123], [-0.887009, 41.609634],
+                  [-0.886767, 41.610326], [-0.880877, 41.609271], [-0.880304, 41.60815],
+                  [-0.885443, 41.606847], [-0.888068, 41.606666], [-0.88862, 41.60693],
+                ]
+              ],
+              // ── mancha 8 · un anillo · 5 vértices
+              [
+                [
+                  [-0.874411, 41.616164], [-0.872324, 41.618269], [-0.870135, 41.617255],
+                  [-0.872274, 41.614973], [-0.874411, 41.616164],
+                ]
+              ],
+              // ── mancha 9 · un anillo · 10 vértices
+              [
+                [
+                  [-0.862195, 41.63479], [-0.861483, 41.635575], [-0.861232, 41.636206],
+                  [-0.860919, 41.63637], [-0.859542, 41.63506], [-0.858333, 41.635247],
+                  [-0.857321, 41.634272], [-0.858919, 41.633347], [-0.860704, 41.633486],
+                  [-0.862195, 41.63479],
+                ]
+              ],
+            ],
+          },
+        },
+      ],
+    },
+  },
+};
+
+/** El área de servicio que sale de ese feed. La que el contrato hace regla. */
+const EL_AREA = (): AreaDeServicio => leerArea(DEL_FEED_DE_ZONAS)!;
+
 /** La flota tal cual, y una con los cambios que cada juez necesite. */
 const LA_FLOTA = (): FlotaViva => leerFlota(DEL_FEED)!;
 const conMotos = (cambia: (b: Record<string, unknown>) => Record<string, unknown>): FlotaViva =>
   leerFlota({ ...DEL_FEED, data: { bikes: DEL_FEED.data.bikes.map((b) => cambia({ ...b })) } })!;
 
 /** Un viaje en YeGo entre dos portales, por la puerta interna. */
-function enYego(origen: string, destino: string, flota: FlotaViva | null = LA_FLOTA()): Trayecto {
-  return viajeEnYego(coche, motor, extremo(origen), extremo(destino), flota, {
+function enYego(
+  origen: string,
+  destino: string,
+  flota: FlotaViva | null = LA_FLOTA(),
+  area: AreaDeServicio | null = EL_AREA(),
+): Trayecto {
+  return viajeEnYego(coche, motor, extremo(origen), extremo(destino), flota, area, {
     // El reloj se fija: la edad del dato entra en un aviso, y sin esto la juez
     // diría una cosa distinta cada minuto que pasa.
     ahora: new Date(1788595916 * 1000 + 90_000),
@@ -148,7 +321,13 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
       'hay hitos de más',
     );
     assert.match(hitoDe(t, 'coge') ?? '', /^Coge la moto de YeGo \(\d+ km de autonomía\)$/);
-    assert.match(hitoDe(t, 'aparca') ?? '', /^Deja la moto en .+, donde esté permitido aparcar$/);
+    // ⚠️ **Esta línea se puso roja sola el 5/09**, y por la razón buena: el hito
+    //    dejó de decir «donde esté permitido aparcar» en cuanto el motor empezó
+    //    a comprobar el área. Ahora afirma lo que ha comprobado. Ver la juez 12.
+    assert.match(
+      hitoDe(t, 'aparca') ?? '',
+      /^Deja la moto en .+, dentro del área de YeGo — prioriza un aparcamiento de motos$/,
+    );
     // ⛔ Y el `bike_id` NO se enseña: es el único campo que el operador rota.
     assert.equal(JSON.stringify(t).includes('68566601'), false, 'se ha colado un bike_id');
 
@@ -175,7 +354,7 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
         ? { ...b, is_disabled: true }
         : b,
     );
-    const otro = viajeEnYego(coche, motor, extremo(LAPUYADE_3), extremo(ABEN_AIRE_33), sinElla, {
+    const otro = viajeEnYego(coche, motor, extremo(LAPUYADE_3), extremo(ABEN_AIRE_33), sinElla, EL_AREA(), {
       ahora: new Date(1788595916 * 1000 + 90_000),
       cuando: new Date(2026, 8, 1, 10, 0, 0),
     });
@@ -184,7 +363,7 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
 
     // Y una flota con TODAS deshabilitadas no da viaje, y lo dice.
     const ninguna = conMotos((b) => ({ ...b, is_disabled: true }));
-    const nada = viajeEnYego(coche, motor, extremo(LAPUYADE_3), extremo(ABEN_AIRE_33), ninguna, {
+    const nada = viajeEnYego(coche, motor, extremo(LAPUYADE_3), extremo(ABEN_AIRE_33), ninguna, EL_AREA(), {
       ahora: new Date(1788595916 * 1000 + 90_000),
     });
     assert.equal(nada.metros, 0);
@@ -205,7 +384,7 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
     // (a) A todas se les deja MENOS de lo que el viaje pide: no hay ruta, y el
     //     aviso dice por qué — no se ofrece una moto que se queda a medias.
     const secas = conMotos((b) => ({ ...b, current_range_meters: 500 }));
-    const nada = viajeEnYego(coche, motor, extremo(LAPUYADE_3), extremo(ABEN_AIRE_33), secas, {
+    const nada = viajeEnYego(coche, motor, extremo(LAPUYADE_3), extremo(ABEN_AIRE_33), secas, EL_AREA(), {
       ahora: new Date(1788595916 * 1000 + 90_000),
     });
     assert.equal(nada.metros, 0);
@@ -221,7 +400,7 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
         ? { ...b, current_range_meters: 300 }
         : b,
     );
-    const otro = viajeEnYego(coche, motor, extremo(LAPUYADE_3), extremo(ABEN_AIRE_33), unaSeca, {
+    const otro = viajeEnYego(coche, motor, extremo(LAPUYADE_3), extremo(ABEN_AIRE_33), unaSeca, EL_AREA(), {
       ahora: new Date(1788595916 * 1000 + 90_000),
       cuando: new Date(2026, 8, 1, 10, 0, 0),
     });
@@ -280,36 +459,138 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
   });
 
   /**
-   * ⭐ JUEZ 8 — EL GEOFENCING SE LEE Y **NO SE INVENTA UNA RESTRICCIÓN**.
+   * ⭐ JUEZ 10 — EL DESTINO TIENE QUE CAER DENTRO DEL ÁREA DE SERVICIO (5/09).
    *
-   * § 1.34 lo mide entero: la única zona que YeGo publica se llama `"no go
-   * zone"` y sus reglas dicen `ride_allowed: true`. Mandan las reglas —161 de
-   * las 166 motos están aparcadas dentro—, así que **no hay nada que aplicar**.
+   * ═══════════════════════════════════════════════════════════════════════════
+   *  ⚠️ **ESTA JUEZ SUSTITUYE A LA 8, Y LA 8 SE PUSO ROJA SOLA.** Decía *«no se
+   *  rechaza ningún destino por geofencing»* y compraba justo lo contrario de lo
+   *  que hoy se compra. **No estaba mal escrita: estaba bien escrita sobre otra
+   *  fuente.** El 4/09 lo único que había era el feed —una zona llamada `"no go
+   *  zone"` con `ride_allowed: true`—, y con eso delante no inventarse la
+   *  restricción era lo correcto.
    *
-   * Lo que esta juez compra es que el motor **no se inventa la de al lado**: un
-   * destino cualquiera de la ciudad da viaje, sin rechazos por zona. GBFS 2.3 no
-   * tiene `global_rules`, así que del «fuera de las manchas» el feed no dice
-   * nada — y lo que no está en el dato es `NO CONSTA`.
+   *  Lo que cambió el 5/09 no fue el dato: fue que **se leyó el contrato**
+   *  [GCC v-2025/05/20, § 3.2.2, transcrito en § 1.34]:
+   *
+   *      «Pausing and/or ending a ride is only allowed within the Service Zone»
+   *
+   *  Y esa juez, al correr la suite con la regla nueva, cayó con
+   *  `Portales.115483 se ha quedado sin viaje`. Se deja escrito aquí porque es
+   *  el caso bueno: **un guardián que se pone rojo solo cuando la fuente cambia
+   *  de opinión es exactamente para lo que está**.
+   * ═══════════════════════════════════════════════════════════════════════════
+   *
+   * Dos destinos fuera, y los dos por motivos distintos:
+   *
+   *   · `AVENIDA LAS HEROÍNAS DE LOS SITIOS 17`, lejos de las diez manchas.
+   *   · `PASEO INDEPENDENCIA 3`, **en pleno centro y dentro de un hueco** de la
+   *     mancha grande. Es el caso que un punto-en-polígono descuidado dejaría
+   *     pasar, y en el dato son 41 portales de Independencia, Plaza de Aragón y
+   *     Plaza de España [medido el 5/09].
    */
-  test('⭐ 8 · no se rechaza ningún destino por geofencing', () => {
-    // Cuatro destinos repartidos: dentro de la mancha grande y lejos de ella.
-    for (const destino of [ABEN_AIRE_33, 'Portales.105703', 'Portales.115483']) {
+  test('⭐ 10 · un destino fuera del área no da viaje, y dice por qué', () => {
+    for (const destino of [HEROINAS_17, INDEPENDENCIA_3]) {
+      const t = enYego(LAPUYADE_3, destino);
+      assert.equal(t.metros, 0, `${destino} tenía que quedarse sin viaje`);
+      assert.equal(t.pasos.length, 0);
+      assert.equal(t.geometria.length, 0);
+      assert.match(
+        t.avisos.map((a) => a.texto).join(' '),
+        /El área de servicio de YeGo no llega a tu destino: su contrato solo permite terminar el viaje dentro de su zona\./,
+        `${destino} se ha quedado sin motivo`,
+      );
+      // Y la edad del dato sigue diciéndose: un «no» también lleva su fecha.
+      assert.match(t.avisos[0]!.texto, /^Motos de YeGo: \d+ libres, datos de/);
+    }
+    // ⭐ Y uno DENTRO sigue exactamente igual que antes de que existiera la regla.
+    for (const destino of [ABEN_AIRE_33, 'Portales.105703']) {
       const t = enYego(LAPUYADE_3, destino);
       assert.ok(t.metros > 0, `${destino} se ha quedado sin viaje`);
-      const dicho = t.avisos.map((a) => a.texto).join(' ');
-      assert.equal(/zona|geofenc|prohibid/i.test(dicho.replace(/Zona de Bajas Emisiones/g, '')), false,
-        `se ha inventado una restricción de zona: ${dicho}`);
     }
   });
 
   /**
-   * ⭐ JUEZ 9 — LA MURALLA: la moto compartida no le toca la red a nadie.
+   * ⭐ JUEZ 11 — SE PUEDE RODAR FUERA. **El contrato lo dice con todas las
+   * letras**, y es la mitad que impide que la regla se pase de frenada.
    *
-   * `comoLaVeUnCiclomotor` devuelve una **vista**, no una modificación: las
-   * aristas del coche tienen que seguir con sus segundos originales después de
-   * haberla pedido. Si capara en el sitio, esto se pondría rojo y con él se
-   * caerían el coche y la moto privada.
+   *     «Vehicles may indeed leave the Service Zone; however, the User must
+   *      return and complete the Trip within»
+   *
+   * El caso está medido y es contundente: de `CALLE PEDRO LAPUYADE 3` a
+   * `AVENIDA ISLA DE MURANO 1` —Arcosur, que tiene su propia mancha, la 7— la
+   * ruta cruza toda la ciudad por fuera del área. **258 de sus 336 vértices
+   * rodados caen fuera**, y el viaje es perfectamente legal.
+   *
+   * ⚠️ Y el origen tampoco cuenta: `CALLE PEDRO LAPUYADE 3` está **fuera** de las
+   *    diez manchas. Andar hasta una moto no es un viaje en moto.
    */
+  test('⭐ 11 · se rueda fuera del área sin problema si el viaje termina dentro', () => {
+    const area = EL_AREA();
+    assert.equal(
+      dentroDelArea(area, extremo(LAPUYADE_3).lon, extremo(LAPUYADE_3).lat),
+      false,
+      'el origen de siempre tenía que estar FUERA del área',
+    );
+
+    const t = enYego(LAPUYADE_3, ISLA_DE_MURANO_1);
+    assert.ok(t.metros > 0, 'un destino dentro de la mancha 7 tiene que dar viaje');
+
+    // Lo rodado empieza donde muere el paseo, que es donde está el hito `coge`.
+    const cierraElPaseo = t.tramos.findIndex((x) => x.hito === 'coge');
+    const rodados = t.geometria.slice(t.tramos[cierraElPaseo + 1]!.desde);
+    const fuera = rodados.filter(([lat, lon]) => !dentroDelArea(area, lon, lat)).length;
+    assert.ok(
+      fuera > rodados.length / 2,
+      `solo ${fuera} de ${rodados.length} vértices rodados caen fuera: la juez no prueba nada`,
+    );
+    // Y ni un aviso que hable de rechazo: rodar fuera no es noticia.
+    assert.equal(
+      /área de servicio de YeGo no llega/.test(t.avisos.map((a) => a.texto).join(' ')),
+      false,
+    );
+  });
+
+  /**
+   * ⭐ JUEZ 12 — EL HITO PROMETE SOLO LO QUE SE HA COMPROBADO.
+   *
+   * Con el área leída, el remate dice *«dentro del área de YeGo — prioriza un
+   * aparcamiento de motos»*: la primera mitad es un hecho que el motor acaba de
+   * comprobar, y la segunda es consejo del propio operador [FAQ `/es/faq/parking`].
+   *
+   * ⚠️ **Sin el área, vuelve la frase de antes.** Y no es un detalle de estilo:
+   *    afirmar «dentro del área» sin haberla podido leer sería prometer con la
+   *    autoridad de un dato que no se tiene. Además sale el aviso que lo dice —
+   *    la misma doctrina del mudo honesto del poste de autobús.
+   */
+  test('⭐ 12 · sin área leída el hito no promete, y se avisa de que no se ha comprobado', () => {
+    const conArea = enYego(LAPUYADE_3, ABEN_AIRE_33);
+    assert.match(
+      hitoDe(conArea, 'aparca') ?? '',
+      /, dentro del área de YeGo — prioriza un aparcamiento de motos$/,
+    );
+
+    // ⭐ El mismo viaje con el feed de zonas mudo: se ofrece igual —el área es
+    //    una restricción, no el inventario— pero sin prometer nada.
+    const sinArea = enYego(LAPUYADE_3, ABEN_AIRE_33, LA_FLOTA(), null);
+    assert.ok(sinArea.metros > 0, 'sin área el viaje se ofrece igual');
+    assert.match(hitoDe(sinArea, 'aparca') ?? '', /, donde esté permitido aparcar$/);
+    assert.match(
+      sinArea.avisos.map((a) => a.texto).join(' '),
+      /No hemos podido comprobar el área de servicio de YeGo/,
+    );
+
+    // Y con el área leída ese aviso no está: no se avisa de lo que sí se sabe.
+    assert.equal(
+      /No hemos podido comprobar el área/.test(conArea.avisos.map((a) => a.texto).join(' ')),
+      false,
+    );
+
+    // ⚠️ Sin área **tampoco se rechaza** un destino de fuera: aplicar una
+    //    restricción que no se ha podido leer sería inventarse la prohibición.
+    const lejos = enYego(LAPUYADE_3, HEROINAS_17, LA_FLOTA(), null);
+    assert.ok(lejos.metros > 0, 'sin área no se puede rechazar nada');
+  });
+
   /**
    * ⭐ JUEZ 8-bis — EL AVISO DE LA ZONA APUNTA AL PASO POR EL QUE SE ENTRA.
    *
@@ -362,6 +643,14 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
     );
   });
 
+  /**
+   * ⭐ JUEZ 9 — LA MURALLA: la moto compartida no le toca la red a nadie.
+   *
+   * `comoLaVeUnCiclomotor` devuelve una **vista**, no una modificación: las
+   * aristas del coche tienen que seguir con sus segundos originales después de
+   * haberla pedido. Si capara en el sitio, esto se pondría rojo y con él se
+   * caerían el coche y la moto privada.
+   */
   test('⭐ 9 · la red del coche no se entera de que existe el ciclomotor', () => {
     const antes = coche.cocinada.aristas.slice(0, 500).map((a) => a.segundos);
     olvidarLaRedCapada();
@@ -373,15 +662,6 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
     assert.equal(comoLaVeUnCiclomotor(coche), comoLaVeUnCiclomotor(coche));
   });
 
-  /**
-   * ⭐ JUEZ 6 (del encargo) — EL MUDO HONESTO: sin feed **no hay viaje**.
-   *
-   * Y aquí es más duro que en la BiZi, a propósito. Allí el inventario de
-   * estaciones vive en el repositorio y con la API caída se rutea igual sin
-   * prometer disponibilidad. Aquí **las motos solo existen en el feed**: sin él
-   * no se sabe dónde hay una sola. Ofrecer un viaje sería inventarse el
-   * vehículo.
-   */
   /**
    * ⭐ JUEZ 1-bis — GANA LA DEL COSTE, **no la más cercana**.
    *
@@ -411,6 +691,15 @@ describe('⭐ EL VIAJE EN YeGo — andar hasta ella, rodar, y dejarla', () => {
     assert.match(hitoDe(t, 'coge') ?? '', /\(38 km de autonomía\)/);
   });
 
+  /**
+   * ⭐ JUEZ 6 (del encargo) — EL MUDO HONESTO: sin feed **no hay viaje**.
+   *
+   * Y aquí es más duro que en la BiZi, a propósito. Allí el inventario de
+   * estaciones vive en el repositorio y con la API caída se rutea igual sin
+   * prometer disponibilidad. Aquí **las motos solo existen en el feed**: sin él
+   * no se sabe dónde hay una sola. Ofrecer un viaje sería inventarse el
+   * vehículo.
+   */
   test('⭐ 6 · sin flota no se inventa un viaje: se dice que no se ha podido preguntar', () => {
     const t = enYego(LAPUYADE_3, ABEN_AIRE_33, null);
     assert.equal(t.modo, 'yego');
