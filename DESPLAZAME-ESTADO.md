@@ -137,7 +137,9 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TRAMOS — TramoDelViaje con comoSeVa/desde/hasta/hito sobre la
   geometría única). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal
   + 619 por punto medio).
-- **Los datos**: TREINTA Y TRES conjuntos descargados (los últimos:
+- **Los datos**: TREINTA Y CUATRO conjuntos descargados (el 34º, del
+  4/09: LOS APARCAMOTOS cocinados del WFS — 2.146/11.715, sha
+  5021e2b7, con los 6 nombres por conflación declarada; y antes:
   el viario rodable con ids —20 MB, la base del coche—, la ZBE, y
   parkings-zbe.json con el cruce propio §1.31) / TREINTA Y TRES
   fichas (la §1.23, nueva el 30/08: LA DISPONIBILIDAD VIVA de BiZi —
@@ -179,6 +181,26 @@ con sus leyes; los papeles al día**
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LAS CASILLAS 1 Y 3 DEL 13 — LA MOTO RUEDA, APARCA Y SE VE (4/09,
+tarde-noche).** modo=moto sobre la red del coche (velocidades
+heredadas [TomTom: «usa el perfil de coche para tu motocicleta»]);
+remate SIEMPRE en aparcamoto por coste («sin coste» — motos exentas
+[Reglamento 13291]); la ZBE heredada y el no+dentro gratis del
+pestillo (remata FUERA: De Ranillas, 477 m andando). LA FUENTE por
+doctrina tras premisa falsa cazada (la sede «respira» = las MARCAS,
+volcado nocturno en 106 s; nadie cambió contenido en 17 días; el WFS
++32 soportes) → el WFS manda [procedencia; el precedente MU3]; el
+precio (MANUEL LASALA solo-en-sede) vigilado por juez. LOS 6 SIN
+NOMBRE por CONFLACIÓN declarada [OSM/Hootenanny: procedencia]:
+milímetros + portal + plazas como triple corroboración; nombreDe:
+'sede'; la §1.33 corregida. EN PANTALLA: seis familias, [Moto]
+revela el distintivo COMPARTIDO (un fieldset), sin parking; reset al
+cambiar; polígono y traza roja valen. La limpieza: README al día
+(siete modos · seis familias) y los 16 unhandled a 0. Flecos: el
+«S/N» del hito (498 soportes — frase para la demo) · la contabilidad
+del notices (31 vs 34 secciones; los «se consultan» son 4). Queda
+del 13: YeGo (2, ADELANTE con doctrina GBFS) y la demo (4).
 
 **LA CASILLA 0 DEL 13 — LA LETRA LEGAL DE LA MOTO, MEDIDA (4/09,
 tarde; OMUZ normativa 13296).** Cuatro respuestas y todas
@@ -1250,11 +1272,14 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 1 del 13 — LA MOTO PRIVADA**
-(herencia del 12 entero + el remate en aparcamoto por coste; antes
-del encargo: decidir cuál manda entre WFS 2.146 y sede 2.115); (2)
-la casilla 2 — YeGo, con la decisión de licencia de Antonio; (3) el
-push de la tanda del 4/09 cuando Antonio lo nombre; (4)
+**Lo siguiente:** (1) **la casilla 2 del 13 — YeGo** (ADELANTE por
+decisión de Antonio; el encargo con la doctrina GBFS: ttl 240
+respetado, la edad del dato dicha, atribución a YeGo, la ficha con
+el NO CONSTA de licencia transcrito; free-floating con
+free_bike_status, 147 motos); (2) la casilla 4 — la demo de la moto
+por el ojo (y la frase del «S/N»); (3) la contabilidad del notices
+(31 vs 34; los «se consultan» son 4) antes del cierre del 13; (4) el
+push de la tanda del 4/09 cuando Antonio lo nombre; (5)
 las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
 · YeGo) antes de prometer botones; (3) el push de la tanda del
 31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
@@ -1569,7 +1594,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 805 pruebas (542 motor + 263 interfaz; e2e aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 824 pruebas (554 motor + 270 interfaz; e2e moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

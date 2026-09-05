@@ -3179,21 +3179,80 @@ CONSTA hasta la sonda).
       viven en el maxspeed de OSM; nada moto-específico. (Perla
       menor, no ruteo: las líneas adelantadas de los semáforos
       también son para motos [OMUZ].)
-- [ ] **1 · LA MOTO PRIVADA sobre la red del coche** (hereda el 12
-      ENTERO, con la letra del 4/09 delante): la red, los giros y las
-      velocidades del coche tal cual (carril bus NO aplica por
-      defecto) · la ZBE heredada (selector de distintivo, matrícula
-      con C0000XXX, pestillo, remate al parking público — mismo
-      régimen [OMUZ]) · EL REMATE en aparcamoto POR COSTE (el
-      car-to-park sobre MU2_motos; ⚠️ decidir cuál manda: WFS 2.146
-      vs sede 2.115, como se hizo con los postes) · la narración con
-      su artículo [art. 32: si hay aparcamoto, la acera no vale].
-- [ ] **2 · YeGo:** el patrón BiZi (estación/vehículo de origen con
-      disponibilidad → pedaleo/rodadura → destino) con la frescura
-      que el feed dé y el aviso honesto de su edad; el botón de
-      disponibilidad a petición.
-- [ ] **3 · LA PANTALLA:** el grupo [Moto] aparece en la botonera
-      cuando esto exista (regla de la demo del 11).
+- [x] **⭐ 1 · LA MOTO PRIVADA — HECHA (4/09, tres commits + la
+      limpieza): modo=moto RUTEA Y APARCA.** La red del coche tal
+      cual (velocidades car.lua heredadas [PROPIO declarado: no hay
+      perfil moto de referencia; TomTom oficial: «el perfil de coche
+      está disponible; úsalo para tu motocicleta»]); el remate
+      SIEMPRE en aparcamoto por coste («sin coste» [Reglamento
+      13291: motos EXENTAS de la tasa]); aparcamiento=lechuga se
+      ignora (la ley del 30/08, ahora con juez); la ZBE heredada
+      entera — y el no+dentro sale GRATIS del mecanismo: el pestillo
+      deja inalcanzables los de dentro y el coste elige el mejor DE
+      FUERA + andar (sin la relajación del parking público). Casos:
+      3.513 m normal (Predicadores 28) · 4.705 el no+dentro (De
+      Ranillas, ni un tramo zbe:true, 477 m andando). ⭐ LA FUENTE,
+      decidida POR DOCTRINA tras premisa falsa cazada: propuse la
+      sede «porque respira» y el ejecutor midió que lo que respira
+      son las MARCAS (catálogo sellado en 106 s = volcado nocturno;
+      NINGUNA fuente cambió contenido en 17 días; el WFS tiene 32
+      soportes que la sede no volcó) → LA FUENTE ORIGINAL manda [la
+      doctrina de procedencia; el precedente MU3 de los postes]: el
+      WFS (2.146, §1.10); el cocinado ya ni baja nada (lee el
+      fichero del repo por sha). El precio declarado: MANUEL LASALA
+      F44 solo-en-sede (NO CONSTA baja o alta; juez 5c lo vigila).
+      ⭐ LOS 6 SIN NOMBRE, rellenados por CONFLACIÓN declarada [OSM:
+      «combinar fuentes solapadas para retener el dato preciso»;
+      Hootenanny/NGA: «mantener la procedencia de geometría y
+      atributos»]: casados a MILÍMETROS con triple corroboración
+      (coordenada+portal+plazas; si el WFS mueve uno, el relleno se
+      apaga solo — «vale más un sitio sin nombre que un sitio con el
+      nombre de otro»); nombreDe:'sede' en el registro, 6 de 2.146;
+      la §1.33 que decía lo contrario, corregida (hoy fue «ese
+      día»). El guardián «ningún modo sin ruta» se puso rojo solo al
+      estrenar moto. La limpieza: README al día (siete modos · seis
+      familias · la historia fechada 4→6→5→6) y los 16 unhandled a 0
+      (eran 16 jueces dejando la capa ZBE en vuelo, no 5). ⚠️ Flecos
+      arriba: el «S/N» en el hito (498 soportes lo llevan — decisión
+      de frase para la demo) · la contabilidad del notices (dice 31
+      habiendo 34 secciones; los «se consultan» son 4 con la DGT) —
+      al saco antes del cierre del 13.
+- [ ] **2 · YeGo — ADELANTE (decisión de Antonio, 4/09), con la
+      doctrina GBFS delante:** el propio estándar se declara
+      «especificación de datos PÚBLICOS en tiempo real para
+      aplicaciones de cara al consumidor», su FAQ dice que «exigir
+      autenticación disminuye enormemente su valor como fuente de
+      información pública» y que «GBFS no contiene datos personales»;
+      la licencia abierta es RECOMENDACIÓN al publicador — su
+      ausencia en YeGo es NO CONSTA, transcrito en la ficha, con
+      atribución al operador de todas formas. El consumo con sus
+      reglas escritas: respetar el ttl (240 s en YeGo), enseñar la
+      edad del dato (last_updated), nunca >5 min de desfase. El
+      diseño: free-floating (la moto YeGo está donde está, no en
+      estación — free_bike_status con 147), el patrón BiZi adaptado:
+      andar a la moto viva más razonable → rodar → aparcar donde el
+      destino (geofencing del feed si lo trae, NO CONSTA aún) · la
+      fila [Privada] [Pública YeGo] en la botonera al llegar esto ·
+      el botón de disponibilidad a petición con su región.
+- [x] **⭐ 3 · LA PANTALLA — HECHA (4/09, un commit): el grupo [Moto]
+      EN LA BOTONERA.** SEIS familias (Andando · Bus/Tranvía · Bici ·
+      Patín · Moto · Coche — la moto como TIPO DE VEHÍCULO [Google
+      Routes: TWO_WHEELER «motorizados de dos ruedas»; TomTom:
+      recalcula al cambiar el tipo, la LEZ «según el perfil del
+      usuario»]); [Moto] revela LA MISMA pregunta del distintivo
+      (+matrícula+autorización) COMPARTIDA con el coche — un solo
+      fieldset en el DOM (una fuente de verdad; contraprueba del
+      duplicado muerde) — y SIN pregunta de parking; cambiar de
+      familia resetea las respuestas [PROPIO declarado]; el polígono
+      y la traza roja funcionan en moto (el tramo ya trae zbe). 7
+      jueces rojo-primero + e2e moto.mjs (20 verdes); una juez del
+      ejecutor compraba de más (quería borrar también el parking del
+      coche al cambiar) y corrigió LA JUEZ, no el código. ⚠️ Los seis
+      en la fila pasan del patrón segmentado (2-5): caben (sobran
+      149,5 px) pero LA SÉPTIMA FAMILIA, si llega, obliga a repensar
+      — escrito. La juez 19 caprichosa (1 rojo en 4 corridas, reloj
+      real, NO CONSTA causa, sin bitácora: rojo sin fallo vivo) — en
+      observación.
 - [ ] **4 · LA DEMO por el ojo.**
 
 ## 14 — Despliegue *(en grueso)*
