@@ -40,8 +40,36 @@
  *
  * ⚠️ **La moto NO trae `aparcamiento`.** No es que se le olvide: no tiene tipo
  *    que elegir. Ver el campo.
+ *
+ * ⭐ **Y son OCHO desde el 4/09**, con `yego` (punto 13, casilla 2): la moto
+ * **compartida**. El nombre sigue el precedente de `bizi` —la marca del sistema,
+ * en minúscula— y por la misma razón: `bici` y `bizi` son dos modos y no uno
+ * porque el viaje es distinto, no porque el vehículo lo sea. Aquí igual.
+ *
+ * Lo que cambia respecto de `moto`, y es todo el viaje:
+ *
+ *   · **No se sale de casa con ella**: el viaje empieza **andando** hasta la
+ *     moto que esté libre, como la BiZi empieza andando hasta la estación.
+ *   · **Y no se aparca en un aparcamoto**: es *free-floating* y se deja en el
+ *     destino [GBFS, `return_constraint: "free_floating"`; § 1.34].
+ *   · **Va capada a 45 km/h** por ser un ciclomotor L1e-B, mientras que la moto
+ *     privada hereda las velocidades del coche enteras.
+ *   · **Y no se le pregunta el distintivo**: la flota es 100 % eléctrica y el
+ *     propio feed lo declara —`eco_sticker: "distintivo_ambiental_0"`—, así que
+ *     entra libre en la ZBE y preguntarlo sería pedir un dato que ya se tiene.
+ *
+ * ⚠️ Como `bizi`, **depende de una fuente viva** y puede no haber ninguna moto
+ *    libre. Eso no es un error: es una respuesta, y llega con su aviso.
  */
-export type Modo = 'andando' | 'bus' | 'bici' | 'patin' | 'bizi' | 'coche' | 'moto';
+export type Modo =
+  | 'andando'
+  | 'bus'
+  | 'bici'
+  | 'patin'
+  | 'bizi'
+  | 'coche'
+  | 'moto'
+  | 'yego';
 
 /**
  * ⭐ QUÉ CLASE DE RUTA se quiere, cuando el modo admite elegir.

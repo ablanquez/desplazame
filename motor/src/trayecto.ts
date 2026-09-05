@@ -56,6 +56,8 @@ import { viajeEnBiZi } from './viaje-bizi.ts';
 import { laRedDeCoche } from './coche.ts';
 import { viajeEnCoche } from './viaje-coche.ts';
 import { viajeEnMoto } from './viaje-moto.ts';
+import { viajeEnYego } from './viaje-yego.ts';
+import type { FlotaViva } from './yego.ts';
 
 /**
  * Los modos que hoy sabe calcular el motor. **Los SIETE desde el 4/09**: eran
@@ -75,6 +77,7 @@ export const MODOS_ATENDIDOS: readonly Modo[] = [
   'bus',
   'coche',
   'moto',
+  'yego',
 ];
 
 /** Un trayecto vacío con su explicación. Es la respuesta a todo lo que falla. */
@@ -332,6 +335,8 @@ function porModo(
   b: Bifurcacion,
   vivo: Disponibilidad | null,
   cuando?: Date,
+  /** La flota de YeGo, si se ha podido preguntar. Solo la mira `yego`. */
+  flota?: FlotaViva | null,
 ): Trayecto {
   const { modo, origen, destino } = b;
   // ⭐ LA BIFURCACIÓN, y va aquí a propósito: los dos extremos se resuelven
@@ -388,6 +393,18 @@ function porModo(
       puedeEntrarEnLaZbe: b.puedeEntrarEnLaZbe,
       cuando,
     });
+  }
+
+  // ⭐ Y LA MOTO COMPARTIDA (4/09, casilla 2): la misma red del coche, capada a
+  // 45 km/h por ser un ciclomotor, y el viaje al revés que el de la privada —se
+  // anda hasta ella y se deja en el destino—. Ver `viaje-yego.ts`.
+  //
+  // ⚠️ Ni `aparcamiento` ni `puedeEntrarEnLaZbe` se le pasan, y los dos por el
+  //    mismo motivo: no tiene esas preguntas. No elige dónde deja —es
+  //    *free-floating*— y su flota es CERO, así que entra libre y el distintivo
+  //    ya está contestado por el propio feed (§ 1.34).
+  if (modo === 'yego') {
+    return viajeEnYego(laRedDeCoche(), motor, origen, destino, flota ?? null, { cuando });
   }
 
 
@@ -496,9 +513,17 @@ export function calcularTrayecto(
    * existía. Compatibilidad hacia atrás, no comodidad.
    */
   cuando?: Date,
+  /**
+   * ⭐ LA FLOTA VIVA DE YeGo, y entra por aquí **por lo mismo que `vivo`**: el
+   * cálculo es síncrono y preguntarle a una API no lo es. Quien sale a la red es
+   * el servidor, antes de llamar; aquí llega ya resuelta, o `null` si calló.
+   *
+   * Solo la mira `yego`. Los otros siete modos no se enteran de que existe.
+   */
+  flota?: FlotaViva | null,
 ): Trayecto {
   const previo = antesDeBifurcar(motor, peticion);
-  return esTrayecto(previo) ? previo : porModo(motor, previo, vivo ?? null, cuando);
+  return esTrayecto(previo) ? previo : porModo(motor, previo, vivo ?? null, cuando, flota);
 }
 
 /**

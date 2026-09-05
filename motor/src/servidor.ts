@@ -26,6 +26,7 @@ import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
 import { cargarPortales, portalesDe } from './portales.ts';
 import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
 import { cargarBiZi, disponibilidadDeBiZi } from './bizi.ts';
+import { laFlotaViva } from './yego.ts';
 import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
 import { atenderEstacionViva } from './estacion-viva.ts';
 import { atenderDistintivo } from './distintivo.ts';
@@ -734,6 +735,15 @@ const servidor = createServer((peticion, respuesta) => {
         // síncrono**. Una ruta a pie no tiene por qué esperar a una red, y las
         // jueces pueden pasar una disponibilidad de mentira sin tocar internet.
         const vivo = leida?.modo === 'bizi' ? await disponibilidadDeBiZi() : null;
+        // ⭐ Y LA FLOTA DE YeGo, **en cada ruta de `yego` y solo ahí** (4/09).
+        //
+        // Sale por la misma puerta que el BiZi y por la misma razón —el motor
+        // es síncrono—, pero **lo que hay detrás es distinto**: aquí la llamada
+        // casi nunca sale a la red. `laFlotaViva` guarda el feed los 240 s que
+        // el propio YeGo declara en su `ttl`, así que lo normal es que devuelva
+        // lo que ya tiene. Ver la cabecera de `yego.ts` para por qué aquí
+        // cachear es la doctrina y con la BiZi era mentir.
+        const flota = leida?.modo === 'yego' ? await laFlotaViva() : null;
         // ⭐ Y EL BUS VA POR LA OTRA PUERTA (31/08). No se le puede pasar el
         // dato vivo como al BiZi porque **a qué postes hay que preguntar no se
         // sabe hasta que el viaje está buscado**: primero se elige la línea, y
@@ -745,7 +755,7 @@ const servidor = createServer((peticion, respuesta) => {
         const trayecto =
           leida?.modo === 'bus'
             ? await calcularTrayectoVivo(motor, leida)
-            : calcularTrayecto(motor, leida, vivo);
+            : calcularTrayecto(motor, leida, vivo, undefined, flota);
         const calló = leida?.modo === 'bus' ? ultimoMudo() : null;
         if (calló) {
           console.log(

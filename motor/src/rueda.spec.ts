@@ -745,6 +745,10 @@ describe('⭐ EL COSTE DE LA RUEDA (29/08)', () => {
       'bizi',
       'coche',
       'moto',
+      // ⭐ El octavo, del 4/09 (punto 13, casilla 2). Esta juez **se puso roja
+      //    sola** al entrar en `MODOS_ATENDIDOS`, con «sobra un modo en la
+      //    lista» — que es exactamente para lo que está.
+      'yego',
     ];
     for (const modo of delContrato) {
       assert.ok(
