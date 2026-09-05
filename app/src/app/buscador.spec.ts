@@ -1560,6 +1560,31 @@ const TRIO: Readonly<Record<TipoDeRuta, Trayecto>> = {
 describe('Buscador', () => {
   let http: HttpTestingController;
 
+  /**
+   * ⭐ SE TRAGA LA CAPA DE LA ZBE que elegir un vehículo de motor dispara.
+   *
+   * ⚠️ **No es cosmética de la prueba, y esto se midió.** Elegir «Coche» o
+   *    «Moto» pide `MU1_ZBE` —2,9 kB, una sola vez por componente—. Una juez que
+   *    no la conteste la deja en vuelo, y al desmontar el `TestBed` la petición
+   *    se resuelve sola **con el cuerpo vacío**: `traerLaZona` hace entonces
+   *    `capa.features.find` sobre un `undefined` y revienta **después** de que
+   *    la juez haya terminado. El resultado es un «unhandled error» que no
+   *    tumba a nadie, no dice de qué juez viene, y se acumula.
+   *
+   *    Medido el 4/09 con la suite entera: **16 de esos**, de las jueces del
+   *    coche que entraban en la familia sin atender la capa. Con esto, **0**.
+   *
+   * ⚠️ Y es una `t`ragada, no un `expectOne`: hay jueces que entran en el coche
+   *    dos veces y la capa **solo se pide una** —`traerLaZona` se guarda de
+   *    repetirse—, así que exigir exactamente una petición se pondría rojo por
+   *    el motivo equivocado. Cero peticiones casadas es una respuesta válida.
+   */
+  const tragarLaZona = (): void => {
+    for (const p of http.match((r) => r.url.includes('MU1_ZBE'))) {
+      p.flush(LA_FASE_1);
+    }
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Buscador],
@@ -1763,6 +1788,8 @@ describe('Buscador', () => {
 
     for (const modo of ['andando', 'bus', 'patin', 'coche'] as const) {
       elegirModo(fixture, modo);
+      // El coche pide la capa de la ZBE al entrar: se atiende. Ver `tragarLaZona`.
+      tragarLaZona();
       await fixture.whenStable();
       expect(raiz.querySelector('fieldset.modos.bicis')).toBeNull();
       // Y no es que esté escondida: no hay ni un radio suyo en el documento.
@@ -2800,6 +2827,7 @@ describe('Buscador', () => {
     expect(raiz.querySelector('.rutas')).toBeNull();
 
     elegirModo(fixture, 'coche');
+    tragarLaZona();
     await fixture.whenStable();
     expect(raiz.querySelector('.rutas')).toBeNull();
   });
@@ -3896,6 +3924,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     elegirModo(fixture, 'coche');
+    tragarLaZona();
     await direccionEntera(fixture, http);
     botonGenerar(raiz).click();
     fixture.detectChanges();
@@ -4714,6 +4743,7 @@ describe('Buscador', () => {
     }
 
     elegirModo(fixture, 'coche');
+    tragarLaZona();
     expect(radiosDeAparcamiento(raiz).map((r) => r.value)).toEqual([
       'azul',
       'naranja',
@@ -4763,6 +4793,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     elegirModo(fixture, 'coche');
+    tragarLaZona();
     await direccionEntera(fixture, http);
 
     // Nada marcado al llegar.
@@ -4828,6 +4859,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     elegirModo(fixture, 'coche');
+    tragarLaZona();
     await direccionEntera(fixture, http);
     pulsar(fixture, radiosDeDistintivo(raiz), 'sin');
     botonGenerar(raiz).click();
@@ -4869,6 +4901,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     elegirModo(fixture, 'coche');
+    tragarLaZona();
     await direccionEntera(fixture, http);
 
     // (a) etiqueta buena + ruta que pisa → sale.
@@ -4931,6 +4964,7 @@ describe('Buscador', () => {
 
     // Se contesta la pregunta del coche PRIMERO, para que se note si se filtra.
     elegirModo(fixture, 'coche');
+    tragarLaZona();
     await direccionEntera(fixture, http);
     pulsar(fixture, radiosDeDistintivo(raiz), 'sin');
     pulsar(fixture, radiosDeAparcamiento(raiz), 'azul');
@@ -5025,6 +5059,7 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     elegirModo(fixture, 'coche');
+    tragarLaZona();
     await direccionEntera(fixture, http);
 
     // Sin contestar el distintivo, la pregunta no está.
@@ -5119,6 +5154,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
     elegirModo(fixture, 'coche');
+    tragarLaZona();
 
     const campo = raiz.querySelector<HTMLInputElement>('input[name="matricula"]')!;
     const boton = raiz.querySelector<HTMLButtonElement>('.matricula__boton')!;
@@ -5250,6 +5286,7 @@ describe('Buscador', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
     elegirModo(fixture, 'coche');
+    tragarLaZona();
     await direccionEntera(fixture, http);
 
     const campo = raiz.querySelector<HTMLInputElement>('input[name="matricula"]')!;
@@ -5327,6 +5364,7 @@ describe('Buscador', () => {
       await fixture.whenStable();
       const raiz = fixture.nativeElement as HTMLElement;
       elegirModo(fixture, 'coche');
+      tragarLaZona();
       await direccionEntera(fixture, http);
 
       // Sin ruta generada no hay nada de qué sugerir la vuelta.
@@ -5356,6 +5394,7 @@ describe('Buscador', () => {
       await fixture.whenStable();
       const raiz = fixture.nativeElement as HTMLElement;
       elegirModo(fixture, 'coche');
+      tragarLaZona();
       await direccionEntera(fixture, http);
       await conRutaAparcando(fixture, 'azul');
       expect(hitoPintado(raiz)).toBe('Aparca en Calle San Blas: zona azul (rotación)');
@@ -5404,6 +5443,7 @@ describe('Buscador', () => {
       await fixture.whenStable();
       const raiz = fixture.nativeElement as HTMLElement;
       elegirModo(fixture, 'coche');
+      tragarLaZona();
       await direccionEntera(fixture, http);
       await conRutaAparcando(fixture, 'azul');
 
@@ -5439,6 +5479,7 @@ describe('Buscador', () => {
       await fixture.whenStable();
       const raiz = fixture.nativeElement as HTMLElement;
       elegirModo(fixture, 'coche');
+      tragarLaZona();
       await direccionEntera(fixture, http);
 
       for (const tipo of ['discapacitado', 'gratuito'] as const) {
@@ -5463,6 +5504,7 @@ describe('Buscador', () => {
       const raiz = fixture.nativeElement as HTMLElement;
 
       elegirModo(fixture, 'coche');
+      tragarLaZona();
       expect(radiosDeAparcamiento(raiz).map((r) => r.value)).toEqual([
         'azul',
         'naranja',
@@ -5519,25 +5561,6 @@ describe('Buscador', () => {
     /** La región de estado de la DGT, que es una sola en toda la pantalla. */
     const regionDgt = (raiz: HTMLElement): HTMLElement | null =>
       raiz.querySelector<HTMLElement>('.matricula__estado');
-
-    /**
-     * ⭐ SE TRAGA LA CAPA DE LA ZBE que elegir un vehículo de motor dispara.
-     *
-     * ⚠️ **No es cosmética de la prueba.** Una petición dejada en vuelo se
-     *    resuelve sola al desmontar el `TestBed`, y `traerLaZona` la recibe con
-     *    el cuerpo vacío: `capa.features.find` revienta **después** de que la
-     *    juez haya terminado, así que sale como «unhandled error» sin tumbar a
-     *    nadie y sin decir de dónde viene.
-     *
-     *    Medido el 4/09: la suite arrastra **16 de esos** de las cinco jueces
-     *    del coche que ya lo hacían. No se tocan aquí —no es de este encargo—,
-     *    pero **las nuevas no suman ninguno**.
-     */
-    const tragarLaZona = (): void => {
-      for (const p of http.match((r) => r.url.includes('MU1_ZBE'))) {
-        p.flush(LA_FASE_1);
-      }
-    };
 
     /** Contesta a la DGT con una etiqueta, como lo hace la juez 6 del coche. */
     const consultarLaDgt = (fixture: any, raiz: HTMLElement, cuerpo: object): void => {
