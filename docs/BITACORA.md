@@ -138,7 +138,7 @@ Medido en un arranque entero, con las dos fuentes vivas:
 
 **El hueco dura 87 s** y ahora habla los 87.
 
-**Commit:** `[PENDIENTE-FIX]` (y la entrada, `[PENDIENTE-BIT]`)
+**Commit:** `dcf3e8a` (y la entrada, `fc62804`)
 
 **Ley que sale de aquí:** **un estado degradado que no se declara es una
 afirmación falsa.** Contestar con el horario oficial no es mentir; contestarlo
