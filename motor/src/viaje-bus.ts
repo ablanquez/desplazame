@@ -64,6 +64,7 @@ import { calcularRuta } from './ruta.ts';
 import type { Motor } from './trayecto.ts';
 import type { AndarEntre } from './red-bus.ts';
 import { operaEl, type ModoDeRed, type PatronBus, type RedDeBus } from './red-bus.ts';
+import { avisoDelFestivo, cuadroServido } from './festivo.ts';
 
 /**
  * ⭐ HASTA DÓNDE SE BUSCA UN POSTE. **Un tope de RENDIMIENTO, no un veto.**
@@ -244,11 +245,40 @@ export function intervaloDeHoy(patron: PatronBus, red: RedDeBus, fecha: string):
     ultima = Math.max(ultima, datos.ultima);
   }
   if (viajes < 2 || !Number.isFinite(primera)) {
-    return null;
+    // ⭐ AQUÍ, Y SOLO AQUÍ, HABLA LA CAPA DEL FESTIVO (6/09).
+    //
+    // El feed no da ni un viaje de este patrón hoy. Si la capa tiene el cuadro
+    // web de esa línea y ese sentido para esta fecha, su frecuencia entra como
+    // intervalo y el patrón vuelve a la búsqueda; si no, sigue valiendo el
+    // `null` de siempre y la línea no existe hoy. Ver `festivo.ts`.
+    //
+    // ⚠️ **La frontera es estrecha a propósito**: la capa no puede pisar un
+    //    día que el feed SÍ trae, porque ahí nunca se la pregunta. El día que
+    //    el operador publique el festivo del curso, esto deja de dispararse solo.
+    return delCuadroDelFestivo(patron, red, fecha);
   }
   // La franja va de la primera salida a la última: entre N salidas hay N−1
   // huecos, y dividir por N daría un intervalo más corto del que hay.
   return (ultima - primera) / (viajes - 1);
+}
+
+/**
+ * El intervalo que la capa del festivo suple para este patrón, o `null`.
+ *
+ * ⚠️ **Solo el patrón PRINCIPAL de cada sentido.** El cuadro web dice lo que
+ *    hace la línea, no lo que hace cada uno de sus refuerzos; dárselo a todos
+ *    sería contar la misma línea tantas veces como patrones tenga.
+ */
+export function circulaHoy(red: RedDeBus, patron: PatronBus, fecha: string): boolean {
+  return operaEl(red, patron, fecha) || delCuadroDelFestivo(patron, red, fecha) !== null;
+}
+
+function delCuadroDelFestivo(patron: PatronBus, red: RedDeBus, fecha: string): number | null {
+  if (patron.modo !== 'bus' || !patron.principal) {
+    return null;
+  }
+  const suyo = cuadroServido(lineaDelViaje(red, patron).corto, patron.direccion, fecha);
+  return suyo ? suyo.intervaloS : null;
 }
 
 /**
@@ -300,7 +330,14 @@ export function indexar(red: RedDeBus, fecha: string, suprimidas?: ReadonlySet<s
   for (const patron of red.patrones) {
     // ⭐ Solo lo que OPERA HOY. Un patrón que no circula no es una opción, y
     // meterlo en la búsqueda sería ofrecer un bus que no existe.
-    if (!operaEl(red, patron, fecha)) {
+    //
+    // ⚠️ **Y aquí es donde la capa del festivo tiene que entrar, no más
+    //    abajo.** El índice se construye ANTES de que nadie pregunte por la
+    //    espera, así que un patrón filtrado aquí no llega nunca a
+    //    `esperaEstimada` —y suplirle el intervalo no servía de nada—.
+    //    Medido el 6/09: con el cuadro servido, `intervaloDeHoy` daba 600 s
+    //    para el 35 y el viaje seguía saliendo por los búhos.
+    if (!circulaHoy(red, patron, fecha)) {
       continue;
     }
     patron.paradas.forEach((parada, i) => {
@@ -1284,7 +1321,7 @@ export function prepararViajeEnBus(
     }
     etapas.push(ultima);
 
-    return juntar(cabecera, etapas);
+    return conElAvisoDelFestivo(juntar(cabecera, etapas), red, viaje.montados, fecha);
   };
 
   return {
@@ -1292,6 +1329,65 @@ export function prepararViajeEnBus(
     conElVivo: async (pedir: typeof fetch = fetch) =>
       componer(await preguntarPorLaPrimeraSubida(red, viaje.montados, pedir)),
   };
+}
+
+/**
+ * ⭐ EL AVISO DEL FESTIVO, y en los DOS SITIOS.
+ *
+ * Arriba con los demás, y **colgado del paso en el que se sube a esa línea**
+ * [GOV.UK: el aviso al lado de lo que afecta, y también en la cabecera]. Es el
+ * mismo trato que el desvío y que la Zona de Bajas Emisiones.
+ *
+ * ⚠️ **Y dice la fuente.** Un horario que no viene del feed no puede
+ *    presentarse como si viniera: la casa ya lo hace con la DGT y con el minuto
+ *    vivo, y aquí pesa más todavía —porque el feed dice que esta línea hoy no
+ *    circula, y la pantalla va a decir lo contrario—.
+ *
+ * El anclaje del paso es `a la línea X ` con el espacio detrás, que sirve para
+ * los dos textos que suben a un vehículo —«Sube **a la línea 35 en** el
+ * poste…» y «…transborda de la línea 29 **a la línea Ci1 ·**…»— y no
+ * confunde la 3 con la 35.
+ */
+function conElAvisoDelFestivo(
+  trayecto: Trayecto,
+  red: RedDeBus,
+  montados: readonly { readonly patron: PatronBus }[],
+  fecha: string,
+): Trayecto {
+  const nuevos: Aviso[] = [];
+  const yaDicho = new Set<string>();
+  for (const m of montados) {
+    const corto = lineaDelViaje(red, m.patron).corto;
+    const clave = `${corto}|${m.patron.direccion}`;
+    if (yaDicho.has(clave)) {
+      continue;
+    }
+    yaDicho.add(clave);
+    // ⚠️ **Solo si la capa ha suplido de verdad.** Tener el cuadro en la
+    //    caché no basta: si el feed trae el servicio de ese día, el horario
+    //    que se está usando es el del feed y decir que sale de la web sería
+    //    mentira. Lo cazó la juez 4 —el viaje del lunes no cambiaba ni un
+    //    metro y le salía un aviso de la nada—.
+    if (operaEl(red, m.patron, fecha)) {
+      continue;
+    }
+    const suyo = cuadroServido(corto, m.patron.direccion, fecha);
+    if (!suyo) {
+      continue;
+    }
+    const paso = trayecto.pasos.findIndex(
+      (p) =>
+        (p.giro === 'sube' || p.giro === 'transborda') && p.texto.includes(`a la línea ${corto} `),
+    );
+    nuevos.push(
+      paso >= 0
+        ? { texto: avisoDelFestivo(suyo), paso }
+        : { texto: avisoDelFestivo(suyo) },
+    );
+  }
+  return nuevos.length === 0
+    ? trayecto
+    : { ...trayecto, avisos: [...trayecto.avisos, ...nuevos] };
 }
 
 /**

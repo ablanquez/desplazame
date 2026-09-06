@@ -67,6 +67,8 @@ import {
 } from './trayecto.ts';
 import { refrescarYServir, resumenDelRefresco } from './patron-operativo.ts';
 import { TTL_DESVIOS_MS } from './desvios.ts';
+import { refrescarElFestivo, TTL_FESTIVO_MS } from './festivo.ts';
+import { lineaDelViaje } from './viaje-bus.ts';
 
 /**
  * ⭐ CADA CUÁNTO SE REFRESCA LA RUTA OPERATIVA. **Menos que su TTL, a propósito.**
@@ -1100,4 +1102,34 @@ servidor.listen(PUERTO, () => {
   };
   refrescarLosDesvios();
   setInterval(refrescarLosDesvios, CADA_CUANTO_SE_REFRESCA_MS).unref();
+
+  // ⭐ EL REFRESCO DE LA CAPA DEL FESTIVO (6/09). Ver `festivo.ts`.
+  //
+  // ⚠️ Igual que el de arriba: **nadie lo espera**. Y solo pide por los
+  //    sentidos que el feed deja a cero HOY —quince el domingo 13/09, ninguno
+  //    un laborable—, con 800 ms entre peticiones. Un día que el calendario
+  //    esté completo esto no hace ni una visita.
+  const refrescarElFestivoDeHoy = (): void => {
+    const red = laRedDeBus();
+    if (!red) {
+      return;
+    }
+    const fecha = hoyEnGtfs(new Date());
+    void refrescarElFestivo(red, fecha, (p) => lineaDelViaje(red, p).corto)
+      .then((c) => {
+        if (c.huecos === 0) {
+          return;
+        }
+        console.log(
+          `motor: festivo ${c.fecha} — ${c.huecos} sentidos sin calendario · ` +
+            `${c.suplidos} suplidos del cuadro web · ${c.mudos} mudos (manda el feed) · ` +
+            `${Math.round(c.ms / 1000)} s`,
+        );
+      })
+      .catch((e: unknown) => {
+        console.log(`motor: no se ha podido leer el cuadro del festivo — ${(e as Error).message}`);
+      });
+  };
+  refrescarElFestivoDeHoy();
+  setInterval(refrescarElFestivoDeHoy, TTL_FESTIVO_MS / 2).unref();
 });
