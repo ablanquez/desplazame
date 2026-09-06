@@ -1728,9 +1728,18 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       // deja sin `Nombre_calle`**: hasta la conflación, la frase era «Aparca en
       // el aparcamiento de motos (sin coste)», un sitio sin nombre. Con el
       // atributo traído de la sede vuelve a decir dónde es.
+      //
+      // ⭐ **Y DICE SU CALLE Y NADA MÁS (6/09).** El `Portal` de ese registro es
+      //    `S/N`, y hasta hoy la frase lo escribía: *«…de De Ranillas S/N (sin
+      //    coste)»*. «s/n» no es un portal: es cómo se escribe que no lo hay
+      //    [OSM `ES:Key:nohousenumber`], y leído en voz alta es ruido. Se compra
+      //    **la frase entera**, no un prefijo: con `match` de prefijo esto pasaba
+      //    igual antes y después, y una juez que no distingue no vigila.
       const suHito = vetado.pasos.find((x) => x.giro === 'aparca')!;
-      assert.match(suHito.texto, /^Aparca en el aparcamiento de motos de De Ranillas/);
-      assert.match(suHito.texto, / \(sin coste\)$/);
+      assert.equal(
+        suHito.texto,
+        'Aparca en el aparcamiento de motos de De Ranillas (sin coste)',
+      );
 
       // Y se anda de verdad: el paseo desde fuera hasta un portal de dentro.
       assert.ok(vetado.tramos[vetado.tramos.length - 1]!.metros > 0, 'no se anda nada');

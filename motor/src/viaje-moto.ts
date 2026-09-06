@@ -126,6 +126,40 @@ export function nombreDelAparcamoto(a: AparcamotoCerca, motor: Motor): string {
     : `el aparcamiento de motos de ${suyo}`;
 }
 
+/**
+ * ⭐ ¿DICE ESTE `Portal` QUE **NO HAY** PORTAL?
+ *
+ * `«s/n»` no es un número: es la convención con la que se **escribe** una
+ * dirección postal cuando el edificio no tiene número. Como valor no dice nada
+ * que no diga el hueco, y leído en voz alta —*«el aparcamiento de motos de De
+ * Ranillas ese ene»*— es ruido. [OSM, `ES:Key:nohousenumber`, literal: *«No
+ * añadas `addr:housenumber=s/n` o cosas similares»*: la ausencia se declara
+ * como ausencia.]
+ *
+ * ⚠️ **El vocabulario está MEDIDO, no supuesto** (6/09, sobre los 2.146
+ *    registros de `app/data/aparcamotos.json`). Las formas de la ausencia son
+ *    exactamente tres, y se cuentan:
+ *
+ * | forma | registros |
+ * |---|---|
+ * | `S/N` | 473 |
+ * | `s/n` | 23 |
+ * | `SN` | 2 — los dos en `FLORENTINO BALLESTEROS`, que es calle |
+ * | vacío | 8 — ya se callaban antes |
+ *
+ * **506 de 2.146, el 23,6 %.** Todo lo demás es designación de verdad y se dice
+ * tal cual: los números, los `F 11` y `F-3` de las fincas, los `fnº 6`, los
+ * tramos `18-28`, los `26DP` de los duplicados. Por eso el reconocedor es una
+ * lista corta y no un `/^[sS]/`: quitarle el «F» a un `F 11` sería borrar dato.
+ *
+ * ⚠️ **Y el registro NO SE TOCA.** Esto decide qué se NARRA; `a.portal` sigue
+ *    trayendo lo que el WFS dijo, byte a byte, para quien lo quiera mirar.
+ */
+function sinNumero(portal: string): boolean {
+  const pelado = portal.trim().toUpperCase().replace(/[.\s]/g, "");
+  return pelado === "" || pelado === "S/N" || pelado === "SN";
+}
+
 /** La calle presentada más el portal, o `null` si el WFS no da calle. */
 function comoSeLeeElSitio(a: AparcamotoCerca, motor: Motor): string | null {
   const via = a.via.trim();
@@ -133,8 +167,7 @@ function comoSeLeeElSitio(a: AparcamotoCerca, motor: Motor): string | null {
     return null;
   }
   const comoSeVe = comoSePresenta(via, true, motor.red.articulosPropios);
-  const portal = a.portal.trim();
-  return portal === "" ? comoSeVe : `${comoSeVe} ${portal}`;
+  return sinNumero(a.portal) ? comoSeVe : `${comoSeVe} ${a.portal.trim()}`;
 }
 
 /**

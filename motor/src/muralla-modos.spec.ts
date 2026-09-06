@@ -105,22 +105,37 @@ describe('⭐ LA MURALLA DE LOS OCHO MODOS', () => {
 /**
  * ⭐ EL SELLO DE LOS OCHO MODOS con el reloj clavado del martes.
  *
- * ⚠️ **Recalculado el 6/09, y la razón es que antes estaba mal.** Valía
+ * ⚠️ **Recalculado DOS VECES el 6/09, y las dos con su razón.**
+ *
+ * **La segunda, por el `s/n`.** Valía `8d9e1857…`. El hito del remate en
+ * aparcamoto dejó de escribir «S/N» donde el WFS declara que no hay portal
+ * [OSM, `ES:Key:nohousenumber`: *«no añadas `addr:housenumber=s/n`»*]. Medido
+ * sobre estos mismos 160 trayectos: de los **64 hitos de aparcar** que
+ * producen, **8 llevaban un «S/N»** y ahora ninguno —`T. de Lezáun`, `F. Pueyo
+ * Pérez`, `A. Vivaldi`, `La Herrería`—. Ver `sinNumero` en `viaje-moto.ts`.
+ *
+ * **La primera, porque estaba mal.** Valía
  *    `9622430b…`, y aquel sello se había calculado con el bus mirando el
  *    calendario de la pared en vez de `EL_RELOJ`: sus 16 pares con bus eran los
  *    del día en que se corrió la suite. Tres de ellos montaban una línea de
  *    madrugada a las 10:00 de un martes —`42+N4`, `21+N4` y `N5+32+28`— y este
  *    sha los compraba. Ver la entrada del 6/09 en `docs/BITACORA.md`.
  */
-const SELLO_DE_LOS_OCHO = '8d9e1857949fdda21d8bed31e1f6e50185ebd5ef41f2bc553c9d73650087243f';
+const SELLO_DE_LOS_OCHO = 'fec4d14867b9d16c9b4714f15cadbbddccfea90113444104e36746c81f47a958';
 
 /**
  * ⭐ Y EL SELLO DE LOS SIETE QUE NO SON BUS, para la juez 7.
  *
- * Se ha calculado **sobre el código de antes del arreglo y sobre el de después**,
- * y da lo mismo las dos veces: el reloj se enchufó solo en la rama del bus.
+ * Se calculó **sobre el código de antes del arreglo del reloj y sobre el de
+ * después**, y dio lo mismo las dos veces: aquel reloj entró solo en la rama del
+ * bus.
+ *
+ * ⚠️ **Este sí se ha movido, y por el `s/n`**: el arreglo toca la MOTO, que está
+ *    entre los siete. Valía `03a7bf6e…`. Que este sha se mueva y el de arriba
+ *    también es lo correcto; si solo se hubiera movido el de arriba, el cambio
+ *    habría tocado el bus sin querer.
  */
-const SELLO_SIN_BUS = '03a7bf6eb67be4be01b80c8e265f2f5921c15e199b6ec0b1ee962f40648a0967';
+const SELLO_SIN_BUS = '7ab1c56c38ef4b3d224cc0a12dbb3bf7eeb40a1c44e2f29590f1d6f1efc00ced';
 
 /** Lo que un pase de la muralla deja: su huella y sus tres cuentas. */
 interface LoSellado {
@@ -128,6 +143,9 @@ interface LoSellado {
   readonly conRuta: number;
   readonly conAviso: number;
   readonly conBuho: number;
+  /** Hitos de aparcar, y de ellos los que escriben un «s/n». Ver la juez 8. */
+  readonly hitosDeAparcar: number;
+  readonly conSinNumero: number;
 }
 
 /**
@@ -150,6 +168,8 @@ function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): L
   let conRuta = 0;
   let conAviso = 0;
   let conBuho = 0;
+  let hitosDeAparcar = 0;
+  let conSinNumero = 0;
 
   for (let n = 0; n < 20; n++) {
     const A = s[Math.floor(azar() * s.length)]!;
@@ -179,6 +199,15 @@ function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): L
       if (t.tramos.some((x) => /^N\d/.test(x.linea?.corto ?? ''))) {
         conBuho++;
       }
+      for (const p of t.pasos) {
+        if (p.giro !== 'aparca') {
+          continue;
+        }
+        hitosDeAparcar++;
+        if (/\bS\/N\b|\bs\/n\b|\bSN\b/.test(p.texto)) {
+          conSinNumero++;
+        }
+      }
       huella.update(
         `${modo}|${t.metros.toFixed(6)}|${t.segundos}|` +
           t.pasos.map((p) => `${p.giro}~${p.metros}~${p.texto}`).join('#') +
@@ -192,7 +221,7 @@ function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): L
       );
     }
   }
-  return { huella: huella.digest('hex'), conRuta, conAviso, conBuho };
+  return { huella: huella.digest('hex'), conRuta, conAviso, conBuho, hitosDeAparcar, conSinNumero };
 }
 
   test('⭐ 13 · los 160 trayectos de los ocho modos, al byte', () => {
@@ -254,5 +283,36 @@ function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): L
    */
   test('⭐ 7 · los siete modos que no son bus no se han movido', () => {
     assert.equal(sellar(EL_RELOJ, (m) => m !== 'bus').huella, SELLO_SIN_BUS);
+  });
+
+  /**
+   * ⭐ JUEZ 8 — NI UN «S/N» EN NINGÚN HITO (6/09).
+   *
+   * El campo `Portal` del WFS trae la ausencia escrita en **498 de sus 2.146
+   * registros** —`S/N` 473, `s/n` 23, `SN` 2—, y hasta hoy eso se copiaba tal
+   * cual a la frase de aparcar. No es un portal: es la convención con la que se
+   * **escribe** que no lo hay [OSM, `ES:Key:nohousenumber`, literal: *«No
+   * añadas `addr:housenumber=s/n` o cosas similares»*], y en una frase que
+   * alguien lee en el móvil es ruido.
+   *
+   * ⚠️ **El registro no se toca**: `a.portal` sigue trayendo lo que el WFS dijo,
+   *    byte a byte. Esto vigila la NARRACIÓN, que es otra cosa.
+   *
+   * ⚠️ **Y no basta con que el sello cuadre.** El sha de la juez 13 cambió con
+   *    este arreglo, sí —pero un sha solo dice «algo se movió». Esta juez dice
+   *    QUÉ no puede volver. Medido antes del arreglo sobre los mismos 160
+   *    trayectos: **8 de los 64 hitos de aparcar** llevaban un «S/N».
+   */
+  test('⭐ 8 · ningún hito de aparcar escribe un «s/n»', () => {
+    const r = sellar(EL_RELOJ);
+    assert.ok(
+      r.hitosDeAparcar >= 40,
+      `solo ${r.hitosDeAparcar} hitos de aparcar: la juez apenas mira nada`,
+    );
+    assert.equal(
+      r.conSinNumero,
+      0,
+      `${r.conSinNumero} de los ${r.hitosDeAparcar} hitos escriben un «s/n»`,
+    );
   });
 });
