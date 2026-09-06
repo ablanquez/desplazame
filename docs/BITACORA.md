@@ -123,7 +123,7 @@ comentario prometía. `9622430b…` → `8d9e1857…`, con la razón escrita al 
 De sus 16 pares con bus cambian los 16, y **los tres que montaban búho dejan de
 montarlo**.
 
-**Commit:** `[PENDIENTE-FIX]` (y la entrada, `[PENDIENTE-BIT]`)
+**Commit:** `886e2d5` (y la entrada, `0ba6f79`)
 
 **Ley que sale de aquí:** **un promedio sin sus límites no es un promedio: es un
 número.** `H/2` era correcto y la implementación también; lo que faltaba era el
