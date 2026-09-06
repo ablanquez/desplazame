@@ -58,12 +58,13 @@ import type { ParadaBus, PatronBus, RedDeBus, SaltoBus } from './red-bus.ts';
 import { nombrarPoste, posteDeCodigo } from './avanza.ts';
 import type { ParadaDelDiff, Veredicto } from './desvios.ts';
 import { rectaEntre } from './trazas.ts';
+import { metrosEntre } from './cercano.ts';
 import { enganchar, type Rejilla } from './proyeccion.ts';
 import { geometriaDe, type Cuaderno } from './ruta.ts';
 import { admiteComoPuerta, calcularRutaRodando } from './rodando.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
 import { laRedDeCoche, type RedDeCocheServida } from './coche.ts';
-import { calcularRutaEnCoche } from './viaje-coche.ts';
+import { calcularRutaEnCoche, SIN_LLEGADA } from './viaje-coche.ts';
 import type { Motor } from './trayecto.ts';
 import { coordenadaDelPoste } from './avanza.ts';
 import { claveDe, refrescarDesvios, type CuentasDeDesvios } from './desvios.ts';
@@ -74,7 +75,23 @@ export type RodarEntre = (
   aLat: number,
   bLon: number,
   bLat: number,
-) => { readonly geometria: readonly Vertice[]; readonly metros: number } | null;
+  /**
+   * ⭐ POR QUÉ ARISTA SE LLEGÓ AQUÍ, si esto continúa un trecho anterior.
+   *
+   * `SIN_LLEGADA` —el defecto— es un trecho que empieza de cero. Ver
+   * `continuando` en `viaje-coche.ts`.
+   */
+  viniendoDe?: number,
+  /** Y por qué arista sigue el camino DESPUÉS del destino, si se sabe. */
+  yendoA?: number,
+) => {
+  readonly geometria: readonly Vertice[];
+  readonly metros: number;
+  /** Por qué arista se llegó al final, para encadenar el trecho siguiente. */
+  readonly llegada: number;
+  /** Si hubo que permitir la media vuelta porque no había otra salida. */
+  readonly mediaVuelta: boolean;
+} | null;
 
 /**
  * ⭐ El `RodarEntre` de casa, sobre la red de la rueda.
@@ -111,6 +128,12 @@ export function rodarConLaRueda(
     return {
       geometria: geometriaDe(r).map(([lon, lat]) => [lat, lon] as Vertice),
       metros: r.metros,
+      // ⚠️ La rueda **no encadena**: su búsqueda no sabe de dónde se viene, y
+      //    sus índices de arista son de otra red. Devolver aquí el índice de la
+      //    rueda sería darle a la del coche un número que no es suyo. Desde el
+      //    3/09 el motor no la usa para esto; la conservan las jueces.
+      llegada: SIN_LLEGADA,
+      mediaVuelta: false,
     };
   };
 }
@@ -122,23 +145,117 @@ export function rodarConLaRueda(
  * calzada**, que es justamente lo que se quería. Y no se le pasa ningún veto:
  * la Zona de Bajas Emisiones no alcanza al transporte público, y ponérsela sería
  * inventarle una restricción al autobús.
+ *
+ * ⭐ **Y ENCADENA (6/09).** Si le dicen por qué arista se llegó, la búsqueda
+ * arranca de ella y la media vuelta inmediata queda vetada —ver `continuando`
+ * en `viaje-coche.ts`—. **El fondo de saco se resuelve aquí**: si con la
+ * restricción no hay camino, se vuelve a preguntar sin ella y se dice que hubo
+ * que dar media vuelta, para que quien lleve la cuenta la lleve. Nunca se
+ * devuelve `null` por culpa del encadenado: eso convertiría 3.192 callejones de
+ * la ciudad en paradas sin recorrido.
  */
 export function rodarConElCoche(servida: RedDeCocheServida): RodarEntre {
-  return (aLon, aLat, bLon, bLat) => {
+  return (aLon, aLat, bLon, bLat, viniendoDe = SIN_LLEGADA, yendoA = SIN_LLEGADA) => {
     const eo = enganchar(servida.comoRed, servida.rejilla, aLon, aLat);
     const ed = enganchar(servida.comoRed, servida.rejilla, bLon, bLat);
     if (!eo || !ed) {
       return null;
     }
-    const r = calcularRutaEnCoche(servida, eo, [aLon, aLat], ed, [bLon, bLat]);
+    const pedir = (deDonde: number, aDonde: number) =>
+      calcularRutaEnCoche(servida, eo, [aLon, aLat], ed, [bLon, bLat], undefined, deDonde, aDonde);
+
+    // ⭐ EL FONDO DE SACO, y se afloja **de una en una**: primero se suelta la
+    //    punta de salida —que es la que se dedujo leyendo el feed— y solo si
+    //    tampoco así, la de entrada. Soltar las dos a la vez permitiría una media
+    //    vuelta que no hacía ninguna falta.
+    let mediaVuelta = false;
+    let r = pedir(viniendoDe, yendoA);
+    if (!r && yendoA !== SIN_LLEGADA) {
+      mediaVuelta = true;
+      r = pedir(viniendoDe, SIN_LLEGADA);
+    }
+    if (!r && viniendoDe !== SIN_LLEGADA) {
+      mediaVuelta = true;
+      r = pedir(SIN_LLEGADA, SIN_LLEGADA);
+    }
     if (!r) {
       return null;
     }
     return {
       geometria: geometriaDe(r).map(([lon, lat]) => [lat, lon] as Vertice),
       metros: r.metros,
+      llegada: r.trozos.length > 0 ? r.trozos[r.trozos.length - 1]!.arista : SIN_LLEGADA,
+      mediaVuelta,
     };
   };
+}
+
+/**
+ * ⭐ POR QUÉ ARISTA DE LA CALZADA SALE UNA TRAZA DEL FEED de su parada.
+ *
+ * ── ⚠️ Esto LEE el feed; no lo re-rutea ────────────────────────────────────
+ *
+ * La traza del `shapes.txt` sale intacta al otro lado —juez 12—. Lo único que
+ * se hace aquí es **preguntarle por dónde se va**, para que el salto
+ * reconstruido de al lado no llegue por esa misma calle al revés. Sin esto, el
+ * encadenado se corta justo en la frontera, que es donde estaba el fallo de la
+ * 29: llegaba por la arista 11279 y el feed salía por la 11280, su gemela.
+ *
+ * El punto que se proyecta es el que está a `METROS_DE_LA_PUNTA` del poste, no
+ * el poste: en el poste las dos caras de la calle están a la misma distancia y
+ * la proyección no distingue el sentido. Y el sentido se decide comparando la
+ * dirección de la arista con la de la traza —no con la distancia—, porque las
+ * dos caras son la misma línea y solo el signo las separa.
+ *
+ * `SIN_LLEGADA` si la traza es demasiado corta o no engancha a nada: entonces
+ * no se sabe, y **no saber no es inventarse una restricción**.
+ */
+export const METROS_DE_LA_PUNTA = 25;
+
+/**
+ * ⭐ CÓMO SE LE LEE AL FEED por dónde entra o sale una de sus trazas.
+ *
+ * Va como parámetro y no dentro de `RodarEntre` porque son dos preguntas
+ * distintas: una rutea y la otra **solo mira**. Sin él, el encadenado termina
+ * en la frontera con el feed —que es exactamente la conducta que había antes
+ * del 6/09—, así que omitirlo no rompe nada: deja de arreglar.
+ */
+export type LeerLaTraza = (traza: readonly Vertice[], saliendo: boolean) => number;
+
+export function aristaDeLaTraza(
+  servida: RedDeCocheServida,
+  traza: readonly Vertice[],
+  /** `true` para la punta por la que la traza SALE; `false` para por la que LLEGA. */
+  saliendo: boolean,
+): number {
+  const puntos = saliendo ? traza : [...traza].reverse();
+  if (puntos.length < 2) {
+    return SIN_LLEGADA;
+  }
+  const desde = puntos[0]!;
+  let anda = 0;
+  let hasta = puntos[puntos.length - 1]!;
+  for (let k = 1; k < puntos.length; k++) {
+    anda += metrosEntre(puntos[k - 1]![0], puntos[k - 1]![1], puntos[k]![0], puntos[k]![1]);
+    if (anda >= METROS_DE_LA_PUNTA) {
+      hasta = puntos[k]!;
+      break;
+    }
+  }
+  const e = enganchar(servida.comoRed, servida.rejilla, hasta[1], hasta[0]);
+  if (!e) {
+    return SIN_LLEGADA;
+  }
+  const g = servida.comoRed.aristas[e.arista]!.g;
+  const dLon = g[g.length - 1]![0] - g[0]![0];
+  const dLat = g[g.length - 1]![1] - g[0]![1];
+  // El producto escalar de las dos direcciones: positivo, van a favor.
+  const aFavor = dLon * (hasta[1] - desde[1]) + dLat * (hasta[0] - desde[0]) > 0;
+  if (aFavor) {
+    return e.arista;
+  }
+  const gemela = servida.gemela[e.arista] ?? -1;
+  return gemela >= 0 ? gemela : SIN_LLEGADA;
 }
 
 /**
@@ -165,6 +282,13 @@ export interface CuentasDelOperativo {
   readonly rectas: number;
   readonly provisionales: number;
   readonly sinCoordenada: number;
+  /**
+   * ⭐ Cuántos saltos encadenados necesitaron **media vuelta** porque no había
+   * otra salida. No es un fallo —es un fondo de saco—, pero se cuenta: si esta
+   * cifra creciera hasta parecerse al total, el encadenado habría dejado de
+   * restringir nada y nadie se enteraría.
+   */
+  readonly fondosDeSaco: number;
 }
 
 /** La misma cuenta mientras se llena. Sale a `CuentasDelOperativo` de una pieza. */
@@ -177,6 +301,7 @@ const vacias = (): Contando => ({
   rectas: 0,
   provisionales: 0,
   sinCoordenada: 0,
+  fondosDeSaco: 0,
 });
 
 /** El id que se le da a una parada que solo existe en Avanza. */
@@ -195,6 +320,8 @@ export function patronOperativo(
   /** Poste → parada, con las provisionales ya dentro. */
   porPoste: ReadonlyMap<number, ParadaBus>,
   rodar: RodarEntre,
+  /** Para poder encadenar con el asfalto del feed. Ver `LeerLaTraza`. */
+  leerLaTraza?: LeerLaTraza,
 ): { readonly patron: PatronBus; readonly cuentas: CuentasDelOperativo } | null {
   const paradas: string[] = [];
   const puntos: ParadaBus[] = [];
@@ -221,17 +348,56 @@ export function patronOperativo(
   const cuentas: Contando = { ...vacias(), sinCoordenada };
   const saltos: SaltoBus[] = [];
 
+  /**
+   * ⭐ POR QUÉ ARISTA ENTRÓ EL AUTOBÚS en la parada de la que sale este salto.
+   *
+   * ── ⚠️ Y esto es la entrada nº33 de `docs/BITACORA.md` ────────────────────
+   *
+   * Sin esto, **cada salto se ruteaba solo**: el camino mínimo de A a B, sin
+   * saber de dónde venía el autobús. Cada uno era correcto y el conjunto no:
+   * el 6/09, la 29 entraba en `585 · Miguel Servet n.º 28` por el sur después
+   * de pasar a 75 m del poste del enlace, y el salto siguiente deshacía 195 m
+   * del mismo camino. **140 m de traza sobre suelo ya pisado**, medidos con el
+   * criterio de la juez 10.
+   *
+   * [DOC OSRM] una secuencia se rutea con **waypoints intermedios**, no como
+   * trechos sueltos, y en ellos la media vuelta está prohibida. Aquí el estado
+   * que hace falta ya existía: la búsqueda del coche va **por transiciones**
+   * desde el punto 12, o sea que su estado ES una arista dirigida. Encadenar es
+   * pasarle la de llegada del salto anterior.
+   *
+   * ── LA FRONTERA CON EL FEED ────────────────────────────────────────────────
+   *
+   * `SIN_LLEGADA` en cuanto se hereda un tramo del `shapes.txt`: **el feed no
+   * se re-rutea**, su traza no sale de ninguna arista de la red del coche, y
+   * fingir que sí sería inventarse por dónde entra el autobús. Donde el asfalto
+   * del feed empieza, el encadenado termina.
+   */
+  let viniendoDe = SIN_LLEGADA;
+
   for (let k = 0; k + 1 < paradas.length; k++) {
     const heredado = yaEran.get(`${paradas[k]}>${paradas[k + 1]}`);
     if (heredado) {
       // ⭐ El asfalto de verdad se conserva: este tramo no ha cambiado.
       saltos.push(heredado);
+      viniendoDe = SIN_LLEGADA;
       continue;
     }
     cuentas.saltosNuevos++;
     const a = puntos[k]!;
     const b = puntos[k + 1]!;
-    const camino = rodar(a.lon, a.lat, b.lon, b.lat);
+    /**
+     * ⭐ Y HACIA DÓNDE SIGUE. Si el salto SIGUIENTE es del feed, se le lee por
+     * dónde sale para no llegar a la parada por esa misma calle al revés —que
+     * es el fallo del 6/09—. Si el siguiente también se reconstruye, aquí no
+     * se sabe todavía y no hace falta: **de eso se encarga `viniendoDe` en la
+     * vuelta que viene**, que es la misma costura vista desde el otro lado.
+     */
+    const elDeDespues =
+      k + 2 < paradas.length ? yaEran.get(`${paradas[k + 1]}>${paradas[k + 2]}`) : undefined;
+    const yendoA =
+      elDeDespues && leerLaTraza ? leerLaTraza(elDeDespues.traza, true) : SIN_LLEGADA;
+    const camino = rodar(a.lon, a.lat, b.lon, b.lat, viniendoDe, yendoA);
     const trozo = camino
       ? { geometria: camino.geometria, metros: camino.metros, recta: false }
       : { ...rectaEntre([a.lat, a.lon], [b.lat, b.lon]), recta: true };
@@ -240,6 +406,10 @@ export function patronOperativo(
     } else {
       cuentas.reconstruidos++;
     }
+    if (camino?.mediaVuelta) {
+      cuentas.fondosDeSaco++;
+    }
+    viniendoDe = camino ? camino.llegada : SIN_LLEGADA;
     // ⚠️ El tiempo NO sale de la doctrina: sale de la velocidad comercial de
     // este mismo patrón. Sin ella —un patrón sin metros ni segundos— se cae a
     // la velocidad media del resto y, si tampoco la hay, no se inventa: 0.
@@ -314,6 +484,8 @@ export function aplicarDesvios(
    */
   provisionales: ReadonlyMap<number, { readonly lat: number; readonly lon: number }>,
   rodar: RodarEntre,
+  /** Para encadenar con el asfalto del feed. Ver `LeerLaTraza`. */
+  leerLaTraza?: LeerLaTraza,
 ): RedConDesvios {
   const porPoste = new Map<number, ParadaBus>();
   for (const p of red.paradas) {
@@ -371,7 +543,7 @@ export function aplicarDesvios(
       porPoste.set(p.poste, nueva);
       usadas.set(p.poste, nueva);
     }
-    const hecho = patronOperativo(patron, v.real, porPoste, rodar);
+    const hecho = patronOperativo(patron, v.real, porPoste, rodar, leerLaTraza);
     if (!hecho) {
       patrones.push(patron);
       continue;
@@ -381,6 +553,7 @@ export function aplicarDesvios(
     cuentas.saltosNuevos += hecho.cuentas.saltosNuevos;
     cuentas.reconstruidos += hecho.cuentas.reconstruidos;
     cuentas.rectas += hecho.cuentas.rectas;
+    cuentas.fondosDeSaco += hecho.cuentas.fondosDeSaco;
     cuentas.sinCoordenada += hecho.cuentas.sinCoordenada;
     desviadas.push({
       linea: corto,
@@ -519,7 +692,8 @@ export async function refrescarYServir(
 
   // ⭐ POR CALZADA, no por donde puede una bici. Ver la cabecera: el pendiente
   //    del 31/08 y lo que cuesta cumplirlo.
-  const rodar = rodarConElCoche(laRedDeCoche());
+  const laCalzada = laRedDeCoche();
+  const rodar = rodarConElCoche(laCalzada);
   // ⭐ SE APLICA LO QUE ESTE PASE ACABA DE LEER, no lo que la caché tenga ahora.
   //
   // ⚠️ Aquí ponía `desvioServido(linea, direccion)`, o sea: se volvía a preguntar
@@ -535,6 +709,7 @@ export async function refrescarYServir(
     (linea, direccion) => deLaFuente.leido.get(claveDe(linea, direccion)) ?? null,
     donde,
     rodar,
+    (traza, saliendo) => aristaDeLaTraza(laCalzada, traza, saliendo),
   );
   servirOperativa(compuesta);
   return { deLaFuente, deLaRed: compuesta.cuentas };

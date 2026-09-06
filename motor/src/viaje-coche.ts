@@ -238,6 +238,110 @@ export type AristaVetada = (arista: number) => boolean;
  */
 export type Pestillo = (arista: number) => boolean;
 
+/**
+ * ⭐ NO SE VIENE DE NINGUNA PARTE: el viaje empieza aquí.
+ *
+ * Es el valor por defecto y **la conducta de siempre**: sin arista de llegada
+ * no hay nada que continuar, y la búsqueda arranca por todas las salidas.
+ */
+export const SIN_LLEGADA = -1;
+
+/**
+ * ⭐ LAS SALIDAS QUE CONTINÚAN UN TRECHO ANTERIOR, sin media vuelta.
+ *
+ * ── Por qué existe esto ────────────────────────────────────────────────────
+ *
+ * Un viaje partido en trechos que se rutean **por separado** no es el mismo
+ * viaje: cada trecho es óptimo, y el conjunto puede deshacer lo que el
+ * anterior acaba de andar. Es el fallo de la 29 del 6/09 —entrada nº33 de
+ * `docs/BITACORA.md`—.
+ *
+ * [DOC OSRM] la secuencia con **waypoints intermedios** (*vias*) se rutea con
+ * `continue_straight`, que en su SDK se explica literalmente: *«puede seguir
+ * recto o girar, pero no puede hacer media vuelta»*. Y su `car.lua` no genera
+ * medias vueltas en los waypoints **por defecto**. La patología está
+ * catalogada: su *issue* **#7060**, *«rutas que vuelven en bucle a reusar la
+ * misma vía»*.
+ *
+ * ⚠️ **Y NO ES UN VETO DURO, a propósito.** El mismo OSRM lo dice: *«la
+ *    evitación no está garantizada si no existe alternativa»*. Aquí la falta
+ *    de alternativa tiene nombre y censo: **3.192 fondos de saco** en la red
+ *    del coche —un solo camino de entrada y su gemela como única salida—. Del
+ *    fondo de un callejón se sale dando media vuelta o no se sale. Por eso, si
+ *    con la restricción no hay camino, **quien llama vuelve a preguntar sin
+ *    ella**: se permite con su coste —los 20 s de `PENALIZACION_DE_MEDIA_VUELTA`
+ *    siguen ahí—, no se rompe el viaje. Ver `rodarConElCoche`.
+ *
+ * ⚠️ La media vuelta que se prohibe es **la inmediata**: volver por la gemela
+ *    de la arista por la que se llegó. Dar la vuelta a la manzana no es una
+ *    media vuelta y aquí no se toca —igual que en `costeDeTransicion`, que
+ *    copia esa misma limitación de OSRM (su *issue* #4368)—.
+ */
+function continuando(
+  servida: RedDeCocheServida,
+  salidas: readonly PuertaDeCoche[],
+  viniendoDe: number,
+): readonly PuertaDeCoche[] {
+  if (viniendoDe < 0) {
+    return salidas;
+  }
+  const laVuelta = servida.gemela[viniendoDe] ?? -1;
+  return salidas.filter(
+    (s) =>
+      s.arista !== laVuelta &&
+      // Enganchado por dentro de una calle, la salida ES la arista de llegada:
+      // seguir por ella no es ninguna transición. Enganchado a un cruce, sí lo
+      // es, y entonces manda el mismo veto de giro que en el resto del viaje.
+      (s.arista === viniendoDe ||
+        costeDeTransicion(servida.cocinada, viniendoDe, s.arista) !== null),
+  );
+}
+
+/**
+ * ⭐ Y LO MISMO POR EL OTRO EXTREMO: las llegadas que no contradicen lo que
+ * viene DESPUÉS de este trecho.
+ *
+ * ── ⚠️ Por qué hacen falta las dos puntas, y está medido ──────────────────
+ *
+ * Encadenar solo por el origen **no arregla el caso de la 29**. Medido el 6/09
+ * con el encadenado de entrada ya puesto: la traza seguía volviendo sobre
+ * **140 m** de suelo ya pisado. El motivo es que el retroceso no estaba entre
+ * dos saltos reconstruidos, sino en la **frontera** entre el reconstruido
+ * `1285 → 585` y el tramo del feed `585 → 284`: el reconstruido llegaba a 585
+ * por la arista **11279** y el feed sale de 585 por la **11280**, que es su
+ * gemela. La media vuelta exacta.
+ *
+ * Aquí el feed **no se re-rutea**: se le LEE por dónde sale, que es otra cosa.
+ * Ver `aristaDeLaTraza` en `patron-operativo.ts`.
+ *
+ * ── ⚠️ Y ESTO SOLO VETA LA MEDIA VUELTA. NO exige adyacencia ────────────────
+ *
+ * `continuando` sí puede exigirla: su `viniendoDe` es la arista por la que el
+ * trecho anterior **acaba de llegar**, o sea que termina exactamente en este
+ * punto. El `yendoA` de aquí es otra cosa: sale de **proyectar** un punto de la
+ * traza del feed a 25 m de la parada, y a 25 m ya puede haber un cruce por
+ * medio —o una geometría paralela—, así que no tiene por qué ser la arista
+ * contigua.
+ *
+ * Exigirla lo destroza, y está medido: pidiendo `costeDeTransicion` entre la
+ * llegada y `yendoA`, **68 de 200 costuras de la red real (34 %)** se quedaban
+ * sin ninguna puerta de llegada y caían al fondo de saco —que es la salida de
+ * emergencia, no el camino—. Vetando solo la gemela, el veto sigue haciendo su
+ * trabajo —que es exactamente el fallo de la 29: llegar por la 11279 cuando el
+ * feed sale por la 11280— y deja de estorbar donde no hay nada que arreglar.
+ */
+function rematando(
+  servida: RedDeCocheServida,
+  llegadas: readonly PuertaDeCoche[],
+  yendoA: number,
+): readonly PuertaDeCoche[] {
+  const laVuelta = yendoA < 0 ? -1 : (servida.gemela[yendoA] ?? -1);
+  if (laVuelta < 0) {
+    return llegadas;
+  }
+  return llegadas.filter((l) => l.arista !== laVuelta);
+}
+
 /** Las dos caras de un enganche: la arista en la que cayó y su reverso. */
 function lasDosCaras(servida: RedDeCocheServida, enganche: Enganche): Enganche[] {
   const caras = [enganche];
@@ -381,6 +485,10 @@ function buscarEnCoche(
   destinos: readonly DestinoDelCoche[],
   vetada?: AristaVetada,
   pestillo?: Pestillo,
+  /** Por qué arista se llegó hasta el origen. Ver `continuando`. */
+  viniendoDe: number = SIN_LLEGADA,
+  /** Por qué arista sigue el camino DESPUÉS del destino. Ver `rematando`. */
+  yendoA: number = SIN_LLEGADA,
 ): RutaAlDestino | null {
   const red = servida.comoRed;
   const cocinada = servida.cocinada;
@@ -431,7 +539,8 @@ function buscarEnCoche(
     }
   }
 
-  const salidas = salidasDelCoche(servida, origen, vetada);
+  // ⭐ Y AQUÍ SE ENCADENA con el trecho anterior, si lo hubo: ver `continuando`.
+  const salidas = continuando(servida, salidasDelCoche(servida, origen, vetada), viniendoDe);
   if (salidas.length === 0) {
     return null;
   }
@@ -447,7 +556,8 @@ function buscarEnCoche(
   const alFinal = new Map<number, { puerta: PuertaDeCoche; cual: number; extra: number }>();
   for (let cual = 0; cual < destinos.length; cual++) {
     const d = destinos[cual]!;
-    for (const llegada of llegadasDelCoche(servida, d.enganche, vetada)) {
+    // ⭐ Y aquí se encadena con lo que viene después: ver `rematando`.
+    for (const llegada of rematando(servida, llegadasDelCoche(servida, d.enganche, vetada), yendoA)) {
       const ya = alFinal.get(llegada.arista);
       if (!ya || llegada.segundos + d.extra < ya.puerta.segundos + ya.extra) {
         alFinal.set(llegada.arista, { puerta: llegada, cual, extra: d.extra });
@@ -703,6 +813,10 @@ export function calcularRutaEnCoche(
   puntoDestino: Punto,
   /** Lo que este viaje no puede pisar. Ver `AristaVetada`. */
   vetada?: AristaVetada,
+  /** Por qué arista se llegó hasta el origen, si esto continúa un trecho. */
+  viniendoDe: number = SIN_LLEGADA,
+  /** Y por cuál sigue el camino después del destino, si sigue. */
+  yendoA: number = SIN_LLEGADA,
 ): RutaDeCoche | null {
   return buscarEnCoche(
     servida,
@@ -710,6 +824,9 @@ export function calcularRutaEnCoche(
     puntoOrigen,
     [{ enganche: destino, punto: puntoDestino, extra: 0 }],
     vetada,
+    undefined,
+    viniendoDe,
+    yendoA,
   );
 }
 

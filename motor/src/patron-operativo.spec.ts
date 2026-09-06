@@ -8,6 +8,7 @@
  */
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed, type RedEnMemoria } from './red.ts';
 import { cargarRejilla } from './proyeccion.ts';
@@ -33,6 +34,8 @@ import {
   rodarConElCoche,
   rodarConLaRueda,
   velocidadComercial,
+  aristaDeLaTraza,
+  type LeerLaTraza,
   type RodarEntre,
 } from './patron-operativo.ts';
 import { cargarRedDeCoche, type RedDeCocheServida } from './coche.ts';
@@ -51,6 +54,97 @@ const DONDE_ESTAN = new Map<number, { lat: number; lon: number }>([
   [1285, { lat: 41.650768, lon: -0.87008 }],
 ]);
 
+/**
+ * ⭐ LOS METROS QUE UNA TRAZA VUELVE A PISAR, y el criterio es lo que se compra.
+ *
+ * Dos vértices que están **cerca en el suelo** y **lejos a lo largo del
+ * recorrido** son el mismo asfalto pisado dos veces. Los dos números:
+ *
+ *   · `CERCA_M = 20` — el ancho de una calle con sus dos aceras. Menos de eso
+ *     y un carril y su contrario contarían como sitios distintos.
+ *   · `LEJOS_M = 150` — más que la manzana del casco, para que **doblar una
+ *     esquina no cuente**: los cuatro lados de una manzana se acercan a sí
+ *     mismos, y eso es un giro, no un retroceso.
+ *
+ * ⚠️ **Y se mide sobre el SUELO, no sobre los vértices.** Escrita a vértices,
+ *    la cuenta depende de lo tupida que sea la traza: el trecho de Miguel
+ *    Servet del caso son **97 m en un solo segmento, sin un vértice en medio**,
+ *    y subirlo y bajarlo entero marcaba 36 m en vez de 200 —porque un segmento
+ *    solo puede marcarse por sus dos puntas—. Por eso la línea se **remuestrea
+ *    cada `PASO_M`** y lo que se cuenta son pasos de suelo, no vértices.
+ *
+ * ⚠️ Esto no es una medida de calidad de la ruta: es una medida de
+ *    **contradicción**. Una línea puede dar un rodeo enorme y estar bien; lo
+ *    que no puede es deshacer lo que acaba de andar.
+ */
+export const CERCA_M = 20;
+export const LEJOS_M = 150;
+export const PASO_M = 5;
+
+/** La línea convertida en puntos cada `PASO_M` metros de recorrido. */
+function remuestrear(traza: readonly (readonly [number, number])[]): [number, number][] {
+  const puntos: [number, number][] = [];
+  if (traza.length === 0) {
+    return puntos;
+  }
+  puntos.push([traza[0]![0], traza[0]![1]]);
+  let falta = PASO_M;
+  for (let k = 0; k + 1 < traza.length; k++) {
+    const a = traza[k]!;
+    const b = traza[k + 1]!;
+    const largo = metrosEntre(a[0], a[1], b[0], b[1]);
+    if (largo === 0) {
+      continue;
+    }
+    let hecho = 0;
+    while (hecho + falta <= largo) {
+      hecho += falta;
+      const f = hecho / largo;
+      puntos.push([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
+      falta = PASO_M;
+    }
+    falta -= largo - hecho;
+  }
+  return puntos;
+}
+
+function metrosRepisados(traza: readonly (readonly [number, number])[]): number {
+  const p = remuestrear(traza);
+  // Cada paso son `PASO_M` metros de recorrido, así que la distancia por la
+  // línea entre dos muestras es su diferencia de índice por `PASO_M`.
+  const lejos = Math.floor(LEJOS_M / PASO_M) + 1;
+  // ⚠️ Se mira hacia los DOS lados. Mirando solo hacia delante se contaría la
+  //    ida y no la vuelta —la mitad justa—, y lo que hay en el mapa son los
+  //    dos trechos: el que sube y el que baja.
+  let pasos = 0;
+  for (let i = 0; i < p.length; i++) {
+    for (let j = 0; j < p.length; j++) {
+      if (Math.abs(j - i) < lejos) {
+        continue;
+      }
+      if (metrosEntre(p[i]![0], p[i]![1], p[j]![0], p[j]![1]) <= CERCA_M) {
+        pasos++;
+        break;
+      }
+    }
+  }
+  return pasos * PASO_M;
+}
+
+/** La traza que el mapa pinta de un patrón: la de `etapaMontada`, sin sus postes. */
+function trazaDelPatron(patron: PatronBus): [number, number][] {
+  const geometria: [number, number][] = [];
+  for (const s of patron.saltos) {
+    for (const punto of s.traza) {
+      const antes = geometria[geometria.length - 1];
+      if (!antes || antes[0] !== punto[0] || antes[1] !== punto[1]) {
+        geometria.push([punto[0], punto[1]]);
+      }
+    }
+  }
+  return geometria;
+}
+
 let red: RedDeBus;
 let peaton: RedEnMemoria;
 let rodar: RodarEntre;
@@ -60,6 +154,7 @@ let motorDeLaRueda: Motor;
 let veredicto: Veredicto;
 let coche: RedDeCocheServida;
 let rodarPorCalzada: RodarEntre;
+let leerLaTraza: LeerLaTraza;
 
 const soloLa29 = (linea: string, direccion: string): Veredicto | null =>
   linea === '29' && direccion === '1' ? veredicto : null;
@@ -75,6 +170,7 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
     rodar = rodarConLaRueda(rueda, rejillaRueda, cuadernoRueda);
     coche = cargarRedDeCoche();
     rodarPorCalzada = rodarConElCoche(coche);
+    leerLaTraza = (traza, saliendo) => aristaDeLaTraza(coche, traza, saliendo);
     // ⭐ Lo MÍNIMO que `refrescarYServir` toca: la rueda y nada más. Va con un
     //    `as` declarado, como el motor mínimo de `viaje-bus.spec.ts`.
     motorDeLaRueda = { redRueda: rueda, rejillaRueda, cuadernoRueda } as unknown as Motor;
@@ -510,5 +606,156 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
         'un salto reconstruido de la 29 se sale de la calzada',
       );
     }
+  });
+
+  /**
+   * ⭐ JUEZ 10 — LA TRAZA DE HOY NO DESHACE LO QUE ACABA DE ANDAR.
+   *
+   * **El caso del 6/09**, medido sobre el motor vivo y reproducido aquí con el
+   * recorrido congelado de arriba: `CALLE EL COLOSO 2 → AV. ALCALDE GÓMEZ
+   * LAGUNA 30`. El salto reconstruido `1285 · Asalto / Centro de Historias →
+   * 585 · Miguel Servet n.º 28` subía 115 m de Miguel Servet, y el salto
+   * siguiente —**del feed**, 195 m— los volvía a bajar. En el mapa: una ida y
+   * vuelta antes del transbordo.
+   *
+   * Las dos cifras, con este criterio: **145 m** sobre la traza que el motor
+   * vivo sirvió por HTTP (pid 14388) en el tramo de la 29, y **140 m** aquí
+   * sobre el patrón entero. No son la misma traza —el viaje empieza en el poste
+   * 33 y el patrón en la cabecera—, por eso no dan la misma cifra.
+   *
+   * Lo que se compra es **el criterio**, no la cifra: por eso la juez lo prueba
+   * en los dos sentidos antes de usarlo —que no da falsos positivos sobre el
+   * asfalto del feed, y que sí muerde sobre una ida y vuelta de mentira—.
+   *
+   * ⚠️ Y se compra que **el caso sigue siendo el caso**: tres saltos
+   *    reconstruidos, ninguno caído a recta. Si el desvío congelado dejara de
+   *    tener saltos nuevos, esta juez daría verde sin probar nada.
+   */
+  test('⭐ 10 · la traza operativa de la 29 no vuelve sobre sí misma', () => {
+    // ── a) el criterio no da falsos positivos sobre el asfalto del feed ────
+    assert.equal(
+      Math.round(metrosRepisados(trazaDelPatron(laVeintinueve))),
+      0,
+      'el recorrido oficial de la 29, tal cual viene del feed, no repite asfalto',
+    );
+
+    // ── b) y sí muerde sobre una ida y vuelta de mentira ───────────────────
+    const ida: [number, number][] = [];
+    for (let k = 0; k <= 40; k++) {
+      ida.push([41.65 + k * 0.0001, -0.88]);
+    }
+    const idaYVuelta: [number, number][] = [...ida, ...[...ida].reverse().slice(1)];
+    // 888 m de recorrido para 445 de calle. Se marca todo menos los ~150 m
+    // alrededor del pico, que por construcción quedan a menos de `LEJOS_M` de
+    // su propio reflejo —y eso es correcto: el pico es el giro, no el retroceso.
+    const deMentira = metrosRepisados(idaYVuelta);
+    assert.ok(
+      deMentira > 700 && deMentira <= 890,
+      `una ida y vuelta de 445 m son 888 de recorrido, y todo menos el pico se ` +
+        `repisa por los dos lados: dio ${deMentira.toFixed(0)}`,
+    );
+
+    // ── c) EL CASO ─────────────────────────────────────────────────────────
+    const op = aplicarDesvios(red, soloLa29, DONDE_ESTAN, rodarPorCalzada, leerLaTraza);
+    const hoy = op.red.patrones.find((p) => p.id === `${laVeintinueve.id}#hoy`)!;
+    assert.equal(op.cuentas.reconstruidos, 3, 'el caso son tres saltos reconstruidos');
+    assert.equal(op.cuentas.rectas, 0, 'y ninguno cayó a recta');
+
+    const repisados = metrosRepisados(trazaDelPatron(hoy));
+    assert.equal(
+      Math.round(repisados),
+      0,
+      `la traza operativa vuelve sobre ${repisados.toFixed(0)} m ya pisados ` +
+        '(el 6/09 eran 140: el salto 1285→585 subía Miguel Servet y el 585→284 lo bajaba)',
+    );
+
+    // Y el viaje sigue existiendo y midiendo: no se ha arreglado borrando.
+    assert.equal(hoy.paradas.length, 25);
+    assert.ok(
+      hoy.saltos.every((s) => s.traza.length >= 2 && s.metros > 0),
+      'ningún salto puede quedarse sin traza ni sin metros',
+    );
+  });
+
+  /**
+   * ⭐ JUEZ 11 — EN UN FONDO DE SACO LA MEDIA VUELTA SE PERMITE.
+   *
+   * El matiz honesto de la doctrina [OSRM, sobre `continue_straight`]: *«la
+   * evitación no está garantizada si no existe alternativa»*. Un veto duro
+   * dejaría **sin ruta** a toda parada al fondo de un callejón —y el censo de
+   * la red del coche da **3.192** nodos así: un solo camino de entrada y su
+   * gemela como única salida—.
+   *
+   * El caso es real: **Camino del Plano**, 390 m de calle sin salida. Un
+   * autobús que parase en la punta tendría que volver por donde entró, y eso
+   * no es un fallo: es la calle.
+   */
+  test('⭐ 11 · en un fondo de saco la media vuelta se permite y el viaje existe', () => {
+    /** Camino del Plano: la boca y la punta del callejón, del censo del 6/09. */
+    const BOCA = { lat: 41.653049, lon: -0.94153 };
+    const PUNTA = { lat: 41.651281, lon: -0.944337 };
+
+    const entrando = rodarPorCalzada(BOCA.lon, BOCA.lat, PUNTA.lon, PUNTA.lat);
+    assert.ok(entrando, 'al fondo del callejón se entra');
+    assert.ok(entrando.llegada >= 0, 'y se sabe por qué arista se llegó');
+
+    // ⭐ Y AHORA EL SIGUIENTE SALTO, encadenado: la única salida es la gemela.
+    const saliendo = rodarPorCalzada(PUNTA.lon, PUNTA.lat, BOCA.lon, BOCA.lat, entrando.llegada);
+    assert.ok(
+      saliendo,
+      'del fondo de saco se sale dando media vuelta: con el veto duro, este viaje no existiría',
+    );
+    assert.ok(saliendo.metros > 300, `y sale por la calle entera: ${saliendo.metros.toFixed(0)} m`);
+    assert.ok(saliendo.geometria.length > 2, 'por la calle, no en línea recta');
+  });
+
+  /**
+   * ⭐ JUEZ 12 — EL ASFALTO DEL FEED NO SE TOCA, NI UN BYTE.
+   *
+   * El encadenado es **solo para lo que se reconstruye**. Donde el feed trae su
+   * `shapes.txt`, esa traza sale del otro lado siendo **el mismo objeto** —no
+   * una copia igual: el mismo—, y la red entera sin desvíos conserva su sello.
+   *
+   * ⚠️ La identidad (`===`) se compra a propósito en vez de la igualdad: una
+   *    copia byte a byte pasaría las dos, pero solo la identidad demuestra que
+   *    **nadie la volvió a rutear**.
+   */
+  test('⭐ 12 · los tramos del feed salen al byte, y sin desvío el sello no se mueve', () => {
+    // ── a) el sello de la red entera cuando no hay desvío ninguno ──────────
+    const selloDe = (r: RedDeBus): string => {
+      const huella = createHash('sha256');
+      for (const p of r.patrones) {
+        huella.update(p.id + '|' + p.paradas.join(',') + '|');
+        for (const s of p.saltos) {
+          huella.update(
+            s.metros.toFixed(6) +
+              '~' +
+              s.tipico +
+              '~' +
+              s.traza.map((v) => v[0].toFixed(7) + ',' + v[1].toFixed(7)).join(' ') +
+              ';',
+          );
+        }
+        huella.update('\n');
+      }
+      return huella.digest('hex');
+    };
+    const sinDesvio = aplicarDesvios(red, () => null, new Map(), rodarPorCalzada);
+    assert.equal(selloDe(sinDesvio.red), selloDe(red), 'sin desvío la red tiene que salir idéntica');
+
+    // ── b) y en la 29 desviada, los saltos heredados son EL MISMO objeto ────
+    const op = aplicarDesvios(red, soloLa29, DONDE_ESTAN, rodarPorCalzada);
+    const hoy = op.red.patrones.find((p) => p.id === `${laVeintinueve.id}#hoy`)!;
+    const delFeed = new Set(laVeintinueve.saltos);
+    const heredados = hoy.saltos.filter((s) => delFeed.has(s));
+    assert.equal(heredados.length, hoy.saltos.length - 3, 'todos menos los tres reconstruidos');
+    assert.ok(heredados.length >= 20, `y son ${heredados.length}: el grueso del recorrido`);
+
+    // El último salto del recorrido —585 → 284— es del feed y así tiene que
+    // seguir: es la frontera donde el encadenado termina.
+    assert.ok(
+      delFeed.has(hoy.saltos[hoy.saltos.length - 1]!),
+      'el salto 585 → 284 es del feed y no se re-rutea',
+    );
   });
 });
