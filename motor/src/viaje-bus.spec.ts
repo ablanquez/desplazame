@@ -8,12 +8,13 @@
  */
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed, type RedEnMemoria } from './red.ts';
 import { cargarRejilla, type Rejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
-import { andarConElPeaton, cocinar, type AndarEntre, type RedDeBus } from './red-bus.ts';
+import { andarConElPeaton, cocinar, operaEl, type AndarEntre, type RedDeBus } from './red-bus.ts';
 import { elFeedQueSeSirve } from './feed.ts';
 import { metrosEntre } from './cercano.ts';
 import {
@@ -30,6 +31,11 @@ import {
   esperaEstimada,
   etapaMontada,
   intervaloDeHoy,
+  ventanaDe,
+  elDiaAntes,
+  segundosDelDia,
+  circulaHoy,
+  SEGUNDOS_DEL_DIA,
   lineaDelViaje,
   PENALIZACION_TRANSBORDO_S,
   postesCerca,
@@ -37,6 +43,7 @@ import {
   prepararViajeEnBus,
   RONDAS,
   VELOCIDAD_PEATON_MS,
+  viajeEnBus,
   type Acceso,
 } from './viaje-bus.ts';
 import {
@@ -1209,5 +1216,165 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
 
     await preparado.conElVivo!(respondiendo(MEDIDO_POSTE_1203));
     assert.equal(visitasHechas(), subidas * 2, 'alguien ha guardado la respuesta entre peticiones');
+  });
+});
+
+/** Un domingo de septiembre: los búhos operan y las siete suplidas no. */
+const UN_DOMINGO = '20260913';
+/** El lunes siguiente. Los búhos no operan; la red de día, entera. */
+const EL_LUNES = '20260914';
+/** Las 13:00 y la 01:30, en segundos del día de servicio. */
+const MEDIODIA = 13 * 3600;
+const LA_MADRUGADA = 90 * 60;
+
+describe('⭐ LA VENTANA HORARIA DEL SERVICIO — el reloj que faltaba', () => {
+  /** El patrón principal de una línea, por su corto. */
+  const patronDe = (corto: string, direccion = '0') =>
+    red.patrones.find(
+      (p) => p.principal && p.modo === 'bus' && lineaDelViaje(red, p).corto === corto && p.direccion === direccion,
+    )!;
+  const extremo = (codigo: string) => {
+    const q = portales.situados.find((s) => s.codigo === codigo)!;
+    return { lat: q.lat, lon: q.lon, nombre: codigo };
+  };
+
+  /**
+   * ⭐ JUEZ 1 — EL N4 A MEDIODÍA.
+   *
+   * El N4 opera el domingo —`operaEl` dice `true` y es cierto—, y su ventana va
+   * de **01:00 a 04:45**. A las 13:00 su servicio **ha cesado** [`frequencies`:
+   * `end_time` es la hora en que la frecuencia *«cambia o CESA»*], así que no es
+   * una opción. A la 01:30 sí, y con la espera de siempre.
+   */
+  test('⭐ 1 · el N4 no se aborda a las 13:00 y sí a la 01:30', () => {
+    const n4 = patronDe('N4');
+    assert.ok(operaEl(red, n4, UN_DOMINGO), 'el N4 tiene que operar ese día, o no hay caso');
+    const v = ventanaDe(n4, red, UN_DOMINGO)!;
+    assert.deepEqual([v.primera, v.ultima], [3600, 17100], 'la ventana medida del N4: 01:00–04:45');
+
+    assert.equal(esperaEstimada(n4, red, UN_DOMINGO, MEDIODIA), null, 'a las 13:00 ha cesado');
+    assert.equal(circulaHoy(red, n4, UN_DOMINGO, MEDIODIA), false, 'y no entra en el índice');
+
+    const deMadrugada = esperaEstimada(n4, red, UN_DOMINGO, LA_MADRUGADA);
+    assert.equal(deMadrugada, Math.round(v.intervalo / 2), 'a la 01:30 vale el H/2 de siempre');
+    assert.ok(circulaHoy(red, n4, UN_DOMINGO, LA_MADRUGADA), 'y sí entra en el índice');
+
+    // Y sin reloj sigue valiendo lo de antes del 6/09: la conducta no se toca.
+    assert.equal(esperaEstimada(n4, red, UN_DOMINGO), Math.round(v.intervalo / 2));
+  });
+
+  /**
+   * ⭐ JUEZ 2 — LA MADRUGADA, QUE ES DEL DÍA DE AYER.
+   *
+   * A las 00:10 una diurna todavía no ha empezado **su** día —y esperar a su
+   * primera son horas—, pero el último vehículo de AYER puede estar en la
+   * calle: el feed guarda esos viajes con la hora pasada de 86.400 [convención
+   * del día de servicio]. El caso se elige **del cocinado, por id**.
+   */
+  test('⭐ 2 · a las 00:10 se aborda por el servicio de AYER, no esperando a mañana', () => {
+    // El 40/1: medido, el domingo va de 05:24 a **25:20** —o sea 91.200 s—.
+    const p = red.patrones.find((x) => x.id === '40|1|2')!;
+    const ayer = ventanaDe(p, red, UN_DOMINGO)!;
+    assert.ok(ayer.ultima > SEGUNDOS_DEL_DIA, `el fixture necesita una última >86.400 y es ${ayer.ultima}`);
+    assert.equal(elDiaAntes(EL_LUNES), UN_DOMINGO, 'el lunes 14 va detrás del domingo 13');
+
+    const alasCeroDiez = 10 * 60;
+    const hoy = ventanaDe(p, red, EL_LUNES);
+    assert.ok(hoy !== null && alasCeroDiez < hoy.primera, 'su propio día aún no ha empezado');
+
+    const espera = esperaEstimada(p, red, EL_LUNES, alasCeroDiez)!;
+    assert.equal(espera, Math.round(ayer.intervalo / 2), 'se coge el de ayer, con su H/2');
+    assert.ok(
+      espera < hoy!.primera - alasCeroDiez,
+      `esperar a mañana serían ${hoy!.primera - alasCeroDiez} s y el de ayer llega en ${espera}`,
+    );
+  });
+
+  /**
+   * ⭐ JUEZ 3 — ANTES DE LA PRIMERA, LA ESPERA ES HASTA LA PRIMERA.
+   *
+   * No se veta —el 43 de las 07:00 existe a las 06:30, solo que hay que
+   * esperarlo—, pero **no se cobra `H/2`**: el primer vehículo sale a su hora y
+   * no antes. Quien decide si compensa es el coste, no un veto inventado.
+   */
+  test('⭐ 3 · a las 06:30, una línea de primera a las 07:00 cuesta 30 min de espera, no H/2', () => {
+    const p = red.patrones.find((x) => x.id === '43|0|1')!;
+    const v = ventanaDe(p, red, EL_LUNES)!;
+    assert.equal(v.primera, 7 * 3600, 'el fixture es la línea que empieza a las 07:00');
+
+    const espera = esperaEstimada(p, red, EL_LUNES, 6 * 3600 + 30 * 60);
+    assert.equal(espera, 30 * 60, 'media hora hasta la primera salida');
+    assert.notEqual(espera, Math.round(v.intervalo / 2), 'y NO el H/2, que aquí sería mentira');
+
+    // Se aborda: existir existe. Un veto habría dejado a alguien sin opción.
+    assert.ok(circulaHoy(red, p, EL_LUNES, 6 * 3600 + 30 * 60), 'antes de la primera SÍ se aborda');
+    // Y treinta minutos más tarde ya está dentro de la ventana: H/2.
+    assert.equal(esperaEstimada(p, red, EL_LUNES, 7 * 3600 + 60), Math.round(v.intervalo / 2));
+  });
+
+  /**
+   * ⭐ JUEZ 4 — EL CASO DEL OJO: NINGÚN BÚHO A MEDIODÍA.
+   *
+   * `CALLE EL COLOSO 2 → GÓMEZ LAGUNA 38` en domingo y con la capa del festivo
+   * **vacía** salía por **N2+N4, 64,2 min** —dos búhos que a esa hora no
+   * circulan—. Con el reloj sale por el **29+38** que el diagnóstico del 6/09
+   * midió como la mejor alternativa de verdad.
+   */
+  test('⭐ 4 · el caso del Coloso a mediodía ya no lo gana un búho', () => {
+    const A = extremo('Portales.93310');
+    const B = extremo('Portales.92683');
+
+    const sinReloj = viajeEnBus(motor, red, A, B, UN_DOMINGO);
+    const lineasSin = sinReloj.tramos.map((t) => t.linea?.corto).filter((x): x is string => !!x);
+    assert.ok(
+      lineasSin.some((l) => /^N\d/.test(l)),
+      `sin reloj este caso montaba un búho, y ahora monta ${lineasSin.join('+')}: la juez ya no vigila nada`,
+    );
+
+    const aMediodia = viajeEnBus(motor, red, A, B, UN_DOMINGO, MEDIODIA);
+    const lineasCon = aMediodia.tramos.map((t) => t.linea?.corto).filter((x): x is string => !!x);
+    assert.ok(lineasCon.length > 0, 'a mediodía tiene que haber viaje: no se compara con la nada');
+    assert.deepEqual(
+      lineasCon.filter((l) => /^N\d/.test(l)),
+      [],
+      `a las 13:00 no puede montar ningún búho, y montó ${lineasCon.join('+')}`,
+    );
+    // Y cada línea que monta tiene las 13:00 dentro de su ventana.
+    for (const m of buscarViaje({ red, fecha: UN_DOMINGO, ahora: MEDIODIA, acceso: accesos(A.lon, A.lat), salida: accesos(B.lon, B.lat) })!.montados) {
+      const v = ventanaDe(m.patron, red, UN_DOMINGO)!;
+      assert.ok(
+        v.primera <= MEDIODIA && MEDIODIA <= v.ultima,
+        `${lineaDelViaje(red, m.patron).corto} tiene ventana ${v.primera}–${v.ultima} y son las ${MEDIODIA}`,
+      );
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 5 — DONDE NO HABÍA BÚHO, NO CAMBIA NI UN BYTE.
+   *
+   * `RODRIGO REBOLLEDO 37 → GÓMEZ LAGUNA 38` no montaba ninguno —medido en el
+   * diagnóstico—, así que enchufar el reloj no puede moverlo. Es el sello que
+   * separa «arreglar el búho» de «mover la búsqueda».
+   */
+  test('⭐ 5 · un viaje que no montaba búho sale idéntico con reloj y sin él', () => {
+    const A = extremo('Portales.109451');
+    const B = extremo('Portales.92683');
+    const sinReloj = viajeEnBus(motor, red, A, B, UN_DOMINGO);
+    const aMediodia = viajeEnBus(motor, red, A, B, UN_DOMINGO, MEDIODIA);
+    const lineas = sinReloj.tramos.map((t) => t.linea?.corto).filter((x): x is string => !!x);
+    assert.ok(lineas.length > 0 && !lineas.some((l) => /^N\d/.test(l)), 'el caso no puede llevar búho');
+    assert.equal(
+      createHash('sha256').update(JSON.stringify(aMediodia)).digest('hex'),
+      createHash('sha256').update(JSON.stringify(sinReloj)).digest('hex'),
+      `tenía que salir al byte y salió ${aMediodia.tramos.map((t) => t.linea?.corto ?? '').join('+')}`,
+    );
+  });
+
+  /** ⭐ Y el reloj de pared se lee igual que la fecha: en LOCAL. */
+  test('⭐ segundosDelDia lee la hora local, y elDiaAntes cruza el mes', () => {
+    assert.equal(segundosDelDia(new Date(2026, 8, 6, 13, 0, 0)), 46_800);
+    assert.equal(segundosDelDia(new Date(2026, 8, 6, 0, 10, 30)), 630);
+    assert.equal(elDiaAntes('20260901'), '20260831');
+    assert.equal(elDiaAntes('20260101'), '20251231');
   });
 });

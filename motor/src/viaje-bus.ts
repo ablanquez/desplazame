@@ -64,7 +64,7 @@ import { calcularRuta } from './ruta.ts';
 import type { Motor } from './trayecto.ts';
 import type { AndarEntre } from './red-bus.ts';
 import { operaEl, type ModoDeRed, type PatronBus, type RedDeBus } from './red-bus.ts';
-import { avisoDelFestivo, cuadroServido } from './festivo.ts';
+import { avisoDelFestivo, cuadroServido, ventanaDelCuadro, type CuadroDelDia } from './festivo.ts';
 
 /**
  * ⭐ HASTA DÓNDE SE BUSCA UN POSTE. **Un tope de RENDIMIENTO, no un veto.**
@@ -227,11 +227,34 @@ export interface Viaje {
   readonly tranvias: number;
 }
 
+/** Los segundos que tiene un día. Un día de SERVICIO de GTFS puede pasarse. */
+export const SEGUNDOS_DEL_DIA = 86_400;
+
 /**
- * ⭐ EL INTERVALO DE HOY de un patrón, en segundos. `null` si hoy no opera o si
- * hoy solo hace un viaje —con un solo viaje no hay intervalo que promediar—.
+ * ⭐ LA VENTANA DE SERVICIO de un patrón en una fecha, con su intervalo.
+ *
+ * `primera` y `ultima` son la salida del primer poste en segundos desde la
+ * medianoche del **día de servicio**, y **pueden pasar de 86.400**: medido en
+ * este feed, **352 de las 3.361** entradas de `porServicio` lo hacen y la más
+ * tardía es 97.020 —las 26:57—. Es la convención del día de servicio: un viaje
+ * de la Ci1 a las 24:18 pertenece al día ANTERIOR, no a la madrugada de hoy.
+ *
+ * ⚠️ **El dato llevaba cocinado desde el principio y se tiraba.** `porServicio`
+ *    lo guarda desde `red-bus.ts`, e `intervaloDeHoy` leía `primera` y `ultima`
+ *    solo para dividir. Ver la entrada del 6/09 en `docs/BITACORA.md`.
  */
-export function intervaloDeHoy(patron: PatronBus, red: RedDeBus, fecha: string): number | null {
+export interface VentanaDeServicio {
+  readonly primera: number;
+  readonly ultima: number;
+  /** El `H` de `E[W] = H/2`: la franja del día entre sus viajes. */
+  readonly intervalo: number;
+}
+
+export function ventanaDe(
+  patron: PatronBus,
+  red: RedDeBus,
+  fecha: string,
+): VentanaDeServicio | null {
   const deHoy = new Set(red.porFecha[fecha] ?? []);
   let viajes = 0;
   let primera = Number.POSITIVE_INFINITY;
@@ -248,18 +271,55 @@ export function intervaloDeHoy(patron: PatronBus, red: RedDeBus, fecha: string):
     // ⭐ AQUÍ, Y SOLO AQUÍ, HABLA LA CAPA DEL FESTIVO (6/09).
     //
     // El feed no da ni un viaje de este patrón hoy. Si la capa tiene el cuadro
-    // web de esa línea y ese sentido para esta fecha, su frecuencia entra como
-    // intervalo y el patrón vuelve a la búsqueda; si no, sigue valiendo el
-    // `null` de siempre y la línea no existe hoy. Ver `festivo.ts`.
+    // web de esa línea y ese sentido para esta fecha, entra; si no, sigue
+    // valiendo el `null` de siempre y la línea no existe hoy. Ver `festivo.ts`.
     //
     // ⚠️ **La frontera es estrecha a propósito**: la capa no puede pisar un
     //    día que el feed SÍ trae, porque ahí nunca se la pregunta. El día que
     //    el operador publique el festivo del curso, esto deja de dispararse solo.
-    return delCuadroDelFestivo(patron, red, fecha);
+    //
+    // ⭐ Y el cuadro web trae **también las dos puntas**, así que una línea
+    //    suplida tiene ventana igual que una del feed: no hay dos reglas.
+    const suyo = cuadroDelFestivo(patron, red, fecha);
+    if (suyo === null) {
+      return null;
+    }
+    const puntas = ventanaDelCuadro(suyo);
+    return puntas === null ? null : { ...puntas, intervalo: suyo.intervaloS };
   }
   // La franja va de la primera salida a la última: entre N salidas hay N−1
   // huecos, y dividir por N daría un intervalo más corto del que hay.
-  return (ultima - primera) / (viajes - 1);
+  return { primera, ultima, intervalo: (ultima - primera) / (viajes - 1) };
+}
+
+/** La fecha del día anterior, en `AAAAMMDD`. */
+export function elDiaAntes(fecha: string): string {
+  const anno = Number(fecha.slice(0, 4));
+  const mes = Number(fecha.slice(4, 6));
+  const dia = Number(fecha.slice(6, 8));
+  const d = new Date(anno, mes - 1, dia - 1);
+  const dos = (n: number): string => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${dos(d.getMonth() + 1)}${dos(d.getDate())}`;
+}
+
+/**
+ * Los segundos transcurridos del día, en hora **LOCAL** —igual que `hoyEnGtfs`,
+ * y por lo mismo: el día de servicio es el del reloj de la calle—.
+ */
+export function segundosDelDia(cuando: Date): number {
+  return cuando.getHours() * 3600 + cuando.getMinutes() * 60 + cuando.getSeconds();
+}
+
+/**
+ * ⭐ EL INTERVALO DE HOY de un patrón, en segundos. `null` si hoy no opera o si
+ * hoy solo hace un viaje —con un solo viaje no hay intervalo que promediar—.
+ *
+ * Es el `H` que se enseña como *frecuencia teórica*. **No mira la hora**: la
+ * frecuencia de una línea es la que es, se pregunte cuando se pregunte. Quien
+ * mira la hora es `esperaEstimada`.
+ */
+export function intervaloDeHoy(patron: PatronBus, red: RedDeBus, fecha: string): number | null {
+  return ventanaDe(patron, red, fecha)?.intervalo ?? null;
 }
 
 /**
@@ -269,28 +329,74 @@ export function intervaloDeHoy(patron: PatronBus, red: RedDeBus, fecha: string):
  *    hace la línea, no lo que hace cada uno de sus refuerzos; dárselo a todos
  *    sería contar la misma línea tantas veces como patrones tenga.
  */
-export function circulaHoy(red: RedDeBus, patron: PatronBus, fecha: string): boolean {
-  return operaEl(red, patron, fecha) || delCuadroDelFestivo(patron, red, fecha) !== null;
+export function circulaHoy(
+  red: RedDeBus,
+  patron: PatronBus,
+  fecha: string,
+  ahora: number | null = null,
+): boolean {
+  return esperaEstimada(patron, red, fecha, ahora) !== null;
 }
 
-function delCuadroDelFestivo(patron: PatronBus, red: RedDeBus, fecha: string): number | null {
+function cuadroDelFestivo(patron: PatronBus, red: RedDeBus, fecha: string): CuadroDelDia | null {
   if (patron.modo !== 'bus' || !patron.principal) {
     return null;
   }
-  const suyo = cuadroServido(lineaDelViaje(red, patron).corto, patron.direccion, fecha);
-  return suyo ? suyo.intervaloS : null;
+  return cuadroServido(lineaDelViaje(red, patron).corto, patron.direccion, fecha);
 }
 
 /**
- * La espera estimada en un patrón hoy: `H/2`.
+ * ⭐ LA ESPERA en un patrón, **mirando la hora**. `null` = hoy no se puede
+ * abordar, y quien llame lo trata como que la línea no existe.
  *
- * Sin intervalo que calcular —un solo viaje, o ninguno— se devuelve `null` y
- * quien llame decide. **No se inventa una espera por defecto**: decir «~10 min»
- * sobre un patrón que hace un viaje al día sería una cifra fabricada.
+ * Sin `ahora` se comporta como antes del 6/09: `H/2` si hay ventana. Con `ahora`
+ * —segundos del día de servicio— sigue la letra de `frequencies.txt`, donde
+ * `start_time` es *«la hora a la que el servicio comienza»*, `end_time` aquella
+ * en que *«cambia de frecuencia o cesa»*, y el headway vale **durante el
+ * intervalo**:
+ *
+ * · **dentro de la ventana** → `H/2`, el modelo de siempre.
+ * · **antes de la primera** → la espera es hasta la primera, no `H/2`: el primer
+ *   vehículo sale a esa hora y no antes. **No se veta**: se pone el precio y que
+ *   el coste decida —a las 06:30 esperar al de las 07:00 puede compensar—.
+ * · **pasada la última** → por hoy ha cesado.
+ *
+ * ⭐ **Y siempre se mira TAMBIÉN EL DÍA DE AYER**, sumando 86.400. Es la
+ * convención del día de servicio: a las 00:10 el último Ci1 de ayer —que en el
+ * feed sale a las 24:18— todavía está en la calle, y para el viajero de las
+ * 00:10 ese autobús existe. Se devuelve **la menor** de las dos esperas: son dos
+ * servicios de verdad y se coge el que antes pase.
+ *
+ * ⚠️ **No se inventa una espera por defecto.** Sin intervalo —un solo viaje, o
+ *    ninguno— sigue siendo `null`: decir «~10 min» sobre un patrón que hace un
+ *    viaje al día sería una cifra fabricada.
  */
-export function esperaEstimada(patron: PatronBus, red: RedDeBus, fecha: string): number | null {
-  const h = intervaloDeHoy(patron, red, fecha);
-  return h === null ? null : Math.round(h / 2);
+export function esperaEstimada(
+  patron: PatronBus,
+  red: RedDeBus,
+  fecha: string,
+  ahora: number | null = null,
+): number | null {
+  const hoy = ventanaDe(patron, red, fecha);
+  if (ahora === null) {
+    return hoy === null ? null : Math.round(hoy.intervalo / 2);
+  }
+  const opciones: number[] = [];
+  if (hoy !== null) {
+    if (ahora < hoy.primera) {
+      opciones.push(hoy.primera - ahora);
+    } else if (ahora <= hoy.ultima) {
+      opciones.push(Math.round(hoy.intervalo / 2));
+    }
+  }
+  const ayer = ventanaDe(patron, red, elDiaAntes(fecha));
+  if (ayer !== null) {
+    const tarde = ahora + SEGUNDOS_DEL_DIA;
+    if (tarde >= ayer.primera && tarde <= ayer.ultima) {
+      opciones.push(Math.round(ayer.intervalo / 2));
+    }
+  }
+  return opciones.length > 0 ? Math.min(...opciones) : null;
 }
 
 /**
@@ -325,7 +431,13 @@ export interface Indices {
   readonly aPie: Map<string, readonly { hasta: string; metros: number }[]>;
 }
 
-export function indexar(red: RedDeBus, fecha: string, suprimidas?: ReadonlySet<string>): Indices {
+export function indexar(
+  red: RedDeBus,
+  fecha: string,
+  suprimidas?: ReadonlySet<string>,
+  /** Segundos del día de servicio. `null` = sin reloj, como antes del 6/09. */
+  ahora: number | null = null,
+): Indices {
   const porParada = new Map<string, { patron: PatronBus; i: number }[]>();
   for (const patron of red.patrones) {
     // ⭐ Solo lo que OPERA HOY. Un patrón que no circula no es una opción, y
@@ -337,7 +449,11 @@ export function indexar(red: RedDeBus, fecha: string, suprimidas?: ReadonlySet<s
     //    `esperaEstimada` —y suplirle el intervalo no servía de nada—.
     //    Medido el 6/09: con el cuadro servido, `intervaloDeHoy` daba 600 s
     //    para el 35 y el viaje seguía saliendo por los búhos.
-    if (!circulaHoy(red, patron, fecha)) {
+    //
+    // ⭐ Y DESDE EL 6/09 TAMBIÉN LA HORA. Un patrón cuyo servicio ya cesó
+    //    —o que aún no ha empezado y no llega— no entra en el índice: los nueve
+    //    búhos van de 01:00 a 06:33 y competían a mediodía. Ver `esperaEstimada`.
+    if (!circulaHoy(red, patron, fecha, ahora)) {
       continue;
     }
     patron.paradas.forEach((parada, i) => {
@@ -411,6 +527,12 @@ export interface Peticion {
    * autobús no pasa por la calle, no pasa para ningún refuerzo.
    */
   readonly suprimidas?: ReadonlySet<string>;
+  /**
+   * ⭐ LA HORA, en segundos del día de servicio. Ausente es **sin reloj**: la
+   * conducta de antes del 6/09, que es la que compran las jueces que no lo
+   * pasan. Ver `esperaEstimada`.
+   */
+  readonly ahora?: number | null;
 }
 
 /**
@@ -423,7 +545,8 @@ export interface Peticion {
  */
 export function buscarViaje(p: Peticion): Viaje | null {
   const { red, fecha } = p;
-  const indices = indexar(red, fecha, p.suprimidas);
+  const ahora = p.ahora ?? null;
+  const indices = indexar(red, fecha, p.suprimidas, ahora);
 
   // Ronda 0: lo que se alcanza andando desde el origen.
   const mejor = new Map<string, Etiqueta>();
@@ -485,7 +608,7 @@ export function buscarViaje(p: Peticion): Viaje | null {
           continue;
         }
         yaVisto.add(patron.id);
-        const espera = esperaEstimada(patron, red, fecha);
+        const espera = esperaEstimada(patron, red, fecha, ahora);
         if (espera === null) {
           // Sin intervalo no se puede estimar la espera y no se inventa una.
           continue;
@@ -1154,6 +1277,13 @@ export function prepararViajeEnBus(
       readonly texto: string;
     }[];
   },
+  /**
+   * ⭐ LA HORA, en segundos del día de servicio (6/09). `null` = sin reloj, que
+   * es la conducta de antes y la que compran las jueces que no lo pasan. Quien
+   * lo trae de producción es `porModo` con el `cuando` que ya recibía. Va al
+   * final **a propósito**: así ninguna llamada de antes cambia de significado.
+   */
+  ahora: number | null = null,
 ): ViajeEnBusPreparado {
   /** Un trayecto sin ruta, con el motivo delante. */
   const sinViaje = (texto: string): ViajeEnBusPreparado => ({
@@ -1184,7 +1314,7 @@ export function prepararViajeEnBus(
     );
   }
 
-  const viaje = buscarViaje({ red, fecha, acceso, salida, suprimidas: desvios?.suprimidas });
+  const viaje = buscarViaje({ red, fecha, ahora, acceso, salida, suprimidas: desvios?.suprimidas });
   if (!viaje) {
     const hoy = red.patrones.some((p) => operaEl(red, p, fecha));
     return sinViaje(
@@ -1288,7 +1418,7 @@ export function prepararViajeEnBus(
       const saleTransbordando = siguiente !== undefined && m.hasta === siguiente.desde;
       etapas.push(
         etapaMontada(red, m, {
-          espera: esperaEstimada(m.patron, red, fecha),
+          espera: esperaEstimada(m.patron, red, fecha, ahora),
           intervalo: intervaloDeHoy(m.patron, red, fecha),
           vivo: i === 0 ? loVivo : null,
           ...(llegaTransbordando ? { transbordandoDe: lineaDelViaje(red, anterior.patron) } : {}),
@@ -1402,6 +1532,8 @@ export function viajeEnBus(
   origen: Extremo,
   destino: Extremo,
   fecha: string,
+  /** Segundos del día de servicio, o `null` para buscar sin reloj. */
+  ahora: number | null = null,
 ): Trayecto {
-  return prepararViajeEnBus(motor, red, origen, destino, fecha).trayecto();
+  return prepararViajeEnBus(motor, red, origen, destino, fecha, undefined, ahora).trayecto();
 }

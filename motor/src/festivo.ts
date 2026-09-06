@@ -160,6 +160,37 @@ export interface CuadroDelDia {
   readonly cuando: number;
 }
 
+/** `HH:MM` → segundos desde medianoche, o `null` si no tiene esa forma. */
+export function segundosDeHhMm(hhmm: string): number | null {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim());
+  if (!m) {
+    return null;
+  }
+  return Number(m[1]) * 3600 + Number(m[2]) * 60;
+}
+
+/**
+ * ⭐ LA VENTANA DEL CUADRO en segundos del **día de servicio**.
+ *
+ * ⚠️ **Y aquí se desenrolla la madrugada.** La web escribe la última del 35 en
+ *    domingo como `01:20`, que no son las 01:20 de esta mañana sino las de la
+ *    siguiente: el servicio va de las 07:00 a las 25:20. Si la última cae antes
+ *    que la primera, es que ha cruzado la medianoche y se le suman 86.400 —la
+ *    misma convención con la que el propio GTFS guarda 26:57—. Sin esto la
+ *    ventana sería `07:00–01:20`, o sea vacía, y la línea suplida no se
+ *    abordaría a ninguna hora.
+ */
+export function ventanaDelCuadro(
+  c: CuadroDelDia,
+): { readonly primera: number; readonly ultima: number } | null {
+  const primera = segundosDeHhMm(c.primera);
+  const ultima = segundosDeHhMm(c.ultima);
+  if (primera === null || ultima === null) {
+    return null;
+  }
+  return { primera, ultima: ultima < primera ? ultima + 86_400 : ultima };
+}
+
 /** Lo que se saca de la página, antes de saber de qué línea es. */
 export interface LoLeidoDelCuadro {
   readonly intervaloS: number;

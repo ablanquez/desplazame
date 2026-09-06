@@ -102,54 +102,101 @@ describe('⭐ LA MURALLA DE LOS OCHO MODOS', () => {
     servirOperativa(null);
   });
 
-  test('⭐ 13 · los 160 trayectos de los ocho modos, al byte', () => {
-    // El mismo generador de la muralla del peatón: barato, y el número no
-    // depende de la versión de Node.
-    let semilla = 20260906;
-    const azar = (): number => {
-      semilla = (semilla * 1103515245 + 12345) & 0x7fffffff;
-      return semilla / 0x7fffffff;
-    };
-    const s = motor.portales.situados;
-    const huella = createHash('sha256');
-    let conRuta = 0;
-    let conAviso = 0;
+/**
+ * ⭐ EL SELLO DE LOS OCHO MODOS con el reloj clavado del martes.
+ *
+ * ⚠️ **Recalculado el 6/09, y la razón es que antes estaba mal.** Valía
+ *    `9622430b…`, y aquel sello se había calculado con el bus mirando el
+ *    calendario de la pared en vez de `EL_RELOJ`: sus 16 pares con bus eran los
+ *    del día en que se corrió la suite. Tres de ellos montaban una línea de
+ *    madrugada a las 10:00 de un martes —`42+N4`, `21+N4` y `N5+32+28`— y este
+ *    sha los compraba. Ver la entrada del 6/09 en `docs/BITACORA.md`.
+ */
+const SELLO_DE_LOS_OCHO = '8d9e1857949fdda21d8bed31e1f6e50185ebd5ef41f2bc553c9d73650087243f';
 
-    for (let n = 0; n < 20; n++) {
-      const A = s[Math.floor(azar() * s.length)]!;
-      const B = s[Math.floor(azar() * s.length)]!;
-      for (const modo of LOS_OCHO) {
-        const t = calcularTrayecto(
-          motor,
-          leerPeticion({
-            origen: { via: A.via, portal: A.codigo },
-            destino: { via: B.via, portal: B.codigo },
-            modo,
-          }),
-          null,
-          EL_RELOJ,
-          null,
-          null,
-        );
-        if (t.avisos.length > 0) {
-          conAviso++;
-        }
-        if (t.geometria.length > 0) {
-          conRuta++;
-        }
-        huella.update(
-          `${modo}|${t.metros.toFixed(6)}|${t.segundos}|` +
-            t.pasos.map((p) => `${p.giro}~${p.metros}~${p.texto}`).join('#') +
-            '|' +
-            t.avisos.map((a) => a.texto).join('#') +
-            '|' +
-            t.tramos.map((x) => `${x.comoSeVa}:${x.desde}-${x.hasta}:${x.linea?.corto ?? ''}`).join(',') +
-            '|' +
-            t.geometria.map((p) => p[0].toFixed(7) + ',' + p[1].toFixed(7)).join(' ') +
-            '\n',
-        );
+/**
+ * ⭐ Y EL SELLO DE LOS SIETE QUE NO SON BUS, para la juez 7.
+ *
+ * Se ha calculado **sobre el código de antes del arreglo y sobre el de después**,
+ * y da lo mismo las dos veces: el reloj se enchufó solo en la rama del bus.
+ */
+const SELLO_SIN_BUS = '03a7bf6eb67be4be01b80c8e265f2f5921c15e199b6ec0b1ee962f40648a0967';
+
+/** Lo que un pase de la muralla deja: su huella y sus tres cuentas. */
+interface LoSellado {
+  readonly huella: string;
+  readonly conRuta: number;
+  readonly conAviso: number;
+  readonly conBuho: number;
+}
+
+/**
+ * Un pase entero de la muralla con el reloj que se le dé.
+ *
+ * `soloEstos` deja fuera modos del sello —pero **no del cálculo**: los 160
+ * trayectos se piden igual, para que el generador de azar avance lo mismo y los
+ * veinte pares sean los veinte pares.
+ */
+function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): LoSellado {
+  // El mismo generador de la muralla del peatón: barato, y el número no
+  // depende de la versión de Node.
+  let semilla = 20260906;
+  const azar = (): number => {
+    semilla = (semilla * 1103515245 + 12345) & 0x7fffffff;
+    return semilla / 0x7fffffff;
+  };
+  const s = motor.portales.situados;
+  const huella = createHash('sha256');
+  let conRuta = 0;
+  let conAviso = 0;
+  let conBuho = 0;
+
+  for (let n = 0; n < 20; n++) {
+    const A = s[Math.floor(azar() * s.length)]!;
+    const B = s[Math.floor(azar() * s.length)]!;
+    for (const modo of LOS_OCHO) {
+      const t = calcularTrayecto(
+        motor,
+        leerPeticion({
+          origen: { via: A.via, portal: A.codigo },
+          destino: { via: B.via, portal: B.codigo },
+          modo,
+        }),
+        null,
+        reloj,
+        null,
+        null,
+      );
+      if (!soloEstos(modo)) {
+        continue;
       }
+      if (t.avisos.length > 0) {
+        conAviso++;
+      }
+      if (t.geometria.length > 0) {
+        conRuta++;
+      }
+      if (t.tramos.some((x) => /^N\d/.test(x.linea?.corto ?? ''))) {
+        conBuho++;
+      }
+      huella.update(
+        `${modo}|${t.metros.toFixed(6)}|${t.segundos}|` +
+          t.pasos.map((p) => `${p.giro}~${p.metros}~${p.texto}`).join('#') +
+          '|' +
+          t.avisos.map((a) => a.texto).join('#') +
+          '|' +
+          t.tramos.map((x) => `${x.comoSeVa}:${x.desde}-${x.hasta}:${x.linea?.corto ?? ''}`).join(',') +
+          '|' +
+          t.geometria.map((p) => p[0].toFixed(7) + ',' + p[1].toFixed(7)).join(' ') +
+          '\n',
+      );
     }
+  }
+  return { huella: huella.digest('hex'), conRuta, conAviso, conBuho };
+}
+
+  test('⭐ 13 · los 160 trayectos de los ocho modos, al byte', () => {
+    const { huella, conRuta, conAviso, conBuho } = sellar(EL_RELOJ);
 
     // ⚠️ Antes del sello, la prueba de que la muralla no está vacía: si un día
     //    los 160 trayectos salieran todos con aviso y sin geometría, el sha
@@ -157,10 +204,55 @@ describe('⭐ LA MURALLA DE LOS OCHO MODOS', () => {
     assert.ok(conRuta >= 120, `solo ${conRuta} de 160 trayectos traen geometría`);
     assert.ok(conAviso >= 20, `solo ${conAviso} de 160 traen aviso: faltan los modos vivos`);
 
+    // ⭐ NI UN BÚHO. El sello anterior compraba tres —`42+N4`, `21+N4` y
+    //    `N5+32+28`— porque el bus no miraba la hora. Ver la juez 6.
+    assert.equal(conBuho, 0, `${conBuho} trayectos montan una línea de madrugada a las 10:00`);
+
     assert.equal(
-      huella.digest('hex'),
-      '9622430b20469b9a339ac923fcffc80a8877396c09e32abf189eb5c5d43e06c4',
+      huella,
+      SELLO_DE_LOS_OCHO,
       'los ocho modos han cambiado de respuesta: si es a propósito, se recalcula CON LA RAZÓN escrita',
     );
+  });
+
+  /**
+   * ⭐ JUEZ 6 — EL RELOJ CLAVADO MANDA, Y LA PARED NO.
+   *
+   * La juez 13 promete desde que nació no dar «una cifra los martes por la
+   * mañana y otra los domingos», y hasta el 6/09 **para el bus daba exactamente
+   * eso**: `porModo` recibía `cuando` y llamaba a `new Date()` igual. Medido, sus
+   * 16 pares con bus cambiaban los 16 entre el domingo y el lunes, así que el
+   * sello se habría puesto rojo solo al día siguiente de calcularlo.
+   *
+   * Se compra por los dos lados: **dos relojes distintos dan sellos distintos**
+   * —luego manda el parámetro—, y el del martes es el que la juez 13 sella
+   * —luego no depende de cuándo se corra la suite—.
+   */
+  test('⭐ 6 · el sello lo fija EL_RELOJ, no el día en que se corra la suite', () => {
+    const delMartes = sellar(EL_RELOJ);
+    const delDomingo = sellar(new Date(2026, 8, 6, 10, 0, 0, 0));
+    assert.equal(delMartes.huella, SELLO_DE_LOS_OCHO, 'el martes es el que la juez 13 compra');
+    assert.notEqual(
+      delDomingo.huella,
+      delMartes.huella,
+      'dos relojes tienen que dar dos sellos: si dan el mismo, el reloj no ha llegado al bus',
+    );
+    // ⭐ Y a las 10:00 no circula un búho **ningún día**: cambia el viaje, no la
+    //    regla. Que el domingo diera cero por casualidad y el martes también no
+    //    prueba nada por separado; lo que prueba es que los dos sellos difieran.
+    assert.equal(delMartes.conBuho, 0, 'el martes a las 10:00 no circula ningún búho');
+    assert.equal(delDomingo.conBuho, 0, 'y el domingo a las 10:00 tampoco');
+  });
+
+  /**
+   * ⭐ JUEZ 7 — LOS OTROS SIETE MODOS, AL BYTE.
+   *
+   * El reloj se ha enchufado **solo en la rama del bus**. Andando, bici, patín,
+   * BiZi, coche, moto y YeGo tienen que salir exactamente igual que antes del
+   * 6/09, y este sha se calculó sobre el código de antes y sobre el de después:
+   * **`03a7bf6e…` las dos veces**.
+   */
+  test('⭐ 7 · los siete modos que no son bus no se han movido', () => {
+    assert.equal(sellar(EL_RELOJ, (m) => m !== 'bus').huella, SELLO_SIN_BUS);
   });
 });

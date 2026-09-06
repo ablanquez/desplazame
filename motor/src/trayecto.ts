@@ -30,7 +30,7 @@ import type { PortalesEnMemoria, PortalSituado } from './portales.ts';
 import type { RedEnMemoria } from './red.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
 import { laRedDeBus } from './red-bus.ts';
-import { prepararViajeEnBus, viajeEnBus } from './viaje-bus.ts';
+import { prepararViajeEnBus, segundosDelDia, viajeEnBus } from './viaje-bus.ts';
 import { avisoDeDesvio, laOperativa } from './patron-operativo.ts';
 import type { AparcabicisEnMemoria } from './aparcabicis.ts';
 import type { BiZiEnMemoria, Disponibilidad } from './bizi.ts';
@@ -362,7 +362,13 @@ function porModo(
           'feed no se ha podido leer.',
       );
     }
-    return viajeEnBus(motor, red, origen, destino, hoyEnGtfs(new Date()));
+    // ⭐ EL RELOJ QUE FALTABA (6/09). Hasta hoy aquí ponía
+    //    `hoyEnGtfs(new Date())` **teniendo `cuando` en la firma**: se pedía la
+    //    hora al sistema y se tiraba todo menos el día. Consecuencia medida:
+    //    los nueve búhos —01:00 a 06:33— competían a mediodía y ganaban 2 de
+    //    cada 30 viajes. Ver la entrada del 6/09 en `docs/BITACORA.md`.
+    const reloj = cuando ?? new Date();
+    return viajeEnBus(motor, red, origen, destino, hoyEnGtfs(reloj), segundosDelDia(reloj));
   }
 
   // ⭐ EL COCHE (2/09, punto 12 casilla 1b). Va por su propia red —la cocinada
@@ -557,6 +563,12 @@ export async function calcularTrayectoVivo(
   motor: Motor,
   peticion: PeticionDeRuta | null,
   pedir: typeof fetch = fetch,
+  /**
+   * ⭐ EL RELOJ, y por la misma razón que en la puerta síncrona: **para poder
+   * mentirle**. Sin él no hay forma de comprar por HTTP que el N4 no se aborde a
+   * las 13:00 sin esperar a las 13:00.
+   */
+  cuando: Date = new Date(),
 ): Promise<Trayecto> {
   const previo = antesDeBifurcar(motor, peticion);
   if (esTrayecto(previo)) {
@@ -582,7 +594,7 @@ export async function calcularTrayectoVivo(
     operativa?.red ?? cocinada,
     previo.origen,
     previo.destino,
-    hoyEnGtfs(new Date()),
+    hoyEnGtfs(cuando),
     operativa
       ? {
           suprimidas: operativa.suprimidas,
@@ -593,6 +605,9 @@ export async function calcularTrayectoVivo(
           })),
         }
       : undefined,
+    // ⭐ Y LA HORA (6/09). Aquí ponía `new Date()` igual que en `porModo`, con
+    //    el mismo efecto: la línea que ya había cesado seguía siendo una opción.
+    segundosDelDia(cuando),
   );
   return preparado.conElVivo ? preparado.conElVivo(pedir) : preparado.trayecto();
 }
