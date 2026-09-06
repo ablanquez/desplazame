@@ -14,6 +14,143 @@
 
 ---
 
+## [2026-09-06] ✅ CERRADA — El búho gana viajes de mediodía: la búsqueda del bus pregunta el DÍA y nunca la HORA
+
+**Categoría:** un reloj que llega a la puerta y no entra
+**Síntoma:** los nueve búhos vivos hoy van de **01:00 a 06:33** y compiten con las
+líneas de día a cualquier hora. Medido sobre 40 pares con semilla fija, **2 de
+los 30** viajes con bus montan un búho a mediodía —`42+N4` a 69,5 min, donde el
+N4 «ahorra» **2,3 min que a las 13:00 no existen**, y `21+N4`—. El caso del
+Coloso salía por **N2+N4, 64,2 min**.
+
+`operaEl` es el día y nada más —`porFecha[fecha]` ∩ `patron.servicios`,
+[`red-bus.ts:774`]—, y la cabecera de `viaje-bus.ts` lo dice sin rodeos:
+*«aquí no se casan horas»*. En todo el motor hay **dos** `getHours()` y los dos
+son la ZBE del coche.
+
+⚠️ **Y el reloj ya estaba enchufado hasta la puerta.** `porModo` recibe
+`cuando?: Date` —se añadió el 3/09 para poder mentirle a la ZBE— y la rama del
+bus lo tira:
+
+```ts
+// trayecto.ts:365
+return viajeEnBus(motor, red, origen, destino, hoyEnGtfs(new Date()));
+```
+
+Se llama a `new Date()` teniendo el parámetro delante, y de esa fecha se descarta
+todo menos el día. Lo mismo en `trayecto.ts:585`.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **la suite entera**, con la
+capa del festivo y el patrón operativo recién estrenados dentro:
+
+```
+ℹ tests 595
+ℹ suites 73
+ℹ pass 595
+ℹ fail 0
+```
+
+⭐ **Y la muralla no es que no lo viera: es que lo sellaba.** La juez 13
+—`sha256 9622430b…`, 160 trayectos al byte— tiene **tres pares que montan un
+búho**, y su hash los compra como correctos:
+
+```
+par  1: Portales.85175  → Portales.95608 · 42+N4     ·  69.5 min
+par  2: Portales.108984 → Portales.91121 · 21+N4     ·  64.8 min
+par 11: Portales.125945 → Portales.98945 · N5+32+28  · 137.5 min
+```
+
+⚠️ **Y hay un segundo filo, que es el que más duele.** Esa juez clava su reloj
+a propósito, y su comentario dice por qué:
+
+> *«EL RELOJ CLAVADO: martes 2 de septiembre de 2026, 10:00. … Con `new Date()`
+> esta juez daría una cifra los martes por la mañana y otra los domingos.»*
+
+**Para el bus hace exactamente eso**, porque el `cuando` se cae en
+`trayecto.ts:365`. Medido, los mismos 20 pares en domingo y en lunes:
+
+```
+de los 20 pares, 16 dan viaje en bus y 16 CAMBIAN entre el domingo y el lunes
+  par  1: domingo 42+N4      69.5 min  |  lunes 42+TRA+55  54.2 min
+  par  2: domingo 21+N4      64.8 min  |  lunes 32+41      50.5 min
+  par 11: domingo N5+32+28  137.5 min  |  lunes 23+39+28  113.2 min
+  par 16: domingo 38         19.9 min  |  lunes 22         14.9 min
+```
+
+El sello se recalculó hoy domingo (`a110ef8`, 11:01). **Mañana lunes la muralla
+se pone roja sola**, sin que nadie toque una línea. Una juez que promete no
+depender del calendario y depende del calendario no avisa dos veces: la primera
+vez que hable será para dar una falsa alarma, y la lección que enseñará es a
+recalcular el sello sin mirar.
+
+**Cómo se cazó:** ojo humano — Antonio leyó `N2+N4` en un viaje de mediodía del
+6/09 y preguntó por qué competía un búho.
+
+**Causa raíz:** **el modelo de espera era correcto y estaba incompleto.**
+
+`E[W] = H/2` describe lo que se espera **dentro** de la franja de servicio. Fuera
+de ella no hay `H` que promediar, porque no hay vehículos: es la letra de
+`frequencies.txt`, donde `end_time` es la hora en que la frecuencia *«cambia o
+CESA»*. El motor calculaba `H` con la primera y la última salida del día
+—`(ultima − primera) / (viajes − 1)`— y **tiraba las dos puntas al salir**. Se
+quedó con el cociente y perdió los límites que lo hacían cierto.
+
+Con lo que quedaba, un patrón que hace ocho viajes entre la 01:00 y las 04:45
+declara «paso cada 32 minutos» sin decir *entre cuándo y cuándo*, y a las 13:00
+es tan abordable como a la 01:30.
+
+**Arreglo aplicado:** tres piezas, y las tres eran enchufar, no construir.
+
+1. `motor/src/trayecto.ts` — **el reloj entra**. `porModo` usa el `cuando` que
+   ya recibía (`cuando ?? new Date()`) y `calcularTrayectoVivo` lo acepta por la
+   misma razón que la puerta síncrona: para poder mentirle.
+2. `motor/src/viaje-bus.ts` — `ventanaDe` devuelve **las dos puntas y el
+   intervalo** en vez de solo el cociente, y `esperaEstimada` mira la hora:
+   dentro de la ventana `H/2`; **antes de la primera, la espera es hasta la
+   primera** —no se veta, se pone el precio y que decida el coste—; pasada la
+   última, ha cesado. Y **siempre se mira también el día de ayer** sumando
+   86.400, que es donde vive el último Ci1 de las 24:18. `indexar` filtra por
+   eso, que es el único sitio donde filtrar sirve de algo [lo aprendido en la
+   entrada de la capa del festivo, unas horas antes].
+3. `motor/src/festivo.ts` — `ventanaDelCuadro` desenrolla la madrugada del
+   cuadro web: la última del 35 en domingo es `01:20`, que no son las 01:20 de
+   esta mañana sino **las 25:20**. Sin eso la ventana de una línea suplida
+   habría salido vacía y no se abordaría a ninguna hora.
+
+Y **la muralla se ha clavado**: su sello del bus pasa de ser el del día en que
+se corriera la suite a ser el del martes 2/09 a las 10:00 que su propio
+comentario prometía. `9622430b…` → `8d9e1857…`, con la razón escrita al lado.
+De sus 16 pares con bus cambian los 16, y **los tres que montaban búho dejan de
+montarlo**.
+
+**Commit:** `[PENDIENTE-FIX]` (y la entrada, `[PENDIENTE-BIT]`)
+
+**Ley que sale de aquí:** **un promedio sin sus límites no es un promedio: es un
+número.** `H/2` era correcto y la implementación también; lo que faltaba era el
+«entre qué y qué» que el dato ya traía y que el código descartaba en la misma
+línea en que lo leía. Cuando un cálculo consume dos datos y publica uno, mirar
+qué tiró.
+
+**Y una segunda, sobre las jueces:** **una juez que clava un reloj tiene que
+comprar que el reloj llega.** La 13 declaraba su `EL_RELOJ` en un comentario de
+seis líneas explicando por qué hacía falta, y el parámetro se caía dos funciones
+más abajo sin que nadie lo notara. La juez 6 de esta tanda compra justo eso:
+**dos relojes distintos tienen que dar dos sellos distintos**. Si dan el mismo,
+el reloj no ha llegado.
+
+**Traza:** `motor/src/trayecto.ts` (`porModo`, `calcularTrayectoVivo`) ·
+`motor/src/viaje-bus.ts` (`intervaloDeHoy`, `esperaEstimada`, `indexar`) ·
+`motor/src/muralla-modos.spec.ts` (la juez 13).
+
+ℹ️ **El dato de la ventana ya estaba cocinado y sin usar.** `porServicio` guarda
+`{viajes, primera, ultima}` por servicio [`red-bus.ts:703-720`], sacado de
+`stop_times`: **3.361 entradas**, y `intervaloDeHoy` ya lee `primera` y `ultima`
+para su `H/2` **y tira las dos**. De esas entradas, **352 pasan de 86.400** —la
+convención del día de servicio— y la más tardía es **97.020 = 26:57**. No hay
+nada que cocinar: hay que mirarlo.
+
+---
+
 ## [2026-09-06] ✅ CERRADA — La capa del festivo suple la 22 sobre el patrón del feed: el viaje manda transbordar en el 720, y la 22 hoy no pisa el 720
 
 **Categoría:** dos capas que no se hablan
