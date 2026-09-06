@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-06] 🔴 ABIERTA — Cada salto reconstruido se rutea solo: la 29 pasa a 75 m del poste del enlace, sigue 103 m más y el salto siguiente deshace 195 m del mismo camino
+## [2026-09-06] ✅ CERRADA — Cada salto reconstruido se rutea solo: la 29 pasa a 75 m del poste del enlace, sigue 103 m más y el salto siguiente deshace 195 m del mismo camino
 
 **Categoría:** geometría reconstruida
 **Síntoma:** en `CALLE EL COLOSO 2 → AVENIDA ALCALDE GÓMEZ LAGUNA 30` (bus, motor
@@ -28,6 +28,11 @@ hasta 585, y el salto siguiente —heredado del feed— vuelve **195 m** por el 
 sitio hasta 284. `1285→585→284` son **924 m** contra los **695 m** de
 `1285→284` directo. El mismo recorrido sin desvío (`745→585→284`, del feed) no
 repite ni un metro.
+
+**Nota [2026-09-06], al cerrar:** los **182 m** de arriba salen del criterio del
+diagnóstico, que marcaba el bucle entero. El de la juez 10 mide solo el suelo que
+se repite, remuestreado cada 5 m, y da **145 m** sobre esta misma traza servida.
+El original se queda: es lo que se midió ese día y con qué se midió.
 
 **⭐ Qué dio verde mientras el fallo estaba vivo:** **toda la suite del bus**, y
 las 576 del motor entero. Ninguna juez mira si una traza reconstruida vuelve
@@ -56,13 +61,62 @@ dos puntos—, que es verdad aquí. Nunca pregunta por dónde va ese camino.
 
 **Cómo se cazó:** ojo humano — Antonio lo vio en el mapa. Ningún instrumento de
 la casa cuenta metros repisados.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** `patronOperativo` reconstruía **cada salto por su cuenta**: el
+camino mínimo de A a B, sin estado entre uno y el siguiente. La búsqueda del
+coche sí lleva estado —va **por transiciones** desde el punto 12, o sea que su
+estado ES una arista dirigida—, pero ese estado se tiraba al terminar cada
+salto. Sin él, un salto no puede saber que está deshaciendo lo que el anterior
+acaba de andar, y **cada salto suelto era correcto**: 729 m es el camino más
+corto de 1285 a 585, y el de 585 a 284 es el asfalto del feed. Lo incorrecto era
+la suma.
+
+Y el sitio exacto **no era el que la doctrina apuntaba**. Encadenar solo entre
+saltos reconstruidos deja los 140 m intactos, medido: el retroceso estaba en la
+**frontera** entre el reconstruido `1285 → 585` y el tramo del feed
+`585 → 284`. El reconstruido llegaba por la arista **11279** y el feed sale por
+la **11280**, que es su gemela —la media vuelta exacta—.
+
+**Arreglo aplicado:** el estado se pasa de un salto al siguiente, como una ruta
+con **waypoints intermedios** [OSRM, `continue_straight`; su *issue* #7060 tiene
+la patología catalogada].
+
+* `motor/src/viaje-coche.ts` — `continuando` filtra las SALIDAS por la arista de
+  llegada del trecho anterior (veta la gemela y respeta el veto de giro);
+  `rematando` filtra las LLEGADAS por la arista que sigue después. `buscarEnCoche`
+  y `calcularRutaEnCoche` reciben `viniendoDe` y `yendoA`, las dos con
+  `SIN_LLEGADA` por defecto: **sin ellas la conducta es la de siempre**.
+* `motor/src/patron-operativo.ts` — `patronOperativo` lleva el hilo y lo corta
+  en cuanto hereda un tramo del feed; `aristaDeLaTraza` **lee** —no rutea— por
+  dónde sale la traza del feed, proyectando el punto a 25 m del poste y decidiendo
+  la cara por el signo del producto escalar. `rodarConElCoche` afloja las dos
+  puntas **de una en una** en el fondo de saco y lo cuenta en `fondosDeSaco`.
+* Jueces: `⭐ 10` (el caso, con el criterio de retroceso escrito y probado por los
+  dos lados), `⭐ 11` (fondo de saco real: Camino del Plano), `⭐ 12` (el asfalto
+  del feed sale siendo **el mismo objeto**) y el fichero nuevo
+  `motor/src/muralla-modos.spec.ts` con la `⭐ 13`, sha256 de 160 trayectos de los
+  ocho modos —**verificado idéntico con el código de antes y el de después**—.
+
+⚠️ **Un defecto propio, cazado por la re-medición:** `rematando` pedía al
+principio que la arista de llegada fuera **contigua** a la del feed. No tiene por
+qué serlo —sale de una proyección a 25 m, y ahí ya puede haber un cruce—, y eso
+mandaba **68 de 200 costuras (34 %)** al fondo de saco, que es la salida de
+emergencia. Vetando solo la gemela: **0 de 787**.
+
+Medido: **140 m → 0** en el patrón de la 29 (145 m en la traza que el pid 14388
+sirvió por HTTP). Sobre 399 tríos de paradas consecutivas de la red real el veto
+cambia **1 de 787** costuras: no molesta donde ya funcionaba. Motor 580 verdes,
+interfaz 279.
+
+**Commit:** `a110ef8` (y la entrada, `f095385`)
 **Ley que sale de aquí:** una traza no se comprueba solo por sus extremos ni por
 sus metros: **hay que recorrerla y mirar si vuelve sobre sí misma**. Un camino
 compuesto por trozos correctos de uno en uno puede ser incorrecto entero — y las
 pruebas que compran trozo a trozo no lo ven nunca.
+**Y una segunda, que salió al cerrar:** una restricción que se salta sola cuando
+estorba **no avisa de que se está saltando**. La salida del fondo de saco es
+correcta y necesaria, pero sin contarla —`fondosDeSaco`— un veto roto que
+disparara la excepción el 34 % de las veces habría dado exactamente el mismo
+verde que uno que funciona.
 **Traza:** `motor/src/patron-operativo.ts` (`patronOperativo`, `rodarConElCoche`)
 · `motor/src/viaje-coche.ts` (`buscarEnCoche`, `salidasDelCoche`) ·
 `motor/src/red-bus.ts` (`etapaMontada`) · `motor/src/patron-operativo.spec.ts`.
