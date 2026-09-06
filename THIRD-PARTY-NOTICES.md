@@ -9,17 +9,20 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 > lo que **todavía no** ha entrado.
 > Quedan fuera las capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
 >
-> ⭐ **Y tres de esas treinta y una NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08
-> y que hoy separa el documento en dos mitades:
+> ⭐ **Y CINCO NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08 y que hoy separa el
+> documento en dos mitades:
 >
 > | | Qué se consulta | Quién |
 > |---|---|---|
 > | § 1.23 | la disponibilidad del BiZi | Ayuntamiento de Zaragoza |
 > | § 1.24 | las llegadas al poste | **Avanza Zaragoza** |
 > | § 1.25 | la ruta operativa de hoy | **Avanza Zaragoza** |
+> | § 1.34 | la flota y el área de YeGo | **Yego** |
+> | § 1.35 | el cuadro de horarios del festivo | **Avanza Zaragoza** |
 >
-> ⛔ **Y las dos de Avanza traen un aviso legal que PROHÍBE la extracción y la reutilización**,
-> medido y transcrito el 01/09 en su ficha. No se interpreta aquí: se lee ahí.
+> ⛔ **Y las TRES de Avanza traen un aviso legal que PROHÍBE la extracción y la reutilización**,
+> medido y transcrito el 01/09 en § 1.24 — § 1.25 y § 1.35 se remiten a esa letra, que es la
+> misma. No se interpreta aquí: se lee ahí.
 >
 > ⏳ **Uno de ellos caduca: el GTFS, el 05/10/2026** (§ 1.7) — y no de golpe: el **bus** se acaba
 > ese día y el **tranvía** sigue. Está medido día a día en su ficha.
@@ -27,7 +30,13 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 > ⚠️ **Este párrafo decía «catorce» conjuntos y «Estado a 20/08/2026», y las dos cosas se habían
 > quedado viejas**: el documento pasó de catorce fichas a veintiséis sin que esta línea se
 > enterara. Es la entrada nº5 de la bitácora otra vez —una regla de releída vale lo que su
-> alcance—, y se corrige con el comando delante: `grep -c '^### 1\.' THIRD-PARTY-NOTICES.md` → **26**.
+> alcance—, y se corrige con el comando delante:
+> `grep -c '^### 1\.' THIRD-PARTY-NOTICES.md` → **36** (06/09/2026).
+>
+> ⚠️ **Y volvió a pasar.** El 6/09, al añadir § 1.35, la cifra de esta línea seguía en **26** y el
+> comando decía **35**: diez fichas escritas sin que nadie tocara el número, y la advertencia de
+> arriba —escrita justo para esto— delante. **Una nota que avisa de un desfase no lo impide**: lo
+> que lo impediría es un guión que cuente. Queda dicho, y sin guión todavía.
 >
 > **Las huellas sha256 de esta página se verifican sobre un clon**, no sobre el disco de quien
 > las escribe: git puede reescribir bytes al hacer *checkout*. Ver `docs/BITACORA.md` nº3, y el
@@ -2996,7 +3005,79 @@ la respuesta lleva el motivo con las palabras del contrato en vez de un «no hay
 
 ---
 
-### 1.35 · El resto del dato — todavía **ninguno**
+### 1.35 · El cuadro de horarios de la web — Avanza Zaragoza (la capa del festivo)
+
+| | |
+|---|---|
+| **Qué es** | El **cuadro del día de una línea y un sentido**: la frase de frecuencias por tipo de día y las primeras y últimas salidas de la fecha pedida. Es lo que **suple el calendario de festivo que el feed de § 1.7 no trae** para siete líneas |
+| **Titular** | **Avanza Zaragoza S.A.U.** — el mismo publicador del feed de § 1.7 y de las llegadas de § 1.24 |
+| **Fuente** | `https://zaragoza.avanzagrupo.com/lineas-y-horarios/` — la **misma página** de la que § 1.25 saca su nonce. **No es una API documentada**: es el formulario que la propia web usa |
+| **Petición** | `POST /lineas-y-horarios/?selectLinea=X&selectSentido=Y` · `application/x-www-form-urlencoded` · cuerpo `selectLinea` + `selectSentido` + `times-date=AAAA-MM-DD` + `times-date-submit=Cambiar` + `_wp_http_referer` |
+| **Sondeada** | **06/09/2026**. El 35 sentido −1: **153.346 B** y 0,47–0,70 s el laborable; **152.807 B** el domingo. Las siete líneas huérfanas, una por una: 149.979–157.306 B, 0,45–0,66 s |
+| ⭐ **Sin nonce y sin cookies** | Medido con las **cuatro** combinaciones —con y sin nonce × con y sin cookies— para el lunes 7/09: las cuatro devuelven **los mismos 153.346 bytes** y el mismo cuadro. Así que no se pide el nonce: es una visita menos por pasada. **Al ajax de alteraciones sí se lo exigen** —sin él, 403 con cuerpo vacío—, pero eso es otra puerta y no entra aquí |
+| ⚠️ **Tiene que ser POST** | Por `GET` con `times-date` en la *query* la página contesta 200 y **el cuadro de hoy**, ignorando la fecha: medido, el lunes 14, el sábado 19 y el 25 de diciembre daban los tres la misma respuesta. Lo que hace que la fecha cuente es `times-date-submit` |
+| ⚠️ **La ventana rodante** | **De hoy a +9 días, y nada más.** Medido día a día el 6/09 sobre el 35: `+0` a `+9` traen cuadro; `−1`, `−2` y de `+10` a `+15` devuelven la misma página de **150.503 bytes con cero horas**. No es un calendario: es una ventana, y por eso la capa **se refresca** en vez de copiarse |
+| **La forma, medida** | `text/html; charset=UTF-8`. Trae su cicatriz: las celdas de hora **se abren con `<td>` y se cierran con `</th>`** —`<td>07:00</th>`—, así que un `/<td>(.*?)<\/td>/` no encuentra ni una. Y la frase de frecuencias da **los tres tipos de día a la vez** sin marcar cuál aplica |
+| ⭐ **Qué día es lo dice el GTFS** | Como la web no marca el tipo de día, se decide con el dato de § 1.7: la **letra en la posición 7** del `service_id` (`029005F`, `035510L`, `022507S`), por mayoría de los servicios activos ese día. Medido: `20260905` → `S=208`, `20260906` → `F=197`, `20260907` → `L=317`. **Así un festivo entre semana sale bien**, que deduciéndolo del día de la semana saldría mal |
+| **Licencia** | ⛔ **La misma de § 1.24, y dice que no.** El aviso legal del grupo —`www.avanzabus.com/informacion/aviso-legal/`, § 2.2, transcrito literal en § 1.24— prohíbe expresamente *«la extracción y/o reutilización»*. **No se repite aquí la transcripción: se remite a la de § 1.24**, que es la misma letra y está fechada |
+| ℹ️ **El aviso LOCAL: `NO CONSTA`** | `zaragoza.avanzagrupo.com/aviso-legal/` **no se ha leído**, y no por descuido: el `robots.txt` del dominio lo **prohíbe expresamente a los rastreadores** (`Disallow: /aviso-legal/`). Si su texto coincide con el del grupo o lo matiza, **no consta**. Se abre en un navegador en diez segundos —robots vincula a los rastreadores, no a las personas— y entonces deja de ser un `NO CONSTA` |
+| **`robots.txt`, medido** | 06/09/2026, 296 B: `Disallow: /wp-admin/` con **`Allow: /wp-admin/admin-ajax.php`** explícito · `Disallow: /uploads/` · `Disallow: /aviso-legal/`, `/politica-de-cookies/`, `/politica-de-privacidad/`. **`/lineas-y-horarios/` no está prohibido** |
+| **Atribución exigida** | **NO CONSTA**: el aviso legal no regula la reutilización con atribución —la prohíbe—. No hay fórmula que cumplir porque no hay permiso que acompañar |
+| ⭐ **Decisión** | La **misma del 01/09** que § 1.24 dejó escrita, aplicada a esta fuente por Antonio el **06/09/2026**: *dato público de un servicio público concesionado, y esto es una demo — se **atribuye** y se sigue*. Aquí la atribución no es solo el pie de créditos: **cada viaje que use un horario de esta fuente lo dice en un aviso**, con la línea, la ventana, la frecuencia y la hora de lectura. ⚠️ **Y no cambia lo que dice la licencia**: sigue diciendo que no |
+| **Campos** | La frase de frecuencias y las dos tablas de salidas. **Ninguno personal**: horas, nombres de cabecera y números de línea |
+| **¿Está en este repo?** | ❌ **No se copia: se consulta.** Con una excepción declarada: hay **tres trozos reales** de estas páginas en `motor/src/festivo.spec.ts` —de 820 a 3.914 bytes—, recortados desde el anclaje que el parser busca. Son bytes de la respuesta, **no un envoltorio compuesto**: es la ley de la entrada nº32 de `docs/BITACORA.md` |
+
+**El volumen, medido y no supuesto.** El cuadro es **por línea Y por sentido** —el 35 sentido −1
+da 07:00–01:20 el domingo y el −2 da 06:39–00:55—, y solo se pide por los sentidos que el feed
+deja a cero:
+
+| | |
+|---|---|
+| el domingo 13/09 | **15 sentidos** sin calendario —las siete líneas por sus dos sentidos, más **uno** de la 44— |
+| un laborable | **0**: el feed los trae todos, y la capa no hace ni una visita |
+| por pasada | 15 peticiones con **800 ms** entre ellas: ~2,3 MB y unos 19 s |
+| cada cuánto | TTL de **6 h**, refresco cada 3. Para comparar: el refresco de § 1.25 hace **64 peticiones cada hora** |
+
+> ⭐ **POR QUÉ HACE FALTA, Y POR QUÉ NO HAY DÓNDE IR A BUSCARLO MEJOR.**
+>
+> El GTFS de § 1.7 trae para **siete líneas** —**22, 23, 31, 33, 34, 35 y 39**— un cuadro de curso
+> con tipos de día `L` y `S` y **ninguno `F`**. Consecuencia medida: el domingo 6/09 esas siete
+> tienen **cero viajes**, mientras que hasta el **30/08** —con el cuadro de verano, que sí tenía
+> `F`— circulaban los **nueve domingos seguidos**. Un cuadro de verano con más cobertura dominical
+> que el de curso va al revés de lo normal.
+>
+> Y en la calle circulan: la web da para el 35 en domingo **07:00 → 01:20** y *«domingos y
+> festivos: 10 min»*. **Las siete tienen cuadro de domingo**, comprobadas una por una el 6/09.
+>
+> ⚠️ **No hay fuente mejor, y se buscó.** El NAP re-bajado el 6/09 es **byte a byte** el del
+> 23/06 («sin-cambios»). La página pública del NAP —ficha **975**, que resulta ser **el mismo
+> conjunto que la 1176**: 6,56 MB, 34.427 viajes, 53 rutas, 984 paradas, vigencia 16/09/2025 →
+> 27/12/2026— dice *«Actualizado el 30/6/2026»* y no ofrece histórico ni versiones. **Transitland**,
+> que sondea ese mismo fichero por su cuenta, tiene como última versión la del **30/06/2026**. El
+> Ayuntamiento **no publica GTFS**: su catálogo 335 son JSON/CSV/XML con contenido de 2018. El
+> único fichero del NAP más reciente para Zaragoza es el **tranvía solo** (ficha 1394, 07/07/2026),
+> que del 35 no dice nada.
+>
+> Así que o se suple, o esas siete líneas no existen los domingos. **Y esto no es una corrección
+> del feed**: es una capa encima que habla **solo donde el calendario calla** —si el operador
+> publica el festivo del curso, deja de dispararse sola, sin tocar una línea de código—.
+
+> ℹ️ **Lo que esta capa NO hace, y consta.**
+>
+> · **No trae el horario viaje a viaje**: la web da primeras y últimas salidas, no la tabla
+> entera. Lo que entra en la búsqueda es **servicio por frecuencia** [`frequencies.txt` con
+> `exact_times=0`], que es el modelo que el motor ya usa desde la casilla 8 —`E[W] = H/2`—.
+>
+> · **No toca los tiempos de recorrido**: los segundos entre postes salen del patrón que el feed
+> **sí** trae. La geometría y lo que se tarda entre dos paradas no cambian de un día a otro.
+>
+> · **Solo el patrón principal** de cada sentido. El cuadro dice lo que hace la línea, no cada uno
+> de sus refuerzos.
+>
+> · **Y si la web calla, manda el feed.** Sin cuadro, la línea sigue sin servicio. No saber no es
+> saber lo contrario, y un servicio inventado manda a alguien a una marquesina vacía.
+
+### 1.36 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
