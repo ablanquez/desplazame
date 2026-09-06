@@ -1951,7 +1951,8 @@ la casilla 3 con las cifras delante, no se hereda a ciegas.
 noche del 30/08 con nueve reglas y el calendario verificado; el
 censo, el cron, la cocina, el viaje, los desvíos, la pantalla y los
 pulidos en tres días; la demo confirmada por el ojo el 1/09:
-«funciona perfecto»)*
+«funciona perfecto». Mantenimiento del 6/09: el reloj, las capas y
+cinco bitácoras — ver el ANEXO al final de este punto)*
 
 *(Anotado el 29/08, de la auditoría de sentidos:)* las SHAPES del
 GTFS son trazas direccionales reales (el bus recorre la calle en su
@@ -2625,6 +2626,133 @@ Dejado aquí desde el punto 4, para cuando toque:
       están declaradas sin viajes. El buscador lista lo que opera
 - [x] ⚰️ HECHO (los patrones se derivan por SECUENCIA de paradas, nunca por sufijo — la 3a) · **Los sentidos del tranvía NO se derivan del sufijo a ciegas**:
       tres saltos conocidos en los stop_code (`1311/1312`, `2322`, `2422`)
+- [x] **⭐ ANEXO del 6/09 — LA JORNADA DEL RELOJ Y LAS CAPAS
+      (mantenimiento del bus cerrado; 5 bitácoras nº33-37, ~19
+      commits, todo cazado por el ojo de Antonio):**
+      **(1) nº33 · EL ENCADENADO.** La traza de la 29 (Coloso→Gómez
+      Laguna) volvía 140 m sobre suelo pisado: los saltos
+      reconstruidos se ruteaban SOLOS, sin memoria — y el retroceso
+      vivía EN LA COSTURA con el feed (llegaba por la arista 11279;
+      el feed sale por la 11280, su gemela). Doctrina OSRM aplicada
+      [via + continue_straight: «no puede hacer media vuelta» en el
+      waypoint; car.lua no las genera; el matiz: sin alternativa se
+      permite]: encadenado POR LAS DOS PUNTAS (el salto siguiente
+      arranca de la arista de llegada; al feed se le LEE por dónde
+      sale — aristaDeLaTraza, proyección a 25 m — sin re-rutearlo);
+      fondos de saco contados. Precio honesto: +138 m en el salto
+      para entrar al poste en la dirección en que el feed sale;
+      re-pisados 140→0. LEY: «una restricción que se salta sola
+      cuando estorba no avisa» (su 1ª versión mandaba el 34 % de
+      costuras por la salida de emergencia; vetando solo la gemela:
+      0/787). Re-medición 1.915 tríos (semilla declarada — la
+      selección del 3/09 NO CONSTA): 1 costura cambia de 787; los
+      18+12 retrocesos restantes son la limitación del casco del
+      3/09, no este fallo. ⚠️ EL ESPEJO descubierto y PENDIENTE:
+      feed llega → reconstruido sale tampoco lee por dónde entró.
+      **(2) EL FEED SIN FESTIVO + LA CAPA DEL FESTIVO.** El 35+22
+      no salía: 7 líneas (22·23·31·33·34·35·39) SIN cuadro de
+      festivo de curso en el único GTFS que existe [sondas: NAP
+      re-bajado «sin-cambios»; Transitland baja del mismo fichero;
+      el Ayuntamiento no publica GTFS; Avanza publica 1-2
+      veces/año] — y en la calle circulan [la web del 35, medida:
+      dom 10 min, 07:00→01:20]. La página de Avanza ES la API
+      [sonda + F12 de Antonio]: POST pelado por línea+sentido con
+      times-date (sin nonce ni cookies), ventana rodante hoy→+9
+      días; el KML es el recorrido DE OBRAS (paradas casan 29/31 a
+      5 m; traza no — NEVERA salvo provisionales); el ajax de
+      alteraciones exige nonce y da línea→avisos con título/enlace
+      (MEJORA del gacetero, en cola). LA CAPA [frequencies
+      exact_times=0 «headway durante el intervalo» +
+      calendar_dates exception_type=1 + arquitectura de capa
+      suplementaria OTP; la decisión de casa del 1/09 §1.24 + Ley
+      37/2007: los horarios son hechos]: 15 huecos suplidos (la 44
+      un sentido sí y otro no — medido) en 21 s, espera H/2 sobre
+      la ventana del cuadro, aviso con su paso, mudo honesto (la
+      página vacía real del +14 como fixture), caché+single-flight.
+      Los fixtures con LA CICATRIZ real de la web (<td>07:00</th> —
+      el parser obvio muere = prueba de copiado [nº32]).
+      **(3) nº34 · EL DESVÍO PRIMERO.** El ojo: transbordo en Plaza
+      España con la 22 DESVIADA (obras del Coso). La capa componía
+      sobre el patrón OFICIAL — la ley de capas es literal [GTFS
+      Trip Modifications: «el consumidor debe comportarse como si
+      el estático hubiera sido modificado»]: orden feed → desvío →
+      suplido. 7 de los 15 huecos iban desviados; el refresco cubre
+      también las suplidas (74 sentidos los domingos, 64 los
+      laborables — §1.25 corregida). Las 5 jueces se construían la
+      operativa A MANO pasándose el veredicto (imitaban el código);
+      con el refresco de producción, 4 rojas.
+      **(4) nº35 · LA VENTANA HORARIA.** El ojo: ¡un BÚHO a
+      mediodía! (35+N4 a las 16:15 — el N4 «cesado hace 8,3 h»).
+      Nadie preguntaba la hora («aquí no se casan horas», literal
+      en viaje-bus.ts) y EL RELOJ YA VIAJABA hasta porModo, donde
+      la rama del bus lo tiraba. Por la letra de la spec
+      [frequencies: start_time «comienza» · end_time «cesa» ·
+      >24:00:00 = día de servicio anterior]: dentro de ventana H/2;
+      antes de la primera, espera = primera−ahora (¡no un veto! la
+      diurna a las 03:00 se aborda carísima y pierde sola); después
+      de la última, cesado — mirando TAMBIÉN el día de ayer
+      (+86.400). La madrugada del cuadro web, desenrollada (01:20 →
+      25:20 — sin eso el arreglo rompía la capa). Corrección al
+      respaldo, medida: los >86.400 NO son los búhos (son 352 colas
+      nocturnas de diurnas; los búhos van en su propio día 01:00-
+      05:30). ⭐ LA MURALLA iba con RELOJ DE PARED para el bus
+      (16/20 pares cambiaban dom→lun — roja el lunes «sin
+      regresión»): clavada (dos relojes → dos sellos; el del martes
+      es el sellado). El sello del bus: 3 viajes con búho → 0
+      (mejoras de 14-24 min).
+      **(5) nº36 · LA JUEZ SOBRE LA OPERATIVA + LA REGLA DE CASA.**
+      El 29+38 en obras seguía vivo — DENTRO de la juez 4 del reloj
+      (montaba la red pelada: su mundo sin obras; sellaba bajar en
+      el 1293 y subir en el 334, que hoy nadie pisa). Tercera
+      aparición del día del MISMO patrón (la juez que imita el
+      mundo). El barrido de las 17 llamadas: 1 tramposa (corregida
+      a la operativa, fixture entero de las 4 líneas), 13 legítimas
+      DECLARADAS una a una, y la 5 devuelta a pelada tras medir que
+      la ceremonia no vigilaba nada («cumplir la regla no es
+      aparentarla»). REGLA DE CASA escrita en las cabeceras: «una
+      juez que compra un viaje concreto de un día concreto lo monta
+      sobre la operativa, o declara por qué no». La anatomía,
+      medida: suprimidas y patrón-rehecho arreglan el transbordo
+      POR SEPARADO; solo el patrón rehecho arregla LA TRAZA. Y LA
+      FRASE CORTA del festivo [Best Practices: «sé conciso»; la
+      regla de las frases llanas]: 161→62 chars — «Línea 35 hoy:
+      07:00–01:20, cada ~10 min (Fuente: Avanza, HH:MM)» (la ~
+      porque H/2 es media; la tripa, al comentario; esDelFestivo
+      como reconocedor).
+      **(6) nº37 · EL ARRANQUE HONESTO.** El ojo a las 17:20: 29+38
+      · 9,2 km — la petición cayó EN EL HUECO del arranque (~87 s
+      entre listen y capas calientes) donde el motor montaba el
+      OFICIAL EN SILENCIO; la ironía: el criterio correcto («el
+      motor no debe contestar sin su red — mentira rápida») estaba
+      escrito veinte líneas arriba, aplicado a la red y no a las
+      capas; y DOS JUECES certificaban el silencio («no inventar un
+      desvío» deslizado hasta «callar el no-sé» — dos frases
+      distintas). Doctrina [graceful degradation: «indicate data
+      staleness — inform users»; SWR fresh/stale; readiness
+      degradado: servir declarando, sin bloquear el listen]: el
+      hueco HABLA los 87 s («Ruta calculada con el horario oficial:
+      los desvíos de hoy aún no se han podido leer» + el del
+      festivo), los avisos desaparecen al calentar (secuencia
+      2→1→0 con juez), y la operativa gana EDAD (una capa de 8 h se
+      sirve diciéndolo — SWR). El arranque, medido: 11,7 s el caso
+      de Antonio CLAVADO con sus avisos; 95,7 s caliente y limpio
+      (35+41). Dato falso propio cazado y corregido en §1.35: «un
+      laborable no tiene huecos» — tiene 10 (los 9 búhos + el
+      51/0): el aviso del festivo saldrá casi a diario en el minuto
+      de arranque, y está bien. ⭐ LEY para la guía: «LA REGLA BUENA
+      SE DESPLAZÓ» — cuando una frase de la casa aparezca en el
+      comentario de una juez, releer para qué se escribió.
+      **La cola que deja la jornada** (por orden): el ESPEJO del
+      encadenado · la tabla «se consultan» del notices (son SEIS:
+      BiZi · poste · operativa · DGT · YeGo · festivo-web) ·
+      viajeEnBus SIN puerta para desvíos (hacerla obligatoria haría
+      la regla cumplirse sola) · el LOG A FICHERO del motor (hoy
+      impidió casar las 17:20; punto 14) · el ajax de alteraciones
+      al gacetero (mejora) · el KML de paradas provisionales
+      (nevera). Al cierre: 608 motor · 279 interfaz · 37 bitácoras,
+      0 abiertas · la capa operativa con edad y el festivo-web como
+      SEXTA fuente viva (§1.35).
+
 - [x] ⚰️ Nota histórica, ya sin tarea (el puntero del notices se corrigió el 22/08; los 196 huérfanos quedaron confirmados por el censo) · Al retirar los andamios de carga (~35,6 MB en el navegador), la
       imprecisión menor del notices — que vivía en §1.7 (GTFS), no en
       §1.6 como fichaba este plan: puntero corregido el 22/08 — quedó
@@ -3213,8 +3341,9 @@ CONSTA hasta la sonda).
       estrenar moto. La limpieza: README al día (siete modos · seis
       familias · la historia fechada 4→6→5→6) y los 16 unhandled a 0
       (eran 16 jueces dejando la capa ZBE en vuelo, no 5). ⚠️ Flecos
-      arriba: el «S/N» en el hito (498 soportes lo llevan — decisión
-      de frase para la demo) · la contabilidad del notices (dice 31
+      arriba: el «S/N» en el hito — ⚰️ RESUELTO el 6/09 con doctrina
+      [OSM nohousenumber + RAE]: la ausencia no se escribe (506 de
+      2.146; F-11 y fincas se dicen; juez de muralla) · la contabilidad del notices (dice 31
       habiendo 34 secciones; los «se consultan» son 4 con la DGT) —
       al saco antes del cierre del 13.
 - [x] **⭐ 2 · YeGo — HECHO (4-5/09, siete commits, probado por el

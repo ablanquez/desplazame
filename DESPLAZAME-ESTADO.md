@@ -14,7 +14,7 @@ palabra del reglamento (zona azul · zona naranja · discapacitado ·
 gratuito) y la sugerencia cruzada, el pestillo de la ZBE con el
 remate al parking público que la ordenanza permite, el distintivo
 por matrícula con la DGT como fuente, el polígono pintado y la traza
-roja; 32 bitácoras; la demo del ojo el 4/09. El 11, el 2/09: LA BOTONERA DE LA DEMO —
+roja; 37 bitácoras al 6/09 (la jornada del reloj y las capas: nº33-37, ver crónica); la demo del ojo el 4/09. El 11, el 2/09: LA BOTONERA DE LA DEMO —
 la bici en dos filas [Privada|Pública BiZi] con sus tres rutas, los
 botones «Bicis ahora / Anclajes ahora», el resumen único de avisos y
 el minuto una sola vez; el ojo: «la botonera la veo bien así». El 10, el 1/09: EL BUS Y EL TRANVÍA
@@ -140,7 +140,10 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TRAMOS — TramoDelViaje con comoSeVa/desde/hasta/hito sobre la
   geometría única). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal
   + 619 por punto medio).
-- **Los datos**: TREINTA Y CINCO conjuntos con ficha (el 35º, del
+- **Los datos**: TREINTA Y SEIS conjuntos con ficha (el 36º, del
+  6/09: EL CUADRO WEB DE AVANZA §1.35 — la SEXTA fuente que no se
+  copia: SE CONSULTA (festivo suplido, ventana rodante +9 días,
+  frase corta); el 35º, del
   4/09: YeGo §1.34 — la QUINTA fuente que no se copia: SE CONSULTA,
   GBFS 2.3 con su NO CONSTA de licencia documentado tras leer el
   contrato; el 34º, del
@@ -177,19 +180,53 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar** *(al cierre del 5/09 mediodía; el push del
-3/09 noche llegó hasta `8442284`)*: **la tanda del 4-5/09 entera — la
-demo del 12 con sus apaños (azul/naranja + sugerencia cruzada +
-frases llanas), EL PUNTO 12 CERRADO, la moto (casillas 0-3: letra
-OMUZ, privada sobre la red del coche, aparcamotos por conflación,
-grupo en botonera) y YeGo entero con el contrato leído y el área
-pintada; los papeles al día.** *(Las tandas ya publicadas: el push
+comprobado). **En local, sin publicar** *(al cierre del 6/09; el push del 5/09
+mediodía llegó hasta `20c96dd`)*: **la jornada del 6/09 entera — el
+S/N, el encadenado (nº33), la capa del festivo, el desvío-primero
+(nº34), la ventana horaria (nº35), la juez sobre la operativa y la
+frase corta (nº36), el arranque honesto con la edad (nº37) — ~19
+commits — y los papeles al día.** *(Las tandas ya publicadas: el push
 del 3/09 noche llevó las casillas 2 a 3-bis del 12 — el coche entero
 con las bitácoras nº31-32; el del 2/09, el punto 11 y el coche
 ruteando; 31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**LA JORNADA DEL 6/09 — EL RELOJ, LAS CAPAS Y CINCO BITÁCORAS
+(nº33-37; el ojo de Antonio cazó las cinco).** (1) nº33: los saltos
+reconstruidos se ruteaban solos — encadenado por las dos puntas
+[OSRM via/continue_straight], el retroceso vivía en la costura con
+el feed (arista gemela), 140→0 m re-pisados, +138 m de precio
+honesto; ley: «una restricción que se salta sola cuando estorba no
+avisa»; PENDIENTE el espejo (feed llega→reconstruido sale). (2) El
+feed sin festivo de curso (7 líneas; el único GTFS que existe,
+sondado) → LA CAPA DEL FESTIVO desde el cuadro web de Avanza
+[frequencies exact_times=0; la decisión de casa §1.24; POST pelado;
+ventana rodante +9 días]: 15 huecos suplidos, fixtures con la
+cicatriz real. (3) nº34: la capa componía sobre el OFICIAL con la
+22 desviada — el desvío PRIMERO [Trip Modifications: «como si el
+estático hubiera sido modificado»]; 7/15 huecos desviados; el
+refresco cubre las suplidas (74/64 sentidos); 5 jueces imitaban el
+código. (4) nº35: un búho a mediodía — LA VENTANA HORARIA por la
+letra de la spec (el reloj ya viajaba y el bus lo tiraba; antes de
+la primera espera=primera−ahora, no veto; el día de ayer +86.400;
+la madrugada del cuadro desenrollada 01:20→25:20); LA MURALLA iba
+con reloj de pared (roja el lunes «sin regresión») — clavada; el
+sello del bus 3 búhos→0. (5) nº36: el 29+38 en obras vivía EN LA
+JUEZ (red pelada = mundo sin obras); barrido de 17 llamadas, 1
+tramposa, 13 declaradas, 1 devuelta con razón; REGLA DE CASA: «una
+juez que compra un viaje de un día lo monta sobre la operativa, o
+declara por qué no»; la frase corta del festivo (161→62, con ~).
+(6) nº37: el hueco del arranque (~87 s) montaba el oficial EN
+SILENCIO con dos jueces certificándolo — ahora HABLA (2 avisos→1→0
+al calentar), la operativa con EDAD [SWR, degradado declarado], el
+listen sin retrasar; ley: «la regla buena se desplazó». Y el mini
+del S/N: la ausencia no se escribe (506 de 2.146; F-11 y fincas se
+dicen; juez de muralla «ningún hito escribe s/n»). Cola de la
+jornada: espejo · tabla se-consultan (SEIS) · viajeEnBus
+obligatorio · log a fichero (14) · ajax alteraciones · KML nevera.
+608 motor · 279 interfaz · 37 bitácoras, 0 abiertas.
 
 **LA CASILLA 2 DEL 13 — YeGo ENTERO, probado por el ojo (4-5/09).**
 Modo yego (octavo): dos etapas, la moto viable por coste con su
@@ -226,7 +263,7 @@ milímetros + portal + plazas como triple corroboración; nombreDe:
 revela el distintivo COMPARTIDO (un fieldset), sin parking; reset al
 cambiar; polígono y traza roja valen. La limpieza: README al día
 (siete modos · seis familias) y los 16 unhandled a 0. Flecos: el
-«S/N» del hito (498 soportes — frase para la demo) · la contabilidad
+«S/N» del hito (⚰️ resuelto el 6/09: la ausencia no se escribe) · la contabilidad
 del notices (31 vs 34 secciones; los «se consultan» son 4). Queda
 del 13: YeGo (2, ADELANTE con doctrina GBFS) y la demo (4).
 
@@ -1300,14 +1337,16 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **la casilla 4 del 13 — LA DEMO DE LA MOTO por
-el ojo** (privada + YeGo; la frase del «S/N» a su decisión) — con el
-vale, el 13 se cierra; (2) el saco del notices (la cabecera dice 31
-habiendo 35; los «se consultan» son CINCO ya: BiZi · poste · ruta
-operativa · DGT · YeGo); (3)
-las SONDAS del 12 y del 13 (ESRO · PMR · gratuito · parking de motos
-· YeGo) antes de prometer botones; (3) el push de la tanda del
-31/08-1/09 cuando Antonio lo nombre; (4) de fondo: el feed del Pilar
+**Lo siguiente:** (1) **el ESPEJO del encadenado** (feed llega →
+reconstruido sale no lee por dónde entró el bus — el hermano corto
+de la nº33); (2) el saco del notices (la tabla «NO SE COPIAN: SE
+CONSULTAN» con las SEIS vivas: BiZi · poste · operativa · DGT ·
+YeGo · festivo-web; la cabecera ya la corrigió el ejecutor); (3)
+**la casilla 4 del 13 — LA DEMO DE LA MOTO por el ojo** (privada +
+YeGo; el S/N ya resuelto) — con el vale, el 13 se cierra; (4)
+viajeEnBus obligatorio para desvíos · el log a fichero (punto 14) ·
+el ajax de alteraciones al gacetero · el KML (nevera); (5) de
+fondo: el feed del Pilar
 (el cron lo coge solo cuando Avanza lo suba), el cron en el panel de
 Hostinger al desplegar (punto 14), el RGC nuevo el 1/10 (migrar
 citas). EN LA NEVERA: LA FASE 2 DE SENTIDOS (mantenimiento del dato
@@ -1619,7 +1658,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 855 pruebas (576 motor + 279 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 887 pruebas (608 motor + 279 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
