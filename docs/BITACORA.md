@@ -111,7 +111,7 @@ paradas por el recorrido del feed y un solo aviso** a **22 paradas por el
 recorrido de hoy y los dos avisos**; el patrón servido es `22|0|1#hoy` con 31
 paradas y **ninguno** de los cinco postes suprimidos.
 
-**Commit:** `[PENDIENTE-FIX]` (y la entrada, `[PENDIENTE-BIT]`)
+**Commit:** `7177cb7` (y la entrada, `383f825`)
 
 **Ley que sale de aquí:** **cuando una capa nueva amplía quién circula, hay que
 ir a buscar a todos los que preguntan «quién circula».** `operaEl` se llamaba
