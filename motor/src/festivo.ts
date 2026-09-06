@@ -490,6 +490,32 @@ export async function refrescarElFestivo(
 /**
  * ⭐ EL AVISO, con la fuente dicha. Es el mismo trato que la DGT y el vivo: un
  * dato que no viene del feed se dice de dónde viene.
+ *
+ *     Línea 35 hoy: 07:00–01:20, cada ~10 min (Fuente: Avanza, 16:27)
+ *
+ * ⭐ **CORTA, y es una decisión de 6/09.** Antes decía esto:
+ *
+ * > *«El horario de la línea 35 hoy sale del cuadro web de Avanza (el
+ * > calendario del feed no trae el festivo de esta línea): 07:00–01:20, cada 10
+ * > min — Fuente: Avanza, 16:27.»*
+ *
+ * Ciento sesenta caracteres para decir un horario, y **la mitad eran
+ * fontanería**: de qué fichero sale el dato y qué le falta a ese fichero. Eso le
+ * importa a quien mantiene el motor —y por eso se queda aquí, en este
+ * comentario—, no a quien está en la calle mirando el móvil para saber a qué
+ * hora pasa el 35. [GTFS-RT Best Practices, literal: *«los viajeros suelen ver
+ * los avisos en móviles. Sé conciso»*.] Es la regla de las frases llanas de la
+ * casa y el patrón corto de la DGT.
+ *
+ * ⚠️ **Lo que NO se ha recortado es la atribución.** «Fuente: Avanza» con la
+ *    hora de lectura se queda entera, y va entre paréntesis y al final porque es
+ *    la parte que se lee después, no la que se busca. La ficha § 1.35 apoya la
+ *    decisión de usar este dato **en que cada viaje lo dice**: quitarlo de aquí
+ *    sería quitarle el suelo a esa decisión.
+ *
+ * ⚠️ **Y la frecuencia lleva `~`.** El cuadro da «cada 10 min» como frecuencia
+ *    media del tipo de día, no como una promesa: `E[W] = H/2` es una media, y un
+ *    «10» pelado se lee como un horario.
  */
 export function avisoDelFestivo(c: CuadroDelDia): string {
   const hora = new Date(c.cuando).toLocaleTimeString('es-ES', {
@@ -497,9 +523,7 @@ export function avisoDelFestivo(c: CuadroDelDia): string {
     minute: '2-digit',
   });
   return (
-    `El horario de la línea ${c.linea} hoy sale del cuadro web de Avanza ` +
-    `(el calendario del feed no trae el festivo de esta línea): ` +
-    `${c.primera}–${c.ultima}, cada ${Math.round(c.intervaloS / 60)} min — ` +
-    `Fuente: Avanza, ${hora}.`
+    `Línea ${c.linea} hoy: ${c.primera}–${c.ultima}, ` +
+    `cada ~${Math.round(c.intervaloS / 60)} min (Fuente: Avanza, ${hora})`
   );
 }
