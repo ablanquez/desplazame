@@ -14,6 +14,120 @@
 
 ---
 
+## [2026-09-06] ✅ CERRADA — La juez 4 sella un viaje que baja en el Coso 80 y sube en el Coso 55, y hoy no para nadie en ninguno de los dos
+
+**Categoría:** la juez que imita el mundo en vez de vigilarlo
+**Síntoma:** la juez 4 de la ventana horaria —escrita hoy mismo, una hora antes—
+compra este viaje y lo da por bueno:
+
+```
+29+38 · 68.1 min · 344 vértices · 0 avisos
+  4 baja : poste 1293 · Coso N.º 80
+  7 sube : poste 334 · Coso N.º 55 / Teatro Principal
+```
+
+Los dos postes están en el Coso, que hoy está en obras, y **ninguna de las dos
+líneas los pisa**. Medido contra el gacetero y contra la web, el mismo día:
+
+```
+29|1: fuera hoy = 433, 1293, 745
+38|0: fuera hoy = 744, 334, 664, 262, 263, 237, 238, 851
+poste 1293: en la web de hoy no lo pisa ninguna de las cuatro
+poste  334: en la web de hoy no lo pisa ninguna de las cuatro
+```
+
+Y lo pinta por donde tampoco pasa: la traza del 29 se separa **45,8 m de media
+y 445,3 m en lo peor** de su recorrido de hoy; la del 38, **121,5 m y 442,1 m**.
+
+⭐ **Producción, en cambio, está bien.** El mismo caso por `/api/ruta` contra el
+motor vivo da `35+41`, con los patrones `35|0|5#hoy` y `41|0|1#hoy`, los dos
+postes del transbordo pisados hoy según las dos fuentes, y la traza servida a
+**0,0 m** del operativo y a **217,6 m** del oficial. El fallo es de la juez, no
+del motor — y por eso da más miedo: es la que tendría que avisar.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **la suite entera**, con la
+juez 4 dentro y recién escrita:
+
+```
+ℹ tests 603
+ℹ suites 74
+ℹ pass 603
+ℹ fail 0
+```
+
+⚠️ **Y es la TERCERA VEZ HOY del mismo patrón.** Tres entradas del 6/09, tres
+jueces que construían a mano el mundo que debían vigilar:
+
+| | la juez | lo que se inventaba |
+|---|---|---|
+| nº34 | `festivo.spec` juez 1 | el veredicto de la 22, escrito en el test |
+| nº35 | `muralla` juez 13 | un reloj clavado que no llegaba al bus |
+| **nº36** | `viaje-bus.spec` juez 4 | la red **pelada**: un mundo sin obras |
+
+Tres formas distintas de lo mismo: **la juez monta su propio escenario y luego
+comprueba que el escenario cuadra**. Cuadra siempre.
+
+**Cómo se cazó:** ojo humano — Antonio leyó `29+38` en el diagnóstico y preguntó
+por el poste del transbordo.
+
+**Causa raíz:** **la juez montaba su viaje sobre `red`, la del feed, y ahí no
+hay obras.**
+
+```ts
+const aMediodia = viajeEnBus(motor, red, A, B, UN_DOMINGO, MEDIODIA);
+```
+
+`viajeEnBus` ni siquiera admite el parámetro de los desvíos —es la puerta corta,
+la de «busca un viaje en esta red»—, así que la juez no es que se olvidara de
+pasar la operativa: **estaba llamando a una función que no puede recibirla**. Y
+por eso no chirriaba nada.
+
+El resultado es una juez que compra un itinerario contra un mundo sin obras.
+Producción compone `feed → desvío → suplido` y la juez compone `feed` a secas:
+son dos mundos, y el que se sella es el que no existe.
+
+**Arreglo aplicado:**
+
+1. `motor/src/viaje-bus.spec.ts` — la juez 4 monta sobre **la red operativa del
+   día**, compuesta con `aplicarDesvios` a partir de un fixture con los
+   recorridos **enteros** de las cuatro líneas que el caso toca [nº32]. Compra
+   el ganador medido —`29+Ci1+53`—, que ninguna parada del viaje esté fuera del
+   recorrido de hoy de su línea, y que el desvío de la 29 **se diga**.
+2. **LA REGLA DE CASA**, escrita en la cabecera de `viaje-bus.spec.ts` y de
+   `festivo.spec.ts`: *una juez que compra un viaje concreto de un día concreto
+   lo monta sobre la red operativa, o declara en su comentario por qué la red
+   pelada le vale*. Y el barrido de las **17** llamadas, clasificadas una a una
+   con su porqué escrito.
+3. `motor/src/festivo.ts` — de paso, **la frase del aviso se acorta** de 161 a
+   62 caracteres: la fontanería —de qué fichero sale el dato y qué le falta— se
+   va al comentario del código, que es de quien es. La atribución se queda
+   entera.
+
+⚠️ **Y se ha medido dónde está de verdad la frontera**, que no es donde
+parecía: con la red pelada **pero pasando `suprimidas`** la juez pasa; con la
+operativa **sin** `suprimidas` también. Solo falla cuando no hay ninguna de las
+dos. Las dos mitades de la capa arreglan el poste por su cuenta —una lo borra
+del patrón, la otra prohíbe subirse—; lo que solo arregla el patrón rehecho es
+**la traza que se pinta**.
+
+**Commit:** `[PENDIENTE-JUECES]` y `[PENDIENTE-FRASE]` (y la entrada, `[PENDIENTE-BIT]`)
+
+**Ley que sale de aquí:** **una juez es un consumidor del dato, y le obliga lo
+mismo que a producción.** [GTFS Trip Modifications: *«el consumidor debe
+comportarse como si el estático hubiera sido modificado»*.] Si el motor compone
+tres capas y la juez compone una, la juez no está probando el motor: está
+probando una maqueta con el mismo nombre.
+
+**Y una tercera vez la misma ley, que ya es señal:** nº34 —el veredicto escrito
+en el test—, nº35 —el reloj que no llegaba— y ésta —la red sin obras— son la
+misma equivocación con tres caras. Por eso esta vez no se arregla solo el caso:
+se escribe la regla donde las jueces viven, y se pasa lista a las diecisiete.
+
+**Traza:** `motor/src/viaje-bus.spec.ts` (juez 4, la llamada a `viajeEnBus` con
+la red del feed) · `motor/src/festivo.spec.ts` (las de su familia).
+
+---
+
 ## [2026-09-06] ✅ CERRADA — El búho gana viajes de mediodía: la búsqueda del bus pregunta el DÍA y nunca la HORA
 
 **Categoría:** un reloj que llega a la puerta y no entra
