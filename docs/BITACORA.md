@@ -14,6 +14,149 @@
 
 ---
 
+## [2026-09-06] ✅ CERRADA — El primer minuto de vida del motor contesta con el horario oficial y no lo dice: un viaje a esperar en una calle en obras
+
+**Categoría:** el silencio de lo degradado
+**Síntoma:** Antonio pide `COLOSO 2 → GÓMEZ LAGUNA 38` a las **17:20** y la
+pantalla le da **9,2 km y ~62 min**, cuando el viaje bueno de esa tarde son
+**7,9 km y ~51 min**. Reproducido montando el caso sobre la red pelada y con la
+capa del festivo vacía, que es como el motor está recién arrancado:
+
+```
+sin reloj  : N2+N4 · 64.2 min · 7219 m · 0 avisos
+a las 17:20: 29+38 · 68.1 min · 9191 m · 0 avisos
+```
+
+**9.191 m**, clavados. Y el `29+38` **baja en el poste 1293 · Coso 80 y sube en
+el 334 · Coso 55**: los dos en obras, los dos sin autobús hoy. Cero avisos.
+
+La causa está en el reloj de la casa, no en la búsqueda: entre que el motor
+empieza a contestar y que sus dos capas aterrizan pasan **unos 60 segundos** —el
+pase de desvíos tarda 40 s y el del festivo 21, y van encadenados—. En ese hueco
+`trayecto.ts:591` hace lo que está escrito que haga:
+
+```ts
+const operativa = laOperativa();
+const preparado = prepararViajeEnBus(
+  motor,
+  operativa?.red ?? cocinada,                     // ← sin capa, el oficial
+  …,
+  operativa ? { suprimidas, avisos } : undefined,  // ← y ni un aviso
+```
+
+⚠️ **Y el criterio bueno estaba escrito veinte líneas más arriba, en el mismo
+fichero.** La red de bus se cocina con `await` **antes** del `listen`, y su
+comentario dice por qué:
+
+> *«el motor no debe empezar a contestar sin su red. Una petición de bus contra
+> una red a medio cocinar devolvería “no hay ruta” en vez de esperar, y eso es
+> **una mentira rápida**.»*
+
+Se aplicó a la red y no a las capas. Contestar con el oficial callando que no se
+ha mirado la calle es la misma mentira, dicha con más aplomo.
+
+ℹ️ **Y hay una segunda mitad**: `laOperativa()` es `return servida;` —**no
+caduca nunca**, solo se reemplaza—. Una capa de hace ocho horas se sirve igual
+que una de hace ocho segundos, y las dos callan lo mismo. La del festivo, en
+cambio, sí tiene TTL: al caducar **apaga la línea**. Dos criterios distintos
+para el mismo hueco, en el mismo motor.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **la suite entera**, y no por
+descuido: **dos jueces certifican el silencio**, cada una con su razón bien
+escrita.
+
+```
+ℹ tests 604
+ℹ suites 74
+ℹ pass 604
+ℹ fail 0
+```
+
+`motor/src/patron-operativo.spec.ts`, juez 4 — *«sin veredicto, la red del feed
+intacta y **ni un aviso**»*, y en su cabecera:
+
+> *«No saber no es no haberlo. … Avisar de un desvío que no se ha podido
+> comprobar es inventarlo.»*
+
+`motor/src/festivo.spec.ts`, juez 6 — *«con la capa vacía el motor es el de
+antes»*.
+
+⭐ **La frase de la juez 4 es verdad, y compra otra cosa.** Son dos:
+
+| lo que se dice | ¿se puede? |
+|---|---|
+| «la línea 29 va desviada» sin haberlo mirado | **NO** — eso es inventarlo |
+| «todavía no sé si hoy hay desvíos» | **SÍ**, y no se decía |
+
+La juez compra la primera y de paso bendice la segunda. Y **el hueco de arranque
+no existe en la suite**: ninguna juez pide una ruta con las capas frías.
+
+**Cómo se cazó:** ojo humano — Antonio miró los kilómetros de la pantalla y vio
+que no cuadraban con los de media hora antes.
+
+**Causa raíz:** **el motor tenía dos estados y solo sabía contar uno.**
+
+`operativa?.red ?? cocinada` es un `??`: o hay capa o no la hay, y las dos ramas
+contestan con la misma cara. Falta el tercer estado —*la hay, pero es vieja*— y
+falta que las otras dos se distingan de cara afuera. La información de que la
+capa no estaba existía dentro del proceso, en la misma variable que se
+consultaba, y **no salía por la puerta**.
+
+Y no era un descuido de una línea: era la doctrina de la casa aplicada a medias.
+*«No saber no es no haberlo»* se había entendido como *no digas nada*, cuando
+dice *no afirmes lo que no sabes*. Decir «todavía no lo he mirado» no afirma
+nada: **es lo único que se sabe con certeza en ese minuto**.
+
+**Arreglo aplicado:** servir igual, diciendo lo que se sabe. **El `listen` no se
+retrasa** —readiness degradado: se sirve *reportando su estado*, que es el
+patrón del mudo honesto que la casa ya usa con el BiZi, la DGT y el festivo—.
+
+1. `motor/src/patron-operativo.ts` — la capa **guarda cuándo se sirvió**.
+   `edadDeLaOperativa()` da su edad, y `null` cuando no hay ninguna, que **no es
+   cero**. `EDAD_FRESCA_MS` = dos ritmos de refresco: se tolera un pase perdido.
+2. `motor/src/festivo.ts` — `elFestivoHaAterrizado()`. ⚠️ *«La capa está
+   vacía»* y *«la capa aún no ha corrido»* no son lo mismo, y desde fuera se
+   veían igual.
+3. `motor/src/trayecto.ts` — `loQueFaltaPorLeer`, con **tres estados**
+   [*stale-while-revalidate*]: fresca → nada; **vieja → se usa igual y se dice
+   su edad**; no hay → el oficial, diciéndolo. Una capa de hace tres horas es
+   mejor información que el recorrido de curso; lo que no vale es callar su
+   edad.
+
+Medido en un arranque entero, con las dos fuentes vivas:
+
+```
+[  8.2 s] listen — operativa=NO HAY · festivo aterrizado=false
+[ 11.7 s] EN EL HUECO   29+38 · 9191 m
+            «Ruta calculada con el horario oficial: los desvíos de hoy aún no se han podido leer.»
+            «Hay líneas cuyo horario de hoy aún no se ha podido leer.»
+[ 73.2 s] ruta operativa de hoy — 74 sentidos · 23 detectados · 23 aplicados · 42 s
+[ 75.4 s] A MEDIAS      29+Ci1+53 · queda el aviso del festivo, y sale el del desvío de la 29
+[ 94.8 s] festivo: 15 huecos · 15 suplidos · 0 mudos
+[ 95.7 s] CALIENTE      35+41 · 7879 m · ni un aviso del hueco
+```
+
+**El hueco dura 87 s** y ahora habla los 87.
+
+**Commit:** `[PENDIENTE-FIX]` (y la entrada, `[PENDIENTE-BIT]`)
+
+**Ley que sale de aquí:** **un estado degradado que no se declara es una
+afirmación falsa.** Contestar con el horario oficial no es mentir; contestarlo
+con la misma cara con la que se contesta la calle de hoy, sí. Cuando el motor
+sepa menos de lo normal, la respuesta tiene que saberlo también.
+
+**Y una segunda, sobre la jurisprudencia de casa:** *«no saber no es no
+haberlo»* nació el 31/08 para no inventar desvíos y era correcta; ocho días
+después se estaba usando para justificar callar el no-sé. **Una regla buena
+también se desplaza.** Cuando una frase de la casa aparezca en el comentario de
+una juez, conviene releer para qué se escribió, no solo qué dice.
+
+**Traza:** `motor/src/trayecto.ts` (`calcularTrayectoVivo`) ·
+`motor/src/patron-operativo.ts` (`laOperativa`, `servirOperativa`) ·
+`motor/src/festivo.ts`.
+
+---
+
 ## [2026-09-06] ✅ CERRADA — La juez 4 sella un viaje que baja en el Coso 80 y sube en el Coso 55, y hoy no para nadie en ninguno de los dos
 
 **Categoría:** la juez que imita el mundo en vez de vigilarlo
