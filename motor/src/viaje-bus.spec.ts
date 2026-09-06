@@ -5,6 +5,29 @@
  * la casa; no se llama a nadie de fuera. Los casos de las firmas **están
  * medidos sobre el dato real**, no inventados: cada uno se encontró barriendo la
  * red y sus cifras son las que salen.
+ *
+ * ⭐ ── LA REGLA DE CASA (6/09) ───────────────────────────────────
+ *
+ * **Una juez que compra un viaje concreto de un día concreto lo monta sobre la
+ * red OPERATIVA —`aplicarDesvios` con el recorrido de ese día—, o declara en su
+ * propio comentario por qué la red pelada le vale.**
+ *
+ * Sale de la entrada nº36 de `docs/BITACORA.md`, que es la tercera del mismo
+ * día sobre la misma forma de equivocarse. La juez 4 de la ventana horaria
+ * montaba sobre la red del feed y sellaba un `29+38` que **baja en el poste
+ * 1293 · Coso 80 y sube en el 334 · Coso 55**, dos postes que hoy no pisa nadie
+ * porque el Coso está en obras. Con 603 jueces en verde.
+ *
+ * El porqué es de manual: [GTFS Trip Modifications] *«el consumidor debe
+ * comportarse como si el estático hubiera sido modificado»*, **y una juez
+ * también es un consumidor**. Una que se construye a mano el mundo que debería
+ * vigilar no vigila: imita, y lo imitado cuadra siempre.
+ *
+ * ⚠️ **«Declarar» no es una salida fácil, es una obligación de escribir.** Vale
+ *    para las jueces que compran una RELACIÓN —«con la capa cambia y sin ella
+ *    no», «con reloj sale igual que sin él», «dos consultas son dos visitas»—,
+ *    porque esa relación se sostiene sobre cualquier red mientras sea la misma
+ *    en los dos lados. No vale para las que compran un itinerario.
  */
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,6 +38,15 @@ import { cargarRejilla, type Rejilla } from './proyeccion.ts';
 import { cuadernoPara } from './ruta.ts';
 import { cargarPortales, type PortalesEnMemoria } from './portales.ts';
 import { andarConElPeaton, cocinar, operaEl, type AndarEntre, type RedDeBus } from './red-bus.ts';
+import {
+  aplicarDesvios,
+  aristaDeLaTraza,
+  avisoDeDesvio,
+  rodarConElCoche,
+  type RedConDesvios,
+} from './patron-operativo.ts';
+import { cargarRedDeCoche } from './coche.ts';
+import { compararRecorrido, oficialDe } from './desvios.ts';
 import { elFeedQueSeSirve } from './feed.ts';
 import { metrosEntre } from './cercano.ts';
 import {
@@ -650,7 +682,10 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    * Entonces la ruta **sale igual** —componer sin prometer— con la espera del
    * horario publicado, y el aviso nombra **la línea y el poste**, que es lo que
    * permite ponerlo al lado de SU hito y no de otro [GOV.UK, doble sitio].
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: compra que un aviso APAREZCA y que la ruta siga saliendo. Ni el texto del aviso
+ * ni la existencia de ruta dependen de por dónde pase hoy el autobús.
+ */
   test('⭐ 11 · si la línea no está en el poste, se dice — y la ruta sale igual', async () => {
     reiniciarVisitas();
     const { origen, destino } = elOjo();
@@ -693,7 +728,9 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    * «disponibilidad no verificada»— porque es la misma condición: se ha
    * preguntado y no se sabe. **Y no es lo mismo que la juez 11**: allí la
    * fuente contestó y dijo que no venía nadie; aquí no contestó.
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: compra la conducta ante un mudo. El desvío no cambia quién calla.
+ */
   test('⭐ 12 · si la API calla, D-G: la ruta sale con su aviso y sin promesas', async () => {
     reiniciarVisitas();
     const { origen, destino } = elOjo();
@@ -796,7 +833,10 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    *    lo que la sustituye compra lo contrario por la misma razón de fondo (el
    *    límite de 10 s de [NN/g]) — antes en paralelo, ahora no preguntando.
    *    Su otra mitad, la deduplicación en vuelo, sigue viva en la juez 13.
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: cuenta VISITAS a la fuente. El número de consultas es el mismo se pase por
+ * donde se pase.
+ */
   test('⭐ 27 · el Generar consulta el primer poste y ninguno más', async () => {
     reiniciarVisitas();
     let pedidas = 0;
@@ -928,7 +968,10 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    * Es el mismo poste del que habla el hito, y la regla del doble sitio [GOV.UK]
    * exige que digan lo mismo: si el paso dice «poste 33 · Av. Academia» y el
    * aviso dice solo «Av. Academia», quien los lee no puede casarlos de un vistazo.
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: compra que dos textos coincidan ENTRE SÍ. La coherencia se sostiene sobre
+ * cualquier red mientras sea la misma en los dos lados.
+ */
   test('⭐ 26 · el aviso del vivo nombra el poste igual que el hito', async () => {
     reiniciarVisitas();
     const { origen, destino } = elOjo();
@@ -1084,7 +1127,9 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    *
    * ⚠️ **Y el reloj no cambia**: el total sigue sumando `E[W] = H/2`. Decir
    * «cada 8 min» y sumar 4 no es contradictorio — son dos preguntas distintas.
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: compra la forma de una frase, no el itinerario que la lleva.
+ */
   test('⭐ 19 · las subidas dicen la frecuencia; solo el vivo dice un minuto', async () => {
     const t = elViajeDe('Portales.93310', 'Portales.98006');
     const sube = t.pasos.find((p) => p.giro === 'sube')!;
@@ -1156,7 +1201,10 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
    *   los índices de cada tramo caen dentro de la geometría y se tocan en las
    *   costuras. Es lo que `redondearTramos` promete, y ahora hay 470 vértices
    *   donde había 47.
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: compra que las sumas del contrato cuadren consigo mismas —metros, segundos,
+ * pesos—. Cuadran sobre cualquier red.
+ */
   test('⭐ 15 · el montado va por el asfalto y las sumas del contrato cierran', () => {
     const { origen, destino } = elOjo();
     const t = prepararViajeEnBus(motor, red, origen, destino, UN_MARTES).trayecto();
@@ -1202,6 +1250,10 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
     });
   });
 
+  /**
+   * ℹ️ **La red pelada le vale** [REGLA DE CASA]: cuenta VISITAS a la fuente,
+   * como la 27. Dos pulsaciones son dos consultas se pase por donde se pase.
+   */
   test('⭐ 14 · dos «Generar» son dos consultas, no una guardada', async () => {
     reiniciarVisitas();
     const { origen, destino } = elOjo();
@@ -1227,7 +1279,294 @@ const EL_LUNES = '20260914';
 const MEDIODIA = 13 * 3600;
 const LA_MADRUGADA = 90 * 60;
 
+
+/**
+ * ⭐ EL RECORRIDO REAL DE HOY de las cuatro líneas que el caso del Coloso toca,
+ * copiado **entero** de lo que `admin-ajax.php?action=get_stops_list` contestó
+ * el 6/09/2026 [la ley de la entrada nº32: ni un byte compuesto].
+ *
+ * ⚠️ **Son cuatro líneas, no las cincuenta y nueve, y eso se declara.** El
+ *    barrido completo de ese día dio 23 sentidos desviados; se ha medido que el
+ *    ganador de este caso es **el mismo** con los 23 veredictos que con estos
+ *    ocho —`29+Ci1+53 · 77,4 min` las dos veces—, así que las demás líneas se
+ *    quedan sin veredicto y con su patrón del feed. Eso **no es una licencia de
+ *    la prueba**: es exactamente lo que hace producción con una línea que el
+ *    refresco todavía no ha leído —*no saber no es no haberlo*—.
+ *
+ * ⚠️ Y `get_stops_list` **no acepta fecha**: contesta el recorrido de HOY. Este
+ *    fixture es, por tanto, «la calle del 6/09» aplicada al domingo de las
+ *    jueces. Es un *fixture*, no una predicción.
+ */
+const RECORRIDOS_DE_HOY: Readonly<Record<string, readonly { readonly poste: number; readonly nombre: string }[]>> = {
+  '29|0': [
+    { poste: 284, nombre: "Camino de Las Torres n.º 10" },
+    { poste: 889, nombre: "Concepción / Miguel Servet" },
+    { poste: 744, nombre: "Plaza San Miguel" },
+    { poste: 340, nombre: "Coso n.º 188" },
+    { poste: 1246, nombre: "P. Echegaray y Caballero / Puente de Piedra" },
+    { poste: 1247, nombre: "Pso. Echegaray y Caballero / Puente de Santiago" },
+    { poste: 126, nombre: "Av. de Los Pirineos / Tv Aragón" },
+    { poste: 816, nombre: "Valle de Broto / Parque del Tío Jorge" },
+    { poste: 217, nombre: "Av. Salvador Allende / Bomberos" },
+    { poste: 3010, nombre: "Av. Salvador Allende / Juslibol" },
+    { poste: 218, nombre: "Av. Salvador Allende / del Somport" },
+    { poste: 213, nombre: "Av. Salvador Allende Fte. n.º 85" },
+    { poste: 214, nombre: "Av. Salvador Allende / San Juan de La Peña" },
+    { poste: 28, nombre: "Av. Academia General Militar n.º 2" },
+    { poste: 29, nombre: "Av. Academia General Militar n.º 14" },
+    { poste: 31, nombre: "Av. Academia General Militar n.º 54" },
+    { poste: 34, nombre: "Av. Academia General Militar / Maz" },
+    { poste: 32, nombre: "Av. Academia General Militar / Cristo Rey" },
+    { poste: 366, nombre: "Autovía de Huesca / Pasarela" },
+    { poste: 527, nombre: "Jesús Y María n.º 15" },
+    { poste: 346, nombre: "Cristo Rey n.º 23" },
+    { poste: 347, nombre: "Cristo Rey n.º 77" },
+    { poste: 219, nombre: "Hospital Royo Villanova" },
+  ],
+  '29|1': [
+    { poste: 219, nombre: "Hospital Royo Villanova" },
+    { poste: 529, nombre: "Jesús Y María n.º 89" },
+    { poste: 528, nombre: "Jesús Y María n.º 61" },
+    { poste: 346, nombre: "Cristo Rey n.º 23" },
+    { poste: 347, nombre: "Cristo Rey n.º 77" },
+    { poste: 883, nombre: "Camino de Los Molinos n.º 150" },
+    { poste: 898, nombre: "Camino de Los Molinos n.º 165" },
+    { poste: 365, nombre: "Bernardo Ramazzini n.º 5" },
+    { poste: 1203, nombre: "Bernardo Ramazzini / Maz" },
+    { poste: 36, nombre: "Av. Academia General Militar / Maz (Dir. Centro)" },
+    { poste: 33, nombre: "Av. Academia General Militar n.º 37" },
+    { poste: 3508, nombre: "Av. Academia General Militar n.º 7" },
+    { poste: 216, nombre: "Av. Salvador Allende n.º 107" },
+    { poste: 215, nombre: "Av. Salvador Allende n.º 85" },
+    { poste: 212, nombre: "Av. Salvador Allende n.º 67" },
+    { poste: 3012, nombre: "Av. Salvador Allende n.º 33" },
+    { poste: 210, nombre: "Av. Salvador Allende n.º 5" },
+    { poste: 811, nombre: "Valle de Broto n.º 18 / Av. Salvador Allende" },
+    { poste: 131, nombre: "Av. de Los Pirineos / Valle Broto" },
+    { poste: 124, nombre: "Av. de Los Pirineos / Colegio" },
+    { poste: 659, nombre: "P. Echegaray Y Caballero / Plaza del Pilar" },
+    { poste: 654, nombre: "P. Echegaray y Caballero n.º 112" },
+    { poste: 1285, nombre: "Asalto / Centro de Historias" },
+    { poste: 585, nombre: "Miguel Servet n.º 28" },
+    { poste: 284, nombre: "Camino de Las Torres n.º 10" },
+  ],
+  '38|0': [
+    { poste: 8000, nombre: "Instalaciones Az" },
+    { poste: 599, nombre: "Miguel Servet n.º 199" },
+    { poste: 3018, nombre: "Av. Cesáreo Alierta / 3Er Cinturón" },
+    { poste: 605, nombre: "Miguel Servet n.º 147" },
+    { poste: 594, nombre: "Miguel Servet n.º 123 / Padre Chaminade" },
+    { poste: 591, nombre: "Miguel Servet / Francisco Quevedo" },
+    { poste: 589, nombre: "Miguel Servet n.º 71 / Minas" },
+    { poste: 587, nombre: "Miguel Servet n.º 57" },
+    { poste: 586, nombre: "Miguel Servet n.º 37" },
+    { poste: 584, nombre: "Miguel Servet n.º 13" },
+    { poste: 1248, nombre: "P. de La Mina n.º 15" },
+    { poste: 634, nombre: "P. de La Constitución n.º 33 / Plaza de Los Sitios" },
+    { poste: 632, nombre: "P. de La Constitución n.º 11 / Plaza Aragón" },
+    { poste: 669, nombre: "P. Pamplona n.º 4 / Plaza Paraiso" },
+    { poste: 505, nombre: "Hernán Cortés n.º 6" },
+    { poste: 698, nombre: "P. de Teruel n.º 24" },
+    { poste: 795, nombre: "Santander n.º 34" },
+    { poste: 435, nombre: "Duquesa Villahermosa n.º 10" },
+    { poste: 442, nombre: "Duquesa Villahermosa n.º 109 / Vía Univérsitas" },
+    { poste: 3049, nombre: "Duquesa Villahermosa / Parque de Delicias" },
+    { poste: 440, nombre: "Duquesa Villahermosa / Alferez Rojas" },
+    { poste: 821, nombre: "Vía Hispanidad / Duquesa Villahermosa" },
+    { poste: 823, nombre: "Vía Hispanidad n.º 73 / Nuestra Señora de Los Ángeles" },
+    { poste: 1165, nombre: "Nuestra Señora de Los Ángeles n.º 20" },
+    { poste: 103, nombre: "Ciudad Escolar Pignatelli" },
+    { poste: 1315, nombre: "Biel / Dalia" },
+    { poste: 1316, nombre: "Hortensia / Biel" },
+    { poste: 1317, nombre: "Hortensia" },
+    { poste: 748, nombre: "Francisca Millán Serrano / M.A Blanco" },
+    { poste: 3537, nombre: "Aldebarán n.º 60" },
+    { poste: 627, nombre: "Las Pleyades / Berenice" },
+    { poste: 806, nombre: "Tulipán n.º 67" },
+  ],
+  '38|1': [
+    { poste: 806, nombre: "Tulipán n.º 67" },
+    { poste: 3539, nombre: "Vía Láctea / Torre Pajaritos" },
+    { poste: 8, nombre: "Miguel Ángel Blanco n.º 53" },
+    { poste: 260, nombre: "Av. Valdefierro n.º 43" },
+    { poste: 261, nombre: "Av. Valdefierro n.º 27" },
+    { poste: 258, nombre: "Av. Valdefierro n.º 1" },
+    { poste: 1318, nombre: "Dalia / Biel" },
+    { poste: 1319, nombre: "Jarque Moncayo / Escuela Pignatelli" },
+    { poste: 1166, nombre: "Nuestra Señora de Los Ángeles n.º 7" },
+    { poste: 604, nombre: "Nuestra Señora de Los Ángeles/ Vía Hispanidad" },
+    { poste: 439, nombre: "Duquesa Villahermosa n.º 155" },
+    { poste: 3052, nombre: "Duquesa Villahermosa n.º 129" },
+    { poste: 443, nombre: "Duquesa Villahermosa / Centro Deportivo Municipal" },
+    { poste: 437, nombre: "Duquesa Villahermosa n.º 97" },
+    { poste: 551, nombre: "López de Luna n.º 13" },
+    { poste: 236, nombre: "Av. San Juan Bosco n.º 7" },
+    { poste: 329, nombre: "Corona de Aragón n.º 51" },
+    { poste: 277, nombre: "Carmen n.º 19" },
+    { poste: 507, nombre: "Hernán Cortés n.º 35" },
+    { poste: 1079, nombre: "Hernán Cortés n.º 9" },
+    { poste: 681, nombre: "P. Pamplona n.º 1 / Plaza Paraíso" },
+    { poste: 1228, nombre: "P. de La Constitución / Patio de La Infanta" },
+    { poste: 1258, nombre: "P. de La Mina / Centro de Mayores" },
+    { poste: 585, nombre: "Miguel Servet n.º 28" },
+    { poste: 588, nombre: "Miguel Servet n.º 60" },
+    { poste: 590, nombre: "Miguel Servet n.º 86" },
+    { poste: 593, nombre: "Miguel Servet n.º 122" },
+    { poste: 602, nombre: "Miguel Servet / Belchite" },
+    { poste: 3017, nombre: "Miguel Servet n.º 174" },
+    { poste: 600, nombre: "Miguel Servet n.º 204" },
+    { poste: 601, nombre: "Miguel Servet / 3Er Cinturón" },
+    { poste: 1122, nombre: "Miguel Servet / Camino Enmedio" },
+    { poste: 598, nombre: "Cochera Avanza" },
+    { poste: 8000, nombre: "Instalaciones Az" },
+  ],
+  'Ci1|0': [
+    { poste: 1143, nombre: "Camino de Las Torres n.º 4" },
+    { poste: 284, nombre: "Camino de Las Torres n.º 10" },
+    { poste: 3027, nombre: "Camino de Las Torres n.º 24" },
+    { poste: 288, nombre: "Camino de Las Torres n.º 40" },
+    { poste: 294, nombre: "Camino de Las Torres / Plaza Schweitzer" },
+    { poste: 293, nombre: "Camino de Las Torres n.º 116" },
+    { poste: 480, nombre: "Gascón de Gotor n.º 4" },
+    { poste: 481, nombre: "Gascón de Gotor n.º 26" },
+    { poste: 17, nombre: "Arzobispo Morcillo n.º 32" },
+    { poste: 684, nombre: "P. Mariano Renovales n.º 10" },
+    { poste: 558, nombre: "Luis Vives n.º 9" },
+    { poste: 716, nombre: "P. Fernando El Católico n.º 70" },
+    { poste: 863, nombre: "Violante de Hungría / Palacio de Deportes" },
+    { poste: 864, nombre: "Violante de Hungría / Escuela de Idiomas" },
+    { poste: 851, nombre: "Vía Univérsitas n.º 10" },
+    { poste: 3053, nombre: "Vía Univérsitas n.º 44" },
+    { poste: 856, nombre: "Vía Univérsitas / Av. de Madrid" },
+    { poste: 3047, nombre: "Rioja n.º 22" },
+    { poste: 191, nombre: "Av. de Navarra / C.M.E. Inocencio Jiménez" },
+    { poste: 3073, nombre: "Estación Delicias / Acceso Llegadas" },
+  ],
+  'Ci1|1': [
+    { poste: 3073, nombre: "Estación Delicias / Acceso Llegadas" },
+    { poste: 1097, nombre: "Estación Delicias / Acceso Estación Autobuses" },
+    { poste: 1031, nombre: "Estación Delicias / Acceso Salidas" },
+    { poste: 1320, nombre: "Av. Expo 2008 / Etopía" },
+    { poste: 1107, nombre: "Av. Expo 2008 / Supermercado" },
+    { poste: 1160, nombre: "Av. de Ranillas / Puente Tercer Milenio" },
+    { poste: 1128, nombre: "Av. de Ranillas / Palacio de Congresos" },
+    { poste: 1108, nombre: "Av. de Ranillas / Parque Empresarial" },
+    { poste: 1161, nombre: "Av. de Ranillas / Ciudad de La Justicia" },
+    { poste: 3058, nombre: "Pablo Ruiz Picasso Fte. Policía" },
+    { poste: 1213, nombre: "Pablo Ruiz Picasso / G.Gómez Avellaneda" },
+    { poste: 3062, nombre: "G. Gómez Avellaneda n.º 47" },
+    { poste: 3063, nombre: "G. Gómez Avellaneda / Rosalía de Castro" },
+    { poste: 3064, nombre: "Valle de Broto / Kasán" },
+    { poste: 816, nombre: "Valle de Broto / Parque del Tío Jorge" },
+    { poste: 3501, nombre: "Valle de Broto n.º 9" },
+    { poste: 3033, nombre: "Marqués de La Cadena / Chimenea" },
+    { poste: 576, nombre: "Marqués de La Cadena n.º 57 / Plaza Mozart" },
+    { poste: 3542, nombre: "Marqués de La Cadena / Av. de La Jota" },
+    { poste: 3013, nombre: "Marqués de La Cadena / C.D.M. La Jota" },
+    { poste: 1208, nombre: "Marqués de La Cadena / Puente de La Unión" },
+    { poste: 1142, nombre: "Camino de Las Torres / CDM Alberto Maestro" },
+    { poste: 1143, nombre: "Camino de Las Torres n.º 4" },
+  ],
+  '53|0': [
+    { poste: 1000, nombre: "Plaza Emperador Carlos V / Intercambiador" },
+    { poste: 863, nombre: "Violante de Hungría / Palacio de Deportes" },
+    { poste: 325, nombre: "Condes de Aragón n.º 16" },
+    { poste: 537, nombre: "Av. Juan Carlos I / Jardines de Taifá" },
+    { poste: 134, nombre: "Av. Gómez Laguna n.º 20" },
+    { poste: 137, nombre: "Av. Gómez Laguna n.º 48" },
+    { poste: 3051, nombre: "Vía Hispanidad n.º 56" },
+    { poste: 822, nombre: "Vía Hispanidad / Villa de Andorra" },
+    { poste: 826, nombre: "Vía Hispanidad n.º 80" },
+    { poste: 829, nombre: "Vía Hispanidad n.º 100 / Los Enlaces" },
+    { poste: 6, nombre: "Alfred Nobel / Vía Hispanidad" },
+    { poste: 4, nombre: "Alfred Nobel / Monasterio" },
+    { poste: 2, nombre: "Agustín Príncipe n. º 2" },
+    { poste: 625, nombre: "Pedro Porter n.º 5" },
+    { poste: 525, nombre: "Jerónimo Cáncer n.º 24" },
+    { poste: 765, nombre: "San Alberto Magno / C.S. Oliver" },
+    { poste: 912, nombre: "Lagos de Coronas n.º 39" },
+    { poste: 913, nombre: "Lagos de Coronas / Campo de Fútbol" },
+    { poste: 914, nombre: "Lagos de Coronas / Ibón de Astún" },
+    { poste: 893, nombre: "Camino del Pilón / Ibón de Armeña" },
+    { poste: 297, nombre: "Camino del Pilón n.º 86 / Ibón de Plan" },
+    { poste: 298, nombre: "Camino del Pilón n.º 122" },
+    { poste: 1100, nombre: "Camino del Pilón n.º 141" },
+    { poste: 300, nombre: "Camino del Pilón / Iglesia" },
+  ],
+  '53|1': [
+    { poste: 300, nombre: "Camino del Pilón / Iglesia" },
+    { poste: 299, nombre: "Camino del Pilón n.º 131" },
+    { poste: 301, nombre: "Camino del Pilón / Ibón de Plan" },
+    { poste: 894, nombre: "Camino del Pilón / Lagos de Coronas" },
+    { poste: 3529, nombre: "Lagos de Coronas n.º 14 / Ibón de Astún" },
+    { poste: 916, nombre: "Lagos de Coronas / La Camisera" },
+    { poste: 3530, nombre: "Lagos de Coronas / Ibón de Escalar" },
+    { poste: 1284, nombre: "Antonio Leyva / C.S Oliver" },
+    { poste: 3532, nombre: "Antonio Leyva n.º 68 / Colegio" },
+    { poste: 14, nombre: "Antonio Leyva n.º 33" },
+    { poste: 3531, nombre: "Alfred Nobel n.º 5" },
+    { poste: 827, nombre: "Vía Hispanidad n.º 83" },
+    { poste: 825, nombre: "Vía Hispanidad n.º 77" },
+    { poste: 824, nombre: "Vía Hispanidad n.º 73" },
+    { poste: 3050, nombre: "Vía Hispanidad n.º 59" },
+    { poste: 139, nombre: "Av. Gómez Laguna n.º 49" },
+    { poste: 544, nombre: "Av. Juan Pablo II / Centro Comercial" },
+    { poste: 543, nombre: "Av. Juan Pablo II n.º 60" },
+    { poste: 623, nombre: "Pedro III / Asín Y Palacios" },
+    { poste: 25, nombre: "Asín Y Palacios n.º 8" },
+    { poste: 861, nombre: "Violante de Hungría n.º 5" },
+    { poste: 1000, nombre: "Plaza Emperador Carlos V / Intercambiador" },
+  ],
+};
+
+/**
+ * La red operativa del día: la del feed con esos recorridos encima.
+ *
+ * Es lo que `refrescarYServir` compone en producción, con la misma función y el
+ * mismo asfalto —por calzada, `rodarConElCoche`—. Ver la REGLA DE CASA arriba.
+ */
+function laOperativaDelDia(): RedConDesvios {
+  const coche = cargarRedDeCoche();
+  const veredictos = new Map<string, ReturnType<typeof compararRecorrido>>();
+  for (const [clave, postes] of Object.entries(RECORRIDOS_DE_HOY)) {
+    const [linea, direccion] = clave.split('|');
+    const patron = red.patrones.find(
+      (p) =>
+        p.principal &&
+        p.modo === 'bus' &&
+        lineaDelViaje(red, p).corto === linea &&
+        p.direccion === direccion,
+    );
+    if (!patron) {
+      continue;
+    }
+    veredictos.set(clave, compararRecorrido(oficialDe(red, patron), postes));
+  }
+  return aplicarDesvios(
+    red,
+    (linea, direccion) => veredictos.get(`${linea}|${direccion}`) ?? null,
+    new Map(),
+    rodarConElCoche(coche),
+    (traza, saliendo) => aristaDeLaTraza(coche, traza, saliendo),
+  );
+}
+
 describe('⭐ LA VENTANA HORARIA DEL SERVICIO — el reloj que faltaba', () => {
+  let operativa: RedConDesvios;
+  before(() => {
+    operativa = laOperativaDelDia();
+  });
+
+  /** El viaje del caso, montado sobre la red operativa y con sus avisos. */
+  const viajeDelDia = (a: Extremo, b: Extremo, fecha: string, ahora: number | null = null) =>
+    prepararViajeEnBus(motor, operativa.red, a, b, fecha, {
+      suprimidas: operativa.suprimidas,
+      avisos: operativa.desviadas.map((x) => ({
+        linea: x.linea,
+        direccion: x.direccion,
+        texto: avisoDeDesvio(x),
+      })),
+    }, ahora).trayecto();
   /** El patrón principal de una línea, por su corto. */
   const patronDe = (corto: string, direccion = '0') =>
     red.patrones.find(
@@ -1313,40 +1652,83 @@ describe('⭐ LA VENTANA HORARIA DEL SERVICIO — el reloj que faltaba', () => {
   });
 
   /**
-   * ⭐ JUEZ 4 — EL CASO DEL OJO: NINGÚN BÚHO A MEDIODÍA.
+   * ⭐ JUEZ 4 — EL CASO DEL OJO: NINGÚN BÚHO A MEDIODÍA, Y CON LAS OBRAS DENTRO.
    *
    * `CALLE EL COLOSO 2 → GÓMEZ LAGUNA 38` en domingo y con la capa del festivo
    * **vacía** salía por **N2+N4, 64,2 min** —dos búhos que a esa hora no
-   * circulan—. Con el reloj sale por el **29+38** que el diagnóstico del 6/09
-   * midió como la mejor alternativa de verdad.
+   * circulan—.
+   *
+   * ⚠️ **Y esta juez nació mal, el mismo 6/09.** Montaba sobre `red` —la del
+   *    feed— y por eso sellaba un `29+38` que **baja en el poste 1293 · Coso 80
+   *    y sube en el 334 · Coso 55**: dos postes que hoy no pisa nadie, porque el
+   *    Coso está en obras. Y los pintaba, con la traza a 45,8 m de media —445,3
+   *    en lo peor— de por donde el 29 pasa de verdad. Ver la entrada nº36 de
+   *    `docs/BITACORA.md` y la REGLA DE CASA de la cabecera.
+   *
+   * Ahora monta sobre la **operativa del día** y compra lo que gana con las
+   * obras puestas: `29+Ci1+53`, medido, con el aviso del desvío de la 29.
    */
-  test('⭐ 4 · el caso del Coloso a mediodía ya no lo gana un búho', () => {
+  test('⭐ 4 · el caso del Coloso a mediodía: ni búho, ni poste en obras', () => {
     const A = extremo('Portales.93310');
     const B = extremo('Portales.92683');
 
-    const sinReloj = viajeEnBus(motor, red, A, B, UN_DOMINGO);
+    const sinReloj = viajeDelDia(A, B, UN_DOMINGO);
     const lineasSin = sinReloj.tramos.map((t) => t.linea?.corto).filter((x): x is string => !!x);
     assert.ok(
       lineasSin.some((l) => /^N\d/.test(l)),
       `sin reloj este caso montaba un búho, y ahora monta ${lineasSin.join('+')}: la juez ya no vigila nada`,
     );
 
-    const aMediodia = viajeEnBus(motor, red, A, B, UN_DOMINGO, MEDIODIA);
+    const aMediodia = viajeDelDia(A, B, UN_DOMINGO, MEDIODIA);
     const lineasCon = aMediodia.tramos.map((t) => t.linea?.corto).filter((x): x is string => !!x);
-    assert.ok(lineasCon.length > 0, 'a mediodía tiene que haber viaje: no se compara con la nada');
+    assert.deepEqual(
+      lineasCon,
+      ['29', 'Ci1', '53'],
+      `con las obras dentro el ganador medido es 29+Ci1+53, y salió ${lineasCon.join('+') || '(nada)'}`,
+    );
     assert.deepEqual(
       lineasCon.filter((l) => /^N\d/.test(l)),
       [],
-      `a las 13:00 no puede montar ningún búho, y montó ${lineasCon.join('+')}`,
+      'a las 13:00 no puede montar ningún búho',
     );
-    // Y cada línea que monta tiene las 13:00 dentro de su ventana.
-    for (const m of buscarViaje({ red, fecha: UN_DOMINGO, ahora: MEDIODIA, acceso: accesos(A.lon, A.lat), salida: accesos(B.lon, B.lat) })!.montados) {
-      const v = ventanaDe(m.patron, red, UN_DOMINGO)!;
+
+    // ⭐ Y NINGUNA PARADA DEL VIAJE ESTÁ EN OBRAS. Se pregunta al fixture, que
+    //    es lo que la calle contestó: si un poste no está en el recorrido de hoy
+    //    de su línea, mandar a alguien a esperar ahí es mandarlo a una acera.
+    const viaje = buscarViaje({
+      red: operativa.red,
+      fecha: UN_DOMINGO,
+      ahora: MEDIODIA,
+      suprimidas: operativa.suprimidas,
+      acceso: accesos(A.lon, A.lat),
+      salida: accesos(B.lon, B.lat),
+    })!;
+    for (const m of viaje.montados) {
+      const corto = lineaDelViaje(operativa.red, m.patron).corto;
+      const v = ventanaDe(m.patron, operativa.red, UN_DOMINGO)!;
       assert.ok(
         v.primera <= MEDIODIA && MEDIODIA <= v.ultima,
-        `${lineaDelViaje(red, m.patron).corto} tiene ventana ${v.primera}–${v.ultima} y son las ${MEDIODIA}`,
+        `${corto} tiene ventana ${v.primera}–${v.ultima} y son las ${MEDIODIA}`,
       );
+      const enLaCalle = RECORRIDOS_DE_HOY[`${corto}|${m.patron.direccion}`];
+      if (!enLaCalle) {
+        continue;
+      }
+      for (const i of [m.iDesde, m.iHasta]) {
+        const parada = operativa.red.paradas.find((p) => p.id === m.patron.paradas[i]);
+        const poste = Number(String(parada?.codigo ?? '').replace(/^\D*0*/, ''));
+        assert.ok(
+          enLaCalle.some((q) => q.poste === poste),
+          `el viaje usa el poste ${poste} de la línea ${corto}, y hoy esa línea no pasa por ahí`,
+        );
+      }
     }
+
+    // Y el desvío de la 29 se dice: no basta con esquivarlo en silencio.
+    assert.ok(
+      aMediodia.avisos.some((a) => a.texto.includes('línea 29') && a.texto.includes('1293')),
+      `falta el aviso del desvío de la 29: ${aMediodia.avisos.map((a) => a.texto).join(' | ')}`,
+    );
   });
 
   /**
@@ -1355,6 +1737,13 @@ describe('⭐ LA VENTANA HORARIA DEL SERVICIO — el reloj que faltaba', () => {
    * `RODRIGO REBOLLEDO 37 → GÓMEZ LAGUNA 38` no montaba ninguno —medido en el
    * diagnóstico—, así que enchufar el reloj no puede moverlo. Es el sello que
    * separa «arreglar el búho» de «mover la búsqueda».
+   *
+   * ℹ️ **La red pelada le vale** [REGLA DE CASA], y se ha comprobado que sí:
+   * lo que compra es una RELACIÓN —idéntico con reloj y sin él— medida sobre la
+   * misma red en los dos lados. Se probó a montarla sobre la operativa y **la
+   * contraprueba no mordió**: su viaje es `Ci3+41`, y ninguna de esas dos líneas
+   * está en el fixture de recorridos, así que la operativa le daba exactamente
+   * la misma red con más ceremonia. Cumplir la regla no es aparentarla.
    */
   test('⭐ 5 · un viaje que no montaba búho sale idéntico con reloj y sin él', () => {
     const A = extremo('Portales.109451');

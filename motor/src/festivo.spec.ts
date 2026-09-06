@@ -11,6 +11,29 @@
  * El fallo que estas jueces vigilan es de los que no se ven: una capa que
  * suple un calendario puede **pisar un día que el feed sí trae** sin que nadie
  * se entere, porque el viaje sigue saliendo. Por eso la juez 4 es un sello.
+ *
+ * ⭐ ── LA REGLA DE CASA (6/09) ───────────────────────────────────
+ *
+ * **Una juez que compra un viaje concreto de un día concreto lo monta sobre la
+ * red OPERATIVA —`aplicarDesvios` con el recorrido de ese día—, o declara en su
+ * propio comentario por qué la red pelada le vale.**
+ *
+ * Sale de la entrada nº36 de `docs/BITACORA.md`, que es la tercera del mismo
+ * día sobre la misma forma de equivocarse. La juez 4 de la ventana horaria
+ * montaba sobre la red del feed y sellaba un `29+38` que **baja en el poste
+ * 1293 · Coso 80 y sube en el 334 · Coso 55**, dos postes que hoy no pisa nadie
+ * porque el Coso está en obras. Con 603 jueces en verde.
+ *
+ * El porqué es de manual: [GTFS Trip Modifications] *«el consumidor debe
+ * comportarse como si el estático hubiera sido modificado»*, **y una juez
+ * también es un consumidor**. Una que se construye a mano el mundo que debería
+ * vigilar no vigila: imita, y lo imitado cuadra siempre.
+ *
+ * ⚠️ **«Declarar» no es una salida fácil, es una obligación de escribir.** Vale
+ *    para las jueces que compran una RELACIÓN —«con la capa cambia y sin ella
+ *    no», «con reloj sale igual que sin él», «dos consultas son dos visitas»—,
+ *    porque esa relación se sostiene sobre cualquier red mientras sea la misma
+ *    en los dos lados. No vale para las que compran un itinerario.
  */
 import { test, describe, before, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
@@ -136,6 +159,17 @@ function comoSiLoHubieraLeido(
   return { linea, direccion, fecha, tipo: 'F', ...leido, cuando: Date.now() };
 }
 
+/**
+ * ⭐ ¿Es éste el aviso de la capa del festivo?
+ *
+ * ⚠️ Se reconoce por su FORMA —`Línea X hoy: … (Fuente: Avanza, HH:MM)`— y no
+ *    por un trozo de prosa. La frase se acortó el 6/09 y cuatro jueces buscaban
+ *    «cuadro web de Avanza», que ya no está: si se hubiera dejado así, habrían
+ *    dado por «no hay aviso» en vez de por «el aviso cambió».
+ */
+const esDelFestivo = (a: { readonly texto: string }): boolean =>
+  /^Línea .+ hoy: /.test(a.texto) && a.texto.includes('Fuente: Avanza,');
+
 /** Las líneas por las que un trayecto va montado, en orden. */
 const lineasDe = (t: { readonly tramos: readonly { readonly linea?: { readonly corto: string } }[] }) =>
   t.tramos.map((x) => x.linea?.corto).filter((x): x is string => !!x);
@@ -192,7 +226,12 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
    * Se compra **la ida y la vuelta**: con la capa sale por 35+22 y con su
    * aviso; sin ella, por otras líneas. Si solo se comprara lo primero, un
    * buscador que diera 35+22 siempre pasaría igual.
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: compra una RELACIÓN —con la capa el 35 aparece, sin ella no— y las dos mitades
+ * se miden sobre la misma red. **Lo que esta juez NO compra es que el viaje sea
+ * transitable hoy**: eso lo compra la juez 1 del describe de abajo, sobre la
+ * operativa, y es la que cazó el transbordo imposible del poste 720 [nº34].
+ */
   test('⭐ 1 · en domingo, con la capa el viaje sale por el 35 y la 22, y lo dice', () => {
     const sinCapa = viajeEnBus(motor, red, coloso, laguna, DOMINGO);
     const lineasSin = lineasDe(sinCapa);
@@ -218,7 +257,7 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
     );
 
     // ⭐ Y LO DICE, en los dos sitios: arriba y colgado del paso de subir.
-    const delFestivo = conCapa.avisos.filter((a) => a.texto.includes('cuadro web de Avanza'));
+    const delFestivo = conCapa.avisos.filter(esDelFestivo);
     assert.equal(delFestivo.length, 2, 'un aviso por cada línea suplida');
     for (const a of delFestivo) {
       assert.ok(a.texto.includes('Fuente: Avanza'), 'el aviso dice de quién es el dato');
@@ -230,8 +269,8 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
       );
     }
     assert.ok(
-      delFestivo.some((a) => a.texto.includes('línea 35')) &&
-        delFestivo.some((a) => a.texto.includes('línea 22')),
+      delFestivo.some((a) => a.texto.startsWith('Línea 35 hoy:')) &&
+        delFestivo.some((a) => a.texto.startsWith('Línea 22 hoy:')),
       'y nombra las dos líneas',
     );
   });
@@ -243,7 +282,10 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
    * su ventana—, la línea se queda **como el feed diga**: sin servicio. No
    * saber no es saber lo contrario, y un servicio inventado manda a alguien a
    * una marquesina vacía.
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: compra una AUSENCIA —la línea no aparece—, y un desvío no hace aparecer a
+ * quien no circula.
+ */
   test('⭐ 2 · una línea sin cuadro web sigue sin servicio', async () => {
     const el35 = red.patrones.find(
       (p) => lineaDelViaje(red, p).corto === '35' && p.principal && p.direccion === '0',
@@ -319,7 +361,10 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
    * pantalla. El sello es el sha256 del viaje entero en laborable —metros,
    * segundos, líneas, pasos y avisos—, y se comprueba **con la capa cargada de
    * cuadros del 35**: si alguno se colara, el número cambia.
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: compra que dos cálculos sobre la MISMA red den lo mismo. Es un sello de
+ * no-cambio, no un itinerario.
+ */
   test('⭐ 4 · el laborable no cambia ni un byte, con la capa llena', () => {
     const sello = (): string => {
       const t = viajeEnBus(motor, red, coloso, laguna, LUNES);
@@ -465,16 +510,45 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
     assert.equal(visitas(), 15, 'una visita por hueco, ni una más');
   });
 
-  /** ⭐ El aviso dice la línea, la ventana, la frecuencia y de quién es el dato. */
-  test('⭐ el aviso nombra la fuente y la hora', () => {
-    const c = comoSiLoHubieraLeido('35', '0', DOMINGO, CUADRO_35_DOMINGO);
-    const texto = avisoDelFestivo(c);
-    assert.ok(texto.includes('línea 35'));
-    assert.ok(texto.includes('07:00–01:20'));
-    assert.ok(texto.includes('cada 10 min'));
-    assert.ok(texto.includes('el calendario del feed no trae el festivo de esta línea'));
-    assert.ok(/Fuente: Avanza, \d{1,2}:\d{2}/.test(texto), `sin hora: ${texto}`);
+  /**
+   * ⭐ LA FRASE, CORTA Y ENTERA (6/09).
+   *
+   *     Línea 35 hoy: 07:00–01:20, cada ~10 min (Fuente: Avanza, 16:27)
+   *
+   * Se compran las dos mitades: **que esté todo lo que hace falta** —línea,
+   * ventana, frecuencia y la atribución con su hora— y **que NO esté la tripa**
+   * que se quitó. Sin lo segundo, un día alguien vuelve a explicar el feed en un
+   * aviso y nadie se entera [GTFS-RT Best Practices: *«sé conciso»*].
+   */
+  test('⭐ la frase del festivo es corta, y no ha perdido la fuente', () => {
+    const corto = avisoDelFestivo(comoSiLoHubieraLeido('35', '0', DOMINGO, CUADRO_35_DOMINGO));
+
+    // Lo que TIENE que estar.
+    assert.ok(corto.startsWith('Línea 35 hoy: '), `no empieza por la línea: ${corto}`);
+    assert.ok(/\d{1,2}:\d{2}–\d{1,2}:\d{2}/.test(corto), `sin la ventana: ${corto}`);
+    assert.ok(/cada ~\d+ min/.test(corto), `sin la frecuencia aproximada: ${corto}`);
+    assert.ok(/\(Fuente: Avanza, \d{1,2}:\d{2}\)$/.test(corto), `sin la atribución al final: ${corto}`);
+
+    // Y lo que NO puede volver: la fontanería, palabra por palabra.
+    for (const tripa of [
+      'sale del cuadro web',
+      'el calendario del feed',
+      'no trae el festivo',
+      'de esta línea',
+    ]) {
+      assert.ok(!corto.includes(tripa), `la tripa vieja ha vuelto: «${tripa}» en ${corto}`);
+    }
+
+    // ⚠️ Y un tope, que es el punto de todo esto. La de antes medía 161.
+    assert.ok(corto.length <= 70, `${corto.length} caracteres, y el tope son 70: ${corto}`);
   });
+
+  // ⚠️ Aquí vivía «el aviso nombra la fuente y la hora», y se ha BORRADO el
+  //    6/09: compraba, entre otras cosas, que el aviso incluyera «el calendario
+  //    del feed no trae el festivo de esta línea» —justo la tripa que la frase
+  //    corta quita—. La juez de arriba compra todo lo que ésta compraba (línea,
+  //    ventana, frecuencia, fuente con hora) y además que esa tripa NO vuelva.
+  //    Dejarla habría sido tener dos jueces peleadas por el mismo texto.
 });
 
 /**
@@ -780,7 +854,7 @@ describe('⭐ LA CAPA DEL FESTIVO SOBRE EL PATRÓN OPERATIVO — el desvío prim
       'con el desvío aplicado el caso del ojo ya no puede ir por la 22',
     );
     assert.ok(
-      delOjo.avisos.some((a) => a.texto.includes('cuadro web de Avanza')),
+      delOjo.avisos.some(esDelFestivo),
       'pero sigue suplido, y lo tiene que decir',
     );
     assert.equal(
@@ -797,12 +871,12 @@ describe('⭐ LA CAPA DEL FESTIVO SOBRE EL PATRÓN OPERATIVO — el desvío prim
     const t = prepararViajeEnBus(motor, compuesta.red, mina, laguna, DOMINGO, conDesvios).trayecto();
     const lineas = lineasDe(t);
     assert.ok(lineas.includes('22'), `este viaje tenía que ir en la 22 y fue por ${lineas.join('+')}`);
-    const delFestivo = t.avisos.filter((a) => a.texto.includes('cuadro web de Avanza'));
+    const delFestivo = t.avisos.filter(esDelFestivo);
     const delDesvio = t.avisos.filter((a) => a.texto.includes('va hoy desviada'));
     assert.ok(delFestivo.length > 0, 'falta el aviso del festivo');
     assert.ok(delDesvio.length > 0, 'falta el aviso del desvío');
     assert.ok(
-      delFestivo.some((a) => a.texto.includes('línea 22')),
+      delFestivo.some((a) => a.texto.startsWith('Línea 22 hoy:')),
       'el del festivo tiene que nombrar a la 22, que es la suplida',
     );
     assert.ok(
@@ -817,7 +891,10 @@ describe('⭐ LA CAPA DEL FESTIVO SOBRE EL PATRÓN OPERATIVO — el desvío prim
    * El sello de la juez 4 de la mañana, otra vez y con el desvío encima: un día
    * que el feed cubre entero no se entera de nada de esto. Ni una capa, ni un
    * aviso, ni un metro.
-   */
+   *
+ * ℹ️ **La red pelada le vale** [REGLA DE CASA]: y aquí es **a propósito**: el laborable tiene que salir igual aunque la
+ * operativa esté servida, y para verlo hay que pedirlo sobre la red del feed.
+ */
   test('⭐ 5 · el laborable no cambia ni un byte, con las dos capas llenas', () => {
     const aSecas = prepararViajeEnBus(motor, red, coloso, laguna, LUNES).trayecto();
     conLaCapaLlena();
@@ -829,7 +906,7 @@ describe('⭐ LA CAPA DEL FESTIVO SOBRE EL PATRÓN OPERATIVO — el desvío prim
       'el laborable tenía que salir idéntico',
     );
     assert.equal(
-      conTodo.avisos.filter((a) => a.texto.includes('cuadro web de Avanza')).length,
+      conTodo.avisos.filter(esDelFestivo).length,
       0,
       'y sin un solo aviso del festivo',
     );
