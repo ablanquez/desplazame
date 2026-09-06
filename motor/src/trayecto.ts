@@ -29,9 +29,15 @@ import type { SitiosEnMemoria } from './sitios.ts';
 import type { PortalesEnMemoria, PortalSituado } from './portales.ts';
 import type { RedEnMemoria } from './red.ts';
 import type { RedDeLaRueda } from './red-rueda.ts';
-import { laRedDeBus } from './red-bus.ts';
+import { laRedDeBus, type PatronBus, type RedDeBus } from './red-bus.ts';
 import { prepararViajeEnBus, segundosDelDia, viajeEnBus } from './viaje-bus.ts';
-import { avisoDeDesvio, laOperativa } from './patron-operativo.ts';
+import {
+  avisoDeDesvio,
+  edadDeLaOperativa,
+  laOperativa,
+  EDAD_FRESCA_MS,
+} from './patron-operativo.ts';
+import { elFestivoHaAterrizado, huecosDelCalendario } from './festivo.ts';
 import type { AparcabicisEnMemoria } from './aparcabicis.ts';
 import type { BiZiEnMemoria, Disponibilidad } from './bizi.ts';
 import { enganchar, type Enganche, type Rejilla } from './proyeccion.ts';
@@ -547,6 +553,76 @@ export function calcularTrayecto(
     : porModo(motor, previo, vivo ?? null, cuando, flota, area);
 }
 
+
+/**
+ * ⭐ LO QUE HAY QUE DECIR CUANDO LA CALLE NO SE HA PODIDO MIRAR (6/09).
+ *
+ * El motor empieza a contestar en cuanto tiene su red, y las dos capas que
+ * cuentan lo de HOY —los desvíos y el cuadro del festivo— tardan **unos 60
+ * segundos** en aterrizar: 40 el pase de desvíos y 21 el del festivo,
+ * encadenados. En ese minuto el motor contestaba con el horario oficial **sin
+ * decirlo**, y el 6/09 eso mandó a alguien a transbordar en el Coso, que está
+ * en obras: `29+38`, 9.191 m, cero avisos. Ver la entrada de esa fecha en
+ * `docs/BITACORA.md`.
+ *
+ * ⚠️ **No se retrasa el `listen`, y es una decisión.** Servir degradado y
+ *    reportarlo es la doctrina [readiness degradado: se sirve *«reportando su
+ *    estado»*], y es el patrón del **mudo honesto** que esta casa ya usa con el
+ *    BiZi, la DGT y el propio festivo. Bloquear el arranque un minuto para no
+ *    tener que escribir una frase sería pagar caro el silencio.
+ *
+ * ⭐ **Y son TRES estados, no dos** [*stale-while-revalidate*]:
+ *
+ * | la capa | qué se hace | qué se dice |
+ * |---|---|---|
+ * | **fresca** | se usa | nada |
+ * | **vieja** (más de `EDAD_FRESCA_MS`) | **se usa igual** | su edad |
+ * | **no hay** | el oficial | que no se ha podido leer |
+ *
+ * Una capa vieja no se tira: un desvío de hace tres horas sigue siendo mejor
+ * que el recorrido de curso. Lo que no vale es servirla callando su edad.
+ */
+function loQueFaltaPorLeer(cocinada: RedDeBus, fecha: string, ahora: number): readonly Aviso[] {
+  const avisos: Aviso[] = [];
+  const edad = edadDeLaOperativa(ahora);
+  if (edad === null) {
+    avisos.push({
+      texto: 'Ruta calculada con el horario oficial: los desvíos de hoy aún no se han podido leer.',
+    });
+  } else if (edad > EDAD_FRESCA_MS) {
+    avisos.push({ texto: `Los desvíos de hoy se leyeron hace ${comoSeDiceLaEdad(edad)}.` });
+  }
+  // ⚠️ **El festivo solo se declara si HOY hay algo que suplir**, y «hoy» no
+  //    quiere decir «domingo»: medido, un laborable tiene **diez** huecos —los
+  //    nueve búhos, que no circulan entre semana, y el `51/0`— y un domingo
+  //    quince. Así que este aviso sale casi todos los días durante el minuto
+  //    del arranque, y está bien que salga: esas diez líneas **no se han
+  //    mirado**. Lo que la condición evita es el día —si llega— en que el feed
+  //    venga completo: entonces no hay nada que declarar y no se declara.
+  //
+  // ⚠️ Y qué línea sin cargar habría ganado ESTE viaje no se puede saber sin
+  //    cargarla. Por eso la frase dice que hay líneas afectadas y no promete
+  //    que el viaje habría sido otro: es lo único cierto.
+  if (!elFestivoHaAterrizado()) {
+    const cortoDe = (p: PatronBus): string =>
+      cocinada.lineas.find((l) => l.id === p.linea)?.corto ?? p.linea;
+    if (huecosDelCalendario(cocinada, fecha, cortoDe).length > 0) {
+      avisos.push({ texto: 'Hay líneas cuyo horario de hoy aún no se ha podido leer.' });
+    }
+  }
+  return avisos;
+}
+
+/** La edad en la unidad que se lee de un vistazo. Ver la regla de las frases. */
+function comoSeDiceLaEdad(ms: number): string {
+  const minutos = Math.round(ms / 60_000);
+  if (minutos < 60) {
+    return `${minutos} min`;
+  }
+  const horas = Math.round(minutos / 60);
+  return horas === 1 ? '1 h' : `${horas} h`;
+}
+
 /**
  * ⭐ LA OTRA PUERTA: el trayecto **después de preguntarle a la calle** (31/08).
  *
@@ -609,7 +685,12 @@ export async function calcularTrayectoVivo(
     //    el mismo efecto: la línea que ya había cesado seguía siendo una opción.
     segundosDelDia(cuando),
   );
-  return preparado.conElVivo ? preparado.conElVivo(pedir) : preparado.trayecto();
+  const faltan = loQueFaltaPorLeer(cocinada, hoyEnGtfs(cuando), cuando.getTime());
+  const conLoQueFalta = (t: Trayecto): Trayecto =>
+    faltan.length === 0 ? t : { ...t, avisos: [...faltan, ...t.avisos] };
+  return preparado.conElVivo
+    ? preparado.conElVivo(pedir).then(conLoQueFalta)
+    : conLoQueFalta(preparado.trayecto());
 }
 
 /**

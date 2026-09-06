@@ -2313,7 +2313,7 @@ motor: ruta operativa de hoy — 74 sentidos · 23 detectados · 23 aplicados ·
 > cuenta.
 >
 > **Y el coste es cero los días que el feed viene completo**: los huecos se calculan del propio
-> calendario, y un laborable no tiene ninguno.
+> calendario, y un laborable tiene **diez** —los búhos y el `51/0`— en vez de quince.
 
 ---
 
@@ -3045,7 +3045,7 @@ deja a cero:
 | | |
 |---|---|
 | el domingo 13/09 | **15 sentidos** sin calendario —las siete líneas por sus dos sentidos, más **uno** de la 44— |
-| un laborable | **0**: el feed los trae todos, y la capa no hace ni una visita |
+| un laborable | **10**: los nueve búhos —que no circulan entre semana— y el `51/0`. ⚠️ Esta fila decía **0** y era falso: se escribió el 6/09 suponiendo que «el feed los trae todos» un laborable, y medido son diez. La capa pregunta por ellos igual: unos 8 s |
 | por pasada | 15 peticiones con **800 ms** entre ellas: ~2,3 MB y unos 19 s |
 | cada cuánto | TTL de **6 h**, refresco cada 3. Para comparar: el refresco de § 1.25 hace **74 peticiones cada hora** el domingo 6/09 —las **59** que el feed cubre más estos **15** huecos—, y **64** el laborable en que se midió su ficha |
 

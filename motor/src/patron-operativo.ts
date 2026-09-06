@@ -57,6 +57,7 @@ import type { Vertice } from '@desplazame/tipos';
 import type { ParadaBus, PatronBus, RedDeBus, SaltoBus } from './red-bus.ts';
 import { nombrarPoste, posteDeCodigo } from './avanza.ts';
 import type { ParadaDelDiff, Veredicto } from './desvios.ts';
+import { TTL_DESVIOS_MS } from './desvios.ts';
 import { rectaEntre } from './trazas.ts';
 import { metrosEntre } from './cercano.ts';
 import { enganchar, type Rejilla } from './proyeccion.ts';
@@ -592,9 +593,42 @@ export function aplicarDesvios(
  * escribe cuando el diff dice `comparado`.
  */
 let servida: RedConDesvios | null = null;
+/** Cuándo se sirvió la que hay. `null` mientras no haya ninguna. */
+let cuandoSeSirvio: number | null = null;
 
-export function servirOperativa(compuesta: RedConDesvios | null): void {
+/**
+ * ⭐ CADA CUÁNTO VUELVE EL REFRESCO. Es el mismo `TTL_DESVIOS_MS / 2` con el que
+ * el servidor programa su `setInterval`; vive aquí para que la edad se pueda
+ * juzgar sin arrastrar el servidor entero a una prueba.
+ */
+export const RITMO_DEL_REFRESCO_MS = TTL_DESVIOS_MS / 2;
+
+/**
+ * ⭐ HASTA CUÁNDO UNA CAPA SERVIDA SE CONSIDERA FRESCA: **dos ritmos**.
+ *
+ * O sea, se tolera **un pase perdido** y el siguiente ya se declara. No es un
+ * número redondo elegido a ojo: es el ritmo del refresco con el margen de una
+ * vuelta, que es lo que separa «la fuente tardó un poco» de «la fuente lleva
+ * rato sin contestar».
+ *
+ * ⚠️ **Pasada de vieja NO se tira**: se sigue sirviendo, diciendo su edad. Un
+ *    desvío de hace tres horas sigue siendo mejor información que el recorrido
+ *    de curso, y el modelo está escrito —*stale-while-revalidate*: servir lo
+ *    cacheado mientras se revalida, **con la edad acotada y dicha**—.
+ */
+export const EDAD_FRESCA_MS = RITMO_DEL_REFRESCO_MS * 2;
+
+export function servirOperativa(compuesta: RedConDesvios | null, ahora: number = Date.now()): void {
   servida = compuesta;
+  cuandoSeSirvio = compuesta === null ? null : ahora;
+}
+
+/**
+ * Los milisegundos que lleva servida la capa que hay, o `null` si no hay
+ * ninguna —que no es lo mismo que «cero»: es que aún no se ha leído la calle—.
+ */
+export function edadDeLaOperativa(ahora: number = Date.now()): number | null {
+  return cuandoSeSirvio === null ? null : ahora - cuandoSeSirvio;
 }
 
 export function laOperativa(): RedConDesvios | null {

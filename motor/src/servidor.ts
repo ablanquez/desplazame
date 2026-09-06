@@ -1105,9 +1105,13 @@ servidor.listen(PUERTO, () => {
   // ⭐ EL REFRESCO DE LA CAPA DEL FESTIVO (6/09). Ver `festivo.ts`.
   //
   // ⚠️ Igual que el de arriba: **nadie lo espera**. Y solo pide por los
-  //    sentidos que el feed deja a cero HOY —quince el domingo 13/09, ninguno
-  //    un laborable—, con 800 ms entre peticiones. Un día que el calendario
-  //    esté completo esto no hace ni una visita.
+  //    sentidos que el feed deja a cero HOY: medido, **quince** el domingo y
+  //    **diez** un laborable —los nueve búhos, que no circulan entre semana, y
+  //    el `51/0`—, con 800 ms entre peticiones.
+  //
+  // ⚠️ Aquí ponía «ninguno un laborable» y era falso: se supuso que el feed
+  //    trae la red entera de lunes a viernes y **los búhos son justo lo que no
+  //    trae**. Corregido el 6/09 con el comando delante.
   const refrescarElFestivoDeHoy = (): Promise<void> => {
     const red = laRedDeBus();
     if (!red) {

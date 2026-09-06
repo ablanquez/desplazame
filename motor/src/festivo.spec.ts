@@ -72,6 +72,7 @@ import {
   traerCuadro,
   servirCuadro,
   cuadroServido,
+  elFestivoHaAterrizado,
   olvidarElFestivo,
   visitasAlCuadro,
   olvidarLasVisitas,
@@ -428,6 +429,12 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
    * válida para esta capa**: con la capa vacía —que es como la muralla corre—
    * el bus contesta exactamente lo que contestaba, porque `cuadroServido`
    * devuelve `null` y `intervaloDeHoy` cae en su rama de siempre.
+   *
+   * ⚠️ **«Vacía» y «sin haber corrido» no son lo mismo** (6/09). Esta juez
+   *    compra lo primero, que es una propiedad del cálculo; lo segundo es un
+   *    estado del proceso, y callarlo fue lo que dejó mudo el primer minuto del
+   *    motor. Se compra aquí también, en una línea, para que las dos frases no
+   *    se vuelvan a confundir: `elFestivoHaAterrizado()` distingue una de otra.
    */
   test('⭐ 6 · con la capa vacía el motor es el de antes (la muralla sigue valiendo)', () => {
     olvidarElFestivo();
@@ -438,6 +445,7 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
       (p) => lineaDelViaje(red, p).corto === '29' && p.principal && p.direccion === '1',
     )!;
     assert.equal(cuadroServido('35', '0', DOMINGO), null, 'la capa está vacía');
+    assert.equal(elFestivoHaAterrizado(), false, 'y además consta que aún no ha corrido');
     assert.equal(intervaloDeHoy(el35, red, DOMINGO), null, 'y el 35 no circula, como siempre');
     assert.ok(
       (intervaloDeHoy(el29, red, DOMINGO) ?? 0) > 0,

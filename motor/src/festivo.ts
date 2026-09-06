@@ -318,6 +318,9 @@ export function servirCuadro(c: CuadroDelDia): void {
 export function olvidarElFestivo(): void {
   capa.clear();
   enVuelo.clear();
+  // ⚠️ Y la marca del aterrizaje: olvidar es volver al estado de recién
+  //    arrancado, no a «ya miré y no había nada».
+  cuandoAterrizo = null;
 }
 
 /**
@@ -335,6 +338,23 @@ export function cuadroServido(
     return null;
   }
   return suyo;
+}
+
+/**
+ * ⭐ CUÁNDO TERMINÓ EL ÚLTIMO PASE, o `null` si aún no ha habido ninguno.
+ *
+ * ⚠️ **«La capa está vacía» y «la capa aún no ha corrido» no son lo mismo**, y
+ *    confundirlas es lo que dejó mudo el primer minuto del motor: un laborable
+ *    la capa está vacía **y es correcto** —no hay huecos que suplir—, mientras
+ *    que un domingo recién arrancado está vacía **porque no ha dado tiempo**.
+ *    Sin esta marca, desde fuera se ven igual. Ver la entrada del 6/09 en
+ *    `docs/BITACORA.md`.
+ */
+let cuandoAterrizo: number | null = null;
+
+/** ¿Ha terminado ya algún pase del festivo en este proceso? */
+export function elFestivoHaAterrizado(): boolean {
+  return cuandoAterrizo !== null;
 }
 
 /** Cuántas visitas ha hecho la capa a la web. Para las jueces del single-flight. */
@@ -478,6 +498,9 @@ export async function refrescarElFestivo(
       await new Promise((sigue) => setTimeout(sigue, pausaMs));
     }
   }
+  // ⭐ El pase ha terminado, se haya traído algo o no. Lo que marca es que **ya
+  //    se ha mirado**: un mudo con la web caída es una respuesta, no un hueco.
+  cuandoAterrizo = ahora();
   return {
     fecha,
     huecos: huecos.length,

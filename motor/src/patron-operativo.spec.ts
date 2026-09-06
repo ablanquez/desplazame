@@ -26,6 +26,8 @@ import type { Motor } from './trayecto.ts';
 import { olvidarDesvios, TTL_DESVIOS_MS } from './desvios.ts';
 import {
   aplicarDesvios,
+  edadDeLaOperativa,
+  servirOperativa,
   avisoDeDesvio,
   laOperativa,
   refrescarYServir,
@@ -304,14 +306,38 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
   });
 
   /**
-   * ⭐ JUEZ 4 — SIN SABER, LA RED DEL FEED Y CERO AVISOS.
+   * ⭐ JUEZ 4 — SIN SABER, LA RED DEL FEED Y CERO AVISOS **DE DESVÍO**.
    *
    * **No saber no es no haberlo.** Si la capa no trae nada —el motor acaba de
    * arrancar, la fuente está caída, el veredicto es `indeterminado`— se sirve la
    * red cocinada tal cual y **no se avisa de ningún desvío**. Avisar de un
    * desvío que no se ha podido comprobar es inventarlo.
+   *
+   * ⚠️ **Y ESTA JUEZ DIJO ESO Y COMPRÓ OTRA COSA** (6/09). Su frase es cierta y
+   *    sigue en pie; lo que hacía de más era bendecir un segundo silencio que
+   *    nadie había razonado. Son dos:
+   *
+   *    | lo que se dice | ¿se puede? |
+   *    |---|---|
+   *    | «la 29 va desviada» sin haberlo mirado | **NO** — eso es inventarlo |
+   *    | «todavía no sé si hoy hay desvíos» | **SÍ**, y no se decía |
+   *
+   *    Con el silencio de la segunda, el 6/09 un viaje mandó transbordar en el
+   *    Coso en obras —`29+38`, 9.191 m, cero avisos— durante el minuto que las
+   *    capas tardan en aterrizar. Ver la entrada de esa fecha en
+   *    `docs/BITACORA.md`, y las jueces de `hueco-de-capas.spec.ts`.
+   *
+   *    Aquí se compran **las dos por separado**: que la capa no invente un
+   *    desvío, y que el motor SÍ declare que aún no la ha leído.
    */
-  test('⭐ 4 · sin veredicto, la red del feed intacta y ni un aviso', () => {
+  test('⭐ 4 · sin veredicto la red del feed intacta y ni un desvío inventado — pero el no-sé se dice', () => {
+    // ⭐ Y LO SEGUNDO, que es lo que faltaba: sin capa servida, la edad es
+    //    `null` —que NO es cero—, y de ahí sale el aviso del hueco. Quien lo
+    //    escribe es `trayecto.ts`; aquí se compra que el dato exista para
+    //    poder escribirlo.
+    servirOperativa(null);
+    assert.equal(edadDeLaOperativa(), null, 'sin capa, la edad es null y no cero');
+
     const aOscuras = aplicarDesvios(red, () => null, DONDE_ESTAN, rodar);
     assert.equal(aOscuras.red.paradas.length, red.paradas.length);
     assert.equal(aOscuras.red.patrones.length, red.patrones.length);
