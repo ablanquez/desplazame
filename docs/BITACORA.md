@@ -14,6 +14,63 @@
 
 ---
 
+## [2026-09-06] 🔴 ABIERTA — Cada salto reconstruido se rutea solo: la 29 pasa a 75 m del poste del enlace, sigue 103 m más y el salto siguiente deshace 195 m del mismo camino
+
+**Categoría:** geometría reconstruida
+**Síntoma:** en `CALLE EL COLOSO 2 → AVENIDA ALCALDE GÓMEZ LAGUNA 30` (bus, motor
+vivo pid 14388) la traza de la línea 29 dibuja una ida y vuelta antes del
+transbordo. Medido sobre los 5.815 m del tramo: **182 m se pisan dos veces** —a
+menos de 20 m en el suelo y con más de 150 m de recorrido entre pisadas—; los
+vértices **237 y 251 están a 17 m en el suelo y a 255 m de recorrido**. El salto
+reconstruido `1285 · Asalto / Centro de Historias → 585 · Miguel Servet n.º 28`
+pasa a **75 m del poste 284** cuando lleva 631 de sus 734 m, sigue 103 m más
+hasta 585, y el salto siguiente —heredado del feed— vuelve **195 m** por el mismo
+sitio hasta 284. `1285→585→284` son **924 m** contra los **695 m** de
+`1285→284` directo. El mismo recorrido sin desvío (`745→585→284`, del feed) no
+repite ni un metro.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **toda la suite del bus**, y
+las 576 del motor entero. Ninguna juez mira si una traza reconstruida vuelve
+sobre sí misma. Ejecutadas con el fallo vivo, antes de tocar nada:
+
+```
+$ node --test motor/src/patron-operativo.spec.ts motor/src/desvios.spec.ts \
+      motor/src/red-bus.spec.ts motor/src/viaje-bus.spec.ts motor/src/tramos.spec.ts
+✔ ⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas (16060.4847ms)
+ℹ tests 65
+ℹ pass 65
+ℹ fail 0
+```
+
+```
+$ npm run probar --workspace @desplazame/motor
+ℹ tests 576
+ℹ pass 576
+ℹ fail 0
+```
+
+Y entre esas 65 está la que compra justamente esto, y encima sobre esta misma
+línea: `⭐ 1 · los saltos nuevos de la 29 se rutean, y no en línea recta`.
+Exige que cada salto nuevo sea **un camino** —más metros que la cuerda y más de
+dos puntos—, que es verdad aquí. Nunca pregunta por dónde va ese camino.
+
+**Cómo se cazó:** ojo humano — Antonio lo vio en el mapa. Ningún instrumento de
+la casa cuenta metros repisados.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** una traza no se comprueba solo por sus extremos ni por
+sus metros: **hay que recorrerla y mirar si vuelve sobre sí misma**. Un camino
+compuesto por trozos correctos de uno en uno puede ser incorrecto entero — y las
+pruebas que compran trozo a trozo no lo ven nunca.
+**Traza:** `motor/src/patron-operativo.ts` (`patronOperativo`, `rodarConElCoche`)
+· `motor/src/viaje-coche.ts` (`buscarEnCoche`, `salidasDelCoche`) ·
+`motor/src/red-bus.ts` (`etapaMontada`) · `motor/src/patron-operativo.spec.ts`.
+**Nota:** medido en el diagnóstico de solo lectura del 6/09; ninguna línea de
+código tocada al abrir esta entrada.
+
+---
+
 ## [2026-09-03] ✅ CERRADA — El motor no sabe leer la respuesta BUENA de la DGT, y las cuatro jueces en verde
 
 **Categoría:** un fixture que copia el texto medido y se inventa la estructura
