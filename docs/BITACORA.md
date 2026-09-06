@@ -14,6 +14,129 @@
 
 ---
 
+## [2026-09-06] ✅ CERRADA — La capa del festivo suple la 22 sobre el patrón del feed: el viaje manda transbordar en el 720, y la 22 hoy no pisa el 720
+
+**Categoría:** dos capas que no se hablan
+**Síntoma:** el viaje de hoy `CALLE EL COLOSO 2 → AV. ALCALDE GÓMEZ LAGUNA 38`
+sale por **35+22** —gracias a la capa del festivo, escrita esta misma mañana— y
+manda transbordar **en el poste 720 · Plaza De España**. La 22 va hoy desviada
+por las obras del Coso y **ese poste no está en su recorrido**. Medido contra la
+fuente, `compararRecorrido` sobre la 22/0 da `hayDesvio: true`:
+
+```
+FEED 33 postes · WEB 31 postes
+FUERA hoy: 790·San Vicente De Paúl 47 | 788··27 | 787··3 | 720·Plaza De España | 710·Plaza Aragón/Capitania
+NUEVOS hoy: 1248·P. de La Mina 15 | 634·P. Constitución 33 | 632·P. Constitución 11
+```
+
+⚠️ **Y el enlace no existe de ninguna forma**: el 35 sí sigue pisando el 720,
+pero hoy **35 ∩ 22 = ningún poste común**. No es que el transbordo esté en el
+sitio equivocado: es que en la calle de hoy no hay sitio donde ponerlo.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **la suite entera del motor**
+—`node --test "src/**/*.spec.ts"`—, con la capa del festivo recién estrenada y sus
+diez jueces dentro:
+
+```
+ℹ tests 590
+ℹ suites 72
+ℹ pass 590
+ℹ fail 0
+```
+
+Y las cuatro que tocaban el sitio exacto, pedidas aparte —`festivo.spec.ts`,
+`muralla-modos.spec.ts`, `patron-operativo.spec.ts`, `desvios.spec.ts`—:
+
+```
+ℹ tests 33
+ℹ pass 33
+ℹ fail 0
+```
+
+⭐ **La que más duele es la juez 1 del festivo, escrita esta mañana.** Compra
+`['35','22']`, compra que el viaje mejore, compra los dos avisos y compra que
+cuelguen de un paso de subir — y **nombra el poste en su propio comentario sin
+comprarlo jamás**:
+
+> *«El 35 sale del mismo poste que el 29 —el 33, a 60 m—, y con la 22 enlaza en
+> `720 · Plaza de España` sin andar ni un metro.»*
+
+Está escrito en la cabecera de la juez, en prosa, como parte del razonamiento de
+por qué el viaje es bueno. Ninguna línea de código lo verifica. Y la juez monta
+el viaje sobre `red` —la del feed—, así que aunque lo verificara, en su mundo el
+720 sí está: **no había desvío que ver**.
+
+**Cómo se cazó:** ojo humano — Antonio leyó el viaje que la capa acababa de
+producir y reconoció el poste del parlamento del 1/09.
+
+**Causa raíz:** **el refresco de desvíos filtraba por `operaEl`, y las suplidas son
+justo lo que ese predicado deja fuera.**
+
+`refrescarDesvios` recorría la red con
+`if (!patron.principal || patron.modo !== 'bus' || !operaEl(red, patron, fecha)) continue;`.
+La capa del festivo existe **precisamente** para las líneas cuyo calendario dice
+cero viajes hoy, o sea para las que `operaEl` devuelve `false`. Los dos conjuntos
+no se solapan: coinciden. Medido el 6/09, los **15** sentidos suplidos eran los
+**15** que el refresco no preguntaba nunca.
+
+Sin pregunta no hay veredicto; sin veredicto, `aplicarDesvios` empuja el patrón
+del feed tal cual —y hace bien, *no saber no es no haberlo*—; y la búsqueda
+monta ese patrón con el horario que la capa acaba de suplir. **Las dos capas
+eran correctas cada una por su lado.** El fallo estaba en que ninguna sabía de
+la otra, y en que esta mañana `indexar` cambió su `operaEl` por `circulaHoy`
+mientras el de `refrescarDesvios`, a nueve ficheros de distancia, se quedó como
+estaba.
+
+⭐ **Y no era un caso raro: eran siete.** Con el filtro nuevo, de los **15**
+huecos del domingo **7 iban desviados** —`22/0`, `22/1`, `34/0`, `34/1`, `35/0`,
+`35/1` y `39/1`—. Siete sentidos ofreciéndose con el recorrido equivocado.
+
+**Arreglo aplicado:** dos piezas, y la segunda es la que hace que la primera
+valga siempre.
+
+1. `motor/src/desvios.ts` — el pase pregunta también por **los huecos del
+   calendario**, no solo por lo que `operaEl` admite. Se cubre el hueco y no
+   «la suplida» a propósito: el hueco es un dato del feed, está disponible
+   siempre y no ata este pase a que el del festivo haya terminado. **Un
+   laborable no añade ni una visita.** Medido: 59 → **74** sentidos, 40 s.
+2. `motor/src/servidor.ts` — al arrancar, **el orden es feed → desvío →
+   suplido** [GTFS Trip Modifications: *«el consumidor debe comportarse como si
+   el estático hubiera sido modificado»*]. Si el festivo llegara primero, la 22
+   entraría en la búsqueda con el recorrido del feed durante los ~40 s del pase
+   de desvíos. Los `setInterval` siguen sueltos: con las dos capas calientes no
+   hay ventana, porque el pase cubre los huecos **en todas** sus pasadas.
+
+Con las dos, y con los dos refrescos vivos contra Avanza, el viaje pasa de **24
+paradas por el recorrido del feed y un solo aviso** a **22 paradas por el
+recorrido de hoy y los dos avisos**; el patrón servido es `22|0|1#hoy` con 31
+paradas y **ninguno** de los cinco postes suprimidos.
+
+**Commit:** `[PENDIENTE-FIX]` (y la entrada, `[PENDIENTE-BIT]`)
+
+**Ley que sale de aquí:** **cuando una capa nueva amplía quién circula, hay que
+ir a buscar a todos los que preguntan «quién circula».** `operaEl` se llamaba
+desde dos sitios; esta mañana se corrigió uno y el otro no aparecía en ninguna
+prueba. Un predicado duplicado no avisa cuando se desdobla: `grep` sí.
+
+**Y una segunda, sobre las jueces:** una juez que se construye a mano el estado
+que debería producir el código **no vigila ese código, lo imita**. Las cinco de
+esta entrada empezaron llamándole a `aplicarDesvios` con un veredicto escrito en
+el propio test, y así daban verde con el fallo vivo. Pasándoles el refresco de
+producción —que es quien decide a quién se pregunta— cuatro de las cinco se
+pusieron rojas.
+
+**Traza:** `motor/src/desvios.ts` (`refrescarDesvios`, el filtro `operaEl`) ·
+`motor/src/festivo.ts` · `motor/src/festivo.spec.ts` (juez 1).
+
+⚠️ **Hermana de la entrada del 2026-09-01** —*«El refresco de desvíos DETECTA 23
+y APLICA 4»*—: **el mismo síntoma, la misma línea y el mismo poste**, y otra
+causa. Aquella era un veredicto que caducaba entre leerlo y aplicarlo; ésta es un
+veredicto **que no se pide nunca**. No se fusionan: la de septiembre 1 está
+cerrada y su arreglo sigue en pie. Que dos causas distintas produzcan el mismo
+viaje equivocado es, en sí, el dato — el poste 720 lleva dos entradas.
+
+---
+
 ## [2026-09-06] ✅ CERRADA — Cada salto reconstruido se rutea solo: la 29 pasa a 75 m del poste del enlace, sigue 103 m más y el salto siguiente deshace 195 m del mismo camino
 
 **Categoría:** geometría reconstruida
