@@ -29,7 +29,18 @@ import { cargarBiZi } from './bizi.ts';
 import { elFeedQueSeSirve } from './feed.ts';
 import { andarConElPeaton, cocinar, type PatronBus, type RedDeBus } from './red-bus.ts';
 import { lineaDelViaje, viajeEnBus, intervaloDeHoy } from './viaje-bus.ts';
-import { servirOperativa } from './patron-operativo.ts';
+import {
+  aplicarDesvios,
+  aristaDeLaTraza,
+  avisoDeDesvio,
+  rodarConElCoche,
+  servirOperativa,
+  type RedConDesvios,
+} from './patron-operativo.ts';
+import { cargarRedDeCoche } from './coche.ts';
+import { claveDe, oficialDe, refrescarDesvios, olvidarDesvios } from './desvios.ts';
+import { invalidarNonce } from './recorrido.ts';
+import { prepararViajeEnBus } from './viaje-bus.ts';
 import type { Motor } from './trayecto.ts';
 import type { Extremo } from './etapas.ts';
 import {
@@ -463,5 +474,364 @@ describe('⭐ LA CAPA DEL FESTIVO — el cuadro web suple al calendario', () => 
     assert.ok(texto.includes('cada 10 min'));
     assert.ok(texto.includes('el calendario del feed no trae el festivo de esta línea'));
     assert.ok(/Fuente: Avanza, \d{1,2}:\d{2}/.test(texto), `sin hora: ${texto}`);
+  });
+});
+
+/**
+ * ⭐ EL RECORRIDO REAL DE LA 22 SENTIDO −1, el domingo 6/09/2026.
+ *
+ * Los **31 postes enteros** que `admin-ajax.php?action=get_stops_list` contestó,
+ * copiados uno a uno y sin recortar [la ley de la entrada nº32]. El feed trae
+ * **33** para ese mismo sentido, y la diferencia son las obras del Coso:
+ *
+ * · **fuera hoy:** `790`, `788`, `787` (San Vicente de Paúl), **`720 · Plaza De
+ *   España`** y `710` (Plaza Aragón / Capitanía)
+ * · **nuevos hoy:** `1248` (P. de La Mina), `634` y `632` (P. de La Constitución)
+ *
+ * ⚠️ El `720` es el poste del parlamento: es donde el viaje suplido mandaba
+ *    transbordar del 35 a la 22, y la 22 **hoy no pasa por ahí**.
+ */
+const RECORRIDO_22_HOY: readonly { readonly poste: number; readonly nombre: string }[] = [
+  { poste: 755, nombre: "Rodrigo Rebolledo / Fray Luis Urbano" },
+  { poste: 754, nombre: "Rodrigo Rebolledo n.º 33" },
+  { poste: 753, nombre: "Rodrigo Rebolledo n.º 7" },
+  { poste: 532, nombre: "Jorge Cocci n.º 17" },
+  { poste: 3031, nombre: "Jorge Cocci n.º 3" },
+  { poste: 3032, nombre: "Asalto / Edificio Trovador" },
+  { poste: 660, nombre: "P. Echegaray Y Caballero / Puente del Pilar" },
+  { poste: 1248, nombre: "P. de La Mina n.º 15" },
+  { poste: 634, nombre: "P. de La Constitución n.º 33 / Plaza de Los Sitios" },
+  { poste: 632, nombre: "P. de La Constitución n.º 11 / Plaza Aragón" },
+  { poste: 682, nombre: "P. Pamplona / Puerta del Carmen" },
+  { poste: 674, nombre: "P. Mª Agustín n.º 12 / C.M.E. Ramón Y Cajal" },
+  { poste: 675, nombre: "P. María Agustín n.º 26 / Edif. Pignatelli" },
+  { poste: 51, nombre: "Anselmo Clavé / Correos" },
+  { poste: 52, nombre: "Anselmo Clavé / Santander" },
+  { poste: 795, nombre: "Santander n.º 34" },
+  { poste: 435, nombre: "Duquesa Villahermosa n.º 10" },
+  { poste: 436, nombre: "Duquesa Villahermosa n.º 42" },
+  { poste: 442, nombre: "Duquesa Villahermosa n.º 109 / Vía Univérsitas" },
+  { poste: 852, nombre: "Vía Univérsitas n.º 17" },
+  { poste: 133, nombre: "Av. Gómez Laguna n.º 6" },
+  { poste: 134, nombre: "Av. Gómez Laguna n.º 20" },
+  { poste: 137, nombre: "Av. Gómez Laguna n.º 48" },
+  { poste: 3051, nombre: "Vía Hispanidad n.º 56" },
+  { poste: 822, nombre: "Vía Hispanidad / Villa de Andorra" },
+  { poste: 826, nombre: "Vía Hispanidad n.º 80" },
+  { poste: 829, nombre: "Vía Hispanidad n.º 100 / Los Enlaces" },
+  { poste: 3044, nombre: "Vía Hispanidad / Brea de Aragón" },
+  { poste: 3045, nombre: "Vía Hispanidad / Miguel Labordeta" },
+  { poste: 750, nombre: "Ramón J. Sender n.º 4" },
+  { poste: 857, nombre: "Vicente Blanco / Centro Comercial" },
+];
+
+/** Los postes por los que la 22 SÍ pasa hoy, para preguntarle a un transbordo. */
+const PISA_HOY = new Set(RECORRIDO_22_HOY.map((p) => p.poste));
+
+/**
+ * ⭐ `Paseo de La Mina 15`, al lado del poste `1248`.
+ *
+ * Es el portal que hace falta para la juez 4: el `1248` **no está en el patrón
+ * del feed para la 22** —la 22 pasaba por San Vicente de Paúl y Plaza de
+ * España—. Existe en su recorrido **solo hoy**, porque el desvío lo trajo.
+ */
+const MINA = 'Portales.79294';
+
+describe('⭐ LA CAPA DEL FESTIVO SOBRE EL PATRÓN OPERATIVO — el desvío primero', () => {
+  let compuesta: RedConDesvios;
+  let mina: Extremo;
+
+  /**
+   * ⭐ LA FUENTE DE MENTIRA, con la forma de la de verdad.
+   *
+   * A la 22 sentido −1 le contesta **el recorrido real de hoy**; a todo lo demás,
+   * su propia secuencia oficial —o sea, «sin desvío»—. Así la única línea
+   * desviada de la red compuesta es la del caso, y lo que cambie se le puede
+   * atribuir a ella.
+   *
+   * 🔒 El nonce es inventado: aquí no hay ninguno de verdad, ni lo habrá.
+   */
+  const laFuenteDeHoy: typeof fetch = (async (
+    _url: string,
+    opciones?: { body?: string },
+  ): Promise<Response> => {
+    const cuerpo = new URLSearchParams(opciones?.body ?? '');
+    const linea = cuerpo.get('selectLinea');
+    if (!linea) {
+      return new Response('<input id="avz_bus_ajax_nonce" value="fingido" />', { status: 200 });
+    }
+    const sentido = cuerpo.get('selectSentido');
+    const postes =
+      linea === '22' && sentido === '-1'
+        ? RECORRIDO_22_HOY
+        : oficialDe(
+            red,
+            red.patrones.find(
+              (x) =>
+                x.principal &&
+                x.modo === 'bus' &&
+                lineaDelViaje(red, x).corto === linea &&
+                (x.direccion === '0' ? '-1' : '-2') === sentido,
+            )!,
+          );
+    return new Response(
+      postes.map((q) => `<option value="${q.poste}">${q.poste} - ${q.nombre}</option>`).join(''),
+      { status: 200 },
+    );
+  }) as unknown as typeof fetch;
+
+  /**
+   * ⭐ Y LA OPERATIVA SE COMPONE **COMO EN PRODUCCIÓN**, no a mano.
+   *
+   * ⚠️ Es la diferencia entre una juez que vigila y una que acompaña. Si aquí
+   *    se le pasara a `aplicarDesvios` un veredicto de la 22 escrito en el
+   *    propio test, estas jueces darían verde **aunque el refresco no
+   *    preguntara por ella nunca** — que es exactamente el fallo del 6/09.
+   *    Mandando el refresco, quien decide a quién se pregunta es el código de
+   *    producción, y su filtro queda comprado de paso.
+   */
+  before(async () => {
+    const p = motor.portales.situados.find((s) => s.codigo === MINA)!;
+    mina = { lat: p.lat, lon: p.lon, nombre: 'Paseo de La Mina 15' };
+    const coche = cargarRedDeCoche();
+    const rodar = rodarConElCoche(coche);
+    olvidarDesvios();
+    invalidarNonce();
+    const { leido } = await refrescarDesvios(red, DOMINGO, laFuenteDeHoy, 0);
+    compuesta = aplicarDesvios(
+      red,
+      (linea, direccion) => leido.get(claveDe(linea, direccion)) ?? null,
+      new Map(),
+      rodar,
+      (traza, saliendo) => aristaDeLaTraza(coche, traza, saliendo),
+    );
+  });
+
+  beforeEach(() => {
+    olvidarElFestivo();
+    olvidarDesvios();
+    servirOperativa(null);
+  });
+
+  /** El viaje del caso, montado sobre la red que se le pase. */
+  const elCaso = (deQueRed: RedDeBus, conDesvios?: Parameters<typeof prepararViajeEnBus>[5]) =>
+    prepararViajeEnBus(motor, deQueRed, coloso, laguna, DOMINGO, conDesvios).trayecto();
+
+  /** Los cuadros del 35 y de la 22, como si la web ya los hubiera contestado. */
+  const conLaCapaLlena = (): void => {
+    servirCuadro(comoSiLoHubieraLeido('35', '0', DOMINGO, CUADRO_35_DOMINGO));
+    servirCuadro(comoSiLoHubieraLeido('22', '0', DOMINGO, CUADRO_22_DOMINGO));
+  };
+
+  /** El poste en el que un trayecto cambia de la 35 a la 22, si lo hay. */
+  const posteDelTransbordo = (t: { readonly pasos: readonly { readonly giro: string; readonly texto: string }[] }) => {
+    const paso = t.pasos.find((p) => p.giro === 'transborda' && /línea 22/.test(p.texto));
+    const m = paso ? /poste (\d+)/.exec(paso.texto) : null;
+    return m ? Number(m[1]) : null;
+  };
+
+  /**
+   * ⭐ JUEZ 1 — EL CASO DEL OJO.
+   *
+   * Con la capa del festivo llena Y el desvío de hoy aplicado, el viaje **no
+   * puede** mandar transbordar en un poste que la 22 hoy no pisa. Se compra la
+   * ida y la vuelta: sobre la red del feed el transbordo cae en el `720` —que
+   * es el fallo— y sobre la operativa, o cae en un poste de los de hoy, o no
+   * hay transbordo a la 22 en absoluto.
+   */
+  test('⭐ 1 · el transbordo a la 22 cae donde la 22 pasa HOY, no donde el feed cree', () => {
+    conLaCapaLlena();
+
+    // (i) Sobre la red del FEED —lo que había—: el transbordo va al 720.
+    const conElFeed = elCaso(red);
+    assert.deepEqual(lineasDe(conElFeed), ['35', '22'], 'el caso del ojo va por 35+22');
+    assert.equal(
+      posteDelTransbordo(conElFeed),
+      720,
+      'sobre la red del feed el transbordo cae en el 720: si no, esta juez ya no vigila nada',
+    );
+    assert.ok(!PISA_HOY.has(720), 'y el 720 no está en el recorrido de hoy');
+
+    // (ii) Sobre la OPERATIVA: o cae donde la 22 pasa hoy, o no hay 22.
+    servirOperativa(compuesta);
+    const conElDesvio = elCaso(compuesta.red, {
+      suprimidas: compuesta.suprimidas,
+      avisos: compuesta.desviadas.map((x) => ({
+        linea: x.linea,
+        direccion: x.direccion,
+        texto: avisoDeDesvio(x),
+      })),
+    });
+    const poste = posteDelTransbordo(conElDesvio);
+    if (poste !== null) {
+      assert.ok(
+        PISA_HOY.has(poste),
+        `el transbordo a la 22 cae en el poste ${poste}, que hoy no pisa`,
+      );
+    }
+    // Y suba donde suba: en la red que la búsqueda usó, la 22 ya no para ahí.
+    const suPatron = compuesta.red.patrones.find(
+      (p) => p.principal && lineaDelViaje(compuesta.red, p).corto === '22' && p.direccion === '0',
+    )!;
+    const susPostes = suPatron.paradas.map(
+      (id) => compuesta.red.paradas.find((x) => x.id === id)?.codigo ?? id,
+    );
+    assert.ok(
+      !susPostes.some((c) => /0*720$/.test(c)),
+      `la 22 de la operativa sigue parando en el 720: ${susPostes.join(',')}`,
+    );
+    assert.equal(suPatron.paradas.length, RECORRIDO_22_HOY.length, 'y son los 31 de hoy');
+  });
+
+  /**
+   * ⭐ JUEZ 2 — EL REFRESCO PREGUNTA POR LAS SUPLIDAS.
+   *
+   * Es la juez del arreglo de verdad: antes del 6/09 `refrescarDesvios` filtraba
+   * por `operaEl`, y los sentidos que la capa del festivo suple son **justo** los
+   * que ese predicado deja fuera. Nunca se preguntaba por ellos, así que nunca
+   * había veredicto, así que se usaba el patrón del feed en silencio.
+   */
+  test('⭐ 2 · el refresco de desvíos pregunta TAMBIÉN por los huecos del calendario', async () => {
+    const preguntadas: string[] = [];
+    const pedir: typeof fetch = (async (_url: string, opciones?: { body?: string }) => {
+      // ⚠️ El cuerpo se lee con `URLSearchParams`, que es como el motor lo
+      //    escribe. Un `exec` a mano sobre la cadena ya falló una vez aquí
+      //    —buscaba `line=` y el campo se llama `selectLinea`— y la juez daba
+      //    rojo por su propia culpa, no por la del código.
+      const linea = new URLSearchParams(opciones?.body ?? '').get('selectLinea');
+      if (linea) {
+        preguntadas.push(linea);
+      }
+      return new Response('<input id="avz_bus_ajax_nonce" value="fingido" />', { status: 200 });
+    }) as unknown as typeof fetch;
+
+    const huecos = huecosDelCalendario(red, DOMINGO, (p) => lineaDelViaje(red, p).corto);
+    assert.ok(huecos.length > 0, 'el domingo tiene que tener huecos, o no hay nada que probar');
+
+    const c = await refrescarDesvios(red, DOMINGO, pedir, 0);
+
+    // Se pregunta por TODOS los huecos, uno por uno y con su nombre.
+    for (const h of huecos) {
+      assert.ok(
+        preguntadas.includes(h.linea),
+        `el refresco no preguntó por la línea ${h.linea}, que hoy es un hueco del calendario`,
+      );
+    }
+    // Y siguen entrando las que el feed sí trae: esto suma, no sustituye.
+    assert.ok(c.sentidos > huecos.length, `${c.sentidos} sentidos no puede ser solo los huecos`);
+  });
+
+  /**
+   * ⭐ JUEZ 3 — DONDE NO HAY DESVÍO, NO CAMBIA NADA.
+   *
+   * La 22 es la única con veredicto en esta red compuesta. El 35 —suplido
+   * igual, y sin desvío hoy— tiene que salir con **su patrón oficial, id
+   * incluido**: componer una capa no es reescribir la red.
+   */
+  test('⭐ 3 · una línea suplida SIN desvío monta sobre su patrón oficial', () => {
+    const suyoEnElFeed = red.patrones.filter(
+      (p) => p.modo === 'bus' && lineaDelViaje(red, p).corto === '35',
+    );
+    const suyoEnLaOperativa = compuesta.red.patrones.filter(
+      (p) => p.modo === 'bus' && lineaDelViaje(compuesta.red, p).corto === '35',
+    );
+    assert.ok(suyoEnElFeed.length > 0, 'el 35 tiene que estar en el feed');
+    assert.deepEqual(
+      suyoEnLaOperativa.map((p) => p.id),
+      suyoEnElFeed.map((p) => p.id),
+      'sin desvío, el 35 conserva sus patrones y sus ids',
+    );
+    assert.deepEqual(suyoEnLaOperativa, suyoEnElFeed, 'y no solo el id: el patrón entero');
+    // Y la 22, que sí lo tiene, cambia de id —es OTRO patrón—.
+    const la22 = compuesta.red.patrones.find(
+      (p) => p.principal && lineaDelViaje(compuesta.red, p).corto === '22' && p.direccion === '0',
+    )!;
+    assert.ok(la22.id.endsWith('#hoy'), `la 22 tenía que estar rehecha y su id es ${la22.id}`);
+  });
+
+  /**
+   * ⭐ JUEZ 4 — LOS DOS AVISOS CONVIVEN.
+   *
+   * Son de dos capas distintas y cuentan dos cosas distintas: *«hoy no para
+   * en…»* lo pone el desvío, *«el horario sale del cuadro web»* lo pone el
+   * festivo. Que una línea lleve las dos cosas a la vez no es un caso raro: es
+   * el caso de hoy.
+   */
+  test('⭐ 4 · el aviso del desvío y el del festivo salen los dos, en el mismo viaje', () => {
+    conLaCapaLlena();
+    servirOperativa(compuesta);
+    const conDesvios = {
+      suprimidas: compuesta.suprimidas,
+      avisos: compuesta.desviadas.map((x) => ({
+        linea: x.linea,
+        direccion: x.direccion,
+        texto: avisoDeDesvio(x),
+      })),
+    };
+
+    // (i) EL CASO DEL OJO, medido: **ya no gana la 22**. Quitado el transbordo
+    //     imposible del 720, el buscador se va por otro lado. Lleva su aviso
+    //     del festivo —el 35 sigue suplido— y **ninguno de desvío**, porque
+    //     ninguna de las líneas que monta va desviada. Eso no es un olvido: es
+    //     lo correcto, y se compra para que un aviso de más también cante.
+    const delOjo = elCaso(compuesta.red, conDesvios);
+    assert.ok(
+      !lineasDe(delOjo).includes('22'),
+      'con el desvío aplicado el caso del ojo ya no puede ir por la 22',
+    );
+    assert.ok(
+      delOjo.avisos.some((a) => a.texto.includes('cuadro web de Avanza')),
+      'pero sigue suplido, y lo tiene que decir',
+    );
+    assert.equal(
+      delOjo.avisos.filter((a) => a.texto.includes('va hoy desviada')).length,
+      0,
+      'y sin aviso de desvío: ninguna de sus líneas va desviada',
+    );
+
+    // (ii) Y DONDE SÍ CONVIVEN: la 22 es hoy las dos cosas a la vez —suplida
+    //      por la capa del festivo y desviada por las obras—. Se sube en
+    //      `Paseo de La Mina 15`, que es un poste que **el feed no tiene para
+    //      la 22**: existe hoy porque el desvío lo trajo. Un viaje así no
+    //      puede llevar un aviso sin el otro.
+    const t = prepararViajeEnBus(motor, compuesta.red, mina, laguna, DOMINGO, conDesvios).trayecto();
+    const lineas = lineasDe(t);
+    assert.ok(lineas.includes('22'), `este viaje tenía que ir en la 22 y fue por ${lineas.join('+')}`);
+    const delFestivo = t.avisos.filter((a) => a.texto.includes('cuadro web de Avanza'));
+    const delDesvio = t.avisos.filter((a) => a.texto.includes('va hoy desviada'));
+    assert.ok(delFestivo.length > 0, 'falta el aviso del festivo');
+    assert.ok(delDesvio.length > 0, 'falta el aviso del desvío');
+    assert.ok(
+      delFestivo.some((a) => a.texto.includes('línea 22')),
+      'el del festivo tiene que nombrar a la 22, que es la suplida',
+    );
+    assert.ok(
+      delDesvio.some((a) => a.texto.includes('línea 22') && a.texto.includes('720')),
+      'y el del desvío tiene que nombrar a la 22 y el poste que hoy se salta',
+    );
+  });
+
+  /**
+   * ⭐ JUEZ 5 — EL LABORABLE AL BYTE.
+   *
+   * El sello de la juez 4 de la mañana, otra vez y con el desvío encima: un día
+   * que el feed cubre entero no se entera de nada de esto. Ni una capa, ni un
+   * aviso, ni un metro.
+   */
+  test('⭐ 5 · el laborable no cambia ni un byte, con las dos capas llenas', () => {
+    const aSecas = prepararViajeEnBus(motor, red, coloso, laguna, LUNES).trayecto();
+    conLaCapaLlena();
+    servirOperativa(compuesta);
+    const conTodo = prepararViajeEnBus(motor, red, coloso, laguna, LUNES).trayecto();
+    assert.equal(
+      createHash('sha256').update(JSON.stringify(conTodo)).digest('hex'),
+      createHash('sha256').update(JSON.stringify(aSecas)).digest('hex'),
+      'el laborable tenía que salir idéntico',
+    );
+    assert.equal(
+      conTodo.avisos.filter((a) => a.texto.includes('cuadro web de Avanza')).length,
+      0,
+      'y sin un solo aviso del festivo',
+    );
   });
 });

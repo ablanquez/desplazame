@@ -51,6 +51,7 @@ import type { PatronBus, RedDeBus } from './red-bus.ts';
 import { operaEl } from './red-bus.ts';
 import { posteDeCodigo } from './avanza.ts';
 import { recorridoDeHoy, SENTIDO_DE, type PosteDelRecorrido } from './recorrido.ts';
+import { huecosDelCalendario } from './festivo.ts';
 
 export interface ParadaDelDiff {
   readonly poste: number;
@@ -290,7 +291,23 @@ export interface CuentasDeDesvios {
 }
 
 /**
- * ⭐ EL PRECALENTADO: trae los sentidos de las líneas que operan hoy.
+ * ⭐ EL PRECALENTADO: trae los sentidos de las líneas que **circulan** hoy.
+ *
+ * ⭐ **Y «circulan» no es «el feed dice que circulan»** (6/09). Hasta esta fecha
+ * el filtro era `operaEl` a secas, y eso dejaba fuera exactamente a las líneas
+ * que la capa del festivo suple —las que el calendario del feed deja a cero—.
+ * Resultado medido el domingo 6/09: los **15** sentidos suplidos eran los **15**
+ * que este refresco no preguntaba nunca, así que entraban en la búsqueda con el
+ * recorrido del feed y sin desvío. La 22 iba desviada por las obras del Coso y
+ * el viaje mandaba transbordar en `720 · Plaza De España`, que hoy no pisa. Ver
+ * la entrada del 6/09 en `docs/BITACORA.md`.
+ *
+ * ⚠️ **Se cubren los HUECOS, no las suplidas.** Podría preguntarse a la capa del
+ * festivo quién ha quedado suplido, pero eso ata este pase a que el otro haya
+ * terminado —y los dos corren de fondo, sin orden garantizado entre ellos—. El
+ * hueco del calendario es un dato del feed, está disponible siempre y es un
+ * superconjunto: si la web calla y la línea se queda sin servicio, lo único que
+ * se ha gastado es una visita. Un laborable no añade **ninguna**.
  *
  * ⚠️ **Con pausa entre peticiones.** Son medio centenar, y la fuente es de otro:
  * ZetaBus aparcó su «barrido de línea» justo por saturar Avanza. Aquí van de una
@@ -310,11 +327,21 @@ export async function refrescarDesvios(
   let desviados = 0;
   let indeterminados = 0;
   let sentidos = 0;
+  const cortoDe = (p: PatronBus): string =>
+    red.lineas.find((l) => l.id === p.linea)?.corto ?? p.linea;
+  // ⭐ Los sentidos que el calendario del feed deja a cero hoy: la capa del
+  //    festivo puede darles servicio, así que su recorrido también se pregunta.
+  const huecos = new Set(
+    huecosDelCalendario(red, fecha, cortoDe).map((h) => claveDe(h.linea, h.direccion)),
+  );
   for (const patron of red.patrones) {
-    if (!patron.principal || patron.modo !== 'bus' || !operaEl(red, patron, fecha)) {
+    if (!patron.principal || patron.modo !== 'bus') {
       continue;
     }
-    const linea = red.lineas.find((l) => l.id === patron.linea)?.corto ?? patron.linea;
+    const linea = cortoDe(patron);
+    if (!operaEl(red, patron, fecha) && !huecos.has(claveDe(linea, patron.direccion))) {
+      continue;
+    }
     sentidos++;
     const d = await traerDesvio(red, patron, linea, pedir, ahora);
     leido.set(claveDe(linea, patron.direccion), d.veredicto);

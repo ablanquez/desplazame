@@ -1079,12 +1079,12 @@ servidor.listen(PUERTO, () => {
   // ruta no puede quedarse esperando a eso. Mientras no haya nada servido, la
   // búsqueda usa la red del feed y **no avisa de ningún desvío** — no saber no
   // es no haberlo.
-  const refrescarLosDesvios = (): void => {
+  const refrescarLosDesvios = (): Promise<void> => {
     const red = laRedDeBus();
     if (!red) {
-      return;
+      return Promise.resolve();
     }
-    void refrescarYServir(motor, red, hoyEnGtfs(new Date()))
+    return refrescarYServir(motor, red, hoyEnGtfs(new Date()))
       .then(({ deLaFuente, deLaRed }) => {
         // ⭐ DETECTADOS **Y** APLICADOS, en la misma línea y con la misma
         //    palabra. Ver `resumenDelRefresco`: el log dice lo que se aplicó.
@@ -1100,8 +1100,7 @@ servidor.listen(PUERTO, () => {
         console.log(`motor: no se ha podido leer la ruta operativa — ${(e as Error).message}`);
       });
   };
-  refrescarLosDesvios();
-  setInterval(refrescarLosDesvios, CADA_CUANTO_SE_REFRESCA_MS).unref();
+  setInterval(() => void refrescarLosDesvios(), CADA_CUANTO_SE_REFRESCA_MS).unref();
 
   // ⭐ EL REFRESCO DE LA CAPA DEL FESTIVO (6/09). Ver `festivo.ts`.
   //
@@ -1109,13 +1108,13 @@ servidor.listen(PUERTO, () => {
   //    sentidos que el feed deja a cero HOY —quince el domingo 13/09, ninguno
   //    un laborable—, con 800 ms entre peticiones. Un día que el calendario
   //    esté completo esto no hace ni una visita.
-  const refrescarElFestivoDeHoy = (): void => {
+  const refrescarElFestivoDeHoy = (): Promise<void> => {
     const red = laRedDeBus();
     if (!red) {
-      return;
+      return Promise.resolve();
     }
     const fecha = hoyEnGtfs(new Date());
-    void refrescarElFestivo(red, fecha, (p) => lineaDelViaje(red, p).corto)
+    return refrescarElFestivo(red, fecha, (p) => lineaDelViaje(red, p).corto)
       .then((c) => {
         if (c.huecos === 0) {
           return;
@@ -1130,6 +1129,20 @@ servidor.listen(PUERTO, () => {
         console.log(`motor: no se ha podido leer el cuadro del festivo — ${(e as Error).message}`);
       });
   };
-  refrescarElFestivoDeHoy();
-  setInterval(refrescarElFestivoDeHoy, TTL_FESTIVO_MS / 2).unref();
+  setInterval(() => void refrescarElFestivoDeHoy(), TTL_FESTIVO_MS / 2).unref();
+
+  // ⭐ EL ORDEN AL ARRANCAR: **feed → desvío → suplido** [GTFS Trip
+  //    Modifications: *«el consumidor debe comportarse como si el estático
+  //    hubiera sido modificado»* — la modificación primero, y lo demás encima].
+  //
+  // ⚠️ **Encadenados, y no por gusto.** Si el festivo llegara primero, la 22
+  //    entraría en la búsqueda con el recorrido del feed durante los ~25 s que
+  //    tarda el pase de desvíos —y el feed la hace pasar por un poste que hoy
+  //    no pisa—. Suplir el calendario de una línea cuyo recorrido de hoy
+  //    todavía no se ha mirado es ofrecer un servicio a medio saber.
+  //
+  //    Los dos `setInterval` siguen sueltos a propósito: una vez que las dos
+  //    capas están calientes no hay ventana que cerrar, porque el pase de
+  //    desvíos cubre los huecos del calendario **en todas** sus pasadas.
+  void refrescarLosDesvios().then(refrescarElFestivoDeHoy);
 });

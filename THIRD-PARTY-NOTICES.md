@@ -2301,8 +2301,19 @@ los tres casos**. La comparación recibe **dos listas de postes y nada más**.
 **Lo que da hoy, medido** (`motor/src/patron-operativo.ts`, al arrancar y cada media hora):
 
 ```
-motor: ruta operativa de hoy — 64 sentidos · 23 detectados · 23 aplicados · 0 sin saber · 17 s
+motor: ruta operativa de hoy — 74 sentidos · 23 detectados · 23 aplicados · 0 sin saber · 40 s
 ```
+
+> ⚠️ **Eran 64 sentidos, y el 6/09 pasaron a 74.** Hasta esa fecha se preguntaba solo por las
+> líneas que el calendario del feed dice que circulan hoy, y eso dejaba fuera **justo** a las que
+> la capa del festivo de § 1.35 suple —quince sentidos ese domingo, sobre los cincuenta y nueve
+> que el feed sí cubría—. Medido el mismo día: **siete de esos quince iban desviados**
+> —`22/0`, `22/1`, `34/0`, `34/1`, `35/0`, `35/1` y `39/1`— y nadie preguntaba por ellos, así que
+> entraban en la búsqueda con el recorrido del feed. La entrada del 6/09 en `docs/BITACORA.md` lo
+> cuenta.
+>
+> **Y el coste es cero los días que el feed viene completo**: los huecos se calculan del propio
+> calendario, y un laborable no tiene ninguno.
 
 ---
 
@@ -3036,7 +3047,7 @@ deja a cero:
 | el domingo 13/09 | **15 sentidos** sin calendario —las siete líneas por sus dos sentidos, más **uno** de la 44— |
 | un laborable | **0**: el feed los trae todos, y la capa no hace ni una visita |
 | por pasada | 15 peticiones con **800 ms** entre ellas: ~2,3 MB y unos 19 s |
-| cada cuánto | TTL de **6 h**, refresco cada 3. Para comparar: el refresco de § 1.25 hace **64 peticiones cada hora** |
+| cada cuánto | TTL de **6 h**, refresco cada 3. Para comparar: el refresco de § 1.25 hace **74 peticiones cada hora** el domingo 6/09 —las **59** que el feed cubre más estos **15** huecos—, y **64** el laborable en que se midió su ficha |
 
 > ⭐ **POR QUÉ HACE FALTA, Y POR QUÉ NO HAY DÓNDE IR A BUSCARLO MEJOR.**
 >
