@@ -110,7 +110,7 @@ dos. Las dos mitades de la capa arreglan el poste por su cuenta —una lo borra
 del patrón, la otra prohíbe subirse—; lo que solo arregla el patrón rehecho es
 **la traza que se pinta**.
 
-**Commit:** `[PENDIENTE-JUECES]` y `[PENDIENTE-FRASE]` (y la entrada, `[PENDIENTE-BIT]`)
+**Commit:** `6fe95bd` (las jueces) y `cb096b0` (la frase) — y la entrada, `a04ae82`
 
 **Ley que sale de aquí:** **una juez es un consumidor del dato, y le obliga lo
 mismo que a producción.** [GTFS Trip Modifications: *«el consumidor debe
