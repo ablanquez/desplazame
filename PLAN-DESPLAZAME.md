@@ -3481,7 +3481,18 @@ CONSTA hasta la sonda).
       con la red cortada. Al cierre del 13: 612 motor · 282
       interfaz · 38 bitácoras, 0 abiertas.
 
-## 14 — Despliegue *(en grueso)*
+## 14 — Despliegue *(en grueso; el 8/09 le despejó el terreno: el
+CENSO pre-despliegue [docs/CENSO-PRE-DESPLIEGUE.md, bloque A parcial
+de la guía] + la TANDA de cinco piezas — la juez de los glifos, las
+2 dependencias muertas fuera, EL PUERTO POR ENTORNO [twelve-factor:
+PORT del panel, defecto 3000] con el MANEJADOR JUDICIABLE
+(servidor.spec.ts nace: 3 jueces de humo; las 1.160 líneas, al
+cierre), y la tabla del notices A SEIS con la §1.37 de la DGT
+(consultada desde el 3/09 sin ficha) y EL GUIÓN QUE CUENTA
+[notices.spec.ts — la cabecera envejeció tres veces; la cuarta la
+caza una juez]. La 5ª pieza, parada por re-medición honesta: la
+paleta ya era fuente única. La poda de los 165 huérfanos y el resto
+del censo, al cierre tras la estética.)*
 
 Hostinger plan Node (slot 2), dominio, cron. Público y usable.
 

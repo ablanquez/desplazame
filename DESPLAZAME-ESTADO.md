@@ -146,7 +146,10 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TRAMOS — TramoDelViaje con comoSeVa/desde/hasta/hito sobre la
   geometría única). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal
   + 619 por punto medio).
-- **Los datos**: TREINTA Y SEIS conjuntos con ficha (el 36º, del
+- **Los datos**: TREINTA Y SIETE fichas (la §1.37, del 8/09: LA DGT
+  — se consultaba desde el 3/09 sin ficha, cazada por la tanda;
+  régimen: ninguno, cachear sería guardar la matrícula; y el
+  notices con GUIÓN QUE CUENTA desde el 8/09. El 36º, del
   6/09: EL CUADRO WEB DE AVANZA §1.35 — la SEXTA fuente que no se
   copia: SE CONSULTA (festivo suplido, ventana rodante +9 días,
   frase corta); el 35º, del
@@ -186,7 +189,12 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar** *(al cierre del 7/09 mediodía; el push
+comprobado). **En local, sin publicar** *(al cierre del 8/09; el push del 7/09
+llegó hasta `f137e0d`)*: **el censo pre-despliegue (0e7d91b) y la
+tanda de las cinco piezas (4 hechas + 1 parada por re-medición:
+glifos · dependencias · puerto/manejador · la tabla de las seis con
+la §1.37 de la DGT) — 5 commits — y los papeles al día.** *(La nota
+del 7/09: el push
 del 6/09 noche llegó hasta `c2f74cd`)*: **el espejo del encadenado
 (2 commits), la DGT sin bucle (nº38, 4 commits) y el CIERRE DEL
 PUNTO 13 en los papeles.** *(Las tandas ya publicadas: el push
@@ -196,6 +204,35 @@ ruteando; 31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**EL CENSO PRE-DESPLIEGUE Y LA TANDA (8/09): EL TERRENO DESPEJADO
+PARA EL 14.** El censo [bloque A parcial de la guía, solo lectura,
+cobertura declarada, docs/CENSO-PRE-DESPLIEGUE.md]: 705 exports
+clasificados (26 % huérfanos — poda al cierre), knip auditado antes
+de creído (sus falsos positivos de app/e2e abiertos y descartados),
+y la pregunta del gestor contestada CON NÚMEROS: mensajes NO (660
+frases, 1 repetida de verdad), iconos NO — un guardián (la copia de
+las dos tablas ya era decisión declarada [L30]; faltaba la
+vigilancia [L43]). Deudas: operaEl-duplicado SE DESCONFIRMA; siguen
+viajeEnBus, el gemelo, servidor.ts. Y una corrección del ejecutor a
+su propia nº38: el arnés de Chrome propio (app/e2e, CDP) EXISTÍA —
+la prueba real sí se podía. LA TANDA (4 de 5; la 5ª parada por
+re-medición honesta: la «paleta duplicada» era error del censo —
+los hex de los comentarios contados como código; la fuente única ya
+existía enchufada): (a) la juez de los glifos (cambiar 🚌 en una
+tabla ya rompe — antes no); (b) las 2 dependencias muertas fuera
+(knip limpio antes/después); (d) EL PUERTO POR ENTORNO
+[twelve-factor literal: constantes de config en código = violación;
+PORT del hosting] + EL MANEJADOR JUDICIABLE (atenderPeticion
+exportado, el listen guardado y aparte — probado arrancando en 3001
+y 3002 con el 3000 de Antonio intacto; servidor.spec.ts nace con 3
+jueces de humo: la puerta abierta, las 1.160 líneas al saco del
+cierre); (e) la tabla del notices A SEIS con hallazgo: LA DGT SE
+CONSULTABA DESDE EL 3/09 SIN FICHA — escrita la §1.37 (régimen:
+ninguno — cachear sería guardar la matrícula), y la cabecera
+envejecida POR TERCERA VEZ → el guión que cuenta (notices.spec.ts:
+la cifra contra las fichas, la numeración sin huecos) — la cuarta
+la caza una juez. 618 motor · 284 interfaz. → EL 14 ARRANCA.
 
 **⭐ EL PUNTO 13 CERRADO (7/09): EL ESPEJO, LA nº38 Y LA DEMO.** El
 espejo del encadenado cerrado con caso real (la 41 en De la Mesta:
@@ -1359,15 +1396,17 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el saco del notices** (la tabla «NO SE
-COPIAN: SE CONSULTAN» con las SEIS vivas: BiZi · poste · operativa ·
-DGT · YeGo · festivo-web; la cabecera ya la corrigió el ejecutor);
-(2) **EL PUNTO 14 — EL DESPLIEGUE** (con su lista crecida: el aviso
-de vejez del feed EN PANTALLA · el log a fichero del motor · el
-spec de servidor.ts o su porqué · el cron); (3) la cola técnica:
+**Lo siguiente:** (1) **EL PUNTO 14 — EL DESPLIEGUE** (⚰️ el saco
+del notices, hecho el 8/09 con guión que cuenta; el terreno
+despejado por la tanda pre-14): el parlamento primero — el symlink
+con el panel delante, el cron del renovar-feed, el aviso de vejez
+del feed EN PANTALLA, el log a fichero del motor, PORT del panel
+(la puerta ya abierta el 8/09); (2) la cola técnica (al cierre,
+tras la estética): la poda de los 165 huérfanos [censo] ·
 viajeEnBus obligatorio para desvíos · el gemelo de continuando
-(522/1.841, con cabeza) · el ajax de alteraciones al gacetero · el
-KML (nevera); (4) de fondo: el feed del Pilar
+(522/1.841, con cabeza) · las 1.160 líneas de servidor.ts · los
+binarios solo-Windows (netstat/findstr) · el ajax de alteraciones
+al gacetero · el KML (nevera); (3) de fondo: el feed del Pilar
 (el cron lo coge solo cuando Avanza lo suba), el cron en el panel de
 Hostinger al desplegar (punto 14), el RGC nuevo el 1/10 (migrar
 citas). EN LA NEVERA: LA FASE 2 DE SENTIDOS (mantenimiento del dato
@@ -1645,10 +1684,12 @@ las tres cuentas municipales que no cuadran.
 aparcamiento de motos (¿existe?) · YeGo (¿GBFS moped? ¿TTL 1 h?
 ¿licencia?) · la letra legal de la moto (carril bus, ZBE, zonas 30).
 
-**Punto 14 (DESPLIEGUE — era el 12; todo NO CONSTA, y creció):** ⚠️ servidor.ts SIN SPEC (el
-único fichero del motor sin pruebas — quitar el foco del endpoint
-deja 460 verdes; visible desde el 27/08, su casa es la integración
-de este punto) · versión Node del panel (el
+**Punto 14 (DESPLIEGUE — era el 12; todo NO CONSTA, y creció):**
+⚰️ servidor.ts YA ES JUDICIABLE (8/09: el manejador exportado, el
+listen guardado, servidor.spec.ts con 3 jueces de humo y PORT por
+entorno — la puerta abierta; las 1.160 líneas restantes, al cierre)
+· la vieja nota del 27/08 («SIN SPEC, quitar el foco deja 460
+verdes») queda superada · versión Node del panel (el
 README ya advierte del `engines` sin declarar — candidato a declararlo
 aquí) · memoria (412 MB observados el 22/08 al arrancar; eran ~248 en el
 punto 5) · proceso persistente · index.html en rutas desconocidas (en
@@ -1679,7 +1720,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 894 pruebas (612 motor + 282 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 902 pruebas (618 motor + 284 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
