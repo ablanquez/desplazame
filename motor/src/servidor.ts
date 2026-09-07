@@ -20,6 +20,8 @@
  */
 
 import { createServer } from 'node:http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { pathToFileURL } from 'node:url';
 import type { AreaDeYego, Salud, Vertice } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
@@ -95,8 +97,22 @@ import { leerPeticion } from './peticion.ts';
 /** Cuánto se acepta como cuerpo de una petición. Una ruta cabe de sobra. */
 const CUERPO_MAXIMO = 4096;
 
-/** El puerto del motor. La interfaz le habla por el proxy de `ng serve`. */
-const PUERTO = 3000;
+/**
+ * ⭐ EL PUERTO, POR ENTORNO (8/09, censo pre-despliegue).
+ *
+ * ⚠️ **Aquí ponía `const PUERTO = 3000` y eso no se puede desplegar.**
+ *    [12factor.net/config, literal] guardar la configuración como constantes en
+ *    el código es *«una violación»* de la separación estricta entre config y
+ *    código; y su *port binding* dice que el hosting **asigna el puerto y lo
+ *    expone por la variable `PORT`**. Es el nombre estándar y el que Hostinger
+ *    usa —precedente de ZetaBus—, así que es `PORT` y no un nombre nuestro.
+ *
+ * El **3000 se queda de defecto**: la rutina local de Antonio —`npm start`, el
+ * proxy de `ng serve`, el `curl` de siempre— no cambia ni una letra.
+ *
+ * La interfaz le habla por el proxy de `ng serve`.
+ */
+export const PUERTO = Number(process.env['PORT'] ?? 3000);
 
 /** Si hay una renovación del feed corriendo. Dos crones solapados → 409. */
 const CRON: EstadoDelCron = { enCurso: false };
@@ -544,7 +560,21 @@ const focoDe = (url: URL): { readonly lon: number; readonly lat: number } | null
   return donde ? { lon: donde.lon, lat: donde.lat } : null;
 };
 
-const servidor = createServer((peticion, respuesta) => {
+/**
+ * ⭐ EL MANEJADOR DE PETICIONES, **APARTE DEL `listen`** (8/09).
+ *
+ * ⚠️ Hasta hoy esto vivía dentro del `createServer` y `servidor.ts` no
+ *    exportaba **nada**: cero exports, o sea **nada judiciable**. Todo el
+ *    enrutado, los códigos de estado, el `no-store` y el orden del arranque
+ *    estaban sin una sola juez, y no por descuido: **no había por dónde
+ *    cogerlos**. Es el mismo movimiento del 7/09 con `atenderYEscribir`: el
+ *    arreglo no escribe la prueba, la **hace posible**.
+ *
+ * Sacarlo aquí no cambia ni una respuesta —es el mismo cuerpo, con el mismo
+ * cierre—; lo único que cambia es que ahora se le puede llamar sin abrir un
+ * puerto. Ver `motor/src/servidor.spec.ts`.
+ */
+export function atenderPeticion(peticion: IncomingMessage, respuesta: ServerResponse): void {
   const json = (codigo: number, cuerpo: unknown): void => {
     respuesta.writeHead(codigo, { 'Content-Type': 'application/json; charset=utf-8' });
     respuesta.end(JSON.stringify(cuerpo));
@@ -935,7 +965,9 @@ const servidor = createServer((peticion, respuesta) => {
   }
 
   json(404, { error: `no hay nada en ${peticion.method} ${peticion.url}` });
-});
+}
+
+export const servidor = createServer(atenderPeticion);
 
 // 🔒 LA CLAVE Y EL TOKEN, de `.env.local` si están ahí. Lo que ya viene en el
 // entorno manda (en Hostinger lo pone el panel). Se dicen los NOMBRES leídos,
@@ -1029,7 +1061,13 @@ ponerLaCocina(async () => {
   );
 });
 
-servidor.listen(PUERTO, () => {
+/**
+ * ⭐ LO QUE SE DICE Y SE ARRANCA AL EMPEZAR A ESCUCHAR.
+ *
+ * Era el cuerpo del `listen` y ahora tiene nombre, para que el `listen` sea
+ * **una línea y la última**, que es donde tiene que estar.
+ */
+function alEmpezarAEscuchar(): void {
   console.log(`motor: escuchando en http://localhost:${PUERTO} (pid ${process.pid})`);
   console.log(
     `motor: /api/vias sugiere desde ${MINIMO} letras, hasta ${LIMITE} resultados, ` +
@@ -1155,4 +1193,22 @@ servidor.listen(PUERTO, () => {
   //    capas están calientes no hay ventana que cerrar, porque el pase de
   //    desvíos cubre los huecos del calendario **en todas** sus pasadas.
   void refrescarLosDesvios().then(refrescarElFestivoDeHoy);
-});
+}
+
+/**
+ * ⭐ Y EL `listen`, **SOLO SI ESTE MÓDULO ES LA ENTRADA** (8/09).
+ *
+ * Es el idioma de Node de toda la vida —«corre esto solo si me han lanzado a
+ * mí»—, y es lo que permite que una juez importe `atenderPeticion` sin abrir
+ * ningún puerto ni disparar los refrescos, que viven aquí dentro.
+ *
+ * ⚠️ **Si esta comparación fallara, el motor arrancaría MUDO**: cargaría todo
+ *    y no escucharía. Por eso no se deduce —se comprobó arrancando el motor de
+ *    verdad con `PORT=3001` el 8/09— y por eso el log de arranque, que es la
+ *    única ventana que hay en un panel remoto, sigue diciendo el puerto.
+ */
+const ES_LA_ENTRADA = import.meta.url === pathToFileURL(process.argv[1] ?? '').href;
+
+if (ES_LA_ENTRADA) {
+  servidor.listen(PUERTO, alEmpezarAEscuchar);
+}
