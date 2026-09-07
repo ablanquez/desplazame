@@ -7,14 +7,20 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ## ESTADO ACTUAL — 1 de septiembre de 2026
 
-**⭐ PUNTOS 1-12 CERRADOS (el 12, el 4/09: EL COCHE ENTERO — la red
+**⭐ PUNTOS 1-13 CERRADOS (el 13, el 7/09: LA MOTO ENTERA — la letra
+de la OMUZ medida, la privada sobre la red del coche con el remate
+en aparcamoto por conflación declarada, YeGo con el contrato leído,
+el fin de viaje dentro de su área pintada y la flota viva por GBFS,
+el grupo [Moto] con las preguntas de la ZBE compartidas, el S/N con
+doctrina, y la DGT sin bucle [nº38]; la demo del ojo el 7/09: «veo
+todo bien». El 12, el 4/09: EL COCHE ENTERO — la red
 con las 1.283 restricciones de giro reales y los pesos de car.lua,
 el viaje por transiciones, el aparcado por CUATRO tipos con la
 palabra del reglamento (zona azul · zona naranja · discapacitado ·
 gratuito) y la sugerencia cruzada, el pestillo de la ZBE con el
 remate al parking público que la ordenanza permite, el distintivo
 por matrícula con la DGT como fuente, el polígono pintado y la traza
-roja; 37 bitácoras al 6/09 (la jornada del reloj y las capas: nº33-37, ver crónica); la demo del ojo el 4/09. El 11, el 2/09: LA BOTONERA DE LA DEMO —
+roja; 38 bitácoras al 7/09; la demo del ojo el 4/09. El 11, el 2/09: LA BOTONERA DE LA DEMO —
 la bici en dos filas [Privada|Pública BiZi] con sus tres rutas, los
 botones «Bicis ahora / Anclajes ahora», el resumen único de avisos y
 el minuto una sola vez; el ojo: «la botonera la veo bien así». El 10, el 1/09: EL BUS Y EL TRANVÍA
@@ -180,18 +186,34 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar** *(al cierre del 6/09; el push del 5/09
-mediodía llegó hasta `20c96dd`)*: **la jornada del 6/09 entera — el
-S/N, el encadenado (nº33), la capa del festivo, el desvío-primero
-(nº34), la ventana horaria (nº35), la juez sobre la operativa y la
-frase corta (nº36), el arranque honesto con la edad (nº37) — ~19
-commits — y los papeles al día.** *(Las tandas ya publicadas: el push
+comprobado). **En local, sin publicar** *(al cierre del 7/09 mediodía; el push
+del 6/09 noche llegó hasta `c2f74cd`)*: **el espejo del encadenado
+(2 commits), la DGT sin bucle (nº38, 4 commits) y el CIERRE DEL
+PUNTO 13 en los papeles.** *(Las tandas ya publicadas: el push
 del 3/09 noche llevó las casillas 2 a 3-bis del 12 — el coche entero
 con las bitácoras nº31-32; el del 2/09, el punto 11 y el coche
 ruteando; 31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**⭐ EL PUNTO 13 CERRADO (7/09): EL ESPEJO, LA nº38 Y LA DEMO.** El
+espejo del encadenado cerrado con caso real (la 41 en De la Mesta:
+178° de media vuelta → 13°; 275→0 m; la orientación comprobada 644
+contra 11; latente → nota en la nº33; el gemelo de continuando
+declarado y EN COLA: 522/1.841 costuras sin restringir, código
+compartido con el coche). El fleco de la demo — la DGT «bucleada» —
+diagnosticado y cerrado con la nº38: la pantalla sin techo ninguno,
+el single-flight sin limpiar, el manejador sin .catch (podía TUMBAR
+el motor: unhandledRejection mata el proceso), y el olvido del
+vehículo que no olvidaba el vuelo; arreglo con doctrina (cancelar =
+abortar; techo en cada frontera; el mudo honesto a los 10 s); LEY:
+«un techo protege a la capa en la que está escrito, no a la que lo
+invoca». La juez imposible se volvió posible (el verify() ya no la
+suspende). Y LA DEMO de la moto, confirmada por el ojo: «veo todo
+bien» — con la red cortada incluida. 612 motor · 282 interfaz · 38
+bitácoras. → Quedan el 14 (despliegue), el 15 (estética) y el 16
+(intranet).
 
 **LA JORNADA DEL 6/09 — EL RELOJ, LAS CAPAS Y CINCO BITÁCORAS
 (nº33-37; el ojo de Antonio cazó las cinco).** (1) nº33: los saltos
@@ -1337,16 +1359,15 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **el ESPEJO del encadenado** (feed llega →
-reconstruido sale no lee por dónde entró el bus — el hermano corto
-de la nº33); (2) el saco del notices (la tabla «NO SE COPIAN: SE
-CONSULTAN» con las SEIS vivas: BiZi · poste · operativa · DGT ·
-YeGo · festivo-web; la cabecera ya la corrigió el ejecutor); (3)
-**la casilla 4 del 13 — LA DEMO DE LA MOTO por el ojo** (privada +
-YeGo; el S/N ya resuelto) — con el vale, el 13 se cierra; (4)
-viajeEnBus obligatorio para desvíos · el log a fichero (punto 14) ·
-el ajax de alteraciones al gacetero · el KML (nevera); (5) de
-fondo: el feed del Pilar
+**Lo siguiente:** (1) **el saco del notices** (la tabla «NO SE
+COPIAN: SE CONSULTAN» con las SEIS vivas: BiZi · poste · operativa ·
+DGT · YeGo · festivo-web; la cabecera ya la corrigió el ejecutor);
+(2) **EL PUNTO 14 — EL DESPLIEGUE** (con su lista crecida: el aviso
+de vejez del feed EN PANTALLA · el log a fichero del motor · el
+spec de servidor.ts o su porqué · el cron); (3) la cola técnica:
+viajeEnBus obligatorio para desvíos · el gemelo de continuando
+(522/1.841, con cabeza) · el ajax de alteraciones al gacetero · el
+KML (nevera); (4) de fondo: el feed del Pilar
 (el cron lo coge solo cuando Avanza lo suba), el cron en el panel de
 Hostinger al desplegar (punto 14), el RGC nuevo el 1/10 (migrar
 citas). EN LA NEVERA: LA FASE 2 DE SENTIDOS (mantenimiento del dato
@@ -1658,7 +1679,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 887 pruebas (608 motor + 279 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 894 pruebas (612 motor + 282 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

@@ -2742,8 +2742,22 @@ Dejado aquí desde el punto 4, para cuando toque:
       de arranque, y está bien. ⭐ LEY para la guía: «LA REGLA BUENA
       SE DESPLAZÓ» — cuando una frase de la casa aparezca en el
       comentario de una juez, releer para qué se escribió.
-      **La cola que deja la jornada** (por orden): el ESPEJO del
-      encadenado · la tabla «se consultan» del notices (son SEIS:
+      **⚰️ EL ESPEJO, CERRADO el 7/09** (2 commits; caso REAL cazado
+      barriendo las 1.841 costuras: la 41 en De la Mesta — el feed
+      llega a −88° y el salto nuevo arrancaba a 94°: 178°, la media
+      vuelta exacta; 275→0 m; la orientación de la arista COMPROBADA
+      no deducida [644 contra 11 — del revés habría bendecido la
+      media vuelta]; las medias vueltas 70→65 y el «retroceso» de la
+      juez 10 sube 165 m LEYENDO BIEN las dos cifras: la N1 cambia
+      una media vuelta ilegal de 780 m por un rodeo legal de 875 —
+      el criterio de esa juez no distingue rodeo de vuelta; el giro
+      sí; era LATENTE → nota en la nº33, sin bitácora nueva; las 65
+      que quedan son dobles calzadas [OSRM #4368, citado en el
+      código]; ⚠️ EL GEMELO de continuando ABIERTO: la contigüidad
+      deja 522/1.841 costuras sin restringir — código compartido con
+      el coche, encargo propio con cabeza, EN COLA).
+      **La cola que deja la jornada** (por orden): ⚰️ el espejo
+      (cerrado, arriba) · la tabla «se consultan» del notices (son SEIS:
       BiZi · poste · operativa · DGT · YeGo · festivo-web) ·
       viajeEnBus SIN puerta para desvíos (hacerla obligatoria haría
       la regla cumplirse sola) · el LOG A FICHERO del motor (hoy
@@ -3250,7 +3264,13 @@ son CAPAS DE DATO y ninguna se promete sin sonda:
       542 motor · 263 interfaz · 32 bitácoras, 0 abiertas · DIEZ
       endpoints · la muralla de los seis modos.
 
-## 13 — Modo MOTO *(nuevo, parlamentado el 1/09; DEPENDE del 12: la
+## 13 — Modo MOTO — **⭐ CERRADO el 7/09/2026** *(arrancó el 2/09 con
+las sondas; la moto entera en cinco días: la letra de la OMUZ, la
+privada sobre la red del coche con su remate en aparcamoto, YeGo con
+el contrato leído y el área pintada, el grupo en la botonera con las
+preguntas de la ZBE compartidas, el S/N con doctrina y la DGT sin
+bucle; la demo del ojo el 7/09: «veo todo bien»)*
+*(la cabecera original: nuevo, parlamentado el 1/09; DEPENDE del 12: la
 moto rueda por la red del coche)*
 
 ```
@@ -3428,7 +3448,38 @@ CONSTA hasta la sonda).
       — escrito. La juez 19 caprichosa (1 rojo en 4 corridas, reloj
       real, NO CONSTA causa, sin bitácora: rojo sin fallo vivo) — en
       observación.
-- [ ] **4 · LA DEMO por el ojo.**
+- [x] **⭐ 4 · LA DEMO — CONFIRMADA por el ojo (7/09): «veo todo
+      bien».** La receta entera pasada: la privada con su «(sin
+      coste)» y sin S/N · el distintivo compartido con la matrícula
+      marcando el radio · el caso ZBE rematando FUERA con polígono y
+      traza roja · el reseteo al cambiar de familia · el área de
+      YeGo con sus huecos del centro · el coge/deja con batería y
+      edad del dato · el rechazo honesto del destino fuera del área.
+      UN FLECO cazado por el ojo y cerrado en el día: **el botón de
+      la DGT «bucleado»** → BITÁCORA nº38 (el diagnóstico midió la
+      rama sin techo: si la respuesta no llega, «Preguntando…» para
+      siempre; el single-flight sin limpiar — el cadáver de portero;
+      el manejador sin .catch que podía TUMBAR EL MOTOR
+      [unhandledRejection mata el proceso]; y olvidarElVehiculo que
+      olvidaba el vehículo pero no el vuelo — la respuesta tardía
+      habría marcado el distintivo del coche anterior sobre la
+      moto). El arreglo con doctrina [Angular/RxJS: «anular la
+      suscripción ABORTA la petición»; el techo en cada frontera]:
+      la pantalla con techo de 10 s y mudo honesto («La DGT no ha
+      contestado. Vuelve a intentarlo.»), la pulsación nueva cancela
+      la vieja, el cambio de familia corta y limpia TODO, el motor
+      con todo vuelo asentado y el .catch puesto. ⭐ LEY de la nº38:
+      «un techo protege a la capa en la que está escrito, no a la
+      que lo invoca» (había relojes en las dos capas y ninguno
+      terminaba una espera). Y el estrella fino: la juez del cuelgue
+      NO PODÍA EXISTIR (el verify() de la suite suspende a quien
+      deja una petición abierta) — con la cancelación bien hecha, se
+      volvió posible; sus rojas arrastraban 21 vecinas: mientras la
+      cancelación no existía, ni fallar limpiamente se podía. Zonas
+      declaradas: servidor.ts SIN SPEC (arranca al importarse — al
+      14) · el gemelo de continuando (cola). Verificado por el ojo
+      con la red cortada. Al cierre del 13: 612 motor · 282
+      interfaz · 38 bitácoras, 0 abiertas.
 
 ## 14 — Despliegue *(en grueso)*
 
