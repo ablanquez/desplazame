@@ -14,6 +14,105 @@
 
 ---
 
+## [2026-09-07] 🔴 ABIERTA — El botón de la DGT se queda diciendo «Preguntando a la DGT…» para siempre, y ninguna capa pone techo
+
+**Categoría:** una espera sin techo que nadie puede terminar
+**Síntoma:** Antonio lo ve «a veces»: se pulsa **Consultar distintivo** y la
+región se queda en *«Preguntando a la DGT…»* con el ⏳ puesto y no sale de ahí.
+Medido el 7/09 en el diagnóstico de solo lectura:
+
+* **La pantalla no tiene techo ninguno.** `consultandoDgt` se pone a `true` en
+  `buscador.ts:1028` y **se apaga en una sola línea de todo el fichero**, la
+  `1065`, dentro de `acabaLaDgt`. Si el observable no emite ni `next` ni `error`,
+  no hay nada más que lo apague: `provideHttpClient()` va sin interceptores ni
+  `withFetch()`, o sea backend XHR, cuyo `timeout` por defecto es **0 = nunca**.
+* **El single-flight del motor no se limpia si el vuelo no muere.** El
+  `.finally()` que borra de `enVuelo` solo corre cuando la promesa se asienta.
+  Con un `pedir` que nunca contesta, medido: la segunda pulsación con la misma
+  matrícula **se pega al cadáver** —una sola visita a la fuente— y a los 12 s
+  las dos siguen colgadas. El muerto se queda de portero para siempre.
+
+```
+[  0.1 s] primera pulsación lanzada · visitas a la fuente: 1
+[  0.1 s] segunda pulsación (MISMA matrícula) · visitas: 1   ← se pegó al vuelo
+[  0.2 s] otra matrícula · visitas: 2
+[ 12.2 s] primera: SIGUE COLGADA · segunda: SIGUE COLGADA · otra: SIGUE COLGADA
+```
+
+* **El techo de 4 s del motor está una capa por debajo de donde hace falta:**
+  vive en el `AbortSignal.timeout(ESPERA_MS)` de `porLaRed`, no en
+  `atenderDistintivo`. Con la sede simulada sí acota —muda **8,33 s** · lenta de
+  6 s **8,32 s** · caída **0,31 s**, siempre `mudo`—, pero la garantía es de la
+  capa de abajo, no de la consulta.
+* **El manejador de `/api/distintivo` es un `void (async () => {…})()` sin
+  `.catch`** (`servidor.ts:854`), mientras que otros **tres** endpoints del mismo
+  fichero sí lo llevan. Sin `unhandledRejection` global: si algo lanza, no se
+  escribe respuesta y el socket se queda abierto hasta el `requestTimeout` por
+  defecto de Node, **300 s**.
+* **`olvidarElVehiculo` olvida el vehículo pero no el vuelo** (`buscador.ts:2419`):
+  borra `distintivo`, `autorizacion`, `matricula` y `loDeLaDgt`, pero no
+  `consultandoDgt`, ni `tardaLaDgt`, ni el reloj, ni da de baja la suscripción.
+  Una respuesta que llegue tras cambiar de coche a moto **marca el radio del
+  vehículo anterior sobre el nuevo** —justo lo que su propio comentario declara
+  que no puede pasar—.
+* **Y la sede está sana:** diez consultas reales espaciadas 3 s, `0,18 · 0,21 ·
+  0,28 · 0,30 · 0,35 · 0,36 · 0,45 · 0,50 · 0,91 · 1,36` s, ninguna colgada. El
+  bucle no lo causa la fuente: lo causa que **nadie manda parar**.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las dos suites del caso,
+enteras, ejecutadas antes de tocar nada:
+
+```
+$ node --test motor/src/distintivo.spec.ts
+✔ ⭐ EL DISTINTIVO POR MATRÍCULA (casilla 3-bis) (1261.7864ms)
+ℹ tests 4
+ℹ pass 4
+ℹ fail 0
+```
+
+```
+$ npm --prefix app test -- desplazame --include=src/app/buscador.spec.ts
+ Test Files  1 passed (1)
+      Tests  126 passed (126)
+```
+
+Y las cuatro del motor son **las del caso**: la `⭐ 5 bis` compra literalmente
+*«en cuanto la primera termina se suelta»*, y la `⭐ 5 ter` compra el reintento y
+el mudo. **Ninguna de las dos prueba la primera que NO termina**: los cuatro
+`Pedir` de ese fichero contestan siempre —bien, mal, o lanzando—, y no hay ni
+uno que no conteste, que es el único caso que rompe el single-flight.
+
+⭐ **Y en la pantalla la juez que faltaba era imposible de escribir.** Hay **69
+`flush(...)`** en `buscador.spec.ts` y un `verify()` en el `afterEach`: una juez
+del cuelgue tendría que dejar una petición sin contestar, y **`verify()` la
+suspendería por dejarla**. La juez 6 mira `aria-busy` en `true` al pulsar y en
+`false` tras el `flush` —los dos extremos del caso bueno— y ninguna mira qué
+pasa cuando la respuesta no llega.
+
+**Cómo se cazó:** usuario — Antonio lo ve «a veces» en Chrome.
+**Causa raíz:** ⏳ PENDIENTE
+
+**Arreglo aplicado:** ⏳ PENDIENTE
+
+**Commit:** ⏳ PENDIENTE
+
+**Ley que sale de aquí:** **una herramienta que mantiene la suite honesta puede
+estar impidiendo justo la juez que falta.** `verify()` existe para que ninguna
+petición se quede sin contestar, y por eso mismo hacía inescribible la única
+juez que habría cazado esto. No es un fallo de `verify()`: es que **el cuelgue
+solo se puede comprar si antes existe la cancelación** —una petición cancelada
+sí deja el `verify()` limpio—. Cuando una prueba «no se puede escribir», la
+pregunta no es cómo saltarse al guardián, sino **qué le falta al código para que
+esa prueba sea escribible**.
+
+**Traza:** `app/src/app/buscador.ts` (`consultarDistintivo`, `acabaLaDgt`,
+`olvidarElVehiculo`) · `app/src/app/app.config.ts` (`provideHttpClient`) ·
+`motor/src/distintivo.ts` (`enVuelo`, `atenderDistintivo`, `porLaRed`) ·
+`motor/src/servidor.ts` (el manejador de `/api/distintivo`) ·
+`motor/src/distintivo.spec.ts` · `app/src/app/buscador.spec.ts`.
+
+---
+
 ## [2026-09-06] ✅ CERRADA — El primer minuto de vida del motor contesta con el horario oficial y no lo dice: un viaje a esperar en una calle en obras
 
 **Categoría:** el silencio de lo degradado
