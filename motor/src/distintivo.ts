@@ -77,6 +77,24 @@ export const ESPERA_MS = 4000;
 export const BACKOFF_MS = 300;
 
 /**
+ * ⭐ EL TECHO DE LA CONSULTA ENTERA (7/09, entrada nº38).
+ *
+ * ⚠️ **El de arriba no bastaba, y no por corto: por estar una capa más
+ *    abajo.** `ESPERA_MS` vive dentro del `AbortSignal.timeout` de `porLaRed`,
+ *    o sea que **la garantía era de quien va a la red**, no de la consulta. Con
+ *    cualquier `Pedir` que no se aborte solo, el vuelo no se asienta nunca; y
+ *    si no se asienta, el `.finally()` que lo saca de `enVuelo` no corre, y el
+ *    cadáver se queda de portero para siempre —medido el 7/09: a los 12 s, dos
+ *    consultas de la misma matrícula colgadas y una sola visita a la fuente—.
+ *
+ * Aquí el techo es de la CONSULTA: pase lo que pase debajo, esta promesa se
+ * asienta. Cubre el camino largo entero —dos intentos y su espera— y **medio
+ * segundo de margen**, para no cortarle la palabra al tope de abajo: si el que
+ * tiene que hablar es `porLaRed`, que hable él, que sabe decir `tope`.
+ */
+export const TECHO_MS = ESPERA_MS * 2 + BACKOFF_MS + 500;
+
+/**
  * ⭐ LO QUE SE LEE DE LA PÁGINA, y **son DOS sitios, no uno**.
  *
  * ⛔ **Entrada nº32 de `docs/BITACORA.md`.** Esto solo miraba `avisos_msg`, y la
@@ -194,15 +212,45 @@ const porLaRed: Pedir = async (url) => {
 };
 
 /**
+ * ⭐ UNA PROMESA QUE **SIEMPRE SE ASIENTA**, con lo que haya a la hora tope.
+ *
+ * No cancela nada —no puede: quien sabe abortar es quien fue a la red—; lo que
+ * hace es dejar de esperarla y contestar. Y convierte cualquier rechazo en el
+ * mudo, para que el vuelo tampoco pueda asentarse rechazado.
+ */
+function conTecho(
+  promesa: Promise<DistintivoConsultado>,
+  ms: number,
+  alVencer: () => DistintivoConsultado,
+): Promise<DistintivoConsultado> {
+  return new Promise((listo) => {
+    const reloj = setTimeout(() => listo(alVencer()), ms);
+    void promesa.then(
+      (v) => {
+        clearTimeout(reloj);
+        listo(v);
+      },
+      () => {
+        clearTimeout(reloj);
+        listo(alVencer());
+      },
+    );
+  });
+}
+
+/**
  * ⭐ LA CONSULTA, de punta a punta.
  *
  * `null` en la matrícula, vacía o con formato malo → `formato`, **sin salir a
  * la red**. Lo demás: una petición, un reintento con 300 ms de espera, y lo que
- * la sede diga.
+ * la sede diga —y todo ello **bajo `TECHO_MS`**, que es lo que garantiza que el
+ * single-flight se limpie siempre—.
  */
 export async function atenderDistintivo(
   cruda: string | null,
   pedir: Pedir = porLaRed,
+  /** Se inyecta para no tener que esperarlo de verdad en las jueces. */
+  techoMs: number = TECHO_MS,
 ): Promise<{ readonly codigo: number; readonly cuerpo: DistintivoConsultado }> {
   const matricula = normalizar(cruda ?? '');
   if (!esMatricula(matricula)) {
@@ -225,7 +273,7 @@ export async function atenderDistintivo(
     return { codigo: 200, cuerpo: await yaVa };
   }
 
-  const vuelo = (async (): Promise<DistintivoConsultado> => {
+  const elCamino = (async (): Promise<DistintivoConsultado> => {
     consultas++;
     const url = `${CONSULTA}?matricula=${encodeURIComponent(matricula)}`;
     for (let intento = 0; intento <= 1; intento++) {
@@ -255,7 +303,13 @@ export async function atenderDistintivo(
       }
     }
     return mudo('agotado');
-  })().finally(() => {
+  })();
+  // ⭐ EL TECHO VA AQUÍ, ABRAZANDO AL VUELO ENTERO — y no fuera, en un `race`
+  //    con quien espera: así lo que se asienta es **la promesa que está en el
+  //    mapa**, y por eso el `.finally` corre y `enVuelo` se limpia SIEMPRE.
+  const vuelo: Promise<DistintivoConsultado> = conTecho(elCamino, techoMs, () =>
+    mudo('techo'),
+  ).finally(() => {
     if (enVuelo.get(matricula) === vuelo) {
       enVuelo.delete(matricula);
     }
@@ -263,4 +317,39 @@ export async function atenderDistintivo(
 
   enVuelo.set(matricula, vuelo);
   return { codigo: 200, cuerpo: await vuelo };
+}
+
+/**
+ * ⭐ LA RESPUESTA DEL ENDPOINT, Y **NO PUEDE LANZAR** (7/09, entrada nº38).
+ *
+ * El manejador de `/api/distintivo` era un `void (async () => {…})()` sin
+ * `.catch`, mientras que otros tres del mismo fichero sí lo llevaban. Y sin
+ * `unhandledRejection` global, con el `--unhandled-rejections=throw` que Node
+ * trae por defecto, una excepción ahí dentro no deja un socket colgado:
+ * **tumba el motor entero**.
+ *
+ * Lo que puede lanzar de verdad no es la consulta —que se lo traga todo y
+ * siempre contesta— sino **escribir**: si quien preguntaba ya no está, la
+ * respuesta no tiene dónde ir y `writeHead` protesta. Entonces no hay nada más
+ * que hacer: se dice al log y se acaba ahí. **No se reintenta escribir sobre un
+ * socket muerto.**
+ *
+ * Vive aquí y no en `servidor.ts` porque es este módulo el que sabe qué se
+ * contesta —y el que tiene escrita la ley de que la matrícula no sale—. El
+ * servidor solo pone `escribir`.
+ */
+export async function atenderYEscribir(
+  cruda: string | null,
+  escribir: (codigo: number, cuerpo: DistintivoConsultado) => void,
+  pedir: Pedir = porLaRed,
+): Promise<void> {
+  try {
+    const r = await atenderDistintivo(cruda, pedir);
+    escribir(r.codigo, r.cuerpo);
+  } catch (fallo) {
+    // ⚠️ Sin la matrícula, como todo lo que sale de aquí.
+    console.log(
+      `motor: distintivo — no se pudo contestar (${fallo instanceof Error ? fallo.message : 'desconocido'})`,
+    );
+  }
 }

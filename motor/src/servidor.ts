@@ -29,7 +29,7 @@ import { cargarBiZi, disponibilidadDeBiZi } from './bizi.ts';
 import { elAreaDeServicio, laFlotaViva } from './yego.ts';
 import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
 import { atenderEstacionViva } from './estacion-viva.ts';
-import { atenderDistintivo } from './distintivo.ts';
+import { atenderYEscribir } from './distintivo.ts';
 import { andarConElPeaton, cocinarYServir, laRedDeBus } from './red-bus.ts';
 import {
   atenderRenovacion,
@@ -852,10 +852,16 @@ const servidor = createServer((peticion, respuesta) => {
    *    ni el navegador ni un intermediario, se quede una copia.
    */
   if (peticion.method === 'GET' && url.pathname === '/api/distintivo') {
-    void (async () => {
-      const r = await atenderDistintivo(url.searchParams.get('matricula'));
-      jsonSinGuardar(r.codigo, r.cuerpo);
-    })();
+    // ⭐ Y CON SU `.catch`, como los otros tres del fichero (7/09, entrada
+    //    nº38). `atenderYEscribir` ya se traga lo suyo; esto es el cinturón
+    //    sobre los tirantes, porque lo que hay al otro lado de una promesa
+    //    rechazada aquí no es un socket colgado: es **el motor caído**, que es
+    //    como Node trata por defecto un `unhandledRejection`.
+    void atenderYEscribir(url.searchParams.get('matricula'), jsonSinGuardar).catch(
+      (e: unknown) => {
+        console.error(`motor: ⛔ el distintivo se fue por lo imprevisto: ${(e as Error).message}`);
+      },
+    );
     return;
   }
 

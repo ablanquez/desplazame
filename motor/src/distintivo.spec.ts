@@ -11,10 +11,12 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   atenderDistintivo,
+  atenderYEscribir,
   consultasHechas,
   esMatricula,
   fraseDeLaSede,
   normalizar,
+  TECHO_MS,
   type Pedir,
 } from './distintivo.ts';
 
@@ -167,6 +169,88 @@ describe('⭐ EL DISTINTIVO POR MATRÍCULA (casilla 3-bis)', () => {
     }));
     assert.equal(otraPagina.cuerpo.clase, 'mudo');
     assert.equal(fraseDeLaSede('<html>sin nada</html>'), null);
+  });
+
+  /**
+   * ⭐ JUEZ 8 — UNA FUENTE QUE NO CONTESTA NO PUEDE COLGAR LA CONSULTA.
+   *
+   * ⚠️ **Entrada nº38 de `docs/BITACORA.md`.** El tope de 4 s vivía **una capa
+   *    más abajo**, en el `AbortSignal.timeout` de `porLaRed`. Con cualquier
+   *    `Pedir` que no se abortara solo, el vuelo no se asentaba nunca, el
+   *    `.finally()` que lo borra de `enVuelo` **no llegaba a correr**, y el
+   *    cadáver se quedaba de portero: la misma matrícula ya no se podía volver
+   *    a preguntar jamás. Medido: a los 12 s, tres consultas colgadas.
+   *
+   * Lo que se compra son las dos mitades: **el techo contesta** —mudo, que es
+   * el no-sé declarado de la casa— y **el vuelo se suelta**.
+   *
+   * El techo se inyecta para no tener que esperarlo de verdad, como el reloj
+   * del bus y como `Pedir`. El de producción es `TECHO_MS`.
+   */
+  test('⭐ 8 · con una fuente muda, el techo contesta y el vuelo se suelta', async () => {
+    let visitas = 0;
+    const nunca: Pedir = () => {
+      visitas++;
+      return new Promise(() => {});
+    };
+
+    const t = Date.now();
+    const colgada = await atenderDistintivo('0000BBM', nunca, 300);
+    const tardo = Date.now() - t;
+    assert.ok(tardo < 3000, `el techo tiene que cortar, y tardó ${tardo} ms`);
+    assert.equal(colgada.codigo, 200, 'una fuente muda no es un error nuestro');
+    assert.equal(colgada.cuerpo.clase, 'mudo');
+    assert.match(colgada.cuerpo.texto, /no ha contestado/);
+
+    // ⭐ Y LA MISMA MATRÍCULA SE PUEDE REPREGUNTAR: el vuelo se soltó.
+    const f = fuente(CON_ETIQUETA_C);
+    const otra = await atenderDistintivo('0000BBM', f.pedir);
+    assert.equal(otra.cuerpo.clase, 'etiqueta', 'el cadáver no puede quedarse de portero');
+    assert.equal(f.visitas(), 1, 'y la de verdad sí sale a la fuente');
+    assert.equal(visitas, 1, 'a la fuente muda se le visitó una vez, no dos');
+
+    // El techo de producción cubre los dos intentos y su espera, con margen.
+    assert.ok(TECHO_MS > 4000 * 2 + 300, `el techo global tiene que pasar del camino largo: ${TECHO_MS}`);
+  });
+
+  /**
+   * ⭐ JUEZ 9 — EL MANEJADOR CONTESTA SIEMPRE, Y NO DEJA UNA PROMESA RECHAZADA.
+   *
+   * ⚠️ **Entrada nº38.** El manejador del endpoint era un
+   *    `void (async () => {…})()` **sin `.catch`**, mientras que otros tres del
+   *    mismo fichero sí lo llevaban. Sin `unhandledRejection` global, y con el
+   *    `--unhandled-rejections=throw` que Node trae por defecto, una excepción
+   *    ahí dentro **no deja el socket colgado: tumba el motor entero**.
+   *
+   * Y lo que puede lanzar de verdad no es la consulta —que se traga todo— sino
+   * **escribir**: si quien preguntaba se ha ido, la respuesta ya no tiene dónde
+   * ir y `writeHead` protesta. Eso se dice al log y se acaba ahí.
+   */
+  test('⭐ 9 · el manejador escribe la respuesta, y si escribir lanza no rechaza', async () => {
+    const escrito: { codigo: number; clase: string }[] = [];
+    await atenderYEscribir(
+      '0000BBM',
+      (codigo, cuerpo) => escrito.push({ codigo, clase: cuerpo.clase }),
+      fuente(CON_ETIQUETA_C).pedir,
+    );
+    assert.deepEqual(escrito, [{ codigo: 200, clase: 'etiqueta' }]);
+
+    // El formato malo también se escribe, con su 400.
+    escrito.length = 0;
+    await atenderYEscribir('MAL', (codigo, cuerpo) => escrito.push({ codigo, clase: cuerpo.clase }));
+    assert.deepEqual(escrito, [{ codigo: 400, clase: 'formato' }]);
+
+    // ⭐ Y SI ESCRIBIR LANZA: se intenta una vez, no se propaga, no se repite.
+    let intentos = 0;
+    await atenderYEscribir(
+      '0000BBC',
+      () => {
+        intentos++;
+        throw new Error('write after end');
+      },
+      fuente(SIN_DISTINTIVO).pedir,
+    );
+    assert.equal(intentos, 1, 'se intenta escribir una vez y no se insiste sobre un socket muerto');
   });
 
   /**
