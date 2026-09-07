@@ -8,6 +8,7 @@ import {
   RAYA_DEL_AREA,
   RELLENO_DE_LA_ZONA,
   RELLENO_DEL_AREA,
+  GLIFO,
   ribeteDe,
   ROJO_DE_LA_ZONA,
   TINTA_DEL_AREA,
@@ -17,6 +18,7 @@ import {
   type Vertice,
 } from './mapa';
 import { AA_GRAFICO, contraste, deHex, luminancia, PLANO_MAS_CLARO, PLANO_MAS_OSCURO, TIERRA_OSM } from './contraste';
+import { FLECHAS } from './buscador';
 // @ts-expect-error — sin @types/node, el compilador no conoce el módulo
 import { readFileSync, existsSync } from 'node:fs';
 
@@ -1136,5 +1138,43 @@ describe('Mapa', () => {
     // Y los dos bordes se siguen leyendo sobre esa doble capa.
     expect(contraste(BORDE_DEL_AREA, encimados)).toBeGreaterThanOrEqual(AA_GRAFICO);
     expect(contraste(BORDE_DE_LA_ZONA, encimados)).toBeGreaterThanOrEqual(AA_GRAFICO);
+  });
+});
+
+/**
+ * ⭐ LOS GLIFOS DE LOS HITOS — EL GUARDIÁN DE UNA COPIA DECLARADA (8/09).
+ *
+ * Hay **dos tablas** de glifos y es a propósito: `FLECHAS` en `buscador.ts`
+ * tiene los quince pasos de la lista de indicaciones, y `GLIFO` en `mapa.ts`
+ * tiene los cuatro hitos que se pintan en el plano. La copia está razonada en
+ * el comentario de `GLIFO`: *«quien lee "🚌 Sube a la 39…" busca esa marca en
+ * el plano»*. Unificarlas rompería esa razón —el mapa no quiere quince marcas—,
+ * así que la copia se queda.
+ *
+ * ⚠️ **Lo que faltaba era el guardián.** Medido en el censo del 8/09: las
+ *    jueces fijaban los glifos **por separado en cada casa** —`buscador.spec.ts`
+ *    compra `🚲` y `🅿`; las de aquí arriba compran los cuatro del plano— y
+ *    **ninguna comparaba las dos tablas**. Cambiar `sube: '🚌'` en `buscador.ts`
+ *    no rompía **ni una** prueba, y la lista y el plano se habrían separado en
+ *    silencio. Una copia vigilada es una decisión; una copia sin quién compruebe
+ *    su salida es un accidente esperando.
+ */
+describe('⭐ LOS GLIFOS DE LOS HITOS — la lista y el plano dicen lo mismo', () => {
+  it('⭐ 1 · los cuatro hitos del plano son los mismos caracteres que en la lista', () => {
+    const hitos = Object.keys(GLIFO) as (keyof typeof GLIFO)[];
+    expect(hitos.sort()).toEqual(['aparca', 'baja', 'coge', 'sube']);
+
+    for (const hito of hitos) {
+      expect(FLECHAS[hito]).toBe(GLIFO[hito]);
+    }
+  });
+
+  it('⭐ 2 · el plano no inventa un hito que la lista no sepa nombrar', () => {
+    // Si el contrato añadiera un hito, `GLIFO` dejaría de compilar —es un
+    // `Record` exhaustivo—. Lo que esto compra es lo otro: que ese hito nuevo
+    // **tenga también flecha en la lista**, que el tipo no obliga.
+    for (const hito of Object.keys(GLIFO)) {
+      expect(Object.keys(FLECHAS)).toContain(hito);
+    }
   });
 });

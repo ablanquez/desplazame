@@ -253,7 +253,17 @@ function sitioDelHito(paso: Paso): string | null {
  */
 const MS_ANTES_DE_AVISAR = 1000;
 
-const FLECHAS: Readonly<Record<Giro, string>> = {
+/**
+ * ⭐ **Y SE EXPORTA PARA QUE LA PUEDAN COMPARAR** (8/09, censo pre-despliegue).
+ *
+ * Cuatro de estos glifos —`coge`, `aparca`, `sube`, `baja`— están **también**
+ * en `GLIFO` de `mapa.ts`, y esa copia es una decisión escrita: quien lee
+ * «🅿 Aparca en…» busca esa misma marca en el plano. Lo que faltaba era el
+ * guardián —una fuente copiada sin quién compruebe su salida no está
+ * terminada—: medido el 8/09, cambiar aquí `sube: '🚌'` no rompía ni una juez.
+ * Ahora sí: ver `⭐ LOS GLIFOS DE LOS HITOS` en `mapa.spec.ts`.
+ */
+export const FLECHAS: Readonly<Record<Giro, string>> = {
   salida: '◉',
   recto: '↑',
   'ligera-derecha': '↗',

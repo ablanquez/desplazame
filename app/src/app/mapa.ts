@@ -369,7 +369,7 @@ export function ribeteDe(color: string): string {
  * `Record` exhaustivo por la misma razón de siempre: si el contrato añadiera un
  * hito, esta tabla dejaría de compilar en vez de dibujar un hueco.
  */
-const GLIFO: Readonly<Record<NonNullable<TramoDelViaje['hito']>, string>> = {
+export const GLIFO: Readonly<Record<NonNullable<TramoDelViaje['hito']>, string>> = {
   coge: '🚲',
   aparca: '🅿',
   // Los dos del poste. Mismos caracteres que la lista de pasos, por lo mismo de
