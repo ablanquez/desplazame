@@ -192,15 +192,32 @@ export function rodarConElCoche(servida: RedDeCocheServida): RodarEntre {
 }
 
 /**
- * ⭐ POR QUÉ ARISTA DE LA CALZADA SALE UNA TRAZA DEL FEED de su parada.
+ * ⭐ POR QUÉ ARISTA DE LA CALZADA SALE —O ENTRA— UNA TRAZA DEL FEED.
  *
  * ── ⚠️ Esto LEE el feed; no lo re-rutea ────────────────────────────────────
  *
  * La traza del `shapes.txt` sale intacta al otro lado —juez 12—. Lo único que
- * se hace aquí es **preguntarle por dónde se va**, para que el salto
- * reconstruido de al lado no llegue por esa misma calle al revés. Sin esto, el
+ * se hace aquí es **preguntarle por dónde se va, o por dónde vino**, para que el
+ * salto reconstruido de al lado no ande esa misma calle al revés. Sin esto, el
  * encadenado se corta justo en la frontera, que es donde estaba el fallo de la
  * 29: llegaba por la arista 11279 y el feed salía por la 11280, su gemela.
+ *
+ * ── ⭐ Y LA FRONTERA TIENE DOS CARAS (7/09) ────────────────────────────
+ *
+ * `saliendo` era el único caso que se usaba, y con él se arregló media costura:
+ * el reconstruido llega → el feed sale. La de enfrente —**el feed llega → el
+ * reconstruido sale**— quedó declarada como pendiente en el checkpoint de la
+ * nº33, y es ésta.
+ *
+ * ⚠️ **La arista se devuelve orientada COMO CIRCULA EL AUTOBÚS en los dos
+ *    casos**, que es lo que `viniendoDe` y `yendoA` significan en
+ *    `viaje-coche.ts`. El vector `hasta - desde` mira siempre hacia dentro de
+ *    la traza: en la punta de salida eso es el sentido de la marcha, y en la de
+ *    llegada es justo el contrario. Sin ese giro, `continuando` vetaría la
+ *    continuación natural y bendeciría la media vuelta —el fallo, del revés—.
+ *    Comprobado sobre la red entera: re-ruteando los 1.974 saltos del feed por
+ *    calzada, la `llegada` que devuelve la búsqueda coincide con esta cara en
+ *    **644** casos y con la contraria en **11**.
  *
  * El punto que se proyecta es el que está a `METROS_DE_LA_PUNTA` del poste, no
  * el poste: en el poste las dos caras de la calle están a la misma distancia y
@@ -251,8 +268,11 @@ export function aristaDeLaTraza(
   const dLon = g[g.length - 1]![0] - g[0]![0];
   const dLat = g[g.length - 1]![1] - g[0]![1];
   // El producto escalar de las dos direcciones: positivo, van a favor.
-  const aFavor = dLon * (hasta[1] - desde[1]) + dLat * (hasta[0] - desde[0]) > 0;
-  if (aFavor) {
+  const haciaDentro = dLon * (hasta[1] - desde[1]) + dLat * (hasta[0] - desde[0]) > 0;
+  // ⭐ Y «hacia dentro» es la marcha en la punta de salida y su contrario en la
+  //    de llegada. Ver la cabecera: se devuelve como circula el autobús.
+  const comoCircula = saliendo ? haciaDentro : !haciaDentro;
+  if (comoCircula) {
     return e.arista;
   }
   const gemela = servida.gemela[e.arista] ?? -1;
@@ -369,10 +389,17 @@ export function patronOperativo(
    *
    * ── LA FRONTERA CON EL FEED ────────────────────────────────────────────────
    *
-   * `SIN_LLEGADA` en cuanto se hereda un tramo del `shapes.txt`: **el feed no
-   * se re-rutea**, su traza no sale de ninguna arista de la red del coche, y
-   * fingir que sí sería inventarse por dónde entra el autobús. Donde el asfalto
-   * del feed empieza, el encadenado termina.
+   * ⚠️ **Aquí ponía `SIN_LLEGADA` y con él se acababa el encadenado** (hasta el
+   *    7/09), con esta razón escrita: *«el feed no se re-rutea, su traza no sale
+   *    de ninguna arista de la red del coche»*. Lo primero sigue siendo verdad
+   *    y lo segundo confundía **re-rutear con leer**: la traza no sale de una
+   *    arista, pero se le puede **preguntar** por cuál entró, que es justo lo
+   *    que `aristaDeLaTraza` hacía ya por la otra punta. Con el hueco puesto,
+   *    un salto reconstruido que sale de una parada a la que el feed llega
+   *    arrancaba deshaciendo la calle: **275 m** en la 41 de De La Mesta.
+   *
+   * Y el asfalto del feed **sigue sin tocarse**: esto lo lee, no lo rutea —juez
+   * 12, que compra que sale siendo el mismo objeto—.
    */
   let viniendoDe = SIN_LLEGADA;
 
@@ -381,7 +408,11 @@ export function patronOperativo(
     if (heredado) {
       // ⭐ El asfalto de verdad se conserva: este tramo no ha cambiado.
       saltos.push(heredado);
-      viniendoDe = SIN_LLEGADA;
+      // ⭐ EL ESPEJO: y si el salto que viene se reconstruye, sale de una parada
+      //    a la que el autobús acaba de LLEGAR por esta traza. Se le lee el
+      //    final. Sin `leerLaTraza` no se sabe, y no saber sigue sin ser una
+      //    restricción que inventarse.
+      viniendoDe = leerLaTraza ? leerLaTraza(heredado.traza, false) : SIN_LLEGADA;
       continue;
     }
     cuentas.saltosNuevos++;

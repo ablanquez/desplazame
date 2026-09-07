@@ -17,9 +17,16 @@ import { cargarPortales } from './portales.ts';
 import { entornoDe } from './gacetero.ts';
 import { cargarRedDeLaRueda } from './red-rueda.ts';
 import { elFeedQueSeSirve } from './feed.ts';
-import { andarConElPeaton, cocinar, type PatronBus, type RedDeBus } from './red-bus.ts';
+import {
+  andarConElPeaton,
+  cocinar,
+  type ParadaBus,
+  type PatronBus,
+  type RedDeBus,
+} from './red-bus.ts';
 import { buscarViaje, lineaDelViaje, postesCerca } from './viaje-bus.ts';
 import { compararRecorrido, oficialDe, type Veredicto } from './desvios.ts';
+import { posteDeCodigo } from './avanza.ts';
 import { leerPostes } from './recorrido.ts';
 import { metrosEntre } from './cercano.ts';
 import type { Motor } from './trayecto.ts';
@@ -131,6 +138,20 @@ function metrosRepisados(traza: readonly (readonly [number, number])[]): number 
     }
   }
   return pasos * PASO_M;
+}
+
+/** Dos trazas pegadas como las pega `etapaMontada`: sin repetir la costura. */
+function pegados(...trozos: readonly (readonly (readonly [number, number])[])[]): [number, number][] {
+  const g: [number, number][] = [];
+  for (const t of trozos) {
+    for (const punto of t) {
+      const antes = g[g.length - 1];
+      if (!antes || antes[0] !== punto[0] || antes[1] !== punto[1]) {
+        g.push([punto[0], punto[1]]);
+      }
+    }
+  }
+  return g;
 }
 
 /** La traza que el mapa pinta de un patrón: la de `etapaMontada`, sin sus postes. */
@@ -782,6 +803,179 @@ describe('⭐ EL PATRÓN OPERATIVO — la ruta de hoy con su traza', () => {
     assert.ok(
       delFeed.has(hoy.saltos[hoy.saltos.length - 1]!),
       'el salto 585 → 284 es del feed y no se re-rutea',
+    );
+
+    // ── c) Y CON EL ENCADENADO PUESTO POR LOS DOS LADOS, lo mismo ─────────
+    //
+    // Desde el 7/09 la costura se lee también al revés —el feed llega, el
+    // reconstruido sale—, o sea que `leerLaTraza` se llama más veces y sobre
+    // más trazas. Leer no es tocar: el sello tiene que seguir clavado.
+    const conEspejo = aplicarDesvios(red, () => null, new Map(), rodarPorCalzada, leerLaTraza);
+    assert.equal(
+      selloDe(conEspejo.red),
+      selloDe(red),
+      'leerle al feed por dónde entra no puede mover ni un byte de su asfalto',
+    );
+    const opEspejo = aplicarDesvios(red, soloLa29, DONDE_ESTAN, rodarPorCalzada, leerLaTraza);
+    const hoyEspejo = opEspejo.red.patrones.find((p) => p.id === `${laVeintinueve.id}#hoy`)!;
+    assert.equal(
+      hoyEspejo.saltos.filter((s) => delFeed.has(s)).length,
+      hoyEspejo.saltos.length - 3,
+      'con el espejo puesto, los heredados siguen siendo LOS MISMOS objetos',
+    );
+  });
+
+  /**
+   * ⭐ LA COSTURA DEL ESPEJO, tal y como aparece en la calle: UNA PARADA
+   * SUPRIMIDA.
+   *
+   * Si hoy no se para en `P`, el salto que la rodea es nuevo —y se
+   * reconstruye— mientras que el que llega hasta la parada de antes sigue
+   * siendo el asfalto del `shapes.txt`. Esa es exactamente la frontera
+   * *feed llega → reconstruido sale*, y no hace falta inventarse nada para
+   * montarla: se le quita una parada a un patrón de verdad.
+   *
+   * Devuelve el patrón, la secuencia de hoy y **el índice del salto NUEVO**,
+   * que es el de la costura. El heredado es el de justo antes.
+   */
+  const laCosturaDe = (
+    corto: string,
+    /** El poste al que el feed LLEGA: la suprimida es la de después. */
+    poste: number,
+  ) => {
+    const porPoste = new Map<number, ParadaBus>();
+    for (const p of red.paradas) {
+      const n = posteDeCodigo(p.codigo);
+      if (n !== null) {
+        porPoste.set(n, p);
+      }
+    }
+    const porId = new Map(red.paradas.map((p) => [p.id, p]));
+    const numero = (id: string): number => posteDeCodigo(porId.get(id)!.codigo)!;
+    const patron = red.patrones.find(
+      (p) =>
+        p.modo === 'bus' &&
+        p.principal &&
+        lineaDelViaje(red, p).corto === corto &&
+        p.paradas.some((id, i) => numero(id) === poste && i > 0 && i + 2 < p.paradas.length),
+    )!;
+    const b = patron.paradas.findIndex((id) => numero(id) === poste);
+    const real = patron.paradas
+      .filter((_, i) => i !== b + 1)
+      .map((id) => ({ poste: numero(id), nombre: porId.get(id)!.nombre }));
+    return { patron, real, porPoste, nuevo: b, suprimida: numero(patron.paradas[b + 1]!) };
+  };
+
+  /** Los metros de asfalto que la COSTURA repisa: el heredado más el nuevo. */
+  const laCostura = (patron: PatronBus, nuevo: number): number =>
+    metrosRepisados(pegados(patron.saltos[nuevo - 1]!.traza, patron.saltos[nuevo]!.traza));
+
+  /**
+   * ⭐ JUEZ 13 — EL ESPEJO: EL FEED LLEGA Y EL RECONSTRUIDO NO DESHACE.
+   *
+   * La nº33 arregló **media costura**: el salto reconstruido que llega a una
+   * parada de la que el feed sale. Quedaba la de enfrente, declarada como
+   * pendiente en su checkpoint —*el feed llega y el reconstruido sale*—, que
+   * es el mismo asunto con la misma maquinaria: [DOC OSRM] en un waypoint
+   * intermedio no se da media vuelta, y `aristaDeLaTraza` ya sabía leer una
+   * traza del feed. Lo único que faltaba era leerle **el final** en vez del
+   * principio.
+   *
+   * ── EL CASO, y sale de la calle ──────────────────────────────────
+   *
+   * Barridas las **1.841 costuras** que la red principal admite —una por cada
+   * parada que se pudiera suprimir—, **siete** cambian de traza al encadenar y
+   * la peor es ésta: la **41**, suprimiendo `348 · Martín Díez De Aux n.º 4`.
+   * El feed llega a `892 · De La Mesta / Martín Díez De Aux` y el salto nuevo
+   * hacia `466 · Av. de La Ilustración n.º 37` **arrancaba al revés**: 275 m
+   * de asfalto repisado con el criterio de la juez 10.
+   *
+   * ⚠️ Se compra también que **el caso sigue siendo el caso**: sin encadenar,
+   *    la costura repisa. Si un día el callejero cambiara y dejara de hacerlo,
+   *    esta juez daría verde sin probar nada, y hay que enterarse.
+   */
+  test('⭐ 13 · el feed llega a De La Mesta y el salto nuevo no vuelve por donde vino', () => {
+    const { patron, real, porPoste, nuevo, suprimida } = laCosturaDe('41', 892);
+    assert.equal(suprimida, 348, 'la parada que se suprime es la 348');
+
+    const sinLeer = patronOperativo(patron, real, porPoste, rodarPorCalzada)!;
+    const conLeer = patronOperativo(patron, real, porPoste, rodarPorCalzada, leerLaTraza)!;
+
+    // ── a) el caso sigue siendo el caso ──────────────────────────────
+    assert.equal(sinLeer.cuentas.saltosNuevos, 1, 'suprimir una parada crea UN salto nuevo');
+    assert.equal(sinLeer.cuentas.rectas, 0, 'y no cae a recta');
+    const antes = laCostura(sinLeer.patron, nuevo);
+    assert.ok(
+      antes > 200,
+      `sin leerle al feed por dónde entra, la costura repisa asfalto —el 7/09 ` +
+        `eran 275 m—, y dio ${antes.toFixed(0)}`,
+    );
+
+    // ── b) EL ARREGLO ──────────────────────────────────────────
+    const despues = laCostura(conLeer.patron, nuevo);
+    assert.equal(
+      Math.round(despues),
+      0,
+      `la costura vuelve sobre ${despues.toFixed(0)} m ya pisados (el 7/09 eran 275: ` +
+        'el salto 892→466 arrancaba bajando De La Mesta, que es por donde el feed subía)',
+    );
+
+    // ── c) y no se ha arreglado rompiendo nada ────────────────────────
+    assert.equal(conLeer.cuentas.fondosDeSaco, 0, 'aquí hay salida: no hace falta media vuelta');
+    assert.equal(conLeer.cuentas.rectas, 0, 'el salto nuevo sigue siendo un camino, no una recta');
+    assert.ok(
+      conLeer.patron.saltos[nuevo]!.metros > 0 && conLeer.patron.saltos[nuevo]!.traza.length >= 2,
+      'el salto nuevo sigue teniendo traza y metros',
+    );
+    // El heredado que llega a la costura es EL MISMO objeto del feed.
+    assert.ok(
+      new Set(patron.saltos).has(conLeer.patron.saltos[nuevo - 1]!),
+      'el tramo del feed que llega a la costura no se re-rutea: es el mismo objeto',
+    );
+  });
+
+  /**
+   * ⭐ JUEZ 14 — Y EN ESTA COSTURA EL FONDO DE SACO TAMBIÉN SE PERMITE.
+   *
+   * El mismo matiz honesto de la juez 11 [OSRM: *«la evitación no está
+   * garantizada si no existe alternativa»*], ahora por el otro lado. Si con la
+   * arista de entrada puesta no hay camino, se vuelve a preguntar sin ella y
+   * **se cuenta**, que es para lo que `fondosDeSaco` existe.
+   *
+   * ⚠️ **Y aquí la media vuelta casi nunca es un callejón de verdad**, medido
+   *    el 7/09 sobre las 1.841 costuras: la arista que se le lee al feed —a 25 m
+   *    de la punta de su traza— no es ninguna de las dos caras del enganche que
+   *    la búsqueda usa en esa parada, ni enlaza con ellas por una transición
+   *    legal, en **522** de las 1.841. En ésas la búsqueda se queda sin salidas,
+   *    se afloja, y el encadenado no restringe nada. Es la conducta correcta
+   *    —servir siempre gana a servir bien—, pero **no es gratis y se cuenta**;
+   *    reportado hacia arriba el 7/09.
+   *
+   * El caso: la **Ci1** en Camino de Las Torres, suprimiendo la parada de
+   * después de `284 · Camino de Las Torres n.º 10`.
+   */
+  test('⭐ 14 · si la entrada leída no deja salida, se afloja — y la cuenta lo dice', () => {
+    const { patron, real, porPoste, nuevo } = laCosturaDe('Ci1', 284);
+
+    const sinLeer = patronOperativo(patron, real, porPoste, rodarPorCalzada)!;
+    const conLeer = patronOperativo(patron, real, porPoste, rodarPorCalzada, leerLaTraza)!;
+
+    assert.equal(sinLeer.cuentas.saltosNuevos, 1, 'una parada suprimida, un salto nuevo');
+    assert.equal(sinLeer.cuentas.fondosDeSaco, 0, 'sin encadenar no hay nada que aflojar');
+    assert.equal(
+      conLeer.cuentas.fondosDeSaco,
+      1,
+      'con la entrada leída no hay salida, se afloja — y la cuenta tiene que decirlo',
+    );
+
+    // ⭐ LO QUE NO PUEDE PASAR: que aflojar rompa el viaje.
+    assert.equal(conLeer.cuentas.rectas, 0, 'no se cae a recta');
+    const salto = conLeer.patron.saltos[nuevo]!;
+    assert.ok(salto.metros > 0 && salto.traza.length >= 2, 'el salto existe, con traza y metros');
+    assert.equal(
+      conLeer.patron.paradas.length,
+      sinLeer.patron.paradas.length,
+      'y no se ha perdido ninguna parada por el camino',
     );
   });
 });
