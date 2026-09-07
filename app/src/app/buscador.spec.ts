@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import {
@@ -5438,6 +5439,153 @@ describe('Buscador', () => {
       cuando: new Date().toISOString(),
     });
     await fixture.whenStable();
+  });
+
+  /**
+   * ⭐ EL MONTAJE DE LAS TRES DEL CUELGUE: coche, matrícula escrita y a mano
+   * el botón, el campo y la región. Lo comparten las jueces 8, 9 y 10.
+   */
+  const conLaMatriculaPuesta = async (): Promise<{
+    fixture: ReturnType<typeof TestBed.createComponent<Buscador>>;
+    raiz: HTMLElement;
+    boton: HTMLButtonElement;
+    region: HTMLElement;
+  }> => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    elegirModo(fixture, 'coche');
+    tragarLaZona();
+    const campo = raiz.querySelector<HTMLInputElement>('input[name="matricula"]')!;
+    campo.value = '0000BBM';
+    campo.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    return {
+      fixture,
+      raiz,
+      boton: raiz.querySelector<HTMLButtonElement>('.matricula__boton')!,
+      region: raiz.querySelector<HTMLElement>('.matricula__estado')!,
+    };
+  };
+
+  /**
+   * ⭐ JUEZ 8 — SI LA RESPUESTA NO LLEGA, EL TECHO LA CORTA.
+   *
+   * ⚠️ **Entrada nº38 de `docs/BITACORA.md`.** `consultandoDgt` se apagaba en una
+   *    sola línea de todo el fichero —dentro de `acabaLaDgt`—, y el cliente no
+   *    tenía techo ninguno: `provideHttpClient()` sin `withFetch()` es XHR, y el
+   *    `timeout` de XHR vale **0 = nunca**. Si el observable no emitía, la
+   *    región se quedaba diciendo «Preguntando a la DGT…» para siempre.
+   *
+   * Lo que se compra: al vencer el techo **se dice lo que pasa** —el mudo
+   * honesto de la casa—, `aria-busy` vuelve a `false` y el botón sigue
+   * pulsable. Y la petición queda **cancelada**, no colgada: por eso el
+   * `verify()` del `afterEach` sale limpio sin drenar nada.
+   */
+  it('⭐ 8 · la respuesta que no llega se corta al techo: se dice, busy a false y el botón vuelve', async () => {
+    const { fixture, boton, region } = await conLaMatriculaPuesta();
+
+    vi.useFakeTimers();
+    try {
+      boton.click();
+      fixture.detectChanges();
+      const colgada = http.expectOne((r) => r.url === '/api/distintivo');
+      expect(region.getAttribute('aria-busy')).toBe('true');
+      expect(region.textContent?.trim()).toBe('Preguntando a la DGT…');
+
+      // Y no contesta nadie. La pantalla tiene que salir sola.
+      await vi.advanceTimersByTimeAsync(11_000);
+      fixture.detectChanges();
+
+      expect(colgada.cancelled).toBe(true);
+      expect(region.getAttribute('aria-busy')).toBe('false');
+      expect(region.textContent?.trim()).toBe('La DGT no ha contestado. Vuelve a intentarlo.');
+      expect(boton.disabled).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 9 — LA SEGUNDA PULSACIÓN CANCELA LA PRIMERA: una sola consulta viva.
+   *
+   * [DOC Angular] *anular la suscripción **aborta la petición en curso***. Sin
+   * eso, cada pulsación dejaba una suscripción viva más y **ganaba la que
+   * contestara antes**, no la última que se pidió: una respuesta vieja podía
+   * pisar a la nueva.
+   */
+  it('⭐ 9 · la segunda pulsación cancela la primera, y contesta la última', async () => {
+    const { fixture, boton, region } = await conLaMatriculaPuesta();
+
+    boton.click();
+    fixture.detectChanges();
+    const primera = http.expectOne((r) => r.url === '/api/distintivo');
+
+    boton.click();
+    fixture.detectChanges();
+    expect(primera.cancelled).toBe(true);
+
+    const segunda = http.expectOne((r) => r.url === '/api/distintivo');
+    segunda.flush({
+      clase: 'etiqueta',
+      distintivo: 'C',
+      texto: LA_DGT_CON_UNA_C,
+      fuente: 'DGT',
+      cuando: new Date('2026-09-07T14:53:00').toISOString(),
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(region.textContent?.trim()).toBe('Distintivo ambiental C (Fuente: DGT, 14:53)');
+    expect(region.getAttribute('aria-busy')).toBe('false');
+  });
+
+  /**
+   * ⭐ JUEZ 10 — CAMBIAR DE VEHÍCULO CORTA LA CONSULTA, Y LO TARDÍO NO MARCA NADA.
+   *
+   * `olvidarElVehiculo` jura en su comentario que dejar la región diciendo
+   * «Distintivo ambiental C» sobre una matrícula que ya no está en pantalla
+   * *«sería peor»*. Y hasta el 7/09 **olvidaba el vehículo pero no el vuelo**:
+   * ni cancelaba la suscripción, ni apagaba `consultandoDgt`, ni el reloj. Una
+   * respuesta que llegara después de pasar de coche a moto **marcaba el radio
+   * del vehículo anterior sobre el nuevo**.
+   *
+   * ⚠️ Que la tardía no marque nada se compra por donde de verdad importa: la
+   *    petición **ya no existe**. `flush()` sobre una cancelada protesta, y esa
+   *    protesta es la prueba —mucho más fuerte que mirar si el radio cambió—.
+   */
+  it('⭐ 10 · cambiar de vehículo con la consulta en vuelo la corta y limpia el estado', async () => {
+    const { fixture, raiz, region } = await conLaMatriculaPuesta();
+
+    raiz.querySelector<HTMLButtonElement>('.matricula__boton')!.click();
+    fixture.detectChanges();
+    const enVuelo = http.expectOne((r) => r.url === '/api/distintivo');
+    expect(region.getAttribute('aria-busy')).toBe('true');
+
+    // ⭐ Se cambia de familia con la consulta viva.
+    elegirModo(fixture, 'moto');
+    tragarLaZona();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(enVuelo.cancelled).toBe(true);
+    // La respuesta tardía no tiene a quién marcar: la petición ya no está.
+    expect(() =>
+      enVuelo.flush({
+        clase: 'etiqueta',
+        distintivo: 'C',
+        texto: LA_DGT_CON_UNA_C,
+        fuente: 'DGT',
+        cuando: new Date().toISOString(),
+      }),
+    ).toThrow();
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(radiosDeDistintivo(raiz).filter((r) => r.checked).length).toBe(0);
+    const suya = raiz.querySelector<HTMLElement>('.matricula__estado')!;
+    expect(suya.getAttribute('aria-busy')).toBe('false');
+    expect(suya.textContent?.trim()).toBe('');
+    expect(raiz.querySelector<HTMLInputElement>('input[name="matricula"]')!.value).toBe('');
   });
 
   /**

@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { ElementRef, WritableSignal } from '@angular/core';
 // El contrato manda: los tipos vienen del paquete compartido, no de copias
 // locales. Si el motor cambia la forma, esta pantalla deja de compilar.
@@ -25,7 +26,7 @@ import type {
   Sitio,
 } from '@desplazame/tipos';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
+import { forkJoin, timeout, TimeoutError, type Subscription } from 'rxjs';
 import { Mapa, type Mancha, type Vertice } from './mapa';
 import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
@@ -696,6 +697,8 @@ export class Buscador {
    * pulsa, una vez, y con unas coordenadas que no existían un instante antes.
    */
   private readonly http = inject(HttpClient);
+  /** Para que ninguna suscripción sobreviva a la pantalla [takeUntilDestroyed]. */
+  private readonly destruccion = inject(DestroyRef);
 
   /**
    * Qué lado pulsó «Mi ubicación». La geolocalización contesta por retrollamada
@@ -1001,6 +1004,8 @@ export class Buscador {
   /** Solo para el indicador de espera: aparece si tarda más de un segundo. */
   protected readonly tardaLaDgt = signal(false);
   private relojDeLaDgt: ReturnType<typeof setTimeout> | null = null;
+  /** La consulta que hay en vuelo, para poder cortarla. Ver `cortarLaDgt`. */
+  private consultaDgt: Subscription | null = null;
 
   protected escribirMatricula(valor: string): void {
     this.matricula.set(valor.toUpperCase());
@@ -1010,11 +1015,56 @@ export class Buscador {
   protected readonly sePuedeConsultar = computed(() => this.matricula().trim() !== '');
 
   /**
+   * ⭐ EL TECHO DE LA CONSULTA, VISTO DESDE LA PANTALLA (7/09, entrada nº38).
+   *
+   * ⚠️ **Aquí no había techo ninguno.** `provideHttpClient()` sin `withFetch()`
+   *    es el backend XHR, y el `timeout` de XHR vale **0 = nunca**; si el
+   *    observable no emitía ni `next` ni `error`, `consultandoDgt` se quedaba en
+   *    `true` —se apaga en una sola línea de todo el fichero— y la región
+   *    decía «Preguntando a la DGT…» para siempre. Ese era el bucle.
+   *
+   * El valor va **por encima del techo del motor** —`TECHO_MS`, 8,8 s— con
+   * margen para el viaje: así, cuando el que sabe lo que pasó es el motor, es
+   * él quien lo cuenta, y esto solo habla cuando **no contesta nadie**.
+   */
+  private static readonly TECHO_DE_LA_DGT_MS = 10_000;
+
+  /** El mudo de casa cuando vence el techo: corto, y dice qué hacer. */
+  private static readonly MUDO_DEL_TECHO = 'La DGT no ha contestado. Vuelve a intentarlo.';
+  /** Y el de un error de red, que es otra cosa y se dice distinto. */
+  private static readonly MUDO_DE_LA_RED =
+    'No se pudo preguntar a la DGT. Elige tu distintivo a mano.';
+
+  /**
+   * ⭐ CORTA LA CONSULTA QUE HAYA EN VUELO y deja el estado como si no hubiera
+   * habido ninguna.
+   *
+   * [DOC Angular] *anular la suscripción **aborta la petición en curso***. Por
+   * eso esto no es solo higiene de señales: es lo que impide que una respuesta
+   * vieja llegue tarde y marque algo.
+   */
+  private cortarLaDgt(): void {
+    this.consultaDgt?.unsubscribe();
+    this.consultaDgt = null;
+    if (this.relojDeLaDgt !== null) {
+      clearTimeout(this.relojDeLaDgt);
+      this.relojDeLaDgt = null;
+    }
+    this.consultandoDgt.set(false);
+    this.tardaLaDgt.set(false);
+  }
+
+  /**
    * ⭐ CADA PULSACIÓN CONSULTA, y es a propósito [el patrón del vivo, 1/09].
    *
    * No se cachea la respuesta ni se compara con la anterior: quien vuelve a
    * pulsar quiere saber **ahora**. El motor deduplica lo que esté en vuelo, que
    * es otra cosa que guardar.
+   *
+   * ⚠️ **Y cada pulsación CANCELA la anterior** (7/09). Antes se acumulaban
+   *    suscripciones vivas y ganaba **la que contestara antes**, no la última
+   *    que se pidió: una respuesta vieja podía pisar a la nueva. Una sola
+   *    consulta viva, y la viva es la última.
    *
    * ⚠️ **El botón NO se deshabilita mientras carga**: `disabled` lo saca del
    *    orden de tabulación y quien navega con teclado pierde el sitio justo al
@@ -1025,32 +1075,40 @@ export class Buscador {
     if (matricula === '') {
       return;
     }
+    this.cortarLaDgt();
     this.consultandoDgt.set(true);
     this.loDeLaDgt.set(null);
-    if (this.relojDeLaDgt !== null) {
-      clearTimeout(this.relojDeLaDgt);
-    }
-    this.tardaLaDgt.set(false);
     this.relojDeLaDgt = setTimeout(() => this.tardaLaDgt.set(true), 1000);
 
-    this.http
+    this.consultaDgt = this.http
       .get<DistintivoConsultado>('/api/distintivo', { params: { matricula } })
+      .pipe(timeout(Buscador.TECHO_DE_LA_DGT_MS), takeUntilDestroyed(this.destruccion))
       .subscribe({
         next: (r) => this.acabaLaDgt(r),
         // ⚠️ El 400 del formato llega por aquí —es un error HTTP— y su cuerpo es
         //    una respuesta buena: se enseña igual. Lo que no se puede es callar.
-        error: (fallo: { readonly error?: DistintivoConsultado }) =>
-          this.acabaLaDgt(
-            fallo.error && typeof fallo.error === 'object' && 'clase' in fallo.error
-              ? fallo.error
-              : {
-                  clase: 'mudo',
-                  texto: 'No se pudo preguntar a la DGT. Elige tu distintivo a mano.',
-                  fuente: 'DGT',
-                  cuando: new Date().toISOString(),
-                },
-          ),
+        error: (fallo: unknown) => this.acabaLaDgt(this.loQueDiceElFallo(fallo)),
       });
+  }
+
+  /**
+   * ⭐ QUÉ SE DICE CUANDO NO HAY RESPUESTA BUENA.
+   *
+   * Si el motor mandó un cuerpo —el 400 del formato—, manda su texto: lo
+   * redactó quien sabe. Si no, hay **dos silencios distintos y se cuentan
+   * distinto**: el techo vencido —nadie contestó— y el error de red.
+   */
+  private loQueDiceElFallo(fallo: unknown): DistintivoConsultado {
+    const cuerpo = (fallo as { readonly error?: unknown } | null)?.error;
+    if (cuerpo !== null && typeof cuerpo === 'object' && cuerpo !== undefined && 'clase' in cuerpo) {
+      return cuerpo as DistintivoConsultado;
+    }
+    return {
+      clase: 'mudo',
+      texto: fallo instanceof TimeoutError ? Buscador.MUDO_DEL_TECHO : Buscador.MUDO_DE_LA_RED,
+      fuente: 'DGT',
+      cuando: new Date().toISOString(),
+    };
   }
 
   /**
@@ -1062,6 +1120,7 @@ export class Buscador {
    * nada**: no se sabe, y marcar cualquier cosa sería decidir por quien pregunta.
    */
   private acabaLaDgt(r: DistintivoConsultado): void {
+    this.consultaDgt = null;
     this.consultandoDgt.set(false);
     if (this.relojDeLaDgt !== null) {
       clearTimeout(this.relojDeLaDgt);
@@ -2417,6 +2476,12 @@ export class Buscador {
    *    no hay caché, ni URL, ni `localStorage` de donde borrarla.
    */
   private olvidarElVehiculo(): void {
+    // ⭐ Y LO PRIMERO, EL VUELO (7/09, entrada nº38). Esto borraba las cuatro
+    //    señales de abajo y dejaba la consulta viva: una respuesta que llegara
+    //    después **marcaba el radio del vehículo anterior sobre el nuevo**, que
+    //    es exactamente lo que el párrafo de arriba jura que no puede pasar.
+    //    Olvidar el vehículo es olvidar también lo que se le había preguntado.
+    this.cortarLaDgt();
     this.distintivo.set(null);
     this.autorizacion.set(null);
     this.matricula.set('');
