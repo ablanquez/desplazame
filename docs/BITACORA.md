@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-07] 🔴 ABIERTA — El botón de la DGT se queda diciendo «Preguntando a la DGT…» para siempre, y ninguna capa pone techo
+## [2026-09-07] ✅ CERRADA — El botón de la DGT se queda diciendo «Preguntando a la DGT…» para siempre, y ninguna capa pone techo
 
 **Categoría:** una espera sin techo que nadie puede terminar
 **Síntoma:** Antonio lo ve «a veces»: se pulsa **Consultar distintivo** y la
@@ -90,11 +90,49 @@ suspendería por dejarla**. La juez 6 mira `aria-busy` en `true` al pulsar y en
 pasa cuando la respuesta no llega.
 
 **Cómo se cazó:** usuario — Antonio lo ve «a veces» en Chrome.
-**Causa raíz:** ⏳ PENDIENTE
 
-**Arreglo aplicado:** ⏳ PENDIENTE
+**Causa raíz:** **la casa tenía el techo, y lo tenía una capa por debajo de
+donde servía.**
 
-**Commit:** ⏳ PENDIENTE
+`ESPERA_MS` funciona: con la sede simulada corta a los 8,33 s. Pero vive dentro
+del `AbortSignal.timeout` de `porLaRed`, o sea que **la garantía era de quien va
+a la red**, no de la consulta. Y una garantía de la capa de abajo no sostiene lo
+que la de arriba promete: en cuanto el que va a la red no se aborta solo, el
+vuelo no se asienta, el `.finally()` no corre, y `enVuelo` —que existía para no
+visitar dos veces la sede— se convierte en **lo que impide volver a
+preguntar**. El mismo error, exacto, en la pantalla: el reloj de un segundo del
+⏳ estaba puesto, pero era **para enseñar un icono**, no para terminar la espera.
+Había relojes en las dos capas y ninguno era el que hacía falta.
+
+Y lo de `olvidarElVehiculo` es de la misma familia: borraba las cuatro señales
+del vehículo —que es lo que su comentario promete— y dejaba viva la pregunta
+que se le había hecho. **Olvidar a alguien no es olvidar lo que le preguntaste.**
+
+**Arreglo aplicado:** el techo donde se promete, la cancelación donde se cambia
+de idea.
+
+1. `motor/src/distintivo.ts` — `TECHO_MS` declarado (los dos intentos, su espera
+   y medio segundo de margen para no cortarle la palabra al tope de abajo, que
+   sabe decir `tope`), y `conTecho` **abrazando al vuelo entero** y no a quien lo
+   espera: así lo que se asienta es **la promesa que está en el mapa**, y por eso
+   `enVuelo` se limpia siempre. Y `atenderYEscribir`, que contesta siempre y no
+   puede lanzar.
+2. `motor/src/servidor.ts` — el manejador con su `.catch`, como los otros tres.
+   ⚠️ Lo que hay al otro lado de una promesa rechazada ahí no era un socket
+   colgado: era **el motor caído**, que es como Node trata por defecto un
+   `unhandledRejection`.
+3. `app/src/app/buscador.ts` — el `timeout` de RxJS con su valor declarado, por
+   encima del techo del motor; al vencer, el mudo corto, `aria-busy` a `false` y
+   el botón pulsable. Cada pulsación **corta la anterior** —dar de baja aborta la
+   petición—, y `olvidarElVehiculo` corta el vuelo **antes** de borrar nada.
+
+Las seis jueces nuevas, y las cuatro contrapruebas mordiendo lo suyo: la
+pantalla sin techo → muerde la 8 de la pantalla · sin cancelar al cambiar → la
+10 · el single-flight sin limpiar → la 8 del motor (y de paso la 5 bis y la
+5 ter) · el manejador sin `.catch` → la 9 del motor. Motor 612 verdes, interfaz
+282, la muralla de los ocho modos con sus sellos al byte.
+
+**Commit:** `aa51e7d` (motor) · `c059cff` (pantalla) · y la entrada, `f33845f`
 
 **Ley que sale de aquí:** **una herramienta que mantiene la suite honesta puede
 estar impidiendo justo la juez que falta.** `verify()` existe para que ninguna
@@ -104,6 +142,12 @@ solo se puede comprar si antes existe la cancelación** —una petición cancela
 sí deja el `verify()` limpio—. Cuando una prueba «no se puede escribir», la
 pregunta no es cómo saltarse al guardián, sino **qué le falta al código para que
 esa prueba sea escribible**.
+
+**Y una segunda, que salió al cerrar:** **un techo protege a la capa en la que
+está escrito, no a la que lo invoca.** Aquí había relojes en las dos capas —los
+4 s de `porLaRed` y el segundo del ⏳— y ninguno de los dos terminaba una espera:
+uno acotaba una petición y el otro encendía un icono. Tener un `timeout` cerca no
+es tenerlo puesto.
 
 **Traza:** `app/src/app/buscador.ts` (`consultarDistintivo`, `acabaLaDgt`,
 `olvidarElVehiculo`) · `app/src/app/app.config.ts` (`provideHttpClient`) ·
