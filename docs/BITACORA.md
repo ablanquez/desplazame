@@ -624,6 +624,48 @@ sirvió por HTTP). Sobre 399 tríos de paradas consecutivas de la red real el ve
 cambia **1 de 787** costuras: no molesta donde ya funcionaba. Motor 580 verdes,
 interfaz 279.
 
+**Nota [2026-09-07], EL ESPEJO:** esta costura se arregló por **un lado solo**
+—el reconstruido llega, el feed sale—. El otro —**el feed llega, el
+reconstruido sale**— quedó declarado pendiente en el checkpoint y no llegó a
+escribirse aquí. Cerrado hoy: `patronOperativo` le lee al feed también **el
+final** de su tramo, y `aristaDeLaTraza` devuelve la arista **como circula el
+autobús** por las dos puntas —en la de llegada devolvía su gemela; comprobado
+re-ruteando por calzada los **1.974** saltos del feed, la `llegada` que da la
+búsqueda casa con esta cara en **644** y con la contraria en **11**—.
+
+Medido sobre las **1.841 costuras** que la red principal admite —una por cada
+parada que se pudiera suprimir, que es la forma que tiene esta frontera en la
+calle—, pasadas por `patronOperativo` con `leerLaTraza` y sin él:
+
+```
+costuras que ARRANCAN dando media vuelta (giro > 150°):  ANTES 70 · DESPUÉS 65
+retroceso de la juez 10:      98 costuras / 29.610 m  →  100 costuras / 29.775 m
+la peor que se arregla:  41 · 997 → 892 → 466 (se suprime 348)
+                         275 m → 0 m   ·   giro 178° → 13°
+```
+
+⚠️ **Las dos cifras no dicen lo mismo y las dos son verdad.** Lo que la
+doctrina prohíbe es la media vuelta en el waypoint, y ésas bajan de 70 a 65. El
+retroceso sube 165 m porque en la N1 `247 → 208 → 248` se cambia una media vuelta
+de **167°** (780 m repisados) por un rodeo legal de **14°** (875 m): el criterio
+de la juez 10 no distingue rodeo de media vuelta, y el giro sí.
+
+**No estaba mordiendo en producción**: era latente. La 29 desviada del 6/09
+sigue en 0 m repisados con el espejo puesto —juez 10—, y por eso no hay entrada
+nueva. Jueces `⭐ 13` y `⭐ 14` en `motor/src/patron-operativo.spec.ts`.
+
+⚠️ **Y EL DEFECTO PROPIO DE ARRIBA TIENE GEMELO, ABIERTO.** La contigüidad que
+se le quitó a `rematando` sigue puesta en `continuando`, que exige una
+transición legal desde `viniendoDe`. Con el hilo del reconstruido eso es
+correcto —esa arista termina en el enganche—, pero la que se le **lee** al feed
+sale de una proyección a 25 m, y en **522 de las 1.841** costuras no es ninguna
+de las dos caras del enganche de la parada ni enlaza con ellas: la búsqueda se
+queda sin salidas, se afloja, y el encadenado no restringe nada. Es el mismo
+34 % de `rematando`, por el otro lado. Reportado hacia arriba el 7/09;
+**`continuando` no se ha tocado**, que es código compartido con todo el coche.
+
+**Commit del espejo:** `a1a0868`
+
 **Commit:** `a110ef8` (y la entrada, `f095385`)
 **Ley que sale de aquí:** una traza no se comprueba solo por sus extremos ni por
 sus metros: **hay que recorrerla y mirar si vuelve sobre sí misma**. Un camino
