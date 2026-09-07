@@ -3,22 +3,24 @@
 La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno**, que conserva sus
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
-> ℹ️ **Estado a 03/09/2026.** El proyecto está en construcción. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y un** conjuntos
-> de datos con ficha propia —§ 1.1 a § 1.31— y **una norma citada** (§ 1.32); la § 1.33 declara
-> lo que **todavía no** ha entrado.
+> ℹ️ **Estado a 08/09/2026.** El proyecto está en construcción. Hoy hay de terceros: las
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y siete** fichas
+> propias —§ 1.1 a § 1.37—, de las cuales **una es una norma citada** (§ 1.32) y **una declara lo
+> que todavía NO ha entrado** (§ 1.36).
 > Quedan fuera las capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
 >
-> ⭐ **Y CINCO NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08 y que hoy separa el
-> documento en dos mitades:
+> ⭐ **Y SEIS NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08 y que hoy separa el
+> documento en dos mitades. Cada una con **su régimen**, que es lo que dice cuánto dura en casa lo
+> que se trae:
 >
-> | | Qué se consulta | Quién |
-> |---|---|---|
-> | § 1.23 | la disponibilidad del BiZi | Ayuntamiento de Zaragoza |
-> | § 1.24 | las llegadas al poste | **Avanza Zaragoza** |
-> | § 1.25 | la ruta operativa de hoy | **Avanza Zaragoza** |
-> | § 1.34 | la flota y el área de YeGo | **Yego** |
-> | § 1.35 | el cuadro de horarios del festivo | **Avanza Zaragoza** |
+> | | Qué se consulta | Quién | Régimen en casa | Desde |
+> |---|---|---|---|---|
+> | § 1.23 | la disponibilidad del BiZi | Ayuntamiento de Zaragoza | se pide en cada ruta; **no se guarda** | 30/08/2026 |
+> | § 1.24 | las llegadas al poste | **Avanza Zaragoza** | a petición; **no se guarda** | 01/09/2026 |
+> | § 1.25 | la ruta operativa de hoy | **Avanza Zaragoza** | TTL **1 h**, refresco cada 30 min; se sirve vieja **diciendo su edad** | 01/09/2026 |
+> | § 1.34 | la flota y el área de YeGo | **Yego** | caché corta por `ttl` del feed (GBFS) | 05/09/2026 |
+> | § 1.35 | el cuadro de horarios del festivo | **Avanza Zaragoza** | TTL **6 h**, refresco cada 3 | 06/09/2026 |
+> | § 1.37 | el distintivo ambiental de una matrícula | **DGT** | ⛔ **ninguno: no hay caché**, porque cachear sería guardar la matrícula | 03/09/2026 |
 >
 > ⛔ **Y las TRES de Avanza traen un aviso legal que PROHÍBE la extracción y la reutilización**,
 > medido y transcrito el 01/09 en § 1.24 — § 1.25 y § 1.35 se remiten a esa letra, que es la
@@ -36,7 +38,13 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 > ⚠️ **Y volvió a pasar.** El 6/09, al añadir § 1.35, la cifra de esta línea seguía en **26** y el
 > comando decía **35**: diez fichas escritas sin que nadie tocara el número, y la advertencia de
 > arriba —escrita justo para esto— delante. **Una nota que avisa de un desfase no lo impide**: lo
-> que lo impediría es un guión que cuente. Queda dicho, y sin guión todavía.
+> que lo impediría es un guión que cuente.
+>
+> ✅ **Y el 8/09 volvió a pasar por TERCERA vez** —la línea decía «treinta y uno» con **36** fichas
+> escritas—, así que se dejó de escribir la nota y se escribió el guión:
+> **`motor/src/notices.spec.ts`** cuenta las fichas y **compara con lo que esta línea dice**. Si
+> alguien añade una § 1.x y no toca este párrafo, la suite se pone roja. Es la ley de la nº38:
+> una fuente sin guardián de su salida no está terminada.
 >
 > **Las huellas sha256 de esta página se verifican sobre un clon**, no sobre el disco de quien
 > las escribe: git puede reescribir bytes al hacer *checkout*. Ver `docs/BITACORA.md` nº3, y el
@@ -3093,6 +3101,31 @@ deja a cero:
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
 dato que copiar.
+
+---
+
+### 1.37 · El distintivo ambiental de una matrícula — DGT (sede electrónica)
+
+⛔ **LA MATRÍCULA NO SE GUARDA Y NO SE ESCRIBE EN EL LOG.** Es un dato personal indirecto:
+identifica un vehículo y, por él, a alguien. Entra por la URL, se valida, se usa para preguntar y
+se tira. El log cuenta **la consulta** —qué salió, cuánto tardó, por qué se quedó muda— y jamás
+**la matrícula**. Es la misma ley que el nonce de § 1.25 y las dos claves de `.env.local`.
+
+| | |
+|---|---|
+| **Qué es** | La **frase con la que la DGT contesta** si un vehículo tiene derecho a distintivo ambiental. Se usa para una sola cosa: marcar el radio de la pregunta de la ZBE sin que quien pregunta tenga que saberlo de memoria |
+| **Titular** | **Dirección General de Tráfico** — Ministerio del Interior |
+| **Fuente** | `https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/index.html?matricula=…` — un **GET**, sin captcha, sin token y sin sesión. **No es una API documentada**: es el formulario de su sede |
+| **Sondeada** | **03/09/2026** (sonda B): contesta en **0,45–1,0 s** la página entera, ≈135 kB, con una sola frase dentro. **Re-sondeada el 07/09**: diez consultas espaciadas 3 s dieron `0,18 · 0,21 · 0,28 · 0,30 · 0,35 · 0,36 · 0,45 · 0,50 · 0,91 · 1,36` s, **ninguna colgada** |
+| **Las cuatro respuestas** | *«El vehículo XXXX cumple con los requisitos para obtener el Distintivo Ambiental C.»* —y lo mismo con `B`, `ECO` y `0`— · *«Sin distintivo…»* · *«No se ha encontrado ningún resultado…»* · *«Formato de matrícula incorrecto…»*, que **no se llega a ver**: el formato se valida antes de salir a la red |
+| ⚠️ **Dos envoltorios, no uno** | Con etiqueta la frase vive en `div.text-success`; los otros tres avisos, en `div.avisos_msg`. Medido el 3/09 bajando las cuatro respuestas —y es la entrada nº32 de `docs/BITACORA.md`: el *fixture* del caso bueno se había compuesto con el envoltorio del de al lado, y las cuatro jueces daban verde con el fallo vivo |
+| ⚠️ **Ni marca ni modelo** | No los trae la consulta ni los trae el fichero de microdatos de la DGT (14 columnas, medido). No se pueden enseñar porque no existen |
+| **Régimen en casa** | ⛔ **Sin caché ninguna, y no porque no sirviera: porque cachear es guardar.** Lo único que se deduplica es lo que está **en vuelo** —*single-flight* por matrícula—, y se suelta en cuanto termina. Tope de **4 s** por intento, **un** reintento con 300 ms, y un techo de la consulta entera de **8,8 s** que garantiza que el vuelo siempre se asiente (entrada nº38) |
+| **Licencia** | [Aviso legal de la sede, `https://sede.dgt.gob.es/es/contenido/aviso-legal/`, leído el **03/09/2026**] — **NO CONSTA** nada sobre consulta automatizada: ni la prohíbe ni la permite. Lo que sí dice, en «Derechos sobre la Propiedad intelectual», es que la reproducción debe ser **fiel, «sin manipular ni alterar los contenidos»**, y **citando a la DGT como fuente** |
+| ⭐ **Cómo se cumple** | La respuesta viaja con el texto **tal cual lo dio la sede** y con `fuente: 'DGT'` dentro. La pantalla **no reescribe el dato**: dice la letra —«Distintivo ambiental C»— y **la cita, con la hora**: `(Fuente: DGT, 14:53)`. ⚠️ Lo que **no** se pinta es la segunda mitad de su párrafo —*«Pulsa en la imagen del distintivo…»*—, que es la navegación de SU página y no el dato: reproducirla mandaría a quien lee a buscar algo que aquí no existe. **Eso no afeita la atribución**, que es lo que el aviso legal exige y se queda entera |
+| **Atribución exigida** | **Sí**, y por eso va en la propia respuesta y en la pantalla, no solo en los créditos |
+| **Campos** | La frase, y nada más. **El campo de entrada sí es personal** —la matrícula— y no se conserva en ningún sitio: ni en `localStorage`, ni en la URL, ni en el aviso, ni en el log |
+| **¿Está en este repo?** | ❌ **No se copia: se consulta.** Con una excepción declarada: los **cuatro cuerpos reales** de las cuatro respuestas están en `motor/src/distintivo.spec.ts`, bajados el 3/09 y recortados al bloque que el lector busca. Son bytes de la respuesta, **no un envoltorio compuesto** —la ley de la entrada nº32—, y sus matrículas salen del **fichero público de microdatos de la propia DGT** (CC BY 4.0) con los cuatro dígitos tachados |
 
 ---
 
