@@ -14,6 +14,110 @@
 
 ---
 
+## [2026-09-08] ✅ CERRADA — El poste dice «13:53» a quien vive a las 15:53: la hora se pinta en el huso DEL SERVIDOR, y en local coincide por casualidad
+
+**Categoría:** un fallo que el entorno de desarrollo no puede tener
+**Síntoma:** en producción —Fráncfort, UTC— el minuto vivo del poste sale con
+**dos horas de menos**. Lo vio el ojo de Antonio y lo confirmó M5, midiendo las
+dos fuentes vivas a la vez a las 13:37 UTC / 15:37 en Zaragoza:
+
+```
+                 poste    bizi
+local (Madrid)   15:37 ✔  15:37 ✔    concuerdan
+producción (UTC) 13:37 ✘  15:37 ✔    NO concuerdan
+```
+
+Y el BiZi **acierta por dos errores que se anulan**. Medido con el crudo real de
+la sede —`lastUpdated: '2026-08-30T12:48:00'`, ISO **sin marca de huso**—:
+
+```
+                   epoch de new Date(crudo)      un instante FIJO 10:48Z, pintado
+Madrid   1788086880000 = 10:48Z ✔                12:48 ✔
+UTC      1788094080000 = 12:48Z ✘ (+2 h)         10:48 ✘
+```
+
+O sea: `new Date()` parsea un ISO sin huso **en el huso del proceso**, así que en
+producción el `cuando` guardado del BiZi va **2 h adelantado**; y `alMinuto`
+(`etapas.ts:71`) usa `toLocaleTimeString('es-ES', …)` **sin `timeZone`**, o sea
+pinta también en el huso del proceso. Los dos errores se cancelan y **el texto
+del BiZi sale bien con la fecha mal** —cualquier edad calculada sobre ese
+`cuando` se equivoca en dos horas—. El poste no se compensa porque su `cuando`
+es nuestra propia lectura: instante correcto, presentación en el huso que no es.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **todo**, y no por descuido
+sino porque **esta máquina va en hora de Madrid**: los dos husos coinciden, así
+que el fallo es literalmente inobservable en local. Ejecutado hoy, con el fallo
+vivo en producción y sin tocar nada:
+
+```
+$ node --test motor/src/bizi.spec.ts motor/src/estacion-viva.spec.ts
+ℹ tests 25
+ℹ pass 25
+ℹ fail 0
+$ node --test motor/src/festivo.spec.ts
+ℹ tests 15
+ℹ pass 15
+ℹ fail 0
+```
+
+Las suites enteras también: motor 646/646 e interfaz 295/295 el mismo día. **Y
+los fixtures del BiZi llevan el crudo bueno** —`'2026-08-30T12:48:00'`, copiado
+del feed real según la ley de la nº32—: el dato de entrada era correcto y la
+juez seguía sin poder ver nada, porque el reloj del que juzga era el mismo que
+el del juzgado.
+
+**Cómo se cazó:** ojo humano + instrumento — Antonio lo vio en la pantalla
+pública, y la Fase A de M5 lo aisló comparando las dos fuentes vivas contra el
+reloj de pared en los dos entornos.
+**Causa raíz:** dos descuidos de la misma familia —**dejar que el huso lo ponga
+el proceso**— en las dos puntas del dato. Al PARSEAR, `new Date()` sobre un ISO
+sin marca de huso usa el del proceso; al PINTAR, `toLocaleTimeString` sin
+`timeZone` hace lo mismo. Ninguno de los dos falla nunca: los dos devuelven algo
+plausible siempre, y por eso no hay excepción que cazar.
+
+Y lo que los mantuvo invisibles no fue la falta de jueces —había 646— sino que
+**todas corrían en el huso que hacía coincidir las dos cosas**. En el BiZi
+además se anulaban entre sí, así que ni siquiera un ojo mirando la pantalla en
+producción habría visto nada raro en esa fila: solo el poste delataba.
+**Arreglo aplicado:** `motor/src/reloj.ts`, nuevo y sin dependencias, con la
+zona IANA `Europe/Madrid`, el desfase calculado **por instante** con `Intl`
+—nunca un `+2` fijo, que muere cada octubre— y `cuandoDeLaSede`, que interpreta
+el crudo de la sede como el reloj de pared español que es. Enganchado en las
+tres puntas que el grep encontró: `alMinuto` (`etapas.ts`), el hermano de
+`festivo.ts:544` y el parseo de `bizi.ts`. Las dos mitades del compensado se
+deshacen a la vez.
+
+Las jueces —`motor/src/huso.spec.ts`— **lanzan un hijo con `TZ=UTC`**, porque
+Node fija su zona al arrancar y con un mock no se puede. La juez 0 compra que el
+reloj falso ha entrado de verdad: sin ella, esta suite podría estar dando verde
+desde Madrid otra vez. Contrapruebas, cada mitad por separado:
+
+```
+alMinuto sin timeZone      → jueces 1 y 3 ROJAS
+el parseo asumiendo UTC    → jueces 2, 3 y 4 ROJAS
+  «…2026-08-30T12:48:00 es hora española: son 1788086880000 (10:48Z)
+    y se guardó 1788094080000 (2026-08-30T12:48:00.000Z)»
+```
+
+⚠️ **Y una medición que corrige lo que el encargo daba por hecho:** esto NO
+   toca la pantalla. Reconstruido `app/dist` desde cero, sale **byte a byte
+   idéntico** —la pantalla solo pinta el texto que el motor le manda—, así que el
+   arreglo es entero del motor y el commit va con ámbito `motor`.
+**Commit:** `bae5da7` (el arreglo). La captura, antes de tocar nada, en este
+mismo fichero.
+**Ley que sale de aquí:** una prueba que corre en el mismo huso que el código
+que juzga **no vigila el huso**: comparten la premisa y solo pueden darse la
+razón —es la ley de la nº2, con el reloj en vez del atajo—. Todo lo que se
+presente a una persona con hora hay que juzgarlo con **el proceso en otro huso**,
+y el que vale es UTC porque es el de producción. Corolario: **un entorno de
+desarrollo que coincide con el dato es un entorno que no puede ver esa clase de
+fallo** —y no lo arregla tener más jueces, lo arregla mover el reloj—.
+**Traza:** `motor/src/etapas.ts:70` `alMinuto` · `motor/src/bizi.ts:264`
+`new Date(fila.lastUpdated)` · `motor/src/festivo.ts:544` (el hermano que el
+grep destapó) · llamadores: `poste-vivo.ts:46`, `estacion-viva.ts:108`,
+`viaje-bizi.ts:91` · hallazgo 2 de M5.
+
+
 ## [2026-09-08] ✅ CERRADA — El `dist` de la app entra al repo y sale del clon con otros bytes: el `.gitattributes` tenía la lección pero no la carpeta
 
 **Categoría:** una regla cuyo alcance se quedó en los ficheros de ayer
