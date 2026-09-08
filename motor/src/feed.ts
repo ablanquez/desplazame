@@ -169,6 +169,90 @@ export function estadoDeCaducidad(dias: number): EstadoDeCaducidad {
   return dias <= DIAS_DE_AVISO ? 'aviso' : 'vigente';
 }
 
+/**
+ * ⭐ EL TOPE DE LA FRASE DE UN AVISO (8/09).
+ *
+ * Un aviso se lee de un vistazo o no se lee: [Nielsen Norman / Best Practices]
+ * sé conciso. Setenta caracteres caben en una línea de móvil sin partirse en
+ * tres, que es donde esto se va a ver.
+ */
+export const TOPE_DEL_AVISO = 70;
+
+/** `AAAAMMDD` → `DD/MM`, o cadena vacía si no es una fecha de GTFS. */
+function comoSeLee(gtfs: string): string {
+  const m = /^(\d{4})(\d{2})(\d{2})$/.exec(gtfs.trim());
+  return m ? `${m[3]}/${m[2]}` : '';
+}
+
+/** `AAAAMMDD` como `Date` a mediodía UTC, o `null` si no se deja leer. */
+function comoFecha(gtfs: string): Date | null {
+  const m = /^(\d{4})(\d{2})(\d{2})$/.exec(gtfs.trim());
+  return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12)) : null;
+}
+
+/**
+ * ⭐ EL AVISO DE VEJEZ, PARA QUIEN BUSCA LA RUTA (8/09, M0 del punto 14).
+ *
+ * El motor ya gritaba esto al arrancar, con este mismo umbral. Pero **el log lo
+ * lee quien despliega, no quien viaja**: alguien que pide un bus ve unos
+ * horarios y no tiene forma de saber que están a punto de dejar de valer. Aquí
+ * se dice la misma verdad en la respuesta.
+ *
+ * ⚠️ **Es CADUCIDAD, no antigüedad, y no son lo mismo.** El zip que se sirve
+ *    hoy tiene 7 días de edad y sin embargo cubre 27 días por delante. Lo que le
+ *    importa a quien viaja no es cuándo se descargó el fichero: es hasta cuándo
+ *    valen los horarios que está leyendo —`feed_end_date`—, que es exactamente
+ *    lo que el validador canónico mide.
+ *
+ * ⚠️ **Sin `feed_info` no se avisa de nada.** `feed_info.txt` es OPCIONAL en la
+ *    referencia de GTFS. No saber hasta cuándo vale no es saber que está viejo:
+ *    es no saber, y se calla —la misma doctrina que los desvíos cuando la
+ *    fuente no contesta—. Lo que sí se dice es el feed que trae `feed_info`
+ *    pero con la fecha ilegible: ahí consta que hay un dato y que está roto.
+ *
+ * `hoy` entra en `AAAAMMDD` —el mismo formato con el que el viaje en bus ya
+ * trabaja— para que el reloj se pueda falsear sin tocar el del sistema.
+ */
+export function avisoDeVejezDelFeed(info: FeedInfo | null, hoy: string): string | null {
+  if (!info) {
+    return null;
+  }
+  const cuando = comoFecha(hoy);
+  if (!cuando) {
+    return null;
+  }
+  if (estadoDeCaducidad(diasHastaCaducidad(info.feedEndDate, cuando)) === 'vigente') {
+    return null;
+  }
+  const fecha = comoSeLee(info.feedEndDate);
+  if (!fecha) {
+    return 'Horarios de Avanza sin fecha de fin: pueden estar caducados.';
+  }
+  return diasHastaCaducidad(info.feedEndDate, cuando) < 0
+    ? `Horarios de Avanza caducados el ${fecha}: pueden no ser los reales.`
+    : `Horarios de Avanza válidos solo hasta el ${fecha}.`;
+}
+
+/**
+ * ⭐ EL `feed_info` QUE SE ESTÁ SIRVIENDO — el patrón de `laRedDeBus`.
+ *
+ * Lo pone el servidor al arrancar, que es cuando lee el zip; el viaje en bus lo
+ * consulta en cada respuesta. **No se lee del disco en cada petición**: sacar
+ * `feed_info.txt` obliga a abrir 6,8 MB, y eso no se hace por ruta.
+ *
+ * Arranca en `null` a propósito: quien no ha arrancado el servidor —las
+ * jueces— no tiene feed servido, y entonces no se avisa de nada.
+ */
+let infoServida: FeedInfo | null = null;
+
+export function elFeedInfoServido(): FeedInfo | null {
+  return infoServida;
+}
+
+export function servirEsteFeedInfo(info: FeedInfo | null): void {
+  infoServida = info;
+}
+
 export const sha256 = (bytes: Buffer): string => createHash('sha256').update(bytes).digest('hex');
 
 /**

@@ -29,7 +29,13 @@ import { cargarPortales, portalesDe } from './portales.ts';
 import { cargarAparcabicis, ESTADOS_QUE_ENTRAN } from './aparcabicis.ts';
 import { cargarBiZi, disponibilidadDeBiZi } from './bizi.ts';
 import { elAreaDeServicio, laFlotaViva } from './yego.ts';
-import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
+import {
+  avisoDeVejezDelFeed,
+  diasHastaCaducidad,
+  elFeedQueSeSirve,
+  estadoDeCaducidad,
+  servirEsteFeedInfo,
+} from './feed.ts';
 import { atenderEstacionViva } from './estacion-viva.ts';
 import { atenderYEscribir } from './distintivo.ts';
 import { andarConElPeaton, cocinarYServir, laRedDeBus } from './red-bus.ts';
@@ -1006,6 +1012,22 @@ export const servidor = createServer(atenderPeticion);
         '[MobilityData GTFS Validator]. Dispara POST /api/renovar-feed o revisa el NAP.',
     );
   }
+
+  // ⭐ Y EL MISMO DATO, PUESTO DONDE LA PANTALLA PUEDA VERLO (8/09).
+  //
+  // Hasta hoy esto se quedaba aquí: un `console.warn` que lee quien despliega y
+  // no quien viaja. Con el `feed_info` servido, la respuesta de bus lleva su
+  // aviso corto mientras el feed esté en aviso o caducado, y se calla sola en
+  // cuanto entre uno fresco. Ver `avisoDeVejezDelFeed` y `motor/src/vejez.spec.ts`.
+  //
+  // ⚠️ **Se sirve también cuando está vigente**: quien decide si hay que avisar
+  //    es la función, con la fecha del viaje delante —no este arranque—. Un
+  //    motor que lleve semanas levantado tiene que empezar a avisar el día que
+  //    toque, sin reiniciarse.
+  servirEsteFeedInfo(servido.info);
+  console.log(
+    `motor:   el aviso en pantalla: ${avisoDeVejezDelFeed(servido.info, hoyEnGtfs(new Date())) ?? '(ninguno, el feed vale)'}`,
+  );
 }
 
 // ⭐ LA RED DE BUS Y TRANVÍA, cocinada al arrancar (31/08).

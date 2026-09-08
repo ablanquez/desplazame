@@ -51,6 +51,7 @@
 import type { AQuienPreguntar, LineaDelViaje, Paso, PosteVivo, Vertice } from '@desplazame/tipos';
 import type { Aviso, Trayecto } from '@desplazame/tipos';
 import { etapaAndando, juntar, type Etapa, type Extremo } from './etapas.ts';
+import { avisoDeVejezDelFeed, elFeedInfoServido } from './feed.ts';
 import { comoSeDiceElProximo, comoSeDiceLoVivo, ESTE_POSTE } from './poste-vivo.ts';
 import {
   estadoVivoDe,
@@ -1392,9 +1393,22 @@ export function prepararViajeEnBus(
     const delDesvio = (desvios?.avisos ?? []).filter((a) =>
       usadas.has(`${a.linea}|${a.direccion}`),
     );
+    // ⭐ Y EL AVISO DE VEJEZ DEL FEED VA EL PRIMERO DE TODOS (8/09).
+    //
+    // Porque condiciona incluso al desvío: si los horarios que se están
+    // leyendo caducan, todo lo que va debajo —las esperas, los transbordos,
+    // las líneas mismas— se calculó sobre un calendario que se acaba. El
+    // motor ya lo gritaba al arrancar; el log lo lee quien despliega, no quien
+    // viaja. Ver `avisoDeVejezDelFeed`.
+    //
+    // ⚠️ Si nadie ha servido el `feed_info` —las jueces, que no arrancan el
+    //    servidor— esto es `null` y no se dice nada: no saber no es saber que
+    //    está viejo.
+    const vejez = avisoDeVejezDelFeed(elFeedInfoServido(), fecha);
     const cabecera = {
       modo: 'bus' as const,
       avisos: [
+        ...(vejez ? [{ texto: vejez }] : []),
         ...delDesvio.map((a) => ({ texto: a.texto })),
         ...(loVivo ? avisosDeLoVivo(loVivo) : []),
       ],

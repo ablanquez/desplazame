@@ -689,6 +689,22 @@ const VIAJE_EN_BUS_CON_BOTON: Trayecto = {
 };
 
 /**
+ * ⭐ EL MISMO VIAJE, CON EL FEED A PUNTO DE CADUCAR (8/09, M0 del punto 14).
+ *
+ * El aviso de vejez es **del viaje entero**: no lleva `paso`, porque no hay un
+ * paso al que echarle la culpa de que el calendario se acabe. La frase es la
+ * que el motor produce de verdad —medida, no inventada: 47 caracteres, con la
+ * fecha del `feed_end_date` del feed que se sirve hoy—.
+ */
+const VIAJE_CON_EL_FEED_VIEJO: Trayecto = {
+  ...VIAJE_EN_BUS_SIN_LA_29,
+  avisos: [
+    { texto: 'Horarios de Avanza válidos solo hasta el 05/10.' },
+    ...VIAJE_EN_BUS_SIN_LA_29.avisos,
+  ],
+};
+
+/**
  * ⭐ Y EL TRANVÍA, que **no lleva a quién preguntar**.
  *
  * Su `stop_code` es `1312` y no un `PAnnnnn`: Avanza no cubre esos postes. El
@@ -3930,6 +3946,41 @@ describe('Buscador', () => {
     suBoton.click();
     fixture.detectChanges();
     expect(seVe(suCuerpo)).toBe(false);
+  });
+
+  /**
+   * ⭐ 18 · EL AVISO DE VEJEZ DEL FEED SE VE, Y SE VE SIN ENLACE.
+   *
+   * El motor ya gritaba al arrancar que el feed se le caduca —con el umbral del
+   * validador canónico, 7 días—, pero **ese grito lo lee quien despliega, no
+   * quien viaja**. Desde el 8/09 sube a la respuesta de bus, y esta juez compra
+   * que llega hasta el ojo.
+   *
+   * ⚠️ **Sin enlace, y a propósito.** No trae `paso` porque no es de ningún
+   *    paso, y la plantilla ya sabe que un enlace que no lleva a ninguna parte
+   *    es peor que no tenerlo. Aquí se fija esa mitad: el aviso está arriba y
+   *    **no** enlaza, mientras que el del poste de al lado tampoco —ninguno de
+   *    los dos es de un hito—.
+   */
+  it('⭐ 18 · el aviso de vejez del feed sale en el resumen, arriba y sin enlace', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_EL_FEED_VIEJO);
+    await fixture.whenStable();
+
+    const resumen = resumenEnPantalla(raiz);
+    expect(resumen.length).toBe(2);
+    expect(resumen[0]).toBe('Horarios de Avanza válidos solo hasta el 05/10.');
+    // Va PRIMERO: si los horarios caducan, condiciona todo lo que se lee debajo.
+    expect(resumen[1]).toContain('Avanza no anuncia ningún próximo');
+    // Y no promete un paso al que ir.
+    expect(adondeLlevaElResumen(raiz)[0]).toBeNull();
   });
 
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {
