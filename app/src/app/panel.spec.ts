@@ -5,7 +5,7 @@ import { provideLocationMocks } from '@angular/common/testing';
 import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
 import { rutas } from './rutas';
-import { estadoDe, type Recurso } from './panel';
+import { estadoDe, esViva, filaDelFeedServido, type Recurso } from './panel';
 
 /**
  * ⭐ EL PANEL DE FRESCURA — que cada conjunto se sepa fresco o caduco.
@@ -90,6 +90,79 @@ describe('⭐ EL SEMÁFORO — solo hay color donde hay regla con fuente', () =>
 
 const MENSUAL = 'http://publications.europa.eu/resource/authority/frequency/MONTHLY';
 
+describe('⭐ LAS VIVAS — se consultan, no se copian', () => {
+  const viva: Recurso = {
+    name: 'ruta-operativa',
+    path: 'https://zaragoza.avanzagrupo.com/lineas-y-horarios/',
+    title: 'La ruta operativa de hoy',
+    cadencia: 'TTL 1 h · refresco cada 30 min',
+    cadenciaFuente: 'TTL_DESVIOS_MS en motor/src/desvios.ts',
+  };
+
+  /**
+   * ⭐ UNA FUENTE VIVA NO SE MIDE CON EL SEMÁFORO DE UN FICHERO.
+   *
+   * [Data Package v1] el `path` «puede ser una URL http completamente
+   * cualificada»: los recursos remotos son de primera clase. Pero un recurso
+   * remoto **no tiene copia que envejezca**, así que preguntarle «¿cuántos días
+   * tiene tu descarga?» no significa nada. Lo que sí significa es **cada cuánto
+   * se pregunta**, y eso es lo que se enseña.
+   */
+  it('⭐ una fuente remota sale gris informativo, con su cadencia y su fuente', () => {
+    expect(esViva(viva)).toBe(true);
+    const e = estadoDe(viva, new Date('2026-09-08T00:00:00Z'));
+    expect(e.color).toBe('gris');
+    expect(e.texto).toContain('TTL 1 h');
+    expect(e.regla).toBeTruthy();
+    expect(e.fuente).toBe('TTL_DESVIOS_MS en motor/src/desvios.ts');
+    // ⚠️ Y NO dice «NO CONSTA»: constar, consta — lo que no hay es fichero.
+    expect(e.texto).not.toContain('NO CONSTA');
+  });
+
+  it('⭐ y un conjunto de fichero sigue sin ser viva', () => {
+    expect(esViva({ name: 'x', path: 'app/data/x.json', title: 'X' })).toBe(false);
+  });
+
+  /**
+   * ⭐ LO QUE SE LE PREGUNTA AL MOTOR TAMBIÉN ES VIVO.
+   *
+   * Lo que define a una viva no es de quién es la fuente, es que **no hay copia
+   * que envejezca**: ni descarga que fechar, ni huella que enseñar.
+   */
+  it('⭐ una fila que se le pregunta al motor cuenta como viva', () => {
+    expect(esViva({ name: 'feed-servido', path: '/api/salud', title: 'X' })).toBe(true);
+  });
+});
+
+describe('⭐ LA FILA VIVA DEL FEED — la que el manifiesto no puede decir', () => {
+  /**
+   * ⭐ LOS TRES ESTADOS, CADA UNO CON SU COLOR.
+   *
+   * ⚠️ Esta fila existe porque había **dos verdades**: el manifiesto declara la
+   *    caducidad de la SEMILLA del repositorio y el motor sirve el VIVO, que el
+   *    cron renueva. Tras una renovación el panel habría seguido enseñando la
+   *    fecha vieja, con 200 y sin ruido. Esta fila sale de `/api/salud`, o sea
+   *    del zip que de verdad se está sirviendo.
+   */
+  it('⭐ vigente es verde, aviso es ámbar y caducado es rojo', () => {
+    const verde = filaDelFeedServido({ sello: '20260623_AUZSA', vence: '20261005', estado: 'vigente' });
+    expect(verde.e.color).toBe('verde');
+    expect(verde.r.title).toContain('sirviendo');
+    expect(verde.e.texto).toContain('05/10/2026');
+
+    expect(filaDelFeedServido({ sello: 'x', vence: '20261005', estado: 'aviso' }).e.color).toBe('ambar');
+    expect(filaDelFeedServido({ sello: 'x', vence: '20261005', estado: 'caducado' }).e.color).toBe('rojo');
+  });
+
+  it('⭐ y dice de qué feed habla, con su sello', () => {
+    const f = filaDelFeedServido({ sello: '20260623_AUZSA_Y_TRANVIA', vence: '20261005', estado: 'vigente' });
+    expect(f.r.modified).toBe('20260623_AUZSA_Y_TRANVIA');
+    // Sin fichero: es una fuente viva, y no finge tener huella.
+    expect(f.r.hash).toBeUndefined();
+    expect(f.r.bytes).toBeUndefined();
+  });
+});
+
 describe('⭐ LA PÁGINA /panel', () => {
   let http: HttpTestingController;
   let peticiones: string[];
@@ -99,6 +172,19 @@ describe('⭐ LA PÁGINA /panel', () => {
     peticiones = [];
     globalThis.fetch = ((url: string) => {
       peticiones.push(String(url));
+      // ⭐ El panel pide DOS cosas: el manifiesto (estático) y la salud del
+      //    motor (viva). El doble contesta a cada uno lo suyo.
+      if (String(url).includes('/api/salud')) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              ok: true,
+              feed: { sello: '20260623_AUZSA_Y_TRANVIA', vence: '20261005', estado: 'aviso' },
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          ),
+        );
+      }
       return Promise.resolve(
         new Response(
           JSON.stringify({
@@ -171,22 +257,54 @@ describe('⭐ LA PÁGINA /panel', () => {
 
   it('⭐ pinta una fila por conjunto, con su título y su fecha de descarga', async () => {
     const { raiz } = await ir('/panel');
-    const filas = raiz.querySelectorAll('tbody tr');
-    expect(filas.length).toBe(2);
-    expect(filas[0]!.textContent).toContain('El conjunto uno');
-    expect(filas[0]!.textContent).toContain('2026-08-20');
+    const filas = Array.from(raiz.querySelectorAll('tbody tr'));
+    // ⚠️ Se busca la fila POR SU TÍTULO y no por su posición: desde que existe
+    //    la fila viva del feed, el índice 0 ya no es «el conjunto uno», y una
+    //    juez que dependa del orden se rompe cada vez que la tabla crece.
+    const suya = filas.find((f) => (f.textContent ?? '').includes('El conjunto uno'))!;
+    expect(filas.length).toBe(3);
+    expect(suya).toBeTruthy();
+    expect(suya.textContent).toContain('El conjunto uno');
+    expect(suya.textContent).toContain('2026-08-20');
   });
 
   it('⭐ el que no tiene regla sale GRIS y con NO CONSTA a la vista', async () => {
     const { raiz } = await ir('/panel');
-    const primera = raiz.querySelectorAll('tbody tr')[0]!;
-    expect(primera.querySelector('.panel__estado--gris')).not.toBeNull();
-    expect(primera.textContent).toContain('NO CONSTA');
+    const sinRegla = Array.from(raiz.querySelectorAll('tbody tr')).find((f) =>
+      (f.textContent ?? '').includes('El conjunto uno'),
+    )!;
+    expect(sinRegla.querySelector('.panel__estado--gris')).not.toBeNull();
+    expect(sinRegla.textContent).toContain('NO CONSTA');
+  });
+
+  /**
+   * ⭐ LA FILA VIVA DEL FEED SE PINTA, y sale del MOTOR.
+   *
+   * ⚠️ Es la mitad que cierra las dos verdades: el manifiesto declara la
+   *    caducidad de la semilla y el motor sirve el vivo. Si esta fila no
+   *    estuviera, tras una renovación del cron el panel enseñaría la fecha
+   *    vieja con 200 y sin ruido.
+   */
+  it('⭐ pregunta al motor por el feed servido y lo pinta como fila viva', async () => {
+    const { raiz } = await ir('/panel');
+    expect(peticiones.filter((u) => u.includes('/api/salud')).length).toBe(1);
+
+    const texto = (raiz.textContent ?? '').replace(/\s+/g, ' ');
+    expect(texto).toContain('sirviendo AHORA');
+    expect(texto).toContain('20260623_AUZSA_Y_TRANVIA');
+    // El doble dice «aviso», así que la fila tiene que salir ámbar.
+    const ambar = Array.from(raiz.querySelectorAll('.panel__estado--ambar')).map(
+      (e) => (e.textContent ?? '').trim(),
+    );
+    expect(ambar.some((t) => t.includes('05/10/2026'))).toBe(true);
   });
 
   it('⭐ el que tiene regla la enseña CON SU FUENTE, no solo el color', async () => {
     const { raiz } = await ir('/panel');
-    const segunda = raiz.querySelectorAll('tbody tr')[1]!;
-    expect(segunda.textContent).toContain('feed_end_date=20261005');
+    // Por título, no por posición: ver la juez de la fila viva.
+    const conRegla = Array.from(raiz.querySelectorAll('tbody tr')).find((f) =>
+      (f.textContent ?? '').includes('El conjunto dos'),
+    )!;
+    expect(conRegla.textContent).toContain('feed_end_date=20261005');
   });
 });
