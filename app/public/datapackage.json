@@ -504,6 +504,74 @@
       "encoding": "utf-8"
     },
     {
+      "name": "gtfs-vivo",
+      "path": "app/data/nap_gtfs-ficha1176.vivo.zip",
+      "title": "El GTFS VIVO: el zip que el cron baja del NAP y que releva a la semilla",
+      "format": "zip",
+      "mediatype": "application/zip",
+      "licenses": [
+        {
+          "name": "other-open",
+          "title": "Licencia de datos abiertos del MITMS",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Punto de Acceso Nacional (NAP) · ficha 1176 · Avanza Zaragoza S.A.U",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/DAILY",
+      "periodicidadFuente": "lo renueva el cron nocturno del motor (POST /api/renovar-feed); su caducidad NO la cuenta este manifiesto sino el motor, sobre el feed que de verdad se esta sirviendo — ver /api/salud"
+    },
+    {
+      "name": "gtfs-cocinado",
+      "path": "app/data/nap_gtfs-ficha1176.cocinado.json",
+      "title": "La red de bus cocinada del feed servido (984 paradas, 170 patrones, 10.588 transbordos)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "licenses": [
+        {
+          "name": "other-open",
+          "title": "Licencia de datos abiertos del MITMS",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Cocinado por el motor al arrancar, desde el zip que se este sirviendo",
+          "path": "app/data/nap_gtfs-ficha1176.vivo.zip"
+        }
+      ],
+      "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/DAILY",
+      "periodicidadFuente": "lo renueva el cron nocturno del motor (POST /api/renovar-feed); su caducidad NO la cuenta este manifiesto sino el motor, sobre el feed que de verdad se esta sirviendo — ver /api/salud"
+    },
+    {
+      "name": "gtfs-registro",
+      "path": "app/data/nap_gtfs-ficha1176.registro.json",
+      "title": "El registro de la ultima renovacion: que version entro, cuando y con que sha256",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "licenses": [
+        {
+          "name": "other-open",
+          "title": "Licencia de datos abiertos del MITMS",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Lo escribe el cron de renovacion del motor (motor/src/renovar-feed.ts)",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/DAILY",
+      "periodicidadFuente": "lo renueva el cron nocturno del motor (POST /api/renovar-feed); su caducidad NO la cuenta este manifiesto sino el motor, sobre el feed que de verdad se esta sirviendo — ver /api/salud"
+    },
+    {
       "name": "nombres-osm",
       "path": "motor/data/2026-08-02_osm_overpass_zaragoza-termino_nombres.json",
       "title": "Nombres de via de OpenStreetMap (19.897 ways)",
@@ -1014,6 +1082,286 @@
         }
       ],
       "descargadoEl": "2026-08-28T15:26:43Z"
+    },
+    {
+      "name": "viario-coche",
+      "path": "motor/data/2026-09-02_osm_overpass_zaragoza-bbox_viario-coche.json",
+      "title": "Viario rodable del coche (25.242 vias con sus ids de nodo y sus etiquetas)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 19960302,
+      "hash": "sha256:1422908732a7a3b3de1cc1ec3ddab2cae25349b080af0a3f83c66265460bf0de",
+      "licenses": [
+        {
+          "name": "ODbL-1.0",
+          "title": "Open Database License 1.0",
+          "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "OpenStreetMap via Overpass API 0.7.62.11",
+          "path": "https://overpass-api.de/"
+        }
+      ],
+      "descargadoEl": "2026-09-02T15:40:11Z",
+      "modified": "2026-09-02T15:38:39Z",
+      "modifiedFuente": "el propio fichero lo declara en `osm3s.timestamp_osm_base`"
+    },
+    {
+      "name": "restricciones-giro",
+      "path": "motor/data/2026-09-02_osm_overpass_zaragoza-bbox_restricciones-giro.json",
+      "title": "Restricciones de giro (1.283 relaciones type=restriction y los 1.036 nodos via)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 574549,
+      "hash": "sha256:29dfeb2b670eddd91549df92e68342937729a1d633892fc10c9d7ce1b617aafe",
+      "licenses": [
+        {
+          "name": "ODbL-1.0",
+          "title": "Open Database License 1.0",
+          "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "OpenStreetMap via Overpass API 0.7.62.11",
+          "path": "https://overpass-api.de/"
+        }
+      ],
+      "descargadoEl": "2026-09-02T15:40:35Z",
+      "modified": "2026-09-02T15:38:39Z",
+      "modifiedFuente": "el propio fichero lo declara en `osm3s.timestamp_osm_base`"
+    },
+    {
+      "name": "semaforos",
+      "path": "motor/data/2026-09-02_osm_overpass_zaragoza-bbox_semaforos.json",
+      "title": "Semaforos (1.360 nodos highway=traffic_signals, 2 s de coste al pasar)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 231503,
+      "hash": "sha256:436ae7931167793b71e9c6ed475afaea48cceba4e3df0214202c6ba189f6c8f3",
+      "licenses": [
+        {
+          "name": "ODbL-1.0",
+          "title": "Open Database License 1.0",
+          "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "OpenStreetMap via Overpass API 0.7.62.11",
+          "path": "https://overpass-api.de/"
+        }
+      ],
+      "descargadoEl": "2026-09-02T15:42:06Z",
+      "modified": "2026-09-02T15:40:40Z",
+      "modifiedFuente": "el propio fichero lo declara en `osm3s.timestamp_osm_base`"
+    },
+    {
+      "name": "zbe",
+      "path": "app/data/2026-09-02_wfs_movilidad-MU1_ZBE.json",
+      "title": "Zona de Bajas Emisiones (2 poligonos: FASE 1 vigente y FASE 2 futura)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 2909,
+      "hash": "sha256:7fd19d79f02f693d17531c8997599c03c891efd27d72b3302bcc763b16f34b06",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_ZBE_Zona_Bajas_Emisiones",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-09-02T15:43:42Z",
+      "modified": "2026-09-02T15:43:42Z",
+      "modifiedFuente": "el propio fichero lo declara en `timeStamp` del WFS"
+    },
+    {
+      "name": "parkings-zbe",
+      "path": "app/data/parkings-zbe.json",
+      "title": "Aparcamientos publicos del catalogo 55, cruzados con los poligonos de la ZBE",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 6956,
+      "hash": "sha256:9d71d1e2dbde722558bea2abd6e36eddded86538cee52fda12291aad77391061",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API de la sede · conjunto 55 «Aparcamientos Publicos», descargado el 02/09/2026",
+          "path": "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/equipamiento/aparcamiento-publico.json"
+        },
+        {
+          "title": "Cocinado por motor/src/cocinar-parkings-zbe.ts cruzando con la capa de la ZBE",
+          "path": "app/data/2026-09-02_wfs_movilidad-MU1_ZBE.json"
+        }
+      ]
+    },
+    {
+      "name": "aparcamotos-cocinados",
+      "path": "app/data/aparcamotos.json",
+      "title": "Aparcamotos reducidos a lo que el motor mira (2.146 sitios, 11.715 plazas)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 239343,
+      "hash": "sha256:5021e2b736d98a43adfdbaecea6a40672eb70239b2867e011afdf88ee43842b4",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Cocinado por motor/src/cocinar-aparcamotos.ts desde la capa movilidad:MU2_motos, sin volver a la red",
+          "path": "app/data/2026-08-18_wfs_movilidad-MU2_motos.json"
+        }
+      ]
+    },
+    {
+      "name": "bizi-disponibilidad",
+      "path": "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/estacion-bicicleta.json",
+      "title": "Disponibilidad del BiZi en vivo (bicis y anclajes libres por estacion)",
+      "mediatype": "application/json",
+      "licenses": [
+        {
+          "name": "other-closed",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "THIRD-PARTY-NOTICES.md § 1.23 — la ficha con el regimen entero",
+          "path": "THIRD-PARTY-NOTICES.md"
+        }
+      ],
+      "cadencia": "a peticion",
+      "cadenciaFuente": "se pide en cada ruta de BiZi y NO se guarda: cachearlo seria servir un numero viejo como si fuera de ahora"
+    },
+    {
+      "name": "poste-vivo",
+      "path": "https://gps.avanzabus.com/index.php/zaragoza/fRefrescaEmpresaExternos",
+      "title": "Llegadas al poste en vivo (cuantos minutos falta de verdad)",
+      "mediatype": "application/json",
+      "licenses": [
+        {
+          "name": "other-closed",
+          "title": "Aviso legal de Avanza Zaragoza",
+          "path": "https://www.avanzabus.com/informacion/aviso-legal/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "THIRD-PARTY-NOTICES.md § 1.24 — la ficha con el regimen entero",
+          "path": "THIRD-PARTY-NOTICES.md"
+        }
+      ],
+      "cadencia": "a peticion",
+      "cadenciaFuente": "se pregunta al pulsar y NO se guarda; el minuto vivo caduca en un minuto"
+    },
+    {
+      "name": "ruta-operativa",
+      "path": "https://zaragoza.avanzagrupo.com/lineas-y-horarios/",
+      "title": "La ruta operativa de hoy (que postes pisa hoy cada linea, con sus desvios)",
+      "mediatype": "application/json",
+      "licenses": [
+        {
+          "name": "other-closed",
+          "title": "Aviso legal de Avanza Zaragoza",
+          "path": "https://zaragoza.avanzagrupo.com/aviso-legal/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "THIRD-PARTY-NOTICES.md § 1.25 — la ficha con el regimen entero",
+          "path": "THIRD-PARTY-NOTICES.md"
+        }
+      ],
+      "cadencia": "TTL 1 h · refresco cada 30 min",
+      "cadenciaFuente": "TTL_DESVIOS_MS = 60 min en motor/src/desvios.ts; el refresco va a la MITAD del TTL a proposito, para que la capa no caduque mientras el pase corre"
+    },
+    {
+      "name": "yego-flota",
+      "path": "https://services.rideyego.com/gbfs/2-3/zaragoza/es/gbfs",
+      "title": "Flota y area de servicio de YeGo (GBFS 2.3)",
+      "mediatype": "application/json",
+      "licenses": [
+        {
+          "name": "other-closed",
+          "title": "Terminos y condiciones de Yego",
+          "path": "https://yugo-assets.s3.amazonaws.com/legal/termsandconditions_yego_es.pdf"
+        }
+      ],
+      "sources": [
+        {
+          "title": "THIRD-PARTY-NOTICES.md § 1.34 — la ficha con el regimen entero",
+          "path": "THIRD-PARTY-NOTICES.md"
+        }
+      ],
+      "cadencia": "TTL 240 s",
+      "cadenciaFuente": "no es un numero nuestro: los seis feeds declaran `ttl: 240` y ese es el contrato de GBFS"
+    },
+    {
+      "name": "festivo-cuadro",
+      "path": "https://zaragoza.avanzagrupo.com/lineas-y-horarios/",
+      "title": "El cuadro de horarios de la web, que suple al calendario en festivo",
+      "mediatype": "application/json",
+      "licenses": [
+        {
+          "name": "other-closed",
+          "title": "Aviso legal de Avanza Zaragoza",
+          "path": "https://zaragoza.avanzagrupo.com/aviso-legal/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "THIRD-PARTY-NOTICES.md § 1.35 — la ficha con el regimen entero",
+          "path": "THIRD-PARTY-NOTICES.md"
+        }
+      ],
+      "cadencia": "TTL 6 h · refresco cada 3 h",
+      "cadenciaFuente": "TTL_FESTIVO_MS = 6 h en motor/src/festivo.ts; el refresco va a la mitad, por la misma razon que la ruta operativa"
+    },
+    {
+      "name": "dgt-distintivo",
+      "path": "https://sede.dgt.gob.es/es/vehiculos/informacion-de-vehiculos/distintivo-ambiental/",
+      "title": "El distintivo ambiental de una matricula",
+      "mediatype": "application/json",
+      "licenses": [
+        {
+          "name": "other-closed",
+          "title": "Aviso legal de la sede electronica de la DGT",
+          "path": "https://sede.dgt.gob.es/es/contenido/aviso-legal/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "THIRD-PARTY-NOTICES.md § 1.36 — la ficha con el regimen entero",
+          "path": "THIRD-PARTY-NOTICES.md"
+        }
+      ],
+      "cadencia": "a peticion · SIN CACHE",
+      "cadenciaFuente": "ninguno, y es una decision: cachear seria GUARDAR LA MATRICULA, que es un dato personal indirecto y no se guarda"
     }
   ]
 }
