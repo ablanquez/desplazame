@@ -3729,13 +3729,54 @@ plan; Linaje para el panel). Los NO CONSTA del 17/08, RESUELTOS:**
       Precedente vivo de la casa: el cron de ZetaBus (02:00);
       Hostinger: mínimo 15 min
 
-## 15 — Estética *(en grueso)*
+## 15 — Estética *(ABIERTO el 8/09/2026; el documento rector es
+DISEÑO-DESPLAZAME.md v1.0 — la investigación con doctrina, 8 bloques
+y 37 puntos; LAS 10 DECISIONES DEL RESUMEN EJECUTIVO, VALADAS POR
+ANTONIO el 8/09 — incluida la tesela oscura CARTO por doctrina de
+accesibilidad [el basemap oscuro FAVORECE el dato superpuesto (SAS
+baja-visión, Esri); el mapa claro en UI oscura sería el «bloque
+blanco» que el propio doc prohíbe; condición: TODO lo de encima se
+re-mide sobre la tesela, con jueces como el teselado claro]. El
+flujo: se modela en FIGMA MAKE (Antonio modela; Claude lee por MCP)
+→ el resultado es ESPECIFICACIÓN + TOKENS DTCG, no código → Claude
+Code lo traduce al Angular existente.)*
 
-La capa visual que haga falta. La última, a propósito.
-
-- [ ] Color de marca del proyecto — hoy `NO CONSTA`; los badges del README
-      llevan el gris neutro de la casa hasta que se decida. *Surgió en el
-      checkpoint del 16/08.*
+- [ ] **0 · EL BRIEF a Figma Make** — escrito desde la sección «para
+      el brief» del DISEÑO: producto/outcome, layout decidido
+      (bloques, bottom sheet 2 estados, separador 2 posiciones, sin
+      scroll global, claro+oscuro), hex exactos, Inter, Material
+      Symbols con el mapeo de los 8 modos, accesibilidad AA
+      explícita, los estados honestos con las frases reales, y las
+      restricciones al modelo (separación de ficheros; sin datos
+      sensibles). Los INPUTS: capturas de los 3 tamaños de la app
+      actual + textos reales.
+- [ ] **1 · EL LOGO** — símbolo «ruta/movimiento» en azul primario;
+      versiones completo/reducido/favicon (SVG con media query de
+      tema)/app-icon [DISEÑO §4 y §36].
+- [ ] **2 · LOS TOKENS** — escalas de 12 pasos (azul primario, gris,
+      semánticos; el ámbar de avisos conservado como escala) en
+      Figma Variables con modos claro/oscuro → exportados a DTCG →
+      CSS custom properties (:root · @media dark ·
+      [data-theme="dark"]) [DISEÑO §2, §26, §37].
+- [ ] **3 · EL MODELADO en Figma Make** — las pantallas de los 3
+      tamaños con sus estados (vacío · cargando skeleton · error
+      honesto por fuente · dato caducado · edad del dato), iterado
+      entre el ojo de Antonio y la lectura por MCP.
+- [ ] **4 · LA TRADUCCIÓN a Angular** (encargos a Claude Code, por
+      tandas parlamentadas): tokens primero, layout después
+      (100dvh, scroll por bloque, bottom sheet, separador),
+      componentes al final; los emojis se van (Material Symbols +
+      etiqueta de texto); las 295 jueces de interfaz acompañan cada
+      tanda; la tesela oscura con su API key de CARTO, su
+      atribución «© CARTO» junto a la de OSM, y SUS JUECES de
+      contraste (el precedente del teselado claro).
+- [ ] **5 · LA VERIFICACIÓN del 15** — AA medido (contraste, targets
+      44px, reflow 320px, zoom 200%, teclado), los dos temas por el
+      ojo en los 3 tamaños, y el caso de siempre en producción.
+- [x] ⚰️ Color de marca del proyecto — era `NO CONSTA` desde el
+      16/08; DECIDIDO el 8/09: AZUL primario [DISEÑO §1 — el verde
+      colisiona con YeGo; los badges del README se actualizan
+      cuando los tokens existan].
 
 ## 16 — Intranet *(reservado para el final — nace el 22/08)*
 

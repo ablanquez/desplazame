@@ -1484,6 +1484,25 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
+**EL 15 ABIERTO (8/09, tarde): EL PARLAMENTO DE DISEÑO, CERRADO CON
+DOCTRINA.** La investigación profunda (decenas de fuentes; W3C/WCAG
+2.2, APG, NN/g, Material 3, Figma, MDN, OSMF, CARTO, Radix) →
+DISEÑO-DESPLAZAME.md v1.0, el TERCER documento vivo (escritor único:
+esta conversación; 8 bloques · 37 puntos · reutilizable para futuros
+diseños de la casa). LAS 10 DECISIONES, valadas por Antonio: azul de
+marca (el verde colisiona con YeGo) · escalas de 12 pasos + tokens
+DTCG (el ámbar conservado) · Inter con números tabulares · Material
+Symbols (los emojis se van) · bottom sheet 2 estados + separador 2
+posiciones + sin scroll global [100dvh] (lo decidido por Antonio,
+ratificado con doctrina) · AA transversal · estados honestos
+diseñados · doble tema a mano con sistema+interruptor · FIGMA MAKE
+COMO ESPECIFICACIÓN+TOKENS, NO CÓDIGO (genera React; la app es
+Angular) · tesela oscura CARTO en oscuro (la doctrina de
+accesibilidad la favorece para dato superpuesto; todo lo de encima
+se re-mide con jueces). Las casillas 0-5 del 15, en el plan. El
+flujo: Antonio modela en Figma Make · Claude lee por MCP · Claude
+Code traduce a Angular por tandas.
+
 **Lo siguiente:** (⚰️ EL 14 CERRADO Y EL HUSO MUERTO el 8/09 — la
 nº41: verde en local por casualidad de huso [la máquina en hora de
 Madrid]; reloj.ts con Europe/Madrid [IANA, nunca desfase fijo — el
@@ -1495,9 +1514,12 @@ UTC; el dist byte a byte idéntico [el motor manda el texto]; ⚠️
 aviso a futuro: si la pantalla algún día formatea horas por su
 cuenta, necesitará su propia juez — reloj.ts vigila el motor, no el
 navegador. Empujado y VERIFICADO POR EL OJO: el poste dice la hora
-del reloj de quien mira.) (1) **EL PUNTO 15 — ESTÉTICA** (se
-abre; poco a poco): el parlamento primero — color de marca ·
-title · favicon · lo que el ojo mande; (3) los pendientes del 14 en
+del reloj de quien mira.) (1) **EL PUNTO 15 — EN MARCHA**
+(⚰️ el parlamento cerrado el 8/09: DISEÑO-DESPLAZAME.md v1.0 y las
+10 decisiones valadas): lo siguiente es LA CASILLA 0 — el brief a
+Figma Make (Antonio: las capturas de los 3 tamaños de la app
+actual; el brief se escribe aquí desde la sección «para el brief»
+del DISEÑO); (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
 municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
