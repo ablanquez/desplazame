@@ -30,6 +30,8 @@ import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { fileURLToPath } from 'node:url';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { Salud } from '@desplazame/tipos';
 /**
  * ⭐ LA VARIABLE VA ANTES QUE EL IMPORT, Y POR ESO EL IMPORT ES DINÁMICO (8/09).
@@ -45,7 +47,8 @@ import type { Salud } from '@desplazame/tipos';
  * arrancar es lo que se pide**. Quien lo pide es esta línea, y nadie más.
  */
 process.env['DESPLAZAME_SIN_ARRANCAR'] = '1';
-const { atenderPeticion, PUERTO } = await import('./servidor.ts');
+const { atenderPeticion, PUERTO, RAIZ_DE_LA_APP, hayAppConstruida, servirDeLaApp } =
+  await import('./servidor.ts');
 
 /** Lo que el manejador escribe, sin sockets: código, cabeceras y cuerpo. */
 interface LoEscrito {
@@ -68,8 +71,8 @@ function pedir(metodo: string, ruta: string): Promise<LoEscrito> {
         escrito.cabeceras = cabeceras ?? {};
         return respuesta;
       },
-      end(cuerpo?: string) {
-        escrito.cuerpo = cuerpo ?? '';
+      end(cuerpo?: string | Buffer) {
+        escrito.cuerpo = typeof cuerpo === 'string' ? cuerpo : (cuerpo?.toString('utf8') ?? '');
         listo(escrito);
         return respuesta;
       },
@@ -269,6 +272,134 @@ ${dicho.slice(-1200)}`,
     } finally {
       hijo.kill();
     }
+  });
+
+  // ══ LA PORTADA ═══════════════════════════════════════════════════════════
+  //
+  // ⭐ EL MOTOR SIRVE LA APP (8/09, LA PORTADA paso 1).
+  //
+  // [angular.dev/tools/cli/deployment, literal] *«ng build genera los
+  // artefactos en dist/… copia este directorio al servidor y configura el
+  // servidor para servirlo»* y *«si la app usa el router, el servidor debe
+  // devolver index.html cuando se le pida un fichero que no tiene»*.
+  //
+  // ⚠️ En Hostinger el `.htaccess` de `public_html` enruta TODO a la app de
+  //    Node, así que los estáticos NO los sirve Apache: los sirve este motor.
+  //    No es una comodidad, es la única puerta que hay.
+
+  /** Un fichero de verdad del dist, con su nombre hasheado del build. */
+  const unJsDelDist = (): string =>
+    readdirSync(RAIZ_DE_LA_APP).find((f) => f.endsWith('.js'))!;
+
+  /** ⭐ JUEZ 6 — LA RAÍZ DEVUELVE EL `index.html`. */
+  test('⭐ 6 · GET / devuelve el index.html, con su MIME', async () => {
+    const r = await pedir('GET', '/');
+    assert.equal(r.codigo, 200);
+    assert.match(r.cabeceras['Content-Type'] ?? '', /^text\/html/);
+    assert.match(r.cuerpo, /<app-root><\/app-root>/, 'tiene que ser el index de Angular');
+  });
+
+  /**
+   * ⭐ JUEZ 7 — Y UNA RUTA HONDA TAMBIÉN: el deep link.
+   *
+   * Es la frase de Angular al pie de la letra: el servidor no tiene ese
+   * fichero, y aun así devuelve el index para que el router del navegador
+   * resuelva. Sin esto, recargar en `/panel` da 404.
+   */
+  test('⭐ 7 · una ruta honda que no es un fichero devuelve el index', async () => {
+    const r = await pedir('GET', '/una/ruta/honda');
+    assert.equal(r.codigo, 200);
+    assert.match(r.cabeceras['Content-Type'] ?? '', /^text\/html/);
+    assert.match(r.cuerpo, /<app-root><\/app-root>/);
+  });
+
+  /** ⭐ JUEZ 8 — UN FICHERO DE VERDAD SALE ENTERO Y CON SU MIME. */
+  test('⭐ 8 · un .js del dist sale con su contenido y su MIME', async () => {
+    const nombre = unJsDelDist();
+    const r = await pedir('GET', `/${nombre}`);
+    assert.equal(r.codigo, 200, `pedido /${nombre}`);
+    assert.match(r.cabeceras['Content-Type'] ?? '', /^text\/javascript/);
+    assert.equal(r.cuerpo, readFileSync(join(RAIZ_DE_LA_APP, nombre), 'utf8'));
+  });
+
+  /**
+   * ⭐ JUEZ 9 — Y EL JSON DEL DATO SALE COMO JSON.
+   *
+   * ⚠️ **No es un extra.** La pantalla pide `data/…ZBE.json` para pintar la
+   *    Zona de Bajas Emisiones y `datapackage.json` para el panel. Si esas dos
+   *    cayeran en el `index.html` del deep link, el `fetch` recibiría HTML y la
+   *    zona no se pintaría — con 200 y sin ruido.
+   */
+  test('⭐ 9 · el datapackage.json sale con MIME de json, no como index', async () => {
+    const r = await pedir('GET', '/datapackage.json');
+    assert.equal(r.codigo, 200);
+    assert.match(r.cabeceras['Content-Type'] ?? '', /^application\/json/);
+    assert.doesNotMatch(r.cuerpo, /<app-root>/, 'no puede ser el index disfrazado');
+    JSON.parse(r.cuerpo);
+  });
+
+  /** ⭐ JUEZ 10 — `/api/*` INTACTO: la portada no se come la API. */
+  test('⭐ 10 · /api/salud sigue contestando su JSON, no el index', async () => {
+    const r = await pedir('GET', '/api/salud');
+    assert.equal(r.codigo, 200);
+    assert.match(r.cabeceras['Content-Type'] ?? '', /^application\/json/);
+    assert.equal((JSON.parse(r.cuerpo) as { ok: boolean }).ok, true);
+    // Y lo que no existe bajo /api sigue siendo un 404 honesto, no el index.
+    const no = await pedir('GET', '/api/no-existe-esto');
+    assert.equal(no.codigo, 404);
+  });
+
+  /**
+   * ⭐ JUEZ 11 — EL PATH TRAVERSAL MUERE EN 404.
+   *
+   * ⚠️ Servir ficheros por su ruta es la puerta clásica: `../../` saca del dist
+   *    y llega a `.env.local`. Se comprueba con la ruta cruda Y con la
+   *    codificada, porque `%2e%2e` es lo mismo para quien lo intenta.
+   */
+  test('⭐ 11 · salirse del dist con ../ da 404 y no lee nada', async () => {
+    for (const ruta of [
+      '/../../motor/.env.local',
+      '/..%2f..%2fmotor%2f.env.local',
+      '/%2e%2e/%2e%2e/package.json',
+      '/../package.json',
+      '/..%5c..%5cmotor%5c.env.local',
+    ]) {
+      const r = await pedir('GET', ruta);
+      assert.equal(r.codigo, 404, `${ruta} tenía que dar 404 y dio ${r.codigo}`);
+      assert.doesNotMatch(r.cuerpo, /NAP_API_KEY|"workspaces"/, `${ruta} filtró contenido`);
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 12 — SIN DIST, EL MOTOR NO INVENTA NADA.
+   *
+   * Un clon recién hecho puede no tener la app construida. Entonces
+   * `servirDeLaApp` dice que no ha atendido —y el 404 honesto de siempre se
+   * queda—, y `hayAppConstruida` es lo que el arranque mira para avisar.
+   */
+  test('⭐ 12 · sin dist, no se sirve nada y el arranque puede avisar', () => {
+    assert.equal(hayAppConstruida(RAIZ_DE_LA_APP), true, 'aquí SÍ está construida');
+    const inventada = join(RAIZ_DE_LA_APP, 'no-existe-este-dist');
+    assert.equal(hayAppConstruida(inventada), false);
+
+    let toco = false;
+    const respuesta = {
+      writeHead: () => {
+        toco = true;
+        return respuesta;
+      },
+      end: () => {
+        toco = true;
+        return respuesta;
+      },
+    };
+    const atendida = servirDeLaApp(
+      { method: 'GET', url: '/', headers: {} } as unknown as IncomingMessage,
+      respuesta as unknown as ServerResponse,
+      inventada,
+    );
+    assert.equal(atendida, false, 'sin dist no puede decir que atendió');
+    assert.equal(toco, false, 'y no puede haber escrito nada en la respuesta');
   });
 
   test('⭐ 3 · sin PORT en el entorno, el puerto es 3000', () => {

@@ -22,6 +22,8 @@
 import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { extname, join, normalize, resolve, sep } from 'node:path';
 import { abrirElRegistro, DIAS_QUE_SE_GUARDAN, engancharLaConsola } from './registro.ts';
 import type { AreaDeYego, Salud, Vertice } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
@@ -1032,7 +1034,176 @@ export function atenderPeticion(peticion: IncomingMessage, respuesta: ServerResp
     return;
   }
 
+  // ⭐ LA PORTADA: lo que no es `/api/` lo sirve el dist de la app (8/09).
+  //    Va **lo último**, para que ningún endpoint pueda quedar tapado por un
+  //    fichero que se llame igual. Ver `servirDeLaApp`.
+  if (servirDeLaApp(peticion, respuesta)) {
+    return;
+  }
+
   json(404, { error: `no hay nada en ${peticion.method} ${peticion.url}` });
+}
+
+/**
+ * ⭐ DÓNDE VIVE LA APP CONSTRUIDA — medido, no supuesto (8/09).
+ *
+ * `angular.json` **no declara `outputPath`**, así que manda el defecto de
+ * Angular. Se comprobó construyendo: *«Output location:
+ * …pp\dist\desplazame»*, y dentro, `browser/` —que es la raíz que se sirve;
+ * `3rdpartylicenses.txt` y `prerendered-routes.json` cuelgan **fuera** de ella y
+ * no se publican—.
+ *
+ * La ruta es relativa a ESTE módulo, como las de los datos, y por lo mismo vale
+ * desde `src/` y desde `dist/`: están a la misma profundidad.
+ */
+export const RAIZ_DE_LA_APP = fileURLToPath(
+  new URL('../../app/dist/desplazame/browser', import.meta.url),
+);
+
+/**
+ * ¿Hay app construida? Es lo que el arranque mira para avisar.
+ *
+ * Se pregunta por el `index.html` y no por la carpeta: una carpeta vacía o a
+ * medio copiar no es una app, y con el fallback del deep link el `index` es
+ * justo la pieza sin la cual no se puede servir nada.
+ */
+export function hayAppConstruida(raiz: string = RAIZ_DE_LA_APP): boolean {
+  return existsSync(join(raiz, 'index.html'));
+}
+
+/**
+ * ⭐ LOS TIPOS QUE SE SIRVEN.
+ *
+ * ⚠️ **El `.json` NO es un extra**: la pantalla pide
+ *    `data/2026-09-02_wfs_movilidad-MU1_ZBE.json` para pintar la Zona de Bajas
+ *    Emisiones y `datapackage.json` para el panel. Sin su MIME caerían en el
+ *    fallback del deep link, el `fetch` recibiría HTML **con 200** y la zona no
+ *    se pintaría sin que nada lo dijera.
+ *
+ * Los seis primeros son los que el build de hoy produce de verdad —medido:
+ * `css html ico js×3 json×2 png×3`—; los demás se declaran porque son los que
+ * un `ng build` puede sacar mañana sin avisar (una fuente, un SVG, un mapa de
+ * fuentes) y descubrirlo en producción sería tonto.
+ */
+/** Decodifica lo que se pueda; lo que no, se devuelve tal cual para mirarlo. */
+function decodeCrudo(ruta: string): string {
+  try {
+    return decodeURIComponent(ruta);
+  } catch {
+    return ruta;
+  }
+}
+
+const TIPOS: Readonly<Record<string, string>> = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.ico': 'image/x-icon',
+  '.png': 'image/png',
+  '.map': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.woff2': 'font/woff2',
+  '.webmanifest': 'application/manifest+json',
+  '.txt': 'text/plain; charset=utf-8',
+};
+
+/**
+ * ⭐ EL MOTOR SIRVE LA APP — la letra de Angular (8/09, LA PORTADA paso 1).
+ *
+ * [angular.dev/tools/cli/deployment, literal] *«ng build genera los artefactos
+ * en dist/… copia este directorio al servidor y configura el servidor para
+ * servirlo»*, y *«si la app usa el router, el servidor debe devolver
+ * `index.html` cuando se le pida un fichero que no tiene»*.
+ *
+ * ⚠️ **Y aquí no hay Apache que ayude.** En Hostinger el `.htaccess` de
+ *    `public_html` enruta TODO a la app de Node, así que los estáticos no los
+ *    sirve el servidor web: los sirve esto. No es una comodidad, es la única
+ *    puerta que hay.
+ *
+ * Devuelve **si ha atendido**, para que quien llama pueda seguir con su 404
+ * honesto cuando no hay app construida —un clon recién hecho—.
+ *
+ * ⚠️ **El path traversal muere aquí.** La ruta se decodifica, se normaliza y se
+ *    resuelve, y luego se comprueba que el resultado **sigue dentro de la
+ *    raíz**: comparar cadenas antes de resolver es lo que deja pasar
+ *    `%2e%2e`. Fuera de la raíz no se lee nada y se contesta 404 —no 403: que
+ *    exista o no un fichero ahí fuera no es asunto de quien pregunta—.
+ *
+ * ⚠️ Lee del disco en cada petición, a propósito: el dist entero son 581 kB y
+ *    el sistema operativo ya lo tiene en caché. Guardarlo en memoria obligaría
+ *    a reiniciar para ver un `ng build` nuevo, y eso es una trampa para el que
+ *    venga.
+ */
+export function servirDeLaApp(
+  peticion: IncomingMessage,
+  respuesta: ServerResponse,
+  raiz: string = RAIZ_DE_LA_APP,
+): boolean {
+  if (peticion.method !== 'GET' && peticion.method !== 'HEAD') {
+    return false;
+  }
+  if (!hayAppConstruida(raiz)) {
+    return false;
+  }
+
+  const url = new URL(peticion.url ?? '/', 'http://interno');
+
+  // ⚠️ **`/api/` NO es de la portada, y esto no es un detalle**: sin esta
+  //    línea, `GET /api/lo-que-sea` dejaba de dar 404 y devolvía el `index.html`
+  //    con 200 —la API entera contestando HTML a quien se equivocara de ruta—.
+  //    Lo cazaron las jueces 2 y 10 el 8/09, no la lectura del código.
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
+    return false;
+  }
+
+  let pedido: string;
+  try {
+    pedido = decodeURIComponent(url.pathname);
+  } catch {
+    // Un `%` suelto no es una ruta: es alguien probando.
+    respuesta.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+    respuesta.end(JSON.stringify({ error: 'ruta ilegible' }));
+    return true;
+  }
+
+  // ⭐ UN `..` NO ES UN DEEP LINK: ES UN INTENTO, y se contesta como tal.
+  //
+  // ⚠️ **Se mira el `peticion.url` CRUDO, no el `pathname`**, y esto lo enseñó
+  //    la juez 11: `new URL()` **normaliza el camino él solo** —medido:
+  //    `/../../motor/.env.local` llega como `/motor/.env.local` y
+  //    `/%2e%2e/%2e%2e/package.json` como `/package.json`—. Eso lo hace seguro
+  //    (no se escapa de la raíz nunca), pero convierte el intento en una ruta
+  //    inexistente, y entonces el fallback del deep link contestaba el
+  //    `index.html` con **200**. Lo único que `new URL` NO toca es el `%2f`, así
+  //    que ni siquiera mirar el pathname decodificado bastaba.
+  const crudo = decodeCrudo((peticion.url ?? '/').split('?')[0] ?? '');
+  if (crudo.split(/[\\/]/).includes('..')) {
+    respuesta.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+    respuesta.end(JSON.stringify({ error: 'no hay nada ahí' }));
+    return true;
+  }
+
+  // Y la comprobación de verdad: resuelto, tiene que seguir DENTRO de la raíz.
+  const dentro = resolve(raiz, `.${normalize(pedido)}`);
+  if (dentro !== raiz && !dentro.startsWith(raiz + sep)) {
+    respuesta.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+    respuesta.end(JSON.stringify({ error: 'no hay nada ahí' }));
+    return true;
+  }
+
+  // El fichero si existe; si no, el `index.html` —el deep link de Angular—.
+  const hay = dentro !== raiz && existsSync(dentro) && statSync(dentro).isFile();
+  const fichero = hay ? dentro : join(raiz, 'index.html');
+  const tipo = TIPOS[extname(fichero).toLowerCase()] ?? 'application/octet-stream';
+  const cuerpo = readFileSync(fichero);
+
+  respuesta.writeHead(200, {
+    'Content-Type': tipo,
+    'Content-Length': String(cuerpo.length),
+  });
+  respuesta.end(peticion.method === 'HEAD' ? undefined : cuerpo);
+  return true;
 }
 
 export const servidor = createServer(atenderPeticion);
@@ -1153,6 +1324,20 @@ ponerLaCocina(async () => {
  */
 function alEmpezarAEscuchar(): void {
   console.log(`motor: escuchando en http://localhost:${PUERTO} (pid ${process.pid})`);
+
+  // ⭐ LA PORTADA, DICHA AL ARRANCAR (8/09).
+  //
+  // ⚠️ Un clon recién hecho puede no traer la app construida, y entonces la
+  //    raíz da el 404 honesto de siempre. Eso **no es un fallo del motor**, pero
+  //    tiene que constar: en un panel remoto el log es la única ventana, y
+  //    «abro la página y me sale un 404» sin nada escrito arriba es media hora
+  //    perdida. Se dice lo que hay y dónde se mira.
+  console.log(
+    hayAppConstruida()
+      ? `motor: sirvo la app construida desde ${RAIZ_DE_LA_APP} (lo que no es /api/, con index.html de respaldo)`
+      : `motor: ⚠️ NO hay app construida en ${RAIZ_DE_LA_APP} — solo contesta /api/. ` +
+          'Constrúyela con `npm run build --workspace desplazame`.',
+  );
   console.log(
     `motor: /api/vias sugiere desde ${MINIMO} letras, hasta ${LIMITE} resultados, ` +
       'y una vía sin portales viaja con su propio código en las dos casillas',
