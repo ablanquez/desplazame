@@ -1,0 +1,34 @@
+{
+  /* ⭐ EL TSCONFIG QUE **EMITE** (8/09, M0 del punto 14).
+     El de al lado —`tsconfig.json`— solo revisa: `noEmit`, porque Node ejecuta
+     este TypeScript borrando tipos y aquí nunca se había compilado nada. Pero
+     el panel de Hostinger **exige un Entry file `.js`/`.mjs`/`.cjs`** [doc de
+     Build Settings], así que para desplegar hace falta un `.js` de verdad.
+     Hereda TODO lo del comprobador y cambia solo lo justo para emitir: si los
+     dos divergieran, el build daría por bueno lo que el check rechaza. */
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+
+    /* ⭐ LO QUE HACE POSIBLE EMITIR SIN TOCAR UN SOLO IMPORT.
+       Los fuentes importan con extensión `.ts` explícita —lo exige Node, que
+       es quien resuelve— y eso normalmente obliga a `noEmit`. Con esto, `tsc`
+       reescribe `./feed.ts` a `./feed.js` en la salida: el fuente se sigue
+       ejecutando a pelo con `node src/servidor.ts` y el emitido se ejecuta con
+       `node dist/servidor.js`. Las dos puertas, un solo código. */
+    "rewriteRelativeImportExtensions": true,
+
+    /* Un fallo en producción tiene que señalar la LÍNEA DEL FUENTE, no la del
+       emitido: es la única ventana que hay en un panel remoto. */
+    "sourceMap": true,
+    "declaration": false
+  },
+
+  /* ⚠️ Las jueces NO se emiten. `dist` es lo que se despliega: meter ahí los
+     `.spec.ts` subiría al servidor los fixtures y las pruebas, que no pintan
+     nada en producción y engordan el paquete. Se comprueban igual —de eso se
+     encarga `tsconfig.json`, que sí los incluye—. */
+  "exclude": ["src/**/*.spec.ts"]
+}

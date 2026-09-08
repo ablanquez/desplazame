@@ -6,8 +6,13 @@
   "description": "El motor: servidor mínimo sobre node:http. Hoy solo sabe decir que está vivo.",
   "scripts": {
     "start": "node src/servidor.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "arrancar": "node dist/servidor.js",
     "comprobar-tipos": "tsc --noEmit",
     "probar": "node --test \"src/**/*.spec.ts\""
+  },
+  "engines": {
+    "node": ">=22"
   },
   "dependencies": {
     "@desplazame/tipos": "*"
