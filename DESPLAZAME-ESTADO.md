@@ -205,6 +205,28 @@ OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
 
+**EL PARLAMENTO DEL 14 (8/09, mañana): LOS HITOS M0-M5 CON LA DOC
+DEL PANEL DELANTE.** Tres fuentes: la doc oficial de Build Settings
+[leída, act. 17/08/26], Kodee (preguntado por Antonio) y los
+precedentes ZetaBus/Linaje. Resuelto: Node 18/20/22-LTS-defecto/24
+por engines · Entry file «.js/.mjs/.cjs» LITERAL → el motor SE
+COMPILA con tsc (node servidor.ts descartado por letra del panel) ·
+PORT del panel (la puerta del 8/09) · variables de entorno en el
+panel (el token y la NAP key fuera del repo) · UN proceso (el motor
+sirve los estáticos; symlink si hace falta, con el panel delante) ·
+AUTO-DEPLOY por push [ZetaBus ~3 min]: el push es acto de
+despliegue (tandas completas), el build autosuficiente (npm ci +
+tsc + ng build; devDeps se instalan), y cada push pasa por el hueco
+del arranque — QUE HABLA desde la nº37 (el arreglo del domingo era
+condición del despliegue continuo) · cron POST+Bearer, mínimo 15
+min. Los hitos en el plan: M0 local (build tsc + engines + AVISO DE
+VEJEZ EN PANTALLA + LOG A FICHERO + smoke) → M1 Añadir web → M2 la
+app conectada a GitHub (auto-detect REVISADO, el log del primer
+deploy leído entero) → M3 variables y estáticos → M4 el cron → M5
+la verificación desde el datacenter (las SEIS fuentes, el caso del
+ojo por la URL pública). Con el vale del ojo en M5, el 14 se
+cierra.
+
 **EL CENSO PRE-DESPLIEGUE Y LA TANDA (8/09): EL TERRENO DESPEJADO
 PARA EL 14.** El censo [bloque A parcial de la guía, solo lectura,
 cobertura declarada, docs/CENSO-PRE-DESPLIEGUE.md]: 705 exports
@@ -1396,12 +1418,14 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **EL PUNTO 14 — EL DESPLIEGUE** (⚰️ el saco
-del notices, hecho el 8/09 con guión que cuenta; el terreno
-despejado por la tanda pre-14): el parlamento primero — el symlink
-con el panel delante, el cron del renovar-feed, el aviso de vejez
-del feed EN PANTALLA, el log a fichero del motor, PORT del panel
-(la puerta ya abierta el 8/09); (2) la cola técnica (al cierre,
+**Lo siguiente:** (1) **EL ENCARGO M0 del 14** (⚰️ el parlamento,
+cerrado el 8/09 con la doc del panel — ver el plan): el build del
+motor con tsc + engines 22 · el aviso de vejez del feed EN PANTALLA
+· el log a fichero con rotación · el smoke del build autosuficiente
+(npm ci desde cero + PORT + arranque desde dist/); (2) M1-M5 con
+Antonio al panel (Añadir web · la app conectada a GitHub · variables
+· cron · la verificación de las seis fuentes desde el datacenter);
+(3) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
 viajeEnBus obligatorio para desvíos · el gemelo de continuando
 (522/1.841, con cabeza) · las 1.160 líneas de servidor.ts · los
@@ -1689,12 +1713,15 @@ aparcamiento de motos (¿existe?) · YeGo (¿GBFS moped? ¿TTL 1 h?
 listen guardado, servidor.spec.ts con 3 jueces de humo y PORT por
 entorno — la puerta abierta; las 1.160 líneas restantes, al cierre)
 · la vieja nota del 27/08 («SIN SPEC, quitar el foco deja 460
-verdes») queda superada · versión Node del panel (el
-README ya advierte del `engines` sin declarar — candidato a declararlo
-aquí) · memoria (412 MB observados el 22/08 al arrancar; eran ~248 en el
-punto 5) · proceso persistente · index.html en rutas desconocidas (en
-dev el comodín ya cubre; en Hostinger, NO CONSTA) · symlink a lo
-construido · guardias solo-Windows si hicieran falta allí.
+verdes») queda superada · ⚰️ RESUELTOS por el parlamento del 8/09
+[la doc del panel + Kodee + ZetaBus — ver el plan]: versión Node
+(22 LTS por engines — M0 lo declara) · proceso persistente (medido
+en ZetaBus) · symlink/estáticos (M3, con el panel delante) · PORT
+(la puerta del 8/09). QUEDAN de verdad: memoria (412 MB observados
+el 22/08; eran ~248 en el punto 5 — vigilar en M5 contra los 3 GB
+compartidos del plan) · index.html en rutas desconocidas bajo el
+panel (NO CONSTA hasta M5) · guardias solo-Windows
+(netstat/findstr) si hicieran falta allí.
 
 **Punto 15:** color de marca (`NO CONSTA`) · el title (la pestaña dice
 «Desplázame» a secas) · capturas del README si se quieren · la

@@ -3494,20 +3494,82 @@ caza una juez]. La 5ª pieza, parada por re-medición honesta: la
 paleta ya era fuente única. La poda de los 165 huérfanos y el resto
 del censo, al cierre tras la estética.)*
 
-Hostinger plan Node (slot 2), dominio, cron. Público y usable.
+Hostinger plan Node, dominio `desplazame.antonioblanquez.es`, cron.
+Público y usable.
 
-Dejado aquí desde el punto 5 (17/08):
+**⭐ EL PARLAMENTO DEL 14 (8/09/2026) — cerrado con TRES fuentes:
+la doc oficial del panel [docs.hostinger.com/node.js/build-settings,
+actualizada 17/08/2026, leída], Kodee (la IA del panel, preguntas de
+Antonio) y los precedentes vivos de la casa (ZetaBus en el mismo
+plan; Linaje para el panel). Los NO CONSTA del 17/08, RESUELTOS:**
+- **Node**: el panel ofrece 18 · 20 · **22 (LTS, la de defecto)** ·
+  24, elegida por el campo `engines` del package.json [doc literal].
+- **El arranque**: proceso Node persistente (ZetaBus lo mide: cwd
+  estable `~/nodejs`, disco persistente) con **Entry file que «debe
+  terminar en .js, .mjs o .cjs»** [doc literal] → `node servidor.ts`
+  DESCARTADO por letra del panel: **se compila con tsc** (además la
+  recomendación explícita de Kodee). El PUERTO lo asigna el panel
+  por `process.env.PORT` [Kodee] — la puerta abierta el 8/09.
+- **UN proceso, no dos**: el motor sirve también los estáticos de la
+  app (el comodín de index.html ya existe en servidor.ts); el
+  symlink `public_html` → lo construido queda para los estáticos si
+  el panel lo pide — se precisa en M3 con el panel delante [el
+  patrón validado con Kodee en Linaje: el panel no cambia docroot].
+- **Variables de entorno EN EL PANEL** [Kodee]: DESPLAZAME_REGEN_
+  TOKEN y NAP_API_KEY viven allí, jamás en el repo.
+- **AUTO-DEPLOY**: la app se conecta al repo de GitHub y CADA PUSH
+  REDESPLIEGA [precedente ZetaBus, ~3 min] → (1) el push es acto de
+  despliegue: tandas completas y verdes, nunca a medias; (2) el
+  build es AUTOSUFICIENTE (npm ci + tsc + ng build desde el repo;
+  las devDependencies SÍ se instalan [ZetaBus]); (3) cada push pasa
+  por el hueco del arranque — que desde la nº37 HABLA (el arreglo
+  del 6/09 resultó condición del despliegue continuo honesto).
+  Límites del build [doc]: 15 min por fase · un deploy a la vez ·
+  logs de los últimos 10.
+- **El cron del panel hace POST con Authorization** [Kodee +
+  ZetaBus 02:00] · mínimo 15 min [Linaje, el */5 ignorado].
 
-- [ ] **El symlink se precisa con el panel delante**: `public_html` apunta
-      a lo CONSTRUIDO (`app/dist/...`), NUNCA a `app/` literal — que
-      expondría fuentes, `node_modules` y `app/data/` entero. La frase de
-      CLAUDE.md era préstamo a brocha gorda del patrón ZetaBus; se corrige
-      ahí cuando se ejecute esto
-- [ ] Los NO CONSTA del panel de Hostinger, por resolver ANTES de
-      desplegar: qué versión de Node ofrece (Angular 22 exige `^22.22.3 ||
-      ^24.15.0 || >=26`) · cómo arranca un proceso Node persistente (el
-      grafo vive en memoria: proceso vivo, no CGI) · si permite DOS
-      procesos o el motor sirve también los estáticos
+**LOS HITOS:**
+
+- [ ] **M0 · LOCAL, los encargos previos** (todo verde antes de
+      tocar el panel): (a) EL BUILD del motor con tsc → dist/
+      (servidor.js como entry; engines declarado — el 22 LTS del
+      panel; el README con el build); (b) EL AVISO DE VEJEZ DEL FEED
+      EN PANTALLA (el del log de servidor.ts:966 sube a la
+      respuesta/interfaz — «horarios del DD/MM» cuando pase el
+      umbral [MobilityData 7 días]; la frase corta); (c) EL LOG A
+      FICHERO del motor (stdout se conserva; el fichero con rotación
+      simple — la carencia que impidió casar las 17:20 del 6/09);
+      (d) el smoke: PORT del entorno + arranque desde dist/ +
+      npm ci desde cero (el build autosuficiente probado en local).
+- [ ] **M1 · AÑADIR WEB**: `desplazame.antonioblanquez.es` por
+      «Añadir web» — NUNCA por el panel «Subdominios» [la lección de
+      Linaje: ese anida dentro del dominio padre] — carpeta
+      independiente en ~/domains/.
+- [ ] **M2 · LA APLICACIÓN NODE conectada a GitHub**: source git ·
+      Root directory la raíz del monorepo · Application type y
+      build script revisados en la pantalla de deploy (el
+      auto-detect se REVISA, no se cree [la ley de la herramienta
+      auditada]) · Entry file dist del motor · la versión de Node
+      del selector = la de engines · primer deploy y SU LOG leído
+      entero.
+- [ ] **M3 · VARIABLES + ESTÁTICOS**: DESPLAZAME_REGEN_TOKEN y
+      NAP_API_KEY en el panel · los estáticos de la app servidos
+      (por el motor o symlink a lo construido — con el panel
+      delante, M2 dirá cuál) · Ctrl+F5 y la portada carga.
+- [ ] **M4 · EL CRON DEL FEED**: curl POST + Authorization Bearer al
+      /api/renovar-feed público, cadencia diaria de madrugada [el
+      02:00 de ZetaBus como precedente] — el «sin-cambios» de
+      Avanza es lo esperado hasta ~5/10; el cron educado del GET
+      condicional (casilla de abajo) se ejecuta aquí si las fuentes
+      emiten validadores.
+- [ ] **M5 · LA VERIFICACIÓN desde el datacenter**: las SEIS fuentes
+      vivas contestando desde la IP del servidor [el precedente
+      ZetaBus: NAP y Avanza respondieron 74/74] — BiZi · poste ·
+      operativa · DGT · YeGo · festivo-web, medidas una a una; el
+      caso del ojo (Coloso→Gómez Laguna) por la URL pública; el
+      aviso de vejez visible; el hueco del arranque hablando tras un
+      push de prueba. Con el vale del ojo, EL 14 SE CIERRA.
 - [ ] **El mantenimiento de datos (el cron educado) — doctrina leída
       el 23/08, se ejecuta aquí**: la cadencia es POR CONJUNTO y con
       fuente (la declara el manifiesto del panel de frescura, punto
