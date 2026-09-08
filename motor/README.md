@@ -68,7 +68,14 @@ hora —en UTC, como todo lo que imprime— y el nivel delante de cada línea:
 tail -f motor/logs/$(date -u +%F).log
 ```
 
-Uno por día, y los de más de **14** se borran solos al arrancar. La carpeta está
+Uno por día, y los de más de **14** se borran solos al arrancar.
+
+⚠️ **El nombre del fichero es un día UTC, y el nombre no lo dice.**
+`2026-09-08.log` sale de `toISOString()`, así que en Zaragoza las líneas de
+00:00 a 02:00 del día 9 caen en el fichero llamado `08`. No se renombra a
+propósito: **las líneas de dentro sí llevan la `Z` explícita** —medido el 8/09,
+todas— y el arranque anuncia la ruta entera, así que el dato está. Meter la
+zona en el nombre costaría más de lo que aclara. La carpeta está
 en `.gitignore`: es un testigo de lo que pasó en esta máquina, no un dato del
 proyecto.
 

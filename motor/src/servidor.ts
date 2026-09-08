@@ -37,6 +37,7 @@ import {
   diasHastaCaducidad,
   elFeedQueSeSirve,
   estadoDeCaducidad,
+  elFeedInfoServido,
   servirEsteFeedInfo,
 } from './feed.ts';
 import { atenderEstacionViva } from './estacion-viva.ts';
@@ -701,6 +702,26 @@ export function atenderPeticion(peticion: IncomingMessage, respuesta: ServerResp
         vias: portales.porVia.size,
         cargadoEnMs: Math.round(portales.cargadoEnMs),
       },
+      // ⭐ EL FEED QUE DE VERDAD SE SIRVE, y su caducidad (8/09).
+      //
+      // ⚠️ **Se calcula AQUÍ y no se guarda del arranque**, y no es un capricho:
+      //    un motor lleva semanas levantado y el día que el feed entre en aviso
+      //    tiene que decirlo **ese día**, sin reiniciarse. Por eso `new Date()`
+      //    en cada consulta.
+      //
+      // ⚠️ Y sale del `feed_info` SERVIDO, no del manifiesto: la fila del
+      //    `datapackage.json` apunta a la semilla del repositorio y el cron
+      //    renueva el vivo. Dos verdades para la misma pregunta era el fallo que
+      //    esto cierra. Ver `SaludFeed` en el contrato.
+      feed: (() => {
+        const info = elFeedInfoServido();
+        const vence = info?.feedEndDate ?? '';
+        return {
+          sello: info?.feedVersion ?? '',
+          vence,
+          estado: estadoDeCaducidad(diasHastaCaducidad(vence, new Date())),
+        };
+      })(),
     };
     json(200, salud);
     return;

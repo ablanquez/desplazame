@@ -1093,6 +1093,29 @@ export interface SaludRed {
  * `arrancado` es ISO 8601, la misma marca que la guardia de arranque usa
  * para saber si un servidor está caducado.
  */
+/**
+ * ⭐ LA CADUCIDAD DEL FEED QUE SE ESTÁ SIRVIENDO (8/09).
+ *
+ * ⚠️ **El contrato crece porque el motor lo pide, y por una razón concreta:
+ *    había DOS VERDADES para la misma pregunta.** El panel de frescura lee
+ *    `datapackage.json`, cuya fila del GTFS apunta a la **semilla** del
+ *    repositorio; el motor sirve el **vivo**, que el cron renueva cada noche.
+ *    Hoy coinciden —mismo sha256, medido el 8/09— pero en cuanto entre un feed
+ *    nuevo la pantalla seguiría enseñando la caducidad del viejo, con 200 y sin
+ *    ruido. Con esto, la operativa sale de donde de verdad se sabe.
+ *
+ * Los tres campos son los que hacen falta para decidir y para explicar: qué
+ * feed es, hasta cuándo vale, y en qué estado está según el umbral del
+ * validador canónico [MobilityData GTFS Validator: caducar en ≤7 días es aviso].
+ */
+export interface SaludFeed {
+  /** El `feed_version` del zip servido. Cadena vacía si el feed no lo declara. */
+  readonly sello: string;
+  /** El `feed_end_date`, en `AAAAMMDD`. Vacía si el feed no lo declara. */
+  readonly vence: string;
+  readonly estado: 'vigente' | 'aviso' | 'caducado';
+}
+
 export interface Salud {
   readonly ok: boolean;
   readonly pid: number;
@@ -1101,4 +1124,6 @@ export interface Salud {
   readonly red: SaludRed;
   readonly callejero: SaludCallejero;
   readonly portales: SaludPortales;
+  /** El feed que se está sirviendo, y hasta cuándo vale. Ver `SaludFeed`. */
+  readonly feed: SaludFeed;
 }

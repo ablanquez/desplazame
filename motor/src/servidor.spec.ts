@@ -33,6 +33,7 @@ import { fileURLToPath } from 'node:url';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Salud } from '@desplazame/tipos';
+import { diasHastaCaducidad, elFeedQueSeSirve, estadoDeCaducidad } from './feed.ts';
 /**
  * ⭐ LA VARIABLE VA ANTES QUE EL IMPORT, Y POR ESO EL IMPORT ES DINÁMICO (8/09).
  *
@@ -109,6 +110,44 @@ describe('⭐ EL SERVIDOR — la puerta, atendida sin abrir ningún puerto', () 
    * La otra mitad de «la puerta existe»: que hay un final del enrutado y que no
    * se cae por él en silencio.
    */
+  /**
+   * ⭐ JUEZ 1b — Y `/api/salud` DICE LA CADUCIDAD DEL FEED QUE SE ESTÁ SIRVIENDO.
+   *
+   * ── ⚠️ Por qué hace falta ────────────────────────────────────────────────
+   *
+   * El panel de frescura lee `datapackage.json`, y esa fila apunta a la
+   * **semilla** del repositorio. El motor sirve el **vivo**, que el cron renueva
+   * cada noche. Hoy coinciden —medido: el mismo sha256— pero son **dos verdades
+   * para la misma pregunta**, y en cuanto entre un feed nuevo la pantalla
+   * seguiría enseñando la caducidad de la semilla.
+   *
+   * Aquí se publica la operativa: la del zip que de verdad se está sirviendo,
+   * calculada por el mismo `estadoDeCaducidad` que el arranque grita y que el
+   * aviso de la pantalla usa. **Una sola verdad, un solo sitio de donde sale.**
+   */
+  test('⭐ 1b · /api/salud publica el sello, el vencimiento y el estado del feed servido', async () => {
+    const r = await pedir('GET', '/api/salud');
+    const salud = JSON.parse(r.cuerpo) as Salud;
+
+    assert.ok(salud.feed, 'la salud tiene que traer el feed servido');
+    assert.equal(typeof salud.feed.sello, 'string');
+    assert.ok(salud.feed.sello.length > 0, 'el sello es el feed_version del zip servido');
+    assert.match(salud.feed.vence, /^\d{8}$|^$/, `vence en AAAAMMDD o vacío: «${salud.feed.vence}»`);
+    assert.ok(
+      ['vigente', 'aviso', 'caducado'].includes(salud.feed.estado),
+      `estado inesperado: ${salud.feed.estado}`,
+    );
+
+    // ⭐ Y no es un texto suelto: cuadra con la función que lo decide todo.
+    const servido = elFeedQueSeSirve();
+    assert.equal(salud.feed.sello, servido.info?.feedVersion ?? '');
+    assert.equal(salud.feed.vence, servido.info?.feedEndDate ?? '');
+    assert.equal(
+      salud.feed.estado,
+      estadoDeCaducidad(diasHastaCaducidad(servido.info?.feedEndDate ?? '', new Date())),
+    );
+  });
+
   test('⭐ 2 · una ruta que no existe da 404 con su explicación', async () => {
     const r = await pedir('GET', '/api/no-existe-esto');
     assert.equal(r.codigo, 404);
