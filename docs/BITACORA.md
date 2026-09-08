@@ -14,6 +14,93 @@
 
 ---
 
+## [2026-09-08] ✅ CERRADA — El `dist` de la app entra al repo y sale del clon con otros bytes: el `.gitattributes` tenía la lección pero no la carpeta
+
+**Categoría:** una regla cuyo alcance se quedó en los ficheros de ayer
+**Síntoma:** `app/dist/` se versiona desde hoy (commit `60ac989`). En un
+worktree limpio del propio commit, los ficheros **no pesan lo mismo** que los
+que produjo `ng build`:
+
+```
+  chunk-BDYEFXO2.js       155202  ⚠️ ORIGEN 155198
+  chunk-RHAS4OQY.js         7435  ⚠️ ORIGEN 7434
+  datapackage.json         46405  ⚠️ ORIGEN 45386
+  main-IG5RVHPV.js        324132  ⚠️ ORIGEN 324130
+  styles-OPSORIUJ.css      11073  ⚠️ ORIGEN 11072
+  favicon.ico / los png / index.html / el ZBE.json   =
+```
+
+Es `core.autocrlf` reescribiendo saltos **al hacer checkout**: git guarda bien
+—`git cat-file -p HEAD:…main-IG5RVHPV.js | wc -c` da **324130**, el bueno— y es
+la copia de trabajo la que sale con CRLF. **El nombre lleva el hash del
+contenido** (`outputHashing: all`), así que el fichero deja de ser el que su
+propio nombre dice.
+
+⚠️ **No muerde en producción hoy, y se dice por qué:** el servidor es Linux y
+   allí el checkout devuelve LF, o sea los bytes buenos. Muerde en cualquier
+   clon de Windows —el de Antonio—, que sirve un artefacto distinto del que se
+   desplegó.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la suite entera, y en
+particular **la juez 8, que existe para esto**. Compara lo servido contra el
+fichero **del mismo disco**, así que no puede ver una conversión que ocurre al
+salir del repositorio. Ejecutada con el fallo vivo, sin tocar nada:
+
+```
+$ node --test motor/src/servidor.spec.ts
+  ✔ ⭐ 8 · un .js del dist sale con su contenido y su MIME (0.7688ms)
+ℹ pass 12
+ℹ fail 0
+$ npm run probar --workspace @desplazame/motor
+ℹ tests 645
+ℹ pass 645
+ℹ fail 0
+```
+
+Y git **lo dijo siete veces** al comitear —*«LF will be replaced by CRLF the next
+time Git touches it»*, una por fichero de texto del dist—. Lo leí y seguí.
+
+**Cómo se cazó:** instrumento — el smoke del worktree, que compara byte a byte lo
+que trae el árbol limpio contra el origen. La comparación se escribió justo por
+la sospecha de los avisos, no por casualidad.
+**Causa raíz:** el `.gitattributes` tenía la lección **entera** —la escribió la
+nº3, con el grafo— pero su alcance era una LISTA DE RUTAS: `app/data/**` y
+`motor/data/**`. `app/dist/` nació hoy y no estaba en ella. Una regla escrita
+como enumeración solo cubre lo que existía el día que se escribió, y nada avisa
+cuando aparece una carpeta nueva que le tocaba. Es el mismo defecto de forma que
+la nº5: el enunciado valía, el alcance no.
+**Arreglo aplicado:** `app/dist/** -text` en `.gitattributes`, con la medición
+escrita al lado, y `git add --renormalize app/dist`. Y **verificado sobre un
+clon**, que es justo lo que la ley de la nº3 exige —no sobre el fichero que uno
+acaba de copiar—: worktree limpio del commit del arreglo, los **13 ficheros**
+byte a byte con el origen.
+
+```
+  3rdpartylicenses.txt      18473  =      datapackage.json      45386  =
+  chunk-BDYEFXO2.js        155198  =      favicon.ico           15086  =
+  chunk-RHAS4OQY.js          7434  =      index.html              600  =
+  main-IG5RVHPV.js         324130  =      styles-OPSORIUJ.css   11072  =
+  … y los tres png, el ZBE.json y el prerendered-routes.json      =
+```
+
+⚠️ **Y el `--renormalize` destapó algo que no se buscaba:** `ng build` escribe
+   `index.html` y `3rdpartylicenses.txt` **con CRLF**, y git los estaba
+   aplanando a LF al guardarlos. O sea que el repositorio nunca había tenido los
+   bytes del build en esos dos. Desde ahora sí.
+**Commit:** `520bf38` (el arreglo). La captura, antes de tocar nada: la entrada
+nació con el commit `05b0b39` en HEAD.
+**Ley que sale de aquí:** la nº3 dejó escrito que *«todo fichero de datos tiene
+que quedar marcado para que git no lo toque»* y, de corolario, que *«un aviso
+repetido que se asume como ruido es un fallo esperando el fichero adecuado»*.
+Este es ese fichero. Lo que se añade: **la regla no es «datos», es «todo lo que
+se entrega tal cual»** —y un artefacto de build es lo que más—; y el día que una
+carpeta nueva empieza a versionarse hay que preguntarle al `.gitattributes` si
+la cubre, porque su alcance es la lista de ayer.
+**Traza:** `.gitattributes` (cubría `app/data/**` y `motor/data/**`, no
+`app/dist/**`) · `app/dist/desplazame/browser/*` · `core.autocrlf` ·
+`motor/src/servidor.spec.ts` juez 8 · hermana de la nº3.
+
+
 ## [2026-09-08] ✅ CERRADA — Entra la ficha 37 del notices y dos jueces de la pantalla llevan un día en rojo: la portada sigue diciendo 36 y la ficha de cierre ya no cierra
 
 **Categoría:** un guardián nuevo con menos alcance que el que ya había
