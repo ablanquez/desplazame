@@ -6,7 +6,7 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 > ℹ️ **Estado a 08/09/2026.** El proyecto está en construcción. Hoy hay de terceros: las
 > dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y siete** fichas
 > propias —§ 1.1 a § 1.37—, de las cuales **una es una norma citada** (§ 1.32) y **una declara lo
-> que todavía NO ha entrado** (§ 1.36).
+> que todavía NO ha entrado** (§ 1.37).
 > Quedan fuera las capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
 >
 > ⭐ **Y SEIS NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08 y que hoy separa el
@@ -20,7 +20,7 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 > | § 1.25 | la ruta operativa de hoy | **Avanza Zaragoza** | TTL **1 h**, refresco cada 30 min; se sirve vieja **diciendo su edad** | 01/09/2026 |
 > | § 1.34 | la flota y el área de YeGo | **Yego** | caché corta por `ttl` del feed (GBFS) | 05/09/2026 |
 > | § 1.35 | el cuadro de horarios del festivo | **Avanza Zaragoza** | TTL **6 h**, refresco cada 3 | 06/09/2026 |
-> | § 1.37 | el distintivo ambiental de una matrícula | **DGT** | ⛔ **ninguno: no hay caché**, porque cachear sería guardar la matrícula | 03/09/2026 |
+> | § 1.36 | el distintivo ambiental de una matrícula | **DGT** | ⛔ **ninguno: no hay caché**, porque cachear sería guardar la matrícula | 03/09/2026 |
 >
 > ⛔ **Y las TRES de Avanza traen un aviso legal que PROHÍBE la extracción y la reutilización**,
 > medido y transcrito el 01/09 en § 1.24 — § 1.25 y § 1.35 se remiten a esa letra, que es la
@@ -3096,15 +3096,7 @@ deja a cero:
 > · **Y si la web calla, manda el feed.** Sin cuadro, la línea sigue sin servicio. No saber no es
 > saber lo contrario, y un servicio inventado manda a alguien a una marquesina vacía.
 
-### 1.36 · El resto del dato — todavía **ninguno**
-
-No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
-el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
-dato que copiar.
-
----
-
-### 1.37 · El distintivo ambiental de una matrícula — DGT (sede electrónica)
+### 1.36 · El distintivo ambiental de una matrícula — DGT (sede electrónica)
 
 ⛔ **LA MATRÍCULA NO SE GUARDA Y NO SE ESCRIBE EN EL LOG.** Es un dato personal indirecto:
 identifica un vehículo y, por él, a alguien. Entra por la URL, se valida, se usa para preguntar y
@@ -3126,6 +3118,14 @@ se tira. El log cuenta **la consulta** —qué salió, cuánto tardó, por qué 
 | **Atribución exigida** | **Sí**, y por eso va en la propia respuesta y en la pantalla, no solo en los créditos |
 | **Campos** | La frase, y nada más. **El campo de entrada sí es personal** —la matrícula— y no se conserva en ningún sitio: ni en `localStorage`, ni en la URL, ni en el aviso, ni en el log |
 | **¿Está en este repo?** | ❌ **No se copia: se consulta.** Con una excepción declarada: los **cuatro cuerpos reales** de las cuatro respuestas están en `motor/src/distintivo.spec.ts`, bajados el 3/09 y recortados al bloque que el lector busca. Son bytes de la respuesta, **no un envoltorio compuesto** —la ley de la entrada nº32—, y sus matrículas salen del **fichero público de microdatos de la propia DGT** (CC BY 4.0) con los cuatro dígitos tachados |
+
+---
+
+### 1.37 · El resto del dato — todavía **ninguno**
+
+No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
+el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
+dato que copiar.
 
 ---
 

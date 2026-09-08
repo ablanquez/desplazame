@@ -98,6 +98,39 @@ describe('⭐ EL RECUENTO DEL THIRD-PARTY-NOTICES — la cabecera no puede envej
    * dos mitades. Lo que se compra es que **el número que la anuncia** y las
    * filas que tiene digan lo mismo — el mismo desfase, en pequeño.
    */
+  /**
+   * ⭐ JUEZ 4 — Y «EL RESTO DEL DATO» CIERRA LA LISTA (8/09, tras la nº39).
+   *
+   * ⚠️ **Esta juez nace de un fallo que ESTE MISMO FICHERO dejó pasar.** El
+   *    7/09 entró la ficha de la DGT **detrás** de la de cierre; las tres jueces
+   *    de arriba dieron verde —la cabecera cuadraba, la numeración era seguida y
+   *    la tabla también— y sin embargo el documento estaba mal. Lo cazaron dos
+   *    jueces de `app/src/app/atribucion.spec.ts`, que llevaban un día en rojo
+   *    sin que nadie las corriera. Ver la entrada nº39 de `docs/BITACORA.md`.
+   *
+   * ⚠️ **Es una copia declarada, no un descuido.** La misma regla la vigila
+   *    `atribucion.spec.ts` desde la interfaz. Se duplica a propósito porque las
+   *    dos suites se corren por separado —y el 7/09 se corrió solo una—: una
+   *    regla que solo vive en la suite que no se ejecutó no protege nada.
+   *
+   * Lo que se compra es que **cierra**, no qué número tiene: nombrar el número es
+   * garantizarse un rojo cada vez que entra un dato nuevo.
+   */
+  test('⭐ 4 · la ficha de «el resto del dato» es la ÚLTIMA, tenga el número que tenga', () => {
+    const titulos = [...texto.matchAll(/^### 1\.\d+ · (.+)$/gm)].map((m) => m[1]!);
+    assert.ok(titulos.length > 0, 'tiene que haber fichas');
+    assert.match(
+      titulos[titulos.length - 1]!,
+      /El resto del dato/,
+      `la última ficha es «${titulos[titulos.length - 1]}» y tenía que ser la del resto del dato`,
+    );
+    assert.equal(
+      titulos.filter((t) => /El resto del dato/.test(t)).length,
+      1,
+      'la de cierre es UNA sola',
+    );
+  });
+
   test('⭐ 3 · la tabla de las que se consultan dice tantas como filas tiene', () => {
     const anuncio = /\*\*Y ([A-ZÉ]+) NO SE COPIAN: SE CONSULTAN\.\*\*/.exec(texto);
     assert.ok(anuncio, 'la cabecera tiene que anunciar cuántas fuentes se consultan');
