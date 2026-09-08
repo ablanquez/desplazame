@@ -190,11 +190,10 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar** *(al cierre del 8/09 tarde; el push del
-8/09 mañana llegó hasta `acd883d`)*: **el parlamento del 14
-(a7b35d9), M0 entero (6 commits: build · aviso de caducidad · log
-UTC · README · la nº39 con su arreglo) y los papeles al día — el
-push ANTES de M2, que desplegará lo que esté en GitHub.** *(La nota
+comprobado). **En local, sin publicar** *(al cierre del 8/09 noche)*: **los
+papeles de M1-M3; el código está TODO publicado (el push del apaño
+de la portada llegó con la portada verificada por el ojo) — ⚠️ desde
+M2, CADA PUSH REDESPLIEGA.** *(La nota
 del 7/09: el push
 del 6/09 noche llegó hasta `c2f74cd`)*: **el espejo del encadenado
 (2 commits), la DGT sin bucle (nº38, 4 commits) y el CIERRE DEL
@@ -205,6 +204,26 @@ ruteando; 31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**⭐ DESPLÁZAME EN PRODUCCIÓN (8/09): M1-M3 — EL 503 CAYÓ TRAS TRES
+CAUSAS, CADA UNA DICHA POR UN LOG.** M1 (Añadir web; el repo se
+añade EN GitHub; los permisos de escritura de la app de Hostinger
+SIN APROBAR a conciencia y el auto-deploy funciona sin ellos). M2
+(tres causas de 503: el lanzador importa el entry [su preload lo
+escribe] → listen incondicional; ERR_REQUIRE_ASYNC_MODULE [require
+vs top-level await] → arranque.cjs validado en el metal por SSH; y
+«la config se aplica al redesplegar» [su doc] → Guardar y
+reimplementar). M3 (el motor sirve la app [la letra de Angular:
+dist + fallback a index.html]; el build NO puede ir en el panel —
+MEDIDO: el CLI de Angular 22.1 se niega con 22.18.0/24.6.0 → el
+dist viaja en el repo, apaño fechado con ficha; dos fallos cazados
+por jueces: el estático comiéndose /api/ y el traversal que
+new URL() normaliza; y la nº40: autocrlf cambiaba los bytes del
+dist al salir del clon — la juez del mismo disco no podía verlo;
+app/dist/** -text verificado sobre clon). El ojo: «veo el buscador
+y el mapa» — https://desplazame.antonioblanquez.es VIVO, servido
+desde de-fra-web2061. 645 motor · 285 interfaz · 40 bitácoras.
+→ Los papeles al día; M4 (el cron) y M5 (la verificación) quedan.
 
 **M0 HECHO (8/09, tarde): EL MOTOR HABLA EL IDIOMA DEL PANEL — Y LA
 nº39.** El build (tsc a dist heredando el comprobador; rutas
@@ -221,7 +240,8 @@ mañana mientras el guión-que-cuenta de ese mismo commit daba verde
 el checkpoint presentó como «preferencia» un orden que una juez roja
 exigía; LEY: un guardián nuevo tapa el rojo del que ya había si no
 se corre TODO. La DGT queda en §1.36 (donde los papeles de la mañana
-dicen §1.37, léase §1.36). 636 motor · 285 interfaz · 39 bitácoras.
+dicen §1.37, léase §1.36). 636 motor · 285 interfaz · 39 bitácoras
+(40 con la del despliegue — ver la entrada de producción).
 → Antonio al panel: M1.
 
 **EL PARLAMENTO DEL 14 (8/09, mañana): LOS HITOS M0-M5 CON LA DOC
@@ -1437,15 +1457,16 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **ANTONIO AL PANEL — M1 a M4 con receta**
-(⚰️ M0 hecho el 8/09): Añadir web · la app conectada a GitHub (el
-auto-detect revisado antes de aceptar) · las variables (token + NAP
-key) · el cron; ANTES: el push de la tanda M0 (el deploy leerá
-GitHub); (2) el diagnóstico del PANEL DE FRESCURA contra las fuentes
-de hoy (la tabla manifiesto-vs-realidad; el cron educado de M4 bebe
-de ahí) — y la Z del log si falta; (3) M5 — la verificación desde el
-datacenter (las seis fuentes, el caso del ojo por la URL pública);
-(4) la cola técnica (al cierre,
+**Lo siguiente:** (⚰️ M0-M3 hechos el 8/09 — EN PRODUCCIÓN) (1)
+**M4 — EL CRON del renovar-feed** (receta de Antonio al panel: curl
+POST + Bearer, madrugada; y ANTES el diagnóstico del PANEL DE
+FRESCURA contra las fuentes de hoy, que el cron bebe de ahí — más la
+Z del log si falta); (2) **M5 — la verificación desde el
+datacenter** (las seis fuentes, el caso del ojo por la URL pública,
+el aviso de caducidad visible, el hueco hablando tras un push) — con
+el vale del ojo, EL 14 SE CIERRA; (3) los pendientes declarados de
+M3: el mini de las VULNERABILIDADES npm (fast-uri/qs, el email) ·
+cabeceras de caché · el mock del e2e vivo; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
 viajeEnBus obligatorio para desvíos · el gemelo de continuando
 (522/1.841, con cabeza) · las 1.160 líneas de servidor.ts · los
@@ -1767,7 +1788,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 921 pruebas (636 motor + 285 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 930 pruebas (645 motor + 285 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

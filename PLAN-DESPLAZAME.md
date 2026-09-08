@@ -3569,21 +3569,78 @@ plan; Linaje para el panel). Los NO CONSTA del 17/08, RESUELTOS:**
       vuelve a cerrar (§1.37 en los papeles del 8/09-mañana se lee
       §1.36 desde este arreglo). Al cierre: 636 motor · 285 interfaz
       · 39 bitácoras (0 abiertas) · los 7 e2e verdes.
-- [ ] **M1 · AÑADIR WEB**: `desplazame.antonioblanquez.es` por
-      «Añadir web» — NUNCA por el panel «Subdominios» [la lección de
-      Linaje: ese anida dentro del dominio padre] — carpeta
-      independiente en ~/domains/.
-- [ ] **M2 · LA APLICACIÓN NODE conectada a GitHub**: source git ·
-      Root directory la raíz del monorepo · Application type y
-      build script revisados en la pantalla de deploy (el
-      auto-detect se REVISA, no se cree [la ley de la herramienta
-      auditada]) · Entry file dist del motor · la versión de Node
-      del selector = la de engines · primer deploy y SU LOG leído
-      entero.
-- [ ] **M3 · VARIABLES + ESTÁTICOS**: DESPLAZAME_REGEN_TOKEN y
-      NAP_API_KEY en el panel · los estáticos de la app servidos
-      (por el motor o symlink a lo construido — con el panel
-      delante, M2 dirá cuál) · Ctrl+F5 y la portada carga.
+- [x] **⭐ M1 · AÑADIR WEB — HECHO (8/09)**: creada por «Añadir web»
+      (la lección de Linaje respetada). Incidencias del camino: el
+      WAF del hPanel bloqueó a Antonio en todas las redes un rato
+      (se pasó solo — apuntado por si reaparece) · el repo no
+      aparecía en el desplegable → se arregla EN GITHUB (Settings →
+      Applications → Hostinger → Repository access → añadir el
+      repo). ⚠️ [DECISIÓN] Los permisos NUEVOS que la app de
+      Hostinger pedía (Administration RW · Pull requests RW ·
+      Contents read→WRITE) quedaron SIN APROBAR a conciencia —
+      desplegar es LEER; escribir en el repo va contra la regla de
+      autoría — y el auto-deploy FUNCIONA sin ellos (verificado:
+      cada push disparó su deploy).
+- [x] **⭐ M2 · LA APLICACIÓN NODE — HECHA (8/09), con TRES CAUSAS DE
+      503 encadenadas, cada una dicha por un log:** config: Other ·
+      main · Node 22.x · raíz ./ · build `npm run build` · salida
+      VACÍA · variables desde el minuto uno. **(1ª causa)** el
+      lanzador del panel (lsnode) IMPORTA el entry — su propio
+      preload lo escribe: «if (require.main === module)… remove
+      that condition, it is not supported» → ES_LA_ENTRADA hacía
+      exactamente lo que promete: cargar sin escuchar → LISTEN
+      INCONDICIONAL (el no-arrancar pasa a explícito:
+      DESPLAZAME_SIN_ARRANCAR=1, que pone la suite; import dinámico
+      en la spec — en ESM los imports corren antes que las
+      variables). **(2ª causa, stderr.log por SSH)**:
+      ERR_REQUIRE_ASYNC_MODULE — lsnode usa require() y el motor
+      tiene TOP-LEVEL AWAIT a conciencia (la red cocinada ANTES de
+      listen: sin mentira rápida); el propio error dicta el arreglo
+      («Use import() instead») → motor/arranque.cjs, el puente de
+      tres líneas VALIDADO EN EL METAL por SSH antes de escribirlo
+      (import() del dist arrancó el motor entero y escuchó).
+      **(3ª causa, la doc del panel)**: «la configuración se aplica
+      en el flujo de redespliegue» — cambiar la casilla del Entry
+      file NO reconfigura lo desplegado: el botón es «Guardar y
+      reimplementar» (y la casilla, además, no había persistido —
+      la captura lo enseñó). Entry file definitivo:
+      motor/arranque.cjs. VERDADES del panel para la guía: Node del
+      panel 22.18.0 (la casilla vieja del 17/08 sobre Angular
+      estaba CLAVADA) · el build de raíz solo compila el motor ·
+      hbuilds/{config,current,last-source,logs,versions} ·
+      stderr.log y console.log en current/nodejs · el SSH de la
+      casa vale (srv de-fra-web2061, carga ~51: arranques lentos).
+- [x] **⭐ M3 · VARIABLES + LA PORTADA — HECHO (8/09, tarde)**: las
+      dos variables desde M2. Los estáticos: el panel enruta TODO a
+      nodejs para apps backend [su doc: el .htaccess de public_html]
+      → EL MOTOR SIRVE LA APP [la letra de Angular: «copia el dist
+      al servidor… devuelve index.html cuando se le pida un fichero
+      que no tiene»]. EL BUILD NO PUEDE IR EN EL PANEL — MEDIDO en
+      el servidor: el CLI de Angular 22.1 se niega («requires
+      v22.22.3 or v24.15.0»; el panel da 22.18.0 y 24.6.0, las dos
+      medidas por SSH; el EBADENGINE del log era el aviso) → el
+      camino que la documentación converge: EL DIST DE LA APP VIAJA
+      EN EL REPO (apaño FECHADO con ficha: se quita cuando el panel
+      alcance la matriz; 13 ficheros, 584 KB; .gitignore afinado a
+      motor/dist). Dos fallos cazados por jueces, no por ojo: el
+      estático se comía /api/ (HTML con 200 a quien errara la ruta)
+      y el traversal que new URL() normaliza en silencio (medido
+      con curl --path-as-is; la barra invertida %5c incluida). El
+      MIME de json no es extra: sin él, los fetch de datos
+      recibirían HTML con 200. Y la BITÁCORA nº40: el smoke midió
+      que el dist salía del clon CON OTROS BYTES (autocrlf en el
+      checkout — el fichero dejaba de ser el que su hash-en-el-
+      nombre dice); la estrella: la juez que compara contra el
+      mismo disco NO PUEDE ver una conversión que ocurre al salir
+      del repo, y git lo gritó siete veces leídas como ruido [el
+      corolario de la nº3]; el .gitattributes tenía la lección con
+      alcance de ayer → app/dist/** -text, verificado sobre CLON
+      byte a byte. La portada, verificada por el ojo: «arranco bien
+      el proyecto y veo el buscador y el mapa». PENDIENTES
+      declarados: cabeceras de caché (hasheados largos +
+      index.html no-store) · el mock del e2e bizi-y-resumen (dato
+      vivo) · el mini de las vulnerabilidades npm (fast-uri 3.1.6 ·
+      qs 6.16.0 — el email del 8/09).
 - [ ] **M4 · EL CRON DEL FEED**: curl POST + Authorization Bearer al
       /api/renovar-feed público, cadencia diaria de madrugada [el
       02:00 de ZetaBus como precedente] — el «sin-cambios» de
