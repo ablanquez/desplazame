@@ -2580,11 +2580,27 @@ con «semáforos casados: 26».
 | **Titular** | **Ayuntamiento de Zaragoza** |
 | **Fuente** | IDEZar GeoServer WFS · capa **`movilidad:MU1_ZBE_Zona_Bajas_Emisiones`** |
 | **Petición** | `https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_ZBE_Zona_Bajas_Emisiones&outputFormat=application/json&srsName=EPSG:4326` |
-| **Descarga** | **02/09/2026 15:31 GMT**, estado 200 · `timeStamp` del WFS `2026-09-02T15:31:21.774Z` · geometría `MultiPolygon` |
+| **Descarga** | **02/09/2026 15:43 GMT**, estado 200 · `timeStamp` del WFS `2026-09-02T15:43:42.773Z` · geometría `MultiPolygon` |
 | **Licencia** | **Ley 37/2007**, la misma que el resto del dato municipal |
 | **Atribución exigida** | **«Origen de los datos: Ayuntamiento de Zaragoza (IDEZar)»** |
 | **Campos** | `fase` — y nada más. **Ninguno personal** |
 | **¿Está en este repo?** | ✅ [`app/data/2026-09-02_wfs_movilidad-MU1_ZBE.json`](app/data/2026-09-02_wfs_movilidad-MU1_ZBE.json) · 2.909 bytes · sha256 `7fd19d79f02f693d17531c8997599c03c891efd27d72b3302bcc763b16f34b06` |
+
+> ⚠️ **Rectificación (08/09/2026).** La fila **Descarga** decía **15:31 GMT** y
+> `timeStamp` **`2026-09-02T15:31:21.774Z`**. **No era el de este fichero.** El que
+> está en el repositorio declara dentro `2026-09-02T15:43:42.773Z`, y su propia
+> captura de cabeceras —`…_ZBE_cabeceras.txt`— dice `date: Wed, 02 Sep 2026
+> 15:43:42 GMT`: **las dos fuentes independientes coinciden entre sí y no con la
+> ficha**.
+>
+> Aquel día hubo **dos descargas** y la ficha se quedó con la primera; el fichero
+> que se guardó fue el de la segunda. No cambia el dato —el sha256 y los 2.909
+> bytes eran y siguen siendo los correctos—, cambia **de cuál de las dos habla**.
+>
+> Se cazó el 8/09 al escribir la fila del manifiesto de frescura, midiendo el
+> fichero en vez de copiar la ficha. Se corrige aquí y **el número viejo se queda
+> escrito**: un documento que se enmienda a sí mismo en silencio vale menos que
+> uno que lo dice —el mismo trato que la rectificación de § 1.2—.
 
 ⚠️ **La trampa del CRS, y cómo se esquiva.** La ficha del catálogo declara
 **EPSG:25830** (UTM), que es el mismo pie con el que tropieza el resto del dato
