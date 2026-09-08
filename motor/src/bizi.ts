@@ -43,6 +43,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dentroDelEntorno, type Entorno } from './gacetero.ts';
 import { metrosEntre } from './cercano.ts';
+import { cuandoDeLaSede } from './reloj.ts';
 
 /**
  * Las seis páginas del WFS, **tal y como se descargaron**. No se juntan en un
@@ -261,7 +262,15 @@ async function consultarLaSede(): Promise<Disponibilidad | null> {
         // inventario; simplemente no se puede decir qué tiene.
         continue;
       }
-      const cuando = new Date(fila.lastUpdated ?? '');
+      // ⭐ EL `lastUpdated` DE LA SEDE HABLA HORA ESPAÑOLA, y no lo dice (nº41).
+      //
+      // ⚠️ Aquí ponía `new Date(fila.lastUpdated)`, y un ISO **sin marca de
+      //    huso** lo parsea ECMAScript en el huso DEL PROCESO: en Madrid daba
+      //    el instante correcto y en producción uno **2 h en el futuro**, sin
+      //    error y sin ruido. El texto salía bien porque se pintaba también en
+      //    UTC —dos errores que se anulaban—, pero la fecha guardada estaba mal
+      //    y cualquier edad calculada sobre ella se equivocaba. Ver `reloj.ts`.
+      const cuando = cuandoDeLaSede(fila.lastUpdated);
       porNumero.set(numero, {
         bicis: fila.bicisDisponibles,
         anclajesLibres: fila.anclajesDisponibles,

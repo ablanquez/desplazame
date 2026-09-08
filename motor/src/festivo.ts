@@ -50,6 +50,7 @@
  * contrario, y una línea inventada mandaría a alguien a una parada vacía.
  */
 import type { PatronBus, RedDeBus } from './red-bus.ts';
+import { ZONA_DE_ZARAGOZA } from './reloj.ts';
 import { SENTIDO_DE } from './recorrido.ts';
 
 /** La página del cuadro. La misma que ya da el nonce a `recorrido.ts`. */
@@ -541,9 +542,13 @@ export async function refrescarElFestivo(
  *    «10» pelado se lee como un horario.
  */
 export function avisoDelFestivo(c: CuadroDelDia): string {
+  // ⭐ La hora de Zaragoza, no la del servidor. Lo destapó el grep de la nº41:
+  //    este hermano de `alMinuto` tenía el mismo hueco, y se ve en la misma
+  //    pantalla que el otro —dos fuentes vivas discrepando entre sí—.
   const hora = new Date(c.cuando).toLocaleTimeString('es-ES', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: ZONA_DE_ZARAGOZA,
   });
   return (
     `Línea ${c.linea} hoy: ${c.primera}–${c.ultima}, ` +

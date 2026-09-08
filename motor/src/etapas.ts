@@ -47,6 +47,7 @@ import type { RedDeLaRueda } from './red-rueda.ts';
 import { comoSePresenta, escribirPasos, type Costuras, type Empuje } from './pasos.ts';
 import { aparcabicisCercanos, type Aparcabici } from './aparcabicis.ts';
 import { metrosEntre } from './cercano.ts';
+import { ZONA_DE_ZARAGOZA } from './reloj.ts';
 
 /**
  * Velocidad a pie para derivar la duración: **5,0 km/h**. La misma que usa el
@@ -68,7 +69,17 @@ export const VELOCIDAD_MS = 5000 / 3600;
  * fecha sus minutos. Un número sin fecha envejece sin avisar.
  */
 export function alMinuto(cuando: Date): string {
-  return cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  return cuando.toLocaleTimeString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+    // ⭐ **LA HORA DE QUIEN MIRA, NO LA DEL SERVIDOR** (8/09, nº41).
+    //
+    // ⚠️ Aquí no había `timeZone`, y sin él esto pinta en el huso DEL PROCESO.
+    //    En producción —Fráncfort, UTC— el poste decía «13:53» a quien vive a
+    //    las 15:53; en local salía bien porque esta máquina va en hora de
+    //    Madrid. El fallo era **inobservable en desarrollo**. Ver `reloj.ts`.
+    timeZone: ZONA_DE_ZARAGOZA,
+  });
 }
 
 /** Un punto del viaje, con cómo se llama. Lo resuelve `trayecto.ts`. */
