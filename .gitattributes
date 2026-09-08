@@ -11,3 +11,15 @@ app/data/** -text
 # propósito: lo lee el motor y solo el motor, y `app/data/` está enganchado a
 # un glob de `angular.json` que se lo serviría al navegador entero.
 motor/data/** -text
+
+# ⭐ Y LA APP CONSTRUIDA, POR LA MISMA REGLA (8/09, entrada nº40).
+#
+# `app/dist/` se versiona desde hoy —el CLI de Angular no corre en el panel, ver
+# `app/README.md`—, y sin esta línea salía del clon con otros bytes: medido en un
+# worktree limpio, `main-<hash>.js` con 324.132 en vez de 324.130 y el
+# `datapackage.json` con 1.019 de más. **El nombre lleva el hash del contenido**,
+# así que el fichero dejaba de ser el que su propio nombre dice.
+#
+# La nº3 ya lo había dejado escrito para `app/data/`: la regla no es «datos», es
+# **todo lo que se entrega tal cual**, y un artefacto de build es lo que más.
+app/dist/** -text
