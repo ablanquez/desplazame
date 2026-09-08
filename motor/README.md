@@ -41,5 +41,29 @@ versiona, y lo que valga se arregla en `src/`.
   profundidad que `src/`, así que las mismas rutas valen desde los dos sitios —
   comprobado arrancando desde `dist` el 8/09, no deducido. Al desplegar tiene que
   subir **el repositorio entero**, no solo `motor/dist/`.
+- **El build es autosuficiente**, y está medido en un árbol limpio (8/09): sin
+  `node_modules`, sin `.env.local`, sin el feed vivo y sin el cocinado del bus,
+  `npm ci` tarda **36 s** y `npm run build` **3 s** —el panel da 15 min por
+  fase—. `dist` queda en **1,6 MB** (915.260 bytes de `.js`, el resto mapas).
+  El motor arranca en **9 s** cocinando la red de bus desde la semilla.
+
 - **Las jueces no se emiten** (`tsconfig.build.json` excluye los `*.spec.ts`), y
   se siguen comprobando igual con `npm run comprobar-tipos`.
+
+## El log
+
+El motor escribe en `stdout` **y además** en `motor/logs/AAAA-MM-DD.log`, con la
+hora —en UTC, como todo lo que imprime— y el nivel delante de cada línea:
+`I` nota, `W` aviso, `E` error.
+
+```bash
+tail -f motor/logs/$(date -u +%F).log
+```
+
+Uno por día, y los de más de **14** se borran solos al arrancar. La carpeta está
+en `.gitignore`: es un testigo de lo que pasó en esta máquina, no un dato del
+proyecto.
+
+⚠️ **El fichero no releva a `stdout`**: el panel de Hostinger enseña los logs
+del proceso y esa ventana sigue haciendo falta. Y **el registro no puede tumbar
+al motor**: si el disco falla, se pierde la línea y se sigue.
