@@ -21,7 +21,8 @@
 
 import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { abrirElRegistro, DIAS_QUE_SE_GUARDAN, engancharLaConsola } from './registro.ts';
 import type { AreaDeYego, Salud, Vertice } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { buscar, cargarCallejero, LIMITE, MINIMO } from './callejero.ts';
@@ -122,6 +123,45 @@ export const PUERTO = Number(process.env['PORT'] ?? 3000);
 
 /** Si hay una renovación del feed corriendo. Dos crones solapados → 409. */
 const CRON: EstadoDelCron = { enCurso: false };
+
+/**
+ * ⭐ ¿ME HAN LANZADO A MÍ? (8/09)
+ *
+ * Es el idioma de Node de toda la vida —«corre esto solo si soy la entrada»—.
+ * Se calcula **aquí arriba** y no junto al `listen` porque hay dos cosas que
+ * dependen de él y una es lo primero que pasa: el registro a fichero, que tiene
+ * que estar enganchado **antes del primer `console.log`** o se pierde justo el
+ * arranque, que es lo que más falta hace mirar en un panel remoto.
+ *
+ * ⚠️ **Si esta comparación fallara, el motor arrancaría MUDO**: cargaría todo
+ *    y no escucharía. Por eso no se deduce —se comprobó arrancando el motor de
+ *    verdad con `PORT=3001` el 8/09— y por eso el log de arranque sigue
+ *    diciendo el puerto y el pid.
+ */
+const ES_LA_ENTRADA = import.meta.url === pathToFileURL(process.argv[1] ?? '').href;
+
+/**
+ * ⭐ EL LOG A FICHERO, ADEMÁS DE `stdout` (8/09, M0 del punto 14).
+ *
+ * ⚠️ **Solo si este módulo es la entrada.** Enganchar la consola al importar
+ *    dejaría las jueces escribiendo en `motor/logs/` —y `servidor.spec.ts`
+ *    importa este fichero—. Una prueba no tiene por qué ensuciar el disco de
+ *    producción para comprobar un 404.
+ *
+ * `stdout` NO se toca: el panel de Hostinger sigue viendo lo mismo. Ver
+ * `motor/src/registro.ts`, que explica por qué un fichero por día y por qué las
+ * horas van en UTC.
+ */
+const CARPETA_DE_LOGS = fileURLToPath(new URL('../logs', import.meta.url));
+
+if (ES_LA_ENTRADA) {
+  const registro = abrirElRegistro(CARPETA_DE_LOGS, new Date());
+  engancharLaConsola(registro);
+  console.log(
+    `motor: el log también se escribe en ${registro.donde()} ` +
+      `(uno por día, se guardan ${DIAS_QUE_SE_GUARDAN}, las horas en UTC)`,
+  );
+}
 
 console.log('motor: cargando el grafo…');
 const memoria = cargarGrafo();
@@ -1218,19 +1258,12 @@ function alEmpezarAEscuchar(): void {
 }
 
 /**
- * ⭐ Y EL `listen`, **SOLO SI ESTE MÓDULO ES LA ENTRADA** (8/09).
+ * ⭐ Y EL `listen`, **SOLO SI ESTE MÓDULO ES LA ENTRADA**.
  *
- * Es el idioma de Node de toda la vida —«corre esto solo si me han lanzado a
- * mí»—, y es lo que permite que una juez importe `atenderPeticion` sin abrir
- * ningún puerto ni disparar los refrescos, que viven aquí dentro.
- *
- * ⚠️ **Si esta comparación fallara, el motor arrancaría MUDO**: cargaría todo
- *    y no escucharía. Por eso no se deduce —se comprobó arrancando el motor de
- *    verdad con `PORT=3001` el 8/09— y por eso el log de arranque, que es la
- *    única ventana que hay en un panel remoto, sigue diciendo el puerto.
+ * `ES_LA_ENTRADA` se calcula arriba del todo, porque el registro a fichero lo
+ * necesita antes que nadie. Esto es lo que permite que una juez importe
+ * `atenderPeticion` sin abrir ningún puerto ni disparar los refrescos.
  */
-const ES_LA_ENTRADA = import.meta.url === pathToFileURL(process.argv[1] ?? '').href;
-
 if (ES_LA_ENTRADA) {
   servidor.listen(PUERTO, alEmpezarAEscuchar);
 }

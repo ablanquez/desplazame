@@ -19,3 +19,9 @@ app/data/nap_gtfs-ficha1176.cocinado.json
 # producción — nunca en el repositorio, nunca en una URL, nunca en un log.
 .env.local
 .env
+
+# ⭐ EL LOG A FICHERO (8/09). El motor escribe además de en `stdout`, uno por
+# día, en `motor/logs/`. Son un testigo de lo que pasó en ESTA máquina: no se
+# versionan, no se despliegan y se borran solos a los 14 días. El `*.log` de
+# arriba ya los cubre; la carpeta va escrita para que se sepa que existe.
+motor/logs/
