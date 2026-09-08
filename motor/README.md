@@ -23,6 +23,14 @@ node motor/dist/servidor.js                    # el entry, JavaScript de verdad
 o `.cjs`** —está en su documentación de *Build Settings*—, y `src/servidor.ts` no
 lo es. `dist/` es JavaScript plano: no necesita que Node sepa borrar tipos.
 
+⭐ **Y el Entry file del panel es `motor/arranque.cjs`, no `motor/dist/servidor.js`.**
+Su lanzador (`lsnode`) carga el entry con `require()`, y este motor es ESM con
+*top-level await* a conciencia —`await cocinarYServir(…)`: la red de bus cocinada
+**antes** de escuchar, para no contestar «no hay red» a quien llegue primero—.
+`require()` no puede con eso y muere con `ERR_REQUIRE_ASYNC_MODULE`, que fue el
+segundo 503 del 8/09. `arranque.cjs` es el puente de una línea que el propio
+error de Node dicta: `import('./dist/servidor.js')`.
+
 El puerto sale del entorno: **`PORT`, y 3000 si no está** [12factor, *port
 binding*]. En Hostinger lo pone el panel; en local no hace falta tocar nada.
 

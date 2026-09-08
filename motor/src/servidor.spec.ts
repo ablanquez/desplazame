@@ -27,6 +27,9 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:http';
+import type { AddressInfo } from 'node:net';
+import { fileURLToPath } from 'node:url';
 import type { Salud } from '@desplazame/tipos';
 /**
  * ⭐ LA VARIABLE VA ANTES QUE EL IMPORT, Y POR ESO EL IMPORT ES DINÁMICO (8/09).
@@ -189,6 +192,83 @@ ${dicho.slice(-1200)}`,
     // sistema da uno libre, así que cualquier número > 0 prueba las dos cosas.
     const puerto = Number(/ARRANCADO (\d+)/.exec(dicho)![1]);
     assert.ok(puerto > 0, `puerto efímero de verdad: ${puerto}`);
+  });
+
+  /**
+   * ⭐ JUEZ 5 — Y CON `require()`, QUE ES LO QUE EL LANZADOR HACE DE VERDAD.
+   *
+   * ── ⚠️ El segundo 503, y su frase ────────────────────────────────────────
+   *
+   * Invertir el guardián no bastó. El `stderr.log` del servidor, literal:
+   *
+   * > *«ERR_REQUIRE_ASYNC_MODULE: require() cannot be used on an ESM graph with
+   * > top-level await. USE IMPORT() INSTEAD — From
+   * > /usr/local/lsws/fcgi-bin/lsnode.js Requiring …/motor/dist/servidor.js»*
+   *
+   * `lsnode` no importa el entry: lo **requiere**. Y este motor tiene top-level
+   * await a conciencia — medido con `--experimental-print-required-tla`, es
+   * `await cocinarYServir(…)` en la 894 del emitido: la red de bus cocinada
+   * ANTES de escuchar, para no contestar «no hay red» a quien llegue primero.
+   *
+   * `motor/arranque.cjs` es el puente que el propio error de Node dicta. Esta
+   * juez compra **la conducta exacta del lanzador**: un hijo que hace
+   * `require()` del puente —no `import()`— y acaba escuchando.
+   *
+   * ⚠️ Y no se compra por el log: se le pregunta. **El pid que dice el arranque
+   *    tiene que ser el pid que contesta `/api/salud`**, que es la regla de casa
+   *    para no medir contra un proceso que no es el que se cree.
+   */
+  test('⭐ 5 · un lanzador que hace require() del puente lo pone a escuchar', async () => {
+    const puente = fileURLToPath(new URL('../arranque.cjs', import.meta.url));
+    const puerto = await new Promise<number>((listo) => {
+      const s = createServer();
+      s.listen(0, () => {
+        const suyo = (s.address() as AddressInfo).port;
+        s.close(() => listo(suyo));
+      });
+    });
+
+    const sinLaVariable: NodeJS.ProcessEnv = { ...process.env, PORT: String(puerto) };
+    delete sinLaVariable['DESPLAZAME_SIN_ARRANCAR'];
+
+    const hijo = spawn(process.execPath, ['-e', 'require(process.argv[1]);', puente], {
+      env: sinLaVariable,
+    });
+    let salida = '';
+    try {
+      const dicho = await new Promise<string>((listo, falla) => {
+        const reloj = setTimeout(
+          () => falla(new Error(`el puente no arrancó en 180 s:\n${salida.slice(-800)}`)),
+          180_000,
+        );
+        const mirar = (t: Buffer): void => {
+          salida += t.toString();
+          if (/escuchando en http:/.test(salida)) {
+            clearTimeout(reloj);
+            listo(salida);
+          }
+        };
+        hijo.stdout.on('data', mirar);
+        hijo.stderr.on('data', mirar);
+        hijo.on('close', () => {
+          clearTimeout(reloj);
+          falla(new Error(`el puente murió sin escuchar:\n${salida.slice(-800)}`));
+        });
+      });
+
+      const suPid = /escuchando en http:[^ ]+ \(pid (\d+)\)/.exec(dicho);
+      assert.ok(suPid, `el arranque tiene que decir su pid: ${dicho.slice(-400)}`);
+
+      // ⭐ Y contesta de verdad, no solo lo dice.
+      const salud = (await (await fetch(`http://localhost:${puerto}/api/salud`)).json()) as {
+        readonly ok: boolean;
+        readonly pid: number;
+      };
+      assert.equal(salud.ok, true);
+      assert.equal(salud.pid, Number(suPid[1]), 'el pid del log tiene que ser el pid que contesta');
+    } finally {
+      hijo.kill();
+    }
   });
 
   test('⭐ 3 · sin PORT en el entorno, el puerto es 3000', () => {
