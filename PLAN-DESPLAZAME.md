@@ -3487,7 +3487,7 @@ de la guía] + la TANDA de cinco piezas — la juez de los glifos, las
 2 dependencias muertas fuera, EL PUERTO POR ENTORNO [twelve-factor:
 PORT del panel, defecto 3000] con el MANEJADOR JUDICIABLE
 (servidor.spec.ts nace: 3 jueces de humo; las 1.160 líneas, al
-cierre), y la tabla del notices A SEIS con la §1.37 de la DGT
+cierre), y la tabla del notices A SEIS con la ficha de la DGT (§1.36 tras la nº39)
 (consultada desde el 3/09 sin ficha) y EL GUIÓN QUE CUENTA
 [notices.spec.ts — la cabecera envejeció tres veces; la cuarta la
 caza una juez]. La 5ª pieza, parada por re-medición honesta: la
@@ -3531,17 +3531,44 @@ plan; Linaje para el panel). Los NO CONSTA del 17/08, RESUELTOS:**
 
 **LOS HITOS:**
 
-- [ ] **M0 · LOCAL, los encargos previos** (todo verde antes de
-      tocar el panel): (a) EL BUILD del motor con tsc → dist/
-      (servidor.js como entry; engines declarado — el 22 LTS del
-      panel; el README con el build); (b) EL AVISO DE VEJEZ DEL FEED
-      EN PANTALLA (el del log de servidor.ts:966 sube a la
-      respuesta/interfaz — «horarios del DD/MM» cuando pase el
-      umbral [MobilityData 7 días]; la frase corta); (c) EL LOG A
-      FICHERO del motor (stdout se conserva; el fichero con rotación
-      simple — la carencia que impidió casar las 17:20 del 6/09);
-      (d) el smoke: PORT del entorno + arranque desde dist/ +
-      npm ci desde cero (el build autosuficiente probado en local).
+- [x] **⭐ M0 · LOCAL — HECHO (8/09, 6 commits + la nº39):** (a) EL
+      BUILD: tsconfig.build HEREDA el comprobador (el build no puede
+      bendecir lo que el check rechaza) + rewriteRelativeImport-
+      Extensions (los fuentes importan .ts, la salida .js) →
+      motor/dist/servidor.js; engines >=22; las rutas a los datos
+      COMPROBADAS arrancando el emitido (el grafo entero, un viaje
+      real), no deducidas. (b) EL AVISO — con corrección conceptual
+      del ejecutor, mejor que el encargo: VEJEZ ≠ CADUCIDAD (el zip
+      de 7 días cubre 27 por delante; a quien viaja le importa hasta
+      cuándo VALEN) → el aviso es de caducidad: «Horarios de Avanza
+      válidos solo hasta el 05/10» (47 chars, a 7 días) · «caducados
+      el 05/10: pueden no ser los reales» (pasado) · el primero de
+      todos; sin feed_info NO se avisa (no saber no es saber que
+      está viejo). (c) EL LOG A FICHERO: motor/logs/AAAA-MM-DD.log,
+      hora y nivel, EN UTC — la doctrina revisada el 8/09 es unánime
+      [«almacena UTC; localiza solo al presentar»; la hora local del
+      servidor «corrompe silenciosamente» al cruzar el DST; la
+      práctica de incidentes: «normaliza a UTC, anota el huso al
+      leer»] — la sugerencia de hora local, retirada; retención por
+      NOMBRE (14 días; la mtime la cambia un cp); testigo, no
+      requisito (si el disco falla, el motor sigue); stdout intacto
+      [el panel enseña logs]. ⚠️ Verificar la Z explícita en cada
+      línea (fila del próximo encargo si falta). (d) EL SMOKE en
+      worktree limpio, pegado: npm ci 36 s · build 3 s · arranque 9 s
+      con LA SEMILLA · /api/salud y dos viajes por HTTP · 51 .js /
+      1,6 MB — muy por debajo de los 15 min del panel. ⭐ BITÁCORA
+      nº39 (REABIERTA eefd9c1 → cerrada fcc3fb8): la suite de la
+      interfaz llevaba EN ROJO desde la tanda del 8/09 por la mañana
+      (la §DGT entró detrás de la ficha de cierre; la portada decía
+      36) mientras EL GUIÓN QUE CUENTA de ese mismo commit daba 3/3
+      verde — vigilaba lo que el notices dice de sí mismo, no lo que
+      otros documentos dicen de él; y el checkpoint presentó como
+      «preferencia» un orden que una juez roja ya exigía. LEY: un
+      guardián nuevo tapa el rojo del que ya había si no se corre
+      TODO. El arreglo: la DGT pasa a §1.36 y la ficha de cierre
+      vuelve a cerrar (§1.37 en los papeles del 8/09-mañana se lee
+      §1.36 desde este arreglo). Al cierre: 636 motor · 285 interfaz
+      · 39 bitácoras (0 abiertas) · los 7 e2e verdes.
 - [ ] **M1 · AÑADIR WEB**: `desplazame.antonioblanquez.es` por
       «Añadir web» — NUNCA por el panel «Subdominios» [la lección de
       Linaje: ese anida dentro del dominio padre] — carpeta

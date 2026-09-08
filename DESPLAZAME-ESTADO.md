@@ -146,7 +146,8 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   TRAMOS — TramoDelViaje con comoSeVa/desde/hasta/hito sobre la
   geometría única). ⭐ N = 3.359 · sugeribles 3.350 (2.731 con portal
   + 619 por punto medio).
-- **Los datos**: TREINTA Y SIETE fichas (la §1.37, del 8/09: LA DGT
+- **Los datos**: TREINTA Y SIETE fichas (la de la DGT, del 8/09 —
+  §1.36 desde la nº39, con la ficha de cierre cerrando el bloque:
   — se consultaba desde el 3/09 sin ficha, cazada por la tanda;
   régimen: ninguno, cachear sería guardar la matrícula; y el
   notices con GUIÓN QUE CUENTA desde el 8/09. El 36º, del
@@ -189,11 +190,11 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar** *(al cierre del 8/09; el push del 7/09
-llegó hasta `f137e0d`)*: **el censo pre-despliegue (0e7d91b) y la
-tanda de las cinco piezas (4 hechas + 1 parada por re-medición:
-glifos · dependencias · puerto/manejador · la tabla de las seis con
-la §1.37 de la DGT) — 5 commits — y los papeles al día.** *(La nota
+comprobado). **En local, sin publicar** *(al cierre del 8/09 tarde; el push del
+8/09 mañana llegó hasta `acd883d`)*: **el parlamento del 14
+(a7b35d9), M0 entero (6 commits: build · aviso de caducidad · log
+UTC · README · la nº39 con su arreglo) y los papeles al día — el
+push ANTES de M2, que desplegará lo que esté en GitHub.** *(La nota
 del 7/09: el push
 del 6/09 noche llegó hasta `c2f74cd`)*: **el espejo del encadenado
 (2 commits), la DGT sin bucle (nº38, 4 commits) y el CIERRE DEL
@@ -204,6 +205,24 @@ ruteando; 31/08 y 1/09 — el censo, el cron, la cocina, el viaje, los pesos de
 OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
+
+**M0 HECHO (8/09, tarde): EL MOTOR HABLA EL IDIOMA DEL PANEL — Y LA
+nº39.** El build (tsc a dist heredando el comprobador; rutas
+comprobadas arrancando el emitido); el aviso DE CADUCIDAD (vejez ≠
+caducidad — corrección del ejecutor: «Horarios de Avanza válidos
+solo hasta el 05/10», el primero de todos; sin feed_info no se
+avisa); el log a fichero EN UTC (doctrina unánime revisada — la
+sugerencia de hora local, retirada; retención por nombre; testigo no
+requisito); el smoke en worktree limpio (npm ci 36 s · build 3 s ·
+arranque 9 s con la semilla — el panel no encontrará sorpresas). Y
+LA nº39, la joya incómoda: la suite de la interfaz EN ROJO desde la
+mañana mientras el guión-que-cuenta de ese mismo commit daba verde
+(vigilaba el recuento propio, no lo que otros documentos afirman);
+el checkpoint presentó como «preferencia» un orden que una juez roja
+exigía; LEY: un guardián nuevo tapa el rojo del que ya había si no
+se corre TODO. La DGT queda en §1.36 (donde los papeles de la mañana
+dicen §1.37, léase §1.36). 636 motor · 285 interfaz · 39 bitácoras.
+→ Antonio al panel: M1.
 
 **EL PARLAMENTO DEL 14 (8/09, mañana): LOS HITOS M0-M5 CON LA DOC
 DEL PANEL DELANTE.** Tres fuentes: la doc oficial de Build Settings
@@ -250,7 +269,7 @@ exportado, el listen guardado y aparte — probado arrancando en 3001
 y 3002 con el 3000 de Antonio intacto; servidor.spec.ts nace con 3
 jueces de humo: la puerta abierta, las 1.160 líneas al saco del
 cierre); (e) la tabla del notices A SEIS con hallazgo: LA DGT SE
-CONSULTABA DESDE EL 3/09 SIN FICHA — escrita la §1.37 (régimen:
+CONSULTABA DESDE EL 3/09 SIN FICHA — escrita su ficha (régimen:
 ninguno — cachear sería guardar la matrícula), y la cabecera
 envejecida POR TERCERA VEZ → el guión que cuenta (notices.spec.ts:
 la cifra contra las fichas, la numeración sin huecos) — la cuarta
@@ -1418,14 +1437,15 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (1) **EL ENCARGO M0 del 14** (⚰️ el parlamento,
-cerrado el 8/09 con la doc del panel — ver el plan): el build del
-motor con tsc + engines 22 · el aviso de vejez del feed EN PANTALLA
-· el log a fichero con rotación · el smoke del build autosuficiente
-(npm ci desde cero + PORT + arranque desde dist/); (2) M1-M5 con
-Antonio al panel (Añadir web · la app conectada a GitHub · variables
-· cron · la verificación de las seis fuentes desde el datacenter);
-(3) la cola técnica (al cierre,
+**Lo siguiente:** (1) **ANTONIO AL PANEL — M1 a M4 con receta**
+(⚰️ M0 hecho el 8/09): Añadir web · la app conectada a GitHub (el
+auto-detect revisado antes de aceptar) · las variables (token + NAP
+key) · el cron; ANTES: el push de la tanda M0 (el deploy leerá
+GitHub); (2) el diagnóstico del PANEL DE FRESCURA contra las fuentes
+de hoy (la tabla manifiesto-vs-realidad; el cron educado de M4 bebe
+de ahí) — y la Z del log si falta; (3) M5 — la verificación desde el
+datacenter (las seis fuentes, el caso del ojo por la URL pública);
+(4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
 viajeEnBus obligatorio para desvíos · el gemelo de continuando
 (522/1.841, con cabeza) · las 1.160 líneas de servidor.ts · los
@@ -1747,7 +1767,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 902 pruebas (618 motor + 284 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 921 pruebas (636 motor + 285 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
