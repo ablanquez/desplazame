@@ -1,0 +1,1019 @@
+{
+  "name": "desplazame-datos",
+  "title": "Desplazame — los conjuntos de datos que el proyecto consume",
+  "description": "Manifiesto de frescura: por cada conjunto, cuando se descargo, que fecha declara el dato de si mismo, con que regla caduca (y de donde sale esa regla) y su huella sha256. Sigue el descriptor Data Package v1 de Frictionless Data y toma de DCAT los terminos de frescura. Las propiedades en castellano son NUESTRAS y estan ahi porque el estandar calla: `descargadoEl`, `modifiedFuente`, `periodicidadFuente`, `caducaEl`, `caducidadFuente`. Lo que no consta se OMITE: la ausencia es el resultado, no un hueco que rellenar.",
+  "profile": "data-package",
+  "homepage": "https://www.zaragoza.es/sede/portal/datos-abiertos/",
+  "created": "2026-08-23",
+  "licenses": [
+    {
+      "name": "other-pd",
+      "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+      "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+    },
+    {
+      "name": "ODbL-1.0",
+      "title": "Open Database License 1.0",
+      "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+    },
+    {
+      "name": "other-open",
+      "title": "Licencia de datos abiertos del MITMS",
+      "path": "https://nap.mitma.es/"
+    }
+  ],
+  "sources": [
+    {
+      "title": "THIRD-PARTY-NOTICES.md — la ficha de cada conjunto, con su procedencia",
+      "path": "THIRD-PARTY-NOTICES.md"
+    }
+  ],
+  "resources": [
+    {
+      "name": "callejero-portales",
+      "path": "app/data/2026-05-13_zgzradar_callejero-portales-zaragoza.json",
+      "title": "Portales de Zaragoza (46.150)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 10835605,
+      "hash": "sha256:3c391d60cf91362c984ec2ac2e302f7eec2ce35d94deb42f6e42b678aef7cfdc",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS Urbanismo · capa urbanismo:Portales",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs"
+        }
+      ],
+      "modified": "2026-05-13T07:11:41.075Z",
+      "modifiedFuente": "metadato del conjunto de origen «callejero-zaragoza» v1.0, recogido en THIRD-PARTY-NOTICES.md § 1.2 — el fichero en si es un array plano y no lo declara",
+      "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/MONTHLY",
+      "periodicidadFuente": "THIRD-PARTY-NOTICES.md § 1.2: «el callejero municipal se refresca (politica declarada: mensual)»"
+    },
+    {
+      "name": "callejero-vias",
+      "path": "app/data/2026-05-13_zgzradar_callejero-vias-zaragoza.json",
+      "title": "Callejero de vias de Zaragoza (3.359)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 1025408,
+      "hash": "sha256:5f5df76a32098e088ad4c92126e72a9e84835663647f9c4f47300232dc038104",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS Urbanismo · capa urbanismo:Vias",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs"
+        }
+      ],
+      "modified": "2026-05-13T07:11:41.075Z",
+      "modifiedFuente": "mismo conjunto «callejero-zaragoza» v1.0 que los portales, THIRD-PARTY-NOTICES.md § 1.3 — el fichero es un array plano y no lo declara",
+      "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/MONTHLY",
+      "periodicidadFuente": "THIRD-PARTY-NOTICES.md § 1.2: «el callejero municipal se refresca (politica declarada: mensual)» (la cita habla del callejero municipal, que es lo que es esta capa)"
+    },
+    {
+      "name": "grafo-peatonal",
+      "path": "app/data/grafo-visor.js",
+      "title": "Grafo de continuidad peatonal y ciclable (68.649 nodos · 98.774 aristas)",
+      "format": "js",
+      "mediatype": "application/javascript",
+      "encoding": "utf-8",
+      "bytes": 23925689,
+      "hash": "sha256:d7d03aed71990d1ca5233955bff0940bda455422e6fd51dd755eb9c07f5cc717",
+      "licenses": [
+        {
+          "name": "ODbL-1.0",
+          "title": "Open Database License 1.0",
+          "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "OpenStreetMap, via Overpass — derivado",
+          "path": "https://www.openstreetmap.org/copyright"
+        }
+      ],
+      "modified": "2026-08-03T08:19:51Z",
+      "modifiedFuente": "el propio fichero lo declara en su campo `sello`"
+    },
+    {
+      "name": "carriles-bici",
+      "path": "app/data/2026-08-04_wfs_movilidad-MU2_carriles_bici.json",
+      "title": "Carriles bici y sendas ciclables (733)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 785975,
+      "hash": "sha256:65b356aa751fb4ec02c24dce43e8fbaf51ee350987c798142feabb6320ac3fd4",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU2_carriles_bici",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-04T11:52:40Z"
+    },
+    {
+      "name": "postes-bus",
+      "path": "app/data/2026-08-10_wfs_movilidad-MU3_paradas_bus_unicas.json",
+      "title": "Postes de autobus urbano (944)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 226540,
+      "hash": "sha256:f335b56d586a387bfd592abfa32d0536cc1bb1b8c3a2520d6cf68e0e05d43bad",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU3_paradas_bus_unicas",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-10T09:48:39Z"
+    },
+    {
+      "name": "aparcabicis",
+      "path": "app/data/2026-08-17_wfs_movilidad-MU2_aparcabicis.json",
+      "title": "Aparcabicis (2.158)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 695754,
+      "hash": "sha256:777036273a0227e34b3af7c7c97d44f4a46e2138a0f231c60e52475577675710",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU2_aparcabicis",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-17T12:34:30Z"
+    },
+    {
+      "name": "aparcamotos",
+      "path": "app/data/2026-08-18_wfs_movilidad-MU2_motos.json",
+      "title": "Aparcamotos (2.146 · 11.715 plazas)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 625297,
+      "hash": "sha256:8a0b4727b85fc7e2aa310641d9a3f7fcb56ba20a87ff3d464cb08e856c56a00b",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU2_motos",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-18T12:04:45Z"
+    },
+    {
+      "name": "regulado-tramos",
+      "path": "app/data/2026-08-18_wfs_movilidad-MU1_estacionamientos_calle.json",
+      "title": "Estacionamiento regulado en superficie (7.391 tramos)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 3178840,
+      "hash": "sha256:f45f394b2d2190e676ae7bea0fd74856d1fbbcb235a2b1579126e4a6cb8a467d",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estacionamientos_calle",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-18T12:26:53Z"
+    },
+    {
+      "name": "regulado-zonas",
+      "path": "app/data/2026-08-18_wfs_movilidad-MU1_zonas_reguladas.json",
+      "title": "Zonas reguladas (13 poligonos)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 27079,
+      "hash": "sha256:db6fba882b7135dc0469f75172288793be8746b9848602e4f0bc7989bcd50b08",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_zonas_reguladas",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-18T13:21:04Z"
+    },
+    {
+      "name": "reservas-espacio",
+      "path": "app/data/2026-08-18_wfs_movilidad-MU1_reservas.json",
+      "title": "Reservas de espacio, con las 1.226 PMR (2.636)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 746406,
+      "hash": "sha256:8aaf80c1d946bf891c5a6387a213cb56fa4581922ee07ebb5fd0e7aaa3500057",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_reservas",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-18T13:41:55Z"
+    },
+    {
+      "name": "bizi-pag0",
+      "path": "app/data/2026-08-02_wfs_bizi_pag0.json",
+      "title": "Estaciones BiZi — pagina 1 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 21848,
+      "hash": "sha256:7c26bc5679317044463335bf25a153cbaffed80aaaf30db75556caadbc6ac8a2",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag50",
+      "path": "app/data/2026-08-02_wfs_bizi_pag50.json",
+      "title": "Estaciones BiZi — pagina 2 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 22217,
+      "hash": "sha256:82633663b9c6abf68d7f517e34b1fefa459de30c8c03bfb91f8b0d75a36be98e",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag100",
+      "path": "app/data/2026-08-02_wfs_bizi_pag100.json",
+      "title": "Estaciones BiZi — pagina 3 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 22220,
+      "hash": "sha256:aeeb1448c9bfd7afca751c2c346af682933f988dc649a0e7005537cb656429bf",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag150",
+      "path": "app/data/2026-08-02_wfs_bizi_pag150.json",
+      "title": "Estaciones BiZi — pagina 4 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 22357,
+      "hash": "sha256:aeebdae28754910e2e57fd0b80c26a887a7340deeb118b1cb6772b9c389f5e23",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag200",
+      "path": "app/data/2026-08-02_wfs_bizi_pag200.json",
+      "title": "Estaciones BiZi — pagina 5 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 22483,
+      "hash": "sha256:215d8662231ab834733b7e1e4037dcef3e4ee0e0316efcbad504474e2cb9a368",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "bizi-pag250",
+      "path": "app/data/2026-08-02_wfs_bizi_pag250.json",
+      "title": "Estaciones BiZi — pagina 6 de 6 (276 en total)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 11786,
+      "hash": "sha256:61a54580f28d9cc94d6c48cbe609c2f49da7b4d9ee7134aeb9b0edff16e8c7ef",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_estaciones_bici_ubicacion",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-02T10:10:00Z"
+    },
+    {
+      "name": "gtfs-zip",
+      "path": "app/data/2026-08-10_nap_gtfs-ficha1176.zip",
+      "title": "GTFS del transporte urbano (ficha 1176)",
+      "format": "zip",
+      "mediatype": "application/zip",
+      "bytes": 6883311,
+      "hash": "sha256:5c96992c97aac966bc9bc20babfbbbffb312f2a3cbcf9dd543982d2674cf3a82",
+      "licenses": [
+        {
+          "name": "other-open",
+          "title": "Licencia de datos abiertos del MITMS",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Punto de Acceso Nacional (NAP) · ficha 1176 · Avanza Zaragoza S.A.U",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "descargadoEl": "2026-08-10T09:44:51Z",
+      "modified": "2026-06-23",
+      "modifiedFuente": "feed_info.txt dentro del ZIP: feed_start_date=20260623, feed_version=20260623_AUZSA_Y_TRANVIA",
+      "caducaEl": "2026-10-05",
+      "caducidadFuente": "feed_info.txt dentro del ZIP: feed_end_date=20261005, declarado por el publicador"
+    },
+    {
+      "name": "gtfs-shapes",
+      "path": "app/data/2026-08-10_nap_gtfs-ficha1176_shapes.txt",
+      "title": "GTFS shapes.txt — 89 trazados, 27.603 puntos (extraido del ZIP)",
+      "format": "txt",
+      "mediatype": "text/csv",
+      "bytes": 1408077,
+      "hash": "sha256:f38397d36c98fb756b2ee5a3ca261fbfc712aea2e51903d51b7c9b4fddb18157",
+      "licenses": [
+        {
+          "name": "other-open",
+          "title": "Licencia de datos abiertos del MITMS",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Punto de Acceso Nacional (NAP) · ficha 1176 · Avanza Zaragoza S.A.U",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "descargadoEl": "2026-08-10T09:44:51Z",
+      "modified": "2026-06-23",
+      "modifiedFuente": "feed_info.txt dentro del ZIP: feed_start_date=20260623, feed_version=20260623_AUZSA_Y_TRANVIA",
+      "caducaEl": "2026-10-05",
+      "caducidadFuente": "feed_info.txt dentro del ZIP: feed_end_date=20261005, declarado por el publicador",
+      "encoding": "utf-8"
+    },
+    {
+      "name": "gtfs-stops",
+      "path": "app/data/2026-08-10_nap_gtfs-ficha1176_stops.txt",
+      "title": "GTFS stops.txt — 984 paradas, 50 de tranvia (extraido del ZIP)",
+      "format": "txt",
+      "mediatype": "text/csv",
+      "bytes": 99309,
+      "hash": "sha256:6d1a969ab25d7be41ffb9b8184589865407be671fd52fadc50206aa3917c957b",
+      "licenses": [
+        {
+          "name": "other-open",
+          "title": "Licencia de datos abiertos del MITMS",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "Punto de Acceso Nacional (NAP) · ficha 1176 · Avanza Zaragoza S.A.U",
+          "path": "https://nap.mitma.es/"
+        }
+      ],
+      "descargadoEl": "2026-08-10T09:44:51Z",
+      "modified": "2026-06-23",
+      "modifiedFuente": "feed_info.txt dentro del ZIP: feed_start_date=20260623, feed_version=20260623_AUZSA_Y_TRANVIA",
+      "caducaEl": "2026-10-05",
+      "caducidadFuente": "feed_info.txt dentro del ZIP: feed_end_date=20261005, declarado por el publicador",
+      "encoding": "utf-8"
+    },
+    {
+      "name": "nombres-osm",
+      "path": "motor/data/2026-08-02_osm_overpass_zaragoza-termino_nombres.json",
+      "title": "Nombres de via de OpenStreetMap (19.897 ways)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 5023094,
+      "hash": "sha256:ddd22f7df3981b52e7762473e678b8a9b7e139fc92f3b7d6487f9b1a803fd2ef",
+      "licenses": [
+        {
+          "name": "ODbL-1.0",
+          "title": "Open Database License 1.0",
+          "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "OpenStreetMap via Overpass API 0.7.62.11",
+          "path": "https://overpass-api.de/"
+        }
+      ],
+      "modified": "2026-08-02T14:36:18Z",
+      "modifiedFuente": "el propio fichero lo declara en `osm3s.timestamp_osm_base`"
+    },
+    {
+      "name": "ejes-via",
+      "path": "motor/data/2026-08-20_idezar_wfs_urbanismo-vias_ejes.json",
+      "title": "Ejes de via municipales (3.358 con nombre)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 3434156,
+      "hash": "sha256:ebf6dabd47416b4f9f371317bdfe512d9cd977fa7ac454a078e5c307b38c3ae7",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS Urbanismo · capa urbanismo:Vias",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-20T14:35:52Z",
+      "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/MONTHLY",
+      "periodicidadFuente": "THIRD-PARTY-NOTICES.md § 1.15: «el callejero municipal se refresca (politica declarada: mensual)»"
+    },
+    {
+      "name": "farmacias",
+      "path": "app/data/2026-08-23_zgzapi_equipamiento-farmacias.json",
+      "title": "Farmacias del termino municipal (313, de ellas 310 con coordenada)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 185805,
+      "hash": "sha256:9c64ee1749de63c6d2231913948a7f8c02f2d7470b2fc3a9b7c7d277f86dc091",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 740 «Farmacias»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json"
+        }
+      ],
+      "descargadoEl": "2026-08-23T15:33:54Z",
+      "modified": "2026-06-08T14:06:36+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Mon, 08 Jun 2026 14:06:36 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 311 registros que lo traen — y va dos meses y medio por delante de la descarga, asi que no es la fecha de la respuesta"
+    },
+    {
+      "name": "centros-salud",
+      "path": "app/data/2026-08-24_zgzapi_equipamiento-centros-salud.json",
+      "title": "Centros de salud, especialidades y consultorios (56, las 56 con coordenada)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 75702,
+      "hash": "sha256:1683f1828fdb665f9df0804a0a4ab3369be71882d7d65672c62813fc10ec3428",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 781 «Centros de Salud», tema 4 «Salud Publica y Consumo»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/781.json"
+        }
+      ],
+      "descargadoEl": "2026-08-24T09:30:23Z",
+      "modified": "2026-05-20T15:58:21+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Wed, 20 May 2026 15:58:21 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 55 registros que lo traen — el mismo cotejo que se le hizo a farmacias, y aqui tambien sale"
+    },
+    {
+      "name": "hospitales",
+      "path": "app/data/2026-08-24_zgzapi_equipamiento-hospitales.json",
+      "title": "Hospitales y clinicas (17, de ellas 15 con coordenada)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 19108,
+      "hash": "sha256:46df1ff99a43a224f3b9fec4a4df76a6c38e6e4900ca21077644eba3efdd2dc8",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 780 «Hospitales», tema 4 «Salud Publica y Consumo»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/780.json"
+        }
+      ],
+      "descargadoEl": "2026-08-24T09:30:24Z",
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, pero el lastUpdated mas reciente de los 17 registros es 2024-03-15T15:02:36 — TRECE MESES antes. En farmacias y en centros de salud las dos fechas coinciden al segundo y por eso alli `modified` se declara; aqui la cabecera no describe al dato, asi que se omite en vez de copiarla"
+    },
+    {
+      "name": "bibliotecas",
+      "path": "app/data/2026-08-25_zgzapi_equipamiento-bibliotecas.json",
+      "title": "Bibliotecas (75, de ellas 73 con coordenada) — la mitad grande de la categoria «biblioteca» del proyecto",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 152700,
+      "hash": "sha256:852eb219a5db3d633c7b995b01d66c9e83ed1465d1a464f7f4220c8e46378a67",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 35 «Bibliotecas», tema 9 «Cultura y Ocio»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/35.json"
+        }
+      ],
+      "descargadoEl": "2026-08-25T15:50:17Z",
+      "modified": "2026-06-23T13:46:18+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Tue, 23 Jun 2026 13:46:18 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 74 registros que lo traen — el mismo cotejo que en farmacias y en centros de salud, y aqui tambien sale"
+    },
+    {
+      "name": "bibliotecas-especializadas",
+      "path": "app/data/2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas.json",
+      "title": "Bibliotecas Especializadas (2, las dos con coordenada) — la otra mitad de la categoria «biblioteca» del proyecto",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 4503,
+      "hash": "sha256:355c5ffc5fb3fc3cfbdc2f896bd651112dc7fc6f91e0000baf9be47be6798d33",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 223 «Bibliotecas Especializadas», tema 13 «Informacion y Comunicacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/223.json"
+        }
+      ],
+      "descargadoEl": "2026-08-25T15:50:22Z",
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST y el lastUpdated de sus dos registros es 2023-09-26T14:48:29 — DIECINUEVE MESES antes. Y es LA MISMA cabecera, al segundo, que devuelve la categoria 780 de hospitales: una fecha que dos categorias distintas comparten no describe a ninguna de las dos. Se omite en vez de copiarla"
+    },
+    {
+      "name": "educacion-infantil",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-educacion-infantil.json",
+      "title": "Educacion Infantil (141) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 152344,
+      "hash": "sha256:985eee846a92377cfd368bc227d98129ce08049dcc623b497914088806466fb0",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 61, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/61.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:39Z",
+      "modified": "2026-05-26T13:33:58+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 140 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "educacion-primaria",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-educacion-primaria.json",
+      "title": "Educacion Primaria (138) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 145658,
+      "hash": "sha256:a4783cbc798084c3500bdbb9288bf6f2fb9688b54355455f8559ea890bd8f3bd",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 62, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/62.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:40Z",
+      "modified": "2026-01-28T09:29:05+01:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 137 registros que lo traen (2026-01-28T09:29:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "educacion-secundaria",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-educacion-secundaria.json",
+      "title": "Educacion Secundaria (104) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 110824,
+      "hash": "sha256:0423270c853d0989f8896708b46a1c3f4e02de22d30a3be3f935dbbcd57f2218",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 63, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/63.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:40Z",
+      "modified": "2026-06-23T11:00:54+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 103 registros que lo traen (2026-06-23T11:00:54) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "bachillerato",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-bachillerato.json",
+      "title": "Bachillerato (7) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 7597,
+      "hash": "sha256:080e51f8bae292a735b9ebdb579ee7abe1011da1ab1a00f173c08c2e358af926",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 2060, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2060.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:41Z",
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla"
+    },
+    {
+      "name": "ciclos-formativos",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-ciclos-formativos.json",
+      "title": "Ciclos Formativos (56) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 46258,
+      "hash": "sha256:8dcafa1fb3cb2855ec1e88c2cfc88b4bad0fec6764cf8a44f3497d96c7c62383",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 2061, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2061.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:41Z",
+      "modified": "2025-09-02T14:46:25+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 56 registros que lo traen (2025-09-02T14:46:25) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "formacion-profesional",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-formacion-profesional.json",
+      "title": "Formacion Profesional (49) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 54845,
+      "hash": "sha256:bb9877b4596dc663434cd833c9f0edbf95174ec48000efb818dc1fa3602bbf2b",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 680, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/680.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:41Z",
+      "modified": "2026-06-23T10:47:16+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 48 registros que lo traen (2026-06-23T10:47:16) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "educacion-especial",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-educacion-especial.json",
+      "title": "Educacion Especial (19, de los que entran 3) — una de las categorias municipales que componen «Colegios e Institutos» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 13549,
+      "hash": "sha256:1570c9bc0333d92820ac69ada7aa7f566ef87a88cb9d4fba48b5b17f60512725",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 64, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/64.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:41Z",
+      "modified": "2026-04-13T15:57:05+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 19 registros que lo traen (2026-04-13T15:57:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "escuela-infantil",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-escuela-infantil.json",
+      "title": "Escuela Infantil (65) — una de las categorias municipales que componen «Guarderias» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 118570,
+      "hash": "sha256:6583a84f8168d978e515cdaded94175d54402f71981a31e65b3f0de3b501b46b",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 460, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/460.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:42Z",
+      "modified": "2026-05-26T13:33:58+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 65 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "universitaria",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-universitaria.json",
+      "title": "Universitaria (14) — una de las categorias municipales que componen «Universidades» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 14739,
+      "hash": "sha256:cd6048ee69f86409e87c062541d669636b88d6b1e3ec7a5e91972351434c1699",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 280, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/280.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:42Z",
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla"
+    },
+    {
+      "name": "colegios-mayores",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-colegios-mayores.json",
+      "title": "Colegios mayores (8) — una de las categorias municipales que componen «Universidades» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 6156,
+      "hash": "sha256:60d8495fc891393500776136fd05884fbab94bc8fe24400f375796dea4619402",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 2300, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2300.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:42Z",
+      "modified": "2025-09-15T12:01:05+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 8 registros que lo traen (2025-09-15T12:01:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "residencias-estudiantes",
+      "path": "app/data/2026-08-27_zgzapi_equipamiento-residencias-estudiantes.json",
+      "title": "Residencias de Estudiantes (7) — una de las categorias municipales que componen «Universidades» del buscador",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 6453,
+      "hash": "sha256:cd1087823a64f518d02dca6bc7522638fd87e62346f4e8ce7961925a6e892579",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "API REST de equipamientos del Ayuntamiento de Zaragoza · categoria 2280, tema 11 «Educacion»",
+          "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2280.json"
+        }
+      ],
+      "descargadoEl": "2026-08-27T06:31:43Z",
+      "modified": "2025-09-15T12:27:31+02:00",
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 7 registros que lo traen (2025-09-15T12:27:31) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+    },
+    {
+      "name": "viario-etiquetas-osm",
+      "path": "motor/data/2026-08-28_osm_overpass_zaragoza-bbox_viario-etiquetas.json",
+      "title": "Etiquetas del viario de OpenStreetMap (65.223 ways, sin filtro de nombre)",
+      "format": "json",
+      "mediatype": "application/json",
+      "encoding": "utf-8",
+      "bytes": 11271911,
+      "hash": "sha256:4a1c4f9c15c9cc6de57f44742fdcf9adc6175e88bfbff1507c28c8eb34a6150d",
+      "licenses": [
+        {
+          "name": "ODbL-1.0",
+          "title": "Open Database License 1.0",
+          "path": "https://opendatacommons.org/licenses/odbl/1-0/"
+        }
+      ],
+      "sources": [
+        {
+          "title": "OpenStreetMap via Overpass API 0.7.62.11",
+          "path": "https://overpass-api.de/"
+        }
+      ],
+      "modified": "2026-08-28T15:24:06Z",
+      "modifiedFuente": "el propio fichero lo declara en `osm3s.timestamp_osm_base`"
+    },
+    {
+      "name": "jerarquia-viaria",
+      "path": "motor/data/2026-08-28_idezar_wfs_movilidad-MU1_jerarquia_viaria.json",
+      "title": "Jerarquia viaria municipal (3.644 tramos con limite de velocidad)",
+      "format": "json",
+      "mediatype": "application/geo+json",
+      "encoding": "utf-8",
+      "bytes": 2705406,
+      "hash": "sha256:57a31d0cffbe5f89d120e44a687acd3b2e2b5af7f232207b0b7fa993384a4a82",
+      "licenses": [
+        {
+          "name": "other-pd",
+          "title": "Licencia general de reutilizacion del Ayuntamiento de Zaragoza (Ley 37/2007)",
+          "path": "https://www.zaragoza.es/sede/portal/aviso-legal#condiciones"
+        }
+      ],
+      "sources": [
+        {
+          "title": "IDEZar GeoServer WFS (movilidad) · capa movilidad:MU1_jerarquia_viaria",
+          "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
+        }
+      ],
+      "descargadoEl": "2026-08-28T15:26:43Z"
+    }
+  ]
+}

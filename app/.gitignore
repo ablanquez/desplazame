@@ -1,7 +1,10 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
 # Compiled output
-/dist
+# ⚠️ `/dist` NO está aquí a propósito desde el 8/09: la app viaja CONSTRUIDA
+#    en el repositorio. Es un apaño fechado y declarado —el CLI de Angular 22.1
+#    exige un Node que el panel de Hostinger no tiene—, y se quita cuando lo
+#    tenga. El porqué entero, con la medición, en `app/README.md`.
 /tmp
 /out-tsc
 /bazel-out

@@ -1,5 +1,10 @@
 ﻿node_modules/
-dist/
+# ⭐ EL `dist/` DEL MOTOR, y solo ese (8/09, LA PORTADA paso 1).
+# Antes ponía `dist/` a secas y se llevaba por delante el de la app, que
+# desde hoy SÍ se versiona —ver `app/README.md`: el CLI de Angular no corre en
+# el panel, así que la app viaja construida—. El del motor lo sigue haciendo
+# el panel en cada despliegue.
+motor/dist/
 .angular/
 *.log
 .DS_Store
