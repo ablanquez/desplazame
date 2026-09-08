@@ -21,7 +21,7 @@
 
 import { createServer } from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { abrirElRegistro, DIAS_QUE_SE_GUARDAN, engancharLaConsola } from './registro.ts';
 import type { AreaDeYego, Salud, Vertice } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
@@ -125,28 +125,50 @@ export const PUERTO = Number(process.env['PORT'] ?? 3000);
 const CRON: EstadoDelCron = { enCurso: false };
 
 /**
- * ⭐ ¿ME HAN LANZADO A MÍ? (8/09)
+ * ⭐ EL ARRANQUE VA SIEMPRE, Y EL GUARDIÁN ES AL REVÉS (8/09).
  *
- * Es el idioma de Node de toda la vida —«corre esto solo si soy la entrada»—.
+ * ── ⚠️ Por qué lo de siempre no vale aquí ───────────────────────────
+ *
+ * Aquí ponía el idioma de Node de toda la vida —«corre esto solo si me han
+ * lanzado a mí»— y **el primer despliegue dio 503**: `dist/` estaba, `logs/` no
+ * se había creado, y el motor no escuchaba. Había cargado 68.649 nodos para no
+ * abrir ningún puerto.
+ *
+ * La causa la dice el preload del propio panel, **literal**:
+ *
+ * > *«Entry file uses "if (require.main === module)" to guard server.listen()
+ * > — remove that condition, it is not supported on Hostinger Node.js
+ * > hosting»*
+ *
+ * Su lanzador **IMPORTA** el entry en vez de ejecutarlo —vive en
+ * `LSNODE_SOCKET` / `global.LsNode`—, así que `process.argv[1]` no es este
+ * fichero y la comparación decía «no soy la entrada». El guardián hacía
+ * exactamente lo que prometía; lo que no valía era la pregunta.
+ *
+ * ── Lo que el guardián protegía, y cómo se conserva ───────────────────
+ *
+ * Servía para que `servidor.spec.ts` pudiera importar `atenderPeticion` sin
+ * abrir el 3000 ni disparar los refrescos. Eso **no se pierde**: se pide
+ * EXPLÍCITAMENTE con `DESPLAZAME_SIN_ARRANCAR=1`, y quien la pone es la suite,
+ * nadie más. La diferencia está en quién carga con el caso raro: antes, el
+ * despliegue; ahora, la prueba —que es quien sabe lo que quiere—.
+ *
  * Se calcula **aquí arriba** y no junto al `listen` porque hay dos cosas que
  * dependen de él y una es lo primero que pasa: el registro a fichero, que tiene
  * que estar enganchado **antes del primer `console.log`** o se pierde justo el
- * arranque, que es lo que más falta hace mirar en un panel remoto.
- *
- * ⚠️ **Si esta comparación fallara, el motor arrancaría MUDO**: cargaría todo
- *    y no escucharía. Por eso no se deduce —se comprobó arrancando el motor de
- *    verdad con `PORT=3001` el 8/09— y por eso el log de arranque sigue
- *    diciendo el puerto y el pid.
+ * arranque, que es lo que más falta hace mirar en un panel remoto —y que en el
+ * 503 fue, literalmente, la pista: `logs/` sin crear.
  */
-const ES_LA_ENTRADA = import.meta.url === pathToFileURL(process.argv[1] ?? '').href;
+const SIN_ARRANCAR = process.env['DESPLAZAME_SIN_ARRANCAR'] === '1';
 
 /**
  * ⭐ EL LOG A FICHERO, ADEMÁS DE `stdout` (8/09, M0 del punto 14).
  *
- * ⚠️ **Solo si este módulo es la entrada.** Enganchar la consola al importar
+ * ⚠️ **Salvo que se pida NO arrancar.** Enganchar la consola al importar
  *    dejaría las jueces escribiendo en `motor/logs/` —y `servidor.spec.ts`
- *    importa este fichero—. Una prueba no tiene por qué ensuciar el disco de
- *    producción para comprobar un 404.
+ *    importa este fichero—, así que la suite pone `DESPLAZAME_SIN_ARRANCAR=1`.
+ *    Una prueba no tiene por qué ensuciar el disco de producción para
+ *    comprobar un 404.
  *
  * `stdout` NO se toca: el panel de Hostinger sigue viendo lo mismo. Ver
  * `motor/src/registro.ts`, que explica por qué un fichero por día y por qué las
@@ -154,7 +176,7 @@ const ES_LA_ENTRADA = import.meta.url === pathToFileURL(process.argv[1] ?? '').h
  */
 const CARPETA_DE_LOGS = fileURLToPath(new URL('../logs', import.meta.url));
 
-if (ES_LA_ENTRADA) {
+if (!SIN_ARRANCAR) {
   const registro = abrirElRegistro(CARPETA_DE_LOGS, new Date());
   engancharLaConsola(registro);
   console.log(
@@ -1258,12 +1280,14 @@ function alEmpezarAEscuchar(): void {
 }
 
 /**
- * ⭐ Y EL `listen`, **SOLO SI ESTE MÓDULO ES LA ENTRADA**.
+ * ⭐ Y EL `listen`, **SIN CONDICIÓN** — lo que el panel exige.
  *
- * `ES_LA_ENTRADA` se calcula arriba del todo, porque el registro a fichero lo
- * necesita antes que nadie. Esto es lo que permite que una juez importe
- * `atenderPeticion` sin abrir ningún puerto ni disparar los refrescos.
+ * *«remove that condition, it is not supported on Hostinger Node.js hosting»*:
+ * su lanzador importa este módulo, así que importarlo tiene que dejarlo
+ * escuchando. La única forma de que NO lo haga es pedirlo a gritos con
+ * `DESPLAZAME_SIN_ARRANCAR=1`, y eso solo lo hace la suite. Ver `SIN_ARRANCAR`
+ * arriba del todo, y la juez 4 de `servidor.spec.ts`.
  */
-if (ES_LA_ENTRADA) {
+if (!SIN_ARRANCAR) {
   servidor.listen(PUERTO, alEmpezarAEscuchar);
 }
