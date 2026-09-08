@@ -7,7 +7,12 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ## ESTADO ACTUAL — 1 de septiembre de 2026
 
-**⭐ PUNTOS 1-13 CERRADOS (el 13, el 7/09: LA MOTO ENTERA — la letra
+**⭐ PUNTOS 1-14 CERRADOS (el 14, el 8/09: DE LOCAL A PRODUCCIÓN EN
+UN DÍA — https://desplazame.antonioblanquez.es vivo en Fráncfort con
+las seis fuentes, el cron de las 02:30, el parche de seguridad, el
+hueco que habla y la verificación del datacenter con tres hallazgos
+[DGT geobloqueada · el huso · los relevos de lsnode]. El 13, el
+7/09: LA MOTO ENTERA — la letra
 de la OMUZ medida, la privada sobre la red del coche con el remate
 en aparcamoto por conflación declarada, YeGo con el contrato leído,
 el fin de viaje dentro de su área pintada y la flota viva por GBFS,
@@ -205,6 +210,28 @@ OTP, los desvíos, la pantalla, los contrastes, el vivo a petición,
 las bitácoras nº17-28 y los papeles; más de sesenta commits). El
 push es de Antonio.
 
+**⭐⭐ EL PUNTO 14 CERRADO (8/09): DE LOCAL A PRODUCCIÓN EN UN DÍA.**
+Tras M1-M3 (entrada abajo): EL PANEL DE FRESCURA AL DÍA (39→54
+filas; las seis vivas como recursos remotos [Data Package v1]; la
+fila viva del feed en /api/salud calculada al preguntar; la juez que
+barre real→declarado; la cuarta cara de la enumeración declarada
+antes de morder) · EL PARCHE (fast-uri 3.1.7 + qs 6.16.0, audit
+2→0, el diff solo-lockfile verificado por dos vías; la §1.30
+rectificada con fecha) · M4 EL CRON (02:30 desde el panel de Linaje
+[precedente ZetaBus]; «aceptado: True» verificado contra
+producción) · M5 LA VERIFICACIÓN (la tabla de las seis desde
+Fráncfort; el hueco medido en un Redistribuir real: CERO cortes, 37
+muestras, las dos frases de la nº37 habladas 2:23-2:45 y el viaje
+en hueco distinto — el aviso no es decorativo; y TRES HALLAZGOS: la
+DGT geobloquea el datacenter [la degradación honesta ES la
+respuesta — parlamentado], EL HUSO en pantalla [alMinuto sin
+timeZone: el poste dice 13:53 a quien vive a las 15:53; el BiZi
+acierta por dos errores compensados — EL ENCARGO SIGUIENTE, con
+bitácora], y lsnode releva procesos [3 en 75 s: cada relevo
+reinicia el hueco; pid==pid asume un proceso — a la guía]). El ojo
+sobre la web pública: todo ✔. → Quedan el 15 (estética, SE ABRE) y
+el 16 (intranet).
+
 **⭐ DESPLÁZAME EN PRODUCCIÓN (8/09): M1-M3 — EL 503 CAYÓ TRAS TRES
 CAUSAS, CADA UNA DICHA POR UN LOG.** M1 (Añadir web; el repo se
 añade EN GitHub; los permisos de escritura de la app de Hostinger
@@ -223,7 +250,7 @@ dist al salir del clon — la juez del mismo disco no podía verlo;
 app/dist/** -text verificado sobre clon). El ojo: «veo el buscador
 y el mapa» — https://desplazame.antonioblanquez.es VIVO, servido
 desde de-fra-web2061. 645 motor · 285 interfaz · 40 bitácoras.
-→ Los papeles al día; M4 (el cron) y M5 (la verificación) quedan.
+→ ⚰️ M4 y M5, hechos ese mismo día (ver la entrada del cierre).
 
 **M0 HECHO (8/09, tarde): EL MOTOR HABLA EL IDIOMA DEL PANEL — Y LA
 nº39.** El build (tsc a dist heredando el comprobador; rutas
@@ -1457,16 +1484,18 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (⚰️ M0-M3 hechos el 8/09 — EN PRODUCCIÓN) (1)
-**M4 — EL CRON del renovar-feed** (receta de Antonio al panel: curl
-POST + Bearer, madrugada; y ANTES el diagnóstico del PANEL DE
-FRESCURA contra las fuentes de hoy, que el cron bebe de ahí — más la
-Z del log si falta); (2) **M5 — la verificación desde el
-datacenter** (las seis fuentes, el caso del ojo por la URL pública,
-el aviso de caducidad visible, el hueco hablando tras un push) — con
-el vale del ojo, EL 14 SE CIERRA; (3) los pendientes declarados de
-M3: el mini de las VULNERABILIDADES npm (fast-uri/qs, el email) ·
-cabeceras de caché · el mock del e2e vivo; (4) la cola técnica (al cierre,
+**Lo siguiente:** (⚰️ EL 14 CERRADO el 8/09 — EN PRODUCCIÓN) (1)
+**EL ENCARGO DEL HUSO** (el hallazgo 2 de M5, único fallo real en la
+mesa): alMinuto con timeZone Europe/Madrid [la doctrina: localiza
+solo al presentar, con zona IANA] + el cuando del BiZi bien parseado
+(los dos errores compensados deshechos) + bitácora nº41 (el estrella
+medido: verde en local mientras producción enseña 13:53 a las
+15:53); tras su verde: EL PUSH ÚNICO del día (papeles + huso) y el
+ojo comprobando la hora buena; (2) **EL PUNTO 15 — ESTÉTICA** (se
+abre; poco a poco): el parlamento primero — color de marca ·
+title · favicon · lo que el ojo mande; (3) los pendientes del 14 en
+cola: cabeceras de caché · el mock del e2e vivo · el cron educado
+municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
 viajeEnBus obligatorio para desvíos · el gemelo de continuando
 (522/1.841, con cabeza) · las 1.160 líneas de servidor.ts · los
@@ -1788,7 +1817,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 930 pruebas (645 motor + 285 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 941 pruebas (646 motor + 295 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

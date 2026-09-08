@@ -3481,7 +3481,16 @@ CONSTA hasta la sonda).
       con la red cortada. Al cierre del 13: 612 motor · 282
       interfaz · 38 bitácoras, 0 abiertas.
 
-## 14 — Despliegue *(en grueso; el 8/09 le despejó el terreno: el
+## 14 — Despliegue — **⭐ CERRADO el 8/09/2026** *(EN UN DÍA: el
+parlamento con la doc del panel, M0 local, M1-M3 con las tres
+causas del 503 dichas por sus logs, el panel de frescura al día,
+el parche de seguridad, el cron de las 02:30 y la verificación
+desde el datacenter con el ojo delante —
+https://desplazame.antonioblanquez.es VIVO. Quedan de su cola: el
+HUSO [encargo siguiente, con bitácora] · el cron educado del GET
+condicional [casilla abajo, cuando las fuentes municipales lo
+pidan] · cabeceras de caché · el mock del e2e vivo.)*
+*(La cabecera de trabajo: en grueso; el 8/09 le despejó el terreno: el
 CENSO pre-despliegue [docs/CENSO-PRE-DESPLIEGUE.md, bloque A parcial
 de la guía] + la TANDA de cinco piezas — la juez de los glifos, las
 2 dependencias muertas fuera, EL PUERTO POR ENTORNO [twelve-factor:
@@ -3641,19 +3650,65 @@ plan; Linaje para el panel). Los NO CONSTA del 17/08, RESUELTOS:**
       index.html no-store) · el mock del e2e bizi-y-resumen (dato
       vivo) · el mini de las vulnerabilidades npm (fast-uri 3.1.6 ·
       qs 6.16.0 — el email del 8/09).
-- [ ] **M4 · EL CRON DEL FEED**: curl POST + Authorization Bearer al
-      /api/renovar-feed público, cadencia diaria de madrugada [el
-      02:00 de ZetaBus como precedente] — el «sin-cambios» de
-      Avanza es lo esperado hasta ~5/10; el cron educado del GET
-      condicional (casilla de abajo) se ejecuta aquí si las fuentes
-      emiten validadores.
-- [ ] **M5 · LA VERIFICACIÓN desde el datacenter**: las SEIS fuentes
-      vivas contestando desde la IP del servidor [el precedente
-      ZetaBus: NAP y Avanza respondieron 74/74] — BiZi · poste ·
-      operativa · DGT · YeGo · festivo-web, medidas una a una; el
-      caso del ojo (Coloso→Gómez Laguna) por la URL pública; el
-      aviso de vejez visible; el hueco del arranque hablando tras un
-      push de prueba. Con el vale del ojo, EL 14 SE CIERRA.
+- [x] **⭐ M4 · EL CRON — PUESTO (8/09)**: en el panel de Linaje [el
+      precedente ZetaBus: la app Node no expone la sección], diario
+      a las 02:30 (media hora tras el de ZetaBus, sin solape), curl
+      POST + Bearer al /api/renovar-feed público. VERIFICADO con
+      disparo manual desde PowerShell contra producción:
+      «aceptado: True» — el motor de Fráncfort baja el GTFS del NAP
+      («sin-cambios» esperado hasta ~5/10; el día que Avanza
+      publique el cuadro de curso, el cron lo coge solo). ANTES del
+      cron: EL PANEL DE FRESCURA AL DÍA (diagnóstico + encargo,
+      8/09): 39→54 filas (las 9 que faltaban — el coche entero
+      entró el 2/09 y el manifiesto quedó el 28/08; los 3 del cron
+      SIN huella a conciencia: «una huella sería una mentira con
+      fecha»), LAS SEIS VIVAS como recursos remotos [Data Package
+      v1: el path puede ser URL; hash/bytes opcionales] con su
+      cadencia medida del código, UNA SOLA VERDAD para el feed
+      (/api/salud publica sello·vence·estado CALCULADOS AL
+      PREGUNTAR y el panel pinta la fila viva), y LA JUEZ QUE BARRE
+      (real→declarado — la dirección que faltaba; cuarta cara de la
+      enumeración declarada antes de morder: barre directorios). Y
+      el MINI de las vulnerabilidades del email del panel:
+      fast-uri 3.1.7 (resuelto por encima del 3.1.6 pedido — dicho,
+      no redondeado; 4 CVEs altos de SSRF en un motor público) + qs
+      6.16.0; audit 2→0; el diff SOLO el lockfile (verificado por
+      git status Y por sha de los cuatro package.json); la §1.30
+      corregida al timeStamp medido con rectificación fechada
+      [dos fuentes independientes contra la ficha].
+- [x] **⭐ M5 · LA VERIFICACIÓN — HECHA (8/09), fase A + fase B con
+      el ojo delante:** LA TABLA DE LAS SEIS desde Fráncfort: poste
+      vivo ✅ (2,5 s) · BiZi ✅ (0,4-0,5 s) · operativa ✅ caliente
+      (2 desvíos reales) · festivo ⚪→✅ (se demostró en el hueco:
+      anunció su propia ausencia) · YeGo ✅ (150 libres, <1 min ·
+      10 manchas) · DGT ❌ MUDO 5/5 al techo. EL HUECO EN
+      PRODUCCIÓN, medido con sonda cada 10 s sobre un Redistribuir
+      real: CERO cortes (el viejo sirvió hasta el relevo; 37
+      muestras, ni un error), el hueco HABLÓ literal las dos frases
+      de la nº37 durante 2:23-2:45, y el aviso NO es decorativo: el
+      viaje en hueco era OTRO (8 pasos/6.920 m vs 11/7.505 —
+      ruteando por paradas que hoy no se usan). TRES HALLAZGOS:
+      **(1) la DGT geobloquea el datacenter** (desde Zaragoza
+      noExiste en 0,2-0,5 s; desde Fráncfort mudo 5/5) — PARLAMENTO
+      RESUELTO: la degradación honesta ES la respuesta de la demo
+      (200 + «elige a mano» + fuente y hora — la nº38 haciendo su
+      trabajo; esquivar el bloqueo de una sede ni se plantea; la
+      §1.36 gana la línea) · **(2) EL HUSO en pantalla**: alMinuto
+      formatea sin timeZone → pinta en el huso DEL SERVIDOR (el
+      poste dice 13:53 a quien vive a las 15:53 — confirmado por el
+      ojo); el BiZi acierta POR DOS ERRORES COMPENSADOS (su cuando
+      se parsea 2 h adelantado y se pinta en UTC — el texto sale
+      bien, la fecha guardada no); invisible en local por
+      definición — EL ENCARGO SIGUIENTE, con bitácora ·
+      **(3) lsnode RELEVA procesos** (3 en 75 s tras el deploy;
+      /api/salud sin contestar 12 s mientras /api/ruta iba en 1,3 —
+      procesos en estados distintos): cada relevo REINICIA el
+      hueco, y «pid-del-log == pid-que-contesta» asume UN proceso
+      que ahí no existe — las dos consecuencias a la guía. EL OJO
+      (8/09): el caso con sus desvíos ✔ · el poste vivo ✔ (con el
+      huso, conocido) · YeGo ✔ · el coche con el mudo honesto de la
+      DGT ✔ · la app de una pantalla (sin rutas — el fallback
+      comprado por jueces y curl). **EL 14, CERRADO.**
 - [ ] **El mantenimiento de datos (el cron educado) — doctrina leída
       el 23/08, se ejecuta aquí**: la cadencia es POR CONJUNTO y con
       fuente (la declara el manifiesto del panel de frescura, punto
