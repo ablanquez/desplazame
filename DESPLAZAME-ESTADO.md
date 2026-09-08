@@ -1484,14 +1484,18 @@ el botón se negó con el número real dentro — el umbral funcionando en
 vivo; el camino del éxito espera un móvil con GPS. 73 pruebas; el
 repintado sin zone.js verificado sin empujón.
 
-**Lo siguiente:** (⚰️ EL 14 CERRADO el 8/09 — EN PRODUCCIÓN) (1)
-**EL ENCARGO DEL HUSO** (el hallazgo 2 de M5, único fallo real en la
-mesa): alMinuto con timeZone Europe/Madrid [la doctrina: localiza
-solo al presentar, con zona IANA] + el cuando del BiZi bien parseado
-(los dos errores compensados deshechos) + bitácora nº41 (el estrella
-medido: verde en local mientras producción enseña 13:53 a las
-15:53); tras su verde: EL PUSH ÚNICO del día (papeles + huso) y el
-ojo comprobando la hora buena; (2) **EL PUNTO 15 — ESTÉTICA** (se
+**Lo siguiente:** (⚰️ EL 14 CERRADO Y EL HUSO MUERTO el 8/09 — la
+nº41: verde en local por casualidad de huso [la máquina en hora de
+Madrid]; reloj.ts con Europe/Madrid [IANA, nunca desfase fijo — el
+mismo 12:48 de pared es 10:48Z en agosto y 11:48Z en diciembre,
+comprado]; TRES puntas cazadas por grep [alMinuto · bizi ·
+festivo:544]; el compensado del BiZi deshecho ENTERO; jueces con
+hijo en TZ=UTC y la juez 0 comprando que el hijo está de verdad en
+UTC; el dist byte a byte idéntico [el motor manda el texto]; ⚠️
+aviso a futuro: si la pantalla algún día formatea horas por su
+cuenta, necesitará su propia juez — reloj.ts vigila el motor, no el
+navegador. Empujado y VERIFICADO POR EL OJO: el poste dice la hora
+del reloj de quien mira.) (1) **EL PUNTO 15 — ESTÉTICA** (se
 abre; poco a poco): el parlamento primero — color de marca ·
 title · favicon · lo que el ojo mande; (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado

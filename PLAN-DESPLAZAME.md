@@ -3487,7 +3487,9 @@ causas del 503 dichas por sus logs, el panel de frescura al día,
 el parche de seguridad, el cron de las 02:30 y la verificación
 desde el datacenter con el ojo delante —
 https://desplazame.antonioblanquez.es VIVO. Quedan de su cola: el
-HUSO [encargo siguiente, con bitácora] · el cron educado del GET
+⚰️HUSO (muerto ese mismo día: nº41, reloj.ts con
+Europe/Madrid, tres puntas por grep, verificado por el ojo) · el
+cron educado del GET
 condicional [casilla abajo, cuando las fuentes municipales lo
 pidan] · cabeceras de caché · el mock del e2e vivo.)*
 *(La cabecera de trabajo: en grueso; el 8/09 le despejó el terreno: el
@@ -3699,7 +3701,11 @@ plan; Linaje para el panel). Los NO CONSTA del 17/08, RESUELTOS:**
       ojo); el BiZi acierta POR DOS ERRORES COMPENSADOS (su cuando
       se parsea 2 h adelantado y se pinta en UTC — el texto sale
       bien, la fecha guardada no); invisible en local por
-      definición — EL ENCARGO SIGUIENTE, con bitácora ·
+      definición — ⚰️ MUERTO ese mismo día (nº41; reloj.ts
+      [Europe/Madrid, IANA]; tres puntas por grep incl. festivo:544;
+      jueces con hijo TZ=UTC y juez 0; el dist byte a byte idéntico;
+      VERIFICADO por el ojo: el poste dice la hora del reloj de
+      quien mira) ·
       **(3) lsnode RELEVA procesos** (3 en 75 s tras el deploy;
       /api/salud sin contestar 12 s mientras /api/ruta iba en 1,3 —
       procesos en estados distintos): cada relevo REINICIA el
