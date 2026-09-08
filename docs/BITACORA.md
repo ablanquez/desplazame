@@ -14,6 +14,89 @@
 
 ---
 
+## [2026-09-08] ✅ CERRADA — Entra la ficha 37 del notices y dos jueces de la pantalla llevan un día en rojo: la portada sigue diciendo 36 y la ficha de cierre ya no cierra
+
+**Categoría:** un guardián nuevo con menos alcance que el que ya había
+**Síntoma:** la suite de la interfaz da **2 fallos de 285**, los dos en
+`app/src/app/atribucion.spec.ts`, y no son de hoy:
+
+```
+FAIL  ⭐ «El resto del dato» cierra la lista, sea cual sea su número
+      AssertionError: expected 'El distintivo ambiental de una matríc…' to contain 'El resto del dato'
+FAIL  ⭐ el número de fichas que declara el README es el que hay
+      AssertionError: expected 36 to be 37
+```
+
+Medido commit a commit: en `e2d3b90` había **36 fichas**, el README decía **36** y
+§ 1.36 «El resto del dato» era la última —las dos jueces en verde—. En `eefd9c1`
+entra § 1.37 (el distintivo de la DGT) **detrás** de la de cierre y sin tocar la
+portada: 37 fichas, README 36, y la de cierre desplazada. Rojas desde entonces.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** `motor/src/notices.spec.ts`
+—el guión que escribí **en ese mismo commit** para que la cabecera del notices
+«no pueda envejecer sola»—. Ejecutado hoy, con las dos jueces de al lado rojas y
+sin tocar nada:
+
+```
+$ node --test motor/src/notices.spec.ts
+  ✔ ⭐ 1 · la cabecera dice tantas fichas como fichas hay (0.5904ms)
+  ✔ ⭐ 2 · las fichas van de la 1.1 a la última, sin huecos ni repetidos (0.5834ms)
+  ✔ ⭐ 3 · la tabla de las que se consultan dice tantas como filas tiene (0.2562ms)
+✔ ⭐ EL RECUENTO DEL THIRD-PARTY-NOTICES — la cabecera no puede envejecer sola (2.2074ms)
+ℹ pass 3
+ℹ fail 0
+```
+
+Y el checkpoint de esa tanda declaró el desplazamiento de § 1.36 **como una
+preferencia que Antonio podía decidir** —«Si prefieres que la del «todavía no»
+cierre siempre el bloque, es un cambio de orden y te lo dejo dicho»—, sin saber
+que había una juez exigiéndolo y que ya estaba roja.
+
+**Cómo se cazó:** test — la suite COMPLETA de la interfaz, corrida hoy en la
+verificación del M0 del punto 14. En la tanda del 7/09 solo se corrieron la suite
+del motor y `buscador.spec.ts` a solas, y las dos jueces viven en otro fichero.
+**Causa raíz:** el guardián vigilaba **el recuento que el notices hace de sí
+mismo** —su cabecera contra sus propias fichas— y nada más. La regla de que «El
+resto del dato» cierra la lista y el número que la PORTADA declara son
+afirmaciones de OTROS sitios sobre el notices, y vivían en la suite de la
+interfaz. Al escribir el guión en el mismo commit que rompía las dos, el verde
+propio se leyó como cobertura: la sensación de «esto ya lo vigila una máquina»
+sustituyó a correr la suite entera. Y la numeración seguida —que SÍ se
+comprobaba— era justo el síntoma que no veía nada: 1.1 a 1.37 sin huecos es
+verdad tanto si la de cierre cierra como si no.
+**Arreglo aplicado:** en `THIRD-PARTY-NOTICES.md` la ficha de la DGT pasa a
+§ 1.36 y «El resto del dato» cierra como § 1.37 —con el puntero de la cabecera
+y la fila de la tabla de las seis movidos—; en `README.md:1034`, el recuento de
+36 a 37. Y `motor/src/notices.spec.ts` estrena la **juez 4**, copia declarada de
+la de `atribucion.spec.ts` porque las dos suites se corren por separado. No se
+dedujo que cace: se le puso delante el fichero roto de verdad y sale roja.
+
+```
+$ node scratchpad/probar-juez4.mjs  (git show eefd9c1:THIRD-PARTY-NOTICES.md)
+eefd9c1 (roto)       fichas=37  última=«El distintivo ambiental de una matrícula — DGT (sede»
+                     juez 4 → ✖ ROJA
+HEAD (arreglado)     fichas=37  última=«El resto del dato — todavía **ninguno**»
+                     juez 4 → ✔ verde
+```
+
+⚠️ **Queda una deuda fuera de mi alcance, y se reporta:**
+`DESPLAZAME-ESTADO.md` (149, 196, 253) y `PLAN-DESPLAZAME.md` (3490) nombran la
+ficha de la DGT como § 1.37 **cuatro veces**, y desde el arreglo es la § 1.36.
+Esos dos documentos los lleva otra conversación y no se tocan.
+**Commit:** `fcc3fb8` (el arreglo). La captura, antes de tocar nada, en este
+mismo fichero.
+**Ley que sale de aquí:** un guardián escrito para un documento vigila **el
+recuento que ese documento hace de sí mismo**, no las afirmaciones que otros
+documentos hacen sobre él. Y escribir el guardián en el mismo commit que rompe
+lo que otro ya vigilaba es la peor combinación posible: el verde propio tapa el
+rojo ajeno. Hermana de la nº5, con la traza y el instrumento cambiados.
+**Traza:** `motor/src/notices.spec.ts` (el que mintió) ·
+`app/src/app/atribucion.spec.ts` jueces «El resto del dato» y «el número de
+fichas» (las que cayeron) · `THIRD-PARTY-NOTICES.md` § 1.36 y § 1.37 ·
+`README.md:1034` · commit `eefd9c1`.
+
+---
+
 ## [2026-09-07] ✅ CERRADA — El botón de la DGT se queda diciendo «Preguntando a la DGT…» para siempre, y ninguna capa pone techo
 
 **Categoría:** una espera sin techo que nadie puede terminar
