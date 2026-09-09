@@ -121,6 +121,39 @@ describe('App — la cáscara, su página y el comodín', () => {
     expect(peticiones).toEqual([]);
   });
 
+  /**
+   * ⭐ (iv) EL GUARDIÁN, AHORA CON /identidad DELANTE (9/09, punto 15).
+   *
+   * La página de identidad visual nació con tokens, tablas, sondas y una letra
+   * propia. Es exactamente la clase de cosa que engorda la portada sin que
+   * nadie lo note — igual que el panel en su día—, y por eso entra con
+   * `loadComponent`.
+   *
+   * ⚠️ Lo que se compra aquí es que **la raíz no la monta**. El peso del
+   *    paquete lo dice el build: `identidad` sale como trozo perezoso propio,
+   *    y si alguien cambiara `loadComponent` por `component` esa juez de
+   *    arriba —cero peticiones— seguiría en verde, porque el código empaquetado
+   *    no se pide por `fetch`. Esta es la que lo vería.
+   */
+  it('⭐ la portada NO monta la página de identidad', async () => {
+    const { raiz } = await ir('/');
+    expect(raiz.querySelector('app-identidad')).toBeNull();
+  });
+
+  it('⭐ y /identidad sí la monta, que es su sitio', async () => {
+    // El contraste, otra vez: si esto NO montara nada, la prueba de arriba
+    // estaría pasando porque la página está rota, no porque la raíz sea limpia.
+    const { raiz } = await ir('/identidad');
+    expect(raiz.querySelector('app-identidad')).not.toBeNull();
+  });
+
+  it('⭐ y entrar en /identidad tampoco pide nada por `fetch`', async () => {
+    // No lee ningún manifiesto ni ningún dato: los colores los saca del CSS
+    // que ya viene en el paquete. Si algún día pidiera algo, que se vea.
+    await ir('/identidad');
+    expect(peticiones).toEqual([]);
+  });
+
   it('⭐ y el manifiesto se pide al entrar en /panel, que es su sitio', async () => {
     // El contraste: la misma cáscara, la misma sesión, otra ruta. Si esto NO
     // pidiera nada, la prueba de arriba estaría pasando por la razón
