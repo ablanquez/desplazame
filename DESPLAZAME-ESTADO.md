@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 1 de septiembre de 2026
+## ESTADO ACTUAL — 9 de septiembre de 2026
 
 **⭐ PUNTOS 1-14 CERRADOS (el 14, el 8/09: DE LOCAL A PRODUCCIÓN EN
 UN DÍA — https://desplazame.antonioblanquez.es vivo en Fráncfort con
@@ -195,10 +195,16 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 
 **Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
 entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar** *(al cierre del 8/09 noche)*: **los
-papeles de M1-M3; el código está TODO publicado (el push del apaño
-de la portada llegó con la portada verificada por el ojo) — ⚠️ desde
-M2, CADA PUSH REDESPLIEGA.** *(La nota
+comprobado). **En local, sin publicar** *(al cierre del 9/09)*:
+**13 commits — los papeles de las casillas 0+3 del 15
+(`3ff5fd8`; NO CONSTA si se empujó ya) y LOS 12 DE LA TANDA 1 DEL
+CALCO (6 de la tanda [`413b683`…`4eb8f26`] · 4 de la 1-bis
+[`910221c`…`bf078a6`] · 2 del remate [`cf9c950`, `13b78e3`]); al
+empujar, /identidad SALE A PRODUCCIÓN (sin enlace, accesible por
+URL — como salió /panel) — ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
+*(La nota del 8/09 noche: los
+papeles de M1-M3; el código estaba TODO publicado — el push del apaño
+de la portada llegó con la portada verificada por el ojo.)* *(La nota
 del 7/09: el push
 del 6/09 noche llegó hasta `c2f74cd`)*: **el espejo del encadenado
 (2 commits), la DGT sin bucle (nº38, 4 commits) y el CIERRE DEL
@@ -1524,11 +1530,68 @@ dictados MEDIDOS, no de memoria], con el bucle de Moto/Coche cazado
 por el cable y arreglado, y los huecos DECLARADOS que se cierran en
 Angular [oscuro · caducidad · error DGT · pie de edad · iconos del
 select · móvil sin verificar]; la crónica entera en la casilla 3
-del plan): lo siguiente es EL CALCO — (a) Antonio exporta el
-código de Make (GitHub o ZIP) a una carpeta de referencia FUERA
-del repo; (b) la TANDA 1 del calco (los tokens del claro, casillas
-2+4 del plan) se encarga desde aquí; el logo (casilla 1) sigue sin
-modelar — la maqueta usa un pin genérico. Micro-decisiones de
+del plan): (a) ⚰️ EL EXPORT HECHO (9/09): el código de Make
+descargado como ZIP (la conexión GitHub de Figma falló por planes
+cruzados — irrelevante, el ZIP da lo mismo) y colocado FUERA del
+repo en F:\01_PROYECTOS\004_DESPLAZAME_REF_MAKE, con copia remota
+privada en github.com/ablanquez/desplazame-figma; SORPRESA BUENA:
+el export trae la paleta oscura ENTERA diseñada en su index.css
+(.dark) aunque la maqueta no la aplicara — el oscuro se calcó, no
+se inventó. (b) ⚰️ LA TANDA 1 DEL CALCO CERRADA (9/09, tanda +
+1-bis + remate, 12 commits): los tokens de TRES CAPAS (:root ·
+@media dark · [data-theme] que manda, con color-scheme por tema
+para los controles nativos — doctrina MDN) calcados del index.css
+de referencia y vigilados por juez de 80 valores + las capas
+leídas resueltas en Chrome · Inter 4.1 AUTOALOJADA en woff2 con
+OFL y PROCEDENCIA.md (doctrina: sentencia Múnich 1/2022 — Google
+Fonts remoto manda la IP a Google, RGPD; juez: 0 peticiones a
+Google medidas en red real) · tabular-nums por font-variant-numeric
+(MDN: la propiedad de alto nivel, no font-feature-settings) · LA
+PÁGINA /identidad (el patrón del panel: nace sin enlace y sin
+tocar la portada — y la literatura lo valida: los sistemas de
+diseño documentan sus pares aprobados con ratios): paleta entera
+en claro/oscuro con ratio medido al lado, los 6 modos × 4
+variantes, tipografía y la demo de cifras [rehecha: unos y ochos,
+la primera no demostraba] · CONTRASTE: los 11 pares del calco que
+no llegaban a 4,5:1 (WCAG 1.4.3: texto normal; la firma exacta de
+la paleta: blanco sobre blue-600 pasa, verde/teal/naranja no)
+corregidos POR PASO DE SOMBRA EN LA MISMA FAMILIA (el patrón
+documentado; hex cotejados contra colors.js v3.4.17 descargado,
+no de memoria) → 36/36 AA, censo de deuda VACÍO con jueza que
+compara la lista entera · los 3 empates del oscuro resueltos por
+la variante sin daño colateral (texto a -300 [la guía: 50-300
+sobre oscuro], soft intacto; el relleno tenue está exento por
+1.4.11 — si el texto identifica el control, el fondo no necesita
+3:1) · PRESUPUESTO GOBERNADO: initial maximumWarning 500→520 kB
+(el mecanismo documentado del CLI; el anti-patrón es el número
+absurdo o la ceguera de alarma), error en 1 MB, sin aviso
+[501,54] · el censo de crecimiento DENTRO del e2e cantando +2
+peticiones/+11,7 kB en cada ejecución (comprimido: ~70 bytes) ·
+DOS BITÁCORAS de juezas mentirosas cazadas en caliente: la nº42
+[la jueza de Google Fonts pasaba con un @import delante — nacida
+en verde, cazada FABRICÁNDOLE la infracción] y la nº43
+[[data-theme=light] no ganaba al sistema oscuro y el comentario
+del CSS decía lo contrario que el código; solo la vio Chrome
+emulando] · DOS LECCIONES DE ENCARGO: el juez (iv) nació
+autocontradicho [«cero crecimiento» + tokens globales no caben
+juntos; reformulado al invariante verdadero: la portada no monta
+/identidad ni baja Inter, y el crecimiento se ve y se ratifica —
+los budgets EXISTEN para gobernar crecimiento, no congelarlo] y
+la regla del empate («mueve el relleno») era convención nuestra y
+elegía peor — entre dos conformes gana la que no degrada nada
+colateral. Marcadores: interfaz 295→431 en 14 ficheros · motor
+651 intacto · bitácora 43 [0 abiertas; la REABIERTA del marcador
+es la del tsc, cerrada — el recuento conserva la marca histórica
+por ley de la propia bitácora]. LA APP SE VE IGUAL: a propósito
+[doctrina incremental — cimientos sin tocar producto; lo visible
+empieza en la tanda 2]): lo siguiente es EL PUSH (botón de
+Antonio: los commits del calco + papeles en local — el detalle en
+el bloque de publicación; al empujar redespliega y /identidad
+sale a producción sin enlace, como salió /panel) y después LA
+TANDA 2
+DEL CALCO — aplicar la base al producto (body: fondo, Inter,
+cifras — PRIMER CAMBIO VISIBLE), encargo desde aquí; el logo
+(casilla 1) sigue sin modelar. Micro-decisiones de
 Antonio en la mesa del calco: ¿«Limpiar búsqueda» se queda? · la
 función del pin del grupo; (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
@@ -1854,7 +1917,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 941 pruebas (646 motor + 295 interfaz; e2e yego.mjs 28, moto.mjs y dos-filas.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (290+353 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.082 pruebas (651 motor + 431 interfaz; e2e yego.mjs 28, moto.mjs, dos-filas.mjs e identidad.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (294+360 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

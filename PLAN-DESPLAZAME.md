@@ -3758,16 +3758,18 @@ Code lo traduce al Angular existente.)*
 - [ ] **1 · EL LOGO** — símbolo «ruta/movimiento» en azul primario;
       versiones completo/reducido/favicon (SVG con media query de
       tema)/app-icon [DISEÑO §4 y §36].
-- [ ] **2 · LOS TOKENS** — escalas de 12 pasos (azul primario, gris,
+- [x] ⚰️ HECHA (9/09, vía la tanda 1 de la casilla 4) ·
+      **2 · LOS TOKENS** — escalas de 12 pasos (azul primario, gris,
       semánticos; el ámbar de avisos conservado como escala) en
       Figma Variables con modos claro/oscuro → exportados a DTCG →
       CSS custom properties (:root · @media dark ·
       [data-theme="dark"]) [DISEÑO §2, §26, §37]. ⭐ REENCAMINADA
       (9/09): Make no produce Figma Variables→DTCG — los hex y
-      medidas se CALCAN del código de referencia exportado (casilla
-      4, tanda 1), nombrados igualmente en DTCG/custom properties;
-      la paleta oscura se construye a mano en esa tanda con la
-      doctrina del DISEÑO (§26), sin referencia visual de Make.
+      medidas se CALCARON del código de referencia exportado
+      (su index.css traía la paleta oscura ENTERA en .dark: el
+      oscuro se calcó, no se construyó a ciegas), como custom
+      properties de TRES capas + color-scheme por tema. La crónica
+      entera, en la tanda 1 de la casilla 4.
 - [x] ⚰️ HECHA (8-9/09, declarada buena por Antonio el 9/09;
       maqueta publicada: front-sport-35581292.figma.site) ·
       **3 · EL MODELADO en Figma Make** — iterado entre el ojo de
@@ -3807,19 +3809,57 @@ Code lo traduce al Angular existente.)*
 - [ ] **4 · LA TRADUCCIÓN a Angular** — EL CALCO (parlamentado el
       9/09: la maqueta no se cablea, SE CALCA sobre el Angular que
       ya tiene la lógica entera cableada y sus jueces en verde;
-      revestir, no reescribir). PRERREQUISITO: Antonio exporta el
-      código de Make (GitHub o ZIP) y lo coloca FUERA del repo como
-      material de referencia — de ahí se leen hex, medidas y
-      estructura exactos; NI UNA LÍNEA se copia a producción
-      (calidad-maqueta: traía un bucle infinito de serie).
+      revestir, no reescribir). ⚰️ PRERREQUISITO HECHO (9/09): el
+      ZIP de Make descomprimido FUERA del repo en
+      F:\01_PROYECTOS\004_DESPLAZAME_REF_MAKE (la conexión GitHub
+      de Figma falló por planes cruzados — el ZIP da lo mismo),
+      con espejo privado en github.com/ablanquez/desplazame-figma;
+      de ahí se leen hex, medidas y estructura exactos; NI UNA
+      LÍNEA se copia a producción (calidad-maqueta: traía un bucle
+      infinito de serie).
       (Encargos a Claude Code, por
       tandas parlamentadas): tokens primero, layout después
       (100dvh, scroll por bloque, bottom sheet, separador),
       componentes al final; los emojis se van (Material Symbols +
-      etiqueta de texto); las 295 jueces de interfaz acompañan cada
+      etiqueta de texto); las jueces de interfaz acompañan cada
       tanda; la tesela oscura con su API key de CARTO, su
       atribución «© CARTO» junto a la de OSM, y SUS JUECES de
       contraste (el precedente del teselado claro).
+      - [x] ⚰️ TANDA 1 — LOS TOKENS Y /identidad (9/09; tanda +
+        1-bis + remate, 12 commits, checkpoints aceptados). Lo
+        construido: tokens de tres capas con color-scheme por tema
+        [MDN] · Inter 4.1 autoalojada woff2+OFL+PROCEDENCIA
+        [sentencia Múnich 1/2022: Google Fonts remoto = IP a
+        Google, RGPD; juez: 0 peticiones medidas en red] ·
+        tabular-nums por font-variant-numeric [MDN, alto nivel] ·
+        /identidad como página de foundations [patrón /panel: sin
+        enlace, portada intacta; la literatura: documentar pares
+        aprobados con ratios] con conmutador local de tema y demo
+        de cifras [rehecha: la primera no demostraba] · contraste
+        36/36 AA [los 11 del calco corregidos por paso de sombra
+        en la misma familia contra colors.js v3.4.17; los 3
+        empates del oscuro por la variante sin daño colateral:
+        texto a -300, soft intacto — exento por 1.4.11 si el
+        texto identifica] con censo de deuda vacío y jueza de
+        lista entera · presupuesto initial 520 kB aviso / 1 MB
+        error [el mecanismo del CLI; sin aviso: 501,54] · censo de
+        crecimiento en el e2e [+2 peticiones/+11,7 kB brutos, ~70
+        comprimidos, cantado en cada ejecución]. Bitácoras nº42
+        [jueza de Google Fonts nacida en verde — cazada
+        fabricándole la infracción] y nº43 [data-theme=light no
+        ganaba al sistema; el comentario del CSS mentía; solo la
+        vio Chrome]. Lecciones de encargo: el juez del «cero
+        crecimiento» nació autocontradicho → reformulado a
+        crecimiento GOBERNADO [los budgets existen para eso]; la
+        regla del empate era convención y elegía peor → entre dos
+        conformes gana la que no degrada nada colateral.
+        Marcadores: interfaz 295→431 [14 ficheros] · motor 651.
+        La app se ve igual A PROPÓSITO [doctrina incremental].
+      - [ ] TANDA 2 — LA BASE AL PRODUCTO: body con fondo, Inter y
+        cifras tabulares [primer cambio visible].
+      - [ ] TANDAS 3+ — layout, componentes, tesela oscura, el
+        conmutador global con su anti-FOUC [prioridad documentada:
+        elección guardada > sistema > claro].
 - [ ] **5 · LA VERIFICACIÓN del 15** — AA medido (contraste, targets
       44px, reflow 320px, zoom 200%, teclado), los dos temas por el
       ojo en los 3 tamaños, y el caso de siempre en producción.
