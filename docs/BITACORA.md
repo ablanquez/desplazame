@@ -14,6 +14,64 @@
 
 ---
 
+## [2026-09-09] 🔴 ABIERTA — La jueza que vigila que los datos no cambien a espaldas de nadie se cae por RELOJ, no por huella
+
+**Categoría:** instrumento que deja de vigilar por una causa ajena a lo que vigila
+**Síntoma:** `⭐ la huella de CADA fichero, recalculada, casa con la declarada`
+—la prueba más importante del manifiesto— murió con **timeout**, no con
+discrepancia:
+
+```
+ ❯  desplazame  src/app/manifiesto.spec.ts (12 tests | 1 failed) 5386ms
+     × ⭐ la huella de CADA fichero, recalculada, casa con la declarada 5166ms
+
+Error: Test timed out in 5000ms.
+ ❯ src/app/manifiesto.spec.ts:124:3
+```
+
+⚠️ Y el rojo **no dice que una huella esté mal: dice que no se sabe**. El
+timeout aborta la prueba antes de comparar, así que mientras dura ese fallo el
+manifiesto no está vigilado por nadie.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **la misma prueba, el mismo
+código y el mismo dato, en la ejecución siguiente**, sin tocar nada entre una y
+otra:
+
+```
+$ npx ng test --watch=false          (primera)
+ Test Files  2 failed | 12 passed (14)
+      Tests  3 failed | 438 passed (441)
+
+$ npx ng test --watch=false          (segunda, sin cambiar el manifiesto ni un dato)
+ Test Files  14 passed (14)
+      Tests  441 passed (441)
+```
+
+Y el trabajo que la prueba hace **no llega ni de lejos al límite**. Medido
+aparte, hasheando los mismos 45 ficheros —90,7 MB— tres veces seguidas:
+
+```
+  pasada 1: 727 ms   pasada 2: 77 ms   pasada 3: 76 ms
+```
+
+O sea: los 5.000 ms no se agotan haciendo lo que la prueba hace.
+
+**Cómo se cazó:** casualidad — salió en la tanda 2 del punto 15, al crecer
+`identidad.spec.ts` hasta 143 pruebas y cargar más el conjunto de las catorce
+suites, que corren a la vez.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** una prueba que puede enrojecer **sin que haya nada
+malo** enseña a ignorarla, y el día que enrojezca de verdad nadie la mirará.
+⚠️ Y el arreglo que primero apetece —subir el timeout— es el que la deja pasar
+sin comprobar: el número tendría que subirse otra vez a la siguiente suite que
+entre. Lo que hay que quitar no es el límite, es la carrera.
+**Traza:** `app/src/app/manifiesto.spec.ts:124`, el `it` de la huella;
+`datapackage.json`, 45 recursos con `hash` declarado.
+
+---
+
 ## [2026-09-09] ✅ CERRADA — Quien elige el tema claro teniendo el sistema en oscuro NO consigue el claro, y el CSS llevaba escrito que sí
 
 **Categoría:** un fallo que solo existe en la máquina de otra persona
