@@ -129,11 +129,15 @@ describe('App — la cáscara, su página y el comodín', () => {
    * nadie lo note — igual que el panel en su día—, y por eso entra con
    * `loadComponent`.
    *
-   * ⚠️ Lo que se compra aquí es que **la raíz no la monta**. El peso del
-   *    paquete lo dice el build: `identidad` sale como trozo perezoso propio,
-   *    y si alguien cambiara `loadComponent` por `component` esa juez de
-   *    arriba —cero peticiones— seguiría en verde, porque el código empaquetado
-   *    no se pide por `fetch`. Esta es la que lo vería.
+   * ⚠️ Lo que se compra aquí es **el invariante, no el tamaño**: que la raíz
+   *    NO la monte. Si alguien cambiara `loadComponent` por `component`, la
+   *    juez de arriba —cero peticiones— seguiría en verde, porque el código
+   *    empaquetado no se pide por `fetch`. Esta es la que lo vería.
+   *
+   *    Que la portada no ENGORDE es otra cosa, y no se puede pedir aquí: los
+   *    tokens viven en el CSS global a propósito, así que la portada pesa más
+   *    y va a seguir pesando más conforme el sistema crezca. Eso se **mide y
+   *    se canta** en `e2e/identidad.mjs`, contra el censo del dist anterior.
    */
   it('⭐ la portada NO monta la página de identidad', async () => {
     const { raiz } = await ir('/');
