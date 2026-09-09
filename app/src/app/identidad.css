@@ -1,0 +1,298 @@
+/* La página de identidad. ⚠️ Todo lo de aquí sale de los tokens: si en este
+   fichero apareciera un hex suelto, la página estaría enseñando una cosa y
+   pintándose con otra. Las únicas medidas propias son espacios y tamaños. */
+
+.identidad {
+  display: block;
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Las sondas: pintadas de verdad, pero fuera de la vista. */
+.identidad__sondas {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.identidad__sondas span {
+  display: block;
+  width: 1px;
+  height: 1px;
+}
+
+.identidad__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.identidad h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.identidad h2 {
+  margin: 2.5rem 0 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.identidad h3 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.identidad h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.identidad__intro,
+.identidad__nota {
+  margin: 0 0 0.75rem;
+  max-width: 62rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.identidad__conmutador {
+  flex-shrink: 0;
+  padding: 0.6rem 1rem;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--card);
+  color: var(--card-foreground);
+}
+
+.identidad__conmutador:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.identidad__nomide {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--warning-border);
+  border-radius: 0.5rem;
+  background-color: var(--warning);
+  color: var(--warning-foreground);
+}
+
+/* ── Los pares, en dos columnas: un tema en cada una ── */
+.identidad__temas {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
+}
+
+.identidad__columna {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.identidad__deuda {
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--warning-border);
+  background-color: var(--warning);
+  color: var(--warning-foreground);
+}
+
+.identidad__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.identidad__tabla th,
+.identidad__tabla td {
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+}
+
+.identidad__tabla thead th {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.identidad__tabla tbody th {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.identidad__fila--incumple {
+  background-color: var(--warning);
+  color: var(--warning-dark);
+}
+
+.identidad__muestra {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.identidad code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+}
+
+.identidad__token {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--muted-foreground);
+}
+
+.identidad__ratio {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.identidad__ok,
+.identidad__mal {
+  display: block;
+  font-size: 0.68rem;
+}
+
+.identidad__ok {
+  color: var(--success);
+}
+
+.identidad__mal {
+  font-weight: 600;
+  color: var(--warning-foreground);
+}
+
+/* ── Los modos ── */
+.identidad__modo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.identidad__modo h3 {
+  margin: 0;
+  min-width: 6rem;
+}
+
+.identidad__variantes {
+  display: flex;
+  gap: 1rem;
+}
+
+.identidad__variante {
+  text-align: center;
+}
+
+.identidad__pastilla {
+  display: block;
+  width: 3rem;
+  height: 2rem;
+  margin-bottom: 0.25rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--border);
+}
+
+.identidad__pildoras {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.identidad__pildora {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ── La letra ── */
+.identidad__pesos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.identidad__peso {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.identidad__peso--400 {
+  font-weight: 400;
+}
+
+.identidad__peso--500 {
+  font-weight: 500;
+}
+
+.identidad__peso--600 {
+  font-weight: 600;
+}
+
+.identidad__cifras {
+  display: flex;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.identidad__numeros {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* En COLUMNA y con el filo derecho marcado: es ahí donde se ve la diferencia.
+   `fit-content` hace que cada línea mida lo que mide su texto, así que con las
+   proporcionales el borde queda dentado y con las tabulares, recto. */
+.identidad__numeros li {
+  display: block;
+  width: fit-content;
+  padding-right: 0.4rem;
+  border-right: 2px solid var(--border);
+}
+
+/* ⚠️ La propiedad de alto nivel, no `font-feature-settings: "tnum"`: compone
+   con el resto en vez de pisar las demás características de la fuente. */
+.identidad__numeros--tabulares {
+  font-variant-numeric: tabular-nums;
+}
+
+.identidad__numeros--proporcionales {
+  font-variant-numeric: proportional-nums;
+}

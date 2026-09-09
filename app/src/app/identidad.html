@@ -1,0 +1,224 @@
+<!--
+  ⚠️ LAS SONDAS. No se ven, y no son decoración: son el instrumento.
+
+  Un elemento por token y por tema, con `background-color: var(--el-token)`.
+  El navegador resuelve el `var()` —incluido el encadenado del tema oscuro— y
+  la página lee de aquí **el color que de verdad quedó aplicado**, en vez de
+  llevar una copia de los hex que podría divergir del CSS sin que se notara.
+
+  Van fuera de la vista y NO con `display:none`, que es lo que parecería
+  natural: un elemento sin caja no siempre computa lo mismo, y lo que se
+  necesita es que el navegador lo pinte de verdad aunque nadie lo vea.
+-->
+<div class="identidad__sondas" aria-hidden="true">
+  @for (t of temas; track t) {
+    <div [attr.data-sonda]="t" [attr.data-theme]="t">
+      @for (token of todos; track token) {
+        <span [attr.data-token]="token" [style.background-color]="v(token)"></span>
+      }
+    </div>
+  }
+</div>
+
+<!--
+  El contenedor lleva el `data-theme` del conmutador, y por eso todo lo de
+  dentro se repinta entero: los tokens se redefinen en este subárbol y nada
+  más. `<html>` no se toca, así que salir de esta página no deja rastro.
+-->
+<section class="identidad" [attr.data-theme]="tema()">
+  <header class="identidad__cabecera">
+    <div>
+      <h1>Identidad visual</h1>
+      <p class="identidad__intro">
+        Los tokens del modelado aprobado, calcados uno a uno y
+        <strong>medidos aquí</strong>. Ningún hex está escrito en esta página:
+        cada color se lee del CSS vivo y cada ratio se calcula con la misma
+        función que juzga el resto de la app. Esta pantalla
+        <strong>no toca el producto</strong> — la portada se ve hoy igual que ayer.
+      </p>
+    </div>
+
+    <button type="button" class="identidad__conmutador" (click)="alternar()">
+      {{ tema() === 'light' ? '🌙 Ver en oscuro' : '☀️ Ver en claro' }}
+    </button>
+  </header>
+
+  @if (!hayMedidas()) {
+    <p class="identidad__nomide">
+      <strong>NO CONSTA:</strong> aquí no se ha podido leer ningún color. Pasa
+      en jsdom, que no resuelve <code>var()</code>. En un navegador de verdad
+      esta fila no aparece.
+    </p>
+  }
+
+  <!-- ══════════════ (i) LAS MUESTRAS, Y LO QUE MIDEN ══════════════ -->
+  <h2>Los pares, y su contraste</h2>
+  <p class="identidad__nota">
+    Cada fila es un texto sobre la superficie donde de verdad se pinta. El
+    umbral es <strong>{{ aaTexto }}:1</strong>, el de WCAG 1.4.3 AA para texto
+    normal — y la letra de estas píldoras es de 14 px, así que no hay exención
+    de «texto grande» que valga.
+  </p>
+
+  <div class="identidad__temas">
+    @for (t of temas; track t) {
+      <div class="identidad__columna">
+        <h3>
+          {{ t === 'light' ? 'Claro' : 'Oscuro' }}
+          @if (cuantosIncumplen(t); as n) {
+            <span class="identidad__deuda">{{ n }} por debajo de {{ aaTexto }}:1</span>
+          }
+        </h3>
+
+        <table class="identidad__tabla">
+          <thead>
+            <tr>
+              <th scope="col">Par</th>
+              <th scope="col">Muestra</th>
+              <th scope="col">Texto</th>
+              <th scope="col">Fondo</th>
+              <th scope="col">Ratio</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of paresDe(t); track p.par.rotulo) {
+              <tr [class.identidad__fila--incumple]="p.ratio !== null && !p.cumple">
+                <th scope="row">{{ p.par.rotulo }}</th>
+                <td>
+                  <span
+                    class="identidad__muestra"
+                    [style.background-color]="v(p.par.fondo)"
+                    [style.color]="v(p.par.texto)"
+                    >Zaragoza 24</span
+                  >
+                </td>
+                <td>
+                  <code>{{ p.texto.hex || 'NO CONSTA' }}</code>
+                  <span class="identidad__token">--{{ p.par.texto }}</span>
+                </td>
+                <td>
+                  <code>{{ p.fondo.hex || 'NO CONSTA' }}</code>
+                  <span class="identidad__token">--{{ p.par.fondo }}</span>
+                </td>
+                <td class="identidad__ratio">
+                  <strong>{{ ratioEscrito(p) }}</strong>
+                  @if (p.ratio !== null) {
+                    <span [class]="p.cumple ? 'identidad__ok' : 'identidad__mal'">
+                      {{ p.cumple ? 'AA' : 'no llega' }}
+                    </span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- ══════════════ (ii) LOS SEIS MODOS, CUATRO VARIANTES ══════════════ -->
+  <h2>Los modos</h2>
+  <p class="identidad__nota">
+    Cuatro variantes por modo, y las dos píldoras que se componen con ellas: la
+    seleccionada pone <code>text</code> sobre <code>solid</code>, y la que no lo
+    está pone <code>strong</code> sobre <code>soft</code>.
+  </p>
+
+  @for (m of modos; track m) {
+    <div class="identidad__modo">
+      <h3>{{ m }}</h3>
+
+      <div class="identidad__variantes">
+        @for (variante of variantes; track variante) {
+          <div class="identidad__variante">
+            <span
+              class="identidad__pastilla"
+              [style.background-color]="v('mode-' + m + '-' + variante)"
+            ></span>
+            <span class="identidad__token">{{ variante }}</span>
+            <code>{{ lectura(tema(), 'mode-' + m + '-' + variante).hex || '—' }}</code>
+          </div>
+        }
+      </div>
+
+      <div class="identidad__pildoras">
+        <span
+          class="identidad__pildora"
+          [style.background-color]="v('mode-' + m + '-solid')"
+          [style.color]="v('mode-' + m + '-text')"
+          >{{ m }}</span
+        >
+        <span
+          class="identidad__pildora"
+          [style.background-color]="v('mode-' + m + '-soft')"
+          [style.color]="v('mode-' + m + '-strong')"
+          >{{ m }}</span
+        >
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════ (iii) LA TIPOGRAFÍA ══════════════ -->
+  <h2>La letra</h2>
+  <p class="identidad__nota">
+    Inter 4.1, <strong>autoalojada</strong>: se sirve desde este mismo dominio y
+    nunca desde el CDN de Google — cargarla en remoto mandaría la IP de quien
+    mira a un tercero sin base legal. Detrás va <code>system-ui</code>, que es
+    lo que se lee mientras Inter llega.
+  </p>
+
+  <div class="identidad__pesos">
+    <p class="identidad__peso identidad__peso--400">
+      <span class="identidad__token">400 · Regular</span>
+      Desde Miguel Servet 12 hasta Plaza del Pilar, en autobús.
+    </p>
+    <p class="identidad__peso identidad__peso--500">
+      <span class="identidad__token">500 · Medium</span>
+      Desde Miguel Servet 12 hasta Plaza del Pilar, en autobús.
+    </p>
+    <p class="identidad__peso identidad__peso--600">
+      <span class="identidad__token">600 · SemiBold</span>
+      Desde Miguel Servet 12 hasta Plaza del Pilar, en autobús.
+    </p>
+  </div>
+
+  <h3>Cifras tabulares</h3>
+  <p class="identidad__nota">
+    ⚠️ Se declara con <code>font-variant-numeric: tabular-nums</code> y no con
+    <code>font-feature-settings: "tnum"</code>, que es lo que usa el modelado de
+    referencia. Se calca el efecto, no la sintaxis: la propiedad de alto nivel
+    compone con lo demás en vez de pisar el resto de características de la
+    fuente. En una lista de horas y distancias, la diferencia es que las
+    columnas cuadran.
+  </p>
+
+  <!--
+    ⚠️ LOS NÚMEROS ESTÁN ELEGIDOS PARA QUE LA DIFERENCIA SE VEA, y no al azar.
+       La primera versión de esta demo usaba horas y distancias corrientes
+       —11:07, 890 m— y las dos columnas salían idénticas en pantalla: en Inter
+       casi todos los dígitos miden ya lo mismo, y el único claramente estrecho
+       es el 1. Con cifras de la misma longitud que alternan unos y ochos, el
+       borde derecho de las proporcionales queda dentado y el de las tabulares
+       recto. Una demo que no demuestra es peor que no ponerla.
+  -->
+  <div class="identidad__cifras">
+    <div>
+      <h4>Proporcionales</h4>
+      <ul class="identidad__numeros identidad__numeros--proporcionales">
+        <li>11:11 · 1.111 m</li>
+        <li>18:08 · 8.888 m</li>
+        <li>10:18 · 1.818 m</li>
+        <li>18:10 · 8.181 m</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Tabulares</h4>
+      <ul class="identidad__numeros identidad__numeros--tabulares">
+        <li>11:11 · 1.111 m</li>
+        <li>18:08 · 8.888 m</li>
+        <li>10:18 · 1.818 m</li>
+        <li>18:10 · 8.181 m</li>
+      </ul>
+    </div>
+  </div>
+</section>

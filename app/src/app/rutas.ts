@@ -29,6 +29,19 @@ export const rutas: Routes = [
    * pública, y dónde acaba viviendo se decide en la intranet (punto 14).
    */
   { path: 'panel', loadComponent: () => import('./panel').then((m) => m.Panel) },
+  /**
+   * ⭐ La página de identidad visual, y **por la misma puerta que el panel**.
+   *
+   * `loadComponent` otra vez: ni su código ni su plantilla viajan en el
+   * paquete de la portada. Es lo que deja intacta la ley del 22/08 —la raíz en
+   * frío no baja nada— mientras esta página crece con muestras, tablas y una
+   * letra propia.
+   *
+   * Tampoco hay barra de navegación que lleve hasta aquí: se llega por la URL.
+   * Nace **sin tocar la portada**, que es como nació el panel de frescura y por
+   * la misma razón — el sitio donde el ojo comprueba no puede ser el producto.
+   */
+  { path: 'identidad', loadComponent: () => import('./identidad').then((m) => m.Identidad) },
   // Una dirección que no existe no puede dejar la pantalla en blanco.
   { path: '**', redirectTo: '' },
 ];
