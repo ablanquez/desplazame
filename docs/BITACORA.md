@@ -14,6 +14,113 @@
 
 ---
 
+## [2026-09-09] ✅ CERRADA — Quien elige el tema claro teniendo el sistema en oscuro NO consigue el claro, y el CSS llevaba escrito que sí
+
+**Categoría:** un fallo que solo existe en la máquina de otra persona
+**Síntoma:** con `prefers-color-scheme: dark` emulado, un elemento marcado
+`data-theme="light"` devuelve la paleta **oscura** en los 40 tokens. Medido en
+Chrome con `Emulation.setEmulatedMedia`:
+
+```
+✗✗ ⭐ capa 3 · [data-theme='light'] gana al sistema oscuro
+   --background=#121212≠#ffffff · --foreground=#f0f0f0≠#1e293b
+   --card=#1e1e1e≠#ffffff · --primary=#93c5fd≠#2563eb  … y los 36 restantes
+```
+
+Se ve en `/identidad`: su contenedor arranca en `data-theme="light"`, así que
+con el sistema en oscuro **la página sale oscura y el conmutador dice «Ver en
+oscuro»**. Lo que el ojo ve y lo que el botón promete se contradicen.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la suite entera, y con
+juezas escritas para este mismo asunto. Ejecutada con el fallo vivo, sin tocar
+nada:
+
+```
+$ npx ng test --watch=false
+ Test Files  14 passed (14)
+      Tests  431 passed (431)
+```
+
+Entre esas 431 pasaban «cada tema declara su color-scheme» y «⭐ la capa del
+sistema se aparta cuando alguien ha elegido el claro» — que comprueba que el
+`:not([data-theme='light'])` está escrito en el fichero, y lo está. Y el propio
+`styles.css` llevaba escrito, en un comentario, lo contrario de lo que hacía:
+*«El claro explícito no necesita redeclarar la paleta: `:root` ya la tiene y
+nada la ha pisado»*.
+
+**Cómo se cazó:** instrumento — `e2e/identidad.mjs`, en su primera ejecución.
+Es la única pieza que puede forzar `prefers-color-scheme`.
+**Causa raíz:** el `:not([data-theme='light'])` de la capa del sistema protege
+a `:root` **de sí mismo**, no a sus hijos. Con el sistema en oscuro, `:root`
+recibe la paleta oscura, y un elemento marcado `light` la **hereda**: el bloque
+`[data-theme='light']` solo declaraba `color-scheme` y no tenía nada que
+oponer. La suposición «`:root` ya la tiene» era cierta solo con el sistema en
+claro, que es como estaba esta máquina.
+**Arreglo aplicado:** `[data-theme='light']` redeclara la paleta entera, igual
+que hace `[data-theme='dark']`. Para eso los hex del claro pasaron a llamarse
+`--claro-*` en `:root`, simétricos a los `--oscuro-*`, y los cuatro bloques
+—`:root`, la capa del sistema y los dos elegidos— solo los referencian: cada
+valor se sigue escribiendo una vez. La jueza «⭐ los cuatro bloques asignan los
+40 tokens» los cuenta ahora los cuatro, y ninguno es opcional.
+**Commit:** `10e2696` (el arreglo) · `3522582` (la jueza que lo vigila)
+**Ley que sale de aquí:** **la capa `@media (prefers-color-scheme)` no la puede
+ver ningún test de jsdom**, así que un tema con tres capas no está probado hasta
+que un navegador de verdad emula el sistema operativo. Y el corolario, que es el
+que duele: *un comentario que afirma que algo funciona no es una prueba de que
+funcione*. Éste iba en el mismo fichero que el fallo y lo tapaba.
+**Traza:** `app/src/styles.css`, el bloque `[data-theme='light']`; se ve en
+`app/src/app/identidad.ts` (el conmutador local) y lo caza
+`app/e2e/identidad.mjs`.
+
+---
+
+## [2026-09-09] ✅ CERRADA — La juez que vigila que la letra no venga de Google da VERDE con un fichero que la pide
+
+**Categoría:** una regex que excluye justo lo que tenía que atravesar
+**Síntoma:** la juez (iii) del punto 15 recorre todos los `.css` y `.html` de
+`app/src` buscando peticiones a `fonts.googleapis.com` y `fonts.gstatic.com`. Se
+le puso delante un fichero nuevo, `app/src/app/intruso-temporal.css`, con la
+línea exacta que abre el `index.css` de la referencia —
+`@import url('https://fonts.googleapis.com/css2?family=Inter');`— y **no lo
+vio**. Ni esa juez ni ninguna otra.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la suite ENTERA, con el
+intruso puesto en `app/src/app/` y sin tocar nada más. Ejecutado antes de
+arreglar:
+
+```
+$ npx ng test --watch=false
+ Test Files  14 passed (14)
+      Tests  431 passed (431)
+```
+
+Las dos jueces que tenían que cazarlo —«ningún fichero de la app pide nada a
+fonts.googleapis.com» y su gemela de `gstatic`— pasaron las dos. Y la tercera,
+«la juez barre de verdad: hay ficheros que mirar», también: el barrido **sí**
+encontró el fichero. Lo que no funcionó fue mirar dentro.
+
+**Cómo se cazó:** contraprueba. La juez había nacido en verde —no hay ninguna
+URL de Google en el repositorio— y por eso se le fabricó una infracción a
+propósito, en un fichero nuevo y sin tocar el código real.
+**Causa raíz:** la regex exigía un `url(`, `src=` o `href=` delante del
+dominio y luego atravesaba `[^)"']*` hasta él. **Esa clase excluye las
+comillas**, que es exactamente donde vive la URL: `url('https://…')` no podía
+casar nunca. Solo habría cazado un `url(https://…)` sin comillas, que es la
+forma que nadie escribe. La jueza reconocía una sintaxis inventada, no la real.
+**Arreglo aplicado:** se busca **el dominio a secas**, sin intentar reconocer
+cómo se pide, tras quitar los comentarios del fichero —así una mención en un
+comentario que explica por qué NO se usa sigue siendo legítima, y una URL de
+verdad no—. `sinComentarios()` quita los dos estilos, `/* */` y `<!-- -->`.
+**Commit:** `3522582`
+**Ley que sale de aquí:** una juez que nace en verde **porque no hay infracción
+que cazar** no ha sido probada. Hay que fabricarle la infracción —un fichero
+nuevo, nunca rompiendo el código real— y verla morder. Un verde de nacimiento
+no es una juez: es una juez sin estrenar.
+**Traza:** `app/src/app/identidad.spec.ts`, describe «⭐ (iii) LA LETRA NO
+VIENE DE GOOGLE»; la regex `(url\(|src=|href=)[^)"']*`.
+
+---
+
 ## [2026-09-08] ✅ CERRADA — El poste dice «13:53» a quien vive a las 15:53: la hora se pinta en el huso DEL SERVIDOR, y en local coincide por casualidad
 
 **Categoría:** un fallo que el entorno de desarrollo no puede tener
