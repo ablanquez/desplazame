@@ -137,10 +137,13 @@ try {
   //    juezas, y estan aqui debajo— y lo que se hace con el peso es CANTARLO
   //    en cada ejecucion. Crecimiento gobernado, no congelado: la raya en la
   //    pared esta para que nadie tenga que acordarse de mirar.
-  const ANTES = { peticiones: 4, bytes: 506686 };
-  console.log(
-    `\n  antes de esta tanda (3ff5fd8): ${ANTES.peticiones} peticiones · ${ANTES.bytes} B`,
-  );
+  //
+  //    La raya se mueve cada tanda, a la medida de la anterior. Antes marcaba
+  //    3ff5fd8 (4 peticiones · 506.686 B), que era el estado previo a los
+  //    tokens; ahora marca el final de la tanda 1, que es contra lo que crece
+  //    esta. Lo que se compara siempre es «un paso», no «el origen».
+  const ANTES = { peticiones: 6, bytes: 518423, de: 'la tanda 1 (13b78e3)' };
+  console.log(`\n  antes de esta tanda — ${ANTES.de}: ${ANTES.peticiones} peticiones · ${ANTES.bytes} B`);
   console.log(
     `  ahora:                          ${propias.length} peticiones · ${peso} B` +
       `   → ${propias.length - ANTES.peticiones >= 0 ? '+' : ''}${propias.length - ANTES.peticiones}` +
@@ -152,11 +155,43 @@ try {
       '     mucho y se comprimen casi enteros.',
   );
 
+  // ⚠️ LA LETRA DE ESTA JUEZ CAMBIO EN LA TANDA 2, y hay que decirlo: hasta
+  //    entonces exigia que la portada NO bajara Inter, porque el `body` no
+  //    estaba vestido y nadie la usaba. Ahora la portada **es** quien la usa,
+  //    asi que bajarla es lo correcto y no bajarla seria el fallo.
+  const interEnPortada = enLaPortada.filter((r) => /Inter-\w+\.woff2/.test(r.url));
   juzgar(
-    !enLaPortada.some((r) => /Inter-\w+\.woff2/.test(r.url)),
-    'la portada NO se baja ninguna Inter',
-    'el body no se ha tocado, así que nadie la usa todavía',
+    interEnPortada.length > 0 && interEnPortada.every((r) => r.url.startsWith(APP)),
+    'la portada baja Inter, y del propio dominio',
+    interEnPortada.map((r) => r.url.split('/').pop()).join(', ') || 'ninguna',
   );
+
+  // ⭐ Y SOLO SE PRECARGA EL 400, que no es lo mismo que «solo se baja el 400».
+  //
+  // ⚠️ Esta juez decia lo segundo y era falso: los `h1` y los `legend` son
+  //    negrita, asi que en cuanto el `body` paso a Inter el navegador pidio
+  //    tambien el SemiBold. Eso es correcto —la pagina lo usa—; lo que se
+  //    decidio precargar es solo el peso del texto corrido.
+  const precargado = await mando.evaluar(
+    `JSON.stringify([...document.querySelectorAll('link[rel="preload"]')].map((l) => l.href))`,
+  ).then(JSON.parse);
+  juzgar(
+    precargado.length === 1 && /Inter-Regular\.woff2$/.test(precargado[0] ?? ''),
+    'solo se precarga el peso 400 — el 500 y el 600 llegan si la pagina los usa',
+    precargado.map((u) => u.split('/').pop()).join(', ') || 'nada precargado',
+  );
+
+  // ⭐ NI UNA DOS VECES. Un preload cuya URL no case con la del `@font-face`
+  //    no ahorra: descarga el fichero por duplicado, y no avisa de nada.
+  const veces = {};
+  for (const r of interEnPortada) veces[r.url] = (veces[r.url] ?? 0) + 1;
+  const repetidas = Object.entries(veces).filter(([, n]) => n > 1);
+  juzgar(
+    repetidas.length === 0,
+    'ninguna fuente se baja dos veces (el preload casa con el @font-face)',
+    repetidas.map(([u, n]) => `${u.split('/').pop()} x${n}`).join(', '),
+  );
+
   juzgar(
     !enLaPortada.some((r) => /identidad/.test(r.url)),
     'la portada NO se baja el trozo de /identidad',
@@ -220,11 +255,30 @@ try {
   comparar('capa 1 · :root con el sistema en claro', await leerTokens(':root'), CLARO);
 
   // ⭐ Capa 2 — el sistema en oscuro. Es la que NINGÚN test unitario alcanza.
+  //
+  // ⚠️ Y DESDE LA TANDA 2 HAY QUE QUITAR EL `data-theme` PARA VERLA. El
+  //    documento lo lleva fijado en «light» mientras dure la migracion, asi que
+  //    el `:not([data-theme='light'])` de la capa 2 no aplica en ningun sitio
+  //    de la app: es justo su efecto buscado. Pero la capa SIGUE AHI y el dia
+  //    que llegue el conmutador volvera a mandar, asi que se sigue juzgando —
+  //    se le quita el atributo al documento, se mide, y se le devuelve.
+  //
+  //    Sin esto, la juez quedaria en verde por una razon nueva (no hay nada que
+  //    medir) en vez de por la que se escribio, y eso es exactamente el verde
+  //    que persigue la nº43.
   await mando.cdp('Emulation.setEmulatedMedia', {
     features: [{ name: 'prefers-color-scheme', value: 'dark' }],
   });
   await mando.ir(PAGINA, 4500);
+  const temaFijado = await mando.evaluar(
+    `String(document.documentElement.getAttribute('data-theme'))`,
+  );
+  await mando.evaluar(`document.documentElement.removeAttribute('data-theme')`);
   comparar('⭐ capa 2 · el sistema pide oscuro', await leerTokens(':root'), OSCURO);
+  await mando.evaluar(
+    `document.documentElement.setAttribute('data-theme', ${JSON.stringify(temaFijado)})`,
+  );
+  juzgar(temaFijado === 'light', 'y el documento lo tenia fijado en claro', `era ${temaFijado}`);
 
   // Y con el sistema en oscuro, un trozo marcado como claro TIENE que ganar.
   comparar(
@@ -289,14 +343,52 @@ try {
   console.log('\n  capturas: identidad-claro.png · identidad-oscuro.png');
 
   // Y que el conmutador sea LOCAL de verdad: el documento no se entera.
+  //
+  // ⚠️ Esto pedia que `<html>` siguiera SIN `data-theme`, y desde la tanda 2 lo
+  //    lleva puesto en «light» a proposito. Lo que importaba nunca fue que
+  //    estuviera vacio, sino que el conmutador de esta pagina NO LO CAMBIE.
   const enElDocumento = await mando.evaluar(
     `String(document.documentElement.getAttribute('data-theme'))`,
   );
   juzgar(
-    enElDocumento === 'null',
-    'el conmutador es local: <html> sigue sin data-theme',
-    `<html data-theme=${enElDocumento}>`,
+    enElDocumento === 'light',
+    'el conmutador es local: no toca el data-theme de <html>',
+    `<html data-theme=${enElDocumento}> (tras pulsar «ver en oscuro»)`,
   );
+
+  // ═════════ (v) LA BASE, Y EL TEMA FIJADO EN CLARO ═════════
+  //
+  // ⭐ LA VARA DE LA nº43, APLICADA AL PRODUCTO. Con el `body` en tokens pero
+  //    los componentes aun sin vestir, dejar mandar al sistema pintaria fondo
+  //    oscuro debajo de piezas pensadas para fondo claro. `data-theme="light"`
+  //    en `<html>` lo impide — y que lo impida DE VERDAD solo se puede ver
+  //    emulando el sistema, que es lo unico que ningun test alcanza.
+  console.log('\n═══ (v) LA BASE DEL PRODUCTO ═══');
+  for (const [nombre, sistema] of [['claro', 'light'], ['OSCURO', 'dark']]) {
+    await mando.cdp('Emulation.setEmulatedMedia', {
+      features: [{ name: 'prefers-color-scheme', value: sistema }],
+    });
+    await mando.ir(APP, 4500);
+    const b = JSON.parse(
+      await mando.evaluar(`(() => {
+        const s = getComputedStyle(document.body);
+        return JSON.stringify({
+          tema: document.documentElement.getAttribute('data-theme'),
+          fondo: s.backgroundColor, color: s.color,
+          familia: s.fontFamily, cifras: s.fontVariantNumeric,
+        });
+      })()`),
+    );
+    juzgar(
+      b.tema === 'light' && b.fondo === 'rgb(255, 255, 255)' && b.color === 'rgb(30, 41, 59)',
+      `con el sistema en ${nombre}, la portada se queda CLARA`,
+      `data-theme=${b.tema} · fondo ${b.fondo} · texto ${b.color}`,
+    );
+    if (sistema === 'light') {
+      juzgar(/Inter/.test(b.familia), 'y el body pide Inter', b.familia);
+      juzgar(b.cifras === 'tabular-nums', 'y sus cifras son tabulares', b.cifras);
+    }
+  }
 
   console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);
 } finally {

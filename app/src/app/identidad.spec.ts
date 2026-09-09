@@ -490,3 +490,125 @@ describe('LA PÁGINA de identidad monta con todo lo que hay que medir', () => {
     expect(raiz.querySelector('.identidad__nomide')).not.toBeNull();
   });
 });
+
+/**
+ * ⭐ (v) LA BASE DEL PRODUCTO — el primer cambio que se ve (tanda 2).
+ *
+ * Aquí se juzga lo que la app entera hereda: el fondo, el texto, la letra y el
+ * tema fijado. Lo que NO se juzga aquí es cómo queda en pantalla —eso lo mide
+ * `e2e/identidad.mjs` en Chrome—, porque jsdom no resuelve `var()`.
+ */
+describe('⭐ (v) LA BASE — el body vestido, y la letra que llega a tiempo', () => {
+  const HTML = leer('app/src/index.html');
+  const base = sinComentarios(bloque(CSS, 'body {'));
+
+  it('el body toma el fondo y el texto de los tokens, no de un hex suelto', () => {
+    expect(base).toContain('background-color: var(--background)');
+    expect(base).toContain('color: var(--foreground)');
+    expect(base).toContain('font-family: var(--font-sans)');
+  });
+
+  it('las cifras del producto son tabulares, con la propiedad de alto nivel', () => {
+    expect(base).toContain('font-variant-numeric: tabular-nums');
+    expect(base).not.toContain('font-feature-settings');
+  });
+
+  it('y el suavizado que trae la referencia en su base', () => {
+    expect(base).toContain('-webkit-font-smoothing: antialiased');
+    expect(base).toContain('-moz-osx-font-smoothing: grayscale');
+  });
+
+  /**
+   * ⚠️ El `margin` del body NO se toca en esta tanda. La referencia lo lleva a
+   *    cero por el reset de Tailwind, y copiarlo aquí movería la página entera
+   *    ocho píxeles — que es exactamente lo que esta tanda no hace.
+   */
+  it('⚠️ el body NO toca su margen: eso movería el layout, y es de otra tanda', () => {
+    expect(base).not.toMatch(/(^|[\s;])margin\s*:/);
+  });
+
+  /**
+   * ⭐ EL RESET QUE HAY QUE ESCRIBIR SIEMPRE.
+   *
+   * Los controles de formulario **no heredan la tipografía**: sin esto, el
+   * `body` pasa a Inter y los `select`, `input` y botones —el cuerpo entero de
+   * esta pantalla— se quedan en la letra del sistema.
+   */
+  it('⭐ los controles de formulario heredan la tipografía', () => {
+    // Se lee el selector entero, no cada nombre suelto: buscar «input,» a pelo
+    // casaría con cualquier sitio del fichero donde apareciera esa palabra.
+    const m = /((?:\s*(?:button|input|select|textarea),?)+)\s*\{([^}]*)\}/.exec(
+      sinComentarios(CSS),
+    );
+    expect(m, 'no encuentro el reset de herencia de los controles').not.toBeNull();
+    const nombres = m![1]!.split(',').map((x) => x.trim()).filter(Boolean).sort();
+    expect(nombres).toEqual(['button', 'input', 'select', 'textarea']);
+    // Solo la tipografía: tocar tamaños o colores aquí movería el layout.
+    expect(m![2]!.trim()).toBe('font: inherit;');
+  });
+
+  /**
+   * ⭐ EL TEMA, FIJADO EN CLARO MIENTRAS DURE LA MIGRACIÓN.
+   *
+   * Con el `body` ya en tokens pero los componentes todavía sin vestir, dejar
+   * que mande `prefers-color-scheme` pintaría un fondo oscuro debajo de piezas
+   * pensadas para fondo claro: un estado intermedio roto. La capa 3 gana al
+   * sistema, y eso lo garantiza la jueza de la nº43. Se libera con el
+   * conmutador, cuando los componentes estén migrados.
+   */
+  it('⭐ <html> fija el tema en claro durante la migración', () => {
+    expect(HTML).toMatch(/<html[^>]*\sdata-theme="light"/);
+  });
+
+  /**
+   * ⭐ LA JUEZA DEL DOBLE DESCARGUE, que es la que de verdad hace falta aquí.
+   *
+   * ⚠️ Un `preload` cuya URL no coincida **letra por letra** con la del
+   *    `@font-face` no ahorra nada: el navegador no reconoce lo precargado y
+   *    **baja el fichero dos veces**. Y no avisa de nada — solo se ve mirando
+   *    la red. Por eso las dos se extraen y se comparan, en vez de darlas por
+   *    buenas porque «las escribí iguales».
+   */
+  it('⭐ el preload y el @font-face piden EXACTAMENTE la misma URL', () => {
+    const precargada = /<link[^>]*rel="preload"[^>]*href="([^"]+)"/.exec(HTML)?.[1];
+    const enElCss = /src:\s*url\('([^']*Inter-Regular[^']*)'\)/.exec(CSS)?.[1];
+    expect(precargada, 'no hay preload de fuente en index.html').toBeDefined();
+    expect(enElCss, 'no encuentro el @font-face del peso 400').toBeDefined();
+    expect(precargada).toBe(enElCss);
+  });
+
+  it('el preload se declara como fuente, con su tipo y anónimo', () => {
+    const link = /<link[^>]*rel="preload"[^>]*>/.exec(HTML)?.[0] ?? '';
+    expect(link).toContain('as="font"');
+    expect(link).toContain('type="font/woff2"');
+    // Sin `crossorigin` la petición precargada no casa con la real: dos veces.
+    expect(link).toContain('crossorigin');
+  });
+
+  it('⚠️ solo se precarga el peso 400, que es el del texto corrido', () => {
+    const precargas = HTML.match(/<link[^>]*rel="preload"[^>]*>/g) ?? [];
+    expect(precargas.length).toBe(1);
+    expect(precargas[0]).toContain('Inter-Regular');
+  });
+
+  /**
+   * El respaldo con métricas ajustadas: es lo que quita el salto de maquetación
+   * cuando Inter entra por `swap`. `local('Arial')` no descarga nada.
+   */
+  it('⭐ el respaldo lleva las métricas ajustadas, y va en la pila', () => {
+    // ⚠️ `bloque()` toma un SELECTOR y busca la llave que sigue. Pasarle una
+    //    declaración de dentro —`font-family: 'Inter Fallback'`— le hace saltar
+    //    a la llave del bloque SIGUIENTE. Aquí se recorta el `@font-face` que
+    //    contiene esa familia, que es lo que hacía falta.
+    const respaldo =
+      (sinComentarios(CSS).match(/@font-face\s*\{[^}]*\}/g) ?? []).find((b) =>
+        b.includes("'Inter Fallback'"),
+      ) ?? '';
+    expect(respaldo).toContain("local('Arial')");
+    expect(respaldo).toContain('size-adjust: 107.64%');
+    expect(respaldo).toContain('ascent-override: 90.49%');
+    expect(respaldo).toContain('descent-override: 22.48%');
+    // Detrás de Inter y delante de system-ui: solo vale mientras Inter no está.
+    expect(EN_ROOT['font-sans']).toBe("'Inter', 'Inter Fallback', system-ui, sans-serif");
+  });
+});
