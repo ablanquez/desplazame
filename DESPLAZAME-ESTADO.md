@@ -1516,10 +1516,21 @@ cuenta, necesitará su propia juez — reloj.ts vigila el motor, no el
 navegador. Empujado y VERIFICADO POR EL OJO: el poste dice la hora
 del reloj de quien mira.) (1) **EL PUNTO 15 — EN MARCHA**
 (⚰️ el parlamento cerrado el 8/09: DISEÑO-DESPLAZAME.md v1.0 y las
-10 decisiones valadas): lo siguiente es LA CASILLA 0 — el brief a
-Figma Make (Antonio: las capturas de los 3 tamaños de la app
-actual; el brief se escribe aquí desde la sección «para el brief»
-del DISEÑO); (3) los pendientes del 14 en
+10 decisiones valadas. ⚰️ LAS CASILLAS 0 Y 3 HECHAS el 8-9/09: el
+brief enviado [el Make gratis petó a media generación → la de
+pago] y EL MODELADO DECLARADO BUENO por Antonio — iterado ojo +
+cable [dos pestañas: maqueta contra producción; los subformularios
+dictados MEDIDOS, no de memoria], con el bucle de Moto/Coche cazado
+por el cable y arreglado, y los huecos DECLARADOS que se cierran en
+Angular [oscuro · caducidad · error DGT · pie de edad · iconos del
+select · móvil sin verificar]; la crónica entera en la casilla 3
+del plan): lo siguiente es EL CALCO — (a) Antonio exporta el
+código de Make (GitHub o ZIP) a una carpeta de referencia FUERA
+del repo; (b) la TANDA 1 del calco (los tokens del claro, casillas
+2+4 del plan) se encarga desde aquí; el logo (casilla 1) sigue sin
+modelar — la maqueta usa un pin genérico. Micro-decisiones de
+Antonio en la mesa del calco: ¿«Limpiar búsqueda» se queda? · la
+función del pin del grupo; (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
 municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·

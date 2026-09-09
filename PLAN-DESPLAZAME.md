@@ -3741,7 +3741,12 @@ flujo: se modela en FIGMA MAKE (Antonio modela; Claude lee por MCP)
 → el resultado es ESPECIFICACIÓN + TOKENS DTCG, no código → Claude
 Code lo traduce al Angular existente.)*
 
-- [ ] **0 · EL BRIEF a Figma Make** — escrito desde la sección «para
+- [x] ⚰️ HECHA (8/09 — escrito aquí y enviado; inputs: las capturas
+      de los 3 tamaños + los textos reales. La lección del arranque:
+      el Make GRATIS petó a media generación del primer prompt gordo
+      [se quedó sin tokens]; Antonio pasó a la de pago y de ahí en
+      adelante prompts completos con los controles explícitos) ·
+      **0 · EL BRIEF a Figma Make** — escrito desde la sección «para
       el brief» del DISEÑO: producto/outcome, layout decidido
       (bloques, bottom sheet 2 estados, separador 2 posiciones, sin
       scroll global, claro+oscuro), hex exactos, Inter, Material
@@ -3757,12 +3762,57 @@ Code lo traduce al Angular existente.)*
       semánticos; el ámbar de avisos conservado como escala) en
       Figma Variables con modos claro/oscuro → exportados a DTCG →
       CSS custom properties (:root · @media dark ·
-      [data-theme="dark"]) [DISEÑO §2, §26, §37].
-- [ ] **3 · EL MODELADO en Figma Make** — las pantallas de los 3
-      tamaños con sus estados (vacío · cargando skeleton · error
-      honesto por fuente · dato caducado · edad del dato), iterado
-      entre el ojo de Antonio y la lectura por MCP.
-- [ ] **4 · LA TRADUCCIÓN a Angular** (encargos a Claude Code, por
+      [data-theme="dark"]) [DISEÑO §2, §26, §37]. ⭐ REENCAMINADA
+      (9/09): Make no produce Figma Variables→DTCG — los hex y
+      medidas se CALCAN del código de referencia exportado (casilla
+      4, tanda 1), nombrados igualmente en DTCG/custom properties;
+      la paleta oscura se construye a mano en esa tanda con la
+      doctrina del DISEÑO (§26), sin referencia visual de Make.
+- [x] ⚰️ HECHA (8-9/09, declarada buena por Antonio el 9/09;
+      maqueta publicada: front-sport-35581292.figma.site) ·
+      **3 · EL MODELADO en Figma Make** — iterado entre el ojo de
+      Antonio y la verificación de Claude POR EL CABLE (Chrome, dos
+      pestañas: la maqueta contra la app real — los subformularios
+      se dictaron MEDIDOS de producción, no de memoria). LO QUE LA
+      MAQUETA TIENE, verificado: dos columnas con mapa Leaflet real
+      (atribución OSM + Avanza/NAP/Ayto + enlace al panel de
+      frescura), acordeón Buscador/Resultado con scroll por bloque,
+      plegado de columna con el mapa re-encuadrando, grupos
+      Origen/Destino (pin + Tipo con las 8 opciones + Calle + Nº
+      revelado + ⇅), los subformularios ENTEROS de Bici/Moto/Coche
+      con sus reglas finas (YeGo oculta el distintivo · «Sin
+      etiqueta» revela la autorización ZBE · «Consultar distintivo»
+      deshabilitado sin matrícula), «Generar ruta» deshabilitado, y
+      el resultado de ejemplo con skeleton, cabecera en cifras
+      tabulares, badges de línea, aviso ámbar de desvío, timeline
+      con próximo-bus «(dato de las 17:34)» + frecuencia teórica,
+      BiZi «10 bicis a las 16:28» y parking con «Sugerir zona
+      naranja» (viaje inventado por Make, coherente — dado por
+      bueno). ⭐ EL BUG DEL MODELADO, cazado por el cable: elegir
+      Moto o Coche CONGELABA la página (bucle infinito, hilo
+      bloqueado, consola limpia — el screenshot ni entraba);
+      reproducido 3×, acotado al bloque compartido del distintivo,
+      arreglado por prompt. LOS HUECOS DECLARADOS (no bloquean el
+      calco; se cierran en Angular con el DISEÑO como rector): el
+      modo oscuro (el conmutador solo cambia su icono — sin clase,
+      fondo blanco) · el aviso de caducidad del feed · el paso de
+      error honesto (DGT + Reintentar) · el pie de edad del dato ·
+      iconos dentro de las opciones del Tipo (select nativo pelado)
+      · móvil <768 SIN VERIFICAR (la ventana maximizada ignora el
+      resize del cable) · autocompletar solo como campo (sin lista
+      — la lista real ya existe en producción). Micro-decisiones
+      pendientes de Antonio para el calco: el botón «Limpiar
+      búsqueda» (propina de Make, ¿se queda?) y la función del pin
+      del grupo.
+- [ ] **4 · LA TRADUCCIÓN a Angular** — EL CALCO (parlamentado el
+      9/09: la maqueta no se cablea, SE CALCA sobre el Angular que
+      ya tiene la lógica entera cableada y sus jueces en verde;
+      revestir, no reescribir). PRERREQUISITO: Antonio exporta el
+      código de Make (GitHub o ZIP) y lo coloca FUERA del repo como
+      material de referencia — de ahí se leen hex, medidas y
+      estructura exactos; NI UNA LÍNEA se copia a producción
+      (calidad-maqueta: traía un bucle infinito de serie).
+      (Encargos a Claude Code, por
       tandas parlamentadas): tokens primero, layout después
       (100dvh, scroll por bloque, bottom sheet, separador),
       componentes al final; los emojis se van (Material Symbols +
