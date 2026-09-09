@@ -127,21 +127,21 @@
   --oscuro-mode-bus-strong: #2dd4bf;
   --oscuro-mode-bus-solid: #14b8a6;
   --oscuro-mode-bus-text: #042f2e;
-  /* purple-900 -> 950 [AA]: el strong encima daba 4,12 y da 5,68. */
-  --oscuro-mode-bici-soft: #3b0764;
-  --oscuro-mode-bici-strong: #c084fc;
+  --oscuro-mode-bici-soft: #581c87;
+  /* purple-400 -> 300 [AA]: sobre el soft daba 4,12 y da 6,15. Empate a un paso con mover el soft; se mueve el TEXTO para no restarle separacion al soft contra la pagina. */
+  --oscuro-mode-bici-strong: #d8b4fe;
   /* purple-500 -> 400 [AA]: el text encima daba 3,79 y da 5,68. */
   --oscuro-mode-bici-solid: #c084fc;
   --oscuro-mode-bici-text: #3b0764;
-  /* pink-900 -> 950 [AA]: el strong encima daba 3,64 y da 5,68. */
-  --oscuro-mode-patin-soft: #500724;
-  --oscuro-mode-patin-strong: #f472b6;
+  --oscuro-mode-patin-soft: #831843;
+  /* pink-400 -> 300 [AA]: sobre el soft daba 3,64 y da 5,32. Mismo empate, misma razon. */
+  --oscuro-mode-patin-strong: #f9a8d4;
   /* rose-500 -> 400 [AA]: el text encima daba 4,26 y da 5,81. */
   --oscuro-mode-patin-solid: #fb7185;
   --oscuro-mode-patin-text: #4c0519;
-  /* orange-900 -> 950 [AA]: el strong encima daba 4,14 y da 6,92. */
-  --oscuro-mode-moto-soft: #431407;
-  --oscuro-mode-moto-strong: #fb923c;
+  --oscuro-mode-moto-soft: #7c2d12;
+  /* orange-400 -> 300 [AA]: sobre el soft daba 4,14 y da 5,56. Mismo empate, misma razon. */
+  --oscuro-mode-moto-strong: #fdba74;
   --oscuro-mode-moto-solid: #f97316;
   --oscuro-mode-moto-text: #431407;
   --oscuro-mode-coche-soft: #1e293b;
