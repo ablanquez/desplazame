@@ -23,3 +23,20 @@ motor/data/** -text
 # La nº3 ya lo había dejado escrito para `app/data/`: la regla no es «datos», es
 # **todo lo que se entrega tal cual**, y un artefacto de build es lo que más.
 app/dist/** -text
+
+# ⭐ Y LAS FUENTES, QUE SON BINARIO PURO (9/09, punto 15).
+#
+# Inter va autoalojada en `app/public/fuentes/`, y un .woff2 es un contenedor
+# comprimido: un solo byte reescrito por core.autocrlf lo deja ilegible, y el
+# navegador cae a la pila de respaldo sin decir nada. Git suele detectar el
+# binario solo, pero aquí ya se ha fallado dos veces confiando en eso (nº3 con
+# el grafo, nº40 con la app construida) y `app/public/fuentes/PROCEDENCIA.md`
+# declara un sha256 por fichero que tiene que seguir cuadrando tras el clon.
+#
+# ⚠️ Se escribe por EXTENSIÓN y no por carpeta a propósito: una regla que
+#    enumera carpetas se queda corta el día que alguien mueva las fuentes de
+#    sitio, y esa es justo la enfermedad que diagnosticaron la nº39 y la nº40.
+*.woff2 -text
+*.woff -text
+*.ttf -text
+*.otf -text
