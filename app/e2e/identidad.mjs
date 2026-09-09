@@ -42,20 +42,20 @@ const CAPTURAS = (process.argv[3] ?? '.').replace(/[\\/]+$/, '');
 /** Lo calcado del `index.css` de la referencia. La copia de control. */
 const CLARO = {
   background: '#ffffff', foreground: '#1e293b', card: '#ffffff', 'card-foreground': '#1e293b',
-  primary: '#2563eb', 'primary-foreground': '#ffffff', success: '#16a34a',
+  primary: '#2563eb', 'primary-foreground': '#ffffff', success: '#15803d',
   'success-foreground': '#ffffff', warning: '#fff4e5', 'warning-foreground': '#b45309',
   'warning-border': '#b45309', 'warning-dark': '#7c3d00', border: '#e2e8f0', ring: '#2563eb',
-  muted: '#f1f5f9', 'muted-foreground': '#64748b',
-  'mode-andando-soft': '#dcfce7', 'mode-andando-strong': '#16a34a',
-  'mode-andando-solid': '#16a34a', 'mode-andando-text': '#ffffff',
+  muted: '#f8fafc', 'muted-foreground': '#64748b',
+  'mode-andando-soft': '#dcfce7', 'mode-andando-strong': '#15803d',
+  'mode-andando-solid': '#15803d', 'mode-andando-text': '#ffffff',
   'mode-bus-soft': '#ccfbf1', 'mode-bus-strong': '#0f766e',
-  'mode-bus-solid': '#0d9488', 'mode-bus-text': '#ffffff',
+  'mode-bus-solid': '#0f766e', 'mode-bus-text': '#ffffff',
   'mode-bici-soft': '#f3e8ff', 'mode-bici-strong': '#7e22ce',
   'mode-bici-solid': '#9333ea', 'mode-bici-text': '#ffffff',
   'mode-patin-soft': '#fce7f3', 'mode-patin-strong': '#be185d',
   'mode-patin-solid': '#db2777', 'mode-patin-text': '#ffffff',
   'mode-moto-soft': '#ffedd5', 'mode-moto-strong': '#c2410c',
-  'mode-moto-solid': '#ea580c', 'mode-moto-text': '#ffffff',
+  'mode-moto-solid': '#c2410c', 'mode-moto-text': '#ffffff',
   'mode-coche-soft': '#f1f5f9', 'mode-coche-strong': '#334155',
   'mode-coche-solid': '#475569', 'mode-coche-text': '#ffffff',
 };
@@ -70,11 +70,11 @@ const OSCURO = {
   'mode-andando-solid': '#22c55e', 'mode-andando-text': '#052e16',
   'mode-bus-soft': '#134e4a', 'mode-bus-strong': '#2dd4bf',
   'mode-bus-solid': '#14b8a6', 'mode-bus-text': '#042f2e',
-  'mode-bici-soft': '#581c87', 'mode-bici-strong': '#c084fc',
-  'mode-bici-solid': '#a855f7', 'mode-bici-text': '#3b0764',
-  'mode-patin-soft': '#831843', 'mode-patin-strong': '#f472b6',
-  'mode-patin-solid': '#f43f5e', 'mode-patin-text': '#4c0519',
-  'mode-moto-soft': '#7c2d12', 'mode-moto-strong': '#fb923c',
+  'mode-bici-soft': '#3b0764', 'mode-bici-strong': '#c084fc',
+  'mode-bici-solid': '#c084fc', 'mode-bici-text': '#3b0764',
+  'mode-patin-soft': '#500724', 'mode-patin-strong': '#f472b6',
+  'mode-patin-solid': '#fb7185', 'mode-patin-text': '#4c0519',
+  'mode-moto-soft': '#431407', 'mode-moto-strong': '#fb923c',
   'mode-moto-solid': '#f97316', 'mode-moto-text': '#431407',
   'mode-coche-soft': '#1e293b', 'mode-coche-strong': '#94a3b8',
   'mode-coche-solid': '#94a3b8', 'mode-coche-text': '#0f172a',
@@ -125,8 +125,18 @@ try {
 
   // ⭐ EL CENSO DE ANTES, medido el 9/09 sobre el `app/dist` de la commit
   //    3ff5fd8 —el de antes de esta tanda— servido igual y con la misma sonda.
-  //    No es un objetivo: es la raya en la pared, para que el crecimiento de la
-  //    portada se vea siempre y nadie tenga que acordarse de comprobarlo.
+  //
+  // ⚠️ NO ES UN UMBRAL, Y ESA ES LA DIFERENCIA. La portada tiene que poder
+  //    crecer: la primera formulacion de esta juez pedia que no ganara «ni
+  //    peticiones ni peso», y eso es incompatible con el propio encargo que
+  //    mandaba meter los tokens en el CSS global. Un CSS global mas grande es
+  //    peso, por definicion.
+  //
+  //    Asi que lo que se vigila es el INVARIANTE —la portada no monta la
+  //    pagina nueva, no baja Inter y no baja el trozo perezoso: eso si son
+  //    juezas, y estan aqui debajo— y lo que se hace con el peso es CANTARLO
+  //    en cada ejecucion. Crecimiento gobernado, no congelado: la raya en la
+  //    pared esta para que nadie tenga que acordarse de mirar.
   const ANTES = { peticiones: 4, bytes: 506686 };
   console.log(
     `\n  antes de esta tanda (3ff5fd8): ${ANTES.peticiones} peticiones · ${ANTES.bytes} B`,
@@ -260,12 +270,15 @@ try {
     }
   }
   // ⚠️ La cifra se CUENTA, no se escribe. Aquí ponía «los nueve marcados» y ya
-  //    eran once en cuanto se midieron `success` y `muted`: una cantidad a mano
-  //    en un texto envejece a la primera — la lección de la nº39, en pequeño.
-  console.log(
-    `\n  ⚠️ ${porDebajo} pares no llegan a ${AA_TEXTO}:1 y están calcados así a propósito:`,
+  //    eran once en cuanto se midieron `success` y `muted`; luego bajaron a
+  //    cero al corregirlos. Una cantidad a mano en un texto envejece a la
+  //    primera, y el texto que la acompaña también: por eso las dos frases
+  //    salen de la cuenta y no de lo que era verdad el día que se escribieron.
+  juzgar(
+    porDebajo === 0,
+    `los ${36 - porDebajo} de 36 pares cumplen AA (${AA_TEXTO}:1)`,
+    porDebajo ? `${porDebajo} por debajo — decidir: corregir el valor o censarlo` : '',
   );
-  console.log('     son los valores del modelado aprobado y su corrección la decide Antonio.');
 
   // ═════════ LAS CAPTURAS ═════════
   await mando.ir(PAGINA, 5000);

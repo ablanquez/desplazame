@@ -5,6 +5,14 @@
  * en `004_DESPLAZAME_REF_MAKE`. De allí salen los VALORES; ni una línea de su
  * código entra aquí.
  *
+ * ⚠️ CON ONCE EXCEPCIONES, Y ESTÁN CONTADAS. El calco trajo once pares que no
+ *    llegaban a los 4,5:1 que pide WCAG 1.4.3 AA para texto normal —y la letra
+ *    de estas píldoras es de 14 px, así que no hay exención de «texto grande»—.
+ *    Se corrigieron el 9/09 con la regla que pide la propia paleta: **mover el
+ *    paso de sombra mínimo dentro de la misma familia**, claro y oscuro por
+ *    separado. Los once se resolvieron con UN paso. Cada valor cambiado lleva
+ *    su nota al lado, y `identidad.spec.ts` los exige medidos.
+ *
  * ⚠️ LOS NOMBRES ESTÁN EN INGLÉS Y ES A PROPÓSITO, en un proyecto que es
  *    español de punta a punta. Son los nombres literales de la referencia, y
  *    conservarlos es lo que permite poner los dos ficheros uno al lado del otro
@@ -119,15 +127,20 @@
   --oscuro-mode-bus-strong: #2dd4bf;
   --oscuro-mode-bus-solid: #14b8a6;
   --oscuro-mode-bus-text: #042f2e;
-  --oscuro-mode-bici-soft: #581c87;
+  /* purple-900 -> 950 [AA]: el strong encima daba 4,12 y da 5,68. */
+  --oscuro-mode-bici-soft: #3b0764;
   --oscuro-mode-bici-strong: #c084fc;
-  --oscuro-mode-bici-solid: #a855f7;
+  /* purple-500 -> 400 [AA]: el text encima daba 3,79 y da 5,68. */
+  --oscuro-mode-bici-solid: #c084fc;
   --oscuro-mode-bici-text: #3b0764;
-  --oscuro-mode-patin-soft: #831843;
+  /* pink-900 -> 950 [AA]: el strong encima daba 3,64 y da 5,68. */
+  --oscuro-mode-patin-soft: #500724;
   --oscuro-mode-patin-strong: #f472b6;
-  --oscuro-mode-patin-solid: #f43f5e;
+  /* rose-500 -> 400 [AA]: el text encima daba 4,26 y da 5,81. */
+  --oscuro-mode-patin-solid: #fb7185;
   --oscuro-mode-patin-text: #4c0519;
-  --oscuro-mode-moto-soft: #7c2d12;
+  /* orange-900 -> 950 [AA]: el strong encima daba 4,14 y da 6,92. */
+  --oscuro-mode-moto-soft: #431407;
   --oscuro-mode-moto-strong: #fb923c;
   --oscuro-mode-moto-solid: #f97316;
   --oscuro-mode-moto-text: #431407;
@@ -145,7 +158,8 @@
   --claro-primary: #2563eb;
   --claro-primary-foreground: #ffffff;
 
-  --claro-success: #16a34a;
+  /* green-600 -> 700 [AA]: blanco encima daba 3,30 y da 5,02. Es el mismo hex, y el mismo par, que andando: va el mismo arreglo. */
+  --claro-success: #15803d;
   --claro-success-foreground: #ffffff;
 
   --claro-warning: #fff4e5;
@@ -156,19 +170,23 @@
   --claro-border: #e2e8f0;
   --claro-ring: #2563eb;
 
-  --claro-muted: #f1f5f9;
+  /* slate-100 -> 50 [AA]: el texto secundario daba 4,34 y da 4,55. */
+  --claro-muted: #f8fafc;
   --claro-muted-foreground: #64748b;
 
   /* Andando (verde) */
   --claro-mode-andando-soft: #dcfce7;
-  --claro-mode-andando-strong: #16a34a;
-  --claro-mode-andando-solid: #16a34a;
+  /* green-600 -> 700 [AA]: sobre el soft daba 3,00 y da 4,57. Aqui se movio el TEXTO: aclarar el soft un paso no llegaba. */
+  --claro-mode-andando-strong: #15803d;
+  /* green-600 -> 700 [AA]: blanco encima daba 3,30 y da 5,02. */
+  --claro-mode-andando-solid: #15803d;
   --claro-mode-andando-text: #ffffff;
 
   /* Bus (turquesa) */
   --claro-mode-bus-soft: #ccfbf1;
   --claro-mode-bus-strong: #0f766e;
-  --claro-mode-bus-solid: #0d9488;
+  /* teal-600 -> 700 [AA]: blanco encima daba 3,74 y da 5,47. */
+  --claro-mode-bus-solid: #0f766e;
   --claro-mode-bus-text: #ffffff;
 
   /* Bici (morado) */
@@ -186,7 +204,8 @@
   /* Moto (cobre) */
   --claro-mode-moto-soft: #ffedd5;
   --claro-mode-moto-strong: #c2410c;
-  --claro-mode-moto-solid: #ea580c;
+  /* orange-600 -> 700 [AA]: blanco encima daba 3,56 y da 5,18. */
+  --claro-mode-moto-solid: #c2410c;
   --claro-mode-moto-text: #ffffff;
 
   /* Coche (pizarra) */

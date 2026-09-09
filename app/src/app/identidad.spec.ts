@@ -64,7 +64,7 @@ const CLARO: Readonly<Record<string, string>> = {
   'card-foreground': '#1e293b',
   primary: '#2563eb',
   'primary-foreground': '#ffffff',
-  success: '#16a34a',
+  success: '#15803d',
   'success-foreground': '#ffffff',
   warning: '#fff4e5',
   'warning-foreground': '#b45309',
@@ -72,15 +72,15 @@ const CLARO: Readonly<Record<string, string>> = {
   'warning-dark': '#7c3d00',
   border: '#e2e8f0',
   ring: '#2563eb',
-  muted: '#f1f5f9',
+  muted: '#f8fafc',
   'muted-foreground': '#64748b',
   'mode-andando-soft': '#dcfce7',
-  'mode-andando-strong': '#16a34a',
-  'mode-andando-solid': '#16a34a',
+  'mode-andando-strong': '#15803d',
+  'mode-andando-solid': '#15803d',
   'mode-andando-text': '#ffffff',
   'mode-bus-soft': '#ccfbf1',
   'mode-bus-strong': '#0f766e',
-  'mode-bus-solid': '#0d9488',
+  'mode-bus-solid': '#0f766e',
   'mode-bus-text': '#ffffff',
   'mode-bici-soft': '#f3e8ff',
   'mode-bici-strong': '#7e22ce',
@@ -92,7 +92,7 @@ const CLARO: Readonly<Record<string, string>> = {
   'mode-patin-text': '#ffffff',
   'mode-moto-soft': '#ffedd5',
   'mode-moto-strong': '#c2410c',
-  'mode-moto-solid': '#ea580c',
+  'mode-moto-solid': '#c2410c',
   'mode-moto-text': '#ffffff',
   'mode-coche-soft': '#f1f5f9',
   'mode-coche-strong': '#334155',
@@ -126,15 +126,15 @@ const OSCURO: Readonly<Record<string, string>> = {
   'mode-bus-strong': '#2dd4bf',
   'mode-bus-solid': '#14b8a6',
   'mode-bus-text': '#042f2e',
-  'mode-bici-soft': '#581c87',
+  'mode-bici-soft': '#3b0764',
   'mode-bici-strong': '#c084fc',
-  'mode-bici-solid': '#a855f7',
+  'mode-bici-solid': '#c084fc',
   'mode-bici-text': '#3b0764',
-  'mode-patin-soft': '#831843',
+  'mode-patin-soft': '#500724',
   'mode-patin-strong': '#f472b6',
-  'mode-patin-solid': '#f43f5e',
+  'mode-patin-solid': '#fb7185',
   'mode-patin-text': '#4c0519',
-  'mode-moto-soft': '#7c2d12',
+  'mode-moto-soft': '#431407',
   'mode-moto-strong': '#fb923c',
   'mode-moto-solid': '#f97316',
   'mode-moto-text': '#431407',
@@ -260,38 +260,22 @@ describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
 });
 
 /**
- * ⭐ (ii) EL CONTRASTE — medido, y con la deuda censada una a una.
+ * ⭐ (ii) EL CONTRASTE — los 36, medidos, y **ninguno por debajo**.
  *
- * ⚠️ **Nueve de estos pares NO llegan a 4,5:1 y están calcados así a
- *    propósito.** Son los valores del modelado aprobado, y el 9/09 se paró y
- *    se avisó en vez de corregirlos por cuenta propia: el valor lo decide
- *    Antonio. Lo que hace este juez mientras tanto **no es absolverlos**:
+ * ── La historia de este censo, porque explica por qué sigue montado ─────────
  *
- *    · los que cumplen tienen que seguir cumpliendo, y
- *    · los que no, tienen que seguir siendo EXACTAMENTE esos nueve y con
- *      EXACTAMENTE ese ratio.
+ * El calco trajo **once** pares por debajo de 4,5:1. El 9/09 se paró y se
+ * avisó en vez de corregirlos por cuenta propia, y mientras tanto este censo
+ * los tuvo fijados uno a uno con su ratio exacto: no los absolvía, los
+ * inmovilizaba. Corregidos ese mismo día —un paso de sombra dentro de cada
+ * familia—, **el censo se ha quedado vacío**.
  *
- *    Así el día que un valor se toque —para arreglarlo o para romperlo— este
- *    juez se pone rojo y obliga a mover el par de lista. Un juez que se
- *    limitara a mirar los quince buenos daría verde con la deuda creciendo.
+ * ⚠️ Y VACÍO ES COMO TIENE QUE SEGUIR. La lista no se borra porque el
+ *    mecanismo sigue haciendo falta: si mañana entra un par que no llega, la
+ *    jueza de abajo lo caza y obliga a decidir —arreglarlo o censarlo con su
+ *    número—. Lo que no puede pasar es que una deuda nueva entre en silencio.
  */
-const DEUDA: Readonly<Record<string, number>> = {
-  // ⚠️ Estas dos NO estaban en el encargo: salieron al medir `success` y
-  //    `muted`, que son pares de texto sobre superficie como los demas.
-  //    `success` es el MISMO verde #16a34a que andando, o sea el mismo
-  //    fallo contado dos veces; a `muted` le faltan 0,16 para AA.
-  'light · Aviso de acierto': 3.3,
-  'light · Texto secundario': 4.34,
-  'light · Modo andando — seleccionado': 3.3,
-  'light · Modo bus — seleccionado': 3.74,
-  'light · Modo moto — seleccionado': 3.56,
-  'light · Modo andando — sin seleccionar': 3.0,
-  'dark · Modo bici — seleccionado': 3.79,
-  'dark · Modo patin — seleccionado': 4.26,
-  'dark · Modo bici — sin seleccionar': 4.12,
-  'dark · Modo patin — sin seleccionar': 3.64,
-  'dark · Modo moto — sin seleccionar': 4.14,
-};
+const DEUDA: Readonly<Record<string, number>> = {};
 
 describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () => {
   const tabla = { light: CLARO, dark: OSCURO } as const;
@@ -332,11 +316,14 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
   }
 
   /**
-   * ⭐ Y QUE NO HAYA UNA DÉCIMA DEUDA que se haya colado sin censar. Sin esta,
-   * el bucle de arriba solo mira los nueve que ya conocemos y un par nuevo
-   * incumpliendo entraría en silencio.
+   * ⭐ Y QUE NO SE COLE UNA DEUDA SIN CENSAR. Es la jueza que sostiene todo lo
+   * demás: el bucle de arriba solo mira los pares que ya conoce, así que sin
+   * esta, uno nuevo incumpliendo entraría en silencio.
+   *
+   * ⚠️ Se compara la lista ENTERA, no la cuenta. Un `length` cuadraría igual
+   *    si un par se arreglara y otro se rompiera a la vez.
    */
-  it('⭐ no hay más pares por debajo del umbral que los nueve censados', () => {
+  it('⭐ ningún par por debajo del umbral que no esté censado', () => {
     const bajos = medidos.filter((m) => m.ratio < AA_TEXTO).map((m) => m.clave);
     expect(bajos.sort()).toEqual(Object.keys(DEUDA).sort());
   });
