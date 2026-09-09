@@ -193,16 +193,18 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `9346fcb`** (push del 30/08 noche: el punto 9
-entero, la casilla 0 del 10 con sus nueve firmas y el NAP
-comprobado). **En local, sin publicar** *(al cierre del 9/09)*:
-**13 commits — los papeles de las casillas 0+3 del 15
-(`3ff5fd8`; NO CONSTA si se empujó ya) y LOS 12 DE LA TANDA 1 DEL
-CALCO (6 de la tanda [`413b683`…`4eb8f26`] · 4 de la 1-bis
-[`910221c`…`bf078a6`] · 2 del remate [`cf9c950`, `13b78e3`]); al
-empujar, /identidad SALE A PRODUCCIÓN (sin enlace, accesible por
-URL — como salió /panel) — ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(La nota del 8/09 noche: los
+**Publicado hasta `c3adffb`** (dos pushes del 9/09: el de la
+tanda 1 del calco [`062f532` — 14 commits: /identidad, los
+tokens, Inter, el contraste 36/36 y los papeles] y el del parche
+de seguridad [`c3adffb` — lockfile solo, dist idéntico]). **En
+local, sin publicar** *(al cierre del 9/09 noche)*: **LOS 4
+COMMITS DE LA TANDA 2 [`78ac805`…`fca1aa3` — la base vestida: el
+primer cambio visible] + los papeles de este destilado — POR
+DECISIÓN de Antonio: se acumula hasta que haya chicha visible que
+enseñar (la tanda 3 del layout, probablemente) — ⚠️ desde M2,
+CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
+— los papeles de las casillas 0+3 y los 12 del calco — empujados
+en `062f532`.)* *(La nota del 8/09 noche: los
 papeles de M1-M3; el código estaba TODO publicado — el push del apaño
 de la portada llegó con la portada verificada por el ojo.)* *(La nota
 del 7/09: el push
@@ -1582,16 +1584,29 @@ elegía peor — entre dos conformes gana la que no degrada nada
 colateral. Marcadores: interfaz 295→431 en 14 ficheros · motor
 651 intacto · bitácora 43 [0 abiertas; la REABIERTA del marcador
 es la del tsc, cerrada — el recuento conserva la marca histórica
-por ley de la propia bitácora]. LA APP SE VE IGUAL: a propósito
-[doctrina incremental — cimientos sin tocar producto; lo visible
-empieza en la tanda 2]): lo siguiente es EL PUSH (botón de
-Antonio: los commits del calco + papeles en local — el detalle en
-el bloque de publicación; al empujar redespliega y /identidad
-sale a producción sin enlace, como salió /panel) y después LA
-TANDA 2
-DEL CALCO — aplicar la base al producto (body: fondo, Inter,
-cifras — PRIMER CAMBIO VISIBLE), encargo desde aquí; el logo
-(casilla 1) sigue sin modelar. Micro-decisiones de
+por ley de la propia bitácora]. ⚰️ EL PUSH DE LA TANDA 1, hecho el
+9/09 [`062f532`]: /identidad EN PRODUCCIÓN, verificada por el ojo
+en móvil y PC. ⚰️ EL PARCHE DE SEGURIDAD del aviso de Hostinger,
+hecho y EMPUJADO el 9/09 [`c3adffb`]: hono 4.13.7 y vitest 4.1.11
+por npm audit fix [la escalera documentada], audit a 0, dist byte
+a byte idéntico — exposición en producción MEDIDA en cero; acta
+entera en la casilla 4 del plan. ⚰️ LA TANDA 2 CERRADA el 9/09
+[4 commits, EN LOCAL por decisión de Antonio — se acumula hasta
+que haya chicha visible]: la base del producto vestida — Inter
+con respaldo métrico, tokens en el body, el reset de formularios,
+el tema FIJADO EN CLARO con rojo visto, preload sin doble
+descarga; el SemiBold bajó solo [correcto: h1/legend] y el
+subsetting va a la cola; la jueza de la capa 2 reformulada con
+método [quita-mide-devuelve — el verde de la nº43 evitado por
+razón nueva]; nº44 ABIERTA con ley [timeout por contención de las
+14 suites — el arreglo bueno pendiente, no subir el número];
+interfaz 431→441, ojo de Antonio en local: bueno; crónica entera
+en la tanda 2 de la casilla 4): lo siguiente es LA TANDA 3 — EL
+LAYOUT (100dvh sin scroll global · dos columnas · acordeón con
+scroll por bloque · plegado con el mapa re-encuadrando), con su
+PASADA DE DOCTRINA previa [dvh y las trampas móviles ·
+invalidateSize de Leaflet · la estructura de la referencia]; el
+logo (casilla 1) sigue sin modelar. Micro-decisiones de
 Antonio en la mesa del calco: ¿«Limpiar búsqueda» se queda? · la
 función del pin del grupo; (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
@@ -1917,7 +1932,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.082 pruebas (651 motor + 431 interfaz; e2e yego.mjs 28, moto.mjs, dos-filas.mjs e identidad.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (294+360 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.092 pruebas (651 motor + 441 interfaz; e2e yego.mjs 28, moto.mjs, dos-filas.mjs e identidad.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (294+360 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

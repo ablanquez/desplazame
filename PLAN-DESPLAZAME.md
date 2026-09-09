@@ -3855,9 +3855,69 @@ Code lo traduce al Angular existente.)*
         conformes gana la que no degrada nada colateral.
         Marcadores: interfaz 295→431 [14 ficheros] · motor 651.
         La app se ve igual A PROPÓSITO [doctrina incremental].
-      - [ ] TANDA 2 — LA BASE AL PRODUCTO: body con fondo, Inter y
-        cifras tabulares [primer cambio visible].
-      - [ ] TANDAS 3+ — layout, componentes, tesela oscura, el
+      - [x] ⚰️ TANDA 2 — LA BASE AL PRODUCTO (9/09, 4 commits,
+        ojo de Antonio en local: «todo funciona bien»; EL PRIMER
+        CAMBIO VISIBLE — sin publicar aún por decisión de
+        Antonio: se acumula hasta que haya chicha). Lo hecho:
+        body a los tokens [fondo blanco de verdad — antes
+        transparente —, texto slate, Inter con 'Inter Fallback'
+        de métricas ajustadas [size-adjust 107,64% — CLS
+        casi-cero, técnica documentada], tabular-nums,
+        antialiased calcado] · EL RESET DE HERENCIA de
+        formularios [font: inherit — doctrina de resets: los
+        controles NO heredan tipografía; sin él, media piel; el
+        input quedó en Inter y en sus 16px, nada se movió] · EL
+        TEMA FIJADO EN CLARO [data-theme=light en <html>,
+        doctrina incremental: cada paso deja el sistema
+        consistente; la capa 3 manda — rojo visto: sin el
+        atributo, fondo #121212 bajo componentes viejos, el
+        estado roto exacto que evita; el oscuro se libera con el
+        conmutador y los componentes migrados] · preload del 400
+        con jueza anti-doble-descarga [compara URLs, no las da
+        por buenas] · el SemiBold bajó solo [h1/legend en
+        negrita lo piden — correcto; la jueza del ejecutor
+        reformulada: lo decidido era qué se PRECARGA] · juez
+        (iv) a su letra nueva [la portada ya baja Inter: +2
+        peticiones/+227 KB esperados y censados] · jueza (v)
+        nueva [<html> fijado + Chrome emulando oscuro → la app
+        sigue clara] con rojo visto · LA JUEZA DE LA CAPA 2
+        REFORMULADA con método [con el tema fijado no había nada
+        que medir — habría quedado verde por razón nueva, el
+        verde de la nº43; ahora quita el atributo en caliente,
+        mide la capa y lo devuelve] · nº44 ABIERTA CON LEY [la
+        prueba de huellas del manifiesto muerta por timeout
+        5.166/5.000 ms y verde a la siguiente; el trabajo real
+        727 ms — lo que agota es la CONTENCIÓN de las 14 suites;
+        abierta a propósito: subir el timeout es el arreglo que
+        la deja pasar sin comprobar] · cv11 de la referencia
+        FUERA y dicho [cosmético — la «a» de un piso de Inter;
+        existe vía de alto nivel si el ojo la pide:
+        @font-feature-values + font-variant-alternates].
+        Interfaz 431→441. A LA COLA: subsetting de Inter
+        [presupuesto documentado ~100 KB de fuentes; hoy 227 KB
+        — recorte a glifos latinos, lo que los CDN hacen solos y
+        el autoalojado hace a mano] · el arreglo bueno de la
+        nº44 [aislar la medición de la contención o medir
+        trabajo, no reloj de pared].
+      - [x] ⚰️ (intercalado, 9/09) PARCHE DE SEGURIDAD del aviso
+        de Hostinger — 5 filas = 4 advisories sobre 3 paquetes
+        [el CVE de vitest listado dos veces]: hono 4.13.2→4.13.7
+        y vitest 4.1.10→4.1.11 por la ESCALERA DOCUMENTADA [npm
+        audit fix sin --force, primer escalón; overrides solo
+        como último recurso]. Triaje MEDIDO, no razonado: hono
+        llega por @angular/cli→@modelcontextprotocol/sdk
+        [toolchain], vitest es el corredor; cero importaciones
+        nuestras, toSSG cero usos, y EL DIST RECONSTRUIDO BYTE A
+        BYTE IDÉNTICO — exposición en producción: ninguna,
+        medida. npm audit: 0. Lockfile solo, empujado
+        (`c3adffb`) — el escáner lo recoge en su pasada.
+      - [ ] TANDA 3 — EL LAYOUT: 100dvh sin scroll global, dos
+        columnas con el mapa a la derecha, acordeón con scroll
+        por bloque, plegado con el mapa re-encuadrando
+        [pasada de doctrina previa: dvh y sus trampas móviles ·
+        scroll contenido · invalidateSize de Leaflet · la
+        estructura de la referencia].
+      - [ ] TANDAS 4+ — componentes, tesela oscura, el
         conmutador global con su anti-FOUC [prioridad documentada:
         elección guardada > sistema > claro].
 - [ ] **5 · LA VERIFICACIÓN del 15** — AA medido (contraste, targets
