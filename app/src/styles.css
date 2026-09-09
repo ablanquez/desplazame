@@ -1,5 +1,399 @@
+/**
+ * ⭐ LOS TOKENS — la única fuente de los colores y la letra (9/09, punto 15).
+ *
+ * Calcados del modelado aprobado en Figma Make, que vive FUERA del repositorio
+ * en `004_DESPLAZAME_REF_MAKE`. De allí salen los VALORES; ni una línea de su
+ * código entra aquí.
+ *
+ * ⚠️ LOS NOMBRES ESTÁN EN INGLÉS Y ES A PROPÓSITO, en un proyecto que es
+ *    español de punta a punta. Son los nombres literales de la referencia, y
+ *    conservarlos es lo que permite poner los dos ficheros uno al lado del otro
+ *    y comprobar el calco token a token. Traducidos, nadie podría verificarlo.
+ *    La regla del español sigue mandando en todo lo demás — los comentarios y
+ *    los componentes van en castellano.
+ *
+ * ⚠️ **Este fichero NO cambia todavía cómo se ve la app.** Declara los tokens y
+ *    carga la letra, pero `body` sigue sin tocarse: la portada de hoy se ve
+ *    exactamente igual que la de ayer. Aplicarlos al producto es la tanda 2, y
+ *    hasta entonces quien los mira es `/identidad`.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INTER, AUTOALOJADA — v4.1, ficha completa en `public/fuentes/PROCEDENCIA.md`
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ⚠️ El `@import` a `fonts.googleapis.com` de la referencia NO se calca, y es
+      la única línea suya que se descarta a propósito: cargar la letra desde el
+      CDN manda la IP del visitante a un tercero sin base legal habiendo
+      alternativa neutra —Juzgado Regional de Múnich, enero de 2022—. Un juez
+      vigila que ese dominio no reaparezca nunca en la app.
+
+   `font-display: swap` para que el texto se lea desde el primer instante con
+   la pila de respaldo y la letra entre cuando llegue: nunca una pantalla en
+   blanco esperando a una fuente. */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fuentes/Inter-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fuentes/Inter-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fuentes/Inter-SemiBold.woff2') format('woff2');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL TEMA
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Tres capas, y el orden es la prioridad — elección explícita > sistema > claro:
+
+     1. `:root`                          el claro, que es el de partida
+     2. `@media (prefers-color-scheme)`  lo que pide el sistema operativo
+     3. `[data-theme="dark|light"]`      lo que ha elegido una persona, y manda
+
+   El `:not([data-theme="light"])` de la capa 2 es lo que deja ganar a la 3:
+   sin él, quien elige claro teniendo el sistema en oscuro no consigue el claro.
+
+   ⚠️ Y los selectores de la capa 3 son SUELTOS, no `:root[data-theme=...]`: así
+      valen sobre cualquier elemento y un trozo de página puede pintarse en el
+      tema contrario. Es lo que usa el conmutador local de `/identidad` para
+      enseñar los dos temas sin tocar el documento entero.
+
+   ⭐ CADA HEX SE ESCRIBE UNA SOLA VEZ —en `--claro-*` o en `--oscuro-*`— y las
+      cuatro asignaciones solo los referencian. Duplicarlos sería tener la misma
+      paleta en varios sitios, y este proyecto ya sabe cómo acaba eso: la
+      cabecera de `contraste.ts` cuenta las cuatro copias de una fórmula de las
+      que la cuarta no era igual —y no se notaba porque daba PARECIDO—. Aquí
+      sería peor todavía, porque la capa 2 depende del sistema operativo: una
+      divergencia entre ella y las demás solo la vería quien tuviera el portátil
+      en oscuro. Con la indirección no puede existir.
+
+   ⚠️ La capa 3 tiene DOS bloques y los dos redeclaran la paleta entera. El del
+      claro parecía no hacer falta —«`:root` ya la tiene»— y esa suposición fue
+      la nº43: con el sistema en oscuro, la capa 2 pisa `:root` y un elemento
+      marcado `light` heredaba los cuarenta tokens oscuros. */
+
 :root {
-  /* El alto de la barra de navegación, escrito UNA vez: la barra lo usa para
-     medirse y el visor para descontarlo de la ventana. Si cambia aquí, el mapa
-     grande sigue cuadrando solo. */
+  /* [DOC MDN] Sin `color-scheme` los controles nativos —selects, inputs,
+     barras de desplazamiento— se quedan claros dentro de una interfaz oscura.
+     No es cosmético: es el navegador pintando lo que no pintamos nosotros. */
+  color-scheme: light;
+
+  /* ── LA PALETA OSCURA, escrita aquí y en ningún otro sitio ─────────────── */
+  --oscuro-background: #121212;
+  --oscuro-foreground: #f0f0f0;
+  --oscuro-card: #1e1e1e;
+  --oscuro-card-foreground: #f0f0f0;
+  --oscuro-primary: #93c5fd;
+  --oscuro-primary-foreground: #0f172a;
+  --oscuro-success: #22c55e;
+  --oscuro-success-foreground: #0f172a;
+  --oscuro-warning: #3a1d00;
+  --oscuro-warning-foreground: #fde68a;
+  --oscuro-warning-border: #92400e;
+  --oscuro-warning-dark: #fef3c7;
+  --oscuro-border: #333333;
+  --oscuro-ring: #93c5fd;
+  --oscuro-muted: #242424;
+  --oscuro-muted-foreground: #b8b8b8;
+  --oscuro-mode-andando-soft: #14532d;
+  --oscuro-mode-andando-strong: #4ade80;
+  --oscuro-mode-andando-solid: #22c55e;
+  --oscuro-mode-andando-text: #052e16;
+  --oscuro-mode-bus-soft: #134e4a;
+  --oscuro-mode-bus-strong: #2dd4bf;
+  --oscuro-mode-bus-solid: #14b8a6;
+  --oscuro-mode-bus-text: #042f2e;
+  --oscuro-mode-bici-soft: #581c87;
+  --oscuro-mode-bici-strong: #c084fc;
+  --oscuro-mode-bici-solid: #a855f7;
+  --oscuro-mode-bici-text: #3b0764;
+  --oscuro-mode-patin-soft: #831843;
+  --oscuro-mode-patin-strong: #f472b6;
+  --oscuro-mode-patin-solid: #f43f5e;
+  --oscuro-mode-patin-text: #4c0519;
+  --oscuro-mode-moto-soft: #7c2d12;
+  --oscuro-mode-moto-strong: #fb923c;
+  --oscuro-mode-moto-solid: #f97316;
+  --oscuro-mode-moto-text: #431407;
+  --oscuro-mode-coche-soft: #1e293b;
+  --oscuro-mode-coche-strong: #94a3b8;
+  --oscuro-mode-coche-solid: #94a3b8;
+  --oscuro-mode-coche-text: #0f172a;
+
+  /* ── LA PALETA CLARA, escrita aquí y en ningún otro sitio ─────────── */
+  --claro-background: #ffffff;
+  --claro-foreground: #1e293b;
+  --claro-card: #ffffff;
+  --claro-card-foreground: #1e293b;
+
+  --claro-primary: #2563eb;
+  --claro-primary-foreground: #ffffff;
+
+  --claro-success: #16a34a;
+  --claro-success-foreground: #ffffff;
+
+  --claro-warning: #fff4e5;
+  --claro-warning-foreground: #b45309;
+  --claro-warning-border: #b45309;
+  --claro-warning-dark: #7c3d00;
+
+  --claro-border: #e2e8f0;
+  --claro-ring: #2563eb;
+
+  --claro-muted: #f1f5f9;
+  --claro-muted-foreground: #64748b;
+
+  /* Andando (verde) */
+  --claro-mode-andando-soft: #dcfce7;
+  --claro-mode-andando-strong: #16a34a;
+  --claro-mode-andando-solid: #16a34a;
+  --claro-mode-andando-text: #ffffff;
+
+  /* Bus (turquesa) */
+  --claro-mode-bus-soft: #ccfbf1;
+  --claro-mode-bus-strong: #0f766e;
+  --claro-mode-bus-solid: #0d9488;
+  --claro-mode-bus-text: #ffffff;
+
+  /* Bici (morado) */
+  --claro-mode-bici-soft: #f3e8ff;
+  --claro-mode-bici-strong: #7e22ce;
+  --claro-mode-bici-solid: #9333ea;
+  --claro-mode-bici-text: #ffffff;
+
+  /* Patín (magenta) */
+  --claro-mode-patin-soft: #fce7f3;
+  --claro-mode-patin-strong: #be185d;
+  --claro-mode-patin-solid: #db2777;
+  --claro-mode-patin-text: #ffffff;
+
+  /* Moto (cobre) */
+  --claro-mode-moto-soft: #ffedd5;
+  --claro-mode-moto-strong: #c2410c;
+  --claro-mode-moto-solid: #ea580c;
+  --claro-mode-moto-text: #ffffff;
+
+  /* Coche (pizarra) */
+  --claro-mode-coche-soft: #f1f5f9;
+  --claro-mode-coche-strong: #334155;
+  --claro-mode-coche-solid: #475569;
+  --claro-mode-coche-text: #ffffff;
+
+  /* ── LO QUE VALE SI NADIE DICE OTRA COSA: el claro ─────────────── */
+  --background: var(--claro-background);
+  --foreground: var(--claro-foreground);
+  --card: var(--claro-card);
+  --card-foreground: var(--claro-card-foreground);
+  --primary: var(--claro-primary);
+  --primary-foreground: var(--claro-primary-foreground);
+  --success: var(--claro-success);
+  --success-foreground: var(--claro-success-foreground);
+  --warning: var(--claro-warning);
+  --warning-foreground: var(--claro-warning-foreground);
+  --warning-border: var(--claro-warning-border);
+  --warning-dark: var(--claro-warning-dark);
+  --border: var(--claro-border);
+  --ring: var(--claro-ring);
+  --muted: var(--claro-muted);
+  --muted-foreground: var(--claro-muted-foreground);
+  --mode-andando-soft: var(--claro-mode-andando-soft);
+  --mode-andando-strong: var(--claro-mode-andando-strong);
+  --mode-andando-solid: var(--claro-mode-andando-solid);
+  --mode-andando-text: var(--claro-mode-andando-text);
+  --mode-bus-soft: var(--claro-mode-bus-soft);
+  --mode-bus-strong: var(--claro-mode-bus-strong);
+  --mode-bus-solid: var(--claro-mode-bus-solid);
+  --mode-bus-text: var(--claro-mode-bus-text);
+  --mode-bici-soft: var(--claro-mode-bici-soft);
+  --mode-bici-strong: var(--claro-mode-bici-strong);
+  --mode-bici-solid: var(--claro-mode-bici-solid);
+  --mode-bici-text: var(--claro-mode-bici-text);
+  --mode-patin-soft: var(--claro-mode-patin-soft);
+  --mode-patin-strong: var(--claro-mode-patin-strong);
+  --mode-patin-solid: var(--claro-mode-patin-solid);
+  --mode-patin-text: var(--claro-mode-patin-text);
+  --mode-moto-soft: var(--claro-mode-moto-soft);
+  --mode-moto-strong: var(--claro-mode-moto-strong);
+  --mode-moto-solid: var(--claro-mode-moto-solid);
+  --mode-moto-text: var(--claro-mode-moto-text);
+  --mode-coche-soft: var(--claro-mode-coche-soft);
+  --mode-coche-strong: var(--claro-mode-coche-strong);
+  --mode-coche-solid: var(--claro-mode-coche-solid);
+  --mode-coche-text: var(--claro-mode-coche-text);
+
+  /* La pila de respaldo va detrás de Inter y no es adorno: es lo que se lee
+     mientras la letra llega, y lo que se lee para siempre si no llegara. */
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+/* Capa 2 — lo que pide el sistema, salvo que alguien haya elegido el claro. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --background: var(--oscuro-background);
+    --foreground: var(--oscuro-foreground);
+    --card: var(--oscuro-card);
+    --card-foreground: var(--oscuro-card-foreground);
+    --primary: var(--oscuro-primary);
+    --primary-foreground: var(--oscuro-primary-foreground);
+    --success: var(--oscuro-success);
+    --success-foreground: var(--oscuro-success-foreground);
+    --warning: var(--oscuro-warning);
+    --warning-foreground: var(--oscuro-warning-foreground);
+    --warning-border: var(--oscuro-warning-border);
+    --warning-dark: var(--oscuro-warning-dark);
+    --border: var(--oscuro-border);
+    --ring: var(--oscuro-ring);
+    --muted: var(--oscuro-muted);
+    --muted-foreground: var(--oscuro-muted-foreground);
+    --mode-andando-soft: var(--oscuro-mode-andando-soft);
+    --mode-andando-strong: var(--oscuro-mode-andando-strong);
+    --mode-andando-solid: var(--oscuro-mode-andando-solid);
+    --mode-andando-text: var(--oscuro-mode-andando-text);
+    --mode-bus-soft: var(--oscuro-mode-bus-soft);
+    --mode-bus-strong: var(--oscuro-mode-bus-strong);
+    --mode-bus-solid: var(--oscuro-mode-bus-solid);
+    --mode-bus-text: var(--oscuro-mode-bus-text);
+    --mode-bici-soft: var(--oscuro-mode-bici-soft);
+    --mode-bici-strong: var(--oscuro-mode-bici-strong);
+    --mode-bici-solid: var(--oscuro-mode-bici-solid);
+    --mode-bici-text: var(--oscuro-mode-bici-text);
+    --mode-patin-soft: var(--oscuro-mode-patin-soft);
+    --mode-patin-strong: var(--oscuro-mode-patin-strong);
+    --mode-patin-solid: var(--oscuro-mode-patin-solid);
+    --mode-patin-text: var(--oscuro-mode-patin-text);
+    --mode-moto-soft: var(--oscuro-mode-moto-soft);
+    --mode-moto-strong: var(--oscuro-mode-moto-strong);
+    --mode-moto-solid: var(--oscuro-mode-moto-solid);
+    --mode-moto-text: var(--oscuro-mode-moto-text);
+    --mode-coche-soft: var(--oscuro-mode-coche-soft);
+    --mode-coche-strong: var(--oscuro-mode-coche-strong);
+    --mode-coche-solid: var(--oscuro-mode-coche-solid);
+    --mode-coche-text: var(--oscuro-mode-coche-text);
+  }
+}
+
+/* Capa 3 — la elección explícita, y manda sobre las dos anteriores. */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --background: var(--oscuro-background);
+  --foreground: var(--oscuro-foreground);
+  --card: var(--oscuro-card);
+  --card-foreground: var(--oscuro-card-foreground);
+  --primary: var(--oscuro-primary);
+  --primary-foreground: var(--oscuro-primary-foreground);
+  --success: var(--oscuro-success);
+  --success-foreground: var(--oscuro-success-foreground);
+  --warning: var(--oscuro-warning);
+  --warning-foreground: var(--oscuro-warning-foreground);
+  --warning-border: var(--oscuro-warning-border);
+  --warning-dark: var(--oscuro-warning-dark);
+  --border: var(--oscuro-border);
+  --ring: var(--oscuro-ring);
+  --muted: var(--oscuro-muted);
+  --muted-foreground: var(--oscuro-muted-foreground);
+  --mode-andando-soft: var(--oscuro-mode-andando-soft);
+  --mode-andando-strong: var(--oscuro-mode-andando-strong);
+  --mode-andando-solid: var(--oscuro-mode-andando-solid);
+  --mode-andando-text: var(--oscuro-mode-andando-text);
+  --mode-bus-soft: var(--oscuro-mode-bus-soft);
+  --mode-bus-strong: var(--oscuro-mode-bus-strong);
+  --mode-bus-solid: var(--oscuro-mode-bus-solid);
+  --mode-bus-text: var(--oscuro-mode-bus-text);
+  --mode-bici-soft: var(--oscuro-mode-bici-soft);
+  --mode-bici-strong: var(--oscuro-mode-bici-strong);
+  --mode-bici-solid: var(--oscuro-mode-bici-solid);
+  --mode-bici-text: var(--oscuro-mode-bici-text);
+  --mode-patin-soft: var(--oscuro-mode-patin-soft);
+  --mode-patin-strong: var(--oscuro-mode-patin-strong);
+  --mode-patin-solid: var(--oscuro-mode-patin-solid);
+  --mode-patin-text: var(--oscuro-mode-patin-text);
+  --mode-moto-soft: var(--oscuro-mode-moto-soft);
+  --mode-moto-strong: var(--oscuro-mode-moto-strong);
+  --mode-moto-solid: var(--oscuro-mode-moto-solid);
+  --mode-moto-text: var(--oscuro-mode-moto-text);
+  --mode-coche-soft: var(--oscuro-mode-coche-soft);
+  --mode-coche-strong: var(--oscuro-mode-coche-strong);
+  --mode-coche-solid: var(--oscuro-mode-coche-solid);
+  --mode-coche-text: var(--oscuro-mode-coche-text);
+}
+
+/* ⭐ Y EL CLARO EXPLÍCITO, QUE SÍ TIENE QUE REDECLARAR LA PALETA ENTERA.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ⚠️ Aquí ponía solo `color-scheme: light`, con un comentario que explicaba
+      —convencido— que la paleta no hacía falta: «`:root` ya la tiene y nada la
+      ha pisado». **Es falso en cuanto el sistema pide oscuro**: ahí la capa 2
+      SÍ pisa `:root`, y un elemento marcado `light` hereda de él los cuarenta
+      tokens oscuros. El `:not` de la capa 2 protege a `:root` de sí mismo, no
+      a los hijos.
+
+      Se veía en `/identidad`: con el portátil en oscuro salía oscura mientras
+      su botón ofrecía «Ver en oscuro». Lo cazó `e2e/identidad.mjs` emulando
+      `prefers-color-scheme`, que es lo único que puede verlo — ningún test de
+      jsdom llega ahí. Bitácora nº43.
+
+   Los valores se referencian igual que hace el oscuro, para que sigan
+   escribiéndose una sola vez y las tres capas no puedan divergir. */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --background: var(--claro-background);
+  --foreground: var(--claro-foreground);
+  --card: var(--claro-card);
+  --card-foreground: var(--claro-card-foreground);
+  --primary: var(--claro-primary);
+  --primary-foreground: var(--claro-primary-foreground);
+  --success: var(--claro-success);
+  --success-foreground: var(--claro-success-foreground);
+  --warning: var(--claro-warning);
+  --warning-foreground: var(--claro-warning-foreground);
+  --warning-border: var(--claro-warning-border);
+  --warning-dark: var(--claro-warning-dark);
+  --border: var(--claro-border);
+  --ring: var(--claro-ring);
+  --muted: var(--claro-muted);
+  --muted-foreground: var(--claro-muted-foreground);
+  --mode-andando-soft: var(--claro-mode-andando-soft);
+  --mode-andando-strong: var(--claro-mode-andando-strong);
+  --mode-andando-solid: var(--claro-mode-andando-solid);
+  --mode-andando-text: var(--claro-mode-andando-text);
+  --mode-bus-soft: var(--claro-mode-bus-soft);
+  --mode-bus-strong: var(--claro-mode-bus-strong);
+  --mode-bus-solid: var(--claro-mode-bus-solid);
+  --mode-bus-text: var(--claro-mode-bus-text);
+  --mode-bici-soft: var(--claro-mode-bici-soft);
+  --mode-bici-strong: var(--claro-mode-bici-strong);
+  --mode-bici-solid: var(--claro-mode-bici-solid);
+  --mode-bici-text: var(--claro-mode-bici-text);
+  --mode-patin-soft: var(--claro-mode-patin-soft);
+  --mode-patin-strong: var(--claro-mode-patin-strong);
+  --mode-patin-solid: var(--claro-mode-patin-solid);
+  --mode-patin-text: var(--claro-mode-patin-text);
+  --mode-moto-soft: var(--claro-mode-moto-soft);
+  --mode-moto-strong: var(--claro-mode-moto-strong);
+  --mode-moto-solid: var(--claro-mode-moto-solid);
+  --mode-moto-text: var(--claro-mode-moto-text);
+  --mode-coche-soft: var(--claro-mode-coche-soft);
+  --mode-coche-strong: var(--claro-mode-coche-strong);
+  --mode-coche-solid: var(--claro-mode-coche-solid);
+  --mode-coche-text: var(--claro-mode-coche-text);
 }
