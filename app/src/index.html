@@ -1,11 +1,36 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
   <meta charset="utf-8">
   <title>Desplázame</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!--
+    ⭐ EL PRELOAD DE LA LETRA CRITICA (tanda 2).
+
+    Una fuente declarada en el CSS no empieza a bajarse hasta que el navegador
+    ha construido el CSSOM Y ha encontrado texto que la use: llega tarde, y con
+    `font-display: swap` eso se ve como un cambio de letra a mitad de carga.
+    Este `preload` la pide desde la primera linea del HTML, en paralelo con
+    todo lo demas.
+
+    ⚠️ SOLO EL PESO 400. Es el del texto corrido; el 500 y el 600 se usan en
+       trozos sueltos, y precargarlos seria bajar 229 kB que casi nadie mira
+       antes de tiempo. Precargar de mas compite con el CSS y el JS por el
+       ancho de banda, que es justo lo contrario de lo que se busca.
+
+    ⚠️ Y LA URL TIENE QUE SER LA MISMA, LETRA POR LETRA, que la del
+       `@font-face` de `styles.css`. Si no casan, el navegador no reconoce lo
+       precargado y **se baja el fichero dos veces**. Aqui las dos son
+       `/fuentes/Inter-Regular.woff2`, absolutas desde la raiz.
+
+    `crossorigin` no es opcional ni decorativo: las fuentes se piden en modo
+    anonimo aunque sean del propio dominio, y sin el atributo la peticion
+    precargada no coincide con la real — el mismo doble descargue.
+  -->
+  <link rel="preload" href="/fuentes/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
 </head>
 <body>
   <app-root></app-root>

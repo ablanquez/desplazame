@@ -20,10 +20,12 @@
  *    La regla del español sigue mandando en todo lo demás — los comentarios y
  *    los componentes van en castellano.
  *
- * ⚠️ **Este fichero NO cambia todavía cómo se ve la app.** Declara los tokens y
- *    carga la letra, pero `body` sigue sin tocarse: la portada de hoy se ve
- *    exactamente igual que la de ayer. Aplicarlos al producto es la tanda 2, y
- *    hasta entonces quien los mira es `/identidad`.
+ * ⚠️ **Y DESDE LA TANDA 2, ESTE FICHERO SÍ CAMBIA CÓMO SE VE LA APP.** Aquí
+ *    ponía que no la tocaba —era verdad mientras solo declaraba tokens—, y
+ *    dejarlo escrito sería la misma clase de comentario que tapó la nº43: uno
+ *    que afirma algo que dejó de ser cierto. El `body` está vestido abajo del
+ *    todo. Lo que sigue sin tocarse es **el CSS propio de cada componente**:
+ *    las píldoras, los grupos y el mapa conservan su pinta sobre la base nueva.
  */
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -62,6 +64,31 @@
   font-weight: 600;
   font-display: swap;
   src: url('/fuentes/Inter-SemiBold.woff2') format('woff2');
+}
+
+/* ⭐ EL RESPALDO CON LAS MÉTRICAS AJUSTADAS (tanda 2).
+   ═══════════════════════════════════════════════════════════════════════════
+
+   `font-display: swap` promete que el texto se lee desde el primer instante —y
+   lo cumple—, pero tiene un precio: cuando Inter llega, **la página da un
+   salto**, porque Arial y Inter no miden lo mismo. Es el desplazamiento de
+   maquetación que todo el mundo ha visto sin saber cómo se llama.
+
+   Esto lo quita. Se declara una familia de mentira, `Inter Fallback`, que **es
+   Arial por dentro** —`local('Arial')`, no descarga nada— pero con las métricas
+   estiradas hasta las de Inter: los tres números de abajo son el ajuste
+   publicado para ese par de fuentes. Con ellos, la línea ocupa lo mismo antes y
+   después del cambio, y el salto es de cero.
+
+   ⚠️ Va DETRÁS de Inter y DELANTE de `system-ui` en la pila: solo se usa en la
+      ventana en que Inter todavía no ha llegado. */
+
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  size-adjust: 107.64%;
+  ascent-override: 90.49%;
+  descent-override: 22.48%;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -258,7 +285,7 @@
 
   /* La pila de respaldo va detrás de Inter y no es adorno: es lo que se lee
      mientras la letra llega, y lo que se lee para siempre si no llegara. */
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', 'Inter Fallback', system-ui, sans-serif;
 }
 
 /* Capa 2 — lo que pide el sistema, salvo que alguien haya elegido el claro. */
@@ -415,4 +442,58 @@
   --mode-coche-strong: var(--claro-mode-coche-strong);
   --mode-coche-solid: var(--claro-mode-coche-solid);
   --mode-coche-text: var(--claro-mode-coche-text);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA BASE DEL PRODUCTO — el primer cambio que se ve (tanda 2)
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Hasta aquí los tokens solo existían; quien los miraba era `/identidad`. Desde
+   esta línea visten la app: el fondo, el texto y la letra.
+
+   ⚠️ **Y NADA MÁS.** El CSS propio de cada componente no se toca: las píldoras
+      de modo, los grupos del formulario y el mapa conservan su pinta y se
+      pintan encima de esta base. Vestirlos es de las tandas siguientes.
+
+   Se calca el `body` de la referencia, que es
+   `bg-background text-foreground font-sans antialiased` más sus cifras. El
+   `line-height` NO se calca **porque la referencia no lo trae**: el suyo sale
+   del reset de Tailwind, que aquí no existe, e inventarle uno sería añadir una
+   decisión que nadie ha tomado. */
+
+/* ⚠️ Sin `margin: 0`, aunque la referencia lo tenga. El suyo se lo pone el
+   reset de Tailwind, no su `body`, y quitarle al navegador sus 8 px de margen
+   **movería la página entera** — que es justo lo que esta tanda no hace. Si
+   hace falta, entra con el layout, en su tanda y viéndose. */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+
+  /* [DOC MDN] La propiedad de alto nivel, no `font-feature-settings: "tnum"`.
+     La referencia usa la sintaxis vieja; se calca el efecto, no la sintaxis. */
+  font-variant-numeric: tabular-nums;
+
+  /* El `antialiased` de la referencia, que en CSS son estas dos. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ⭐ EL RESET QUE HAY QUE ESCRIBIR SIEMPRE, Y QUE AQUÍ ES CRÍTICO.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ⚠️ **Los controles de formulario NO heredan la tipografía.** El navegador les
+      pone la del sistema y se queda tan ancho: sin estas dos líneas, el `body`
+      pasaría a Inter y los `select`, los `input` y los botones —que son el
+      cuerpo entero de esta pantalla— seguirían en la letra vieja. Es la razón
+      de que todos los ficheros de reset del mundo traigan esta regla.
+
+   Se hereda **solo la tipografía**. Ni colores, ni bordes, ni tamaños de caja:
+   eso es de las tandas siguientes y tocarlo aquí movería el layout. */
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
