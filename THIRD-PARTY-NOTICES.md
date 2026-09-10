@@ -3,7 +3,9 @@
 La licencia Apache 2.0 cubre **el código** de Desplázame. **No cubre lo ajeno**, que conserva sus
 propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 
-> ℹ️ **Estado a 08/09/2026.** El proyecto está en construcción. Hoy hay de terceros: las
+> ℹ️ **Estado a 10/09/2026.** El proyecto está en construcción **y en producción** —vive en
+> <https://desplazame.antonioblanquez.es> desde el 8/09—, que es lo que hace que estas fichas dejen
+> de ser un ejercicio: lo ajeno que se enseña se está enseñando **a quien entre**. Hoy hay de terceros: las
 > dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y siete** fichas
 > propias —§ 1.1 a § 1.37—, de las cuales **una es una norma citada** (§ 1.32) y **una declara lo
 > que todavía NO ha entrado** (§ 1.37).
