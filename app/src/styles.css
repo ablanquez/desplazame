@@ -724,6 +724,28 @@ body:has(.marco) {
   font-size: 1rem;
 }
 
+/* ⭐ LA CABECERA CON CUERPO (10/09) — la banda que la maqueta traía y aquí no.
+   
+   [NN/g, acordeones] el pecado más común de un acordeón es **no señalar que se
+   puede expandir**, y la cabecera tiene que distinguirse del contenido **en los
+   dos estados**, no solo al abrirse. Esto llevaba `background: none` y `border:
+   0`: era un texto suelto encima de un formulario, con el chevrón como única
+   pista.
+   
+   ⚠️ Y el aviso de NN/g sobre «no pongas fondos a los titulares» **no aplica**:
+      va contra titulares NO clicables disfrazados de botón. Éste ES un botón —
+      `<button>` con `aria-expanded` y la fila entera clicable—, así que el fondo
+      es señal correcta y no una promesa falsa.
+   
+   El color sale de los tokens y de la maqueta, no de un criterio nuestro:
+   `bg-muted/30` en reposo y `hover:bg-muted` [App.tsx, las dos cabeceras del
+   acordeón de escritorio], que aquí es `--muted` con su 30 % por `color-mix`.
+   
+   ⚠️ **Quien delimita de verdad es el borde**, y conviene saberlo: `--muted` y
+      `--card` están tan cerca en esta paleta que la banda al 30 % es un matiz de
+      pocos puntos —está medido en el acta de esta tanda—. El borde inferior es
+      lo que dice dónde acaba la cabecera; la banda acompaña y es lo que crece
+      con el ratón. */
 .bloque__cabecera {
   display: flex;
   align-items: center;
@@ -733,17 +755,37 @@ body:has(.marco) {
   min-height: 44px;
   padding: 1rem;
   border: 0;
-  background: none;
+  border-bottom: 1px solid var(--border);
+  background-color: color-mix(in srgb, var(--muted) 30%, transparent);
   color: inherit;
   font: inherit;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
+  transition: background-color 150ms;
 }
 
+/* ⚠️ DENTRO DE `@media (hover: hover)`, y es la ley de esta hoja desde la tanda
+      4: en un táctil el hover se emula con el toque y **se queda pegado**. Una
+      cabecera que se quedara resaltada tras plegarla estaría diciendo «el ratón
+      está aquí» en un aparato sin ratón. */
+@media (hover: hover) {
+  .bloque__cabecera:hover {
+    background-color: var(--muted);
+  }
+}
+
+/* ⚠️ Y el foco NO va ahí dentro: el teclado existe en los dos mundos. Misma
+      razón que el foco de los chips. */
 .bloque__cabecera:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloque__cabecera {
+    transition: none;
+  }
 }
 
 .bloque__chevron {
