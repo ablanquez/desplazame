@@ -699,6 +699,78 @@ function familiaDe(modo: Modo): Familia {
   styleUrl: './buscador.css',
 })
 export class Buscador {
+  // ══════════════════════════════════════════════════════════════════════════
+  //  ⭐ EL ESQUELETO (10/09, tanda 3). Solo estructura: dónde vive cada cosa y
+  //     qué está abierto. Ni un dato ni una regla del producto pasa por aquí.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * ⭐ LA HOJA INFERIOR, con DOS estados y ningún intermedio.
+   *
+   * [Material 3, *bottom sheets*] los estados posibles son
+   * `COLLAPSED / HALF_EXPANDED / EXPANDED / HIDDEN`, y la propia guía ofrece
+   * `skipPartiallyExpanded` para **quedarse solo con dos estables** y evitar el
+   * intermedio ambiguo. Es lo que el DISEÑO decidió: recogida y desplegada, sin
+   * arrastre libre. Cambiar de una a otra se hace **tocando el asa**, que en M3
+   * es la forma documentada de alternar.
+   *
+   * ⚠️ Solo manda en móvil. De 768 px arriba la hoja deja de existir: el panel
+   *    es una columna y quien decide es `columnaAbierta`.
+   */
+  protected readonly hojaDesplegada = signal(false);
+
+  protected alternarHoja(): void {
+    this.hojaDesplegada.update((x) => !x);
+  }
+
+  /**
+   * ⭐ LA COLUMNA DE ESCRITORIO, abierta o plegada — las dos posiciones del
+   * separador, sin arrastre, que es el patrón de panel lateral colapsable.
+   *
+   * ⚠️ Plegarla **cambia el tamaño del contenedor del mapa**, y ese es el único
+   *    caso en toda la app en que Leaflet necesita que le avisen. Lo hace
+   *    `alTerminarLaTransicion`, enganchado al `transitionend` del panel.
+   */
+  protected readonly columnaAbierta = signal(true);
+
+  protected alternarColumna(): void {
+    this.columnaAbierta.update((x) => !x);
+  }
+
+  private readonly elMapa = viewChild(Mapa);
+
+  /**
+   * ⭐ EL RE-ENCUADRE, ATADO AL FINAL DE LA TRANSICIÓN — no a un cronómetro.
+   *
+   * Un `setTimeout(300)` acierta en esta máquina y falla en la que va lenta, y
+   * cuando falla deja **medio mapa en teselas grises** sin decir nada. El
+   * `transitionend` lo dispara el navegador cuando la transición ha terminado
+   * DE VERDAD, dure lo que dure.
+   *
+   * ⚠️ Se filtra por `width`: el panel también transiciona otras propiedades, y
+   *    sin el filtro esto se llamaría varias veces por plegado.
+   */
+  protected alTerminarLaTransicion(evento: TransitionEvent): void {
+    if (evento.propertyName === 'width') {
+      this.elMapa()?.revisarTamano();
+    }
+  }
+
+  /**
+   * ⭐ EL ACORDEÓN. Los DOS pueden estar abiertos a la vez repartiéndose la
+   * altura — no es un «uno u otro»—, que es como se comporta la maqueta.
+   */
+  protected readonly buscadorAbierto = signal(true);
+  protected readonly pasosAbiertos = signal(true);
+
+  protected alternarBuscador(): void {
+    this.buscadorAbierto.update((x) => !x);
+  }
+
+  protected alternarPasos(): void {
+    this.pasosAbiertos.update((x) => !x);
+  }
+
   /**
    * Para preguntarle al motor por el portal más cercano.
    *

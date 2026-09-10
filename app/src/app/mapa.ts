@@ -480,6 +480,34 @@ export class Mapa {
 
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
+
+  /**
+   * ⭐ «HE CAMBIADO DE TAMAÑO, VUELVE A MIRAR» (10/09, el esqueleto).
+   *
+   * [DOC Leaflet, `invalidateSize`] «Checks if the map container size changed
+   * and updates the map if so — call it after you've changed the map size
+   * dynamically.» Sin esta llamada, la mitad que antes no existía se queda en
+   * **teselas grises**: Leaflet cree que el lienzo sigue midiendo lo de antes.
+   *
+   * ⚠️ Y SOLO HACE FALTA PARA EL PLEGADO DE LA COLUMNA, que es lo único que
+   *    cambia el tamaño del CONTENEDOR. Los otros dos casos no lo necesitan:
+   *
+   *    · **El resize de ventana y la rotación los lleva Leaflet solo.** Su
+   *      opción `trackResize` viene en `true` por defecto —«whether the map
+   *      automatically handles browser window resize to update itself»— y este
+   *      mapa se monta sin opciones, así que la conserva. Duplicarlo con un
+   *      `ResizeObserver` propio sería poner un segundo mecanismo encima del
+   *      nativo.
+   *    · **Los dos estados de la hoja en móvil tampoco**: la hoja se superpone
+   *      al mapa, que ocupa la pantalla entera por debajo. Su contenedor no
+   *      cambia de tamaño, así que no hay nada que recalcular.
+   *
+   * Quien llama es el esqueleto, en `transitionend` — una vez, al terminar la
+   * transición, y no a los N milisegundos de un número inventado.
+   */
+  revisarTamano(): void {
+    this.mapa?.invalidateSize();
+  }
   private lineas: L.Polyline[] = [];
   private marcas: L.Marker[] = [];
   /**

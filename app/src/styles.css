@@ -461,11 +461,14 @@
    del reset de Tailwind, que aquí no existe, e inventarle uno sería añadir una
    decisión que nadie ha tomado. */
 
-/* ⚠️ Sin `margin: 0`, aunque la referencia lo tenga. El suyo se lo pone el
-   reset de Tailwind, no su `body`, y quitarle al navegador sus 8 px de margen
-   **movería la página entera** — que es justo lo que esta tanda no hace. Si
-   hace falta, entra con el layout, en su tanda y viéndose. */
+/* ⭐ Y EL MARGEN A CERO, QUE LLEGO CON EL LAYOUT (tanda 3).
+   ⚠️ En la tanda 2 esto decía que NO se tocaba, y con razón: mover la página
+      ocho píxeles no era cosa de vestir el `body`. Aquí sí es cosa: el
+      esqueleto ocupa **exactamente** la pantalla, y con los 8 px del navegador
+      alrededor el documento medía 860 px en una ventana de 844 — o sea, había
+      scroll global. Medido en Chrome antes de tocarlo. Lo vigila la jueza L1. */
 body {
+  margin: 0;
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
@@ -496,4 +499,377 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL ESQUELETO — la pantalla entera, sin scroll global (tanda 3)
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ⚠️ ESTO VIVE EN LOS ESTILOS GLOBALES Y NO EN `buscador.css`, y no es por
+      comodidad: es el layout de la APLICACIÓN —dónde va el mapa, dónde el
+      panel, qué desplaza— y no la pinta de un componente. Además `buscador.css`
+      está en 6,48 kB con el error de presupuesto en 8: meter aquí el esqueleto
+      habría reventado el build.
+
+   ⚠️ Y SE ESCRIBE MOBILE-FIRST. Lo que hay sin `@media` es la pantalla
+      pequeña: el mapa llenando el hueco y el panel como hoja inferior. Las
+      `min-width` de abajo AÑADEN la mejora de escritorio. No hay dos
+      implementaciones — hay una y una mejora, que es más fácil de sostener que
+      quitar complejidad a base de sobrescribir. */
+
+/* ⭐ SIN SCROLL GLOBAL. Todo el desplazamiento vive dentro de los bloques.
+   ⚠️ `overscroll-behavior` NO se pone aquí a propósito: en `html`/`body`
+      desactivaría el «tirar para recargar» nativo del móvil. Va en los
+      bloques, que es donde hace falta. */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.marco {
+  position: relative;
+  /* ⚠️ Las dos líneas, y en este orden. `100vh` se mide contra el viewport
+     GRANDE —con la barra del navegador retraída—, así que en móvil el final de
+     la pantalla queda debajo de la barra. `100dvh` se recalcula en vivo. Los
+     navegadores que no entienden `dvh` se quedan con la primera, que es un
+     respaldo digno; los que sí, con la segunda.
+     ⚠️ Y no se anima nada con `dvh`: su valor cambia mientras se desplaza, y
+        animar contra un número que se mueve produce tembleque. */
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* El mapa: el fondo de la pantalla en móvil. La hoja se le pone encima.
+
+   ⭐ EL `z-index: 0` NO ES DECORATIVO Y SIN EL LA HOJA NO SE VE.
+   ⚠️ Leaflet reparte sus capas en *panes* con z-index propios que van del 200
+      (las teselas) al 700 (los popups). Sin un contexto de apilamiento aquí,
+      esos números compiten DIRECTAMENTE con el del panel, y 400 gana a 20: el
+      mapa se pinta encima de la hoja y la tapa entera.
+
+      Y se tapa **en silencio**: la hoja sigue estando, con su sitio y su
+      tamaño: medida con `getBoundingClientRect` daba 390×154 px mientras no se
+      veía ni un píxel de ella. Se cazó mirando la captura, no midiendo. Por eso
+      la jueza L4 comprueba lo que se PINTA y no lo que mide la caja.
+
+      Con `z-index: 0` este div abre su propio contexto y los panes de Leaflet
+      se ordenan **dentro** de él, sin salir a discutir con nadie de fuera. */
+.lienzo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ⚠️ La cadena de alturas, entera. `height: 100%` solo funciona si el padre
+   tiene una altura de la que sacar el porcentaje, y el host de un componente
+   Angular es `display: block` con altura AUTOMÁTICA: ahí la cadena se rompe y
+   el mapa se monta con 0 px. Se vio en escritorio como media pantalla en
+   blanco. Estas dos líneas son las que la cierran. */
+.lienzo .mapa,
+.lienzo app-mapa {
+  height: 100%;
+}
+
+/* ═══ LA HOJA INFERIOR [Material 3, bottom sheets] ═══
+   Dos estados estables y ninguno intermedio: recogida enseña las cabeceras,
+   desplegada sube. Sin arrastre libre — se cambia tocando el asa. */
+.panel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  /* [M3] el ancho máximo de una hoja inferior */
+  max-width: 640px;
+  margin: 0 auto;
+  /* [M3] el radio superior de la hoja */
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  background-color: var(--card);
+  color: var(--card-foreground);
+  box-shadow: 0 -2px 12px rgb(0 0 0 / 12%);
+  /* Recogida: mide lo que midan el asa y las cabeceras. */
+  max-height: 88dvh;
+}
+
+.panel--desplegada {
+  height: 88dvh;
+}
+
+/* ⚠️ Recogida, los cuerpos NO se ven aunque el acordeón los tenga abiertos: el
+   estado de la hoja manda sobre el del acordeón mientras es hoja. Al desplegar,
+   el acordeón vuelve a decidir y nada se ha perdido por el camino. */
+.panel:not(.panel--desplegada) .bloque__cuerpo,
+.panel:not(.panel--desplegada) .creditos {
+  display: none;
+}
+
+/* ⭐ EL ASA [M3]: píldora de 4×32 px dentro de un área de toque de 48. La
+   píldora es lo que se ve; los 48 son lo que se puede tocar con el dedo. */
+.panel__asa {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.5rem;
+  border: 0;
+  background: none;
+  color: var(--muted-foreground);
+  font: inherit;
+  cursor: pointer;
+}
+
+.panel__asa-pildora {
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--muted-foreground);
+}
+
+.panel__asa-texto {
+  font-size: 0.75rem;
+}
+
+.panel__asa:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+/* Los bloques reparten lo que queda. `min-height: 0` es lo que permite que un
+   hijo flexible pueda ENCOGER por debajo de su contenido — sin él, el bloque
+   crece con su texto y el scroll interno no llega a existir nunca. */
+.panel__bloques {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.bloque {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-height: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ⭐ Los DOS pueden estar abiertos a la vez: cada uno pide `flex: 1` y se
+   reparten la altura. No es un «uno u otro». */
+.bloque--abierto {
+  flex: 1;
+}
+
+.bloque__titulo {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.bloque__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  /* [WCAG 2.5.8] el objetivo mínimo, y el de la referencia */
+  min-height: 44px;
+  padding: 1rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bloque__cabecera:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.bloque__chevron {
+  flex-shrink: 0;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.35rem;
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: rotate(45deg);
+  transform-origin: 60% 60%;
+  transition: transform 200ms;
+}
+
+.bloque--abierto .bloque__chevron {
+  transform: rotate(225deg);
+}
+
+/* ⭐ EL SCROLL, CONTENIDO EN SU BLOQUE.
+   [CSSWG, overscroll-behavior] `contain` corta el encadenado: agotar el scroll
+   de aquí dentro NO empieza a desplazar lo de fuera. El ejemplo canónico de la
+   especificación es justo este layout — el panel lateral de un mapa. */
+.bloque__cuerpo {
+  flex: 1;
+  min-height: 0;
+  padding: 1rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.creditos {
+  flex-shrink: 0;
+  max-height: 30%;
+  padding: 0 1rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--border);
+}
+
+/* El separador solo existe en escritorio: en móvil quien manda es el asa. */
+.separador {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA MEJORA DE ESCRITORIO — dos columnas y el separador de dos posiciones
+   ═══════════════════════════════════════════════════════════════════════════
+
+   El umbral es 768, que es el que usa la referencia (`window.innerWidth < 768`)
+   y el que el DISEÑO fija como frontera del móvil. */
+
+@media (min-width: 768px) {
+  .marco {
+    display: flex;
+  }
+
+  /* ⭐ EL PANEL A LA IZQUIERDA Y EL MAPA A LA DERECHA [DISENO §211].
+     ⚠️ En el HTML el mapa va PRIMERO, porque en movil es el fondo y la hoja se
+        le pone encima. En una fila flexible eso lo pondria a la izquierda, que
+        es justo al reves de lo decidido. `order` lo recoloca sin tocar el DOM
+        — y sin tocar el DOM porque el orden del documento es el que siguen el
+        teclado y el lector de pantalla, y ese SI esta bien: primero el panel
+        con el que se trabaja, y el mapa despues. */
+  .panel {
+    order: -1;
+  }
+
+  /* La hoja se convierte en columna: pierde el redondeo, el asa y el
+     posicionamiento, y gana un ancho que se puede plegar. */
+  .panel {
+    position: static;
+    z-index: auto;
+    /* ← el ancho de la referencia (sm:w-[460px]) */
+    width: 460px;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-right: 1px solid var(--border);
+    box-shadow: 0 0 12px rgb(0 0 0 / 8%);
+    /* ⚠️ Se transiciona SOLO `width`, y de ahí cuelga el re-encuadre del mapa:
+       `alTerminarLaTransicion` filtra por esa propiedad para no dispararse
+       varias veces por plegado. 300 ms es la duración de la referencia. */
+    transition: width 300ms;
+    flex-shrink: 0;
+  }
+
+  /* ⚠️ `.panel.panel--plegada` Y NO `.panel--plegada` A SECAS. Con una sola
+     clase empataba en especificidad con el `.panel` del `@media` de 1280, que
+     va DESPUES en el fichero y por tanto ganaba: la columna se quedaba en sus
+     500 px y solo perdia el borde. El mapa ganaba UN pixel de los ~500 que
+     tenia que ganar, y dos de las tres juezas de L3 lo dieron por bueno.
+     Ver bitacora nº45. */
+  .panel.panel--plegada {
+    width: 0;
+    overflow: hidden;
+    border-right-width: 0;
+  }
+
+  .panel__asa {
+    display: none;
+  }
+
+  /* En escritorio los cuerpos los decide el acordeón y solo el acordeón. */
+  .panel:not(.panel--desplegada) .bloque__cuerpo,
+  .panel:not(.panel--desplegada) .creditos {
+    display: revert;
+  }
+
+  .lienzo {
+    position: relative;
+    inset: auto;
+    flex: 1;
+    /* Sin esto un hijo flexible no baja de su contenido y el mapa desborda. */
+    min-width: 0;
+  }
+
+  /* ⭐ El separador: 24×48 px pegado al borde de la columna — la medida de la
+     referencia (`style={{ width: 24, height: 48 }}`). Dos posiciones, sin
+     arrastre: viaja con el borde del panel. */
+  .separador {
+    position: absolute;
+    top: 50%;
+    left: 460px;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 48px;
+    padding: 0;
+    transform: translateY(-50%);
+    border: 1px solid var(--border);
+    border-left: 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+    background-color: var(--card);
+    color: var(--card-foreground);
+    box-shadow: 2px 0 6px rgb(0 0 0 / 12%);
+    cursor: pointer;
+    transition: left 300ms;
+  }
+
+  .separador:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  .panel--plegada ~ .separador {
+    left: 0;
+  }
+
+  .separador__chevron {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-top: 2px solid currentcolor;
+    border-left: 2px solid currentcolor;
+    transform: rotate(-45deg) translate(1px, 1px);
+    transition: transform 200ms;
+  }
+
+  .panel--plegada ~ .separador .separador__chevron {
+    transform: rotate(135deg) translate(1px, 1px);
+  }
+}
+
+/* El segundo ancho de la referencia (xl:w-[500px]). */
+@media (min-width: 1280px) {
+  .panel {
+    width: 500px;
+  }
+
+  .separador {
+    left: 500px;
+  }
+
+  .panel--plegada ~ .separador {
+    left: 0;
+  }
 }

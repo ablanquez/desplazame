@@ -33,980 +33,1017 @@
   }
 </ng-template>
 
-<main class="pantalla">
-  <header class="cabecera">
-    <h1>Desplázame</h1>
-    <p>Cómo ir de un portal a otro en Zaragoza.</p>
-  </header>
+<!-- ⭐ EL ESQUELETO (10/09, tanda 3). Estructura y nada mas: cada trozo de
+     contenido entra aqui TAL CUAL era, solo cambia donde vive y como desplaza.
 
-  <form class="buscador" (submit)="$event.preventDefault()">
-    <fieldset class="punto">
-      <legend>Origen</legend>
-      <!--
-        ⭐ EL CAMPO SON CUATRO PIEZAS desde el 24/08: la ubicación, el
-        desplegable de tipo, el cajetín y —solo con Dirección— el número.
-        El orden es el del encargo, y es también el de la lectura: primero
-        «dónde estoy», luego «qué busco», luego «cuál».
-      -->
-      <button
-        type="button"
-        class="ubicacion"
-        [disabled]="buscandoUbicacion()"
-        (click)="miUbicacion(origen)"
-        [attr.aria-label]="'Usar mi ubicación como origen'"
-      >
-        {{ buscandoUbicacion() ? 'Buscando…' : '📍' }}
-      </button>
+     Se lee de arriba abajo como se ve en MOVIL, que es la base: el mapa ocupa
+     la pantalla y la hoja se le pone encima. Las dos columnas de escritorio son
+     una mejora que ANADE una media query, no una segunda implementacion.
 
-      <!--
-        [DOC GOV.UK Design System · Select] Su ejemplo canónico es justo esto:
-        un filtro corto con una opción marcada por defecto. Su aviso contra los
-        `select` largos —«considera otro patrón si hay muchas opciones»— no
-        aplica: aquí hay ocho.
-
-        ⭐ Y cada opción lleva DENTRO el icono de su clase [MDN · Customizable
-        select elements]: con `appearance: base-select` el `option` admite
-        contenido, así que el dibujo se ve donde se ELIGE y no solo donde ya se
-        ha elegido. Es el `select` nativo con más cosas dentro — ni una
-        librería, ni un `div` disfrazado de desplegable.
-
-        El icono va `aria-hidden` y **el texto se queda**: es la regla de oro
-        del patrón, y es lo que hace que en un navegador sin soporte esto siga
-        siendo un desplegable de texto que funciona.
-
-        ⚠️ La chincheta de «Dirección» va con el PAPEL de su campo —verde en
-        origen, roja en destino [osm.org]—, así que el desplegable dice de qué
-        color va a salir eso en el mapa antes de elegirlo. Los siete iconos de
-        sitio son idénticos en los dos campos: una farmacia es verde vaya donde
-        vaya.
-      -->
-      <label class="campo campo--tipo" for="tipoOrigen">
-        <span>Tipo</span>
-        <select
-          id="tipoOrigen"
-          name="tipoOrigen"
-          class="tipo"
-          [value]="origen.tipo()"
-          (change)="alCambiarTipo(origen, $any($event.target).value)"
-        >
-          @for (t of tipos; track t.id) {
-            <option [value]="t.id" [selected]="t.id === origen.tipo()">
-              <app-icono-capa [clase]="t.id" papel="origen" [lado]="14" />
-              <span class="tipo__texto">{{ t.etiqueta }}</span>
-            </option>
-          }
-        </select>
-      </label>
-
-      <app-autocompletar-via
-        campo="calleOrigen"
-        [etiqueta]="origen.tipo() === 'via' ? 'Calle' : 'Nombre'"
-        [capa]="origen.tipo()"
-        [foco]="focoDe(destino)"
-        [(texto)]="origen.calle"
-        [seleccion]="origen.via()"
-        (seleccionChange)="alElegirVia(origen, $event)"
-        [sitio]="origen.sitio()"
-        (sitioChange)="alElegirSitio(origen, $event)"
-        [(tocado)]="origen.calleTocada"
+     ⚠️ Los contenedores son `div` a proposito, y no `section`. El `<footer>`
+        de los creditos solo cuenta como punto de referencia `contentinfo`
+        mientras ningun `main`, `section`, `article`, `aside` o `nav` lo tenga
+        por encima — esta escrito en su propio comentario, mas abajo—. Un `div`
+        no seccional nada, asi que la hoja puede envolverlo sin quitarselo. Por
+        eso `main` cubre los dos bloques y el pie queda fuera, como estaba. -->
+<div class="marco">
+  <!-- El mapa: el fondo de la pantalla en movil, la columna derecha en PC. Va
+       el primero porque en movil es lo de debajo, y la hoja se le superpone. -->
+  <div class="lienzo">
+    <section class="mapa" aria-label="Mapa">
+      <!-- Las capas salen del RESULTADO, igual que el trazado: tocar el
+           formulario después de generar no repinta los marcadores de una ruta
+           que ya está dibujada. El porqué entero, en `Resultado`. -->
+      <app-mapa
+        alto="100%"
+        [trazado]="trazado()"
+        [tramos]="tramos()"
+        [zona]="zonaDelMapa()"
+        [area]="areaDelMapa()"
+        [capaOrigen]="resultado()?.capaOrigen ?? null"
+        [capaDestino]="resultado()?.capaDestino ?? null"
       />
+    </section>
 
-      <!--
-        ⭐ EL NÚMERO, POR REVELADO CONDICIONAL [DOC GOV.UK: conditional reveal].
-        Con Dirección existe; con una categoría de sitio **NO EXISTE** — no está
-        apagado, no está. Un campo deshabilitado sigue en la página, ocupa su
-        hueco y se lee como «esto habría que rellenarlo»; un sitio no tiene
-        número que pedirle y la pantalla no debe insinuar que sí.
+  </div>
 
-        El patrón de GOV.UK pide que lo revelado sea **un solo campo**, y lo es.
-        La regla del portal condicional (19/08) queda absorbida por esto: no
-        hace falta apagar lo que no está.
-
-        ⭐ Y desde el 27/08 la condición tiene DOS mitades, no una. Con
-        Dirección la casilla existe **salvo que la calle elegida no tenga
-        portales**: las 619 que se resuelven por el punto medio de su geometría
-        —el PUENTE DE PIEDRA, la PLAZA CÉSAR AUGUSTO, el PARQUE JOSÉ ANTONIO
-        LABORDETA— no tienen ni una puerta que ofrecer, y un desplegable vacío
-        pidiendo un número que no existe es peor que no tener casilla.
-
-        Es el mismo patrón y el mismo argumento que con los sitios: **la
-        AUSENCIA del campo, no el campo apagado**. Y por eso la ausencia se lee
-        del dato —`Via.portales`, contado por el motor— y no de una lista de
-        nombres escrita aquí.
-      -->
-      @if (origen.tipo() === 'via' && pideNumero(origen)) {
-        <app-selector-portal
-          campo="portalOrigen"
-          etiqueta="Nº"
-          [via]="origen.via()"
-          [(texto)]="origen.portalTexto"
-          [(seleccion)]="origen.portal"
-          [(tocado)]="origen.portalTocado"
-        />
-      }
-    </fieldset>
-
-    <!-- El aviso va pegado al botón que lo produce, no arriba del todo: se lee
-         donde se ha mirado. `role="status"` para que también se cante. -->
-    @if (avisoUbicacion(); as aviso) {
-      <p class="aviso-ubicacion" role="status">{{ aviso }}</p>
-    }
-
+  <!-- El panel: la hoja inferior en movil, la columna izquierda en PC. -->
+  <div
+    class="panel"
+    [class.panel--desplegada]="hojaDesplegada()"
+    [class.panel--plegada]="!columnaAbierta()"
+    (transitionend)="alTerminarLaTransicion($event)"
+  >
+    <!-- ⭐ EL ASA [M3]: pildora de 4x32 dentro de un area de toque de 48, que
+         es lo que la guia pide para que se pueda coger con el dedo. Tocarla
+         alterna entre los dos estados estables. Solo se ve en movil. -->
     <button
       type="button"
-      class="invertir"
-      (click)="invertir()"
-      title="Invertir origen y destino"
-      aria-label="Invertir origen y destino"
+      class="panel__asa"
+      [attr.aria-expanded]="hojaDesplegada()"
+      aria-controls="panel-bloques"
+      (click)="alternarHoja()"
     >
-      ⇅
+      <span class="panel__asa-pildora"></span>
+      <span class="panel__asa-texto">{{ hojaDesplegada() ? 'Recoger' : 'Desplegar' }}</span>
     </button>
 
-    <fieldset class="punto">
-      <legend>Destino</legend>
-      <!--
-        ⭐ EL CAMPO SON CUATRO PIEZAS desde el 24/08: la ubicación, el
-        desplegable de tipo, el cajetín y —solo con Dirección— el número.
-        El orden es el del encargo, y es también el de la lectura: primero
-        «dónde estoy», luego «qué busco», luego «cuál».
-      -->
-      <button
-        type="button"
-        class="ubicacion"
-        [disabled]="buscandoUbicacion()"
-        (click)="miUbicacion(destino)"
-        [attr.aria-label]="'Usar mi ubicación como destino'"
-      >
-        {{ buscandoUbicacion() ? 'Buscando…' : '📍' }}
-      </button>
-
-      <!--
-        [DOC GOV.UK Design System · Select] Su ejemplo canónico es justo esto:
-        un filtro corto con una opción marcada por defecto. Su aviso contra los
-        `select` largos —«considera otro patrón si hay muchas opciones»— no
-        aplica: aquí hay ocho.
-
-        ⭐ Y cada opción lleva DENTRO el icono de su clase [MDN · Customizable
-        select elements]: con `appearance: base-select` el `option` admite
-        contenido, así que el dibujo se ve donde se ELIGE y no solo donde ya se
-        ha elegido. Es el `select` nativo con más cosas dentro — ni una
-        librería, ni un `div` disfrazado de desplegable.
-
-        El icono va `aria-hidden` y **el texto se queda**: es la regla de oro
-        del patrón, y es lo que hace que en un navegador sin soporte esto siga
-        siendo un desplegable de texto que funciona.
-
-        ⚠️ La chincheta de «Dirección» va con el PAPEL de su campo —verde en
-        origen, roja en destino [osm.org]—, así que el desplegable dice de qué
-        color va a salir eso en el mapa antes de elegirlo. Los siete iconos de
-        sitio son idénticos en los dos campos: una farmacia es verde vaya donde
-        vaya.
-      -->
-      <label class="campo campo--tipo" for="tipoDestino">
-        <span>Tipo</span>
-        <select
-          id="tipoDestino"
-          name="tipoDestino"
-          class="tipo"
-          [value]="destino.tipo()"
-          (change)="alCambiarTipo(destino, $any($event.target).value)"
-        >
-          @for (t of tipos; track t.id) {
-            <option [value]="t.id" [selected]="t.id === destino.tipo()">
-              <app-icono-capa [clase]="t.id" papel="destino" [lado]="14" />
-              <span class="tipo__texto">{{ t.etiqueta }}</span>
-            </option>
-          }
-        </select>
-      </label>
-
-      <app-autocompletar-via
-        campo="calleDestino"
-        [etiqueta]="destino.tipo() === 'via' ? 'Calle' : 'Nombre'"
-        [capa]="destino.tipo()"
-        [foco]="focoDe(origen)"
-        [(texto)]="destino.calle"
-        [seleccion]="destino.via()"
-        (seleccionChange)="alElegirVia(destino, $event)"
-        [sitio]="destino.sitio()"
-        (sitioChange)="alElegirSitio(destino, $event)"
-        [(tocado)]="destino.calleTocada"
-      />
-
-      <!--
-        ⭐ EL NÚMERO, POR REVELADO CONDICIONAL [DOC GOV.UK: conditional reveal].
-        Con Dirección existe; con una categoría de sitio **NO EXISTE** — no está
-        apagado, no está. Un campo deshabilitado sigue en la página, ocupa su
-        hueco y se lee como «esto habría que rellenarlo»; un sitio no tiene
-        número que pedirle y la pantalla no debe insinuar que sí.
-
-        El patrón de GOV.UK pide que lo revelado sea **un solo campo**, y lo es.
-        La regla del portal condicional (19/08) queda absorbida por esto: no
-        hace falta apagar lo que no está.
-
-        ⭐ Y desde el 27/08 la condición tiene DOS mitades, no una. Con
-        Dirección la casilla existe **salvo que la calle elegida no tenga
-        portales**: las 619 que se resuelven por el punto medio de su geometría
-        —el PUENTE DE PIEDRA, la PLAZA CÉSAR AUGUSTO, el PARQUE JOSÉ ANTONIO
-        LABORDETA— no tienen ni una puerta que ofrecer, y un desplegable vacío
-        pidiendo un número que no existe es peor que no tener casilla.
-
-        Es el mismo patrón y el mismo argumento que con los sitios: **la
-        AUSENCIA del campo, no el campo apagado**. Y por eso la ausencia se lee
-        del dato —`Via.portales`, contado por el motor— y no de una lista de
-        nombres escrita aquí.
-      -->
-      @if (destino.tipo() === 'via' && pideNumero(destino)) {
-        <app-selector-portal
-          campo="portalDestino"
-          etiqueta="Nº"
-          [via]="destino.via()"
-          [(texto)]="destino.portalTexto"
-          [(seleccion)]="destino.portal"
-          [(tocado)]="destino.portalTocado"
-        />
-      }
-    </fieldset>
-
-    <!--
-      ⭐ EL SELECTOR ES UN GRUPO DE RADIOS desde el 30/08, y antes eran seis
-      —cuatro— `<button aria-pressed>` sueltos.
-
-      El cambio lo obliga el número. [DOC sistemas de diseño · control
-      segmentado] el rango del patrón es de **2 a 5 opciones con etiqueta**, y
-      con más de cinco mandan cambiar de patrón: «grupo de radios o
-      desplegable». Aquí hay seis y son excluyentes, así que toca radios.
-
-      Lo que se gana no es el dibujo —el vestido es el mismo, y el CSS también—:
-      es **la semántica**, y con ella el teclado. Seis botones sueltos eran seis
-      paradas de tabulador y las flechas no hacían nada. Un grupo de radios con
-      el mismo `name` es **una parada para el grupo, flechas entre opciones y
-      exclusión** — todo del navegador, sin una línea de JavaScript. El
-      `fieldset` + `legend` ya estaba y es justo el envoltorio que el patrón
-      pide: la leyenda «Cómo» es el nombre del grupo.
-
-      Nativo primero: `input type="radio"` de verdad, escondido a la vista pero
-      **presente para el teclado y para quien lea la pantalla**. Lo que se ve es
-      la `<label>` que lo envuelve, que es también lo que se pulsa.
-    -->
-    <fieldset class="modos familias">
-      <legend>Cómo</legend>
-      @for (f of familias; track f.id) {
-        <label class="modo" [class.modo--activo]="familia() === f.id">
-          <input
-            type="radio"
-            name="familia"
-            class="modo__radio"
-            [value]="f.id"
-            [checked]="familia() === f.id"
-            (change)="elegirFamilia(f.id)"
-          />
-          {{ f.etiqueta }}
-        </label>
-      }
-    </fieldset>
-
-    <!--
-      ⭐ LA SEGUNDA FILA DE LA BICI, y **solo con Bici** (2/09, punto 11).
-
-      Es el tercer sitio donde vive el mismo patrón [DOC GOV.UK, revelado
-      condicional] — el número de portal, «¿Qué ruta prefieres?» y esto—, y el
-      argumento es el de siempre: **no está apagada, no está**. Un par de
-      radios «Privada / Pública BiZi» colgando en gris debajo de «Andando»
-      ocuparía su hueco y se leería como «esto podrías tocarlo», y no se puede.
-
-      Por qué la bici se parte en dos y las demás no: porque **es la única
-      familia con dos modos de verdad**. `bici` y `bizi` son dos rutas
-      distintas en el motor —la BiZi va en tres tramos y no sale del término
-      municipal—, pero para quien mira son la misma pregunta contestada dos
-      veces. Ponerlas al mismo nivel que «Coche» era hacer que se leyeran seis
-      cosas para descubrir que dos eran hermanas.
-
-      El control es el mismo de siempre y por las mismas razones: `fieldset` +
-      `legend` con radios NATIVOS dentro, con su propio `name` —que es lo que
-      hace el grupo: una parada de tabulador, flechas entre las dos opciones y
-      exclusión, todo del navegador—. Dos opciones caen dentro del rango del
-      patrón (2-5).
-
-      ⚠️ El `name` es `bici` y NO `modo`: si compartiera nombre con la primera
-         fila, el navegador las trataría como **un solo grupo de siete** y
-         marcar «Privada» desmarcaría «Bici». El reparto en dos preguntas es
-         precisamente lo que se está comprando.
-
-      ⚠️ Y lo que se manda al motor no se traduce aquí: los `value` de estos
-         dos radios **son** `bici` y `bizi`, los mismos que viajan en
-         `/api/ruta` desde el 30/08. No hay tabla en medio que pueda mentir.
-    -->
-    @if (familia() === 'bici') {
-      <fieldset class="modos bicis">
-        <legend>¿Qué bici?</legend>
-        @for (b of bicis; track b.id) {
-          <label class="modo" [class.modo--activo]="modo() === b.id">
-            <input
-              type="radio"
-              name="bici"
-              class="modo__radio"
-              [value]="b.id"
-              [checked]="modo() === b.id"
-              (change)="elegirModo(b.id)"
-            />
-            {{ b.etiqueta }}
-          </label>
-        }
-      </fieldset>
-    }
-
-    <!--
-      ⭐ LA SEGUNDA FILA DE LA MOTO, y **solo con Moto** (4/09, punto 13).
-
-      El mismo patrón que la de la bici, con la misma anatomía y el mismo
-      argumento: `moto` y `yego` son la misma pregunta contestada dos veces, y
-      ponerlas arriba subiría la primera fila a siete.
-
-      ⚠️ El `name` es `moto` y NO `familia`: si compartieran nombre, el navegador
-         las trataría como **un solo grupo de ocho** y marcar «Privada»
-         desmarcaría «Moto».
-
-      ⚠️ Y lo que se manda al motor no se traduce aquí: los `value` de estos dos
-         radios **son** `moto` y `yego`, los del contrato.
-    -->
-    @if (eligeMoto()) {
-      <fieldset class="modos motos">
-        <legend>¿Qué moto?</legend>
-        @for (m of motos; track m.id) {
-          <label class="modo" [class.modo--activo]="modo() === m.id">
-            <input
-              type="radio"
-              name="moto"
-              class="modo__radio"
-              [value]="m.id"
-              [checked]="modo() === m.id"
-              (change)="elegirModo(m.id)"
-            />
-            {{ m.etiqueta }}
-          </label>
-        }
-      </fieldset>
-    }
-
-    <!--
-      ⭐ DÓNDE APARCAR, y **solo con Coche** (3/09, punto 12).
-
-      Es el cuarto sitio del mismo patrón [DOC GOV.UK, revelado condicional] —el
-      número de portal, «¿Qué ruta prefieres?», «¿Qué bici?» y esto—, con el
-      argumento de siempre: lo que no aplica **no está**, no está en gris.
-
-      ⚠️ **Ninguna opción viene marcada**, y eso es deliberado [GOV.UK: en una
-         pregunta no se preinfluye]. Sin tocarla, el motor recibe el viaje de la
-         casilla 1b: hasta la puerta. Marcar «Zona azul» de antemano le cambiaría
-         el destino a quien no ha pedido aparcar.
-
-      ⚠️ **Y con [Moto] esta pregunta NO ESTÁ** (4/09, casilla 3), aunque sí esté
-         la de la ZBE de aquí abajo. La moto no elige dónde deja: remata siempre
-         en un aparcamoto [OMUZ art. 32] y el motor ignora el parámetro. Por eso
-         son dos `@if` y no uno — lo que comparten los dos vehículos es la Zona
-         de Bajas Emisiones, no el aparcamiento.
-
-      ⚠️ Los `name` son `aparcamiento` y `distintivo`, cada uno el suyo: si
-         compartieran nombre el navegador los trataría como **un solo grupo de
-         diez** y marcar «CERO» desmarcaría «Zona azul».
-    -->
-    @if (eligeCoche()) {
-      <fieldset class="modos aparcamientos">
-        <legend>¿Dónde quieres aparcar?</legend>
-        @for (a of aparcamientos; track a.id) {
-          <label class="modo" [class.modo--activo]="aparcamiento() === a.id">
-            <input
-              type="radio"
-              name="aparcamiento"
-              class="modo__radio"
-              [value]="a.id"
-              [checked]="aparcamiento() === a.id"
-              (change)="elegirAparcamiento(a.id)"
-            />
-            {{ a.etiqueta }}
-          </label>
-        }
-      </fieldset>
-    }
-
-    <!--
-      ⭐ EL DISTINTIVO AMBIENTAL, y **es LA MISMA pregunta para el coche y para
-      la moto** (4/09, punto 13 casilla 3).
-
-      No es un grupo parecido: es **el mismo grupo de radios en el DOM**, con el
-      mismo `name`, el mismo campo de matrícula y la misma región de estado.
-      Duplicarlo para la moto habría sido tener dos listas de seis etiquetas que
-      un día dirían cosas distintas, y lo que se contesta aquí **viaja al motor**.
-
-      Y la razón no es de código: [OMUZ] la Zona de Bajas Emisiones no distingue
-      entre coche y moto — el distintivo, la matrícula y la autorización
-      registral son el mismo trámite para los dos, y lo que el motor recibe es un
-      `puedeEntrarEnLaZbe` de sí o no en los dos casos.
-
-      ⚠️ Tiene SEIS opciones, que pasa de las cinco del control segmentado de la
-         primera fila. No es el mismo patrón: aquello es una fila de modos y esto
-         es una pregunta con sus respuestas — [GOV.UK] para una lista corta van
-         radios, y el desplegable es «el último recurso».
-    -->
-    @if (preguntaLaZbe()) {
-      <fieldset class="modos distintivos">
-        <legend>¿Distintivo ambiental?</legend>
-        @for (e of distintivos; track e.id) {
-          <label class="modo" [class.modo--activo]="distintivo() === e.id">
-            <input
-              type="radio"
-              name="distintivo"
-              class="modo__radio"
-              [value]="e.id"
-              [checked]="distintivo() === e.id"
-              (change)="elegirDistintivo(e.id)"
-            />
-            {{ e.etiqueta }}
-          </label>
-        }
-        <!-- ⭐ Y CÓMO SE AVERIGUA, sin salir de aquí: la matrícula.
-             ⚠️ **Aquí hubo un enlace a la sede de la DGT** —«Consulta tu
-                etiqueta en la DGT»— y sobró en cuanto la consulta entró en casa
-                (`cdc49d8`): mandaba fuera, en pestaña nueva y con el formulario
-                a medio rellenar, a hacer exactamente lo que ahora hace el botón
-                de aquí al lado. Lo que sí se queda es la **cita a la DGT** en la
-                región de estado, que es la atribución que su aviso legal exige.
-
-             El patrón entero del dato vivo [WCAG 4.1.3 Status Messages]: la
-             región `role="status"` está en el DOM **antes** de la respuesta —si
-             naciera con ella, no habría nada que el lector estuviera
-             El patrón entero del dato vivo [WCAG 4.1.3 Status Messages]: la
-             región `role="status"` está en el DOM **antes** de la respuesta —si
-             naciera con ella, no habría nada que el lector estuviera
-             observando—, el botón dice cuál es la suya con `aria-controls`, y
-             **no se deshabilita** mientras carga: `disabled` lo saca del orden
-             de tabulación y quien navega con teclado pierde el sitio al pulsar.
-
-             ⛔ La matrícula NO se guarda: ni aquí, ni en el motor, ni en el log.
-                Viaja una vez y se tira. -->
-        <span class="matricula">
-          <label class="matricula__etiqueta" for="matricula">Matrícula</label>
-          <input
-            id="matricula"
-            name="matricula"
-            class="matricula__campo"
-            type="text"
-            autocomplete="off"
-            placeholder="0000XXX"
-            [value]="matricula()"
-            (input)="escribirMatricula($any($event.target).value)"
-          />
+    <main class="panel__bloques" id="panel-bloques">
+      <div class="bloque" [class.bloque--abierto]="buscadorAbierto()">
+        <h2 class="bloque__titulo">
           <button
             type="button"
-            class="matricula__boton"
-            aria-controls="lo-de-la-dgt"
-            [disabled]="!sePuedeConsultar()"
-            (click)="consultarDistintivo()"
+            class="bloque__cabecera"
+            [attr.aria-expanded]="buscadorAbierto()"
+            aria-controls="bloque-buscador"
+            (click)="alternarBuscador()"
           >
-            Consultar distintivo
+            <span>Buscador</span>
+            <span class="bloque__chevron" aria-hidden="true"></span>
           </button>
-          @if (tardaLaDgt()) {
-            <span class="matricula__tarda" aria-hidden="true">⏳</span>
-          }
-          <span
-            class="matricula__estado"
-            id="lo-de-la-dgt"
-            role="status"
-            [attr.aria-busy]="consultandoDgt()"
-            >{{ loDeLaDgtEnPalabras() }}</span
-          >
-        </span>
-      </fieldset>
+        </h2>
+        <div class="bloque__cuerpo" id="bloque-buscador" [hidden]="!buscadorAbierto()">
 
-      <!--
-        ⭐ LA QUINTA PREGUNTA, y solo para quien ha dicho que no tiene etiqueta.
-        [§ 1.32, literal] «Si su vehículo tiene derecho a distintivo ambiental,
-        NO NECESITA Y NO PUEDE OBTENER autorización registral»: enseñársela a
-        quien lleva una B sería ofrecerle un trámite que no existe para él.
+        <header class="cabecera">
+          <h1>Desplázame</h1>
+          <p>Cómo ir de un portal a otro en Zaragoza.</p>
+        </header>
+        <form class="buscador" (submit)="$event.preventDefault()">
+          <fieldset class="punto">
+            <legend>Origen</legend>
+            <!--
+              ⭐ EL CAMPO SON CUATRO PIEZAS desde el 24/08: la ubicación, el
+              desplegable de tipo, el cajetín y —solo con Dirección— el número.
+              El orden es el del encargo, y es también el de la lectura: primero
+              «dónde estoy», luego «qué busco», luego «cuál».
+            -->
+            <button
+              type="button"
+              class="ubicacion"
+              [disabled]="buscandoUbicacion()"
+              (click)="miUbicacion(origen)"
+              [attr.aria-label]="'Usar mi ubicación como origen'"
+            >
+              {{ buscandoUbicacion() ? 'Buscando…' : '📍' }}
+            </button>
 
-        Los ejemplos van en la leyenda y no en las opciones: los catorce casos
-        del trámite caben en un sí o un no desde donde el motor mira, y
-        enumerarlos aquí sería pedirle a quien busca una ruta que se clasifique.
-      -->
-      @if (preguntaAutorizacion()) {
-        <fieldset class="modos autorizaciones">
-          <legend>¿Tienes autorización registrada en la ZBE? (residente, plaza de garaje, comercio…)</legend>
-          @for (a of autorizaciones; track a.id) {
-            <label class="modo" [class.modo--activo]="autorizacion() === a.id">
-              <input
-                type="radio"
-                name="autorizacion"
-                class="modo__radio"
-                [value]="a.id"
-                [checked]="autorizacion() === a.id"
-                (change)="elegirAutorizacion(a.id)"
-              />
-              {{ a.etiqueta }}
+            <!--
+              [DOC GOV.UK Design System · Select] Su ejemplo canónico es justo esto:
+              un filtro corto con una opción marcada por defecto. Su aviso contra los
+              `select` largos —«considera otro patrón si hay muchas opciones»— no
+              aplica: aquí hay ocho.
+
+              ⭐ Y cada opción lleva DENTRO el icono de su clase [MDN · Customizable
+              select elements]: con `appearance: base-select` el `option` admite
+              contenido, así que el dibujo se ve donde se ELIGE y no solo donde ya se
+              ha elegido. Es el `select` nativo con más cosas dentro — ni una
+              librería, ni un `div` disfrazado de desplegable.
+
+              El icono va `aria-hidden` y **el texto se queda**: es la regla de oro
+              del patrón, y es lo que hace que en un navegador sin soporte esto siga
+              siendo un desplegable de texto que funciona.
+
+              ⚠️ La chincheta de «Dirección» va con el PAPEL de su campo —verde en
+              origen, roja en destino [osm.org]—, así que el desplegable dice de qué
+              color va a salir eso en el mapa antes de elegirlo. Los siete iconos de
+              sitio son idénticos en los dos campos: una farmacia es verde vaya donde
+              vaya.
+            -->
+            <label class="campo campo--tipo" for="tipoOrigen">
+              <span>Tipo</span>
+              <select
+                id="tipoOrigen"
+                name="tipoOrigen"
+                class="tipo"
+                [value]="origen.tipo()"
+                (change)="alCambiarTipo(origen, $any($event.target).value)"
+              >
+                @for (t of tipos; track t.id) {
+                  <option [value]="t.id" [selected]="t.id === origen.tipo()">
+                    <app-icono-capa [clase]="t.id" papel="origen" [lado]="14" />
+                    <span class="tipo__texto">{{ t.etiqueta }}</span>
+                  </option>
+                }
+              </select>
             </label>
-          }
-        </fieldset>
-      }
-    }
 
-    <!--
-      ⭐ EL SELECTOR DE RUTA, y **solo cuando el modo lo usa** [DOC GOV.UK,
-      revelado condicional]. Es el mismo patrón que el número de portal y el
-      mismo argumento: no está apagado, **no está**. Un grupo de radios
-      deshabilitado en andando ocuparía su hueco y se leería como «esto
-      podrías tocarlo», y no se puede; y enseñárselo al patín sería ofrecerle
-      desobedecer el art. 56.2.c, que le hace obligatoria la vía ciclista.
-
-      El control es el mismo de los modos: `fieldset` + `legend` con radios
-      nativos dentro, vestidos igual. Tres opciones caen de lleno en el rango
-      del patrón (2-5), así que aquí no hay nada que decidir.
-    -->
-    @if (eligeRuta()) {
-      <fieldset class="modos rutas">
-        <legend>¿Qué ruta prefieres?</legend>
-        @for (r of tiposDeRuta; track r.id) {
-          <label class="modo ruta-opcion" [class.modo--activo]="tipoDeRuta() === r.id">
-            <input
-              type="radio"
-              name="ruta"
-              class="modo__radio"
-              [value]="r.id"
-              [checked]="tipoDeRuta() === r.id"
-              (change)="elegirTipoDeRuta(r.id)"
+            <app-autocompletar-via
+              campo="calleOrigen"
+              [etiqueta]="origen.tipo() === 'via' ? 'Calle' : 'Nombre'"
+              [capa]="origen.tipo()"
+              [foco]="focoDe(destino)"
+              [(texto)]="origen.calle"
+              [seleccion]="origen.via()"
+              (seleccionChange)="alElegirVia(origen, $event)"
+              [sitio]="origen.sitio()"
+              (sitioChange)="alElegirSitio(origen, $event)"
+              [(tocado)]="origen.calleTocada"
             />
-            {{ r.etiqueta }}
-          </label>
-        }
-      </fieldset>
-    }
 
-    <button
-      type="button"
-      class="generar"
-      [disabled]="!sePuedeGenerar() || generando()"
-      (click)="generarRuta()"
-    >
-      {{ generando() ? 'Generando…' : 'Generar ruta' }}
-    </button>
-  </form>
+            <!--
+              ⭐ EL NÚMERO, POR REVELADO CONDICIONAL [DOC GOV.UK: conditional reveal].
+              Con Dirección existe; con una categoría de sitio **NO EXISTE** — no está
+              apagado, no está. Un campo deshabilitado sigue en la página, ocupa su
+              hueco y se lee como «esto habría que rellenarlo»; un sitio no tiene
+              número que pedirle y la pantalla no debe insinuar que sí.
 
-  <section class="mapa" aria-label="Mapa">
-    <!-- Las capas salen del RESULTADO, igual que el trazado: tocar el
-         formulario después de generar no repinta los marcadores de una ruta
-         que ya está dibujada. El porqué entero, en `Resultado`. -->
-    <app-mapa
-      [trazado]="trazado()"
-      [tramos]="tramos()"
-      [zona]="zonaDelMapa()"
-      [area]="areaDelMapa()"
-      [capaOrigen]="resultado()?.capaOrigen ?? null"
-      [capaDestino]="resultado()?.capaDestino ?? null"
-    />
-  </section>
+              El patrón de GOV.UK pide que lo revelado sea **un solo campo**, y lo es.
+              La regla del portal condicional (19/08) queda absorbida por esto: no
+              hace falta apagar lo que no está.
 
-  <section class="pasos" aria-label="Indicaciones">
-    <h2>Indicaciones</h2>
+              ⭐ Y desde el 27/08 la condición tiene DOS mitades, no una. Con
+              Dirección la casilla existe **salvo que la calle elegida no tenga
+              portales**: las 619 que se resuelven por el punto medio de su geometría
+              —el PUENTE DE PIEDRA, la PLAZA CÉSAR AUGUSTO, el PARQUE JOSÉ ANTONIO
+              LABORDETA— no tienen ni una puerta que ofrecer, y un desplegable vacío
+              pidiendo un número que no existe es peor que no tener casilla.
 
-    <!-- El motor no ha contestado: no hay nadie al otro lado. Es distinto de
-         «no hay ruta», que sí llega dentro de una respuesta. -->
-    @if (avisoRuta(); as aviso) {
-      <p class="aviso-ruta" role="status">{{ aviso }}</p>
-    }
-
-    <!-- ⭐ EL INDICADOR DE QUE SE ESTÁ TRABAJANDO [NN/g: por encima de 1 s hay
-         que decirlo, y más si el tiempo es variable]. `role="status"` porque
-         [WAI-ARIA] `status` es *«a type of live region whose content is
-         advisory information for the user but is not important enough to
-         justify an alert»*: se anuncia sin interrumpir lo que se esté leyendo.
-         El texto va dentro del elemento vivo, no fuera, o el anuncio se queda
-         sin contenido que leer. -->
-    @if (esperando(); as trabajando) {
-      <p class="esperando" role="status">
-        <span class="esperando__rueda" aria-hidden="true"></span>
-        {{ trabajando }}
-      </p>
-    }
-
-    @if (resultado(); as r) {
-      <!-- El modo que se dice es EL DE LA RESPUESTA, no el que está pulsado:
-           es el que corresponde a lo que hay pintado debajo. -->
-      <p class="pasos__modo">Modo: {{ etiquetaDe(r.trayecto.modo) }}</p>
-
-      <!-- ⭐ EL RESUMEN ÚNICO DE AVISOS (2/09), y antes eran N cajas iguales.
-
-           [GOV.UK · error summary] el patrón es **una sola caja arriba** que
-           lista lo que pasa, con **un enlace por línea al sitio donde se
-           arregla**. Aquí no se arregla nada —son avisos, no errores— pero la
-           forma es la misma y resuelve lo mismo: con cuatro desvíos, la
-           pantalla abría con cuatro cajas ámbar idénticas en tamaño y color, y
-           quien leía tenía que compararlas para saber cuál le tocaba. Una caja
-           con cuatro líneas se lee de un vistazo.
-
-           ⭐ **Y cada línea ENLAZA a su paso**, que es la mitad que hace que
-              esto no sea solo más corto: el resumen dice el HECHO —«la 35 va
-              hoy desviada»— y el enlace lleva a la nota completa, que sigue
-              donde estaba, pegada al hito al que afecta. [GOV.UK] el doble
-              sitio no desaparece: se abrevia arriba y se conserva abajo.
-
-           ⚠️ Los avisos que no son de ningún hito —«Todavía no calculamos
-              rutas en coche»— salen igual, **sin enlace**: un enlace que no
-              lleve a ninguna parte es peor que no tenerlo.
-
-           ⚠️ Y ya no hay botón «detalles» aquí. Lo tenía cada caja para abrir
-              la lista de postes provisionales; ahora esa lista vive **solo**
-              junto al hito, que es a donde lleva el enlace. Dos disparadores
-              para el mismo detalle eran dos sitios donde abrirlo. -->
-      @if (resumenDeAvisos().length > 0) {
-        <section class="resumen" role="status" aria-labelledby="resumen-titulo">
-          <h3 class="resumen__titulo" id="resumen-titulo">Avisos de este viaje:</h3>
-          <ul class="resumen__lista">
-            @for (linea of resumenDeAvisos(); track $index) {
-              <li class="resumen__linea">
-                @if (linea.paso !== null) {
-                  <a class="resumen__enlace" [href]="'#paso-' + linea.paso">{{ linea.texto }}</a>
-                } @else {
-                  {{ linea.texto }}
-                }
-              </li>
+              Es el mismo patrón y el mismo argumento que con los sitios: **la
+              AUSENCIA del campo, no el campo apagado**. Y por eso la ausencia se lee
+              del dato —`Via.portales`, contado por el motor— y no de una lista de
+              nombres escrita aquí.
+            -->
+            @if (origen.tipo() === 'via' && pideNumero(origen)) {
+              <app-selector-portal
+                campo="portalOrigen"
+                etiqueta="Nº"
+                [via]="origen.via()"
+                [(texto)]="origen.portalTexto"
+                [(seleccion)]="origen.portal"
+                [(tocado)]="origen.portalTocado"
+              />
             }
-          </ul>
-        </section>
-      }
+          </fieldset>
 
-      @if (r.trayecto.pasos.length > 0) {
-        <header class="ruta">
-          <!-- Dos marcas por línea, y cada una dice una cosa distinta: la
-               flecha, el PAPEL —de dónde se sale, dónde se llega—; el icono, la
-               CLASE. Con dos farmacias las dos cruces son iguales, así que sin
-               la flecha no quedaría nada que dijera cuál es cuál. -->
-          <p class="ruta__punto ruta__origen">
-            <span class="ruta__marca" aria-hidden="true">{{ flechaDe('salida') }}</span>
-            <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="18" />
-            {{ r.origen }}
-          </p>
-          <p class="ruta__punto ruta__destino">
-            <span class="ruta__marca" aria-hidden="true">{{ flechaDe('llegada') }}</span>
-            <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="18" />
-            {{ r.destino }}
-          </p>
-          <p class="ruta__totales">
-            <span class="ruta__metros">{{ enMetros(r.trayecto.metros) }}</span>
-            <!-- El tiempo NUNCA sale solo: va con la velocidad de la que se
-                 deriva **cuando hay una sola**. En los modos de rueda no la
-                 hay —se mezclan 18 rodando y 5 empujando—, y entonces no se
-                 dice ninguna. Ver `comoSeLeeLaDuracion`. -->
-            <span class="ruta__duracion">{{ enTiempo(r.trayecto.segundos, r.trayecto.modo) }}</span>
-          </p>
-          <!-- ⭐ LA LEYENDA DEL VIAJE: en qué se monta, de un vistazo. El chip
-               lleva el NÚMERO dentro [WCAG 1.4.1: el color nunca solo] y los
-               dos colores salen del feed —`route_color` y `route_text_color`—,
-               que es lo que hace que la 29 se reconozca por amarilla. -->
-          @if (lineasDelViaje().length > 0) {
-            <p class="ruta__lineas">
-              <span class="ruta__lineas-rotulo">Se viaja en</span>
-              @for (linea of lineasDelViaje(); track $index) {
-                @if (tonosDe(linea); as tonos) {
-                  <span
-                    class="chip-linea"
-                    [class.chip-linea--contorno]="conContorno(tonos.texto)"
-                    [style.background-color]="'#' + tonos.fondo"
-                    [style.color]="'#' + tonos.texto"
-                    >{{ linea.corto }}</span
-                  >
+          <!-- El aviso va pegado al botón que lo produce, no arriba del todo: se lee
+               donde se ha mirado. `role="status"` para que también se cante. -->
+          @if (avisoUbicacion(); as aviso) {
+            <p class="aviso-ubicacion" role="status">{{ aviso }}</p>
+          }
+
+          <button
+            type="button"
+            class="invertir"
+            (click)="invertir()"
+            title="Invertir origen y destino"
+            aria-label="Invertir origen y destino"
+          >
+            ⇅
+          </button>
+
+          <fieldset class="punto">
+            <legend>Destino</legend>
+            <!--
+              ⭐ EL CAMPO SON CUATRO PIEZAS desde el 24/08: la ubicación, el
+              desplegable de tipo, el cajetín y —solo con Dirección— el número.
+              El orden es el del encargo, y es también el de la lectura: primero
+              «dónde estoy», luego «qué busco», luego «cuál».
+            -->
+            <button
+              type="button"
+              class="ubicacion"
+              [disabled]="buscandoUbicacion()"
+              (click)="miUbicacion(destino)"
+              [attr.aria-label]="'Usar mi ubicación como destino'"
+            >
+              {{ buscandoUbicacion() ? 'Buscando…' : '📍' }}
+            </button>
+
+            <!--
+              [DOC GOV.UK Design System · Select] Su ejemplo canónico es justo esto:
+              un filtro corto con una opción marcada por defecto. Su aviso contra los
+              `select` largos —«considera otro patrón si hay muchas opciones»— no
+              aplica: aquí hay ocho.
+
+              ⭐ Y cada opción lleva DENTRO el icono de su clase [MDN · Customizable
+              select elements]: con `appearance: base-select` el `option` admite
+              contenido, así que el dibujo se ve donde se ELIGE y no solo donde ya se
+              ha elegido. Es el `select` nativo con más cosas dentro — ni una
+              librería, ni un `div` disfrazado de desplegable.
+
+              El icono va `aria-hidden` y **el texto se queda**: es la regla de oro
+              del patrón, y es lo que hace que en un navegador sin soporte esto siga
+              siendo un desplegable de texto que funciona.
+
+              ⚠️ La chincheta de «Dirección» va con el PAPEL de su campo —verde en
+              origen, roja en destino [osm.org]—, así que el desplegable dice de qué
+              color va a salir eso en el mapa antes de elegirlo. Los siete iconos de
+              sitio son idénticos en los dos campos: una farmacia es verde vaya donde
+              vaya.
+            -->
+            <label class="campo campo--tipo" for="tipoDestino">
+              <span>Tipo</span>
+              <select
+                id="tipoDestino"
+                name="tipoDestino"
+                class="tipo"
+                [value]="destino.tipo()"
+                (change)="alCambiarTipo(destino, $any($event.target).value)"
+              >
+                @for (t of tipos; track t.id) {
+                  <option [value]="t.id" [selected]="t.id === destino.tipo()">
+                    <app-icono-capa [clase]="t.id" papel="destino" [lado]="14" />
+                    <span class="tipo__texto">{{ t.etiqueta }}</span>
+                  </option>
                 }
+              </select>
+            </label>
+
+            <app-autocompletar-via
+              campo="calleDestino"
+              [etiqueta]="destino.tipo() === 'via' ? 'Calle' : 'Nombre'"
+              [capa]="destino.tipo()"
+              [foco]="focoDe(origen)"
+              [(texto)]="destino.calle"
+              [seleccion]="destino.via()"
+              (seleccionChange)="alElegirVia(destino, $event)"
+              [sitio]="destino.sitio()"
+              (sitioChange)="alElegirSitio(destino, $event)"
+              [(tocado)]="destino.calleTocada"
+            />
+
+            <!--
+              ⭐ EL NÚMERO, POR REVELADO CONDICIONAL [DOC GOV.UK: conditional reveal].
+              Con Dirección existe; con una categoría de sitio **NO EXISTE** — no está
+              apagado, no está. Un campo deshabilitado sigue en la página, ocupa su
+              hueco y se lee como «esto habría que rellenarlo»; un sitio no tiene
+              número que pedirle y la pantalla no debe insinuar que sí.
+
+              El patrón de GOV.UK pide que lo revelado sea **un solo campo**, y lo es.
+              La regla del portal condicional (19/08) queda absorbida por esto: no
+              hace falta apagar lo que no está.
+
+              ⭐ Y desde el 27/08 la condición tiene DOS mitades, no una. Con
+              Dirección la casilla existe **salvo que la calle elegida no tenga
+              portales**: las 619 que se resuelven por el punto medio de su geometría
+              —el PUENTE DE PIEDRA, la PLAZA CÉSAR AUGUSTO, el PARQUE JOSÉ ANTONIO
+              LABORDETA— no tienen ni una puerta que ofrecer, y un desplegable vacío
+              pidiendo un número que no existe es peor que no tener casilla.
+
+              Es el mismo patrón y el mismo argumento que con los sitios: **la
+              AUSENCIA del campo, no el campo apagado**. Y por eso la ausencia se lee
+              del dato —`Via.portales`, contado por el motor— y no de una lista de
+              nombres escrita aquí.
+            -->
+            @if (destino.tipo() === 'via' && pideNumero(destino)) {
+              <app-selector-portal
+                campo="portalDestino"
+                etiqueta="Nº"
+                [via]="destino.via()"
+                [(texto)]="destino.portalTexto"
+                [(seleccion)]="destino.portal"
+                [(tocado)]="destino.portalTocado"
+              />
+            }
+          </fieldset>
+
+          <!--
+            ⭐ EL SELECTOR ES UN GRUPO DE RADIOS desde el 30/08, y antes eran seis
+            —cuatro— `<button aria-pressed>` sueltos.
+
+            El cambio lo obliga el número. [DOC sistemas de diseño · control
+            segmentado] el rango del patrón es de **2 a 5 opciones con etiqueta**, y
+            con más de cinco mandan cambiar de patrón: «grupo de radios o
+            desplegable». Aquí hay seis y son excluyentes, así que toca radios.
+
+            Lo que se gana no es el dibujo —el vestido es el mismo, y el CSS también—:
+            es **la semántica**, y con ella el teclado. Seis botones sueltos eran seis
+            paradas de tabulador y las flechas no hacían nada. Un grupo de radios con
+            el mismo `name` es **una parada para el grupo, flechas entre opciones y
+            exclusión** — todo del navegador, sin una línea de JavaScript. El
+            `fieldset` + `legend` ya estaba y es justo el envoltorio que el patrón
+            pide: la leyenda «Cómo» es el nombre del grupo.
+
+            Nativo primero: `input type="radio"` de verdad, escondido a la vista pero
+            **presente para el teclado y para quien lea la pantalla**. Lo que se ve es
+            la `<label>` que lo envuelve, que es también lo que se pulsa.
+          -->
+          <fieldset class="modos familias">
+            <legend>Cómo</legend>
+            @for (f of familias; track f.id) {
+              <label class="modo" [class.modo--activo]="familia() === f.id">
+                <input
+                  type="radio"
+                  name="familia"
+                  class="modo__radio"
+                  [value]="f.id"
+                  [checked]="familia() === f.id"
+                  (change)="elegirFamilia(f.id)"
+                />
+                {{ f.etiqueta }}
+              </label>
+            }
+          </fieldset>
+
+          <!--
+            ⭐ LA SEGUNDA FILA DE LA BICI, y **solo con Bici** (2/09, punto 11).
+
+            Es el tercer sitio donde vive el mismo patrón [DOC GOV.UK, revelado
+            condicional] — el número de portal, «¿Qué ruta prefieres?» y esto—, y el
+            argumento es el de siempre: **no está apagada, no está**. Un par de
+            radios «Privada / Pública BiZi» colgando en gris debajo de «Andando»
+            ocuparía su hueco y se leería como «esto podrías tocarlo», y no se puede.
+
+            Por qué la bici se parte en dos y las demás no: porque **es la única
+            familia con dos modos de verdad**. `bici` y `bizi` son dos rutas
+            distintas en el motor —la BiZi va en tres tramos y no sale del término
+            municipal—, pero para quien mira son la misma pregunta contestada dos
+            veces. Ponerlas al mismo nivel que «Coche» era hacer que se leyeran seis
+            cosas para descubrir que dos eran hermanas.
+
+            El control es el mismo de siempre y por las mismas razones: `fieldset` +
+            `legend` con radios NATIVOS dentro, con su propio `name` —que es lo que
+            hace el grupo: una parada de tabulador, flechas entre las dos opciones y
+            exclusión, todo del navegador—. Dos opciones caen dentro del rango del
+            patrón (2-5).
+
+            ⚠️ El `name` es `bici` y NO `modo`: si compartiera nombre con la primera
+               fila, el navegador las trataría como **un solo grupo de siete** y
+               marcar «Privada» desmarcaría «Bici». El reparto en dos preguntas es
+               precisamente lo que se está comprando.
+
+            ⚠️ Y lo que se manda al motor no se traduce aquí: los `value` de estos
+               dos radios **son** `bici` y `bizi`, los mismos que viajan en
+               `/api/ruta` desde el 30/08. No hay tabla en medio que pueda mentir.
+          -->
+          @if (familia() === 'bici') {
+            <fieldset class="modos bicis">
+              <legend>¿Qué bici?</legend>
+              @for (b of bicis; track b.id) {
+                <label class="modo" [class.modo--activo]="modo() === b.id">
+                  <input
+                    type="radio"
+                    name="bici"
+                    class="modo__radio"
+                    [value]="b.id"
+                    [checked]="modo() === b.id"
+                    (change)="elegirModo(b.id)"
+                  />
+                  {{ b.etiqueta }}
+                </label>
               }
+            </fieldset>
+          }
+
+          <!--
+            ⭐ LA SEGUNDA FILA DE LA MOTO, y **solo con Moto** (4/09, punto 13).
+
+            El mismo patrón que la de la bici, con la misma anatomía y el mismo
+            argumento: `moto` y `yego` son la misma pregunta contestada dos veces, y
+            ponerlas arriba subiría la primera fila a siete.
+
+            ⚠️ El `name` es `moto` y NO `familia`: si compartieran nombre, el navegador
+               las trataría como **un solo grupo de ocho** y marcar «Privada»
+               desmarcaría «Moto».
+
+            ⚠️ Y lo que se manda al motor no se traduce aquí: los `value` de estos dos
+               radios **son** `moto` y `yego`, los del contrato.
+          -->
+          @if (eligeMoto()) {
+            <fieldset class="modos motos">
+              <legend>¿Qué moto?</legend>
+              @for (m of motos; track m.id) {
+                <label class="modo" [class.modo--activo]="modo() === m.id">
+                  <input
+                    type="radio"
+                    name="moto"
+                    class="modo__radio"
+                    [value]="m.id"
+                    [checked]="modo() === m.id"
+                    (change)="elegirModo(m.id)"
+                  />
+                  {{ m.etiqueta }}
+                </label>
+              }
+            </fieldset>
+          }
+
+          <!--
+            ⭐ DÓNDE APARCAR, y **solo con Coche** (3/09, punto 12).
+
+            Es el cuarto sitio del mismo patrón [DOC GOV.UK, revelado condicional] —el
+            número de portal, «¿Qué ruta prefieres?», «¿Qué bici?» y esto—, con el
+            argumento de siempre: lo que no aplica **no está**, no está en gris.
+
+            ⚠️ **Ninguna opción viene marcada**, y eso es deliberado [GOV.UK: en una
+               pregunta no se preinfluye]. Sin tocarla, el motor recibe el viaje de la
+               casilla 1b: hasta la puerta. Marcar «Zona azul» de antemano le cambiaría
+               el destino a quien no ha pedido aparcar.
+
+            ⚠️ **Y con [Moto] esta pregunta NO ESTÁ** (4/09, casilla 3), aunque sí esté
+               la de la ZBE de aquí abajo. La moto no elige dónde deja: remata siempre
+               en un aparcamoto [OMUZ art. 32] y el motor ignora el parámetro. Por eso
+               son dos `@if` y no uno — lo que comparten los dos vehículos es la Zona
+               de Bajas Emisiones, no el aparcamiento.
+
+            ⚠️ Los `name` son `aparcamiento` y `distintivo`, cada uno el suyo: si
+               compartieran nombre el navegador los trataría como **un solo grupo de
+               diez** y marcar «CERO» desmarcaría «Zona azul».
+          -->
+          @if (eligeCoche()) {
+            <fieldset class="modos aparcamientos">
+              <legend>¿Dónde quieres aparcar?</legend>
+              @for (a of aparcamientos; track a.id) {
+                <label class="modo" [class.modo--activo]="aparcamiento() === a.id">
+                  <input
+                    type="radio"
+                    name="aparcamiento"
+                    class="modo__radio"
+                    [value]="a.id"
+                    [checked]="aparcamiento() === a.id"
+                    (change)="elegirAparcamiento(a.id)"
+                  />
+                  {{ a.etiqueta }}
+                </label>
+              }
+            </fieldset>
+          }
+
+          <!--
+            ⭐ EL DISTINTIVO AMBIENTAL, y **es LA MISMA pregunta para el coche y para
+            la moto** (4/09, punto 13 casilla 3).
+
+            No es un grupo parecido: es **el mismo grupo de radios en el DOM**, con el
+            mismo `name`, el mismo campo de matrícula y la misma región de estado.
+            Duplicarlo para la moto habría sido tener dos listas de seis etiquetas que
+            un día dirían cosas distintas, y lo que se contesta aquí **viaja al motor**.
+
+            Y la razón no es de código: [OMUZ] la Zona de Bajas Emisiones no distingue
+            entre coche y moto — el distintivo, la matrícula y la autorización
+            registral son el mismo trámite para los dos, y lo que el motor recibe es un
+            `puedeEntrarEnLaZbe` de sí o no en los dos casos.
+
+            ⚠️ Tiene SEIS opciones, que pasa de las cinco del control segmentado de la
+               primera fila. No es el mismo patrón: aquello es una fila de modos y esto
+               es una pregunta con sus respuestas — [GOV.UK] para una lista corta van
+               radios, y el desplegable es «el último recurso».
+          -->
+          @if (preguntaLaZbe()) {
+            <fieldset class="modos distintivos">
+              <legend>¿Distintivo ambiental?</legend>
+              @for (e of distintivos; track e.id) {
+                <label class="modo" [class.modo--activo]="distintivo() === e.id">
+                  <input
+                    type="radio"
+                    name="distintivo"
+                    class="modo__radio"
+                    [value]="e.id"
+                    [checked]="distintivo() === e.id"
+                    (change)="elegirDistintivo(e.id)"
+                  />
+                  {{ e.etiqueta }}
+                </label>
+              }
+              <!-- ⭐ Y CÓMO SE AVERIGUA, sin salir de aquí: la matrícula.
+                   ⚠️ **Aquí hubo un enlace a la sede de la DGT** —«Consulta tu
+                      etiqueta en la DGT»— y sobró en cuanto la consulta entró en casa
+                      (`cdc49d8`): mandaba fuera, en pestaña nueva y con el formulario
+                      a medio rellenar, a hacer exactamente lo que ahora hace el botón
+                      de aquí al lado. Lo que sí se queda es la **cita a la DGT** en la
+                      región de estado, que es la atribución que su aviso legal exige.
+
+                   El patrón entero del dato vivo [WCAG 4.1.3 Status Messages]: la
+                   región `role="status"` está en el DOM **antes** de la respuesta —si
+                   naciera con ella, no habría nada que el lector estuviera
+                   El patrón entero del dato vivo [WCAG 4.1.3 Status Messages]: la
+                   región `role="status"` está en el DOM **antes** de la respuesta —si
+                   naciera con ella, no habría nada que el lector estuviera
+                   observando—, el botón dice cuál es la suya con `aria-controls`, y
+                   **no se deshabilita** mientras carga: `disabled` lo saca del orden
+                   de tabulación y quien navega con teclado pierde el sitio al pulsar.
+
+                   ⛔ La matrícula NO se guarda: ni aquí, ni en el motor, ni en el log.
+                      Viaja una vez y se tira. -->
+              <span class="matricula">
+                <label class="matricula__etiqueta" for="matricula">Matrícula</label>
+                <input
+                  id="matricula"
+                  name="matricula"
+                  class="matricula__campo"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="0000XXX"
+                  [value]="matricula()"
+                  (input)="escribirMatricula($any($event.target).value)"
+                />
+                <button
+                  type="button"
+                  class="matricula__boton"
+                  aria-controls="lo-de-la-dgt"
+                  [disabled]="!sePuedeConsultar()"
+                  (click)="consultarDistintivo()"
+                >
+                  Consultar distintivo
+                </button>
+                @if (tardaLaDgt()) {
+                  <span class="matricula__tarda" aria-hidden="true">⏳</span>
+                }
+                <span
+                  class="matricula__estado"
+                  id="lo-de-la-dgt"
+                  role="status"
+                  [attr.aria-busy]="consultandoDgt()"
+                  >{{ loDeLaDgtEnPalabras() }}</span
+                >
+              </span>
+            </fieldset>
+
+            <!--
+              ⭐ LA QUINTA PREGUNTA, y solo para quien ha dicho que no tiene etiqueta.
+              [§ 1.32, literal] «Si su vehículo tiene derecho a distintivo ambiental,
+              NO NECESITA Y NO PUEDE OBTENER autorización registral»: enseñársela a
+              quien lleva una B sería ofrecerle un trámite que no existe para él.
+
+              Los ejemplos van en la leyenda y no en las opciones: los catorce casos
+              del trámite caben en un sí o un no desde donde el motor mira, y
+              enumerarlos aquí sería pedirle a quien busca una ruta que se clasifique.
+            -->
+            @if (preguntaAutorizacion()) {
+              <fieldset class="modos autorizaciones">
+                <legend>¿Tienes autorización registrada en la ZBE? (residente, plaza de garaje, comercio…)</legend>
+                @for (a of autorizaciones; track a.id) {
+                  <label class="modo" [class.modo--activo]="autorizacion() === a.id">
+                    <input
+                      type="radio"
+                      name="autorizacion"
+                      class="modo__radio"
+                      [value]="a.id"
+                      [checked]="autorizacion() === a.id"
+                      (change)="elegirAutorizacion(a.id)"
+                    />
+                    {{ a.etiqueta }}
+                  </label>
+                }
+              </fieldset>
+            }
+          }
+
+          <!--
+            ⭐ EL SELECTOR DE RUTA, y **solo cuando el modo lo usa** [DOC GOV.UK,
+            revelado condicional]. Es el mismo patrón que el número de portal y el
+            mismo argumento: no está apagado, **no está**. Un grupo de radios
+            deshabilitado en andando ocuparía su hueco y se leería como «esto
+            podrías tocarlo», y no se puede; y enseñárselo al patín sería ofrecerle
+            desobedecer el art. 56.2.c, que le hace obligatoria la vía ciclista.
+
+            El control es el mismo de los modos: `fieldset` + `legend` con radios
+            nativos dentro, vestidos igual. Tres opciones caen de lleno en el rango
+            del patrón (2-5), así que aquí no hay nada que decidir.
+          -->
+          @if (eligeRuta()) {
+            <fieldset class="modos rutas">
+              <legend>¿Qué ruta prefieres?</legend>
+              @for (r of tiposDeRuta; track r.id) {
+                <label class="modo ruta-opcion" [class.modo--activo]="tipoDeRuta() === r.id">
+                  <input
+                    type="radio"
+                    name="ruta"
+                    class="modo__radio"
+                    [value]="r.id"
+                    [checked]="tipoDeRuta() === r.id"
+                    (change)="elegirTipoDeRuta(r.id)"
+                  />
+                  {{ r.etiqueta }}
+                </label>
+              }
+            </fieldset>
+          }
+
+          <button
+            type="button"
+            class="generar"
+            [disabled]="!sePuedeGenerar() || generando()"
+            (click)="generarRuta()"
+          >
+            {{ generando() ? 'Generando…' : 'Generar ruta' }}
+          </button>
+        </form>
+
+        </div>
+      </div>
+
+      <div class="bloque" [class.bloque--abierto]="pasosAbiertos()">
+        <h2 class="bloque__titulo">
+          <button
+            type="button"
+            class="bloque__cabecera"
+            [attr.aria-expanded]="pasosAbiertos()"
+            aria-controls="bloque-pasos"
+            (click)="alternarPasos()"
+          >
+            <span>Indicaciones</span>
+            <span class="bloque__chevron" aria-hidden="true"></span>
+          </button>
+        </h2>
+        <div class="bloque__cuerpo" id="bloque-pasos" [hidden]="!pasosAbiertos()">
+
+        <section class="pasos" aria-label="Indicaciones">
+          <h2>Indicaciones</h2>
+
+          <!-- El motor no ha contestado: no hay nadie al otro lado. Es distinto de
+               «no hay ruta», que sí llega dentro de una respuesta. -->
+          @if (avisoRuta(); as aviso) {
+            <p class="aviso-ruta" role="status">{{ aviso }}</p>
+          }
+
+          <!-- ⭐ EL INDICADOR DE QUE SE ESTÁ TRABAJANDO [NN/g: por encima de 1 s hay
+               que decirlo, y más si el tiempo es variable]. `role="status"` porque
+               [WAI-ARIA] `status` es *«a type of live region whose content is
+               advisory information for the user but is not important enough to
+               justify an alert»*: se anuncia sin interrumpir lo que se esté leyendo.
+               El texto va dentro del elemento vivo, no fuera, o el anuncio se queda
+               sin contenido que leer. -->
+          @if (esperando(); as trabajando) {
+            <p class="esperando" role="status">
+              <span class="esperando__rueda" aria-hidden="true"></span>
+              {{ trabajando }}
             </p>
           }
-        </header>
 
-        <ol class="pasos__lista">
-          @for (paso of r.trayecto.pasos; track $index) {
-            <!-- ⚠️ El `tabindex="-1"` no es para el tabulador: es para el FOCO.
-                 [GOV.UK · error summary] al seguir un enlace del resumen, el
-                 navegador solo mueve el foco si el destino puede recibirlo; sin
-                 esto la página baja pero el foco se queda arriba, y quien
-                 navega con teclado sigue en el resumen sin saberlo. El `-1` lo
-                 hace enfocable **por programa** sin meterlo en el orden de
-                 tabulación, que es exactamente lo que hace falta. -->
-            <li class="paso" [id]="'paso-' + $index" tabindex="-1">
-              <!-- La flecha es un duplicado visual de lo que ya dice el texto
-                   («Gira a la izquierda»), así que a quien lea la pantalla en
-                   voz alta se le ahorra. -->
-              <span class="paso__flecha" aria-hidden="true">{{ flechaDe(paso.giro) }}</span>
-              <!-- ⭐ Y EN LAS DOS PUNTAS, el icono de su extremo, igual que en
-                   la cabecera.
-                   ⚠️ **Y en las puntas DE VERDAD, no en cada `salida`** (30/08).
-                   Se anclaba solo por el giro —«es lo que significa»— y era
-                   cierto mientras un viaje era una ruta. Desde que la bici
-                   remata en el aparcabicis y la BiZi va en tres tramos, cada
-                   tramo abre con un paso de `salida`, y la chincheta verde
-                   salía tres veces diciendo «aquí empiezas» en sitios donde
-                   solo se sigue. El origen es el PRIMER paso, y el destino el
-                   ÚLTIMO: eso sí es lo que significa.
-                   En una ruta trivial hay un solo paso, de `llegada`, y le toca
-                   el del destino — ahí no se sale de ningún sitio, se está ya. -->
-              <span class="paso__capa">
-                @if ($first && paso.giro === 'salida') {
-                  <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="16" />
-                } @else if ($last && paso.giro === 'llegada') {
-                  <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="16" />
-                }
-              </span>
-              <!-- El formato de Google: la ACCIÓN y el NOMBRE DE LA VÍA en
-                   negrita, el pegamento de la frase no. El motor no manda
-                   HTML: manda los trozos con su papel (`partes`), y la
-                   etiqueta la elige aquí. El `texto` plano sigue existiendo
-                   en el contrato para quien no pinte nada. -->
-              <!-- Y el mismo chip junto al paso donde se sube: la leyenda
-                   dice en qué se monta y esto dice dónde. -->
-              @for (linea of lineaPorPaso().get($index) ?? []; track $index) {
-                @if (tonosDe(linea); as tonos) {
-                  <span
-                    class="chip-linea"
-                    [class.chip-linea--contorno]="conContorno(tonos.texto)"
-                    [style.background-color]="'#' + tonos.fondo"
-                    [style.color]="'#' + tonos.texto"
-                    >{{ linea.corto }}</span
-                  >
-                }
-              }
-              <span class="paso__texto">
-                @for (parte of paso.partes; track $index) {
-                  @if (parte.papel === 'texto') {
-                    <ng-container>{{ parte.texto }}</ng-container>
-                  } @else {
-                    <strong>{{ parte.texto }}</strong>
+          @if (resultado(); as r) {
+            <!-- El modo que se dice es EL DE LA RESPUESTA, no el que está pulsado:
+                 es el que corresponde a lo que hay pintado debajo. -->
+            <p class="pasos__modo">Modo: {{ etiquetaDe(r.trayecto.modo) }}</p>
+
+            <!-- ⭐ EL RESUMEN ÚNICO DE AVISOS (2/09), y antes eran N cajas iguales.
+
+                 [GOV.UK · error summary] el patrón es **una sola caja arriba** que
+                 lista lo que pasa, con **un enlace por línea al sitio donde se
+                 arregla**. Aquí no se arregla nada —son avisos, no errores— pero la
+                 forma es la misma y resuelve lo mismo: con cuatro desvíos, la
+                 pantalla abría con cuatro cajas ámbar idénticas en tamaño y color, y
+                 quien leía tenía que compararlas para saber cuál le tocaba. Una caja
+                 con cuatro líneas se lee de un vistazo.
+
+                 ⭐ **Y cada línea ENLAZA a su paso**, que es la mitad que hace que
+                    esto no sea solo más corto: el resumen dice el HECHO —«la 35 va
+                    hoy desviada»— y el enlace lleva a la nota completa, que sigue
+                    donde estaba, pegada al hito al que afecta. [GOV.UK] el doble
+                    sitio no desaparece: se abrevia arriba y se conserva abajo.
+
+                 ⚠️ Los avisos que no son de ningún hito —«Todavía no calculamos
+                    rutas en coche»— salen igual, **sin enlace**: un enlace que no
+                    lleve a ninguna parte es peor que no tenerlo.
+
+                 ⚠️ Y ya no hay botón «detalles» aquí. Lo tenía cada caja para abrir
+                    la lista de postes provisionales; ahora esa lista vive **solo**
+                    junto al hito, que es a donde lleva el enlace. Dos disparadores
+                    para el mismo detalle eran dos sitios donde abrirlo. -->
+            @if (resumenDeAvisos().length > 0) {
+              <section class="resumen" role="status" aria-labelledby="resumen-titulo">
+                <h3 class="resumen__titulo" id="resumen-titulo">Avisos de este viaje:</h3>
+                <ul class="resumen__lista">
+                  @for (linea of resumenDeAvisos(); track $index) {
+                    <li class="resumen__linea">
+                      @if (linea.paso !== null) {
+                        <a class="resumen__enlace" [href]="'#paso-' + linea.paso">{{ linea.texto }}</a>
+                      } @else {
+                        {{ linea.texto }}
+                      }
+                    </li>
                   }
+                </ul>
+              </section>
+            }
+
+            @if (r.trayecto.pasos.length > 0) {
+              <header class="ruta">
+                <!-- Dos marcas por línea, y cada una dice una cosa distinta: la
+                     flecha, el PAPEL —de dónde se sale, dónde se llega—; el icono, la
+                     CLASE. Con dos farmacias las dos cruces son iguales, así que sin
+                     la flecha no quedaría nada que dijera cuál es cuál. -->
+                <p class="ruta__punto ruta__origen">
+                  <span class="ruta__marca" aria-hidden="true">{{ flechaDe('salida') }}</span>
+                  <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="18" />
+                  {{ r.origen }}
+                </p>
+                <p class="ruta__punto ruta__destino">
+                  <span class="ruta__marca" aria-hidden="true">{{ flechaDe('llegada') }}</span>
+                  <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="18" />
+                  {{ r.destino }}
+                </p>
+                <p class="ruta__totales">
+                  <span class="ruta__metros">{{ enMetros(r.trayecto.metros) }}</span>
+                  <!-- El tiempo NUNCA sale solo: va con la velocidad de la que se
+                       deriva **cuando hay una sola**. En los modos de rueda no la
+                       hay —se mezclan 18 rodando y 5 empujando—, y entonces no se
+                       dice ninguna. Ver `comoSeLeeLaDuracion`. -->
+                  <span class="ruta__duracion">{{ enTiempo(r.trayecto.segundos, r.trayecto.modo) }}</span>
+                </p>
+                <!-- ⭐ LA LEYENDA DEL VIAJE: en qué se monta, de un vistazo. El chip
+                     lleva el NÚMERO dentro [WCAG 1.4.1: el color nunca solo] y los
+                     dos colores salen del feed —`route_color` y `route_text_color`—,
+                     que es lo que hace que la 29 se reconozca por amarilla. -->
+                @if (lineasDelViaje().length > 0) {
+                  <p class="ruta__lineas">
+                    <span class="ruta__lineas-rotulo">Se viaja en</span>
+                    @for (linea of lineasDelViaje(); track $index) {
+                      @if (tonosDe(linea); as tonos) {
+                        <span
+                          class="chip-linea"
+                          [class.chip-linea--contorno]="conContorno(tonos.texto)"
+                          [style.background-color]="'#' + tonos.fondo"
+                          [style.color]="'#' + tonos.texto"
+                          >{{ linea.corto }}</span
+                        >
+                      }
+                    }
+                  </p>
                 }
-              </span>
-              <!-- El paso de llegada no abre tramo: lleva 0 y no se escribe. -->
-              @if (paso.metros > 0) {
-                <span class="paso__metros">{{ enMetros(paso.metros) }}</span>
-              }
-              <!-- ⭐ EL BOTÓN DEL DATO VIVO Y SU REGIÓN DE ESTADO (1/09,
-                   ampliado a la BiZi el 2/09).
+              </header>
 
-                   Son TRES botones y **un solo bloque de plantilla**: «Próximo
-                   bus» en cada subida, «Bicis ahora» en el hito de coger y
-                   «Anclajes ahora» en el de dejar. Duplicar la anatomía por
-                   fuente sería duplicar cuatro promesas de accesibilidad en dos
-                   sitios que acabarían separándose; lo único que cambia es la
-                   etiqueta y a quién se pregunta, y las dos cosas las decide el
-                   componente a partir de lo que el motor manda **como dato**.
+              <ol class="pasos__lista">
+                @for (paso of r.trayecto.pasos; track $index) {
+                  <!-- ⚠️ El `tabindex="-1"` no es para el tabulador: es para el FOCO.
+                       [GOV.UK · error summary] al seguir un enlace del resumen, el
+                       navegador solo mueve el foco si el destino puede recibirlo; sin
+                       esto la página baja pero el foco se queda arriba, y quien
+                       navega con teclado sigue en el resumen sin saberlo. El `-1` lo
+                       hace enfocable **por programa** sin meterlo en el orden de
+                       tabulación, que es exactamente lo que hace falta. -->
+                  <li class="paso" [id]="'paso-' + $index" tabindex="-1">
+                    <!-- La flecha es un duplicado visual de lo que ya dice el texto
+                         («Gira a la izquierda»), así que a quien lea la pantalla en
+                         voz alta se le ahorra. -->
+                    <span class="paso__flecha" aria-hidden="true">{{ flechaDe(paso.giro) }}</span>
+                    <!-- ⭐ Y EN LAS DOS PUNTAS, el icono de su extremo, igual que en
+                         la cabecera.
+                         ⚠️ **Y en las puntas DE VERDAD, no en cada `salida`** (30/08).
+                         Se anclaba solo por el giro —«es lo que significa»— y era
+                         cierto mientras un viaje era una ruta. Desde que la bici
+                         remata en el aparcabicis y la BiZi va en tres tramos, cada
+                         tramo abre con un paso de `salida`, y la chincheta verde
+                         salía tres veces diciendo «aquí empiezas» en sitios donde
+                         solo se sigue. El origen es el PRIMER paso, y el destino el
+                         ÚLTIMO: eso sí es lo que significa.
+                         En una ruta trivial hay un solo paso, de `llegada`, y le toca
+                         el del destino — ahí no se sale de ningún sitio, se está ya. -->
+                    <span class="paso__capa">
+                      @if ($first && paso.giro === 'salida') {
+                        <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="16" />
+                      } @else if ($last && paso.giro === 'llegada') {
+                        <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="16" />
+                      }
+                    </span>
+                    <!-- El formato de Google: la ACCIÓN y el NOMBRE DE LA VÍA en
+                         negrita, el pegamento de la frase no. El motor no manda
+                         HTML: manda los trozos con su papel (`partes`), y la
+                         etiqueta la elige aquí. El `texto` plano sigue existiendo
+                         en el contrato para quien no pinte nada. -->
+                    <!-- Y el mismo chip junto al paso donde se sube: la leyenda
+                         dice en qué se monta y esto dice dónde. -->
+                    @for (linea of lineaPorPaso().get($index) ?? []; track $index) {
+                      @if (tonosDe(linea); as tonos) {
+                        <span
+                          class="chip-linea"
+                          [class.chip-linea--contorno]="conContorno(tonos.texto)"
+                          [style.background-color]="'#' + tonos.fondo"
+                          [style.color]="'#' + tonos.texto"
+                          >{{ linea.corto }}</span
+                        >
+                      }
+                    }
+                    <span class="paso__texto">
+                      @for (parte of paso.partes; track $index) {
+                        @if (parte.papel === 'texto') {
+                          <ng-container>{{ parte.texto }}</ng-container>
+                        } @else {
+                          <strong>{{ parte.texto }}</strong>
+                        }
+                      }
+                    </span>
+                    <!-- El paso de llegada no abre tramo: lleva 0 y no se escribe. -->
+                    @if (paso.metros > 0) {
+                      <span class="paso__metros">{{ enMetros(paso.metros) }}</span>
+                    }
+                    <!-- ⭐ EL BOTÓN DEL DATO VIVO Y SU REGIÓN DE ESTADO (1/09,
+                         ampliado a la BiZi el 2/09).
 
-                   El Generar pregunta a Avanza por UN solo poste —el primero—,
-                   porque de los demás nunca se dijo el minuto y cada uno cuesta
-                   hasta 8,4 s medidos dentro de los 10 s que [NN/g] da de
-                   margen. Lo de los demás se pide aquí, **cuando quien mira lo
-                   quiere**: una acción iniciada por el usuario.
+                         Son TRES botones y **un solo bloque de plantilla**: «Próximo
+                         bus» en cada subida, «Bicis ahora» en el hito de coger y
+                         «Anclajes ahora» en el de dejar. Duplicar la anatomía por
+                         fuente sería duplicar cuatro promesas de accesibilidad en dos
+                         sitios que acabarían separándose; lo único que cambia es la
+                         etiqueta y a quién se pregunta, y las dos cosas las decide el
+                         componente a partir de lo que el motor manda **como dato**.
 
-                   La anatomía es la de [WCAG 4.1.3 Status Messages]: la región
-                   `role="status"` está en el DOM **antes** de la actualización
-                   —si naciera con su contenido no habría nada que el lector
-                   estuviera observando, y no anunciaría nada—, y el botón dice
-                   cuál es la suya con `aria-controls`.
+                         El Generar pregunta a Avanza por UN solo poste —el primero—,
+                         porque de los demás nunca se dijo el minuto y cada uno cuesta
+                         hasta 8,4 s medidos dentro de los 10 s que [NN/g] da de
+                         margen. Lo de los demás se pide aquí, **cuando quien mira lo
+                         quiere**: una acción iniciada por el usuario.
 
-                   ⚠️ **El botón NO se deshabilita mientras carga**: `disabled`
-                      lo saca del orden de tabulación, y quien navega con teclado
-                      pierde el sitio justo al pulsar. Sigue enfocable y los
-                      clics de más se interceptan en vuelo.
+                         La anatomía es la de [WCAG 4.1.3 Status Messages]: la región
+                         `role="status"` está en el DOM **antes** de la actualización
+                         —si naciera con su contenido no habría nada que el lector
+                         estuviera observando, y no anunciaría nada—, y el botón dice
+                         cuál es la suya con `aria-controls`.
 
-                   ⚠️ Y sin `aQuienPreguntar` ni `aQueEstacion` no se pinta
-                      nada: el tranvía no tiene fuente, y un botón que solo
-                      pudiera contestar «no lo sé» promete un dato que no
-                      existe. La BiZi **sí la tiene siempre** —la sede—, así que
-                      sus dos hitos llevan botón aunque hoy no conteste: eso es
-                      un `mudo`, no una ausencia de fuente. -->
-              @if (etiquetaDelBotonVivo(paso); as etiqueta) {
-                <span class="vivo">
-                  <button
-                    type="button"
-                    class="vivo__boton"
-                    [attr.aria-controls]="'vivo-' + $index"
-                    (click)="pulsarVivo(paso, $index)"
-                  >
-                    {{ etiqueta }}
-                  </button>
-                  <!-- El indicador de que tarda. Va `aria-hidden` porque es el
-                       estado intermedio: la región, ocupada, no lo anuncia, y
-                       decirlo dos veces sería anunciar el trámite. -->
-                  @if (tardaLaConsulta($index)) {
-                    <span class="vivo__tarda" aria-hidden="true">⏳</span>
-                  }
-                  <span
-                    class="vivo__estado"
-                    [id]="'vivo-' + $index"
-                    role="status"
-                    [attr.aria-busy]="consultando($index)"
-                    >{{ loVivoDe(paso, $index) }}</span
-                  >
-                </span>
-              }
-              <!-- ⭐ EL ATAJO A LA OTRA ZONA, colgado del hito 🅿 (4/09).
+                         ⚠️ **El botón NO se deshabilita mientras carga**: `disabled`
+                            lo saca del orden de tabulación, y quien navega con teclado
+                            pierde el sitio justo al pulsar. Sigue enfocable y los
+                            clics de más se interceptan en vuelo.
 
-                   La zona azul y la naranja son la misma pregunta con dos
-                   respuestas: quien busca sitio en una y lo tiene lejos quiere
-                   probar la otra, y hacerlo a mano es bajar a la botonera,
-                   cambiar el radio y volver a generar. Esto es ese camino en un
-                   clic, y **no es nada más que ese camino**: marca el radio y
-                   llama al mismo `generarRuta` del botón grande.
+                         ⚠️ Y sin `aQuienPreguntar` ni `aQueEstacion` no se pinta
+                            nada: el tranvía no tiene fuente, y un botón que solo
+                            pudiera contestar «no lo sé» promete un dato que no
+                            existe. La BiZi **sí la tiene siempre** —la sede—, así que
+                            sus dos hitos llevan botón aunque hoy no conteste: eso es
+                            un `mudo`, no una ausencia de fuente. -->
+                    @if (etiquetaDelBotonVivo(paso); as etiqueta) {
+                      <span class="vivo">
+                        <button
+                          type="button"
+                          class="vivo__boton"
+                          [attr.aria-controls]="'vivo-' + $index"
+                          (click)="pulsarVivo(paso, $index)"
+                        >
+                          {{ etiqueta }}
+                        </button>
+                        <!-- El indicador de que tarda. Va `aria-hidden` porque es el
+                             estado intermedio: la región, ocupada, no lo anuncia, y
+                             decirlo dos veces sería anunciar el trámite. -->
+                        @if (tardaLaConsulta($index)) {
+                          <span class="vivo__tarda" aria-hidden="true">⏳</span>
+                        }
+                        <span
+                          class="vivo__estado"
+                          [id]="'vivo-' + $index"
+                          role="status"
+                          [attr.aria-busy]="consultando($index)"
+                          >{{ loVivoDe(paso, $index) }}</span
+                        >
+                      </span>
+                    }
+                    <!-- ⭐ EL ATAJO A LA OTRA ZONA, colgado del hito 🅿 (4/09).
 
-                   ⚠️ Va aquí y no en la botonera porque **es del resultado**:
-                      sin ruta pintada no hay ninguna otra zona que sugerir. Y
-                      dice a dónde lleva —«Sugerir zona naranja cercana»— porque
-                      [NN/g] una acción se nombra por lo que consigue.
+                         La zona azul y la naranja son la misma pregunta con dos
+                         respuestas: quien busca sitio en una y lo tiene lejos quiere
+                         probar la otra, y hacerlo a mano es bajar a la botonera,
+                         cambiar el radio y volver a generar. Esto es ese camino en un
+                         clic, y **no es nada más que ese camino**: marca el radio y
+                         llama al mismo `generarRuta` del botón grande.
 
-                   ⚠️ Y **no está en discapacitado ni en gratuito**: ahí no hay
-                      zona contraria, así que no está — no está en gris [GOV.UK,
-                      revelado condicional]. Lo decide `laOtraZona`. -->
-              @if (paso.giro === 'aparca' && laOtraZona()) {
-                <span class="sugerencia">
-                  <button
-                    #atajo
-                    type="button"
-                    class="sugerencia__boton"
-                    (click)="sugerirLaOtraZona()"
-                  >
-                    Sugerir {{ laOtraZonaEnPalabras() }} cercana
-                  </button>
-                </span>
-              }
-              <!-- ⭐ LA NOTA AL LADO DE SU PASO [GOV.UK: resumen arriba Y
-                   mensaje junto a lo afectado, con el MISMO texto en los dos
-                   sitios]. El ⚠ va aria-hidden: el texto ya dice lo que pasa, el
-                   icono es para el ojo — es el 1.4.1 de siempre, no solo color.
+                         ⚠️ Va aquí y no en la botonera porque **es del resultado**:
+                            sin ruta pintada no hay ninguna otra zona que sugerir. Y
+                            dice a dónde lleva —«Sugerir zona naranja cercana»— porque
+                            [NN/g] una acción se nombra por lo que consigue.
 
-                   ⚠️ **Y ya no es «la nota del hito»** (3/09). Lo era mientras
-                      el reparto se hacía leyendo el texto del aviso y buscando
-                      el sitio que nombra, porque solo los hitos nombran sitios.
-                      El aviso de la Zona de Bajas Emisiones va colgado de un
-                      paso que NO es hito —«Continúa por el Paseo de la
-                      Independencia»— y viene con `Aviso.paso` puesto desde la
-                      casilla 1b: ahí no hay nada que adivinar. `notaDelPaso`
-                      mira primero el dato y deja la regla del texto de reserva
-                      para el bus y el BiZi. -->
-              @if (notaDelPaso($index, paso); as nota) {
-                <span class="paso__nota">
-                  <span class="paso__nota-icono" aria-hidden="true">⚠</span>
-                  <ng-container
-                    [ngTemplateOutlet]="avisoPartido"
-                    [ngTemplateOutletContext]="{ $implicit: nota, clave: 'paso-nota-' + $index }"
-                  />
-                </span>
-              }
-            </li>
+                         ⚠️ Y **no está en discapacitado ni en gratuito**: ahí no hay
+                            zona contraria, así que no está — no está en gris [GOV.UK,
+                            revelado condicional]. Lo decide `laOtraZona`. -->
+                    @if (paso.giro === 'aparca' && laOtraZona()) {
+                      <span class="sugerencia">
+                        <button
+                          #atajo
+                          type="button"
+                          class="sugerencia__boton"
+                          (click)="sugerirLaOtraZona()"
+                        >
+                          Sugerir {{ laOtraZonaEnPalabras() }} cercana
+                        </button>
+                      </span>
+                    }
+                    <!-- ⭐ LA NOTA AL LADO DE SU PASO [GOV.UK: resumen arriba Y
+                         mensaje junto a lo afectado, con el MISMO texto en los dos
+                         sitios]. El ⚠ va aria-hidden: el texto ya dice lo que pasa, el
+                         icono es para el ojo — es el 1.4.1 de siempre, no solo color.
+
+                         ⚠️ **Y ya no es «la nota del hito»** (3/09). Lo era mientras
+                            el reparto se hacía leyendo el texto del aviso y buscando
+                            el sitio que nombra, porque solo los hitos nombran sitios.
+                            El aviso de la Zona de Bajas Emisiones va colgado de un
+                            paso que NO es hito —«Continúa por el Paseo de la
+                            Independencia»— y viene con `Aviso.paso` puesto desde la
+                            casilla 1b: ahí no hay nada que adivinar. `notaDelPaso`
+                            mira primero el dato y deja la regla del texto de reserva
+                            para el bus y el BiZi. -->
+                    @if (notaDelPaso($index, paso); as nota) {
+                      <span class="paso__nota">
+                        <span class="paso__nota-icono" aria-hidden="true">⚠</span>
+                        <ng-container
+                          [ngTemplateOutlet]="avisoPartido"
+                          [ngTemplateOutletContext]="{ $implicit: nota, clave: 'paso-nota-' + $index }"
+                        />
+                      </span>
+                    }
+                  </li>
+                }
+              </ol>
+            }
+          } @else if (!avisoRuta() && !generando()) {
+            <p class="pasos__vacio">
+              Todavía no hay pasos. Rellena los cuatro campos y pulsa «Generar ruta».
+            </p>
           }
-        </ol>
-      }
-    } @else if (!avisoRuta() && !generando()) {
-      <p class="pasos__vacio">
-        Todavía no hay pasos. Rellena los cuatro campos y pulsa «Generar ruta».
+        </section>
+
+        </div>
+      </div>
+    </main>
+
+    <footer class="creditos">
+      <p class="creditos__linea">
+        <!-- ⭐ LOS `&ngsp;` NO SON ADORNO, y esto se descubrió MIDIENDO (1/09).
+
+             Angular borra el espacio en blanco que hay ENTRE elementos
+             (`preserveWhitespaces: false` es el defecto). Con la línea escrita sin
+             ellos, Chrome pintaba «Avanza Zaragoza S.A.U.·Horarios: GTFS…» — los
+             titulares pegados al punto, separados sólo por los 2,4 px del margen—,
+             y en el árbol de accesibilidad, donde el punto va oculto, quedaban
+             pegados el uno al otro sin nada en medio: «S.A.U.Horarios».
+
+             Es la misma cicatriz que § 1.24 del notices le documenta a Avanza
+             —`053MIRALBUENO`—, y aquí la habríamos puesto nosotros.
+
+             `&ngsp;` es la entidad de Angular para «un espacio que SÍ sobrevive».
+             Va fuera de los tramos ocultos, así que separa las dos cosas: lo que se
+             ve y lo que se lee en voz alta. -->
+        <span class="creditos__parte">Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.</span>&ngsp;<span
+          class="creditos__punto"
+          aria-hidden="true"
+          >·</span
+        >&ngsp;<span class="creditos__parte"
+          >Horarios: GTFS del Punto de Acceso Nacional (MITMA) —
+          <a
+            class="creditos__enlace"
+            href="https://www.transportes.gob.es/"
+            target="_blank"
+            rel="noopener"
+            >Powered by MITRAMS</a
+          >
+          (dato bruto y procesado)</span
+        >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
+          >Datos municipales: Ayuntamiento de Zaragoza (Ley 37/2007)</span
+        >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
+          >Cartografía: ©
+          <a
+            class="creditos__enlace"
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener"
+            >colaboradores de OpenStreetMap</a
+          ></span
+        >
       </p>
-    }
-  </section>
-</main>
+      <p class="creditos__fechas">
+        La fecha de actualización de cada dato, medida una a una, está en
+        <a class="creditos__enlace" href="/panel">el panel de frescura</a>.
+      </p>
+    </footer>
 
-<!-- ⭐ LA LÍNEA DE CRÉDITOS (1/09), y está en la PANTALLA a propósito.
+  </div>
 
-     La atribución es una obligación con dos caras y ninguna vale sola. El
-     notices lleva la ficha entera de cada fuente —licencia, fecha, campos, lo
-     que trae de roto—, pero **un crédito que solo vive en un `.md` del
-     repositorio no lo lee ni quien despliega la página**. Aquí está la otra
-     cara: los cuatro titulares del dato que se está enseñando, con su nombre,
-     donde está quien mira.
-
-     Lo que cada uno exige, y por qué está escrito como está:
-
-     · **Avanza Zaragoza S.A.U.** — su aviso legal PROHÍBE la extracción y la
-       reutilización (§ 1.24 del notices, transcrito y fechado), así que esto
-       **no es una atribución que su licencia pida**: no hay licencia. Es la
-       decisión de Antonio del 1/09 —dato público de un servicio público
-       concesionado, y esto es una demo— llevada a su consecuencia honesta:
-       **se dice de quién es el dato**, que es lo contrario de disimularlo.
-     · **Punto de Acceso Nacional (MITMA)** — el GTFS de los horarios (§ 1.7), y
-       éste **sí trae una fórmula escrita que hay que cumplir**: *«Powered by
-       MITRAMS»* con enlace a `transportes.gob.es`, la cita del MITMS como
-       fuente, e **indicación de si el dato es bruto o procesado**. Aquí es
-       **las dos cosas**: la traza que se pinta sale de `shapes.txt` tal cual
-       (bruta, solo cortada por paradas) y los minutos salen de calcular sobre
-       `stop_times` (procesados).
-
-       ⚠️ **Y hasta hoy esta atribución NO SE ESTABA CUMPLIENDO.** § 1.7 la
-          declaraba *«colgada de la capa de trazados»* — la del **visor**, que
-          se retiró de la app el 22/08. La ficha decía «cumplida» y en la
-          pantalla no había ni una palabra. Se cumple desde aquí, y § 1.7
-          queda corregida.
-     · **Ayuntamiento de Zaragoza** — [Ley 37/2007] *«Debe citarse la fuente»*,
-       y la fórmula la fija su propio aviso legal.
-     · **colaboradores de OpenStreetMap** — [ODbL 1.0] la palabra
-       «colaboradores» NO es opcional y el enlace al copyright tampoco. Ya se
-       cumple en el control del mapa (`mapa.ts`), y se vuelve a cumplir aquí:
-       son dos sitios distintos y este pie no hereda aquél.
-
-     ⚠️ **Y NO LLEVA LA FECHA DEL GTFS SERVIDO, que es lo que el encargo pedía.**
-        No se calla por descuido: **la pantalla no la sabe**. El motor sirve la
-        semilla del repositorio o el zip vivo que trae el cron cada noche —lo
-        decide `elFeedQueSeSirve()` al arrancar—, y el contrato no publica cuál
-        de los dos. Escribir aquí la de la semilla sería verdad hasta la primera
-        noche que el cron corriera, y eso es inventar con fecha. Pedirla al
-        arrancar tampoco: **la raíz en frío no pide NADA** desde el 22/08, y hay
-        juez (`app.spec.ts`). Así que la fecha se dice donde consta medida, dato
-        a dato, que es `/panel` — y hasta ahí lleva el enlace.
-
-     El `<footer>` va FUERA de `<main>` para que sea de verdad un punto de
-     referencia `contentinfo`: [HTML] un `footer` solo lo es cuando su ancestro
-     de seccionado más cercano es `body`, y `<main>` lo rompería. Los elementos
-     propios de Angular que hay en medio no seccionan nada.
-
-     Va en el flujo, después de todo, y sin posición fija: **no tapa el mapa** —
-     lo mide `app/e2e/creditos.mjs` en un navegador de verdad, junto con el
-     contraste, porque el CSS del componente no se aplica en jsdom. -->
-<footer class="creditos">
-  <p class="creditos__linea">
-    <!-- ⭐ LOS `&ngsp;` NO SON ADORNO, y esto se descubrió MIDIENDO (1/09).
-
-         Angular borra el espacio en blanco que hay ENTRE elementos
-         (`preserveWhitespaces: false` es el defecto). Con la línea escrita sin
-         ellos, Chrome pintaba «Avanza Zaragoza S.A.U.·Horarios: GTFS…» — los
-         titulares pegados al punto, separados sólo por los 2,4 px del margen—,
-         y en el árbol de accesibilidad, donde el punto va oculto, quedaban
-         pegados el uno al otro sin nada en medio: «S.A.U.Horarios».
-
-         Es la misma cicatriz que § 1.24 del notices le documenta a Avanza
-         —`053MIRALBUENO`—, y aquí la habríamos puesto nosotros.
-
-         `&ngsp;` es la entidad de Angular para «un espacio que SÍ sobrevive».
-         Va fuera de los tramos ocultos, así que separa las dos cosas: lo que se
-         ve y lo que se lee en voz alta. -->
-    <span class="creditos__parte">Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.</span>&ngsp;<span
-      class="creditos__punto"
-      aria-hidden="true"
-      >·</span
-    >&ngsp;<span class="creditos__parte"
-      >Horarios: GTFS del Punto de Acceso Nacional (MITMA) —
-      <a
-        class="creditos__enlace"
-        href="https://www.transportes.gob.es/"
-        target="_blank"
-        rel="noopener"
-        >Powered by MITRAMS</a
-      >
-      (dato bruto y procesado)</span
-    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
-      >Datos municipales: Ayuntamiento de Zaragoza (Ley 37/2007)</span
-    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
-      >Cartografía: ©
-      <a
-        class="creditos__enlace"
-        href="https://www.openstreetmap.org/copyright"
-        target="_blank"
-        rel="noopener"
-        >colaboradores de OpenStreetMap</a
-      ></span
-    >
-  </p>
-  <p class="creditos__fechas">
-    La fecha de actualización de cada dato, medida una a una, está en
-    <a class="creditos__enlace" href="/panel">el panel de frescura</a>.
-  </p>
-</footer>
+  <!-- ⭐ EL SEPARADOR DE DOS POSICIONES, solo en escritorio: 24x48 px pegado al
+       borde de la columna, que es la medida de la referencia. Sin arrastre. -->
+  <button
+    type="button"
+    class="separador"
+    [attr.aria-expanded]="columnaAbierta()"
+    aria-controls="panel-bloques"
+    [attr.aria-label]="columnaAbierta() ? 'Ocultar el panel' : 'Mostrar el panel'"
+    (click)="alternarColumna()"
+  >
+    <span class="separador__chevron" aria-hidden="true"></span>
+  </button>
+</div>
