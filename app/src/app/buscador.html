@@ -49,21 +49,29 @@
 <div class="marco">
   <!-- El mapa: el fondo de la pantalla en movil, la columna derecha en PC. Va
        el primero porque en movil es lo de debajo, y la hoja se le superpone. -->
-  <div class="lienzo">
-    <section class="mapa" aria-label="Mapa">
-      <!-- Las capas salen del RESULTADO, igual que el trazado: tocar el
-           formulario después de generar no repinta los marcadores de una ruta
-           que ya está dibujada. El porqué entero, en `Resultado`. -->
-      <app-mapa
-        alto="100%"
-        [trazado]="trazado()"
-        [tramos]="tramos()"
-        [zona]="zonaDelMapa()"
-        [area]="areaDelMapa()"
-        [capaOrigen]="resultado()?.capaOrigen ?? null"
-        [capaDestino]="resultado()?.capaDestino ?? null"
-      />
-    </section>
+  <!-- ⭐ EL TABLERO: el mapa y el panel, que es lo que se reparte la pantalla.
+       Los creditos quedan FUERA de el, como ultima franja del marco, y por una
+       razon medida: en movil la hoja se superpone al mapa, asi que cualquier
+       cosa al pie del mapa acaba debajo de ella — la atribucion de Leaflet
+       incluida. Aqui abajo no la tapa nadie, ni con la hoja desplegada ni con
+       la columna plegada. -->
+  <div class="tablero">
+    <div class="zona-mapa">
+      <section class="mapa" aria-label="Mapa">
+        <!-- Las capas salen del RESULTADO, igual que el trazado: tocar el
+             formulario después de generar no repinta los marcadores de una ruta
+             que ya está dibujada. El porqué entero, en `Resultado`. -->
+        <app-mapa
+          alto="100%"
+          [trazado]="trazado()"
+          [tramos]="tramos()"
+          [zona]="zonaDelMapa()"
+          [area]="areaDelMapa()"
+          [capaOrigen]="resultado()?.capaOrigen ?? null"
+          [capaDestino]="resultado()?.capaDestino ?? null"
+        />
+      </section>
+
 
   </div>
 
@@ -88,6 +96,15 @@
       <span class="panel__asa-texto">{{ hojaDesplegada() ? 'Recoger' : 'Desplegar' }}</span>
     </button>
 
+    <!-- ⭐ EL TITULO, EN LA CABECERA DEL PANEL Y ENCIMA DEL ACORDEON, que es
+         donde lo pone la maqueta. Antes vivia DENTRO del bloque Buscador, y
+         eso tenia un efecto feo: al plegar el buscador desaparecia el nombre
+         de la app. Fuera del acordeon, esta siempre. -->
+    <header class="cabecera">
+      <h1>Desplázame</h1>
+      <p>Cómo ir de un portal a otro en Zaragoza.</p>
+    </header>
+
     <main class="panel__bloques" id="panel-bloques">
       <div class="bloque" [class.bloque--abierto]="buscadorAbierto()">
         <h2 class="bloque__titulo">
@@ -104,10 +121,6 @@
         </h2>
         <div class="bloque__cuerpo" id="bloque-buscador" [hidden]="!buscadorAbierto()">
 
-        <header class="cabecera">
-          <h1>Desplázame</h1>
-          <p>Cómo ir de un portal a otro en Zaragoza.</p>
-        </header>
         <form class="buscador" (submit)="$event.preventDefault()">
           <fieldset class="punto">
             <legend>Origen</legend>
@@ -666,6 +679,7 @@
         <h2 class="bloque__titulo">
           <button
             type="button"
+            id="cabecera-pasos"
             class="bloque__cabecera"
             [attr.aria-expanded]="pasosAbiertos()"
             aria-controls="bloque-pasos"
@@ -677,8 +691,12 @@
         </h2>
         <div class="bloque__cuerpo" id="bloque-pasos" [hidden]="!pasosAbiertos()">
 
-        <section class="pasos" aria-label="Indicaciones">
-          <h2>Indicaciones</h2>
+        <!-- ⚠️ El `<h2>Indicaciones</h2>` que habia aqui se fue: la cabecera del
+             acordeon dice ya lo mismo justo encima. Y para que la seccion no se
+             quede sin nombre, `aria-labelledby` la ata a esa cabecera — el papel
+             no se pierde, se traslada. Por eso ya no lleva `aria-label`: con los
+             dos, `aria-labelledby` gana y el otro seria letra muerta. -->
+        <section class="pasos" aria-labelledby="cabecera-pasos">
 
           <!-- El motor no ha contestado: no hay nadie al otro lado. Es distinto de
                «no hay ruta», que sí llega dentro de una respuesta. -->
@@ -982,56 +1000,6 @@
       </div>
     </main>
 
-    <footer class="creditos">
-      <p class="creditos__linea">
-        <!-- ⭐ LOS `&ngsp;` NO SON ADORNO, y esto se descubrió MIDIENDO (1/09).
-
-             Angular borra el espacio en blanco que hay ENTRE elementos
-             (`preserveWhitespaces: false` es el defecto). Con la línea escrita sin
-             ellos, Chrome pintaba «Avanza Zaragoza S.A.U.·Horarios: GTFS…» — los
-             titulares pegados al punto, separados sólo por los 2,4 px del margen—,
-             y en el árbol de accesibilidad, donde el punto va oculto, quedaban
-             pegados el uno al otro sin nada en medio: «S.A.U.Horarios».
-
-             Es la misma cicatriz que § 1.24 del notices le documenta a Avanza
-             —`053MIRALBUENO`—, y aquí la habríamos puesto nosotros.
-
-             `&ngsp;` es la entidad de Angular para «un espacio que SÍ sobrevive».
-             Va fuera de los tramos ocultos, así que separa las dos cosas: lo que se
-             ve y lo que se lee en voz alta. -->
-        <span class="creditos__parte">Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.</span>&ngsp;<span
-          class="creditos__punto"
-          aria-hidden="true"
-          >·</span
-        >&ngsp;<span class="creditos__parte"
-          >Horarios: GTFS del Punto de Acceso Nacional (MITMA) —
-          <a
-            class="creditos__enlace"
-            href="https://www.transportes.gob.es/"
-            target="_blank"
-            rel="noopener"
-            >Powered by MITRAMS</a
-          >
-          (dato bruto y procesado)</span
-        >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
-          >Datos municipales: Ayuntamiento de Zaragoza (Ley 37/2007)</span
-        >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
-          >Cartografía: ©
-          <a
-            class="creditos__enlace"
-            href="https://www.openstreetmap.org/copyright"
-            target="_blank"
-            rel="noopener"
-            >colaboradores de OpenStreetMap</a
-          ></span
-        >
-      </p>
-      <p class="creditos__fechas">
-        La fecha de actualización de cada dato, medida una a una, está en
-        <a class="creditos__enlace" href="/panel">el panel de frescura</a>.
-      </p>
-    </footer>
-
   </div>
 
   <!-- ⭐ EL SEPARADOR DE DOS POSICIONES, solo en escritorio: 24x48 px pegado al
@@ -1046,4 +1014,69 @@
   >
     <span class="separador__chevron" aria-hidden="true"></span>
   </button>
+  </div>
+
+  <!-- ⭐ LOS CREDITOS, AL PIE DEL MAPA (tanda 3-bis).
+
+       Los textos legales son los MISMOS, uno por uno: lo unico que cambia es
+       donde viven y lo compactos que van. Antes ocupaban un bloque fijo del
+       panel; ahora son la linea fina que la maqueta pone bajo el mapa.
+
+       ⚠️ Se queda A LA IZQUIERDA y deja libre la esquina derecha, que es
+          donde Leaflet pone la suya: la atribucion nativa NO se tapa ni se
+          sustituye. La maqueta la esconde con `display: none` y escribe la
+          suya en su lugar; aqui conviven, porque tapar una atribucion para
+          reescribirla es justo lo que no debe pasar por descuido.
+
+       ⚠️ Y sigue siendo `<footer>` fuera de `<main>`: sus ancestros son
+          todos `div`, asi que su papel de `contentinfo` no se toca. -->
+  <footer class="creditos">
+  <p class="creditos__linea">
+    <!-- ⭐ LOS `&ngsp;` NO SON ADORNO, y esto se descubrió MIDIENDO (1/09).
+
+         Angular borra el espacio en blanco que hay ENTRE elementos
+         (`preserveWhitespaces: false` es el defecto). Con la línea escrita sin
+         ellos, Chrome pintaba «Avanza Zaragoza S.A.U.·Horarios: GTFS…» — los
+         titulares pegados al punto, separados sólo por los 2,4 px del margen—,
+         y en el árbol de accesibilidad, donde el punto va oculto, quedaban
+         pegados el uno al otro sin nada en medio: «S.A.U.Horarios».
+
+         Es la misma cicatriz que § 1.24 del notices le documenta a Avanza
+         —`053MIRALBUENO`—, y aquí la habríamos puesto nosotros.
+
+         `&ngsp;` es la entidad de Angular para «un espacio que SÍ sobrevive».
+         Va fuera de los tramos ocultos, así que separa las dos cosas: lo que se
+         ve y lo que se lee en voz alta. -->
+    <span class="creditos__parte">Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.</span>&ngsp;<span
+      class="creditos__punto"
+      aria-hidden="true"
+      >·</span
+    >&ngsp;<span class="creditos__parte"
+      >Horarios: GTFS del Punto de Acceso Nacional (MITMA) —
+      <a
+        class="creditos__enlace"
+        href="https://www.transportes.gob.es/"
+        target="_blank"
+        rel="noopener"
+        >Powered by MITRAMS</a
+      >
+      (dato bruto y procesado)</span
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
+      >Datos municipales: Ayuntamiento de Zaragoza (Ley 37/2007)</span
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
+      >Cartografía: ©
+      <a
+        class="creditos__enlace"
+        href="https://www.openstreetmap.org/copyright"
+        target="_blank"
+        rel="noopener"
+        >colaboradores de OpenStreetMap</a
+      ></span
+    >
+  </p>
+  <p class="creditos__fechas">
+    La fecha de actualización de cada dato, medida una a una, está en
+    <a class="creditos__enlace" href="/panel">el panel de frescura</a>.
+  </p>
+  </footer>
 </div>

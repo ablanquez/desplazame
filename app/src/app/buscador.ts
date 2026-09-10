@@ -761,7 +761,14 @@ export class Buscador {
    * altura — no es un «uno u otro»—, que es como se comporta la maqueta.
    */
   protected readonly buscadorAbierto = signal(true);
-  protected readonly pasosAbiertos = signal(true);
+
+  /**
+   * ⚠️ El resultado arranca PLEGADO, que es lo que hace la maqueta
+   *    (`useState(false)` en `App.tsx`). Tiene sentido: al abrir la app no hay
+   *    ninguna ruta que enseñar, y un bloque abierto con «todavía no hay
+   *    pasos» le quita al buscador media columna para no decir nada.
+   */
+  protected readonly pasosAbiertos = signal(false);
 
   protected alternarBuscador(): void {
     this.buscadorAbierto.update((x) => !x);
@@ -2716,6 +2723,22 @@ export class Buscador {
       });
       return;
     }
+
+    // ⭐ AL GENERAR, EL RESULTADO SE ABRE Y EL BUSCADOR SE PLIEGA.
+    //
+    // [DISEÑO § 57] «abatir automáticamente el buscador al obtener resultados;
+    // el usuario lo reabre a mano», y [§ 20] «al calcular, el bottom sheet de
+    // resultados sube a expandido cubriendo parte del mapa y el buscador se
+    // colapsa». Es también lo que hace `handleGenerateRoute` en la maqueta.
+    //
+    // ⚠️ Sin esto, el arranque con el resultado plegado —que sí es el calco—
+    //    dejaba al usuario pulsando «Generar ruta» y sin ver nada: la ruta
+    //    llegaba a un bloque cerrado. Las dos piezas van juntas o ninguna.
+    this.buscadorAbierto.set(false);
+    this.pasosAbiertos.set(true);
+    // Y en móvil la hoja sube: si se queda recogida, el resultado que acaba de
+    // abrirse tampoco se ve. En escritorio esta señal no la mira nadie.
+    this.hojaDesplegada.set(true);
 
     this.generando.set(true);
     this.empiezaLaEspera(modo);

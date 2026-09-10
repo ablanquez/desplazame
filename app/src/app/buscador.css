@@ -288,7 +288,7 @@ legend {
    Tenia un `margin-top` del flujo vertical viejo, de cuando iba debajo del
    formulario; ahora vive en su propia columna y el margen lo descuadraba. */
 .mapa {
-  height: 100%;
+  min-height: 0;
 }
 
 /* Idem: ahora es el cuerpo de un bloque del acordeon, y aquel margen lo daba
@@ -705,22 +705,23 @@ legend {
    #555 sobre el blanco de la página son **7,46:1** por la fórmula de
    `contraste.ts`, con 4,5 exigidos [WCAG 1.4.3]. El número que vale es el
    medido en Chrome, no éste. */
+/* La linea fina al pie del mapa (tanda 3-bis). Donde se coloca lo decide el
+   esqueleto, en `styles.css`; aqui va como se lee.
+   ⚠️ El `max-width: 46rem` y el `margin: auto` se fueron con el bloque del
+      panel: ahora la anchura la manda el hueco que deja la atribucion de
+      Leaflet. */
 .creditos {
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 0 1rem 1.5rem;
-  border-top: 1px solid #ddd;
-  color: #555;
-  font-size: 0.8rem;
-  line-height: 1.6;
+  color: var(--muted-foreground);
+  font-size: 0.625rem;
+  line-height: 1.5;
 }
 
 .creditos__linea {
-  margin: 1rem 0 0;
+  margin: 0;
 }
 
 .creditos__fechas {
-  margin: 0.35rem 0 0;
+  margin: 0.1rem 0 0;
 }
 
 /* El separador es adorno: quien lee la pantalla en voz alta ya tiene el

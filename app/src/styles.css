@@ -528,7 +528,8 @@ body {
 }
 
 .marco {
-  position: relative;
+  display: flex;
+  flex-direction: column;
   /* ⚠️ Las dos líneas, y en este orden. `100vh` se mide contra el viewport
      GRANDE —con la barra del navegador retraída—, así que en móvil el final de
      la pantalla queda debajo de la barra. `100dvh` se recalcula en vivo. Los
@@ -541,7 +542,27 @@ body {
   overflow: hidden;
 }
 
+/* ⭐ EL TABLERO: el mapa y el panel, que es lo que se reparte la pantalla.
+   Los créditos quedan fuera, como última franja del marco — en móvil la hoja
+   se superpone al mapa, así que cualquier cosa al pie del mapa acaba debajo de
+   ella, la atribución de Leaflet incluida. Medido: con el pie ahí, su punto
+   medio devolvía `bloque__cabecera` en vez de sí mismo. */
+.tablero {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
 /* El mapa: el fondo de la pantalla en móvil. La hoja se le pone encima.
+
+   ⚠️ SE LLAMA `zona-mapa` Y NO `lienzo` POR UNA COLISIÓN MEDIDA. El componente
+      del mapa llama `lienzo` a su div interno —`mapa.html`—, y este CSS es
+      GLOBAL: un `.lienzo` de aquí casaba también con el de dentro y le ponía
+      `position: absolute; inset: 0`. El resultado era que el contenedor de
+      Leaflet medía 844 px con su padre en 743, y su atribución se salía por
+      debajo hasta pisar los créditos. Lo cazó la jueza L6.
+      Un CSS global no tiene encapsulación que lo proteja: sus nombres compiten
+      con los de TODOS los componentes, y por eso aquí van con apellido.
 
    ⭐ EL `z-index: 0` NO ES DECORATIVO Y SIN EL LA HOJA NO SE VE.
    ⚠️ Leaflet reparte sus capas en *panes* con z-index propios que van del 200
@@ -556,7 +577,7 @@ body {
 
       Con `z-index: 0` este div abre su propio contexto y los panes de Leaflet
       se ordenan **dentro** de él, sin salir a discutir con nadie de fuera. */
-.lienzo {
+.zona-mapa {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -567,8 +588,23 @@ body {
    Angular es `display: block` con altura AUTOMÁTICA: ahí la cadena se rompe y
    el mapa se monta con 0 px. Se vio en escritorio como media pantalla en
    blanco. Estas dos líneas son las que la cierran. */
-.lienzo .mapa,
-.lienzo app-mapa {
+/* ⚠️ El `height: 100%` va en el HOST del componente y NO en la sección: la
+   sección es un elemento flexible que ya recibe su altura de `flex: 1`, y
+   pedirle además el 100% del lienzo la hacía medir el lienzo ENTERO — el pie
+   se salía por debajo y acababa encima de la atribución de Leaflet. Lo cazó la
+   jueza L6 en móvil, donde el texto ocupa el doble de líneas. */
+.zona-mapa app-mapa {
+  display: block;
+  height: 100%;
+}
+
+/* ⚠️ El pie empezó SUPERPUESTO al mapa, como el de la maqueta, y tapaba el
+      principio de la atribución de Leaflet —se leía «…flet | © colaboradores»—.
+      Reservarle hueco con `max-width` funcionaba en escritorio y no en móvil.
+      Luego pasó a ir bajo el mapa, dentro de esta zona, y en móvil se lo comía
+      la hoja. Vive fuera del tablero desde entonces: es la única posición que
+      no depende de cuánto mida nada. */
+.zona-mapa .mapa {
   height: 100%;
 }
 
@@ -603,8 +639,7 @@ body {
 /* ⚠️ Recogida, los cuerpos NO se ven aunque el acordeón los tenga abiertos: el
    estado de la hoja manda sobre el del acordeón mientras es hoja. Al desplegar,
    el acordeón vuelve a decidir y nada se ha perdido por el camino. */
-.panel:not(.panel--desplegada) .bloque__cuerpo,
-.panel:not(.panel--desplegada) .creditos {
+.panel:not(.panel--desplegada) .bloque__cuerpo {
   display: none;
 }
 
@@ -714,6 +749,15 @@ body {
    [CSSWG, overscroll-behavior] `contain` corta el encadenado: agotar el scroll
    de aquí dentro NO empieza a desplazar lo de fuera. El ejemplo canónico de la
    especificación es justo este layout — el panel lateral de un mapa. */
+/* ⭐ EL PLEGADO, Y ESTA REGLA MANDA SOBRE TODAS LAS DEMAS.
+   ⚠️ Dos clases y el atributo: (0,3,0). Cualquier `display` de los bloques de
+      arriba —incluido el `block` de la mejora de escritorio— tiene menos, así
+      que no puede volver a pasar lo de la nº46: que una regla de colocación
+      deshiciera el plegado sin que nadie lo notara. */
+.panel .bloque .bloque__cuerpo[hidden] {
+  display: none;
+}
+
 .bloque__cuerpo {
   flex: 1;
   min-height: 0;
@@ -722,14 +766,28 @@ body {
   overscroll-behavior: contain;
 }
 
+/* ⭐ LOS CRÉDITOS, LA LÍNEA FINA AL PIE DEL MAPA (tanda 3-bis).
+
+   Antes eran un bloque fijo del panel que se comía un tercio de la hoja. Los
+   textos legales son los mismos —todos—, solo van compactos y en su sitio.
+
+   ⚠️ A LA IZQUIERDA, dejando libre la esquina derecha: ahí es donde Leaflet
+      pinta su atribución, y no se tapa. El `max-width` es lo que le reserva
+      ese hueco.
+   ⚠️ `z-index: 1000` porque compite con los panes de Leaflet, que llegan a
+      700 — la misma lección que el `z-index` del lienzo, dos secciones arriba. */
+/* La última franja del marco, debajo del mapa Y de la hoja. */
 .creditos {
   flex-shrink: 0;
-  max-height: 30%;
-  padding: 0 1rem;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  padding: 0.25rem 0.6rem;
   border-top: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--foreground);
 }
+
+/* ⚠️ El tamaño de letra y los márgenes NO se ponen aquí: `.creditos` es del
+   componente, y su CSS encapsulado —`.creditos[_ngcontent-x]`, con un atributo
+   más de especificidad— gana a este selector global. Van en `buscador.css`. */
 
 /* El separador solo existe en escritorio: en móvil quien manda es el asa. */
 .separador {
@@ -744,7 +802,9 @@ body {
    y el que el DISEÑO fija como frontera del móvil. */
 
 @media (min-width: 768px) {
-  .marco {
+  /* El tablero pasa a dos columnas; el marco sigue siendo la columna que las
+     tiene a ellas y al pie. */
+  .tablero {
     display: flex;
   }
 
@@ -797,13 +857,17 @@ body {
     display: none;
   }
 
-  /* En escritorio los cuerpos los decide el acordeón y solo el acordeón. */
-  .panel:not(.panel--desplegada) .bloque__cuerpo,
-  .panel:not(.panel--desplegada) .creditos {
-    display: revert;
+  /* En escritorio los cuerpos los decide el acordeón y solo el acordeón.
+
+     ⚠️ AQUÍ PONÍA `display: revert` Y ERA UNA TRAMPA. `revert` promete
+        «devuelve esto a lo que valdría sin reglas de autor», y medido en
+        Chrome devolvía `block` **incluso con el atributo `hidden` puesto**:
+        el acordeón se plegaba sin ocultar nada. Ver bitácora nº46. */
+  .panel:not(.panel--desplegada) .bloque__cuerpo {
+    display: block;
   }
 
-  .lienzo {
+  .zona-mapa {
     position: relative;
     inset: auto;
     flex: 1;
