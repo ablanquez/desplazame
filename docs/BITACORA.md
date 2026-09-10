@@ -14,6 +14,55 @@
 
 ---
 
+## [2026-09-10] ✅ CERRADA — La columna no se plegaba, y dos de las tres juezas del plegado dieron OK igual
+
+**Categoría:** una jueza que compara con «mayor que» cuando lo que importa es cuánto
+**Síntoma:** pulsar el separador en escritorio **no plegaba la columna**. El
+panel pasaba de 501 px a 500 —se le iba el borde y nada más— y el mapa ganaba
+**un solo píxel** de los ~500 que tenía que ganar.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** dos de las tres juezas de
+L3, recién escritas para vigilar justo esto. Ejecutadas con el plegado roto:
+
+```
+  OK  L3 · con la columna abierta, las teselas cubren el mapa  ·  939 de 939 px
+  ✗✗  L3 · el plegado dispara transitionend sobre `width`
+  OK  L3 · plegada la columna, el mapa es más ancho  ·  939 → 940 px
+  OK  L3 · y las teselas cubren el ancho nuevo — sin huecos grises  ·  940 de 940 px
+```
+
+La segunda decía «el mapa es más ancho» y lo comprobaba con `>`. **940 es mayor
+que 939**, así que pasó. Y la tercera pasó *porque* el mapa apenas había
+cambiado: no faltaban teselas para un hueco que no se había abierto. Las dos
+describían un plegado que no había ocurrido.
+
+**Cómo se cazó:** la tercera jueza — la del `transitionend`, que es la única de
+las tres que no admite medias tintas: la transición de `width` ocurre o no
+ocurre.
+**Causa raíz:** una guerra de especificidad que acababa en empate. La regla del
+plegado era `.panel--plegada { width: 0 }` —una clase, (0,1,0)— y el ancho de la
+columna, `.panel { width: 500px }` dentro del `@media (min-width: 1280px)`,
+también (0,1,0). A igualdad gana **la que va después en el fichero**, y el bloque
+de 1280 está al final. El `@media` no suma especificidad: es fácil leerlo como
+«más específico» porque es más concreto, y no lo es. Lo único que sí se aplicaba
+del plegado era `border-right-width: 0`, que no lo pisaba nadie — de ahí el
+píxel exacto que ganaba el mapa.
+**Arreglo aplicado:** `.panel.panel--plegada` (0,2,0), que gana sin depender del
+orden. Y la jueza laxa pasa a exigir la MAGNITUD: `gana >= forma.panel.w - 2`
+en vez de `despues.ancho > antes.ancho`. Con el arreglo dice «939 → 1440 px
+(gana 501 de 501)».
+**Commit:** `cf21014` (la especificidad) · `95701a2` (la jueza que lo tapaba)
+**Ley que sale de aquí:** cuando lo que se vigila es **un cambio de tamaño**,
+`mayor que` no es una jueza: es un termómetro sin escala. Hay que exigir la
+magnitud —«al menos lo que mide la columna»—, porque el fallo típico no es que
+no cambie nada, es que cambie un poco por otro motivo. ⚠️ Y un corolario que
+cuesta más: **dos juezas verdes y una roja no son «casi verde»**. Aquí las dos
+verdes estaban describiendo el fallo con otras palabras.
+**Traza:** `app/e2e/esqueleto.mjs`, el bloque L3; `app/src/styles.css`,
+`.panel--plegada` contra `.panel` del `@media (min-width: 1280px)`.
+
+---
+
 ## [2026-09-09] 🔴 ABIERTA — La jueza que vigila que los datos no cambien a espaldas de nadie se cae por RELOJ, no por huella
 
 **Categoría:** instrumento que deja de vigilar por una causa ajena a lo que vigila
