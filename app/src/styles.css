@@ -524,6 +524,23 @@ textarea {
 html,
 body {
   height: 100%;
+}
+
+/* ⚠️ Y EL CANDADO SOLO CUANDO EL BUSCADOR ESTÁ PUESTO — bitácora nº47.
+   Esto se escribió global y sin condición, pensando en una sola pantalla, y
+   **decapitó las otras dos**: `/identidad` y `/panel` son páginas largas y se
+   quedaron en la primera pantalla, con `scrollHeight` igual a `clientHeight`
+   y sin forma de bajar. La regla es del buscador —él tiene su propio scroll
+   dentro de los bloques—, así que lleva puesta la condición del buscador.
+
+   [DOC MDN, `:has()`] «selects elements that contain elements matching the
+   selectors passed as parameters», y sirve para «select a parent element»,
+   que es exactamente lo que hace falta aquí: mirar hacia arriba desde
+   `.marco`. Si un navegador no lo entendiera, el selector entero es inválido
+   y la regla se cae — y caerse por el lado de que la portada tenga scroll es
+   infinitamente mejor que caerse por el de que dos páginas se corten. */
+html:has(.marco),
+body:has(.marco) {
   overflow: hidden;
 }
 
