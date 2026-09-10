@@ -770,8 +770,28 @@ export class Buscador {
    */
   protected readonly pasosAbiertos = signal(false);
 
+  /**
+   * ⭐ LA VUELTA, simétrica de la ida (10/09, remate 2 — decisión de Antonio).
+   *
+   * La ida ya estaba: al generar, el resultado se abre y el buscador se pliega
+   * [DISEÑO § 57 y § 20, y `handleGenerateRoute` de la maqueta]. Lo que no
+   * estaba era **qué pasa al deshacerla**. «El usuario lo reabre a mano» dice
+   * el DISEÑO, y no decía nada del resultado — así que al reabrir quedaban los
+   * DOS abiertos repartiéndose la altura, que no es ninguno de los dos estados
+   * pensados: ni el del arranque ni el de después de generar.
+   *
+   * Ahora **reabrir el buscador pliega el resultado**, y el sitio al que se
+   * vuelve es exactamente el del arranque. Una coreografía con ida y vuelta,
+   * no media.
+   *
+   * ⚠️ Solo al ABRIR. Plegar el buscador no toca el resultado: quien pliega el
+   *    buscador está pidiendo sitio para lo de abajo, y cerrarle también lo de
+   *    abajo dejaría la pantalla con dos cabeceras y nada más.
+   */
   protected alternarBuscador(): void {
-    this.buscadorAbierto.update((x) => !x);
+    const abriendo = !this.buscadorAbierto();
+    this.buscadorAbierto.set(abriendo);
+    if (abriendo) this.pasosAbiertos.set(false);
   }
 
   protected alternarPasos(): void {
