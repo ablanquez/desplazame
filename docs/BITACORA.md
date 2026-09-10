@@ -14,6 +14,84 @@
 
 ---
 
+## [2026-09-10] ✅ CERRADA — el `overflow: hidden` del esqueleto decapitó `/identidad` y `/panel`, que no son la portada
+
+**Categoría:** una regla global escrita pensando en una sola pantalla
+**Síntoma:** las páginas `/identidad` y `/panel` **se quedan en la primera
+pantalla y no hay forma de bajar**. Medido en Chrome a 1440×900 contra el dist
+de `ffc2964`, empujando con `window.scrollTo(0, 5000)`:
+
+```
+{"ruta":"/identidad","scrollHeight":900,"clientHeight":900,"overflowHtml":"hidden","overflowBody":"hidden","scrollTop":0}
+{"ruta":"/panel","scrollHeight":900,"clientHeight":900,"overflowHtml":"hidden","overflowBody":"hidden","scrollTop":0}
+```
+
+`scrollHeight == clientHeight` con las dos páginas más largas del proyecto: no
+es que no se desplacen, es que **el documento ya no sabe que hay más**.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** `app/e2e/identidad.mjs`, que
+es EL instrumento de esa página —abre `/identidad` en Chrome de verdad, mide sus
+36 pares de contraste y **le hace dos capturas**—, ejecutado contra el mismo
+dist decapitado, antes de tocar nada:
+
+```
+$ node e2e/identidad.mjs http://localhost:3111 <capturas>
+  OK  mode-moto-strong / mode-moto-soft        #fdba74 sobre #7c2d12  =  5.56:1
+  OK  los 36 de 36 pares cumplen AA (4.5:1)
+
+  capturas: identidad-claro.png · identidad-oscuro.png
+  OK  el conmutador es local: no toca el data-theme de <html>
+...
+✅ VERDE
+```
+
+Y con él, en verde: los tres guardianes de `/identidad` de `app.spec.ts`, la
+jueza L1 del esqueleto —«el documento no tiene nada que desplazar»— y los 441
+de la interfaz.
+
+**Cómo se cazó:** instrumento — al ir a montar `/creditos`, que es una página
+larga más, se midió si la regla global la dejaría desplazarse. No lo vio ningún
+guardián existente: los tres de `/identidad` comprueban que la página MONTA.
+**Causa raíz:** la regla se escribió **sin condición** porque en el momento de
+escribirla sólo había una pantalla en la cabeza: el buscador, que reparte su
+scroll dentro de los bloques y por eso no quiere ninguno global. `html` y `body`
+son de TODAS las rutas, y `/identidad` y `/panel` no tienen bloques donde
+desplazarse — su contenido va directo al documento. El candado del buscador es
+para ellas una tapa.
+
+Y lo que explica el verde: **ningún instrumento de esas dos páginas mira si se
+pueden leer enteras.** Los tres guardianes de `app.spec.ts` compran que la ruta
+MONTA el componente; `e2e/identidad.mjs` lee tokens de las sondas y mide
+contraste sobre píxeles, y las dos cosas ocurren en la primera pantalla — sus
+capturas salían recortadas y nadie las comparaba con nada. La L1 del esqueleto
+sí mira el scroll global, pero es la jueza que **exige** que no lo haya, y sólo
+en la portada: era la cómplice, no la testigo.
+**Arreglo aplicado:** `app/src/styles.css` — `html, body` conservan el
+`height: 100%` y el `overflow: hidden` se separa a `html:has(.marco),
+body:has(.marco)`, que es la condición de que el buscador esté puesto. [DOC MDN,
+`:has()`] sirve para «select a parent element», que es mirar hacia arriba desde
+`.marco`. Si un navegador no lo entendiera, el selector entero es inválido y la
+regla se cae — y caerse por el lado de que la portada tenga scroll es mejor que
+por el de que dos páginas se corten.
+
+Y con el arreglo entra la jueza que faltaba, en `app/e2e/creditos.mjs`: que el
+documento no esté recortado, y —con la precondición **construida**, estrechando
+el viewport a 500 px, porque la ventana del instrumento mide 1600 y la página
+cabía— que desborde y baje de verdad. Vista en rojo con el candado global
+repuesto: *«500 px de contenido en 500 de ventana · bajó 0 px»*.
+**Commit:** `310f9ba` (el arreglo) · `a244add` (la jueza)
+**Ley que sale de aquí:** una regla global se escribe para TODAS las rutas, no
+para la que se tiene delante. Si sólo vale para una pantalla, que lleve puesta
+la condición de esa pantalla.
+
+Y la que salió al cerrar: **una página cuyo instrumento sólo mira su primera
+pantalla no está vigilada, está fotografiada.** Medir tokens y contraste en el
+primer scroll da verde sobre una página decapitada; que se pueda leer entera es
+una compra aparte, y hay que escribirla.
+**Traza:** `app/src/styles.css` (`html, body { overflow: hidden }`, tanda 3) ·
+`app/e2e/identidad.mjs` · `app/src/app/app.spec.ts` · rutas `/identidad`,
+`/panel`.
+
 ## [2026-09-10] ✅ CERRADA — `display: revert` anula el atributo `hidden`, y el acordeón se plegaba sin ocultar nada
 
 **Categoría:** una palabra clave del CSS que no hace lo que su nombre promete
