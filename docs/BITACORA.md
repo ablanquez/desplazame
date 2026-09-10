@@ -14,6 +14,62 @@
 
 ---
 
+## [2026-09-10] ✅ CERRADA — `display: revert` anula el atributo `hidden`, y el acordeón se plegaba sin ocultar nada
+
+**Categoría:** una palabra clave del CSS que no hace lo que su nombre promete
+**Síntoma:** pulsar la cabecera de un bloque giraba el chevron y quitaba la
+clase, pero **el cuerpo seguía viéndose**. Y al no ocultarse, el bloque crecía
+hasta su altura natural y aplastaba al otro: la cabecera de «Indicaciones»
+quedaba en un bloque de **1 px de alto**, recortada por el `overflow` del panel
+y fuera de la vista.
+
+**⭐ Qué dio verde mientras el fallo estaba vivo:** nada dijo nada — **y eso es
+el hallazgo**. Las 441 pruebas y las cuatro juezas del layout (L1 a L4) pasaron
+enteras con el acordeón sin plegar, porque **ninguna miraba el abatimiento**.
+Medido en Chrome, con el fallo vivo, pulsando «Buscador»:
+
+```
+AL ARRANCAR
+  n abierto altoBloque cuerpoDisplay cuerpoAlto tieneHidden
+  0 true    365        block         312        false
+  1 true    365        block         312        false
+
+TRAS PULSAR «Buscador»
+  n abierto altoBloque cuerpoDisplay cuerpoAlto tieneHidden
+  0 false   775        block         722        true       ← hidden puesto, display block
+  1 true    1          block          32        false      ← aplastado a 1 px
+```
+
+El atributo `hidden` **está puesto** —`tieneHidden: true`— y el `display`
+computado sigue siendo `block`. Angular hacía su parte; el CSS la deshacía.
+
+**Cómo se cazó:** el ojo de Antonio, usando la app. Ninguna jueza lo cubría.
+**Causa raíz:** `display: revert` no devuelve lo que su nombre promete. La
+regla era `.panel:not(.panel--desplegada) .bloque__cuerpo { display: revert }`,
+puesta para que en escritorio mandara el acordeón y no el estado de la hoja. Se
+esperaba que `revert` dejara actuar al `display: none` que el navegador aplica a
+`[hidden]` —que también es una regla suya—, y **medido en Chrome devolvía
+`block`**. La declaración de autor ganaba, y con ella el cuerpo seguía visible.
+**Arreglo aplicado:** la regla que pliega se escribe explícita y con
+especificidad de sobra —`.panel .bloque .bloque__cuerpo[hidden]`, (0,3,0)—, para
+que ninguna regla de COLOCACIÓN pueda deshacer un cambio de ESTADO sin que se
+note. Y `revert` desaparece del fichero: `block` dice lo que hace.
+⚠️ Por el camino se probó el calco literal de la maqueta, que no renderiza el
+cuerpo plegado (`{searchExpanded && …}`). Funcionaba, y rompía **70 pruebas**
+que hablan de rutas y datos y se quedaban sin los elementos que miran. Se ocultó
+en vez de destruir: el resultado en pantalla es el mismo y el DOM sigue entero.
+**Commit:** `682ca4d` (el arreglo) · `d854949` (la jueza L5, que faltaba)
+**Ley que sale de aquí:** **un comportamiento que no tiene jueza no está
+hecho, está solo escrito.** Cuatro juezas verdes sobre el layout —tamaños,
+posiciones, scroll, re-encuadre— no dicen nada sobre si los botones funcionan:
+midieron la casa y no probaron las puertas. Cuando una tanda añade un control
+que cambia de estado, la jueza que lo pulsa entra en la misma tanda.
+**Traza:** `app/src/styles.css`, la regla `display: revert` dentro del
+`@media (min-width: 768px)`; `app/src/app/buscador.html`, el `[hidden]` de
+`.bloque__cuerpo`.
+
+---
+
 ## [2026-09-10] ✅ CERRADA — La columna no se plegaba, y dos de las tres juezas del plegado dieron OK igual
 
 **Categoría:** una jueza que compara con «mayor que» cuando lo que importa es cuánto
