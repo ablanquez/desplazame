@@ -3911,15 +3911,122 @@ Code lo traduce al Angular existente.)*
         BYTE IDÉNTICO — exposición en producción: ninguna,
         medida. npm audit: 0. Lockfile solo, empujado
         (`c3adffb`) — el escáner lo recoge en su pasada.
-      - [ ] TANDA 3 — EL LAYOUT: 100dvh sin scroll global, dos
-        columnas con el mapa a la derecha, acordeón con scroll
-        por bloque, plegado con el mapa re-encuadrando
-        [pasada de doctrina previa: dvh y sus trampas móviles ·
-        scroll contenido · invalidateSize de Leaflet · la
-        estructura de la referencia].
-      - [ ] TANDAS 4+ — componentes, tesela oscura, el
-        conmutador global con su anti-FOUC [prioridad documentada:
-        elección guardada > sistema > claro].
+      - [x] ⚰️ TANDA 3 — EL LAYOUT (9-10/09; esqueleto + remate 1
+        + remate 2 + releída + cierre de la nº44; ojo de Antonio:
+        bueno). EL ESQUELETO, con su doctrina: mobile-first como
+        IMPLEMENTACIÓN ÚNICA [Marcotte: mejora progresiva — la
+        hoja es la base, las dos columnas la mejora min-width; no
+        se parte por dispositivo] · 100dvh con línea de respaldo
+        100vh [MDN; sin animar dvh; el teclado virtual queda para
+        el móvil real de Antonio] · scroll por bloque con
+        overscroll-behavior: contain EN los bloques, nunca en
+        html [CSSWG: el ejemplo canónico es esta barra lateral;
+        en el viewport mataría el pull-to-refresh] ·
+        invalidateSize atado a transitionend [API Leaflet; jamás
+        setTimeout] con el trackResize NATIVO cubriendo
+        ventana/rotación [la referencia usaba ResizeObserver:
+        duplicaba lo de serie] · la hoja con las medidas [M3]
+        (radio 28 · asa 4×32/toque 48 · máx 640; el 88dvh
+        desplegada, [PROPIO] con el §20) · columnas 460/500
+        calcadas de App.tsx · umbral 768 calcado · [PROPIO]
+        créditos con scroll propio (LUEGO ENMENDADO en el remate
+        2). Hallazgos MIDIENDO: los panes de Leaflet van de
+        z-index 200-700 y tapaban la hoja con getBoundingClientRect
+        tan tranquilo [por eso las juezas miden LO PINTADO] · la
+        cadena de alturas (host display:block colapsaba el 100%)
+        · el orden visual por `order`, no tocando el DOM [teclado
+        y lector siguen el documento]. Juezas L1-L4 (L2 empuja 30
+        ruedas por CDP; L3 mide COBERTURA de teselas, no le
+        pregunta a Leaflet). nº45 CERRADA [la columna no se
+        plegaba — ganaba 1 px — y dos juezas dieron OK: una
+        comprobaba con `>` (940>939); causa: EMPATE DE
+        ESPECIFICIDAD — un @media no suma especificidad, a
+        igualdad gana la última]. EL REMATE 1 (el ojo de Antonio
+        cazó el apelotonado): el abatimiento estaba construido y
+        ROTO — nº46 CERRADA [`display: revert` ANULA el atributo
+        hidden: hidden funciona por regla de navegador y
+        cualquier display de autor la pisa; NADA dio rojo — 441 y
+        cuatro juezas «midieron la casa sin probar las puertas»]
+        · L5 (4 combinaciones × 2 anchos, 24 compras, cabeceras
+        respondiendo al clic en su punto medio) y L6 (atribución
+        legible y destapada) · estado inicial calcado [Resultado
+        plegado] · coreografía del §57 construida [generar → abre
+        resultado + pliega buscador; App.tsx:47-56] · DESVÍO DEL
+        CALCO DECLARADO Y COMPRADO: plegado = ocultar
+        (hidden+display), no destruir como la maqueta — destruir
+        rompía 70→116 pruebas y era incompatible con la
+        coreografía; en pantalla idéntico (L5 lo mide) y el árbol
+        de accesibilidad limpio · colisión `.lienzo` → LEY: el
+        CSS global compite con los nombres de TODOS los
+        componentes (renombrado .zona-mapa) · créditos a LA
+        FRANJA DEL MARCO, bajo todo [única posición conforme:
+        la política de teselas de OSM prohíbe atribución bajo
+        interfaz — mató la superposición de la maqueta (tapaba
+        «Lea…») y el bajo-el-mapa (se lo comía la hoja); OSMF:
+        esquina O adyacente]. EL REMATE 2: la VUELTA del acordeón
+        [decisión de Antonio, simétrica del §57: reabrir buscador
+        pliega el resultado abajo — jueza de la coreografía
+        ENTERA] · /creditos como ruta perezosa [Ley 37/2007 no
+        exige la cita pegada al mapa: el patrón es el aviso legal
+        accesible permanente (RD 1495/2011); textos REORGANIZADOS
+        de los ya verificados (las nueve firmas del 10) + el
+        formato literal del aviso del Ayuntamiento + ODbL/OSM +
+        OFL de Inter + la línea de no-respaldo] · la franja en
+        UNA LÍNEA (Leaflet | © OSM · Créditos) · nº47 CERRADA [el
+        overflow:hidden global del esqueleto DECAPITÓ /identidad
+        y /panel; ⭐ el e2e de /identidad — SU instrumento — dio
+        verde sobre la página decapitada (todo lo que mide ocurre
+        en la primera pantalla) y la L1 era LA CÓMPLICE, no la
+        testigo; cazada POR INSTRUMENTO al ir a montar /creditos;
+        arreglo html:has(.marco) [MDN, con el modo de fallo
+        elegido: sin :has() cae del lado de que la portada tenga
+        scroll] + jueza con precondición CONSTRUIDA (viewport a
+        500). DOS LEYES: una regla global se escribe para TODAS
+        las rutas — si solo vale para una pantalla, que lleve su
+        condición; y una página cuyo instrumento solo mira su
+        primera pantalla no está vigilada, ESTÁ FOTOGRAFIADA].
+        LA RELEÍDA (frentes B y C): la jueza del recuento —
+        veredicto nº5, ALCANCE CORTO no mentirosa [leía la línea
+        que decía leer; la cifra vieja iba EN LETRA en otra
+        frase; el párrafo que cuenta la nº5 envejeció DENTRO de
+        sí mismo] → lector de cardinales 0-99 + la crónica acaba
+        en el número de hoy y solo crece · NUEVE vejeces C1-C10
+        [la gorda: «no está publicado» — producción desde el
+        8/09; siete modos→ocho ×4; direcciones 2→4; licencias
+        3→6; C2 verificada contra git ANTES de clasificar
+        (09:29 contra 16:19) para no convertir vejez en falso
+        fallo] — ninguna fue falsa el día que se escribió, todas
+        enmendadas diciéndolo. Y LA nº44 CERRADA POR LA CAUSA
+        VERDADERA: no era la carrera — 12 ms de 1→14 suites — era
+        EL ARRANQUE EN FRÍO [2.475 ms/90,7 MB contra 80 caliente;
+        el diagnóstico-primero del encargo mató mi receta de
+        proyectos ANTES de construirla: el builder de Angular
+        borra test.projects, medido con su propio aviso] ·
+        arreglo: test.for con UNA PRUEBA POR RECURSO [doctrina
+        Vitest: el timeout es POR PRUEBA; test.for preferido a
+        test.each (Jest-compat); secuencia dentro del fichero] —
+        45 títulos con nombre, rojo selectivo con la gemela
+        cayendo bien, el frío cerrado POR COTA MATEMÁTICA [cada
+        fichero es subconjunto del lote: ≤2.475 < 5.000], y la
+        jueza del censo anti-lista-vacía [test.for sobre lista
+        calculada no corre NADA si sale vacía — la nº44 con otro
+        traje, tapada antes de nacer] · testTimeout intacto ·
+        META-LECCIÓN para LA-RETROSPECTIVA: el dato que desmentía
+        la hipótesis (727·77·76 = frío contra caliente) estaba
+        DENTRO de la propia entrada desde el primer día, leído
+        como ruido — la entrada llevaba su respuesta escrita.
+        Marcadores: interfaz 441→499 (test.for del manifiesto) ·
+        bitácora 47 [0 abiertas · 46 cerradas · 1 reabierta
+        histórica] · e2e nuevos: esqueleto.mjs y creditos.mjs.
+      - [ ] TANDA 4 — LOS COMPONENTES (la pintura): píldoras,
+        grupos, select con iconos, chips de modo, el resultado —
+        Material Symbols y adiós emojis; NECESITA las dos
+        micro-decisiones de Antonio (¿«Limpiar búsqueda» se
+        queda? · la función del pin) y su pasada de doctrina.
+      - [ ] TANDAS 5+ — tesela oscura CARTO, el conmutador global
+        con su anti-FOUC [prioridad documentada:
+        elección guardada > sistema > claro], y la verificación
+        final del 15 (casilla 5).
 - [ ] **5 · LA VERIFICACIÓN del 15** — AA medido (contraste, targets
       44px, reflow 320px, zoom 200%, teclado), los dos temas por el
       ojo en los 3 tamaños, y el caso de siempre en producción.

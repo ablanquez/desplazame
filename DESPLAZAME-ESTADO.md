@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 9 de septiembre de 2026
+## ESTADO ACTUAL — 10 de septiembre de 2026
 
 **⭐ PUNTOS 1-14 CERRADOS (el 14, el 8/09: DE LOCAL A PRODUCCIÓN EN
 UN DÍA — https://desplazame.antonioblanquez.es vivo en Fráncfort con
@@ -197,11 +197,15 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
 tanda 1 del calco [`062f532` — 14 commits: /identidad, los
 tokens, Inter, el contraste 36/36 y los papeles] y el del parche
 de seguridad [`c3adffb` — lockfile solo, dist idéntico]). **En
-local, sin publicar** *(al cierre del 9/09 noche)*: **LOS 4
-COMMITS DE LA TANDA 2 [`78ac805`…`fca1aa3` — la base vestida: el
-primer cambio visible] + los papeles de este destilado — POR
-DECISIÓN de Antonio: se acumula hasta que haya chicha visible que
-enseñar (la tanda 3 del layout, probablemente) — ⚠️ desde M2,
+local, sin publicar** *(al cierre del 10/09)*: **TODO LO DEL 9-10
+POR DECISIÓN de Antonio (acumular hasta chicha — y ya la hay):
+la tanda 2 [`78ac805`…`fca1aa3`], el esqueleto
+[`cf21014`…`ce97d16`], el remate 1 [`682ca4d`…`ffc2964`], el
+remate 2 [incluye `310f9ba` y `a244add` — el listado completo de
+sus commits NO CONSTA en acta], la releída [`365b2fb`,
+`8e8aec5`, `802bd2e`], la nº44 [`383c6ee`, `87d1f36`], el papel
+`70160ee` y el destilado de hoy — al empujar, redespliega y sale
+TODO: la base vestida, el esqueleto, /creditos — ⚠️ desde M2,
 CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
 — los papeles de las casillas 0+3 y los 12 del calco — empujados
 en `062f532`.)* *(La nota del 8/09 noche: los
@@ -1601,14 +1605,27 @@ método [quita-mide-devuelve — el verde de la nº43 evitado por
 razón nueva]; nº44 ABIERTA con ley [timeout por contención de las
 14 suites — el arreglo bueno pendiente, no subir el número];
 interfaz 431→441, ojo de Antonio en local: bueno; crónica entera
-en la tanda 2 de la casilla 4): lo siguiente es LA TANDA 3 — EL
-LAYOUT (100dvh sin scroll global · dos columnas · acordeón con
-scroll por bloque · plegado con el mapa re-encuadrando), con su
-PASADA DE DOCTRINA previa [dvh y las trampas móviles ·
-invalidateSize de Leaflet · la estructura de la referencia]; el
-logo (casilla 1) sigue sin modelar. Micro-decisiones de
-Antonio en la mesa del calco: ¿«Limpiar búsqueda» se queda? · la
-función del pin del grupo; (3) los pendientes del 14 en
+en la tanda 2 de la casilla 4). ⚰️ LA TANDA 3 (EL LAYOUT) CERRADA
+el 10/09 — esqueleto mobile-first + remates 1 y 2 + releída +
+nº44: el acordeón que pliega de verdad con su vuelta, la hoja
+[M3], las columnas calcadas, /creditos con la franja en una
+línea, las nº45-46-47 cerradas (el empate de especificidad · el
+display:revert contra hidden · el overflow que DECAPITÓ
+/identidad y /panel con su instrumento fotografiando en verde),
+la releída con las nueve vejeces (la gorda: el README decía «no
+publicado»), y la nº44 cerrada por la causa VERDADERA (el frío,
+no la carrera — test.for por recurso, testTimeout intacto);
+bitácora 47 [0 abiertas] · interfaz 499 · ojo de Antonio: bueno;
+LA CRÓNICA ENTERA con su doctrina, en la tanda 3 de la casilla 4
+del plan: lo siguiente es (a) EL PUSH — botón de Antonio, y ya
+hay chicha visible acumulada [la base vestida + el esqueleto
+entero + /creditos + 499 jueces]; (b) LA TANDA 4 — LOS
+COMPONENTES (la pintura: píldoras, chips, select con iconos,
+Material Symbols y adiós emojis), que NECESITA las dos
+micro-decisiones de Antonio [¿«Limpiar búsqueda» se queda? · la
+función del pin] y su pasada de doctrina; el móvil real con el
+teclado virtual sigue pendiente del ojo de Antonio; el
+logo (casilla 1) sigue sin modelar; (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
 municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
@@ -1932,7 +1949,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.092 pruebas (651 motor + 441 interfaz; e2e yego.mjs 28, moto.mjs, dos-filas.mjs e identidad.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (294+360 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.150 pruebas (651 motor + 499 interfaz; e2e yego.mjs 28, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs y creditos.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (295+361 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
