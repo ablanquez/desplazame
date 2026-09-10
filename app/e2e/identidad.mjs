@@ -147,7 +147,7 @@ try {
   // ⚠️ Y el número de PIEZAS no se lee como un logro ni como un descuido: el
   //    empaquetador parte el `main` en trozos o no según le cuadre, y eso mueve
   //    la cuenta sin que nadie haya tocado nada. Lo que dice algo es el PESO.
-  const ANTES = { peticiones: 5, bytes: 752234, de: 'el remate 2 de la tanda 3 (db3a1cb)' };
+  const ANTES = { peticiones: 6, bytes: 879582, de: 'el remate de la tanda 4 (bc2ea8a)' };
   console.log(`\n  antes de esta tanda — ${ANTES.de}: ${ANTES.peticiones} peticiones · ${ANTES.bytes} B`);
   console.log(
     `  ahora:                          ${propias.length} peticiones · ${peso} B` +
