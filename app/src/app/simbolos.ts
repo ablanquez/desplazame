@@ -6,13 +6,13 @@ import { Component, input } from '@angular/core';
  * ── De dónde salen, y por qué no hay CDN ────────────────────────────────────
  *
  * Del repositorio oficial **`google/material-design-icons`**, Apache 2.0, uno a
- * uno y en su versión *outlined*. Los ocho ficheros originales viven en
+ * uno y en su versión *outlined*. Los ficheros originales viven en
  * `app/simbolos/` con su licencia y sus sha256 — ficha § 1.38 del notices.
  *
  * ⚠️ **La fuente variable oficial existe y NO se usa.** Trae miles de símbolos
  *    en ~100 KB, y esta app se mide contra un presupuesto de portada que ya
- *    está en 509 kB. Para un censo de OCHO, el SVG por icono es la vía magra:
- *    pesa lo que pesan ocho `path` y no baja nada de ningún tercero — la
+ *    está en 521 kB. Para un censo corto, el SVG por icono es la vía magra:
+ *    pesa lo que pesan nueve `path` y no baja nada de ningún tercero — la
  *    doctrina de Múnich que sacó a Inter del CDN de Google ni se roza aquí.
  *
  * ── ⭐ POR QUÉ EL `d` ESTÁ ESCRITO DOS VECES, Y POR QUÉ NO ES UNA COPIA SUELTA
@@ -20,18 +20,18 @@ import { Component, input } from '@angular/core';
  * El dibujo vive en el `.svg` original **y** en esta tabla, porque inyectarlo
  * en línea es lo único que deja al icono heredar el color del texto
  * (`currentColor`): un `<img>` no se puede repintar, y los chips cambian de
- * tinta con su estado. Ocho `<img>` serían además ocho peticiones más.
+ * tinta con su estado. Un `<img>` por icono serían además otras tantas peticiones.
  *
  * ⚠️ Dos copias del mismo dato es exactamente lo que `contraste.ts` cuenta que
  *    salió mal —cuatro copias de una fórmula, y la cuarta no era igual—, así
- *    que aquí la copia **tiene portero**: `simbolos.spec.ts` abre los ocho
+ *    que aquí la copia **tiene portero**: `simbolos.spec.ts` abre los nueve
  *    ficheros y compara su `d` con el de esta tabla, carácter a carácter. Si
  *    alguien retoca uno de los dos lados, la suite se pone roja.
  *
  * ── El `viewBox` ────────────────────────────────────────────────────────────
  *
- * `0 -960 960 960` en los ocho, verificado al generarlos: es la rejilla de
- * Material Symbols, y va aquí una sola vez en lugar de repetida ocho veces.
+ * `0 -960 960 960` en todos, verificado al generarlos: es la rejilla de
+ * Material Symbols, y va aquí una sola vez en lugar de repetida en cada uno.
  */
 export const REJILLA = '0 -960 960 960';
 
@@ -44,7 +44,8 @@ export type NombreDeSimbolo =
   | 'two_wheeler'
   | 'directions_car'
   | 'my_location'
-  | 'swap_vert';
+  | 'swap_vert'
+  | 'hourglass_empty';
 
 /**
  * El trazado de cada símbolo, **copiado literal** de su `.svg` de
@@ -75,6 +76,9 @@ export const SIMBOLOS: Readonly<Record<NombreDeSimbolo, string>> = {
   // el botón de invertir origen y destino
   swap_vert:
     'M320-440v-287L217-624l-57-56 200-200 200 200-57 56-103-103v287h-80ZM600-80 400-280l57-56 103 103v-287h80v287l103-103 57 56L600-80Z',
+  // el aviso de que la consulta a la DGT tarda
+  hourglass_empty:
+    'M320-160h320v-120q0-66-47-113t-113-47q-66 0-113 47t-47 113v120Zm160-360q66 0 113-47t47-113v-120H320v120q0 66 47 113t113 47ZM160-80v-80h80v-120q0-61 28.5-114.5T348-480q-51-32-79.5-85.5T240-680v-120h-80v-80h640v80h-80v120q0 61-28.5 114.5T612-480q51 32 79.5 85.5T720-280v120h80v80H160Z',
 };
 
 /**

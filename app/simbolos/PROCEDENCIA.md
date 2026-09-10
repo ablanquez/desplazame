@@ -9,13 +9,13 @@
 | **Licencia** | Apache 2.0 — `LICENCIA-APACHE-2.0.txt`, al lado |
 | **Origen** | `https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/<nombre>/materialsymbolsoutlined/<nombre>_24px.svg` |
 | **Descargados** | 2026-09-10 |
-| **Rejilla** | `viewBox="0 -960 960 960"` en los ocho, verificada al generarlos |
+| **Rejilla** | `viewBox="0 -960 960 960"` en todos, verificada al generarlos |
 
-Los ocho entran **sin tocarlos**: ni se han reoptimizado, ni recoloreado, ni
+Entran **sin tocarlos**: ni se han reoptimizado, ni recoloreado, ni
 renombrado. Cada uno trae **un solo `<path>`**, que es lo que permite
 inyectarlo en línea con `fill="currentColor"`.
 
-## Los ocho, con su sha256 y para qué
+## Los símbolos, con su sha256 y para qué
 
 | fichero | peso | para | sha256 |
 |---|---|---|---|
@@ -27,6 +27,7 @@ inyectarlo en línea con `fill="currentColor"`.
 | `directions_car.svg` | 573 B | el chip de Coche | `8f0a18a0a7a8ad65529fef7917a4aa7fdd4e9a7de784578c744e26cb6f3be2f1` |
 | `my_location.svg` | 547 B | el botón «Mi ubicación» (la diana) | `8e4f63bed1446eb726036a4b573ecef3b8a8261aeb50e31a89883e929758d067` |
 | `swap_vert.svg` | 236 B | el botón de invertir origen y destino | `246628e8efd0914fb1358c5fc53fea6f03dc4fad424aad4e1933abcdeae8f11a` |
+| `hourglass_empty.svg` | 388 B | el aviso de que la consulta a la DGT tarda | `88b87112cb06f9bd15a2fd87d1297f7f7d6ecd2be300ab7ae4f3f8dde180bba6` |
 
 ## ⚠️ Por qué el dibujo está también en `app/src/app/simbolos.ts`
 
@@ -37,14 +38,14 @@ exactamente la clase de duplicado que en esta casa ya salió mal una vez
 (`contraste.ts` y sus cuatro copias de una fórmula).
 
 **Por eso la copia tiene portero:** `app/src/app/simbolos.spec.ts` abre estos
-ocho ficheros y compara su `d` con el de la tabla, carácter a carácter, y
+ficheros y compara su `d` con el de la tabla, carácter a carácter, y
 además comprueba que el censo cuadra en las dos direcciones. Si alguien retoca
 uno de los dos lados, la suite se pone roja.
 
 ## Por qué no la fuente variable
 
 La fuente oficial de Material Symbols existe y trae **miles** de iconos en
-~100 KB. Aquí hacen falta **ocho**. La portada se mide contra un presupuesto
+~100 KB. Aquí hacen falta **nueve**. La portada se mide contra un presupuesto
 que ya está en 509 kB, así que se paga lo que se usa y nada más — y, de paso,
 no se baja nada de ningún tercero en tiempo de ejecución, que es la misma ley
 que sacó a Inter del CDN de Google.
