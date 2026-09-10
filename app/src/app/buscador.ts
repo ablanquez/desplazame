@@ -32,6 +32,7 @@ import { AutocompletarVia, comoSeVeLaVia } from './autocompletar-via';
 import { SelectorPortal } from './selector-portal';
 import { IconoCapa, type Clase } from './iconos';
 import { llevaContorno, tonosDeChip, type TonosDeChip } from './chip';
+import { Simbolo, type NombreDeSimbolo } from './simbolos';
 
 /**
  * ⭐ EL MAPEO GIRO → FLECHA. Diez giros, diez glifos, y ni una dependencia.
@@ -694,7 +695,7 @@ function familiaDe(modo: Modo): Familia {
 
 @Component({
   selector: 'app-buscador',
-  imports: [Mapa, AutocompletarVia, SelectorPortal, IconoCapa, NgTemplateOutlet],
+  imports: [Mapa, AutocompletarVia, SelectorPortal, IconoCapa, NgTemplateOutlet, Simbolo],
   templateUrl: './buscador.html',
   styleUrl: './buscador.css',
 })
@@ -952,13 +953,24 @@ export class Buscador {
     id: Familia;
     etiqueta: string;
     porDefecto: Modo;
+    /**
+     * ⭐ EL SÍMBOLO DE LA PÍLDORA (10/09, tanda 4). El nombre oficial del icono
+     * de Material, el mismo que la maqueta le pone a cada modo. Va aquí —al
+     * lado de la etiqueta— y no en el CSS ni en una tabla aparte: **quién es
+     * esta familia** son su nombre y su dibujo, y separarlos sería tenerlos en
+     * dos sitios que un día no coinciden.
+     *
+     * ⚠️ El icono **no sustituye** a la etiqueta: viaja con ella. [DISEÑO: los
+     *    emojis se van, el texto se queda.]
+     */
+    icono: NombreDeSimbolo;
   }> = [
-    { id: 'andando', etiqueta: 'Andando', porDefecto: 'andando' },
-    { id: 'bus', etiqueta: 'Bus / Tranvía', porDefecto: 'bus' },
-    { id: 'bici', etiqueta: 'Bici', porDefecto: 'bici' },
-    { id: 'patin', etiqueta: 'Patín (VMP)', porDefecto: 'patin' },
-    { id: 'moto', etiqueta: 'Moto', porDefecto: 'moto' },
-    { id: 'coche', etiqueta: 'Coche', porDefecto: 'coche' },
+    { id: 'andando', etiqueta: 'Andando', porDefecto: 'andando', icono: 'directions_walk' },
+    { id: 'bus', etiqueta: 'Bus / Tranvía', porDefecto: 'bus', icono: 'directions_bus' },
+    { id: 'bici', etiqueta: 'Bici', porDefecto: 'bici', icono: 'pedal_bike' },
+    { id: 'patin', etiqueta: 'Patín (VMP)', porDefecto: 'patin', icono: 'electric_scooter' },
+    { id: 'moto', etiqueta: 'Moto', porDefecto: 'moto', icono: 'two_wheeler' },
+    { id: 'coche', etiqueta: 'Coche', porDefecto: 'coche', icono: 'directions_car' },
   ];
 
   /**
@@ -2412,6 +2424,38 @@ export class Buscador {
       return;
     }
 
+    // ⭐ Y ANTES DE FINGIR QUE BUSCA, SE PREGUNTA SI YA HAY UN NO (10/09).
+    //
+    // [DOC MDN · Permissions API] `navigator.permissions.query({name:
+    // 'geolocation'})` devuelve `granted`, `prompt` o `denied` **sin disparar
+    // ningún diálogo**. Con `denied` guardado de antes, `getCurrentPosition`
+    // llamaría al fallo igual — pero por el camino la rueda habría girado y el
+    // botón habría dicho «Buscando…» sabiendo que no iba a buscar nada. Eso es
+    // una animación mintiendo, y aquí las esperas son honestas o no son.
+    //
+    // ⚠️ La API es opcional y **jsdom no la trae**: sin ella se va derecho a
+    //    preguntar, que es exactamente lo que se hacía hasta hoy.
+    const permisos = navigator.permissions;
+    if (!permisos) {
+      this.aPreguntarPorLaPosicion();
+      return;
+    }
+    permisos.query({ name: 'geolocation' as PermissionName }).then(
+      (estado) => {
+        if (estado.state === 'denied') {
+          this.avisoUbicacion.set(MENSAJES_DE_FALLO[PERMISO_DENEGADO]!);
+          return;
+        }
+        this.aPreguntarPorLaPosicion();
+      },
+      // Si la consulta falla —hay navegadores que no admiten el nombre—, se
+      // pregunta igual: el fallo de la consulta no es un «no» del usuario.
+      () => this.aPreguntarPorLaPosicion(),
+    );
+  }
+
+  /** El gesto ya está dado y no hay un «no» guardado: se pide de verdad. */
+  private aPreguntarPorLaPosicion(): void {
     this.buscandoUbicacion.set(true);
     navigator.geolocation.getCurrentPosition(
       (posicion) => this.conLaPosicion(posicion),
@@ -2512,6 +2556,58 @@ export class Buscador {
       MENSAJES_DE_FALLO[fallo.code] ??
         'No se ha podido saber dónde estás. Escribe la calle a mano.',
     );
+  }
+
+  /**
+   * ⭐ «LIMPIAR BÚSQUEDA» — calcada de `handleReset` de la maqueta (10/09).
+   *
+   * No es comportamiento inventado aquí: la maqueta es **especificación**
+   * (decisión 9 del DISEÑO), el botón está construido en ella —`handleReset` de
+   * `SearchForm.tsx` más el `handleReset` de `App.tsx`—, y Antonio lo validó dos
+   * veces. Se calca, no se reinventa.
+   *
+   * Deja la pantalla **como al abrirla**, y eso son cuatro cosas:
+   *
+   * 1. **Los dos lados enteros**, no solo el texto: tipo, calle, vía, portal y
+   *    sitio. Vaciar lo que se ve y dejar el CÓDIGO puesto sería el fallo de la
+   *    nº4 con otro disfraz — el formulario diría «vacío» y `sePuedeGenerar()`
+   *    seguiría diciendo que sí.
+   * 2. **El modo, a «Andando»**, con sus subformularios en su defecto. La
+   *    maqueta los reinicia uno a uno y aquí también: quedan los del arranque.
+   * 3. **Los avisos**, los dos. Un aviso que sobrevive a la limpieza habla de
+   *    una búsqueda que ya no existe.
+   * 4. **El resultado y el acordeón**, que es lo que hace el `handleReset` del
+   *    `App.tsx`: la ruta pintada se va y los bloques vuelven a buscador
+   *    abierto / resultado plegado — el mismo sitio al que lleva la vuelta.
+   */
+  protected limpiar(): void {
+    for (const lado of [this.origen, this.destino]) {
+      lado.tipo.set('via');
+      lado.calle.set('');
+      lado.via.set(null);
+      lado.calleTocada.set(false);
+      lado.portalTexto.set('');
+      lado.portal.set(null);
+      lado.portalTocado.set(false);
+      lado.sitio.set(null);
+    }
+
+    this.modo.set('andando');
+    this.tipoDeRuta.set('equilibrada');
+    this.aparcamiento.set(null);
+    this.distintivo.set(null);
+    this.autorizacion.set(null);
+    this.matricula.set('');
+    this.loDeLaDgt.set(null);
+
+    this.avisoUbicacion.set(null);
+    this.avisoRuta.set(null);
+
+    // Y la ruta pintada se va con ella: el mapa se queda limpio y el acordeón
+    // vuelve al estado del arranque.
+    this.trio.set(null);
+    this.buscadorAbierto.set(true);
+    this.pasosAbiertos.set(false);
   }
 
   protected elegirModo(modo: Modo): void {

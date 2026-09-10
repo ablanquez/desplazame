@@ -954,3 +954,286 @@ body:has(.marco) {
     left: 0;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA PÍLDORA — el primitivo del sistema (10/09, punto 15 · tanda 4)
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ⚠️ VIVE AQUÍ Y NO EN `buscador.css`, y por dos razones que van juntas:
+
+   · **Es lenguaje del sistema, no pinta de un componente.** La misma píldora la
+     usan los chips de modo, los seis grupos de radios de los subformularios, y
+     la usará el resultado en la tanda 5. Tres sitios con el mismo dibujo escrito
+     tres veces son tres dibujos que un día no coinciden.
+   · **Y el presupuesto.** `buscador.css` tiene el error de `anyComponentStyle`
+     en 8 kB y ya iba por 6,37: meter aquí lo compartido es lo que deja sitio
+     para lo que sí es de ese componente.
+
+   Las medidas son las de la referencia (`SearchForm.tsx`): alto mínimo 44 —el
+   suelo de [WCAG 2.5.5]—, `border-radius: 9999px`, `padding` lateral de 1 rem,
+   letra de 0,875 rem con peso 500. */
+
+.pildora {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background-color: var(--card);
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  /* La transición es de color y de fondo, NUNCA de tamaño: una píldora que
+     cambia de ancho al pasar por encima mueve a sus vecinas de sitio. */
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+/* ⚠️ EL HOVER, SOLO DONDE HAY PUNTERO DE VERDAD. [DOC MDN, Media Queries 4]
+   `hover: hover` es «el mecanismo primario de entrada puede pasar por encima».
+   En un táctil no lo hay: el navegador emula el hover con la pulsación, y el
+   estado se queda PEGADO al soltar — la píldora que acabas de tocar se queda
+   con el fondo de «estoy encima» hasta que toques otra cosa. Por eso ninguna
+   regla de hover de esta casa vive fuera de esta consulta. */
+@media (hover: hover) {
+  .pildora:hover {
+    background-color: var(--muted);
+  }
+}
+
+/* [WCAG 2.4.7] El foco no se quita: se refuerza. Y como en los grupos de radios
+   el foco cae en un `input` que no se ve, el anillo se lo pone la etiqueta —de
+   ahí el `:has()`, que es lo que deja mirar hacia dentro. */
+.pildora:focus-visible,
+.pildora:has(:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* La elegida de un grupo. El contraste de este par lo vigila la jueza de
+   `identidad.mjs` desde la tanda 1: `primary-foreground` sobre `primary`. */
+.pildora--elegida {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+@media (hover: hover) {
+  .pildora--elegida:hover {
+    background-color: var(--primary);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL CAMPO Y LOS BOTONES — el resto del lenguaje común
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* La caja de texto de la referencia: 44 de alto, radio medio, sobre la tarjeta.
+   `font: inherit` ya lo puso el reset de la tanda 2; aquí solo el tamaño. */
+.caja {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--card);
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.caja:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ⚠️ EL DESHABILITADO NO SE MIDE POR CONTRASTE, y eso es literal de la norma:
+   [WCAG 1.4.3] exime a «text or images of text that are part of an inactive
+   user interface component». Se apaga y se dice que está apagado — el cursor
+   también lo dice—, y no se le sube la tinta para aprobar una medición que la
+   norma no pide. */
+.caja:disabled {
+  border-color: var(--border);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+}
+
+/* El botón de acción: 48 de alto, que es el suelo táctil de [M3] y va por
+   encima de los 44 de [WCAG 2.5.5]. */
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    opacity 150ms ease;
+}
+
+.boton:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* El primario: la acción de la pantalla. */
+.boton--principal {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 1rem;
+}
+
+@media (hover: hover) {
+  .boton--principal:not(:disabled):hover {
+    opacity: 0.9;
+  }
+}
+
+/* El secundario: contorno y fondo transparente. El borde es el mismo token con
+   la opacidad de la referencia (40 %), no un color nuevo — `color-mix` deja
+   decirlo sin inventar un token que la jueza de contraste no vigila. */
+.boton--secundario {
+  border-color: color-mix(in srgb, var(--muted-foreground) 40%, transparent);
+  background-color: transparent;
+  color: var(--foreground);
+}
+
+@media (hover: hover) {
+  .boton--secundario:not(:disabled):hover {
+    background-color: var(--muted);
+  }
+}
+
+/* Y el apagado, con la misma exención de arriba: se ve que no se puede pulsar,
+   y el cursor lo confirma. */
+.boton:disabled {
+  border-color: transparent;
+  background-color: color-mix(in srgb, var(--muted-foreground) 20%, transparent);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+}
+
+/* El anillo de foco lo pone `.pildora:has(:focus-visible)` en la hoja global:
+   el foco cae en el radio, que no se ve, así que lo dibuja la etiqueta.
+
+   ⭐ EL ELEGIDO DE UN SUBFORMULARIO: `primary` sobre `primary-foreground`, el
+   par que la jueza de contraste vigila desde la tanda 1 (9,90:1 en oscuro,
+   medido). Y **no depende solo del color**: cambia también el borde. */
+.modo--activo {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+@media (hover: hover) {
+  .modo--activo:hover {
+    background-color: var(--primary);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ⭐ LOS CHIPS DE FAMILIA — cada uno con SU familia de tokens
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ⚠️ NI UN HEX AQUÍ. Los cuatro tonos de cada modo salen de los tokens que la
+      jueza de contraste mide desde la tanda 1 —36 de 36 pares en AA, censo de
+      deuda vacío—, así que un chip no puede estrenar un color que nadie haya
+      medido. Lo único que hace este bloque es DECIR QUÉ FAMILIA es cada uno.
+
+   El `data-modo` sale de `porDefecto`, que es el id del modo con el que se
+   entra en la familia, y por eso casa con el nombre del token sin tabla en
+   medio: `bici` → `--mode-bici-*`. */
+.modo--chip[data-modo='andando'] {
+  --chip-soft: var(--mode-andando-soft);
+  --chip-strong: var(--mode-andando-strong);
+  --chip-solid: var(--mode-andando-solid);
+  --chip-text: var(--mode-andando-text);
+}
+
+.modo--chip[data-modo='bus'] {
+  --chip-soft: var(--mode-bus-soft);
+  --chip-strong: var(--mode-bus-strong);
+  --chip-solid: var(--mode-bus-solid);
+  --chip-text: var(--mode-bus-text);
+}
+
+.modo--chip[data-modo='bici'] {
+  --chip-soft: var(--mode-bici-soft);
+  --chip-strong: var(--mode-bici-strong);
+  --chip-solid: var(--mode-bici-solid);
+  --chip-text: var(--mode-bici-text);
+}
+
+.modo--chip[data-modo='patin'] {
+  --chip-soft: var(--mode-patin-soft);
+  --chip-strong: var(--mode-patin-strong);
+  --chip-solid: var(--mode-patin-solid);
+  --chip-text: var(--mode-patin-text);
+}
+
+.modo--chip[data-modo='moto'] {
+  --chip-soft: var(--mode-moto-soft);
+  --chip-strong: var(--mode-moto-strong);
+  --chip-solid: var(--mode-moto-solid);
+  --chip-text: var(--mode-moto-text);
+}
+
+.modo--chip[data-modo='coche'] {
+  --chip-soft: var(--mode-coche-soft);
+  --chip-strong: var(--mode-coche-strong);
+  --chip-solid: var(--mode-coche-solid);
+  --chip-text: var(--mode-coche-text);
+}
+
+/* Sin elegir: el tono suave con su texto fuerte, y sin borde de color — el
+   contorno lo da el propio fondo. */
+.modo--chip {
+  border-color: transparent;
+  background-color: var(--chip-soft);
+  color: var(--chip-strong);
+}
+
+@media (hover: hover) {
+  .modo--chip:hover {
+    background-color: var(--chip-soft);
+    opacity: 0.8;
+  }
+}
+
+/* Elegido: el tono sólido con su texto de contraste. Gana a `.modo--activo`
+   por especificidad (0,2,0 contra 0,1,0), que es lo que hace que un chip de
+   familia se pinte de SU color y no del primario de los subformularios. */
+.modo--chip.modo--activo {
+  border-color: var(--chip-solid);
+  background-color: var(--chip-solid);
+  color: var(--chip-text);
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .modo--chip.modo--activo:hover {
+    background-color: var(--chip-solid);
+    opacity: 1;
+  }
+}
+
+/* La etiqueta va SIEMPRE, y es una desviación declarada de la referencia: allí
+   el texto se pliega a cero y solo reaparece al pasar por encima o al elegir.
+   Aquí no, por dos razones: el encargo pide «SVG + texto», y en un táctil no
+   hay hover — seis píldoras sin una palabra sería un acertijo de iconos. */
+.modo__texto {
+  white-space: nowrap;
+}

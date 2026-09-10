@@ -137,7 +137,11 @@
               (click)="miUbicacion(origen)"
               [attr.aria-label]="'Usar mi ubicación como origen'"
             >
-              {{ buscandoUbicacion() ? 'Buscando…' : '📍' }}
+              @if (buscandoUbicacion()) {
+                <span class="ubicacion__rueda" aria-hidden="true"></span>
+              } @else {
+                <app-simbolo nombre="my_location" [lado]="20" />
+              }
             </button>
 
             <!--
@@ -241,7 +245,7 @@
             title="Invertir origen y destino"
             aria-label="Invertir origen y destino"
           >
-            ⇅
+            <app-simbolo nombre="swap_vert" [lado]="20" />
           </button>
 
           <fieldset class="punto">
@@ -259,7 +263,11 @@
               (click)="miUbicacion(destino)"
               [attr.aria-label]="'Usar mi ubicación como destino'"
             >
-              {{ buscandoUbicacion() ? 'Buscando…' : '📍' }}
+              @if (buscandoUbicacion()) {
+                <span class="ubicacion__rueda" aria-hidden="true"></span>
+              } @else {
+                <app-simbolo nombre="my_location" [lado]="20" />
+              }
             </button>
 
             <!--
@@ -374,7 +382,11 @@
           <fieldset class="modos familias">
             <legend>Cómo</legend>
             @for (f of familias; track f.id) {
-              <label class="modo" [class.modo--activo]="familia() === f.id">
+              <label
+                class="pildora modo modo--chip"
+                [attr.data-modo]="f.porDefecto"
+                [class.modo--activo]="familia() === f.id"
+              >
                 <input
                   type="radio"
                   name="familia"
@@ -383,7 +395,8 @@
                   [checked]="familia() === f.id"
                   (change)="elegirFamilia(f.id)"
                 />
-                {{ f.etiqueta }}
+                <app-simbolo [nombre]="f.icono" [lado]="20" />
+                <span class="modo__texto">{{ f.etiqueta }}</span>
               </label>
             }
           </fieldset>
@@ -423,7 +436,7 @@
             <fieldset class="modos bicis">
               <legend>¿Qué bici?</legend>
               @for (b of bicis; track b.id) {
-                <label class="modo" [class.modo--activo]="modo() === b.id">
+                <label class="pildora modo" [class.modo--activo]="modo() === b.id">
                   <input
                     type="radio"
                     name="bici"
@@ -456,7 +469,7 @@
             <fieldset class="modos motos">
               <legend>¿Qué moto?</legend>
               @for (m of motos; track m.id) {
-                <label class="modo" [class.modo--activo]="modo() === m.id">
+                <label class="pildora modo" [class.modo--activo]="modo() === m.id">
                   <input
                     type="radio"
                     name="moto"
@@ -497,7 +510,7 @@
             <fieldset class="modos aparcamientos">
               <legend>¿Dónde quieres aparcar?</legend>
               @for (a of aparcamientos; track a.id) {
-                <label class="modo" [class.modo--activo]="aparcamiento() === a.id">
+                <label class="pildora modo" [class.modo--activo]="aparcamiento() === a.id">
                   <input
                     type="radio"
                     name="aparcamiento"
@@ -535,7 +548,7 @@
             <fieldset class="modos distintivos">
               <legend>¿Distintivo ambiental?</legend>
               @for (e of distintivos; track e.id) {
-                <label class="modo" [class.modo--activo]="distintivo() === e.id">
+                <label class="pildora modo" [class.modo--activo]="distintivo() === e.id">
                   <input
                     type="radio"
                     name="distintivo"
@@ -589,7 +602,7 @@
                   Consultar distintivo
                 </button>
                 @if (tardaLaDgt()) {
-                  <span class="matricula__tarda" aria-hidden="true">⏳</span>
+                  <span class="matricula__tarda"><app-simbolo nombre="hourglass_empty" [lado]="16" /></span>
                 }
                 <span
                   class="matricula__estado"
@@ -615,7 +628,7 @@
               <fieldset class="modos autorizaciones">
                 <legend>¿Tienes autorización registrada en la ZBE? (residente, plaza de garaje, comercio…)</legend>
                 @for (a of autorizaciones; track a.id) {
-                  <label class="modo" [class.modo--activo]="autorizacion() === a.id">
+                  <label class="pildora modo" [class.modo--activo]="autorizacion() === a.id">
                     <input
                       type="radio"
                       name="autorizacion"
@@ -647,7 +660,7 @@
             <fieldset class="modos rutas">
               <legend>¿Qué ruta prefieres?</legend>
               @for (r of tiposDeRuta; track r.id) {
-                <label class="modo ruta-opcion" [class.modo--activo]="tipoDeRuta() === r.id">
+                <label class="pildora modo ruta-opcion" [class.modo--activo]="tipoDeRuta() === r.id">
                   <input
                     type="radio"
                     name="ruta"
@@ -662,14 +675,30 @@
             </fieldset>
           }
 
-          <button
-            type="button"
-            class="generar"
-            [disabled]="!sePuedeGenerar() || generando()"
-            (click)="generarRuta()"
-          >
-            {{ generando() ? 'Generando…' : 'Generar ruta' }}
-          </button>
+          <!--
+            ⭐ LOS DOS BOTONES DEL PIE, y en este orden [SearchForm.tsx]: primero
+            «Limpiar búsqueda» —secundario, de contorno, del ancho de su texto— y
+            después «Generar ruta», que se lleva el sitio que sobra porque es la
+            acción principal.
+
+            ⚠️ «Limpiar» va PRIMERO en el DOM y por tanto en el tabulador, que es
+               lo que hace la maqueta. Es lo contrario de lo que uno pondría por
+               costumbre —lo destructivo al final—, pero aquí no destruye nada
+               irreversible: vacía un formulario que se puede volver a escribir.
+          -->
+          <div class="acciones">
+            <button type="button" class="boton boton--secundario limpiar" (click)="limpiar()">
+              Limpiar búsqueda
+            </button>
+            <button
+              type="button"
+              class="boton boton--principal generar"
+              [disabled]="!sePuedeGenerar() || generando()"
+              (click)="generarRuta()"
+            >
+              {{ generando() ? 'Generando…' : 'Generar ruta' }}
+            </button>
+          </div>
         </form>
 
         </div>

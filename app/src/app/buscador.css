@@ -21,16 +21,23 @@
   gap: 1rem;
 }
 
+/* La tarjeta de cada grupo, con los tokens y el radio de la referencia. */
 fieldset {
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
   padding: 0.75rem;
   margin: 0;
+  background-color: var(--card);
 }
 
+/* [SearchForm.tsx] los rótulos de grupo son `text-sm font-semibold`: 0,875 rem
+   y peso 600. Nada de `bold`, que en Inter es 700 y pesa de más al lado de la
+   letra del cuerpo. */
 legend {
   padding: 0 0.4rem;
-  font-weight: bold;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .punto {
@@ -61,10 +68,11 @@ legend {
 }
 
 .tipo {
-  padding: 0.4rem 0.3rem;
-  border: 1px solid #999;
-  border-radius: 3px;
-  background: #fff;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--card);
+  color: var(--foreground);
   font: inherit;
 }
 
@@ -95,9 +103,9 @@ legend {
   }
 
   .tipo::picker(select) {
-    border: 1px solid #999;
-    border-radius: 3px;
-    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--card);
     padding: 0.2rem;
   }
 
@@ -109,9 +117,18 @@ legend {
     border-radius: 3px;
   }
 
-  .tipo option:checked,
-  .tipo option:hover {
-    background: #eef2f7;
+  /* ⚠️ El `:checked` y el `:hover` COMPARTÍAN declaración, y se separan (10/09):
+     la marca de elegida tiene que verse siempre, y el resalte de «estoy encima»
+     solo donde hay puntero que pueda estarlo. Y el fondo pasa a token: era un
+     `#eef2f7` suelto, que es justo lo que la jueza de la pintura no deja. */
+  .tipo option:checked {
+    background: var(--muted);
+  }
+
+  @media (hover: hover) {
+    .tipo option:hover {
+      background: var(--muted);
+    }
   }
 
   /* La marca de «elegida» que el modelo nuevo pone de serie sobra: el icono ya
@@ -131,37 +148,124 @@ legend {
   flex: 1 1 6rem;
 }
 
+/* Las cajas heredan del primitivo `.caja` de la hoja global —44 de alto, radio
+   medio, fondo de tarjeta— y aquí solo se les dice que llenen su hueco. */
 .campo input {
-  padding: 0.4rem;
-  border: 1px solid #999;
-  border-radius: 3px;
-  font: inherit;
   width: 100%;
   box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.875rem;
 }
 
-/* «Mi ubicación» es un atajo, no la forma normal de rellenar: va discreto,
-   dentro del bloque de Origen y detrás de sus dos campos. */
-/* El botón va abajo del todo de su línea porque los campos que tiene al lado
-   llevan etiqueta encima: alineados por arriba quedaría a la altura del
-   rótulo y no a la de la casilla. */
+.campo input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ⚠️ El Nº apagado NO se mide por contraste: [WCAG 1.4.3] exime literalmente
+   «text or images of text that are part of an inactive user interface
+   component». Se apaga, el cursor lo dice, y no se le sube la tinta para
+   aprobar una medición que la norma no pide. */
+.campo input:disabled {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+}
+
+/* El alto y el cuerpo de letra del desplegable, con el resto de su vestido
+   arriba: es el `select` NATIVO —el de iconos dentro de las opciones es
+   experimental de Chrome y manda lo accesible—, así que solo se calca su
+   parte de fuera. */
+.tipo {
+  min-height: 44px;
+  font-size: 0.875rem;
+}
+
+.tipo:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ⭐ «MI UBICACIÓN», Y SOLO DONDE SIRVE (10/09, tanda 4).
+
+   ⚠️ **No está en el escritorio, y no es una preferencia.** Un ordenador
+      localiza por IP: contesta la ciudad, o el proveedor, con un radio de
+      kilómetros — y esta pantalla ya rechaza cualquier posición con más de
+      cierto margen, así que el botón sería un atajo que nunca acierta. Donde
+      sirve es donde hay GPS.
+
+   [DOC MDN · Media Queries 4] el par que distingue un táctil DE VERDAD es
+   `(hover: none) and (pointer: coarse)`: ni mecanismo de hover ni puntero fino.
+   **Un PC con la ventana estrecha NO lo cumple** —sigue teniendo ratón—, que es
+   exactamente la trampa en la que cae medir por ancho. Por eso no hay ninguna
+   `min-width` aquí.
+
+   El botón va abajo del todo de su línea porque los campos que tiene al lado
+   llevan etiqueta encima: alineados por arriba quedaría a la altura del rótulo
+   y no a la de la casilla. */
 .ubicacion {
+  display: none;
   align-self: flex-end;
   flex: none;
-  padding: 0.4rem 0.7rem;
-  border: 1px solid #999;
-  border-radius: 3px;
-  background: #fff;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--card);
+  color: var(--foreground);
   font: inherit;
-  font-size: 0.9rem;
   cursor: pointer;
 }
 
+@media (hover: none) and (pointer: coarse) {
+  .ubicacion {
+    display: inline-flex;
+  }
+}
+
+@media (hover: hover) {
+  .ubicacion:not(:disabled):hover {
+    background-color: var(--muted);
+  }
+}
+
+.ubicacion:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
 .ubicacion:disabled {
-  border-color: #ccc;
-  background: #f0f0f0;
-  color: #777;
+  border-color: var(--border);
+  background-color: var(--muted);
+  color: var(--muted-foreground);
   cursor: progress;
+}
+
+/* La espera es honesta: gira mientras se pregunta de verdad. Si el permiso ya
+   estaba denegado, esto no llega a existir — el aviso sale sin fingir. Reusa
+   la animación de `.esperando__rueda`, y con ella su `prefers-reduced-motion`. */
+.ubicacion__rueda {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--foreground);
+  border-radius: 50%;
+  animation: gira 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ubicacion__rueda {
+    animation: none;
+  }
 }
 
 /* El mismo ámbar de siempre (#b45309 / #fff4e5 / #7c3d00): no es un error del
@@ -187,18 +291,35 @@ legend {
 /* El ⇅ va ENTRE los dos bloques, que es donde lo pone todo el mundo y donde
    se lee lo que hace sin leer nada. Centrado y estrecho: es un gesto, no una
    acción principal — la principal es «Generar ruta». */
+/* [SearchForm.tsx] redondo de 40, sobre la tarjeta, con su sombra. */
 .invertir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   justify-self: center;
-  width: 2.4rem;
-  padding: 0.3rem 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   margin: -0.4rem 0;
-  border: 1px solid #999;
-  border-radius: 3px;
-  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background-color: var(--card);
+  color: var(--foreground);
   font: inherit;
-  font-size: 1.2rem;
   line-height: 1;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+}
+
+@media (hover: hover) {
+  .invertir:hover {
+    background-color: var(--muted);
+  }
+}
+
+.invertir:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 /* ⭐ Las SEIS familias, y siguen cabiendo en una fila.
@@ -234,16 +355,10 @@ legend {
    el mismo relleno, el mismo borde y la misma tipografía. `inline-flex` porque
    ahora hay un hijo —el `input`— y una etiqueta se alinea por su línea base;
    así la caja mide igual que medía el botón. */
+/* El vestido lo pone `.pildora` en la hoja global; aquí solo lo que es de
+   este control: la posición relativa que necesita el radio escondido. */
 .modo {
-  display: inline-flex;
-  align-items: center;
   position: relative;
-  padding: 0.5rem 0.9rem;
-  border: 1px solid #999;
-  border-radius: 3px;
-  background: #fff;
-  font: inherit;
-  cursor: pointer;
 }
 
 /* ⭐ El radio está, pero no se ve. La técnica de siempre: fuera de la vista sin
@@ -267,22 +382,22 @@ legend {
   white-space: nowrap;
 }
 
-/* Y como el foco cae en algo invisible, el anillo se lo pone la etiqueta. Sin
-   esto, quien navegue con el tabulador no vería dónde está: el navegador
-   dibujaría el suyo alrededor de un punto de 1 px. */
-.modo:has(.modo__radio:focus-visible) {
-  outline: 2px solid #1a1a1a;
-  outline-offset: 2px;
-}
+/* ⚠️ `.modo--activo` SE FUE A `styles.css`, y no por gusto — bitácora nº45 con
+   otro traje. Vivía aquí, y el CSS de un componente lleva un atributo más
+   —`.modo--activo[_ngcontent-x]`, 0,2,0— que le hace GANAR a un selector
+   global de la misma especificidad. Resultado medido en Chrome: el chip de
+   Andando activo se pintaba `rgb(37, 99, 235)` —el azul de `primary`— en vez
+   de su verde `rgb(21, 128, 61)`. Los dos estados del mismo control tienen
+   que vivir en la MISMA hoja o la especificidad la decide el empaquetador. */
 
-/* El modo activo tiene que distinguirse sin depender solo del color. */
-.modo--activo {
-  border-color: #1a1a1a;
-  border-width: 2px;
-  background: #1a1a1a;
-  color: #fff;
-  font-weight: bold;
-}
+
+/* ⚠️ LOS CHIPS DE FAMILIA SE FUERON A `styles.css` (10/09). No es orden: es
+   presupuesto Y es doctrina. `anyComponentStyle` tiene su ERROR en 8 kB y con
+   ellos dentro este fichero se puso en 10,04 — el build no pasaba. Y el sitio
+   bueno es el otro de todas formas: los cuatro tonos por modo son lenguaje del
+   sistema, los mismos que el resultado va a necesitar en la tanda 5, y el
+   esqueleto ya se mudó allí por lo mismo en la tanda 3. */
+
 
 /* El mapa llena su hueco del esqueleto: quien le da tamano es `.lienzo`.
    Tenia un `margin-top` del flujo vertical viejo, de cuando iba debajo del
@@ -307,23 +422,28 @@ legend {
   color: #555;
 }
 
+/* [SearchForm.tsx] los dos en una fila: «Limpiar» del ancho de su texto y
+   «Generar» quedándose con el resto. */
+.acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* El vestido lo ponen `.boton`, `.boton--principal` y `.boton--secundario`
+   de la hoja global, que es donde vive el lenguaje de los botones —lo usará
+   igual el resultado en la tanda 5—. Aquí solo el reparto de la fila: uno se
+   queda con lo que sobra y el otro mide lo que mide su texto. */
 .generar {
-  justify-self: start;
-  padding: 0.6rem 1.2rem;
-  border: 1px solid #1a1a1a;
-  border-radius: 3px;
-  background: #1a1a1a;
-  color: #fff;
-  font: inherit;
-  font-weight: bold;
-  cursor: pointer;
+  flex: 1;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
 }
 
 .generar:disabled {
-  border-color: #aaa;
-  background: #ddd;
-  color: #777;
-  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.limpiar {
+  flex: none;
 }
 
 .pasos__modo {
@@ -597,8 +717,10 @@ legend {
   cursor: pointer;
 }
 
-.detalles:hover {
-  text-decoration: none;
+@media (hover: hover) {
+  .detalles:hover {
+    text-decoration: none;
+  }
 }
 
 .detalles:focus-visible {
@@ -653,8 +775,10 @@ legend {
   cursor: pointer;
 }
 
-.vivo__boton:hover {
-  background: #f1f5f9;
+@media (hover: hover) {
+  .vivo__boton:hover {
+    background: #f1f5f9;
+  }
 }
 
 .vivo__boton:focus-visible {
@@ -736,8 +860,10 @@ legend {
   text-decoration: underline;
 }
 
-.creditos__enlace:hover {
-  text-decoration: none;
+@media (hover: hover) {
+  .creditos__enlace:hover {
+    text-decoration: none;
+  }
 }
 
 /* [WCAG 2.4.7] El foco no se quita: se refuerza. Es la misma regla, y el
@@ -774,8 +900,10 @@ legend {
   color: inherit;
 }
 
-.resumen__enlace:hover {
-  text-decoration: none;
+@media (hover: hover) {
+  .resumen__enlace:hover {
+    text-decoration: none;
+  }
 }
 
 .resumen__enlace:focus-visible {
@@ -830,8 +958,10 @@ legend {
   cursor: pointer;
 }
 
-.sugerencia__boton:hover {
-  background: #f1f5f9;
+@media (hover: hover) {
+  .sugerencia__boton:hover {
+    background: #f1f5f9;
+  }
 }
 
 .sugerencia__boton:focus-visible {
