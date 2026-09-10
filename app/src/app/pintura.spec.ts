@@ -198,16 +198,63 @@ describe('⭐ LOS CHIPS — dibujo Y palabra, y su familia de tokens', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  /** Las seis familias, y **las seis** con las dos cosas. */
-  it('⭐ cada chip de familia lleva su símbolo Y su etiqueta de texto', async () => {
+  /**
+   * ⭐ LAS SEIS, CON SU DIBUJO Y CON SU NOMBRE — y el nombre no es lo pintado.
+   *
+   * ⚠️ **Esta juez decía otra cosa hasta el remate.** Compraba «etiqueta de
+   *    texto VISIBLE en las seis», que era la desviación que Antonio rechazó.
+   *    Ahora compra lo que la norma pide de verdad: [WCAG 4.1.2] un **nombre
+   *    accesible** en cada control, esté o no pintada la palabra. Que solo el
+   *    activo la enseñe es pintura, y la pintura se mide en Chrome —jsdom no
+   *    aplica la hoja global, así que aquí `max-width: 0` no existiría—.
+   */
+  it('⭐ cada chip lleva su símbolo, su nombre accesible y su palabra en el DOM', async () => {
     const chips = (await raiz()).querySelectorAll('.familias .modo--chip');
     expect(chips.length).toBe(6);
     for (const chip of chips) {
       const dibujo = chip.querySelector('app-simbolo svg path')?.getAttribute('d') ?? '';
       expect(Object.values(SIMBOLOS)).toContain(dibujo);
+
+      // El nombre, en el control: no depende de ninguna regla de pintura.
+      const control = chip.querySelector('.modo__radio');
+      const nombre = control?.getAttribute('aria-label') ?? '';
+      expect(nombre.length).toBeGreaterThan(0);
+
+      // Y la palabra sigue en el DOM aunque se pliegue: se encoge, no se borra.
       const texto = chip.querySelector('.modo__texto')?.textContent?.trim() ?? '';
-      expect(texto.length).toBeGreaterThan(0);
+      expect(texto).toBe(nombre);
     }
+  });
+
+  /**
+   * ⭐ Y EL DIBUJO NO HABLA. Si el `svg` se anunciara además por su cuenta, un
+   * lector de pantalla diría el modo dos veces — una por el `aria-label` del
+   * radio y otra por el icono.
+   */
+  it('⭐ el símbolo de cada chip va `aria-hidden`', async () => {
+    for (const chip of (await raiz()).querySelectorAll('.familias .modo--chip')) {
+      expect(chip.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    }
+  });
+
+  /**
+   * ⭐ EL PLEGADO SE ESCRIBE CON `max-width`, NO CON `display: none`.
+   *
+   * ⚠️ La diferencia no es de estilo: un `display: none` saca la palabra del
+   *    árbol de accesibilidad. Aquí no importaría —el `aria-label` la
+   *    sostiene—, pero sí importa que el plegado sea **animable**, que es lo
+   *    que la maqueta hace. Se compra sobre la hoja global, que es donde vive.
+   */
+  it('⭐ la etiqueta se pliega encogiendo, y solo se abre en activo o en hover', () => {
+    const css = sinComentarios(HOJA_GLOBAL);
+    expect(/\.modo--chip \.modo__texto \{[^}]*max-width:\s*0/.test(css)).toBe(true);
+    expect(/\.modo--chip\.modo--activo \.modo__texto \{[^}]*max-width:\s*150px/.test(css)).toBe(true);
+    // Y la revelación por hover, dentro de su consulta — lo compra además la
+    // juez de doctrina de arriba, que barre las dos hojas enteras.
+    const conHover = /@media \(hover: hover\) \{[\s\S]*?\.modo--chip:hover \.modo__texto \{[^}]*max-width:\s*150px/;
+    expect(conHover.test(css)).toBe(true);
+    // Nada de `display: none` para plegar.
+    expect(/\.modo--chip \.modo__texto \{[^}]*display:\s*none/.test(css)).toBe(false);
   });
 
   /**

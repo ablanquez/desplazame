@@ -988,8 +988,10 @@ body:has(.marco) {
   font-weight: 500;
   line-height: 1.2;
   cursor: pointer;
-  /* La transición es de color y de fondo, NUNCA de tamaño: una píldora que
-     cambia de ancho al pasar por encima mueve a sus vecinas de sitio. */
+  /* Las píldoras de un subformulario transicionan color y fondo, no tamaño.
+     ⚠️ Los CHIPS de familia sí cambian de ancho, y es calco decidido: ver el
+        bloque de los chips al final de esta hoja, donde está medido el empujón
+        que eso le da a sus vecinas. */
   transition:
     background-color 150ms ease,
     border-color 150ms ease,
@@ -1230,10 +1232,85 @@ body:has(.marco) {
   }
 }
 
-/* La etiqueta va SIEMPRE, y es una desviación declarada de la referencia: allí
-   el texto se pliega a cero y solo reaparece al pasar por encima o al elegir.
-   Aquí no, por dos razones: el encargo pide «SVG + texto», y en un táctil no
-   hay hover — seis píldoras sin una palabra sería un acertijo de iconos. */
-.modo__texto {
+/* ═══════════════════════════════════════════════════════════════════════════
+   ⭐ EL CHIP PLEGADO — el calco, y la desviación de la tanda 4 retirada
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ⚠️ **Esto lo tuvo al revés durante una tanda.** La tanda 4 dejó la etiqueta
+      siempre visible «porque en táctil no hay hover», y Antonio lo rechazó: la
+      maqueta es la especificación y dice otra cosa. **Solo el chip ACTIVO lleva
+      palabra**; los demás son un círculo con su dibujo, y el hover la revela
+      donde hay hover.
+
+   Y el hueco de accesibilidad que aquella desviación quería tapar **no
+   existía**: [WCAG 4.1.2] lo que un control necesita es NOMBRE ACCESIBLE, no
+   texto pintado — cada radio lleva su `aria-label` con el nombre del modo y el
+   SVG va `aria-hidden`. [WCAG 2.5.3, «Label in Name»] exime explícitamente a
+   los controles sin texto visible. Un lector de pantalla dice «Bici, opción 3
+   de 6» esté la palabra pintada o no.
+
+   Las medidas son las de `SearchForm.tsx`: 44 de mínimo —el suelo de
+   [WCAG 2.5.5]—, sin relleno lateral plegado y con 0,75 rem al abrirse, y la
+   etiqueta creciendo de 0 a 150 px en 300 ms. */
+.modo--chip {
+  min-width: 44px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+  overflow: hidden;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    padding 300ms ease;
+}
+
+.modo--chip .modo__texto {
+  max-width: 0;
+  margin-left: 0;
+  opacity: 0;
+  overflow: hidden;
   white-space: nowrap;
+  transition:
+    max-width 300ms ease,
+    margin-left 300ms ease,
+    opacity 300ms ease;
+}
+
+/* El elegido enseña su palabra siempre, con hover o sin él: es el único que la
+   lleva, y es lo que dice EN QUÉ te mueves sin tener que tocar nada. */
+.modo--chip.modo--activo {
+  padding: 0 0.75rem;
+}
+
+.modo--chip.modo--activo .modo__texto {
+  max-width: 150px;
+  margin-left: 0.5rem;
+  opacity: 1;
+}
+
+/* ⚠️ Y LA REVELACIÓN, SOLO DONDE HAY PUNTERO QUE PUEDA REVELARLA. En un táctil
+   el navegador emula el hover con la pulsación y el estado se queda pegado al
+   soltar: un chip se quedaría abierto y empujando a sus vecinos hasta que
+   tocaras otra cosa. Aquí no existe, y no se finge. */
+@media (hover: hover) {
+  .modo--chip:hover {
+    padding: 0 0.75rem;
+  }
+
+  .modo--chip:hover .modo__texto {
+    max-width: 150px;
+    margin-left: 0.5rem;
+    opacity: 1;
+  }
+}
+
+/* [WCAG 2.3.3 / DOC MDN] Quien ha pedido menos movimiento no pierde la
+   revelación: la pierde de golpe en vez de animada. Es la misma regla que ya
+   llevan las dos ruedas de espera de esta casa. */
+@media (prefers-reduced-motion: reduce) {
+  .modo--chip,
+  .modo--chip .modo__texto {
+    transition: none;
+  }
 }

@@ -28,6 +28,35 @@ const juzgar = (bien, titulo, detalle = '') => {
 };
 const leer = (m, expr) => m.evaluar(`JSON.stringify((() => { ${expr} })())`).then(JSON.parse);
 
+/** Los seis chips: color, tamaño, y cuánto ocupa su palabra AHORA MISMO. */
+const LOS_CHIPS = `
+  const raiz = getComputedStyle(document.documentElement);
+  const tono = (modo, v) => raiz.getPropertyValue('--mode-' + modo + '-' + v).trim();
+  const aRgb = (hex) => {
+    const h = hex.replace('#', '');
+    return 'rgb(' + parseInt(h.slice(0,2),16) + ', ' + parseInt(h.slice(2,4),16) + ', ' + parseInt(h.slice(4,6),16) + ')';
+  };
+  return [...document.querySelectorAll('.familias .modo--chip')].map((c) => {
+    const s = getComputedStyle(c);
+    const modo = c.getAttribute('data-modo');
+    const activo = c.classList.contains('modo--activo');
+    const r = c.getBoundingClientRect();
+    return {
+      modo, activo,
+      fondo: s.backgroundColor,
+      tinta: s.color,
+      esperadoFondo: aRgb(tono(modo, activo ? 'solid' : 'soft')),
+      esperadaTinta: aRgb(tono(modo, activo ? 'text' : 'strong')),
+      alto: Math.round(r.height),
+      ancho: Math.round(r.width),
+      radio: s.borderTopLeftRadius,
+      conDibujo: !!c.querySelector('svg path'),
+      anchoTexto: Math.round(c.querySelector('.modo__texto')?.getBoundingClientRect().width ?? 0),
+      nombre: c.querySelector('.modo__radio')?.getAttribute('aria-label') ?? '',
+    };
+  });
+`;
+
 /** Qué se ve del pin: cuántos hay pintados y con qué caja. */
 const ESTADO_DEL_PIN = `
   const pines = [...document.querySelectorAll('.ubicacion')];
@@ -199,34 +228,7 @@ for (const [nombre, tactil, seVe] of [
     await m.ir(APP, 6000);
     console.log('\n═══ LOS CHIPS Y SUS TOKENS ═══');
 
-    const chips = await leer(
-      m,
-      `
-      const raiz = getComputedStyle(document.documentElement);
-      const tono = (modo, v) => raiz.getPropertyValue('--mode-' + modo + '-' + v).trim();
-      const aRgb = (hex) => {
-        const h = hex.replace('#', '');
-        return 'rgb(' + parseInt(h.slice(0,2),16) + ', ' + parseInt(h.slice(2,4),16) + ', ' + parseInt(h.slice(4,6),16) + ')';
-      };
-      return [...document.querySelectorAll('.familias .modo--chip')].map((c) => {
-        const s = getComputedStyle(c);
-        const modo = c.getAttribute('data-modo');
-        const activo = c.classList.contains('modo--activo');
-        const r = c.getBoundingClientRect();
-        return {
-          modo, activo,
-          fondo: s.backgroundColor,
-          tinta: s.color,
-          esperadoFondo: aRgb(tono(modo, activo ? 'solid' : 'soft')),
-          esperadaTinta: aRgb(tono(modo, activo ? 'text' : 'strong')),
-          alto: Math.round(r.height),
-          radio: s.borderTopLeftRadius,
-          conDibujo: !!c.querySelector('svg path'),
-          conTexto: (c.querySelector('.modo__texto')?.textContent ?? '').trim().length > 0,
-        };
-      });
-    `,
-    );
+    const chips = await leer(m, LOS_CHIPS);
 
     juzgar(chips.length === 6, 'P5 · hay seis chips de familia', `${chips.length}`);
     const malPintados = chips.filter(
@@ -240,9 +242,24 @@ for (const [nombre, tactil, seVe] of [
         : chips.map((c) => `${c.modo}${c.activo ? '*' : ''}`).join(' '),
     );
     juzgar(
-      chips.every((c) => c.conDibujo && c.conTexto),
-      'P5 · y los seis llevan dibujo Y palabra',
-      chips.filter((c) => !c.conDibujo || !c.conTexto).map((c) => c.modo).join(' ') || 'los seis',
+      chips.every((c) => c.conDibujo),
+      'P5 · los seis llevan su dibujo',
+      chips.filter((c) => !c.conDibujo).map((c) => c.modo).join(' ') || 'los seis',
+    );
+
+    // ⭐ SOLO EL ACTIVO ENSEÑA LA PALABRA — el calco, y la desviación de la
+    //    tanda 4 retirada. Se mide en píxeles: los plegados miden CERO.
+    juzgar(
+      chips.every((c) => (c.activo ? c.anchoTexto > 0 : c.anchoTexto === 0)),
+      'P5 · solo el chip ACTIVO enseña su palabra; los demás son círculo',
+      chips.map((c) => `${c.modo}${c.activo ? '*' : ''}:${c.anchoTexto}px`).join(' · '),
+    );
+
+    // Y los plegados siguen teniendo NOMBRE, que es lo que la norma pide.
+    juzgar(
+      chips.every((c) => c.nombre.length > 0),
+      'P5 · y todos conservan su nombre accesible aunque no se lea',
+      chips.map((c) => c.nombre).join(' · '),
     );
     juzgar(
       chips.every((c) => c.alto >= 44),
@@ -266,6 +283,82 @@ for (const [nombre, tactil, seVe] of [
     await m.evaluar(`document.querySelector('.acciones').scrollIntoView()`);
     await m.dormir(300);
     await m.guardar(`${CAPTURAS}/pintura-acciones.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P6 · EL HOVER REVELA LA PALABRA, Y SOLO DONDE HAY HOVER ═══════
+//
+// ⚠️ Es la mitad que la hoja estática no puede comprar: que la regla esté
+//    escrita dentro de `@media (hover: hover)` lo dice `pintura.spec.ts`; que
+//    al pasar por encima la palabra APAREZCA —y que en un táctil no— son
+//    píxeles, y se miden aquí moviendo el ratón de verdad por CDP.
+for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
+  const m = await abrirChrome({ ancho: 1280, alto: 900, puerto: 9405 + (tactil ? 1 : 0) });
+  try {
+    if (tactil) {
+      await m.cdp('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+      await m.cdp('Emulation.setDeviceMetricsOverride', {
+        width: 1280, height: 900, deviceScaleFactor: 1, mobile: true,
+      });
+    }
+    await m.ir(APP, 6000);
+    console.log(`\n═══ EL HOVER DEL CHIP · ${mundo} ═══`);
+
+    // La P0 otra vez: nada se juzga con un mando que no se sabe si llegó.
+    const mq = await leer(
+      m,
+      `return { par: matchMedia('(hover: none) and (pointer: coarse)').matches };`,
+    );
+    juzgar(mq.par === tactil, `P0 · la emulación ha llegado (${mundo})`, `par → ${mq.par}`);
+
+    const enReposo = await leer(m, LOS_CHIPS);
+    await m.guardar(`${CAPTURAS}/chips-${mundo.toLowerCase()}-reposo.png`);
+
+    // ⭐ EL RATÓN, ENCIMA DE UN CHIP QUE NO ESTÁ ELEGIDO. Se mueve de verdad
+    //    con `Input.dispatchMouseEvent`: un `:hover` no se puede simular con
+    //    JavaScript, y disparar un evento `mouseover` a mano tampoco lo activa.
+    const caja = await leer(
+      m,
+      `
+      const c = [...document.querySelectorAll('.familias .modo--chip')]
+        .find((x) => !x.classList.contains('modo--activo'));
+      const r = c.getBoundingClientRect();
+      return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2),
+               modo: c.getAttribute('data-modo') };
+    `,
+    );
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: caja.x, y: caja.y });
+    await m.dormir(700);
+    const conElRaton = await leer(m, LOS_CHIPS);
+    await m.guardar(`${CAPTURAS}/chips-${mundo.toLowerCase()}-hover.png`);
+
+    const antes = enReposo.find((c) => c.modo === caja.modo);
+    const ahora = conElRaton.find((c) => c.modo === caja.modo);
+    juzgar(
+      antes.anchoTexto === 0,
+      `P6 · en reposo el chip «${caja.modo}» no enseña palabra`,
+      `${antes.anchoTexto} px`,
+    );
+    juzgar(
+      tactil ? ahora.anchoTexto === 0 : ahora.anchoTexto > 0,
+      `P6 · con el ratón encima ${tactil ? 'SIGUE sin enseñarla (no hay hover)' : 'la enseña'}`,
+      `${antes.anchoTexto} → ${ahora.anchoTexto} px`,
+    );
+
+    // ⚠️ Y EL EMPUJÓN A LAS VECINAS, MEDIDO Y DICHO. El chip crece al abrirse,
+    //    así que las de su derecha se mueven. Es lo que hace la maqueta —es la
+    //    vara—, y se cuenta con número en vez de descubrirse en producción.
+    if (!tactil) {
+      const derecha = enReposo.filter((c) => c.modo !== caja.modo);
+      const movidas = derecha.filter((c, i) => c.ancho !== conElRaton.filter((x) => x.modo !== caja.modo)[i].ancho);
+      const creció = ahora.ancho - antes.ancho;
+      console.log(
+        `     ⚠️ el chip crece ${creció} px al abrirse y empuja a las de su fila` +
+          ` (${movidas.length} cambian de ancho ellas mismas: ${movidas.length === 0 ? 'ninguna' : 'ojo'})`,
+      );
+    }
   } finally {
     m.cerrar();
   }

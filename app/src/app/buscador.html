@@ -387,11 +387,23 @@
                 [attr.data-modo]="f.porDefecto"
                 [class.modo--activo]="familia() === f.id"
               >
+                <!--
+                  ⭐ EL NOMBRE, EXPLÍCITO Y NO HEREDADO (10/09, remate 4).
+
+                  La etiqueta sigue en el DOM cuando el chip está plegado —se
+                  encoge con `max-width`, no con `display: none`—, así que el
+                  radio tomaría su nombre de ella igual. Se pone `aria-label`
+                  de todas formas y con la misma palabra: [WCAG 4.1.2] el
+                  nombre accesible de un control que se ve como SOLO ICONO no
+                  puede depender de una regla de pintura. Si mañana alguien
+                  cambia el plegado por un `display: none`, el nombre sigue.
+                -->
                 <input
                   type="radio"
                   name="familia"
                   class="modo__radio"
                   [value]="f.id"
+                  [attr.aria-label]="f.etiqueta"
                   [checked]="familia() === f.id"
                   (change)="elegirFamilia(f.id)"
                 />
