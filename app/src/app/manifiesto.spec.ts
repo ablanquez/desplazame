@@ -105,6 +105,14 @@ const PUEDEN_NO_TENER_HUELLA: readonly string[] = [
   'dgt-distintivo',
 ];
 
+/**
+ * ⭐ LOS QUE TRAEN HUELLA DECLARADA — la lista que se recalcula, una a una.
+ *
+ * Se calcula UNA vez, fuera de las pruebas: `test.for` necesita los casos al
+ * recolectar el fichero, antes de que corra nada.
+ */
+const CON_HUELLA = paquete.resources.filter((r) => r.hash !== undefined);
+
 const NO_SON_CONJUNTOS: readonly { readonly patron: RegExp; readonly porque: string }[] = [
   {
     patron: /_cabeceras\.txt$/,
@@ -121,15 +129,59 @@ describe('⭐ EL MANIFIESTO — datapackage.json dice la verdad', () => {
     expect(paquete.resources.length).toBeGreaterThan(0);
   });
 
-  it('⭐ la huella de CADA fichero, recalculada, casa con la declarada', () => {
-    // Si esto enrojece, o el dato cambió sin avisar o el manifiesto miente.
-    // Las dos cosas son noticia, y ninguna se arregla tocando esta prueba.
-    const mienten = paquete.resources
-      .filter((r) => r.hash !== undefined)
-      .map((r) => ({ r, real: huella(r.path) }))
-      .filter(({ r, real }) => real !== r.hash)
-      .map(({ r, real }) => r.path + ': declara ' + (r.hash ?? '').slice(0, 22) + '… y es ' + real.slice(0, 22) + '…');
-    expect(mienten).toEqual([]);
+  /**
+   * ⭐ UNA PRUEBA POR FICHERO, Y NO ES ESTÉTICA: ES EL PRESUPUESTO — bitácora nº44.
+   *
+   * Esto era **un solo `it`** que recalculaba los 45 sha256 de un tirón, y se
+   * caía por RELOJ cada tres ejecuciones: `Error: Test timed out in 5000ms`. Un
+   * rojo que no dice que una huella esté mal — dice que **no se sabe**, porque
+   * el timeout aborta antes de comparar.
+   *
+   * ⚠️ **Y la causa NO era la carrera entre suites, que fue la primera
+   *    sospecha.** Medido el 10/09 con `--reporters=verbose`: de 1 a 14 suites
+   *    a la vez la prueba pasa de **80 ms a 92** — doce milisegundos, el 0,24 %
+   *    del presupuesto. Lo que la mueve es **el arranque en frío**: leer los
+   *    90,7 MiB con la caché de disco fría cuesta **2.475 ms** contra 80 en
+   *    caliente. El presupuesto no era de 65×, era de 2×.
+   *
+   * ⚠️ Y el arreglo **no es subir el número**. [DOC Vitest, `testTimeout`] los
+   *    5.000 ms por defecto son «el timeout de una prueba», no del fichero: son
+   *    un presupuesto POR PRUEBA. Un `it` que hace 45 trabajos gasta 45 trabajos
+   *    de un solo presupuesto; 45 pruebas traen 45 presupuestos. Y [DOC Vitest]
+   *    dentro de un fichero las pruebas **corren en secuencia**, así que el
+   *    coste frío se reparte de verdad en vez de amontonarse.
+   *
+   * ⚠️ `test.for` y no `test.each`: [DOC Vitest] *«`test.each` exists primarily
+   *    for Jest compatibility… prefer `test.for`»* — la guía actual para código
+   *    nuevo. El dato va en el título, así que un rojo nombra **el fichero**, no
+   *    «una de las cuarenta y cinco».
+   *
+   * Si una enrojece, o el dato cambió sin avisar o el manifiesto miente. Las dos
+   * cosas son noticia, y ninguna se arregla tocando esta prueba.
+   */
+  test.for(CON_HUELLA.map((r) => [r.path, r.hash!] as [string, string]))(
+    '⭐ la huella de %s casa con la declarada',
+    ([ruta, declarada]) => {
+      expect(huella(ruta)).toBe(declarada);
+    },
+  );
+
+  /**
+   * ⭐ Y EL CENSO DE LAS PRUEBAS DE ARRIBA, que es el agujero que abre trocear.
+   *
+   * ⚠️ `test.for` sobre una lista **calculada** tiene una trampa silenciosa: si
+   *    la lista saliera vacía —un filtro que deja de casar, un manifiesto que se
+   *    lee mal— **no correría ni una prueba y el fichero daría VERDE**. Cero
+   *    rojos y cero vigilancia, que es exactamente el fallo que la nº44 cuenta
+   *    con otro traje.
+   *
+   * Así que el censo se compra aparte y contra el manifiesto entero: tantas
+   * huellas que recalcular como recursos hay **menos** los que está declarado
+   * que pueden no traerla. Ni faltan ni sobran, y nunca cero.
+   */
+  it('⭐ hay UNA prueba de huella por recurso, y son todos menos los exentos', () => {
+    expect(CON_HUELLA.length).toBeGreaterThan(0);
+    expect(CON_HUELLA.length).toBe(paquete.resources.length - PUEDEN_NO_TENER_HUELLA.length);
   });
 
   it('⭐ los bytes declarados son los del fichero', () => {
