@@ -21,8 +21,12 @@
  */
 import { abrirChrome } from './medir.mjs';
 
-const APP = 'http://localhost:4200/';
-const FOTO = process.argv[2] ?? 'yego.png';
+/* ⭐ LA URL, POR ARGUMENTO (10/09). Estaba a fuego en `localhost:4200`, o sea
+   que este juez solo corría con `ng serve` delante y no contra el dist que
+   sirve el motor. Es la misma costura que se le quitó a `creditos.mjs`. El
+   defecto no cambia: quien lo invoque como siempre, sigue igual. */
+const APP = (process.argv[2] ?? 'http://localhost:4200').replace(/\/+$/, '') + '/';
+const FOTO = process.argv[3] ?? 'yego.png';
 
 const m = await abrirChrome({ alto: 1900 });
 let malas = 0;

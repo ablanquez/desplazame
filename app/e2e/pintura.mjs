@@ -16,7 +16,7 @@
  * Se lanza con el motor sirviendo el dist:
  *     node e2e/pintura.mjs http://localhost:3111 <carpeta-de-capturas>
  */
-import { abrirChrome } from './medir.mjs';
+import { abrirChrome, contrasteReal, AA_TEXTO } from './medir.mjs';
 
 const APP = (process.argv[2] ?? 'http://localhost:4200').replace(/\/+$/, '') + '/';
 const CAPTURAS = (process.argv[3] ?? '.').replace(/[\\/]+$/, '');
@@ -26,6 +26,9 @@ const juzgar = (bien, titulo, detalle = '') => {
   if (!bien) fallos++;
   console.log(`  ${bien ? 'OK ' : '✗✗ '} ${titulo}${detalle ? '  ·  ' + detalle : ''}`);
 };
+/** Un {r,g,b} de `contrasteReal`, en texto legible para el acta. */
+const enRgb = (c) => `rgb(${c.r}, ${c.g}, ${c.b})`;
+
 const leer = (m, expr) => m.evaluar(`JSON.stringify((() => { ${expr} })())`).then(JSON.parse);
 
 /** Los seis chips: color, tamaño, y cuánto ocupa su palabra AHORA MISMO. */
@@ -499,6 +502,258 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       `«${campos.marcador}» pide ${campos.anchoTextoNum} px y la casilla da ${campos.anchoNum}`,
     );
     await m.guardar(`${CAPTURAS}/campos-tipo-y-numero.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P9 · EL ARRANQUE SIN MODO, Y LA VUELTA A CERO ═══════════
+//
+// ⭐ [ANTONIO] La maqueta abre con «Andando» marcado y eso muere. Aquí se mide
+//    lo que de verdad ve quien abre la página, y las tres consecuencias van
+//    juntas porque son una sola decisión: cero chips marcados, cero
+//    subformularios, y «Generar ruta» apagado.
+//
+// ⚠️ Y se mide TAMBIÉN la vuelta: elegir un modo hace nacer su subformulario, y
+//    «Limpiar búsqueda» lo devuelve todo a cero. Un arranque limpio con un
+//    «Limpiar» que dejara «Andando» puesto sería media obra — y es exactamente
+//    la letra que el encargo cambia en `handleReset`.
+{
+  const m = await abrirChrome({ ancho: 1440, alto: 900, puerto: 9409 });
+  try {
+    await m.ir(APP, 6000);
+    console.log('\n═══ EL ARRANQUE SIN MODO ═══');
+
+    const estado = `
+      return {
+        marcados: [...document.querySelectorAll('input[name=familia]')]
+          .filter((r) => r.checked).map((r) => r.value),
+        activos: document.querySelectorAll('.familias .modo--activo').length,
+        subformularios: [...document.querySelectorAll('fieldset.modos:not(.familias)')]
+          .map((f) => f.querySelector('legend')?.textContent.trim() ?? '(sin leyenda)'),
+        generar: document.querySelector('.generar').disabled,
+        // El foco del teclado: con NINGUNO marcado, los seis radios son
+        // tabulables — es la conducta nativa del grupo sin selección.
+        tabulables: [...document.querySelectorAll('input[name=familia]')]
+          .filter((r) => r.tabIndex >= 0).length,
+      };
+    `;
+
+    const alAbrir = await leer(m, estado);
+    juzgar(
+      alAbrir.marcados.length === 0 && alAbrir.activos === 0,
+      'P9 · ⭐ al abrir NO hay ningún modo marcado',
+      `marcados: ${alAbrir.marcados.join(',') || '(ninguno)'} · pintados activos: ${alAbrir.activos}`,
+    );
+    juzgar(
+      alAbrir.subformularios.length === 0,
+      'P9 · ni un subformulario a la vista',
+      alAbrir.subformularios.join(' | ') || '(ninguno)',
+    );
+    juzgar(alAbrir.generar === true, 'P9 · «Generar ruta» apagado', `disabled=${alAbrir.generar}`);
+    juzgar(
+      alAbrir.tabulables === 6,
+      'P9 · y el teclado entra igual: los seis radios son alcanzables',
+      `${alAbrir.tabulables} de 6`,
+    );
+    await m.guardar(`${CAPTURAS}/arranque-sin-modo.png`);
+
+    // Se elige «Coche», que es la familia con MÁS subformularios detrás —el
+    // aparcamiento y la ZBE—: si nacen los suyos, nacen los de cualquiera.
+    await m.evaluar(`document.querySelector('input[name=familia][value=coche]').click()`);
+    await m.dormir(500);
+    const conCoche = await leer(m, estado);
+    juzgar(
+      conCoche.marcados.join(',') === 'coche' && conCoche.subformularios.length > 0,
+      'P9 · al elegir «Coche» nace su subformulario',
+      `marcado: ${conCoche.marcados.join(',')} · nacen: ${conCoche.subformularios.join(' | ')}`,
+    );
+    await m.guardar(`${CAPTURAS}/modo-elegido-subformulario.png`);
+
+    // Y «Limpiar búsqueda» devuelve el modo a NINGUNO, que es la letra nueva.
+    await m.evaluar(`document.querySelector('.limpiar').click()`);
+    await m.dormir(500);
+    const trasLimpiar = await leer(m, estado);
+    juzgar(
+      trasLimpiar.marcados.length === 0 &&
+        trasLimpiar.subformularios.length === 0 &&
+        trasLimpiar.generar === true,
+      'P9 · ⭐ «Limpiar búsqueda» deja el modo en NINGUNO, como al abrir',
+      `marcados: ${trasLimpiar.marcados.join(',') || '(ninguno)'} · ` +
+        `subformularios: ${trasLimpiar.subformularios.length} · Generar apagado: ${trasLimpiar.generar}`,
+    );
+    await m.guardar(`${CAPTURAS}/limpiar-a-cero.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P10 · LAS CABECERAS DEL ACORDEÓN, CON CUERPO ═══════════
+//
+// ⭐ [NN/g, acordeones] la señal de expandible es el pecado ausente más común, y
+//    la cabecera tiene que distinguirse del contenido **en los dos estados**.
+//    La maqueta lo traía y aquí faltaba: `background: none`. Se calca la banda.
+//
+// ⚠️ El fondo de la banda es `muted` al 30 %, o sea SEMITRANSPARENTE: el
+//    `backgroundColor` calculado vuelve como `rgba(...)` y compararlo con el
+//    del cuerpo diría «distintos» aunque se pintaran igual. Por eso lo que se
+//    mide no es el color declarado: es **el píxel**, con `contrasteReal`, que
+//    fotografía y cuenta. Un instrumento que preguntara al CSS daría verde con
+//    una banda invisible.
+{
+  const m = await abrirChrome({ ancho: 1440, alto: 900, puerto: 9410 });
+  try {
+    await m.ir(APP, 6000);
+    console.log('\n═══ LAS CABECERAS CON CUERPO ═══');
+
+    // El píxel de la banda y el del cuerpo, medidos por captura. La franja que
+    // se muestrea del cuerpo es la de justo debajo de la cabecera: es ahí donde
+    // la separación tiene que verse.
+    const bandaYCuerpo = async () =>
+      await m.evaluar(`(() => {
+        const c = document.querySelector('.bloque__cabecera');
+        const s = getComputedStyle(c);
+        return {
+          fondoDeclarado: s.backgroundColor,
+          bordeAbajo: s.borderBottomWidth + ' ' + s.borderBottomStyle + ' ' + s.borderBottomColor,
+          transicion: s.transitionProperty,
+        };
+      })()`);
+
+    for (const abierto of [true, false]) {
+      // El bloque del Buscador arranca ABIERTO; se pliega pulsando su cabecera.
+      if (!abierto) {
+        await m.evaluar(`document.querySelector('.bloque__cabecera').click()`);
+        await m.dormir(400);
+      }
+      const cual = abierto ? 'abierto' : 'plegado';
+      const decl = await bandaYCuerpo();
+      const banda = await contrasteReal(m, '.bloque__cabecera', { indice: 0 });
+      // ⭐ Y LA SUPERFICIE CONTRA LA QUE SE COMPARA, que costó acertar.
+      //
+      // ⚠️ Primero se midió `.bloque` de al lado —«Indicaciones»— y la jueza dio
+      //    ROJO con la banda ya puesta: plegado, ese bloque **es casi solo su
+      //    propia cabecera**, así que el color más frecuente de su caja era otra
+      //    banda. Se estaba comparando la banda consigo misma. El instrumento
+      //    mentía, no la pintura.
+      //
+      //    La superficie buena es la franja del título de la app —«Desplázame»—:
+      //    es el fondo pelado del panel, está a la vista en LOS DOS estados y no
+      //    lleva banda ninguna.
+      const superficie = await contrasteReal(m, '.cabecera', { indice: 0 });
+
+      juzgar(
+        enRgb(banda.fondo) !== enRgb(superficie.fondo),
+        `P10 · ⭐ la cabecera «Buscador» ${cual} se distingue de la superficie`,
+        `banda ${enRgb(banda.fondo)} · superficie ${enRgb(superficie.fondo)} · declarada ${decl.fondoDeclarado}`,
+      );
+      juzgar(
+        !/^0px/.test(decl.bordeAbajo),
+        `P10 · y su borde delimita dónde acaba la cabecera (${cual})`,
+        decl.bordeAbajo,
+      );
+      juzgar(
+        banda.contraste >= AA_TEXTO,
+        `P10 · el texto de cabecera sobre la banda cumple AA (${cual})`,
+        `${enRgb(banda.texto)} sobre ${enRgb(banda.fondo)} = ${banda.contraste.toFixed(2)}:1`,
+      );
+      await m.guardar(`${CAPTURAS}/cabecera-${cual}.png`);
+    }
+
+    // Se devuelve a abierto para las dos siguientes.
+    await m.evaluar(`document.querySelector('.bloque__cabecera').click()`);
+    await m.dormir(400);
+
+    // ⭐ EL HOVER, con feedback y bajo `@media (hover: hover)`. Que la regla no
+    //    se escape de ese envoltorio lo vigila la jueza de `pintura.spec.ts`,
+    //    que lee la hoja entera; aquí se mide que el ratón CAMBIA algo.
+    const enReposo = await contrasteReal(m, '.bloque__cabecera', { indice: 0 });
+    const donde = await m.evaluar(`(() => {
+      const r = document.querySelector('.bloque__cabecera').getBoundingClientRect();
+      return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
+    })()`);
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: donde.x, y: donde.y });
+    await m.dormir(500);
+    const conRaton = await contrasteReal(m, '.bloque__cabecera', { indice: 0 });
+    juzgar(
+      enRgb(conRaton.fondo) !== enRgb(enReposo.fondo),
+      'P10 · ⭐ con el ratón encima la banda responde',
+      `${enRgb(enReposo.fondo)} → ${enRgb(conRaton.fondo)}`,
+    );
+    juzgar(
+      conRaton.contraste >= AA_TEXTO,
+      'P10 · y con el ratón encima el texto sigue cumpliendo AA',
+      `${conRaton.contraste.toFixed(2)}:1`,
+    );
+    await m.guardar(`${CAPTURAS}/cabecera-hover.png`);
+
+    // El foco, con señal propia y sin depender del ratón.
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+    await m.evaluar(`document.querySelector('.bloque__cabecera').focus()`);
+    await m.dormir(300);
+    const foco = await m.evaluar(`(() => {
+      const s = getComputedStyle(document.querySelector('.bloque__cabecera'));
+      return s.outlineWidth + ' ' + s.outlineStyle + ' ' + s.outlineColor;
+    })()`);
+    juzgar(!/^0px/.test(foco), 'P10 · el foco del teclado lleva su señal propia', foco);
+    await m.guardar(`${CAPTURAS}/cabecera-foco.png`);
+
+    // ⛔ AQUÍ NO SE MIDE EL OSCURO, Y SE DICE POR QUÉ.
+    //
+    // Se intentó: `Emulation.setEmulatedMedia` con `prefers-color-scheme: dark`,
+    // y `matchMedia` contestó `true`… **y la pintura no cambió ni un punto**:
+    // banda y superficie salieron exactamente iguales que en claro. La jueza
+    // habría dado VERDE por la razón equivocada, que es la misma trampa que
+    // cazó P0 con el `hover` en la tanda 4.
+    //
+    // La causa no es el instrumento: `src/index.html` sirve
+    // `<html lang="es" data-theme="light">`, o sea que **la app va clavada en
+    // claro** y `prefers-color-scheme` no la mueve — es una decisión con su
+    // propia jueza en `identidad.spec.ts`. El único sitio donde el oscuro se
+    // pinta es la sonda de `/identidad`, así que el par de la banda en oscuro
+    // se mide allí: ver el censo de `e2e/identidad.mjs`.
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P11 · LA BANDA, TAMBIÉN EN TÁCTIL EMULADO ═══════════
+//
+// ⚠️ Aquí NO se mide el hover: en táctil no lo hay, y ésa es justamente la
+//    razón de que la regla viva bajo `@media (hover: hover)`. Lo que se compra
+//    es que **la banda existe igual sin ratón** — la señal de expandible no
+//    puede depender de un puntero que no está.
+{
+  const m = await abrirChrome({ ancho: 412, alto: 915, puerto: 9411 });
+  try {
+    await m.cdp('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    await m.cdp('Emulation.setDeviceMetricsOverride', {
+      width: 412, height: 915, deviceScaleFactor: 0, mobile: true,
+    });
+    await m.ir(APP, 6000);
+    console.log('\n═══ LA BANDA EN TÁCTIL ═══');
+
+    const emulado = await m.evaluar(
+      `JSON.stringify({ grueso: matchMedia('(pointer: coarse)').matches, hover: matchMedia('(hover: hover)').matches })`,
+    ).then(JSON.parse);
+    juzgar(
+      emulado.grueso === true && emulado.hover === false,
+      'P11 · P0 · la emulación llegó: puntero grueso y sin hover',
+      `coarse=${emulado.grueso} hover=${emulado.hover}`,
+    );
+
+    const hay = await m.evaluar(`document.querySelectorAll('.bloque__cabecera').length`);
+    if (hay > 0) {
+      const banda = await contrasteReal(m, '.bloque__cabecera', { indice: 0 });
+      juzgar(
+        banda.contraste >= AA_TEXTO,
+        'P11 · la cabecera se ve y su texto cumple AA sin ratón',
+        `${enRgb(banda.texto)} sobre ${enRgb(banda.fondo)} = ${banda.contraste.toFixed(2)}:1`,
+      );
+      await m.guardar(`${CAPTURAS}/cabecera-tactil.png`);
+    } else {
+      juzgar(false, 'P11 · la cabecera existe en táctil', 'no hay ninguna .bloque__cabecera');
+    }
   } finally {
     m.cerrar();
   }

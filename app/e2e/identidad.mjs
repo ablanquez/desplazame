@@ -339,6 +339,57 @@ try {
     porDebajo ? `${porDebajo} por debajo — decidir: corregir el valor o censarlo` : '',
   );
 
+  // ═════════ (ii-bis) LA BANDA DE LAS CABECERAS DEL ACORDEÓN ═════════
+  //
+  // ⭐ Es un par NUEVO (10/09) y **no es un par de tokens**: la banda es
+  //    `color-mix(in srgb, var(--muted) 30%, transparent)`, o sea `--muted` con
+  //    alfa 0,3 compuesto sobre la superficie de debajo, que es `--card`. Como
+  //    no hay token que valga «eso», se calcula — y se calcula sobre lo LEÍDO
+  //    del navegador, igual que el resto del censo.
+  //
+  // ⚠️ Y se mide AQUÍ y no en `e2e/pintura.mjs` por una razón dura: el producto
+  //    va clavado en claro —`<html data-theme="light">`, ver (v) más abajo—, así
+  //    que el oscuro **no se puede fotografiar en el buscador**. Se intentó, y
+  //    la jueza daba verde con la pintura sin cambiar. La sonda de esta página
+  //    es el único sitio donde el oscuro existe pintado.
+  console.log('\n═══ (ii-bis) LA BANDA DE LAS CABECERAS ═══');
+  {
+    /** El compuesto de `color-mix(..., X 30%, transparent)` sobre un fondo. */
+    const sobre = (encima, debajo, alfa) => ({
+      r: Math.round(encima.r * alfa + debajo.r * (1 - alfa)),
+      g: Math.round(encima.g * alfa + debajo.g * (1 - alfa)),
+      b: Math.round(encima.b * alfa + debajo.b * (1 - alfa)),
+    });
+    for (const [tema, tabla] of [['light', CLARO], ['dark', OSCURO]]) {
+      const leidos = await leerTokens(`[data-sonda='${tema}']`);
+      const de = (n) => deHex(leidos[n] || tabla[n]);
+      const banda = sobre(de('muted'), de('card'), 0.3);
+      const texto = de('foreground');
+      const r = contrasteRgb(texto, banda);
+      const conElRaton = contrasteRgb(texto, de('muted'));
+      const ok = r >= AA_TEXTO && conElRaton >= AA_TEXTO;
+      juzgar(
+        ok,
+        `la banda de cabecera en ${tema} cumple AA en reposo y con el ratón`,
+        `${r.toFixed(2)}:1 y ${conElRaton.toFixed(2)}:1`,
+      );
+      console.log(
+        `  ${ok ? 'OK ' : '⚠️ '} ${(tema + ' · foreground / banda(muted 30% sobre card)').padEnd(48)}` +
+          ` rgb(${banda.r}, ${banda.g}, ${banda.b})  =  ${r.toFixed(2)}:1` +
+          `  ·  con el ratón (muted entero) = ${conElRaton.toFixed(2)}:1`,
+      );
+      // ⚠️ Y LO QUE HAY QUE SABER DE ESTA BANDA: cuánto se separa de la
+      //    superficie. No es un juicio —la maqueta manda ese 30 % y la
+      //    delimitación la hace el borde—, es un DATO para el acta.
+      const separacion = Math.max(
+        Math.abs(banda.r - de('card').r),
+        Math.abs(banda.g - de('card').g),
+        Math.abs(banda.b - de('card').b),
+      );
+      console.log(`      separación de la superficie: ${separacion} punto(s) de 255`);
+    }
+  }
+
   // ═════════ LAS CAPTURAS ═════════
   await mando.ir(PAGINA, 5000);
   await mando.guardar(CAPTURAS + '/identidad-claro.png');
