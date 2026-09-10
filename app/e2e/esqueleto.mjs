@@ -38,6 +38,8 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
   const m = await abrirChrome({ ancho, alto, puerto });
   const esMovil = nombre === 'movil';
   try {
+    const estadoDeLosBloquesSimple =
+      `return [...document.querySelectorAll('.bloque')].map((b) => b.classList.contains('bloque--abierto'));`;
     await m.ir(APP, 6000);
     console.log(`\n═══ ${nombre.toUpperCase()} · ${ancho}×${alto} ═══`);
 
@@ -55,7 +57,8 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
         const r = e.getBoundingClientRect();
         return c.display !== 'none' && c.visibility !== 'hidden' && r.width > 0 && r.height > 0; };
       return {
-        marco: caja('.marco'), panel: caja('.panel'), lienzo: caja('.lienzo'),
+        marco: caja('.marco'), panel: caja('.panel'), zonaMapa: caja('.zona-mapa'),
+        tablero: caja('.tablero'),
         veAsa: ve('.panel__asa'), veSeparador: ve('.separador'),
         radio: getComputedStyle(q('.panel')).borderTopLeftRadius,
         anchoPildora: getComputedStyle(q('.panel__asa-pildora')).width,
@@ -79,26 +82,83 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
         'L4 · el asa es la píldora de M3 (4×32) con área de toque de 48',
         `${forma.anchoPildora}×${forma.altoPildora}, toque ${forma.tocaAsa}`,
       );
-      // La hoja se superpone al mapa: el mapa sigue midiendo la pantalla entera.
+      // ⚠️ Contra el TABLERO, no contra la pantalla: desde que el pie de
+      //    créditos es la última franja del marco, el mapa mide el alto de la
+      //    ventana MENOS esa línea. Medir contra `alto` era la premisa vieja.
       juzgar(
-        forma.lienzo.h === alto && forma.panel.y > 0,
-        'L4 · el mapa llena la pantalla y la hoja se le pone encima',
-        `mapa ${forma.lienzo.h}px · hoja desde y=${forma.panel.y}`,
+        forma.zonaMapa.h === forma.tablero.h && forma.panel.y > 0,
+        'L4 · el mapa llena el tablero y la hoja se le pone encima',
+        `mapa ${forma.zonaMapa.h}px de ${forma.tablero.h} · hoja desde y=${forma.panel.y}`,
       );
     } else {
       juzgar(!forma.veAsa && forma.veSeparador, 'L4 · en escritorio manda el separador, no el asa');
       // ⭐ El panel a la IZQUIERDA y el mapa a la DERECHA [DISEÑO §211].
       juzgar(
-        forma.panel.x === 0 && forma.lienzo.x >= forma.panel.w,
+        forma.panel.x === 0 && forma.zonaMapa.x >= forma.panel.w,
         'L4 · el panel a la izquierda y el mapa a la derecha',
-        `panel x=${forma.panel.x} w=${forma.panel.w} · mapa x=${forma.lienzo.x}`,
+        `panel x=${forma.panel.x} w=${forma.panel.w} · mapa x=${forma.zonaMapa.x}`,
       );
       juzgar(
-        forma.panel.w === 501 && forma.panel.h === alto,
-        'L4 · la columna mide lo de la referencia (500 + su borde) y va de arriba abajo',
-        `${forma.panel.w}×${forma.panel.h}`,
+        forma.panel.w === 501 && forma.panel.h === forma.tablero.h,
+        'L4 · la columna mide lo de la referencia (500 + su borde) y llena el tablero',
+        `${forma.panel.w}×${forma.panel.h} de ${forma.tablero.h}`,
       );
     }
+
+    // ⭐ EL ESTADO INICIAL, calcado de la referencia: buscador abierto y
+    //    resultado plegado (`useState(true)` / `useState(false)`). Se mide
+    //    ANTES de tocar nada — en cuanto una jueza pulse algo, se pierde.
+    const alArrancar = await leer(m, estadoDeLosBloquesSimple);
+    juzgar(
+      alArrancar[0] === true && alArrancar[1] === false,
+      'L5 · al arrancar: el buscador abierto y el resultado plegado',
+      `buscador ${alArrancar[0] ? 'abierto' : 'plegado'} · resultado ${alArrancar[1] ? 'abierto' : 'plegado'}`,
+    );
+
+    // ═══════════ L6 · LOS CREDITOS Y LA ATRIBUCION NATIVA, SIN PISARSE ═══════
+    //
+    // ⚠️ La maqueta esconde la atribucion de Leaflet con `display: none` y
+    //    escribe la suya en su lugar. Aqui NO: tapar una atribucion para
+    //    reescribirla es lo que no debe pasar por descuido, asi que conviven —
+    //    y que convivan se MIDE, porque la primera version del pie tapaba el
+    //    principio de la de Leaflet y solo se vio en la captura.
+    const pie = await leer(
+      m,
+      `
+      const c = document.querySelector('.creditos');
+      const a = document.querySelector('.leaflet-control-attribution');
+      if (!c || !a) return null;
+      const rc = c.getBoundingClientRect(), ra = a.getBoundingClientRect();
+      const solapa = !(rc.right <= ra.left || ra.right <= rc.left ||
+                       rc.bottom <= ra.top || ra.bottom <= rc.top);
+      const ve = (e) => { const s = getComputedStyle(e); const r = e.getBoundingClientRect();
+        return s.display !== 'none' && s.visibility !== 'hidden' && r.width > 0 && r.height > 0; };
+      // Y el punto medio de la atribucion tiene que devolverla A ELLA.
+      const enMedio = document.elementFromPoint(ra.x + ra.width / 2, ra.y + ra.height / 2);
+      const enElPie = document.elementFromPoint(rc.x + rc.width / 2, rc.y + rc.height / 2);
+      return { solapa, veCreditos: ve(c), veAtribucion: ve(a),
+               atribucionDestapada: !!enMedio && (enMedio === a || a.contains(enMedio)),
+               creditosDestapados: !!enElPie && (enElPie === c || c.contains(enElPie)),
+               diceOsm: /OpenStreetMap/i.test(c.innerText),
+               altoPie: Math.round(rc.height),
+               textos: c.innerText.replace(/\s+/g, ' ').length };
+    `,
+    );
+    // ⚠️ LO QUE SE EXIGE ES QUE LA ATRIBUCION A OSM SE LEA, no cual de las dos
+    //    la lleva. En movil la hoja se superpone al mapa, y la atribucion
+    //    nativa vive DENTRO del mapa: alli queda debajo, y moverla exigiria
+    //    saber cuanto mide la hoja. Nuestro pie —ultima franja del marco, que
+    //    no tapa nadie— dice «Cartografia: © colaboradores de OpenStreetMap»,
+    //    asi que la atribucion se cumple siempre. Lo que NO puede pasar es que
+    //    las dos se pisen entre si, ni que el pie quede tapado.
+    juzgar(
+      pie !== null && pie.veCreditos && pie.creditosDestapados && pie.diceOsm && !pie.solapa,
+      'L6 · la atribución a OpenStreetMap se lee, y nadie tapa el pie',
+      pie
+        ? `pie ${pie.altoPie}px · dice OSM: ${pie.diceOsm} · destapado: ${pie.creditosDestapados}` +
+          ` · la nativa ${pie.atribucionDestapada ? 'tambien se ve' : 'queda bajo la hoja'}`
+        : 'falta alguno',
+    );
 
     // ═══════════ L1 · SIN SCROLL GLOBAL ═══════════
     //
@@ -130,10 +190,23 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
     // ⚠️ Aquí se EMPUJA DE VERDAD con la rueda, no se lee una propiedad. Que
     //    `overscroll-behavior` diga `contain` es lo que está escrito; que la
     //    página no se mueva al agotar el bloque es lo que pasa.
+    // ⚠️ LA PRECONDICION SE CONSTRUYE, no se supone. Esta juez daba por hecho
+    //    que algun bloque desbordaria, y con el resultado plegado —el estado
+    //    inicial de la referencia— el buscador tiene 760 px y le cabe todo:
+    //    no habia nada que agotar y la juez se quedaba sin objeto. Se abren
+    //    los dos, que es cuando se reparten la altura y el formulario no cabe.
     if (esMovil) {
-      // En móvil hay que desplegar la hoja para que haya bloque que agotar.
       await m.evaluar(`document.querySelector('.panel__asa').click()`);
       await m.dormir(500);
+    }
+    for (const i of [0, 1]) {
+      const abierto = await m.evaluar(
+        `document.querySelectorAll('.bloque')[${i}].classList.contains('bloque--abierto')`,
+      );
+      if (!abierto) {
+        await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[${i}].click()`);
+        await m.dormir(400);
+      }
     }
     const cuerpo = await leer(
       m,
@@ -177,6 +250,85 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
       );
     } else {
       juzgar(false, 'L2 · había un bloque con contenido de sobra que agotar', 'no lo hay: nada que medir');
+    }
+
+    // ═══════════ L5 · EL ABATIMIENTO, EN LAS CUATRO COMBINACIONES ═══════════
+    //
+    // ⚠️ ESTA ES LA JUEZA QUE FALTABA. La tanda 3 midio tamanos, posiciones,
+    //    scroll y re-encuadre —todo verde— y el acordeon no plegaba: las
+    //    cuatro juezas del layout habian medido la casa sin probar las
+    //    puertas. Un control que cambia de estado necesita una jueza que lo
+    //    PULSE, y entra en la misma tanda que el control. Bitacora nº46.
+    const estadoDeLosBloques = `
+      const marco = document.querySelector('.marco').getBoundingClientRect();
+      const q = (e, s) => e.querySelector(s);
+      return [...document.querySelectorAll('.bloque')].map((b) => {
+        const cab = q(b, '.bloque__cabecera');
+        const rc = cab.getBoundingClientRect();
+        const cue = q(b, '.bloque__cuerpo');
+        const rb = b.getBoundingClientRect();
+        // ⚠️ «Clicable» de verdad: que el punto medio de la cabecera devuelva
+        //    la propia cabecera. Estar en el DOM y tener un rectangulo no basta
+        //    —lo aprendimos con la hoja tapada por el mapa—: si algo esta
+        //    encima, o si el bloque la recorta, aqui sale otro elemento.
+        const enElPunto = document.elementFromPoint(rc.x + rc.width / 2, rc.y + rc.height / 2);
+        return {
+          abierto: b.classList.contains('bloque--abierto'),
+          altoBloque: Math.round(rb.height),
+          altoCabecera: Math.round(rc.height),
+          cabeceraDentro: rc.y >= marco.y - 1 && rc.bottom <= marco.bottom + 1,
+          cabeceraClicable: !!enElPunto && (enElPunto === cab || cab.contains(enElPunto)),
+          // ⚠️ Se mide si el cuerpo OCUPA, no si existe en el DOM. El acordeón
+          //    oculta en vez de destruir —el porqué, en el checkpoint— así que
+          //    el nodo está siempre y lo que cambia es cuánto mide. Preguntar
+          //    por su existencia sería volver a medir el DOM en vez del píxel.
+          cuerpoOcupa: cue ? cue.getBoundingClientRect().height > 0 : false,
+          altoCuerpo: cue ? Math.round(cue.getBoundingClientRect().height) : 0,
+        };
+      });
+    `;
+
+    /** Deja el acordeon en la combinacion pedida, pulsando de verdad. */
+    const ponerEn = async (buscador, pasos) => {
+      for (const [i, quiero] of [buscador, pasos].entries()) {
+        const hay = await m.evaluar(
+          `document.querySelectorAll('.bloque')[${i}].classList.contains('bloque--abierto')`,
+        );
+        if (hay !== quiero) {
+          await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[${i}].click()`);
+          await m.dormir(400);
+        }
+      }
+      return leer(m, estadoDeLosBloques);
+    };
+
+    console.log('');
+    for (const [b, p] of [[true, false], [true, true], [false, true], [false, false]]) {
+      const bl = await ponerEn(b, p);
+      const como = `${b ? 'abierto' : 'plegado'}/${p ? 'abierto' : 'plegado'}`;
+
+      juzgar(
+        bl.every((x) => x.cabeceraDentro && x.cabeceraClicable && x.altoCabecera >= 44),
+        `L5 · ${como} — las dos cabeceras dentro del marco y clicables`,
+        bl.map((x) => `${x.altoCabecera}px${x.cabeceraDentro ? '' : ' FUERA'}${x.cabeceraClicable ? '' : ' TAPADA'}`).join(' · '),
+      );
+
+      // Plegado = SOLO la cabecera. Nada de cuerpo, ni escondido ni a cero.
+      juzgar(
+        bl.every((x) => x.abierto || (!x.cuerpoOcupa && Math.abs(x.altoBloque - x.altoCabecera) <= 2)),
+        `L5 · ${como} — el plegado ensena SOLO su cabecera`,
+        bl.map((x) => (x.abierto ? 'abierto' : `bloque ${x.altoBloque} / cabecera ${x.altoCabecera}` + (x.cuerpoOcupa ? ' ⚠ el cuerpo ocupa ' + x.altoCuerpo : ''))).join(' · '),
+      );
+
+      // Y el abierto se queda con el resto: mas alto que su propia cabecera.
+      const abiertos = bl.filter((x) => x.abierto);
+      if (abiertos.length) {
+        juzgar(
+          abiertos.every((x) => x.altoCuerpo > 0 && x.altoBloque > x.altoCabecera + 20),
+          `L5 · ${como} — el abierto se queda con el sitio que sobra`,
+          abiertos.map((x) => `${x.altoBloque}px`).join(' · '),
+        );
+      }
     }
 
     // ═══════════ LAS CAPTURAS DE LOS ESTADOS ═══════════
