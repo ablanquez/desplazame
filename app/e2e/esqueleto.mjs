@@ -98,9 +98,23 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
         'L4 · el panel a la izquierda y el mapa a la derecha',
         `panel x=${forma.panel.x} w=${forma.panel.w} · mapa x=${forma.zonaMapa.x}`,
       );
+      // ⭐ EL ANCHO YA NO ES EL DE LA REFERENCIA: ES UNA SUMA (10/09, remate-bis).
+      //
+      // ⚠️ Esta jueza decía «500 + su borde» y **mordió en rojo al cambiarlo**,
+      //    que es lo que se le pedía: `559×876`. [ANTONIO] manda sobre el calco,
+      //    así que se actualiza a la letra nueva en vez de aflojarla — y la
+      //    letra nueva no es un número redondo, es el peor caso medido:
+      //
+      //        Bus / Tranvía abierto 141,23 + Patín (VMP) abierto 133,97
+      //        + 4 círculos × 46 + 5 huecos × 8   = 499,20 la fila
+      //        + 26 de la tarjeta + 32 del cuerpo = 557,20 → 558 de `width`
+      //
+      //    559 pintados, con su borde derecho. Que la suma se cumpla de verdad
+      //    —los seis en una línea en cualquier combinación— lo mide
+      //    `e2e/pintura.mjs`, que es quien sabe abrir chips.
       juzgar(
-        forma.panel.w === 501 && forma.panel.h === forma.tablero.h,
-        'L4 · la columna mide lo de la referencia (500 + su borde) y llena el tablero',
+        forma.panel.w === 559 && forma.panel.h === forma.tablero.h,
+        'L4 · la columna mide su peor caso (558 + su borde) y llena el tablero',
         `${forma.panel.w}×${forma.panel.h} de ${forma.tablero.h}`,
       );
     }

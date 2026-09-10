@@ -2,10 +2,23 @@
    :host ancla la posición para que la lista flote sobre lo que venga debajo,
    incluido el mapa. Lo que cambia es el ancho — un portal es «12», no
    «AVENIDA DE LA ILUSTRACIÓN». */
+/* ⭐ [ANTONIO, remate-bis] Y LEE SU MARCADOR ENTERO. Eran 6 rem —96 px, que con
+   el relleno daban 138 pintados— y «Elige antes la calle» pide **152**, medido
+   en Chrome con la letra real de la casilla. La base sube a lo que el texto
+   pide, no a un número redondo: 152 px = 9,5 rem.
+
+   ⚠️ Sigue con `flex-shrink: 1`: en la tarjeta estrecha del móvil encoge y la
+      fila envuelve, que es lo que ya hacía. Lo que se compra es que en la
+      columna de escritorio NO tenga que encoger.
+
+   ⚠️ Y el ancho se decide AQUÍ y en ningún otro sitio. `buscador.css` tenía una
+      `.campo--portal` con su propio `flex` que **no hacía nada**: el CSS de un
+      componente lleva su atributo de encapsulación y no alcanza al `<label>` de
+      otro. Se ha quitado de allí. */
 :host {
   position: relative;
   display: block;
-  flex: 1 1 6rem;
+  flex: 1 1 9.5rem;
 }
 
 .campo {

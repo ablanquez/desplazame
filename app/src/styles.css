@@ -841,8 +841,27 @@ body:has(.marco) {
   .panel {
     position: static;
     z-index: auto;
-    /* ← el ancho de la referencia (sm:w-[460px]) */
-    width: 460px;
+    /* ⭐ EL ANCHO SALE DE UNA SUMA, NO DE LA REFERENCIA (10/09, remate-bis).
+
+       [ANTONIO] La columna mide lo que mide su PEOR CASO, que es **los dos chips
+       de etiqueta más larga abiertos a la vez** —el activo y el que tiene el
+       ratón encima— con los otros cuatro en círculo. Medido en Chrome, chip a
+       chip, forzando la apertura de los seis para leer su ancho abierto:
+
+           Bus / Tranvía abierto                 141,23
+           Patín (VMP) abierto                   133,97
+           4 círculos × 46                       184,00
+           5 huecos × 8                           40,00
+           ── la fila                            499,20
+           + tarjeta: relleno 12+12, borde 1+1   525,20
+           + cuerpo del bloque: relleno 16+16    557,20
+           → 558 de `width` (559 pintados, con su borde derecho)
+
+       ⚠️ Y esto MANDA SOBRE EL CALCO: la referencia decía 460/500, y su fila no
+          envuelve porque hace scroll horizontal. Aquí la fila envuelve, así que
+          la elección era entre un chip que baja de línea al pasar el ratón o una
+          columna que da la anchura. Antonio eligió la anchura. */
+    width: 558px;
     max-width: none;
     height: 100%;
     max-height: none;
@@ -898,7 +917,7 @@ body:has(.marco) {
   .separador {
     position: absolute;
     top: 50%;
-    left: 460px;
+    left: 558px;
     z-index: 30;
     display: flex;
     align-items: center;
@@ -941,13 +960,15 @@ body:has(.marco) {
 }
 
 /* El segundo ancho de la referencia (xl:w-[500px]). */
+/* ⚠️ El escalón de 1280 ya NO cambia el ancho: lo fija la suma de arriba, y es
+   el mismo en los dos. Existía para dar 40 px más cuando la ventana daba de sí;
+   con el ancho atado a una medida, ese margen dejó de significar nada — la fila
+   necesita lo que necesita en cuanto hay ratón, y ratón hay desde 768.
+   Sigue existiendo el bloque porque el separador va pegado al borde de la
+   columna y tiene que saber dónde está. */
 @media (min-width: 1280px) {
-  .panel {
-    width: 500px;
-  }
-
   .separador {
-    left: 500px;
+    left: 558px;
   }
 
   .panel--plegada ~ .separador {
@@ -1303,6 +1324,28 @@ body:has(.marco) {
     margin-left: 0.5rem;
     opacity: 1;
   }
+}
+
+/* ⭐ Y EL FOCO LA REVELA TAMBIÉN — [ANTONIO, mejora declarada del remate-bis].
+   La maqueta no lo hace y aquí sí: quien navega con el tabulador y VE la
+   pantalla estaba pasando por cinco círculos mudos con solo un anillo alrededor.
+   El lector de pantalla siempre dijo el nombre —`aria-label`—, pero el ojo del
+   tecleador no tenía nada.
+
+   ⚠️ Y esto NO va dentro de `@media (hover: hover)`: el teclado existe en los
+      dos mundos. Un táctil con teclado también tabula.
+
+   El foco cae en el radio, que no se ve, así que quien abre es la etiqueta —de
+   ahí el `:has()`, igual que el anillo—. El empujón a las vecinas es el mismo
+   del hover, que la columna nueva ya absorbe: se mide igual. */
+.modo--chip:has(:focus-visible) {
+  padding: 0 0.75rem;
+}
+
+.modo--chip:has(:focus-visible) .modo__texto {
+  max-width: 150px;
+  margin-left: 0.5rem;
+  opacity: 1;
 }
 
 /* [WCAG 2.3.3 / DOC MDN] Quien ha pedido menos movimiento no pierde la

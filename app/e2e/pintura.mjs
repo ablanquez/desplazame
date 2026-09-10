@@ -364,4 +364,144 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
   }
 }
 
+// ═══════════ P7 · LA FILA, EN UNA SOLA LÍNEA — SIEMPRE ═══════════
+//
+// ⚠️ Ésta es la jueza de la columna a medida, y lo que compra no es el número
+//    558: compra **la consecuencia**. Un ancho puede ser correcto y la fila
+//    envolver igual —basta que alguien alargue una etiqueta—, así que se mide
+//    lo que de verdad importa: que los seis chips comparten la MISMA fila.
+//
+//    «Misma fila» se mide por la coordenada `y` de cada uno, no por el ancho
+//    sumado: si uno bajara, su `y` sería otra. Y se comprueba en TRES estados:
+//    en reposo, con el ratón sobre el más largo, y en el PEOR CASO —los dos de
+//    etiqueta más larga abiertos a la vez—, que es el que dio el número.
+{
+  const m = await abrirChrome({ ancho: 1440, alto: 900, puerto: 9407 });
+  try {
+    await m.ir(APP, 6000);
+    console.log('\n═══ LA FILA EN UNA LÍNEA ═══');
+
+    const filas = `
+      const chips = [...document.querySelectorAll('.familias .modo--chip')];
+      const ys = chips.map((c) => Math.round(c.getBoundingClientRect().top));
+      const izq = chips.map((c) => Math.round(c.getBoundingClientRect().left));
+      return {
+        lineas: new Set(ys).size,
+        anchos: chips.map((c) => Math.round(c.getBoundingClientRect().width)),
+        derecha: Math.max(...chips.map((c) => c.getBoundingClientRect().right)),
+        borde: document.querySelector('.familias').getBoundingClientRect().right
+               - parseFloat(getComputedStyle(document.querySelector('.familias')).paddingRight)
+               - parseFloat(getComputedStyle(document.querySelector('.familias')).borderRightWidth),
+        desbordaX: document.querySelector('.bloque__cuerpo').scrollWidth
+                 > document.querySelector('.bloque__cuerpo').clientWidth + 1,
+      };
+    `;
+
+    const enReposo = await leer(m, filas);
+    juzgar(enReposo.lineas === 1, 'P7 · en reposo, los seis en UNA línea', `${enReposo.lineas} línea(s)`);
+    await m.guardar(`${CAPTURAS}/fila-reposo.png`);
+
+    // Con el ratón sobre el más largo — «Bus / Tranvía», medido: 141,23 abierto.
+    const largo = await leer(
+      m,
+      `
+      const c = document.querySelector('.familias .modo--chip[data-modo="bus"]');
+      const r = c.getBoundingClientRect();
+      return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
+    `,
+    );
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: largo.x, y: largo.y });
+    await m.dormir(700);
+    const conHover = await leer(m, filas);
+    juzgar(
+      conHover.lineas === 1 && !conHover.desbordaX,
+      'P7 · con el más largo abierto por el ratón, siguen en UNA línea y sin scroll',
+      `${conHover.lineas} línea(s) · anchos ${conHover.anchos.join('+')}`,
+    );
+    await m.guardar(`${CAPTURAS}/fila-hover-largo.png`);
+
+    // ⭐ EL PEOR CASO: los DOS más largos abiertos a la vez. Se elige «Patín
+    //    (VMP)» como activo —133,97— y se deja el ratón sobre «Bus / Tranvía»
+    //    —141,23—: es exactamente la suma que dio el ancho de la columna.
+    await m.evaluar(`document.querySelector('input[name=familia][value=patin]').click()`);
+    await m.dormir(500);
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: largo.x, y: largo.y });
+    await m.dormir(700);
+    const peorCaso = await leer(m, filas);
+    juzgar(
+      peorCaso.lineas === 1 && !peorCaso.desbordaX,
+      'P7 · ⭐ EL PEOR CASO —los dos más largos abiertos— cabe en UNA línea',
+      `${peorCaso.lineas} línea(s) · ${peorCaso.anchos.join('+')} = ` +
+        `${peorCaso.anchos.reduce((a, b) => a + b, 0)} + huecos · sobran ` +
+        `${Math.round(peorCaso.borde - peorCaso.derecha)} px hasta el borde`,
+    );
+    await m.guardar(`${CAPTURAS}/fila-peor-caso.png`);
+
+    // ⭐ Y CON EL FOCO, que es el mismo mecanismo [ANTONIO, mejora del remate-bis].
+    await m.evaluar(`document.querySelector('.familias .modo--chip[data-modo="bus"] .modo__radio').focus()`);
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+    await m.dormir(700);
+    const conFoco = await leer(m, filas);
+    const anchoBusFoco = conFoco.anchos[1];
+    juzgar(
+      anchoBusFoco > 46,
+      'P7 · el foco del teclado también revela la etiqueta (mejora declarada)',
+      `«Bus / Tranvía» mide ${anchoBusFoco} px con el foco puesto`,
+    );
+    juzgar(
+      conFoco.lineas === 1 && !conFoco.desbordaX,
+      'P7 · y con el foco tampoco envuelve',
+      `${conFoco.lineas} línea(s)`,
+    );
+    await m.guardar(`${CAPTURAS}/fila-foco.png`);
+
+    // ═══ (b) y (c): el Tipo entero y el Nº legible ═══
+    const campos = await leer(
+      m,
+      `
+      const tipo = document.querySelector('.campo--tipo');
+      const tarjeta = document.querySelector('.punto');
+      const num = document.querySelector('app-selector-portal input');
+      const medir = (e, t) => {
+        const s = document.createElement('span');
+        s.style.cssText = 'position:absolute;visibility:hidden;white-space:pre';
+        const c = getComputedStyle(e);
+        s.style.font = c.font || (c.fontWeight + ' ' + c.fontSize + '/' + c.lineHeight + ' ' + c.fontFamily);
+        s.textContent = t;
+        document.body.appendChild(s);
+        const w = s.getBoundingClientRect().width;
+        s.remove();
+        return w;
+      };
+      const dentro = num ? parseFloat(getComputedStyle(num).paddingLeft) + parseFloat(getComputedStyle(num).paddingRight) : 0;
+      return {
+        anchoTipo: Math.round(tipo.getBoundingClientRect().width),
+        anchoUtilTarjeta: Math.round(
+          tarjeta.getBoundingClientRect().width
+          - parseFloat(getComputedStyle(tarjeta).paddingLeft)
+          - parseFloat(getComputedStyle(tarjeta).paddingRight)
+          - 2 * parseFloat(getComputedStyle(tarjeta).borderLeftWidth),
+        ),
+        marcador: num ? num.placeholder : null,
+        anchoNum: num ? Math.round(num.getBoundingClientRect().width) : 0,
+        anchoTextoNum: num ? Math.round(medir(num, num.placeholder) + dentro) : 0,
+      };
+    `,
+    );
+    juzgar(
+      campos.anchoTipo >= campos.anchoUtilTarjeta - 1,
+      'P8 · [ANTONIO] el «Tipo» ocupa TODO el ancho de su tarjeta',
+      `${campos.anchoTipo} de ${campos.anchoUtilTarjeta} útiles`,
+    );
+    juzgar(
+      campos.anchoNum >= campos.anchoTextoNum,
+      'P8 · [ANTONIO] y el «Nº» lee su marcador ENTERO, sin entrecortar',
+      `«${campos.marcador}» pide ${campos.anchoTextoNum} px y la casilla da ${campos.anchoNum}`,
+    );
+    await m.guardar(`${CAPTURAS}/campos-tipo-y-numero.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
 console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);

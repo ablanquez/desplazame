@@ -64,7 +64,12 @@ legend {
    escribe, así que el ancho sube hasta lo que mide la etiqueta más larga y ni
    un pelo más. */
 .campo--tipo {
-  flex: 0 0 13rem;
+  /* ⭐ [ANTONIO, remate-bis] A TODO EL ANCHO de su tarjeta, como la Calle. Era
+     `flex: 0 0 13rem` —ancho fijo y sin crecer— y se quedaba a media línea con
+     un hueco a su derecha que no decía nada. Ahora ocupa su fila entera, y el
+     comentario de arriba deja de valer: el ancho ya no lo decide la etiqueta
+     más larga del desplegable, lo decide la tarjeta. */
+  flex: 1 1 100%;
 }
 
 .tipo {
@@ -144,9 +149,12 @@ legend {
   white-space: nowrap;
 }
 
-.campo--portal {
-  flex: 1 1 6rem;
-}
+/* ⚠️ AQUÍ HABÍA UNA `.campo--portal` CON SU `flex`, Y ERA CSS MUERTO. El
+   `<label class="campo campo--portal">` vive dentro de `app-selector-portal`,
+   así que esta hoja —encapsulada— nunca lo alcanzó: el ancho lo decidía, y lo
+   decide, el `:host` de `selector-portal.css`. Se descubrió al medir por qué el
+   «Nº» seguía entrecortado después de ensancharlo. */
+
 
 /* Las cajas heredan del primitivo `.caja` de la hoja global —44 de alto, radio
    medio, fondo de tarjeta— y aquí solo se les dice que llenen su hueco. */
