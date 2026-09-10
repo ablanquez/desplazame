@@ -382,6 +382,99 @@ describe('La atribución — las fichas del notices y el recuento del README', (
     expect(Number(dicho?.[1])).toBe(fichas);
   });
 
+  /**
+   * ⭐ Y LA CRÓNICA DEL PÁRRAFO, QUE ES LA CIFRA QUE SE QUEDÓ FUERA (10/09).
+   *
+   * ⚠️ **La juez de arriba NO mentía, y conviene decirlo con precisión: su
+   *    alcance era corto.** Lee la línea que dice leer —«una ficha por
+   *    conjunto, y hoy son 37»— y compara 37 con 37, que es lo correcto. Lo que
+   *    no alcanzaba es la OTRA cifra del mismo recuadro: la crónica
+   *    —«este párrafo ha ido diciendo "quince", "veinticuatro"… y ahora treinta
+   *    y cinco»—, que va **en letra** y en otra frase. Su regex pide dígitos, y
+   *    ahí no hay dígitos.
+   *
+   * ⚠️ Y el chiste se cuenta solo: **ese párrafo existe para contar la nº5 de la
+   *    bitácora** —una regla de releída vale lo que su alcance— y presumía de
+   *    haberla resuelto con un guardián. El guardián resolvió la mitad, y la
+   *    otra mitad se quedó vieja **dentro de la propia frase que denuncia que
+   *    las cosas se quedan viejas**: la crónica se paró en «treinta y cinco»
+   *    (5/09) y el notices siguió a 36 (6/09) y a 37 (7/09).
+   *
+   * Así que el alcance se amplía: TODA cifra de fichas del README queda
+   * vigilada, la de dígitos y la de letra.
+   */
+  describe('⭐ la crónica del recuento, que iba en letra y por eso no se miraba', () => {
+    /** Cardinales en letra, 0-99. Es lo que hace falta para leer la crónica. */
+    const UNIDADES = [
+      'cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho',
+      'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince',
+    ];
+    const VEINTI: Record<string, number> = {
+      veinte: 20, veintiuno: 21, veintidós: 22, veintitrés: 23, veinticuatro: 24,
+      veinticinco: 25, veintiséis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29,
+    };
+    const DECENAS: Record<string, number> = {
+      treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60,
+      setenta: 70, ochenta: 80, noventa: 90,
+    };
+
+    /** `«treinta y cuatro»` → 34. Devuelve `null` si no sabe leerlo. */
+    function enCifra(texto: string): number | null {
+      const t = texto.trim().toLowerCase();
+      const i = UNIDADES.indexOf(t);
+      if (i >= 0) return i;
+      if (t in VEINTI) return VEINTI[t]!;
+      if (t in DECENAS) return DECENAS[t]!;
+      const compuesto = /^([a-záéíóúñ]+) y ([a-záéíóúñ]+)$/.exec(t);
+      if (compuesto && compuesto[1]! in DECENAS) {
+        const u = UNIDADES.indexOf(compuesto[2]!);
+        if (u > 0 && u < 10) return DECENAS[compuesto[1]!]! + u;
+      }
+      return null;
+    }
+
+    /**
+     * La serie que la crónica declara, en orden. El recuadro va en cita, así que
+     * primero se aplana el `> ` de cada línea: la frase vive partida en dos.
+     */
+    function laSerie(): number[] {
+      const plano = LEEME.replace(/\r?\n>?[ \t]*/g, ' ');
+      const parrafo = /Este párrafo ha ido diciendo ([^*]+)\*\*/.exec(plano);
+      expect(parrafo).not.toBeNull();
+      const dicho = parrafo![1]!;
+      const entrecomillados = [...dicho.matchAll(/«([^»]+)»/g)].map((m) => m[1]!);
+      // El último no va entrecomillado: «… y ahora treinta y siete».
+      const ahora = /y ahora ([a-záéíóúñ ]+?)\s*$/.exec(dicho.trim());
+      expect(ahora).not.toBeNull();
+      const serie = [...entrecomillados, ahora![1]!];
+      // ⚠️ Si el lector no supiera leer una de ellas devolvería `null`, y una
+      //    serie con huecos daría verde por comparar `undefined`. Se compra que
+      //    las sabe leer TODAS antes de comparar nada.
+      const cifras = serie.map(enCifra);
+      expect(cifras.filter((x) => x === null).length).toBe(0);
+      return cifras as number[];
+    }
+
+    it('⭐ la crónica acaba en el número de fichas que hay HOY', () => {
+      const fichas = (NOTICES.match(/^### 1\./gm) ?? []).length;
+      const serie = laSerie();
+      expect(serie[serie.length - 1]).toBe(fichas);
+    });
+
+    /**
+     * ⭐ Y ES UNA CRÓNICA, NO UNA CIFRA: se enmienda **añadiendo**, que es la ley
+     * del documento que cuenta su propia historia. Una serie que dejara de
+     * crecer sería alguien borrando lo que dijo antes.
+     */
+    it('⭐ y la crónica solo crece: se enmienda añadiendo, no borrando', () => {
+      const serie = laSerie();
+      expect(serie.length).toBeGreaterThan(1);
+      for (let i = 1; i < serie.length; i++) {
+        expect(serie[i]!).toBeGreaterThan(serie[i - 1]!);
+      }
+    });
+  });
+
   /** La fila de Avanza del README lleva la decisión, no la pregunta abierta. */
   it('⭐ el README cuenta la decisión sobre Avanza y el pie de créditos', () => {
     expect(LEEME).toContain('Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.');
