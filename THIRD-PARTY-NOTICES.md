@@ -6,10 +6,11 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 > ℹ️ **Estado a 10/09/2026.** El proyecto está en construcción **y en producción** —vive en
 > <https://desplazame.antonioblanquez.es> desde el 8/09—, que es lo que hace que estas fichas dejen
 > de ser un ejercicio: lo ajeno que se enseña se está enseñando **a quien entre**. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y ocho** fichas
-> propias —§ 1.1 a § 1.38—, de las cuales **una es una norma citada** (§ 1.32), **una son los
-> nueve iconos de la pantalla** (§ 1.37, Apache 2.0) y **una declara lo
-> que todavía NO ha entrado** (§ 1.38).
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y nueve** fichas
+> propias —§ 1.1 a § 1.39—, de las cuales **una es una norma citada** (§ 1.32), **una son los
+> nueve iconos de la pantalla** (§ 1.37, Apache 2.0), **una es la letra**
+> (§ 1.38, Inter bajo OFL) y **una declara lo
+> que todavía NO ha entrado** (§ 1.39).
 > Quedan fuera las capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
 >
 > ⭐ **Y SEIS NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08 y que hoy separa el
@@ -3184,7 +3185,43 @@ fórmula, de las que la cuarta no era igual). Por eso
 [`app/src/app/simbolos.spec.ts`](app/src/app/simbolos.spec.ts) compara los nueve
 **carácter a carácter** y cuenta el censo en las dos direcciones.
 
-### 1.38 · El resto del dato — todavía **ninguno**
+### 1.38 · Inter 4.1 — The Inter Project Authors (autoalojada)
+
+| | |
+|---|---|
+| **Qué es** | **La letra de toda la pantalla.** Tres pesos —400, 500 y 600— servidos desde este mismo dominio, más un respaldo con métricas ajustadas que evita el salto al cargar |
+| **Titular** | **The Inter Project Authors** (Rasmus Andersson) |
+| **Fuente** | Release oficial [`rsms/inter` v4.1](https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip), publicada el 2024-11-16 |
+| **Petición** | El zip completo; los tres ficheros salen de su carpeta `web/` **sin tocarlos** — ni resubconjuntados, ni recomprimidos, ni renombrados |
+| **Descarga** | **09/09/2026** · sha256 del zip `9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b11e` |
+| **Licencia** | **SIL Open Font License 1.1** — copiada al lado en [`app/public/fuentes/LICENCIA-OFL.txt`](app/public/fuentes/LICENCIA-OFL.txt), que es lo que la OFL pide: la licencia viaja **con** la fuente |
+| **Atribución exigida** | La OFL **no exige crédito visible**; exige que la licencia acompañe al fichero y que el nombre reservado no se use en una versión modificada. Aun así se cita en `/creditos`, con enlace al fichero de licencia |
+| **Qué se guarda** | Los tres `.woff2` y la licencia. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ [`app/public/fuentes/`](app/public/fuentes/) · 340.428 bytes los tres, con [`PROCEDENCIA.md`](app/public/fuentes/PROCEDENCIA.md) |
+
+| fichero | peso | bytes | sha256 |
+|---|---|---|---|
+| `Inter-Regular.woff2` | 400 · regular | 111.268 B | `e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085` |
+| `Inter-Medium.woff2` | 500 · medium | 114.348 B | `0ff3e94614e1493eb556314fd247ae6c4a85a7783b4cc86be539940cf83f2a48` |
+| `Inter-SemiBold.woff2` | 600 · semibold | 114.812 B | `5cb7103e4e605989afebc03d989c79201e54b21b5183db33981f70db9178a301` |
+
+⭐ **Y AUTOALOJADA NO ES UNA PREFERENCIA: ES LA DECISIÓN DEL 9/09.** El modelado
+de referencia abre su hoja con un `@import` al CDN de Google Fonts, y **esa línea
+es la única del fichero que no se calca**. [Sentencia del Juzgado Regional de
+Múnich, enero de 2022] cargar una fuente desde un tercero envía la IP de quien
+visita a ese tercero sin base legal cuando existe una alternativa neutra — y la
+alternativa neutra es exactamente esto. Lo vigila `app/e2e/identidad.mjs`, que
+cuenta las peticiones de la portada y **canta si aparece una a
+`fonts.googleapis.com` o `fonts.gstatic.com`**.
+
+⚠️ **ESTA FICHA LLEGA TARDE, Y SE DICE.** La fuente entró el 9/09 con su licencia
+y su procedencia al lado, pero **este documento —que declara «lo ajeno, una por
+una»— no la nombraba** hasta el 10/09. Nada dio verde mentiroso: ninguna juez
+compraba «todo activo de terceros tiene ficha», así que no había instrumento que
+callara — es la nº5 de la bitácora otra vez, alcance corto. Se ficha ahora porque
+lo pide la coherencia del propio documento.
+
+### 1.39 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un

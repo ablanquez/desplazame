@@ -1052,7 +1052,7 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son **tres regím
 | **Motos compartidas de YeGo** (dónde hay una libre, ahora mismo) | ⚠️ **`NO CONSTA`.** El feed es GBFS público y sin clave, pero **YeGo no declara licencia**: ni `license_id` ni `license_url` en ninguno de sus seis feeds. Y su PDF de condiciones **no se ha leído** —62 páginas, y esta máquina no tiene lector—, así que de lo que diga sobre reutilizar el dato: `NO CONSTA`. Todo medido en **§ 1.34** | **Su feed no pide atribución: no la contempla.** Y aun así **se atribuye**, por lo mismo que con Avanza. § 1.24 es el precedente de por qué no se da por buena una licencia que no se ha leído |
 | ⛔ **Servicios en vivo de Avanza Zaragoza S.A.U.** (las llegadas al poste y la ruta operativa de hoy) | **Ninguna.** Su [aviso legal](https://www.avanzabus.com/informacion/aviso-legal/) —leído el 01/09/2026— **prohíbe expresamente** la *«extracción y/o reutilización»* y reclama el *«derecho sui generis sobre la base de datos»*. El texto literal, con su URL y su fecha, está en **§ 1.24** del notices | **Su licencia no pide atribución: no la contempla.** Y aun así **se atribuye**, en el pie de la pantalla: *«Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.»* ⭐ **Decisión de Antonio, 01/09/2026**: *«es dato público de un servicio público concesionado, y esto es una demo — se atribuye y se sigue»*. Se tomó con el aviso legal transcrito delante y con los *fixtures* nombrados uno a uno, y **los *fixtures* se quedan**: hay bytes de sus respuestas en `motor/src/avanza.spec.ts`, `viaje-bus.spec.ts`, `desvios.spec.ts` y `patron-operativo.spec.ts`, puestos por la ley de la casa de que un *fixture* copia la medición. Nada más se guarda: las dos fuentes se **consultan** en tiempo de ejecución, como haría cualquier cliente de su web |
 
-> ℹ️ **Y las tres están en uso.** El notices lleva **una ficha por conjunto, y hoy son 38**
+> ℹ️ **Y las tres están en uso.** El notices lleva **una ficha por conjunto, y hoy son 39**
 > (`grep -c '^### 1\.' THIRD-PARTY-NOTICES.md`): **veintidós** del Ayuntamiento de Zaragoza —el
 > callejero, los portales, los carriles bici, los postes de autobús, las estaciones BiZi, los
 > aparcabicis, los aparcamotos, el estacionamiento regulado, las zonas reguladas, las reservas de
@@ -1067,12 +1067,14 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son **tres regím
 > de hoy—, **la flota viva de YeGo** (§ 1.34, la cuarta que se consulta en vez de copiarse y la
 > primera que habla GBFS de verdad), **los ocho iconos de la pantalla** (§ 1.37, Material
 > Symbols de Google bajo Apache 2.0, autoalojados desde el 10/09 — la ficha que estrena en este
-> recuadro algo que no es un conjunto de DATOS, sino la obra ajena que se pinta con ellos), y la
-> ficha que declara lo que **todavía no** ha entrado.
+> recuadro algo que no es un conjunto de DATOS, sino la obra ajena que se pinta con ellos),
+> **la letra** (§ 1.38, Inter 4.1 bajo OFL, autoalojada desde el 9/09 y fichada el 10 — llegó
+> tarde y se dice en su ficha), y la ficha que declara lo que **todavía no** ha entrado.
 >
 > ⚠️ **Este párrafo ha ido diciendo «quince», «veinticuatro», «veintiséis», «veintisiete»,
 > «treinta y uno», «treinta y tres», «treinta y cuatro», «treinta y cinco», «treinta y seis»,
-> «treinta y siete» y ahora treinta y ocho**, y las tres primeras se quedaron viejas donde estaban. Es la entrada
+> «treinta y siete», «treinta y ocho» y ahora treinta y nueve**, y las tres primeras se quedaron
+> viejas donde estaban. Es la entrada
 > nº5 de la bitácora repitiéndose: una regla de releída vale lo que su alcance. **Desde el 1/09
 > ya no depende de que alguien relea**: `app/src/app/atribucion.spec.ts` cuenta las fichas del
 > notices y las compara con el número que dice esta línea. Si no cuadran, la suite se pone roja.
