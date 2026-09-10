@@ -1068,24 +1068,32 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son **tres regím
 > expresamente la extracción y la reutilización**, leído y transcrito el 01/09 con su URL y su
 > fecha. Ni se interpreta ni se resume aquí: está en § 1.24 del notices, literal.
 >
-> ⭐ **Y DESDE EL 1/09 LA ATRIBUCIÓN ESTÁ EN LA PANTALLA, no solo en este fichero.** El buscador
-> lleva un pie de créditos con los cuatro titulares del dato que enseña:
+> ⭐ **Y DESDE EL 1/09 LA ATRIBUCIÓN ESTÁ EN LA PANTALLA, no solo en este fichero.** Los cuatro
+> titulares del dato que se enseña —Avanza, el NAP del MITMA, el Ayuntamiento y OpenStreetMap—
+> están cada uno con su licencia, su enlace y su fórmula en la **página de créditos**, `/creditos`.
 >
-> > Llegadas y recorrido operativo: Avanza Zaragoza S.A.U. · Horarios: GTFS del Punto de Acceso
-> > Nacional (MITMA) — Powered by MITRAMS (dato bruto y procesado) · Datos municipales:
-> > Ayuntamiento de Zaragoza (Ley 37/2007) · Cartografía: © colaboradores de OpenStreetMap
+> ⭐ **Y desde el 10/09 no viven al pie, sino a un enlace del pie.** La franja del buscador se
+> encogió a una línea:
 >
-> Es un `<footer>` de verdad —punto de referencia `contentinfo`—, va en el flujo y **no tapa el
-> mapa**, y su contraste está **medido en Chrome**, no calculado: `app/e2e/creditos.mjs`. Que los
-> cuatro estén y que enlacen donde tienen que enlazar lo vigila
-> `app/src/app/atribucion.spec.ts`.
+> > Leaflet | © colaboradores de OpenStreetMap · Créditos
+>
+> Lo que se queda es lo que **no puede irse**: la política de teselas de OpenStreetMap exige ver su
+> atribución **claramente sobre el mapa**, sin esconderla tras interfaz. El resto se rige por el
+> patrón normativo contrario —el aviso legal accesible *«de forma permanente, fácil y directa»*
+> [RD 1495/2011]—, que es ese enlace, presente en todas las pantallas.
+>
+> La franja sigue siendo un `<footer>` de verdad —punto de referencia `contentinfo`—, va en el
+> flujo y **no tapa el mapa**, y su contraste está **medido en Chrome**, no calculado:
+> `app/e2e/creditos.mjs`. Que los cuatro titulares estén donde ahora están, que la franja conserve
+> la excepción de OSM y lleve hasta ellos, y que los otros tres **ya no estén** en la franja, lo
+> vigila `app/src/app/atribucion.spec.ts`.
 >
 > ⚠️ **Y lo que NO lleva es la fecha del GTFS servido.** No es un descuido: **la pantalla no sabe
 > cuál sirve el motor** —la semilla del repositorio o el zip vivo que trae el cron cada noche—, y
 > el contrato no lo publica. Escribir la de la semilla sería verdad hasta la primera noche que el
 > cron corriera. Preguntárselo al motor al cargar tampoco: **la raíz en frío no pide nada** desde
 > el 22/08, y hay juez. Así que la fecha se dice donde consta medida, dato a dato, que es
-> **`/panel`** — y hasta ahí lleva el enlace del pie.
+> **`/panel`** — y hasta ahí lleva el enlace de `/creditos`.
 >
 > ⚠️ **Esto arregla un incumplimiento real, y se cuenta en vez de taparlo.** La fórmula del MITMS
 > —*«Powered by MITRAMS»*, el enlace y la indicación de si el dato es bruto o procesado— la
@@ -1096,8 +1104,8 @@ Los datos **no** van bajo esa licencia: conservan las suyas, y son **tres regím
 > La del **dato municipal** sigue cumpliéndose además en
 > **[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)**, que es donde está lo que la Ley 37/2007
 > pide y una línea no cabe: fuente, **fecha de la última actualización**, licencia y cómo volver a
-> conseguirlo. La de OpenStreetMap se cumple **dos veces**, en el control del mapa y en el pie, y
-> las dos con la palabra «colaboradores» literal.
+> conseguirlo. La de OpenStreetMap se cumple **tres veces** —en el control del mapa, en la franja
+> del pie y en `/creditos`—, y las tres con la palabra «colaboradores» literal.
 
 > ⚠️ **Rectificación (18/08/2026).** Hasta hoy este párrafo decía que el repositorio **«no
 > tiene ningún dato integrado —ni cartografía, ni callejero, ni paradas—, así que todavía no
