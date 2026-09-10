@@ -158,6 +158,54 @@ describe('App — la cáscara, su página y el comodín', () => {
     expect(peticiones).toEqual([]);
   });
 
+  /**
+   * ⭐ (e) Y AHORA TAMBIÉN /creditos (10/09, remate 2 de la tanda 3).
+   *
+   * La página de créditos y fuentes nació el 10/09 para sacar del pie los
+   * cuatro titulares y sus fórmulas, dejando en la franja sólo lo que la
+   * política de teselas de OSM obliga a tener sobre el mapa. Entra por la misma
+   * puerta que `/panel` y `/identidad`: `loadComponent`.
+   *
+   * ⚠️ Y aquí el invariante importa MÁS que en las otras dos, porque ésta sí
+   *    lleva un enlace desde la portada. Un enlace no es una importación —el
+   *    `href` no arrastra el componente—, pero es la clase de cosa que invita a
+   *    «pues lo importo y ya». Esta juez es la que lo vería.
+   */
+  it('⭐ la portada NO monta la página de créditos', async () => {
+    const { raiz } = await ir('/');
+    expect(raiz.querySelector('app-creditos')).toBeNull();
+  });
+
+  it('⭐ y /creditos sí la monta, que es su sitio', async () => {
+    // El mismo contraste que arriba: si esto no montara nada, la juez anterior
+    // pasaría porque la página está rota, no porque la raíz sea limpia.
+    const { raiz } = await ir('/creditos');
+    expect(raiz.querySelector('app-creditos')).not.toBeNull();
+  });
+
+  it('⭐ y entrar en /creditos tampoco pide nada por `fetch`', async () => {
+    // Es prosa y enlaces: no lee manifiestos, ni datos, ni nada de nadie.
+    await ir('/creditos');
+    expect(peticiones).toEqual([]);
+  });
+
+  /**
+   * ⭐ Y LA PORTADA LLEVA HASTA ELLA, que es la mitad que el resto no pide.
+   *
+   * `/panel` y `/identidad` se llegan escribiendo la URL a propósito. Ésta no
+   * puede: [RD 1495/2011] pide el aviso legal accesible **de forma permanente,
+   * fácil y directa**. Un aviso al que sólo se llega de memoria no lo está.
+   */
+  it('⭐ la portada tiene UN enlace a /creditos, y está en el pie', async () => {
+    const { raiz } = await ir('/');
+    const pie = raiz.querySelector('footer.creditos');
+    expect(pie).not.toBeNull();
+    expect(pie?.querySelector('a[href="/creditos"]')).not.toBeNull();
+    // Uno solo, y no repartido por la pantalla: el encargo lo dice y la
+    // franja es su sitio.
+    expect(raiz.querySelectorAll('a[href="/creditos"]').length).toBe(1);
+  });
+
   it('⭐ y el manifiesto se pide al entrar en /panel, que es su sitio', async () => {
     // El contraste: la misma cáscara, la misma sesión, otra ruta. Si esto NO
     // pidiera nada, la prueba de arriba estaría pasando por la razón

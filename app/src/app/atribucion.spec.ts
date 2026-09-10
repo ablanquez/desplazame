@@ -8,6 +8,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Buscador } from './buscador';
+import { Creditos } from './creditos';
 
 /**
  * ⭐ EL GUARDIÁN DE LA ATRIBUCIÓN, y vigila LOS DOS EXTREMOS DE LA MISMA COSA.
@@ -91,15 +92,77 @@ describe('La atribución — la línea de la pantalla', () => {
   });
 
   /**
-   * ⭐ LOS CUATRO TITULARES, y los cuatro por su nombre.
+   * ⭐ LO QUE SE QUEDA EN LA FRANJA, Y POR QUÉ SÓLO ESTO (10/09, remate 2).
    *
-   * No es una lista decorativa: cada uno está aquí porque su dato está en la
-   * pantalla. Si mañana entra una quinta fuente y su titular no sube a esta
-   * línea, esta prueba no lo verá —no puede—; lo que sí impide es que uno de
-   * los cuatro que YA están se caiga sin que nadie se entere.
+   * Los cuatro titulares vivían aquí desde el 1/09, en una línea corrida de
+   * diez píxeles. Ahora viven en `/creditos`, y esta juez cambió de objeto: ya
+   * no compra «están los cuatro», compra **la excepción**.
+   *
+   * ⚠️ Y la excepción no es una preferencia de diseño. [Ley 37/2007] obliga a
+   *    citar la fuente y la fecha; no dice dónde, y el patrón normativo es el
+   *    aviso legal accesible «de forma permanente, fácil y directa»
+   *    [RD 1495/2011]. **La política de teselas de OpenStreetMap sí dice
+   *    dónde**: su atribución tiene que verse claramente SOBRE EL MAPA, sin
+   *    esconderla tras interfaz. Por eso ésa —y sólo ésa— no se mueve.
+   *
+   * ⚠️ Lo que esta juez NO puede ver es si se LEE: eso son píxeles, y los miden
+   *    `app/e2e/esqueleto.mjs` (L6) y `app/e2e/creditos.mjs`.
    */
-  it('⭐ nombra a los CUATRO titulares del dato que se está enseñando', async () => {
+  it('⭐ la franja conserva la atribución de OpenStreetMap, que es la que no se puede ir', async () => {
+    const p = await pie();
+    const enlace = p.querySelector<HTMLAnchorElement>('a[href*="openstreetmap.org/copyright"]');
+    expect(enlace).not.toBeNull();
+    // [ODbL 1.0, y el ejemplo canónico de Leaflet] la palabra no es opcional.
+    expect(enlace?.textContent).toContain('colaboradores');
+    expect(p.textContent).toContain('Leaflet');
+  });
+
+  /**
+   * ⭐ Y LLEVA HASTA EL RESTO. Sin este enlace, mover los titulares a otra
+   * página no sería reorganizar un aviso legal: sería quitarlo.
+   */
+  it('⭐ y lleva a `/creditos`, que es donde está ahora el resto', async () => {
+    expect((await pie()).querySelector('a[href="/creditos"]')).not.toBeNull();
+  });
+
+  /**
+   * ⭐ LA CONTRAPRUEBA DE LA MUDANZA: lo que se fue, se fue DE VERDAD.
+   *
+   * Si los titulares siguieran también en el pie, las juezas de la página de
+   * abajo darían verde igual y nadie sabría que la franja no se encogió. Ésta
+   * compra la otra mitad del cambio.
+   */
+  it('⭐ y los otros tres titulares ya NO están en la franja', async () => {
     const texto = (await pie()).textContent ?? '';
+    for (const titular of [
+      'Avanza Zaragoza S.A.U.',
+      'Punto de Acceso Nacional (MITMA)',
+      'Ayuntamiento de Zaragoza',
+    ]) {
+      expect(texto).not.toContain(titular);
+    }
+  });
+});
+
+/**
+ * ⭐ LA PÁGINA DE CRÉDITOS — donde vive ahora el aviso entero (10/09).
+ *
+ * Las mismas compras que hacía el pie, palabra por palabra, sobre la pantalla
+ * nueva. **No se han relajado al mudarse**: si una fórmula legal se cumplía en
+ * el pie y aquí no, la mudanza habría perdido una obligación por el camino, que
+ * es exactamente el fallo del que nació la juez del MITMS (§ 1.7 declaraba
+ * cumplida una atribución que no estaba en ninguna pantalla).
+ */
+describe('La atribución — la página de créditos', () => {
+  async function pagina(): Promise<HTMLElement> {
+    await TestBed.configureTestingModule({ imports: [Creditos] }).compileComponents();
+    const fixture = TestBed.createComponent(Creditos);
+    await fixture.whenStable();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('⭐ nombra a los CUATRO titulares del dato que se está enseñando', async () => {
+    const texto = (await pagina()).textContent ?? '';
     for (const titular of [
       'Avanza Zaragoza S.A.U.',
       'Punto de Acceso Nacional (MITMA)',
@@ -111,22 +174,33 @@ describe('La atribución — la línea de la pantalla', () => {
   });
 
   /**
-   * [ODbL 1.0, y el ejemplo canónico de Leaflet] La atribución de
-   * OpenStreetMap **enlaza a la página de copyright**. Ya se cumple en el
-   * control del mapa (`mapa.spec.ts`), y se vuelve a cumplir aquí: son dos
-   * sitios distintos y el crédito del pie no hereda el del mapa.
+   * ⭐ LA FÓRMULA LITERAL DEL AYUNTAMIENTO, que el pie no llegaba a escribir.
+   *
+   * [Aviso legal de la sede de Zaragoza, leído el 01/09/2026] *«Debe citarse la
+   * fuente […] "Origen de los datos: Ayuntamiento de Zaragoza"»*. El pie decía
+   * «Datos municipales: Ayuntamiento de Zaragoza (Ley 37/2007)», que cita al
+   * titular pero no es su fórmula. Aquí cabe entera, y se escribe entera.
    */
-  it('la cartografía enlaza a la página de copyright de OpenStreetMap', async () => {
-    const enlace = (await pie()).querySelector<HTMLAnchorElement>(
-      'a[href*="openstreetmap.org/copyright"]',
-    );
-    expect(enlace).not.toBeNull();
-    expect(enlace?.textContent).toContain('colaboradores');
+  it('⭐ usa la fórmula literal del aviso legal del Ayuntamiento', async () => {
+    expect((await pagina()).textContent).toContain('Origen de los datos: Ayuntamiento de Zaragoza');
   });
 
   /** [Ley 37/2007] El régimen del dato municipal se nombra donde se le cita. */
   it('cita la Ley 37/2007 junto al dato municipal', async () => {
-    expect((await pie()).textContent).toContain('Ley 37/2007');
+    expect((await pagina()).textContent).toContain('Ley 37/2007');
+  });
+
+  /**
+   * ⭐ LA FECHA, RESUELTA COMO PUNTERO. El aviso legal municipal exige
+   * *«mencionar la fecha de la última actualización»*, y escribirla aquí a mano
+   * sería tener dos verdades: la de esta página y la que el motor mide. La
+   * obligación se cumple llevando al panel de frescura, que la calcula dato a
+   * dato — y que el enlace exista es lo que hace que eso sea cierto.
+   */
+  it('⭐ resuelve la fecha de actualización como enlace al panel de frescura', async () => {
+    const p = await pagina();
+    expect(p.querySelector('a[href="/panel"]')).not.toBeNull();
+    expect(p.textContent).toContain('fecha de actualización de cada dato');
   });
 
   /**
@@ -142,13 +216,50 @@ describe('La atribución — la línea de la pantalla', () => {
    *    atribución *«colgada de la capa de trazados»* —la del visor, retirado
    *    el 22/08— y desde entonces **no estaba en ninguna pantalla**. La ficha
    *    decía «cumplida» y era mentira. Que lo diga una ficha no vuelve a
-   *    bastar: lo tiene que decir el DOM.
+   *    bastar: lo tiene que decir el DOM. Y al mudarse el aviso, esta juez se
+   *    ha mudado con él en vez de darse por cumplida en el sitio viejo.
    */
   it('⭐ cumple la fórmula del MITMS: «Powered by MITRAMS», enlace y bruto/procesado', async () => {
-    const p = await pie();
+    const p = await pagina();
     expect(p.textContent).toContain('Powered by MITRAMS');
     expect(p.querySelector('a[href*="transportes.gob.es"]')).not.toBeNull();
     expect(p.textContent).toContain('bruto y procesado');
+  });
+
+  /**
+   * [ODbL 1.0, y el ejemplo canónico de Leaflet] La atribución de
+   * OpenStreetMap **enlaza a la página de copyright**, y la palabra
+   * «colaboradores» no es opcional. Se cumple en tres sitios distintos —el
+   * control del mapa, la franja del pie y esta página— y ninguno hereda del
+   * otro, así que los tres se compran por separado.
+   */
+  it('la cartografía enlaza a la página de copyright de OpenStreetMap', async () => {
+    const enlace = (await pagina()).querySelector<HTMLAnchorElement>(
+      'a[href*="openstreetmap.org/copyright"]',
+    );
+    expect(enlace).not.toBeNull();
+    expect(enlace?.textContent).toContain('colaboradores');
+  });
+
+  /** La licencia de la tipografía viaja con la fuente, y la página lleva a ella. */
+  it('⭐ la tipografía va con su licencia, y el enlace apunta al fichero que viaja', async () => {
+    const p = await pagina();
+    expect(p.textContent).toContain('SIL Open Font License');
+    expect(p.querySelector('a[href="/fuentes/LICENCIA-OFL.txt"]')).not.toBeNull();
+  });
+
+  /**
+   * ⭐ LA LÍNEA DE NO-RESPALDO.
+   *
+   * ⚠️ **Y ésta es la única frase de la página que NO estaba escrita antes en
+   *    ninguna parte de este repositorio** — ni en el pie ni en el notices. Se
+   *    escribe con las palabras del encargo del 10/09, que la declara condición
+   *    del aviso legal del Ayuntamiento. Queda dicho aquí, al lado de la juez,
+   *    para que quien la lea sepa que su fuente es ésa y no una medición
+   *    nuestra: **transcribirla en su ficha con la fecha está PENDIENTE**.
+   */
+  it('⭐ dice que los titulares no respaldan esta aplicación', async () => {
+    expect((await pagina()).textContent).toContain('no participan, patrocinan ni apoyan');
   });
 });
 
@@ -219,10 +330,17 @@ describe('La atribución — las fichas del notices y el recuento del README', (
    * La fila «Dónde está cumplida» de § 1.7 apuntaba a la capa de trazados del
    * visor, que se fue el 22/08. Un puntero a un sitio borrado es peor que no
    * tener puntero: da por hecha una obligación legal que nadie cumple.
+   *
+   * ⚠️ **Y ha vuelto a mudarse el 10/09**: del pie del buscador a `/creditos`.
+   *    Esta juez se puso ROJA con la mudanza —decía «pie de créditos» y la
+   *    ficha ya no lo dice—, que es exactamente para lo que estaba puesta. Se
+   *    actualiza al sitio nuevo, y el sitio nuevo lo compra el DOM en el
+   *    `describe` de arriba: la ficha y la pantalla dicen lo mismo o alguna de
+   *    las dos juezas cae.
    */
-  it('⭐ § 1.7 dice que la atribución del NAP se cumple en el pie, no en el visor', () => {
+  it('⭐ § 1.7 dice que la atribución del NAP se cumple en /creditos, no en el visor', () => {
     const f = ficha('1.7');
-    expect(f).toContain('pie de créditos');
+    expect(f).toContain('/creditos');
     expect(f).not.toContain('| **Dónde está cumplida** | Colgada de la capa de trazados');
   });
 

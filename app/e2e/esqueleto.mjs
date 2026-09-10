@@ -140,6 +140,24 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
                atribucionDestapada: !!enMedio && (enMedio === a || a.contains(enMedio)),
                creditosDestapados: !!enElPie && (enElPie === c || c.contains(enElPie)),
                diceOsm: /OpenStreetMap/i.test(c.innerText),
+               diceLeaflet: /Leaflet/.test(c.innerText),
+               // ⭐ LA LETRA NUEVA (10/09, remate 2). La franja se encogio a
+               //    UNA linea: «Leaflet | © colaboradores de OpenStreetMap ·
+               //    Creditos». El resto de la atribucion se fue a /creditos
+               //    [RD 1495/2011: el aviso accesible «de forma permanente,
+               //    facil y directa»], y lo unico que NO puede irse es la de
+               //    OSM, que la politica de teselas exige ver sobre el mapa.
+               enlaceCreditos: !!c.querySelector('a[href$="/creditos"]'),
+               // ⚠️ «Una linea» se MIDE, no se supone. Un rango sobre el
+               //    contenido devuelve un rectangulo POR FRAGMENTO —no por
+               //    renglon: medido, daba 16 sobre una linea de 24 px de
+               //    alto—, asi que lo que se cuenta son las ALTURAS DISTINTAS
+               //    a las que empiezan esos rectangulos, que si son los
+               //    renglones. Si en movil envolviera, aqui saldria 2.
+               lineas: (() => { const p = c.querySelector('.creditos__linea');
+                 if (!p) return 0; const r = document.createRange();
+                 r.selectNodeContents(p);
+                 return new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size; })(),
                altoPie: Math.round(rc.height),
                textos: c.innerText.replace(/\s+/g, ' ').length };
     `,
@@ -158,6 +176,19 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
         ? `pie ${pie.altoPie}px · dice OSM: ${pie.diceOsm} · destapado: ${pie.creditosDestapados}` +
           ` · la nativa ${pie.atribucionDestapada ? 'tambien se ve' : 'queda bajo la hoja'}`
         : 'falta alguno',
+    );
+
+    // ⭐ Y LA FRANJA ES UNA LINEA, CON SU PUERTA. Las dos mitades de la letra
+    //    nueva: lo que se queda —Leaflet y OSM, que son lo del mapa— y lo que
+    //    lleva al resto —el enlace a /creditos—. Si la linea envolviera en
+    //    movil, `lineas` diria 2 y esta jueza lo cantaria con la medida.
+    juzgar(
+      pie !== null && pie.diceLeaflet && pie.diceOsm && pie.enlaceCreditos && pie.lineas === 1,
+      'L6 · la franja es UNA sola línea: Leaflet, OSM y la puerta a /creditos',
+      pie
+        ? `${pie.lineas} renglón(es) · Leaflet: ${pie.diceLeaflet} · OSM: ${pie.diceOsm}` +
+          ` · enlace a /creditos: ${pie.enlaceCreditos} · ${pie.altoPie}px de alto`
+        : 'no hay pie',
     );
 
     // ═══════════ L1 · SIN SCROLL GLOBAL ═══════════
@@ -328,6 +359,123 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
           `L5 · ${como} — el abierto se queda con el sitio que sobra`,
           abiertos.map((x) => `${x.altoBloque}px`).join(' · '),
         );
+      }
+    }
+
+    // ═══════════ L7 · LA COREOGRAFIA COMPLETA: LA IDA Y LA VUELTA ═══════════
+    //
+    // ⚠️ LA MITAD QUE FALTABA. La ida entro con el remate 1 —[DISENO §57]
+    //    «abatir automaticamente el buscador al obtener resultados; el usuario
+    //    lo reabre a mano»—, pero «lo reabre a mano» no decia que pasaba con el
+    //    resultado, y lo que pasaba era NADA: quedaban los dos abiertos
+    //    reparteindose la altura. La vuelta la decide Antonio, y es la simetrica
+    //    de la ida: reabrir el buscador pliega el resultado — o sea, el estado
+    //    exacto del arranque.
+    //
+    // Se mide EN LO PINTADO, con el mismo lector que L5 —alturas de caja y
+    // `cuerpoOcupa`—, no leyendo clases ni preguntandole a la senal.
+    //
+    // ⚠️ Y se genera UNA RUTA DE VERDAD, no se simula el estado a mano: la ida
+    //    solo existe dentro de `generarRuta`, asi que fabricarla desde fuera
+    //    seria juzgar una coreografia que la app no baila. Hace falta el motor
+    //    sirviendo el dist — es como se lanza este fichero.
+    {
+      const escribir = async (i, texto) => {
+        await m.evaluar(`(() => {
+          const c = document.querySelectorAll('app-autocompletar-via input')[${i}];
+          if (!c) return;
+          const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+          set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+        })()`);
+        await m.dormir(900);
+      };
+      const elegir = async (i, exacto) => {
+        await m.evaluar(`(() => {
+          const c = document.querySelectorAll('app-autocompletar-via')[${i}];
+          if (!c) return;
+          const ops = [...c.querySelectorAll('[role=option]')];
+          const o = ops.find((x) => x.textContent.trim().toUpperCase() === ${JSON.stringify(exacto.toUpperCase())}) ?? ops[0];
+          if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+        })()`);
+        await m.dormir(700);
+      };
+      const portal = async (i, num) => {
+        await m.evaluar(`(() => {
+          const c = document.querySelectorAll('app-selector-portal input')[${i}];
+          if (!c) return;
+          c.focus();
+          const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+          set.call(c, ${JSON.stringify(num)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+        })()`);
+        await m.dormir(600);
+        await m.evaluar(`(() => {
+          const c = document.querySelectorAll('app-selector-portal')[${i}];
+          if (!c) return;
+          const ops = [...c.querySelectorAll('[role=option]')];
+          const o = ops.find((x) => x.textContent.trim() === ${JSON.stringify(num)}) ?? ops[0];
+          if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+        })()`);
+        await m.dormir(500);
+      };
+
+      // El buscador tiene que estar abierto para escribir en el: L5 lo dejo
+      // plegado, y un campo oculto no se rellena.
+      await ponerEn(true, false);
+      await escribir(0, 'COLOSO');
+      await elegir(0, 'COLOSO');
+      await portal(0, '2');
+      await escribir(1, 'CALLE OVIEDO');
+      await elegir(1, 'CALLE OVIEDO');
+      await portal(1, '5');
+      // Andando: es el modo que el motor SI calcula y el que menos tarda. Bus
+      // y coche se van por el atajo del «todavia no» y no llegan a la ida.
+      await m.evaluar(`document.querySelector('input[name=familia][value=andando]').click()`);
+      await m.dormir(300);
+
+      const listo = await m.evaluar(`(() => {
+        const b = [...document.querySelectorAll('button.generar')][0];
+        return !!b && !b.disabled;
+      })()`);
+      juzgar(listo === true, 'L7 · los cuatro campos puestos: «Generar ruta» se puede pulsar');
+
+      if (listo) {
+        await m.evaluar(`document.querySelector('button.generar').click()`);
+        // Se espera a que la ruta LLEGUE, no N milisegundos: el boton vuelve de
+        // «Generando…» cuando el motor ha contestado.
+        for (let i = 0; i < 60 && (await m.evaluar(`!!document.querySelector('button.generar')?.disabled`)); i++) {
+          await m.dormir(500);
+        }
+        await m.dormir(600);
+
+        const ida = await leer(m, estadoDeLosBloques);
+        juzgar(
+          ida[0].abierto === false && !ida[0].cuerpoOcupa && ida[1].abierto === true && ida[1].altoCuerpo > 0,
+          'L7 · IDA — al generar: el resultado se abre y el buscador se pliega',
+          `buscador ${ida[0].abierto ? 'abierto' : 'plegado'} (cuerpo ${ida[0].altoCuerpo}px) · ` +
+            `resultado ${ida[1].abierto ? 'abierto' : 'plegado'} (cuerpo ${ida[1].altoCuerpo}px)`,
+        );
+
+        await m.guardar(`${CAPTURAS}/coreografia-${nombre}-ida.png`);
+
+        // Y LA VUELTA: se pulsa la cabecera del Buscador, como haria una mano.
+        await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[0].click()`);
+        await m.dormir(500);
+        const vuelta = await leer(m, estadoDeLosBloques);
+        juzgar(
+          vuelta[0].abierto === true && vuelta[0].altoCuerpo > 0 &&
+            vuelta[1].abierto === false && !vuelta[1].cuerpoOcupa,
+          'L7 · VUELTA — al reabrir el buscador: el resultado se pliega abajo',
+          `buscador ${vuelta[0].abierto ? 'abierto' : 'plegado'} (cuerpo ${vuelta[0].altoCuerpo}px) · ` +
+            `resultado ${vuelta[1].abierto ? 'abierto' : 'plegado'} (cuerpo ${vuelta[1].altoCuerpo}px)`,
+        );
+        // Y el sitio al que se vuelve es EL DEL ARRANQUE, no uno parecido.
+        juzgar(
+          vuelta[0].abierto === alArrancar[0] && vuelta[1].abierto === alArrancar[1],
+          'L7 · y la vuelta deja exactamente el estado del arranque',
+          `arranque ${alArrancar.join('/')} · vuelta ${vuelta.map((x) => x.abierto).join('/')}`,
+        );
+
+        await m.guardar(`${CAPTURAS}/coreografia-${nombre}-vuelta.png`);
       }
     }
 

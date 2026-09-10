@@ -140,9 +140,10 @@ try {
   //
   //    La raya se mueve cada tanda, a la medida de la anterior: lo que se
   //    compara siempre es «un paso», no «el origen». Ha ido marcando
-  //    3ff5fd8 (4 · 506.686 B, antes de los tokens) y la tanda 1 (6 · 518.423);
-  //    ahora marca el final de la tanda 2, que es contra lo que crece esta.
-  const ANTES = { peticiones: 8, bytes: 745483, de: 'la tanda 2 (fca1aa3)' };
+  //    3ff5fd8 (4 · 506.686 B, antes de los tokens), la tanda 1 (6 · 518.423) y
+  //    la tanda 2 (8 · 745.483); ahora marca el remate 1 de la tanda 3, que es
+  //    contra lo que crece este.
+  const ANTES = { peticiones: 8, bytes: 751542, de: 'el remate 1 de la tanda 3 (ffc2964)' };
   console.log(`\n  antes de esta tanda — ${ANTES.de}: ${ANTES.peticiones} peticiones · ${ANTES.bytes} B`);
   console.log(
     `  ahora:                          ${propias.length} peticiones · ${peso} B` +
