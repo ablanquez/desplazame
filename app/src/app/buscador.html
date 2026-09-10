@@ -1016,20 +1016,28 @@
   </button>
   </div>
 
-  <!-- ⭐ LOS CREDITOS, AL PIE DEL MAPA (tanda 3-bis).
+  <!-- ⭐ LA FRANJA DEL PIE, ENCOGIDA A UNA LÍNEA (10/09, remate 2).
 
-       Los textos legales son los MISMOS, uno por uno: lo unico que cambia es
-       donde viven y lo compactos que van. Antes ocupaban un bloque fijo del
-       panel; ahora son la linea fina que la maqueta pone bajo el mapa.
+       Antes llevaba los cuatro titulares y la línea de fechas. Ahora lleva
+       **lo del mapa y una puerta**, y el resto vive en `/creditos`.
 
-       ⚠️ Se queda A LA IZQUIERDA y deja libre la esquina derecha, que es
-          donde Leaflet pone la suya: la atribucion nativa NO se tapa ni se
-          sustituye. La maqueta la esconde con `display: none` y escribe la
-          suya en su lugar; aqui conviven, porque tapar una atribucion para
-          reescribirla es justo lo que no debe pasar por descuido.
+       ⚠️ POR QUÉ SE PUEDE MOVER LO DEMÁS, Y POR QUÉ ESTO NO.
+          [Ley 37/2007] obliga a citar la fuente y la fecha; no dice que tengan
+          que caber al pie de la pantalla. El patrón normativo es el contrario:
+          [RD 1495/2011] pide el aviso legal accesible «de forma permanente,
+          fácil y directa», que es un enlace fijo — y por eso el enlace está en
+          las dos pantallas, no en una.
+          **La atribución de OpenStreetMap es la excepción**: su política de
+          teselas exige verla claramente SOBRE EL MAPA, sin esconderla tras
+          interfaz. Ésa se queda, con Leaflet al lado, que es la misma línea que
+          pinta el control nativo.
 
-       ⚠️ Y sigue siendo `<footer>` fuera de `<main>`: sus ancestros son
-          todos `div`, asi que su papel de `contentinfo` no se toca. -->
+       ⚠️ Sigue a la IZQUIERDA, dejando libre la esquina donde Leaflet pone la
+          suya: la nativa no se tapa ni se sustituye. La maqueta la esconde con
+          `display: none`; aquí conviven.
+
+       ⚠️ Y sigue siendo `<footer>` fuera de `<main>`: sus ancestros son todos
+          `div`, así que su papel de `contentinfo` no se toca. -->
   <footer class="creditos">
   <p class="creditos__linea">
     <!-- ⭐ LOS `&ngsp;` NO SON ADORNO, y esto se descubrió MIDIENDO (1/09).
@@ -1041,30 +1049,17 @@
          y en el árbol de accesibilidad, donde el punto va oculto, quedaban
          pegados el uno al otro sin nada en medio: «S.A.U.Horarios».
 
-         Es la misma cicatriz que § 1.24 del notices le documenta a Avanza
-         —`053MIRALBUENO`—, y aquí la habríamos puesto nosotros.
-
          `&ngsp;` es la entidad de Angular para «un espacio que SÍ sobrevive».
          Va fuera de los tramos ocultos, así que separa las dos cosas: lo que se
-         ve y lo que se lee en voz alta. -->
-    <span class="creditos__parte">Llegadas y recorrido operativo: Avanza Zaragoza S.A.U.</span>&ngsp;<span
-      class="creditos__punto"
-      aria-hidden="true"
-      >·</span
-    >&ngsp;<span class="creditos__parte"
-      >Horarios: GTFS del Punto de Acceso Nacional (MITMA) —
-      <a
-        class="creditos__enlace"
-        href="https://www.transportes.gob.es/"
-        target="_blank"
-        rel="noopener"
-        >Powered by MITRAMS</a
-      >
-      (dato bruto y procesado)</span
-    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
-      >Datos municipales: Ayuntamiento de Zaragoza (Ley 37/2007)</span
-    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<span class="creditos__parte"
-      >Cartografía: ©
+         ve y lo que se lee en voz alta. La línea es más corta que antes, pero
+         las juntas siguen siendo juntas. -->
+    <span class="creditos__parte"
+      ><a class="creditos__enlace" href="https://leafletjs.com/" target="_blank" rel="noopener"
+        >Leaflet</a
+      ></span
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">|</span>&ngsp;<span
+      class="creditos__parte"
+      >&copy;
       <a
         class="creditos__enlace"
         href="https://www.openstreetmap.org/copyright"
@@ -1072,11 +1067,11 @@
         rel="noopener"
         >colaboradores de OpenStreetMap</a
       ></span
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<a
+      class="creditos__enlace"
+      href="/creditos"
+      >Créditos</a
     >
-  </p>
-  <p class="creditos__fechas">
-    La fecha de actualización de cada dato, medida una a una, está en
-    <a class="creditos__enlace" href="/panel">el panel de frescura</a>.
   </p>
   </footer>
 </div>

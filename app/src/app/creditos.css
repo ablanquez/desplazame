@@ -1,0 +1,82 @@
+/* La página de créditos. Todo sale de los tokens: si aquí apareciera un hex
+   suelto, esta página se pintaría con una paleta distinta a la del producto.
+   Las únicas medidas propias son espacios y tamaños de letra. */
+
+.creditos-pagina {
+  display: block;
+  /* ⚠️ 42rem, no las 78 de `/identidad`: aquélla enseña una rejilla de
+     muestras y ésta es PROSA, y una línea de prosa a 78rem no se lee. La
+     tipografía de la casa lo dice desde el modelado: la medida cómoda anda por
+     los 60-75 caracteres. */
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  line-height: 1.65;
+}
+
+.creditos-pagina h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.creditos-pagina h2 {
+  margin: 2.25rem 0 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.creditos-pagina p {
+  margin: 0 0 0.75rem;
+}
+
+.creditos-pagina__intro {
+  color: var(--muted-foreground);
+}
+
+/* El titular de cada fuente: es el dato que la ley pide que se vea, así que va
+   con el peso del cuerpo del texto y no en gris. */
+.creditos-pagina__titular {
+  font-weight: 600;
+}
+
+.creditos-pagina__volver {
+  margin-bottom: 0;
+}
+
+.creditos-pagina__pie {
+  margin-top: 2.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+
+.creditos-pagina code {
+  /* No hay token de monoespaciada: la identidad sólo define la de texto. Se
+     escribe la pila del sistema, y se dice que es propia. */
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+}
+
+.creditos-pagina__enlace {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.creditos-pagina__enlace:hover {
+  text-decoration: none;
+}
+
+/* [WCAG 2.4.7] El foco no se quita: se refuerza. La misma regla que en el pie
+   del buscador y en `.detalles`. */
+.creditos-pagina__enlace:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

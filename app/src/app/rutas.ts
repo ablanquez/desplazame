@@ -42,6 +42,20 @@ export const rutas: Routes = [
    * la misma razón — el sitio donde el ojo comprueba no puede ser el producto.
    */
   { path: 'identidad', loadComponent: () => import('./identidad').then((m) => m.Identidad) },
+  /**
+   * ⭐ La página de créditos y fuentes, y **por la misma puerta que las otras
+   * dos**.
+   *
+   * `loadComponent`: la portada no baja ni su código ni su plantilla. Es la
+   * misma ley del 22/08 y tiene el mismo guardián en `app.spec.ts`.
+   *
+   * ⚠️ **Y ésta SÍ tiene enlace**, que es lo que la distingue de `/panel` y de
+   *    `/identidad`. Uno solo, y en la franja del pie: *«Leaflet | ©
+   *    colaboradores de OpenStreetMap · Créditos»*. Un aviso legal al que sólo
+   *    se llega escribiendo la URL no está *«accesible de forma permanente,
+   *    fácil y directa»* [RD 1495/2011], que es justo lo que se le exige.
+   */
+  { path: 'creditos', loadComponent: () => import('./creditos').then((m) => m.Creditos) },
   // Una dirección que no existe no puede dejar la pantalla en blanco.
   { path: '**', redirectTo: '' },
 ];

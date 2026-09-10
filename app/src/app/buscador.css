@@ -720,12 +720,12 @@ legend {
   margin: 0;
 }
 
-.creditos__fechas {
-  margin: 0.1rem 0 0;
-}
+/* ⚠️ `.creditos__fechas` se fue con el remate 2: la línea de la fecha vive
+   ahora en `/creditos`, y una regla para una clase que ya no existe es de las
+   cosas que sobreviven años sin que nadie sepa por qué están.
 
-/* El separador es adorno: quien lee la pantalla en voz alta ya tiene el
-   espacio entre partes, y «punto medio» cuatro veces no informa de nada.
+   El separador es adorno: quien lee la pantalla en voz alta ya tiene el
+   espacio entre partes, y «punto medio» dos veces no informa de nada.
    Va `aria-hidden` en la plantilla y aquí solo se le da aire. */
 .creditos__punto {
   margin: 0 0.15rem;
