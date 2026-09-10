@@ -72,6 +72,16 @@ describe('⭐ LOS SITIOS en los dos extremos', () => {
     fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     raiz = fixture.nativeElement as HTMLElement;
+
+    // ⭐ Y SE ELIGE EL MODO, EXPLÍCITAMENTE (10/09) — [ANTONIO].
+    //
+    // Hasta hoy la pantalla abría con «Andando» puesto y estas pruebas se
+    // apoyaban en ello sin decirlo: pulsaban «Generar» y el modo estaba ahí.
+    // Al quitar el defecto **mordieron todas a la vez**, y la actualización no
+    // es aflojarlas: es escribir lo que antes se daba por hecho. Este fichero
+    // no prueba el modo —prueba los sitios en los dos extremos—, así que elige el más simple y sigue.
+    raiz.querySelector<HTMLInputElement>('input[name="familia"][value="andando"]')!.click();
+    fixture.detectChanges();
   });
 
   afterEach(() => {

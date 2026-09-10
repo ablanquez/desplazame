@@ -664,7 +664,10 @@ Con las dos arriba, en el navegador:
 > Cualquier otra —incluida `/visor`, que fue una página hasta el 22/08— cae en el buscador por
 > el comodín del router: ni pantalla en blanco ni 404.
 
-> ⚠️ **Andando es el modo que viene marcado al abrir.** Las tres ruedas —bici privada, patín y
+> ⭐ **AL ABRIR NO HAY NINGÚN MODO MARCADO** (10/09) — y «Limpiar búsqueda» devuelve a eso
+> mismo. ⚠️ **Aquí ponía «Andando es el modo que viene marcado al abrir»**, que era el defecto
+> de la maqueta: nadie decide por quien busca que va andando, y el modo entra en la condición
+> que enciende «Generar ruta». Las tres ruedas —bici privada, patín y
 > BiZi— dan ruta desde el 29/08, el **bus y el tranvía desde el 31/08**, el **coche desde el 3/09**
 > y la **moto y YeGo desde el 4 y el 5/09**. **Ya no queda ningún modo cortado**: los ocho viajan
 > al motor, y ninguna ruta a pie se disfraza de otra cosa. ⚠️ **Aquí ponía «solo el coche conserva

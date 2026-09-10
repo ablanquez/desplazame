@@ -1432,8 +1432,23 @@ export class Buscador {
   protected readonly origen = ladoVacio();
   protected readonly destino = ladoVacio();
 
-  /** Andando por defecto. */
-  protected readonly modo = signal<Modo>('andando');
+  /**
+   * ⭐ EL MODO, Y AL ABRIR NO HAY NINGUNO (10/09) — [ANTONIO], sobre el calco.
+   *
+   * Era `signal<Modo>('andando')` porque eso hace la maqueta. **Y eso muere**:
+   * nadie decide por quien busca que va andando. Es la misma ley que esta
+   * pantalla aplica desde el 3/09 al distintivo y a la autorización —[DOC
+   * GOV.UK] «nada preseleccionado»—, y aquí pesa más, porque el modo es lo que
+   * decide la ruta entera: quien no mira la fila se lleva seis kilómetros a pie
+   * sin haber dicho que iba andando.
+   *
+   * ⚠️ **El `null` no es «un modo más»: es la ausencia de respuesta**, y por eso
+   *    entra en el tipo en vez de inventarse un `'ninguno'`. Un séptimo valor
+   *    habría que traducirlo en cada sitio que pregunta —y el contrato tendría
+   *    que aprender una palabra que al motor no le sirve—; el `null` lo cazan
+   *    los tipos, que es lo que obligó a poner el guardián de `generarRuta`.
+   */
+  protected readonly modo = signal<Modo | null>(null);
 
   /**
    * ⭐ EN QUÉ FAMILIA ESTAMOS, **derivado del modo y no guardado aparte**.
@@ -1445,7 +1460,10 @@ export class Buscador {
    * mandaría otro modo — sin que nada se pusiera rojo, porque las dos señales
    * serían coherentes cada una consigo misma.
    */
-  protected readonly familia = computed<Familia>(() => familiaDe(this.modo()));
+  protected readonly familia = computed<Familia | null>(() => {
+    const modo = this.modo();
+    return modo === null ? null : familiaDe(modo);
+  });
 
   /**
    * ⭐ LAS TRES CLASES DE RUTA, y el trío no es nuestro.
@@ -2592,7 +2610,11 @@ export class Buscador {
       lado.sitio.set(null);
     }
 
-    this.modo.set('andando');
+    // ⭐ Y EL MODO A NINGUNO (10/09) — [ANTONIO]. Esta línea decía
+    //    `set('andando')` porque eso hace `handleReset` de la maqueta, y esa
+    //    letra cambia con la del arranque: «como al abrirla» sigue siendo la
+    //    regla, y al abrirla ya no hay modo.
+    this.modo.set(null);
     this.tipoDeRuta.set('equilibrada');
     this.aparcamiento.set(null);
     this.distintivo.set(null);
@@ -2729,10 +2751,13 @@ export class Buscador {
   private claveDeLaPregunta(): string | null {
     const origen = this.extremoDe(this.origen);
     const destino = this.extremoDe(this.destino);
-    if (!origen || !destino) {
+    const modo = this.modo();
+    // ⚠️ Y el modo cuenta: sin él la pregunta no está entera, igual que sin un
+    //    extremo. Antes no podía faltar —siempre había uno— y desde el 10/09 sí.
+    if (!origen || !destino || modo === null) {
       return null;
     }
-    return JSON.stringify({ origen, destino, modo: this.modo() });
+    return JSON.stringify({ origen, destino, modo });
   }
 
   protected etiquetaDe(modo: Modo): string {
@@ -2778,7 +2803,16 @@ export class Buscador {
     // que no hay dos caminos que mantener a la par.
     const origen = this.extremoDe(this.origen);
     const destino = this.extremoDe(this.destino);
-    if (!origen || !destino) {
+    // ⭐ Y EL MODO, QUE DESDE EL 10/09 PUEDE NO HABERSE CONTESTADO.
+    //
+    // El botón ya está apagado sin él —`sePuedeGenerar`—, así que esto no lo
+    // ve nadie por la pantalla. Se pone igual, y no por costumbre: es **el
+    // guardián que convierte `Modo | null` en `Modo`** para el resto de la
+    // función, y sin él el `PeticionDeRuta` de abajo no compila. Ese error de
+    // tipos es la red de verdad — el día que alguien encienda el botón por
+    // otro camino, esto sigue sin dejar salir una petición sin modo.
+    const modo = this.modo();
+    if (!origen || !destino || modo === null) {
       return;
     }
 
@@ -2790,7 +2824,7 @@ export class Buscador {
     const peticion: PeticionDeRuta = {
       origen,
       destino,
-      modo: this.modo(),
+      modo,
       // ⭐ Y lo del vehículo de motor, **solo si se ha contestado**. Ver
       // `loDelVehiculo`.
       ...this.loDelVehiculo(),
@@ -2802,7 +2836,7 @@ export class Buscador {
     // deja la pantalla abierta media hora vería el contorno de hace media hora
     // mientras el motor filtra con el de ahora — **dos verdades otra vez**. No
     // cuesta una salida a la red: el motor lo tiene guardado sus 240 s.
-    if (this.modo() === 'yego') {
+    if (modo === 'yego') {
       this.traerElArea();
     }
 
@@ -2823,7 +2857,6 @@ export class Buscador {
     // causa. La respuesta tiene la MISMA forma que la del motor: un trayecto
     // con su modo, cero pasos y un aviso ámbar, así que se pinta por el mismo
     // camino y no hay una segunda manera de enseñar lo mismo.
-    const modo = this.modo();
     const todavia = this.modos.find((m) => m.id === modo)?.todavia;
     if (todavia) {
       this.pinta({
@@ -3042,11 +3075,16 @@ export class Buscador {
   }
 
   protected sePuedeGenerar(): boolean {
+    // ⭐ Y EL MODO ES CONDICIÓN (10/09). Desde que no viene ninguno puesto, un
+    // formulario con los dos extremos **todavía no es una pregunta**: falta por
+    // dónde. Sin esta línea el botón se encendería con el modo sin contestar y
+    // el fallo aparecería en el motor, que es el sitio caro de descubrirlo.
+    //
     // ⭐ LA REGLA DEL PORTAL CONDICIONAL (19/08), en los DOS lados. Un sitio
     // trae su propia coordenada, así que no hay portal que exigirle — y
     // exigírselo dejaría el botón apagado para siempre, porque esa casilla ni
     // siquiera se puede rellenar. Un lado con sitio ya está completo.
-    return this.estaListo(this.origen) && this.estaListo(this.destino);
+    return this.modo() !== null && this.estaListo(this.origen) && this.estaListo(this.destino);
   }
 
   /**

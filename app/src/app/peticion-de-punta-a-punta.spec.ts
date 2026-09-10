@@ -69,6 +69,17 @@ describe('⭐ DE PUNTA A PUNTA: lo que manda la pantalla, leído por el motor', 
     fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     raiz = fixture.nativeElement as HTMLElement;
+
+    // ⭐ Y SE ELIGE EL MODO, EXPLÍCITAMENTE (10/09) — [ANTONIO].
+    //
+    // Hasta hoy la pantalla abría con «Andando» puesto y estas pruebas se
+    // apoyaban en ello sin decirlo: pulsaban «Generar» y el modo estaba ahí.
+    // Al quitar el defecto **mordieron todas a la vez**, y la actualización no
+    // es aflojarlas: es escribir lo que antes se daba por hecho. Este fichero
+    // no prueba el modo —prueba lo que sale al cable—, así que elige el más
+    // simple y sigue. Las pruebas que necesitan OTRO modo lo eligen ellas.
+    raiz.querySelector<HTMLInputElement>('input[name="familia"][value="andando"]')!.click();
+    fixture.detectChanges();
   });
 
   afterEach(() => {

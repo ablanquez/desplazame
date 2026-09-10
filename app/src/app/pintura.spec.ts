@@ -327,7 +327,7 @@ describe('⭐ «LIMPIAR BÚSQUEDA» — calcada de handleReset', () => {
     const componente = fixture.componentInstance as unknown as {
       origen: { calle: { set(v: string): void }; via: { set(v: unknown): void } };
       destino: { calle: { set(v: string): void }; via: { set(v: unknown): void } };
-      modo: { set(v: string): void; (): string };
+      modo: { set(v: string | null): void; (): string | null };
       limpiar(): void;
     };
 
@@ -343,7 +343,11 @@ describe('⭐ «LIMPIAR BÚSQUEDA» — calcada de handleReset', () => {
 
     const cajas = raiz.querySelectorAll<HTMLInputElement>('app-autocompletar-via input');
     expect([...cajas].map((c) => c.value)).toEqual(['', '']);
-    expect(componente.modo()).toBe('andando');
+    // ⭐ Y EL MODO, A NINGUNO (10/09) — [ANTONIO]. Esta línea decía `'andando'`
+    //    porque eso hacía `handleReset` de la maqueta, y **mordió** al cambiar
+    //    la letra: «Limpiar» deja la pantalla como al abrirla, y al abrirla ya
+    //    no hay modo elegido.
+    expect(componente.modo()).toBeNull();
     expect(raiz.querySelector<HTMLButtonElement>('.generar')!.disabled).toBe(true);
   });
 });

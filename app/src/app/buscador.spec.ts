@@ -1295,6 +1295,32 @@ async function direccionEntera(fixture: any, http: HttpTestingController): Promi
   await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
   await elegirPortal(fixture, http, 'portalDestino', '45');
   await fixture.whenStable();
+  aseguraQueHayModo(fixture);
+}
+
+/**
+ * ⭐ UN MODO PUESTO, PORQUE YA NO VIENE NINGUNO (10/09).
+ *
+ * Hasta hoy «los cuatro campos» bastaban para encender «Generar ruta»: el modo
+ * venía marcado en «Andando» de fábrica. Al quitarlo —[ANTONIO], ver la señal
+ * `modo`— **99 pruebas se pusieron rojas de golpe**, y no porque midieran mal:
+ * medían lo que había, y lo que había cambió. Esto es la actualización.
+ *
+ * ⚠️ **Solo elige si NO hay ninguno elegido**, y esa condición es la pieza. Las
+ *    pruebas que llaman a `elegirModo` ANTES de rellenar —las de la bici, las
+ *    del coche, las de la ZBE— seguirían en su modo; poner «Andando» a ciegas
+ *    aquí se lo borraría y las pondría a probar otra cosa sin decirlo, que es
+ *    peor que el rojo que se venía a arreglar.
+ *
+ * ⚠️ Y se pregunta al DOM, no a una señal: quien decide si hay modo es el mismo
+ *    `checked` que ve quien mira la pantalla.
+ */
+function aseguraQueHayModo(fixture: any): void {
+  const raiz = fixture.nativeElement as HTMLElement;
+  if (radiosDeFamilia(raiz).some((r) => r.checked)) {
+    return;
+  }
+  elegirModo(fixture, 'andando');
 }
 
 /**
@@ -1890,8 +1916,17 @@ describe('Buscador', () => {
       expect(r.hasAttribute('tabindex')).toBe(false);
     }
 
-    // Exactamente uno marcado, siempre. Es la exclusión, y la da el navegador.
-    expect(radios.filter((r) => r.checked).length).toBe(1);
+    // ⭐ AL ABRIR, CERO MARCADOS (10/09) — [ANTONIO]. Esta línea decía
+    //    «exactamente uno marcado, SIEMPRE» y **mordió al quitar el defecto**,
+    //    que es lo que se le pedía. La exclusión sigue siendo la misma y sigue
+    //    dándola el navegador; lo que cambia es de dónde parte: de cero.
+    expect(radios.filter((r) => r.checked).length).toBe(0);
+
+    // Y en cuanto se elige una, exactamente una — la exclusión, que es lo que
+    // esta prueba venía a comprar y no se pierde por el camino.
+    elegirModo(fixture, 'patin');
+    await fixture.whenStable();
+    expect(radiosDeFamilia(raiz).filter((r) => r.checked).length).toBe(1);
 
     // Y no queda ni un `<button class="modo">` del control viejo.
     expect(raiz.querySelectorAll('button.modo').length).toBe(0);
@@ -1931,10 +1966,49 @@ describe('Buscador', () => {
     ]);
   });
 
-  it('andando viene marcado al cargar, y es el único', async () => {
+  /**
+   * ⭐ AL ABRIR NO HAY MODO ELEGIDO (10/09) — [ANTONIO], y manda sobre el calco.
+   *
+   * La maqueta arranca con «Andando» marcado y **eso muere**: nadie decide por
+   * quien busca que va andando. Preseleccionar una opción en un grupo de radios
+   * es exactamente lo que [DOC GOV.UK] lleva prohibido en esta pantalla desde el
+   * 3/09 para el distintivo y la autorización —«nada preseleccionado»—, y el
+   * modo no era menos: quien no se fija en la fila manda «andando» sin haberlo
+   * dicho, y se lleva una ruta a pie de seis kilómetros.
+   *
+   * Esta jueza compra **las tres consecuencias a la vez**, porque son una sola
+   * decisión y separarlas dejaría pasar media:
+   *
+   *   1. cero chips marcados — ni la clase ni el `checked`;
+   *   2. cero subformularios — ninguno de los `fieldset.modos` que no sea la
+   *      primera fila, porque todos cuelgan del modo;
+   *   3. «Generar ruta» apagado — el modo entra en su condición de habilitado.
+   *
+   * ⚠️ La 3 es la que de verdad protege: sin ella se podría pedir una ruta con
+   *    el modo sin contestar, y el fallo saldría en el motor y no aquí.
+   */
+  it('⭐ al abrir NO hay modo elegido: cero chips, cero subformularios, «Generar» apagado', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+
+    expect(modosActivos(raiz)).toEqual([]);
+    expect(radiosDeFamilia(raiz).filter((r) => r.checked)).toEqual([]);
+    expect(
+      Array.from(raiz.querySelectorAll('fieldset.modos:not(.familias)')).map((f) =>
+        f.querySelector('legend')?.textContent?.trim(),
+      ),
+    ).toEqual([]);
+    expect(botonGenerar(raiz).disabled).toBe(true);
+  });
+
+  it('elegir una familia la marca, y es la única marcada', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    elegirModo(fixture, 'andando');
+    await fixture.whenStable();
 
     expect(modosActivos(raiz)).toEqual(['Andando']);
     const marcados = radiosDeFamilia(raiz).filter((r) => r.checked);
@@ -2498,6 +2572,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     expect(botonGenerar(raiz).disabled).toBe(true);
 
@@ -2517,6 +2594,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     escribir(raiz, 'calleOrigen', 'Don Jaime I');
     escribir(raiz, 'calleDestino', 'Avenida de Goya');
@@ -2555,6 +2635,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
@@ -2572,6 +2655,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
     await elegirPortal(fixture, http, 'portalOrigen', '2');
@@ -2601,6 +2687,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
     await elegirPortal(fixture, http, 'portalOrigen', '2');
@@ -4263,6 +4352,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     await elegirCalle(fixture, http, 'calleOrigen', 'burgos', BURGOS, PORTALES_BURGOS);
     await elegirPortal(fixture, http, 'portalOrigen', '2');
@@ -4294,6 +4386,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     // Origen a medias: escrito, no elegido, y salido del campo — borrador.
     escribir(raiz, 'calleOrigen', 'burgos');
@@ -4343,6 +4438,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     // El destino se pone a mano, para que solo falte el origen.
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
@@ -4412,6 +4510,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 20));
     botonUbicacion(raiz).click();
@@ -4572,6 +4673,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     respondeGeo = (exito) => exito(posicion(PILAR[0], PILAR[1], 20));
     botonUbicacion(raiz).click();
@@ -4613,6 +4717,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     await elegirCalle(fixture, http, 'calleOrigen', 'puente', PUENTE, null);
     // Con un solo lado todavía no: la regla de los dos extremos no se afloja.
@@ -4644,6 +4751,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     await elegirCalle(fixture, http, 'calleOrigen', 'puente', PUENTE, null);
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
@@ -4688,6 +4798,9 @@ describe('Buscador', () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
+    // ⭐ Y UN MODO PUESTO, que desde el 10/09 no viene ninguno de fábrica: sin él
+    //    «Generar» sigue apagado por el modo y esta prueba dejaría de medir lo suyo.
+    aseguraQueHayModo(fixture);
 
     await elegirCalle(fixture, http, 'calleOrigen', 'puente', PUENTE, null);
     await elegirCalle(fixture, http, 'calleDestino', 'goya', GOYA, PORTALES_GOYA);
@@ -6408,7 +6521,9 @@ describe('Buscador', () => {
       ]);
       // Sigue siendo UN grupo: un solo `name`, una sola parada de tabulador.
       expect(new Set(radios.map((r) => r.name)).size).toBe(1);
-      expect(radios.filter((r) => r.checked).length).toBe(1);
+      // ⭐ Y AL ABRIR, NINGUNO MARCADO (10/09) — [ANTONIO]. Decía `toBe(1)` y
+      //    mordió al quitar el «Andando» de fábrica.
+      expect(radios.filter((r) => r.checked).length).toBe(0);
 
       // Y lo que viaja es el modo del contrato, sin nada más pegado.
       elegirModo(fixture, 'moto');
