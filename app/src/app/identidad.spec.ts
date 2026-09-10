@@ -519,12 +519,18 @@ describe('⭐ (v) LA BASE — el body vestido, y la letra que llega a tiempo', (
   });
 
   /**
-   * ⚠️ El `margin` del body NO se toca en esta tanda. La referencia lo lleva a
-   *    cero por el reset de Tailwind, y copiarlo aquí movería la página entera
-   *    ocho píxeles — que es exactamente lo que esta tanda no hace.
+   * ⭐ El margen del body, a cero — y esta jueza pedía lo contrario hasta la
+   * tanda 3.
+   *
+   * ⚠️ Mientras el `body` solo estaba vestido, tocarle el margen habría movido
+   *    la página ocho píxeles sin ganar nada, y esta jueza lo prohibía. Con el
+   *    esqueleto encima la cuenta cambia: la app ocupa **exactamente** la
+   *    pantalla, y esos 8 px hacían que el documento midiera 860 en una ventana
+   *    de 844 — scroll global, que es justo lo que el layout no puede tener.
+   *    Se reformula en vez de borrarse para que quede dicho por qué cambió.
    */
-  it('⚠️ el body NO toca su margen: eso movería el layout, y es de otra tanda', () => {
-    expect(base).not.toMatch(/(^|[\s;])margin\s*:/);
+  it('⭐ el body pone su margen a cero, que es lo que el esqueleto exige', () => {
+    expect(base).toMatch(/margin:\s*0/);
   });
 
   /**

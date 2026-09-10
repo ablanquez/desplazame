@@ -138,11 +138,11 @@ try {
   //    en cada ejecucion. Crecimiento gobernado, no congelado: la raya en la
   //    pared esta para que nadie tenga que acordarse de mirar.
   //
-  //    La raya se mueve cada tanda, a la medida de la anterior. Antes marcaba
-  //    3ff5fd8 (4 peticiones · 506.686 B), que era el estado previo a los
-  //    tokens; ahora marca el final de la tanda 1, que es contra lo que crece
-  //    esta. Lo que se compara siempre es «un paso», no «el origen».
-  const ANTES = { peticiones: 6, bytes: 518423, de: 'la tanda 1 (13b78e3)' };
+  //    La raya se mueve cada tanda, a la medida de la anterior: lo que se
+  //    compara siempre es «un paso», no «el origen». Ha ido marcando
+  //    3ff5fd8 (4 · 506.686 B, antes de los tokens) y la tanda 1 (6 · 518.423);
+  //    ahora marca el final de la tanda 2, que es contra lo que crece esta.
+  const ANTES = { peticiones: 8, bytes: 745483, de: 'la tanda 2 (fca1aa3)' };
   console.log(`\n  antes de esta tanda — ${ANTES.de}: ${ANTES.peticiones} peticiones · ${ANTES.bytes} B`);
   console.log(
     `  ahora:                          ${propias.length} peticiones · ${peso} B` +
