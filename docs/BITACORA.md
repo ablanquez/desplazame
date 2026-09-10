@@ -197,7 +197,7 @@ verdes estaban describiendo el fallo con otras palabras.
 
 ---
 
-## [2026-09-09] 🔴 ABIERTA — La jueza que vigila que los datos no cambien a espaldas de nadie se cae por RELOJ, no por huella
+## [2026-09-09] ✅ CERRADA — La jueza que vigila que los datos no cambien a espaldas de nadie se cae por RELOJ, no por huella
 
 **Categoría:** instrumento que deja de vigilar por una causa ajena a lo que vigila
 **Síntoma:** `⭐ la huella de CADA fichero, recalculada, casa con la declarada`
@@ -242,14 +242,93 @@ O sea: los 5.000 ms no se agotan haciendo lo que la prueba hace.
 **Cómo se cazó:** casualidad — salió en la tanda 2 del punto 15, al crecer
 `identidad.spec.ts` hasta 143 pruebas y cargar más el conjunto de las catorce
 suites, que corren a la vez.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+
+> ⚠️ **NOTA DEL 10/09 — LA CARRERA ERA UNA HIPÓTESIS, Y ERA FALSA.** Esta línea
+> de arriba, y la ley que se escribió al capturar, dan por supuesto que lo que
+> mata la prueba es la **carga de las catorce suites a la vez**. Se midió antes
+> de arreglar nada, con `--reporters=verbose` y el reloj de Vitest, y **no es**:
+>
+> ```
+> sola,  caché de disco FRÍA (primera lectura de los 45 ficheros, 90,7 MiB): 2.475 ms
+> sola,  caché caliente:                                                        80 ms
+> 7 suites a la vez, caliente:                                                  86 ms
+> 14 suites a la vez, caliente:                                                 92 ms
+> ```
+>
+> De 1 a 14 suites la prueba sube **12 ms**: el 0,24 % del presupuesto. Lo que
+> la mueve 31 veces es **la caché de páginas del sistema**. Y el dato ya estaba
+> ARRIBA, en esta misma entrada, sin que nadie lo leyera así: «pasada 1: 727 ms
+> · pasada 2: 77 ms · pasada 3: 76 ms» **es frío contra caliente**, no carga.
+>
+> La máquina, para que la cifra tenga con qué compararse: 12 núcleos
+> (`availableParallelism()` = 12) y **13 procesos de Vitest** en el pico —el
+> principal más doce—, medidos con `tasklist` contra una base de 4. **No había
+> sobresuscripción que corregir.**
+>
+> Se conserva lo escrito el 9/09 en vez de reescribirlo: la hipótesis de la
+> carrera es **lo que el primer diagnóstico creyó**, y saber en qué se equivocó
+> vale más que un documento que parezca haber acertado siempre.
+
+**Causa raíz:** **un presupuesto de lote contra un coste de arranque en frío.**
+[DOC Vitest, `testTimeout`] los 5.000 ms por defecto son *«el timeout de una
+prueba»* — un presupuesto **POR PRUEBA**, no por fichero. Y esto era **un solo
+`it`** que recalculaba los 45 sha256 de un tirón: cuarenta y cinco trabajos
+gastando un único presupuesto. En caliente sobraba de sobra (80 ms de 5.000) y
+por eso pasaba dos veces de cada tres; **en frío el mismo `it` cuesta 2.475 ms**,
+y sobre ese margen de 2× cualquier cosa —un disco ocupado, una suite vecina
+pidiendo E/S— lo empuja al límite. De ahí la intermitencia: no era azar, era un
+margen estrecho que unas veces se cruzaba y otras no.
+
+⚠️ Y **`grafo-visor.js` pesa 22,8 MiB de los 90,7**: en el `it` de lote ese
+   fichero y los otros 44 compartían el mismo reloj. Repartido, ninguno se acerca.
+**Arreglo aplicado:** `app/src/app/manifiesto.spec.ts` — la prueba de huellas
+pasa de un `it` de lote a **una prueba por recurso**, con `test.for` sobre los 45
+que traen `hash` y **el nombre del fichero en el título** ([DOC Vitest] *«`test.each`
+exists primarily for Jest compatibility… prefer `test.for`»*). Cada una recalcula
+y compara **su** huella con **su** presupuesto, y [DOC Vitest] dentro de un
+fichero las pruebas corren **en secuencia**, así que el coste frío se reparte de
+verdad. **No se ha tocado `testTimeout`** — ni el global, ni el del fichero, ni
+el de ninguna prueba.
+
+Y con el troceado entra **la jueza del censo**, porque trocear abre un agujero
+propio: `test.for` sobre una lista **calculada** no corre ni una prueba si la
+lista sale vacía, y el fichero daría **verde** con cero vigilancia — el mismo
+fallo de esta entrada con otro traje. Se compra que hay tantas huellas que
+recalcular como recursos hay menos los exentos declarados, y nunca cero.
+
+Verificado: **6 pasadas seguidas** de la batería completa, **499/499 y cero
+timeouts**, con la prueba más lenta del manifiesto en **20 · 25 · 30 · 21 · 24 ·
+22 ms** contra los 5.166 del rojo de arriba; y la batería tarda lo mismo que
+antes (~265 s). El rojo por **discrepancia** también visto: alterada una huella
+del `datapackage.json`, cae **exactamente** la prueba de ese fichero y ninguna de
+las otras 44.
+
+⚠️ **Las seis son en CALIENTE, y hay que decirlo.** Vaciar la caché de disco no
+   se ha podido hacer de forma honesta en esta máquina: no hay cmdlet que lo
+   haga (`Write-FileSystemCache` vacía escrituras, no lecturas) ni
+   `EmptyStandbyList` ni `RAMMap`, y simularlo con esperas sería fabricar la
+   prueba. Lo que sí cierra la duda es una **cota medida**: el lote entero en
+   frío costó 2.475 ms, y cada fichero es un **subconjunto estricto** de ese
+   trabajo, así que ninguno puede pasar de ahí — menos de la mitad del
+   presupuesto, y eso con la máquina para él solo.
+**Commit:** `383c6ee`
 **Ley que sale de aquí:** una prueba que puede enrojecer **sin que haya nada
 malo** enseña a ignorarla, y el día que enrojezca de verdad nadie la mirará.
 ⚠️ Y el arreglo que primero apetece —subir el timeout— es el que la deja pasar
 sin comprobar: el número tendría que subirse otra vez a la siguiente suite que
 entre. Lo que hay que quitar no es el límite, es la carrera.
+
+> ⭐ **LA LEY, REFORMULADA AL CERRAR (10/09).** «Lo que hay que quitar es la
+> carrera» apuntaba a la causa equivocada, y se queda escrita arriba para que se
+> vea. Lo que de verdad hay que quitar es **el desajuste entre un presupuesto y
+> su trabajo**: el límite no se sube, se hace que **CADA presupuesto case con SU
+> trabajo**. Un `it` que hace N cosas pide un timeout N veces mayor y no lo dice;
+> N pruebas piden el suyo cada una, y además **nombran cuál falló**.
+>
+> Y la de al lado, que salió del arreglo: **trocear una prueba con una lista
+> calculada exige comprar el censo de la lista.** Cero casos es verde, y verde
+> sin vigilancia es lo que esta entrada lleva contando desde el principio.
+
 **Traza:** `app/src/app/manifiesto.spec.ts:124`, el `it` de la huella;
 `datapackage.json`, 45 recursos con `hash` declarado.
 
