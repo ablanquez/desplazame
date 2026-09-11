@@ -38,6 +38,31 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
   const m = await abrirChrome({ ancho, alto, puerto });
   const esMovil = nombre === 'movil';
   try {
+    // ⭐ EL ESTADO DEL MAPA, LEIDO DE LO PINTADO (11/09).
+    //
+    // ⚠️ El centro y el zoom NO se le preguntan a Leaflet: su objeto no es
+    //    alcanzable desde la pagina en una build de produccion, y preguntarle a
+    //    una señal nuestra seria preguntarle al que puede equivocarse. Lo que
+    //    hay pintado son LAS TESELAS, y su `src` termina en `/{z}/{x}/{y}.png`:
+    //    el zoom y el trozo de mundo que se esta mirando, escritos por Leaflet
+    //    en el DOM. Si el encuadre vuelve al de arranque, el conjunto de
+    //    teselas visibles vuelve a ser el mismo.
+    //
+    //    Las capas del viaje se cuentan igual de literal: los `path` del panel
+    //    de dibujo y los iconos de marcador. Contadas, no supuestas.
+    const estadoDelMapa = `
+      const teselas = [...document.querySelectorAll('.leaflet-tile')]
+        .map((t) => (t.getAttribute('src') || '').split('/').slice(-3).join('/'))
+        .filter((x) => x.length > 0)
+        .sort();
+      return {
+        trazas: document.querySelectorAll('.leaflet-overlay-pane path').length,
+        marcadores: document.querySelectorAll('.leaflet-marker-icon').length,
+        zoom: teselas.length ? teselas[0].split('/')[0] : null,
+        teselas,
+      };
+    `;
+
     const estadoDeLosBloquesSimple =
       `return [...document.querySelectorAll('.bloque')].map((b) => b.classList.contains('bloque--abierto'));`;
     await m.ir(APP, 6000);
@@ -194,6 +219,12 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
     // ⭐ EL ESTADO INICIAL, calcado de la referencia: buscador abierto y
     //    resultado plegado (`useState(true)` / `useState(false)`). Se mide
     //    ANTES de tocar nada — en cuanto una jueza pulse algo, se pierde.
+    // ⚠️ LA REFERENCIA SE LEE DE LA PANTALLA RECIEN CARGADA, no se copia de
+    //    `CENTRO` y `ZOOM` del codigo del mapa. Asi esta jueza dice siempre la
+    //    verdad —«vuelve a donde estaba»— aunque esos dos valores cambien, en
+    //    vez de pedir dos numeros fijos que envejecen.
+    const mapaInicial = await leer(m, estadoDelMapa);
+
     const alArrancar = await leer(m, estadoDeLosBloquesSimple);
     juzgar(
       alArrancar[0] === true && alArrancar[1] === false,
@@ -621,6 +652,78 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
           );
 
           await m.guardar(`${CAPTURAS}/coreografia-${nombre}-vuelta.png`);
+
+        // ═══════ L9 · [ANTONIO] «LIMPIAR» = CERO ABSOLUTO ═══════
+        //
+        // ⭐ Pulsar «Limpiar busqueda» deja la app COMO RECIEN CARGADA. El
+        //    formulario ya lo hacia; la RUTA no: seguia pintada en el mapa y
+        //    las indicaciones seguian ahi. Se mide lo pintado, y las capas se
+        //    CUENTAN.
+        //
+        // ⚠️ El mapa se lee ANTES de limpiar para tener el contraste dentro de
+        //    la propia jueza: si despues salen cero capas pero antes tambien
+        //    habia cero, la jueza estaria verde por la razon equivocada — no
+        //    porque limpie, sino porque nunca hubo ruta que limpiar.
+        const antesDeLimpiar = await leer(m, estadoDelMapa);
+        juzgar(
+          antesDeLimpiar.trazas > 0 && antesDeLimpiar.marcadores > 0,
+          'L9 · la precondicion: antes de limpiar HAY ruta pintada',
+          `${antesDeLimpiar.trazas} trazas · ${antesDeLimpiar.marcadores} marcadores`,
+        );
+
+        await m.evaluar(`document.querySelector('button.limpiar').click()`);
+        await m.dormir(1200);
+        const tras = await leer(m, estadoDelMapa);
+        const pantalla = await leer(
+          m,
+          `
+          return {
+            vacio: document.querySelector('.pasos__vacio')?.textContent.trim() ?? null,
+            pasos: document.querySelectorAll('.paso').length,
+            resumen: document.querySelectorAll('.resumen').length,
+            calles: [...document.querySelectorAll('app-autocompletar-via input')].map((c) => c.value).join('|'),
+            modos: [...document.querySelectorAll('input[name=familia]')].filter((r) => r.checked).length,
+            generar: document.querySelector('button.generar').disabled,
+            pestana: document.querySelector('.marco').getAttribute('data-pestana'),
+          };
+        `,
+        );
+
+        juzgar(
+          tras.trazas === 0 && tras.marcadores === 0,
+          'L9 · ⭐ LA RUTA SALE DEL MAPA: cero capas del viaje, contadas',
+          `de ${antesDeLimpiar.trazas} trazas y ${antesDeLimpiar.marcadores} marcadores ` +
+            `a ${tras.trazas} y ${tras.marcadores}`,
+        );
+        juzgar(
+          tras.zoom === mapaInicial.zoom &&
+            tras.teselas.join(',') === mapaInicial.teselas.join(','),
+          'L9 · ⭐ y el ENCUADRE vuelve al del arranque, tesela a tesela',
+          `zoom ${tras.zoom} (arranque ${mapaInicial.zoom}) · ` +
+            `${tras.teselas.length} teselas y las mismas: ` +
+            `${tras.teselas.join(',') === mapaInicial.teselas.join(',')}`,
+        );
+        juzgar(
+          pantalla.pasos === 0 && pantalla.resumen === 0 &&
+            pantalla.vacio ===
+              'Todavía no hay pasos. Rellena origen y destino, elige cómo te mueves y ' +
+                'pulsa "Generar ruta".',
+          'L9 · ⭐ y las indicaciones vuelven a su vacio, con su letra',
+          `${pantalla.pasos} pasos · ${pantalla.resumen} resumenes · «${pantalla.vacio}»`,
+        );
+        juzgar(
+          pantalla.calles === '|' && pantalla.modos === 0 && pantalla.generar === true,
+          'L9 · y el formulario a cero: sin calles, sin modo y con «Generar» apagado',
+          `calles «${pantalla.calles}» · modos ${pantalla.modos} · Generar apagado ${pantalla.generar}`,
+        );
+        if (esMovil) {
+          juzgar(
+            pantalla.pestana === 'buscador',
+            'L9 · ⭐ y en movil el gesto entero: vuelve a la pestaña «Buscador»',
+            `data-pestana=${pantalla.pestana}`,
+          );
+        }
+        await m.guardar(`${CAPTURAS}/limpiar-cero-${nombre}.png`);
         } else {
           // ⭐ LA COREOGRAFIA DE MOVIL (11/09) — `handleGenerateRoute` salta a
           //    la pestaña «Ruta», y `handleReset` vuelve a «Buscador».
@@ -649,31 +752,87 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
           // LA VUELTA: «Limpiar busqueda» — que en movil vive en la pestaña
           // Buscador, asi que primero se vuelve a ella con la barra, como una
           // mano.
+          //
+          // ⚠️ AQUI HABIA UNA JUEZA A MEDIAS, y conviene saberlo: contaba las
+          //    trazas del mapa y las IMPRIMIA en el detalle **sin juzgarlas**.
+          //    O sea que el numero que delataba el fallo estuvo a la vista todo
+          //    el tiempo, en verde. Lo que faltaba no era la medida: era
+          //    ponerla en la condicion. Ahora la compra L9, aqui debajo.
           await m.evaluar(`[...document.querySelectorAll('.barra__boton')].find((b) => b.textContent.trim().startsWith('Buscador')).click()`);
           await m.dormir(400);
-          await m.evaluar(`document.querySelector('button.limpiar').click()`);
-          await m.dormir(600);
-          const vuelta = await leer(
-            m,
-            `
-            return {
-              pestana: document.querySelector('.marco').getAttribute('data-pestana'),
-              marcados: [...document.querySelectorAll('input[name=familia]')].filter((r) => r.checked).length,
-              calles: [...document.querySelectorAll('app-autocompletar-via input')].map((c) => c.value).join('|'),
-              generar: document.querySelector('button.generar').disabled,
-              trazas: document.querySelectorAll('.leaflet-overlay-pane path').length,
-            };
-          `,
-          );
-          juzgar(
-            vuelta.pestana === 'buscador' && vuelta.marcados === 0 &&
-              vuelta.calles === '|' && vuelta.generar === true,
-            'L7 · ⭐ VUELTA en movil — «Limpiar» devuelve a «Buscador» y todo a cero',
-            `pestaña ${vuelta.pestana} · modos marcados ${vuelta.marcados} · ` +
-              `calles «${vuelta.calles}» · Generar apagado ${vuelta.generar} · ` +
-              `trazas en el mapa ${vuelta.trazas}`,
-          );
           await m.guardar(`${CAPTURAS}/coreografia-${nombre}-vuelta.png`);
+
+        // ═══════ L9 · [ANTONIO] «LIMPIAR» = CERO ABSOLUTO ═══════
+        //
+        // ⭐ Pulsar «Limpiar busqueda» deja la app COMO RECIEN CARGADA. El
+        //    formulario ya lo hacia; la RUTA no: seguia pintada en el mapa y
+        //    las indicaciones seguian ahi. Se mide lo pintado, y las capas se
+        //    CUENTAN.
+        //
+        // ⚠️ El mapa se lee ANTES de limpiar para tener el contraste dentro de
+        //    la propia jueza: si despues salen cero capas pero antes tambien
+        //    habia cero, la jueza estaria verde por la razon equivocada — no
+        //    porque limpie, sino porque nunca hubo ruta que limpiar.
+        const antesDeLimpiar = await leer(m, estadoDelMapa);
+        juzgar(
+          antesDeLimpiar.trazas > 0 && antesDeLimpiar.marcadores > 0,
+          'L9 · la precondicion: antes de limpiar HAY ruta pintada',
+          `${antesDeLimpiar.trazas} trazas · ${antesDeLimpiar.marcadores} marcadores`,
+        );
+
+        await m.evaluar(`document.querySelector('button.limpiar').click()`);
+        await m.dormir(1200);
+        const tras = await leer(m, estadoDelMapa);
+        const pantalla = await leer(
+          m,
+          `
+          return {
+            vacio: document.querySelector('.pasos__vacio')?.textContent.trim() ?? null,
+            pasos: document.querySelectorAll('.paso').length,
+            resumen: document.querySelectorAll('.resumen').length,
+            calles: [...document.querySelectorAll('app-autocompletar-via input')].map((c) => c.value).join('|'),
+            modos: [...document.querySelectorAll('input[name=familia]')].filter((r) => r.checked).length,
+            generar: document.querySelector('button.generar').disabled,
+            pestana: document.querySelector('.marco').getAttribute('data-pestana'),
+          };
+        `,
+        );
+
+        juzgar(
+          tras.trazas === 0 && tras.marcadores === 0,
+          'L9 · ⭐ LA RUTA SALE DEL MAPA: cero capas del viaje, contadas',
+          `de ${antesDeLimpiar.trazas} trazas y ${antesDeLimpiar.marcadores} marcadores ` +
+            `a ${tras.trazas} y ${tras.marcadores}`,
+        );
+        juzgar(
+          tras.zoom === mapaInicial.zoom &&
+            tras.teselas.join(',') === mapaInicial.teselas.join(','),
+          'L9 · ⭐ y el ENCUADRE vuelve al del arranque, tesela a tesela',
+          `zoom ${tras.zoom} (arranque ${mapaInicial.zoom}) · ` +
+            `${tras.teselas.length} teselas y las mismas: ` +
+            `${tras.teselas.join(',') === mapaInicial.teselas.join(',')}`,
+        );
+        juzgar(
+          pantalla.pasos === 0 && pantalla.resumen === 0 &&
+            pantalla.vacio ===
+              'Todavía no hay pasos. Rellena origen y destino, elige cómo te mueves y ' +
+                'pulsa "Generar ruta".',
+          'L9 · ⭐ y las indicaciones vuelven a su vacio, con su letra',
+          `${pantalla.pasos} pasos · ${pantalla.resumen} resumenes · «${pantalla.vacio}»`,
+        );
+        juzgar(
+          pantalla.calles === '|' && pantalla.modos === 0 && pantalla.generar === true,
+          'L9 · y el formulario a cero: sin calles, sin modo y con «Generar» apagado',
+          `calles «${pantalla.calles}» · modos ${pantalla.modos} · Generar apagado ${pantalla.generar}`,
+        );
+        if (esMovil) {
+          juzgar(
+            pantalla.pestana === 'buscador',
+            'L9 · ⭐ y en movil el gesto entero: vuelve a la pestaña «Buscador»',
+            `data-pestana=${pantalla.pestana}`,
+          );
+        }
+        await m.guardar(`${CAPTURAS}/limpiar-cero-${nombre}.png`);
         }
       }
     }

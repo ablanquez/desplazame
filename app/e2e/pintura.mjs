@@ -1003,6 +1003,69 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       num ? `«${num.marcador}» pide ${num.pide} px y la casilla da ${num.da}` : 'no hay casilla',
     );
 
+    // ═══ P13 · [ANTONIO] EL PIN EN FILA CON EL TIPO ═══
+    //
+    // ⭐ En <768 el botón de ubicación quedó descolgado en su propia fila:
+    //    medido antes de tocar nada, el pin en y=165 y el «Tipo» en y=221. La
+    //    letra de Antonio es [PIN][Tipo ▾] compartiendo fila — la diana en su
+    //    cuadrado de 44 a la izquierda y el desplegable ocupando lo que queda.
+    //
+    // ⚠️ «Comparten fila» se mide por SOLAPE VERTICAL y no por una `y` igual:
+    //    las dos cajas no miden lo mismo —el pin son 44 y el bloque del Tipo
+    //    incluye su rótulo—, así que exigir la misma `y` sería exigir que el
+    //    rótulo desapareciera. Y además se comprueba que el centro del pin cae
+    //    DENTRO del desplegable: es lo que hace que se lean como una fila y no
+    //    como dos cosas apiladas que se rozan.
+    const enFila = await leer(
+      m,
+      `
+      const p = document.querySelector('.punto');
+      const pin = p.querySelector('.ubicacion');
+      const tipo = p.querySelector('.campo--tipo');
+      const select = p.querySelector('select.tipo');
+      if (!pin || !tipo || !select) return null;
+      const c = (e) => { const r = e.getBoundingClientRect();
+        return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width),
+                 h: Math.round(r.height), der: Math.round(r.right),
+                 abajo: Math.round(r.bottom), medio: Math.round(r.y + r.height / 2) }; };
+      const rp = p.getBoundingClientRect();
+      const cs = getComputedStyle(p);
+      return {
+        pin: c(pin), tipo: c(tipo), select: c(select),
+        utilDerecha: Math.round(rp.right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth)),
+      };
+    `,
+    );
+    juzgar(
+      enFila !== null &&
+        enFila.pin.y < enFila.tipo.abajo && enFila.tipo.y < enFila.pin.abajo &&
+        enFila.pin.der <= enFila.tipo.x,
+      'P13 · ⭐ [ANTONIO] el pin y el «Tipo» comparten fila, con la diana a la izquierda',
+      enFila
+        ? `pin y=${enFila.pin.y}..${enFila.pin.abajo} (x hasta ${enFila.pin.der}) · ` +
+          `Tipo y=${enFila.tipo.y}..${enFila.tipo.abajo} (x desde ${enFila.tipo.x})`
+        : 'falta alguna de las dos piezas',
+    );
+    juzgar(
+      enFila !== null &&
+        enFila.pin.medio >= enFila.select.y && enFila.pin.medio <= enFila.select.abajo,
+      'P13 · y la diana queda a la altura del desplegable, no del rótulo',
+      enFila
+        ? `centro del pin en y=${enFila.pin.medio} · el select va de ${enFila.select.y} a ${enFila.select.abajo}`
+        : 'falta alguna de las dos piezas',
+    );
+    juzgar(
+      enFila !== null && enFila.pin.w === 44 && enFila.pin.h === 44,
+      'P13 · el pin conserva su cuadrado de 44 [WCAG 2.5.5]',
+      enFila ? `${enFila.pin.w}×${enFila.pin.h}` : 'no hay pin',
+    );
+    juzgar(
+      enFila !== null && Math.abs(enFila.tipo.der - enFila.utilDerecha) <= 1,
+      'P13 · ⭐ y el desplegable llega al borde derecho de su tarjeta',
+      enFila ? `acaba en x=${enFila.tipo.der} y la tarjeta da hasta ${enFila.utilDerecha}` : '—',
+    );
+    await m.guardar(`${CAPTURAS}/movil-pin-en-fila.png`);
+
     // ⭐ EL SAFE-AREA: las dos mitades. Sin el meta, `env()` vale 0 y el relleno
     //    de la barra no existe [DOC MDN]; sin el relleno, el meta solo sirve
     //    para meter la página debajo del indicador de inicio. Van juntas o
