@@ -2707,10 +2707,17 @@ export class Buscador {
     this.loDeLaDgt.set(null);
 
     this.avisoUbicacion.set(null);
-    this.avisoRuta.set(null);
 
-    // Y la ruta pintada se va con ella: el mapa se queda limpio y el acordeón
-    // vuelve al estado del arranque.
+    // ⭐ Y EL VIAJE ENTERO SE VA CON ELLA (11/09) — [ANTONIO]: «Limpiar
+    //    búsqueda» deja la app COMO RECIÉN CARGADA.
+    //
+    // ⚠️ Aquí solo se ponía `trio` a `null` y el comentario decía «el mapa se
+    //    queda limpio». **No lo dejaba**: quien alimenta al mapa es `resultado`,
+    //    que es otra señal, y seguía llena. Medido con la jueza L9 nueva: tras
+    //    limpiar quedaban 2 trazas, 2 marcadores, el zoom en 13 en vez de 12 y
+    //    los 14 pasos en pantalla. El comentario describía una intención, no lo
+    //    que pasaba.
+    this.olvidarElViaje();
     this.trio.set(null);
     this.buscadorAbierto.set(true);
     this.pasosAbiertos.set(false);
@@ -2837,6 +2844,39 @@ export class Buscador {
     centrar();
     chip.addEventListener('transitionend', centrar, { once: true });
   });
+
+  /**
+   * ⭐ OLVIDAR EL VIAJE: la ruta pintada, sus pasos y todo lo vivo que colgaba
+   * de ella. **Un solo sitio**, y hermana de `olvidarElVehiculo`.
+   *
+   * Esto vivía suelto dentro de `generarRuta` —tirar el resultado anterior
+   * antes de pedir el siguiente— y desde el 11/09 lo necesita también
+   * «Limpiar búsqueda», así que sube aquí. No es un refactor por gusto: dos
+   * copias de un desmontaje es la manera de que un día una olvide una señal y
+   * quede un «próximo en 3 min» pegado a un viaje que ya no existe.
+   *
+   * ⭐ **Y EL MAPA SE LIMPIA SOLO, sin tocar Leaflet desde aquí.** `trazado()`
+   *    y `tramos()` cuelgan de `resultado`, así que ponerlo a `null` deja el
+   *    trazado vacío, y `pintarTrazado` —que ya corría en cada cambio— quita
+   *    sus líneas y sus marcadores con el `remove()` de siempre y devuelve la
+   *    vista a `CENTRO`/`ZOOM`, que son las constantes del propio mapa. Ni una
+   *    estructura nueva, ni dos maneras de borrar una ruta.
+   *
+   * ⚠️ Los relojes se paran con `clearTimeout`: una consulta viva a Avanza que
+   *    conteste después de limpiar escribiría un minuto cierto sobre una
+   *    pantalla que ya no tiene ruta. Es la lección de la entrada nº38 —lo
+   *    primero, el vuelo— aplicada al viaje entero.
+   */
+  private olvidarElViaje(): void {
+    this.avisoRuta.set(null);
+    this.resultado.set(null);
+    this.desplegados.set(new Set());
+    for (const reloj of this.relojes.values()) {
+      clearTimeout(reloj);
+    }
+    this.relojes.clear();
+    this.consultasVivas.set(new Map());
+  }
 
   /**
    * ⭐ CAMBIAR DE FAMILIA DEVUELVE LAS RESPUESTAS DE LA ZBE A SIN-ELEGIR.
@@ -3000,16 +3040,7 @@ export class Buscador {
       this.traerElArea();
     }
 
-    this.avisoRuta.set(null);
-    this.resultado.set(null);
-    this.desplegados.set(new Set());
-    // Lo vivo de la ruta anterior no sobrevive a la siguiente: un «próximo en
-    // 3 min» que se quedara pegado sería un número cierto sobre otro viaje.
-    for (const reloj of this.relojes.values()) {
-      clearTimeout(reloj);
-    }
-    this.relojes.clear();
-    this.consultasVivas.set(new Map());
+    this.olvidarElViaje();
 
     // ⭐ BUS Y COCHE NO SALEN DE AQUÍ (30/08). El motor no los calcula, así que
     // preguntárselo sería gastar un viaje para traer un «todavía no» — y con el

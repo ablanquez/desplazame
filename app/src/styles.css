@@ -941,6 +941,46 @@ body:has(.marco) {
   display: none;
 }
 
+/* ═══ EL PIN, EN FILA CON EL «TIPO» (11/09) ═══════════════════════════════
+   ⭐ [ANTONIO] En móvil el botón de ubicación quedaba descolgado en su propia
+      fila —medido antes de tocarlo: el pin en y=165 y el «Tipo» en y=221—.
+      Su letra: `[PIN][Tipo ▾]` compartiendo fila, la diana en su cuadrado de
+      44 a la izquierda y el desplegable ocupando lo que queda.
+
+   Quien lo separaba era `flex: 1 1 100%` en el bloque del Tipo —su fila
+   entera, del remate-bis—, que empujaba al pin a la línea de arriba. Aquí baja
+   a `auto`: coge lo que sobre al lado del pin y nada más.
+
+   ⚠️ `min-width: 0` otra vez, y por lo mismo que la fila de chips: sin él, un
+      hijo flexible no baja del ancho de su contenido y el `select` con la
+      opción más larga —«Colegios e Institutos»— sacaría la tarjeta de la
+      pantalla en vez de encogerse.
+
+   ⚠️ `align-self: end` no es centrado: es lo que pone la diana a la altura del
+      DESPLEGABLE y no del rótulo «Tipo», que va encima y mide 24 px. Sin esto
+      las dos cajas comparten fila y aun así se leen mal — el pin arriba, el
+      select abajo. Su jueza lo mide por separado.
+
+   ⚠️ Y ESTO ES SOLO DE MÓVIL. En escritorio el pin **no existe** —vive bajo
+      `(hover: none) and (pointer: coarse)`, la MQ4 de la tanda 4—, así que el
+      Tipo sigue ocupando su fila entera, que es [ANTONIO] del remate-bis. El
+      deshacer está en la consulta de 768.
+
+   ⚠️ Y TRES CLASES, otra vez por especificidad. `.panel .campo--tipo` pesa
+      (0,2,0) igual que `.campo--tipo[_ngcontent]` de `buscador.css`, que va
+      DESPUÉS: empate, y ganaba el componente. Medido: el pin seguía en y=42 y
+      el Tipo en y=98. Es la quinta vez en dos tandas — la regla de la casa es
+      que una regla global que pise a una de componente necesita una clase más
+      de las que uno cree. */
+.panel .campo.campo--tipo {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.panel .punto .ubicacion {
+  align-self: end;
+}
+
 /* `shrink-0` para que ninguno se aplaste al no caber, y el imán al centro: es
    donde el chip elegido se coloca solo. Ver `centrarElChip` en el componente. */
 .panel .familias .modo--chip {
@@ -1155,6 +1195,14 @@ body:has(.marco) {
     padding-inline: 0.75rem;
     overflow-x: visible;
     scroll-snap-type: none;
+  }
+
+  /* ⚠️ Y EL «TIPO» VUELVE A SU FILA ENTERA, que es [ANTONIO] del remate-bis:
+     aquí el pin no existe —es táctil puro, MQ4— y el desplegable a media línea
+     dejaba un hueco a su derecha que no decía nada. Con el mismo peso que la
+     regla de móvil, o perdería. */
+  .panel .campo.campo--tipo {
+    flex: 1 1 100%;
   }
 
   /* Y las dos cabeceras del acordeón vuelven: aquí SÍ hay qué plegar.
