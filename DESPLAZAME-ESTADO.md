@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 11 de septiembre de 2026
+## ESTADO ACTUAL — 12 de septiembre de 2026
 
 **⭐ PUNTOS 1-14 CERRADOS (el 14, el 8/09: DE LOCAL A PRODUCCIÓN EN
 UN DÍA — https://desplazame.antonioblanquez.es vivo en Fráncfort con
@@ -193,14 +193,13 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `69f14e1`** (el push GORDO del 11/09: las
-tandas 2-4 ENTERAS — la base con Inter, el esqueleto, el
-acordeón con su coreografía, /creditos, la pintura del buscador,
-la fuente a dieta, sin-modo-por-defecto y las bandas del par B —
-tras `b27ab63` [papeles, 10/09] y los dos pushes del 9/09
-[`062f532` tanda 1 · `c3adffb` parche]). **En local, sin
-publicar** *(al cierre del 11/09)*: **solo los papeles de este
-destilado — ⚠️ desde M2, CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
+**Publicado hasta `2e4911a`** (los pushes del 11-12/09: el
+GORDO `69f14e1` [tandas 2-4 enteras], las PESTAÑAS de móvil
+`608a921` y el remate de visión `2e4911a` [pin en fila +
+limpiar cero absoluto]; antes, `b27ab63` [papeles] y los dos
+del 9/09 [`062f532` · `c3adffb`]). **En local, sin publicar**
+*(al cierre del 12/09)*: **solo los papeles de este destilado —
+⚠️ desde M2, CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
 — los papeles de las casillas 0+3 y los 12 del calco — empujados
 en `062f532`.)* *(La nota del 8/09 noche: los
 papeles de M1-M3; el código estaba TODO publicado — el push del apaño
@@ -1630,17 +1629,33 @@ presupuesto initial nunca contó fuentes — el aviso 522/520 es
 del main.js y su palanca es la poda de huérfanos; y la receta
 canónica del subsetting tiraba las flechas de giro] · botones y
 títulos SE QUEDAN por doctrina; interfaz 530 · fichas 39 · LA
-CRÓNICA ENTERA en la tanda 4 de la casilla 4: lo siguiente es
-(a) LA RONDA DE MÓVIL REAL de Antonio — su teléfono contra
-producción, CON LISTA [el pin y su prompt de permiso de verdad ·
-el teclado sobre el buscador (la cautela dvh que ningún emulador
-enseña) · la hoja · los chips en táctil]; Antonio canta lo que
-esté mal, se clasifica y se despacha en LA TANDA DE REMATES DE
-MÓVIL; (b) después, LA TANDA 5 — la pintura del RESULTADO
-(timeline, badges, avisos, skeleton — y ahí mueren los dos
-emojis supervivientes ⏳/⚠); EN LA MESA sin prisa: el aviso del
-presupuesto [522/520, es JS — la poda como palanca] · los tres
-e2e con 4200 a fuego · el logo (casilla 1); (3) los pendientes del 14 en
+CRÓNICA ENTERA en la tanda 4 de la casilla 4. ⚰️ LA TANDA DE
+MÓVIL (11-12/09, publicada hasta `2e4911a`): Antonio REDECIDIÓ
+el paradigma con maqueta y producción lado a lado — LAS PESTAÑAS
+de la maqueta (la hoja muere; ENMIENDA ESCRITA en el DISEÑO
+§20): tres pantallas con barra inferior y safe-area, el mapa
+siempre montado, la fila de chips con snap y auto-centrado, el
+hueco del «Tema» sin pintar [estados honestos, jueza en
+toBe(3)]; CINCO empates de especificidad cazados en rojo en dos
+tandas [el [_ngcontent] contra el global: cicatriz con nombre];
+y EL REMATE DE VISIÓN: el pin en fila con el Tipo + «LIMPIAR» =
+CERO ABSOLUTO [nº48: la señal equivocada a null con un
+comentario describiendo la intención, y la jueza IMPRIMIENDO
+las 2 trazas sin juzgarlas — leyes nuevas: lo que se cuenta SE
+JUZGA · un comentario no es una jueza]; interfaz 538 · bitácora
+48 [0 abiertas]; ojo de Antonio: «queda todo recién cargado»;
+crónica entera en la casilla 4: lo siguiente es LA TANDA 5 — LA
+PINTURA DEL RESULTADO (firmada por Antonio sobre la captura de
+la maqueta: cabecera de cifras + badges + aviso ámbar + timeline
+con hilo e iconos en círculo; los emojis ⏳/⚠ mueren ahí), CON SU
+PASADA DE DOCTRINA previa — Antonio avisa: llevará tiempo
+dejarla bien; DESPUÉS, el oscuro completo en orden [resultado en
+dos temas → tesela CARTO → EL CONMUTADOR, pedido por Antonio en
+la ronda de visión: PC + el cuarto hueco de la barra];
+PENDIENTE DEL TELÉFONO de Antonio: el pin con su prompt real ·
+el teclado · el safe-area en aparato; EN LA MESA sin prisa: el
+aviso del presupuesto [527/520, es JS — la poda como palanca] ·
+los tres e2e con 4200 a fuego · el logo (casilla 1); (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
 municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
@@ -1964,7 +1979,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.181 pruebas (651 motor + 530 interfaz; e2e yego.mjs, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs, creditos.mjs y pintura.mjs aparte, a mano — bizi-y-resumen, pantalla y proximo-bus aún con 4200 a fuego) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.189 pruebas (651 motor + 538 interfaz; e2e yego.mjs, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs, creditos.mjs y pintura.mjs aparte, a mano — bizi-y-resumen, pantalla y proximo-bus aún con 4200 a fuego) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

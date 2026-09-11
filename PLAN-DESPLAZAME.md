@@ -4121,18 +4121,78 @@ Code lo traduce al Angular existente.)*
         proximo-bus — en cola]. Marcadores: interfaz 499→530 ·
         16 ficheros · e2e pintura.mjs nuevo · fichas del notices
         39. TODO PUBLICADO en `69f14e1`.
-      - [ ] TANDA DE REMATES DE MÓVIL — la ronda de Antonio en
-        su teléfono con la app completa en producción (el pin
-        con su permiso real · el teclado sobre el buscador
-        [la cautela dvh] · la hoja · los chips en táctil):
-        Antonio canta la lista, se clasifica y se despacha.
-      - [ ] TANDA 5 — LA PINTURA DEL RESULTADO: timeline,
-        badges de línea, avisos ámbar, skeleton, edad del dato
-        — y los dos emojis supervivientes (⏳/⚠) mueren aquí.
-      - [ ] TANDAS 6+ — tesela oscura CARTO, el conmutador global
-        con su anti-FOUC [prioridad documentada:
-        elección guardada > sistema > claro], y la verificación
-        final del 15 (casilla 5).
+      - [x] ⚰️ TANDA DE MÓVIL — LAS PESTAÑAS + EL REMATE DE
+        VISIÓN (11-12/09, publicados en `608a921` y `2e4911a`;
+        ojo de Antonio: «queda todo recién cargado»). LA
+        REDECISIÓN: Antonio, con maqueta y producción lado a
+        lado en móvil, tumbó la hoja y ordenó LAS PESTAÑAS DE LA
+        MAQUETA EXACTAS — enmienda escrita en el DISEÑO §20; la
+        especificación se leyó DEL CÓDIGO de referencia (App.tsx
+        + SearchForm.tsx; la web de Make se congela al pulsar
+        pestañas — el código manda). LO CONSTRUIDO: tres
+        pantallas (Buscador · Ruta · Mapa) con barra inferior
+        [h-64, iconos search/route/map al censo con portero,
+        targets 48, safe-area con viewport-fit=cover añadido al
+        meta — MDN: sin él iOS devuelve 0 y la barra quedaría
+        bajo el indicador] · EL MAPA SIEMPRE MONTADO tapado por
+        opacidad/z [el patrón del calco: sin re-render, sin
+        teselas grises, sin invalidateSize] · la fila de chips
+        con scroll-x + snap + AUTO-CENTRADO del elegido [atado a
+        transitionend, no a cronómetro — la ley del re-encuadre;
+        y el min-width:0 sin el cual la fila no desborda: crece
+        la caja] · coreografía generar→Ruta / limpiar→Buscador ·
+        el hueco del «Tema» NO pintado [estados honestos; jueza
+        en toBe(3) esperando la tanda del conmutador] · el
+        enlace «Créditos» al final del scroll del Buscador y la
+        atribución OSM en el control nativo de la pestaña Mapa
+        [política satisfecha] · las [ANTONIO] mandando sobre la
+        maqueta: sin modo por defecto · el Nº legible · el pin
+        my_location. Las juezas de la hoja MORDIERON y se
+        retiraron/reescribieron con acta (L4 reventó con su
+        sujeto; L6 partida PC/móvil; P11 cambió a tableta).
+        ⚠️ CUATRO EMPATES DE ESPECIFICIDAD cazados en rojo en la
+        tanda (+1 en el remate = CINCO en dos tandas: el
+        [_ngcontent] del componente contra el global — ya es
+        CICATRIZ CON NOMBRE de la casa; la nº45 parió patrón).
+        EL REMATE DE VISIÓN [ANTONIO]: el pin EN FILA con el
+        Tipo en móvil [solape vertical medido, no y idéntica] ·
+        «LIMPIAR» = CERO ABSOLUTO [la ruta fuera del mapa
+        contando capas · el encuadre por TESELAS con la
+        referencia leída de la pantalla recién cargada y
+        contraprueba dentro · el vacío con su frase · la
+        pestaña de vuelta] — resuelto SIN tocar Leaflet desde el
+        buscador: resultado a null y el pintado existente
+        recoge (ni estructura nueva ni segunda manera de
+        borrar). BITÁCORA nº48 [«Limpiar» ponía a null la señal
+        equivocada mientras un comentario del 10/09 describía
+        la intención; ⭐ la jueza del gesto IMPRIMÍA las 2
+        trazas en su detalle SIN juzgarlas — el número delator
+        a la vista, en verde]. DOS LEYES NUEVAS: «lo que se
+        cuenta, SE JUZGA — una medida impresa en el detalle no
+        es una medida comprada» y «un comentario no es una
+        jueza». Marcadores: interfaz 538 · bitácora 48 [0
+        abiertas · 47 cerradas · 1 reabierta histórica].
+        PENDIENTE DEL TELÉFONO de Antonio en producción: el pin
+        con su prompt de permiso real · el teclado sobre el
+        buscador · la barra y el safe-area en aparato de
+        verdad.
+      - [ ] TANDA 5 — LA PINTURA DEL RESULTADO (firmada por
+        Antonio sobre la captura de la maqueta: cabecera de
+        cifras gordas + badges de línea + aviso ámbar + timeline
+        con hilo, iconos en círculo de color, distancias a la
+        derecha y botones de acción): calcar ese visual sobre
+        las indicaciones reales, en los dos anchos; ahí mueren
+        los emojis supervivientes (⏳/⚠). CON SU PASADA DE
+        DOCTRINA previa. Antonio avisa: llevará tiempo dejarla
+        bien.
+      - [ ] TANDAS 6+ — EL OSCURO COMPLETO, en orden: el
+        resultado en los dos temas → la tesela oscura CARTO
+        [API key, atribución © CARTO, jueces de contraste] → EL
+        CONMUTADOR [pedido por Antonio en la ronda de visión:
+        el botón en PC y EL CUARTO HUECO de la barra móvil, con
+        su anti-FOUC; prioridad documentada: elección guardada >
+        sistema > claro], y la verificación final del 15
+        (casilla 5).
 - [ ] **5 · LA VERIFICACIÓN del 15** — AA medido (contraste, targets
       44px, reflow 320px, zoom 200%, teclado), los dos temas por el
       ojo en los 3 tamaños, y el caso de siempre en producción.

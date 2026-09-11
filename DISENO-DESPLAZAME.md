@@ -1,12 +1,12 @@
 # DISEÑO-DESPLAZAME · Documento anexo de diseño
 
-**v1.0 · 8/09/2026.** Fruto de la investigación profunda del 8/09 (decenas de fuentes; doctrina primaria priorizada: W3C/WCAG 2.2, WAI-ARIA APG, Nielsen Norman Group, Material Design 3, documentación oficial de Figma, MDN, OSMF, CARTO, Radix). **Escritor único: la conversación de estrategia** (como PLAN y ESTADO). Este documento guía el punto 15 (estética) de Desplázame **y es reutilizable para futuros diseños de la casa**: las fuentes y los porqués importan tanto como las conclusiones. Las decisiones aquí propuestas son PROPUESTAS con doctrina hasta que Antonio las vale; lo ya decidido por Antonio (layout, bloques, separador de dos posiciones, sin scroll global, claro+oscuro) va marcado como DECIDIDO.
+**v1.1 · 12/09/2026** (v1.0 del 8/09; la v1.1 añade la ⭐ enmienda del §20 — la redecisión del móvil a pestañas, 11/09). Fruto de la investigación profunda del 8/09 (decenas de fuentes; doctrina primaria priorizada: W3C/WCAG 2.2, WAI-ARIA APG, Nielsen Norman Group, Material Design 3, documentación oficial de Figma, MDN, OSMF, CARTO, Radix). **Escritor único: la conversación de estrategia** (como PLAN y ESTADO). Este documento guía el punto 15 (estética) de Desplázame **y es reutilizable para futuros diseños de la casa**: las fuentes y los porqués importan tanto como las conclusiones. Las decisiones aquí propuestas son PROPUESTAS con doctrina hasta que Antonio las vale; lo ya decidido por Antonio (layout, bloques, separador de dos posiciones, sin scroll global, claro+oscuro) va marcado como DECIDIDO.
 
 ---
 
 # Documento-guía de diseño · "Desplázame" — Rutas multimodales urbanas de Zaragoza
 
-**Las tres decisiones más importantes que la doctrina sostiene: (1) color de marca azul —no verde, para no colisionar con YeGo—, (2) layout sin scroll global con `100dvh` y bottom sheet de dos estados en móvil / separador de dos posiciones en escritorio, y (3) usar Figma Make como especificación visual + tokens DTCG, no como código, porque genera React/Tailwind mientras la app es Angular.**
+**Las tres decisiones más importantes que la doctrina sostiene: (1) color de marca azul —no verde, para no colisionar con YeGo—, (2) layout sin scroll global con `100dvh` y bottom sheet de dos estados en móvil [⭐ móvil ENMENDADO el 11/09 a PESTAÑAS — ver §20] / separador de dos posiciones en escritorio, y (3) usar Figma Make como especificación visual + tokens DTCG, no como código, porque genera React/Tailwind mientras la app es Angular.**
 
 ## Resumen de alcance
 Organizado por los 8 bloques (A–H) y 37 puntos. Cada punto ofrece (1) doctrina/hallazgos con fuentes y (2) recomendación concreta para Desplázame. Al final: resumen ejecutivo con decisiones clave y sección "para el brief de Figma Make".
@@ -55,6 +55,7 @@ Organizado por los 8 bloques (A–H) y 37 puntos. Cada punto ofrece (1) doctrina
 ## 9. Bloques abatibles
 **Doctrina.** Material 3 define tres tipos de bottom sheet: **standard** (coexiste con el contenido), **modal** (bloquea, con scrim) y **expanding**. Estados: `COLLAPSED / HALF_EXPANDED / EXPANDED / HIDDEN`; el *drag handle* tiene mínimo 48dp. `skipPartiallyExpanded = true` deja solo dos estados estables, evitando el intermedio ambiguo. En escritorio, el **separador de dos posiciones** (columna abierta ↔ cerrada, sin arrastre libre) es el patrón de panel lateral colapsable tipo Google Maps.
 **Recomendación (LAYOUT DECIDIDO por Antonio; aquí el CÓMO):** móvil → bottom sheet con **dos estados estables** (colapsado peek / expandido), sin arrastre libre; drag handle ≥48dp. Escritorio → separador de dos posiciones (panel izquierdo abierto/cerrado). Abatir automáticamente el buscador al obtener resultados; el usuario lo reabre a mano.
+> ⭐ **La mitad móvil quedó ENMENDADA el 11/09** (redecisión de Antonio): pestañas con barra inferior — la letra entera, en la enmienda del §20. La doctrina M3 del sheet de arriba se conserva como referencia de la casa. El escritorio sigue vigente tal cual.
 
 ## 10. Jerarquía de información en el itinerario
 **Doctrina.** Combinar visibilidad de estado con diseño minimalista (heurística #8). Citymapper coloca los avisos de disrupción como protagonistas del itinerario.
@@ -107,6 +108,27 @@ Organizado por los 8 bloques (A–H) y 37 puntos. Cada punto ofrece (1) doctrina
 ## 20. Orden y prioridad en móvil (ORDEN DECIDIDO por Antonio)
 **Doctrina.** En apps de mapas móviles, el resultado sube/cubre parcialmente el mapa al obtenerse (bottom sheet a expandido).
 **Recomendación:** móvil en columna **buscador → mapa → resultados**; al calcular, el bottom sheet de resultados sube a expandido cubriendo parte del mapa y el buscador se colapsa; el usuario puede volver a colapsar los resultados.
+
+> **⭐ ENMIENDA (11/09/2026, REDECIDIDO por Antonio).** El bottom
+> sheet se construyó (tanda 3 del calco, medidas [M3]) y Antonio,
+> con la maqueta de Make y la app en producción lado a lado en
+> móvil, REDECIDIÓ: **el móvil son LAS PESTAÑAS de la maqueta**
+> — tres pantallas (Buscador · Ruta · Mapa) con barra de
+> navegación inferior (h-64, iconos+etiqueta, safe-area con
+> viewport-fit=cover [MDN]), el mapa SIEMPRE montado y tapado
+> por opacidad/z (el patrón de App.tsx de la referencia), la
+> fila de chips con scroll-x + snap y auto-centrado del elegido,
+> y la coreografía generar→Ruta / limpiar→Buscador. El cuarto
+> hueco de la barra («Tema», cycleTheme en el calco) entra
+> cableado con la tanda del conmutador — un botón inerte viola
+> los estados honestos. La hoja y sus medidas M3 quedan
+> retiradas en móvil (sus juezas mordieron y se retiraron con
+> acta). La atribución OSM en móvil vive en el control nativo de
+> Leaflet dentro de la pestaña Mapa (política de teselas
+> satisfecha: visible siempre que el mapa lo es) y el enlace
+> «Créditos» al final del scroll del Buscador. El escritorio
+> (§20 no le aplicaba) sigue con su acordeón y separador. La
+> crónica de construcción, en la casilla 4 del PLAN.
 
 ## 21. Densidad de información
 **Doctrina.** Material 3 contempla densidad aplicable (compact/comfortable) según dispositivo y complejidad.
@@ -166,7 +188,7 @@ Organizado por los 8 bloques (A–H) y 37 puntos. Cada punto ofrece (1) doctrina
 
 ## 31. Diseñar doble paleta (no invertir)
 **Doctrina.** Material 3 expresa la **elevación en oscuro mediante overlay tonal** (las superficies se aclaran y colorean más a mayor elevación); base recomendada **#121212**; el texto se gradúa por opacidad (87% alto énfasis, 60% medio, 38% deshabilitado). Apple HIG admite negro puro, pero Material recomienda gris muy oscuro. Doctrina común: **no invertir** la paleta clara.
-**Recomendación:** dos paletas decididas a mano; en oscuro, superficies que **aclaran con la elevación** (el bottom sheet de resultados algo más claro que el fondo); fondo base gris muy oscuro, no negro puro.
+**Recomendación:** dos paletas decididas a mano; en oscuro, superficies que **aclaran con la elevación** (las superficies elevadas —cabeceras, tarjetas, barra— algo más claras que el fondo; el ejemplo original decía «el bottom sheet», enmendado a pestañas en el §20); fondo base gris muy oscuro, no negro puro.
 
 ## 32. Contraste en ambos modos y trampas del oscuro
 **Doctrina.** **Halation:** el texto blanco puro sobre negro puro "vibra" y puede dejar *ghosting*, especialmente con astigmatismo (~30% de la población); usar texto **off-white** (#E0E0E0–#F5F5F5) sobre **casi-negro** (#121212–#1A1A1A). **Desaturar** los acentos ~10-20% en oscuro. Un color que pasa 4.5:1 en claro puede caer a 2.3:1 en oscuro (re-verificar). Fallo común: gris medio #6B7280 sobre #121212 falla 4.5:1.
@@ -199,7 +221,7 @@ Organizado por los 8 bloques (A–H) y 37 puntos. Cada punto ofrece (1) doctrina
 2. **Escalas de 12 pasos** tipo Radix + **tokens semánticos DTCG**; conservar el ámbar de avisos existente (#b45309 / #fff4e5 / #7c3d00).
 3. **Tipografía Inter** con `font-variant-numeric: tabular-nums` y `slashed-zero` para horas de paso y códigos.
 4. **Iconos Material Symbols** (Apache 2.0, cobertura verificada de los 8 modos); **nunca emojis**; icono + texto siempre.
-5. **Bottom sheet de 2 estados** en móvil y **separador de 2 posiciones** en escritorio; **sin scroll global** (`100dvh`/`100svh` con fallback, scroll interno por bloque; `safe-area-insets`).
+5. **Bottom sheet de 2 estados** en móvil [⭐ ENMENDADO el 11/09: PESTAÑAS con barra inferior — §20] y **separador de 2 posiciones** en escritorio; **sin scroll global** (`100dvh`/`100svh` con fallback, scroll interno por bloque; `safe-area-insets`).
 6. **Accesibilidad AA** transversal (targets 44px, contraste 4.5:1, combobox APG, live regions, color nunca único canal, reflow 320px, zoom 200%).
 7. **Estados honestos**: skeleton de tarjetas para 1–8 s, mensaje de progreso para modos lentos (>4 s), edad del dato relativa + absoluta, error states accionables y degradación por modo.
 8. **Doble tema decidido a mano (no invertir)**: off-white sobre #121212, acentos desaturados, elevación por overlay tonal, badges neutros; **sistema + override persistido**.
@@ -208,7 +230,7 @@ Organizado por los 8 bloques (A–H) y 37 puntos. Cada punto ofrece (1) doctrina
 
 # PARA EL BRIEF DE FIGMA MAKE (esencial)
 - **Producto y usuario.** App web de rutas multimodales de Zaragoza; usuarios que comparan 8 modos (andando, bici propia, patín/VMP, BiZi, bus/tranvía Avanza, coche, moto propia, YeGo). Valor diferencial: **honestidad del dato** en tiempo real. *(Describir el outcome, no solo la apariencia.)*
-- **Layout (DECIDIDO por Antonio; indicar CÓMO ejecutarlo).** Responsive PC/tablet/móvil por contenido; 3 bloques (buscador, mapa, resultados); **móvil** en columna buscador→mapa→resultados con bloques abatibles (bottom sheet de 2 estados); **tablet/PC** dos columnas con **mapa a la derecha** y buscador+rutas a la izquierda, **separador de 2 posiciones** (abierto↔cerrado, sin arrastre) para mapa a pantalla completa; **sin scroll global** (`100dvh`, scroll interno por bloque, safe-areas); **modo claro y oscuro completos**.
+- **Layout (DECIDIDO por Antonio; indicar CÓMO ejecutarlo).** *[Sección histórica: alimentó el brief del 8/09 tal cual; el móvil quedó después enmendado a pestañas — §20.]* Responsive PC/tablet/móvil por contenido; 3 bloques (buscador, mapa, resultados); **móvil** en columna buscador→mapa→resultados con bloques abatibles (bottom sheet de 2 estados); **tablet/PC** dos columnas con **mapa a la derecha** y buscador+rutas a la izquierda, **separador de 2 posiciones** (abierto↔cerrado, sin arrastre) para mapa a pantalla completa; **sin scroll global** (`100dvh`, scroll interno por bloque, safe-areas); **modo claro y oscuro completos**.
 - **Identidad.** Primario azul (hex exactos — el modelo no extrae color de imágenes); ámbar de avisos #b45309 / #fff4e5 / #7c3d00; **Inter** con números tabulares; iconografía estilo **Material Symbols**; mapear los 8 modos a sus iconos.
 - **Accesibilidad (explícita en el prompt).** AA; targets ≥44px; contraste ≥4.5:1 (3:1 componentes/gráficos); focus visible; **ARIA combobox** en el autocompletado; **live regions** y `aria-busy`; color nunca como único canal.
 - **Estados a diseñar.** Vacío, cargando (skeleton + mensaje de progreso para modos lentos), **error honesto por fuente** (las frases reales de la app), dato caducado, y la **edad del dato** (relativa + absoluta).
