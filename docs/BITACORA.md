@@ -14,6 +14,80 @@
 
 ---
 
+## [2026-09-11] ✅ CERRADA — «Limpiar búsqueda» decía que limpiaba el mapa y dejaba la ruta puesta
+
+**Categoría:** un comentario que describe la intención y no lo que hace el código
+**Síntoma:** pulsar «Limpiar búsqueda» vaciaba el formulario pero **la ruta
+seguía pintada**: 2 trazas y 2 marcadores en el mapa, el zoom en 13 en vez del
+12 del arranque, y los 14 pasos de las indicaciones en pantalla. El código
+ponía `trio` a `null` con el comentario «y la ruta pintada se va con ella: el
+mapa se queda limpio», pero quien alimenta al mapa es `resultado`, que es otra
+señal y seguía llena.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la batería entera de
+`app/e2e/esqueleto.mjs`, que es la que pulsa «Limpiar» de verdad. Ejecutada al
+cerrar la tanda de móvil, con el fallo vivo:
+`$ node e2e/esqueleto.mjs http://localhost:3111 <capturas> | tail -2`
+`✅ VERDE`
+Y la suite de unidad, en la misma sesión:
+`$ npx ng test --no-watch`
+`Tests  538 passed (538)`
+Dentro de esa batería, la jueza que cubría el gesto —`L7 · ⭐ VUELTA en movil —
+«Limpiar» devuelve a «Buscador» y todo a cero»`— **contaba las trazas del mapa
+y las imprimía en su detalle sin ponerlas en la condición**:
+`vuelta.pestana === 'buscador' && vuelta.marcados === 0 && vuelta.calles === '|' && vuelta.generar === true,`
+`... + \`trazas en el mapa ${vuelta.trazas}\`,`
+⚠️ La línea impresa con su número —`trazas en el mapa 2`— **no consta**
+literalmente: las ejecuciones de aquella tanda se filtraron por `✗✗`/`VERDE` y
+esa línea no se capturó. Lo que sí consta es el `✅ VERDE` de arriba y el
+código de la jueza, recuperado con `git show 4e5e3d7:app/e2e/esqueleto.mjs`.
+**Cómo se cazó:** instrumento — la jueza L9 nueva, escrita por el encargo del
+11/09 y puesta en rojo a propósito antes de tocar el código:
+`✗✗ L9 · ⭐ LA RUTA SALE DEL MAPA: cero capas del viaje, contadas · de 2 trazas y 2 marcadores a 2 y 2`
+**Causa raíz:** **dos señales para una sola cosa, y `limpiar` solo tocaba
+una.** El formulario y el mapa cuelgan de sitios distintos: `trio` guarda las
+tres rutas traídas y `resultado` guarda la que se está enseñando. `limpiar`
+ponía `trio` a `null` —que es lo que impide que una pregunta vieja vuelva a
+casar— y daba por hecho que con eso el mapa se vaciaba. No: quien alimenta a
+`trazado()` y a `tramos()` es `resultado`, y esa se quedaba llena. El
+comentario de al lado describía la intención, no lo que el código hacía, y por
+eso se leyó durante días como si estuviera resuelto.
+
+Y la jueza que cubría el gesto no lo cazó porque **medía el número correcto y
+no lo comparaba con nada**: `vuelta.trazas` viajaba al mensaje del detalle, no
+a la condición. La medida estaba; la compra, no.
+**Arreglo aplicado:** el desmontaje del viaje sale de dentro de `generarRuta` y
+pasa a `olvidarElViaje()` —`app/src/app/buscador.ts`, hermana de
+`olvidarElVehiculo`—, que pone a cero `avisoRuta`, `resultado` y `desplegados`,
+para los relojes con `clearTimeout` y vacía `consultasVivas`. La usan los dos:
+`generarRuta` (que ya lo hacía en línea) y `limpiar` (que no lo hacía).
+**El mapa no se toca desde aquí**: con `resultado` a `null` el trazado queda
+vacío y `pintarTrazado` de `app/src/app/mapa.ts` —que ya corría en cada
+cambio— quita sus líneas y marcadores con el `remove()` de siempre y devuelve
+la vista a `CENTRO`/`ZOOM`, que son sus propias constantes.
+La jueza L7 de móvil que contaba sin juzgar se retira, y en su sitio entra
+**L9 · «LIMPIAR» = CERO ABSOLUTO** en `app/e2e/esqueleto.mjs`, que corre en los
+dos anchos y compra las capas contadas, el encuadre tesela a tesela, la letra
+del vacío y —en móvil— la vuelta a la pestaña Buscador. Verificado:
+`OK  L9 · ⭐ LA RUTA SALE DEL MAPA: cero capas del viaje, contadas · de 2 trazas y 2 marcadores a 0 y 0`
+`OK  L9 · ⭐ y el ENCUADRE vuelve al del arranque, tesela a tesela · zoom 12 (arranque 12) · 16 teselas y las mismas: true`
+**Commit:** `0317d95` (el arreglo) · `4e5e3d7` es donde quedó escrita la jueza
+que contaba sin juzgar.
+**Ley que sale de aquí:** **una medida impresa en el detalle de una jueza no es
+una medida comprada.** Si un número aparece en el mensaje pero no en la
+condición, la jueza da verde con ese número diciendo lo contrario — y encima
+deja el rastro a la vista, que es la peor forma de esconder algo. Lo que se
+cuenta, se juzga.
+
+[2026-09-11, al cerrar] Y una segunda, que la captura no veía: **un comentario
+no es una jueza.** «El mapa se queda limpio» llevaba escrito desde el remate 2
+del 10/09 al lado de una línea que no lo hacía. Lo que describe una intención
+se envejece solo; lo que la compra es una condición.
+**Traza:** `app/src/app/buscador.ts` (`limpiar`, y la señal `resultado` de la
+que cuelgan `trazado()` y `tramos()`) · `app/e2e/esqueleto.mjs` (la jueza L7 de
+móvil) · `app/src/app/mapa.ts` (`pintarTrazado`, que es quien quita las capas y
+devuelve la vista a `CENTRO`/`ZOOM` en cuanto el trazado queda vacío).
+**Nota:** el arreglo ya había comenzado al abrir esta entrada.
+
 ## [2026-09-10] ✅ CERRADA — el `overflow: hidden` del esqueleto decapitó `/identidad` y `/panel`, que no son la portada
 
 **Categoría:** una regla global escrita pensando en una sola pantalla
