@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 10 de septiembre de 2026
+## ESTADO ACTUAL — 11 de septiembre de 2026
 
 **⭐ PUNTOS 1-14 CERRADOS (el 14, el 8/09: DE LOCAL A PRODUCCIÓN EN
 UN DÍA — https://desplazame.antonioblanquez.es vivo en Fráncfort con
@@ -193,20 +193,14 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `c3adffb`** (dos pushes del 9/09: el de la
-tanda 1 del calco [`062f532` — 14 commits: /identidad, los
-tokens, Inter, el contraste 36/36 y los papeles] y el del parche
-de seguridad [`c3adffb` — lockfile solo, dist idéntico]). **En
-local, sin publicar** *(al cierre del 10/09)*: **TODO LO DEL 9-10
-POR DECISIÓN de Antonio (acumular hasta chicha — y ya la hay):
-la tanda 2 [`78ac805`…`fca1aa3`], el esqueleto
-[`cf21014`…`ce97d16`], el remate 1 [`682ca4d`…`ffc2964`], el
-remate 2 [incluye `310f9ba` y `a244add` — el listado completo de
-sus commits NO CONSTA en acta], la releída [`365b2fb`,
-`8e8aec5`, `802bd2e`], la nº44 [`383c6ee`, `87d1f36`], el papel
-`70160ee` y el destilado de hoy — al empujar, redespliega y sale
-TODO: la base vestida, el esqueleto, /creditos — ⚠️ desde M2,
-CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
+**Publicado hasta `69f14e1`** (el push GORDO del 11/09: las
+tandas 2-4 ENTERAS — la base con Inter, el esqueleto, el
+acordeón con su coreografía, /creditos, la pintura del buscador,
+la fuente a dieta, sin-modo-por-defecto y las bandas del par B —
+tras `b27ab63` [papeles, 10/09] y los dos pushes del 9/09
+[`062f532` tanda 1 · `c3adffb` parche]). **En local, sin
+publicar** *(al cierre del 11/09)*: **solo los papeles de este
+destilado — ⚠️ desde M2, CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
 — los papeles de las casillas 0+3 y los 12 del calco — empujados
 en `062f532`.)* *(La nota del 8/09 noche: los
 papeles de M1-M3; el código estaba TODO publicado — el push del apaño
@@ -1617,15 +1611,36 @@ publicado»), y la nº44 cerrada por la causa VERDADERA (el frío,
 no la carrera — test.for por recurso, testTimeout intacto);
 bitácora 47 [0 abiertas] · interfaz 499 · ojo de Antonio: bueno;
 LA CRÓNICA ENTERA con su doctrina, en la tanda 3 de la casilla 4
-del plan: lo siguiente es (a) EL PUSH — botón de Antonio, y ya
-hay chicha visible acumulada [la base vestida + el esqueleto
-entero + /creditos + 499 jueces]; (b) LA TANDA 4 — LOS
-COMPONENTES (la pintura: píldoras, chips, select con iconos,
-Material Symbols y adiós emojis), que NECESITA las dos
-micro-decisiones de Antonio [¿«Limpiar búsqueda» se queda? · la
-función del pin] y su pasada de doctrina; el móvil real con el
-teclado virtual sigue pendiente del ojo de Antonio; el
-logo (casilla 1) sigue sin modelar; (3) los pendientes del 14 en
+del plan. ⚰️ EL PUSH del 10/09 hecho (`b27ab63`) y ⚰️ LA TANDA 4
+(LA PINTURA DEL BUSCADOR) CERRADA Y PUBLICADA el 11/09
+(`69f14e1`, ojo de Antonio: bueno): los nueve SVGs oficiales
+autoalojados con portero · el pin «Mi ubicación» solo-táctil con
+su permiso por gesto [el motor ya tenía /api/portal-cercano] ·
+los chips al calco con la columna A MEDIDA de Antonio [558 px —
+la suma de los dos largos abiertos] · Inter a dieta [−84 %, los
+7 glifos del texto real salvados por el PARO del ejecutor] · SIN
+MODO POR DEFECTO [99 pruebas actualizadas con aseguraQueHayModo]
+· las bandas de cabecera del PAR B elegido por Antonio con
+candidatos pintados [los dos primeros tokens fuera de la maqueta,
+por la puerta grande] · la letra nueva del vacío [nadie la
+fijaba: ahora dos jueces, frase entera] · la P0 [la emulación
+que no emulaba] y dos mentiras de instrumento cazadas antes de
+verde · dos PAROS que tumbaron premisas MÍAS medidas [el
+presupuesto initial nunca contó fuentes — el aviso 522/520 es
+del main.js y su palanca es la poda de huérfanos; y la receta
+canónica del subsetting tiraba las flechas de giro] · botones y
+títulos SE QUEDAN por doctrina; interfaz 530 · fichas 39 · LA
+CRÓNICA ENTERA en la tanda 4 de la casilla 4: lo siguiente es
+(a) LA RONDA DE MÓVIL REAL de Antonio — su teléfono contra
+producción, CON LISTA [el pin y su prompt de permiso de verdad ·
+el teclado sobre el buscador (la cautela dvh que ningún emulador
+enseña) · la hoja · los chips en táctil]; Antonio canta lo que
+esté mal, se clasifica y se despacha en LA TANDA DE REMATES DE
+MÓVIL; (b) después, LA TANDA 5 — la pintura del RESULTADO
+(timeline, badges, avisos, skeleton — y ahí mueren los dos
+emojis supervivientes ⏳/⚠); EN LA MESA sin prisa: el aviso del
+presupuesto [522/520, es JS — la poda como palanca] · los tres
+e2e con 4200 a fuego · el logo (casilla 1); (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
 municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
@@ -1949,7 +1964,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.150 pruebas (651 motor + 499 interfaz; e2e yego.mjs 28, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs y creditos.mjs aparte, a mano) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (295+361 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.181 pruebas (651 motor + 530 interfaz; e2e yego.mjs, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs, creditos.mjs y pintura.mjs aparte, a mano — bizi-y-resumen, pantalla y proximo-bus aún con 4200 a fuego) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

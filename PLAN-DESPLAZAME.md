@@ -4018,12 +4018,118 @@ Code lo traduce al Angular existente.)*
         Marcadores: interfaz 441→499 (test.for del manifiesto) ·
         bitácora 47 [0 abiertas · 46 cerradas · 1 reabierta
         histórica] · e2e nuevos: esqueleto.mjs y creditos.mjs.
-      - [ ] TANDA 4 — LOS COMPONENTES (la pintura): píldoras,
-        grupos, select con iconos, chips de modo, el resultado —
-        Material Symbols y adiós emojis; NECESITA las dos
-        micro-decisiones de Antonio (¿«Limpiar búsqueda» se
-        queda? · la función del pin) y su pasada de doctrina.
-      - [ ] TANDAS 5+ — tesela oscura CARTO, el conmutador global
+      - [x] ⚰️ TANDA 4 — LOS COMPONENTES: LA PINTURA DEL BUSCADOR
+        (10-11/09; tanda + remate + remate-bis + chorradillas;
+        PUBLICADA el 11/09 en `69f14e1` con el ojo de Antonio).
+        LA PINTURA: nueve SVGs OFICIALES de Material Symbols
+        autoalojados [la fuente variable existe y no se usa:
+        miles de iconos en ~100 KB para gastar nueve; Apache 2.0
+        → ficha §1.37] con PORTERO carácter a carácter · emojis
+        FUERA del formulario [los ⏳/⚠ del resultado viven hasta
+        la tanda 5, jueza acotada y dicho] · chips con los tokens
+        de su familia [hallazgo: el CSS de componente
+        ([_ngcontent]) GANA al global a igual especificidad — la
+        nº45 con otro traje, cazada por su jueza antes de ningún
+        verde] · EL PIN «Mi ubicación» [ANTONIO]: visible solo
+        con (hover:none)+(pointer:coarse) [MDN MQ4 — táctil real,
+        no ventana estrecha; en Windows solo modo-tableta, y es
+        el comportamiento deseado], my_location, getCurrentPosition
+        SOLO por gesto [MDN] con pre-chequeo de Permissions
+        [«fingir una espera que se sabe estéril es una animación
+        mintiendo»] — y el motor YA TENÍA la pieza:
+        /api/portal-cercano contestando, medido con coordenadas
+        falsas por CDP · ⭐ HALLAZGO DE INSTRUMENTO:
+        setEmulatedMedia ACEPTA pointer/hover y NO HACE NADA — la
+        mitad de escritorio de la jueza daba verde porque el
+        navegador seguía siendo un PC; el mecanismo real es
+        setTouchEmulationEnabled+setDeviceMetricsOverride, y nace
+        LA P0: comprar que la emulación llegó ANTES de juzgar
+        con ella · seis :hover sueltos pre-existentes, envueltos
+        [una jueza que exime lo que ya había no es una jueza] ·
+        LA CONFESIÓN METODOLÓGICA del ejecutor, para el marco:
+        confundió texto pintado con nombre accesible y dedujo
+        una regla en vez de leerla [WCAG 4.1.2 pide nombre; el
+        2.5.3 exime al control sin texto visible] — «deducir
+        doctrina en vez de citarla es cómo se cuelan las
+        desviaciones que parecen prudentes». EL REMATE: los
+        chips AL CALCO [Antonio rechazó la desviación: solo el
+        ACTIVO lleva palabra; hover la revela bajo su @media;
+        aria-label en el botón + aria-hidden en el SVG] · ficha
+        §1.38 de Inter [los recuentos mordieron solos] · el
+        focus-visible ACEPTADO como mejora [el teclado existe en
+        los dos mundos — fuera del @media]. EL REMATE-BIS: LA
+        COLUMNA A MEDIDA [ANTONIO]: la suma medida — los dos
+        chips más largos abiertos A LA VEZ (Bus/Tranvía 141,23 +
+        Patín 133,97) + 4 círculos + huecos + rellenos = 558 px;
+        el peor caso cabe con 1 px; la L4 del 500 mordió y se
+        actualizó; el escalón de 1280 queda solo para el
+        separador; ⚠️ AVISO CON CIFRA: a 768 px el mapa queda en
+        209 — la suma manda desde donde hay hover · el Tipo a
+        500/500 y el Nº de 138→180 [hallazgo: CSS MUERTO — una
+        hoja encapsulada no alcanza al DOM de otro componente;
+        el inverso de .lienzo] · INTER A DIETA: −84,1 %
+        (340.428→54.168 B) con pyftsubset en venv de versiones
+        fijadas [práctica web.dev; la trampa cazada:
+        --layout-features o el subsetter poda tnum — verificado
+        leyendo GSUB tras el recorte; liga no existe en el
+        latino de Inter, va por calt] · ⭐ EL PARO DE LOS SIETE
+        GLIFOS: el ejecutor midió EL TEXTO REAL contra el cmap y
+        la receta canónica tiraba las cinco flechas de giro, el
+        ←, el ☀ y el ⚠ — añadidos por regla sentada: LO QUE LA
+        APP USA NO SE ROMPE · ⭐ EL PARO DEL PRESUPUESTO: mi
+        premisa CAYÓ MEDIDA — el initial de Angular cuenta
+        JS+CSS y NUNCA contó fuentes (las de public/ van
+        aparte); el aviso (522 contra 520) es del main.js de
+        492 kB y su palanca real es la poda de huérfanos [en
+        cola]; la PORTADA pesa 879→593 KB — menos que antes de
+        la tanda con la pintura entera dentro. LAS CHORRADILLAS
+        [ANTONIO]: SIN MODO POR DEFECTO [comportamiento: null
+        entra al tipo y obliga al guardián de generarRuta — la
+        red de verdad; 99 pruebas actualizadas con
+        aseguraQueHayModo, que solo actúa si no hay modo — a
+        ciegas les habría borrado el suyo a las de bici/coche/ZBE
+        y puéstolas a medir otra cosa sin decirlo; «Limpiar»
+        devuelve a NINGUNO; el README enmendado con «aquí
+        ponía»] · botones y títulos SE QUEDAN POR DOCTRINA [dos
+        escuelas de botones — deciden maqueta+M3: secundario
+        izquierda/primario derecha, anchuras DISTINTAS por
+        affordance; títulos a la izquierda — una alineación por
+        sección] · LAS BANDAS DE CABECERA [NN/g: la señal de
+        expandible es el pecado ausente nº1; el fondo en un
+        elemento clicable ES la señal correcta]: el calco
+        (muted/30) resultó INVISIBLE — 2 puntos de 255 — y
+        Antonio eligió el PAR B con los candidatos pintados
+        delante [claro slate-200→hover slate-300; oscuro
+        #333333→hover #404040, EL GRIS NUEVO derivado por regla:
+        el mismo salto que el claro (1,219 contra 1,204), no a
+        ojo — ratificado]; LOS DOS PRIMEROS TOKENS FUERA DE LA
+        MAQUETA entraron POR LA PUERTA GRANDE [un color que vive
+        en la hoja y no en la lista no lo sondea ni lo mide
+        nadie — el contrato mordió solo: 42 tokens, 84 sondas,
+        40 pares AA] y el suelo de la jueza P10 al valor elegido
+        [29 — si alguien aclara un paso, muerde] · LA LETRA DEL
+        VACÍO nueva [doctrina de estados vacíos: contexto +
+        acción, EN EL ORDEN de la interfaz; hallazgo: la frase
+        no la fijaba NADIE — media frase comprobada deja el
+        hueco por el que se coló; ahora dos jueces, frase
+        entera] · dos mentiras de instrumento cazadas ANTES de
+        firmar verde [la superficie de referencia era la banda
+        de al lado — se comparaba consigo misma; y el oscuro
+        «verde» con el tema clavado en claro — la vara de la P0]
+        · tres e2e des-hardcodeados de localhost:4200 [quedan
+        tres con 4200 a fuego: bizi-y-resumen, pantalla,
+        proximo-bus — en cola]. Marcadores: interfaz 499→530 ·
+        16 ficheros · e2e pintura.mjs nuevo · fichas del notices
+        39. TODO PUBLICADO en `69f14e1`.
+      - [ ] TANDA DE REMATES DE MÓVIL — la ronda de Antonio en
+        su teléfono con la app completa en producción (el pin
+        con su permiso real · el teclado sobre el buscador
+        [la cautela dvh] · la hoja · los chips en táctil):
+        Antonio canta la lista, se clasifica y se despacha.
+      - [ ] TANDA 5 — LA PINTURA DEL RESULTADO: timeline,
+        badges de línea, avisos ámbar, skeleton, edad del dato
+        — y los dos emojis supervivientes (⏳/⚠) mueren aquí.
+      - [ ] TANDAS 6+ — tesela oscura CARTO, el conmutador global
         con su anti-FOUC [prioridad documentada:
         elección guardada > sistema > claro], y la verificación
         final del 15 (casilla 5).
