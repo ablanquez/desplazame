@@ -26,6 +26,24 @@ const juzgar = (bien, titulo, detalle = '') => {
   if (!bien) fallos++;
   console.log(`  ${bien ? 'OK ' : '✗✗ '} ${titulo}${detalle ? '  ·  ' + detalle : ''}`);
 };
+/**
+ * ⛔ EL SUELO DE LA BANDA — ESTÁ EN ROJO A PROPÓSITO (11/09).
+ *
+ * ⚠️ **Esta jueza muerde hoy, y no es una regresión.** La banda de las
+ *    cabeceras se calcó de la maqueta —`muted` al 30 %— y al medirla resultó
+ *    invisible: **2 puntos de 255** de separación con la superficie, en claro y
+ *    en oscuro. Antonio la ha rechazado por eso y está eligiendo el gris.
+ *
+ * El suelo no me lo invento: es **el más suave de los dos candidatos que tiene
+ * delante**, `slate-100` (#f1f5f9), que se separa 14 puntos del blanco. Si
+ * elige el otro —`slate-200`, 29 puntos— este número sube con él. Lo que la
+ * jueza compra no es un color: es que la banda se vea SIN el ratón encima, que
+ * es lo que el hover no puede sustituir [NN/g, acordeones].
+ *
+ * Cuando el color esté fijado, esto pasa a verde sin tocar la jueza.
+ */
+const MINIMO_DE_SEPARACION = 14;
+
 /** Un {r,g,b} de `contrasteReal`, en texto legible para el acta. */
 const enRgb = (c) => `rgb(${c.r}, ${c.g}, ${c.b})`;
 
@@ -583,6 +601,25 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
         `subformularios: ${trasLimpiar.subformularios.length} · Generar apagado: ${trasLimpiar.generar}`,
     );
     await m.guardar(`${CAPTURAS}/limpiar-a-cero.png`);
+
+    // ⭐ Y LA LETRA DEL VACÍO, LEÍDA DE LA PANTALLA (11/09) — [ANTONIO].
+    //
+    // La fija también una jueza de jsdom, y aquí se repite a propósito: aquélla
+    // lee el DOM que Angular compone, ésta lee lo que hay pintado tras abrir el
+    // bloque con el ratón. Enumera CINCO condiciones porque cinco son desde que
+    // el modo entró en la que enciende «Generar ruta».
+    await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[1].click()`);
+    await m.dormir(500);
+    const vacio = await m.evaluar(
+      `document.querySelector('.pasos__vacio')?.textContent.trim() ?? '(no está)'`,
+    );
+    juzgar(
+      vacio ===
+        'Todavía no hay pasos. Rellena origen y destino, elige cómo te mueves y pulsa "Generar ruta".',
+      'P9 · ⭐ el vacío del resultado dice las CINCO condiciones',
+      `«${vacio}»`,
+    );
+    await m.guardar(`${CAPTURAS}/vacio-letra-nueva.png`);
   } finally {
     m.cerrar();
   }
@@ -651,6 +688,20 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
         !/^0px/.test(decl.bordeAbajo),
         `P10 · y su borde delimita dónde acaba la cabecera (${cual})`,
         decl.bordeAbajo,
+      );
+      // ⭐ Y CUÁNTO se separa, que es lo que de verdad se pidió: «que se
+      //    distinga» y «que se distinga EN REPOSO» no son la misma compra. La
+      //    de arriba pasaba con 2 puntos de 255.
+      const separacion = Math.max(
+        Math.abs(banda.fondo.r - superficie.fondo.r),
+        Math.abs(banda.fondo.g - superficie.fondo.g),
+        Math.abs(banda.fondo.b - superficie.fondo.b),
+      );
+      juzgar(
+        separacion >= MINIMO_DE_SEPARACION,
+        `P10 · ⛔ y se distingue EN REPOSO, sin ratón (${cual})`,
+        `${separacion} puntos de 255, y el suelo es ${MINIMO_DE_SEPARACION}` +
+          (separacion >= MINIMO_DE_SEPARACION ? '' : ' — esperando el gris de Antonio'),
       );
       juzgar(
         banda.contraste >= AA_TEXTO,
