@@ -59,11 +59,28 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
       return {
         marco: caja('.marco'), panel: caja('.panel'), zonaMapa: caja('.zona-mapa'),
         tablero: caja('.tablero'),
-        veAsa: ve('.panel__asa'), veSeparador: ve('.separador'),
-        radio: getComputedStyle(q('.panel')).borderTopLeftRadius,
-        anchoPildora: getComputedStyle(q('.panel__asa-pildora')).width,
-        altoPildora: getComputedStyle(q('.panel__asa-pildora')).height,
-        tocaAsa: getComputedStyle(q('.panel__asa')).minHeight,
+        veSeparador: ve('.separador'),
+        // AQUI SE LEIA EL ASA DE LA HOJA —la pildora de 4x32 y su area de
+        // toque de 48— y esta lectura REVENTO el 11/09 con un
+        // «getComputedStyle: parameter 1 is not of type Element»: la hoja
+        //    murió y el nodo no existe. Fue la primera jueza en morder, y de la
+        //    manera más ruidosa posible, que es la buena.
+        veBarra: ve('.barra'),
+        veCreditos: ve('.creditos'),
+        vePuertaMovil: ve('.puerta-creditos'),
+        veCabeceraAcordeon: ve('.bloque__cabecera'),
+        vePestanaCabecera: ve('.pestana__cabecera'),
+        botones: [...document.querySelectorAll('.barra__boton')].map((b) => {
+          const r = b.getBoundingClientRect();
+          return {
+            texto: b.textContent.trim(),
+            w: Math.round(r.width), h: Math.round(r.height),
+            actual: b.getAttribute('aria-current'),
+          };
+        }),
+        altoBarra: caja('.barra')?.h ?? 0,
+        // Qué pestaña dice el marco que se está mirando.
+        pestana: document.querySelector('.marco').getAttribute('data-pestana'),
       };
     `,
     );
@@ -75,23 +92,78 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
     );
 
     if (esMovil) {
-      juzgar(forma.veAsa && !forma.veSeparador, 'L4 · en móvil manda el asa, no el separador');
-      juzgar(forma.radio === '28px', 'L4 · la hoja lleva el radio de M3', forma.radio);
+      // ⭐ LA LETRA NUEVA (11/09): en móvil manda LA BARRA DE PESTAÑAS. Lo que
+      //    aquí se comprobaba —el asa, el radio de 28 de la hoja, la píldora de
+      //    4×32— se retira con la hoja, no se afloja: ya no hay hoja que medir.
       juzgar(
-        forma.anchoPildora === '32px' && forma.altoPildora === '4px' && forma.tocaAsa === '48px',
-        'L4 · el asa es la píldora de M3 (4×32) con área de toque de 48',
-        `${forma.anchoPildora}×${forma.altoPildora}, toque ${forma.tocaAsa}`,
+        forma.veBarra && !forma.veSeparador,
+        'L4 · en móvil manda la barra de pestañas, no el separador',
       );
-      // ⚠️ Contra el TABLERO, no contra la pantalla: desde que el pie de
-      //    créditos es la última franja del marco, el mapa mide el alto de la
-      //    ventana MENOS esa línea. Medir contra `alto` era la premisa vieja.
       juzgar(
-        forma.zonaMapa.h === forma.tablero.h && forma.panel.y > 0,
-        'L4 · el mapa llena el tablero y la hoja se le pone encima',
-        `mapa ${forma.zonaMapa.h}px de ${forma.tablero.h} · hoja desde y=${forma.panel.y}`,
+        forma.botones.length === 3 &&
+          forma.botones.map((b) => b.texto).join('|') === 'Buscador|Ruta|Mapa',
+        'L4 · ⭐ la barra tiene TRES huecos, y son los del encargo',
+        forma.botones.map((b) => b.texto).join(' · ') || '(ninguno)',
+      );
+      // ⚠️ El reparto equitativo se compra midiendo, no leyendo el `flex`: tres
+      //    botones que suman el ancho de la pantalla y miden lo mismo.
+      const anchos = forma.botones.map((b) => b.w);
+      juzgar(
+        anchos.length === 3 && Math.max(...anchos) - Math.min(...anchos) <= 1 &&
+          Math.abs(anchos.reduce((a, b) => a + b, 0) - ancho) <= 2,
+        'L4 · y se reparten la pantalla a partes iguales',
+        `${anchos.join(' + ')} = ${anchos.reduce((a, b) => a + b, 0)} de ${ancho}`,
+      );
+      // [WCAG 2.5.5] el objetivo mínimo; la maqueta pide 48 y es lo que se mide.
+      juzgar(
+        forma.botones.every((b) => b.h >= 48),
+        'L4 · cada hueco de la barra es tocable [WCAG 2.5.5: ≥48]',
+        forma.botones.map((b) => `${b.texto} ${b.h}px`).join(' · '),
+      );
+      // ⚠️ El color NO es la única señal de cuál está puesta [WCAG 1.4.1].
+      juzgar(
+        forma.botones.filter((b) => b.actual === 'page').length === 1 &&
+          forma.botones.find((b) => b.actual === 'page')?.texto.startsWith('Buscador'),
+        'L4 · ⭐ y la puesta se dice con `aria-current`, no solo con el color',
+        forma.botones.map((b) => `${b.texto}:${b.actual ?? '—'}`).join(' · '),
+      );
+      // ⭐ LA PESTAÑA ES LA PANTALLA ENTERA: el panel llena el tablero, no un
+      //    trozo de abajo como hacía la hoja.
+      juzgar(
+        forma.panel.y === forma.tablero.y && forma.panel.h === forma.tablero.h &&
+          forma.panel.w === ancho,
+        'L4 · ⭐ la pestaña ocupa el tablero ENTERO, no un trozo de abajo',
+        `panel ${forma.panel.w}×${forma.panel.h} desde y=${forma.panel.y} · tablero ${forma.tablero.h}`,
+      );
+      juzgar(
+        forma.zonaMapa.h === forma.tablero.h,
+        'L4 · y el mapa sigue midiendo el tablero entero, debajo',
+        `mapa ${forma.zonaMapa.h}px de ${forma.tablero.h}`,
+      );
+      // ⛔ LA FRANJA DEL PIE NO ESTÁ, y la puerta a /creditos sí: ver la ley
+      //    repartida que explica la plantilla junto a `.puerta-creditos`.
+      juzgar(
+        !forma.veCreditos && forma.vePuertaMovil,
+        'L4 · ⛔ la franja del pie no está, y la puerta a /creditos sí',
+        `franja ${forma.veCreditos} · puerta ${forma.vePuertaMovil}`,
+      );
+      // Y el acordeón no manda: su cabecera con chevrón no se pinta.
+      juzgar(
+        !forma.veCabeceraAcordeon,
+        'L4 · sin acordeón: la cabecera con chevrón no se pinta en móvil',
       );
     } else {
-      juzgar(!forma.veAsa && forma.veSeparador, 'L4 · en escritorio manda el separador, no el asa');
+      juzgar(
+        !forma.veBarra && forma.veSeparador,
+        'L4 · en escritorio manda el separador, no la barra',
+      );
+      juzgar(
+        forma.veCreditos && !forma.vePuertaMovil && forma.veCabeceraAcordeon &&
+          !forma.vePestanaCabecera,
+        'L4 · y vuelve todo lo suyo: franja, acordeón, y nada de móvil',
+        `franja ${forma.veCreditos} · puerta ${forma.vePuertaMovil} · ` +
+          `acordeón ${forma.veCabeceraAcordeon} · cabecera de pestaña ${forma.vePestanaCabecera}`,
+      );
       // ⭐ El panel a la IZQUIERDA y el mapa a la DERECHA [DISEÑO §211].
       juzgar(
         forma.panel.x === 0 && forma.zonaMapa.x >= forma.panel.w,
@@ -176,34 +248,85 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
                textos: c.innerText.replace(/\s+/g, ' ').length };
     `,
     );
-    // ⚠️ LO QUE SE EXIGE ES QUE LA ATRIBUCION A OSM SE LEA, no cual de las dos
-    //    la lleva. En movil la hoja se superpone al mapa, y la atribucion
-    //    nativa vive DENTRO del mapa: alli queda debajo, y moverla exigiria
-    //    saber cuanto mide la hoja. Nuestro pie —ultima franja del marco, que
-    //    no tapa nadie— dice «Cartografia: © colaboradores de OpenStreetMap»,
-    //    asi que la atribucion se cumple siempre. Lo que NO puede pasar es que
-    //    las dos se pisen entre si, ni que el pie quede tapado.
-    juzgar(
-      pie !== null && pie.veCreditos && pie.creditosDestapados && pie.diceOsm && !pie.solapa,
-      'L6 · la atribución a OpenStreetMap se lee, y nadie tapa el pie',
-      pie
-        ? `pie ${pie.altoPie}px · dice OSM: ${pie.diceOsm} · destapado: ${pie.creditosDestapados}` +
-          ` · la nativa ${pie.atribucionDestapada ? 'tambien se ve' : 'queda bajo la hoja'}`
-        : 'falta alguno',
-    );
+    // ⚠️ ESTA JUEZA SE PARTE EN DOS EL 11/09, y no por comodidad: en móvil la
+    //    franja del pie YA NO EXISTE —ese borde lo ocupa la barra de pestañas—,
+    //    así que medir «el pie y la nativa sin pisarse» allí no tiene sujeto.
+    //    Mordió tal cual estaba: «pie 0px · destapado: false».
+    //
+    //    La ley no cambia; cambia quién la cumple en cada ancho:
+    //    · ESCRITORIO: la franja del marco lo dice, y la nativa de Leaflet
+    //      convive con ella sin pisarse. Igual que siempre.
+    //    · MÓVIL: lo dice EL CONTROL NATIVO de Leaflet dentro de la pestaña
+    //      Mapa, que es exactamente donde la política de teselas de OSM lo
+    //      exige —sobre el mapa y sin interfaz encima—, y las otras dos
+    //      pestañas no enseñan mapa, así que no hay mapa cuya atribución falte.
+    if (!esMovil) {
+      juzgar(
+        pie !== null && pie.veCreditos && pie.creditosDestapados && pie.diceOsm && !pie.solapa,
+        'L6 · la atribución a OpenStreetMap se lee, y nadie tapa el pie',
+        pie
+          ? `pie ${pie.altoPie}px · dice OSM: ${pie.diceOsm} · destapado: ${pie.creditosDestapados}` +
+            ` · la nativa ${pie.atribucionDestapada ? 'tambien se ve' : 'queda debajo'}`
+          : 'falta alguno',
+      );
 
-    // ⭐ Y LA FRANJA ES UNA LINEA, CON SU PUERTA. Las dos mitades de la letra
-    //    nueva: lo que se queda —Leaflet y OSM, que son lo del mapa— y lo que
-    //    lleva al resto —el enlace a /creditos—. Si la linea envolviera en
-    //    movil, `lineas` diria 2 y esta jueza lo cantaria con la medida.
-    juzgar(
-      pie !== null && pie.diceLeaflet && pie.diceOsm && pie.enlaceCreditos && pie.lineas === 1,
-      'L6 · la franja es UNA sola línea: Leaflet, OSM y la puerta a /creditos',
-      pie
-        ? `${pie.lineas} renglón(es) · Leaflet: ${pie.diceLeaflet} · OSM: ${pie.diceOsm}` +
-          ` · enlace a /creditos: ${pie.enlaceCreditos} · ${pie.altoPie}px de alto`
-        : 'no hay pie',
-    );
+      // ⭐ Y LA FRANJA ES UNA LINEA, CON SU PUERTA. Las dos mitades de la letra:
+      //    lo que se queda —Leaflet y OSM, que son lo del mapa— y lo que lleva
+      //    al resto —el enlace a /creditos—.
+      juzgar(
+        pie !== null && pie.diceLeaflet && pie.diceOsm && pie.enlaceCreditos && pie.lineas === 1,
+        'L6 · la franja es UNA sola línea: Leaflet, OSM y la puerta a /creditos',
+        pie
+          ? `${pie.lineas} renglón(es) · Leaflet: ${pie.diceLeaflet} · OSM: ${pie.diceOsm}` +
+            ` · enlace a /creditos: ${pie.enlaceCreditos} · ${pie.altoPie}px de alto`
+          : 'no hay pie',
+      );
+    } else {
+      // Se va a la pestaña Mapa, que es donde el mapa se ve.
+      await m.evaluar(`[...document.querySelectorAll('.barra__boton')].find((b) => b.textContent.trim().startsWith('Mapa')).click()`);
+      await m.dormir(600);
+      const nativa = await leer(
+        m,
+        `
+        const a = document.querySelector('.leaflet-control-attribution');
+        if (!a) return null;
+        const r = a.getBoundingClientRect();
+        const s = getComputedStyle(a);
+        // El punto medio tiene que devolverla A ELLA: que exista y mida no
+        // prueba que se vea — la hoja la tapaba «en silencio» y solo se cazo
+        // mirando la captura (ver el comentario del z-index en styles.css).
+        const enMedio = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        return {
+          ve: s.display !== 'none' && s.visibility !== 'hidden' && r.width > 0 && r.height > 0,
+          destapada: !!enMedio && (enMedio === a || a.contains(enMedio)),
+          diceOsm: /OpenStreetMap/i.test(a.innerText),
+          diceLeaflet: /Leaflet/.test(a.innerText),
+          dentroDePantalla: r.top >= 0 && r.bottom <= window.innerHeight + 1 &&
+                            r.left >= 0 && r.right <= window.innerWidth + 1,
+          caja: Math.round(r.width) + 'x' + Math.round(r.height),
+          hayFranja: !!document.querySelector('.creditos') &&
+                     getComputedStyle(document.querySelector('.creditos')).display !== 'none',
+        };
+      `,
+      );
+      juzgar(
+        nativa !== null && nativa.ve && nativa.destapada && nativa.diceOsm &&
+          nativa.dentroDePantalla,
+        'L6 · ⭐ en móvil la atribución de OSM la lleva el control NATIVO, y está destapada',
+        nativa
+          ? `${nativa.caja} · OSM: ${nativa.diceOsm} · Leaflet: ${nativa.diceLeaflet}` +
+            ` · destapada: ${nativa.destapada} · dentro de pantalla: ${nativa.dentroDePantalla}`
+          : 'no hay control de atribución',
+      );
+      juzgar(
+        nativa !== null && !nativa.hayFranja,
+        'L6 · ⛔ y la franja del pie no está: la sustituyen la nativa y la puerta del formulario',
+      );
+      await m.guardar(`${CAPTURAS}/pestana-mapa.png`);
+      // Se vuelve al buscador para no dejar el terreno movido a las siguientes.
+      await m.evaluar(`[...document.querySelectorAll('.barra__boton')].find((b) => b.textContent.trim().startsWith('Buscador')).click()`);
+      await m.dormir(400);
+    }
 
     // ═══════════ L1 · SIN SCROLL GLOBAL ═══════════
     //
@@ -240,17 +363,18 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
     //    inicial de la referencia— el buscador tiene 760 px y le cabe todo:
     //    no habia nada que agotar y la juez se quedaba sin objeto. Se abren
     //    los dos, que es cuando se reparten la altura y el formulario no cabe.
-    if (esMovil) {
-      await m.evaluar(`document.querySelector('.panel__asa').click()`);
-      await m.dormir(500);
-    }
-    for (const i of [0, 1]) {
-      const abierto = await m.evaluar(
-        `document.querySelectorAll('.bloque')[${i}].classList.contains('bloque--abierto')`,
-      );
-      if (!abierto) {
-        await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[${i}].click()`);
-        await m.dormir(400);
+    // ⚠️ EN MOVIL YA NO HAY QUE PREPARAR NADA, y aqui se desplegaba la hoja.
+    //    La pestaña Buscador es la pantalla entera y el formulario no le cabe:
+    //    la precondicion —un bloque con contenido de sobra— viene puesta.
+    if (!esMovil) {
+      for (const i of [0, 1]) {
+        const abierto = await m.evaluar(
+          `document.querySelectorAll('.bloque')[${i}].classList.contains('bloque--abierto')`,
+        );
+        if (!abierto) {
+          await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[${i}].click()`);
+          await m.dormir(400);
+        }
       }
     }
     const cuerpo = await leer(
@@ -347,8 +471,11 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
       return leer(m, estadoDeLosBloques);
     };
 
+    // ⚠️ LAS CUATRO COMBINACIONES SON DE ESCRITORIO, y desde el 11/09 SOLO de
+    //    escritorio: en movil no hay acordeon que combinar — cada pestaña es la
+    //    pantalla entera y son excluyentes. Lo de movil lo compra L8, abajo.
     console.log('');
-    for (const [b, p] of [[true, false], [true, true], [false, true], [false, false]]) {
+    for (const [b, p] of (esMovil ? [] : [[true, false], [true, true], [false, true], [false, false]])) {
       const bl = await ponerEn(b, p);
       const como = `${b ? 'abierto' : 'plegado'}/${p ? 'abierto' : 'plegado'}`;
 
@@ -433,8 +560,11 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
       };
 
       // El buscador tiene que estar abierto para escribir en el: L5 lo dejo
-      // plegado, y un campo oculto no se rellena.
-      await ponerEn(true, false);
+      // plegado, y un campo oculto no se rellena. En movil la pestaña Buscador
+      // ya es la que se esta mirando.
+      if (!esMovil) {
+        await ponerEn(true, false);
+      }
       await escribir(0, 'COLOSO');
       await elegir(0, 'COLOSO');
       await portal(0, '2');
@@ -461,44 +591,192 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
         }
         await m.dormir(600);
 
-        const ida = await leer(m, estadoDeLosBloques);
-        juzgar(
-          ida[0].abierto === false && !ida[0].cuerpoOcupa && ida[1].abierto === true && ida[1].altoCuerpo > 0,
-          'L7 · IDA — al generar: el resultado se abre y el buscador se pliega',
-          `buscador ${ida[0].abierto ? 'abierto' : 'plegado'} (cuerpo ${ida[0].altoCuerpo}px) · ` +
-            `resultado ${ida[1].abierto ? 'abierto' : 'plegado'} (cuerpo ${ida[1].altoCuerpo}px)`,
-        );
+        if (!esMovil) {
+          const ida = await leer(m, estadoDeLosBloques);
+          juzgar(
+            ida[0].abierto === false && !ida[0].cuerpoOcupa && ida[1].abierto === true && ida[1].altoCuerpo > 0,
+            'L7 · IDA — al generar: el resultado se abre y el buscador se pliega',
+            `buscador ${ida[0].abierto ? 'abierto' : 'plegado'} (cuerpo ${ida[0].altoCuerpo}px) · ` +
+              `resultado ${ida[1].abierto ? 'abierto' : 'plegado'} (cuerpo ${ida[1].altoCuerpo}px)`,
+          );
 
-        await m.guardar(`${CAPTURAS}/coreografia-${nombre}-ida.png`);
+          await m.guardar(`${CAPTURAS}/coreografia-${nombre}-ida.png`);
 
-        // Y LA VUELTA: se pulsa la cabecera del Buscador, como haria una mano.
-        await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[0].click()`);
-        await m.dormir(500);
-        const vuelta = await leer(m, estadoDeLosBloques);
-        juzgar(
-          vuelta[0].abierto === true && vuelta[0].altoCuerpo > 0 &&
-            vuelta[1].abierto === false && !vuelta[1].cuerpoOcupa,
-          'L7 · VUELTA — al reabrir el buscador: el resultado se pliega abajo',
-          `buscador ${vuelta[0].abierto ? 'abierto' : 'plegado'} (cuerpo ${vuelta[0].altoCuerpo}px) · ` +
-            `resultado ${vuelta[1].abierto ? 'abierto' : 'plegado'} (cuerpo ${vuelta[1].altoCuerpo}px)`,
-        );
-        // Y el sitio al que se vuelve es EL DEL ARRANQUE, no uno parecido.
-        juzgar(
-          vuelta[0].abierto === alArrancar[0] && vuelta[1].abierto === alArrancar[1],
-          'L7 · y la vuelta deja exactamente el estado del arranque',
-          `arranque ${alArrancar.join('/')} · vuelta ${vuelta.map((x) => x.abierto).join('/')}`,
-        );
+          // Y LA VUELTA: se pulsa la cabecera del Buscador, como haria una mano.
+          await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[0].click()`);
+          await m.dormir(500);
+          const vuelta = await leer(m, estadoDeLosBloques);
+          juzgar(
+            vuelta[0].abierto === true && vuelta[0].altoCuerpo > 0 &&
+              vuelta[1].abierto === false && !vuelta[1].cuerpoOcupa,
+            'L7 · VUELTA — al reabrir el buscador: el resultado se pliega abajo',
+            `buscador ${vuelta[0].abierto ? 'abierto' : 'plegado'} (cuerpo ${vuelta[0].altoCuerpo}px) · ` +
+              `resultado ${vuelta[1].abierto ? 'abierto' : 'plegado'} (cuerpo ${vuelta[1].altoCuerpo}px)`,
+          );
+          // Y el sitio al que se vuelve es EL DEL ARRANQUE, no uno parecido.
+          juzgar(
+            vuelta[0].abierto === alArrancar[0] && vuelta[1].abierto === alArrancar[1],
+            'L7 · y la vuelta deja exactamente el estado del arranque',
+            `arranque ${alArrancar.join('/')} · vuelta ${vuelta.map((x) => x.abierto).join('/')}`,
+          );
 
-        await m.guardar(`${CAPTURAS}/coreografia-${nombre}-vuelta.png`);
+          await m.guardar(`${CAPTURAS}/coreografia-${nombre}-vuelta.png`);
+        } else {
+          // ⭐ LA COREOGRAFIA DE MOVIL (11/09) — `handleGenerateRoute` salta a
+          //    la pestaña «Ruta», y `handleReset` vuelve a «Buscador».
+          const ida = await leer(
+            m,
+            `
+            const marco = document.querySelector('.marco');
+            const pasos = document.querySelector('.bloque--pasos');
+            const r = pasos ? pasos.getBoundingClientRect() : null;
+            return {
+              pestana: marco.getAttribute('data-pestana'),
+              actual: [...document.querySelectorAll('.barra__boton')]
+                .find((b) => b.getAttribute('aria-current') === 'page')?.textContent.trim() ?? null,
+              altoPasos: r ? Math.round(r.height) : 0,
+              hayPasos: document.querySelectorAll('.paso').length,
+            };
+          `,
+          );
+          juzgar(
+            ida.pestana === 'ruta' && ida.altoPasos > 0 && ida.hayPasos > 0,
+            'L7 · ⭐ IDA en movil — al generar se salta a la pestaña «Ruta», con la ruta dentro',
+            `pestaña ${ida.pestana} · barra dice «${ida.actual}» · ${ida.hayPasos} pasos en ${ida.altoPasos}px`,
+          );
+          await m.guardar(`${CAPTURAS}/coreografia-${nombre}-ida.png`);
+
+          // LA VUELTA: «Limpiar busqueda» — que en movil vive en la pestaña
+          // Buscador, asi que primero se vuelve a ella con la barra, como una
+          // mano.
+          await m.evaluar(`[...document.querySelectorAll('.barra__boton')].find((b) => b.textContent.trim().startsWith('Buscador')).click()`);
+          await m.dormir(400);
+          await m.evaluar(`document.querySelector('button.limpiar').click()`);
+          await m.dormir(600);
+          const vuelta = await leer(
+            m,
+            `
+            return {
+              pestana: document.querySelector('.marco').getAttribute('data-pestana'),
+              marcados: [...document.querySelectorAll('input[name=familia]')].filter((r) => r.checked).length,
+              calles: [...document.querySelectorAll('app-autocompletar-via input')].map((c) => c.value).join('|'),
+              generar: document.querySelector('button.generar').disabled,
+              trazas: document.querySelectorAll('.leaflet-overlay-pane path').length,
+            };
+          `,
+          );
+          juzgar(
+            vuelta.pestana === 'buscador' && vuelta.marcados === 0 &&
+              vuelta.calles === '|' && vuelta.generar === true,
+            'L7 · ⭐ VUELTA en movil — «Limpiar» devuelve a «Buscador» y todo a cero',
+            `pestaña ${vuelta.pestana} · modos marcados ${vuelta.marcados} · ` +
+              `calles «${vuelta.calles}» · Generar apagado ${vuelta.generar} · ` +
+              `trazas en el mapa ${vuelta.trazas}`,
+          );
+          await m.guardar(`${CAPTURAS}/coreografia-${nombre}-vuelta.png`);
+        }
       }
     }
 
-    // ═══════════ LAS CAPTURAS DE LOS ESTADOS ═══════════
+    // ═══════════ L8 · EL PASEO POR LAS TRES PESTAÑAS (11/09) ═══════════
+    //
+    // ⚠️ ESTA JUEZA SUSTITUYE A LAS CAPTURAS DE LA HOJA —desplegada y
+    //    recogida—, que ya no existen. Y compra tres cosas que la hoja no
+    //    tenia que demostrar:
+    //
+    //    1. UNA SOLA pestaña visible cada vez, y a pantalla completa.
+    //    2. EL MAPA NO SE DESMONTA: al volver a «Mapa» tras pasear, sus
+    //       teselas siguen cubriendolo. Si se desmontara y volviera a montarse,
+    //       aqui saldrian cuadros grises — que es exactamente el fallo que el
+    //       patron de la referencia evita, y la razon de taparlo por opacidad
+    //       en vez de quitarlo.
+    //    3. El contador de instancias de Leaflet: UNA, la misma, de principio
+    //       a fin. Es la prueba dura de que no se remonta.
     if (esMovil) {
-      await m.guardar(`${CAPTURAS}/esq-movil-desplegada.png`);
-      await m.evaluar(`document.querySelector('.panel__asa').click()`);
-      await m.dormir(500);
-      await m.guardar(`${CAPTURAS}/esq-movil-recogida.png`);
+      const cobertura = `
+        const c = document.querySelector('.leaflet-container');
+        const t = [...document.querySelectorAll('.leaflet-tile-loaded, .leaflet-tile')];
+        if (!c || !t.length) return { cubre: 0, ancho: 0, teselas: 0, instancias: 0 };
+        const r = c.getBoundingClientRect();
+        let izq = Infinity, der = -Infinity;
+        for (const x of t) { const q = x.getBoundingClientRect();
+          if (q.width > 0) { izq = Math.min(izq, q.left); der = Math.max(der, q.right); } }
+        return {
+          cubre: Math.round(Math.min(der, r.right) - Math.max(izq, r.left)),
+          ancho: Math.round(r.width),
+          teselas: t.length,
+          instancias: document.querySelectorAll('.leaflet-container').length,
+        };
+      `;
+      const aPestana = async (cual) => {
+        await m.evaluar(`[...document.querySelectorAll('.barra__boton')].find((b) => b.textContent.trim().startsWith(${JSON.stringify(cual)})).click()`);
+        await m.dormir(600);
+        return leer(
+          m,
+          `
+          const q = (sel) => { const e = document.querySelector(sel); if (!e) return null;
+            const c = getComputedStyle(e); const r = e.getBoundingClientRect();
+            return { ve: c.display !== 'none' && c.visibility !== 'hidden' && c.opacity !== '0' &&
+                         r.width > 0 && r.height > 0,
+                     w: Math.round(r.width), h: Math.round(r.height),
+                     abajo: Math.round(r.bottom) }; };
+          const tablero = document.querySelector('.tablero').getBoundingClientRect();
+          return {
+            pestana: document.querySelector('.marco').getAttribute('data-pestana'),
+            buscador: q('.bloque--buscador'),
+            pasos: q('.bloque--pasos'),
+            mapa: q('.zona-mapa'),
+            tablero: { w: Math.round(tablero.width), h: Math.round(tablero.height),
+                       abajo: Math.round(tablero.bottom) },
+          };
+        `,
+        );
+      };
+
+      console.log('');
+      for (const [cual, clave] of [['Buscador', 'buscador'], ['Ruta', 'pasos'], ['Mapa', 'mapa']]) {
+        const v = await aPestana(cual);
+        const visibles = ['buscador', 'pasos', 'mapa'].filter((k) => v[k] && v[k].ve);
+        juzgar(
+          visibles.length === 1 && visibles[0] === clave,
+          `L8 · «${cual}» — se ve UNA sola cosa, y es la suya`,
+          `se ven: ${visibles.join(', ') || '(nada)'} · data-pestana=${v.pestana}`,
+        );
+        // ⚠️ ESTA JUEZA MEDIA MAL Y LO DIJO: pedia que el bloque midiera el
+        //    tablero ENTERO y daba 659 de 779. Los 120 que faltaban son la
+        //    cabecera compacta de la pestaña, que es parte de la pantalla y no
+        //    un hueco. Lo que hay que comprar es que **no sobre nada por
+        //    abajo**: que lo suyo llegue al borde inferior del tablero y ocupe
+        //    todo el ancho. El fallo era del instrumento, no de la pintura.
+        const suyo = v[clave];
+        juzgar(
+          !!suyo && suyo.w === v.tablero.w && Math.abs(suyo.abajo - v.tablero.abajo) <= 1,
+          `L8 · «${cual}» — llega al borde de abajo del tablero, sin hueco`,
+          suyo
+            ? `${suyo.w}x${suyo.h}, acaba en y=${suyo.abajo} · el tablero acaba en ${v.tablero.abajo}`
+            : 'no esta',
+        );
+        await m.guardar(`${CAPTURAS}/pestana-${clave}.png`);
+      }
+
+      // ⭐ Y AL VOLVER, EL MAPA SIGUE ENTERO. Se pasea otra vez y se mide.
+      await aPestana('Buscador');
+      await aPestana('Ruta');
+      const tras = await aPestana('Mapa');
+      const mapa = await leer(m, cobertura);
+      juzgar(
+        mapa.instancias === 1,
+        'L8 · ⭐ el mapa NO se ha remontado: sigue habiendo UNA instancia de Leaflet',
+        `${mapa.instancias} contenedor(es) · ${mapa.teselas} teselas`,
+      );
+      juzgar(
+        mapa.ancho > 0 && mapa.cubre >= mapa.ancho - 2,
+        'L8 · ⭐ y tras pasear las tres pestañas las teselas lo siguen cubriendo — sin huecos grises',
+        `${mapa.cubre} de ${mapa.ancho} px · pestaña ${tras.pestana}`,
+      );
+
+      await m.evaluar(`[...document.querySelectorAll('.barra__boton')].find((b) => b.textContent.trim().startsWith('Buscador')).click()`);
+      await m.dormir(400);
     } else {
       await m.guardar(`${CAPTURAS}/esq-pc-abierta.png`);
 

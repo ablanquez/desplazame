@@ -351,3 +351,154 @@ describe('⭐ «LIMPIAR BÚSQUEDA» — calcada de handleReset', () => {
     expect(raiz.querySelector<HTMLButtonElement>('.generar')!.disabled).toBe(true);
   });
 });
+
+/**
+ * ⭐ LA BARRA DE PESTAÑAS DE MÓVIL (11/09) — lo que jsdom SÍ puede juzgar.
+ *
+ * ⚠️ Aquí no hay consultas de medios que apliquen, así que **no** se puede
+ *    comprobar que la barra se vea solo por debajo de 768: eso lo miden L4 y la
+ *    sonda de la frontera en Chrome. Lo que sí se puede comprobar es lo que la
+ *    pantalla TRAE, que es la mitad que se rompe al refactorizar: los tres
+ *    huecos, sus nombres, su dibujo, y que la puesta se diga con `aria-current`
+ *    y no solo con un color.
+ */
+describe('⭐ LA BARRA DE PESTAÑAS — la navegación de móvil', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [Buscador],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+    TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    const http = TestBed.inject(HttpTestingController);
+    for (const p of http.match(() => true)) {
+      if (!p.cancelled) p.flush([]);
+    }
+  });
+
+  async function raiz(): Promise<HTMLElement> {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('⭐ es un `nav` con nombre, y trae TRES huecos: Buscador, Ruta y Mapa', async () => {
+    const r = await raiz();
+    const barra = r.querySelector('nav.barra');
+    expect(barra).not.toBeNull();
+    // [DOC ARIA] varias navegaciones en una página se distinguen por su nombre.
+    expect(barra?.getAttribute('aria-label')?.length).toBeGreaterThan(0);
+
+    const botones = Array.from(barra!.querySelectorAll('button.barra__boton'));
+    expect(botones.map((b) => b.querySelector('.barra__texto')?.textContent?.trim())).toEqual([
+      'Buscador',
+      'Ruta',
+      'Mapa',
+    ]);
+  });
+
+  /**
+   * ⚠️ **Y SON TRES, NO CUATRO.** La maqueta trae un cuarto botón, «Tema», que
+   *    llama a `cycleTheme`. Aquí no se pinta a propósito: el tema va clavado en
+   *    claro hasta su tanda —`<html data-theme="light">`, con su jueza en
+   *    `identidad.spec.ts`—, así que ese botón se pulsaría y no pasaría nada.
+   *    Esta línea es la que hará ruido el día que el conmutador entre: habrá
+   *    que subirla a 4 a la vez que se cablea, y no antes.
+   */
+  it('⛔ y son TRES: «Tema» no entra hasta que el conmutador exista', async () => {
+    expect((await raiz()).querySelectorAll('button.barra__boton').length).toBe(3);
+  });
+
+  it('⭐ cada hueco lleva su símbolo, y el símbolo no habla', async () => {
+    for (const b of (await raiz()).querySelectorAll('button.barra__boton')) {
+      const dibujo = b.querySelector('app-simbolo svg path')?.getAttribute('d') ?? '';
+      expect(Object.values(SIMBOLOS)).toContain(dibujo);
+      // El nombre lo pone el texto de al lado; el icono callado, o se diría dos veces.
+      expect(b.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    }
+  });
+
+  /**
+   * ⭐ LA PUESTA SE DICE, NO SOLO SE PINTA [WCAG 1.4.1]. El color primario
+   * distingue la pestaña activa para quien lo ve; `aria-current="page"` la
+   * distingue para todos los demás.
+   */
+  it('⭐ exactamente UNA lleva `aria-current`, y al arrancar es «Buscador»', async () => {
+    const r = await raiz();
+    const puestas = Array.from(r.querySelectorAll('button.barra__boton')).filter(
+      (b) => b.getAttribute('aria-current') === 'page',
+    );
+    expect(puestas.length).toBe(1);
+    expect(puestas[0]?.querySelector('.barra__texto')?.textContent?.trim()).toBe('Buscador');
+  });
+
+  it('⭐ pulsar un hueco mueve la pestaña del marco, y la marca a él', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const r = fixture.nativeElement as HTMLElement;
+
+    expect(r.querySelector('.marco')?.getAttribute('data-pestana')).toBe('buscador');
+
+    const mapa = Array.from(r.querySelectorAll<HTMLButtonElement>('button.barra__boton')).find(
+      (b) => b.textContent?.trim() === 'Mapa',
+    );
+    mapa!.click();
+    await fixture.whenStable();
+
+    expect(r.querySelector('.marco')?.getAttribute('data-pestana')).toBe('mapa');
+    expect(mapa!.getAttribute('aria-current')).toBe('page');
+    expect(
+      Array.from(r.querySelectorAll('button.barra__boton')).filter(
+        (b) => b.getAttribute('aria-current') === 'page',
+      ).length,
+    ).toBe(1);
+  });
+
+  /**
+   * ⭐ PULSAR «RUTA» ABRE SU BLOQUE, y esto no es un adorno: el cuerpo del
+   * resultado se esconde con `[hidden]` mientras su acordeón está plegado, y
+   * arranca plegado. Sin esta conducta, tocar «Ruta» sin haber generado nada
+   * enseñaría una pestaña vacía de verdad — ni el texto del vacío.
+   *
+   * ⚠️ Se mueve LA MISMA señal del acordeón; no se enseña con CSS un elemento
+   *    `[hidden]`. Un `display` que contradiga al atributo lo deja escondido
+   *    para quien lee la pantalla y visible para quien la mira: es el fallo de
+   *    la nº46 con otro disfraz.
+   */
+  it('⭐ pulsar «Ruta» destapa su cuerpo: el vacío se lee, no queda `[hidden]`', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const r = fixture.nativeElement as HTMLElement;
+
+    expect(r.querySelector('#bloque-pasos')?.hasAttribute('hidden')).toBe(true);
+
+    Array.from(r.querySelectorAll<HTMLButtonElement>('button.barra__boton'))
+      .find((b) => b.textContent?.trim() === 'Ruta')!
+      .click();
+    await fixture.whenStable();
+
+    expect(r.querySelector('#bloque-pasos')?.hasAttribute('hidden')).toBe(false);
+    expect(r.querySelector('.pasos__vacio')?.textContent?.trim().length).toBeGreaterThan(0);
+  });
+
+  /**
+   * ⭐ LA PESTAÑA «RUTA» TIENE SU PROPIO TITULAR, y son DOS en el DOM: el del
+   * acordeón —«Indicaciones», con su chevrón— y el de la pestaña —«Resultado de
+   * rutas», la letra de la maqueta—. Cada uno se apaga con `display: none` en
+   * el ancho del otro, y eso los saca también del árbol de accesibilidad: quien
+   * lee la pantalla oye exactamente uno.
+   */
+  it('⭐ el bloque del resultado trae sus DOS titulares, uno por ancho', async () => {
+    const r = await raiz();
+    const bloque = r.querySelector('.bloque--pasos');
+    expect(bloque).not.toBeNull();
+    expect(bloque?.querySelector('.bloque__cabecera')?.textContent?.trim()).toContain(
+      'Indicaciones',
+    );
+    expect(bloque?.querySelector('.pestana__cabecera h2')?.textContent?.trim()).toBe(
+      'Resultado de rutas',
+    );
+  });
+});

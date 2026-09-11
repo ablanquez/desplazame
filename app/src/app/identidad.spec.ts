@@ -519,6 +519,31 @@ describe('⭐ (v) LA BASE — el body vestido, y la letra que llega a tiempo', (
   const HTML = leer('app/src/index.html');
   const base = sinComentarios(bloque(CSS, 'body {'));
 
+  /**
+   * ⭐ EL SAFE-AREA, Y SUS DOS MITADES (11/09, tanda de móvil).
+   *
+   * [DOC MDN, `env()`] las cuatro variables `safe-area-inset-*` **valen 0
+   * mientras el viewport no sea `cover`**. La barra de pestañas pide
+   * `env(safe-area-inset-bottom)` de relleno para no quedarse debajo del
+   * indicador de inicio de un iPhone; sin la palabra en el meta, ese relleno
+   * sería 0 y la barra estaría tapada justo en el aparato para el que se hizo.
+   *
+   * ⚠️ **Las dos mitades se compran JUNTAS y a propósito.** Cada una sola es
+   *    peor que ninguna: el meta sin el relleno mete la página debajo del
+   *    indicador y no la aparta; el relleno sin el meta es una declaración que
+   *    siempre vale 0. Una jueza por mitad dejaría pasar las dos medias obras.
+   *
+   * ⚠️ Y esto NO se puede medir en Chrome de escritorio, donde no hay notch y
+   *    `env()` vale 0 igualmente. Lo que se comprueba aquí es que **está
+   *    declarado**; el juicio de verdad es el teléfono de Antonio.
+   */
+  it('⭐ el safe-area está declarado por entero: el meta `cover` Y el relleno', () => {
+    expect(HTML).toMatch(/<meta[^>]*name="viewport"[^>]*viewport-fit\s*=\s*cover/);
+    expect(sinComentarios(bloque(CSS, '.barra {'))).toContain(
+      'padding-bottom: env(safe-area-inset-bottom)',
+    );
+  });
+
   it('el body toma el fondo y el texto de los tokens, no de un hex suelto', () => {
     expect(base).toContain('background-color: var(--background)');
     expect(base).toContain('color: var(--foreground)');

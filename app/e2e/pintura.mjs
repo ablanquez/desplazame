@@ -775,12 +775,20 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
 //    razón de que la regla viva bajo `@media (hover: hover)`. Lo que se compra
 //    es que **la banda existe igual sin ratón** — la señal de expandible no
 //    puede depender de un puntero que no está.
+//
+// ⚠️ Y EL APARATO CAMBIÓ EL 11/09: era un teléfono de 412 y ahora es una
+//    TABLETA de 1024. No es aflojar la jueza, es que su sujeto se mudó: con las
+//    pestañas de móvil el acordeón deja de existir por debajo de 768, así que
+//    medir su banda en un teléfono es medir un elemento con `display: none`.
+//    La jueza reventó tal cual, con «el recorte cae FUERA DEL VIEWPORT».
+//    Una tableta es táctil Y ancha: el acordeón está, y el ratón no. Eso es
+//    exactamente lo que había que comprar, y ahora se compra mejor.
 {
-  const m = await abrirChrome({ ancho: 412, alto: 915, puerto: 9411 });
+  const m = await abrirChrome({ ancho: 1024, alto: 1366, puerto: 9411 });
   try {
     await m.cdp('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
     await m.cdp('Emulation.setDeviceMetricsOverride', {
-      width: 412, height: 915, deviceScaleFactor: 0, mobile: true,
+      width: 1024, height: 1366, deviceScaleFactor: 0, mobile: true,
     });
     await m.ir(APP, 6000);
     console.log('\n═══ LA BANDA EN TÁCTIL ═══');
@@ -799,13 +807,250 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       const banda = await contrasteReal(m, '.bloque__cabecera', { indice: 0 });
       juzgar(
         banda.contraste >= AA_TEXTO,
-        'P11 · la cabecera se ve y su texto cumple AA sin ratón',
+        'P11 · la cabecera del acordeón se ve y cumple AA sin ratón (tableta 1024)',
         `${enRgb(banda.texto)} sobre ${enRgb(banda.fondo)} = ${banda.contraste.toFixed(2)}:1`,
       );
       await m.guardar(`${CAPTURAS}/cabecera-tactil.png`);
     } else {
       juzgar(false, 'P11 · la cabecera existe en táctil', 'no hay ninguna .bloque__cabecera');
     }
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P12 · LA FILA DE CHIPS EN MÓVIL: IMÁN Y AUTO-CENTRADO ═══════
+//
+// ⭐ [SearchForm.tsx] en móvil la fila se desplaza a lo ancho con imán, y el
+//    chip elegido se trae al centro solo. En una pantalla de 390 los seis no
+//    caben en cuanto uno abre su etiqueta, así que sin esto elegir «Coche» —el
+//    último— lo deja pegado al borde y medio cortado.
+//
+// ⚠️ Y se emula el APARATO, no el ancho: `setDeviceMetricsOverride` con
+//    `mobile: true` más `setTouchEmulationEnabled`. La P0 de siempre compra que
+//    la emulación llegó antes de juzgar nada con ella — `setEmulatedMedia` con
+//    `features` acepta `pointer` y no hace nada, medido en la tanda 4.
+{
+  const m = await abrirChrome({ ancho: 390, alto: 844, puerto: 9412 });
+  try {
+    await m.cdp('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    await m.cdp('Emulation.setDeviceMetricsOverride', {
+      width: 390, height: 844, deviceScaleFactor: 0, mobile: true,
+    });
+    await m.ir(APP, 6000);
+    console.log('\n═══ LA FILA DE CHIPS EN MÓVIL ═══');
+
+    const emulado = await m.evaluar(
+      `JSON.stringify({ grueso: matchMedia('(pointer: coarse)').matches, ancho: innerWidth })`,
+    ).then(JSON.parse);
+    juzgar(
+      emulado.grueso === true && emulado.ancho === 390,
+      'P12 · P0 · la emulación llegó: puntero grueso y 390 de ancho',
+      `coarse=${emulado.grueso} · innerWidth=${emulado.ancho}`,
+    );
+
+    const fila = `
+      const f = document.querySelector('.familias');
+      const s = getComputedStyle(f);
+      const r = f.getBoundingClientRect();
+      const chips = [...f.querySelectorAll('.modo--chip')];
+      return {
+        imán: s.scrollSnapType,
+        suave: s.scrollBehavior,
+        barra: s.scrollbarWidth,
+        envuelve: s.flexWrap,
+        desplaza: f.scrollWidth > f.clientWidth + 1,
+        scrollWidth: Math.round(f.scrollWidth),
+        clientWidth: Math.round(f.clientWidth),
+        scrollLeft: Math.round(f.scrollLeft),
+        // El sangrado: la fila tiene que llegar al filo de la pantalla.
+        izquierda: Math.round(r.left),
+        derecha: Math.round(r.right),
+        // Una linea sola: si envolviera, habria mas de una coordenada y.
+        lineas: new Set(chips.map((c) => Math.round(c.getBoundingClientRect().top))).size,
+        imanDelChip: chips.length ? getComputedStyle(chips[0]).scrollSnapAlign : '(sin chips)',
+        activo: (() => {
+          const a = f.querySelector('.modo--activo');
+          if (!a) return null;
+          const q = a.getBoundingClientRect();
+          return { modo: a.getAttribute('data-modo'), centro: Math.round(q.x + q.width / 2) };
+        })(),
+        centroDeLaFila: Math.round(r.x + r.width / 2),
+      };
+    `;
+
+    const enReposo = await leer(m, fila);
+    juzgar(
+      enReposo.imán.startsWith('x') && enReposo.suave === 'smooth' &&
+        enReposo.barra === 'none' && enReposo.envuelve === 'nowrap' &&
+        enReposo.imanDelChip === 'center',
+      'P12 · ⭐ la fila lleva imán en x, desplazamiento suave, sin barra y sin envolver',
+      `snap ${enReposo.imán} · ${enReposo.suave} · scrollbar ${enReposo.barra} · ` +
+        `${enReposo.envuelve} · chip ${enReposo.imanDelChip}`,
+    );
+    juzgar(
+      enReposo.lineas === 1,
+      'P12 · y los seis van en UNA línea, por larga que sea',
+      `${enReposo.lineas} línea(s) · ${enReposo.scrollWidth} px de fila en ${enReposo.clientWidth} de hueco`,
+    );
+    // ⚠️ El sangrado del calco (`-mx-4 px-4`): la fila llega al filo de la
+    //    pantalla. Sin él, el corte queda a media distancia y se lee como
+    //    «aquí se acabó» en vez de «hay más a la derecha».
+    juzgar(
+      enReposo.izquierda <= 0 && enReposo.derecha >= 390,
+      'P12 · ⭐ y llega al filo de la pantalla: el corte dice que hay más',
+      `de x=${enReposo.izquierda} a x=${enReposo.derecha} en una pantalla de 390`,
+    );
+    await m.guardar(`${CAPTURAS}/movil-chips-reposo.png`);
+
+    // ⭐ EL AUTO-CENTRADO: se elige «Coche», que es el ÚLTIMO de los seis y el
+    //    que peor lo tiene — sin centrado se queda contra el borde derecho.
+    await m.evaluar(`document.querySelector('input[name=familia][value=coche]').click()`);
+    // ⚠️ 2 s y no 900 ms: el chip tarda sus 300 en crecer, el centrado empieza
+    //    DESPUÉS —va atado a su `transitionend`— y encima es suave. Medido con
+    //    900 ms se leía la fila a mitad de camino (`scrollLeft` 7 de 11), que
+    //    no es un fallo de la pintura sino del cronómetro del instrumento.
+    await m.dormir(2000);
+    const conCoche = await leer(m, fila);
+    juzgar(
+      conCoche.desplaza === true,
+      'P12 · con un chip abierto la fila ya no cabe: se desplaza',
+      `${conCoche.scrollWidth} px de fila en ${conCoche.clientWidth} de hueco`,
+    );
+    // ⚠️ EL JUICIO ES CONTRA EL IDEAL RECORTADO, no contra «el centro a secas».
+    //    Con seis chips en 390 px la fila desborda 11 px: centrar el ÚLTIMO es
+    //    imposible por definición — no hay tanto sitio a la derecha—, y pedirlo
+    //    sería una jueza que no puede ponerse verde nunca. Lo que se compra es
+    //    que la fila se haya ido **todo lo que podía** hacia el centro del chip
+    //    elegido, que es lo que hace `scrollIntoView({ inline: 'center' })`.
+    const centrado = await leer(
+      m,
+      `
+      const f = document.querySelector('.familias');
+      const a = f.querySelector('.modo--activo');
+      if (!a) return null;
+      const tope = f.scrollWidth - f.clientWidth;
+      const ideal = a.offsetLeft + a.offsetWidth / 2 - f.clientWidth / 2;
+      const r = a.getBoundingClientRect(), q = f.getBoundingClientRect();
+      return {
+        modo: a.getAttribute('data-modo'),
+        scrollLeft: Math.round(f.scrollLeft),
+        idealRecortado: Math.round(Math.max(0, Math.min(ideal, tope))),
+        tope: Math.round(tope),
+        // Y entero dentro de lo que se ve, que es la consecuencia que importa.
+        aLaVista: r.left >= q.left - 1 && r.right <= q.right + 1,
+        // La contraprueba, calculada: sin mover la fila, este chip se saldria.
+        cortadoSinMover: a.offsetLeft + a.offsetWidth > f.clientWidth + 1,
+      };
+    `,
+    );
+    // ⚠️ ESTA JUEZA SE ESCRIBIO DOS VECES MAL ANTES DE ACERTAR, y las dos
+    //    medidas quedan aqui porque explican QUE se puede comprar:
+    //
+    //    1. Pedia el ideal exacto y daba «5 px de los 11». El numero final no
+    //       lo pone `scrollIntoView`: lo pone EL IMAN — `scroll-snap-type: x
+    //       proximity` reengancha la fila a su anclaje mas cercano, que es lo
+    //       que el calco pide. Exigir el ideal seria juzgar contra una mecanica
+    //       pedida a proposito.
+    //    2. Pedia ademas que sin mover el chip quedara cortado, y salio
+    //       `false`: a 390 px con seis chips la fila desborda 11 px, que son
+    //       **su propio relleno**. El ultimo chip acaba en 383 de 388: no se
+    //       corta. La premisa era mia, no del dato.
+    //
+    //    Lo que SI se compra, y es lo que el calco promete: al elegir, LA FILA
+    //    SE MUEVE SOLA —estaba en 0 y deja de estarlo— y el chip elegido acaba
+    //    entero a la vista. Con seis chips en 390 ese movimiento es corto; el
+    //    dia que entre un modo mas, o con un movil mas estrecho, es la
+    //    diferencia entre verlo y no verlo.
+    juzgar(
+      centrado !== null && enReposo.scrollLeft === 0 && centrado.scrollLeft > 0 &&
+        centrado.aLaVista,
+      'P12 · ⭐ y al elegir, la fila se mueve SOLA y deja el chip entero a la vista',
+      centrado
+        ? `«${centrado.modo}» · de ${enReposo.scrollLeft} a ${centrado.scrollLeft} px ` +
+          `(tope ${centrado.tope}, el iman decide el final) · entero a la vista: ${centrado.aLaVista}`
+        : 'no hay chip activo',
+    );
+    await m.guardar(`${CAPTURAS}/movil-chip-centrado.png`);
+
+    // ⭐ [ANTONIO] EL Nº LEGIBLE TAMBIÉN EN MÓVIL. La maqueta lo corta a 80 px
+    //    con el marcador truncado; eso ya se vetó en escritorio y aquí vale
+    //    igual. Se mide lo mismo que P8: que el marcador quepa entero.
+    const num = await leer(
+      m,
+      `
+      const c = document.querySelector('app-selector-portal input');
+      if (!c) return null;
+      const s = getComputedStyle(c);
+      const p = document.createElement('span');
+      p.style.cssText = 'position:absolute;visibility:hidden;white-space:pre';
+      p.style.font = s.font || (s.fontWeight + ' ' + s.fontSize + '/' + s.lineHeight + ' ' + s.fontFamily);
+      p.textContent = c.placeholder;
+      document.body.appendChild(p);
+      const pide = p.getBoundingClientRect().width +
+        parseFloat(s.paddingLeft) + parseFloat(s.paddingRight);
+      p.remove();
+      return {
+        marcador: c.placeholder,
+        da: Math.round(c.getBoundingClientRect().width),
+        pide: Math.round(pide),
+      };
+    `,
+    );
+    juzgar(
+      num !== null && num.da >= num.pide,
+      'P12 · ⭐ [ANTONIO] el «Nº» lee su marcador ENTERO también en móvil',
+      num ? `«${num.marcador}» pide ${num.pide} px y la casilla da ${num.da}` : 'no hay casilla',
+    );
+
+    // ⭐ EL SAFE-AREA: las dos mitades. Sin el meta, `env()` vale 0 y el relleno
+    //    de la barra no existe [DOC MDN]; sin el relleno, el meta solo sirve
+    //    para meter la página debajo del indicador de inicio. Van juntas o
+    //    ninguna, así que se compran juntas.
+    const seguro = await leer(
+      m,
+      `
+      const meta = document.querySelector('meta[name=viewport]')?.getAttribute('content') ?? '';
+      const barra = document.querySelector('.barra');
+      const r = barra.getBoundingClientRect();
+      // Lo que quede pegado al borde de abajo, censado: la barra es la
+      // candidata número uno documentada, y aquí se comprueba que es la única.
+      const pegados = [...document.querySelectorAll('body *')].filter((e) => {
+        const c = getComputedStyle(e);
+        if (c.position !== 'fixed' && c.position !== 'absolute') return false;
+        const q = e.getBoundingClientRect();
+        return q.height > 0 && Math.abs(q.bottom - window.innerHeight) <= 1;
+      }).map((e) => e.className.toString().split(' ')[0] || e.tagName.toLowerCase());
+      return {
+        meta,
+        cubre: /viewport-fit\s*=\s*cover/.test(meta),
+        relleno: getComputedStyle(barra).paddingBottom,
+        abajoDeLaBarra: Math.round(r.bottom),
+        alto: window.innerHeight,
+        pegados: [...new Set(pegados)],
+      };
+    `,
+    );
+    juzgar(
+      seguro.cubre === true,
+      'P12 · ⭐ el meta declara `viewport-fit=cover` — sin él, `env()` vale 0',
+      seguro.meta,
+    );
+    juzgar(
+      seguro.abajoDeLaBarra === seguro.alto,
+      'P12 · y la barra acaba justo en el borde de abajo, con su relleno seguro',
+      `acaba en ${seguro.abajoDeLaBarra} de ${seguro.alto} · relleno de seguridad ${seguro.relleno}`,
+    );
+    // ⚠️ En Chrome de escritorio `env(safe-area-inset-bottom)` vale 0: aquí no
+    //    hay notch. Lo que se puede comprobar es que NADA MÁS quede pegado al
+    //    borde de abajo — la barra es lo único, y lleva el relleno declarado.
+    //    El juicio de verdad es el teléfono de Antonio.
+    juzgar(
+      seguro.pegados.length <= 1,
+      'P12 · y no hay nada más pegado al borde que la barra',
+      seguro.pegados.join(', ') || '(nada)',
+    );
+    await m.guardar(`${CAPTURAS}/movil-safe-area.png`);
   } finally {
     m.cerrar();
   }
