@@ -2586,6 +2586,35 @@ describe('Buscador', () => {
   });
 
   /**
+   * ⭐ LA LETRA DEL VACÍO, FIJADA (11/09) — [ANTONIO], y por primera vez.
+   *
+   * Hasta hoy ese texto no lo sujetaba nadie: las pruebas preguntaban si el
+   * `.pasos__vacio` estaba o no estaba, nunca qué decía. Y por eso pudo
+   * quedarse viejo sin que nada protestara — enumeraba «los cuatro campos»
+   * cuando desde el 10/09 las condiciones son cinco, porque el modo entró en
+   * la que enciende «Generar ruta». Un estado vacío que enumera mal es peor que
+   * uno que no enumera: manda a rellenar y el botón sigue apagado.
+   *
+   * ⚠️ Se fija **la letra entera**, no un trozo. Media frase comprobada deja
+   *    justo el hueco por el que se coló la anterior. Y las comillas van como
+   *    van: son las de la plantilla, no las que uno teclearía.
+   *
+   * [DOC · estados vacíos] contexto + acción concreta, y en el ORDEN en que la
+   * interfaz presenta los pasos: primero los dos extremos, después el cómo,
+   * después el botón. Decirlo en otro orden sería mandar mirar hacia arriba.
+   */
+  it('⭐ el vacío del resultado dice las CINCO condiciones, en el orden de la pantalla', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+
+    expect(raiz.querySelector('.pasos__vacio')?.textContent?.trim()).toBe(
+      'Todavía no hay pasos. Rellena origen y destino, elige cómo te mueves y ' +
+        'pulsa "Generar ruta".',
+    );
+  });
+
+  /**
    * EL FALLO DE LA ENTRADA Nº4. Este cuerpo es, letra por letra, el de la
    * prueba que daba verde con el fallo vivo — con la expectativa al revés:
    * escribir texto en las dos calles NO es haberlas elegido.

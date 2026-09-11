@@ -1031,8 +1031,21 @@
               </ol>
             }
           } @else if (!avisoRuta() && !generando()) {
+            <!--
+              ⭐ LAS CINCO CONDICIONES, Y EN EL ORDEN DE LA PANTALLA (11/09).
+
+              ⚠️ Aquí ponía «Rellena los cuatro campos y pulsa «Generar ruta»»,
+                 y desde el 10/09 era mentira: el modo entró en la condición que
+                 enciende el botón, así que son cinco. Mandar a rellenar cuatro y
+                 dejar el botón apagado es peor que no decir nada.
+
+              [DOC · estados vacíos] contexto y acción concreta, en el orden en que
+              la interfaz presenta los pasos: los dos extremos, el cómo, el botón.
+              Su letra la fija una jueza desde hoy — antes no la sujetaba nadie.
+            -->
             <p class="pasos__vacio">
-              Todavía no hay pasos. Rellena los cuatro campos y pulsa «Generar ruta».
+              Todavía no hay pasos. Rellena origen y destino, elige cómo te mueves y
+              pulsa "Generar ruta".
             </p>
           }
         </section>
