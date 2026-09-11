@@ -8,7 +8,7 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 > de ser un ejercicio: lo ajeno que se enseña se está enseñando **a quien entre**. Hoy hay de terceros: las
 > dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y nueve** fichas
 > propias —§ 1.1 a § 1.39—, de las cuales **una es una norma citada** (§ 1.32), **una son los
-> nueve iconos de la pantalla** (§ 1.37, Apache 2.0), **una es la letra**
+> doce iconos de la pantalla** (§ 1.37, Apache 2.0), **una es la letra**
 > (§ 1.38, Inter bajo OFL) y **una declara lo
 > que todavía NO ha entrado** (§ 1.39).
 > Quedan fuera las capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
@@ -3141,19 +3141,19 @@ se tira. El log cuenta **la consulta** —qué salió, cuánto tardó, por qué 
 
 ---
 
-### 1.37 · Los nueve símbolos de Material — Google (`material-design-icons`)
+### 1.37 · Los doce símbolos de Material — Google (`material-design-icons`)
 
 | | |
 |---|---|
-| **Qué es** | **Nueve iconos SVG** de la colección **Material Symbols**, variante *outlined*: los seis de las familias de transporte, la diana de «Mi ubicación» y las flechas de invertir y el reloj de arena de la consulta a la DGT. Sustituyen a los emojis que la pantalla usaba hasta el 10/09 |
+| **Qué es** | **Doce iconos SVG** de la colección **Material Symbols**, variante *outlined*: los seis de las familias de transporte, la diana de «Mi ubicación», las flechas de invertir, el reloj de arena de la consulta a la DGT y —desde el 11/09— **los tres de la barra de pestañas de móvil**. Sustituyen a los emojis que la pantalla usaba hasta el 10/09 |
 | **Titular** | **Google** |
 | **Fuente** | Repositorio oficial [`google/material-design-icons`](https://github.com/google/material-design-icons) |
 | **Petición** | `https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/<nombre>/materialsymbolsoutlined/<nombre>_24px.svg`, uno por icono |
-| **Descarga** | **10/09/2026**, estado 200 los nueve · 4.817 bytes · un solo `<path>` cada uno y la misma rejilla `0 -960 960 960`, verificado al instalarlos |
+| **Descarga** | **10/09/2026** los nueve primeros y **11/09/2026** los tres de la barra, estado 200 los doce · **6.251 bytes** · un solo `<path>` cada uno y la misma rejilla `0 -960 960 960`, verificado al instalarlos |
 | **Licencia** | **Apache 2.0** — el `LICENSE` del repositorio, descargado el mismo día y guardado al lado en [`app/simbolos/LICENCIA-APACHE-2.0.txt`](app/simbolos/LICENCIA-APACHE-2.0.txt) |
 | **Atribución exigida** | La Apache 2.0 **no exige crédito visible**: pide conservar el aviso de copyright y la licencia con la obra, y eso es lo que hace el fichero de al lado. No hay fórmula que pintar en la pantalla |
-| **Qué se guarda** | Los nueve `.svg` **tal cual llegaron**: ni reoptimizados, ni recoloreados, ni renombrados. **Ninguno personal** |
-| **¿Está en este repo?** | ✅ [`app/simbolos/`](app/simbolos/) · los nueve, con [`PROCEDENCIA.md`](app/simbolos/PROCEDENCIA.md) y sus sha256 |
+| **Qué se guarda** | Los doce `.svg` **tal cual llegaron**: ni reoptimizados, ni recoloreados, ni renombrados. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ [`app/simbolos/`](app/simbolos/) · los doce, con [`PROCEDENCIA.md`](app/simbolos/PROCEDENCIA.md) y sus sha256 |
 
 | fichero | peso | para | sha256 |
 |---|---|---|---|
@@ -3166,11 +3166,14 @@ se tira. El log cuenta **la consulta** —qué salió, cuánto tardó, por qué 
 | `my_location.svg` | 547 B | el botón **«Mi ubicación»** — la diana | `8e4f63bed1446eb726036a4b573ecef3b8a8261aeb50e31a89883e929758d067` |
 | `swap_vert.svg` | 236 B | el botón de **invertir** origen y destino | `246628e8efd0914fb1358c5fc53fea6f03dc4fad424aad4e1933abcdeae8f11a` |
 | `hourglass_empty.svg` | 388 B | el aviso de que la consulta a la DGT **tarda** | `88b87112cb06f9bd15a2fd87d1297f7f7d6ecd2be300ab7ae4f3f8dde180bba6` |
+| `search.svg` | 357 B | la pestaña **Buscador** de la barra de móvil | `46d4ab85eba6eb4fe7c9a9a4c4db2fdf8fa9cc74c1f398ac72e7d872d490dd4c` |
+| `route.svg` | 700 B | la pestaña **Ruta** de la barra de móvil | `d7962e11c41b71ce30aa4c47b7f3eacb9d88d08f02421214f5f9d641d5a45956` |
+| `map.svg` | 377 B | la pestaña **Mapa** de la barra de móvil | `a49ef8ee004dc4832a4bbe64fce0a054c0b90cb4246422c09cc234278788049b` |
 
 ⭐ **LA FUENTE VARIABLE OFICIAL EXISTE Y NO SE USA, y es una decisión con cifra.**
 Material Symbols se distribuye también como fuente variable, que es lo cómodo:
 una línea y están todos. Trae **miles** de símbolos en ~100 KB, y aquí hacen
-falta **nueve** — 4.817 bytes entre los nueve. La portada se mide contra un
+falta **doce** — 6.251 bytes entre los doce. La portada se mide contra un
 presupuesto que ya está en 509 kB, así que se paga lo que se usa. Y de paso no se
 baja nada de ningún tercero en tiempo de ejecución: es **la misma ley que sacó a
 Inter del CDN de Google** el 9/09.
@@ -3182,7 +3185,7 @@ hereda el color del texto y los chips cambian de tinta con su estado, así que e
 en el fichero original **y** en la tabla, que es exactamente la clase de duplicado
 que en esta casa ya salió mal una vez (`contraste.ts` y sus cuatro copias de una
 fórmula, de las que la cuarta no era igual). Por eso
-[`app/src/app/simbolos.spec.ts`](app/src/app/simbolos.spec.ts) compara los nueve
+[`app/src/app/simbolos.spec.ts`](app/src/app/simbolos.spec.ts) compara los doce
 **carácter a carácter** y cuenta el censo en las dos direcciones.
 
 ### 1.38 · Inter 4.1 — The Inter Project Authors (autoalojada)
