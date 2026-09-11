@@ -27,22 +27,24 @@ const juzgar = (bien, titulo, detalle = '') => {
   console.log(`  ${bien ? 'OK ' : '✗✗ '} ${titulo}${detalle ? '  ·  ' + detalle : ''}`);
 };
 /**
- * ⛔ EL SUELO DE LA BANDA — ESTÁ EN ROJO A PROPÓSITO (11/09).
+ * ⭐ EL SUELO DE LA BANDA — FIJADO (11/09), y la jueza pasó a verde sin tocarle
+ * la vara: lo que cambió fue el color, que es como tenía que ser.
  *
- * ⚠️ **Esta jueza muerde hoy, y no es una regresión.** La banda de las
- *    cabeceras se calcó de la maqueta —`muted` al 30 %— y al medirla resultó
- *    invisible: **2 puntos de 255** de separación con la superficie, en claro y
- *    en oscuro. Antonio la ha rechazado por eso y está eligiendo el gris.
+ * ⚠️ **Estuvo en rojo a propósito durante un día.** La banda se calcó de la
+ *    maqueta —`muted` al 30 %— y medida resultó invisible: **2 puntos de 255**
+ *    de separación con la superficie. Antonio la rechazó con las capturas
+ *    delante y fijó el par B de la escala slate.
  *
- * El suelo no me lo invento: es **el más suave de los dos candidatos que tiene
- * delante**, `slate-100` (#f1f5f9), que se separa 14 puntos del blanco. Si
- * elige el otro —`slate-200`, 29 puntos— este número sube con él. Lo que la
- * jueza compra no es un color: es que la banda se vea SIN el ratón encima, que
- * es lo que el hover no puede sustituir [NN/g, acordeones].
+ * 29 es **el valor elegido**, no un mínimo cómodo: `slate-200` sobre el blanco
+ * de la tarjeta. Si alguien aclara la banda un paso, esto muerde. Lo que compra
+ * no es el color: es que la banda se vea SIN el ratón encima, que es lo que el
+ * hover no puede sustituir [NN/g, acordeones].
  *
- * Cuando el color esté fijado, esto pasa a verde sin tocar la jueza.
+ * ℹ️ El oscuro no se mide aquí y no es un olvido: el producto va clavado en
+ *    claro —`<html data-theme="light">`—, así que su banda solo existe pintada
+ *    en la sonda de `/identidad`. Su suelo, 21, vive en el censo de allí.
  */
-const MINIMO_DE_SEPARACION = 14;
+const MINIMO_DE_SEPARACION = 29;
 
 /** Un {r,g,b} de `contrasteReal`, en texto legible para el acta. */
 const enRgb = (c) => `rgb(${c.r}, ${c.g}, ${c.b})`;
@@ -699,9 +701,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       );
       juzgar(
         separacion >= MINIMO_DE_SEPARACION,
-        `P10 · ⛔ y se distingue EN REPOSO, sin ratón (${cual})`,
-        `${separacion} puntos de 255, y el suelo es ${MINIMO_DE_SEPARACION}` +
-          (separacion >= MINIMO_DE_SEPARACION ? '' : ' — esperando el gris de Antonio'),
+        `P10 · ⭐ y se distingue EN REPOSO, sin ratón (${cual})`,
+        `${separacion} puntos de 255, y el suelo es ${MINIMO_DE_SEPARACION}`,
       );
       juzgar(
         banda.contraste >= AA_TEXTO,

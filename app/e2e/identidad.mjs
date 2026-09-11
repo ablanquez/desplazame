@@ -46,6 +46,8 @@ const CLARO = {
   'success-foreground': '#ffffff', warning: '#fff4e5', 'warning-foreground': '#b45309',
   'warning-border': '#b45309', 'warning-dark': '#7c3d00', border: '#e2e8f0', ring: '#2563eb',
   muted: '#f8fafc', 'muted-foreground': '#64748b',
+  // ⭐ La banda de las cabeceras — el primer par que NO sale de la maqueta.
+  'banda-cabecera': '#e2e8f0', 'banda-cabecera-hover': '#cbd5e1',
   'mode-andando-soft': '#dcfce7', 'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d', 'mode-andando-text': '#ffffff',
   'mode-bus-soft': '#ccfbf1', 'mode-bus-strong': '#0f766e',
@@ -66,6 +68,9 @@ const OSCURO = {
   'success-foreground': '#0f172a', warning: '#3a1d00', 'warning-foreground': '#fde68a',
   'warning-border': '#92400e', 'warning-dark': '#fef3c7', border: '#333333', ring: '#93c5fd',
   muted: '#242424', 'muted-foreground': '#b8b8b8',
+  // Reposo = el hex de `border` (12dp); el hover estrena #404040 — ver la ficha
+  // del token en `styles.css`: la escalera de Material se acaba antes.
+  'banda-cabecera': '#333333', 'banda-cabecera-hover': '#404040',
   'mode-andando-soft': '#14532d', 'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e', 'mode-andando-text': '#052e16',
   'mode-bus-soft': '#134e4a', 'mode-bus-strong': '#2dd4bf',
@@ -311,6 +316,7 @@ try {
       ['foreground', 'background'], ['card-foreground', 'card'],
       ['primary-foreground', 'primary'], ['success-foreground', 'success'],
       ['warning-foreground', 'warning'], ['muted-foreground', 'muted'],
+      ['foreground', 'banda-cabecera'], ['foreground', 'banda-cabecera-hover'],
       ...['andando', 'bus', 'bici', 'patin', 'moto', 'coche'].flatMap((m) => [
         [`mode-${m}-text`, `mode-${m}-solid`],
         [`mode-${m}-strong`, `mode-${m}-soft`],
@@ -335,58 +341,42 @@ try {
   //    salen de la cuenta y no de lo que era verdad el día que se escribieron.
   juzgar(
     porDebajo === 0,
-    `los ${36 - porDebajo} de 36 pares cumplen AA (${AA_TEXTO}:1)`,
+    `los ${40 - porDebajo} de 40 pares cumplen AA (${AA_TEXTO}:1)`,
     porDebajo ? `${porDebajo} por debajo — decidir: corregir el valor o censarlo` : '',
   );
 
-  // ═════════ (ii-bis) LA BANDA DE LAS CABECERAS DEL ACORDEÓN ═════════
+  // ═════════ (ii-bis) LA SEPARACIÓN DE LA BANDA ═════════
   //
-  // ⭐ Es un par NUEVO (10/09) y **no es un par de tokens**: la banda es
-  //    `color-mix(in srgb, var(--muted) 30%, transparent)`, o sea `--muted` con
-  //    alfa 0,3 compuesto sobre la superficie de debajo, que es `--card`. Como
-  //    no hay token que valga «eso», se calcula — y se calcula sobre lo LEÍDO
-  //    del navegador, igual que el resto del censo.
+  // ⭐ El CONTRASTE de la banda ya lo mide el censo de arriba, que desde el
+  //    11/09 la trae como dos pares más. Lo que no mide ninguno es lo OTRO que
+  //    Antonio pidió: **cuánto se separa de la superficie que tiene al lado**.
+  //    Son preguntas distintas y se confunden con facilidad — un gris puede
+  //    llevar el texto a 14:1 y ser indistinguible del panel, que es
+  //    exactamente lo que pasaba con el `muted/30` de la maqueta: 2 puntos.
   //
-  // ⚠️ Y se mide AQUÍ y no en `e2e/pintura.mjs` por una razón dura: el producto
-  //    va clavado en claro —`<html data-theme="light">`, ver (v) más abajo—, así
-  //    que el oscuro **no se puede fotografiar en el buscador**. Se intentó, y
-  //    la jueza daba verde con la pintura sin cambiar. La sonda de esta página
-  //    es el único sitio donde el oscuro existe pintado.
-  console.log('\n═══ (ii-bis) LA BANDA DE LAS CABECERAS ═══');
+  // ⚠️ El suelo es el VALOR FIJADO, no un mínimo cómodo: si alguien aclara la
+  //    banda un paso, esto muerde. Claro 29 puntos (slate-200 sobre blanco),
+  //    oscuro 21 (#333333 sobre #1e1e1e). Y se comprueba también el escalón
+  //    hacia el hover, que es la otra mitad del control.
+  console.log('\n═══ (ii-bis) LA SEPARACIÓN DE LA BANDA ═══');
   {
-    /** El compuesto de `color-mix(..., X 30%, transparent)` sobre un fondo. */
-    const sobre = (encima, debajo, alfa) => ({
-      r: Math.round(encima.r * alfa + debajo.r * (1 - alfa)),
-      g: Math.round(encima.g * alfa + debajo.g * (1 - alfa)),
-      b: Math.round(encima.b * alfa + debajo.b * (1 - alfa)),
-    });
+    const SUELO = { light: 29, dark: 21 };
+    const punto = (a, b) => Math.max(Math.abs(a.r - b.r), Math.abs(a.g - b.g), Math.abs(a.b - b.b));
     for (const [tema, tabla] of [['light', CLARO], ['dark', OSCURO]]) {
       const leidos = await leerTokens(`[data-sonda='${tema}']`);
       const de = (n) => deHex(leidos[n] || tabla[n]);
-      const banda = sobre(de('muted'), de('card'), 0.3);
-      const texto = de('foreground');
-      const r = contrasteRgb(texto, banda);
-      const conElRaton = contrasteRgb(texto, de('muted'));
-      const ok = r >= AA_TEXTO && conElRaton >= AA_TEXTO;
+      const sep = punto(de('banda-cabecera'), de('card'));
+      const escalon = punto(de('banda-cabecera-hover'), de('banda-cabecera'));
       juzgar(
-        ok,
-        `la banda de cabecera en ${tema} cumple AA en reposo y con el ratón`,
-        `${r.toFixed(2)}:1 y ${conElRaton.toFixed(2)}:1`,
+        sep >= SUELO[tema],
+        `${tema} · la banda se separa de la tarjeta lo fijado`,
+        `${sep} puntos de 255, y el suelo es ${SUELO[tema]}`,
       );
-      console.log(
-        `  ${ok ? 'OK ' : '⚠️ '} ${(tema + ' · foreground / banda(muted 30% sobre card)').padEnd(48)}` +
-          ` rgb(${banda.r}, ${banda.g}, ${banda.b})  =  ${r.toFixed(2)}:1` +
-          `  ·  con el ratón (muted entero) = ${conElRaton.toFixed(2)}:1`,
+      juzgar(
+        escalon > 0,
+        `${tema} · y el ratón la mueve un escalón visible`,
+        `${escalon} puntos · ${contrasteRgb(de('banda-cabecera-hover'), de('banda-cabecera')).toFixed(4)}:1`,
       );
-      // ⚠️ Y LO QUE HAY QUE SABER DE ESTA BANDA: cuánto se separa de la
-      //    superficie. No es un juicio —la maqueta manda ese 30 % y la
-      //    delimitación la hace el borde—, es un DATO para el acta.
-      const separacion = Math.max(
-        Math.abs(banda.r - de('card').r),
-        Math.abs(banda.g - de('card').g),
-        Math.abs(banda.b - de('card').b),
-      );
-      console.log(`      separación de la superficie: ${separacion} punto(s) de 255`);
     }
   }
 

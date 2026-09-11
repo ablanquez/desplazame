@@ -146,6 +146,16 @@
   --oscuro-ring: #93c5fd;
   --oscuro-muted: #242424;
   --oscuro-muted-foreground: #b8b8b8;
+  /* ⭐ LA BANDA DE LAS CABECERAS DEL ACORDEÓN — [ANTONIO, 11/09, par B].
+     Reposo = el mismo hex que `border`, y a propósito: es el siguiente peldaño
+     de la escalera de elevación del tema oscuro (12dp) y no estrena color.
+     El hover SÍ estrena, porque la escalera de Material se acaba en 24dp
+     (#383838) y ese peldaño da un escalón de 5 puntos — el del claro es de 23.
+     #404040 sigue la misma dirección —a más elevación, más claro— y su escalón
+     mide 1,2186:1 contra el 1,2044:1 del claro: el mismo salto, medido, no
+     elegido a ojo. Contraste del texto encima: 9,10:1. */
+  --oscuro-banda-cabecera: #333333;
+  --oscuro-banda-cabecera-hover: #404040;
   --oscuro-mode-andando-soft: #14532d;
   --oscuro-mode-andando-strong: #4ade80;
   --oscuro-mode-andando-solid: #22c55e;
@@ -200,6 +210,17 @@
   /* slate-100 -> 50 [AA]: el texto secundario daba 4,34 y da 4,55. */
   --claro-muted: #f8fafc;
   --claro-muted-foreground: #64748b;
+
+  /* ⭐ LA BANDA DE LAS CABECERAS DEL ACORDEÓN — [ANTONIO, 11/09, par B].
+     ⚠️ Y NO es `muted`, que es lo que decía la maqueta (`bg-muted/30`). Medido
+        el 10/09: esta casa movió `--claro-muted` a slate-50 en la tanda 1-bis
+        por un par de contraste, así que el 30 % de ese gris sobre una tarjeta
+        blanca se separaba DOS puntos de 255 — invisible. Antonio lo vio en
+        captura y eligió el par B de la escala slate: reposo slate-200 (29
+        puntos) y hover slate-300. La señal de expandible no puede depender de
+        un ratón [NN/g, acordeones]. */
+  --claro-banda-cabecera: #e2e8f0;
+  --claro-banda-cabecera-hover: #cbd5e1;
 
   /* Andando (verde) */
   --claro-mode-andando-soft: #dcfce7;
@@ -258,6 +279,8 @@
   --ring: var(--claro-ring);
   --muted: var(--claro-muted);
   --muted-foreground: var(--claro-muted-foreground);
+  --banda-cabecera: var(--claro-banda-cabecera);
+  --banda-cabecera-hover: var(--claro-banda-cabecera-hover);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);
@@ -309,6 +332,8 @@
     --ring: var(--oscuro-ring);
     --muted: var(--oscuro-muted);
     --muted-foreground: var(--oscuro-muted-foreground);
+    --banda-cabecera: var(--oscuro-banda-cabecera);
+    --banda-cabecera-hover: var(--oscuro-banda-cabecera-hover);
     --mode-andando-soft: var(--oscuro-mode-andando-soft);
     --mode-andando-strong: var(--oscuro-mode-andando-strong);
     --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -356,6 +381,8 @@
   --ring: var(--oscuro-ring);
   --muted: var(--oscuro-muted);
   --muted-foreground: var(--oscuro-muted-foreground);
+  --banda-cabecera: var(--oscuro-banda-cabecera);
+  --banda-cabecera-hover: var(--oscuro-banda-cabecera-hover);
   --mode-andando-soft: var(--oscuro-mode-andando-soft);
   --mode-andando-strong: var(--oscuro-mode-andando-strong);
   --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -418,6 +445,8 @@
   --ring: var(--claro-ring);
   --muted: var(--claro-muted);
   --muted-foreground: var(--claro-muted-foreground);
+  --banda-cabecera: var(--claro-banda-cabecera);
+  --banda-cabecera-hover: var(--claro-banda-cabecera-hover);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);
@@ -737,15 +766,17 @@ body:has(.marco) {
       `<button>` con `aria-expanded` y la fila entera clicable—, así que el fondo
       es señal correcta y no una promesa falsa.
    
-   El color sale de los tokens y de la maqueta, no de un criterio nuestro:
-   `bg-muted/30` en reposo y `hover:bg-muted` [App.tsx, las dos cabeceras del
-   acordeón de escritorio], que aquí es `--muted` con su 30 % por `color-mix`.
+   El color tiene token propio desde el 11/09: `--banda-cabecera` y su
+   `-hover`, declarados en las dos paletas como cualquier otro.
    
-   ⚠️ **Quien delimita de verdad es el borde**, y conviene saberlo: `--muted` y
-      `--card` están tan cerca en esta paleta que la banda al 30 % es un matiz de
-      pocos puntos —está medido en el acta de esta tanda—. El borde inferior es
-      lo que dice dónde acaba la cabecera; la banda acompaña y es lo que crece
-      con el ratón. */
+   ⚠️ **Y NO es el de la maqueta.** Ahí ponía `bg-muted/30` en reposo y
+      `hover:bg-muted` [App.tsx, las dos cabeceras del acordeón de escritorio],
+      y se calcó tal cual. Medido: `--claro-muted` se movió a slate-50 en la
+      tanda 1-bis por un par de contraste, así que ese 30 % sobre una tarjeta
+      blanca se separaba **2 puntos de 255** — invisible, y el hover no puede
+      sustituir a la señal en reposo [NN/g]. Antonio lo vio en captura y fijó el
+      par B: slate-200 en reposo (29 puntos) y slate-300 al pasar el ratón.
+      **Una desviación del calco decidida por él, no por nosotros.** */
 .bloque__cabecera {
   display: flex;
   align-items: center;
@@ -756,7 +787,7 @@ body:has(.marco) {
   padding: 1rem;
   border: 0;
   border-bottom: 1px solid var(--border);
-  background-color: color-mix(in srgb, var(--muted) 30%, transparent);
+  background-color: var(--banda-cabecera);
   color: inherit;
   font: inherit;
   font-weight: 600;
@@ -771,7 +802,7 @@ body:has(.marco) {
       está aquí» en un aparato sin ratón. */
 @media (hover: hover) {
   .bloque__cabecera:hover {
-    background-color: var(--muted);
+    background-color: var(--banda-cabecera-hover);
   }
 }
 

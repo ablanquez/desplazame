@@ -74,6 +74,12 @@ const CLARO: Readonly<Record<string, string>> = {
   ring: '#2563eb',
   muted: '#f8fafc',
   'muted-foreground': '#64748b',
+  // ⭐ NO SALE DEL `index.css` DE FIGMA MAKE, y es el primero que no sale.
+  //    La maqueta pintaba la banda con `muted` al 30 %, que aquí se separaba 2
+  //    puntos de 255 del blanco. [ANTONIO, 11/09] eligió el par B de la escala
+  //    slate con las capturas delante: 29 puntos en reposo.
+  'banda-cabecera': '#e2e8f0',
+  'banda-cabecera-hover': '#cbd5e1',
   'mode-andando-soft': '#dcfce7',
   'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d',
@@ -118,6 +124,12 @@ const OSCURO: Readonly<Record<string, string>> = {
   ring: '#93c5fd',
   muted: '#242424',
   'muted-foreground': '#b8b8b8',
+  // ⭐ Reposo = el mismo hex que `border` (12dp de la escalera de elevación); el
+  //    hover ESTRENA gris, porque la escalera de Material se acaba en 24dp
+  //    (#383838) y ese peldaño daba un escalón de 5 puntos contra los 23 del
+  //    claro. #404040 mide 1,2186:1 de escalón contra el 1,2044:1 del claro.
+  'banda-cabecera': '#333333',
+  'banda-cabecera-hover': '#404040',
   'mode-andando-soft': '#14532d',
   'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e',
@@ -192,10 +204,12 @@ const ELEGIDO_CLARO = declaraciones(bloque(CSS, "[data-theme='light'] {"));
 const TODOS = [...SEMANTICOS, ...TOKENS_DE_MODO];
 
 describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
-  it('están los 40 tokens: 16 semánticos y 6 modos × 4 variantes', () => {
-    expect(SEMANTICOS.length).toBe(16);
+  it('están los 42 tokens: 18 semánticos y 6 modos × 4 variantes', () => {
+    // ⚠️ Eran 16 y 40 hasta el 11/09. Los dos nuevos son la banda de las
+    //    cabeceras, y son los PRIMEROS que no vienen calcados de la maqueta.
+    expect(SEMANTICOS.length).toBe(18);
     expect(TOKENS_DE_MODO.length).toBe(24);
-    expect(TODOS.length).toBe(40);
+    expect(TODOS.length).toBe(42);
   });
 
   for (const token of [...SEMANTICOS, ...TOKENS_DE_MODO]) {
@@ -222,7 +236,7 @@ describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
    *    un elemento marcado `light` heredaba los cuarenta tokens oscuros. La
    *    nº43. Ahora las cuatro listas se cuentan igual, y ninguna es opcional.
    */
-  it('⭐ los cuatro bloques asignan los 40 tokens, y a la fuente que toca', () => {
+  it('⭐ los cuatro bloques asignan los 42 tokens, y a la fuente que toca', () => {
     for (const token of TODOS) {
       expect(EN_ROOT[token], `--${token} falta en :root`).toBe(`var(--claro-${token})`);
       expect(CAPA_SISTEMA[token], `--${token} falta en la capa del sistema`).toBe(
@@ -289,9 +303,12 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     }),
   );
 
-  it('se miden los 18 pares en los dos temas: 36 medidas', () => {
-    expect(PARES.length).toBe(18);
-    expect(medidos.length).toBe(36);
+  it('se miden los 20 pares en los dos temas: 40 medidas', () => {
+    // ⚠️ Eran 18 y 36. Los dos nuevos son los DOS estados de la banda: medir
+    //    solo el reposo dejaría el hover sin vigilar, que es donde el gris se
+    //    aclara y el texto pierde contraste.
+    expect(PARES.length).toBe(20);
+    expect(medidos.length).toBe(40);
   });
 
   for (const m of medidos) {
@@ -446,13 +463,13 @@ describe('LA PÁGINA de identidad monta con todo lo que hay que medir', () => {
     await TestBed.configureTestingModule({ imports: [Identidad] }).compileComponents();
   });
 
-  it('trae una sonda por token y por tema: 80', () => {
+  it('trae una sonda por token y por tema: 84', () => {
     const f = TestBed.createComponent(Identidad);
     f.detectChanges();
     const raiz = f.nativeElement as HTMLElement;
-    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(80);
-    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(40);
-    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(40);
+    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(84);
+    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(42);
+    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(42);
   });
 
   it('pinta los seis modos con sus cuatro variantes', () => {

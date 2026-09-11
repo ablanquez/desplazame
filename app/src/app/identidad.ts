@@ -65,6 +65,12 @@ export const SEMANTICOS: readonly Token[] = [
   'ring',
   'muted',
   'muted-foreground',
+  // ⭐ LA BANDA DE LAS CABECERAS DEL ACORDEÓN (11/09) — los dos primeros tokens
+  //    que NO vienen de la maqueta. Entran aquí por lo mismo que los demás: un
+  //    color que vive en la hoja y no en esta lista no se sondea, no se mide y
+  //    no lo cuenta nadie — y éste nació justamente de un color que nadie medía.
+  'banda-cabecera',
+  'banda-cabecera-hover',
 ];
 
 /** Los seis modos, con el nombre que usa el CSS. */
@@ -103,6 +109,15 @@ export const PARES: readonly Par[] = [
   { texto: 'success-foreground', fondo: 'success', rotulo: 'Aviso de acierto' },
   { texto: 'warning-foreground', fondo: 'warning', rotulo: 'Aviso de atención' },
   { texto: 'muted-foreground', fondo: 'muted', rotulo: 'Texto secundario' },
+  // ⚠️ Los DOS estados de la banda, no solo el de reposo. Medir uno y no el
+  //    otro es el mismo agujero que tenían las píldoras de modo: el hover es la
+  //    mitad del control, y es donde el gris se aclara más.
+  { texto: 'foreground', fondo: 'banda-cabecera', rotulo: 'Cabecera del acordeón' },
+  {
+    texto: 'foreground',
+    fondo: 'banda-cabecera-hover',
+    rotulo: 'Cabecera del acordeón — con el ratón',
+  },
   ...MODOS.map((m) => ({
     texto: `mode-${m}-text`,
     fondo: `mode-${m}-solid`,
