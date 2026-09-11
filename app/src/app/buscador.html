@@ -46,7 +46,12 @@
         por encima — esta escrito en su propio comentario, mas abajo—. Un `div`
         no seccional nada, asi que la hoja puede envolverlo sin quitarselo. Por
         eso `main` cubre los dos bloques y el pie queda fuera, como estaba. -->
-<div class="marco">
+<!-- ⭐ LA PESTAÑA VISIBLE VIAJA EN UN ATRIBUTO DEL MARCO, y no en una clase
+     por elemento. Así el CSS de móvil decide quién se ve con un solo selector
+     de ancestro —`[data-pestana='ruta'] .bloque--pasos`— en vez de tener tres
+     clases sueltas que alguien puede dejar descuadradas. En escritorio nadie
+     lee este atributo: allí manda el acordeón. -->
+<div class="marco" [attr.data-pestana]="pestana()">
   <!-- El mapa: el fondo de la pantalla en movil, la columna derecha en PC. Va
        el primero porque en movil es lo de debajo, y la hoja se le superpone. -->
   <!-- ⭐ EL TABLERO: el mapa y el panel, que es lo que se reparte la pantalla.
@@ -75,26 +80,19 @@
 
   </div>
 
-  <!-- El panel: la hoja inferior en movil, la columna izquierda en PC. -->
+  <!-- El panel: las DOS pestañas de contenido en movil, la columna izquierda
+       en PC.
+
+       ⚠️ AQUI VIVIA LA HOJA INFERIOR DE M3, con su asa de 4x32 y sus dos
+          estados. Murio el 11/09 [ANTONIO, con las dos pantallas delante]: en
+          movil la app se calca de la maqueta y son TRES pestañas con barra
+          inferior. La hoja enseñaba dos cabeceras y un trozo de formulario; la
+          pestaña da la pantalla entera a lo que se esta mirando. -->
   <div
     class="panel"
-    [class.panel--desplegada]="hojaDesplegada()"
     [class.panel--plegada]="!columnaAbierta()"
     (transitionend)="alTerminarLaTransicion($event)"
   >
-    <!-- ⭐ EL ASA [M3]: pildora de 4x32 dentro de un area de toque de 48, que
-         es lo que la guia pide para que se pueda coger con el dedo. Tocarla
-         alterna entre los dos estados estables. Solo se ve en movil. -->
-    <button
-      type="button"
-      class="panel__asa"
-      [attr.aria-expanded]="hojaDesplegada()"
-      aria-controls="panel-bloques"
-      (click)="alternarHoja()"
-    >
-      <span class="panel__asa-pildora"></span>
-      <span class="panel__asa-texto">{{ hojaDesplegada() ? 'Recoger' : 'Desplegar' }}</span>
-    </button>
 
     <!-- ⭐ EL TITULO, EN LA CABECERA DEL PANEL Y ENCIMA DEL ACORDEON, que es
          donde lo pone la maqueta. Antes vivia DENTRO del bloque Buscador, y
@@ -106,7 +104,7 @@
     </header>
 
     <main class="panel__bloques" id="panel-bloques">
-      <div class="bloque" [class.bloque--abierto]="buscadorAbierto()">
+      <div class="bloque bloque--buscador" [class.bloque--abierto]="buscadorAbierto()">
         <h2 class="bloque__titulo">
           <button
             type="button"
@@ -379,7 +377,9 @@
             **presente para el teclado y para quien lea la pantalla**. Lo que se ve es
             la `<label>` que lo envuelve, que es también lo que se pulsa.
           -->
-          <fieldset class="modos familias">
+          <!-- ⭐ El `#filaFamilias` es lo que deja centrar el chip elegido en movil:
+               `centrarElChip` busca dentro de el. Ver su comentario. -->
+          <fieldset class="modos familias" #filaFamilias>
             <legend>Cómo</legend>
             @for (f of familias; track f.id) {
               <label
@@ -711,12 +711,34 @@
               {{ generando() ? 'Generando…' : 'Generar ruta' }}
             </button>
           </div>
+
+          <!-- ⭐ LA PUERTA A `/creditos`, Y SOLO EN MOVIL (11/09).
+
+               En movil la franja del pie DESAPARECE: la barra de pestañas ocupa
+               ese borde. La conformidad no se pierde, y se reparte en dos:
+
+               · La atribucion de OpenStreetMap se queda donde su politica de
+                 teselas la exige —SOBRE EL MAPA, sin interfaz encima—: la pinta
+                 el control nativo de Leaflet, que se ve entero en la pestaña
+                 Mapa. Las otras dos pestañas no enseñan mapa, asi que no hay
+                 mapa cuya atribucion falte.
+               · El aviso legal [Ley 37/2007 · RD 1495/2011] pide acceso
+                 «permanente, facil y directo», no presencia perpetua en
+                 pantalla: [PROPIO] un enlace al final del formulario, siempre
+                 en el mismo sitio y a un toque, lo cumple.
+
+               ⚠️ Va DENTRO del formulario, al final de su scroll, y no flotando:
+                  asi no le quita sitio a nada y se encuentra donde se acaba de
+                  leer. En escritorio no se pinta — alli sigue la franja. -->
+          <p class="puerta-creditos">
+            <a class="creditos__enlace" href="/creditos">Créditos</a>
+          </p>
         </form>
 
         </div>
       </div>
 
-      <div class="bloque" [class.bloque--abierto]="pasosAbiertos()">
+      <div class="bloque bloque--pasos" [class.bloque--abierto]="pasosAbiertos()">
         <h2 class="bloque__titulo">
           <button
             type="button"
@@ -730,6 +752,24 @@
             <span class="bloque__chevron" aria-hidden="true"></span>
           </button>
         </h2>
+
+        <!-- ⭐ LA CABECERA DE LA PESTAÑA «RUTA», Y SOLO EN MOVIL.
+
+             En movil no hay acordeon que plegar —la pestaña ya es la pantalla
+             entera—, asi que la cabecera de arriba se esconde y manda esta:
+             compacta, sin chevron y sin nada que pulsar. La letra es la de la
+             maqueta: «Resultado de rutas» [App.tsx, la pestaña ruta].
+
+             ⚠️ Son DOS titulos para la misma seccion, y no hay dos porque se
+                nos haya olvidado uno: cada uno se esconde con `display: none`
+                en el ancho del otro, y eso lo saca del arbol de accesibilidad
+                ademas de la vista. Quien lee la pantalla oye exactamente uno.
+             ⚠️ Y NO dice lo mismo que en escritorio —alli pone «Indicaciones»—.
+                Es la letra que el encargo fija para la pestaña; queda
+                declarado, no es un descuido. -->
+        <header class="pestana__cabecera">
+          <h2>Resultado de rutas</h2>
+        </header>
         <div class="bloque__cuerpo" id="bloque-pasos" [hidden]="!pasosAbiertos()">
 
         <!-- ⚠️ El `<h2>Indicaciones</h2>` que habia aqui se fue: la cabecera del
@@ -1128,4 +1168,36 @@
     >
   </p>
   </footer>
+
+  <!-- ⭐ LA BARRA DE PESTAÑAS, Y SOLO EN MOVIL (11/09) — calcada de la barra
+       inferior de `App.tsx`: alto 16 (4 rem), reparto equitativo, fondo de
+       tarjeta y borde arriba.
+
+       ⚠️ Es un `<nav>` con `aria-label`, y los botones llevan `aria-current`:
+          [DOC ARIA] «page» marca el enlace o control que representa la pagina
+          que se esta viendo, y es lo que convierte tres botones sueltos en una
+          navegacion que se entiende sin verla. El color no puede ser la unica
+          señal [WCAG 1.4.1].
+
+       ⚠️ Y la `env(safe-area-inset-bottom)` de su relleno **no vale nada sin el
+          `viewport-fit=cover` del meta**: sin el, iOS devuelve 0 y la barra se
+          queda debajo del indicador de inicio. Ver `index.html`.
+
+       ⛔ SON TRES Y LA MAQUETA TIENE CUATRO. Falta «Tema», y es a proposito:
+          nuestro tema va clavado en claro hasta su tanda, asi que ese boton no
+          tendria nada que conmutar. Ver `pestanas` en el componente. -->
+  <nav class="barra" aria-label="Pantallas">
+    @for (p of pestanas; track p.id) {
+      <button
+        type="button"
+        class="barra__boton"
+        [class.barra__boton--activa]="pestana() === p.id"
+        [attr.aria-current]="pestana() === p.id ? 'page' : null"
+        (click)="irAPestana(p.id)"
+      >
+        <app-simbolo [nombre]="p.icono" [lado]="24" />
+        <span class="barra__texto">{{ p.etiqueta }}</span>
+      </button>
+    }
+  </nav>
 </div>

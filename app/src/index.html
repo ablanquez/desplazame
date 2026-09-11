@@ -4,7 +4,17 @@
   <meta charset="utf-8">
   <title>Desplázame</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- ⭐ `viewport-fit=cover` (11/09, tanda de móvil) — y NO es cosmético.
+       [DOC MDN, `env()`] las variables `safe-area-inset-*` **valen 0 mientras el
+       viewport no sea `cover`**. La barra de pestañas pide
+       `env(safe-area-inset-bottom)` de relleno para no quedarse debajo del
+       indicador de inicio de un iPhone; sin esta palabra, ese relleno sería 0 y
+       la barra estaría tapada justo en el aparato para el que se ha hecho.
+       ⚠️ Y `cover` tiene contrapartida: la página pasa a ocupar TAMBIÉN las zonas
+          inseguras, así que el relleno deja de ponerlo el navegador y pasa a ser
+          nuestro. Lo que quedaba pegado a un borde está censado y medido: la
+          barra es lo único, y lleva el suyo. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
   <!--

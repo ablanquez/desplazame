@@ -195,15 +195,33 @@ describe('App — la cáscara, su página y el comodín', () => {
    * `/panel` y `/identidad` se llegan escribiendo la URL a propósito. Ésta no
    * puede: [RD 1495/2011] pide el aviso legal accesible **de forma permanente,
    * fácil y directa**. Un aviso al que sólo se llega de memoria no lo está.
+   *
+   * ⚠️ **ESTA JUEZ DECÍA «UNO SOLO» Y MORDIÓ EL 11/09**, con un `expected 2 to
+   *    be 1`. Y tenía razón en morder: había cambiado la letra, no la ley.
+   *
+   *    En móvil la franja del pie desaparece —ese borde lo ocupa la barra de
+   *    pestañas—, así que la puerta al aviso legal se muda al final del scroll
+   *    del formulario. Son **dos puertas en el DOM y UNA pintada**: cada una se
+   *    apaga con `display: none` en el ancho de la otra. Lo que la ley pide es
+   *    que haya acceso permanente, fácil y directo, y lo hay en los dos anchos.
+   *
+   *    Lo que se compra aquí es el DOM, que es lo que jsdom puede ver: que
+   *    están las dos y cada una en su sitio. Que solo una se PINTE se mide en
+   *    Chrome, que es donde hay media queries — `e2e/esqueleto.mjs`.
    */
-  it('⭐ la portada tiene UN enlace a /creditos, y está en el pie', async () => {
+  it('⭐ la portada tiene DOS puertas a /creditos: la del pie y la de móvil', async () => {
     const { raiz } = await ir('/');
     const pie = raiz.querySelector('footer.creditos');
     expect(pie).not.toBeNull();
     expect(pie?.querySelector('a[href="/creditos"]')).not.toBeNull();
-    // Uno solo, y no repartido por la pantalla: el encargo lo dice y la
-    // franja es su sitio.
-    expect(raiz.querySelectorAll('a[href="/creditos"]').length).toBe(1);
+
+    // La de móvil, al final del formulario y dentro de él.
+    const puerta = raiz.querySelector('.puerta-creditos a[href="/creditos"]');
+    expect(puerta).not.toBeNull();
+    expect(puerta?.closest('form.buscador')).not.toBeNull();
+
+    // Y ninguna más: dos, y las dos declaradas.
+    expect(raiz.querySelectorAll('a[href="/creditos"]').length).toBe(2);
   });
 
   it('⭐ y el manifiesto se pide al entrar en /panel, que es su sitio', async () => {

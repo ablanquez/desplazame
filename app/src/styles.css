@@ -627,6 +627,29 @@ body:has(.marco) {
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* ⭐ EL MAPA NO SE DESMONTA NUNCA (11/09) — el patrón de la referencia.
+     Las pestañas lo TAPAN; no lo quitan. Si se desmontara, volver a «Mapa»
+     obligaría a Leaflet a construirse otra vez y a pedir las teselas de cero:
+     medio segundo de cuadros grises cada vez, y un `invalidateSize` que
+     acertar. Aquí sigue montado, medido y con sus teselas puestas — lo único
+     que cambia es si se ve.
+     ⚠️ `pointer-events: none` no sobra: sin él se podría arrastrar un mapa
+        invisible a través de la pestaña que lo tapa. */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+[data-pestana='mapa'] .zona-mapa {
+  z-index: 10;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zona-mapa {
+    transition: none;
+  }
 }
 
 /* ⚠️ La cadena de alturas, entera. `height: 100%` solo funciona si el padre
@@ -654,52 +677,113 @@ body:has(.marco) {
   height: 100%;
 }
 
-/* ═══ LA HOJA INFERIOR [Material 3, bottom sheets] ═══
-   Dos estados estables y ninguno intermedio: recogida enseña las cabeceras,
-   desplegada sube. Sin arrastre libre — se cambia tocando el asa. */
+/* ═══ LAS PESTAÑAS DE MÓVIL (11/09) ═══════════════════
+   ⚠️ AQUÍ VIVÍA LA HOJA INFERIOR DE M3, con su asa de 4×32, sus dos estados
+      estables y su radio de 28. Murió [ANTONIO, con las dos pantallas
+      delante]: en móvil la app se calca de la maqueta y son TRES pestañas con
+      barra inferior. Enmienda al DISEÑO § 20, que hablaba de bottom sheet.
+
+      No es que la hoja estuviera mal hecha: es que enseñaba dos cabeceras y un
+      trozo de formulario, y la pestaña da la pantalla entera a lo que se está
+      mirando. Lo que la hoja resolvía —ver el mapa y el formulario a la vez—
+      lo resuelve ahora la pestaña Mapa, que es una de las tres.
+
+   El panel pasa a ser **el contenedor de las dos pestañas de contenido**: a
+   pantalla completa sobre el mapa, con la que toque dentro. */
 .panel {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   z-index: 20;
   display: flex;
   flex-direction: column;
-  /* [M3] el ancho máximo de una hoja inferior */
-  max-width: 640px;
-  margin: 0 auto;
-  /* [M3] el radio superior de la hoja */
-  border-top-left-radius: 28px;
-  border-top-right-radius: 28px;
   background-color: var(--card);
   color: var(--card-foreground);
-  box-shadow: 0 -2px 12px rgb(0 0 0 / 12%);
-  /* Recogida: mide lo que midan el asa y las cabeceras. */
-  max-height: 88dvh;
 }
 
-.panel--desplegada {
-  height: 88dvh;
-}
-
-/* ⚠️ Recogida, los cuerpos NO se ven aunque el acordeón los tenga abiertos: el
-   estado de la hoja manda sobre el del acordeón mientras es hoja. Al desplegar,
-   el acordeón vuelve a decidir y nada se ha perdido por el camino. */
-.panel:not(.panel--desplegada) .bloque__cuerpo {
+/* Con el mapa delante, el panel no está: ni se ve ni se tabula. `display: none`
+   y no una opacidad — un formulario invisible al que llega el tabulador es peor
+   que no tenerlo. El mapa sí se queda montado, que es otra cosa: ver arriba. */
+[data-pestana='mapa'] .panel {
   display: none;
 }
 
-/* ⭐ EL ASA [M3]: píldora de 4×32 px dentro de un área de toque de 48. La
-   píldora es lo que se ve; los 48 son lo que se puede tocar con el dedo. */
-.panel__asa {
+/* ⭐ QUÉ BLOQUE ES LA PESTAÑA. Uno de los dos ocupa el panel entero y el otro
+   no está. En escritorio esto se deshace y vuelve el acordeón con los dos. */
+[data-pestana='buscador'] .bloque--pasos,
+[data-pestana='ruta'] .bloque--buscador {
+  display: none;
+}
+
+[data-pestana='ruta'] .bloque--pasos,
+[data-pestana='buscador'] .bloque--buscador {
+  flex: 1;
+}
+
+/* ⚠️ Y EL TÍTULO DE LA APP ES DE LA PESTAÑA BUSCADOR, no del panel. Se vio en
+   la captura: la pestaña Ruta salía con DOS cabeceras, «Desplázame / Cómo ir
+   de un portal a otro en Zaragoza» encima de «Resultado de rutas». En la
+   maqueta la pestaña Ruta lleva su titular y nada más. En escritorio el título
+   sigue donde estaba, sobre el acordeón y siempre visible. */
+[data-pestana='ruta'] .cabecera {
+  display: none;
+}
+
+/* ⚠️ En móvil NO hay acordeón: la cabecera con chevrón no tiene nada que plegar
+   —la pestaña ya es la pantalla— y pulsarla dejaría la pestaña en blanco. Se
+   esconde con `display: none`, que además la saca del árbol de accesibilidad:
+   quien lee la pantalla no oye un botón que no existe.
+
+   ⚠️ Y lleva `.panel` delante POR ESPECIFICIDAD, no por costumbre: la regla que
+      viste la cabecera —con su banda y su borde— está MÁS ABAJO en este mismo
+      fichero, así que a igualdad de peso ganaba ella y la cabecera se seguía
+      pintando en móvil. Lo cazó L4 en rojo. Dos clases (0,2,0) contra una. */
+.panel .bloque__cabecera {
+  display: none;
+}
+
+/* ⭐ LA CABECERA COMPACTA DE CADA PESTAÑA [App.tsx: `p-4 border-b shrink-0
+   bg-card shadow-sm`]. La del Buscador es el título de la app; la de Ruta, su
+   propio `<header>`. Las dos, el mismo traje. */
+.cabecera,
+.pestana__cabecera {
+  flex-shrink: 0;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+}
+
+.pestana__cabecera h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* ⭐ LA BARRA DE PESTAÑAS [App.tsx: `h-16 ... bg-card border-t`].
+   ⚠️ El `env(safe-area-inset-bottom)` es lo que la aparta del indicador de
+      inicio de un iPhone, y **solo vale con `viewport-fit=cover` en el meta**
+      [DOC MDN, `env()`]: sin él las cuatro variables valen 0. Ver `index.html`. */
+.barra {
+  z-index: 30;
   display: flex;
+  flex-shrink: 0;
+  height: 4rem;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--border);
+  background-color: var(--card);
+}
+
+/* ⚠️ [WCAG 2.5.5] el objetivo mínimo son 44; la maqueta pide 48 y se respeta.
+   El reparto es a partes iguales —`flex: 1`—, así que el ancho lo da la
+   pantalla y nunca queda por debajo con tres huecos. */
+.barra__boton {
+  display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 0.25rem;
   align-items: center;
   justify-content: center;
-  width: 100%;
   min-height: 48px;
-  padding: 0.5rem;
   border: 0;
   background: none;
   color: var(--muted-foreground);
@@ -707,20 +791,30 @@ body:has(.marco) {
   cursor: pointer;
 }
 
-.panel__asa-pildora {
-  width: 32px;
-  height: 4px;
-  border-radius: 2px;
-  background-color: var(--muted-foreground);
+/* ⚠️ El color NO es la única señal de cuál está puesta [WCAG 1.4.1]: el botón
+   activo lleva además `aria-current="page"`, que es lo que oye quien no ve el
+   color. Ver la plantilla. */
+.barra__boton--activa {
+  color: var(--primary);
 }
 
-.panel__asa-texto {
-  font-size: 0.75rem;
-}
-
-.panel__asa:focus-visible {
+.barra__boton:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: -2px;
+}
+
+.barra__texto {
+  font-size: 0.625rem;
+  font-weight: 500;
+}
+
+/* La puerta a `/creditos`, al final del scroll del formulario. Ver la
+   plantilla: en móvil la franja del pie no está, y esto es lo que la sustituye
+   para el aviso legal. */
+.puerta-creditos {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
 }
 
 /* Los bloques reparten lo que queda. `min-height: 0` es lo que permite que un
@@ -796,6 +890,64 @@ body:has(.marco) {
   transition: background-color 150ms;
 }
 
+/* ═══ LA FILA DE CHIPS EN MÓVIL: SE DESPLAZA, CON IMÁN (11/09) ═══════════
+   [SearchForm.tsx] `overflow-x-auto no-scrollbar scroll-smooth snap-x` con
+   `-mx-4 px-4`, y cada chip `snap-center shrink-0`.
+
+   ⚠️ EN MÓVIL NO PUEDE ENVOLVER. En escritorio la fila cabe entera porque la
+      columna mide su peor caso —558 px, medidos chip a chip—; en una pantalla
+      de 390 no cabe de ninguna manera, y envolver la dejaría en tres líneas
+      que empujan el formulario hacia abajo. Se desplaza a lo ancho, que es lo
+      que la maqueta especifica.
+
+   ⚠️ EL SANGRADO NEGATIVO NO ES ADORNO: sin él la fila se corta en el borde
+      del relleno del formulario y el último chip aparece cortado a media
+      distancia del filo de la pantalla, que se lee como «se acabó». Con
+      `-1rem` de margen y `1rem` de relleno, la fila llega al borde y el corte
+      dice lo que es: hay más a la derecha.
+
+   ⚠️ Y la barra de desplazamiento se esconde con las DOS declaraciones: la
+      estándar `scrollbar-width` y la de WebKit. Una sola deja la barra puesta
+      en la mitad de los navegadores.
+
+   ⚠️ EL SELECTOR LLEVA TRES CLASES Y ES POR ESPECIFICIDAD, no por gusto. Esto
+      se escribió `.familias` a secas (0,1,0) y **la jueza lo cazó**: la fila
+      seguía envolviendo y sin sangrado, `snap x · smooth · wrap`. La causa es
+      la de siempre en esta casa —bitácora nº45—: el CSS del componente lleva
+      el atributo de encapsulación, así que `.modos` de `buscador.css` pesa
+      (0,2,0) y `fieldset` pesa (0,1,1), y los dos van DESPUÉS de esta hoja.
+      A igualdad o por encima, ganaban ellos. `.panel .familias.modos` pesa
+      (0,3,0) y no hay empate que discutir. */
+.panel .familias.modos {
+  flex-wrap: nowrap;
+  /* ⚠️ `min-width: 0` ES LO QUE HACE QUE SE DESPLACE, y sin él no pasa nada.
+     Un `fieldset` dentro de una rejilla —`.buscador` es `display: grid`— toma
+     como ancho mínimo el de su contenido, así que la fila NO desbordaba: crecía
+     la caja. Medido: `399 px de fila en 399 de hueco`, y el chip elegido se
+     quedaba donde estaba porque no había nada que desplazar. Peor todavía,
+     `.bloque__cuerpo` tiene `overflow-y: auto` y eso convierte su `overflow-x`
+     en `auto` también [CSS Overflow]: el FORMULARIO ENTERO se iba de lado en
+     vez de la fila. Esta línea lo ata. */
+  min-width: 0;
+  margin-inline: -1rem;
+  padding-inline: 1rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.panel .familias.modos::-webkit-scrollbar {
+  display: none;
+}
+
+/* `shrink-0` para que ninguno se aplaste al no caber, y el imán al centro: es
+   donde el chip elegido se coloca solo. Ver `centrarElChip` en el componente. */
+.panel .familias .modo--chip {
+  flex-shrink: 0;
+  scroll-snap-align: center;
+}
+
 /* ⚠️ DENTRO DE `@media (hover: hover)`, y es la ley de esta hoja desde la tanda
       4: en un táctil el hover se emula con el toque y **se queda pegado**. Una
       cabecera que se quedara resaltada tras plegarla estaría diciendo «el ratón
@@ -866,7 +1018,16 @@ body:has(.marco) {
       ese hueco.
    ⚠️ `z-index: 1000` porque compite con los panes de Leaflet, que llegan a
       700 — la misma lección que el `z-index` del lienzo, dos secciones arriba. */
-/* La última franja del marco, debajo del mapa Y de la hoja. */
+/* ⛔ Y EN MÓVIL NO ESTÁ (11/09): ese borde lo ocupa la barra de pestañas.
+   La conformidad no se pierde y se reparte en dos — la atribución de OSM en el
+   control nativo de Leaflet dentro de la pestaña Mapa, y el aviso legal en la
+   puerta a `/creditos` del final del formulario. El porqué entero, en la
+   plantilla, junto a esa puerta. */
+.creditos {
+  display: none;
+}
+
+/* La última franja del marco, debajo del mapa y de la columna. */
 .creditos {
   flex-shrink: 0;
   padding: 0.25rem 0.6rem;
@@ -913,7 +1074,13 @@ body:has(.marco) {
      posicionamiento, y gana un ancho que se puede plegar. */
   .panel {
     position: static;
+    inset: auto;
     z-index: auto;
+    /* ⚠️ Y vuelve a verse SIEMPRE, mire donde mire `data-pestana`: en
+       escritorio esa palabra no significa nada — la escribe el componente y
+       aquí no la lee nadie. Sin esta línea, quien estrechara la ventana hasta
+       la pestaña «Mapa» y la volviera a ensanchar se quedaría sin columna. */
+    display: flex;
     /* ⭐ EL ANCHO SALE DE UNA SUMA, NO DE LA REFERENCIA (10/09, remate-bis).
 
        [ANTONIO] La columna mide lo que mide su PEOR CASO, que es **los dos chips
@@ -962,8 +1129,80 @@ body:has(.marco) {
     border-right-width: 0;
   }
 
-  .panel__asa {
+  /* ⚠️ AQUÍ SE APAGABA `.panel__asa`, que ya no existe: la hoja murió el
+     11/09. Lo que se apaga ahora son las tres piezas de móvil — la barra de
+     pestañas, la cabecera propia de la pestaña Ruta y la puerta a `/creditos`
+     del final del formulario—, porque en escritorio manda el acordeón y la
+     franja del pie sigue en su sitio. */
+  .barra,
+  .pestana__cabecera,
+  .puerta-creditos {
     display: none;
+  }
+
+  /* Y la franja del pie vuelve, que es donde vive en escritorio. */
+  .creditos {
+    display: block;
+  }
+
+  /* ⚠️ Y LA FILA DE CHIPS DEJA DE DESPLAZARSE. Aquí cabe entera —la columna
+     mide su peor caso, 558 px medidos chip a chip— y [ANTONIO] esa fila no se
+     toca. Sin este deshacer, el sangrado negativo de móvil sacaría los chips
+     por los lados de la tarjeta y el `overflow-x` cortaría el anillo de foco. */
+  .panel .familias.modos {
+    flex-wrap: wrap;
+    margin-inline: 0;
+    padding-inline: 0.75rem;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+
+  /* Y las dos cabeceras del acordeón vuelven: aquí SÍ hay qué plegar.
+     Con el mismo `.panel` delante que las apaga en móvil, o perdería. */
+  .panel .bloque__cabecera {
+    display: flex;
+  }
+
+  /* ⚠️ Los DOS bloques están, mire donde mire `data-pestana`. El acordeón
+     decide cuál se abre; la pestaña, que aquí no pinta nada, no puede
+     esconder ninguno.
+
+     ⚠️ Y con `.panel` delante POR ESPECIFICIDAD: la regla que los esconde en
+        móvil es `[data-pestana='…'] .bloque--…`, que pesa (0,2,0). Sin el
+        `.panel` esto pesaba (0,1,0) y perdía: en escritorio el bloque del
+        resultado medía CERO. Lo cazó L5 con `bloque 0 / cabecera 0`. Es el
+        segundo empate de esta tanda — el primero fue la cabecera. */
+  .panel .bloque--buscador,
+  .panel .bloque--pasos {
+    display: flex;
+  }
+
+  /* ⚠️ Y SE DESHACE TAMBIÉN EL `flex: 1` DE LA PESTAÑA, que es el tercer
+     empate de esta tanda y el más escondido. En móvil la pestaña activa se
+     lleva toda la altura —`[data-pestana='buscador'] .bloque--buscador`, que
+     pesa (0,2,0)— y aquí quien reparte es el acordeón con `.bloque--abierto`,
+     que pesa (0,1,0) y perdía: en escritorio el buscador PLEGADO seguía
+     midiendo 719 px en vez de los 53 de su cabecera. Lo cazó L5.
+
+     Se deshace con el mismo peso, y acto seguido se repite la regla del
+     acordeón con peso suficiente para ganar a la de arriba. El orden importa:
+     a igualdad de peso manda la última. */
+  [data-pestana] .bloque--buscador,
+  [data-pestana] .bloque--pasos {
+    flex: 0 0 auto;
+  }
+
+  .panel .bloque--abierto {
+    flex: 1;
+  }
+
+  /* La cabecera de la app pierde el traje compacto de la pestaña y vuelve a
+     ser el título sobre el acordeón, sin banda ni sombra. */
+  .cabecera {
+    padding: 1rem 1rem 0;
+    border-bottom: 0;
+    background: none;
+    box-shadow: none;
   }
 
   /* En escritorio los cuerpos los decide el acordeón y solo el acordeón.
@@ -972,7 +1211,7 @@ body:has(.marco) {
         «devuelve esto a lo que valdría sin reglas de autor», y medido en
         Chrome devolvía `block` **incluso con el atributo `hidden` puesto**:
         el acordeón se plegaba sin ocultar nada. Ver bitácora nº46. */
-  .panel:not(.panel--desplegada) .bloque__cuerpo {
+  .panel .bloque__cuerpo {
     display: block;
   }
 
@@ -982,6 +1221,9 @@ body:has(.marco) {
     flex: 1;
     /* Sin esto un hijo flexible no baja de su contenido y el mapa desborda. */
     min-width: 0;
+    /* En escritorio no hay pestañas que lo tapen: se ve y se toca siempre. */
+    opacity: 1;
+    pointer-events: auto;
   }
 
   /* ⭐ El separador: 24×48 px pegado al borde de la columna — la medida de la

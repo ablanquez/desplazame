@@ -608,6 +608,14 @@ function comoSeLeeLaDuracion(segundos: number, modo: Modo = 'andando'): string {
 type Familia = 'andando' | 'bus' | 'bici' | 'patin' | 'coche' | 'moto';
 
 /**
+ * ⭐ LAS TRES PANTALLAS DE MÓVIL (11/09) — `mobileTab` de `App.tsx`.
+ *
+ * ⚠️ Como `Familia`, **es palabra de esta pantalla y no del contrato**: al
+ *    motor no le importa qué pestaña se está mirando.
+ */
+type Pestana = 'buscador' | 'ruta' | 'mapa';
+
+/**
  * ⭐ EL DISTINTIVO AMBIENTAL, y **es palabra de esta pantalla**, no del contrato.
  *
  * Al motor no le importa qué etiqueta lleva el coche: le importa **si puede
@@ -706,22 +714,78 @@ export class Buscador {
   // ══════════════════════════════════════════════════════════════════════════
 
   /**
-   * ⭐ LA HOJA INFERIOR, con DOS estados y ningún intermedio.
+   * ⭐ ¿ESTAMOS EN MÓVIL? Y se pregunta **negando la consulta del CSS**.
    *
-   * [Material 3, *bottom sheets*] los estados posibles son
-   * `COLLAPSED / HALF_EXPANDED / EXPANDED / HIDDEN`, y la propia guía ofrece
-   * `skipPartiallyExpanded` para **quedarse solo con dos estables** y evitar el
-   * intermedio ambiguo. Es lo que el DISEÑO decidió: recogida y desplegada, sin
-   * arrastre libre. Cambiar de una a otra se hace **tocando el asa**, que en M3
-   * es la forma documentada de alternar.
+   * ⚠️ No es `(max-width: 767px)`, y la diferencia importa: una ventana de
+   *    767,5 px —que existe, con zoom o en una pantalla de densidad rara— no
+   *    casaría con esa consulta NI con la de escritorio, y la pantalla se
+   *    quedaría sin ninguna de las dos disposiciones. Preguntando por la MISMA
+   *    consulta que usa la hoja de estilos y negándola, JS y CSS no pueden
+   *    discrepar nunca: hay una sola frontera y es la misma.
    *
-   * ⚠️ Solo manda en móvil. De 768 px arriba la hoja deja de existir: el panel
-   *    es una columna y quien decide es `columnaAbierta`.
+   * ⚠️ Y `matchMedia` **no existe en jsdom** (medido: `undefined`). Sin el
+   *    guardián, crear el componente en cualquier prueba reventaría. Con él, las
+   *    pruebas de unidad ven `false` —escritorio—, que es lo que todas asumen
+   *    desde siempre. Lo de móvil se mide en Chrome, que es donde se puede.
    */
-  protected readonly hojaDesplegada = signal(false);
+  private static readonly ESCRITORIO = '(min-width: 768px)';
 
-  protected alternarHoja(): void {
-    this.hojaDesplegada.update((x) => !x);
+  protected readonly esMovil = signal(false);
+
+  /**
+   * ⭐ LA PESTAÑA VISIBLE EN MÓVIL (11/09, tanda de móvil) — calcada de
+   * `mobileTab` de `App.tsx`. **En escritorio no la mira nadie**: allí manda el
+   * acordeón, que sigue exactamente igual.
+   *
+   * ⚠️ Sustituye a la hoja inferior de M3 y su asa. No es una mejora de aquello:
+   *    es otra cosa, decidida por Antonio con las dos pantallas delante. La hoja
+   *    enseñaba dos cabeceras y un trozo; las pestañas dan la pantalla entera a
+   *    lo que se está mirando, que es lo que la maqueta especifica desde el
+   *    principio y el DISEÑO § 20 no recogía.
+   */
+  protected readonly pestana = signal<Pestana>('buscador');
+
+  /**
+   * Las tres de la barra, con su icono y su etiqueta. Es la lista que se pinta:
+   * añadir una es añadirla aquí.
+   *
+   * ⛔ **FALTA LA CUARTA DEL CALCO, «Tema», y es a propósito.** La maqueta trae
+   *    un cuarto botón que llama a `cycleTheme`. Aquí el tema va clavado en
+   *    claro hasta su tanda —`<html data-theme="light">`, con su jueza—, así que
+   *    ese botón no tendría nada que conmutar: sería un control que se pulsa y
+   *    no pasa nada, que es justo lo que esta casa no pinta. Entra cableado con
+   *    el conmutador, y su icono `light_mode` al censo ese día.
+   */
+  protected readonly pestanas: ReadonlyArray<{
+    id: Pestana;
+    etiqueta: string;
+    icono: NombreDeSimbolo;
+  }> = [
+    { id: 'buscador', etiqueta: 'Buscador', icono: 'search' },
+    { id: 'ruta', etiqueta: 'Ruta', icono: 'route' },
+    { id: 'mapa', etiqueta: 'Mapa', icono: 'map' },
+  ];
+
+  /**
+   * ⭐ Cambiar de pestaña **abre también su bloque**, y esto no es un adorno.
+   *
+   * El cuerpo de cada bloque se esconde con `[hidden]` cuando su acordeón está
+   * plegado, y el resultado arranca plegado. Sin esta línea, pulsar «Ruta» sin
+   * haber generado nada enseñaría una pantalla vacía de verdad —ni el texto del
+   * vacío— en vez del «Todavía no hay pasos…».
+   *
+   * ⚠️ Y se hace moviendo LA MISMA señal del acordeón, no enseñando con CSS un
+   *    elemento `[hidden]`. Un `display` que contradiga al atributo lo deja
+   *    escondido para quien lee la pantalla y visible para quien la mira: es el
+   *    fallo de la nº46 con otro disfraz.
+   */
+  protected irAPestana(cual: Pestana): void {
+    this.pestana.set(cual);
+    if (cual === 'buscador') {
+      this.buscadorAbierto.set(true);
+    } else if (cual === 'ruta') {
+      this.pasosAbiertos.set(true);
+    }
   }
 
   /**
@@ -732,6 +796,26 @@ export class Buscador {
    *    caso en toda la app en que Leaflet necesita que le avisen. Lo hace
    *    `alTerminarLaTransicion`, enganchado al `transitionend` del panel.
    */
+  /**
+   * ⭐ EL VIGÍA DEL ANCHO. Se lee al nacer y se escucha el cambio: girar el
+   * teléfono o arrastrar el borde de la ventana cruza la frontera de verdad.
+   *
+   * ⚠️ `addEventListener('change')` y no el `addListener` viejo: el segundo está
+   *    marcado como obsoleto [DOC MDN] y no admite retirada por `AbortSignal`.
+   *    Se retira con el componente — un oyente vivo sobre un componente muerto
+   *    es una fuga, y aquí la pantalla se destruye al navegar a `/creditos`.
+   */
+  private readonly vigilarElAncho = ((): void => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+    const consulta = window.matchMedia(Buscador.ESCRITORIO);
+    this.esMovil.set(!consulta.matches);
+    const alCambiar = (e: MediaQueryListEvent): void => this.esMovil.set(!e.matches);
+    consulta.addEventListener('change', alCambiar);
+    inject(DestroyRef).onDestroy(() => consulta.removeEventListener('change', alCambiar));
+  })();
+
   protected readonly columnaAbierta = signal(true);
 
   protected alternarColumna(): void {
@@ -2630,6 +2714,10 @@ export class Buscador {
     this.trio.set(null);
     this.buscadorAbierto.set(true);
     this.pasosAbiertos.set(false);
+    // ⭐ Y LA VUELTA EN MÓVIL: a la pestaña «Buscador» — `handleReset` de la
+    //    maqueta, `if (isMobile) setMobileTab('buscador')`. «Limpiar» deja la
+    //    pantalla como al abrirla, y al abrirla se está en el buscador.
+    this.pestana.set('buscador');
   }
 
   protected elegirModo(modo: Modo): void {
@@ -2676,7 +2764,79 @@ export class Buscador {
     if (suya) {
       this.modo.set(suya.porDefecto);
     }
+    // ⭐ Y EN MÓVIL EL CHIP ELEGIDO SE TRAE AL CENTRO. Ver `centrarElChip`.
+    this.hayChipQueCentrar = true;
   }
+
+  /** La fila de chips, para poder empujarla. Solo se usa en móvil. */
+  private readonly filaDeChips = viewChild<ElementRef<HTMLElement>>('filaFamilias');
+
+  private hayChipQueCentrar = false;
+
+  /**
+   * ⭐ EL CHIP ELEGIDO SE AUTO-CENTRA EN MÓVIL (11/09) — el efecto del
+   * `selectedModeRef` de `SearchForm.tsx`, que hace `scrollIntoView` en un
+   * `useEffect` colgado del modo.
+   *
+   * En móvil la fila de seis no cabe y se desplaza a lo ancho. Sin esto, elegir
+   * «Coche» —el último— lo deja pegado al borde derecho, medio comido por el
+   * sangrado, y encima **el chip elegido crece** al abrir su etiqueta: justo el
+   * que más sitio necesita es el que menos tiene. Centrarlo lo resuelve sin que
+   * nadie tenga que arrastrar.
+   *
+   * ⚠️ Va en un `effect` y no en el manejador del clic, y es la misma razón que
+   *    el foco del atajo de aquí arriba: cuando el clic termina, Angular todavía
+   *    no ha puesto la clase `modo--activo` ni ha crecido el chip. Medir y
+   *    empujar ahí sería centrar el chip que había ANTES, con su ancho viejo.
+   *
+   * ⚠️ `block: 'nearest'` no es adorno: sin él, centrar a lo ancho arrastra
+   *    también en vertical y el formulario entero da un salto.
+   *
+   * ⚠️ Y `scrollIntoView` **no existe en jsdom**, así que se pregunta antes de
+   *    llamarlo. El guardián de `esMovil()` ya basta en las pruebas de unidad
+   *    —allí siempre es escritorio—, pero un instrumento que dependa de dos
+   *    guardianes a la vez es más barato que uno que dependa de uno.
+   */
+  private readonly centrarElChip = effect(() => {
+    const fila = this.filaDeChips();
+    const cual = this.familia();
+    if (!fila || !cual || !this.hayChipQueCentrar || !this.esMovil()) {
+      return;
+    }
+    this.hayChipQueCentrar = false;
+    // ⚠️ SE BUSCA POR POSICIÓN, NO POR LA CLASE `.modo--activo`, y esto costó
+    //    una medida: buscándolo por la clase el `scrollLeft` se quedaba en 0
+    //    con 11 px disponibles —o sea, el efecto corría y no encontraba nada—,
+    //    mientras que el mismo `scrollIntoView` a mano desde la consola movía
+    //    la fila. Cuando este efecto corre, la clase todavía no está puesta en
+    //    el DOM. La POSICIÓN sí se sabe: es el índice de la familia en la lista
+    //    que pinta la fila, y no depende de ninguna pintura.
+    const donde = this.familias.findIndex((f) => f.id === cual);
+    const chip = fila.nativeElement.querySelectorAll<HTMLElement>('.modo--chip')[donde];
+    if (!chip || typeof chip.scrollIntoView !== 'function') {
+      return;
+    }
+    const centrar = (): void =>
+      chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+    // ⭐ DOS VECES, Y LAS DOS HACEN FALTA. Ver el comentario de arriba: el chip
+    //    elegido CRECE al abrir su etiqueta, y esa anchura tarda sus 300 ms.
+    //    Empujar ahora mismo, con la fila todavía sin desbordar, es empujar
+    //    contra un tope: medido, `scrollLeft` se quedaba en 0 con 11 px
+    //    disponibles mientras el mismo `scrollIntoView` a mano sí movía.
+    //
+    //    · Ahora: es lo que vale cuando NO hay transición — con
+    //      `prefers-reduced-motion: reduce` la hoja la apaga, y entonces el
+    //      ancho final ya está puesto y no habrá `transitionend` que esperar.
+    //    · Y al acabar la transición: es lo que vale el resto de las veces.
+    //
+    // ⚠️ Atado al `transitionend` y NO a un `setTimeout(300)`, que es la ley de
+    //    esta casa desde el re-encuadre del mapa: un cronómetro acierta en esta
+    //    máquina y falla en la que va lenta. `once: true` para no dejar un
+    //    oyente por cada vez que se toca la fila.
+    centrar();
+    chip.addEventListener('transitionend', centrar, { once: true });
+  });
 
   /**
    * ⭐ CAMBIAR DE FAMILIA DEVUELVE LAS RESPUESTAS DE LA ZBE A SIN-ELEGIR.
@@ -2885,9 +3045,14 @@ export class Buscador {
     //    llegaba a un bloque cerrado. Las dos piezas van juntas o ninguna.
     this.buscadorAbierto.set(false);
     this.pasosAbiertos.set(true);
-    // Y en móvil la hoja sube: si se queda recogida, el resultado que acaba de
-    // abrirse tampoco se ve. En escritorio esta señal no la mira nadie.
-    this.hojaDesplegada.set(true);
+    // ⭐ Y EN MÓVIL SE SALTA A LA PESTAÑA «RUTA» (11/09) — `handleGenerateRoute`
+    //    de la maqueta hace exactamente esto: `if (isMobile) setMobileTab('ruta')`.
+    //    Sin ello se pulsaría «Generar» y no pasaría nada a la vista: la ruta
+    //    llegaría a una pestaña que no se está mirando. En escritorio esta línea
+    //    no la mira nadie — allí quien enseña el resultado es el acordeón.
+    if (this.esMovil()) {
+      this.pestana.set('ruta');
+    }
 
     this.generando.set(true);
     this.empiezaLaEspera(modo);
