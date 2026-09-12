@@ -2107,8 +2107,19 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
           : { paso: i, hay: true, ancho: px(col.getBoundingClientRect().width),
               texto: (col.textContent || '').trim() });
       });
+      // ⚠️ EL «BORDE DERECHO DE LA FILA» YA NO ES EL DE LA CAJA DEL PASO
+      //    (12/09). Desde que la banda de realce se gana su aire con margen
+      //    negativo, esa caja llega 1 rem más allá por cada lado —0→543— y
+      //    comparar contra ella pedía una raya que tocase el filo del panel, o
+      //    sea justo lo contrario de lo que el aire viene a arreglar. El final
+      //    que de verdad se compró es EL DE LA ÚLTIMA COLUMNA: la raya llega
+      //    hasta donde acaba la distancia, no hasta donde acaba el texto.
+      //
+      // ⚠️ Y sin comillas invertidas en este comentario: vive dentro de un
+      //    literal de plantilla y una sola lo cierra. Van tres veces.
+      const ultima = pasos.length ? pasos[0].querySelector('.paso__metros') : null;
       return { pasos: pasos.length, rayas, filos, columnas,
-               fila: px(pasos.length ? pasos[0].getBoundingClientRect().right : 0),
+               fila: px(ultima ? ultima.getBoundingClientRect().right : 0),
                tokenBorde: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() };
     `);
 
@@ -2131,8 +2142,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
     );
     juzgar(
       ders.length === 1 && Math.abs(ders[0] - geometria.fila) <= 1,
-      'P19 · y ese final es el BORDE DERECHO de la fila, no donde acabe el texto',
-      `raya hasta ${ders.join('/')} · la fila acaba en ${geometria.fila}`,
+      'P19 · y ese final es el de la ÚLTIMA COLUMNA, no donde acabe el texto',
+      `raya hasta ${ders.join('/')} · la columna de distancias acaba en ${geometria.fila}`,
     );
     juzgar(
       [...new Set(geometria.rayas.map((r) => r.grosor))].length === 1 &&
@@ -2227,6 +2238,52 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       'P19 · ⭐ el paso se enciende con el ratón encima',
       `reposo ${enReposo} → con ratón ${conRaton}`,
     );
+
+    // ⭐ Y LA BANDA RESPIRA [ANTONIO, 12/09, con la captura delante].
+    //
+    // ⚠️ La primera banda salió pegada a todo: el icono apurado contra el filo
+    //    izquierdo y la distancia contra el derecho, sin un pelo de aire. Un
+    //    realce que muerde lo que realza se lee como un recorte, no como un
+    //    subrayado.
+    //
+    // Se compran las dos cosas que pidió: que la banda ABARQUE la fila entera
+    // —el carril del icono DENTRO, no fuera— y que dentro quede aire a los dos
+    // lados. El paso de aire no se inventa: es el `gap` que la propia fila ya
+    // usa entre el carril y el cuerpo, 1 rem.
+    const AIRE = 16;
+    const banda = await leer(m, `
+      const px = (n) => Math.round(n * 100) / 100;
+      const p = document.querySelectorAll('.paso')[1];
+      const b = p.getBoundingClientRect();
+      const carril = p.querySelector('.paso__carril').getBoundingClientRect();
+      const metros = p.querySelector('.paso__metros').getBoundingClientRect();
+      const scroll = p.closest('.bloque__cuerpo');
+      return {
+        banda: px(b.left) + '→' + px(b.right), ancho: px(b.width),
+        aireIzq: px(carril.left - b.left),
+        aireDer: px(b.right - metros.right),
+        carrilDentro: carril.left >= b.left - 0.5 && carril.right <= b.right + 0.5,
+        desborda: scroll ? scroll.scrollWidth - scroll.clientWidth : 0,
+      };
+    `);
+    juzgar(
+      banda.carrilDentro === true,
+      'P19 · ⭐ y la banda abarca la fila entera: el carril del icono queda DENTRO',
+      `banda ${banda.banda} (${banda.ancho} px) · el carril dentro: ${banda.carrilDentro}`,
+    );
+    juzgar(
+      banda.aireIzq >= AIRE && banda.aireDer >= AIRE,
+      'P19 · ⭐ y respira: aire a los dos lados, el mismo paso que usa la fila',
+      `izquierda ${banda.aireIzq} px · derecha ${banda.aireDer} px · el paso es ${AIRE}`,
+    );
+    // ⚠️ Y que el aire no se pague con una barra horizontal: la banda se gana
+    //    el sitio con margen negativo, y un margen negativo mal medido saca
+    //    scroll al panel entero.
+    juzgar(
+      banda.desborda === 0,
+      'P19 · y el sitio de la banda no se paga con una barra de desplazamiento',
+      `sobra a lo ancho: ${banda.desborda} px`,
+    );
     await m.guardar(`${CAPTURAS}/paso-hover.png`);
 
     // El gemelo del teclado. Se pulsa una tecla DE VERDAD antes de mover el
@@ -2248,6 +2305,20 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       conFoco.visible === true && conFoco.fondo !== enReposo,
       'P19 · ⭐ y el teclado ve lo mismo: `:focus-visible` enciende igual que el ratón',
       `:focus-visible ${conFoco.visible} · fondo ${conFoco.fondo} (reposo ${enReposo})`,
+    );
+    // Y con el mismo aire: es la misma banda, no una parecida.
+    const bandaFoco = await leer(m, `
+      const px = (n) => Math.round(n * 100) / 100;
+      const p = document.querySelectorAll('.paso')[1];
+      const b = p.getBoundingClientRect();
+      const carril = p.querySelector('.paso__carril').getBoundingClientRect();
+      const metros = p.querySelector('.paso__metros').getBoundingClientRect();
+      return { aireIzq: px(carril.left - b.left), aireDer: px(b.right - metros.right) };
+    `);
+    juzgar(
+      bandaFoco.aireIzq >= AIRE && bandaFoco.aireDer >= AIRE,
+      'P19 · y la banda del foco respira igual que la del ratón',
+      `izquierda ${bandaFoco.aireIzq} px · derecha ${bandaFoco.aireDer} px`,
     );
     await m.guardar(`${CAPTURAS}/paso-foco.png`);
 

@@ -119,6 +119,18 @@
   display: flex;
   gap: 1rem;
   align-items: stretch;
+  /* ⭐ EL SITIO DE LA BANDA DE REALCE [ANTONIO, 12/09, con la captura delante].
+     El realce salió pegado a todo: el icono apurado contra el filo izquierdo y
+     la distancia contra el derecho. Un realce que muerde lo que realza se lee
+     como un recorte, no como un subrayado.
+     El relleno le da aire por dentro y el margen negativo devuelve el
+     contenido a su sitio, así que la banda CRECE y la maquetación no se mueve
+     — las rayas siguen arrancando en x=64 y acabando en x=527, medido—. El
+     paso no se inventa: es el mismo `gap` de 1rem que la fila usa entre el
+     carril y el cuerpo, y coincide con el relleno del `.bloque__cuerpo`, así
+     que la banda llega justo al filo del panel y ni un píxel más. */
+  margin-inline: -1rem;
+  padding-inline: 1rem;
 }
 
 /* ⭐ EL PASO SE ENCIENDE AL POSARSE ENCIMA [ANTONIO, 12/09].
