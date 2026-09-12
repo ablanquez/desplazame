@@ -233,7 +233,7 @@
           <!-- El aviso va pegado al botón que lo produce, no arriba del todo: se lee
                donde se ha mirado. `role="status"` para que también se cante. -->
           @if (avisoUbicacion(); as aviso) {
-            <p class="aviso-ubicacion" role="status">{{ aviso }}</p>
+            <p class="aviso-ubicacion ambar" role="status">{{ aviso }}</p>
           }
 
           <button
@@ -875,8 +875,17 @@
                     junto al hito, que es a donde lleva el enlace. Dos disparadores
                     para el mismo detalle eran dos sitios donde abrirlo. -->
             @if (resumenDeAvisos().length > 0) {
-              <section class="resumen" role="status" aria-labelledby="resumen-titulo">
-                <h3 class="resumen__titulo" id="resumen-titulo">Avisos de este viaje:</h3>
+              <section class="resumen ambar" role="status" aria-labelledby="resumen-titulo">
+                <!-- [GOV.UK · warning text] el componente es «icono + texto», y
+                     hasta el 12/09 esta caja solo tenía texto: el `⚠` lo llevaba la
+                     nota de cada paso y la caja de arriba no, aunque las dos son el
+                     mismo aviso dicho en dos sitios. Ahora las dos lo llevan, y es
+                     el mismo dibujo. `aria-hidden` porque el título ya dice
+                     «Avisos». -->
+                <h3 class="resumen__titulo" id="resumen-titulo">
+                  <app-simbolo class="resumen__icono" nombre="warning" [lado]="16" />
+                  Avisos de este viaje:
+                </h3>
                 <ul class="resumen__lista">
                   @for (linea of resumenDeAvisos(); track $index) {
                     <li class="resumen__linea">
@@ -893,27 +902,50 @@
 
             @if (r.trayecto.pasos.length > 0) {
               <header class="ruta">
-                <!-- Dos marcas por línea, y cada una dice una cosa distinta: la
-                     flecha, el PAPEL —de dónde se sale, dónde se llega—; el icono, la
-                     CLASE. Con dos farmacias las dos cruces son iguales, así que sin
-                     la flecha no quedaría nada que dijera cuál es cuál. -->
-                <p class="ruta__punto ruta__origen">
-                  <span class="ruta__marca" aria-hidden="true">{{ flechaDe('salida') }}</span>
-                  <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="18" />
-                  {{ r.origen }}
-                </p>
-                <p class="ruta__punto ruta__destino">
-                  <span class="ruta__marca" aria-hidden="true">{{ flechaDe('llegada') }}</span>
-                  <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="18" />
-                  {{ r.destino }}
-                </p>
-                <p class="ruta__totales">
+                <!-- ⭐ EL TITULAR: LOS DOS NÚMEROS, ARRIBA Y GRANDES (12/09).
+
+                     [maqueta `RouteResult.tsx`] «7,9 km · ~48 min» es lo primero
+                     que se lee, porque es lo primero que se pregunta. Antes vivían
+                     al pie de la cabecera, debajo de las dos calles, y eran lo
+                     último.
+
+                     El tiempo NUNCA sale solo: va con la velocidad de la que se
+                     deriva **cuando hay una sola**. En los modos de rueda no la hay
+                     —se mezclan 18 rodando y 5 empujando—, y entonces no se dice
+                     ninguna. Ver `comoSeLeeLaDuracion`.
+
+                     ⚠️ Y esa coletilla —«a 5 km/h»— se queda DENTRO del titular
+                        aunque la maqueta no la tenga: es letra existente y no se
+                        reescribe. Partirla en dos líneas obligaría a tocar
+                        `comoSeLeeLaDuracion`, que es exactamente lo que no toca. -->
+                <p class="ruta__titular">
                   <span class="ruta__metros">{{ enMetros(r.trayecto.metros) }}</span>
-                  <!-- El tiempo NUNCA sale solo: va con la velocidad de la que se
-                       deriva **cuando hay una sola**. En los modos de rueda no la
-                       hay —se mezclan 18 rodando y 5 empujando—, y entonces no se
-                       dice ninguna. Ver `comoSeLeeLaDuracion`. -->
+                  <span class="ruta__separador" aria-hidden="true">·</span>
                   <span class="ruta__duracion">{{ enTiempo(r.trayecto.segundos, r.trayecto.modo) }}</span>
+                </p>
+                <!-- ⭐ LOS DOS EXTREMOS, EN UNA LÍNEA Y CON LA FLECHA EN MEDIO.
+
+                     ⚠️ **Aquí había dos marcas de papel** —`◉` para la salida y `⚑`
+                        para la llegada, una por línea— y se van con el resto de los
+                        glifos. Lo que decían no se pierde: en una sola línea el
+                        PAPEL lo dice el orden, y la flecha dice hacia dónde. Era
+                        justo lo que el comentario viejo pedía —«sin la flecha no
+                        quedaría nada que dijera cuál es cuál»— y ahora hay una
+                        flecha de verdad, no dos marcas que hay que saberse.
+
+                     El `app-icono-capa` se queda: dice la CLASE del sitio —farmacia,
+                     colegio— y eso es otra información. Con dos farmacias las dos
+                     cruces son iguales, y ahí es el orden el que desempata. -->
+                <p class="ruta__extremos">
+                  <span class="ruta__punto ruta__origen">
+                    <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="18" />
+                    {{ r.origen }}
+                  </span>
+                  <app-simbolo class="ruta__flecha" nombre="arrow_forward" [lado]="16" />
+                  <span class="ruta__punto ruta__destino">
+                    <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="18" />
+                    {{ r.destino }}
+                  </span>
                 </p>
                 <!-- ⭐ LA LEYENDA DEL VIAJE: en qué se monta, de un vistazo. El chip
                      lleva el NÚMERO dentro [WCAG 1.4.1: el color nunca solo] y los
@@ -947,10 +979,25 @@
                        hace enfocable **por programa** sin meterlo en el orden de
                        tabulación, que es exactamente lo que hace falta. -->
                   <li class="paso" [id]="'paso-' + $index" tabindex="-1">
-                    <!-- La flecha es un duplicado visual de lo que ya dice el texto
+                    <!-- ⭐ EL CARRIL DE LA LÍNEA DE TIEMPO (12/09): el círculo con la
+                         maniobra dentro, y el hilo que lo cose con el siguiente.
+
+                         [maqueta `RouteResult.tsx`] 32 de círculo, 2 de hilo. El hilo
+                         lo llevan todos MENOS EL ÚLTIMO: uno colgando del final sería
+                         prometer que el camino sigue.
+
+                         El dibujo es un duplicado visual de lo que ya dice el texto
                          («Gira a la izquierda»), así que a quien lea la pantalla en
-                         voz alta se le ahorra. -->
-                    <span class="paso__flecha" aria-hidden="true">{{ flechaDe(paso.giro) }}</span>
+                         voz alta se le ahorra — `aria-hidden` los dos. -->
+                    <span class="paso__carril">
+                      <span class="paso__circulo" aria-hidden="true">
+                        <app-simbolo [nombre]="simboloDe(paso.giro)" [lado]="18" />
+                      </span>
+                      @if (!$last) {
+                        <span class="paso__hilo" aria-hidden="true"></span>
+                      }
+                    </span>
+                    <span class="paso__cuerpo">
                     <!-- ⭐ Y EN LAS DOS PUNTAS, el icono de su extremo, igual que en
                          la cabecera.
                          ⚠️ **Y en las puntas DE VERDAD, no en cada `salida`** (30/08).
@@ -963,32 +1010,58 @@
                          ÚLTIMO: eso sí es lo que significa.
                          En una ruta trivial hay un solo paso, de `llegada`, y le toca
                          el del destino — ahí no se sale de ningún sitio, se está ya. -->
-                    <span class="paso__capa">
-                      @if ($first && paso.giro === 'salida') {
-                        <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="16" />
-                      } @else if ($last && paso.giro === 'llegada') {
-                        <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="16" />
-                      }
-                    </span>
                     <!-- El formato de Google: la ACCIÓN y el NOMBRE DE LA VÍA en
                          negrita, el pegamento de la frase no. El motor no manda
                          HTML: manda los trozos con su papel (`partes`), y la
                          etiqueta la elige aquí. El `texto` plano sigue existiendo
                          en el contrato para quien no pinte nada. -->
-                    <!-- Y el mismo chip junto al paso donde se sube: la leyenda
-                         dice en qué se monta y esto dice dónde. -->
-                    @for (linea of lineaPorPaso().get($index) ?? []; track $index) {
-                      @if (tonosDe(linea); as tonos) {
-                        <span
-                          class="chip-linea"
-                          [class.chip-linea--contorno]="conContorno(tonos.texto)"
-                          [style.background-color]="'#' + tonos.fondo"
-                          [style.color]="'#' + tonos.texto"
-                          >{{ linea.corto }}</span
-                        >
+                    <!-- ⭐ LA FRASE DEL PASO: el chip, la capa y el texto EN UNA LÍNEA.
+
+                         Este envoltorio existe por dos fallos medidos el 12/09, y los
+                         dos salieron de que el cuerpo del paso pasara a ser una
+                         COLUMNA:
+
+                         ⚠️ Sueltos en la columna, los chips se apilaban uno por
+                            renglón — en el transbordo salían la 35 y la 31 en dos
+                            líneas antes de la frase que las nombra.
+
+                         ⚠️ Y metidos dentro de `.paso__texto` sí quedaban en línea,
+                            pero **el texto del paso pasaba a leerse «3531 En el poste
+                            147…»**: el número de la insignia entraba en la frase, y
+                            quien la oye no distingue una insignia de una palabra. Lo
+                            cazó `buscador.spec.ts`, que compra ese texto literal.
+
+                         Con el envoltorio las tres cosas comparten línea —son
+                         contenido en línea de un mismo bloque— y `.paso__texto`
+                         vuelve a contener solo la frase. -->
+                    <span class="paso__frase">
+                      <!-- El mismo chip junto al paso donde se sube: la leyenda dice
+                           en qué se monta y esto dice dónde. -->
+                      @for (linea of lineaPorPaso().get($index) ?? []; track $index) {
+                        @if (tonosDe(linea); as tonos) {
+                          <span
+                            class="chip-linea"
+                            [class.chip-linea--contorno]="conContorno(tonos.texto)"
+                            [style.background-color]="'#' + tonos.fondo"
+                            [style.color]="'#' + tonos.texto"
+                            >{{ linea.corto }}</span
+                          >
+                        }
                       }
-                    }
-                    <span class="paso__texto">
+                      <span class="paso__texto">
+                      <!-- ⚠️ EL ICONO DE CAPA VA AQUÍ DENTRO desde el 12/09, y no al
+                           lado. Era hermano del texto, y al volverse el cuerpo una
+                           COLUMNA eso lo puso en su propia línea encima de la frase:
+                           un pin verde suelto sobre «Sal de Calle El Coloso 2». Dentro
+                           del párrafo vuelve a ser lo que es — una marca de la clase
+                           del sitio, pegada al nombre del sitio. -->
+                      <span class="paso__capa">
+                        @if ($first && paso.giro === 'salida') {
+                          <app-icono-capa [clase]="r.capaOrigen" papel="origen" [lado]="16" />
+                        } @else if ($last && paso.giro === 'llegada') {
+                          <app-icono-capa [clase]="r.capaDestino" papel="destino" [lado]="16" />
+                        }
+                      </span>
                       @for (parte of paso.partes; track $index) {
                         @if (parte.papel === 'texto') {
                           <ng-container>{{ parte.texto }}</ng-container>
@@ -996,11 +1069,9 @@
                           <strong>{{ parte.texto }}</strong>
                         }
                       }
+                      </span>
                     </span>
-                    <!-- El paso de llegada no abre tramo: lleva 0 y no se escribe. -->
-                    @if (paso.metros > 0) {
-                      <span class="paso__metros">{{ enMetros(paso.metros) }}</span>
-                    }
+
                     <!-- ⭐ EL BOTÓN DEL DATO VIVO Y SU REGIÓN DE ESTADO (1/09,
                          ampliado a la BiZi el 2/09).
 
@@ -1049,7 +1120,14 @@
                              estado intermedio: la región, ocupada, no lo anuncia, y
                              decirlo dos veces sería anunciar el trámite. -->
                         @if (tardaLaConsulta($index)) {
-                          <span class="vivo__tarda" aria-hidden="true">⏳</span>
+                          <!-- ⚠️ Era un `⏳` (12/09). Se quedó atrás cuando la
+                               consulta a la DGT pasó a `app-simbolo` el 10/09 —el de
+                               allí ya es un SVG— y esta jueza no lo veía porque solo
+                               aparece con el botón vivo pulsado y tardando. El mismo
+                               dibujo en los dos sitios, que es lo que se pretendía. -->
+                          <span class="vivo__tarda" aria-hidden="true">
+                            <app-simbolo nombre="hourglass_empty" [lado]="16" />
+                          </span>
                         }
                         <span
                           class="vivo__estado"
@@ -1104,13 +1182,25 @@
                             mira primero el dato y deja la regla del texto de reserva
                             para el bus y el BiZi. -->
                     @if (notaDelPaso($index, paso); as nota) {
-                      <span class="paso__nota">
-                        <span class="paso__nota-icono" aria-hidden="true">⚠</span>
+                      <span class="paso__nota ambar">
+                        <!-- ⚠️ Era un `⚠` de texto. [GOV.UK · warning text] el
+                             componente es «icono + texto», y el icono tiene que ser un
+                             icono: el carácter lo dibujaba la fuente del sistema, así
+                             que salía hueco en unas y relleno en otras. -->
+                        <app-simbolo class="paso__nota-icono" nombre="warning" [lado]="16" />
                         <ng-container
                           [ngTemplateOutlet]="avisoPartido"
                           [ngTemplateOutletContext]="{ $implicit: nota, clave: 'paso-nota-' + $index }"
                         />
                       </span>
+                    }
+                    </span>
+                    <!-- La distancia, en su propia columna a la derecha [maqueta]. El
+                         paso de llegada no abre tramo: lleva 0 y no se escribe, y
+                         entonces la columna queda vacía — que es lo correcto: no hay
+                         nada que decir. -->
+                    @if (paso.metros > 0) {
+                      <span class="paso__metros">{{ enMetros(paso.metros) }}</span>
                     }
                   </li>
                 }

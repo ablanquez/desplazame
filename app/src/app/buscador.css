@@ -52,9 +52,13 @@ legend {
   gap: 0.25rem;
 }
 
-.campo--calle {
-  flex: 3 1 14rem;
-}
+/* ⚠️ Aquí había un `.campo--calle { flex: 3 1 14rem }` **que no pintaba nada**.
+   La clase es del `<label>` raíz de `app-autocompletar-via`, o sea de OTRO
+   componente: con encapsulación emulada esta hoja lo escribe como
+   `.campo--calle[_ngcontent-buscador]` y ese elemento lleva el `_ngcontent` del
+   hijo, así que no casa nunca. Quien lo pinta de verdad es
+   `autocompletar-via.css:6`, con la misma declaración exacta. Una copia que no
+   se aplica es peor que una copia: parece que manda. */
 
 /* ⭐ El desplegable de tipo: ancho fijo y NO se estira.
    Sus ocho opciones caben en 13 rem. La larga es «Colegios e Institutos»
@@ -284,15 +288,16 @@ legend {
    ⚠️ `.aviso-ruta` se fue de aquí el 12/09: el error del motor dejó de ser una
       tira ámbar arriba y pasó a ser uno de los cuatro estados de cuerpo entero
       —`.pasos__error`—, que es lo que pedía la maqueta. Los colores son los
-      mismos; la forma, no. */
+      mismos; la forma, no.
+
+   ⚠️ Y el COLOR se fue también (12/09): vive en `.ambar`, en la hoja común, que
+      es la que comparten los tres. Aquí solo queda la forma de cada uno. */
 .aviso-ubicacion,
 .resumen {
   margin: 0;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #b45309;
+  border: 1px solid var(--warning-border);
   border-radius: 4px;
-  background: #fff4e5;
-  color: #7c3d00;
 }
 
 .resumen {
@@ -428,26 +433,12 @@ legend {
   font-size: 1.15rem;
 }
 
-/* ⭐ LOS DOS ESTADOS DE CUERPO ENTERO: el vacío y el error (12/09, tanda 5).
+/* ⭐ `.estado` —el estado de cuerpo entero— y `.anuncio` —la región viva— viven
+   en `src/styles.css`, con el hueso y el chip.
 
-   [maqueta `RouteResult.tsx`] los dos se pintan igual —centrados, icono grande
-   arriba, frase debajo— porque los dos dicen lo mismo: aquí no hay una ruta. Lo
-   que cambia es POR QUÉ, y eso lo dicen el icono y el color, no la forma.
-
-   El `min-height` es el `min-h-[200px]` de la maqueta: sin él, el panel se
-   encoge hasta la altura de la frase y el estado parece una nota al pie en vez
-   de la respuesta de la pantalla. */
-.estado {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  min-height: 200px;
-  margin: 0;
-  padding: 2rem 1rem;
-  text-align: center;
-}
+   Los tres son la misma clase de cosa: «aquí no hay contenido y hay que decirlo»
+   no es un concepto del buscador. Lo que SÍ se queda aquí son las dos variantes,
+   que son las que saben de qué van: `.pasos__vacio` y `.pasos__error`. */
 
 .pasos__vacio {
   color: var(--muted-foreground);
@@ -469,18 +460,6 @@ legend {
   gap: 0.5rem;
   color: var(--warning-dark);
   font-weight: 600;
-}
-
-/* ⭐ LA REGIÓN VIVA NO PINTA NADA, y es a propósito: es un SITIO en el DOM
-   esperando a que llegue un mensaje. Un `div` vacío no ocupa alto ni deja
-   hueco, así que puede estar desde el arranque sin que se note.
-
-   ⚠️ Y NO lleva `display: contents`, que sería lo natural para «no soy una
-      caja»: eso saca al elemento de la caja Y arrastra su papel fuera del árbol
-      de accesibilidad en más de un navegador. Justo lo que esta región existe
-      para tener. */
-.anuncio {
-  margin: 0;
 }
 
 /* [SearchForm.tsx] los dos en una fila: «Limpiar» del ancho de su texto y
@@ -512,50 +491,66 @@ legend {
   color: #555;
 }
 
-/* La cabecera de la ruta: de dónde, adónde, y cuánto. Como en la captura de
-   Google — origen arriba, destino debajo, y los totales al pie. */
+/* ⭐ LA CABECERA DE LA RUTA (12/09) — y antes era una caja con borde.
+
+   [maqueta `RouteResult.tsx`] lo primero son LOS DOS NÚMEROS, grandes; debajo,
+   de dónde a dónde, en gris y pequeño; y al pie, en qué se viaja. El orden es el
+   de la pregunta: cuánto tardo, por dónde, en qué.
+
+   La caja con borde se va: separaba la cabecera del resto como si fuera otra
+   cosa, y es el encabezado de lo que viene debajo. Lo que separa ahora es el
+   tamaño de la letra, que separa mejor y no gasta una línea. */
 .ruta {
-  margin: 0 0 0.75rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+}
+
+/* El titular: el `text-2xl font-bold` de la maqueta. Las cifras tabulares no
+   son estética — «7,9 km · ~48 min» cambia de dígitos en cada búsqueda, y sin
+   ellas el punto medio baila de sitio entre una ruta y la siguiente. */
+.ruta__titular {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: baseline;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.ruta__separador {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+/* Los dos extremos, en una línea con la flecha en medio. Envuelve porque dos
+   nombres de calle de Zaragoza no caben en 390 px, y al envolver la flecha se
+   queda con el que le toque — que sigue diciendo el sentido. */
+.ruta__extremos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.4rem;
+  align-items: center;
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
 }
 
 .ruta__punto {
-  margin: 0;
   display: flex;
-  gap: 0.5rem;
-  align-items: baseline;
+  gap: 0.35rem;
+  align-items: center;
 }
 
-.ruta__marca {
-  width: 1.2rem;
+.ruta__flecha {
   flex: none;
-  text-align: center;
-  color: #b45309;
-}
-
-/* La línea alinea por línea base, y un dibujo no tiene: sin esto el icono
-   cuelga por debajo del texto en vez de ir a su altura. */
-.ruta__punto app-icono-capa {
-  align-self: center;
-}
-
-.ruta__totales {
-  margin: 0.5rem 0 0;
-  padding-top: 0.5rem;
-  border-top: 1px solid #eee;
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.ruta__metros {
-  font-weight: bold;
-}
-
-.ruta__duracion {
-  color: #555;
+  color: var(--muted-foreground);
 }
 
 /* La lista no lleva números: el número lo pone la flecha, que dice además qué
@@ -566,48 +561,114 @@ legend {
   list-style: none;
 }
 
+/* ⭐ EL PASO, EN TRES COLUMNAS (12/09) — y antes era una fila que envolvía.
+
+   [maqueta `RouteResult.tsx`] el carril con el círculo y el hilo · el cuerpo con
+   todo lo que se lee · y la distancia a la derecha.
+
+   ⚠️ Aquí había un `flex-wrap` con una razón escrita: era lo que le daba su
+      propia línea al botón «Próximo bus». Ya no hace falta y por eso se va —el
+      cuerpo es una COLUMNA, así que el botón cae debajo del texto por
+      construcción, no por un envoltorio que se calcula—. Y la nota ámbar, que
+      antes peleaba con él por el sitio, cae también debajo. Lo que era un efecto
+      lateral ahora es la estructura.
+
+   `align-items: stretch` es lo que le da al carril el alto de la fila entera:
+   sin él el hilo no tendría contra qué estirarse y los círculos quedarían
+   sueltos, sin coser. */
 .paso {
   display: flex;
-  /* ⚠️ Envuelve desde el 1/09, y es lo que le da su propia línea al botón
-     «Próximo bus»: la indicación, sus metros y su nota siguen donde estaban
-     —caben de sobra—, y lo que sí baja es el botón con su región. Ponerlo a la
-     derecha lo dejaría peleando por el sitio con la nota ámbar del hito, que es
-     justo el paso donde las dos cosas coinciden. */
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: baseline;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid #eee;
+  gap: 1rem;
+  align-items: stretch;
 }
 
-.paso:last-child {
+/* El carril: el círculo arriba y el hilo colgando hasta el siguiente. Su ancho
+   es el del círculo, así que todos los cuerpos empiezan en la misma columna sin
+   que nadie reserve nada a mano. */
+.paso__carril {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  width: 2rem;
+}
+
+/* ⭐ El círculo de 32 con la maniobra dentro.
+
+   `--primary` al 10 % es literal de la maqueta (`bg-primary/10`), y se escribe
+   con `color-mix` sobre el token en vez de con un hex nuevo: si un día el azul
+   de la casa cambia, esto cambia con él. El dibujo va a `--primary` entero, así
+   que lo que hay que ver —el icono— va a tinta plena sobre un fondo casi blanco;
+   el disco es solo el sitio donde se posa. */
+.paso__circulo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+
+.paso__hilo {
+  flex: 1;
+  width: 2px;
+  min-height: 0.5rem;
+  background-color: var(--border);
+}
+
+/* El cuerpo: una columna, y el filete que separa un paso del siguiente. Va aquí
+   y no en el `.paso` entero para que la raya no cruce el carril — el hilo pasa
+   por delante y cortarlo con un filete lo partiría en trozos.
+
+   ⚠️ **NADA DE AQUÍ DENTRO SE ENCOGE**, y no es precaución: es la lección del
+      solape del 12/09. En una columna flex, `flex-shrink` reparte por el ALTO,
+      así que un hijo con la base mal puesta no desborda visiblemente — encoge
+      su caja y pinta fuera de ella, encima del vecino. Con `flex: none` en
+      todos, el cuerpo mide lo que suman y el desbordamiento no puede empezar. */
+.paso__cuerpo > * {
+  flex: none;
+}
+
+.paso__cuerpo {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 0.3rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.paso:last-child .paso__cuerpo {
+  padding-bottom: 0.3rem;
   border-bottom: none;
 }
 
-/* La flecha, en columna fija para que todos los textos empiecen alineados. */
-.paso__flecha {
-  width: 1.2rem;
-  flex: none;
-  text-align: center;
-  font-size: 1.2rem;
-  line-height: 1;
-  color: #b45309;
+/* ⭐ El icono de capa de las dos puntas.
+
+   ⚠️ Aquí reservaba 1 rem EN TODOS LOS PASOS aunque solo lo llenaran dos, y la
+      razón escrita era la alineación: sin la reserva, la salida y la llegada
+      empezaban más a la derecha que el resto. Con el carril esa razón se cayó
+      sola —quien alinea ahora es el círculo, que sí lo llevan todos—, así que la
+      columna fantasma se va y el icono se pega a su texto, que es donde dice
+      algo. */
+.paso__capa:empty {
+  display: none;
 }
 
-/* ⭐ La columna del icono de capa, RESERVADA EN TODOS LOS PASOS aunque solo la
-   llenen dos. Es el mismo motivo que la columna de la flecha: si solo ocupara
-   sitio en la salida y en la llegada, esos dos textos empezarían más a la
-   derecha que los de enmedio y la lista quedaría con dos escalones. */
 .paso__capa {
-  width: 1rem;
-  flex: none;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  align-self: center;
+  margin-right: 0.35rem;
+  vertical-align: -0.15em;
 }
 
 .paso__texto {
-  flex: 1 1 auto;
+  line-height: 1.4;
 }
 
 /* La acción y el nombre de la vía, destacados — el formato de Google. El
@@ -619,10 +680,17 @@ legend {
   color: #1a1a1a;
 }
 
+/* La distancia, tercera columna. `text-right` para que las unidades queden
+   alineadas entre sí, y tabular para que los dígitos no bailen — es la misma
+   razón que en el titular, y aquí se nota más porque hay una por paso. */
 .paso__metros {
   flex: none;
-  color: #555;
+  padding-top: 0.3rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 /* ⭐ LA NOTA JUNTO AL HITO (30/08). El mismo ámbar del banner de arriba, porque
@@ -641,71 +709,40 @@ legend {
    texto del paso se parte en dos líneas para dejarle sitio, y se prefiere eso
    a que la advertencia se vaya lejos del hito que explica. */
 .paso__nota {
+  /* A lo ancho del cuerpo: es una caja, y media caja parece un recorte. */
+  align-self: stretch;
   margin-top: 0.3rem;
   padding: 0.35rem 0.5rem;
-  border-left: 3px solid #b45309;
-  background: #fff4e5;
-  color: #7c3d00;
+  border-left: 3px solid var(--warning-border);
   font-size: 0.9em;
 }
 
+/* El icono ya no es una letra en negrita: es un dibujo, y se alinea con la
+   primera línea del texto en vez de con su línea base. */
 .paso__nota-icono {
-  font-weight: 700;
-  margin-right: 0.25rem;
+  flex: none;
+  margin-right: 0.35rem;
+  vertical-align: -0.2em;
 }
 
-/* ⭐ EL CHIP DE LA LÍNEA (31/08). Los dos colores vienen del feed y se ponen
-   en línea, no aquí: `route_color` al fondo y `route_text_color` al número.
-   Aquí solo va la forma.
-
-   El borde translúcido no es adorno: hay líneas con `route_color` casi blanco
-   —o casi del color del papel—, y sin un borde el chip se disolvería en la
-   página y el número parecería suelto. Un borde en negro al 25 % oscurece un
-   poco los claros y se pierde en los oscuros, así que sirve para los dos sin
-   inventar un color por línea. */
-/* ⭐ EL CONTORNO QUE HACE LEGIBLE EL NÚMERO BLANCO SOBRE CUALQUIER COLOR
-   [heredado de ZetaBus, `src/app/globals.css:188`; técnica admitida por la
-   WCAG: «el color de un contorno o borde puede usarse como primer plano al
-   medir»].
-
-   Relleno blanco y trazo negro: sobre un fondo claro manda el trazo, sobre uno
-   oscuro manda el relleno. `paint-order: stroke fill` pinta el trazo DEBAJO del
-   relleno, que es lo que evita que el negro se coma el grosor de la letra.
-
-   ⚠️ 0,7 px es el valor de ZetaBus y no se redondea a 1: a 1 px el trazo empieza
-   a cerrar los huecos de un «8» al tamaño de chip que usamos. Solo lo llevan los
-   números blancos —los búhos no—, y quién lo lleva lo decide `llevaContorno`. */
-.chip-linea--contorno {
-  /* ⚠️ DOS PX, NO LOS 0,7 DE ZETABUS, Y ESTÁ MEDIDO. `-webkit-text-stroke`
-     centra el trazo en el borde del glifo y `paint-order` pinta el relleno
-     encima, así que **fuera solo queda la mitad**: con 0,7 px eso son 0,35, que
-     no cubren un píxel entero ni por casualidad. Medido sobre el chip de la 44
-     (#27A737) a nuestros 13,6 px: con 0,7 salían 4 píxeles oscuros y ninguno
-     negro; con 2 px salen 66 y el más oscuro es rgb(0,0,0) exacto.
-     Su chip es de 24 a 48 px con `font-black`; el nuestro cabe en una línea de
-     indicaciones. El mismo trazo en otro cuerpo no es el mismo trazo.
-
-     ⚠️ Y el suavizado va en escala de GRISES, no por subpíxeles: con el de LCD
-     (el que trae Chrome por defecto) el trazo fino se reparte entre los canales
-     R, G y B y sale teñido —rgb(18,57,167) medido—, así que nunca llega a negro.
-     Ver la entrada del 1/09 en `docs/BITACORA.md`. */
-  -webkit-text-stroke: 2px #000;
-  paint-order: stroke fill;
-  -webkit-font-smoothing: antialiased;
+/* El reloj de arena del botón vivo, ahora que es un dibujo y no un carácter. */
+.vivo__tarda {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -0.2em;
 }
 
-.chip-linea {
-  display: inline-block;
-  min-width: 2.1em;
-  padding: 0.1rem 0.4rem;
-  border: 1px solid rgb(0 0 0 / 25%);
-  border-radius: 0.7em;
-  font-weight: 700;
-  font-size: 0.85em;
-  line-height: 1.4;
-  text-align: center;
-  white-space: nowrap;
-}
+/* ⭐ EL CHIP DE LA LÍNEA vive en `src/styles.css`, no aquí.
+
+   Como `.boton` y como el hueso: la insignia de una línea no sabe nada de
+   rutas —es un número sobre su color, y su doctrina entera vive en `chip.ts`—,
+   así que su forma es lenguaje del sistema. Y la usan ya dos sitios: la leyenda
+   de la cabecera y el paso donde se sube.
+
+   ⚠️ El empujón, otra vez, fue el presupuesto `anyComponentStyle`: 8 kB de
+      error y esta hoja lo pasó por 407 bytes al entrar el timeline. La raya no
+      se ha tocado; lo que se mueve es lo que no tenía por qué estar aquí. Es la
+      segunda vez en la misma tanda, y eso ya es un dato: ver el checkpoint. */
 
 /* La leyenda del viaje: «Se viaja en [29] [TRA]». */
 .ruta__lineas {
@@ -781,7 +818,7 @@ legend {
 }
 
 .detalles:focus-visible {
-  outline: 2px solid #7c3d00;
+  outline: 2px solid var(--warning-dark);
   outline-offset: 2px;
 }
 
@@ -810,14 +847,31 @@ legend {
       contorno lo desharía todo. */
 .vivo {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
   flex-wrap: wrap;
-  /* Su propia línea entera, debajo de la indicación: ver el `flex-wrap` de
-     `.paso`. Los 2,2rem de sangría lo alinean con el texto del paso, no con
-     la flecha — es un añadido de ESE paso, no otro paso. */
-  flex: 1 0 100%;
-  margin: 0.35rem 0 0 2.2rem;
+  gap: 0.5rem;
+  align-items: center;
+  /* ⚠️ **AQUÍ PONÍA `flex: 1 0 100%` Y ESO REVENTÓ EL PASO ENTERO** (12/09).
+
+     Estaba escrito cuando `.paso` era una FILA que envolvía: allí el eje
+     principal era horizontal y `flex-basis: 100%` significaba «una línea
+     entera para mí», que era justo lo que se quería. Desde que el cuerpo del
+     paso es una COLUMNA, ese mismo `100%` es el ALTO — pide el contenedor
+     entero y encima crece—, así que el cuerpo se quedó en 194 px con 331 de
+     contenido y el botón vivo y la nota ámbar se dibujaron ENCIMA del paso
+     siguiente. Medido con la sonda: hijos hasta el píxel 960 dentro de una
+     caja que acababa en el 827.
+
+     Ninguna jueza lo cazó y no es raro: todas medían cajas —círculo, hilo,
+     tokens— y ninguna preguntaba si una caja se sale de su padre. Esa jueza
+     entra ahora.
+
+     `align-self: stretch` es lo que le devuelve el ancho entero, que es lo que
+     el `100%` le daba de verdad; y la sangría de 2,2rem se va porque apuntaba
+     a la columna de la flecha, que ya no existe: ahora quien sangra es el
+     carril. */
+  flex: none;
+  align-self: stretch;
+  margin: 0.35rem 0 0;
 }
 
 .vivo__boton {
@@ -936,6 +990,13 @@ legend {
    una copia— y solo añade lo que una caja con lista necesita. Que el color
    salga del mismo sitio es lo que impide que un día haya dos ámbares distintos
    dando la misma clase de noticia. */
+/* El icono y el título en la misma línea, como en la nota del paso. */
+.resumen__icono {
+  flex: none;
+  margin-right: 0.35rem;
+  vertical-align: -0.2em;
+}
+
 .resumen__titulo {
   margin: 0 0 0.35rem;
   font-size: 0.95rem;
@@ -964,7 +1025,7 @@ legend {
 }
 
 .resumen__enlace:focus-visible {
-  outline: 2px solid #7c3d00;
+  outline: 2px solid var(--warning-dark);
   outline-offset: 2px;
 }
 

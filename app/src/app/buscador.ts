@@ -255,33 +255,52 @@ function sitioDelHito(paso: Paso): string | null {
 const MS_ANTES_DE_AVISAR = 1000;
 
 /**
+ * ⭐ EL SÍMBOLO DE CADA MANIOBRA (12/09, tanda 5) — y antes eran caracteres.
+ *
+ * ⚠️ **Aquí había quince glifos Unicode** —`↰`, `⬎`, `🚲`, `🅿`— y se van con
+ *    esta tanda. No es cuestión de gusto: un carácter lo dibuja la fuente del
+ *    sistema, así que la misma indicación salía con un trazo en Windows, otro
+ *    en Android y una caja vacía donde la fuente no lo tuviera. Y no había
+ *    familia: `↱` y `⬎` —«derecha» y «cerrada-derecha»— son de dos alfabetos
+ *    distintos y puestos uno debajo de otro no se leían como parientes. Los
+ *    quince de Material sí: mismo trazo, misma rejilla, mismo peso.
+ *
  * ⭐ **Y SE EXPORTA PARA QUE LA PUEDAN COMPARAR** (8/09, censo pre-despliegue).
  *
- * Cuatro de estos glifos —`coge`, `aparca`, `sube`, `baja`— están **también**
- * en `GLIFO` de `mapa.ts`, y esa copia es una decisión escrita: quien lee
- * «🅿 Aparca en…» busca esa misma marca en el plano. Lo que faltaba era el
- * guardián —una fuente copiada sin quién compruebe su salida no está
- * terminada—: medido el 8/09, cambiar aquí `sube: '🚌'` no rompía ni una juez.
- * Ahora sí: ver `⭐ LOS GLIFOS DE LOS HITOS` en `mapa.spec.ts`.
+ * Cuatro de estos nombres —`coge`, `aparca`, `sube`, `baja`— están **también**
+ * en `SIMBOLO_DEL_HITO` de `mapa.ts`, y esa copia es una decisión escrita: quien
+ * lee «Aparca en…» con la P del aparcamiento al lado busca ESE MISMO DIBUJO en
+ * el plano. Lo que faltaba era el guardián —una fuente copiada sin quién
+ * compruebe su salida no está terminada—: medido el 8/09, cambiar aquí
+ * `sube` no rompía ni una juez. Ahora sí: ver `⭐ LOS SÍMBOLOS DE LOS HITOS` en
+ * `mapa.spec.ts`, que sigue comparando las dos tablas — ahora por nombre.
+ *
+ * ⚠️ Los nueve giros salen de la familia `turn_*` oficial y **no se eligen a
+ *    ojo**: el motor emite un `Giro` del contrato y este `Record` exhaustivo
+ *    obliga a que estén los quince. Tres reusan iconos que ya estaban —`coge`
+ *    es la bici, `sube` el bus, `baja` el peatón—: no se baja un dibujo que ya
+ *    se tiene.
  */
-export const FLECHAS: Readonly<Record<Giro, string>> = {
-  salida: '◉',
-  recto: '↑',
-  'ligera-derecha': '↗',
-  derecha: '↱',
-  'cerrada-derecha': '⬎',
-  'media-vuelta': '↩',
-  'cerrada-izquierda': '⬐',
-  izquierda: '↰',
-  'ligera-izquierda': '↖',
-  coge: '🚲',
-  aparca: '🅿',
-  sube: '🚌',
-  baja: '🚏',
-  // ⭐ El transbordo en el mismo poste: **un acto**, no dos flechas. Las dos
-  // puntas dicen de qué se baja y a qué se sube sin partir el paso en dos.
-  transborda: '⇄',
-  llegada: '⚑',
+export const SIMBOLO_DEL_GIRO: Readonly<Record<Giro, NombreDeSimbolo>> = {
+  salida: 'trip_origin',
+  recto: 'straight',
+  'ligera-derecha': 'turn_slight_right',
+  derecha: 'turn_right',
+  'cerrada-derecha': 'turn_sharp_right',
+  // ⚠️ `u_turn_left` para las dos manos: el set oficial trae la de la izquierda
+  //    y la media vuelta no distingue lado en nuestro contrato.
+  'media-vuelta': 'u_turn_left',
+  'cerrada-izquierda': 'turn_sharp_left',
+  izquierda: 'turn_left',
+  'ligera-izquierda': 'turn_slight_left',
+  coge: 'pedal_bike',
+  aparca: 'local_parking',
+  sube: 'directions_bus',
+  baja: 'directions_walk',
+  // ⭐ El transbordo en el mismo poste: **un acto**, no dos flechas. El icono
+  // oficial del transbordo dentro de una estación dice exactamente eso.
+  transborda: 'transfer_within_a_station',
+  llegada: 'flag',
 };
 
 /**
@@ -2976,9 +2995,13 @@ export class Buscador {
     return this.modos.find((m) => m.id === modo)?.etiqueta ?? modo;
   }
 
-  /** La flecha de un paso. Sale del `giro`, nunca del texto: ver `FLECHAS`. */
-  protected flechaDe(giro: Giro): string {
-    return FLECHAS[giro];
+  /**
+   * El símbolo de un paso. Sale del `giro`, nunca del texto: ver
+   * `SIMBOLO_DEL_GIRO`. Devuelve el NOMBRE, no el trazado — quien dibuja es
+   * `app-simbolo`, que es el único sitio de la casa que sabe de rejillas.
+   */
+  protected simboloDe(giro: Giro): NombreDeSimbolo {
+    return SIMBOLO_DEL_GIRO[giro];
   }
 
   protected readonly enMetros = comoSeLeenLosMetros;
