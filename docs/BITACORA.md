@@ -14,6 +14,92 @@
 
 ---
 
+## [2026-09-12] ✅ CERRADA — un `flex-basis: 100%` heredado de una fila reventó el paso al volverse columna
+
+**Categoría:** una propiedad que sigue siendo válida y ha cambiado de significado
+**Síntoma:** con el timeline recién vestido, en el paso donde se sube al bus
+**el botón «Próximo bus» y la nota ámbar se pintaban ENCIMA del paso
+siguiente**, y su texto quedaba solapado con el de abajo, ilegible. Medido con
+una sonda de cajas: el cuerpo de ese paso acababa en el píxel 827 y sus hijos
+llegaban al 960 — 133 px de contenido dibujados fuera de su caja.
+`span.paso__cuerpo top 634 bot 827 h 194`
+`span.vivo         top 748 bot 920 h 172`
+`span.paso__nota   top 931 bot 960 h  28`
+`── paso 4 · alto 185 · top 827`
+**⭐ Qué dio verde mientras el fallo estaba vivo:** **la batería de pintura
+entera, incluidas las siete juezas nuevas del propio timeline.** Ejecutada con
+el solape ya en pantalla:
+`$ node e2e/pintura.mjs http://localhost:3111 <capturas>`
+`  OK  P16 · ⭐ cada paso lleva su círculo de 32, el de la maqueta  ·  32x32`
+`  OK  P16 · ⭐ el hilo cose todos los pasos menos el último  ·  8 hilos para 9 pasos · el último no lo lleva`
+`  OK  P16 · y mide los 2 px de la maqueta  ·  2px`
+`  OK  P16 · ⭐ y las distancias van en cifras tabulares: la coma cae en la misma columna  ·  tabular-nums`
+`  OK  P16 · y el titular va en el 2xl en negrita de la maqueta  ·  24px / peso 700 · «8,2 km·~51 min»`
+`✅ VERDE`
+Y también el barrido de emojis de la P15, que recorre el DOM entero de los
+cuatro modos y no tiene nada que decir de dónde se pinta cada caja:
+`  OK  P15 · ⭐ con la ruta en BUS pintada, ni un glifo en toda la app  ·  (ninguno, con el mapa y la lista llenos)`
+**Cómo se cazó:** **ojo humano** — mirando la captura `timeline-vestido.png` que
+la propia jueza acababa de guardar en verde.
+**Causa raíz:** **una propiedad que siguió compilando y cambió de
+significado.** `.vivo` llevaba `flex: 1 0 100%` desde el 1/09, y allí era
+correcto y estaba razonado en su comentario: `.paso` era una FILA con
+`flex-wrap`, el eje principal era horizontal, y `flex-basis: 100%` significaba
+«una línea entera para mí» — que es lo que le daba su propio renglón al botón
+«Próximo bus». La tanda 5 volvió el cuerpo del paso una COLUMNA. En una columna
+el eje principal es vertical, así que ese mismo `100%` pasó a pedir **el alto
+entero del contenedor**, y con `flex-grow: 1` encima. El navegador no tiene nada
+que objetar: reparte, encoge la caja del hijo a lo que queda —35 px de los 172
+que necesitaba— y pinta el contenido fuera de ella. Por eso no se vio como un
+desbordamiento sino como un solape.
+
+Y el instrumento no mintió por descuido: **medía otra cosa**. Las siete juezas
+del timeline compraban PIEZAS —el círculo mide 32, hay ocho hilos, son de 2 px,
+las cifras son tabulares, el titular va en 24/700— y todas esas medidas seguían
+siendo ciertas. Ninguna preguntaba dónde acaba cada pieza, que era lo único
+falso.
+**Arreglo aplicado:** en `app/src/app/buscador.css`, `.vivo` pasa a `flex: none`
+con `align-self: stretch` —que es lo que el `100%` le daba de verdad: el ancho
+entero— y pierde la sangría de `2.2rem`, que apuntaba a la columna de la flecha
+y ya no existe: ahora quien sangra es el carril. Y `.paso__cuerpo > *` lleva
+`flex: none`, para que el reparto por el alto no pueda empezar con ningún otro
+hijo.
+La jueza que faltaba entra como **P18 · NADA SE SALE DE SU CAJA** en
+`app/e2e/pintura.mjs`, escrita en rojo con el fallo vivo y con el nombre de cada
+fugado en el detalle:
+`✗✗ P18 · ⭐ nada se sale de su paso por abajo · paso 3: span.vivo sobra 93px | paso 3: span.paso__nota sobra 132px | paso 4: span.vivo sobra 123px`
+Y en verde tras el arreglo:
+`OK  P18 · ⭐ nada se sale de su paso por abajo — la jueza que escribió la nº49 · 9 pasos revisados, ni un descendiente fuera`
+`OK  P18 · y las CAJAS de dos pasos no se solapan · 9 pasos, ni un solape`
+⚠️ Su jueza hermana —«las cajas de dos pasos no se solapan»— **daba verde con
+el fallo vivo**, y se deja puesta con el título corregido: los `.paso` no se
+solapaban entre sí, lo que se salía era el contenido de uno. Son dos cosas
+distintas y cada una tiene la suya.
+**Commit:** `0424977` (el arreglo, dentro de la tanda que lo trajo) · `316e505`
+(la P18 y las juezas). El fallo nació y murió en la misma tanda y nunca llegó a
+un commit sin su arreglo.
+**Ley que sale de aquí:** **cuando un contenedor cambia de eje, sus hijos
+heredan propiedades que siguen compilando y ya no dicen lo mismo.** `flex: 1 0
+100%` en una fila pide una línea entera; en una columna pide el alto entero. No
+hay error, no hay aviso, y el navegador obedece: encoge la caja y pinta fuera.
+Al girar un `flex-direction` hay que releer **todos** los `flex-basis`, `flex`,
+`align-self` y `flex-wrap` de los hijos, no solo el contenedor.
+Y la segunda, que es de las juezas: **medir las cajas no es medir la
+maquetación.** Siete juezas compraron tamaño, color, cuenta y tipografía de cada
+pieza, y ninguna preguntó lo único que fallaba: si una caja se sale de su padre.
+
+[2026-09-12, al cerrar] Y una tercera, que salió del cierre: **el ojo encontró
+tres fallos de esta tanda y los instrumentos ninguno.** Además del solape, el
+icono de capa y los chips se quedaron cada uno en su renglón, y ninguna medida
+lo dijo. Las capturas que las juezas guardan al pasar no son el recibo de que
+todo está bien: son la única parte del trabajo que todavía hay que mirar.
+**Traza:** `app/src/app/buscador.css` (`.vivo`, con su `flex: 1 0 100%` y su
+`margin-left: 2.2rem`, los dos escritos para el `.paso` que envolvía; y
+`.paso__cuerpo`, que desde hoy es columna) · `app/src/app/buscador.html` (el
+`<span class="paso__cuerpo">` nuevo) · `app/e2e/pintura.mjs` (P16, que dio el
+verde).
+**Nota:** el arreglo ya había comenzado al abrir esta entrada.
+
 ## [2026-09-11] ✅ CERRADA — «Limpiar búsqueda» decía que limpiaba el mapa y dejaba la ruta puesta
 
 **Categoría:** un comentario que describe la intención y no lo que hace el código
