@@ -1501,4 +1501,404 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
   }
 }
 
+// ═══════════ P15 · NI UN EMOJI EN TODA LA APP ═══════════
+//
+// ⭐ [§ 3d de la tanda 5, ampliado por la orden del 12/09] «los emojis mueren
+//    aquí», y la jueza mira LA APP ENTERA, no solo el formulario.
+//
+// El barrido es sobre el DOM PINTADO, no sobre los ficheros: un censo por
+// `grep` cuenta los ⭐ y los ⚠️ de los comentarios —que son cientos y no llegan
+// a ninguna pantalla— y se le escapa lo que un componente inyecta en tiempo de
+// ejecución, que es justo donde estaban los cuatro del mapa. Se recorre el
+// árbol de texto, se pregunta por rango Unicode, y se dice dónde está cada uno.
+//
+// ⚠️ Se salta lo que pinta Leaflet en sus controles: el «−» del zoom es suyo,
+//    no nuestro, y no se puede quitar sin quitarle el botón a la gente. Los
+//    MARCADORES sí entran —`.leaflet-marker-icon` no es un control—, que es
+//    donde vivían `🚲 🅿 🚌 🚏`.
+//
+// ⚠️ Y se mira CON RUTA GENERADA en los cuatro modos: la lista de pasos vacía
+//    no tiene ni una flecha, así que una jueza que solo abriera la página daría
+//    verde con los quince glifos intactos esperando a la primera búsqueda.
+{
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9415 });
+  try {
+    await m.ir(APP, 6000);
+    console.log('\n═══ NI UN EMOJI EN TODA LA APP ═══');
+
+    const BARRIDO = `
+      const RANGO = /[\\u2190-\\u21FF\\u2300-\\u23FF\\u25A0-\\u27BF\\u2B00-\\u2BFF\\uFE0F]|[\\u{1F000}-\\u{1FAFF}]/gu;
+      const hallados = [];
+      const paseo = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = paseo.nextNode())) {
+        const e = n.parentElement;
+        if (!e || e.closest('.leaflet-control')) continue;
+        const encontrado = (n.nodeValue || '').match(RANGO);
+        if (!encontrado) continue;
+        hallados.push({
+          glifos: [...new Set(encontrado)].join(' '),
+          donde: e.tagName.toLowerCase() + (e.className ? '.' + String(e.className).split(' ')[0] : ''),
+        });
+      }
+      return hallados;
+    `;
+
+    const escribir = async (i, texto) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via input')[${i}];
+        if (!c) return;
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(900);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via')[${i}];
+        const o = [...c.querySelectorAll('[role=option]')][0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(700);
+    };
+    const portal = async (i, num) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal input')[${i}];
+        if (!c) return;
+        c.focus();
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(num)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(600);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal')[${i}];
+        const ops = [...c.querySelectorAll('[role=option]')];
+        const o = ops.find((x) => x.textContent.trim() === ${JSON.stringify(num)}) ?? ops[0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(500);
+    };
+    const generar = async (modo) => {
+      await m.evaluar(`document.querySelector('input[name=familia][value=${modo}]').click()`);
+      await m.dormir(500);
+      await m.evaluar(`document.querySelector('button.generar').click()`);
+      for (let i = 0; i < 80 && (await m.evaluar(`!!document.querySelector('button.generar')?.disabled`)); i++) {
+        await m.dormir(300);
+      }
+      await m.dormir(1400);
+    };
+
+    await escribir(0, 'COLOSO');
+    await portal(0, '2');
+    await escribir(1, 'CALLE OVIEDO');
+    await portal(1, '5');
+
+    const alAbrir = await leer(m, BARRIDO);
+    juzgar(
+      alAbrir.length === 0,
+      'P15 · con el formulario relleno, ni un glifo pictográfico',
+      alAbrir.map((x) => `${x.glifos} en ${x.donde}`).join(' | ') || '(ninguno)',
+    );
+
+    // ⭐ LOS CUATRO MODOS, porque cada uno saca glifos distintos: la bici trae
+    //    `coge`/`aparca`, el bus `sube`/`baja`/`transborda`, y el coche y andar
+    //    sacan la familia entera de giros.
+    for (const modo of ['bici', 'bus', 'coche', 'andando']) {
+      await generar(modo);
+      const hay = await leer(m, BARRIDO);
+      const cuantos = hay.reduce((a, x) => a + x.glifos.split(' ').length, 0);
+      juzgar(
+        hay.length === 0,
+        `P15 · ⭐ con la ruta en ${modo.toUpperCase()} pintada, ni un glifo en toda la app`,
+        hay.length === 0
+          ? '(ninguno, con el mapa y la lista llenos)'
+          : `${cuantos} en ${hay.length} nodos · ` +
+            [...new Set(hay.map((x) => `${x.glifos}→${x.donde}`))].slice(0, 8).join(' | '),
+      );
+      await m.guardar(`${CAPTURAS}/sin-emojis-${modo}.png`);
+    }
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P16 · EL TIMELINE Y LA CABECERA, VESTIDOS ═══════════
+//
+// ⭐ [maqueta `RouteResult.tsx`, `status="success"`] los pasos dejan de ser una
+//    fila de texto con una flecha delante y pasan a ser una línea de tiempo:
+//    círculo de 32 con su maniobra dentro, hilo que los cose, y la distancia a
+//    la derecha en cifras tabulares.
+//
+// ⚠️ El hilo y el círculo son `aria-hidden` los dos: lo que dicen —«gira a la
+//    izquierda»— ya está escrito al lado con todas sus letras. Un lector que
+//    anunciara «imagen, giro a la izquierda» antes de leer «Gira a la
+//    izquierda…» diría dos veces lo mismo.
+{
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9416 });
+  try {
+    await m.ir(APP, 6000);
+    console.log('\n═══ EL TIMELINE Y LA CABECERA ═══');
+
+    const escribir = async (i, texto) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via input')[${i}];
+        if (!c) return;
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(900);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via')[${i}];
+        const o = [...c.querySelectorAll('[role=option]')][0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(700);
+    };
+    const portal = async (i, num) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal input')[${i}];
+        if (!c) return;
+        c.focus();
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(num)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(600);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal')[${i}];
+        const ops = [...c.querySelectorAll('[role=option]')];
+        const o = ops.find((x) => x.textContent.trim() === ${JSON.stringify(num)}) ?? ops[0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(500);
+    };
+
+    await escribir(0, 'COLOSO');
+    await portal(0, '2');
+    await escribir(1, 'CALLE OVIEDO');
+    await portal(1, '5');
+    // El bus: es el único modo que trae a la vez chips de línea, nota ámbar y
+    // los hitos de subir y bajar. Un solo viaje y se juzga todo.
+    await m.evaluar(`document.querySelector('input[name=familia][value=bus]').click()`);
+    await m.dormir(500);
+    await m.evaluar(`document.querySelector('button.generar').click()`);
+    for (let i = 0; i < 80 && (await m.evaluar(`!!document.querySelector('button.generar')?.disabled`)); i++) {
+      await m.dormir(300);
+    }
+    await m.dormir(1500);
+
+    const linea = await leer(m, `
+      const pasos = [...document.querySelectorAll('.paso')];
+      const px = (v) => Math.round(parseFloat(v));
+      return {
+        cuantos: pasos.length,
+        circulos: pasos.map((p) => {
+          const c = p.querySelector('.paso__circulo');
+          if (!c) return null;
+          const s = getComputedStyle(c);
+          const svg = c.querySelector('svg');
+          return {
+            lado: px(s.width) + 'x' + px(s.height),
+            redondo: s.borderRadius,
+            fondo: s.backgroundColor,
+            tinta: s.color,
+            d: svg ? svg.querySelector('path').getAttribute('d') : null,
+            oculto: c.getAttribute('aria-hidden'),
+          };
+        }),
+        hilos: pasos.map((p) => {
+          const h = p.querySelector('.paso__hilo');
+          return h === null ? null : { ancho: px(getComputedStyle(h).width), color: getComputedStyle(h).backgroundColor };
+        }),
+        metros: pasos.map((p) => {
+          const e = p.querySelector('.paso__metros');
+          return e === null ? null : getComputedStyle(e).fontVariantNumeric;
+        }).filter((x) => x !== null),
+      };
+    `);
+
+    juzgar(linea.cuantos > 3, 'P16 · hay una ruta con pasos que juzgar', `${linea.cuantos} pasos`);
+    juzgar(
+      linea.circulos.every((c) => c !== null && c.lado === '32x32'),
+      'P16 · ⭐ cada paso lleva su círculo de 32, el de la maqueta',
+      linea.circulos.every((c) => c !== null)
+        ? [...new Set(linea.circulos.map((c) => c.lado))].join(' | ')
+        : `${linea.circulos.filter((c) => c === null).length} pasos SIN círculo`,
+    );
+    juzgar(
+      linea.circulos.every((c) => c !== null && c.oculto === 'true'),
+      'P16 · y el círculo no se lee: el texto de al lado dice lo mismo',
+      [...new Set(linea.circulos.map((c) => (c === null ? '(sin círculo)' : `aria-hidden=${c.oculto}`)))].join(' | '),
+    );
+    juzgar(
+      linea.circulos.every((c) => c !== null && c.d !== null),
+      'P16 · ⭐ y dentro va un SVG, no un carácter',
+      `${linea.circulos.filter((c) => c !== null && c.d !== null).length} de ${linea.cuantos} con trazado`,
+    );
+    // El hilo cose los pasos: lo llevan todos MENOS el último, que no cose con
+    // nada. Un hilo colgando del final es una promesa de que sigue habiendo
+    // camino.
+    const conHilo = linea.hilos.filter((h) => h !== null).length;
+    juzgar(
+      conHilo === linea.cuantos - 1 && linea.hilos[linea.cuantos - 1] === null,
+      'P16 · ⭐ el hilo cose todos los pasos menos el último',
+      `${conHilo} hilos para ${linea.cuantos} pasos · el último ${linea.hilos[linea.cuantos - 1] === null ? 'no lo lleva' : 'LO LLEVA'}`,
+    );
+    // ⚠️ El `every` de un array vacío es `true`: sin sujeto esto daba VERDE con
+    //    cero hilos en la página. Se le exige el sujeto antes que la medida.
+    const losHilos = linea.hilos.filter((h) => h !== null);
+    juzgar(
+      losHilos.length > 0 && losHilos.every((h) => h.ancho === 2),
+      'P16 · y mide los 2 px de la maqueta',
+      losHilos.length === 0
+        ? '(no hay ni un hilo que medir)'
+        : [...new Set(losHilos.map((h) => h.ancho + 'px'))].join(' | '),
+    );
+    juzgar(
+      linea.metros.length > 0 && linea.metros.every((v) => v.includes('tabular-nums')),
+      'P16 · ⭐ y las distancias van en cifras tabulares: la coma cae en la misma columna',
+      [...new Set(linea.metros)].join(' | ') || '(ningún paso con metros)',
+    );
+    await m.guardar(`${CAPTURAS}/timeline-vestido.png`);
+
+    // ── LA CABECERA ──────────────────────────────────────────────────────
+    const cabecera = await leer(m, `
+      const t = document.querySelector('.ruta__titular');
+      const flecha = document.querySelector('.ruta__extremos svg');
+      const p = flecha ? flecha.querySelector('path') : null;
+      return {
+        titular: t ? t.textContent.replace(/\\s+/g, ' ').trim() : '(no está)',
+        tamano: t ? getComputedStyle(t).fontSize : null,
+        peso: t ? getComputedStyle(t).fontWeight : null,
+        cifras: t ? getComputedStyle(t).fontVariantNumeric : null,
+        d: p ? p.getAttribute('d') : null,
+        rotulo: (document.querySelector('.ruta__lineas-rotulo') || {}).textContent || '(no está)',
+      };
+    `);
+    juzgar(
+      cabecera.d === trazadoDelFichero('arrow_forward'),
+      'P16 · ⭐ la cabecera enseña origen → destino con `arrow_forward`, el SVG del fichero',
+      cabecera.d === null ? '(no hay flecha)' : cabecera.d === trazadoDelFichero('arrow_forward') ? 'idéntico al fichero' : 'DISTINTO del fichero',
+    );
+    juzgar(
+      cabecera.tamano === '24px' && Number(cabecera.peso) >= 700,
+      'P16 · y el titular va en el 2xl en negrita de la maqueta',
+      `${cabecera.tamano} / peso ${cabecera.peso} · «${cabecera.titular}»`,
+    );
+    juzgar(
+      cabecera.cifras !== null && cabecera.cifras.includes('tabular-nums'),
+      'P16 · con sus cifras tabulares',
+      String(cabecera.cifras),
+    );
+
+    // ── EL AVISO ÁMBAR, POR TOKENS ───────────────────────────────────────
+    //
+    // ⚠️ No se compara con un hex escrito aquí: se le pregunta a la página cuál
+    //    es el valor del token y se compara el píxel declarado contra ÉSE. Un
+    //    hex copiado en la jueza es la misma copia que se está quitando del CSS.
+    const ambar = await leer(m, `
+      const tono = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+      const aHex = (rgb) => {
+        const [r, g, b] = rgb.match(/\\d+/g).map(Number);
+        return '#' + [r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('');
+      };
+      const caja = document.querySelector('.resumen') || document.querySelector('.paso__nota');
+      if (!caja) return { hay: false };
+      const s = getComputedStyle(caja);
+      const svg = caja.querySelector('svg');
+      return {
+        hay: true,
+        cual: caja.className,
+        fondo: aHex(s.backgroundColor),
+        tinta: aHex(s.color),
+        tokenFondo: tono('--warning'),
+        tokenTinta: tono('--warning-dark'),
+        d: svg ? svg.querySelector('path').getAttribute('d') : null,
+      };
+    `);
+    // ⚠️ **ESTA JUEZA ESTABA MAL PENSADA Y DABA VERDE CON LA COPIA PUESTA.**
+    //
+    //    Comparaba el color computado de la caja con el valor del token, y los
+    //    hexes que hay hoy a pelo en el CSS —`#fff4e5`, `#7c3d00`— SON el valor
+    //    del token: la comparación se cumple sola. Es el patrón de la nº48 otra
+    //    vez, un número que aparece pero que no compra nada.
+    //
+    //    Lo que de verdad distingue «sale del token» de «tiene el mismo color
+    //    que el token» es que EL TOKEN LO MUEVA: se le cambia el valor en
+    //    caliente sobre `:root` y se mira si la caja obedece. Un hex copiado se
+    //    queda quieto. Y se devuelve a su sitio al acabar.
+    const SONDA = 'rgb(255, 0, 255)';
+    const obedece = await leer(m, `
+      const caja = document.querySelector('.resumen') || document.querySelector('.paso__nota');
+      if (!caja) return { hay: false };
+      const raiz = document.documentElement;
+      const antesFondo = getComputedStyle(caja).backgroundColor;
+      const antesTinta = getComputedStyle(caja).color;
+      raiz.style.setProperty('--warning', 'rgb(255, 0, 255)');
+      raiz.style.setProperty('--warning-dark', 'rgb(255, 0, 255)');
+      const fondo = getComputedStyle(caja).backgroundColor;
+      const tinta = getComputedStyle(caja).color;
+      raiz.style.removeProperty('--warning');
+      raiz.style.removeProperty('--warning-dark');
+      return { hay: true, cual: caja.className, antesFondo, antesTinta, fondo, tinta,
+               vuelve: getComputedStyle(caja).backgroundColor === antesFondo };
+    `);
+    juzgar(
+      obedece.hay === true && obedece.fondo === SONDA && obedece.tinta === SONDA,
+      'P16 · ⭐ el aviso ámbar OBEDECE al token `warning` — se le mueve y se mueve',
+      obedece.hay === false
+        ? '(no hay aviso en este viaje)'
+        : `${obedece.cual} · al poner el token en magenta: fondo ${obedece.fondo}, tinta ${obedece.tinta} · ` +
+          `(en reposo eran ${obedece.antesFondo} y ${obedece.antesTinta})`,
+    );
+    juzgar(
+      obedece.hay === true && obedece.vuelve === true,
+      'P16 · y la sonda no deja rastro: al soltar el token vuelve a su ámbar',
+      obedece.hay === false ? '(no hay aviso)' : `vuelve: ${obedece.vuelve}`,
+    );
+    // Y el valor de reposo, al acta: que el ámbar siga siendo EL MISMO de
+    // siempre después del cambio, no uno parecido.
+    juzgar(
+      ambar.hay === true && ambar.fondo === ambar.tokenFondo && ambar.tinta === ambar.tokenTinta,
+      'P16 · y el ámbar no ha cambiado de color al cambiar de dueño',
+      ambar.hay === false
+        ? '(no hay aviso en este viaje)'
+        : `fondo ${ambar.fondo} = token ${ambar.tokenFondo} · tinta ${ambar.tinta} = token ${ambar.tokenTinta}`,
+    );
+    juzgar(
+      ambar.hay === true && ambar.d === trazadoDelFichero('warning'),
+      'P16 · y su ⚠ es ahora el SVG `warning` del fichero',
+      ambar.hay === false ? '(no hay aviso)' : ambar.d === null ? '(no hay icono)' : ambar.d === trazadoDelFichero('warning') ? 'idéntico al fichero' : 'DISTINTO del fichero',
+    );
+    await m.guardar(`${CAPTURAS}/cabecera-y-ambar.png`);
+
+    // ═══════════ P17 · LOS BADGES, POR LA VARA DEL CONTORNO ═══════════
+    //
+    // ⭐ [ORDEN de Antonio, 12/09] la caída al badge neutro queda RETIRADA: el
+    //    `route_color` no se toca y el número va blanco con trazo negro. Con lo
+    //    cual **esta jueza no puede medir el par ingenuo del feed**: 27 de las 53
+    //    líneas de Zaragoza no llegan a 4,5:1 obedeciendo al feed, y medirlas
+    //    así daría rojo sobre una pintura que es correcta a propósito.
+    //
+    // La vara es la del contorno, que es literal de [WCAG · Understanding
+    // 1.4.3]: *«cuando hay un borde alrededor de la letra, el borde añade
+    // contraste y se usa al calcular»*. `contrasteReal` ya lo sabe hacer — le
+    // pregunta a la página si hay `-webkit-text-stroke` y, si lo hay, mide
+    // relleno contra halo en vez de relleno contra fondo. Eso es lo que da el
+    // suelo de 4,58:1 para cualquier color imaginable.
+    const cuantosChips = await m.evaluar(`document.querySelectorAll('.chip-linea').length`);
+    juzgar(cuantosChips > 0, 'P17 · hay chips de línea que medir', `${cuantosChips} chips`);
+    for (let i = 0; i < cuantosChips; i++) {
+      const chip = await contrasteSiEsta(m, '.chip-linea', { indice: i, minimo: 12 });
+      juzgar(
+        chip !== null && chip.contraste >= AA_TEXTO,
+        `P17 · ⭐ el chip «${chip === null ? '?' : chip.etiqueta}» se lee POR EL CONTORNO`,
+        chip === null
+          ? '(no está)'
+          : `${chip.contraste.toFixed(2)}:1 · ${chip.conHalo ? 'con trazo, medido relleno contra halo' : 'SIN TRAZO — medido contra el fondo del feed'} · ` +
+            `${enRgb(chip.texto)} sobre ${enRgb(chip.fondo)}`,
+      );
+    }
+  } finally {
+    m.cerrar();
+  }
+}
+
 console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);
