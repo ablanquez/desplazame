@@ -49,7 +49,27 @@ export type NombreDeSimbolo =
   // ⭐ LOS TRES DE LA BARRA DE PESTAÑAS (11/09, tanda de móvil).
   | 'search'
   | 'route'
-  | 'map';
+  | 'map'
+  // ⭐ LA PINTURA DEL RESULTADO (12/09, tanda 5). Los doce primeros son las
+  //    maniobras del timeline —la familia `turn_*` oficial más las cuatro
+  //    que no son un giro—, y los tres últimos, la cabecera, el aviso y el
+  //    error. Las otras tres maniobras (`coge`, `sube`, `baja`) reusan los
+  //    iconos de modo que ya estaban: no se baja un dibujo que ya se tiene.
+  | 'straight'
+  | 'turn_left'
+  | 'turn_right'
+  | 'turn_slight_left'
+  | 'turn_slight_right'
+  | 'turn_sharp_left'
+  | 'turn_sharp_right'
+  | 'u_turn_left'
+  | 'trip_origin'
+  | 'flag'
+  | 'local_parking'
+  | 'transfer_within_a_station'
+  | 'arrow_forward'
+  | 'warning'
+  | 'cloud_off';
 
 /**
  * El trazado de cada símbolo, **copiado literal** de su `.svg` de
@@ -92,6 +112,51 @@ export const SIMBOLOS: Readonly<Record<NombreDeSimbolo, string>> = {
   // la pestaña «Mapa» de la barra de móvil
   map:
     'm600-120-240-84-186 72q-20 8-37-4.5T120-170v-560q0-13 7.5-23t20.5-15l212-72 240 84 186-72q20-8 37 4.5t17 33.5v560q0 13-7.5 23T812-192l-212 72Zm-40-98v-468l-160-56v468l160 56Zm80 0 120-40v-474l-120 46v468Zm-440-10 120-46v-468l-120 40v474Zm440-458v468-468Zm-320-56v468-468Z',
+  // la maniobra «recto»
+  straight:
+    'M440-120v-567l-64 63-56-56 160-160 160 160-56 56-64-63v567h-80Z',
+  // la maniobra «izquierda»
+  turn_left:
+    'M600-160v-360H272l64 64-56 56-160-160 160-160 56 56-64 64h328q33 0 56.5 23.5T680-520v360h-80Z',
+  // la maniobra «derecha»
+  turn_right:
+    'M280-160v-360q0-33 23.5-56.5T360-600h328l-64-64 56-56 160 160-160 160-56-56 64-64H360v360h-80Z',
+  // la maniobra «ligera-izquierda»
+  turn_slight_left:
+    'M520-160v-304L320-664v90h-80v-226h226v80h-90l201 201q11 11 17 25.5t6 30.5v303h-80Z',
+  // la maniobra «ligera-derecha»
+  turn_slight_right:
+    'M360-160v-303q0-16 6-30.5t17-25.5l201-201h-90v-80h226v226h-80v-90L440-464v304h-80Z',
+  // la maniobra «cerrada-izquierda»
+  turn_sharp_left:
+    'M640-120v-240H320q-33 0-56.5-23.5T240-440v-248l-64 64-56-56 160-160 160 160-56 56-64-64v248h320q33 0 56.5 23.5T720-360v240h-80Z',
+  // la maniobra «cerrada-derecha»
+  turn_sharp_right:
+    'M240-120v-240q0-33 23.5-56.5T320-440h320v-248l-64 64-56-56 160-160 160 160-56 56-64-64v248q0 33-23.5 56.5T640-360H320v240h-80Z',
+  // la maniobra «media-vuelta»
+  u_turn_left:
+    'M640-120v-480q0-66-47-113t-113-47q-66 0-113 47t-47 113v168l64-64 56 56-160 160-160-160 56-56 64 64v-168q0-100 70-170t170-70q100 0 170 70t70 170v480h-80Z',
+  // la maniobra «salida»
+  trip_origin:
+    'M480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 31.5-155.5t86-127Q252-817 325-848.5T480-880q83 0 155.5 31.5t127 86q54.5 54.5 86 127T880-480q0 82-31.5 155t-86 127.5q-54.5 54.5-127 86T480-80Zm0-160q100 0 170-70t70-170q0-100-70-170t-170-70q-100 0-170 70t-70 170q0 100 70 170t170 70Z',
+  // la maniobra «llegada»
+  flag:
+    'M200-120v-680h360l16 80h224v400H520l-16-80H280v280h-80Zm300-440Zm86 160h134v-240H510l-16-80H280v240h290l16 80Z',
+  // la maniobra «aparca»
+  local_parking:
+    'M240-120v-720h280q100 0 170 70t70 170q0 100-70 170t-170 70H400v240H240Zm160-400h128q33 0 56.5-23.5T608-600q0-33-23.5-56.5T528-680H400v160Z',
+  // la maniobra «transborda»
+  transfer_within_a_station:
+    'm120-40 112-564-72 28v136H80v-188l202-86q29-12 59-2.5t47 36.5l40 64q27 43 71.5 69.5T600-520v80q-66 0-123.5-27.5T380-540l-24 120 84 80v300h-80v-240l-84-80-72 320h-84Zm260-700q-33 0-56.5-23.5T300-820q0-33 23.5-56.5T380-900q33 0 56.5 23.5T460-820q0 33-23.5 56.5T380-740ZM780-40l-42-42 28-28H560v-60h206l-28-28 42-42 100 100L780-40ZM660-210 560-310l100-100 42 42-28 28h206v60H674l28 28-42 42Z',
+  // la flecha origen→destino de la cabecera
+  arrow_forward:
+    'M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z',
+  // el aviso ámbar del viaje
+  warning:
+    'm40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm302-40q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm-40-120h80v-200h-80v200Zm40-100Z',
+  // el estado de error del resultado
+  cloud_off:
+    'M792-56 686-160H260q-92 0-156-64T40-380q0-77 47.5-137T210-594q3-8 6-15.5t6-16.5L56-792l56-56 736 736-56 56ZM260-240h346L284-562q-2 11-3 21t-1 21h-20q-58 0-99 41t-41 99q0 58 41 99t99 41Zm185-161Zm419 191-58-56q17-14 25.5-32.5T840-340q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-27 0-52 6.5T380-693l-58-58q35-24 74.5-36.5T480-800q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 39-15 72.5T864-210ZM593-479Z',
 };
 
 /**

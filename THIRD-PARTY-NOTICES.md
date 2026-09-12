@@ -8,7 +8,7 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 > de ser un ejercicio: lo ajeno que se enseña se está enseñando **a quien entre**. Hoy hay de terceros: las
 > dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y nueve** fichas
 > propias —§ 1.1 a § 1.39—, de las cuales **una es una norma citada** (§ 1.32), **una son los
-> doce iconos de la pantalla** (§ 1.37, Apache 2.0), **una es la letra**
+> veintisiete iconos de la pantalla** (§ 1.37, Apache 2.0), **una es la letra**
 > (§ 1.38, Inter bajo OFL) y **una declara lo
 > que todavía NO ha entrado** (§ 1.39).
 > Quedan fuera las capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
@@ -3141,19 +3141,19 @@ se tira. El log cuenta **la consulta** —qué salió, cuánto tardó, por qué 
 
 ---
 
-### 1.37 · Los doce símbolos de Material — Google (`material-design-icons`)
+### 1.37 · Los veintisiete símbolos de Material — Google (`material-design-icons`)
 
 | | |
 |---|---|
-| **Qué es** | **Doce iconos SVG** de la colección **Material Symbols**, variante *outlined*: los seis de las familias de transporte, la diana de «Mi ubicación», las flechas de invertir, el reloj de arena de la consulta a la DGT y —desde el 11/09— **los tres de la barra de pestañas de móvil**. Sustituyen a los emojis que la pantalla usaba hasta el 10/09 |
+| **Qué es** | **Veintisiete iconos SVG** de la colección **Material Symbols**, variante *outlined*: los seis de las familias de transporte, la diana de «Mi ubicación», las flechas de invertir, el reloj de arena de la DGT, los tres de la barra de pestañas de móvil y —desde el 12/09— **los quince de la pintura del resultado**: la familia `turn_*` completa que las maniobras del motor necesitan, más la salida, la llegada, el aparcamiento, el transbordo, la flecha de la cabecera, el aviso y el error. Sustituyen a los emojis que la pantalla usaba hasta el 10/09 |
 | **Titular** | **Google** |
 | **Fuente** | Repositorio oficial [`google/material-design-icons`](https://github.com/google/material-design-icons) |
 | **Petición** | `https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/<nombre>/materialsymbolsoutlined/<nombre>_24px.svg`, uno por icono |
-| **Descarga** | **10/09/2026** los nueve primeros y **11/09/2026** los tres de la barra, estado 200 los doce · **6.251 bytes** · un solo `<path>` cada uno y la misma rejilla `0 -960 960 960`, verificado al instalarlos |
+| **Descarga** | **10/09/2026** los nueve primeros, **11/09/2026** los tres de la barra y **12/09/2026** los quince del resultado; estado 200 los veintisiete · **10.258 bytes** · un solo `<path>` cada uno y la misma rejilla `0 -960 960 960`, verificado al instalarlos |
 | **Licencia** | **Apache 2.0** — el `LICENSE` del repositorio, descargado el mismo día y guardado al lado en [`app/simbolos/LICENCIA-APACHE-2.0.txt`](app/simbolos/LICENCIA-APACHE-2.0.txt) |
 | **Atribución exigida** | La Apache 2.0 **no exige crédito visible**: pide conservar el aviso de copyright y la licencia con la obra, y eso es lo que hace el fichero de al lado. No hay fórmula que pintar en la pantalla |
-| **Qué se guarda** | Los doce `.svg` **tal cual llegaron**: ni reoptimizados, ni recoloreados, ni renombrados. **Ninguno personal** |
-| **¿Está en este repo?** | ✅ [`app/simbolos/`](app/simbolos/) · los doce, con [`PROCEDENCIA.md`](app/simbolos/PROCEDENCIA.md) y sus sha256 |
+| **Qué se guarda** | Los veintisiete `.svg` **tal cual llegaron**: ni reoptimizados, ni recoloreados, ni renombrados. **Ninguno personal** |
+| **¿Está en este repo?** | ✅ [`app/simbolos/`](app/simbolos/) · los veintisiete, con [`PROCEDENCIA.md`](app/simbolos/PROCEDENCIA.md) y sus sha256 |
 
 | fichero | peso | para | sha256 |
 |---|---|---|---|
@@ -3169,11 +3169,26 @@ se tira. El log cuenta **la consulta** —qué salió, cuánto tardó, por qué 
 | `search.svg` | 357 B | la pestaña **Buscador** de la barra de móvil | `46d4ab85eba6eb4fe7c9a9a4c4db2fdf8fa9cc74c1f398ac72e7d872d490dd4c` |
 | `route.svg` | 700 B | la pestaña **Ruta** de la barra de móvil | `d7962e11c41b71ce30aa4c47b7f3eacb9d88d08f02421214f5f9d641d5a45956` |
 | `map.svg` | 377 B | la pestaña **Mapa** de la barra de móvil | `a49ef8ee004dc4832a4bbe64fce0a054c0b90cb4246422c09cc234278788049b` |
+| `straight.svg` | 169 B | la maniobra **«recto»** | `d2b3959230c746d5832fff7b268dfeb5c2986ef94cf27252c875461cc940cf3a` |
+| `turn_left.svg` | 199 B | la maniobra **«izquierda»** | `448795148db308e29fe5043fde3e4cabc8e28887062b98eebfa29821302f714d` |
+| `turn_right.svg` | 200 B | la maniobra **«derecha»** | `5d3c7827e423aefb2608220aeb61ab8922421d04019f0a25a2756101f876b426` |
+| `turn_slight_left.svg` | 188 B | la maniobra **«ligera-izquierda»** | `ca2a9e0ec3dddcce2352572527af1f55dcd0e6e6f4fa2e55f73819f862e68628` |
+| `turn_slight_right.svg` | 188 B | la maniobra **«ligera-derecha»** | `70f1d8b06ec3cf9b9aee6ceb2e310aad9b06f29b914995be52c7c09b88cb2bc1` |
+| `turn_sharp_left.svg` | 233 B | la maniobra **«cerrada-izquierda»** | `7edeb141c07f0dc05717765f16cfaa8005713d13c948d800dae4a25230779b67` |
+| `turn_sharp_right.svg` | 232 B | la maniobra **«cerrada-derecha»** | `ecdce1c45702ea3413b159af683f831b6d23a44fa1ae4bd09950258e237708f6` |
+| `u_turn_left.svg` | 258 B | la maniobra **«media-vuelta»** | `e3c8719cf7a5aa4eb689d3084978e52622c79ddc6150eca7933841d9fee95a35` |
+| `trip_origin.svg` | 400 B | la maniobra **«salida»** | `445a5548e8a883b68cad23126b624b8915dd74e700504b37051467ca1e46d190` |
+| `flag.svg` | 216 B | la maniobra **«llegada»** | `cab27088e64b22b34c43238070b14defc2485989e431e5a3dfea073638cca02b` |
+| `local_parking.svg` | 244 B | la maniobra **«aparca»** | `edc2d006abb646c96eb493b2bcbbee1e05fba9d550afa56d32e4d87d70305456` |
+| `transfer_within_a_station.svg` | 494 B | la maniobra **«transborda»** | `ef6907f8dd11e30f786253656d2496a531d47bec8b1ce2a0a17002b4d9bc5ab0` |
+| `arrow_forward.svg` | 171 B | la flecha **origen→destino** de la cabecera | `717c65e2e704a07b7b73e194b202858f52befbaa6dd363565a1d75d117c3a2aa` |
+| `warning.svg` | 295 B | el **aviso ámbar** del viaje | `0212c59cfa1e2da887b0b36c7d89886de94b019feaaba5c063ec8dc7d32be436` |
+| `cloud_off.svg` | 520 B | el **estado de error** del resultado | `11ca8b3892626b36ba03edccfed2c6a521f13e66ed3c626c234b8456ff1f983b` |
 
 ⭐ **LA FUENTE VARIABLE OFICIAL EXISTE Y NO SE USA, y es una decisión con cifra.**
 Material Symbols se distribuye también como fuente variable, que es lo cómodo:
 una línea y están todos. Trae **miles** de símbolos en ~100 KB, y aquí hacen
-falta **doce** — 6.251 bytes entre los doce. La portada se mide contra un
+falta **veintisiete** — 10.258 bytes entre los veintisiete. La portada se mide contra un
 presupuesto que ya está en 509 kB, así que se paga lo que se usa. Y de paso no se
 baja nada de ningún tercero en tiempo de ejecución: es **la misma ley que sacó a
 Inter del CDN de Google** el 9/09.
@@ -3185,8 +3200,8 @@ hereda el color del texto y los chips cambian de tinta con su estado, así que e
 en el fichero original **y** en la tabla, que es exactamente la clase de duplicado
 que en esta casa ya salió mal una vez (`contraste.ts` y sus cuatro copias de una
 fórmula, de las que la cuarta no era igual). Por eso
-[`app/src/app/simbolos.spec.ts`](app/src/app/simbolos.spec.ts) compara los doce
-**carácter a carácter** y cuenta el censo en las dos direcciones.
+[`app/src/app/simbolos.spec.ts`](app/src/app/simbolos.spec.ts) compara los
+veintisiete **carácter a carácter** y cuenta el censo en las dos direcciones.
 
 ### 1.38 · Inter 4.1 — The Inter Project Authors (autoalojada)
 
