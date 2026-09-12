@@ -16,6 +16,7 @@
  * Se lanza con el motor sirviendo el dist:
  *     node e2e/pintura.mjs http://localhost:3111 <carpeta-de-capturas>
  */
+import { readFileSync } from 'node:fs';
 import { abrirChrome, contrasteReal, AA_TEXTO } from './medir.mjs';
 
 const APP = (process.argv[2] ?? 'http://localhost:4200').replace(/\/+$/, '') + '/';
@@ -50,6 +51,35 @@ const MINIMO_DE_SEPARACION = 29;
 const enRgb = (c) => `rgb(${c.r}, ${c.g}, ${c.b})`;
 
 const leer = (m, expr) => m.evaluar(`JSON.stringify((() => { ${expr} })())`).then(JSON.parse);
+
+/**
+ * ⭐ EL TRAZADO TAL Y COMO LLEGÓ, leído del fichero descargado.
+ *
+ * Sirve para preguntarle a la pantalla si el icono que pinta es EL MISMO que
+ * el `.svg` que tiene su sha256 en `app/simbolos/PROCEDENCIA.md`. Copiar el
+ * trazado aquí sería guardar el mismo dato dos veces y que las dos copias se
+ * separen el día que alguien redibuje una a mano.
+ */
+/**
+ * ⭐ `contrasteReal`, PERO SIN TIRAR EL FICHERO cuando el elemento no está.
+ *
+ * ⚠️ Esto es la lección de la L4 del 11/09: el lector del asa reventó con
+ *    `getComputedStyle: parameter 1 is not of type 'Element'` en cuanto su
+ *    sujeto dejó de existir, y se llevó por delante TODAS las juezas que venían
+ *    detrás — que estaban bien. Una jueza que no encuentra a quien mide tiene
+ *    que dar ROJO y dejar correr a las demás, no cortar la sesión.
+ */
+const contrasteSiEsta = async (m, selector, opciones = {}) => {
+  const hay = await m.evaluar(
+    `document.querySelectorAll(${JSON.stringify(selector)}).length > ${opciones.indice ?? 0}`,
+  );
+  return hay ? contrasteReal(m, selector, opciones) : null;
+};
+
+const trazadoDelFichero = (nombre) =>
+  /\sd="([^"]+)"/.exec(
+    readFileSync(new URL(`../simbolos/${nombre}.svg`, import.meta.url), 'utf8'),
+  )?.[1] ?? '(el fichero no tiene trazado)';
 
 /** Los seis chips: color, tamaño, y cuánto ocupa su palabra AHORA MISMO. */
 const LOS_CHIPS = `
@@ -1114,6 +1144,321 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       seguro.pegados.join(', ') || '(nada)',
     );
     await m.guardar(`${CAPTURAS}/movil-safe-area.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P14 · LOS CUATRO ESTADOS DEL RESULTADO ═══════════
+//
+// ⭐ [maqueta `RouteResult.tsx`, § 3a de la tanda 5] el panel del resultado
+//    tiene CUATRO caras y hasta hoy solo dos estaban vestidas. Aquí se compran
+//    las cuatro contra la pantalla de verdad, y con el motor de verdad: los dos
+//    estados que faltaban —cargando y error— se provocan estrangulando la red
+//    con `Network.emulateNetworkConditions`, no fabricando el estado a mano. Un
+//    estado que solo sabe llegar porque se lo empuja desde fuera no está
+//    comprado: está fingido.
+//
+// ⚠️ LA TRAMPA QUE ESTA JUEZA EXISTE PARA CAZAR [WCAG 4.1.3 · ARIA19]: una
+//    región viva tiene que estar EN EL DOM ANTES del mensaje. Si nace con su
+//    contenido, el lector de pantalla no estaba observándola cuando cambió y no
+//    hay nada que anunciar — se ve en pantalla y no se oye. La casa ya lo tenía
+//    escrito para `#lo-de-la-dgt`, y aquí estaba justo al revés: el `@if`
+//    envolvía al `role="status"`, no al revés.
+//
+// ⚠️ Y el hueso NO se lee: es `aria-hidden`. Anunciar cuatro cajas grises no es
+//    accesibilidad, es ruido — quien no ve el hueso oye la frase, que es la que
+//    lleva la información.
+{
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9414 });
+  try {
+    await m.ir(APP, 6000);
+    console.log('\n═══ LOS CUATRO ESTADOS DEL RESULTADO ═══');
+    await m.cdp('Network.enable');
+
+    // El bloque de indicaciones, abierto: plegado no se pinta nada de esto.
+    await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[1].click()`);
+    await m.dormir(400);
+
+    // ── (1) LAS DOS REGIONES VIVAS, PRIMADAS Y VACÍAS ────────────────────
+    const regiones = `
+      const mirar = (papel) => {
+        const e = document.querySelector('.pasos [role=' + papel + ']');
+        return e === null ? null : { texto: e.textContent.trim(), hijos: e.children.length };
+      };
+      return { status: mirar('status'), alerta: mirar('alert') };
+    `;
+    const alAbrir = await leer(m, regiones);
+    juzgar(
+      alAbrir.status !== null && alAbrir.status.texto === '',
+      'P14 · ⭐ la región `role="status"` YA ESTÁ en el DOM al abrir, y vacía',
+      alAbrir.status === null ? '(no está)' : `«${alAbrir.status.texto}» · hijos ${alAbrir.status.hijos}`,
+    );
+    juzgar(
+      alAbrir.alerta !== null && alAbrir.alerta.texto === '',
+      'P14 · ⭐ y la región `role="alert"` del error, igual: presente y vacía',
+      alAbrir.alerta === null ? '(no está)' : `«${alAbrir.alerta.texto}» · hijos ${alAbrir.alerta.hijos}`,
+    );
+
+    // ── (2) EL VACÍO: SU ICONO GRANDE, Y QUE SEA EL FICHERO QUE BAJAMOS ──
+    //
+    // No se compara con un trazado copiado aquí —eso sería el mismo dato dos
+    // veces—: se lee `app/simbolos/route.svg`, que es el fichero con su sha256
+    // en PROCEDENCIA.md. Si alguien redibuja el icono a mano, esto muerde.
+    const elIcono = (sel) => `(() => {
+      const s = document.querySelector(${JSON.stringify(sel)});
+      if (!s) return null;
+      const p = s.querySelector('path');
+      return { lado: s.getAttribute('width') + 'x' + s.getAttribute('height'), d: p ? p.getAttribute('d') : null };
+    })()`;
+    const iconoVacio = JSON.parse(await m.evaluar(`JSON.stringify(${elIcono('.pasos__vacio svg')})`));
+    juzgar(
+      iconoVacio !== null && iconoVacio.d === trazadoDelFichero('route'),
+      'P14 · ⭐ el vacío enseña el icono `route`, y es el SVG que se descargó',
+      iconoVacio === null ? '(no hay icono)' : `d ${iconoVacio.d === trazadoDelFichero('route') ? 'idéntico al fichero' : 'DISTINTO del fichero'}`,
+    );
+    juzgar(
+      iconoVacio !== null && iconoVacio.lado === '48x48',
+      'P14 · y mide los 48 de la maqueta (`w-12 h-12`)',
+      iconoVacio === null ? '(no hay icono)' : iconoVacio.lado,
+    );
+    const letraVacia = await contrasteSiEsta(m, '.pasos__vacio', { minimo: 20 });
+    juzgar(
+      letraVacia !== null && letraVacia.contraste >= AA_TEXTO,
+      'P14 · y su letra se lee: contraste medido sobre el píxel',
+      letraVacia === null
+        ? '(el vacío no está en la página)'
+        : `${letraVacia.contraste.toFixed(2)}:1 · texto ${enRgb(letraVacia.texto)} sobre ${enRgb(letraVacia.fondo)}`,
+    );
+    await m.guardar(`${CAPTURAS}/estado-vacio.png`);
+
+    // ── EL FORMULARIO, RELLENO DE VERDAD ─────────────────────────────────
+    const escribir = async (i, texto) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via input')[${i}];
+        if (!c) return;
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(900);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via')[${i}];
+        const o = [...c.querySelectorAll('[role=option]')][0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(700);
+    };
+    const portal = async (i, num) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal input')[${i}];
+        if (!c) return;
+        c.focus();
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(num)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(600);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal')[${i}];
+        const ops = [...c.querySelectorAll('[role=option]')];
+        const o = ops.find((x) => x.textContent.trim() === ${JSON.stringify(num)}) ?? ops[0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(500);
+    };
+    await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[0].click()`);
+    await m.dormir(400);
+    await escribir(0, 'COLOSO');
+    await portal(0, '2');
+    await escribir(1, 'CALLE OVIEDO');
+    await portal(1, '5');
+    await m.evaluar(`document.querySelector('input[name=familia][value=andando]').click()`);
+    await m.dormir(400);
+    const listo = await m.evaluar(`!document.querySelector('button.generar').disabled`);
+    juzgar(listo === true, 'P14 · el formulario queda listo para generar', `Generar encendido: ${listo}`);
+
+    // ── (3) EL CARGANDO: EL HUESO, SOBRE UNA CARGA DE VERDAD ─────────────
+    //
+    // ⚠️ El hueso monta sobre `esperando()`, que es la señal QUE YA TENÍA UN
+    //    UMBRAL: el segundo de NN/g. No sobre `generando()`, que se enciende en
+    //    el mismo tick del clic — un hueso que parpadea 80 ms y desaparece es
+    //    peor que ningún hueso. Por eso aquí se estrangula la red: sin latencia,
+    //    el motor resuelve andando en ~20 ms y este estado NO EXISTIRÍA nunca en
+    //    una medida honesta.
+    await m.cdp('Network.emulateNetworkConditions', {
+      offline: false,
+      latency: 4000,
+      downloadThroughput: -1,
+      uploadThroughput: -1,
+    });
+    await m.evaluar(`document.querySelector('button.generar').click()`);
+    await m.dormir(1600);
+
+    const cargando = await leer(m, `
+      const hueso = document.querySelector('.hueso');
+      const token = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+      const pinta = (s) => getComputedStyle(s).backgroundColor;
+      const barras = hueso ? [...hueso.querySelectorAll('.hueso__linea, .hueso__caja, .hueso__circulo')] : [];
+      const region = document.querySelector('.pasos [role=status]');
+      return {
+        hay: hueso !== null,
+        oculto: hueso ? hueso.getAttribute('aria-hidden') : null,
+        barras: barras.length,
+        colores: [...new Set(barras.map(pinta))],
+        mueve: hueso ? getComputedStyle(hueso).animationName : null,
+        muted: token('--muted'),
+        anuncio: region ? region.textContent.trim() : '(no está)',
+        vacio: document.querySelector('.pasos__vacio') !== null,
+      };
+    `);
+    juzgar(
+      cargando.hay === true && cargando.barras >= 10,
+      'P14 · ⭐ mientras carga se pinta EL HUESO de la maqueta, no una frase sola',
+      `huesos contados: ${cargando.barras}`,
+    );
+    juzgar(
+      cargando.oculto === 'true',
+      'P14 · y el hueso NO se lee: `aria-hidden`',
+      `aria-hidden=${cargando.oculto}`,
+    );
+    juzgar(
+      cargando.colores.length === 1,
+      'P14 · pintado con UN solo color, y el mismo en los doce huesos',
+      cargando.colores.join(' | '),
+    );
+
+    // ⭐ Y QUE EL HUESO SE VEA, QUE ES LA LECCIÓN DE LA BANDA (11/09).
+    //
+    // ⚠️ **La maqueta dice `bg-muted` y aquí eso no vale.** `--muted` de esta
+    //    casa es `slate-50` desde la tanda 1-bis: medido sobre la tarjeta
+    //    blanca da **3 puntos de 255**, que es el mismo error exacto que Antonio
+    //    rechazó en las cabeceras del acordeón —«2 puntos de 255», invisible—.
+    //    Un hueso que no se ve no es un hueso: es una pausa en blanco.
+    //
+    // Por eso la vara no es un token concreto: es EL MISMO SUELO que él fijó
+    // para la banda. Si un día alguien devuelve el hueso a `--muted`, esto
+    // muerde con el número delante.
+    const huesoPintado = await contrasteSiEsta(m, '.hueso__caja', { minimo: 40 });
+    const superficieDelHueso = await contrasteSiEsta(m, '.cabecera', { indice: 0 });
+    const separacionDelHueso =
+      huesoPintado === null || superficieDelHueso === null
+        ? -1
+        : Math.max(
+            Math.abs(huesoPintado.fondo.r - superficieDelHueso.fondo.r),
+            Math.abs(huesoPintado.fondo.g - superficieDelHueso.fondo.g),
+            Math.abs(huesoPintado.fondo.b - superficieDelHueso.fondo.b),
+          );
+    juzgar(
+      separacionDelHueso >= MINIMO_DE_SEPARACION,
+      'P14 · ⭐ y SE VE sobre la tarjeta — el suelo de la banda, no el `--muted` de la maqueta',
+      separacionDelHueso < 0
+        ? `(no hay hueso que medir) · --muted habría dado: ${cargando.muted}`
+        : `${separacionDelHueso} puntos de 255 (suelo ${MINIMO_DE_SEPARACION}) · ` +
+          `hueso ${enRgb(huesoPintado.fondo)} sobre ${enRgb(superficieDelHueso.fondo)} · ` +
+          `--muted habría dado: ${cargando.muted}`,
+    );
+    juzgar(
+      cargando.mueve !== null && cargando.mueve !== 'none',
+      'P14 · y late — el pulso de la maqueta, que es lo que dice que está vivo',
+      `animation-name: ${cargando.mueve}`,
+    );
+    juzgar(
+      cargando.anuncio === 'Calculando la ruta…',
+      'P14 · y la frase es LA NUESTRA, no la «Calculando mejores rutas...» de la maqueta',
+      `«${cargando.anuncio}» · la letra depende del modo y por eso no se calca`,
+    );
+    juzgar(
+      cargando.vacio === false,
+      'P14 · y el vacío se ha ido: cargando y vacío no conviven',
+      `¿sigue el vacío? ${cargando.vacio}`,
+    );
+    await m.guardar(`${CAPTURAS}/estado-cargando.png`);
+
+    // ⚠️ [WCAG 2.3.3] con menos movimiento pedido, el hueso SE QUEDA —hace
+    //    falta— pero deja de latir. No se quita el indicador: se para.
+    await m.cdp('Emulation.setEmulatedMedia', {
+      features: [{ name: 'prefers-reduced-motion', value: 'reduce' }],
+    });
+    await m.dormir(300);
+    const quieto = await leer(m, `
+      const h = document.querySelector('.hueso');
+      return { hay: h !== null, mueve: h ? getComputedStyle(h).animationName : null };
+    `);
+    juzgar(
+      quieto.hay === true && quieto.mueve === 'none',
+      'P14 · ⭐ con `prefers-reduced-motion: reduce` el hueso sigue, y se para',
+      `sigue: ${quieto.hay} · animation-name: ${quieto.mueve}`,
+    );
+    await m.cdp('Emulation.setEmulatedMedia', { features: [] });
+
+    // Que la respuesta llegue, y la red vuelva a la normalidad.
+    for (let i = 0; i < 40 && (await m.evaluar(`document.querySelector('.hueso') !== null`)); i++) {
+      await m.dormir(300);
+    }
+    await m.cdp('Network.emulateNetworkConditions', {
+      offline: false,
+      latency: 0,
+      downloadThroughput: -1,
+      uploadThroughput: -1,
+    });
+
+    // ── (4) EL ERROR: SIN MOTOR AL OTRO LADO ─────────────────────────────
+    //
+    // Se corta la red de verdad. Es el único camino por el que `noContesta()`
+    // se enciende en producción, así que es el único por el que vale medirlo.
+    await m.cdp('Network.emulateNetworkConditions', {
+      offline: true,
+      latency: 0,
+      downloadThroughput: 0,
+      uploadThroughput: 0,
+    });
+    await m.evaluar(`document.querySelector('button.generar').click()`);
+    await m.dormir(2500);
+
+    const error = await leer(m, `
+      const caja = document.querySelector('.pasos [role=alert]');
+      const svg = document.querySelector('.pasos__error svg');
+      const p = svg ? svg.querySelector('path') : null;
+      return {
+        papel: caja ? caja.getAttribute('role') : '(no está)',
+        texto: caja ? caja.textContent.trim() : '(no está)',
+        lado: svg ? svg.getAttribute('width') + 'x' + svg.getAttribute('height') : '(no hay icono)',
+        d: p ? p.getAttribute('d') : null,
+        hueso: document.querySelector('.hueso') !== null,
+        vacio: document.querySelector('.pasos__vacio') !== null,
+      };
+    `);
+    juzgar(
+      error.texto === 'No se pudo preguntar al motor. ¿Está arrancado?',
+      'P14 · ⭐ sin nadie al otro lado, el error habla — y por la región `alert`',
+      `role=${error.papel} · «${error.texto}»`,
+    );
+    juzgar(
+      error.d === trazadoDelFichero('cloud_off'),
+      'P14 · con el icono `cloud_off`, y es el SVG que se descargó',
+      error.d === null ? '(no hay icono)' : error.d === trazadoDelFichero('cloud_off') ? 'idéntico al fichero' : 'DISTINTO del fichero',
+    );
+    juzgar(error.lado === '48x48', 'P14 · y mide los 48 de la maqueta', error.lado);
+    juzgar(
+      error.papel === 'alert' && error.hueso === false && error.vacio === false,
+      'P14 · ⭐ y los cuatro estados son EXCLUYENTES: con el error no hay hueso ni vacío',
+      `error: ${error.papel === 'alert'} · hueso: ${error.hueso} · vacío: ${error.vacio}`,
+    );
+    const letraError = await contrasteSiEsta(m, '.pasos__error', { minimo: 20 });
+    juzgar(
+      letraError !== null && letraError.contraste >= AA_TEXTO,
+      'P14 · y la letra del error se lee: contraste medido sobre el píxel',
+      letraError === null
+        ? '(el error no está en la página)'
+        : `${letraError.contraste.toFixed(2)}:1 · texto ${enRgb(letraError.texto)} sobre ${enRgb(letraError.fondo)}`,
+    );
+    await m.guardar(`${CAPTURAS}/estado-error.png`);
+
+    await m.cdp('Network.emulateNetworkConditions', {
+      offline: false,
+      latency: 0,
+      downloadThroughput: -1,
+      uploadThroughput: -1,
+    });
   } finally {
     m.cerrar();
   }
