@@ -2009,4 +2009,250 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
   }
 }
 
+// ═══════════ P19 · LA RONDA DEL OJO: RAYAS, FILO, AIRE Y HOVER ═══════════
+//
+// ⭐ [ANTONIO, 12/09] cuatro cosas que se ven mirando y que ninguna medida de
+//    esta casa preguntaba. Es la continuación de la ley de la nº49: las juezas
+//    compran piezas, y lo que se estropea es la relación entre ellas.
+//
+// ⚠️ La raya NO se busca por clase sino POR SU BORDE: se recorre el paso y se
+//    coge el elemento que de verdad lleva `border-bottom`. Así la jueza vale
+//    antes y después del cambio —hoy la lleva el cuerpo, mañana la fila— y no
+//    hay que reescribirla para que siga comprando lo mismo.
+{
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9417 });
+  try {
+    await m.ir(APP, 6000);
+    console.log('\n═══ LA RONDA DEL OJO ═══');
+
+    const escribir = async (i, texto) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via input')[${i}];
+        if (!c) return;
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(900);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via')[${i}];
+        const o = [...c.querySelectorAll('[role=option]')][0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(700);
+    };
+    const portal = async (i, num) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal input')[${i}];
+        if (!c) return;
+        c.focus();
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(num)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(600);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal')[${i}];
+        const ops = [...c.querySelectorAll('[role=option]')];
+        const o = ops.find((x) => x.textContent.trim() === ${JSON.stringify(num)}) ?? ops[0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(500);
+    };
+
+    await escribir(0, 'COLOSO');
+    await portal(0, '2');
+    await escribir(1, 'CALLE OVIEDO');
+    await portal(1, '5');
+    // El bus: es el modo que mezcla pasos CON distancia y pasos SIN ella —los
+    // hitos valen 0 y no la escriben—, que es justo donde el filo se torcía.
+    await m.evaluar(`document.querySelector('input[name=familia][value=bus]').click()`);
+    await m.dormir(500);
+    await m.evaluar(`document.querySelector('button.generar').click()`);
+    for (let i = 0; i < 80 && (await m.evaluar(`!!document.querySelector('button.generar')?.disabled`)); i++) {
+      await m.dormir(300);
+    }
+    await m.dormir(1500);
+
+    const geometria = await leer(m, `
+      const px = (n) => Math.round(n * 100) / 100;
+      const pasos = [...document.querySelectorAll('.paso')];
+      const rayas = [];
+      const filos = [];
+      const columnas = [];
+      pasos.forEach((p, i) => {
+        // ⭐ El elemento que LLEVA la raya, sea quien sea — pero SOLO entre el
+        //    paso y sus hijos directos.
+        //
+        // ⚠️ La primera versión miraba todos los descendientes y recogía tres
+        //    bordes que no son rayas: el del chip de línea —rgba(0,0,0,0.25),
+        //    que existe para que un chip casi blanco no se disuelva— y el del
+        //    botón «Próximo bus». Daba «6 finales distintos» mezclando la raya
+        //    con la orla de una insignia. Un hijo directo del paso es una
+        //    COLUMNA de la fila; lo de más adentro es decoración de su
+        //    contenido, y no separa nada.
+        const conBorde = [p, ...p.children].filter((e) => {
+          const s = getComputedStyle(e);
+          return parseFloat(s.borderBottomWidth) > 0 && s.borderBottomStyle !== 'none';
+        });
+        for (const e of conBorde) {
+          const b = e.getBoundingClientRect();
+          const s = getComputedStyle(e);
+          rayas.push({ paso: i, que: e.tagName.toLowerCase() + '.' + (String(e.className).split(' ')[0] || '?'),
+                       izq: px(b.left), der: px(b.right), color: s.borderBottomColor, grosor: s.borderBottomWidth });
+        }
+        const cuerpo = p.querySelector('.paso__cuerpo');
+        if (cuerpo) filos.push({ paso: i, der: px(cuerpo.getBoundingClientRect().right) });
+        const col = p.querySelector('.paso__metros');
+        columnas.push(col === null
+          ? { paso: i, hay: false }
+          : { paso: i, hay: true, ancho: px(col.getBoundingClientRect().width),
+              texto: (col.textContent || '').trim() });
+      });
+      return { pasos: pasos.length, rayas, filos, columnas,
+               fila: px(pasos.length ? pasos[0].getBoundingClientRect().right : 0),
+               tokenBorde: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() };
+    `);
+
+    const izqs = [...new Set(geometria.rayas.map((r) => r.izq))];
+    const ders = [...new Set(geometria.rayas.map((r) => r.der))];
+    juzgar(
+      geometria.rayas.length >= geometria.pasos - 1,
+      'P19 · hay rayas separadoras que juzgar',
+      `${geometria.rayas.length} rayas en ${geometria.pasos} pasos`,
+    );
+    juzgar(
+      izqs.length === 1,
+      'P19 · ⭐ todas las rayas ARRANCAN en el mismo sitio',
+      izqs.length === 1 ? `todas en x=${izqs[0]}` : `${izqs.length} arranques distintos: ${izqs.join(', ')}`,
+    );
+    juzgar(
+      ders.length === 1,
+      'P19 · ⭐ y todas ACABAN en el mismo sitio',
+      ders.length === 1 ? `todas en x=${ders[0]}` : `${ders.length} finales distintos: ${ders.join(', ')}`,
+    );
+    juzgar(
+      ders.length === 1 && Math.abs(ders[0] - geometria.fila) <= 1,
+      'P19 · y ese final es el BORDE DERECHO de la fila, no donde acabe el texto',
+      `raya hasta ${ders.join('/')} · la fila acaba en ${geometria.fila}`,
+    );
+    juzgar(
+      [...new Set(geometria.rayas.map((r) => r.grosor))].length === 1 &&
+        [...new Set(geometria.rayas.map((r) => r.color))].length === 1,
+      'P19 · y todas son la misma raya: mismo grosor y mismo color',
+      `${[...new Set(geometria.rayas.map((r) => r.grosor))].join('/')} · ` +
+        `${[...new Set(geometria.rayas.map((r) => r.color))].join(' | ')}`,
+    );
+
+    // ⭐ EL FILO DERECHO DE LOS CUERPOS, que es lo que la columna reservada
+    //    endereza: hoy el cuerpo se estira cuando el paso no trae distancia.
+    const filos = [...new Set(geometria.filos.map((f) => f.der))];
+    juzgar(
+      filos.length === 1,
+      'P19 · ⭐ todos los cuerpos acaban en el mismo filo',
+      filos.length === 1
+        ? `todos en x=${filos[0]}`
+        : `${filos.length} filos: ` + geometria.filos.map((f) => `${f.paso}→${f.der}`).join(' '),
+    );
+
+    // ⭐ Y LA COLUMNA DE DISTANCIAS, RESERVADA EN TODOS — también vacía.
+    const sinColumna = geometria.columnas.filter((c) => !c.hay).map((c) => c.paso);
+    const anchos = [...new Set(geometria.columnas.filter((c) => c.hay).map((c) => c.ancho))];
+    juzgar(
+      sinColumna.length === 0,
+      'P19 · ⭐ la columna de distancias existe en TODOS los pasos, con dato o sin él',
+      sinColumna.length === 0
+        ? `${geometria.columnas.length} de ${geometria.columnas.length}`
+        : `faltan en los pasos ${sinColumna.join(', ')}`,
+    );
+    juzgar(
+      anchos.length === 1,
+      'P19 · y todas miden lo mismo',
+      anchos.length === 1
+        ? `${anchos[0]} px · valores: ` +
+          geometria.columnas.map((c) => (c.hay ? `«${c.texto || '(vacía)'}»` : '(no está)')).join(' ')
+        : `${anchos.length} anchos: ${anchos.join(', ')}`,
+    );
+
+    // ⭐ EL AIRE ENTRE EL CHIP Y EL TEXTO [maqueta: `gap-2`, o sea 0,5rem].
+    // ⚠️ **Y AQUÍ NO VALE `getBoundingClientRect` DEL TEXTO**, que fue el primer
+    //    intento y devolvía **−43 px de aire**: `.paso__texto` es un `<span>` en
+    //    línea que envuelve en tres renglones, y su caja es la UNIÓN de los tres
+    //    —o sea, empieza en el margen izquierdo del párrafo, muy a la izquierda
+    //    del chip—. La pregunta no es dónde empieza el bloque de texto: es dónde
+    //    empieza EL PRIMER CARÁCTER. Eso se pide con un `Range` sobre el primer
+    //    nodo de texto y su primer rectángulo de línea.
+    const aire = await leer(m, `
+      const huecos = [];
+      for (const f of document.querySelectorAll('.paso__frase')) {
+        const chip = f.querySelector('.chip-linea');
+        const texto = f.querySelector('.paso__texto');
+        if (!chip || !texto) continue;
+        const paseo = document.createTreeWalker(texto, NodeFilter.SHOW_TEXT);
+        let nodo = paseo.nextNode();
+        while (nodo && !(nodo.nodeValue || '').trim()) nodo = paseo.nextNode();
+        if (!nodo) continue;
+        const r = document.createRange();
+        r.selectNodeContents(nodo);
+        const primera = r.getClientRects()[0];
+        if (!primera) continue;
+        huecos.push(Math.round((primera.left - chip.getBoundingClientRect().right) * 100) / 100);
+      }
+      return { huecos };
+    `);
+    juzgar(
+      aire.huecos.length > 0 && aire.huecos.every((h) => h >= 8),
+      'P19 · ⭐ el chip de línea respira: al menos el `gap-2` de la maqueta (8 px)',
+      aire.huecos.length === 0 ? '(ningún paso con chip)' : `huecos medidos: ${aire.huecos.join(', ')} px`,
+    );
+    await m.guardar(`${CAPTURAS}/rayas-y-filo.png`);
+
+    // ⭐ EL HOVER DEL PASO, Y SU GEMELO DEL TECLADO.
+    //
+    // ⚠️ El fondo se mide con el ratón puesto encima DE VERDAD
+    //    (`Input.dispatchMouseEvent`): un `:hover` no se dispara con un evento
+    //    sintético de JavaScript. Y se mide antes y después, que es la
+    //    contraprueba: si el reposo y el hover devuelven lo mismo, no hay hover
+    //    por mucho que la regla esté escrita.
+    const fondoDelPaso = async () =>
+      m.evaluar(`getComputedStyle(document.querySelectorAll('.paso')[1]).backgroundColor`);
+    const enReposo = await fondoDelPaso();
+    const caja = JSON.parse(
+      await m.evaluar(`(() => { const c = document.querySelectorAll('.paso')[1].getBoundingClientRect();
+        return JSON.stringify({ x: Math.round(c.x + c.width / 2), y: Math.round(c.y + c.height / 2) }); })()`),
+    );
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: caja.x, y: caja.y });
+    await m.dormir(250);
+    const conRaton = await fondoDelPaso();
+    juzgar(
+      conRaton !== enReposo,
+      'P19 · ⭐ el paso se enciende con el ratón encima',
+      `reposo ${enReposo} → con ratón ${conRaton}`,
+    );
+    await m.guardar(`${CAPTURAS}/paso-hover.png`);
+
+    // El gemelo del teclado. Se pulsa una tecla DE VERDAD antes de mover el
+    // foco: [DOC MDN · :focus-visible] el navegador decide por la modalidad de
+    // la última interacción, así que un `focus()` a secas tras un clic no lo
+    // dispara — y ése es justo el camino real, porque a `.paso` solo se llega
+    // por programa desde el resumen.
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+    await m.dormir(150);
+    await m.cdp('Input.dispatchKeyEvent', { type: 'rawKeyDown', windowsVirtualKeyCode: 9, key: 'Tab' });
+    await m.cdp('Input.dispatchKeyEvent', { type: 'keyUp', windowsVirtualKeyCode: 9, key: 'Tab' });
+    await m.dormir(150);
+    const conFoco = await leer(m, `
+      const p = document.querySelectorAll('.paso')[1];
+      p.focus();
+      return { fondo: getComputedStyle(p).backgroundColor, visible: p.matches(':focus-visible') };
+    `);
+    juzgar(
+      conFoco.visible === true && conFoco.fondo !== enReposo,
+      'P19 · ⭐ y el teclado ve lo mismo: `:focus-visible` enciende igual que el ratón',
+      `:focus-visible ${conFoco.visible} · fondo ${conFoco.fondo} (reposo ${enReposo})`,
+    );
+    await m.guardar(`${CAPTURAS}/paso-foco.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
 console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);
