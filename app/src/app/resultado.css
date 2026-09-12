@@ -1,0 +1,637 @@
+/* La pintura DEL RESULTADO: la cabecera del viaje, la línea de tiempo, los
+   avisos y los datos vivos. Segunda hoja del MISMO componente — `buscador.ts`
+   la declara junto a `buscador.css` en `styleUrls`, así que el ámbito de
+   encapsulación es el mismo y una regla de aquí y una de allá pesan igual.
+
+   ⚠️ **POR QUÉ SON DOS FICHEROS Y NO UNO** (12/09, y se declara entero): la
+      hoja llegó a 1.153 líneas y 8,25 kB, y el presupuesto `anyComponentStyle`
+      de `angular.json` **corta la build con ERROR a los 8**. Topó CUATRO veces
+      en esta tanda —275 B, 407, 5 y 251— y las tres primeras se resolvieron
+      sacando lo que no era suyo: el hueso, el chip de línea, el estado de
+      cuerpo entero y la superficie ámbar, que son lenguaje del sistema y viven
+      en `styles.css`. A la cuarta ya no quedaba nada genérico que sacar: un
+      censo de huérfanas dio cero y las reglas más gordas eran todas del
+      formulario.
+
+      Partir por concepto es la mitad del arreglo bueno —dos ficheros de 4 kB se
+      leen; uno de 8 no— y **no ahorra un solo byte**: lo que se descarga es
+      idéntico y sigue cantando en la línea `initial`. El arreglo entero es que
+      el panel del resultado sea SU PROPIO COMPONENTE, con su plantilla y su
+      hoja, y eso es refactor que nadie ha encargado. Queda dicho aquí y en el
+      checkpoint.
+
+   ⚠️ Y el orden importa: esta hoja se inyecta DESPUÉS de `buscador.css`, así
+      que a igualdad de especificidad gana lo de aquí. No hay hoy ninguna regla
+      repetida entre las dos —se comprobó al partir—, pero quien añada una que
+      exista allí, que lo sepa. */
+
+.pasos__modo {
+  margin: 0 0 0.5rem;
+  color: #555;
+}
+
+/* ⭐ LA CABECERA DE LA RUTA (12/09) — y antes era una caja con borde.
+
+   [maqueta `RouteResult.tsx`] lo primero son LOS DOS NÚMEROS, grandes; debajo,
+   de dónde a dónde, en gris y pequeño; y al pie, en qué se viaja. El orden es el
+   de la pregunta: cuánto tardo, por dónde, en qué.
+
+   La caja con borde se va: separaba la cabecera del resto como si fuera otra
+   cosa, y es el encabezado de lo que viene debajo. Lo que separa ahora es el
+   tamaño de la letra, que separa mejor y no gasta una línea. */
+.ruta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+}
+
+/* El titular: el `text-2xl font-bold` de la maqueta. Las cifras tabulares no
+   son estética — «7,9 km · ~48 min» cambia de dígitos en cada búsqueda, y sin
+   ellas el punto medio baila de sitio entre una ruta y la siguiente. */
+.ruta__titular {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: baseline;
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.ruta__separador {
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+/* Los dos extremos, en una línea con la flecha en medio. Envuelve porque dos
+   nombres de calle de Zaragoza no caben en 390 px, y al envolver la flecha se
+   queda con el que le toque — que sigue diciendo el sentido. */
+.ruta__extremos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.4rem;
+  align-items: center;
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.ruta__punto {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.ruta__flecha {
+  flex: none;
+  color: var(--muted-foreground);
+}
+
+/* La lista no lleva números: el número lo pone la flecha, que dice además qué
+   hay que hacer. Un «3.» al lado de un ↰ es ruido. */
+.pasos__lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ⭐ EL PASO, EN TRES COLUMNAS (12/09) — y antes era una fila que envolvía.
+
+   [maqueta `RouteResult.tsx`] el carril con el círculo y el hilo · el cuerpo con
+   todo lo que se lee · y la distancia a la derecha.
+
+   ⚠️ Aquí había un `flex-wrap` con una razón escrita: era lo que le daba su
+      propia línea al botón «Próximo bus». Ya no hace falta y por eso se va —el
+      cuerpo es una COLUMNA, así que el botón cae debajo del texto por
+      construcción, no por un envoltorio que se calcula—. Y la nota ámbar, que
+      antes peleaba con él por el sitio, cae también debajo. Lo que era un efecto
+      lateral ahora es la estructura.
+
+   `align-items: stretch` es lo que le da al carril el alto de la fila entera:
+   sin él el hilo no tendría contra qué estirarse y los círculos quedarían
+   sueltos, sin coser. */
+.paso {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+/* ⭐ EL PASO SE ENCIENDE AL POSARSE ENCIMA [ANTONIO, 12/09].
+
+   ⚠️ **Bajo `@media (hover: hover)` y no suelto**, que es la doctrina de la
+      casa desde la tanda 2: [DOC MDN · Media Queries 4] en un táctil no hay
+      mecanismo de apuntar, y un `:hover` allí se queda pegado tras el toque —el
+      paso se quedaría encendido hasta que se tocara otro.
+
+   ⚠️ Y EL COLOR ES PRESTADO, se declara: `--banda-cabecera` es el slate-200 que
+      Antonio fijó el 11/09 como «el gris que SÍ se ve sobre la tarjeta».
+      `--muted` sería el token natural para un realce suave y aquí NO sirve —es
+      slate-50 desde la 1-bis y da 3 puntos de 255 sobre la tarjeta, la misma
+      trampa de la banda y del hueso—. Si esto merece token propio, es decisión
+      de Antonio; hoy toma prestado el único nivel medido de esta casa.
+
+   El gemelo del teclado va con `:focus-visible` y no con `:focus`: al paso solo
+   se llega POR PROGRAMA desde el resumen de avisos, y [DOC MDN] el navegador
+   decide por la modalidad de la última interacción — quien llegó pulsando
+   Intro en el enlace ve el realce; quien llegó con el ratón, no, porque ya
+   tiene el suyo. */
+@media (hover: hover) {
+  .paso:hover {
+    background-color: var(--banda-cabecera);
+  }
+}
+
+
+/* El carril: el círculo arriba y el hilo colgando hasta el siguiente. Su ancho
+   es el del círculo, así que todos los cuerpos empiezan en la misma columna sin
+   que nadie reserve nada a mano. */
+.paso__carril {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  width: 2rem;
+}
+
+/* ⭐ El círculo de 32 con la maniobra dentro.
+
+   `--primary` al 10 % es literal de la maqueta (`bg-primary/10`), y se escribe
+   con `color-mix` sobre el token en vez de con un hex nuevo: si un día el azul
+   de la casa cambia, esto cambia con él. El dibujo va a `--primary` entero, así
+   que lo que hay que ver —el icono— va a tinta plena sobre un fondo casi blanco;
+   el disco es solo el sitio donde se posa. */
+.paso__circulo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+
+.paso__hilo {
+  flex: 1;
+  width: 2px;
+  min-height: 0.5rem;
+  background-color: var(--border);
+}
+
+/* ⭐ LA FILA: el cuerpo y la distancia, con la raya al pie de los dos.
+
+   La raya vivía en el cuerpo y por eso acababa donde acabase el texto — tres
+   finales distintos medidos en un solo viaje. Sube aquí, que es lo que abarca
+   la fila entera menos el carril: mismo arranque, mismo final, y sin cruzar el
+   hilo, que es la razón por la que no está en el `.paso` a secas. */
+.paso__fila {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 1rem;
+  align-items: flex-start;
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.paso:last-child .paso__fila {
+  border-bottom: none;
+}
+
+/* El cuerpo: una columna.
+
+   ⚠️ **NADA DE AQUÍ DENTRO SE ENCOGE**, y no es precaución: es la lección del
+      solape del 12/09. En una columna flex, `flex-shrink` reparte por el ALTO,
+      así que un hijo con la base mal puesta no desborda visiblemente — encoge
+      su caja y pinta fuera de ella, encima del vecino. Con `flex: none` en
+      todos, el cuerpo mide lo que suman y el desbordamiento no puede empezar. */
+.paso__cuerpo > * {
+  flex: none;
+}
+
+.paso__cuerpo {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 0.3rem 0 1rem;
+}
+
+.paso:last-child .paso__cuerpo {
+  padding-bottom: 0.3rem;
+}
+
+/* ⭐ El icono de capa de las dos puntas.
+
+   ⚠️ Aquí reservaba 1 rem EN TODOS LOS PASOS aunque solo lo llenaran dos, y la
+      razón escrita era la alineación: sin la reserva, la salida y la llegada
+      empezaban más a la derecha que el resto. Con el carril esa razón se cayó
+      sola —quien alinea ahora es el círculo, que sí lo llevan todos—, así que la
+      columna fantasma se va y el icono se pega a su texto, que es donde dice
+      algo. */
+.paso__capa:empty {
+  display: none;
+}
+
+.paso__capa {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.35rem;
+  vertical-align: -0.15em;
+}
+
+.paso__texto {
+  line-height: 1.4;
+}
+
+/* La acción y el nombre de la vía, destacados — el formato de Google. El
+   navegador ya pone negrita a `strong`; el peso se declara aquí para que no
+   dependa de la hoja de estilo de nadie, y el color para que la negrita no
+   grite: lo que separa es el peso, no el tono. */
+.paso__texto strong {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* La distancia, tercera columna. `text-right` para que las unidades queden
+   alineadas entre sí, y tabular para que los dígitos no bailen — es la misma
+   razón que en el titular, y aquí se nota más porque hay una por paso.
+
+   ⭐ Y EL ANCHO ES FIJO, no el del texto: la columna existe en todos los pasos
+      aunque esté vacía, y así los cuerpos acaban todos en el mismo filo. Los
+      3,5 rem salen de la cadena más larga que `comoSeLeenLosMetros` puede
+      escribir —«12,3 km», siete caracteres— con el cuerpo de letra de aquí. */
+.paso__metros {
+  flex: none;
+  width: 3.5rem;
+  padding-top: 0.3rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ⭐ LA NOTA JUNTO AL HITO (30/08). El mismo ámbar del banner de arriba, porque
+   es el mismo aviso dicho en el otro sitio: si se vistiera distinto parecerían
+   dos problemas.
+
+   [GOV.UK *warning text*] el componente es **icono + texto**, y sus criterios
+   de aceptación piden ≥4,5:1. Medido: #7c3d00 sobre #fff4e5 da **7,65:1**, y
+   sobre el blanco de la lista **8,32:1**.
+
+   ⚠️ Va **al lado** de la indicación, no debajo: `.paso` es un `flex`, así que
+   la nota es un hermano más y se coloca a la derecha del texto. Es lo que se
+   pidió —la nota en el propio paso— y encaja porque los dos pasos de hito son
+   justamente los que **no llevan metros** (valen 0 y no se escriben), de modo
+   que no hay nada a la derecha con lo que pelearse. En pantallas estrechas el
+   texto del paso se parte en dos líneas para dejarle sitio, y se prefiere eso
+   a que la advertencia se vaya lejos del hito que explica. */
+.paso__nota {
+  /* A lo ancho del cuerpo: es una caja, y media caja parece un recorte. */
+  align-self: stretch;
+  margin-top: 0.3rem;
+  padding: 0.35rem 0.5rem;
+  border-left: 3px solid var(--warning-border);
+  font-size: 0.9em;
+}
+
+/* El icono ya no es una letra en negrita: es un dibujo, y se alinea con la
+   primera línea del texto en vez de con su línea base. */
+.paso__nota-icono {
+  flex: none;
+  margin-right: 0.35rem;
+  vertical-align: -0.2em;
+}
+
+/* ⭐ EL AIRE ENTRE EL CHIP Y LO QUE VIENE DETRÁS.
+
+   Medido a cero: el chip y la primera letra se tocaban, y «35Sube a la línea
+   35» se lee como una palabra rara antes de leerse como una insignia y un
+   verbo. El paso es el `gap-2` de la referencia —`RouteResult.tsx` lo usa entre
+   el rótulo «Se viaja en» y sus chips—, o sea 0,5 rem.
+
+   Va como margen y no como `gap` porque el chip vive dentro de un párrafo en
+   línea, no de una caja flexible: aquí quien separa es el margen. */
+.paso__frase .chip-linea {
+  margin-right: 0.5rem;
+}
+
+/* El reloj de arena del botón vivo, ahora que es un dibujo y no un carácter. */
+.vivo__tarda {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -0.2em;
+}
+
+/* ⭐ EL CHIP DE LA LÍNEA vive en `src/styles.css`, no aquí.
+
+   Como `.boton` y como el hueso: la insignia de una línea no sabe nada de
+   rutas —es un número sobre su color, y su doctrina entera vive en `chip.ts`—,
+   así que su forma es lenguaje del sistema. Y la usan ya dos sitios: la leyenda
+   de la cabecera y el paso donde se sube.
+
+   ⚠️ El empujón, otra vez, fue el presupuesto `anyComponentStyle`: 8 kB de
+      error y esta hoja lo pasó por 407 bytes al entrar el timeline. La raya no
+      se ha tocado; lo que se mueve es lo que no tenía por qué estar aquí. Es la
+      segunda vez en la misma tanda, y eso ya es un dato: ver el checkpoint. */
+
+/* La leyenda del viaje: «Se viaja en [29] [TRA]». */
+.ruta__lineas {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0;
+}
+
+.ruta__lineas-rotulo {
+  color: #555;
+  font-size: 0.9em;
+}
+
+/* ⭐ EL INDICADOR DE QUE SE ESTÁ TRABAJANDO. Sobrio a propósito: aparece a
+   partir del segundo y desaparece solo, así que no debe llamar más la atención
+   que el resultado que está a punto de llegar.
+
+   ⚠️ Aquí vivía además `.esperando__rueda`, y se ha ido con el hueso (12/09):
+      el hueso ya late, y dos movimientos a la vez para decir lo mismo es ruido.
+      El `@keyframes gira` que usaba SIGUE VIVO — lo comparte `.ubicacion__rueda`
+      del formulario, que no tiene hueso ninguno. */
+.esperando {
+  margin: 1rem 0 0;
+  color: var(--muted-foreground);
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+/* ⭐ EL HUESO DE LA CARGA vive en `src/styles.css`, no aquí.
+
+   No es un capricho de sitio: es que el hueso no sabe nada de rutas. Dibuja
+   «contenido que todavía no ha llegado» y eso es lenguaje del sistema, igual
+   que `.boton` o `.caja` — la nota de `.generar`, unas líneas más abajo, ya
+   decía que el vestido común vive en la hoja global.
+
+   ⚠️ Y hubo un empujón: el presupuesto `anyComponentStyle` de `angular.json`
+      tiene el error en 8 kB y esta hoja lo pasó por 275 bytes al entrar los
+      cuatro estados. La raya NO se ha tocado —ni ésa ni la del inicial—: lo que
+      se movió fue lo que no tenía por qué estar aquí. */
+
+@keyframes gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ⭐ LA REVELACIÓN PROGRESIVA DEL DESVÍO (31/08).
+
+   El botón va **dentro de la frase**, no debajo: es la continuación de lo que
+   se está leyendo —«la 35 va hoy desviada · detalles»— y ponerlo aparte lo
+   convertiría en una acción suelta que no se sabe de qué habla.
+
+   Subrayado y en el color del propio aviso, que es como se lee un disparador
+   de texto en las guías. Y el foco se ve: [WCAG 2.4.7] el indicador de foco
+   del navegador no se quita, se refuerza — quien navega con el tabulador tiene
+   que saber dónde está. */
+.detalles {
+  padding: 0;
+  margin-left: 0.4rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .detalles:hover {
+    text-decoration: none;
+  }
+}
+
+.detalles:focus-visible {
+  outline: 2px solid var(--warning-dark);
+  outline-offset: 2px;
+}
+
+/* El detalle, en su propia línea: es una enumeración larga y leerla a
+   continuación de la frase la haría parecer parte de ella.
+
+   ⚠️ Y va con `:not([hidden])`, que no es adorno: `[hidden] { display: none }`
+   es una regla del navegador y pesa lo mismo que una clase, así que un
+   `display: block` a secas la pisa por ir después — y el detalle se quedaba a
+   la vista con el atributo puesto y todo. Entrada del 31/08 en
+   `docs/BITACORA.md`. Con el `:not` la regla pesa más Y no llega a aplicarse
+   mientras está oculto: las dos cosas, y ni un `!important`. */
+.detalles__cuerpo:not([hidden]) {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+/* ⭐ EL BOTÓN «PRÓXIMO BUS» Y SU REGIÓN DE ESTADO (1/09).
+
+   El botón es un chip: pequeño, al lado de su paso y sin peso de acción
+   principal — la principal sigue siendo «Generar ruta», y dos botones que
+   pesaran igual competirían.
+
+   ⚠️ El foco se ve, y se ve SIEMPRE [WCAG 2.4.7]: el botón no se deshabilita
+      durante la carga precisamente para no perderlo, así que quitarle el
+      contorno lo desharía todo. */
+.vivo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  /* ⚠️ **AQUÍ PONÍA `flex: 1 0 100%` Y ESO REVENTÓ EL PASO ENTERO** (12/09).
+
+     Estaba escrito cuando `.paso` era una FILA que envolvía: allí el eje
+     principal era horizontal y `flex-basis: 100%` significaba «una línea
+     entera para mí», que era justo lo que se quería. Desde que el cuerpo del
+     paso es una COLUMNA, ese mismo `100%` es el ALTO — pide el contenedor
+     entero y encima crece—, así que el cuerpo se quedó en 194 px con 331 de
+     contenido y el botón vivo y la nota ámbar se dibujaron ENCIMA del paso
+     siguiente. Medido con la sonda: hijos hasta el píxel 960 dentro de una
+     caja que acababa en el 827.
+
+     Ninguna jueza lo cazó y no es raro: todas medían cajas —círculo, hilo,
+     tokens— y ninguna preguntaba si una caja se sale de su padre. Esa jueza
+     entra ahora.
+
+     `align-self: stretch` es lo que le devuelve el ancho entero, que es lo que
+     el `100%` le daba de verdad; y la sangría de 2,2rem se va porque apuntaba
+     a la columna de la flecha, que ya no existe: ahora quien sangra es el
+     carril. */
+  flex: none;
+  align-self: stretch;
+  margin: 0.35rem 0 0;
+}
+
+.vivo__boton {
+  flex: none;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid #64748b;
+  border-radius: 999px;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .vivo__boton:hover {
+    background: #f1f5f9;
+  }
+}
+
+.vivo__boton:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+/* ⭐ LA REGIÓN, y **nunca `display: none`** — ni siquiera vacía (1/09).
+
+   Aquí había `.vivo__estado:empty { display: none }`, puesto para que una
+   región vacía no reservara sitio. Medido con Chrome: la región vacía quedaba
+   en `display: none` y **fuera del árbol de accesibilidad** —dos nodos
+   `role=status` con ella vacía, tres al darle texto—, así que para un lector
+   de pantalla no era una región viva que cambia, sino una que aparece ya
+   escrita. Y eso es exactamente lo que [WCAG 4.1.3] dice que no se anuncia.
+   Ver la entrada del 1/09 en `docs/BITACORA.md`.
+
+   No hacía falta: un `<span>` vacío ya no ocupa ancho ni alto, y el `gap` del
+   `.vivo` no se aplica a una caja de cero. */
+.vivo__estado {
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.vivo__tarda {
+  font-size: 0.85rem;
+}
+
+.resumen__icono {
+  flex: none;
+  margin-right: 0.35rem;
+  vertical-align: -0.2em;
+}
+
+.resumen__titulo {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.resumen__lista {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.resumen__linea + .resumen__linea {
+  margin-top: 0.2rem;
+}
+
+/* El enlace hereda el ámbar del texto y se distingue por el subrayado, no por
+   el color [WCAG 1.4.1]. Un azul aquí dentro rompería el bloque y encima
+   habría que medirle el contraste contra el fondo ámbar. */
+.resumen__enlace {
+  color: inherit;
+}
+
+@media (hover: hover) {
+  .resumen__enlace:hover {
+    text-decoration: none;
+  }
+}
+
+.resumen__enlace:focus-visible {
+  outline: 2px solid var(--warning-dark);
+  outline-offset: 2px;
+}
+
+/* ⚠️ Y el destino del enlace **no dibuja anillo al recibir el foco**: lo recibe
+   por programa (`tabindex="-1"`), no por tabulación, y un recuadro alrededor
+   del paso entero al llegar de un enlace se lee como si algo se hubiera
+   seleccionado. Lo que tiene que ver quien llega es el paso, y para eso ya
+   sirve el salto. */
+.paso:focus {
+  outline: none;
+}
+
+/* Pero si alguien llega con el TECLADO —que aquí no puede, y mañana quién
+   sabe— el anillo vuelve: `:focus-visible` es el navegador decidiendo que el
+   foco hay que verlo.
+
+   ⚠️ Y desde el 12/09 lleva TAMBIÉN el fondo del hover, que es el gemelo que
+      pidió Antonio: quien llega con el teclado tiene que ver lo mismo que
+      quien pasa el ratón. Estuvo un rato escrito dos veces —una regla nueva
+      arriba y ésta— y la de arriba perdía el `outline` contra ésta por orden
+      de aparición: dos reglas para un mismo selector es una que manda y otra
+      que engaña. Se funden aquí, que es donde vive el porqué. */
+.paso:focus-visible {
+  background-color: var(--banda-cabecera);
+  outline: 2px solid #1a1a1a;
+  outline-offset: -2px;
+}
+
+/* ⭐ EL ATAJO A LA OTRA ZONA, junto al hito 🅿 (4/09).
+
+   **La anatomía es la del botón «Próximo bus»**, y no por parecido: es el mismo
+   problema. Un añadido de ESE paso que necesita su propia línea —el `flex-wrap`
+   de `.paso`— pero que **no debe ocupar el ancho entero**: un botón de borde a
+   borde se lee como la acción principal de la pantalla, y la principal es
+   «Generar ruta». Así que la línea la pone el `span` (`flex: 1 0 100%`) y el
+   botón se ajusta a su texto (`flex: none`), con los mismos 2,2rem de sangría
+   que alinean el añadido con el texto del paso y no con la flecha.
+
+   El foco no se quita: se refuerza [WCAG 2.4.7]. Y el botón no se distingue
+   solo por el color — tiene borde y forma de botón [WCAG 1.4.1]. */
+.sugerencia {
+  display: flex;
+  /* ⚠️ **LAS MISMAS DOS DECLARACIONES QUE REVENTARON EL PASO EN LA nº49**, y
+     aquí sobrevivieron unas horas más porque ninguna jueza pasaba por esta
+     ruta: el atajo solo existe en coche CON zona de aparcamiento elegida, y la
+     P18 y el resto del timeline corren sobre el bus.
+
+     Del `flex: 1 0 100%` nos salvó algo que conviene tener escrito, porque es
+     LO CONTRARIO de la trampa que ha mordido cinco veces en esta casa: Angular
+     no deja el universal de `.paso__cuerpo > *`, lo reescribe como
+     `.paso__cuerpo[_ng] > [_ng]` —(0,3,0)— y eso gana a `.sugerencia[_ng]`,
+     que es (0,2,0). Preguntado a la página, no deducido. Aun así la
+     declaración se va: una que no se aplica parece que manda.
+
+     La sangría no la salvó nadie — 35 px medidos, apuntando a la columna de la
+     flecha, que ya no existe. Quien sangra ahora es el carril. */
+  flex: none;
+  align-self: stretch;
+  margin: 0.35rem 0 0;
+}
+
+.sugerencia__boton {
+  flex: none;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid #64748b;
+  border-radius: 999px;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .sugerencia__boton:hover {
+    background: #f1f5f9;
+  }
+}
+
+.sugerencia__boton:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}

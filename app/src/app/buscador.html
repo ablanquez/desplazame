@@ -997,6 +997,19 @@
                         <span class="paso__hilo" aria-hidden="true"></span>
                       }
                     </span>
+                    <!-- ⭐ LA FILA (12/09, la ronda del ojo): el cuerpo y la
+                         distancia bajo un mismo techo, y **la raya en el techo**.
+
+                         ⚠️ La raya la llevaba el cuerpo, y por eso acababa donde
+                            acabase el texto: medido, tres finales distintos —476,52,
+                            527 y 467,45— según el paso trajera distancia y de cuántas
+                            cifras. Una raya que cambia de largo en cada renglón se lee
+                            como tres listas pegadas, no como una.
+
+                         Aquí arranca donde arranca la columna de texto y acaba en el
+                         borde derecho de la fila, igual en todos. Y no cruza el
+                         carril: el hilo pasa por delante y un filete lo partiría. -->
+                    <span class="paso__fila">
                     <span class="paso__cuerpo">
                     <!-- ⭐ Y EN LAS DOS PUNTAS, el icono de su extremo, igual que en
                          la cabecera.
@@ -1195,13 +1208,21 @@
                       </span>
                     }
                     </span>
-                    <!-- La distancia, en su propia columna a la derecha [maqueta]. El
-                         paso de llegada no abre tramo: lleva 0 y no se escribe, y
-                         entonces la columna queda vacía — que es lo correcto: no hay
-                         nada que decir. -->
-                    @if (paso.metros > 0) {
-                      <span class="paso__metros">{{ enMetros(paso.metros) }}</span>
-                    }
+                    <!-- ⭐ LA DISTANCIA, EN UNA COLUMNA QUE SIEMPRE ESTÁ [maqueta].
+
+                         ⚠️ Antes el `@if` se comía la columna entera cuando el paso no
+                            traía distancia —los hitos valen 0 y no la escriben—, y
+                            entonces el cuerpo se estiraba a ocupar su sitio: medido,
+                            cinco de nueve pasos sin columna y los cuerpos acabando en
+                            tres filos distintos. El hueco se RESERVA y se queda vacío,
+                            que es lo correcto: no hay nada que decir, pero el sitio
+                            donde no se dice sigue siendo el mismo. -->
+                    <span class="paso__metros">
+                      @if (paso.metros > 0) {
+                        {{ enMetros(paso.metros) }}
+                      }
+                    </span>
+                    </span>
                   </li>
                 }
               </ol>

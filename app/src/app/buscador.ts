@@ -724,7 +724,9 @@ function familiaDe(modo: Modo): Familia {
   selector: 'app-buscador',
   imports: [Mapa, AutocompletarVia, SelectorPortal, IconoCapa, NgTemplateOutlet, Simbolo],
   templateUrl: './buscador.html',
-  styleUrl: './buscador.css',
+  // Dos hojas para un mismo componente: el formulario y la pintura del
+  // resultado. El porqué, entero, en la cabecera de `resultado.css`.
+  styleUrls: ['./buscador.css', './resultado.css'],
 })
 export class Buscador {
   // ══════════════════════════════════════════════════════════════════════════
