@@ -1361,7 +1361,12 @@ function flechasEnPantalla(raiz: HTMLElement): string[] {
  *    ha podido preguntar; los otros los escribe el motor sobre el viaje.
  */
 function avisosDeRuta(raiz: HTMLElement): string[] {
-  return Array.from(raiz.querySelectorAll<HTMLElement>('.aviso-ruta')).map(
+  // ⚠️ Era `.aviso-ruta` hasta el 12/09, que era una tira ámbar arriba del
+  //    panel. Ahora el error del motor es uno de los cuatro estados de cuerpo
+  //    entero y se llama `.pasos__error`: mismo mensaje, misma paleta, otra
+  //    forma. Lo que se lee sigue siendo el texto, así que las compras de
+  //    abajo no cambian.
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.pasos__error')).map(
     (a) => a.textContent?.trim() ?? '',
   );
 }
@@ -3655,6 +3660,17 @@ describe('Buscador', () => {
     // Todavía no ha pasado un segundo: no hay nada que anunciar.
     expect(raiz.querySelector('.esperando')).toBeNull();
 
+    // ⭐ PERO LA REGIÓN YA ESTÁ AHÍ, Y VACÍA (12/09) — [WCAG 4.1.3 · ARIA19].
+    //
+    // ⚠️ Hasta hoy el `@if` envolvía al elemento con el papel, así que la
+    //    región nacía CON su mensaje dentro. Un lector de pantalla anuncia el
+    //    CAMBIO de una región que ya estaba observando; una que aparece entera
+    //    no cambió nunca — se ve y no se oye. El gemelo de esto vive en la P14
+    //    de `e2e/pintura.mjs`, medido sobre la pantalla pintada.
+    const region = raiz.querySelector('.pasos [role="status"]');
+    expect(region).not.toBeNull();
+    expect(region?.textContent?.trim()).toBe('');
+
     // La respuesta se hace esperar de verdad — sin relojes de mentira.
     const peticiones = http.match('/api/ruta');
     await new Promise((r) => setTimeout(r, 1100));
@@ -3662,9 +3678,11 @@ describe('Buscador', () => {
     const aviso = raiz.querySelector('.esperando');
     expect(aviso).not.toBeNull();
     // [WAI-ARIA] `status` es una región viva de cortesía: se anuncia sin
-    // interrumpir. Sin rol, un lector de pantalla no se entera de que apareció.
-    expect(aviso?.getAttribute('role')).toBe('status');
-    expect(aviso?.textContent).toContain('Avanza');
+    // interrumpir. El papel ya no lo lleva el párrafo sino LA REGIÓN de arriba,
+    // que es la que estaba puesta antes del mensaje; lo que se compra aquí es
+    // que el texto haya caído DENTRO de ella, que es lo que la hace hablar.
+    expect(region?.contains(aviso!)).toBe(true);
+    expect(region?.textContent).toContain('Avanza');
 
     // Y al llegar la respuesta se retira.
     drenarRutas(peticiones, () => VIAJE_EN_BUS_SIN_LA_29);

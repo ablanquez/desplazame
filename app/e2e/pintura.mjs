@@ -1326,36 +1326,6 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       cargando.colores.join(' | '),
     );
 
-    // ⭐ Y QUE EL HUESO SE VEA, QUE ES LA LECCIÓN DE LA BANDA (11/09).
-    //
-    // ⚠️ **La maqueta dice `bg-muted` y aquí eso no vale.** `--muted` de esta
-    //    casa es `slate-50` desde la tanda 1-bis: medido sobre la tarjeta
-    //    blanca da **3 puntos de 255**, que es el mismo error exacto que Antonio
-    //    rechazó en las cabeceras del acordeón —«2 puntos de 255», invisible—.
-    //    Un hueso que no se ve no es un hueso: es una pausa en blanco.
-    //
-    // Por eso la vara no es un token concreto: es EL MISMO SUELO que él fijó
-    // para la banda. Si un día alguien devuelve el hueso a `--muted`, esto
-    // muerde con el número delante.
-    const huesoPintado = await contrasteSiEsta(m, '.hueso__caja', { minimo: 40 });
-    const superficieDelHueso = await contrasteSiEsta(m, '.cabecera', { indice: 0 });
-    const separacionDelHueso =
-      huesoPintado === null || superficieDelHueso === null
-        ? -1
-        : Math.max(
-            Math.abs(huesoPintado.fondo.r - superficieDelHueso.fondo.r),
-            Math.abs(huesoPintado.fondo.g - superficieDelHueso.fondo.g),
-            Math.abs(huesoPintado.fondo.b - superficieDelHueso.fondo.b),
-          );
-    juzgar(
-      separacionDelHueso >= MINIMO_DE_SEPARACION,
-      'P14 · ⭐ y SE VE sobre la tarjeta — el suelo de la banda, no el `--muted` de la maqueta',
-      separacionDelHueso < 0
-        ? `(no hay hueso que medir) · --muted habría dado: ${cargando.muted}`
-        : `${separacionDelHueso} puntos de 255 (suelo ${MINIMO_DE_SEPARACION}) · ` +
-          `hueso ${enRgb(huesoPintado.fondo)} sobre ${enRgb(superficieDelHueso.fondo)} · ` +
-          `--muted habría dado: ${cargando.muted}`,
-    );
     juzgar(
       cargando.mueve !== null && cargando.mueve !== 'none',
       'P14 · y late — el pulso de la maqueta, que es lo que dice que está vivo',
@@ -1388,6 +1358,73 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       'P14 · ⭐ con `prefers-reduced-motion: reduce` el hueso sigue, y se para',
       `sigue: ${quieto.hay} · animation-name: ${quieto.mueve}`,
     );
+
+    // ⭐ Y QUE EL HUESO SE VEA, QUE ES LA LECCIÓN DE LA BANDA (11/09).
+    //
+    // ⚠️ **La maqueta dice `bg-muted` y aquí eso no vale.** `--muted` de esta
+    //    casa es `slate-50` desde la tanda 1-bis: medido sobre la tarjeta blanca
+    //    da **3 puntos de 255**, el mismo error exacto que Antonio rechazó en
+    //    las cabeceras del acordeón —«2 puntos de 255», invisible—. Un hueso que
+    //    no se ve no es un hueso: es una pausa en blanco. Por eso la vara no es
+    //    un token concreto sino EL MISMO SUELO que él fijó para la banda.
+    //
+    // ⚠️ **Y SE MIDE AQUÍ, CON EL LATIDO PARADO, y eso costó un rojo.** La
+    //    primera versión medía en mitad de la carga y la captura pillaba el
+    //    pulso a media bajada: el color declarado era `rgb(226, 232, 240)`
+    //    —slate-200, sus 29 puntos— y el píxel devolvía `rgb(238, 242, 246)`,
+    //    17 puntos. No mentía la pintura: mentía el instante. Una jueza que mide
+    //    un fotograma al azar de una animación de 2 s da verde o rojo según
+    //    cuándo se lance, y eso no es una jueza. El `prefers-reduced-motion` que
+    //    la línea de arriba acaba de encender deja el hueso quieto y opaco, que
+    //    es su estado de reposo: ahí sí hay un número que significa algo.
+    const huesoPintado = await contrasteSiEsta(m, '.hueso__caja', { minimo: 40 });
+    const superficieDelHueso = await contrasteSiEsta(m, '.cabecera', { indice: 0 });
+    const separacionDelHueso =
+      huesoPintado === null || superficieDelHueso === null
+        ? -1
+        : Math.max(
+            Math.abs(huesoPintado.fondo.r - superficieDelHueso.fondo.r),
+            Math.abs(huesoPintado.fondo.g - superficieDelHueso.fondo.g),
+            Math.abs(huesoPintado.fondo.b - superficieDelHueso.fondo.b),
+          );
+    juzgar(
+      separacionDelHueso >= MINIMO_DE_SEPARACION,
+      'P14 · ⭐ y EN REPOSO SE VE — el suelo de la banda, no el `--muted` de la maqueta',
+      separacionDelHueso < 0
+        ? `(no hay hueso que medir) · --muted habría dado: ${cargando.muted}`
+        : `${separacionDelHueso} puntos de 255 (suelo ${MINIMO_DE_SEPARACION}) · ` +
+          `hueso ${enRgb(huesoPintado.fondo)} sobre ${enRgb(superficieDelHueso.fondo)} · ` +
+          `--muted habría dado: ${cargando.muted}`,
+    );
+
+    // ⭐ Y CUÁNTO SE APAGA EL LATIDO EN SU PUNTO MÁS BAJO, que es lo que aquel
+    //    rojo destapó: el hueso no vale lo mismo todo el rato. Se lee del
+    //    fotograma del 50 % —no se deduce— y se compra que no baje de la mitad.
+    //    Por debajo, el pulso deja de ser un latido y se convierte en un
+    //    parpadeo hacia el blanco, que es justo lo que la banda enseñó a no
+    //    hacer. El número va al acta con su cuenta hecha.
+    const fondo = await m.evaluar(`(() => {
+      for (const hoja of document.styleSheets) {
+        let reglas; try { reglas = hoja.cssRules; } catch { continue; }
+        for (const r of reglas) {
+          if (r.type === CSSRule.KEYFRAMES_RULE && r.name === 'latido') {
+            for (const k of r.cssRules) {
+              if (k.keyText === '50%') return parseFloat(k.style.opacity);
+            }
+          }
+        }
+      }
+      return null;
+    })()`);
+    juzgar(
+      fondo !== null && fondo >= 0.5,
+      'P14 · y el latido no se apaga del todo: su fotograma más bajo, declarado',
+      fondo === null
+        ? '(no se encuentra el @keyframes `latido`)'
+        : `opacidad ${fondo} en el 50 % · el hueso pasa por ` +
+          `${Math.round(separacionDelHueso * fondo)} puntos en lo más bajo del pulso`,
+    );
+
     await m.cdp('Emulation.setEmulatedMedia', { features: [] });
 
     // Que la respuesta llegue, y la red vuelva a la normalidad.

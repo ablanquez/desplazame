@@ -142,7 +142,7 @@ try {
   const rotos = await m.evaluar(`(() => {
     const t = document.body.innerText;
     const sitios = [];
-    for (const li of document.querySelectorAll('.paso, .aviso-ruta, .ruta__punto, .chip-linea')) {
+    for (const li of document.querySelectorAll('.paso, .pasos__error, .ruta__punto, .chip-linea')) {
       if (li.textContent.includes('\\uFFFD')) sitios.push(li.textContent.replace(/\\s+/g, ' ').trim().slice(0, 90));
     }
     return { cuantos: (t.match(/\\uFFFD/g) ?? []).length, sitios };
