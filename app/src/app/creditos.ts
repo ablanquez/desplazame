@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Simbolo } from './simbolos';
 
 /**
  * ⭐ LA PÁGINA DE CRÉDITOS (10/09, remate 2 de la tanda 3).
@@ -40,5 +41,6 @@ import { Component } from '@angular/core';
   selector: 'app-creditos',
   templateUrl: './creditos.html',
   styleUrl: './creditos.css',
+  imports: [Simbolo],
 })
 export class Creditos {}

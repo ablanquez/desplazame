@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
+import { REJILLA, SIMBOLOS, type NombreDeSimbolo } from './simbolos';
 import { contraste, AA_GRAFICO, PLANO_MAS_CLARO, PLANO_MAS_OSCURO } from './contraste';
 // El vértice lo define el contrato, no este componente: es la misma forma que
 // el motor devolverá en la geometría de un trayecto.
@@ -359,27 +360,41 @@ export function ribeteDe(color: string): string {
 }
 
 /**
- * ⭐ EL GLIFO DE CADA HITO, y son los MISMOS que la lista de pasos.
+ * ⭐ EL SÍMBOLO DE CADA HITO, y son los MISMOS que la lista de pasos.
  *
- * Que el mapa y las indicaciones usen el mismo carácter no es coquetería: quien
- * lee «🅿 Aparca en el aparcabicis de…» tiene que poder buscar esa misma marca
- * en el plano sin traducir nada. `🅿` es la P de aparcamiento encerrada, que es
- * la señal que hay en la calle; `🚲` es el vehículo que se toma.
+ * Que el mapa y las indicaciones usen el mismo dibujo no es coquetería: quien
+ * lee «Aparca en el aparcabicis de…» con la P del aparcamiento al lado tiene que
+ * poder buscar esa misma marca en el plano sin traducir nada.
+ *
+ * ⚠️ **Aquí había cuatro caracteres Unicode** —`🚲 🅿 🚌 🚏`— y se van con la
+ *    tanda 5, a la vez que los quince de la lista. Tenían que irse JUNTOS: la
+ *    razón de esta tabla es que el plano y la lista digan lo mismo, así que
+ *    dejar aquí un emoji mientras la lista dibuja un SVG habría roto justo lo
+ *    que el guardián existe para proteger.
  *
  * `Record` exhaustivo por la misma razón de siempre: si el contrato añadiera un
  * hito, esta tabla dejaría de compilar en vez de dibujar un hueco.
  */
-export const GLIFO: Readonly<Record<NonNullable<TramoDelViaje['hito']>, string>> = {
-  coge: '🚲',
-  aparca: '🅿',
-  // Los dos del poste. Mismos caracteres que la lista de pasos, por lo mismo de
-  // siempre: quien lee «🚌 Sube a la 39…» busca esa marca en el plano.
-  sube: '🚌',
-  baja: '🚏',
+export const SIMBOLO_DEL_HITO: Readonly<
+  Record<NonNullable<TramoDelViaje['hito']>, NombreDeSimbolo>
+> = {
+  coge: 'pedal_bike',
+  aparca: 'local_parking',
+  // Los dos del poste. Mismos nombres que la lista de pasos, por lo mismo de
+  // siempre: quien lee «Sube a la 39…» busca esa marca en el plano.
+  sube: 'directions_bus',
+  baja: 'directions_walk',
 };
 
 /** El lado del icono de hito. Más pequeño que la chincheta: es una marca. */
 const LADO_DEL_HITO = 24;
+
+/**
+ * Y el del dibujo DENTRO del disco. No es el mismo número: el disco mide 24 y
+ * lleva 2 px de borde, así que un dibujo de 24 se comería el aro que lo hace
+ * legible sobre cualquier tesela. 14 deja el aire que tenía el glifo.
+ */
+const LADO_DEL_DIBUJO = 14;
 
 /**
  * Atribución de OpenStreetMap. Es obligación de la ODbL, no cortesía, y la
@@ -777,7 +792,15 @@ export class Mapa {
     const [lat, lon] = vertice;
     const marca = L.marker([lat, lon], {
       icon: L.divIcon({
-        html: `<span class="hito" aria-hidden="true">${GLIFO[hito]}</span>`,
+        // ⚠️ Leaflet quiere HTML en crudo, así que aquí no puede entrar
+        //    `app-simbolo`: el icono se compone a mano con el MISMO trazado que
+        //    dibuja el componente —`SIMBOLOS`, la única fuente— y la misma
+        //    rejilla. Lo que no se hace es copiar el trazado: se importa.
+        html:
+          `<span class="hito" aria-hidden="true">` +
+          `<svg viewBox="${REJILLA}" width="${LADO_DEL_DIBUJO}" height="${LADO_DEL_DIBUJO}" ` +
+          `fill="currentColor" focusable="false">` +
+          `<path d="${SIMBOLOS[SIMBOLO_DEL_HITO[hito]]}"/></svg></span>`,
         className: '',
         iconSize: [LADO_DEL_HITO, LADO_DEL_HITO],
         iconAnchor: [LADO_DEL_HITO / 2, LADO_DEL_HITO / 2],

@@ -16,19 +16,28 @@
   background: rgba(255, 255, 255, 0.9);
 }
 
-/* ⭐ EL ICONO DE HITO (30/08): el mismo carácter que la lista de pasos, sobre un
-   disco blanco. Sin el disco, un glifo oscuro sobre una calle oscura del mapa
-   base no se lee; con él, se lee sobre cualquier tesela. */
+/* ⭐ EL ICONO DE HITO (30/08): el mismo dibujo que la lista de pasos, sobre un
+   disco blanco. Sin el disco, una marca oscura sobre una calle oscura del mapa
+   base no se lee; con él, se lee sobre cualquier tesela.
+
+   ⚠️ Desde el 12/09 lo que va dentro es un `<svg>` y no un carácter, así que el
+      `font-size` que le daba tamaño al glifo ya no pinta nada: el lado lo pone
+      el propio SVG (`LADO_DEL_DIBUJO`). El `color` sí hace falta, porque el
+      trazado va en `currentColor`.
+
+   Los dos colores salen de los tokens: el mismo ámbar del resto de las malas
+   noticias no —esto no es un aviso—, sino el `--warning-border` que ya hacía de
+   aro, ahora dicho por su nombre. */
 :host ::ng-deep .hito {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   width: 24px;
   height: 24px;
+  border: 2px solid var(--warning-border);
   border-radius: 50%;
-  background: #fff;
-  border: 2px solid #b45309;
-  box-sizing: border-box;
-  font-size: 13px;
+  background: var(--card);
+  color: var(--warning-dark);
   line-height: 1;
 }

@@ -65,7 +65,12 @@
   font-size: 0.9em;
 }
 
+/* El enlace lleva ahora un dibujo delante: en línea, y con el hueco justo para
+   que la flecha no se pegue a la V. */
 .creditos-pagina__enlace {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
   color: inherit;
   text-decoration: underline;
 }

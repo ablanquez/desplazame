@@ -8,7 +8,7 @@
 | **Titular** | Google |
 | **Licencia** | Apache 2.0 — `LICENCIA-APACHE-2.0.txt`, al lado |
 | **Origen** | `https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/<nombre>/materialsymbolsoutlined/<nombre>_24px.svg` |
-| **Descargados** | 2026-09-10 los nueve primeros · 2026-09-11 los tres de la barra de pestañas · 2026-09-12 los quince de la pintura del resultado |
+| **Descargados** | 2026-09-10 los nueve primeros · 2026-09-11 los tres de la barra de pestañas · 2026-09-12 los quince de la pintura del resultado y `arrow_back` |
 | **Rejilla** | `viewBox="0 -960 960 960"` en todos, verificada al generarlos |
 
 Entran **sin tocarlos**: ni se han reoptimizado, ni recoloreado, ni
@@ -46,6 +46,7 @@ inyectarlo en línea con `fill="currentColor"`.
 | `arrow_forward.svg` | 171 B | la flecha origen→destino de la cabecera | `717c65e2e704a07b7b73e194b202858f52befbaa6dd363565a1d75d117c3a2aa` |
 | `warning.svg` | 295 B | el aviso ámbar del viaje | `0212c59cfa1e2da887b0b36c7d89886de94b019feaaba5c063ec8dc7d32be436` |
 | `cloud_off.svg` | 520 B | el estado de error del resultado | `11ca8b3892626b36ba03edccfed2c6a521f13e66ed3c626c234b8456ff1f983b` |
+| `arrow_back.svg` | 170 B | la vuelta al buscador desde la página de créditos | `bf55d4c9579f814d48fc03045f1098b1eb4d2f86f479dcc82c18ef521b957e62` |
 
 ## ⚠️ Por qué el dibujo está también en `app/src/app/simbolos.ts`
 
@@ -67,7 +68,7 @@ uno de los dos lados, la suite se pone roja.
 ## Por qué no la fuente variable
 
 La fuente oficial de Material Symbols existe y trae **miles** de iconos en
-~100 KB. Aquí hacen falta **veintisiete**. La portada se mide contra un presupuesto
+~100 KB. Aquí hacen falta **veintiocho**. La portada se mide contra un presupuesto
 que ya está en 509 kB, así que se paga lo que se usa y nada más — y, de paso,
 no se baja nada de ningún tercero en tiempo de ejecución, que es la misma ley
 que sacó a Inter del CDN de Google.

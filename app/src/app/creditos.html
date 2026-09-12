@@ -15,7 +15,13 @@
       aquí, a un enlace fijo desde cualquier pantalla.
     </p>
     <p class="creditos-pagina__volver">
-      <a class="creditos-pagina__enlace" href="/">← Volver al buscador</a>
+      <!-- ⚠️ El `←` era de texto (12/09). La letra no cambia —«Volver al
+           buscador»—; lo que cambia es que la flecha la dibuje el mismo juego que
+           el resto de la app y no la fuente que tenga cada sistema. -->
+      <a class="creditos-pagina__enlace" href="/">
+        <app-simbolo nombre="arrow_back" [lado]="16" />
+        Volver al buscador
+      </a>
     </p>
   </header>
 

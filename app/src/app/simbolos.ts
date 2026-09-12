@@ -69,7 +69,13 @@ export type NombreDeSimbolo =
   | 'transfer_within_a_station'
   | 'arrow_forward'
   | 'warning'
-  | 'cloud_off';
+  | 'cloud_off'
+  // ⭐ LA VUELTA DESDE CRÉDITOS (12/09). Es el último carácter que quedaba
+  //    haciendo de icono en toda la app: un `←` de texto en el enlace de
+  //    volver. Lo destapó el barrido de la P15 al ampliarse fuera del
+  //    buscador, y se baja en vez de dejarle una excepción a la jueza —una
+  //    jueza con una excepción declarada vale menos que una sin ninguna.
+  | 'arrow_back';
 
 /**
  * El trazado de cada símbolo, **copiado literal** de su `.svg` de
@@ -154,6 +160,9 @@ export const SIMBOLOS: Readonly<Record<NombreDeSimbolo, string>> = {
   // el aviso ámbar del viaje
   warning:
     'm40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm302-40q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm-40-120h80v-200h-80v200Zm40-100Z',
+  // la vuelta al buscador desde la página de créditos
+  arrow_back:
+    'm313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z',
   // el estado de error del resultado
   cloud_off:
     'M792-56 686-160H260q-92 0-156-64T40-380q0-77 47.5-137T210-594q3-8 6-15.5t6-16.5L56-792l56-56 736 736-56 56ZM260-240h346L284-562q-2 11-3 21t-1 21h-20q-58 0-99 41t-41 99q0 58 41 99t99 41Zm185-161Zm419 191-58-56q17-14 25.5-32.5T840-340q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-27 0-52 6.5T380-693l-58-58q35-24 74.5-36.5T480-800q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 39-15 72.5T864-210ZM593-479Z',
