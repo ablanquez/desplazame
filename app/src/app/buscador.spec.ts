@@ -2945,7 +2945,13 @@ describe('Buscador', () => {
     );
     expect(textos).toContain('Aparca en el aparcabicis de Calle Monasterio de la Rábida — 5 anclajes');
     const k = VIAJE_CON_REMATE.pasos.findIndex((p) => p.giro === 'aparca');
-    expect(raiz.querySelectorAll('.paso')[k]!.querySelector('.paso__metros')).toBeNull();
+    // ⚠️ La columna EXISTE aunque el hito no abra tramo (12/09): se reserva en
+    //    todos los pasos para que los cuerpos acaben en el mismo filo. Lo que
+    //    se compra sigue siendo lo mismo —que no se escriba un «0 m»—, y ahora
+    //    se dice mejor: el sitio está y está vacío.
+    expect(
+      raiz.querySelectorAll('.paso')[k]!.querySelector('.paso__metros')!.textContent!.trim(),
+    ).toBe('');
   });
 
   /**
@@ -2984,7 +2990,13 @@ describe('Buscador', () => {
     // Ninguno de los dos abre tramo, así que ninguno lleva metros.
     for (const giro of ['coge', 'aparca'] as const) {
       const k = VIAJE_EN_BIZI.pasos.findIndex((p) => p.giro === giro);
-      expect(raiz.querySelectorAll('.paso')[k]!.querySelector('.paso__metros')).toBeNull();
+      // ⚠️ La columna EXISTE aunque el hito no abra tramo (12/09): se reserva en
+      //    todos los pasos para que los cuerpos acaben en el mismo filo. Lo que
+      //    se compra sigue siendo lo mismo —que no se escriba un «0 m»—, y ahora
+      //    se dice mejor: el sitio está y está vacío.
+      expect(
+        raiz.querySelectorAll('.paso')[k]!.querySelector('.paso__metros')!.textContent!.trim(),
+      ).toBe('');
     }
   });
 

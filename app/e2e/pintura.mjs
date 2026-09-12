@@ -2250,6 +2250,81 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       `:focus-visible ${conFoco.visible} · fondo ${conFoco.fondo} (reposo ${enReposo})`,
     );
     await m.guardar(`${CAPTURAS}/paso-foco.png`);
+
+    // ═══════ P19-bis · LA RUTA QUE NINGUNA JUEZA PISABA ═══════
+    //
+    // ⭐ [12/09] Esto sale de leer la hoja, no de mirar la pantalla. `.sugerencia`
+    //    —el atajo «Sugerir zona naranja»— llevaba las MISMAS dos declaraciones
+    //    que reventaron el paso en la nº49: `flex: 1 0 100%` y una sangría de
+    //    2,2rem escritas para la fila que envolvía. Y ninguna jueza pasaba por
+    //    ahí: ese botón solo existe en coche CON zona de aparcamiento elegida, y
+    //    tanto la P18 como el resto del timeline corren sobre el bus.
+    //
+    // ⚠️ Del `flex` nos salvó algo que conviene tener escrito, porque es LO
+    //    CONTRARIO de la trampa que ha mordido cinco veces en esta casa: Angular
+    //    no reescribe `.paso__cuerpo > *` dejando el universal, lo reescribe
+    //    como `.paso__cuerpo[_ng] > [_ng]`, o sea (0,3,0), y eso GANA a
+    //    `.sugerencia[_ng]`, que es (0,2,0). Preguntado a la página, no deducido:
+    //    las dos reglas casan y la que manda es la del cuerpo.
+    //
+    // La sangría no la salvó nadie: 35 px medidos, apuntando a una columna que
+    // ya no existe. Lo que compra esta jueza es el FILO IZQUIERDO — que todo lo
+    // que cuelga del cuerpo empiece donde empieza el cuerpo—, que es la pareja
+    // del filo derecho de arriba y lo que caza este tipo de resto.
+    await m.evaluar(`document.querySelectorAll('.bloque__cabecera')[0].click()`);
+    await m.dormir(400);
+    await m.evaluar(`document.querySelector('input[name=familia][value=coche]').click()`);
+    await m.dormir(700);
+    await m.evaluar(`document.querySelector('input[name=aparcamiento][value=azul]').click()`);
+    await m.dormir(400);
+    await m.evaluar(`document.querySelector('button.generar').click()`);
+    for (let i = 0; i < 80 && (await m.evaluar(`!!document.querySelector('button.generar')?.disabled`)); i++) {
+      await m.dormir(300);
+    }
+    await m.dormir(1500);
+
+    const enCoche = await leer(m, `
+      const px = (n) => Math.round(n);
+      const sangrias = [];
+      for (const cuerpo of document.querySelectorAll('.paso__cuerpo')) {
+        const izq = cuerpo.getBoundingClientRect().left;
+        for (const hijo of cuerpo.children) {
+          const b = hijo.getBoundingClientRect();
+          if (b.width === 0 && b.height === 0) continue;
+          const d = px(b.left - izq);
+          if (d !== 0) sangrias.push((String(hijo.className).split(' ')[0] || '?') + ' a ' + d + 'px');
+        }
+      }
+      const fugados = [];
+      [...document.querySelectorAll('.paso')].forEach((p, i) => {
+        const suya = p.getBoundingClientRect();
+        for (const h of p.querySelectorAll('*')) {
+          const b = h.getBoundingClientRect();
+          if (b.height === 0 && b.width === 0) continue;
+          if (b.bottom > suya.bottom + 1) {
+            fugados.push(i + ':' + (String(h.className).split(' ')[0] || h.tagName.toLowerCase()) + ' sobra ' + px(b.bottom - suya.bottom));
+          }
+        }
+      });
+      return { atajo: document.querySelector('.sugerencia') !== null, sangrias, fugados,
+               pasos: document.querySelectorAll('.paso').length };
+    `);
+    juzgar(
+      enCoche.atajo === true,
+      'P19-bis · la ruta en coche con zona azul trae el atajo «Sugerir zona naranja»',
+      enCoche.atajo ? `${enCoche.pasos} pasos, con atajo` : '(no ha salido el atajo: no se juzga nada)',
+    );
+    juzgar(
+      enCoche.sangrias.length === 0,
+      'P19-bis · ⭐ todo lo que cuelga del cuerpo arranca en el filo del cuerpo',
+      enCoche.sangrias.length === 0 ? 'ni una sangría suelta' : enCoche.sangrias.join(' | '),
+    );
+    juzgar(
+      enCoche.fugados.length === 0,
+      'P19-bis · y aquí tampoco se sale nada de su paso (la nº49, en la otra ruta)',
+      enCoche.fugados.length === 0 ? `${enCoche.pasos} pasos revisados` : enCoche.fugados.join(' | '),
+    );
+    await m.guardar(`${CAPTURAS}/coche-atajo.png`);
   } finally {
     m.cerrar();
   }
