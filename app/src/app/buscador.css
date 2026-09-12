@@ -277,11 +277,15 @@ legend {
 }
 
 /* El mismo ámbar de siempre (#b45309 / #fff4e5 / #7c3d00): no es un error del
-   programa, es algo que no se ha podido hacer y se cuenta. Lo comparten los dos
-   sitios que dan malas noticias — el botón de ubicación y la ruta—, y lo
-   comparten de verdad: una sola regla, no dos copias que se separan. */
+   programa, es algo que no se ha podido hacer y se cuenta. Lo comparten los
+   sitios que dan malas noticias, y lo comparten de verdad: una sola regla, no
+   copias que se separan.
+
+   ⚠️ `.aviso-ruta` se fue de aquí el 12/09: el error del motor dejó de ser una
+      tira ámbar arriba y pasó a ser uno de los cuatro estados de cuerpo entero
+      —`.pasos__error`—, que es lo que pedía la maqueta. Los colores son los
+      mismos; la forma, no. */
 .aviso-ubicacion,
-.aviso-ruta,
 .resumen {
   margin: 0;
   padding: 0.5rem 0.75rem;
@@ -291,7 +295,6 @@ legend {
   color: #7c3d00;
 }
 
-.aviso-ruta,
 .resumen {
   margin-bottom: 0.75rem;
 }
@@ -425,9 +428,59 @@ legend {
   font-size: 1.15rem;
 }
 
-.pasos__vacio {
+/* ⭐ LOS DOS ESTADOS DE CUERPO ENTERO: el vacío y el error (12/09, tanda 5).
+
+   [maqueta `RouteResult.tsx`] los dos se pintan igual —centrados, icono grande
+   arriba, frase debajo— porque los dos dicen lo mismo: aquí no hay una ruta. Lo
+   que cambia es POR QUÉ, y eso lo dicen el icono y el color, no la forma.
+
+   El `min-height` es el `min-h-[200px]` de la maqueta: sin él, el panel se
+   encoge hasta la altura de la frase y el estado parece una nota al pie en vez
+   de la respuesta de la pantalla. */
+.estado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 200px;
   margin: 0;
-  color: #555;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.pasos__vacio {
+  color: var(--muted-foreground);
+}
+
+/* El icono del vacío es decoración pura —la frase lleva la información— y por
+   eso va al 20 %, como la maqueta: un dibujo de 48 px a plena tinta competiría
+   con la letra que sí hay que leer. Al ser `aria-hidden` no le aplica el
+   contraste de [WCAG 1.4.11]: no hay nada que entender en él. */
+.pasos__vacio app-simbolo {
+  opacity: 0.2;
+}
+
+/* El error, en el ámbar de la casa: no es un fallo del programa —es algo que no
+   se ha podido hacer y se cuenta—, así que comparte el color con los otros dos
+   sitios que dan malas noticias. `--warning-dark` y no un hex: el token ya se
+   cambia solo entre las dos paletas. */
+.pasos__error {
+  gap: 0.5rem;
+  color: var(--warning-dark);
+  font-weight: 600;
+}
+
+/* ⭐ LA REGIÓN VIVA NO PINTA NADA, y es a propósito: es un SITIO en el DOM
+   esperando a que llegue un mensaje. Un `div` vacío no ocupa alto ni deja
+   hueco, así que puede estar desde el arranque sin que se note.
+
+   ⚠️ Y NO lleva `display: contents`, que sería lo natural para «no soy una
+      caja»: eso saca al elemento de la caja Y arrastra su papel fuera del árbol
+      de accesibilidad en más de un navegador. Justo lo que esta región existe
+      para tener. */
+.anuncio {
+  margin: 0;
 }
 
 /* [SearchForm.tsx] los dos en una fila: «Limpiar» del ancho de su texto y
@@ -669,34 +722,30 @@ legend {
 
 /* ⭐ EL INDICADOR DE QUE SE ESTÁ TRABAJANDO. Sobrio a propósito: aparece a
    partir del segundo y desaparece solo, así que no debe llamar más la atención
-   que el resultado que está a punto de llegar. La rueda gira con `transform`,
-   que es lo único que el navegador anima sin recalcular la página, y se para
-   entera si el sistema pide menos movimiento. */
+   que el resultado que está a punto de llegar.
+
+   ⚠️ Aquí vivía además `.esperando__rueda`, y se ha ido con el hueso (12/09):
+      el hueso ya late, y dos movimientos a la vez para decir lo mismo es ruido.
+      El `@keyframes gira` que usaba SIGUE VIVO — lo comparte `.ubicacion__rueda`
+      del formulario, que no tiene hueso ninguno. */
 .esperando {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
-  color: #555;
+  margin: 1rem 0 0;
+  color: var(--muted-foreground);
+  text-align: center;
+  font-size: 0.875rem;
 }
 
-.esperando__rueda {
-  width: 1em;
-  height: 1em;
-  border: 2px solid #ccc;
-  border-top-color: #555;
-  border-radius: 50%;
-  animation: gira 0.8s linear infinite;
-}
+/* ⭐ EL HUESO DE LA CARGA vive en `src/styles.css`, no aquí.
 
-/* [WCAG 2.3.3 / DOC MDN] `prefers-reduced-motion` es la señal de que quien
-   mira ha pedido menos movimiento. No se quita el indicador —hace falta—: se
-   queda quieto. */
-@media (prefers-reduced-motion: reduce) {
-  .esperando__rueda {
-    animation: none;
-  }
-}
+   No es un capricho de sitio: es que el hueso no sabe nada de rutas. Dibuja
+   «contenido que todavía no ha llegado» y eso es lenguaje del sistema, igual
+   que `.boton` o `.caja` — la nota de `.generar`, unas líneas más abajo, ya
+   decía que el vestido común vive en la hoja global.
+
+   ⚠️ Y hubo un empujón: el presupuesto `anyComponentStyle` de `angular.json`
+      tiene el error en 8 kB y esta hoja lo pasó por 275 bytes al entrar los
+      cuatro estados. La raya NO se ha tocado —ni ésa ni la del inicial—: lo que
+      se movió fue lo que no tenía por qué estar aquí. */
 
 @keyframes gira {
   to {

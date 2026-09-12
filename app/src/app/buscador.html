@@ -779,25 +779,71 @@
              dos, `aria-labelledby` gana y el otro seria letra muerta. -->
         <section class="pasos" aria-labelledby="cabecera-pasos">
 
-          <!-- El motor no ha contestado: no hay nadie al otro lado. Es distinto de
-               «no hay ruta», que sí llega dentro de una respuesta. -->
-          @if (avisoRuta(); as aviso) {
-            <p class="aviso-ruta" role="status">{{ aviso }}</p>
-          }
+          <!-- ⭐ LAS DOS REGIONES VIVAS, EN EL DOM DESDE EL ARRANQUE Y VACÍAS
+               (12/09, tanda 5).
 
-          <!-- ⭐ EL INDICADOR DE QUE SE ESTÁ TRABAJANDO [NN/g: por encima de 1 s hay
-               que decirlo, y más si el tiempo es variable]. `role="status"` porque
-               [WAI-ARIA] `status` es *«a type of live region whose content is
-               advisory information for the user but is not important enough to
-               justify an alert»*: se anuncia sin interrumpir lo que se esté leyendo.
-               El texto va dentro del elemento vivo, no fuera, o el anuncio se queda
-               sin contenido que leer. -->
-          @if (esperando(); as trabajando) {
-            <p class="esperando" role="status">
-              <span class="esperando__rueda" aria-hidden="true"></span>
-              {{ trabajando }}
-            </p>
+               ⚠️ **Aquí estaba justo al revés.** El `@if` envolvía al elemento que
+                  llevaba el papel, así que la región NACÍA CON SU MENSAJE DENTRO —y
+                  ésa es la trampa que [WCAG 4.1.3 · ARIA19] documenta: lo que un
+                  lector de pantalla anuncia es el CAMBIO de una región que ya estaba
+                  observando, y una región que aparece entera, con su texto, no
+                  cambió nunca. Se ve en pantalla y no se oye. La casa ya lo tenía
+                  escrito al lado de `#lo-de-la-dgt` —«la región está en el DOM antes
+                  de la respuesta»— y aquí no se había aplicado. Ahora el `@if` va
+                  DENTRO, y lo que vive fuera es el sitio.
+
+               Y los dos papeles no son el mismo, a propósito:
+               · `role="status"` para el progreso. [WAI-ARIA] `status` es *«advisory
+                 information for the user but is not important enough to justify an
+                 alert»*: se anuncia sin cortar lo que se esté leyendo.
+               · `role="alert"` para el error. Ése sí interrumpe, y debe: no hay nadie
+                 al otro lado, quien mira está esperando una ruta que no va a llegar,
+                 y enterarse al acabar el párrafo es tarde. -->
+          <div class="anuncio" role="alert">
+            @if (avisoRuta(); as aviso) {
+              <p class="estado pasos__error">
+                <app-simbolo nombre="cloud_off" [lado]="48" />
+                <span class="estado__frase">{{ aviso }}</span>
+              </p>
+            }
+          </div>
+
+          <!-- ⭐ EL HUESO DE LA CARGA [maqueta `RouteResult.tsx`, `status="loading"`].
+
+               Sustituye a la ruedecita, que decía lo mismo con menos: el hueso dibuja
+               LA FORMA de lo que viene —cabecera, caja y tres pasos— así que cuando
+               llega el resultado no salta la página. Y no conviven dos movimientos:
+               si el hueso late, la rueda sobra.
+
+               ⚠️ Monta sobre `esperando()`, que ya traía **el umbral del segundo**
+                  [NN/g], y no sobre `generando()`, que se enciende en el mismo tick
+                  del clic. Un hueso que parpadea 80 ms y desaparece es peor que no
+                  poner ninguno — y el motor resuelve andando en ~20 ms.
+
+               ⚠️ `aria-hidden`: es decoración. Quien no lo ve oye la frase de abajo,
+                  que es la que lleva la información; anunciar doce cajas grises no
+                  sería accesibilidad, sería ruido. -->
+          @if (esperando()) {
+            <div class="hueso" aria-hidden="true">
+              <div class="hueso__linea hueso__linea--titulo"></div>
+              <div class="hueso__linea hueso__linea--rotulo"></div>
+              <div class="hueso__caja"></div>
+              @for (h of huesosDelPaso; track h) {
+                <div class="hueso__paso">
+                  <div class="hueso__circulo"></div>
+                  <div class="hueso__cuerpo">
+                    <div class="hueso__linea hueso__linea--larga"></div>
+                    <div class="hueso__linea hueso__linea--corta"></div>
+                  </div>
+                </div>
+              }
+            </div>
           }
+          <div class="anuncio" role="status">
+            @if (esperando(); as trabajando) {
+              <p class="esperando">{{ trabajando }}</p>
+            }
+          </div>
 
           @if (resultado(); as r) {
             <!-- El modo que se dice es EL DE LA RESPUESTA, no el que está pulsado:
@@ -1083,9 +1129,12 @@
               la interfaz presenta los pasos: los dos extremos, el cómo, el botón.
               Su letra la fija una jueza desde hoy — antes no la sujetaba nadie.
             -->
-            <p class="pasos__vacio">
-              Todavía no hay pasos. Rellena origen y destino, elige cómo te mueves y
-              pulsa "Generar ruta".
+            <p class="estado pasos__vacio">
+              <app-simbolo nombre="route" [lado]="48" />
+              <span class="estado__frase">
+                Todavía no hay pasos. Rellena origen y destino, elige cómo te mueves y
+                pulsa "Generar ruta".
+              </span>
             </p>
           }
         </section>

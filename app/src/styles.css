@@ -1418,6 +1418,106 @@ body:has(.marco) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   ⭐ EL HUESO — la forma de lo que todavía no ha llegado (12/09, tanda 5)
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Vive en la hoja común y no en la del buscador porque no sabe nada de rutas:
+   dibuja «contenido en camino», que es lenguaje del sistema igual que `.boton`
+   o `.caja`. Quien lo usa hoy es el panel del resultado; quien lo use mañana no
+   tendrá que copiarlo.
+
+   [maqueta `RouteResult.tsx`, `animate-pulse`] Dibuja LA FORMA de lo que viene
+   —cabecera con sus dos líneas, caja del aviso y tres pasos con su círculo— y
+   por eso no es un adorno: cuando llega el resultado ocupa aproximadamente el
+   mismo sitio y la página no salta.
+
+   ⚠️ EL COLOR NO ES EL DE LA MAQUETA, Y SE DECLARA. Ella dice `bg-muted`; el
+      `--muted` de esta casa es `slate-50` desde la tanda 1-bis y medido sobre la
+      tarjeta blanca da **3 puntos de 255**: invisible. Es el mismo error exacto
+      que Antonio rechazó en las cabeceras del acordeón —«2 puntos de 255»—, así
+      que el hueso se pinta con `--border`, que es `slate-200`: el mismo valor
+      que él ratificó como par B para la banda, 29 puntos, y el token cuyo
+      trabajo en esta casa ya es «el gris tenue que SÍ se ve sobre la tarjeta».
+      La jueza P14 lo compra por el suelo medido, no por el nombre del token. */
+.hueso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  animation: latido 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.hueso__linea,
+.hueso__caja,
+.hueso__circulo {
+  background-color: var(--border);
+}
+
+.hueso__linea {
+  height: 1rem;
+  border-radius: 4px;
+}
+
+.hueso__linea--titulo {
+  width: 8rem;
+  height: 1.5rem;
+}
+
+.hueso__linea--rotulo {
+  width: 12rem;
+}
+
+.hueso__linea--larga {
+  width: 75%;
+}
+
+.hueso__linea--corta {
+  width: 50%;
+}
+
+.hueso__caja {
+  height: 4rem;
+  margin: 0.5rem 0;
+  border-radius: 8px;
+}
+
+.hueso__paso {
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+}
+
+.hueso__circulo {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+
+.hueso__cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+@keyframes latido {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* [WCAG 2.3.3 / DOC MDN] `prefers-reduced-motion` es la señal de que quien mira
+   ha pedido menos movimiento. No se quita el indicador —hace falta, y es lo
+   único que dice que la pantalla no se ha colgado—: se queda quieto. */
+@media (prefers-reduced-motion: reduce) {
+  .hueso {
+    animation: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    EL CAMPO Y LOS BOTONES — el resto del lenguaje común
    ═══════════════════════════════════════════════════════════════════════════ */
 

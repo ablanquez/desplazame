@@ -1943,6 +1943,18 @@ export class Buscador {
   protected readonly esperando = signal<string | null>(null);
   private relojDeEspera: ReturnType<typeof setTimeout> | null = null;
 
+  /**
+   * ⭐ CUÁNTOS PASOS FINGE EL HUESO MIENTRAS SE CALCULA. Tres, los de la
+   * maqueta: bastantes para que se lea como una lista y pocos para no prometer
+   * un viaje largo que igual no lo es.
+   *
+   * ⚠️ Vive aquí y no como `[1, 2, 3]` dentro del `@for` a propósito: un
+   *    literal en la plantilla es un array NUEVO en cada detección de cambios,
+   *    y eso es trabajo por nada en el único momento en que la pantalla está
+   *    esperando a algo.
+   */
+  protected readonly huesosDelPaso = [0, 1, 2];
+
   private empiezaLaEspera(modo: Modo): void {
     this.acabaLaEspera();
     const texto =
