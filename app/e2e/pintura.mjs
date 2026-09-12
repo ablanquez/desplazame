@@ -1615,6 +1615,26 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       );
       await m.guardar(`${CAPTURAS}/sin-emojis-${modo}.png`);
     }
+
+    // ⭐ Y LA OTRA PANTALLA DEL PRODUCTO: los créditos.
+    //
+    // ⚠️ Ampliar el barrido aquí destapó **el último carácter que quedaba
+    //    haciendo de icono**: un `←` de texto en «Volver al buscador». No lo
+    //    veía nadie porque todas las juezas de emoji miraban el buscador.
+    //
+    // ℹ️ `/identidad` NO entra, y se declara para que no parezca un olvido: no
+    //    es producto, es el instrumento —la sonda que pinta la paleta— y sus
+    //    `⚠️` viven dentro de párrafos que explican una medida, como los de los
+    //    comentarios. Si algún día se enseña a alguien que no sea nosotros,
+    //    entra.
+    await m.ir(APP + 'creditos', 4000);
+    const enCreditos = await leer(m, BARRIDO);
+    juzgar(
+      enCreditos.length === 0,
+      'P15 · ⭐ y en la página de créditos tampoco queda ninguno',
+      enCreditos.map((x) => `${x.glifos} en ${x.donde}`).join(' | ') || '(ninguno)',
+    );
+    await m.guardar(`${CAPTURAS}/sin-emojis-creditos.png`);
   } finally {
     m.cerrar();
   }
@@ -1756,12 +1776,75 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       'P16 · ⭐ y las distancias van en cifras tabulares: la coma cae en la misma columna',
       [...new Set(linea.metros)].join(' | ') || '(ningún paso con metros)',
     );
+    // ═══════════ P18 · NADA SE SALE DE SU CAJA ═══════════
+    //
+    // ⭐ LA JUEZA QUE FALTABA, Y LA ESCRIBE UN FALLO (12/09, bitácora nº49).
+    //
+    // ⚠️ Las siete de arriba dieron VERDE —círculo de 32, ocho hilos de 2 px,
+    //    cifras tabulares, titular en 24/700— mientras el botón «Próximo bus» y
+    //    la nota ámbar se pintaban ENCIMA del paso siguiente. Todas medían
+    //    PIEZAS: cuánto mide, de qué color es, cuántas hay. Ninguna preguntaba
+    //    lo único que estaba mal, que es dónde acaba cada una.
+    //
+    //    Y no es una rareza de este caso: en una columna flex un hijo que pide
+    //    más de lo que hay **no desborda visiblemente**, se le encoge la caja y
+    //    pinta fuera de ella. Sin un juicio como éste, eso es invisible para
+    //    cualquier medida de tamaño — la caja mide lo que se le pidió.
+    //
+    // Se compran las dos caras del mismo hecho: que ningún descendiente se
+    // salga por abajo de su paso, y que dos pasos no se pisen entre sí. La
+    // segunda es la que se vio con el ojo; la primera dice por dónde.
+    const cajas = await leer(m, `
+      const px = (n) => Math.round(n);
+      const pasos = [...document.querySelectorAll('.paso')];
+      const fugados = [];
+      pasos.forEach((p, i) => {
+        const suya = p.getBoundingClientRect();
+        for (const hijo of p.querySelectorAll('*')) {
+          const b = hijo.getBoundingClientRect();
+          if (b.height === 0 && b.width === 0) continue;
+          if (b.bottom > suya.bottom + 1) {
+            fugados.push({
+              paso: i,
+              que: hijo.tagName.toLowerCase() + '.' + (String(hijo.className).split(' ')[0] || '?'),
+              sobra: px(b.bottom - suya.bottom),
+            });
+          }
+        }
+      });
+      const pisados = [];
+      for (let i = 1; i < pasos.length; i++) {
+        const antes = pasos[i - 1].getBoundingClientRect();
+        const ahora = pasos[i].getBoundingClientRect();
+        if (ahora.top < antes.bottom - 1) pisados.push({ i, solape: px(antes.bottom - ahora.top) });
+      }
+      return { pasos: pasos.length, fugados, pisados };
+    `);
+    juzgar(
+      cajas.fugados.length === 0,
+      'P18 · ⭐ nada se sale de su paso por abajo — la jueza que escribió la nº49',
+      cajas.fugados.length === 0
+        ? `${cajas.pasos} pasos revisados, ni un descendiente fuera`
+        : cajas.fugados.map((x) => `paso ${x.paso}: ${x.que} sobra ${x.sobra}px`).join(' | '),
+    );
+    juzgar(
+      cajas.pisados.length === 0,
+      // ⚠️ Dice CAJAS y no «pintura» a propósito: con el fallo de la nº49 vivo,
+      //    ésta daba verde —los `.paso` no se solapaban entre sí— y lo que se
+      //    salía era el contenido de uno de ellos. Son dos cosas distintas y
+      //    las compra cada una la suya; la de arriba es la que cazó aquello.
+      'P18 · y las CAJAS de dos pasos no se solapan',
+      cajas.pisados.length === 0
+        ? `${cajas.pasos} pasos, ni un solape`
+        : cajas.pisados.map((x) => `el ${x.i - 1} pisa al ${x.i} por ${x.solape}px`).join(' | '),
+    );
+
     await m.guardar(`${CAPTURAS}/timeline-vestido.png`);
 
     // ── LA CABECERA ──────────────────────────────────────────────────────
     const cabecera = await leer(m, `
       const t = document.querySelector('.ruta__titular');
-      const flecha = document.querySelector('.ruta__extremos svg');
+      const flecha = document.querySelector('.ruta__flecha svg');
       const p = flecha ? flecha.querySelector('path') : null;
       return {
         titular: t ? t.textContent.replace(/\\s+/g, ' ').trim() : '(no está)',
@@ -1799,18 +1882,32 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
         const [r, g, b] = rgb.match(/\\d+/g).map(Number);
         return '#' + [r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('');
       };
-      const caja = document.querySelector('.resumen') || document.querySelector('.paso__nota');
-      if (!caja) return { hay: false };
-      const s = getComputedStyle(caja);
-      const svg = caja.querySelector('svg');
+      // ⚠️ LAS DOS CAJAS, no la primera que aparezca. La primera versión hacía
+      //    .resumen o .paso__nota, la primera que hubiera, y con eso el icono de
+      //    la nota daba verde por el del resumen —o al revés—: son el mismo aviso
+      //    dicho en dos sitios y las dos tienen que vestirse igual, que es justo
+      //    lo que este juicio existe para comprar.
+      const cajas = [...document.querySelectorAll('.resumen, .paso__nota')];
+      if (cajas.length === 0) return { hay: false };
+      const mirar = (caja) => {
+        const s = getComputedStyle(caja);
+        const svg = caja.querySelector('svg');
+        return {
+          cual: caja.className.split(' ')[0],
+          fondo: aHex(s.backgroundColor),
+          tinta: aHex(s.color),
+          d: svg ? svg.querySelector('path').getAttribute('d') : null,
+        };
+      };
       return {
         hay: true,
-        cual: caja.className,
-        fondo: aHex(s.backgroundColor),
-        tinta: aHex(s.color),
+        cuantas: cajas.length,
+        cajas: cajas.map(mirar),
+        cual: cajas.map((c) => c.className.split(' ')[0]).join(' + '),
+        fondo: aHex(getComputedStyle(cajas[0]).backgroundColor),
+        tinta: aHex(getComputedStyle(cajas[0]).color),
         tokenFondo: tono('--warning'),
         tokenTinta: tono('--warning-dark'),
-        d: svg ? svg.querySelector('path').getAttribute('d') : null,
       };
     `);
     // ⚠️ **ESTA JUEZA ESTABA MAL PENSADA Y DABA VERDE CON LA COPIA PUESTA.**
@@ -1863,9 +1960,20 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
         : `fondo ${ambar.fondo} = token ${ambar.tokenFondo} · tinta ${ambar.tinta} = token ${ambar.tokenTinta}`,
     );
     juzgar(
-      ambar.hay === true && ambar.d === trazadoDelFichero('warning'),
-      'P16 · y su ⚠ es ahora el SVG `warning` del fichero',
-      ambar.hay === false ? '(no hay aviso)' : ambar.d === null ? '(no hay icono)' : ambar.d === trazadoDelFichero('warning') ? 'idéntico al fichero' : 'DISTINTO del fichero',
+      ambar.hay === true && ambar.cajas.every((c) => c.d === trazadoDelFichero('warning')),
+      'P16 · y el ⚠ de TODAS las cajas ámbar es ahora el SVG `warning` del fichero',
+      ambar.hay === false
+        ? '(no hay aviso en este viaje)'
+        : ambar.cajas
+            .map((c) => `${c.cual}: ${c.d === null ? 'SIN ICONO' : c.d === trazadoDelFichero('warning') ? 'ok' : 'OTRO dibujo'}`)
+            .join(' · '),
+    );
+    juzgar(
+      ambar.hay === true && new Set(ambar.cajas.map((c) => c.fondo + c.tinta)).size === 1,
+      'P16 · y las dos se visten igual: es el mismo aviso dicho en dos sitios',
+      ambar.hay === false
+        ? '(no hay aviso)'
+        : `${ambar.cuantas} cajas · ` + [...new Set(ambar.cajas.map((c) => `${c.fondo} sobre ${c.tinta}`))].join(' | '),
     );
     await m.guardar(`${CAPTURAS}/cabecera-y-ambar.png`);
 

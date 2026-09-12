@@ -13,7 +13,12 @@
 import { readFileSync } from 'node:fs';
 import { abrirChrome, censoDe, contrasteReal, contrasteRgb, deHex, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
 
-const APP = 'http://localhost:4200/';
+// ⚠️ La URL no puede ir en `process.argv[2]`: ese sitio ya es la calle de
+//    origen y cambiarlo rompería la forma de llamar a esta jueza, que está
+//    escrita ahí arriba. Va por entorno, con el `ng serve` de siempre por
+//    defecto — así se la puede apuntar también al `dist` que sirve el motor,
+//    que es contra lo que corren sus hermanas.
+const APP = (process.env['DESPLAZAME_URL'] ?? 'http://localhost:4200').replace(/\/+$/, '') + '/';
 /**
  * ⚠️ LOS DOS EXTREMOS DEL PLANO, no «la tierra».
  *

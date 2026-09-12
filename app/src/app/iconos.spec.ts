@@ -732,7 +732,22 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     await elegirDireccionEn('calleDestino', 'portalDestino');
     await generarYMirarElMapa();
 
-    expect(raiz.querySelector('.ruta__origen .ruta__marca')?.textContent?.trim()).toBe('◉');
-    expect(raiz.querySelector('.ruta__destino .ruta__marca')?.textContent?.trim()).toBe('⚑');
+    // ⚠️ Aquí se compraban las DOS MARCAS DE PAPEL —`◉` y `⚑`, una por línea—
+    //    y desde el 12/09 no existen: la cabecera pone los dos extremos en una
+    //    sola línea con una flecha en medio, así que el papel lo dice el ORDEN.
+    //    Lo que se compra es eso mismo, que es lo que aquéllas compraban: que se
+    //    sepa cuál es cuál. Y se compra mejor —antes bastaba con que los dos
+    //    caracteres estuvieran; ahora se exige además que estén en su sitio.
+    const extremos = raiz.querySelector('.ruta__extremos')!;
+    const enOrden = Array.from(extremos.children).map((e) =>
+      e.classList.contains('ruta__origen')
+        ? 'origen'
+        : e.classList.contains('ruta__flecha')
+          ? 'flecha'
+          : e.classList.contains('ruta__destino')
+            ? 'destino'
+            : e.tagName.toLowerCase(),
+    );
+    expect(enOrden).toEqual(['origen', 'flecha', 'destino']);
   });
 });

@@ -83,24 +83,26 @@ describe('⭐ LA PINTURA — los emojis fuera y el hover en su sitio', () => {
    *    apeteciera poner. Se barren los bloques de pictogramas y flechas enteros,
    *    que es la pregunta de verdad: **¿hay algún dibujo hecho de texto?**
    */
-  it('⭐ no queda ni un emoji en el FORMULARIO del buscador', () => {
+  it('⭐ no queda ni un emoji en TODA la plantilla del buscador', () => {
     const PICTOGRAMAS = /[\u{1F300}-\u{1FAFF}\u{2190}-\u{21FF}\u{2300}-\u{27BF}\u{FE0F}]/gu;
     // ⚠️ Los ⭐ y ⚠️ de los comentarios NO cuentan: son prosa para quien lee el
     //    código, no dibujos de la pantalla. Se mira solo fuera de comentarios.
     const sinComentar = PLANTILLA.replace(/<!--[\s\S]*?-->/g, '');
-    // ⚠️ Y SOLO EL FORMULARIO, que es lo que esta tanda viste. En el resultado
-    //    quedan dos —el ⏳ de «Próximo bus» y el ⚠ de la nota de un paso— y su
-    //    tanda es la 5. Barrer la plantilla entera pondría roja una jueza por
-    //    trabajo que nadie ha encargado todavía; dejarlos sin decirlo sería
-    //    peor. Quedan dichos aquí y en el checkpoint.
-    const desde = sinComentar.indexOf('<form class="buscador"');
-    const hasta = sinComentar.indexOf('</form>');
-    expect(desde).toBeGreaterThan(-1);
-    expect(hasta).toBeGreaterThan(desde);
-    const enElFormulario = sinComentar.slice(desde, hasta).match(PICTOGRAMAS);
-    expect(enElFormulario ?? []).toEqual([]);
-    // Y que la barrida sirva de algo: fuera del formulario todavía quedan.
-    expect((sinComentar.match(PICTOGRAMAS) ?? []).length).toBeGreaterThan(0);
+
+    // ⚠️ **ESTA JUEZA MIRABA SOLO EL FORMULARIO, Y LO DECÍA.** Su comentario de
+    //    entonces dejaba la deuda escrita: «en el resultado quedan dos —el ⏳ de
+    //    "Próximo bus" y el ⚠ de la nota de un paso— y su tanda es la 5». Es la
+    //    tanda 5. Los dos se han ido, así que el recorte se acabó y el sujeto
+    //    pasa a ser la plantilla entera.
+    expect(sinComentar.match(PICTOGRAMAS) ?? []).toEqual([]);
+
+    // ⚠️ Y AQUÍ ABAJO ESTABA LA CONTRAPRUEBA, que era: «fuera del formulario
+    //    todavía quedan». Servía para que la barrida no diera verde por estar
+    //    mirando un trozo vacío... y **ha caducado al limpiarse la casa**: hoy no
+    //    queda ninguno en ningún sitio, así que exigirla sería exigir que el
+    //    trabajo no estuviera hecho. Se sustituye por la que no caduca: que el
+    //    barrido SEPA ver un dibujo cuando lo hay.
+    expect('🚌 ↰ 🅿 ⚠️'.match(PICTOGRAMAS) ?? []).toHaveLength(4);
   });
 
   /**

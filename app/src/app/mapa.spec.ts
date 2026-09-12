@@ -8,7 +8,7 @@ import {
   RAYA_DEL_AREA,
   RELLENO_DE_LA_ZONA,
   RELLENO_DEL_AREA,
-  GLIFO,
+  SIMBOLO_DEL_HITO,
   ribeteDe,
   ROJO_DE_LA_ZONA,
   TINTA_DEL_AREA,
@@ -18,7 +18,8 @@ import {
   type Vertice,
 } from './mapa';
 import { AA_GRAFICO, contraste, deHex, luminancia, PLANO_MAS_CLARO, PLANO_MAS_OSCURO, TIERRA_OSM } from './contraste';
-import { FLECHAS } from './buscador';
+import { SIMBOLO_DEL_GIRO } from './buscador';
+import { SIMBOLOS } from './simbolos';
 // @ts-expect-error — sin @types/node, el compilador no conoce el módulo
 import { readFileSync, existsSync } from 'node:fs';
 
@@ -262,9 +263,22 @@ function vestidos(raiz: HTMLElement): { color: string | null; dash: string | nul
   }));
 }
 
-/** Los iconos de hito que hay sobre el mapa, por su glifo. */
+/**
+ * Los iconos de hito que hay sobre el mapa, POR SU NOMBRE.
+ *
+ * ⚠️ Devolvía el `textContent` hasta el 12/09, que era el carácter. Ahora el
+ *    marcador lleva un `<svg>` dentro y su texto es la cadena vacía: leerlo así
+ *    devolvía `['', '', '', '']` y la jueza no distinguía un plano bien pintado
+ *    de uno sin marcas. Se lee el trazado y se traduce a nombre contra
+ *    `SIMBOLOS`, que es de donde salió.
+ */
 function hitos(raiz: HTMLElement): string[] {
-  return Array.from(raiz.querySelectorAll('.hito')).map((h) => (h.textContent ?? '').trim());
+  return Array.from(raiz.querySelectorAll('.hito')).map((h) => {
+    const d = h.querySelector('path')?.getAttribute('d') ?? null;
+    if (d === null) return '(sin dibujo)';
+    const par = Object.entries(SIMBOLOS).find(([, trazado]) => trazado === d);
+    return par ? par[0] : '(un trazado que no está en SIMBOLOS)';
+  });
 }
 
 describe('Mapa', () => {
@@ -382,7 +396,7 @@ describe('Mapa', () => {
     const pintadas = lineas(raiz);
     expect(pintadas.length).toBe(3);
     expect(pintadas.map((l) => l.discontinua)).toEqual([true, false, true]);
-    expect(hitos(raiz)).toEqual(['🚲', '🅿']);
+    expect(hitos(raiz)).toEqual(['pedal_bike', 'local_parking']);
   });
 
   /**
@@ -404,7 +418,7 @@ describe('Mapa', () => {
     const pintadas = lineas(raiz);
     expect(pintadas.length).toBe(2);
     expect(pintadas.map((l) => l.discontinua)).toEqual([false, true]);
-    expect(hitos(raiz)).toEqual(['🅿']);
+    expect(hitos(raiz)).toEqual(['local_parking']);
   });
 
   /**
@@ -455,7 +469,7 @@ describe('Mapa', () => {
       '#000000',
     ]);
 
-    expect(hitos(raiz)).toEqual(['🚌', '🚏']);
+    expect(hitos(raiz)).toEqual(['directions_bus', 'directions_walk']);
   });
 
   /**
@@ -499,7 +513,7 @@ describe('Mapa', () => {
     }
 
     // 🚌 al subir a cada uno —el segundo es el poste del cambio— y 🚏 al bajar.
-    expect(hitos(raiz)).toEqual(['🚌', '🚏', '🚌', '🚏']);
+    expect(hitos(raiz)).toEqual(['directions_bus', 'directions_walk', 'directions_bus', 'directions_walk']);
   });
 
   /**
@@ -1142,39 +1156,55 @@ describe('Mapa', () => {
 });
 
 /**
- * ⭐ LOS GLIFOS DE LOS HITOS — EL GUARDIÁN DE UNA COPIA DECLARADA (8/09).
+ * ⭐ LOS SÍMBOLOS DE LOS HITOS — EL GUARDIÁN DE UNA COPIA DECLARADA (8/09).
  *
- * Hay **dos tablas** de glifos y es a propósito: `FLECHAS` en `buscador.ts`
- * tiene los quince pasos de la lista de indicaciones, y `GLIFO` en `mapa.ts`
- * tiene los cuatro hitos que se pintan en el plano. La copia está razonada en
- * el comentario de `GLIFO`: *«quien lee "🚌 Sube a la 39…" busca esa marca en
- * el plano»*. Unificarlas rompería esa razón —el mapa no quiere quince marcas—,
- * así que la copia se queda.
+ * Hay **dos tablas** y es a propósito: `SIMBOLO_DEL_GIRO` en `buscador.ts` tiene
+ * los quince pasos de la lista de indicaciones, y `SIMBOLO_DEL_HITO` en
+ * `mapa.ts` tiene los cuatro hitos que se pintan en el plano. La copia está
+ * razonada en el comentario de allí: *«quien lee "Sube a la 39…" busca esa
+ * marca en el plano»*. Unificarlas rompería esa razón —el mapa no quiere quince
+ * marcas—, así que la copia se queda.
  *
  * ⚠️ **Lo que faltaba era el guardián.** Medido en el censo del 8/09: las
- *    jueces fijaban los glifos **por separado en cada casa** —`buscador.spec.ts`
- *    compra `🚲` y `🅿`; las de aquí arriba compran los cuatro del plano— y
- *    **ninguna comparaba las dos tablas**. Cambiar `sube: '🚌'` en `buscador.ts`
- *    no rompía **ni una** prueba, y la lista y el plano se habrían separado en
- *    silencio. Una copia vigilada es una decisión; una copia sin quién compruebe
- *    su salida es un accidente esperando.
+ *    jueces fijaban los glifos **por separado en cada casa** y **ninguna
+ *    comparaba las dos tablas**. Cambiar `sube` en `buscador.ts` no rompía **ni
+ *    una** prueba, y la lista y el plano se habrían separado en silencio. Una
+ *    copia vigilada es una decisión; una copia sin quién compruebe su salida es
+ *    un accidente esperando.
+ *
+ * ⚠️ El 12/09 las dos tablas dejaron de guardar caracteres y pasaron a guardar
+ *    NOMBRES DE SÍMBOLO. El guardián no cambia de trabajo —sigue preguntando si
+ *    las dos dicen lo mismo—, y de hecho ahora compra más: dos nombres iguales
+ *    garantizan el mismo trazado, porque el dibujo lo sirve `SIMBOLOS`, que es
+ *    una sola tabla. Antes dos caracteres iguales podían pintarse distinto en
+ *    dos fuentes distintas.
  */
-describe('⭐ LOS GLIFOS DE LOS HITOS — la lista y el plano dicen lo mismo', () => {
-  it('⭐ 1 · los cuatro hitos del plano son los mismos caracteres que en la lista', () => {
-    const hitos = Object.keys(GLIFO) as (keyof typeof GLIFO)[];
+describe('⭐ LOS SÍMBOLOS DE LOS HITOS — la lista y el plano dicen lo mismo', () => {
+  it('⭐ 1 · los cuatro hitos del plano son los mismos símbolos que en la lista', () => {
+    const hitos = Object.keys(SIMBOLO_DEL_HITO) as (keyof typeof SIMBOLO_DEL_HITO)[];
     expect(hitos.sort()).toEqual(['aparca', 'baja', 'coge', 'sube']);
 
     for (const hito of hitos) {
-      expect(FLECHAS[hito]).toBe(GLIFO[hito]);
+      expect(SIMBOLO_DEL_GIRO[hito]).toBe(SIMBOLO_DEL_HITO[hito]);
     }
   });
 
   it('⭐ 2 · el plano no inventa un hito que la lista no sepa nombrar', () => {
-    // Si el contrato añadiera un hito, `GLIFO` dejaría de compilar —es un
-    // `Record` exhaustivo—. Lo que esto compra es lo otro: que ese hito nuevo
-    // **tenga también flecha en la lista**, que el tipo no obliga.
-    for (const hito of Object.keys(GLIFO)) {
-      expect(Object.keys(FLECHAS)).toContain(hito);
+    // Si el contrato añadiera un hito, `SIMBOLO_DEL_HITO` dejaría de compilar
+    // —es un `Record` exhaustivo—. Lo que esto compra es lo otro: que ese hito
+    // nuevo **tenga también símbolo en la lista**, que el tipo no obliga.
+    for (const hito of Object.keys(SIMBOLO_DEL_HITO)) {
+      expect(Object.keys(SIMBOLO_DEL_GIRO)).toContain(hito);
+    }
+  });
+
+  it('⭐ 3 · y los cuatro nombres existen de verdad en la tabla de dibujos', () => {
+    // El tipo ya lo dice —`NombreDeSimbolo` es una unión cerrada—, pero el
+    // dibujo lo sirve `SIMBOLOS` en ejecución: esto compra que ninguno de los
+    // cuatro salga `undefined` el día que alguien reordene esa tabla.
+    for (const nombre of Object.values(SIMBOLO_DEL_HITO)) {
+      expect(typeof SIMBOLOS[nombre]).toBe('string');
+      expect(SIMBOLOS[nombre].length).toBeGreaterThan(0);
     }
   });
 });

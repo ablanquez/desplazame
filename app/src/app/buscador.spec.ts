@@ -20,6 +20,7 @@ import type {
   Vertice,
   Via,
 } from '@desplazame/tipos';
+import { SIMBOLOS } from './simbolos';
 import { Buscador, CUANDO_SE_DICE_QUE_TARDA_MS } from './buscador';
 
 /**
@@ -1332,23 +1333,47 @@ function aseguraQueHayModo(fixture: any): void {
  * hay, y no dice nada de si se ve bien.
  */
 function pasosEnPantalla(raiz: HTMLElement): string[] {
+  // ⚠️ **Barría TODOS los `<span>` del paso y eso dejó de valer el 12/09.** Con
+  //    el timeline, el paso tiene spans DENTRO de spans —el cuerpo contiene la
+  //    frase y la frase contiene el texto—, así que el mismo contenido se leía
+  //    tres veces: «Gira a la izquierda Gira a la izquierda Gira a la izquierda
+  //    150 m». No era un fallo de la pantalla: era el lector recogiendo padres
+  //    y nietos por igual. Se le nombran las piezas que se leen, en su orden.
+  const PIEZAS = '.chip-linea, .paso__texto, .paso__metros';
   return Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).map((p) =>
-    Array.from(p.querySelectorAll<HTMLElement>('span'))
-      .map((s) => s.textContent?.trim() ?? '')
-      // Los huecos NO cuentan. Un `<span>` sin texto —la columna del icono de
-      // capa, que solo se llena en las dos puntas— metía un espacio de más al
-      // unir, y esto compara LO QUE SE LEE. Lo que se lee no cambió.
+    Array.from(p.querySelectorAll<HTMLElement>(PIEZAS))
+      .map((s) => (s.textContent ?? '').replace(/\s+/g, ' ').trim())
+      // Los huecos NO cuentan: esto compara LO QUE SE LEE.
       .filter((t) => t !== '')
       .join(' ')
       .trim(),
   );
 }
 
-/** Las flechas, solo las flechas. */
-function flechasEnPantalla(raiz: HTMLElement): string[] {
-  return Array.from(raiz.querySelectorAll<HTMLElement>('.paso__flecha')).map(
-    (f) => f.textContent?.trim() ?? '',
+/**
+ * Los símbolos de maniobra, solo ésos, en el orden en que se pintan.
+ *
+ * ⚠️ Devolvía el CARÁCTER de `.paso__flecha` hasta el 12/09. Ahora cada paso
+ *    dibuja un SVG, así que lo que se compara es el trazado — y se compara
+ *    contra `SIMBOLOS`, que es de donde sale, no contra una copia escrita aquí.
+ *    Ver `nombreDelSimbolo`, que hace el camino de vuelta para poder leer los
+ *    fallos en cristiano.
+ */
+function simbolosEnPantalla(raiz: HTMLElement): string[] {
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.paso__circulo path')).map(
+    (p) => nombreDelSimbolo(p.getAttribute('d')),
   );
+}
+
+/**
+ * Del trazado al nombre. Es la vuelta de `SIMBOLOS` y existe para que un fallo
+ * diga «esperaba pedal_bike y salió local_parking» en vez de escupir dos
+ * cadenas de 600 caracteres que nadie va a comparar a ojo.
+ */
+function nombreDelSimbolo(d: string | null): string {
+  if (d === null) return '(sin trazado)';
+  const par = Object.entries(SIMBOLOS).find(([, trazado]) => trazado === d);
+  return par ? par[0] : '(un trazado que no está en SIMBOLOS)';
 }
 
 /**
@@ -2783,10 +2808,15 @@ describe('Buscador', () => {
     await fixture.whenStable();
 
     expect(pasosEnPantalla(raiz)).toEqual([
-      '◉ Sal de Calle Burgos 2 y dirígete hacia el suroeste por Calle de Burgos 91 m',
-      '↰ Gira a la izquierda hacia la acera 150 m',
-      '↗ Gira ligeramente a la derecha hacia Avenida de Goya 96 m',
-      '⚑ Avenida Goya 45 está a la izquierda',
+      // ⚠️ Cada línea empezaba con su glifo —`◉`, `↰`, `↗`, `⚑`— hasta el
+      //    12/09. Ahora la maniobra es un dibujo y no tiene texto que leer, así
+      //    que sale de aquí: quien la compra es `simbolosEnPantalla`, que
+      //    compara el trazado contra `SIMBOLOS`. Lo que queda aquí es lo que de
+      //    verdad se LEE, que es lo que esta jueza siempre quiso comprar.
+      'Sal de Calle Burgos 2 y dirígete hacia el suroeste por Calle de Burgos 91 m',
+      'Gira a la izquierda hacia la acera 150 m',
+      'Gira ligeramente a la derecha hacia Avenida de Goya 96 m',
+      'Avenida Goya 45 está a la izquierda',
     ]);
     // El paso de llegada no abre tramo: 0 metros no se escriben.
     expect(pasosEnPantalla(raiz)[3]).not.toContain('0 m');
@@ -2869,7 +2899,7 @@ describe('Buscador', () => {
     http.expectOne('/api/ruta').flush(TRAYECTO_DE_LOS_DIEZ);
     await fixture.whenStable();
 
-    const flechas = flechasEnPantalla(raiz);
+    const flechas = simbolosEnPantalla(raiz);
     expect(flechas.length).toBe(TODOS_LOS_GIROS.length);
     expect(flechas.every((f) => f !== '')).toBe(true);
     expect(new Set(flechas).size).toBe(TODOS_LOS_GIROS.length);
@@ -3510,8 +3540,11 @@ describe('Buscador', () => {
     const notas = Array.from(raiz.querySelectorAll('.paso__nota'));
     expect(notas.length).toBe(2);
     for (const nota of notas) {
-      const icono = nota.querySelector('[aria-hidden="true"]');
-      expect(icono?.textContent?.trim()).toBe('⚠');
+      // ⚠️ Era `textContent === '⚠'`. Desde el 12/09 el aviso es un dibujo y no
+      //    una letra, así que lo que se compra es QUÉ dibujo — y se compara con
+      //    `SIMBOLOS`, no con una copia del trazado escrita aquí.
+      const icono = nota.querySelector('.paso__nota-icono path');
+      expect(icono?.getAttribute('d')).toBe(SIMBOLOS['warning']);
     }
   });
 
@@ -5252,7 +5285,9 @@ describe('Buscador', () => {
     expect((hito!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ')).toContain(
       'Aparca en el aparcamiento público Plaza del Pilar - Juzgados',
     );
-    expect(hito!.querySelector('.paso__flecha')?.textContent?.trim()).not.toBe('');
+    expect(nombreDelSimbolo(hito!.querySelector('path')?.getAttribute('d') ?? null)).toBe(
+      'local_parking',
+    );
 
     // ⭐ Y LA NOTA VA EN EL PASO 2, que es el que dice `Aviso.paso`.
     const notas = notasPorPaso(raiz);
@@ -6249,7 +6284,9 @@ describe('Buscador', () => {
       expect(
         (hito!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim(),
       ).toBe('Coge la moto de YeGo (45 km de autonomía)');
-      expect(hito!.querySelector('.paso__flecha')?.textContent?.trim()).toBe('🚲');
+      expect(
+        nombreDelSimbolo(hito!.querySelector('.paso__circulo path')?.getAttribute('d') ?? null),
+      ).toBe('pedal_bike');
 
       // Y el remate, que es dejarla en el destino y no en un aparcamoto.
       const deja = Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).find((li) =>
@@ -6848,7 +6885,9 @@ describe('Buscador', () => {
       expect(
         (hito!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim(),
       ).toBe('Aparca en el aparcamiento de motos de Predicadores 28 (sin coste)');
-      expect(hito!.querySelector('.paso__flecha')?.textContent?.trim()).toBe('🅿');
+      expect(
+        nombreDelSimbolo(hito!.querySelector('.paso__circulo path')?.getAttribute('d') ?? null),
+      ).toBe('local_parking');
 
       // El aviso de la zona, en el paso que dice `Aviso.paso`.
       const notas = notasPorPaso(raiz);
