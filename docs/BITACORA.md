@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-13] 🔴 ABIERTA — la negrita no existe: todo `font-weight: 700` pinta el semibold
+## [2026-09-13] ✅ CERRADA — la negrita no existe: todo `font-weight: 700` pinta el semibold
 
 **Categoría:** lo computado no es lo pintado
 **Síntoma:** preparando los candidatos de la pieza (7) —semibold · bold ·
@@ -38,10 +38,40 @@ negrita del titular por el estilo computado. Hoy, sobre la build de la fase B:
 `✅ VERDE`
 **Cómo se cazó:** instrumento — la lámina de candidatos de la pieza (7) y la
 sonda de tinta que se hizo porque B y A se veían iguales.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** **dos decisiones correctas que nadie cruzó.** La ficha de las
+fuentes sirvió tres pesos porque «el encargo pide 400/500/600», y el CSS pedía
+700 en cuatro reglas —la del titular dice en su comentario que calca el
+`text-2xl font-bold` de la maqueta; de las otras tres, de dónde salió el 700
+NO CONSTA—. Con 700 pedido y 600 como cara más cercana,
+el navegador usa el 600 y no sintetiza nada: no hay error, ni aviso, ni píxel
+raro. Y la jueza leyó `getComputedStyle().fontWeight`, que devuelve **lo
+pedido**, no la cara con la que se pinta: el instrumento medía la intención.
+**Arreglo aplicado:** [ANTONIO, cierre de la fase B] se queda el 600 y el 700
+no se carga. Las cuatro reglas que lo pedían pasan a 600 con su porqué en una
+línea: `.ruta__titular` (`app/src/app/resultado.css`), `.pestana__cabecera h2`,
+`.boton` y `.chip-linea` (`app/src/styles.css`). Sin cambio de píxel, porque
+es lo que ya se pintaba. Juezas: la P21 nueva compra que ningún peso declarado
+se quede sin cara —nació en rojo nombrando las cuatro y está verde con 24
+pesos declarados—, y la P16 compra el 600 en vez de «>= 700». Corrida
+definitiva contra el motor en `127.0.0.1`, con el bundle servido igual al
+construido:
+`  OK  P21 · ⭐ ninguna regla pide un peso de Inter que no se carga (nº51)  ·  24 pesos declarados, todos con cara · 2 regla(s) con otra familia, fuera`
+`  OK  P16 · y el titular va en el 2xl, en el semibold: el peso más alto que la app carga  ·  24px / peso 600 · «8,2 km·~57 min»`
+La vía si el ojo de Antonio pide más peso en producción, dicha y no hoy: cara
+700 RECORTADA (~18 KB) con su ficha.
+**Commit:** `5a3edac` (las cuatro reglas) · `ab615dd` (la P21 y la P16) · `f6352a5` (la build)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+Y al cerrar: **el estilo computado dice lo que se pidió, no lo que se pintó.**
+Una jueza de letra que no cruce el peso con las caras cargadas —o que no cuente
+tinta— compra la intención.
+
+**Nota [2026-09-13, al cerrar]:** el Síntoma dice que afecta «a todo
+`<strong>`, que es lo que llevan los nombres de calle de cada paso». **Para los
+pasos no es cierto**: `.paso__texto strong` ya declaraba 600, y la P21 lo
+listó al cruzar los pesos. Hay `<strong>` en `creditos.html`,
+`identidad.html` y `panel.html`; la P21 solo lee las hojas de la pantalla
+principal, así que si esos llevan regla propia o se quedan en el 700 del
+navegador NO CONSTA.
 **Traza:** `app/src/styles.css` (`@font-face` Inter); `app/src/app/resultado.css`
 (`.ruta__titular`); `app/e2e/pintura.mjs` — P16, «el titular va en el 2xl en
 negrita».
