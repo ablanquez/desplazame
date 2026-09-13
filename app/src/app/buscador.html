@@ -1,7 +1,9 @@
-<!-- ⭐ EL AVISO EN DOS NIVELES, y **una sola plantilla para los dos sitios**.
-     [GOV.UK] el resumen arriba y el mensaje junto a lo afectado, con el MISMO
-     texto: teniendo un solo trozo de plantilla usada dos veces, eso deja de ser
-     una promesa y pasa a ser cómo está hecho.
+<!-- ⭐ EL AVISO EN DOS NIVELES, para la tira del paso.
+     ⚠️ Era «una sola plantilla para los dos sitios» hasta el 13/09. Desde la
+        fase B el desvío —el único aviso que se parte— ya no deja tira en el
+        paso, y su «detalles» vive en el renglón del resumen, escrito allí
+        porque tiene que ir fuera del enlace. Aquí se queda para las tiras que
+        siguen: hoy ninguna trae detalle, y si alguna lo trae, sale.
 
      La anatomía es la documentada [GOV.UK · sistema de diseño de la Comisión
      Europea, `expandable`]: **botón + indicador de estado + contenedor
@@ -887,12 +889,41 @@
                   Avisos de este viaje:
                 </h3>
                 <ul class="resumen__lista">
+                  <!-- ⭐ UN RENGLÓN POR LÍNEA AFECTADA, Y EL «detalles» AQUÍ (13/09,
+                       fase B) [ANTONIO; alert fatigue].
+
+                       El paso ya no repite el aviso: lleva la marca «desviada» y
+                       nada más. Así que la lista de postes provisionales vuelve
+                       arriba, junto al hecho que explica — y sigue habiendo UN
+                       disparador por lista, que es la mitad que no ha cambiado
+                       desde el 2/09.
+
+                       ⚠️ El botón va FUERA del enlace y no dentro: un `<button>`
+                          dentro de un `<a>` es contenido interactivo anidado, y
+                          qué hace el clic pasa a depender del navegador. -->
                   @for (linea of resumenDeAvisos(); track $index) {
                     <li class="resumen__linea">
                       @if (linea.paso !== null) {
                         <a class="resumen__enlace" [href]="'#paso-' + linea.paso">{{ linea.texto }}</a>
                       } @else {
                         {{ linea.texto }}
+                      }
+                      @if (linea.detalle) {
+                        <button
+                          type="button"
+                          class="detalles"
+                          [attr.aria-expanded]="estaDesplegado('resumen-' + $index)"
+                          [attr.aria-controls]="'detalle-resumen-' + $index"
+                          (click)="alternarDetalle('resumen-' + $index)"
+                        >
+                          detalles
+                        </button>
+                        <span
+                          class="detalles__cuerpo"
+                          [id]="'detalle-resumen-' + $index"
+                          [hidden]="!estaDesplegado('resumen-' + $index)"
+                          >{{ linea.detalle }}</span
+                        >
                       }
                     </li>
                   }
@@ -1060,6 +1091,22 @@
                             >{{ linea.corto }}</span
                           >
                         }
+                      }
+                      <!-- ⭐ LA MARCA DEL DESVÍO, junto al chip (13/09, fase B)
+                           [ANTONIO; la palabra es suya].
+
+                           Sustituye a la tira ámbar que repetía el aviso entero en
+                           el paso [alert fatigue: el mismo texto dos veces enseña a
+                           no leer ninguno]. El hecho y la lista, arriba; aquí, cuál.
+
+                           [WCAG 1.4.1] color + icono + TEXTO, nunca color solo. El
+                           icono va callado (`app-simbolo` ya lo pinta `aria-hidden`):
+                           la palabra lo dice, y quien oye el paso oye «35, desviada». -->
+                      @if (vaDesviado(paso)) {
+                        <span class="paso__marca">
+                          <app-simbolo nombre="warning" [lado]="14" />
+                          desviada
+                        </span>
                       }
                       <span class="paso__texto">
                       <!-- ⚠️ EL ICONO DE CAPA VA AQUÍ DENTRO desde el 12/09, y no al

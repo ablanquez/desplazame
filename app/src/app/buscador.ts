@@ -2253,7 +2253,12 @@ export class Buscador {
    * donde lleva el enlace. Repetirla arriba sería el mismo texto dos veces.
    */
   protected readonly resumenDeAvisos = computed<
-    readonly { readonly texto: string; readonly paso: number | null }[]
+    readonly {
+      readonly texto: string;
+      readonly paso: number | null;
+      /** La lista de postes del desvío, si el renglón trae uno. */
+      readonly detalle: string | null;
+    }[]
   >(() => {
     const trayecto = this.resultado()?.trayecto;
     if (!trayecto) {
@@ -2271,9 +2276,13 @@ export class Buscador {
       if (nota !== null && !donde.has(nota)) {
         donde.set(nota, i);
       }
+      // Y el desvío, por SU regla: la de la línea (ver `vaDesviado`).
+      const desvio = this.desvioDelHito(paso);
+      if (desvio !== null && !donde.has(desvio)) {
+        donde.set(desvio, i);
+      }
     });
-    return this.avisosDelViaje().map((a) => ({
-      texto: enDosNiveles(a.texto).hecho,
+    const sueltos = this.avisosDelViaje().map((a) => {
       // ⭐ `Aviso.paso` MANDA, y el texto es solo la reserva (3/09).
       //
       // El motor sabe por qué paso se entra en la Zona de Bajas Emisiones —lo
@@ -2284,8 +2293,42 @@ export class Buscador {
       //
       // La reserva se queda para los avisos que NO traen `paso`: los del bus y
       // los del BiZi, que se reparten por el sitio que nombran.
-      paso: a.paso ?? donde.get(a.texto) ?? null,
-    }));
+      const paso = a.paso ?? donde.get(a.texto) ?? null;
+      const partido = enDosNiveles(a.texto);
+      return {
+        texto: partido.hecho,
+        paso,
+        detalle: partido.detalle,
+        linea: paso === null ? null : lineaDelHito(trayecto.pasos[paso]!),
+      };
+    });
+
+    // ⭐ UN RENGLÓN POR LÍNEA AFECTADA [ANTONIO, 13/09, fase B].
+    //
+    // Medido en vivo ese domingo: la 35 salía DOS veces —«va hoy desviada» y su
+    // horario de festivo—, dos renglones que llevaban al mismo paso. Se juntan
+    // en el renglón de su línea con las frases TAL CUAL y en el orden del
+    // motor. La línea se saca del PASO al que el aviso lleva, no de sus
+    // palabras: es el hito donde se sube, y eso ya lo sabe `lineaDelHito`.
+    //
+    // Lo que no es de ninguna línea —la ZBE, la BiZi, la vejez del feed— sale
+    // en su renglón, uno a uno, como siempre.
+    const renglones: { texto: string; paso: number | null; detalle: string | null }[] = [];
+    const deLaLinea = new Map<string, (typeof renglones)[number]>();
+    for (const s of sueltos) {
+      const suyo = s.linea === null ? undefined : deLaLinea.get(s.linea);
+      if (suyo) {
+        suyo.texto = `${suyo.texto} ${s.texto}`;
+        suyo.detalle ??= s.detalle;
+        continue;
+      }
+      const nuevo = { texto: s.texto, paso: s.paso, detalle: s.detalle };
+      renglones.push(nuevo);
+      if (s.linea !== null) {
+        deLaLinea.set(s.linea, nuevo);
+      }
+    }
+    return renglones;
   });
 
   /**
@@ -2295,13 +2338,50 @@ export class Buscador {
    * siempre para los hitos. Los dos caminos devuelven el texto **tal cual**,
    * que es lo que hace que arriba y abajo digan lo mismo sin mantener dos
    * frases a juego.
+   *
+   * ⚠️ **Y NUNCA UN DESVÍO** (13/09, fase B). El desvío ya no deja tira en el
+   *    paso: deja la marca «desviada», que decide `vaDesviado` por su cuenta.
+   *    Y eso arregla la nº50 de `docs/BITACORA.md` por construcción: con las
+   *    dos cosas por el mismo embudo, el horario de festivo —que trae `paso`—
+   *    ganaba siempre, y el desvío de la misma subida no salía en ningún sitio
+   *    de abajo.
    */
   protected notaDelPaso(indice: number, paso: Paso): string | null {
-    const suyo = this.avisosDelViaje().find((a) => a.paso === indice);
+    const suyo = this.avisosDelViaje().find(
+      (a) => a.paso === indice && !a.texto.includes(MARCA_DE_DESVIO),
+    );
     if (suyo) {
       return suyo.texto;
     }
     return esHito(paso) ? this.notaDelHito(paso) : null;
+  }
+
+  /**
+   * ⭐ SI EL PASO VA DESVIADO: la marca corta junto al chip (13/09, fase B).
+   *
+   * [ANTONIO] icono `warning` pequeño + «desviada». El hecho entero y su lista
+   * se leen arriba; aquí solo se dice CUÁL de los pasos es el afectado.
+   *
+   * La regla es la de la línea, la primera de `notaDelHito` y la que cerró la
+   * entrada del 31/08: un desvío explica UNA LÍNEA, así que marca la subida a
+   * esa línea —y en un transbordo, la línea a la que se sube, no la que se
+   * deja—.
+   */
+  protected vaDesviado(paso: Paso): boolean {
+    return this.desvioDelHito(paso) !== null;
+  }
+
+  /** El texto del desvío de la línea a la que se sube en este hito, o `null`. */
+  private desvioDelHito(paso: Paso): string | null {
+    const suLinea = lineaDelHito(paso);
+    if (suLinea === null) {
+      return null;
+    }
+    return (
+      this.avisosDelViaje().find(
+        (a) => a.texto.includes(MARCA_DE_DESVIO) && a.texto.startsWith(`La línea ${suLinea} `),
+      )?.texto ?? null
+    );
   }
 
   /** Si un paso es de los que prometen algo: los cuatro hitos. */
@@ -2310,25 +2390,20 @@ export class Buscador {
   }
 
   protected notaDelHito(paso: Paso): string | null {
-    const marcados = this.avisosDeHito();
+    // ⚠️ SIN LOS DESVÍOS (13/09, fase B): esos ya no dejan tira, dejan la marca
+    //    «desviada», y su regla —la de la línea— vive en `desvioDelHito`.
+    const marcados = this.avisosDeHito().filter((a) => !a.texto.includes(MARCA_DE_DESVIO));
     if (marcados.length === 0) {
       return null;
     }
-    // ⭐ EL ORDEN DE LAS DOS REGLAS ES PARTE DE LA REGLA, y va primero **la
-    // línea**. Se descubrió al revés el 31/08: el aviso de la 29 nombra
-    // «Asalto / Centro De Historias» como parada provisional, y ese poste es
-    // justo donde se sube a la 22 — así que la regla del sitio le colgaba al
-    // hito de la 22 el desvío de la 29. Un aviso que empieza por «La línea 22»
-    // es de la 22 y no hay nada que interpretar; el sitio, en cambio, lo pueden
-    // nombrar dos avisos. Ver la entrada del 31/08 de `docs/BITACORA.md`.
-    const suLinea = lineaDelHito(paso);
-    const deSuLinea = suLinea
-      ? marcados.find((a) => a.texto.startsWith(`La línea ${suLinea} `))
-      : undefined;
-    if (deSuLinea) {
-      return deSuLinea.texto;
-    }
-    // Y si ningún aviso es de su línea, el que nombra su sitio.
+    // ⭐ Aquí hubo DOS reglas y el orden era parte de la regla: primero **la
+    // línea**, después el sitio. Se descubrió al revés el 31/08 —el aviso de la
+    // 29 nombra «Asalto / Centro De Historias», que es donde se sube a la 22—.
+    // La de la línea solo casaba con desvíos, así que se ha ido con ellos a
+    // `desvioDelHito`; lo que queda es la del sitio, y con su cautela intacta.
+    // Ver la entrada del 31/08 de `docs/BITACORA.md`.
+    //
+    // El que nombra su sitio.
     //
     // ⚠️ **Pero NUNCA uno de desvío**, y esto es la reapertura de la entrada del
     // 31/08: un desvío explica **una línea**, no un poste. El aviso de la 35

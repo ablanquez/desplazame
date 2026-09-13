@@ -893,6 +893,25 @@ const VIAJE_CON_TRANSBORDO_Y_DESVIO: Trayecto = {
 };
 
 /**
+ * ⭐ EL MISMO VIAJE UN DOMINGO: desvío, horario de festivo y vejez (13/09).
+ *
+ * Es la forma medida en vivo que destapó la nº50 de `docs/BITACORA.md`: el
+ * motor manda el desvío SIN `paso` —se reparte por la línea— y los dos
+ * horarios de festivo CON `paso`, cada uno en la subida de su línea. Las
+ * frases son las de `avisoDelFestivo`, copiadas de la pantalla de ese día. Y
+ * uno de vejez sin paso ni línea, que es el que tiene que seguir saliendo solo.
+ */
+const VIAJE_DESVIADO_EN_FESTIVO: Trayecto = {
+  ...VIAJE_CON_TRANSBORDO_Y_DESVIO,
+  avisos: [
+    ...VIAJE_CON_TRANSBORDO_Y_DESVIO.avisos,
+    { texto: 'Línea 35 hoy: 07:00–01:20, cada ~10 min (Fuente: Avanza, 17:22)', paso: 1 },
+    { texto: 'Línea 31 hoy: 06:55–23:29, cada ~17 min (Fuente: Avanza, 17:22)', paso: 2 },
+    { texto: 'Los desvíos de hoy se leyeron hace 3 horas.' },
+  ],
+};
+
+/**
  * ⭐ Y una ruta de BICI con su aviso: el destino sin aparcabicis cerca.
  *
  * El otro caso de la misma clase — desde las casillas 5 y 6, un trayecto puede
@@ -1403,9 +1422,27 @@ function avisosDeRuta(raiz: HTMLElement): string[] {
  * línea dice es el **hecho**; el detalle vive junto al hito, a un enlace.
  */
 function resumenEnPantalla(raiz: HTMLElement): string[] {
-  return Array.from(raiz.querySelectorAll<HTMLElement>('.resumen__linea')).map((l) =>
-    (l.textContent ?? '').replace(/\s+/g, ' ').trim(),
-  );
+  // ⚠️ Desde el 13/09 el «detalles» y su lista viven DENTRO de la línea del
+  //    resumen, y `textContent` lee también lo oculto: se descuentan los dos
+  //    para que lo que se compare sea la frase que se lee, no la frase más el
+  //    rótulo del botón más la lista cerrada.
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.resumen__linea')).map((l) => {
+    const copia = l.cloneNode(true) as HTMLElement;
+    copia.querySelectorAll('.detalles, .detalles__cuerpo').forEach((x) => x.remove());
+    return (copia.textContent ?? '').replace(/\s+/g, ' ').trim();
+  });
+}
+
+/**
+ * ⭐ LOS PASOS QUE LLEVAN LA MARCA «desviada» (13/09, fase B), por su frase.
+ *
+ * La marca sustituye a la tira ámbar del desvío: el hecho y su lista se leen
+ * arriba, y el paso solo dice CUÁL es el afectado.
+ */
+function pasosConMarca(raiz: HTMLElement): string[] {
+  return Array.from(raiz.querySelectorAll<HTMLElement>('.paso'))
+    .filter((li) => li.querySelector('.paso__marca') !== null)
+    .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
 }
 
 /** A qué paso lleva cada línea del resumen, por su `href`. `null` si no enlaza. */
@@ -2435,7 +2472,9 @@ describe('Buscador', () => {
       // ⭐ El destino EXISTE y es enfocable por programa [GOV.UK]: sin esto la
       //    página baja pero el foco se queda arriba.
       expect(destino!.getAttribute('tabindex')).toBe('-1');
-      expect(destino!.querySelector('.paso__nota')).not.toBeNull();
+      // Y el destino es el paso MARCADO: desde el 13/09 el desvío no deja tira
+      // en el paso, deja la marca «desviada» junto al chip.
+      expect(destino!.querySelector('.paso__marca')).not.toBeNull();
     }
   });
 
@@ -3802,20 +3841,25 @@ describe('Buscador', () => {
     expect(resumen[0]).toBe('La línea 29 va hoy desviada.');
     expect(resumen[0]).not.toContain('no para en Don Jaime I / Plaza De La Seo');
 
-    // Y la nota, junto al hito de subir a la 29 — y solo ahí, con la lista.
-    const conNota = Array.from(raiz.querySelectorAll('.paso'))
-      .filter((li) => li.querySelector('.paso__nota') !== null)
-      .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
-    expect(conNota).toEqual([
+    // ⭐ Y LA MARCA, junto al hito de subir a la 29 — y solo ahí (13/09).
+    //
+    //    Hasta la fase B esto era una tira ámbar con el aviso entero repetido:
+    //    [alert fatigue] el mismo texto dos veces acostumbra a no leer ninguna.
+    //    El paso dice CUÁL es el afectado; el hecho y la lista, arriba.
+    expect(pasosConMarca(raiz)).toEqual([
       'Sube a la línea 29 en el poste Bernardo Ramazzini / Maz — ~7 min de espera',
     ]);
-    const nota = (raiz.querySelector('.paso__nota')?.textContent ?? '').replace(/\s+/g, ' ').trim();
-    expect(nota).toContain('no para en Don Jaime I / Plaza De La Seo');
-    expect(nota).toContain('para provisionalmente en P. Echegaray');
+    expect(raiz.querySelectorAll('.paso__nota').length).toBe(0);
+    // La lista de postes sigue existiendo: ahora detrás del «detalles» de arriba.
+    const lista = (raiz.querySelector('.resumen .detalles__cuerpo')?.textContent ?? '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    expect(lista).toContain('no para en Don Jaime I / Plaza De La Seo');
+    expect(lista).toContain('para provisionalmente en P. Echegaray');
 
     // ⭐ Y EL ENLACE DEL RESUMEN LLEVA A ESE PASO, no a otro.
     const paso = Array.from(raiz.querySelectorAll('.paso')).findIndex(
-      (li) => li.querySelector('.paso__nota') !== null,
+      (li) => li.querySelector('.paso__marca') !== null,
     );
     expect(adondeLlevaElResumen(raiz)).toEqual([`#paso-${paso}`]);
   });
@@ -3854,20 +3898,22 @@ describe('Buscador', () => {
     expect(banners.some((b) => b.startsWith('La línea 22'))).toBe(true);
     expect(banners.some((b) => b.startsWith('La línea 29'))).toBe(true);
 
-    // ⭐ Y CADA NOTA, LA DE SU LÍNEA. Dos hitos de subida, dos notas distintas.
-    const notas = Array.from(raiz.querySelectorAll('.paso'))
-      .filter((li) => li.querySelector('.paso__nota') !== null)
-      .map((li) => ({
-        paso: (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim(),
-        nota: (li.querySelector('.paso__nota')?.textContent ?? '').replace(/\s+/g, ' ').replace(/^⚠\s*/, '').trim(),
-      }));
-    expect(notas.length).toBe(2);
-    expect(notas[0]!.paso).toContain('Sube a la línea 29');
-    expect(notas[0]!.nota).toMatch(/^La línea 29 va hoy desviada/);
-    expect(notas[1]!.paso).toContain('Sube a la línea 22');
-    expect(notas[1]!.nota).toMatch(/^La línea 22 va hoy desviada/);
-    // Y no son la misma: es justo lo que fallaba.
-    expect(notas[0]!.nota).not.toBe(notas[1]!.nota);
+    // ⭐ Y CADA AVISO, EN EL PASO DE SU LÍNEA. Desde el 13/09 el paso ya no
+    //    repite el texto —lleva la marca «desviada»—, así que el reparto se
+    //    compra por el ENLACE: la línea del resumen que habla de la 29 lleva al
+    //    paso que sube a la 29, y la de la 22 al de la 22.
+    expect(pasosConMarca(raiz).length).toBe(2);
+    const pasos = Array.from(raiz.querySelectorAll<HTMLElement>('.paso'));
+    const lineas = Array.from(raiz.querySelectorAll<HTMLElement>('.resumen__linea'));
+    const destinoDe = (n: string): string => {
+      const li = lineas.find((l) => (l.textContent ?? '').trim().startsWith(`La línea ${n} `))!;
+      const href = li.querySelector('a')!.getAttribute('href')!;
+      const destino = pasos.find((p) => `#${p.id}` === href)!;
+      expect(destino.querySelector('.paso__marca')).not.toBeNull();
+      return (destino.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    };
+    expect(destinoDe('29')).toContain('Sube a la línea 29');
+    expect(destinoDe('22')).toContain('Sube a la línea 22');
   });
 
   /**
@@ -3940,14 +3986,12 @@ describe('Buscador', () => {
     expect(banners.length).toBe(1);
     expect(banners[0]).toContain('La línea 35 va hoy desviada');
 
-    // ⭐ Y UNA SOLA NOTA, la de la subida a la 35. El transbordo a la 31 no
+    // ⭐ Y UNA SOLA MARCA, la de la subida a la 35. El transbordo a la 31 no
     // lleva ninguna, aunque su poste salga nombrado en el aviso de la 35.
-    const conNota = Array.from(raiz.querySelectorAll('.paso'))
-      .filter((li) => li.querySelector('.paso__nota') !== null)
-      .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
-    expect(conNota.length).toBe(1);
-    expect(conNota[0]).toContain('Sube a la línea 35');
-    expect(conNota[0]).not.toContain('transborda');
+    const conMarca = pasosConMarca(raiz);
+    expect(conMarca.length).toBe(1);
+    expect(conMarca[0]).toContain('Sube a la línea 35');
+    expect(conMarca[0]).not.toContain('transborda');
   });
 
   /**
@@ -3986,12 +4030,14 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
     await fixture.whenStable();
 
-    // ⚠️ **En el HITO, no arriba** (2/09). El resumen dejó de llevar el doble
-    //    nivel: dice el hecho y enlaza. El detalle vive en un solo sitio, que
-    //    es el que está pegado a lo que explica.
-    const banner = raiz.querySelector<HTMLElement>('.paso__nota')!;
+    // ⚠️ **ARRIBA, no en el hito** (13/09, fase B) — y es la vuelta de lo del
+    //    2/09. Entonces el detalle bajó al hito porque el hito llevaba la tira
+    //    con el aviso entero; la tira ha muerto [alert fatigue] y el hito solo
+    //    lleva la marca «desviada». El detalle sigue en UN solo sitio: el
+    //    resumen, que es donde está el hecho que explica.
+    const banner = raiz.querySelector<HTMLElement>('.resumen')!;
     // ⭐ EL HECHO, en un elemento que NO está oculto.
-    const hecho = banner.querySelector<HTMLElement>('.aviso-ruta__hecho')!;
+    const hecho = banner.querySelector<HTMLElement>('.resumen__enlace')!;
     expect(hecho).toBeTruthy();
     expect(seVe(hecho)).toBe(true);
     expect(hecho.textContent?.trim()).toBe('La línea 35 va hoy desviada.');
@@ -4049,8 +4095,8 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
     await fixture.whenStable();
 
-    // El único disparador que queda, y está donde tiene que estar: en el hito.
-    const banner = raiz.querySelector<HTMLElement>('.paso__nota')!;
+    // El único disparador que queda, y está donde está el hecho: arriba.
+    const banner = raiz.querySelector<HTMLElement>('.resumen')!;
     const boton = banner.querySelector<HTMLElement>('.detalles')!;
     const cuerpo = banner.querySelector<HTMLElement>('.detalles__cuerpo')!;
 
@@ -4078,19 +4124,19 @@ describe('Buscador', () => {
   });
 
   /**
-   * ⭐ 17 · EL DETALLE VIVE EN **UN SOLO SITIO**, y es el hito.
+   * ⭐ 17 · EL DETALLE VIVE EN **UN SOLO SITIO**, y desde el 13/09 es ARRIBA.
    *
-   * ⚠️ Esta juez decía lo contrario hasta el 2/09 —«el doble nivel vive en los
-   *    dos sitios»— y era verdad mientras arriba había una caja por aviso, cada
-   *    una con su botón «detalles». Con el resumen único [GOV.UK · error
-   *    summary] arriba va **el hecho y un enlace**, y el detalle se queda abajo:
-   *    dos disparadores para la misma lista eran dos sitios donde abrirla y dos
-   *    estados que mantener de acuerdo.
+   * ⚠️ Esta juez ha dicho ya las dos cosas. Hasta el 2/09, «el doble nivel vive
+   *    en los dos sitios»; del 2/09 al 13/09, «solo junto al hito». Lo que no ha
+   *    cambiado nunca es la mitad buena: **UN disparador por lista** —dos eran
+   *    dos sitios donde abrirla y dos estados que mantener de acuerdo—.
    *
-   * Lo que se compra ahora es justo eso: que arriba NO haya disparador, y que
-   * el de abajo funcione solo.
+   * Cambia el sitio porque cambia lo que hay en el hito [ANTONIO, fase B]: la
+   * tira con el aviso entero muere [alert fatigue] y el paso lleva solo la
+   * marca «desviada». Una lista de postes colgando de una marca de una palabra
+   * sería un detalle sin su hecho al lado; arriba está el hecho.
    */
-  it('⭐ 17 · el detalle está SOLO junto al hito: arriba no hay botón', async () => {
+  it('⭐ 17 · el detalle está SOLO arriba: en los pasos no hay botón', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -4102,31 +4148,146 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
     await fixture.whenStable();
 
-    const nota = raiz.querySelector<HTMLElement>('.paso__nota')!;
-    expect(nota).toBeTruthy();
-    const suHecho = nota.querySelector<HTMLElement>('.aviso-ruta__hecho')!;
-    const suBoton = nota.querySelector<HTMLElement>('.detalles')!;
-    const suCuerpo = nota.querySelector<HTMLElement>('.detalles__cuerpo')!;
-    expect(suHecho.textContent?.trim()).toBe('La línea 35 va hoy desviada.');
+    const resumen = raiz.querySelector<HTMLElement>('.resumen')!;
+    expect(resumen).toBeTruthy();
+    const suBoton = resumen.querySelector<HTMLElement>('.detalles')!;
+    const suCuerpo = resumen.querySelector<HTMLElement>('.detalles__cuerpo')!;
     expect(suBoton.tagName).toBe('BUTTON');
     expect(seVe(suCuerpo)).toBe(false);
 
-    // ⭐ ARRIBA NO HAY NI BOTÓN NI CUERPO: el resumen no despliega nada.
-    const resumen = raiz.querySelector<HTMLElement>('.resumen')!;
-    expect(resumen).toBeTruthy();
-    expect(resumen.querySelector('.detalles')).toBeNull();
-    expect(resumen.querySelector('.detalles__cuerpo')).toBeNull();
+    // ⭐ EN LOS PASOS NO HAY NI BOTÓN NI CUERPO: la marca no despliega nada.
+    const lista = raiz.querySelector<HTMLElement>('.pasos__lista')!;
+    expect(lista.querySelector('.detalles')).toBeNull();
+    expect(lista.querySelector('.detalles__cuerpo')).toBeNull();
 
-    // ⭐ Y hay UN solo disparador en toda la pantalla, el del hito.
+    // ⭐ Y hay UN solo disparador en toda la pantalla, el de arriba.
     expect(raiz.querySelectorAll('.detalles').length).toBe(1);
 
-    // El de abajo abre y cierra lo suyo.
+    // Y abre y cierra lo suyo.
     suBoton.click();
     fixture.detectChanges();
     expect(seVe(suCuerpo)).toBe(true);
     suBoton.click();
     fixture.detectChanges();
     expect(seVe(suCuerpo)).toBe(false);
+  });
+
+  /**
+   * ⭐ 17-bis · LA MARCA «desviada»: icono + palabra, junto al chip (13/09).
+   *
+   * [ANTONIO, fase B] cada paso afectado lleva una MARCA CORTA junto al chip de
+   * su línea: el icono `warning` pequeño y la palabra «desviada», firmada por
+   * él. Es el patrón conforme de [WCAG 1.4.1]: **color + icono + texto**, nunca
+   * color solo — y el icono `aria-hidden`, porque la palabra ya lo dice.
+   *
+   * ⚠️ Y la tira ámbar del desvío MUERE: ni `.paso__nota` ni superficie
+   *    `.ambar` en la marca. Una marca con el fondo de la tira sería la tira
+   *    pequeña, no otra cosa.
+   */
+  it('⭐ 17-bis · la marca del desvío es icono + «desviada», junto al chip y sin tira', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_TRANSBORDO_Y_DESVIO);
+    await fixture.whenStable();
+
+    const marcas = Array.from(raiz.querySelectorAll<HTMLElement>('.paso__marca'));
+    expect(marcas.length).toBe(1);
+    const marca = marcas[0]!;
+    // La palabra, y solo la palabra: el icono no aporta letras.
+    expect((marca.textContent ?? '').replace(/\s+/g, ' ').trim()).toBe('desviada');
+    // El icono es el `warning` de SIMBOLOS, y va callado.
+    const svg = marca.querySelector('svg')!;
+    expect(svg.querySelector('path')?.getAttribute('d')).toBe(SIMBOLOS['warning']);
+    expect(svg.getAttribute('aria-hidden')).toBe('true');
+    // ⭐ JUNTO AL CHIP: lo que tiene justo delante es el chip de la 35.
+    const antes = marca.previousElementSibling as HTMLElement | null;
+    expect(antes?.classList.contains('chip-linea')).toBe(true);
+    expect(antes?.textContent?.trim()).toBe('35');
+    // ⭐ Y SIN TIRA: ni la nota ámbar en el paso, ni la superficie en la marca.
+    expect(raiz.querySelectorAll('.paso__nota').length).toBe(0);
+    expect(marca.classList.contains('ambar')).toBe(false);
+  });
+
+  /**
+   * ⭐ 17-ter · EL CASO DEL 13/09: el horario de festivo tapaba el desvío.
+   *
+   * ⚠️ **Nace de un fallo medido en vivo**, nº50 de `docs/BITACORA.md`. Domingo,
+   *    COLOSO 2 → OVIEDO 5 en bus: la 35 va desviada y ADEMÁS trae el aviso del
+   *    horario de festivo, que el motor manda con `paso`. `notaDelPaso` le da la
+   *    prioridad a `Aviso.paso`, así que el paso de la 35 enseñaba el horario,
+   *    el desvío no salía junto a ningún paso y **no quedaba ni un «detalles»
+   *    en la página**: la lista de postes provisionales no se podía abrir.
+   *
+   * Ningún fixture juntaba un desvío con otro aviso del mismo paso. Éste sí.
+   */
+  it('⭐ 17-ter · con desvío Y horario en el mismo paso, el desvío sigue marcado y su lista, alcanzable', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_DESVIADO_EN_FESTIVO);
+    await fixture.whenStable();
+
+    // ⭐ La marca, en la subida a la 35 — aunque ese paso traiga otro aviso.
+    expect(pasosConMarca(raiz)).toEqual([
+      'Sube a la línea 35 en el poste Av. Academia General Militar N.º 37 — 12 paradas — frecuencia teórica: cada 10 min',
+    ]);
+    // ⭐ Y la lista, a un botón: uno, y abre.
+    const botones = Array.from(raiz.querySelectorAll<HTMLElement>('.detalles'));
+    expect(botones.length).toBe(1);
+    botones[0]!.click();
+    fixture.detectChanges();
+    const cuerpo = raiz.querySelector<HTMLElement>('.detalles__cuerpo')!;
+    expect(seVe(cuerpo)).toBe(true);
+    expect(cuerpo.textContent).toContain('no para en Av. De Valencia N.º 8');
+    // Y el horario no se ha perdido por el camino: sigue en su paso, con sus
+    // letras. Su forma en el paso es decisión pendiente —no es un desvío y
+    // «desviada» no lo describe—, así que aquí solo se compra que llega.
+    expect(notasPorPaso(raiz).get(1)).toBe('Línea 35 hoy: 07:00–01:20, cada ~10 min (Fuente: Avanza, 17:22)');
+  });
+
+  /**
+   * ⭐ 17-quater · EL RESUMEN, UNA LÍNEA POR LÍNEA AFECTADA (13/09).
+   *
+   * [ANTONIO, fase B] la cabecera CONSOLIDA con las frases que ya existen: una
+   * entrada por línea de bus afectada y un solo «detalles». Medido en vivo el
+   * 13/09: la 35 salía DOS veces —su desvío y su horario, en dos renglones que
+   * llevaban al mismo paso—. Las letras no se tocan: se juntan en el renglón de
+   * su línea, en el orden en el que el motor las manda.
+   *
+   * Los avisos que no son de ninguna línea siguen saliendo uno a uno.
+   */
+  it('⭐ 17-quater · el resumen junta las frases de cada línea en un solo renglón', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_DESVIADO_EN_FESTIVO);
+    await fixture.whenStable();
+
+    expect(resumenEnPantalla(raiz)).toEqual([
+      'La línea 35 va hoy desviada. Línea 35 hoy: 07:00–01:20, cada ~10 min (Fuente: Avanza, 17:22)',
+      'Línea 31 hoy: 06:55–23:29, cada ~17 min (Fuente: Avanza, 17:22)',
+      'Los desvíos de hoy se leyeron hace 3 horas.',
+    ]);
+    expect(adondeLlevaElResumen(raiz)).toEqual(['#paso-1', '#paso-2', null]);
+    // Y el «detalles» es del renglón de la 35, no de otro.
+    const renglones = Array.from(raiz.querySelectorAll<HTMLElement>('.resumen__linea'));
+    expect(renglones.map((r) => r.querySelectorAll('.detalles').length)).toEqual([1, 0, 0]);
   });
 
   /**
