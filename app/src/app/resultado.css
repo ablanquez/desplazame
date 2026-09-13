@@ -57,7 +57,8 @@
   margin: 0;
   color: var(--foreground);
   font-size: 1.5rem;
-  font-weight: 700;
+  /* 600 y no 700: la app no carga cara de 700 y el 700 pintaba el 600 (nº51). */
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
   line-height: 1.2;

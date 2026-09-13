@@ -756,7 +756,8 @@ body:has(.marco) {
 .pestana__cabecera h2 {
   margin: 0;
   font-size: 1.125rem;
-  font-weight: 700;
+  /* 600 y no 700: la app no carga cara de 700 y el 700 pintaba el 600 (nº51). */
+  font-weight: 600;
 }
 
 /* ⭐ LA BARRA DE PESTAÑAS [App.tsx: `h-16 ... bg-card border-t`].
@@ -1618,7 +1619,8 @@ body:has(.marco) {
   border-radius: 0.5rem;
   font-family: inherit;
   font-size: 0.875rem;
-  font-weight: 700;
+  /* 600 y no 700: la app no carga cara de 700 y el 700 pintaba el 600 (nº51). */
+  font-weight: 600;
   cursor: pointer;
   transition:
     background-color 150ms ease,
@@ -1747,7 +1749,8 @@ body:has(.marco) {
   padding: 0.1rem 0.4rem;
   border: 1px solid rgb(0 0 0 / 25%);
   border-radius: 0.7em;
-  font-weight: 700;
+  /* 600 y no 700: la app no carga cara de 700 y el 700 pintaba el 600 (nº51). */
+  font-weight: 600;
   font-size: 0.85em;
   line-height: 1.4;
   text-align: center;
