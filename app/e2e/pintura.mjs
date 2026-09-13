@@ -1968,9 +1968,12 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
             .map((c) => `${c.cual}: ${c.d === null ? 'SIN ICONO' : c.d === trazadoDelFichero('warning') ? 'ok' : 'OTRO dibujo'}`)
             .join(' · '),
     );
+    // ⚠️ ESTE TÍTULO MINTIÓ (13/09, nº50). Decía «es el mismo aviso dicho en dos
+    //    sitios» y dio OK con el desvío de la 35 arriba y el HORARIO abajo: mide
+    //    el VESTIDO de las cajas, no lo que dicen. Lo que dicen lo compra la P20.
     juzgar(
       ambar.hay === true && new Set(ambar.cajas.map((c) => c.fondo + c.tinta)).size === 1,
-      'P16 · y las dos se visten igual: es el mismo aviso dicho en dos sitios',
+      'P16 · y todas las cajas ámbar se visten igual (el vestido; lo que dicen, en la P20)',
       ambar.hay === false
         ? '(no hay aviso)'
         : `${ambar.cuantas} cajas · ` + [...new Set(ambar.cajas.map((c) => `${c.fondo} sobre ${c.tinta}`))].join(' | '),
@@ -2396,6 +2399,250 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       enCoche.fugados.length === 0 ? `${enCoche.pasos} pasos revisados` : enCoche.fugados.join(' | '),
     );
     await m.guardar(`${CAPTURAS}/coche-atajo.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P20 · LOS AVISOS SIN REPETIR: LA MARCA Y EL RESUMEN ═══════════
+//
+// ⭐ [ANTONIO, 13/09, fase B] la tira ámbar que repetía el aviso entero en el
+//    paso MUERE [alert fatigue]. El paso afectado lleva una MARCA CORTA junto al
+//    chip —icono `warning` + «desviada»—; el hecho y su lista, arriba, en un
+//    renglón por línea y con un solo «detalles».
+//
+// ⚠️ EL SUJETO: el desvío es dato VIVO de Avanza, y el día que ninguna línea de
+//    esta ruta vaya desviada la jueza no tendría a quién medir. Así que si la
+//    respuesta no trae desvío, SE SIEMBRA uno en ella —en la respuesta XHR,
+//    antes de que Angular la lea— y el acta dice cuál de los dos se midió. Se
+//    siembra en la línea de la primera subida, con la forma del motor.
+//
+// ⚠️ Y nace de un fallo: con la línea base de esta fase, sobre esta ruta, la
+//    P16 dio «es el mismo aviso dicho en dos sitios · 3 cajas» con el desvío de
+//    la 35 tapado por su horario de festivo y sin un solo «detalles» en la
+//    página. Nº50 de docs/BITACORA.md.
+{
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9420 });
+  try {
+    await m.ir(APP, 6000);
+    console.log('\n═══ LOS AVISOS SIN REPETIR ═══');
+
+    // La siembra, sobre FETCH.
+    //
+    // ⚠️ La primera versión la puso sobre XMLHttpRequest, deducido de leer
+    //    app.config.ts —provideHttpClient() sin withFetch()— y NO se enteró de
+    //    ninguna respuesta. Preguntado a la página: la app pide con fetch
+    //    («fetch /api/vias?q=COLOSO»). En Angular 22 fetch es lo que hay por
+    //    defecto. Lo que se lee en la configuración no es lo que corre.
+    //
+    // OJO: esto va dentro de una plantilla de JS, así que en sus comentarios
+    // no puede haber ni una comilla invertida.
+    await m.evaluar(`(() => {
+      const pedir = window.fetch;
+      window.fetch = async function (...args) {
+        const respuesta = await pedir.apply(this, args);
+        const url = String(args[0]?.url ?? args[0]);
+        if (!url.includes('/api/ruta') || !respuesta.ok) return respuesta;
+        const texto = cambiar(await respuesta.clone().text());
+        return new Response(texto, {
+          status: respuesta.status,
+          statusText: respuesta.statusText,
+          headers: respuesta.headers,
+        });
+      };
+      const cambiar = (texto) => {
+        const cuerpo = JSON.parse(texto);
+        const t = cuerpo.trayecto ?? cuerpo;
+        if (!t || !Array.isArray(t.avisos) || !Array.isArray(t.pasos)) return texto;
+        if (t.avisos.some((a) => a.texto.includes('va hoy desviada'))) {
+          window.__desvio = 'vivo';
+          return texto;
+        }
+        const sube = t.pasos.find((p) => p.giro === 'sube');
+        const via = sube && sube.partes.find((x) => x.papel === 'via');
+        if (!via) return texto;
+        t.avisos.unshift({ texto: 'La línea ' + via.texto + ' va hoy desviada: no para en Poste Sembrado 1: para provisionalmente en Poste Sembrado 2.' });
+        window.__desvio = 'sembrado en la ' + via.texto;
+        return JSON.stringify(cuerpo);
+      };
+      window.__sembrarParaProbar = cambiar;
+    })()`);
+
+    // ⭐ AUTOPRUEBA DE LA SIEMBRA. El día que haya desvío vivo —el 13/09 lo
+    //    había— la rama que siembra no corre, y un instrumento con una mitad
+    //    que no se ejecuta es una mitad sin vigilar. Se le da un cuerpo SIN
+    //    desvío y otro CON, y se mira que siembre en el primero y no en el otro.
+    const autoprueba = await leer(m, `
+      const sin = { trayecto: { avisos: [], pasos: [{ giro: 'sube', partes: [{ papel: 'via', texto: '42' }] }] } };
+      const con = { trayecto: { avisos: [{ texto: 'La línea 42 va hoy desviada: no para en X.' }], pasos: sin.trayecto.pasos } };
+      const antes = window.__desvio;
+      const a = JSON.parse(window.__sembrarParaProbar(JSON.stringify(sin)));
+      const b = JSON.parse(window.__sembrarParaProbar(JSON.stringify(con)));
+      window.__desvio = antes;
+      return { siembra: a.trayecto.avisos.map((x) => x.texto), respeta: b.trayecto.avisos.length };
+    `);
+    juzgar(
+      autoprueba.siembra.length === 1 && autoprueba.siembra[0].startsWith('La línea 42 va hoy desviada') && autoprueba.respeta === 1,
+      'P20 · autoprueba: la siembra siembra donde no hay desvío y respeta donde lo hay',
+      `sin desvío → «${autoprueba.siembra[0] ?? '(nada)'}» · con desvío → ${autoprueba.respeta} aviso`,
+    );
+
+    const escribir = async (i, texto) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via input')[${i}];
+        if (!c) return;
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(900);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-autocompletar-via')[${i}];
+        const o = [...c.querySelectorAll('[role=option]')][0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(700);
+    };
+    const portal = async (i, num) => {
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal input')[${i}];
+        if (!c) return;
+        c.focus();
+        const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        set.call(c, ${JSON.stringify(num)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+      })()`);
+      await m.dormir(600);
+      await m.evaluar(`(() => {
+        const c = document.querySelectorAll('app-selector-portal')[${i}];
+        const ops = [...c.querySelectorAll('[role=option]')];
+        const o = ops.find((x) => x.textContent.trim() === ${JSON.stringify(num)}) ?? ops[0];
+        if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+      })()`);
+      await m.dormir(500);
+    };
+
+    await escribir(0, 'COLOSO');
+    await portal(0, '2');
+    await escribir(1, 'CALLE OVIEDO');
+    await portal(1, '5');
+    await m.evaluar(`document.querySelector('input[name=familia][value=bus]').click()`);
+    await m.dormir(500);
+    await m.evaluar(`document.querySelector('button.generar').click()`);
+    for (let i = 0; i < 80 && (await m.evaluar(`!!document.querySelector('button.generar')?.disabled`)); i++) {
+      await m.dormir(300);
+    }
+    await m.dormir(1500);
+
+    const avisos = await leer(m, `
+      const t = (e) => (e?.textContent ?? '').replace(/\\s+/g, ' ').trim();
+      const marcas = [...document.querySelectorAll('.paso__marca')];
+      const m0 = marcas[0];
+      const svg = m0?.querySelector('svg');
+      const renglones = [...document.querySelectorAll('.resumen__linea')];
+      return {
+        desvio: window.__desvio ?? null,
+        marcas: marcas.length,
+        palabra: t(m0),
+        d: svg?.querySelector('path')?.getAttribute('d') ?? null,
+        callado: svg?.getAttribute('aria-hidden') ?? null,
+        junto: m0?.previousElementSibling?.classList.contains('chip-linea') ?? false,
+        chip: t(m0?.previousElementSibling),
+        fondoMarca: m0 ? getComputedStyle(m0).backgroundColor : null,
+        tirasDeDesvio: [...document.querySelectorAll('.paso__nota')].filter((n) => t(n).includes('va hoy desviada')).length,
+        hrefs: renglones.map((r) => r.querySelector('a')?.getAttribute('href') ?? null).filter((h) => h !== null),
+        renglones: renglones.length,
+        detalles: document.querySelectorAll('.detalles').length,
+        detallesArriba: document.querySelectorAll('.resumen .detalles').length,
+        estado: document.querySelector('.resumen')?.getAttribute('role') ?? null,
+      };
+    `);
+    juzgar(
+      avisos.desvio !== null,
+      'P20 · la ruta trae un desvío que medir',
+      avisos.desvio === null ? '(ni vivo ni sembrado: la siembra no encontró subida)' : `desvío ${avisos.desvio}`,
+    );
+    juzgar(
+      avisos.marcas >= 1 && avisos.palabra === 'desviada',
+      'P20 · ⭐ el paso de la línea desviada lleva la marca «desviada»',
+      `${avisos.marcas} marca(s) · «${avisos.palabra}»`,
+    );
+    juzgar(
+      avisos.d !== null && avisos.d === trazadoDelFichero('warning') && avisos.callado === 'true',
+      'P20 · y su icono es el `warning` del fichero, callado [1.4.1: color + icono + texto]',
+      avisos.d === null ? '(sin icono)' : `${avisos.d === trazadoDelFichero('warning') ? 'idéntico al fichero' : 'DISTINTO del fichero'} · aria-hidden ${avisos.callado}`,
+    );
+    juzgar(
+      avisos.junto === true,
+      'P20 · ⭐ y va JUNTO AL CHIP de su línea',
+      avisos.junto ? `justo detrás del chip «${avisos.chip}»` : 'lo que tiene delante no es un chip',
+    );
+    juzgar(
+      avisos.tirasDeDesvio === 0 && avisos.fondoMarca === 'rgba(0, 0, 0, 0)',
+      'P20 · ⭐ la tira ámbar del desvío ha muerto en los pasos, y la marca no la imita',
+      `tiras con el desvío: ${avisos.tirasDeDesvio} · fondo de la marca ${avisos.fondoMarca}`,
+    );
+
+    const enReposo = await contrasteSiEsta(m, '.paso__marca', { minimo: 12 });
+    juzgar(
+      enReposo !== null && enReposo.contraste >= AA_TEXTO,
+      'P20 · ⭐ la marca se lee: ≥ 4,5:1 en reposo',
+      enReposo === null ? '(no hay marca que medir)' : `${enReposo.contraste.toFixed(2)}:1 · ${enRgb(enReposo.texto)} sobre ${enRgb(enReposo.fondo)}`,
+    );
+    await m.guardar(`${CAPTURAS}/fase-b-marca.png`);
+
+    // Y sobre la banda del realce, que también la pinta: con el ratón DE VERDAD.
+    const donde = await leer(m, `
+      const e = document.querySelector('.paso__marca');
+      if (!e) return null;
+      const c = e.getBoundingClientRect();
+      return { x: c.x + c.width / 2, y: c.y + c.height / 2 };
+    `);
+    let enBanda = null;
+    let fondoBanda = null;
+    if (donde !== null) {
+      await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: donde.x, y: donde.y });
+      await m.dormir(300);
+      fondoBanda = await m.evaluar(`getComputedStyle(document.querySelector('.paso__marca').closest('.paso')).backgroundColor`);
+      enBanda = await contrasteSiEsta(m, '.paso__marca', { minimo: 12 });
+    }
+    juzgar(
+      enBanda !== null && fondoBanda === 'rgb(226, 232, 240)' && enBanda.contraste >= AA_TEXTO,
+      'P20 · ⭐ y sobre la banda del realce, también ≥ 4,5:1',
+      enBanda === null ? '(no hay marca que medir)' : `banda ${fondoBanda} · ${enBanda.contraste.toFixed(2)}:1 · ${enRgb(enBanda.texto)} sobre ${enRgb(enBanda.fondo)}`,
+    );
+    await m.guardar(`${CAPTURAS}/fase-b-marca-banda.png`);
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+
+    juzgar(
+      avisos.hrefs.length > 0 && new Set(avisos.hrefs).size === avisos.hrefs.length,
+      'P20 · ⭐ el resumen: un renglón por línea, ninguno repite destino',
+      `${avisos.renglones} renglones · destinos ${avisos.hrefs.join(' ')}`,
+    );
+    juzgar(
+      avisos.detalles === 1 && avisos.detallesArriba === 1,
+      'P20 · ⭐ un solo «detalles» en toda la página, y está arriba',
+      `${avisos.detalles} en la página · ${avisos.detallesArriba} en el resumen`,
+    );
+    const abre = await leer(m, `
+      const b = document.querySelector('.resumen .detalles');
+      if (!b) return null;
+      b.scrollIntoView({ block: 'center' });
+      b.click();
+      return null;
+    `).then(() => m.dormir(300)).then(() => leer(m, `
+      const c = document.querySelector('.resumen .detalles__cuerpo');
+      return c ? { visible: getComputedStyle(c).display !== 'none', texto: c.textContent.trim().slice(0, 60) } : null;
+    `));
+    juzgar(
+      abre !== null && abre.visible === true && abre.texto !== '',
+      'P20 · y abre: la lista de postes se ve al pulsarlo',
+      abre === null ? '(no hay lista)' : `visible ${abre.visible} · «${abre.texto}…»`,
+    );
+    await m.guardar(`${CAPTURAS}/fase-b-resumen-detalles.png`);
+    juzgar(
+      avisos.estado === 'status',
+      'P20 · y la región del resumen sigue siendo role="status"',
+      `role ${avisos.estado}`,
+    );
   } finally {
     m.cerrar();
   }

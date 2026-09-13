@@ -185,10 +185,15 @@ try {
     );
     console.log(`   ${resumen.lineas.length} línea(s):`);
     for (const l of resumen.lineas) console.log(`     · «${l.dice}» → ${l.href}`);
+    // ⚠️ Esta jueza decía «arriba NO hay disparador: el detalle vive en el hito»
+    //    hasta el 13/09. Desde la fase B el hito lleva solo la marca «desviada»
+    //    y la lista de postes sube al renglón de su línea: un disparador por
+    //    cada renglón con desvío, ni uno más y ni uno menos.
+    const conDesvio = resumen.lineas.filter((l) => l.dice.includes('va hoy desviada')).length;
     juez(
-      '⭐ y arriba NO hay disparador de detalles: el detalle vive en el hito',
-      resumen.disparadores === 0,
-      `${resumen.disparadores}`,
+      '⭐ y arriba hay un disparador de detalles por cada renglón con desvío',
+      resumen.disparadores === conDesvio,
+      `${resumen.disparadores} disparador(es) · ${conDesvio} renglón(es) con desvío`,
     );
 
     // ⭐ Cada enlace lleva a un paso QUE EXISTE y que lleva su nota.
@@ -200,13 +205,14 @@ try {
           href: a.getAttribute('href'),
           existe: !!li,
           enfocable: li?.getAttribute('tabindex'),
-          tieneNota: !!li?.querySelector('.paso__nota'),
+          // Su nota, o desde el 13/09 su marca «desviada» si el aviso es un desvío.
+          tieneNota: !!li?.querySelector('.paso__nota, .paso__marca'),
           paso: (li?.querySelector('.paso__texto')?.textContent ?? '').replace(/\\s+/g, ' ').trim(),
         };
       });
     })()`);
     juez(
-      '⭐ cada línea enlaza a un paso que existe, es enfocable y lleva su nota',
+      '⭐ cada línea enlaza a un paso que existe, es enfocable y lleva su nota o su marca',
       destinos.length > 0 &&
         destinos.every((d) => d.existe && d.enfocable === '-1' && d.tieneNota),
       destinos.map((d) => `${d.href}→${d.existe ? 'ok' : 'NO'}`).join(' · '),
