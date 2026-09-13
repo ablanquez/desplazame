@@ -48,7 +48,7 @@ negrita».
 
 ---
 
-## [2026-09-13] 🔴 ABIERTA — el horario de festivo tapa el desvío de la 35 en su paso, y la lista de postes queda sin disparador
+## [2026-09-13] ✅ CERRADA — el horario de festivo tapa el desvío de la 35 en su paso, y la lista de postes queda sin disparador
 
 **Categoría:** dos reglas de reparto que se pisan
 **Síntoma:** en bus, COLOSO 2 → OVIEDO 5, domingo 13/09 con el motor vivo. El
@@ -71,10 +71,37 @@ Y en la captura que esa misma batería guardó, `cabecera-y-ambar.png`, se lee
 el desvío arriba y el horario abajo.
 **Cómo se cazó:** instrumento — la captura de la línea base de la FASE B,
 leída antes de escribir la jueza de la marca «desviada».
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** **dos reglas de reparto metidas en un embudo de una sola
+salida.** `notaDelPaso` devolvía UNA nota por paso: primero el aviso que trae
+`Aviso.paso` —dato del motor, y bien que mande— y solo si no había ninguno, la
+regla de la línea para los hitos. Desde cuándo había rival NO CONSTA: no hay
+medida de ningún otro día con desvío y festivo a la vez sobre esta ruta. El domingo 13/09 el
+motor mandó el horario de festivo de la 35 con `paso` puesto en su
+subida, el embudo lo sacó a él y el desvío se quedó sin sitio abajo; y como su
+«detalles» solo existía dentro de la tira del paso, la lista de postes
+desapareció con ella. El resumen, en cambio, sí lo listaba y enlazaba bien: por
+eso arriba todo parecía correcto.
+
+Y el instrumento **medía otra cosa**: la P16 compraba que todas las cajas ámbar
+llevaran el mismo fondo y la misma tinta, y lo eran. Su título prometía «el
+mismo aviso dicho en dos sitios», que es lo que ninguna jueza comparaba. En la
+unidad, ningún fixture juntaba un desvío con otro aviso del mismo paso.
+**Arreglo aplicado:** el desvío sale del embudo (fase B, que lo pedía por otra
+razón). `app/src/app/buscador.ts`: `notaDelPaso` y `notaDelHito` excluyen los
+desvíos; la regla de la línea se muda a `desvioDelHito`, que decide la marca
+«desviada» con `vaDesviado`; `resumenDeAvisos` agrupa por línea y lleva el
+`detalle`. `app/src/app/buscador.html`: la marca junto al chip y el «detalles»
+en el renglón del resumen. Juezas: `buscador.spec.ts` 17-ter con el caso
+literal (`VIAJE_DESVIADO_EN_FESTIVO`), y en `app/e2e/pintura.mjs` la P20 —un
+solo «detalles» en la página, arriba, y abre— sobre la ruta viva; la P16,
+retitulada a lo que mide. Verificado sobre el motor vivo el mismo domingo:
+`  OK  P20 · ⭐ un solo «detalles» en toda la página, y está arriba  ·  1 en la página · 1 en el resumen`
+`  OK  P20 · y abre: la lista de postes se ve al pulsarlo  ·  visible true · «no para en 262 · Av. De Valencia N.º 8, 263 · Av. De Valenci…»`
+**Commit:** `a4f41ca` (el arreglo) · `8656b1e` (la P20 y la P16) · `46dfcd9` (la build)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+Y al cerrar: **un embudo que devuelve UNO decide en silencio quién pierde.**
+Si a un sitio le pueden tocar dos cosas, o se pintan las dos o se escribe cuál
+gana y por qué; que gane la que llegó primero en el código no es una regla.
 **Traza:** `app/src/app/buscador.ts` — `notaDelPaso` (primero `Aviso.paso`),
 `notaDelHito`, `resumenDeAvisos`; `motor/src/viaje-bus.ts` — el aviso de
 `avisoDelFestivo` sale con `paso`; `app/e2e/pintura.mjs` — P16.
