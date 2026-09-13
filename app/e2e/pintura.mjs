@@ -1861,8 +1861,12 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       cabecera.d === null ? '(no hay flecha)' : cabecera.d === trazadoDelFichero('arrow_forward') ? 'idéntico al fichero' : 'DISTINTO del fichero',
     );
     juzgar(
-      cabecera.tamano === '24px' && Number(cabecera.peso) >= 700,
-      'P16 · y el titular va en el 2xl en negrita de la maqueta',
+      // ⚠️ Pedía «>= 700» y daba OK con el 700 pintando el 600 (nº51): leía
+      //    el estilo computado de un peso que la app no carga. [ANTONIO, cierre
+      //    de la fase B] se queda el 600, que es el peso más alto que hay; que
+      //    ningún peso se quede sin cara lo compra la P21.
+      cabecera.tamano === '24px' && Number(cabecera.peso) === 600,
+      'P16 · y el titular va en el 2xl, en el semibold: el peso más alto que la app carga',
       `${cabecera.tamano} / peso ${cabecera.peso} · «${cabecera.titular}»`,
     );
     juzgar(
@@ -2589,6 +2593,34 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
     );
     await m.guardar(`${CAPTURAS}/fase-b-marca.png`);
 
+    // ⭐ [ANTONIO, cierre de la fase B] el horario de festivo deja también su
+    //    marca, «festivo». Se miran TODAS las marcas, no la primera: palabra
+    //    permitida, ninguna tira de festivo en los pasos, y contraste de cada una.
+    //    El festivo solo existe los días que el motor lo manda; el acta dice
+    //    cuántas hubo.
+    const todas = await leer(m, `
+      const t = (e) => (e?.textContent ?? '').replace(/\\s+/g, ' ').trim();
+      return {
+        palabras: [...document.querySelectorAll('.paso__marca')].map(t),
+        tirasDeFestivo: [...document.querySelectorAll('.paso__nota')].filter((n) => /Línea \\S+ hoy: /.test(t(n))).length,
+      };
+    `);
+    juzgar(
+      todas.palabras.every((p) => p === 'desviada' || p === 'festivo') && todas.tirasDeFestivo === 0,
+      'P20 · ⭐ cada marca dice «desviada» o «festivo», y ningún horario de festivo deja tira',
+      `marcas: ${todas.palabras.join(', ') || '(ninguna)'} · tiras de festivo: ${todas.tirasDeFestivo}`,
+    );
+    const contrastes = [];
+    for (let i = 0; i < todas.palabras.length; i++) {
+      const c = await contrasteSiEsta(m, '.paso__marca', { indice: i, minimo: 12 });
+      contrastes.push(c === null ? null : c.contraste);
+    }
+    juzgar(
+      contrastes.length > 0 && contrastes.every((c) => c !== null && c >= AA_TEXTO),
+      'P20 · y TODAS se leen: ≥ 4,5:1 cada una',
+      contrastes.map((c, i) => `«${todas.palabras[i]}» ${c === null ? '(no está)' : c.toFixed(2) + ':1'}`).join(' · '),
+    );
+
     // Y sobre la banda del realce, que también la pinta: con el ratón DE VERDAD.
     const donde = await leer(m, `
       const e = document.querySelector('.paso__marca');
@@ -2642,6 +2674,68 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       avisos.estado === 'status',
       'P20 · y la región del resumen sigue siendo role="status"',
       `role ${avisos.estado}`,
+    );
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P21 · EL CSS NO PIDE UN PESO QUE NO EXISTE ═══════════
+//
+// ⭐ [ANTONIO, 13/09, cierre de la fase B; nº51] la app carga Inter en 400, 500
+//    y 600, y así se queda. Pero cuatro reglas pedían 700, y un 700 sin cara
+//    pinta el 600: medido, mismo ancho y misma tinta. El CSS decía negrita y la
+//    pantalla enseñaba semibold, y la P16 lo daba por bueno leyendo el estilo
+//    computado. Esta jueza compra que ningún peso declarado se quede sin cara.
+//
+// ⚠️ Solo las reglas que NO declaran su propia familia: el zoom de Leaflet
+//    pide «bold 18px Lucida Console», y ese peso es de otra letra.
+// ⚠️ Y `<strong>` NO entra: su 700 es del navegador, no de esta hoja.
+{
+  const m = await abrirChrome({ ancho: 1440, alto: 900, puerto: 9421 });
+  try {
+    await m.ir(APP, 5000);
+    console.log('\n═══ LOS PESOS DE LA LETRA ═══');
+    const pesos = await leer(m, `
+      const caras = new Set();
+      const pedidos = [];
+      let otraFamilia = 0;
+      const numero = (w) => (w === 'bold' ? '700' : w === 'normal' ? '400' : w);
+      const recorrer = (reglas) => {
+        for (const r of reglas) {
+          if (r instanceof CSSFontFaceRule) {
+            if (r.style.getPropertyValue('font-family').replace(/["']/g, '').trim() === 'Inter') {
+              caras.add(numero(r.style.getPropertyValue('font-weight').trim()));
+            }
+          } else if (r.cssRules && !(r instanceof CSSStyleRule)) {
+            recorrer(r.cssRules);
+          } else if (r instanceof CSSStyleRule && r.style.fontWeight) {
+            const familia = r.style.fontFamily;
+            if (familia && !familia.includes('Inter') && !familia.includes('--font-sans') && familia !== 'inherit') {
+              otraFamilia++;
+              continue;
+            }
+            pedidos.push({ selector: r.selectorText.replace(/\\[_ng[^\\]]*\\]/g, ''), peso: numero(r.style.fontWeight) });
+          }
+        }
+      };
+      for (const hoja of document.styleSheets) {
+        try { recorrer(hoja.cssRules); } catch { /* hoja ajena: no se puede leer */ }
+      }
+      const sinCara = pedidos.filter((p) => /^\\d+$/.test(p.peso) && !caras.has(p.peso));
+      return { caras: [...caras].sort(), pedidos: pedidos.length, otraFamilia, sinCara };
+    `);
+    juzgar(
+      pesos.caras.length > 0,
+      'P21 · la hoja declara sus caras de Inter',
+      `caras: ${pesos.caras.join(', ')}`,
+    );
+    juzgar(
+      pesos.sinCara.length === 0,
+      'P21 · ⭐ ninguna regla pide un peso de Inter que no se carga (nº51)',
+      pesos.sinCara.length === 0
+        ? `${pesos.pedidos} pesos declarados, todos con cara · ${pesos.otraFamilia} regla(s) con otra familia, fuera`
+        : pesos.sinCara.map((p) => `${p.selector} → ${p.peso}`).join(' | '),
     );
   } finally {
     m.cerrar();
