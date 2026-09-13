@@ -14,6 +14,73 @@
 
 ---
 
+## [2026-09-13] 🔴 ABIERTA — la negrita no existe: todo `font-weight: 700` pinta el semibold
+
+**Categoría:** lo computado no es lo pintado
+**Síntoma:** preparando los candidatos de la pieza (7) —semibold · bold ·
+bold+tamaño— el B salió igual que el A. Medido con `sonda-negrita.mjs`, mismo
+texto a cinco pesos, tinta contada por píxeles:
+`caras Inter cargadas: Inter 400, Inter 500, Inter 600, …, Inter Fallback normal`
+`0.875rem/600   ancho  113.47 px · tinta    349`
+`0.875rem/700   ancho  113.47 px · tinta    349`
+`1.5rem/600     ancho  194.52 px · tinta   1042`
+`1.5rem/700     ancho  194.52 px · tinta   1042`
+`src/styles.css` declara `@font-face` de Inter en 400, 500 y 600, y ninguno en
+700. Afecta a las 4 declaraciones de 700 (3 en `styles.css`, 1 en
+`resultado.css`) y a todo `<strong>`, que es lo que llevan los nombres de calle
+de cada paso. Y la ficha `app/public/fuentes/PROCEDENCIA.md` dice por qué no
+hay cara: «el encargo pide **400/500/600**, que es lo que el diseño usa, y no
+más».
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la P16, que compra la
+negrita del titular por el estilo computado. Hoy, sobre la build de la fase B:
+`$ node e2e/pintura.mjs http://localhost:4200 <capturas>`
+`  OK  P16 · y el titular va en el 2xl en negrita de la maqueta  ·  24px / peso 700 · «8,2 km·~57 min»`
+`✅ VERDE`
+**Cómo se cazó:** instrumento — la lámina de candidatos de la pieza (7) y la
+sonda de tinta que se hizo porque B y A se veían iguales.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/src/styles.css` (`@font-face` Inter); `app/src/app/resultado.css`
+(`.ruta__titular`); `app/e2e/pintura.mjs` — P16, «el titular va en el 2xl en
+negrita».
+
+---
+
+## [2026-09-13] 🔴 ABIERTA — el horario de festivo tapa el desvío de la 35 en su paso, y la lista de postes queda sin disparador
+
+**Categoría:** dos reglas de reparto que se pisan
+**Síntoma:** en bus, COLOSO 2 → OVIEDO 5, domingo 13/09 con el motor vivo. El
+resumen dice «La línea 35 va hoy desviada.» y enlaza a `#paso-3`; el paso 3
+NO lleva el desvío sino el horario de festivo, y **en toda la página no hay
+ningún botón «detalles»**: la lista de postes provisionales de la 35 no se
+puede abrir desde ningún sitio. Sonda `sonda-avisos.mjs`:
+`"resumen": [ {"texto": "La línea 35 va hoy desviada.", "href": "#paso-3"},`
+`  {"texto": "Línea 35 hoy: 07:00–01:20, cada ~10 min (Fuente: Avanza, 17:22)", "href": "#paso-3"}, …`
+`"pasosConNota": [ {"i": 3, "paso": "Sube a la línea 35 en el poste 33 · …",`
+`  "nota": "Línea 35 hoy: 07:00–01:20, cada ~10 min (Fuente: Avanza, 17:22)"}, {"i": 4, … "nota": "Línea 31 hoy: …"} ],`
+`"detalles": 0`
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la batería de pintura, sobre
+esa misma ruta y ese mismo motor, antes de tocar nada:
+`$ node e2e/pintura.mjs http://localhost:4200 <capturas>`
+``  OK  P16 · y el ⚠ de TODAS las cajas ámbar es ahora el SVG `warning` del fichero  ·  resumen: ok · paso__nota: ok · paso__nota: ok``
+`  OK  P16 · y las dos se visten igual: es el mismo aviso dicho en dos sitios  ·  3 cajas · #fff4e5 sobre #7c3d00`
+`✅ VERDE`
+Y en la captura que esa misma batería guardó, `cabecera-y-ambar.png`, se lee
+el desvío arriba y el horario abajo.
+**Cómo se cazó:** instrumento — la captura de la línea base de la FASE B,
+leída antes de escribir la jueza de la marca «desviada».
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/src/app/buscador.ts` — `notaDelPaso` (primero `Aviso.paso`),
+`notaDelHito`, `resumenDeAvisos`; `motor/src/viaje-bus.ts` — el aviso de
+`avisoDelFestivo` sale con `paso`; `app/e2e/pintura.mjs` — P16.
+
+---
+
 ## [2026-09-12] ✅ CERRADA — un `flex-basis: 100%` heredado de una fila reventó el paso al volverse columna
 
 **Categoría:** una propiedad que sigue siendo válida y ha cambiado de significado
