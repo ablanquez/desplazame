@@ -97,6 +97,16 @@ const MARCA_DE_SIN_SERVICIO = 'no anuncia ningún próximo';
  */
 const MARCA_DE_DESVIO = 'va hoy desviada';
 
+/**
+ * ⭐ Y la del horario de festivo (13/09, cierre de la fase B).
+ *
+ * La frase la escribe `avisoDelFestivo` del motor —«Línea 35 hoy: 07:00–01:20,
+ * cada ~10 min (Fuente: Avanza, 17:22)»— y llega con `Aviso.paso` puesto en la
+ * subida de su línea. Se reconoce por su arranque, que es lo único fijo de la
+ * frase: la línea, las horas y la fuente cambian.
+ */
+const MARCA_DE_FESTIVO = /^Línea \S+ hoy: /;
+
 /** Un aviso partido en lo que se ve siempre y lo que se ve si se pide. */
 export interface EnDosNiveles {
   /** El hecho. Una frase, y siempre visible. */
@@ -2276,7 +2286,7 @@ export class Buscador {
       if (nota !== null && !donde.has(nota)) {
         donde.set(nota, i);
       }
-      // Y el desvío, por SU regla: la de la línea (ver `vaDesviado`).
+      // Y el desvío, por SU regla: la de la línea (ver `marcasDelPaso`).
       const desvio = this.desvioDelHito(paso);
       if (desvio !== null && !donde.has(desvio)) {
         donde.set(desvio, i);
@@ -2347,8 +2357,10 @@ export class Buscador {
    *    de abajo.
    */
   protected notaDelPaso(indice: number, paso: Paso): string | null {
+    // ⚠️ Y tampoco el horario de festivo (cierre de la fase B): deja marca.
     const suyo = this.avisosDelViaje().find(
-      (a) => a.paso === indice && !a.texto.includes(MARCA_DE_DESVIO),
+      (a) =>
+        a.paso === indice && !a.texto.includes(MARCA_DE_DESVIO) && !MARCA_DE_FESTIVO.test(a.texto),
     );
     if (suyo) {
       return suyo.texto;
@@ -2357,18 +2369,30 @@ export class Buscador {
   }
 
   /**
-   * ⭐ SI EL PASO VA DESVIADO: la marca corta junto al chip (13/09, fase B).
+   * ⭐ LAS MARCAS CORTAS DE UN PASO, junto al chip (13/09, fase B y su cierre).
    *
-   * [ANTONIO] icono `warning` pequeño + «desviada». El hecho entero y su lista
-   * se leen arriba; aquí solo se dice CUÁL de los pasos es el afectado.
+   * [ANTONIO] icono `warning` pequeño + una palabra suya, para los avisos que
+   * ya se leen ENTEROS en el resumen: repetirlos en el paso era la tira que
+   * enseña a no leer ninguna [alert fatigue]. El paso solo dice CUÁL es.
    *
-   * La regla es la de la línea, la primera de `notaDelHito` y la que cerró la
-   * entrada del 31/08: un desvío explica UNA LÍNEA, así que marca la subida a
-   * esa línea —y en un transbordo, la línea a la que se sube, no la que se
-   * deja—.
+   *   «desviada» — la regla de la línea (`desvioDelHito`), la que cerró la
+   *                entrada del 31/08: marca la subida a esa línea, y en un
+   *                transbordo la línea a la que se sube.
+   *   «festivo»  — el horario de festivo, en el paso que dice `Aviso.paso`.
+   *
+   * ⚠️ Devuelve una LISTA y no la primera: un paso puede ir desviado Y en
+   *    festivo a la vez —la subida a la 35 el 13/09—, y un embudo de una sola
+   *    salida es justo lo que escondió el desvío en la nº50.
    */
-  protected vaDesviado(paso: Paso): boolean {
-    return this.desvioDelHito(paso) !== null;
+  protected marcasDelPaso(indice: number, paso: Paso): readonly string[] {
+    const marcas: string[] = [];
+    if (this.desvioDelHito(paso) !== null) {
+      marcas.push('desviada');
+    }
+    if (this.avisosDelViaje().some((a) => a.paso === indice && MARCA_DE_FESTIVO.test(a.texto))) {
+      marcas.push('festivo');
+    }
+    return marcas;
   }
 
   /** El texto del desvío de la línea a la que se sube en este hito, o `null`. */

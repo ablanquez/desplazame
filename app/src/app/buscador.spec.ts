@@ -1439,6 +1439,20 @@ function resumenEnPantalla(raiz: HTMLElement): string[] {
  * La marca sustituye a la tira ámbar del desvío: el hecho y su lista se leen
  * arriba, y el paso solo dice CUÁL es el afectado.
  */
+/** Las palabras de las marcas de cada paso, por su índice; solo los que llevan. */
+function marcasPorPaso(raiz: HTMLElement): ReadonlyMap<number, string[]> {
+  const marcas = new Map<number, string[]>();
+  Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).forEach((li, i) => {
+    const suyas = Array.from(li.querySelectorAll('.paso__marca')).map((m) =>
+      (m.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    if (suyas.length > 0) {
+      marcas.set(i, suyas);
+    }
+  });
+  return marcas;
+}
+
 function pasosConMarca(raiz: HTMLElement): string[] {
   return Array.from(raiz.querySelectorAll<HTMLElement>('.paso'))
     .filter((li) => li.querySelector('.paso__marca') !== null)
@@ -4238,10 +4252,11 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_DESVIADO_EN_FESTIVO);
     await fixture.whenStable();
 
-    // ⭐ La marca, en la subida a la 35 — aunque ese paso traiga otro aviso.
-    expect(pasosConMarca(raiz)).toEqual([
-      'Sube a la línea 35 en el poste Av. Academia General Militar N.º 37 — 12 paradas — frecuencia teórica: cada 10 min',
-    ]);
+    // ⭐ La marca «desviada», en la subida a la 35 — aunque ese paso traiga otro
+    // aviso. (Desde el cierre de la fase B el horario deja la suya, «festivo»,
+    // y por eso aquí se miran las marcas por palabra y no «pasos con marca».)
+    const desviados = [...marcasPorPaso(raiz).entries()].filter(([, p]) => p.includes('desviada'));
+    expect(desviados.map(([i]) => i)).toEqual([1]);
     // ⭐ Y la lista, a un botón: uno, y abre.
     const botones = Array.from(raiz.querySelectorAll<HTMLElement>('.detalles'));
     expect(botones.length).toBe(1);
@@ -4250,10 +4265,45 @@ describe('Buscador', () => {
     const cuerpo = raiz.querySelector<HTMLElement>('.detalles__cuerpo')!;
     expect(seVe(cuerpo)).toBe(true);
     expect(cuerpo.textContent).toContain('no para en Av. De Valencia N.º 8');
-    // Y el horario no se ha perdido por el camino: sigue en su paso, con sus
-    // letras. Su forma en el paso es decisión pendiente —no es un desvío y
-    // «desviada» no lo describe—, así que aquí solo se compra que llega.
-    expect(notasPorPaso(raiz).get(1)).toBe('Línea 35 hoy: 07:00–01:20, cada ~10 min (Fuente: Avanza, 17:22)');
+    // Y el horario no se ha perdido por el camino: desde el cierre de la fase B
+    // [ANTONIO] deja su propia marca, «festivo», en el mismo paso (17-quinquies).
+    expect(marcasPorPaso(raiz).get(1)).toEqual(['desviada', 'festivo']);
+  });
+
+  /**
+   * ⭐ 17-quinquies · EL HORARIO DE FESTIVO: marca «festivo», no tira (13/09).
+   *
+   * [ANTONIO, cierre de la fase B] el horario de festivo sale TAMBIÉN en el
+   * resumen, así que la tira del paso lo repetía [alert fatigue]. Lleva la
+   * marca corta con su palabra, el mismo patrón que «desviada»: icono callado +
+   * palabra. Va en el paso que dice `Aviso.paso` —en un transbordo, el de la
+   * línea a la que se sube—, y la frase entera sigue arriba, en su renglón.
+   */
+  it('⭐ 17-quinquies · el horario de festivo deja la marca «festivo» y ninguna tira', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_DESVIADO_EN_FESTIVO);
+    await fixture.whenStable();
+
+    expect([...marcasPorPaso(raiz).entries()]).toEqual([
+      [1, ['desviada', 'festivo']],
+      [2, ['festivo']],
+    ]);
+    // Ninguna tira: las dos frases del horario viven arriba y solo arriba.
+    expect(raiz.querySelectorAll('.paso__nota').length).toBe(0);
+    expect(resumenEnPantalla(raiz)[1]).toBe('Línea 31 hoy: 06:55–23:29, cada ~17 min (Fuente: Avanza, 17:22)');
+    // El mismo patrón: cada marca con su `warning` callado.
+    for (const marca of Array.from(raiz.querySelectorAll<HTMLElement>('.paso__marca'))) {
+      const svg = marca.querySelector('svg')!;
+      expect(svg.getAttribute('aria-hidden')).toBe('true');
+      expect(svg.querySelector('path')?.getAttribute('d')).toBe(SIMBOLOS['warning']);
+    }
   });
 
   /**

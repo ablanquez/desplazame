@@ -1102,10 +1102,12 @@
                            [WCAG 1.4.1] color + icono + TEXTO, nunca color solo. El
                            icono va callado (`app-simbolo` ya lo pinta `aria-hidden`):
                            la palabra lo dice, y quien oye el paso oye «35, desviada». -->
-                      @if (vaDesviado(paso)) {
+                      <!-- Y desde el cierre de la fase B, también «festivo»: una
+                           marca por aviso, no la primera (ver `marcasDelPaso`). -->
+                      @for (palabra of marcasDelPaso($index, paso); track palabra) {
                         <span class="paso__marca">
                           <app-simbolo nombre="warning" [lado]="14" />
-                          desviada
+                          {{ palabra }}
                         </span>
                       }
                       <span class="paso__texto">
