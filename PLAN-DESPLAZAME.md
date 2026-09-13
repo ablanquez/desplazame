@@ -4176,7 +4176,59 @@ Code lo traduce al Angular existente.)*
         con su prompt de permiso real · el teclado sobre el
         buscador · la barra y el safe-area en aparato de
         verdad.
-      - [ ] TANDA 5 — LA PINTURA DEL RESULTADO (firmada por
+      - [~] TANDA 5 — EN CURSO, fases A+B CERRADAS, C parada en
+        orden lista (12-13/09; commits cb2ee81…a667a81, SIN
+        PUSH). CP1: 15 iconos maniobra por contrato (censo Giro
+        cerrado); badge = decisión Antonio de chip.ts (route_color
+        intacto + blanco con trazo negro [WCAG 1.4.3 borde
+        estrecho = letra; G18]; mi caída-al-neutro RETIRADA);
+        feed: 27/53 pares ingenuos <4,5 (tranvía 2,18) — al acta.
+        CP2: 4 estados (hueso sobre esperando(), error DGT real
+        role=alert, regiones vivas PRIMADAS [trampa @if,
+        WCAG 4.1.3/ARIA19]); anyComponentStyle 8kB ERROR → hueso
+        a styles.css; ⚠️ build fallida BORRA dist → 404 en
+        producción: GUARDIÁN DE BUILD ATÓMICO a la cola,
+        prioridad alta. CP3: timeline 3 columnas, cabecera 2xl,
+        ámbar por tokens, emojis MUERTOS en toda la app (plano
+        incluido — FLECHAS/GLIFO comparan nombres; +arrow_back;
+        28 símbolos); nº49 [.vivo flex 100% solapaba; 7 juezas
+        verdes midiendo piezas no sitios → P18 «nada se sale de
+        su caja»; LEY: las capturas de las juezas no son recibo
+        — son lo que falta por mirar]; 3 verdes retirados.
+        RONDA DEL OJO (9 cosillas, doctrina hecha): FASE A ⚰️
+        (rayas uniformes x64→527 · columna 56px reservada · aire
+        chip 8px · hover slate-200 + focus gemelo + banda que
+        respira 16px [ANTONIO]; gemelo nº49 en .sugerencia
+        cazado leyendo; token --superficie-realce ordenado).
+        FASE B ⚰️ (avisos sin repetir: resumen 1 renglón/línea +
+        marcas «desviada»/«festivo» [1.4.1: color+icono+texto];
+        «sin servicio» RETIRADA por contrato 31/08; nº50 [festivo
+        tapaba desvío, 0 «detalles»; embudo una salida] y nº51
+        [700 sin cara cargada — 4 reglas a 600, P21 pesos-con-
+        cara] cerradas; distancias: spec 600 cumplida, A elegido,
+        vía 700-recortada dicha; forma chip SE QUEDA [sin
+        estándar universal; señalética+consistencia]).
+        FASE C PARADA CON ORDEN RESUELTA POR DOCTRINA, pendiente
+        de ejecutar: ⚠️1=(a) las tiras BiZi/ZBE/distintivo/mudo
+        SALEN del resumen [anti-repetición; 2 pruebas cambian
+        letra con acta] · 8=A ficha de contorno [B pierde forma
+        sobre hover, 1.4.11] · 9=B círculo primary lleno [única
+        AA 5,17 ambos extremos; realce pequeño se pasa por
+        alto]. 5b PARADO: Paso sin coordenadas (solo hitos vía
+        vértices; giros no — tocar motor = decisión aparte).
+        Terreno 8+9 leído (poste en via+aQuienPreguntar; bajar
+        sin número; trip_origin también a mitad de ruta — la
+        marca de terminal va por primer/último paso). VETABLES
+        del ojo pendientes: gris vacío 4,76 · pulso hueso ·
+        coletilla «a 5 km/h» · cabecera sin caja · círculo
+        primary/10. ⚠️ ng serve fantasma en ::1:4200 (batería
+        repetida contra 127.0.0.1, bundle verificado) — Antonio
+        debe cerrarlo. Marcadores: interfaz 543 · bitácora 51
+        [0 abiertas · 1 reabierta histórica] · initial 535,95
+        [raya 520 quieta] · resultado.css 4,43 avisa [refactor
+        componente-propio en cola, 4 topes]. e2e con 4200 a
+        fuego pendientes: pantalla(adaptada), proximo-bus.
+      - [ ] TANDA 5 — cierre pendiente (firmada por
         Antonio sobre la captura de la maqueta: cabecera de
         cifras gordas + badges de línea + aviso ámbar + timeline
         con hilo, iconos en círculo de color, distancias a la
