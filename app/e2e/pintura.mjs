@@ -17,7 +17,7 @@
  *     node e2e/pintura.mjs http://localhost:3111 <carpeta-de-capturas>
  */
 import { readFileSync } from 'node:fs';
-import { abrirChrome, contrasteReal, AA_TEXTO } from './medir.mjs';
+import { abrirChrome, contrasteReal, contrasteRgb, AA_GRAFICO, AA_TEXTO } from './medir.mjs';
 
 const APP = (process.argv[2] ?? 'http://localhost:4200').replace(/\/+$/, '') + '/';
 const CAPTURAS = (process.argv[3] ?? '.').replace(/[\\/]+$/, '');
@@ -2737,6 +2737,280 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
         ? `${pesos.pedidos} pesos declarados, todos con cara · ${pesos.otraFamilia} regla(s) con otra familia, fuera`
         : pesos.sinCara.map((p) => `${p.selector} → ${p.peso}`).join(' | '),
     );
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P22 · LA FASE C: LO CONTEXTUAL EN SU PUNTO, LA FICHA Y EL TERMINAL ═══════════
+//
+// ⭐ [ANTONIO, 14/09, tres resoluciones por doctrina]
+//    (a) lo contextual —la BiZi que no contesta, la zona, el poste mudo— vive
+//        SOLO en su tira: el resumen es para lo que afecta al viaje entero.
+//    (b) el poste y la estación, como entidad: ficha de CONTORNO, icono +
+//        número [WCAG 1.4.11 — la rellena perdía la forma sobre la banda].
+//    (c) origen y destino: el círculo LLENO en primary, por primer y último
+//        paso y no por el giro.
+//
+// ⚠️ EL SUJETO DE (a) SE SIEMBRA: un aviso contextual es dato vivo y hoy puede
+//    no haber ninguno. Se añade a la respuesta de /api/ruta un aviso con
+//    `paso` en la primera subida —la forma del de la ZBE—, y el acta lo dice.
+//    La costura de la orden va dentro: nada del viaje se queda sin sitio.
+//
+// OJO: dentro de las plantillas de JS, ni una comilla invertida en los comentarios.
+const SEMBRADO = 'Aviso de contexto sembrado por la jueza P22.';
+
+async function viajeP22(m, modo) {
+  await m.evaluar(`(() => {
+    const pedir = window.fetch;
+    window.fetch = async function (...args) {
+      const respuesta = await pedir.apply(this, args);
+      const url = String(args[0]?.url ?? args[0]);
+      if (!url.includes('/api/ruta') || !respuesta.ok) return respuesta;
+      const cuerpo = JSON.parse(await respuesta.clone().text());
+      const t = cuerpo.trayecto ?? cuerpo;
+      // En un paso que NO es hito, la forma del aviso de la ZBE. La primera versión
+      // sembraba en la primera subida y ahí tapaba al aviso MUDO del bus, que cae en
+      // el mismo paso: la tira enseña una sola nota y el mudo se quedaba arriba.
+      const HITOS = ['salida', 'sube', 'baja', 'transborda', 'coge', 'aparca', 'llegada'];
+      const i = t.pasos.findIndex((p, k) => k > 0 && !HITOS.includes(p.giro));
+      if (i >= 0) t.avisos.push({ texto: ${JSON.stringify(SEMBRADO)}, paso: i });
+      return new Response(JSON.stringify(cuerpo), { status: respuesta.status, statusText: respuesta.statusText, headers: respuesta.headers });
+    };
+  })()`);
+  const escribir = async (i, texto) => {
+    await m.evaluar(`(() => {
+      const c = document.querySelectorAll('app-autocompletar-via input')[${i}];
+      if (!c) return;
+      const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+    })()`);
+    await m.dormir(900);
+    await m.evaluar(`(() => {
+      const c = document.querySelectorAll('app-autocompletar-via')[${i}];
+      const o = [...c.querySelectorAll('[role=option]')][0];
+      if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+    })()`);
+    await m.dormir(700);
+  };
+  const portal = async (i, num) => {
+    await m.evaluar(`(() => {
+      const c = document.querySelectorAll('app-selector-portal input')[${i}];
+      if (!c) return;
+      c.focus();
+      const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      set.call(c, ${JSON.stringify(num)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+    })()`);
+    await m.dormir(600);
+    await m.evaluar(`(() => {
+      const c = document.querySelectorAll('app-selector-portal')[${i}];
+      const ops = [...c.querySelectorAll('[role=option]')];
+      const o = ops.find((x) => x.textContent.trim() === ${JSON.stringify(num)}) ?? ops[0];
+      if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
+    })()`);
+    await m.dormir(500);
+  };
+  await escribir(0, 'COLOSO');
+  await portal(0, '2');
+  await escribir(1, 'CALLE OVIEDO');
+  await portal(1, '5');
+  // La BiZi no es una familia: es la bici pública dentro de la familia bici.
+  await m.evaluar(`document.querySelector('input[name=familia][value=${modo === 'bizi' ? 'bici' : modo}]').click()`);
+  await m.dormir(600);
+  if (modo === 'bizi') {
+    await m.evaluar(`document.querySelector('input[name=bici][value=bizi]').click()`);
+    await m.dormir(400);
+  }
+  await m.evaluar(`document.querySelector('button.generar').click()`);
+  for (let i = 0; i < 100 && (await m.evaluar(`!!document.querySelector('button.generar')?.disabled`)); i++) {
+    await m.dormir(300);
+  }
+  await m.dormir(1800);
+}
+
+/** El valor de un token de color, resuelto por el navegador, en rgb(). */
+const tokenRgb = (m, token) =>
+  m.evaluar(`(() => {
+    const d = document.createElement('div');
+    d.style.backgroundColor = 'var(--${token})';
+    document.body.appendChild(d);
+    const c = getComputedStyle(d).backgroundColor;
+    d.remove();
+    return c;
+  })()`);
+const aRgb = (css) => {
+  const [r, g, b] = css.match(/\d+/g).map(Number);
+  return { r, g, b };
+};
+
+for (const pantalla of [{ id: 'pc', ancho: 1440, alto: 1000, puerto: 9422 }, { id: 'movil', ancho: 390, alto: 844, puerto: 9423 }]) {
+  const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: pantalla.puerto });
+  try {
+    await m.ir(APP, 6000);
+    console.log(`\n═══ LA FASE C · ${pantalla.id === 'pc' ? 'PC 1440' : 'MÓVIL 390'} ═══`);
+    await viajeP22(m, 'bus');
+
+    // ── (a) lo contextual, solo en su punto ──
+    const a = await leer(m, `
+      const t = (e) => (e?.textContent ?? '').replace(/\\s+/g, ' ').trim();
+      const renglones = [...document.querySelectorAll('.resumen__linea')].map((l) => {
+        const c = l.cloneNode(true);
+        c.querySelectorAll('.detalles, .detalles__cuerpo').forEach((x) => x.remove());
+        return t(c);
+      });
+      const tiras = [...document.querySelectorAll('.paso__nota')].map((n) => t(n.querySelector('.aviso-ruta__hecho') ?? n));
+      return {
+        sembrado: tiras.includes(${JSON.stringify(SEMBRADO)}),
+        repetidas: tiras.filter((x) => renglones.some((r) => r.includes(x))),
+        tiras: tiras.length,
+        renglones,
+      };
+    `);
+    juzgar(
+      a.sembrado === true,
+      `P22 · ${pantalla.id} · el aviso contextual sembrado sale en su paso, como tira`,
+      a.sembrado ? `${a.tiras} tira(s) en los pasos` : '(no está en ningún paso)',
+    );
+    juzgar(
+      a.sembrado === true && a.repetidas.length === 0,
+      `P22 · ${pantalla.id} · ⭐ ninguna tira se repite en el resumen (a)`,
+      a.repetidas.length === 0 ? `resumen: ${a.renglones.length} renglón(es) · ${a.renglones.map((r) => '«' + r.slice(0, 40) + '…»').join(' ')}` : a.repetidas.join(' | '),
+    );
+    await m.evaluar(`(document.querySelector('.resumen') ?? document.querySelector('.ruta')).scrollIntoView({ block: 'start' })`);
+    await m.dormir(300);
+    await m.guardar(`${CAPTURAS}/fase-c-${pantalla.id}-resumen.png`);
+
+    // ── (b) la ficha de contorno ──
+    const ficha = await leer(m, `
+      const fichas = [...document.querySelectorAll('.ficha-entidad')];
+      const f = fichas[0];
+      if (!f) return { cuantas: 0 };
+      f.scrollIntoView({ block: 'center' });
+      const s = getComputedStyle(f);
+      const r = f.getBoundingClientRect();
+      const cuerpo = f.closest('.paso__cuerpo').getBoundingClientRect();
+      return {
+        cuantas: fichas.length,
+        numero: f.textContent.trim(),
+        icono: f.querySelector('svg path')?.getAttribute('d') ?? null,
+        callado: f.querySelector('svg')?.getAttribute('aria-hidden') ?? null,
+        borde: s.borderTopColor, anchoBorde: s.borderTopWidth, fondo: s.backgroundColor,
+        alto: Math.round(r.height), cabe: r.right <= cuerpo.right + 0.5 && r.left >= cuerpo.left - 0.5,
+        // El aire hasta la PRIMERA letra del nombre, con un Range: la caja de un
+        // strong que envuelve es la unión de sus renglones y mentiría.
+        aire: (() => {
+          const nombre = f.nextElementSibling;
+          const texto = nombre?.firstChild;
+          if (!texto) return null;
+          const rango = document.createRange();
+          rango.setStart(texto, 0); rango.setEnd(texto, 1);
+          const letra = rango.getClientRects()[0];
+          if (!letra) return null;
+          // Si el nombre empieza en el renglón de abajo, no hay aire que medir en esa línea.
+          return Math.abs(letra.top - r.top) > r.height ? 'otra línea' : Math.round((letra.left - r.right) * 100) / 100;
+        })(),
+        sobraAncho: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    `);
+    juzgar(
+      ficha.cuantas >= 1 && /^\d+$/.test(ficha.numero) && ficha.icono === trazadoDelFichero('directions_bus') && ficha.callado === 'true',
+      `P22 · ${pantalla.id} · ⭐ el poste lleva su ficha: icono del fichero, callado, y el número (b)`,
+      ficha.cuantas === 0 ? '(no hay ficha)' : `${ficha.cuantas} ficha(s) · «${ficha.numero}» · icono ${ficha.icono === trazadoDelFichero('directions_bus') ? 'idéntico al fichero' : 'DISTINTO'} · aria-hidden ${ficha.callado}`,
+    );
+    juzgar(
+      ficha.cuantas >= 1 && ficha.anchoBorde === '1px' && ficha.fondo === 'rgba(0, 0, 0, 0)',
+      `P22 · ${pantalla.id} · y es de CONTORNO: borde de 1 px y sin relleno`,
+      ficha.cuantas === 0 ? '(no hay ficha)' : `borde ${ficha.anchoBorde} ${ficha.borde} · fondo ${ficha.fondo}`,
+    );
+    // ⚠️ Nació de la captura, no de un número: la ficha salió PEGADA al nombre,
+    //    «(33)Av. Academia», porque Angular quita el espacio en blanco entre dos
+    //    etiquetas y el de la plantilla no llegaba a la pantalla. La prueba de
+    //    unidad no lo veía: compra quién va detrás, no cuánto aire hay.
+    juzgar(
+      ficha.cuantas >= 1 && (ficha.aire === 'otra línea' || (typeof ficha.aire === 'number' && ficha.aire >= 4)),
+      `P22 · ${pantalla.id} · ⭐ y entre la ficha y el nombre hay aire: al menos 4 px`,
+      ficha.cuantas === 0 ? '(no hay ficha)' : `aire ${ficha.aire}${typeof ficha.aire === 'number' ? ' px' : ''}`,
+    );
+    // ⚠️ La costura de la orden: si no cabe en la anatomía del paso a 390, PARA.
+    juzgar(
+      ficha.cuantas >= 1 && ficha.cabe === true && ficha.alto <= 24 && ficha.sobraAncho === 0,
+      `P22 · ${pantalla.id} · ⭐ la ficha cabe en su paso: dentro del cuerpo, en una línea y sin scroll lateral`,
+      ficha.cuantas === 0 ? '(no hay ficha)' : `dentro ${ficha.cabe} · alto ${ficha.alto} px · sobra a lo ancho ${ficha.sobraAncho} px`,
+    );
+    if (pantalla.id === 'pc') {
+      const card = aRgb(await tokenRgb(m, 'card'));
+      const banda = aRgb(await tokenRgb(m, 'banda-cabecera'));
+      const borde = ficha.cuantas ? aRgb(ficha.borde) : null;
+      const enReposo = await contrasteSiEsta(m, '.ficha-entidad', { minimo: 8 });
+      juzgar(
+        enReposo !== null && enReposo.contraste >= AA_TEXTO && borde !== null && contrasteRgb(borde, card) >= AA_GRAFICO,
+        'P22 · ⭐ en reposo: el número ≥ 4,5:1 y el borde ≥ 3:1 contra la tarjeta',
+        enReposo === null ? '(no hay ficha)' : `número ${enReposo.contraste.toFixed(2)}:1 · borde ${contrasteRgb(borde, card).toFixed(2)}:1`,
+      );
+      await m.guardar(`${CAPTURAS}/fase-c-ficha-reposo.png`);
+      const donde = await leer(m, `const r = document.querySelector('.ficha-entidad')?.getBoundingClientRect(); return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : null;`);
+      let enBanda = null;
+      let fondoPaso = null;
+      if (donde) {
+        await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: donde.x, y: donde.y });
+        await m.dormir(300);
+        fondoPaso = await m.evaluar(`getComputedStyle(document.querySelector('.ficha-entidad').closest('.paso')).backgroundColor`);
+        enBanda = await contrasteSiEsta(m, '.ficha-entidad', { minimo: 8 });
+      }
+      juzgar(
+        enBanda !== null && fondoPaso === `rgb(${banda.r}, ${banda.g}, ${banda.b})` && enBanda.contraste >= AA_TEXTO && contrasteRgb(borde, banda) >= AA_GRAFICO,
+        'P22 · ⭐ sobre la banda del realce: el número ≥ 4,5:1 y el borde ≥ 3:1 — la forma no se pierde',
+        enBanda === null ? '(no hay ficha)' : `banda ${fondoPaso} · número ${enBanda.contraste.toFixed(2)}:1 · borde ${contrasteRgb(borde, banda).toFixed(2)}:1`,
+      );
+      await m.guardar(`${CAPTURAS}/fase-c-ficha-banda.png`);
+      await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 3, y: 3 });
+      await m.dormir(200);
+    }
+
+    // ── (c) el círculo terminal ──
+    const primary = await tokenRgb(m, 'primary');
+    const primaryFg = await tokenRgb(m, 'primary-foreground');
+    const c = await leer(m, `
+      const origen = ${JSON.stringify(trazadoDelFichero('trip_origin'))};
+      const pasos = [...document.querySelectorAll('.paso')];
+      const circulos = pasos.map((p, i) => {
+        const e = p.querySelector('.paso__circulo');
+        const s = getComputedStyle(e);
+        return { i, fondo: s.backgroundColor, tinta: s.color, deOrigen: e.querySelector('path')?.getAttribute('d') === origen };
+      });
+      return { circulos, ultimo: pasos.length - 1 };
+    `);
+    const llenos = c.circulos.filter((x) => x.fondo === primary).map((x) => x.i);
+    const salidasDeEnMedio = c.circulos.filter((x) => x.deOrigen && x.i !== 0 && x.i !== c.ultimo);
+    juzgar(
+      llenos.length === 2 && llenos[0] === 0 && llenos[1] === c.ultimo &&
+        c.circulos[0].tinta === primaryFg && c.circulos[c.ultimo].tinta === primaryFg,
+      `P22 · ${pantalla.id} · ⭐ el círculo LLENO va en el primer y el último paso, y en ninguno más (c)`,
+      `llenos en ${llenos.join(', ') || '(ninguno)'} de 0..${c.ultimo} · tinta ${c.circulos[0].tinta}`,
+    );
+    juzgar(
+      salidasDeEnMedio.length > 0 && salidasDeEnMedio.every((x) => x.fondo !== primary),
+      `P22 · ${pantalla.id} · y el trip_origin de mitad de ruta NO se llena: va por posición, no por giro`,
+      salidasDeEnMedio.length === 0 ? '(esta ruta no trae salida a mitad: no se juzga)' : `${salidasDeEnMedio.length} salida(s) en medio, en ${salidasDeEnMedio.map((x) => x.i).join(', ')}, sin llenar`,
+    );
+    if (pantalla.id === 'pc') {
+      const o = await contrasteSiEsta(m, '.paso__circulo', { indice: 0, minimo: 6 });
+      const d = await contrasteSiEsta(m, '.paso__circulo', { indice: c.ultimo, minimo: 6 });
+      juzgar(
+        o !== null && d !== null && o.contraste >= AA_TEXTO && d.contraste >= AA_TEXTO,
+        'P22 · ⭐ y su icono se lee: ≥ 4,5:1 en el origen y en el destino',
+        o === null || d === null ? '(no hay círculos)' : `origen ${o.contraste.toFixed(2)}:1 · destino ${d.contraste.toFixed(2)}:1`,
+      );
+    }
+    await m.evaluar(`document.querySelectorAll('.paso')[0].scrollIntoView({ block: 'start' })`);
+    await m.dormir(300);
+    await m.guardar(`${CAPTURAS}/fase-c-${pantalla.id}-origen.png`);
+    await m.evaluar(`[...document.querySelectorAll('.paso')].at(-1).scrollIntoView({ block: 'end' })`);
+    await m.dormir(300);
+    await m.guardar(`${CAPTURAS}/fase-c-${pantalla.id}-destino.png`);
+    await m.evaluar(`document.querySelector('.ficha-entidad')?.scrollIntoView({ block: 'center' })`);
+    await m.dormir(300);
+    await m.guardar(`${CAPTURAS}/fase-c-${pantalla.id}-ficha.png`);
   } finally {
     m.cerrar();
   }
