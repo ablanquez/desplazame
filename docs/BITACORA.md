@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-14] 🔴 ABIERTA — la ficha del poste sale pegada al nombre: «(33)Av. Academia»
+## [2026-09-14] ✅ CERRADA — la ficha del poste sale pegada al nombre: «(33)Av. Academia»
 
 **Categoría:** lo computado no es lo pintado
 **Síntoma:** en la captura `fase-c-pc-ficha.png` de la P22, sobre el motor en
@@ -33,13 +33,54 @@ unidad de la ficha, con la ficha ya pegada:
 `$ npx ng test --watch=false`
 `      Tests  554 passed (554)`
 **Cómo se cazó:** ojo humano — mirando la captura que la propia P22 guardó en verde.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** **el espacio estaba en la plantilla y no en la pantalla.** La
+ficha y el nombre se escribieron en dos líneas del HTML, contando con que el
+salto hiciera de espacio. Angular compila las plantillas sin
+`preserveWhitespaces` y **quita los nodos de texto que solo son blanco entre
+dos etiquetas**, así que en el DOM la `</span>` y el `<strong>` quedaron
+contiguos. Y las juezas **medían otra cosa**: la de unidad compraba QUIÉN va
+detrás de la ficha (`nextElementSibling`, que es cierto con o sin aire), y la
+P22 compraba que la ficha cupiera DENTRO del cuerpo, que también era cierto.
+Ninguna preguntaba cuánto hay entre las dos.
+**Arreglo aplicado:** ~~`margin-right: 0.25rem` en `.ficha-entidad`
+(`app/src/app/resultado.css`), el mismo paso que el `gap` entre su icono y su
+número, con el porqué escrito.~~ — no aguantó: separaba los píxeles y dejaba
+«33Av.» en el texto (ver la nota de abajo). **El arreglo que vale** es un
+`&ngsp;` entre la ficha y el `<strong>` en `app/src/app/buscador.html`, el
+mismo remedio que la casa usa en los créditos desde el 1/09, y **fuera el
+margen**: un espacio de texto separa las dos mitades a la vez.
+
+Las juezas que faltaban, las dos nacidas en rojo:
+· la P22 mide el aire hasta la PRIMERA letra del nombre con un `Range` —la caja
+  de un `strong` que envuelve es la unión de sus renglones— y exige ≥ 4 px:
+  `aire 0 px` → `aire 4 px` con el margen → **`aire 4.3 px`** con el espacio;
+· la 17-septies compra la FRASE, «en el poste 33 Av. Academia…», y cayó con
+  `expected 'Sube a la línea 35 en el poste 33Av. …'` con el margen puesto.
+`  OK  P22 · pc · ⭐ y entre la ficha y el nombre hay aire: al menos 4 px  ·  aire 4.3 px`
+`      Tests  555 passed (555)`
+⚠️ En 390 la P22 dijo `aire otra línea`: en esa ruta la ficha cierra su
+renglón y el nombre abre el siguiente, así que allí no hubo aire que medir.
+**Commit:** ~~`7692495` (el margen)~~ · `503cce0` (la jueza del aire) · `b6274f2` (el espacio de texto y la jueza de la frase) · `2256653` (la build)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+Y al cerrar: **un espacio que solo existe entre dos etiquetas no existe — ni
+para el ojo ni para el oído.** La separación entre piezas en línea es TEXTO, y
+se compra dos veces: en píxeles y en la frase que se lee.
+Y **por qué el primer cierre no aguantó:** se arregló lo que la captura
+enseñaba y no lo que la casa ya sabía. La trampa estaba escrita en la misma
+plantilla, dos mitades incluidas; buscar antes de arreglar la habría dado.
 **Traza:** `app/src/app/buscador.html` (la ficha en el bucle de `paso.partes`);
 `app/src/app/resultado.css` (`.ficha-entidad`); `app/e2e/pintura.mjs` — P22;
 `app/src/app/buscador.spec.ts` — 17-septies.
+
+**Nota [2026-09-14, al ir a cerrar — el cierre de arriba NO vale todavía]:**
+comprobando que `preserveWhitespaces` no estaba activado, apareció en
+`app/src/app/buscador.html:1363` que la casa **ya había medido esta trampa el
+1/09** con los créditos, y que tiene DOS mitades: el pegado de los píxeles y
+el del **árbol de accesibilidad** —«S.A.U.Horarios»—. El `margin-right`
+arregla la primera y NO la segunda: un margen no es un espacio en el texto,
+así que quien lo oye sigue recibiendo «33Av. Academia». Los campos de Causa
+raíz, Arreglo y Commit se quedan escritos pero la entrada vuelve a 🔴 hasta que
+el texto también lleve su espacio.
 
 ---
 
