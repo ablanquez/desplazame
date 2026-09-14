@@ -327,6 +327,64 @@ export interface Paso {
    *    separa un `mudo` de un botón que no debería existir.
    */
   readonly aQueEstacion?: AQueEstacionPreguntar;
+  /**
+   * ⭐ LAS PARADAS QUE SE VAN DENTRO, como dato (14/09).
+   *
+   * El contrato crece porque la pantalla lo pide y está medido: la plantilla
+   * de cinco líneas de los pasos con acción viva pone esto en su tercera
+   * línea, y hasta hoy **solo vivía dentro de la frase** —«— 12 paradas»—, que
+   * la pantalla tiene prohibido leer desde el 30/08. Es el precedente de
+   * `tramos` y de `Aviso.paso`: el dato existía por dentro y se publica.
+   *
+   * [Google Directions API, `transit_details.num_stops`] un campo del paso, no
+   * del viaje: *«incluye la de llegada, pero no la de salida»*. Solo en `sube`
+   * y `transborda`, y en el transbordo **las de la línea a la que se sube**
+   * —la convención firmada el 31/08—.
+   *
+   * ⚠️ **No viaja si no se sabe, ni cuando es cero**: es la misma regla que la
+   *    frase, que no escribe «0 paradas». Un campo que el motor no rellena es
+   *    un dato que no hay, y la pantalla calla.
+   */
+  readonly paradas?: number;
+  /**
+   * ⭐ CADA CUÁNTOS MINUTOS PASA, la frecuencia TEÓRICA (14/09).
+   *
+   * La cabecera de hoy del patrón, redondeada al minuto: exactamente el
+   * número de «frecuencia teórica: cada 8 min». [Google Directions API,
+   * `transit_details.headway`] va como campo del paso; allí en segundos, aquí
+   * en minutos porque es la unidad en que ya se dice y se redondea en un solo
+   * sitio —el motor—, no en dos.
+   *
+   * ⚠️ No es el minuto vivo: ése es `vivo` y lo dice la región del botón. Son
+   *    dos preguntas distintas —cada cuánto pasa, y cuándo pasa el próximo—.
+   */
+  readonly frecuencia?: number;
+  /**
+   * ⭐ LO QUE HAY EN LA ESTACIÓN DE BiZi SEGÚN EL GENERAR, como dato (14/09).
+   *
+   * Solo en `coge` y `aparca`, y solo si la sede contestó y publica esa
+   * estación: es la cifra y la hora que hoy van en la frase —«— 8 bicis
+   * disponibles a las 11:56»—. [GBFS] `num_bikes_available` en el hito de
+   * coger y `num_docks_available` en el de dejar; cuál de las dos lo dice
+   * `aQueEstacion.pide`, que es la misma pregunta.
+   */
+  readonly disponibilidad?: DisponibilidadDelHito;
+}
+
+/**
+ * La cifra de una estación de BiZi y cuándo era verdad.
+ *
+ * ⚠️ **`hora` va ya escrita, «HH:MM» en la hora de Zaragoza**, y no como
+ *    instante. Es a propósito y tiene entrada en la bitácora (nº41): el huso lo
+ *    pone el motor —`alMinuto`—, y una pantalla que formateara un instante por
+ *    su cuenta sería un segundo sitio donde olvidarse de la zona. Es la hora
+ *    que la sede declara **para esa estación** [GBFS `last_reported`], no la de
+ *    la consulta.
+ */
+export interface DisponibilidadDelHito {
+  /** Bicis disponibles al coger, anclajes libres al dejar. */
+  readonly cuantas: number;
+  readonly hora: string;
 }
 
 /**
@@ -459,6 +517,12 @@ export interface Aviso {
    * Y **no lo calcula quien pinta**: qué paso abre dónde solo se sabe dentro
    * del motor —sumar los `metros` de los pasos no vale, que vienen redondeados
    * a propósito, y es el mismo error de 6,9 m que obligó a publicar `tramos`.
+   *
+   * ⭐ **Y desde el 14/09 lo lleva también el mudo de la BiZi**, partido en dos:
+   *    el de coger habla de bicis y el de dejar de anclajes, cada uno con el
+   *    índice de SU hito. Viajaba sin `paso` y sin nombrar estación, y la regla
+   *    de reserva de la pantalla se lo daba a los dos hitos — en el de dejar,
+   *    preguntando por bicis (bitácora nº53).
    */
   readonly paso?: number;
 }
