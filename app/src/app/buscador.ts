@@ -2292,7 +2292,29 @@ export class Buscador {
         donde.set(desvio, i);
       }
     });
-    const sueltos = this.avisosDelViaje().map((a) => {
+    // ⭐ LO CONTEXTUAL NO SUBE [ANTONIO, 14/09, cierre de la fase C].
+    //
+    // El sumario es para lo que afecta al VIAJE —desvíos, festivos, la vejez
+    // del feed—, y lo contextual se lee SOLO en su punto: la BiZi que no
+    // contesta, la zona que se pisa, el poste que no anuncia. Repetirlo arriba
+    // era el anti-patrón medido [alert fatigue: desensibilización por
+    // exposición repetida].
+    //
+    // ⚠️ La regla es «ya se lee como tira en su paso», y no una lista de
+    //    familias, por la costura de la orden: **ningún aviso puede quedarse
+    //    sin sitio visible**. Si el paso enseña una sola tira y dos avisos
+    //    comparten paso, el que no sale abajo SIGUE arriba — por construcción,
+    //    no por memoria.
+    const enSuPaso = new Set<string>();
+    trayecto.pasos.forEach((paso, i) => {
+      const tira = this.notaDelPaso(i, paso);
+      if (tira !== null) {
+        enSuPaso.add(tira);
+      }
+    });
+    const sueltos = this.avisosDelViaje()
+      .filter((a) => !enSuPaso.has(a.texto))
+      .map((a) => {
       // ⭐ `Aviso.paso` MANDA, y el texto es solo la reserva (3/09).
       //
       // El motor sabe por qué paso se entra en la Zona de Bajas Emisiones —lo
@@ -2393,6 +2415,50 @@ export class Buscador {
       marcas.push('festivo');
     }
     return marcas;
+  }
+
+  /**
+   * ⭐ EL POSTE Y LA ESTACIÓN COMO ENTIDAD: la ficha de contorno (14/09, fase C).
+   *
+   * [ANTONIO, resolución (b), por WCAG 1.4.11] icono + número en una ficha con
+   * borde, neutra —no le roba el color al chip de la línea—, y detrás el
+   * nombre en su negrita. Devuelve qué pintar en lugar de una parte `via`, o
+   * `null` si esa parte se pinta como siempre.
+   *
+   * ⚠️ **El número sale del DATO, nunca de la frase** —el contrato lo manda así
+   *    en `aQuienPreguntar` y `aQueEstacion`—:
+   *
+   *    · Bus: la ficha va si el paso trae `aQuienPreguntar` Y la parte empieza
+   *      EXACTAMENTE por ese número y « · » (`nombrarPoste` del motor). Solo se
+   *      quita de la frase lo que el dato confirma; no se adivina nada.
+   *    · BiZi: el número de `aQueEstacion`, delante de la ÚLTIMA `via` del
+   *      hito de coger o dejar, que es el nombre de la estación.
+   *
+   * ⚠️ Y en BAJAR no hay ficha: el motor no manda el poste como dato en ese
+   *    paso (terreno leído el 13/09), y sacarlo de «860 · …» sería leer la frase.
+   *    Queda como hoy, dicho en el checkpoint.
+   */
+  protected fichaDe(
+    paso: Paso,
+    indiceParte: number,
+  ): { readonly icono: NombreDeSimbolo; readonly numero: string; readonly resto: string } | null {
+    const parte = paso.partes[indiceParte];
+    if (!parte || parte.papel !== 'via') {
+      return null;
+    }
+    if (paso.aQuienPreguntar) {
+      const prefijo = `${paso.aQuienPreguntar.poste} · `;
+      return parte.texto.startsWith(prefijo)
+        ? { icono: 'directions_bus', numero: String(paso.aQuienPreguntar.poste), resto: parte.texto.slice(prefijo.length) }
+        : null;
+    }
+    if (paso.aQueEstacion && (paso.giro === 'coge' || paso.giro === 'aparca')) {
+      const ultimaVia = paso.partes.map((p) => p.papel).lastIndexOf('via');
+      return indiceParte === ultimaVia
+        ? { icono: 'pedal_bike', numero: String(paso.aQueEstacion.estacion), resto: parte.texto }
+        : null;
+    }
+    return null;
   }
 
   /** El texto del desvío de la línea a la que se sube en este hito, o `null`. */

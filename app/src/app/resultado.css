@@ -190,6 +190,36 @@
   color: var(--primary);
 }
 
+/* ⭐ EL CÍRCULO DE ORIGEN Y DESTINO, LLENO [ANTONIO, 14/09, fase C (c)].
+   El claro de hoy daba 4,49:1 —a una centésima— y el pin del mapa suspendía el
+   verde (4,41). Lleno: `primary-foreground` sobre `primary`, 5,17:1, el par del
+   botón principal. Su borde contra la tarjeta y la banda está en LIMITES. */
+.paso__circulo--terminal {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* ⭐ LA FICHA DEL POSTE O LA ESTACIÓN [ANTONIO, 14/09, fase C (b); WCAG 1.4.11].
+   De contorno y no rellena: la rellena era del gris de la banda y perdía la
+   forma con el ratón encima. Neutra, para no robarle el color al chip. */
+.ficha-entidad {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  padding: 0 0.4rem;
+  border: 1px solid var(--muted-foreground);
+  border-radius: 0.7em;
+  color: var(--foreground);
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1.4;
+  vertical-align: 0.05em;
+  /* ⚠️ El aire hasta el nombre va aquí y no en la plantilla (nº52): Angular
+     quita el espacio en blanco entre dos etiquetas, y la ficha salía pegada
+     —«(33)Av. Academia», 0 px medidos—. Es el mismo paso que el `gap` de dentro. */
+  margin-right: 0.25rem;
+}
+
 .paso__hilo {
   flex: 1;
   width: 2px;

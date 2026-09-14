@@ -21,7 +21,7 @@ import type {
   Via,
 } from '@desplazame/tipos';
 import { SIMBOLOS } from './simbolos';
-import { Buscador, CUANDO_SE_DICE_QUE_TARDA_MS } from './buscador';
+import { Buscador, CUANDO_SE_DICE_QUE_TARDA_MS, enDosNiveles } from './buscador';
 
 /**
  * Devuelve las opciones de MODO que están marcadas como activas.
@@ -697,6 +697,22 @@ const VIAJE_EN_BUS_CON_BOTON: Trayecto = {
  * que el motor produce de verdad —medida, no inventada: 47 caracteres, con la
  * fecha del `feed_end_date` del feed que se sirve hoy—.
  */
+/**
+ * El mismo viaje con la fuente MUDA: Avanza no contestó en el Generar. La frase
+ * es la de `comoSeDiceLoVivo` del motor para la clase `mudo`, con el poste
+ * nombrado —«por el poste …»—, que es lo que la reparte a su hito.
+ */
+const VIAJE_EN_BUS_MUDO: Trayecto = {
+  ...VIAJE_EN_BUS_SIN_LA_29,
+  avisos: [
+    {
+      texto:
+        'No hemos podido preguntar cuándo pasa la línea 29 por el poste Bernardo Ramazzini / Maz: ' +
+        'disponibilidad no verificada.',
+    },
+  ],
+};
+
 const VIAJE_CON_EL_FEED_VIEJO: Trayecto = {
   ...VIAJE_EN_BUS_SIN_LA_29,
   avisos: [
@@ -908,6 +924,34 @@ const VIAJE_DESVIADO_EN_FESTIVO: Trayecto = {
     { texto: 'Línea 35 hoy: 07:00–01:20, cada ~10 min (Fuente: Avanza, 17:22)', paso: 1 },
     { texto: 'Línea 31 hoy: 06:55–23:29, cada ~17 min (Fuente: Avanza, 17:22)', paso: 2 },
     { texto: 'Los desvíos de hoy se leyeron hace 3 horas.' },
+  ],
+};
+
+/**
+ * ⭐ EL VIAJE CON LOS POSTES COMO LOS ESCRIBE EL MOTOR (14/09, fase C).
+ *
+ * Copiado del terreno leído el 13/09 en `COLOSO 2 → OVIEDO 5`: la parte `via`
+ * del poste lleva «número · nombre» (`nombrarPoste`), y el número viaja además
+ * como DATO en `aQuienPreguntar.poste` — en subir y transbordar, **no en
+ * bajar**. Y tras bajar, el paseo abre con `salida` a mitad de ruta, que es la
+ * trampa del círculo terminal: por el giro saldría tres veces.
+ */
+const VIAJE_CON_FICHAS: Trayecto = {
+  ...VIAJE_CON_TRANSBORDO_Y_DESVIO,
+  avisos: [],
+  pasos: [
+    paso('salida', 30, accion('Sal de'), llano(' '), via('Calle El Coloso 2')),
+    {
+      ...paso('sube', 0, accion('Sube'), llano(' a la línea '), via('35'), llano(' en el poste '), via('33 · Av. Academia General Militar N.º 37')),
+      aQuienPreguntar: { poste: 33, linea: '35' },
+    },
+    {
+      ...paso('transborda', 0, llano('En el poste '), via('147 · Av. Francisco De Goya N.º 83'), accion(', transborda'), llano(' de la línea '), via('35'), llano(' a la línea '), via('31')),
+      aQuienPreguntar: { poste: 147, linea: '31' },
+    },
+    paso('baja', 0, accion('Baja'), llano(' en el poste '), via('860 · Villa De Ansó / Avenida De América')),
+    paso('salida', 170, accion('Sal de'), llano(' '), via('Villa de Ansó / Avenida de América')),
+    paso('llegada', 0, via('Calle Oviedo 5'), llano(' está a la izquierda')),
   ],
 };
 
@@ -3528,7 +3572,7 @@ describe('Buscador', () => {
    * que recibe el foco; las notas son el contexto. Quitar cualquiera de los
    * dos rompe el patrón.
    */
-  it('⭐ 3 · con el D-G el banner de arriba NO se quita', async () => {
+  it('⭐ 3 · con el D-G la tira vive SOLO en sus hitos: arriba no se repite', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -3540,10 +3584,16 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
     await fixture.whenStable();
 
-    expect(resumenEnPantalla(raiz)).toContain(
+    // ⚠️ ACTA 14/09 [ANTONIO, cierre de la fase C, resolución (a)]. Esta jueza
+    //    exigía el aviso en los DOS sitios —resumen y paso— por el patrón
+    //    GOV.UK del error summary. Se resolvió por doctrina que lo CONTEXTUAL vive
+    //    solo en su punto: el sumario es para lo que afecta al viaje entero, y
+    //    repetir lo local arriba es el anti-patrón medido (desensibilización por
+    //    exposición repetida). No se afloja: exige la tira Y que no suba.
+    expect(resumenEnPantalla(raiz)).not.toContain(
       'No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.',
     );
-    // Y las notas también, que es la otra mitad: los DOS sitios.
+    // Y las dos tiras, en sus dos hitos: el aviso sigue a la vista donde importa.
     expect(raiz.querySelectorAll('.paso__nota').length).toBe(2);
   });
 
@@ -3558,7 +3608,7 @@ describe('Buscador', () => {
    * escribe una vez sale igual en los dos sitios, y si el motor cambia esas
    * palabras cambian las dos a la vez sin tocar nada aquí.
    */
-  it('⭐ 4 · el texto de la nota es EL MISMO que el del banner', async () => {
+  it('⭐ 4 · el texto de la nota es la frase del motor, palabra por palabra', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -3570,16 +3620,25 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_A_CIEGAS);
     await fixture.whenStable();
 
-    const banner = resumenEnPantalla(raiz)[0]!;
+    // ⚠️ ACTA 14/09 [ANTONIO, cierre de la fase C, resolución (a)]. Esta jueza
+    //    comparaba la nota con el renglón del resumen: el mismo texto en los
+    //    dos sitios. Se resolvió por doctrina que lo CONTEXTUAL vive
+    //    solo en su punto: el sumario es para lo que afecta al viaje entero, y
+    //    repetir lo local arriba es el anti-patrón medido (desensibilización por
+    //    exposición repetida). No se afloja: exige la tira Y que no suba.
+    //    Lo que se compra no cambia: la nota no REESCRIBE el aviso, se lo copia.
+    //    La vara es ahora la frase del motor, no su copia de arriba.
+    const frase = VIAJE_EN_BIZI_A_CIEGAS.avisos.find((a) => a.texto.includes('disponibilidad no verificada'))!.texto;
     const notas = Array.from(raiz.querySelectorAll('.paso__nota')).map((n) =>
       (n.textContent ?? '').replace(/\s+/g, ' ').trim(),
     );
     expect(notas.length).toBe(2);
     for (const nota of notas) {
       // El ⚠ es del vestido, no del mensaje: se descuenta y lo que queda
-      // tiene que ser el banner palabra por palabra.
-      expect(nota.replace(/^⚠\s*/, '')).toBe(banner);
+      // tiene que ser la frase del motor palabra por palabra.
+      expect(nota.replace(/^⚠\s*/, '')).toBe(frase);
     }
+    expect(resumenEnPantalla(raiz)).not.toContain(frase);
   });
 
   /**
@@ -3655,7 +3714,7 @@ describe('Buscador', () => {
    * [GOV.UK] el resumen y el mensaje de al lado dicen lo mismo: *«use the same
    * wording»*. La nota no reescribe el aviso del motor, se lo copia.
    */
-  it('⭐ 7 · en bus, el banner y la nota dicen exactamente lo mismo', async () => {
+  it('⭐ 7 · en bus, la nota dice la frase del motor, y la frase dice lo medido', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -3667,15 +3726,21 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
     await fixture.whenStable();
 
-    const banner = resumenEnPantalla(raiz)[0]!;
+    // ⚠️ ACTA 14/09 [ANTONIO, cierre de la fase C, resolución (a)]. Esta jueza
+    //    comparaba la nota con el renglón del resumen. Se resolvió por doctrina que lo CONTEXTUAL vive
+    //    solo en su punto: el sumario es para lo que afecta al viaje entero, y
+    //    repetir lo local arriba es el anti-patrón medido (desensibilización por
+    //    exposición repetida). No se afloja: exige la tira Y que no suba.
+    const frase = VIAJE_EN_BUS_SIN_LA_29.avisos[0]!.texto;
     // ⚠️ [GTFS-Realtime] una entidad ausente del feed en vivo es «sin
-    // información en tiempo real», NO «sin servicio». El banner dice lo medido.
-    expect(banner).toContain('Avanza no anuncia ningún próximo de la línea 29');
-    expect(banner).not.toContain('prestando servicio');
+    // información en tiempo real», NO «sin servicio». La frase dice lo medido.
+    expect(frase).toContain('Avanza no anuncia ningún próximo de la línea 29');
+    expect(frase).not.toContain('prestando servicio');
     const nota = (raiz.querySelector('.paso__nota')?.textContent ?? '')
       .replace(/\s+/g, ' ')
       .trim();
-    expect(nota.replace(/^⚠\s*/, '')).toBe(banner);
+    expect(nota.replace(/^⚠\s*/, '')).toBe(frase);
+    expect(resumenEnPantalla(raiz)).not.toContain(frase);
   });
 
   /**
@@ -4341,6 +4406,160 @@ describe('Buscador', () => {
   });
 
   /**
+   * ⭐ 17-sexies · LO CONTEXTUAL VIVE SOLO EN SU PASO (14/09, cierre de la fase C).
+   *
+   * [ANTONIO, resolución (a)] el patrón documentado de los avisos: el SUMARIO
+   * para lo que afecta al viaje entero —desvíos, festivos— y lo contextual
+   * SOLO en su punto, sin duplicar. La repetición es el anti-patrón medido:
+   * desensibilización por exposición repetida [alert fatigue]. Así que un aviso
+   * que ya se lee como tira en su paso no se repite arriba.
+   *
+   * Y la costura de la orden, comprada aquí mismo: **ningún aviso del viaje se
+   * queda sin sitio visible**. Cada frase del motor tiene que leerse en el
+   * resumen O en una tira, en cada uno de los viajes.
+   */
+  const textoDeTira = (n: Element): string =>
+    (n.querySelector('.aviso-ruta__hecho')?.textContent ?? n.textContent ?? '').replace(/\s+/g, ' ').trim();
+
+  for (const [nombre, viaje, modo, antes] of [
+    ['BiZi a ciegas', () => VIAJE_EN_BIZI_A_CIEGAS, 'bizi', null],
+    ['bus sin anuncio de la 29', () => VIAJE_EN_BUS_SIN_LA_29, 'bus', null],
+    // El MUDO del bus, que la orden nombra: la fuente no contestó. En vivo el
+    // 14/09 Avanza sí contestaba y la P22 no tuvo sujeto; se compra aquí.
+    ['bus con la fuente muda', () => VIAJE_EN_BUS_MUDO, 'bus', null],
+    ['coche con remate en la ZBE', () => VIAJE_EN_COCHE_CON_REMATE, 'coche', 'sin'],
+    ['coche con distintivo B por la ZBE', () => VIAJE_EN_COCHE_POR_LA_ZBE, 'coche', 'b'],
+  ] as const) {
+    it(`⭐ 17-sexies · ${nombre}: la tira de su paso no se repite en el resumen, y nada se queda sin sitio`, async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+      elegirModo(fixture, modo);
+      if (modo === 'coche') {
+        tragarLaZona();
+      }
+      await direccionEntera(fixture, http);
+      if (antes !== null) {
+        pulsar(fixture, radiosDeDistintivo(raiz), antes);
+      }
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      drenarRutas(http.match('/api/ruta'), viaje);
+      await fixture.whenStable();
+
+      const tiras = Array.from(raiz.querySelectorAll('.paso__nota')).map(textoDeTira);
+      const resumen = resumenEnPantalla(raiz);
+      expect(tiras.length, 'el viaje trae al menos una tira que juzgar').toBeGreaterThan(0);
+      // ⭐ Ninguna tira repetida arriba.
+      for (const t of tiras) {
+        expect(resumen.some((r) => r.includes(t)), `«${t}» está también en el resumen`).toBe(false);
+      }
+      // ⭐ Y la costura: cada aviso del motor, en algún sitio que se vea.
+      const todo = [...resumen, ...tiras].join(' | ');
+      const delMotor = (fixture.componentInstance as unknown as { avisosDelViaje(): readonly { texto: string }[] })
+        .avisosDelViaje();
+      for (const a of delMotor) {
+        expect(todo.includes(enDosNiveles(a.texto).hecho), `«${a.texto}» no se ve en ningún sitio`).toBe(true);
+      }
+    });
+  }
+
+  /**
+   * ⭐ 17-septies · EL POSTE Y LA ESTACIÓN, COMO ENTIDAD: la ficha de contorno.
+   *
+   * [ANTONIO, resolución (b), por medida y por WCAG 1.4.11] icono + número en
+   * una ficha con borde, neutra —no le roba el color al chip de línea—, y el
+   * nombre detrás, en su negrita. El número sale del DATO (`aQuienPreguntar`,
+   * `aQueEstacion`), y en el bus solo se quita de la frase si la frase empieza
+   * EXACTAMENTE por ese número: la frase no se lee para adivinar nada.
+   *
+   * ⚠️ Y bajar NO lleva ficha: el motor no manda el poste como dato en ese paso
+   *    y aquí no se saca de la frase. Queda como hoy, y dicho.
+   */
+  it('⭐ 17-septies · la ficha de contorno en subir, transbordar y en las dos estaciones — no en bajar', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_FICHAS);
+    await fixture.whenStable();
+
+    const pasos = Array.from(raiz.querySelectorAll<HTMLElement>('.paso'));
+    const fichaDe = (i: number) => {
+      const f = pasos[i]!.querySelector<HTMLElement>('.ficha-entidad');
+      return f === null
+        ? null
+        : {
+            numero: (f.textContent ?? '').trim(),
+            icono: nombreDelSimbolo(f.querySelector('path')?.getAttribute('d') ?? null),
+            callado: f.querySelector('svg')?.getAttribute('aria-hidden') ?? null,
+            nombre: (f.nextElementSibling?.textContent ?? '').trim(),
+          };
+    };
+    expect(fichaDe(1)).toEqual({ numero: '33', icono: 'directions_bus', callado: 'true', nombre: 'Av. Academia General Militar N.º 37' });
+    expect(fichaDe(2)).toEqual({ numero: '147', icono: 'directions_bus', callado: 'true', nombre: 'Av. Francisco De Goya N.º 83' });
+    // Bajar: sin dato, sin ficha, y la frase intacta.
+    expect(fichaDe(3)).toBeNull();
+    expect((pasos[3]!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim()).toBe(
+      'Baja en el poste 860 · Villa De Ansó / Avenida De América',
+    );
+    // Y los pasos que no son de poste, sin ficha.
+    expect(raiz.querySelectorAll('.ficha-entidad').length).toBe(2);
+  });
+
+  // ⚠️ La mitad de la BiZi va en su propia prueba: con los dos componentes en
+  //    una sola pasaba del tope de 5 s, y el corte a medias tumbaba en cascada
+  //    todas las pruebas de detrás (medido el 14/09: 70 rojos en 0 ms).
+  it('⭐ 17-septies · y en BiZi, el número de la estación sale del dato, delante de su nombre', async () => {
+    const otra = TestBed.createComponent(Buscador);
+    await otra.whenStable();
+    const raiz2 = otra.nativeElement as HTMLElement;
+    await direccionEntera(otra, http);
+    elegirModo(otra, 'bizi');
+    botonGenerar(raiz2).click();
+    otra.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_CON_BOTONES);
+    await otra.whenStable();
+    const fichas = Array.from(raiz2.querySelectorAll<HTMLElement>('.ficha-entidad')).map((f) => ({
+      numero: (f.textContent ?? '').trim(),
+      icono: nombreDelSimbolo(f.querySelector('path')?.getAttribute('d') ?? null),
+      nombre: (f.nextElementSibling?.textContent ?? '').trim(),
+    }));
+    expect(fichas).toEqual([
+      { numero: '42', icono: 'pedal_bike', nombre: 'Tauromaquia' },
+      { numero: '87', icono: 'pedal_bike', nombre: 'Mrio. Siresa: Dr. Iranzo' },
+    ]);
+  });
+
+  /**
+   * ⭐ 17-octies · ORIGEN Y DESTINO CON PRESENCIA DE TERMINAL: el círculo lleno.
+   *
+   * [ANTONIO, resolución (c)] el círculo en `primary` con el icono en
+   * `primary-foreground` —5,17:1, la única opción que cumple AA en los dos
+   * extremos— y SOLO en el primer y el último paso. ⚠️ No por el giro: `salida`
+   * sale también a mitad de ruta, tras bajar del bus o tras coger la BiZi.
+   */
+  it('⭐ 17-octies · el círculo terminal va en el primer y el último paso, y en ninguno más', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_CON_FICHAS);
+    await fixture.whenStable();
+
+    const terminales = Array.from(raiz.querySelectorAll('.paso')).map((li) =>
+      li.querySelector('.paso__circulo')!.classList.contains('paso__circulo--terminal'),
+    );
+    expect(terminales).toEqual([true, false, false, false, false, true]);
+  });
+
+  /**
    * ⭐ 18 · EL AVISO DE VEJEZ DEL FEED SE VE, Y SE VE SIN ENLACE.
    *
    * El motor ya gritaba al arrancar que el feed se le caduca —con el umbral del
@@ -4367,12 +4586,14 @@ describe('Buscador', () => {
     await fixture.whenStable();
 
     const resumen = resumenEnPantalla(raiz);
-    expect(resumen.length).toBe(2);
-    expect(resumen[0]).toBe('Horarios de Avanza válidos solo hasta el 05/10.');
-    // Va PRIMERO: si los horarios caducan, condiciona todo lo que se lee debajo.
-    expect(resumen[1]).toContain('Avanza no anuncia ningún próximo');
+    // ⚠️ ACTA 14/09 [ANTONIO, fase C (a)]: eran DOS renglones —la vejez y el
+    //    poste de la 29 que no anuncia—. El del poste es contextual y vive solo
+    //    en su tira; la vejez es del VIAJE entero y se queda arriba, sola.
+    expect(resumen).toEqual(['Horarios de Avanza válidos solo hasta el 05/10.']);
     // Y no promete un paso al que ir.
     expect(adondeLlevaElResumen(raiz)[0]).toBeNull();
+    // El del poste no se ha perdido: está en su paso.
+    expect([...notasPorPaso(raiz).values()].join(' ')).toContain('Avanza no anuncia ningún próximo');
   });
 
   it('⭐ el aviso se enseña TAMBIÉN cuando la ruta sale', async () => {
@@ -4390,7 +4611,10 @@ describe('Buscador', () => {
 
     const avisos = () => resumenEnPantalla(raiz);
     expect(raiz.querySelectorAll('.paso').length).toBeGreaterThan(0);
-    expect(avisos()).toContain(
+    // ⚠️ ACTA 14/09 [ANTONIO, fase C (a)]: el D-G es contextual y se enseña en
+    //    sus hitos, no arriba. Lo que esta jueza compra —que con ruta el aviso
+    //    SE ENSEÑA— sigue igual de comprado, donde vive ahora.
+    expect([...notasPorPaso(raiz).values()]).toContain(
       'No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.',
     );
     // Y los hitos, pelados: es lo que el aviso está explicando.
@@ -5517,9 +5741,11 @@ describe('Buscador', () => {
     expect([...notas.keys()]).toEqual([2]);
     expect(notas.get(2)).toContain('Tu destino queda dentro de la Zona de Bajas Emisiones');
 
-    // Y arriba, el resumen enlaza a ese mismo paso.
-    expect(resumenEnPantalla(raiz)[0]).toContain('Esta ruta remata en el aparcamiento público');
-    expect(adondeLlevaElResumen(raiz)).toEqual(['#paso-2']);
+    // ⚠️ ACTA 14/09 [ANTONIO, fase C (a)]: aquí se exigía que arriba el resumen
+    //    enlazara a este paso. La zona es contextual —se pisa en UN punto— y
+    //    vive solo en su tira: arriba ya no se repite.
+    expect(resumenEnPantalla(raiz).join(' | ')).not.toContain('Esta ruta remata en el aparcamiento público');
+    expect(notas.get(2)).toContain('Esta ruta remata en el aparcamiento público');
   });
 
   /**
@@ -5564,7 +5790,9 @@ describe('Buscador', () => {
     await fixture.whenStable();
     expect(resumenEnPantalla(raiz).join(' | ')).not.toContain('circula libre por la ZBE');
     // Y lo que sí sale es el aviso del motor, que informa de la norma.
-    expect(resumenEnPantalla(raiz)[0]).toContain('La ruta atraviesa la Zona de Bajas Emisiones');
+    // ⚠️ ACTA 14/09 [ANTONIO, fase C (a)]: sale en SU PASO y ya no arriba.
+    expect([...notasPorPaso(raiz).values()].join(' ')).toContain('La ruta atraviesa la Zona de Bajas Emisiones');
+    expect(resumenEnPantalla(raiz).join(' | ')).not.toContain('La ruta atraviesa la Zona de Bajas Emisiones');
   });
 
   /**

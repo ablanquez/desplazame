@@ -1021,7 +1021,15 @@
                          («Gira a la izquierda»), así que a quien lea la pantalla en
                          voz alta se le ahorra — `aria-hidden` los dos. -->
                     <span class="paso__carril">
-                      <span class="paso__circulo" aria-hidden="true">
+                      <!-- ⭐ ORIGEN Y DESTINO CON PRESENCIA DE TERMINAL (14/09, fase C)
+                           [ANTONIO, resolución (c)]: el círculo lleno, y por PRIMER y
+                           ÚLTIMO paso — no por el giro, que `salida` sale también a
+                           mitad de ruta tras bajar del bus o coger la BiZi. -->
+                      <span
+                        class="paso__circulo"
+                        [class.paso__circulo--terminal]="$first || $last"
+                        aria-hidden="true"
+                      >
                         <app-simbolo [nombre]="simboloDe(paso.giro)" [lado]="18" />
                       </span>
                       @if (!$last) {
@@ -1127,6 +1135,15 @@
                       @for (parte of paso.partes; track $index) {
                         @if (parte.papel === 'texto') {
                           <ng-container>{{ parte.texto }}</ng-container>
+                        } @else if (fichaDe(paso, $index); as ficha) {
+                          <!-- ⭐ EL POSTE O LA ESTACIÓN COMO ENTIDAD (14/09, fase C)
+                               [ANTONIO, resolución (b); WCAG 1.4.11]: icono callado +
+                               número en su ficha de contorno, y el nombre detrás. El
+                               número sale del dato, no de la frase: ver `fichaDe`. -->
+                          <span class="ficha-entidad"
+                            ><app-simbolo [nombre]="ficha.icono" [lado]="14" />{{ ficha.numero }}</span
+                          >
+                          <strong>{{ ficha.resto }}</strong>
                         } @else {
                           <strong>{{ parte.texto }}</strong>
                         }
