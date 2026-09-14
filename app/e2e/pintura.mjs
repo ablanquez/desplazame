@@ -3217,4 +3217,97 @@ for (const pantalla of PANTALLAS) {
   }
 }
 
+// ═══════════ P24 · LA CABECERA DEL RESULTADO, CON SU REGIÓN ═══════════
+//
+// ⭐ [ANTONIO, 14/09, veto de la tanda 5; NN/g «The Principle of Common Region»]
+//    cifras, extremos y chips son UN grupo —el sumario del viaje— y hoy flotan
+//    sueltos compitiendo con el timeline. Lo que se compra es el PRINCIPIO, no
+//    la forma: un límite que se ve —borde a 3:1 en los cuatro lados [WCAG
+//    1.4.11], o un fondo que se separa del panel al menos lo que la banda
+//    (MINIMO_DE_SEPARACION)— con todo el grupo DENTRO y con aire, sin pisar al
+//    resumen ni al primer paso, y con la letra a 4,5:1 sobre lo pintado.
+//
+// OJO: dentro de las plantillas de JS, ni una comilla invertida en los comentarios.
+const LA_CABECERA = `
+  const r = document.querySelector('.ruta');
+  if (!r) return null;
+  const s = getComputedStyle(r);
+  let p = r.parentElement;
+  while (p && getComputedStyle(p).backgroundColor === 'rgba(0, 0, 0, 0)') p = p.parentElement;
+  const caja = r.getBoundingClientRect();
+  const lados = ['Top', 'Right', 'Bottom', 'Left'].map((l) => ({
+    ancho: parseFloat(s['border' + l + 'Width']), estilo: s['border' + l + 'Style'], color: s['border' + l + 'Color'],
+  }));
+  const hijos = [...r.children].map((h) => {
+    const b = h.getBoundingClientRect();
+    return {
+      que: h.classList[0],
+      dentro: b.left >= caja.left && b.right <= caja.right && b.top >= caja.top && b.bottom <= caja.bottom,
+      aire: Math.round(Math.min(b.left - caja.left, caja.right - b.right, b.top - caja.top, caja.bottom - b.bottom) * 10) / 10,
+    };
+  });
+  const pisa = (sel) => {
+    const v = document.querySelector(sel);
+    if (!v) return null;
+    const b = v.getBoundingClientRect();
+    const w = Math.min(b.right, caja.right) - Math.max(b.left, caja.left);
+    const h = Math.min(b.bottom, caja.bottom) - Math.max(b.top, caja.top);
+    return w > 0.5 && h > 0.5;
+  };
+  return {
+    lados, fondo: s.backgroundColor, panel: p ? getComputedStyle(p).backgroundColor : null,
+    hijos, pisaResumen: pisa('.resumen'), pisaPaso: pisa('.paso'),
+  };
+`;
+const opaco = (css) => css !== 'rgba(0, 0, 0, 0)' && !/,\s*0\)$/.test(css);
+
+for (const pantalla of PANTALLAS) {
+  const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: pantalla.puerto + 20 });
+  try {
+    await m.ir(APP, 6000);
+    console.log(`\n═══ LA CABECERA Y SU REGIÓN · ${pantalla.nombre} ═══`);
+    await generarCon(m, 'bus', '');
+    const c = await leer(m, LA_CABECERA);
+    const dicho = `P24 · ${pantalla.id}`;
+    if (c === null) {
+      juzgar(false, `${dicho} · ⭐ la cabecera del resultado tiene su región`, '(no hay .ruta en la página)');
+      continue;
+    }
+    const panel = aRgb(c.panel ?? 'rgb(255, 255, 255)');
+    const bordes = c.lados.map((l) => (l.ancho >= 1 && l.estilo !== 'none' ? contrasteRgb(aRgb(l.color), panel) : 0));
+    const porBorde = bordes.every((x) => x >= AA_GRAFICO);
+    const f = opaco(c.fondo) ? aRgb(c.fondo) : null;
+    const separacion = f === null ? 0 : Math.max(Math.abs(f.r - panel.r), Math.abs(f.g - panel.g), Math.abs(f.b - panel.b));
+    const porFondo = separacion >= MINIMO_DE_SEPARACION;
+    juzgar(
+      porBorde || porFondo,
+      `${dicho} · ⭐ la cabecera del resultado tiene su REGIÓN: borde a ≥ ${AA_GRAFICO}:1 en los cuatro lados, o fondo a ≥ ${MINIMO_DE_SEPARACION} puntos del panel`,
+      `bordes ${bordes.map((x) => x.toFixed(2)).join(' / ')} :1 · fondo ${c.fondo} a ${separacion} puntos de ${c.panel}`,
+    );
+    juzgar(
+      c.hijos.length >= 3 && c.hijos.every((h) => h.dentro && h.aire >= AIRE_MINIMO),
+      `${dicho} · ⭐ y el grupo entero va DENTRO, a ≥ ${AIRE_MINIMO} px del filo`,
+      c.hijos.map((h) => `${h.que} ${h.dentro ? h.aire + ' px' : 'FUERA'}`).join(' · '),
+    );
+    juzgar(
+      c.pisaResumen !== true && c.pisaPaso !== true,
+      `${dicho} · y la región no pisa al resumen ni al primer paso (la P18)`,
+      `resumen ${c.pisaResumen === null ? 'no hay' : c.pisaResumen ? 'PISA' : 'no'} · paso ${c.pisaPaso ? 'PISA' : 'no'}`,
+    );
+    for (const [sel, que] of [['.ruta__metros', 'las cifras'], ['.ruta__punto', 'los extremos'], ['.ruta__lineas-rotulo', '«Se viaja en»']]) {
+      const t = await contrasteSiEsta(m, sel, { minimo: 6 });
+      juzgar(t !== null && t.contraste >= AA_TEXTO, `${dicho} · y ${que} se leen dentro: ≥ ${AA_TEXTO}:1 sobre lo pintado`, t === null ? '(no está)' : `${t.contraste.toFixed(2)}:1`);
+    }
+    if (pantalla.id !== 'pc') {
+      const sobra = await m.evaluar(`document.documentElement.scrollWidth - document.documentElement.clientWidth`);
+      juzgar(sobra === 0, `${dicho} · y sin scroll lateral`, `sobra ${sobra} px`);
+    }
+    await m.evaluar(`(document.querySelector('.resumen') ?? document.querySelector('.ruta')).scrollIntoView({ block: 'start' })`);
+    await m.dormir(300);
+    await m.guardar(`${CAPTURAS}/cabecera-region-${pantalla.id}.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
 console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);
