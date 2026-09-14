@@ -197,17 +197,20 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `2f51ce6`** (el push del 14/09 tarde: LA
-TANDA DE LOS FALLITOS entera — 7 commits `8ab1d29` +
-`abb87a1`…`2f51ce6`, las cinco líneas con motor+contrato y la
-última voz; antes, el push del 14/09 mediodía `64c2591` [la
-fase C de la tanda 5, 8 commits `6a700a7`…`628b01e`, + los
-papeles]; el del 13/09 `7f0ba5a` [fases A+B]; los del 11-12/09:
+**Publicado hasta `8606cd4`** (el push del 14/09 tarde-2: los
+papeles del destilado de los fallitos; antes, el mismo día: LA
+TANDA DE LOS FALLITOS entera en `2f51ce6` [7 commits `8ab1d29`
++ `abb87a1`…`2f51ce6`, las cinco líneas con motor+contrato y
+la última voz] y el mediodía `64c2591` [la fase C de la tanda
+5 + papeles]; el 13/09 `7f0ba5a` [fases A+B]; los del 11-12/09:
 el GORDO `69f14e1` [tandas 2-4], las PESTAÑAS `608a921` y el
 remate de visión `2e4911a`; y `b27ab63` [papeles] + los dos
 del 9/09 [`062f532` · `c3adffb`]). **En local, sin publicar**
-*(al cierre del 14/09 tarde)*: **solo los papeles de este
-destilado — ⚠️ desde M2, CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
+*(al cierre del 14/09 noche)*: **EL ENCARGO CHICO de la región
+de la cabecera + moto.mjs (7 commits `43b4dcc`…`d35eacd`, con
+la nº55) + la revisión README/NOTICES del ejecutor + los
+papeles de este destilado — UN SOLO PUSH con todo ⚠️ desde M2,
+CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
 — los papeles de las casillas 0+3 y los 12 del calco — empujados
 en `062f532`.)* *(La nota del 8/09 noche: los
 papeles de M1-M3; el código estaba TODO publicado — el push del apaño
@@ -1664,26 +1667,33 @@ que hacer mejoras» (sin lista todavía — se cantará); LA CRÓNICA
 ENTERA en la casilla 4 del plan: lo siguiente es —
 tras la TANDA DE LOS FALLITOS del 14/09 tarde (cinco líneas +
 última voz, publicada en `2f51ce6`, crónica en la casilla 4) —
-(a) LAS MEJORAS restantes del ojo cuando Antonio las cante +
-las VETABLES pendientes [gris vacío 4,76 · pulso hueso · «a 5
-km/h» · cabecera sin caja · círculo primary/10]; (b) DESPUÉS,
-el oscuro completo en orden [resultado en dos temas → tesela
-CARTO → EL CONMUTADOR, pedido por Antonio en la ronda de
-visión: PC + el cuarto hueco de la barra]; PENDIENTE DEL
+— con las MEJORAS DEL OJO AL DÍA (Antonio, 14/09: «ya están
+todos») y las 5 VETABLES RESUELTAS (4 ratificadas; la cabecera
+con su región, HECHA en el encargo chico — crónica en la
+casilla 4, nº55 dentro con su ley: «"todas" se dice contando
+el directorio») — (a) EL PUSH DE CIERRE del 14/09 noche [la
+región + README/NOTICES revisados + estos papeles, UN push];
+(b) EL OSCURO completo en orden [resultado en dos temas →
+tesela CARTO → EL CONMUTADOR, pedido por Antonio en la ronda
+de visión: PC + el cuarto hueco de la barra]; PENDIENTE DEL
 TELÉFONO de Antonio: el pin con su prompt real · el teclado ·
-el safe-area en aparato · y CERRAR los dos procesos ajenos
-[el ng serve fantasma ::1:4200 pid 21780 y el motor del :3000
-pid 9848]; EN LA MESA sin prisa: el presupuesto [540,70/520 —
-la raya REBASADA, declarado: la poda como palanca] · el
-guardián de build atómico [PRIORIDAD ALTA: build fallida borra
-dist → 404] · el refactor del resultado como componente propio
-[4 topes] · los e2e con 4200 a fuego [pantalla(adaptada),
-proximo-bus] · ⚠️ el CABO de moto.mjs [1 rojo pre-existente:
-lee .paso__flecha, muerta el 12/09 — arreglar la jueza y
-aclarar si se corrió al cierre de la tanda 5] · la deuda del
-lector de pantalla real [NO CONSTA cómo se oyen las cinco
-líneas] · 5b PARA DESPUÉS DEL OSCURO [fijado por Antonio el
-14/09] · el logo (casilla 1); (3) los pendientes del 14 en
+el safe-area en aparato · y CERRAR los CUATRO procesos ajenos
+de las 11:11 [21780 en ::1:4200 · 9848 en :3000 · 21000 ·
+2464 — Stop-Process al terminar la sesión]; EN LA MESA sin
+prisa: el presupuesto [540,78/520 — la raya REBASADA,
+declarado: la poda como palanca] · el guardián de build
+atómico [PRIORIDAD ALTA: build fallida borra dist → 404] · el
+refactor del resultado como componente propio [4 topes] · los
+e2e con 4200 a fuego [pantalla(adaptada), proximo-bus] · el
+HUESO de carga que ya no calca la forma de lo que llega [la
+cabecera llega con caja y el esqueleto la dibuja sin ella —
+doctrina: el placeholder calca el layout final] · el #555 de
+«Se viaja en» A PELO en la hoja [tokenizar — la cicatriz del
+color fuera de la lista] · crear --superficie-realce [el
+papel lo daba por ordenado y NO CONSTA en el código] · la
+deuda del lector de pantalla real [NO CONSTA cómo se oyen las
+cinco líneas] · 5b PARA DESPUÉS DEL OSCURO [fijado por Antonio
+el 14/09] · el logo (casilla 1); (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
 municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
@@ -2007,7 +2017,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.222 pruebas (656 motor + 566 interfaz; e2e yego.mjs, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs, creditos.mjs y pintura.mjs aparte, a mano — bizi-y-resumen, pantalla y proximo-bus aún con 4200 a fuego) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.224 pruebas (656 motor + 568 interfaz; e2e yego.mjs, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs, creditos.mjs y pintura.mjs aparte, a mano — bizi-y-resumen, pantalla y proximo-bus aún con 4200 a fuego) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

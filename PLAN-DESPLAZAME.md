@@ -4201,7 +4201,11 @@ Code lo traduce al Angular existente.)*
         (rayas uniformes x64→527 · columna 56px reservada · aire
         chip 8px · hover slate-200 + focus gemelo + banda que
         respira 16px [ANTONIO]; gemelo nº49 en .sugerencia
-        cazado leyendo; token --superficie-realce ordenado).
+        cazado leyendo; token --superficie-realce ordenado
+        [⚠️ 14/09 noche, cazado por el ejecutor: aquí ponía
+        «ordenado» y el token NO CONSTA en el código — nunca
+        nació; la banda del realce toma prestado
+        --banda-cabecera; crearlo, a la cola]).
         FASE B ⚰️ (avisos sin repetir: resumen 1 renglón/línea +
         marcas «desviada»/«festivo» [1.4.1: color+icono+texto];
         «sin servicio» RETIRADA por contrato 31/08; nº50 [festivo
@@ -4366,6 +4370,69 @@ Code lo traduce al Angular existente.)*
         absoluta en el checkpoint [capM2 hubo que buscarla].
         5b (hover paso→mapa): Antonio lo fija PARA DESPUÉS DEL
         OSCURO.
+      - [x] ⚰️ ENCARGO CHICO — LA REGIÓN DE LA CABECERA + EL
+        CABO DE moto.mjs (14/09 noche; 7 commits
+        `43b4dcc`…`d35eacd`, en local al escribir esto — salen
+        en el push de cierre junto al README revisado y estos
+        papeles). LAS 5 VETABLES RESUELTAS por el ojo de
+        Antonio: CUATRO ratificadas [gris del vacío 4,76 ·
+        pulso del hueso · «a 5 km/h» · círculo primary/10 de
+        los intermedios] y UNA vetada: la cabecera del
+        resultado GANA SU REGIÓN [principio de región común —
+        Gestalt, canon NN/g: un borde o un fondo creando
+        contenedor de relacionados enseña la estructura; borde
+        O fondo, las dos formas valen]. LA FORMA LA DECIDIÓ LA
+        MEDICIÓN, sin empate — tres candidatos pintados sobre
+        la build anterior: borde --border 1,23:1 SUSPENDE la
+        vara 3:1 · fondo --banda-cabecera baja los extremos a
+        4,12 · borde --muted-foreground 4,76 y extremos 5,08 —
+        PASA LAS DOS; la caja calca la forma del bloque vecino
+        (el resumen de avisos: 1 px, radio 4, relleno
+        0,5/0,75 rem). ⚠️ AVISADO Y RATIFICADO por Antonio: ese
+        borde es el mismo de «Próximo bus» y de la ficha —
+        podía leerse pulsable; su ojo dijo que se lee bien.
+        [«botones» en la cabecera: NO CONSTA — cifras, extremos
+        y chips; la letra vieja del encargo los daba por
+        supuestos.] P24 NUEVA en los tres anchos: 6 rojos
+        contra la build anterior [«bordes 0.00:1»] → verde
+        [borde 4,76 los cuatro lados · contenido a 9-13 px del
+        filo · no pisa al resumen ni al primer paso · 0 scroll];
+        contraprueba 20/20. CENSO: par nuevo
+        muted-foreground/card por la puerta grande [rojo
+        «expected 21 to be 22» antes; 44/44 — 4,76 claro ·
+        8,40 oscuro, el oscuro SIN colisión] · el límite del
+        borde reutiliza el de la ficha re-rotulado [8/8].
+        ⭐ BITÁCORA nº55, LA GORDA DE LA TANDA: el cierre de la
+        tanda 5 declaró «todas las suites en verde» corriendo
+        SEIS de diez — moto, yego, dos-filas y proximo-bus NO
+        se corrieron, y moto.mjs estaba en ROJO desde el 12/09
+        [leía .paso__flecha, muerta con los SVG]. Abierta antes
+        de arreglar, cerrada con LEY: «"todas" se dice CONTANDO
+        EL DIRECTORIO, no la lista que uno eligió». La jueza
+        nueva compara EL DIBUJO del círculo del hito con
+        local_parking.svg [verde por la razón buena;
+        contraprueba 2/2]; segundo fallo cazado de propina [el
+        renglón del registro leía .ruta__totales y salía en
+        blanco — ya lee el titular], reportado sin pararse en
+        el primero. LAS DIEZ e2e EN VERDE contra 127.0.0.1
+        [pid==pid, bundle main-RM24EPQM.js servido==construido]:
+        esqueleto · identidad · créditos · pantalla 7/0 ·
+        bizi-y-resumen · yego · dos-filas · moto · proximo-bus ·
+        pintura 252 OK [P18/P22/P23 siguen verdes]. Unidad:
+        motor 656/656 · app 568/568 · tipos limpios.
+        PRESUPUESTO: initial 540,78 [+0,08] · resultado.css
+        5,38 [avisa a 4; el error de 8 lejos] — declarado.
+        CABOS NUEVOS A LA COLA: el hueso de carga ya NO calca
+        la forma de lo que llega [dibuja la cabecera sin caja —
+        la doctrina de esqueletos pide el layout final] · el
+        gris #555 de «Se viaja en» va A PELO en la hoja, fuera
+        del censo [la cicatriz de casa: un color que vive en la
+        hoja y no en la lista no lo mide nadie — tokenizar] ·
+        --superficie-realce NO EXISTE [el papel lo daba por
+        ordenado — corregido arriba con «aquí ponía»]. Capturas
+        CON RUTA ABSOLUTA [norma nueva, cumplida]: capR/ del
+        scratchpad, con la lámina de los candidatos y el
+        antes/después de moto.
       - [ ] TANDAS 6+ — EL OSCURO COMPLETO, en orden: el
         resultado en los dos temas → la tesela oscura CARTO
         [API key, atribución © CARTO, jueces de contraste] → EL
