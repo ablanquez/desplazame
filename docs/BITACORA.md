@@ -14,6 +14,64 @@
 
 ---
 
+## [2026-09-14] 🔴 ABIERTA — los dos chips del transbordo y la frase, pegados en el texto: «3531En el poste»
+
+**Categoría:** lo computado no es lo pintado
+**Síntoma:** en el transbordo de la 35 a la 31 (COLOSO 2 → CALLE OVIEDO 5,
+motor en `127.0.0.1`, build `main-FSEFADBS.js`), el texto del cuerpo del paso
+junta los dos chips y la frase sin un solo espacio. Leído con
+`sonda-zombi.mjs` sobre `.paso__frase`:
+`"frase":"3531En el poste 147 Av. Francisco De Goya N.º 83, transborda de la línea 35 a la línea 31 — 10 paradas — frecuencia teórica de la 31: cada 11 min"`
+En pantalla los separa el `margin-right: 0.5rem` del chip; en el texto, nada.
+Medido por `textContent`, igual que la nº52; con un lector de pantalla real
+NO CONSTA.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la jueza de la frase de la
+nº52, que lee `.paso__texto` — donde los chips no están a propósito:
+`$ npx ng test --watch=false --include src/app/buscador.spec.ts --filter "17-septies · la ficha de contorno en subir"`
+`      Tests  1 passed | 143 skipped (144)`
+**Cómo se cazó:** instrumento — la sonda del diagnóstico del encargo de las cinco líneas, que leía la frase entera del paso para otra cosa.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA — es la ley de la nº52 cumpliéndose
+en un sitio que su jueza no miraba.
+**Traza:** `app/src/app/buscador.html` (`.paso__frase`, el `@for` de
+`lineaPorPaso` con `>{{ linea.corto }}</span\n>`), `app/src/app/resultado.css`
+(`.paso__frase .chip-linea { margin-right }`), `app/src/app/buscador.spec.ts`
+(17-septies).
+
+---
+
+## [2026-09-14] 🔴 ABIERTA — la advertencia «no hemos podido preguntar» no muere cuando el botón vivo sí contesta
+
+**Categoría:** dos voces sobre el mismo dato
+**Síntoma:** con el Generar mudo y el botón con respuesta, el paso dice a la
+vez las dos cosas. Sembrado en `fetch` con la forma del motor
+(`sonda-zombi.mjs`, motor pid 26864 en `127.0.0.1:4200`), después de pulsar:
+`{"giro":"sube","tira":"No hemos podido preguntar cuándo pasa la línea 35 por el poste 33 · Av. Academia General Militar N.º 37: disponibilidad no verificada.","boton":"Próximo bus","region":"próximo en 3 min (dato de las 13:04)"}`
+`{"tira":"No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.","boton":"Bicis ahora","region":"4 bicis disponibles a las 13:04"}`
+`{"tira":"No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.","boton":"Anclajes ahora","region":"7 anclajes libres a las 13:04"}`
+Y al revés (Generar con dato, botón mudo) la advertencia no nace: `"tira":null`
+con la región diciendo «No hemos podido preguntar…».
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las juezas del botón, de
+unidad y en Chrome, ninguna mira la tira después de pulsar:
+`$ npx ng test --watch=false --include src/app/buscador.spec.ts --filter "no deja otro viejo detrás|dos pulsaciones son DOS consultas|22 · la región nace"`
+`      Tests  3 passed | 141 skipped (144)`
+`$ node proximo-127.mjs COLOSO 2 "CALLE OVIEDO" 5` (copia de `e2e/proximo-bus.mjs` a `127.0.0.1`)
+`✔ 5 · al contestar, aria-busy false y la región lleva el resultado — aria-busy=false · «próximo en 11 min (dato de las 15:14)» · 930 ms`
+`VERDE: las ocho en verde.`
+**Cómo se cazó:** ojo humano — Antonio, en producción (`64c2591`).
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/src/app/buscador.ts` (`notaDelPaso`/`notaDelHito` leen
+`avisosDelViaje()`; `loVivoDe`/`consultar`/`ponerConsulta` escriben
+`consultasVivas`), `app/src/app/buscador.html` (`.paso__nota`, `.vivo__estado`),
+`app/e2e/proximo-bus.mjs`, `motor/src/viaje-bizi.ts` (el aviso mudo sin `paso`).
+
+---
+
 ## [2026-09-14] ✅ CERRADA — la ficha del poste sale pegada al nombre: «(33)Av. Academia»
 
 **Categoría:** lo computado no es lo pintado
