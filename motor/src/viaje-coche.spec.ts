@@ -1535,13 +1535,44 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
         ['bizi', 'f5aca31bf70df0e8f6a44ea4f3faaf55f1d2ed2d4f8b72eac148be1eccb491fe'],
         ['bus', '94302b636c242dfd2c7f59738241f2f50c8ebe8b029c48e67e644cb1947faf0e'],
       ];
+      // ACTA 14/09 [encargo de las cinco líneas, mitad 1]: mordió «bizi ha
+      //    cambiado y no debía» —y el bus detrás—, y cambiaron A PROPÓSITO: el
+      //    paso de subir gana `paradas` y `frecuencia`, el hito de BiZi
+      //    `disponibilidad`, y el mudo de la sede se parte en dos avisos, uno
+      //    por hito y con su `paso`. Los sellos NO se recalculan: se quita
+      //    exactamente eso —el mismo trato que `zbe` recibe abajo— y lo que
+      //    queda tiene que ser el byte de antes. Si se moviera otra cosa, rojo.
+      const MUDO_DE_ANTES =
+        'No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.';
+      const sinLaMitad1 = (t: Trayecto): Trayecto => {
+        const avisos: Trayecto['avisos'][number][] = [];
+        for (const a of t.avisos) {
+          if (/^No hemos podido preguntar cuánt(as bicis|os anclajes libres) hay en /.test(a.texto)) {
+            if (!avisos.some((x) => x.texto === MUDO_DE_ANTES)) {
+              avisos.push({ texto: MUDO_DE_ANTES });
+            }
+            continue;
+          }
+          avisos.push(a);
+        }
+        return {
+          ...t,
+          pasos: t.pasos.map(({ paradas, frecuencia, disponibilidad, ...resto }) => {
+            void paradas;
+            void frecuencia;
+            void disponibilidad;
+            return resto;
+          }),
+          avisos,
+        };
+      };
       for (const [modo, huella] of SELLOS) {
         const t = calcularTrayecto(motor, {
           origen: porCodigos(LAPUYADE_3),
           destino: porCodigos(EN_MEDIO_120),
           modo: modo as Trayecto['modo'],
         });
-        assert.equal(selloDe(t), huella, `${modo} ha cambiado y no debía`);
+        assert.equal(selloDe(sinLaMitad1(t)), huella, `${modo} ha cambiado y no debía`);
       }
       // Y el del coche: lo único que se mueve es el campo nuevo.
       const coche = calcularTrayecto(motor, {

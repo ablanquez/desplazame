@@ -13,7 +13,7 @@
  */
 
 import type { Aviso, Paso, QueSePide, Trayecto, TipoDeRuta } from '@desplazame/tipos';
-import { laCifra } from './estacion-viva.ts';
+import { comoSeDiceLaEstacion, laCifra } from './estacion-viva.ts';
 import type { Motor } from './trayecto.ts';
 import type { Empuje } from './pasos.ts';
 import {
@@ -99,6 +99,17 @@ function hitoDeEstacion(
     // ⭐ Siempre, y no solo cuando hay dato: la fuente existe aunque hoy calle.
     //    Ver `estacion-viva.ts` para por qué esto se diferencia del bus.
     aQueEstacion: { estacion: estacion.numero, pide },
+    // ⭐ Y la cifra y la hora COMO DATO (14/09), las mismas de la frase: la
+    //    plantilla de cinco líneas las pone en su tercera línea y no puede
+    //    leer la frase. Sin dato de la sede, no viaja.
+    ...(estado
+      ? {
+          disponibilidad: {
+            cuantas: pide === 'bicis' ? estado.bicis : estado.anclajesLibres,
+            hora: alMinuto(estado.cuando),
+          },
+        }
+      : {}),
   };
 }
 
@@ -137,6 +148,42 @@ function sinViajeEnBiZi(previos: readonly Aviso[], nuevos: readonly Aviso[]): Tr
 }
 
 /**
+ * ⭐ EL MUDO DE LA SEDE, UNO POR HITO Y CON SU PALABRA (14/09, bitácora nº53).
+ *
+ * Con la sede callada el viaje llevaba UN aviso —«cuántas bicis hay»—, sin
+ * `paso` y sin nombrar estación, y la pantalla, que lo repartía por la regla
+ * de reserva, lo colgaba de los dos hitos: en el de dejar preguntaba por
+ * bicis. Son **dos preguntas** [GBFS: `num_bikes_available` al coger,
+ * `num_docks_available` al dejar], y cada una tiene su mudo:
+ *
+ *   · la frase, la de `comoSeDiceLaEstacion` —la misma boca que el botón—, con
+ *     la estación NOMBRADA, porque el aviso también se lee lejos del paso;
+ *   · y `Aviso.paso`, el índice de SU hito, que es el dato que se creó el 2/09
+ *     para no repartir avisos leyendo cadenas.
+ *
+ * Van en el sitio del de antes —los primeros—, por lo mismo: condicionan lo
+ * que se lee debajo. El índice sale del trayecto ya juntado, que es el único
+ * sitio donde se sabe qué paso cae dónde (precedente: el festivo del bus).
+ */
+function conElMudoEnSuHito(trayecto: Trayecto, salida: EstacionBiZi, llegada: EstacionBiZi): Trayecto {
+  const kCoge = trayecto.pasos.findIndex((p) => p.giro === 'coge');
+  const kDeja = trayecto.pasos.findIndex((p) => p.giro === 'aparca');
+  const mudos: Aviso[] = [
+    {
+      texto: comoSeDiceLaEstacion(null, salida.numero, 'bicis', `la estación ${salida.nombre}`).texto,
+      paso: kCoge,
+    },
+    {
+      texto: comoSeDiceLaEstacion(null, llegada.numero, 'anclajes', `la estación ${llegada.nombre}`).texto,
+      paso: kDeja,
+    },
+  ];
+  // El aviso del viaje se va: lo sustituyen los dos de arriba.
+  const resto = trayecto.avisos.filter((a) => !a.texto.startsWith('No hemos podido preguntar cuántas bicis hay ahora mismo'));
+  return { ...trayecto, avisos: [...mudos, ...resto] };
+}
+
+/**
  * ⭐ EL VIAJE EN BiZi: andar a la estación, pedalear a la otra, andar el resto.
  *
  * [DOC OpenTripPlanner, modo de alquiler] *«anda al punto, pedalea al punto de
@@ -165,6 +212,10 @@ export function viajeEnBiZi(
   // dice dónde están las estaciones— pero **no se promete disponibilidad**. El
   // aviso va el primero, antes que cualquier otro, porque condiciona todo lo
   // que se lee debajo.
+  //
+  // ⚠️ Este es el aviso DEL VIAJE, y solo queda para los viajes sin hitos —la
+  //    misma estación en los dos extremos, ninguna que valga—. Cuando hay
+  //    hitos se parte en dos al final, uno por hito: ver `conElMudoEnSuHito`.
   if (!vivo) {
     avisos.push({
       texto:
@@ -252,11 +303,12 @@ export function viajeEnBiZi(
       // coge la bici donde acaba el paseo de ida y se deja donde acaba el
       // pedaleo. Quien pinta pone el icono en `geometria[tramo.hasta]`, que es
       // el vértice que cae a 0,0 m de la estación.
-      return juntar({ modo: 'bizi', avisos }, [
+      const trayecto = juntar({ modo: 'bizi', avisos }, [
         { ...aLaEstacion, hito: 'coge' },
         { ...pedaleo, hito: 'aparca' },
         alDestino,
       ]);
+      return vivo ? trayecto : conElMudoEnSuHito(trayecto, salida, llegada);
     }
   }
 

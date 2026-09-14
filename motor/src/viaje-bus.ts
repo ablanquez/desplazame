@@ -920,7 +920,23 @@ export function pasoDeSubir(
     texto: partes.map((x) => x.texto).join(''),
     metros: 0,
     partes,
+    ...comoDato(paradas, intervalo),
     ...conElVivoDelGenerar(aQuien, vivo, linea.corto),
+  };
+}
+
+/**
+ * ⭐ LAS PARADAS Y LA FRECUENCIA **COMO DATO**, además de en la frase (14/09).
+ *
+ * Salen de los MISMOS dos números que la frase y con las mismas reglas —cero
+ * paradas no se dicen, sin cabecera no hay frecuencia—, así que el campo y la
+ * frase no pueden decir cosas distintas. Lo que no se sabe no viaja: una
+ * clave ausente, no un `undefined` escrito ni un cero.
+ */
+function comoDato(paradas: number, intervalo: number | null): { paradas?: number; frecuencia?: number } {
+  return {
+    ...(comoSeCuentan(paradas) === null ? {} : { paradas }),
+    ...(intervalo === null ? {} : { frecuencia: Math.round(intervalo / 60) }),
   };
 }
 
@@ -997,6 +1013,8 @@ export function pasoDeTransbordo(
     texto: partes.map((x) => x.texto).join(''),
     metros: 0,
     partes,
+    // Las del vehículo que se COGE: son los mismos dos números de la frase.
+    ...comoDato(paradas, intervalo),
     // La línea por la que se pregunta es la que se COGE, igual que la
     // frecuencia y que las paradas: la que se deja ya se ha ido.
     ...conElVivoDelGenerar(aQuien, vivo, aLa.corto),

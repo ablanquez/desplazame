@@ -1057,6 +1057,57 @@ describe('⭐ EL VIAJE EN BUS Y TRANVÍA — la búsqueda por rondas', () => {
   });
 
   /**
+   * ⭐ JUEZ 21 bis — LAS PARADAS Y LA FRECUENCIA VIAJAN COMO DATO (14/09).
+   *
+   * La plantilla de cinco líneas pone «12 paradas · cada 8 min» en su tercera
+   * línea, y hasta hoy eso **solo estaba dentro de la frase**, que la pantalla
+   * no puede leer. [Google Directions, `transit_details.num_stops` y `headway`]
+   * son campos del paso. Se compra sobre el caso real de la juez 21 —35 + 39—:
+   * los campos dicen **exactamente** lo que dice la frase, y la frase no cambia.
+   */
+  test('⭐ 21 bis · sube y transborda llevan sus paradas y su frecuencia como campos', () => {
+    const t = elViajeDe('Portales.93310', 'Portales.98006');
+    const sube = t.pasos.find((x) => x.giro === 'sube')!;
+    const transborda = t.pasos.find((x) => x.giro === 'transborda')!;
+    assert.equal(sube.paradas, 12, 'las de la 35');
+    assert.equal(sube.frecuencia, 8);
+    // En el transbordo, las de la línea a la que se SUBE —la 39—.
+    assert.equal(transborda.paradas, 16, 'las de la 39, no las de la 35');
+    assert.equal(transborda.frecuencia, 6);
+    // Y la frase, al byte de la juez 21: los campos se AÑADEN.
+    assert.match(sube.texto, /— 12 paradas — frecuencia teórica: cada 8 min$/);
+    assert.match(transborda.texto, /— 16 paradas — frecuencia teórica de la 39: cada 6 min$/);
+    // Bajar no es un paso de transporte: no cuenta nada.
+    const baja = t.pasos.find((x) => x.giro === 'baja')!;
+    assert.equal(baja.paradas, undefined);
+    assert.equal(baja.frecuencia, undefined);
+    // Y ningún paso que no sea de subir lleva los campos.
+    for (const p of t.pasos) {
+      if (p.giro !== 'sube' && p.giro !== 'transborda') {
+        assert.ok(!('paradas' in p) && !('frecuencia' in p), `«${p.texto}» lleva campos de transporte`);
+      }
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 22 bis — SIN DATO, EL CAMPO NO VIAJA.
+   *
+   * Cero paradas no se dicen en la frase y tampoco viajan; sin cabecera no hay
+   * frecuencia que publicar. `undefined` no llega al JSON, que es lo que hace
+   * que la pantalla calle en vez de pintar «0 paradas».
+   */
+  test('⭐ 22 bis · cero paradas o sin cabecera: el campo no viaja', () => {
+    const linea = { id: 'X', corto: '99', largo: 'Prueba', color: '000000', colorTexto: 'FFFFFF', modo: 'bus' as const };
+    const conTodo = pasoDeSubir(linea, 'Un Poste', 1, 600);
+    assert.equal(conTodo.paradas, 1);
+    assert.equal(conTodo.frecuencia, 10);
+    const sinNada = pasoDeSubir(linea, 'Un Poste', 0, null);
+    assert.equal('paradas' in sinNada, false, 'cero paradas no viaja');
+    assert.equal('frecuencia' in sinNada, false, 'sin cabecera no hay frecuencia');
+    assert.equal(JSON.stringify(sinNada).includes('paradas'), false);
+  });
+
+  /**
    * ⭐ JUEZ 17 — EL TRANSBORDO EN EL MISMO POSTE ES **UN SOLO PASO**.
    *
    * `COLOSO 2 → OVIEDO 5` sale en **35 + 39** y las dos se cogen en `Plaza De

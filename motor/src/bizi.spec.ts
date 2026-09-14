@@ -507,8 +507,16 @@ describe('⭐ EL MODO BiZi (30/08)', () => {
   test('⭐ 7 · API caída: ruta con aviso, hitos sin número y sin hora', () => {
     const t = viaje(A, B, null);
     assert.ok(t.pasos.length > 0 && t.metros > 0, 'la ruta tiene que salir igual');
-    assert.equal(t.avisos.length, 1);
-    assert.match(t.avisos[0]!.texto, /disponibilidad no verificada/);
+    // ACTA 14/09 [encargo de las cinco líneas, mitad 1 (c); bitácora nº53]:
+    //    decía `avisos.length === 1` — UN mudo para el viaje, sin `paso`, que
+    //    la pantalla regalaba a los dos hitos y en el de dejar preguntaba por
+    //    bicis. Mordió con el mudo partido («2 !== 1»). Ahora son DOS, uno por
+    //    hito y con su palabra —lo que dice cada uno lo compra la juez 7 bis—;
+    //    aquí se sigue exigiendo que todos avisen de lo no verificado.
+    assert.equal(t.avisos.length, 2);
+    for (const a of t.avisos) {
+      assert.match(a.texto, /disponibilidad no verificada/);
+    }
 
     const coge = cogeDe(t);
     const deja = dejaDe(t);
@@ -518,6 +526,63 @@ describe('⭐ EL MODO BiZi (30/08)', () => {
     for (const hito of [coge, deja]) {
       assert.doesNotMatch(hito.texto, /\d/, `«${hito.texto}» trae una cifra que nadie ha medido`);
       assert.doesNotMatch(hito.texto, /a las/, `«${hito.texto}» trae una hora inventada`);
+    }
+  });
+
+  /**
+   * ⭐ JUEZ 7 bis — EL MUDO, UNO POR HITO Y CON SU PALABRA (14/09, nº53).
+   *
+   * [GBFS] coger pregunta `num_bikes_available` y dejar `num_docks_available`:
+   * son dos preguntas, y el mudo de cada una se dice con su palabra. Cada uno
+   * lleva `Aviso.paso` —el dato que se creó el 2/09 para no repartir avisos
+   * leyendo cadenas— apuntando a SU hito, y nombra su estación.
+   */
+  test('⭐ 7 bis · con la sede muda, cada hito lleva su aviso: bicis al coger, anclajes al dejar', () => {
+    const t = viaje(A, B, null);
+    const coge = cogeDe(t)!;
+    const deja = dejaDe(t)!;
+    const kCoge = t.pasos.indexOf(coge);
+    const kDeja = t.pasos.indexOf(deja);
+    assert.deepEqual(t.avisos, [
+      {
+        texto:
+          'No hemos podido preguntar cuántas bicis hay en la estación Villahermosa: F. y López ' +
+          'ahora mismo: disponibilidad no verificada.',
+        paso: kCoge,
+      },
+      {
+        texto:
+          'No hemos podido preguntar cuántos anclajes libres hay en la estación Hispanidad: Condes Aragón ' +
+          'ahora mismo: disponibilidad no verificada.',
+        paso: kDeja,
+      },
+    ]);
+    // Y sin sede no hay cifra que publicar.
+    assert.equal('disponibilidad' in coge, false);
+    assert.equal('disponibilidad' in deja, false);
+  });
+
+  /**
+   * ⭐ JUEZ 4 bis — LA CIFRA Y LA HORA VIAJAN COMO DATO (14/09).
+   *
+   * La tercera línea de la plantilla dice «5 bicis a las 12:48», y hasta hoy
+   * solo estaba en la frase. [GBFS] son campos: `num_bikes_available` al coger
+   * y `num_docks_available` al dejar. La hora, escrita por el motor en la de
+   * Zaragoza (nº41). La frase, al byte de la juez 4.
+   */
+  test('⭐ 4 bis · los dos hitos llevan su disponibilidad como campo, y la frase no cambia', () => {
+    const t = viaje(A, B, vivoDeMentira());
+    const coge = cogeDe(t)!;
+    const deja = dejaDe(t)!;
+    assert.deepEqual(coge.disponibilidad, { cuantas: 5, hora: '12:48' }, 'bicis al coger');
+    assert.deepEqual(deja.disponibilidad, { cuantas: 8, hora: '12:48' }, 'anclajes al dejar');
+    assert.equal(coge.texto, 'Coge una bici en la estación Villahermosa: F. y López — 5 bicis disponibles a las 12:48');
+    assert.equal(deja.texto, 'Deja la bici en la estación Hispanidad: Condes Aragón — 8 anclajes libres a las 12:48');
+    // Ningún otro paso lleva el campo.
+    for (const p of t.pasos) {
+      if (p !== coge && p !== deja) {
+        assert.equal('disponibilidad' in p, false, `«${p.texto}» lleva disponibilidad`);
+      }
     }
   });
 

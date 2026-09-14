@@ -31,7 +31,7 @@
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import type { Modo } from '@desplazame/tipos';
+import type { Aviso, Modo } from '@desplazame/tipos';
 import { cargarGrafo } from './grafo.ts';
 import { cargarRed } from './red.ts';
 import { cargarRejilla } from './proyeccion.ts';
@@ -105,6 +105,15 @@ describe('⭐ LA MURALLA DE LOS OCHO MODOS', () => {
 /**
  * ⭐ EL SELLO DE LOS OCHO MODOS con el reloj clavado del martes.
  *
+ * ⚠️ **Recalculado por TERCERA vez el 14/09, por el mudo de la BiZi.** Valía
+ *    `fec4d148…`. Con la sede callada —aquí siempre: lo vivo va en `null`— el
+ *    viaje en BiZi llevaba UN aviso, «cuántas bicis hay ahora mismo», y ahora
+ *    lleva DOS, uno por hito y con su palabra —bicis al coger, anclajes al
+ *    dejar— [encargo de las cinco líneas, mitad 1 (c); bitácora nº53]. Este
+ *    sello mete el texto de los avisos, así que se mueve; los campos nuevos
+ *    del paso (`paradas`, `frecuencia`, `disponibilidad`) no los mete y no lo
+ *    mueven. Que NADA MÁS se haya movido lo compra la juez 14, al byte.
+ *
  * ⚠️ **Recalculado DOS VECES el 6/09, y las dos con su razón.**
  *
  * **La segunda, por el `s/n`.** Valía `8d9e1857…`. El hito del remate en
@@ -121,7 +130,7 @@ describe('⭐ LA MURALLA DE LOS OCHO MODOS', () => {
  *    madrugada a las 10:00 de un martes —`42+N4`, `21+N4` y `N5+32+28`— y este
  *    sha los compraba. Ver la entrada del 6/09 en `docs/BITACORA.md`.
  */
-const SELLO_DE_LOS_OCHO = 'fec4d14867b9d16c9b4714f15cadbbddccfea90113444104e36746c81f47a958';
+const SELLO_DE_LOS_OCHO = 'd4557492d3fd27c888045790df5ee702997a77e018c81721abf039b532989fed';
 
 /**
  * ⭐ Y EL SELLO DE LOS SIETE QUE NO SON BUS, para la juez 7.
@@ -130,12 +139,15 @@ const SELLO_DE_LOS_OCHO = 'fec4d14867b9d16c9b4714f15cadbbddccfea90113444104e3674
  * después**, y dio lo mismo las dos veces: aquel reloj entró solo en la rama del
  * bus.
  *
+ * ⚠️ **Y se ha movido otra vez el 14/09, por el mudo partido de la BiZi**, que
+ *    está entre los siete: valía `7ab1c56c…`. La misma razón que el de arriba.
+ *
  * ⚠️ **Este sí se ha movido, y por el `s/n`**: el arreglo toca la MOTO, que está
  *    entre los siete. Valía `03a7bf6e…`. Que este sha se mueva y el de arriba
  *    también es lo correcto; si solo se hubiera movido el de arriba, el cambio
  *    habría tocado el bus sin querer.
  */
-const SELLO_SIN_BUS = '7ab1c56c38ef4b3d224cc0a12dbb3bf7eeb40a1c44e2f29590f1d6f1efc00ced';
+const SELLO_SIN_BUS = '284fcb4469fbaed94192758414fe6c89187ad95e4b55262cb2e475998069adda';
 
 /** Lo que un pase de la muralla deja: su huella y sus tres cuentas. */
 interface LoSellado {
@@ -303,6 +315,85 @@ function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): L
    *    QUÉ no puede volver. Medido antes del arreglo sobre los mismos 160
    *    trayectos: **8 de los 64 hitos de aparcar** llevaban un «S/N».
    */
+  /**
+   * ⭐ JUEZ 14 — LO QUE NO ES NUEVO, AL BYTE DE VERDAD (14/09).
+   *
+   * El sello de la juez 13 solo mete lo que se escribió en su día —metros,
+   * frases, avisos, tramos, geometría—: un campo nuevo del paso **no lo mueve**,
+   * y un campo viejo que cambiara sin querer (`aQueEstacion`, `vivo`,
+   * `Aviso.paso` de la ZBE) tampoco. Así que la mitad 1 del encargo de las
+   * cinco líneas no se compra con él.
+   *
+   * Esta juez sella el **JSON ENTERO** de los mismos 160 trayectos, y antes le
+   * quita exactamente lo que la mitad 1 añade: `paradas`, `frecuencia` y
+   * `disponibilidad` del paso, y los dos mudos de la BiZi —cada uno con su
+   * `paso`— se vuelven a juntar en la frase única de antes. Lo que queda tiene
+   * que ser **el byte de antes de tocar el motor**: `0cf2990a…`, medido sobre
+   * el código de `8ab1d29` con este mismo recorrido.
+   *
+   * ⚠️ Y la otra mitad, para que no pase vacía: los campos tienen que haber
+   *    llegado. Si el motor dejara de rellenarlos, quitar lo que no está daría
+   *    el mismo byte y la juez no estaría comprando nada.
+   */
+  test('⭐ 14 · quitando lo nuevo de la mitad 1, el JSON de los ocho es el de antes', () => {
+    const MUDO_DE_ANTES =
+      'No hemos podido preguntar cuántas bicis hay ahora mismo: disponibilidad no verificada.';
+    let semilla = 20260906;
+    const azar = (): number => {
+      semilla = (semilla * 1103515245 + 12345) & 0x7fffffff;
+      return semilla / 0x7fffffff;
+    };
+    const s = motor.portales.situados;
+    const huella = createHash('sha256');
+    let conCampos = 0;
+    let mudosConPaso = 0;
+    for (let n = 0; n < 20; n++) {
+      const A = s[Math.floor(azar() * s.length)]!;
+      const B = s[Math.floor(azar() * s.length)]!;
+      for (const modo of LOS_OCHO) {
+        const t = calcularTrayecto(
+          motor,
+          leerPeticion({
+            origen: { via: A.via, portal: A.codigo },
+            destino: { via: B.via, portal: B.codigo },
+            modo,
+          }),
+          null,
+          EL_RELOJ,
+          null,
+          null,
+        );
+        const pasos = t.pasos.map(({ paradas, frecuencia, disponibilidad, ...resto }) => {
+          if (paradas !== undefined || frecuencia !== undefined || disponibilidad !== undefined) {
+            conCampos++;
+          }
+          return resto;
+        });
+        const avisos: Aviso[] = [];
+        let mudoPuesto = false;
+        for (const a of t.avisos) {
+          if (/^No hemos podido preguntar cuánt(as bicis|os anclajes libres) hay en /.test(a.texto)) {
+            mudosConPaso += a.paso === undefined ? 0 : 1;
+            if (!mudoPuesto) {
+              avisos.push({ texto: MUDO_DE_ANTES });
+              mudoPuesto = true;
+            }
+            continue;
+          }
+          avisos.push(a);
+        }
+        huella.update(modo + '|' + JSON.stringify({ ...t, pasos, avisos }) + '\n');
+      }
+    }
+    assert.ok(conCampos >= 20, `solo ${conCampos} pasos traen los campos nuevos: la juez no compra nada`);
+    assert.ok(mudosConPaso >= 20, `solo ${mudosConPaso} mudos de BiZi traen su paso`);
+    assert.equal(
+      huella.digest('hex'),
+      '0cf2990af5e5c213e7d22cceeedce80031127ab3af892f037e18c38f42dd17e1',
+      'fuera de los campos nuevos y del mudo partido, algo se ha movido en los ocho modos',
+    );
+  });
+
   test('⭐ 8 · ningún hito de aparcar escribe un «s/n»', () => {
     const r = sellar(EL_RELOJ);
     assert.ok(
