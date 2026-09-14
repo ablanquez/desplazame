@@ -1093,9 +1093,13 @@ descarga: llegó copiada del archivo del proyecto anterior—, así que no hay c
 panel no adivina: lo dice.
 
 **La portada no se entera de nada de esto.** Abrir la raíz sigue sin pedir un solo byte de datos
-—ni el manifiesto, que son **44 KB**—: el panel se carga aparte (`loadComponent`) y pide su
-manifiesto solo cuando alguien entra en él. Medido sobre el `dist`: la raíz en frío son **6
-peticiones y 459 kB**, y **cero** de datos o de manifiesto. Hay dos guardianes que lo vigilan, y
+—ni el manifiesto, que son **59.051 bytes**—: el panel se carga aparte (`loadComponent`) y pide su
+manifiesto solo cuando alguien entra en él. Medido sobre el `dist` el **14/09** con
+`app/e2e/identidad.mjs` (motor en `127.0.0.1`, `main-RM24EPQM.js`): la raíz en frío son **6
+peticiones propias y 611.836 B sin comprimir** —el `main` pone 507.353— más las teselas de
+OpenStreetMap, y **cero** de datos o de manifiesto. ⚠️ **Aquí ponía «6 peticiones y 459 kB» y
+«44 KB»**, medidos el 23/08 y escritos sin fecha: las peticiones siguen siendo seis, y los bytes
+crecieron con el producto —la letra, los símbolos, la pintura del resultado—. Hay dos guardianes que lo vigilan, y
 uno cuenta el total de peticiones, no un patrón — para que la próxima cosa que quiera colgarse de
 la portada tampoco pueda hacerlo en silencio.
 

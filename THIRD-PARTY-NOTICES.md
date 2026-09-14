@@ -3199,7 +3199,9 @@ se tira. El log cuenta **la consulta** —qué salió, cuánto tardó, por qué 
 Material Symbols se distribuye también como fuente variable, que es lo cómodo:
 una línea y están todos. Trae **miles** de símbolos en ~100 KB, y aquí hacen
 falta **veintiocho** — 10.428 bytes entre los veintiocho. La portada se mide contra un
-presupuesto que ya está en 509 kB, así que se paga lo que se usa. Y de paso no se
+presupuesto, `initial` de 520 kB en `app/angular.json`, que **ya se pasa**: el `ng build` del
+14/09 da **Initial total 540,78 kB** (138,56 transferidos), así que se paga lo que se usa. ⚠️ Aquí
+ponía «un presupuesto que ya está en 509 kB», la cifra del 10/09 escrita como si fuera de hoy. Y de paso no se
 baja nada de ningún tercero en tiempo de ejecución: es **la misma ley que sacó a
 Inter del CDN de Google** el 9/09.
 
