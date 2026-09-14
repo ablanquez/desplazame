@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-14] 🔴 ABIERTA — los dos chips del transbordo y la frase, pegados en el texto: «3531En el poste»
+## [2026-09-14] ✅ CERRADA — los dos chips del transbordo y la frase, pegados en el texto: «3531En el poste»
 
 **Categoría:** lo computado no es lo pintado
 **Síntoma:** en el transbordo de la 35 a la 31 (COLOSO 2 → CALLE OVIEDO 5,
@@ -30,11 +30,30 @@ nº52, que lee `.paso__texto` — donde los chips no están a propósito:
 `$ npx ng test --watch=false --include src/app/buscador.spec.ts --filter "17-septies · la ficha de contorno en subir"`
 `      Tests  1 passed | 143 skipped (144)`
 **Cómo se cazó:** instrumento — la sonda del diagnóstico del encargo de las cinco líneas, que leía la frase entera del paso para otra cosa.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** la misma de la nº52, en otro sitio. Los chips iban en
+`.paso__frase` separados de lo siguiente solo por `margin-right`, y Angular
+quita el blanco entre dos etiquetas: en píxeles había 8 px, en el texto cero.
+La jueza de la nº52 no podía oírlo **porque leía `.paso__texto`**, y los chips
+se habían sacado de ahí justo para que el número no entrara en la frase (12/09)
+— la separación que protegía la frase dejó a los chips fuera de toda jueza.
+Medido al cerrar, la 17-septies nueva contra el código de antes cae ya en la
+subida sin transbordo: `AssertionError: paso 1: expected '35Sube a la línea 35
+en el poste 33 A…' not to match /\d[A-Za-zÁÉÍÓÚ]|\d{2}\d{2}/`.
+**Arreglo aplicado:** los chips se montan en la L1 de la plantilla de cinco
+líneas (`app/src/app/buscador.html`, `.hito__l1`) con `&ngsp;` detrás de cada
+chip y de cada marca: el espacio va EN EL TEXTO; el hueco de la pantalla lo
+pone el `gap` de la fila (`app/src/app/resultado.css`, `.hito__l1`), y la regla
+`.paso__frase .chip-linea { margin-right }` se va. La 17-septies deja de mirar
+`.paso__texto`: lee el texto de las líneas donde están la ficha y los chips
+—`'35 Sube'`, `'35 31 Transborda'`— y el paso entero sin un número pegado.
+Verde: `Tests  566 passed (566)`. Cómo lo oye un lector de pantalla real sigue
+NO CONSTA.
+**Commit:** `7dccae7`
 **Ley que sale de aquí:** SIN LEY TODAVÍA — es la ley de la nº52 cumpliéndose
 en un sitio que su jueza no miraba.
+Y una línea más, del cierre: **la pieza que se saca de la frase para
+protegerla sale también de la jueza que vigila la frase**. Quien mueva algo
+fuera del sitio que se juzga, que mueva la jueza con ello.
 **Traza:** `app/src/app/buscador.html` (`.paso__frase`, el `@for` de
 `lineaPorPaso` con `>{{ linea.corto }}</span\n>`), `app/src/app/resultado.css`
 (`.paso__frase .chip-linea { margin-right }`), `app/src/app/buscador.spec.ts`
@@ -42,7 +61,7 @@ en un sitio que su jueza no miraba.
 
 ---
 
-## [2026-09-14] 🔴 ABIERTA — la advertencia «no hemos podido preguntar» no muere cuando el botón vivo sí contesta
+## [2026-09-14] ✅ CERRADA — la advertencia «no hemos podido preguntar» no muere cuando el botón vivo sí contesta
 
 **Categoría:** dos voces sobre el mismo dato
 **Síntoma:** con el Generar mudo y el botón con respuesta, el paso dice a la
@@ -61,10 +80,47 @@ unidad y en Chrome, ninguna mira la tira después de pulsar:
 `✔ 5 · al contestar, aria-busy false y la región lleva el resultado — aria-busy=false · «próximo en 11 min (dato de las 15:14)» · 930 ms`
 `VERDE: las ocho en verde.`
 **Cómo se cazó:** ojo humano — Antonio, en producción (`64c2591`).
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** **el mismo hecho tenía dos escritores que no se hablaban.** La
+tira salía de `notaDelPaso`, que lee los avisos del Generar y se queda como
+está hasta el Generar siguiente; la región la escribía el botón en
+`consultasVivas`. Ninguno tocaba al otro, así que el éxito del botón no podía
+retirar la tira, y el mudo del botón no podía crearla. En el bus eran dos voces
+ya antes de pulsar: el mismo mudo en la tira («por el poste 33 · …») y en la
+región («por este poste»). Y en la BiZi el aviso viajaba sin `paso` ni estación,
+así que la regla de reserva lo colgaba de los dos hitos, preguntando por bicis
+en el de dejar. Las juezas mentían por lo mismo que se mira aquí: cada una
+compraba UNA de las dos voces —la región— y ninguna preguntaba si la otra
+seguía diciendo lo contrario. `proximo-bus.mjs` además pulsaba solo el último
+botón, el que el Generar nunca había consultado.
+**Arreglo aplicado:** una sola voz, la del último intento, que es la región.
+- Motor (`c1a7026`): el mudo de la BiZi se parte en dos, uno por hito con su
+  `Aviso.paso` y su palabra —bicis al coger, anclajes al dejar—
+  (`motor/src/viaje-bizi.ts`, `conElMudoEnSuHito`).
+- App (`7dccae7`), en `app/src/app/buscador.ts`:
+  - `avisoQueLeeLaRegion` decide qué aviso del Generar le toca a la región de
+    un paso con botón;
+  - `loVivoDe` hace nacer la región con ESE texto;
+  - `laRegionAvisa` la viste de advertencia si el último intento fue `mudo`
+    (la clase viaja en `LaConsultaViva.clase`);
+  - `notaDelPaso` suelta ese aviso como tira;
+  - el filtro de `resumenDeAvisos` pasa de «tira» a «tira O región», con acta.
+- En `buscador.html` la región gana la clase y un icono callado detrás del
+  texto; el `role`, el `id` y el `aria-busy` no se tocan.
+- `app/e2e/proximo-bus.mjs` (`9a2d38e`) pulsa ahora TODOS los botones, en bus
+  y en BiZi, y lee la L5 tras cada uno.
+
+Verdes al cerrar:
+- unidad `Tests  566 passed (566)`, con el ciclo de los tres botones en las
+  dos direcciones, que nació 6 de 6 en rojo;
+- P23 en Chrome: `tras el botón con éxito, la advertencia MUERE: una sola
+  voz (nº53)` en 1920, 1440 y 390;
+- `proximo-bus.mjs` contra las fuentes reales: `VERDE: todas en verde.`
+**Commit:** `c1a7026` (motor) · `7dccae7` (app) · `9a2d38e` (jueces en Chrome)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+Y del cierre: **un dato que se puede refrescar tiene un solo sitio donde se
+dice; si lo dicen dos, el que no se refresca miente en cuanto el otro cambia.**
+Es la del minuto del 2/09 («el minuto una sola vez») llevada al «no se sabe»:
+también el no-saber caduca.
 **Traza:** `app/src/app/buscador.ts` (`notaDelPaso`/`notaDelHito` leen
 `avisosDelViaje()`; `loVivoDe`/`consultar`/`ponerConsulta` escriben
 `consultasVivas`), `app/src/app/buscador.html` (`.paso__nota`, `.vivo__estado`),
