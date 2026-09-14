@@ -20,7 +20,14 @@
  *
  *     node app/e2e/moto.mjs
  */
+import { readFileSync } from 'node:fs';
 import { abrirChrome } from './medir.mjs';
+
+/** El trazado del `.svg` descargado: el mismo patrón que `pintura.mjs`, sin copiarlo aquí. */
+const trazadoDelFichero = (nombre) =>
+  /\sd="([^"]+)"/.exec(
+    readFileSync(new URL(`../simbolos/${nombre}.svg`, import.meta.url), 'utf8'),
+  )?.[1] ?? '(el fichero no tiene trazado)';
 
 /* ⭐ LA URL, POR ARGUMENTO (10/09). Estaba a fuego en `localhost:4200`, o sea
    que este juez solo corría con `ng serve` delante y no contra el dist que
@@ -243,10 +250,16 @@ try {
     const encima = [...document.querySelectorAll('path.leaflet-interactive')].filter((_, i) => i % 2 === 1);
     return {
       modo: document.querySelector('.pasos__modo')?.textContent.trim() ?? null,
-      totales: [...document.querySelectorAll('.ruta__totales span')].map((s) => s.textContent.trim()),
+      // ⚠️ ACTA (14/09, nº55): aquí se leía \`.ruta__totales span\`, que murió con
+      //    la cabecera del 12/09 y dejaba el renglón del registro en blanco
+      //    («Modo: Moto ·  · 17 pasos») sin que ninguna jueza lo notara.
+      totales: [...document.querySelectorAll('.ruta__titular > span:not([aria-hidden])')].map((s) => s.textContent.trim()),
       cuantosPasos: pasos.length,
       hito: hito ? hito.querySelector('.paso__texto').textContent.replace(/\\s+/g, ' ').trim() : null,
-      marca: hito ? hito.querySelector('.paso__flecha')?.textContent.trim() : null,
+      // ⚠️ ACTA (14/09, nº55): la marca era el glifo 🅿 en \`.paso__flecha\`, y
+      //    los glifos murieron el 12/09 con los SVG. La marca vive hoy en el
+      //    círculo del carril, como el trazado de \`local_parking\`.
+      marca: hito ? hito.querySelector('.paso__circulo svg path')?.getAttribute('d') ?? null : null,
       colores: encima.map((p) => p.getAttribute('stroke')),
       poligonos: document.querySelectorAll('.leaflet-zbe-pane path').length,
       sugerencia: document.querySelector('.sugerencia__boton') !== null,
@@ -263,7 +276,12 @@ try {
       (pintado.hito ?? '').endsWith('(sin coste)'),
     pintado.hito ?? 'no hay hito',
   );
-  juez('y su marca es la 🅿', pintado.marca === '🅿', pintado.marca ?? '');
+  const P_DE_APARCAR = trazadoDelFichero('local_parking');
+  juez(
+    'y su marca es la P de aparcar, el `local_parking` de su fichero',
+    pintado.marca === P_DE_APARCAR,
+    pintado.marca === null ? '(no hay dibujo en el círculo)' : pintado.marca === P_DE_APARCAR ? 'idéntico al fichero' : 'DISTINTO del fichero',
+  );
   juez(
     '⭐ la traza CORTA en rojo donde pisa la zona',
     pintado.colores.includes('#d32f2f'),
