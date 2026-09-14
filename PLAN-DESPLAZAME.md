@@ -4176,9 +4176,11 @@ Code lo traduce al Angular existente.)*
         con su prompt de permiso real · el teclado sobre el
         buscador · la barra y el safe-area en aparato de
         verdad.
-      - [~] TANDA 5 — EN CURSO, fases A+B CERRADAS, C parada en
-        orden lista (12-13/09; commits cb2ee81…a667a81, SIN
-        PUSH). CP1: 15 iconos maniobra por contrato (censo Giro
+      - [x] ⚰️ TANDA 5 — LA PINTURA DEL RESULTADO, CERRADA
+        ENTERA (12-14/09; A+B publicadas en `7f0ba5a`; la C en
+        local `6a700a7`…`628b01e` SIN PUSH; ojo de Antonio:
+        bueno — «aunque haya que hacer mejoras», que van a la
+        cola). CP1: 15 iconos maniobra por contrato (censo Giro
         cerrado); badge = decisión Antonio de chip.ts (route_color
         intacto + blanco con trazo negro [WCAG 1.4.3 borde
         estrecho = letra; G18]; mi caída-al-neutro RETIRADA);
@@ -4208,35 +4210,60 @@ Code lo traduce al Angular existente.)*
         cara] cerradas; distancias: spec 600 cumplida, A elegido,
         vía 700-recortada dicha; forma chip SE QUEDA [sin
         estándar universal; señalética+consistencia]).
-        FASE C PARADA CON ORDEN RESUELTA POR DOCTRINA, pendiente
-        de ejecutar: ⚠️1=(a) las tiras BiZi/ZBE/distintivo/mudo
-        SALEN del resumen [anti-repetición; 2 pruebas cambian
-        letra con acta] · 8=A ficha de contorno [B pierde forma
-        sobre hover, 1.4.11] · 9=B círculo primary lleno [única
-        AA 5,17 ambos extremos; realce pequeño se pasa por
-        alto]. 5b PARADO: Paso sin coordenadas (solo hitos vía
+        FASE C ⚰️ EJECUTADA (14/09, las tres resoluciones por
+        doctrina, medidas en lo pintado): (a) LO CONTEXTUAL SOLO
+        EN SU PASO — la regla mejorada por el ejecutor a
+        PRINCIPIO, no lista: «si un aviso ya se lee como tira en
+        su paso, no sube al resumen» [por construcción ningún
+        aviso se queda sin sitio; caso real: el distintivo
+        comparte paso con la ZBE y la tira enseña una sola nota
+        → la ZBE baja a su tira y el distintivo SE QUEDA en el
+        resumen, su único sitio visible]; mordieron 7 pruebas
+        (no las 2 previstas) — todas cambian de letra con ACTA
+        dentro, sin aflojar; la P22 siembra un aviso contextual
+        en un paso que no es hito [la primera siembra tapaba el
+        mudo del bus]. (8=A) LA FICHA DE CONTORNO para poste y
+        estación [reposo: número 14,63:1 · borde 4,76 · sobre la
+        banda: 11,87 · borde 3,86 — la vara del borde es el
+        1.4.11, 3:1, no la del texto]; el número sale del DATO
+        (aQuienPreguntar/aQueEstacion), nunca de leer la frase;
+        ⚠️ en «Baja» NO hay ficha: el motor no manda ese poste
+        como dato — tocar motor = decisión aparte; cabe a 390
+        (21 px, 0 scroll). (9=B) EL CÍRCULO TERMINAL primary
+        lleno con icono blanco [5,17:1 en ambos extremos; antes
+        4,49], SOLO primer y último paso — el trip_origin de
+        mitad de ruta queda sin llenar. CENSO POR LA PUERTA
+        GRANDE: nace LIMITES en identidad.ts — los límites no
+        textuales con su vara 3:1 APARTE de los pares de texto
+        [muted-foreground y primary sobre card y banda-cabecera;
+        8/8 cumplen en claro y oscuro] + par de texto nuevo
+        foreground/card [42/42]. BITÁCORA nº52 abierta y cerrada
+        en la pasada: la ficha pegada al nombre — el primer
+        arreglo (margen 0,25rem) separaba PÍXELES pero no TEXTO
+        [el lector de pantalla seguía oyendo «33Av.»; la trampa
+        ya documentada en buscador.html desde el 1/09]; el
+        arreglo que vale: &ngsp; sin margen [aire 4,3 px + la
+        frase se lee «33 Av.»] con JUEZA DOBLE (píxel y frase),
+        las dos nacidas en rojo; LEY: un espacio entre dos
+        etiquetas no existe. Una prueba propia (17-septies)
+        tumbó 70 en cascada por timeout — era de la prueba, se
+        partió en dos. Hueco declarado: a 390 la jueza del aire
+        no mide (la ficha cierra renglón — sin vecino que
+        apurar). «sin servicio» sigue RETIRADA [contrato 31/08].
+        5b PARADO: Paso sin coordenadas (solo hitos vía
         vértices; giros no — tocar motor = decisión aparte).
-        Terreno 8+9 leído (poste en via+aQuienPreguntar; bajar
-        sin número; trip_origin también a mitad de ruta — la
-        marca de terminal va por primer/último paso). VETABLES
-        del ojo pendientes: gris vacío 4,76 · pulso hueso ·
-        coletilla «a 5 km/h» · cabecera sin caja · círculo
-        primary/10. ⚠️ ng serve fantasma en ::1:4200 (batería
-        repetida contra 127.0.0.1, bundle verificado) — Antonio
-        debe cerrarlo. Marcadores: interfaz 543 · bitácora 51
-        [0 abiertas · 1 reabierta histórica] · initial 535,95
-        [raya 520 quieta] · resultado.css 4,43 avisa [refactor
-        componente-propio en cola, 4 topes]. e2e con 4200 a
-        fuego pendientes: pantalla(adaptada), proximo-bus.
-      - [ ] TANDA 5 — cierre pendiente (firmada por
-        Antonio sobre la captura de la maqueta: cabecera de
-        cifras gordas + badges de línea + aviso ámbar + timeline
-        con hilo, iconos en círculo de color, distancias a la
-        derecha y botones de acción): calcar ese visual sobre
-        las indicaciones reales, en los dos anchos; ahí mueren
-        los emojis supervivientes (⏳/⚠). CON SU PASADA DE
-        DOCTRINA previa. Antonio avisa: llevará tiempo dejarla
-        bien.
+        MEJORAS DEL OJO EN COLA (Antonio dio el bueno «aunque
+        haya que hacer mejoras» — sin lista todavía) + VETABLES
+        pendientes: gris vacío 4,76 · pulso hueso · coletilla
+        «a 5 km/h» · cabecera sin caja · círculo primary/10.
+        ⚠️ ng serve fantasma en ::1:4200 (pid 21780; baterías
+        contra 127.0.0.1, bundle verificado) — Antonio debe
+        cerrarlo. Marcadores al cierre: interfaz 555 · bitácora
+        52 [51 cerradas · 0 abiertas · 1 reabierta histórica] ·
+        initial 537,24 [raya 520 quieta] · resultado.css 4,75
+        avisa [refactor componente-propio en cola, 4 topes].
+        e2e con 4200 a fuego pendientes: pantalla(adaptada),
+        proximo-bus.
       - [ ] TANDAS 6+ — EL OSCURO COMPLETO, en orden: el
         resultado en los dos temas → la tesela oscura CARTO
         [API key, atribución © CARTO, jueces de contraste] → EL

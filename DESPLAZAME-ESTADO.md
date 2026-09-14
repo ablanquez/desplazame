@@ -5,7 +5,7 @@ El ejecutor reporta descubrimientos; no toca este fichero.
 
 ---
 
-## ESTADO ACTUAL — 13 de septiembre de 2026
+## ESTADO ACTUAL — 14 de septiembre de 2026
 
 **⭐ PUNTOS 1-14 CERRADOS (el 14, el 8/09: DE LOCAL A PRODUCCIÓN EN
 UN DÍA — https://desplazame.antonioblanquez.es vivo en Fráncfort con
@@ -193,13 +193,15 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `2e4911a`** (los pushes del 11-12/09: el
-GORDO `69f14e1` [tandas 2-4 enteras], las PESTAÑAS de móvil
-`608a921` y el remate de visión `2e4911a` [pin en fila +
-limpiar cero absoluto]; antes, `b27ab63` [papeles] y los dos
+**Publicado hasta `7f0ba5a`** (el push del 13/09: la tanda 5
+FASES A+B enteras [~20 commits `cb2ee81`…`a667a81`] + los
+papeles del punto limpio; antes, los pushes del 11-12/09: el
+GORDO `69f14e1` [tandas 2-4], las PESTAÑAS `608a921` y el
+remate de visión `2e4911a`; y `b27ab63` [papeles] + los dos
 del 9/09 [`062f532` · `c3adffb`]). **En local, sin publicar**
-*(al cierre del 13/09)*: **LA TANDA 5 ENTERA sin publicar (fases A+B, ~20 commits `cb2ee81`…`a667a81`) + los papeles de este destilado —
-⚠️ desde M2, CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
+*(al cierre del 14/09)*: **LA FASE C de la tanda 5 (8 commits
+`6a700a7`…`628b01e`, con la nº52) + los papeles de este
+destilado — ⚠️ desde M2, CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
 — los papeles de las casillas 0+3 y los 12 del calco — empujados
 en `062f532`.)* *(La nota del 8/09 noche: los
 papeles de M1-M3; el código estaba TODO publicado — el push del apaño
@@ -1644,23 +1646,33 @@ comentario describiendo la intención, y la jueza IMPRIMIENDO
 las 2 trazas sin juzgarlas — leyes nuevas: lo que se cuenta SE
 JUZGA · un comentario no es una jueza]; interfaz 538 · bitácora
 48 [0 abiertas]; ojo de Antonio: «queda todo recién cargado»;
-crónica entera en la casilla 4: lo siguiente es (¡PRIMERO!): PEGAR AL
-EJECUTOR LA ORDEN RESUELTA DE LA FASE C [⚠️1=(a) sacar del
-resumen las tiras contextuales · 8=A contorno · 9=B círculo
-primary — doctrina en la tanda 5 del plan], cerrar la C,
-DESTILAR el cierre y decidir push; la tanda 5 va por fases
-A+B ⚰️ / C parada — LA CRÓNICA ENTERA en la casilla 4 del plan
-(era: LA TANDA 5, hoy en curso — su plan original: la pintura del resultado firmada por Antonio sobre la captura de
-la maqueta: cabecera de cifras + badges + aviso ámbar + timeline
-con hilo e iconos en círculo; los emojis ⏳/⚠ mueren ahí), CON SU
-PASADA DE DOCTRINA previa — Antonio avisa: llevará tiempo
-dejarla bien; DESPUÉS, el oscuro completo en orden [resultado en
-dos temas → tesela CARTO → EL CONMUTADOR, pedido por Antonio en
-la ronda de visión: PC + el cuarto hueco de la barra];
-PENDIENTE DEL TELÉFONO de Antonio: el pin con su prompt real ·
-el teclado · el safe-area en aparato; EN LA MESA sin prisa: el
-aviso del presupuesto [527/520, es JS — la poda como palanca] ·
-los tres e2e con 4200 a fuego · el logo (casilla 1); (3) los pendientes del 14 en
+crónica entera en la casilla 4. ⚰️ LA TANDA 5 CERRADA ENTERA
+(12-14/09): fases A+B publicadas en `7f0ba5a` y LA FASE C
+ejecutada el 14/09 [lo contextual solo en su paso — regla
+mejorada a principio, 7 pruebas con acta · la ficha de contorno
+con el censo LIMITES nuevo (vara 3:1 del 1.4.11, aparte del
+texto) · el círculo terminal primary 5,17 · nº52 abierta y
+cerrada: un espacio entre dos etiquetas no existe — &ngsp; con
+jueza doble píxel+frase]; ojo de Antonio: BUENO «aunque haya
+que hacer mejoras» (sin lista todavía — se cantará); LA CRÓNICA
+ENTERA en la casilla 4 del plan: lo siguiente es (a) DECIDIR EL
+PUSH de la fase C [8 commits en local — botón de Antonio; al
+publicar, verificar producción de un vistazo]; (b) LAS MEJORAS
+del ojo cuando Antonio las cante + las VETABLES pendientes
+[gris vacío 4,76 · pulso hueso · «a 5 km/h» · cabecera sin
+caja · círculo primary/10]; (c) DESPUÉS, el oscuro completo en
+orden [resultado en dos temas → tesela CARTO → EL CONMUTADOR,
+pedido por Antonio en la ronda de visión: PC + el cuarto hueco
+de la barra]; PENDIENTE DEL TELÉFONO de Antonio: el pin con su
+prompt real · el teclado · el safe-area en aparato · y CERRAR
+el ng serve fantasma [::1:4200, pid 21780]; EN LA MESA sin
+prisa: el aviso del presupuesto [537/520, es JS — la poda como
+palanca] · el guardián de build atómico [PRIORIDAD ALTA: build
+fallida borra dist → 404] · el refactor del resultado como
+componente propio [4 topes] · los e2e con 4200 a fuego
+[pantalla(adaptada), proximo-bus] · 5b parado [Paso sin
+coordenadas — tocar motor = decisión aparte] · el logo
+(casilla 1); (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
 municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
@@ -1984,7 +1996,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.194 pruebas (651 motor + 543 interfaz; e2e yego.mjs, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs, creditos.mjs y pintura.mjs aparte, a mano — bizi-y-resumen, pantalla y proximo-bus aún con 4200 a fuego) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.206 pruebas (651 motor + 555 interfaz; e2e yego.mjs, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs, creditos.mjs y pintura.mjs aparte, a mano — bizi-y-resumen, pantalla y proximo-bus aún con 4200 a fuego) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
