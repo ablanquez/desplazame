@@ -7,6 +7,8 @@ import type { ElementRef, WritableSignal } from '@angular/core';
 import type {
   AQuienPreguntar,
   AreaDeYego,
+  ClaseDeEstacion,
+  ClaseDeVivo,
   EstacionViva,
   PosteVivo,
   Aviso,
@@ -128,6 +130,16 @@ interface LaConsultaViva {
   readonly tarda: boolean;
   /** Lo que se lee en la región: el texto que compone el motor. */
   readonly texto: string;
+  /**
+   * ⭐ QUÉ DIJO EL ÚLTIMO INTENTO (14/09, nº53), o `null` mientras se pregunta.
+   *
+   * La región es la voz del último intento, y esto decide si va vestida de
+   * advertencia: solo `mudo` —no se pudo leer—. `ausente` es una lectura
+   * [GTFS-Realtime: «sin información en tiempo real», no un fallo] y se dice
+   * como dato. Viaja aparte del texto por lo mismo que en el contrato: para no
+   * leer la frase.
+   */
+  readonly clase: ClaseDeVivo | ClaseDeEstacion | null;
 }
 
 /**
@@ -2115,7 +2127,75 @@ export class Buscador {
    */
   protected loVivoDe(paso: Paso, i: number): string {
     const consulta = this.consultasVivas().get(i);
-    return consulta ? consulta.texto : (paso.vivo?.texto ?? '');
+    if (consulta) {
+      return consulta.texto;
+    }
+    // ⭐ Y NACE CON EL AVISO QUE LE TOCABA A SU PASO (14/09, nº53), si lo hay:
+    //    el mudo del Generar se decía DOS veces —la tira con el poste nombrado
+    //    y aquí con «este poste»—, y la tira no se podía refrescar. Ahora lo
+    //    dice solo la región, con la MISMA frase del aviso, que es la que la
+    //    costura del resumen busca letra a letra.
+    return this.avisoQueLeeLaRegion(i, paso) ?? paso.vivo?.texto ?? '';
+  }
+
+  /**
+   * ⭐ LA L5: SI LA REGIÓN VA VESTIDA DE ADVERTENCIA (14/09, nº53).
+   *
+   * [NN/g, mensajes de error] el estilado de error es para el error VIGENTE; y
+   * la heurística nº1: la pantalla dice el estado de ahora. Lo vigente es el
+   * ÚLTIMO intento de lectura, en las dos direcciones:
+   *
+   *   · antes de pulsar, el del Generar — `paso.vivo.clase` en el bus; en la
+   *     BiZi, que su hito lleve el mudo colgado (`Aviso.paso`, que el motor
+   *     solo le pone al mudo desde el 14/09);
+   *   · después, lo que contestó el botón; y mientras pregunta, nada.
+   */
+  protected laRegionAvisa(paso: Paso, i: number): boolean {
+    const consulta = this.consultasVivas().get(i);
+    if (consulta) {
+      return consulta.clase === 'mudo';
+    }
+    if (paso.aQueEstacion) {
+      return this.avisoQueLeeLaRegion(i, paso) !== null;
+    }
+    return paso.vivo?.clase === 'mudo';
+  }
+
+  /**
+   * ⭐ EL AVISO DEL GENERAR QUE LEE LA REGIÓN DE UN PASO, o `null` (14/09, nº53).
+   *
+   * Solo en los pasos con botón vivo. Es el aviso que hasta hoy salía como tira
+   * junto al hito, y que ahora es la voz de la región:
+   *
+   *   · BiZi — el que trae `Aviso.paso` de ese hito (el mudo partido del motor).
+   *   · Bus  — si `paso.vivo` dice que la fuente no dio minuto, el aviso que
+   *            nombra SU poste: la regla del sitio de `notaDelHito`, sin
+   *            desvíos ni festivos, que ésos son marcas.
+   *
+   * ⚠️ Lo usan tres sitios y por eso es uno: la región nace con él, la tira lo
+   *    suelta y el resumen no lo sube. Tres reglas parecidas acabarían diciendo
+   *    el aviso en dos sitios o en ninguno.
+   */
+  private avisoQueLeeLaRegion(i: number, paso: Paso): string | null {
+    if (this.etiquetaDelBotonVivo(paso) === null) {
+      return null;
+    }
+    const noEsMarca = (a: Aviso): boolean =>
+      !a.texto.includes(MARCA_DE_DESVIO) && !MARCA_DE_FESTIVO.test(a.texto);
+    if (paso.aQueEstacion) {
+      return this.avisosDelViaje().find((a) => a.paso === i && noEsMarca(a))?.texto ?? null;
+    }
+    if (!paso.vivo || paso.vivo.clase === 'llega') {
+      return null;
+    }
+    const sitio = sitioDelHito(paso);
+    if (sitio === null) {
+      return null;
+    }
+    return (
+      this.avisosDelViaje().find((a) => a.paso === undefined && noEsMarca(a) && a.texto.includes(sitio))
+        ?.texto ?? null
+    );
   }
 
   /**
@@ -2195,28 +2275,28 @@ export class Buscador {
     // El inicio se ANUNCIA: la región recibe su texto antes que nada
     // [WCAG 4.1.3]. Y `aria-busy` pasa a `true` para que lo que venga después
     // —el indicador de que tarda— no se anuncie como un cambio más.
-    this.ponerConsulta(i, { cargando: true, tarda: false, texto: mientras });
+    this.ponerConsulta(i, { cargando: true, tarda: false, texto: mientras, clase: null });
     clearTimeout(this.relojes.get(i));
     this.relojes.set(
       i,
       setTimeout(() => {
         if (this.consultando(i)) {
-          this.ponerConsulta(i, { cargando: true, tarda: true, texto: mientras });
+          this.ponerConsulta(i, { cargando: true, tarda: true, texto: mientras, clase: null });
         }
       }, CUANDO_SE_DICE_QUE_TARDA_MS),
     );
 
-    const acabar = (texto: string): void => {
+    const acabar = (texto: string, clase: LaConsultaViva['clase']): void => {
       clearTimeout(this.relojes.get(i));
       this.relojes.delete(i);
-      this.ponerConsulta(i, { cargando: false, tarda: false, texto });
+      this.ponerConsulta(i, { cargando: false, tarda: false, texto, clase });
     };
     this.http.get<PosteVivo | EstacionViva>(ruta, { params }).subscribe({
-      next: (vivo) => acabar(vivo.texto),
+      next: (vivo) => acabar(vivo.texto, vivo.clase),
       // ⚠️ Que el MOTOR no conteste no es lo mismo que la fuente callando, y se
       //    dice distinto: aquello lo cuenta el motor con sus palabras, esto es
       //    que no hay nadie a quien preguntárselo.
-      error: () => acabar('No se pudo preguntar al motor. ¿Está arrancado?'),
+      error: () => acabar('No se pudo preguntar al motor. ¿Está arrancado?', 'mudo'),
     });
   }
 
@@ -2305,11 +2385,22 @@ export class Buscador {
     //    sin sitio visible**. Si el paso enseña una sola tira y dos avisos
     //    comparten paso, el que no sale abajo SIGUE arriba — por construcción,
     //    no por memoria.
+    //
+    // ACTA 14/09 [encargo de las cinco líneas, mitad 2 (f); bitácora nº53]: era
+    //    «se lee como TIRA en su paso». Desde hoy el mudo del botón vivo no es
+    //    tira: lo lee la REGIÓN de su paso, que es la voz del último intento. La
+    //    región es sitio visible en su paso, así que el principio de arriba no
+    //    cambia — cambia hasta dónde llega: «tira O región». Sin esto, el mudo
+    //    que la tira suelta subía al resumen y el zombi se mudaba de sitio.
     const enSuPaso = new Set<string>();
     trayecto.pasos.forEach((paso, i) => {
       const tira = this.notaDelPaso(i, paso);
       if (tira !== null) {
         enSuPaso.add(tira);
+      }
+      const region = this.avisoQueLeeLaRegion(i, paso);
+      if (region !== null) {
+        enSuPaso.add(region);
       }
     });
     const sueltos = this.avisosDelViaje()
@@ -2379,15 +2470,102 @@ export class Buscador {
    *    de abajo.
    */
   protected notaDelPaso(indice: number, paso: Paso): string | null {
+    // ⚠️ Y NUNCA LO QUE YA DICE LA REGIÓN (14/09, nº53): el mudo del botón vivo
+    //    era tira y región a la vez, y la tira no se enteraba del botón — la
+    //    advertencia seguía pintada con el dato ya leído. Una voz: la región.
+    const region = this.avisoQueLeeLaRegion(indice, paso);
     // ⚠️ Y tampoco el horario de festivo (cierre de la fase B): deja marca.
     const suyo = this.avisosDelViaje().find(
       (a) =>
         a.paso === indice && !a.texto.includes(MARCA_DE_DESVIO) && !MARCA_DE_FESTIVO.test(a.texto),
     );
     if (suyo) {
-      return suyo.texto;
+      return suyo.texto === region ? null : suyo.texto;
     }
-    return esHito(paso) ? this.notaDelHito(paso) : null;
+    const reserva = esHito(paso) ? this.notaDelHito(paso) : null;
+    return reserva === region ? null : reserva;
+  }
+
+  /**
+   * ⭐ SI UN PASO VA EN LA PLANTILLA DE CINCO LÍNEAS (14/09).
+   *
+   * Los cuatro pasos con acción viva: subir y transbordar —también el tranvía,
+   * que no tiene botón pero sí línea, lugar y datos—, y coger y dejar la BiZi.
+   * Dejar la bici PROPIA o el coche también es `aparca` y no entra: no lleva
+   * estación ni nada vivo que preguntar, así que su frase se queda como está.
+   */
+  protected vaEnCincoLineas(paso: Paso): boolean {
+    return (
+      paso.giro === 'sube' ||
+      paso.giro === 'transborda' ||
+      ((paso.giro === 'coge' || paso.giro === 'aparca') && paso.aQueEstacion !== undefined)
+    );
+  }
+
+  /**
+   * La acción de la L1, **por el giro** —que es dato— y no recortando la parte
+   * `accion` de la frase: en el transbordo esa parte es «, transborda», con la
+   * coma de la frase dentro. [Contrato, `Paso`] el motor manda el dato y la
+   * pantalla decide cómo escribirlo.
+   */
+  protected accionDelHito(paso: Paso): string {
+    switch (paso.giro) {
+      case 'sube':
+        return 'Sube';
+      case 'transborda':
+        return 'Transborda';
+      case 'coge':
+        return 'Coge una bici';
+      default:
+        return 'Deja la bici';
+    }
+  }
+
+  /**
+   * ⭐ LA L2: el lugar del hito, con su ficha si el dato la da.
+   *
+   * La parte `via` que es el sitio —la PRIMERA en el transbordo, la última en
+   * los demás, igual que `sitioDelHito`— y, si `fichaDe` la reconoce por el
+   * DATO, la ficha con el número y el nombre sin él. Sin ficha —el tranvía—,
+   * el nombre tal cual viene.
+   */
+  protected lugarDelHito(
+    paso: Paso,
+  ): { readonly ficha: ReturnType<Buscador['fichaDe']>; readonly nombre: string } | null {
+    const vias = paso.partes.map((p, k) => (p.papel === 'via' ? k : -1)).filter((k) => k >= 0);
+    if (vias.length === 0) {
+      return null;
+    }
+    const k = paso.giro === 'transborda' ? vias[0]! : vias[vias.length - 1]!;
+    const ficha = this.fichaDe(paso, k);
+    return { ficha, nombre: ficha ? ficha.resto : paso.partes[k]!.texto };
+  }
+
+  /**
+   * ⭐ LA L3: los datos estáticos, de los CAMPOS del contrato (14/09).
+   *
+   * Nunca de la frase —prohibido desde el 30/08—: sin campo no hay L3, y con
+   * uno solo se dice ese. [GTFS Best Practices] «sé conciso»: «17 paradas ·
+   * cada 8 min», «11 bicis a las 12:57».
+   */
+  protected datosDelHito(paso: Paso): string | null {
+    if (paso.aQueEstacion) {
+      const d = paso.disponibilidad;
+      if (!d) {
+        return null;
+      }
+      const bicis = d.cuantas === 1 ? 'bici' : 'bicis';
+      const anclajes = d.cuantas === 1 ? 'anclaje' : 'anclajes';
+      return `${d.cuantas} ${paso.aQueEstacion.pide === 'bicis' ? bicis : anclajes} a las ${d.hora}`;
+    }
+    const trozos: string[] = [];
+    if (paso.paradas !== undefined) {
+      trozos.push(`${paso.paradas} ${paso.paradas === 1 ? 'parada' : 'paradas'}`);
+    }
+    if (paso.frecuencia !== undefined) {
+      trozos.push(`cada ${paso.frecuencia} min`);
+    }
+    return trozos.length === 0 ? null : trozos.join(' · ');
   }
 
   /**

@@ -956,6 +956,98 @@ const VIAJE_CON_FICHAS: Trayecto = {
 };
 
 /**
+ * ⭐ EL VIAJE DE LAS CINCO LÍNEAS, con los campos que el motor manda desde el
+ * 14/09 (mitad 1 del encargo).
+ *
+ * Las frases y las cifras son las que el motor contestó ese día en `COLOSO 2 →
+ * OVIEDO 5` (sonda del diagnóstico, pid del log = pid que contesta): la 35 con
+ * «— 17 paradas — frecuencia teórica: cada 8 min» y el transbordo a la 31 con
+ * «— 10 paradas — frecuencia teórica de la 31: cada 11 min». Los campos dicen lo
+ * mismo que la frase porque salen de los mismos dos números. Avanza MUDA en el
+ * Generar: `vivo` con clase `mudo` y el aviso con el poste nombrado, que es la
+ * forma de `comoSeDiceLoVivo`.
+ */
+const MUDO_DEL_33 =
+  'No hemos podido preguntar cuándo pasa la línea 35 por el poste 33 · Av. Academia General Militar N.º 37: ' +
+  'disponibilidad no verificada.';
+const VIAJE_EN_CINCO_LINEAS: Trayecto = {
+  ...VIAJE_CON_FICHAS,
+  avisos: [{ texto: MUDO_DEL_33 }],
+  pasos: VIAJE_CON_FICHAS.pasos.map((p) =>
+    p.giro === 'sube'
+      ? {
+          ...p,
+          ...paso('sube', 0, accion('Sube'), llano(' a la línea '), via('35'), llano(' en el poste '), via('33 · Av. Academia General Militar N.º 37'), llano(' — 17 paradas'), llano(' — frecuencia teórica: cada 8 min')),
+          aQuienPreguntar: { poste: 33, linea: '35' },
+          paradas: 17,
+          frecuencia: 8,
+          vivo: {
+            clase: 'mudo' as const,
+            texto: 'No hemos podido preguntar cuándo pasa la línea 35 por este poste: disponibilidad no verificada.',
+          },
+        }
+      : p.giro === 'transborda'
+        ? {
+            ...p,
+            ...paso('transborda', 0, llano('En el poste '), via('147 · Av. Francisco De Goya N.º 83'), accion(', transborda'), llano(' de la línea '), via('35'), llano(' a la línea '), via('31'), llano(' — 10 paradas'), llano(' — frecuencia teórica de la 31: cada 11 min')),
+            aQuienPreguntar: { poste: 147, linea: '31' },
+            paradas: 10,
+            frecuencia: 11,
+          }
+        : p,
+  ),
+};
+
+/** El mismo viaje con Avanza CONTESTANDO en el Generar: el minuto en `vivo`, sin aviso. */
+const VIAJE_EN_CINCO_LINEAS_CON_DATO: Trayecto = {
+  ...VIAJE_EN_CINCO_LINEAS,
+  avisos: [],
+  pasos: VIAJE_EN_CINCO_LINEAS.pasos.map((p) =>
+    p.giro === 'sube' ? { ...p, vivo: { clase: 'llega' as const, texto: 'próximo en 6 min (dato de las 13:00)' } } : p,
+  ),
+};
+
+/**
+ * ⭐ LA BiZi DE LAS CINCO LÍNEAS: la cifra y la hora como campo (14/09).
+ * Las del fixture de siempre —11 bicis y 16 anclajes a las 12:57—.
+ */
+const VIAJE_EN_BIZI_CON_DATOS: Trayecto = {
+  ...VIAJE_EN_BIZI_CON_BOTONES,
+  pasos: VIAJE_EN_BIZI_CON_BOTONES.pasos.map((p) =>
+    p.giro === 'coge'
+      ? { ...p, disponibilidad: { cuantas: 11, hora: '12:57' } }
+      : p.giro === 'aparca'
+        ? { ...p, disponibilidad: { cuantas: 16, hora: '12:57' } }
+        : p,
+  ),
+};
+
+/**
+ * ⭐ Y LA BiZi CON LA SEDE MUDA, con la forma del motor desde el 14/09: los
+ * hitos sin cifra y sin campo, y el mudo PARTIDO, uno por hito con su `paso` y
+ * su palabra —bicis al coger, anclajes al dejar— (`conElMudoEnSuHito`).
+ */
+const MUDO_DE_TAUROMAQUIA =
+  'No hemos podido preguntar cuántas bicis hay en la estación Tauromaquia ahora mismo: disponibilidad no verificada.';
+const MUDO_DE_SIRESA =
+  'No hemos podido preguntar cuántos anclajes libres hay en la estación Mrio. Siresa: Dr. Iranzo ahora mismo: ' +
+  'disponibilidad no verificada.';
+const VIAJE_EN_BIZI_MUDA: Trayecto = {
+  ...VIAJE_EN_BIZI_CON_BOTONES,
+  pasos: VIAJE_EN_BIZI_CON_BOTONES.pasos.map((p) =>
+    p.giro === 'coge'
+      ? { ...paso('coge', 0, accion('Coge'), llano(' una bici en la estación '), via('Tauromaquia')), aQueEstacion: p.aQueEstacion }
+      : p.giro === 'aparca'
+        ? { ...paso('aparca', 0, accion('Deja'), llano(' la bici en la estación '), via('Mrio. Siresa: Dr. Iranzo')), aQueEstacion: p.aQueEstacion }
+        : p,
+  ),
+  avisos: [
+    { texto: MUDO_DE_TAUROMAQUIA, paso: 2 },
+    { texto: MUDO_DE_SIRESA, paso: 5 },
+  ],
+};
+
+/**
  * ⭐ Y una ruta de BICI con su aviso: el destino sin aparcabicis cerca.
  *
  * El otro caso de la misma clase — desde las casillas 5 y 6, un trayecto puede
@@ -1402,7 +1494,9 @@ function pasosEnPantalla(raiz: HTMLElement): string[] {
   //    tres veces: «Gira a la izquierda Gira a la izquierda Gira a la izquierda
   //    150 m». No era un fallo de la pantalla: era el lector recogiendo padres
   //    y nietos por igual. Se le nombran las piezas que se leen, en su orden.
-  const PIEZAS = '.chip-linea, .paso__texto, .paso__metros';
+  // Y desde el 14/09 las piezas de las cinco líneas de los hitos: la frase
+  // corrida ya no está en ellos, y sin esto el paso se leería solo como sus chips.
+  const PIEZAS = '.chip-linea, .paso__marca, .hito__accion, .hito__l2, .hito__l3, .paso__texto, .paso__metros';
   return Array.from(raiz.querySelectorAll<HTMLElement>('.paso')).map((p) =>
     Array.from(p.querySelectorAll<HTMLElement>(PIEZAS))
       .map((s) => (s.textContent ?? '').replace(/\s+/g, ' ').trim())
@@ -1497,10 +1591,19 @@ function marcasPorPaso(raiz: HTMLElement): ReadonlyMap<number, string[]> {
   return marcas;
 }
 
+/**
+ * Los pasos con marca, leídos por sus DOS primeras líneas: «L1 | L2».
+ *
+ * ACTA 14/09 [encargo de las cinco líneas, mitad 2]: leía `.paso__texto`, la
+ * frase corrida, y los pasos con marca —subir y transbordar— ya no la llevan.
+ * Se leen la L1 (chip, marca y acción) y la L2 (el lugar): lo que la frase
+ * decía de cuál era el paso, dicho por las líneas que lo dicen ahora.
+ */
 function pasosConMarca(raiz: HTMLElement): string[] {
+  const t = (n: Element | null): string => (n?.textContent ?? '').replace(/\s+/g, ' ').trim();
   return Array.from(raiz.querySelectorAll<HTMLElement>('.paso'))
     .filter((li) => li.querySelector('.paso__marca') !== null)
-    .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
+    .map((li) => `${t(li.querySelector('.hito__l1'))} | ${t(li.querySelector('.hito__l2'))}`);
 }
 
 /** A qué paso lleva cada línea del resumen, por su `href`. `null` si no enlaza. */
@@ -2395,11 +2498,13 @@ describe('Buscador', () => {
 
     // Y cada uno está en SU paso: el de bicis donde se coge, el de anclajes
     // donde se deja. Cruzarlos preguntaría anclajes para saber si hay bici.
+    // ACTA 14/09 [cinco líneas, mitad 2]: leía la frase corrida (`.paso__texto`),
+    //    que los hitos ya no llevan. Lo que compra —cada botón en SU hito— se lee
+    //    ahora en la L1, que dice la acción del paso por su giro.
     const conBoton = Array.from(raiz.querySelectorAll('.paso'))
       .filter((li) => li.querySelector('.vivo__boton') !== null)
-      .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
-    expect(conBoton[0]).toContain('Coge una bici');
-    expect(conBoton[1]).toContain('Deja la bici');
+      .map((li) => (li.querySelector('.hito__l1')?.textContent ?? '').replace(/\s+/g, ' ').trim());
+    expect(conBoton).toEqual(['Coge una bici', 'Deja la bici']);
   });
 
   /**
@@ -3697,13 +3802,17 @@ describe('Buscador', () => {
     drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BUS_SIN_LA_29);
     await fixture.whenStable();
 
+    // ACTA 14/09 [cinco líneas, mitad 2]: exigía la frase corrida del hito
+    //    —«Sube a la línea 29 en el poste Bernardo Ramazzini / Maz — ~7 min de
+    //    espera»—, que subir ya no pinta. El paso se identifica igual de estricto
+    //    por sus líneas: la 29, la acción y SU poste. (Este viaje no trae botón:
+    //    sin región, el aviso sigue siendo tira.)
+    const t = (n: Element | null): string => (n?.textContent ?? '').replace(/\s+/g, ' ').trim();
     const conNota = Array.from(raiz.querySelectorAll('.paso'))
       .filter((li) => li.querySelector('.paso__nota') !== null)
-      .map((li) => (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim());
+      .map((li) => `${t(li.querySelector('.hito__l1'))} | ${t(li.querySelector('.hito__l2'))}`);
 
-    expect(conNota).toEqual([
-      'Sube a la línea 29 en el poste Bernardo Ramazzini / Maz — ~7 min de espera',
-    ]);
+    expect(conNota).toEqual(['29 Sube | Bernardo Ramazzini / Maz']);
     // Ni el de bajar, ni el de salir, ni el de llegar.
     expect(raiz.querySelectorAll('.paso__nota').length).toBe(1);
   });
@@ -3925,9 +4034,9 @@ describe('Buscador', () => {
     //    Hasta la fase B esto era una tira ámbar con el aviso entero repetido:
     //    [alert fatigue] el mismo texto dos veces acostumbra a no leer ninguna.
     //    El paso dice CUÁL es el afectado; el hecho y la lista, arriba.
-    expect(pasosConMarca(raiz)).toEqual([
-      'Sube a la línea 29 en el poste Bernardo Ramazzini / Maz — ~7 min de espera',
-    ]);
+    // ACTA 14/09 [cinco líneas, mitad 2]: era la frase corrida de subir. Ahora
+    //    L1 | L2 — y la marca, pegada al chip de SU línea.
+    expect(pasosConMarca(raiz)).toEqual(['29 desviada Sube | Bernardo Ramazzini / Maz']);
     expect(raiz.querySelectorAll('.paso__nota').length).toBe(0);
     // La lista de postes sigue existiendo: ahora detrás del «detalles» de arriba.
     const lista = (raiz.querySelector('.resumen .detalles__cuerpo')?.textContent ?? '')
@@ -3989,10 +4098,12 @@ describe('Buscador', () => {
       const href = li.querySelector('a')!.getAttribute('href')!;
       const destino = pasos.find((p) => `#${p.id}` === href)!;
       expect(destino.querySelector('.paso__marca')).not.toBeNull();
-      return (destino.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim();
+      // ACTA 14/09 [cinco líneas, mitad 2]: leía la frase corrida del destino;
+      //    ahora su L1, que dice la línea con su chip y su marca.
+      return (destino.querySelector('.hito__l1')?.textContent ?? '').replace(/\s+/g, ' ').trim();
     };
-    expect(destinoDe('29')).toContain('Sube a la línea 29');
-    expect(destinoDe('22')).toContain('Sube a la línea 22');
+    expect(destinoDe('29')).toBe('29 desviada Sube');
+    expect(destinoDe('22')).toBe('22 desviada Sube');
   });
 
   /**
@@ -4018,12 +4129,17 @@ describe('Buscador', () => {
     const pasos = Array.from(raiz.querySelectorAll('.paso'));
     expect(pasos.length).toBe(5);
 
-    const elTransbordo = pasos.find((li) => /transborda/.test(li.textContent ?? ''))!;
+    // ACTA 14/09 [cinco líneas, mitad 2]: buscaba el paso por «transborda» en
+    //    minúscula y exigía su frase corrida. Subir y transbordar ya van en
+    //    líneas: la L1 dice «Transborda» por el giro y la L2, el poste. Las
+    //    cifras de «— 16 paradas — cada 14 min» vivían SOLO en la frase de este
+    //    fixture, sin campos, y por eso no se escriben: sin campo no hay L3.
+    const t = (n: Element | null): string => (n?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    const elTransbordo = pasos.find((li) => t(li.querySelector('.hito__accion')) === 'Transborda')!;
     expect(elTransbordo).toBeTruthy();
-    expect((elTransbordo.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim()).toBe(
-      'En el poste Av. Francisco De Goya N.º 83, transborda de la línea 35 a la línea 31 ' +
-        '— 16 paradas — frecuencia teórica de la 31: cada 14 min',
-    );
+    expect(t(elTransbordo.querySelector('.hito__l1'))).toBe('35 31 Transborda');
+    expect(t(elTransbordo.querySelector('.hito__l2'))).toBe('Av. Francisco De Goya N.º 83');
+    expect(elTransbordo.querySelector('.hito__l3')).toBeNull();
 
     // ⭐ LOS DOS CHIPS, en orden: de la que se deja a la que se coge.
     const chips = Array.from(elTransbordo.querySelectorAll<HTMLElement>('.chip-linea'));
@@ -4067,10 +4183,12 @@ describe('Buscador', () => {
 
     // ⭐ Y UNA SOLA MARCA, la de la subida a la 35. El transbordo a la 31 no
     // lleva ninguna, aunque su poste salga nombrado en el aviso de la 35.
+    // ACTA 14/09 [cinco líneas, mitad 2]: leía la frase corrida («Sube a la
+    //    línea 35», sin «transborda»); ahora L1 | L2 del paso marcado.
     const conMarca = pasosConMarca(raiz);
     expect(conMarca.length).toBe(1);
-    expect(conMarca[0]).toContain('Sube a la línea 35');
-    expect(conMarca[0]).not.toContain('transborda');
+    expect(conMarca[0]).toMatch(/^35 desviada Sube \| /);
+    expect(conMarca[0]).not.toContain('Transborda');
   });
 
   /**
@@ -4429,6 +4547,10 @@ describe('Buscador', () => {
     ['bus con la fuente muda', () => VIAJE_EN_BUS_MUDO, 'bus', null],
     ['coche con remate en la ZBE', () => VIAJE_EN_COCHE_CON_REMATE, 'coche', 'sin'],
     ['coche con distintivo B por la ZBE', () => VIAJE_EN_COCHE_POR_LA_ZBE, 'coche', 'b'],
+    // ⭐ Y los dos con botón vivo y la fuente muda (14/09, nº53): su mudo no
+    //    tiene tira — lo lee la REGIÓN de su paso—, y tiene que verse igual.
+    ['bus con botón y Avanza muda', () => VIAJE_EN_CINCO_LINEAS, 'bus', null],
+    ['BiZi con botones y la sede muda', () => VIAJE_EN_BIZI_MUDA, 'bizi', null],
   ] as const) {
     it(`⭐ 17-sexies · ${nombre}: la tira de su paso no se repite en el resumen, y nada se queda sin sitio`, async () => {
       const fixture = TestBed.createComponent(Buscador);
@@ -4447,15 +4569,25 @@ describe('Buscador', () => {
       drenarRutas(http.match('/api/ruta'), viaje);
       await fixture.whenStable();
 
+      // ACTA 14/09 [encargo de las cinco líneas, mitad 2 (f); nº53]: los sitios
+      //    visibles de un paso eran solo sus TIRAS. Desde hoy la región del
+      //    botón vivo es la voz del último intento y lee el mudo del Generar,
+      //    así que también es sitio: se juzga «tira O región», que es el filtro
+      //    del resumen. Nada se afloja — lo que no se lea en ninguno de los
+      //    tres sitios sigue siendo rojo.
       const tiras = Array.from(raiz.querySelectorAll('.paso__nota')).map(textoDeTira);
+      const regiones = Array.from(raiz.querySelectorAll('.vivo__estado'))
+        .map((n) => (n.textContent ?? '').replace(/\s+/g, ' ').trim())
+        .filter((t) => t !== '');
+      const enSuPaso = [...tiras, ...regiones];
       const resumen = resumenEnPantalla(raiz);
-      expect(tiras.length, 'el viaje trae al menos una tira que juzgar').toBeGreaterThan(0);
-      // ⭐ Ninguna tira repetida arriba.
-      for (const t of tiras) {
+      expect(enSuPaso.length, 'el viaje trae al menos una tira o región que juzgar').toBeGreaterThan(0);
+      // ⭐ Ninguna tira ni región repetida arriba.
+      for (const t of enSuPaso) {
         expect(resumen.some((r) => r.includes(t)), `«${t}» está también en el resumen`).toBe(false);
       }
       // ⭐ Y la costura: cada aviso del motor, en algún sitio que se vea.
-      const todo = [...resumen, ...tiras].join(' | ');
+      const todo = [...resumen, ...enSuPaso].join(' | ');
       const delMotor = (fixture.componentInstance as unknown as { avisosDelViaje(): readonly { texto: string }[] })
         .avisosDelViaje();
       for (const a of delMotor) {
@@ -4504,9 +4636,23 @@ describe('Buscador', () => {
     // ⭐ Y LA FRASE SE LEE SEPARADA (nº52). Angular borra el blanco entre dos
     //    etiquetas —la casa ya lo midió el 1/09 con los créditos—, y un margen
     //    separa los píxeles pero no el TEXTO: quien lo oye recibía «33Av.».
-    const frase = (i: number) => (pasos[i]!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim();
-    expect(frase(1)).toContain('en el poste 33 Av. Academia General Militar N.º 37');
-    expect(frase(2)).toContain('En el poste 147 Av. Francisco De Goya N.º 83');
+    //
+    // ACTA 14/09 [cinco líneas, mitad 2; nº54]: leía `.paso__texto`, y ésa era
+    //    la COARTADA que dejó vivo «3531En el poste»: los chips no estaban ahí,
+    //    así que la jueza nunca los oyó. Ahora lee el texto de las LÍNEAS donde
+    //    están la ficha Y los chips, y exige los dos huecos: el del número al
+    //    nombre (nº52) y el de corto a corto y a la acción (nº54).
+    // Primero todo el paso junto, que es lo que se oye de corrido: ni un número
+    // pegado a otro ni a una palabra. Es lo que leía «3531En el poste».
+    for (const i of [1, 2]) {
+      expect((pasos[i]!.textContent ?? '').replace(/\s+/g, ' '), `paso ${i}`).not.toMatch(/\d[A-Za-zÁÉÍÓÚ]|\d{2}\d{2}/);
+    }
+    const linea = (i: number, sel: string) =>
+      (pasos[i]!.querySelector(sel)?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    expect(linea(1, '.hito__l2')).toBe('33 Av. Academia General Militar N.º 37');
+    expect(linea(2, '.hito__l2')).toBe('147 Av. Francisco De Goya N.º 83');
+    expect(linea(1, '.hito__l1')).toBe('35 Sube');
+    expect(linea(2, '.hito__l1')).toBe('35 31 Transborda');
     // Bajar: sin dato, sin ficha, y la frase intacta.
     expect(fichaDe(3)).toBeNull();
     expect((pasos[3]!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim()).toBe(
@@ -4539,6 +4685,214 @@ describe('Buscador', () => {
       { numero: '87', icono: 'pedal_bike', nombre: 'Mrio. Siresa: Dr. Iranzo' },
     ]);
   });
+
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   *  LAS CINCO LÍNEAS DE LOS PASOS CON ACCIÓN VIVA (14/09, mitad 2)
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * Una sola plantilla para subir, transbordar, coger y dejar [M3, roles de
+   * línea; WCAG 1.4.12/F104: crece en vertical, nada corrido]:
+   *
+   *   L1 · chip(s) + marca de SU línea + acción
+   *   L2 · la ficha de contorno + el nombre del lugar
+   *   L3 · los datos estáticos, de los CAMPOS y nunca de la frase
+   *   L4 · el botón vivo + su región `role="status"`
+   *   L5 · la región misma, vestida de advertencia si el último intento no pudo leer
+   */
+  const lineasDelPaso = (li: Element) => {
+    const t = (sel: string): string | null => {
+      const n = li.querySelector(sel);
+      return n === null ? null : (n.textContent ?? '').replace(/\s+/g, ' ').trim();
+    };
+    return {
+      l1: t('.hito__l1'),
+      l2: t('.hito__l2'),
+      l3: t('.hito__l3'),
+      boton: t('.vivo__boton'),
+      region: t('.vivo__estado'),
+      avisa: li.querySelector('.vivo__estado')?.classList.contains('vivo__estado--aviso') ?? null,
+      tira: t('.paso__nota'),
+    };
+  };
+
+  it('⭐ 5L · bus: subir y transbordar en cinco líneas, la L3 de los campos', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_CINCO_LINEAS);
+    await fixture.whenStable();
+
+    const pasos = Array.from(raiz.querySelectorAll('.paso'));
+    expect(lineasDelPaso(pasos[1]!)).toEqual({
+      l1: '35 Sube',
+      l2: '33 Av. Academia General Militar N.º 37',
+      l3: '17 paradas · cada 8 min',
+      boton: 'Próximo bus',
+      // ⭐ L5: la región nace con el mudo del Generar, y es la ÚNICA voz.
+      region: MUDO_DEL_33,
+      avisa: true,
+      tira: null,
+    });
+    expect(lineasDelPaso(pasos[2]!)).toEqual({
+      // ⭐ nº54: los dos cortos SEPARADOS en el texto, no solo en los píxeles.
+      l1: '35 31 Transborda',
+      l2: '147 Av. Francisco De Goya N.º 83',
+      // En el transbordo, las de la línea a la que se sube.
+      l3: '10 paradas · cada 11 min',
+      boton: 'Próximo bus',
+      region: '',
+      avisa: false,
+      tira: null,
+    });
+    // ⭐ Ninguna frase del motor se corre dentro: la L3 no viene de « — ».
+    for (const li of pasos.slice(1, 3)) {
+      expect(li.textContent ?? '').not.toContain('—');
+      expect(li.textContent ?? '').not.toContain('frecuencia teórica');
+    }
+    // Y bajar no es de los cuatro: sigue con su frase de siempre.
+    expect(pasos[3]!.querySelector('.hito__l1')).toBeNull();
+  });
+
+  it('⭐ 5L · BiZi: coger y dejar en cinco líneas, la cifra y la hora de su campo', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+    elegirModo(fixture, 'bizi');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_BIZI_CON_DATOS);
+    await fixture.whenStable();
+
+    const pasos = Array.from(raiz.querySelectorAll('.paso'));
+    expect(lineasDelPaso(pasos[2]!)).toEqual({
+      l1: 'Coge una bici',
+      l2: '42 Tauromaquia',
+      l3: '11 bicis a las 12:57',
+      boton: 'Bicis ahora',
+      region: '',
+      avisa: false,
+      tira: null,
+    });
+    expect(lineasDelPaso(pasos[5]!)).toEqual({
+      l1: 'Deja la bici',
+      l2: '87 Mrio. Siresa: Dr. Iranzo',
+      l3: '16 anclajes a las 12:57',
+      boton: 'Anclajes ahora',
+      region: '',
+      avisa: false,
+      tira: null,
+    });
+  });
+
+  it('⭐ 5L · sin campo no hay L3, y con uno solo se dice ese', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    await direccionEntera(fixture, http);
+    elegirModo(fixture, 'bus');
+    botonGenerar(raiz).click();
+    fixture.detectChanges();
+    const soloFrecuencia: Trayecto = {
+      ...VIAJE_EN_CINCO_LINEAS_CON_DATO,
+      pasos: VIAJE_EN_CINCO_LINEAS_CON_DATO.pasos.map((p) => {
+        if (p.giro === 'sube') {
+          const { paradas, ...resto } = p;
+          void paradas;
+          return resto;
+        }
+        if (p.giro === 'transborda') {
+          const { paradas, frecuencia, ...resto } = p;
+          void paradas;
+          void frecuencia;
+          return resto;
+        }
+        return p;
+      }),
+    };
+    drenarRutas(http.match('/api/ruta'), () => soloFrecuencia);
+    await fixture.whenStable();
+    const pasos = Array.from(raiz.querySelectorAll('.paso'));
+    expect(lineasDelPaso(pasos[1]!).l3).toBe('cada 8 min');
+    // La frase trae «— 10 paradas» y aun así no se escribe: sin campo, calla.
+    expect(lineasDelPaso(pasos[2]!).l3).toBeNull();
+  });
+
+  /**
+   * ⭐ 5L · EL ÚLTIMO INTENTO MANDA, en los TRES botones y en las DOS
+   * direcciones (bitácora nº53).
+   *
+   * La advertencia es la región: el éxito del botón la mata y el mudo del botón
+   * la crea. Ninguna tira repite el mudo, y el resumen tampoco lo sube — lo lee
+   * la región de su paso [el filtro «tira O región»].
+   */
+  const MUDO_POSTE: PosteVivo = {
+    clase: 'mudo',
+    texto: 'No hemos podido preguntar cuándo pasa la línea 35 por este poste: disponibilidad no verificada.',
+  };
+  const MUDO_ESTACION: EstacionViva = {
+    clase: 'mudo',
+    texto: 'No hemos podido preguntar cuántas bicis hay en esta estación ahora mismo: disponibilidad no verificada.',
+  };
+  for (const [nombre, modo, conMudo, conDato, indice, ruta, exito, mudo, mudoDelGenerar] of [
+    ['Próximo bus', 'bus', () => VIAJE_EN_CINCO_LINEAS, () => VIAJE_EN_CINCO_LINEAS_CON_DATO, 1, '/api/poste-vivo', LLEGA, MUDO_POSTE, MUDO_DEL_33],
+    ['Bicis ahora', 'bizi', () => VIAJE_EN_BIZI_MUDA, () => VIAJE_EN_BIZI_CON_DATOS, 2, '/api/estacion-viva', HAY_BICIS, MUDO_ESTACION, MUDO_DE_TAUROMAQUIA],
+    ['Anclajes ahora', 'bizi', () => VIAJE_EN_BIZI_MUDA, () => VIAJE_EN_BIZI_CON_DATOS, 5, '/api/estacion-viva', { clase: 'hay', texto: '7 anclajes libres a las 13:04' }, MUDO_ESTACION, MUDO_DE_SIRESA],
+  ] as const) {
+    it(`⭐ 5L · «${nombre}»: mudo en el Generar → el botón contesta → la advertencia MUERE`, async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+      await direccionEntera(fixture, http);
+      elegirModo(fixture, modo);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      drenarRutas(http.match('/api/ruta'), conMudo);
+      await fixture.whenStable();
+
+      const li = () => raiz.querySelectorAll('.paso')[indice]!;
+      expect(lineasDelPaso(li()).boton).toBe(nombre);
+      expect(lineasDelPaso(li())).toMatchObject({ region: mudoDelGenerar, avisa: true, tira: null });
+      expect(resumenEnPantalla(raiz).join(' | ')).not.toContain('No hemos podido preguntar');
+
+      li().querySelector<HTMLElement>('.vivo__boton')!.click();
+      fixture.detectChanges();
+      http.expectOne((r) => r.url === ruta).flush(exito);
+      await fixture.whenStable();
+
+      expect(lineasDelPaso(li())).toMatchObject({ region: exito.texto, avisa: false, tira: null });
+      // ⭐ UNA voz: en el paso ya no queda nada que diga que no se pudo leer.
+      expect(li().textContent ?? '').not.toContain('No hemos podido preguntar');
+      expect(resumenEnPantalla(raiz).join(' | ')).not.toContain('No hemos podido preguntar');
+    });
+
+    it(`⭐ 5L · «${nombre}»: dato en el Generar → el botón no puede leer → la advertencia NACE`, async () => {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+      await direccionEntera(fixture, http);
+      elegirModo(fixture, modo);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      drenarRutas(http.match('/api/ruta'), conDato);
+      await fixture.whenStable();
+
+      const li = () => raiz.querySelectorAll('.paso')[indice]!;
+      expect(lineasDelPaso(li()).avisa).toBe(false);
+
+      li().querySelector<HTMLElement>('.vivo__boton')!.click();
+      fixture.detectChanges();
+      http.expectOne((r) => r.url === ruta).flush(mudo);
+      await fixture.whenStable();
+
+      expect(lineasDelPaso(li())).toMatchObject({ region: mudo.texto, avisa: true, tira: null });
+    });
+  }
 
   /**
    * ⭐ 17-octies · ORIGEN Y DESTINO CON PRESENCIA DE TERMINAL: el círculo lleno.

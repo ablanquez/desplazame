@@ -1086,38 +1086,74 @@
                          Con el envoltorio las tres cosas comparten línea —son
                          contenido en línea de un mismo bloque— y `.paso__texto`
                          vuelve a contener solo la frase. -->
-                    <span class="paso__frase">
-                      <!-- El mismo chip junto al paso donde se sube: la leyenda dice
-                           en qué se monta y esto dice dónde. -->
-                      @for (linea of lineaPorPaso().get($index) ?? []; track $index) {
-                        @if (tonosDe(linea); as tonos) {
-                          <span
-                            class="chip-linea"
-                            [class.chip-linea--contorno]="conContorno(tonos.texto)"
-                            [style.background-color]="'#' + tonos.fondo"
-                            [style.color]="'#' + tonos.texto"
-                            >{{ linea.corto }}</span
-                          >
-                        }
-                      }
-                      <!-- ⭐ LA MARCA DEL DESVÍO, junto al chip (13/09, fase B)
-                           [ANTONIO; la palabra es suya].
+                    <!-- ⭐ LAS CINCO LÍNEAS DE LOS PASOS CON ACCIÓN VIVA (14/09).
 
-                           Sustituye a la tira ámbar que repetía el aviso entero en
-                           el paso [alert fatigue: el mismo texto dos veces enseña a
-                           no leer ninguno]. El hecho y la lista, arriba; aquí, cuál.
+                         Subir, transbordar, coger y dejar la BiZi. Iban en UNA
+                         frase corrida —«35 ⚠ desviada Sube a la línea 35 en el
+                         poste (33) Av. Academia… — 17 paradas — frecuencia…»—, con
+                         la ficha partiendo el renglón y a 1,0 px del de al lado: en
+                         la pantalla de Antonio (1920×1080 en 32", ~69 PPI) eso es
+                         cero. [WCAG 1.4.12 / F104] lo que crece crece en vertical;
+                         [M3] una línea por papel:
 
-                           [WCAG 1.4.1] color + icono + TEXTO, nunca color solo. El
-                           icono va callado (`app-simbolo` ya lo pinta `aria-hidden`):
-                           la palabra lo dice, y quien oye el paso oye «35, desviada». -->
-                      <!-- Y desde el cierre de la fase B, también «festivo»: una
-                           marca por aviso, no la primera (ver `marcasDelPaso`). -->
-                      @for (palabra of marcasDelPaso($index, paso); track palabra) {
-                        <span class="paso__marca">
-                          <app-simbolo nombre="warning" [lado]="14" />
-                          {{ palabra }}
+                           L1 · chip(s) + la marca de SU línea + la acción
+                           L2 · la ficha de contorno + el nombre del lugar
+                           L3 · los datos, de los CAMPOS del contrato
+                           L4 · el botón vivo + su región (abajo, `.vivo`)
+                           L5 · la región misma, vestida si el último intento no leyó
+
+                         ⚠️ NINGUNA sale de leer la frase —prohibido desde el 30/08—:
+                            la línea es `lineaPorPaso`, la marca `marcasDelPaso`, la
+                            acción el `giro`, el lugar la parte `via` con su dato y
+                            los números los campos que el motor manda desde hoy.
+
+                         ⚠️ Y los `&ngsp;` NO son adorno (nº52, nº54): Angular borra
+                            el blanco entre dos etiquetas, y los chips del transbordo
+                            se leían «3531En el poste». El hueco de la pantalla lo
+                            pone el `gap`; el del TEXTO, esto. -->
+                    @if (vaEnCincoLineas(paso)) {
+                      <span class="hito">
+                        <span class="hito__l1">
+                          @for (linea of lineaPorPaso().get($index) ?? []; track $index) {
+                            @if (tonosDe(linea); as tonos) {
+                              <span
+                                class="chip-linea"
+                                [class.chip-linea--contorno]="conContorno(tonos.texto)"
+                                [style.background-color]="'#' + tonos.fondo"
+                                [style.color]="'#' + tonos.texto"
+                                >{{ linea.corto }}</span
+                              >&ngsp;
+                            }
+                          }
+                          <!-- ⭐ LA MARCA, PEGADA AL CHIP DE SU LÍNEA [ANTONIO, fase B;
+                               GTFS-RT informed_entity; nº22: un desvío explica UNA
+                               línea]. Va detrás del último chip, que es la línea a la
+                               que se sube: la de `desvioDelHito` y la del festivo.
+                               [WCAG 1.4.1] color + icono callado + palabra. -->
+                          @for (palabra of marcasDelPaso($index, paso); track palabra) {
+                            <span class="paso__marca"><app-simbolo nombre="warning" [lado]="14" />{{ palabra }}</span
+                            >&ngsp;
+                          }
+                          <strong class="hito__accion">{{ accionDelHito(paso) }}</strong>
                         </span>
-                      }
+                        &ngsp;
+                        @if (lugarDelHito(paso); as lugar) {
+                          <span class="hito__l2">
+                            @if (lugar.ficha; as ficha) {
+                              <span class="ficha-entidad"
+                                ><app-simbolo [nombre]="ficha.icono" [lado]="14" />{{ ficha.numero }}</span
+                              >&ngsp;
+                            }
+                            <strong>{{ lugar.nombre }}</strong>
+                          </span>
+                          &ngsp;
+                        }
+                        @if (datosDelHito(paso); as datos) {
+                          <span class="hito__l3">{{ datos }}</span>
+                        }
+                      </span>
+                    } @else {
+                    <span class="paso__frase">
                       <span class="paso__texto">
                       <!-- ⚠️ EL ICONO DE CAPA VA AQUÍ DENTRO desde el 12/09, y no al
                            lado. Era hermano del texto, y al volverse el cuerpo una
@@ -1135,25 +1171,16 @@
                       @for (parte of paso.partes; track $index) {
                         @if (parte.papel === 'texto') {
                           <ng-container>{{ parte.texto }}</ng-container>
-                        } @else if (fichaDe(paso, $index); as ficha) {
-                          <!-- ⭐ EL POSTE O LA ESTACIÓN COMO ENTIDAD (14/09, fase C)
-                               [ANTONIO, resolución (b); WCAG 1.4.11]: icono callado +
-                               número en su ficha de contorno, y el nombre detrás. El
-                               número sale del dato, no de la frase: ver `fichaDe`. -->
-                          <!-- ⚠️ El `&ngsp;` NO es adorno (nº52): Angular borra el blanco
-                               entre dos etiquetas, y sin él la ficha salía pegada al
-                               nombre en la pantalla —0 px— Y en el texto que se oye,
-                               «33Av. Academia». Es la misma trampa que los créditos
-                               midieron el 1/09; un margen solo arreglaba los píxeles. -->
-                          <span class="ficha-entidad"
-                            ><app-simbolo [nombre]="ficha.icono" [lado]="14" />{{ ficha.numero }}</span
-                          >&ngsp;<strong>{{ ficha.resto }}</strong>
                         } @else {
+                          <!-- La ficha del poste y la estación (fase C) vivía aquí y
+                               se ha ido a la L2 de las cinco líneas: los únicos pasos
+                               que la llevan son los de esa plantilla. -->
                           <strong>{{ parte.texto }}</strong>
                         }
                       }
                       </span>
                     </span>
+                    }
 
                     <!-- ⭐ EL BOTÓN DEL DATO VIVO Y SU REGIÓN DE ESTADO (1/09,
                          ampliado a la BiZi el 2/09).
@@ -1212,12 +1239,34 @@
                             <app-simbolo nombre="hourglass_empty" [lado]="16" />
                           </span>
                         }
+                        <!-- ⭐ L5: LA REGIÓN ES LA ADVERTENCIA (14/09, nº53).
+
+                             La tira ámbar del «no hemos podido preguntar» y esta
+                             región eran dos voces: el Generar escribía la tira, el
+                             botón escribía aquí, y la tira seguía diciendo que no se
+                             sabía con el dato ya leído. Ahora solo habla la región
+                             —el último intento— y se VISTE de advertencia cuando ese
+                             intento no pudo leer [NN/g: el estilo de error, mientras
+                             el error exista].
+
+                             ⚠️ El `role`, el `id` y el `aria-busy` NO se tocan
+                                [WCAG 4.1.3]: lo que cambia es una clase y un icono
+                                callado. Y el icono va DETRÁS del texto en el DOM —el
+                                CSS lo pinta delante—: el primer hijo de la región
+                                sigue siendo su texto, que es lo que `proximo-bus.mjs`
+                                escribe para comprobar que la región ya estaba. -->
                         <span
                           class="vivo__estado"
+                          [class.vivo__estado--aviso]="laRegionAvisa(paso, $index)"
+                          [class.ambar]="laRegionAvisa(paso, $index)"
                           [id]="'vivo-' + $index"
                           role="status"
                           [attr.aria-busy]="consultando($index)"
-                          >{{ loVivoDe(paso, $index) }}</span
+                          >{{ loVivoDe(paso, $index) }}@if (laRegionAvisa(paso, $index)) {<app-simbolo
+                              class="vivo__estado-icono"
+                              nombre="warning"
+                              [lado]="16"
+                            />}</span
                         >
                       </span>
                     }

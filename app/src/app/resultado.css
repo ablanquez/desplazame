@@ -353,35 +353,75 @@
   vertical-align: -0.2em;
 }
 
-/* ⭐ EL AIRE ENTRE EL CHIP Y LO QUE VIENE DETRÁS.
+/* ⭐ LAS CINCO LÍNEAS DE LOS PASOS CON ACCIÓN VIVA (14/09).
 
-   Medido a cero: el chip y la primera letra se tocaban, y «35Sube a la línea
-   35» se lee como una palabra rara antes de leerse como una insignia y un
-   verbo. El paso es el `gap-2` de la referencia —`RouteResult.tsx` lo usa entre
-   el rótulo «Se viaja en» y sus chips—, o sea 0,5 rem.
+   Eran una frase corrida con el chip y la ficha EN LÍNEA dentro del párrafo, y
+   una caja en línea más alta que el renglón deja al de al lado a 1,0 px medido
+   —chip de 24 px en un renglón de 22,4—. En la pantalla de Antonio (1920×1080 a
+   32", ~69 PPI) ese píxel es cero. [WCAG 1.4.12 / F104] lo que crece, crece en
+   vertical: cada papel en su línea, y el aire lo pone el `gap` —0,4 rem, 6,4 px,
+   por encima de la vara de la nº52 (4,3)—, no un margen dentro de un renglón.
 
-   Va como margen y no como `gap` porque el chip vive dentro de un párrafo en
-   línea, no de una caja flexible: aquí quien separa es el margen. */
-.paso__frase .chip-linea {
-  margin-right: 0.5rem;
+   ⚠️ `flex: none` en los hijos por la lección de la nº49: en una columna flex
+      un hijo encoge por el ALTO y pinta encima del vecino. */
+.hito {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+  line-height: 1.4;
+}
+
+.hito > * {
+  flex: none;
+}
+
+/* L1 y L2 son filas que envuelven: si no caben, bajan con el mismo aire. El
+   hueco del TEXTO lo pone el `&ngsp;` de la plantilla (nº54); éste es el de la
+   pantalla. */
+.hito__l1,
+.hito__l2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+  align-items: center;
+}
+
+/* ⚠️ La L2 NO envuelve y va arriba: la ficha a la izquierda y el nombre en su
+   columna, que se parte DENTRO de ella. Envolviendo, un nombre largo ponía su
+   segundo renglón debajo de la ficha — la ficha contra un renglón otra vez. */
+.hito__l2 {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.hito__accion,
+.hito__l2 > strong {
+  min-width: 0;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.hito__l3 {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ⭐ LA MARCA «desviada» (13/09, fase B) [ANTONIO]: icono + palabra, sin tira.
 
    La tinta es `--warning-dark`, la del aviso de arriba: es el mismo aviso
    señalado en su sitio, y vestido distinto parecería otro. SIN el fondo
-   `--warning` a propósito — con fondo sería la tira en pequeño. El aire de
-   después es el mismo 0,5 rem del chip. Contraste medido en `pintura.mjs`,
-   en reposo y sobre la banda del realce, que también la pinta. */
+   `--warning` a propósito — con fondo sería la tira en pequeño. Desde el 14/09
+   vive en la L1, que es una fila: el aire lo pone su `gap`, no un margen.
+   Contraste medido en `pintura.mjs`, en reposo y sobre la banda del realce. */
 .paso__marca {
   display: inline-flex;
   gap: 0.25rem;
   align-items: center;
-  margin-right: 0.5rem;
   color: var(--warning-dark);
   font-size: 0.875rem;
   font-weight: 600;
-  vertical-align: -0.15em;
 }
 
 /* El reloj de arena del botón vivo, ahora que es un dibujo y no un carácter. */
@@ -571,6 +611,25 @@
 .vivo__estado {
   font-size: 0.85rem;
   color: #334155;
+}
+
+/* ⭐ L5: LA REGIÓN VESTIDA DE ADVERTENCIA (14/09, nº53). El vestido de la tira
+   que sustituye —el mismo par, `warning-dark` sobre `warning`, 7,65:1 medido—
+   en su propia línea. El icono va detrás en el DOM y `order` lo pinta delante:
+   el primer hijo de la región sigue siendo su texto. */
+.vivo__estado--aviso {
+  display: flex;
+  flex-basis: 100%;
+  gap: 0.35rem;
+  align-items: flex-start;
+  padding: 0.35rem 0.5rem;
+  border-left: 3px solid var(--warning-border);
+  color: var(--warning-dark);
+}
+
+.vivo__estado-icono {
+  flex: none;
+  order: -1;
 }
 
 .vivo__tarda {
