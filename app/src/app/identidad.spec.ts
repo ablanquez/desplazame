@@ -5,8 +5,8 @@
 // @ts-expect-error — sin @types/node, el compilador no conoce el módulo
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
-import { contraste, AA_TEXTO } from './contraste';
-import { Identidad, MODOS, PARES, SEMANTICOS, TOKENS_DE_MODO, aHex } from './identidad';
+import { contraste, AA_TEXTO, AA_GRAFICO } from './contraste';
+import { Identidad, LIMITES, MODOS, PARES, SEMANTICOS, TOKENS_DE_MODO, aHex } from './identidad';
 
 /**
  * ⭐ LOS TOKENS Y SU CONTRASTE — la tanda 1 del calco (9/09, punto 15).
@@ -303,12 +303,15 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     }),
   );
 
-  it('se miden los 20 pares en los dos temas: 40 medidas', () => {
-    // ⚠️ Eran 18 y 36. Los dos nuevos son los DOS estados de la banda: medir
-    //    solo el reposo dejaría el hover sin vigilar, que es donde el gris se
-    //    aclara y el texto pierde contraste.
-    expect(PARES.length).toBe(20);
-    expect(medidos.length).toBe(40);
+  it('se miden los 21 pares en los dos temas: 42 medidas', () => {
+    // ⚠️ Eran 18 y 36. Los dos siguientes fueron los DOS estados de la banda:
+    //    medir solo el reposo dejaría el hover sin vigilar, que es donde el
+    //    gris se aclara y el texto pierde contraste.
+    // ⚠️ Y el 21 (14/09, fase C) es el número de la ficha de poste o estación:
+    //    `foreground` sobre `card`. Sobre la banda del realce ya estaba medido.
+    expect(PARES.length).toBe(21);
+    expect(medidos.length).toBe(42);
+    expect(PARES.some((p) => p.texto === 'foreground' && p.fondo === 'card')).toBe(true);
   });
 
   for (const m of medidos) {
@@ -343,6 +346,29 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
   it('⭐ ningún par por debajo del umbral que no esté censado', () => {
     const bajos = medidos.filter((m) => m.ratio < AA_TEXTO).map((m) => m.clave);
     expect(bajos.sort()).toEqual(Object.keys(DEUDA).sort());
+  });
+
+  /**
+   * ⭐ (ii-ter) LOS LÍMITES NO TEXTUALES, a 3:1 [WCAG 1.4.11] (14/09, fase C).
+   *
+   * La ficha de contorno y el círculo terminal se eligieron POR ESTO: lo que
+   * identifica el componente tiene que distinguirse de lo que tiene al lado, en
+   * reposo Y sobre la banda del realce. Un borde no es texto y su vara es 3:1,
+   * así que va en su propia lista y no mezclado con los pares de 4,5.
+   */
+  it('⭐ los 4 límites de la fase C, en los dos temas, a 3:1 o más', () => {
+    expect(LIMITES.map((l) => `${l.borde}/${l.fondo}`)).toEqual([
+      'muted-foreground/card',
+      'muted-foreground/banda-cabecera',
+      'primary/card',
+      'primary/banda-cabecera',
+    ]);
+    for (const tema of ['light', 'dark'] as const) {
+      for (const l of LIMITES) {
+        const r = contraste(tabla[tema][l.borde]!, tabla[tema][l.fondo]!);
+        expect(r, `${tema} · ${l.rotulo}`).toBeGreaterThanOrEqual(AA_GRAFICO);
+      }
+    }
   });
 
   /** La aritmética de la página es la misma que la del juez, no una parecida. */
@@ -480,6 +506,14 @@ describe('LA PÁGINA de identidad monta con todo lo que hay que medir', () => {
     expect(raiz.querySelectorAll('.identidad__variante').length).toBe(MODOS.length * 4);
     // Dos píldoras por modo: la seleccionada y la que no lo está.
     expect(raiz.querySelectorAll('.identidad__pildora').length).toBe(MODOS.length * 2);
+  });
+
+  it('⭐ pinta los límites no textuales: una fila por límite y por tema (fase C)', () => {
+    const f = TestBed.createComponent(Identidad);
+    f.detectChanges();
+    const raiz = f.nativeElement as HTMLElement;
+    // Un color que vive en la hoja y no en esta página no lo mide nadie.
+    expect(raiz.querySelectorAll('.identidad__limite').length).toBe(LIMITES.length * 2);
   });
 
   it('el conmutador es LOCAL: pone data-theme en la página y no en <html>', () => {

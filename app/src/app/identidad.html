@@ -116,6 +116,68 @@
     }
   </div>
 
+  <!-- ══════════════ (i-bis) LOS LÍMITES, Y SU CONTRASTE (fase C) ══════════════
+       Un borde no es texto: su vara es la de WCAG 1.4.11, 3:1, y por eso va en
+       su tabla. Son los dos componentes elegidos el 14/09 por esta norma —la
+       ficha de contorno del poste y el círculo de origen y destino—, medidos en
+       reposo y sobre la banda del realce. -->
+  <h2>Los límites, y su contraste</h2>
+  <p class="identidad__nota">
+    Cada fila es un borde sobre la superficie que tiene al lado. El umbral es
+    <strong>{{ aaGrafico }}:1</strong>, el de WCAG 1.4.11 para lo que identifica
+    un componente.
+  </p>
+
+  <div class="identidad__temas">
+    @for (t of temas; track t) {
+      <div class="identidad__columna">
+        <h3>{{ t === 'light' ? 'Claro' : 'Oscuro' }}</h3>
+        <table class="identidad__tabla">
+          <thead>
+            <tr>
+              <th scope="col">Límite</th>
+              <th scope="col">Muestra</th>
+              <th scope="col">Borde</th>
+              <th scope="col">Fondo</th>
+              <th scope="col">Ratio</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of limitesDe(t); track l.limite.rotulo) {
+              <tr class="identidad__limite" [class.identidad__fila--incumple]="l.ratio !== null && !l.cumple">
+                <th scope="row">{{ l.limite.rotulo }}</th>
+                <td>
+                  <span
+                    class="identidad__muestra"
+                    [style.background-color]="v(l.limite.fondo)"
+                    [style.box-shadow]="'inset 0 0 0 2px ' + v(l.limite.borde)"
+                    >&nbsp;</span
+                  >
+                </td>
+                <td>
+                  <code>{{ l.borde.hex || 'NO CONSTA' }}</code>
+                  <span class="identidad__token">--{{ l.limite.borde }}</span>
+                </td>
+                <td>
+                  <code>{{ l.fondo.hex || 'NO CONSTA' }}</code>
+                  <span class="identidad__token">--{{ l.limite.fondo }}</span>
+                </td>
+                <td class="identidad__ratio">
+                  <strong>{{ l.ratio === null ? 'NO CONSTA' : l.ratio.toFixed(2) + ':1' }}</strong>
+                  @if (l.ratio !== null) {
+                    <span [class]="l.cumple ? 'identidad__ok' : 'identidad__mal'">
+                      {{ l.cumple ? 'AA' : 'no llega' }}
+                    </span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
   <!-- ══════════════ (ii) LOS SEIS MODOS, CUATRO VARIANTES ══════════════ -->
   <h2>Los modos</h2>
   <p class="identidad__nota">

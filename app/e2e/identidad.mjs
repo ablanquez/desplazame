@@ -21,7 +21,7 @@
  * ⚠️ Necesita `ng serve` en 4200 y un Chrome, como el resto de los `e2e/`.
  *    Se lanza a mano: `node e2e/identidad.mjs`
  */
-import { abrirChrome, contrasteRgb, deHex, AA_TEXTO } from './medir.mjs';
+import { abrirChrome, contrasteRgb, deHex, AA_GRAFICO, AA_TEXTO } from './medir.mjs';
 
 /**
  * Contra quién se mide. Por defecto `ng serve`, como el resto de los `e2e/`,
@@ -314,6 +314,8 @@ try {
     console.log(`\n  ── ${tema} ──`);
     const pares = [
       ['foreground', 'background'], ['card-foreground', 'card'],
+      // ⭐ 14/09, fase C: el número de la ficha de poste o estación.
+      ['foreground', 'card'],
       ['primary-foreground', 'primary'], ['success-foreground', 'success'],
       ['warning-foreground', 'warning'], ['muted-foreground', 'muted'],
       ['foreground', 'banda-cabecera'], ['foreground', 'banda-cabecera-hover'],
@@ -341,9 +343,42 @@ try {
   //    salen de la cuenta y no de lo que era verdad el día que se escribieron.
   juzgar(
     porDebajo === 0,
-    `los ${40 - porDebajo} de 40 pares cumplen AA (${AA_TEXTO}:1)`,
+    `los ${42 - porDebajo} de 42 pares cumplen AA (${AA_TEXTO}:1)`,
     porDebajo ? `${porDebajo} por debajo — decidir: corregir el valor o censarlo` : '',
   );
+
+  // ═════════ (ii-ter) LOS LÍMITES NO TEXTUALES, a 3:1 [WCAG 1.4.11] ═════════
+  //
+  // ⭐ [ANTONIO, 14/09, fase C] la ficha de contorno del poste y el círculo de
+  //    origen y destino se ELIGIERON por esta norma: lo que identifica el
+  //    componente tiene que distinguirse de lo que tiene al lado, en reposo y
+  //    sobre la banda del realce. Su vara es 3:1, no la de la letra, y por eso
+  //    se cuentan aparte. Y se compra también que la PÁGINA los pinte: un color
+  //    que vive en la hoja y no en /identidad no lo mira nadie.
+  console.log('\n═══ (ii-ter) LOS LÍMITES NO TEXTUALES ═══');
+  {
+    const LIMITES = [
+      ['muted-foreground', 'card'], ['muted-foreground', 'banda-cabecera'],
+      ['primary', 'card'], ['primary', 'banda-cabecera'],
+    ];
+    let limitesBajos = 0;
+    for (const [tema, tabla] of [['light', CLARO], ['dark', OSCURO]]) {
+      const leidos = await leerTokens(`[data-sonda='${tema}']`);
+      for (const [a, b] of LIMITES) {
+        const r = contrasteRgb(deHex(leidos[a] || tabla[a]), deHex(leidos[b] || tabla[b]));
+        const ok = r >= AA_GRAFICO;
+        if (!ok) limitesBajos++;
+        console.log(`  ${ok ? 'OK ' : '⚠️ '} ${tema} · ${(a + ' / ' + b).padEnd(34)} ${leidos[a]} junto a ${leidos[b]}  =  ${r.toFixed(2)}:1`);
+      }
+    }
+    juzgar(
+      limitesBajos === 0,
+      `los ${8 - limitesBajos} de 8 límites cumplen 1.4.11 (${AA_GRAFICO}:1)`,
+      limitesBajos ? `${limitesBajos} por debajo` : '',
+    );
+    const filas = await mando.evaluar(`document.querySelectorAll('.identidad__limite').length`);
+    juzgar(filas === 8, '⭐ y la página los pinta: una fila por límite y por tema', `${filas} filas`);
+  }
 
   // ═════════ (ii-bis) LA SEPARACIÓN DE LA BANDA ═════════
   //

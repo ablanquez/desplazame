@@ -1,5 +1,5 @@
 import { Component, ElementRef, inject, signal, afterNextRender } from '@angular/core';
-import { contraste, deCss, AA_TEXTO, type Rgb } from './contraste';
+import { contraste, deCss, AA_GRAFICO, AA_TEXTO, type Rgb } from './contraste';
 
 /**
  * ⭐ LA PÁGINA DE IDENTIDAD VISUAL — donde los tokens se miran (9/09, punto 15).
@@ -105,6 +105,9 @@ export interface Par {
 export const PARES: readonly Par[] = [
   { texto: 'foreground', fondo: 'background', rotulo: 'Texto sobre el fondo' },
   { texto: 'card-foreground', fondo: 'card', rotulo: 'Texto sobre una tarjeta' },
+  // ⭐ El número de la ficha de poste o estación (14/09, fase C): va en
+  //    `foreground` sobre la tarjeta. Sobre la banda del realce ya se mide abajo.
+  { texto: 'foreground', fondo: 'card', rotulo: 'Ficha de poste o estación' },
   { texto: 'primary-foreground', fondo: 'primary', rotulo: 'Botón principal' },
   { texto: 'success-foreground', fondo: 'success', rotulo: 'Aviso de acierto' },
   { texto: 'warning-foreground', fondo: 'warning', rotulo: 'Aviso de atención' },
@@ -128,6 +131,33 @@ export const PARES: readonly Par[] = [
     fondo: `mode-${m}-soft`,
     rotulo: `Modo ${m} — sin seleccionar`,
   })),
+];
+
+/** Un límite no textual: el borde de algo sobre lo que tiene al lado [WCAG 1.4.11]. */
+export interface Limite {
+  readonly borde: Token;
+  readonly fondo: Token;
+  readonly rotulo: string;
+}
+
+/**
+ * ⭐ LOS LÍMITES NO TEXTUALES, a 3:1 [WCAG 1.4.11] (14/09, fase C).
+ *
+ * Entran por la puerta grande por lo mismo que la banda el 11/09: un color que
+ * vive en la hoja y no en esta lista no se sondea, no se mide y no lo cuenta
+ * nadie. La ficha de contorno del poste y el círculo terminal se ELIGIERON por
+ * esto —lo que identifica el componente sigue distinguiéndose de lo que tiene
+ * al lado—, así que se miden en los dos sitios donde se pintan: la tarjeta en
+ * reposo y la banda del realce.
+ *
+ * ⚠️ Van en su lista y no en `PARES`: un borde no es texto, y su vara es 3:1,
+ *    no 4,5. Mezclarlos sería medir un borde con la vara de la letra.
+ */
+export const LIMITES: readonly Limite[] = [
+  { borde: 'muted-foreground', fondo: 'card', rotulo: 'Ficha de poste o estación' },
+  { borde: 'muted-foreground', fondo: 'banda-cabecera', rotulo: 'Ficha de poste — con el ratón' },
+  { borde: 'primary', fondo: 'card', rotulo: 'Círculo de origen y destino' },
+  { borde: 'primary', fondo: 'banda-cabecera', rotulo: 'Círculo de origen y destino — con el ratón' },
 ];
 
 /** Lo leído de un token en un tema. `hex` vacío = no se pudo medir. */
@@ -182,6 +212,7 @@ export class Identidad {
   protected readonly todos = TODOS;
   protected readonly temas = TEMAS;
   protected readonly aaTexto = AA_TEXTO;
+  protected readonly aaGrafico = AA_GRAFICO;
 
   /**
    * ⭐ EL CONMUTADOR, y es LOCAL a esta página.
@@ -261,6 +292,22 @@ export class Identidad {
       const fondo = this.lectura(tema, par.fondo);
       const ratio = ratioDe(texto, fondo);
       return { par, texto, fondo, ratio, cumple: ratio !== null && ratio >= AA_TEXTO };
+    });
+  }
+
+  /** Los límites de un tema, ya medidos contra su vara: 3:1 [WCAG 1.4.11]. */
+  protected limitesDe(tema: Tema): readonly {
+    readonly limite: Limite;
+    readonly borde: Lectura;
+    readonly fondo: Lectura;
+    readonly ratio: number | null;
+    readonly cumple: boolean;
+  }[] {
+    return LIMITES.map((limite) => {
+      const borde = this.lectura(tema, limite.borde);
+      const fondo = this.lectura(tema, limite.fondo);
+      const ratio = ratioDe(borde, fondo);
+      return { limite, borde, fondo, ratio, cumple: ratio !== null && ratio >= AA_GRAFICO };
     });
   }
 
