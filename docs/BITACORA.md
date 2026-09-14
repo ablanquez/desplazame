@@ -14,6 +14,35 @@
 
 ---
 
+## [2026-09-14] 🔴 ABIERTA — la ficha del poste sale pegada al nombre: «(33)Av. Academia»
+
+**Categoría:** lo computado no es lo pintado
+**Síntoma:** en la captura `fase-c-pc-ficha.png` de la P22, sobre el motor en
+`127.0.0.1` con la build de la fase C, la ficha de contorno y el nombre del
+poste se tocan: «en el poste (🚌 33)Av. Academia General Militar N.º 37». La
+plantilla lleva un salto de línea entre la `</span>` de la ficha y el
+`<strong>`; en pantalla no queda ni un píxel. Medido con un `Range` sobre la
+primera letra del nombre:
+`  ✗✗  P22 · pc · ⭐ y entre la ficha y el nombre hay aire: al menos 4 px  ·  aire 0 px`
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la P22 entera y la prueba de
+unidad de la ficha, con la ficha ya pegada:
+`$ node p22-solo.mjs http://127.0.0.1:4200 <capturas>`
+`  OK  P22 · pc · ⭐ el poste lleva su ficha: icono del fichero, callado, y el número (b)  ·  2 ficha(s) · «33» · icono idéntico al fichero · aria-hidden true`
+`  OK  P22 · pc · ⭐ la ficha cabe en su paso: dentro del cuerpo, en una línea y sin scroll lateral  ·  dentro true · alto 21 px · sobra a lo ancho 0 px`
+`✅ VERDE`
+`$ npx ng test --watch=false`
+`      Tests  554 passed (554)`
+**Cómo se cazó:** ojo humano — mirando la captura que la propia P22 guardó en verde.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/src/app/buscador.html` (la ficha en el bucle de `paso.partes`);
+`app/src/app/resultado.css` (`.ficha-entidad`); `app/e2e/pintura.mjs` — P22;
+`app/src/app/buscador.spec.ts` — 17-septies.
+
+---
+
 ## [2026-09-13] ✅ CERRADA — la negrita no existe: todo `font-weight: 700` pinta el semibold
 
 **Categoría:** lo computado no es lo pintado
