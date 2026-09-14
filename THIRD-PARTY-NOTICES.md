@@ -2150,8 +2150,17 @@ traen número legible y las 276 casan con § 1.8**, sin sobras ni faltas por nin
 lados.
 
 **Y si calla, la ruta sale igual.** Es el plan D-G firmado el 28/08 —*componer sin prometer*—:
-se rutea con el inventario de § 1.8, un aviso dice que **la disponibilidad no está verificada**, y
-los hitos salen **sin número y sin hora**. Nunca se inventa un «quedan 3 bicis».
+se rutea con el inventario de § 1.8, **cada hito lleva su propio aviso** —«No hemos podido
+preguntar cuántas bicis hay en la estación X ahora mismo: disponibilidad no verificada.» en el de
+coger, y «…cuántos anclajes libres hay…» en el de dejar, cada uno con su `paso`—, y los hitos
+salen **sin número y sin hora**: sin el campo `disponibilidad`. Nunca se inventa un «quedan 3
+bicis». En la pantalla, ese aviso es la región de estado del propio hito, y su botón la reescribe
+en cuanto la sede contesta.
+
+> ⚠️ **Aquí ponía «un aviso dice que la disponibilidad no está verificada»**, y hasta el 14/09 era
+> así: **un** aviso para el viaje entero, sin `paso`, que la pantalla colgaba de los dos hitos a la
+> vez. Desde `c1a7026` el motor lo parte en dos, uno por hito, y el número y la hora del dato
+> viajan como campo del paso en vez de dentro de la frase.
 
 ---
 
@@ -3259,22 +3268,24 @@ Las que van en `dependencies` de [`app/package.json`](app/package.json) — la i
 | `@angular/core` | 22.1.2 | MIT | El framework |
 | `@angular/common` | 22.1.2 | MIT | Lo común del framework (directivas, `HttpClient`) |
 | `@angular/compiler` | 22.1.2 | MIT | Compilador de plantillas |
-| `@angular/forms` | 22.1.2 | MIT | Los formularios — el de cuatro campos irá aquí |
 | `@angular/platform-browser` | 22.1.2 | MIT | Arrancar la aplicación en el navegador |
-| `@angular/router` | 22.1.2 | MIT | ⚠️ **Instalado y sin usar** — ver la nota de abajo |
+| `@angular/router` | 22.1.2 | MIT | Las cuatro páginas —el buscador, `/panel`, `/identidad` y `/creditos`— y el comodín que devuelve todo lo demás al buscador (`app/src/app/rutas.ts`) |
 | `leaflet` | 1.9.4 | **BSD-2-Clause** | El mapa. Es quien pide las teselas de § 1.1 |
 | `rxjs` | 7.8.2 | **Apache-2.0** | Flujos asíncronos; `HttpClient` los devuelve |
 | `tslib` | 2.8.1 | **0BSD** | Ayudantes que emite TypeScript al compilar |
 
-> ⚠️ **`@angular/router` está declarado aunque la aplicación no tiene router.** Se creó con
-> `--routing=false` y no hay fichero de rutas ni `provideRouter` en ninguna parte —comprobado—,
-> pero el CLI lo instala igual en su conjunto estándar. Se deja como lo dejó el CLI y se dice
-> aquí, en vez de quitarlo por iniciativa propia. Desplázame es **una sola vista**: si sigue sin
-> usarse, sobra.
+> ⚠️ **Aquí ponía que `@angular/router` estaba «instalado y sin usar»** —«no hay fichero de rutas
+> ni `provideRouter` en ninguna parte»—, y dejó de ser verdad el **18/08** (`d5623a7`, «el router
+> con las dos rutas»): hoy `app/src/app/app.config.ts` llama a `provideRouter(rutas)`. Y la tabla
+> traía **`@angular/forms`**, que se fue del `package.json` el **7/09** (`460eb01`, «fuera las dos
+> dependencias muertas») sin que esta fila se enterara. Comprobado el 14/09 contra
+> `app/package.json` y las versiones instaladas del `package-lock.json` de la raíz.
 
 > **Lo que esta tabla NO dice:** cuál de estos paquetes acaba realmente dentro del JavaScript que
-> descarga el navegador. Eso lo decide el *build*, no el `package.json`, y **no está medido**:
-> **NO CONSTA**. Hoy no hay ni build de producción que mirar.
+> descarga el navegador. Eso lo decide el *build*, no el `package.json`, y **no está medido
+> paquete a paquete**: **NO CONSTA**. ⚠️ Aquí ponía también «hoy no hay ni build de producción
+> que mirar», y desde el 8/09 lo hay y está versionado en `app/dist/` (`60ac989`): lo que falta
+> no es el build, es la medición.
 
 ### 2.2 · Dependencias de desarrollo
 
@@ -3288,15 +3299,18 @@ pagado el precio de una tabla incompleta.
 | `@angular/compiler-cli` | 22.1.2 | MIT | Compilación anticipada (AOT) |
 | `typescript` | 6.0.3 | **Apache-2.0** | El lenguaje |
 | `@types/leaflet` | 1.9.22 | MIT | Los tipos de Leaflet: **no vienen en el paquete**, van aparte |
-| `vitest` | 4.1.10 | MIT | El corredor de pruebas que eligió el CLI |
+| `vitest` | 4.1.11 | MIT | El corredor de pruebas que eligió el CLI |
 | `jsdom` | 28.1.0 | MIT | DOM de mentira para que Vitest pueda correr pruebas |
-| `prettier` | 3.9.6 | MIT | Formateo |
 | `@types/node` | 26.2.0 | MIT | **Del motor**, no de la interfaz: los tipos de Node para revisar `motor/` con `tsc` |
+
+> ⚠️ **Aquí estaba también `prettier` 3.9.6**, que salió con `@angular/forms` el 7/09 (`460eb01`),
+> y `vitest` decía 4.1.10: el `package-lock.json` instala hoy la **4.1.11**.
 
 ### 2.3 · El árbol transitivo — existe, y no se lista aquí
 
-Las **18 declaradas** de arriba arrastran, con todo lo suyo, **502 paquetes** de terceros
-instalados.
+Las **16 declaradas** de arriba —8 de ejecución y 7 de desarrollo de la interfaz, y 1 del motor—
+arrastran, con todo lo suyo, **500 paquetes** de terceros instalados. ⚠️ Aquí ponía **18** y
+**502**, que eran las cuentas de antes de quitar las dos dependencias muertas el 7/09.
 Enumerarlos aquí sería una tabla que nadie lee y que caduca en la primera actualización.
 
 **Dónde mirarlos, que es lo que importa:** [`package-lock.json`](package-lock.json) **de la
@@ -3309,11 +3323,12 @@ npm ls --all                   # el árbol entero
 ```
 
 **El reparto de licencias del árbol completo, leído del `package-lock.json` de la raíz el
-17/08/2026 (recalculado al montar los workspaces):**
+14/09/2026** —las entradas de `node_modules/` que no son enlace, agrupadas por su campo
+`license`; aquí ponía el recuento del 17/08, con **430** MIT y **502** en total—:
 
 | Licencia | Paquetes |
 |---|---|
-| MIT | 430 |
+| MIT | 428 |
 | ISC | 25 |
 | BSD-2-Clause | 13 |
 | **MPL-2.0** | 12 |
@@ -3324,15 +3339,15 @@ npm ls --all                   # el árbol entero
 | BlueOak-1.0.0 | 1 |
 | CC0-1.0 | 1 |
 | 0BSD | 1 |
-| **Total** | **502** |
+| **Total** | **500** |
 
 *(El `package-lock.json` trae tres entradas más sin licencia: `desplazame`, `@desplazame/tipos`
 y `@desplazame/motor`. No son terceros — son los enlaces de nuestros propios workspaces, y por
-eso no cuentan en los 502.)*
+eso no cuentan en los 500.)*
 
 ### 2.4 · Las tres que no son MIT ni BSD
 
-De las 502, tres familias no son la licencia permisiva de siempre. **Las tres son de desarrollo:
+De las 500, tres familias no son la licencia permisiva de siempre. **Las tres son de desarrollo:
 ninguna viaja al navegador.**
 
 | Paquete | Licencia | Qué tiene de distinto |
@@ -3343,7 +3358,7 @@ ninguna viaja al navegador.**
 
 ### 2.5 · Resumen de compatibilidad
 
-**Las 18 dependencias declaradas son MIT, Apache-2.0, BSD-2-Clause o 0BSD**: permisivas, sin
+**Las 16 dependencias declaradas son MIT, Apache-2.0, BSD-2-Clause o 0BSD**: permisivas, sin
 copyleft, y compatibles con la Apache 2.0 de este proyecto sin ninguna condición añadida. **No
 hay ninguna sorpresa entre ellas** — y en particular, Leaflet es BSD-2-Clause, no una licencia
 con restricciones de uso.
@@ -3355,5 +3370,5 @@ arriba.
 
 > **Y lo que este documento no garantiza:** el reparto de licencias de § 2.3 sale del campo
 > `license` que cada paquete declara en el `package-lock.json`. **No se ha abierto el `LICENSE` de
-> los 502 para comprobar que dicen la verdad**, y un paquete puede declarar mal. Las **18
+> los 500 para comprobar que dicen la verdad**, y un paquete puede declarar mal. Las **16
 > declaradas sí** se han mirado una a una. Del resto: **NO CONSTA**.
