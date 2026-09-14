@@ -14,6 +14,32 @@
 
 ---
 
+## [2026-09-14] 🔴 ABIERTA — la tanda 5 se cerró con «todas las suites en verde» y `moto.mjs` estaba en rojo
+
+**Categoría:** verde declarado que no era
+**Síntoma:** `moto.mjs` cae en «y su marca es la 🅿»: lee `.paso__flecha`, que
+murió el 12/09 con los iconos SVG. Corrido hoy contra `127.0.0.1:4200` (pid
+11744, `main-UZMRY7L6.js`): `✖ y su marca es la 🅿` · `ROJO: 1 mal.`
+Contra la build del cierre de la tanda 5 (el dist de `2256653`, corrido el
+14/09 a las 16:31 contra la build vieja), lo mismo: `✖ y su marca es la 🅿` ·
+`ROJO: 1 mal.`
+**⭐ Qué dio verde mientras el fallo estaba vivo:** el checkpoint del cierre de
+la fase C (14/09, 10:44 UTC), que abre con «He fijado y cerrado la FASE C: las
+tres resoluciones están aplicadas, medidas en lo pintado y con todas las suites
+en verde.» y enumera: «**Suites contra el motor en `127.0.0.1`:** pintura (166
+OK: P18–P22), identidad, créditos, esqueleto y bizi en **VERDE**; pantalla
+**7/0**.» Los logs de aquel cierre en el scratchpad son `k-bizi.txt
+k-creditos.txt k-esqueleto.txt k-identidad.txt k-pantalla.txt k-pintura.txt`
+(y la tanda `j-` con los mismos seis): ni `moto`, ni `yego`, ni `dos-filas`, ni
+`proximo-bus`. En el transcript, `moto.mjs` no se ejecuta entre el commit
+`9ad48e6` (10/09) y el 14/09 a las 14:31 UTC.
+**Cómo se cazó:** instrumento — la batería entera del encargo de las cinco líneas (nº39), que sí la corrió.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/e2e/moto.mjs` (el `evaluar` de lo pintado: `marca: hito.querySelector('.paso__flecha')`), checkpoint del cierre de la fase C.
+
 ## [2026-09-14] ✅ CERRADA — los dos chips del transbordo y la frase, pegados en el texto: «3531En el poste»
 
 **Categoría:** lo computado no es lo pintado
