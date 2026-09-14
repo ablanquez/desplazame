@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-14] 🔴 ABIERTA — la tanda 5 se cerró con «todas las suites en verde» y `moto.mjs` estaba en rojo
+## [2026-09-14] ✅ CERRADA — la tanda 5 se cerró con «todas las suites en verde» y `moto.mjs` estaba en rojo
 
 **Categoría:** verde declarado que no era
 **Síntoma:** `moto.mjs` cae en «y su marca es la 🅿»: lee `.paso__flecha`, que
@@ -34,10 +34,41 @@ k-creditos.txt k-esqueleto.txt k-identidad.txt k-pantalla.txt k-pintura.txt`
 `proximo-bus`. En el transcript, `moto.mjs` no se ejecuta entre el commit
 `9ad48e6` (10/09) y el 14/09 a las 14:31 UTC.
 **Cómo se cazó:** instrumento — la batería entera del encargo de las cinco líneas (nº39), que sí la corrió.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
-**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Causa raíz:** dos cosas, y las dos se miden.
+- **El fallo:** la jueza leía el glifo `🅿` en `.paso__flecha`, y los glifos
+  murieron el 12/09 con los SVG. Desde entonces la marca es el trazado de
+  `local_parking` dentro de `.paso__circulo`.
+- **La mentira, que es lo que trae esto a la bitácora:**
+  - La batería del cierre se eligió a mano: seis suites, las que tocaban la
+    pintura del resultado.
+  - La frase «todas las suites» se escribió sobre esa selección, no sobre
+    `app/e2e/`, que tiene once ficheros (diez suites y `medir.mjs`).
+  - `moto.mjs` no pasa por el resultado del bus, y por eso nadie la sintió
+    necesaria.
+  - Por eso mismo nadie la corrió en cuatro días.
+- **Y un segundo muerto, en el mismo lector y sin jueza:** `.ruta__totales span`
+  dejaba en blanco el renglón del registro («Modo: Moto ·  · 17 pasos»).
+
+**Arreglo aplicado:** `app/e2e/moto.mjs` cambia de letra con acta.
+- **La marca:** se lee `hito.querySelector('.paso__circulo svg path')` y se
+  compara con el `d` de `app/simbolos/local_parking.svg`, leído del fichero y
+  no copiado.
+- **Los totales:** se leen de `.ruta__titular > span:not([aria-hidden])`.
+- **Rojo con la letra vieja:** `✖ y su marca es la 🅿` · `ROJO: 1 mal.`
+- **Verde con la nueva:** «✔ y su marca es la P de aparcar, el `local_parking`
+  de su fichero — idéntico al fichero» · «Modo: Moto · 3,5 km · ~9 min · 17
+  pasos» · «VERDE».
+- **Contraprueba en copia**, 2 de 2 en rojo: el dibujo esperado cambiado a
+  `directions_walk`, y el círculo del primer paso en vez del del hito.
+- **La batería entera** (las diez suites, con `moto`, `yego`, `dos-filas` y
+  `proximo-bus`) se corrió al cierre del encargo de la región de la cabecera:
+  las diez en verde.
+
+**Commit:** `c6bcb9d`
+**Ley que sale de aquí:** SIN LEY TODAVÍA — es la nº39 («se corre TODO») incumplida.
+Y una línea más, del cierre: **«todas» se dice contando el directorio, no la
+lista que uno eligió**. Un checkpoint que declara suites las nombra todas, y
+de las que no corrió dice que no las corrió.
 **Traza:** `app/e2e/moto.mjs` (el `evaluar` de lo pintado: `marca: hito.querySelector('.paso__flecha')`), checkpoint del cierre de la fase C.
 
 ## [2026-09-14] ✅ CERRADA — los dos chips del transbordo y la frase, pegados en el texto: «3531En el poste»
