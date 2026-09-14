@@ -4264,6 +4264,108 @@ Code lo traduce al Angular existente.)*
         avisa [refactor componente-propio en cola, 4 topes].
         e2e con 4200 a fuego pendientes: pantalla(adaptada),
         proximo-bus.
+      - [x] ⚰️ TANDA DE LOS FALLITOS DEL VISTAZO — LAS CINCO
+        LÍNEAS + LA ÚLTIMA VOZ (14/09 tarde, publicada ENTERA en
+        `2f51ce6` [7 commits: `8ab1d29` bitácoras +
+        `abb87a1`…`2f51ce6`]; ojo de Antonio sobre capM2: «a
+        priori bien»). ORIGEN: el vistazo de Antonio en
+        producción (`64c2591`) — chips apelotonados en los pasos
+        vivos + la advertencia del Generar que no muere cuando el
+        botón vivo sí contesta. ESPEC DE ANTONIO: CINCO líneas
+        (L1 chips+acción · L2 ficha+lugar · L3 datos estáticos ·
+        L4 botón+región · L5 advertencia solo si el último
+        intento no leyó) — escrita en DISEÑO §38. ⭐ REGLA
+        REFORZADA (Antonio, dos veces): NADIE decide — ni él ni
+        el estratega; toda decisión se resuelve con doctrina y
+        documentación de internet. DIAGNÓSTICO-PRIMERO (PARO del
+        ejecutor, bitácoras en `8ab1d29`): el zombi CONFIRMADO en
+        los tres botones [la tira sale de notaDelPaso (avisos del
+        Generar, congelada); la región de loVivoDe (la escriben
+        consultar/ponerConsulta); no comparten escritura — y el
+        inverso tampoco nace] · en bus DOS VOCES ya antes de
+        pulsar (la misma frase del motor dos veces) · el mudo de
+        BiZi sin paso, regalado a LOS DOS hitos por la regla de
+        reserva («bicis» en Deja, mentira menor) · arreglar sin
+        más empujaba el zombi al RESUMEN (el filtro de la fase C
+        lee notaDelPaso) · PARO por la L3: los datos solo viven
+        DENTRO de la frase (partes texto) — parsear prohibido
+        (30/08) · el «solape» NO se reprodujo: era AIRE de 1,0 px
+        (pantalla de Antonio: 1920×1080 en 32" al 100%, ~69 PPI —
+        1 px visual = cero) · la marca «desviada» del transbordo
+        NO ambigua en el dato (marca la línea a la que se sube).
+        RESUELTO POR DOCTRINA, no por nadie: (1) ABRIR
+        MOTOR+CONTRATO [espec dada + prohibición de parsear +
+        datos solo en frase + «el contrato crece cuando el motor
+        lo pide» con el precedente exacto de tramos (PARO del
+        6-quater) + los planificadores de referencia modelan
+        estos datos como CAMPOS del paso: transit_details de
+        Google Directions lleva num_stops y headway
+        estructurados; GBFS num_bikes/num_docks firmado 30/08];
+        (2) LA L5 ES LA REGIÓN [una voz por dato — el patrón del
+        minuto; la región ya tenía los dos escritores correctos:
+        es por construcción la voz del ÚLTIMO INTENTO; la tira
+        deja de vehicular el mudo de disponibilidad]; (3) el
+        filtro del resumen pasa a «tira O región» [la
+        implementación alcanzando al principio de la fase C:
+        ningún aviso sin sitio visible; costura 17-sexies
+        vigilando]; (4) la jueza del AIRE con la vara del
+        precedente nº52 (4,3 px) — nació en ROJO contra el 1,0
+        actual; (5) el caso 1920×1080/DPR1/zoom100 entra en la
+        batería. MITAD 1 (motor+contrato): Paso gana paradas ·
+        frecuencia · disponibilidad{cuantas,hora} OPCIONALES
+        [hora ya en huso de Zaragoza, nº41; salen de los mismos
+        números que la frase — la frase NO cambia; el motor tenía
+        la fuente en todos los casos] · Aviso.paso relleno en el
+        mudo de BiZi [creado el 2/09 para matar el reparto por
+        cadenas — este era ese fallo] y el mudo PARTIDO en dos
+        palabras justas [GBFS: bicis en Coge / anclajes en Deja]
+        · juezas 4/4 en rojo (la 7 vieja mordió «2 !== 1», acta),
+        contraprueba 5/5 · LA MURALLA AL BYTE con huella: sha del
+        JSON entero de los 160 trayectos idéntico quitando solo
+        lo nuevo (`0cf2990a…`); andando/bici/patín/coche/moto/
+        YeGo idénticos SIN quitar nada; queda de juez 14 en
+        muralla-modos.spec.ts; sellos 13/6/7 recalculados con
+        razón escrita (sellan textos y el mudo cambió), el 9 del
+        coche SIN recalcular. Motor 651→656. MITAD 2 (app): la
+        plantilla común de cinco líneas para sube · transborda ·
+        coge · deja [tranvía dentro SIN botón; aparca fuera;
+        «Baja» sigue sin ficha — el motor no manda ese poste] ·
+        L1 con la marca desviada/festivo pegada al chip de SU
+        línea [GTFS-RT informed_entity route_id + ley nº22] y el
+        transbordo con DOS chips separados EN EL TEXTO [&ngsp;,
+        ley de la nº52 — el margen ya se probó y no vale] · L3
+        SOLO de los campos (sin campo no hay L3; nada se parsea)
+        · L5=región: solo `mudo` viste de advertencia; `ausente`
+        se dice como DATO [GTFS-RT — antes salía como tira ámbar]
+        · 10 juezas de unidad en rojo + 7 viejas de la frase
+        corrida cambian con acta [COGER/DEJAR, 6, 11-14,
+        17-septies que deja de mirar .paso__texto] + P19 y
+        bizi-y-resumen [la del minuto habría pasado vacía] · P23
+        en LOS TRES anchos (1920·1440·390): aire 1,0→7,4-9,7 px ·
+        cinco líneas en orden · L5 advierte sin tira (7,65:1) ·
+        el ciclo botón-mata-advertencia — 36 rojos contra la
+        build vieja, contraprueba 48/48, pintura 232 OK [la jueza
+        del solape de cajas NO nació en rojo: nunca hubo cajas
+        pisadas — declarado, no fingido] · proximo-bus.mjs pulsa
+        LOS TRES botones y lee la L5 tras cada uno [su verde
+        mentiroso de la nº53, muerto]. Interfaz 555→566.
+        BITÁCORAS nº53 y nº54 CERRADAS con todos los campos
+        [54: 53 cerradas · 0 abiertas · 1 reabierta histórica].
+        DECLARADO SIN TAPAR: accesible a medias — se oye «35
+        Sube · 33 Av. Academia…» sin «en el poste»; lector de
+        pantalla real NO CONSTA. ⚠️ CABO NUEVO: moto.mjs 1 rojo
+        PRE-EXISTENTE [«su marca es la 🅿» lee .paso__flecha,
+        muerta el 12/09 con los SVG; cae igual contra la build
+        vieja] — arreglar la jueza en encargo chico Y ACLARAR si
+        moto.mjs se corrió al cierre de la tanda 5 [si aquel
+        verde la incluyó, candidata a bitácora]. ⚠️ PRESUPUESTO:
+        initial 540,70 kB (+3,46; la raya de 520 REBASADA —
+        declarado; empuja guardián de build + poda) ·
+        resultado.css 5,30 (avisa a 4; el error de 8 a 2,7).
+        NORMA NUEVA DE CIERRE: las capturas SIEMPRE con ruta
+        absoluta en el checkpoint [capM2 hubo que buscarla].
+        5b (hover paso→mapa): Antonio lo fija PARA DESPUÉS DEL
+        OSCURO.
       - [ ] TANDAS 6+ — EL OSCURO COMPLETO, en orden: el
         resultado en los dos temas → la tesela oscura CARTO
         [API key, atribución © CARTO, jueces de contraste] → EL

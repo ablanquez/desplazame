@@ -1,6 +1,6 @@
 # DISEÑO-DESPLAZAME · Documento anexo de diseño
 
-**v1.1 · 12/09/2026** (v1.0 del 8/09; la v1.1 añade la ⭐ enmienda del §20 — la redecisión del móvil a pestañas, 11/09). Fruto de la investigación profunda del 8/09 (decenas de fuentes; doctrina primaria priorizada: W3C/WCAG 2.2, WAI-ARIA APG, Nielsen Norman Group, Material Design 3, documentación oficial de Figma, MDN, OSMF, CARTO, Radix). **Escritor único: la conversación de estrategia** (como PLAN y ESTADO). Este documento guía el punto 15 (estética) de Desplázame **y es reutilizable para futuros diseños de la casa**: las fuentes y los porqués importan tanto como las conclusiones. Las decisiones aquí propuestas son PROPUESTAS con doctrina hasta que Antonio las vale; lo ya decidido por Antonio (layout, bloques, separador de dos posiciones, sin scroll global, claro+oscuro) va marcado como DECIDIDO.
+**v1.2 · 14/09/2026** (v1.0 del 8/09; la v1.1 añade la ⭐ enmienda del §20 — la redecisión del móvil a pestañas, 11/09; la v1.2 añade el ⭐ §38 — las cinco líneas de los pasos con acción viva, dictadas por Antonio el 14/09). Fruto de la investigación profunda del 8/09 (decenas de fuentes; doctrina primaria priorizada: W3C/WCAG 2.2, WAI-ARIA APG, Nielsen Norman Group, Material Design 3, documentación oficial de Figma, MDN, OSMF, CARTO, Radix). **Escritor único: la conversación de estrategia** (como PLAN y ESTADO). Este documento guía el punto 15 (estética) de Desplázame **y es reutilizable para futuros diseños de la casa**: las fuentes y los porqués importan tanto como las conclusiones. Las decisiones aquí propuestas son PROPUESTAS con doctrina hasta que Antonio las vale; lo ya decidido por Antonio (layout, bloques, separador de dos posiciones, sin scroll global, claro+oscuro) va marcado como DECIDIDO.
 
 ---
 
@@ -213,6 +213,15 @@ Organizado por los 8 bloques (A–H) y 37 puntos. Cada punto ofrece (1) doctrina
 ## 37. Tokens con pares claro/oscuro
 **Doctrina.** Figma Variables admite **modos de variable** (claro/oscuro) sobre los mismos nombres de token; DTCG 2025.10 soporta theming sin duplicar archivos; exportable a CSS custom properties.
 **Recomendación:** cada token semántico con valor en claro **y** oscuro bajo el **mismo nombre**; exportar a `:root` y `[data-theme="dark"]` + fallback `@media (prefers-color-scheme: dark)`.
+
+## 38. ⭐ Los pasos con acción viva: CINCO líneas (DECIDIDO por Antonio, 14/09; ejecutado en `2f51ce6`)
+**La espec, dictada con capturas delante.** Todo paso con acción viva (bus: sube · transborda; BiZi: coge · deja; tranvía: sin botón) se pinta en cinco líneas fijas, una plantilla común:
+- **L1** — chip(s) de línea + acción. La marca «⚠ desviada»/«festivo» pegada al chip de **su** línea (GTFS-RT `informed_entity` con `route_id` afecta a esa ruta; ley de casa nº22). El transbordo: un paso con **dos** chips (GTFS `transfers.txt`, firmado 31/08), separados **en el texto** (`&ngsp;` — ley de la nº52).
+- **L2** — la ficha de contorno del poste/estación (§ fase C) + el nombre del lugar.
+- **L3** — los datos estáticos, **solo de campos del contrato**, nunca de leer la frase: bus «N paradas · cada M min» (num_stops/headway son campos del paso en los planificadores de referencia — transit_details de Google Directions); BiZi «N bicis/anclajes a las HH:MM» (GBFS). Sin campo, sin L3.
+- **L4** — el botón vivo + su región `role=status`.
+- **L5** — **la región misma**, vestida de advertencia cuando su contenido es un no-pude-leer: una voz por dato, la del **último intento** (NN/g: el error visible mientras el error existe; heurística #1; precedente nº37). Solo `mudo` viste de advertencia; `ausente` se dice como dato (GTFS-RT).
+**Doctrina del layout:** el solape/apretujón es fallo WCAG 1.4.12/F104 (el bloque que no crece con el contenido); receta: líneas propias que crecen en vertical. Material 3: fuera del list item de 1/2/3 líneas se construye el item propio, un rol de contenido por línea. Vara del aire entre cajas vecinas del paso: **4,3 px** (precedente nº52). La batería de anchos incluye 1920×1080/DPR 1/zoom 100 (la pantalla real de Antonio: 32", ~69 PPI — donde 1 px de aire es visualmente cero).
 
 ---
 
