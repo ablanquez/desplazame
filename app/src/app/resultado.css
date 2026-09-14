@@ -36,14 +36,21 @@
    de dónde a dónde, en gris y pequeño; y al pie, en qué se viaja. El orden es el
    de la pregunta: cuánto tardo, por dónde, en qué.
 
-   La caja con borde se va: separaba la cabecera del resto como si fuera otra
-   cosa, y es el encabezado de lo que viene debajo. Lo que separa ahora es el
-   tamaño de la letra, que separa mejor y no gasta una línea. */
+   ⭐ LA CAJA VUELVE [ANTONIO, 14/09, veto de la tanda 5]. El 12/09 se quitó
+   porque «el tamaño de la letra separa»; sin caja, el grupo flotaba compitiendo
+   con el timeline. [NN/g · Common Region] un límite hace grupo. La FORMA es la
+   del hermano de arriba, el resumen (borde de 1 px, radio 4, el mismo relleno);
+   el COLOR, lo medido: `--border` da 1,23:1 (vara 3:1, WCAG 1.4.11) y la banda
+   de fondo bajaba los extremos a 4,12. `muted-foreground` es el contorno de la
+   ficha: 4,76:1, en LIMITES. Lo compra la P24. */
 .ruta {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
   margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--muted-foreground);
+  border-radius: 4px;
 }
 
 /* El titular: el `text-2xl font-bold` de la maqueta. Las cifras tabulares no
