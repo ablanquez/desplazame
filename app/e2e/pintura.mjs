@@ -2198,21 +2198,24 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
     //    del chip—. La pregunta no es dónde empieza el bloque de texto: es dónde
     //    empieza EL PRIMER CARÁCTER. Eso se pide con un `Range` sobre el primer
     //    nodo de texto y su primer rectángulo de línea.
+    //
+    // ACTA 14/09 [encargo de las cinco líneas, mitad 2]: medía del chip a la
+    //    primera letra de la frase corrida (.paso__frase / .paso__texto), y los
+    //    pasos con chip ya no la llevan: el chip vive en la L1, con la marca y la
+    //    acción. Mordió con «(ningún paso con chip)». La vara no cambia —8 px—:
+    //    se mide del chip a lo PRIMERO que se pinta detrás en su línea —otro
+    //    chip, el icono de la marca o la acción—. Aquí sí vale la caja: en una
+    //    fila flexible cada pieza es un bloque y no envuelve dentro de otra. Si
+    //    lo que sigue ha bajado de renglón, ahí no hay hueco que medir.
     const aire = await leer(m, `
       const huecos = [];
-      for (const f of document.querySelectorAll('.paso__frase')) {
-        const chip = f.querySelector('.chip-linea');
-        const texto = f.querySelector('.paso__texto');
-        if (!chip || !texto) continue;
-        const paseo = document.createTreeWalker(texto, NodeFilter.SHOW_TEXT);
-        let nodo = paseo.nextNode();
-        while (nodo && !(nodo.nodeValue || '').trim()) nodo = paseo.nextNode();
-        if (!nodo) continue;
-        const r = document.createRange();
-        r.selectNodeContents(nodo);
-        const primera = r.getClientRects()[0];
-        if (!primera) continue;
-        huecos.push(Math.round((primera.left - chip.getBoundingClientRect().right) * 100) / 100);
+      for (const chip of document.querySelectorAll('.hito__l1 .chip-linea')) {
+        const sigue = chip.nextElementSibling;
+        if (!sigue) continue;
+        const c = chip.getBoundingClientRect();
+        const s = sigue.getBoundingClientRect();
+        if (s.top >= c.bottom) continue;
+        huecos.push(Math.round((s.left - c.right) * 100) / 100);
       }
       return { huecos };
     `);
@@ -2761,20 +2764,36 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
 const SEMBRADO = 'Aviso de contexto sembrado por la jueza P22.';
 
 async function viajeP22(m, modo) {
-  await m.evaluar(`(() => {
-    const pedir = window.fetch;
-    window.fetch = async function (...args) {
-      const respuesta = await pedir.apply(this, args);
-      const url = String(args[0]?.url ?? args[0]);
-      if (!url.includes('/api/ruta') || !respuesta.ok) return respuesta;
-      const cuerpo = JSON.parse(await respuesta.clone().text());
-      const t = cuerpo.trayecto ?? cuerpo;
-      // En un paso que NO es hito, la forma del aviso de la ZBE. La primera versión
-      // sembraba en la primera subida y ahí tapaba al aviso MUDO del bus, que cae en
-      // el mismo paso: la tira enseña una sola nota y el mudo se quedaba arriba.
+  // En un paso que NO es hito, la forma del aviso de la ZBE. La primera versión
+  // sembraba en la primera subida y ahí tapaba al aviso MUDO del bus, que cae en
+  // el mismo paso: la tira enseña una sola nota y el mudo se quedaba arriba.
+  await generarCon(m, modo, `
       const HITOS = ['salida', 'sube', 'baja', 'transborda', 'coge', 'aparca', 'llegada'];
       const i = t.pasos.findIndex((p, k) => k > 0 && !HITOS.includes(p.giro));
       if (i >= 0) t.avisos.push({ texto: ${JSON.stringify(SEMBRADO)}, paso: i });
+  `);
+}
+
+/**
+ * COLOSO 2 → OVIEDO 5 en el modo que se diga, con la respuesta de /api/ruta
+ * retocada por `siembra` —código que recibe el trayecto en `t`— y, si se da,
+ * `vivo(url)` contestando por los botones vivos sin salir a la fuente.
+ */
+async function generarCon(m, modo, siembra, vivo = null) {
+  await m.evaluar(`(() => {
+    const pedir = window.fetch;
+    window.fetch = async function (...args) {
+      const url = String(args[0]?.url ?? args[0]);
+      ${vivo === null ? '' : `if (url.includes('/api/poste-vivo') || url.includes('/api/estacion-viva')) {
+        const cuerpo = (${vivo})(url);
+        await new Promise((r) => setTimeout(r, 200));
+        return new Response(JSON.stringify(cuerpo), { status: 200, headers: { 'content-type': 'application/json' } });
+      }`}
+      const respuesta = await pedir.apply(this, args);
+      if (!url.includes('/api/ruta') || !respuesta.ok) return respuesta;
+      const cuerpo = JSON.parse(await respuesta.clone().text());
+      const t = cuerpo.trayecto ?? cuerpo;
+      ${siembra}
       return new Response(JSON.stringify(cuerpo), { status: respuesta.status, statusText: respuesta.statusText, headers: respuesta.headers });
     };
   })()`);
@@ -2843,11 +2862,25 @@ const aRgb = (css) => {
   return { r, g, b };
 };
 
-for (const pantalla of [{ id: 'pc', ancho: 1440, alto: 1000, puerto: 9422 }, { id: 'movil', ancho: 390, alto: 844, puerto: 9423 }]) {
+/**
+ * ⭐ LA BATERÍA DE ANCHOS (14/09): el caso de Antonio entra.
+ *
+ * Su pantalla es 1920×1080 en 32" al 100 %: ~69 PPI, píxel gordo. Lo que a 1440
+ * en un portátil se ve con aire, allí se ve pegado — el «solape» del chip se
+ * midió en 1,0 px y a esa densidad eso es cero. Se mide ahí además de en PC y
+ * en móvil, que es donde se vio y no donde se sospechó.
+ */
+const PANTALLAS = [
+  { id: 'antonio', nombre: 'ANTONIO 1920×1080', ancho: 1920, alto: 1080, puerto: 9424 },
+  { id: 'pc', nombre: 'PC 1440', ancho: 1440, alto: 1000, puerto: 9422 },
+  { id: 'movil', nombre: 'MÓVIL 390', ancho: 390, alto: 844, puerto: 9423 },
+];
+
+for (const pantalla of PANTALLAS) {
   const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: pantalla.puerto });
   try {
     await m.ir(APP, 6000);
-    console.log(`\n═══ LA FASE C · ${pantalla.id === 'pc' ? 'PC 1440' : 'MÓVIL 390'} ═══`);
+    console.log(`\n═══ LA FASE C · ${pantalla.nombre} ═══`);
     await viajeP22(m, 'bus');
 
     // ── (a) lo contextual, solo en su punto ──
@@ -3013,6 +3046,174 @@ for (const pantalla of [{ id: 'pc', ancho: 1440, alto: 1000, puerto: 9422 }, { i
     await m.guardar(`${CAPTURAS}/fase-c-${pantalla.id}-ficha.png`);
   } finally {
     m.cerrar();
+  }
+}
+
+// ═══════════ P23 · LAS CINCO LÍNEAS, EL AIRE Y LA ÚLTIMA VOZ ═══════════
+//
+// ⭐ [encargo de las cinco líneas, 14/09; bitácora nº53 y nº54]
+//    · cada papel en su línea, de arriba abajo: L1 chip+acción · L2 ficha+lugar
+//      · L3 datos · L4 botón+región — y ninguna caja pisa a otra dentro del
+//      paso (la P18 miraba paso contra paso, nunca dentro).
+//    · EL AIRE: entre un chip, una marca o una ficha y el renglón de encima o
+//      de debajo, al menos 4,3 px — la vara que fijó la nº52. Hoy mide 1,0 px.
+//    · L5: con la fuente muda sembrada, la región va vestida de advertencia y
+//      no hay tira; y al contestar el botón, la advertencia se va.
+//
+// OJO: dentro de las plantillas de JS, ni una comilla invertida en los comentarios.
+const AIRE_MINIMO = 4.3;
+
+/** La sede o Avanza callados en el Generar, con la forma del motor del 14/09. */
+const SIEMBRA_MUDA = {
+  bus: `
+    const i = t.pasos.findIndex((p) => p.giro === 'sube' && p.aQuienPreguntar);
+    if (i >= 0) {
+      const p = t.pasos[i];
+      const vias = p.partes.filter((x) => x.papel === 'via');
+      t.avisos = t.avisos.filter((a) => !/^(Avanza no anuncia|No hemos podido preguntar)/.test(a.texto));
+      p.vivo = { clase: 'mudo', texto: 'No hemos podido preguntar cuándo pasa la línea ' + vias[0].texto + ' por este poste: disponibilidad no verificada.' };
+      t.avisos.push({ texto: 'No hemos podido preguntar cuándo pasa la línea ' + vias[0].texto + ' por el poste ' + vias[vias.length - 1].texto + ': disponibilidad no verificada.' });
+    }
+  `,
+  bizi: `
+    t.avisos = t.avisos.filter((a) => !/^No hemos podido preguntar/.test(a.texto));
+    t.pasos.forEach((p, i) => {
+      if (p.giro !== 'coge' && p.giro !== 'aparca') return;
+      const ultima = p.partes.map((x) => x.papel).lastIndexOf('via');
+      p.partes = p.partes.slice(0, ultima + 1);
+      p.texto = p.partes.map((x) => x.texto).join('');
+      delete p.disponibilidad;
+      const cosa = p.giro === 'coge' ? 'cuántas bicis hay' : 'cuántos anclajes libres hay';
+      t.avisos.unshift({ texto: 'No hemos podido preguntar ' + cosa + ' en la estación ' + p.partes[ultima].texto + ' ahora mismo: disponibilidad no verificada.', paso: i });
+    });
+  `,
+};
+const VIVO_CON_EXITO = `(url) => /estacion-viva/.test(url)
+  ? { clase: 'hay', texto: /pide=anclajes/.test(url) ? '7 anclajes libres a las 13:04' : '4 bicis disponibles a las 13:04' }
+  : { clase: 'llega', texto: 'próximo en 3 min (dato de las 13:04)' }`;
+
+/** Lo pintado de los pasos de cinco líneas: sus líneas, el aire y los solapes. */
+const LO_DE_LAS_CINCO = `
+  const t = (e) => (e?.textContent ?? '').replace(/\\s+/g, ' ').trim();
+  const nombre = (el) => el.tagName.toLowerCase() + (el.classList[0] ? '.' + el.classList[0] : '');
+  const ATOMOS = '.chip-linea, .paso__marca, .ficha-entidad';
+  const PIEZAS = ATOMOS + ', .hito__accion, .hito__l3, .vivo__boton, .vivo__estado, .paso__nota';
+  return [...document.querySelectorAll('.paso')].map((li, indice) => {
+    if (!li.querySelector('.chip-linea, .ficha-entidad')) return null;
+    const cajas = [];
+    for (const el of li.querySelectorAll(PIEZAS)) for (const b of el.getClientRects()) if (b.width * b.height > 0) cajas.push({ que: nombre(el), el, b });
+    const recorrer = document.createTreeWalker(li.querySelector('.paso__cuerpo'), NodeFilter.SHOW_TEXT);
+    for (let n = recorrer.nextNode(); n; n = recorrer.nextNode()) {
+      if (!n.data.trim() || n.parentElement.closest(PIEZAS)) continue;
+      const r = document.createRange(); r.selectNodeContents(n);
+      for (const b of r.getClientRects()) if (b.width * b.height > 0) cajas.push({ que: 'texto «' + n.data.trim().slice(0, 16) + '»', el: n.parentElement, b, texto: true });
+    }
+    // Los renglones de texto, también los de dentro de las piezas que son texto.
+    for (const el of li.querySelectorAll('.hito__accion, .hito__l3, .vivo__estado')) {
+      const r = document.createRange(); r.selectNodeContents(el);
+      for (const b of r.getClientRects()) if (b.width * b.height > 0) cajas.push({ que: 'renglón de ' + nombre(el), el, b, texto: true });
+    }
+    let aire = Infinity, dondeAire = '';
+    for (const X of cajas) {
+      if (!X.el.matches(ATOMOS)) continue;
+      for (const T of cajas) {
+        if (!T.texto || X.el.contains(T.el)) continue;
+        if (Math.min(X.b.right, T.b.right) - Math.max(X.b.left, T.b.left) <= 0) continue;
+        const d = T.b.bottom <= X.b.top + 0.5 ? X.b.top - T.b.bottom : T.b.top >= X.b.bottom - 0.5 ? T.b.top - X.b.bottom : null;
+        if (d !== null && d < aire) { aire = d; dondeAire = X.que + ' ↔ ' + T.que; }
+      }
+    }
+    const pisan = [];
+    for (let a = 0; a < cajas.length; a++) for (let c = a + 1; c < cajas.length; c++) {
+      const A = cajas[a], C = cajas[c];
+      if (A.el === C.el || A.el.contains(C.el) || C.el.contains(A.el)) continue;
+      const w = Math.min(A.b.right, C.b.right) - Math.max(A.b.left, C.b.left);
+      const h = Math.min(A.b.bottom, C.b.bottom) - Math.max(A.b.top, C.b.top);
+      if (w > 0.5 && h > 0.5) pisan.push(A.que + ' ⟷ ' + C.que + ' ' + w.toFixed(1) + '×' + h.toFixed(1));
+    }
+    const lineas = ['.hito__l1', '.hito__l2', '.hito__l3', '.vivo'].map((s) => li.querySelector(s)).filter(Boolean);
+    let enOrden = lineas.length >= 3;
+    for (let k = 1; k < lineas.length; k++) {
+      if (lineas[k].getBoundingClientRect().top < lineas[k - 1].getBoundingClientRect().bottom - 0.5) enOrden = false;
+    }
+    const region = li.querySelector('.vivo__estado');
+    return {
+      indice,
+      l1: t(li.querySelector('.hito__l1')), l2: t(li.querySelector('.hito__l2')), l3: t(li.querySelector('.hito__l3')),
+      lineas: lineas.length, enOrden,
+      aire: aire === Infinity ? null : Math.round(aire * 10) / 10, dondeAire,
+      pisan,
+      region: t(region), avisa: region?.classList.contains('vivo__estado--aviso') ?? null,
+      tira: t(li.querySelector('.paso__nota')) || null,
+    };
+  }).filter(Boolean);
+`;
+
+for (const pantalla of PANTALLAS) {
+  for (const modo of ['bus', 'bizi']) {
+    for (const caso of ['reposo', 'muda']) {
+      const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: pantalla.puerto + 10 });
+      try {
+        await m.ir(APP, 6000);
+        console.log(`\n═══ LAS CINCO LÍNEAS · ${pantalla.nombre} · ${modo} · ${caso === 'reposo' ? 'en reposo' : 'con la fuente muda'} ═══`);
+        await generarCon(m, modo, caso === 'muda' ? SIEMBRA_MUDA[modo] : '', VIVO_CON_EXITO);
+        const hitos = await leer(m, LO_DE_LAS_CINCO);
+        const dicho = `${pantalla.id} · ${modo} · ${caso}`;
+        juzgar(
+          hitos.length >= 2 && hitos.every((h) => h.enOrden),
+          `P23 · ${dicho} · ⭐ cada hito en sus líneas, de arriba abajo: L1 · L2 · L3 · botón y región`,
+          hitos.length === 0 ? '(ningún hito con chip o ficha)' : hitos.map((h) => `«${h.l1}» / «${h.l2}» / «${h.l3}» (${h.lineas} líneas${h.enOrden ? '' : ', DESORDENADAS'})`).join(' | '),
+        );
+        juzgar(
+          hitos.length >= 2 && hitos.every((h) => h.aire === null || h.aire >= AIRE_MINIMO),
+          `P23 · ${dicho} · ⭐ EL AIRE: chip, marca y ficha a ≥ ${AIRE_MINIMO} px del renglón vecino (nº52)`,
+          hitos.map((h) => `${h.aire === null ? 'sin vecino' : h.aire + ' px'}${h.aire !== null && h.aire < AIRE_MINIMO ? ' (' + h.dondeAire + ')' : ''}`).join(' · '),
+        );
+        juzgar(
+          hitos.length >= 2 && hitos.every((h) => h.pisan.length === 0),
+          `P23 · ${dicho} · ⭐ dentro del paso ninguna caja pisa a otra (la P18, chip contra chip)`,
+          hitos.every((h) => h.pisan.length === 0) ? `${hitos.length} hitos, ni un solape` : hitos.flatMap((h) => h.pisan).join(' | '),
+        );
+        if (pantalla.id === 'movil' || pantalla.id === 'antonio') {
+          const sobra = await m.evaluar(`document.documentElement.scrollWidth - document.documentElement.clientWidth`);
+          juzgar(sobra === 0, `P23 · ${dicho} · y sin scroll lateral`, `sobra ${sobra} px`);
+        }
+        const primero = hitos.find((h) => h.region !== null && (modo === 'bizi' || h.avisa !== null));
+        await m.evaluar(`document.querySelectorAll('.paso')[${hitos[0]?.indice ?? 0}].scrollIntoView({ block: 'start' })`);
+        await m.dormir(300);
+        await m.guardar(`${CAPTURAS}/cinco-${pantalla.id}-${modo}-${caso}.png`);
+        if (caso === 'muda') {
+          const conBoton = hitos.filter((h) => h.region !== null);
+          juzgar(
+            conBoton.length > 0 && conBoton.some((h) => h.avisa === true) && conBoton.every((h) => h.avisa === false || h.tira === null),
+            `P23 · ${dicho} · ⭐ L5: el mudo lo dice la REGIÓN vestida de advertencia, y no hay tira`,
+            conBoton.map((h) => `${h.avisa ? 'advierte' : 'dato'} «${h.region.slice(0, 44)}…» · tira ${h.tira === null ? 'no' : 'SÍ'}`).join(' | '),
+          );
+          if (pantalla.id === 'pc') {
+            const c = await contrasteSiEsta(m, '.vivo__estado--aviso', { minimo: 6 });
+            juzgar(c !== null && c.contraste >= AA_TEXTO, 'P23 · ⭐ y la advertencia se lee: ≥ 4,5:1', c === null ? '(no hay advertencia)' : `${c.contraste.toFixed(2)}:1`);
+          }
+          // El ciclo: se pulsa cada botón que advierte y la fuente contesta.
+          const avisan = conBoton.filter((h) => h.avisa).map((h) => h.indice);
+          for (const i of avisan) {
+            await m.evaluar(`document.querySelectorAll('.paso')[${i}].querySelector('.vivo__boton').click()`);
+            await m.dormir(700);
+          }
+          const tras = (await leer(m, LO_DE_LAS_CINCO)).filter((h) => avisan.includes(h.indice));
+          juzgar(
+            tras.length > 0 && tras.every((h) => h.avisa === false && h.tira === null && !/No hemos podido preguntar/.test(h.region)),
+            `P23 · ${dicho} · ⭐ tras el botón con éxito, la advertencia MUERE: una sola voz (nº53)`,
+            tras.map((h) => `«${h.region}» · ${h.avisa ? 'SIGUE advirtiendo' : 'dato'}`).join(' | '),
+          );
+          await m.evaluar(`document.querySelectorAll('.paso')[${avisan[0] ?? 0}].scrollIntoView({ block: 'start' })`);
+          await m.dormir(300);
+          await m.guardar(`${CAPTURAS}/cinco-${pantalla.id}-${modo}-tras-el-boton.png`);
+        }
+        void primero;
+      } finally {
+        m.cerrar();
+      }
+    }
   }
 }
 

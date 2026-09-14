@@ -75,7 +75,13 @@ const vivos = () =>
   m.evaluar(`[...document.querySelectorAll('.paso')]
     .filter((li) => li.querySelector('.vivo__boton'))
     .map((li) => ({
-      paso: (li.querySelector('.paso__texto')?.textContent ?? '').replace(/\\s+/g, ' ').trim(),
+      // ACTA 14/09 [encargo de las cinco líneas, mitad 2]: leía la frase
+      //    corrida (.paso__texto) y los hitos ya no la llevan; mordió «y cada uno
+      //    está en su hito — … | …». El paso se lee ahora por su L1 y su L2, y
+      //    la L1 empieza por la acción: «Coge una bici», «Deja la bici».
+      paso: ['.hito__l1', '.hito__l2']
+        .map((s) => (li.querySelector(s)?.textContent ?? '').replace(/\\s+/g, ' ').trim())
+        .join(' · '),
       boton: li.querySelector('.vivo__boton').textContent.trim(),
       controla: li.querySelector('.vivo__boton').getAttribute('aria-controls'),
       region: (li.querySelector('.vivo__estado')?.textContent ?? '').trim(),
@@ -241,7 +247,9 @@ try {
   const minutos = await m.evaluar(`(() => {
     const texto = document.body.innerText;
     const dichos = texto.match(/próximo en \\d+ min/g) ?? [];
-    const enPasos = [...document.querySelectorAll('.paso__texto')]
+    // ACTA 14/09 [cinco líneas]: solo miraba .paso__texto, y subir ya no la
+    //    lleva — la juez habría pasado VACÍA. Mira también las líneas del hito.
+    const enPasos = [...document.querySelectorAll('.paso__texto, .hito')]
       .map((p) => p.textContent)
       .filter((t) => /próximo en/.test(t));
     const enRegiones = [...document.querySelectorAll('.vivo__estado')]

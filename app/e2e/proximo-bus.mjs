@@ -12,7 +12,10 @@
  */
 import { abrirChrome } from './medir.mjs';
 
-const APP = 'http://localhost:4200/';
+// ⚠️ La dirección se puede dar por entorno (14/09): `localhost` resuelve antes
+//    a [::1], y en esta máquina ahí contesta a veces OTRO servidor que no es el
+//    motor que se quiere medir. `APP=http://127.0.0.1:4200/ node …`.
+const APP = process.env.APP ?? 'http://localhost:4200/';
 
 const m = await abrirChrome({ alto: 2000 });
 let malas = 0;
@@ -91,14 +94,17 @@ try {
           ocupada: r?.getAttribute('aria-busy') ?? null,
           dice: (r?.textContent ?? '').trim(),
           bloqueado: b.disabled,
-          delPaso: (b.closest('.paso')?.querySelector('.paso__texto')?.textContent ?? '')
-            .replace(/\\s+/g, ' ').trim(),
+          // Desde el 14/09 subir y transbordar van en cinco líneas: el paso se
+          // nombra por su L1 y su L2, no por la frase corrida que ya no pinta.
+          delPaso: ['.hito__l1', '.hito__l2', '.hito__l3']
+            .map((s) => (b.closest('.paso')?.querySelector(s)?.textContent ?? '').replace(/\\s+/g, ' ').trim())
+            .filter(Boolean)
+            .join(' · '),
         };
       }),
-      subidas: [...document.querySelectorAll('.paso')].filter((li) => {
-        const t = li.querySelector('.paso__texto')?.textContent ?? '';
-        return /^Sube |, transborda/.test(t.trim());
-      }).length,
+      subidas: [...document.querySelectorAll('.hito__accion')].filter((a) =>
+        /^(Sube|Transborda)$/.test(a.textContent.trim()),
+      ).length,
     };
   })()`);
 
@@ -218,6 +224,78 @@ try {
   console.log(`    antes de pulsar: «${antes || '(vacía)'}»`);
   console.log(`    el Generar tardó ${generarMs} ms (con la espera de 16 s dentro)`);
 
+  // ── 9 · LOS TRES BOTONES Y LA L5 TRAS CADA UNO (14/09, bitácora nº53) ────
+  //
+  // ⭐ Lo que faltaba y por lo que esta prueba dio VERDE con el zombi vivo:
+  //    pulsaba solo el ÚLTIMO botón —el que el Generar no consultó— y no leía
+  //    nada más que la región. La advertencia del Generar se quedaba pintada
+  //    junto al PRIMERO con el dato ya leído, y aquí nadie miraba.
+  //
+  //    Ahora se pulsan TODOS: los de bus aquí, y «Bicis ahora» y «Anclajes
+  //    ahora» en un viaje en BiZi. Tras cada uno, en SU paso: la región dice uno
+  //    de los estados que existen, va vestida de advertencia SI Y SOLO SI dice
+  //    que no se pudo leer, y no queda ninguna tira que diga otra cosa. Contra
+  //    la fuente de verdad: lo que conteste es lo que se juzga.
+  const MUDO = /disponibilidad no verificada\.$|^No se pudo preguntar al motor/;
+  const leerL5 = (i) =>
+    m.evaluar(`(() => {
+      const b = document.querySelectorAll('.vivo__boton')[${i}];
+      const li = b.closest('.paso');
+      const r = document.getElementById(b.getAttribute('aria-controls'));
+      return {
+        boton: b.textContent.trim(),
+        ocupada: r.getAttribute('aria-busy'),
+        dice: r.textContent.replace(/\\s+/g, ' ').trim(),
+        avisa: r.classList.contains('vivo__estado--aviso'),
+        papel: r.getAttribute('role'),
+        tiras: [...li.querySelectorAll('.paso__nota')].map((n) => n.textContent.replace(/\\s+/g, ' ').trim()),
+      };
+    })()`);
+  const pulsarYLeer = async (i) => {
+    await m.evaluar(`document.querySelectorAll('.vivo__boton')[${i}].click()`);
+    await m.dormir(150);
+    let l5 = await leerL5(i);
+    for (let k = 0; k < 80 && l5.ocupada !== 'false'; k++) {
+      await m.dormir(250);
+      l5 = await leerL5(i);
+    }
+    return l5;
+  };
+  const juzgarL5 = (etiqueta, l5) => {
+    juez(
+      `9 · «${l5.boton}» ${etiqueta}: una sola voz — la región advierte si y solo si no pudo leer, y ninguna tira de lo vivo`,
+      l5.ocupada === 'false' &&
+        l5.papel === 'status' &&
+        l5.dice.length > 0 &&
+        l5.avisa === MUDO.test(l5.dice) &&
+        !l5.tiras.some((t) => /No hemos podido preguntar|Avanza no anuncia|El Ayuntamiento contesta/.test(t)),
+      `«${l5.dice}» · ${l5.avisa ? 'VESTIDA de advertencia' : 'como dato'} · tiras ${l5.tiras.length ? l5.tiras.map((t) => '«' + t.slice(0, 40) + '…»').join(' ') : 'ninguna'}`,
+    );
+  };
+  const deBus = await m.evaluar(`document.querySelectorAll('.vivo__boton').length`);
+  for (let i = 0; i < deBus; i++) {
+    juzgarL5(`(${i + 1} de ${deBus}, en bus)`, await pulsarYLeer(i));
+  }
+
+  // Y la BiZi: el mismo viaje, en la bici pública.
+  await m.evaluar(`document.querySelector('input[name=familia][value=bici]').click()`);
+  await m.dormir(400);
+  await m.evaluar(`document.querySelector('input[name=bici][value=bizi]').click()`);
+  await m.dormir(400);
+  await m.evaluar(
+    `[...document.querySelectorAll('button')].find(b => b.textContent.includes('Generar')).click()`,
+  );
+  await m.dormir(9000);
+  const deBizi = await m.evaluar(`[...document.querySelectorAll('.vivo__boton')].map((b) => b.textContent.trim())`);
+  juez(
+    '9 · la BiZi trae sus dos botones: «Bicis ahora» y «Anclajes ahora»',
+    deBizi.length === 2 && deBizi[0] === 'Bicis ahora' && deBizi[1] === 'Anclajes ahora',
+    deBizi.map((b) => `«${b}»`).join(' · ') || '(ninguno)',
+  );
+  for (let i = 0; i < deBizi.length; i++) {
+    juzgarL5('(en BiZi)', await pulsarYLeer(i));
+  }
+
   // La captura va donde se le diga, y no se deja tirada en la raíz del
   // repositorio: una imagen suelta ahí se cuela en el siguiente `git add` sin
   // que nadie la mire.
@@ -227,5 +305,5 @@ try {
 } finally {
   m.cerrar();
 }
-console.log(malas === 0 ? '\nVERDE: las ocho en verde.' : `\nROJO: ${malas} en rojo.`);
+console.log(malas === 0 ? '\nVERDE: todas en verde.' : `\nROJO: ${malas} en rojo.`);
 process.exit(malas === 0 ? 0 : 1);
