@@ -4501,6 +4501,12 @@ describe('Buscador', () => {
     };
     expect(fichaDe(1)).toEqual({ numero: '33', icono: 'directions_bus', callado: 'true', nombre: 'Av. Academia General Militar N.º 37' });
     expect(fichaDe(2)).toEqual({ numero: '147', icono: 'directions_bus', callado: 'true', nombre: 'Av. Francisco De Goya N.º 83' });
+    // ⭐ Y LA FRASE SE LEE SEPARADA (nº52). Angular borra el blanco entre dos
+    //    etiquetas —la casa ya lo midió el 1/09 con los créditos—, y un margen
+    //    separa los píxeles pero no el TEXTO: quien lo oye recibía «33Av.».
+    const frase = (i: number) => (pasos[i]!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    expect(frase(1)).toContain('en el poste 33 Av. Academia General Militar N.º 37');
+    expect(frase(2)).toContain('En el poste 147 Av. Francisco De Goya N.º 83');
     // Bajar: sin dato, sin ficha, y la frase intacta.
     expect(fichaDe(3)).toBeNull();
     expect((pasos[3]!.querySelector('.paso__texto')?.textContent ?? '').replace(/\s+/g, ' ').trim()).toBe(

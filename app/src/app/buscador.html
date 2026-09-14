@@ -1140,10 +1140,14 @@
                                [ANTONIO, resolución (b); WCAG 1.4.11]: icono callado +
                                número en su ficha de contorno, y el nombre detrás. El
                                número sale del dato, no de la frase: ver `fichaDe`. -->
+                          <!-- ⚠️ El `&ngsp;` NO es adorno (nº52): Angular borra el blanco
+                               entre dos etiquetas, y sin él la ficha salía pegada al
+                               nombre en la pantalla —0 px— Y en el texto que se oye,
+                               «33Av. Academia». Es la misma trampa que los créditos
+                               midieron el 1/09; un margen solo arreglaba los píxeles. -->
                           <span class="ficha-entidad"
                             ><app-simbolo [nombre]="ficha.icono" [lado]="14" />{{ ficha.numero }}</span
-                          >
-                          <strong>{{ ficha.resto }}</strong>
+                          >&ngsp;<strong>{{ ficha.resto }}</strong>
                         } @else {
                           <strong>{{ parte.texto }}</strong>
                         }

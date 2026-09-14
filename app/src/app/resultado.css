@@ -214,10 +214,9 @@
   font-weight: 600;
   line-height: 1.4;
   vertical-align: 0.05em;
-  /* ⚠️ El aire hasta el nombre va aquí y no en la plantilla (nº52): Angular
-     quita el espacio en blanco entre dos etiquetas, y la ficha salía pegada
-     —«(33)Av. Academia», 0 px medidos—. Es el mismo paso que el `gap` de dentro. */
-  margin-right: 0.25rem;
+  /* ⚠️ Sin margen a la derecha, a propósito (nº52): el aire hasta el nombre lo
+     pone un `&ngsp;` en la plantilla, que es un espacio DE TEXTO. Un margen
+     separaba los píxeles y dejaba «33Av.» en lo que oye un lector. */
 }
 
 .paso__hilo {
