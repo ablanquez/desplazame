@@ -318,6 +318,8 @@ try {
       ['foreground', 'card'],
       ['primary-foreground', 'primary'], ['success-foreground', 'success'],
       ['warning-foreground', 'warning'], ['muted-foreground', 'muted'],
+      // ⭐ 14/09, la región de la cabecera: los extremos del viaje, sobre la tarjeta.
+      ['muted-foreground', 'card'],
       ['foreground', 'banda-cabecera'], ['foreground', 'banda-cabecera-hover'],
       ...['andando', 'bus', 'bici', 'patin', 'moto', 'coche'].flatMap((m) => [
         [`mode-${m}-text`, `mode-${m}-solid`],
@@ -343,7 +345,7 @@ try {
   //    salen de la cuenta y no de lo que era verdad el día que se escribieron.
   juzgar(
     porDebajo === 0,
-    `los ${42 - porDebajo} de 42 pares cumplen AA (${AA_TEXTO}:1)`,
+    `los ${44 - porDebajo} de 44 pares cumplen AA (${AA_TEXTO}:1)`,
     porDebajo ? `${porDebajo} por debajo — decidir: corregir el valor o censarlo` : '',
   );
 

@@ -112,6 +112,9 @@ export const PARES: readonly Par[] = [
   { texto: 'success-foreground', fondo: 'success', rotulo: 'Aviso de acierto' },
   { texto: 'warning-foreground', fondo: 'warning', rotulo: 'Aviso de atención' },
   { texto: 'muted-foreground', fondo: 'muted', rotulo: 'Texto secundario' },
+  // ⭐ Los extremos del viaje en la cabecera del resultado (14/09, su región):
+  //    el mismo gris, pero sobre la TARJETA, que es donde se pinta.
+  { texto: 'muted-foreground', fondo: 'card', rotulo: 'Texto secundario sobre una tarjeta' },
   // ⚠️ Los DOS estados de la banda, no solo el de reposo. Medir uno y no el
   //    otro es el mismo agujero que tenían las píldoras de modo: el hover es la
   //    mitad del control, y es donde el gris se aclara más.
@@ -154,7 +157,9 @@ export interface Limite {
  *    no 4,5. Mezclarlos sería medir un borde con la vara de la letra.
  */
 export const LIMITES: readonly Limite[] = [
-  { borde: 'muted-foreground', fondo: 'card', rotulo: 'Ficha de poste o estación' },
+  // El mismo par vale para el borde de la región de la cabecera del resultado
+  // (14/09): un uso más del mismo color sobre el mismo fondo, no un par nuevo.
+  { borde: 'muted-foreground', fondo: 'card', rotulo: 'Ficha de poste o estación · región de la cabecera' },
   { borde: 'muted-foreground', fondo: 'banda-cabecera', rotulo: 'Ficha de poste — con el ratón' },
   { borde: 'primary', fondo: 'card', rotulo: 'Círculo de origen y destino' },
   { borde: 'primary', fondo: 'banda-cabecera', rotulo: 'Círculo de origen y destino — con el ratón' },

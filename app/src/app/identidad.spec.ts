@@ -303,15 +303,19 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     }),
   );
 
-  it('se miden los 21 pares en los dos temas: 42 medidas', () => {
+  it('se miden los 22 pares en los dos temas: 44 medidas', () => {
     // ⚠️ Eran 18 y 36. Los dos siguientes fueron los DOS estados de la banda:
     //    medir solo el reposo dejaría el hover sin vigilar, que es donde el
     //    gris se aclara y el texto pierde contraste.
     // ⚠️ Y el 21 (14/09, fase C) es el número de la ficha de poste o estación:
     //    `foreground` sobre `card`. Sobre la banda del realce ya estaba medido.
-    expect(PARES.length).toBe(21);
-    expect(medidos.length).toBe(42);
+    // ⚠️ Y el 22 (14/09, la región de la cabecera): los extremos del viaje van
+    //    en `muted-foreground` sobre la tarjeta, y el censo solo lo medía sobre
+    //    `muted` — un par que se pintaba y no se contaba.
+    expect(PARES.length).toBe(22);
+    expect(medidos.length).toBe(44);
     expect(PARES.some((p) => p.texto === 'foreground' && p.fondo === 'card')).toBe(true);
+    expect(PARES.some((p) => p.texto === 'muted-foreground' && p.fondo === 'card')).toBe(true);
   });
 
   for (const m of medidos) {
