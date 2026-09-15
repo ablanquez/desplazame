@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-15] 🔴 ABIERTA — la frontera de los campos del Buscador, en CLARO y en producción, lee a 2,85:1 y 1,23:1, y la jueza del color a pelo barre `buscador.css` en verde
+## [2026-09-15] ✅ CERRADA — la frontera de los campos del Buscador, en CLARO y en producción, lee a 2,85:1 y 1,23:1, y la jueza del color a pelo barre `buscador.css` en verde
 
 **Categoría:** zona sin vigilar que parecía vigilada
 **Síntoma:** sonda del diagnóstico del puente, sobre `main-YGCWZ7HM.js` (motor pid 13032 en `127.0.0.1:4300`). En claro, a 1920, 1440 y 390:
@@ -26,10 +26,50 @@ Por debajo de 3:1 [WCAG 1.4.11]. Los campos de calle y portal tienen `#999` escr
 `✓ ⭐ (vi) NI UN COLOR A PELO en las hojas del resultado, salvo los que dicen por qué > ⭐ los colores a pelo son EXACTAMENTE los que dicen por qué`
 Y en `buscador.css` la regla `.campo input` (44 px, `var(--border)`, `var(--card)`, `var(--foreground)`) con su comentario «Las cajas heredan del primitivo `.caja`». El censo de límites, 16/16, no tiene ningún par de la frontera de un campo.
 **Cómo se cazó:** instrumento — la sonda del diagnóstico, que leyó el host de cada campo además de su color.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** dos instrumentos que miraban otra cosa. La jueza (vi) barría
+una lista de tres hojas escrita a mano (`styles.css`, `buscador.css` y
+`resultado.css`), y los campos se pintan en las hojas de sus componentes, que
+no estaban en la lista. Dentro de `buscador.css`, las tres reglas `.campo input`
+nunca casaron con ningún elemento: con encapsulación emulada llevan el atributo
+del Buscador, y los `input` son de `app-autocompletar-via` y
+`app-selector-portal`. Así la hoja barrida parecía vestir los campos con tokens.
+Además, el censo de límites no tenía ningún par de la frontera de un campo, y
+el `select` usaba `--border`, un gris de separar que no llega a 3:1 en ningún
+tema. De propina: `.campo__entrada--borrador` (0,1,0) perdía el borde contra
+`.campo input` (0,1,1), y el ámbar del borrador nunca se pintó.
+**Arreglo aplicado:**
+- Token `--borde-de-campo` (`#64748b` y `#696969`, por regla).
+- En `autocompletar-via.css` y `selector-portal.css`: la frontera, fondo
+  `--card`, letra `--foreground`, foco `--ring`, las listas sobre la tarjeta, la
+  opción activa invertida, avisos y borrador con tokens, el selector del
+  borrador con una clase más y el texto de ayuda en `--muted-foreground`.
+- En `buscador.css`: la frontera del `select` y de su lista, el texto de ayuda
+  de la matrícula, y fuera las tres reglas muertas.
+- En `mapa.css`: el lienzo a `--border`.
+- Censo: 11 límites y 31 pares.
+- Juezas:
+  - La (vi) barre todas las hojas de `app/src` y reconoce colores con nombre;
+    los 21 de `panel.css` quedan en la lista con porqué.
+  - La (vii) fija el token de cada papel y prohíbe `.campo input` en
+    `buscador.css`.
+  - P27 nueva en tres anchos y dos temas.
+  - La copia de control de `e2e/identidad.mjs`, al día.
+- Rojo primero: unidad 16 rojos; P27 50 rojos contra `main-YGCWZ7HM.js`.
+- Verde:
+  - unidad 622/622;
+  - batería de cierre sobre `8af2d87` (`main-O2YAS2W3.js`, pid 13032), las diez
+    con salida 0 y 0 escapadas;
+  - identidad: `OK  los 22 de 22 límites cumplen 1.4.11 (3:1)`;
+  - P27: 126 OK y 0 rojos.
+- Contraprueba en copia: P27 14 rojos y 6 rojos (borde ámbar), salida 1;
+  unidad 2 rojos con `#686868`.
+**Commit:** `f45d1ad` (y `1477623`, el dist; `8af2d87`, la copia de control de `e2e/identidad.mjs`)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+- Una jueza que barre una lista de ficheros solo vigila los que había el día que
+  se escribió: se barre el directorio.
+- Una regla de estilo que no casa con nada es peor que ninguna, porque la jueza
+  la lee como si pintara. En componentes encapsulados, se mira qué elemento la
+  recibe de verdad.
 **Traza:** `app/src/app/buscador.css` (`.campo input`, `.tipo`) · `app/src/app/autocompletar-via.css` · `app/src/app/selector-portal.css` · `app/src/app/identidad.spec.ts` (describe (vi), `HOJAS`) · `app/src/app/identidad.ts` (`LIMITES`).
 
 ## [2026-09-15] ✅ CERRADA — cambiar de tema vuelve a encuadrar el mapa, y la P26 lo daba en verde «en caliente»
