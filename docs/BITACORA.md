@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-15] 🔴 ABIERTA — cambiar de tema vuelve a encuadrar el mapa, y la P26 lo daba en verde «en caliente»
+## [2026-09-15] ✅ CERRADA — cambiar de tema vuelve a encuadrar el mapa, y la P26 lo daba en verde «en caliente»
 
 **Categoría:** verde declarado que no era
 **Síntoma:** con una ruta pintada, se arrastra el mapa con el ratón y se cambia de
@@ -33,13 +33,29 @@ y la recarga y no la vista:
 Y `mapa.spec.ts` «⭐ 5 · con el trazado puesto, cambiar de tema vuelve a vestir la
 ruta y la zona», en verde (61 de 61).
 **Cómo se cazó:** instrumento — un «halo pintado 0 px» en la P26 del remate, que llevó a mirar qué movía el mapa al cambiar de tema.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** el tema se añadió como una dependencia más del `effect` que
+repinta, y `pintarTrazado` hace dos cosas a la vez: vestir y encuadrar. Así, un
+cambio que solo pide volver a vestir (ribetes y bordes del otro plano) arrastraba
+también el `fitBounds`. Las juezas «en caliente» miraron lo que el cambio de tema
+debía cambiar (capa, atribución, recarga) y no lo que NO debía cambiar (la
+vista). Además, sin arrastrar el mapa antes, re-encuadrar da la misma vista y no
+se ve.
+**Arreglo aplicado:** `app/src/app/mapa.ts`, `pintarTrazado`: recuerda con qué
+datos (trazado, tramos, zona, área, extremos) y en qué tema pintó. Si lo único
+distinto es el tema, re-viste sin `setView` ni `fitBounds`. En la P26, jueza
+«la vista que la persona movió sigue donde la dejó»: arrastra con el ratón y
+compara el transform del panel y el zoom. Va al final de cada sesión de andando,
+para no sacar pins de la vista antes de medirlos. En rojo contra `main-HAVVQ2G2.js`
+(`-174, -104 → 0, 0`); en verde contra `main-YGCWZ7HM.js`:
+`OK  P26 · pc · andando · ⭐ y la vista que la persona movió sigue donde la dejó: cambiar de tema no vuelve a encuadrar  ·  antes matrix(1, 0, 0, 1, -167, -100) · z14 → después matrix(1, 0, 0, 1, -167, -100) · z14`
+Contraprueba en copia (esperar que la vista cambie): `✗✗`, salida 1.
+**Commit:** `0bf4abd` (y `43084e0`, el dist)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+- Un cambio en caliente se juzga dos veces: lo que tenía que cambiar, y lo que
+  NO tenía que moverse, después de haberlo movido la persona.
 **Traza:** `app/src/app/mapa.ts` (`pintarTrazado`, el `fitBounds` del final, y el `effect` que lee `this.tema.oscuro()`) · `app/e2e/pintura.mjs` (P26, bloque «en caliente»).
 
-## [2026-09-15] 🔴 ABIERTA — el borde de la ZBE en CLARO lee a 1,46:1 sobre lo pintado, y la prueba de unidad lo da por 3:1
+## [2026-09-15] ✅ CERRADA — el borde de la ZBE en CLARO lee a 1,46:1 sobre lo pintado, y la prueba de unidad lo da por 3:1
 
 **Categoría:** verde declarado que no era
 **Síntoma:** la P26 (tanda 6 · parte 2), antes de cablear la tesela oscura, midió
@@ -54,10 +70,37 @@ Igual en 1920 (1,46 sobre `rgb(120, 120, 119)`) y en 390 (1,44 sobre `rgb(119, 1
 (3,66 contra `#f9b29c`), dentro de la suite de unidad corrida hoy:
 `Test Files  16 passed (16)` · `Tests  594 passed (594)`.
 **Cómo se cazó:** instrumento — la P26 nueva, que censa la tesela sobre el píxel debajo de cada trazo.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** la prueba medía contra los extremos del censo del lienzo ENTERO
+(`PLANO_MAS_OSCURO = #f9b29c`, lo más oscuro de lo que ocupa ≥ 1 % de un viaje de
+la 21), no contra lo que el borde tiene al lado. El borde del casco va por donde
+va el tranvía, `#787877`: el 0,051 % del lienzo y el 4,6 % de lo que hay bajo el
+borde (ver la nota de abajo). Un censo del plano entero no puede ver lo que solo
+es mayoritario junto a un trazo.
+**Arreglo aplicado:** decisión de Antonio (15/09), con dos pasos medidos que no
+bastaron y se dicen:
+- Paso de familia `#450a0a`: 3,65 en 1920 y 1440, 1,38 en móvil, donde el borde
+  cruza además la letra de los rótulos (`#383837`). Contra letra, tranvía y blanco
+  ningún color solo llega.
+- Ribete blanco debajo con `#b91c1c`: 2,55 sobre el borde marrón de las calles,
+  `rgb(199,155,78)`, que pisa la franja del ribete.
+
+Queda así, `app/src/app/mapa.ts`:
+- `BORDE_DE_LA_ZONA = '7f1d1d'`, con `RIBETE_DEL_BORDE_DE_LA_ZONA = 'ffffff'`
+  pintado debajo solo en claro (clase `ribete-de-borde`, 2 px por lado, sin
+  relleno). Es el paso de la familia que cumple la condición para cualquier
+  tesela: luminancia del borde ≤ 0,0667, porque el blanco cubre las teselas de
+  luminancia ≤ 0,30.
+- El oscuro `#f87171` no cambia.
+
+`mapa.spec.ts` mide el par contra el tranvía, la letra, el marrón y los 256
+grises; la P26 lo mide en pareja sobre el píxel. En verde contra `main-YGCWZ7HM.js`:
+`OK  P26 · pc · coche · claro · ⭐ el borde #7f1d1d y su ribete #ffffff del polígono se separa de la tesela: ≥ 3:1 [1.4.11]  ·  borde/ribete 10.02 · peor 3.93 sobre rgb(199, 155, 78) · 10 colores ≥ 1 % bajo 1052 px · 1 polígono(s)`
+(3,90 en móvil). Contraprueba en copia (vara del borde en claro a 4,0): `✗✗`, salida 1.
+**Commit:** `0bf4abd` (y `43084e0`, el dist)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+- Un trazo se mide contra lo que tiene AL LADO, no contra los extremos del plano
+  entero. Y lo que se pone en cualquier sitio (un pin, un borde que pasa por
+  todas partes) se mide contra cualquier tesela, no contra la de hoy.
 **Traza:** `app/src/app/mapa.ts` (`BORDE_DE_LA_ZONA`) · `app/src/app/contraste.ts` (`PLANO_MAS_OSCURO`) · `app/src/app/mapa.spec.ts:1016`.
 **Nota [2026-09-15]:** se captura y NO se arregla en esta parte. El encargo deja el
 claro «tal cual», con P18-P24 enteras, y el tono del claro lo decide Antonio. En
