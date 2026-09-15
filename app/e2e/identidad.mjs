@@ -50,6 +50,8 @@ const CLARO = {
   'banda-cabecera': '#e2e8f0', 'banda-cabecera-hover': '#cbd5e1',
   // ⭐ Tanda 6 (15/09): el #555 a pelo, con nombre, y el realce con token propio.
   leyenda: '#555555', 'superficie-realce': '#e2e8f0',
+  // Remate: la distancia y los datos del paso, slate-500 → 600 (3,86 → 6,15 sobre el realce).
+  'secundario-del-paso': '#475569',
   'mode-andando-soft': '#dcfce7', 'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d', 'mode-andando-text': '#ffffff',
   'mode-bus-soft': '#ccfbf1', 'mode-bus-strong': '#0f766e',
@@ -76,6 +78,7 @@ const OSCURO = {
   'banda-cabecera': '#333333', 'banda-cabecera-hover': '#404040',
   // Por regla: la leyenda da contra su tarjeta el 7,46 del claro; el realce, el peldaño de la banda.
   leyenda: '#aeaeae', 'superficie-realce': '#333333',
+  'secundario-del-paso': '#b8b8b8',
   'mode-andando-soft': '#14532d', 'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e', 'mode-andando-text': '#052e16',
   'mode-bus-soft': '#134e4a', 'mode-bus-strong': '#2dd4bf',
@@ -99,11 +102,12 @@ let totalPares = 0;
 
 /**
  * ⭐ LA DEUDA CENSADA — la misma que `identidad.spec.ts`, con su número (15/09).
- * Del CLARO: la distancia y los datos del paso (`muted-foreground`) sobre el
- * realce, 3,86:1, medido también en el píxel. No se arregla en la parte del
- * oscuro; se inmoviliza para que no entre otra en silencio.
+ * Nació con una del CLARO —la distancia y los datos del paso sobre el realce,
+ * 3,86:1— y se vació en el remate al arreglarla. Si entra otra, va aquí y allí.
  */
-const DEUDA = { 'light · muted-foreground / superficie-realce': 3.86 };
+// Vacía desde el remate (15/09): la única deuda, el gris del paso sobre el
+// realce en claro, se arregló con su token. El mecanismo se queda.
+const DEUDA = {};
 const juzgar = (bien, titulo, detalle = '') => {
   if (!bien) fallos++;
   console.log(`  ${bien ? 'OK ' : '✗✗ '} ${titulo}${detalle ? '  ·  ' + detalle : ''}`);
@@ -338,7 +342,8 @@ try {
       // ⭐ Tanda 6 (15/09): la leyenda, el texto y la distancia sobre el realce, y el ámbar entero.
       ['leyenda', 'card'],
       ['foreground', 'banda-cabecera'], ['foreground', 'banda-cabecera-hover'],
-      ['foreground', 'superficie-realce'], ['muted-foreground', 'superficie-realce'],
+      ['foreground', 'superficie-realce'],
+      ['secundario-del-paso', 'card'], ['secundario-del-paso', 'superficie-realce'],
       ['warning-dark', 'warning'], ['warning-dark', 'card'], ['warning-dark', 'superficie-realce'],
       ...['andando', 'bus', 'bici', 'patin', 'moto', 'coche'].flatMap((m) => [
         [`mode-${m}-text`, `mode-${m}-solid`],

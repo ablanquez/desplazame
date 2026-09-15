@@ -174,6 +174,10 @@
      12dp. Mismo valor, token propio: prestado, un cambio en la cabecera del
      acordeon movia el realce sin que nadie lo supiera. */
   --oscuro-superficie-realce: #333333;
+  /* ⭐ EL GRIS SECUNDARIO DEL PASO — la distancia y los datos del hito (remate de
+     la tanda 6). Cero pasos en oscuro: el gris de la casa ya da 8,40 contra la
+     tarjeta y 6,37 contra el realce. Ver el claro. */
+  --oscuro-secundario-del-paso: #b8b8b8;
   --oscuro-mode-andando-soft: #14532d;
   --oscuro-mode-andando-strong: #4ade80;
   --oscuro-mode-andando-solid: #22c55e;
@@ -244,6 +248,12 @@
      realce, el slate-200 que tomaba prestado de la banda. El claro se ve igual. */
   --claro-leyenda: #555555;
   --claro-superficie-realce: #e2e8f0;
+  /* slate-500 -> 600 [WCAG 1.4.3, remate de la tanda 6]: sobre el realce daba
+     3,86:1, medido en lo pintado con 14 px a peso 600 y 400 —texto normal, vara
+     4,5—. El 600 es el paso minimo de la familia que llega (6,15; sobre la
+     tarjeta 7,58). Token propio y no `muted-foreground`: ese gris lo usan 25
+     reglas que no suspenden, y moverlo entero las oscurecia todas. */
+  --claro-secundario-del-paso: #475569;
 
   /* Andando (verde) */
   --claro-mode-andando-soft: #dcfce7;
@@ -306,6 +316,7 @@
   --banda-cabecera-hover: var(--claro-banda-cabecera-hover);
   --leyenda: var(--claro-leyenda);
   --superficie-realce: var(--claro-superficie-realce);
+  --secundario-del-paso: var(--claro-secundario-del-paso);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);
@@ -361,6 +372,7 @@
     --banda-cabecera-hover: var(--oscuro-banda-cabecera-hover);
     --leyenda: var(--oscuro-leyenda);
     --superficie-realce: var(--oscuro-superficie-realce);
+    --secundario-del-paso: var(--oscuro-secundario-del-paso);
     --mode-andando-soft: var(--oscuro-mode-andando-soft);
     --mode-andando-strong: var(--oscuro-mode-andando-strong);
     --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -412,6 +424,7 @@
   --banda-cabecera-hover: var(--oscuro-banda-cabecera-hover);
   --leyenda: var(--oscuro-leyenda);
   --superficie-realce: var(--oscuro-superficie-realce);
+  --secundario-del-paso: var(--oscuro-secundario-del-paso);
   --mode-andando-soft: var(--oscuro-mode-andando-soft);
   --mode-andando-strong: var(--oscuro-mode-andando-strong);
   --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -478,6 +491,7 @@
   --banda-cabecera-hover: var(--claro-banda-cabecera-hover);
   --leyenda: var(--claro-leyenda);
   --superficie-realce: var(--claro-superficie-realce);
+  --secundario-del-paso: var(--claro-secundario-del-paso);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);

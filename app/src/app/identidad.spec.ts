@@ -86,6 +86,9 @@ const CLARO: Readonly<Record<string, string>> = {
   // ⭐ Y el realce del paso deja de tomar prestada la banda: mismo valor, token
   //    propio. Prestado, un cambio en la banda movía el realce sin avisar.
   'superficie-realce': '#e2e8f0',
+  // ⭐ REMATE (15/09): la distancia y los datos del paso, slate-500 → 600. El
+  //    500 daba 3,86:1 sobre el realce con 14 px (texto normal, vara 4,5).
+  'secundario-del-paso': '#475569',
   'mode-andando-soft': '#dcfce7',
   'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d',
@@ -146,6 +149,8 @@ const OSCURO: Readonly<Record<string, string>> = {
   // ⭐ POR REGLA: el realce hace el papel de la banda —«el gris que sí se ve
   //    sobre la tarjeta»— y toma su peldaño de elevación, 12dp.
   'superficie-realce': '#333333',
+  // Cero pasos: #b8b8b8 ya da 8,40 contra la tarjeta y 6,37 contra el realce.
+  'secundario-del-paso': '#b8b8b8',
   'mode-andando-soft': '#14532d',
   'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e',
@@ -220,14 +225,15 @@ const ELEGIDO_CLARO = declaraciones(bloque(CSS, "[data-theme='light'] {"));
 const TODOS = [...SEMANTICOS, ...TOKENS_DE_MODO];
 
 describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
-  it('están los 44 tokens: 20 semánticos y 6 modos × 4 variantes', () => {
+  it('están los 45 tokens: 21 semánticos y 6 modos × 4 variantes', () => {
     // ⚠️ Eran 16 y 40 hasta el 11/09. Los dos nuevos son la banda de las
     //    cabeceras, y son los PRIMEROS que no vienen calcados de la maqueta.
     // ⚠️ Y 18 y 42 hasta el 15/09 (tanda 6): entran la leyenda —el #555 a pelo—
     //    y la superficie del realce, que tomaba prestada la banda.
-    expect(SEMANTICOS.length).toBe(20);
+    // ⚠️ Y 21 y 45 desde el remate: el gris secundario del paso.
+    expect(SEMANTICOS.length).toBe(21);
     expect(TOKENS_DE_MODO.length).toBe(24);
-    expect(TODOS.length).toBe(44);
+    expect(TODOS.length).toBe(45);
   });
 
   for (const token of [...SEMANTICOS, ...TOKENS_DE_MODO]) {
@@ -254,7 +260,7 @@ describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
    *    un elemento marcado `light` heredaba los cuarenta tokens oscuros. La
    *    nº43. Ahora las cuatro listas se cuentan igual, y ninguna es opcional.
    */
-  it('⭐ los cuatro bloques asignan los 44 tokens, y a la fuente que toca', () => {
+  it('⭐ los cuatro bloques asignan los 45 tokens, y a la fuente que toca', () => {
     for (const token of TODOS) {
       expect(EN_ROOT[token], `--${token} falta en :root`).toBe(`var(--claro-${token})`);
       expect(CAPA_SISTEMA[token], `--${token} falta en la capa del sistema`).toBe(
@@ -308,14 +314,10 @@ describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
  *    número—. Lo que no puede pasar es que una deuda nueva entre en silencio.
  */
 const DEUDA: Readonly<Record<string, number>> = {
-  // ⚠️ LA PRIMERA DEUDA DESDE EL 9/09, y es del CLARO (tanda 6, 15/09). La
-  //    distancia y los datos del paso van en `muted-foreground`, y con el ratón
-  //    encima el paso se pinta del realce: slate-500 sobre slate-200. Medido en
-  //    Chrome sobre el píxel: 4,76 en reposo y 3,86 con el ratón. Nadie lo
-  //    miraba —el censo solo tenía el par sobre la tarjeta—. Se censa con su
-  //    número y NO se arregla aquí: los dos valores son del claro (el gris de
-  //    la casa y el par B de Antonio), y esta parte es la del oscuro.
-  'light · Distancia y datos del paso — con el ratón': 3.86,
+  // ⚠️ Aquí vivió UNA deuda del 15/09 al 15/09 (remate de la tanda 6): la
+  //    distancia y los datos del paso sobre el realce en CLARO, 3,86:1. Medido
+  //    en lo pintado: 14 px a peso 600 y 400 —texto normal, vara 4,5 [WCAG
+  //    1.4.3]—, así que suspendía y se arregló. Vuelve a estar vacía.
 };
 
 describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () => {
@@ -330,7 +332,7 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     }),
   );
 
-  it('se miden los 28 pares en los dos temas: 56 medidas', () => {
+  it('se miden los 29 pares en los dos temas: 58 medidas', () => {
     // ⚠️ Eran 18 y 36. Los dos siguientes fueron los DOS estados de la banda:
     //    medir solo el reposo dejaría el hover sin vigilar, que es donde el
     //    gris se aclara y el texto pierde contraste.
@@ -344,8 +346,11 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     //    el ámbar entero: la tinta sobre su superficie (la que pintan el resumen,
     //    la tira y la L5, y que el censo NO tenía: solo medía `warning-foreground`)
     //    y la marca «desviada» sobre la tarjeta y sobre el realce.
-    expect(PARES.length).toBe(28);
-    expect(medidos.length).toBe(56);
+    // ⚠️ Y el 29 (remate): el gris del paso sobre la tarjeta; el de «con el
+    //    ratón» deja de ser `muted-foreground` y pasa a ser el suyo.
+    expect(PARES.length).toBe(29);
+    expect(medidos.length).toBe(58);
+    expect(PARES.some((p) => p.texto === 'secundario-del-paso' && p.fondo === 'superficie-realce')).toBe(true);
     expect(PARES.some((p) => p.texto === 'leyenda' && p.fondo === 'card')).toBe(true);
     expect(PARES.some((p) => p.texto === 'warning-dark' && p.fondo === 'warning')).toBe(true);
     expect(PARES.some((p) => p.texto === 'foreground' && p.fondo === 'card')).toBe(true);
@@ -537,13 +542,13 @@ describe('LA PÁGINA de identidad monta con todo lo que hay que medir', () => {
     await TestBed.configureTestingModule({ imports: [Identidad] }).compileComponents();
   });
 
-  it('trae una sonda por token y por tema: 88', () => {
+  it('trae una sonda por token y por tema: 90', () => {
     const f = TestBed.createComponent(Identidad);
     f.detectChanges();
     const raiz = f.nativeElement as HTMLElement;
-    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(88);
-    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(44);
-    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(44);
+    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(90);
+    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(45);
+    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(45);
   });
 
   it('pinta los seis modos con sus cuatro variantes', () => {

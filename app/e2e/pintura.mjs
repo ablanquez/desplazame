@@ -3412,6 +3412,48 @@ const CONTEXTO_Y_VIAJE = `
   t.avisos.push({ texto: 'Aviso de viaje entero sembrado por la jueza P25.' });
 `;
 
+/**
+ * ⭐ LOS GRISES DEL PASO CON EL RATÓN ENCIMA (remate de la tanda 6, 15/09).
+ *
+ * La distancia y los datos del hito van en gris sobre el realce. En CLARO daban
+ * 3,86:1 —slate-500 sobre slate-200— y el tamaño pintado es 14 px a peso 600 y
+ * 400: texto NORMAL, vara 4,5 [WCAG 1.4.3]. Se mide la vara con el tamaño real
+ * y el contraste sobre el píxel, con el ratón DE VERDAD encima de cada uno.
+ */
+async function grisesConElRaton(m, dicho, tema) {
+  for (const [sel, que] of [['.paso__metros', 'la distancia'], ['.hito__l3', 'los datos del hito']]) {
+    const donde = await leer(m, `
+      const e = [...document.querySelectorAll(${JSON.stringify(sel)})].find((x) => x.textContent.trim());
+      if (!e) return null;
+      e.scrollIntoView({ block: 'center' });
+      const s = getComputedStyle(e);
+      const r = e.getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2, px: parseFloat(s.fontSize), peso: Number(s.fontWeight),
+               indice: [...document.querySelectorAll(${JSON.stringify(sel)})].indexOf(e) };
+    `);
+    let t = null;
+    let fondoPaso = null;
+    if (donde) {
+      await m.dormir(150);
+      await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: donde.x, y: donde.y });
+      await m.dormir(300);
+      fondoPaso = await m.evaluar(`getComputedStyle(document.querySelectorAll(${JSON.stringify(sel)})[${donde.indice}].closest('.paso')).backgroundColor`);
+      t = await contrasteReal(m, sel, { indice: donde.indice, minimo: 6 });
+      await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 3, y: 3 });
+      await m.dormir(200);
+    }
+    // La vara, de lo pintado: grande es ≥ 24 px, o ≥ 18,66 px a peso 700 o más.
+    const grande = donde !== null && (donde.px >= 24 || (donde.px >= 18.66 && donde.peso >= 700));
+    const vara = grande ? AA_GRAFICO : AA_TEXTO;
+    const realce = await tokenRgb(m, 'superficie-realce');
+    juzgar(
+      t !== null && fondoPaso === realce && t.contraste >= vara,
+      `${dicho} · ⭐ ${tema} · ${que} con el ratón encima se lee: ≥ ${vara}:1 (vara de su tamaño pintado)`,
+      t === null ? `(no hay ${sel})` : `${donde.px} px · peso ${donde.peso} · ${grande ? 'grande' : 'normal'} · paso ${fondoPaso} · ${t.contraste.toFixed(2)}:1 · ${enRgb(t.texto)} sobre ${enRgb(t.fondo)}`,
+    );
+  }
+}
+
 for (const pantalla of PANTALLAS) {
   const dicho = `P25 · ${pantalla.id}`;
   const movil = pantalla.ancho < 768;
@@ -3509,6 +3551,8 @@ for (const pantalla of PANTALLAS) {
           );
         }
 
+        if (!movil) await grisesConElRaton(m, dicho, 'oscuro');
+
         // El hito, y la región con DATO tras pulsar: la voz del último intento.
         const avisan = await m.evaluar(`[...document.querySelectorAll('.paso')].map((p, i) => (p.querySelector('.vivo__estado--aviso') ? i : -1)).filter((i) => i >= 0)`);
         if (avisan.length) {
@@ -3531,6 +3575,7 @@ for (const pantalla of PANTALLAS) {
 
         // Y el claro, con la misma red: nada del claro se afloja por el oscuro.
         if (await ponerTema(m, 'light', `${dicho} · claro`)) {
+          if (!movil) await grisesConElRaton(m, dicho, 'claro');
           const enClaro = await leer(m, BARRIDO_DEL_RESULTADO);
           juzgar(
             enClaro.textos > 30 && enClaro.malos.length === 0,

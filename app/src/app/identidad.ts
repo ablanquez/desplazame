@@ -47,7 +47,7 @@ export type Tema = 'light' | 'dark';
 
 export const TEMAS: readonly Tema[] = ['light', 'dark'];
 
-/** Los veinte semánticos, en el orden en que se leen. */
+/** Los veintiún semánticos, en el orden en que se leen. */
 export const SEMANTICOS: readonly Token[] = [
   'background',
   'foreground',
@@ -77,6 +77,9 @@ export const SEMANTICOS: readonly Token[] = [
   //    papel, y el paso se pintaba con la banda de otro componente.
   'leyenda',
   'superficie-realce',
+  // ⭐ REMATE (15/09): la distancia y los datos del paso. Con `muted-foreground`
+  //    leían a 3,86:1 sobre el realce en claro, con 14 px —texto normal—.
+  'secundario-del-paso',
 ];
 
 /** Los seis modos, con el nombre que usa el CSS. */
@@ -133,11 +136,13 @@ export const PARES: readonly Par[] = [
     rotulo: 'Cabecera del acordeón — con el ratón',
   },
   // ⭐ EL REALCE DEL PASO, con el ratón o con el foco (tanda 6). Lo que se lee
-  //    encima: el texto y la negrita, y el gris de la distancia y los datos —que
-  //    en CLARO no llega, y va censado con su número en `identidad.spec.ts`—.
+  //    encima: el texto y la negrita, y el gris de la distancia y los datos.
+  //    Ese gris era `muted-foreground` y daba 3,86:1 en claro con 14 px (vara
+  //    4,5); desde el remate lleva token propio, medido en reposo y encima.
   { texto: 'foreground', fondo: 'superficie-realce', rotulo: 'Texto del paso — con el ratón' },
+  { texto: 'secundario-del-paso', fondo: 'card', rotulo: 'Distancia y datos del paso' },
   {
-    texto: 'muted-foreground',
+    texto: 'secundario-del-paso',
     fondo: 'superficie-realce',
     rotulo: 'Distancia y datos del paso — con el ratón',
   },

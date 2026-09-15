@@ -327,7 +327,9 @@
   flex: none;
   width: 3.5rem;
   padding-top: 0.3rem;
-  color: var(--muted-foreground);
+  /* Su gris, no el de la casa (remate de la tanda 6): con el ratón encima el
+     paso se pinta del realce, y `muted-foreground` leía allí a 3,86:1 con 14 px. */
+  color: var(--secundario-del-paso);
   font-size: 0.875rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -416,7 +418,8 @@
 }
 
 .hito__l3 {
-  color: var(--muted-foreground);
+  /* El mismo gris que la distancia, y por lo mismo: ver `.paso__metros`. */
+  color: var(--secundario-del-paso);
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
 }
