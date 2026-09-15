@@ -17,7 +17,7 @@
  *     node e2e/pintura.mjs http://localhost:3111 <carpeta-de-capturas>
  */
 import { readFileSync } from 'node:fs';
-import { abrirChrome, contrasteReal, contrasteRgb, AA_GRAFICO, AA_TEXTO } from './medir.mjs';
+import { abrirChrome, contrasteReal, contrasteRgb, luminancia, AA_GRAFICO, AA_TEXTO } from './medir.mjs';
 
 const APP = (process.argv[2] ?? 'http://localhost:4200').replace(/\/+$/, '') + '/';
 const CAPTURAS = (process.argv[3] ?? '.').replace(/[\\/]+$/, '');
@@ -41,9 +41,11 @@ const juzgar = (bien, titulo, detalle = '') => {
  * no es el color: es que la banda se vea SIN el ratón encima, que es lo que el
  * hover no puede sustituir [NN/g, acordeones].
  *
- * ℹ️ El oscuro no se mide aquí y no es un olvido: el producto va clavado en
- *    claro —`<html data-theme="light">`—, así que su banda solo existe pintada
- *    en la sonda de `/identidad`. Su suelo, 21, vive en el censo de allí.
+ * ℹ️ El oscuro de la BANDA no se mide aquí: el producto va clavado en claro
+ *    —`<html data-theme="light">`— y su suelo, 21, vive en el censo de
+ *    `/identidad`. Aquí ponía «el oscuro no se mide aquí» a secas, y desde la
+ *    tanda 6 (15/09) sí se mide: el RESULTADO entero en oscuro es la P25, que
+ *    pone el tema por el atributo y lo comprueba antes de medir.
  */
 const MINIMO_DE_SEPARACION = 29;
 
@@ -2779,7 +2781,7 @@ async function viajeP22(m, modo) {
  * retocada por `siembra` —código que recibe el trayecto en `t`— y, si se da,
  * `vivo(url)` contestando por los botones vivos sin salir a la fuente.
  */
-async function generarCon(m, modo, siembra, vivo = null) {
+async function generarCon(m, modo, siembra, vivo = null, ajuste = '', generar = true) {
   await m.evaluar(`(() => {
     const pedir = window.fetch;
     window.fetch = async function (...args) {
@@ -2840,6 +2842,14 @@ async function generarCon(m, modo, siembra, vivo = null) {
     await m.evaluar(`document.querySelector('input[name=bici][value=bizi]').click()`);
     await m.dormir(400);
   }
+  // Lo que un modo pida antes de generar —la zona del coche en la P25—.
+  if (ajuste) {
+    await m.evaluar(ajuste);
+    await m.dormir(400);
+  }
+  // Y sin generar, cuando quien llama quiere pulsar él —el hueso de la P25
+  // necesita estrangular la red ENTRE el formulario y el clic—.
+  if (!generar) return;
   await m.evaluar(`document.querySelector('button.generar').click()`);
   for (let i = 0; i < 100 && (await m.evaluar(`!!document.querySelector('button.generar')?.disabled`)); i++) {
     await m.dormir(300);
@@ -2972,7 +2982,10 @@ for (const pantalla of PANTALLAS) {
     );
     if (pantalla.id === 'pc') {
       const card = aRgb(await tokenRgb(m, 'card'));
-      const banda = aRgb(await tokenRgb(m, 'banda-cabecera'));
+      // ⚠️ Leía `banda-cabecera`, el color que el realce tomaba prestado. Desde la
+      //    tanda 6 el realce tiene token propio y se lee EL SUYO: si un día se
+      //    separan, esta jueza tiene que medir el que pinta el paso.
+      const banda = aRgb(await tokenRgb(m, 'superficie-realce'));
       const borde = ficha.cuantas ? aRgb(ficha.borde) : null;
       const enReposo = await contrasteSiEsta(m, '.ficha-entidad', { minimo: 8 });
       juzgar(
@@ -3305,6 +3318,310 @@ for (const pantalla of PANTALLAS) {
     await m.evaluar(`(document.querySelector('.resumen') ?? document.querySelector('.ruta')).scrollIntoView({ block: 'start' })`);
     await m.dormir(300);
     await m.guardar(`${CAPTURAS}/cabecera-region-${pantalla.id}.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ═══════════ P25 · EL RESULTADO EN OSCURO, ENTERO Y EN LOS TRES ANCHOS ═══════════
+//
+// ⭐ [tanda 6 · parte 1, 15/09; bitácora del 15/09] el resultado nunca se había
+//    mirado entero con el tema oscuro puesto: el producto va clavado en claro y
+//    el censo de tokens daba los dos temas por cumplidos. Con el oscuro puesto,
+//    la negrita de los pasos leía a 1,04:1, «Se viaja en» a 2,24, el borde
+//    ámbar a 2,35 contra la tarjeta y «Próximo bus» era un bloque blanco.
+//
+// ⚠️ LA VARA DE LA P0, ANTES DE UNA SOLA CIFRA: el tema se pone por el atributo
+//    del contrato de tokens —`data-theme="dark"` en <html>— y la jueza LEE del
+//    DOM el atributo Y dos tokens computados con su valor oscuro. Un «oscuro
+//    verde» medido con el tema en claro ya pasó una vez (nº43). Si el tema no
+//    está puesto, esa sesión da ROJO y no se mide nada más en ella.
+//
+// ⚠️ Lo que se compra sobre el PÍXEL (contrasteReal): la letra. Lo que se compra
+//    sobre el valor computado: los bordes, que son opacos y de 1-3 px —el píxel
+//    de un filete de 1 px se mezcla con el suavizado— y la red, que ignora
+//    opacidades y por eso NO sustituye al píxel: caza lo que nadie pensó en
+//    medir, y declara su límite.
+//
+// ⚠️ Estado intermedio DECLARADO: la tesela sigue CLARA bajo el tema oscuro
+//    (la oscura es la parte 2). Se captura y no se juzga aquí.
+//
+// OJO: dentro de las plantillas de JS, ni una comilla invertida en los comentarios.
+const OSCURO_BASE = { background: 'rgb(18, 18, 18)', card: 'rgb(30, 30, 30)' };
+const CLARO_BASE = { background: 'rgb(255, 255, 255)', card: 'rgb(255, 255, 255)' };
+
+/** Pone el tema y lo COMPRUEBA en el DOM. Devuelve si está puesto de verdad. */
+async function ponerTema(m, tema, dicho) {
+  await m.evaluar(`document.documentElement.setAttribute('data-theme', ${JSON.stringify(tema)})`);
+  await m.dormir(250);
+  const attr = await m.evaluar(`document.documentElement.getAttribute('data-theme')`);
+  const fondo = await tokenRgb(m, 'background');
+  const card = await tokenRgb(m, 'card');
+  const esperado = tema === 'dark' ? OSCURO_BASE : CLARO_BASE;
+  const puesto = attr === tema && fondo === esperado.background && card === esperado.card;
+  juzgar(
+    puesto,
+    `${dicho} · ⭐ la vara de la P0: el tema ${tema} está PUESTO — atributo y tokens leídos del DOM`,
+    `data-theme=${attr} · --background ${fondo} · --card ${card}`,
+  );
+  return puesto;
+}
+
+/** La red: todo texto y todo borde opaco superior o izquierdo del resultado, contra su fondo computado. */
+const BARRIDO_DEL_RESULTADO = `
+  const raiz = document.querySelector('.bloque--pasos');
+  const rgb = (s) => { const m = s.match(/[\\d.]+/g); if (!m) return null; const [r, g, b, a] = m.map(Number); return { r, g, b, a: a ?? 1 }; };
+  const lin = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const L = (c) => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+  const C = (a, b) => (Math.max(L(a), L(b)) + 0.05) / (Math.min(L(a), L(b)) + 0.05);
+  const fondoDe = (el) => { for (let e = el; e; e = e.parentElement) { const c = rgb(getComputedStyle(e).backgroundColor); if (c && c.a === 1) return c; } return null; };
+  const nombre = (el) => el.tagName.toLowerCase() + (el.classList[0] ? '.' + el.classList[0] : '');
+  const malos = []; let textos = 0; let bordes = 0;
+  for (const el of raiz.querySelectorAll('*')) {
+    const s = getComputedStyle(el); const b = el.getBoundingClientRect();
+    if (b.width === 0 || b.height === 0 || s.visibility === 'hidden' || el.closest('.chip-linea')) continue;
+    const fondo = fondoDe(el);
+    if (!fondo) continue;
+    if ([...el.childNodes].some((n) => n.nodeType === 3 && n.data.trim())) {
+      textos++;
+      const r = C(rgb(s.color), fondo);
+      if (r < 4.5) malos.push(nombre(el) + ' texto ' + s.color + ' ' + r.toFixed(2) + ':1');
+    }
+    for (const lado of ['Top', 'Left']) {
+      if (parseFloat(s['border' + lado + 'Width']) < 1 || s['border' + lado + 'Style'] === 'none') continue;
+      const c = rgb(s['border' + lado + 'Color']);
+      if (!c || c.a < 1) continue;
+      bordes++;
+      const r = C(c, fondoDe(el.parentElement) ?? fondo);
+      if (r < 3) malos.push(nombre(el) + ' borde ' + lado + ' ' + s['border' + lado + 'Color'] + ' ' + r.toFixed(2) + ':1');
+    }
+  }
+  return { textos, bordes, malos: [...new Set(malos)] };
+`;
+
+/** Un borde computado contra un token: la cifra de 1.4.11. */
+const bordeContra = async (m, selector, lado, token) => {
+  const c = await m.evaluar(`(() => { const e = document.querySelector(${JSON.stringify(selector)}); return e ? getComputedStyle(e).border${lado}Color : null; })()`);
+  return c === null ? null : contrasteRgb(aRgb(c), aRgb(await tokenRgb(m, token)));
+};
+
+const CONTEXTO_Y_VIAJE = `
+  const HITOS = ['salida', 'sube', 'baja', 'transborda', 'coge', 'aparca', 'llegada'];
+  const k = t.pasos.findIndex((p, j) => j > 0 && !HITOS.includes(p.giro));
+  if (k >= 0) t.avisos.push({ texto: ${JSON.stringify(SEMBRADO)}, paso: k });
+  t.avisos.push({ texto: 'Aviso de viaje entero sembrado por la jueza P25.' });
+`;
+
+for (const pantalla of PANTALLAS) {
+  const dicho = `P25 · ${pantalla.id}`;
+  const movil = pantalla.ancho < 768;
+
+  // ── (A) EL VIAJE EN BUS: pasos, cabecera, resumen, tira, L5 y la región con dato ──
+  let m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: pantalla.puerto + 30 });
+  try {
+    await m.ir(APP, 6000);
+    console.log(`\n═══ EL RESULTADO EN OSCURO · ${pantalla.nombre} · el viaje en bus ═══`);
+    if (await ponerTema(m, 'dark', `${dicho} · bus`)) {
+      await generarCon(m, 'bus', SIEMBRA_MUDA.bus + CONTEXTO_Y_VIAJE, VIVO_CON_EXITO);
+      if (await ponerTema(m, 'dark', `${dicho} · bus, tras generar`)) {
+        for (const [sel, que] of [
+          ['.paso__texto strong', 'la negrita de los pasos (la calle)'],
+          ['.pasos__modo', '«Modo: …»'],
+          ['.ruta__lineas-rotulo', '«Se viaja en»'],
+          ['.ruta__metros', 'las cifras de la cabecera'],
+          ['.hito__accion', 'la acción del hito'],
+          ['.hito__l3', 'los datos del hito'],
+          ['.paso__metros', 'la distancia'],
+          ['.vivo__estado--aviso', 'la L5 que advierte'],
+          ['.paso__nota', 'la tira ámbar'],
+          ['.resumen__linea', 'el resumen de avisos'],
+        ]) {
+          const t = await contrasteSiEsta(m, sel, { minimo: 6 });
+          juzgar(
+            t !== null && t.contraste >= AA_TEXTO,
+            `${dicho} · ⭐ ${que} se lee: ≥ ${AA_TEXTO}:1 sobre lo pintado`,
+            t === null ? `(no hay ${sel})` : `${t.contraste.toFixed(2)}:1 · ${enRgb(t.texto)} sobre ${enRgb(t.fondo)}`,
+          );
+        }
+
+        // «Próximo bus»: se lee, y NO es un bloque claro dentro del oscuro [DISEÑO §32].
+        const realce = aRgb(await tokenRgb(m, 'superficie-realce'));
+        const boton = await contrasteSiEsta(m, '.vivo__boton', { minimo: 6 });
+        juzgar(
+          boton !== null && boton.contraste >= AA_TEXTO && luminancia(boton.fondo) <= luminancia(realce),
+          `${dicho} · ⭐ «Próximo bus» se lee y no es un bloque claro: su fondo no pasa de la superficie del realce`,
+          boton === null ? '(no hay botón)' : `${boton.contraste.toFixed(2)}:1 · fondo ${enRgb(boton.fondo)} · techo ${enRgb(realce)}`,
+        );
+
+        // Los bordes ámbar contra sus vecinos [WCAG 1.4.11].
+        const bordes = {
+          'resumen/tarjeta': await bordeContra(m, '.resumen', 'Top', 'card'),
+          'resumen/su ámbar': await bordeContra(m, '.resumen', 'Top', 'warning'),
+          'tira/tarjeta': await bordeContra(m, '.paso__nota', 'Left', 'card'),
+          'tira/realce': await bordeContra(m, '.paso__nota', 'Left', 'superficie-realce'),
+          'L5/tarjeta': await bordeContra(m, '.vivo__estado--aviso', 'Left', 'card'),
+          'L5/su ámbar': await bordeContra(m, '.vivo__estado--aviso', 'Left', 'warning'),
+        };
+        juzgar(
+          Object.values(bordes).every((r) => r !== null && r >= AA_GRAFICO),
+          `${dicho} · ⭐ el borde ámbar se distingue de todo lo que tiene al lado: ≥ ${AA_GRAFICO}:1`,
+          Object.entries(bordes).map(([k, r]) => `${k} ${r === null ? 'NO ESTÁ' : r.toFixed(2)}`).join(' · '),
+        );
+
+        const red = await leer(m, BARRIDO_DEL_RESULTADO);
+        juzgar(
+          red.textos > 30 && red.malos.length === 0,
+          `${dicho} · ⭐ la red: ningún texto a < 4,5 ni borde opaco a < 3 en todo el resultado (valor computado)`,
+          `${red.textos} textos · ${red.bordes} bordes · ${red.malos.length ? red.malos.join(' | ') : 'ninguno por debajo'}`,
+        );
+        if (pantalla.id !== 'pc') {
+          const sobra = await m.evaluar(`document.documentElement.scrollWidth - document.documentElement.clientWidth`);
+          juzgar(sobra === 0, `${dicho} · y sin scroll lateral`, `sobra ${sobra} px`);
+        }
+        await m.evaluar(`document.querySelector('.bloque--pasos .bloque__cuerpo').scrollTop = 0`);
+        await m.dormir(300);
+        await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-arriba.png`);
+
+        // Con el ratón encima de un paso con calle: la negrita sobre el realce.
+        if (!movil) {
+          const donde = await leer(m, `
+            const s = document.querySelector('.paso__texto strong');
+            if (!s) return null;
+            s.scrollIntoView({ block: 'center' });
+            const r = s.getBoundingClientRect();
+            return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+          `);
+          let t = null;
+          let fondoPaso = null;
+          if (donde) {
+            await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: donde.x, y: donde.y });
+            await m.dormir(300);
+            fondoPaso = await m.evaluar(`getComputedStyle(document.querySelector('.paso__texto strong').closest('.paso')).backgroundColor`);
+            t = await contrasteSiEsta(m, '.paso__texto strong', { minimo: 6 });
+            await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-realce.png`);
+            await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 3, y: 3 });
+            await m.dormir(200);
+          }
+          juzgar(
+            t !== null && fondoPaso === enRgb(realce) && t.contraste >= AA_TEXTO,
+            `${dicho} · ⭐ con el ratón: la negrita sobre el realce, ≥ ${AA_TEXTO}:1, y el realce es SU token`,
+            t === null ? '(no hay negrita)' : `paso ${fondoPaso} · ${t.contraste.toFixed(2)}:1`,
+          );
+        }
+
+        // El hito, y la región con DATO tras pulsar: la voz del último intento.
+        const avisan = await m.evaluar(`[...document.querySelectorAll('.paso')].map((p, i) => (p.querySelector('.vivo__estado--aviso') ? i : -1)).filter((i) => i >= 0)`);
+        if (avisan.length) {
+          await m.evaluar(`document.querySelectorAll('.paso')[${avisan[0]}].scrollIntoView({ block: 'start' })`);
+          await m.dormir(300);
+          await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-hito.png`);
+        }
+        for (const i of avisan) {
+          await m.evaluar(`document.querySelectorAll('.paso')[${i}].querySelector('.vivo__boton').click()`);
+          await m.dormir(700);
+        }
+        const conDato = await m.evaluar(`[...document.querySelectorAll('.vivo__estado:not(.vivo__estado--aviso)')].findIndex((e) => e.textContent.trim())`);
+        const dato = conDato < 0 ? null : await contrasteReal(m, '.vivo__estado:not(.vivo__estado--aviso)', { indice: conDato, minimo: 6 });
+        juzgar(
+          dato !== null && dato.contraste >= AA_TEXTO,
+          `${dicho} · ⭐ la región con DATO, tras el botón, se lee: ≥ ${AA_TEXTO}:1`,
+          dato === null ? '(ninguna región con dato)' : `«${dato.etiqueta}» ${dato.contraste.toFixed(2)}:1`,
+        );
+        await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-tras-el-boton.png`);
+
+        // Y el claro, con la misma red: nada del claro se afloja por el oscuro.
+        if (await ponerTema(m, 'light', `${dicho} · claro`)) {
+          const enClaro = await leer(m, BARRIDO_DEL_RESULTADO);
+          juzgar(
+            enClaro.textos > 30 && enClaro.malos.length === 0,
+            `${dicho} · y en CLARO la misma red, sin nada por debajo`,
+            `${enClaro.textos} textos · ${enClaro.bordes} bordes · ${enClaro.malos.length ? enClaro.malos.join(' | ') : 'ninguno por debajo'}`,
+          );
+          await m.evaluar(`document.querySelector('.bloque--pasos .bloque__cuerpo').scrollTop = 0`);
+          await m.dormir(300);
+          await m.guardar(`${CAPTURAS}/claro-${pantalla.id}-arriba.png`);
+          if (avisan.length) {
+            await m.evaluar(`document.querySelectorAll('.paso')[${avisan[0]}].scrollIntoView({ block: 'start' })`);
+            await m.dormir(300);
+            await m.guardar(`${CAPTURAS}/claro-${pantalla.id}-hito.png`);
+          }
+        }
+      }
+    }
+  } finally {
+    m.cerrar();
+  }
+
+  // ── (B) EL COCHE CON ZONA: el atajo «Sugerir zona» ──
+  m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: pantalla.puerto + 40 });
+  try {
+    await m.ir(APP, 6000);
+    console.log(`\n═══ EL RESULTADO EN OSCURO · ${pantalla.nombre} · el coche con zona ═══`);
+    if (await ponerTema(m, 'dark', `${dicho} · coche`)) {
+      await generarCon(m, 'coche', '', null, `document.querySelector('input[name=aparcamiento][value=azul]').click()`);
+      const realce = aRgb(await tokenRgb(m, 'superficie-realce'));
+      const atajo = await contrasteSiEsta(m, '.sugerencia__boton', { minimo: 6 });
+      juzgar(
+        atajo !== null && atajo.contraste >= AA_TEXTO && luminancia(atajo.fondo) <= luminancia(realce),
+        `${dicho} · ⭐ «Sugerir zona» se lee y no es un bloque claro`,
+        atajo === null ? '(no ha salido el atajo)' : `${atajo.contraste.toFixed(2)}:1 · fondo ${enRgb(atajo.fondo)}`,
+      );
+      await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-coche.png`);
+    }
+  } finally {
+    m.cerrar();
+  }
+
+  // ── (C) LOS ESTADOS: el vacío, el hueso y el error ──
+  m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: pantalla.puerto + 50 });
+  try {
+    await m.ir(APP, 6000);
+    console.log(`\n═══ EL RESULTADO EN OSCURO · ${pantalla.nombre} · los estados ═══`);
+    if (await ponerTema(m, 'dark', `${dicho} · estados`)) {
+      const aLaRuta = movil
+        ? `[...document.querySelectorAll('.barra__boton')].find((b) => /Ruta/.test(b.textContent)).click()`
+        : `document.querySelector('#cabecera-pasos').getAttribute('aria-expanded') === 'true' || document.querySelector('#cabecera-pasos').click()`;
+      await m.evaluar(aLaRuta);
+      await m.dormir(400);
+      const vacio = await contrasteSiEsta(m, '.pasos__vacio', { minimo: 20 });
+      juzgar(vacio !== null && vacio.contraste >= AA_TEXTO, `${dicho} · el vacío se lee`, vacio === null ? '(no hay vacío)' : `${vacio.contraste.toFixed(2)}:1`);
+      await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-vacio.png`);
+
+      // El hueso, sobre una carga de verdad y QUIETO: la lección de la P14 —un
+      // fotograma al azar de un latido no es una medida—. El suelo es el del
+      // oscuro que fija el censo para la banda: 21 puntos.
+      await m.cdp('Network.enable');
+      await m.cdp('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+      await generarCon(m, 'andando', '', null, '', false);
+      await m.cdp('Network.emulateNetworkConditions', { offline: false, latency: 4000, downloadThroughput: -1, uploadThroughput: -1 });
+      await m.evaluar(`document.querySelector('button.generar').click()`);
+      await m.dormir(1700);
+      if (movil) {
+        await m.evaluar(aLaRuta);
+        await m.dormir(300);
+      }
+      const hueso = await leer(m, `
+        const h = document.querySelector('.hueso__caja');
+        if (!h) return null;
+        return { hueso: getComputedStyle(h).backgroundColor, panel: getComputedStyle(document.querySelector('.panel')).backgroundColor };
+      `);
+      const sep = hueso === null ? -1 : Math.max(...['r', 'g', 'b'].map((k) => Math.abs(aRgb(hueso.hueso)[k] - aRgb(hueso.panel)[k])));
+      juzgar(sep >= 21, `${dicho} · el hueso se ve sobre el panel oscuro: ≥ 21 puntos de 255`, hueso === null ? '(no hay hueso)' : `${sep} puntos · ${hueso.hueso} sobre ${hueso.panel}`);
+      await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-hueso.png`);
+      for (let i = 0; i < 40 && (await m.evaluar(`document.querySelector('.hueso') !== null`)); i++) await m.dormir(300);
+
+      // El error: sin nadie al otro lado, de verdad.
+      await m.cdp('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 });
+      await m.evaluar(`document.querySelector('button.generar').click()`);
+      await m.dormir(2500);
+      if (movil) {
+        await m.evaluar(aLaRuta);
+        await m.dormir(300);
+      }
+      const error = await contrasteSiEsta(m, '.pasos__error', { minimo: 20 });
+      juzgar(error !== null && error.contraste >= AA_TEXTO, `${dicho} · el error se lee`, error === null ? '(no hay error)' : `${error.contraste.toFixed(2)}:1`);
+      await m.guardar(`${CAPTURAS}/oscuro-${pantalla.id}-error.png`);
+    }
   } finally {
     m.cerrar();
   }
