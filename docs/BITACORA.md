@@ -34,7 +34,7 @@ cierre de la parte 1 citó como evidencia («las diez, salida 0»). Hoy, motor p
 **Ley que sale de aquí:** SIN LEY TODAVÍA
 **Traza:** `app/e2e/{esqueleto,identidad,creditos,bizi-y-resumen,dos-filas,pintura}.mjs`, línea final del veredicto.
 
-## [2026-09-15] 🔴 ABIERTA — la batería e2e pide las teselas a OpenStreetMap sin caché del arnés, y lo imprimía en verde
+## [2026-09-15] ✅ CERRADA — la batería e2e pide las teselas a OpenStreetMap sin caché del arnés, y lo imprimía en verde
 
 **Categoría:** verde declarado que no era
 **Síntoma:** ninguna de las diez suites intercepta las teselas: `abrirChrome`
@@ -50,10 +50,31 @@ Hoy, con la jueza puesta y aún sin caché (motor pid 16344, `127.0.0.1:4300`):
 `✗✗  ⭐ 0 peticiones escapadas a terceros: las teselas salen de la caché del arnés  ·  interceptadas 0 (…) · escapadas 69 [disco 61 · red 8] a tile.openstreetmap.org`
 `✗✗  ⭐ 0 peticiones escapadas a terceros: … · escapadas 179 [red 59 · memoria 102 · disco 18] a tile.openstreetmap.org`
 **Cómo se cazó:** instrumento — el diagnóstico de la tanda 6 · parte 2, al preguntar si las e2e piden teselas de verdad.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** el instrumento solo miraba lo que va a su propio dominio.
+`identidad` cuenta las teselas para separar el peso propio del ajeno, y un
+número impreso sin jueza detrás no puede ponerse en rojo. Nadie juzgaba lo que
+salía hacia terceros ni desde dónde se servía. Lo que no se veía:
+- la caché de Chrome sin sello ni tope de edad;
+- el `clearBrowserCache` de `identidad`, que obligaba a volver a bajarlas;
+- el User-Agent de Chrome sin cabeza.
+**Arreglo aplicado:** `app/e2e/medir.mjs`:
+- `abrirChrome` abre `Network` y `Fetch`.
+- `servirTesela`/`llenarOLeer` sirven desde `%TEMP%/desplazame-teselas`. Cada
+  tesela lleva su sello `llenada` y el tope es de 30 días: lo caducado se
+  purga al abrir y se rehúsa si no se puede rellenar. El llenado lleva
+  User-Agent propio, y la key de CARTO no se escribe a disco.
+- `terceros()` cuenta interceptadas y escapadas de todos los mandos.
+
+Las diez suites juzgan `terceros()` antes de su veredicto. Comprobado:
+- Rojo sin caché (arriba) → contraprueba con lo esperado a 1: `✗✗ … escapadas 0`.
+- Sonda de la caché: el sello de 31 días y el huérfano se borran al abrir, y el
+  llenado sale con `Desplazame-bateria-e2e/1.0 (…)`.
+- Batería entera en caliente (motor pid 16344, `main-2AOZW6WC.js`): 10/10 en
+  verde, 2.117 interceptadas, 0 llenadas y 0 escapadas.
+**Commit:** `f7dfc79` (y `15428d9`, la URL de `bizi-y-resumen` por `APP`)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+- Un número que el instrumento imprime y nadie juzga no vigila nada: lo que
+  sale del dominio propio también se juzga, no solo se cuenta.
 **Traza:** `app/e2e/medir.mjs` (`abrirChrome`) · `app/e2e/identidad.mjs` (la línea «de terceros (teselas)»).
 
 ## [2026-09-15] ✅ CERRADA — el censo daba los dos temas por cumplidos y el resultado en oscuro tiene texto a 1,04:1 y el borde ámbar a 2,35:1
