@@ -1426,6 +1426,17 @@
          Va fuera de los tramos ocultos, así que separa las dos cosas: lo que se
          ve y lo que se lee en voz alta. La línea es más corta que antes, pero
          las juntas siguen siendo juntas. -->
+    <!-- ⭐ Y CARTO, SOLO MIENTRAS PINTA SU TESELA (15/09, tanda 6 · parte 2).
+         Esta línea repite la atribución del mapa, así que dice lo mismo que
+         ella: con el tema oscuro la tesela es Dark Matter de CARTO, y sus
+         términos piden su «© CARTO» visible mientras se enseñan sus teselas.
+
+         ⚠️ El `@if` va DENTRO del tramo de OpenStreetMap, y no entre dos tramos.
+            Puesto entre ellos, Angular se comía el `&ngsp;` que venía detrás
+            del bloque —en el DOM quedaba el comentario ancla del `@if` y, pegado,
+            el punto— y `app/e2e/creditos.mjs` midió «OpenStreetMap· Créditos».
+            Dentro del tramo, el `&ngsp;` vuelve a estar entre dos etiquetas,
+            que es donde siempre sobrevivió. -->
     <span class="creditos__parte"
       ><a class="creditos__enlace" href="https://leafletjs.com/" target="_blank" rel="noopener"
         >Leaflet</a
@@ -1439,21 +1450,11 @@
         target="_blank"
         rel="noopener"
         >colaboradores de OpenStreetMap</a
-      ></span
-    >
-    <!-- ⭐ Y CARTO, SOLO MIENTRAS PINTA SU TESELA (15/09, tanda 6 · parte 2).
-         Esta línea repite la atribución del mapa, así que dice lo mismo que
-         ella: con el tema oscuro la tesela es Dark Matter de CARTO, y sus
-         términos piden su «© CARTO» visible mientras se enseñan sus teselas. -->
-    @if (tema.oscuro()) {
-      &ngsp;<span class="creditos__parte"
-        >&copy;
+      >@if (tema.oscuro()) {&ngsp;&copy;
         <a class="creditos__enlace" href="https://carto.com/attributions" target="_blank" rel="noopener"
           >CARTO</a
-        ></span
-      >
-    }
-    &ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<a
+        >}</span
+    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<a
       class="creditos__enlace"
       href="/creditos"
       >Créditos</a
