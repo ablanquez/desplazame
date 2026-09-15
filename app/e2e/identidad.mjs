@@ -515,6 +515,9 @@ try {
   }
 
   console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);
+  // El veredicto también se lee a máquina: 0 es verde y 1 es rojo, que es lo que
+  // miran el shell y la batería. Sin esto el rojo solo quedaba en el texto.
+  process.exitCode = fallos === 0 ? 0 : 1;
 } finally {
   mando.cerrar();
 }
