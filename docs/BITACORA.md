@@ -14,6 +14,24 @@
 
 ---
 
+## [2026-09-15] 🔴 ABIERTA — la frontera de los campos del Buscador, en CLARO y en producción, lee a 2,85:1 y 1,23:1, y la jueza del color a pelo barre `buscador.css` en verde
+
+**Categoría:** zona sin vigilar que parecía vigilada
+**Síntoma:** sonda del diagnóstico del puente, sobre `main-YGCWZ7HM.js` (motor pid 13032 en `127.0.0.1:4300`). En claro, a 1920, 1440 y 390:
+`"input#calleOrigen","host":"app-autocompletar-via",...,"borde":"rgb(153, 153, 153) 1px",...,"bordeVsPadre":"2.85"`
+`"select.tipo#tipoOrigen","host":"buscador",...,"borde":"rgb(226, 232, 240) 1px",...,"bordeVsPadre":"1.23"`
+Por debajo de 3:1 [WCAG 1.4.11]. Los campos de calle y portal tienen `#999` escrito en `autocompletar-via.css` y `selector-portal.css`. En oscuro, la lista de portales se pinta `#fff` con la letra heredada `#f0f0f0`, y las opciones no activas no se leen.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la jueza (vi) de `identidad.spec.ts`, que barre `buscador.css` y da la hoja por limpia. Ejecutada antes de tocar nada (`ng test --include src/app/identidad.spec.ts`, 181 passed):
+`✓ ⭐ (vi) NI UN COLOR A PELO en las hojas del resultado, salvo los que dicen por qué > la jueza barre de verdad: las tres hojas tienen declaraciones que mirar`
+`✓ ⭐ (vi) NI UN COLOR A PELO en las hojas del resultado, salvo los que dicen por qué > ⭐ los colores a pelo son EXACTAMENTE los que dicen por qué`
+Y en `buscador.css` la regla `.campo input` (44 px, `var(--border)`, `var(--card)`, `var(--foreground)`) con su comentario «Las cajas heredan del primitivo `.caja`». El censo de límites, 16/16, no tiene ningún par de la frontera de un campo.
+**Cómo se cazó:** instrumento — la sonda del diagnóstico, que leyó el host de cada campo además de su color.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/src/app/buscador.css` (`.campo input`, `.tipo`) · `app/src/app/autocompletar-via.css` · `app/src/app/selector-portal.css` · `app/src/app/identidad.spec.ts` (describe (vi), `HOJAS`) · `app/src/app/identidad.ts` (`LIMITES`).
+
 ## [2026-09-15] ✅ CERRADA — cambiar de tema vuelve a encuadrar el mapa, y la P26 lo daba en verde «en caliente»
 
 **Categoría:** verde declarado que no era
