@@ -132,3 +132,29 @@ export const TIERRA_OSM = 'f2efe9';
  */
 export const PLANO_MAS_CLARO = 'ffffff';
 export const PLANO_MAS_OSCURO = 'f9b29c';
+
+/**
+ * ⭐ LOS DOS EXTREMOS DE DARK MATTER, la tesela oscura de CARTO (15/09, tanda 6).
+ *
+ * Censados con la misma regla que los de arriba, sobre la tesela de verdad: 89
+ * teselas `dark_all` del centro de Zaragoza (z14 y z15), **5.832.704 píxeles y
+ * solo 46 colores, todos grises**. Los que ocupan al menos el 1 %:
+ *
+ *     #090909  45,3 %     #191919   5,8 %     #151515   1,9 %
+ *     #060606  12,4 %     #000000   3,6 %     #050505   1,7 %
+ *     #0d0d0d   6,3 %     #010101   3,5 %     #0a0a0a   1,5 %
+ *     #111111   5,9 %     #020202   2,4 %     #101010   1,3 %
+ *                         #262626   2,2 %     #161616   1,3 %
+ *                                             #1d1d1d   1,2 %
+ *
+ * ⚠️ **Aquí los dos extremos NO se parecen a los del claro**: el plano entero
+ *    está por debajo de luminancia 0,02. Por eso un trazo oscuro no llega
+ *    solo (el ámbar del a-pie da 3,01:1 contra `#262626`) y el borde de la ZBE
+ *    `#b91c1c`, que en claro se sostenía sin ribete, aquí da 2,34.
+ *
+ * Y la jueza que manda no es este censo: es la P26, que censa la tesela sobre
+ * el píxel DEBAJO de cada trazo. Este sirve para decidir el tono; aquélla, para
+ * darlo por bueno.
+ */
+export const PLANO_OSCURO_MAS_CLARO = '262626';
+export const PLANO_OSCURO_MAS_OSCURO = '000000';

@@ -3,8 +3,11 @@ import { TestBed } from '@angular/core/testing';
 import {
   ASOMA_EL_RIBETE,
   BORDE_DE_LA_ZONA,
+  BORDE_DE_LA_ZONA_EN_OSCURO,
   BORDE_DEL_AREA,
+  BORDE_DEL_AREA_EN_OSCURO,
   Mapa,
+  PLANO_DE_DARK_MATTER,
   RAYA_DEL_AREA,
   RELLENO_DE_LA_ZONA,
   RELLENO_DEL_AREA,
@@ -17,7 +20,17 @@ import {
   type Mancha,
   type Vertice,
 } from './mapa';
-import { AA_GRAFICO, contraste, deHex, luminancia, PLANO_MAS_CLARO, PLANO_MAS_OSCURO, TIERRA_OSM } from './contraste';
+import {
+  AA_GRAFICO,
+  contraste,
+  deHex,
+  luminancia,
+  PLANO_MAS_CLARO,
+  PLANO_MAS_OSCURO,
+  PLANO_OSCURO_MAS_CLARO,
+  PLANO_OSCURO_MAS_OSCURO,
+  TIERRA_OSM,
+} from './contraste';
 import { SIMBOLO_DEL_GIRO } from './buscador';
 import { SIMBOLOS } from './simbolos';
 // @ts-expect-error — sin @types/node, el compilador no conoce el módulo
@@ -1206,5 +1219,121 @@ describe('⭐ LOS SÍMBOLOS DE LOS HITOS — la lista y el plano dicen lo mismo'
       expect(typeof SIMBOLOS[nombre]).toBe('string');
       expect(SIMBOLOS[nombre].length).toBeGreaterThan(0);
     }
+  });
+});
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  ⭐ EL MAPA EN OSCURO: LA TESELA DE CARTO, SU ATRIBUCIÓN Y LOS RIBETES
+ *     (15/09, tanda 6 · parte 2)
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Aquí se compra la regla, y la P26 (`e2e/pintura.mjs`) la compra sobre el
+ * píxel de la tesela de verdad. Sin CSS no hay `color-scheme` computado, así
+ * que el tema se lee del atributo `data-theme` de `<html>` (ver `tema.ts`).
+ */
+describe('⭐ EL MAPA EN OSCURO — la tesela de CARTO, su atribución y los ribetes', () => {
+  let antes: string | null;
+
+  beforeEach(async () => {
+    antes = document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', 'light');
+    await TestBed.configureTestingModule({ imports: [Anfitrion] }).compileComponents();
+  });
+
+  afterEach(() => {
+    if (antes === null) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', antes);
+  });
+
+  /** Cambia el tema por el atributo, como el conmutador, y deja que se asiente. */
+  const ponerTema = async (fixture: { whenStable(): Promise<unknown> }, tema: 'light' | 'dark') => {
+    document.documentElement.setAttribute('data-theme', tema);
+    await new Promise((r) => setTimeout(r, 0));
+    await fixture.whenStable();
+  };
+
+  it('⭐ 1 · la atribución sigue a la capa EN CALIENTE: CARTO entra con el oscuro y sale con el claro', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    const carto = () => raiz.querySelector('.leaflet-control-attribution a[href="https://carto.com/attributions"]');
+    const osm = () => raiz.querySelector('.leaflet-control-attribution a[href="https://www.openstreetmap.org/copyright"]');
+
+    expect(carto(), 'claro de partida').toBeNull();
+    expect(osm()).not.toBeNull();
+
+    await ponerTema(fixture, 'dark');
+    expect(carto(), 'con el oscuro, © CARTO').not.toBeNull();
+    expect(osm(), 'y © OpenStreetMap sigue').not.toBeNull();
+    expect(raiz.querySelector('.leaflet-control-attribution')?.textContent).toContain('colaboradores de OpenStreetMap');
+
+    await ponerTema(fixture, 'light');
+    expect(carto(), 'de vuelta al claro, CARTO se va con su capa').toBeNull();
+    expect(osm()).not.toBeNull();
+  });
+
+  it('⭐ 2 · las 53 líneas del feed, sobre Dark Matter: la línea contra su ribete y el par contra el plano, ≥ 3:1', () => {
+    const sobreElPlano = (c: string): number =>
+      Math.min(contraste(c, PLANO_OSCURO_MAS_CLARO), contraste(c, PLANO_OSCURO_MAS_OSCURO));
+    for (const l of LINEAS_DEL_FEED) {
+      const ribete = ribeteDe(l.color, PLANO_DE_DARK_MATTER);
+      expect(contraste(l.color, ribete), l.corto + ' sobre su ribete').toBeGreaterThanOrEqual(AA_GRAFICO);
+      expect(
+        Math.max(sobreElPlano(ribete), sobreElPlano(l.color)),
+        l.corto + ' · el par sobre Dark Matter',
+      ).toBeGreaterThanOrEqual(AA_GRAFICO);
+    }
+  });
+
+  it('⭐ 3 · y los vestidos de la casa: el ámbar, el azul, el gris sin línea y el rojo de la zona', () => {
+    const sobreElPlano = (c: string): number =>
+      Math.min(contraste(c, PLANO_OSCURO_MAS_CLARO), contraste(c, PLANO_OSCURO_MAS_OSCURO));
+    for (const color of ['b45309', '2563eb', '6b7280', ROJO_DE_LA_ZONA]) {
+      const ribete = ribeteDe(color, PLANO_DE_DARK_MATTER);
+      expect(contraste(color, ribete), color).toBeGreaterThanOrEqual(AA_GRAFICO);
+      expect(Math.max(sobreElPlano(ribete), sobreElPlano(color)), color).toBeGreaterThanOrEqual(AA_GRAFICO);
+    }
+    // El ámbar, el azul y el rojo solos no llegan contra la calzada oscura: por eso el blanco.
+    for (const color of ['b45309', '2563eb', ROJO_DE_LA_ZONA]) {
+      expect(contraste(color, PLANO_OSCURO_MAS_CLARO), color).toBeLessThan(3.1);
+      expect(ribeteDe(color, PLANO_DE_DARK_MATTER), color).toBe('FFFFFF');
+    }
+  });
+
+  it('⭐ 4 · los bordes de los polígonos tienen par oscuro: el del claro no llega sobre Dark Matter y el suyo sí', () => {
+    // La calzada #444444 es la que Dark Matter pinta bajo el borde del casco:
+    // medida sobre el píxel en la P26, en los tres anchos.
+    const BAJO_EL_BORDE_DEL_CASCO = '444444';
+    expect(contraste(BORDE_DE_LA_ZONA, PLANO_OSCURO_MAS_CLARO)).toBeLessThan(AA_GRAFICO);
+    expect(contraste(BORDE_DEL_AREA, PLANO_OSCURO_MAS_CLARO)).toBeLessThan(AA_GRAFICO);
+    expect(contraste(BORDE_DE_LA_ZONA_EN_OSCURO, PLANO_OSCURO_MAS_CLARO)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    expect(contraste(BORDE_DE_LA_ZONA_EN_OSCURO, BAJO_EL_BORDE_DEL_CASCO)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    expect(contraste(BORDE_DEL_AREA_EN_OSCURO, PLANO_OSCURO_MAS_CLARO)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    // Y el paso de antes en la familia NO llegaba bajo el borde: es el mínimo.
+    expect(contraste('ef4444', BAJO_EL_BORDE_DEL_CASCO)).toBeLessThan(AA_GRAFICO);
+  });
+
+  it('⭐ 5 · con el trazado puesto, cambiar de tema vuelve a vestir la ruta y la zona, sin tocar su color', async () => {
+    const fixture = TestBed.createComponent(Anfitrion);
+    await fixture.whenStable();
+    fixture.componentInstance.trazado.set(TRAMO);
+    fixture.componentInstance.tramos.set([{ comoSeVa: 'andando', desde: 0, hasta: 2, metros: 400, segundos: 300, hito: null }]);
+    fixture.componentInstance.zona.set(laFase1());
+    await fixture.whenStable();
+    const raiz = fixture.nativeElement as HTMLElement;
+    const trazos = () => Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive')).map((p) => p.getAttribute('stroke'));
+    const borde = () => raiz.querySelector('.leaflet-zbe-pane path')?.getAttribute('stroke');
+
+    expect(trazos()).toEqual(['#000000', '#b45309']);
+    expect(borde()).toBe(`#${BORDE_DE_LA_ZONA}`);
+
+    await ponerTema(fixture, 'dark');
+    expect(trazos(), 'en oscuro, el ribete del ámbar es blanco y el ámbar no cambia').toEqual(['#FFFFFF', '#b45309']);
+    expect(borde()).toBe(`#${BORDE_DE_LA_ZONA_EN_OSCURO}`);
+
+    await ponerTema(fixture, 'light');
+    expect(trazos()).toEqual(['#000000', '#b45309']);
+    expect(borde()).toBe(`#${BORDE_DE_LA_ZONA}`);
   });
 });

@@ -10,7 +10,15 @@ import {
 } from '@angular/core';
 import * as L from 'leaflet';
 import { REJILLA, SIMBOLOS, type NombreDeSimbolo } from './simbolos';
-import { contraste, AA_GRAFICO, PLANO_MAS_CLARO, PLANO_MAS_OSCURO } from './contraste';
+import {
+  contraste,
+  AA_GRAFICO,
+  PLANO_MAS_CLARO,
+  PLANO_MAS_OSCURO,
+  PLANO_OSCURO_MAS_CLARO,
+  PLANO_OSCURO_MAS_OSCURO,
+} from './contraste';
+import { Tema } from './tema';
 // El vértice lo define el contrato, no este componente: es la misma forma que
 // el motor devolverá en la geometría de un trayecto.
 import type { TramoDelViaje, Vertice } from '@desplazame/tipos';
@@ -174,6 +182,24 @@ export const ROJO_DE_LA_ZONA = 'd32f2f';
 export const BORDE_DE_LA_ZONA = 'b91c1c';
 
 /**
+ * ⭐ Y SU PAR EN OSCURO (15/09, tanda 6 · parte 2): el borde sobre Dark Matter.
+ *
+ * `#b91c1c` da **2,34:1 contra el más claro de la tesela oscura** (`#262626`):
+ * lo que en claro se sostenía solo, en oscuro no llega. Por regla declarada, la
+ * de los tokens del ámbar en la parte 1: **el paso mínimo de la misma familia
+ * que llega a 3:1**, medido sobre lo pintado bajo el borde en la P26. No lleva
+ * ribete: sigue siendo el único borde que no lo necesita.
+ *
+ * ⚠️ **El censo del plano entero no bastó, y la P26 lo cazó.** Contra `#262626`
+ *    el paso siguiente, `#dc2626`, daba 3,13. Pero el borde del casco va por
+ *    las rondas, y bajo él Dark Matter pinta sus calzadas `#444444`, que en el
+ *    plano entero no llegan al 1 % y bajo el borde sí. Medido ahí, en los tres
+ *    anchos: `#dc2626` **2,02** · `#ef4444` 2,59 · **`#f87171` 3,52**. El paso
+ *    que llega es el red-400.
+ */
+export const BORDE_DE_LA_ZONA_EN_OSCURO = 'f87171';
+
+/**
  * ⭐ EL RELLENO: un TINTE, no un bloque.
  *
  * Con `0,08` de opacidad, sobre la tierra de OSM el resultado es `#f0e0da`, que
@@ -232,6 +258,13 @@ export const TINTA_DEL_RELLENO = 'd32f2f';
  *    fuerte no lo estarían: es la misma razón por la que el de la ZBE es 0,08.
  */
 export const BORDE_DEL_AREA = '166534';
+
+/**
+ * ⭐ Y SU PAR EN OSCURO (15/09): `#166534` da **2,12:1 contra `#262626`**. Mismo
+ * paso mínimo de su familia verde que llega a 3:1 sobre lo pintado (P26), y las
+ * rayas se quedan: son el canal que lo separa de la ZBE [WCAG 1.4.1].
+ */
+export const BORDE_DEL_AREA_EN_OSCURO = '15803d';
 export const TINTA_DEL_AREA = '15803d';
 export const RELLENO_DEL_AREA = 0.08;
 
@@ -278,6 +311,21 @@ const PANE_ZONA = 'zbe';
 
 /** Cuánto asoma el ribete por cada lado de la línea, en píxeles. */
 export const ASOMA_EL_RIBETE = 2;
+
+/** Los dos extremos de un plano: contra ellos se decide un ribete. */
+export interface Plano {
+  readonly masClaro: string;
+  readonly masOscuro: string;
+}
+
+/** El teselado de OpenStreetMap, el del tema claro. Ver `contraste.ts`. */
+export const PLANO_DE_OSM: Plano = { masClaro: PLANO_MAS_CLARO, masOscuro: PLANO_MAS_OSCURO };
+
+/** Dark Matter de CARTO, el del tema oscuro. Ver `contraste.ts`. */
+export const PLANO_DE_DARK_MATTER: Plano = {
+  masClaro: PLANO_OSCURO_MAS_CLARO,
+  masOscuro: PLANO_OSCURO_MAS_OSCURO,
+};
 
 /**
  * ⭐ EL RIBETE BAJO LA LÍNEA. **Lo lleva TODA línea de operador, siempre.**
@@ -338,11 +386,18 @@ export const ASOMA_EL_RIBETE = 2;
  * Sobre este teselado, las 44 restantes salen en negro; pero es el resultado de
  * la cuenta y no una decisión escrita a mano: el día que OSM oscurezca su plano,
  * esta función cambia sola.
+ *
+ * ⭐ **Y ESE DÍA LLEGÓ CON EL TEMA OSCURO (15/09).** Sobre Dark Matter el plano
+ *    es otro, y la misma cuenta con sus dos extremos (`PLANO_DE_DARK_MATTER`)
+ *    viste de blanco lo que en claro iba de negro: el ámbar del a-pie, el azul
+ *    de la rueda, el rojo de la zona. **Ni una línea cambia de color**: el
+ *    route_color del feed sigue intacto, y lo único que se recalcula es su
+ *    vecino.
  */
-export function ribeteDe(color: string): string {
+export function ribeteDe(color: string, plano: Plano = PLANO_DE_OSM): string {
   /** Lo que un color se separa del plano, en su caso más desfavorable. */
   const sobreElPlano = (c: string): number =>
-    Math.min(contraste(c, PLANO_MAS_CLARO), contraste(c, PLANO_MAS_OSCURO));
+    Math.min(contraste(c, plano.masClaro), contraste(c, plano.masOscuro));
 
   const candidatos = ['000000', 'FFFFFF'];
   let gana = candidatos[0]!;
@@ -405,10 +460,59 @@ const ATRIBUCION =
   '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">colaboradores de OpenStreetMap</a>';
 
 /**
+ * ⭐ LA TESELA DE CADA TEMA (15/09, tanda 6 · parte 2).
+ *
+ * **Claro: la de OpenStreetMap de siempre**, tal cual. **Oscuro: Dark Matter de
+ * CARTO**, que existe justo para esto: un plano apagado para que lo que va
+ * encima se lea [DISEÑO § 33]. Un mapa blanco dentro del tema oscuro rompía la
+ * luminancia baja que es la razón de ser del tema: medido, 0,70 de luminancia
+ * media en el lienzo contra 0,013 de la tarjeta.
+ *
+ * [CARTO, *basemaps FAQ* y *basemap terms*, leídos el 15/09]
+ * · Las raster siguen servidas **con key** (`?key=`). Sin ella salen con la
+ *   marca «API KEY REQUIRED» cruzada; con ella, limpias (comprobado sobre una
+ *   tesela del centro, guardada en el diagnóstico).
+ * · Atribución **© OpenStreetMap + © CARTO**, visible mientras pinten sus
+ *   teselas. Leaflet la cambia con la capa: la de cada capa se añade al
+ *   ponerla y se quita al quitarla (`Control.Attribution`, `layeradd`/`remove`).
+ * · Tope de 5 M de teselas al mes.
+ * · Están en **retirada recomendada** hacia las vectoriales (MapLibre GL). La
+ *   migración es un cambio de pila sin necesidad demostrada hoy: va al acta de
+ *   THIRD-PARTY-NOTICES, no aquí.
+ *
+ * ⚠️ **LA KEY VA EN EL CÓDIGO DEL NAVEGADOR, y no puede ir en otro sitio**: la
+ *    tesela la pide el navegador de quien mira, así que la URL con la key la
+ *    ve cualquiera que abra las herramientas. Es una key de *basemaps* para
+ *    uso en cliente, no un secreto de servidor.
+ *
+ * La palabra «colaboradores» sigue en la de CARTO por lo mismo que en la de OSM:
+ * el dato debajo sigue siendo de OpenStreetMap, y la ODbL no cambia con quien
+ * lo pinte.
+ */
+const CLAVE_CARTO = 'cb1_3lwh_1_86be5eb6855590e7c896dc90';
+
+const TESELA_CLARA = {
+  url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  opciones: { maxZoom: 19, attribution: ATRIBUCION } satisfies L.TileLayerOptions,
+};
+
+const TESELA_OSCURA = {
+  url: `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?key=${CLAVE_CARTO}`,
+  opciones: {
+    maxZoom: 19,
+    subdomains: 'abcd',
+    attribution:
+      ATRIBUCION +
+      ' &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
+  } satisfies L.TileLayerOptions,
+};
+
+/**
  * El mapa.
  *
- * Pinta el mapa base de OpenStreetMap y **una sola cosa encima**: el TRAZADO de
- * la ruta, cuando lo hay. El alto del lienzo es parámetro.
+ * Pinta el mapa base —OpenStreetMap con el tema claro, Dark Matter de CARTO con
+ * el oscuro— y **una sola cosa encima**: el TRAZADO de la ruta, cuando lo hay.
+ * El alto del lienzo es parámetro.
  *
  * **Tuvo catorce capas de verificación** —portales, grafo, carriles bici,
  * postes, trazados de bus, tranvía, BiZi, aparcabicis, aparcamotos, regulado,
@@ -496,6 +600,12 @@ export class Mapa {
   private readonly lienzo = viewChild.required<ElementRef<HTMLElement>>('lienzo');
   private mapa?: L.Map;
 
+  /** El tema que ha ganado. Ver `tema.ts`. */
+  private readonly tema = inject(Tema);
+
+  /** La capa de teselas puesta, y de qué tema es. */
+  private tesela?: { readonly capa: L.TileLayer; readonly oscura: boolean };
+
   /**
    * ⭐ «HE CAMBIADO DE TAMAÑO, VUELVE A MIRAR» (10/09, el esqueleto).
    *
@@ -539,10 +649,7 @@ export class Mapa {
     // cuenta, así que no puede montarse antes de que el lienzo exista.
     afterNextRender(() => {
       this.mapa = L.map(this.lienzo().nativeElement).setView(CENTRO, ZOOM);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: ATRIBUCION,
-      }).addTo(this.mapa);
+      this.ponerTesela(this.tema.oscuro());
       // ⭐ EL PANEL DE LA ZONA, **entre las teselas y las trazas** [DOC Leaflet,
       //    *map panes*]: `tilePane` va en 200 y `overlayPane` —donde viven las
       //    polilíneas— en 400. En 350 el polígono tapa el plano y **nunca** una
@@ -565,7 +672,16 @@ export class Mapa {
       this.zona();
       // Y el área de YeGo, por lo mismo: aparece al elegir «Pública YeGo».
       this.area();
+      // Y el tema: el ribete de cada línea y los bordes se deciden contra SU
+      // plano, así que cambiar de tesela obliga a volver a vestirlas.
+      this.tema.oscuro();
       this.pintarTrazado();
+    });
+
+    // ⭐ LA TESELA SIGUE AL TEMA, EN CALIENTE (15/09). Sin recargar: se quita
+    //    una capa y se pone la otra, y la atribución va con cada una.
+    effect(() => {
+      this.ponerTesela(this.tema.oscuro());
     });
 
     // Y al morir, se desmonta. Mientras hubo una sola pantalla esto no hacía
@@ -578,8 +694,33 @@ export class Mapa {
     inject(DestroyRef).onDestroy(() => {
       this.mapa?.remove();
       this.mapa = undefined;
+      this.tesela = undefined;
       this.marcas = [];
     });
+  }
+
+  /**
+   * ⭐ PONE LA TESELA DEL TEMA, y quita la otra si estaba.
+   *
+   * [DOC Leaflet, `Control.Attribution`] al añadir una capa, su `attribution` se
+   * suma al control (`layeradd`), y al quitarla se resta (`remove`). **Por eso la
+   * atribución no se toca a mano**: viaja con su capa, y no puede quedarse la de
+   * CARTO sobre las teselas de OSM ni al revés.
+   *
+   * ⚠️ La vieja se quita EN EL ACTO, no al cargar la nueva: esperar al `load`
+   *    dejaría las dos atribuciones juntas mientras tanto, y para siempre si el
+   *    mapa no está a la vista y nunca carga. Lo que asoma en ese hueco es el
+   *    fondo del contenedor, y por eso ese fondo sale de un token (`mapa.css`):
+   *    sin él, el `#ddd` de Leaflet sería un destello claro dentro del oscuro.
+   */
+  private ponerTesela(oscura: boolean): void {
+    if (!this.mapa || this.tesela?.oscura === oscura) {
+      return;
+    }
+    const cual = oscura ? TESELA_OSCURA : TESELA_CLARA;
+    const nueva = L.tileLayer(cual.url, cual.opciones).addTo(this.mapa);
+    this.tesela?.capa.remove();
+    this.tesela = { capa: nueva, oscura };
   }
 
   /**
@@ -616,6 +757,10 @@ export class Mapa {
     }
     this.zonas = [];
 
+    // El plano sobre el que se viste todo: el del tema que ha ganado.
+    const oscuro = this.tema.oscuro();
+    const plano = oscuro ? PLANO_DE_DARK_MATTER : PLANO_DE_OSM;
+
     // ⭐ LA ZONA VA PRIMERO Y VA SIEMPRE QUE SE DÉ, haya ruta o no: quien elige
     //    «Coche» tiene que poder ver dónde está el casco **antes** de generar
     //    nada. Por eso se pinta antes del corte de «sin trazado».
@@ -626,7 +771,7 @@ export class Mapa {
           anillos.map((anillo) => anillo.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
           {
             pane: PANE_ZONA,
-            color: `#${BORDE_DE_LA_ZONA}`,
+            color: `#${oscuro ? BORDE_DE_LA_ZONA_EN_OSCURO : BORDE_DE_LA_ZONA}`,
             weight: 2,
             fillColor: `#${TINTA_DEL_RELLENO}`,
             fillOpacity: RELLENO_DE_LA_ZONA,
@@ -654,7 +799,7 @@ export class Mapa {
           mancha.map((anillo) => anillo.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
           {
             pane: PANE_ZONA,
-            color: `#${BORDE_DEL_AREA}`,
+            color: `#${oscuro ? BORDE_DEL_AREA_EN_OSCURO : BORDE_DEL_AREA}`,
             weight: 2,
             dashArray: RAYA_DEL_AREA,
             fillColor: `#${TINTA_DEL_AREA}`,
@@ -703,7 +848,7 @@ export class Mapa {
       //    el mismo patrón. Uno sólido rellenaría los huecos y el trazo dejaría
       //    de distinguir al que anda del que va montado.
       const vestido = vestidoDe(tramo);
-      const ribete = ribeteDe(vestido.color!.replace('#', ''));
+      const ribete = ribeteDe(vestido.color!.replace('#', ''), plano);
       this.lineas.push(
         L.polyline(trozo, {
           ...vestido,

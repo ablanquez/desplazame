@@ -1440,7 +1440,20 @@
         rel="noopener"
         >colaboradores de OpenStreetMap</a
       ></span
-    >&ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<a
+    >
+    <!-- ⭐ Y CARTO, SOLO MIENTRAS PINTA SU TESELA (15/09, tanda 6 · parte 2).
+         Esta línea repite la atribución del mapa, así que dice lo mismo que
+         ella: con el tema oscuro la tesela es Dark Matter de CARTO, y sus
+         términos piden su «© CARTO» visible mientras se enseñan sus teselas. -->
+    @if (tema.oscuro()) {
+      &ngsp;<span class="creditos__parte"
+        >&copy;
+        <a class="creditos__enlace" href="https://carto.com/attributions" target="_blank" rel="noopener"
+          >CARTO</a
+        ></span
+      >
+    }
+    &ngsp;<span class="creditos__punto" aria-hidden="true">·</span>&ngsp;<a
       class="creditos__enlace"
       href="/creditos"
       >Créditos</a

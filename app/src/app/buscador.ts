@@ -35,6 +35,7 @@ import { SelectorPortal } from './selector-portal';
 import { IconoCapa, type Clase } from './iconos';
 import { llevaContorno, tonosDeChip, type TonosDeChip } from './chip';
 import { Simbolo, type NombreDeSimbolo } from './simbolos';
+import { Tema } from './tema';
 
 /**
  * ⭐ EL MAPEO GIRO → FLECHA. Diez giros, diez glifos, y ni una dependencia.
@@ -936,6 +937,12 @@ export class Buscador {
   private readonly http = inject(HttpClient);
   /** Para que ninguna suscripción sobreviva a la pantalla [takeUntilDestroyed]. */
   private readonly destruccion = inject(DestroyRef);
+
+  /**
+   * El tema que ha ganado, para el pie: con el oscuro la tesela es de CARTO y la
+   * línea de créditos lo dice, igual que la atribución del mapa. Ver `tema.ts`.
+   */
+  protected readonly tema = inject(Tema);
 
   /**
    * Qué lado pulsó «Mi ubicación». La geolocalización contesta por retrollamada

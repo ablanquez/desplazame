@@ -10,10 +10,54 @@
   box-sizing: border-box;
 }
 
-/* La atribución tiene que leerse. La ODbL no se cumple con letra invisible. */
+/* La atribución tiene que leerse. La ODbL no se cumple con letra invisible.
+
+   ⭐ LOS CONTROLES DEL MAPA, CON LOS TOKENS (15/09, tanda 6 · parte 2).
+      Leaflet trae los suyos a pelo —el zoom en `#fff` con glifo negro, la
+      atribución en blanco al 80 % con letra `#333` y enlaces `#0078A8`— y con
+      el tema oscuro eran bloques blancos sobre Dark Matter. Pasan a los tokens
+      de la tarjeta, que ya tienen su par medido en los dos temas.
+
+   ⚠️ Y EN CLARO CAMBIAN DE TONO, sin bajar de vara: el glifo pasa de `#000` a
+      `--foreground` (#1e293b), la letra de la atribución de `#333` a ese mismo,
+      y el enlace de `#0078A8` a `--primary` (#2563eb, 5,17:1 sobre blanco). */
 :host ::ng-deep .leaflet-control-attribution {
   font-size: 0.78rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  color: var(--foreground);
+}
+
+:host ::ng-deep .leaflet-control-attribution a {
+  color: var(--primary);
+}
+
+/* Lo que asoma mientras cargan las teselas, o entre una capa y la otra al cambiar
+   de tema: el `#ddd` de Leaflet era un destello claro dentro del oscuro. */
+:host ::ng-deep .leaflet-container {
+  background: var(--muted);
+}
+
+:host ::ng-deep .leaflet-bar a {
+  background-color: var(--card);
+  border-bottom-color: var(--border);
+  color: var(--foreground);
+}
+
+:host ::ng-deep .leaflet-bar a:hover,
+:host ::ng-deep .leaflet-bar a:focus {
+  /* El mismo gesto que `.vivo__boton` en la parte 1. */
+  background-color: color-mix(in srgb, var(--foreground) 8%, var(--card));
+}
+
+/* [WCAG 2.4.7] el foco, con el anillo de la casa. */
+:host ::ng-deep .leaflet-bar a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+:host ::ng-deep .leaflet-bar a.leaflet-disabled {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 /* ⭐ EL ICONO DE HITO (30/08): el mismo dibujo que la lista de pasos, sobre un
