@@ -149,3 +149,55 @@ describe('⭐ EL CHIP DE UNA LÍNEA — heredado de ZetaBus', () => {
     }
   });
 });
+
+/**
+ * ⭐ EL ACTA DEL FEED EN LOS DOS TEMAS (15/09, tanda 6) — medida, no juzgada.
+ *
+ * El número se lee igual en claro y en oscuro: el chip lleva SU fondo, y el
+ * contraste del número es contra ese fondo, no contra la página. Lo que SÍ
+ * cambia con el tema es lo que tiene AL LADO [WCAG 1.4.11: 3:1 contra los
+ * adyacentes]: la tarjeta y el realce. Aquí se cuentan los rellenos que no
+ * llegan a 3:1 contra cada uno, con el `route_color` intacto [decisión de
+ * Antonio, chip.ts] y la tarjeta leída de `styles.css`, no copiada.
+ *
+ * ⚠️ No es exigible: el chip se identifica por su número, y un límite solo lo
+ *    es si hace falta para entender el componente. Por eso es ACTA —cifras
+ *    fijadas para que un cambio del feed o de la paleta salte— y no deuda.
+ *    Si alguien quiere que la insignia se recorte en oscuro, es una decisión de
+ *    forma sobre el chip, y va al checkpoint con estas cifras delante.
+ */
+describe('⭐ EL ACTA DEL FEED: los rellenos contra lo que tienen al lado, en los dos temas', () => {
+  const HOJA = readFileSync(COCINADO.replace('/app/data/nap_gtfs-ficha1176.cocinado.json', '/app/src/styles.css'), 'utf-8') as string;
+  // ⚠️ Con `indexOf` y no con una RegExp montada en plantilla: las dos que se
+  //    escribieron así el 15/09 no casaban dentro de la build de las pruebas.
+  const token = (nombre: string): string => {
+    const i = HOJA.indexOf(`--${nombre}:`);
+    if (i < 0) throw new Error(`no encuentro --${nombre} en styles.css`);
+    const hex = HOJA.slice(HOJA.indexOf('#', i) + 1, HOJA.indexOf(';', i)).trim();
+    if (!/^[0-9a-f]{6}$/.test(hex)) throw new Error(`--${nombre} no es un hex de seis: «${hex}»`);
+    return hex;
+  };
+  const rellenoContra = (vecino: string): LineaCocinada[] =>
+    TODAS.filter((l) => contraste(tonosDeChip(l).fondo, vecino) < 3);
+
+  it('claro: 11 de 53 rellenos por debajo de 3:1 contra la tarjeta, 18 contra el realce', () => {
+    expect(rellenoContra(token('claro-card')).length).toBe(11);
+    expect(rellenoContra(token('claro-superficie-realce')).length).toBe(18);
+  });
+
+  it('oscuro: 27 de 53 contra la tarjeta —los siete búhos a 1,01—, 32 contra el realce', () => {
+    const bajos = rellenoContra(token('oscuro-card'));
+    expect(bajos.length).toBe(27);
+    expect(BUHOS.every((b) => bajos.includes(b))).toBe(true);
+    expect(Number(contraste(NOCHE, token('oscuro-card')).toFixed(2))).toBe(1.01);
+    expect(rellenoContra(token('oscuro-superficie-realce')).length).toBe(32);
+  });
+
+  it('y el número se sigue leyendo en los 53, en los dos temas: no depende de la página', () => {
+    for (const l of TODAS) {
+      const { fondo, texto, buho } = tonosDeChip(l);
+      const r = buho ? contraste(fondo, texto) : legiblePorContorno(fondo);
+      expect(r, l.corto).toBeGreaterThanOrEqual(AA_TEXTO);
+    }
+  });
+});
