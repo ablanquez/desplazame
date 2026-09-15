@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-15] 🔴 ABIERTA — el censo daba los dos temas por cumplidos y el resultado en oscuro tiene texto a 1,04:1 y el borde ámbar a 2,35:1
+## [2026-09-15] ✅ CERRADA — el censo daba los dos temas por cumplidos y el resultado en oscuro tiene texto a 1,04:1 y el borde ámbar a 2,35:1
 
 **Categoría:** verde declarado que no era
 **Síntoma:** con `data-theme="dark"` puesto en `<html>` y `--background`
@@ -34,10 +34,44 @@ Chrome, corrido hoy antes de tocar nada
 filas nombra `warning-border`, y el papel del proyecto repetía «44 pares de
 texto + 8 límites cumplen en los dos temas».
 **Cómo se cazó:** instrumento — el diagnóstico de la tanda 6 con el oscuro puesto de verdad.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** dos agujeros distintos, y el censo no podía ver ninguno.
+- **Lo que no era token:** seis reglas del resultado llevaban colores a pelo
+  (#1a1a1a, #555, #334155, #fff, #1e293b, #64748b…) que no cambian con el tema.
+  El censo sondea los tokens de su lista; lo que vive en la hoja fuera de ella
+  no pasa por él (la cicatriz de la banda, 11/09).
+- **Lo que era token y no par:** `warning-border` estaba en `SEMANTICOS` —se
+  sondeaba su valor—, pero su USO es un borde contra la tarjeta, contra su ámbar
+  y contra el realce, y ninguno de esos tres estaba en `LIMITES`. «Los dos temas
+  cumplen» contaba los pares listados, no los pintados. Y el ámbar entero
+  (`warning-dark` sobre `warning`) tampoco era par: el censo medía
+  `warning-foreground`, que el resultado no usa.
+- Lo que lo dejaba invisible: el producto clavado en `data-theme="light"` y la
+  pintura con la nota «el oscuro no se mide aquí».
+
+**Arreglo aplicado:**
+- `app/src/styles.css`: nacen `--leyenda` (#555555 / #aeaeae, por regla: el
+  mismo 7,46:1 contra su tarjeta) y `--superficie-realce` (#e2e8f0 / #333333);
+  `--oscuro-warning-border` #92400e → #d97706 (el paso mínimo de la familia a 3:1
+  contra los tres vecinos).
+- `app/src/app/resultado.css` y `buscador.css`: los colores a pelo pasan a
+  tokens.
+- `app/src/app/identidad.ts`: 28 pares y 8 límites, con los del ámbar y el
+  realce. Una deuda del claro censada con su número: `muted-foreground` sobre el
+  realce, 3,86:1.
+- `identidad.spec.ts`: juezas nuevas del color a pelo (barre las tres hojas) y
+  del préstamo de la banda.
+- `app/e2e/pintura.mjs`: la P25 pone el oscuro y lo comprueba antes de medir.
+  Contra la build anterior: `❌ 26 EN ROJO` (`1.04:1 · rgb(26, 26, 26) sobre
+  rgb(30, 30, 30)`). Contra la nueva: 76 OK (`14.63:1 · rgb(240, 240, 240)
+  sobre rgb(30, 30, 30)`, borde ámbar `5.23`).
+- `identidad.mjs`: `OK  los 55 de 56 pares cumplen AA (4.5:1), y 1 en deuda
+  censada` · `OK  los 16 de 16 límites cumplen 1.4.11 (3:1)`.
+
+**Commit:** `86b48d7` (tokens y censo) · `7a8a898` (acta del feed) · `b425332` (P25) · `5ee92bf` (dist)
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+- Línea añadida al cerrar: **un token censado no es un par medido.** El censo
+  tiene que listar cada USO de un color contra lo que tiene al lado, no solo
+  el valor del color.
 **Traza:** `app/src/app/resultado.css` (`.paso__texto strong`, `.pasos__modo`,
 `.ruta__lineas-rotulo`, `.vivo__boton`, `.vivo__estado`, `.sugerencia__boton`) ·
 `app/src/styles.css` (`--oscuro-warning-border`) · `app/src/app/identidad.ts`
