@@ -6,11 +6,12 @@ propias condiciones. Aquí está, una por una, con lo que sabemos y lo que no.
 > ℹ️ **Estado a 10/09/2026.** El proyecto está en construcción **y en producción** —vive en
 > <https://desplazame.antonioblanquez.es> desde el 8/09—, que es lo que hace que estas fichas dejen
 > de ser un ejercicio: lo ajeno que se enseña se está enseñando **a quien entre**. Hoy hay de terceros: las
-> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **treinta y nueve** fichas
-> propias —§ 1.1 a § 1.39—, de las cuales **una es una norma citada** (§ 1.32), **una son los
+> dependencias npm, la cartografía de OpenStreetMap que pide el mapa, **cuarenta** fichas
+> propias —§ 1.1 a § 1.40—, de las cuales **una es una norma citada** (§ 1.32), **una son los
 > veintiocho iconos de la pantalla** (§ 1.37, Apache 2.0), **una es la letra**
-> (§ 1.38, Inter bajo OFL) y **una declara lo
-> que todavía NO ha entrado** (§ 1.39).
+> (§ 1.38, Inter bajo OFL), **una es la tesela oscura de CARTO** (§ 1.39, con el acta de la
+> retirada de las raster) y **una declara lo
+> que todavía NO ha entrado** (§ 1.40).
 > Quedan fuera las capas municipales de tranvía; cada pieza llega con su autorización y su ficha.
 >
 > ⭐ **Y SEIS NO SE COPIAN: SE CONSULTAN.** Es la línea que se cruzó el 30/08 y que hoy separa el
@@ -3251,7 +3252,38 @@ compraba «todo activo de terceros tiene ficha», así que no había instrumento
 callara — es la nº5 de la bitácora otra vez, alcance corto. Se ficha ahora porque
 lo pide la coherencia del propio documento.
 
-### 1.39 · El resto del dato — todavía **ninguno**
+### 1.39 · Dark Matter — CARTO (teselas del mapa en el tema oscuro)
+
+Desde la tanda 6 · parte 2 (15/09/2026), **con el tema oscuro el mapa pide sus teselas a CARTO**
+en vez de a OpenStreetMap (§ 1.1). El tema claro sigue exactamente como estaba. Es la tesela que
+DISEÑO § 33 nombra para esto: un plano apagado para que la ruta que va encima se lea.
+
+| | |
+|---|---|
+| **Qué es** | Las teselas raster del estilo `dark_all` (Dark Matter), servidas por `https://{a,b,c,d}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png` |
+| **Titular** | **CARTO**. El dato de debajo sigue siendo de OpenStreetMap, bajo **ODbL 1.0** (§ 1.1) |
+| **Condiciones** | [CARTO, *basemap terms*](https://carto.com/legal/basemap-terms) y [*CARTO basemaps FAQ*](https://docs.carto.com/faqs/carto-basemaps), leídos por Antonio el 15/09/2026. La licencia del estilo en sí: **NO CONSTA** en lo leído |
+| **Atribución exigida** | **© OpenStreetMap + © CARTO**, visible mientras pinten sus teselas [términos 6.b y 15.e]. Aquí dice «© colaboradores de OpenStreetMap © CARTO», con enlaces a `openstreetmap.org/copyright` y a `carto.com/attributions`: la palabra «colaboradores» se queda por lo mismo que en § 1.1 |
+| **Dónde está cumplida** | En el control de atribución del mapa (`app/src/app/mapa.ts`, `TESELA_OSCURA`), que Leaflet cambia con la capa, y en la línea de créditos del pie (`app/src/app/buscador.html`), que añade «© CARTO» solo con el tema oscuro. Lo vigilan `app/src/app/mapa.spec.ts` y la P26 de `app/e2e/pintura.mjs`, que lee las dos en los tres anchos y en caliente, sin recargar |
+| **Key** | Obligatoria: sin `?key=` la tesela sale con «API KEY REQUIRED» cruzado. Comprobado el 15/09 sobre la tesela z15 16303/12206 del centro, con key y sin ella: con key sale limpia. La key va en el código del navegador, porque es el navegador quien pide la tesela: es una key de basemaps para uso en cliente, no un secreto |
+| **Tope** | 5 millones de teselas al mes |
+| **Caché** | En producción, la del navegador. En las pruebas, la del arnés (`app/e2e/medir.mjs`): en `%TEMP%`, fuera del repo, con sello de fecha, y **nada de más de 30 días** [*basemap terms*: el cacheo en el dispositivo se permite hasta 30 días, retenerlo más o redistribuirlo no]. La key no se escribe a disco |
+| **¿Hay teselas en este repo?** | ❌ **NO.** Se piden en tiempo de ejecución |
+
+> ⚠️ **ACTA · LA RETIRADA DE LAS RASTER (15/09/2026).** La FAQ de CARTO dice que las teselas raster
+> **siguen disponibles con key**, pero están en **retirada recomendada** hacia las vectoriales
+> (MapLibre GL). **No se migra hoy.** Migrar es cambiar la pila del mapa (Leaflet → MapLibre GL),
+> y hoy no hay necesidad demostrada: las raster se sirven, con key salen limpias, y la P26 mide
+> sobre ellas en verde.
+> **Queda como deuda declarada**, y se reabre si pasa cualquiera de estas cosas:
+> - la marca de agua vuelve con key;
+> - CARTO fecha el fin del servicio;
+> - el tope de 5 M se acerca.
+>
+> Hay además un informe de un tercero, no oficial, de que con key la marca persistía en algunos
+> casos. Aquí no se ha visto, y la FAQ oficial, que es más reciente, dice lo contrario.
+
+### 1.40 · El resto del dato — todavía **ninguno**
 
 No hay capas municipales de tranvía (`MU3_lineas_tranvia`, `MU3_paradas_tranvia`, que existen en
 el catálogo y nadie ha descargado), ni el cruce líneas↔postes, que es trabajo de motor y no un
