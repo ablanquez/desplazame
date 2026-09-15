@@ -10,7 +10,7 @@
  *
  *     node app/e2e/bizi-y-resumen.mjs [carpeta-de-fotos]
  */
-import { abrirChrome } from './medir.mjs';
+import { abrirChrome, terceros } from './medir.mjs';
 
 const APP = process.env.APP ?? 'http://localhost:4200/';
 const FOTOS = process.argv[2] ?? '.';
@@ -273,6 +273,11 @@ try {
   await m.dormir(300);
   await m.guardar(`${FOTOS}/resumen-avisos.png`);
   console.log(`   foto del resumen en ${FOTOS}/resumen-avisos.png`);
+
+  {
+    const t = terceros();
+    juez(t.titulo, t.bien, t.detalle);
+  }
 
   console.log(`\n${malas === 0 ? '✅ TODO VERDE' : `❌ ${malas} en rojo`}`);
 } finally {

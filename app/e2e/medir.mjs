@@ -31,6 +31,8 @@
  */
 import { spawn } from 'node:child_process';
 import { inflateSync } from 'node:zlib';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 export const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 
@@ -164,6 +166,165 @@ export function leerPng(buf) {
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  LOS TERCEROS: QUÉ SALE DE LA PÁGINA HACIA FUERA
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * ⭐ LO QUE LA PÁGINA PIDE A OTROS DOMINIOS, CONTADO POR CDP (15/09, tanda 6).
+ *
+ * Hasta hoy la batería pedía las teselas **de verdad** a OpenStreetMap en cada
+ * carga, y nadie lo miraba: `identidad` imprimía «de terceros (teselas): 40» y
+ * seguía en verde. Aquí se apunta cada petición `http(s)` a un host que no es el
+ * del arnés, **de todos los mandos del proceso**, para que una jueza la cuente.
+ *
+ * Una petición a terceros es **escapada** si no pasó por el arnés. Da igual que
+ * Chrome la sirviera de su disco: esa copia no lleva el sello ni la regla de los
+ * 30 días de abajo.
+ */
+const HOSTS_LOCALES = new Set(['127.0.0.1', 'localhost', '[::1]']);
+const MANDOS = [];
+
+/**
+ * ⭐ LA CACHÉ DE TESELAS DEL ARNÉS (15/09, tanda 6 · parte 2).
+ *
+ * Chrome no sale a pedir teselas: `Fetch` las para y el arnés las sirve desde
+ * disco. Si no las tiene, las pide UNA vez, las guarda con su sello y las sirve.
+ * Son teselas **reales**, no un color plano: la P23 y la P26 miden sobre ellas.
+ *
+ * Las reglas salen de la documentación de los dos proveedores, leída el 15/09:
+ *
+ * · **Fuera del repo**, en `%TEMP%`. THIRD-PARTY-NOTICES § 1.1 dice que en el
+ *   repo no hay teselas ni se redistribuyen, y con esto sigue siendo verdad.
+ * · **30 días como máximo** [CARTO, *basemap terms*]: el cacheo en el
+ *   dispositivo está permitido hasta 30 días y retenerlo más, no. Cada tesela
+ *   lleva su `llenada` y lo caducado se borra: al abrir el proceso, lo de toda la
+ *   caché, y al pedirlo, esa tesela, que se vuelve a llenar. Si no se puede, se
+ *   **rehúsa**: no se sirve la vieja.
+ * · **Caché local obligatoria** [OSMF, *Tile Usage Policy*]: guardar al menos 7
+ *   días según las cabeceras, y no volver a bajar lo que se repite. Los 30 días
+ *   de CARTO caben dentro, y una sola regla vale para los dos.
+ * · **User-Agent identificable** [OSMF, misma política]: el de Chrome sin
+ *   cabeza no dice quién pide. El llenado lo hace Node y lleva el suyo.
+ *
+ * La key de CARTO va en la URL (`?key=`) y NUNCA se escribe a disco: el fichero
+ * se nombra por la ruta, y en el sello la URL va tapada.
+ */
+const DIR_TESELAS = join(process.env.TEMP ?? process.env.TMPDIR ?? '.', 'desplazame-teselas');
+const DIAS_DE_CACHE = 30;
+const CADUCIDAD_MS = DIAS_DE_CACHE * 24 * 60 * 60 * 1000;
+const USER_AGENT = 'Desplazame-bateria-e2e/1.0 (pruebas automaticas del proyecto Desplazame, Zaragoza; cache local de teselas)';
+const PATRONES_DE_TESELAS = [
+  { urlPattern: '*://tile.openstreetmap.org/*', requestStage: 'Request' },
+  { urlPattern: '*://*.basemaps.cartocdn.com/*', requestStage: 'Request' },
+];
+const proveedorDe = (host) =>
+  host === 'tile.openstreetmap.org' ? 'osm' : /\.basemaps\.cartocdn\.com$/.test(host) ? 'carto' : null;
+
+let purgada = false;
+function purgarCaducadas() {
+  if (purgada || !existsSync(DIR_TESELAS)) return;
+  purgada = true;
+  const recorrer = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const ruta = join(dir, e.name);
+      if (e.isDirectory()) recorrer(ruta);
+      else if (e.name.endsWith('.json')) {
+        let llenada = NaN;
+        try {
+          llenada = Date.parse(JSON.parse(readFileSync(ruta, 'utf8')).llenada);
+        } catch {}
+        if (!(Date.now() - llenada <= CADUCIDAD_MS)) {
+          rmSync(ruta, { force: true });
+          rmSync(ruta.slice(0, -'.json'.length), { force: true });
+        }
+      } else if (!existsSync(ruta + '.json')) {
+        rmSync(ruta, { force: true });
+      }
+    }
+  };
+  recorrer(DIR_TESELAS);
+}
+
+const enVuelo = new Map();
+function servirTesela(url, cuenta) {
+  const u = new URL(url);
+  const proveedor = proveedorDe(u.host);
+  if (!proveedor || !/^[\w@./-]+$/.test(u.pathname) || u.pathname.includes('..')) return Promise.resolve(null);
+  const fichero = join(DIR_TESELAS, proveedor, ...u.pathname.split('/').filter(Boolean));
+  if (!enVuelo.has(fichero)) {
+    enVuelo.set(
+      fichero,
+      llenarOLeer(url, fichero).finally(() => enVuelo.delete(fichero)),
+    );
+  }
+  return enVuelo.get(fichero).then((r) => {
+    cuenta[r.como]++;
+    if (r.caducaba && r.como !== 'rellenadas') cuenta.rehusadas++;
+    return r;
+  });
+}
+
+async function llenarOLeer(url, fichero) {
+  const sello = fichero + '.json';
+  let caducaba = false;
+  if (existsSync(sello) && existsSync(fichero)) {
+    const meta = JSON.parse(readFileSync(sello, 'utf8'));
+    if (Date.now() - Date.parse(meta.llenada) <= CADUCIDAD_MS) {
+      return { como: 'deCache', status: 200, tipo: meta.tipo, cuerpo: readFileSync(fichero) };
+    }
+    caducaba = true;
+  }
+  // Lo que pasa de 30 días no se retiene, se llene o no.
+  rmSync(sello, { force: true });
+  rmSync(fichero, { force: true });
+  try {
+    const r = await fetch(url, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(15000) });
+    const tipo = r.headers.get('content-type') ?? '';
+    const cuerpo = Buffer.from(await r.arrayBuffer());
+    if (!r.ok || !tipo.startsWith('image/')) return { como: 'fallidas', caducaba, status: r.status, tipo, cuerpo };
+    mkdirSync(dirname(fichero), { recursive: true });
+    writeFileSync(fichero, cuerpo);
+    writeFileSync(sello, JSON.stringify({ llenada: new Date().toISOString(), url: tapar(url), tipo, bytes: cuerpo.length }));
+    return { como: caducaba ? 'rellenadas' : 'llenadas', caducaba, status: 200, tipo, cuerpo };
+  } catch {
+    return { como: 'fallidas', caducaba, status: 0 };
+  }
+}
+
+const tapar = (url) => url.replace(/([?&]key=)[^&#]*/i, '$1…');
+
+export function terceros() {
+  const cuenta = { interceptadas: 0, deCache: 0, llenadas: 0, rellenadas: 0, fallidas: 0, rehusadas: 0 };
+  const escapadas = [];
+  for (const estado of MANDOS) {
+    for (const k of Object.keys(cuenta)) cuenta[k] += estado.cuenta[k];
+    for (const [id, p] of estado.fuera) {
+      if (estado.interceptadas.has(id)) continue;
+      // Lo que Chrome reutiliza de una respuesta que YA dio el arnés no ha salido.
+      if (p.via !== 'red' && estado.urlsDelArnes.has(p.url)) continue;
+      escapadas.push(p);
+    }
+  }
+  const vias = {};
+  for (const p of escapadas) vias[p.via] = (vias[p.via] ?? 0) + 1;
+  const hosts = [...new Set(escapadas.map((p) => new URL(p.url).host))];
+  return {
+    ...cuenta,
+    escapadas,
+    // Una tesela fallida o rehusada no escapa, pero deja gris lo que se mide.
+    bien: escapadas.length === 0 && cuenta.fallidas === 0 && cuenta.rehusadas === 0,
+    titulo: '⭐ 0 peticiones escapadas a terceros: las teselas salen de la caché del arnés, y ninguna se queda sin servir',
+    detalle:
+      `interceptadas ${cuenta.interceptadas} (de caché ${cuenta.deCache} · llenadas ${cuenta.llenadas} · ` +
+      `rellenadas ${cuenta.rellenadas} · fallidas ${cuenta.fallidas} · rehusadas ${cuenta.rehusadas}) · ` +
+      `escapadas ${escapadas.length}` +
+      (escapadas.length
+        ? ` [${Object.entries(vias).map(([v, n]) => `${v} ${n}`).join(' · ')}] a ${hosts.join(', ')} · p. ej. ${tapar(escapadas[0].url)}`
+        : ''),
+  };
+}
+
 /** Abre Chrome headless y devuelve un mando con `evaluar`, `captura` y `cerrar`. */
 export async function abrirChrome({ puerto = 9350, ancho = 1280, alto = 1400 } = {}) {
   const chrome = spawn(CHROME, [
@@ -196,8 +357,51 @@ export async function abrirChrome({ puerto = 9350, ancho = 1280, alto = 1400 } =
   await new Promise((ok) => (ws.onopen = ok));
   let n = 0;
   const pendientes = new Map();
+  const estado = {
+    cuenta: { interceptadas: 0, deCache: 0, llenadas: 0, rellenadas: 0, fallidas: 0, rehusadas: 0 },
+    fuera: new Map(),
+    interceptadas: new Set(),
+    urlsDelArnes: new Set(),
+  };
+  MANDOS.push(estado);
+  const alEvento = {
+    'Network.requestWillBeSent': ({ requestId, request }) => {
+      const u = new URL(request.url);
+      if (!/^https?:$/.test(u.protocol) || HOSTS_LOCALES.has(u.hostname) || HOSTS_LOCALES.has(u.host)) return;
+      estado.fuera.set(requestId, { url: request.url, via: 'red' });
+    },
+    'Network.requestServedFromCache': ({ requestId }) => {
+      const p = estado.fuera.get(requestId);
+      if (p) p.via = 'memoria';
+    },
+    'Network.responseReceived': ({ requestId, response }) => {
+      const p = estado.fuera.get(requestId);
+      if (p && response.fromDiskCache) p.via = 'disco';
+    },
+    'Fetch.requestPaused': ({ requestId, request, networkId }) => {
+      estado.interceptadas.add(networkId);
+      estado.urlsDelArnes.add(request.url);
+      estado.cuenta.interceptadas++;
+      servirTesela(request.url, estado.cuenta)
+        .then((r) =>
+          r && r.status > 0 && !(r.caducaba && r.como !== 'rellenadas')
+            ? cdp('Fetch.fulfillRequest', {
+                requestId,
+                responseCode: r.status,
+                responseHeaders: [{ name: 'Content-Type', value: r.tipo || 'application/octet-stream' }],
+                body: (r.cuerpo ?? Buffer.alloc(0)).toString('base64'),
+              })
+            : cdp('Fetch.failRequest', { requestId, errorReason: 'Failed' }),
+        )
+        .catch(() => {});
+    },
+  };
   ws.onmessage = (ev) => {
     const m = JSON.parse(ev.data);
+    if (m.method) {
+      alEvento[m.method]?.(m.params);
+      return;
+    }
     const p = m.id && pendientes.get(m.id);
     if (p) {
       pendientes.delete(m.id);
@@ -212,6 +416,9 @@ export async function abrirChrome({ puerto = 9350, ancho = 1280, alto = 1400 } =
 
   await cdp('Page.enable');
   await cdp('Runtime.enable');
+  await cdp('Network.enable');
+  purgarCaducadas();
+  await cdp('Fetch.enable', { patterns: PATRONES_DE_TESELAS });
   await cdp('Emulation.setDeviceMetricsOverride', {
     width: ancho,
     height: alto,

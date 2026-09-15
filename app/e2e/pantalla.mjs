@@ -11,7 +11,7 @@
  *    nada, en la primera juez de este fichero.
  */
 import { readFileSync } from 'node:fs';
-import { abrirChrome, censoDe, contrasteReal, contrasteRgb, deHex, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
+import { abrirChrome, terceros, censoDe, contrasteReal, contrasteRgb, deHex, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
 
 // ⚠️ La URL no puede ir en `process.argv[2]`: ese sitio ya es la calle de
 //    origen y cambiarlo rompería la forma de llamar a esta jueza, que está
@@ -365,6 +365,11 @@ try {
   await m.guardar(process.argv[6] ?? 'contraste.png');
 } finally {
   m.cerrar();
+}
+
+{
+  const t = terceros();
+  juez(t.titulo, t.bien, t.detalle);
 }
 
 console.log(`\n  ${pasadas} en verde · ${fallos} en rojo`);

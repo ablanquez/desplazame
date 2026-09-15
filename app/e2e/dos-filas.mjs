@@ -12,7 +12,7 @@
  *
  *     node app/e2e/dos-filas.mjs
  */
-import { abrirChrome } from './medir.mjs';
+import { abrirChrome, terceros } from './medir.mjs';
 
 /* ⭐ LA URL, POR ARGUMENTO (10/09). Estaba a fuego en `localhost:4200`, o sea
    que este juez solo corría con `ng serve` delante y no contra el dist que
@@ -233,6 +233,11 @@ try {
     delBus.length === 1 && delBus[0].modo === 'bus' && !('ruta' in delBus[0]),
     `${delBus.length} · claves: ${Object.keys(delBus[0] ?? {}).sort().join(',')}`,
   );
+
+  {
+    const t = terceros();
+    juez(t.titulo, t.bien, t.detalle);
+  }
 
   console.log(`\n${malas === 0 ? '✅ TODO VERDE' : `❌ ${malas} en rojo`}`);
 } finally {

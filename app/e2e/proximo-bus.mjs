@@ -10,7 +10,7 @@
  *
  *     node app/e2e/proximo-bus.mjs [CALLE_ORIGEN] [PORTAL] [CALLE_DESTINO] [PORTAL]
  */
-import { abrirChrome } from './medir.mjs';
+import { abrirChrome, terceros } from './medir.mjs';
 
 // ⚠️ La dirección se puede dar por entorno (14/09): `localhost` resuelve antes
 //    a [::1], y en esta máquina ahí contesta a veces OTRO servidor que no es el
@@ -304,6 +304,10 @@ try {
   console.log('\ncaptura → ' + donde);
 } finally {
   m.cerrar();
+}
+{
+  const t = terceros();
+  juez(t.titulo, t.bien, t.detalle);
 }
 console.log(malas === 0 ? '\nVERDE: todas en verde.' : `\nROJO: ${malas} en rojo.`);
 process.exit(malas === 0 ? 0 : 1);

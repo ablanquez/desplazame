@@ -14,7 +14,7 @@
  * Se lanza a mano, con el motor sirviendo el `dist`:
  *     node e2e/esqueleto.mjs http://localhost:3111 <carpeta-de-capturas>
  */
-import { abrirChrome } from './medir.mjs';
+import { abrirChrome, terceros } from './medir.mjs';
 
 const APP = (process.argv[2] ?? 'http://localhost:4200').replace(/\/+$/, '') + '/';
 const CAPTURAS = (process.argv[3] ?? '.').replace(/[\\/]+$/, '');
@@ -1012,6 +1012,11 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
   } finally {
     m.cerrar();
   }
+}
+
+{
+  const t = terceros();
+  juzgar(t.bien, t.titulo, t.detalle);
 }
 
 console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);

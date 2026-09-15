@@ -19,7 +19,7 @@
  *
  *     node app/e2e/yego.mjs
  */
-import { abrirChrome } from './medir.mjs';
+import { abrirChrome, terceros } from './medir.mjs';
 
 /* ⭐ LA URL, POR ARGUMENTO (10/09). Estaba a fuego en `localhost:4200`, o sea
    que este juez solo corría con `ng serve` delante y no contra el dist que
@@ -298,6 +298,11 @@ try {
   console.log(`   foto del rechazo en ${FOTO.replace('.png', '-fuera.png')}`);
 } finally {
   await m.cerrar();
+}
+
+{
+  const t = terceros();
+  juez(t.titulo, t.bien, t.detalle);
 }
 
 console.log(malas === 0 ? '\nVERDE: la moto compartida está en la pantalla y llega a YeGo.' : `\nROJO: ${malas} mal.`);

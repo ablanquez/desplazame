@@ -21,7 +21,7 @@
  *     node app/e2e/moto.mjs
  */
 import { readFileSync } from 'node:fs';
-import { abrirChrome } from './medir.mjs';
+import { abrirChrome, terceros } from './medir.mjs';
 
 /** El trazado del `.svg` descargado: el mismo patrón que `pintura.mjs`, sin copiarlo aquí. */
 const trazadoDelFichero = (nombre) =>
@@ -297,6 +297,11 @@ try {
   console.log(`   foto en ${FOTO}`);
 } finally {
   await m.cerrar();
+}
+
+{
+  const t = terceros();
+  juez(t.titulo, t.bien, t.detalle);
 }
 
 console.log(malas === 0 ? '\nVERDE: la moto está en la botonera y llega al motor.' : `\nROJO: ${malas} mal.`);

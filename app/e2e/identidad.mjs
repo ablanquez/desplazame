@@ -21,7 +21,7 @@
  * ⚠️ Necesita `ng serve` en 4200 y un Chrome, como el resto de los `e2e/`.
  *    Se lanza a mano: `node e2e/identidad.mjs`
  */
-import { abrirChrome, contrasteRgb, deHex, AA_GRAFICO, AA_TEXTO } from './medir.mjs';
+import { abrirChrome, terceros, contrasteRgb, deHex, AA_GRAFICO, AA_TEXTO } from './medir.mjs';
 
 /**
  * Contra quién se mide. Por defecto `ng serve`, como el resto de los `e2e/`,
@@ -507,6 +507,11 @@ try {
       juzgar(/Inter/.test(b.familia), 'y el body pide Inter', b.familia);
       juzgar(b.cifras === 'tabular-nums', 'y sus cifras son tabulares', b.cifras);
     }
+  }
+
+  {
+    const t = terceros();
+    juzgar(t.bien, t.titulo, t.detalle);
   }
 
   console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);

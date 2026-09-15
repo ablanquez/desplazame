@@ -26,7 +26,7 @@
  *
  *     node app/e2e/creditos.mjs [http://localhost:3111]
  */
-import { abrirChrome, contrasteReal, AA_TEXTO } from './medir.mjs';
+import { abrirChrome, terceros, contrasteReal, AA_TEXTO } from './medir.mjs';
 
 // La URL por argumento, como el resto de los ficheros de `e2e/`: con `ng serve`
 // en el 4200 por defecto, o con el motor sirviendo el dist si se le pasa.
@@ -349,6 +349,11 @@ try {
       pedidasAqui.length === 0,
       pedidasAqui.length ? pedidasAqui.join(' · ') : 'cero peticiones de datos',
     );
+  }
+
+  {
+    const t = terceros();
+    juez(t.titulo, t.bien, t.detalle);
   }
 
   console.log(`\n${malas === 0 ? '✅ TODO VERDE' : `❌ ${malas} en rojo`}`);
