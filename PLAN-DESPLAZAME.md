@@ -4437,10 +4437,12 @@ Code lo traduce al Angular existente.)*
         resultado en los dos temas [PARTE 1, HECHA — abajo] →
         ⚰️ la tesela oscura CARTO [PARTE 2, HECHA — abajo: Dark
         Matter con key, atribución por capa, el claro del mapa
-        también medido] → PUENTE: el Buscador en
-        oscuro [el formulario tiene sus colores a pelo:
-        desplegables blancos, bordes #999 — tiene que estar
-        listo ANTES de que el botón haga el oscuro público] →
+        también medido] → ⚰️ PUENTE: el Buscador en oscuro
+        [HECHO — abajo] → PUENTE-BIS: /panel en oscuro [21
+        colores a pelo con letra oscura, YA INVENTARIADOS con
+        porqué en el puente — mismo principio firmado: todo lo
+        público listo ANTES de que el botón haga el oscuro
+        público] →
         EL CONMUTADOR [PARTE 3, pedido por Antonio en la ronda
         de visión: el botón en PC y EL CUARTO HUECO de la barra
         móvil, con su anti-FOUC; prioridad documentada:
@@ -4643,6 +4645,81 @@ Code lo traduce al Angular existente.)*
         [acta] · los enlaces del pie de 17-114 px declarados NO
         medidos · el README ganará su sección de temas/mapa
         cuando el oscuro sea público [tras la parte 3].
+      - [x] ⚰️ EL PUENTE — EL BUSCADOR EN OSCURO, Y LA JUEZA
+        DEL COLOR A PELO PARA TODA LA APP (15/09 noche; 5
+        commits `9dd9288`…`5ba0aec` sobre `9fba4c2`, en local
+        al escribir esto — UN push con estos papeles; ojo de
+        Antonio: bueno). DOCTRINA NUEVA DEL ENCARGO:
+        color-scheme [MDN / W3C CSS Color Adjustment — los
+        controles nativos los pinta el NAVEGADOR; sin
+        color-scheme: dark en el ámbito del tema: popovers
+        blancos, scrollbars invertidas, autofill deslumbrante
+        (síntoma documentado como regla de lint); soporte
+        universal desde 2022]. ⭐ EL DIAGNÓSTICO CAZÓ MÁS QUE EL
+        ENCARGO: las tres reglas `.campo input` de
+        buscador.css NO PINTABAN NADA [la encapsulación impide
+        a la hoja del padre alcanzar los campos de los
+        componentes hijos] — los colores vivían a pelo en
+        autocompletar-via.css y selector-portal.css, y la
+        jueza (vi) daba VERDE barriendo solo tres hojas
+        [bitácora]. Y EL CLARO DE PRODUCCIÓN TAMBIÉN ESTABA
+        ROTO: frontera de campos 2,85 · desplegable 1,23
+        [vara 3:1] · y el borde ámbar del borrador JAMÁS
+        LLEGÓ A PINTARSE por especificidad — nadie lo miraba.
+        En oscuro: la lista de portales ILEGIBLE a 1,14 ·
+        el número apagado como bloque #f2f2f2 · foco del
+        navegador · borrador 2,62/2,01. color-scheme YA
+        estaba atado al tema [hallazgo: lo que faltaba era
+        vestir lo nuestro]. LOS 53 A PELO, uno por uno: 27 del
+        Buscador + el #999 del lienzo → tokens [el lienzo a
+        --border con porqué: es separador, no campo]; 2
+        sombras con porqué; 21 de panel.css A LA LISTA con
+        porqué [→ puente-bis]; los 7 de siempre. TOKEN NUEVO
+        --borde-de-campo por regla [claro #64748b, 4,76 — el
+        paso anterior #94a3b8 daba 2,56; oscuro #696969, el
+        primer gris que da 3:1 contra la tarjeta: 3,04]; ayuda
+        a --muted-foreground; foco con --ring; opción activa
+        invertida; el borrador RECUPERA su ámbar. CENSO: 46
+        tokens · 31 pares [62 medidas] · 11 límites [22].
+        JUEZAS: (vi) AMPLIADA A TODAS LAS HOJAS + (vii) nueva
+        — 16 rojos → unidad 622/622, contraprueba 2 rojos con
+        #686868 [2,99: la vara muerde al centésimo] · P27
+        nueva en tres anchos y dos temas: 50 rojos contra el
+        bundle viejo → 126 OK, contrapruebas 14+6 con salida 1
+        · identidad.mjs: su COPIA DE CONTROL se había quedado
+        en 8 límites — cazada [1 rojo «22 filas contra 16»] →
+        62/62 pares · 22/22 límites. LO NATIVO VERIFICADO:
+        barra de desplazamiento MEDIDA en píxel [#2c2c2c
+        oscuro · #fcfcfc claro] · el desplegable es
+        base-select en este Chrome y su lista abierta SÍ se
+        captura [14,63] · matrícula nativa 11,20 con frontera
+        4,52 · NO CONSTA honesto: el desplegable clásico del
+        SO [el arnés no lo captura] y el color del autofill
+        [autocomplete=off + perfil sin datos: ni se pinta —
+        se juzga el atributo]. INCIDENCIA DECLARADA: la
+        primera batería contaminada [una e2e lanzada en
+        paralelo pisó el puerto de Chrome] — procesos hijos
+        cerrados y batería REPETIDA limpia; las cifras son de
+        la segunda. CIERRE: 10/10 con salida 0 sobre 8af2d87,
+        0 escapadas · pintura 940 [P25 84 · P26 477 · P27
+        126] · unidad 622 · motor 656 · tipos. PRESUPUESTO,
+        el initial RELEÍDO que la mesa esperaba: 546,39 kB
+        [transferido 139,44; la raya de 520 REBASADA sigue] ·
+        resultado.css 5,59 sin tocar. BITÁCORA: 61 [0 abiertas
+        · 1 reabierta antigua]. EL CLARO CAMBIÓ [ratificado
+        por el ojo]: bordes de campos más marcados
+        [suspendían], el ámbar del borrador ESTRENADO [nunca
+        se había visto], el filete del lienzo más suave.
+        PARA ANTES DE LA PARTE 3 [resuelto por el principio
+        firmado, no por nadie]: /panel en oscuro = PUENTE-BIS.
+        A LA COLA CON CITA: los 44 px de los campos de la
+        maqueta NUNCA aplicados [vivían en las reglas
+        muertas] — la casilla 5 mide «targets 44px», así que
+        van ANTES de la verificación, con el ojo de Antonio
+        [cambia la maqueta pintada]. ACTA: dos pares fuera del
+        censo [la ayuda de la matrícula sobre campo nativo y
+        el foco del desplegable del navegador] — los vigila
+        la P27, que es vigilancia real; el censo mide tokens.
 - [ ] **EL GUARDIÁN DE BUILD ATÓMICO [PRIORIDAD ALTA — bloque
       propio desde el 15/09, pedido por Antonio: los papeles con la
       verdad entera, no líneas de mesa]** — EL PORQUÉ: el `ng build`
