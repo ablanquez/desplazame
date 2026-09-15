@@ -213,7 +213,7 @@ const MANDOS = [];
 const DIR_TESELAS = join(process.env.TEMP ?? process.env.TMPDIR ?? '.', 'desplazame-teselas');
 const DIAS_DE_CACHE = 30;
 const CADUCIDAD_MS = DIAS_DE_CACHE * 24 * 60 * 60 * 1000;
-const USER_AGENT = 'Desplazame-bateria-e2e/1.0 (pruebas automaticas del proyecto Desplazame, Zaragoza; cache local de teselas)';
+const USER_AGENT = 'Desplazame-bateria-e2e/1.0 (+https://github.com/ablanquez/desplazame; pruebas automaticas, cache local de teselas)';
 const PATRONES_DE_TESELAS = [
   { urlPattern: '*://tile.openstreetmap.org/*', requestStage: 'Request' },
   { urlPattern: '*://*.basemaps.cartocdn.com/*', requestStage: 'Request' },
