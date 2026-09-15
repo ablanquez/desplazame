@@ -14,6 +14,48 @@
 
 ---
 
+## [2026-09-15] 🔴 ABIERTA — seis suites e2e terminan con código 0 estando en rojo
+
+**Categoría:** verde declarado que no era
+**Síntoma:** con la jueza de terceros recién puesta y en rojo, `esqueleto` e
+`identidad` imprimen `❌ 1 EN ROJO` y el proceso sale con `0`. Solo `pantalla`,
+`moto`, `yego` y `proximo-bus` fijan el código de salida (`process.exitCode` /
+`process.exit`); `esqueleto`, `identidad`, `creditos`, `bizi-y-resumen`,
+`dos-filas` y `pintura` no lo fijan.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** el código de salida, que el
+cierre de la parte 1 citó como evidencia («las diez, salida 0»). Hoy, motor pid
+16344 en `127.0.0.1:4300`, `main-2AOZW6WC.js`:
+`node app/e2e/esqueleto.mjs http://127.0.0.1:4300 …` → `❌ 1 EN ROJO` · `esqueleto 0`
+`node app/e2e/identidad.mjs http://127.0.0.1:4300 …` → `❌ 1 EN ROJO` · `identidad 0`
+**Cómo se cazó:** instrumento — la jueza de terceros de la tanda 6 · parte 2, al nacer en rojo.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/e2e/{esqueleto,identidad,creditos,bizi-y-resumen,dos-filas,pintura}.mjs`, línea final del veredicto.
+
+## [2026-09-15] 🔴 ABIERTA — la batería e2e pide las teselas a OpenStreetMap sin caché del arnés, y lo imprimía en verde
+
+**Categoría:** verde declarado que no era
+**Síntoma:** ninguna de las diez suites intercepta las teselas: `abrirChrome`
+(`app/e2e/medir.mjs`) no abre `Fetch` y la página pide a `tile.openstreetmap.org`
+con el perfil de Chrome de cada puerto. Contado hoy por CDP con la jueza nueva,
+antes de la caché: `esqueleto` 69 peticiones (61 del disco de Chrome, 8 a la
+red) · `identidad` 179 (59 a la red tras su `Network.clearBrowserCache`, 102 de
+memoria, 18 de disco). Ninguna lleva User-Agent propio ni sello de fecha.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** `identidad.mjs` contaba las
+teselas y seguía en verde. Cierre de la parte 1 (motor pid 18244, `a38cbaf`):
+`peticiones propias: 6  ·  de terceros (teselas): 40` … `✅ VERDE`.
+Hoy, con la jueza puesta y aún sin caché (motor pid 16344, `127.0.0.1:4300`):
+`✗✗  ⭐ 0 peticiones escapadas a terceros: las teselas salen de la caché del arnés  ·  interceptadas 0 (…) · escapadas 69 [disco 61 · red 8] a tile.openstreetmap.org`
+`✗✗  ⭐ 0 peticiones escapadas a terceros: … · escapadas 179 [red 59 · memoria 102 · disco 18] a tile.openstreetmap.org`
+**Cómo se cazó:** instrumento — el diagnóstico de la tanda 6 · parte 2, al preguntar si las e2e piden teselas de verdad.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/e2e/medir.mjs` (`abrirChrome`) · `app/e2e/identidad.mjs` (la línea «de terceros (teselas)»).
+
 ## [2026-09-15] ✅ CERRADA — el censo daba los dos temas por cumplidos y el resultado en oscuro tiene texto a 1,04:1 y el borde ámbar a 2,35:1
 
 **Categoría:** verde declarado que no era
