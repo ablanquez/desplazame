@@ -52,6 +52,8 @@ const CLARO = {
   leyenda: '#555555', 'superficie-realce': '#e2e8f0',
   // Remate: la distancia y los datos del paso, slate-500 → 600 (3,86 → 6,15 sobre el realce).
   'secundario-del-paso': '#475569',
+  // ⭐ El puente (15/09): la frontera de los campos, slate-500 [WCAG 1.4.11].
+  'borde-de-campo': '#64748b',
   'mode-andando-soft': '#dcfce7', 'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d', 'mode-andando-text': '#ffffff',
   'mode-bus-soft': '#ccfbf1', 'mode-bus-strong': '#0f766e',
@@ -79,6 +81,8 @@ const OSCURO = {
   // Por regla: la leyenda da contra su tarjeta el 7,46 del claro; el realce, el peldaño de la banda.
   leyenda: '#aeaeae', 'superficie-realce': '#333333',
   'secundario-del-paso': '#b8b8b8',
+  // ⭐ El puente: el primer gris que da 3:1 contra la tarjeta oscura.
+  'borde-de-campo': '#696969',
   'mode-andando-soft': '#14532d', 'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e', 'mode-andando-text': '#052e16',
   'mode-bus-soft': '#134e4a', 'mode-bus-strong': '#2dd4bf',
@@ -345,6 +349,8 @@ try {
       ['foreground', 'superficie-realce'],
       ['secundario-del-paso', 'card'], ['secundario-del-paso', 'superficie-realce'],
       ['warning-dark', 'warning'], ['warning-dark', 'card'], ['warning-dark', 'superficie-realce'],
+      // ⭐ El puente (15/09): lo escrito en un borrador y la opción activa de un desplegable.
+      ['foreground', 'warning'], ['card', 'foreground'],
       ...['andando', 'bus', 'bici', 'patin', 'moto', 'coche'].flatMap((m) => [
         [`mode-${m}-text`, `mode-${m}-solid`],
         [`mode-${m}-strong`, `mode-${m}-soft`],
@@ -398,6 +404,10 @@ try {
       ['primary', 'card'], ['primary', 'superficie-realce'],
       ['warning-border', 'card'], ['warning-border', 'warning'], ['warning-border', 'superficie-realce'],
       ['ring', 'superficie-realce'],
+      // ⭐ El puente (15/09): la frontera de los campos, su foco y la opción activa
+      //    contra su lista. Esta copia se quedó en 8 cuando el censo pasó a 11, y
+      //    la fila de la página lo cantó: 22 filas contra 16.
+      ['borde-de-campo', 'card'], ['ring', 'card'], ['foreground', 'card'],
     ];
     let limitesBajos = 0;
     for (const [tema, tabla] of [['light', CLARO], ['dark', OSCURO]]) {
