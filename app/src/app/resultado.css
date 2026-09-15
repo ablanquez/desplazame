@@ -25,9 +25,11 @@
       repetida entre las dos —se comprobó al partir—, pero quien añada una que
       exista allí, que lo sepa. */
 
+/* ⭐ La leyenda, con nombre desde la tanda 6 (15/09): era un #555 a pelo, y con
+   el tema oscuro puesto leía a 2,24:1 contra la tarjeta. Mismo gris en claro. */
 .pasos__modo {
   margin: 0 0 0.5rem;
-  color: #555;
+  color: var(--leyenda);
 }
 
 /* ⭐ LA CABECERA DE LA RUTA (12/09) — y antes era una caja con borde.
@@ -148,12 +150,13 @@
       mecanismo de apuntar, y un `:hover` allí se queda pegado tras el toque —el
       paso se quedaría encendido hasta que se tocara otro.
 
-   ⚠️ Y EL COLOR ES PRESTADO, se declara: `--banda-cabecera` es el slate-200 que
-      Antonio fijó el 11/09 como «el gris que SÍ se ve sobre la tarjeta».
-      `--muted` sería el token natural para un realce suave y aquí NO sirve —es
-      slate-50 desde la 1-bis y da 3 puntos de 255 sobre la tarjeta, la misma
-      trampa de la banda y del hueso—. Si esto merece token propio, es decisión
-      de Antonio; hoy toma prestado el único nivel medido de esta casa.
+   ⭐ EL COLOR TIENE TOKEN PROPIO desde la tanda 6 (15/09): `--superficie-realce`.
+      Aquí ponía «EL COLOR ES PRESTADO» —tomaba `--banda-cabecera`, el slate-200
+      que Antonio fijó el 11/09 como «el gris que SÍ se ve sobre la tarjeta»—, y
+      el papel del proyecto llegó a dar por nacido un token que no existía. El
+      valor es el mismo en los dos temas; lo que cambia es que la cabecera del
+      acordeón ya no puede mover el realce sin que salte una jueza.
+      `--muted` sigue sin servir: slate-50 da 3 puntos de 255 sobre la tarjeta.
 
    El gemelo del teclado va con `:focus-visible` y no con `:focus`: al paso solo
    se llega POR PROGRAMA desde el resumen de avisos, y [DOC MDN] el navegador
@@ -162,7 +165,7 @@
    tiene el suyo. */
 @media (hover: hover) {
   .paso:hover {
-    background-color: var(--banda-cabecera);
+    background-color: var(--superficie-realce);
   }
 }
 
@@ -306,7 +309,10 @@
    grite: lo que separa es el peso, no el tono. */
 .paso__texto strong {
   font-weight: 600;
-  color: #1a1a1a;
+  /* ⚠️ Era #1a1a1a a pelo, y con el tema oscuro la negrita leía a 1,04:1: el
+     nombre de cada calle desaparecía (bitácora del 15/09). El texto de la casa,
+     que es lo que el comentario de arriba pedía —separa el peso, no el tono—. */
+  color: var(--foreground);
 }
 
 /* La distancia, tercera columna. `text-right` para que las unidades queden
@@ -459,7 +465,7 @@
 }
 
 .ruta__lineas-rotulo {
-  color: #555;
+  color: var(--leyenda);
   font-size: 0.9em;
 }
 
@@ -580,13 +586,22 @@
   margin: 0.35rem 0 0;
 }
 
+/* ⭐ DE TOKENS DESDE LA TANDA 6 (15/09). Eran cinco hex a pelo —el borde, el
+   blanco, la tinta, el hover y el foco— y en oscuro pintaban un botón BLANCO
+   dentro de la tarjeta oscura: el «bloque blanco» que el DISEÑO (§32) prohíbe.
+   Tres ya eran los valores del claro con otro nombre (`muted-foreground`,
+   `card`, `foreground`), así que el claro no se mueve.
+   ⚠️ El hover es la capa de estado de [M3]: la tinta al 8 % sobre la
+      superficie, que sube con el tema sin estrenar color. En claro sale un
+      poco más marcado que el #f1f5f9 de antes.
+   ⚠️ Y el foco, el anillo de la casa (`--ring`), como todos los demás. */
 .vivo__boton {
   flex: none;
   padding: 0.15rem 0.6rem;
-  border: 1px solid #64748b;
+  border: 1px solid var(--muted-foreground);
   border-radius: 999px;
-  background: #fff;
-  color: #1e293b;
+  background: var(--card);
+  color: var(--foreground);
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
@@ -594,12 +609,12 @@
 
 @media (hover: hover) {
   .vivo__boton:hover {
-    background: #f1f5f9;
+    background: color-mix(in srgb, var(--foreground) 8%, var(--card));
   }
 }
 
 .vivo__boton:focus-visible {
-  outline: 3px solid #1d4ed8;
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -617,7 +632,8 @@
    `.vivo` no se aplica a una caja de cero. */
 .vivo__estado {
   font-size: 0.85rem;
-  color: #334155;
+  /* Era #334155 a pelo: 10,35:1 en claro y 1,61 en oscuro. El texto de la casa. */
+  color: var(--foreground);
 }
 
 /* ⭐ L5: LA REGIÓN VESTIDA DE ADVERTENCIA (14/09, nº53). El vestido de la tira
@@ -701,8 +717,9 @@
       de aparición: dos reglas para un mismo selector es una que manda y otra
       que engaña. Se funden aquí, que es donde vive el porqué. */
 .paso:focus-visible {
-  background-color: var(--banda-cabecera);
-  outline: 2px solid #1a1a1a;
+  background-color: var(--superficie-realce);
+  /* El anillo de la casa (tanda 6): el #1a1a1a a pelo daba 1,04:1 en oscuro. */
+  outline: 2px solid var(--ring);
   outline-offset: -2px;
 }
 
@@ -739,13 +756,14 @@
   margin: 0.35rem 0 0;
 }
 
+/* Los mismos tokens que «Próximo bus», y por lo mismo: ver `.vivo__boton`. */
 .sugerencia__boton {
   flex: none;
   padding: 0.15rem 0.6rem;
-  border: 1px solid #64748b;
+  border: 1px solid var(--muted-foreground);
   border-radius: 999px;
-  background: #fff;
-  color: #1e293b;
+  background: var(--card);
+  color: var(--foreground);
   font: inherit;
   font-size: 0.85rem;
   cursor: pointer;
@@ -753,11 +771,11 @@
 
 @media (hover: hover) {
   .sugerencia__boton:hover {
-    background: #f1f5f9;
+    background: color-mix(in srgb, var(--foreground) 8%, var(--card));
   }
 }
 
 .sugerencia__boton:focus-visible {
-  outline: 3px solid #1d4ed8;
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }

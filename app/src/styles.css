@@ -140,7 +140,14 @@
   --oscuro-success-foreground: #0f172a;
   --oscuro-warning: #3a1d00;
   --oscuro-warning-foreground: #fde68a;
-  --oscuro-warning-border: #92400e;
+  /* amber-800 -> 600 [WCAG 1.4.11, tanda 6, 15/09]: el borde ambar daba 2,35:1
+     contra la tarjeta, 2,18 contra su propio ambar y 1,78 sobre el realce. El
+     paso minimo de la familia que da 3:1 contra LOS TRES es el 600 (5,23 · 4,86
+     · 3,97); el 700 se quedaba en 2,52 sobre el realce. La regla es la de la
+     tanda 1 —mover el paso minimo dentro de la familia—; la vara, la del
+     borde. El claro no se toca: #b45309 ya pasa contra los tres. Bitacora del
+     15/09: el censo daba los dos temas en verde con este token suspendiendo. */
+  --oscuro-warning-border: #d97706;
   --oscuro-warning-dark: #fef3c7;
   --oscuro-border: #333333;
   --oscuro-ring: #93c5fd;
@@ -156,6 +163,17 @@
      elegido a ojo. Contraste del texto encima: 9,10:1. */
   --oscuro-banda-cabecera: #333333;
   --oscuro-banda-cabecera-hover: #404040;
+  /* ⭐ LA LEYENDA — el #555 que vivia A PELO en tres reglas (tanda 6, 15/09).
+     POR REGLA Y NO A OJO: el claro da 7,46:1 contra su tarjeta, y esto es el
+     primer gris que da lo mismo contra la tarjeta oscura (7,51; #adadad se
+     queda en 7,43). Es el mismo metodo que el gris de la banda: el mismo salto
+     que el claro, medido. */
+  --oscuro-leyenda: #aeaeae;
+  /* ⭐ LA SUPERFICIE DEL REALCE DEL PASO (tanda 6). Hace el papel de la banda
+     —el gris que SI se ve sobre la tarjeta— y toma su peldano de elevacion,
+     12dp. Mismo valor, token propio: prestado, un cambio en la cabecera del
+     acordeon movia el realce sin que nadie lo supiera. */
+  --oscuro-superficie-realce: #333333;
   --oscuro-mode-andando-soft: #14532d;
   --oscuro-mode-andando-strong: #4ade80;
   --oscuro-mode-andando-solid: #22c55e;
@@ -221,6 +239,11 @@
         un ratón [NN/g, acordeones]. */
   --claro-banda-cabecera: #e2e8f0;
   --claro-banda-cabecera-hover: #cbd5e1;
+  /* ⭐ La leyenda y el realce (tanda 6): los valores de siempre, con nombre.
+     El #555 es el que ya pintaban «Se viaja en», «Modo: …» y el subtitulo; el
+     realce, el slate-200 que tomaba prestado de la banda. El claro se ve igual. */
+  --claro-leyenda: #555555;
+  --claro-superficie-realce: #e2e8f0;
 
   /* Andando (verde) */
   --claro-mode-andando-soft: #dcfce7;
@@ -281,6 +304,8 @@
   --muted-foreground: var(--claro-muted-foreground);
   --banda-cabecera: var(--claro-banda-cabecera);
   --banda-cabecera-hover: var(--claro-banda-cabecera-hover);
+  --leyenda: var(--claro-leyenda);
+  --superficie-realce: var(--claro-superficie-realce);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);
@@ -334,6 +359,8 @@
     --muted-foreground: var(--oscuro-muted-foreground);
     --banda-cabecera: var(--oscuro-banda-cabecera);
     --banda-cabecera-hover: var(--oscuro-banda-cabecera-hover);
+    --leyenda: var(--oscuro-leyenda);
+    --superficie-realce: var(--oscuro-superficie-realce);
     --mode-andando-soft: var(--oscuro-mode-andando-soft);
     --mode-andando-strong: var(--oscuro-mode-andando-strong);
     --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -383,6 +410,8 @@
   --muted-foreground: var(--oscuro-muted-foreground);
   --banda-cabecera: var(--oscuro-banda-cabecera);
   --banda-cabecera-hover: var(--oscuro-banda-cabecera-hover);
+  --leyenda: var(--oscuro-leyenda);
+  --superficie-realce: var(--oscuro-superficie-realce);
   --mode-andando-soft: var(--oscuro-mode-andando-soft);
   --mode-andando-strong: var(--oscuro-mode-andando-strong);
   --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -447,6 +476,8 @@
   --muted-foreground: var(--claro-muted-foreground);
   --banda-cabecera: var(--claro-banda-cabecera);
   --banda-cabecera-hover: var(--claro-banda-cabecera-hover);
+  --leyenda: var(--claro-leyenda);
+  --superficie-realce: var(--claro-superficie-realce);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);

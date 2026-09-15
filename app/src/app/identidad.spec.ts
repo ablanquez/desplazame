@@ -80,6 +80,12 @@ const CLARO: Readonly<Record<string, string>> = {
   //    slate con las capturas delante: 29 puntos en reposo.
   'banda-cabecera': '#e2e8f0',
   'banda-cabecera-hover': '#cbd5e1',
+  // ⭐ TANDA 6 (15/09): el #555 que vivía A PELO en tres reglas — «Se viaja en»,
+  //    «Modo: …» y el subtítulo — entra con su nombre y su valor de siempre.
+  leyenda: '#555555',
+  // ⭐ Y el realce del paso deja de tomar prestada la banda: mismo valor, token
+  //    propio. Prestado, un cambio en la banda movía el realce sin avisar.
+  'superficie-realce': '#e2e8f0',
   'mode-andando-soft': '#dcfce7',
   'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d',
@@ -118,7 +124,11 @@ const OSCURO: Readonly<Record<string, string>> = {
   'success-foreground': '#0f172a',
   warning: '#3a1d00',
   'warning-foreground': '#fde68a',
-  'warning-border': '#92400e',
+  // ⭐ amber-800 → 600 (tanda 6, 15/09) [WCAG 1.4.11]: el #92400e del calco daba
+  //    2,35:1 contra la tarjeta, 2,18 contra su ámbar y 1,78 sobre el realce.
+  //    El paso mínimo de la familia que da 3:1 contra LOS TRES es el 600 (5,23 ·
+  //    4,86 · 3,97); el 700 se quedaba en 2,52 sobre el realce. Bitácora del 15/09.
+  'warning-border': '#d97706',
   'warning-dark': '#fef3c7',
   border: '#333333',
   ring: '#93c5fd',
@@ -130,6 +140,12 @@ const OSCURO: Readonly<Record<string, string>> = {
   //    claro. #404040 mide 1,2186:1 de escalón contra el 1,2044:1 del claro.
   'banda-cabecera': '#333333',
   'banda-cabecera-hover': '#404040',
+  // ⭐ POR REGLA, no a ojo: el primer gris que da contra la tarjeta oscura el
+  //    mismo 7,46:1 que el #555 da contra la clara (#adadad se queda en 7,43).
+  leyenda: '#aeaeae',
+  // ⭐ POR REGLA: el realce hace el papel de la banda —«el gris que sí se ve
+  //    sobre la tarjeta»— y toma su peldaño de elevación, 12dp.
+  'superficie-realce': '#333333',
   'mode-andando-soft': '#14532d',
   'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e',
@@ -204,12 +220,14 @@ const ELEGIDO_CLARO = declaraciones(bloque(CSS, "[data-theme='light'] {"));
 const TODOS = [...SEMANTICOS, ...TOKENS_DE_MODO];
 
 describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
-  it('están los 42 tokens: 18 semánticos y 6 modos × 4 variantes', () => {
+  it('están los 44 tokens: 20 semánticos y 6 modos × 4 variantes', () => {
     // ⚠️ Eran 16 y 40 hasta el 11/09. Los dos nuevos son la banda de las
     //    cabeceras, y son los PRIMEROS que no vienen calcados de la maqueta.
-    expect(SEMANTICOS.length).toBe(18);
+    // ⚠️ Y 18 y 42 hasta el 15/09 (tanda 6): entran la leyenda —el #555 a pelo—
+    //    y la superficie del realce, que tomaba prestada la banda.
+    expect(SEMANTICOS.length).toBe(20);
     expect(TOKENS_DE_MODO.length).toBe(24);
-    expect(TODOS.length).toBe(42);
+    expect(TODOS.length).toBe(44);
   });
 
   for (const token of [...SEMANTICOS, ...TOKENS_DE_MODO]) {
@@ -236,7 +254,7 @@ describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
    *    un elemento marcado `light` heredaba los cuarenta tokens oscuros. La
    *    nº43. Ahora las cuatro listas se cuentan igual, y ninguna es opcional.
    */
-  it('⭐ los cuatro bloques asignan los 42 tokens, y a la fuente que toca', () => {
+  it('⭐ los cuatro bloques asignan los 44 tokens, y a la fuente que toca', () => {
     for (const token of TODOS) {
       expect(EN_ROOT[token], `--${token} falta en :root`).toBe(`var(--claro-${token})`);
       expect(CAPA_SISTEMA[token], `--${token} falta en la capa del sistema`).toBe(
@@ -289,7 +307,16 @@ describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
  *    jueza de abajo lo caza y obliga a decidir —arreglarlo o censarlo con su
  *    número—. Lo que no puede pasar es que una deuda nueva entre en silencio.
  */
-const DEUDA: Readonly<Record<string, number>> = {};
+const DEUDA: Readonly<Record<string, number>> = {
+  // ⚠️ LA PRIMERA DEUDA DESDE EL 9/09, y es del CLARO (tanda 6, 15/09). La
+  //    distancia y los datos del paso van en `muted-foreground`, y con el ratón
+  //    encima el paso se pinta del realce: slate-500 sobre slate-200. Medido en
+  //    Chrome sobre el píxel: 4,76 en reposo y 3,86 con el ratón. Nadie lo
+  //    miraba —el censo solo tenía el par sobre la tarjeta—. Se censa con su
+  //    número y NO se arregla aquí: los dos valores son del claro (el gris de
+  //    la casa y el par B de Antonio), y esta parte es la del oscuro.
+  'light · Distancia y datos del paso — con el ratón': 3.86,
+};
 
 describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () => {
   const tabla = { light: CLARO, dark: OSCURO } as const;
@@ -303,7 +330,7 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     }),
   );
 
-  it('se miden los 22 pares en los dos temas: 44 medidas', () => {
+  it('se miden los 28 pares en los dos temas: 56 medidas', () => {
     // ⚠️ Eran 18 y 36. Los dos siguientes fueron los DOS estados de la banda:
     //    medir solo el reposo dejaría el hover sin vigilar, que es donde el
     //    gris se aclara y el texto pierde contraste.
@@ -312,8 +339,15 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     // ⚠️ Y el 22 (14/09, la región de la cabecera): los extremos del viaje van
     //    en `muted-foreground` sobre la tarjeta, y el censo solo lo medía sobre
     //    `muted` — un par que se pintaba y no se contaba.
-    expect(PARES.length).toBe(22);
-    expect(medidos.length).toBe(44);
+    // ⚠️ Y del 23 al 28 (15/09, tanda 6, el resultado en oscuro): la leyenda
+    //    —el #555 que vivía a pelo—, el texto y la distancia sobre el realce, y
+    //    el ámbar entero: la tinta sobre su superficie (la que pintan el resumen,
+    //    la tira y la L5, y que el censo NO tenía: solo medía `warning-foreground`)
+    //    y la marca «desviada» sobre la tarjeta y sobre el realce.
+    expect(PARES.length).toBe(28);
+    expect(medidos.length).toBe(56);
+    expect(PARES.some((p) => p.texto === 'leyenda' && p.fondo === 'card')).toBe(true);
+    expect(PARES.some((p) => p.texto === 'warning-dark' && p.fondo === 'warning')).toBe(true);
     expect(PARES.some((p) => p.texto === 'foreground' && p.fondo === 'card')).toBe(true);
     expect(PARES.some((p) => p.texto === 'muted-foreground' && p.fondo === 'card')).toBe(true);
   });
@@ -360,12 +394,22 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
    * reposo Y sobre la banda del realce. Un borde no es texto y su vara es 3:1,
    * así que va en su propia lista y no mezclado con los pares de 4,5.
    */
-  it('⭐ los 4 límites de la fase C, en los dos temas, a 3:1 o más', () => {
+  it('⭐ los 8 límites, en los dos temas, a 3:1 o más', () => {
+    // ⚠️ Eran 4 (fase C). Desde la tanda 6 (15/09): los dos «con el ratón» se
+    //    miden sobre el realce, que es donde se pintan, y no sobre la banda de la
+    //    que tomaba prestado el color; y entra el BORDE ÁMBAR contra sus tres
+    //    vecinos —la tarjeta, su propio ámbar y el realce— más el anillo del
+    //    foco del paso sobre el realce. El borde ámbar suspendía en oscuro y
+    //    esta lista no lo nombraba: bitácora del 15/09.
     expect(LIMITES.map((l) => `${l.borde}/${l.fondo}`)).toEqual([
       'muted-foreground/card',
-      'muted-foreground/banda-cabecera',
+      'muted-foreground/superficie-realce',
       'primary/card',
-      'primary/banda-cabecera',
+      'primary/superficie-realce',
+      'warning-border/card',
+      'warning-border/warning',
+      'warning-border/superficie-realce',
+      'ring/superficie-realce',
     ]);
     for (const tema of ['light', 'dark'] as const) {
       for (const l of LIMITES) {
@@ -493,13 +537,13 @@ describe('LA PÁGINA de identidad monta con todo lo que hay que medir', () => {
     await TestBed.configureTestingModule({ imports: [Identidad] }).compileComponents();
   });
 
-  it('trae una sonda por token y por tema: 84', () => {
+  it('trae una sonda por token y por tema: 88', () => {
     const f = TestBed.createComponent(Identidad);
     f.detectChanges();
     const raiz = f.nativeElement as HTMLElement;
-    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(84);
-    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(42);
-    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(42);
+    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(88);
+    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(44);
+    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(44);
   });
 
   it('pinta los seis modos con sus cuatro variantes', () => {
@@ -696,5 +740,91 @@ describe('⭐ (v) LA BASE — el body vestido, y la letra que llega a tiempo', (
     expect(respaldo).toContain('descent-override: 22.48%');
     // Detrás de Inter y delante de system-ui: solo vale mientras Inter no está.
     expect(EN_ROOT['font-sans']).toBe("'Inter', 'Inter Fallback', system-ui, sans-serif");
+  });
+});
+
+/**
+ * ⭐ (vi) LOS COLORES A PELO EN LAS HOJAS DEL RESULTADO (15/09, tanda 6).
+ *
+ * La cicatriz de la casa: un color que vive en la hoja y no en la lista no lo
+ * mide nadie. Pasó con la banda el 11/09 y volvió a pasar en grande el 15/09:
+ * con el oscuro puesto, el `strong` de los pasos (#1a1a1a) leía a 1,04:1 y
+ * «Se viaja en» (#555) a 2,24, con el censo en verde. Bitácora del 15/09.
+ *
+ * [Android Developers · migrar a tema oscuro] el asesino clásico son los
+ * colores escritos a pelo, que no cambian con el tema: se prefieren atributos
+ * de tema. Aquí, `var(--…)`.
+ *
+ * ⚠️ BARRE, no enumera reglas: se leen las TRES hojas que pinta el resultado y
+ *    toda declaración con un hex, `rgb()` o `hsl()` que no sea la definición de
+ *    un token tiene que estar en la lista de abajo CON SU PORQUÉ. Una nueva
+ *    entra en rojo y obliga a decidir: tokenizarla o escribir por qué se queda.
+ */
+describe('⭐ (vi) NI UN COLOR A PELO en las hojas del resultado, salvo los que dicen por qué', () => {
+  const HOJAS = ['app/src/styles.css', 'app/src/app/buscador.css', 'app/src/app/resultado.css'];
+  const COLOR = /#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(/i;
+
+  /** `hoja · propiedad: valor`, repetidos tantas veces como aparezcan. */
+  const aPelo = (): string[] =>
+    HOJAS.flatMap((hoja) =>
+      [...sinComentarios(leer(hoja)).matchAll(/(?<=^|[;{])\s*([-\w]+)\s*:\s*([^;{}]+);/g)]
+        .filter((m) => !m[1]!.startsWith('--') && COLOR.test(m[2]!))
+        // ⚠️ El `(?<=…)` mira atrás SIN comerse el `;`. La primera versión lo
+        //    consumía y se saltaba una declaración de cada dos: no veía el #1a1a1a
+        //    del `strong` ni el #334155 de la región. Cazado depurando su rojo.
+        .map((m) => `${hoja.split('/').pop()} · ${m[1]}: ${m[2]!.trim()}`),
+    );
+
+  /**
+   * Los que se quedan, y por qué. Ninguno lleva la legibilidad de un texto ni
+   * el límite de un componente EN EL TEMA: por eso no necesitan par.
+   */
+  const SE_QUEDAN: readonly string[] = [
+    // Sombras: adorno de elevación. En oscuro la elevación la dicen las
+    // superficies [M3: overlay tonal — tarjeta #1e1e1e sobre fondo #121212], y
+    // una sombra negra sobre oscuro no pinta nada que haga falta leer.
+    'styles.css · box-shadow: 0 1px 2px rgb(0 0 0 / 5%)',
+    'styles.css · box-shadow: 0 0 12px rgb(0 0 0 / 8%)',
+    'styles.css · box-shadow: 2px 0 6px rgb(0 0 0 / 12%)',
+    'buscador.css · box-shadow: 0 1px 2px rgb(0 0 0 / 0.05)',
+    'buscador.css · box-shadow: 0 1px 2px rgb(0 0 0 / 0.05)',
+    // El trazo negro del número del chip: el chip lleva SU fondo (el color de la
+    // línea), así que su contraste no depende del tema [chip.ts].
+    'styles.css · -webkit-text-stroke: 2px #000',
+    // El ribete del chip. Al acta de la tanda 6: el chip se identifica por su
+    // número —legible por contorno en los dos temas— y su borde no es límite
+    // exigible [WCAG 1.4.11]; en oscuro el negro al 25 % no pinta nada, y
+    // cambiarlo es cambiar la insignia, que es decisión de Antonio [chip.ts].
+    'styles.css · border: 1px solid rgb(0 0 0 / 25%)',
+  ];
+
+  it('la jueza barre de verdad: las tres hojas tienen declaraciones que mirar', () => {
+    for (const hoja of HOJAS) {
+      expect(sinComentarios(leer(hoja)).match(/:\s*var\(--/g)?.length ?? 0, hoja).toBeGreaterThan(10);
+    }
+  });
+
+  it('⭐ los colores a pelo son EXACTAMENTE los que dicen por qué', () => {
+    expect(aPelo().sort()).toEqual([...SE_QUEDAN].sort());
+  });
+
+  /**
+   * ⭐ Y EL REALCE YA NO TOMA PRESTADA LA BANDA. Mientras el paso se pintaba
+   * con `--banda-cabecera`, cambiar la cabecera del acordeón movía el realce sin
+   * que ninguna jueza lo supiera. Cada token, en las reglas de su papel.
+   */
+  it('⭐ la banda solo la usa la cabecera del acordeón, y el realce solo el paso', () => {
+    const usos = (token: string): string[] =>
+      [...HOJAS, 'app/src/app/identidad.css'].flatMap((hoja) =>
+        [...sinComentarios(leer(hoja)).matchAll(/([^{};]+)\{([^{}]*)\}/g)]
+          // `includes` con el paréntesis de cierre, y no una RegExp montada con
+          // plantilla: así `banda-cabecera` no casa con `banda-cabecera-hover`,
+          // y no hay escapes que se pierdan por el camino (se perdieron).
+          .filter((m) => m[2]!.includes(`var(--${token})`))
+          .map((m) => m[1]!.trim()),
+      );
+    expect(usos('banda-cabecera')).toEqual(['.bloque__cabecera']);
+    expect(usos('banda-cabecera-hover')).toEqual(['.bloque__cabecera:hover']);
+    expect(usos('superficie-realce').sort()).toEqual(['.paso:focus-visible', '.paso:hover']);
   });
 });

@@ -47,7 +47,7 @@ export type Tema = 'light' | 'dark';
 
 export const TEMAS: readonly Tema[] = ['light', 'dark'];
 
-/** Los dieciséis semánticos, en el orden en que se leen. */
+/** Los veinte semánticos, en el orden en que se leen. */
 export const SEMANTICOS: readonly Token[] = [
   'background',
   'foreground',
@@ -71,6 +71,12 @@ export const SEMANTICOS: readonly Token[] = [
   //    no lo cuenta nadie — y éste nació justamente de un color que nadie medía.
   'banda-cabecera',
   'banda-cabecera-hover',
+  // ⭐ TANDA 6 (15/09), el resultado en los dos temas. Los dos por la misma
+  //    puerta: la leyenda era un #555 escrito A PELO en tres reglas —y con el
+  //    oscuro puesto leía a 2,24:1—; la superficie del realce existía solo en el
+  //    papel, y el paso se pintaba con la banda de otro componente.
+  'leyenda',
+  'superficie-realce',
 ];
 
 /** Los seis modos, con el nombre que usa el CSS. */
@@ -118,12 +124,30 @@ export const PARES: readonly Par[] = [
   // ⚠️ Los DOS estados de la banda, no solo el de reposo. Medir uno y no el
   //    otro es el mismo agujero que tenían las píldoras de modo: el hover es la
   //    mitad del control, y es donde el gris se aclara más.
+  // ⭐ TANDA 6 (15/09): «Se viaja en», «Modo: …» y el subtítulo de la app.
+  { texto: 'leyenda', fondo: 'card', rotulo: 'Leyenda sobre una tarjeta' },
   { texto: 'foreground', fondo: 'banda-cabecera', rotulo: 'Cabecera del acordeón' },
   {
     texto: 'foreground',
     fondo: 'banda-cabecera-hover',
     rotulo: 'Cabecera del acordeón — con el ratón',
   },
+  // ⭐ EL REALCE DEL PASO, con el ratón o con el foco (tanda 6). Lo que se lee
+  //    encima: el texto y la negrita, y el gris de la distancia y los datos —que
+  //    en CLARO no llega, y va censado con su número en `identidad.spec.ts`—.
+  { texto: 'foreground', fondo: 'superficie-realce', rotulo: 'Texto del paso — con el ratón' },
+  {
+    texto: 'muted-foreground',
+    fondo: 'superficie-realce',
+    rotulo: 'Distancia y datos del paso — con el ratón',
+  },
+  // ⭐ EL ÁMBAR, ENTERO (tanda 6). La superficie `.ambar` pinta `warning-dark`
+  //    sobre `warning` —resumen, tira y L5— y el censo solo medía
+  //    `warning-foreground`, que el resultado no usa. Y la marca «desviada» va
+  //    en la misma tinta sin fondo: sobre la tarjeta y sobre el realce.
+  { texto: 'warning-dark', fondo: 'warning', rotulo: 'Superficie ámbar' },
+  { texto: 'warning-dark', fondo: 'card', rotulo: 'Marca «desviada»' },
+  { texto: 'warning-dark', fondo: 'superficie-realce', rotulo: 'Marca «desviada» — con el ratón' },
   ...MODOS.map((m) => ({
     texto: `mode-${m}-text`,
     fondo: `mode-${m}-solid`,
@@ -160,9 +184,22 @@ export const LIMITES: readonly Limite[] = [
   // El mismo par vale para el borde de la región de la cabecera del resultado
   // (14/09): un uso más del mismo color sobre el mismo fondo, no un par nuevo.
   { borde: 'muted-foreground', fondo: 'card', rotulo: 'Ficha de poste o estación · región de la cabecera' },
-  { borde: 'muted-foreground', fondo: 'banda-cabecera', rotulo: 'Ficha de poste — con el ratón' },
+  // ⚠️ Los dos «con el ratón» se medían sobre la banda porque el realce le
+  //    tomaba prestado el color. Desde la tanda 6 el realce es token suyo, y se
+  //    mide donde se pinta.
+  { borde: 'muted-foreground', fondo: 'superficie-realce', rotulo: 'Ficha de poste — con el ratón' },
   { borde: 'primary', fondo: 'card', rotulo: 'Círculo de origen y destino' },
-  { borde: 'primary', fondo: 'banda-cabecera', rotulo: 'Círculo de origen y destino — con el ratón' },
+  { borde: 'primary', fondo: 'superficie-realce', rotulo: 'Círculo de origen y destino — con el ratón' },
+  // ⭐ EL BORDE ÁMBAR CONTRA SUS TRES VECINOS (tanda 6, bitácora del 15/09). La
+  //    caja del resumen lo tiene alrededor —la tarjeta fuera, su ámbar dentro—
+  //    y la tira y la L5 lo llevan de filete dentro de un paso que se realza.
+  //    En oscuro daba 2,35 contra la tarjeta y esta lista no lo nombraba.
+  { borde: 'warning-border', fondo: 'card', rotulo: 'Borde ámbar — resumen, tira y L5' },
+  { borde: 'warning-border', fondo: 'warning', rotulo: 'Borde ámbar — contra su superficie' },
+  { borde: 'warning-border', fondo: 'superficie-realce', rotulo: 'Filete ámbar — con el ratón' },
+  // El anillo del foco del paso, que se dibuja sobre el realce (tanda 6: era un
+  // #1a1a1a a pelo, 1,04:1 sobre la tarjeta oscura).
+  { borde: 'ring', fondo: 'superficie-realce', rotulo: 'Foco del paso' },
 ];
 
 /** Lo leído de un token en un tema. `hex` vacío = no se pudo medir. */

@@ -13,7 +13,8 @@
 
 .cabecera p {
   margin: 0.25rem 0 1.5rem;
-  color: #555;
+  /* La leyenda (tanda 6): el mismo #555 que «Se viaja en», ya con nombre y par. */
+  color: var(--leyenda);
 }
 
 .buscador {
@@ -548,7 +549,8 @@ legend {
 /* [WCAG 2.4.7] El foco no se quita: se refuerza. Es la misma regla, y el
    mismo gesto, que en `.detalles` y en `.vivo__boton`. */
 .creditos__enlace:focus-visible {
-  outline: 2px solid #1a1a1a;
+  /* El anillo de la casa (tanda 6): el #1a1a1a a pelo no se veía en oscuro. */
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 

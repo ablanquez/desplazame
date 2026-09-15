@@ -48,6 +48,8 @@ const CLARO = {
   muted: '#f8fafc', 'muted-foreground': '#64748b',
   // ⭐ La banda de las cabeceras — el primer par que NO sale de la maqueta.
   'banda-cabecera': '#e2e8f0', 'banda-cabecera-hover': '#cbd5e1',
+  // ⭐ Tanda 6 (15/09): el #555 a pelo, con nombre, y el realce con token propio.
+  leyenda: '#555555', 'superficie-realce': '#e2e8f0',
   'mode-andando-soft': '#dcfce7', 'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d', 'mode-andando-text': '#ffffff',
   'mode-bus-soft': '#ccfbf1', 'mode-bus-strong': '#0f766e',
@@ -66,11 +68,14 @@ const OSCURO = {
   background: '#121212', foreground: '#f0f0f0', card: '#1e1e1e', 'card-foreground': '#f0f0f0',
   primary: '#93c5fd', 'primary-foreground': '#0f172a', success: '#22c55e',
   'success-foreground': '#0f172a', warning: '#3a1d00', 'warning-foreground': '#fde68a',
-  'warning-border': '#92400e', 'warning-dark': '#fef3c7', border: '#333333', ring: '#93c5fd',
+  // amber-800 → 600 (tanda 6): 3:1 contra tarjeta, su ámbar y el realce.
+  'warning-border': '#d97706', 'warning-dark': '#fef3c7', border: '#333333', ring: '#93c5fd',
   muted: '#242424', 'muted-foreground': '#b8b8b8',
   // Reposo = el hex de `border` (12dp); el hover estrena #404040 — ver la ficha
   // del token en `styles.css`: la escalera de Material se acaba antes.
   'banda-cabecera': '#333333', 'banda-cabecera-hover': '#404040',
+  // Por regla: la leyenda da contra su tarjeta el 7,46 del claro; el realce, el peldaño de la banda.
+  leyenda: '#aeaeae', 'superficie-realce': '#333333',
   'mode-andando-soft': '#14532d', 'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e', 'mode-andando-text': '#052e16',
   'mode-bus-soft': '#134e4a', 'mode-bus-strong': '#2dd4bf',
@@ -89,6 +94,16 @@ const TOKENS = Object.keys(CLARO);
 
 let fallos = 0;
 let porDebajo = 0;
+let enDeuda = 0;
+let totalPares = 0;
+
+/**
+ * ⭐ LA DEUDA CENSADA — la misma que `identidad.spec.ts`, con su número (15/09).
+ * Del CLARO: la distancia y los datos del paso (`muted-foreground`) sobre el
+ * realce, 3,86:1, medido también en el píxel. No se arregla en la parte del
+ * oscuro; se inmoviliza para que no entre otra en silencio.
+ */
+const DEUDA = { 'light · muted-foreground / superficie-realce': 3.86 };
 const juzgar = (bien, titulo, detalle = '') => {
   if (!bien) fallos++;
   console.log(`  ${bien ? 'OK ' : '✗✗ '} ${titulo}${detalle ? '  ·  ' + detalle : ''}`);
@@ -250,7 +265,7 @@ try {
     const mal = TOKENS.filter((t) => leidos[t] !== esperados[t]);
     juzgar(
       mal.length === 0,
-      `${titulo}: los 40 tokens valen lo calcado`,
+      `${titulo}: los ${TOKENS.length} tokens valen lo calcado`,
       mal.length ? mal.map((t) => `--${t}=${leidos[t] || '(vacío)'}≠${esperados[t]}`).join(' · ') : '',
     );
   };
@@ -320,21 +335,32 @@ try {
       ['warning-foreground', 'warning'], ['muted-foreground', 'muted'],
       // ⭐ 14/09, la región de la cabecera: los extremos del viaje, sobre la tarjeta.
       ['muted-foreground', 'card'],
+      // ⭐ Tanda 6 (15/09): la leyenda, el texto y la distancia sobre el realce, y el ámbar entero.
+      ['leyenda', 'card'],
       ['foreground', 'banda-cabecera'], ['foreground', 'banda-cabecera-hover'],
+      ['foreground', 'superficie-realce'], ['muted-foreground', 'superficie-realce'],
+      ['warning-dark', 'warning'], ['warning-dark', 'card'], ['warning-dark', 'superficie-realce'],
       ...['andando', 'bus', 'bici', 'patin', 'moto', 'coche'].flatMap((m) => [
         [`mode-${m}-text`, `mode-${m}-solid`],
         [`mode-${m}-strong`, `mode-${m}-soft`],
       ]),
     ];
     const leidos = await leerTokens(`[data-sonda='${tema}']`);
+    totalPares += pares.length;
     for (const [a, b] of pares) {
       // ⚠️ El ratio se calcula sobre lo LEÍDO del navegador, no sobre la tabla:
       //    si el CSS aplicado no fuera el calcado, este número lo diría.
       const r = contrasteRgb(deHex(leidos[a] || tabla[a]), deHex(leidos[b] || tabla[b]));
       const ok = r >= AA_TEXTO;
-      if (!ok) porDebajo++;
+      const clave = `${tema} · ${a} / ${b}`;
+      // ⚠️ Una deuda CENSADA no se absuelve: se inmoviliza con su número, igual
+      //    que en `identidad.spec.ts`. Si el número se mueve, también es rojo.
+      const censada = clave in DEUDA && Number(r.toFixed(2)) === DEUDA[clave];
+      if (!ok && !censada) porDebajo++;
+      if (!ok && censada) enDeuda++;
+      if (clave in DEUDA && !censada) juzgar(false, `la deuda «${clave}» ya no vale ${DEUDA[clave]}:1`, `${r.toFixed(2)}:1`);
       console.log(
-        `  ${ok ? 'OK ' : '⚠️ '} ${(a + ' / ' + b).padEnd(40)} ${leidos[a]} sobre ${leidos[b]}  =  ${r.toFixed(2)}:1`,
+        `  ${ok ? 'OK ' : censada ? '⚠️ CENSADA' : '✗✗ '} ${(a + ' / ' + b).padEnd(40)} ${leidos[a]} sobre ${leidos[b]}  =  ${r.toFixed(2)}:1`,
       );
     }
   }
@@ -345,8 +371,8 @@ try {
   //    salen de la cuenta y no de lo que era verdad el día que se escribieron.
   juzgar(
     porDebajo === 0,
-    `los ${44 - porDebajo} de 44 pares cumplen AA (${AA_TEXTO}:1)`,
-    porDebajo ? `${porDebajo} por debajo — decidir: corregir el valor o censarlo` : '',
+    `los ${totalPares - porDebajo - enDeuda} de ${totalPares} pares cumplen AA (${AA_TEXTO}:1), y ${enDeuda} en deuda censada`,
+    porDebajo ? `${porDebajo} por debajo SIN censar — decidir: corregir el valor o censarlo` : '',
   );
 
   // ═════════ (ii-ter) LOS LÍMITES NO TEXTUALES, a 3:1 [WCAG 1.4.11] ═════════
@@ -359,9 +385,14 @@ try {
   //    que vive en la hoja y no en /identidad no lo mira nadie.
   console.log('\n═══ (ii-ter) LOS LÍMITES NO TEXTUALES ═══');
   {
+    // ⚠️ Tanda 6 (15/09): los «con el ratón» se miden sobre el realce, que ya es
+    //    token suyo, y entra el borde ámbar contra sus tres vecinos más el foco
+    //    del paso. El borde ámbar suspendía en oscuro y aquí no estaba.
     const LIMITES = [
-      ['muted-foreground', 'card'], ['muted-foreground', 'banda-cabecera'],
-      ['primary', 'card'], ['primary', 'banda-cabecera'],
+      ['muted-foreground', 'card'], ['muted-foreground', 'superficie-realce'],
+      ['primary', 'card'], ['primary', 'superficie-realce'],
+      ['warning-border', 'card'], ['warning-border', 'warning'], ['warning-border', 'superficie-realce'],
+      ['ring', 'superficie-realce'],
     ];
     let limitesBajos = 0;
     for (const [tema, tabla] of [['light', CLARO], ['dark', OSCURO]]) {
@@ -375,11 +406,11 @@ try {
     }
     juzgar(
       limitesBajos === 0,
-      `los ${8 - limitesBajos} de 8 límites cumplen 1.4.11 (${AA_GRAFICO}:1)`,
+      `los ${LIMITES.length * 2 - limitesBajos} de ${LIMITES.length * 2} límites cumplen 1.4.11 (${AA_GRAFICO}:1)`,
       limitesBajos ? `${limitesBajos} por debajo` : '',
     );
     const filas = await mando.evaluar(`document.querySelectorAll('.identidad__limite').length`);
-    juzgar(filas === 8, '⭐ y la página los pinta: una fila por límite y por tema', `${filas} filas`);
+    juzgar(filas === LIMITES.length * 2, '⭐ y la página los pinta: una fila por límite y por tema', `${filas} filas`);
   }
 
   // ═════════ (ii-bis) LA SEPARACIÓN DE LA BANDA ═════════
