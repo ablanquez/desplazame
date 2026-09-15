@@ -205,16 +205,20 @@ la última voz] y el mediodía `64c2591` [la fase C de la tanda
 5 + papeles]; el 13/09 `7f0ba5a` [fases A+B]; los del 11-12/09:
 el GORDO `69f14e1` [tandas 2-4], las PESTAÑAS `608a921` y el
 remate de visión `2e4911a`; y `b27ab63` [papeles] + los dos
-del 9/09 [`062f532` · `c3adffb`]). ⚠️ CORRECCIÓN del
-push de cierre del 14/09: el push de papeles `40f1ecd` SE
-LLEVÓ TAMBIÉN la tanda de la región entera (git empuja todo lo
-local) — el «un solo push» quedó en dos, y el README fue
-después en `b835df2`. **Publicado hasta `b835df2`. En local,
-sin publicar** *(al cierre del 15/09 mañana)*: **LA TANDA 6 ·
-PARTE 1 — el resultado en los dos temas (7 commits
-`f3ffb79`…`a38cbaf`, con la nº56 y el remate del hover) + los
-papeles de este destilado — UN push con todo ⚠️ desde M2, CADA
-PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
+del 9/09 [`062f532` · `c3adffb`]). **Publicado hasta `d34358c`**
+(el push del 15/09 mañana: LA PARTE 1 del oscuro entera — 7
+commits `f3ffb79`…`a38cbaf`, la nº56 y el remate del hover —
++ sus papeles, UN push como se quería; antes, los del 14/09:
+`b835df2` [README/NOTICES releídos], `40f1ecd` [papeles, que
+se llevó también la tanda de la región — el «un solo push»
+que quedó en dos, dicho], `2f51ce6` [los fallitos enteros] y
+`64c2591` [la fase C]; el 13/09 `7f0ba5a`; los del 11-12/09 y
+anteriores como constaba). **En local, sin publicar** *(al
+cierre del 15/09 tarde)*: **LA TANDA 6 · PARTE 2 — la tesela
+oscura de CARTO y el claro del mapa medido (19 commits
+`ee18769`…`1b8c29d`, con sus cuatro bitácoras) + los papeles
+de este destilado — UN push con todo ⚠️ desde M2, CADA PUSH
+REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
 — los papeles de las casillas 0+3 y los 12 del calco — empujados
 en `062f532`.)* *(La nota del 8/09 noche: los
 papeles de M1-M3; el código estaba TODO publicado — el push del apaño
@@ -1671,16 +1675,18 @@ que hacer mejoras» (sin lista todavía — se cantará); LA CRÓNICA
 ENTERA en la casilla 4 del plan: lo siguiente es —
 tras la TANDA DE LOS FALLITOS del 14/09 tarde (cinco líneas +
 última voz, publicada en `2f51ce6`, crónica en la casilla 4) —
-— con la PARTE 1 DEL OSCURO HECHA (el resultado en los dos
-temas, ratificados por el ojo de Antonio el 15/09; crónica en
-la casilla 4 con la nº56 y su ley: «un token censado no es un
-par medido») — (a) EL PUSH del 15/09 [la parte 1 + estos
-papeles, UN push]; (b) LA PARTE 2: la tesela oscura CARTO
-[API key, © CARTO, jueces de contraste de la traza, y los
-iconos de capa]; (c) EL PUENTE: el Buscador en oscuro [sus
-colores a pelo — antes de que el botón haga el oscuro
-público]; (d) LA PARTE 3: EL CONMUTADOR [PC + el cuarto hueco
-de la barra móvil + anti-FOUC + el peso del §3]; (e) DESPUÉS:
+— con las PARTES 1 Y 2 DEL OSCURO HECHAS (el resultado y el
+mapa en los dos temas, ratificados por el ojo de Antonio el
+15/09; crónicas en la casilla 4 con sus leyes: «un token
+censado no es un par medido» · «los códigos de salida dicen la
+verdad» · «un trazo se mide contra lo que tiene al lado, no
+contra los extremos del plano») — (a) EL PUSH de la parte 2
+[+ estos papeles, UN push]; (b) EL PUENTE: el Buscador en
+oscuro [sus colores a pelo: desplegables blancos, bordes #999
+— antes de que el botón haga el oscuro público]; (c) LA PARTE
+3: EL CONMUTADOR [PC + el cuarto hueco de la barra móvil +
+anti-FOUC + el peso del §3; el re-encuadre del mapa al
+conmutar YA resuelto con jueza en la parte 2]; (d) DESPUÉS:
 el encargo de IDENTIDAD [el logo + ⭐ la identidad de ICONOS
 pedida por Antonio el 15/09: el sistema acción→icono como §39
 del DISEÑO con su jueza] y la verificación final del 15;
@@ -1689,9 +1695,12 @@ el teclado · el safe-area en aparato; ⚠️ el MISTERIO de los
 fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
-checkpoints; EN LA MESA sin prisa: el presupuesto [541,85/520 — la raya REBASADA,
-declarado: la poda como palanca] · el guardián de build
-atómico [PRIORIDAD ALTA: build fallida borra dist → 404] · el
+checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
+main 507,4→510,5 (+3,1) en la parte 2; el initial exacto se
+relee en el próximo cierre — 541,85 al de la parte 1; la poda
+como palanca] · el guardián de build atómico [PRIORIDAD ALTA
+— ya con BLOQUE PROPIO en el PLAN, delante de la casilla 5:
+porqué, forma y jueza] · el
 refactor del resultado como componente propio [4 topes] · los
 e2e con 4200 a fuego [pantalla(adaptada), proximo-bus] · el
 HUESO de carga que ya no calca la forma de lo que llega [la
@@ -1700,7 +1709,12 @@ doctrina: el placeholder calca el layout final] · la deuda
 del lector de pantalla real [NO CONSTA cómo se oyen las cinco
 líneas] · 5b PARA DESPUÉS DEL OSCURO [fijado por Antonio el
 14/09] · [#555 y --superficie-realce: HECHOS en la parte 1 —
---leyenda y el token real]; (3) los pendientes del 14 en
+--leyenda y el token real] · los cabos de la parte 2: el #999
+del lienzo en mapa.css + EXTENDER la jueza del color a pelo
+al mapa [hoy solo barre las hojas del resultado] · la key de
+CARTO sin restricción de dominio posible [acta: visible por
+diseño] · los enlaces del pie de 17-114 px NO medidos · el
+README gana su sección de temas/mapa tras la parte 3; (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
 municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
@@ -2024,7 +2038,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.250 pruebas (656 motor + 594 interfaz; e2e yego.mjs, moto.mjs, dos-filas.mjs, identidad.mjs, esqueleto.mjs, creditos.mjs y pintura.mjs aparte, a mano — bizi-y-resumen, pantalla y proximo-bus aún con 4200 a fuego) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.257 pruebas (656 motor + 601 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

@@ -4435,9 +4435,9 @@ Code lo traduce al Angular existente.)*
         antes/después de moto.
       - [ ] TANDAS 6+ — EL OSCURO COMPLETO, en orden: ⚰️ el
         resultado en los dos temas [PARTE 1, HECHA — abajo] →
-        la tesela oscura CARTO [PARTE 2: API key, atribución
-        © CARTO, jueces de contraste, y LOS ICONOS DE CAPA que
-        la parte 1 dejó de cabo] → PUENTE: el Buscador en
+        ⚰️ la tesela oscura CARTO [PARTE 2, HECHA — abajo: Dark
+        Matter con key, atribución por capa, el claro del mapa
+        también medido] → PUENTE: el Buscador en
         oscuro [el formulario tiene sus colores a pelo:
         desplegables blancos, bordes #999 — tiene que estar
         listo ANTES de que el botón haga el oscuro público] →
@@ -4520,6 +4520,147 @@ Code lo traduce al Angular existente.)*
         decorativo/informativo] como §39 del DISEÑO con su
         jueza; va JUNTO AL LOGO en el encargo de identidad tras
         la parte 3.
+      - [x] ⚰️ TANDA 6 · PARTE 2 — LA TESELA OSCURA DE CARTO,
+        Y EL CLARO DEL MAPA TAMBIÉN MEDIDO (15/09; 19 commits
+        `ee18769`…`1b8c29d` sobre `d34358c`, en local al
+        escribir esto — UN push con estos papeles; los dos
+        temas del mapa ratificados por el ojo de Antonio).
+        DIAGNÓSTICO: Leaflet 1.9.4, una sola capa de
+        tile.openstreetmap.org; EL DESLUMBRE medido bajo
+        data-theme=dark: luminancia media 0,705-0,708 con
+        85,8% de píxeles claros, contra 0,013 de la tarjeta —
+        la doctrina del mapa oscuro ratificada CON FUENTES tras
+        la duda de Antonio [Google Maps Night Mode oficial +
+        su app conmutando de noche contra el deslumbre; Mapbox
+        Dark «para interfaces night-mode»; MapTiler «la
+        variante sigue la piel de la app, que no deslumbre»;
+        ArcGIS Navigation Night; el mapa claro bajo oscuro =
+        «una tele brillante en una habitación a oscuras»].
+        ⭐ DOS PAROS POR LA KEY: el marcador del prompt viajó
+        DOS VECES sin rellenar — la costura (g) funcionó las
+        dos; parte de la culpa del prompt (el hueco sin marcar
+        fuerte) y la reanudación ganó red: «si ves el corchete,
+        PARA». Opción 2 autorizada entre paros: la caché
+        adelantada. DOCUMENTACIÓN QUE MANDÓ [leída el 15/09]:
+        FAQ de CARTO [raster disponibles CON key gratuita
+        (?key=), retirada RECOMENDADA hacia vectoriales →
+        MapLibre = cambio de pila SIN necesidad demostrada: NO
+        se migra, ACTA como deuda en NOTICES §1.39 con la FAQ
+        citada y 3 condiciones de reapertura] · términos de
+        CARTO [caché en dispositivo permitida ≤30 DÍAS, sin
+        redistribuir] · política de teselas de OSM [cachear es
+        EXIGIDO (cabeceras o ≥7 días) + User-Agent con contacto
+        — la batería re-descargando iba contra la política] ·
+        la key visible por diseño en cliente y repo público
+        [restricción por dominio NO CONSTA en la doc — acta].
+        LA CACHÉ DEL ARNÉS: %TEMP% fuera del repo + sello de
+        fecha + regla de 30 días PROBADA [tesela de 31 días
+        borrada y rellenada] + UA identificable con la URL del
+        repo + jueza «0 escapadas Y 0 rehusadas» nacida en rojo
+        [69 y 179 escapadas]; en el cierre, 2.471 teselas de
+        caché en pintura con 0 escapadas. ⭐ BITÁCORA de las
+        teselas sin arnés [la batería pedía DE VERDAD:
+        esqueleto 69 (8 red), identidad 179 (59 red) — y la
+        corrección del propio diagnóstico: los 16/13/16 de la
+        sonda no eran todos de red, parte venía del disco de
+        Chrome]. ⭐ BITÁCORA DE LOS CÓDIGOS DE SALIDA, la gorda:
+        SEIS suites salían con 0 estando en ROJO — el «todas
+        con salida 0» del cierre de la parte 1 no probaba nada
+        por sí solo [los veredictos se leían en texto]. Arreglo
+        autorizado con doctrina [convención POSIX/GNU de exit
+        status: 0 éxito, ≠0 fallo — el contrato que CI y
+        orquestadores leen a máquina]: rojo → salida ≠0 en las
+        seis, contraprueba con rojo sembrado. FAMILIA DE LA
+        nº55: el veredicto que no se puede leer a máquina no
+        vigila. DARK MATTER CABLEADO: dark_all con la key de
+        Antonio [marca de agua verificada EN LAS DOS
+        DIRECCIONES: con key limpia, sin key «API KEY
+        REQUIRED», teselas guardadas]; la tesela por tema
+        atada al MISMO atributo del contrato de tokens, TRES
+        conmutas en caliente sin recargar; atribución POR CAPA
+        [claro: OSM; oscuro: © OpenStreetMap © CARTO] con el
+        tropiezo del pie pegado («OpenStreetMap· Créditos»)
+        cazado por la jueza de créditos y arreglado. MEDIDO EN
+        OSCURO: tesela dominante rgb(9,9,9) bajo el techo del
+        realce · trazas con ribete a blanco y el FEED INTACTO
+        [peor contacto 9,74] · bordes de polígono con par
+        oscuro por paso mínimo [ZBE #f87171 3,52 — el #dc2626
+        a 2,02 lo cazó la P26; YeGo #15803d 3,21] · pins
+        salvados por su halo [Understanding 1.4.11 del W3C: el
+        contorno añade contraste y entra en el cálculo; WebAIM:
+        el halo vale como color de la medición — relleno/halo
+        5,08-10,27, halo/tesela ≥12,27] · hitos 4,02-4,99 ·
+        controles con tokens 14,63/15,11. REMATE DEL CLARO
+        [resuelto por vara, no por nadie]: ⭐ LA CAUSA DEL 3,66
+        FANTASMA de mapa.spec:1016 — medía contra los extremos
+        del PLANO ENTERO (≥1% del lienzo) y el tranvía #787877
+        que corre BAJO el borde es el 0,051% del lienzo pero el
+        4,6% de lo pisado → LEY: «un trazo se mide contra lo
+        que tiene AL LADO, no contra los extremos del plano; lo
+        que se pone en cualquier sitio se mide contra CUALQUIER
+        tesela». MI DATO INCOMPLETO, DICHO: la recomendación
+        del ribete llevaba un 3,41 calculado contra lista
+        anterior a pintar el ribete — medido real 2,55, no
+        llegaba; el ejecutor lo declaró y se corrigió ANTES de
+        construir. Resolución [pregunta estructurada al chat,
+        Antonio eligió ribete]: ribete blanco + condición
+        CERRADA [borde de luminancia ≤0,0667 → vale contra
+        CUALQUIER tesela ≤0,30] → #7f1d1d (red-900): 3,93 /
+        3,93 / 3,90 sobre el píxel, 10,02 contra su ribete —
+        EL ROJO DE SIEMPRE #b91c1c NO SE PUDO CONSERVAR
+        cumpliendo móvil [cruza rótulo #383837 + tranvía +
+        calzada]; el oscuro (3,52) y el relleno intactos.
+        PINS EN CLARO: el halo NO llegaba [2,00-2,64 contra el
+        oliva] → paso de familia con la misma condición cerrada
+        [verde #14532d · rojo #7f1d1d · azul #1e3a8a — fuera de
+        la lista, lo cazó la jueza a 2,96 en móvil · mostaza
+        #422006]; COSTE DECLARADO y ratificado por el ojo: el
+        pin del mapa un paso más oscuro que su icono gemelo de
+        lista [oscurecer global bajaba el verde de tarjeta en
+        oscuro 3,28→1,83 — solo mapa, solo claro]. ⭐ HALLAZGO
+        DEL RE-ENCUADRE [bitácora]: cambiar de tema PERDÍA el
+        encuadre movido por la persona [-174,-104 → 0,0],
+        introducido en d38ff5f — y la P26 «en caliente» lo tuvo
+        DELANTE en verde porque no miraba la vista; arreglo
+        [vestir sin re-encuadrar] + jueza de vista; VITAL para
+        la parte 3. CIERRE: 10/10 con salida 0 sobre 1b8c29d,
+        0 escapadas, pintura 814 [P25 84 · P26 477, nacida con
+        176+46 rojos, contrapruebas 4 y 13 con salida 1] ·
+        unidad 601 · motor 656 · tipos limpios [297+365].
+        AJUSTES DE PRUEBAS por consecuencia declarada: buscador
+        /moto/yego cuentan polígonos sin ribete · iconos.spec
+        espera el tono claro del marcador · mapa.spec 9 da la
+        separación ZBE/YeGo 1,41 [la raya sigue siendo el
+        canal]. PRESUPUESTO: main 507,4→510,5 [+3,1; el initial
+        exacto se relee en el próximo cierre — al de la parte 1
+        era 541,85, raya de 520 REBASADA]. CUATRO bitácoras en
+        la parte [teselas sin arnés · códigos de salida · el
+        3,66 del borde · el re-encuadre], 0 abiertas al cierre.
+        CABOS AL PAPEL [antes solo vivían en checkpoints]: el
+        #999 del lienzo en mapa.css [y extender la jueza del
+        color a pelo, que solo barre las hojas del resultado,
+        al mapa] · la key sin restricción de dominio posible
+        [acta] · los enlaces del pie de 17-114 px declarados NO
+        medidos · el README ganará su sección de temas/mapa
+        cuando el oscuro sea público [tras la parte 3].
+- [ ] **EL GUARDIÁN DE BUILD ATÓMICO [PRIORIDAD ALTA — bloque
+      propio desde el 15/09, pedido por Antonio: los papeles con la
+      verdad entera, no líneas de mesa]** — EL PORQUÉ: el `ng build`
+      escribe DIRECTAMENTE sobre `dist/`; una build que falla a
+      medias deja el directorio borrado o a medio escribir, y con el
+      auto-deploy de Hostinger un push en ese estado sirve 404 a
+      producción. Vivió como aviso de mesa desde su hallazgo; gana
+      bloque para abrirse desde el papel. LA FORMA (la doctrina es
+      la atomicidad todo-o-nada, el mismo principio del punto limpio
+      de casa): construir SIEMPRE a un directorio temporal; solo con
+      salida 0 y el bundle versionado presente se hace el SWAP al
+      `dist/` real (renombrado, no copia a trozos); una build
+      fallida no toca NI UN BYTE del dist anterior. SU JUEZA, nacida
+      en rojo: una build saboteada en copia debe dejar el dist
+      previo INTACTO al byte (huella antes == huella después) y
+      salir con ≠0 [la ley de los códigos de la parte 2]. Y el
+      guion de deploy/push local que exista debe negarse a empujar
+      un dist sin su marca de build completa.
 - [ ] **5 · LA VERIFICACIÓN del 15** — AA medido (contraste, targets
       44px, reflow 320px, zoom 200%, teclado), los dos temas por el
       ojo en los 3 tamaños, y el caso de siempre en producción.
