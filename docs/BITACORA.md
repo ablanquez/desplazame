@@ -14,6 +14,37 @@
 
 ---
 
+## [2026-09-15] 🔴 ABIERTA — el censo daba los dos temas por cumplidos y el resultado en oscuro tiene texto a 1,04:1 y el borde ámbar a 2,35:1
+
+**Categoría:** verde declarado que no era
+**Síntoma:** con `data-theme="dark"` puesto en `<html>` y `--background`
+leído del DOM como `rgb(18, 18, 18)`, la sonda del diagnóstico
+(`sonda-oscuro.mjs`, motor pid 16388 en `127.0.0.1:4200`, `main-RM24EPQM.js`)
+mide sobre el píxel, a 1440: `.paso__texto strong 1.04:1` («Sal de», #1a1a1a
+a pelo), `.pasos__modo 2.24:1` y `.ruta__lineas-rotulo 2.24:1` (#555 a pelo), y
+el borde ámbar `rgb(146, 64, 14)` (el token `--oscuro-warning-border`) a
+`2.35` contra la tarjeta en `.resumen`, `.paso__nota` y `.vivo__estado--aviso`.
+«Próximo bus» y «Sugerir zona» pintan un bloque `#fff` dentro del oscuro.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** el censo de tokens en
+Chrome, corrido hoy antes de tocar nada
+(`node app/e2e/identidad.mjs http://127.0.0.1:4200 …`):
+`OK  los 44 de 44 pares cumplen AA (4.5:1)` ·
+`OK  dark · muted-foreground / card  #b8b8b8 junto a #1e1e1e  =  8.40:1` ·
+`OK  los 8 de 8 límites cumplen 1.4.11 (3:1)` · `✅ VERDE`. Ninguna de sus
+filas nombra `warning-border`, y el papel del proyecto repetía «44 pares de
+texto + 8 límites cumplen en los dos temas».
+**Cómo se cazó:** instrumento — el diagnóstico de la tanda 6 con el oscuro puesto de verdad.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/src/app/resultado.css` (`.paso__texto strong`, `.pasos__modo`,
+`.ruta__lineas-rotulo`, `.vivo__boton`, `.vivo__estado`, `.sugerencia__boton`) ·
+`app/src/styles.css` (`--oscuro-warning-border`) · `app/src/app/identidad.ts`
+(`PARES`, `LIMITES`).
+
+---
+
 ## [2026-09-14] ✅ CERRADA — la tanda 5 se cerró con «todas las suites en verde» y `moto.mjs` estaba en rojo
 
 **Categoría:** verde declarado que no era
