@@ -4433,14 +4433,93 @@ Code lo traduce al Angular existente.)*
         CON RUTA ABSOLUTA [norma nueva, cumplida]: capR/ del
         scratchpad, con la lámina de los candidatos y el
         antes/después de moto.
-      - [ ] TANDAS 6+ — EL OSCURO COMPLETO, en orden: el
-        resultado en los dos temas → la tesela oscura CARTO
-        [API key, atribución © CARTO, jueces de contraste] → EL
-        CONMUTADOR [pedido por Antonio en la ronda de visión:
-        el botón en PC y EL CUARTO HUECO de la barra móvil, con
-        su anti-FOUC; prioridad documentada: elección guardada >
-        sistema > claro], y la verificación final del 15
-        (casilla 5).
+      - [ ] TANDAS 6+ — EL OSCURO COMPLETO, en orden: ⚰️ el
+        resultado en los dos temas [PARTE 1, HECHA — abajo] →
+        la tesela oscura CARTO [PARTE 2: API key, atribución
+        © CARTO, jueces de contraste, y LOS ICONOS DE CAPA que
+        la parte 1 dejó de cabo] → PUENTE: el Buscador en
+        oscuro [el formulario tiene sus colores a pelo:
+        desplegables blancos, bordes #999 — tiene que estar
+        listo ANTES de que el botón haga el oscuro público] →
+        EL CONMUTADOR [PARTE 3, pedido por Antonio en la ronda
+        de visión: el botón en PC y EL CUARTO HUECO de la barra
+        móvil, con su anti-FOUC; prioridad documentada:
+        elección guardada > sistema > claro; con él, el peso de
+        letra del §3 del DISEÑO], y la verificación final del
+        15 (casilla 5).
+      - [x] ⚰️ TANDA 6 · PARTE 1 — EL RESULTADO EN LOS DOS
+        TEMAS (14-15/09; 7 commits `f3ffb79`…`a38cbaf`, en
+        local al escribir esto — UN push con estos papeles).
+        EL OSCURO NO ESTABA BIEN POR CONSTRUCCIÓN: texto a
+        1,04:1 [.paso__texto strong #1a1a1a], la leyenda #555
+        a 2,24, la región con dato a 1,61, «Próximo bus» y
+        «Sugerir zona» como BLOQUES BLANCOS dentro del tema
+        oscuro, focos invisibles, y el borde ámbar censado
+        --oscuro-warning-border a 2,35 — CON EL CENSO CANTANDO
+        «44/44 pares cumplen · 8/8 límites» delante. ⭐ BITÁCORA
+        nº56, LA GORDA: abierta antes de arreglar, cerrada con
+        LEY: «un token CENSADO no es un par MEDIDO» — el censo
+        mide valores de la lista, no la pantalla; la pantalla
+        la mide la P25 con su red. DIAGNÓSTICO-PRIMERO: 24
+        colores A PELO en las hojas del resultado, cada uno con
+        destino escrito [tokenizar · capa de estado M3 tinta 8%
+        · quedarse con porqué: sombras (la elevación en oscuro
+        la dicen las superficies), el trazo y el ribete del
+        chip (la insignia no se toca)]; jueza nueva del color a
+        pelo: solo pasan los 7 con su porqué. LO NACIDO, todo
+        POR REGLA DECLARADA: --leyenda [#555/#aeaeae — el
+        primer gris que da en oscuro el MISMO 7,46 del claro] ·
+        --superficie-realce DE VERDAD [#e2e8f0/#333333, el
+        peldaño de la banda; jueza de que banda y realce no se
+        prestan] · ámbar oscuro amber-800→amber-600 [el paso
+        mínimo de la familia que pasa 3:1 contra los TRES
+        vecinos: tarjeta 5,23 · su ámbar 4,86 · realce 3,97;
+        el claro intacto] · focos a var(--ring). CENSO por la
+        puerta grande: pares 22→28 [56 medidas] · límites 4→8
+        [16] — y el REMATE del hover en claro: 3,86:1 que
+        SUSPENDÍA [vara medida en lo pintado: 14 px, sin
+        exención de texto grande — WCAG 1.4.3 tiene dos varas
+        y se eligió midiendo, no de memoria], arreglado con
+        token propio --secundario-del-paso [slate-600, 6,15 —
+        NO se movió --muted-foreground: 25 reglas colaterales
+        no suspendían; la regla de la tanda 1: entre dos
+        conformes, la que no degrada nada] → censo 29 pares /
+        58 medidas / 0 deudas. P25 NUEVA en los tres anchos: 26
+        rojos contra la build vieja + 4 del remate → 84 OK, con
+        RED que barre el resultado entero en los dos temas y
+        acaba a 0; contraprueba 20/20 + dos defectos de las
+        propias juezas cazados depurando su rojo [la regex que
+        se saltaba una de cada dos; las RegExp de plantilla].
+        EL CLARO CAMBIÓ [ratificado por el ojo de Antonio]:
+        negrita 17,4→14,63 · región con dato 10,35→14,63 ·
+        hover más marcado · focos al azul de casa · los
+        secundarios del hover a slate-600. ACTA DEL FEED EN
+        OSCURO [la resolución del claro, calcada]: el relleno
+        contra la tarjeta oscura 27/53 [búhos a 1,01; ni el
+        ribete blanco 25% llega: 2,27] — el route_color NO se
+        toca [chip.ts]; el número del chip se lee igual en los
+        dos temas [va sobre su propio fondo]. CIERRE con la ley
+        de la nº55: las DIEZ e2e contando el directorio SOBRE
+        a38cbaf [pid verificado por cuatro caminos, bundle
+        versionado main-2AOZW6WC.js, cada suite con su código
+        de salida]: 10/10 — pintura 336 OK [P25 84; el «P19
+        15 vs 18» disuelto: el contador y la P19-bis, diff
+        vacío]. Unidad app 594/594 · motor 656/656 · tipos
+        limpios. LA TESELA SIGUE CLARA bajo el oscuro: estado
+        intermedio DECLARADO hasta la parte 2. Presupuesto:
+        initial 541,85 [+1,07 en la parte; la raya de 520
+        REBASADA sigue declarada] · resultado.css 5,59. Los dos
+        temas RATIFICADOS por el ojo de Antonio (15/09).
+        CABOS: el Buscador en oscuro [al puente] · los iconos
+        de capa en oscuro [a la parte 2: son del mapa; #0d47a1
+        a 1,93 sobre tarjeta oscura, hoy decorativos
+        aria-hidden] · el peso de letra del §3 [a la parte 3] ·
+        ⭐ NUEVO DE ANTONIO (15/09): LA IDENTIDAD DE ICONOS —
+        censar los 15 SVG + iconos.ts en un SISTEMA escrito
+        [familia única, pesos, tamaños, el mapa acción→icono,
+        decorativo/informativo] como §39 del DISEÑO con su
+        jueza; va JUNTO AL LOGO en el encargo de identidad tras
+        la parte 3.
 - [ ] **5 · LA VERIFICACIÓN del 15** — AA medido (contraste, targets
       44px, reflow 320px, zoom 200%, teclado), los dos temas por el
       ojo en los 3 tamaños, y el caso de siempre en producción.
