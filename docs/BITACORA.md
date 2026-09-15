@@ -14,6 +14,31 @@
 
 ---
 
+## [2026-09-15] 🔴 ABIERTA — cambiar de tema vuelve a encuadrar el mapa, y la P26 lo daba en verde «en caliente»
+
+**Categoría:** verde declarado que no era
+**Síntoma:** con una ruta pintada, se arrastra el mapa con el ratón y se cambia de
+tema tres veces por `data-theme`. La vista vuelve al encuadre de la ruta y se
+pierde lo que la persona movió. Jueza nueva del remate, motor pid 22888 en
+`127.0.0.1:4300`, `main-HAVVQ2G2.js`:
+`✗✗  P26 · pc · andando · ⭐ y la vista que la persona movió sigue donde la dejó: cambiar de tema no vuelve a encuadrar  ·  antes matrix(1, 0, 0, 1, -174, -104) · z14 → después matrix(1, 0, 0, 1, 0, 0) · z14`
+Igual en 1920 (`-167, -100` → `0, 0`) y en 390 (`-170, -102` → `0, 0`). En la misma
+pasada, móvil · andando midió «halo pintado 0 px» en sus pins: la captura cayó
+en mitad del re-encuadre.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la P26 «en caliente» del cierre
+de la parte 2 (`7763ae7`, motor pid 21200, `main-W3XI4ADO.js`), que miraba la capa
+y la recarga y no la vista:
+`OK  P26 · pc · andando · en caliente · ⭐ light · la tesela es la del tema: la de OpenStreetMap de siempre  ·  20 teselas · OSM 20 · dark_all 0 · con key 0`
+`OK  P26 · pc · andando · ⭐ tres cambios de tema y la página NO se ha recargado  ·  marca vivo`
+Y `mapa.spec.ts` «⭐ 5 · con el trazado puesto, cambiar de tema vuelve a vestir la
+ruta y la zona», en verde (61 de 61).
+**Cómo se cazó:** instrumento — un «halo pintado 0 px» en la P26 del remate, que llevó a mirar qué movía el mapa al cambiar de tema.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/src/app/mapa.ts` (`pintarTrazado`, el `fitBounds` del final, y el `effect` que lee `this.tema.oscuro()`) · `app/e2e/pintura.mjs` (P26, bloque «en caliente»).
+
 ## [2026-09-15] 🔴 ABIERTA — el borde de la ZBE en CLARO lee a 1,46:1 sobre lo pintado, y la prueba de unidad lo da por 3:1
 
 **Categoría:** verde declarado que no era
