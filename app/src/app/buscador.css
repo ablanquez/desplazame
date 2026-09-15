@@ -77,9 +77,12 @@ legend {
   flex: 1 1 100%;
 }
 
+/* ⚠️ La frontera es `--borde-de-campo` desde el puente (15/09) [WCAG 1.4.11]:
+   con `--border` leía a 1,23:1 en claro y 1,32 en oscuro. Ese gris separa
+   tarjetas; no dice dónde se elige. */
 .tipo {
   padding: 0.4rem 0.75rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--borde-de-campo);
   border-radius: 0.5rem;
   background-color: var(--card);
   color: var(--foreground);
@@ -112,10 +115,13 @@ legend {
     gap: 0.4rem;
   }
 
+  /* La lista abierta, con la frontera de campo y la letra de la casa: sin
+     `color`, la de sus opciones la ponía el navegador (#000 y #fff). */
   .tipo::picker(select) {
-    border: 1px solid var(--border);
+    border: 1px solid var(--borde-de-campo);
     border-radius: 0.5rem;
     background: var(--card);
+    color: var(--foreground);
     padding: 0.2rem;
   }
 
@@ -161,35 +167,16 @@ legend {
    «Nº» seguía entrecortado después de ensancharlo. */
 
 
-/* Las cajas heredan del primitivo `.caja` de la hoja global —44 de alto, radio
-   medio, fondo de tarjeta— y aquí solo se les dice que llenen su hueco. */
-.campo input {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 44px;
-  padding: 0 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  background-color: var(--card);
-  color: var(--foreground);
-  font: inherit;
-  font-size: 0.875rem;
-}
-
-.campo input:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
-
-/* ⚠️ El Nº apagado NO se mide por contraste: [WCAG 1.4.3] exime literalmente
-   «text or images of text that are part of an inactive user interface
-   component». Se apaga, el cursor lo dice, y no se le sube la tinta para
-   aprobar una medición que la norma no pide. */
-.campo input:disabled {
-  background-color: var(--muted);
-  color: var(--muted-foreground);
-  cursor: not-allowed;
-}
+/* ⛔ AQUÍ HABÍA TRES REGLAS DE `.campo input` —44 de alto, radio medio, fondo de
+   tarjeta, `var(--border)`, el anillo del foco y el Nº apagado— Y NO PINTABAN
+   NADA (el puente, 15/09; bitácora del 15/09). En la plantilla de este
+   componente ningún `.campo` contiene un `input`: los de calle y portal viven en
+   `app-autocompletar-via` y `app-selector-portal`, y esta hoja, encapsulada, no
+   los alcanza. Mientras tanto la jueza del color a pelo barría esta hoja, la
+   daba por limpia, y los campos se pintaban con el #999 de sus propias hojas.
+   Sus colores viven ahora en esas hojas, con tokens. El TAMAÑO de la maqueta
+   —44 px, radio 0,5 rem, letra 0,875 rem— nunca llegó a los campos y no llega
+   tampoco hoy: cambiar la caja no es del puente, y queda dicho. */
 
 /* El alto y el cuerpo de letra del desplegable, con el resto de su vestido
    arriba: es el `select` NATIVO —el de iconos dentro de las opciones es
@@ -203,6 +190,19 @@ legend {
 .tipo:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+/* ⭐ LA MATRÍCULA ES UN CAMPO NATIVO, Y SOLO SE LE TOCA EL TEXTO DE AYUDA (el
+   puente, 15/09). No tiene más CSS: su fondo, su letra y su borde los pinta el
+   navegador por `color-scheme`, y la P27 los mide en los dos temas (11,20 y
+   21:1; frontera 4,52 y 4,54). Lo que no llegaba era «0000XXX» en oscuro: el
+   gris de Chrome sobre su campo oscuro, por debajo de 3,04:1 [WCAG 1.4.3]. Se le
+   da el gris secundario de la casa y nada más: vestir la caja cambiaría su borde
+   y movería la fila. ⚠️ Su fondo no es un token —es el campo nativo—, así que
+   este par no está en el censo: lo mide la P27 sobre el píxel. */
+.matricula__campo::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
 }
 
 /* ⭐ «MI UBICACIÓN», Y SOLO DONDE SIRVE (10/09, tanda 4).

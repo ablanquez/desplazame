@@ -4,8 +4,14 @@
 
 /* El ALTO no está aquí: lo pone el parámetro `alto`, porque es lo único que
    distingue el mapa pequeño del formulario del mapa grande del visor. */
+/* ⚠️ El filete, con el `--border` de la casa (el puente, 15/09). Era #999 a pelo:
+   en oscuro, una raya clara alrededor del Dark Matter. POR REGLA y sin par de
+   3:1: el mapa no es un campo, lo identifica su propia imagen y no su borde
+   [WCAG 1.4.11, Understanding]; el filete solo separa, como el de las tarjetas y
+   los bloques que tiene al lado, que ya usan este token. En claro pasa de #999 a
+   #e2e8f0: un filete más suave, el de las tarjetas. */
 .lienzo {
-  border: 1px solid #999;
+  border: 1px solid var(--border);
   border-radius: 4px;
   box-sizing: border-box;
 }

@@ -12,26 +12,45 @@
   gap: 0.25rem;
 }
 
+/* ⭐ LOS COLORES DEL CAMPO SON DE ESTA HOJA, Y CON TOKENS (el puente, 15/09).
+   Llevaba `#999` a pelo, y el fondo y la letra los ponía el navegador. En claro,
+   en producción, la frontera leía a 2,85:1 [WCAG 1.4.11]; en oscuro el campo era
+   el gris nativo. `buscador.css` tenía una regla `.campo input` con los tokens
+   que NO llegaba aquí: el CSS de un componente no alcanza al `input` de otro.
+   Bitácora del 15/09. Cada token tiene su par en el censo de `identidad.ts`. */
 .campo input {
   padding: 0.4rem;
-  border: 1px solid #999;
+  border: 1px solid var(--borde-de-campo);
   border-radius: 3px;
+  background-color: var(--card);
+  color: var(--foreground);
   font: inherit;
   width: 100%;
   box-sizing: border-box;
 }
 
+/* [WCAG 2.4.7] El anillo de la casa, el mismo de los focos del resultado. Hasta
+   hoy era el del navegador, que no sabe de tokens. */
+.campo input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
 /* El borrador: hay texto escrito pero no hay vía elegida, así que el campo no
-   vale todavía. El ámbar no es una elección nueva: es el mismo que ya usa el
-   aviso de datos de prueba (#b45309 / #fff4e5 / #7c3d00). Rojo diría «error»,
-   y esto no es un error: es algo a medio hacer. */
-.campo__entrada--borrador {
-  border-color: #b45309;
-  background: #fff4e5;
+   vale todavía. El ámbar no es una elección nueva: es el de la casa, con sus
+   tokens (el borde, la superficie y la tinta). Rojo diría «error», y esto no es
+   un error: es algo a medio hacer. */
+/* ⚠️ `.campo input.` DELANTE, POR ESPECIFICIDAD (el puente, 15/09). Escrito
+   `.campo__entrada--borrador` a secas pesaba (0,1,0) y `.campo input` (0,1,1)
+   le ganaba el borde: el ámbar del borrador NUNCA se pintó —la sonda midió el
+   #999 en su sitio—, y con el fondo de tarjeta habría perdido también el suyo. */
+.campo input.campo__entrada--borrador {
+  border-color: var(--warning-border);
+  background: var(--warning);
 }
 
 .campo__borrador {
-  color: #7c3d00;
+  color: var(--warning-dark);
   font-size: 0.85rem;
 }
 
@@ -46,8 +65,11 @@
   list-style: none;
   max-height: 15rem;
   overflow-y: auto;
-  background: #fff;
-  border: 1px solid #999;
+  /* La lista flota sobre la tarjeta: su fondo y su letra, y la frontera de
+     campo, que en oscuro es lo único que la separa de lo que tiene debajo. */
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--borde-de-campo);
   border-radius: 3px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
@@ -69,28 +91,32 @@
   flex: 1;
 }
 
+/* Invertida: la tarjeta sobre `foreground`. Era #fff sobre #1a1a1a a pelo, y en
+   oscuro ese casi negro no se distinguía de la lista. */
 .sugerencia--activa {
-  background: #1a1a1a;
-  color: #fff;
+  background: var(--foreground);
+  color: var(--card);
 }
 
 /* Cuántos portales tiene, discreto: informa sin competir con el nombre. */
 .sugerencia__portales {
-  color: #666;
+  color: var(--muted-foreground);
   font-size: 0.85rem;
   flex-shrink: 0;
 }
 
+/* Sobre la activa hereda su letra: el gris secundario no tiene par sobre
+   `foreground`, y el tamaño ya lo hace discreto. */
 .sugerencia--activa .sugerencia__portales {
-  color: #ddd;
+  color: inherit;
 }
 
 .sugerencias__aviso {
   padding: 0.35rem 0.5rem;
-  color: #555;
+  color: var(--leyenda);
 }
 
 .sugerencias__aviso--mal {
-  color: #7c3d00;
-  background: #fff4e5;
+  color: var(--warning-dark);
+  background: var(--warning);
 }

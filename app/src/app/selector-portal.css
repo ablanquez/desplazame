@@ -27,31 +27,62 @@
   gap: 0.25rem;
 }
 
+/* ⭐ LOS COLORES DEL CAMPO SON DE ESTA HOJA, Y CON TOKENS (el puente, 15/09).
+   Llevaba `#999` a pelo, y el fondo y la letra los ponía el navegador. En claro,
+   en producción, la frontera leía a 2,85:1 [WCAG 1.4.11]; en oscuro el campo era
+   el gris nativo. `buscador.css` tenía una regla `.campo input` con los tokens
+   que NO llegaba aquí: el CSS de un componente no alcanza al `input` de otro.
+   Bitácora del 15/09. Cada token tiene su par en el censo de `identidad.ts`. */
 .campo input {
   padding: 0.4rem;
-  border: 1px solid #999;
+  border: 1px solid var(--borde-de-campo);
   border-radius: 3px;
+  background-color: var(--card);
+  color: var(--foreground);
   font: inherit;
   width: 100%;
   box-sizing: border-box;
 }
 
+/* [WCAG 2.4.7] El anillo de la casa, el mismo de los focos del resultado. Hasta
+   hoy era el del navegador, que no sabe de tokens. */
+.campo input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ⭐ EL TEXTO DE AYUDA —«Elige…»—, CON EL GRIS QUE TIENE PAR (el puente, 15/09).
+   Lo pintaba el navegador: sobre el fondo de tarjeta oscuro leía a 3,62:1
+   (#757575, medido en la P27) [WCAG 1.4.3]. `--muted-foreground` es el texto
+   secundario de la casa sobre una tarjeta: 4,76 en claro y 8,40 en oscuro.
+   `opacity: 1` porque hay navegadores que le ponen media opacidad encima. */
+.campo input::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
 /* Deshabilitado mientras no hay calle: se ve apagado, y el placeholder dice
-   por qué. No es un campo roto, es un campo que todavía no toca. */
+   por qué. No es un campo roto, es un campo que todavía no toca.
+   ⚠️ Era #f2f2f2 a pelo: un bloque claro dentro del oscuro. Su letra está exenta
+      de contraste [WCAG 1.4.3, componente inactivo], pero el par existe igual. */
 .campo input:disabled {
-  background: #f2f2f2;
-  color: #777;
+  background: var(--muted);
+  color: var(--muted-foreground);
   cursor: not-allowed;
 }
 
 /* El mismo ámbar del resto de la pantalla. Ver autocompletar-via.css. */
-.campo__entrada--borrador {
-  border-color: #b45309;
-  background: #fff4e5;
+/* ⚠️ `.campo input.` DELANTE, POR ESPECIFICIDAD (el puente, 15/09). Escrito
+   `.campo__entrada--borrador` a secas pesaba (0,1,0) y `.campo input` (0,1,1)
+   le ganaba el borde: el ámbar del borrador NUNCA se pintó —la sonda midió el
+   #999 en su sitio—, y con el fondo de tarjeta habría perdido también el suyo. */
+.campo input.campo__entrada--borrador {
+  border-color: var(--warning-border);
+  background: var(--warning);
 }
 
 .campo__borrador {
-  color: #7c3d00;
+  color: var(--warning-dark);
   font-size: 0.85rem;
 }
 
@@ -67,8 +98,11 @@
   list-style: none;
   max-height: 15rem;
   overflow-y: auto;
-  background: #fff;
-  border: 1px solid #999;
+  /* Como la lista de calles: tarjeta, su letra y la frontera de campo. Con el
+     oscuro puesto era #fff con la letra clara heredada — 1,14:1. */
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--borde-de-campo);
   border-radius: 3px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
@@ -78,18 +112,19 @@
   cursor: pointer;
 }
 
+/* Invertida, como la sugerencia activa. */
 .portal--activo {
-  background: #1a1a1a;
-  color: #fff;
+  background: var(--foreground);
+  color: var(--card);
 }
 
 .portales__aviso {
   padding: 0.35rem 0.5rem;
-  color: #555;
+  color: var(--leyenda);
   font-size: 0.85rem;
 }
 
 .portales__aviso--mal {
-  color: #7c3d00;
-  background: #fff4e5;
+  color: var(--warning-dark);
+  background: var(--warning);
 }

@@ -178,6 +178,11 @@
      la tanda 6). Cero pasos en oscuro: el gris de la casa ya da 8,40 contra la
      tarjeta y 6,37 contra el realce. Ver el claro. */
   --oscuro-secundario-del-paso: #b8b8b8;
+  /* ⭐ LA FRONTERA DE LOS CAMPOS (el puente, 15/09) [WCAG 1.4.11]. POR REGLA:
+     el primer gris que da 3:1 contra la tarjeta oscura (3,04; #686868 se queda
+     en 2,99). Los campos llevaban el `border` de la casa, 1,32:1: sirve para
+     separar, no para decir dónde se escribe. Ver el claro. */
+  --oscuro-borde-de-campo: #696969;
   --oscuro-mode-andando-soft: #14532d;
   --oscuro-mode-andando-strong: #4ade80;
   --oscuro-mode-andando-solid: #22c55e;
@@ -254,6 +259,13 @@
      tarjeta 7,58). Token propio y no `muted-foreground`: ese gris lo usan 25
      reglas que no suspenden, y moverlo entero las oscurecia todas. */
   --claro-secundario-del-paso: #475569;
+  /* ⭐ LA FRONTERA DE LOS CAMPOS (el puente) — slate-400 -> 500 [WCAG 1.4.11]:
+     en producción los campos de calle y portal llevaban #999 a pelo (2,85:1)
+     y el desplegable del tipo el `border` (1,23). El 400 se queda en 2,56; el
+     500 es el paso mínimo de la familia que llega (4,76 sobre la tarjeta).
+     Token propio y no `muted-foreground`, aunque hoy valga lo mismo: uno es
+     letra y otro es borde, y moverlo por uno movería el otro. Bitácora 15/09. */
+  --claro-borde-de-campo: #64748b;
 
   /* Andando (verde) */
   --claro-mode-andando-soft: #dcfce7;
@@ -317,6 +329,7 @@
   --leyenda: var(--claro-leyenda);
   --superficie-realce: var(--claro-superficie-realce);
   --secundario-del-paso: var(--claro-secundario-del-paso);
+  --borde-de-campo: var(--claro-borde-de-campo);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);
@@ -373,6 +386,7 @@
     --leyenda: var(--oscuro-leyenda);
     --superficie-realce: var(--oscuro-superficie-realce);
     --secundario-del-paso: var(--oscuro-secundario-del-paso);
+    --borde-de-campo: var(--oscuro-borde-de-campo);
     --mode-andando-soft: var(--oscuro-mode-andando-soft);
     --mode-andando-strong: var(--oscuro-mode-andando-strong);
     --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -425,6 +439,7 @@
   --leyenda: var(--oscuro-leyenda);
   --superficie-realce: var(--oscuro-superficie-realce);
   --secundario-del-paso: var(--oscuro-secundario-del-paso);
+  --borde-de-campo: var(--oscuro-borde-de-campo);
   --mode-andando-soft: var(--oscuro-mode-andando-soft);
   --mode-andando-strong: var(--oscuro-mode-andando-strong);
   --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -492,6 +507,7 @@
   --leyenda: var(--claro-leyenda);
   --superficie-realce: var(--claro-superficie-realce);
   --secundario-del-paso: var(--claro-secundario-del-paso);
+  --borde-de-campo: var(--claro-borde-de-campo);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);

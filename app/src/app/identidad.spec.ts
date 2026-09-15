@@ -89,6 +89,10 @@ const CLARO: Readonly<Record<string, string>> = {
   // ⭐ REMATE (15/09): la distancia y los datos del paso, slate-500 → 600. El
   //    500 daba 3,86:1 sobre el realce con 14 px (texto normal, vara 4,5).
   'secundario-del-paso': '#475569',
+  // ⭐ EL PUENTE (15/09): la frontera de los campos del Buscador [WCAG 1.4.11].
+  //    Los campos llevaban #999 (2,85:1) y el desplegable `border` (1,23). El
+  //    slate-400 se queda en 2,56; el 500 es el paso mínimo que llega (4,76).
+  'borde-de-campo': '#64748b',
   'mode-andando-soft': '#dcfce7',
   'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d',
@@ -151,6 +155,10 @@ const OSCURO: Readonly<Record<string, string>> = {
   'superficie-realce': '#333333',
   // Cero pasos: #b8b8b8 ya da 8,40 contra la tarjeta y 6,37 contra el realce.
   'secundario-del-paso': '#b8b8b8',
+  // ⭐ POR REGLA: el primer gris que da 3:1 contra la tarjeta oscura (3,04;
+  //    #686868 se queda en 2,99). En oscuro los campos llevaban el `border` de
+  //    la casa, 1,32:1.
+  'borde-de-campo': '#696969',
   'mode-andando-soft': '#14532d',
   'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e',
@@ -225,15 +233,16 @@ const ELEGIDO_CLARO = declaraciones(bloque(CSS, "[data-theme='light'] {"));
 const TODOS = [...SEMANTICOS, ...TOKENS_DE_MODO];
 
 describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
-  it('están los 45 tokens: 21 semánticos y 6 modos × 4 variantes', () => {
+  it('están los 46 tokens: 22 semánticos y 6 modos × 4 variantes', () => {
     // ⚠️ Eran 16 y 40 hasta el 11/09. Los dos nuevos son la banda de las
     //    cabeceras, y son los PRIMEROS que no vienen calcados de la maqueta.
     // ⚠️ Y 18 y 42 hasta el 15/09 (tanda 6): entran la leyenda —el #555 a pelo—
     //    y la superficie del realce, que tomaba prestada la banda.
     // ⚠️ Y 21 y 45 desde el remate: el gris secundario del paso.
-    expect(SEMANTICOS.length).toBe(21);
+    // ⚠️ Y 22 y 46 desde el puente: la frontera de los campos.
+    expect(SEMANTICOS.length).toBe(22);
     expect(TOKENS_DE_MODO.length).toBe(24);
-    expect(TODOS.length).toBe(45);
+    expect(TODOS.length).toBe(46);
   });
 
   for (const token of [...SEMANTICOS, ...TOKENS_DE_MODO]) {
@@ -332,7 +341,7 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     }),
   );
 
-  it('se miden los 29 pares en los dos temas: 58 medidas', () => {
+  it('se miden los 31 pares en los dos temas: 62 medidas', () => {
     // ⚠️ Eran 18 y 36. Los dos siguientes fueron los DOS estados de la banda:
     //    medir solo el reposo dejaría el hover sin vigilar, que es donde el
     //    gris se aclara y el texto pierde contraste.
@@ -348,8 +357,14 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     //    y la marca «desviada» sobre la tarjeta y sobre el realce.
     // ⚠️ Y el 29 (remate): el gris del paso sobre la tarjeta; el de «con el
     //    ratón» deja de ser `muted-foreground` y pasa a ser el suyo.
-    expect(PARES.length).toBe(29);
-    expect(medidos.length).toBe(58);
+    // ⚠️ Y el 30 y el 31 (el puente, 15/09): lo escrito en un campo en borrador
+    //    va en `foreground` sobre el ámbar, y la opción activa de un desplegable
+    //    se pinta invertida —la tarjeta sobre `foreground`—. Las dos vivían a
+    //    pelo en las hojas de los campos, que la jueza (vi) no barría.
+    expect(PARES.length).toBe(31);
+    expect(medidos.length).toBe(62);
+    expect(PARES.some((p) => p.texto === 'foreground' && p.fondo === 'warning')).toBe(true);
+    expect(PARES.some((p) => p.texto === 'card' && p.fondo === 'foreground')).toBe(true);
     expect(PARES.some((p) => p.texto === 'secundario-del-paso' && p.fondo === 'superficie-realce')).toBe(true);
     expect(PARES.some((p) => p.texto === 'leyenda' && p.fondo === 'card')).toBe(true);
     expect(PARES.some((p) => p.texto === 'warning-dark' && p.fondo === 'warning')).toBe(true);
@@ -399,7 +414,11 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
    * reposo Y sobre la banda del realce. Un borde no es texto y su vara es 3:1,
    * así que va en su propia lista y no mezclado con los pares de 4,5.
    */
-  it('⭐ los 8 límites, en los dos temas, a 3:1 o más', () => {
+  it('⭐ los 11 límites, en los dos temas, a 3:1 o más', () => {
+    // ⚠️ Y del 9 al 11 (el puente, 15/09): la frontera de los campos contra la
+    //    tarjeta —2,85 y 1,23 en claro, en producción; bitácora del 15/09—, el
+    //    anillo del foco de los campos, que no existía, y la opción activa de un
+    //    desplegable contra su lista.
     // ⚠️ Eran 4 (fase C). Desde la tanda 6 (15/09): los dos «con el ratón» se
     //    miden sobre el realce, que es donde se pintan, y no sobre la banda de la
     //    que tomaba prestado el color; y entra el BORDE ÁMBAR contra sus tres
@@ -415,6 +434,9 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
       'warning-border/warning',
       'warning-border/superficie-realce',
       'ring/superficie-realce',
+      'borde-de-campo/card',
+      'ring/card',
+      'foreground/card',
     ]);
     for (const tema of ['light', 'dark'] as const) {
       for (const l of LIMITES) {
@@ -542,13 +564,13 @@ describe('LA PÁGINA de identidad monta con todo lo que hay que medir', () => {
     await TestBed.configureTestingModule({ imports: [Identidad] }).compileComponents();
   });
 
-  it('trae una sonda por token y por tema: 90', () => {
+  it('trae una sonda por token y por tema: 92', () => {
     const f = TestBed.createComponent(Identidad);
     f.detectChanges();
     const raiz = f.nativeElement as HTMLElement;
-    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(90);
-    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(45);
-    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(45);
+    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(92);
+    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(46);
+    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(46);
   });
 
   it('pinta los seis modos con sus cuatro variantes', () => {
@@ -760,20 +782,54 @@ describe('⭐ (v) LA BASE — el body vestido, y la letra que llega a tiempo', (
  * colores escritos a pelo, que no cambian con el tema: se prefieren atributos
  * de tema. Aquí, `var(--…)`.
  *
- * ⚠️ BARRE, no enumera reglas: se leen las TRES hojas que pinta el resultado y
- *    toda declaración con un hex, `rgb()` o `hsl()` que no sea la definición de
- *    un token tiene que estar en la lista de abajo CON SU PORQUÉ. Una nueva
- *    entra en rojo y obliga a decidir: tokenizarla o escribir por qué se queda.
+ * ⚠️ BARRE, no enumera reglas: toda declaración con un color que no sea la
+ *    definición de un token tiene que estar en la lista de abajo CON SU PORQUÉ.
+ *    Una nueva entra en rojo y obliga a decidir: tokenizarla o escribir por qué
+ *    se queda.
+ *
+ * ⚠️ Y DESDE EL PUENTE (15/09) BARRE TODAS LAS HOJAS DE LA APP, no una lista.
+ *    Leía tres —`styles.css`, `buscador.css` y `resultado.css`— y daba verde con
+ *    el formulario del Buscador lleno de `#999` y `#fff`: vivían en las hojas de
+ *    `app-autocompletar-via` y `app-selector-portal`, y la regla `.campo input`
+ *    que SÍ barría, en `buscador.css`, no alcanzaba a ningún campo por la
+ *    encapsulación. Bitácora del 15/09. Una lista de hojas solo cubre las que
+ *    había el día que se escribió: la lección de la (iii), que ya barría.
+ *
+ * ⚠️ Y reconoce los colores CON NOMBRE (`white`, `gray`…) y las funciones de
+ *    color modernas: la versión anterior solo veía hex, `rgb()` y `hsl()`.
  */
-describe('⭐ (vi) NI UN COLOR A PELO en las hojas del resultado, salvo los que dicen por qué', () => {
-  const HOJAS = ['app/src/styles.css', 'app/src/app/buscador.css', 'app/src/app/resultado.css'];
-  const COLOR = /#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(/i;
+describe('⭐ (vi) NI UN COLOR A PELO en ninguna hoja de la app, salvo los que dicen por qué', () => {
+  const HOJAS: readonly string[] = ((): string[] => {
+    const salida: string[] = [];
+    const bajar = (dir: string): void => {
+      for (const e of readdirSync(RAIZ + dir, { withFileTypes: true }) as {
+        name: string;
+        isDirectory(): boolean;
+      }[]) {
+        const rel = dir + '/' + e.name;
+        if (e.isDirectory()) bajar(rel);
+        else if (e.name.endsWith('.css')) salida.push(rel);
+      }
+    };
+    bajar('app/src');
+    return salida.sort();
+  })();
+  const NOMBRES =
+    'aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray grey green greenyellow honeydew hotpink indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peru pink plum powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen canvas canvastext field fieldtext buttonface buttontext highlight highlighttext graytext';
+  const COLOR = new RegExp(
+    '#[0-9a-f]{3,8}\\b|\\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\\(|(?<![-\\w])(?:' +
+      NOMBRES.split(' ').join('|') +
+      ')(?![-\\w])',
+    'i',
+  );
+  /** Propiedades donde una palabra no es un color: nombres de letra y de animación. */
+  const NO_SON_COLOR = new Set(['font-family', 'animation', 'animation-name', 'grid-template-areas', 'content', 'transition', 'will-change']);
 
   /** `hoja · propiedad: valor`, repetidos tantas veces como aparezcan. */
   const aPelo = (): string[] =>
     HOJAS.flatMap((hoja) =>
       [...sinComentarios(leer(hoja)).matchAll(/(?<=^|[;{])\s*([-\w]+)\s*:\s*([^;{}]+);/g)]
-        .filter((m) => !m[1]!.startsWith('--') && COLOR.test(m[2]!))
+        .filter((m) => !m[1]!.startsWith('--') && !NO_SON_COLOR.has(m[1]!) && COLOR.test(m[2]!))
         // ⚠️ El `(?<=…)` mira atrás SIN comerse el `;`. La primera versión lo
         //    consumía y se saltaba una declaración de cada dos: no veía el #1a1a1a
         //    del `strong` ni el #334155 de la región. Cazado depurando su rojo.
@@ -801,12 +857,66 @@ describe('⭐ (vi) NI UN COLOR A PELO en las hojas del resultado, salvo los que 
     // exigible [WCAG 1.4.11]; en oscuro el negro al 25 % no pinta nada, y
     // cambiarlo es cambiar la insignia, que es decisión de Antonio [chip.ts].
     'styles.css · border: 1px solid rgb(0 0 0 / 25%)',
+    // La sombra de las dos listas que flotan (el puente, 15/09): adorno de
+    // elevación, como las de arriba. En oscuro lo que separa la lista de lo que
+    // tiene debajo es su frontera, `--borde-de-campo`, medida a 3:1.
+    'autocompletar-via.css · box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15)',
+    'selector-portal.css · box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15)',
+    // ⚠️ `/panel`, FUERA DEL ALCANCE DEL PUENTE Y A LA LISTA (15/09). Es el panel
+    //    de frescura de los datos, una página de servicio aparte del producto:
+    //    sus 21 colores a pelo se declaran aquí para que la jueza barra sin
+    //    huecos, NO porque estén bien. Con el oscuro puesto su letra oscura
+    //    quedaría sobre el fondo oscuro del `body`: pendiente de decisión antes de
+    //    que la parte 3 haga el oscuro público. Cada uno sale de aquí cuando se
+    //    tokenice.
+    'panel.css · color: #333',
+    'panel.css · color: #666',
+    'panel.css · border: 1px solid #ddd',
+    'panel.css · background: #f3f3f3',
+    'panel.css · color: #666',
+    'panel.css · color: #555',
+    'panel.css · color: #767676',
+    'panel.css · background: #fde7e7',
+    'panel.css · border-color: #c0392b',
+    'panel.css · color: #8c1c12',
+    'panel.css · background: #fdf3e0',
+    'panel.css · border-color: #c07a00',
+    'panel.css · color: #7a4d00',
+    'panel.css · background: #e8f5e9',
+    'panel.css · border-color: #2e7d32',
+    'panel.css · color: #1b5e20',
+    'panel.css · background: #f0f0f0',
+    'panel.css · border-color: #999',
+    'panel.css · color: #555',
+    'panel.css · color: #555',
+    'panel.css · color: #8c1c12',
   ];
 
-  it('la jueza barre de verdad: las tres hojas tienen declaraciones que mirar', () => {
-    for (const hoja of HOJAS) {
+  it('la jueza barre de verdad: TODAS las hojas, y las que pintan tienen declaraciones que mirar', () => {
+    // Las diez de hoy, contadas: sin esto, un barrido que no bajara a `app/`
+    // daría verde por no mirar nada.
+    expect(HOJAS.length).toBeGreaterThanOrEqual(10);
+    for (const hoja of [
+      'app/src/styles.css',
+      'app/src/app/buscador.css',
+      'app/src/app/resultado.css',
+      'app/src/app/autocompletar-via.css',
+      'app/src/app/selector-portal.css',
+      'app/src/app/mapa.css',
+      'app/src/app/panel.css',
+    ]) {
+      expect(HOJAS, hoja).toContain(hoja);
+    }
+    for (const hoja of ['app/src/styles.css', 'app/src/app/buscador.css', 'app/src/app/resultado.css']) {
       expect(sinComentarios(leer(hoja)).match(/:\s*var\(--/g)?.length ?? 0, hoja).toBeGreaterThan(10);
     }
+  });
+
+  it('y reconoce un color con nombre: su contraprueba vive en la propia jueza', () => {
+    expect(COLOR.test('1px solid white')).toBe(true);
+    expect(COLOR.test('var(--card)')).toBe(false);
+    expect(COLOR.test('color-mix(in srgb, var(--card) 90%, transparent)')).toBe(false);
+    expect(COLOR.test('not-allowed')).toBe(false);
   });
 
   it('⭐ los colores a pelo son EXACTAMENTE los que dicen por qué', () => {
@@ -820,7 +930,8 @@ describe('⭐ (vi) NI UN COLOR A PELO en las hojas del resultado, salvo los que 
    */
   it('⭐ la banda solo la usa la cabecera del acordeón, y el realce solo el paso', () => {
     const usos = (token: string): string[] =>
-      [...HOJAS, 'app/src/app/identidad.css'].flatMap((hoja) =>
+      // `identidad.css` ya viene en el barrido: añadirla aparte la contaría dos veces.
+      HOJAS.flatMap((hoja) =>
         [...sinComentarios(leer(hoja)).matchAll(/([^{};]+)\{([^{}]*)\}/g)]
           // `includes` con el paréntesis de cierre, y no una RegExp montada con
           // plantilla: así `banda-cabecera` no casa con `banda-cabecera-hover`,
@@ -831,5 +942,101 @@ describe('⭐ (vi) NI UN COLOR A PELO en las hojas del resultado, salvo los que 
     expect(usos('banda-cabecera')).toEqual(['.bloque__cabecera']);
     expect(usos('banda-cabecera-hover')).toEqual(['.bloque__cabecera:hover']);
     expect(usos('superficie-realce').sort()).toEqual(['.paso:focus-visible', '.paso:hover']);
+  });
+});
+
+/**
+ * ⭐ (vii) LOS CAMPOS DEL BUSCADOR, CON LOS TOKENS QUE TIENEN PAR (el puente, 15/09).
+ *
+ * El formulario va a salir en oscuro con la parte 3, y sus campos no los pinta
+ * `buscador.css`: los de calle y portal viven en `app-autocompletar-via` y
+ * `app-selector-portal`, y con la encapsulación emulada una regla del padre no
+ * alcanza a un `input` del hijo. Medido en la sonda del diagnóstico: en claro,
+ * la frontera leía a 2,85:1 (`#999`) y la del desplegable a 1,23; en oscuro, la
+ * lista de portales era `#fff` con la letra clara heredada. Bitácora del 15/09.
+ *
+ * Aquí se fija QUÉ token lleva cada papel; que el token llegue a su vara lo
+ * fijan el censo de arriba (pares y límites) y la P27 sobre el píxel.
+ */
+describe('⭐ (vii) LOS CAMPOS DEL BUSCADOR se visten con los tokens que el censo mide', () => {
+  /** Las reglas de una hoja: selector normalizado → cuerpo. Varias si se repite. */
+  const reglas = (hoja: string): { sel: string; cuerpo: string }[] =>
+    [...sinComentarios(leer(hoja)).matchAll(/([^{};]+)\{([^{}]*)\}/g)].map((m) => ({
+      sel: m[1]!.replace(/\s+/g, ' ').trim(),
+      cuerpo: m[2]!,
+    }));
+  const cuerpoDe = (hoja: string, sel: string): string =>
+    reglas(hoja)
+      .filter((r) => r.sel === sel)
+      .map((r) => r.cuerpo)
+      .join('\n');
+
+  for (const [hoja, lista, activa] of [
+    ['app/src/app/autocompletar-via.css', '.sugerencias', '.sugerencia--activa'],
+    ['app/src/app/selector-portal.css', '.portales', '.portal--activo'],
+  ] as const) {
+    const nombre = hoja.split('/').pop();
+
+    it(`${nombre} · el campo: frontera de campo, fondo de tarjeta y letra de la casa`, () => {
+      const c = cuerpoDe(hoja, '.campo input');
+      expect(c).toMatch(/border:\s*1px solid var\(--borde-de-campo\)/);
+      expect(c).toMatch(/background-color:\s*var\(--card\)/);
+      expect(c).toMatch(/color:\s*var\(--foreground\)/);
+    });
+
+    it(`${nombre} · el foco del campo es el anillo de la casa [WCAG 2.4.7]`, () => {
+      expect(cuerpoDe(hoja, '.campo input:focus-visible')).toMatch(/outline:\s*2px solid var\(--ring\)/);
+    });
+
+    it(`${nombre} · la lista flota sobre la tarjeta, con su frontera y su letra`, () => {
+      const c = cuerpoDe(hoja, lista);
+      expect(c).toMatch(/background:\s*var\(--card\)/);
+      expect(c).toMatch(/border:\s*1px solid var\(--borde-de-campo\)/);
+      expect(c).toMatch(/color:\s*var\(--foreground\)/);
+    });
+
+    it(`${nombre} · la opción activa va invertida: la tarjeta sobre foreground`, () => {
+      const c = cuerpoDe(hoja, activa);
+      expect(c).toMatch(/background:\s*var\(--foreground\)/);
+      expect(c).toMatch(/color:\s*var\(--card\)/);
+    });
+
+    it(`${nombre} · el borrador es el ámbar de la casa, con sus tokens`, () => {
+      const c = cuerpoDe(hoja, '.campo input.campo__entrada--borrador');
+      expect(c).toMatch(/border-color:\s*var\(--warning-border\)/);
+      expect(c).toMatch(/background:\s*var\(--warning\)/);
+    });
+  }
+
+  it('selector-portal.css · el texto de ayuda del número va en el gris que tiene par', () => {
+    const c = cuerpoDe('app/src/app/selector-portal.css', '.campo input::placeholder');
+    expect(c).toMatch(/color:\s*var\(--muted-foreground\)/);
+    expect(c).toMatch(/opacity:\s*1/);
+  });
+
+  it('buscador.css · la matrícula, campo nativo, solo lleva el gris de su texto de ayuda', () => {
+    const c = cuerpoDe('app/src/app/buscador.css', '.matricula__campo::placeholder');
+    expect(c).toMatch(/color:\s*var\(--muted-foreground\)/);
+    expect(reglas('app/src/app/buscador.css').filter((r) => /matricula__campo/.test(r.sel)).map((r) => r.sel)).toEqual([
+      '.matricula__campo::placeholder',
+    ]);
+  });
+
+  it('buscador.css · el desplegable del tipo y su lista llevan la frontera de campo', () => {
+    expect(cuerpoDe('app/src/app/buscador.css', '.tipo')).toMatch(/border:\s*1px solid var\(--borde-de-campo\)/);
+    const picker = cuerpoDe('app/src/app/buscador.css', '.tipo::picker(select)');
+    expect(picker).toMatch(/border:\s*1px solid var\(--borde-de-campo\)/);
+    expect(picker).toMatch(/color:\s*var\(--foreground\)/);
+  });
+
+  /**
+   * ⚠️ Y buscador.css NO VUELVE A TENER UNA REGLA DE `input` QUE NO PINTA NADA.
+   *    Las tres de `.campo input` decían «44 px, `var(--border)`, `var(--card)`»
+   *    y ningún campo las recibía. Una regla que no se aplica es peor que ninguna:
+   *    parece que manda, y la jueza (vi) la daba por limpia.
+   */
+  it('⭐ buscador.css no tiene reglas de `.campo input`: los campos son de sus componentes', () => {
+    const muertas = reglas('app/src/app/buscador.css').filter((r) => /\.campo input/.test(r.sel));
+    expect(muertas.map((r) => r.sel)).toEqual([]);
   });
 });

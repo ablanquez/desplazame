@@ -80,6 +80,10 @@ export const SEMANTICOS: readonly Token[] = [
   // ⭐ REMATE (15/09): la distancia y los datos del paso. Con `muted-foreground`
   //    leían a 3,86:1 sobre el realce en claro, con 14 px —texto normal—.
   'secundario-del-paso',
+  // ⭐ EL PUENTE (15/09): la frontera de los campos del Buscador. Vivía a pelo
+  //    (#999) en las hojas de los campos, y el desplegable usaba `border`, que
+  //    es de separar y no llega a 3:1 en ningún tema.
+  'borde-de-campo',
 ];
 
 /** Los seis modos, con el nombre que usa el CSS. */
@@ -153,6 +157,12 @@ export const PARES: readonly Par[] = [
   { texto: 'warning-dark', fondo: 'warning', rotulo: 'Superficie ámbar' },
   { texto: 'warning-dark', fondo: 'card', rotulo: 'Marca «desviada»' },
   { texto: 'warning-dark', fondo: 'superficie-realce', rotulo: 'Marca «desviada» — con el ratón' },
+  // ⭐ EL PUENTE (15/09), los campos del Buscador. Lo escrito en un campo en
+  //    borrador va sobre el ámbar, y la opción activa de un desplegable va
+  //    invertida: era `#fff` sobre `#1a1a1a` a pelo, que en oscuro no se
+  //    distinguía de la lista.
+  { texto: 'foreground', fondo: 'warning', rotulo: 'Campo en borrador — lo escrito' },
+  { texto: 'card', fondo: 'foreground', rotulo: 'Opción activa de un desplegable' },
   ...MODOS.map((m) => ({
     texto: `mode-${m}-text`,
     fondo: `mode-${m}-solid`,
@@ -205,6 +215,14 @@ export const LIMITES: readonly Limite[] = [
   // El anillo del foco del paso, que se dibuja sobre el realce (tanda 6: era un
   // #1a1a1a a pelo, 1,04:1 sobre la tarjeta oscura).
   { borde: 'ring', fondo: 'superficie-realce', rotulo: 'Foco del paso' },
+  // ⭐ EL PUENTE (15/09). La frontera de los campos —la calle, el número, el
+  //    tipo y sus listas— contra la tarjeta en la que viven: en claro, en
+  //    producción, leía a 2,85 y 1,23 (bitácora del 15/09). El anillo del foco
+  //    de los campos, que hasta hoy era el del navegador. Y la opción activa de
+  //    un desplegable contra su lista: es lo que dice cuál se va a elegir.
+  { borde: 'borde-de-campo', fondo: 'card', rotulo: 'Frontera de los campos y sus listas' },
+  { borde: 'ring', fondo: 'card', rotulo: 'Foco de los campos' },
+  { borde: 'foreground', fondo: 'card', rotulo: 'Opción activa contra su lista' },
 ];
 
 /** Lo leído de un token en un tema. `hex` vacío = no se pudo medir. */

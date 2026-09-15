@@ -4086,6 +4086,370 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
   }
 }
 
+// ═══════════ P27 · EL BUSCADOR EN LOS DOS TEMAS: LOS CAMPOS, SUS LISTAS Y LO QUE PINTA EL NAVEGADOR ═══════════
+//
+// ⭐ [el puente, 15/09; bitácora del 15/09] el formulario va a salir en oscuro
+//    con el conmutador (parte 3), y hasta hoy nadie lo había mirado así. La sonda
+//    del diagnóstico midió, sobre main-YGCWZ7HM.js: en OSCURO, la lista de
+//    portales en #fff con la letra clara heredada (las opciones no se leen) y el
+//    número apagado como un bloque #f2f2f2; en CLARO, y en producción, la
+//    frontera de los campos a 2,85:1 (#999) y la del desplegable a 1,23.
+//
+// ⚠️ LA VARA DE LA P0, la misma de la P25: el tema por data-theme y leído del DOM
+//    con dos tokens computados. Sin tema puesto, esa sesión es ROJO y no mide más.
+//
+// ⚠️ LO QUE PINTA EL NAVEGADOR Y NO NOSOTROS [MDN · color-scheme]: las barras de
+//    desplazamiento, el campo de la matrícula —que no tiene CSS— y la lista del
+//    desplegable. Se verifican aquí, sobre el píxel, con lo que el arnés puede
+//    capturar:
+//    · el desplegable del tipo es `appearance: base-select` en este Chrome: su
+//      lista la pinta la página y SÍ sale en la captura. El desplegable clásico
+//      —el de un navegador sin base-select— lo dibuja el sistema operativo fuera
+//      de la página: NO CONSTA, este arnés no puede capturarlo.
+//    · el autofill: los tres campos de texto piden autocomplete=off y el perfil
+//      del arnés no guarda datos, así que su velo no llega a pintarse. NO CONSTA
+//      su color; se juzga que el atributo sigue puesto, que es lo que lo aparta.
+//
+// ⚠️ LOS BORDES QUE NO SON FRONTERA [WCAG 1.4.11, Understanding]: el `fieldset`
+//    agrupa y no es un componente; el ⇅ y la diana son botones que identifica su
+//    glifo, medido como texto. Su filete es el `--border` de la casa y no se le
+//    pide 3:1. A los CAMPOS y a sus listas sí, contra la tarjeta en la que viven.
+//
+// OJO: dentro de las plantillas de JS, ni una comilla invertida en los comentarios.
+const RED_DEL_FORMULARIO = `
+  const raiz = document.querySelector('.bloque--buscador');
+  const rgb = (s) => { const m = s && s.match(/[\\d.]+/g); if (!m) return null; const [r, g, b, a] = m.map(Number); return { r, g, b, a: a ?? 1 }; };
+  const lin = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const L = (c) => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+  const C = (a, b) => (Math.max(L(a), L(b)) + 0.05) / (Math.min(L(a), L(b)) + 0.05);
+  const fondoDe = (el) => { for (let e = el; e; e = e.parentElement) { const c = rgb(getComputedStyle(e).backgroundColor); if (c && c.a === 1) return c; } return null; };
+  const nombre = (el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.classList[0] ? '.' + el.classList[0] : '');
+  const CAMPOS = 'input:not([type=radio]):not(:disabled), select, .sugerencias, .portales';
+  const malos = []; let textos = 0; let fronteras = 0; let peor = Infinity;
+  for (const el of raiz.querySelectorAll('*')) {
+    const s = getComputedStyle(el); const b = el.getBoundingClientRect();
+    if (b.width === 0 || b.height === 0 || s.visibility === 'hidden' || el.closest('.chip-linea') || el.closest(':disabled')) continue;
+    const fondo = fondoDe(el);
+    if (!fondo) continue;
+    if ([...el.childNodes].some((n) => n.nodeType === 3 && n.data.trim())) {
+      textos++;
+      const r = C(rgb(s.color), fondo);
+      if (r < 4.5) malos.push(nombre(el) + ' texto ' + s.color + ' ' + r.toFixed(2) + ':1');
+    }
+    if (!el.matches(CAMPOS)) continue;
+    for (const lado of ['Top', 'Left']) {
+      if (parseFloat(s['border' + lado + 'Width']) < 1 || s['border' + lado + 'Style'] === 'none') continue;
+      const c = rgb(s['border' + lado + 'Color']);
+      if (!c || c.a < 1) continue;
+      fronteras++;
+      const r = C(c, fondoDe(el.parentElement) ?? fondo);
+      peor = Math.min(peor, r);
+      if (r < 3) malos.push(nombre(el) + ' frontera ' + lado + ' ' + s['border' + lado + 'Color'] + ' ' + r.toFixed(2) + ':1');
+    }
+  }
+  return { textos, fronteras, peor: peor === Infinity ? null : Number(peor.toFixed(2)), malos: [...new Set(malos)] };
+`;
+
+/**
+ * El contraste sobre el píxel, o null si el elemento no está o su caja cae fuera
+ * de la vista. En la P27 eso es un ROJO con su motivo, no una suite caída.
+ */
+const pixelDe = async (m, selector, opciones = {}) => {
+  try {
+    return await contrasteSiEsta(m, selector, opciones);
+  } catch {
+    return null;
+  }
+};
+
+/** Escribe en un campo como lo haría el teclado, sin elegir nada. */
+const escribirEn = (m, selector, indice, texto) =>
+  m.evaluar(`(() => {
+    const c = document.querySelectorAll(${JSON.stringify(selector)})[${indice}];
+    c.focus();
+    const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+    set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
+  })()`);
+
+const tecla = async (m, key, code, vk) => {
+  await m.cdp('Input.dispatchKeyEvent', { type: 'keyDown', key, code, windowsVirtualKeyCode: vk });
+  await m.cdp('Input.dispatchKeyEvent', { type: 'keyUp', key, code, windowsVirtualKeyCode: vk });
+};
+
+/** Una opción NO activa de la lista, con texto: su índice entre las de ese selector. */
+const opcionNoActiva = (m, opcion, activa) =>
+  m.evaluar(`[...document.querySelectorAll(${JSON.stringify(opcion)})].findIndex((o) => !o.matches(${JSON.stringify(activa)}) && o.textContent.trim())`);
+
+/**
+ * El CARRIL de una barra de desplazamiento, sobre el píxel. De los dos colores
+ * que más se repiten en su franja —el carril y el pulgar—, el carril es el que
+ * va hacia el fondo del tema: el más oscuro en oscuro, el más claro en claro.
+ * ⚠️ La primera versión tomaba la moda, y con poco desbordamiento el pulgar
+ *    ocupa más franja que el carril: medía el pulgar (#9f9f9f) y daba rojo.
+ */
+async function carrilDe(m, caja, oscuro) {
+  const png = await m.captura();
+  const cuenta = new Map();
+  for (let y = Math.round(caja.y); y < Math.round(caja.y + caja.h); y++) {
+    for (let x = Math.round(caja.x); x < Math.round(caja.x + caja.w); x++) {
+      const o = (y * png.ancho + x) * 4;
+      const k = `${png.datos[o]},${png.datos[o + 1]},${png.datos[o + 2]}`;
+      cuenta.set(k, (cuenta.get(k) ?? 0) + 1);
+    }
+  }
+  const dos = [...cuenta.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => {
+    const [r, g, b] = k.split(',').map(Number);
+    return { r, g, b };
+  });
+  return dos.sort((a, b) => (oscuro ? luminancia(a) - luminancia(b) : luminancia(b) - luminancia(a)))[0];
+}
+
+for (const [k, pantalla] of PANTALLAS.entries()) {
+  const movil = pantalla.ancho < 768;
+  for (const tema of ['dark', 'light']) {
+    const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+    const dicho = `P27 · ${pantalla.id} · ${nombreTema}`;
+    const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: 9700 + 10 * k + (tema === 'dark' ? 0 : 1) });
+    try {
+      await m.ir(APP, 6000);
+      console.log(`\n═══ EL BUSCADOR EN ${nombreTema.toUpperCase()} · ${pantalla.nombre} ═══`);
+      if (!(await ponerTema(m, tema, dicho))) continue;
+      const oscuro = tema === 'dark';
+      const realce = aRgb(await tokenRgb(m, 'superficie-realce'));
+      const card = aRgb(await tokenRgb(m, 'card'));
+      const noEsBloqueClaro = (c) => !oscuro || luminancia(c) <= luminancia(realce);
+
+      // ── color-scheme, atado al tema: lo que el navegador pinta por su cuenta ──
+      const esquema = await leer(m, `return { html: getComputedStyle(document.documentElement).colorScheme, campo: getComputedStyle(document.querySelector('app-autocompletar-via input')).colorScheme };`);
+      juzgar(
+        esquema.html === tema && esquema.campo === tema,
+        `${dicho} · ⭐ color-scheme es ${tema} en el documento y en los campos: lo nativo se pinta en el tema`,
+        `html ${esquema.html} · campo ${esquema.campo}`,
+      );
+
+      // ── En reposo: la red de textos y fronteras del formulario ──
+      await m.evaluar(`document.activeElement?.blur()`);
+      await m.dormir(200);
+      const red = await leer(m, RED_DEL_FORMULARIO);
+      juzgar(
+        red.textos > 8 && red.fronteras >= 8 && red.malos.length === 0,
+        `${dicho} · ⭐ la red: ningún texto a < ${AA_TEXTO} y ninguna frontera de campo a < ${AA_GRAFICO} (valor computado)`,
+        `${red.textos} textos · ${red.fronteras} fronteras · la peor ${red.peor} · ${red.malos.length ? red.malos.join(' | ') : 'ninguno por debajo'}`,
+      );
+      const apagado = await leer(m, `const d = [...document.querySelectorAll('app-selector-portal input')].find((x) => x.disabled); return d ? getComputedStyle(d).backgroundColor : null;`);
+      juzgar(
+        apagado !== null && noEsBloqueClaro(aRgb(apagado)),
+        `${dicho} · el número apagado no es un bloque claro dentro del oscuro (su letra está exenta [WCAG 1.4.3])`,
+        apagado === null ? '(no hay número apagado)' : `fondo ${apagado} · techo ${enRgb(realce)}`,
+      );
+      const lienzo = await leer(m, `const l = document.querySelector('.lienzo'); return l ? getComputedStyle(l).borderTopColor : null;`);
+      juzgar(
+        lienzo === (await tokenRgb(m, 'border')),
+        `${dicho} · el filete del lienzo del mapa es el --border de la casa, no un #999 que brilla en oscuro`,
+        `lienzo ${lienzo}`,
+      );
+      await m.guardar(`${CAPTURAS}/buscador-${nombreTema}-${pantalla.id}-reposo.png`);
+
+      // ── El foco, con el teclado de verdad: Tab hasta la calle del origen ──
+      await m.evaluar(`document.querySelector('select.tipo').focus()`);
+      await tecla(m, 'Tab', 'Tab', 9);
+      await m.dormir(300);
+      const foco = await leer(m, `const a = document.activeElement; const s = getComputedStyle(a); return { quien: a.id, visible: a.matches(':focus-visible'), color: s.outlineColor, estilo: s.outlineStyle, ancho: parseFloat(s.outlineWidth) };`);
+      const anillo = await tokenRgb(m, 'ring');
+      juzgar(
+        foco.quien === 'calleOrigen' && foco.visible && foco.color === anillo && foco.estilo === 'solid' && foco.ancho >= 2 && contrasteRgb(aRgb(foco.color), card) >= AA_GRAFICO,
+        `${dicho} · ⭐ el foco de la calle es el anillo de la casa, ≥ ${AA_GRAFICO}:1 contra la tarjeta [WCAG 2.4.7]`,
+        `${foco.quien} · visible ${foco.visible} · ${foco.color} ${foco.estilo} ${foco.ancho}px · anillo ${anillo} · ${contrasteRgb(aRgb(foco.color), card).toFixed(2)}:1`,
+      );
+
+      // ── Las sugerencias abiertas: la lista, una opción cualquiera y la activa ──
+      await escribirEn(m, 'app-autocompletar-via input', 0, 'CALLE');
+      await m.dormir(1400);
+      await m.evaluar(`document.querySelectorAll('app-autocompletar-via input')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))`);
+      await m.dormir(300);
+      const lista = await leer(m, `const u = document.querySelector('.sugerencias'); return u ? { fondo: getComputedStyle(u).backgroundColor, n: u.querySelectorAll('.sugerencia').length } : null;`);
+      const iNo = await opcionNoActiva(m, '.sugerencia__nombre', '.sugerencia--activa .sugerencia__nombre');
+      const cualquiera = iNo < 0 ? null : await pixelDe(m, '.sugerencia__nombre', { indice: iNo, minimo: 4 });
+      juzgar(
+        lista !== null && noEsBloqueClaro(aRgb(lista.fondo)) && cualquiera !== null && cualquiera.contraste >= AA_TEXTO,
+        `${dicho} · ⭐ la lista de calles se lee (≥ ${AA_TEXTO}:1 sobre el píxel) y no es un bloque claro`,
+        lista === null ? '(no se abrió la lista)' : `${lista.n} opciones · fondo ${lista.fondo} · «${cualquiera?.etiqueta}» ${cualquiera ? cualquiera.contraste.toFixed(2) : '—'}:1`,
+      );
+      const activa = await pixelDe(m, '.sugerencia--activa .sugerencia__nombre', { minimo: 4 });
+      const separa = await leer(m, `const a = document.querySelector('.sugerencia--activa'); const u = document.querySelector('.sugerencias'); return a && u ? [getComputedStyle(a).backgroundColor, getComputedStyle(u).backgroundColor] : null;`);
+      const sep = separa === null ? 0 : contrasteRgb(aRgb(separa[0]), aRgb(separa[1]));
+      juzgar(
+        activa !== null && activa.contraste >= AA_TEXTO && sep >= AA_GRAFICO,
+        `${dicho} · ⭐ la opción activa se lee y se distingue de su lista (≥ ${AA_GRAFICO}:1)`,
+        activa === null ? '(no hay activa)' : `${activa.contraste.toFixed(2)}:1 · fondo ${separa[0]} contra ${separa[1]} · ${sep.toFixed(2)}:1`,
+      );
+      const cuenta = await pixelDe(m, '.sugerencia:not(.sugerencia--activa) .sugerencia__portales', { minimo: 4 });
+      juzgar(
+        cuenta !== null && cuenta.contraste >= AA_TEXTO,
+        `${dicho} · la cuenta de portales de una calle se lee`,
+        cuenta === null ? '(no hay cuenta)' : `«${cuenta.etiqueta}» ${cuenta.contraste.toFixed(2)}:1`,
+      );
+      await m.guardar(`${CAPTURAS}/buscador-${nombreTema}-${pantalla.id}-sugerencias.png`);
+
+      // ── El borrador: se sale sin elegir ──
+      await m.evaluar(`document.querySelectorAll('app-autocompletar-via input')[0].blur()`);
+      await m.dormir(700);
+      const escrito = await pixelDe(m, 'input.campo__entrada--borrador', { minimo: 6 });
+      const avisoBorrador = await pixelDe(m, '.campo__borrador', { minimo: 6 });
+      // ⚠️ Y el borde del borrador es el ámbar: hasta el puente lo tapaba el de
+      //    .campo input por especificidad, y en producción salía el #999.
+      const bordeBorrador = await m.evaluar(`(() => { const i = document.querySelector('input.campo__entrada--borrador'); return i ? getComputedStyle(i).borderTopColor : null; })()`);
+      const ambar = await tokenRgb(m, 'warning-border');
+      juzgar(
+        bordeBorrador === ambar,
+        `${dicho} · el borrador lleva su borde ámbar, no el de un campo cualquiera`,
+        `borde ${bordeBorrador} · ámbar ${ambar}`,
+      );
+      juzgar(
+        escrito !== null && escrito.contraste >= AA_TEXTO && avisoBorrador !== null && avisoBorrador.contraste >= AA_TEXTO,
+        `${dicho} · el borrador se lee: lo escrito y su aviso, ≥ ${AA_TEXTO}:1 sobre el píxel`,
+        escrito === null ? '(no hay borrador)' : `lo escrito ${escrito.contraste.toFixed(2)}:1 sobre ${enRgb(escrito.fondo)} · aviso ${avisoBorrador ? avisoBorrador.contraste.toFixed(2) : '—'}:1`,
+      );
+      await m.guardar(`${CAPTURAS}/buscador-${nombreTema}-${pantalla.id}-borrador.png`);
+
+      // ── La calle elegida de verdad, lo escrito y la lista de portales ──
+      await escribirEn(m, 'app-autocompletar-via input', 0, 'COLOSO');
+      await m.dormir(1200);
+      await m.evaluar(`(() => { const o = document.querySelector('app-autocompletar-via [role=option]'); if (o) o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); })()`);
+      await m.dormir(800);
+      const calle = await pixelDe(m, 'app-autocompletar-via input', { minimo: 6 });
+      juzgar(
+        calle !== null && calle.contraste >= AA_TEXTO && noEsBloqueClaro(calle.fondo),
+        `${dicho} · lo escrito en la calle se lee, sobre un campo que no es un bloque claro`,
+        calle === null ? '(no hay calle)' : `${calle.contraste.toFixed(2)}:1 · ${enRgb(calle.texto)} sobre ${enRgb(calle.fondo)}`,
+      );
+      await m.evaluar(`document.querySelectorAll('app-selector-portal input')[0].focus()`);
+      await m.dormir(700);
+      const huecoNumero = await pixelDe(m, 'app-selector-portal input', { minimo: 6 });
+      juzgar(
+        huecoNumero !== null && huecoNumero.contraste >= AA_TEXTO,
+        `${dicho} · el texto de ayuda del número («Elige…», lo pinta el navegador) se lee`,
+        huecoNumero === null ? '(no hay número)' : `«${await m.evaluar(`document.querySelectorAll('app-selector-portal input')[0].placeholder`)}» ${huecoNumero.contraste.toFixed(2)}:1 · ${enRgb(huecoNumero.texto)} sobre ${enRgb(huecoNumero.fondo)}`,
+      );
+      await m.evaluar(`document.querySelectorAll('app-selector-portal input')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))`);
+      await m.dormir(300);
+      const portales = await leer(m, `const u = document.querySelector('.portales'); return u ? { fondo: getComputedStyle(u).backgroundColor, n: u.querySelectorAll('.portal').length } : null;`);
+      const iPortal = await opcionNoActiva(m, '.portal', '.portal--activo');
+      const portal = iPortal < 0 ? null : await pixelDe(m, '.portal', { indice: iPortal, minimo: 4 });
+      const portalActivo = await pixelDe(m, '.portal--activo', { minimo: 4 });
+      juzgar(
+        portales !== null && noEsBloqueClaro(aRgb(portales.fondo)) && portal !== null && portal.contraste >= AA_TEXTO && portalActivo !== null && portalActivo.contraste >= AA_TEXTO,
+        `${dicho} · ⭐ la lista de portales se lee —una cualquiera y la activa— y no es un bloque claro`,
+        portales === null ? '(no se abrió la lista)' : `${portales.n} portales · fondo ${portales.fondo} · «${portal?.etiqueta}» ${portal ? portal.contraste.toFixed(2) : '—'}:1 · activa ${portalActivo ? portalActivo.contraste.toFixed(2) : '—'}:1`,
+      );
+      const redAbierta = await leer(m, RED_DEL_FORMULARIO);
+      juzgar(
+        redAbierta.malos.length === 0,
+        `${dicho} · y la red con la lista de portales abierta, sin nada por debajo`,
+        `${redAbierta.textos} textos · ${redAbierta.fronteras} fronteras · la peor ${redAbierta.peor} · ${redAbierta.malos.length ? redAbierta.malos.join(' | ') : 'ninguno por debajo'}`,
+      );
+      await m.guardar(`${CAPTURAS}/buscador-${nombreTema}-${pantalla.id}-portales.png`);
+      await m.evaluar(`document.activeElement?.blur()`);
+      await m.dormir(300);
+
+      // ── El desplegable del tipo, cerrado y abierto con un clic de verdad ──
+      // ⚠️ Se mide la CAJA del desplegable: cerrado, el texto de las opciones no se
+      //    pinta —base-select dibuja una copia de la elegida— y su caja mide 0.
+      const cerrado = await pixelDe(m, 'select.tipo', { minimo: 6 });
+      juzgar(
+        cerrado !== null && cerrado.contraste >= AA_TEXTO,
+        `${dicho} · el tipo elegido se lee en el desplegable cerrado`,
+        cerrado === null ? '(no hay tipo)' : `«${cerrado.etiqueta}» ${cerrado.contraste.toFixed(2)}:1`,
+      );
+      const caja = await leer(m, `const s = document.querySelector('select.tipo'); s.scrollIntoView({ block: 'start' }); const r = s.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 };`);
+      await m.dormir(250);
+      await m.cdp('Input.dispatchMouseEvent', { type: 'mousePressed', x: caja.x, y: caja.y, button: 'left', clickCount: 1 });
+      await m.cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', x: caja.x, y: caja.y, button: 'left', clickCount: 1 });
+      await m.dormir(600);
+      const picker = await leer(m, `
+        const s = document.querySelector('select.tipo');
+        let abierto = null; try { abierto = s.matches(':open'); } catch (e) { abierto = null; }
+        const p = getComputedStyle(s, '::picker(select)');
+        const i = [...s.options].findIndex((o) => !o.selected);
+        return { abierto, base: CSS.supports('appearance', 'base-select'), fondo: p.backgroundColor, borde: p.borderTopColor, i };
+      `);
+      const opcion = picker.i < 0 ? null : await pixelDe(m, 'select.tipo .tipo__texto', { indice: picker.i, minimo: 4 });
+      const bordePicker = contrasteRgb(aRgb(picker.borde), card);
+      juzgar(
+        picker.base && picker.abierto === true && noEsBloqueClaro(aRgb(picker.fondo)) && opcion !== null && opcion.contraste >= AA_TEXTO && bordePicker >= AA_GRAFICO,
+        `${dicho} · ⭐ el desplegable ABIERTO (base-select, en la captura): se lee, su frontera llega y no es un bloque claro`,
+        `abierto ${picker.abierto} · fondo ${picker.fondo} · «${opcion?.etiqueta}» ${opcion ? opcion.contraste.toFixed(2) : '—'}:1 · frontera ${bordePicker.toFixed(2)}:1`,
+      );
+      await m.guardar(`${CAPTURAS}/buscador-${nombreTema}-${pantalla.id}-desplegable-abierto.png`);
+      await tecla(m, 'Escape', 'Escape', 27);
+      await m.dormir(300);
+
+      // ── El autofill: lo que lo aparta sigue puesto (su color, NO CONSTA) ──
+      const autocompletar = await m.evaluar(`[...document.querySelectorAll('.bloque--buscador input[type=text]')].map((i) => i.getAttribute('autocomplete')).join(',')`);
+      juzgar(
+        autocompletar.split(',').every((a) => a === 'off'),
+        `${dicho} · los campos de texto piden autocomplete=off: el velo del autofill no se ofrece (su color NO CONSTA en este arnés)`,
+        autocompletar,
+      );
+
+      // ── La barra de desplazamiento del formulario (solo en móvil desborda) ──
+      if (movil) {
+        const cuerpo = await leer(m, `const c = document.querySelector('.bloque--buscador .bloque__cuerpo'); c.scrollTop = 0; const r = c.getBoundingClientRect(); return { x: r.right - (c.offsetWidth - c.clientWidth), y: r.y, w: c.offsetWidth - c.clientWidth, h: r.height, desborda: c.scrollHeight > c.clientHeight };`);
+        await m.dormir(300);
+        const barra = cuerpo.w > 0 ? await carrilDe(m, cuerpo, oscuro) : null;
+        juzgar(
+          cuerpo.desborda && barra !== null && (oscuro ? luminancia(barra) <= luminancia(realce) : luminancia(barra) >= luminancia(realce)),
+          `${dicho} · ⭐ la barra de desplazamiento del formulario va en el tema (la pinta el navegador por color-scheme)`,
+          barra === null ? `(sin barra: ${cuerpo.w} px)` : `${cuerpo.w} px · el píxel de su carril ${enRgb(barra)} · realce ${enRgb(realce)}`,
+        );
+        await m.guardar(`${CAPTURAS}/buscador-${nombreTema}-${pantalla.id}-barra.png`);
+      }
+
+      // ── La matrícula del coche: un campo sin CSS, entero del navegador ──
+      await m.evaluar(`document.querySelector('input[name=familia][value=coche]').click()`);
+      await m.dormir(700);
+      const hayMatricula = await m.evaluar(`!!document.querySelector('#matricula')`);
+      if (hayMatricula) {
+        // Su texto de ayuda, ANTES de escribir: también lo pinta el navegador.
+        await m.evaluar(`document.querySelector('#matricula').scrollIntoView({ block: 'center' })`);
+        await m.dormir(200);
+        const ayuda = await pixelDe(m, '#matricula', { minimo: 6 });
+        juzgar(
+          ayuda !== null && ayuda.contraste >= AA_TEXTO,
+          `${dicho} · el texto de ayuda de la matrícula («0000XXX», sobre el campo nativo) se lee`,
+          ayuda === null ? '(fuera de la vista)' : `${ayuda.contraste.toFixed(2)}:1 · ${enRgb(ayuda.texto)} sobre ${enRgb(ayuda.fondo)}`,
+        );
+        await escribirEn(m, '#matricula', 0, '1234BCD');
+        await m.dormir(300);
+        await m.evaluar(`document.activeElement?.blur()`);
+        const mat = await leer(m, `const i = document.querySelector('#matricula'); i.scrollIntoView({ block: 'center' }); const s = getComputedStyle(i); let p = i.parentElement; let f = null; for (; p; p = p.parentElement) { const c = getComputedStyle(p).backgroundColor; if (!/rgba\\(.*, 0\\)/.test(c) && c !== 'transparent') { f = c; break; } } return { borde: s.borderTopColor, estiloBorde: s.borderTopStyle, fondoFuera: f };`);
+        await m.dormir(200);
+        const letra = await pixelDe(m, '#matricula', { minimo: 6 });
+        const frontera = contrasteRgb(aRgb(mat.borde), aRgb(mat.fondoFuera));
+        // ⚠️ El techo del campo NATIVO no es el realce: Chrome lo pinta en su gris
+        //    de campo oscuro (#3b3b3b), un peldaño de elevación, no un deslumbre.
+        //    Se le pide no pasar del peldaño más alto de la casa, el hover de la
+        //    banda (#404040). A lo que pintamos nosotros se le sigue pidiendo el realce.
+        const peldano = aRgb(await tokenRgb(m, 'banda-cabecera-hover'));
+        juzgar(
+          letra !== null && letra.contraste >= AA_TEXTO && (!oscuro || luminancia(letra.fondo) <= luminancia(peldano)) && frontera >= AA_GRAFICO,
+          `${dicho} · ⭐ la matrícula (campo nativo: la pinta el navegador por color-scheme) se lee, su frontera llega y no pasa del peldaño más alto`,
+          `${letra === null ? '(fuera de la vista)' : `${letra.contraste.toFixed(2)}:1 · fondo ${enRgb(letra.fondo)}`} · frontera ${mat.borde} contra ${mat.fondoFuera} ${frontera.toFixed(2)}:1`,
+        );
+        await m.guardar(`${CAPTURAS}/buscador-${nombreTema}-${pantalla.id}-matricula.png`);
+      } else {
+        juzgar(false, `${dicho} · la matrícula del coche está en la página`, '(no ha salido)');
+      }
+      if (!movil) {
+        const sobra = await m.evaluar(`document.documentElement.scrollWidth - document.documentElement.clientWidth`);
+        juzgar(sobra === 0, `${dicho} · y sin scroll lateral`, `sobra ${sobra} px`);
+      }
+    } finally {
+      m.cerrar();
+    }
+  }
+}
+
 {
   const t = terceros();
   juzgar(t.bien, t.titulo, t.detalle);
