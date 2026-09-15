@@ -3343,8 +3343,8 @@ for (const pantalla of PANTALLAS) {
 //    opacidades y por eso NO sustituye al píxel: caza lo que nadie pensó en
 //    medir, y declara su límite.
 //
-// ⚠️ Estado intermedio DECLARADO: la tesela sigue CLARA bajo el tema oscuro
-//    (la oscura es la parte 2). Se captura y no se juzga aquí.
+// ⚠️ La tesela NO se juzga aquí: esta es la red de la tarjeta. La del mapa
+//    —la tesela oscura, su atribución y lo que la pisa— es la P26 (parte 2).
 //
 // OJO: dentro de las plantillas de JS, ni una comilla invertida en los comentarios.
 const OSCURO_BASE = { background: 'rgb(18, 18, 18)', card: 'rgb(30, 30, 30)' };
@@ -3669,6 +3669,351 @@ for (const pantalla of PANTALLAS) {
     }
   } finally {
     m.cerrar();
+  }
+}
+
+// ═══════════ P26 · EL MAPA EN LOS DOS TEMAS: LA TESELA, SU ATRIBUCIÓN Y LO QUE LA PISA ═══════════
+//
+// ⭐ [tanda 6 · parte 2, 15/09] con el tema oscuro puesto, el mapa seguía
+//    pintando la tesela clara de OpenStreetMap: luminancia media 0,70 en el
+//    lienzo, frente a 0,013 de la tarjeta. Es el deslumbre que la P25 capturaba
+//    sin juzgar. Esta es la red del MAPA; la P25 es la de la tarjeta y no se toca.
+//
+// ⚠️ La vara de la P0 antes de medir: el tema se pone por el atributo del
+//    contrato y se comprueba en el DOM (ponerTema).
+//
+// ⚠️ LO QUE SE COMPRA, y dónde:
+//    · la capa: el src de las teselas pintadas y la atribución, leídos del DOM.
+//    · el deslumbre: la moda del lienzo con las capas de encima ocultas, sobre
+//      el PÍXEL, y no más clara que la superficie del realce (el mismo techo que
+//      la P25 pone a «Próximo bus»).
+//    · lo que pisa la tesela [WCAG 1.4.11, 3:1 contra lo adyacente]: la tesela
+//      se censa sobre el píxel DEBAJO de cada trazo (captura con las capas
+//      ocultas, en los píxeles que el trazo ocupa en la captura con ellas), y se
+//      queda lo que ocupa al menos el 1 %, que es la regla de contraste.ts. Los
+//      colores del trazo y del ribete salen de su stroke, que es opaco.
+//      · una línea con ribete: línea contra ribete ≥ 3, y contra cada color de
+//        la tesela la separa quien pueda —la línea o su ribete— (ribeteDe).
+//      · un borde sin ribete (la ZBE, el área de YeGo): él solo, ≥ 3.
+//      · un pin: su relleno contra su halo blanco ≥ 3, y el par contra la
+//        tesela. Las familias que no salen en este viaje se miden con un clon
+//        del pin pintado, al que se le cambia solo el relleno.
+//      · el hito: su aro contra la tesela ≥ 3.
+//    · los controles: el glifo del zoom y la atribución se leen (≥ 4,5 sobre el
+//      píxel) y no son un bloque claro dentro del oscuro.
+//
+// ⚠️ En CLARO se juzga la capa y su atribución, y se captura. Sus contrastes
+//    los llevan pantalla.mjs y la P18-P24, y no se duplican aquí.
+//
+// OJO: dentro de las plantillas de JS, ni una comilla invertida en los comentarios.
+const MODOS_P26 = [
+  { id: 'andando', ajuste: '' },
+  { id: 'bus', ajuste: '' },
+  { id: 'bici', ajuste: '' },
+  { id: 'coche', ajuste: `document.querySelector('input[name=aparcamiento][value=azul]').click()` },
+  { id: 'moto', ajuste: `document.querySelector('input[name=moto][value=yego]').click()`, dicho: 'yego' },
+];
+
+/** Los rellenos de los pins, por familia [iconos.ts]: origen/farmacia, destino, sanitario, cultura, educación, sin papel. */
+const RELLENOS_DE_PIN = ['#1a7f37', '#c1121f', '#0d47a1', '#6a1b9a', '#614800', '#44403c'];
+
+const OCULTAR_CAPAS = `document.querySelectorAll('.leaflet-overlay-pane, .leaflet-marker-pane, .leaflet-zbe-pane, .p26-clon').forEach((e) => (e.style.visibility = 'hidden'))`;
+const MOSTRAR_CAPAS = `document.querySelectorAll('.leaflet-overlay-pane, .leaflet-marker-pane, .leaflet-zbe-pane, .p26-clon').forEach((e) => (e.style.visibility = ''))`;
+const OCULTAR_CONTROLES = `document.querySelectorAll('.leaflet-control-container').forEach((e) => (e.style.visibility = 'hidden'))`;
+const MOSTRAR_CONTROLES = `document.querySelectorAll('.leaflet-control-container').forEach((e) => (e.style.visibility = ''))`;
+
+/** Espera a que TODAS las teselas pintadas estén cargadas. */
+async function esperarTeselas(m) {
+  for (let i = 0; i < 60; i++) {
+    const listo = await m.evaluar(`(() => {
+      const t = [...document.querySelectorAll('.leaflet-tile-container img.leaflet-tile')];
+      return t.length > 0 && t.every((x) => x.classList.contains('leaflet-tile-loaded') && x.complete);
+    })()`);
+    if (listo) break;
+    await m.dormir(250);
+  }
+  await m.dormir(400);
+}
+
+/** La capa pintada y lo que la atribuye, leído del DOM. */
+const LA_CAPA = `
+  const t = [...document.querySelectorAll('.leaflet-tile-container img.leaflet-tile')].map((x) => x.src);
+  const a = document.querySelector('.leaflet-control-attribution');
+  const r = a ? a.getBoundingClientRect() : null;
+  const centro = r ? document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2) : null;
+  const pie = document.querySelector('.creditos__linea');
+  const lienzo = document.querySelector('.leaflet-container').getBoundingClientRect();
+  return {
+    teselas: t.length,
+    osm: t.filter((u) => /^https:\\/\\/tile\\.openstreetmap\\.org\\//.test(u)).length,
+    oscuras: t.filter((u) => /^https:\\/\\/[a-d]\\.basemaps\\.cartocdn\\.com\\/dark_all\\//.test(u)).length,
+    conKey: t.filter((u) => /[?&]key=[^&]+/.test(u)).length,
+    atribucion: a ? a.textContent.replace(/\\s+/g, ' ').trim() : null,
+    enlaceOsm: !!a?.querySelector('a[href="https://www.openstreetmap.org/copyright"]') && /colaboradores de OpenStreetMap/.test(a.textContent),
+    enlaceCarto: !!a?.querySelector('a[href="https://carto.com/attributions"]') && /CARTO/.test(a.textContent),
+    visible: !!r && r.width > 0 && r.height > 0 && r.bottom <= innerHeight && r.right <= innerWidth && getComputedStyle(a).visibility !== 'hidden' && !!centro && a.contains(centro),
+    pie: pie ? { osm: !!pie.querySelector('a[href="https://www.openstreetmap.org/copyright"]'), carto: !!pie.querySelector('a[href="https://carto.com/attributions"]'), texto: pie.textContent.replace(/\\s+/g, ' ').trim() } : null,
+    lienzo: { x: lienzo.x, y: lienzo.y, w: lienzo.width, h: lienzo.height },
+  };
+`;
+
+/** Juzga que la capa y su atribución son las del tema. Devuelve la lectura. */
+async function juzgarLaCapa(m, dicho, tema) {
+  await esperarTeselas(m);
+  const c = await leer(m, LA_CAPA);
+  const oscuro = tema === 'dark';
+  juzgar(
+    oscuro ? c.teselas > 0 && c.oscuras === c.teselas && c.conKey === c.teselas : c.teselas > 0 && c.osm === c.teselas,
+    `${dicho} · ⭐ ${tema} · la tesela es la del tema: ${oscuro ? 'Dark Matter de CARTO, con su key' : 'la de OpenStreetMap de siempre'}`,
+    `${c.teselas} teselas · OSM ${c.osm} · dark_all ${c.oscuras} · con key ${c.conKey}`,
+  );
+  juzgar(
+    c.visible && c.enlaceOsm && (oscuro ? c.enlaceCarto : !c.enlaceCarto),
+    `${dicho} · ⭐ ${tema} · la atribución dice la capa activa, visible sobre el mapa: ${oscuro ? '© OpenStreetMap + © CARTO' : '© OpenStreetMap, sin CARTO'}`,
+    `«${c.atribucion}» · visible ${c.visible}`,
+  );
+  if (c.pie !== null) {
+    juzgar(
+      c.pie.osm && (oscuro ? c.pie.carto : !c.pie.carto),
+      `${dicho} · ${tema} · y el pie dice lo mismo que la atribución`,
+      `«${c.pie.texto}»`,
+    );
+  }
+  return c;
+}
+
+const cerca = (png, o, col, tol = 6) =>
+  Math.abs(png.datos[o] - col.r) <= tol && Math.abs(png.datos[o + 1] - col.g) <= tol && Math.abs(png.datos[o + 2] - col.b) <= tol;
+const deHex6 = (h) => ({ r: parseInt(h.slice(1, 3), 16), g: parseInt(h.slice(3, 5), 16), b: parseInt(h.slice(5, 7), 16) });
+
+/**
+ * El censo de la tesela bajo un trazo: los píxeles de las cajas donde la captura
+ * CON capas pinta alguno de los colores dados, mirados en la captura SIN capas.
+ * Varias cajas se juntan sin contar dos veces un píxel: todos los trozos de un
+ * mismo color son UN trazo, y un trozo de 3 px no es una muestra.
+ * Devuelve los colores de tesela que ocupan ≥ 1 % y cuántos píxeles del trazo hay.
+ */
+function teselaBajo(conCapas, sinCapas, cajas, colores, dpr = 1) {
+  const visto = new Uint8Array(conCapas.ancho * conCapas.alto);
+  const cuenta = new Map();
+  let n = 0;
+  for (const caja of cajas) {
+    const x0 = Math.max(0, Math.floor(caja.x * dpr)), y0 = Math.max(0, Math.floor(caja.y * dpr));
+    const x1 = Math.min(conCapas.ancho, Math.ceil((caja.x + caja.w) * dpr)), y1 = Math.min(conCapas.alto, Math.ceil((caja.y + caja.h) * dpr));
+    for (let y = y0; y < y1; y++) {
+      for (let x = x0; x < x1; x++) {
+        const i = y * conCapas.ancho + x;
+        if (visto[i]) continue;
+        visto[i] = 1;
+        const o = i * 4;
+        if (!colores.some((c) => cerca(conCapas, o, c))) continue;
+        // Solo lo que la capa PINTA: un píxel igual en las dos capturas es tesela.
+        const igual = Math.abs(conCapas.datos[o] - sinCapas.datos[o]) <= 6 && Math.abs(conCapas.datos[o + 1] - sinCapas.datos[o + 1]) <= 6 && Math.abs(conCapas.datos[o + 2] - sinCapas.datos[o + 2]) <= 6;
+        if (igual) continue;
+        n++;
+        const k = (sinCapas.datos[o] << 16) | (sinCapas.datos[o + 1] << 8) | sinCapas.datos[o + 2];
+        cuenta.set(k, (cuenta.get(k) ?? 0) + 1);
+      }
+    }
+  }
+  const tesela = [...cuenta.entries()].filter(([, c]) => c / Math.max(n, 1) >= 0.01).map(([k]) => ({ r: (k >> 16) & 255, g: (k >> 8) & 255, b: k & 255 }));
+  return { n, tesela };
+}
+
+/** Por debajo de esto no hay muestra: se dice que no se mide, y no se juzga. */
+const MUESTRA_MINIMA = 150;
+
+/** Agrupa por clave. */
+const agrupar = (lista, clave) => {
+  const g = new Map();
+  for (const x of lista) {
+    const k = clave(x);
+    if (!g.has(k)) g.set(k, []);
+    g.get(k).push(x);
+  }
+  return g;
+};
+
+/** Lo que pisa la tesela, en el DOM: pares línea/ribete, bordes de polígono, pins e hitos. */
+const LO_QUE_PISA = `
+  const lienzo = document.querySelector('.leaflet-container').getBoundingClientRect();
+  const caja = (e) => { const r = e.getBoundingClientRect(); const x = Math.max(r.x - 3, lienzo.x), y = Math.max(r.y - 3, lienzo.y); return { x, y, w: Math.min(r.right + 3, lienzo.right) - x, h: Math.min(r.bottom + 3, lienzo.bottom) - y }; };
+  const hex = (s) => { if (!s) return null; if (s[0] === '#') return s.length === 4 ? '#' + [...s.slice(1)].map((c) => c + c).join('') : s.toLowerCase(); const m = s.match(/\\d+/g); return '#' + m.slice(0, 3).map((v) => Number(v).toString(16).padStart(2, '0')).join(''); };
+  const trazos = [...document.querySelectorAll('.leaflet-overlay-pane path')];
+  const pares = [];
+  for (let i = 0; i + 1 < trazos.length; i += 2) {
+    const ribete = trazos[i], linea = trazos[i + 1];
+    const cr = ribete.getBoundingClientRect(), cl = linea.getBoundingClientRect();
+    if (cl.width === 0 && cl.height === 0) continue;
+    pares.push({ linea: hex(linea.getAttribute('stroke')), ribete: hex(ribete.getAttribute('stroke')), anchoLinea: Number(linea.getAttribute('stroke-width')), anchoRibete: Number(ribete.getAttribute('stroke-width')), caja: caja(ribete) });
+  }
+  const bordes = [...document.querySelectorAll('.leaflet-zbe-pane path')].map((p) => ({ borde: hex(p.getAttribute('stroke')), raya: p.getAttribute('stroke-dasharray'), caja: caja(p) }));
+  const pins = [...document.querySelectorAll('.leaflet-marker-icon svg[data-icono]')].map((s) => { const p = s.querySelector('path'); return { icono: s.getAttribute('data-icono'), papel: s.getAttribute('data-papel'), relleno: hex(p.getAttribute('fill')), halo: hex(p.getAttribute('stroke')), caja: caja(s) }; });
+  const hitos = [...document.querySelectorAll('.leaflet-marker-icon .hito')].map((h) => { const s = getComputedStyle(h); return { aro: hex(s.borderTopColor), fondo: hex(s.backgroundColor), dibujo: hex(s.color), caja: caja(h) }; });
+  return { pares, bordes, pins, hitos, dpr: devicePixelRatio, lienzo: { x: lienzo.x, y: lienzo.y, w: lienzo.width, h: lienzo.height } };
+`;
+
+/** Pone un clon de un pin por cada relleno de familia, sobre la tesela, a su tamaño. */
+const CLONAR_PINS = `
+  const origen = document.querySelector('.leaflet-marker-icon svg[data-icono]');
+  if (!origen) return 0;
+  const lienzo = document.querySelector('.leaflet-container').getBoundingClientRect();
+  const rellenos = ${JSON.stringify(RELLENOS_DE_PIN)};
+  rellenos.forEach((f, i) => {
+    const c = origen.cloneNode(true);
+    c.classList.add('p26-clon');
+    c.setAttribute('data-icono', 'clon');
+    c.setAttribute('data-papel', f);
+    c.querySelector('path').setAttribute('fill', f);
+    c.style.cssText = 'position:fixed;z-index:450;pointer-events:none;left:' + (lienzo.x + 60 + i * 44) + 'px;top:' + (lienzo.y + lienzo.height * 0.55) + 'px';
+    document.body.append(c);
+  });
+  return rellenos.length;
+`;
+
+async function juzgarLoQuePisa(m, dicho) {
+  const lo = await leer(m, LO_QUE_PISA);
+  const clones = await leer(m, CLONAR_PINS);
+  const deLosClones = await leer(m, `return [...document.querySelectorAll('svg.p26-clon')].map((s) => { const r = s.getBoundingClientRect(); const p = s.querySelector('path'); return { icono: 'clon', papel: p.getAttribute('fill'), relleno: p.getAttribute('fill').toLowerCase(), halo: p.getAttribute('stroke').toLowerCase(), caja: { x: r.x - 3, y: r.y - 3, w: r.width + 6, h: r.height + 6 } }; });`);
+  await m.evaluar(OCULTAR_CONTROLES);
+  await m.dormir(150);
+  const con = await m.captura();
+  await m.evaluar(OCULTAR_CAPAS);
+  await m.dormir(250);
+  const sin = await m.captura();
+  await m.evaluar(MOSTRAR_CAPAS);
+  await m.evaluar(MOSTRAR_CONTROLES);
+  await m.evaluar(`document.querySelectorAll('svg.p26-clon').forEach((e) => e.remove())`);
+
+  // El deslumbre: la moda del lienzo sin capas, contra el techo del realce.
+  const L = lo.lienzo;
+  const moda = new Map();
+  for (let y = Math.floor(L.y); y < Math.min(sin.alto, L.y + L.h); y++) {
+    for (let x = Math.floor(L.x); x < Math.min(sin.ancho, L.x + L.w); x++) {
+      const o = (y * sin.ancho + x) * 4;
+      const k = (sin.datos[o] << 16) | (sin.datos[o + 1] << 8) | sin.datos[o + 2];
+      moda.set(k, (moda.get(k) ?? 0) + 1);
+    }
+  }
+  const [kModa] = [...moda.entries()].sort((a, b) => b[1] - a[1])[0];
+  const colorModa = { r: (kModa >> 16) & 255, g: (kModa >> 8) & 255, b: kModa & 255 };
+  const realce = aRgb(await tokenRgb(m, 'superficie-realce'));
+  juzgar(
+    luminancia(colorModa) <= luminancia(realce),
+    `${dicho} · ⭐ la tesela no deslumbra: su color dominante no es más claro que la superficie del realce`,
+    `moda ${enRgb(colorModa)} (luminancia ${luminancia(colorModa).toFixed(4)}) · techo ${enRgb(realce)} (${luminancia(realce).toFixed(4)})`,
+  );
+
+  const conPeorTesela = (a, b, tesela) => {
+    let min = Infinity, cual = null;
+    for (const t of tesela) { const v = Math.max(contrasteRgb(a, t), b ? contrasteRgb(b, t) : 0); if (v < min) { min = v; cual = t; } }
+    return { min, cual };
+  };
+
+  for (const [clave, grupo] of agrupar(lo.pares, (p) => p.linea + '|' + p.ribete)) {
+    const [hl, hr] = clave.split('|');
+    const linea = deHex6(hl), ribete = deHex6(hr);
+    const bajo = teselaBajo(con, sin, grupo.map((p) => p.caja), [linea, ribete], lo.dpr);
+    if (bajo.n < MUESTRA_MINIMA) {
+      console.log(`  ··  ${dicho} · la traza ${hl} con ribete ${hr} no se mide: ${bajo.n} px pintados en ${grupo.length} trozo(s), por debajo de ${MUESTRA_MINIMA}`);
+      continue;
+    }
+    const entreSi = contrasteRgb(linea, ribete);
+    const { min, cual } = conPeorTesela(linea, ribete, bajo.tesela);
+    juzgar(
+      entreSi >= AA_GRAFICO && min >= AA_GRAFICO,
+      `${dicho} · ⭐ la traza ${hl} y su ribete ${hr} se separan de la tesela de debajo: ≥ ${AA_GRAFICO}:1 [1.4.11]`,
+      `línea/ribete ${entreSi.toFixed(2)} · peor contra la tesela ${min.toFixed(2)} sobre ${enRgb(cual)} · ${bajo.tesela.length} colores ≥ 1 % bajo ${bajo.n} px · ${grupo.length} trozo(s)`,
+    );
+  }
+  for (const [hb, grupo] of agrupar(lo.bordes, (b) => b.borde)) {
+    const borde = deHex6(hb);
+    const bajo = teselaBajo(con, sin, grupo.map((b) => b.caja), [borde], lo.dpr);
+    if (bajo.n < MUESTRA_MINIMA) {
+      console.log(`  ··  ${dicho} · el borde ${hb} no se mide: ${bajo.n} px pintados, por debajo de ${MUESTRA_MINIMA}`);
+      continue;
+    }
+    const { min, cual } = conPeorTesela(borde, null, bajo.tesela);
+    juzgar(
+      min >= AA_GRAFICO,
+      `${dicho} · ⭐ el borde ${hb}${grupo[0].raya ? ' a rayas' : ''} del polígono se separa de la tesela: ≥ ${AA_GRAFICO}:1 [1.4.11]`,
+      `peor ${min.toFixed(2)} sobre ${enRgb(cual)} · ${bajo.tesela.length} colores ≥ 1 % bajo ${bajo.n} px · ${grupo.length} polígono(s)`,
+    );
+  }
+  for (const p of [...lo.pins, ...deLosClones]) {
+    const relleno = deHex6(p.relleno), halo = deHex6(p.halo);
+    const bajo = teselaBajo(con, sin, [p.caja], [halo], lo.dpr);
+    const entreSi = contrasteRgb(relleno, halo);
+    const { min, cual } = conPeorTesela(relleno, halo, bajo.tesela);
+    juzgar(
+      clones > 0 && bajo.n >= 10 && bajo.tesela.length > 0 && entreSi >= AA_GRAFICO && min >= AA_GRAFICO,
+      `${dicho} · ⭐ el pin ${p.icono}/${p.papel} (${p.relleno}) se lee sobre la tesela por su halo ${p.halo}: ≥ ${AA_GRAFICO}:1 [1.4.11]`,
+      `relleno/halo ${entreSi.toFixed(2)} · peor contra la tesela ${Number.isFinite(min) ? min.toFixed(2) : '—'}${cual ? ' sobre ' + enRgb(cual) : ''} · halo pintado ${bajo.n} px`,
+    );
+  }
+  for (const h of lo.hitos) {
+    const aro = deHex6(h.aro);
+    const bajo = teselaBajo(con, sin, [h.caja], [aro], lo.dpr);
+    const { min, cual } = conPeorTesela(aro, null, bajo.tesela);
+    juzgar(
+      bajo.n >= 10 && bajo.tesela.length > 0 && min >= AA_GRAFICO && contrasteRgb(deHex6(h.dibujo), deHex6(h.fondo)) >= AA_GRAFICO,
+      `${dicho} · el hito: su aro ${h.aro} contra la tesela, y su dibujo contra su disco: ≥ ${AA_GRAFICO}:1`,
+      `aro/tesela ${Number.isFinite(min) ? min.toFixed(2) : '—'}${cual ? ' sobre ' + enRgb(cual) : ''} · dibujo/disco ${contrasteRgb(deHex6(h.dibujo), deHex6(h.fondo)).toFixed(2)}`,
+    );
+  }
+  return lo;
+}
+
+async function juzgarControles(m, dicho) {
+  const realce = aRgb(await tokenRgb(m, 'superficie-realce'));
+  for (const [sel, que] of [['.leaflet-control-zoom-in', 'el «+» del zoom'], ['.leaflet-control-zoom-out', 'el «−» del zoom'], ['.leaflet-control-attribution', 'la atribución']]) {
+    const t = await contrasteSiEsta(m, sel, { minimo: 6 });
+    juzgar(
+      t !== null && t.contraste >= AA_TEXTO && luminancia(t.fondo) <= luminancia(realce),
+      `${dicho} · ⭐ ${que} se lee (≥ ${AA_TEXTO}:1 sobre el píxel) y no es un bloque claro dentro del oscuro`,
+      t === null ? `(no hay ${sel})` : `${t.contraste.toFixed(2)}:1 · ${enRgb(t.texto)} sobre ${enRgb(t.fondo)} · techo ${enRgb(realce)}`,
+    );
+  }
+}
+
+for (const [k, pantalla] of PANTALLAS.entries()) {
+  const movil = pantalla.ancho < 768;
+  const alMapa = `[...document.querySelectorAll('.barra__boton')].find((b) => b.textContent.trim().startsWith('Mapa'))?.click()`;
+  for (const [i, modo] of MODOS_P26.entries()) {
+    const nombre = modo.dicho ?? modo.id;
+    const dicho = `P26 · ${pantalla.id} · ${nombre}`;
+    const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: 9600 + 10 * k + i });
+    try {
+      await m.ir(APP, 6000);
+      console.log(`\n═══ EL MAPA EN LOS DOS TEMAS · ${pantalla.nombre} · ${nombre} ═══`);
+      await m.evaluar(`window.__p26SinRecarga = 'vivo'`);
+      await generarCon(m, modo.id, '', null, modo.ajuste);
+      if (movil) {
+        await m.evaluar(alMapa);
+        await m.dormir(600);
+      }
+      if (!(await ponerTema(m, 'dark', `${dicho} · oscuro`))) continue;
+      await juzgarLaCapa(m, dicho, 'dark');
+      await juzgarLoQuePisa(m, dicho);
+      await juzgarControles(m, dicho);
+      await m.guardar(`${CAPTURAS}/mapa-oscuro-${pantalla.id}-${nombre}.png`);
+
+      // ⭐ Y la capa sigue al atributo EN CALIENTE, ida y vuelta, sin recargar:
+      //    la atribución acompaña siempre a su capa (la parte 3 lo pulsará).
+      if (modo.id === 'andando') {
+        for (const tema of ['light', 'dark', 'light']) {
+          if (await ponerTema(m, tema, `${dicho} · en caliente`)) await juzgarLaCapa(m, `${dicho} · en caliente`, tema);
+        }
+        const vivo = await m.evaluar(`window.__p26SinRecarga`);
+        juzgar(vivo === 'vivo', `${dicho} · ⭐ tres cambios de tema y la página NO se ha recargado`, `marca ${vivo}`);
+      }
+      if (await ponerTema(m, 'light', `${dicho} · claro`)) {
+        await juzgarLaCapa(m, dicho, 'light');
+        await m.guardar(`${CAPTURAS}/mapa-claro-${pantalla.id}-${nombre}.png`);
+      }
+    } finally {
+      m.cerrar();
+    }
   }
 }
 
