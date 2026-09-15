@@ -19,7 +19,13 @@ import {
   COLOR_NEUTRO,
   COLOR_ORIGEN,
   COLOR_SITIO,
+  colorDeCapa,
+  EN_EL_MAPA_CLARO,
+  svgDeCapa,
+  type Clase,
+  type Papel,
 } from './iconos';
+import { AA_GRAFICO, contraste } from './contraste';
 
 /**
  * ⭐ LOS ICONOS DE CAPA en las tres casas donde se ven.
@@ -432,8 +438,8 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     await elegirSitioEn('calleOrigen', BIBLIOTECA);
     await elegirDireccionEn('calleDestino', 'portalDestino');
     expect(await generarYMirarElMapa()).toEqual([
-      { icono: 'biblioteca', papel: 'origen', color: MORADO },
-      { icono: 'via', papel: 'destino', color: COLOR_DESTINO },
+      { icono: 'biblioteca', papel: 'origen', color: enElMapaClaro(MORADO) },
+      { icono: 'via', papel: 'destino', color: enElMapaClaro(COLOR_DESTINO) },
     ]);
   });
 
@@ -443,8 +449,8 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     await elegirSitioEn('calleOrigen', HOSPITAL);
     await elegirDireccionEn('calleDestino', 'portalDestino');
     expect(await generarYMirarElMapa()).toEqual([
-      { icono: 'hospital', papel: 'origen', color: AZUL },
-      { icono: 'via', papel: 'destino', color: COLOR_DESTINO },
+      { icono: 'hospital', papel: 'origen', color: enElMapaClaro(AZUL) },
+      { icono: 'via', papel: 'destino', color: enElMapaClaro(COLOR_DESTINO) },
     ]);
   });
 
@@ -482,6 +488,16 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
 
   // ── CASA 2: LOS MARCADORES DEL MAPA ────────────────────────────────────────
 
+  /**
+   * ⚠️ EL MARCADOR DEL MAPA YA NO LLEVA EL COLOR EXACTO DE LA LISTA EN CLARO
+   *    (remate de la tanda 6 · parte 2). Sobre la tesela de OSM el pin va un paso
+   *    más oscuro en su familia, para que halo y relleno lleguen a 3:1 sobre
+   *    cualquier tesela (`EN_EL_MAPA_CLARO` en `iconos.ts`). Estas pruebas corren
+   *    sin tema oscuro, así que esperan ese tono. La familia y la forma siguen
+   *    siendo las de la lista.
+   */
+  const enElMapaClaro = (color: string): string => EN_EL_MAPA_CLARO[color] ?? color;
+
   /** Genera la ruta con los dos lados ya puestos y devuelve los marcadores. */
   async function generarYMirarElMapa(): Promise<
     { icono: string; papel: string; color: string }[]
@@ -504,8 +520,8 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     await elegirDireccionEn('calleDestino', 'portalDestino');
 
     expect(await generarYMirarElMapa()).toEqual([
-      { icono: 'via', papel: 'origen', color: COLOR_ORIGEN },
-      { icono: 'via', papel: 'destino', color: COLOR_DESTINO },
+      { icono: 'via', papel: 'origen', color: enElMapaClaro(COLOR_ORIGEN) },
+      { icono: 'via', papel: 'destino', color: enElMapaClaro(COLOR_DESTINO) },
     ]);
   });
 
@@ -514,8 +530,8 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
     await elegirDireccionEn('calleDestino', 'portalDestino');
 
     expect(await generarYMirarElMapa()).toEqual([
-      { icono: 'farmacia', papel: 'origen', color: COLOR_SITIO },
-      { icono: 'via', papel: 'destino', color: COLOR_DESTINO },
+      { icono: 'farmacia', papel: 'origen', color: enElMapaClaro(COLOR_SITIO) },
+      { icono: 'via', papel: 'destino', color: enElMapaClaro(COLOR_DESTINO) },
     ]);
   });
 
@@ -749,5 +765,54 @@ describe('⭐ LOS ICONOS de capa, en las tres casas', () => {
             : e.tagName.toLowerCase(),
     );
     expect(enOrden).toEqual(['origen', 'flecha', 'destino']);
+  });
+});
+
+/**
+ * ⭐ LOS PINS DEL MAPA EN CLARO, SOBRE CUALQUIER TESELA (remate de la tanda 6 · parte 2).
+ *
+ * [WCAG 1.4.11 · W3C *Understanding Non-text Contrast*] el borde que rodea un
+ * gráfico entra en el cálculo, y el gráfico se distingue si cualquiera de sus
+ * partes contrasta con lo que tiene al lado. El pin tiene dos: el halo blanco
+ * y el relleno. La P26 midió en claro los pins verde y rojo a 2,29-2,68 sobre el
+ * oliva de OSM, y el mismo verde entre 2,29 y 3,80 según dónde caía.
+ *
+ * ⚠️ Un pin va en CUALQUIER dirección, así que no vale el peor píxel de hoy: se
+ *    pide que el par halo + relleno llegue a 3:1 contra CUALQUIER luminancia de
+ *    tesela. El blanco cubre las teselas de luminancia ≤ 0,30; el relleno
+ *    cubre las demás si la suya es ≤ 0,0667. Aquí se barre el gris entero, de
+ *    `#000000` a `#ffffff`: el contraste solo depende de la luminancia.
+ */
+describe('⭐ LOS PINS DEL MAPA EN CLARO — el halo y el relleno cubren cualquier tesela', () => {
+  const peorContraCualquierTesela = (relleno: string, halo: string): number => {
+    let peor = Infinity;
+    for (let v = 0; v <= 255; v++) {
+      const gris = v.toString(16).padStart(2, '0').repeat(3);
+      peor = Math.min(peor, Math.max(contraste(relleno, gris), contraste(halo, gris)));
+    }
+    return peor;
+  };
+  const CLASES: readonly [Clase, Papel][] = [
+    ['via', 'origen'], ['via', 'destino'], ['farmacia', 'origen'], ['centro-salud', 'destino'],
+    ['hospital', 'origen'], ['biblioteca', 'destino'], ['colegio', 'origen'], ['guarderia', 'destino'],
+    ['universidad', 'origen'],
+  ];
+  const leer = (svg: string, que: 'fill' | 'stroke'): string =>
+    new RegExp(`<path d="[^"]*" ${que === 'fill' ? 'fill' : '[^>]*stroke'}="(#[0-9a-fA-F]{6})"`).exec(svg)![1]!.slice(1);
+
+  it('⭐ 1 · sobre la tesela clara, cada pin llega a 3:1 contra CUALQUIER gris, por su halo o por su relleno', () => {
+    for (const [clase, papel] of CLASES) {
+      const svg = svgDeCapa(clase, papel, 32, true);
+      const relleno = leer(svg, 'fill');
+      const halo = leer(svg, 'stroke');
+      expect(peorContraCualquierTesela(relleno, halo), `${clase}/${papel} #${relleno}`).toBeGreaterThanOrEqual(AA_GRAFICO);
+      expect(contraste(relleno, halo), `${clase}/${papel} relleno contra su halo`).toBeGreaterThanOrEqual(AA_GRAFICO);
+    }
+  });
+
+  it('⭐ 2 · y el oscuro no se toca: sobre Dark Matter el pin conserva su color de siempre', () => {
+    for (const [clase, papel] of CLASES) {
+      expect(leer(svgDeCapa(clase, papel, 32, false), 'fill'), `${clase}/${papel}`).toBe(colorDeCapa(clase, papel).slice(1));
+    }
   });
 });

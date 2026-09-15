@@ -385,15 +385,56 @@ export function encimaDe(clase: Clase): Encima {
 }
 
 /**
+ * ⭐ EL TONO DEL PIN SOBRE LA TESELA CLARA (remate de la tanda 6 · parte 2).
+ *
+ * En el mapa el pin lleva un halo blanco, y [WCAG 1.4.11 · W3C *Understanding
+ * Non-text Contrast*] se distingue si cualquiera de sus dos partes contrasta con
+ * la tesela. Sobre OpenStreetMap no bastaba: la P26 midió los pins verde y rojo
+ * a 2,29-2,68 contra el oliva y los grises medios, y el halo blanco contra esas
+ * teselas solo da 2,00-2,64.
+ *
+ * ⚠️ **La vara es CUALQUIER tesela, no la de hoy**, porque un pin va en
+ *    cualquier dirección: el mismo verde midió entre 2,29 y 3,80 según dónde
+ *    cayó. El blanco cubre las teselas de luminancia ≤ 0,30; el relleno cubre
+ *    las demás si la suya es **≤ 0,0667**. Por regla declarada, el paso mínimo
+ *    de cada familia que cumple eso:
+ *
+ *      verde   #1a7f37 (0,157) → #14532d green-900  (peor gris posible 2,26 → ≥ 3)
+ *      rojo    #c1121f (0,119) → #7f1d1d red-900    (2,50 → ≥ 3)
+ *      azul    #0d47a1 (0,072) → #1e3a8a blue-900   (2,95 → ≥ 3; medido 2,96 en móvil)
+ *      mostaza #614800 (0,072) → #422006 yellow-950 (2,95 → ≥ 3)
+ *
+ *    El morado (0,062) y el gris sin papel (0,052) ya cumplen y no cambian.
+ *
+ * ⚠️ **SOLO EN EL MAPA Y SOLO EN CLARO.** Las listas y las tarjetas conservan el
+ *    color de siempre: en ellas el icono va sobre la tarjeta, no sobre la
+ *    tesela, y oscurecerlo bajaría el de las tarjetas en oscuro (el verde, de
+ *    3,28 a 1,8 contra `#1e1e1e`). Sobre Dark Matter el pin ya llegaba por su
+ *    halo (P26: 12,27 o más) y tampoco cambia. El precio se dice: en claro, el
+ *    pin del mapa es un paso más oscuro que el icono de la lista.
+ */
+export const EN_EL_MAPA_CLARO: Readonly<Record<string, string>> = {
+  [VERDE]: '#14532d',
+  [COLOR_DESTINO]: '#7f1d1d',
+  [AZUL]: '#1e3a8a',
+  [MOSTAZA]: '#422006',
+};
+
+/**
  * El MISMO icono, como cadena, para quien no puede usar una plantilla de
  * Angular: los marcadores de Leaflet, que quieren HTML hecho.
+ *
+ * `sobreTeselaClara` pone el tono de `EN_EL_MAPA_CLARO`: lo pide el mapa con el
+ * tema claro, y nadie más.
  *
  * Comparte los caminos y los colores con el componente de abajo —las constantes
  * son las mismas—, así que no hay dos dibujos que mantener a la par. Lo único
  * que añade es el **borde blanco**: sobre el mapa, una figura de color plano se
  * confunde con el fondo en cuanto cae sobre un parque o una manzana oscura.
  */
-export function svgDeCapa(clase: Clase, papel: Papel, lado: number): string {
+export function svgDeCapa(clase: Clase, papel: Papel, lado: number, sobreTeselaClara = false): string {
+  const color = colorDeCapa(clase, papel);
+  const relleno = sobreTeselaClara ? (EN_EL_MAPA_CLARO[color] ?? color) : color;
   const encima = encimaDe(clase);
   const arriba =
     encima === 'circulo'
@@ -404,7 +445,7 @@ export function svgDeCapa(clase: Clase, papel: Papel, lado: number): string {
   return (
     `<svg viewBox="0 0 24 24" width="${lado}" height="${lado}" ` +
     `data-icono="${clase}" data-papel="${papel}" aria-hidden="true" focusable="false">` +
-    `<path d="${caminoDeCapa(clase)}" fill="${colorDeCapa(clase, papel)}" ` +
+    `<path d="${caminoDeCapa(clase)}" fill="${relleno}" ` +
     `stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"></path>${arriba}</svg>`
   );
 }

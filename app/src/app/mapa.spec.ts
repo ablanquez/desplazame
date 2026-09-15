@@ -8,6 +8,7 @@ import {
   BORDE_DEL_AREA_EN_OSCURO,
   Mapa,
   PLANO_DE_DARK_MATTER,
+  RIBETE_DEL_BORDE_DE_LA_ZONA,
   RAYA_DEL_AREA,
   RELLENO_DE_LA_ZONA,
   RELLENO_DEL_AREA,
@@ -102,14 +103,19 @@ function laFase1(): readonly Anillo[] {
   );
 }
 
-/** El polígono pintado, si lo hay. */
+/** El polígono pintado, si lo hay. El ribete de su borde no es el polígono. */
 function zonaPintada(raiz: HTMLElement): SVGPathElement | null {
-  return raiz.querySelector<SVGPathElement>('.leaflet-zbe-pane path');
+  return raiz.querySelector<SVGPathElement>('.leaflet-zbe-pane path:not(.ribete-de-borde)');
 }
 
-/** Todo lo que hay en el panel de los polígonos de contexto, en orden. */
+/** Todo lo que hay en el panel de los polígonos de contexto, en orden, sin ribetes. */
 function poligonosDeContexto(raiz: HTMLElement): SVGPathElement[] {
-  return Array.from(raiz.querySelectorAll<SVGPathElement>('.leaflet-zbe-pane path'));
+  return Array.from(raiz.querySelectorAll<SVGPathElement>('.leaflet-zbe-pane path:not(.ribete-de-borde)'));
+}
+
+/** El ribete del borde de la zona, si lo hay (remate de la tanda 6 · parte 2). */
+function ribeteDeLaZona(raiz: HTMLElement): SVGPathElement | null {
+  return raiz.querySelector<SVGPathElement>('.leaflet-zbe-pane path.ribete-de-borde');
 }
 
 /**
@@ -940,11 +946,22 @@ describe('Mapa', () => {
     expect(poligono!.getAttribute('fill')).toBe(`#${TINTA_DEL_RELLENO}`);
     expect(Number(poligono!.getAttribute('fill-opacity'))).toBeCloseTo(RELLENO_DE_LA_ZONA, 3);
 
-    // Y al quitarla, se va.
+    // ⭐ Y en claro, un RIBETE BLANCO debajo del borde (remate de la tanda 6 ·
+    //    parte 2): el mismo mecanismo que las trazas. Asoma 2 px por lado, no
+    //    tiene relleno y tampoco intercepta el ratón.
+    const ribete = ribeteDeLaZona(raiz);
+    expect(ribete, 'en claro, el borde de la zona lleva ribete').not.toBeNull();
+    expect(ribete!.getAttribute('stroke')).toBe(`#${RIBETE_DEL_BORDE_DE_LA_ZONA}`);
+    expect(Number(ribete!.getAttribute('stroke-width'))).toBe(Number(poligono!.getAttribute('stroke-width')) + 2 * ASOMA_EL_RIBETE);
+    expect(ribete!.getAttribute('fill')).toBe('none');
+    expect(ribete!.classList.contains('leaflet-interactive')).toBe(false);
+
+    // Y al quitarla, se va, con su ribete.
     fixture.componentInstance.zona.set([]);
     fixture.detectChanges();
     await fixture.whenStable();
     expect(zonaPintada(raiz)).toBeNull();
+    expect(ribeteDeLaZona(raiz)).toBeNull();
   });
 
   /**
@@ -1023,11 +1040,41 @@ describe('Mapa', () => {
     expect(luminancia(deHex(ROJO_DE_LA_ZONA))).toBeCloseTo(0.1609, 3);
     expect(contraste(ROJO_DE_LA_ZONA, '2563eb')).toBeLessThan(1.1);
 
-    // ⭐ El BORDE del polígono sí llega a 3:1 contra el peor color del plano, y
+    // ~~⭐ El BORDE del polígono sí llega a 3:1 contra el peor color del plano, y
     //    por eso no necesita ribete: es el único trazo de esta pantalla que se
-    //    dibuja sin uno.
+    //    dibuja sin uno.~~
     expect(contraste(BORDE_DE_LA_ZONA, PLANO_MAS_OSCURO)).toBeGreaterThanOrEqual(AA_GRAFICO);
     expect(contraste(BORDE_DE_LA_ZONA, TIERRA_OSM)).toBeGreaterThanOrEqual(AA_GRAFICO);
+    // ⛔ Y las dos de arriba NO BASTABAN, y daban verde (remate de la tanda 6 ·
+    //    parte 2). Miden contra el censo del lienzo ENTERO, y el borde va por
+    //    donde va el tranvía (`#787877`), que es el 0,051 % del lienzo y el 4,6 %
+    //    de lo que hay bajo el borde. En móvil cruza además la letra de los
+    //    rótulos (`#383837`). Sobre el píxel, en la P26: 1,46 y 1,38.
+    //    ⇒ Se mide contra lo que el borde TIENE AL LADO, y ahí ningún color solo
+    //      llega: por eso lleva ribete, y lo que se mide es el par.
+    //    Y con ribete, el rojo de antes (`#b91c1c`) tampoco: el ribete pisa el
+    //    borde marrón de las calles, `c79b4e`, y el par daba 2,55. Así que el par
+    //    se exige contra CUALQUIER gris, como el pin.
+    const BAJO_EL_BORDE = ['787877', '383837', 'fefefe', 'fbd6a4', 'c9b7c7', 'c79b4e'];
+    expect(contraste(BORDE_DE_LA_ZONA, '787877'), 'solo, sobre el tranvía').toBeLessThan(AA_GRAFICO);
+    expect(contraste(BORDE_DE_LA_ZONA, RIBETE_DEL_BORDE_DE_LA_ZONA), 'el borde contra su ribete').toBeGreaterThanOrEqual(AA_GRAFICO);
+    for (const t of BAJO_EL_BORDE) {
+      expect(
+        Math.max(contraste(BORDE_DE_LA_ZONA, t), contraste(RIBETE_DEL_BORDE_DE_LA_ZONA, t)),
+        `el par borde + ribete contra #${t}`,
+      ).toBeGreaterThanOrEqual(AA_GRAFICO);
+    }
+    for (let v = 0; v <= 255; v++) {
+      const gris = v.toString(16).padStart(2, '0').repeat(3);
+      expect(
+        Math.max(contraste(BORDE_DE_LA_ZONA, gris), contraste(RIBETE_DEL_BORDE_DE_LA_ZONA, gris)),
+        `el par borde + ribete contra cualquier gris: #${gris}`,
+      ).toBeGreaterThanOrEqual(AA_GRAFICO);
+    }
+    expect(
+      Math.max(contraste('b91c1c', 'c79b4e'), contraste(RIBETE_DEL_BORDE_DE_LA_ZONA, 'c79b4e')),
+      'el rojo de antes, con ribete, sobre el borde marrón de las calles',
+    ).toBeLessThan(AA_GRAFICO);
 
     // Y el relleno es un TINTE: apenas se separa de la tierra —1,12:1— para no
     // competir con las trazas que van encima.
@@ -1132,7 +1179,9 @@ describe('Mapa', () => {
     // ═══ Y AHORA LOS NÚMEROS ═══════════════════════════════════════════════
     //
     // ⛔ Los dos bordes no se distinguen por el color, y no puede arreglarse.
-    expect(contraste(BORDE_DEL_AREA, BORDE_DE_LA_ZONA)).toBeLessThan(1.2);
+    //    Con `#b91c1c` daban 1,10; con `#7f1d1d` (remate de la tanda 6 · parte 2)
+    //    dan 1,41. Siguen lejos del 3:1: el canal que los separa es la raya.
+    expect(contraste(BORDE_DEL_AREA, BORDE_DE_LA_ZONA)).toBeLessThan(1.5);
     // Por eso uno va a rayas y el otro no. Es el segundo canal.
     expect(RAYA_DEL_AREA).toBeTruthy();
 
@@ -1323,17 +1372,22 @@ describe('⭐ EL MAPA EN OSCURO — la tesela de CARTO, su atribución y los rib
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
     const trazos = () => Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive')).map((p) => p.getAttribute('stroke'));
-    const borde = () => raiz.querySelector('.leaflet-zbe-pane path')?.getAttribute('stroke');
+    const borde = () => raiz.querySelector('.leaflet-zbe-pane path:not(.ribete-de-borde)')?.getAttribute('stroke');
+    const hayRibete = () => raiz.querySelector('.leaflet-zbe-pane path.ribete-de-borde') !== null;
 
     expect(trazos()).toEqual(['#000000', '#b45309']);
     expect(borde()).toBe(`#${BORDE_DE_LA_ZONA}`);
+
+    expect(hayRibete(), 'en claro el borde de la zona lleva ribete').toBe(true);
 
     await ponerTema(fixture, 'dark');
     expect(trazos(), 'en oscuro, el ribete del ámbar es blanco y el ámbar no cambia').toEqual(['#FFFFFF', '#b45309']);
     expect(borde()).toBe(`#${BORDE_DE_LA_ZONA_EN_OSCURO}`);
+    expect(hayRibete(), 'en oscuro el borde llega solo: sin ribete').toBe(false);
 
     await ponerTema(fixture, 'light');
     expect(trazos()).toEqual(['#000000', '#b45309']);
     expect(borde()).toBe(`#${BORDE_DE_LA_ZONA}`);
+    expect(hayRibete()).toBe(true);
   });
 });

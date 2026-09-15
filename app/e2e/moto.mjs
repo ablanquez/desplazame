@@ -74,7 +74,8 @@ const foto = () =>
       distintivos: grupo('fieldset.modos.distintivos'),
       cuantosDistintivos: document.querySelectorAll('fieldset.modos.distintivos').length,
       cuantasMatriculas: document.querySelectorAll('input[name=matricula]').length,
-      poligonos: document.querySelectorAll('.leaflet-zbe-pane path').length,
+      // Polígonos, no trazos: en claro el borde de la zona lleva debajo su ribete (remate de la tanda 6 · parte 2).
+      poligonos: document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length,
     };
   })()`);
 
@@ -261,7 +262,7 @@ try {
       //    círculo del carril, como el trazado de \`local_parking\`.
       marca: hito ? hito.querySelector('.paso__circulo svg path')?.getAttribute('d') ?? null : null,
       colores: encima.map((p) => p.getAttribute('stroke')),
-      poligonos: document.querySelectorAll('.leaflet-zbe-pane path').length,
+      poligonos: document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length,
       sugerencia: document.querySelector('.sugerencia__boton') !== null,
     };
   })()`);

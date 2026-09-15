@@ -6239,8 +6239,10 @@ describe('Buscador', () => {
     const raiz = fixture.nativeElement as HTMLElement;
 
     // Al arrancar en andando, nadie pide la capa.
+    // (Se cuentan POLÍGONOS: desde el remate de la tanda 6 · parte 2, en claro el
+    //  borde de la zona lleva debajo un ribete, `.ribete-de-borde`, que no lo es.)
     http.expectNone((r) => r.url.includes('MU1_ZBE'));
-    expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(0);
+    expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(0);
 
     elegirModo(fixture, 'coche');
     const capa = http.expectOne((r) => r.url.includes('MU1_ZBE'));
@@ -6248,19 +6250,19 @@ describe('Buscador', () => {
     capa.flush(LA_FASE_1);
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+    expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(1);
 
     // Al salirse del coche, el polígono se va — pero no se vuelve a pedir.
     elegirModo(fixture, 'andando');
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(0);
+    expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(0);
 
     elegirModo(fixture, 'coche');
     fixture.detectChanges();
     await fixture.whenStable();
     http.expectNone((r) => r.url.includes('MU1_ZBE'));
-    expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+    expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(1);
   });
 
   /**
@@ -7130,7 +7132,7 @@ describe('Buscador', () => {
       await fixture.whenStable();
       const raiz = await conViajeEnYego(fixture);
 
-      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(1);
       // Andando ámbar, y lo rodado azul o rojo según pise la zona.
       expect(coloresDeLosTramos(raiz)).toEqual([
         '#b45309',
@@ -7300,7 +7302,7 @@ describe('Buscador', () => {
       await fixture.whenStable();
       fixture.detectChanges();
       expect(http.match((r) => r.url === '/api/area-yego').length).toBe(0);
-      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(1);
 
       // ⭐ Se pasa a «Pública YeGo»: **ahora sí se le pide al motor**.
       pulsar(fixture, radiosDeMoto(raiz), 'yego');
@@ -7312,7 +7314,7 @@ describe('Buscador', () => {
 
       // La zona sigue, y encima las dos manchas: tres polígonos.
       const dibujados = Array.from(
-        raiz.querySelectorAll<SVGPathElement>('.leaflet-zbe-pane path'),
+        raiz.querySelectorAll<SVGPathElement>('.leaflet-zbe-pane path:not(.ribete-de-borde)'),
       );
       expect(dibujados.length).toBe(3);
       // ⭐ Y los anillos no se aplanan: las dos manchas suman cuatro anillos y
@@ -7324,7 +7326,7 @@ describe('Buscador', () => {
       pulsar(fixture, radiosDeMoto(raiz), 'moto');
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(1);
 
       // Y en el coche y en los sin motor, tampoco — ni se vuelve a pedir.
       for (const modo of ['coche', 'andando', 'bus', 'bici', 'patin'] as const) {
@@ -7334,7 +7336,7 @@ describe('Buscador', () => {
         await fixture.whenStable();
         expect(http.match((r) => r.url === '/api/area-yego').length).toBe(0);
         const cuantos = modo === 'coche' ? 1 : 0;
-        expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(cuantos);
+        expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(cuantos);
       }
 
       // ⭐ Y AL GENERAR EN YeGo SE VUELVE A PEDIR: es un feed vivo, no un
@@ -7350,7 +7352,7 @@ describe('Buscador', () => {
       drenarRutas(http.match('/api/ruta'), () => VIAJE_EN_YEGO);
       await fixture.whenStable();
       fixture.detectChanges();
-      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(3);
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(3);
     });
   });
 
@@ -7635,13 +7637,13 @@ describe('Buscador', () => {
       capa.flush(LA_FASE_1);
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(1);
 
       for (const modo of ['andando', 'bus', 'bici', 'patin'] as const) {
         elegirModo(fixture, modo);
         fixture.detectChanges();
         await fixture.whenStable();
-        expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(0);
+        expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(0);
       }
 
       // Se vuelve a la moto: el polígono está, y NO se ha vuelto a pedir.
@@ -7649,13 +7651,13 @@ describe('Buscador', () => {
       fixture.detectChanges();
       await fixture.whenStable();
       http.expectNone((r) => r.url.includes('MU1_ZBE'));
-      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(1);
 
       // Y el coche lo sigue teniendo, con la misma capa ya traída.
       elegirModo(fixture, 'coche');
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(1);
     });
 
     /**
@@ -7708,7 +7710,7 @@ describe('Buscador', () => {
       // ⭐ Y LA TRAZA: azul fuera, ROJA dentro, ámbar el paseo.
       expect(coloresDeLosTramos(raiz)).toEqual(['#2563eb', '#d32f2f', '#b45309']);
       // Y el polígono sigue debajo, que es el tercer canal de la misma noticia.
-      expect(raiz.querySelectorAll('.leaflet-zbe-pane path').length).toBe(1);
+      expect(raiz.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)').length).toBe(1);
 
       // La moto no elige aparcamiento: no hay otra zona que sugerir.
       expect(botonSugerir(raiz)).toBeNull();

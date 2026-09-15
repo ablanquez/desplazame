@@ -174,12 +174,39 @@ export const ROJO_DE_LA_ZONA = 'd32f2f';
 /**
  * ⭐ EL BORDE DEL POLÍGONO, y **es el único trazo sin ribete de la pantalla**.
  *
- * Puede permitírselo porque llega solo: `#b91c1c` da **3,66:1 contra el peor
+ * ~~Puede permitírselo porque llega solo: `#b91c1c` da **3,66:1 contra el peor
  * color del plano** y **5,64 contra la tierra**, así que cumple el 3:1 de [WCAG
- * 1.4.11] sin que nadie le ponga nada debajo. El rojo de la traza no llega
- * (2,82) y por eso la traza sí lo lleva.
+ * 1.4.11] sin que nadie le ponga nada debajo.~~
+ *
+ * ⛔ **No llegaba solo, y desde el remate de la tanda 6 · parte 2 lleva ribete EN
+ *    CLARO.** El 3,66 era contra `#f9b29c`, el más oscuro del censo del lienzo
+ *    ENTERO. Pero el borde del casco va por donde va el tranvía, que OSM pinta en
+ *    `#787877`: es el 0,051 % del lienzo y el 4,6 % de lo que hay bajo el borde.
+ *    Medido ahí en la P26, 1,46.
+ *
+ *    Se probó primero la regla del paso de familia: `#450a0a` (red-950) llegaba
+ *    a 3,65 en 1920 y 1440. **En móvil daba 1,38**, porque allí el borde cruza
+ *    además la letra de los rótulos (`#383837`). Bajo el borde conviven letra
+ *    muy oscura, tranvía medio y calzada blanca, y **ningún color solo llega a
+ *    3:1 contra los tres**: haría falta luminancia ≥ 0,217 por la letra, ≤ 0,029
+ *    o ≥ 0,66 por el tranvía, y ≤ 0,30 por el blanco.
+ *
+ *    ⇒ Es el caso de las trazas, y se resuelve igual (decisión de Antonio, 15/09):
+ *      **un ribete blanco debajo del borde**. El oscuro tiene su par propio
+ *      (`BORDE_DE_LA_ZONA_EN_OSCURO`), llega solo y no lleva ribete.
+ *
+ *    ⚠️ Y con el ribete, `#b91c1c` TAMPOCO llegaba. La franja del ribete pisa el
+ *       borde marrón de las calles, `rgb(199,155,78)`: el blanco da 2,55 contra
+ *       él y el rojo 2,30 (P26, en los tres anchos). El par tiene que valer sobre
+ *       CUALQUIER tesela, igual que el pin (`EN_EL_MAPA_CLARO` en `iconos.ts`):
+ *       el blanco cubre las teselas de luminancia ≤ 0,30 y el borde cubre las
+ *       demás si la suya es ≤ 0,0667. Paso mínimo de la familia que lo cumple:
+ *       **`#7f1d1d`** (red-900, 0,055), contra su ribete 10,02.
  */
-export const BORDE_DE_LA_ZONA = 'b91c1c';
+export const BORDE_DE_LA_ZONA = '7f1d1d';
+
+/** El ribete del borde de la zona EN CLARO. Ver `BORDE_DE_LA_ZONA`. */
+export const RIBETE_DEL_BORDE_DE_LA_ZONA = 'ffffff';
 
 /**
  * ⭐ Y SU PAR EN OSCURO (15/09, tanda 6 · parte 2): el borde sobre Dark Matter.
@@ -231,8 +258,7 @@ export const TINTA_DEL_RELLENO = 'd32f2f';
  * contra ese rojo** y que además se lea sobre el plano. La cuenta es cerrada —
  * para llegar a 3 haría falta una luminancia ≥ 0,384 (un tono casi blanco, que
  * se pierde sobre la calzada) o ≤ 0, que no existe. Medido con el instrumento,
- * no razonado.
- *
+ * no razonado. *
  * ⭐ **Por eso el segundo canal no es un adorno: es obligatorio** [WCAG 1.4.1,
  *    *el color no puede ser el único canal*]. El borde del área va **a rayas** y
  *    el de la Zona de Bajas Emisiones sigue continuo. Quien no distinga rojo de
@@ -606,6 +632,9 @@ export class Mapa {
   /** La capa de teselas puesta, y de qué tema es. */
   private tesela?: { readonly capa: L.TileLayer; readonly oscura: boolean };
 
+  /** Con qué datos y en qué tema se pintó la última vez. Ver `pintarTrazado`. */
+  private pintado?: { readonly datos: readonly unknown[]; readonly oscuro: boolean };
+
   /**
    * ⭐ «HE CAMBIADO DE TAMAÑO, VUELVE A MIRAR» (10/09, el esqueleto).
    *
@@ -695,6 +724,7 @@ export class Mapa {
       this.mapa?.remove();
       this.mapa = undefined;
       this.tesela = undefined;
+      this.pintado = undefined;
       this.marcas = [];
     });
   }
@@ -761,10 +791,38 @@ export class Mapa {
     const oscuro = this.tema.oscuro();
     const plano = oscuro ? PLANO_DE_DARK_MATTER : PLANO_DE_OSM;
 
+    // ⭐ SI SOLO HA CAMBIADO EL TEMA, SE VUELVE A VESTIR PERO NO SE ENCUADRA
+    //    (remate de la tanda 6 · parte 2, bitácora del 15/09). Quien ha movido el
+    //    mapa y cambia de tema no tiene que perder lo que movió. Se comparan las
+    //    MISMAS referencias que el `effect` lee: con cualquier dato nuevo —ruta,
+    //    tramos, zona, área o extremos— se encuadra como siempre.
+    const datos = [this.trazado(), this.tramos(), this.zona(), this.area(), this.capaOrigen(), this.capaDestino()] as const;
+    const soloElTema =
+      this.pintado !== undefined && this.pintado.oscuro !== oscuro && datos.every((d, i) => d === this.pintado!.datos[i]);
+    this.pintado = { datos, oscuro };
+
     // ⭐ LA ZONA VA PRIMERO Y VA SIEMPRE QUE SE DÉ, haya ruta o no: quien elige
     //    «Coche» tiene que poder ver dónde está el casco **antes** de generar
     //    nada. Por eso se pinta antes del corte de «sin trazado».
     const anillos = this.zona();
+    if (anillos.length > 0 && !oscuro) {
+      // ⭐ EL RIBETE DEL BORDE, EN CLARO (remate de la tanda 6 · parte 2): debajo,
+      //    por eso va primero. Sin relleno, 2 px más ancho por lado, y con la
+      //    clase que lo separa del polígono. Ver `BORDE_DE_LA_ZONA`.
+      this.zonas.push(
+        L.polygon(
+          anillos.map((anillo) => anillo.map(([lat, lon]) => [lat, lon] as L.LatLngTuple)),
+          {
+            pane: PANE_ZONA,
+            color: `#${RIBETE_DEL_BORDE_DE_LA_ZONA}`,
+            weight: 2 + 2 * ASOMA_EL_RIBETE,
+            fill: false,
+            className: 'ribete-de-borde',
+            interactive: false,
+          },
+        ).addTo(this.mapa),
+      );
+    }
     if (anillos.length > 0) {
       this.zonas.push(
         L.polygon(
@@ -813,7 +871,9 @@ export class Mapa {
 
     const vertices = this.trazado();
     if (vertices.length === 0) {
-      this.mapa.setView(CENTRO, ZOOM);
+      if (!soloElTema) {
+        this.mapa.setView(CENTRO, ZOOM);
+      }
       return;
     }
 
@@ -881,7 +941,7 @@ export class Mapa {
         caja ? caja.extend(linea.getBounds()) : linea.getBounds(),
       null,
     );
-    if (todo) {
+    if (todo && !soloElTema) {
       this.mapa.fitBounds(todo, { padding: HOLGURA_DEL_ENCUADRE });
     }
   }
@@ -905,7 +965,8 @@ export class Mapa {
     const [lat, lon] = vertice;
     const marca = L.marker([lat, lon], {
       icon: L.divIcon({
-        html: svgDeCapa(capa, papel, LADO_DEL_MARCADOR),
+        // En claro, el tono del pin que llega sobre cualquier tesela. Ver `EN_EL_MAPA_CLARO`.
+        html: svgDeCapa(capa, papel, LADO_DEL_MARCADOR, !this.tema.oscuro()),
         className: '',
         iconSize: [LADO_DEL_MARCADOR, LADO_DEL_MARCADOR],
         iconAnchor: ANCLAJE[capa],

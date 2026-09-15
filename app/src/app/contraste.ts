@@ -150,7 +150,9 @@ export const PLANO_MAS_OSCURO = 'f9b29c';
  * ⚠️ **Aquí los dos extremos NO se parecen a los del claro**: el plano entero
  *    está por debajo de luminancia 0,02. Por eso un trazo oscuro no llega
  *    solo (el ámbar del a-pie da 3,01:1 contra `#262626`) y el borde de la ZBE
- *    `#b91c1c`, que en claro se sostenía sin ribete, aquí da 2,34.
+ *    `#b91c1c`, que en claro se daba por sostenido sin ribete, aquí da 2,34. (Y
+ *    en claro tampoco se sostenía: el remate de la parte 2 lo midió a 1,46 sobre
+ *    el tranvía que corre bajo el borde, y en claro lleva ribete blanco.)
  *
  * Y la jueza que manda no es este censo: es la P26, que censa la tesela sobre
  * el píxel DEBAJO de cada trazo. Este sirve para decidir el tono; aquélla, para

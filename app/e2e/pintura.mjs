@@ -3717,6 +3717,15 @@ const MODOS_P26 = [
 /** Los rellenos de los pins, por familia [iconos.ts]: origen/farmacia, destino, sanitario, cultura, educación, sin papel. */
 const RELLENOS_DE_PIN = ['#1a7f37', '#c1121f', '#0d47a1', '#6a1b9a', '#614800', '#44403c'];
 
+/**
+ * Y los que el mapa pinta EN CLARO [iconos.ts, `EN_EL_MAPA_CLARO`]: un paso más
+ * oscuro en la familia para verde, rojo, azul y mostaza. El clon tiene que llevar
+ * lo que la pantalla pinta de verdad; con los de arriba mediría un pin que el
+ * tema claro ya no pone. Los dos pins reales del viaje comprueban la tabla: si
+ * no coincidieran con ella, su jueza lo diría con su color.
+ */
+const RELLENOS_DE_PIN_EN_CLARO = ['#14532d', '#7f1d1d', '#1e3a8a', '#6a1b9a', '#422006', '#44403c'];
+
 const OCULTAR_CAPAS = `document.querySelectorAll('.leaflet-overlay-pane, .leaflet-marker-pane, .leaflet-zbe-pane, .p26-clon').forEach((e) => (e.style.visibility = 'hidden'))`;
 const MOSTRAR_CAPAS = `document.querySelectorAll('.leaflet-overlay-pane, .leaflet-marker-pane, .leaflet-zbe-pane, .p26-clon').forEach((e) => (e.style.visibility = ''))`;
 const OCULTAR_CONTROLES = `document.querySelectorAll('.leaflet-control-container').forEach((e) => (e.style.visibility = 'hidden'))`;
@@ -3847,18 +3856,26 @@ const LO_QUE_PISA = `
     if (cl.width === 0 && cl.height === 0) continue;
     pares.push({ linea: hex(linea.getAttribute('stroke')), ribete: hex(ribete.getAttribute('stroke')), anchoLinea: Number(linea.getAttribute('stroke-width')), anchoRibete: Number(ribete.getAttribute('stroke-width')), caja: caja(ribete) });
   }
-  const bordes = [...document.querySelectorAll('.leaflet-zbe-pane path')].map((p) => ({ borde: hex(p.getAttribute('stroke')), raya: p.getAttribute('stroke-dasharray'), caja: caja(p) }));
+  // Un borde puede llevar su ribete debajo (la zona en claro): va delante en el
+  // panel, con la clase ribete-de-borde, y se juzga EN PAREJA con él.
+  const bordes = [];
+  let ribetePendiente = null;
+  for (const p of document.querySelectorAll('.leaflet-zbe-pane path')) {
+    if (p.classList.contains('ribete-de-borde')) { ribetePendiente = hex(p.getAttribute('stroke')); continue; }
+    bordes.push({ borde: hex(p.getAttribute('stroke')), ribete: ribetePendiente, raya: p.getAttribute('stroke-dasharray'), caja: caja(p) });
+    ribetePendiente = null;
+  }
   const pins = [...document.querySelectorAll('.leaflet-marker-icon svg[data-icono]')].map((s) => { const p = s.querySelector('path'); return { icono: s.getAttribute('data-icono'), papel: s.getAttribute('data-papel'), relleno: hex(p.getAttribute('fill')), halo: hex(p.getAttribute('stroke')), caja: caja(s) }; });
   const hitos = [...document.querySelectorAll('.leaflet-marker-icon .hito')].map((h) => { const s = getComputedStyle(h); return { aro: hex(s.borderTopColor), fondo: hex(s.backgroundColor), dibujo: hex(s.color), caja: caja(h) }; });
   return { pares, bordes, pins, hitos, dpr: devicePixelRatio, lienzo: { x: lienzo.x, y: lienzo.y, w: lienzo.width, h: lienzo.height } };
 `;
 
 /** Pone un clon de un pin por cada relleno de familia, sobre la tesela, a su tamaño. */
-const CLONAR_PINS = `
+const CLONAR_PINS = (rellenosDelTema) => `
   const origen = document.querySelector('.leaflet-marker-icon svg[data-icono]');
   if (!origen) return 0;
   const lienzo = document.querySelector('.leaflet-container').getBoundingClientRect();
-  const rellenos = ${JSON.stringify(RELLENOS_DE_PIN)};
+  const rellenos = ${JSON.stringify(rellenosDelTema)};
   rellenos.forEach((f, i) => {
     const c = origen.cloneNode(true);
     c.classList.add('p26-clon');
@@ -3871,9 +3888,17 @@ const CLONAR_PINS = `
   return rellenos.length;
 `;
 
-async function juzgarLoQuePisa(m, dicho) {
+/**
+ * ⭐ EN CLARO TAMBIÉN (remate de la parte 2, 15/09): los bordes de polígono y los
+ * pins se juzgan sobre la tesela de OpenStreetMap con la misma regla. El borde
+ * de la ZBE daba 1,46 sobre el tranvía y los pins verde y rojo 2,29-2,68 sobre
+ * el oliva, y hasta hoy nadie los vigilaba. El deslumbre, las trazas y los
+ * hitos del claro no se juzgan aquí: los llevan pantalla.mjs y la P18-P24.
+ */
+async function juzgarLoQuePisa(m, dicho, tema = 'dark') {
+  const oscuro = tema === 'dark';
   const lo = await leer(m, LO_QUE_PISA);
-  const clones = await leer(m, CLONAR_PINS);
+  const clones = await leer(m, CLONAR_PINS(oscuro ? RELLENOS_DE_PIN : RELLENOS_DE_PIN_EN_CLARO));
   const deLosClones = await leer(m, `return [...document.querySelectorAll('svg.p26-clon')].map((s) => { const r = s.getBoundingClientRect(); const p = s.querySelector('path'); return { icono: 'clon', papel: p.getAttribute('fill'), relleno: p.getAttribute('fill').toLowerCase(), halo: p.getAttribute('stroke').toLowerCase(), caja: { x: r.x - 3, y: r.y - 3, w: r.width + 6, h: r.height + 6 } }; });`);
   await m.evaluar(OCULTAR_CONTROLES);
   await m.dormir(150);
@@ -3886,6 +3911,7 @@ async function juzgarLoQuePisa(m, dicho) {
   await m.evaluar(`document.querySelectorAll('svg.p26-clon').forEach((e) => e.remove())`);
 
   // El deslumbre: la moda del lienzo sin capas, contra el techo del realce.
+  if (oscuro) {
   const L = lo.lienzo;
   const moda = new Map();
   for (let y = Math.floor(L.y); y < Math.min(sin.alto, L.y + L.h); y++) {
@@ -3903,6 +3929,7 @@ async function juzgarLoQuePisa(m, dicho) {
     `${dicho} · ⭐ la tesela no deslumbra: su color dominante no es más claro que la superficie del realce`,
     `moda ${enRgb(colorModa)} (luminancia ${luminancia(colorModa).toFixed(4)}) · techo ${enRgb(realce)} (${luminancia(realce).toFixed(4)})`,
   );
+  }
 
   const conPeorTesela = (a, b, tesela) => {
     let min = Infinity, cual = null;
@@ -3910,7 +3937,7 @@ async function juzgarLoQuePisa(m, dicho) {
     return { min, cual };
   };
 
-  for (const [clave, grupo] of agrupar(lo.pares, (p) => p.linea + '|' + p.ribete)) {
+  for (const [clave, grupo] of oscuro ? agrupar(lo.pares, (p) => p.linea + '|' + p.ribete) : []) {
     const [hl, hr] = clave.split('|');
     const linea = deHex6(hl), ribete = deHex6(hr);
     const bajo = teselaBajo(con, sin, grupo.map((p) => p.caja), [linea, ribete], lo.dpr);
@@ -3926,21 +3953,38 @@ async function juzgarLoQuePisa(m, dicho) {
       `línea/ribete ${entreSi.toFixed(2)} · peor contra la tesela ${min.toFixed(2)} sobre ${enRgb(cual)} · ${bajo.tesela.length} colores ≥ 1 % bajo ${bajo.n} px · ${grupo.length} trozo(s)`,
     );
   }
-  for (const [hb, grupo] of agrupar(lo.bordes, (b) => b.borde)) {
+  for (const [clave, grupo] of agrupar(lo.bordes, (b) => b.borde + '|' + (b.ribete ?? ''))) {
+    const [hb, hr] = clave.split('|');
     const borde = deHex6(hb);
-    const bajo = teselaBajo(con, sin, grupo.map((b) => b.caja), [borde], lo.dpr);
+    const ribete = hr ? deHex6(hr) : null;
+    const bajo = teselaBajo(con, sin, grupo.map((b) => b.caja), ribete ? [borde, ribete] : [borde], lo.dpr);
     if (bajo.n < MUESTRA_MINIMA) {
-      console.log(`  ··  ${dicho} · el borde ${hb} no se mide: ${bajo.n} px pintados, por debajo de ${MUESTRA_MINIMA}`);
+      console.log(`  ··  ${dicho} · el borde ${hb}${hr ? ' con ribete ' + hr : ''} no se mide: ${bajo.n} px pintados, por debajo de ${MUESTRA_MINIMA}`);
       continue;
     }
-    const { min, cual } = conPeorTesela(borde, null, bajo.tesela);
+    const { min, cual } = conPeorTesela(borde, ribete, bajo.tesela);
+    const entreSi = ribete ? contrasteRgb(borde, ribete) : Infinity;
     juzgar(
-      min >= AA_GRAFICO,
-      `${dicho} · ⭐ el borde ${hb}${grupo[0].raya ? ' a rayas' : ''} del polígono se separa de la tesela: ≥ ${AA_GRAFICO}:1 [1.4.11]`,
-      `peor ${min.toFixed(2)} sobre ${enRgb(cual)} · ${bajo.tesela.length} colores ≥ 1 % bajo ${bajo.n} px · ${grupo.length} polígono(s)`,
+      min >= AA_GRAFICO && entreSi >= AA_GRAFICO,
+      `${dicho} · ⭐ el borde ${hb}${grupo[0].raya ? ' a rayas' : ''}${hr ? ' y su ribete ' + hr : ''} del polígono se separa de la tesela: ≥ ${AA_GRAFICO}:1 [1.4.11]`,
+      `${ribete ? 'borde/ribete ' + entreSi.toFixed(2) + ' · ' : ''}peor ${min.toFixed(2)} sobre ${enRgb(cual)} · ${bajo.tesela.length} colores ≥ 1 % bajo ${bajo.n} px · ${grupo.length} polígono(s)`,
+    );
+  }
+  // Sin viaje no hay pins (YeGo solo pinta su área): entonces no hay tabla que comprobar.
+  if (!oscuro && lo.pins.length > 0) {
+    const reales = lo.pins.filter((p) => p.icono === 'via').map((p) => p.relleno);
+    juzgar(
+      reales.length === 2 && reales.every((r) => RELLENOS_DE_PIN_EN_CLARO.includes(r)),
+      `${dicho} · los pins reales en claro llevan los tonos que miden los clones`,
+      reales.join(' · ') || '(sin pins)',
     );
   }
   for (const p of [...lo.pins, ...deLosClones]) {
+    // Un pin fuera del lienzo —la jueza de la vista arrastra el mapa— no está pintado: se dice, no se juzga.
+    if (p.caja.w <= 0 || p.caja.h <= 0) {
+      console.log(`  ··  ${dicho} · el pin ${p.icono}/${p.papel} no se mide: queda fuera de la vista`);
+      continue;
+    }
     const relleno = deHex6(p.relleno), halo = deHex6(p.halo);
     const bajo = teselaBajo(con, sin, [p.caja], [halo], lo.dpr);
     const entreSi = contrasteRgb(relleno, halo);
@@ -3951,7 +3995,7 @@ async function juzgarLoQuePisa(m, dicho) {
       `relleno/halo ${entreSi.toFixed(2)} · peor contra la tesela ${Number.isFinite(min) ? min.toFixed(2) : '—'}${cual ? ' sobre ' + enRgb(cual) : ''} · halo pintado ${bajo.n} px`,
     );
   }
-  for (const h of lo.hitos) {
+  for (const h of oscuro ? lo.hitos : []) {
     const aro = deHex6(h.aro);
     const bajo = teselaBajo(con, sin, [h.caja], [aro], lo.dpr);
     const { min, cual } = conPeorTesela(aro, null, bajo.tesela);
@@ -4009,7 +4053,32 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
       }
       if (await ponerTema(m, 'light', `${dicho} · claro`)) {
         await juzgarLaCapa(m, dicho, 'light');
+        await juzgarLoQuePisa(m, `${dicho} · claro`, 'light');
         await m.guardar(`${CAPTURAS}/mapa-claro-${pantalla.id}-${nombre}.png`);
+      }
+      if (modo.id === 'andando') {
+        // ⭐ Y LA VISTA NO SE MUEVE (remate de la parte 2, bitácora del 15/09):
+        //    quien ha arrastrado el mapa y cambia de tema no tiene que perder lo
+        //    que movió. Se arrastra de verdad con el ratón y se compara la vista
+        //    antes y después. Va AL FINAL de la sesión: el arrastre saca pins de
+        //    la vista, y antes de medirlos estorbaría.
+        const centro = await leer(m, `const r = document.querySelector('.leaflet-container').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 };`);
+        await m.cdp('Input.dispatchMouseEvent', { type: 'mousePressed', x: centro.x, y: centro.y, button: 'left', clickCount: 1 });
+        for (let k = 1; k <= 6; k++) await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: centro.x - 20 * k, y: centro.y - 12 * k, button: 'left', buttons: 1 });
+        await m.cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', x: centro.x - 120, y: centro.y - 72, button: 'left', clickCount: 1 });
+        await m.dormir(900);
+        const VISTA = `return { panel: getComputedStyle(document.querySelector('.leaflet-map-pane')).transform, zoom: ([...document.querySelectorAll('.leaflet-tile-container img.leaflet-tile')][0]?.src.split('/').slice(-3)[0]) ?? null };`;
+        const antes = await leer(m, VISTA);
+        for (const tema of ['dark', 'light']) {
+          await ponerTema(m, tema, `${dicho} · con el mapa movido`);
+          await esperarTeselas(m);
+        }
+        const despues = await leer(m, VISTA);
+        juzgar(
+          antes.panel !== 'none' && antes.panel === despues.panel && antes.zoom === despues.zoom,
+          `${dicho} · ⭐ y la vista que la persona movió sigue donde la dejó: cambiar de tema no vuelve a encuadrar`,
+          `antes ${antes.panel} · z${antes.zoom} → después ${despues.panel} · z${despues.zoom}`,
+        );
       }
     } finally {
       m.cerrar();

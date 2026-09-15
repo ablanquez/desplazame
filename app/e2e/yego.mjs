@@ -63,20 +63,22 @@ const foto = () =>
       // ⭐ Los dos polígonos de contexto se cuentan **por su borde**, no por su
       //    número: el de la ZBE es continuo y los del área de YeGo van a rayas.
       //    Contarlos a bulto ataría la prueba a cuántas manchas publique hoy.
-      poligonos: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+      //    Y el ribete del borde de la zona en claro (remate de la tanda 6 · parte 2)
+      //    es un trazo, no un polígono: no se cuenta.
+      poligonos: [...document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)')].filter(
         (x) => x.getAttribute('stroke-dasharray') === null,
       ).length,
-      manchas: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+      manchas: [...document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)')].filter(
         (x) => x.getAttribute('stroke-dasharray') !== null,
       ).length,
       // Cuántos subcaminos tiene la mancha más partida: los huecos.
       anillosDeLaMayor: Math.max(
         0,
-        ...[...document.querySelectorAll('.leaflet-zbe-pane path')]
+        ...[...document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)')]
           .filter((x) => x.getAttribute('stroke-dasharray') !== null)
           .map((x) => (x.getAttribute('d') ?? '').match(/M/g)?.length ?? 0),
       ),
-      bordeDelArea: [...document.querySelectorAll('.leaflet-zbe-pane path')]
+      bordeDelArea: [...document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)')]
         .find((x) => x.getAttribute('stroke-dasharray') !== null)
         ?.getAttribute('stroke') ?? null,
     };
@@ -211,10 +213,10 @@ try {
       deja: texto(pasos.find((li) => (li.querySelector('.paso__texto')?.textContent ?? '').startsWith('Deja'))),
       resumen: [...document.querySelectorAll('.resumen__linea')].map((l) => l.textContent.replace(/\\s+/g, ' ').trim()),
       colores: encima.map((p) => p.getAttribute('stroke')),
-      poligonos: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+      poligonos: [...document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)')].filter(
         (x) => x.getAttribute('stroke-dasharray') === null,
       ).length,
-      manchas: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+      manchas: [...document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)')].filter(
         (x) => x.getAttribute('stroke-dasharray') !== null,
       ).length,
       hayUuid: /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-/.test(document.body.innerHTML),
@@ -275,7 +277,7 @@ try {
     pasos: document.querySelectorAll('.paso').length,
     trazas: document.querySelectorAll('path.leaflet-interactive').length,
     resumen: [...document.querySelectorAll('.resumen__linea')].map((l) => l.textContent.replace(/\\s+/g, ' ').trim()),
-    manchas: [...document.querySelectorAll('.leaflet-zbe-pane path')].filter(
+    manchas: [...document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)')].filter(
       (x) => x.getAttribute('stroke-dasharray') !== null,
     ).length,
   }))()`);
