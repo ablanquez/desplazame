@@ -14,6 +14,32 @@
 
 ---
 
+## [2026-09-15] 🔴 ABIERTA — el borde de la ZBE en CLARO lee a 1,46:1 sobre lo pintado, y la prueba de unidad lo da por 3:1
+
+**Categoría:** verde declarado que no era
+**Síntoma:** la P26 (tanda 6 · parte 2), antes de cablear la tesela oscura, midió
+sobre la tesela de OpenStreetMap de hoy, que es la del tema claro. El borde del
+polígono de la zona es `#b91c1c`, el color del claro. Bajo ese borde, la tesela
+pinta un gris que ocupa más del 1 % de lo que hay debajo. Motor pid 21200 en
+`127.0.0.1:4300`, `main-2AOZW6WC.js`:
+`✗✗  P26 · pc · coche · ⭐ el borde #b91c1c del polígono se separa de la tesela: ≥ 3:1 [1.4.11]  ·  peor 1.46 sobre rgb(120, 120, 119) · 6 colores ≥ 1 % bajo 753 px · 1 polígono(s)`
+Igual en 1920 (1,46 sobre `rgb(120, 120, 119)`) y en 390 (1,44 sobre `rgb(119, 119, 118)`).
+**⭐ Qué dio verde mientras el fallo estaba vivo:** `app/src/app/mapa.spec.ts:1016`,
+`expect(contraste(BORDE_DE_LA_ZONA, PLANO_MAS_OSCURO)).toBeGreaterThanOrEqual(AA_GRAFICO)`
+(3,66 contra `#f9b29c`), dentro de la suite de unidad corrida hoy:
+`Test Files  16 passed (16)` · `Tests  594 passed (594)`.
+**Cómo se cazó:** instrumento — la P26 nueva, que censa la tesela sobre el píxel debajo de cada trazo.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/src/app/mapa.ts` (`BORDE_DE_LA_ZONA`) · `app/src/app/contraste.ts` (`PLANO_MAS_OSCURO`) · `app/src/app/mapa.spec.ts:1016`.
+**Nota [2026-09-15]:** se captura y NO se arregla en esta parte. El encargo deja el
+claro «tal cual», con P18-P24 enteras, y el tono del claro lo decide Antonio. En
+oscuro pasó lo mismo con `#dc2626` (3,13 contra el censo del plano entero, 2,02
+sobre las calzadas `#444444` bajo el borde), pero ese tono nunca llegó a
+declararse verde.
+
 ## [2026-09-15] ✅ CERRADA — seis suites e2e terminan con código 0 estando en rojo
 
 **Categoría:** verde declarado que no era
