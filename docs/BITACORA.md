@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-15] 🔴 ABIERTA — seis suites e2e terminan con código 0 estando en rojo
+## [2026-09-15] ✅ CERRADA — seis suites e2e terminan con código 0 estando en rojo
 
 **Categoría:** verde declarado que no era
 **Síntoma:** con la jueza de terceros recién puesta y en rojo, `esqueleto` e
@@ -28,10 +28,26 @@ cierre de la parte 1 citó como evidencia («las diez, salida 0»). Hoy, motor p
 `node app/e2e/esqueleto.mjs http://127.0.0.1:4300 …` → `❌ 1 EN ROJO` · `esqueleto 0`
 `node app/e2e/identidad.mjs http://127.0.0.1:4300 …` → `❌ 1 EN ROJO` · `identidad 0`
 **Cómo se cazó:** instrumento — la jueza de terceros de la tanda 6 · parte 2, al nacer en rojo.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** el veredicto se escribía para el ojo y no para la máquina.
+- Cada suite cuenta sus rojos e imprime el total, pero seis nunca pasaban esa
+  cuenta al código de salida. Las otras cuatro lo hacían, cada una con su
+  `process.exit`, y nadie comparó las diez.
+- Una excepción sí salía con 1 (la lanza Node), y eso tapaba el hueco: la
+  batería solo veía distinto de 0 cuando algo reventaba, nunca cuando una jueza
+  suspendía.
+- El cierre de la parte 1 leyó el texto y además citó el código, que no decía
+  nada.
+**Arreglo aplicado:** las seis fijan `process.exitCode = fallos|malas === 0 ? 0 : 1`
+justo después de imprimir el veredicto [convención POSIX/GNU del exit status].
+Jueza del arnés, en copias del scratchpad con un rojo sembrado, contra el motor
+pid 21200 en `127.0.0.1:4300`: salida 1 en las seis, cada una tras su
+`❌ 1 EN ROJO`. La primera copia de `pintura` murió leyendo `../simbolos` desde
+el scratchpad y ese 1 no valía; repetida con la ruta real: 337 OK + el
+sembrado → `❌ 1 EN ROJO` · salida 1.
+**Commit:** `d6aaf9a`
 **Ley que sale de aquí:** SIN LEY TODAVÍA
+- Un veredicto que solo se lee con los ojos no vigila: el rojo va también al
+  código de salida, y la prueba de que va es sembrar un rojo y leer ese código.
 **Traza:** `app/e2e/{esqueleto,identidad,creditos,bizi-y-resumen,dos-filas,pintura}.mjs`, línea final del veredicto.
 
 ## [2026-09-15] ✅ CERRADA — la batería e2e pide las teselas a OpenStreetMap sin caché del arnés, y lo imprimía en verde
