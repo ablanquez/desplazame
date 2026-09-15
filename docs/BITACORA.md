@@ -39,6 +39,20 @@ claro «tal cual», con P18-P24 enteras, y el tono del claro lo decide Antonio. 
 oscuro pasó lo mismo con `#dc2626` (3,13 contra el censo del plano entero, 2,02
 sobre las calzadas `#444444` bajo el borde), pero ese tono nunca llegó a
 declararse verde.
+**Nota [2026-09-15, remate de la parte 2] — por qué la prueba daba 3,66 sobre un 1,46.**
+Antes de arreglar, sonda con el mismo viaje en coche que la P26, a 1440, tema claro,
+motor pid 22888 en `127.0.0.1:4300`, `main-W3XI4ADO.js`.
+- **Qué hay bajo el borde (753 px):** `#fefefe` 32,4 % · `#fcd6a4` 30,9 % ·
+  `#fbd6a4` 8,4 % · **`#787877` 4,6 %** · `#ededed` 1,1 % · `#c9b7c7` 1,1 %.
+- **El mismo `#787877` en el lienzo entero:** `0.051 % del plano entero`, y
+  `b91c1c contra él 1.46`.
+- **Qué es:** ampliado sin capas, **la línea del tranvía** que pinta OSM. El borde
+  la cruza en el puente y la acompaña por el Coso. Recortes en
+  `scratchpad/zbeclaro/zbe-claro-recorte-{sin,con}.png`.
+- **Contra qué medía la prueba:** `PLANO_MAS_OSCURO = #f9b29c`, el más oscuro de
+  los colores que ocupan ≥ 1 % del lienzo ENTERO (el censo de `contraste.ts`,
+  hecho sobre un viaje de la 21). El tranvía, a 0,05 %, nunca entró en ese
+  censo. Bajo este borde es casi el 5 %.
 
 ## [2026-09-15] ✅ CERRADA — seis suites e2e terminan con código 0 estando en rojo
 
