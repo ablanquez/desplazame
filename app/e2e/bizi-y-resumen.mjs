@@ -12,7 +12,7 @@
  */
 import { abrirChrome } from './medir.mjs';
 
-const APP = 'http://localhost:4200/';
+const APP = process.env.APP ?? 'http://localhost:4200/';
 const FOTOS = process.argv[2] ?? '.';
 
 const m = await abrirChrome({ alto: 1800 });
