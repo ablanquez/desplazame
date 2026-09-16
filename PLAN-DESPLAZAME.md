@@ -4438,11 +4438,9 @@ Code lo traduce al Angular existente.)*
         ⚰️ la tesela oscura CARTO [PARTE 2, HECHA — abajo: Dark
         Matter con key, atribución por capa, el claro del mapa
         también medido] → ⚰️ PUENTE: el Buscador en oscuro
-        [HECHO — abajo] → PUENTE-BIS: /panel en oscuro [21
-        colores a pelo con letra oscura, YA INVENTARIADOS con
-        porqué en el puente — mismo principio firmado: todo lo
-        público listo ANTES de que el botón haga el oscuro
-        público] →
+        [HECHO — abajo] → ⚰️ PUENTE-BIS: /panel en oscuro
+        [HECHO — abajo; el barrido de rutas confirmó que era
+        LA ÚLTIMA página sin vestir] →
         EL CONMUTADOR [PARTE 3, pedido por Antonio en la ronda
         de visión: el botón en PC y EL CUARTO HUECO de la barra
         móvil, con su anti-FOUC; prioridad documentada:
@@ -4720,6 +4718,69 @@ Code lo traduce al Angular existente.)*
         censo [la ayuda de la matrícula sobre campo nativo y
         el foco del desplegable del navegador] — los vigila
         la P27, que es vigilancia real; el censo mide tokens.
+      - [x] ⚰️ EL PUENTE-BIS — /panel EN OSCURO, Y EL BARRIDO
+        QUE CONFIRMÓ QUE ERA EL ÚLTIMO (15/09 noche; 2 commits
+        `5b5547a`+`ed6c040` sobre `64686da`, en local al
+        escribir esto — UN push con estos papeles; ojo de
+        Antonio: bien). EL BARRIDO DE RUTAS, con evidencia y
+        no por suposición: las CINCO navegables bajo
+        data-theme=dark — portada 0 por debajo [peor 7,51] ·
+        /panel SIN VESTIR [380 textos, 193 por debajo, el peor
+        1,03: la cabecera de la tabla con la letra clara sobre
+        su #f3f3f3 a pelo] · /identidad 0 [peor 4,52] ·
+        /creditos 0 [peor 9,44] · /visor cae en portada.
+        DIAGNÓSTICO: los 21 a pelo uno a uno — 20 a token; el
+        filete #ddd de la tabla a --border SIN vara de 3:1 con
+        porqué [separa celdas que se leen por su texto, no es
+        frontera ni estado] · nativos: NINGUNO; la barra del
+        marco YA iba en tema, verificado en píxel [#2c2c2c /
+        #fcfcfc] · WCAG 1.4.1 mirado: los 58 chips llevan su
+        TEXTO — nada señalado solo por color, nada que
+        declarar, cero rediseño. LO NACIDO: seis tokens
+        estado-{caducado,vigente}-{superficie,borde,tinta} —
+        solo donde no había familia [«por revisar» es el ámbar
+        de casa y «sin regla» su gris] — con la regla del chip
+        SOBRE FONDO: superficie el paso más oscuro, tinta el
+        más claro, borde el paso mínimo con 3:1 contra su
+        superficie Y contra la página [rojo #dc2626 3,34·3,88;
+        verde #16a34a 4,52·5,68]; y OTRO ROTO DEL CLARO DE
+        PRODUCCIÓN cazado de propina: el borde del chip gris
+        #999 a 2,50 sobre su superficie → --muted-foreground.
+        CENSO: 52 tokens · 37 pares [74] · 18 límites [36] —
+        los del panel medidos contra --background [el chip no
+        vive en tarjeta]. JUEZAS: censo + (viii) nueva, 18
+        rojos → unidad 651/651 [contraprueba 2 rojos con
+        #b91c1c a 2,50] · P28 en tres anchos y dos temas: 19
+        rojos contra el bundle del puente → 64 OK
+        [contraprueba 15 rojos, salida 1; la red del panel de
+        193 por debajo a 0, aviso de fallo medido con el
+        manifiesto TUMBADO de verdad] · identidad.mjs: su
+        copia de control cazada OTRA VEZ corta [36 filas
+        contra 22] → 74 pares · 36 límites · los 21 de
+        panel.css FUERA de la lista-con-porqué [la lista no es
+        un cementerio]. SIN BITÁCORA, a propósito y con el
+        porqué: nada daba verde con esto vivo — /panel era
+        deuda DECLARADA con su lista desde el puente; deuda
+        declarada no es verde mentiroso [el criterio de la
+        skill, bien aplicado]. CIERRE: 10/10 con salida 0
+        sobre ed6c040, 0 escapadas · pintura 1.004 [P25 84 ·
+        P26 477 · P27 126 · P28 64] · unidad 651 · motor 656 ·
+        tipos. PRESUPUESTO: initial 546,39→548,39 [styles.css
+        34,74→36,74 por las dos paletas; el trozo perezoso del
+        panel 8,97→9,39; la raya de 520 REBASADA sigue] ·
+        resultado.css 5,59. CABO NUEVO: panel.css declara
+        font-family system-ui para la página entera mientras
+        la app va en Inter — tipografía, no color; dicho, no
+        tocado [cambiarlo mueve las métricas de la tabla].
+        ⚠️ Y UNA MENTIRA DE PAPEL DEL ESTRATEGA, cazada en
+        este destilado: el bloque de publicación del ESTADO
+        llevaba DOS titulares — un fósil «Publicado hasta
+        8606cd4» del 14/09 delante del real, porque los
+        destilados del 15 antepusieron la cadena nueva sin
+        retirar el párrafo viejo; viajó en TRES pushes de
+        papeles [d34358c · 9fba4c2 · 64686da]. Retirado; la
+        lección es la de siempre: el barrido por clases debe
+        contar «cuántos titulares hay», no solo qué dicen.
 - [ ] **EL GUARDIÁN DE BUILD ATÓMICO [PRIORIDAD ALTA — bloque
       propio desde el 15/09, pedido por Antonio: los papeles con la
       verdad entera, no líneas de mesa]** — EL PORQUÉ: el `ng build`

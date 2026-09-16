@@ -197,15 +197,9 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `8606cd4`** (el push del 14/09 tarde-2: los
-papeles del destilado de los fallitos; antes, el mismo día: LA
-TANDA DE LOS FALLITOS entera en `2f51ce6` [7 commits `8ab1d29`
-+ `abb87a1`…`2f51ce6`, las cinco líneas con motor+contrato y
-la última voz] y el mediodía `64c2591` [la fase C de la tanda
-5 + papeles]; el 13/09 `7f0ba5a` [fases A+B]; los del 11-12/09:
-el GORDO `69f14e1` [tandas 2-4], las PESTAÑAS `608a921` y el
-remate de visión `2e4911a`; y `b27ab63` [papeles] + los dos
-del 9/09 [`062f532` · `c3adffb`]). **Publicado hasta `9fba4c2`**
+**Publicado hasta `64686da`**
+(el push del 15/09 noche: EL PUENTE — el Buscador en los dos
+temas — + sus papeles, UN push); antes: **`9fba4c2`**
 (el push del 15/09 tarde: LA PARTE 2 entera — 19 commits
 `ee18769`…`1b8c29d`, Dark Matter y el claro del mapa — + sus
 papeles, UN push); antes: **`d34358c`**
@@ -217,9 +211,9 @@ se llevó también la tanda de la región — el «un solo push»
 que quedó en dos, dicho], `2f51ce6` [los fallitos enteros] y
 `64c2591` [la fase C]; el 13/09 `7f0ba5a`; los del 11-12/09 y
 anteriores como constaba). **En local, sin publicar** *(al
-cierre del 15/09 noche)*: **EL PUENTE — el Buscador en oscuro
-(5 commits `9dd9288`…`5ba0aec`) + los papeles de este
-destilado — UN push con todo ⚠️ desde M2, CADA PUSH
+cierre del 15/09 noche, tarde)*: **EL PUENTE-BIS — /panel en
+los dos temas (2 commits `5b5547a`+`ed6c040`) + los papeles
+de este destilado — UN push con todo ⚠️ desde M2, CADA PUSH
 REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
 — los papeles de las casillas 0+3 y los 12 del calco — empujados
 en `062f532`.)* *(La nota del 8/09 noche: los
@@ -1685,10 +1679,11 @@ verdad» · «un trazo se mide contra lo que tiene al lado, no
 contra los extremos del plano») — y EL PUENTE HECHO (el
 Buscador en los dos temas, el claro roto de producción
 arreglado de paso, la jueza del color a pelo para TODA la
-app; crónica en la casilla 4) — (a) EL PUSH del puente [+
-estos papeles, UN push]; (b) EL PUENTE-BIS: /panel en oscuro
-[los 21 a pelo YA inventariados con porqué]; (c) LA PARTE
-3: EL CONMUTADOR [PC + el cuarto hueco de la barra móvil +
+app; crónica en la casilla 4) — y EL PUENTE-BIS HECHO
+[/panel en los dos temas; el barrido de rutas con evidencia:
+ERA la última página sin vestir — crónica en la casilla 4] —
+(a) EL PUSH del puente-bis [+ estos papeles, UN push]; (b) LA
+PARTE 3: EL CONMUTADOR [PC + el cuarto hueco de la barra móvil +
 anti-FOUC + el peso del §3; el re-encuadre del mapa al
 conmutar YA resuelto con jueza en la parte 2]; (d) DESPUÉS:
 el encargo de IDENTIDAD [el logo + ⭐ la identidad de ICONOS
@@ -1700,8 +1695,9 @@ fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
-initial RELEÍDO al cierre del puente: 546,39 kB, transferido
-139,44; la poda como palanca] · el guardián de build atómico [PRIORIDAD ALTA
+initial al cierre del puente-bis: 548,39 kB, transferido
+139,67 [styles.css engordó con las dos paletas del panel]; la
+poda como palanca] · el guardián de build atómico [PRIORIDAD ALTA
 — ya con BLOQUE PROPIO en el PLAN, delante de la casilla 5:
 porqué, forma y jueza] · el
 refactor del resultado como componente propio [4 topes] · los
@@ -1721,7 +1717,9 @@ README gana su sección de temas/mapa tras la parte 3 · los
 44 px de los campos de la maqueta NUNCA aplicados [reglas
 muertas por encapsulación — ANTES de la verificación: la
 casilla 5 mide targets 44px; con el ojo de Antonio] · dos
-pares fuera del censo vigilados por la P27 [acta del puente]; (3) los pendientes del 14 en
+pares fuera del censo vigilados por la P27 [acta del puente] ·
+la tipografía de panel.css [system-ui mientras la app va en
+Inter — cabo del puente-bis; mueve métricas de la tabla]; (3) los pendientes del 14 en
 cola: cabeceras de caché · el mock del e2e vivo · el cron educado
 municipal; (4) la cola técnica (al cierre,
 tras la estética): la poda de los 165 huérfanos [censo] ·
@@ -2045,7 +2043,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.278 pruebas (656 motor + 622 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.307 pruebas (656 motor + 651 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
