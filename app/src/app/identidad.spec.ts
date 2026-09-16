@@ -93,6 +93,14 @@ const CLARO: Readonly<Record<string, string>> = {
   //    Los campos llevaban #999 (2,85:1) y el desplegable `border` (1,23). El
   //    slate-400 se queda en 2,56; el 500 es el paso mínimo que llega (4,76).
   'borde-de-campo': '#64748b',
+  // ⭐ EL PUENTE-BIS (16/09): los dos estados del panel de frescura que no tenían
+  //    familia en la casa. En claro son los valores de siempre, ya medidos.
+  'estado-caducado-superficie': '#fde7e7',
+  'estado-caducado-borde': '#c0392b',
+  'estado-caducado-tinta': '#8c1c12',
+  'estado-vigente-superficie': '#e8f5e9',
+  'estado-vigente-borde': '#2e7d32',
+  'estado-vigente-tinta': '#1b5e20',
   'mode-andando-soft': '#dcfce7',
   'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d',
@@ -159,6 +167,18 @@ const OSCURO: Readonly<Record<string, string>> = {
   //    #686868 se queda en 2,99). En oscuro los campos llevaban el `border` de
   //    la casa, 1,32:1.
   'borde-de-campo': '#696969',
+  // ⭐ EL PUENTE-BIS (16/09), POR REGLA y con el ámbar oscuro de la casa como
+  //    patrón (#3a1d00 / #d97706 / #fef3c7): la superficie es el paso más oscuro
+  //    de la familia, la tinta el más claro, y el borde el paso mínimo que da 3:1
+  //    contra su superficie Y contra la página. Rojo: el 700 (#b91c1c) se queda
+  //    en 2,50 sobre su superficie; el 600 da 3,34 y 3,88. Verde: el 700
+  //    (#15803d) da 2,97; el 600 da 4,52 y 5,68.
+  'estado-caducado-superficie': '#450a0a',
+  'estado-caducado-borde': '#dc2626',
+  'estado-caducado-tinta': '#fee2e2',
+  'estado-vigente-superficie': '#052e16',
+  'estado-vigente-borde': '#16a34a',
+  'estado-vigente-tinta': '#dcfce7',
   'mode-andando-soft': '#14532d',
   'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e',
@@ -233,16 +253,19 @@ const ELEGIDO_CLARO = declaraciones(bloque(CSS, "[data-theme='light'] {"));
 const TODOS = [...SEMANTICOS, ...TOKENS_DE_MODO];
 
 describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
-  it('están los 46 tokens: 22 semánticos y 6 modos × 4 variantes', () => {
+  it('están los 52 tokens: 28 semánticos y 6 modos × 4 variantes', () => {
     // ⚠️ Eran 16 y 40 hasta el 11/09. Los dos nuevos son la banda de las
     //    cabeceras, y son los PRIMEROS que no vienen calcados de la maqueta.
     // ⚠️ Y 18 y 42 hasta el 15/09 (tanda 6): entran la leyenda —el #555 a pelo—
     //    y la superficie del realce, que tomaba prestada la banda.
     // ⚠️ Y 21 y 45 desde el remate: el gris secundario del paso.
     // ⚠️ Y 22 y 46 desde el puente: la frontera de los campos.
-    expect(SEMANTICOS.length).toBe(22);
+    // ⚠️ Y 28 y 52 desde el puente-bis: los dos estados del panel, con su
+    //    superficie, su borde y su tinta. El ámbar y el gris NO estrenan: son el
+    //    `warning` y el `muted` de la casa, que ya estaban.
+    expect(SEMANTICOS.length).toBe(28);
     expect(TOKENS_DE_MODO.length).toBe(24);
-    expect(TODOS.length).toBe(46);
+    expect(TODOS.length).toBe(52);
   });
 
   for (const token of [...SEMANTICOS, ...TOKENS_DE_MODO]) {
@@ -341,7 +364,7 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     }),
   );
 
-  it('se miden los 31 pares en los dos temas: 62 medidas', () => {
+  it('se miden los 37 pares en los dos temas: 74 medidas', () => {
     // ⚠️ Eran 18 y 36. Los dos siguientes fueron los DOS estados de la banda:
     //    medir solo el reposo dejaría el hover sin vigilar, que es donde el
     //    gris se aclara y el texto pierde contraste.
@@ -361,8 +384,15 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
     //    va en `foreground` sobre el ámbar, y la opción activa de un desplegable
     //    se pinta invertida —la tarjeta sobre `foreground`—. Las dos vivían a
     //    pelo en las hojas de los campos, que la jueza (vi) no barría.
-    expect(PARES.length).toBe(31);
-    expect(medidos.length).toBe(62);
+    // ⚠️ Y del 32 al 37 (el puente-bis, 16/09): el panel de frescura no se pinta
+    //    sobre una tarjeta, sino sobre la página, y el censo no tenía ni un par
+    //    contra `background` salvo el texto principal. Entran la leyenda y el gris
+    //    sobre la página, la cabecera de la tabla sobre `muted`, los dos chips
+    //    nuevos y el aviso de fallo del panel.
+    expect(PARES.length).toBe(37);
+    expect(medidos.length).toBe(74);
+    expect(PARES.some((p) => p.texto === 'leyenda' && p.fondo === 'background')).toBe(true);
+    expect(PARES.some((p) => p.texto === 'foreground' && p.fondo === 'muted')).toBe(true);
     expect(PARES.some((p) => p.texto === 'foreground' && p.fondo === 'warning')).toBe(true);
     expect(PARES.some((p) => p.texto === 'card' && p.fondo === 'foreground')).toBe(true);
     expect(PARES.some((p) => p.texto === 'secundario-del-paso' && p.fondo === 'superficie-realce')).toBe(true);
@@ -414,7 +444,12 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
    * reposo Y sobre la banda del realce. Un borde no es texto y su vara es 3:1,
    * así que va en su propia lista y no mezclado con los pares de 4,5.
    */
-  it('⭐ los 11 límites, en los dos temas, a 3:1 o más', () => {
+  it('⭐ los 18 límites, en los dos temas, a 3:1 o más', () => {
+    // ⚠️ Y del 12 al 18 (el puente-bis): el borde de cada chip de estado del
+    //    panel, contra su superficie Y contra la página en la que se pinta —los
+    //    cuatro: caducado, vigente, el ámbar de la casa y el gris—. El gris usa
+    //    `muted-foreground` de borde: con `--border` se quedaba en 1,4 y con el
+    //    #999 de hoy, en 2,50 sobre su superficie.
     // ⚠️ Y del 9 al 11 (el puente, 15/09): la frontera de los campos contra la
     //    tarjeta —2,85 y 1,23 en claro, en producción; bitácora del 15/09—, el
     //    anillo del foco de los campos, que no existía, y la opción activa de un
@@ -437,6 +472,13 @@ describe('⭐ (ii) EL CONTRASTE — los pares declarados, en los dos temas', () 
       'borde-de-campo/card',
       'ring/card',
       'foreground/card',
+      'estado-caducado-borde/estado-caducado-superficie',
+      'estado-caducado-borde/background',
+      'estado-vigente-borde/estado-vigente-superficie',
+      'estado-vigente-borde/background',
+      'warning-border/background',
+      'muted-foreground/muted',
+      'muted-foreground/background',
     ]);
     for (const tema of ['light', 'dark'] as const) {
       for (const l of LIMITES) {
@@ -564,13 +606,13 @@ describe('LA PÁGINA de identidad monta con todo lo que hay que medir', () => {
     await TestBed.configureTestingModule({ imports: [Identidad] }).compileComponents();
   });
 
-  it('trae una sonda por token y por tema: 92', () => {
+  it('trae una sonda por token y por tema: 104', () => {
     const f = TestBed.createComponent(Identidad);
     f.detectChanges();
     const raiz = f.nativeElement as HTMLElement;
-    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(92);
-    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(46);
-    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(46);
+    expect(raiz.querySelectorAll('[data-sonda] [data-token]').length).toBe(104);
+    expect(raiz.querySelectorAll("[data-sonda='light'] [data-token]").length).toBe(52);
+    expect(raiz.querySelectorAll("[data-sonda='dark'] [data-token]").length).toBe(52);
   });
 
   it('pinta los seis modos con sus cuatro variantes', () => {
@@ -862,34 +904,11 @@ describe('⭐ (vi) NI UN COLOR A PELO en ninguna hoja de la app, salvo los que d
     // tiene debajo es su frontera, `--borde-de-campo`, medida a 3:1.
     'autocompletar-via.css · box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15)',
     'selector-portal.css · box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15)',
-    // ⚠️ `/panel`, FUERA DEL ALCANCE DEL PUENTE Y A LA LISTA (15/09). Es el panel
-    //    de frescura de los datos, una página de servicio aparte del producto:
-    //    sus 21 colores a pelo se declaran aquí para que la jueza barra sin
-    //    huecos, NO porque estén bien. Con el oscuro puesto su letra oscura
-    //    quedaría sobre el fondo oscuro del `body`: pendiente de decisión antes de
-    //    que la parte 3 haga el oscuro público. Cada uno sale de aquí cuando se
-    //    tokenice.
-    'panel.css · color: #333',
-    'panel.css · color: #666',
-    'panel.css · border: 1px solid #ddd',
-    'panel.css · background: #f3f3f3',
-    'panel.css · color: #666',
-    'panel.css · color: #555',
-    'panel.css · color: #767676',
-    'panel.css · background: #fde7e7',
-    'panel.css · border-color: #c0392b',
-    'panel.css · color: #8c1c12',
-    'panel.css · background: #fdf3e0',
-    'panel.css · border-color: #c07a00',
-    'panel.css · color: #7a4d00',
-    'panel.css · background: #e8f5e9',
-    'panel.css · border-color: #2e7d32',
-    'panel.css · color: #1b5e20',
-    'panel.css · background: #f0f0f0',
-    'panel.css · border-color: #999',
-    'panel.css · color: #555',
-    'panel.css · color: #555',
-    'panel.css · color: #8c1c12',
+    // ⚠️ Aquí vivieron los 21 colores a pelo de `panel.css`, declarados por el
+    //    puente (15/09) como «fuera de alcance». El puente-bis (16/09) los vistió
+    //    con tokens y salen de esta lista: **no es un cementerio**, lo que se
+    //    queda se queda con un porqué vigente. El barrido de rutas del 16/09
+    //    confirmó que `/panel` era la última página sin vestir.
   ];
 
   it('la jueza barre de verdad: TODAS las hojas, y las que pintan tienen declaraciones que mirar', () => {
@@ -1038,5 +1057,95 @@ describe('⭐ (vii) LOS CAMPOS DEL BUSCADOR se visten con los tokens que el cens
   it('⭐ buscador.css no tiene reglas de `.campo input`: los campos son de sus componentes', () => {
     const muertas = reglas('app/src/app/buscador.css').filter((r) => /\.campo input/.test(r.sel));
     expect(muertas.map((r) => r.sel)).toEqual([]);
+  });
+});
+
+/**
+ * ⭐ (viii) EL PANEL DE FRESCURA, CON LOS TOKENS DE LA CASA (el puente-bis, 16/09).
+ *
+ * `/panel` es la última página que quedaba sin vestir: el barrido de rutas del
+ * 16/09 la capturó bajo `data-theme=dark` con **193 textos por debajo de 4,5:1**
+ * y el peor a 1,03 —la cabecera de la tabla, letra clara sobre su #f3f3f3—.
+ * Aquí se fija qué token lleva cada papel; que cada token llegue a su vara lo
+ * fija el censo de arriba, y que se pinte, la P28 sobre el píxel.
+ *
+ * ⚠️ El panel se pinta sobre la PÁGINA, no sobre una tarjeta: sus grises se
+ *    miden contra `background`, que en oscuro (#121212) no es `card` (#1e1e1e).
+ */
+describe('⭐ (viii) EL PANEL DE FRESCURA se viste con los tokens que el censo mide', () => {
+  const HOJA = 'app/src/app/panel.css';
+  const reglas = (hoja: string): { sel: string; cuerpo: string }[] =>
+    [...sinComentarios(leer(hoja)).matchAll(/([^{};]+)\{([^{}]*)\}/g)].map((m) => ({
+      sel: m[1]!.replace(/\s+/g, ' ').trim(),
+      cuerpo: m[2]!,
+    }));
+  const cuerpoDe = (sel: string): string =>
+    reglas(HOJA)
+      .filter((r) => r.sel === sel)
+      .map((r) => r.cuerpo)
+      .join('\n');
+
+  it('los textos del panel llevan los grises de la casa', () => {
+    expect(cuerpoDe('.panel__intro')).toMatch(/color:\s*var\(--foreground\)/);
+    expect(cuerpoDe('.panel__hoy')).toMatch(/color:\s*var\(--muted-foreground\)/);
+    expect(cuerpoDe('.panel__ruta')).toMatch(/color:\s*var\(--muted-foreground\)/);
+    expect(cuerpoDe('.panel__noconsta')).toMatch(/color:\s*var\(--muted-foreground\)/);
+    expect(cuerpoDe('.panel__fuente')).toMatch(/color:\s*var\(--leyenda\)/);
+    expect(cuerpoDe('.panel__pie')).toMatch(/color:\s*var\(--leyenda\)/);
+  });
+
+  it('la tabla: el filete de la casa y la cabecera sobre la superficie apagada', () => {
+    expect(cuerpoDe('.panel__tabla th, .panel__tabla td')).toMatch(/border:\s*1px solid var\(--border\)/);
+    expect(cuerpoDe('.panel__tabla thead th')).toMatch(/background:\s*var\(--muted\)/);
+  });
+
+  it('⭐ el aviso de fallo va en la tinta del estado caducado', () => {
+    expect(cuerpoDe('.panel__fallo')).toMatch(/color:\s*var\(--estado-caducado-tinta\)/);
+  });
+
+  /**
+   * ⭐ LOS CUATRO CHIPS, cada uno con su trío. Dos estrenan familia —caducado y
+   * vigente—; los otros dos NO estrenan nada: el «por revisar» es el ámbar de la
+   * casa y el «sin regla» es su gris. El borde del gris pasa a
+   * `muted-foreground`: el #999 de hoy daba 2,50 sobre su propia superficie.
+   */
+  it('⭐ los cuatro estados llevan superficie, borde y tinta con token', () => {
+    const trio = (sel: string): string[] =>
+      [...cuerpoDe(sel).matchAll(/var\(--([\w-]+)\)/g)].map((m) => m[1]!);
+    expect(trio('.panel__estado--rojo')).toEqual([
+      'estado-caducado-superficie',
+      'estado-caducado-borde',
+      'estado-caducado-tinta',
+    ]);
+    expect(trio('.panel__estado--verde')).toEqual([
+      'estado-vigente-superficie',
+      'estado-vigente-borde',
+      'estado-vigente-tinta',
+    ]);
+    expect(trio('.panel__estado--ambar')).toEqual(['warning', 'warning-border', 'warning-dark']);
+    expect(trio('.panel__estado--gris')).toEqual(['muted', 'muted-foreground', 'muted-foreground']);
+  });
+
+  /**
+   * ⚠️ [WCAG 1.4.1, nivel A] el color no puede ser el único medio de transmitir
+   * información. Aquí ya se cumplía antes de vestir nada —y por eso este
+   * encargo no rediseña—: cada chip lleva su texto. Se vigila desde hoy, que es
+   * lo que impide que un rediseño futuro lo pierda sin que nadie lo vea.
+   */
+  it('⭐ cada chip de estado dice su estado con palabras, no solo con color', () => {
+    const plantilla = leer('app/src/app/panel.html');
+    const chips = [...plantilla.matchAll(/<span class="panel__estado[^"]*"[^>]*>([^<]*)</g)].map(
+      (m) => m[1]!.trim(),
+    );
+    // Los cuatro del resumen llevan la palabra escrita; el de cada fila la toma
+    // del dato (`fila.e.texto`), que es texto de verdad y lo comprueba la P28
+    // sobre los 58 pintados. Lo que aquí no puede pasar es que alguno vaya vacío.
+    expect(chips.length).toBeGreaterThanOrEqual(5);
+    for (const c of chips) {
+      expect(c, 'un chip sin nada dentro').not.toBe('');
+    }
+    const literales = chips.filter((c) => c.replace(/\{\{[^}]*\}\}/g, '').trim() !== '');
+    expect(literales.length).toBeGreaterThanOrEqual(4);
+    expect(chips.some((c) => /\{\{\s*fila\.e\.texto\s*\}\}/.test(c))).toBe(true);
   });
 });

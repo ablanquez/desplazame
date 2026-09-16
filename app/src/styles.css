@@ -183,6 +183,19 @@
      en 2,99). Los campos llevaban el `border` de la casa, 1,32:1: sirve para
      separar, no para decir dónde se escribe. Ver el claro. */
   --oscuro-borde-de-campo: #696969;
+  /* ⭐ LOS DOS ESTADOS DEL PANEL DE FRESCURA (el puente-bis, 16/09), POR REGLA y
+     con el ámbar oscuro de la casa como patrón (#3a1d00 / #d97706 / #fef3c7):
+     la superficie es el paso mas oscuro de la familia, la tinta el mas claro, y
+     el borde el paso minimo que da 3:1 contra su superficie Y contra la pagina
+     —el chip vive sobre el fondo, no sobre una tarjeta—. Rojo: el 700 (#b91c1c)
+     se queda en 2,50 sobre su superficie; el 600 da 3,34 y 3,88. Verde: el 700
+     (#15803d) da 2,97; el 600 da 4,52 y 5,68. La tinta lee a 13,22 y 13,57. */
+  --oscuro-estado-caducado-superficie: #450a0a;
+  --oscuro-estado-caducado-borde: #dc2626;
+  --oscuro-estado-caducado-tinta: #fee2e2;
+  --oscuro-estado-vigente-superficie: #052e16;
+  --oscuro-estado-vigente-borde: #16a34a;
+  --oscuro-estado-vigente-tinta: #dcfce7;
   --oscuro-mode-andando-soft: #14532d;
   --oscuro-mode-andando-strong: #4ade80;
   --oscuro-mode-andando-solid: #22c55e;
@@ -266,6 +279,17 @@
      Token propio y no `muted-foreground`, aunque hoy valga lo mismo: uno es
      letra y otro es borde, y moverlo por uno movería el otro. Bitácora 15/09. */
   --claro-borde-de-campo: #64748b;
+  /* ⭐ Los dos estados del panel (el puente-bis): en claro son los valores que el
+     panel ya tenia a pelo, que estaban medidos y cumplen —tinta 7,76 y 7,00
+     sobre su superficie; borde 4,60 y 4,56 sobre ella y 5,44 y 5,13 sobre la
+     pagina—. Lo que cambia no es el color: es que ahora tienen nombre, se
+     sondean y se miden en los DOS temas. */
+  --claro-estado-caducado-superficie: #fde7e7;
+  --claro-estado-caducado-borde: #c0392b;
+  --claro-estado-caducado-tinta: #8c1c12;
+  --claro-estado-vigente-superficie: #e8f5e9;
+  --claro-estado-vigente-borde: #2e7d32;
+  --claro-estado-vigente-tinta: #1b5e20;
 
   /* Andando (verde) */
   --claro-mode-andando-soft: #dcfce7;
@@ -330,6 +354,12 @@
   --superficie-realce: var(--claro-superficie-realce);
   --secundario-del-paso: var(--claro-secundario-del-paso);
   --borde-de-campo: var(--claro-borde-de-campo);
+  --estado-caducado-superficie: var(--claro-estado-caducado-superficie);
+  --estado-caducado-borde: var(--claro-estado-caducado-borde);
+  --estado-caducado-tinta: var(--claro-estado-caducado-tinta);
+  --estado-vigente-superficie: var(--claro-estado-vigente-superficie);
+  --estado-vigente-borde: var(--claro-estado-vigente-borde);
+  --estado-vigente-tinta: var(--claro-estado-vigente-tinta);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);
@@ -387,6 +417,12 @@
     --superficie-realce: var(--oscuro-superficie-realce);
     --secundario-del-paso: var(--oscuro-secundario-del-paso);
     --borde-de-campo: var(--oscuro-borde-de-campo);
+    --estado-caducado-superficie: var(--oscuro-estado-caducado-superficie);
+    --estado-caducado-borde: var(--oscuro-estado-caducado-borde);
+    --estado-caducado-tinta: var(--oscuro-estado-caducado-tinta);
+    --estado-vigente-superficie: var(--oscuro-estado-vigente-superficie);
+    --estado-vigente-borde: var(--oscuro-estado-vigente-borde);
+    --estado-vigente-tinta: var(--oscuro-estado-vigente-tinta);
     --mode-andando-soft: var(--oscuro-mode-andando-soft);
     --mode-andando-strong: var(--oscuro-mode-andando-strong);
     --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -440,6 +476,12 @@
   --superficie-realce: var(--oscuro-superficie-realce);
   --secundario-del-paso: var(--oscuro-secundario-del-paso);
   --borde-de-campo: var(--oscuro-borde-de-campo);
+  --estado-caducado-superficie: var(--oscuro-estado-caducado-superficie);
+  --estado-caducado-borde: var(--oscuro-estado-caducado-borde);
+  --estado-caducado-tinta: var(--oscuro-estado-caducado-tinta);
+  --estado-vigente-superficie: var(--oscuro-estado-vigente-superficie);
+  --estado-vigente-borde: var(--oscuro-estado-vigente-borde);
+  --estado-vigente-tinta: var(--oscuro-estado-vigente-tinta);
   --mode-andando-soft: var(--oscuro-mode-andando-soft);
   --mode-andando-strong: var(--oscuro-mode-andando-strong);
   --mode-andando-solid: var(--oscuro-mode-andando-solid);
@@ -508,6 +550,12 @@
   --superficie-realce: var(--claro-superficie-realce);
   --secundario-del-paso: var(--claro-secundario-del-paso);
   --borde-de-campo: var(--claro-borde-de-campo);
+  --estado-caducado-superficie: var(--claro-estado-caducado-superficie);
+  --estado-caducado-borde: var(--claro-estado-caducado-borde);
+  --estado-caducado-tinta: var(--claro-estado-caducado-tinta);
+  --estado-vigente-superficie: var(--claro-estado-vigente-superficie);
+  --estado-vigente-borde: var(--claro-estado-vigente-borde);
+  --estado-vigente-tinta: var(--claro-estado-vigente-tinta);
   --mode-andando-soft: var(--claro-mode-andando-soft);
   --mode-andando-strong: var(--claro-mode-andando-strong);
   --mode-andando-solid: var(--claro-mode-andando-solid);

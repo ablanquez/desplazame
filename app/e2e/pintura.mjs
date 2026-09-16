@@ -4450,6 +4450,174 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
   }
 }
 
+// ═══════════ P28 · EL PANEL DE FRESCURA EN LOS DOS TEMAS ═══════════
+//
+// ⭐ [el puente-bis, 16/09] `/panel` era la última página sin vestir, y lo dijo
+//    un barrido de las CINCO rutas navegables bajo `data-theme=dark` —la
+//    portada, el panel, la identidad, los créditos y el comodín—: solo el panel
+//    salió en rojo, con 193 textos por debajo de 4,5:1 y el peor a 1,03 (la
+//    cabecera de la tabla: letra clara sobre su #f3f3f3 escrito a pelo).
+//
+// ⚠️ LA VARA DE LA P0, la misma de la P25 y la P27: el tema por `data-theme` y
+//    leído del DOM con dos tokens computados. Sin tema puesto, sesión en ROJO.
+//
+// ⚠️ EL PANEL SE PINTA SOBRE LA PÁGINA, no sobre una tarjeta: en oscuro su fondo
+//    es #121212 y no #1e1e1e, así que sus grises se miden contra `background`.
+//
+// ⚠️ [WCAG 1.4.1, nivel A] el color no puede ser el único medio de transmitir
+//    información. Los chips del panel ya lo cumplían antes de vestirlos —cada
+//    uno lleva su texto— y aquí se vigila sobre lo pintado, chip a chip: este
+//    encargo no rediseña, declara y mide.
+//
+// OJO: dentro de las plantillas de JS, ni una comilla invertida en los comentarios.
+const RED_DEL_PANEL = `
+  const rgb = (s) => { const m = s && s.match(/[\\d.]+/g); if (!m) return null; const [r, g, b, a] = m.map(Number); return { r, g, b, a: a ?? 1 }; };
+  const lin = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const L = (c) => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+  const C = (a, b) => (Math.max(L(a), L(b)) + 0.05) / (Math.min(L(a), L(b)) + 0.05);
+  const fondoDe = (el) => { for (let e = el; e; e = e.parentElement) { const c = rgb(getComputedStyle(e).backgroundColor); if (c && c.a === 1) return c; } return null; };
+  const nombre = (el) => el.tagName.toLowerCase() + (el.classList[0] ? '.' + el.classList[0] : '');
+  const malos = []; let textos = 0; let peor = 21;
+  for (const el of document.querySelectorAll('.panel *')) {
+    const s = getComputedStyle(el); const b = el.getBoundingClientRect();
+    if (b.width === 0 || b.height === 0 || s.visibility === 'hidden') continue;
+    const fondo = fondoDe(el);
+    if (!fondo) continue;
+    if ([...el.childNodes].some((n) => n.nodeType === 3 && n.data.trim())) {
+      textos++;
+      const r = C(rgb(s.color), fondo);
+      peor = Math.min(peor, r);
+      if (r < 4.5) malos.push(nombre(el) + ' ' + s.color + ' ' + r.toFixed(2) + ':1');
+    }
+  }
+  return { textos, peor: Number(peor.toFixed(2)), malos: [...new Set(malos)].slice(0, 8), cuantosMalos: malos.length };
+`;
+
+/** Los chips de estado: una familia de cada, con su trío computado y su texto. */
+const LOS_CHIPS_DEL_PANEL = `
+  const rgb = (s) => { const m = s && s.match(/[\\d.]+/g); if (!m) return null; const [r, g, b, a] = m.map(Number); return { r, g, b, a: a ?? 1 }; };
+  const lin = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const L = (c) => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+  const C = (a, b) => (Math.max(L(a), L(b)) + 0.05) / (Math.min(L(a), L(b)) + 0.05);
+  const pagina = rgb(getComputedStyle(document.body).backgroundColor);
+  const todos = [...document.querySelectorAll('.panel__estado')];
+  const familias = {};
+  todos.forEach((e, i) => {
+    const clase = [...e.classList].find((c) => c.startsWith('panel__estado--'));
+    if (!clase || familias[clase]) return;
+    const s = getComputedStyle(e);
+    familias[clase] = { clase, indice: i, txt: e.textContent.trim(),
+      superficie: s.backgroundColor, borde: s.borderTopColor, tinta: s.color,
+      bordeVsSuperficie: Number(C(rgb(s.borderTopColor), rgb(s.backgroundColor)).toFixed(2)),
+      bordeVsPagina: Number(C(rgb(s.borderTopColor), pagina).toFixed(2)) };
+  });
+  return { familias: Object.values(familias), cuantos: todos.length, sinTexto: todos.filter((e) => !e.textContent.trim()).length };
+`;
+
+for (const [k, pantalla] of PANTALLAS.entries()) {
+  for (const tema of ['dark', 'light']) {
+    const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+    const dicho = `P28 · ${pantalla.id} · ${nombreTema}`;
+    const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: 9750 + 10 * k + (tema === 'dark' ? 0 : 1) });
+    try {
+      await m.ir(APP + 'panel', 6000);
+      console.log(`\n═══ EL PANEL DE FRESCURA EN ${nombreTema.toUpperCase()} · ${pantalla.nombre} ═══`);
+      if (!(await ponerTema(m, tema, dicho))) continue;
+      const oscuro = tema === 'dark';
+      const realce = aRgb(await tokenRgb(m, 'superficie-realce'));
+
+      const red = await leer(m, RED_DEL_PANEL);
+      juzgar(
+        red.textos > 40 && red.cuantosMalos === 0,
+        `${dicho} · ⭐ la red: ningún texto del panel por debajo de ${AA_TEXTO}:1 (valor computado)`,
+        `${red.textos} textos · el peor ${red.peor} · ${red.cuantosMalos} por debajo${red.malos.length ? ' · ' + red.malos.join(' | ') : ''}`,
+      );
+
+      // Los cuatro chips: lo que se lee dentro, y su borde contra su superficie y
+      // contra la página. El texto, sobre el píxel; los bordes, computados (un
+      // filete de 1 px se mezcla con el suavizado).
+      const chips = await leer(m, LOS_CHIPS_DEL_PANEL);
+      juzgar(
+        chips.cuantos >= 5 && chips.sinTexto === 0,
+        `${dicho} · ⭐ los ${chips.cuantos} chips de estado dicen su estado con palabras [WCAG 1.4.1]`,
+        `${chips.cuantos} chips · ${chips.sinTexto} sin texto`,
+      );
+      for (const f of chips.familias) {
+        const t = await pixelDe(m, '.panel__estado', { indice: f.indice, minimo: 4 });
+        juzgar(
+          t !== null && t.contraste >= AA_TEXTO && f.bordeVsSuperficie >= AA_GRAFICO && f.bordeVsPagina >= AA_GRAFICO,
+          `${dicho} · ⭐ el chip «${f.clase.replace('panel__estado--', '')}» se lee y su borde se distingue por dentro y por fuera`,
+          `«${f.txt.slice(0, 22)}» ${t === null ? '(fuera de la vista)' : t.contraste.toFixed(2) + ':1'} · borde ${f.borde} contra su superficie ${f.bordeVsSuperficie} · contra la página ${f.bordeVsPagina}`,
+        );
+      }
+
+      // La cabecera de la tabla, que es donde peor estaba: letra clara sobre su
+      // propio gris claro. Sobre el píxel.
+      const cabecera = await pixelDe(m, '.panel__tabla thead th', { minimo: 6 });
+      const filete = await m.evaluar(`getComputedStyle(document.querySelector('.panel__tabla td')).borderTopColor`);
+      juzgar(
+        cabecera !== null && cabecera.contraste >= AA_TEXTO && filete === (await tokenRgb(m, 'border')),
+        `${dicho} · ⭐ la cabecera de la tabla se lee, y el filete es el --border de la casa`,
+        `${cabecera === null ? '(no hay cabecera)' : cabecera.contraste.toFixed(2) + ':1 · ' + enRgb(cabecera.texto) + ' sobre ' + enRgb(cabecera.fondo)} · filete ${filete}`,
+      );
+      juzgar(
+        cabecera === null || !oscuro || luminancia(cabecera.fondo) <= luminancia(realce),
+        `${dicho} · y su banda no es un bloque claro dentro del oscuro`,
+        cabecera === null ? '(no hay cabecera)' : `fondo ${enRgb(cabecera.fondo)} · techo ${enRgb(realce)}`,
+      );
+
+      // La barra del marco de la tabla, que la pinta el navegador [color-scheme].
+      const marco = await leer(m, `const t = document.querySelector('.panel__marco'); if (!t) return null; const r = t.getBoundingClientRect(); return { x: r.x, y: r.bottom - (t.offsetHeight - t.clientHeight), w: r.width, h: t.offsetHeight - t.clientHeight, desborda: t.scrollWidth > t.clientWidth };`);
+      if (marco && marco.h > 0) {
+        const carril = await carrilDe(m, marco, oscuro);
+        juzgar(
+          marco.desborda && (oscuro ? luminancia(carril) <= luminancia(realce) : luminancia(carril) >= luminancia(realce)),
+          `${dicho} · ⭐ la barra del marco de la tabla va en el tema (la pinta el navegador por color-scheme)`,
+          `${marco.h} px · el píxel de su carril ${enRgb(carril)} · realce ${enRgb(realce)}`,
+        );
+      }
+
+      await m.guardar(`${CAPTURAS}/panel-${nombreTema}-${pantalla.id}.png`);
+      await m.evaluar(`window.scrollTo(0, 700)`);
+      await m.dormir(300);
+      await m.guardar(`${CAPTURAS}/panel-${nombreTema}-${pantalla.id}-tabla.png`);
+    } finally {
+      m.cerrar();
+    }
+  }
+}
+
+// ── Y EL AVISO DE FALLO, con el manifiesto caído de verdad ──
+// ⚠️ No se busca su color a mano: se tumba la petición del manifiesto antes de
+//    que la página exista, se deja que el panel pinte su fallo, y se mide.
+for (const tema of ['dark', 'light']) {
+  const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+  const dicho = `P28 · el manifiesto caído · ${nombreTema}`;
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9782 + (tema === 'dark' ? 0 : 1) });
+  try {
+    await m.cdp('Page.addScriptToEvaluateOnNewDocument', {
+      source: `(() => { const pedir = window.fetch; window.fetch = function (...args) {
+        const url = String(args[0]?.url ?? args[0]);
+        if (url.includes('datapackage.json')) return Promise.reject(new Error('sembrado por la P28'));
+        return pedir.apply(this, args);
+      }; })()`,
+    });
+    await m.ir(APP + 'panel', 6000);
+    console.log(`\n═══ EL PANEL CON EL MANIFIESTO CAÍDO · ${nombreTema} ═══`);
+    if (!(await ponerTema(m, tema, dicho))) continue;
+    const hay = await m.evaluar(`!!document.querySelector('.panel__fallo')`);
+    const fallo = hay ? await pixelDe(m, '.panel__fallo', { minimo: 6 }) : null;
+    juzgar(
+      hay && fallo !== null && fallo.contraste >= AA_TEXTO,
+      `${dicho} · ⭐ el aviso de «no se ha podido leer el manifiesto» se lee: ≥ ${AA_TEXTO}:1 sobre el píxel`,
+      hay ? `${fallo === null ? '(fuera de la vista)' : fallo.contraste.toFixed(2) + ':1 · ' + enRgb(fallo.texto) + ' sobre ' + enRgb(fallo.fondo)}` : '(no ha salido el aviso)',
+    );
+    await m.guardar(`${CAPTURAS}/panel-${nombreTema}-fallo.png`);
+  } finally {
+    m.cerrar();
+  }
+}
+
 {
   const t = terceros();
   juzgar(t.bien, t.titulo, t.detalle);

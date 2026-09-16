@@ -1,5 +1,20 @@
 /* El panel de frescura. Sin estética todavía (punto 11): lo justo para que la
-   tabla se lea y los colores se distingan. */
+   tabla se lea y los colores se distingan.
+
+   ⭐ Y CON LOS TOKENS DE LA CASA DESDE EL PUENTE-BIS (16/09). Tenía 21 colores
+      escritos a pelo, todos pensados para fondo claro: con el tema oscuro puesto
+      —que es lo que va a hacer público el conmutador— la página daba 193 textos
+      por debajo de 4,5:1, y el peor a 1,03 (la cabecera de la tabla: la letra
+      clara del tema sobre su propio #f3f3f3). Lo midió el barrido de rutas del
+      16/09, que capturó las cinco rutas navegables bajo `data-theme=dark` y dejó
+      a ésta como la única sin vestir.
+
+   ⚠️ EL PANEL SE PINTA SOBRE LA PÁGINA, no sobre una tarjeta: sus grises se
+      miden contra `--background`, que en oscuro es #121212 y no el #1e1e1e de
+      `--card`. Por eso sus pares entran al censo contra el fondo.
+
+   ⛔ Y NO SE REDISEÑA NADA: los mismos textos, la misma tabla, los mismos
+      cuatro estados. Solo cambia de dónde sale cada color. */
 
 .panel {
   max-width: 72rem;
@@ -17,7 +32,7 @@
   margin: 0 0 1.25rem;
   max-width: 62rem;
   line-height: 1.5;
-  color: #333;
+  color: var(--foreground);
 }
 
 .panel__resumen {
@@ -29,7 +44,7 @@
 }
 
 .panel__hoy {
-  color: #666;
+  color: var(--muted-foreground);
   font-size: 0.85rem;
 }
 
@@ -44,16 +59,22 @@
   font-size: 0.9rem;
 }
 
+/* ⚠️ El filete de la rejilla es el `--border` de la casa, y NO se le pide 3:1:
+   no es la frontera de un componente ni la señal de un estado [WCAG 1.4.11,
+   Understanding] — lo que se lee es la celda, y la celda es texto. Separa, como
+   el de las tarjetas y los bloques. */
 .panel__tabla th,
 .panel__tabla td {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   padding: 0.45rem 0.6rem;
   text-align: left;
   vertical-align: top;
 }
 
+/* La banda de la cabecera, sobre la superficie apagada de la casa: aquí la
+   letra del tema leía a 1,03:1 contra su gris fijo. */
 .panel__tabla thead th {
-  background: #f3f3f3;
+  background: var(--muted);
   white-space: nowrap;
 }
 
@@ -66,26 +87,33 @@
   display: block;
   font-weight: 400;
   font-size: 0.75rem;
-  color: #666;
+  color: var(--muted-foreground);
   margin-top: 0.15rem;
   word-break: break-all;
 }
 
 .panel__fuente {
   display: block;
-  color: #555;
+  color: var(--leyenda);
   font-size: 0.75rem;
   margin-top: 0.2rem;
   max-width: 26rem;
 }
 
 .panel__noconsta {
-  color: #767676;
+  color: var(--muted-foreground);
   font-style: italic;
 }
 
 /* ⭐ El semáforo. El color NO va solo: cada estado lleva su texto, para que se
-   entienda sin distinguir colores (y para que se lea en una captura). */
+   entienda sin distinguir colores (y para que se lea en una captura). Es lo que
+   pide [WCAG 1.4.1, nivel A], ya se cumplía antes de vestir esto, y desde el
+   puente-bis lo vigilan una jueza de unidad y la P28 sobre los 58 pintados.
+
+   ⭐ DOS ESTRENAN FAMILIA Y DOS NO. «Caducado» y «vigente» no tenían color en la
+      casa y entran con su trío de tokens; «por revisar» es el ÁMBAR de la casa
+      —el mismo que el resumen, la tira y el borrador— y «sin regla» es su gris.
+      Un color nuevo solo cuando no hay ninguno que haga ese papel. */
 .panel__estado {
   display: inline-block;
   padding: 0.15rem 0.5rem;
@@ -96,37 +124,46 @@
 }
 
 .panel__estado--rojo {
-  background: #fde7e7;
-  border-color: #c0392b;
-  color: #8c1c12;
+  background: var(--estado-caducado-superficie);
+  border-color: var(--estado-caducado-borde);
+  color: var(--estado-caducado-tinta);
 }
 
+/* El ámbar de la casa, que ya decía «atención» en el resultado y en el
+   formulario. Sus tres hexes cambian un pelo (#fdf3e0 → #fff4e5, #c07a00 →
+   #b45309, #7a4d00 → #7c3d00): eran una segunda copia del mismo ámbar. */
 .panel__estado--ambar {
-  background: #fdf3e0;
-  border-color: #c07a00;
-  color: #7a4d00;
+  background: var(--warning);
+  border-color: var(--warning-border);
+  color: var(--warning-dark);
 }
 
 .panel__estado--verde {
-  background: #e8f5e9;
-  border-color: #2e7d32;
-  color: #1b5e20;
+  background: var(--estado-vigente-superficie);
+  border-color: var(--estado-vigente-borde);
+  color: var(--estado-vigente-tinta);
 }
 
+/* ⚠️ El borde del gris es `--muted-foreground` y no `--border`: el #999 de antes
+   daba 2,50 sobre su propia superficie y 2,85 sobre la página en claro, y con
+   `--border` habría bajado a 1,4. Este gris da 4,55 y 4,76 en claro, y 7,83 y
+   9,44 en oscuro. */
 .panel__estado--gris {
-  background: #f0f0f0;
-  border-color: #999;
-  color: #555;
+  background: var(--muted);
+  border-color: var(--muted-foreground);
+  color: var(--muted-foreground);
 }
 
 .panel__pie {
   margin-top: 1.5rem;
-  color: #555;
+  color: var(--leyenda);
   font-size: 0.85rem;
   line-height: 1.5;
   max-width: 62rem;
 }
 
+/* La tinta del estado caducado, que es la que ya dice «esto va mal» en la
+   página: en oscuro el #8c1c12 leía a 1,82:1 sobre el fondo. */
 .panel__fallo {
-  color: #8c1c12;
+  color: var(--estado-caducado-tinta);
 }

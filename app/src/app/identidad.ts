@@ -47,7 +47,7 @@ export type Tema = 'light' | 'dark';
 
 export const TEMAS: readonly Tema[] = ['light', 'dark'];
 
-/** Los veintiún semánticos, en el orden en que se leen. */
+/** Los semánticos —28 desde el puente-bis—, en el orden en que se leen. */
 export const SEMANTICOS: readonly Token[] = [
   'background',
   'foreground',
@@ -84,6 +84,16 @@ export const SEMANTICOS: readonly Token[] = [
   //    (#999) en las hojas de los campos, y el desplegable usaba `border`, que
   //    es de separar y no llega a 3:1 en ningún tema.
   'borde-de-campo',
+  // ⭐ EL PUENTE-BIS (16/09): los dos estados del panel de frescura que no tenían
+  //    familia en la casa —caducado y vigente—, cada uno con su superficie, su
+  //    borde y su tinta. El «por revisar» y el «sin regla» NO estrenan token: son
+  //    el ámbar (`warning`) y el gris (`muted`) que ya existían.
+  'estado-caducado-superficie',
+  'estado-caducado-borde',
+  'estado-caducado-tinta',
+  'estado-vigente-superficie',
+  'estado-vigente-borde',
+  'estado-vigente-tinta',
 ];
 
 /** Los seis modos, con el nombre que usa el CSS. */
@@ -97,7 +107,7 @@ export const TOKENS_DE_MODO: readonly Token[] = MODOS.flatMap((m) =>
   VARIANTES.map((v) => `mode-${m}-${v}`),
 );
 
-/** Los 40 tokens de color que la página sondea. */
+/** Los tokens de color que la página sondea: 52 desde el puente-bis. */
 export const TODOS: readonly Token[] = [...SEMANTICOS, ...TOKENS_DE_MODO];
 
 /**
@@ -163,6 +173,14 @@ export const PARES: readonly Par[] = [
   //    distinguía de la lista.
   { texto: 'foreground', fondo: 'warning', rotulo: 'Campo en borrador — lo escrito' },
   { texto: 'card', fondo: 'foreground', rotulo: 'Opción activa de un desplegable' },
+  // ⭐ EL PUENTE-BIS (16/09), el panel de frescura: se pinta sobre la PÁGINA y no
+  //    sobre una tarjeta, y de `background` el censo solo medía el texto principal.
+  { texto: 'leyenda', fondo: 'background', rotulo: 'Leyenda sobre la página' },
+  { texto: 'muted-foreground', fondo: 'background', rotulo: 'Texto secundario sobre la página' },
+  { texto: 'foreground', fondo: 'muted', rotulo: 'Cabecera de una tabla' },
+  { texto: 'estado-caducado-tinta', fondo: 'estado-caducado-superficie', rotulo: 'Chip de estado caducado' },
+  { texto: 'estado-vigente-tinta', fondo: 'estado-vigente-superficie', rotulo: 'Chip de estado vigente' },
+  { texto: 'estado-caducado-tinta', fondo: 'background', rotulo: 'Aviso de fallo del panel' },
   ...MODOS.map((m) => ({
     texto: `mode-${m}-text`,
     fondo: `mode-${m}-solid`,
@@ -223,6 +241,17 @@ export const LIMITES: readonly Limite[] = [
   { borde: 'borde-de-campo', fondo: 'card', rotulo: 'Frontera de los campos y sus listas' },
   { borde: 'ring', fondo: 'card', rotulo: 'Foco de los campos' },
   { borde: 'foreground', fondo: 'card', rotulo: 'Opción activa contra su lista' },
+  // ⭐ EL PUENTE-BIS (16/09): el borde de cada chip de estado del panel, contra su
+  //    superficie y contra la página. Los cuatro estados, incluidos los que no
+  //    estrenan token: el ámbar de la casa y el gris, que pasa a llevar
+  //    `muted-foreground` de borde —el #999 de hoy daba 2,50 sobre su superficie—.
+  { borde: 'estado-caducado-borde', fondo: 'estado-caducado-superficie', rotulo: 'Chip caducado — su borde' },
+  { borde: 'estado-caducado-borde', fondo: 'background', rotulo: 'Chip caducado — contra la página' },
+  { borde: 'estado-vigente-borde', fondo: 'estado-vigente-superficie', rotulo: 'Chip vigente — su borde' },
+  { borde: 'estado-vigente-borde', fondo: 'background', rotulo: 'Chip vigente — contra la página' },
+  { borde: 'warning-border', fondo: 'background', rotulo: 'Chip por revisar — contra la página' },
+  { borde: 'muted-foreground', fondo: 'muted', rotulo: 'Chip sin regla — su borde' },
+  { borde: 'muted-foreground', fondo: 'background', rotulo: 'Chip sin regla — contra la página' },
 ];
 
 /** Lo leído de un token en un tema. `hex` vacío = no se pudo medir. */

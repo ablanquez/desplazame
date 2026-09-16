@@ -54,6 +54,14 @@ const CLARO = {
   'secundario-del-paso': '#475569',
   // ⭐ El puente (15/09): la frontera de los campos, slate-500 [WCAG 1.4.11].
   'borde-de-campo': '#64748b',
+  // ⭐ El puente-bis (16/09): los dos estados del panel. En claro, sus valores
+  //    de siempre; lo que cambia es que ahora tienen nombre y se miden.
+  'estado-caducado-superficie': '#fde7e7',
+  'estado-caducado-borde': '#c0392b',
+  'estado-caducado-tinta': '#8c1c12',
+  'estado-vigente-superficie': '#e8f5e9',
+  'estado-vigente-borde': '#2e7d32',
+  'estado-vigente-tinta': '#1b5e20',
   'mode-andando-soft': '#dcfce7', 'mode-andando-strong': '#15803d',
   'mode-andando-solid': '#15803d', 'mode-andando-text': '#ffffff',
   'mode-bus-soft': '#ccfbf1', 'mode-bus-strong': '#0f766e',
@@ -83,6 +91,15 @@ const OSCURO = {
   'secundario-del-paso': '#b8b8b8',
   // ⭐ El puente: el primer gris que da 3:1 contra la tarjeta oscura.
   'borde-de-campo': '#696969',
+  // ⭐ El puente-bis, por regla y con el ámbar oscuro de patrón: superficie el
+  //    paso más oscuro, tinta el más claro, y el borde el mínimo que da 3:1
+  //    contra su superficie y contra la página.
+  'estado-caducado-superficie': '#450a0a',
+  'estado-caducado-borde': '#dc2626',
+  'estado-caducado-tinta': '#fee2e2',
+  'estado-vigente-superficie': '#052e16',
+  'estado-vigente-borde': '#16a34a',
+  'estado-vigente-tinta': '#dcfce7',
   'mode-andando-soft': '#14532d', 'mode-andando-strong': '#4ade80',
   'mode-andando-solid': '#22c55e', 'mode-andando-text': '#052e16',
   'mode-bus-soft': '#134e4a', 'mode-bus-strong': '#2dd4bf',
@@ -351,6 +368,12 @@ try {
       ['warning-dark', 'warning'], ['warning-dark', 'card'], ['warning-dark', 'superficie-realce'],
       // ⭐ El puente (15/09): lo escrito en un borrador y la opción activa de un desplegable.
       ['foreground', 'warning'], ['card', 'foreground'],
+      // ⭐ El puente-bis (16/09): el panel se pinta sobre la PÁGINA, no sobre una
+      //    tarjeta, y sus dos chips nuevos con su tinta.
+      ['leyenda', 'background'], ['muted-foreground', 'background'], ['foreground', 'muted'],
+      ['estado-caducado-tinta', 'estado-caducado-superficie'],
+      ['estado-vigente-tinta', 'estado-vigente-superficie'],
+      ['estado-caducado-tinta', 'background'],
       ...['andando', 'bus', 'bici', 'patin', 'moto', 'coche'].flatMap((m) => [
         [`mode-${m}-text`, `mode-${m}-solid`],
         [`mode-${m}-strong`, `mode-${m}-soft`],
@@ -408,6 +431,12 @@ try {
       //    contra su lista. Esta copia se quedó en 8 cuando el censo pasó a 11, y
       //    la fila de la página lo cantó: 22 filas contra 16.
       ['borde-de-campo', 'card'], ['ring', 'card'], ['foreground', 'card'],
+      // ⭐ El puente-bis (16/09): el borde de los cuatro chips del panel, contra
+      //    su superficie y contra la página en la que se pintan.
+      ['estado-caducado-borde', 'estado-caducado-superficie'], ['estado-caducado-borde', 'background'],
+      ['estado-vigente-borde', 'estado-vigente-superficie'], ['estado-vigente-borde', 'background'],
+      ['warning-border', 'background'],
+      ['muted-foreground', 'muted'], ['muted-foreground', 'background'],
     ];
     let limitesBajos = 0;
     for (const [tema, tabla] of [['light', CLARO], ['dark', OSCURO]]) {
