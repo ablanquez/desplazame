@@ -306,16 +306,20 @@ try {
 
   // ⭐ Capa 2 — el sistema en oscuro. Es la que NINGÚN test unitario alcanza.
   //
-  // ⚠️ Y DESDE LA TANDA 2 HAY QUE QUITAR EL `data-theme` PARA VERLA. El
-  //    documento lo lleva fijado en «light» mientras dure la migracion, asi que
-  //    el `:not([data-theme='light'])` de la capa 2 no aplica en ningun sitio
-  //    de la app: es justo su efecto buscado. Pero la capa SIGUE AHI y el dia
-  //    que llegue el conmutador volvera a mandar, asi que se sigue juzgando —
-  //    se le quita el atributo al documento, se mide, y se le devuelve.
+  // ⭐ **ACTA DEL CLAVO (16/09, tanda 6 · parte 3).**
   //
-  //    Sin esto, la juez quedaria en verde por una razon nueva (no hay nada que
-  //    medir) en vez de por la que se escribio, y eso es exactamente el verde
-  //    que persigue la nº43.
+  //    Aqui habia que QUITAR el `data-theme` para poder ver esta capa, y el
+  //    porque decia: *«el documento lo lleva fijado en "light" mientras dure la
+  //    migracion, asi que el `:not([data-theme='light'])` de la capa 2 no
+  //    aplica en ningun sitio de la app: es justo su efecto buscado. Pero la
+  //    capa SIGUE AHI y el dia que llegue el conmutador volvera a mandar, asi
+  //    que se sigue juzgando — se le quita el atributo al documento, se mide, y
+  //    se le devuelve.»*
+  //
+  //    Ese dia es hoy: el clavo sale del `index.html` y la capa 2 manda de
+  //    verdad. Asi que la medida se toma **sin tocar nada**, que es como tenia
+  //    que haber sido siempre, y lo que se juzga se da la vuelta: ya no se
+  //    comprueba que el atributo valga «light», sino que NO ESTE.
   await mando.cdp('Emulation.setEmulatedMedia', {
     features: [{ name: 'prefers-color-scheme', value: 'dark' }],
   });
@@ -323,12 +327,12 @@ try {
   const temaFijado = await mando.evaluar(
     `String(document.documentElement.getAttribute('data-theme'))`,
   );
-  await mando.evaluar(`document.documentElement.removeAttribute('data-theme')`);
   comparar('⭐ capa 2 · el sistema pide oscuro', await leerTokens(':root'), OSCURO);
-  await mando.evaluar(
-    `document.documentElement.setAttribute('data-theme', ${JSON.stringify(temaFijado)})`,
+  juzgar(
+    temaFijado === 'null',
+    '⭐ y el documento YA NO lo clava: sin eleccion guardada manda el sistema',
+    `data-theme=${temaFijado}`,
   );
-  juzgar(temaFijado === 'light', 'y el documento lo tenia fijado en claro', `era ${temaFijado}`);
 
   // Y con el sistema en oscuro, un trozo marcado como claro TIENE que ganar.
   comparar(
@@ -495,6 +499,10 @@ try {
   // ═════════ LAS CAPTURAS ═════════
   await mando.ir(PAGINA, 5000);
   await mando.guardar(CAPTURAS + '/identidad-claro.png');
+  // Lo que valga el atributo ANTES de pulsar: con eso se compara despues.
+  const antesDePulsar = await mando.evaluar(
+    `String(document.documentElement.getAttribute('data-theme'))`,
+  );
   await mando.evaluar(`document.querySelector('.identidad__conmutador').click()`);
   await mando.dormir(900);
   await mando.guardar(CAPTURAS + '/identidad-oscuro.png');
@@ -502,25 +510,34 @@ try {
 
   // Y que el conmutador sea LOCAL de verdad: el documento no se entera.
   //
-  // ⚠️ Esto pedia que `<html>` siguiera SIN `data-theme`, y desde la tanda 2 lo
-  //    lleva puesto en «light» a proposito. Lo que importaba nunca fue que
-  //    estuviera vacio, sino que el conmutador de esta pagina NO LO CAMBIE.
+  // ⚠️ Esto pedia `light` desde la tanda 2, porque el documento lo llevaba
+  //    clavado; antes pedia vacio. Las dos veces se escribio un LITERAL, y las
+  //    dos veces hubo que venir a cambiarlo. Lo que importa no es cuanto vale
+  //    el atributo: es que el conmutador de ESTA pagina no lo mueva. Asi que
+  //    desde la parte 3 se compara con lo que valia ANTES de pulsar, y deja de
+  //    haber literal que mantener.
   const enElDocumento = await mando.evaluar(
     `String(document.documentElement.getAttribute('data-theme'))`,
   );
   juzgar(
-    enElDocumento === 'light',
-    'el conmutador es local: no toca el data-theme de <html>',
-    `<html data-theme=${enElDocumento}> (tras pulsar «ver en oscuro»)`,
+    enElDocumento === antesDePulsar,
+    '⭐ el conmutador es local: no toca el data-theme de <html>',
+    `<html data-theme=${enElDocumento}> · antes de pulsar era ${antesDePulsar}`,
   );
 
-  // ═════════ (v) LA BASE, Y EL TEMA FIJADO EN CLARO ═════════
+  // ═════════ (v) LA BASE, Y EL TEMA QUE YA SIGUE AL SISTEMA ═════════
   //
-  // ⭐ LA VARA DE LA nº43, APLICADA AL PRODUCTO. Con el `body` en tokens pero
-  //    los componentes aun sin vestir, dejar mandar al sistema pintaria fondo
+  // ⭐ **ACTA (16/09, tanda 6 · parte 3).** Aqui ponia «LA BASE, Y EL TEMA
+  //    FIJADO EN CLARO», y el porque era: *«con el `body` en tokens pero los
+  //    componentes aun sin vestir, dejar mandar al sistema pintaria fondo
   //    oscuro debajo de piezas pensadas para fondo claro. `data-theme="light"`
   //    en `<html>` lo impide — y que lo impida DE VERDAD solo se puede ver
-  //    emulando el sistema, que es lo unico que ningun test alcanza.
+  //    emulando el sistema, que es lo unico que ningun test alcanza.»*
+  //
+  //    Los componentes ya estan vestidos —resultado, mapa, Buscador y /panel—
+  //    y el clavo ha salido. La jueza NO se retira: se da la vuelta y pasa a
+  //    vigilar lo contrario, que es lo unico que ningun test alcanza tampoco —
+  //    que la portada SIGA al sistema, sin atributo y sin recargar.
   console.log('\n═══ (v) LA BASE DEL PRODUCTO ═══');
   for (const [nombre, sistema] of [['claro', 'light'], ['OSCURO', 'dark']]) {
     await mando.cdp('Emulation.setEmulatedMedia', {
@@ -537,10 +554,14 @@ try {
         });
       })()`),
     );
+    const esperado =
+      sistema === 'dark'
+        ? { fondo: 'rgb(18, 18, 18)', color: 'rgb(240, 240, 240)' }
+        : { fondo: 'rgb(255, 255, 255)', color: 'rgb(30, 41, 59)' };
     juzgar(
-      b.tema === 'light' && b.fondo === 'rgb(255, 255, 255)' && b.color === 'rgb(30, 41, 59)',
-      `con el sistema en ${nombre}, la portada se queda CLARA`,
-      `data-theme=${b.tema} · fondo ${b.fondo} · texto ${b.color}`,
+      b.tema === null && b.fondo === esperado.fondo && b.color === esperado.color,
+      `⭐ con el sistema en ${nombre}, la portada LE SIGUE — y sin atributo`,
+      `data-theme=${b.tema} · fondo ${b.fondo} · texto ${b.color} · esperado ${esperado.fondo}`,
     );
     if (sistema === 'light') {
       juzgar(/Inter/.test(b.familia), 'y el body pide Inter', b.familia);

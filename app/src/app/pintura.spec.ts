@@ -5,6 +5,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Buscador } from './buscador';
 import { SIMBOLOS } from './simbolos';
+import { LLAVE_DEL_TEMA } from './tema';
 
 /**
  * ⭐ LA PINTURA DEL BUSCADOR (10/09, punto 15 · tanda 4).
@@ -386,7 +387,7 @@ describe('⭐ LA BARRA DE PESTAÑAS — la navegación de móvil', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('⭐ es un `nav` con nombre, y trae TRES huecos: Buscador, Ruta y Mapa', async () => {
+  it('⭐ es un `nav` con nombre, y trae CUATRO huecos: Buscador, Ruta, Mapa y Tema', async () => {
     const r = await raiz();
     const barra = r.querySelector('nav.barra');
     expect(barra).not.toBeNull();
@@ -398,19 +399,31 @@ describe('⭐ LA BARRA DE PESTAÑAS — la navegación de móvil', () => {
       'Buscador',
       'Ruta',
       'Mapa',
+      'Tema',
     ]);
   });
 
   /**
-   * ⚠️ **Y SON TRES, NO CUATRO.** La maqueta trae un cuarto botón, «Tema», que
-   *    llama a `cycleTheme`. Aquí no se pinta a propósito: el tema va clavado en
-   *    claro hasta su tanda —`<html data-theme="light">`, con su jueza en
-   *    `identidad.spec.ts`—, así que ese botón se pulsaría y no pasaría nada.
-   *    Esta línea es la que hará ruido el día que el conmutador entre: habrá
-   *    que subirla a 4 a la vez que se cablea, y no antes.
+   * ⭐ **ACTA DEL CUARTO HUECO (16/09, tanda 6 · parte 3).**
+   *
+   * Aquí ponía `toBe(3)` con este porqué escrito: *«la maqueta trae un cuarto
+   * botón, "Tema", que llama a `cycleTheme`. Aquí no se pinta a propósito: el
+   * tema va clavado en claro hasta su tanda —`<html data-theme="light">`, con su
+   * jueza en `identidad.spec.ts`—, así que ese botón se pulsaría y no pasaría
+   * nada. Esta línea es la que hará ruido el día que el conmutador entre: habrá
+   * que subirla a 4 a la vez que se cablea, y no antes.»*
+   *
+   * **Ese día es hoy**, y la línea se sube A LA VEZ que se cablea: el guion
+   * anti-FOUC, la persistencia y el servicio `Tema` entran en el mismo commit.
+   * El botón inerte que el §20 prohibía no ha existido ni un minuto.
+   *
+   * ⚠️ El cuarto hueco **no es una pestaña**: los otros tres navegan y llevan
+   *    `aria-current`; este es un interruptor [APG, *Switch*] con `role="switch"`
+   *    y `aria-checked`. Comparte el traje de la barra y nada más — por eso la
+   *    jueza de `aria-current` de abajo lo excluye a propósito.
    */
-  it('⛔ y son TRES: «Tema» no entra hasta que el conmutador exista', async () => {
-    expect((await raiz()).querySelectorAll('button.barra__boton').length).toBe(3);
+  it('⭐ y son CUATRO: el conmutador ocupa el hueco que la maqueta le guardaba', async () => {
+    expect((await raiz()).querySelectorAll('button.barra__boton').length).toBe(4);
   });
 
   it('⭐ cada hueco lleva su símbolo, y el símbolo no habla', async () => {
@@ -420,6 +433,68 @@ describe('⭐ LA BARRA DE PESTAÑAS — la navegación de móvil', () => {
       // El nombre lo pone el texto de al lado; el icono callado, o se diría dos veces.
       expect(b.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
     }
+  });
+
+  /**
+   * ⭐ EL CONMUTADOR ES UN INTERRUPTOR, NO UNA PESTAÑA [APG, *Switch Pattern*].
+   *
+   * El modo oscuro es el ejemplo canónico del patrón: un ajuste de efecto
+   * inmediato, sin «aplicar». El APG pide `role="switch"` con `aria-checked`, y
+   * un `<button>` de verdad para que Espacio y Enter funcionen sin código.
+   *
+   * ⚠️ **EL NOMBRE NO CAMBIA CON EL ESTADO.** Es el error clásico de estos
+   *    botones: llamarlos «Activar modo oscuro» y luego «Desactivar modo
+   *    oscuro». Quien navega por voz o por lista de controles pierde el control
+   *    de vista cada vez que lo usa. El nombre es estable —«Modo oscuro»— y
+   *    quien dice el estado es `aria-checked`, que para eso está.
+   */
+  it('⭐ el cuarto hueco es un `switch` con estado, no una pestaña', async () => {
+    const r = await raiz();
+    const boton = r.querySelector('nav.barra button[role="switch"]');
+    expect(boton, 'no hay interruptor en la barra').not.toBeNull();
+    expect(boton!.getAttribute('aria-checked')).toMatch(/^(true|false)$/);
+    // Un interruptor no representa una página: `aria-current` aquí sería mentira.
+    expect(boton!.hasAttribute('aria-current')).toBe(false);
+    expect(boton!.getAttribute('type')).toBe('button');
+  });
+
+  it('⭐ su nombre es estable: no cambia al conmutar [APG]', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const r = fixture.nativeElement as HTMLElement;
+    const boton = r.querySelector<HTMLButtonElement>('nav.barra button[role="switch"]')!;
+
+    const nombre = boton.getAttribute('aria-label');
+    expect(nombre?.length).toBeGreaterThan(0);
+    const antes = boton.getAttribute('aria-checked');
+
+    boton.click();
+    await fixture.whenStable();
+
+    expect(boton.getAttribute('aria-label'), 'el nombre ha cambiado con el estado').toBe(nombre);
+    expect(boton.getAttribute('aria-checked'), 'el estado no ha cambiado').not.toBe(antes);
+  });
+
+  /**
+   * ⭐ Y EL ESTADO LLEGA AL DOCUMENTO, que es lo que de verdad conmuta la app:
+   * el atributo `data-theme` del `<html>` es la capa 3 de `styles.css`.
+   */
+  it('⭐ pulsarlo pone el tema en <html> y lo guarda', async () => {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    const r = fixture.nativeElement as HTMLElement;
+    const antes = document.documentElement.getAttribute('data-theme');
+    const boton = r.querySelector<HTMLButtonElement>('nav.barra button[role="switch"]')!;
+
+    boton.click();
+    await fixture.whenStable();
+    const puesto = document.documentElement.getAttribute('data-theme');
+    expect(puesto).toMatch(/^(dark|light)$/);
+    expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBe(puesto);
+
+    if (antes === null) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', antes);
+    localStorage.removeItem(LLAVE_DEL_TEMA);
   });
 
   /**

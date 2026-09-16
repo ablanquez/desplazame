@@ -124,17 +124,28 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
         forma.veBarra && !forma.veSeparador,
         'L4 · en móvil manda la barra de pestañas, no el separador',
       );
+      // ⭐ **ACTA DEL CUARTO HUECO (16/09, tanda 6 · parte 3).** Aqui ponia
+      //    TRES —«Buscador|Ruta|Mapa»—, con el cuarto de la maqueta retenido a
+      //    proposito mientras el tema iba clavado en claro: un boton que se
+      //    pulsa y no pasa nada es un estado deshonesto. El conmutador entra
+      //    cableado en este mismo commit, asi que el hueco se ocupa y la cuenta
+      //    sube a cuatro. Su hermana de unidad vive en `pintura.spec.ts`.
       juzgar(
-        forma.botones.length === 3 &&
-          forma.botones.map((b) => b.texto).join('|') === 'Buscador|Ruta|Mapa',
-        'L4 · ⭐ la barra tiene TRES huecos, y son los del encargo',
+        forma.botones.length === 4 &&
+          forma.botones.map((b) => b.texto).join('|') === 'Buscador|Ruta|Mapa|Tema',
+        'L4 · ⭐ la barra tiene CUATRO huecos, y son los del encargo',
         forma.botones.map((b) => b.texto).join(' · ') || '(ninguno)',
       );
-      // ⚠️ El reparto equitativo se compra midiendo, no leyendo el `flex`: tres
-      //    botones que suman el ancho de la pantalla y miden lo mismo.
+      // ⚠️ El reparto equitativo se compra midiendo, no leyendo el `flex`: los
+      //    botones suman el ancho de la pantalla y miden lo mismo.
+      //
+      // ⚠️ Y CON CUATRO ESTO MORDIO DE VERDAD (16/09): el cuarto se quedaba en
+      //    89 px contra 101 de los otros tres —392 de 390—, porque el hueco
+      //    nuevo llega envuelto en el host del componente y el reparto se hace
+      //    entre hijos directos. Se arreglo en `styles.css`, no aflojando aqui.
       const anchos = forma.botones.map((b) => b.w);
       juzgar(
-        anchos.length === 3 && Math.max(...anchos) - Math.min(...anchos) <= 1 &&
+        anchos.length === 4 && Math.max(...anchos) - Math.min(...anchos) <= 1 &&
           Math.abs(anchos.reduce((a, b) => a + b, 0) - ancho) <= 2,
         'L4 · y se reparten la pantalla a partes iguales',
         `${anchos.join(' + ')} = ${anchos.reduce((a, b) => a + b, 0)} de ${ancho}`,

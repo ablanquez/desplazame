@@ -327,6 +327,63 @@ describe('⭐ (i) LOS TOKENS — que valgan lo calcado, los 80', () => {
     expect(CSS).toContain("@media (prefers-color-scheme: dark)");
     expect(CSS).toContain(":root:not([data-theme='light'])");
   });
+
+  /**
+   * ⭐ EL PESO DEL TEXTO, QUE TAMBIÉN ES UN TOKEN DE TEMA (16/09, parte 3).
+   *
+   * [DISEÑO §3, *Recomendación*] «En modo oscuro, subir un peso (400→500) para
+   * compensar el adelgazamiento óptico documentado sobre fondos oscuros».
+   *
+   * ⚠️ Va en los CUATRO bloques por la misma razón que los colores: si faltara
+   *    en la capa del sistema, quien tiene el portátil en oscuro leería el
+   *    oscuro con la letra fina y nadie se enteraría. Se declara con su valor
+   *    literal y no por la indirección `--claro-*`/`--oscuro-*`, que existe para
+   *    que **cada hex** se escriba una vez; aquí no hay hexes, hay dos números,
+   *    y esta jueza cubre las cuatro copias.
+   *
+   * ⚠️ Y el §3 manda **solo el salto 400→500**. Los 500 y 600 del claro no se
+   *    tocan: subirlos también sería inventarse letra que el documento no firma.
+   */
+  it('⭐ [§3] el peso del texto sube 400→500 en oscuro, en los cuatro bloques', () => {
+    expect(EN_ROOT['peso-texto'], '--peso-texto falta en :root').toBe('400');
+    expect(CAPA_SISTEMA['peso-texto'], '--peso-texto falta en la capa del sistema').toBe('500');
+    expect(ELEGIDO_OSCURO['peso-texto'], '--peso-texto falta en el oscuro elegido').toBe('500');
+    expect(ELEGIDO_CLARO['peso-texto'], '--peso-texto falta en el claro elegido').toBe('400');
+  });
+
+  it('⭐ [§3] y el `body` lo pinta, que es de donde hereda todo el texto', () => {
+    expect(bloque(CSS, 'body {')).toContain('font-weight: var(--peso-texto)');
+  });
+
+  /**
+   * ⚠️ Un peso que el `@font-face` no tiene lo sintetiza el navegador
+   *    engordando el 400, y eso es exactamente el borrón que el §3 quiere
+   *    evitar. El 500 tiene su fichero propio: `Inter-Medium.woff2`.
+   */
+  it('⭐ [§3] el 500 existe de verdad: tiene su @font-face y su fichero', () => {
+    expect(CSS).toContain("src: url('/fuentes/Inter-Medium.woff2')");
+    expect(existsSync(RAIZ + 'app/public/fuentes/Inter-Medium.woff2')).toBe(true);
+  });
+
+  /**
+   * ⭐ LA TRAMPA DE LAS TRANSICIONES, documentada: las transiciones que animan
+   * el cambio de tema animan también su PRIMERA aplicación, y eso se ve como un
+   * flash aunque el atributo llegue a tiempo. El guion del `index.html` marca
+   * `<html>` mientras carga; esta es la regla que hace que esa marca sirva.
+   *
+   * ⚠️ `!important` a propósito, y es de los pocos de la casa: tiene que ganarle
+   *    a cualquier `transition` de cualquier hoja, incluidas las de componente.
+   */
+  it('⭐ hay una regla que apaga TODAS las transiciones mientras arranca', () => {
+    const limpio = sinComentarios(CSS);
+    const i = limpio.indexOf('.sin-transiciones');
+    expect(i, 'no existe la regla `.sin-transiciones`').toBeGreaterThanOrEqual(0);
+    expect(bloque(limpio, '.sin-transiciones')).toContain('transition: none !important');
+    // Los pseudoelementos también transicionan, y también parpadean.
+    const selector = limpio.slice(i, limpio.indexOf('{', i));
+    expect(selector).toContain('::before');
+    expect(selector).toContain('::after');
+  });
 });
 
 /**
@@ -747,16 +804,31 @@ describe('⭐ (v) LA BASE — el body vestido, y la letra que llega a tiempo', (
   });
 
   /**
-   * ⭐ EL TEMA, FIJADO EN CLARO MIENTRAS DURE LA MIGRACIÓN.
+   * ⭐ **ACTA DE LA LIBERACIÓN DEL TEMA (16/09, tanda 6 · parte 3).**
    *
-   * Con el `body` ya en tokens pero los componentes todavía sin vestir, dejar
-   * que mande `prefers-color-scheme` pintaría un fondo oscuro debajo de piezas
-   * pensadas para fondo claro: un estado intermedio roto. La capa 3 gana al
-   * sistema, y eso lo garantiza la jueza de la nº43. Se libera con el
-   * conmutador, cuando los componentes estén migrados.
+   * Aquí ponía `expect(HTML).toMatch(/<html[^>]*\sdata-theme="light"/)` con este
+   * porqué: *«con el `body` ya en tokens pero los componentes todavía sin
+   * vestir, dejar que mande `prefers-color-scheme` pintaría un fondo oscuro
+   * debajo de piezas pensadas para fondo claro: un estado intermedio roto. Se
+   * libera con el conmutador, cuando los componentes estén migrados.»*
+   *
+   * **Los componentes están migrados** —resultado, mapa, Buscador y `/panel`,
+   * los cuatro con su jueza— y el conmutador entra en este commit. Así que el
+   * clavo sale, y la jueza se da la vuelta: lo que ahora se vigila es que el
+   * atributo **NO** esté escrito a mano.
+   *
+   * ⚠️ Y no es un detalle de limpieza. Con `data-theme="light"` en el HTML, el
+   *    `:not([data-theme='light'])` de la capa 2 **no casaba nunca**: el §35
+   *    estaba escrito entero en el CSS y desconectado en la práctica. Medido el
+   *    16/09 con `prefers-color-scheme: dark` emulado antes de navegar: fondo
+   *    pintado `rgb(255, 255, 255)` y `color-scheme` computado `light`. El
+   *    sistema no mandaba, y ninguna jueza lo decía porque todas daban por
+   *    bueno el clavo.
    */
-  it('⭐ <html> fija el tema en claro durante la migración', () => {
-    expect(HTML).toMatch(/<html[^>]*\sdata-theme="light"/);
+  it('⭐ <html> ya NO clava el tema: el sistema y la elección mandan', () => {
+    const etiqueta = /<html[^>]*>/.exec(HTML)?.[0] ?? '';
+    expect(etiqueta, 'no encuentro la etiqueta <html>').not.toBe('');
+    expect(etiqueta, 'el tema sigue clavado a mano en el HTML').not.toContain('data-theme');
   });
 
   /**

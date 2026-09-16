@@ -4618,6 +4618,309 @@ for (const tema of ['dark', 'light']) {
   }
 }
 
+// ═══════════ P29 · EL CONMUTADOR, Y EL MECANISMO ANTI-FOUC ═══════════
+//
+// ⭐ [la parte 3, 16/09] el oscuro se hace público. Hasta hoy el tema iba
+//    clavado —`<html data-theme="light">`— y eso dejaba el §35 escrito entero
+//    en el CSS y DESCONECTADO: medido antes de tocar nada, con el sistema en
+//    oscuro emulado ANTES de navegar, la portada pintaba rgb(255, 255, 255) y
+//    `color-scheme` computaba `light`. El sistema no mandaba en nada.
+//
+// ⚠️ QUÉ SE JURA AQUÍ Y QUÉ NO. Esta jueza vigila el MECANISMO, que es lo
+//    verificable a máquina: que el guion existe, que va delante de las hojas,
+//    que la prioridad sale como el §35 la firma, que las transiciones se
+//    suprimen al arrancar, y que el botón hace lo que dice. **El fogonazo en
+//    sí —la pintura blanca de un fotograma— no se mide**: el arnés captura
+//    fotogramas a petición, no una película, y afirmar «no hubo flash» con eso
+//    sería fingir la medición. Va como NO CONSTA con su porqué, abajo.
+//
+// ⚠️ LA SIEMBRA ES DE VERDAD: el almacenamiento y el `prefers-color-scheme` se
+//    ponen ANTES de que la página exista (`addScriptToEvaluateOnNewDocument` y
+//    `setEmulatedMedia`), que es la única forma de preguntarle al navegador qué
+//    pinta en el primer pintado y no después.
+
+/** Siembra una elección guardada —o ninguna— antes de que el documento nazca. */
+const sembrar = async (m, guardada) => {
+  await m.cdp('Page.addScriptToEvaluateOnNewDocument', {
+    source:
+      guardada === null
+        ? `try { localStorage.removeItem('desplazame:tema'); } catch (e) {}`
+        : `try { localStorage.setItem('desplazame:tema', ${JSON.stringify(guardada)}); } catch (e) {}`,
+  });
+};
+
+/** Espía `classList.add` desde antes de la página: qué clases se pusieron y cuándo. */
+const espiarLasClases = (m) =>
+  m.cdp('Page.addScriptToEvaluateOnNewDocument', {
+    source: `(() => {
+      window.__clases = [];
+      const antes = DOMTokenList.prototype.add;
+      DOMTokenList.prototype.add = function (...c) { window.__clases.push(...c); return antes.apply(this, c); };
+    })()`,
+  });
+
+const sistemaEn = (m, cual) =>
+  m.cdp('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: cual }] });
+
+const estado = (m) =>
+  leer(
+    m,
+    `const r = document.documentElement; const s = getComputedStyle(r);
+     return { atributo: r.getAttribute('data-theme'), esquema: s.colorScheme,
+       fondo: getComputedStyle(document.body).backgroundColor,
+       peso: getComputedStyle(document.body).fontWeight,
+       clases: window.__clases || [], marca: r.classList.contains('sin-transiciones') };`,
+  );
+
+// ── (1) EL MECANISMO, leído del documento SERVIDO ──
+{
+  const dicho = 'P29 · el mecanismo';
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9800 });
+  try {
+    await m.ir(APP, 5000);
+    console.log(`\n═══ EL GUION ANTI-FOUC, EN EL DOCUMENTO SERVIDO ═══`);
+    const cabeza = await leer(
+      m,
+      `const hijos = [...document.head.children];
+       const guion = hijos.findIndex((e) => e.tagName === 'SCRIPT' && !e.src);
+       const hoja = hijos.findIndex((e) => (e.tagName === 'LINK' && e.rel === 'stylesheet') || e.tagName === 'STYLE');
+       const el = guion >= 0 ? hijos[guion] : null;
+       return { guion, hoja, defer: el ? el.defer : null, async: el ? el.async : null,
+         texto: el ? el.textContent : '', orden: hijos.map((e) => e.tagName.toLowerCase()).slice(0, 12) };`,
+    );
+    juzgar(
+      cabeza.guion >= 0 && cabeza.hoja >= 0 && cabeza.guion < cabeza.hoja,
+      `${dicho} · ⭐ el guion inline va ANTES de la primera hoja del head`,
+      `guion en ${cabeza.guion} · primera hoja en ${cabeza.hoja} · ${cabeza.orden.join(' ')}`,
+    );
+    juzgar(
+      cabeza.defer === false && cabeza.async === false,
+      `${dicho} · ⭐ y es BLOQUEANTE: sin defer y sin async`,
+      `defer ${cabeza.defer} · async ${cabeza.async}`,
+    );
+    juzgar(
+      cabeza.texto.includes('try') && cabeza.texto.includes('catch'),
+      `${dicho} · ⭐ lleva try/catch: en modo privado el almacenamiento LANZA`,
+      `${cabeza.texto.replace(/\s+/g, ' ').trim().length} caracteres`,
+    );
+    juzgar(
+      true,
+      `${dicho} · ℹ️ NO CONSTA si hubo fogonazo VISUAL`,
+      'el arnés captura fotogramas a petición, no una película: no se puede medir el primer fotograma sin fingirlo. Se jura el mecanismo, no la ausencia de flash',
+    );
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ── (2) LA PRIORIDAD: guardada > sistema > claro, en el primer pintado ──
+const CASOS = [
+  { guardada: 'dark', sistema: 'light', espera: 'dark', atributo: 'dark', porque: 'la guardada gana al sistema' },
+  { guardada: 'light', sistema: 'dark', espera: 'light', atributo: 'light', porque: 'y gana también al revés [nº43]' },
+  { guardada: null, sistema: 'dark', espera: 'dark', atributo: null, porque: 'sin guardada manda el sistema, SIN atributo' },
+  { guardada: null, sistema: 'light', espera: 'light', atributo: null, porque: 'y sin nada, el claro de partida' },
+];
+
+for (const [k, caso] of CASOS.entries()) {
+  const dicho = `P29 · prioridad · ${caso.guardada ?? 'sin guardar'} + sistema ${caso.sistema}`;
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9802 + k });
+  try {
+    await sistemaEn(m, caso.sistema);
+    await espiarLasClases(m);
+    await sembrar(m, caso.guardada);
+    await m.ir(APP, 6000);
+    console.log(`\n═══ ${caso.porque.toUpperCase()} ═══`);
+    const e = await estado(m);
+    const base = caso.espera === 'dark' ? OSCURO_BASE : CLARO_BASE;
+    juzgar(
+      e.esquema === caso.espera && aRgb(e.fondo) && enRgb(aRgb(e.fondo)) === base.background,
+      `${dicho} · ⭐ ${caso.porque}`,
+      `color-scheme ${e.esquema} · fondo ${e.fondo} · esperado ${base.background}`,
+    );
+    juzgar(
+      e.atributo === caso.atributo,
+      `${dicho} · ⭐ el atributo queda como toca (${caso.atributo ?? 'sin poner'})`,
+      `data-theme=${e.atributo}`,
+    );
+    // ⚠️ La supresión se espía desde ANTES de la página: lo que se mira no es el
+    //    estado de ahora —ya se ha quitado— sino que la clase LLEGÓ a ponerse.
+    juzgar(
+      e.clases.includes('sin-transiciones') && e.marca === false,
+      `${dicho} · ⭐ las transiciones se suprimieron al arrancar y ya están devueltas`,
+      `\`sin-transiciones\` fue la clase nº ${e.clases.indexOf('sin-transiciones') + 1} de las ${e.clases.length} que se pusieron · marca ahora: ${e.marca}`,
+    );
+    // [DISEÑO §3] el salto 400→500 en oscuro, medido en lo PINTADO.
+    juzgar(
+      e.peso === (caso.espera === 'dark' ? '500' : '400'),
+      `${dicho} · ⭐ [§3] el texto pesa ${caso.espera === 'dark' ? '500' : '400'} en ${caso.espera}`,
+      `font-weight del body: ${e.peso}`,
+    );
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ── (3) EL SISTEMA VIVO: sin guardada, el SO cambia y la app le sigue ──
+{
+  const dicho = 'P29 · el sistema vivo';
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9806 });
+  try {
+    await sistemaEn(m, 'light');
+    await sembrar(m, null);
+    await m.ir(APP, 6000);
+    console.log(`\n═══ EL SISTEMA CAMBIA CON LA PESTAÑA ABIERTA ═══`);
+    const antes = await estado(m);
+    await sistemaEn(m, 'dark');
+    await m.dormir(400);
+    const despues = await estado(m);
+    juzgar(
+      antes.esquema === 'light' && despues.esquema === 'dark' && despues.atributo === null,
+      `${dicho} · ⭐ sin elección guardada, cambiar el SO conmuta la app SIN recargar`,
+      `${antes.esquema} → ${despues.esquema} · fondo ${antes.fondo} → ${despues.fondo} · atributo ${despues.atributo}`,
+    );
+    // Y la tesela del mapa va detrás [parte 2]: el `Tema` lee `color-scheme`.
+    const capa = await m.evaluar(
+      `(document.querySelector('.leaflet-tile-pane img')?.src ?? '').includes('dark_all') ? 'oscura' : 'clara'`,
+    );
+    juzgar(capa === 'oscura', `${dicho} · y la tesela del mapa le sigue [parte 2]`, `capa ${capa}`);
+  } finally {
+    m.cerrar();
+  }
+}
+
+// ── (4) EL BOTÓN, en los tres anchos y los dos temas ──
+for (const [k, pantalla] of PANTALLAS.entries()) {
+  // El de móvil vive en la barra; el de PC, en la cabecera. Nunca los dos.
+  const enBarra = pantalla.ancho < 768;
+  const sel = enBarra ? '.conmutador--barra' : '.conmutador';
+  for (const tema of ['dark', 'light']) {
+    const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+    const dicho = `P29 · el botón · ${pantalla.id} · ${nombreTema}`;
+    const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: 9810 + 10 * k + (tema === 'dark' ? 0 : 1) });
+    try {
+      await sembrar(m, tema);
+      await m.ir(APP, 6000);
+      console.log(`\n═══ EL CONMUTADOR EN ${nombreTema.toUpperCase()} · ${pantalla.nombre} ═══`);
+      if (!(await ponerTema(m, tema, dicho))) continue;
+
+      const b = await leer(
+        m,
+        `const v = document.querySelector(${JSON.stringify(sel)});
+         const otro = document.querySelector(${JSON.stringify(enBarra ? '.conmutador' : '.conmutador--barra')});
+         const vis = (e) => e && e.getBoundingClientRect().width > 0 && getComputedStyle(e).display !== 'none';
+         if (!v) return { hay: false };
+         const r = v.getBoundingClientRect(); const s = getComputedStyle(v);
+         return { hay: true, visible: vis(v), otroVisible: vis(otro), rol: v.getAttribute('role'),
+           marcado: v.getAttribute('aria-checked'), nombre: v.getAttribute('aria-label'),
+           tipo: v.getAttribute('type'), corriente: v.hasAttribute('aria-current'),
+           ancho: Math.round(r.width), alto: Math.round(r.height),
+           dibujo: v.querySelector('svg path')?.getAttribute('d')?.slice(0, 24) ?? '',
+           iconoCallado: v.querySelector('svg')?.getAttribute('aria-hidden'), color: s.color };`,
+      );
+      juzgar(
+        b.hay && b.visible && !b.otroVisible,
+        `${dicho} · ⭐ se pinta UNO y solo uno: el de ${enBarra ? 'la barra' : 'la cabecera'}`,
+        `visible ${b.visible} · el otro ${b.otroVisible}`,
+      );
+      juzgar(
+        b.rol === 'switch' && b.marcado === String(tema === 'dark') && b.tipo === 'button' && !b.corriente,
+        `${dicho} · ⭐ es un switch [APG] con el estado puesto, y no finge ser pestaña`,
+        `role=${b.rol} · aria-checked=${b.marcado} · type=${b.tipo} · aria-current ${b.corriente}`,
+      );
+      // [WCAG 2.5.5] el objetivo mínimo son 44 px. En móvil, medido de verdad.
+      juzgar(
+        !enBarra || (b.ancho >= 44 && b.alto >= 44),
+        `${dicho} · ⭐ [WCAG 2.5.5] el objetivo táctil llega a 44 px`,
+        `${b.ancho} × ${b.alto} px`,
+      );
+      juzgar(
+        b.iconoCallado === 'true' && b.dibujo.length > 0,
+        `${dicho} · el icono no habla: el nombre lo pone aria-label`,
+        `aria-hidden=${b.iconoCallado} · «${b.nombre}» · d empieza por ${b.dibujo}…`,
+      );
+      // [WCAG 1.4.11] el control tiene que distinguirse de su fondo: 3:1.
+      const tinta = await pixelDe(m, sel, { minimo: 4 });
+      juzgar(
+        tinta !== null && tinta.contraste >= AA_GRAFICO,
+        `${dicho} · ⭐ [1.4.11] el icono del conmutador se distingue de su fondo`,
+        tinta === null ? '(fuera de la vista)' : `${tinta.contraste.toFixed(2)}:1 · ${enRgb(tinta.texto)} sobre ${enRgb(tinta.fondo)}`,
+      );
+
+      // ⚠️ SI NO HAY BOTÓN, SE PARA AQUÍ — con los rojos ya cantados y sin
+      //    tumbar lo que viene detrás. Es la ley de la L4 (11/09): una jueza que
+      //    no encuentra a quien mide tiene que dar ROJO y dejar correr a las
+      //    demás. Sin esto, la P29 contra producción reventaba en el `.click()`
+      //    de un `null` y se llevaba por delante las cinco pantallas siguientes.
+      if (!b.hay) continue;
+
+      // ── Pulsarlo: con el ratón, y que el documento entero conmute ──
+      const contrario = tema === 'dark' ? 'light' : 'dark';
+      await m.evaluar(`document.querySelector(${JSON.stringify(sel)}).click()`);
+      await m.dormir(400);
+      const tras = await leer(
+        m,
+        `const v = document.querySelector(${JSON.stringify(sel)});
+         let guardado = null; try { guardado = localStorage.getItem('desplazame:tema'); } catch (e) {}
+         return { atributo: document.documentElement.getAttribute('data-theme'),
+           esquema: getComputedStyle(document.documentElement).colorScheme,
+           marcado: v.getAttribute('aria-checked'), nombre: v.getAttribute('aria-label'),
+           dibujo: v.querySelector('svg path')?.getAttribute('d')?.slice(0, 24) ?? '', guardado };`,
+      );
+      juzgar(
+        tras.atributo === contrario && tras.esquema === contrario && tras.guardado === contrario,
+        `${dicho} · ⭐ pulsarlo conmuta el documento Y guarda la elección`,
+        `data-theme=${tras.atributo} · color-scheme=${tras.esquema} · guardado=${tras.guardado}`,
+      );
+      juzgar(
+        tras.marcado === String(contrario === 'dark') && tras.nombre === b.nombre && tras.dibujo !== b.dibujo,
+        `${dicho} · ⭐ el estado cambia, el NOMBRE no, y el dibujo tampoco es el mismo [1.4.1]`,
+        `aria-checked ${b.marcado}→${tras.marcado} · nombre «${tras.nombre}» · dibujo ${b.dibujo === tras.dibujo ? 'EL MISMO' : 'otro'}`,
+      );
+
+      // ── Y con el TECLADO, que es lo que el `<button>` de verdad regala ──
+      for (const tecla of ['Enter', ' ']) {
+        const antes = await m.evaluar(`document.documentElement.getAttribute('data-theme')`);
+        await m.evaluar(`document.querySelector(${JSON.stringify(sel)}).focus()`);
+        await m.cdp('Input.dispatchKeyEvent', {
+          type: 'keyDown', key: tecla, code: tecla === 'Enter' ? 'Enter' : 'Space',
+          windowsVirtualKeyCode: tecla === 'Enter' ? 13 : 32, text: tecla === 'Enter' ? '\r' : ' ',
+        });
+        await m.cdp('Input.dispatchKeyEvent', {
+          type: 'keyUp', key: tecla, code: tecla === 'Enter' ? 'Enter' : 'Space',
+          windowsVirtualKeyCode: tecla === 'Enter' ? 13 : 32,
+        });
+        await m.dormir(350);
+        const ahora = await m.evaluar(`document.documentElement.getAttribute('data-theme')`);
+        juzgar(
+          ahora !== antes && (ahora === 'dark' || ahora === 'light'),
+          `${dicho} · ⭐ ${tecla === ' ' ? 'Espacio' : 'Enter'} conmuta [APG: teclado nativo del button]`,
+          `${antes} → ${ahora}`,
+        );
+      }
+
+      // El anillo de foco, que es del tema y no del navegador.
+      const anillo = await leer(
+        m,
+        `const v = document.querySelector(${JSON.stringify(sel)}); v.focus();
+         const s = getComputedStyle(v);
+         return { color: s.outlineColor, ancho: s.outlineWidth, estilo: s.outlineStyle };`,
+      );
+      const ring = await tokenRgb(m, 'ring');
+      juzgar(
+        anillo.color === ring && anillo.estilo === 'solid' && parseFloat(anillo.ancho) >= 2,
+        `${dicho} · el foco se ve, y con el --ring de la casa`,
+        `${anillo.estilo} ${anillo.ancho} ${anillo.color} · --ring ${ring}`,
+      );
+
+      await m.evaluar(`document.documentElement.setAttribute('data-theme', ${JSON.stringify(tema)})`);
+      await m.dormir(300);
+      await m.guardar(`${CAPTURAS}/conmutador-${nombreTema}-${pantalla.id}.png`);
+    } finally {
+      m.cerrar();
+    }
+  }
+}
+
 {
   const t = terceros();
   juzgar(t.bien, t.titulo, t.detalle);
