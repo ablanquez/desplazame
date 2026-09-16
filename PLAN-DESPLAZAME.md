@@ -4433,20 +4433,15 @@ Code lo traduce al Angular existente.)*
         CON RUTA ABSOLUTA [norma nueva, cumplida]: capR/ del
         scratchpad, con la lámina de los candidatos y el
         antes/después de moto.
-      - [ ] TANDAS 6+ — EL OSCURO COMPLETO, en orden: ⚰️ el
-        resultado en los dos temas [PARTE 1, HECHA — abajo] →
-        ⚰️ la tesela oscura CARTO [PARTE 2, HECHA — abajo: Dark
-        Matter con key, atribución por capa, el claro del mapa
-        también medido] → ⚰️ PUENTE: el Buscador en oscuro
-        [HECHO — abajo] → ⚰️ PUENTE-BIS: /panel en oscuro
-        [HECHO — abajo; el barrido de rutas confirmó que era
-        LA ÚLTIMA página sin vestir] →
-        EL CONMUTADOR [PARTE 3, pedido por Antonio en la ronda
-        de visión: el botón en PC y EL CUARTO HUECO de la barra
-        móvil, con su anti-FOUC; prioridad documentada:
-        elección guardada > sistema > claro; con él, el peso de
-        letra del §3 del DISEÑO], y la verificación final del
-        15 (casilla 5).
+      - [x] ⚰️ TANDAS 6+ — EL OSCURO COMPLETO, HECHO ENTERO
+        (14-15/09): ⚰️ el resultado en los dos temas [PARTE 1]
+        → ⚰️ la tesela oscura CARTO [PARTE 2] → ⚰️ PUENTE: el
+        Buscador → ⚰️ PUENTE-BIS: /panel [la última sin
+        vestir, confirmado por barrido] → ⚰️ EL CONMUTADOR
+        [PARTE 3, HECHA — abajo: el botón en PC y el cuarto
+        hueco, anti-FOUC, prioridad guardada > sistema >
+        claro, y el 400→500 del §3]. Queda la verificación
+        final del 15 (casilla 5), tras la identidad.
       - [x] ⚰️ TANDA 6 · PARTE 1 — EL RESULTADO EN LOS DOS
         TEMAS (14-15/09; 7 commits `f3ffb79`…`a38cbaf`, en
         local al escribir esto — UN push con estos papeles).
@@ -4781,6 +4776,89 @@ Code lo traduce al Angular existente.)*
         papeles [d34358c · 9fba4c2 · 64686da]. Retirado; la
         lección es la de siempre: el barrido por clases debe
         contar «cuántos titulares hay», no solo qué dicen.
+      - [x] ⚰️ TANDA 6 · PARTE 3 — EL CONMUTADOR: EL OSCURO SE
+        HACE PÚBLICO (15/09 noche; 4 commits
+        `d641866`…`d03c330` sobre `a067f54`, en local al
+        escribir esto — UN push con estos papeles; posición
+        del botón y los dos temas RATIFICADOS por Antonio:
+        «todo correcto»). ⭐ EL DIAGNÓSTICO, MÁS GORDO DE LO
+        QUE PARECÍA: el §35 estaba ESCRITO ENTERO EN EL CSS Y
+        DESCONECTADO — con prefers-color-scheme: dark emulado,
+        el clavo <html data-theme="light"> hacía que el
+        :not([data-theme='light']) de la capa 2 no casara
+        NUNCA: fondo pintado rgb(255,255,255) con el sistema
+        en oscuro. EL CAMINO DEL SISTEMA JAMÁS FUNCIONÓ de
+        punta a punta hasta hoy [zona sin vigilar, dicha — la
+        P29 la cubre; SIN bitácora con el porqué razonado: el
+        clavo estaba declarado y su jueza decía la verdad
+        sobre lo que vigilaba — no hubo verde mintiendo]. El
+        resto del hoy: 0 role=switch · 3 huecos · localStorage
+        vacío · ningún guion inline [primera hoja en el índice
+        7, guion en −1] · 22 transiciones vivas · pesos
+        400×17/600×7/700×3. §3 y §35 CITADOS con su letra en
+        el checkpoint. Posición en PC: NO CONSTA en papeles ni
+        maqueta → arriba a la derecha de la cabecera, a la
+        altura del h1, ratificada por el ojo. LO HECHO: el
+        guion anti-FOUC inline, PRIMERO del <head>, try/catch
+        [el almacenamiento lanza en privado]; SIN estampar el
+        tema del sistema cuando no hay guardada — DELIBERADO:
+        estamparlo sería duplicar la prioridad y matar el
+        sistema vivo; la capa 2 del §35 es el respaldo ·
+        transiciones apagadas con .sin-transiciones y
+        devueltas tras DOS vueltas de requestAnimationFrame
+        [una sola corre antes de pintar] · el botón con el APG
+        punto por punto: <button type=button> real,
+        role=switch + aria-checked, NOMBRE ESTABLE «Modo
+        oscuro» [el estado lo dicen aria-checked y el DIBUJO
+        sol/luna, no el color] · el §3 vía token --peso-texto
+        en el body [los dos 400 que deshacían un 600 lo
+        referencian; el espécimen .identidad__peso--400
+        INTACTO: es un rótulo] · dos símbolos nuevos con
+        sha256, catálogo 28→30. ⭐ UNA JUEZA MORDIÓ DE VERDAD:
+        esqueleto L4 cazó la barra a 392 de 390 [el conmutador
+        llega envuelto en el host del componente y el flex
+        reparte entre hijos DIRECTOS] → display: contents en
+        el host, 4×97,5=390 — y la misma regla arregló el gap
+        que una caja vacía se cobraba en la cabecera móvil.
+        LAS SEIS ACTAS, ninguna retirada: toBe(3)→toBe(4) ×2
+        [pintura.spec + esqueleto] · el clavo del <html> DADO
+        LA VUELTA [ahora vigila que el atributo NO esté] · 3
+        de identidad.mjs [la capa 2 medida sin quitar
+        atributos; la portada sigue al sistema en los dos
+        sentidos; el conmutador comparado con lo-de-antes en
+        vez de con un literal ya cambiado dos veces]. FRENO
+        NUEVO por la ley de la L4: la P29 contra producción
+        reventaba en el .click() de un botón null llevándose
+        cinco pantallas — ahora una jueza sin sujeto da rojo
+        cantado y deja correr a las demás. NO CONSTA
+        DECLARADO: el fogonazo VISUAL no se mide [el arnés
+        fotografía a petición, no filma] — la P29 jura EL
+        MECANISMO [guion presente, delante de las hojas, sin
+        defer/async, try/catch, atributo antes del primer
+        pintado, sin-transiciones primera clase] y lo dice con
+        esas palabras en su salida. CIFRAS: P29 42 rojos
+        [salida 1] → 88 OK [contraprueba 8 torceduras → 29
+        rojos] · unidad +20 → 671/671 [contraprueba 12] ·
+        esqueleto/identidad 2+4 rojos contra el clavo → 68 y
+        135 · 10/10 con salida 0 sobre d03c330, 0 escapadas ·
+        pintura 1.092 [P25 84 · P26 477 · P27 126 · P28 64 ·
+        P29 88] · censo 74/74, 0 deudas — EL CONMUTADOR NO
+        ESTRENA NI UNA TINTA [muted-foreground y primary, ya
+        medidos contra card]. PRESUPUESTO: initial
+        548,39→551,10 [aviso de 520 superado por 31,10;
+        styles 37,49; main 513,62; transferido 140,40; el
+        guion inline 601 B con etiqueta] · resultado.css 5,61.
+        ⭐ LA PREGUNTA DEL «VOLVER A SISTEMA», declarada y
+        RESUELTA POR DOCUMENTACIÓN EN REVISIÓN: la crítica es
+        real y con fuente [el dos-estados-para-siempre deja
+        clavado a quien eligió una vez, sin vuelta al
+        automático desde la interfaz], pero el arreglo es un
+        TERCER ESTADO «Sistema» que cambia el patrón ARIA [de
+        switch a grupo de tres] y enmienda el §35 → ENCARGO
+        PROPIO con su pasada de doctrina y el ojo de Antonio,
+        A LA COLA con nombre; hoy la letra firmada del §35
+        está implementada tal cual y es patrón documentado
+        legítimo.
 - [ ] **EL GUARDIÁN DE BUILD ATÓMICO [PRIORIDAD ALTA — bloque
       propio desde el 15/09, pedido por Antonio: los papeles con la
       verdad entera, no líneas de mesa]** — EL PORQUÉ: el `ng build`

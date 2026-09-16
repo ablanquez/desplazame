@@ -1679,24 +1679,28 @@ verdad» · «un trazo se mide contra lo que tiene al lado, no
 contra los extremos del plano») — y EL PUENTE HECHO (el
 Buscador en los dos temas, el claro roto de producción
 arreglado de paso, la jueza del color a pelo para TODA la
-app; crónica en la casilla 4) — y EL PUENTE-BIS HECHO
-[/panel en los dos temas; el barrido de rutas con evidencia:
-ERA la última página sin vestir — crónica en la casilla 4] —
-(a) EL PUSH del puente-bis [+ estos papeles, UN push]; (b) LA
-PARTE 3: EL CONMUTADOR [PC + el cuarto hueco de la barra móvil +
-anti-FOUC + el peso del §3; el re-encuadre del mapa al
-conmutar YA resuelto con jueza en la parte 2]; (d) DESPUÉS:
+app; crónica en la casilla 4) — ⭐ y EL OSCURO ENTERO
+HECHO Y PÚBLICO [las partes 1-2-3 y los dos puentes; el
+conmutador en PC y en el cuarto hueco con su anti-FOUC,
+ratificado por Antonio: «todo correcto»; crónicas en la
+casilla 4] — (a) EL PUSH de la parte 3 [+ estos papeles, UN
+push]; (b) DESPUÉS:
 el encargo de IDENTIDAD [el logo + ⭐ la identidad de ICONOS
 pedida por Antonio el 15/09: el sistema acción→icono como §39
-del DISEÑO con su jueza] y la verificación final del 15;
+del DISEÑO con su jueza, y el favicon por tema del §36] y la
+verificación final del 15 [ANTES de ella: los 44 px de los
+campos]; (c) EN COLA CON NOMBRE, del cierre del conmutador:
+EL TERCER ESTADO «Sistema» [la vuelta al automático — cambia
+el patrón ARIA a grupo de tres y enmienda el §35; encargo
+propio con doctrina y ojo];
 PENDIENTE DEL TELÉFONO de Antonio: el pin con su prompt real ·
 el teclado · el safe-area en aparato; ⚠️ el MISTERIO de los
 fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
-initial al cierre del puente-bis: 548,39 kB, transferido
-139,67 [styles.css engordó con las dos paletas del panel]; la
+initial al cierre del conmutador: 551,10 kB, transferido
+140,40 [superado el aviso de 520 por 31,10]; la
 poda como palanca] · el guardián de build atómico [PRIORIDAD ALTA
 — ya con BLOQUE PROPIO en el PLAN, delante de la casilla 5:
 porqué, forma y jueza] · el
@@ -2043,7 +2047,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.307 pruebas (656 motor + 651 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.327 pruebas (656 motor + 671 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
