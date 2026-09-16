@@ -75,7 +75,8 @@
 
 .ruta__separador {
   color: var(--muted-foreground);
-  font-weight: 400;
+  /* [§3] el peso del tema: 400 en claro, 500 en oscuro. */
+  font-weight: var(--peso-texto);
 }
 
 /* Los dos extremos, en una línea con la flecha en medio. Envuelve porque dos

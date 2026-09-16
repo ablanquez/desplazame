@@ -22,13 +22,64 @@ import { DestroyRef, Injectable, inject, signal } from '@angular/core';
  *
  * ⚠️ Sin hoja de estilos (las pruebas de unidad, que no aplican CSS) el valor
  *    computado viene vacío y se lee el atributo, que es la capa que manda.
+ *
+ * ── ⭐ Y DESDE LA PARTE 3 (16/09) TAMBIÉN ESCRIBE ───────────────────────────
+ *
+ * `elegir` es el único sitio de la app que pone la capa 3. Escribir la capa 3
+ * NO es repetir la prioridad: la prioridad la resuelven las tres capas del CSS,
+ * y esto solo estampa la elección de una persona en la que manda.
+ *
+ * ⚠️ La otra mitad del mecanismo vive en el `<head>` del `index.html`, porque
+ *    tiene que correr **antes del primer pintado** y ahí todavía no hay
+ *    módulos. La llave del almacenamiento se escribe, por eso, en dos sitios —y
+ *    lleva su portero en `tema.spec.ts`, que saca las dos y las compara.
  */
+
+/**
+ * ⭐ LA LLAVE DEL ALMACENAMIENTO, con el nombre de la app por delante.
+ *
+ * ⚠️ **Está escrita dos veces**: aquí y en el guion inline del `index.html`,
+ *    que no puede importar nada porque corre antes de que existan los módulos.
+ *    Si alguien renombra una y no la otra, la elección deja de sobrevivir a la
+ *    recarga y **no se nota mirando la pantalla**. Por eso la jueza las compara.
+ */
+export const LLAVE_DEL_TEMA = 'desplazame:tema';
+
 @Injectable({ providedIn: 'root' })
 export class Tema {
   private readonly esOscuro = signal(temaDelDocumento());
 
   /** `true` si el tema que ha ganado es el oscuro. */
   readonly oscuro = this.esOscuro.asReadonly();
+
+  /**
+   * Estampa la elección: la capa 3 del CSS y el almacenamiento, en ese orden.
+   *
+   * ⚠️ La señal se vuelve a LEER del documento en vez de darle el valor que se
+   *    acaba de pedir. Con hoja de estilos delante, lo que ha ganado lo dice
+   *    `color-scheme` computado, no nuestra intención: si algún día la capa 3
+   *    dejara de aplicarse, esto lo delataría en vez de taparlo.
+   */
+  elegir(oscuro: boolean): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const cual = oscuro ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', cual);
+    try {
+      localStorage.setItem(LLAVE_DEL_TEMA, cual);
+    } catch {
+      // ⚠️ En modo privado el almacenamiento LANZA. La elección vale para esta
+      //    pestaña y no sobrevive a la recarga: es lo único que se puede hacer,
+      //    y es mejor que quedarse sin conmutar.
+    }
+    this.esOscuro.set(temaDelDocumento());
+  }
+
+  /** Lo que hace el interruptor: al otro tema, y guardado. */
+  alternar(): void {
+    this.elegir(!this.esOscuro());
+  }
 
   constructor() {
     if (typeof document === 'undefined') {

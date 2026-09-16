@@ -100,8 +100,18 @@
          donde lo pone la maqueta. Antes vivia DENTRO del bloque Buscador, y
          eso tenia un efecto feo: al plegar el buscador desaparecia el nombre
          de la app. Fuera del acordeon, esta siempre. -->
+    <!-- ⭐ EL CONMUTADOR EN ESCRITORIO, arriba a la derecha de la cabecera
+         (16/09, parte 3).
+         ⚠️ DÓNDE VA EN PC **NO CONSTA**: el §35 firma el conmutador y el §20 le
+            guarda el cuarto hueco de la barra de MÓVIL, pero de escritorio no
+            dicen nada, y la maqueta tampoco. Se pinta donde la cabecera lo
+            admite —a la altura del `h1`, sin moverle el aire a nada— y va a
+            capturas para que lo ratifique un ojo. -->
     <header class="cabecera">
-      <h1>Desplázame</h1>
+      <div class="cabecera__fila">
+        <h1>Desplázame</h1>
+        <app-conmutador-de-tema variante="cabecera" />
+      </div>
       <p>Cómo ir de un portal a otro en Zaragoza.</p>
     </header>
 
@@ -1476,9 +1486,14 @@
           `viewport-fit=cover` del meta**: sin el, iOS devuelve 0 y la barra se
           queda debajo del indicador de inicio. Ver `index.html`.
 
-       ⛔ SON TRES Y LA MAQUETA TIENE CUATRO. Falta «Tema», y es a proposito:
-          nuestro tema va clavado en claro hasta su tanda, asi que ese boton no
-          tendria nada que conmutar. Ver `pestanas` en el componente. -->
+       ⭐ Y YA SON CUATRO (16/09, parte 3). Aqui ponia «SON TRES Y LA MAQUETA
+          TIENE CUATRO: falta Tema, y es a proposito — nuestro tema va clavado
+          en claro hasta su tanda, asi que ese boton no tendria nada que
+          conmutar». Esa tanda es esta, y el cuarto entra CABLEADO: el boton
+          inerte que el §20 prohibia no ha existido ni un minuto.
+       ⚠️ El cuarto NO es una pestaña: los otros tres navegan y llevan
+          `aria-current`; este es un interruptor [APG] con `role="switch"` y
+          `aria-checked`. Comparte el traje de la barra y nada mas. -->
   <nav class="barra" aria-label="Pantallas">
     @for (p of pestanas; track p.id) {
       <button
@@ -1492,5 +1507,6 @@
         <span class="barra__texto">{{ p.etiqueta }}</span>
       </button>
     }
+    <app-conmutador-de-tema variante="barra" />
   </nav>
 </div>

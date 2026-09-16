@@ -129,6 +129,18 @@
      No es cosmético: es el navegador pintando lo que no pintamos nosotros. */
   color-scheme: light;
 
+  /* ⭐ [DISEÑO §3] «En modo oscuro, subir un peso (400→500) para compensar el
+     adelgazamiento óptico documentado sobre fondos oscuros». El `body` lo
+     pinta y todo el texto lo hereda.
+     ⚠️ Va en los CUATRO bloques por lo mismo que los colores: si faltara en la
+        capa del sistema, quien tiene el portátil en oscuro leería el oscuro
+        con la letra fina y nadie se enteraría.
+     ⚠️ El § manda SOLO el salto 400→500: los 500 y 600 del claro no se tocan.
+     ⚠️ Y el 500 tiene fichero propio (`Inter-Medium.woff2`): un peso sin cara
+        lo sintetiza el navegador engordando el 400, que es justo el borrón que
+        el § quiere evitar. */
+  --peso-texto: 400;
+
   /* ── LA PALETA OSCURA, escrita aquí y en ningún otro sitio ─────────────── */
   --oscuro-background: #121212;
   --oscuro-foreground: #f0f0f0;
@@ -394,6 +406,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
+    --peso-texto: 500;
 
     --background: var(--oscuro-background);
     --foreground: var(--oscuro-foreground);
@@ -453,6 +466,7 @@
 /* Capa 3 — la elección explícita, y manda sobre las dos anteriores. */
 [data-theme='dark'] {
   color-scheme: dark;
+  --peso-texto: 500;
 
   --background: var(--oscuro-background);
   --foreground: var(--oscuro-foreground);
@@ -527,6 +541,7 @@
    escribiéndose una sola vez y las tres capas no puedan divergir. */
 [data-theme='light'] {
   color-scheme: light;
+  --peso-texto: 400;
 
   --background: var(--claro-background);
   --foreground: var(--claro-foreground);
@@ -610,6 +625,7 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-weight: var(--peso-texto);
 
   /* [DOC MDN] La propiedad de alto nivel, no `font-feature-settings: "tnum"`.
      La referencia usa la sintaxis vieja; se calca el efecto, no la sintaxis. */
@@ -618,6 +634,29 @@ body {
   /* El `antialiased` de la referencia, que en CSS son estas dos. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ⭐ LA TRAMPA DE LAS TRANSICIONES (16/09, tanda 6 · parte 3).
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Las transiciones que suavizan el cambio de tema **animan también su primera
+   aplicación**, y eso se ve como un fogonazo aunque el atributo llegue a
+   tiempo: el guion del `index.html` pone el oscuro antes de pintar, y acto
+   seguido veintidós elementos empiezan a viajar desde el color anterior.
+
+   El guion marca `<html>` con esta clase antes de nada y la retira tras el
+   primer pintado —dos vueltas de `requestAnimationFrame`, porque una sola
+   corre todavía ANTES de pintar—.
+
+   ⚠️ `!important` a propósito, y es de los pocos de la casa: tiene que ganarle
+      a cualquier `transition` de cualquier hoja, incluidas las de componente,
+      que se cargan después de esta.
+   ⚠️ Y los pseudoelementos van en el selector: el chevrón del acordeón y el
+      punto de los créditos también transicionan, y también parpadearían. */
+.sin-transiciones *,
+.sin-transiciones *::before,
+.sin-transiciones *::after {
+  transition: none !important;
 }
 
 /* ⭐ EL RESET QUE HAY QUE ESCRIBIR SIEMPRE, Y QUE AQUÍ ES CRÍTICO.
@@ -916,6 +955,91 @@ body:has(.marco) {
 .barra__texto {
   font-size: 0.625rem;
   font-weight: 500;
+}
+
+/* ⭐ EL CONMUTADOR DE TEMA (16/09, tanda 6 · parte 3).
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Dos variantes y **nunca las dos a la vez**: el cuarto hueco de la barra en
+   móvil, y la cabecera del panel en escritorio. Cada una se apaga en el ancho
+   de la otra — la de la barra, de rebote, porque `.barra` entera desaparece a
+   partir de 768.
+
+   ⚠️ NO ESTRENA COLORES. Usa los mismos que las pestañas —`muted-foreground`
+      apagado, `primary` puesto— y los dos pares ya están medidos en el censo
+      contra `card`: «Texto secundario sobre una tarjeta» y «Círculo de origen y
+      destino». Un control nuevo no es excusa para una tinta nueva.
+   ⚠️ Y el color NO es la única señal del estado [WCAG 1.4.1]: el icono cambia
+      de DIBUJO —sol o luna— y `aria-checked` lo dice en voz alta. */
+
+/* ⭐ EL HOST DESAPARECE DEL ÁRBOL DE CAJAS, y esto lo enseñó una jueza mordiendo.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   El conmutador no es un `<button>` suelto como los otros tres huecos: llega
+   envuelto en el host del componente, y tanto el reparto de un `flex` como su
+   `gap` se hacen entre HIJOS DIRECTOS. Con el host de por medio:
+
+   · en la barra, los anchos salían `101 + 101 + 101 + 89 = 392 de 390` —el
+     cuarto encogido y la suma desbordada—, y lo cazó la jueza L4 de
+     `esqueleto.mjs`;
+   · en la cabecera, el host seguía contando como hijo aunque su botón estuviera
+     apagado en móvil, así que el `gap` de la fila se cobraba igual por una caja
+     vacía.
+
+   `display: contents` quita la caja del host y deja al botón de hijo directo:
+   cuatro botones iguales en la barra, y en móvil la fila de la cabecera vuelve
+   a tener un solo hijo. Sin tocarle el `flex` a nadie ni inventar anchos.
+
+   ⚠️ Y vale para las DOS variantes, que es lo que lo hace una regla y no un
+      parche: la del ancho de la barra se arregló primero y la de la cabecera
+      habría quedado viva. */
+app-conmutador-de-tema {
+  display: contents;
+}
+
+.conmutador--barra[aria-checked='true'] {
+  color: var(--primary);
+}
+
+/* La de escritorio: un cuadrado de 44 —el mínimo de [WCAG 2.5.5]— pegado a la
+   derecha de la cabecera, a la altura del `h1`.
+   ⚠️ `display: none` de partida y `inline-flex` a partir de 768: esta hoja es
+      móvil primero, y en móvil manda el hueco de la barra. */
+.conmutador {
+  display: none;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.conmutador[aria-checked='true'] {
+  color: var(--primary);
+}
+
+/* ⚠️ Solo el de la cabecera: el de la barra ya hereda el anillo de
+   `.barra__boton:focus-visible`, y repetirlo aquí sería una regla que no pinta
+   nada — de esas que la jueza del color a pelo lee como si pintaran. */
+.conmutador:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+/* ⚠️ Sin aire propio: el `h1` y el `p` de la cabecera ya traen sus márgenes, y
+   la fila no añade ninguno para no mover la cabecera ni un píxel — hay juezas
+   de `esqueleto.mjs` midiendo esa altura. */
+.cabecera__fila {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
 }
 
 /* La puerta a `/creditos`, al final del scroll del formulario. Ver la
@@ -1288,6 +1412,12 @@ body:has(.marco) {
   .pestana__cabecera,
   .puerta-creditos {
     display: none;
+  }
+
+  /* ⭐ Y AQUÍ APARECE EL CONMUTADOR DE ESCRITORIO, justo donde se apaga la
+     barra que lo llevaba en móvil: uno u otro, nunca los dos. */
+  .conmutador {
+    display: inline-flex;
   }
 
   /* Y la franja del pie vuelve, que es donde vive en escritorio. */

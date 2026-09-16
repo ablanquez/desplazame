@@ -85,7 +85,8 @@
 
 .panel__ruta {
   display: block;
-  font-weight: 400;
+  /* [§3] el peso del tema: 400 en claro, 500 en oscuro. */
+  font-weight: var(--peso-texto);
   font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.15rem;

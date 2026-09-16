@@ -1,9 +1,67 @@
 <!doctype html>
-<html lang="es" data-theme="light">
+<!-- ⭐ SIN `data-theme` (16/09, tanda 6 · parte 3), y el hueco donde estaba es
+     parte del arreglo. Aqui ponia `data-theme="light"` mientras duraba la
+     migracion de los componentes, y eso dejaba el §35 escrito entero en el CSS
+     y DESCONECTADO en la practica: el `:not([data-theme='light'])` de la capa 2
+     no casaba nunca, asi que `prefers-color-scheme` no mandaba en nada. Medido
+     el 16/09 con el sistema en oscuro emulado antes de navegar: fondo pintado
+     `rgb(255, 255, 255)`. Sin el atributo, el tema lo deciden las tres capas de
+     `styles.css` y el guion de abajo. -->
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <title>Desplázame</title>
   <base href="/">
+
+  <!--
+    ⭐ EL GUION ANTI-FOUC — INLINE, BLOQUEANTE Y EL PRIMERO DE TODOS.
+
+    [DISEÑO §35] la eleccion manual va persistida y **gana** al media query. Para
+    que gane SIN FLASH tiene que estar puesta antes del primer pintado, y eso
+    solo lo consigue un guion inline en el `<head>` **delante de las hojas**: un
+    `defer`, un `async` o un `src` lo sacan del camino critico y devuelven el
+    fogonazo blanco a quien guardo el oscuro. Por eso no lleva ninguno de los
+    tres, y por eso vive aqui arriba y no en el bundle.
+
+    ⚠️ `try/catch` OBLIGATORIO: en modo privado `localStorage` **lanza** al
+       tocarlo. Sin el, la excepcion sube, el guion muere, y se lleva por delante
+       la supresion de transiciones de la linea siguiente.
+
+    ⚠️ SIN ELECCION GUARDADA NO SE ESTAMPA NADA, y no es un olvido. Estampar
+       aqui el tema del sistema seria una SEGUNDA COPIA de la prioridad —la que
+       ya escribe la capa 2 de `styles.css`— y ademas mataria el sistema vivo:
+       con el atributo puesto, cambiar el SO con la pestaña abierta no haria
+       nada. La capa 2 ES el respaldo que el §35 firma; aqui no se repite.
+
+    ⚠️ LA TRAMPA DE LAS TRANSICIONES: las que animan el cambio de tema animan
+       tambien su PRIMERA aplicacion, y eso se ve como un flash aunque el
+       atributo llegue a tiempo. Se apagan con `.sin-transiciones` y se
+       devuelven tras el primer pintado — DOS vueltas de `requestAnimationFrame`,
+       porque una sola corre todavia ANTES de pintar.
+
+    ⚠️ La llave esta escrita tambien en `tema.ts`, que es quien la guarda. Aqui
+       no se puede importar nada: esto corre antes de que existan los modulos.
+       Las dos las compara una jueza de `tema.spec.ts`.
+  -->
+  <script>
+    (function () {
+      var raiz = document.documentElement;
+      raiz.classList.add('sin-transiciones');
+      try {
+        var guardada = localStorage.getItem('desplazame:tema');
+        if (guardada === 'dark' || guardada === 'light') {
+          raiz.setAttribute('data-theme', guardada);
+        }
+      } catch (e) {
+        /* modo privado: el almacenamiento lanza. Se sigue sin eleccion. */
+      }
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          raiz.classList.remove('sin-transiciones');
+        });
+      });
+    })();
+  </script>
   <!-- ⭐ `viewport-fit=cover` (11/09, tanda de móvil) — y NO es cosmético.
        [DOC MDN, `env()`] las variables `safe-area-inset-*` **valen 0 mientras el
        viewport no sea `cover`**. La barra de pestañas pide

@@ -36,6 +36,7 @@ import { IconoCapa, type Clase } from './iconos';
 import { llevaContorno, tonosDeChip, type TonosDeChip } from './chip';
 import { Simbolo, type NombreDeSimbolo } from './simbolos';
 import { Tema } from './tema';
+import { ConmutadorDeTema } from './conmutador';
 
 /**
  * ⭐ EL MAPEO GIRO → FLECHA. Diez giros, diez glifos, y ni una dependencia.
@@ -745,7 +746,15 @@ function familiaDe(modo: Modo): Familia {
 
 @Component({
   selector: 'app-buscador',
-  imports: [Mapa, AutocompletarVia, SelectorPortal, IconoCapa, NgTemplateOutlet, Simbolo],
+  imports: [
+    Mapa,
+    AutocompletarVia,
+    SelectorPortal,
+    IconoCapa,
+    NgTemplateOutlet,
+    Simbolo,
+    ConmutadorDeTema,
+  ],
   templateUrl: './buscador.html',
   // Dos hojas para un mismo componente: el formulario y la pintura del
   // resultado. El porqué, entero, en la cabecera de `resultado.css`.
