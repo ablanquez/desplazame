@@ -49,6 +49,8 @@ Con la misma prueba se firmó `726bb8e`: `tras cerrar()   : OK borrado` · `sali
 
 Fuera de `pintura`: 6 de 10 en las dos, en las mismas suites. **El cierre no es la variable**, y en `pintura` el limpio es peor (puertos 9432, 9433 y 9434 fallan 3 veces cada uno). Quedan 23 residuos nuevos, **1.736 MB**, más de los ~0,5 GB autorizados de antemano: no entran en el acta sin nueva autorización. La bitácora sigue abierta.
 
+**Nota [2026-09-17] · revertido el cierre limpio** (`37e3050` revierte `d148afa`, con autorización de Antonio): se midió peor, 23 de 85 contra 3 en `pintura` (cinco veces más daño) y las mismas seis suites fuera. Los 23 residuos (1.736 MB) entran en el acta como bloque 4, también autorizado. La autorización previa estimaba ~0,5 GB; fueron 1,7 porque los 85 cierres de `pintura` no estaban medidos. El acta queda en 115.
+
 ---
 
 ## [2026-09-15] ✅ CERRADA — la frontera de los campos del Buscador, en CLARO y en producción, lee a 2,85:1 y 1,23:1, y la jueza del color a pelo barre `buscador.css` en verde
