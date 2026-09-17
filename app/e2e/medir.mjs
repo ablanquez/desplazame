@@ -424,6 +424,15 @@ function borrarElPerfil(perfil) {
  * · **9 DE LA BATERÍA DE `6354514`** (17/09, 15:22, con la exclusión de ESET
  *   puesta): 490 MB. `bizi-y-resumen` 1, `dos-filas` 1, `identidad` 1,
  *   `pantalla` 1, `pintura` 3, `proximo-bus` 1, `yego` 1.
+ * · **23 DE LA BATERÍA DE COMPARACIÓN `d148afa`** (17/09, 16:01, con el cierre
+ *   limpio por `Browser.close`, revertido después): **1.736 MB**.
+ *   `bizi-y-resumen` 1, `dos-filas` 1, `identidad` 1, `pantalla` 1,
+ *   `proximo-bus` 1, `yego` 1, `pintura` 17 (23 cierres fallidos de 85; los
+ *   puertos 9432, 9433 y 9434 fallaron 3 veces cada uno y dejaron un solo
+ *   directorio). ⚠️ **DESVIACIÓN DICHA:** la autorización previa estimaba ~0,5
+ *   GB y fueron 1,7, porque los 85 cierres de `pintura` no estaban medidos.
+ *
+ * **115 perfiles, 8.822 MB.**
  *
  * ── La evidencia de que no se pueden borrar ─────────────────────────────────
  *
@@ -460,6 +469,16 @@ function borrarElPerfil(perfil) {
  * a ESET como actor; el mecanismo residual no está confirmado y no se adivina.
  * Quedan **fuera del alcance de cualquier mano**, retenidos por un mecanismo
  * del sistema no identificado.
+ *
+ * ── La vía que queda sin probar: el MODO SEGURO ───────────────────────────────
+ *
+ * Antonio la declina por ahora (17/09); queda escrita para cuando quiera. El
+ * modo seguro carga solo los controladores de la lista blanca
+ * `HKLM\SYSTEM\CurrentControlSet\Control\SafeBoot\Minimal` [doc de
+ * Microsoft], con la excepción documentada de los controladores de arranque,
+ * que cargan igual [Windows Internals]. Si el que deniega es un minifiltro que
+ * no está en esa lista ni es de arranque, allí no estaría, y el borrado
+ * diría si lo era.
  *
  * ⚠️ **EL ACTA SOLO CRECE CON AUTORIZACIÓN ESCRITA DE ANTONIO, FECHADA Y CON
  *    SU PORQUÉ**, que va en el bloque. La jueza exige que cada bloque la
@@ -539,8 +558,32 @@ const ACTA = [
       ['9350-508', '15:49', 78],
     ],
   },
+  {
+    bloque: '23 de la batería de comparación del 17/09 · 16:01',
+    tirada: 'd148afa (cierre limpio, revertido en 37e3050)',
+    autorizacion: {
+      fecha: '2026-09-17',
+      porque:
+        'el cierre limpio los dejó (6 de 10 fuera de pintura, 23 de 85 en pintura) y nadie puede ' +
+        'borrarlos; autorizado por Antonio con la desviación dicha: se estimaban ~0,5 GB y fueron 1,7',
+    },
+    perfiles: [
+      ['9350-18232', '16:01', 77], ['9350-17144', '16:02', 77],
+      ['9350-9184', '16:03', 78], ['9351-24936', '16:05', 77],
+      ['9417-11920', '16:08', 55], ['9415-11920', '16:08', 77],
+      ['9424-11920', '16:09', 77], ['9434-11920', '16:11', 110],
+      ['9432-11920', '16:12', 78], ['9433-11920', '16:13', 78],
+      ['9444-11920', '16:14', 52], ['9454-11920', '16:15', 77],
+      ['9452-11920', '16:17', 77], ['9603-11920', '16:20', 52],
+      ['9602-11920', '16:20', 77], ['9611-11920', '16:21', 77],
+      ['9621-11920', '16:23', 77], ['9623-11920', '16:23', 77],
+      ['9624-11920', '16:24', 77], ['9700-11920', '16:24', 77],
+      ['9710-11920', '16:25', 77], ['9350-24400', '16:29', 77],
+      ['9350-3772', '16:30', 78],
+    ],
+  },
 ];
-const ACTA_TOTAL = 92;
+const ACTA_TOTAL = 115;
 
 /**
  * ⭐ LA JUEZA DEL ARNÉS (letra del 17/09, con el acta unificada).
