@@ -26,7 +26,7 @@
  *
  *     node app/e2e/creditos.mjs [http://localhost:3111]
  */
-import { abrirChrome, terceros, contrasteReal, AA_TEXTO } from './medir.mjs';
+import { abrirChrome, terceros, perfilesResiduales, contrasteReal, AA_TEXTO } from './medir.mjs';
 
 // La URL por argumento, como el resto de los ficheros de `e2e/`: con `ng serve`
 // en el 4200 por defecto, o con el motor sirviendo el dist si se le pasa.
@@ -354,6 +354,13 @@ try {
   {
     const t = terceros();
     juez(t.titulo, t.bien, t.detalle);
+
+    // ⭐ Y EL ARNÉS NO SE DEJA NADA PUESTO (18/09): un perfil de Chrome
+    //    olvidado son 82 MB, y el 18/09 había 111 en %TEMP% — 9 GB — con el
+    //    disco al 100 %. Se cuenta EL DIRECTORIO al acabar, no lo que se
+    //    cree haber abierto.
+    const perf = perfilesResiduales();
+    juez(perf.titulo, perf.bien, perf.detalle);
   }
 
   console.log(`\n${malas === 0 ? '✅ TODO VERDE' : `❌ ${malas} en rojo`}`);

@@ -11,7 +11,7 @@
  *    nada, en la primera juez de este fichero.
  */
 import { readFileSync } from 'node:fs';
-import { abrirChrome, terceros, censoDe, contrasteReal, contrasteRgb, deHex, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
+import { abrirChrome, terceros, perfilesResiduales, censoDe, contrasteReal, contrasteRgb, deHex, AA_TEXTO, AA_GRAFICO } from './medir.mjs';
 
 // ⚠️ La URL no puede ir en `process.argv[2]`: ese sitio ya es la calle de
 //    origen y cambiarlo rompería la forma de llamar a esta jueza, que está
@@ -370,6 +370,13 @@ try {
 {
   const t = terceros();
   juez(t.titulo, t.bien, t.detalle);
+
+  // ⭐ Y EL ARNÉS NO SE DEJA NADA PUESTO (18/09): un perfil de Chrome
+  //    olvidado son 82 MB, y el 18/09 había 111 en %TEMP% — 9 GB — con el
+  //    disco al 100 %. Se cuenta EL DIRECTORIO al acabar, no lo que se
+  //    cree haber abierto.
+  const perf = perfilesResiduales();
+  juez(perf.titulo, perf.bien, perf.detalle);
 }
 
 console.log(`\n  ${pasadas} en verde · ${fallos} en rojo`);

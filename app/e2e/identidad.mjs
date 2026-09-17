@@ -21,7 +21,7 @@
  * ⚠️ Necesita `ng serve` en 4200 y un Chrome, como el resto de los `e2e/`.
  *    Se lanza a mano: `node e2e/identidad.mjs`
  */
-import { abrirChrome, terceros, contrasteRgb, deHex, AA_GRAFICO, AA_TEXTO } from './medir.mjs';
+import { abrirChrome, terceros, perfilesResiduales, contrasteRgb, deHex, AA_GRAFICO, AA_TEXTO } from './medir.mjs';
 
 /**
  * Contra quién se mide. Por defecto `ng serve`, como el resto de los `e2e/`,
@@ -572,6 +572,13 @@ try {
   {
     const t = terceros();
     juzgar(t.bien, t.titulo, t.detalle);
+
+    // ⭐ Y EL ARNÉS NO SE DEJA NADA PUESTO (18/09): un perfil de Chrome
+    //    olvidado son 82 MB, y el 18/09 había 111 en %TEMP% — 9 GB — con el
+    //    disco al 100 %. Se cuenta EL DIRECTORIO al acabar, no lo que se
+    //    cree haber abierto.
+    const perf = perfilesResiduales();
+    juzgar(perf.bien, perf.titulo, perf.detalle);
   }
 
   console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);

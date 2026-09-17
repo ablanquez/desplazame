@@ -14,7 +14,7 @@
  * Se lanza a mano, con el motor sirviendo el `dist`:
  *     node e2e/esqueleto.mjs http://localhost:3111 <carpeta-de-capturas>
  */
-import { abrirChrome, terceros } from './medir.mjs';
+import { abrirChrome, terceros, perfilesResiduales } from './medir.mjs';
 
 const APP = (process.argv[2] ?? 'http://localhost:4200').replace(/\/+$/, '') + '/';
 const CAPTURAS = (process.argv[3] ?? '.').replace(/[\\/]+$/, '');
@@ -1028,6 +1028,13 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
 {
   const t = terceros();
   juzgar(t.bien, t.titulo, t.detalle);
+
+  // ⭐ Y EL ARNÉS NO SE DEJA NADA PUESTO (18/09): un perfil de Chrome
+  //    olvidado son 82 MB, y el 18/09 había 111 en %TEMP% — 9 GB — con el
+  //    disco al 100 %. Se cuenta EL DIRECTORIO al acabar, no lo que se
+  //    cree haber abierto.
+  const perf = perfilesResiduales();
+  juzgar(perf.bien, perf.titulo, perf.detalle);
 }
 
 console.log(`\n${fallos === 0 ? '✅ VERDE' : `❌ ${fallos} EN ROJO`}`);

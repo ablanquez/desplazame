@@ -12,7 +12,7 @@
  *
  *     node app/e2e/dos-filas.mjs
  */
-import { abrirChrome, terceros } from './medir.mjs';
+import { abrirChrome, terceros, perfilesResiduales } from './medir.mjs';
 
 /* ⭐ LA URL, POR ARGUMENTO (10/09). Estaba a fuego en `localhost:4200`, o sea
    que este juez solo corría con `ng serve` delante y no contra el dist que
@@ -237,6 +237,13 @@ try {
   {
     const t = terceros();
     juez(t.titulo, t.bien, t.detalle);
+
+    // ⭐ Y EL ARNÉS NO SE DEJA NADA PUESTO (18/09): un perfil de Chrome
+    //    olvidado son 82 MB, y el 18/09 había 111 en %TEMP% — 9 GB — con el
+    //    disco al 100 %. Se cuenta EL DIRECTORIO al acabar, no lo que se
+    //    cree haber abierto.
+    const perf = perfilesResiduales();
+    juez(perf.titulo, perf.bien, perf.detalle);
   }
 
   console.log(`\n${malas === 0 ? '✅ TODO VERDE' : `❌ ${malas} en rojo`}`);

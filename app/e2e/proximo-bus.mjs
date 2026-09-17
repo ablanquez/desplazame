@@ -10,7 +10,7 @@
  *
  *     node app/e2e/proximo-bus.mjs [CALLE_ORIGEN] [PORTAL] [CALLE_DESTINO] [PORTAL]
  */
-import { abrirChrome, terceros } from './medir.mjs';
+import { abrirChrome, terceros, perfilesResiduales } from './medir.mjs';
 
 // ⚠️ La dirección se puede dar por entorno (14/09): `localhost` resuelve antes
 //    a [::1], y en esta máquina ahí contesta a veces OTRO servidor que no es el
@@ -308,6 +308,13 @@ try {
 {
   const t = terceros();
   juez(t.titulo, t.bien, t.detalle);
+
+  // ⭐ Y EL ARNÉS NO SE DEJA NADA PUESTO (18/09): un perfil de Chrome
+  //    olvidado son 82 MB, y el 18/09 había 111 en %TEMP% — 9 GB — con el
+  //    disco al 100 %. Se cuenta EL DIRECTORIO al acabar, no lo que se
+  //    cree haber abierto.
+  const perf = perfilesResiduales();
+  juez(perf.titulo, perf.bien, perf.detalle);
 }
 console.log(malas === 0 ? '\nVERDE: todas en verde.' : `\nROJO: ${malas} en rojo.`);
 process.exit(malas === 0 ? 0 : 1);

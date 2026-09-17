@@ -29,7 +29,7 @@
  *    PNG se decodifica con el `zlib` que Node ya trae. No hay Playwright ni
  *    `pngjs` que instalar, y este fichero no entra en ningún `tsconfig`.
  */
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { inflateSync } from 'node:zlib';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -325,6 +325,98 @@ export function terceros() {
   };
 }
 
+
+/**
+ * ⭐ DÓNDE VIVE EL PERFIL DE CADA CHROME DEL ARNÉS.
+ *
+ * Un puerto, un perfil. Escrito UNA vez y usado en los dos sitios que lo
+ * necesitan —al abrir y al cerrar—, para que no puedan separarse.
+ */
+const perfilDe = (puerto) => process.env.TEMP + '/perfil-medir-' + puerto;
+
+/** Una espera que BLOQUEA, porque `cerrar()` es síncrono y así lo llaman las diez. */
+const esperarBloqueando = (ms) =>
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+
+/**
+ * ⭐ MATAR EL ÁRBOL, NO SOLO AL PADRE (18/09).
+ *
+ * ⚠️ `child.kill()` mata **el proceso que se lanzó y nada más**, y Chrome no es
+ *    un proceso: es un padre con renderizadores, GPU y utilidades colgando. Los
+ *    hijos sobreviven, siguen **reteniendo los ficheros del perfil**, y el
+ *    borrado de abajo falla contra ellos. De ahí los huérfanos.
+ */
+function matarElArbol(pid) {
+  if (!pid) return;
+  try {
+    spawnSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' });
+  } catch {
+    // Si `taskkill` no está, queda el kill del padre, que es mejor que nada.
+  }
+}
+
+/**
+ * ⭐ BORRAR EL PERFIL — CON REINTENTOS, Y DECLARANDO SI NO PUEDE (18/09).
+ *
+ * ── Por qué existe esto ─────────────────────────────────────────────────────
+ *
+ * `cerrar()` mataba Chrome y **dejaba su perfil en `%TEMP%`**. Cada uno pesa
+ * **82 MB**, y el arnés abre uno por puerto: el 18/09 había **111 perfiles ≈ 9
+ * GB** y el disco de C: llegó a **0 bytes libres**. Eso no se ve como un fallo
+ * de pruebas: se ve como suites que mueren **sin decir nada** —`pintura` dos
+ * veces—, un `ENOSPC` suelto en `yego`, un «Chrome no abrió el puerto de
+ * depuración», y juezas de mapa que fallan por llegar tarde. Un día entero de
+ * síntomas distintos con una sola causa.
+ *
+ * ⚠️ **REINTENTA, porque Chrome no suelta los ficheros al instante.** Se le
+ *    mata el árbol y aún tarda unas décimas en cerrar sus descriptores; un
+ *    `rmSync` a pelo justo después falla con `EBUSY` o `EPERM` la mitad de las
+ *    veces.
+ *
+ * ⚠️ **Y SI NO PUEDE, LO DICE.** Un borrado que falla en silencio es
+ *    exactamente el fallo que esto viene a arreglar: vuelve a llenar el disco y
+ *    nadie se entera hasta que algo muere sin mensaje.
+ */
+function borrarElPerfil(perfil) {
+  for (let intento = 1; intento <= 12; intento++) {
+    try {
+      rmSync(perfil, { recursive: true, force: true, maxRetries: 3, retryDelay: 80 });
+    } catch {
+      // Chrome todavía lo retiene; se espera y se vuelve a probar.
+    }
+    if (!existsSync(perfil)) return true;
+    esperarBloqueando(120);
+  }
+  console.log(
+    `  ⚠️  NO se ha podido borrar ${perfil} — queda en el disco, y queda DICHO. ` +
+      'Algún proceso de Chrome lo sigue reteniendo.',
+  );
+  return false;
+}
+
+/**
+ * ⭐ LA JUEZA DEL ARNÉS: cuántos perfiles se ha dejado puestos (18/09).
+ *
+ * Se llama al final de cada suite, al lado de la de terceros, y se cuenta **el
+ * directorio**: no una lista de lo que creímos abrir, sino lo que hay.
+ */
+export function perfilesResiduales() {
+  let restos = [];
+  try {
+    restos = readdirSync(process.env.TEMP).filter((f) => f.startsWith('perfil-medir-'));
+  } catch {
+    return { bien: false, titulo: '⭐ el arnés no se deja perfiles en %TEMP%', detalle: 'no se puede leer %TEMP%' };
+  }
+  return {
+    bien: restos.length === 0,
+    titulo: '⭐ el arnés no se deja ningún perfil de Chrome en %TEMP%',
+    detalle:
+      restos.length === 0
+        ? '0 residuales'
+        : `${restos.length} perfiles sin borrar: ${restos.slice(0, 6).join(', ')}${restos.length > 6 ? '…' : ''}`,
+  };
+}
+
 /** Abre Chrome headless y devuelve un mando con `evaluar`, `captura` y `cerrar`. */
 export async function abrirChrome({ puerto = 9350, ancho = 1280, alto = 1400 } = {}) {
   const chrome = spawn(CHROME, [
@@ -334,7 +426,7 @@ export async function abrirChrome({ puerto = 9350, ancho = 1280, alto = 1400 } =
     '--no-default-browser-check',
     '--force-device-scale-factor=1',
     '--remote-debugging-port=' + puerto,
-    '--user-data-dir=' + process.env.TEMP + '/perfil-medir-' + puerto,
+    '--user-data-dir=' + perfilDe(puerto),
     'about:blank',
   ]);
   chrome.on('error', (e) => {
@@ -452,9 +544,21 @@ export async function abrirChrome({ puerto = 9350, ancho = 1280, alto = 1400 } =
       const { writeFileSync } = await import('node:fs');
       writeFileSync(ruta, Buffer.from((await cdp('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
     },
+    /**
+     * ⚠️ Sigue siendo SÍNCRONA a propósito: las diez suites la llaman en un
+     *    `finally` sin `await`, y si aquí hubiera una promesa el proceso podría
+     *    terminar antes de que el borrado acabara — que es justo lo que no
+     *    puede volver a pasar.
+     */
     cerrar: () => {
-      ws.close();
+      try {
+        ws.close();
+      } catch {
+        // Ya estaba cerrado; lo que importa es lo que viene detrás.
+      }
       chrome.kill();
+      matarElArbol(chrome.pid);
+      borrarElPerfil(perfilDe(puerto));
     },
   };
 }

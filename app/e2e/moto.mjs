@@ -21,7 +21,7 @@
  *     node app/e2e/moto.mjs
  */
 import { readFileSync } from 'node:fs';
-import { abrirChrome, terceros } from './medir.mjs';
+import { abrirChrome, terceros, perfilesResiduales } from './medir.mjs';
 
 /** El trazado del `.svg` descargado: el mismo patrón que `pintura.mjs`, sin copiarlo aquí. */
 const trazadoDelFichero = (nombre) =>
@@ -308,6 +308,13 @@ try {
 {
   const t = terceros();
   juez(t.titulo, t.bien, t.detalle);
+
+  // ⭐ Y EL ARNÉS NO SE DEJA NADA PUESTO (18/09): un perfil de Chrome
+  //    olvidado son 82 MB, y el 18/09 había 111 en %TEMP% — 9 GB — con el
+  //    disco al 100 %. Se cuenta EL DIRECTORIO al acabar, no lo que se
+  //    cree haber abierto.
+  const perf = perfilesResiduales();
+  juez(perf.titulo, perf.bien, perf.detalle);
 }
 
 console.log(malas === 0 ? '\nVERDE: la moto está en la botonera y llega al motor.' : `\nROJO: ${malas} mal.`);
