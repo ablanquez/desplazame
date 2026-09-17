@@ -277,13 +277,6 @@ try {
   {
     const t = terceros();
     juez(t.titulo, t.bien, t.detalle);
-
-    // ⭐ Y EL ARNÉS NO SE DEJA NADA PUESTO (18/09): un perfil de Chrome
-    //    olvidado son 82 MB, y el 18/09 había 111 en %TEMP% — 9 GB — con el
-    //    disco al 100 %. Se cuenta EL DIRECTORIO al acabar, no lo que se
-    //    cree haber abierto.
-    const perf = perfilesResiduales();
-    juez(perf.titulo, perf.bien, perf.detalle);
   }
 
   console.log(`\n${malas === 0 ? '✅ TODO VERDE' : `❌ ${malas} en rojo`}`);
@@ -292,4 +285,17 @@ try {
   process.exitCode = malas === 0 ? 0 : 1;
 } finally {
   m.cerrar();
+}
+
+// ⭐ Y EL ARNÉS NO SE DEJA NADA PUESTO (18/09): un perfil de Chrome olvidado son
+//    82 MB, y el 18/09 había 111 en %TEMP% — 9 GB — con el disco al 100 %. Se
+//    cuenta EL DIRECTORIO al acabar, no lo que se cree haber abierto.
+//
+// ⚠️ VA DETRÁS DEL `finally`, NO DENTRO DEL `try` (17/09). Allí se juzgaba con
+//    el Chrome de esta suite todavía abierto: contaba su propio perfil como
+//    residuo, y un borrado fallido de ESTA suite solo lo veía la siguiente.
+{
+  const perf = perfilesResiduales();
+  juez(perf.titulo, perf.bien, perf.detalle);
+  if (!perf.bien) process.exitCode = 1;
 }
