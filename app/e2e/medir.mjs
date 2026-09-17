@@ -335,7 +335,7 @@ export function terceros() {
  * ⚠️ **LLEVA EL `pid` DESDE EL 17/09, Y NO ES ADORNO.** Antes era
  *    `perfil-medir-<puerto>` a secas, y **19 de los puertos que usan las
  *    suites** (9350, 9351, 9361, 9362, 9404…9424, 9600, 9700, 9750) tienen un
- *    FÓSIL con ese mismo nombre (ver `FOSILES` abajo). Con el nombre viejo, el
+ *    FÓSIL con ese mismo nombre (ver `ACTA` abajo). Con el nombre viejo, el
  *    Chrome del arnés escribía DENTRO del fósil, `cerrar()` se estrellaba
  *    contra él en cada cierre, y un residuo nuevo en esos puertos habría sido
  *    **invisible** para una jueza que censa por nombre. Con el `pid`, cada
@@ -405,15 +405,25 @@ function borrarElPerfil(perfil) {
 }
 
 /**
- * ⭐ ACTA DE LOS FÓSILES (17/09) — 73 perfiles que NINGUNA mano puede borrar.
+ * ⭐ EL ACTA — TODO LO IRRECUPERABLE DEL ARNÉS, EN UN SOLO SITIO (17/09).
  *
- * ── Qué son ─────────────────────────────────────────────────────────────────
+ * Perfiles `perfil-medir-*` que quedaron en `%TEMP%` y que **ninguna mano puede
+ * borrar**. Tres bloques, cada uno con su fecha, su tirada, sus filas (nombre
+ * sin el prefijo, fecha u hora de creación, MB medidos con `du -sm`) y **la
+ * autorización escrita de Antonio que lo metió aquí**.
  *
- * Perfiles `perfil-medir-<puerto>` que el arnés dejó entre el 01/09 y el 17/09,
- * antes de que `cerrar()` borrase lo suyo (726bb8e). **73 directorios, 6.320
- * MB**, censados abajo uno a uno: puerto, fecha de creación (MM-DD de 2026) y
- * MB medidos con `du -sm`. Por fecha: 01/09 ·4 · 02/09 ·3 · 10/09 ·11 · 12/09
- * ·6 · 13/09 ·2 · 14/09 ·11 · 15/09 ·33 · 16/09 ·2 · 17/09 ·1.
+ * ── Los bloques ─────────────────────────────────────────────────────────────
+ *
+ * · **73 FÓSILES** (01/09 → 17/09): `perfil-medir-<puerto>`, de antes de que
+ *   `cerrar()` borrase lo suyo (726bb8e). 6.320 MB. Por fecha: 01/09 ·4 ·
+ *   02/09 ·3 · 10/09 ·11 · 12/09 ·6 · 13/09 ·2 · 14/09 ·11 · 15/09 ·33 · 16/09
+ *   ·2 · 17/09 ·1.
+ * · **10 DE LA BATERÍA DE `2ca7940`** (17/09, 14:21): los que su propio
+ *   `cerrar()` no pudo borrar. 276 MB. `bizi-y-resumen` 1, `dos-filas` 1,
+ *   `identidad` 1, `pantalla` 1, `pintura` 5, `proximo-bus` 1.
+ * · **9 DE LA BATERÍA DE `6354514`** (17/09, 15:22, con la exclusión de ESET
+ *   puesta): 490 MB. `bizi-y-resumen` 1, `dos-filas` 1, `identidad` 1,
+ *   `pantalla` 1, `pintura` 3, `proximo-bus` 1, `yego` 1.
  *
  * ── La evidencia de que no se pueden borrar ─────────────────────────────────
  *
@@ -451,124 +461,138 @@ function borrarElPerfil(perfil) {
  * Quedan **fuera del alcance de cualquier mano**, retenidos por un mecanismo
  * del sistema no identificado.
  *
- * ⚠️ **ESTE CENSO NO CRECE.** No se le añade un nombre para callar a la jueza:
- *    la jueza cuenta sus filas y muere si pasan de 73. Si un fósil desaparece
- *    —ESET lo suelta, alguien lo borra—, se anuncia y su fila se puede retirar.
+ * ⚠️ **EL ACTA SOLO CRECE CON AUTORIZACIÓN ESCRITA DE ANTONIO, FECHADA Y CON
+ *    SU PORQUÉ**, que va en el bloque. La jueza exige que cada bloque la
+ *    lleve, y que el total de filas sea exactamente `ACTA_TOTAL`: meter un
+ *    nombre para callarla obliga a tocar las dos cosas a la vista. Si una fila
+ *    desaparece del disco, se anuncia y se puede retirar.
  */
-const FOSILES = [
-  ['9350', '09-01', 38], ['9351', '09-01', 92], ['9352', '09-01', 89],
-  ['9360', '09-01', 48], ['9361', '09-10', 148], ['9362', '09-10', 90],
-  ['9363', '09-13', 38], ['9370', '09-17', 33], ['9371', '09-10', 35],
-  ['9372', '09-13', 34], ['9383', '09-02', 39], ['9386', '09-02', 34],
-  ['9387', '09-02', 34], ['9402', '09-10', 129], ['9404', '09-10', 300],
-  ['9405', '09-10', 1], ['9407', '09-10', 170], ['9409', '09-10', 304],
-  ['9410', '09-10', 86], ['9414', '09-12', 96], ['9415', '09-12', 98],
-  ['9416', '09-12', 219], ['9417', '09-12', 78], ['9420', '09-10', 254],
-  ['9422', '09-14', 99], ['9423', '09-14', 129], ['9424', '09-14', 129],
-  ['9430', '09-10', 34], ['9432', '09-14', 202], ['9433', '09-14', 141],
-  ['9434', '09-14', 278], ['9442', '09-14', 91], ['9443', '09-14', 91],
-  ['9444', '09-14', 44], ['9452', '09-15', 43], ['9453', '09-15', 43],
-  ['9454', '09-15', 44], ['9460', '09-14', 34], ['9462', '09-15', 77],
-  ['9463', '09-15', 93], ['9464', '09-15', 79], ['9472', '09-15', 44],
-  ['9473', '09-15', 44], ['9474', '09-15', 43], ['9480', '09-14', 60],
-  ['9490', '09-12', 35], ['9494', '09-12', 55], ['9600', '09-15', 26],
-  ['9601', '09-15', 43], ['9602', '09-15', 59], ['9603', '09-15', 60],
-  ['9604', '09-15', 92], ['9610', '09-15', 45], ['9611', '09-15', 61],
-  ['9612', '09-15', 169], ['9613', '09-15', 124], ['9614', '09-15', 153],
-  ['9620', '09-15', 76], ['9621', '09-15', 60], ['9622', '09-15', 126],
-  ['9623', '09-15', 91], ['9624', '09-15', 154], ['9700', '09-15', 89],
-  ['9701', '09-15', 23], ['9710', '09-15', 42], ['9711', '09-15', 57],
-  ['9720', '09-15', 108], ['9721', '09-15', 42], ['9750', '09-16', 49],
-  ['9796', '09-15', 65], ['9797', '09-15', 33], ['9811', '09-15', 21],
-  ['9871', '09-16', 33],
+const ACTA = [
+  {
+    bloque: '73 fósiles',
+    tirada: 'arnés anterior a 726bb8e (01/09 → 17/09)',
+    autorizacion: {
+      fecha: '2026-09-17',
+      porque:
+        'irrecuperables por cualquier mano, también como administrador y tras reinicio; ' +
+        'quedan censados como retenidos por un mecanismo del sistema no identificado',
+    },
+    perfiles: [
+    ['9350', '09-01', 38], ['9351', '09-01', 92], ['9352', '09-01', 89],
+    ['9360', '09-01', 48], ['9361', '09-10', 148], ['9362', '09-10', 90],
+    ['9363', '09-13', 38], ['9370', '09-17', 33], ['9371', '09-10', 35],
+    ['9372', '09-13', 34], ['9383', '09-02', 39], ['9386', '09-02', 34],
+    ['9387', '09-02', 34], ['9402', '09-10', 129], ['9404', '09-10', 300],
+    ['9405', '09-10', 1], ['9407', '09-10', 170], ['9409', '09-10', 304],
+    ['9410', '09-10', 86], ['9414', '09-12', 96], ['9415', '09-12', 98],
+    ['9416', '09-12', 219], ['9417', '09-12', 78], ['9420', '09-10', 254],
+    ['9422', '09-14', 99], ['9423', '09-14', 129], ['9424', '09-14', 129],
+    ['9430', '09-10', 34], ['9432', '09-14', 202], ['9433', '09-14', 141],
+    ['9434', '09-14', 278], ['9442', '09-14', 91], ['9443', '09-14', 91],
+    ['9444', '09-14', 44], ['9452', '09-15', 43], ['9453', '09-15', 43],
+    ['9454', '09-15', 44], ['9460', '09-14', 34], ['9462', '09-15', 77],
+    ['9463', '09-15', 93], ['9464', '09-15', 79], ['9472', '09-15', 44],
+    ['9473', '09-15', 44], ['9474', '09-15', 43], ['9480', '09-14', 60],
+    ['9490', '09-12', 35], ['9494', '09-12', 55], ['9600', '09-15', 26],
+    ['9601', '09-15', 43], ['9602', '09-15', 59], ['9603', '09-15', 60],
+    ['9604', '09-15', 92], ['9610', '09-15', 45], ['9611', '09-15', 61],
+    ['9612', '09-15', 169], ['9613', '09-15', 124], ['9614', '09-15', 153],
+    ['9620', '09-15', 76], ['9621', '09-15', 60], ['9622', '09-15', 126],
+    ['9623', '09-15', 91], ['9624', '09-15', 154], ['9700', '09-15', 89],
+    ['9701', '09-15', 23], ['9710', '09-15', 42], ['9711', '09-15', 57],
+    ['9720', '09-15', 108], ['9721', '09-15', 42], ['9750', '09-16', 49],
+    ['9796', '09-15', 65], ['9797', '09-15', 33], ['9811', '09-15', 21],
+    ['9871', '09-16', 33],
+    ],
+  },
+  {
+    bloque: '10 de la batería del 17/09 · 14:21',
+    tirada: '2ca7940',
+    autorizacion: {
+      fecha: '2026-09-17',
+      porque:
+        'su cerrar() no pudo borrarlos y nadie pudo después, ni con la exclusión de ESET ' +
+        'puesta (0/10); unificados en el acta por autorización de Antonio',
+    },
+    perfiles: [
+      ['9350-17896', '14:21', 33], ['9350-528', '14:22', 33],
+      ['9350-20116', '14:24', 33], ['9351-15692', '14:25', 34],
+      ['9415-3920', '14:28', 33], ['9422-3920', '14:30', 4],
+      ['9454-3920', '14:35', 33], ['9452-3920', '14:36', 33],
+      ['9701-3920', '14:44', 33], ['9350-18164', '14:48', 2],
+    ],
+  },
+  {
+    bloque: '9 de la batería del 17/09 · 15:22',
+    tirada: '6354514',
+    autorizacion: {
+      fecha: '2026-09-17',
+      porque:
+        'la batería con la exclusión de ESET puesta los dejó (6 de 10 cierres fuera de pintura, ' +
+        '3 en pintura); unificados en el acta por autorización de Antonio',
+    },
+    perfiles: [
+      ['9350-7404', '15:22', 36], ['9350-8652', '15:23', 36],
+      ['9350-6848', '15:24', 37], ['9351-10972', '15:25', 35],
+      ['9415-22828', '15:28', 36], ['9454-22828', '15:35', 78],
+      ['9452-22828', '15:36', 77], ['9350-7828', '15:48', 77],
+      ['9350-508', '15:49', 78],
+    ],
+  },
 ];
-const FOSILES_MAXIMO = 73;
+const ACTA_TOTAL = 92;
 
 /**
- * ⭐ SEGUNDO CENSO: LOS 10 RESIDUOS DE LA BATERÍA DEL 17/09 (Antonio, 17/09).
+ * ⭐ LA JUEZA DEL ARNÉS (letra del 17/09, con el acta unificada).
  *
- * La primera batería con `cerrar()` borrando (726bb8e) dejó **10 perfiles**
- * que su propio cierre no pudo borrar, y que después nadie pudo: `bizi-y-
- * resumen` 1, `dos-filas` 1, `identidad` 1, `pantalla` 1, `pintura` 5,
- * `proximo-bus` 1. **276 MB**. Con la exclusión de ESET puesta siguen
- * denegados, 0 de 10 (ver el acta de arriba).
- *
- * Van en su propio censo y no en `FOSILES`: son de OTRA causa conocida (el
- * arnés ya borraba, y falló) y de otra fecha, y mezclarlos habría roto la guarda
- * de los 73. Nombre completo, porque ya llevan el `pid`. Puerto-pid, hora de
- * creación y MB.
- *
- * ⚠️ **TAMPOCO CRECE:** máximo 10. Un residuo de una tirada posterior NO entra
- *    aquí: es justo lo que la jueza tiene que cantar.
- */
-const RESIDUOS_17_09 = [
-  ['9350-17896', '14:21', 33], ['9350-528', '14:22', 33], ['9350-20116', '14:24', 33],
-  ['9351-15692', '14:25', 34], ['9415-3920', '14:28', 33], ['9422-3920', '14:30', 4],
-  ['9454-3920', '14:35', 33], ['9452-3920', '14:36', 33], ['9701-3920', '14:44', 33],
-  ['9350-18164', '14:48', 2],
-];
-const RESIDUOS_17_09_MAXIMO = 10;
-
-/**
- * ⭐ LA JUEZA DEL ARNÉS (18/09 · LETRA NUEVA CON ACTA el 17/09).
- *
- * Se llama al final de cada suite, al lado de la de terceros, y **cuenta el
+ * Se llama al final de cada suite, **detrás de `cerrar()`**, y **cuenta el
  * directorio**: no una lista de lo que creímos abrir, sino lo que hay.
  *
  * ── La letra, antes y ahora ─────────────────────────────────────────────────
  *
  * Nació pidiendo **0 perfiles `perfil-medir-*` en `%TEMP%`**, y nació en rojo
- * contra 73. Esos 73 resultaron irrecuperables (acta de arriba): con aquella
- * letra estaría roja para siempre por algo que ningún código de aquí puede
- * cambiar, y una jueza que siempre está roja deja de mirarse.
+ * contra 73 que resultaron irrecuperables: con aquella letra estaría roja para
+ * siempre por algo que ningún código de aquí puede cambiar, y una jueza que
+ * siempre está roja deja de mirarse.
  *
- * La letra nueva **no afloja el espíritu** —«el arnés no se deja NADA suyo
- * puesto»—: todo `perfil-medir-*` que no sea un fósil censado es un residuo, y
- * **uno solo la pone roja**. Eso incluye el 74º: un nombre nuevo que no se pudo
- * borrar es exactamente un residuo nuevo.
+ * La letra vigente **no afloja el espíritu** —«el arnés no se deja NADA suyo
+ * puesto»—: **todo `perfil-medir-*` que no esté en el acta es un residuo, y uno
+ * solo la pone roja.**
  *
- * ⚠️ Y el censo tiene su propia guarda: si alguien le mete filas para tapar un
- *    residuo, pasa de 73 y la jueza muere igual.
- *
- * ⭐ Desde el 17/09 también quedan fuera los 10 de `RESIDUOS_17_09`, con su
- *    guarda de 10. La jueza muere **solo con un residuo de ESTA tirada**.
+ * ⚠️ Y el acta tiene su guarda: un bloque sin autorización fechada y con su
+ *    porqué, un nombre repetido, o un total distinto de `ACTA_TOTAL`, y la
+ *    jueza muere igual.
  */
 export function perfilesResiduales() {
-  const titulo = '⭐ el arnés no se deja ningún perfil NUEVO en %TEMP% (73 fósiles + 10 residuos del 17/09, censados)';
+  const titulo = `⭐ el arnés no se deja ningún perfil fuera del acta en %TEMP% (${ACTA_TOTAL} censados)`;
   let presentes = [];
   try {
     presentes = readdirSync(process.env.TEMP).filter((f) => f.startsWith('perfil-medir-'));
   } catch {
     return { bien: false, titulo, detalle: 'no se puede leer %TEMP%' };
   }
-  const fosiles = new Set(FOSILES.map(([puerto]) => 'perfil-medir-' + puerto));
-  const previos = new Set(RESIDUOS_17_09.map(([nombre]) => 'perfil-medir-' + nombre));
-  const censo = new Set([...fosiles, ...previos]);
-  const nuevos = presentes.filter((f) => !censo.has(f));
-  const idos = [...censo].filter((f) => !presentes.includes(f));
-  const censoCrecido =
-    FOSILES.length > FOSILES_MAXIMO ||
-    fosiles.size !== FOSILES.length ||
-    RESIDUOS_17_09.length > RESIDUOS_17_09_MAXIMO ||
-    previos.size !== RESIDUOS_17_09.length ||
-    censo.size !== fosiles.size + previos.size;
+  const nombres = ACTA.flatMap((b) => b.perfiles.map(([n]) => 'perfil-medir-' + n));
+  const acta = new Set(nombres);
+  const nuevos = presentes.filter((f) => !acta.has(f));
+  const idos = nombres.filter((f) => !presentes.includes(f));
+  const sinAutorizar = ACTA.filter(
+    (b) => !/^\d{4}-\d{2}-\d{2}$/.test(b.autorizacion?.fecha ?? '') || !(b.autorizacion?.porque ?? '').trim(),
+  );
+  const guarda = [];
+  if (nombres.length !== ACTA_TOTAL) guarda.push(`el acta tiene ${nombres.length} filas y declara ${ACTA_TOTAL}`);
+  if (acta.size !== nombres.length) guarda.push(`${nombres.length - acta.size} nombres repetidos`);
+  if (sinAutorizar.length) guarda.push(`bloques sin autorización fechada: ${sinAutorizar.map((b) => b.bloque).join(', ')}`);
   const trozos = [
     nuevos.length === 0
       ? '0 residuos nuevos'
       : `${nuevos.length} RESIDUOS NUEVOS: ${nuevos.slice(0, 6).join(', ')}${nuevos.length > 6 ? '…' : ''}`,
-    `${presentes.filter((f) => fosiles.has(f)).length}/${FOSILES.length} fósiles y ` +
-      `${presentes.filter((f) => previos.has(f)).length}/${RESIDUOS_17_09.length} residuos del 17/09 en su sitio`,
+    `${nombres.length - idos.length}/${nombres.length} del acta en su sitio`,
   ];
   if (idos.length) {
-    trozos.push(`⭐ ${idos.length} censados ya NO están (el censo puede bajar): ${idos.slice(0, 4).join(', ')}`);
+    trozos.push(`⭐ ${idos.length} del acta ya NO están (se pueden retirar): ${idos.slice(0, 4).join(', ')}`);
   }
-  if (censoCrecido) {
-    trozos.push(
-      `✗ EL CENSO HA CRECIDO: ${FOSILES.length}/${FOSILES_MAXIMO} fósiles · ` +
-        `${RESIDUOS_17_09.length}/${RESIDUOS_17_09_MAXIMO} residuos del 17/09`,
-    );
-  }
-  return { bien: nuevos.length === 0 && !censoCrecido, titulo, detalle: trozos.join(' · ') };
+  if (guarda.length) trozos.push('✗ LA GUARDA DEL ACTA: ' + guarda.join(' · '));
+  return { bien: nuevos.length === 0 && guarda.length === 0, titulo, detalle: trozos.join(' · ') };
 }
 
 /** Abre Chrome headless y devuelve un mando con `evaluar`, `captura` y `cerrar`. */
