@@ -31,6 +31,8 @@ Con la misma prueba se firmó `726bb8e`: `tras cerrar()   : OK borrado` · `sali
 **Ley que sale de aquí:** una prueba de limpieza vale solo si ensucia como ensucia el caso real: un perfil que no ha navegado no es el perfil de una suite.
 **Traza:** `app/e2e/medir.mjs` · `borrarElPerfil`, `cerrar()` · suites `bizi-y-resumen`, `dos-filas`, `identidad`, `pantalla`, `pintura`.
 
+**Nota [2026-09-17]:** la contraprueba 1 de `2ca7940` (puerto 9350, pid 18164) imprimió `perfil propio tras cerrar()   : borrado`. Tras la batería, `perfil-medir-9350-18164` **existe** (7 MB) y no se deja borrar. El directorio que la prueba dio por borrado volvió a aparecer. Al acabar la tirada quedan 10 residuos nuevos (276 MB): 9 cierres fallidos en suites reales, más este.
+
 ---
 
 ## [2026-09-15] ✅ CERRADA — la frontera de los campos del Buscador, en CLARO y en producción, lee a 2,85:1 y 1,23:1, y la jueza del color a pelo barre `buscador.css` en verde
