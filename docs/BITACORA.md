@@ -51,6 +51,8 @@ Fuera de `pintura`: 6 de 10 en las dos, en las mismas suites. **El cierre no es 
 
 **Nota [2026-09-17] · revertido el cierre limpio** (`37e3050` revierte `d148afa`, con autorización de Antonio): se midió peor, 23 de 85 contra 3 en `pintura` (cinco veces más daño) y las mismas seis suites fuera. Los 23 residuos (1.736 MB) entran en el acta como bloque 4, también autorizado. La autorización previa estimaba ~0,5 GB; fueron 1,7 porque los 85 cierres de `pintura` no estaban medidos. El acta queda en 115.
 
+**Nota [2026-09-17] · la escalera del capado:** (a) **volumen**: con los perfiles en F:, `identidad` dejó su perfil sin borrar 3 de 3 veces (`Permission denied` en `Account Web Data`); quedan 3 perfiles en F:, 275 MB. (b) **reutilización**: Chrome arranca y navega 3 de 3 veces sobre un residuo del acta (`intento 1 · ARRANCA: sí · NAVEGA: sí · título «Desplázame»`); con nombre fijo, `identidad` 3 veces deja un solo directorio (78 → 77 → 77 MB, 116 perfiles en `%TEMP%` las tres). Se adoptan los nombres fijos. La jueza vigila que el conjunto no crezca.
+
 ---
 
 ## [2026-09-15] ✅ CERRADA — la frontera de los campos del Buscador, en CLARO y en producción, lee a 2,85:1 y 1,23:1, y la jueza del color a pelo barre `buscador.css` en verde
