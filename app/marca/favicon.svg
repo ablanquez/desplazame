@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- ⭐ La media query va DENTRO del propio SVG [§36 · DOC MDN]: un favicon
+       no hereda el tema de la página, pero sí puede leer `prefers-color-scheme`
+       desde un `<style>` embebido. Los dos azules son los de la marca.
+       ⚠️ En oscuro NO se usa blanco puro [§36]: se usa el azul claro. -->
+  <style>
+    .gota { fill: #2563eb; }
+    .traza { fill: none; stroke: #2563eb; stroke-width: 4; stroke-linecap: round; }
+    @media (prefers-color-scheme: dark) {
+      .gota { fill: #93c5fd; }
+      .traza { stroke: #93c5fd; }
+    }
+  </style>
+  <path class="gota" fill-rule="evenodd" clip-rule="evenodd" d="M16 3a8 8 0 0 0-8 8c0 5.5 8 12 8 12s8-6.5 8-12a8 8 0 0 0-8-8Zm0 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/>
+  <path class="traza" d="M4 28h24"/>
+</svg>

@@ -73,7 +73,32 @@
           nuestro. Lo que quedaba pegado a un borde está censado y medido: la
           barra es lo único, y lleva el suyo. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!--
+    ⭐ EL FAVICON DE LA MARCA (18/09, el remate de la identidad).
+
+    Aqui habia UNA sola linea, `<link rel="icon" type="image/x-icon"
+    href="favicon.ico">`, y lo que servia era **el favicon por defecto que dejo
+    el andamiaje de Angular** el 16/08: 15.086 bytes, tres tamaños (48, 32 y
+    16), sin ninguna relacion con este producto. Queda declarado y se queda en
+    su sitio — ver abajo.
+
+    ⚠️ **El SVG va PRIMERO y el `.ico` detras**, y ese orden es el arreglo: el
+       navegador se queda con la ultima declaracion que entienda, asi que el
+       `.ico` es el respaldo de quien no sepa leer un favicon vectorial, y el
+       SVG manda en todo lo demas. [DOC MDN]
+
+    ⚠️ **La media query vive DENTRO del propio SVG** [§36 · DOC MDN]: un favicon
+       no hereda el tema de la pagina —se pinta en la pestaña, fuera de ella—,
+       pero si puede leer `prefers-color-scheme` desde un `<style>` embebido.
+       Por eso responde al SISTEMA y no al conmutador: es lo unico que un
+       favicon puede leer, y se declara asi en vez de fingir que sigue al tema.
+
+    ⚠️ El `.ico` NO se retira: sigue siendo el respaldo, y cambiarlo por uno de
+       la marca pide un rasterizador que este repositorio no tiene (dependencias
+       cero). Queda a la cola, declarado.
+  -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
   <!--
     ⭐ EL PRELOAD DE LA LETRA CRITICA (tanda 2).

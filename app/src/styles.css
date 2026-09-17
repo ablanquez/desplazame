@@ -1032,6 +1032,16 @@ app-conmutador-de-tema {
   outline-offset: -2px;
 }
 
+/* ⭐ EL SÍMBOLO DE LA MARCA EN LA CABECERA (18/09).
+   Estas dos líneas son **el montaje que se eligió**, calcado: el símbolo a 30 px
+   dentro del `h1`, bajado 6 px de la línea base y con 9 px de aire hasta el
+   nombre. No se reencuadra con `flex` —que centraría en la caja de línea y
+   movería la pieza un par de píxeles—: se calca lo que se vio. */
+.cabecera h1 app-marca {
+  vertical-align: -6px;
+  margin-right: 9px;
+}
+
 /* ⚠️ Sin aire propio: el `h1` y el `p` de la cabecera ya traen sus márgenes, y
    la fila no añade ninguno para no mover la cabecera ni un píxel — hay juezas
    de `esqueleto.mjs` midiendo esa altura. */

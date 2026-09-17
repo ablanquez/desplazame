@@ -37,6 +37,7 @@ import { llevaContorno, tonosDeChip, type TonosDeChip } from './chip';
 import { Simbolo, type NombreDeSimbolo } from './simbolos';
 import { Tema } from './tema';
 import { ConmutadorDeTema } from './conmutador';
+import { Marca } from './marca';
 
 /**
  * ⭐ EL MAPEO GIRO → FLECHA. Diez giros, diez glifos, y ni una dependencia.
@@ -754,6 +755,7 @@ function familiaDe(modo: Modo): Familia {
     NgTemplateOutlet,
     Simbolo,
     ConmutadorDeTema,
+    Marca,
   ],
   templateUrl: './buscador.html',
   // Dos hojas para un mismo componente: el formulario y la pintura del

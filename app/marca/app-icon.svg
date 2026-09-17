@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- ⭐ Un app-icon NO es la marca a secas: necesita fondo opaco, porque lo
+       pinta el sistema sobre un fondo que no controlamos. Va el azul de marca
+       de fondo y la marca calada en blanco — aquí el blanco NO choca con el
+       §36, que prohíbe el blanco puro del LOGO sobre fondo oscuro del tema, no
+       un icono de aplicación con su propio fondo de marca.
+       ⚠️ La marca ocupa el 60 % del lienzo: es el área segura que los
+          lanzadores recortan con máscara. -->
+  <rect width="512" height="512" rx="112" fill="#2563eb"/>
+  <g transform="translate(102 102) scale(9.6)" fill="#ffffff">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M16 3a8 8 0 0 0-8 8c0 5.5 8 12 8 12s8-6.5 8-12a8 8 0 0 0-8-8Zm0 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/>
+    <path d="M4 28h24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>
