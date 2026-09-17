@@ -366,49 +366,6 @@ function matarElArbol(pid) {
 }
 
 /**
- * ⭐ EL CIERRE LIMPIO: `Browser.close` Y ESPERAR A QUE CHROME SALGA (17/09).
- *
- * Se le pide al navegador, por su propio canal de depuración, que se cierre, y
- * se espera a que su proceso desaparezca (15 s como mucho). Lo hace un node
- * auxiliar con `spawnSync`, porque `cerrar()` tiene que seguir siendo
- * SÍNCRONA: las diez la llaman sin `await` y la jueza de perfiles va justo
- * detrás.
- *
- * Devuelve `{ salio, ms, detalle }`. No mata nada: eso va después, en
- * `cerrar()`, para lo que quede vivo.
- */
-const AYUDANTE_DEL_CIERRE = `
-const [puerto, pid] = process.argv.slice(1).map(Number);
-const vivo = () => { try { process.kill(pid, 0); return true; } catch { return false; } };
-const t0 = Date.now();
-let detalle = 'Browser.close enviado';
-try {
-  const v = await (await fetch('http://localhost:' + puerto + '/json/version')).json();
-  const wb = new WebSocket(v.webSocketDebuggerUrl);
-  await new Promise((ok, ko) => { wb.onopen = ok; wb.onerror = () => ko(new Error('ws')); setTimeout(() => ko(new Error('ws tarda')), 3000); });
-  wb.send(JSON.stringify({ id: 1, method: 'Browser.close' }));
-} catch (e) {
-  detalle = 'Browser.close NO enviado: ' + e.message;
-}
-while (vivo() && Date.now() - t0 < 15000) await new Promise((r) => setTimeout(r, 50));
-console.log(JSON.stringify({ salio: !vivo(), ms: Date.now() - t0, detalle }));
-process.exit(0);
-`;
-
-function cerrarLimpio(puerto, pid) {
-  try {
-    const r = spawnSync(process.execPath, ['--input-type=module', '-e', AYUDANTE_DEL_CIERRE, String(puerto), String(pid)], {
-      encoding: 'utf8',
-      timeout: 25000,
-    });
-    const linea = (r.stdout ?? '').trim().split('\n').pop();
-    return JSON.parse(linea);
-  } catch (e) {
-    return { salio: false, ms: null, detalle: 'el ayudante falló: ' + e.message };
-  }
-}
-
-/**
  * ⭐ BORRAR EL PERFIL — CON REINTENTOS, Y DECLARANDO SI NO PUEDE (18/09).
  *
  * ── Por qué existe esto ─────────────────────────────────────────────────────
@@ -772,16 +729,6 @@ export async function abrirChrome({ puerto = 9350, ancho = 1280, alto = 1400 } =
      *    puede volver a pasar.
      */
     cerrar: () => {
-      // ⭐ PRIMERO SE LE PIDE A CHROME QUE SE CIERRE ÉL (17/09, batería de
-      //    comparación): con el cierre a golpe de `kill`, 6 de 10 cierres
-      //    fuera de `pintura` dejaban un perfil que nadie puede borrar, y
-      //    siempre en las mismas suites. Lo que quede vivo se mata después.
-      const r = cerrarLimpio(puerto, chrome.pid);
-      console.log(
-        r.salio
-          ? `  · Chrome cerrado limpio en ${r.ms} ms (puerto ${puerto})`
-          : `  ⚠️  Chrome NO se cerró solo (puerto ${puerto}, ${r.detalle}) — se mata`,
-      );
       try {
         ws.close();
       } catch {
