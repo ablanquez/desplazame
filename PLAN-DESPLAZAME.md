@@ -3755,7 +3755,33 @@ Code lo traduce al Angular existente.)*
       restricciones al modelo (separación de ficheros; sin datos
       sensibles). Los INPUTS: capturas de los 3 tamaños de la app
       actual + textos reales.
-- [ ] **1 · EL LOGO** — símbolo «ruta/movimiento» en azul primario;
+- [x] ⚰️ **1 · EL LOGO — HECHO Y ELEGIDO POR ANTONIO (17/09)**: de
+      tres candidatos SVG por la letra del §4 (A la traza · B el pin
+      sobre la traza · C la flecha en curva; una iteración de A
+      descartada con las tres tallas delante), Antonio eligió **B —
+      el pin sobre la traza** (la gota con calado evenodd: vale
+      sobre tarjeta, página y tesela). Versiones en app/marca/ con
+      PROCEDENCIA.md [obra propia — no va al NOTICES, que es el
+      inventario de lo ajeno; ni a app/simbolos/, que es el censo
+      de Material contra el repo de Google]: simbolo.svg
+      (currentColor) · completo.svg [⚠️ el logotipo va como <text>,
+      no curvas — sin rasterizador con dependencias cero; fuera de
+      una máquina con Inter se pinta con la letra del sistema,
+      DECLARADO] · favicon.svg CABLEADO en /favicon.svg (845 B, la
+      media query DENTRO del SVG [§36-MDN], #2563eb/#93c5fd, sin
+      blanco puro) [⚠️ el favicon sigue al SISTEMA, no al
+      conmutador: la pestaña vive fuera del documento y no hereda
+      data-theme — declarado, al acta del §36; el favicon.ico del
+      andamiaje de Angular queda de respaldo detrás, declarado
+      con su sha] · app-icon.svg 512 PRODUCIDO y NO cableado [no
+      hay manifest — crearlo es decisión aparte; jueza de estado
+      puesta para que cablearlo sea decisión y no descuido — A LA
+      COLA]. En la cabecera: calcado del montaje elegido (30 px,
+      dentro del h1, aria-hidden — el nombre accesible sigue
+      siendo «Desplázame»); ninguna P-jueza de aires se movió.
+      Seis juezas de la marca (incluida la del mismo dibujo en
+      las cinco copias). LA LETRA ORIGINAL de esta casilla, para
+      la historia: símbolo «ruta/movimiento» en azul primario;
       versiones completo/reducido/favicon (SVG con media query de
       tema)/app-icon [DISEÑO §4 y §36].
 - [x] ⚰️ HECHA (9/09, vía la tanda 1 de la casilla 4) ·
@@ -4859,6 +4885,134 @@ Code lo traduce al Angular existente.)*
         A LA COLA con nombre; hoy la letra firmada del §35
         está implementada tal cual y es patrón documentado
         legítimo.
+      - [x] ⚰️ LA IDENTIDAD — EL SISTEMA DE ICONOS (§39) Y EL
+        LOGO (16-17/09; commits 6efcd2a…c178b95; publicación
+        en el push de cierre). EL CENSO contando el
+        directorio: TRES catálogos conviviendo que nadie
+        miraba juntos — A: 30 Material Symbols en app/simbolos
+        [ejes VERIFICADOS contra el repo de Google, no
+        supuestos: wght400·GRAD0·FILL0·opsz24; 0 huérfanos, 0
+        descasados, todos con sha] · B: 8 formas de capa de
+        iconos.ts [6 calcan convención ajena
+        (chincheta·farmacia·S-23·libro osm-carto·lápiz y
+        birrete Maki) y 2 PROPIAS razonadas (chupete;
+        cruz azul de salud — la roja es emblema de Ginebra)] ·
+        C: lo de Leaflet [BSD-2, ya en NOTICES] · D: la marca
+        (nace en el remate). TRIAJE W3C medido sobre lo
+        pintado: 26 svg visibles · 25 decorativos ocultos · 1
+        suelto (el lienzo de Leaflet, ni icono ni nuestro) —
+        con ⭐ LA SONDA CORREGIDA: la primera cantó 9 «sin
+        ocultar» mirando el atributo del propio svg;
+        aria-hidden en un ancestro también oculta → LEY: «se
+        mide EL ÁRBOL, no el atributo». AJUSTES POR LA REGLA
+        OFICIAL: las 2 instancias ópticas de 48 hechas
+        [route 594→741 caracteres — NO es el mismo dibujo
+        escalado: para eso existe el eje] · el barrido a
+        opsz20 HECHO en el remate [24 símbolos que solo se
+        pintan bajo 20 px, +0,48 kB medido antes; 30 símbolos
+        en 31 ficheros, 25 borrados; trazadoPara escribe la
+        regla: la instancia igual o la inmediatamente menor] ·
+        ⭐ EL gradN25 PARADO CON PRECIO [la regla oficial: el
+        grade por defecto de icono claro sobre fondo oscuro es
+        −25; medido: 31 ficheros más, +12,23 kB bruto / +5,26
+        transferido — VEINTICINCO VECES el opsz20, sobre un
+        paquete 33 kB pasado de raya → al §39 como
+        pendiente-con-precio; consecuencia honesta medida: el
+        conmutador cambia la tinta, no el dibujo] · el
+        emparejamiento icono-texto en oscuro RESUELTO por
+        fuentes: el texto con el §3 (400→500, su doctrina), el
+        icono con la suya (grade, no peso — «un peso por
+        tema» se mantiene). JUEZAS: la del sistema (11) nació
+        ROJA cazando las 2 instancias de 48 sin ficha · 4 del
+        eje · P14 con acta ×2 [cambia el fichero que toca a
+        cada tamaño, la comparación carácter a carácter no se
+        afloja] · el censo de tamaños CON CIFRA, no
+        toBeLessThan cómodo · trazadoDelFichero con la ley de
+        la L4 [un ENOENT tumbó la suite entera y 900 juezas —
+        ya no revienta: rojo cantado]. LAS DIVERGENCIAS CON EL
+        §5 resueltas sin decidir nadie: el §39 registra LO
+        CONSTRUIDO; directions_bike/tram/two_wheeler-badge
+        quedan manda-cuando-haya-necesidad [la segunda fila
+        distingue por texto y el §5 exige etiqueta en cada
+        modo] · «deja»=aparca CON LA LETRA DEL CONTRATO. El
+        borrador del §39 entregado (39.1 familia y catálogo B
+        congelado con búsqueda previa en osm-carto/Maki/Temaki
+        · 39.2 ejes · 39.3 el mapa completo · 39.4 triaje ·
+        39.5 vigilancia) — se firma al DISEÑO en este
+        destilado. Unidad 686→693. CABO: las juezas del RELOJ
+        de moto y yego [esperan milisegundos, no la condición
+        — a la cola con diagnóstico].
+      - [x] ⚰️ LA ODISEA DEL ARNÉS — LA FUGA, EL MURO Y EL
+        CAPADO (16-17/09; commits 726bb8e…4817094, incluido
+        el revert 37e3050; el 10/10 final sobre 6a9f9cb). LA
+        FUGA: medir.mjs creaba un perfil de Chrome de 82 MB
+        por puerto y cerrar() no lo borraba — 111 perfiles ≈9
+        GB, C: a CERO bytes, ENOSPC, muertes silenciosas [las
+        caídas de la batería de la identidad y el moto del día
+        15 eran ESTO]. El arreglo 726bb8e [matar el árbol,
+        borrar con reintentos, avisar] probado en los dos
+        sentidos — y aun así ⭐ EL MURO: perfiles IMBORRABLES
+        por cualquier mano [usuario · administrador VERIFICADO
+        (chkdsk aceptó la elevación) · la vía cruda \?\ ·
+        chkdsk LIMPIO · tras reinicio · Restart Manager vacío
+        · fltmc con eamonm (ESET, verificado con fuente) y
+        UCPD · el registro de ESET «Protección del navegador»
+        con 80 bloqueos casando HORA A HORA con los intentos —
+        cleanmgr y CCleaner también bloqueados desde el 07/09
+        · los módulos de ESET apagados y sigue · la EXCLUSIÓN
+        de rendimiento puesta por la doc oficial (v19 +
+        KB2769) y NO alcanza]. EL ACTOR: NO CONFIRMADO —
+        escrito así, sin adivinar. ⭐ EL VERDE QUE MENTÍA
+        [bitácora]: la prueba del borrado abría Chrome en
+        about:blank 600 ms — ahí borra; el caso real no.
+        DOS TIRADAS MEDIDAS con el fallo DETERMINISTA por
+        suite [las mismas seis + los mismos puertos de
+        pintura; creditos/esqueleto/moto nunca] → LA
+        COMPARACIÓN del cierre limpio por Browser.close:
+        PEOR [23/85 contra 3 en pintura, mismas seis fuera] →
+        REVERTIDO con su porqué. EL ACTA con guarda dura: 115
+        perfiles / 8.822 MB en cuatro bloques, cada uno con
+        la autorización FECHADA de Antonio [y la desviación
+        dicha: se autorizaron ~0,5 GB y fueron 1,7 — los 85
+        cierres de pintura no estaban medidos]; contrapruebas
+        de la guarda en cada cambio de letra. LA ESCALERA DEL
+        CAPADO: (a) el volumen DESCARTADO con medición [F:
+        también deniega — 3 perfiles/275 MB anotados en el
+        acta, fuera de la vista de la jueza: A LA COLA] ·
+        (b) ⭐ LA REUTILIZACIÓN ADOPTADA: nombre FIJO por
+        puerto [perfil-medir-fijo-<puerto>], borrar-si-se-
+        puede-reusar-si-no, los 80 puertos del arnés
+        CENSADOS, el conjunto ACOTADO [116 estable en tres
+        tiradas] — la jueza ya no exige el borrado: vigila
+        que el CONJUNTO no crezca [nombre fuera del acta o
+        del censo = rojo; puerto fuera del censo = rojo;
+        contrapruebas 4/4]. ⭐ LA SEGUNDA LEY DE LA ENTRADA:
+        «cuando la causa no está al alcance, SE ACOTA LA
+        CONSECUENCIA y la jueza vigila el tope». EL MODO
+        SEGURO declinado por Antonio y DOCUMENTADO en el acta
+        con su doctrina [SafeBoot\Minimal carga solo la lista
+        blanca — doc Microsoft; excepción: los drivers de
+        arranque cargan igual — Windows Internals] para
+        cuando quiera. EL 10/10: una tirada sobre 6a9f9cb,
+        motor caliente, las diez con salida 0, 0 rojos, 0
+        escapadas, la jueza del arnés «OK · 0 fuera del
+        conjunto · 115/115 · 6 fijos reutilizándose [463
+        MB]»; cada suite +1 verde [la jueza en las diez].
+        bizi-y-resumen: TRES verdes en caliente [compatible
+        nº37] — la pregunta de esperar-al-motor-caliente A LA
+        COLA. RIESGOS DECLARADOS A LA COLA: el tamaño de los
+        fijos SIN TOPE [78 MB hoy; el largo plazo no está
+        comprobado] · la discrepancia df/chkdsk NO CONSTA.
+        C: con 9,0 GB libres al cierre. ⚠️ Y LA SEGUNDA
+        MENTIRA DE PAPEL DEL ESTRATEGA, cazada en este
+        destilado por un assert: el push 44ea5b7 salió con el
+        bloque de publicación SIN actualizar [el script de
+        aquel destilado falló a medias y la reaplicación se
+        dejó ese tramo] — publicaba «hasta 64686da · en local
+        el puente-bis» siendo mentira dos veces. Confesado en
+        el propio bloque; la lección: tras un script fallido,
+        la reaplicación se verifica TRAMO A TRAMO contra la
+        lista de ediciones previstas, no de memoria.
 - [ ] **EL GUARDIÁN DE BUILD ATÓMICO [PRIORIDAD ALTA — bloque
       propio desde el 15/09, pedido por Antonio: los papeles con la
       verdad entera, no líneas de mesa]** — EL PORQUÉ: el `ng build`

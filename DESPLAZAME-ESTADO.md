@@ -197,7 +197,15 @@ levantado el 18/08, des-caducado del 21/08 al 1/09):
   los documentos
   del método enlazados, y la frase de cierre veraz.
 
-**Publicado hasta `64686da`**
+**Publicado hasta `44ea5b7`**
+(el push del 15/09 final: LA PARTE 3 — el conmutador, el
+oscuro público — + sus papeles, ⚠️ que viajaron con ESTE
+bloque sin actualizar [el script de aquel destilado falló a
+medias y la reaplicación se dejó este tramo: publicaba «hasta
+64686da · en local el puente-bis» — confesado, la misma clase
+que el fósil]); antes: **`a067f54`**
+(el push del 15/09 noche-2: EL PUENTE-BIS — /panel en los dos
+temas — + sus papeles, UN push); antes: **`64686da`**
 (el push del 15/09 noche: EL PUENTE — el Buscador en los dos
 temas — + sus papeles, UN push); antes: **`9fba4c2`**
 (el push del 15/09 tarde: LA PARTE 2 entera — 19 commits
@@ -211,10 +219,12 @@ se llevó también la tanda de la región — el «un solo push»
 que quedó en dos, dicho], `2f51ce6` [los fallitos enteros] y
 `64c2591` [la fase C]; el 13/09 `7f0ba5a`; los del 11-12/09 y
 anteriores como constaba). **En local, sin publicar** *(al
-cierre del 15/09 noche, tarde)*: **EL PUENTE-BIS — /panel en
-los dos temas (2 commits `5b5547a`+`ed6c040`) + los papeles
-de este destilado — UN push con todo ⚠️ desde M2, CADA PUSH
-REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
+cierre del 17/09)*: **LA IDENTIDAD ENTERA (el §39, el logo B
+elegido por Antonio, el favicon) + LA ODISEA DEL ARNÉS (la
+fuga capada por reutilización, el acta de los 115, el 10/10
+sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
+revert `37e3050` dentro — + los papeles de este destilado —
+UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
 — los papeles de las casillas 0+3 y los 12 del calco — empujados
 en `062f532`.)* *(La nota del 8/09 noche: los
 papeles de M1-M3; el código estaba TODO publicado — el push del apaño
@@ -1679,28 +1689,33 @@ verdad» · «un trazo se mide contra lo que tiene al lado, no
 contra los extremos del plano») — y EL PUENTE HECHO (el
 Buscador en los dos temas, el claro roto de producción
 arreglado de paso, la jueza del color a pelo para TODA la
-app; crónica en la casilla 4) — ⭐ y EL OSCURO ENTERO
-HECHO Y PÚBLICO [las partes 1-2-3 y los dos puentes; el
-conmutador en PC y en el cuarto hueco con su anti-FOUC,
-ratificado por Antonio: «todo correcto»; crónicas en la
-casilla 4] — (a) EL PUSH de la parte 3 [+ estos papeles, UN
-push]; (b) DESPUÉS:
-el encargo de IDENTIDAD [el logo + ⭐ la identidad de ICONOS
-pedida por Antonio el 15/09: el sistema acción→icono como §39
-del DISEÑO con su jueza, y el favicon por tema del §36] y la
-verificación final del 15 [ANTES de ella: los 44 px de los
-campos]; (c) EN COLA CON NOMBRE, del cierre del conmutador:
-EL TERCER ESTADO «Sistema» [la vuelta al automático — cambia
-el patrón ARIA a grupo de tres y enmienda el §35; encargo
-propio con doctrina y ojo];
+app; crónica en la casilla 4) — ⭐ y LA IDENTIDAD HECHA
+[el §39 firmado, el logo B de Antonio en cabecera y pestaña,
+el catálogo con sus juezas] y ⭐ LA ODISEA DEL ARNÉS CERRADA
+[la fuga capada por reutilización con el conjunto acotado; el
+acta de los 115/8.822 MB con autorizaciones fechadas; la
+segunda ley: «cuando la causa no está al alcance, se acota la
+consecuencia y la jueza vigila el tope»; crónicas en la
+casilla 4] — (a) EL PUSH [27 commits + estos papeles, UN
+push]; (b) LA VERIFICACIÓN final del 15 [ANTES de ella: los
+44 px de los campos]; (c) EN COLA CON NOMBRE: EL TERCER
+ESTADO «Sistema» [grupo de tres, enmienda §35] · el manifest
+del app-icon [con su jueza de estado] · el TOPE de tamaño de
+los perfiles fijos [78 MB hoy, sin vigilar a largo] · los 3
+perfiles de F: fuera de la vista de la jueza [275 MB] · las
+juezas del RELOJ de moto y yego [esperan milisegundos, no la
+condición] · bizi-y-resumen y el motor caliente [3 verdes
+observados] · el gradN25 pendiente-con-precio [§39] · el
+modo seguro declinado-documentado [para recuperar los 8,8 GB
+cuando Antonio quiera];
 PENDIENTE DEL TELÉFONO de Antonio: el pin con su prompt real ·
 el teclado · el safe-area en aparato; ⚠️ el MISTERIO de los
 fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
-initial al cierre del conmutador: 551,10 kB, transferido
-140,40 [superado el aviso de 520 por 31,10]; la
+initial al cierre de la identidad: 553,47 kB, transferido
+141,43 [superado el aviso de 520 por 33,47]; la
 poda como palanca] · el guardián de build atómico [PRIORIDAD ALTA
 — ya con BLOQUE PROPIO en el PLAN, delante de la casilla 5:
 porqué, forma y jueza] · el
@@ -2047,7 +2062,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.327 pruebas (656 motor + 671 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.349 pruebas (656 motor + 693 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

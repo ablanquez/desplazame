@@ -1,6 +1,6 @@
 # DISEÑO-DESPLAZAME · Documento anexo de diseño
 
-**v1.3 · 15/09/2026** (v1.0 del 8/09; la v1.1 añade la ⭐ enmienda del §20 — pestañas en móvil, 11/09; la v1.2, el ⭐ §38 — las cinco líneas, 14/09; la v1.3 amplía el §35 — el mapa acompaña al tema, con fuentes, 15/09). Fruto de la investigación profunda del 8/09 (decenas de fuentes; doctrina primaria priorizada: W3C/WCAG 2.2, WAI-ARIA APG, Nielsen Norman Group, Material Design 3, documentación oficial de Figma, MDN, OSMF, CARTO, Radix). **Escritor único: la conversación de estrategia** (como PLAN y ESTADO). Este documento guía el punto 15 (estética) de Desplázame **y es reutilizable para futuros diseños de la casa**: las fuentes y los porqués importan tanto como las conclusiones. Las decisiones aquí propuestas son PROPUESTAS con doctrina hasta que Antonio las vale; lo ya decidido por Antonio (layout, bloques, separador de dos posiciones, sin scroll global, claro+oscuro) va marcado como DECIDIDO.
+**v1.4 · 18/09/2026** (v1.0 del 8/09; v1.1: ⭐ enmienda §20 — pestañas en móvil, 11/09; v1.2: ⭐ §38 — las cinco líneas, 14/09; v1.3: §35 ampliado — el mapa acompaña al tema, 15/09; v1.4: ⭐ §39 — el sistema de iconos, escrito por el ejecutor desde el censo del 17/09 y firmado verbatim el 18/09, con el gradN25 como pendiente-con-precio y las divergencias del §5 resueltas). Fruto de la investigación profunda del 8/09 (decenas de fuentes; doctrina primaria priorizada: W3C/WCAG 2.2, WAI-ARIA APG, Nielsen Norman Group, Material Design 3, documentación oficial de Figma, MDN, OSMF, CARTO, Radix). **Escritor único: la conversación de estrategia** (como PLAN y ESTADO). Este documento guía el punto 15 (estética) de Desplázame **y es reutilizable para futuros diseños de la casa**: las fuentes y los porqués importan tanto como las conclusiones. Las decisiones aquí propuestas son PROPUESTAS con doctrina hasta que Antonio las vale; lo ya decidido por Antonio (layout, bloques, separador de dos posiciones, sin scroll global, claro+oscuro) va marcado como DECIDIDO.
 
 ---
 
@@ -223,6 +223,258 @@ Organizado por los 8 bloques (A–H) y 37 puntos. Cada punto ofrece (1) doctrina
 - **L4** — el botón vivo + su región `role=status`.
 - **L5** — **la región misma**, vestida de advertencia cuando su contenido es un no-pude-leer: una voz por dato, la del **último intento** (NN/g: el error visible mientras el error existe; heurística #1; precedente nº37). Solo `mudo` viste de advertencia; `ausente` se dice como dato (GTFS-RT).
 **Doctrina del layout:** el solape/apretujón es fallo WCAG 1.4.12/F104 (el bloque que no crece con el contenido); receta: líneas propias que crecen en vertical. Material 3: fuera del list item de 1/2/3 líneas se construye el item propio, un rol de contenido por línea. Vara del aire entre cajas vecinas del paso: **4,3 px** (precedente nº52). La batería de anchos incluye 1920×1080/DPR 1/zoom 100 (la pantalla real de Antonio: 32", ~69 PPI — donde 1 px de aire es visualmente cero).
+
+## 39. ⭐ El sistema de iconos (firmado el 18/09/2026, desde el censo del 17/09)
+
+> Escrito desde el censo del 17/09 y rematado el 18/09, no desde la memoria.
+> Todas las cifras salen de contar el directorio y de medir lo pintado en
+> Chrome. **El §39 registra LO CONSTRUIDO**: lo que aquí no está, no existe.
+
+**Doctrina.** [Material Symbols, doc oficial de Google/M3] la familia tiene
+**cuatro ejes** —relleno (`FILL`), peso (`wght`), grado (`GRAD`) y tamaño óptico
+(`opsz`)—. Los iconos de sistema van a **24 dp**, y a **20 dp** en escritorio
+denso. **Solo las instancias de 20 y 24 están alineadas a la retícula**: para
+cualquier otro tamaño se usa el eje óptico, **no el escalado a pelo**. A 24 dp el
+peso mínimo legible es **200** (los extremos del eje están desaconsejados), se
+usa **un solo peso por tema de interfaz**, emparejado con el peso del texto, y el
+**grado** ajusta el grosor sin cambiar el tamaño —lo que Material recomienda
+sobre fondos oscuros—. Verificado contra el repositorio el 17/09: de `route` hay
+**168 ficheros** en `materialsymbolsoutlined`, con `opsz` en 20/24/40/48, `wght`
+de 100 a 700, `GRAD` en N25/0/200 y `FILL` en 0/1.
+
+[W3C · WAI Images Tutorial, árbol de decisión] un icono es **funcional** cuando
+está dentro de un botón o enlace —y entonces su nombre accesible dice **la
+acción**, no el dibujo: «imprimir esta página», nunca «impresora»—;
+**informativo** cuando aporta información que el texto no da; y **decorativo**
+cuando viaja al lado de un texto que ya dice lo mismo —y entonces se oculta, o
+mejor se pinta desde CSS—. Y su consejo responsive: si la etiqueta de texto cae
+en pantallas estrechas, el icono debe seguir entendiéndose y conservar su
+descripción.
+
+### 39.1 · La familia, y sus CUATRO catálogos
+
+El §5 firma **Material Symbols como set único**. Eso vale para **la interfaz**, y
+el censo encontró que la app tiene de hecho **cuatro catálogos**, tres de ellos
+legítimos y uno ajeno:
+
+| | Qué es | Cuántos | Dónde vive | Licencia |
+|---|---|---|---|---|
+| **A** | Material Symbols *outlined* | **30 símbolos en 31 ficheros** | `app/simbolos/` + tabla en `simbolos.ts` | Apache 2.0 |
+| **B** | Las formas de **capa** (qué clase de sitio es un extremo) | **8 formas** | `iconos.ts`, dibujadas a mano | propias / calcadas |
+| **C** | Lo que pinta **Leaflet solo** | 1 banderita + su lienzo | dentro de Leaflet | BSD-2-Clause |
+| **D** | **La marca** — el símbolo de Desplázame | 1 símbolo en 4 ficheros | `app/marca/` | **obra propia** |
+
+**El catálogo B es una excepción declarada, no un descuido.** Seis de sus ocho
+formas calcan una convención que ya existe —la chincheta de los mapas, la cruz
+verde de farmacia, la señal **S-23** del hospital, el libro de osm-carto, el
+lápiz de `school` y el birrete de `college` de Maki— y **dos están firmadas como
+PROPIAS** porque la doctrina no daba ninguna: el chupete de la guardería y la
+cruz azul del centro de salud (la roja es emblema protegido por los Convenios de
+Ginebra; la verde ya es la farmacia). Material no cubre esa taxonomía, y el
+porqué entero está en la cabecera de `iconos.ts`.
+
+**La marca es el catálogo D y NO entra en `app/simbolos/`** (18/09): el §5 firma
+Material Symbols como familia única **para la interfaz**, y un logotipo no se
+toma prestado de una familia de iconos de sistema —no dice «esto hace tal cosa»,
+dice «esto es Desplázame»—. Mezclarlos habría roto el censo de `app/simbolos/`
+contra el repositorio de Google, que es lo que le da valor. Es **obra propia**:
+no necesita ficha en el NOTICES, que es el inventario de lo ajeno.
+
+**Regla propuesta:** Material Symbols para **todo lo que sea acción, modo,
+maniobra o control**. El catálogo B se congela: **no crece** sin que la clase
+nueva se busque antes en osm-carto, Maki y Temaki y se declare el hueco.
+
+### 39.2 · Ejes y tamaños — **FIRME desde el 18/09**
+
+**La regla, en cuatro líneas:**
+
+1. **Un solo peso en toda la app**: `wght400 · GRAD0 · FILL0`. Lo que cambia
+   entre ficheros es **solo el eje óptico**, y lo dice el sufijo del nombre.
+2. **Los tamaños de sistema son 20 y 24.** Fuera de ellos manda el eje óptico:
+   **la instancia igual o la inmediatamente menor** (`trazadoPara`).
+3. **Por debajo de 20 px el suelo es `opsz20`**, porque el eje no baja más.
+4. **El catálogo guarda de cada símbolo la instancia que de verdad se pinta**, no
+   una de referencia y luego un escalado. El nombre del fichero lo dice.
+
+**Aplicado el 18/09.** El censo contó a qué tamaño se pinta cada símbolo y el
+catálogo se puso en consecuencia:
+
+| se pinta a | cuántos | guarda |
+|---|---|---|
+| 14, 16, 18 y 20 px | **24** | `opsz20` |
+| 24 px | 5 | la de por defecto, sin sufijo |
+| 48 px | 1 (`cloud_off`) | `opsz48` |
+| **24 y 48 a la vez** | 1 (`route`) | las dos — el único que necesita dos |
+
+**31 ficheros para 30 símbolos.** Precio del barrido, medido antes de hacerlo:
+**+492 caracteres de trazado (≈ 0,48 kB)**, de 5.930 a 6.422.
+
+**Y no son el mismo dibujo a otra escala**, que es la razón de todo esto: el
+trazado de `route` mide 594 caracteres a 24 y 741 a 48; el de `directions_bus`,
+856 a 24 y 643 a 20.
+
+> **⛔ EL GRADO EN OSCURO — MEDIDO Y NO APLICADO (18/09).**
+>
+> La regla oficial es explícita: **el grado por defecto de un icono claro sobre
+> fondo oscuro es −25**; el de un icono oscuro sobre claro, 0. En tema oscuro
+> **todos** nuestros iconos son claros sobre oscuro, así que la regla pide
+> `gradN25` para todos.
+>
+> **Se midió antes de tocar nada, y por eso no se tocó:**
+>
+> | | ficheros | trazado en bruto | transferido (gzip) |
+> |---|---|---|---|
+> | el barrido a `opsz20` | 24 | +492 car · **+0,48 kB** | ~+0,2 kB |
+> | el `gradN25` | **31 más** | +12.519 car · **+12,23 kB** | **+5,26 kB** |
+>
+> **Veinticinco veces el precio del opsz20**, sobre un paquete que ya va 33 kB
+> por encima de su aviso — y sin contar el mecanismo: `trazadoPara` tendría que
+> ganar una dimensión de tema, y con ella los tres sitios que pintan (el
+> componente, `svgDeCapa` y el hito del plano). Queda **declarado y a la cola**,
+> con la comparación pintada para que se decida mirándola.
+>
+> ⚠️ Y el `wght` **no se toca**: «un peso consistente por tema de UI» sigue en
+> pie. El §3 subió el TEXTO de 400 a 500 en oscuro por su propia fuente firmada;
+> el icono tiene la suya, y la suya dice grado, no peso. **Cada pieza con su
+> fuente.**
+
+### 39.3 · El mapa acción → icono
+
+**Los seis modos** (chips de «Cómo»), cada uno con su etiqueta de texto [§5]:
+
+| Modo | Icono | §5 proponía |
+|---|---|---|
+| Andando | `directions_walk` | igual |
+| Bus / Tranvía | `directions_bus` | `directions_bus`/`tram` — **`tram` no se usa**: una sola familia para los dos, y el texto los nombra |
+| Bici | `pedal_bike` | igual |
+| Patín (VMP) | `electric_scooter` | igual |
+| Moto | `two_wheeler` | igual |
+| Coche | `directions_car` | igual |
+
+**Las dos submodalidades no tienen icono propio, y diverge del §5:** BiZi vive
+dentro de Bici y YeGo dentro de Moto, en la segunda fila, que es un grupo de
+radios **con etiqueta de texto** («Privada» / «Pública BiZi»). El §5 proponía
+`directions_bike` para BiZi y un `two_wheeler` «diferenciado por color/badge»
+para YeGo; ninguno de los dos se ha construido, y **`directions_bike` no está en
+el catálogo**. **RESUELTO ASÍ (18/09): el §39 registra lo construido, y los tres mapeos del §5
+que no han nacido quedan como *manda-cuando-haya-necesidad*.** Es el precedente
+de casa —se crece cuando algo lo pide—, y aquí nada lo pide: la segunda fila
+distingue **por texto**, y el propio §5 exige etiqueta de texto en cada modo.
+Donde el texto ya distingue, un segundo dibujo añade ruido, no información.
+`directions_bike` y `tram` **no se bajan** hasta que haga falta.
+
+**Las quince maniobras del contrato** (`Record<Giro, …>` exhaustivo — el compilador
+no deja que falte ninguna):
+
+`salida` → `trip_origin` · `recto` → `straight` · `ligera-derecha` →
+`turn_slight_right` · `derecha` → `turn_right` · `cerrada-derecha` →
+`turn_sharp_right` · `media-vuelta` → `u_turn_left` · `cerrada-izquierda` →
+`turn_sharp_left` · `izquierda` → `turn_left` · `ligera-izquierda` →
+`turn_slight_left` · `coge` → `pedal_bike` · `aparca` → `local_parking` · `sube`
+→ `directions_bus` · `baja` → `directions_walk` · `transborda` →
+`transfer_within_a_station` · `llegada` → `flag`
+
+⚠️ **«Deja» no es un hueco: es `aparca`.** El contrato lo dice con todas las
+letras —*«Se deja: la bici propia en el aparcabicis, la BiZi en su anclaje»*—, y
+por eso «Deja la bici» y «Aparca» comparten la P del aparcamiento.
+⚠️ `u_turn_left` sirve para las dos manos: el set oficial solo trae la izquierda
+y el contrato no distingue lado en la media vuelta.
+⚠️ Tres maniobras **reusan** iconos de modo (`coge`, `sube`, `baja`): no se baja
+un dibujo que ya se tiene.
+
+**Los cuatro hitos del plano** repiten los de la lista, y eso es la regla: quien
+lee «Sube a la 39» busca **ese mismo dibujo** sobre el mapa. Hay jueza que
+compara las dos tablas.
+
+**Los controles y estados de la interfaz:**
+
+| Acción / estado | Icono | Tamaño |
+|---|---|---|
+| Pestaña Buscador · Ruta · Mapa | `search` · `route` · `map` | 24 |
+| Modo oscuro (interruptor) | `light_mode` / `dark_mode` | 24 |
+| Mi ubicación | `my_location` | 20 |
+| Invertir origen y destino | `swap_vert` | 20 |
+| Esperando a la DGT | `hourglass_empty` | 16 |
+| Aviso | `warning` | 16 · 14 |
+| Seguir / volver | `arrow_forward` · `arrow_back` | 16 |
+| Vacío del resultado | `route` | **48 (`opsz48`)** |
+| Error del resultado | `cloud_off` | **48 (`opsz48`)** |
+
+**Las ocho clases de sitio** (catálogo B): `via` → chincheta · `farmacia` → cruz
+verde · `centro-salud` → cruz azul · `hospital` → cuadrado con H · `biblioteca` →
+libro · `colegio` → lápiz y manzana · `guarderia` → chupete · `universidad` →
+birrete. El color dice la **familia** y la forma dice **qué es**: cuatro colores
+para ocho formas, a propósito.
+
+**Huecos declarados (NO CONSTA):** ninguna acción del producto se queda sin
+icono. Los dos únicos candidatos que el §5 nombraba y no existen en el catálogo
+son **`directions_bike`** (BiZi) y **`tram`** (tranvía), y los dos están sin bajar
+a propósito, no por olvido — ver arriba. **No se dibuja nada propio para
+sustituirlos.**
+
+### 39.4 · El triaje del W3C, por icono
+
+**En esta app, todos los iconos son DECORATIVOS**, y no por comodidad: el §5
+manda que **cada icono lleve su etiqueta de texto al lado**, así que el nombre
+siempre lo pone el texto o el `aria-label` del control, y el dibujo se oculta
+para no decirlo dos veces.
+
+**Regla propuesta:**
+
+- **Funcional** (dentro de un botón o enlace): el icono va `aria-hidden` y **el
+  control lleva el nombre de la ACCIÓN**. Ejemplo vivo: el interruptor de tema
+  —`aria-label="Modo oscuro"`, estado por `aria-checked`, y el icono callado—.
+- **Informativo**: hoy **no hay ninguno**. Si aparece, lleva `<title>` y se
+  declara aquí.
+- **Decorativo**: `aria-hidden="true"` y `focusable="false"`. Es el caso de los
+  ciento y pico iconos de la app.
+
+**Medido sobre lo pintado el 17/09**, con una ruta de bus en pantalla: **26 `<svg>`
+visibles · 25 decorativos y ocultos · 1 suelto**, y el suelto es el lienzo
+vectorial de Leaflet —no es un icono y no es nuestro—. Quién los oculta:
+`svg.simbolo` ×15 (el componente), `svg.icono-capa` ×4, dos `<svg>` sin clase
+—los marcadores que `svgDeCapa` compone para Leaflet—, `span.hito` ×3 y la
+banderita de la atribución ×1.
+
+⚠️ **Y la primera medición de esto estuvo MAL, en el lado que asusta.** La sonda
+miraba el `aria-hidden` del propio `<svg>` y daba **nueve** iconos «sin nombre y
+sin ocultar»; `aria-hidden` en un **ancestro** también oculta, y los marcadores
+de hito lo llevan en el `<span>` que los envuelve. Corregida la sonda, quedan
+cero. Lo que se mide es el árbol, no el atributo.
+
+⚠️ **Y el consejo responsive del W3C ya está cubierto**: en la barra de móvil el
+icono y su etiqueta viajan juntos y la etiqueta no se cae en ningún ancho —lo
+vigila `esqueleto.mjs`—; en los chips de modo la etiqueta se encoge pero no
+desaparece.
+
+### 39.5 · Quién lo vigila
+
+`sistema-de-iconos.spec.ts`, que cuenta el directorio y no una lista escrita a
+mano: el catálogo cuadra en las dos direcciones, cada fichero tiene su sha256 en
+`PROCEDENCIA.md`, **el sufijo de cada símbolo casa con el fichero que hay en
+disco**, ningún símbolo queda huérfano, **solo CUATRO ficheros pueden
+escribir un `<svg>`** —el cuarto es `marca.ts`, y entró declarado porque la
+jueza se puso roja al verlo— —`simbolos.ts`, `iconos.ts` y `mapa.ts`, los dos últimos
+porque Leaflet quiere HTML en crudo—, ninguno copia un trazado a pelo, los quince
+giros y los cuatro hitos están dentro del catálogo, y **el censo de tamaños va
+clavado con su cifra** para que la deuda del eje óptico no crezca callada.
+
+### 39.6 · La marca (18/09)
+
+El **candidato B**, elegido por Antonio con las tres tallas y los dos temas
+delante: la gota sobre la traza, rejilla 32, trazo 4 —2 px reales a 16—, y el
+hueco como **calado de verdad** (`fill-rule="evenodd"`), no un disco del color
+del fondo. Cuatro ficheros en `app/marca/`: `simbolo.svg` (reducido),
+`completo.svg`, `favicon.svg` y `app-icon.svg`.
+
+⚠️ **El favicon sigue al SISTEMA, no al conmutador**, y no es un fallo: se pinta
+en la pestaña, **fuera del documento**, así que no hereda el `data-theme`. Lo
+único que puede leer es `prefers-color-scheme` desde un `<style>` embebido
+[§36 · MDN], y es lo que lee. Declarado en vez de fingido.
+
+⚠️ **El `app-icon` se produce y NO se cablea**: hoy no hay
+`manifest.webmanifest`. Va a la cola, con jueza que fija el estado para que
+cablearlo sea una decisión y no un descuido.
 
 ---
 
