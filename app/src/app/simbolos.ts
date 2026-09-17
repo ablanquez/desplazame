@@ -182,6 +182,55 @@ export const SIMBOLOS: Readonly<Record<NombreDeSimbolo, string>> = {
 };
 
 /**
+ * ⭐ EL EJE ÓPTICO, Y POR QUÉ HAY UNA SEGUNDA TABLA (17/09, la identidad).
+ *
+ * [DOC OFICIAL, Material Symbols] la familia tiene cuatro ejes —relleno, peso,
+ * grado y **tamaño óptico**— y del óptico existen **cuatro instancias: 20, 24,
+ * 40 y 48**. Verificado contra el repositorio el 17/09: `symbols/web/route/
+ * materialsymbolsoutlined/` trae 168 ficheros, y entre ellos `route_20px.svg`,
+ * `route_24px.svg`, `route_40px.svg` y `route_48px.svg`.
+ *
+ * ⚠️ **Y no son el mismo dibujo escalado.** El trazado de `route` mide 594
+ *    caracteres a 24 y 741 a 48: son dos dibujos distintos, pensados uno para
+ *    cada tamaño. Escalar el de 24 hasta 48 engorda los trazos al doble, que es
+ *    justo lo que el eje existe para evitar.
+ *
+ * ⚠️ POR QUÉ SOLO DOS ENTRADAS AQUÍ, Y NO UNA TABLA ENTERA POR TAMAÑO. El censo
+ *    del 17/09 contó dónde se pinta cada símbolo: **dos usos a 48 px** —el
+ *    `cloud_off` del error y el `route` del vacío— y todo lo demás por debajo de
+ *    24. Los de 48 escalaban al doble y aquí se corrigen. Los de 14, 16 y 18 px
+ *    **no tienen instancia exacta** —el eje no baja de 20— y su arreglo es otro:
+ *    pasar a `opsz20` los símbolos que solo se pintan por debajo de 20. Son
+ *    **24 ficheros**, y el precio está MEDIDO, no estimado: sus trazados pasan
+ *    de 5.930 a 6.422 caracteres, **+492 (≈ 0,48 kB)**. Es barato, y aun así no
+ *    se hace aquí: cambia lo que se pinta en casi toda la app, y la regla que lo
+ *    justificaría es del §39, que todavía es un borrador sin firmar.
+ *
+ * La regla, escrita una vez: **la instancia igual o la inmediatamente menor**.
+ */
+export const SIMBOLOS_48: Readonly<Partial<Record<NombreDeSimbolo, string>>> = {
+  // el vacío del resultado: «todavía no hay pasos»
+  route:
+    'M355-120q-65 0-110-45.53T200-275v-349q-35-13-57.5-41.26-22.5-28.27-22.5-64.41Q120-776 152.5-808t78-32q45.5 0 77.5 32.14t32 78.05q0 35.81-22.5 64.31T260-624v349q0 39.19 27.5 67.09Q315-180 355.5-180t67.5-27.91q27-27.9 27-67.09v-410q0-65 45-110t110-45q65 0 110 45t45 110v349q35 13 57.5 41.36Q840-266.27 840-230q0 45-32.08 77.5Q775.83-120 730-120q-45 0-77.5-32.5T620-230q0-36.3 22.5-65.15Q665-324 700-336v-349q0-40-27.5-67.5T605-780q-40 0-67.5 27.5T510-685v410q0 63.94-45 109.47T355-120ZM230.5-680q20.5 0 35-15t14.5-35.5q0-20.5-14.37-35Q251.25-780 230-780q-20 0-35 14.37-15 14.38-15 35.63 0 20 15 35t35.5 15Zm500 500q20.5 0 35-15t14.5-35.5q0-20.5-14.37-35Q751.25-280 730-280q-20 0-35 14.37-15 14.38-15 35.63 0 20 15 35t35.5 15ZM230-730Zm500 500Z',
+  // el error: no se ha podido hablar con el motor
+  cloud_off:
+    'M818-56 703-171H248q-88 0-148-59T40-377q0-80 50.5-134T217-577q2-14 6.5-31.5T236-640L70-806l42-42L861-99l-43 43ZM248-231h397L285-591q-11 15-14.5 34t-3.5 37h-19q-62 0-105 39.5t-43 101q0 61.5 43 105T248-231Zm216-181Zm390 210-47-47q25-17 39-38t14-50q0-43-31-73.5T755-441h-67v-81q0-88-61-147.5T478.47-729q-28.47 0-60.97 9T358-691l-42-42q36-29 77.5-42.5T478-789q111 0 190.5 79T748-520v21q72-1 122 45t50 117q0 35-16.5 73.5T854-202ZM583-470Z',
+};
+
+/**
+ * El trazado que le toca a un símbolo para el lado con que se va a pintar.
+ *
+ * ⚠️ Con `>= 48` y no `=== 48`: si mañana alguien pinta a 64, la instancia
+ *    menor sigue siendo la de 48 y es la que menos miente.
+ */
+export function trazadoPara(nombre: NombreDeSimbolo, lado: number): string {
+  if (lado >= 48 && SIMBOLOS_48[nombre]) {
+    return SIMBOLOS_48[nombre];
+  }
+  return SIMBOLOS[nombre];
+}
+
+/**
  * ⭐ Un símbolo, en línea y del color del texto que lo rodea.
  *
  * ⚠️ **`aria-hidden` SIEMPRE, y no es descuido.** [DISEÑO: los emojis se van, el
@@ -227,6 +276,7 @@ export class Simbolo {
   protected readonly rejilla = REJILLA;
 
   protected trazado(): string {
-    return SIMBOLOS[this.nombre()];
+    // ⚠️ El dibujo depende del LADO, no solo del nombre: ver `trazadoPara`.
+    return trazadoPara(this.nombre(), this.lado());
   }
 }

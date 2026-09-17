@@ -3163,7 +3163,7 @@ se tira. El log cuenta **la consulta** —qué salió, cuánto tardó, por qué 
 | **Licencia** | **Apache 2.0** — el `LICENSE` del repositorio, descargado el mismo día y guardado al lado en [`app/simbolos/LICENCIA-APACHE-2.0.txt`](app/simbolos/LICENCIA-APACHE-2.0.txt) |
 | **Atribución exigida** | La Apache 2.0 **no exige crédito visible**: pide conservar el aviso de copyright y la licencia con la obra, y eso es lo que hace el fichero de al lado. No hay fórmula que pintar en la pantalla |
 | **Qué se guarda** | Los veintiocho `.svg` **tal cual llegaron**: ni reoptimizados, ni recoloreados, ni renombrados. **Ninguno personal** |
-| **¿Está en este repo?** | ✅ [`app/simbolos/`](app/simbolos/) · los treinta, con [`PROCEDENCIA.md`](app/simbolos/PROCEDENCIA.md) y sus sha256 |
+| **¿Está en este repo?** | ✅ [`app/simbolos/`](app/simbolos/) · los treinta en treinta y dos ficheros —dos llevan además su instancia óptica de 48 px—, con [`PROCEDENCIA.md`](app/simbolos/PROCEDENCIA.md) y sus sha256 |
 
 | fichero | peso | para | sha256 |
 |---|---|---|---|

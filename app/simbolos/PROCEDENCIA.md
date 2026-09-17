@@ -8,7 +8,8 @@
 | **Titular** | Google |
 | **Licencia** | Apache 2.0 — `LICENCIA-APACHE-2.0.txt`, al lado |
 | **Origen** | `https://raw.githubusercontent.com/google/material-design-icons/master/symbols/web/<nombre>/materialsymbolsoutlined/<nombre>_24px.svg` |
-| **Descargados** | 2026-09-10 los nueve primeros · 2026-09-11 los tres de la barra de pestañas · 2026-09-12 los quince de la pintura del resultado y `arrow_back` · 2026-09-16 los dos del conmutador de tema |
+| **Descargados** | 2026-09-10 los nueve primeros · 2026-09-11 los tres de la barra de pestañas · 2026-09-12 los quince de la pintura del resultado y `arrow_back` · 2026-09-16 los dos del conmutador de tema · 2026-09-17 las dos instancias ópticas de 48 |
+| **Ejes** | `wght400 · GRAD0 · FILL0 · opsz24` en los treinta — la instancia por defecto, que es la que el nombre sin sufijos identifica. Los dos `_48px` son la misma salvo el eje óptico. Verificado contra el repositorio el 17/09: de `route` hay **168** ficheros, con `opsz` en 20/24/40/48, `wght` de 100 a 700, `GRAD` en N25/0/200 y `FILL` en 0/1 |
 | **Rejilla** | `viewBox="0 -960 960 960"` en todos, verificada al generarlos |
 
 Entran **sin tocarlos**: ni se han reoptimizado, ni recoloreado, ni
@@ -50,6 +51,20 @@ inyectarlo en línea con `fill="currentColor"`.
 | `light_mode.svg` | 532 B | el conmutador con el modo oscuro APAGADO — el sol | `59f62df813e1b2c5c9db89088ea4489617f8c89d4ccd179f713b9d6938d82db5` |
 | `dark_mode.svg` | 426 B | el conmutador con el modo oscuro PUESTO — la luna | `b45f29f9b3268bb674a00c025b619292e36a86e6dc6b28851f954763d943eca7` |
 
+## Las dos instancias ópticas de 48 px (17/09)
+
+⚠️ **No son los de arriba escalados: son otro dibujo.** El eje de tamaño óptico
+de Material trae instancias propias para 20, 24, 40 y 48, y la doctrina oficial
+dice que **solo las de 20 y 24 están alineadas a la retícula** — para cualquier
+otro tamaño se usa el eje, no el escalado. El censo del 17/09 encontró dos sitios
+que pintaban a 48 estirando el dibujo de 24 al doble: el vacío del resultado y su
+error. Medido: el trazado de `route` pasa de 594 caracteres a 741.
+
+| fichero | peso | para | sha256 |
+|---|---|---|---|
+| `route_48px.svg` | 847 B | el vacío del resultado, a 48 px | `ee4c47bbe5dacd0d315a8ce6aed74ccd3b86dec4cdf4d43c13fbd1529e43d2c9` |
+| `cloud_off_48px.svg` | 539 B | el error del resultado, a 48 px | `5517ebe3fb6ee9d0e08a3d59c57391c6a7f9a393c3ddd45d7e2c8e6eb31576f4` |
+
 ## ⚠️ Por qué el dibujo está también en `app/src/app/simbolos.ts`
 
 Porque un `<img>` no hereda el color del texto y los chips cambian de tinta con
@@ -70,7 +85,7 @@ uno de los dos lados, la suite se pone roja.
 ## Por qué no la fuente variable
 
 La fuente oficial de Material Symbols existe y trae **miles** de iconos en
-~100 KB. Aquí hacen falta **treinta**. La portada se mide contra un presupuesto
+~100 KB. Aquí hacen falta **treinta**, en treinta y dos ficheros. La portada se mide contra un presupuesto
 que ya está en 509 kB, así que se paga lo que se usa y nada más — y, de paso,
 no se baja nada de ningún tercero en tiempo de ejecución, que es la misma ley
 que sacó a Inter del CDN de Google.
