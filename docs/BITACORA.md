@@ -33,6 +33,8 @@ Con la misma prueba se firmó `726bb8e`: `tras cerrar()   : OK borrado` · `sali
 
 **Nota [2026-09-17]:** la contraprueba 1 de `2ca7940` (puerto 9350, pid 18164) imprimió `perfil propio tras cerrar()   : borrado`. Tras la batería, `perfil-medir-9350-18164` **existe** (7 MB) y no se deja borrar. El directorio que la prueba dio por borrado volvió a aparecer. Al acabar la tirada quedan 10 residuos nuevos (276 MB): 9 cierres fallidos en suites reales, más este.
 
+**Nota [2026-09-17] · sonda con la exclusión de ESET puesta (módulos del navegador activados):** los 10 residuos siguen denegados (0/10). Hice una sonda en el puerto 9990, cargando la app y `/identidad`, con 5 intentos de cada variante alternados: el cierre actual borró 5 de 5 y el cierre limpio por `Browser.close` también 5 de 5 (Chrome salió solo en 200–225 ms). Ninguno reapareció a los 20 s. La sonda no reproduce el fallo de la batería, así que no distingue entre las dos variantes. La causa sigue ⏳ PENDIENTE.
+
 ---
 
 ## [2026-09-15] ✅ CERRADA — la frontera de los campos del Buscador, en CLARO y en producción, lee a 2,85:1 y 1,23:1, y la jueza del color a pelo barre `buscador.css` en verde
