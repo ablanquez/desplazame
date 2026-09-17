@@ -39,6 +39,16 @@ Con la misma prueba se firmó `726bb8e`: `tras cerrar()   : OK borrado` · `sali
 
 **Nota [2026-09-17] · batería entera CON la exclusión puesta** (`6354514`, motor pid 9700 esperado en caliente, 15:22–15:50): ~~**10 cierres fallidos**~~ **9 cierres fallidos** y 9 residuos nuevos, 490 MB. Por suite: `bizi-y-resumen` 1, `dos-filas` 1, `identidad` 1, `pantalla` 1, `proximo-bus` 1, `yego` 1, `pintura` 3 (puertos 9415, 9452 y 9454). Fuera de `pintura` fallan ~~**7 de 10 cierres**~~ **6 de 10 cierres** (corregido el mismo día: sumé mal; 9 avisos, 9 residuos, uno a uno); en `pintura` fallan 3, pero su número de cierres no se midió (hay 29 llamadas en el código, algunas dentro de bucles). **Se repite lo mismo que en la tirada anterior**: las mismas seis suites fallan y los puertos 9415, 9452 y 9454 de `pintura` también fallaron entonces. `creditos`, `esqueleto` y `moto` no fallan en ninguna de las dos, y `creditos` y `moto` usan el mismo puerto 9350 que las que sí fallan. La exclusión no evita el fallo en perfiles nuevos. La bitácora sigue abierta.
 
+**Nota [2026-09-17] · batería de comparación con el cierre limpio** (`d148afa`, motor pid 21664 esperado en caliente, 16:01–16:31; el único cambio es que `cerrar()` envía `Browser.close`, espera a que Chrome salga y después mata lo que quede). **Chrome se cerró solo en todos los cierres** (0 casos de «NO se cerró solo»). Tasa contra tasa:
+
+| suite | cierre viejo (`6354514`) | cierre limpio (`d148afa`) |
+|---|---|---|
+| bizi-y-resumen · dos-filas · identidad · pantalla · proximo-bus · yego | 1 fallido cada una | 1 fallido cada una |
+| creditos · esqueleto (2) · moto | 0 | 0 |
+| pintura | 3 fallidos (cierres sin medir) | **23 fallidos de 85 cierres** |
+
+Fuera de `pintura`: 6 de 10 en las dos, en las mismas suites. **El cierre no es la variable**, y en `pintura` el limpio es peor (puertos 9432, 9433 y 9434 fallan 3 veces cada uno). Quedan 23 residuos nuevos, **1.736 MB**, más de los ~0,5 GB autorizados de antemano: no entran en el acta sin nueva autorización. La bitácora sigue abierta.
+
 ---
 
 ## [2026-09-15] ✅ CERRADA — la frontera de los campos del Buscador, en CLARO y en producción, lee a 2,85:1 y 1,23:1, y la jueza del color a pelo barre `buscador.css` en verde
