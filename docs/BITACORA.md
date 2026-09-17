@@ -14,6 +14,25 @@
 
 ---
 
+## [2026-09-17] 🔴 ABIERTA — `cerrar()` borra su perfil en la prueba y no en las suites: el arnés sigue dejando fósiles que nadie puede borrar
+
+**Categoría:** prueba que mide un caso más fácil que el real
+**Síntoma:** batería de cierre sobre `2ca7940` (motor pid 7844, `127.0.0.1:4300`). `cerrar()` avisa en seis cierres de suites reales: `⚠️  NO se ha podido borrar C:\Users\ORDENA~1\AppData\Local\Temp/perfil-medir-9350-17896 — queda en el disco, y queda DICHO.` (y lo mismo en `dos-filas`, `identidad`, `pantalla` y dos veces en `pintura`). Esos perfiles no se dejan borrar después con ningún proceso muerto: `rm: cannot remove '…/perfil-medir-9350-17896/Default/Account Web Data': Permission denied`. El Restart Manager no da ningún proceso para 300 de sus ficheros (con control positivo: un `node` que retiene un fichero sí sale, `20528 Node.js JavaScript Runtime`). Es el mismo cuadro que los 73 fósiles del acta de `medir.mjs`. La jueza de perfiles lo cantó: `✖ … 1 RESIDUOS NUEVOS: perfil-medir-9350-17896`.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la prueba de limpieza de `726bb8e` y `2ca7940` (Chrome en `about:blank` 600 ms, `cerrar()` y mirar el directorio). Ejecutada de nuevo con el fallo vivo y siete residuos en el disco:
+```
+perfil propio con Chrome vivo : existe
+perfil propio tras cerrar()   : borrado
+```
+Con la misma prueba se firmó `726bb8e`: `tras cerrar()   : OK borrado` · `salida 0`.
+**Cómo se cazó:** instrumento: la propia jueza de perfiles, en la primera tirada real de la batería.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** una prueba de limpieza vale solo si ensucia como ensucia el caso real: un perfil que no ha navegado no es el perfil de una suite.
+**Traza:** `app/e2e/medir.mjs` · `borrarElPerfil`, `cerrar()` · suites `bizi-y-resumen`, `dos-filas`, `identidad`, `pantalla`, `pintura`.
+
+---
+
 ## [2026-09-15] ✅ CERRADA — la frontera de los campos del Buscador, en CLARO y en producción, lee a 2,85:1 y 1,23:1, y la jueza del color a pelo barre `buscador.css` en verde
 
 **Categoría:** zona sin vigilar que parecía vigilada
