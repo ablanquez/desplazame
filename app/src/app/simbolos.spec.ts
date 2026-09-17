@@ -5,7 +5,7 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
 import { Component } from '@angular/core';
-import { REJILLA, SIMBOLOS_48, trazadoPara, SIMBOLOS, Simbolo, type NombreDeSimbolo } from './simbolos';
+import { REJILLA, SIMBOLOS_48, SUFIJO, ficheroDe, trazadoPara, SIMBOLOS, Simbolo, type NombreDeSimbolo } from './simbolos';
 
 /**
  * ⭐ EL PORTERO DE LA COPIA (10/09, punto 15 · tanda 4).
@@ -56,11 +56,17 @@ describe('⭐ LOS SÍMBOLOS — la tabla dice lo que dicen los ficheros', () => 
    *    una entrada inventada a mano que no viene de ninguna parte.
    */
   it('⭐ hay tantos ficheros como entradas, y son los mismos nombres', () => {
+    // ⭐ **ACTA DEL BARRIDO A `opsz20` (18/09).** Aquí se comparaba el nombre
+    //    pelado del fichero con el nombre del símbolo, porque los treinta eran
+    //    la misma instancia. Ya no: el catálogo guarda **de cada símbolo la
+    //    instancia que se pinta**, y el fichero lleva el sufijo que lo dice.
+    //    La jueza no se afloja — sigue comparando en las DOS direcciones—: lo
+    //    que cambia es que el nombre esperado lo da `ficheroDe`.
     const enDisco = (readdirSync(CARPETA) as string[])
-      .filter((f) => f.endsWith('.svg') && !f.endsWith('_48px.svg'))
+      .filter((f) => f.endsWith('.svg') && f !== 'route_48px.svg')
       .map((f) => f.slice(0, -4))
       .sort();
-    expect(enDisco).toEqual([...NOMBRES].sort());
+    expect(enDisco).toEqual(NOMBRES.map(ficheroDe).sort());
     expect(enDisco.length).toBeGreaterThan(0);
   });
 
@@ -72,19 +78,24 @@ describe('⭐ LOS SÍMBOLOS — la tabla dice lo que dicen los ficheros', () => 
    *    acabado en `_48px.svg` podría caer en la carpeta y nadie lo miraría.
    *    Aquí se cuentan los que hay y se comparan con la tabla de 48.
    */
-  it('⭐ los ficheros `_48px` son EXACTAMENTE los de la tabla de 48', () => {
-    const enDisco = (readdirSync(CARPETA) as string[])
-      .filter((f) => f.endsWith('_48px.svg'))
-      .map((f) => f.slice(0, -'_48px.svg'.length))
-      .sort();
-    expect(enDisco).toEqual(Object.keys(SIMBOLOS_48).sort());
+  it('⭐ la SEGUNDA instancia es solo la de quien se pinta a dos tamaños', () => {
+    // ⚠️ `route` es el único: 24 en la barra de pestañas y 48 en el vacío del
+    //    resultado. Todos los demás se pintan a un solo tamaño, y por eso les
+    //    basta con su entrada del catálogo. Si mañana otro se pinta a dos, esta
+    //    jueza obliga a declararlo en vez de dejarlo a medias.
+    const sobrantes = (readdirSync(CARPETA) as string[]).filter(
+      (f) => f.endsWith('.svg') && !NOMBRES.map(ficheroDe).includes(f.slice(0, -4)) && f !== 'route_48px.svg',
+    );
+    expect(sobrantes, 'ficheros que no son la instancia de nadie').toEqual([]);
+    expect(Object.keys(SIMBOLOS_48)).toEqual(['route']);
   });
 
   it('⭐ el trazado de la tabla es EL MISMO que el del fichero, carácter a carácter', () => {
-    const distintos = NOMBRES.filter((n) => SIMBOLOS[n] !== trazadoDelFichero(n));
+    // El fichero que toca a cada uno lo dice `ficheroDe`: el mismo mapa que usa
+    // el código, para que no puedan separarse.
+    const distintos = NOMBRES.filter((n) => SIMBOLOS[n] !== trazadoDelFichero(ficheroDe(n)));
     expect(distintos).toEqual([]);
-    const de48 = Object.keys(SIMBOLOS_48) as NombreDeSimbolo[];
-    expect(de48.filter((n) => SIMBOLOS_48[n] !== trazadoDelFichero(n + '_48px'))).toEqual([]);
+    expect(SIMBOLOS_48.route).toBe(trazadoDelFichero('route_48px'));
   });
 
   /**
@@ -96,9 +107,7 @@ describe('⭐ LOS SÍMBOLOS — la tabla dice lo que dicen los ficheros', () => 
    * gordo que antes.
    */
   it('⭐ la instancia de 48 es OTRO dibujo, no el de 24 estirado', () => {
-    for (const n of Object.keys(SIMBOLOS_48) as NombreDeSimbolo[]) {
-      expect(SIMBOLOS_48[n], `${n}: la de 48 repite el trazado de 24`).not.toBe(SIMBOLOS[n]);
-    }
+    expect(SIMBOLOS_48.route, 'la de 48 repite el trazado de 24').not.toBe(SIMBOLOS.route);
   });
 
   /**
@@ -125,7 +134,7 @@ describe('⭐ LOS SÍMBOLOS — la tabla dice lo que dicen los ficheros', () => 
    */
   it('⭐ los ocho comparten la rejilla que el componente da por buena', () => {
     const otras = NOMBRES.filter((n) => {
-      const svg: string = readFileSync(CARPETA + n + '.svg', 'utf8');
+      const svg: string = readFileSync(CARPETA + ficheroDe(n) + '.svg', 'utf8');
       return !svg.includes(`viewBox="${REJILLA}"`);
     });
     expect(otras).toEqual([]);
@@ -134,7 +143,7 @@ describe('⭐ LOS SÍMBOLOS — la tabla dice lo que dicen los ficheros', () => 
   /** Un solo `<path>`: es lo que el componente inyecta, y todo lo demás se perdería. */
   it('⭐ cada fichero trae UN solo trazado — lo que el componente sabe pintar', () => {
     const conVarios = NOMBRES.filter((n) => {
-      const svg: string = readFileSync(CARPETA + n + '.svg', 'utf8');
+      const svg: string = readFileSync(CARPETA + ficheroDe(n) + '.svg', 'utf8');
       return (svg.match(/<path/g) ?? []).length !== 1;
     });
     expect(conVarios).toEqual([]);

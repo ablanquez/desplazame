@@ -277,7 +277,12 @@ try {
       (pintado.hito ?? '').endsWith('(sin coste)'),
     pintado.hito ?? 'no hay hito',
   );
-  const P_DE_APARCAR = trazadoDelFichero('local_parking');
+  // ⭐ **ACTA DEL BARRIDO A `opsz20` (18/09).** Aquí ponía `'local_parking'` a
+  //    secas, y se puso roja con razón: la P del aparcamiento se pinta a 18 px
+  //    —en la lista de pasos y en el plano— y desde el barrido el catálogo
+  //    guarda su instancia `opsz20`. El fichero cambia; la comparación carácter
+  //    a carácter, no.
+  const P_DE_APARCAR = trazadoDelFichero('local_parking_20px');
   juez(
     'y su marca es la P de aparcar, el `local_parking` de su fichero',
     pintado.marca === P_DE_APARCAR,

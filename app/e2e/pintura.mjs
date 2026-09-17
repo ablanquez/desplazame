@@ -78,10 +78,30 @@ const contrasteSiEsta = async (m, selector, opciones = {}) => {
   return hay ? contrasteReal(m, selector, opciones) : null;
 };
 
-const trazadoDelFichero = (nombre) =>
-  /\sd="([^"]+)"/.exec(
-    readFileSync(new URL(`../simbolos/${nombre}.svg`, import.meta.url), 'utf8'),
-  )?.[1] ?? '(el fichero no tiene trazado)';
+/**
+ * ⭐ **ACTA DEL BARRIDO A `opsz20` (18/09).** Las llamadas de abajo pedían
+ *    `'warning'` y `'arrow_forward'` a secas, y el 18/09 **se pusieron rojas con
+ *    razón**: esos dos se pintan por debajo de 20 px y desde el barrido el
+ *    catálogo guarda su instancia `opsz20`, que es OTRO dibujo. Las juezas no se
+ *    aflojan — siguen comparando carácter a carácter—: lo que cambia es el
+ *    fichero, que ahora es el que de verdad toca a ese tamaño. Es el patrón de
+ *    la P14 con el de 48, repetido.
+ */
+const trazadoDelFichero = (nombre) => {
+  // ⚠️ **SI EL FICHERO NO ESTÁ, ROJO — NO EXCEPCIÓN.** Es la ley de la L4, la
+  //    misma que lleva `pixelDe`: una jueza que no encuentra a quien mide tiene
+  //    que dar rojo y dejar correr a las demás. Sin esto, el 18/09 un `.svg`
+  //    renombrado por el barrido a `opsz20` reventó con `ENOENT` en la jueza
+  //    2979 y se llevó por delante las novecientas que venían detrás — que
+  //    estaban bien.
+  let svg;
+  try {
+    svg = readFileSync(new URL(`../simbolos/${nombre}.svg`, import.meta.url), 'utf8');
+  } catch {
+    return `(no existe app/simbolos/${nombre}.svg)`;
+  }
+  return /\sd="([^"]+)"/.exec(svg)?.[1] ?? '(el fichero no tiene trazado)';
+};
 
 /** Los seis chips: color, tamaño, y cuánto ocupa su palabra AHORA MISMO. */
 const LOS_CHIPS = `
@@ -1869,9 +1889,9 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       };
     `);
     juzgar(
-      cabecera.d === trazadoDelFichero('arrow_forward'),
+      cabecera.d === trazadoDelFichero('arrow_forward_20px'),
       'P16 · ⭐ la cabecera enseña origen → destino con `arrow_forward`, el SVG del fichero',
-      cabecera.d === null ? '(no hay flecha)' : cabecera.d === trazadoDelFichero('arrow_forward') ? 'idéntico al fichero' : 'DISTINTO del fichero',
+      cabecera.d === null ? '(no hay flecha)' : cabecera.d === trazadoDelFichero('arrow_forward_20px') ? 'idéntico al fichero' : 'DISTINTO del fichero',
     );
     juzgar(
       // ⚠️ Pedía «>= 700» y daba OK con el 700 pintando el 600 (nº51): leía
@@ -1977,12 +1997,12 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
         : `fondo ${ambar.fondo} = token ${ambar.tokenFondo} · tinta ${ambar.tinta} = token ${ambar.tokenTinta}`,
     );
     juzgar(
-      ambar.hay === true && ambar.cajas.every((c) => c.d === trazadoDelFichero('warning')),
+      ambar.hay === true && ambar.cajas.every((c) => c.d === trazadoDelFichero('warning_20px')),
       'P16 · y el ⚠ de TODAS las cajas ámbar es ahora el SVG `warning` del fichero',
       ambar.hay === false
         ? '(no hay aviso en este viaje)'
         : ambar.cajas
-            .map((c) => `${c.cual}: ${c.d === null ? 'SIN ICONO' : c.d === trazadoDelFichero('warning') ? 'ok' : 'OTRO dibujo'}`)
+            .map((c) => `${c.cual}: ${c.d === null ? 'SIN ICONO' : c.d === trazadoDelFichero('warning_20px') ? 'ok' : 'OTRO dibujo'}`)
             .join(' · '),
     );
     // ⚠️ ESTE TÍTULO MINTIÓ (13/09, nº50). Decía «es el mismo aviso dicho en dos
@@ -2586,9 +2606,9 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       `${avisos.marcas} marca(s) · «${avisos.palabra}»`,
     );
     juzgar(
-      avisos.d !== null && avisos.d === trazadoDelFichero('warning') && avisos.callado === 'true',
+      avisos.d !== null && avisos.d === trazadoDelFichero('warning_20px') && avisos.callado === 'true',
       'P20 · y su icono es el `warning` del fichero, callado [1.4.1: color + icono + texto]',
-      avisos.d === null ? '(sin icono)' : `${avisos.d === trazadoDelFichero('warning') ? 'idéntico al fichero' : 'DISTINTO del fichero'} · aria-hidden ${avisos.callado}`,
+      avisos.d === null ? '(sin icono)' : `${avisos.d === trazadoDelFichero('warning_20px') ? 'idéntico al fichero' : 'DISTINTO del fichero'} · aria-hidden ${avisos.callado}`,
     );
     juzgar(
       avisos.junto === true,
@@ -2967,9 +2987,9 @@ for (const pantalla of PANTALLAS) {
       };
     `);
     juzgar(
-      ficha.cuantas >= 1 && /^\d+$/.test(ficha.numero) && ficha.icono === trazadoDelFichero('directions_bus') && ficha.callado === 'true',
+      ficha.cuantas >= 1 && /^\d+$/.test(ficha.numero) && ficha.icono === trazadoDelFichero('directions_bus_20px') && ficha.callado === 'true',
       `P22 · ${pantalla.id} · ⭐ el poste lleva su ficha: icono del fichero, callado, y el número (b)`,
-      ficha.cuantas === 0 ? '(no hay ficha)' : `${ficha.cuantas} ficha(s) · «${ficha.numero}» · icono ${ficha.icono === trazadoDelFichero('directions_bus') ? 'idéntico al fichero' : 'DISTINTO'} · aria-hidden ${ficha.callado}`,
+      ficha.cuantas === 0 ? '(no hay ficha)' : `${ficha.cuantas} ficha(s) · «${ficha.numero}» · icono ${ficha.icono === trazadoDelFichero('directions_bus_20px') ? 'idéntico al fichero' : 'DISTINTO'} · aria-hidden ${ficha.callado}`,
     );
     juzgar(
       ficha.cuantas >= 1 && ficha.anchoBorde === '1px' && ficha.fondo === 'rgba(0, 0, 0, 0)',
@@ -3028,7 +3048,7 @@ for (const pantalla of PANTALLAS) {
     const primary = await tokenRgb(m, 'primary');
     const primaryFg = await tokenRgb(m, 'primary-foreground');
     const c = await leer(m, `
-      const origen = ${JSON.stringify(trazadoDelFichero('trip_origin'))};
+      const origen = ${JSON.stringify(trazadoDelFichero('trip_origin_20px'))};
       const pasos = [...document.querySelectorAll('.paso')];
       const circulos = pasos.map((p, i) => {
         const e = p.querySelector('.paso__circulo');
