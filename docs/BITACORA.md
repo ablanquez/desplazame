@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-17] 🔴 ABIERTA — `cerrar()` borra su perfil en la prueba y no en las suites: el arnés sigue dejando fósiles que nadie puede borrar
+## [2026-09-17] ✅ CERRADA — `cerrar()` borra su perfil en la prueba y no en las suites: el arnés sigue dejando fósiles que nadie puede borrar
 
 **Categoría:** prueba que mide un caso más fácil que el real
 **Síntoma:** batería de cierre sobre `2ca7940` (motor pid 7844, `127.0.0.1:4300`). `cerrar()` avisa en seis cierres de suites reales: `⚠️  NO se ha podido borrar C:\Users\ORDENA~1\AppData\Local\Temp/perfil-medir-9350-17896 — queda en el disco, y queda DICHO.` (y lo mismo en `dos-filas`, `identidad`, `pantalla` y dos veces en `pintura`). Esos perfiles no se dejan borrar después con ningún proceso muerto: `rm: cannot remove '…/perfil-medir-9350-17896/Default/Account Web Data': Permission denied`. El Restart Manager no da ningún proceso para 300 de sus ficheros (con control positivo: un `node` que retiene un fichero sí sale, `20528 Node.js JavaScript Runtime`). Es el mismo cuadro que los 73 fósiles del acta de `medir.mjs`. La jueza de perfiles lo cantó: `✖ … 1 RESIDUOS NUEVOS: perfil-medir-9350-17896`.
@@ -25,10 +25,23 @@ perfil propio tras cerrar()   : borrado
 ```
 Con la misma prueba se firmó `726bb8e`: `tras cerrar()   : OK borrado` · `salida 0`.
 **Cómo se cazó:** instrumento: la propia jueza de perfiles, en la primera tirada real de la batería.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** la prueba ensuciaba menos que una suite. Abría Chrome en `about:blank` 600 ms, y ese perfil se borraba siempre. Los que no se borran salen de las suites reales, y siempre de las mismas: `bizi-y-resumen`, `dos-filas`, `identidad`, `pantalla`, `proximo-bus`, `yego` y unos pocos puertos de `pintura`; `creditos`, `esqueleto` y `moto` nunca. Una sonda de 10 intentos que cargaba la app tampoco lo reprodujo. Qué deniega el borrado: **NO CONSTA**. No es un proceso vivo (el Restart Manager está vacío, comprobado con un control positivo). No es el volumen: en F: pasa igual. No es la forma de cerrar: con `Browser.close` fue peor. No lo quita la exclusión de rendimiento de ESET. Lo que se sabe está en el acta de `medir.mjs`.
+**Arreglo aplicado:** no se quitó la causa; **se capó la consecuencia**. En `app/e2e/medir.mjs`:
+- `perfilDe()` da un nombre **fijo por puerto** (`perfil-medir-fijo-<puerto>`). Se borra si se puede y, si no, la siguiente tirada lo reutiliza.
+- `PUERTOS_DEL_ARNES` guarda los 80 puertos medidos, y `abrirChrome()` anota cualquier puerto fuera de ese censo.
+- `perfilesResiduales()` ya no vigila el borrado, sino que **el conjunto no crezca**: vale lo del acta y los nombres fijos de puertos censados; cualquier otro nombre, o un puerto fuera del censo, la pone roja.
+- El `ACTA` recoge los 115 perfiles irrecuperables, con su guarda.
+- En las diez suites, la jueza va detrás de `cerrar()`.
+
+Batería de cierre sobre `6a9f9cb` (motor pid 12156, en caliente, 19:21–19:49):
+```
+═══ 10 suites · 0 con salida distinta de 0 ═══
+perfiles al acabar: 121 en %TEMP% · 6 con nombre fijo · 463 MB en fijos
+jueza del arnés al acabar: OK · 0 perfiles fuera del conjunto · 115/115 del acta en su sitio · 6 con nombre fijo, que se reutilizan
+```
+**Commit:** `a237bb5` (nombres fijos y letra nueva de la jueza) · `4cfd0d2` (la jueza detrás de `cerrar()`) · `060b996` y `64edab3` (el acta) · `37e3050` (revierte el cierre limpio `d148afa`, medido peor).
 **Ley que sale de aquí:** una prueba de limpieza vale solo si ensucia como ensucia el caso real: un perfil que no ha navegado no es el perfil de una suite.
+Y del cierre: cuando la causa no está al alcance, se acota la consecuencia, y la jueza pasa a vigilar el tope. Aquí vigila que el conjunto no crezca, porque no se puede exigir que el borrado funcione.
 **Traza:** `app/e2e/medir.mjs` · `borrarElPerfil`, `cerrar()` · suites `bizi-y-resumen`, `dos-filas`, `identidad`, `pantalla`, `pintura`.
 
 **Nota [2026-09-17]:** ~~la contraprueba 1 de `2ca7940` (puerto 9350, pid 18164) imprimió `perfil propio tras cerrar()   : borrado`. Tras la batería, `perfil-medir-9350-18164` **existe** (7 MB) y no se deja borrar. El directorio que la prueba dio por borrado volvió a aparecer. Al acabar la tirada quedan 10 residuos nuevos (276 MB): 9 cierres fallidos en suites reales, más este.~~
