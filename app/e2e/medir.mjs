@@ -329,10 +329,35 @@ export function terceros() {
 /**
  * ⭐ DÓNDE VIVE EL PERFIL DE CADA CHROME DEL ARNÉS.
  *
- * Un puerto y una tirada, un perfil. Escrito UNA vez y usado en los dos sitios
- * que lo necesitan —al abrir y al cerrar—, para que no puedan separarse.
+ * **Un puerto, un perfil, SIEMPRE EL MISMO** (`perfil-medir-fijo-<puerto>`).
+ * Escrito UNA vez y usado en los dos sitios que lo necesitan —al abrir y al
+ * cerrar—, para que no puedan separarse.
  *
- * ⚠️ **LLEVA EL `pid` DESDE EL 17/09, Y NO ES ADORNO.** Antes era
+ * ── ⭐ EL NOMBRE FIJO CAPA LA FUGA (17/09, la escalera) ──────────────────────
+ *
+ * En esta máquina, en las mismas suites y siempre, el perfil que Chrome deja
+ * **no se puede borrar**, y nadie ha confirmado quién lo impide (ver `ACTA`).
+ * Con un nombre por tirada, cada batería dejaba directorios NUEVOS: 10, 9 y 23
+ * el 17/09, hasta 8,8 GB. La escalera de sondas del 17/09 midió:
+ *
+ * · **(a) otro volumen no lo arregla:** con los perfiles en F:, `identidad`
+ *   dejó su perfil sin borrar 3 de 3 veces, con el mismo *Permission denied*.
+ * · **(b) lo que no se borra SÍ se reutiliza:** Chrome arrancó y cargó la app
+ *   3 de 3 veces sobre un residuo del acta; y con el nombre fijo, `identidad`
+ *   3 veces dio **un solo** directorio, sin multiplicarse (116 en `%TEMP%` las
+ *   tres) ni crecer (78 → 77 → 77 MB), y sus 135 verdes intactas.
+ *
+ * Así que: **se borra si se puede, y si no, la siguiente tirada lo reutiliza.**
+ * El conjunto queda acotado a los puertos que existen (`PUERTOS_DEL_ARNES`),
+ * falle el borrado o no.
+ *
+ * ⚠️ El prefijo `fijo-` no es adorno: los fósiles se llaman
+ *    `perfil-medir-<puerto>` y los residuos del acta `perfil-medir-<puerto>-<pid>`.
+ *    Con él, ningún nombre del arnés puede caer dentro de uno del acta.
+ *
+ * ── Lo que había antes ──────────────────────────────────────────────────────
+ *
+ * ⚠️ **LLEVÓ EL `pid` DEL 17/09 AL 17/09, Y NO ERA ADORNO.** Antes era
  *    `perfil-medir-<puerto>` a secas, y **19 de los puertos que usan las
  *    suites** (9350, 9351, 9361, 9362, 9404…9424, 9600, 9700, 9750) tienen un
  *    FÓSIL con ese mismo nombre (ver `ACTA` abajo). Con el nombre viejo, el
@@ -342,7 +367,26 @@ export function terceros() {
  *    tirada estrena directorio y ninguno puede coincidir con un fósil, cuyos
  *    nombres son solo dígitos.
  */
-const perfilDe = (puerto) => process.env.TEMP + '/perfil-medir-' + puerto + '-' + process.pid;
+const perfilDe = (puerto) => process.env.TEMP + '/perfil-medir-fijo-' + puerto;
+
+/**
+ * ⭐ EL CENSO DE PUERTOS: los 80 que abre el arnés, MEDIDOS (17/09).
+ *
+ * Sacados de la batería entera del 17/09 a las 16:01, que dejó escrito el puerto
+ * de cada uno de sus 95 cierres. No se escriben a ojo porque `pintura` los
+ * calcula en bucles. **Si una suite abre un puerto que no está aquí, la jueza
+ * lo canta**: así un puerto nuevo no pasa en silencio y el conjunto no crece.
+ */
+const PUERTOS_DEL_ARNES = new Set([
+  9350, 9351, 9361, 9362, 9401, 9402, 9403, 9404, 9405, 9406, 9407, 9409, 9410,
+  9411, 9412, 9414, 9415, 9416, 9417, 9420, 9421, 9422, 9423, 9424, 9432, 9433,
+  9434, 9442, 9443, 9444, 9452, 9453, 9454, 9462, 9463, 9464, 9472, 9473, 9474,
+  9600, 9601, 9602, 9603, 9604, 9610, 9611, 9612, 9613, 9614, 9620, 9621, 9622,
+  9623, 9624, 9700, 9701, 9710, 9711, 9720, 9721, 9750, 9751, 9760, 9761, 9770,
+  9771, 9782, 9783, 9800, 9802, 9803, 9804, 9805, 9806, 9810, 9811, 9820, 9821,
+  9830, 9831,
+].map(String));
+const PUERTOS_FUERA_DEL_CENSO = new Set();
 
 /** Una espera que BLOQUEA, porque `cerrar()` es síncrono y así lo llaman las diez. */
 const esperarBloqueando = (ms) =>
@@ -398,8 +442,8 @@ function borrarElPerfil(perfil) {
     esperarBloqueando(120);
   }
   console.log(
-    `  ⚠️  NO se ha podido borrar ${perfil} — queda en el disco, y queda DICHO. ` +
-      'Algún proceso de Chrome lo sigue reteniendo.',
+    `  ⚠️  NO se ha podido borrar ${perfil} — se queda, y la próxima tirada lo REUTILIZA ` +
+      '(nombre fijo por puerto). Queda DICHO.',
   );
   return false;
 }
@@ -469,6 +513,14 @@ function borrarElPerfil(perfil) {
  * a ESET como actor; el mecanismo residual no está confirmado y no se adivina.
  * Quedan **fuera del alcance de cualquier mano**, retenidos por un mecanismo
  * del sistema no identificado.
+ *
+ * ── Fuera de `%TEMP%`, y fuera de la jueza: 3 perfiles en F: ─────────────────
+ *
+ * La sonda del volumen (17/09) dejó en
+ * `F:\01_PROYECTOS\004_DESPLAZAME-SCRATCH\perfiles` **3 perfiles que tampoco se
+ * pueden borrar** (`perfil-medir-9350-20448`, `-21420`, `-24308`; 78 + 78 + 119
+ * MB). La jueza solo mira `%TEMP%`, así que no los cuenta. Quedan dichos aquí,
+ * **no como filas del acta**, a falta de que Antonio decida.
  *
  * ── La vía que queda sin probar: el MODO SEGURO ───────────────────────────────
  *
@@ -598,16 +650,25 @@ const ACTA_TOTAL = 115;
  * siempre por algo que ningún código de aquí puede cambiar, y una jueza que
  * siempre está roja deja de mirarse.
  *
- * La letra vigente **no afloja el espíritu** —«el arnés no se deja NADA suyo
- * puesto»—: **todo `perfil-medir-*` que no esté en el acta es un residuo, y uno
- * solo la pone roja.**
+ * La letra del acta **no aflojaba el espíritu** —«el arnés no se deja NADA suyo
+ * puesto»—: todo `perfil-medir-*` que no estuviera en el acta era un residuo, y
+ * uno solo la ponía roja.
+ *
+ * ⭐ **LETRA DEL 17/09, CON LA ESCALERA:** el borrado falla siempre en las
+ *    mismas suites y ninguna mano lo arregla, así que la jueza ya no vigila el
+ *    borrado: **vigila que el CONJUNTO no crezca.** Vale lo que está en el acta
+ *    y `perfil-medir-fijo-<puerto>` con el puerto en `PUERTOS_DEL_ARNES`.
+ *    Cualquier otro nombre la pone roja, y también un puerto abierto que no
+ *    esté en el censo.
  *
  * ⚠️ Y el acta tiene su guarda: un bloque sin autorización fechada y con su
  *    porqué, un nombre repetido, o un total distinto de `ACTA_TOTAL`, y la
  *    jueza muere igual.
  */
 export function perfilesResiduales() {
-  const titulo = `⭐ el arnés no se deja ningún perfil fuera del acta en %TEMP% (${ACTA_TOTAL} censados)`;
+  const titulo =
+    `⭐ el conjunto de perfiles de %TEMP% no crece (${ACTA_TOTAL} del acta + ` +
+    `nombres fijos de ${PUERTOS_DEL_ARNES.size} puertos)`;
   let presentes = [];
   try {
     presentes = readdirSync(process.env.TEMP).filter((f) => f.startsWith('perfil-medir-'));
@@ -616,7 +677,12 @@ export function perfilesResiduales() {
   }
   const nombres = ACTA.flatMap((b) => b.perfiles.map(([n]) => 'perfil-medir-' + n));
   const acta = new Set(nombres);
-  const nuevos = presentes.filter((f) => !acta.has(f));
+  const esFijo = (f) => {
+    const m = /^perfil-medir-fijo-(\d+)$/.exec(f);
+    return m !== null && PUERTOS_DEL_ARNES.has(m[1]);
+  };
+  const fijos = presentes.filter(esFijo);
+  const nuevos = presentes.filter((f) => !acta.has(f) && !esFijo(f));
   const idos = nombres.filter((f) => !presentes.includes(f));
   const sinAutorizar = ACTA.filter(
     (b) => !/^\d{4}-\d{2}-\d{2}$/.test(b.autorizacion?.fecha ?? '') || !(b.autorizacion?.porque ?? '').trim(),
@@ -627,12 +693,16 @@ export function perfilesResiduales() {
   if (sinAutorizar.length) guarda.push(`bloques sin autorización fechada: ${sinAutorizar.map((b) => b.bloque).join(', ')}`);
   const trozos = [
     nuevos.length === 0
-      ? '0 residuos nuevos'
-      : `${nuevos.length} RESIDUOS NUEVOS: ${nuevos.slice(0, 6).join(', ')}${nuevos.length > 6 ? '…' : ''}`,
+      ? '0 perfiles fuera del conjunto'
+      : `${nuevos.length} PERFILES FUERA DEL CONJUNTO: ${nuevos.slice(0, 6).join(', ')}${nuevos.length > 6 ? '…' : ''}`,
     `${nombres.length - idos.length}/${nombres.length} del acta en su sitio`,
   ];
   if (idos.length) {
     trozos.push(`⭐ ${idos.length} del acta ya NO están (se pueden retirar): ${idos.slice(0, 4).join(', ')}`);
+  }
+  trozos.push(`${fijos.length} con nombre fijo, que se reutilizan`);
+  if (PUERTOS_FUERA_DEL_CENSO.size) {
+    guarda.push(`puertos abiertos fuera del censo: ${[...PUERTOS_FUERA_DEL_CENSO].join(', ')}`);
   }
   if (guarda.length) trozos.push('✗ LA GUARDA DEL ACTA: ' + guarda.join(' · '));
   return { bien: nuevos.length === 0 && guarda.length === 0, titulo, detalle: trozos.join(' · ') };
@@ -640,6 +710,7 @@ export function perfilesResiduales() {
 
 /** Abre Chrome headless y devuelve un mando con `evaluar`, `captura` y `cerrar`. */
 export async function abrirChrome({ puerto = 9350, ancho = 1280, alto = 1400 } = {}) {
+  if (!PUERTOS_DEL_ARNES.has(String(puerto))) PUERTOS_FUERA_DEL_CENSO.add(String(puerto));
   const chrome = spawn(CHROME, [
     '--headless=new',
     '--disable-gpu',
