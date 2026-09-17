@@ -438,6 +438,14 @@ function borrarElPerfil(perfil) {
  * · Y con «Banca y navegación seguras» y «Privacidad y seguridad del
  *   navegador» DESACTIVADAS, el borrado elevado siguió denegado: 73/73.
  *
+ * · **Con EXCLUSIÓN DE RENDIMIENTO de ESET** para
+ *   `C:\Users\Ordenador\AppData\Local\Temp\perfil-medir-*` (17/09, los dos
+ *   módulos del navegador ACTIVADOS, según Antonio): los 10 residuos que dejó la
+ *   batería del 17/09 (`perfil-medir-<puerto>-<pid>`, 276 MB) **siguen
+ *   denegados**, 0 de 10, con la ruta corta y con la larga, en bash y en
+ *   PowerShell. La exclusión no alcanza a lo que deniega. Con los residuos
+ *   resistiendo, los 73 no se intentaron.
+ *
  * **QUIÉN deniega exactamente en ese estado: NO CONSTA.** La correlación señala
  * a ESET como actor; el mecanismo residual no está confirmado y no se adivina.
  * Quedan **fuera del alcance de cualquier mano**, retenidos por un mecanismo
