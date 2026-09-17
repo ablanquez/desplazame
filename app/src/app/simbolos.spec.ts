@@ -5,7 +5,7 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
 import { Component } from '@angular/core';
-import { REJILLA, SIMBOLOS, Simbolo, type NombreDeSimbolo } from './simbolos';
+import { REJILLA, SIMBOLOS_48, trazadoPara, SIMBOLOS, Simbolo, type NombreDeSimbolo } from './simbolos';
 
 /**
  * ⭐ EL PORTERO DE LA COPIA (10/09, punto 15 · tanda 4).
@@ -57,16 +57,65 @@ describe('⭐ LOS SÍMBOLOS — la tabla dice lo que dicen los ficheros', () => 
    */
   it('⭐ hay tantos ficheros como entradas, y son los mismos nombres', () => {
     const enDisco = (readdirSync(CARPETA) as string[])
-      .filter((f) => f.endsWith('.svg'))
+      .filter((f) => f.endsWith('.svg') && !f.endsWith('_48px.svg'))
       .map((f) => f.slice(0, -4))
       .sort();
     expect(enDisco).toEqual([...NOMBRES].sort());
     expect(enDisco.length).toBeGreaterThan(0);
   });
 
+  /**
+   * ⭐ Y LA SEGUNDA INSTANCIA ÓPTICA, CENSADA IGUAL (17/09).
+   *
+   * ⚠️ El filtro `_48px` de la jueza de arriba es una excepción, y una
+   *    excepción sin portero es un agujero: sin esta jueza, cualquier fichero
+   *    acabado en `_48px.svg` podría caer en la carpeta y nadie lo miraría.
+   *    Aquí se cuentan los que hay y se comparan con la tabla de 48.
+   */
+  it('⭐ los ficheros `_48px` son EXACTAMENTE los de la tabla de 48', () => {
+    const enDisco = (readdirSync(CARPETA) as string[])
+      .filter((f) => f.endsWith('_48px.svg'))
+      .map((f) => f.slice(0, -'_48px.svg'.length))
+      .sort();
+    expect(enDisco).toEqual(Object.keys(SIMBOLOS_48).sort());
+  });
+
   it('⭐ el trazado de la tabla es EL MISMO que el del fichero, carácter a carácter', () => {
     const distintos = NOMBRES.filter((n) => SIMBOLOS[n] !== trazadoDelFichero(n));
     expect(distintos).toEqual([]);
+    const de48 = Object.keys(SIMBOLOS_48) as NombreDeSimbolo[];
+    expect(de48.filter((n) => SIMBOLOS_48[n] !== trazadoDelFichero(n + '_48px'))).toEqual([]);
+  });
+
+  /**
+   * ⭐ Y NO SON EL MISMO DIBUJO ESCALADO, que es la razón de que existan.
+   *
+   * [DOC OFICIAL] el eje de tamaño óptico trae instancias propias para 20, 24,
+   * 40 y 48. Si alguien «ahorrara» copiando aquí el trazado de 24, la tabla de
+   * 48 dejaría de servir para nada y nadie se enteraría: se vería igual de
+   * gordo que antes.
+   */
+  it('⭐ la instancia de 48 es OTRO dibujo, no el de 24 estirado', () => {
+    for (const n of Object.keys(SIMBOLOS_48) as NombreDeSimbolo[]) {
+      expect(SIMBOLOS_48[n], `${n}: la de 48 repite el trazado de 24`).not.toBe(SIMBOLOS[n]);
+    }
+  });
+
+  /**
+   * ⭐ LA REGLA DEL EJE, JUZGADA EN LA FUNCIÓN QUE LA APLICA: la instancia
+   * igual o la inmediatamente MENOR.
+   */
+  it('⭐ `trazadoPara` elige la instancia óptica por el lado', () => {
+    // Por debajo de 48 manda la de 24, aunque exista la de 48.
+    for (const lado of [14, 16, 18, 20, 24, 40, 47]) {
+      expect(trazadoPara('route', lado), `lado ${lado}`).toBe(SIMBOLOS.route);
+    }
+    // De 48 en adelante, la de 48 — y por encima también: es la menor que hay.
+    for (const lado of [48, 64]) {
+      expect(trazadoPara('route', lado), `lado ${lado}`).toBe(SIMBOLOS_48.route);
+    }
+    // Y un símbolo que NO tiene instancia de 48 se queda con la que tiene.
+    expect(trazadoPara('search', 48)).toBe(SIMBOLOS.search);
   });
 
   /**

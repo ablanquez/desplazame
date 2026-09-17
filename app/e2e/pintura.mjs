@@ -1205,8 +1205,17 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
     // ── (2) EL VACÍO: SU ICONO GRANDE, Y QUE SEA EL FICHERO QUE BAJAMOS ──
     //
     // No se compara con un trazado copiado aquí —eso sería el mismo dato dos
-    // veces—: se lee `app/simbolos/route.svg`, que es el fichero con su sha256
-    // en PROCEDENCIA.md. Si alguien redibuja el icono a mano, esto muerde.
+    // veces—: se lee el fichero con su sha256 en PROCEDENCIA.md. Si alguien
+    // redibuja el icono a mano, esto muerde.
+    //
+    // ⭐ **ACTA DEL EJE ÓPTICO (17/09, la identidad).** Aquí ponía
+    //    `trazadoDelFichero('route')` a secas, y el 17/09 **se puso roja con
+    //    razón**: el vacío pinta a 48 px y desde ese día usa la instancia
+    //    `route_48px.svg`, que es OTRO dibujo —741 caracteres contra 594—. La
+    //    jueza no se afloja ni se retira: se le cambia el fichero por el que de
+    //    verdad toca a ese tamaño, y sigue comparando carácter a carácter.
+    //    [DOC OFICIAL] solo las instancias de 20 y 24 están alineadas a la
+    //    retícula; para 48 se usa el eje, no el escalado.
     const elIcono = (sel) => `(() => {
       const s = document.querySelector(${JSON.stringify(sel)});
       if (!s) return null;
@@ -1215,9 +1224,9 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
     })()`;
     const iconoVacio = JSON.parse(await m.evaluar(`JSON.stringify(${elIcono('.pasos__vacio svg')})`));
     juzgar(
-      iconoVacio !== null && iconoVacio.d === trazadoDelFichero('route'),
+      iconoVacio !== null && iconoVacio.d === trazadoDelFichero('route_48px'),
       'P14 · ⭐ el vacío enseña el icono `route`, y es el SVG que se descargó',
-      iconoVacio === null ? '(no hay icono)' : `d ${iconoVacio.d === trazadoDelFichero('route') ? 'idéntico al fichero' : 'DISTINTO del fichero'}`,
+      iconoVacio === null ? '(no hay icono)' : `d ${iconoVacio.d === trazadoDelFichero('route_48px') ? 'idéntico a `route_48px.svg`' : 'DISTINTO del fichero de 48'}`,
     );
     juzgar(
       iconoVacio !== null && iconoVacio.lado === '48x48',
@@ -1471,10 +1480,12 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       'P14 · ⭐ sin nadie al otro lado, el error habla — y por la región `alert`',
       `role=${error.papel} · «${error.texto}»`,
     );
+    // ⭐ Misma acta que el vacío: el error también pinta a 48, así que su fichero
+    //    es la instancia óptica de 48 y no la de 24.
     juzgar(
-      error.d === trazadoDelFichero('cloud_off'),
-      'P14 · con el icono `cloud_off`, y es el SVG que se descargó',
-      error.d === null ? '(no hay icono)' : error.d === trazadoDelFichero('cloud_off') ? 'idéntico al fichero' : 'DISTINTO del fichero',
+      error.d === trazadoDelFichero('cloud_off_48px'),
+      'P14 · con el icono `cloud_off`, y es el SVG de 48 que se descargó',
+      error.d === null ? '(no hay icono)' : error.d === trazadoDelFichero('cloud_off_48px') ? 'idéntico a `cloud_off_48px.svg`' : 'DISTINTO del fichero de 48',
     );
     juzgar(error.lado === '48x48', 'P14 · y mide los 48 de la maqueta', error.lado);
     juzgar(
