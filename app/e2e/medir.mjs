@@ -485,6 +485,31 @@ const FOSILES = [
 const FOSILES_MAXIMO = 73;
 
 /**
+ * ⭐ SEGUNDO CENSO: LOS 10 RESIDUOS DE LA BATERÍA DEL 17/09 (Antonio, 17/09).
+ *
+ * La primera batería con `cerrar()` borrando (726bb8e) dejó **10 perfiles**
+ * que su propio cierre no pudo borrar, y que después nadie pudo: `bizi-y-
+ * resumen` 1, `dos-filas` 1, `identidad` 1, `pantalla` 1, `pintura` 5,
+ * `proximo-bus` 1. **276 MB**. Con la exclusión de ESET puesta siguen
+ * denegados, 0 de 10 (ver el acta de arriba).
+ *
+ * Van en su propio censo y no en `FOSILES`: son de OTRA causa conocida (el
+ * arnés ya borraba, y falló) y de otra fecha, y mezclarlos habría roto la guarda
+ * de los 73. Nombre completo, porque ya llevan el `pid`. Puerto-pid, hora de
+ * creación y MB.
+ *
+ * ⚠️ **TAMPOCO CRECE:** máximo 10. Un residuo de una tirada posterior NO entra
+ *    aquí: es justo lo que la jueza tiene que cantar.
+ */
+const RESIDUOS_17_09 = [
+  ['9350-17896', '14:21', 33], ['9350-528', '14:22', 33], ['9350-20116', '14:24', 33],
+  ['9351-15692', '14:25', 34], ['9415-3920', '14:28', 33], ['9422-3920', '14:30', 4],
+  ['9454-3920', '14:35', 33], ['9452-3920', '14:36', 33], ['9701-3920', '14:44', 33],
+  ['9350-18164', '14:48', 2],
+];
+const RESIDUOS_17_09_MAXIMO = 10;
+
+/**
  * ⭐ LA JUEZA DEL ARNÉS (18/09 · LETRA NUEVA CON ACTA el 17/09).
  *
  * Se llama al final de cada suite, al lado de la de terceros, y **cuenta el
@@ -504,29 +529,45 @@ const FOSILES_MAXIMO = 73;
  *
  * ⚠️ Y el censo tiene su propia guarda: si alguien le mete filas para tapar un
  *    residuo, pasa de 73 y la jueza muere igual.
+ *
+ * ⭐ Desde el 17/09 también quedan fuera los 10 de `RESIDUOS_17_09`, con su
+ *    guarda de 10. La jueza muere **solo con un residuo de ESTA tirada**.
  */
 export function perfilesResiduales() {
-  const titulo = '⭐ el arnés no se deja ningún perfil NUEVO en %TEMP% (73 fósiles censados)';
+  const titulo = '⭐ el arnés no se deja ningún perfil NUEVO en %TEMP% (73 fósiles + 10 residuos del 17/09, censados)';
   let presentes = [];
   try {
     presentes = readdirSync(process.env.TEMP).filter((f) => f.startsWith('perfil-medir-'));
   } catch {
     return { bien: false, titulo, detalle: 'no se puede leer %TEMP%' };
   }
-  const censo = new Set(FOSILES.map(([puerto]) => 'perfil-medir-' + puerto));
+  const fosiles = new Set(FOSILES.map(([puerto]) => 'perfil-medir-' + puerto));
+  const previos = new Set(RESIDUOS_17_09.map(([nombre]) => 'perfil-medir-' + nombre));
+  const censo = new Set([...fosiles, ...previos]);
   const nuevos = presentes.filter((f) => !censo.has(f));
   const idos = [...censo].filter((f) => !presentes.includes(f));
-  const censoCrecido = FOSILES.length > FOSILES_MAXIMO || censo.size !== FOSILES.length;
+  const censoCrecido =
+    FOSILES.length > FOSILES_MAXIMO ||
+    fosiles.size !== FOSILES.length ||
+    RESIDUOS_17_09.length > RESIDUOS_17_09_MAXIMO ||
+    previos.size !== RESIDUOS_17_09.length ||
+    censo.size !== fosiles.size + previos.size;
   const trozos = [
     nuevos.length === 0
       ? '0 residuos nuevos'
       : `${nuevos.length} RESIDUOS NUEVOS: ${nuevos.slice(0, 6).join(', ')}${nuevos.length > 6 ? '…' : ''}`,
-    `${presentes.length - nuevos.length}/${FOSILES.length} fósiles en su sitio`,
+    `${presentes.filter((f) => fosiles.has(f)).length}/${FOSILES.length} fósiles y ` +
+      `${presentes.filter((f) => previos.has(f)).length}/${RESIDUOS_17_09.length} residuos del 17/09 en su sitio`,
   ];
   if (idos.length) {
-    trozos.push(`⭐ ${idos.length} fósiles ya NO están (el censo puede bajar): ${idos.slice(0, 4).join(', ')}`);
+    trozos.push(`⭐ ${idos.length} censados ya NO están (el censo puede bajar): ${idos.slice(0, 4).join(', ')}`);
   }
-  if (censoCrecido) trozos.push(`✗ EL CENSO HA CRECIDO: ${FOSILES.length} filas, máximo ${FOSILES_MAXIMO}`);
+  if (censoCrecido) {
+    trozos.push(
+      `✗ EL CENSO HA CRECIDO: ${FOSILES.length}/${FOSILES_MAXIMO} fósiles · ` +
+        `${RESIDUOS_17_09.length}/${RESIDUOS_17_09_MAXIMO} residuos del 17/09`,
+    );
+  }
   return { bien: nuevos.length === 0 && !censoCrecido, titulo, detalle: trozos.join(' · ') };
 }
 
