@@ -1611,6 +1611,20 @@ app-conmutador-de-tema {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  /* ⭐ EL SUELO DE LOS DOS LADOS [WCAG 2.5.5, AAA] (18/09, la verificación).
+     El alto mínimo llevaba aquí desde el principio; el ancho NO, y con una
+     etiqueta de una sola letra se quedaba corto: la píldora del distintivo «B»
+     medía **43,2 px** —32 de relleno, 9,2 de letra y 2 de borde—, ocho décimas
+     por debajo de la vara.
+
+     ⚠️ Y VA CON `border-box`, que no es un detalle: en `content-box` el mínimo
+        se mide SIN el relleno, así que `min-width: 44px` le habría dado **78 px
+        de caja** a la «B» —medido— en vez de los 44 que pide la letra. Con
+        `border-box` el mínimo es el de la caja pintada, que es lo que se pincha.
+        El efecto en los chips de familia es de 2 px: pasan de 46 a 44, que es
+        exactamente el «44 de mínimo» que dice su maqueta. */
+  box-sizing: border-box;
+  min-width: 44px;
   min-height: 44px;
   padding: 0 1rem;
   border: 1px solid var(--border);
