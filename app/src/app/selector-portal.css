@@ -33,10 +33,16 @@
    el gris nativo. `buscador.css` tenía una regla `.campo input` con los tokens
    que NO llegaba aquí: el CSS de un componente no alcanza al `input` de otro.
    Bitácora del 15/09. Cada token tiene su par en el censo de `identidad.ts`. */
+/* ⭐ LOS 44 PX DE LA MAQUETA, AQUÍ, QUE ES DONDE VIVE EL CAMPO (18/09).
+   Lo mismo que en `autocompletar-via.css`, y por lo mismo: el campo daba 34,8
+   px de alto y la vara [WCAG 2.5.5, AAA] pide 44 de área clicable, relleno
+   incluido. `min-height`, no `height` [nº104]. Radio a los 0,5 rem de la
+   maqueta; la lista de portales conserva el suyo. */
 .campo input {
+  min-height: 44px;
   padding: 0.4rem;
   border: 1px solid var(--borde-de-campo);
-  border-radius: 3px;
+  border-radius: 0.5rem;
   background-color: var(--card);
   color: var(--foreground);
   font: inherit;

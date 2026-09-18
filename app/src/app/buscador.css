@@ -205,6 +205,24 @@ legend {
   opacity: 1;
 }
 
+/* ⭐ ACTA: A LA MATRÍCULA SE LE TOCA AHORA EL TAMAÑO (18/09, los 44 px).
+   Arriba está escrito «solo se le toca el texto de ayuda»: eso valía mientras
+   la caja no tuviera que cumplir una vara. La tiene [WCAG 2.5.5, AAA, la
+   casilla 5]: daba 26 px de alto —el campo y su botón— contra los 44 que pide
+   el área clicable.
+
+   ⚠️ SE LE TOCA EL TAMAÑO Y NADA MÁS. Ni fondo, ni letra, ni borde: los sigue
+      pintando el navegador por `color-scheme`, que es lo que la P27 mide en los
+      dos temas. Un `min-height` y un radio no apagan el vestido nativo.
+   ⚠️ El radio de 0,5 rem es el de la maqueta, el mismo que ahora llevan calle y
+      portal. Es un cambio VISIBLE sobre una letra firmada, y por eso va dicho
+      aquí y en el checkpoint, no de tapadillo. */
+.matricula__campo,
+.matricula__boton {
+  min-height: 44px;
+  border-radius: 0.5rem;
+}
+
 /* ⭐ «MI UBICACIÓN», Y SOLO DONDE SIRVE (10/09, tanda 4).
 
    ⚠️ **No está en el escritorio, y no es una preferencia.** Un ordenador
@@ -308,14 +326,19 @@ legend {
 /* El ⇅ va ENTRE los dos bloques, que es donde lo pone todo el mundo y donde
    se lee lo que hace sin leer nada. Centrado y estrecho: es un gesto, no una
    acción principal — la principal es «Generar ruta». */
-/* [SearchForm.tsx] redondo de 40, sobre la tarjeta, con su sombra. */
+/* [SearchForm.tsx] redondo, sobre la tarjeta, con su sombra.
+   ⭐ ACTA: ERA DE 40 Y PASA A 44 (18/09). La maqueta decía 40 y la vara de la
+   casa dice 44 de área clicable [WCAG 2.5.5, AAA, casilla 5]: manda la vara,
+   porque 40×40 es un target que no llega. **Sigue REDONDO** —`9999px`, su
+   letra— y no toma los 0,5 rem de los campos: el radio de la maqueta es para
+   las cajas de texto, no para este. */
 .invertir {
   display: flex;
   align-items: center;
   justify-content: center;
   justify-self: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   margin: -0.4rem 0;
   border: 1px solid var(--border);

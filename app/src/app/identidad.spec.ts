@@ -1105,12 +1105,30 @@ describe('⭐ (vii) LOS CAMPOS DEL BUSCADOR se visten con los tokens que el cens
     expect(c).toMatch(/opacity:\s*1/);
   });
 
-  it('buscador.css · la matrícula, campo nativo, solo lleva el gris de su texto de ayuda', () => {
+  /**
+   * ⭐ ACTA (18/09, los 44 px): AQUÍ SE PEDÍA QUE LA MATRÍCULA NO TUVIERA MÁS
+   *    REGLA QUE SU `::placeholder`, y esa letra ya no vale: la casilla 5 pide
+   *    44 px de área clicable [WCAG 2.5.5, AAA] y el campo daba 26. Lo que se
+   *    compraba con aquella letra —que el vestido siga siendo el del navegador,
+   *    que es lo que la P27 mide sobre el píxel— se compra ahora mejor: se
+   *    nombran las propiedades que puede llevar. Tamaño y radio, sí; fondo,
+   *    letra o borde, NO. Una regla que lo vista vuelve a poner esto en rojo.
+   */
+  it('buscador.css · la matrícula, campo nativo: su gris de ayuda, y de vestido NADA (solo tamaño y radio)', () => {
     const c = cuerpoDe('app/src/app/buscador.css', '.matricula__campo::placeholder');
     expect(c).toMatch(/color:\s*var\(--muted-foreground\)/);
-    expect(reglas('app/src/app/buscador.css').filter((r) => /matricula__campo/.test(r.sel)).map((r) => r.sel)).toEqual([
-      '.matricula__campo::placeholder',
-    ]);
+    const suyas = reglas('app/src/app/buscador.css').filter(
+      (r) => /matricula__campo/.test(r.sel) && !/::placeholder/.test(r.sel),
+    );
+    expect(suyas.length).toBeGreaterThan(0);
+    const PERMITIDAS = /^(min-height|border-radius)$/;
+    const vestido = suyas.flatMap((r) =>
+      r.cuerpo
+        .split(';')
+        .map((d) => d.split(':')[0].trim())
+        .filter((d) => d && !PERMITIDAS.test(d)),
+    );
+    expect(vestido).toEqual([]);
   });
 
   it('buscador.css · el desplegable del tipo y su lista llevan la frontera de campo', () => {

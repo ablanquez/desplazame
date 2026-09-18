@@ -18,10 +18,25 @@
    el gris nativo. `buscador.css` tenía una regla `.campo input` con los tokens
    que NO llegaba aquí: el CSS de un componente no alcanza al `input` de otro.
    Bitácora del 15/09. Cada token tiene su par en el censo de `identidad.ts`. */
+/* ⭐ LOS 44 PX DE LA MAQUETA, AQUÍ, QUE ES DONDE VIVE EL CAMPO (18/09).
+   [WCAG 2.5.5 Target Size, AAA · la vara de la casilla 5 del PLAN] el target
+   mide 44×44, **y el target es el área clicable, con el relleno dentro**. Este
+   campo daba 34,8 px de alto: `padding: 0.4rem` y nada más.
+
+   ⚠️ `min-height`, NO `height`: el alto puede crecer si el contenido crece
+      —la lección de la nº104—, y una altura fija lo recortaría.
+
+   ⚠️ Y VIENE DE UNA REGLA MUERTA: la maqueta decía «44 px, radio 0,5 rem» en
+      tres reglas `.campo input` de `buscador.css` que NUNCA pintaron nada (el
+      puente, 15/09), porque el CSS de un componente no alcanza al `input` de
+      otro. No se resucitan allí —una jueza de `identidad.spec.ts` prohíbe que
+      vuelvan—: la letra se cumple aquí. El radio pasa de 3 px a los 0,5 rem de
+      la maqueta; la lista de sugerencias conserva los suyos. */
 .campo input {
+  min-height: 44px;
   padding: 0.4rem;
   border: 1px solid var(--borde-de-campo);
-  border-radius: 3px;
+  border-radius: 0.5rem;
   background-color: var(--card);
   color: var(--foreground);
   font: inherit;
