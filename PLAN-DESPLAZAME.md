@@ -3832,7 +3832,11 @@ Code lo traduce al Angular existente.)*
       pendientes de Antonio para el calco: el botón «Limpiar
       búsqueda» (propina de Make, ¿se queda?) y la función del pin
       del grupo.
-- [ ] **4 · LA TRADUCCIÓN a Angular** — EL CALCO (parlamentado el
+- [x] ⚰️ **4 · LA TRADUCCIÓN a Angular — CERRADA (18/09): el calco
+      entero está hecho y VERIFICADO** — las fases A-C, las seis
+      tandas del canon, el oscuro completo con su conmutador, la
+      identidad y la verificación de la casilla 5 lo cierran; las
+      crónicas, abajo. LA LETRA ORIGINAL: EL CALCO (parlamentado el
       9/09: la maqueta no se cablea, SE CALCA sobre el Angular que
       ya tiene la lógica entera cableada y sus jueces en verde;
       revestir, no reescribir). ⚰️ PRERREQUISITO HECHO (9/09): el
@@ -5013,6 +5017,39 @@ Code lo traduce al Angular existente.)*
         el propio bloque; la lección: tras un script fallido,
         la reaplicación se verifica TRAMO A TRAMO contra la
         lista de ediciones previstas, no de memoria.
+      - [x] ⚰️ LOS 44 PX DE LOS CAMPOS — EL PREVIO DE LA
+        VERIFICACIÓN (18/09; 3 commits `b7a1b2b`…`a9ddb52`, en
+        local — un push con la verificación; ojo de Antonio:
+        bien). LA LETRA DE LA MAQUETA que nunca se pintó [las
+        reglas muertas del puente] aplicada DONDE VIVE EL
+        ESTILO: min-height 44 [no height — F104] y radio 0,5
+        rem en las hojas de los hijos + matrícula y su botón +
+        el redondo de invertir 40→44 [«manda la vara» sobre la
+        maqueta]. Antes, medido: calle/nº 34,8 · matrícula 26
+        · botón distintivo 26. DOS ACTAS a la vista: la letra
+        firmada de la matrícula [«solo el texto de ayuda»] NO
+        aguantaba la vara — cambiada, y su jueza REESCRITA
+        para comprar mejor lo mismo [nombra lo permitido:
+        min-height y radius; sigue roja ante fondo/letra/
+        borde]; y el redondo. P30 nueva: 12 rojos → 24 verdes
+        [área clicable con relleno y borde — la letra del
+        2.5.5; mide el envoltorio cuando es quien se pincha;
+        ELIGE EL MODO COCHE para que la matrícula no dé verde
+        por ausencia]; contraprueba en copia leyendo la MISMA
+        expresión con la vara cambiada [44 verde · 60 roja con
+        los once nombres]. Ninguna jueza de aires se movió [el
+        formulario empuja hacia abajo]. ⭐ EL CENSO DE TARGETS
+        del resto de la app, medido sin tocar, con excepción
+        candidata [2.5.5] por fila — Y EL HALLAZGO para la
+        verificación: LOS BOTONES VIVOS a 22,8 px de alto SIN
+        excepción a la vista [ni al suelo AA de 24]; zoom de
+        Leaflet 30×31 [candidata: Equivalente — rueda/pellizco
+        /doble toque] · atribución y enlaces del pie [En-línea]
+        · el asa del separador 24×48 [Equivalente]. 10/10
+        sobre a9ddb52, 0 escapadas, arnés en verde, unidad
+        693, tipos limpios. Presupuesto 553,61 [+0,14]. Sin
+        bitácora: ningún verde mintió [las dos rojas lo fueron
+        cuando debían].
 - [ ] **EL GUARDIÁN DE BUILD ATÓMICO [PRIORIDAD ALTA — bloque
       propio desde el 15/09, pedido por Antonio: los papeles con la
       verdad entera, no líneas de mesa]** — EL PORQUÉ: el `ng build`
@@ -5031,7 +5068,48 @@ Code lo traduce al Angular existente.)*
       salir con ≠0 [la ley de los códigos de la parte 2]. Y el
       guion de deploy/push local que exista debe negarse a empujar
       un dist sin su marca de build completa.
-- [ ] **5 · LA VERIFICACIÓN del 15** — AA medido (contraste, targets
+- [x] ⚰️ **5 · LA VERIFICACIÓN del 15 — HECHA (18/09; 8 commits
+      `f34aea4`…`b828876`, en local — EL PUSH DEL PUNTO 15 los lleva;
+      falta solo el ojo de Antonio en 3 tamaños y el caso de siempre
+      en producción, TRAS el push)**. EL INFORME, criterio a criterio
+      [todo con el Understanding del W3C leído ese día]: 2.5.5
+      targets CUMPLE-CON-ACTA [41 censados; 8 bajo vara con fila: 7
+      por excepción En-línea (los enlaces de pie/Créditos/atribución
+      — la única de las cuatro que encaja: agrandarlos rompe el
+      renglón) y 1 EN DEUDA: el asa 24×48, a la que NO le vale
+      Equivalente (en escritorio no hay otro mando) — resolución con
+      doctrina: CUMPLE el suelo AA de 2.5.8 (24×24); lo que falla es
+      la vara 44 de casa (AAA autoimpuesta); DEUDA DECLARADA con
+      jueza-que-no-crece, el ensanche a la cola (mueve la costura
+      panel/mapa)] · 1.4.10 reflow CUMPLE-CON-ACTA [4 páginas × 2
+      temas a 320: 0 desbordes; el mapa EXENTO por la letra; ⭐
+      /identidad NO reflowaba (496 contra 305 — el minmax(30rem,1fr)
+      plantaba la columna en 480) → min(30rem,100%)] · 1.4.4 zoom
+      200% CUMPLE [0 desbordes] · 2.1.1 CUMPLE [flechas/Intro/Escape
+      probados] · 2.1.2 sin trampas CUMPLE [del mapa se entra Y SE
+      SALE con Tab, 5-6 pulsaciones; Escape cierra sugerencias] ·
+      2.4.3 CUMPLE con observación manual [el DOM entra por el mapa
+      antes que por el formulario — la letra no exige calcar lo
+      visual; el ENLACE DE SALTO (2.4.1, fuera de casilla) A LA
+      COLA] · 2.4.7 CUMPLE [21-23 paradas, todas con indicador, dos
+      temas] · 3.2.1 de propina CUMPLE · contraste YA EN CONTINUO.
+      ARREGLADO EN LA TANDA: botones vivos 22,8→45,2 por relleno
+      [sin excepción que les valiera] · zoom de Leaflet 30→44 [⭐ la
+      candidata Equivalente ADJUDICADA EN CONTRA leyendo la letra:
+      la rueda y el pellizco son GESTOS, no targets] · la píldora
+      del distintivo con box-sizing:border-box [en content-box el
+      mínimo ignora el relleno: la «B» habría saltado a 78, MEDIDO]
+      · LA P12 MOVIDA CON ACTA [los chips 46→44 dejaron la premisa
+      del imán sin objeto a 390 → se mide a 375 donde desborda de
+      verdad; y su jueza del sangrado lee el ancho del documento, no
+      de la mano]. P31: 16 juezas reflow/zoom + 42 líneas de
+      teclado; pintura 1.203. DOS ROJOS SUELTOS DECLARADOS sin
+      bitácora [no hubo verde mintiendo]: la huella de
+      grafo-visor.js roja UNA vez [causa NO CONSTA] y tres juezas de
+      la P26 [aro del hito, rayas YeGo] rojas 1 de 3 [miden píxel
+      sobre tesela — se suman a la familia de las del reloj, a la
+      cola]. 10/10 sobre b828876, arnés en verde. Presupuesto
+      553,69 [+0,08]. LA LETRA ORIGINAL: AA medido (contraste, targets
       44px, reflow 320px, zoom 200%, teclado), los dos temas por el
       ojo en los 3 tamaños, y el caso de siempre en producción.
 - [x] ⚰️ Color de marca del proyecto — era `NO CONSTA` desde el

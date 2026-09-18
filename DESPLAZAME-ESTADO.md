@@ -224,7 +224,13 @@ elegido por Antonio, el favicon) + LA ODISEA DEL ARNÉS (la
 fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
-UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.** *(La nota del 9/09 mediodía: 13 commits
+UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
+*(Ampliado al 18/09: se suman LOS 44 PX —
+`b7a1b2b`…`a9ddb52` — y LA VERIFICACIÓN de la casilla 5 —
+`f34aea4`…`b828876`, el informe criterio a criterio con su
+deuda del asa y la P12 movida con acta. ⭐ CON ESTE PUSH SE
+PUBLICA EL PUNTO 15 ENTERO; tras él quedan el ojo de Antonio
+en 3 tamaños y el caso de siempre en producción.)* *(La nota del 9/09 mediodía: 13 commits
 — los papeles de las casillas 0+3 y los 12 del calco — empujados
 en `062f532`.)* *(La nota del 8/09 noche: los
 papeles de M1-M3; el código estaba TODO publicado — el push del apaño
@@ -1697,8 +1703,14 @@ acta de los 115/8.822 MB con autorizaciones fechadas; la
 segunda ley: «cuando la causa no está al alcance, se acota la
 consecuencia y la jueza vigila el tope»; crónicas en la
 casilla 4] — (a) EL PUSH [27 commits + estos papeles, UN
-push]; (b) LA VERIFICACIÓN final del 15 [ANTES de ella: los
-44 px de los campos]; (c) EN COLA CON NOMBRE: EL TERCER
+push]; (b) TRAS EL PUSH: el ojo de Antonio en los 3
+tamaños y los dos temas + el caso de siempre en producción —
+y con eso EL PUNTO 15 CERRADO DEL TODO; (b-bis) la cola gana:
+el asa [deuda 2.5.5-casa: cumple el suelo AA 24; ensanchar
+mueve la costura] + el ENLACE DE SALTO al buscador [2.4.1] —
+irán juntos · las juezas de píxel-sobre-tesela de la P26
+[rojas 1 de 3, familia de las del reloj] · la huella de
+grafo-visor roja-una-vez [NO CONSTA]; (c) EN COLA CON NOMBRE: EL TERCER
 ESTADO «Sistema» [grupo de tres, enmienda §35] · el manifest
 del app-icon [con su jueza de estado] · el TOPE de tamaño de
 los perfiles fijos [78 MB hoy, sin vigilar a largo] · los 3
@@ -1714,8 +1726,8 @@ fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
-initial al cierre de la identidad: 553,47 kB, transferido
-141,43 [superado el aviso de 520 por 33,47]; la
+initial al cierre de la verificación: 553,69 kB, transferido
+141,44 [superado el aviso de 520 por 33,47]; la
 poda como palanca] · el guardián de build atómico [PRIORIDAD ALTA
 — ya con BLOQUE PROPIO en el PLAN, delante de la casilla 5:
 porqué, forma y jueza] · el
@@ -1732,10 +1744,7 @@ del lienzo en mapa.css + EXTENDER la jueza del color a pelo
 al mapa [hoy solo barre las hojas del resultado] · la key de
 CARTO sin restricción de dominio posible [acta: visible por
 diseño] · los enlaces del pie de 17-114 px NO medidos · el
-README gana su sección de temas/mapa tras la parte 3 · los
-44 px de los campos de la maqueta NUNCA aplicados [reglas
-muertas por encapsulación — ANTES de la verificación: la
-casilla 5 mide targets 44px; con el ojo de Antonio] · dos
+README gana su sección de temas/mapa tras la parte 3 · [44 px: HECHOS el 18/09] · dos
 pares fuera del censo vigilados por la P27 [acta del puente] ·
 la tipografía de panel.css [system-ui mientras la app va en
 Inter — cabo del puente-bis; mueve métricas de la tabla]; (3) los pendientes del 14 en
