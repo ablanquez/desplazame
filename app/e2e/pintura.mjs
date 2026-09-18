@@ -929,6 +929,10 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
         // El sangrado: la fila tiene que llegar al filo de la pantalla.
         izquierda: Math.round(r.left),
         derecha: Math.round(r.right),
+        // ⭐ El ancho se LEE, no se escribe a mano (18/09): con el 390 clavado
+        //    aquí, mover la medida a 375 dejó esta jueza comparando contra una
+        //    pantalla que ya no era la que se estaba midiendo.
+        anchoVista: Math.round(document.documentElement.clientWidth),
         // Una linea sola: si envolviera, habria mas de una coordenada y.
         lineas: new Set(chips.map((c) => Math.round(c.getBoundingClientRect().top))).size,
         imanDelChip: chips.length ? getComputedStyle(chips[0]).scrollSnapAlign : '(sin chips)',
@@ -960,9 +964,9 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
     //    pantalla. Sin él, el corte queda a media distancia y se lee como
     //    «aquí se acabó» en vez de «hay más a la derecha».
     juzgar(
-      enReposo.izquierda <= 0 && enReposo.derecha >= 390,
+      enReposo.izquierda <= 0 && enReposo.derecha >= enReposo.anchoVista,
       'P12 · ⭐ y llega al filo de la pantalla: el corte dice que hay más',
-      `de x=${enReposo.izquierda} a x=${enReposo.derecha} en una pantalla de 390`,
+      `de x=${enReposo.izquierda} a x=${enReposo.derecha} en una pantalla de ${enReposo.anchoVista}`,
     );
     await m.guardar(`${CAPTURAS}/movil-chips-reposo.png`);
 
