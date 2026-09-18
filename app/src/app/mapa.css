@@ -43,7 +43,19 @@
   background: var(--muted);
 }
 
+/* ⭐ LOS 44 DEL ZOOM (18/09, la verificación del 15).
+   Leaflet los pinta de 30×30 y [WCAG 2.5.5, AAA, la vara de casa] pide 44×44 de
+   área clicable. Se miró si valía alguna de las cuatro excepciones tasadas y
+   NINGUNA vale: «Equivalente» exige otro TARGET de 44 con la misma función en
+   la página, y la rueda, el pellizco o el doble toque **no son targets** —son
+   gestos—; no van en línea dentro de un texto; no los dimensiona el agente; y
+   su tamaño no es esencial. Así que suben. Lo que ya cumplían se queda: se
+   accionan con Intro (medido: zoom 12 → 13 → 12) y llevan el anillo de la casa.
+   El `line-height` acompaña al alto para que el signo siga centrado. */
 :host ::ng-deep .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
   background-color: var(--card);
   border-bottom-color: var(--border);
   color: var(--foreground);
