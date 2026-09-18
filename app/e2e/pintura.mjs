@@ -874,20 +874,31 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
 // ═══════════ P12 · LA FILA DE CHIPS EN MÓVIL: IMÁN Y AUTO-CENTRADO ═══════
 //
 // ⭐ [SearchForm.tsx] en móvil la fila se desplaza a lo ancho con imán, y el
-//    chip elegido se trae al centro solo. En una pantalla de 390 los seis no
-//    caben en cuanto uno abre su etiqueta, así que sin esto elegir «Coche» —el
-//    último— lo deja pegado al borde y medio cortado.
+//    chip elegido se trae al centro solo. En cuanto uno abre su etiqueta los
+//    seis dejan de caber, así que sin esto elegir «Coche» —el último— lo deja
+//    pegado al borde y medio cortado.
+//
+// ⚠️ ⭐ ACTA (18/09, la verificación del 15): ESTO SE MEDÍA A 390 Y AHORA SE
+//    MIDE A 375. El suelo de ancho de `.pildora` puso los chips en los 44 px
+//    que pide su maqueta —venían midiendo 46 porque el mínimo se aplicaba sin
+//    el borde—, y esos 2 px por chip hacen que a 390 la fila QUEPA: medido,
+//    389 px de fila en 388 de hueco, un pelo por debajo del desbordamiento.
+//    La jueza se quedaba sin premisa: no es que el imán se rompiera, es que a
+//    390 ya no hace falta. 375 es el ancho del iPhone SE y del 8, sigue siendo
+//    un móvil de verdad, y ahí la fila desborda de sobra: 389 en 373, con el
+//    imán llevándola a 12. Lo que se compra —que la fila se mueva sola y deje
+//    el chip entero a la vista— es exactamente lo mismo.
 //
 // ⚠️ Y se emula el APARATO, no el ancho: `setDeviceMetricsOverride` con
 //    `mobile: true` más `setTouchEmulationEnabled`. La P0 de siempre compra que
 //    la emulación llegó antes de juzgar nada con ella — `setEmulatedMedia` con
 //    `features` acepta `pointer` y no hace nada, medido en la tanda 4.
 {
-  const m = await abrirChrome({ ancho: 390, alto: 844, puerto: 9412 });
+  const m = await abrirChrome({ ancho: 375, alto: 844, puerto: 9412 });
   try {
     await m.cdp('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
     await m.cdp('Emulation.setDeviceMetricsOverride', {
-      width: 390, height: 844, deviceScaleFactor: 0, mobile: true,
+      width: 375, height: 844, deviceScaleFactor: 0, mobile: true,
     });
     await m.ir(APP, 6000);
     console.log('\n═══ LA FILA DE CHIPS EN MÓVIL ═══');
@@ -896,8 +907,8 @@ for (const [mundo, tactil] of [['PC', false], ['TÁCTIL', true]]) {
       `JSON.stringify({ grueso: matchMedia('(pointer: coarse)').matches, ancho: innerWidth })`,
     ).then(JSON.parse);
     juzgar(
-      emulado.grueso === true && emulado.ancho === 390,
-      'P12 · P0 · la emulación llegó: puntero grueso y 390 de ancho',
+      emulado.grueso === true && emulado.ancho === 375,
+      'P12 · P0 · la emulación llegó: puntero grueso y 375 de ancho',
       `coarse=${emulado.grueso} · innerWidth=${emulado.ancho}`,
     );
 
