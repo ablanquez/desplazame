@@ -5,6 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "construir": "node scripts/construir.mjs",
+    "comprobar-dist": "node scripts/construir.mjs --comprobar",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "comprobar-tipos": "node scripts/comprobar-tipos.mjs",

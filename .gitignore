@@ -5,6 +5,16 @@
 # el panel, así que la app viaja construida—. El del motor lo sigue haciendo
 # el panel en cada despliegue.
 motor/dist/
+
+# ⭐ LOS DOS HERMANOS DEL SWAP (18/09, el guardián de build atómico).
+# `app/dist-tmp/` es donde construye `app/scripts/construir.mjs` antes de
+# publicar, y `app/dist-anterior/` el respaldo que conserva entre los dos
+# renombrados —van HERMANOS del dist a propósito: `rename(2)` solo funciona
+# dentro del mismo sistema de ficheros—. En un árbol limpio NO existe ninguno de
+# los dos: si están, una build se quedó a mitad, y `npm run comprobar-dist` se
+# niega por eso mismo.
+app/dist-tmp/
+app/dist-anterior/
 .angular/
 *.log
 .DS_Store

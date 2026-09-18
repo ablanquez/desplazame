@@ -28,13 +28,29 @@ ng generate --help
 
 ## Building
 
-To build the project run:
+⚠️ **Aquí no se llama a `ng build` a pelo.** Desde el 18/09 la orden es:
 
 ```bash
-ng build
+npm run construir --workspace desplazame
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+`ng build` **vacía la carpeta de salida antes de construir** —lo dice la
+documentación de Angular—, y aquí `app/dist/` está versionado y el `git push`
+**es** el despliegue: una build que se cae a mitad deja el `dist` a medias y eso
+es un 404 en producción. Así que construye
+[`scripts/construir.mjs`](scripts/construir.mjs): a un temporal hermano, y solo
+publica —por renombrado— si la build salió entera. Una build fallida **no toca
+ni un byte** del `dist` anterior. Lo que publica lleva su marca `.build-ok`.
+
+Antes de commitear el `dist`, la comprobación previa:
+
+```bash
+npm run comprobar-dist --workspace desplazame
+```
+
+Se niega si el `dist` no lleva marca, si el bundle no cuadra con ella, o si hay
+restos de un swap a medias. La misma comprobación la corre sola la jueza
+`src/app/construir.spec.ts` en cada batería de unidad.
 
 ## Running unit tests
 
@@ -92,8 +108,11 @@ el mayor    : browser/main-<hash>.js · 324.130 bytes
 ```
 
 ⚠️ **Los nombres llevan hash** (`outputHashing: all`), así que **cada build
-   cambia los ficheros y el anterior queda como basura**. Al reconstruir hay que
-   borrar `app/dist` antes, o el repositorio se llena de restos.
+   cambia los ficheros y el anterior queda como basura**. Antes había que borrar
+   `app/dist` a mano al reconstruir; **desde el 18/09 no**: el guardián construye
+   a un temporal y **sustituye la carpeta entera** por renombrado, así que no
+   quedan restos de la build anterior ni hay un momento en que el `dist` esté a
+   medias por un fallo.
 
 ### Cuándo se revisa
 
