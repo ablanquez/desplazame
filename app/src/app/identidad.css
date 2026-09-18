@@ -99,10 +99,18 @@
 }
 
 /* ── Los pares, en dos columnas: un tema en cada una ── */
+/* ⭐ EL `min()` NO ES ADORNO: ES EL REFLOW (18/09, la verificación del 15).
+   [WCAG 1.4.10 AA] el contenido tiene que caber a 320 px CSS sin scroll en dos
+   direcciones. Con `minmax(30rem, 1fr)` a secas, la columna se planta en 480 px
+   —30 rem— y a 320 el DOCUMENTO se iba de ancho: medido, 496 contra una vista
+   de 305. `min(30rem, 100%)` deja que la pista baje del mínimo cuando la
+   pantalla es más estrecha que él, que es justo el caso que la letra mira.
+   La tabla de dentro sigue con su propio scroll en `.identidad__columna`: eso
+   es contenido de dos dimensiones, y la letra lo exime nombrándolo. */
 .identidad__temas {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(30rem, 100%), 1fr));
 }
 
 .identidad__columna {
