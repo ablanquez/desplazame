@@ -4977,6 +4977,84 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
 // excepciones tasadas lo decide la verificación, no esta jueza.
 const OBJETIVO_TARGET = 44;
 
+/**
+ * ⭐ EL CENSO CERRADO DE TARGETS (18/09, la verificación del 15).
+ *
+ * Todo lo que se pincha mide 44×44 de área clicable, **salvo lo que esté aquí
+ * escrito**, y aquí solo se entra de dos maneras:
+ *
+ * · **EXCEPCIÓN** — una de las cuatro que la letra tasa [WCAG 2.5.5]:
+ *   Equivalente · En-línea · Agente de usuario · Esencial. Se nombra cuál.
+ * · **DEUDA** — no tiene excepción y no llega: se dice el número y por qué
+ *   sigue ahí. Una deuda no es un permiso; es una cuenta pendiente a la vista.
+ *
+ * ⚠️ Un target por debajo de la vara que no esté en ninguna de las dos listas
+ *    pone la jueza EN ROJO. Y la deuda no crece: se cuenta.
+ */
+const EXCEPCIONES_DE_TARGET = [
+  {
+    sel: 'a.creditos__enlace',
+    excepcion: 'En-línea',
+    porque:
+      'son enlaces dentro de una línea de texto —el pie y la página de créditos—, y la letra ' +
+      'exime el target en línea en un bloque de texto; agrandarlos rompería el renglón',
+  },
+  {
+    sel: '.leaflet-control-attribution a',
+    excepcion: 'En-línea',
+    porque: 'la atribución del mapa es una frase con sus enlaces dentro, y va como tal [OSMF, política de teselas]',
+  },
+];
+
+const DEUDA_DE_TARGET = [
+  {
+    sel: 'button.separador',
+    cifra: '24×48 · le faltan 20 px de ancho',
+    porque:
+      'el asa que pliega la columna. No vale «Equivalente»: en escritorio NO hay otro mando que ' +
+      'haga lo mismo (en móvil eso lo hace la barra de pestañas, de 97×64). Ensancharla mueve la ' +
+      'costura entre panel y mapa, que miden las juezas del esqueleto, así que se declara y la ' +
+      'decisión es de Antonio, no de esta jueza.',
+  },
+];
+const DEUDA_MAXIMA = 1;
+
+/** Todo lo que recibe el puntero en la pantalla, con su área clicable. */
+const TODOS_LOS_TARGETS = `(() => {
+  const vale = (e) => {
+    const r = e.getBoundingClientRect();
+    const c = getComputedStyle(e);
+    return r.width > 0 && r.height > 0 && c.display !== 'none' && c.visibility !== 'hidden';
+  };
+  const SEL = 'a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [tabindex="0"]';
+  return [...document.querySelectorAll(SEL)].filter(vale).map((e) => {
+    const env = e.type === 'radio' || e.type === 'checkbox' ? e.closest('label') : null;
+    const r = (env ?? e).getBoundingClientRect();
+    return {
+      que: e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : ''),
+      clases: [...e.classList],
+      ancho: Math.round(r.width * 10) / 10,
+      alto: Math.round(r.height * 10) / 10,
+      enAtribucion: !!e.closest('.leaflet-control-attribution'),
+      esLienzo: e.classList.contains('leaflet-container'),
+    };
+  });
+})()`;
+
+/** ¿A qué fila del censo se acoge este target? A ninguna, si no le toca. */
+const filaDelCenso = (t) => {
+  const casa = (sel) => {
+    if (sel === '.leaflet-control-attribution a') return t.enAtribucion;
+    const clase = sel.replace(/^[a-z]*\./, '');
+    return t.clases.includes(clase);
+  };
+  const ex = EXCEPCIONES_DE_TARGET.find((e) => casa(e.sel));
+  if (ex) return { tipo: 'excepción ' + ex.excepcion, sel: ex.sel };
+  const de = DEUDA_DE_TARGET.find((d) => casa(d.sel));
+  if (de) return { tipo: 'deuda', sel: de.sel };
+  return null;
+};
+
 /** Los targets del formulario, con su área clicable y quién la recibe. */
 const TARGETS_DEL_FORMULARIO = `(() => {
   const vale = (e) => {
@@ -5052,7 +5130,212 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
         deLaMaqueta.map((t) => `${t.que} ${t.radio}`).join(' · '),
       );
 
+      // ⭐ Y EL CENSO CERRADO: todo lo demás de la pantalla, no solo el
+      //    formulario. Lo que no llega a la vara tiene que estar escrito arriba
+      //    —con su excepción tasada o como deuda con su cifra—; si aparece uno
+      //    nuevo sin fila, esta jueza lo canta.
+      const todos = await leer(m, `return ${TODOS_LOS_TARGETS};`);
+      const bajos = todos.filter((t) => !t.esLienzo && (t.ancho < OBJETIVO_TARGET || t.alto < OBJETIVO_TARGET));
+      const sinFila = bajos.filter((t) => filaDelCenso(t) === null);
+      const enDeuda = bajos.filter((t) => filaDelCenso(t)?.tipo === 'deuda');
+      juzgar(
+        sinFila.length === 0,
+        `${dicho} · ⭐ EL CENSO ESTÁ CERRADO: ningún target bajo la vara sin excepción o deuda escrita`,
+        sinFila.length === 0
+          ? `${todos.length} targets · ${bajos.length} bajo la vara, todos con fila` +
+            ` (${bajos.length - enDeuda.length} por excepción, ${enDeuda.length} en deuda)`
+          : sinFila.map((t) => `${t.que} ${t.ancho}×${t.alto}`).join(' · '),
+      );
+      juzgar(
+        new Set(enDeuda.map((t) => t.que)).size <= DEUDA_MAXIMA,
+        `${dicho} · ⭐ y la deuda de targets NO crece`,
+        `${new Set(enDeuda.map((t) => t.que)).size} de ${DEUDA_MAXIMA}: ${[...new Set(enDeuda.map((t) => t.que))].join(', ') || '(ninguna en esta pantalla)'}`,
+      );
+
       await m.guardar(`${CAPTURAS}/p30-targets-${nombreTema}-${pantalla.id}.png`);
+    } finally {
+      m.cerrar();
+    }
+  }
+}
+
+// ═══════════ P31 · REFLOW, ZOOM Y TECLADO — LO MEDIBLE A MÁQUINA ═══════════
+//
+// La verificación del punto 15 (casilla 5) tiene tres patas que hasta hoy no
+// vigilaba nadie. Aquí va **lo que una máquina puede medir sin fingir**:
+//
+// · REFLOW [1.4.10 AA]: a 320 px CSS no puede haber scroll en dos direcciones.
+//   ⚠️ **EL MAPA QUEDA EXENTO Y ASÍ SE ESCRIBE**: la propia letra exime el
+//      contenido que requiere layout bidimensional, y nombra los mapas. Lo que
+//      vive dentro de una caja con su propio scroll —las tablas de `/panel` y
+//      `/identidad`— tampoco es scroll del documento: es la misma excepción.
+// · ZOOM DE TEXTO [1.4.4 AA]: el 200 % desde 1280 se mira con la vista a 640 px
+//   CSS, que es la equivalencia de la letra.
+// · TECLADO [2.1.1, 2.1.2, 2.4.7] y de propina [3.2.1]: se pulsa Tab DE VERDAD
+//   por CDP —nada de `.focus()`, que probaría el DOM y no el teclado—, se
+//   comprueba que se llega a todos los controles, que ninguno atrapa el foco,
+//   que todos enseñan indicador y que recibir el foco no cambia el contexto.
+//
+// ⚠️ LO QUE NO SE PUEDE MEDIR A MÁQUINA NO SE FINGE: que el orden del foco
+//    «preserve significado» [2.4.3] lo juzga una persona, y va en el informe
+//    como verificación manual con su recorrido escrito. Aquí solo se vigila lo
+//    mecánico.
+const PAGINAS_P31 = [
+  { id: 'portada', url: '' },
+  { id: 'panel', url: 'panel' },
+  { id: 'identidad', url: 'identidad' },
+  { id: 'creditos', url: 'creditos' },
+];
+
+/** Lo que se sale del ancho, con el mapa y las cajas con scroll aparte. */
+const DESBORDES_P31 = `(() => {
+  const doc = document.documentElement;
+  const limite = doc.clientWidth + 1;
+  const fuera = [];
+  for (const e of document.querySelectorAll('body *')) {
+    const r = e.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) continue;
+    if (r.right <= limite && r.left >= -1) continue;
+    if (r.right < 0) continue;
+    const s = getComputedStyle(e);
+    if (s.position === 'fixed' && s.visibility === 'hidden') continue;
+    let conScroll = false;
+    for (let p = e.parentElement; p; p = p.parentElement) {
+      const ps = getComputedStyle(p);
+      if (ps.overflowX === 'auto' || ps.overflowX === 'scroll') { conScroll = true; break; }
+    }
+    if (conScroll) continue;
+    if (e.closest('app-mapa, .leaflet-container')) continue;
+    fuera.push(e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : '') +
+      ' [' + Math.round(r.left) + '..' + Math.round(r.right) + ']');
+  }
+  return { anchoDoc: doc.scrollWidth, anchoVista: doc.clientWidth, fuera: [...new Set(fuera)].slice(0, 8) };
+})()`;
+
+for (const [modo, ancho, alto, ley] of [
+  ['reflow 320', 320, 900, '1.4.10'],
+  ['zoom 200 %', 640, 800, '1.4.4'],
+]) {
+  for (const pagina of PAGINAS_P31) {
+    for (const tema of ['dark', 'light']) {
+      const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+      const dicho = `P31 · ${modo} · ${pagina.id} · ${nombreTema}`;
+      const m = await abrirChrome({ ancho, alto, puerto: 9870 + (modo === 'reflow 320' ? 0 : 1) });
+      try {
+        await m.ir(APP + pagina.url, 6000);
+        console.log(`\n═══ ${modo.toUpperCase()} · ${pagina.id} · ${nombreTema.toUpperCase()} ═══`);
+        if (!(await ponerTema(m, tema, dicho))) continue;
+        const d = await leer(m, `return ${DESBORDES_P31};`);
+        juzgar(
+          d.fuera.length === 0,
+          `${dicho} · ⭐ nada se sale del ancho fuera del mapa [WCAG ${ley}]`,
+          `documento ${d.anchoDoc} / vista ${d.anchoVista}` + (d.fuera.length ? ` · SE SALEN: ${d.fuera.join(' · ')}` : ' · 0 desbordes'),
+        );
+        await m.guardar(`${CAPTURAS}/p31-${modo.replace(/[ %]/g, '')}-${pagina.id}-${nombreTema}.png`);
+      } finally {
+        m.cerrar();
+      }
+    }
+  }
+}
+
+// ── EL TECLADO, con teclas de verdad ──
+const TECLA_TAB = { key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9 };
+const tabular = async (m) => {
+  await m.cdp('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...TECLA_TAB });
+  await m.cdp('Input.dispatchKeyEvent', { type: 'keyUp', ...TECLA_TAB });
+  await m.dormir(90);
+};
+
+const FOCO_P31 = `(() => {
+  const firma = () => location.pathname + '|' + document.documentElement.getAttribute('data-theme') +
+    '|' + document.querySelectorAll('*').length;
+  const e = document.activeElement;
+  if (!e || e === document.body) return { que: '(body)', visible: true, firma: firma() };
+  const s = getComputedStyle(e);
+  const anillo = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0;
+  const sombra = s.boxShadow && s.boxShadow !== 'none';
+  return {
+    que: e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : ''),
+    visible: anillo || sombra,
+    detalle: anillo ? s.outlineStyle + ' ' + s.outlineWidth + ' ' + s.outlineColor : sombra ? 'box-shadow' : 'SIN INDICADOR',
+    enMapa: !!e.closest('.leaflet-container, app-mapa'),
+    firma: firma(),
+  };
+})()`;
+
+const CANDIDATOS_P31 = `(() => {
+  const vale = (e) => {
+    const r = e.getBoundingClientRect();
+    const s = getComputedStyle(e);
+    if (e.disabled || e.tabIndex < 0) return false;
+    if (e.type === 'radio' && !e.checked && document.querySelector('input[name="' + e.name + '"]:checked')) return false;
+    return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none';
+  };
+  return [...new Set([...document.querySelectorAll('a[href], button, input, select, textarea, [tabindex="0"]')]
+    .filter(vale)
+    .map((e) => e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : '')))];
+})()`;
+
+for (const pagina of PAGINAS_P31) {
+  for (const tema of ['dark', 'light']) {
+    const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+    const dicho = `P31 · teclado · ${pagina.id} · ${nombreTema}`;
+    const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9880 });
+    try {
+      await m.ir(APP + pagina.url, 6000);
+      console.log(`\n═══ EL TECLADO · ${pagina.id} · ${nombreTema.toUpperCase()} ═══`);
+      if (!(await ponerTema(m, tema, dicho))) continue;
+
+      const candidatos = await leer(m, `return ${CANDIDATOS_P31};`);
+      const paradas = [];
+      const firmas = new Set();
+      let repetido = 0;
+      let anterior = '';
+      for (let i = 0; i < 90; i++) {
+        await tabular(m);
+        const f = await leer(m, `return ${FOCO_P31};`);
+        paradas.push(f);
+        firmas.add(f.firma);
+        repetido = f.que === anterior ? repetido + 1 : 0;
+        anterior = f.que;
+        if (repetido >= 4) break;
+        if (paradas.length > 3 && f.que === paradas[0].que) break;
+      }
+      const visitados = new Set(paradas.map((f) => f.que));
+      const perdidos = candidatos.filter((c) => !visitados.has(c));
+      const sinIndicador = [...new Set(paradas.filter((f) => !f.visible).map((f) => f.que))];
+
+      juzgar(
+        perdidos.length === 0,
+        `${dicho} · ⭐ 2.1.1 · el tabulador llega a TODO lo que se opera`,
+        perdidos.length === 0 ? `${candidatos.length} controles · ${visitados.size} paradas` : `NO SE LLEGA A: ${perdidos.join(', ')}`,
+      );
+      juzgar(
+        repetido < 4,
+        `${dicho} · ⭐ 2.1.2 · ningún control atrapa el foco (el mapa incluido)`,
+        repetido >= 4 ? `ATRAPADO en ${anterior}` : `${paradas.length} pulsaciones y el foco siempre avanza`,
+      );
+      const enMapa = paradas.findIndex((f) => f.enMapa);
+      if (enMapa !== -1) {
+        const sale = paradas.slice(enMapa).findIndex((f) => !f.enMapa);
+        juzgar(
+          sale !== -1,
+          `${dicho} · ⭐ 2.1.2 · del mapa se SALE con Tab, sin método raro`,
+          sale !== -1 ? `entra en la parada ${enMapa + 1} y sale ${sale} pulsaciones después` : 'NO SE SALE',
+        );
+      }
+      juzgar(
+        sinIndicador.length === 0,
+        `${dicho} · ⭐ 2.4.7 · todo lo enfocable enseña su foco`,
+        sinIndicador.length === 0 ? `${paradas.length} paradas con indicador` : `SIN INDICADOR: ${sinIndicador.join(', ')}`,
+      );
+      juzgar(
+        firmas.size === 1,
+        `${dicho} · ⭐ 3.2.1 · recibir el foco no cambia el contexto`,
+        firmas.size === 1 ? 'una sola firma de contexto en todo el recorrido' : `${firmas.size} firmas distintas`,
+      );
+      await m.guardar(`${CAPTURAS}/p31-teclado-${pagina.id}-${nombreTema}.png`);
     } finally {
       m.cerrar();
     }

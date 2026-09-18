@@ -388,6 +388,8 @@ const PUERTOS_DEL_ARNES = new Set([
   // ⭐ Los seis de la P30 (18/09), los 44 px del formulario: tres anchos × dos
   //    temas. Entran aquí a la vez que la jueza, que es lo que pide la guarda.
   9840, 9841, 9850, 9851, 9860, 9861,
+  // Los tres de la P31 (18/09): reflow, zoom y teclado.
+  9870, 9871, 9880,
 ].map(String));
 const PUERTOS_FUERA_DEL_CENSO = new Set();
 
