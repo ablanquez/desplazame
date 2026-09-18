@@ -4952,6 +4952,113 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
   }
 }
 
+// ═══════════ P30 · LOS TARGETS DEL FORMULARIO, A 44 PX DE ÁREA CLICABLE ═══════════
+//
+// ⭐ LA VARA [WCAG 2.5.5 Target Size, AAA · Understanding del W3C]: los targets
+//    de puntero miden al menos 44×44 px CSS. La casilla 5 del PLAN la fija para
+//    esta casa, por encima del AA de 2.2 (24 px con escape de espaciado).
+//
+// ⚠️ **SE MIDE EL ÁREA CLICABLE, NO LA CAJA VISIBLE.** Lo dice la letra: el
+//    target incluye el relleno del elemento que recibe el puntero. Por eso aquí
+//    se lee `getBoundingClientRect()` del propio control —que ya trae relleno y
+//    borde dentro— y, cuando quien se pincha es un envoltorio (el `label` de un
+//    radio invisible), se mide el envoltorio y se dice cuál.
+//
+// ⚠️ Y NACIÓ EN ROJO CONTRA EL HOY (18/09): los campos de calle y portal daban
+//    **34,8 px** de alto —`padding: 0.4rem` y nada más—, la matrícula y su botón
+//    **26**, y el redondo de invertir **40×40**. La letra de la maqueta —44 de
+//    alto, radio 0,5 rem— vivía en tres reglas `.campo input` de `buscador.css`
+//    que NO pintaban nada (el puente, 15/09): son de otro componente. El tamaño
+//    se pone donde vive el estilo: las hojas de los hijos.
+//
+// Lo que entra aquí es EL FORMULARIO. El resto de la app se censa aparte: hay
+// targets por debajo de 44 —el zoom de Leaflet, los enlaces de atribución, los
+// botones vivos, el asa del separador— y quién se acoge a cuál de las cuatro
+// excepciones tasadas lo decide la verificación, no esta jueza.
+const OBJETIVO_TARGET = 44;
+
+/** Los targets del formulario, con su área clicable y quién la recibe. */
+const TARGETS_DEL_FORMULARIO = `(() => {
+  const vale = (e) => {
+    const r = e.getBoundingClientRect();
+    const c = getComputedStyle(e);
+    return r.width > 0 && r.height > 0 && c.display !== 'none' && c.visibility !== 'hidden';
+  };
+  const sel = [
+    'app-autocompletar-via input', 'app-selector-portal input', 'select.tipo',
+    '.matricula__campo', '.matricula__boton', 'button.invertir', 'button.ubicacion',
+    'button.generar', 'button.limpiar',
+  ];
+  const vistos = new Set();
+  const salida = [];
+  for (const s of sel) {
+    for (const e of document.querySelectorAll(s)) {
+      if (!vale(e) || vistos.has(e)) continue;
+      vistos.add(e);
+      // Quien recibe el puntero: el control, o el label que lo envuelve.
+      const env = e.type === 'radio' || e.type === 'checkbox' ? e.closest('label') : null;
+      const r = (env ?? e).getBoundingClientRect();
+      const c = getComputedStyle(e);
+      salida.push({
+        que: s + (e.id ? '#' + e.id : ''),
+        ancho: Math.round(r.width * 10) / 10,
+        alto: Math.round(r.height * 10) / 10,
+        radio: c.borderTopLeftRadius,
+      });
+    }
+  }
+  return salida;
+})()`;
+
+for (const [k, pantalla] of PANTALLAS.entries()) {
+  for (const tema of ['dark', 'light']) {
+    const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+    const dicho = `P30 · ${pantalla.id} · ${nombreTema}`;
+    const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: 9840 + 10 * k + (tema === 'dark' ? 0 : 1) });
+    try {
+      await m.ir(APP, 6000);
+      console.log(`\n═══ LOS 44 DEL FORMULARIO · ${pantalla.nombre} · ${nombreTema.toUpperCase()} ═══`);
+      if (!(await ponerTema(m, tema, dicho))) continue;
+
+      // ⚠️ La matrícula y su botón solo existen con el coche o la moto puestos:
+      //    si no se elige el modo, la jueza mediría un formulario a medias y
+      //    daría verde por ausencia.
+      await m.evaluar(`document.querySelector('input[name=familia][value=coche]')?.click()`);
+      await m.dormir(700);
+
+      const lista = await leer(m, `return ${TARGETS_DEL_FORMULARIO};`);
+      const porDebajo = lista.filter((t) => t.ancho < OBJETIVO_TARGET || t.alto < OBJETIVO_TARGET);
+      juzgar(
+        lista.length >= 8,
+        `${dicho} · ⭐ la jueza mide de verdad: están los targets del formulario`,
+        `${lista.length} targets · ${lista.map((t) => t.que.replace(/^app-/, '')).join(', ')}`,
+      );
+      juzgar(
+        porDebajo.length === 0,
+        `${dicho} · ⭐ TODO target del formulario llega a ${OBJETIVO_TARGET}×${OBJETIVO_TARGET} de área clicable [WCAG 2.5.5]`,
+        porDebajo.length === 0
+          ? `${lista.length} targets, el más bajo ${Math.min(...lista.map((t) => t.alto))} px de alto`
+          : porDebajo.map((t) => `${t.que} ${t.ancho}×${t.alto}`).join(' · '),
+      );
+
+      // ⭐ Y EL RADIO DE LA MAQUETA, donde la maqueta lo pide: los campos de
+      //    texto y el desplegable. El redondo de invertir y su 9999px no entran
+      //    —su letra es «redondo de 40», de `SearchForm.tsx`—, y por eso se
+      //    nombran uno a uno en vez de barrer.
+      const deLaMaqueta = lista.filter((t) => /input|select\.tipo|matricula__campo/.test(t.que));
+      juzgar(
+        deLaMaqueta.length > 0 && deLaMaqueta.every((t) => parseFloat(t.radio) >= 8),
+        `${dicho} · ⭐ y los campos llevan el radio de la maqueta (0,5 rem = 8 px)`,
+        deLaMaqueta.map((t) => `${t.que} ${t.radio}`).join(' · '),
+      );
+
+      await m.guardar(`${CAPTURAS}/p30-targets-${nombreTema}-${pantalla.id}.png`);
+    } finally {
+      m.cerrar();
+    }
+  }
+}
+
 {
   const t = terceros();
   juzgar(t.bien, t.titulo, t.detalle);
