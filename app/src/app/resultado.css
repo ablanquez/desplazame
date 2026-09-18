@@ -599,9 +599,17 @@
       superficie, que sube con el tema sin estrenar color. En claro sale un
       poco más marcado que el #f1f5f9 de antes.
    ⚠️ Y el foco, el anillo de la casa (`--ring`), como todos los demás. */
+/* ⭐ EL RELLENO QUE LO SUBE A 44 (18/09, la verificación del 15).
+   [WCAG 2.5.5, AAA, la vara de casa] el área clicable pide 44×44 y este botón
+   daba **22,8 px de alto** con `padding: 0.15rem`. Ninguna de las cuatro
+   excepciones tasadas le vale: no hay otro mando que haga lo mismo en la
+   página, no va en línea dentro de un texto, no lo dimensiona el agente y su
+   tamaño no es esencial. Así que sube, **y sube por RELLENO**: ni su letra ni
+   sus colores —los que miden la P22 y la P23— se tocan. El ancho ya pasaba de
+   44; lo que faltaba era el alto. */
 .vivo__boton {
   flex: none;
-  padding: 0.15rem 0.6rem;
+  padding: 0.85rem 0.9rem;
   border: 1px solid var(--muted-foreground);
   border-radius: 999px;
   background: var(--card);
