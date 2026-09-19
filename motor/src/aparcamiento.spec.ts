@@ -38,21 +38,35 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los cuatro montones', () => {
    *
    * No son números redondos elegidos por gusto: son los del fichero que está en
    * el repositorio, con su sha256 en la ficha.
+   *
+   * ⚠️ ACTA DE RE-FIRMA (19/09/2026). La cabecera avisaba de que este reparto
+   *    «va a caducar de golpe el día que el Ayuntamiento amplíe la zona azul», y
+   *    ese día ha llegado: el cron educado trajo el censo del 19/09 y Antonio
+   *    decidió entrarlo. Las cifras de agosto eran **664, 495, 6.204 y 1.226**.
+   *    El movimiento, trazado al dato y no supuesto — casando los tramos por
+   *    CONTENIDO, porque la fuente ha renumerado la capa entera:
+   *      · estacionamientos: entran 262 tramos y salen 229 (7.391 → 7.424)
+   *          ESRO  +91 −79 → 664 + 12 = **676**
+   *          ESRE  +49 −43 → 495 +  6 = **501**
+   *          LIBRE +120 −107 → 6.204 + 13 = **6.217**
+   *          sin `tipo_actual` +2 −0 → 28 + 2 = **30**
+   *      · reservas: entran 32 `14_PMR` y salen 22 → 1.226 + 10 = **1.236**
+   *    Ni un movimiento sin su entrada en el censo municipal.
    */
-  test('⭐ los cuatro montones son 664, 495, 6.204 y 1.226', () => {
-    assert.equal(inventario.azul.length, 664, 'la zona azul son los ESRO');
-    assert.equal(inventario.naranja.length, 495, 'la zona naranja son los ESRE');
-    assert.equal(inventario.gratuito.length, 6204, 'el gratuito son los LIBRE');
-    assert.equal(inventario.pmr.length, 1226, 'las PMR en vigor');
+  test('⭐ los cuatro montones son 676, 501, 6.217 y 1.236', () => {
+    assert.equal(inventario.azul.length, 676, 'la zona azul son los ESRO');
+    assert.equal(inventario.naranja.length, 501, 'la zona naranja son los ESRE');
+    assert.equal(inventario.gratuito.length, 6217, 'el gratuito son los LIBRE');
+    assert.equal(inventario.pmr.length, 1236, 'las PMR en vigor');
     // ⭐ Y CADA MONTÓN ES DE SU CLASE ENTERO, no «de su clase el que ganó»: es
     //    lo que el reparto por nombre promete, y lo que el ternario con `else`
     //    no podía prometer. Ver `dondeAparcarCerca`.
     assert.equal(inventario.azul.every((t) => t.clase === 'ESRO'), true);
     assert.equal(inventario.naranja.every((t) => t.clase === 'ESRE'), true);
     assert.equal(inventario.gratuito.every((t) => t.clase === 'LIBRE'), true);
-    // Y ningún tramo está en dos montones: 664 + 495 + 6.204 ids distintos.
+    // Y ningún tramo está en dos montones: 676 + 501 + 6.217 ids distintos.
     const todos = [...inventario.azul, ...inventario.naranja, ...inventario.gratuito];
-    assert.equal(new Set(todos.map((t) => t.id)).size, 664 + 495 + 6204);
+    assert.equal(new Set(todos.map((t) => t.id)).size, 676 + 501 + 6217);
   });
 
   /**
@@ -64,12 +78,18 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los cuatro montones', () => {
    * Se compra por sus **ids reales**, no por el recuento: un contador cuadra
    * igual si se cae uno de los nulos y entra uno de los buenos.
    */
-  test('⭐ 3 · los 28 tramos sin clasificar no salen en ninguno de los tres', () => {
-    assert.equal(inventario.sinClasificar, 28);
+  /**
+   * ⚠️ ACTA DE RE-FIRMA (19/09/2026): eran **28** y el censo nuevo trae **30**.
+   *    Los dos que entran vienen sin `tipo_actual`, igual que los 28 de antes:
+   *    el censo sigue callando qué son, y por eso siguen fuera de los tres
+   *    montones. Lo que cambia es la cuenta, no la ley.
+   */
+  test('⭐ 3 · los 30 tramos sin clasificar no salen en ninguno de los tres', () => {
+    assert.equal(inventario.sinClasificar, 30);
     const sinTipo = crudo('2026-08-18_wfs_movilidad-MU1_estacionamientos_calle.json').features.filter(
       (f) => f.properties['tipo_actual'] === null || f.properties['tipo_actual'] === undefined,
     );
-    assert.equal(sinTipo.length, 28, 'el fichero tiene que traer 28 sin `tipo_actual`');
+    assert.equal(sinTipo.length, 30, 'el fichero tiene que traer 30 sin `tipo_actual`');
     const dentro = new Set([
       ...inventario.azul.map((t) => t.id),
       ...inventario.naranja.map((t) => t.id),
@@ -78,10 +98,10 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los cuatro montones', () => {
     for (const f of sinTipo) {
       assert.equal(dentro.has(f.id), false, `el tramo ${f.id} no tiene tipo y está en un montón`);
     }
-    // Y la cuenta cierra: 7.391 del fichero = 664 + 495 + 6.204 + 28.
+    // Y la cuenta cierra: 7.424 del fichero = 676 + 501 + 6.217 + 30.
     assert.equal(
-      inventario.azul.length + inventario.naranja.length + inventario.gratuito.length + 28,
-      7391,
+      inventario.azul.length + inventario.naranja.length + inventario.gratuito.length + 30,
+      7424,
     );
   });
 
@@ -117,22 +137,36 @@ describe('⭐ DÓNDE SE DEJA EL COCHE — los cuatro montones', () => {
     //    general» sin serlo —las de `10_E.S.PMR`—, así que por `SUBTIPO` se
     //    colarían **160**. La juez cuenta las dos cosas por separado porque son
     //    dos cosas: una plaza retirada y un tipo mezclado no son lo mismo.
+    // ⚠️ ACTA DE RE-FIRMA (19/09/2026): las **158 retiradas y denegadas NO se
+    //    mueven** —el error caro sigue midiendo exactamente lo mismo—, y las
+    //    «otras que dicen PMR general» pasan de **2 a 3**: el censo nuevo trae
+    //    una reserva más de `10_E.S.PMR` con ese SUBTIPO. Es el mismo caso que
+    //    § 1.13 deja fuera a propósito, con un ejemplar más. Y el descuento de
+    //    las PMR en vigor pasa de 1.226 a 1.236, como arriba.
     assert.equal(retiradasODenegadas, 158, 'las retiradas y denegadas que dicen PMR general');
-    assert.equal(otrasQueDicenPmr, 2, 'las de 10_E.S.PMR, que § 1.13 deja fuera a propósito');
-    assert.equal(inventario.reservasNoPmr, reservas.length - 1226);
+    assert.equal(otrasQueDicenPmr, 3, 'las de 10_E.S.PMR, que § 1.13 deja fuera a propósito');
+    assert.equal(inventario.reservasNoPmr, reservas.length - 1236);
   });
 
   /**
    * ⭐ EL HORARIO DE LAS PMR SE ENSEÑA **TAL CUAL**, sin normalizar.
    *
-   * Son 104 formas distintas entre las 1.226 y ninguna se interpreta: quien
+   * Son 106 formas distintas entre las 1.236 y ninguna se interpreta: quien
    * unifique `PERMANENTE`, `Permanente` y `permanente` habrá acertado tres
-   * veces y tendrá 101 cadenas más esperándole, entre ellas `n/a` y
+   * veces y tendrá 103 cadenas más esperándole, entre ellas `n/a` y
    * `VER OBSERVACIONES`.
+   *
+   * ⚠️ ACTA DE RE-FIRMA (19/09/2026): eran **104** y son **106**. Entran cuatro
+   *    formas nuevas —`08:15 a 09:15 y 13:45 a 17:45 `, `8-21 h. Lu-Do`,
+   *    `9:30 a 20 h.` y `De 8 a 21 h. de Lu. a Do.`— y desaparecen dos —`8-21
+   *    h. ` y `De 8 a 21 h. de Lu. a Vi.`—: 104 + 4 − 2 = 106. Dos de las que
+   *    entran son las de al lado con el día corregido (`Lu. a Vi.` → `Lu. a
+   *    Do.`), que es justo la clase de arreglo que esta juez existe para no
+   *    tener que adivinar.
    */
-  test('⭐ el horario de la PMR viaja literal, con sus 104 formas', () => {
+  test('⭐ el horario de la PMR viaja literal, con sus 106 formas', () => {
     const formas = new Set(inventario.pmr.map((p) => p.horario));
-    assert.equal(formas.size, 104, 'las formas distintas que trae el censo');
+    assert.equal(formas.size, 106, 'las formas distintas que trae el censo');
     assert.equal(formas.has('PERMANENTE'), true);
     assert.equal(formas.has('Permanente'), true, 'no se ha unificado la mayúscula');
     assert.equal(formas.has('permanente'), true);

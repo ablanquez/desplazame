@@ -374,10 +374,28 @@ const PIRINEOS = 23134100;
 // ⚠️ El de la azul se conduce MENOS y se anda MÁS —3.061 m y 320— que el de la
 //    naranja —3.248 y 140—. Son dos montones distintos, no dos filtros del
 //    mismo, y por eso los gana un sitio que no se parece al otro.
-const ESRO_SAN_BLAS = 'MU1_estacionamientos_calle.50612';
-const ESRE_MOSEN_PEDRO_DOSSET = 'MU1_estacionamientos_calle.46777';
-const LIBRE_ARQUITECTO_LA_FIGUERA = 'MU1_estacionamientos_calle.45408';
-const PMR_ECHEGARAY = 'MU1_reservas.43011';
+//
+// ⚠️ ACTA DE RE-FIRMA (19/09/2026) — LOS IDS DE ESTA FUENTE NO SON ESTABLES.
+//    Al entrar el censo del 19/09, los cuatro ids cambian **sin que cambie el
+//    sitio**: el Ayuntamiento ha REIMPORTADO la capa entera y renumerado sus
+//    7.424 elementos (el primero pasa de `.44455` a `.51846` con el mismo
+//    contenido byte a byte). Comprobado uno a uno antes de tocar nada:
+//      · `.50612` → `.57986` — CALLE SAN BLAS 40, ESRO, 2 plazas, CORDON:
+//        propiedades y geometría IDÉNTICAS.
+//      · `.45408` → `.52798` — CALLE ARQUITECTO LA FIGUERA (Parque), LIBRE,
+//        11 plazas: propiedades y geometría IDÉNTICAS.
+//      · `.43011` → `.45647` — ECHEGARAY Y CABALLERO 76, PMR, 2 plazas,
+//        horario `permanente`: propiedades y geometría IDÉNTICAS.
+//      · `.46777` → `.54157` — CALLE MOSÉN PEDRO DOSSET 7, ESRE, 2 plazas: el
+//        MISMO bordillo **re-medido**, que ahora mide 11,68 m en vez de 18,21
+//        conservando su extremo. Por eso el viaje no se mueve ni un metro: el
+//        vértice donde se aparca es el mismo.
+//    Los cuatro viajes de la juez 1 salen con el SELLO IDÉNTICO al de agosto:
+//    lo único que cambió es el número con el que el WFS llama a cada bordillo.
+const ESRO_SAN_BLAS = 'MU1_estacionamientos_calle.57986';
+const ESRE_MOSEN_PEDRO_DOSSET = 'MU1_estacionamientos_calle.54157';
+const LIBRE_ARQUITECTO_LA_FIGUERA = 'MU1_estacionamientos_calle.52798';
+const PMR_ECHEGARAY = 'MU1_reservas.45647';
 /**
  * Y el aparcamoto donde la MOTO remata ese mismo viaje. Medido, no elegido.
  *
@@ -1297,14 +1315,30 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
       //    entero es otro. Por eso los metros y los vértices se vuelven a
       //    comprar aquí abajo: para que el día que este sello se mueva sin que
       //    cambie ninguno de los dos, se sepa que fue la letra.
+      //
+      //    ⚠️ **Y SE HA MOVIDO UNA TERCERA VEZ, el 19/09/2026, y tampoco es la
+      //    letra: es EL DATO.** El bordillo donde aparcaba —**AVENIDA CÉSAR
+      //    AUGUSTO 23, ESRO, 5 plazas** (`MU1_estacionamientos_calle.50680`)—
+      //    **ya no está en el censo municipal**: es uno de los 79 ESRO que
+      //    salen en el censo del 19/09. El que gana ahora —**RAMÓN CELMA
+      //    BERNAL 2, ESRO, 2 plazas**— YA ESTABA en el censo de agosto, así que
+      //    no es un sitio nuevo: es el siguiente por coste, y está más lejos.
+      //    Por eso el viaje se alarga: **3.604 → 4.352 m** (rodando 2.491 →
+      //    3.220, andando 1.113 → 1.132), **14 → 13 pasos** y 327 → 310
+      //    vértices, y el hito pasa de «Aparca en Avenida Cesar Augusto» a
+      //    «Aparca en Celma Bernal, Ramon». Comprobado con el viaje entero
+      //    delante, antes y después. Los otros cuatro viajes de la juez 1 NO se
+      //    mueven: mismo sello, solo otro id.
       assert.equal(
         selloDe(conParking),
-        'c4c4f4889c3f02a242874f8e86c16a8f539d0fbb72407264a2c387732293ea23',
+        '79f1eb17aa6ccbf2a235ea4037950b6c8629be73459abb2f1e63f7daaef40a6b',
       );
       // Y cambian los dos: 4.341 m y 306 vértices eran los del bordillo que
-      // ganaba entre los 1.159. Entre los 664 de la azul gana otro.
-      assert.equal(conParking.metros, 3604);
-      assert.equal(conParking.geometria.length, 327);
+      // ganaba entre los 1.159; 3.604 y 327, los del que ganaba entre los 664
+      // de la azul hasta que el Ayuntamiento lo retiró. Entre los 676 de hoy
+      // gana otro.
+      assert.equal(conParking.metros, 4352);
+      assert.equal(conParking.geometria.length, 310);
     });
 
     /**
@@ -1832,9 +1866,14 @@ describe('⭐ EL VIAJE EN COCHE — vetos, sentido y ZBE', () => {
         { puedeEntrarEnLaZbe: false, aparcamiento: 'azul' },
         MARTES_A_LAS_10,
       );
+      // ⚠️ ACTA DE RE-FIRMA (19/09/2026): este sello es EL MISMO de la juez 4 de
+      //    la casilla 2-bis y se mueve con él, por la misma causa y solo por
+      //    ella — el censo municipal retiró el bordillo de Avenida César
+      //    Augusto 23 donde el coche aparcaba. La moto no ha tocado nada: se
+      //    comprueba arriba, en el sitio donde eso se compra.
       assert.equal(
         selloDe(coche2bis),
-        'c4c4f4889c3f02a242874f8e86c16a8f539d0fbb72407264a2c387732293ea23',
+        '79f1eb17aa6ccbf2a235ea4037950b6c8629be73459abb2f1e63f7daaef40a6b',
         'la moto le ha tocado algo al coche',
       );
 

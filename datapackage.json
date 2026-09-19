@@ -239,8 +239,8 @@
       "format": "json",
       "mediatype": "application/geo+json",
       "encoding": "utf-8",
-      "bytes": 3178840,
-      "hash": "sha256:f45f394b2d2190e676ae7bea0fd74856d1fbbcb235a2b1579126e4a6cb8a467d",
+      "bytes": 3192585,
+      "hash": "sha256:6070f09203c0d98e365ee4d8452e3ad94a25d8f472d26ebff429ff9a84ae95bf",
       "licenses": [
         {
           "name": "other-pd",
@@ -262,17 +262,12 @@
         "timeStamp"
       ],
       "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
-      "descargadoEl": "2026-08-18T12:26:53Z",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "descargadoEl": "2026-09-19T14:20:36.256Z",
+      "comprobadoEl": "2026-09-19T14:20:36.256Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T09:16:20.438Z"
-      },
-      "cambioNoTomado": {
-        "fecha": "2026-09-19",
-        "huella": "sha256:e92c71a157fa55459135f14e4023b8dd6ca7af3932e4bfe80587c1087338dd82",
-        "porque": "el dato nuevo mueve censos FIRMADOS del motor: la zona azul pasa de 664 a 676 tramos y pone en rojo 8 juezas de motor/src/aparcamiento.spec.ts y motor/src/viaje-coche.spec.ts (los cuatro montones, los 28 sin clasificar, las PMR y los sellos sha256 de los viajes). Entrarlo es re-firmar el censo, y eso lo decide Antonio: queda a la espera, no se toma en silencio."
+        "medidoEl": "2026-09-19T14:20:36.256Z"
       }
     },
     {
@@ -320,8 +315,8 @@
       "format": "json",
       "mediatype": "application/geo+json",
       "encoding": "utf-8",
-      "bytes": 746406,
-      "hash": "sha256:8aaf80c1d946bf891c5a6387a213cb56fa4581922ee07ebb5fd0e7aaa3500057",
+      "bytes": 752283,
+      "hash": "sha256:6ec6fd5cef59c40df77cb70c487bcb30fb892a3c6009bf3ada37fe0a3cdd6590",
       "licenses": [
         {
           "name": "other-pd",
@@ -343,17 +338,12 @@
         "timeStamp"
       ],
       "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
-      "descargadoEl": "2026-08-18T13:41:55Z",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "descargadoEl": "2026-09-19T14:20:46.183Z",
+      "comprobadoEl": "2026-09-19T14:20:46.183Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T09:16:20.438Z"
-      },
-      "cambioNoTomado": {
-        "fecha": "2026-09-19",
-        "huella": "sha256:8b858d1ad057a0d6890813a98ff7e60a80de16be5a036902b63cda90ff55acd9",
-        "porque": "el dato nuevo mueve censos FIRMADOS del motor: la zona azul pasa de 664 a 676 tramos y pone en rojo 8 juezas de motor/src/aparcamiento.spec.ts y motor/src/viaje-coche.spec.ts (los cuatro montones, los 28 sin clasificar, las PMR y los sellos sha256 de los viajes). Entrarlo es re-firmar el censo, y eso lo decide Antonio: queda a la espera, no se toma en silencio."
+        "medidoEl": "2026-09-19T14:20:46.183Z"
       }
     },
     {
@@ -1352,8 +1342,8 @@
       "format": "json",
       "mediatype": "application/geo+json",
       "encoding": "utf-8",
-      "bytes": 2705406,
-      "hash": "sha256:57a31d0cffbe5f89d120e44a687acd3b2e2b5af7f232207b0b7fa993384a4a82",
+      "bytes": 2706592,
+      "hash": "sha256:882f08c5b00917d67935aeeb8d9eff8fbcb58890217a67884b3ad33cf598c881",
       "licenses": [
         {
           "name": "other-pd",
@@ -1375,17 +1365,12 @@
         "timeStamp"
       ],
       "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
-      "descargadoEl": "2026-08-28T15:26:43Z",
-      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "descargadoEl": "2026-09-19T14:20:50.115Z",
+      "comprobadoEl": "2026-09-19T14:20:50.115Z",
       "validadores": {
         "etag": null,
         "lastModified": null,
-        "medidoEl": "2026-09-19T09:16:20.438Z"
-      },
-      "cambioNoTomado": {
-        "fecha": "2026-09-19",
-        "huella": "sha256:ce0efa5d67a7db4f26c0abf9401bdd66198c6b77ff4f1b7698847b037991d472",
-        "porque": "el dato nuevo mueve censos FIRMADOS del motor: la zona azul pasa de 664 a 676 tramos y pone en rojo 8 juezas de motor/src/aparcamiento.spec.ts y motor/src/viaje-coche.spec.ts (los cuatro montones, los 28 sin clasificar, las PMR y los sellos sha256 de los viajes). Entrarlo es re-firmar el censo, y eso lo decide Antonio: queda a la espera, no se toma en silencio."
+        "medidoEl": "2026-09-19T14:20:50.115Z"
       }
     },
     {
