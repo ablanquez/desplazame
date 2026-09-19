@@ -60,7 +60,7 @@ rejilla **deje de crecer**: cuenta teselas y cargadas en cada vuelta y exige
 dos vueltas seguidas con el mismo número y todas cargadas. No es un número
 mágico ni un `dormir` más largo — es una meseta, y lo que varía con la máquina
 es cuánto se tarda en llegar a ella, no cuál es.
-**Commit:** ⏳ PENDIENTE — se escribe copiando el hash, no de memoria
+**Commit:** `6910876`
 **Ley que sale de aquí:** una espera que pregunta «¿está cargado lo que hay?»
 no espera nada: mientras el que sirve siga creando piezas, la respuesta es que
 sí desde la primera. Esperar es esperar a que **deje de crecer**, y quien mide
