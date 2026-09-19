@@ -74,6 +74,8 @@
  *     14  --comprobar: el sha256 del bundle no cuadra con la marca
  *     15  --comprobar: el index.html no nombra ese bundle
  *     16  --comprobar: hay restos de un swap a medias al lado
+ *     17  la INTRANET se ha colado en el dist (visor, panel o dato sin
+ *         publicar) — al construir, antes del swap; y en --comprobar
  *
  * USO
  *   node scripts/construir.mjs                  → construye y publica
@@ -159,6 +161,76 @@ function salir(codigo, motivo) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+//  LA INTRANET NO VIAJA — el invariante que compra la firma del 19/09
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Antonio firmó ACCESO SOLO-LOCAL: el visor de capas y el panel de frescura no
+// se despliegan. El mecanismo es el `fileReplacements` de `angular.json`, que
+// en la configuración `production` cambia `rutas-intranet.ts` por el vacío; sin
+// esos `loadComponent`, el constructor no ve las importaciones y **los trozos
+// no se generan**.
+//
+// ⚠️ Pero un mecanismo no es una garantía: basta con que alguien construya con
+//    otra configuración, o le quite el reemplazo sin darse cuenta, para que la
+//    intranet entera acabe en el dist que se empuja —y el push ES el
+//    despliegue—. Nadie lo notaría: la app pública seguiría funcionando igual.
+//
+// Por eso esto no mira el código fuente ni la configuración: **abre el dist
+// CONSTRUIDO y busca los rastros dentro**. Se comprueba lo que se publica, no
+// lo que se quiso publicar.
+//
+// [OWASP ASVS 2.32] las interfaces administrativas no deben ser accesibles a
+// partes no confiables; el extremo fuerte —el de la DevGuide— es que no lo sean
+// desde internet. Esto es lo que lo hace comprobable en vez de opinable.
+
+/**
+ * Los selectores que Angular deja escritos en el paquete de cada componente.
+ * Si alguno aparece en un `.js` del dist, esa página se ha construido dentro.
+ */
+const RASTROS_DE_INTRANET = ['app-visor', 'app-mapa-de-capas', 'app-panel'];
+
+/**
+ * Lo ÚNICO que puede vivir en `<raiz>/data/`: la ZBE, que la pinta el buscador
+ * y es pública desde el 2/09. Los otros 17 ficheros —40,72 MiB, el grafo y los
+ * portales entre ellos— son los que alimentan el visor, y no se publican.
+ */
+const DATOS_QUE_SI_VIAJAN = new Set(['2026-09-02_wfs_movilidad-MU1_ZBE.json']);
+
+/** Todos los ficheros que cuelgan de un directorio, con su ruta relativa. */
+function ficherosDe(dir, prefijo = '') {
+  if (!existsSync(dir)) return [];
+  const salida = [];
+  for (const nombre of readdirSync(dir)) {
+    const ruta = join(dir, nombre);
+    if (statSync(ruta).isDirectory()) salida.push(...ficherosDe(ruta, prefijo + nombre + '/'));
+    else salida.push({ rel: prefijo + nombre, ruta });
+  }
+  return salida;
+}
+
+/**
+ * ¿Se ha colado la intranet en este dist? Devuelve la lista de hallazgos —vacía
+ * si está limpio—. No sale del guion: quien llama decide con qué código morir.
+ */
+function rastrosDeIntranetEn(raiz) {
+  const hallazgos = [];
+
+  for (const { rel, ruta } of ficherosDe(raiz)) {
+    if (!rel.endsWith('.js')) continue;
+    const texto = readFileSync(ruta, 'utf8');
+    for (const rastro of RASTROS_DE_INTRANET) {
+      if (texto.includes(rastro)) hallazgos.push(`«${rastro}» dentro de ${rel}`);
+    }
+  }
+
+  for (const { rel } of ficherosDe(join(raiz, 'data'))) {
+    if (!DATOS_QUE_SI_VIAJAN.has(rel)) hallazgos.push(`dato que no debe publicarse: data/${rel}`);
+  }
+
+  return hallazgos;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  --comprobar — LA NEGATIVA: un dist sin su marca completa no se empuja
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -213,10 +285,22 @@ if (argumentos.includes('--comprobar')) {
     salir(15, `✖ EL index.html NO NOMBRA el bundle de la marca (${marca.bundle})`);
   }
 
+  const rastros = rastrosDeIntranetEn(raiz);
+  if (rastros.length > 0) {
+    salir(
+      17,
+      `✖ LA INTRANET SE HA COLADO EN EL DIST — y el push es el despliegue:\n` +
+        rastros.map((r) => `   · ${r}`).join('\n') +
+        `\n   Firmado el 19/09: acceso SOLO-LOCAL. Construye con` +
+        ` \`npm run construir\` (production), no con \`--configuration local\`.`,
+    );
+  }
+
   decir(
     `✔ marca completa · ${marca.bundle} · sha ${sha.slice(0, 12)}… · ` +
       `${marca.ficheros} ficheros · construido ${marca.fecha}`,
   );
+  decir(`✔ sin rastro de intranet: ni visor, ni panel, ni dato sin publicar`);
   process.exit(0);
 }
 
@@ -283,6 +367,21 @@ if (faltan.length) {
     2,
     `✖ LA BUILD SALIÓ 0 PERO NO ESTÁ ENTERA — falta: ${faltan.join(' · ')}. ` +
       `El dist de ahora sigue INTACTO: ${DIST}`,
+  );
+}
+
+// ⭐ Y LA INTRANET, ANTES DEL SWAP (19/09). Se mira el dist RECIÉN construido
+//    mientras todavía está en el temporal: si se ha colado el visor o el panel,
+//    el dist bueno **ni se toca**. Es la misma ley que el resto del guardián —
+//    una build sucia no sustituye a una limpia.
+const rastrosNuevos = rastrosDeIntranetEn(raizNueva);
+if (rastrosNuevos.length > 0) {
+  borrar(TMP);
+  salir(
+    17,
+    `✖ LA BUILD LLEVA LA INTRANET DENTRO, y el push es el despliegue:\n` +
+      rastrosNuevos.map((r) => `   · ${r}`).join('\n') +
+      `\n   El dist de ahora sigue INTACTO: ${DIST}`,
   );
 }
 
