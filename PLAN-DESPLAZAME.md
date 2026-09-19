@@ -5050,7 +5050,48 @@ Code lo traduce al Angular existente.)*
         693, tipos limpios. Presupuesto 553,61 [+0,14]. Sin
         bitácora: ningún verde mintió [las dos rojas lo fueron
         cuando debían].
-- [ ] **EL GUARDIÁN DE BUILD ATÓMICO [PRIORIDAD ALTA — bloque
+- [x] ⚰️ **EL GUARDIÁN DE BUILD ATÓMICO — HECHO (19/09; 3 commits
+      `ec99fdf`…`501b2e1`, en local — un push con estos papeles)**.
+      EL DIAGNÓSTICO del flujo real: ng build a pelo con el README
+      avisando «borra dist antes» [la grieta con letra], 15 commits
+      build(dist) a mano en el historial, CERO guiones de deploy y
+      CERO hooks — la negativa-sin-marca no se cuelga de un hook
+      inexistente: vive en la orden previa de Antonio Y en una
+      jueza que corre sola en unidad. EL GUION
+      [app/scripts/construir.mjs]: build a dist-tmp HERMANO [la
+      condición de rename(2), derivado de la propia ruta — el
+      EXDEV no puede darse por construcción] con --output-path
+      oficial [angular.json intacto]; verifica salida 0 + index +
+      main-*.js + que el índice lo nombre; DOS renombrados con
+      respaldo conservado y restauración automática [la ventana
+      escrita en el guion como diseño declarado]; la marca
+      .build-ok {fecha·bundle·sha256·ficheros} en la raíz del dist
+      FUERA de browser/ [curl: inalcanzable desde la web]; 17
+      códigos de salida, todos distintos y dichos. LA JUEZA: 7/7
+      en rojo → 7/7 verde, con las huellas: build que falla →
+      salida 1, dist INTACTO AL BYTE [sha igual]; sabotaje del
+      segundo renombrado [en copia] → salida 4, RESTAURADO AL
+      BYTE; la negativa cazó al dist real sin marca [código 11] y
+      se apagó reconstruyendo con el guardián. ⭐ LA PRUEBA DE
+      PROPINA: el dist del guardián es BYTE A BYTE el de b0898d2
+      [huella del árbol sin la marca, igual antes y después;
+      main-R3WSVEHT.js] — el guardián no cambia el producto,
+      cambia quién responde de él. LAS ÓRDENES NUEVAS: npm run
+      construir · npm run comprobar-dist [antes de commitear];
+      .gitignore traga los dos hermanos del swap. BATERÍA sobre el
+      dist del guardián: primera 9/10 [bizi en rojo por motor
+      FRÍO, causa medida: avisos globales sin paso con el dato
+      externo mudo — dist idéntico al 10/10 de ayer; repetida
+      caliente: verde] → segunda con motor caliente 10/10, arnés
+      verde [10 fijos], pintura 1.203. Unidad interfaz 693→700
+      [19 ficheros] · tipos 299+370 · presupuesto SIN MOVERSE NI
+      UN BYTE [553,69 · 141,44 — misma build, otra carpeta].
+      ⚠️ Corrección del ejecutor a su propia cifra: bitácora son
+      61 entradas [contaba el encabezado del documento]. RESUELTO
+      EN REVISIÓN: bizi-y-resumen se une a la tanda futura de
+      «las juezas esperan HECHOS, no relojes» [con moto/yego — la
+      señal ya existe: la línea del log del motor con los desvíos
+      cargados]. LA LETRA ORIGINAL: [PRIORIDAD ALTA — bloque
       propio desde el 15/09, pedido por Antonio: los papeles con la
       verdad entera, no líneas de mesa]** — EL PORQUÉ: el `ng build`
       escribe DIRECTAMENTE sobre `dist/`; una build que falla a

@@ -225,6 +225,10 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
+*(Al 19/09, lo en-local es: EL GUARDIÁN de build —
+`ec99fdf`…`501b2e1`, el guion, su jueza con huellas y las
+órdenes nuevas — + estos papeles; lo del punto 15 YA se
+publicó en e41a2c0 con su docs-push.)*
 *(Ampliado al 18/09: se suman LOS 44 PX —
 `b7a1b2b`…`a9ddb52` — y LA VERIFICACIÓN de la casilla 5 —
 `f34aea4`…`b828876`, el informe criterio a criterio con su
@@ -1703,9 +1707,15 @@ acta de los 115/8.822 MB con autorizaciones fechadas; la
 segunda ley: «cuando la causa no está al alcance, se acota la
 consecuencia y la jueza vigila el tope»; crónicas en la
 casilla 4] — (a) EL PUSH [27 commits + estos papeles, UN
-push]; (b) TRAS EL PUSH: el ojo de Antonio en los 3
-tamaños y los dos temas + el caso de siempre en producción —
-y con eso EL PUNTO 15 CERRADO DEL TODO; (b-bis) la cola gana:
+push]; (b) ⚰️ HECHO el 18/09 tras el push e41a2c0: el ojo
+de Antonio en producción, 3 tamaños y dos temas, y el caso de
+siempre — «está todo bien». ⭐ EL PUNTO 15 CERRADO DEL TODO;
+el 19/09 cayó EL GUARDIÁN [crónica en su bloque:
+las órdenes nuevas npm run construir / comprobar-dist — LA
+GRIETA DEL 404 CERRADA]; lo siguiente A ELECCIÓN DE ANTONIO:
+el cron educado · el visor-intranet · o la tanda de flecos
+[asa+salto+tercer estado] · y en la cola nueva: «las juezas
+esperan HECHOS» [moto+yego+bizi, la señal del log existe]; (b-bis) la cola gana:
 el asa [deuda 2.5.5-casa: cumple el suelo AA 24; ensanchar
 mueve la costura] + el ENLACE DE SALTO al buscador [2.4.1] —
 irán juntos · las juezas de píxel-sobre-tesela de la P26
@@ -1728,9 +1738,7 @@ mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
 initial al cierre de la verificación: 553,69 kB, transferido
 141,44 [superado el aviso de 520 por 33,47]; la
-poda como palanca] · el guardián de build atómico [PRIORIDAD ALTA
-— ya con BLOQUE PROPIO en el PLAN, delante de la casilla 5:
-porqué, forma y jueza] · el
+poda como palanca] · [guardián: HECHO 19/09] · el
 refactor del resultado como componente propio [4 topes] · los
 e2e con 4200 a fuego [pantalla(adaptada), proximo-bus] · el
 HUESO de carga que ya no calca la forma de lo que llega [la
@@ -2071,7 +2079,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.349 pruebas (656 motor + 693 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.356 pruebas (656 motor + 700 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
