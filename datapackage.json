@@ -178,7 +178,21 @@
           "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
         }
       ],
-      "descargadoEl": "2026-08-17T12:34:30Z"
+      "peticion": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU2_aparcabicis&outputFormat=application/json&srsName=EPSG:4326",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-17_wfs_movilidad-MU2_aparcabicis_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "camposVolatiles": [
+        "timeStamp"
+      ],
+      "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
+      "descargadoEl": "2026-08-17T12:34:30Z",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": null,
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "aparcamotos",
@@ -202,7 +216,21 @@
           "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
         }
       ],
-      "descargadoEl": "2026-08-18T12:04:45Z"
+      "peticion": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU2_motos&outputFormat=application/json&srsName=EPSG:4326",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-18_wfs_movilidad-MU2_motos_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "camposVolatiles": [
+        "timeStamp"
+      ],
+      "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
+      "descargadoEl": "2026-08-18T12:04:45Z",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": null,
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "regulado-tramos",
@@ -226,7 +254,26 @@
           "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
         }
       ],
-      "descargadoEl": "2026-08-18T12:26:53Z"
+      "peticion": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_estacionamientos_calle&outputFormat=application/json&srsName=EPSG:4326",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-18_wfs_movilidad-MU1_estacionamientos_calle_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "camposVolatiles": [
+        "timeStamp"
+      ],
+      "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
+      "descargadoEl": "2026-08-18T12:26:53Z",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": null,
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      },
+      "cambioNoTomado": {
+        "fecha": "2026-09-19",
+        "huella": "sha256:e92c71a157fa55459135f14e4023b8dd6ca7af3932e4bfe80587c1087338dd82",
+        "porque": "el dato nuevo mueve censos FIRMADOS del motor: la zona azul pasa de 664 a 676 tramos y pone en rojo 8 juezas de motor/src/aparcamiento.spec.ts y motor/src/viaje-coche.spec.ts (los cuatro montones, los 28 sin clasificar, las PMR y los sellos sha256 de los viajes). Entrarlo es re-firmar el censo, y eso lo decide Antonio: queda a la espera, no se toma en silencio."
+      }
     },
     {
       "name": "regulado-zonas",
@@ -250,7 +297,21 @@
           "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
         }
       ],
-      "descargadoEl": "2026-08-18T13:21:04Z"
+      "peticion": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_zonas_reguladas&outputFormat=application/json&srsName=EPSG:4326",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-18_wfs_movilidad-MU1_zonas_reguladas_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "camposVolatiles": [
+        "timeStamp"
+      ],
+      "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
+      "descargadoEl": "2026-08-18T13:21:04Z",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": null,
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "reservas-espacio",
@@ -274,7 +335,26 @@
           "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
         }
       ],
-      "descargadoEl": "2026-08-18T13:41:55Z"
+      "peticion": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_reservas&outputFormat=application/json&srsName=EPSG:4326",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-18_wfs_movilidad-MU1_reservas_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "camposVolatiles": [
+        "timeStamp"
+      ],
+      "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
+      "descargadoEl": "2026-08-18T13:41:55Z",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": null,
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      },
+      "cambioNoTomado": {
+        "fecha": "2026-09-19",
+        "huella": "sha256:8b858d1ad057a0d6890813a98ff7e60a80de16be5a036902b63cda90ff55acd9",
+        "porque": "el dato nuevo mueve censos FIRMADOS del motor: la zona azul pasa de 664 a 676 tramos y pone en rojo 8 juezas de motor/src/aparcamiento.spec.ts y motor/src/viaje-coche.spec.ts (los cuatro montones, los 28 sin clasificar, las PMR y los sellos sha256 de los viajes). Entrarlo es re-firmar el censo, y eso lo decide Antonio: queda a la espera, no se toma en silencio."
+      }
     },
     {
       "name": "bizi-pag0",
@@ -618,9 +698,23 @@
           "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs"
         }
       ],
+      "peticion": "https://idezar-sig.zaragoza.es/servicios/geoserver/urbanismo/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=urbanismo:Vias&outputFormat=application/json&srsName=EPSG:4326",
+      "peticionFuente": "THIRD-PARTY-NOTICES.md — la petición WFS consta («ésta la hicimos nosotros»), capa urbanismo:Vias",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "la periodicidad que este conjunto declara arriba (MONTHLY) — THIRD-PARTY-NOTICES.md § 1.15: «el callejero municipal se refresca (politica declarada: mensual)»",
+      "camposVolatiles": [
+        "timeStamp"
+      ],
+      "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
       "descargadoEl": "2026-08-20T14:35:52Z",
       "accrualPeriodicity": "http://publications.europa.eu/resource/authority/frequency/MONTHLY",
-      "periodicidadFuente": "THIRD-PARTY-NOTICES.md § 1.15: «el callejero municipal se refresca (politica declarada: mensual)»"
+      "periodicidadFuente": "THIRD-PARTY-NOTICES.md § 1.15: «el callejero municipal se refresca (politica declarada: mensual)»",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": null,
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "farmacias",
@@ -644,9 +738,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/740.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-23_zgzapi_equipamiento-farmacias_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-23T15:33:54Z",
       "modified": "2026-06-08T14:06:36+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Mon, 08 Jun 2026 14:06:36 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 311 registros que lo traen — y va dos meses y medio por delante de la descarga, asi que no es la fecha de la respuesta"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Mon, 08 Jun 2026 14:06:36 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 311 registros que lo traen — y va dos meses y medio por delante de la descarga, asi que no es la fecha de la respuesta",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Mon, 08 Jun 2026 14:06:36 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "centros-salud",
@@ -655,8 +761,8 @@
       "format": "json",
       "mediatype": "application/json",
       "encoding": "utf-8",
-      "bytes": 75702,
-      "hash": "sha256:1683f1828fdb665f9df0804a0a4ab3369be71882d7d65672c62813fc10ec3428",
+      "bytes": 75533,
+      "hash": "sha256:bed9516cc355b23b8f6843f19a5a2788d00a97a224d1061f600de03bc3e54e60",
       "licenses": [
         {
           "name": "other-pd",
@@ -670,9 +776,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/781.json"
         }
       ],
-      "descargadoEl": "2026-08-24T09:30:23Z",
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/781.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-24_zgzapi_equipamiento-centros-salud_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
+      "descargadoEl": "2026-09-19T08:55:46.514Z",
       "modified": "2026-05-20T15:58:21+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Wed, 20 May 2026 15:58:21 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 55 registros que lo traen — el mismo cotejo que se le hizo a farmacias, y aqui tambien sale"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Wed, 20 May 2026 15:58:21 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 55 registros que lo traen — el mismo cotejo que se le hizo a farmacias, y aqui tambien sale",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Fri, 28 Aug 2026 11:24:53 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "hospitales",
@@ -696,8 +814,20 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/780.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/780.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-24_zgzapi_equipamiento-hospitales_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-24T09:30:24Z",
-      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, pero el lastUpdated mas reciente de los 17 registros es 2024-03-15T15:02:36 — TRECE MESES antes. En farmacias y en centros de salud las dos fechas coinciden al segundo y por eso alli `modified` se declara; aqui la cabecera no describe al dato, asi que se omite en vez de copiarla"
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, pero el lastUpdated mas reciente de los 17 registros es 2024-03-15T15:02:36 — TRECE MESES antes. En farmacias y en centros de salud las dos fechas coinciden al segundo y por eso alli `modified` se declara; aqui la cabecera no describe al dato, asi que se omite en vez de copiarla",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Fri, 25 Apr 2025 10:56:36 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "bibliotecas",
@@ -721,9 +851,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/35.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/35.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-25_zgzapi_equipamiento-bibliotecas_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-25T15:50:17Z",
       "modified": "2026-06-23T13:46:18+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Tue, 23 Jun 2026 13:46:18 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 74 registros que lo traen — el mismo cotejo que en farmacias y en centros de salud, y aqui tambien sale"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta (Tue, 23 Jun 2026 13:46:18 CEST), que coincide AL SEGUNDO con el lastUpdated mas reciente de los 74 registros que lo traen — el mismo cotejo que en farmacias y en centros de salud, y aqui tambien sale",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Tue, 23 Jun 2026 13:46:18 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "bibliotecas-especializadas",
@@ -747,8 +889,20 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/223.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/223.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-25_zgzapi_equipamiento-bibliotecas-especializadas_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-25T15:50:22Z",
-      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST y el lastUpdated de sus dos registros es 2023-09-26T14:48:29 — DIECINUEVE MESES antes. Y es LA MISMA cabecera, al segundo, que devuelve la categoria 780 de hospitales: una fecha que dos categorias distintas comparten no describe a ninguna de las dos. Se omite en vez de copiarla"
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST y el lastUpdated de sus dos registros es 2023-09-26T14:48:29 — DIECINUEVE MESES antes. Y es LA MISMA cabecera, al segundo, que devuelve la categoria 780 de hospitales: una fecha que dos categorias distintas comparten no describe a ninguna de las dos. Se omite en vez de copiarla",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Fri, 25 Apr 2025 10:56:36 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "educacion-infantil",
@@ -772,9 +926,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/61.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/61.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-educacion-infantil_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:39Z",
       "modified": "2026-05-26T13:33:58+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 140 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 140 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Tue, 26 May 2026 13:33:58 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "educacion-primaria",
@@ -798,9 +964,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/62.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/62.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-educacion-primaria_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:40Z",
       "modified": "2026-01-28T09:29:05+01:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 137 registros que lo traen (2026-01-28T09:29:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 137 registros que lo traen (2026-01-28T09:29:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Wed, 28 Jan 2026 09:29:05 CET",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "educacion-secundaria",
@@ -824,9 +1002,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/63.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/63.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-educacion-secundaria_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:40Z",
       "modified": "2026-06-23T11:00:54+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 103 registros que lo traen (2026-06-23T11:00:54) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 103 registros que lo traen (2026-06-23T11:00:54) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Tue, 23 Jun 2026 11:00:54 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "bachillerato",
@@ -850,8 +1040,20 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2060.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2060.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-bachillerato_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:41Z",
-      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla"
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Fri, 25 Apr 2025 10:56:36 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "ciclos-formativos",
@@ -860,8 +1062,8 @@
       "format": "json",
       "mediatype": "application/json",
       "encoding": "utf-8",
-      "bytes": 46258,
-      "hash": "sha256:8dcafa1fb3cb2855ec1e88c2cfc88b4bad0fec6764cf8a44f3497d96c7c62383",
+      "bytes": 46270,
+      "hash": "sha256:13c82416638aa47ae1063e7130e8dc2843670e5b1313c14e27a2d3f6c74a0dc7",
       "licenses": [
         {
           "name": "other-pd",
@@ -875,9 +1077,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2061.json"
         }
       ],
-      "descargadoEl": "2026-08-27T06:31:41Z",
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2061.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-ciclos-formativos_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
+      "descargadoEl": "2026-09-19T08:55:46.514Z",
       "modified": "2025-09-02T14:46:25+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 56 registros que lo traen (2025-09-02T14:46:25) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 56 registros que lo traen (2025-09-02T14:46:25) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Fri, 18 Sep 2026 10:54:40 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "formacion-profesional",
@@ -901,9 +1115,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/680.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/680.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-formacion-profesional_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:41Z",
       "modified": "2026-06-23T10:47:16+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 48 registros que lo traen (2026-06-23T10:47:16) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 48 registros que lo traen (2026-06-23T10:47:16) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Tue, 23 Jun 2026 10:47:16 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "educacion-especial",
@@ -927,9 +1153,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/64.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/64.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-educacion-especial_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:41Z",
       "modified": "2026-04-13T15:57:05+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 19 registros que lo traen (2026-04-13T15:57:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 19 registros que lo traen (2026-04-13T15:57:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Mon, 13 Apr 2026 15:57:05 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "escuela-infantil",
@@ -938,8 +1176,8 @@
       "format": "json",
       "mediatype": "application/json",
       "encoding": "utf-8",
-      "bytes": 118570,
-      "hash": "sha256:6583a84f8168d978e515cdaded94175d54402f71981a31e65b3f0de3b501b46b",
+      "bytes": 118877,
+      "hash": "sha256:9e04f87ef2f471660f5ba20a0ef4918096edd03e6b83d71032ac426e8f708f25",
       "licenses": [
         {
           "name": "other-pd",
@@ -953,9 +1191,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/460.json"
         }
       ],
-      "descargadoEl": "2026-08-27T06:31:42Z",
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/460.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-escuela-infantil_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
+      "descargadoEl": "2026-09-19T08:55:46.514Z",
       "modified": "2026-05-26T13:33:58+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 65 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 65 registros que lo traen (2026-05-26T13:33:58) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Mon, 14 Sep 2026 11:05:51 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "universitaria",
@@ -979,8 +1229,20 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/280.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/280.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-universitaria_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:42Z",
-      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla"
+      "modifiedFuente": "NO CONSTA. La cabecera Last-Modified dice Fri, 25 Apr 2025 10:56:36 CEST, que NO es una fecha de este dato sino un SUELO del servidor: con las 43 categorias de la familia Educacion medidas, las 26 cuyo registro mas nuevo es posterior a esa fecha devuelven su propia fecha AL SEGUNDO (26 de 26), y 13 de las 14 cuyo registro mas nuevo es anterior devuelven exactamente esta. La misma que ya devolvian hospitales (§ 1.18) y bibliotecas especializadas (§ 1.19). Se omite en vez de copiarla",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Fri, 25 Apr 2025 10:56:36 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "colegios-mayores",
@@ -1004,9 +1266,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2300.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2300.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-colegios-mayores_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:42Z",
       "modified": "2025-09-15T12:01:05+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 8 registros que lo traen (2025-09-15T12:01:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 8 registros que lo traen (2025-09-15T12:01:05) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Mon, 15 Sep 2025 12:01:05 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "residencias-estudiantes",
@@ -1030,9 +1304,21 @@
           "path": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2280.json"
         }
       ],
+      "peticion": "https://www.zaragoza.es/sede/servicio/equipamiento/category/2280.json?srsname=wgs84&start=0&rows=3000",
+      "peticionFuente": "las cabeceras guardadas de su descarga: app/data/2026-08-27_zgzapi_equipamiento-residencias-estudiantes_cabeceras.txt",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "ordenVolatil": true,
+      "ordenVolatilFuente": "La API de equipamientos devuelve los arrays en otro orden en cada peticion (medido el 19/09/2026: el campo  de 58 de las 138 fichas de educacion-primaria, con el dato identico). El orden no es dato, asi que la comparacion se hace sobre la forma canonica.",
       "descargadoEl": "2026-08-27T06:31:43Z",
       "modified": "2025-09-15T12:27:31+02:00",
-      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 7 registros que lo traen (2025-09-15T12:27:31) — el mismo cotejo que en farmacias, centros de salud y bibliotecas"
+      "modifiedFuente": "la cabecera Last-Modified de la respuesta, que coincide AL SEGUNDO con el lastUpdated mas reciente de los 7 registros que lo traen (2025-09-15T12:27:31) — el mismo cotejo que en farmacias, centros de salud y bibliotecas",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": "Mon, 15 Sep 2025 12:27:31 CEST",
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "viario-etiquetas-osm",
@@ -1081,7 +1367,26 @@
           "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
         }
       ],
-      "descargadoEl": "2026-08-28T15:26:43Z"
+      "peticion": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_jerarquia_viaria&outputFormat=application/json&srsName=EPSG:4326",
+      "peticionFuente": "THIRD-PARTY-NOTICES.md — la petición WFS consta («ésta la hicimos nosotros»), capa movilidad:MU1_jerarquia_viaria",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "camposVolatiles": [
+        "timeStamp"
+      ],
+      "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
+      "descargadoEl": "2026-08-28T15:26:43Z",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": null,
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      },
+      "cambioNoTomado": {
+        "fecha": "2026-09-19",
+        "huella": "sha256:ce0efa5d67a7db4f26c0abf9401bdd66198c6b77ff4f1b7698847b037991d472",
+        "porque": "el dato nuevo mueve censos FIRMADOS del motor: la zona azul pasa de 664 a 676 tramos y pone en rojo 8 juezas de motor/src/aparcamiento.spec.ts y motor/src/viaje-coche.spec.ts (los cuatro montones, los 28 sin clasificar, las PMR y los sellos sha256 de los viajes). Entrarlo es re-firmar el censo, y eso lo decide Antonio: queda a la espera, no se toma en silencio."
+      }
     },
     {
       "name": "viario-coche",
@@ -1183,9 +1488,23 @@
           "path": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs"
         }
       ],
+      "peticion": "https://idezar-sig.zaragoza.es/servicios/geoserver/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=movilidad:MU1_ZBE_Zona_Bajas_Emisiones&outputFormat=application/json&srsName=EPSG:4326",
+      "peticionFuente": "THIRD-PARTY-NOTICES.md — la petición WFS consta («ésta la hicimos nosotros»), capa movilidad:MU1_ZBE_Zona_Bajas_Emisiones",
+      "vigilanciaDias": 30,
+      "vigilanciaFuente": "NO CONSTA periodicidad publicada por el origen: los 30 dias son DECISION DE LA CASA (19/09/2026), no del origen. La primera pasada empieza el historial que permitira vigilar menos lo que no cambia.",
+      "camposVolatiles": [
+        "timeStamp"
+      ],
+      "camposVolatilesFuente": "GeoServer sella cada respuesta con la hora de ESA peticion (WFS 2.0.0 GetFeature, campo timeStamp): no es dato, y sin quitarlo la huella no puede repetirse jamas. Medido el 19/09/2026: 2.158 elementos identicos y solo el sello distinto.",
       "descargadoEl": "2026-09-02T15:43:42Z",
       "modified": "2026-09-02T15:43:42Z",
-      "modifiedFuente": "el propio fichero lo declara en `timeStamp` del WFS"
+      "modifiedFuente": "el propio fichero lo declara en `timeStamp` del WFS",
+      "comprobadoEl": "2026-09-19T09:16:20.438Z",
+      "validadores": {
+        "etag": null,
+        "lastModified": null,
+        "medidoEl": "2026-09-19T09:16:20.438Z"
+      }
     },
     {
       "name": "parkings-zbe",
