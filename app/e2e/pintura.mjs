@@ -3777,14 +3777,34 @@ const MOSTRAR_CAPAS = `document.querySelectorAll('.leaflet-overlay-pane, .leafle
 const OCULTAR_CONTROLES = `document.querySelectorAll('.leaflet-control-container').forEach((e) => (e.style.visibility = 'hidden'))`;
 const MOSTRAR_CONTROLES = `document.querySelectorAll('.leaflet-control-container').forEach((e) => (e.style.visibility = ''))`;
 
-/** Espera a que TODAS las teselas pintadas estén cargadas. */
+/**
+ * Espera a que la rejilla de teselas esté ENTERA y cargada.
+ *
+ * ⚠️ **Esto decía «¿está cargado lo que hay?», y eso no es esperar** — bitácora
+ *    del 19/09. Leaflet va creando los `img` de la rejilla conforme los pide,
+ *    así que con DOS creadas y cargadas la condición ya se cumplía y las
+ *    juezas medían encima de un mapa a medio pintar: la P26 de `yego` acabó
+ *    midiendo el borde del polígono contra `rgb(68, 68, 68)`, que no es
+ *    ninguna tesela sino el fondo del contenedor, sobre 282 px en vez de 1.073.
+ *
+ * Esperar es esperar a que la rejilla **deje de crecer**: se exige que el
+ * número de teselas sea el mismo en dos vueltas seguidas Y que estén todas
+ * cargadas. Lo que cambia con el ordenador o con la red es cuánto tarda, no
+ * cuántas hay, así que esto no es un número mágico: es una meseta.
+ */
 async function esperarTeselas(m) {
-  for (let i = 0; i < 60; i++) {
-    const listo = await m.evaluar(`(() => {
+  let anterior = -1;
+  let quietas = 0;
+  for (let i = 0; i < 80; i++) {
+    const { cuantas, cargadas } = await m.evaluar(`(() => {
       const t = [...document.querySelectorAll('.leaflet-tile-container img.leaflet-tile')];
-      return t.length > 0 && t.every((x) => x.classList.contains('leaflet-tile-loaded') && x.complete);
+      return { cuantas: t.length, cargadas: t.filter((x) => x.classList.contains('leaflet-tile-loaded') && x.complete).length };
     })()`);
-    if (listo) break;
+    const enteras = cuantas > 0 && cargadas === cuantas;
+    quietas = enteras && cuantas === anterior ? quietas + 1 : 0;
+    anterior = cuantas;
+    // Dos vueltas quietas: la rejilla ya no crece y no queda ninguna a medias.
+    if (quietas >= 2) break;
     await m.dormir(250);
   }
   await m.dormir(400);
@@ -4560,7 +4580,48 @@ const LOS_CHIPS_DEL_PANEL = `
   return { familias: Object.values(familias), cuantos: todos.length, sinTexto: todos.filter((e) => !e.textContent.trim()).length };
 `;
 
-for (const [k, pantalla] of PANTALLAS.entries()) {
+/**
+ * ⚠️ ¿HAY PANEL EN LO QUE SE ESTÁ MIRANDO? (19/09, la mudanza a la intranet.)
+ *
+ * El 19/09 `/panel` dejó de ser público: se mudó a la intranet con la firma de
+ * Antonio (alcance B, acceso solo-local), y el `fileReplacements` de
+ * `angular.json` hace que **no exista en el dist de producción**. Quien escriba
+ * `/panel` ahí cae en el buscador por el comodín.
+ *
+ * Así que esta casilla **no siempre tiene qué juzgar**, y eso hay que decirlo,
+ * no adivinarlo: contra el dist de producción no hay panel y P28 no aplica;
+ * contra `npm run local` sí lo hay y P28 juzga entero. Lo que NO puede pasar es
+ * que se calle: antes de esta comprobación, P28 reventaba con un
+ * `getComputedStyle … parameter 1 is not of type 'Element'` —un `querySelector`
+ * a `null`— y se llevaba por delante la suite. Un rojo por ausencia de página
+ * no es un rojo de pintura.
+ *
+ * La otra mitad de la vigilancia vive en la unidad: `no-viaja.spec.ts` exige
+ * que el panel NO esté en el dist, y `rutas-intranet.spec.ts` que su URL caiga
+ * en el buscador. Entre las tres no queda hueco.
+ */
+const HAY_PANEL = await (async () => {
+  const m = await abrirChrome({ ancho: 1280, alto: 800, puerto: 9749 });
+  try {
+    await m.ir(APP + 'panel', 6000);
+    return await m.evaluar(`!!document.querySelector('app-panel')`);
+  } finally {
+    m.cerrar();
+  }
+})();
+
+if (!HAY_PANEL) {
+  console.log(
+    `\n═══ P28 · EL PANEL DE FRESCURA — NO APLICA AQUÍ ═══\n` +
+      `   En ${APP} no hay panel: es INTRANET desde el 19/09 y no viaja en el dist\n` +
+      `   de producción. Sus juezas de pintura se corren contra la configuración\n` +
+      `   local:  npm run local   y luego  node app/e2e/pintura.mjs http://localhost:4200\n` +
+      `   Que aquí no esté lo exige no-viaja.spec.ts; que su URL caiga en el\n` +
+      `   buscador, rutas-intranet.spec.ts.`,
+  );
+}
+
+for (const [k, pantalla] of HAY_PANEL ? PANTALLAS.entries() : []) {
   for (const tema of ['dark', 'light']) {
     const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
     const dicho = `P28 · ${pantalla.id} · ${nombreTema}`;
@@ -4636,7 +4697,7 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
 // ── Y EL AVISO DE FALLO, con el manifiesto caído de verdad ──
 // ⚠️ No se busca su color a mano: se tumba la petición del manifiesto antes de
 //    que la página exista, se deja que el panel pinte su fallo, y se mide.
-for (const tema of ['dark', 'light']) {
+for (const tema of HAY_PANEL ? ['dark', 'light'] : []) {
   const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
   const dicho = `P28 · el manifiesto caído · ${nombreTema}`;
   const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto: 9782 + (tema === 'dark' ? 0 : 1) });

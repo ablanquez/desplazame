@@ -390,6 +390,11 @@ const PUERTOS_DEL_ARNES = new Set([
   9840, 9841, 9850, 9851, 9860, 9861,
   // Los tres de la P31 (18/09): reflow, zoom y teclado.
   9870, 9871, 9880,
+  // ⭐ El sondeo de la P28 (19/09): ¿hay panel en lo que se está mirando? Desde
+  //    la mudanza a la intranet, `/panel` puede no existir —no viaja en el dist
+  //    de producción—, y eso se pregunta abriendo una vez, antes del bucle.
+  //    Entra aquí a la vez que la comprobación, que es lo que pide la guarda.
+  9749,
 ].map(String));
 const PUERTOS_FUERA_DEL_CENSO = new Set();
 

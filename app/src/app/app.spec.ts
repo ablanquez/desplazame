@@ -70,18 +70,49 @@ describe('App — la cáscara, su página y el comodín', () => {
   });
 
   /**
-   * ⭐ Y `/visor` es desde el 22/08 una de esas direcciones que no existen.
+   * ⭐ RE-FIRMADA EL 19/09, Y MORDIÓ ANTES — `expected null not to be null`.
    *
-   * Era la segunda página, el instrumento con el que se verificaba cada dato
-   * que entraba; se retiró de la app y **se reserva para la intranet, punto 14
-   * del plan**. Quien la tenga en un marcador o le dé a F5 no se encuentra una
-   * pantalla en blanco ni un 404: cae en el buscador, por el mismo comodín que
-   * cubre cualquier otra. Esto se comprueba aquí y no solo a mano porque un
-   * comodín que dejara de cubrirla no se notaría hasta que alguien lo probara.
+   * ═══════════════════════════════════════════════════════════════════════
+   *  **Decía**: *«`/visor` ya no existe, y cae en el buscador como cualquier
+   *  otra»*. Nació el 22/08, cuando el visor se retiró de la app, y tenía
+   *  razón durante veintiocho días.
+   *
+   *  **Lo que cambió** es la letra, no el código: Antonio firmó el 19/09 la
+   *  vuelta del visor como intranet (alcance B, acceso solo-local). Así que
+   *  `/visor` **vuelve a existir** — en la construcción local, que es la que
+   *  corren estas pruebas. Enrojeció en cuanto la ruta entró, que es
+   *  exactamente lo que se le pedía a esta jueza.
+   *
+   *  **Lo que sigue vigilando, y por qué NO se borra:** que la ruta esté
+   *  ENCHUFADA. Un `loadComponent` mal escrito, un `RUTAS_DE_INTRANET` que
+   *  no se derrame en la lista, un comodín colocado por encima — cualquiera
+   *  de esas tres deja `/visor` cayendo en el buscador otra vez, y sin esta
+   *  jueza se descubriría abriendo el navegador.
+   *
+   *  ⚠️ **Y su mitad de producción no se ha perdido**: vive en
+   *     `rutas-intranet.spec.ts`, que monta la app con el fichero VACÍO —el
+   *     que `fileReplacements` pone en producción— y comprueba que ahí
+   *     `/visor` y `/panel` sí caen en el buscador.
+   * ═══════════════════════════════════════════════════════════════════════
    */
-  it('⭐ /visor ya no existe, y cae en el buscador como cualquier otra', async () => {
+  it('⭐ /visor existe otra vez, y en local monta el visor de capas', async () => {
     const { raiz } = await ir('/visor');
-    expect(raiz.querySelector('app-buscador')).not.toBeNull();
+    expect(raiz.querySelector('app-visor')).not.toBeNull();
+  });
+
+  /**
+   * ⭐ Y LA PORTADA NO LO MONTA, que es la otra mitad del molde.
+   *
+   * El mismo par que guardan `/identidad` y `/creditos`. Aquí importa MÁS que
+   * en ninguna: si alguien cambiara el `loadComponent` del visor por un
+   * `component`, `Visor` se importaría de forma estática, se llevaría a
+   * `MapaDeCapas` y al servicio `Capas` al paquete de la portada, y las dos
+   * juezas de «cero peticiones» seguirían en verde —el código empaquetado no
+   * se pide por `fetch`—. Ésta es la que lo vería.
+   */
+  it('⭐ la portada NO monta el visor de capas', async () => {
+    const { raiz } = await ir('/');
+    expect(raiz.querySelector('app-visor')).toBeNull();
   });
 
   /**
@@ -99,9 +130,14 @@ describe('App — la cáscara, su página y el comodín', () => {
    * que descargaba la página. Se cuenta a cero y no «a pocas»: cualquier
    * número distinto de cero significa que algo volvió a colgarse del andamio.
    */
-  it('⭐ abrir la raíz NO pide ni un byte de /datos/', async () => {
+  it('⭐ abrir la raíz NO pide ni un byte de /data/', async () => {
+    // ⚠️ RE-APUNTADA EL 19/09: decía `/datos/`, y esa carpeta ya no existe.
+    //    El visor de agosto pedía de `/datos/`; al volver como intranet se
+    //    resolvió la discrepancia con el resto de la app —que pide de `data/`
+    //    desde el 2/09, por la ZBE— a UN SOLO nombre, `data`. Una jueza que
+    //    filtra por una carpeta que nadie usa está verde por vacía.
     await ir('/');
-    const datos = peticiones.filter((u) => u.includes('/datos/'));
+    const datos = peticiones.filter((u) => u.includes('/data/'));
     expect(datos).toEqual([]);
   });
 
@@ -224,11 +260,39 @@ describe('App — la cáscara, su página y el comodín', () => {
     expect(raiz.querySelectorAll('a[href="/creditos"]').length).toBe(2);
   });
 
-  it('⭐ y el manifiesto se pide al entrar en /panel, que es su sitio', async () => {
-    // El contraste: la misma cáscara, la misma sesión, otra ruta. Si esto NO
-    // pidiera nada, la prueba de arriba estaría pasando por la razón
-    // equivocada — porque el panel no funciona, no porque la raíz sea limpia.
+  /**
+   * ⭐ RE-APUNTADA EL 19/09: `/panel` sigue aquí, pero **ya no es público**.
+   *
+   * El panel de frescura se mudó a la intranet con la firma de Antonio, y su
+   * ruta vive ahora en `rutas-intranet.ts`. Lo que esta jueza comprueba no
+   * cambia —que al entrar se pide el manifiesto, una vez— pero **su sitio sí**:
+   * en producción esta ruta no existe, así que lo que se está midiendo es la
+   * construcción LOCAL, que es la única donde el panel se abre.
+   *
+   * Sigue siendo el contraste de la jueza de «cero peticiones»: si esto NO
+   * pidiera nada, aquélla estaría pasando por la razón equivocada —porque el
+   * panel no funciona, no porque la raíz sea limpia—.
+   */
+  it('⭐ y el manifiesto se pide al entrar en /panel, que en local es su sitio', async () => {
     await ir('/panel');
     expect(peticiones.filter((u) => u.includes('datapackage.json')).length).toBe(1);
+  });
+
+  /**
+   * ⭐ Y EL VISOR SÍ BAJA DATO, que es justo a lo que viene.
+   *
+   * El tercero del molde de rutas perezosas, y aquí **al revés que en
+   * `/identidad` y `/creditos`**: a aquéllas se les exige no pedir nada; a
+   * ésta se le exige pedir. Son los 17 ficheros de `app/data/` que pintan las
+   * catorce capas — 40,72 MiB que **por eso mismo** no pueden colgar de la
+   * portada, y por eso esta página no viaja a producción.
+   *
+   * Se cuenta que son 17 y que todas salen de `/data/`: si alguien añadiera
+   * una capa nueva sin ficha, o cambiara la carpeta, se vería aquí.
+   */
+  it('⭐ y entrar en /visor sí pide sus 17 ficheros de datos', async () => {
+    await ir('/visor');
+    expect(peticiones.length).toBe(17);
+    expect(peticiones.every((u) => u.startsWith('/data/'))).toBe(true);
   });
 });

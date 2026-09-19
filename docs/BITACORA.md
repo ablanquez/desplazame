@@ -14,6 +14,60 @@
 
 ---
 
+## [2026-09-19] ✅ CERRADA — `esperarTeselas` da el visto bueno con 2 teselas de 8, y la P26 mide el borde contra el fondo del contenedor
+
+**Categoría:** un instrumento que declara «listo» cuando todavía no lo está
+**Síntoma:** la P26 de `yego` en móvil se puso roja al medir el borde del
+polígono contra la tesela — `peor 1.94 sobre rgb(68, 68, 68)`, que no es
+ninguna tesela: es el fondo del contenedor de Leaflet, lo que asoma donde aún
+no se ha pintado. Con el dist anterior la MISMA jueza da verde. La diferencia
+no es el color, que no se ha tocado: es **cuántas teselas había pintadas al
+disparar la captura**, 2 contra 8, y con ellas el área medida, 282 px contra
+1.073. El bundle nuevo va en cuatro trozos iniciales en vez de uno y el mapa
+monta un pelo más tarde.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** `esperarTeselas` (su bucle
+sale en cuanto `t.length > 0 && t.every(cargada)`) devolvió «listo» con dos
+teselas, y las juezas midieron encima sin rechistar. La misma jueza, mismo
+código de pintura, contra los dos dist:
+
+```
+ANTES (main-R3WSVEHT.js)
+  OK  P26 · movil · yego · ⭐ el borde #15803d a rayas del polígono se separa de la tesela: ≥ 3:1 [1.4.11]  ·  peor 3.21 sobre rgb(33, 33, 33) · 11 colores ≥ 1 % bajo 1073 px · 10 polígono(s)
+  OK  P26 · movil · yego · ⭐ dark · la tesela es la del tema: Dark Matter de CARTO, con su key  ·  8 teselas · OSM 0 · dark_all 8 · con key 8
+
+AHORA (main-GG47HBNK.js)
+  ✗✗  P26 · movil · yego · ⭐ el borde #15803d a rayas del polígono se separa de la tesela: ≥ 3:1 [1.4.11]  ·  peor 1.94 sobre rgb(68, 68, 68) · 13 colores ≥ 1 % bajo 282 px · 10 polígono(s)
+  OK  P26 · movil · yego · ⭐ dark · la tesela es la del tema: Dark Matter de CARTO, con su key  ·  2 teselas · OSM 0 · dark_all 2 · con key 2
+```
+
+El verde de arriba es el que miente: midió 1.073 px de un mapa que tampoco
+estaba entero, y salió por encima de la vara por suerte, no por cobertura.
+**Cómo se cazó:** instrumento — la batería de la fase 2 de la intranet, al
+comparar la misma suite contra el dist de antes y el de ahora para decidir si
+la roja era mía.
+**Causa raíz:** la condición de salida del bucle era `t.length > 0 &&
+t.every(cargada)`, o sea **«¿está cargado lo que hay?»**. Leaflet crea los
+`img` de la rejilla conforme los pide, así que en la primera vuelta hay dos, y
+si esas dos ya están cargadas la condición se cumple y el bucle sale. Nunca
+esperaba a las demás. El fallo llevaba ahí desde que se escribió la espera y
+solo se notaba cuando el mapa montaba tarde — por eso la P26 iba y venía sin
+patrón (los `aro/tesela —` de las tandas anteriores son de esta misma familia).
+Lo que lo hizo constante fue que el paquete de la portada pasó de un trozo
+inicial a cuatro, al separar las rutas de intranet: unas décimas más tarde, y
+la carrera se pierde siempre.
+**Arreglo aplicado:** `esperarTeselas` en `app/e2e/pintura.mjs` espera a que la
+rejilla **deje de crecer**: cuenta teselas y cargadas en cada vuelta y exige
+dos vueltas seguidas con el mismo número y todas cargadas. No es un número
+mágico ni un `dormir` más largo — es una meseta, y lo que varía con la máquina
+es cuánto se tarda en llegar a ella, no cuál es.
+**Commit:** ⏳ PENDIENTE — se escribe copiando el hash, no de memoria
+**Ley que sale de aquí:** una espera que pregunta «¿está cargado lo que hay?»
+no espera nada: mientras el que sirve siga creando piezas, la respuesta es que
+sí desde la primera. Esperar es esperar a que **deje de crecer**, y quien mide
+sobre píxeles tiene que decir CUÁNTOS midió — el `282 px` contra `1.073 px` es
+lo que delató esto, no el contraste.
+**Traza:** `app/e2e/pintura.mjs` (`esperarTeselas`, casilla P26 · `yego`).
+
 ## [2026-09-19] ✅ CERRADA — El cron educado cantó «actualizado» sobre un dato idéntico: el WFS mete un `timeStamp` por petición y la huella cruda se lo come
 
 **Categoría:** una huella que mide el envoltorio en vez del dato
