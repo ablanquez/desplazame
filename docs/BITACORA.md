@@ -14,6 +14,79 @@
 
 ---
 
+## [2026-09-19] ✅ CERRADA — El cron educado cantó «actualizado» sobre un dato idéntico: el WFS mete un `timeStamp` por petición y la huella cruda se lo come
+
+**Categoría:** una huella que mide el envoltorio en vez del dato
+**Síntoma:** primera pasada real de `scripts/mantener-datos.mjs` contra las
+fuentes de verdad (19/09, 08:52). Los tres primeros conjuntos del WFS de IDEZar
+salen `✔ ACTUALIZADO · 695754 bytes · huella nueva`, y el guion reescribe el
+fichero. Comparados campo a campo contra `HEAD`, el dato es **el mismo**:
+
+```
+2026-08-17_wfs_movilidad-MU2_aparcabicis.json   features 2158 → 2158 · cambia: ['timeStamp']
+2026-08-18_wfs_movilidad-MU1_zonas_reguladas.json features 13 → 13 · cambia: ['timeStamp']
+2026-08-18_wfs_movilidad-MU2_motos.json         features 2146 → 2146 · cambia: ['timeStamp']
+```
+
+GeoServer sella cada respuesta con la hora de ESA petición
+(`"timeStamp": "2026-09-19T08:52:12.577Z"` contra `"2026-08-17T12:34:31.537Z"`),
+así que el sha256 del cuerpo **nunca puede repetirse**: con el guion puesto en
+un cron, estos conjuntos se reescribirían cada noche, con fecha de cambio nueva
+y huella nueva, diciendo que el dato cambió cuando no ha cambiado nada.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la jueza del propio cron,
+`app/src/app/mantener-datos.spec.ts`, y en particular su prueba de la ley nº10
+—«200 con el MISMO cuerpo: la huella manda — sin cambio (el 304 casero)»—.
+Ejecutada antes de tocar nada, con el fallo ya vivo en la pasada real:
+
+```
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+     ×  ⭐ Y TRAS LA PASADA REAL, ninguno vigilado se queda sin fecha de comprobación
+```
+
+Las 10 verdes incluyen la de la huella: su fuente de mentira devuelve dos veces
+el mismo cuerpo **byte a byte**, que es un caso más fácil que el real — ninguna
+fuente de verdad contesta dos veces lo mismo cuando sella la hora dentro.
+**Cómo se cazó:** instrumento — la primera pasada real, mirando el parte en vez
+de fiarse de la salida 0.
+**Causa raíz:** la huella se calculaba sobre **la respuesta entera**, y una
+respuesta no es el dato: trae además lo que el servidor añade por el hecho de
+contestar. GeoServer pone su `timeStamp` de petición; y la API de equipamientos
+de zaragoza.es —el segundo caso, cazado en la misma pasada— devuelve **los
+arrays barajados** (el campo `type` de 58 de las 138 fichas de
+educacion-primaria, con el dato idéntico), así que seis conjuntos más salieron
+«actualizados» sin haber cambiado. La jueza no podía verlo porque su fuente de
+mentira contestaba **dos veces el mismo cuerpo byte a byte**, que es un caso que
+ninguna fuente de verdad produce.
+**Arreglo aplicado:** `scripts/mantener-datos.mjs` — `desenvuelto()` quita los
+campos que el conjunto declare volátiles y, si el orden tampoco es dato, compara
+en forma `canonico()`; la comparación va contra **el fichero que hay**, no contra
+la huella declarada, y cuando solo cambia el envoltorio **no se escribe nada**.
+`datapackage.json` — `camposVolatiles` + `camposVolatilesFuente` en las 8 capas
+WFS y `ordenVolatil` + `ordenVolatilFuente` en los 16 conjuntos de zaragoza.es.
+`app/src/app/mantener-datos.spec.ts` — la fuente de mentira ahora **sella la hora
+y baraja los arrays**, con las dos contrapruebas: sin declarar el sello, o sin
+declarar el orden, ese mismo caso vuelve a cantar «actualizado».
+Verificado con la pasada de verdad repetida: `54 conjuntos · 0 actualizados · 24
+sin cambio · 0 fallidos · 30 no vigilables`, que es lo que tiene que decir un
+cron corrido dos veces seguidas.
+**Commit:** `c0e10c9` (el guion y su jueza) · `f346c6c` (el manifiesto: qué es
+volátil en cada conjunto, con su fuente)
+**Ley que sale de aquí:** una huella se calcula sobre EL DATO, no sobre la
+respuesta: lo que el servidor añade por el hecho de contestar —la hora, el
+identificador de petición— no es dato y no puede entrar en la comparación. Y en
+corolario: **una jueza que se fabrica su propia fuente tiene que hacerla
+contestar como contesta la de verdad**, sellos incluidos; si contesta dos veces
+lo mismo, compra un caso que en producción no existe.
+**Traza:** `scripts/mantener-datos.mjs` (el cálculo de `huella` y la comparación
+con `r.hash`) · `app/src/app/mantener-datos.spec.ts` (la prueba de la ley nº10 y
+su servidor de mentira) · las 8 capas WFS declaradas en `datapackage.json`.
+
+> **Nota del cierre (2026-09-19):** el mismo mal apareció con otra cara en la
+> misma pasada —el orden de los arrays de zaragoza.es— y va contado arriba, en
+> la causa raíz, porque es el mismo fallo: comparar el envoltorio en vez del
+> dato. La ley se cumple en los dos.
+
 ## [2026-09-17] ✅ CERRADA — `cerrar()` borra su perfil en la prueba y no en las suites: el arnés sigue dejando fósiles que nadie puede borrar
 
 **Categoría:** prueba que mide un caso más fácil que el real
