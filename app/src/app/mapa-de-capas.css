@@ -1,0 +1,27 @@
+/* Lo que el mapa público no necesita y éste sí: EL CONTROL DE CASILLAS.
+
+   Leaflet lo trae a pelo, en blanco con letra negra, igual que traía el zoom y
+   la atribución — que ya pasaron a los tokens en `mapa.css`, el fichero que
+   este componente comparte. Con el tema oscuro, sin esto, el control sería un
+   bloque blanco encima del Dark Matter, que es justo lo que la tanda 6 quitó
+   del resto de los controles. */
+:host ::ng-deep .leaflet-control-layers {
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  color: var(--foreground);
+  border-radius: 4px;
+}
+
+/* Las catorce, con su cuenta, tienen que caber y leerse. Son nombres largos
+   —«¿Ampliación? zonas sin activar (2.860)»— y en una ventana de portátil el
+   control llegaría abajo del todo: se le pone tope y que ruede. */
+:host ::ng-deep .leaflet-control-layers-list {
+  max-height: 70vh;
+  overflow-y: auto;
+  font-size: 0.82rem;
+}
+
+:host ::ng-deep .leaflet-control-layers label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}

@@ -27,8 +27,8 @@ import { svgDeCapa, type Clase } from './iconos';
 export type { Vertice };
 
 /** Zaragoza, y un zoom que enseña la ciudad entera. */
-const CENTRO: L.LatLngTuple = [41.6488, -0.8891];
-const ZOOM = 12;
+export const CENTRO: L.LatLngTuple = [41.6488, -0.8891];
+export const ZOOM = 12;
 
 /**
  * Cuánto aire se le deja a la ruta al encuadrarla, en píxeles por lado.
@@ -517,12 +517,12 @@ const ATRIBUCION =
  */
 const CLAVE_CARTO = 'cb1_3lwh_1_86be5eb6855590e7c896dc90';
 
-const TESELA_CLARA = {
+export const TESELA_CLARA = {
   url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   opciones: { maxZoom: 19, attribution: ATRIBUCION } satisfies L.TileLayerOptions,
 };
 
-const TESELA_OSCURA = {
+export const TESELA_OSCURA = {
   url: `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png?key=${CLAVE_CARTO}`,
   opciones: {
     maxZoom: 19,
