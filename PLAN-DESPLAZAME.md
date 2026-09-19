@@ -3715,8 +3715,74 @@ plan; Linaje para el panel). Los NO CONSTA del 17/08, RESUELTOS:**
       huso, conocido) · YeGo ✔ · el coche con el mudo honesto de la
       DGT ✔ · la app de una pantalla (sin rutas — el fallback
       comprado por jueces y curl). **EL 14, CERRADO.**
-- [ ] **El mantenimiento de datos (el cron educado) — doctrina leída
-      el 23/08, se ejecuta aquí**: la cadencia es POR CONJUNTO y con
+- [x] ⚰️ **El mantenimiento de datos (el cron educado) — HECHO
+      (19/09; 3 commits `c0e10c9`…`4bf111b`) + LA RE-FIRMA DEL CENSO
+      (19/09; `fcc63db`) — un push con estos papeles**. ⭐ LA TABLA
+      DE VALIDADORES mató la suposición [una petición real por
+      fuente, UA con contacto]: NINGUNA fuente sirve un 304 de
+      verdad — zaragoza.es emite un Last-Modified DECORATIVO y mal
+      formado [CEST donde RFC 9110 exige GMT; probado en tres
+      formas: 200 con cuerpo entero las tres] y sus servidores
+      CORTAN a ~8 peticiones en 4 min [la pausa de cortesía no es
+      adorno]; GeoServer/Overpass/NAP, sin validadores. El camino
+      real: el «304 casero» [bajar y comparar HUELLA — ley nº10],
+      con el condicional mandado igual [gratis; si algún día emiten,
+      el guion se entera solo; If-None-Match con precedencia — MDN
+      releído]. EL GUION [scripts/mantener-datos.mjs]: vencido por
+      cadencia del manifiesto → condicional → tres estados dichos
+      [sin-cambio · actualizado · fallido-con-porqué], validación +
+      huella + SWAP con respaldo [el patrón del guardián], las DOS
+      fechas al manifiesto [comprobado ≠ cambiado], reintentos
+      2/8/32 s, pausa 3 s, salidas verdaderas; 54 conjuntos, NADIE
+      en silencio [30 no-vigilables DICHOS: sin petición guardada
+      ni huella de fuente — que es distinto de vigilarlos mal]. ⭐
+      BITÁCORA nº62, nacida y cerrada el mismo día: los dos
+      primeros WFS salieron «actualizados» con dato IDÉNTICO
+      [GeoServer sella cada respuesta con su hora] y zaragoza.es
+      BARAJA los arrays [58/138 fichas] — seis falsos positivos
+      más; el arreglo: camposVolatiles y ordenVolatil declarados
+      POR CONJUNTO con fuente, y la jueza con una FUENTE DE MENTIRA
+      que sella y baraja como las de verdad. LA JUEZA 18/18 [16
+      rojas al nacer; contrapruebas: sello sin declarar, orden sin
+      declarar, nota caducada, guion saboteado que publica sin
+      huella]. EL CRON: en LA MÁQUINA DE ANTONIO, y no es gusto —
+      el producto del cron es UN COMMIT [dato+manifiesto+huellas] y
+      en el servidor el auto-deploy lo pisaría; schtasks montado el
+      19/09 [diaria 3:30, verificado «Listo»]; ZetaBus DESCARTADO
+      con porqué [su cron regenera en servidor vía URL con token;
+      aquí el producto viaja por git — arquitecturas distintas]; la
+      línea de hPanel entregada igualmente por si acaso. Órdenes:
+      npm run mantener-datos [--seco · --forzar · --solo]. LA
+      PASADA REAL: 3 actualizados [centros-salud,
+      ciclos-formativos, escuela-infantil — «Parque Venecia»→
+      «Pinares de Venecia»] · 22 sin cambio · 3 EN ESPERA · 0
+      fallidos; repetida acto seguido: 0 y 0 [un cron corrido dos
+      veces no encuentra nada]. ⭐ LA RE-FIRMA [doctrina: el canon
+      snapshot/golden de Jest — el diff primero, actualizar
+      DELIBERADAMENTE, el golden viaja con su cambio en UN commit,
+      y lo no explicado NO se fotografía]: el diff POR CONTENIDO
+      tras cazar que el Ayuntamiento REIMPORTÓ y renumeró todo
+      [casar por id daba 7.424 entradas falsas; reales: 262/229 en
+      regulado, 75/55 en reservas, jerarquía 0 — solo precisión y
+      un campo a null QUE EL MOTOR NO LEE, comprobado]; los tres
+      entrados POR EL MECANISMO del cron [cambioNoTomado resuelto;
+      el camino del 200 con censo firmado delante, sin tropezar];
+      LAS 8 ACTAS UNA A UNA, cada movimiento trazado al dato [los
+      montones 664→676 con su desglose ESRO+12/ESRE+6/LIBRE+13/
+      PMR+10 — la cabecera de esa jueza avisaba que caducaría «el
+      día que amplíen la zona azul»: fue el 19/09; los 28→30 sin
+      clasificar; las 158 retiradas QUIETAS; las formas de horario
+      104→106 con las dos del día corregido; los 4 ids renumerados
+      SIN moverse el sitio, comprobados uno a uno] — ⭐ y el sello
+      que SÍ se movió con su porqué medido: CÉSAR AUGUSTO 23 [ESRO,
+      5 plazas] YA NO EXISTE en el censo municipal → el viaje de
+      siempre aparca en Ramón Celma Bernal 2 [ya existía, más
+      lejos]: 3.604→4.352 m, 14→13 pasos, con el paso a paso
+      medido [el sábado sin ZBE en vigor no deja verlo en pantalla
+      — dicho, no forzado]. Batería: 10/10 [dos flakies conocidas
+      repetidas a verde], motor 656 tras las re-firmas [nada más
+      se movió], interfaz 718, bundle INTACTO confirmado
+      [main-R3WSVEHT.js]. LA LETRA ORIGINAL del bloque: la cadencia es POR CONJUNTO y con
       fuente (la declara el manifiesto del panel de frescura, punto
       14-adelantado — una verdad, dos usos: color y planificación).
       El patrón es el **GET CONDICIONAL** [MDN]: preguntar con
@@ -5230,5 +5296,6 @@ decisión con dueño).
       Antonio lo VIO en vivo («el tema diseño no es ahora») y el
       estándar quedó verificado independientemente antes de este
       destilado
-- [ ] 3 · El mantenimiento que re-descarga NO va aquí: vive en el
+- [ ] 3 · El mantenimiento que re-descarga NO va aquí [y ya está
+      HECHO, 19/09 — el cron educado, crónica en su bloque]: vive en el
       punto 14 (el cron educado), leyendo este mismo manifiesto
