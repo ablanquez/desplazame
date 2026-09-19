@@ -1,0 +1,32 @@
+/* CSS mínimo y funcional, como el resto: aquí lo único que importa es que el
+   mapa sea grande. La estética va al final del proyecto (punto 11). */
+
+/* La caja ocupa la ventana menos la barra de navegación, y el mapa se come
+   todo lo que sobra después de la cabecera. Así no hay número mágico: si la
+   cabecera crece, el mapa encoge solo. */
+.visor {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--alto-navegacion, 0rem));
+  padding: 0.5rem 0.75rem 0.75rem;
+  box-sizing: border-box;
+}
+
+.visor__cabecera h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.visor__cabecera p {
+  margin: 0.15rem 0 0.5rem;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+/* Leaflet necesita altura DEFINIDA: se la da el flex, y el mapa la hereda con
+   su parámetro `alto` a 100%. `min-height: 0` es lo que deja encoger a un
+   elemento flexible por debajo de su contenido. */
+app-mapa {
+  flex: 1;
+  min-height: 0;
+}
