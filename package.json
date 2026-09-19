@@ -13,7 +13,8 @@
     "probar": "npm run probar --workspace @desplazame/motor && npm test --workspace desplazame",
     "build": "npm run build --workspace @desplazame/motor",
     "construir": "npm run construir --workspace desplazame",
-    "comprobar-dist": "npm run comprobar-dist --workspace desplazame"
+    "comprobar-dist": "npm run comprobar-dist --workspace desplazame",
+    "mantener-datos": "node scripts/mantener-datos.mjs"
   },
   "engines": {
     "node": ">=22"
