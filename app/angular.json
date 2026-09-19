@@ -56,12 +56,38 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/app/rutas-intranet.ts",
+                  "with": "src/app/rutas-intranet.vacio.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "local": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public"
+                },
+                {
+                  "glob": "favicon.svg",
+                  "input": "marca"
+                },
+                {
+                  "glob": "**/*",
+                  "input": "data",
+                  "output": "data"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -77,6 +103,9 @@
             },
             "development": {
               "buildTarget": "desplazame:build:development"
+            },
+            "local": {
+              "buildTarget": "desplazame:build:local"
             }
           },
           "defaultConfiguration": "development"

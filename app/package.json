@@ -10,7 +10,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "comprobar-tipos": "node scripts/comprobar-tipos.mjs",
-    "comprobar-arranque": "node scripts/comprobar-arranque.mjs"
+    "comprobar-arranque": "node scripts/comprobar-arranque.mjs",
+    "local": "ng serve --configuration local",
+    "construir-local": "ng build --configuration local --output-path dist-local"
   },
   "private": true,
   "packageManager": "npm@11.17.0",

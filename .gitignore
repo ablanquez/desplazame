@@ -40,3 +40,10 @@ app/data/nap_gtfs-ficha1176.cocinado.json
 # versionan, no se despliegan y se borran solos a los 14 días. El `*.log` de
 # arriba ya los cubre; la carpeta va escrita para que se sepa que existe.
 motor/logs/
+
+# ⭐ LA CONSTRUCCIÓN LOCAL DE LA INTRANET (19/09, fase 2 del visor).
+# `npm run construir-local` levanta el visor y el panel —las dos páginas que
+# NO se despliegan— y, con ellos, los 17 ficheros de `app/data/`: 40,72 MiB.
+# Sale a `app/dist-local/` justo para no poder pisar el `app/dist/` versionado
+# que es el que viaja a producción. Aquí no entra ni por descuido.
+app/dist-local/

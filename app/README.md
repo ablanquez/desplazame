@@ -52,6 +52,74 @@ Se niega si el `dist` no lleva marca, si el bundle no cuadra con ella, o si hay
 restos de un swap a medias. La misma comprobación la corre sola la jueza
 `src/app/construir.spec.ts` en cada batería de unidad.
 
+⚠️ **Y desde el 19/09 se niega también si la INTRANET se ha colado dentro**
+(salida 17): ni el visor de capas, ni el panel de frescura, ni un solo fichero
+de `app/data/` que no sea el de la ZBE. Ver abajo.
+
+## La intranet: el visor de capas y el panel de frescura
+
+⚠️ **Estas dos páginas NO se despliegan.** Antonio firmó el 19/09 acceso
+**solo-local**: `/visor` y `/panel` existen en tu máquina y **no viajan en el
+`dist`** que se empuja. [OWASP ASVS 2.32] pide que las interfaces
+administrativas no sean accesibles a partes no confiables, y su extremo fuerte
+—el de la DevGuide— es que no lo sean desde internet.
+
+### Cómo se abre
+
+```bash
+npm run local            # desde la raíz del repositorio
+```
+
+…y luego, en el navegador:
+
+| dirección | qué es |
+|---|---|
+| <http://localhost:4200/visor> | el visor: las catorce capas de verificación y la morada |
+| <http://localhost:4200/panel> | el panel de frescura de los datos |
+| <http://localhost:4200/> | la portada de siempre, igual que en producción |
+
+La primera vez que abras `/visor` **tarda**: se baja los 17 ficheros de
+`app/data/`, **40,72 MiB**, de los cuales el grafo son 22,82 y los portales
+10,33. Ninguna capa arranca encendida; se encienden una a una en el control de
+arriba a la derecha, que es como se verifica — mirando una cosa cada vez.
+
+Si prefieres construirlo en vez de servirlo:
+
+```bash
+npm run construir-local --workspace desplazame   # sale a app/dist-local/
+```
+
+⚠️ Sale a `app/dist-local/`, **nunca a `app/dist/`**, que es el que se
+despliega. Está en el `.gitignore`.
+
+### Por qué no viaja, y cómo se comprueba
+
+`npm run local` usa la configuración `local` de `angular.json`, que es la única
+que **no** aplica este reemplazo:
+
+```json
+"fileReplacements": [
+  { "replace": "src/app/rutas-intranet.ts", "with": "src/app/rutas-intranet.vacio.ts" }
+]
+```
+
+[angular.dev · *Build environments*] *«replaces any file in the TypeScript
+program with a target-specific version»*. Con la lista de rutas vacía, el
+constructor **no ve ninguna importación** hacia el visor ni hacia el panel, así
+que sus trozos **no se generan**. No es que se generen y no se sirvan: no
+existen. Y `defaultConfiguration` es `production`, así que `ng build` a secas ya
+sale limpio.
+
+⚠️ **Pero un mecanismo no es una garantía**, así que el invariante se comprueba
+sobre el dist construido: `npm run comprobar-dist` abre cada `.js` y se niega
+(salida 17) si encuentra `app-visor`, `app-panel` o `app-mapa-de-capas`, o un
+fichero en `data/` que no sea el de la ZBE. Su jueza es
+`src/app/no-viaja.spec.ts`, que la sabotea en copia.
+
+**Quien abra `/visor` o `/panel` en producción** no se encuentra un 404 ni una
+pantalla en blanco: cae en el buscador por el comodín, como cualquier dirección
+que no existe. Tiene jueza en `src/app/rutas-intranet.spec.ts`.
+
 ## Running unit tests
 
 To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:

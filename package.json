@@ -14,7 +14,8 @@
     "build": "npm run build --workspace @desplazame/motor",
     "construir": "npm run construir --workspace desplazame",
     "comprobar-dist": "npm run comprobar-dist --workspace desplazame",
-    "mantener-datos": "node scripts/mantener-datos.mjs"
+    "mantener-datos": "node scripts/mantener-datos.mjs",
+    "local": "npm run local --workspace desplazame"
   },
   "engines": {
     "node": ">=22"
