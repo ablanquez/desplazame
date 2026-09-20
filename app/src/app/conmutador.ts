@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { Simbolo } from './simbolos';
 import { Tema } from './tema';
 
@@ -28,9 +28,39 @@ import { Tema } from './tema';
  *
  * ── Dónde se pinta ──────────────────────────────────────────────────────────
  *
- * En dos sitios, y **nunca en los dos a la vez**: el cuarto hueco de la barra de
- * pestañas en móvil, y la cabecera del panel en escritorio. Cada variante se
- * apaga en el ancho de la otra; ver `styles.css`.
+ * En dos sitios de la app pública, y **nunca en los dos a la vez**: el cuarto
+ * hueco de la barra de pestañas en móvil, y la cabecera del panel en
+ * escritorio. Cada variante se apaga en el ancho de la otra; ver `styles.css`.
+ *
+ * ── ⭐ Y DESDE EL 20/09, UNA TERCERA: `suelta` ──────────────────────────────
+ *
+ * La pide la intranet. `/visor` y `/panel` no tienen barra de pestañas ni
+ * cabecera del Buscador, así que con la variante de escritorio el conmutador
+ * **desaparecía por debajo de 768** —`.conmutador` lo apaga ahí porque en móvil
+ * manda el hueco de la barra— y esas dos páginas se quedaban otra vez sin
+ * forma de cambiar de tema. Medido antes de tocar nada: `0×0 px · display
+ * none` en los dos, a 390.
+ *
+ * ⚠️ **POR QUÉ EL ARREGLO VIVE AQUÍ Y NO EN LA HOJA GLOBAL**, que es la parte
+ *    que importa. [DOC Angular · *Styling components*] la encapsulación
+ *    emulada —la de serie— garantiza que los estilos de un componente no
+ *    salgan de él, «sin embargo, los estilos GLOBALES definidos fuera de un
+ *    componente SÍ pueden afectar a los elementos de dentro». Las dos mitades
+ *    de esa frase mandan aquí:
+ *
+ *    · la segunda es la causa raíz de la colisión de `.panel` (bitácora del
+ *      20/09): en una hoja global, el nombre de una clase es un identificador
+ *      de TODA la aplicación, y una página nueva que lo reutilice hereda en
+ *      silencio la maquetación de otra;
+ *    · la primera es la que se aprovecha ahora: **un estilo declarado en este
+ *      componente no puede tocar a nadie más**. Así que la tercera variante no
+ *      añade ni una línea a `styles.css` —ni un nombre de la intranet a la
+ *      hoja que SÍ viaja a producción— y no puede colisionar con nada.
+ *
+ * ⚠️ Y **no copia el vestido, lo hereda**: `suelta` lleva las DOS clases,
+ *    `conmutador` —los 44×44, el radio, las tintas, el anillo de foco— y
+ *    `conmutador--suelta`, que solo deshace el apagado por ancho. Un segundo
+ *    juego de colores escrito a mano es justo lo que la casa no tiene.
  *
  * ⚠️ La posición en escritorio **NO CONSTA** en DISEÑO ni en la maqueta —el §35
  *    firma el conmutador y el §20 le guarda el hueco de móvil, pero de PC no
@@ -41,11 +71,23 @@ import { Tema } from './tema';
 @Component({
   selector: 'app-conmutador-de-tema',
   imports: [Simbolo],
+  /**
+   * ⚠️ UNA SOLA REGLA, Y ENCAPSULADA A PROPÓSITO. Lo único que la variante
+   *    suelta necesita es deshacer el `display: none` que `.conmutador` trae de
+   *    la hoja global por debajo de 768. Pesa (0,2,0) contra los (0,1,0) de
+   *    aquélla —dentro y fuera de su `@media`—, así que gana por especificidad
+   *    y no por orden de hojas, que es lo que no se deshace al reordenar.
+   */
+  styles: `
+    .conmutador--suelta {
+      display: inline-flex;
+    }
+  `,
   template: `
     <button
       type="button"
       role="switch"
-      [class]="variante() === 'barra' ? 'barra__boton conmutador--barra' : 'conmutador'"
+      [class]="clase()"
       [attr.aria-checked]="tema.oscuro()"
       aria-label="Modo oscuro"
       (click)="tema.alternar()"
@@ -58,8 +100,23 @@ import { Tema } from './tema';
   `,
 })
 export class ConmutadorDeTema {
-  /** `barra` se calza el traje de las pestañas de móvil; `cabecera`, el de PC. */
-  readonly variante = input<'barra' | 'cabecera'>('cabecera');
+  /**
+   * `barra` se calza el traje de las pestañas de móvil; `cabecera`, el de PC; y
+   * `suelta`, el de una página que no tiene ni lo uno ni lo otro — la intranet.
+   */
+  readonly variante = input<'barra' | 'cabecera' | 'suelta'>('cabecera');
+
+  /** El traje que toca. `suelta` hereda el de cabecera y le quita el apagado. */
+  protected readonly clase = computed(() => {
+    switch (this.variante()) {
+      case 'barra':
+        return 'barra__boton conmutador--barra';
+      case 'suelta':
+        return 'conmutador conmutador--suelta';
+      default:
+        return 'conmutador';
+    }
+  });
 
   protected readonly tema = inject(Tema);
 }

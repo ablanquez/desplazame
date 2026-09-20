@@ -264,6 +264,26 @@ describe('⭐ LA PÁGINA /panel', () => {
     expect(boton!.tagName).toBe('BUTTON');
   });
 
+  /**
+   * ⭐ H1 · Y NO SE APAGA POR ANCHO: la variante SUELTA (20/09, el paro).
+   *
+   * Nació en rojo: el conmutador entraba con la variante de cabecera, y ésa la
+   * apaga `styles.css` por debajo de 768 —ahí el conmutador vive en la barra de
+   * pestañas, y las dos páginas de la intranet no tienen barra—. Así que bajo
+   * 768 seguía sin haber forma de cambiar de tema.
+   *
+   * ⚠️ Lo que esta jueza compra es **el contrato**, no los píxeles: en jsdom no
+   *    hay hoja global que aplicar. Que se VEA de verdad en los tres anchos lo
+   *    mide la P32 de `pintura.mjs`, en Chrome. Las dos hacen falta.
+   */
+  it('⭐ y usa la variante SUELTA, que no se apaga por debajo de 768', async () => {
+    const { raiz } = await ir('/panel');
+
+    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]')!;
+    expect(boton.classList.contains('conmutador--suelta')).toBe(true);
+    expect(boton.classList.contains('conmutador')).toBe(true);
+  });
+
   it('⭐ pide el manifiesto, y una sola vez', async () => {
     await ir('/panel');
     const suyas = peticiones.filter((u) => u.includes('datapackage.json'));
