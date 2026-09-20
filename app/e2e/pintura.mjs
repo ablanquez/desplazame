@@ -5471,6 +5471,28 @@ const tabular = async (m) => {
   await m.dormir(90);
 };
 
+/**
+ * ⭐ **ACTA DE LA 2.4.7 (20/09): el indicador también cuenta si lo pinta un
+ *    pseudoelemento.**
+ *
+ * Esta lectura miraba solo `outline` y `box-shadow` DEL ELEMENTO, y el 20/09
+ * cantó `SIN INDICADOR: button.separador` en los dos temas. Fue a mirarse el
+ * píxel antes de tocar nada, y el anillo **estaba pintado**: `solid 2px
+ * rgb(37, 99, 235)` con el `--ring` de la casa, rodeando el dibujo de 24×48
+ * —captura `asa-al-foco-1440.png`—.
+ *
+ * ⚠️ El anillo del asa se mudó al `::before` **a propósito**, y por una razón
+ *    que se ve: desde que el área clicable son 44 px con 21 de relleno
+ *    transparente, un `outline` sobre el BOTÓN rodearía también el relleno y se
+ *    vería flotando veinte píxeles a la derecha del asa. Pintarlo sobre el
+ *    dibujo es la forma correcta de cumplir 2.4.7 aquí, no una trampa para
+ *    esquivar a esta jueza.
+ *
+ * ⚠️ Y no se afloja nada: al pseudoelemento se le exige lo mismo que al
+ *    elemento —`outline` con estilo y grosor, o `box-shadow`—, y se dice cuál
+ *    de los dos lo pinta. Un elemento sin indicador en ninguno de los tres
+ *    sitios sigue poniendo la casilla en rojo.
+ */
 const FOCO_P31 = `(() => {
   const firma = () => location.pathname + '|' + document.documentElement.getAttribute('data-theme') +
     '|' + document.querySelectorAll('*').length;
@@ -5479,10 +5501,25 @@ const FOCO_P31 = `(() => {
   const s = getComputedStyle(e);
   const anillo = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0;
   const sombra = s.boxShadow && s.boxShadow !== 'none';
+  // ⭐ Y TAMBIÉN EN SUS PSEUDOELEMENTOS (20/09). Ver el acta de abajo.
+  const enPseudo = ['::before', '::after'].map((cual) => {
+    const p = getComputedStyle(e, cual);
+    if (p.content === 'none') return null;
+    const a = p.outlineStyle !== 'none' && parseFloat(p.outlineWidth) > 0;
+    const b = p.boxShadow && p.boxShadow !== 'none';
+    if (!a && !b) return null;
+    return cual + ': ' + (a ? p.outlineStyle + ' ' + p.outlineWidth + ' ' + p.outlineColor : 'box-shadow');
+  }).filter(Boolean);
   return {
     que: e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : ''),
-    visible: anillo || sombra,
-    detalle: anillo ? s.outlineStyle + ' ' + s.outlineWidth + ' ' + s.outlineColor : sombra ? 'box-shadow' : 'SIN INDICADOR',
+    visible: anillo || sombra || enPseudo.length > 0,
+    detalle: anillo
+      ? s.outlineStyle + ' ' + s.outlineWidth + ' ' + s.outlineColor
+      : sombra
+        ? 'box-shadow'
+        : enPseudo.length > 0
+          ? enPseudo.join(' · ')
+          : 'SIN INDICADOR',
     enMapa: !!e.closest('.leaflet-container, app-mapa'),
     firma: firma(),
   };
