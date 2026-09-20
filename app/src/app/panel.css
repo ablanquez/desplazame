@@ -9,33 +9,68 @@
       16/09, que capturó las cinco rutas navegables bajo `data-theme=dark` y dejó
       a ésta como la única sin vestir.
 
-   ⚠️ EL PANEL SE PINTA SOBRE LA PÁGINA, no sobre una tarjeta: sus grises se
-      miden contra `--background`, que en oscuro es #121212 y no el #1e1e1e de
-      `--card`. Por eso sus pares entran al censo contra el fondo.
+   ⚠️ ESTO DECÍA «EL PANEL SE PINTA SOBRE LA PÁGINA, no sobre una tarjeta», y
+      era FALSO desde el día que se escribió. La página se llamaba `panel`, y
+      esa clase en la hoja GLOBAL es la columna del Buscador: traía
+      `background-color: var(--card)` con todo lo demás, así que en oscuro el
+      fondo real era rgb(30, 30, 30) —`--card`— y no el #121212 de
+      `--background`. Medido en Chrome el 20/09; bitácora de ese día.
+      Desde el cambio de nombre del bloque a `frescura` la página SÍ se pinta
+      sobre `--background`, que es lo que sus pares del censo dicen.
 
    ⛔ Y NO SE REDISEÑA NADA: los mismos textos, la misma tabla, los mismos
       cuatro estados. Solo cambia de dónde sale cada color. */
 
-.panel {
-  max-width: 72rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+/* ⭐ LA PÁGINA, EN DOS ANCHOS (20/09, H3 del ojo de Antonio).
+
+   El texto va en una columna con medida y la TABLA NO: una tabla no es prosa,
+   y meterla en la columna del texto la recortaba. Las dos caras del defecto
+   están escritas para que nadie deshaga esto a medias: ni recortada dentro de
+   la columna de prosa, ni estirada a ancho completo con huecos entre columnas.
+
+   La rejilla tiene tres carriles —aire, columna, aire—, y las líneas llevan
+   nombre para poder decir «esto va en la columna» y «esto va de lado a lado».
+   [DOC MDN, *grid-template-columns*] los nombres de línea van entre corchetes
+   y se usan tal cual en `grid-column`. El aire es `minmax(1rem, 1fr)`: nunca
+   menos de 1 rem, y lo que sobre se reparte. */
+.frescura {
+  display: grid;
+  grid-template-columns:
+    [todo-i] minmax(1rem, 1fr)
+    [texto-i] minmax(0, 72rem) [texto-f]
+    minmax(1rem, 1fr) [todo-f];
+  align-content: start;
+  padding: 1.5rem 0 3rem;
   font-family: system-ui, sans-serif;
 }
 
-.panel h1 {
+/* Todo vive en la columna de texto salvo quien diga lo contrario, que es uno. */
+.frescura > * {
+  grid-column: texto-i / texto-f;
+}
+
+/* ⭐ El conmutador de tema, a la altura del `h1` (20/09, H1). Misma fila, misma
+   idea que en el visor: si el título crece, el conmutador se aparta solo. */
+.frescura__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.frescura h1 {
   margin: 0 0 0.5rem;
   font-size: 1.5rem;
 }
 
-.panel__intro {
+.frescura__intro {
   margin: 0 0 1.25rem;
   max-width: 62rem;
   line-height: 1.5;
   color: var(--foreground);
 }
 
-.panel__resumen {
+.frescura__resumen {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -43,17 +78,50 @@
   margin: 0 0 1rem;
 }
 
-.panel__hoy {
+.frescura__hoy {
   color: var(--muted-foreground);
   font-size: 0.85rem;
 }
 
-/* El marco hace que la tabla ancha se desplace sola, sin arrastrar la página. */
-.panel__marco {
+/* ⭐ EL MARCO DE LA TABLA: SALE DE LA COLUMNA (20/09, H3).
+
+   `width: max-content` la dimensiona A SUS COLUMNAS —ni un píxel de más, que
+   es lo que evita los huecos de una tabla estirada—, `max-width` le pone tope
+   en la ventana, y `justify-self: center` la centra respecto de la página, no
+   respecto de la columna de prosa. Sólo cuando ni así cabe —móvil— aparece el
+   desplazamiento, que es la excepción que [WCAG 1.4.10, *Understanding*] ya
+   contempla y que la P31 mide aparte.
+
+   ⚠️ **Y LLEVA `.frescura >` DELANTE POR ESPECIFICIDAD, no por costumbre.**
+      Con `.frescura__marco` a secas esta regla estaba MUERTA y lo parecía
+      todo menos: medido en Chrome, `grid-column` computaba
+      `texto-i / texto-f`. La encapsulación de Angular reescribe
+      `.frescura > *` como `.frescura[_ngcontent] > *[_ngcontent]`, que pesa
+      (0,3,0), contra los (0,2,0) de `.frescura__marco[_ngcontent]`: gana la
+      de los hijos aunque vaya antes en la hoja. Con el `>` delante pesa
+      (0,4,0) y gana por estructura, que es lo que no se deshace al reordenar.
+      Es la lección de `.panel.panel--plegada` (bitácora del 11/09) repetida.
+
+   ⚠️ **Y por qué `max-content` NO produce huecos**, que es la otra cara del
+      defecto: si la tabla pide más que la ventana, se queda en la ventana y
+      todas sus columnas siguen comprimidas —medido: pide 2.238 px y a 1920
+      se queda en 1.873—; si pidiera menos, se quedaría exactamente en lo que
+      pide. Un hueco solo sale de un `width: 100%` que estira más allá del
+      contenido, y aquí no hay ninguno.
+
+   ⚠️ El tope es `calc(100% - 2rem)` y no `100vw`: `100vw` incluye el ancho de
+      la barra de desplazamiento del documento, así que con ella puesta la
+      tabla desbordaría la página por dos píxeles y el reflow lo cantaría. El
+      100 % es el de la rejilla, que ya descuenta lo que haya. */
+.frescura > .frescura__marco {
+  grid-column: todo-i / todo-f;
+  justify-self: center;
+  width: max-content;
+  max-width: calc(100% - 2rem);
   overflow-x: auto;
 }
 
-.panel__tabla {
+.frescura__tabla {
   border-collapse: collapse;
   width: 100%;
   font-size: 0.9rem;
@@ -63,8 +131,8 @@
    no es la frontera de un componente ni la señal de un estado [WCAG 1.4.11,
    Understanding] — lo que se lee es la celda, y la celda es texto. Separa, como
    el de las tarjetas y los bloques. */
-.panel__tabla th,
-.panel__tabla td {
+.frescura__tabla th,
+.frescura__tabla td {
   border: 1px solid var(--border);
   padding: 0.45rem 0.6rem;
   text-align: left;
@@ -73,17 +141,17 @@
 
 /* La banda de la cabecera, sobre la superficie apagada de la casa: aquí la
    letra del tema leía a 1,03:1 contra su gris fijo. */
-.panel__tabla thead th {
+.frescura__tabla thead th {
   background: var(--muted);
   white-space: nowrap;
 }
 
-.panel__conjunto {
+.frescura__conjunto {
   font-weight: 600;
   min-width: 16rem;
 }
 
-.panel__ruta {
+.frescura__ruta {
   display: block;
   /* [§3] el peso del tema: 400 en claro, 500 en oscuro. */
   font-weight: var(--peso-texto);
@@ -93,7 +161,7 @@
   word-break: break-all;
 }
 
-.panel__fuente {
+.frescura__fuente {
   display: block;
   color: var(--leyenda);
   font-size: 0.75rem;
@@ -101,7 +169,7 @@
   max-width: 26rem;
 }
 
-.panel__noconsta {
+.frescura__noconsta {
   color: var(--muted-foreground);
   font-style: italic;
 }
@@ -115,7 +183,7 @@
       casa y entran con su trío de tokens; «por revisar» es el ÁMBAR de la casa
       —el mismo que el resumen, la tira y el borrador— y «sin regla» es su gris.
       Un color nuevo solo cuando no hay ninguno que haga ese papel. */
-.panel__estado {
+.frescura__estado {
   display: inline-block;
   padding: 0.15rem 0.5rem;
   border-radius: 0.75rem;
@@ -124,7 +192,7 @@
   border: 1px solid;
 }
 
-.panel__estado--rojo {
+.frescura__estado--rojo {
   background: var(--estado-caducado-superficie);
   border-color: var(--estado-caducado-borde);
   color: var(--estado-caducado-tinta);
@@ -133,13 +201,13 @@
 /* El ámbar de la casa, que ya decía «atención» en el resultado y en el
    formulario. Sus tres hexes cambian un pelo (#fdf3e0 → #fff4e5, #c07a00 →
    #b45309, #7a4d00 → #7c3d00): eran una segunda copia del mismo ámbar. */
-.panel__estado--ambar {
+.frescura__estado--ambar {
   background: var(--warning);
   border-color: var(--warning-border);
   color: var(--warning-dark);
 }
 
-.panel__estado--verde {
+.frescura__estado--verde {
   background: var(--estado-vigente-superficie);
   border-color: var(--estado-vigente-borde);
   color: var(--estado-vigente-tinta);
@@ -149,13 +217,13 @@
    daba 2,50 sobre su propia superficie y 2,85 sobre la página en claro, y con
    `--border` habría bajado a 1,4. Este gris da 4,55 y 4,76 en claro, y 7,83 y
    9,44 en oscuro. */
-.panel__estado--gris {
+.frescura__estado--gris {
   background: var(--muted);
   border-color: var(--muted-foreground);
   color: var(--muted-foreground);
 }
 
-.panel__pie {
+.frescura__pie {
   margin-top: 1.5rem;
   color: var(--leyenda);
   font-size: 0.85rem;
@@ -165,6 +233,6 @@
 
 /* La tinta del estado caducado, que es la que ya dice «esto va mal» en la
    página: en oscuro el #8c1c12 leía a 1,82:1 sobre el fondo. */
-.panel__fallo {
+.frescura__fallo {
   color: var(--estado-caducado-tinta);
 }

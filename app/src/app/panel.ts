@@ -1,6 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import type { SaludFeed } from '@desplazame/tipos';
+import { ConmutadorDeTema } from './conmutador';
 
 /**
  * EL PANEL DE FRESCURA: si cada conjunto de datos está fresco o caduco.
@@ -212,6 +213,7 @@ export interface Fila {
 
 @Component({
   selector: 'app-panel',
+  imports: [ConmutadorDeTema],
   templateUrl: './panel.html',
   styleUrl: './panel.css',
 })

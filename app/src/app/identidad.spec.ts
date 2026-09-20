@@ -1161,6 +1161,11 @@ describe('⭐ (vii) LOS CAMPOS DEL BUSCADOR se visten con los tokens que el cens
  *
  * ⚠️ El panel se pinta sobre la PÁGINA, no sobre una tarjeta: sus grises se
  *    miden contra `background`, que en oscuro (#121212) no es `card` (#1e1e1e).
+ *    ⚠️ Y hasta el 20/09 esto era MENTIRA sin que nadie lo notase: la página se
+ *       llamaba `panel`, y esa clase en la hoja global es la columna del
+ *       Buscador, que trae `background-color: var(--card)`. El fondo real era
+ *       rgb(30, 30, 30). Se arregló cambiando el nombre del bloque a
+ *       `frescura`; bitácora del 20/09.
  */
 describe('⭐ (viii) EL PANEL DE FRESCURA se viste con los tokens que el censo mide', () => {
   const HOJA = 'app/src/app/panel.css';
@@ -1176,21 +1181,21 @@ describe('⭐ (viii) EL PANEL DE FRESCURA se viste con los tokens que el censo m
       .join('\n');
 
   it('los textos del panel llevan los grises de la casa', () => {
-    expect(cuerpoDe('.panel__intro')).toMatch(/color:\s*var\(--foreground\)/);
-    expect(cuerpoDe('.panel__hoy')).toMatch(/color:\s*var\(--muted-foreground\)/);
-    expect(cuerpoDe('.panel__ruta')).toMatch(/color:\s*var\(--muted-foreground\)/);
-    expect(cuerpoDe('.panel__noconsta')).toMatch(/color:\s*var\(--muted-foreground\)/);
-    expect(cuerpoDe('.panel__fuente')).toMatch(/color:\s*var\(--leyenda\)/);
-    expect(cuerpoDe('.panel__pie')).toMatch(/color:\s*var\(--leyenda\)/);
+    expect(cuerpoDe('.frescura__intro')).toMatch(/color:\s*var\(--foreground\)/);
+    expect(cuerpoDe('.frescura__hoy')).toMatch(/color:\s*var\(--muted-foreground\)/);
+    expect(cuerpoDe('.frescura__ruta')).toMatch(/color:\s*var\(--muted-foreground\)/);
+    expect(cuerpoDe('.frescura__noconsta')).toMatch(/color:\s*var\(--muted-foreground\)/);
+    expect(cuerpoDe('.frescura__fuente')).toMatch(/color:\s*var\(--leyenda\)/);
+    expect(cuerpoDe('.frescura__pie')).toMatch(/color:\s*var\(--leyenda\)/);
   });
 
   it('la tabla: el filete de la casa y la cabecera sobre la superficie apagada', () => {
-    expect(cuerpoDe('.panel__tabla th, .panel__tabla td')).toMatch(/border:\s*1px solid var\(--border\)/);
-    expect(cuerpoDe('.panel__tabla thead th')).toMatch(/background:\s*var\(--muted\)/);
+    expect(cuerpoDe('.frescura__tabla th, .frescura__tabla td')).toMatch(/border:\s*1px solid var\(--border\)/);
+    expect(cuerpoDe('.frescura__tabla thead th')).toMatch(/background:\s*var\(--muted\)/);
   });
 
   it('⭐ el aviso de fallo va en la tinta del estado caducado', () => {
-    expect(cuerpoDe('.panel__fallo')).toMatch(/color:\s*var\(--estado-caducado-tinta\)/);
+    expect(cuerpoDe('.frescura__fallo')).toMatch(/color:\s*var\(--estado-caducado-tinta\)/);
   });
 
   /**
@@ -1202,18 +1207,18 @@ describe('⭐ (viii) EL PANEL DE FRESCURA se viste con los tokens que el censo m
   it('⭐ los cuatro estados llevan superficie, borde y tinta con token', () => {
     const trio = (sel: string): string[] =>
       [...cuerpoDe(sel).matchAll(/var\(--([\w-]+)\)/g)].map((m) => m[1]!);
-    expect(trio('.panel__estado--rojo')).toEqual([
+    expect(trio('.frescura__estado--rojo')).toEqual([
       'estado-caducado-superficie',
       'estado-caducado-borde',
       'estado-caducado-tinta',
     ]);
-    expect(trio('.panel__estado--verde')).toEqual([
+    expect(trio('.frescura__estado--verde')).toEqual([
       'estado-vigente-superficie',
       'estado-vigente-borde',
       'estado-vigente-tinta',
     ]);
-    expect(trio('.panel__estado--ambar')).toEqual(['warning', 'warning-border', 'warning-dark']);
-    expect(trio('.panel__estado--gris')).toEqual(['muted', 'muted-foreground', 'muted-foreground']);
+    expect(trio('.frescura__estado--ambar')).toEqual(['warning', 'warning-border', 'warning-dark']);
+    expect(trio('.frescura__estado--gris')).toEqual(['muted', 'muted-foreground', 'muted-foreground']);
   });
 
   /**
@@ -1224,7 +1229,7 @@ describe('⭐ (viii) EL PANEL DE FRESCURA se viste con los tokens que el censo m
    */
   it('⭐ cada chip de estado dice su estado con palabras, no solo con color', () => {
     const plantilla = leer('app/src/app/panel.html');
-    const chips = [...plantilla.matchAll(/<span class="panel__estado[^"]*"[^>]*>([^<]*)</g)].map(
+    const chips = [...plantilla.matchAll(/<span class="frescura__estado[^"]*"[^>]*>([^<]*)</g)].map(
       (m) => m[1]!.trim(),
     );
     // Los cuatro del resumen llevan la palabra escrita; el de cada fila la toma

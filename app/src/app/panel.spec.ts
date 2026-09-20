@@ -249,6 +249,21 @@ describe('⭐ LA PÁGINA /panel', () => {
     expect(raiz.querySelector('app-buscador')).toBeNull();
   });
 
+  /**
+   * ⭐ H1 · EL CONMUTADOR DE TEMA, EN LA PÁGINA (20/09, el ojo de Antonio).
+   *
+   * Nació en rojo, igual que la del visor: el panel montaba título y tabla y
+   * nada más. Las dos páginas de la intranet viven sin la barra de pestañas y
+   * sin la cabecera del Buscador, que son los dos sitios donde el conmutador
+   * ya vivía — así que aquí no había ninguno.
+   */
+  it('⭐ el conmutador de tema está EN la página, y no en la portada', async () => {
+    const { raiz } = await ir('/panel');
+    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]');
+    expect(boton).not.toBeNull();
+    expect(boton!.tagName).toBe('BUTTON');
+  });
+
   it('⭐ pide el manifiesto, y una sola vez', async () => {
     await ir('/panel');
     const suyas = peticiones.filter((u) => u.includes('datapackage.json'));
@@ -273,7 +288,7 @@ describe('⭐ LA PÁGINA /panel', () => {
     const sinRegla = Array.from(raiz.querySelectorAll('tbody tr')).find((f) =>
       (f.textContent ?? '').includes('El conjunto uno'),
     )!;
-    expect(sinRegla.querySelector('.panel__estado--gris')).not.toBeNull();
+    expect(sinRegla.querySelector('.frescura__estado--gris')).not.toBeNull();
     expect(sinRegla.textContent).toContain('NO CONSTA');
   });
 
@@ -293,7 +308,7 @@ describe('⭐ LA PÁGINA /panel', () => {
     expect(texto).toContain('sirviendo AHORA');
     expect(texto).toContain('20260623_AUZSA_Y_TRANVIA');
     // El doble dice «aviso», así que la fila tiene que salir ámbar.
-    const ambar = Array.from(raiz.querySelectorAll('.panel__estado--ambar')).map(
+    const ambar = Array.from(raiz.querySelectorAll('.frescura__estado--ambar')).map(
       (e) => (e.textContent ?? '').trim(),
     );
     expect(ambar.some((t) => t.includes('05/10/2026'))).toBe(true);

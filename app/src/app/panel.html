@@ -1,6 +1,22 @@
-<section class="panel">
-  <h1>Frescura de los datos</h1>
-  <p class="panel__intro">
+<!-- ⚠️ EL BLOQUE SE LLAMA `frescura` Y NO `panel`, Y NO ES CAPRICHO (20/09).
+
+     `.panel` ya existe en `styles.css`, que es GLOBAL, y ahí es **la columna de
+     resultados del Buscador**: `position: absolute; inset: 0; z-index: 20` por
+     debajo de 1280 y `width: 558px` por encima. Esta página la heredaba entera
+     sin que nadie lo dijera — a 1920 salía en una columna de 591 px con la
+     tabla recortada 537 —, y encima se pintaba sobre `--card` mientras la
+     cabecera de su hoja juraba que iba sobre `--background`. Ver la bitácora
+     del 20/09. Un nombre de clase en una hoja global es un identificador de
+     toda la aplicación: éste no lo comparte con nadie. -->
+<section class="frescura">
+  <header class="frescura__cabecera">
+    <h1>Frescura de los datos</h1>
+    <!-- ⭐ El conmutador de tema (20/09, H1): la MISMA pieza de la casa, no una
+         copia. Sin esto el tema solo se cambiaba yendo a la portada. -->
+    <app-conmutador-de-tema />
+  </header>
+
+  <p class="frescura__intro">
     Lo que este proyecto tiene descargado, cuándo lo bajó, qué fecha declara el dato de sí mismo,
     y con qué regla caduca. Las reglas <strong>salen de una fuente publicada</strong>; donde no
     hay fuente, el conjunto sale en <strong>gris</strong> y dice <code>NO CONSTA</code> — que no
@@ -8,18 +24,18 @@
   </p>
 
   @if (fallo(); as e) {
-    <p class="panel__fallo">No se ha podido leer el manifiesto: {{ e }}</p>
+    <p class="frescura__fallo">No se ha podido leer el manifiesto: {{ e }}</p>
   } @else if (filas(); as f) {
-    <p class="panel__resumen">
-      <span class="panel__estado panel__estado--rojo">{{ cuantos('rojo') }} caducados</span>
-      <span class="panel__estado panel__estado--ambar">{{ cuantos('ambar') }} por revisar</span>
-      <span class="panel__estado panel__estado--verde">{{ cuantos('verde') }} al día</span>
-      <span class="panel__estado panel__estado--gris">{{ cuantos('gris') }} sin regla</span>
-      <span class="panel__hoy">calculado el {{ soloElDia(hoy.toISOString()) }}</span>
+    <p class="frescura__resumen">
+      <span class="frescura__estado frescura__estado--rojo">{{ cuantos('rojo') }} caducados</span>
+      <span class="frescura__estado frescura__estado--ambar">{{ cuantos('ambar') }} por revisar</span>
+      <span class="frescura__estado frescura__estado--verde">{{ cuantos('verde') }} al día</span>
+      <span class="frescura__estado frescura__estado--gris">{{ cuantos('gris') }} sin regla</span>
+      <span class="frescura__hoy">calculado el {{ soloElDia(hoy.toISOString()) }}</span>
     </p>
 
-    <div class="panel__marco">
-      <table class="panel__tabla">
+    <div class="frescura__marco">
+      <table class="frescura__tabla">
         <thead>
           <tr>
             <th scope="col">Conjunto</th>
@@ -32,20 +48,20 @@
         <tbody>
           @for (fila of f; track fila.r.name) {
             <tr>
-              <th scope="row" class="panel__conjunto">
+              <th scope="row" class="frescura__conjunto">
                 {{ fila.r.title }}
-                <code class="panel__ruta">{{ fila.r.path }}</code>
+                <code class="frescura__ruta">{{ fila.r.path }}</code>
               </th>
               <td>
                 <!-- ⚠️ Una fuente VIVA no tiene descarga que fechar: no es que
                      no conste, es que no se copia. Decir «NO CONSTA» ahí sería
                      confundir «no lo sé» con «no aplica». -->
                 @if (esViva(fila.r)) {
-                  <span class="panel__noconsta">no se copia</span>
+                  <span class="frescura__noconsta">no se copia</span>
                 } @else if (fila.r.descargadoEl) {
                   {{ soloElDia(fila.r.descargadoEl) }}
                 } @else {
-                  <span class="panel__noconsta">NO CONSTA</span>
+                  <span class="frescura__noconsta">NO CONSTA</span>
                 }
               </td>
               <td>
@@ -53,21 +69,21 @@
                      una fecha: cortarlo al día lo dejaría en «20260623_A». -->
                 @if (fila.r.modified) {
                   {{ esViva(fila.r) ? fila.r.modified : soloElDia(fila.r.modified) }}
-                  <small class="panel__fuente">{{ fila.r.modifiedFuente }}</small>
+                  <small class="frescura__fuente">{{ fila.r.modifiedFuente }}</small>
                 } @else {
-                  <span class="panel__noconsta">NO CONSTA</span>
+                  <span class="frescura__noconsta">NO CONSTA</span>
                 }
               </td>
               <td>
                 @if (fila.e.regla) {
                   {{ fila.e.regla }}
-                  <small class="panel__fuente">{{ fila.e.fuente }}</small>
+                  <small class="frescura__fuente">{{ fila.e.fuente }}</small>
                 } @else {
-                  <span class="panel__noconsta">sin regla publicada</span>
+                  <span class="frescura__noconsta">sin regla publicada</span>
                 }
               </td>
               <td>
-                <span class="panel__estado panel__estado--{{ fila.e.color }}">{{ fila.e.texto }}</span>
+                <span class="frescura__estado frescura__estado--{{ fila.e.color }}">{{ fila.e.texto }}</span>
               </td>
             </tr>
           }
@@ -75,7 +91,7 @@
       </table>
     </div>
 
-    <p class="panel__pie">
+    <p class="frescura__pie">
       El manifiesto sigue el descriptor <strong>Data Package v1</strong> de Frictionless Data y
       toma de <strong>DCAT</strong> los términos de frescura. Vive en
       <code>datapackage.json</code>, en la raíz del repositorio, y su huella <code>sha256</code>
@@ -83,6 +99,6 @@
       pondría roja.
     </p>
   } @else {
-    <p class="panel__cargando">Leyendo el manifiesto…</p>
+    <p class="frescura__cargando">Leyendo el manifiesto…</p>
   }
 </section>

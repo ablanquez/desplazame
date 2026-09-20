@@ -4544,7 +4544,7 @@ const RED_DEL_PANEL = `
   const fondoDe = (el) => { for (let e = el; e; e = e.parentElement) { const c = rgb(getComputedStyle(e).backgroundColor); if (c && c.a === 1) return c; } return null; };
   const nombre = (el) => el.tagName.toLowerCase() + (el.classList[0] ? '.' + el.classList[0] : '');
   const malos = []; let textos = 0; let peor = 21;
-  for (const el of document.querySelectorAll('.panel *')) {
+  for (const el of document.querySelectorAll('.frescura *')) {
     const s = getComputedStyle(el); const b = el.getBoundingClientRect();
     if (b.width === 0 || b.height === 0 || s.visibility === 'hidden') continue;
     const fondo = fondoDe(el);
@@ -4566,10 +4566,10 @@ const LOS_CHIPS_DEL_PANEL = `
   const L = (c) => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
   const C = (a, b) => (Math.max(L(a), L(b)) + 0.05) / (Math.min(L(a), L(b)) + 0.05);
   const pagina = rgb(getComputedStyle(document.body).backgroundColor);
-  const todos = [...document.querySelectorAll('.panel__estado')];
+  const todos = [...document.querySelectorAll('.frescura__estado')];
   const familias = {};
   todos.forEach((e, i) => {
-    const clase = [...e.classList].find((c) => c.startsWith('panel__estado--'));
+    const clase = [...e.classList].find((c) => c.startsWith('frescura__estado--'));
     if (!clase || familias[clase]) return;
     const s = getComputedStyle(e);
     familias[clase] = { clase, indice: i, txt: e.textContent.trim(),
@@ -4650,18 +4650,18 @@ for (const [k, pantalla] of HAY_PANEL ? PANTALLAS.entries() : []) {
         `${chips.cuantos} chips · ${chips.sinTexto} sin texto`,
       );
       for (const f of chips.familias) {
-        const t = await pixelDe(m, '.panel__estado', { indice: f.indice, minimo: 4 });
+        const t = await pixelDe(m, '.frescura__estado', { indice: f.indice, minimo: 4 });
         juzgar(
           t !== null && t.contraste >= AA_TEXTO && f.bordeVsSuperficie >= AA_GRAFICO && f.bordeVsPagina >= AA_GRAFICO,
-          `${dicho} · ⭐ el chip «${f.clase.replace('panel__estado--', '')}» se lee y su borde se distingue por dentro y por fuera`,
+          `${dicho} · ⭐ el chip «${f.clase.replace('frescura__estado--', '')}» se lee y su borde se distingue por dentro y por fuera`,
           `«${f.txt.slice(0, 22)}» ${t === null ? '(fuera de la vista)' : t.contraste.toFixed(2) + ':1'} · borde ${f.borde} contra su superficie ${f.bordeVsSuperficie} · contra la página ${f.bordeVsPagina}`,
         );
       }
 
       // La cabecera de la tabla, que es donde peor estaba: letra clara sobre su
       // propio gris claro. Sobre el píxel.
-      const cabecera = await pixelDe(m, '.panel__tabla thead th', { minimo: 6 });
-      const filete = await m.evaluar(`getComputedStyle(document.querySelector('.panel__tabla td')).borderTopColor`);
+      const cabecera = await pixelDe(m, '.frescura__tabla thead th', { minimo: 6 });
+      const filete = await m.evaluar(`getComputedStyle(document.querySelector('.frescura__tabla td')).borderTopColor`);
       juzgar(
         cabecera !== null && cabecera.contraste >= AA_TEXTO && filete === (await tokenRgb(m, 'border')),
         `${dicho} · ⭐ la cabecera de la tabla se lee, y el filete es el --border de la casa`,
@@ -4674,7 +4674,30 @@ for (const [k, pantalla] of HAY_PANEL ? PANTALLAS.entries() : []) {
       );
 
       // La barra del marco de la tabla, que la pinta el navegador [color-scheme].
-      const marco = await leer(m, `const t = document.querySelector('.panel__marco'); if (!t) return null; const r = t.getBoundingClientRect(); return { x: r.x, y: r.bottom - (t.offsetHeight - t.clientHeight), w: r.width, h: t.offsetHeight - t.clientHeight, desborda: t.scrollWidth > t.clientWidth };`);
+      const marco = await leer(m, `const t = document.querySelector('.frescura__marco'); if (!t) return null; const r = t.getBoundingClientRect(); return { x: r.x, y: r.bottom - (t.offsetHeight - t.clientHeight), w: r.width, h: t.offsetHeight - t.clientHeight, desborda: t.scrollWidth > t.clientWidth, vista: document.documentElement.clientWidth, visible: t.clientWidth, contenido: t.scrollWidth };`);
+
+      // ⭐ H3 · LA TABLA SE VE ENTERA DONDE LA VENTANA DA DE SÍ (20/09).
+      //
+      // ⚠️ NACIÓ EN ROJO, y con estas cifras: a 1920 el marco enseñaba 543 px
+      //    de 1.080 — 537 escondidos — porque la página se llamaba `.panel` y
+      //    vestía, sin decirlo, la columna de resultados del Buscador. Ver la
+      //    bitácora del 20/09.
+      //
+      // ⚠️ Y lo que se exige NO es «aquí nunca hay desplazamiento»: en móvil lo
+      //    hay y es legítimo —una caja con su propio scroll es la excepción que
+      //    [WCAG 1.4.10, Understanding] contempla, y la P31 la mide aparte—. Lo
+      //    que se exige es que donde la tabla CABE, se vea entera. Por eso la
+      //    vara la pone la ventana y no un ancho escrito a mano.
+      if (marco) {
+        const cabe = marco.vista - marco.contenido >= 0;
+        juzgar(
+          !cabe || !marco.desborda,
+          `${dicho} · ⭐ H3 · la tabla se ve ENTERA donde la ventana da de sí`,
+          `ventana ${marco.vista} · la tabla pide ${marco.contenido} · el marco enseña ${marco.visible}` +
+            (marco.desborda ? ` · SE ESCONDEN ${marco.contenido - marco.visible} px` : ' · 0 escondidos') +
+            (cabe ? '' : ' · (no cabe en la ventana: la excepción de 1.4.10)'),
+        );
+      }
       if (marco && marco.h > 0) {
         const carril = await carrilDe(m, marco, oscuro);
         juzgar(
@@ -4712,8 +4735,8 @@ for (const tema of HAY_PANEL ? ['dark', 'light'] : []) {
     await m.ir(APP + 'panel', 6000);
     console.log(`\n═══ EL PANEL CON EL MANIFIESTO CAÍDO · ${nombreTema} ═══`);
     if (!(await ponerTema(m, tema, dicho))) continue;
-    const hay = await m.evaluar(`!!document.querySelector('.panel__fallo')`);
-    const fallo = hay ? await pixelDe(m, '.panel__fallo', { minimo: 6 }) : null;
+    const hay = await m.evaluar(`!!document.querySelector('.frescura__fallo')`);
+    const fallo = hay ? await pixelDe(m, '.frescura__fallo', { minimo: 6 }) : null;
     juzgar(
       hay && fallo !== null && fallo.contraste >= AA_TEXTO,
       `${dicho} · ⭐ el aviso de «no se ha podido leer el manifiesto» se lee: ≥ ${AA_TEXTO}:1 sobre el píxel`,
