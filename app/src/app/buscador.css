@@ -584,3 +584,61 @@ legend {
    salga del mismo sitio es lo que impide que un día haya dos ámbares distintos
    dando la misma clase de noticia. */
 /* El icono y el título en la misma línea, como en la nota del paso. */
+
+/* ⭐ EL ENLACE DE SALTO (20/09, la tanda de flecos).
+   ═══════════════════════════════════════════════════════════════════════════
+
+   [W3C, técnica G1, suficiente para 2.4.1] el primer interactivo de la página
+   es un enlace que salta el bloque repetido. Aquí ese bloque es el mapa, que va
+   primero en el DOM por una razón que no se toca: en móvil es el fondo y la
+   hoja se le posa encima. El porqué entero, en la plantilla.
+
+   ⚠️ **VIVE AQUÍ Y NO EN `styles.css`**, y es la lección del 20/09 aplicada
+      antes de tropezar: un nombre de clase en la hoja global es un
+      identificador de TODA la aplicación —así heredó `/panel` la columna del
+      Buscador—, y `.salto` es una palabra que cualquier página futura querría.
+      El enlace es del Buscador; su estilo, también. [DOC Angular · *Styling
+      components*: un estilo declarado en un componente no sale de él.]
+
+   ⚠️ **NO SE ESCONDE CON `display` NI CON `visibility`**: las dos lo sacarían
+      del orden de tabulación, y entonces el enlace no existiría para quien lo
+      necesita. Se saca de la vista con `transform`, que no toca ni el foco ni
+      el árbol de accesibilidad, y `:focus` lo trae de vuelta. */
+.salto {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  /* [WCAG 2.5.5] es un target como cualquier otro: la vara de la casa es 44. */
+  min-height: 44px;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--card);
+  color: var(--card-foreground);
+  font-weight: 500;
+  text-decoration: none;
+  /* Fuera de la vista, pero dentro del orden de tabulación y del árbol. */
+  transform: translateY(calc(-100% - 1rem));
+}
+
+/* ⭐ LA REGLA PAREJA, que es la mitad que se olvida. Sin ella el enlace se
+   activa igual con el teclado, pero quien tabula VIENDO la pantalla pierde el
+   foco de vista en la primera parada — que es justo a quien G1 sirve.
+   ⚠️ Es `:focus` y no `:focus-visible`: un foco puesto por programa también
+      tiene que enseñarlo. */
+.salto:focus {
+  transform: none;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ⚠️ El destino tampoco pone anillo al recibir el foco por el salto: `tabindex`
+   -1 no es una parada del tabulador, y dibujarle un anillo de 559 px de ancho
+   al llegar sería ruido. El foco está ahí —y la jueza lo lee en
+   `document.activeElement`—, pero no se pinta. */
+.panel__bloques:focus {
+  outline: none;
+}

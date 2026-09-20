@@ -406,6 +406,11 @@ const PUERTOS_DEL_ARNES = new Set([
   //    Solo se abren contra la construcción local; contra el dist la casilla
   //    declara «no aplica» y no abre ninguno.
   9890, 9891, 9894, 9895, 9898, 9899,
+  // ⭐ La P33 (20/09), el enlace de salto: tres anchos × dos temas. Los
+  //    9860/9861 que la casilla pedía de primeras YA ERAN de la P30, y el
+  //    solape no lo habría cantado nadie —dos juezas por el mismo puerto, una
+  //    detrás de otra, dan verde igual—: lo vio esta lista al escribirlos.
+  9902, 9903, 9904, 9905, 9906, 9907,
 ].map(String));
 const PUERTOS_FUERA_DEL_CENSO = new Set();
 

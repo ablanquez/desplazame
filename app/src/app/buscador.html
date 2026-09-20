@@ -53,6 +53,34 @@
      de ancestro —`[data-pestana='ruta'] .bloque--pasos`— en vez de tener tres
      clases sueltas que alguien puede dejar descuadradas. En escritorio nadie
      lee este atributo: allí manda el acordeón. -->
+<!-- ⭐ EL ENLACE DE SALTO, Y ES EL PRIMER INTERACTIVO DEL DOCUMENTO (20/09).
+     ═══════════════════════════════════════════════════════════════════════
+
+     [W3C, técnica **G1**, suficiente para 2.4.1] «añadir un enlace al principio
+     de un bloque de contenido repetido para ir directamente al final del
+     bloque». Aquí el bloque repetido es el MAPA: es lo primero del DOM porque
+     en móvil es el fondo sobre el que se posa la hoja, y eso —medido el 20/09
+     contra el hoy, a 1440— ponía al tabulador **siete paradas** antes del
+     primer campo: el lienzo, los dos botones de zoom, los dos enlaces de la
+     atribución, el conmutador y la cabecera del acordeón. El orden del DOM no
+     se toca: lo arregla un enlace, que es justo lo que la técnica dice.
+
+     ⚠️ **DOS TRAMPAS DOCUMENTADAS, Y LAS DOS TIENEN JUEZA:**
+
+     · **Un oculto sin su `:focus` pareja.** Si el enlace se esconde y no
+       vuelve al recibir el foco, quien tabula VIENDO la pantalla se queda con
+       un foco que no está en ninguna parte. Por eso no se esconde con
+       `display:none` ni con `visibility` —que además lo sacarían del orden de
+       tabulación—, sino con un `transform` que lo saca de la vista, y
+       `.salto:focus` lo devuelve. Visible-al-foco es lo que la técnica admite;
+       visible-siempre es preferible y queda a ojo de Antonio.
+     · **Un destino no enfocable.** Mover el `:target` no mueve el foco si el
+       destino no puede recibirlo: el enlace parecería funcionar y el teclado
+       seguiría donde estaba. Por eso `#panel-bloques` lleva `tabindex="-1"`
+       —enfocable por programa, fuera del orden de tabulación—, y la jueza
+       comprueba `document.activeElement` DESPUÉS de activarlo, no el `:target`. -->
+<a class="salto" href="#panel-bloques">Saltar al buscador</a>
+
 <div class="marco" [attr.data-pestana]="pestana()">
   <!-- El mapa: el fondo de la pantalla en movil, la columna derecha en PC. Va
        el primero porque en movil es lo de debajo, y la hoja se le superpone. -->
@@ -119,7 +147,7 @@
       <p>Cómo ir de un portal a otro en Zaragoza.</p>
     </header>
 
-    <main class="panel__bloques" id="panel-bloques">
+    <main class="panel__bloques" id="panel-bloques" tabindex="-1">
       <div class="bloque bloque--buscador" [class.bloque--abierto]="buscadorAbierto()">
         <h2 class="bloque__titulo">
           <button

@@ -5640,6 +5640,132 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
   }
 }
 
+// ═══════════ P33 · EL ENLACE DE SALTO, Y LAS DOS TRAMPAS DE G1 ═══════════
+//
+// ⭐ [W3C, técnica **G1**, suficiente para 2.4.1] «añadir un enlace al
+//    principio del bloque de contenido repetido para ir directamente al final
+//    del bloque». El 2.4.1 se quedó FUERA de la casilla 5 a propósito, y esto
+//    lo cierra.
+//
+// ⚠️ **EL BLOQUE REPETIDO AQUÍ ES EL MAPA.** Va primero en el DOM porque en
+//    móvil es el fondo sobre el que se posa la hoja, y ese orden NO se toca:
+//    cumple 2.4.3 por acta. Medido contra el hoy, a 1440, antes de arreglarlo,
+//    las ocho primeras paradas del tabulador eran
+//
+//      1. div.lienzo · 2. zoom + · 3. zoom − · 4. «Leaflet» ·
+//      5. «colaboradores de OpenStreetMap» · 6. el conmutador ·
+//      7. la cabecera del acordeón · 8. el primer campo
+//
+//    — siete paradas de mapa y cabecera antes de poder escribir la calle.
+//
+// ⚠️ Y SE JUZGAN LAS DOS TRAMPAS QUE LA TÉCNICA DOCUMENTA, porque son las dos
+//    formas de tener un enlace de salto que no salta:
+//
+//    · **el oculto sin su `:focus` pareja** — el enlace existe, se tabula, y no
+//      se ve: quien navega con teclado VIENDO la pantalla pierde el foco en la
+//      primera parada. Se compra midiendo la caja CON EL FOCO PUESTO: dentro de
+//      la ventana, con su target de 44 y con anillo;
+//    · **el destino no enfocable** — el `:target` se mueve y el foco no, así que
+//      el siguiente Tab vuelve al mapa. Se compra leyendo
+//      `document.activeElement` DESPUÉS de activarlo con Enter, no el hash.
+//
+// ⚠️ Se pulsa con TECLAS DE VERDAD por CDP, como la P31: un `.focus()` probaría
+//    el DOM y no el teclado, y lo que aquí se juzga es el teclado.
+const TECLA_ENTRAR = { key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 };
+const entrar = async (m) => {
+  await m.cdp('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...TECLA_ENTRAR, text: '\r' });
+  await m.cdp('Input.dispatchKeyEvent', { type: 'keyUp', ...TECLA_ENTRAR });
+  await m.dormir(200);
+};
+
+const EL_FOCO_P33 = `
+  const a = document.activeElement;
+  if (!a || a === document.body) return null;
+  const r = a.getBoundingClientRect();
+  const s = getComputedStyle(a);
+  return {
+    que: a.tagName.toLowerCase() + (a.id ? '#' + a.id : a.classList[0] ? '.' + a.classList[0] : ''),
+    texto: (a.textContent ?? '').trim().slice(0, 32),
+    destino: a.getAttribute('href'),
+    ancho: Math.round(r.width), alto: Math.round(r.height),
+    x: Math.round(r.x), y: Math.round(r.y),
+    dentro: r.top >= 0 && r.left >= 0 && r.bottom <= innerHeight + 0.5 && r.right <= innerWidth + 0.5,
+    anillo: s.outlineStyle + ' ' + s.outlineWidth + ' ' + s.outlineColor,
+  };
+`;
+
+for (const [k, pantalla] of PANTALLAS.entries()) {
+  for (const tema of ['light', 'dark']) {
+    const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+    const dicho = `P33 · salto · ${pantalla.id} · ${nombreTema}`;
+    const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: 9902 + 2 * k + (tema === 'dark' ? 1 : 0) });
+    try {
+      console.log(`\n═══ EL ENLACE DE SALTO · ${pantalla.nombre} · ${nombreTema} ═══`);
+      await m.ir(APP, 6000);
+      await m.evaluar(`document.documentElement.setAttribute('data-theme', ${JSON.stringify(tema)})`);
+      await m.dormir(300);
+
+      // (1) De partida: fuera de la vista, pero DENTRO del tabulador y del árbol.
+      const quieto = await leer(
+        m,
+        `const a = document.querySelector('a.salto');
+         if (!a) return { hay: false };
+         const r = a.getBoundingClientRect(); const s = getComputedStyle(a);
+         return { hay: true, y: Math.round(r.y), display: s.display, visibilidad: s.visibility,
+           enLaVista: r.bottom > 0, tabIndex: a.tabIndex, destino: a.getAttribute('href') };`,
+      );
+      juzgar(
+        quieto.hay && quieto.display !== 'none' && quieto.visibilidad !== 'hidden' &&
+          !quieto.enLaVista && quieto.tabIndex >= 0,
+        `${dicho} · de partida está fuera de la VISTA y dentro del TABULADOR`,
+        quieto.hay
+          ? `y=${quieto.y} · display ${quieto.display} · visibility ${quieto.visibilidad} · tabIndex ${quieto.tabIndex}`
+          : '(no hay enlace de salto)',
+      );
+      if (!quieto.hay) continue;
+
+      // (2) La primera parada del tabulador es él.
+      await m.evaluar(`document.activeElement && document.activeElement.blur()`);
+      await tabular(m);
+      const primera = await leer(m, EL_FOCO_P33);
+      juzgar(
+        primera?.que === 'a.salto' && primera.destino === '#panel-bloques',
+        `${dicho} · ⭐ [G1] la PRIMERA parada del tabulador es el enlace de salto`,
+        `${primera?.que ?? '(nada)'} «${primera?.texto ?? ''}» → ${primera?.destino ?? '—'}`,
+      );
+      // (3) TRAMPA 1: con el foco puesto SE VE, cabe en la ventana y es tocable.
+      juzgar(
+        !!primera?.dentro && primera.alto >= 44 && primera.anillo.startsWith('solid'),
+        `${dicho} · ⭐ [G1, trampa 1] con el foco puesto SE VE, y con el anillo de la casa`,
+        `${primera?.ancho}×${primera?.alto} en (${primera?.x},${primera?.y}) · dentro ${primera?.dentro} · anillo ${primera?.anillo}`,
+      );
+      // (4) TRAMPA 2: activarlo MUEVE EL FOCO — `activeElement`, no el hash.
+      await entrar(m);
+      const llegada = await leer(m, EL_FOCO_P33);
+      juzgar(
+        llegada?.que === 'main#panel-bloques',
+        `${dicho} · ⭐ [G1, trampa 2] activarlo mueve el FOCO al buscador, no solo el hash`,
+        `document.activeElement = ${llegada?.que ?? '(nada)'} · caja ${llegada?.ancho}×${llegada?.alto}`,
+      );
+      // (5) Y la parada siguiente ya es del buscador: el bloque se ha saltado.
+      await tabular(m);
+      const siguiente = await leer(m, EL_FOCO_P33);
+      juzgar(
+        !!siguiente && !/lienzo|leaflet/i.test(siguiente.que),
+        `${dicho} · y la parada siguiente ya NO es del mapa: el bloque se saltó`,
+        `${siguiente?.que ?? '(nada)'} «${siguiente?.texto ?? ''}»`,
+      );
+
+      // La captura se toma CON EL FOCO EN EL ENLACE, que es cuando se ve.
+      await m.evaluar(`document.querySelector('a.salto').focus()`);
+      await m.dormir(200);
+      await m.guardar(`${CAPTURAS}/salto-${pantalla.id}-${nombreTema}.png`);
+    } finally {
+      m.cerrar();
+    }
+  }
+}
+
 {
   const t = terceros();
   juzgar(t.bien, t.titulo, t.detalle);

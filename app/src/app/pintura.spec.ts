@@ -579,3 +579,97 @@ describe('⭐ LA BARRA DE PESTAÑAS — la navegación de móvil', () => {
     );
   });
 });
+
+/**
+ * ⭐ EL ENLACE DE SALTO (20/09, la tanda de flecos).
+ *
+ * [W3C, técnica **G1**, suficiente para 2.4.1] el primer interactivo de la
+ * página es un enlace que salta el bloque repetido — aquí, el mapa, que va
+ * primero en el DOM porque en móvil es el fondo y la hoja se le posa encima.
+ * Ese orden no se toca: cumple 2.4.3 por acta.
+ *
+ * ⚠️ Lo que jsdom SÍ puede juzgar es **el contrato**: que el enlace es el
+ *    primer interactivo del documento, que apunta a un destino que EXISTE, y
+ *    que ese destino es enfocable. Lo que NO puede es el píxel —que al foco se
+ *    vea— porque no resuelve `transform` ni aplica hojas: eso lo compra la P33
+ *    en Chrome. Las dos hacen falta y ninguna sustituye a la otra.
+ *
+ * ⚠️ Y la regla `:focus` pareja se busca EN LA HOJA, no en el navegador: es la
+ *    primera trampa de la técnica —un oculto que nunca vuelve— y se puede leer
+ *    sin pintar nada.
+ */
+describe('⭐ EL ENLACE DE SALTO — la técnica G1 de 2.4.1', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [Buscador],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+    TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    const http = TestBed.inject(HttpTestingController);
+    for (const p of http.match(() => true)) {
+      if (!p.cancelled) p.flush([]);
+    }
+  });
+
+  async function raiz(): Promise<HTMLElement> {
+    const fixture = TestBed.createComponent(Buscador);
+    await fixture.whenStable();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  /** Todo lo que el navegador mete en el orden de tabulación, en orden de DOM. */
+  const INTERACTIVOS = 'a[href], button, input:not([type=hidden]), select, textarea, [tabindex="0"]';
+
+  it('⭐ es el PRIMER interactivo del documento [G1]', async () => {
+    const primero = (await raiz()).querySelector(INTERACTIVOS);
+    expect(primero, 'no hay ni un interactivo en la página').not.toBeNull();
+    expect(primero!.tagName.toLowerCase()).toBe('a');
+    expect(primero!.classList.contains('salto'), `el primero es <${primero!.tagName.toLowerCase()}>`).toBe(true);
+    expect(primero!.textContent?.trim()).toMatch(/salt/i);
+  });
+
+  /**
+   * ⭐ LA SEGUNDA TRAMPA DE G1: un destino que no existe, o que no puede
+   * recibir el foco. El enlace parecería funcionar —el hash cambia— y el
+   * teclado se quedaría donde estaba, o sea, dentro del mapa.
+   */
+  it('⭐ su destino EXISTE y es enfocable [G1, trampa 2]', async () => {
+    const r = await raiz();
+    const enlace = r.querySelector<HTMLAnchorElement>('a.salto')!;
+    const id = enlace.getAttribute('href')!.replace('#', '');
+    expect(id.length).toBeGreaterThan(0);
+    const destino = r.querySelector(`#${id}`);
+    expect(destino, `el enlace apunta a #${id} y ahí no hay nada`).not.toBeNull();
+    // `-1` es lo que lo hace enfocable POR PROGRAMA sin meterlo en el tabulador.
+    expect(destino!.getAttribute('tabindex')).toBe('-1');
+  });
+
+  /**
+   * ⭐ LA PRIMERA TRAMPA DE G1: el oculto sin su regla pareja.
+   *
+   * ⚠️ Y se comprueba también CÓMO se esconde: `display: none` y
+   *    `visibility: hidden` lo sacarían del orden de tabulación, y entonces el
+   *    enlace no existiría para quien lo necesita.
+   */
+  it('⭐ la hoja tiene la regla `:focus` pareja, y no lo esconde con `display` [G1, trampa 1]', () => {
+    const limpio = sinComentarios(HOJA_BUSCADOR);
+    const bloque = /\.salto\s*\{([^}]*)\}/.exec(limpio)?.[1] ?? '';
+    expect(bloque.length, 'no hay regla `.salto` en buscador.css').toBeGreaterThan(0);
+    expect(bloque).not.toMatch(/display\s*:\s*none/);
+    expect(bloque).not.toMatch(/visibility\s*:\s*hidden/);
+    expect(limpio, 'falta la regla `.salto:focus`').toMatch(/\.salto:focus\s*\{/);
+  });
+
+  /**
+   * ⚠️ **Y NO VIVE EN LA HOJA GLOBAL**, que es la lección del 20/09 aplicada
+   *    antes de tropezar: un nombre de clase en `styles.css` es un
+   *    identificador de toda la aplicación —así heredó `/panel` la columna del
+   *    Buscador— y `salto` es una palabra que cualquier página querría.
+   */
+  it('⭐ y su estilo está ENCAPSULADO: `salto` no entra en la hoja global', () => {
+    expect(sinComentarios(HOJA_GLOBAL)).not.toMatch(/\.salto\b/);
+  });
+});
