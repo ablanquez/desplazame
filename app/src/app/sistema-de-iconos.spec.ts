@@ -253,18 +253,8 @@ describe('⭐ (IV) LOS TAMAÑOS — la deuda del eje óptico, fijada con su cifr
   it('⭐ el censo de tamaños es el que dice el acta', () => {
     const cuenta: Record<number, number> = {};
     for (const l of LADOS) cuenta[l] = (cuenta[l] ?? 0) + 1;
-    // ⚠️ **20/09: el de 24 se va y entran cuatro de 20.** Era el icono del
-    //    interruptor de tema —un sol o una luna, a 24 porque era lo único que
-    //    había dentro de un cuadrado de 44—, y con la enmienda del §35 el tema
-    //    pasó a ser un grupo de tres celdas con su palabra debajo: Claro con el
-    //    sol, Oscuro con la luna, y Sistema **con los dos**, que es lo que
-    //    significa. TRES usos escritos a 20 —el sol y la luna del tercero, y el
-    //    condicional de los otros dos, que en la plantilla es uno solo—, y 20
-    //    es instancia del eje óptico: el total sube de 18 a 20 y **la deuda no
-    //    se mueve**, que es lo que esta jueza
-    //    vigila de verdad. Ningún fichero nuevo entra en el paquete.
-    expect(cuenta).toEqual({ 14: 2, 16: 7, 18: 1, 20: 7, 24: 1, 48: 2 });
-    expect(LADOS.length).toBe(20);
+    expect(cuenta).toEqual({ 14: 2, 16: 7, 18: 1, 20: 4, 24: 2, 48: 2 });
+    expect(LADOS.length).toBe(18);
   });
 
   it('⭐ y exactamente DIEZ usos caen fuera de la retícula, ni uno más', () => {

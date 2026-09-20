@@ -387,21 +387,7 @@ describe('⭐ LA BARRA DE PESTAÑAS — la navegación de móvil', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  /**
-   * ⭐ **ACTA DEL CUARTO HUECO, SEGUNDA PARTE (20/09).**
-   *
-   * Esta jueza decía «trae CUATRO huecos: Buscador, Ruta, Mapa y Tema» y
-   * comparaba los cuatro textos. El cuarto ya no es un hueco: es **el grupo de
-   * tres radios** del tema, que entró el 20/09 por la enmienda del §35 —«seguir
-   * al sistema» es una elección distinta de fijar un tema, y un interruptor no
-   * tiene tercera posición—.
-   *
-   * ⚠️ Lo que la jueza compra no se afloja, se REPARTE: la navegación son tres
-   *    y se siguen nombrando una a una aquí; el grupo tiene sus propias juezas
-   *    más abajo. Bajar el número sin decir por qué es lo que convertiría esto
-   *    en un molde relleno.
-   */
-  it('⭐ es un `nav` con nombre, y la NAVEGACIÓN son tres: Buscador, Ruta y Mapa', async () => {
+  it('⭐ es un `nav` con nombre, y trae CUATRO huecos: Buscador, Ruta, Mapa y Tema', async () => {
     const r = await raiz();
     const barra = r.querySelector('nav.barra');
     expect(barra).not.toBeNull();
@@ -413,39 +399,34 @@ describe('⭐ LA BARRA DE PESTAÑAS — la navegación de móvil', () => {
       'Buscador',
       'Ruta',
       'Mapa',
+      'Tema',
     ]);
   });
 
-  /** Y el cuarto sitio lo ocupa el grupo del tema, que no navega a ninguna parte. */
-  it('⭐ y el cuarto sitio lo ocupa el grupo del tema, dentro de la barra', async () => {
-    const grupo = (await raiz()).querySelector('nav.barra fieldset.conmutador--barra');
-    expect(grupo, 'no hay conmutador en la barra').not.toBeNull();
-    expect(grupo!.querySelectorAll('input[type="radio"]').length).toBe(3);
-  });
-
   /**
-   * ⭐ **ACTA DEL CUARTO HUECO (16/09 · reescrita el 20/09).**
+   * ⭐ **ACTA DEL CUARTO HUECO (16/09, tanda 6 · parte 3).**
    *
    * Aquí ponía `toBe(3)` con este porqué escrito: *«la maqueta trae un cuarto
    * botón, "Tema", que llama a `cycleTheme`. Aquí no se pinta a propósito: el
-   * tema va clavado en claro hasta su tanda»*. El 16/09 subió a 4, a la vez que
-   * el conmutador se cableaba — el botón inerte que el §20 prohibía no existió
-   * ni un minuto.
+   * tema va clavado en claro hasta su tanda —`<html data-theme="light">`, con su
+   * jueza en `identidad.spec.ts`—, así que ese botón se pulsaría y no pasaría
+   * nada. Esta línea es la que hará ruido el día que el conmutador entre: habrá
+   * que subirla a 4 a la vez que se cablea, y no antes.»*
    *
-   * **Y el 20/09 baja a 3**, porque el cuarto dejó de ser un botón: es el grupo
-   * de tres radios del tema. La cuenta que importa se mantiene —**la barra
-   * sigue teniendo cuatro sitios**— y se compra entera, botones y grupo, en vez
-   * de contar solo lo que es un `<button>`.
+   * **Ese día es hoy**, y la línea se sube A LA VEZ que se cablea: el guion
+   * anti-FOUC, la persistencia y el servicio `Tema` entran en el mismo commit.
+   * El botón inerte que el §20 prohibía no ha existido ni un minuto.
+   *
+   * ⚠️ El cuarto hueco **no es una pestaña**: los otros tres navegan y llevan
+   *    `aria-current`; este es un interruptor [APG, *Switch*] con `role="switch"`
+   *    y `aria-checked`. Comparte el traje de la barra y nada más — por eso la
+   *    jueza de `aria-current` de abajo lo excluye a propósito.
    */
-  it('⭐ la barra sigue teniendo CUATRO sitios: tres pestañas y el grupo del tema', async () => {
-    const barra = (await raiz()).querySelector('nav.barra')!;
-    expect(barra.querySelectorAll('button.barra__boton').length).toBe(3);
-    expect(barra.querySelectorAll('fieldset.conmutador').length).toBe(1);
-    // Hijos directos: los tres botones y el grupo, y nada más en medio.
-    expect(barra.children.length).toBe(4);
+  it('⭐ y son CUATRO: el conmutador ocupa el hueco que la maqueta le guardaba', async () => {
+    expect((await raiz()).querySelectorAll('button.barra__boton').length).toBe(4);
   });
 
-  it('⭐ cada pestaña lleva su símbolo, y el símbolo no habla', async () => {
+  it('⭐ cada hueco lleva su símbolo, y el símbolo no habla', async () => {
     for (const b of (await raiz()).querySelectorAll('button.barra__boton')) {
       const dibujo = b.querySelector('app-simbolo svg path')?.getAttribute('d') ?? '';
       expect(Object.values(SIMBOLOS)).toContain(dibujo);
@@ -455,100 +436,61 @@ describe('⭐ LA BARRA DE PESTAÑAS — la navegación de móvil', () => {
   });
 
   /**
-   * ⭐ **ACTA: EL CONMUTADOR DEJA DE SER UN INTERRUPTOR (20/09).**
+   * ⭐ EL CONMUTADOR ES UN INTERRUPTOR, NO UNA PESTAÑA [APG, *Switch Pattern*].
    *
-   * Aquí vivían tres juezas escritas contra `nav.barra button[role="switch"]`:
-   * que era un `switch` con estado y no una pestaña, que su `aria-label` no
-   * cambiaba al conmutar, y que pulsarlo ponía `data-theme` y lo guardaba.
-   * Compraban bien lo que había, y lo que había eran **dos estados**.
+   * El modo oscuro es el ejemplo canónico del patrón: un ajuste de efecto
+   * inmediato, sin «aplicar». El APG pide `role="switch"` con `aria-checked`, y
+   * un `<button>` de verdad para que Espacio y Enter funcionen sin código.
    *
-   * El patrón cambia por letra firmada —la enmienda del §35— y estas juezas
-   * compran **lo mismo, mejor**:
-   *
-   * · que no finge ser navegación sigue comprado, y ahora de dos maneras: no
-   *   lleva `aria-current` y encima no es un `button`, es un grupo de radios;
-   * · que el nombre no cambia al usarlo sigue comprado, y es más fuerte: el
-   *   nombre de cada opción es lo que la opción ES, así que no puede cambiar;
-   * · que la elección llega al documento sigue comprado, y ahora en los TRES
-   *   valores, incluido el que no escribe nada.
+   * ⚠️ **EL NOMBRE NO CAMBIA CON EL ESTADO.** Es el error clásico de estos
+   *    botones: llamarlos «Activar modo oscuro» y luego «Desactivar modo
+   *    oscuro». Quien navega por voz o por lista de controles pierde el control
+   *    de vista cada vez que lo usa. El nombre es estable —«Modo oscuro»— y
+   *    quien dice el estado es `aria-checked`, que para eso está.
    */
-  it('⭐ el cuarto sitio es un grupo de radios con nombre, no una pestaña', async () => {
+  it('⭐ el cuarto hueco es un `switch` con estado, no una pestaña', async () => {
     const r = await raiz();
-    const grupo = r.querySelector('nav.barra fieldset.conmutador');
-    expect(grupo, 'no hay grupo de tema en la barra').not.toBeNull();
-    // [DOC MDN] `fieldset` + `legend` es el mecanismo nativo del nombre de grupo.
-    expect(grupo!.querySelector('legend')?.textContent?.trim()).toBe('Tema');
-    // Un grupo de radios no representa una página: `aria-current` sería mentira.
-    expect(grupo!.querySelector('[aria-current]')).toBeNull();
-    const radios = grupo!.querySelectorAll<HTMLInputElement>('input[type="radio"]');
-    expect(Array.from(radios).map((r2) => r2.value)).toEqual(['claro', 'oscuro', 'sistema']);
+    const boton = r.querySelector('nav.barra button[role="switch"]');
+    expect(boton, 'no hay interruptor en la barra').not.toBeNull();
+    expect(boton!.getAttribute('aria-checked')).toMatch(/^(true|false)$/);
+    // Un interruptor no representa una página: `aria-current` aquí sería mentira.
+    expect(boton!.hasAttribute('aria-current')).toBe(false);
+    expect(boton!.getAttribute('type')).toBe('button');
   });
 
-  /**
-   * ⭐ LAS DOS VARIANTES DE LA PORTADA NO COMPARTEN `name`, y esto es la
-   * lección de `.modo__radio` cobrada antes de tropezar: las dos están en el
-   * DOM a la vez —una apagada por ancho— y con el mismo nombre el navegador
-   * haría de las seis **un solo grupo**. Diría «opción 1 de 6» y las flechas
-   * saltarían de un conmutador al otro.
-   */
-  it('⭐ cada variante tiene su propio `name`: no son un grupo de seis', async () => {
-    const r = await raiz();
-    const nombres = new Set(
-      Array.from(r.querySelectorAll<HTMLInputElement>('input[name^="tema-"]')).map((e) => e.name),
-    );
-    expect(nombres.size, `un solo grupo: ${[...nombres].join(', ')}`).toBe(2);
-    expect([...nombres].sort()).toEqual(['tema-barra', 'tema-cabecera']);
-  });
-
-  it('⭐ los nombres de las tres opciones son estables: no cambian al elegir [APG]', async () => {
+  it('⭐ su nombre es estable: no cambia al conmutar [APG]', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const r = fixture.nativeElement as HTMLElement;
-    const textos = (): string[] =>
-      Array.from(r.querySelectorAll('nav.barra .conmutador__opcion')).map(
-        (o) => o.textContent?.trim() ?? '',
-      );
+    const boton = r.querySelector<HTMLButtonElement>('nav.barra button[role="switch"]')!;
 
-    const antes = textos();
-    expect(antes).toEqual(['Claro', 'Oscuro', 'Sistema']);
+    const nombre = boton.getAttribute('aria-label');
+    expect(nombre?.length).toBeGreaterThan(0);
+    const antes = boton.getAttribute('aria-checked');
 
-    r.querySelector<HTMLInputElement>('input[name="tema-barra"][value="oscuro"]')!.click();
+    boton.click();
     await fixture.whenStable();
 
-    expect(textos(), 'un nombre ha cambiado al usar el control').toEqual(antes);
-    document.documentElement.removeAttribute('data-theme');
-    localStorage.removeItem(LLAVE_DEL_TEMA);
+    expect(boton.getAttribute('aria-label'), 'el nombre ha cambiado con el estado').toBe(nombre);
+    expect(boton.getAttribute('aria-checked'), 'el estado no ha cambiado').not.toBe(antes);
   });
 
   /**
-   * ⭐ Y LA ELECCIÓN LLEGA AL DOCUMENTO, que es lo que de verdad conmuta la app:
+   * ⭐ Y EL ESTADO LLEGA AL DOCUMENTO, que es lo que de verdad conmuta la app:
    * el atributo `data-theme` del `<html>` es la capa 3 de `styles.css`.
-   *
-   * ⚠️ Los tres valores, y el tercero es el que no existía: «Sistema» **borra**
-   *    el atributo y la llave, y así la capa 2 del CSS vuelve a mandar.
    */
-  it('⭐ elegir pone el tema en <html> y lo guarda — y «Sistema» lo BORRA', async () => {
+  it('⭐ pulsarlo pone el tema en <html> y lo guarda', async () => {
     const fixture = TestBed.createComponent(Buscador);
     await fixture.whenStable();
     const r = fixture.nativeElement as HTMLElement;
     const antes = document.documentElement.getAttribute('data-theme');
-    const radio = (valor: string): HTMLInputElement =>
-      r.querySelector<HTMLInputElement>(`input[name="tema-barra"][value="${valor}"]`)!;
+    const boton = r.querySelector<HTMLButtonElement>('nav.barra button[role="switch"]')!;
 
-    radio('oscuro').click();
+    boton.click();
     await fixture.whenStable();
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-    expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBe('dark');
-
-    radio('claro').click();
-    await fixture.whenStable();
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
-    expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBe('light');
-
-    radio('sistema').click();
-    await fixture.whenStable();
-    expect(document.documentElement.getAttribute('data-theme')).toBeNull();
-    expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBeNull();
+    const puesto = document.documentElement.getAttribute('data-theme');
+    expect(puesto).toMatch(/^(dark|light)$/);
+    expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBe(puesto);
 
     if (antes === null) document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', antes);
@@ -797,43 +739,5 @@ describe('⭐ EL ASA — 44 de área clicable sin mover la costura', () => {
    */
   it('⭐ el anillo de foco rodea el dibujo, no el relleno', () => {
     expect(sinComentarios(HOJA_GLOBAL)).toMatch(/\.separador:focus-visible::before\s*\{/);
-  });
-});
-
-/**
- * ⭐ EL APAGADO DE PARTIDA DEL CONMUTADOR — el portero de una regla que vive
- * fuera de esta hoja (20/09).
- *
- * `.conmutador` sale apagado en `styles.css` y cada variante enciende la suya.
- * La tercera —la de la intranet— **se enciende desde dentro del componente**,
- * con un estilo encapsulado, para no meter nombres de la intranet en la hoja
- * que viaja a producción. Ver la bitácora del 20/09 y `conmutador.ts`.
- *
- * ⚠️ Y de ahí esta jueza. Si alguien pusiera aquí un `display` visible de
- *    partida, **la regla de allá dejaría de pintar nada y no se notaría**: la
- *    intranet se vería exactamente igual, por otro motivo, hasta el día que
- *    alguien tocara la hoja global. Una regla que no pinta es una regla que
- *    miente sobre por qué funciona algo.
- */
-describe('⭐ EL CONMUTADOR — apagado de partida, y cada variante enciende la suya', () => {
-  /** El cuerpo de la regla `.conmutador` a secas, sin sus modificadores. */
-  const CUERPO = ((): string => {
-    const limpio = sinComentarios(HOJA_GLOBAL);
-    const i = limpio.indexOf('\n.conmutador {');
-    return i < 0 ? '' : limpio.slice(i + 14, limpio.indexOf('}', i));
-  })();
-
-  it('⭐ `.conmutador` sale APAGADO en la hoja global', () => {
-    expect(CUERPO.length, 'no encuentro la regla `.conmutador`').toBeGreaterThan(0);
-    expect(CUERPO, 'la variante suelta dejaría de pintar nada').toMatch(/display:\s*none/);
-  });
-
-  it('⭐ y la variante de la barra la enciende, sin `@media` que la tape', () => {
-    expect(sinComentarios(HOJA_GLOBAL)).toMatch(/\.conmutador--barra\s*\{\s*display:\s*flex/);
-  });
-
-  /** La de la intranet, en el componente y encapsulada: ni un nombre suyo aquí. */
-  it('⭐ y ningún nombre de la intranet entra en la hoja que viaja', () => {
-    expect(sinComentarios(HOJA_GLOBAL)).not.toMatch(/\.conmutador--suelta\b/);
   });
 });

@@ -1523,14 +1523,9 @@
           en claro hasta su tanda, asi que ese boton no tendria nada que
           conmutar». Esa tanda es esta, y el cuarto entra CABLEADO: el boton
           inerte que el §20 prohibia no ha existido ni un minuto.
-
-       ⭐ Y DESDE EL 20/09 EL CUARTO NO ES UN BOTON: es **un grupo de tres
-          radios**, por la enmienda del §35 —«seguir al sistema» es una eleccion
-          distinta de fijar un tema, y un interruptor no tiene tercera
-          posicion—. Sigue sin ser una pestaña: los otros tres navegan y llevan
-          `aria-current`; este elige un ajuste y no representa ninguna pagina.
-       ⚠️ Comparte la barra y nada mas: su traje es suyo —`.conmutador`— y no
-          el de `.barra__boton`, porque ya no es un boton. -->
+       ⚠️ El cuarto NO es una pestaña: los otros tres navegan y llevan
+          `aria-current`; este es un interruptor [APG] con `role="switch"` y
+          `aria-checked`. Comparte el traje de la barra y nada mas. -->
   <nav class="barra" aria-label="Pantallas">
     @for (p of pestanas; track p.id) {
       <button

@@ -4953,87 +4953,14 @@ for (const [k, caso] of CASOS.entries()) {
   }
 }
 
-// ── (4) EL GRUPO DE TRES, en los tres anchos y los dos temas ──
-//
-// ⭐ **ACTA (20/09).** Aquí vivía «EL BOTÓN», con siete juezas escritas contra
-//    un `button[role=switch][aria-label="Modo oscuro"]`: que se pintaba uno y
-//    solo uno, que era un switch con estado y no una pestaña, que llegaba a los
-//    44 px, que el icono no hablaba, que se distinguía de su fondo, que
-//    pulsarlo conmutaba y guardaba, que el nombre no cambiaba, y que Enter y
-//    Espacio hacían lo mismo que el ratón.
-//
-//    Compraban bien **dos estados**, y el patrón cambió por letra firmada —la
-//    enmienda del §35: «seguir al sistema» es una elección distinta de fijar un
-//    tema, y un interruptor no tiene tercera posición—. Se reescriben, y cada
-//    una compra lo mismo o más:
-//
-//    · «uno y solo uno» → sigue, ahora entre las dos variantes del grupo;
-//    · «no finge ser pestaña» → sigue, y de dos maneras: sin `aria-current` y
-//      sin ser un `button`;
-//    · «44 px» → sigue, y ahora son TRES targets, no uno;
-//    · «el nombre no cambia» → sigue, y es más fuerte: el nombre de cada opción
-//      es lo que la opción ES, así que no puede cambiar al usarla;
-//    · «pulsarlo conmuta y guarda» → sigue para claro y oscuro, y entra la que
-//      no existía: **«Sistema» BORRA el atributo y la llave**;
-//    · «Enter y Espacio» → se sustituye por **las flechas**, que es el teclado
-//      que un grupo de radios regala [APG, *Radio Group*], y por la comprobación
-//      de que moverse con ellas APLICA el tema, no solo mueve el foco;
-//    · y entra **el sistema vivo desde el tercer estado**: con «Sistema»
-//      puesto, cambiar el SO con la pestaña abierta conmuta la app.
-const OPCIONES_P29 = ['claro', 'oscuro', 'sistema'];
-
-/** El grupo de una variante: dónde está, cómo mide y qué dice. */
-const EL_GRUPO_P29 = (sel) => `
-  const g = document.querySelector(${JSON.stringify(sel)});
-  if (!g) return { hay: false };
-  const r = g.getBoundingClientRect();
-  const vis = (e) => !!e && e.getBoundingClientRect().width > 0 && getComputedStyle(e).display !== 'none';
-  const ops = [...g.querySelectorAll('.conmutador__opcion')].map((o) => {
-    const rr = o.getBoundingClientRect();
-    const i = o.querySelector('input[type="radio"]');
-    return {
-      texto: o.textContent.trim(),
-      valor: i.value, nombre: i.name, puesta: i.checked,
-      ancho: Math.round(rr.width), alto: Math.round(rr.height),
-      dibujos: [...o.querySelectorAll('svg path')].map((d) => (d.getAttribute('d') ?? '').slice(0, 18)),
-      iconoCallado: o.querySelector('.conmutador__marca')?.getAttribute('aria-hidden'),
-      color: getComputedStyle(o).color,
-    };
-  });
-  return {
-    hay: true, visible: vis(g), etiqueta: g.tagName.toLowerCase(),
-    leyenda: g.querySelector('legend')?.textContent?.trim() ?? null,
-    corriente: !!g.querySelector('[aria-current]'),
-    ancho: Math.round(r.width), alto: Math.round(r.height), ops,
-  };
-`;
-
-/** Lo que el documento dice del tema, ahora mismo. */
-const LO_PUESTO_P29 = `
-  let guardado = null; try { guardado = localStorage.getItem('desplazame:tema'); } catch (e) {}
-  return {
-    atributo: document.documentElement.getAttribute('data-theme'),
-    esquema: getComputedStyle(document.documentElement).colorScheme,
-    guardado,
-    puesta: document.querySelector('.conmutador__opcion--puesta input')?.value ?? null,
-  };
-`;
-
-const TECLA_ABAJO = { key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40, nativeVirtualKeyCode: 40 };
-const flechaAbajo = async (m) => {
-  await m.cdp('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...TECLA_ABAJO });
-  await m.cdp('Input.dispatchKeyEvent', { type: 'keyUp', ...TECLA_ABAJO });
-  await m.dormir(300);
-};
-
+// ── (4) EL BOTÓN, en los tres anchos y los dos temas ──
 for (const [k, pantalla] of PANTALLAS.entries()) {
   // El de móvil vive en la barra; el de PC, en la cabecera. Nunca los dos.
   const enBarra = pantalla.ancho < 768;
-  const sel = enBarra ? '.conmutador--barra' : '.conmutador--cabecera';
-  const otroSel = enBarra ? '.conmutador--cabecera' : '.conmutador--barra';
+  const sel = enBarra ? '.conmutador--barra' : '.conmutador';
   for (const tema of ['dark', 'light']) {
     const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
-    const dicho = `P29 · el grupo · ${pantalla.id} · ${nombreTema}`;
+    const dicho = `P29 · el botón · ${pantalla.id} · ${nombreTema}`;
     const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: 9810 + 10 * k + (tema === 'dark' ? 0 : 1) });
     try {
       await sembrar(m, tema);
@@ -5041,148 +4968,112 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
       console.log(`\n═══ EL CONMUTADOR EN ${nombreTema.toUpperCase()} · ${pantalla.nombre} ═══`);
       if (!(await ponerTema(m, tema, dicho))) continue;
 
-      const g = await leer(m, EL_GRUPO_P29(sel));
-      const otro = await leer(m, EL_GRUPO_P29(otroSel));
+      const b = await leer(
+        m,
+        `const v = document.querySelector(${JSON.stringify(sel)});
+         const otro = document.querySelector(${JSON.stringify(enBarra ? '.conmutador' : '.conmutador--barra')});
+         const vis = (e) => e && e.getBoundingClientRect().width > 0 && getComputedStyle(e).display !== 'none';
+         if (!v) return { hay: false };
+         const r = v.getBoundingClientRect(); const s = getComputedStyle(v);
+         return { hay: true, visible: vis(v), otroVisible: vis(otro), rol: v.getAttribute('role'),
+           marcado: v.getAttribute('aria-checked'), nombre: v.getAttribute('aria-label'),
+           tipo: v.getAttribute('type'), corriente: v.hasAttribute('aria-current'),
+           ancho: Math.round(r.width), alto: Math.round(r.height),
+           dibujo: v.querySelector('svg path')?.getAttribute('d')?.slice(0, 24) ?? '',
+           iconoCallado: v.querySelector('svg')?.getAttribute('aria-hidden'), color: s.color };`,
+      );
       juzgar(
-        g.hay && g.visible && !(otro.hay && otro.visible),
+        b.hay && b.visible && !b.otroVisible,
         `${dicho} · ⭐ se pinta UNO y solo uno: el de ${enBarra ? 'la barra' : 'la cabecera'}`,
-        `${sel} visible ${g.visible} · ${otroSel} visible ${otro.hay ? otro.visible : '(no está)'}`,
+        `visible ${b.visible} · el otro ${b.otroVisible}`,
+      );
+      juzgar(
+        b.rol === 'switch' && b.marcado === String(tema === 'dark') && b.tipo === 'button' && !b.corriente,
+        `${dicho} · ⭐ es un switch [APG] con el estado puesto, y no finge ser pestaña`,
+        `role=${b.rol} · aria-checked=${b.marcado} · type=${b.tipo} · aria-current ${b.corriente}`,
+      );
+      // [WCAG 2.5.5] el objetivo mínimo son 44 px. En móvil, medido de verdad.
+      juzgar(
+        !enBarra || (b.ancho >= 44 && b.alto >= 44),
+        `${dicho} · ⭐ [WCAG 2.5.5] el objetivo táctil llega a 44 px`,
+        `${b.ancho} × ${b.alto} px`,
+      );
+      juzgar(
+        b.iconoCallado === 'true' && b.dibujo.length > 0,
+        `${dicho} · el icono no habla: el nombre lo pone aria-label`,
+        `aria-hidden=${b.iconoCallado} · «${b.nombre}» · d empieza por ${b.dibujo}…`,
+      );
+      // [WCAG 1.4.11] el control tiene que distinguirse de su fondo: 3:1.
+      const tinta = await pixelDe(m, sel, { minimo: 4 });
+      juzgar(
+        tinta !== null && tinta.contraste >= AA_GRAFICO,
+        `${dicho} · ⭐ [1.4.11] el icono del conmutador se distingue de su fondo`,
+        tinta === null ? '(fuera de la vista)' : `${tinta.contraste.toFixed(2)}:1 · ${enRgb(tinta.texto)} sobre ${enRgb(tinta.fondo)}`,
       );
 
-      // ⚠️ SI NO HAY GRUPO, SE PARA AQUÍ — con los rojos ya cantados y sin
+      // ⚠️ SI NO HAY BOTÓN, SE PARA AQUÍ — con los rojos ya cantados y sin
       //    tumbar lo que viene detrás. Es la ley de la L4 (11/09): una jueza que
       //    no encuentra a quien mide tiene que dar ROJO y dejar correr a las
       //    demás. Sin esto, la P29 contra producción reventaba en el `.click()`
       //    de un `null` y se llevaba por delante las cinco pantallas siguientes.
-      if (!g.hay) continue;
+      if (!b.hay) continue;
 
-      juzgar(
-        g.etiqueta === 'fieldset' && g.leyenda === 'Tema' && !g.corriente &&
-          g.ops.map((o) => o.valor).join(',') === OPCIONES_P29.join(','),
-        `${dicho} · ⭐ es un grupo de radios CON NOMBRE, y no finge ser navegación`,
-        `<${g.etiqueta}> · leyenda «${g.leyenda}» · aria-current ${g.corriente} · [${g.ops.map((o) => o.valor).join(', ')}]`,
-      );
-      juzgar(
-        g.ops.length === 3 && new Set(g.ops.map((o) => o.nombre)).size === 1 &&
-          g.ops[0].nombre.startsWith('tema-'),
-        `${dicho} · ⭐ las tres comparten su «name», que es lo que las hace UN grupo`,
-        `name=${g.ops[0]?.nombre} · ${new Set(g.ops.map((o) => o.nombre)).size} nombre(s) entre 3 radios`,
-      );
-      // [WCAG 2.5.5] el objetivo mínimo son 44 px. Los TRES, medidos de verdad.
-      juzgar(
-        g.ops.every((o) => o.ancho >= 44 && o.alto >= 44),
-        `${dicho} · ⭐ [WCAG 2.5.5] las TRES opciones llegan a 44 px`,
-        g.ops.map((o) => `${o.texto} ${o.ancho}×${o.alto}`).join(' · '),
-      );
-      juzgar(
-        g.ops.every((o) => o.iconoCallado === 'true' && o.dibujos.length > 0) &&
-          new Set(g.ops.map((o) => o.dibujos.join('|'))).size === 3,
-        `${dicho} · el dibujo de cada una es distinto y no habla [1.4.1]`,
-        g.ops.map((o) => `${o.texto}: ${o.dibujos.length} dibujo(s)`).join(' · '),
-      );
-      juzgar(
-        g.ops.filter((o) => o.puesta).length === 1 &&
-          g.ops.find((o) => o.puesta)?.valor === (tema === 'dark' ? 'oscuro' : 'claro'),
-        `${dicho} · ⭐ y la puesta es la que el almacén sembró`,
-        `puesta «${g.ops.find((o) => o.puesta)?.texto ?? '(ninguna)'}» · sembrado ${tema}`,
-      );
-      // [WCAG 1.4.11] el control tiene que distinguirse de su fondo: 3:1.
-      const tinta = await pixelDe(m, `${sel} .conmutador__opcion--puesta`, { minimo: 4 });
-      juzgar(
-        tinta !== null && tinta.contraste >= AA_GRAFICO,
-        `${dicho} · ⭐ [1.4.11] la opción puesta se distingue de su fondo`,
-        tinta === null ? '(fuera de la vista)' : `${tinta.contraste.toFixed(2)}:1 · ${enRgb(tinta.texto)} sobre ${enRgb(tinta.fondo)}`,
-      );
-
-      // ── Con el ratón: los tres valores, y el tercero BORRA ──
-      const contrario = tema === 'dark' ? 'claro' : 'oscuro';
-      const esperado = contrario === 'oscuro' ? 'dark' : 'light';
-      await m.evaluar(`document.querySelector('${sel} input[value="${contrario}"]').click()`);
+      // ── Pulsarlo: con el ratón, y que el documento entero conmute ──
+      const contrario = tema === 'dark' ? 'light' : 'dark';
+      await m.evaluar(`document.querySelector(${JSON.stringify(sel)}).click()`);
       await m.dormir(400);
-      const tras = await leer(m, LO_PUESTO_P29);
+      const tras = await leer(
+        m,
+        `const v = document.querySelector(${JSON.stringify(sel)});
+         let guardado = null; try { guardado = localStorage.getItem('desplazame:tema'); } catch (e) {}
+         return { atributo: document.documentElement.getAttribute('data-theme'),
+           esquema: getComputedStyle(document.documentElement).colorScheme,
+           marcado: v.getAttribute('aria-checked'), nombre: v.getAttribute('aria-label'),
+           dibujo: v.querySelector('svg path')?.getAttribute('d')?.slice(0, 24) ?? '', guardado };`,
+      );
       juzgar(
-        tras.atributo === esperado && tras.esquema === esperado && tras.guardado === esperado &&
-          tras.puesta === contrario,
-        `${dicho} · ⭐ elegir «${contrario}» conmuta el documento Y guarda la elección`,
-        `data-theme=${tras.atributo} · color-scheme=${tras.esquema} · guardado=${tras.guardado} · puesta=${tras.puesta}`,
+        tras.atributo === contrario && tras.esquema === contrario && tras.guardado === contrario,
+        `${dicho} · ⭐ pulsarlo conmuta el documento Y guarda la elección`,
+        `data-theme=${tras.atributo} · color-scheme=${tras.esquema} · guardado=${tras.guardado}`,
+      );
+      juzgar(
+        tras.marcado === String(contrario === 'dark') && tras.nombre === b.nombre && tras.dibujo !== b.dibujo,
+        `${dicho} · ⭐ el estado cambia, el NOMBRE no, y el dibujo tampoco es el mismo [1.4.1]`,
+        `aria-checked ${b.marcado}→${tras.marcado} · nombre «${tras.nombre}» · dibujo ${b.dibujo === tras.dibujo ? 'EL MISMO' : 'otro'}`,
       );
 
-      await m.evaluar(`document.querySelector('${sel} input[value="sistema"]').click()`);
-      await m.dormir(400);
-      const libre = await leer(m, LO_PUESTO_P29);
-      juzgar(
-        libre.atributo === null && libre.guardado === null && libre.puesta === 'sistema',
-        `${dicho} · ⭐ elegir «Sistema» BORRA el atributo Y la llave: el mando vuelve al aparato`,
-        `data-theme=${libre.atributo} · guardado=${libre.guardado} · puesta=${libre.puesta}`,
-      );
-
-      // ── ⭐ EL SISTEMA VIVO DESDE EL TERCER ESTADO ──
-      //    La (3) de arriba lo compra sin haber elegido nunca; ésta lo compra
-      //    DESPUÉS de haber elegido un tema fijo y haber vuelto — que es el
-      //    camino de vuelta que el interruptor no tenía.
-      await sistemaEn(m, 'dark');
-      await m.dormir(400);
-      const conOscuro = await leer(m, LO_PUESTO_P29);
-      await sistemaEn(m, 'light');
-      await m.dormir(400);
-      const conClaro = await leer(m, LO_PUESTO_P29);
-      juzgar(
-        conOscuro.esquema === 'dark' && conClaro.esquema === 'light' &&
-          conOscuro.atributo === null && conClaro.atributo === null,
-        `${dicho} · ⭐ y con «Sistema» puesto la app SIGUE AL SO en vivo, sin recargar`,
-        `SO oscuro → ${conOscuro.esquema} · SO claro → ${conClaro.esquema} · atributo ${conClaro.atributo}`,
-      );
-      await m.cdp('Emulation.setEmulatedMedia', { features: [] });
-
-      // ── Y con el TECLADO: las flechas, que es lo que el grupo nativo regala ──
-      //    [APG, *Radio Group*] las flechas mueven el foco DENTRO del grupo y
-      //    seleccionan al pasar. Aquí se compra lo segundo: que moverse aplique.
-      // ⚠️ **SE PULSA «claro», NO SE ENFOCA.** Enfocar un radio NO lo
-      //    selecciona, y con eso la jueza nació mintiendo: venía de dejar
-      //    «Sistema» puesto, enfocaba «claro» sin marcarlo, y luego exigía que
-      //    la partida fuera «claro». Rojo en las seis pantallas, y el producto
-      //    hacía justo lo que el APG dice —`sistema → oscuro`, `data-theme
-      //    null → dark`—. Era la sonda, no el grupo: para medir que la flecha
-      //    MUEVE hay que partir de un sitio conocido, y a un radio se llega
-      //    marcándolo.
-      //
-      // ⚠️ Y **`click()` NO DA EL FOCO**, que es la segunda mitad del mismo
-      //    error: `HTMLElement.click()` dispara el evento y marca el radio,
-      //    pero deja el foco en el `body`, así que la flecha no tenía dónde
-      //    moverse — medido: `puesta claro → claro`. Un ratón de verdad hace
-      //    las dos cosas; aquí se piden las dos.
-      await m.evaluar(
-        `(() => { const i = document.querySelector('${sel} input[value="claro"]');
-           i.click(); i.focus(); })()`,
-      );
-      await m.dormir(300);
-      const partida = await leer(m, LO_PUESTO_P29);
-      await flechaAbajo(m);
-      const trasFlecha = await leer(m, LO_PUESTO_P29);
-      juzgar(
-        partida.puesta === 'claro' && trasFlecha.puesta === 'oscuro' && trasFlecha.atributo === 'dark',
-        `${dicho} · ⭐ la flecha abajo mueve el grupo Y aplica el tema [APG]`,
-        `puesta ${partida.puesta} → ${trasFlecha.puesta} · data-theme ${partida.atributo} → ${trasFlecha.atributo}`,
-      );
-      await flechaAbajo(m);
-      const alTercero = await leer(m, LO_PUESTO_P29);
-      juzgar(
-        alTercero.puesta === 'sistema' && alTercero.atributo === null && alTercero.guardado === null,
-        `${dicho} · y la siguiente llega a «Sistema», que borra igual que con el ratón`,
-        `puesta ${alTercero.puesta} · data-theme ${alTercero.atributo} · guardado ${alTercero.guardado}`,
-      );
+      // ── Y con el TECLADO, que es lo que el `<button>` de verdad regala ──
+      for (const tecla of ['Enter', ' ']) {
+        const antes = await m.evaluar(`document.documentElement.getAttribute('data-theme')`);
+        await m.evaluar(`document.querySelector(${JSON.stringify(sel)}).focus()`);
+        await m.cdp('Input.dispatchKeyEvent', {
+          type: 'keyDown', key: tecla, code: tecla === 'Enter' ? 'Enter' : 'Space',
+          windowsVirtualKeyCode: tecla === 'Enter' ? 13 : 32, text: tecla === 'Enter' ? '\r' : ' ',
+        });
+        await m.cdp('Input.dispatchKeyEvent', {
+          type: 'keyUp', key: tecla, code: tecla === 'Enter' ? 'Enter' : 'Space',
+          windowsVirtualKeyCode: tecla === 'Enter' ? 13 : 32,
+        });
+        await m.dormir(350);
+        const ahora = await m.evaluar(`document.documentElement.getAttribute('data-theme')`);
+        juzgar(
+          ahora !== antes && (ahora === 'dark' || ahora === 'light'),
+          `${dicho} · ⭐ ${tecla === ' ' ? 'Espacio' : 'Enter'} conmuta [APG: teclado nativo del button]`,
+          `${antes} → ${ahora}`,
+        );
+      }
 
       // El anillo de foco, que es del tema y no del navegador.
       const anillo = await leer(
         m,
-        `const i = document.querySelector('${sel} input[value="oscuro"]'); i.focus();
-         const s = getComputedStyle(i.closest('.conmutador__opcion'));
+        `const v = document.querySelector(${JSON.stringify(sel)}); v.focus();
+         const s = getComputedStyle(v);
          return { color: s.outlineColor, ancho: s.outlineWidth, estilo: s.outlineStyle };`,
       );
       const ring = await tokenRgb(m, 'ring');
       juzgar(
         anillo.color === ring && anillo.estilo === 'solid' && parseFloat(anillo.ancho) >= 2,
-        `${dicho} · el foco se ve en la CELDA, y con el --ring de la casa`,
+        `${dicho} · el foco se ve, y con el --ring de la casa`,
         `${anillo.estilo} ${anillo.ancho} ${anillo.color} · --ring ${ring}`,
       );
 
@@ -5580,28 +5471,6 @@ const tabular = async (m) => {
   await m.dormir(90);
 };
 
-/**
- * ⭐ **ACTA DE LA 2.4.7 (20/09): el indicador también cuenta si lo pinta un
- *    pseudoelemento.**
- *
- * Esta lectura miraba solo `outline` y `box-shadow` DEL ELEMENTO, y el 20/09
- * cantó `SIN INDICADOR: button.separador` en los dos temas. Fue a mirarse el
- * píxel antes de tocar nada, y el anillo **estaba pintado**: `solid 2px
- * rgb(37, 99, 235)` con el `--ring` de la casa, rodeando el dibujo de 24×48
- * —captura `asa-al-foco-1440.png`—.
- *
- * ⚠️ El anillo del asa se mudó al `::before` **a propósito**, y por una razón
- *    que se ve: desde que el área clicable son 44 px con 21 de relleno
- *    transparente, un `outline` sobre el BOTÓN rodearía también el relleno y se
- *    vería flotando veinte píxeles a la derecha del asa. Pintarlo sobre el
- *    dibujo es la forma correcta de cumplir 2.4.7 aquí, no una trampa para
- *    esquivar a esta jueza.
- *
- * ⚠️ Y no se afloja nada: al pseudoelemento se le exige lo mismo que al
- *    elemento —`outline` con estilo y grosor, o `box-shadow`—, y se dice cuál
- *    de los dos lo pinta. Un elemento sin indicador en ninguno de los tres
- *    sitios sigue poniendo la casilla en rojo.
- */
 const FOCO_P31 = `(() => {
   const firma = () => location.pathname + '|' + document.documentElement.getAttribute('data-theme') +
     '|' + document.querySelectorAll('*').length;
@@ -5610,25 +5479,10 @@ const FOCO_P31 = `(() => {
   const s = getComputedStyle(e);
   const anillo = s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0;
   const sombra = s.boxShadow && s.boxShadow !== 'none';
-  // ⭐ Y TAMBIÉN EN SUS PSEUDOELEMENTOS (20/09). Ver el acta de abajo.
-  const enPseudo = ['::before', '::after'].map((cual) => {
-    const p = getComputedStyle(e, cual);
-    if (p.content === 'none') return null;
-    const a = p.outlineStyle !== 'none' && parseFloat(p.outlineWidth) > 0;
-    const b = p.boxShadow && p.boxShadow !== 'none';
-    if (!a && !b) return null;
-    return cual + ': ' + (a ? p.outlineStyle + ' ' + p.outlineWidth + ' ' + p.outlineColor : 'box-shadow');
-  }).filter(Boolean);
   return {
     que: e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : ''),
-    visible: anillo || sombra || enPseudo.length > 0,
-    detalle: anillo
-      ? s.outlineStyle + ' ' + s.outlineWidth + ' ' + s.outlineColor
-      : sombra
-        ? 'box-shadow'
-        : enPseudo.length > 0
-          ? enPseudo.join(' · ')
-          : 'SIN INDICADOR',
+    visible: anillo || sombra,
+    detalle: anillo ? s.outlineStyle + ' ' + s.outlineWidth + ' ' + s.outlineColor : sombra ? 'box-shadow' : 'SIN INDICADOR',
     enMapa: !!e.closest('.leaflet-container, app-mapa'),
     firma: firma(),
   };
@@ -5733,36 +5587,18 @@ const PAGINAS_P32 = [
   { id: 'panel', url: 'panel', marca: 'app-panel', espera: 3000 },
 ];
 
-/**
- * ⚠️ 20/09: esto buscaba `[role="switch"][aria-label="Modo oscuro"]` y medía UN
- *    botón. Desde la enmienda del §35 el conmutador es un grupo de tres, así
- *    que se mide **la opción más pequeña**: la vara de 44 la tienen que pasar
- *    las tres, no el grupo. Un grupo de 160 px con una celda de 30 cumpliría la
- *    jueza vieja y dejaría un target corto en la intranet.
- */
 const EL_CONMUTADOR_SUELTO = `
-  const g = document.querySelector('fieldset.conmutador');
-  if (!g) return { hay: false };
-  const r = g.getBoundingClientRect();
-  const s = getComputedStyle(g);
-  const ops = [...g.querySelectorAll('.conmutador__opcion')].map((o) => {
-    const rr = o.getBoundingClientRect();
-    const i = o.querySelector('input[type="radio"]');
-    return { valor: i.value, puesta: i.checked, texto: o.textContent.trim(),
-      ancho: Math.round(rr.width), alto: Math.round(rr.height),
-      dentro: rr.left >= 0 && rr.right <= document.documentElement.clientWidth + 0.5 };
-  });
+  const b = document.querySelector('[role="switch"][aria-label="Modo oscuro"]');
+  if (!b) return { hay: false };
+  const r = b.getBoundingClientRect();
+  const s = getComputedStyle(b);
   return {
     hay: true,
     visible: r.width > 0 && r.height > 0 && s.display !== 'none' && s.visibility !== 'hidden',
     ancho: Math.round(r.width), alto: Math.round(r.height), display: s.display,
-    suelta: g.classList.contains('conmutador--suelta'),
-    leyenda: g.querySelector('legend')?.textContent?.trim() ?? null,
-    puesta: ops.find((o) => o.puesta)?.valor ?? null,
-    cuantas: ops.length,
-    menor: ops.length ? Math.min(...ops.map((o) => Math.min(o.ancho, o.alto))) : 0,
-    ops,
-    dentro: ops.every((o) => o.dentro),
+    marcado: b.getAttribute('aria-checked'),
+    suelta: b.classList.contains('conmutador--suelta'),
+    dentro: r.left >= 0 && r.right <= document.documentElement.clientWidth + 0.5,
   };
 `;
 
@@ -5807,41 +5643,23 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
 
         const b = await leer(m, EL_CONMUTADOR_SUELTO);
         juzgar(
-          b.hay && b.visible && b.suelta && b.cuantas === 3 && b.menor >= 44 && b.dentro,
-          `${dicho} · ⭐ el conmutador se VE, sus TRES opciones miden 44 [WCAG 2.5.5] y caben en la ventana`,
+          b.hay && b.visible && b.suelta && b.ancho >= 44 && b.alto >= 44 && b.dentro,
+          `${dicho} · ⭐ el conmutador se VE, mide sus 44 px [WCAG 2.5.5] y cabe en la ventana`,
           b.hay
-            ? `grupo ${b.ancho}×${b.alto} · ${b.cuantas} opciones, la menor ${b.menor} px · ` +
-              `display ${b.display} · variante suelta ${b.suelta} · dentro ${b.dentro}`
+            ? `${b.ancho}×${b.alto} px · display ${b.display} · variante suelta ${b.suelta} · dentro ${b.dentro}`
             : '(no hay conmutador en esta página)',
         );
         if (!b.hay || !b.visible) continue;
-        juzgar(
-          b.leyenda === 'Tema' && b.ops.map((o) => o.texto).join('|') === 'Claro|Oscuro|Sistema',
-          `${dicho} · y llega entero: la leyenda del grupo y las tres palabras`,
-          `leyenda «${b.leyenda}» · ${b.ops.map((o) => o.texto).join(' · ')}`,
-        );
 
-        // Y que OPERE: un mando que se ve y no hace nada es un estado deshonesto.
-        const contrario = tema === 'dark' ? 'claro' : 'oscuro';
-        await m.evaluar(`document.querySelector('fieldset.conmutador input[value="${contrario}"]').click()`);
+        // Y que OPERE: un botón que se ve y no hace nada es un estado deshonesto.
+        await m.evaluar(`document.querySelector('[role="switch"][aria-label="Modo oscuro"]').click()`);
         await m.dormir(400);
         const tras = await leer(m, EL_CONMUTADOR_SUELTO);
         const atributo = await m.evaluar(`document.documentElement.getAttribute('data-theme')`);
         juzgar(
-          tras.puesta === contrario && atributo === (tema === 'dark' ? 'light' : 'dark'),
-          `${dicho} · y OPERA: elegir «${contrario}» mueve la puesta y el tema del documento`,
-          `puesta ${b.puesta} → ${tras.puesta} · data-theme ${atributo}`,
-        );
-
-        // ⭐ Y EL TERCER ESTADO TAMBIÉN LLEGA A LA INTRANET: «Sistema» borra.
-        await m.evaluar(`document.querySelector('fieldset.conmutador input[value="sistema"]').click()`);
-        await m.dormir(400);
-        const libre = await leer(m, EL_CONMUTADOR_SUELTO);
-        const sinAtributo = await m.evaluar(`document.documentElement.getAttribute('data-theme')`);
-        juzgar(
-          libre.puesta === 'sistema' && sinAtributo === null,
-          `${dicho} · ⭐ y «Sistema» borra el atributo también aquí: la misma pieza, entera`,
-          `puesta ${libre.puesta} · data-theme ${sinAtributo}`,
+          tras.marcado !== b.marcado && atributo === (tema === 'dark' ? 'light' : 'dark'),
+          `${dicho} · y OPERA: pulsarlo cambia el estado y el tema del documento`,
+          `aria-checked ${b.marcado} → ${tras.marcado} · data-theme ${atributo}`,
         );
         // Se deja como estaba para que el otro tema parta de cero.
         await m.evaluar(`document.documentElement.setAttribute('data-theme', ${JSON.stringify(tema)})`);

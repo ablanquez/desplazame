@@ -45,37 +45,6 @@ import { DestroyRef, Injectable, inject, signal } from '@angular/core';
  */
 export const LLAVE_DEL_TEMA = 'desplazame:tema';
 
-/**
- * ⭐ LAS TRES ELECCIONES POSIBLES (20/09, la tanda de flecos).
- *
- * ⚠️ **`sistema` NO ES «ninguna de las dos»: es una elección, y distinta.**
- *    Quien la pone está pidiendo algo que ni «claro» ni «oscuro» dan — que la
- *    página siga al aparato, y que lo siga EN VIVO—. Con dos estados esa
- *    petición no se podía expresar: se tenía al arrancar, por no haber elegido
- *    nunca, y se perdía para siempre en cuanto alguien tocaba el conmutador.
- *    No había camino de vuelta, y ése es el defecto que el tercer estado cierra.
- */
-export type EleccionDeTema = 'claro' | 'oscuro' | 'sistema';
-
-/** Lo que el almacenamiento guarda, que es la capa 3 del CSS y no nuestro nombre. */
-const EN_EL_ALMACEN: Readonly<Record<EleccionDeTema, string | null>> = {
-  claro: 'light',
-  oscuro: 'dark',
-  sistema: null,
-};
-
-/** Y la vuelta: lo guardado, leído como elección. Basura y vacío son `sistema`. */
-function eleccionGuardada(): EleccionDeTema {
-  try {
-    const guardada = localStorage.getItem(LLAVE_DEL_TEMA);
-    if (guardada === 'dark') return 'oscuro';
-    if (guardada === 'light') return 'claro';
-  } catch {
-    // Modo privado: el almacén lanza. Sin elección guardada, manda el sistema.
-  }
-  return 'sistema';
-}
-
 @Injectable({ providedIn: 'root' })
 export class Tema {
   private readonly esOscuro = signal(temaDelDocumento());
@@ -83,77 +52,40 @@ export class Tema {
   /** `true` si el tema que ha ganado es el oscuro. */
   readonly oscuro = this.esOscuro.asReadonly();
 
-  private readonly eleccion = signal<EleccionDeTema>(eleccionGuardada());
-
   /**
-   * ⭐ LA ELECCIÓN, que NO es lo mismo que el tema.
+   * Estampa la elección: la capa 3 del CSS y el almacenamiento, en ese orden.
    *
-   * `oscuro()` dice qué se está pintando; `elegida()` dice qué pidió la persona.
-   * Con «sistema» puesto, `oscuro()` va cambiando con el aparato y `elegida()`
-   * se queda quieta — y esa distinción es todo el tercer estado.
+   * ⚠️ La señal se vuelve a LEER del documento en vez de darle el valor que se
+   *    acaba de pedir. Con hoja de estilos delante, lo que ha ganado lo dice
+   *    `color-scheme` computado, no nuestra intención: si algún día la capa 3
+   *    dejara de aplicarse, esto lo delataría en vez de taparlo.
    */
-  readonly elegida = this.eleccion.asReadonly();
-
-  /**
-   * ⭐ ESTAMPA LA ELECCIÓN: la capa 3 del CSS y el almacenamiento.
-   *
-   * ⚠️ **«Sistema» BORRA, no escribe.** Y no es una forma de hablar: la capa 2
-   *    de `styles.css` —`prefers-color-scheme` sobre `:root:not([data-theme])`—
-   *    solo manda MIENTRAS NO HAY ATRIBUTO. Escribir ahí el tema del sistema
-   *    dejaría la página clavada en el que hubiera en ese momento y el aparato
-   *    podría cambiar sin que nadie le hiciera caso. Devolver el mando es
-   *    quitar el atributo y quitar la llave; lo demás ya está escrito en el CSS.
-   *
-   * ⚠️ La señal del TEMA se vuelve a LEER del documento en vez de darle el valor
-   *    que se acaba de pedir. Con hoja de estilos delante, lo que ha ganado lo
-   *    dice `color-scheme` computado, no nuestra intención: si algún día la capa
-   *    3 dejara de aplicarse, esto lo delataría en vez de taparlo. Y con
-   *    «sistema» es la única forma de saberlo, porque la respuesta la tiene el
-   *    aparato.
-   */
-  elegir(cual: EleccionDeTema): void {
+  elegir(oscuro: boolean): void {
     if (typeof document === 'undefined') {
       return;
     }
-    const valor = EN_EL_ALMACEN[cual];
-    if (valor === null) {
-      document.documentElement.removeAttribute('data-theme');
-    } else {
-      document.documentElement.setAttribute('data-theme', valor);
-    }
+    const cual = oscuro ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', cual);
     try {
-      if (valor === null) {
-        localStorage.removeItem(LLAVE_DEL_TEMA);
-      } else {
-        localStorage.setItem(LLAVE_DEL_TEMA, valor);
-      }
+      localStorage.setItem(LLAVE_DEL_TEMA, cual);
     } catch {
       // ⚠️ En modo privado el almacenamiento LANZA. La elección vale para esta
       //    pestaña y no sobrevive a la recarga: es lo único que se puede hacer,
       //    y es mejor que quedarse sin conmutar.
     }
-    this.eleccion.set(cual);
     this.esOscuro.set(temaDelDocumento());
+  }
+
+  /** Lo que hace el interruptor: al otro tema, y guardado. */
+  alternar(): void {
+    this.elegir(!this.esOscuro());
   }
 
   constructor() {
     if (typeof document === 'undefined') {
       return;
     }
-    // ⚠️ Se releen LAS DOS señales, y la de la elección no es de adorno: la
-    //    jueza P26 y el propio arnés escriben `data-theme` a mano, y sin esto el
-    //    grupo de radios se quedaría enseñando una elección que ya no es la que
-    //    manda. Lo que el documento dice, manda.
-    const releer = (): void => {
-      this.esOscuro.set(temaDelDocumento());
-      this.eleccion.set(
-        document.documentElement.getAttribute('data-theme') === 'dark'
-          ? 'oscuro'
-          : document.documentElement.getAttribute('data-theme') === 'light'
-            ? 'claro'
-            : 'sistema',
-      );
-    };
+    const releer = (): void => this.esOscuro.set(temaDelDocumento());
     const vigia = new MutationObserver(releer);
     vigia.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     const sistema = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;

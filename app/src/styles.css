@@ -957,35 +957,27 @@ body:has(.marco) {
   font-weight: 500;
 }
 
-/* ⭐ EL CONMUTADOR DE TEMA — GRUPO DE TRES (16/09 · reescrito el 20/09).
+/* ⭐ EL CONMUTADOR DE TEMA (16/09, tanda 6 · parte 3).
    ═══════════════════════════════════════════════════════════════════════════
 
-   ⭐ **ACTA DEL CAMBIO DE PATRÓN.** Aquí había un interruptor de dos estados:
-   un `button[role=switch]` de 44×44 con `aria-checked`, y estas dos reglas de
-   estado —`.conmutador[aria-checked='true']` y su hermana de la barra—. Se
-   sustituye por un **grupo de tres radios**, y el porqué está en `conmutador.ts`:
-   «seguir al sistema» es una elección distinta de fijar un tema, y con dos
-   estados no se podía pedir — se tenía al arrancar y se perdía para siempre en
-   la primera pulsación, sin camino de vuelta.
+   Dos variantes y **nunca las dos a la vez**: el cuarto hueco de la barra en
+   móvil, y la cabecera del panel en escritorio. Cada una se apaga en el ancho
+   de la otra — la de la barra, de rebote, porque `.barra` entera desaparece a
+   partir de 768.
 
-   Tres variantes y **nunca dos a la vez**: el hueco de la barra en móvil, la
-   cabecera del panel en escritorio, y la suelta de la intranet (esa vive en el
-   propio componente, encapsulada, para no meter nombres de la intranet aquí).
-
-   ⚠️ NO ESTRENA COLORES. La opción puesta usa el par del chip de modo activo
-      —`primary` sobre `primary-foreground`— y las otras dos, el de las pestañas
-      —`muted-foreground` sobre la tarjeta—. Los dos pares están medidos en el
-      censo de contraste. Un control nuevo no es excusa para una tinta nueva.
-   ⚠️ Y el estado NO se dice solo con color [WCAG 1.4.1]: cada opción lleva su
-      palabra escrita, y el `checked` nativo es lo que oye quien no ve ninguna
-      de las dos cosas. */
+   ⚠️ NO ESTRENA COLORES. Usa los mismos que las pestañas —`muted-foreground`
+      apagado, `primary` puesto— y los dos pares ya están medidos en el censo
+      contra `card`: «Texto secundario sobre una tarjeta» y «Círculo de origen y
+      destino». Un control nuevo no es excusa para una tinta nueva.
+   ⚠️ Y el color NO es la única señal del estado [WCAG 1.4.1]: el icono cambia
+      de DIBUJO —sol o luna— y `aria-checked` lo dice en voz alta. */
 
 /* ⭐ EL HOST DESAPARECE DEL ÁRBOL DE CAJAS, y esto lo enseñó una jueza mordiendo.
    ═══════════════════════════════════════════════════════════════════════════
 
-   El conmutador no es un hijo suelto como los otros tres huecos: llega envuelto
-   en el host del componente, y tanto el reparto de un `flex` como su `gap` se
-   hacen entre HIJOS DIRECTOS. Con el host de por medio:
+   El conmutador no es un `<button>` suelto como los otros tres huecos: llega
+   envuelto en el host del componente, y tanto el reparto de un `flex` como su
+   `gap` se hacen entre HIJOS DIRECTOS. Con el host de por medio:
 
    · en la barra, los anchos salían `101 + 101 + 101 + 89 = 392 de 390` —el
      cuarto encogido y la suma desbordada—, y lo cazó la jueza L4 de
@@ -994,115 +986,50 @@ body:has(.marco) {
      apagado en móvil, así que el `gap` de la fila se cobraba igual por una caja
      vacía.
 
-   `display: contents` quita la caja del host y deja al `fieldset` de hijo
-   directo. Sin tocarle el `flex` a nadie ni inventar anchos.
+   `display: contents` quita la caja del host y deja al botón de hijo directo:
+   cuatro botones iguales en la barra, y en móvil la fila de la cabecera vuelve
+   a tener un solo hijo. Sin tocarle el `flex` a nadie ni inventar anchos.
 
-   ⚠️ Y vale para las TRES variantes, que es lo que lo hace una regla y no un
-      parche. */
+   ⚠️ Y vale para las DOS variantes, que es lo que lo hace una regla y no un
+      parche: la del ancho de la barra se arregló primero y la de la cabecera
+      habría quedado viva. */
 app-conmutador-de-tema {
   display: contents;
 }
 
-/* El grupo. `fieldset` trae margen, relleno y borde de fábrica: se quitan los
-   tres. Lo que se queda es el `legend`, que es quien le pone nombre al grupo.
+.conmutador--barra[aria-checked='true'] {
+  color: var(--primary);
+}
 
-   ⚠️ **`display: none` DE PARTIDA, Y ESO ES LO QUE HACE FALTA QUE SIGA ASÍ.**
-      Esta hoja es móvil primero y aquí no se sabe qué variante es: cada una
-      enciende la suya. Y hay una tercera, la de la intranet, cuyo encendido
-      vive **dentro del componente** y encapsulado —(0,2,0) contra estos
-      (0,1,0)—, para no meter nombres de la intranet en la hoja que viaja. Si
-      alguien pusiera aquí un `display` visible, esa regla de allá dejaría de
-      pintar nada y nadie lo notaría: se vería igual. Ver `conmutador.ts`. */
+/* La de escritorio: un cuadrado de 44 —el mínimo de [WCAG 2.5.5]— pegado a la
+   derecha de la cabecera, a la altura del `h1`.
+   ⚠️ `display: none` de partida y `inline-flex` a partir de 768: esta hoja es
+      móvil primero, y en móvil manda el hueco de la barra. */
 .conmutador {
   display: none;
   flex: none;
-  gap: 0.125rem;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-/* La de móvil se enciende siempre: por encima de 768 se apaga de rebote,
-   porque `.barra` entera desaparece y se la lleva dentro. */
-.conmutador--barra {
-  display: flex;
-}
-
-/* ⭐ CADA OPCIÓN, A LA VARA DE LA CASA [WCAG 2.5.5]: 44 de alto y 44 de ancho
-   mínimo. El rótulo puede pedir más —«Sistema» no cabe en 44 a 0,75 rem— y por
-   eso es `min-width` y no `width`: la vara es un suelo, no una talla. */
-.conmutador__opcion {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0 0.25rem;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
   border-radius: 0.5rem;
+  background: none;
   color: var(--muted-foreground);
   cursor: pointer;
 }
 
-/* La puesta: el par del chip de modo activo, ya medido en el censo. */
-.conmutador__opcion--puesta {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+.conmutador[aria-checked='true'] {
+  color: var(--primary);
 }
 
-/* ⭐ EL RADIO SE ESCONDE A LA VISTA Y **NO** AL TECLADO, que es la mitad que se
-   rompe. Ni `display: none` ni `visibility: hidden`: las dos lo sacarían del
-   orden de tabulación y del árbol de accesibilidad, y ahí es justo donde tiene
-   que seguir — él es el control: quien recibe el foco, quien se mueve con las
-   flechas y quien se anuncia como «Claro, opción 1 de 3».
-   ⚠️ Es el mismo gesto, letra por letra, que `.modo__radio` de `buscador.css`.
-      Dos sitios con el mismo dibujo, y a propósito: el patrón es de la casa. */
-.conmutador__radio {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-/* El anillo va a la etiqueta, que es la caja que se ve; el radio de dentro es
-   1×1 px y su anillo no lo vería nadie. `:has()` es lo que deja mirar hacia
-   dentro, igual que en `.pildora` y en `.modo--chip`. */
-.conmutador__opcion:has(:focus-visible) {
+/* ⚠️ Solo el de la cabecera: el de la barra ya hereda el anillo de
+   `.barra__boton:focus-visible`, y repetirlo aquí sería una regla que no pinta
+   nada — de esas que la jueza del color a pelo lee como si pintaran. */
+.conmutador:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: -2px;
-}
-
-/* ⭐ LA MARCA, CON ALTURA FIJA, y esa altura es el arreglo: sin ella, la celda
-   de «Sistema» —que lleva dos dibujos— y las de «Claro» y «Oscuro» —que llevan
-   uno— salían de alturas distintas y el grupo se leía torcido. Medido el 20/09
-   con la tercera sin dibujo, que era la primera forma de intentarlo. */
-.conmutador__marca {
-  display: flex;
-  gap: 1px;
-  align-items: center;
-  justify-content: center;
-  height: 20px;
-}
-
-.conmutador__texto {
-  font-size: 0.625rem;
-  font-weight: 500;
-  line-height: 1.1;
-}
-
-/* ⚠️ En la barra las tres opciones se reparten el hueco del cuarto botón y no
-   crecen: con `min-width` a secas, «Sistema» estiraría el grupo y las tres
-   pestañas encogerían por debajo de la vara en una pantalla de 320. */
-.conmutador--barra .conmutador__opcion {
-  width: 44px;
-  min-height: 48px;
-  border-radius: 0;
-  padding: 0;
 }
 
 /* ⭐ EL SÍMBOLO DE LA MARCA EN LA CABECERA (18/09).
@@ -1499,8 +1426,8 @@ app-conmutador-de-tema {
 
   /* ⭐ Y AQUÍ APARECE EL CONMUTADOR DE ESCRITORIO, justo donde se apaga la
      barra que lo llevaba en móvil: uno u otro, nunca los dos. */
-  .conmutador--cabecera {
-    display: flex;
+  .conmutador {
+    display: inline-flex;
   }
 
   /* Y la franja del pie vuelve, que es donde vive en escritorio. */
