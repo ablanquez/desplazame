@@ -673,3 +673,71 @@ describe('⭐ EL ENLACE DE SALTO — la técnica G1 de 2.4.1', () => {
     expect(sinComentarios(HOJA_GLOBAL)).not.toMatch(/\.salto\b/);
   });
 });
+
+/**
+ * ⭐ EL ASA DE PLEGAR LA COLUMNA — la deuda del acta, saldada (20/09).
+ *
+ * [WCAG 2.5.5, *Understanding*] el target es **el área que recibe el puntero,
+ * relleno incluido**, no la caja que se ve. De ahí el arreglo: el ancho lo da un
+ * relleno transparente del botón y el vestido —borde, radio, fondo y sombra— se
+ * muda a un `::before` que sigue midiendo los 24 px de la referencia.
+ *
+ * ⚠️ Lo que se compra AQUÍ es que el vestido no volvió al botón, que es la
+ *    forma en que esto se desharía sin que nadie lo note: bastaría con que
+ *    alguien devolviera un `background-color` a `.separador` para que el fondo
+ *    pintara los 44 px y la costura se moviera 20. El píxel —44 de área, 24 de
+ *    dibujo, la costura quieta— lo compran la P30 y las juezas del esqueleto.
+ */
+describe('⭐ EL ASA — 44 de área clicable sin mover la costura', () => {
+  /**
+   * Los cuerpos de TODAS las reglas con ese selector, unidos.
+   *
+   * ⚠️ Y son varios a propósito: `.separador` aparece tres veces en la hoja —el
+   *    `display: none` de móvil, la letra de escritorio dentro del `@media` de
+   *    768, y el `left` del de 1280—, así que quedarse con la primera es
+   *    quedarse con `display: none`. Lo aprendió esta jueza mordiendo.
+   *    Tampoco vale buscar `.separador {` a pelo: `.panel--plegada ~ .separador`
+   *    termina igual, y eso es otra regla. Se exige que el selector empiece
+   *    donde empieza, con un salto de línea y espacios por delante.
+   */
+  function reglasDe(css: string, selector: string): string {
+    const limpio = sinComentarios(css);
+    const cuerpos: string[] = [];
+    for (let i = limpio.indexOf(selector + ' {'); i >= 0; i = limpio.indexOf(selector + ' {', i + 1)) {
+      const antes = limpio.slice(0, i).trimEnd();
+      // Que el selector EMPIECE ahi y no sea la cola de otro.
+      if (antes === '' || antes.endsWith('{') || antes.endsWith('}') || antes.endsWith(';')) {
+        cuerpos.push(limpio.slice(i + selector.length + 2, limpio.indexOf('}', i)));
+      }
+    }
+    return cuerpos.join(String.fromCharCode(10));
+  }
+
+  it('⭐ el botón pone relleno y NO pone vestido: el fondo pintaría los 44', () => {
+    const cuerpo = reglasDe(HOJA_GLOBAL, '.separador');
+    expect(cuerpo.length, 'no encuentro la regla `.separador`').toBeGreaterThan(0);
+    expect(cuerpo, 'el asa no llega a los 44 de área clicable').toMatch(/width:\s*44px/);
+    expect(cuerpo, 'sin relleno no hay área: los 44 serían dibujo').toMatch(/padding:\s*0\s+21px\s+0\s+0/);
+    expect(cuerpo, 'un fondo en el botón pinta también el relleno').toMatch(/background:\s*none/);
+    expect(cuerpo, 'un borde en el botón cae 20 px a la derecha').toMatch(/border:\s*0/);
+  });
+
+  it('⭐ y el vestido vive en el `::before`, que mide los 24 de la referencia', () => {
+    const cuerpo = reglasDe(HOJA_GLOBAL, '.separador::before');
+    expect(cuerpo.length, 'no encuentro la regla `.separador::before`').toBeGreaterThan(0);
+    // 44 de caja − 20 de retirada = los 24 px de siempre.
+    expect(cuerpo).toMatch(/right:\s*20px/);
+    expect(cuerpo).toMatch(/border-radius:\s*0 0\.5rem 0\.5rem 0/);
+    expect(cuerpo).toMatch(/background-color:\s*var\(--card\)/);
+    expect(cuerpo).toMatch(/box-shadow:/);
+  });
+
+  /**
+   * ⚠️ El anillo también se mudó: sobre el botón rodearía los 21 px
+   *    transparentes y se vería flotando a la derecha del asa [WCAG 2.4.7 pide
+   *    que se VEA el foco, no que se vea torcido].
+   */
+  it('⭐ el anillo de foco rodea el dibujo, no el relleno', () => {
+    expect(sinComentarios(HOJA_GLOBAL)).toMatch(/\.separador:focus-visible::before\s*\{/);
+  });
+});

@@ -5140,18 +5140,38 @@ const EXCEPCIONES_DE_TARGET = [
   },
 ];
 
-const DEUDA_DE_TARGET = [
-  {
-    sel: 'button.separador',
-    cifra: '24×48 · le faltan 20 px de ancho',
-    porque:
-      'el asa que pliega la columna. No vale «Equivalente»: en escritorio NO hay otro mando que ' +
-      'haga lo mismo (en móvil eso lo hace la barra de pestañas, de 97×64). Ensancharla mueve la ' +
-      'costura entre panel y mapa, que miden las juezas del esqueleto, así que se declara y la ' +
-      'decisión es de Antonio, no de esta jueza.',
-  },
-];
-const DEUDA_MAXIMA = 1;
+/**
+ * ⭐ **LA LISTA DE DEUDA ESTÁ VACÍA, Y ESO ES UN ACTA (20/09).**
+ *
+ * Aquí vivía una sola fila, desde el 18/09:
+ *
+ * > `button.separador` · «24×48 · le faltan 20 px de ancho» · *«el asa que
+ * > pliega la columna. No vale «Equivalente»: en escritorio NO hay otro mando
+ * > que haga lo mismo (en móvil eso lo hace la barra de pestañas, de 97×64).
+ * > **Ensancharla mueve la costura entre panel y mapa**, que miden las juezas
+ * > del esqueleto, así que se declara y la decisión es de Antonio, no de esta
+ * > jueza.»*
+ *
+ * La deuda se **salda**, y el porqué de arriba era cierto de UNA forma de
+ * ensancharla y no de todas: [WCAG 2.5.5, *Understanding*] el target es el área
+ * que recibe el puntero, **relleno incluido**, no la caja que se ve. El ancho lo
+ * da ahora un relleno transparente y el vestido entero vive en un `::before` que
+ * mide los 24 de siempre. Medido en Chrome, antes y después, a 1440 y a 1920:
+ *
+ *     antes    asa 24×48 · panel 559 · mapa desde x=559 · chevrón en x=563,8
+ *     después  asa 44×48 · panel 559 · mapa desde x=559 · chevrón en x=563,8
+ *
+ * ⚠️ Y el chevrón está ahí por algo: con 20 px de relleno se iba a 564,3, medio
+ *    píxel, porque el borde derecho se mudó al `::before` y la caja de contenido
+ *    creció. 21 de relleno y 20 de retirada del dibujo lo devuelven al sitio.
+ *    Una costura que se mueve medio píxel es una costura que se ha movido.
+ *
+ * ⚠️ **La lista vacía no es una lista que sobra.** Es la que pone la jueza en
+ *    rojo el día que alguien meta un target corto sin decirlo, y el sitio donde
+ *    se escribiría la próxima deuda con su número y su porqué.
+ */
+const DEUDA_DE_TARGET = [];
+const DEUDA_MAXIMA = 0;
 
 /** Todo lo que recibe el puntero en la pantalla, con su área clicable. */
 const TODOS_LOS_TARGETS = `(() => {
@@ -5284,6 +5304,18 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
         new Set(enDeuda.map((t) => t.que)).size <= DEUDA_MAXIMA,
         `${dicho} · ⭐ y la deuda de targets NO crece`,
         `${new Set(enDeuda.map((t) => t.que)).size} de ${DEUDA_MAXIMA}: ${[...new Set(enDeuda.map((t) => t.que))].join(', ') || '(ninguna en esta pantalla)'}`,
+      );
+
+      // ⭐ Y EL ASA, CON NOMBRE Y CIFRA: la deuda del 18/09, saldada el 20/09.
+      //    La jueza de arriba ya la cazaría —sin fila en el censo, rojo—, pero
+      //    una deuda que se salda merece su línea en el acta, no un silencio.
+      const asa = todos.find((t) => t.que === 'button.separador');
+      juzgar(
+        !asa || (asa.ancho >= OBJETIVO_TARGET && asa.alto >= OBJETIVO_TARGET),
+        `${dicho} · ⭐ el asa de plegar la columna llega a la vara [la deuda del 18/09, saldada]`,
+        asa
+          ? `${asa.ancho}×${asa.alto} px de área clicable · era 24×48`
+          : '(sin asa en esta pantalla: el separador es de escritorio)',
       );
 
       await m.guardar(`${CAPTURAS}/p30-targets-${nombreTema}-${pantalla.id}.png`);

@@ -1524,9 +1524,34 @@ app-conmutador-de-tema {
     pointer-events: auto;
   }
 
-  /* ⭐ El separador: 24×48 px pegado al borde de la columna — la medida de la
-     referencia (`style={{ width: 24, height: 48 }}`). Dos posiciones, sin
-     arrastre: viaja con el borde del panel. */
+  /* ⭐ El separador: **24×48 de dibujo y 44×48 de área clicable** — la medida
+     de la referencia (`style={{ width: 24, height: 48 }}`) sigue siendo la que
+     se ve. Dos posiciones, sin arrastre: viaja con el borde del panel.
+
+     ═══════════════════════════════════════════════════════════════════════
+     ⭐ **LA DEUDA DEL ACTA, SALDADA (20/09)** — y cómo, que es lo que importa.
+
+     El censo de la P30 la llevaba escrita desde el 18/09: «24×48 · le faltan
+     20 px de ancho», sin excepción que la amparase —en escritorio NO hay otro
+     mando que pliegue la columna— y con un porqué que era el freno: *«ensancharla
+     mueve la costura entre panel y mapa, que miden las juezas del esqueleto»*.
+
+     ⚠️ **Y ESO ERA CIERTO DE UNA FORMA DE ENSANCHARLA, NO DE TODAS.** [WCAG
+        2.5.5, *Understanding*] el target es **el área que recibe el puntero,
+        relleno incluido**, no la caja que se ve. Así que el ancho lo da un
+        RELLENO TRANSPARENTE de 20 px a la derecha, y el vestido entero —borde,
+        radio, fondo y sombra— se muda a un `::before` que sigue midiendo
+        exactamente los 24 px de siempre. Medido antes y después, a 1440:
+
+            antes   asa 24×48 en x=558 · panel 559 · el mapa empieza en x=559
+            después asa 44×48 en x=558 · panel 559 · el mapa empieza en x=559
+
+        La costura no se mueve un píxel, y **las juezas del esqueleto que la
+        miden son la prueba**: si alguna cambiara de letra, el ensanche estaría
+        mal hecho. No se tocan.
+
+     ⚠️ Los 20 px de relleno SÍ se comen 20×48 de mapa para el ratón, y eso no
+        es un efecto secundario: es el target. Es lo que la letra compra. */
   .separador {
     position: absolute;
     top: 50%;
@@ -1535,21 +1560,60 @@ app-conmutador-de-tema {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
+    /* ⭐ 44 de caja y **21** de relleno, no 20, y ese píxel de diferencia es
+       medido, no calculado. El borde derecho del dibujo se ha mudado al
+       `::before`, así que con un relleno de 20 la caja de CONTENIDO del botón
+       pasaba de 23 px a 24, y el chevrón —que se centra en ella— se corría
+       medio píxel: leído en Chrome, `563,8 → 564,3`. Con 21 la caja de
+       contenido mide los 23 de siempre y el chevrón se queda en 563,8.
+       Medio píxel no se ve, pero una costura que se mueve medio píxel es una
+       costura que se ha movido. */
+    width: 44px;
     height: 48px;
-    padding: 0;
+    padding: 0 21px 0 0;
     transform: translateY(-50%);
-    border: 1px solid var(--border);
-    border-left: 0;
-    border-radius: 0 0.5rem 0.5rem 0;
-    background-color: var(--card);
+    /* ⚠️ Ni borde ni fondo ni sombra AQUÍ: los pintaría sobre el relleno y la
+       costura se movería 20 px. Van al `::before`, que mide los 24 de siempre. */
+    border: 0;
+    background: none;
     color: var(--card-foreground);
-    box-shadow: 2px 0 6px rgb(0 0 0 / 12%);
     cursor: pointer;
     transition: left 300ms;
   }
 
+  /* ⭐ EL DIBUJO, que es lo único que se ve: los 24×48 de la referencia, sin
+     tocar. `right: 20px` lo deja justo donde empieza el relleno transparente. */
+  .separador::before {
+    position: absolute;
+    top: 0;
+    /* ⚠️ 20 y no 21: el dibujo se mide contra la CAJA DE RELLENO del botón
+       —44 px—, así que su borde exterior cae en 558+24=582, que es donde caía
+       el del botón entero. El botón rellena 21 y el dibujo se retira 20: cada
+       número cuadra una caja distinta, y las dos tenían que cuadrar. */
+    right: 20px;
+    bottom: 0;
+    left: 0;
+    border: 1px solid var(--border);
+    border-left: 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+    background-color: var(--card);
+    box-shadow: 2px 0 6px rgb(0 0 0 / 12%);
+    content: '';
+  }
+
+  /* El chevrón se centra en la CAJA DE CONTENIDO —los 24—, así que no se
+     mueve; y sube al plano posicionado para no quedar debajo del dibujo. */
+  .separador__chevron {
+    position: relative;
+  }
+
+  /* ⚠️ El anillo va al dibujo y no al botón: sobre el botón rodearía también
+     los 20 px transparentes y se vería flotando a la derecha del asa. */
   .separador:focus-visible {
+    outline: none;
+  }
+
+  .separador:focus-visible::before {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
