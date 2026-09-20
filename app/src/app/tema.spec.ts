@@ -221,29 +221,95 @@ describe('⭐ (b) EL SERVICIO `Tema` — el lado que ESCRIBE', () => {
   const restaurar = (): void => {
     if (antes === null) document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', antes);
+    localStorage.removeItem(LLAVE_DEL_TEMA);
   };
 
-  it('⭐ elegir pone el atributo en <html> Y guarda la elección', () => {
+  /**
+   * ⭐ **ACTA DEL TERCER ESTADO (20/09).** Aquí había tres juezas escritas
+   * contra `elegir(oscuro: boolean)` y `alternar()`, que eran la API de un
+   * interruptor de dos posiciones. Compran lo mismo y mejor: la elección se
+   * nombra —`'claro' | 'oscuro' | 'sistema'`— y el tercer valor tiene su propia
+   * jueza, que es la que no existía y por la que se hace todo esto.
+   */
+  it('⭐ elegir `oscuro` y `claro` pone el atributo en <html> Y guarda la elección', () => {
     const tema = TestBed.inject(Tema);
-    tema.elegir(true);
+    tema.elegir('oscuro');
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBe('dark');
     expect(tema.oscuro()).toBe(true);
+    expect(tema.elegida()).toBe('oscuro');
 
-    tema.elegir(false);
+    tema.elegir('claro');
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
     expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBe('light');
     expect(tema.oscuro()).toBe(false);
+    expect(tema.elegida()).toBe('claro');
     restaurar();
   });
 
-  it('⭐ alternar va y vuelve', () => {
+  /**
+   * ⭐ **LA JUEZA DEL TERCER ESTADO, Y LA RAZÓN DE LA TANDA.**
+   *
+   * ⚠️ «Sistema» **BORRA**, no escribe, y las dos mitades del borrado importan:
+   *
+   *    · sin **atributo**, la capa 2 de `styles.css` —`prefers-color-scheme`
+   *      sobre `:root:not([data-theme])`— vuelve a mandar, que es el respaldo
+   *      que el §35 firma. Con el atributo puesto no volvería a mandar nunca, y
+   *      cambiar el SO con la pestaña abierta no haría nada;
+   *    · sin **llave guardada**, el guion anti-FOUC del `index.html` no estampa
+   *      nada en la siguiente carga y el sistema sigue mandando también ahí.
+   *
+   * Dejar una de las dos a medias es el fallo que no se ve: la pestaña seguiría
+   * al aparato hasta que alguien recargara.
+   */
+  it('⭐ elegir `sistema` BORRA el atributo Y la llave: el mando vuelve al aparato', () => {
     const tema = TestBed.inject(Tema);
-    tema.elegir(false);
-    tema.alternar();
-    expect(tema.oscuro()).toBe(true);
-    tema.alternar();
-    expect(tema.oscuro()).toBe(false);
+    tema.elegir('oscuro');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBe('dark');
+
+    tema.elegir('sistema');
+    expect(document.documentElement.getAttribute('data-theme'), 'el atributo sigue puesto').toBeNull();
+    expect(localStorage.getItem(LLAVE_DEL_TEMA), 'la llave sigue guardada').toBeNull();
+    expect(tema.elegida()).toBe('sistema');
+    restaurar();
+  });
+
+  /**
+   * ⭐ Y HAY CAMINO DE VUELTA, que es lo que el interruptor no tenía: de
+   * «sistema» a un tema fijo y otra vez a «sistema», tantas veces como se
+   * quiera, y el almacén acaba como empezó.
+   */
+  it('⭐ se puede ir y volver: sistema → claro → sistema', () => {
+    const tema = TestBed.inject(Tema);
+    tema.elegir('sistema');
+    expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBeNull();
+    tema.elegir('claro');
+    expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBe('light');
+    tema.elegir('sistema');
+    expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBeNull();
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
+    restaurar();
+  });
+
+  /**
+   * ⭐ LA ELECCIÓN DE PARTIDA SALE DEL ALMACÉN, y sin nada guardado es
+   * «sistema» — no «claro». La diferencia no es de nombre: con «claro» de
+   * partida, el grupo de radios enseñaría una opción que nadie ha pedido y que
+   * además puede no ser la que se está pintando.
+   */
+  it('⭐ sin nada guardado, la elección de partida es `sistema`', () => {
+    localStorage.removeItem(LLAVE_DEL_TEMA);
+    document.documentElement.removeAttribute('data-theme');
+    TestBed.resetTestingModule();
+    expect(TestBed.inject(Tema).elegida()).toBe('sistema');
+    restaurar();
+  });
+
+  it('⭐ y con algo guardado, la de partida es lo guardado', () => {
+    localStorage.setItem(LLAVE_DEL_TEMA, 'dark');
+    TestBed.resetTestingModule();
+    expect(TestBed.inject(Tema).elegida()).toBe('oscuro');
     restaurar();
   });
 
@@ -255,9 +321,25 @@ describe('⭐ (b) EL SERVICIO `Tema` — el lado que ESCRIBE', () => {
    */
   it('⭐ lo que guarda `Tema` es lo que el guion lee al recargar', () => {
     const tema = TestBed.inject(Tema);
-    tema.elegir(true);
+    tema.elegir('oscuro');
     const guardada = localStorage.getItem(LLAVE_DEL_TEMA) ?? undefined;
     expect(correrElGuion({ guardada, sistema: 'light' }).atributo).toBe('dark');
+    restaurar();
+  });
+
+  /**
+   * ⭐ Y EL OTRO LADO DEL MISMO CONTRATO: con «sistema» elegido no hay nada
+   * guardado, así que el guion NO estampa y la capa 2 del CSS manda desde el
+   * primer pintado. Es la rama sin-preferencia del anti-FOUC, comprada con lo
+   * que el servicio deja de verdad en el almacén.
+   */
+  it('⭐ con `sistema` elegido, el guion no estampa nada al recargar', () => {
+    const tema = TestBed.inject(Tema);
+    tema.elegir('sistema');
+    const guardada = localStorage.getItem(LLAVE_DEL_TEMA) ?? undefined;
+    expect(guardada).toBeUndefined();
+    expect(correrElGuion({ guardada, sistema: 'dark' }).atributo).toBeNull();
+    expect(correrElGuion({ guardada, sistema: 'light' }).atributo).toBeNull();
     restaurar();
   });
 });

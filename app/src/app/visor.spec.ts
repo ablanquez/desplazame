@@ -204,17 +204,24 @@ describe('Visor', () => {
    * Nació en rojo: el visor montaba cabecera y mapa y **nada más**, así que el
    * tema solo se cambiaba yendo a la portada y volviendo — y volver costaba las
    * capas encendidas (la jueza de abajo). No es una copia del interruptor: es
-   * la MISMA pieza de la casa (§35), importada, con su `role="switch"` y su
-   * nombre estable.
+   * la MISMA pieza de la casa (§35), importada, con sus tres opciones y
+   * sus nombres estables.
    */
   it('⭐ el conmutador de tema está EN la página, y no en la portada', async () => {
     const fixture = TestBed.createComponent(Visor);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]');
-    expect(boton).not.toBeNull();
-    expect(boton!.tagName).toBe('BUTTON');
+    // ⚠️ 20/09: era `[role="switch"][aria-label="Modo oscuro"]` y un `BUTTON`.
+    //    El conmutador pasó a grupo de tres por la enmienda del §35, así que lo
+    //    que se busca es el grupo. Compra lo mismo —la pieza de la casa está
+    //    aquí— y de propina que son las TRES opciones y no dos.
+    const grupo = raiz.querySelector('fieldset.conmutador');
+    expect(grupo, 'no hay conmutador de tema en la página').not.toBeNull();
+    expect(grupo!.querySelector('legend')?.textContent?.trim()).toBe('Tema');
+    expect(
+      Array.from(grupo!.querySelectorAll<HTMLInputElement>('input[type="radio"]')).map((r) => r.value),
+    ).toEqual(['claro', 'oscuro', 'sistema']);
   });
 
   /**
@@ -234,10 +241,14 @@ describe('Visor', () => {
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
 
-    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]')!;
-    expect(boton.classList.contains('conmutador--suelta')).toBe(true);
+    const grupo = raiz.querySelector('fieldset.conmutador')!;
+    expect(grupo.classList.contains('conmutador--suelta')).toBe(true);
     // Y sigue llevando la clase de la casa: el vestido no se copia, se hereda.
-    expect(boton.classList.contains('conmutador')).toBe(true);
+    expect(grupo.classList.contains('conmutador')).toBe(true);
+    // ⚠️ Y su `name` es el suyo: en una página de la intranet solo hay un
+    //    conmutador, pero el nombre se compra igual — es lo que impide que dos
+    //    variantes pintadas a la vez se fundan en un grupo de seis.
+    expect(grupo.querySelector<HTMLInputElement>('input[type="radio"]')!.name).toBe('tema-suelta');
   });
 
   /**

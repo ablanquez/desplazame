@@ -259,9 +259,16 @@ describe('⭐ LA PÁGINA /panel', () => {
    */
   it('⭐ el conmutador de tema está EN la página, y no en la portada', async () => {
     const { raiz } = await ir('/panel');
-    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]');
-    expect(boton).not.toBeNull();
-    expect(boton!.tagName).toBe('BUTTON');
+    // ⚠️ 20/09: era `[role="switch"][aria-label="Modo oscuro"]` y un `BUTTON`.
+    //    El conmutador pasó a grupo de tres por la enmienda del §35, así que lo
+    //    que se busca es el grupo. Compra lo mismo —la pieza de la casa está
+    //    aquí— y de propina que son las TRES opciones y no dos.
+    const grupo = raiz.querySelector('fieldset.conmutador');
+    expect(grupo, 'no hay conmutador de tema en la página').not.toBeNull();
+    expect(grupo!.querySelector('legend')?.textContent?.trim()).toBe('Tema');
+    expect(
+      Array.from(grupo!.querySelectorAll<HTMLInputElement>('input[type="radio"]')).map((r) => r.value),
+    ).toEqual(['claro', 'oscuro', 'sistema']);
   });
 
   /**
@@ -279,9 +286,11 @@ describe('⭐ LA PÁGINA /panel', () => {
   it('⭐ y usa la variante SUELTA, que no se apaga por debajo de 768', async () => {
     const { raiz } = await ir('/panel');
 
-    const boton = raiz.querySelector('[role="switch"][aria-label="Modo oscuro"]')!;
-    expect(boton.classList.contains('conmutador--suelta')).toBe(true);
-    expect(boton.classList.contains('conmutador')).toBe(true);
+    const grupo = raiz.querySelector('fieldset.conmutador')!;
+    expect(grupo.classList.contains('conmutador--suelta')).toBe(true);
+    expect(grupo.classList.contains('conmutador')).toBe(true);
+    // ⚠️ Y su `name` es el suyo: ver la hermana de `visor.spec.ts`.
+    expect(grupo.querySelector<HTMLInputElement>('input[type="radio"]')!.name).toBe('tema-suelta');
   });
 
   it('⭐ pide el manifiesto, y una sola vez', async () => {

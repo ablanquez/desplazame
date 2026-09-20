@@ -103,6 +103,23 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
             actual: b.getAttribute('aria-current'),
           };
         }),
+        // ⭐ 20/09: el cuarto sitio de la barra dejó de ser un botón. Se lee
+        //    aparte porque ya no es de la misma especie — ver el acta abajo.
+        temaEnLaBarra: (() => {
+          const g = document.querySelector('.barra fieldset.conmutador');
+          if (!g) return null;
+          const r = g.getBoundingClientRect();
+          return {
+            w: Math.round(r.width * 10) / 10,
+            ops: [...g.querySelectorAll('.conmutador__opcion')].map((o) => {
+              const rr = o.getBoundingClientRect();
+              return { texto: o.textContent.trim(), w: Math.round(rr.width * 10) / 10, h: Math.round(rr.height * 10) / 10 };
+            }),
+          };
+        })(),
+        hijosDeLaBarra: [...(document.querySelector('.barra')?.children ?? [])].map(
+          (h) => h.tagName.toLowerCase() + '.' + (h.classList[0] ?? '?'),
+        ),
         altoBarra: caja('.barra')?.h ?? 0,
         // Qué pestaña dice el marco que se está mirando.
         pestana: document.querySelector('.marco').getAttribute('data-pestana'),
@@ -124,37 +141,60 @@ for (const [nombre, { ancho, alto, puerto }] of Object.entries(ANCHOS)) {
         forma.veBarra && !forma.veSeparador,
         'L4 · en móvil manda la barra de pestañas, no el separador',
       );
-      // ⭐ **ACTA DEL CUARTO HUECO (16/09, tanda 6 · parte 3).** Aqui ponia
-      //    TRES —«Buscador|Ruta|Mapa»—, con el cuarto de la maqueta retenido a
-      //    proposito mientras el tema iba clavado en claro: un boton que se
-      //    pulsa y no pasa nada es un estado deshonesto. El conmutador entra
-      //    cableado en este mismo commit, asi que el hueco se ocupa y la cuenta
-      //    sube a cuatro. Su hermana de unidad vive en `pintura.spec.ts`.
+      // ⭐ **ACTA DEL CUARTO HUECO (16/09 · reescrita el 20/09).**
+      //
+      //    El 16/09 esta jueza subió de TRES a CUATRO botones —«Buscador|Ruta|
+      //    Mapa|Tema»— cuando el conmutador entró cableado, con este porqué:
+      //    *«el cuarto de la maqueta estaba retenido a propósito mientras el
+      //    tema iba clavado en claro: un botón que se pulsa y no pasa nada es
+      //    un estado deshonesto»*.
+      //
+      //    El 20/09 **el cuarto deja de ser un botón**: por la enmienda del §35
+      //    el tema pasa a ser un grupo de tres radios —«seguir al sistema» es
+      //    una elección distinta de fijar un tema, y un interruptor no tiene
+      //    tercera posición—. Así que la cuenta se parte en dos, y las dos se
+      //    compran: **tres pestañas que navegan** y **un grupo que no navega**.
+      //    Bajar el 4 a 3 sin lo segundo sería aflojar la jueza.
       juzgar(
-        forma.botones.length === 4 &&
-          forma.botones.map((b) => b.texto).join('|') === 'Buscador|Ruta|Mapa|Tema',
-        'L4 · ⭐ la barra tiene CUATRO huecos, y son los del encargo',
+        forma.botones.length === 3 &&
+          forma.botones.map((b) => b.texto).join('|') === 'Buscador|Ruta|Mapa',
+        'L4 · ⭐ la barra navega a TRES sitios, y son los del encargo',
         forma.botones.map((b) => b.texto).join(' · ') || '(ninguno)',
       );
-      // ⚠️ El reparto equitativo se compra midiendo, no leyendo el `flex`: los
-      //    botones suman el ancho de la pantalla y miden lo mismo.
-      //
-      // ⚠️ Y CON CUATRO ESTO MORDIO DE VERDAD (16/09): el cuarto se quedaba en
-      //    89 px contra 101 de los otros tres —392 de 390—, porque el hueco
-      //    nuevo llega envuelto en el host del componente y el reparto se hace
-      //    entre hijos directos. Se arreglo en `styles.css`, no aflojando aqui.
-      const anchos = forma.botones.map((b) => b.w);
       juzgar(
-        anchos.length === 4 && Math.max(...anchos) - Math.min(...anchos) <= 1 &&
-          Math.abs(anchos.reduce((a, b) => a + b, 0) - ancho) <= 2,
-        'L4 · y se reparten la pantalla a partes iguales',
-        `${anchos.join(' + ')} = ${anchos.reduce((a, b) => a + b, 0)} de ${ancho}`,
+        forma.hijosDeLaBarra.length === 4 &&
+          forma.hijosDeLaBarra[3] === 'app-conmutador-de-tema.?' &&
+          forma.temaEnLaBarra?.ops.length === 3,
+        'L4 · ⭐ y el cuarto sitio lo ocupa el grupo del tema, con sus tres opciones',
+        `${forma.hijosDeLaBarra.join(' + ')} · opciones ${forma.temaEnLaBarra?.ops.map((o) => o.texto).join(', ') ?? '(ninguna)'}`,
+      );
+      // ⚠️ El reparto se compra midiendo, no leyendo el `flex`: las tres
+      //    pestañas miden lo mismo entre sí, el grupo pide lo suyo, y entre
+      //    todos suman la pantalla sin desbordarla.
+      //
+      // ⚠️ Y CON EL CUARTO ESTO MORDIO DE VERDAD (16/09): se quedaba en 89 px
+      //    contra 101 de los otros tres —392 de 390—, porque el hueco nuevo
+      //    llega envuelto en el host del componente y el reparto se hace entre
+      //    hijos directos. Se arreglo en `styles.css`, no aflojando aqui.
+      const anchos = forma.botones.map((b) => b.w);
+      const anchoDelTema = forma.temaEnLaBarra?.w ?? 0;
+      const suma = anchos.reduce((a, b) => a + b, 0) + anchoDelTema;
+      juzgar(
+        anchos.length === 3 && Math.max(...anchos) - Math.min(...anchos) <= 1 &&
+          Math.abs(suma - ancho) <= 2,
+        'L4 · y se reparten la pantalla: las tres iguales, y el tema lo suyo',
+        `${anchos.join(' + ')} + tema ${anchoDelTema} = ${Math.round(suma * 10) / 10} de ${ancho}`,
       );
       // [WCAG 2.5.5] el objetivo mínimo; la maqueta pide 48 y es lo que se mide.
+      //    Y AHORA TAMBIÉN LAS TRES OPCIONES DEL TEMA, que antes eran una sola
+      //    caja: un grupo que mide 136 con una celda de 30 pasaría la jueza
+      //    vieja y dejaría un target corto en la barra.
       juzgar(
-        forma.botones.every((b) => b.h >= 48),
-        'L4 · cada hueco de la barra es tocable [WCAG 2.5.5: ≥48]',
-        forma.botones.map((b) => `${b.texto} ${b.h}px`).join(' · '),
+        forma.botones.every((b) => b.h >= 48) &&
+          (forma.temaEnLaBarra?.ops ?? []).every((o) => o.h >= 48 && o.w >= 44),
+        'L4 · cada sitio de la barra es tocable [WCAG 2.5.5: ≥48 de alto]',
+        forma.botones.map((b) => `${b.texto} ${b.h}px`).join(' · ') + ' · ' +
+          (forma.temaEnLaBarra?.ops ?? []).map((o) => `${o.texto} ${o.w}×${o.h}`).join(' · '),
       );
       // ⚠️ El color NO es la única señal de cuál está puesta [WCAG 1.4.1].
       juzgar(
