@@ -5313,6 +5313,45 @@ pública de la app y se reconstruye al final como herramienta interna.
       304+381, presupuesto 550,34 [+174 B de la variante].
       PENDIENTE A GUSTO DE ANTONIO [cola]: la prosa del panel
       centrada sobre la tabla a la izquierda — estética, dicho.
+- [x] ⚰️ **LA TANDA DE FLECOS + EL DESCARTADO (20/09; 8 commits en
+      local, un push con estos papeles): el salto y el asa QUEDAN;
+      el tercer estado se construyó y SE DESHIZO POR ORDEN DE
+      ANTONIO.** EL ENLACE DE SALTO [técnica oficial G1 del W3C,
+      suficiente para 2.4.1]: primer interactivo del documento,
+      «Saltar al buscador» → #panel-bloques, visible al foco con
+      el anillo de la casa; P33 con las DOS TRAMPAS documentadas
+      cubiertas [la regla :focus pareja existe; el destino recibe
+      el foco de verdad — activeElement medido]; la parada
+      siguiente ya no es del mapa. EL ASA [2.5.5: el área clicable
+      incluye el relleno]: 24→44 px de ancho clicable por relleno
+      transparente, LA COSTURA QUIETA AL PÍXEL [asa x=558, panel
+      559, chevrón 563,8 antes y después — con 20 px se iba a
+      564,3, con 21 vuelve: medido, no supuesto]; la DEUDA del
+      acta de la verificación SALDADA [P30: 0 de 0 bajo vara].
+      ⚠️ EL TERCER ESTADO «Sistema»: se construyó como grupo de
+      tres [radios, doctrina leída] y EL OJO DE ANTONIO LO PARÓ —
+      la traza honesta: el «grupo de tres» nació en una entrada de
+      cola REDACTADA POR EL ESTRATEGA [15/09] y viajó al encargo
+      como si fuera decisión firmada; NUNCA hubo elección de
+      diseño de Antonio. DESHECHO con el precedente de casa [el
+      revert con su porqué, como 37e3050]: árbol de fuentes
+      IDÉNTICO AL BYTE al estado firmado [git diff vacío contra
+      e5bd859], las juezas originales verdes SIN TOCARLES UNA COMA
+      [P29 66, P32, L4], el lector de pseudos del anillo separado
+      con medición [era del asa, no del tercero — devuelto en
+      commit aparte, carácter a carácter], la §35-bis propuesta NO
+      SE FIRMA Y MUERE [el §35 del DISEÑO no cambió nunca], y el
+      símbolo-de-Sistema de la cola PIERDE SU MOTIVO [fuera].
+      ⭐ DOS LEYES de la lección: la del ejecutor en bitácora
+      [«la firma hay que ir a buscarla ANTES de reescribir las
+      actas, no después»] y la del estratega a fuego: CAMBIO
+      VISIBLE = DECISIÓN EXPLÍCITA DE ANTONIO ANTES DEL ENCARGO —
+      nunca enterrada en una cola redactada de oficio. Batería
+      tras el deshacer: 10/10, arnés verde, unidad 768+656, dist
+      551,12 [los 0,78 kB sobre la tanda-cero son salto+asa, al
+      byte: +603 B]. Un rojo suelto P26-1920 declarado [NO
+      CONSTA, familia píxel-sobre-tesela]. El ojo de Antonio al
+      conmutador restaurado: «funciona bien».
       LA LETRA ORIGINAL: las catorce
       capas de verificación y la vista de cotejo de la ampliación del
       regulado (la morada — le tocará trabajar en 2027, cuando la

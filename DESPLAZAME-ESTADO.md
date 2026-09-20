@@ -225,7 +225,13 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 20/09, lo en-local son QUINCE commits: EL VISOR-INTRANET
+*(Al 20/09 noche, lo en-local son OCHO commits: LA TANDA DE
+FLECOS — el salto [G1] y el asa [deuda saldada, costura quieta]
+QUEDAN; el tercer estado construido y DESHECHO por orden de
+Antonio con revert y su porqué [nunca hubo decisión de diseño
+suya — la lección, a las dos leyes] — + estos papeles, UN push.
+El visor entero ya se publicó en 5b31946.)*
+*(Histórico del 20/09 mediodía: QUINCE commits: EL VISOR-INTRANET
 ENTERO — `3ae5ab3`…finales: la recuperación con el mismo blob,
 el parlamento firmado B+2 con doctrina, el componente aparte,
 fileReplacements, la jueza del no-viaja, los tres hallazgos
@@ -1724,9 +1730,11 @@ el viaje aparca 748 m más lejos]; ⭐ el 20/09 cayó EL VISOR-INTRANET ENTERO
 [las quince señales en local, cero bytes en producción, el
 parlamento B+2 firmado con doctrina, las dos leyes nuevas —
 crónica en su bloque] y EL PLAN SE QUEDA SIN CASILLAS
-ABIERTAS; (a) EL PUSH [15 commits + estos papeles]; (b) LA
-LISTA FINAL para acabar el proyecto según su papel: la tanda
-de flecos [asa+salto+tercer estado] · 5b [hover paso→mapa] ·
+ABIERTAS; (a) EL PUSH [15 commits + estos papeles]; (b) ⭐ el 20/09
+cayó LA TANDA DE FLECOS [salto+asa QUEDAN; el tercer estado
+DESHECHO por orden de Antonio — crónica y leyes en su bloque];
+LA LISTA FINAL para acabar según su papel: 5b [hover
+paso→mapa] ·
 la tanda del arnés [«las juezas esperan HECHOS»
 moto+yego+bizi · la P26 aprende «no se puede medir» — familia
 píxel-sobre-tesela] · la poda del presupuesto · la mesa chica
@@ -1753,9 +1761,9 @@ fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
-initial al cierre del visor: 550,34 kB [BAJÓ: el chunk del
-panel ya no viaja; +174 B de la variante del conmutador],
-transferido 143,57 [superado el aviso de 520 por 33,47]; la
+initial al cierre de los flecos: 551,12 kB [salto+asa: +603 B
+sobre la tanda-cero; el tercer estado revertido],
+transferido 143,73 [superado el aviso de 520 por 33,47]; la
 poda como palanca] · [guardián: HECHO 19/09] · el
 refactor del resultado como componente propio [4 topes] · los
 e2e con 4200 a fuego [pantalla(adaptada), proximo-bus] · el
@@ -2097,7 +2105,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.417 pruebas (656 motor + 761 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (304+381 ficheros al cierre del 20/09) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.424 pruebas (656 motor + 768 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (304+381 ficheros al cierre del 20/09) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
