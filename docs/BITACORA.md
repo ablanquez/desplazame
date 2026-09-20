@@ -14,6 +14,68 @@
 
 ---
 
+## [2026-09-20] ✅ CERRADA — La batería entera da 10/10 sobre un conmutador de tres estados que nadie había firmado: las juezas compraban una letra que no existía
+
+**Categoría:** el instrumento mide la coherencia con una letra propuesta, no firmada
+**Síntoma:** el conmutador del tema pasó de interruptor de dos estados a grupo
+de tres radios —Claro · Oscuro · Sistema— sin decisión de diseño de Antonio.
+La cadena: una entrada de cola redactada por el estratega viajó al encargo como
+si fuera elección firmada. El §35 del DISEÑO nunca cambió; la enmienda §35-bis
+era una propuesta pendiente de firma, y el producto se construyó contra ella.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las diez suites, hoy a las
+17:38, contra el dist de producción con el tercer estado dentro
+(`sh bateria.sh http://localhost:4300`, motor y serve míos):
+
+```
+esqueleto|0|70|0|✅ VERDE
+identidad|0|136|0|✅ VERDE
+pintura|0|1175|0|✅ VERDE
+creditos|0|33|0|✅ TODO VERDE
+dos-filas|0|21|0|✅ TODO VERDE
+moto|0|20|0|VERDE: la moto está en la botonera y llega al motor.
+yego|0|30|0|VERDE: la moto compartida está en la pantalla y llega a YeGo.
+pantalla|0|9|0|en verde · 0 en rojo
+proximo-bus|0|15|0|VERDE: todas en verde.
+bizi-y-resumen|0|17|0|✅ TODO VERDE
+suites con salida 0: 10 de 10
+```
+
+Y las 777 de unidad, `tipos`, `comprobar-dist` y `no-viaja`, todas en verde.
+Entre esas 1175 están las once de `P29` que compran el grupo de tres, la `P32`
+que mide la opción más pequeña y las dos de `L4` partidas —y las compran
+porque **las reescribí yo para que las compraran**, cada una con su acta.
+**Cómo se cazó:** ojo humano — Antonio, al mirar las capturas del checkpoint.
+**Causa raíz:** ninguna jueza de esta casa lee el DISEÑO ni sabe quién firmó
+qué. Lo único que una jueza puede comprar es **la letra que se le escribe**, y
+esa letra la escribo yo al reescribir su acta. Así que el verde no era falso:
+era **verdadero sobre otra cosa** — decía que el código y las actas coincidían,
+que es justo lo que tenía que pasar cuando los dos los había escrito la misma
+mano en la misma tanda. La pregunta que importó —«esto lo ha decidido
+Antonio?»— no la puede contestar la batería: es estructuralmente ciega a ella.
+Y el paso donde se coló está identificado: la enmienda §35-bis llegó al encargo
+redactada como si fuera letra firmada, y no se fue a comprobar la firma antes
+de empezar, sino que se propuso al final.
+**Arreglo aplicado:** revert de `be8ec06`, exacto y sin mejoras por el camino
+—`git diff --stat e5bd859 -- app/src app/e2e` sale vacío—. Vuelve el
+interruptor de dos estados con `role="switch"` y `aria-checked`, vuelven las 66
+juezas de «P29 · el botón» con su Enter y su Espacio, la `P32` de un botón y
+la `L4` de «CUATRO huecos», todas sin tocarles la letra. Aparte, y declarado,
+se devuelve el lector de pseudoelementos de `FOCO_P31`, que viajaba dentro de
+`be8ec06` sin ser suyo —es del asa, que se queda—. Dist reconstruido:
+553,18 → 551,12 kB.
+**Commit:** `2412d39` (el revert) · `0d80a35` (el lector de la P31, que
+arrastraba) · `6b56c5c` (el dist).
+**Ley que sale de aquí:** una jueza compra la letra que se le escribe, y
+reescribir su acta es reescribir lo que compra. Cuando un cambio nace de una
+**enmienda propuesta**, el verde de la batería no prueba que el cambio deba
+existir — solo que el código dice lo mismo que el papel. La firma no la da
+ningún instrumento de esta casa: hay que ir a buscarla ANTES de reescribir
+las actas, no después.
+**Traza:** `app/e2e/pintura.mjs` (P29, P32), `app/e2e/esqueleto.mjs` (L4),
+`app/src/app/conmutador.ts`, `app/src/app/tema.ts`, `app/src/styles.css`,
+commit `be8ec06`.
+
+
 ## [2026-09-20] ✅ CERRADA — Contra el dist de producción, las doce juezas `P31 · … · panel` miden la PORTADA y la rotulan «panel»
 
 **Categoría:** una jueza que mide otra página y no lo nota
