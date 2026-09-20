@@ -14,6 +14,96 @@
 
 ---
 
+## [2026-09-20] 🔴 ABIERTA — Contra el dist de producción, las doce juezas `P31 · … · panel` miden la PORTADA y la rotulan «panel»
+
+**Categoría:** una jueza que mide otra página y no lo nota
+**Síntoma:** desde el 19/09 `/panel` no viaja en el dist de producción y su URL
+cae en el comodín, o sea, en el buscador. `PAGINAS_P31` sigue llevando
+`{ id: 'panel', url: 'panel' }`, y P31 navega, mide **lo que salga** y lo
+rotula «panel». No comprueba haber llegado — que es justo lo que la P28 sí
+hace, con su `HAY_PANEL` y su aviso de «NO APLICA AQUÍ». Se vio contando el
+−62 del checkpoint anterior: la P28 aporta **64** verdes y desaparece entera
+sin panel, así que la resta debería ser 64 y es 62. Los dos que sobran son la
+jueza del mapa, que solo se emite si el recorrido del tabulador entra en uno
+—y el panel no tiene mapa, pero la portada sí—.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** las doce, hoy, contra el
+dist de producción (`node app/e2e/pintura.mjs http://localhost:4300`, motor
+sirviendo `app/dist`, `pid` del log = `pid` que contesta):
+
+```
+  OK  P31 · teclado · panel · oscuro · ⭐ 2.1.1 · el tabulador llega a TODO lo que se opera  ·  16 controles · 17 paradas
+  OK  P31 · teclado · panel · oscuro · ⭐ 2.1.2 · del mapa se SALE con Tab, sin método raro  ·  entra en la parada 1 y sale 6 pulsaciones después
+  OK  P31 · reflow 320 · panel · oscuro · ⭐ nada se sale del ancho fuera del mapa [WCAG 1.4.10]  ·  documento 320 / vista 320 · 0 desbordes
+(1.141 OK · 0 rojos · ✅ VERDE)
+```
+
+El panel de frescura no tiene mapa ni tiene dieciséis controles: no tiene
+ninguno. Y en la misma suite contra la construcción local, donde el panel SÍ
+existe, `P31 · teclado · panel` emite **10** juezas y no 12 — medido las dos
+veces hoy.
+**Cómo se cazó:** instrumento — cuadrar la resta de dos tiradas de `pintura`,
+1.203 contra la local y 1.141 contra el dist.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE — **fuera del alcance del encargo del
+20/09**, que cierra H1, H2, H3 y la línea del −62. Queda dicho y se espera
+respuesta: la P28 ya tiene el patrón escrito (mirar si la página está y
+declarar «no aplica» en vez de adivinar), y aplicarlo aquí son seis líneas.
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** una jueza que navega por URL tiene que comprobar
+DÓNDE ha caído antes de medir. Con comodín, «la página no existe» y «la página
+está perfecta» se pintan igual de verdes, y la segunda tapa a la primera. Y el
+que una casilla hermana ya lo resolviera no vacuna a las demás: el patrón hay
+que ir a ponerlo página por página.
+**Traza:** `app/e2e/pintura.mjs` (`PAGINAS_P31`, los tres bucles de la P31),
+`app/src/app/rutas.ts` (el comodín), `app/src/app/rutas-intranet.vacio.ts`.
+
+## [2026-09-20] 🔴 ABIERTA — `/panel` lleva vestido con la columna del Buscador desde que se vistió: `.panel` es la misma clase en dos páginas distintas
+
+**Categoría:** dos páginas que comparten nombre de clase en una hoja global
+**Síntoma:** [ojo de Antonio, visor local] a 1920 el panel de frescura sale en
+una columna estrecha con la tabla recortada y barra interna. Medido en Chrome
+sobre la página viva: vista 1.905 px · columna 591 · `.panel__marco` enseña 543
+de 1.080 de contenido — **537 px escondidos**. Eso no sale de `panel.css`, que
+solo pide `max-width: 72rem; margin: 0 auto`: sale de `styles.css`, donde
+`.panel` es **la columna de resultados del Buscador**. Valores computados de
+`section.panel` en `/panel`: a 1920 `width: 558px` · `display: flex`; a 390
+`position: absolute; inset: 0px; z-index: 20`. Y el fondo, `rgb(30, 30, 30)`
+en oscuro — que es `--card`, no `--background`: la cabecera de `panel.css` jura
+lo contrario con todas las letras («se pinta sobre la PÁGINA, no sobre una
+tarjeta … #121212 y no el #1e1e1e de `--card`»), y por esa frase hay **ocho
+pares del censo de `/identidad` registrados contra `background`**.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la P28 de `pintura.mjs`
+—que mide `/panel` en las tres pantallas y los dos temas— dio sus **64 verdes**
+con el recorte vivo y la página sobre la tarjeta. Y la jueza del marco de la
+tabla **exige el recorte para pasar**: su condición es `marco.desborda && …`.
+Tirada de hoy contra `npm run local`, antes de tocar nada:
+
+```
+  OK  P28 · antonio · oscuro · ⭐ la red: ningún texto del panel por debajo de 4.5:1 (valor computado)  ·  388 textos · el peor 7.51 · 0 por debajo
+  OK  P28 · antonio · oscuro · ⭐ la cabecera de la tabla se lee, y el filete es el --border de la casa  ·  13.62:1 · rgb(240, 240, 240) sobre rgb(36, 36, 36) · filete rgb(51, 51, 51)
+  OK  P28 · antonio · oscuro · ⭐ la barra del marco de la tabla va en el tema (la pinta el navegador por color-scheme)  ·  15 px · el píxel de su carril rgb(44, 44, 44) · realce rgb(51, 51, 51)
+  OK  P28 · antonio · claro · ⭐ la barra del marco de la tabla va en el tema (la pinta el navegador por color-scheme)  ·  15 px · el píxel de su carril rgb(252, 252, 252) · realce rgb(226, 232, 240)
+  OK  P28 · pc · oscuro ·  … 15 px …      OK  P28 · movil · oscuro ·  … 15 px …
+(1.203 OK · 0 rojos · ✅ VERDE — las seis del marco, las seis con sus 15 px de carril)
+```
+
+Los `15 px` son el alto de la barra de desplazamiento del recorte: las seis
+juezas del marco midieron el carril de la tabla recortada y lo dieron por bueno.
+**Cómo se cazó:** ojo humano — Antonio, mirando `/panel` a 1920 en el visor local.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** en una hoja GLOBAL, el nombre de una clase es un
+identificador de toda la aplicación. Una página nueva que reutilice un nombre
+que ya existe hereda en silencio la maquetación de la otra, y ninguna jueza de
+color lo ve: las de contraste leen el fondo REAL, así que el fondo equivocado
+pasa la vara igual de bien. Lo que delata una colisión no es el contraste, es
+la GEOMETRÍA — cuánto mide la caja y cuánto se esconde dentro.
+**Traza:** `app/src/app/panel.html` (`section.panel`), `app/src/app/panel.css`
+(cabecera y `.panel__marco`), `app/src/styles.css:841` y `:1353-1359`
+(`.panel` del Buscador), `app/e2e/pintura.mjs` (P28, la jueza del marco),
+`app/src/app/identidad.ts` (los pares del censo contra `background`).
+
 ## [2026-09-19] ✅ CERRADA — `esperarTeselas` da el visto bueno con 2 teselas de 8, y la P26 mide el borde contra el fondo del contenedor
 
 **Categoría:** un instrumento que declara «listo» cuando todavía no lo está
