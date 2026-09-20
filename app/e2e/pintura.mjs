@@ -4699,12 +4699,47 @@ for (const [k, pantalla] of HAY_PANEL ? PANTALLAS.entries() : []) {
         );
       }
       if (marco && marco.h > 0) {
-        const carril = await carrilDe(m, marco, oscuro);
+        // ⚠️ EL CARRIL HAY QUE MIRARLO, Y LA CAPTURA SOLO VE LA VENTANA (20/09).
+        //    Esta jueza leía las coordenadas del marco y disparaba la captura
+        //    sin más. Mientras `/panel` vestía —sin saberlo— la columna del
+        //    Buscador, esa columna era `position: absolute; inset: 0` y la
+        //    página medía exactamente una ventana: la barra caía dentro por
+        //    casualidad. Con la página en flujo normal, a 390 cae por debajo
+        //    del pliegue, `carrilDe` lee fuera del PNG y devuelve
+        //    `rgb(NaN, NaN, NaN)` — un rojo de la sonda, no del tema.
+        //    Se acerca la barra a la vista y se vuelve a leer DÓNDE ha quedado:
+        //    medir sobre píxeles obliga a asegurarse de que el píxel existe.
+        const sitio = await leer(m, `
+          const t = document.querySelector('.frescura__marco');
+          t.scrollIntoView({ block: 'end' });
+          const r = t.getBoundingClientRect();
+          return { x: r.x, y: r.bottom - (t.offsetHeight - t.clientHeight), w: r.width,
+                   h: t.offsetHeight - t.clientHeight, alto: window.innerHeight };
+        `);
+        await m.dormir(250);
+        // ⚠️ Y LA CAJA SE RECORTA A LA PANTALLA, sin pedirle que quepa entera.
+        //    `r.bottom` viene fraccionario: con la barra pegada al borde daba
+        //    `829,33 + 15 > 844` y la jueza se rendía teniendo el carril a la
+        //    vista — rojo en claro y verde en oscuro, por décimas de píxel. Se
+        //    mide lo que HAY dentro del PNG y se exige solo que sean tres
+        //    filas, que es lo que hace falta para contar colores.
+        const y0 = Math.max(0, Math.round(sitio.y));
+        const altoVisible = Math.min(Math.round(sitio.h), sitio.alto - y0);
+        const aLaVista = altoVisible >= 3;
+        const carril = aLaVista
+          ? await carrilDe(m, { x: sitio.x, y: y0, w: sitio.w, h: altoVisible }, oscuro)
+          : null;
         juzgar(
-          marco.desborda && (oscuro ? luminancia(carril) <= luminancia(realce) : luminancia(carril) >= luminancia(realce)),
+          aLaVista &&
+            marco.desborda &&
+            (oscuro ? luminancia(carril) <= luminancia(realce) : luminancia(carril) >= luminancia(realce)),
           `${dicho} · ⭐ la barra del marco de la tabla va en el tema (la pinta el navegador por color-scheme)`,
-          `${marco.h} px · el píxel de su carril ${enRgb(carril)} · realce ${enRgb(realce)}`,
+          aLaVista
+            ? `${sitio.h} px (${altoVisible} a la vista) · el píxel de su carril ${enRgb(carril)} · realce ${enRgb(realce)}`
+            : `la barra queda FUERA de la ventana (y=${Math.round(sitio.y)} de ${sitio.alto}): no hay píxel que mirar`,
         );
+        await m.evaluar(`window.scrollTo(0, 0)`);
+        await m.dormir(200);
       }
 
       await m.guardar(`${CAPTURAS}/panel-${nombreTema}-${pantalla.id}.png`);
