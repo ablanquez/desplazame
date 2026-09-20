@@ -224,6 +224,29 @@ export class MapaDeCapas {
   private capaPmr?: L.LayerGroup;
   private control?: L.Control.Layers;
 
+  /**
+   * ⭐ LAS CATORCE POR SU CLAVE, rehecho en cada `refrescarControl` (20/09, H2).
+   *
+   * El control de Leaflet indexa por ROTULO —«Portales (46.150)»—, y ese
+   * rótulo lleva dentro una cifra que cambia cada vez que el dato se renueva.
+   * Un conjunto de encendidas guardado por rótulo se rompería el día que el
+   * cron traiga un portal más. Por eso la clave es NUESTRA y es estable, y el
+   * rótulo se queda para la vista.
+   */
+  private readonly puestas = new Map<string, L.Layer>();
+
+  /**
+   * Qué claves ya se han repuesto EN ESTE MONTAJE. Cada capa se repone una
+   * sola vez, la primera en que existe.
+   *
+   * ⚠️ Y esto es lo que separa «reponer» de «imponer». `refrescarControl` se
+   *    llama catorce veces mientras el dato va llegando; sin esta marca, una
+   *    capa que quien mira acabara de APAGAR volvería a encenderse sola con el
+   *    siguiente dato que entrase. Repone quien vuelve a la página, no el
+   *    fichero que termina de bajarse.
+   */
+  private readonly yaRepuestas = new Set<string>();
+
   /** Los dos trozos del regulado, guardados para poder revestirlos sin rehacerlos. */
   private reguladoEsro?: L.Polyline;
   private reguladoEsre?: L.Polyline;
@@ -357,6 +380,9 @@ export class MapaDeCapas {
     // clears all related event listeners». Sin esto, cada ida y vuelta deja
     // atrás un mapa entero con sus escuchas y sus 46.150 marcadores.
     inject(DestroyRef).onDestroy(() => {
+      // ⭐ Primero se apunta lo que estaba puesto y DESPUÉS se desmonta: con el
+      //    mapa ya destruido no hay a quién preguntárselo. Ver `Capas`.
+      this.apuntarLoQueQueda();
       this.mapa?.remove();
       this.mapa = undefined;
       this.tesela = undefined;
@@ -972,65 +998,128 @@ export class MapaDeCapas {
     this.refrescarControl();
   }
 
-  /** Un solo control de capas, rehecho con las capas que existan ahora. */
+  /**
+   * Un solo control de capas, rehecho con las capas que existan ahora — y
+   * **repuesto lo que estuviera encendido antes de salir de la página**.
+   */
   private refrescarControl(): void {
     this.control?.remove();
     this.control = undefined;
+    this.puestas.clear();
     if (!this.mapa) {
       return;
     }
 
     const cuantos = (n: number): string => n.toLocaleString('es-ES');
     const capas: Record<string, L.Layer> = {};
-    if (this.capaPortales) {
-      capas[`Portales (${cuantos(this.capas.portales().length)})`] = this.capaPortales;
-    }
-    if (this.capaGrafo) {
-      capas[`Grafo peatonal/ciclable (${cuantos(this.capas.grafo().length)})`] = this.capaGrafo;
-    }
-    if (this.capaCarriles) {
-      capas[`Carriles bici (${cuantos(this.capas.carriles().length)})`] = this.capaCarriles;
-    }
-    if (this.capaPostes) {
-      capas[`Postes de bus (${cuantos(this.capas.postes().length)})`] = this.capaPostes;
-    }
-    if (this.capaTrazados) {
-      capas[`Trazados de bus (${cuantos(this.capas.trazados().length)})`] = this.capaTrazados;
-    }
-    if (this.capaTranvia) {
-      capas[`Tranvía (${cuantos(this.capas.tranvia().length)})`] = this.capaTranvia;
-    }
-    if (this.capaParadasTranvia) {
-      capas[`Paradas de tranvía (${cuantos(this.capas.paradasTranvia().length)})`] =
-        this.capaParadasTranvia;
-    }
-    if (this.capaBizi) {
-      capas[`Estaciones BiZi (${cuantos(this.capas.estacionesBizi().length)})`] = this.capaBizi;
-    }
-    if (this.capaAparcabicis) {
-      capas[`Aparcabicis (${cuantos(this.capas.aparcabicis().length)})`] = this.capaAparcabicis;
-    }
-    if (this.capaAparcamotos) {
-      capas[`Aparcamotos (${cuantos(this.capas.aparcamotos().length)})`] = this.capaAparcamotos;
-    }
-    if (this.capaRegulado) {
-      const tramos =
-        this.capas.reguladoRotacion().length + this.capas.reguladoResidentes().length;
-      capas[`Regulado ESRO+ESRE (${cuantos(tramos)})`] = this.capaRegulado;
-    }
-    if (this.capaAmpliacion) {
-      capas[`¿Ampliación? zonas sin activar (${cuantos(this.capas.ampliacionPrevista().length)})`] =
-        this.capaAmpliacion;
-    }
-    if (this.capaZonas) {
-      capas[`Zonas reguladas (${cuantos(this.capas.zonasReguladas().length)})`] = this.capaZonas;
-    }
-    if (this.capaPmr) {
-      capas[`Reservas PMR (${cuantos(this.capas.reservasPmr().length)})`] = this.capaPmr;
-    }
+    /** Una capa en el control: su clave estable, su rótulo con la cifra, y ella. */
+    const anotar = (clave: string, rotulo: string, capa: L.Layer | undefined): void => {
+      if (!capa) {
+        return;
+      }
+      capas[rotulo] = capa;
+      this.puestas.set(clave, capa);
+    };
+
+    anotar('portales', `Portales (${cuantos(this.capas.portales().length)})`, this.capaPortales);
+    anotar(
+      'grafo',
+      `Grafo peatonal/ciclable (${cuantos(this.capas.grafo().length)})`,
+      this.capaGrafo,
+    );
+    anotar('carriles', `Carriles bici (${cuantos(this.capas.carriles().length)})`, this.capaCarriles);
+    anotar('postes', `Postes de bus (${cuantos(this.capas.postes().length)})`, this.capaPostes);
+    anotar('trazados', `Trazados de bus (${cuantos(this.capas.trazados().length)})`, this.capaTrazados);
+    anotar('tranvia', `Tranvía (${cuantos(this.capas.tranvia().length)})`, this.capaTranvia);
+    anotar(
+      'paradas-tranvia',
+      `Paradas de tranvía (${cuantos(this.capas.paradasTranvia().length)})`,
+      this.capaParadasTranvia,
+    );
+    anotar(
+      'bizi',
+      `Estaciones BiZi (${cuantos(this.capas.estacionesBizi().length)})`,
+      this.capaBizi,
+    );
+    anotar(
+      'aparcabicis',
+      `Aparcabicis (${cuantos(this.capas.aparcabicis().length)})`,
+      this.capaAparcabicis,
+    );
+    anotar(
+      'aparcamotos',
+      `Aparcamotos (${cuantos(this.capas.aparcamotos().length)})`,
+      this.capaAparcamotos,
+    );
+    anotar(
+      'regulado',
+      `Regulado ESRO+ESRE (${cuantos(
+        this.capas.reguladoRotacion().length + this.capas.reguladoResidentes().length,
+      )})`,
+      this.capaRegulado,
+    );
+    anotar(
+      'ampliacion',
+      `¿Ampliación? zonas sin activar (${cuantos(this.capas.ampliacionPrevista().length)})`,
+      this.capaAmpliacion,
+    );
+    anotar('zonas', `Zonas reguladas (${cuantos(this.capas.zonasReguladas().length)})`, this.capaZonas);
+    anotar('pmr', `Reservas PMR (${cuantos(this.capas.reservasPmr().length)})`, this.capaPmr);
 
     if (Object.keys(capas).length > 0) {
       this.control = L.control.layers(undefined, capas).addTo(this.mapa);
     }
+
+    this.reponerEncendidas();
+  }
+
+  /**
+   * ⭐ VUELVE A PONER LO QUE ESTABA PUESTO (20/09, H2 del ojo de Antonio).
+   *
+   * ⚠️ **`untracked`, y por la misma razón que la paleta.** Los catorce
+   *    `pintar*` acaban aquí, y los catorce viven dentro de un `effect()`. Si
+   *    esto leyera `encendidas()` a pelo, [DOC Angular] «the effect will re-run
+   *    whenever any of the signals it reads change» convertiría el conjunto de
+   *    encendidas en dependencia de los catorce efectos: encender UNA capa
+   *    rehacía las catorce. Es el fallo del 19/09 otra vez, y se evita igual.
+   *
+   * [DOC Leaflet] `hasLayer` dice si una capa ya está en el mapa; poner la
+   * misma dos veces no es un error, pero preguntarlo deja claro que esto no
+   * pelea con quien acaba de pulsar la casilla.
+   */
+  private reponerEncendidas(): void {
+    const mapa = this.mapa;
+    if (!mapa) {
+      return;
+    }
+    const recordadas = untracked(() => this.capas.encendidas());
+    for (const [clave, capa] of this.puestas) {
+      if (this.yaRepuestas.has(clave)) {
+        continue;
+      }
+      this.yaRepuestas.add(clave);
+      if (recordadas.has(clave) && !mapa.hasLayer(capa)) {
+        mapa.addLayer(capa);
+      }
+    }
+  }
+
+  /**
+   * Lo que estaba puesto al salir, al servicio. Se pregunta AL MAPA y no a una
+   * lista que hubiera que mantener al día: la verdad de qué se ve la tiene
+   * Leaflet, y copiarla en dos sitios es lo que hace que las dos se separen.
+   */
+  private apuntarLoQueQueda(): void {
+    const mapa = this.mapa;
+    if (!mapa) {
+      return;
+    }
+    const vivas = new Set<string>();
+    for (const [clave, capa] of this.puestas) {
+      if (mapa.hasLayer(capa)) {
+        vivas.add(clave);
+      }
+    }
+    this.capas.recordar(vivas);
   }
 }

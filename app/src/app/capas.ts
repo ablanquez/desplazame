@@ -202,6 +202,15 @@ export interface CapasDeVerificacion {
   readonly zonasReguladas: Signal<readonly ZonaRegulada[]>;
   readonly reservasPmr: Signal<readonly Vertice[]>;
   cargar(): void;
+  /**
+   * ⭐ QUÉ CAPAS ESTÁN ENCENDIDAS, por la clave de cada una (20/09, H2).
+   *
+   * No es dato geográfico: es el estado del INSTRUMENTO. Vive aquí porque es
+   * lo único que sobrevive a salir de la página — ver la cabecera del servicio.
+   */
+  readonly encendidas: Signal<ReadonlySet<string>>;
+  /** Lo que estaba puesto al salir de la página, para reponerlo al volver. */
+  recordar(claves: ReadonlySet<string>): void;
 }
 
 /**
@@ -306,6 +315,53 @@ export class Capas implements CapasDeVerificacion {
    */
   private readonly _reservasPmr = signal<readonly Vertice[]>([]);
   readonly reservasPmr = this._reservasPmr.asReadonly();
+
+  /**
+   * ⭐ LAS ENCENDIDAS, Y POR QUÉ VIVEN AQUÍ (20/09, H2 del ojo de Antonio).
+   *
+   * ═══════════════════════════════════════════════════════════════════════
+   *  Antonio encendía cuatro capas, iba a la portada a cambiar el tema —que
+   *  era el único sitio donde se podía— y al volver el visor nacía de cero.
+   *  Consecuencia: **el cruce tema × capas no se podía comprobar A OJO**, por
+   *  mucho que una jueza de unidad lo cubriera.
+   *
+   *  ⚠️ **QUÉ SE VERIFICÓ ANTES DE ELEGIR EL ARREGLO**, que es lo que decide
+   *     entre este camino y el otro:
+   *
+   *  · **Es el ciclo de vida del router, no una recarga.** Medido en Chrome
+   *    con un centinela sembrado en `window`: sobrevive a la ida y la vuelta,
+   *    así que el documento NO se recarga — lo que se destruye y se vuelve a
+   *    crear es el componente. [DOC Angular] el `RouterOutlet` «emits a
+   *    deactivate event when a component is destroyed».
+   *  · **Re-crear el visor entero cuesta 124-159 ms** (mapa de Leaflet más
+   *    las catorce capas) y **cero peticiones de red**: el dato ya está aquí.
+   *    Cuatro vueltas medidas: 159, 124, 125, 129 ms.
+   *
+   *  Con esa cifra, guardar la INSTANCIA del componente —`RouteReuseStrategy`
+   *  y sus `detached route handles`— no compra nada que justifique una
+   *  estrategia propia: la doc de Angular manda agotar lo simple primero, y lo
+   *  simple es esto —el estado a un servicio, que es el patrón por el que el
+   *  tema ya sobrevive—. Lo que se re-crea es barato; lo que no se puede
+   *  perder es la ELECCIÓN de quien mira, y la elección cabe en un conjunto
+   *  de catorce cadenas.
+   *
+   *  ⚠️ **Y NO se persiste.** Una página recién abierta arranca con las
+   *     catorce apagadas, que es una decisión declarada y con jueza propia
+   *     («las catorce están en el control y ninguna encendida»): con catorce
+   *     capas superpuestas el mapa de partida era ilegible. Esto conserva
+   *     dentro de una sesión, no entre sesiones.
+   * ═══════════════════════════════════════════════════════════════════════
+   */
+  private readonly _encendidas = signal<ReadonlySet<string>>(new Set());
+  readonly encendidas = this._encendidas.asReadonly();
+
+  /**
+   * Apunta lo que estaba puesto. Lo llama el mapa **al desmontarse**, que es
+   * el único momento en que la verdad está completa y ya no va a cambiar.
+   */
+  recordar(claves: ReadonlySet<string>): void {
+    this._encendidas.set(new Set(claves));
+  }
 
   /** Si ya se pidió. La segunda página no vuelve a bajarse los 34 MB. */
   private pedido = false;

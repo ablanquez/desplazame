@@ -55,6 +55,7 @@ const ZONA: readonly ZonaRegulada[] = [
 
 /** Las quince señales llenas, sin red: el servicio de verdad no se toca. */
 function capasLlenas(): CapasDeVerificacion {
+  const recordadas = signal<ReadonlySet<string>>(new Set());
   return {
     portales: signal(PUNTO),
     grafo: signal(LINEA),
@@ -72,6 +73,11 @@ function capasLlenas(): CapasDeVerificacion {
     zonasReguladas: signal(ZONA),
     reservasPmr: signal(PUNTO),
     cargar: () => {},
+    // ⭐ El estado del instrumento (20/09, H2): las encendidas viven en el
+    //    servicio, así que el doble también las lleva — y con una señal de
+    //    verdad, porque el mapa las lee y las escribe.
+    encendidas: recordadas.asReadonly(),
+    recordar: (claves) => recordadas.set(new Set(claves)),
   };
 }
 

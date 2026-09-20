@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Capas } from './capas';
+import { ConmutadorDeTema } from './conmutador';
 import { MapaDeCapas } from './mapa-de-capas';
 
 /**
@@ -27,7 +28,7 @@ import { MapaDeCapas } from './mapa-de-capas';
  */
 @Component({
   selector: 'app-visor',
-  imports: [MapaDeCapas],
+  imports: [ConmutadorDeTema, MapaDeCapas],
   templateUrl: './visor.html',
   styleUrl: './visor.css',
 })

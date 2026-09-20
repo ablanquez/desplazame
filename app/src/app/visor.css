@@ -12,6 +12,23 @@
   box-sizing: border-box;
 }
 
+/* ⭐ EL CONMUTADOR DE TEMA, A LA ALTURA DEL `h1` (20/09, H1 del ojo de Antonio).
+
+   Esta página montaba cabecera y mapa y nada más: no hay barra de pestañas ni
+   cabecera del Buscador, que son los dos sitios donde el conmutador ya vivía,
+   así que el tema solo se cambiaba yendo a la portada y volviendo — y volver
+   costaba las capas encendidas. Va donde la cabecera lo admite, arriba a la
+   derecha, que es el mismo sitio que ocupa en el Buscador.
+
+   ⚠️ Y el hueco lo hace una FILA, no un `position: absolute`: si mañana el
+      título crece o se le añade algo, el conmutador se aparta solo. */
+.visor__fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .visor__cabecera h1 {
   margin: 0;
   font-size: 1.2rem;
