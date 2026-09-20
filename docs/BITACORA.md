@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-20] 🔴 ABIERTA — Contra el dist de producción, las doce juezas `P31 · … · panel` miden la PORTADA y la rotulan «panel»
+## [2026-09-20] ✅ CERRADA — Contra el dist de producción, las doce juezas `P31 · … · panel` miden la PORTADA y la rotulan «panel»
 
 **Categoría:** una jueza que mide otra página y no lo nota
 **Síntoma:** desde el 19/09 `/panel` no viaja en el dist de producción y su URL
@@ -43,21 +43,47 @@ existe, `P31 · teclado · panel` emite **10** juezas y no 12 — medido las dos
 veces hoy.
 **Cómo se cazó:** instrumento — cuadrar la resta de dos tiradas de `pintura`,
 1.203 contra la local y 1.141 contra el dist.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE — **fuera del alcance del encargo del
-20/09**, que cierra H1, H2, H3 y la línea del −62. Queda dicho y se espera
-respuesta: la P28 ya tiene el patrón escrito (mirar si la página está y
-declarar «no aplica» en vez de adivinar), y aplicarlo aquí son seis líneas.
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** **el comodín casa con todo, y eso está en la letra del router.**
+[DOC Angular · *Router*] `**` **coincide con cualquier URL**, y el router elige
+la primera ruta que case —*first-match wins*—, así que una dirección sin ruta
+declarada no da 404: da la página del comodín. Desde el 19/09 `/panel` no tiene
+ruta en producción —`rutas-intranet.vacio.ts`— y por tanto `/panel` **es** el
+Buscador. La casilla, en cambio, daba por hecho que navegar a una URL te deja
+en esa página: navegaba, medía lo que hubiera y le ponía encima el rótulo que
+llevaba en su lista. Nada podía delatarlo, porque el Buscador está bien: sus
+juezas de reflow, de zoom y de teclado salen verdes con razón — sobre otra
+página. «Esta página no existe» y «esta página está perfecta» se pintan
+exactamente igual, y la segunda tapa a la primera.
+⚠️ Y la casilla hermana ya lo había resuelto: la P28 tenía escrito su
+`HAY_PANEL` desde el 19/09, con su aviso de «NO APLICA AQUÍ». Eso no vacunó a
+la P31 — un patrón resuelto en un sitio no se aplica solo en los demás.
+**Arreglo aplicado:** cada página de `PAGINAS_P31` lleva ahora su **marca** —el
+selector del componente que demuestra haber llegado: `app-buscador`,
+`app-panel`, `app-identidad`, `app-creditos`— y una sonda única, antes de abrir
+ninguna casilla, dice cuáles están de verdad. Las que no están se declaran con
+«NO APLICA AQUÍ» y su porqué, y los tres bucles recorren solo las que sí. El
+mismo patrón estrena casilla en la P32 del mismo día. Contraprueba **en copia**,
+con una página sembrada que no existe (`no-existe-esta-pagina` / `app-inventada`):
+cae en el comodín y pinta `app-buscador`, y la sonda la deja FUERA —
+`NO APLICA: inventada`— en vez de medirla.
+Medido contra el dist: `P31 · PANEL — NO APLICA AQUÍ` en vez de doce verdes
+sobre la portada. Y contra la construcción local, donde el panel sí está, la
+casilla juzga entera: sus 10 juezas de teclado, las que le tocan.
+**Commit:** `fbaa3bb`
 **Ley que sale de aquí:** una jueza que navega por URL tiene que comprobar
 DÓNDE ha caído antes de medir. Con comodín, «la página no existe» y «la página
 está perfecta» se pintan igual de verdes, y la segunda tapa a la primera. Y el
 que una casilla hermana ya lo resolviera no vacuna a las demás: el patrón hay
 que ir a ponerlo página por página.
+⭐ Y la que añade el cierre: **una URL no es una promesa de destino.** Con
+comodín, navegar siempre «funciona», así que lo que hay que comprobar no es que
+la navegación no falle —nunca falla— sino que lo que se está midiendo es quien
+dice ser. La marca que lo demuestra tiene que ser del CONTENIDO, no de la URL:
+`location.pathname` diría `/panel` igualmente.
 **Traza:** `app/e2e/pintura.mjs` (`PAGINAS_P31`, los tres bucles de la P31),
 `app/src/app/rutas.ts` (el comodín), `app/src/app/rutas-intranet.vacio.ts`.
 
-## [2026-09-20] 🔴 ABIERTA — `/panel` lleva vestido con la columna del Buscador desde que se vistió: `.panel` es la misma clase en dos páginas distintas
+## [2026-09-20] ✅ CERRADA — `/panel` lleva vestido con la columna del Buscador desde que se vistió: `.panel` es la misma clase en dos páginas distintas
 
 **Categoría:** dos páginas que comparten nombre de clase en una hoja global
 **Síntoma:** [ojo de Antonio, visor local] a 1920 el panel de frescura sale en
@@ -90,15 +116,50 @@ Tirada de hoy contra `npm run local`, antes de tocar nada:
 Los `15 px` son el alto de la barra de desplazamiento del recorte: las seis
 juezas del marco midieron el carril de la tabla recortada y lo dieron por bueno.
 **Cómo se cazó:** ojo humano — Antonio, mirando `/panel` a 1920 en el visor local.
-**Causa raíz:** ⏳ PENDIENTE
-**Arreglo aplicado:** ⏳ PENDIENTE
-**Commit:** ⏳ PENDIENTE
+**Causa raíz:** **la encapsulación de Angular protege en UNA dirección, no en
+las dos**, y eso está escrito en su documentación. [DOC Angular · *Styling
+components*] la encapsulación emulada —la de serie— garantiza que los estilos
+de un componente no se escapen a los de fuera; «**sin embargo, los estilos
+GLOBALES definidos fuera de un componente SÍ pueden afectar a los elementos de
+dentro**». `panel.css` estaba encapsulado y por eso nadie temía nada: pero lo
+que entraba venía de `styles.css`, que es global, y la puerta por la que entró
+fue el NOMBRE. `.panel` ya existía allí como la columna de resultados del
+Buscador, así que la página de frescura heredó su `position`, su `display`, su
+`width` y su `background` sin una sola línea que lo pidiera. No fue un fallo de
+especificidad ni de orden de hojas: fue un fallo de **nombre**.
+Y lo que lo mantuvo invisible fue con qué se medía: todas las juezas de esta
+página son de CONTRASTE, y el contraste se calcula contra el fondo REAL —así
+que un fondo equivocado pasa la vara exactamente igual de bien—. La jueza del
+marco de la tabla llegó a necesitar el defecto para dar su verde:
+`marco.desborda && …` exigía que hubiera recorte.
+**Arreglo aplicado:** el bloque deja de llamarse `panel` y pasa a `frescura`
+(`app/src/app/panel.html`, `panel.css`, y los selectores de `panel.spec.ts`,
+`identidad.spec.ts` y la P28 de `pintura.mjs`). Con el nombre se va la columna
+del Buscador entera. Y encima la maqueta que el defecto tapaba: la prosa en una
+columna con medida y la tabla en su propio carril —`width: max-content` con
+tope en la ventana—, medido a 1920: **de enseñar 543 de 1.080 a enseñar 1.873
+de 1.873, 0 escondidos**; en oscuro el fondo pasa de `rgb(30, 30, 30)` a
+transparente sobre `rgb(18, 18, 18)`, que es lo que su hoja decía. Jueza nueva
+en la P28 (`la tabla se ve ENTERA donde la ventana da de sí`), con contraprueba
+en pantalla: devuelta la colisión con una hoja inyectada, se pone roja.
+⚠️ Y el arreglo de la maqueta cayó en la MISMA trampa una vez más: la regla del
+carril ancho nació muerta porque `.frescura > *` pesa (0,3,0) con la
+encapsulación puesta y `.frescura__marco` solo (0,2,0). Se vio leyendo el valor
+computado —`grid-column: texto-i / texto-f`— y no la hoja. Lleva `.frescura >`
+delante para ganar por estructura.
+**Commit:** `8e13add` (y la jueza del carril que perdió su sujeto, `b83bcfe`)
 **Ley que sale de aquí:** en una hoja GLOBAL, el nombre de una clase es un
 identificador de toda la aplicación. Una página nueva que reutilice un nombre
 que ya existe hereda en silencio la maquetación de la otra, y ninguna jueza de
 color lo ve: las de contraste leen el fondo REAL, así que el fondo equivocado
 pasa la vara igual de bien. Lo que delata una colisión no es el contraste, es
 la GEOMETRÍA — cuánto mide la caja y cuánto se esconde dentro.
+⭐ Y la que añade el cierre, con la letra oficial delante: **la encapsulación no
+te defiende de lo global, solo defiende a lo global de ti.** Un componente
+nuevo que elige un nombre de clase está eligiendo dentro del espacio de nombres
+de TODA la aplicación, y el único sitio donde comprobarlo es la hoja global.
+Mirar ahí antes de bautizar cuesta un `grep`; no mirarlo no se nota
+mirando la pantalla, que es lo peor que le puede pasar a un fallo.
 **Traza:** `app/src/app/panel.html` (`section.panel`), `app/src/app/panel.css`
 (cabecera y `.panel__marco`), `app/src/styles.css:841` y `:1353-1359`
 (`.panel` del Buscador), `app/e2e/pintura.mjs` (P28, la jueza del marco),
