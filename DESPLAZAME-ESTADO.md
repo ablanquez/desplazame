@@ -225,12 +225,13 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 19/09 tarde, lo en-local son CINCO commits: EL CRON
-EDUCADO — `c0e10c9`…`4bf111b`, la tabla de validadores, el
-guion con la nº62, el schtasks montado — y LA RE-FIRMA DEL
-CENSO — `fcc63db`, los tres conjuntos con sus 8 actas y el
-viaje que aparca 748 m más lejos — + estos papeles, UN push;
-el guardián ya se publicó en 57c34a8.)*
+*(Al 20/09, lo en-local son QUINCE commits: EL VISOR-INTRANET
+ENTERO — `3ae5ab3`…finales: la recuperación con el mismo blob,
+el parlamento firmado B+2 con doctrina, el componente aparte,
+fileReplacements, la jueza del no-viaja, los tres hallazgos
+del ojo de Antonio rematados, las dos bitácoras del 20/09 con
+sus dos leyes — + estos papeles, UN push; el cron y la
+re-firma ya se publicaron en 7f6337e.)*
 *(Ampliado al 18/09: se suman LOS 44 PX —
 `b7a1b2b`…`a9ddb52` — y LA VERIFICACIÓN de la casilla 5 —
 `f34aea4`…`b828876`, el informe criterio a criterio con su
@@ -1719,14 +1720,19 @@ porqué de arquitectura; la nº62 de los sellos y el barajado]
 y LA RE-FIRMA DEL CENSO [los tres conjuntos municipales
 entrados por el canon snapshot: diff por contenido tras la
 renumeración, 8 actas trazadas, César Augusto 23 retirado →
-el viaje aparca 748 m más lejos]; (a) EL PUSH [5 commits +
-estos papeles]; (b) lo que queda A ELECCIÓN: el
-VISOR-INTRANET [la última casilla gorda] · la tanda de flecos
-[asa+salto+tercer estado] · 5b · la mesa; y en la cola: «las
-juezas esperan HECHOS» [moto+yego+bizi] · la P26 aprende a
-decir «no se puede medir» cuando falta la tesela [como su
-hermana de los pins — diseño anotado, familia
-píxel-sobre-tesela]; (b-bis) la cola gana:
+el viaje aparca 748 m más lejos]; ⭐ el 20/09 cayó EL VISOR-INTRANET ENTERO
+[las quince señales en local, cero bytes en producción, el
+parlamento B+2 firmado con doctrina, las dos leyes nuevas —
+crónica en su bloque] y EL PLAN SE QUEDA SIN CASILLAS
+ABIERTAS; (a) EL PUSH [15 commits + estos papeles]; (b) LA
+LISTA FINAL para acabar el proyecto según su papel: la tanda
+de flecos [asa+salto+tercer estado] · 5b [hover paso→mapa] ·
+la tanda del arnés [«las juezas esperan HECHOS»
+moto+yego+bizi · la P26 aprende «no se puede medir» — familia
+píxel-sobre-tesela] · la poda del presupuesto · la mesa chica
+· los opcionales de Antonio [manifest · tope perfiles · 3 de
+F: · gradN25 · modo seguro] · y la prosa del panel a su gusto
+[estética, del remate del visor]; (b-bis) la cola gana:
 el asa [deuda 2.5.5-casa: cumple el suelo AA 24; ensanchar
 mueve la costura] + el ENLACE DE SALTO al buscador [2.4.1] —
 irán juntos · las juezas de píxel-sobre-tesela de la P26
@@ -1747,8 +1753,9 @@ fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
-initial al cierre de la verificación: 553,69 kB, transferido
-141,44 [superado el aviso de 520 por 33,47]; la
+initial al cierre del visor: 550,34 kB [BAJÓ: el chunk del
+panel ya no viaja; +174 B de la variante del conmutador],
+transferido 143,57 [superado el aviso de 520 por 33,47]; la
 poda como palanca] · [guardián: HECHO 19/09] · el
 refactor del resultado como componente propio [4 topes] · los
 e2e con 4200 a fuego [pantalla(adaptada), proximo-bus] · el
@@ -2090,7 +2097,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.374 pruebas (656 motor + 718 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (296+364 ficheros) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.417 pruebas (656 motor + 761 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (304+381 ficheros al cierre del 20/09) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no

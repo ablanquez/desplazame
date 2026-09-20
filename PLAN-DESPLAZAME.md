@@ -5230,7 +5230,90 @@ Punto grande, sin desarrollar. Decisión de Antonio (22/08, al retirar
 los andamios): **el visor de capas se muda aquí** — deja de ser página
 pública de la app y se reconstruye al final como herramienta interna.
 
-- [ ] **El visor de capas, reconstruido como intranet**: las catorce
+- [x] ⚰️ **El visor de capas, reconstruido como intranet — HECHO
+      ENTERO (19-20/09; 15 commits `3ae5ab3`…finales, un push con
+      estos papeles): las quince señales corriendo en local, CERO
+      bytes en producción, y las dos preguntas del parlamento
+      firmadas con doctrina.** FASE 1 — recuperación e inventario:
+      los siete ficheros de `6327e45^` con EL MISMO BLOB [sha1 de
+      git == hash-object del recuperado, no copia parecida];
+      inventario de las 15 señales contra el dato de HOY [ningún
+      conjunto desaparecido; 17 ficheros/40,72 MiB; la prosa del
+      código viejo mintiendo en SIETE cifras tras la re-firma —
+      listadas y corregidas al entrar] · ⭐ LA MORADA AGUANTA el
+      censo re-firmado: mismo filtro, los MISMOS 2.860 tramos y
+      19 zonas [solo +5 plazas] — la hipótesis de la ampliación
+      no se descolocó con +33 tramos municipales; cotejo real en
+      2027 · ⭐ EL HALLAZGO QUE MANDÓ: la cadena de importaciones
+      [buscador.ts importa Mapa] — los pinceles NO pueden volver a
+      mapa.ts o viajan a main.js con Capas detrás y la perezosa no
+      ahorra un byte → COMPONENTE APARTE [MapaDeCapas] que solo
+      importa la ruta perezosa. EL PARLAMENTO firmado por Antonio
+      CON DOCTRINA, no gusto: ALCANCE B [visor + panel de
+      frescura — cumplir lo apalabrado del PLAN/rutas.ts;
+      /identidad queda pública; /creditos intocable por RD
+      1495/2011] · ACCESO 2 SOLO-LOCAL [OWASP ASVS 2.32 en los
+      tres niveles: interfaces administrativas no accesibles a
+      partes no confiables; la DevGuide: aplicación separada, el
+      extremo fuerte no accesible desde internet — la 3 pública lo
+      incumplía y además publicaba LA MORADA como si fuera
+      información municipal; la 1 exigía prueba-en-servidor NO
+      CONSTA]; el hallazgo del acceso, verificado contra el motor:
+      «no hay Apache que ayude — el motor es la única puerta»
+      [servidor.ts, escrito el 8/09]. FASE 2 — integración: el
+      MECANISMO oficial [fileReplacements, angular.dev: producción
+      reemplaza rutas-intranet.ts por el vacío — «no está», no «no
+      se enseña»; la correa de assets solo en la config local] ·
+      la trampa data/datos resuelta [absoluto y un solo nombre] ·
+      ⭐ LA JUEZA DEL NO-VIAJA nacida en rojo CONTRA EL DIST REAL
+      [cazó el chunk del panel de cuando era público — código 17;
+      la corre comprobar-dist y el guardián] · la nº63 [bitácora:
+      esperarTeselas daba el listo con 2 de 8 — «espera a que la
+      rejilla deje de crecer»] · el bug del TEMA-BORRA-CAPAS
+      cazado mirando una captura [el tema era dependencia de los
+      14 efectos → untracked; jueza nueva: las de agosto no
+      mencionan el tema, que nació después] · presupuesto: la
+      portada BAJA [553,69→550,17: desaparece el chunk del panel]
+      y la sonda midió el visor real [21,13 kB, bajo la estimación]
+      y el coste de las rutas perezosas en el inicial [1,46 kB —
+      dato para la poda] · el datapackage del dist iba VIEJO
+      [sin los campos del cron — recasado byte a byte]. EL OJO DE
+      ANTONIO [visor local]: paleta oscura CONVENCE [6 capas
+      retintadas medidas contra Dark Matter; 8 de agosto con
+      cifra] · morada: cotejo preliminar FAVORABLE [«es la idea
+      del ayuntamiento, aunque podrían cambiar»] · y TRES
+      HALLAZGOS suyos → EL REMATE: H1 conmutador ausente
+      [montado en /visor y /panel; el paro del display:none bajo
+      768 cerrado con TERCERA VARIANTE encapsulada en el propio
+      componente — +174 bytes, styles.css intacto, las dos
+      variantes existentes QUIETAS] · H2 las capas no sobrevivían
+      a navegar [diagnóstico verificado con centinela: el ciclo
+      del router; camino (a) EL ESTADO AL SERVICIO elegido POR
+      MEDICIÓN — re-crear cuesta 130 ms y CERO red; la doc oficial
+      manda agotar lo simple antes de RouteReuseStrategy; claves
+      estables, untracked, reponer-una-vez; no persiste entre
+      sesiones POR DECISIÓN con jueza] · H3 el panel recortado a
+      1920 [causa REAL mejor que la supuesta: ⭐ COLISIÓN de clase
+      — .panel era la columna del Buscador en styles.css; 537 px
+      escondidos; el fondo --card que la cabecera juraba
+      --background] · la CIFRA del −62 con aritmética [−64 P28
+      que no aplica sin panel en el dist, +2 P31 del comodín].
+      LAS DOS BITÁCORAS DEL 20/09, nacidas y cerradas con ley:
+      ⭐ «la encapsulación no te defiende de lo global — solo
+      defiende a lo global de ti» [la letra oficial: los estilos
+      globales SÍ entran en componentes encapsulados] · ⭐ «una
+      URL no es una promesa de destino» [el comodín ** casa con
+      cualquier URL — la jueza comprueba el CONTENIDO de haber
+      llegado; el patrón HAY_ de la P28 aplicado a la P31 con
+      contraprueba de página inventada → NO APLICA]. El rojo
+      suelto de npm test [una vez, irreproducible, salida perdida
+      por un tail] al acta como NO CONSTA [precedente
+      grafo-visor]. Batería final: 10/10 contra el dist [pintura
+      1.121] y la local [1.241, +36 de la P32], unidad 761, tipos
+      304+381, presupuesto 550,34 [+174 B de la variante].
+      PENDIENTE A GUSTO DE ANTONIO [cola]: la prosa del panel
+      centrada sobre la tabla a la izquierda — estética, dicho.
+      LA LETRA ORIGINAL: las catorce
       capas de verificación y la vista de cotejo de la ampliación del
       regulado (la morada — le tocará trabajar en 2027, cuando la
       ampliación se active). El código retirado el 22/08 vive en la
@@ -5243,7 +5326,9 @@ pública de la app y se reconstruye al final como herramienta interna.
       `git show 6327e45^:app/src/app/capas.ts` (677 líneas) · ídem
       `visor.ts/.html/.css/.spec.ts` · `capas.spec.ts` · y el mapa.ts
       de entonces (1.001 líneas, los 14 pinceles en 261-972)
-- [ ] Alcance, acceso (¿protegido?, ¿solo local?) y qué más contiene la
+- [x] ⚰️ FIRMADO B+2 el 20/09 con la doctrina dicha arriba [OWASP
+      2.32/DevGuide · lo apalabrado del PLAN]. LA LETRA ORIGINAL:
+      Alcance, acceso (¿protegido?, ¿solo local?) y qué más contiene la
       intranet: `NO CONSTA` — se parlamenta al llegar
 
 **⭐ ADELANTADO AL PRESENTE (parlamentado el 23/08): el panel de
@@ -5296,6 +5381,6 @@ decisión con dueño).
       Antonio lo VIO en vivo («el tema diseño no es ahora») y el
       estándar quedó verificado independientemente antes de este
       destilado
-- [ ] 3 · El mantenimiento que re-descarga NO va aquí [y ya está
+- [x] 3 · El mantenimiento que re-descarga NO va aquí [y ya está
       HECHO, 19/09 — el cron educado, crónica en su bloque]: vive en el
       punto 14 (el cron educado), leyendo este mismo manifiesto
