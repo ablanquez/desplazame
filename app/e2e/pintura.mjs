@@ -5314,12 +5314,70 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
 //    «preserve significado» [2.4.3] lo juzga una persona, y va en el informe
 //    como verificación manual con su recorrido escrito. Aquí solo se vigila lo
 //    mecánico.
+/**
+ * ⚠️ CADA PÁGINA CON SU MARCA, Y LA MARCA SE COMPRUEBA (20/09).
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  [DOC Angular · *Router*] el comodín `**` **casa con cualquier URL**, y el
+ *  router elige la primera ruta que case —*first-match wins*—, así que una
+ *  dirección sin ruta declarada cae en él. Desde el 19/09 `/panel` no existe
+ *  en el dist de producción: cae en el comodín, o sea, en el Buscador.
+ *
+ *  Y esta casilla navegaba, medía LO QUE SALIERA y lo rotulaba «panel». Doce
+ *  juezas verdes sobre la portada con el nombre de otra página encima —hasta
+ *  una que juraba que «del mapa se SALE con Tab» en una página que no tiene
+ *  mapa—. Bitácora del 20/09.
+ *
+ *  El patrón es el que la P28 ya tenía escrito: mirar si la página ESTÁ y, si
+ *  no está, **decirlo** en vez de adivinar. Aquí se aplica página por página,
+ *  que es como manda su ley: que una casilla hermana lo resolviera no vacuna a
+ *  las demás.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 const PAGINAS_P31 = [
-  { id: 'portada', url: '' },
-  { id: 'panel', url: 'panel' },
-  { id: 'identidad', url: 'identidad' },
-  { id: 'creditos', url: 'creditos' },
+  { id: 'portada', url: '', marca: 'app-buscador' },
+  { id: 'panel', url: 'panel', marca: 'app-panel' },
+  { id: 'identidad', url: 'identidad', marca: 'app-identidad' },
+  { id: 'creditos', url: 'creditos', marca: 'app-creditos' },
 ];
+
+/**
+ * Cuáles de las cuatro están DE VERDAD en lo que se está mirando. Se pregunta
+ * una sola vez, con un Chrome propio, antes de abrir ninguna casilla.
+ */
+const PAGINAS_QUE_ESTAN = await (async () => {
+  const m = await abrirChrome({ ancho: 1280, alto: 800, puerto: 9866 });
+  const estan = new Set();
+  try {
+    for (const cual of PAGINAS_P31) {
+      await m.ir(APP + cual.url, 5000);
+      if (await m.evaluar(`!!document.querySelector(${JSON.stringify(cual.marca)})`)) {
+        estan.add(cual.id);
+      }
+    }
+  } finally {
+    m.cerrar();
+  }
+  return estan;
+})();
+
+const P31_APLICAN = PAGINAS_P31.filter((x) => PAGINAS_QUE_ESTAN.has(x.id));
+for (const cual of PAGINAS_P31.filter((x) => !PAGINAS_QUE_ESTAN.has(x.id))) {
+  console.log(
+    `
+═══ P31 · ${cual.id.toUpperCase()} — NO APLICA AQUÍ ═══
+` +
+      `   En ${APP}${cual.url} no hay ${cual.marca}: esa dirección cae en el
+` +
+      `   comodín y lo que se pintaría es el Buscador. Medir eso y llamarlo
+` +
+      `   «${cual.id}» sería un verde que habla de otra página. Sus juezas se
+` +
+      `   corren contra la construcción local:  npm run local
+` +
+      `   Que aquí no esté lo exigen no-viaja.spec.ts y rutas-intranet.spec.ts.`,
+  );
+}
 
 /** Lo que se sale del ancho, con el mapa y las cajas con scroll aparte. */
 const DESBORDES_P31 = `(() => {
@@ -5350,7 +5408,7 @@ for (const [modo, ancho, alto, ley] of [
   ['reflow 320', 320, 900, '1.4.10'],
   ['zoom 200 %', 640, 800, '1.4.4'],
 ]) {
-  for (const pagina of PAGINAS_P31) {
+  for (const pagina of P31_APLICAN) {
     for (const tema of ['dark', 'light']) {
       const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
       const dicho = `P31 · ${modo} · ${pagina.id} · ${nombreTema}`;
@@ -5411,7 +5469,7 @@ const CANDIDATOS_P31 = `(() => {
     .map((e) => e.tagName.toLowerCase() + (e.id ? '#' + e.id : e.classList[0] ? '.' + e.classList[0] : '')))];
 })()`;
 
-for (const pagina of PAGINAS_P31) {
+for (const pagina of P31_APLICAN) {
   for (const tema of ['dark', 'light']) {
     const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
     const dicho = `P31 · teclado · ${pagina.id} · ${nombreTema}`;
@@ -5470,6 +5528,112 @@ for (const pagina of PAGINAS_P31) {
         firmas.size === 1 ? 'una sola firma de contexto en todo el recorrido' : `${firmas.size} firmas distintas`,
       );
       await m.guardar(`${CAPTURAS}/p31-teclado-${pagina.id}-${nombreTema}.png`);
+    } finally {
+      m.cerrar();
+    }
+  }
+}
+
+// ═══════ P32 · EL CONMUTADOR DE LA INTRANET, EN LOS TRES ANCHOS ═══════
+//
+// ⭐ [20/09, el paro de H1] `/visor` y `/panel` no tienen barra de pestañas ni
+//    cabecera del Buscador, que son los dos sitios donde el conmutador vivía.
+//    Con la variante de escritorio desaparecía por debajo de 768 —`.conmutador`
+//    lo apaga ahí— y esas dos páginas se quedaban SIN forma de cambiar de tema.
+//    Medido antes de arreglar: `0×0 px · display none` en las dos, a 390.
+//
+// ⚠️ La variante `suelta` vive en el PROPIO componente y sus estilos están
+//    encapsulados, así que no añade nada a la hoja global — ni un nombre de la
+//    intranet a lo que sí viaja. Esta casilla compra los PÍXELES: que se vea y
+//    que se pueda pulsar. El contrato de clases lo compran `visor.spec.ts` y
+//    `panel.spec.ts`; las dos hacen falta y ninguna sustituye a la otra.
+//
+// ⚠️ Y con el mismo patrón que la P28 y la P31: si la intranet no está en lo
+//    que se mira, se DICE. Aquí no se adivina nada.
+const PAGINAS_P32 = [
+  { id: 'visor', url: 'visor', marca: 'app-visor', espera: 6000 },
+  { id: 'panel', url: 'panel', marca: 'app-panel', espera: 3000 },
+];
+
+const EL_CONMUTADOR_SUELTO = `
+  const b = document.querySelector('[role="switch"][aria-label="Modo oscuro"]');
+  if (!b) return { hay: false };
+  const r = b.getBoundingClientRect();
+  const s = getComputedStyle(b);
+  return {
+    hay: true,
+    visible: r.width > 0 && r.height > 0 && s.display !== 'none' && s.visibility !== 'hidden',
+    ancho: Math.round(r.width), alto: Math.round(r.height), display: s.display,
+    marcado: b.getAttribute('aria-checked'),
+    suelta: b.classList.contains('conmutador--suelta'),
+    dentro: r.left >= 0 && r.right <= document.documentElement.clientWidth + 0.5,
+  };
+`;
+
+const P32_APLICAN = await (async () => {
+  const m = await abrirChrome({ ancho: 1280, alto: 800, puerto: 9867 });
+  const estan = [];
+  try {
+    for (const cual of PAGINAS_P32) {
+      await m.ir(APP + cual.url, cual.espera);
+      if (await m.evaluar(`!!document.querySelector(${JSON.stringify(cual.marca)})`)) estan.push(cual);
+    }
+  } finally {
+    m.cerrar();
+  }
+  return estan;
+})();
+
+if (P32_APLICAN.length === 0) {
+  console.log(
+    `
+═══ P32 · EL CONMUTADOR DE LA INTRANET — NO APLICA AQUÍ ═══
+` +
+      `   En ${APP} no hay visor ni panel: es INTRANET desde el 19/09 y no viaja
+` +
+      `   en el dist de producción. Sus juezas se corren contra la configuración
+` +
+      `   local:  npm run local   y luego  node app/e2e/pintura.mjs http://localhost:4200`,
+  );
+}
+
+for (const [k, pantalla] of PANTALLAS.entries()) {
+  for (const pagina of P32_APLICAN) {
+    const m = await abrirChrome({ ancho: pantalla.ancho, alto: pantalla.alto, puerto: 9890 + 4 * k + (pagina.id === 'visor' ? 0 : 1) });
+    try {
+      await m.ir(APP + pagina.url, pagina.espera);
+      console.log(`
+═══ EL CONMUTADOR DE /${pagina.id.toUpperCase()} · ${pantalla.nombre} ═══`);
+      for (const tema of ['dark', 'light']) {
+        const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+        const dicho = `P32 · /${pagina.id} · ${pantalla.id} · ${nombreTema}`;
+        if (!(await ponerTema(m, tema, dicho))) continue;
+
+        const b = await leer(m, EL_CONMUTADOR_SUELTO);
+        juzgar(
+          b.hay && b.visible && b.suelta && b.ancho >= 44 && b.alto >= 44 && b.dentro,
+          `${dicho} · ⭐ el conmutador se VE, mide sus 44 px [WCAG 2.5.5] y cabe en la ventana`,
+          b.hay
+            ? `${b.ancho}×${b.alto} px · display ${b.display} · variante suelta ${b.suelta} · dentro ${b.dentro}`
+            : '(no hay conmutador en esta página)',
+        );
+        if (!b.hay || !b.visible) continue;
+
+        // Y que OPERE: un botón que se ve y no hace nada es un estado deshonesto.
+        await m.evaluar(`document.querySelector('[role="switch"][aria-label="Modo oscuro"]').click()`);
+        await m.dormir(400);
+        const tras = await leer(m, EL_CONMUTADOR_SUELTO);
+        const atributo = await m.evaluar(`document.documentElement.getAttribute('data-theme')`);
+        juzgar(
+          tras.marcado !== b.marcado && atributo === (tema === 'dark' ? 'light' : 'dark'),
+          `${dicho} · y OPERA: pulsarlo cambia el estado y el tema del documento`,
+          `aria-checked ${b.marcado} → ${tras.marcado} · data-theme ${atributo}`,
+        );
+        // Se deja como estaba para que el otro tema parta de cero.
+        await m.evaluar(`document.documentElement.setAttribute('data-theme', ${JSON.stringify(tema)})`);
+        await m.dormir(200);
+      }
+      await m.guardar(`${CAPTURAS}/conmutador-intranet-${pagina.id}-${pantalla.id}.png`);
     } finally {
       m.cerrar();
     }

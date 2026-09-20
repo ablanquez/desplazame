@@ -395,6 +395,17 @@ const PUERTOS_DEL_ARNES = new Set([
   //    de producción—, y eso se pregunta abriendo una vez, antes del bucle.
   //    Entra aquí a la vez que la comprobación, que es lo que pide la guarda.
   9749,
+  // ⭐ LOS SONDEOS DE «¿ESTÁ LA PÁGINA?» (20/09) y la casilla que salió de ellos.
+  //    `9866` es el de la P31 —que hasta hoy navegaba a `/panel` y medía lo que
+  //    saliera del comodín— y `9867` el de la P32. Entran aquí A LA VEZ que sus
+  //    juezas, que es lo que pide la guarda: la batería del 20/09 los cantó
+  //    —«puertos abiertos fuera del censo: 9866, 9867»— antes de que nadie los
+  //    escribiera, y esa es exactamente su función.
+  9866, 9867,
+  // ⭐ La P32 (20/09), el conmutador de la intranet: tres anchos × dos páginas.
+  //    Solo se abren contra la construcción local; contra el dist la casilla
+  //    declara «no aplica» y no abre ninguno.
+  9890, 9891, 9894, 9895, 9898, 9899,
 ].map(String));
 const PUERTOS_FUERA_DEL_CENSO = new Set();
 
