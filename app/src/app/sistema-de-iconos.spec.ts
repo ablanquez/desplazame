@@ -329,9 +329,16 @@ describe('⭐ (V) LA MARCA — el logo, su favicon y su sitio', () => {
    * el símbolo vive en el componente **y** en cuatro ficheros, así que son
    * cinco copias del mismo trazado. Es el riesgo que `contraste.ts` cuenta que
    * ya salió mal una vez — aquí tiene portero.
+   *
+   * ⚠️ **Y desde el 21/09 son SEIS**: el puntero del paso en el mapa es el pin
+   *    de esta marca, por orden de Antonio. Por eso el trazado dejó de estar
+   *    suelto en el `d=` de la plantilla y pasó a `GOTA_DE_LA_MARCA`, que el
+   *    mapa importa. Lo único que cambia aquí es **de dónde se lee el
+   *    original**: la comilla en vez del `d="`. Lo que compra la jueza —que
+   *    los cuatro ficheros dibujen ESA gota y no otra— no se ha movido.
    */
   it('⭐ el símbolo de la cabecera y el de los ficheros son EL MISMO', () => {
-    const gota = /d="(M16 3a8[^"]+)"/.exec(leer('app/src/app/marca.ts'))?.[1];
+    const gota = /'(M16 3a8[^']+)'/.exec(leer('app/src/app/marca.ts'))?.[1];
     expect(gota, 'no encuentro la gota en el componente').toBeDefined();
     for (const f of ['simbolo.svg', 'completo.svg', 'favicon.svg', 'app-icon.svg']) {
       expect(leer(MARCA + f), `${f} dibuja otra gota`).toContain(gota!);

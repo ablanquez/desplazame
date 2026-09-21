@@ -1,6 +1,41 @@
 import { Component, input } from '@angular/core';
 
 /**
+ * ⭐ **LA GOTA DE LA MARCA, como constante y no como literal de plantilla**
+ *    (21/09, remate 2 del puntero).
+ *
+ * Es el mismo trazado de siempre, byte a byte: lo único que cambia es que ya no
+ * vive suelto dentro del `d=` de la plantilla, sino en un sitio que **se puede
+ * importar**. Lo pidió el mapa: por orden de Antonio el puntero del paso es el
+ * pin de esta marca, y la casa tiene escrito que un dibujo compartido **no se
+ * copia: se importa** —es la misma regla con la que los hitos del mapa toman
+ * sus caminos de `SIMBOLOS`—. Un sexto sitio con esta cadena escrita a mano
+ * sería un dibujo más que mantener a juego, y el día que la marca cambie se
+ * quedaría atrás sin que nadie lo note.
+ *
+ * ⚠️ `sistema-de-iconos.spec.ts` sigue siendo el portero: comprueba que los
+ *    cuatro ficheros de `app/marca/` dibujan ESTA gota y no otra. Lo único que
+ *    se le movió es de dónde la lee.
+ */
+export const GOTA_DE_LA_MARCA =
+  'M16 3a8 8 0 0 0-8 8c0 5.5 8 12 8 12s8-6.5 8-12a8 8 0 0 0-8-8Zm0 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z';
+
+/**
+ * ⭐ **DÓNDE ESTÁ LA PUNTA DE LA GOTA**, en unidades de la rejilla de 32.
+ *
+ * Medido sobre el propio trazado, no a ojo: la gota arranca en `M16 3` —arriba
+ * del todo, centrada— y baja hasta `8 12 8 12s8-6.5 8-12`, o sea hasta
+ * `y = 3 + 12 + 8 = 23`, y lo hace **en x = 16**, que es el eje de simetría del
+ * dibujo. La caja de la gota va de x 8 a x 24 y de y 3 a y 23.
+ *
+ * Quien la use como chincheta de un mapa necesita este punto exacto: [DOC
+ * Leaflet] `iconAnchor` es *«the coordinates of the "tip" of the icon»*, y
+ * anclar por el centro dejaría la coordenada media gota por encima de donde el
+ * ojo ve la punta.
+ */
+export const PUNTA_DE_LA_GOTA = { x: 16, y: 23 } as const;
+
+/**
  * ⭐ LA MARCA — el símbolo de Desplázame (18/09, el remate de la identidad).
  *
  * ── Qué es, y por qué NO vive en `app/simbolos/` ────────────────────────────
@@ -51,7 +86,7 @@ import { Component, input } from '@angular/core';
         fill-rule="evenodd"
         clip-rule="evenodd"
         fill="currentColor"
-        d="M16 3a8 8 0 0 0-8 8c0 5.5 8 12 8 12s8-6.5 8-12a8 8 0 0 0-8-8Zm0 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+        [attr.d]="gota"
       />
       <path
         d="M4 28h24"
@@ -76,4 +111,7 @@ import { Component, input } from '@angular/core';
 export class Marca {
   /** El lado en píxeles. 30 es el del montaje que se eligió. */
   readonly lado = input(30);
+
+  /** El trazado de la gota, el mismo que importa el mapa. Ver arriba. */
+  protected readonly gota = GOTA_DE_LA_MARCA;
 }
