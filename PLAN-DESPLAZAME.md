@@ -4465,7 +4465,7 @@ Code lo traduce al Angular existente.)*
         NORMA NUEVA DE CIERRE: las capturas SIEMPRE con ruta
         absoluta en el checkpoint [capM2 hubo que buscarla].
         5b (hover paso→mapa): Antonio lo fija PARA DESPUÉS DEL
-        OSCURO.
+        OSCURO [HECHO ENTERO el 21/09, crónica en su bloque].
       - [x] ⚰️ ENCARGO CHICO — LA REGIÓN DE LA CABECERA + EL
         CABO DE moto.mjs (14/09 noche; 7 commits
         `43b4dcc`…`d35eacd`, en local al escribir esto — salen
@@ -5352,6 +5352,57 @@ pública de la app y se reconstruye al final como herramienta interna.
       byte: +603 B]. Un rojo suelto P26-1920 declarado [NO
       CONSTA, familia píxel-sobre-tesela]. El ojo de Antonio al
       conmutador restaurado: «funciona bien».
+- [x] ⚰️ **EL 5b ENTERO — hover/focus del paso → SU PUNTO en el mapa
+      (21/09; 12 commits `579d416`…`129d9ff`, un push con estos
+      papeles): la letra del 14/09 [«Paso sin coordenadas — tocar
+      motor = decisión aparte»] RESUELTA POR DOCTRINA, y el gesto
+      final elegido por Antonio a golpe de ojo.** EL MOTOR [el
+      patrón unánime de los canónicos: Valhalla begin/end_shape_
+      index; OSRM con el solape documentado]: cada Paso gana su
+      rango de vértices [desde, hasta] sobre la geometría única
+      que ya viajaba — dos índices, ni una coordenada duplicada;
+      el solape es la ley que TramoDelViaje ya firmaba el 30/08.
+      SEIS JUEZAS DEL CANON [nacidas rojas 4/5 con 78 pasos de 6
+      modos sin rango]: pareja-o-nada · ⭐ CONTIGUOS · ⭐ CUBREN
+      sin un vértice de nadie · ⭐ cierre degenerado · censo de
+      sin-rango [hoy: vacío] · ⭐ LA F, la que separa «los índices
+      cierran» de «apuntan a la línea buena»: cada rebanada MIDE
+      lo que su paso dice [margen por dónde-está-el-conector,
+      medido antes de escrito; su primer borrador cazado por
+      coche[8]]. Las 8 murallas rojas DE GOLPE con razón: el
+      rango se quita antes de sellar y los shas viejos cuadran
+      sin tocar un dígito — prueba positiva de que se añade sin
+      mover frase, metro ni vértice. LA INTERFAZ, tres asaltos
+      con el ojo de Antonio mandando: (1) engrosado del trazo
+      [tutorial oficial de Leaflet] → NO LE GUSTÓ; (2) puntero
+      circular en el vértice desde [circleMarker, candidatos
+      medidos] → su ojo cazó EL ROJO GORDO [solo señalaba en
+      andando y coche: el puntero EXISTÍA en los seis pero nacía
+      DEBAJO de las marcas — capa de líneas z400 contra marcas
+      z600; en bus/bici/patín/moto la maniobra cae justo en la
+      parada/aparcamiento; medido píxel a píxel] → capa propia
+      z620; y sus DOS ÓRDENES: color TOTALMENTE DISTINTO de la
+      línea + EL PIN DEL LOGO; (3) la gota de marca.ts [la P34
+      verifica que es IDÉNTICA a la de la cabecera], clavada por
+      la punta [iconAnchor, a 0 px del arranque y el cierre de la
+      línea], divIcon con el precedente de casa [extremos e
+      hitos]. EL COLOR, PARO reglamentario con cifras: el logo
+      tal cual [--primary] es EXACTAMENTE el azul de 4 líneas
+      [1,00:1 — los colores de tramo se eligieron con la misma
+      luminancia a propósito; solo pasan los extremos] → Antonio
+      ELIGIÓ LA A [gota blanca + halo negro, igual en los dos
+      temas, 4,83-6,41 contra las seis líneas]. P34 final: 68
+      verdes [6 modos × 2 temas, el pin mueve 475-546 px].
+      Bitácora del camino [cerrada]: su P34 decía «SE VE» en 12
+      casos sin puntero — escrita antes de arreglar; y la zona
+      sin vigilar declarada [la vieja solo generaba andando].
+      Accesibilidad quieta [APG: el hover no mueve el foco;
+      focus=hover; táctil declarado; CERO tabindex inventados —
+      los giros con teclado, A LA COLA como decisión de Antonio].
+      Presupuesto del 5b entero: 551,12→552,91 [+1,79 kB:
+      rangos+pin]. OFRECIDA sin construir: la jueza que fije el
+      blanco/negro exacto del pin [decisión de Antonio, en cola].
+      Unidad 662+775 · batería 10/10 en cada asalto.
       LA LETRA ORIGINAL: las catorce
       capas de verificación y la vista de cotejo de la ampliación del
       regulado (la morada — le tocará trabajar en 2027, cuando la

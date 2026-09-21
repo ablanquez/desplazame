@@ -225,7 +225,13 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 20/09 noche, lo en-local son OCHO commits: LA TANDA DE
+*(Al 21/09, lo en-local son DOCE commits: EL 5b ENTERO — los
+rangos de vértices por paso [el canon Valhalla/OSRM], el pin
+del logo elegido por Antonio [tinta A tras el PARO de color],
+el rojo de los cuatro modos cazado por su ojo [capa z620] —
++ estos papeles, UN push. Los flecos ya se publicaron en
+4567bcc.)*
+*(Histórico del 20/09 noche: OCHO commits: LA TANDA DE
 FLECOS — el salto [G1] y el asa [deuda saldada, costura quieta]
 QUEDAN; el tercer estado construido y DESHECHO por orden de
 Antonio con revert y su porqué [nunca hubo decisión de diseño
@@ -1719,7 +1725,12 @@ casilla 4] — (a) EL PUSH [27 commits + estos papeles, UN
 push]; (b) ⚰️ HECHO el 18/09 tras el push e41a2c0: el ojo
 de Antonio en producción, 3 tamaños y dos temas, y el caso de
 siempre — «está todo bien». ⭐ EL PUNTO 15 CERRADO DEL TODO;
-el 19/09 cayeron EL GUARDIÁN, EL CRON EDUCADO
+[21/09: el cron APRENDE A RECUPERAR pasadas perdidas —
+Antonio apaga el PC de noche y la tarea de las 3:30 no
+disparaba nunca; marcado en el Programador «Ejecutar tarea lo
+antes posible si no hubo inicio programado», el ajuste
+documentado de Windows para ese caso: al encender, la pasada
+perdida corre sola] el 19/09 cayeron EL GUARDIÁN, EL CRON EDUCADO
 [la tabla que mató el 304 — el «304 casero» por huella; el
 schtasks diario a las 3:30 en la máquina de Antonio, con su
 porqué de arquitectura; la nº62 de los sellos y el barajado]
@@ -1733,14 +1744,19 @@ crónica en su bloque] y EL PLAN SE QUEDA SIN CASILLAS
 ABIERTAS; (a) EL PUSH [15 commits + estos papeles]; (b) ⭐ el 20/09
 cayó LA TANDA DE FLECOS [salto+asa QUEDAN; el tercer estado
 DESHECHO por orden de Antonio — crónica y leyes en su bloque];
-LA LISTA FINAL para acabar según su papel: 5b [hover
-paso→mapa] ·
+⭐ el 21/09 cayó EL 5b ENTERO
+[rangos por paso + el pin del logo, crónica en su bloque]; LA
+LISTA FINAL para acabar según su papel:
 la tanda del arnés [«las juezas esperan HECHOS»
 moto+yego+bizi · la P26 aprende «no se puede medir» — familia
-píxel-sobre-tesela] · la poda del presupuesto · la mesa chica
+píxel-sobre-tesela · la carrera del data-theme entre ficheros
+de unidad [mapa.spec: 7 rojos intermitentes, causa probable
+dicha y sin clavar]] · la poda del presupuesto · la mesa chica
 · los opcionales de Antonio [manifest · tope perfiles · 3 de
 F: · gradN25 · modo seguro] · y la prosa del panel a su gusto
-[estética, del remate del visor]; (b-bis) la cola gana:
+[estética, del remate del visor] · dos decisiones suyas en
+cola [el tabindex de los giros para señalar con teclado · la
+jueza del blanco/negro exacto del pin, ofrecida]; (b-bis) la cola gana:
 el asa [deuda 2.5.5-casa: cumple el suelo AA 24; ensanchar
 mueve la costura] + el ENLACE DE SALTO al buscador [2.4.1] —
 irán juntos · las juezas de píxel-sobre-tesela de la P26
@@ -1761,9 +1777,8 @@ fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
 checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
-initial al cierre de los flecos: 551,12 kB [salto+asa: +603 B
-sobre la tanda-cero; el tercer estado revertido],
-transferido 143,73 [superado el aviso de 520 por 33,47]; la
+initial al cierre del 5b: 552,91 kB [+1,79 del 5b entero:
+rangos+pin], transferido 144,25 [superado el aviso de 520 por 33,47]; la
 poda como palanca] · [guardián: HECHO 19/09] · el
 refactor del resultado como componente propio [4 topes] · los
 e2e con 4200 a fuego [pantalla(adaptada), proximo-bus] · el
@@ -1771,8 +1786,8 @@ HUESO de carga que ya no calca la forma de lo que llega [la
 cabecera llega con caja y el esqueleto la dibuja sin ella —
 doctrina: el placeholder calca el layout final] · la deuda
 del lector de pantalla real [NO CONSTA cómo se oyen las cinco
-líneas] · 5b PARA DESPUÉS DEL OSCURO [fijado por Antonio el
-14/09] · [#555 y --superficie-realce: HECHOS en la parte 1 —
+líneas] · [5b: HECHO ENTERO el 21/09, crónica en su bloque del
+PLAN] · [#555 y --superficie-realce: HECHOS en la parte 1 —
 --leyenda y el token real] · los cabos de la parte 2: el #999
 del lienzo en mapa.css + EXTENDER la jueza del color a pelo
 al mapa [hoy solo barre las hojas del resultado] · la key de
@@ -2105,7 +2120,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.424 pruebas (656 motor + 768 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (304+381 ficheros al cierre del 20/09) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.437 pruebas (662 motor + 775 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (304+381 ficheros al cierre del 20/09) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
