@@ -406,20 +406,28 @@ describe('Mapa', () => {
    * bicicleta donde se coge y la P donde se deja.
    */
   /**
-   * ⭐ **UN PASO QUE CRUZA LA COSTURA DE DOS TRAMOS SALE EN DOS TROZOS, cada
-   *    uno de SU color** (21/09, casilla 5b).
+   * ⭐ **EL PUNTERO TOMA EL COLOR DEL TRAMO QUE ABRE EL PASO** (21/09, remate
+   *    del 5b).
    *
-   * Es la única rama de `pintarRealce` que no compra nadie más: la juez de
+   * ⚠️ **ACTA.** Esta juez nació por la mañana comprando otra cosa: que un
+   *    paso que cruza la costura de dos tramos se **engordase en dos trozos**,
+   *    `#b45309` y `#2563eb`, los dos a 9. Antonio miró el engrosado en captura
+   *    y no le gustó; su diseño es **un puntero en el punto de la maniobra**,
+   *    como Google Maps. Con un punto no hay dos trozos que pintar: hay un
+   *    sitio, y ese sitio tiene **un** color.
+   *
+   *    Lo que la juez compraba y ya no aplica: dos trozos y su engrosado. Lo
+   *    que compra ahora, que es la misma preocupación: **de cuál de los dos
+   *    tramos toma el color**. En la costura el vértice pertenece a los dos —el
+   *    solape de OSRM— y el bueno es aquel HACIA EL QUE el paso camina, no el
+   *    que se acaba de dejar. Pintarlo del color del tramo que muere ahí sería
+   *    decir que el paso que empieza es del modo anterior.
+   *
+   * Sigue siendo la única rama que no compra nadie más: la juez de
    * `buscador.spec.ts` corre sobre un trayecto de un solo tramo, y la P34 de
    * `pintura.mjs` genera una ruta andando, que también trae uno.
-   *
-   * Y el caso existe de verdad: un paso puede cruzar el sitio donde se empieza
-   * a empujar la bici, o donde se entra en la Zona de Bajas Emisiones. Ahí los
-   * dos trechos **no son del mismo color**, y pintar el realce de un color solo
-   * mentiría sobre la mitad —justo lo que el encargo prohibe: el realce señala
-   * dónde, no cambia qué es—.
    */
-  it('⭐ 5b · un paso que cruza dos tramos se resalta en dos trozos, cada uno de su color', async () => {
+  it('⭐ 5b · en la costura, el puntero toma el color del tramo hacia el que se camina', async () => {
     const fixture = TestBed.createComponent(Anfitrion);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -428,30 +436,29 @@ describe('Mapa', () => {
     fixture.componentInstance.tramos.set(EN_BIZI);
     await fixture.whenStable();
 
-    // Tres tramos, con su ribete y su línea: seis trazos y ni uno de realce.
-    const crudos = (): SVGPathElement[] =>
-      Array.from(raiz.querySelectorAll<SVGPathElement>('path.leaflet-interactive'));
-    expect(crudos().length).toBe(6);
+    /** Los círculos del puntero: los `path` que NO son de la ruta. */
+    const circulos = (): SVGPathElement[] =>
+      Array.from(raiz.querySelectorAll<SVGPathElement>('.leaflet-overlay-pane path')).filter(
+        (p) => !p.classList.contains('leaflet-interactive'),
+      );
+    expect(circulos().length).toBe(0);
 
-    // El paso va del vértice 0 al 2: se come el primer tramo entero —a pie— y
-    // se mete en el segundo —rodando—. Son dos colores, no uno.
-    fixture.componentInstance.resaltado.set({ desde: 0, hasta: 2 });
+    // El vértice 1 es la COSTURA: cierra el tramo a pie [0..1] y abre el de
+    // rodar [1..2]. El paso que empieza ahí va rodando, así que azul.
+    fixture.componentInstance.resaltado.set({ desde: 1, hasta: 2 });
     await fixture.whenStable();
+    expect(circulos().length).toBeGreaterThan(0);
+    expect(circulos()[0]!.getAttribute('fill')).toBe('#2563eb');
 
-    const conRealce = crudos();
-    expect(conRealce.length).toBe(8);
-    const realce = conRealce.slice(6).map((p) => ({
-      color: p.getAttribute('stroke'),
-      w: parseFloat(p.getAttribute('stroke-width') ?? '0'),
-    }));
-    expect(realce.map((r) => r.color)).toEqual(['#b45309', '#2563eb']);
-    // ⭐ Y los dos engordan +4 sobre los 5 de su vestido: ni uno se queda fino.
-    expect(realce.map((r) => r.w)).toEqual([9, 9]);
+    // Y el vértice 0, que solo es del primer tramo: el ámbar del a-pie.
+    fixture.componentInstance.resaltado.set({ desde: 0, hasta: 1 });
+    await fixture.whenStable();
+    expect(circulos()[0]!.getAttribute('fill')).toBe('#b45309');
 
-    // Y al soltarlo, los seis de siempre.
+    // Y al soltarlo se QUITA, no se esconde [DOC Leaflet].
     fixture.componentInstance.resaltado.set(null);
     await fixture.whenStable();
-    expect(crudos().length).toBe(6);
+    expect(circulos().length).toBe(0);
   });
 
   it('⭐ 1 · la BiZi pinta tres tramos (dos a pie iguales) y sus dos hitos', async () => {

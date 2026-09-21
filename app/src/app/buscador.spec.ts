@@ -7825,25 +7825,38 @@ describe('Buscador', () => {
 
 
   /**
-   * ⭐ EL PASO SEÑALA SU TRECHO EN EL MAPA (21/09, casilla 5b).
+   * ⭐ EL PASO SEÑALA SU PUNTO EN EL MAPA (21/09, remate del 5b).
    *
-   * La 5b llevaba parada desde el 14/09 por falta de dato. Desde hoy el
-   * contrato dice qué rebanada de la geometría es de cada paso —`Paso.desde` y
-   * `Paso.hasta`, que es el formato de Valhalla y de OSRM—, y la pantalla la
-   * señala al pasar el ratón o al recibir el foco.
+   * ⚠️ **ACTA: esta describe se reescribió el mismo día que nació.** Por la
+   *    mañana compraba el realce **por engrosado** —la rebanada de línea del
+   *    paso repintada encima con +4 de grosor—. Antonio lo miró en captura y
+   *    no le gustó; su diseño, firmado, es **un puntero en el punto de la
+   *    maniobra, como Google Maps**.
    *
-   * ⚠️ **Aquí se mide el `<path>` de Leaflet, no una señal interna.** Lo que
-   *    importa es que el mapa pinte un trazo más gordo encima del trecho, y eso
-   *    es un elemento del DOM con su `stroke-width`. Mirar la señal del
-   *    componente compraría que la cuenta se hace; esto compra que se pinta.
+   *    Lo que se cae con el engrosado: que el trazo engordase +4, que
+   *    conservase el color de su tramo, que fuese una rebanada más corta que la
+   *    línea, y que un paso degenerado no señalara nada. Lo que se queda, letra
+   *    por letra, porque no dependía del aspecto: **qué rango recibe el mapa en
+   *    cada paso**, que hover y foco hacen lo mismo, que salir lo quita, que el
+   *    hover no mueve el foco, y que un paso sin rango no señala.
    *
-   * ⚠️ Lo que ESTA juez no puede comprar es el gesto de verdad: un `:hover` no
-   *    se dispara con un evento sintético. Eso lo mide la P34 de `pintura.mjs`
-   *    moviendo el ratón por CDP. Las dos hacen falta y ninguna sustituye a la
-   *    otra.
+   *    ⭐ Y una que CAMBIA DE SIGNO y va declarada: el paso que cierra —la
+   *       llegada, el hito— **sí señala ahora**. Es degenerado (`desde ===
+   *       hasta`) y con el engrosado no había trecho que engordar; un PUNTO sí
+   *       tiene, y señalar dónde está la puerta es lo que la orden pide.
+   *
+   * ⚠️ El aspecto del puntero NO está decidido: `PUNTEROS` en `mapa.ts` tiene
+   *    tres candidatos y Antonio elige con las capturas delante. Por eso estas
+   *    juezas **no miran ni el radio ni el color ni cuántos círculos son**:
+   *    miran que aparezcan, que se vayan y qué dato reciben. Elegir candidato
+   *    no las reescribe.
+   *
+   * ⚠️ Lo que ESTAS juezas no pueden comprar es el gesto de verdad: un `:hover`
+   *    no se dispara con un evento sintético. Eso lo mide la P34 de
+   *    `pintura.mjs` moviendo el ratón por CDP. Las dos hacen falta.
    */
-  describe('⭐ EL REALCE DEL PASO EN EL MAPA (21/09, casilla 5b)', () => {
-    /** Seis vértices para que las rebanadas se distingan a simple vista. */
+  describe('⭐ EL PUNTERO DEL PASO EN EL MAPA (21/09, remate del 5b)', () => {
+    /** Seis vértices para que los puntos no caigan todos encima. */
     const CON_RANGOS: Trayecto = {
       modo: 'andando',
       pasos: [
@@ -7874,15 +7887,21 @@ describe('Buscador', () => {
       ),
     };
 
-    /** Los trazos que hay pintados, con su grosor y su color. */
-    const trazos = (
-      raiz: HTMLElement,
-    ): readonly { readonly w: number; readonly color: string; readonly d: string }[] =>
-      [...raiz.querySelectorAll('path.leaflet-interactive')].map((p) => ({
-        w: parseFloat(p.getAttribute('stroke-width') ?? '0'),
-        color: (p.getAttribute('stroke') ?? '').toLowerCase(),
-        d: p.getAttribute('d') ?? '',
-      }));
+    /**
+     * Los círculos del puntero: los `path` del panel de trazas que NO llevan
+     * `leaflet-interactive`. El puntero se pinta con `interactive: false` —si
+     * capturara el ratón se comería el `mouseleave` del paso—, y Leaflet solo
+     * le pone esa clase a lo que sí es interactivo. No hace falta inventarse
+     * una clase nuestra para distinguirlos.
+     */
+    const punteros = (raiz: HTMLElement): SVGPathElement[] =>
+      Array.from(raiz.querySelectorAll<SVGPathElement>('.leaflet-overlay-pane path')).filter(
+        (p) => !p.classList.contains('leaflet-interactive'),
+      );
+
+    /** Las líneas de la ruta, que el puntero no puede tocar. */
+    const lineas = (raiz: HTMLElement): number =>
+      raiz.querySelectorAll('path.leaflet-interactive').length;
 
     const unPaso = (raiz: HTMLElement, i: number): HTMLElement =>
       raiz.querySelectorAll<HTMLElement>('.paso')[i]!;
@@ -7899,44 +7918,32 @@ describe('Buscador', () => {
       return { fixture, raiz };
     }
 
-    it('⭐ el ratón encima de un paso engorda SU trecho, y del mismo color', async () => {
+    it('⭐ el ratón encima de un paso planta el puntero, y al salir se QUITA', async () => {
       const { fixture, raiz } = await conRuta(CON_RANGOS);
 
-      // En reposo: el ribete y la línea del único tramo, y nada más.
-      const enReposo = trazos(raiz);
-      expect(enReposo.length).toBe(2);
+      // En reposo: las dos líneas del único tramo —ribete y color— y ni un
+      // puntero. Sin gesto no se señala nada.
+      expect(lineas(raiz)).toBe(2);
+      expect(punteros(raiz).length).toBe(0);
 
       unPaso(raiz, 1).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
       fixture.detectChanges();
       await fixture.whenStable();
 
-      const conRaton = trazos(raiz);
-      expect(conRaton.length).toBe(3);
+      expect(punteros(raiz).length).toBeGreaterThan(0);
+      // ⭐ Y LA RUTA NO SE TOCA: el puntero se añade encima, no reescribe nada.
+      expect(lineas(raiz)).toBe(2);
 
-      // ⭐ NI UN COLOR NUEVO: el realce hereda el de su tramo y solo engorda.
-      //    El encargo lo firma así — señala DÓNDE, no cambia QUÉ es.
-      const realce = conRaton[2]!;
-      const linea = enReposo[1]!;
-      expect(realce.color).toBe(linea.color);
-      expect(realce.w).toBe(linea.w + 4);
-
-      // ⭐ Y LAS DEMÁS NO SE MUEVEN: el realce se añade encima, no reescribe.
-      expect(conRaton.slice(0, 2)).toEqual(enReposo);
-
-      // ⚠️ Que el realce sea una REBANADA —más corta que la línea del tramo—
-      //    NO se puede comprar aquí: en jsdom Leaflet no proyecta y los tres
-      //    `<path>` salen con `d="M0 0"`. Lo compra la P34 con el trazado de
-      //    verdad. Aquí se compra lo otro: que el trazo existe, que engorda y
-      //    que conserva el color.
-
-      // Al salir, el mapa vuelve a como estaba, byte a byte.
+      // [DOC Leaflet] al salir se QUITA, no se esconde: un marcador escondido
+      // sigue en el mapa y sigue contando.
       unPaso(raiz, 1).dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(trazos(raiz)).toEqual(enReposo);
+      expect(punteros(raiz).length).toBe(0);
+      expect(lineas(raiz)).toBe(2);
     });
 
-    it('⭐ cada paso señala SU trecho, y no el del vecino', async () => {
+    it('⭐ cada paso manda SU rango al mapa, y no el del vecino', async () => {
       const { fixture, raiz } = await conRuta(CON_RANGOS);
 
       const mapa = fixture.debugElement.query(By.directive(Mapa)).componentInstance as Mapa;
@@ -7951,7 +7958,8 @@ describe('Buscador', () => {
         return r;
       };
 
-      // Los rangos del contrato, tal cual, y cada uno al paso que le toca.
+      // Los rangos del contrato, tal cual, y cada uno al paso que le toca. El
+      // puntero se planta en el `desde` de cada uno.
       expect(await rangoDe(0)).toEqual({ desde: 0, hasta: 2 });
       expect(await rangoDe(1)).toEqual({ desde: 2, hasta: 4 });
       expect(await rangoDe(2)).toEqual({ desde: 4, hasta: 5 });
@@ -7967,33 +7975,32 @@ describe('Buscador', () => {
      * ⚠️ Y el foco llega al `<li>` **por el camino que ya existía**: lleva
      *    `tabindex="-1"` desde el patrón del resumen de GOV.UK, así que se
      *    enfoca por programa al seguir su enlace. NO se ha inventado un
-     *    `tabindex="0"` para esto: meter dieciséis paradas nuevas en el orden
-     *    de tabulación de una lista de lectura es cambiar su semántica, y eso
-     *    lo decide Antonio. Queda dicho que **un paso de giro corriente no se
-     *    puede resaltar solo con el teclado hoy**, y que el texto del paso está
-     *    completo sin el realce.
+     *    `tabindex="0"` para esto: meter catorce paradas nuevas en el orden de
+     *    tabulación de una lista de lectura es cambiar su semántica, y eso lo
+     *    decide Antonio. Queda dicho que **un paso de giro corriente no se
+     *    puede señalar solo con el teclado hoy**, y que el texto del paso está
+     *    completo sin el puntero.
      */
-    it('⭐ el foco resalta igual que el ratón, y al soltarlo se restaura', async () => {
+    it('⭐ el foco planta el puntero igual que el ratón, y al soltarlo se quita', async () => {
       const { fixture, raiz } = await conRuta(CON_RANGOS);
-      const enReposo = trazos(raiz);
 
       // `focusin`, no `focus`: burbujea, y hace falta que lo haga para que el
-      // botón vivo de dentro de un paso resalte el paso que lo contiene.
+      // botón vivo de dentro de un paso señale el paso que lo contiene.
       unPaso(raiz, 1).dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(trazos(raiz).length).toBe(enReposo.length + 1);
+      expect(punteros(raiz).length).toBeGreaterThan(0);
 
       unPaso(raiz, 1).dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(trazos(raiz)).toEqual(enReposo);
+      expect(punteros(raiz).length).toBe(0);
     });
 
     /**
      * ⭐ [APG] MOVER EL FOCO EN RESPUESTA AL HOVER SE EVITA.
      *
-     * Pasar el ratón resalta el mapa y no toca el foco de nadie. Si lo moviera,
+     * Pasar el ratón señala el mapa y no toca el foco de nadie. Si lo moviera,
      * quien navega con teclado perdería el sitio cada vez que el puntero
      * cruzara la lista por accidente.
      */
@@ -8009,45 +8016,51 @@ describe('Buscador', () => {
     });
 
     /**
-     * ⭐ UN PASO SIN RANGO NO RESALTA NADA, y es lo que el contrato firma.
+     * ⭐ UN PASO SIN RANGO NO SEÑALA NADA, y es lo que el contrato firma.
      *
-     * §3 del encargo: geometría inventada para pasos sin recorrido real, NO.
-     * Hoy no hay ninguno así en los seis modos —lo censa la juez E de
+     * §3 del encargo del 5b: geometría inventada para pasos sin recorrido real,
+     * NO. Hoy no hay ninguno así en los seis modos —lo censa la juez E de
      * `rangos-de-pasos.spec.ts`—, pero el contrato lo permite y la pantalla
-     * tiene que quedarse quieta en vez de dibujar un trecho de mentira.
+     * tiene que quedarse quieta en vez de plantar un puntero en cualquier sitio.
      */
-    it('⭐ un paso que viaja SIN rango no pinta realce ninguno', async () => {
+    it('⭐ un paso que viaja SIN rango no planta puntero ninguno', async () => {
       const { fixture, raiz } = await conRuta(SIN_RANGO);
-      const enReposo = trazos(raiz);
 
       unPaso(raiz, 1).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(trazos(raiz)).toEqual(enReposo);
+      expect(punteros(raiz).length).toBe(0);
 
-      // Y el de al lado, que sí lo trae, sigue resaltando: lo que calla es el
+      // Y el de al lado, que sí lo trae, sigue señalando: lo que calla es el
       // paso sin dato, no la pantalla entera.
       unPaso(raiz, 2).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(trazos(raiz).length).toBe(enReposo.length + 1);
+      expect(punteros(raiz).length).toBeGreaterThan(0);
     });
 
     /**
-     * ⭐ EL PASO QUE CIERRA NO RESALTA NADA, y tampoco es un fallo.
+     * ⭐ **EL PASO QUE CIERRA SÍ SEÑALA AHORA**, y esta juez cambió de signo.
      *
-     * La llegada y los hitos son degenerados por contrato —`desde === hasta`—:
-     * no recorren ningún trecho, así que no hay nada que señalar. Darles uno se
-     * lo robaría al paso anterior, que es quien de verdad lo recorre.
+     * Por la mañana compraba lo contrario: «el paso de llegada es degenerado y
+     * no señala ningún trecho». Y era verdad **del engrosado**: `desde ===
+     * hasta`, no hay rebanada que engordar. Con un PUNTO sí la hay — el punto
+     * donde está la puerta, o donde se aparca la bici—, y señalarlo es
+     * exactamente lo que la orden de Antonio pide: un puntero en el punto de la
+     * maniobra. La llegada es una maniobra.
      */
-    it('⭐ el paso de llegada es degenerado y no señala ningún trecho', async () => {
+    it('⭐ el paso que CIERRA también planta su puntero, que antes no podía', async () => {
       const { fixture, raiz } = await conRuta(CON_RANGOS);
-      const enReposo = trazos(raiz);
 
       unPaso(raiz, 3).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
       fixture.detectChanges();
       await fixture.whenStable();
-      expect(trazos(raiz)).toEqual(enReposo);
+      expect(punteros(raiz).length).toBeGreaterThan(0);
+
+      unPaso(raiz, 3).dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(punteros(raiz).length).toBe(0);
     });
   });
 

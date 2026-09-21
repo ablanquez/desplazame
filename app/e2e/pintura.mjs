@@ -5835,34 +5835,69 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
   }
 }
 
-// ══════ P34 · EL PASO SEÑALA SU TRECHO EN EL MAPA (21/09, casilla 5b) ══════
+// ══════ P34 · EL PUNTERO DEL PASO EN EL MAPA (21/09, remate del 5b) ══════
 //
-// ⭐ La casilla 5b llevaba parada desde el 14/09 por falta de dato: el paso no
-//    sabía qué rebanada de la línea era suya. Desde hoy el contrato la dice
-//    —`Paso.desde` y `Paso.hasta`, el formato de Valhalla y de OSRM— y la
-//    pantalla la señala.
+// ⭐ **ACTA: ESTA CASILLA SE REESCRIBIÓ ENTERA EL MISMO DÍA QUE NACIÓ.**
 //
-// ⚠️ ESTO ES LA MITAD QUE NINGUNA OTRA COMPRA. Que el rango llegue lo compran
-//    las seis juezas de `rangos-de-pasos.spec.ts` en el motor; que el mapa
-//    reciba el rango lo compra `buscador.spec.ts`. Que al pasar el ratón por un
-//    paso **cambie un píxel del mapa** es esto, y se mide moviendo el ratón de
-//    verdad por CDP: un `:hover` no se simula con JavaScript, y un `mouseenter`
-//    sintético no prueba que el gesto de verdad funcione.
+//    Nació por la mañana comprando el realce **por engrosado**: el trecho del
+//    paso se repintaba encima con +4 de grosor [DOC Leaflet, su tutorial de
+//    interacción]. Antonio lo miró en captura y **no le gustó**. Su diseño,
+//    firmado: como Google Maps — al pasar por el paso, **UN PUNTERO en el
+//    punto de la maniobra**, y el engrosado fuera.
 //
-// ⚠️ Y SE MIDE EL `stroke-width` DEL `<path>`, no una clase nuestra: [DOC
-//    Leaflet] una polilínea es un `<path>` de SVG y el grosor va en su
-//    `stroke-width`. Es el píxel, que es lo que esta suite compra.
+//    Lo que la casilla vieja compraba y ya NO tiene sentido: que el trazo
+//    engordase +4, que conservase el color de su tramo, que fuese una rebanada
+//    más corta que la línea, y que un paso degenerado no señalara nada.
+//
+//    Lo que compra la nueva, y es lo mismo en espíritu: que el gesto PINTE algo
+//    en el sitio que toca, que salir lo QUITE, que cada paso señale SU punto y
+//    no el del vecino, y que el teclado haga lo mismo que el ratón sin que el
+//    hover mueva el foco [APG]. **Las tres patas de accesibilidad no se han
+//    tocado**: hover y focus lo enseñan, mouseout y blur lo quitan, el foco
+//    queda quieto.
+//
+//    ⭐ Y UNA QUE ES NUEVA Y VA DECLARADA: **el paso que CIERRA sí señala
+//       ahora**. Con el engrosado no podía —es degenerado, `desde === hasta`, y
+//       no hay trecho que engordar—; un PUNTO sí tiene. La llegada es una
+//       maniobra y el encargo pide un puntero en el punto de la maniobra.
+//
+// ⚠️ **Y VA PARAMETRIZADA SOBRE LA TABLA DE CANDIDATOS.** El aspecto no está
+//    decidido: `PUNTEROS` en `mapa.ts` tiene tres, y Antonio elige con las
+//    capturas delante. Esta casilla **no mira ni el radio ni el color ni
+//    cuántos círculos son**: mira que aparezcan, dónde caen y que se vayan. Así
+//    que elegir candidato no la reescribe — que es lo que el encargo pide.
+//
+// ⚠️ EL DISCRIMINADOR ES `interactive: false`. El puntero se pinta sin
+//    interactividad —si capturara el ratón se comería el `mouseleave` del
+//    paso—, y Leaflet solo le pone la clase `leaflet-interactive` a lo que sí
+//    la tiene. Así que las líneas de la ruta son `path.leaflet-interactive` y
+//    los círculos del puntero son los `path` que NO la llevan. No hace falta
+//    inventarse una clase nuestra para distinguirlos.
 const LOS_TRAZOS_P34 = `
-  const paths = [...document.querySelectorAll('.leaflet-overlay-pane path')];
+  const todos = [...document.querySelectorAll('.leaflet-overlay-pane path')];
   const a = document.activeElement;
+  // El centro de un circleMarker sale de su propio trazado: Leaflet lo dibuja
+  // como 'M cx-r,cy a r,r ...', así que el centro es (M.x + r, M.y).
+  const centroDe = (d) => {
+    const m = /^M\\s*(-?[\\d.]+)[,\\s](-?[\\d.]+)\\s*a\\s*([\\d.]+)/.exec(d || '');
+    return m ? { x: Math.round((+m[1] + +m[3]) * 10) / 10, y: Math.round(+m[2] * 10) / 10 } : null;
+  };
+  const puntos = (d) => [...(d || '').matchAll(/[ML]\\s*(-?[\\d.]+)[,\\s](-?[\\d.]+)/g)]
+    .map((m) => ({ x: Math.round(+m[1] * 10) / 10, y: Math.round(+m[2] * 10) / 10 }));
+  const lineas = todos.filter((p) => p.classList.contains('leaflet-interactive'));
+  const circulos = todos.filter((p) => !p.classList.contains('leaflet-interactive'));
   return {
-    cuantos: paths.length,
-    trazos: paths.map((p) => ({
-      w: parseFloat(p.getAttribute('stroke-width') || '0'),
-      color: (p.getAttribute('stroke') || '').toLowerCase(),
-      largo: (p.getAttribute('d') || '').length,
-      firma: (p.getAttribute('d') || '').slice(0, 60),
+    lineas: lineas.length,
+    circulos: circulos.length,
+    centros: circulos.map((p) => centroDe(p.getAttribute('d'))),
+    vestidos: circulos.map((p) => ({
+      relleno: (p.getAttribute('fill') || '').toLowerCase(),
+      borde: (p.getAttribute('stroke') || '').toLowerCase(),
+      grosor: parseFloat(p.getAttribute('stroke-width') || '0'),
     })),
+    // Los vértices de la línea de encima, ya proyectados por Leaflet: contra
+    // ellos se comprueba que el puntero cae en el vértice que el motor dice.
+    vertices: lineas.length > 1 ? puntos(lineas[1].getAttribute('d')) : [],
     foco: a ? a.tagName.toLowerCase() + (a.id ? '#' + a.id : '') : '(ninguno)',
   };
 `;
@@ -5891,16 +5926,17 @@ for (const [tema, puerto] of [
   ['dark', 9909],
 ]) {
   const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
-  const dicho = `P34 · realce · ${nombreTema}`;
+  const dicho = `P34 · puntero · ${nombreTema}`;
   const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto });
   try {
     await m.ir(APP, 6000);
-    console.log(`\n═══ EL REALCE DEL PASO · ${nombreTema.toUpperCase()} ═══`);
+    console.log(`\n═══ EL PUNTERO DEL PASO · ${nombreTema.toUpperCase()} ═══`);
     if (!(await ponerTema(m, tema, dicho))) continue;
-    await generarCon(m, 'andando', '');
+    // ⭐ El trayecto se guarda al vuelo para poder preguntarle al CONTRATO en
+    //    qué vértice tendría que caer el puntero. Sin esto la casilla solo
+    //    podría comprar «hay un círculo», que es media casilla.
+    await generarCon(m, 'andando', 'window.__trayecto = t;');
     await esperarTeselas(m);
-    // El bloque de los pasos, abierto: si viniera plegado no habría `<li>` que
-    // señalar y las juezas comprarían el vacío.
     await m.evaluar(`(() => {
       const b = document.querySelector('.bloque--pasos');
       if (b && !b.classList.contains('bloque--abierto')) b.querySelector('button')?.click();
@@ -5917,81 +5953,105 @@ for (const [tema, puerto] of [
     if (cuantosPasos < 4) continue;
 
     const enReposo = await leer(m, LOS_TRAZOS_P34);
-    await m.guardar(`${CAPTURAS}/realce-sin-hover-${nombreTema}.png`);
+    await m.guardar(`${CAPTURAS}/puntero-sin-hover-${nombreTema}.png`);
+    juzgar(
+      enReposo.circulos === 0,
+      `${dicho} · en reposo NO hay puntero: sin gesto no se señala nada`,
+      `${enReposo.lineas} líneas de ruta · ${enReposo.circulos} círculos`,
+    );
 
     // ── EL RATÓN SOBRE EL PASO 1 ─────────────────────────────────────────
     await ratonEnElPaso(m, 1);
     const conRaton = await leer(m, LOS_TRAZOS_P34);
-    await m.guardar(`${CAPTURAS}/realce-hover-${nombreTema}.png`);
-    const nuevos = conRaton.trazos.slice(enReposo.cuantos);
+    await m.guardar(`${CAPTURAS}/puntero-hover-${nombreTema}.png`);
     juzgar(
-      conRaton.cuantos > enReposo.cuantos && nuevos.length > 0,
-      `${dicho} · ⭐ el ratón sobre el paso 1 pinta su trecho encima [DOC Leaflet: engrosar y traer al frente]`,
-      `${enReposo.cuantos} trazos en reposo → ${conRaton.cuantos} con el ratón encima`,
+      conRaton.circulos > 0,
+      `${dicho} · ⭐ el ratón sobre el paso 1 planta el puntero [ANTONIO: como Google Maps]`,
+      `${enReposo.circulos} círculos en reposo → ${conRaton.circulos} con el ratón encima` +
+        (conRaton.circulos > 0
+          ? ` · ${conRaton.vestidos.map((v) => `${v.relleno}/${v.borde}@${v.grosor}`).join(' + ')}`
+          : ''),
     );
 
-    // ⭐ Y LAS DEMÁS NO SE MUEVEN: el realce se AÑADE, no reescribe la ruta.
-    const intactas = enReposo.trazos.every(
-      (t, k) =>
-        conRaton.trazos[k] &&
-        conRaton.trazos[k].w === t.w &&
-        conRaton.trazos[k].color === t.color &&
-        conRaton.trazos[k].firma === t.firma,
-    );
+    // ⭐ Y LA RUTA NO SE MUEVE: el puntero se AÑADE, no reescribe la línea.
     juzgar(
-      intactas,
-      `${dicho} · ⭐ y las demás líneas NO se mueven: ni grosor, ni color, ni trazado`,
-      `${enReposo.cuantos} líneas de la ruta, comparadas una a una`,
+      conRaton.lineas === enReposo.lineas,
+      `${dicho} · ⭐ y la línea de la ruta NO se toca: el puntero se añade encima`,
+      `${enReposo.lineas} líneas → ${conRaton.lineas}`,
     );
 
-    // ⭐ EL GROSOR: +4 sobre el de su tramo, Y DEL MISMO COLOR. El encargo lo
-    //    firma así — ningún color nuevo: el realce señala DÓNDE, no cambia QUÉ.
-    const gordo = nuevos[0];
-    const suyo = enReposo.trazos.find((t) => t.color === gordo?.color);
-    juzgar(
-      gordo !== undefined && suyo !== undefined && gordo.w === suyo.w + 4,
-      `${dicho} · ⭐ engorda +4 y CONSERVA EL COLOR de su tramo [ningún color nuevo]`,
-      gordo === undefined
-        ? '(no hay línea de realce)'
-        : `${gordo.color} · ${suyo === undefined ? 'sin línea de ese color en reposo' : suyo.w + ' → ' + gordo.w}`,
-    );
+    const centro = conRaton.centros[0] ?? null;
 
-    // ⭐ Y ES SU REBANADA, no la ruta entera: más corta que la línea de su tramo.
-    juzgar(
-      gordo !== undefined && suyo !== undefined && gordo.largo < suyo.largo,
-      `${dicho} · ⭐ y es una REBANADA, no la línea entera del tramo`,
-      gordo === undefined || suyo === undefined
-        ? '(no se puede comparar)'
-        : `realce ${gordo.largo} caracteres de trazado contra ${suyo.largo} del tramo`,
-    );
-
-    // ⭐ [APG] EL HOVER NO MUEVE EL FOCO. Resalta el mapa y nada más.
+    // ⭐ [APG] EL HOVER NO MUEVE EL FOCO. Señala el mapa y nada más.
     juzgar(
       conRaton.foco === enReposo.foco,
       `${dicho} · ⭐ [APG] pasar el ratón NO mueve el foco de nadie`,
       `foco ${enReposo.foco} → ${conRaton.foco}`,
     );
 
-    // ── OTRO PASO, OTRA REBANADA ─────────────────────────────────────────
-    await ratonEnElPaso(m, 2);
-    const enElDos = await leer(m, LOS_TRAZOS_P34);
-    const gordoDos = enElDos.trazos.slice(enReposo.cuantos)[0];
+    // ── ⭐ Y CAE DONDE EL CONTRATO DICE ───────────────────────────
+    //
+    // ⚠️ **ESTA JUEZA NACIÓ MIRANDO EL SITIO EQUIVOCADO, y lo que estaba mal
+    //    era ELLA.** Compraba que el puntero cayera sobre el punto número
+    //    `paso.desde` de la línea dibujada, y dio rojo: «paso 1 abre en el
+    //    vértice 3 (528,96) · puntero en (530,59) · 37,1 px». Se fue a mirar
+    //    antes de tocar el producto, y el producto tenía razón:
+    //
+    //      geometría del contrato: **397 vértices**
+    //      puntos de la línea dibujada: **40**
+    //
+    //    [DOC Leaflet] `Polyline` trae `smoothFactor` —*«how much to simplify
+    //    the polyline on each zoom level»*— y simplifica de serie. Así que el
+    //    punto i del `<path>` NO es el vértice i del contrato, y usarlo de
+    //    referencia era comparar contra otra lista.
+    //
+    // ⭐ Lo que SÍ se puede medir sin reimplementar la proyección de Leaflet:
+    //    **la simplificación conserva los extremos**. Así que el paso 0 —que
+    //    abre en el vértice 0— tiene que caer en el PRIMER punto de la línea, y
+    //    el paso que cierra —que abre en el último— en el ÚLTIMO. Dos anclas
+    //    exactas, y entre ellas la jueza de «cada paso apunta a otro sitio».
+    await ratonEnElPaso(m, 0);
+    const enElCero = await leer(m, LOS_TRAZOS_P34);
+    const primero = enElCero.vertices[0] ?? null;
+    const centroCero = enElCero.centros[0] ?? null;
+    const lejosCero =
+      primero && centroCero
+        ? Math.round(Math.hypot(centroCero.x - primero.x, centroCero.y - primero.y) * 10) / 10
+        : null;
     juzgar(
-      gordoDos !== undefined && gordo !== undefined && gordoDos.firma !== gordo.firma,
-      `${dicho} · ⭐ cada paso señala SU trecho: el 2 no resalta lo del 1`,
-      gordoDos === undefined
-        ? '(no hay realce en el paso 2)'
-        : `paso 1 ${gordo.firma.slice(0, 22)}… · paso 2 ${gordoDos.firma.slice(0, 22)}…`,
+      lejosCero !== null && lejosCero <= 1.5,
+      `${dicho} · ⭐ el paso 0 abre en el vértice 0 y el puntero cae en el ARRANQUE de la línea`,
+      primero === null || centroCero === null
+        ? '(no se ha podido situar el puntero)'
+        : `arranque (${primero.x},${primero.y}) · puntero (${centroCero.x},${centroCero.y}) · ${lejosCero} px`,
     );
 
-    // ── AL SALIR, RESTAURADO ─────────────────────────────────────────────
+    // ── OTRO PASO, OTRO PUNTO ────────────────────────────────────────────
+    await ratonEnElPaso(m, 2);
+    const enElDos = await leer(m, LOS_TRAZOS_P34);
+    const centroDos = enElDos.centros[0] ?? null;
+    juzgar(
+      centroDos !== null &&
+        centro !== null &&
+        (centroDos.x !== centro.x || centroDos.y !== centro.y) &&
+        enElDos.circulos === conRaton.circulos,
+      `${dicho} · ⭐ cada paso señala SU punto: el 2 no apunta a donde el 1`,
+      centroDos === null
+        ? '(no hay puntero en el paso 2)'
+        : `paso 1 en (${centro.x},${centro.y}) · paso 2 en (${centroDos.x},${centroDos.y})`,
+    );
+
+    // ── AL SALIR, SE QUITA ───────────────────────────────────────────────
+    //
+    // [DOC Leaflet] el patrón es añadir al entrar y QUITAR al salir, no
+    // esconder: un marcador escondido sigue en el mapa y sigue contando.
     await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
     await m.dormir(350);
     const alSalir = await leer(m, LOS_TRAZOS_P34);
     juzgar(
-      alSalir.cuantos === enReposo.cuantos,
-      `${dicho} · ⭐ al salir se restaura: el mapa vuelve a como estaba`,
-      `${enElDos.cuantos} con el ratón → ${alSalir.cuantos} al salir, contra ${enReposo.cuantos} de reposo`,
+      alSalir.circulos === 0,
+      `${dicho} · ⭐ al salir el puntero se QUITA, no se esconde`,
+      `${enElDos.circulos} con el ratón → ${alSalir.circulos} al salir`,
     );
 
     // ── EL TECLADO HACE LO MISMO ─────────────────────────────────────────
@@ -5999,17 +6059,23 @@ for (const [tema, puerto] of [
     // ⚠️ El foco se pone como lo pone EL ENLACE DEL RESUMEN, que es el camino
     //    de teclado que ya existía: el `<li>` lleva `tabindex="-1"` desde el
     //    patrón de GOV.UK y se enfoca por programa. NO se inventa un
-    //    `tabindex="0"` para esta jueza — meter dieciséis paradas nuevas en el
+    //    `tabindex="0"` para esta jueza — meter catorce paradas nuevas en el
     //    orden de tabulación es cambiar la semántica de la lista, y eso lo
     //    decide Antonio.
     await m.evaluar(`document.querySelectorAll('.paso')[1].focus()`);
     await m.dormir(350);
     const conFoco = await leer(m, LOS_TRAZOS_P34);
-    const gordoFoco = conFoco.trazos.slice(enReposo.cuantos)[0];
+    const centroFoco = conFoco.centros[0] ?? null;
     juzgar(
-      conFoco.cuantos === conRaton.cuantos && gordoFoco?.firma === gordo?.firma,
+      conFoco.circulos === conRaton.circulos &&
+        centroFoco !== null &&
+        centro !== null &&
+        centroFoco.x === centro.x &&
+        centroFoco.y === centro.y,
       `${dicho} · ⭐ el FOCO hace exactamente lo mismo que el ratón [la ley del 10/09]`,
-      `con foco ${conFoco.cuantos} trazos · misma rebanada que con el ratón: ${gordoFoco?.firma === gordo?.firma}`,
+      `con foco ${conFoco.circulos} círculos · mismo punto que con el ratón: ${
+        centroFoco !== null && centro !== null && centroFoco.x === centro.x && centroFoco.y === centro.y
+      }`,
     );
     juzgar(
       conFoco.foco === 'li#paso-1',
@@ -6021,10 +6087,40 @@ for (const [tema, puerto] of [
     await m.dormir(350);
     const alDesenfocar = await leer(m, LOS_TRAZOS_P34);
     juzgar(
-      alDesenfocar.cuantos === enReposo.cuantos,
-      `${dicho} · ⭐ y al perder el foco también se restaura`,
-      `${conFoco.cuantos} con foco → ${alDesenfocar.cuantos} al soltarlo`,
+      alDesenfocar.circulos === 0,
+      `${dicho} · ⭐ y al perder el foco también se quita`,
+      `${conFoco.circulos} con foco → ${alDesenfocar.circulos} al soltarlo`,
     );
+
+    // ⭐ Y EL PASO QUE CIERRA TAMBIÉN SEÑALA AHORA (21/09). Ver el acta: con el
+    //    engrosado no podía, porque es degenerado y no hay trecho que engordar.
+    const ultimo = cuantosPasos - 1;
+    await ratonEnElPaso(m, ultimo);
+    const enLaLlegada = await leer(m, LOS_TRAZOS_P34);
+    const suyo = await leer(
+      m,
+      `const p = window.__trayecto.pasos[${ultimo}]; return { desde: p.desde, hasta: p.hasta, giro: p.giro };`,
+    );
+    const ultimoPunto = enLaLlegada.vertices[enLaLlegada.vertices.length - 1] ?? null;
+    const centroFin = enLaLlegada.centros[0] ?? null;
+    const lejosFin =
+      ultimoPunto && centroFin
+        ? Math.round(Math.hypot(centroFin.x - ultimoPunto.x, centroFin.y - ultimoPunto.y) * 10) / 10
+        : null;
+    juzgar(
+      enLaLlegada.circulos > 0 && suyo.desde === suyo.hasta,
+      `${dicho} · ⭐ y el paso que CIERRA también señala su punto, que antes no podía`,
+      `${suyo.giro} · v[${suyo.desde}..${suyo.hasta}] · ${enLaLlegada.circulos} círculos`,
+    );
+    juzgar(
+      lejosFin !== null && lejosFin <= 1.5,
+      `${dicho} · ⭐ y ese punto es el FINAL de la línea, que es donde el contrato lo pone`,
+      ultimoPunto === null || centroFin === null
+        ? '(no se ha podido situar el puntero)'
+        : `final (${ultimoPunto.x},${ultimoPunto.y}) · puntero (${centroFin.x},${centroFin.y}) · ${lejosFin} px`,
+    );
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+    await m.dormir(250);
   } finally {
     m.cerrar();
   }

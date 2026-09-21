@@ -339,28 +339,87 @@ const PANE_ZONA = 'zbe';
 export const ASOMA_EL_RIBETE = 2;
 
 /**
- * ⭐ **CUÁNTO ENGORDA EL TRECHO RESALTADO** (21/09, casilla 5b): **+4 px**.
+ * ⭐ **EL PUNTERO DEL PASO: los candidatos de aspecto** (21/09, remate del 5b).
  *
- * [DOC Leaflet, su tutorial de interacción —el ejemplo canónico—] el realce al
- * pasar por encima se hace con `setStyle` **engrosando el trazo** y
- * `bringToFront`, y al salir se devuelve el estilo de partida. Aquí se hace
- * eso, con una sola diferencia que el propio encargo firma: **el color no
- * cambia**. El trecho resaltado se pinta del color de SU tramo —el ámbar del
- * a-pie, el azul de la rueda, el de la línea si va montado, el rojo de la Zona
- * de Bajas Emisiones— y lo único que se mueve es el peso.
+ * ⚠️ **Esto sustituye al engrosado del trazo, por orden de Antonio.** El
+ *    realce del 5b engordaba la rebanada de línea del paso [DOC Leaflet, su
+ *    tutorial de interacción]. Con la captura delante, **no le gustó**. Su
+ *    diseño, firmado: **como Google Maps — un PUNTERO en el punto de la
+ *    maniobra**, y el engrosado fuera. El dato no cambia: el puntero se planta
+ *    en el vértice `desde` del rango que el paso ya trae del motor.
  *
- * ⚠️ **Y no cambia el color por una razón, no por gusto**: un tono nuevo sería
- *    un cambio visible, y los cambios visibles los decide Antonio. Además
- *    rompería lo que el trazo ya significa —discontinuo se anda, sólido se
- *    rueda, el color del operador si es su línea—: el realce señala DÓNDE, no
- *    cambia QUÉ es.
+ * ⚠️ **EL ASPECTO NO ESTÁ DECIDIDO, y por eso esto es una TABLA.** Se pintan
+ *    candidatos, Antonio elige mirando, y el elegido se fija en un remate
+ *    corto. Es el método de la casa —el precedente de las bandas de cabecera:
+ *    candidatos pintados delante—. La jueza P34 recorre esta tabla, así que
+ *    elegir uno **no la reescribe**.
  *
- * +4 sobre los 5 del a-pie y la rueda son **9 contra 5**, y sobre los 6 del
- * montado, **10 contra 6**. Se mide en captura, que es lo que pide el encargo:
- * a menos no se ve a simple vista, y a más el trecho resaltado se come al de
- * al lado y parece otra cosa en vez del mismo trazo señalado.
+ * ── De dónde sale cada color, y no hay ninguno inventado ───────────────
+ *
+ * · `tramo`  — el color del tramo que abre el paso: el ámbar del a-pie, el azul
+ *              de la rueda, el del operador si va montado, el rojo de la Zona
+ *              de Bajas Emisiones. El mismo `vestidoDe` que viste la línea.
+ * · `ribete` — lo que `ribeteDe` calcula para ese color sobre ESTE plano: el
+ *              mismo vecino que la línea ya lleva debajo desde el 1/09.
+ * · `blanco` — `#ffffff`, que es el halo que los pines de la casa ya usan y
+ *              que la P26 mide contra la tesela desde el 1/09.
+ *
+ * ── Cómo se mide el 1.4.11, con la vara que la casa ya tenía ────────────
+ *
+ * La doctrina está escrita en `ribeteDe` y es de esta casa: **el par tiene que
+ * separarse del plano, y eso lo puede aportar cualquiera de los dos**. Así que
+ * de cada candidato se miden dos cosas contra cada teselado: `borde/relleno`
+ * —que el puntero se lea a sí mismo— y **lo que el par se separa del plano en
+ * su caso más desfavorable**. La vara es `AA_GRAFICO`, 3:1. Las cifras van al
+ * checkpoint, candidato a candidato.
  */
-export const ENGROSADO_DEL_REALCE = 4;
+export type ClaveDePuntero = 'disco' | 'anillo' | 'diana';
+
+/** De dónde sale una tinta. Ver la tabla: no hay una cuarta opción. */
+export type TintaDelPuntero = 'tramo' | 'ribete' | 'blanco' | 'ninguno';
+
+/** Un círculo del puntero. Un candidato son una o dos de éstas, de fuera a dentro. */
+export interface CapaDePuntero {
+  readonly radio: number;
+  readonly grosor: number;
+  readonly relleno: TintaDelPuntero;
+  readonly borde: TintaDelPuntero;
+}
+
+export const PUNTEROS: Readonly<Record<ClaveDePuntero, readonly CapaDePuntero[]>> = {
+  /**
+   * **A · DISCO** — el color del tramo, con el mismo ribete que lleva su línea.
+   * El más parco: no estrena ni una tinta, y el borde es el vecino que la casa
+   * ya le calcula a ese color sobre ese plano.
+   */
+  disco: [{ radio: 7, grosor: 3, relleno: 'tramo', borde: 'ribete' }],
+  /**
+   * **B · ANILLO** — hueco y blanco por dentro, con el aro del color del tramo.
+   * Es **el de Google Maps**, que es la referencia que Antonio nombró. Su
+   * contorno exterior es el color del tramo, así que es el único de los tres
+   * cuyo 1.4.11 depende de ese color y no de un ribete calculado: sus cifras
+   * van dichas, no supuestas.
+   */
+  anillo: [{ radio: 7, grosor: 4, relleno: 'blanco', borde: 'tramo' }],
+  /**
+   * **C · DIANA** — un disco del ribete debajo y el color del tramo encima, sin
+   * borde ninguno. El de fuera hace de halo, que es exactamente lo que los
+   * pines de la casa ya hacen con su `#ffffff` desde el 1/09.
+   */
+  diana: [
+    { radio: 9, grosor: 0, relleno: 'ribete', borde: 'ninguno' },
+    { radio: 5, grosor: 0, relleno: 'tramo', borde: 'ninguno' },
+  ],
+};
+
+/**
+ * ⚠️ **EL QUE VIAJA HOY, Y ES PROVISIONAL.** Antonio no ha elegido todavía:
+ *    esta tanda acaba en candidatos pintados, no en un puntero elegido. Va el
+ *    primero de la tabla para que el producto no se quede sin gesto mientras
+ *    tanto, y cambiar esta línea es todo lo que el remate corto tendrá que
+ *    hacer — ni una jueza se mueve.
+ */
+export const PUNTERO_PUESTO: ClaveDePuntero = 'disco';
 
 /** Los dos extremos de un plano: contra ellos se decide un ribete. */
 export interface Plano {
@@ -711,13 +770,16 @@ export class Mapa {
    */
   private zonas: L.Polygon[] = [];
   /**
-   * Las líneas del realce, aparte de `lineas` **y por dos motivos**: se ponen y
-   * se quitan con el ratón sin repintar la ruta entera —repintarla volvería a
-   * encuadrar el mapa a cada pasada—, y **no entran en el `fitBounds`**, que
-   * mira `lineas`: encuadrar por lo resaltado daría un salto de cámara cada vez
-   * que el puntero cruza un paso.
+   * Los círculos del puntero, aparte de `lineas` **y por dos motivos**: se
+   * ponen y se quitan con el ratón sin repintar la ruta entera —repintarla
+   * volvería a encuadrar el mapa a cada pasada—, y **no entran en el
+   * `fitBounds`**, que mira `lineas`: encuadrar por lo señalado daría un salto
+   * de cámara cada vez que el ratón cruza un paso.
+   *
+   * [DOC Leaflet] el patrón de resaltado por punto es ése: el marcador se
+   * **añade** al entrar y se **quita** al salir, no se esconde.
    */
-  private realce: L.Polyline[] = [];
+  private realce: L.CircleMarker[] = [];
 
   constructor() {
     // [DOC] Angular: «Use afterNextRender to read or write the DOM once, for
@@ -827,66 +889,81 @@ export class Mapa {
    * `pintarRegulado` y el de `pintarAmpliacion`, que se apoyan en él.
    */
   /**
-   * ⭐ **EL TRECHO DEL PASO, ENGORDADO ENCIMA DE SU PROPIA LÍNEA** (21/09, 5b).
+   * ⭐ **EL PUNTERO EN EL PUNTO DE LA MANIOBRA** (21/09, remate del 5b).
    *
-   * [DOC Leaflet, tutorial de interacción] el realce canónico es `setStyle` con
-   * el trazo más gordo y `bringToFront`, y al salir se restaura. Aquí no se le
-   * puede hacer `setStyle` a la línea que ya hay **porque el trecho de un paso
-   * es una REBANADA de un tramo, no un tramo entero**: cambiarle el estilo
-   * engordaría el tramo completo. Así que se pinta una línea encima, del mismo
-   * color, y se trae al frente. Es el mismo gesto con la única pieza que
-   * Leaflet da para señalar media polilínea.
+   * [ANTONIO, con la captura delante] el engrosado del trazo **no le gustó**.
+   * Su diseño: como Google Maps — al pasar por el paso, un puntero en el punto
+   * de la maniobra. Aquí está, y **el dato es el mismo**: el vértice `desde`
+   * del rango que el paso ya trae del motor desde el 5b. Ni el contrato ni los
+   * rangos se han tocado.
    *
-   * ⚠️ **UNA LÍNEA POR TRAMO QUE PISE EL RANGO, no una sola.** Un paso puede
-   *    cruzar la costura de dos tramos —entrar empujando la bici a mitad de
-   *    maniobra, o entrar en la Zona de Bajas Emisiones—, y esos dos trechos
-   *    **no son del mismo color**. Pintarlo de un color solo mentiría sobre la
-   *    mitad, que es justo lo que el encargo prohibe: el realce señala dónde,
-   *    no cambia qué es. Se corta el rango contra cada tramo y cada trozo se
-   *    engorda con SU vestido.
+   * [DOC Leaflet] `L.circleMarker` es API de núcleo —*«like Circle, but with
+   * a radius specified in screen pixels»*—, y eso es justo lo que hace falta:
+   * un puntero que mide lo mismo con cualquier zoom. Un `L.circle` en metros
+   * crecería y encogería, y a z12 sería un punto invisible.
    *
-   * ⚠️ Y sin ribete: el ribete existe para separar la línea del plano, y esta
-   *    va **encima de su propia línea**, que ya lo lleva.
+   * ⚠️ **Y AHORA EL PASO QUE CIERRA SÍ SEÑALA, que antes no podía.** La llegada
+   *    y los hitos son degenerados —`desde === hasta`— y con el engrosado no
+   *    había trecho que engordar, así que se quedaban a oscuras. Un PUNTO sí
+   *    tienen: señalar dónde se aparca la bici o dónde está la puerta es
+   *    exactamente lo que la orden pide —«un puntero en el punto de la
+   *    maniobra»—, y la llegada es una maniobra. Es consecuencia del gesto
+   *    nuevo, no un ensanche por mi cuenta, y va DICHO en el checkpoint.
+   *
+   * ⚠️ El color sale del TRAMO QUE ABRE EL PASO, no del primero de la lista: en
+   *    la costura entre dos tramos el vértice pertenece a los dos —el solape de
+   *    OSRM—, y el que vale es aquel hacia el que el paso camina.
    */
   private pintarRealce(): void {
-    for (const linea of this.realce) {
-      linea.remove();
+    for (const circulo of this.realce) {
+      circulo.remove();
     }
     this.realce = [];
     const rango = this.resaltado();
     const vertices = this.trazado();
-    if (!this.mapa || !rango || vertices.length < 2) {
+    if (!this.mapa || !rango || vertices.length === 0) {
       return;
     }
-    const puntos: L.LatLngTuple[] = vertices.map(([lat, lon]) => [lat, lon]);
-    const desde = Math.max(0, rango.desde);
-    const hasta = Math.min(puntos.length - 1, rango.hasta);
-    if (hasta <= desde) {
-      // Un paso degenerado —la llegada, el hito— no recorre nada, así que no
-      // hay trecho que señalar. No es un fallo: es lo que ese paso significa.
+    const donde = vertices[Math.min(Math.max(0, rango.desde), vertices.length - 1)];
+    if (!donde) {
       return;
     }
-    // Sin tramos no hay vestido que heredar: se usa el del a-pie, que es lo
-    // que `pintarTrazado` pinta en ese mismo caso.
-    const tramos = this.tramos();
-    const trozos: readonly { readonly a: number; readonly b: number; readonly vestido: L.PolylineOptions }[] =
-      tramos.length === 0
-        ? [{ a: desde, b: hasta, vestido: VESTIDO.andando }]
-        : tramos
-            .map((tramo) => ({
-              a: Math.max(desde, tramo.desde),
-              b: Math.min(hasta, tramo.hasta),
-              vestido: vestidoDe(tramo),
-            }))
-            .filter((t) => t.b > t.a);
-    for (const trozo of trozos) {
-      const linea = L.polyline(puntos.slice(trozo.a, trozo.b + 1), {
-        ...trozo.vestido,
-        weight: (trozo.vestido.weight ?? 5) + ENGROSADO_DEL_REALCE,
+    const plano = this.tema.oscuro() ? PLANO_DE_DARK_MATTER : PLANO_DE_OSM;
+    const color = (vestidoDe(this.tramoQueAbre(rango.desde)).color ?? VESTIDO.andando.color!).replace('#', '');
+    const tinta = (cual: TintaDelPuntero): string =>
+      cual === 'tramo' ? `#${color}` : cual === 'ribete' ? `#${ribeteDe(color, plano)}` : '#ffffff';
+    for (const capa of PUNTEROS[PUNTERO_PUESTO]) {
+      const circulo = L.circleMarker([donde[0], donde[1]], {
+        radius: capa.radio,
+        fillColor: tinta(capa.relleno),
+        fillOpacity: 1,
+        stroke: capa.borde !== 'ninguno',
+        color: capa.borde === 'ninguno' ? undefined : tinta(capa.borde),
+        weight: capa.grosor,
+        // No se pincha ni se arrastra: es un adorno que sigue al ratón, y si
+        // capturara el puntero se comería el `mouseleave` del paso.
+        interactive: false,
       }).addTo(this.mapa);
-      linea.bringToFront();
-      this.realce.push(linea);
+      circulo.bringToFront();
+      this.realce.push(circulo);
     }
+  }
+
+  /**
+   * El tramo que ABRE el paso que empieza en el vértice `v`.
+   *
+   * ⚠️ En la costura el vértice es de los dos tramos —el solape de OSRM—, y
+   *    el bueno es hacia el que se camina: el que lo tiene como `desde`, o el
+   *    que todavía no ha acabado en él. Coger el primero que lo contenga
+   *    pintaría el puntero del color del tramo que se acaba de dejar.
+   */
+  private tramoQueAbre(v: number): TramoDelViaje {
+    const tramos = this.tramos();
+    return (
+      tramos.find((t) => t.desde <= v && v < t.hasta) ??
+      tramos.find((t) => t.desde <= v && v <= t.hasta) ??
+      ({ comoSeVa: 'andando', desde: 0, hasta: 0, metros: 0, segundos: 0, hito: null } as TramoDelViaje)
+    );
   }
 
   private pintarTrazado(): void {
