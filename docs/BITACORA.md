@@ -14,6 +14,42 @@
 
 ---
 
+## [2026-09-21] 🔴 ABIERTA — La jueza que compra «el puntero SE VE» dio verde en los doce sitios donde no había puntero ninguno
+
+**Categoría:** la jueza cuenta lo que mide y no cuenta lo que falta
+**Síntoma:** la P34 nueva de `pintura.mjs` nace con dos juezas por modo: una
+compra que el puntero se plante y otra que **se vea** —píxeles que cambian al
+plantarlo, por encima de una vara de 120—. Pero el bucle que las llena
+incrementa `invisibles` solo cuando hay puntero y mueve poco; cuando no hay
+puntero **hace `continue`** y la segunda jueza acaba con `invisibles === 0`.
+O sea: donde no hay nada que ver, «se ve» da verde.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** la tirada de la P34 recién
+escrita contra el dist del puntero circular (`node app/e2e/pintura.mjs
+http://localhost:4399`, motor mío, pid 20364), donde el discriminador
+`data-puntero` no existe y por tanto **no hay ni un solo puntero en ninguno de
+los doce casos**:
+
+```
+  ✗✗  P34 · puntero · claro · ⭐ bus · los pasos muestreados plantan su puntero  ·  9 pasos · muestra 0,1,4,7,8 · sin puntero: 5
+  OK  P34 · puntero · claro · ⭐ bus · y el puntero SE VE: más de 120 px movidos en todos  ·  p0: SIN PUNTERO · p1: SIN PUNTERO · p4: SIN PUNTERO · p7: SIN PUNTERO · p8: SIN PUNTERO
+  ✗✗  P34 · puntero · oscuro · ⭐ moto · los pasos muestreados plantan su puntero  ·  17 pasos · muestra 0,1,8,15,16 · sin puntero: 5
+  OK  P34 · puntero · oscuro · ⭐ moto · y el puntero SE VE: más de 120 px movidos en todos  ·  p0: SIN PUNTERO · p1: SIN PUNTERO · p8: SIN PUNTERO · p15: SIN PUNTERO · p16: SIN PUNTERO
+```
+
+Doce así: seis modos × dos temas, todos con la misma línea `OK … SE VE` y su
+propio detalle diciendo `SIN PUNTERO` cinco veces seguidas. El detalle **ya
+cantaba el fallo**; el veredicto decía lo contrario.
+**Cómo se cazó:** ojo, al leer la salida de la tirada roja para comprobar que
+la jueza nacía roja donde tenía que nacer. La jueza gemela sí dio rojo, así
+que el par nunca dio un verde limpio — pero la línea que afirma «se ve» sí lo
+dio, y eso es lo que aquí se registra.
+**Causa raíz:** ⏳ PENDIENTE
+**Ley:** ⏳ PENDIENTE
+**Traza:** `app/e2e/pintura.mjs` → `elModoSeñala`, la rama
+`if (!visto.hay || !visto.punta) { sinPuntero++; …; continue; }`.
+
+---
+
 ## [2026-09-20] ✅ CERRADA — La batería entera da 10/10 sobre un conmutador de tres estados que nadie había firmado: las juezas compraban una letra que no existía
 
 **Categoría:** el instrumento mide la coherencia con una letra propuesta, no firmada

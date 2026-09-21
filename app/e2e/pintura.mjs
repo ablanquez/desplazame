@@ -5835,69 +5835,122 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
   }
 }
 
-// ══════ P34 · EL PUNTERO DEL PASO EN EL MAPA (21/09, remate del 5b) ══════
+// ══════ P34 · EL PUNTERO DEL PASO EN EL MAPA (21/09, remate 2) ══════
 //
-// ⭐ **ACTA: ESTA CASILLA SE REESCRIBIÓ ENTERA EL MISMO DÍA QUE NACIÓ.**
+// ⭐ **ACTA: ESTA CASILLA SE HA REESCRITO DOS VECES EN DOS DÍAS, Y LAS DOS POR
+//    LA MISMA MANO.**
 //
-//    Nació por la mañana comprando el realce **por engrosado**: el trecho del
-//    paso se repintaba encima con +4 de grosor [DOC Leaflet, su tutorial de
-//    interacción]. Antonio lo miró en captura y **no le gustó**. Su diseño,
-//    firmado: como Google Maps — al pasar por el paso, **UN PUNTERO en el
-//    punto de la maniobra**, y el engrosado fuera.
+//    Nació por la mañana comprando el realce **por engrosado**. Antonio lo miró
+//    y lo tiró; se reescribió para comprar **un puntero circular** en el punto
+//    de la maniobra, con tres candidatos de forma. Antonio miró eso también, en
+//    el producto, y firmó dos órdenes más: el color del puntero **totalmente
+//    distinto al de la línea** —heredarlo queda descartado— y el icono, **el
+//    pin del logo de Desplázame**.
 //
-//    Lo que la casilla vieja compraba y ya NO tiene sentido: que el trazo
-//    engordase +4, que conservase el color de su tramo, que fuese una rebanada
-//    más corta que la línea, y que un paso degenerado no señalara nada.
+// ⭐ **Y TRAJO UN ROJO QUE ESTA CASILLA NO PODÍA VER: cuatro modos sin
+//    puntero.** No funcionaba en bici, patín, BiZi, bus ni moto. La razón por
+//    la que esta casilla daba 24 verdes con eso vivo es simple y va dicha:
+//    **solo generaba UNA ruta, andando**. Nadie miraba los otros cinco modos.
+//    No es un verde mentiroso —ninguna jueza afirmó nada de un modo que no
+//    probó—, es una **zona sin vigilar**, y se cierra aquí.
 //
-//    Lo que compra la nueva, y es lo mismo en espíritu: que el gesto PINTE algo
-//    en el sitio que toca, que salir lo QUITE, que cada paso señale SU punto y
-//    no el del vecino, y que el teclado haga lo mismo que el ratón sin que el
-//    hover mueva el foco [APG]. **Las tres patas de accesibilidad no se han
-//    tocado**: hover y focus lo enseñan, mouseout y blur lo quitan, el foco
-//    queda quieto.
+// ⭐ **Y HABÍA UNA SEGUNDA ZONA SIN VIGILAR, MÁS DE FONDO: ninguna jueza de
+//    esta casa comprobaba que el puntero SE VIERA.** Todas contaban nodos del
+//    DOM. El puntero se plantaba en los seis modos —medido— y aun así Antonio
+//    no lo veía, porque [DOC Leaflet, *map panes*] el `overlayPane` va en
+//    z-index 400 y el `markerPane` en 600: donde hay una marca sobre la ruta
+//    —la parada del bus, el aparcamiento de la moto, donde se deja la bici— el
+//    puntero se pintaba DEBAJO. Contar nodos no distingue eso de funcionar.
 //
-//    ⭐ Y UNA QUE ES NUEVA Y VA DECLARADA: **el paso que CIERRA sí señala
-//       ahora**. Con el engrosado no podía —es degenerado, `desde === hasta`, y
-//       no hay trecho que engordar—; un PUNTO sí tiene. La llegada es una
-//       maniobra y el encargo pide un puntero en el punto de la maniobra.
+//    Por eso la casilla nueva **mide píxeles**: la misma pantalla sin el
+//    puntero y con él, y cuántos cambian de verdad. Es el mismo instrumento
+//    con el que la P33 compra que una capa pinta algo.
 //
-// ⚠️ **Y VA PARAMETRIZADA SOBRE LA TABLA DE CANDIDATOS.** El aspecto no está
-//    decidido: `PUNTEROS` en `mapa.ts` tiene tres, y Antonio elige con las
-//    capturas delante. Esta casilla **no mira ni el radio ni el color ni
-//    cuántos círculos son**: mira que aparezcan, dónde caen y que se vayan. Así
-//    que elegir candidato no la reescribe — que es lo que el encargo pide.
+// ⚠️ **LA VARA SALE DEL DIAGNÓSTICO, no del arreglo.** Antes de tocar una línea
+//    se midió el producto roto, paso a paso y modo a modo, en Chrome de verdad.
+//    Lo que salió, en píxeles que cambian fuerte alrededor del puntero:
 //
-// ⚠️ EL DISCRIMINADOR ES `interactive: false`. El puntero se pinta sin
-//    interactividad —si capturara el ratón se comería el `mouseleave` del
-//    paso—, y Leaflet solo le pone la clase `leaflet-interactive` a lo que sí
-//    la tiene. Así que las líneas de la ruta son `path.leaflet-interactive` y
-//    los círculos del puntero son los `path` que NO la llevan. No hace falta
-//    inventarse una clase nuestra para distinguirlos.
-const LOS_TRAZOS_P34 = `
-  const todos = [...document.querySelectorAll('.leaflet-overlay-pane path')];
+//      andando  0 pasos por debajo de 60 px   (150 a 197)
+//      coche    0                             (144 a 177)
+//      bici     4 de 27   ← 0, 0, 48, 49 px
+//      patín    2 de 37   ← 0, 0
+//      moto     3 de 17   ← 0, 0, 0   (los tres últimos, en el aparcamiento)
+//      bus      7 de 9    ← cinco de ellos a 0 px CLAVADOS
+//
+//    Dos poblaciones que no se tocan: lo que se veía dio 128 px para arriba, lo
+//    que no se veía dio 101 para abajo. La vara se pone **en 120**, entre las
+//    dos, y con los números del producto roto delante.
+//
+// ⚠️ **Y LA TINTA NO SE MIRA.** El color acabó en PARO: `TINTAS_DEL_PUNTERO`
+//    tiene tres candidatos medidos y Antonio elige con las capturas delante.
+//    Esta casilla compra que el pin **no lleve ninguno de los colores de
+//    línea** —que es la orden 1, y eso sí es firme— y nada más sobre su tinta.
+//    Elegir candidato no la reescribe.
+//
+// ⚠️ EL DISCRIMINADOR ES `data-puntero`, que `svgDelPuntero` escribe en el
+//    propio SVG. Antes se reconocía por descarte —los `path` sin
+//    `leaflet-interactive`—; ahora el puntero es un `divIcon` con el pin de la
+//    marca dentro, así que se reconoce por lo que ES.
+
+/** Cuántos píxeles tiene que mover el puntero para contar como visto. Ver arriba. */
+const VARA_DE_VISIBILIDAD = 120;
+
+/** Los pasos que se muestrean de cada modo: los extremos y el medio. */
+const MUESTRA_DE_PASOS = (total) => [
+  ...new Set([0, 1, Math.floor(total / 2), Math.max(0, total - 2), total - 1].filter((i) => i >= 0 && i < total)),
+];
+
+const EL_PUNTERO_P34 = `
+  const svg = document.querySelector('svg[data-puntero]');
   const a = document.activeElement;
-  // El centro de un circleMarker sale de su propio trazado: Leaflet lo dibuja
-  // como 'M cx-r,cy a r,r ...', así que el centro es (M.x + r, M.y).
-  const centroDe = (d) => {
-    const m = /^M\\s*(-?[\\d.]+)[,\\s](-?[\\d.]+)\\s*a\\s*([\\d.]+)/.exec(d || '');
-    return m ? { x: Math.round((+m[1] + +m[3]) * 10) / 10, y: Math.round(+m[2] * 10) / 10 } : null;
-  };
+  const todos = [...document.querySelectorAll('.leaflet-overlay-pane path')];
+  const lineas = todos.filter((p) => p.classList.contains('leaflet-interactive'));
   const puntos = (d) => [...(d || '').matchAll(/[ML]\\s*(-?[\\d.]+)[,\\s](-?[\\d.]+)/g)]
     .map((m) => ({ x: Math.round(+m[1] * 10) / 10, y: Math.round(+m[2] * 10) / 10 }));
-  const lineas = todos.filter((p) => p.classList.contains('leaflet-interactive'));
-  const circulos = todos.filter((p) => !p.classList.contains('leaflet-interactive'));
+  let punta = null, caja = null, dibujo = null, tinta = null, panel = '', z = null;
+  if (svg) {
+    const c = svg.getBoundingClientRect();
+    const v = (svg.getAttribute('viewBox') || '').trim().split(/\\s+/).map(Number);
+    // ⭐ LA PUNTA, calculada del viewBox y del punto de la rejilla donde la
+    //    gota acaba —(16, 23) de las 32—, no el centro de la caja. Un pin
+    //    señala con la punta, y comprobar eso es comprobar el iconAnchor.
+    punta = {
+      x: Math.round((c.x + ((16 - v[0]) / v[2]) * c.width) * 10) / 10,
+      y: Math.round((c.y + ((23 - v[1]) / v[3]) * c.height) * 10) / 10,
+    };
+    caja = Math.round(c.width) + 'x' + Math.round(c.height);
+    const p = svg.querySelector('path');
+    dibujo = p ? p.getAttribute('d') : null;
+    tinta = p ? (p.getAttribute('fill') || '') + ' con halo ' + (p.getAttribute('stroke') || '') : null;
+    const suPanel = svg.closest('.leaflet-pane');
+    panel = suPanel ? suPanel.className : '';
+    z = suPanel ? getComputedStyle(suPanel).zIndex : null;
+  }
+  const marcas = document.querySelector('.leaflet-marker-pane');
   return {
+    hay: svg ? 1 : 0,
     lineas: lineas.length,
-    circulos: circulos.length,
-    centros: circulos.map((p) => centroDe(p.getAttribute('d'))),
-    vestidos: circulos.map((p) => ({
-      relleno: (p.getAttribute('fill') || '').toLowerCase(),
-      borde: (p.getAttribute('stroke') || '').toLowerCase(),
-      grosor: parseFloat(p.getAttribute('stroke-width') || '0'),
-    })),
-    // Los vértices de la línea de encima, ya proyectados por Leaflet: contra
-    // ellos se comprueba que el puntero cae en el vértice que el motor dice.
-    vertices: lineas.length > 1 ? puntos(lineas[1].getAttribute('d')) : [],
+    punta, caja, dibujo, tinta, panel, z,
+    zDeLasMarcas: marcas ? getComputedStyle(marcas).zIndex : null,
+    // El dibujo de la CABECERA, para comprobar que el pin es el mismo de verdad.
+    gotaDeLaMarca: (document.querySelector('app-marca svg path') || {}).getAttribute
+      ? document.querySelector('app-marca svg path').getAttribute('d')
+      : null,
+    // ⚠️ **EN COORDENADAS DE PÁGINA, como la punta.** El atributo d de la
+    //    línea va en las del PANEL de Leaflet, que lleva su propia
+    //    transformación; la punta sale de getBoundingClientRect, que va en las
+    //    de la página. Aquí se comparaban tal cual y la jueza dio 560 px de
+    //    error con la y cuadrando a 1: los 559 que el mapa está desplazado a la
+    //    derecha. Se pasan con la matriz que el propio SVG da, getScreenCTM, en
+    //    vez de sumar a mano.
+    vertices: (() => {
+      if (lineas.length < 2) return [];
+      const m = lineas[1].getScreenCTM();
+      return puntos(lineas[1].getAttribute('d')).map((q) => ({
+        x: Math.round((m.a * q.x + m.c * q.y + m.e) * 10) / 10,
+        y: Math.round((m.b * q.x + m.d * q.y + m.f) * 10) / 10,
+      }));
+    })(),
     foco: a ? a.tagName.toLowerCase() + (a.id ? '#' + a.id : '') : '(ninguno)',
   };
 `;
@@ -5921,6 +5974,130 @@ async function ratonEnElPaso(m, i) {
   return caja;
 }
 
+/** Abre el bloque de indicaciones si está cerrado. Devuelve cuántos pasos hay. */
+async function abrirLosPasos(m) {
+  await m.evaluar(`(() => {
+    const b = document.querySelector('.bloque--pasos');
+    if (b && !b.classList.contains('bloque--abierto')) b.querySelector('button')?.click();
+    return true;
+  })()`);
+  await m.dormir(400);
+  return Number(await m.evaluar(`document.querySelectorAll('.paso').length`));
+}
+
+/**
+ * Píxeles que cambian DE VERDAD entre dos capturas, en una caja alrededor de un
+ * punto. «De verdad» es más de 60 niveles en algún canal: un cambio de uno o
+ * dos no lo ve nadie, y contarlo dejaría pasar un puntero invisible.
+ */
+function pixelesQueCambian(a, b, cx, cy, lado, umbral = 60) {
+  let n = 0;
+  const x0 = Math.max(0, Math.round(cx) - lado);
+  const x1 = Math.min(a.ancho - 1, Math.round(cx) + lado);
+  const y0 = Math.max(0, Math.round(cy) - lado);
+  const y1 = Math.min(a.alto - 1, Math.round(cy) + lado);
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      const i = (y * a.ancho + x) * 4;
+      const d = Math.max(
+        Math.abs(a.datos[i] - b.datos[i]),
+        Math.abs(a.datos[i + 1] - b.datos[i + 1]),
+        Math.abs(a.datos[i + 2] - b.datos[i + 2]),
+      );
+      if (d > umbral) n++;
+    }
+  }
+  return n;
+}
+
+/**
+ * ⭐ UN MODO ENTERO: se genera su ruta, se muestrean sus pasos y de cada uno se
+ *    compra lo mismo — que el puntero se planta **y que se ve**.
+ *
+ * El ratón sale de la lista antes de cada medida para que la foto «sin» sea de
+ * verdad sin puntero: si se quedara encima, las dos fotos serían la misma y
+ * todo daría cero.
+ */
+async function elModoSeñala(m, modo, dicho) {
+  await m.ir(APP, 6000);
+  await generarCon(m, modo, '');
+  await esperarTeselas(m);
+  const total = await abrirLosPasos(m);
+  if (total < 3) {
+    juzgar(false, `${dicho} · ⭐ ${modo} · hay ruta con pasos que señalar`, `${total} pasos`);
+    return;
+  }
+  const filas = [];
+  let sinPuntero = 0;
+  let invisibles = 0;
+  let rancias = 0;
+  for (const i of MUESTRA_DE_PASOS(total)) {
+    // ⭐ **CON CONTROL POSITIVO, y hace falta.** Midiendo a mano salió una
+    //    tirada en la que los diecisiete pasos de la moto dieron 0 px, y al
+    //    repetirla dieron 344 a 452: la foto venía rancia, no el producto. Dos
+    //    fotos idénticas no pueden distinguirse de «el puntero no se ve», así
+    //    que se mide también **el propio paso**, que al recibir el ratón
+    //    cambia de fondo sí o sí. Si ahí tampoco cambia nada, la pareja de
+    //    fotos no vale y se vuelve a pedir; si a la segunda sigue igual, se
+    //    dice que la foto está rancia en vez de acusar al puntero.
+    let sin = null;
+    let visto = null;
+    let caja = null;
+    let control = 0;
+    let con = null;
+    for (let intento = 0; intento < 2 && control === 0; intento++) {
+      await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 300, y: 40 });
+      await m.dormir(380);
+      sin = await m.captura();
+      caja = await ratonEnElPaso(m, i);
+      visto = await leer(m, EL_PUNTERO_P34);
+      con = await m.captura();
+      // ⚠️ El control mira CUALQUIER cambio, no los de más de 60: el fondo de
+      //    hover del paso es un tinte suave —por diseño— y con la vara del
+      //    puntero no llegaba nunca. Así nació, y cantó «foto rancia» en pasos
+      //    cuyas fotos eran frescas. Lo que el control tiene que probar es que
+      //    la foto es NUEVA, y para eso basta un nivel.
+      control = caja ? pixelesQueCambian(sin, con, caja.x, caja.y, 20, 0) : 0;
+    }
+    if (control === 0) {
+      rancias++;
+      filas.push(`p${i}: FOTO RANCIA`);
+      continue;
+    }
+    if (!visto.hay || !visto.punta) {
+      // ⚠️ **CUENTA EN LAS DOS.** Aquí ponía solo `sinPuntero++`, y con eso la
+      //    jueza de «se ve» daba VERDE justo donde no había nada que ver: doce
+      //    casos seguidos con `SIN PUNTERO` cinco veces en el detalle y un OK
+      //    en el veredicto. Ver la entrada del 21/09 en `docs/BITACORA.md`.
+      //    Un puntero que no está es el caso MÁS invisible de todos.
+      sinPuntero++;
+      invisibles++;
+      filas.push(`p${i}: SIN PUNTERO`);
+      continue;
+    }
+    // La caja mide 40 de lado: el pin son 27 × 33 y así entra entero con aire.
+    // Se centra 16 px por encima de la punta, que es donde está el cuerpo.
+    const movidos = pixelesQueCambian(sin, con, visto.punta.x, visto.punta.y - 16, 20);
+    if (movidos < VARA_DE_VISIBILIDAD) invisibles++;
+    filas.push(`p${i}: ${movidos} px`);
+  }
+  juzgar(
+    rancias === 0,
+    `${dicho} · ⭐ ${modo} · las fotos de la medida son frescas [control positivo]`,
+    `${MUESTRA_DE_PASOS(total).length} medidas · fotos rancias: ${rancias}`,
+  );
+  juzgar(
+    sinPuntero === 0,
+    `${dicho} · ⭐ ${modo} · los pasos muestreados plantan su puntero`,
+    `${total} pasos · muestra ${MUESTRA_DE_PASOS(total).join(',')} · sin puntero: ${sinPuntero}`,
+  );
+  juzgar(
+    invisibles === 0,
+    `${dicho} · ⭐ ${modo} · y el puntero SE VE: más de ${VARA_DE_VISIBILIDAD} px movidos en todos`,
+    filas.join(' · '),
+  );
+}
+
 for (const [tema, puerto] of [
   ['light', 9908],
   ['dark', 9909],
@@ -5934,17 +6111,10 @@ for (const [tema, puerto] of [
     if (!(await ponerTema(m, tema, dicho))) continue;
     // ⭐ El trayecto se guarda al vuelo para poder preguntarle al CONTRATO en
     //    qué vértice tendría que caer el puntero. Sin esto la casilla solo
-    //    podría comprar «hay un círculo», que es media casilla.
+    //    podría comprar «hay un pin», que es media casilla.
     await generarCon(m, 'andando', 'window.__trayecto = t;');
     await esperarTeselas(m);
-    await m.evaluar(`(() => {
-      const b = document.querySelector('.bloque--pasos');
-      if (b && !b.classList.contains('bloque--abierto')) b.querySelector('button')?.click();
-      return true;
-    })()`);
-    await m.dormir(400);
-
-    const cuantosPasos = Number(await m.evaluar(`document.querySelectorAll('.paso').length`));
+    const cuantosPasos = await abrirLosPasos(m);
     juzgar(
       cuantosPasos >= 4,
       `${dicho} · P0 · hay ruta pintada y pasos que señalar`,
@@ -5952,35 +6122,60 @@ for (const [tema, puerto] of [
     );
     if (cuantosPasos < 4) continue;
 
-    const enReposo = await leer(m, LOS_TRAZOS_P34);
+    const enReposo = await leer(m, EL_PUNTERO_P34);
     await m.guardar(`${CAPTURAS}/puntero-sin-hover-${nombreTema}.png`);
     juzgar(
-      enReposo.circulos === 0,
+      enReposo.hay === 0,
       `${dicho} · en reposo NO hay puntero: sin gesto no se señala nada`,
-      `${enReposo.lineas} líneas de ruta · ${enReposo.circulos} círculos`,
+      `${enReposo.lineas} líneas de ruta · ${enReposo.hay} pines`,
     );
 
     // ── EL RATÓN SOBRE EL PASO 1 ─────────────────────────────────────────
     await ratonEnElPaso(m, 1);
-    const conRaton = await leer(m, LOS_TRAZOS_P34);
+    const conRaton = await leer(m, EL_PUNTERO_P34);
     await m.guardar(`${CAPTURAS}/puntero-hover-${nombreTema}.png`);
     juzgar(
-      conRaton.circulos > 0,
-      `${dicho} · ⭐ el ratón sobre el paso 1 planta el puntero [ANTONIO: como Google Maps]`,
-      `${enReposo.circulos} círculos en reposo → ${conRaton.circulos} con el ratón encima` +
-        (conRaton.circulos > 0
-          ? ` · ${conRaton.vestidos.map((v) => `${v.relleno}/${v.borde}@${v.grosor}`).join(' + ')}`
-          : ''),
+      conRaton.hay === 1,
+      `${dicho} · ⭐ el ratón sobre el paso 1 planta el puntero [ANTONIO: el pin del logo]`,
+      `${enReposo.hay} pines en reposo → ${conRaton.hay} con el ratón encima` +
+        (conRaton.hay ? ` · ${conRaton.caja} px · ${conRaton.tinta}` : ''),
     );
 
-    // ⭐ Y LA RUTA NO SE MUEVE: el puntero se AÑADE, no reescribe la línea.
+    // ⭐ **EL PIN ES EL DEL LOGO, Y SE COMPRA CONTRA LA CABECERA DE LA PROPIA
+    //    PÁGINA.** No contra una copia escrita aquí: el trazado se lee del
+    //    `app-marca` que está pintado arriba del todo, así que si alguien
+    //    redibujara el puntero «parecido», esto saltaría.
     juzgar(
-      conRaton.lineas === enReposo.lineas,
-      `${dicho} · ⭐ y la línea de la ruta NO se toca: el puntero se añade encima`,
-      `${enReposo.lineas} líneas → ${conRaton.lineas}`,
+      conRaton.dibujo !== null && conRaton.dibujo === conRaton.gotaDeLaMarca,
+      `${dicho} · ⭐ el pin es LA GOTA DE LA MARCA, la misma que la cabecera`,
+      conRaton.dibujo === null
+        ? '(no hay pin que mirar)'
+        : `${conRaton.dibujo.slice(0, 28)}… · igual que la cabecera: ${conRaton.dibujo === conRaton.gotaDeLaMarca}`,
     );
 
-    const centro = conRaton.centros[0] ?? null;
+    // ⭐ **Y NO LLEVA NINGÚN COLOR DE LÍNEA** [ANTONIO, orden 1: el color del
+    //    puntero, totalmente distinto al de la línea del tramo]. La tinta
+    //    exacta está en PARO y no se mira; lo que se mira es la prohibición.
+    const DE_LAS_LINEAS = ['#b45309', '#2563eb', '#6b7280', '#d32f2f'];
+    const relleno = (conRaton.tinta ?? '').split(' ')[0].toLowerCase();
+    juzgar(
+      relleno !== '' && !DE_LAS_LINEAS.includes(relleno),
+      `${dicho} · ⭐ el puntero NO viste ningún color de línea [orden de Antonio]`,
+      `relleno ${relleno || '(ninguno)'} · los de línea: ${DE_LAS_LINEAS.join(' ')}`,
+    );
+
+    // ⭐ **Y VA POR ENCIMA DE LAS MARCAS** — el arreglo del rojo de los cuatro
+    //    modos, comprado en el z-index de verdad y no en la intención.
+    juzgar(
+      conRaton.z !== null &&
+        conRaton.zDeLasMarcas !== null &&
+        Number(conRaton.z) > Number(conRaton.zDeLasMarcas) &&
+        !conRaton.panel.includes('overlay-pane'),
+      `${dicho} · ⭐ el puntero se pinta POR ENCIMA de las marcas del mapa`,
+      `panel «${conRaton.panel.replace('leaflet-pane ', '')}» z ${conRaton.z} · marcas z ${conRaton.zDeLasMarcas}`,
+    );
+
+    const punta = conRaton.punta;
 
     // ⭐ [APG] EL HOVER NO MUEVE EL FOCO. Señala el mapa y nada más.
     juzgar(
@@ -5989,7 +6184,7 @@ for (const [tema, puerto] of [
       `foco ${enReposo.foco} → ${conRaton.foco}`,
     );
 
-    // ── ⭐ Y CAE DONDE EL CONTRATO DICE ───────────────────────────
+    // ── ⭐ Y LA PUNTA CAE DONDE EL CONTRATO DICE ─────────────────────────
     //
     // ⚠️ **ESTA JUEZA NACIÓ MIRANDO EL SITIO EQUIVOCADO, y lo que estaba mal
     //    era ELLA.** Compraba que el puntero cayera sobre el punto número
@@ -6008,37 +6203,42 @@ for (const [tema, puerto] of [
     // ⭐ Lo que SÍ se puede medir sin reimplementar la proyección de Leaflet:
     //    **la simplificación conserva los extremos**. Así que el paso 0 —que
     //    abre en el vértice 0— tiene que caer en el PRIMER punto de la línea, y
-    //    el paso que cierra —que abre en el último— en el ÚLTIMO. Dos anclas
-    //    exactas, y entre ellas la jueza de «cada paso apunta a otro sitio».
+    //    el paso que cierra —que abre en el último— en el ÚLTIMO.
+    //
+    // ⭐ **Y ahora estas dos anclas compran ADEMÁS el `iconAnchor`**, que es lo
+    //    que el encargo pide verificar con medición: lo que se mide es LA
+    //    PUNTA de la gota, no el centro de su caja. Si el pin estuviera
+    //    anclado por el centro, la punta caería 16 px por debajo del vértice y
+    //    estas dos se irían a rojo sin que nada más se enterase.
     await ratonEnElPaso(m, 0);
-    const enElCero = await leer(m, LOS_TRAZOS_P34);
+    const enElCero = await leer(m, EL_PUNTERO_P34);
     const primero = enElCero.vertices[0] ?? null;
-    const centroCero = enElCero.centros[0] ?? null;
+    const puntaCero = enElCero.punta;
     const lejosCero =
-      primero && centroCero
-        ? Math.round(Math.hypot(centroCero.x - primero.x, centroCero.y - primero.y) * 10) / 10
+      primero && puntaCero
+        ? Math.round(Math.hypot(puntaCero.x - primero.x, puntaCero.y - primero.y) * 10) / 10
         : null;
     juzgar(
       lejosCero !== null && lejosCero <= 1.5,
-      `${dicho} · ⭐ el paso 0 abre en el vértice 0 y el puntero cae en el ARRANQUE de la línea`,
-      primero === null || centroCero === null
+      `${dicho} · ⭐ el paso 0 abre en el vértice 0 y LA PUNTA cae en el ARRANQUE de la línea`,
+      primero === null || puntaCero === null
         ? '(no se ha podido situar el puntero)'
-        : `arranque (${primero.x},${primero.y}) · puntero (${centroCero.x},${centroCero.y}) · ${lejosCero} px`,
+        : `arranque (${primero.x},${primero.y}) · punta (${puntaCero.x},${puntaCero.y}) · ${lejosCero} px`,
     );
 
     // ── OTRO PASO, OTRO PUNTO ────────────────────────────────────────────
     await ratonEnElPaso(m, 2);
-    const enElDos = await leer(m, LOS_TRAZOS_P34);
-    const centroDos = enElDos.centros[0] ?? null;
+    const enElDos = await leer(m, EL_PUNTERO_P34);
+    const puntaDos = enElDos.punta;
     juzgar(
-      centroDos !== null &&
-        centro !== null &&
-        (centroDos.x !== centro.x || centroDos.y !== centro.y) &&
-        enElDos.circulos === conRaton.circulos,
+      puntaDos !== null &&
+        punta !== null &&
+        (puntaDos.x !== punta.x || puntaDos.y !== punta.y) &&
+        enElDos.hay === conRaton.hay,
       `${dicho} · ⭐ cada paso señala SU punto: el 2 no apunta a donde el 1`,
-      centroDos === null
+      puntaDos === null
         ? '(no hay puntero en el paso 2)'
-        : `paso 1 en (${centro.x},${centro.y}) · paso 2 en (${centroDos.x},${centroDos.y})`,
+        : `paso 1 en (${punta.x},${punta.y}) · paso 2 en (${puntaDos.x},${puntaDos.y})`,
     );
 
     // ── AL SALIR, SE QUITA ───────────────────────────────────────────────
@@ -6047,11 +6247,11 @@ for (const [tema, puerto] of [
     // esconder: un marcador escondido sigue en el mapa y sigue contando.
     await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
     await m.dormir(350);
-    const alSalir = await leer(m, LOS_TRAZOS_P34);
+    const alSalir = await leer(m, EL_PUNTERO_P34);
     juzgar(
-      alSalir.circulos === 0,
+      alSalir.hay === 0,
       `${dicho} · ⭐ al salir el puntero se QUITA, no se esconde`,
-      `${enElDos.circulos} con el ratón → ${alSalir.circulos} al salir`,
+      `${enElDos.hay} con el ratón → ${alSalir.hay} al salir`,
     );
 
     // ── EL TECLADO HACE LO MISMO ─────────────────────────────────────────
@@ -6064,17 +6264,17 @@ for (const [tema, puerto] of [
     //    decide Antonio.
     await m.evaluar(`document.querySelectorAll('.paso')[1].focus()`);
     await m.dormir(350);
-    const conFoco = await leer(m, LOS_TRAZOS_P34);
-    const centroFoco = conFoco.centros[0] ?? null;
+    const conFoco = await leer(m, EL_PUNTERO_P34);
+    const puntaFoco = conFoco.punta;
     juzgar(
-      conFoco.circulos === conRaton.circulos &&
-        centroFoco !== null &&
-        centro !== null &&
-        centroFoco.x === centro.x &&
-        centroFoco.y === centro.y,
+      conFoco.hay === conRaton.hay &&
+        puntaFoco !== null &&
+        punta !== null &&
+        puntaFoco.x === punta.x &&
+        puntaFoco.y === punta.y,
       `${dicho} · ⭐ el FOCO hace exactamente lo mismo que el ratón [la ley del 10/09]`,
-      `con foco ${conFoco.circulos} círculos · mismo punto que con el ratón: ${
-        centroFoco !== null && centro !== null && centroFoco.x === centro.x && centroFoco.y === centro.y
+      `con foco ${conFoco.hay} pines · mismo punto que con el ratón: ${
+        puntaFoco !== null && punta !== null && puntaFoco.x === punta.x && puntaFoco.y === punta.y
       }`,
     );
     juzgar(
@@ -6085,42 +6285,52 @@ for (const [tema, puerto] of [
 
     await m.evaluar(`document.activeElement.blur()`);
     await m.dormir(350);
-    const alDesenfocar = await leer(m, LOS_TRAZOS_P34);
+    const alDesenfocar = await leer(m, EL_PUNTERO_P34);
     juzgar(
-      alDesenfocar.circulos === 0,
+      alDesenfocar.hay === 0,
       `${dicho} · ⭐ y al perder el foco también se quita`,
-      `${conFoco.circulos} con foco → ${alDesenfocar.circulos} al soltarlo`,
+      `${conFoco.hay} con foco → ${alDesenfocar.hay} al soltarlo`,
     );
 
-    // ⭐ Y EL PASO QUE CIERRA TAMBIÉN SEÑALA AHORA (21/09). Ver el acta: con el
+    // ⭐ Y EL PASO QUE CIERRA TAMBIÉN SEÑALA (21/09). Ver el acta: con el
     //    engrosado no podía, porque es degenerado y no hay trecho que engordar.
     const ultimo = cuantosPasos - 1;
     await ratonEnElPaso(m, ultimo);
-    const enLaLlegada = await leer(m, LOS_TRAZOS_P34);
+    const enLaLlegada = await leer(m, EL_PUNTERO_P34);
     const suyo = await leer(
       m,
       `const p = window.__trayecto.pasos[${ultimo}]; return { desde: p.desde, hasta: p.hasta, giro: p.giro };`,
     );
     const ultimoPunto = enLaLlegada.vertices[enLaLlegada.vertices.length - 1] ?? null;
-    const centroFin = enLaLlegada.centros[0] ?? null;
+    const puntaFin = enLaLlegada.punta;
     const lejosFin =
-      ultimoPunto && centroFin
-        ? Math.round(Math.hypot(centroFin.x - ultimoPunto.x, centroFin.y - ultimoPunto.y) * 10) / 10
+      ultimoPunto && puntaFin
+        ? Math.round(Math.hypot(puntaFin.x - ultimoPunto.x, puntaFin.y - ultimoPunto.y) * 10) / 10
         : null;
     juzgar(
-      enLaLlegada.circulos > 0 && suyo.desde === suyo.hasta,
+      enLaLlegada.hay > 0 && suyo.desde === suyo.hasta,
       `${dicho} · ⭐ y el paso que CIERRA también señala su punto, que antes no podía`,
-      `${suyo.giro} · v[${suyo.desde}..${suyo.hasta}] · ${enLaLlegada.circulos} círculos`,
+      `${suyo.giro} · v[${suyo.desde}..${suyo.hasta}] · ${enLaLlegada.hay} pines`,
     );
     juzgar(
       lejosFin !== null && lejosFin <= 1.5,
-      `${dicho} · ⭐ y ese punto es el FINAL de la línea, que es donde el contrato lo pone`,
-      ultimoPunto === null || centroFin === null
+      `${dicho} · ⭐ y esa punta cae en el FINAL de la línea, que es donde el contrato lo pone`,
+      ultimoPunto === null || puntaFin === null
         ? '(no se ha podido situar el puntero)'
-        : `final (${ultimoPunto.x},${ultimoPunto.y}) · puntero (${centroFin.x},${centroFin.y}) · ${lejosFin} px`,
+        : `final (${ultimoPunto.x},${ultimoPunto.y}) · punta (${puntaFin.x},${puntaFin.y}) · ${lejosFin} px`,
     );
     await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
     await m.dormir(250);
+
+    // ── ⭐ LOS SEIS MODOS, QUE ES LO QUE FALTABA ─────────────────────────
+    //
+    // Aquí estaba la zona sin vigilar: la casilla generaba una ruta andando y
+    // nada más. Los seis modos de verdad, y de cada uno se compra lo que
+    // Antonio comprobó a mano — que el puntero **se ve**.
+    console.log(`\n  ── los seis modos · ${nombreTema} ──`);
+    for (const modo of ['andando', 'coche', 'bici', 'patin', 'moto', 'bus']) {
+      await elModoSeñala(m, modo, dicho);
+    }
   } finally {
     m.cerrar();
   }
