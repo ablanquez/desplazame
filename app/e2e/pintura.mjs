@@ -5881,11 +5881,11 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
 //    que no se veía dio 101 para abajo. La vara se pone **en 120**, entre las
 //    dos, y con los números del producto roto delante.
 //
-// ⚠️ **Y LA TINTA NO SE MIRA.** El color acabó en PARO: `TINTAS_DEL_PUNTERO`
-//    tiene tres candidatos medidos y Antonio elige con las capturas delante.
-//    Esta casilla compra que el pin **no lleve ninguno de los colores de
-//    línea** —que es la orden 1, y eso sí es firme— y nada más sobre su tinta.
-//    Elegir candidato no la reescribe.
+// ⚠️ **Y LA TINTA EXACTA NO SE MIRA.** El color acabó en PARO con tres
+//    candidatos medidos, y Antonio eligió el A —gota blanca, halo negro— el
+//    21/09. Esta casilla compra que el pin **no lleve ninguno de los colores de
+//    línea** —la orden 1— y nada más sobre su tinta: por eso la elección no le
+//    movió una sola jueza.
 //
 // ⚠️ EL DISCRIMINADOR ES `data-puntero`, que `svgDelPuntero` escribe en el
 //    propio SVG. Antes se reconocía por descarte —los `path` sin
@@ -6155,7 +6155,7 @@ for (const [tema, puerto] of [
 
     // ⭐ **Y NO LLEVA NINGÚN COLOR DE LÍNEA** [ANTONIO, orden 1: el color del
     //    puntero, totalmente distinto al de la línea del tramo]. La tinta
-    //    exacta está en PARO y no se mira; lo que se mira es la prohibición.
+    //    exacta no se mira; lo que se mira es la prohibición.
     const DE_LAS_LINEAS = ['#b45309', '#2563eb', '#6b7280', '#d32f2f'];
     const relleno = (conRaton.tinta ?? '').split(' ')[0].toLowerCase();
     juzgar(

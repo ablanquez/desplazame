@@ -391,93 +391,37 @@ export const ASOMA_EL_RIBETE = 2;
  * trazado, no a ojo: `PUNTA_DE_LA_GOTA`, en `x = 16, y = 23` de la rejilla de
  * 32. Ver `ANCLAJE_DEL_PUNTERO`.
  *
- * ── El color: MEDIDO DOBLE, y con PARO ──────────────────────────────────────
+ * ── El color: ELEGIDO POR ANTONIO, y medido doble antes de elegir ─────────
  *
- * La orden 2 pide el pin del logo, y el logo se pinta con `--primary`. Pero
- * `--primary` en claro es **`#2563eb`, que es exactamente el azul del tramo que
- * rueda**: el pin del logo tal cual, sobre la línea de la bici o del coche, da
- * **1,00:1**. Y contra la tesela clara da 2,92, por debajo de la vara. Así que
- * se cumple el supuesto del encargo —«si el color del logo falla → PARO con
- * candidatos»— y esto es una TABLA, no una elección.
+ * La orden 2 pedía el pin del logo, y el logo se pinta con `--primary`. Pero
+ * `--primary` en claro es **`#2563eb`, exactamente el azul del tramo que
+ * rueda**: el pin del logo tal cual, sobre la línea de la bici o del coche,
+ * daba **1,00:1**, y 2,92 contra la tesela clara. Eso paró el encargo con tres
+ * candidatos medidos y pintados, y **Antonio eligió el A** (21/09): gota
+ * blanca con halo negro, igual en los dos temas.
  *
- * Se mide doble, como el encargo manda: el cuerpo contra **los seis colores que
- * puede pisar** —los cuatro del contrato más los dos que traen los operadores
- * de bus vivos— y el par cuerpo+halo contra **las dos teselas**, por la
- * doctrina de `ribeteDe`: del plano separa el que pueda, de los dos.
+ * Se midió doble, como el encargo mandaba: el cuerpo contra **los seis colores
+ * que puede pisar** —los cuatro del contrato más los dos que traen los
+ * operadores de bus vivos— y el par cuerpo+halo contra **las dos teselas**, por
+ * la doctrina de `ribeteDe`: del plano separa el que pueda, de los dos.
  *
- * ⚠️ **Y sale un hallazgo que conviene decir**: ningún color de tono medio
- *    llega a 3:1 contra las líneas, y no es mala suerte. Los cuatro colores de
- *    tramo se eligieron **con la misma luminancia a propósito** —0,1532 el
- *    azul, 0,1591 el ámbar, 0,1609 el rojo de la zona: «el mismo peso visual»,
- *    está escrito arriba—, y el contraste solo mira luminancia. Para separarse
- *    3:1 de una luminancia de 0,155 hay que irse **por encima de 0,565 o por
- *    debajo de 0,018**: o casi blanco, o casi negro. Por eso los dos candidatos
- *    que pasan son los dos extremos, que son además los dos tonos que esta casa
- *    ya tiene puestos en el mapa —el ribete de todas las líneas desde el 1/09 y
- *    el halo de todos los pines—.
+ *   cuerpo `#ffffff` contra las seis líneas ....... 4,83 a 6,41   (vara 3)
+ *   el par contra OSM / Dark Matter ............... 11,88 / 15,13
+ *
+ * ⚠️ **Y por qué solo podía ser un extremo**: ningún color de tono medio llega
+ *    a 3:1 contra las líneas, y no es mala suerte. Los cuatro colores de tramo
+ *    se eligieron **con la misma luminancia a propósito** —0,1532 el azul,
+ *    0,1591 el ámbar, 0,1609 el rojo de la zona—, y el contraste solo mira
+ *    luminancia: para separarse 3:1 de 0,155 hay que irse **por encima de 0,565
+ *    o por debajo de 0,018**. Los dos tonos son de la casa: el blanco es el
+ *    halo que llevan todos los pines del mapa desde el 1/09, y el negro es el
+ *    ribete que `ribeteDe` pone a las líneas sobre la tesela clara.
+ *
+ * ⚠️ Los candidatos que no ganaron —la tinta del plano (negro en claro) y el
+ *    logo tal cual— se han borrado con su tabla. Sus cifras quedan en el
+ *    checkpoint del 21/09; aquí no queda andamio de elección.
  */
-export type ClaveDeTinta = 'blanco' | 'plano' | 'logo';
-
-/** Cuerpo y halo de un pin, sin la almohadilla. */
-export interface TintaDelPuntero {
-  readonly cuerpo: string;
-  readonly halo: string;
-}
-
-export const TINTAS_DEL_PUNTERO: Readonly<
-  Record<ClaveDeTinta, Readonly<Record<'claro' | 'oscuro', TintaDelPuntero>>>
-> = {
-  /**
-   * **A · BLANCO** — cuerpo `#ffffff`, halo `#000000`, **igual en los dos
-   * temas**. Los dos tonos son de la casa: el blanco es el halo que llevan
-   * todos los pines del mapa desde el 1/09, y el negro es el ribete que
-   * `ribeteDe` le pone a las líneas sobre la tesela clara.
-   *
-   * Cifras: el cuerpo contra los seis colores de línea, **4,83 a 6,41**; el par
-   * contra la tesela, **11,88** en OSM y **15,13** en Dark Matter. Pasa entero.
-   */
-  blanco: {
-    claro: { cuerpo: 'ffffff', halo: '000000' },
-    oscuro: { cuerpo: 'ffffff', halo: '000000' },
-  },
-  /**
-   * **B · LA TINTA DEL PLANO** — lo que `ribeteDe` elegiría contra cada
-   * teselado: negro con halo blanco sobre OSM, blanco con halo negro sobre Dark
-   * Matter. En oscuro es idéntico al A; lo que cambia es el tema claro.
-   *
-   * Cifras: el cuerpo contra los seis colores de línea, **3,28 a 4,34** en
-   * claro y 4,83 a 6,41 en oscuro; el par contra la tesela, 11,88 y 15,13.
-   * Pasa entero, con menos margen que el A en claro.
-   */
-  plano: {
-    claro: { cuerpo: '000000', halo: 'ffffff' },
-    oscuro: { cuerpo: 'ffffff', halo: '000000' },
-  },
-  /**
-   * **C · EL LOGO TAL CUAL** — el pin con el color con el que la cabecera lo
-   * pinta: `--primary`, `#2563eb` en claro y `#93c5fd` en oscuro. El halo es el
-   * que `ribeteDe` calcula para ese cuerpo sobre su plano, y para los dos da
-   * `#000000`.
-   *
-   * ⚠️ **NO LLEGA A LA VARA, y va en la tabla para que se vea por qué.** En
-   *    claro el cuerpo es el MISMO azul que la línea del tramo que rueda:
-   *    **1,00:1**, y 1,03 a 1,24 contra los otros cinco. En oscuro, 2,68 a 3,55
-   *    —solo se separa de una línea de las seis—. Contra la tesela clara, 2,92.
-   */
-  logo: {
-    claro: { cuerpo: '2563eb', halo: '000000' },
-    oscuro: { cuerpo: '93c5fd', halo: '000000' },
-  },
-};
-
-/**
- * ⚠️ **LA QUE VIAJA HOY, Y ES PROVISIONAL.** El encargo acaba en PARO de color:
- *    Antonio elige con las capturas delante. Va el A porque es el único que
- *    pasa la vara **y** es el mismo en los dos temas, así que el producto no
- *    viaja un solo día con un puntero que no se lee. Cambiar esta línea es todo
- *    lo que el remate tendrá que hacer: ni una jueza mira la tinta.
- */
-export const TINTA_PUESTA: ClaveDeTinta = 'blanco';
+export const TINTA_DEL_PUNTERO = { cuerpo: 'ffffff', halo: '000000' } as const;
 
 /**
  * ⭐ **EL PANEL DEL PUNTERO, POR ENCIMA DE LAS MARCAS** — y este es el arreglo
@@ -550,16 +494,17 @@ export const ANCLAJE_DEL_PUNTERO: L.PointTuple = [
  * componente, en vez de un data URI con el dibujo cocido dentro que habría que
  * rehacer cada vez que la marca cambie. El anclaje se declara igual en los dos.
  *
- * `data-puntero` con la tinta puesta: es por donde lo reconocen las juezas, y
- * de paso dice en la propia pantalla qué candidato se está mirando.
+ * `data-puntero` es por donde lo reconocen las juezas: se reconoce por lo que
+ * ES, no por descarte.
  */
-export function svgDelPuntero(tinta: TintaDelPuntero): string {
+export function svgDelPuntero(): string {
   const { x, y, ancho, alto } = CAJA_DEL_PUNTERO;
+  const { cuerpo, halo } = TINTA_DEL_PUNTERO;
   return (
     `<svg viewBox="${x} ${y} ${ancho} ${alto}" width="${ANCHO_DEL_PUNTERO}" height="${ALTO_DEL_PUNTERO}" ` +
-    `data-puntero="${TINTA_PUESTA}" aria-hidden="true" focusable="false">` +
+    `data-puntero="gota" aria-hidden="true" focusable="false">` +
     `<path d="${GOTA_DE_LA_MARCA}" fill-rule="evenodd" clip-rule="evenodd" ` +
-    `fill="#${tinta.cuerpo}" stroke="#${tinta.halo}" stroke-width="${HALO_DEL_PUNTERO}" ` +
+    `fill="#${cuerpo}" stroke="#${halo}" stroke-width="${HALO_DEL_PUNTERO}" ` +
     `stroke-linejoin="round"></path></svg>`
   );
 }
@@ -979,12 +924,12 @@ export class Mapa {
     //    cambio de orden: mientras el puntero heredaba el color del tramo,
     //    cambiar de tramos tenía que repintarlo. Ahora su tinta no los mira,
     //    así que leerlos aquí sería declarar una dependencia que no existe.
-    //    Lo que sí lee: el rango, el trazado del que saca la coordenada, y el
-    //    tema, porque hay un candidato de tinta que cambia con él.
+    //    Lo que sí lee: el rango y el trazado del que saca la coordenada. **Y
+    //    tampoco el tema**, desde la elección de Antonio: la tinta A es la
+    //    misma en los dos, así que cambiar de tema no tiene nada que repintar.
     effect(() => {
       this.resaltado();
       this.trazado();
-      this.tema.oscuro();
       this.pintarRealce();
     });
 
@@ -1063,8 +1008,9 @@ export class Mapa {
    * · **El dibujo**: `L.divIcon` con `GOTA_DE_LA_MARCA`, anclado por la punta
    *   (`ANCLAJE_DEL_PUNTERO`), en vez del `circleMarker` de la mañana. Un pin
    *   dice *aquí* con su punta; un disco solo dice *por aquí*.
-   * · **El color**: sale de `TINTAS_DEL_PUNTERO`, que no mira el tramo para
-   *   nada. Se fue con él `tramoQueAbre`, que existía solo para heredarlo.
+   * · **El color**: `TINTA_DEL_PUNTERO`, la A que eligió Antonio, que no mira
+   *   el tramo para nada. Se fue con él `tramoQueAbre`, que existía solo para
+   *   heredarlo.
    * · **El panel**: `PANE_PUNTERO`, por encima del de las marcas — y ESE es el
    *   arreglo del rojo de los cuatro modos. Ver su cabecera para las cifras.
    *
@@ -1087,10 +1033,9 @@ export class Mapa {
     if (!donde) {
       return;
     }
-    const tinta = TINTAS_DEL_PUNTERO[TINTA_PUESTA][this.tema.oscuro() ? 'oscuro' : 'claro'];
     const marca = L.marker([donde[0], donde[1]], {
       icon: L.divIcon({
-        html: svgDelPuntero(tinta),
+        html: svgDelPuntero(),
         // Vacío a propósito: por defecto Leaflet pone `leaflet-div-icon`, que
         // trae fondo blanco y borde gris — un recuadro alrededor del pin. Es la
         // misma razón por la que los extremos lo llevan vacío.

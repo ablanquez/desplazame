@@ -7845,11 +7845,10 @@ describe('Buscador', () => {
    *       hasta`) y con el engrosado no había trecho que engordar; un PUNTO sí
    *       tiene, y señalar dónde está la puerta es lo que la orden pide.
    *
-   * ⚠️ El aspecto del puntero NO está decidido: `PUNTEROS` en `mapa.ts` tiene
-   *    tres candidatos y Antonio elige con las capturas delante. Por eso estas
-   *    juezas **no miran ni el radio ni el color ni cuántos círculos son**:
-   *    miran que aparezcan, que se vayan y qué dato reciben. Elegir candidato
-   *    no las reescribe.
+   * ⚠️ Estas juezas **no miran el aspecto del puntero**: miran que aparezca,
+   *    que se vaya y qué dato recibe. Por eso aguantaron sin moverse dos
+   *    cambios de aspecto —el disco y el pin— y la elección de la tinta A por
+   *    Antonio (21/09). El aspecto lo compran `mapa.spec.ts` y la P34.
    *
    * ⚠️ Lo que ESTAS juezas no pueden comprar es el gesto de verdad: un `:hover`
    *    no se dispara con un evento sintético. Eso lo mide la P34 de
