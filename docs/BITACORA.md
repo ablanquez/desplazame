@@ -14,7 +14,7 @@
 
 ---
 
-## [2026-09-21] 🔴 ABIERTA — La jueza que compra «el puntero SE VE» dio verde en los doce sitios donde no había puntero ninguno
+## [2026-09-21] ✅ CERRADA — La jueza que compra «el puntero SE VE» dio verde en los doce sitios donde no había puntero ninguno
 
 **Categoría:** la jueza cuenta lo que mide y no cuenta lo que falta
 **Síntoma:** la P34 nueva de `pintura.mjs` nace con dos juezas por modo: una
@@ -43,8 +43,19 @@ cantaba el fallo**; el veredicto decía lo contrario.
 la jueza nacía roja donde tenía que nacer. La jueza gemela sí dio rojo, así
 que el par nunca dio un verde limpio — pero la línea que afirma «se ve» sí lo
 dio, y eso es lo que aquí se registra.
-**Causa raíz:** ⏳ PENDIENTE
-**Ley:** ⏳ PENDIENTE
+**Causa raíz:** el veredicto se escribió como «ningún caso por debajo de la
+vara», y el caso sin puntero salía del bucle con `continue` **antes** de
+llegar a la vara. Lo que la jueza contaba eran los punteros que se medían; la
+ausencia no se medía, así que no podía suspender.
+**Ley:** una jueza que afirma algo de N casos tiene que contar los N; el caso
+que no se puede medir cuenta como suspenso, nunca como ausente.
+**Arreglo aplicado:** `app/e2e/pintura.mjs`, `elModoSeñala`: la rama sin
+puntero hace `sinPuntero++` **e** `invisibles++`, con acta. En la batería del
+21/09 contra el dist del pin la jueza da OK en los doce casos con cifras
+medidas (475 a 546 px). ⚠️ Esa tirada **no ejecuta la rama arreglada** —con el
+pin puesto no hay ningún paso sin puntero—: que ahora suspenda la ausencia
+consta en el código, no en una salida. NO CONSTA tirada roja posterior.
+**Commit:** `aeddc4e`
 **Traza:** `app/e2e/pintura.mjs` → `elModoSeñala`, la rama
 `if (!visto.hay || !visto.punta) { sinPuntero++; …; continue; }`.
 
