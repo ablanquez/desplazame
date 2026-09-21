@@ -1132,24 +1132,46 @@ export function etapaMontada(red: RedDeBus, montado: TramoMontado, como: ComoSeM
   // línea va desviada, el patrón es el operativo y la cuenta sale de él, así
   // que las paradas que se dicen son las que de verdad se van a pasar.
   const paradas = montado.iHasta - montado.iDesde;
+  /**
+   * ⭐ EL RANGO DE VÉRTICES DE LOS PASOS DE ESTE TRAMO (21/09, casilla 5b).
+   *
+   * Los pasos del tramo montado son los únicos del motor que NO los escribe
+   * `escribirPasos`, así que su rebanada se pone aquí —y con la misma ley que
+   * allí—:
+   *
+   * · El de SUBIR (o el de transbordar) es **quien abre el trecho**: se monta y
+   *   el vehículo recorre la geometría entera de este tramo, `[0 .. último]`.
+   * · El de BAJAR **cierra y es degenerado**, `[último .. último]`: bajarse no
+   *   recorre nada, y darle rebanada se la quitaría al viaje que acaba de
+   *   hacerse. Es lo mismo que hace la llegada de una etapa a pie.
+   *
+   * ⚠️ Los índices son LOCALES a esta etapa, como los de sus `tramos`. `juntar`
+   *    los muda con el mismo `base` al coser las etapas del viaje.
+   */
+  const ultimoVertice = Math.max(0, geometria.length - 1);
+  const montandose = { desde: 0, hasta: ultimoVertice };
+  const bajandose = { desde: ultimoVertice, hasta: ultimoVertice };
   return {
     pasos: [
-      como.transbordandoDe
-        ? pasoDeTransbordo(
-            dondeSube,
-            como.transbordandoDe,
-            linea,
-            paradas,
-            intervalo,
-            vivo,
-            aQuien,
-          )
-        : pasoDeSubir(linea, dondeSube, paradas, intervalo, vivo, aQuien),
+      {
+        ...(como.transbordandoDe
+          ? pasoDeTransbordo(
+              dondeSube,
+              como.transbordandoDe,
+              linea,
+              paradas,
+              intervalo,
+              vivo,
+              aQuien,
+            )
+          : pasoDeSubir(linea, dondeSube, paradas, intervalo, vivo, aQuien)),
+        ...montandose,
+      },
       // Si de aquí se transborda en el mismo poste, el «Baja» lo dice el paso
       // de transbordo del siguiente: no se baja para volver a subir.
       ...(como.acabaEnTransbordo
         ? []
-        : [pasoDeBajar(comoSeLlama(montado.hasta))]),
+        : [{ ...pasoDeBajar(comoSeLlama(montado.hasta)), ...bajandose }]),
     ],
     geometria,
     metros,

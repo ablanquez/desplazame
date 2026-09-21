@@ -182,8 +182,45 @@ function dondeAparca(t: Trayecto, tipo: TipoDeAparcamiento): string | null {
  * Un objeto JSON no promete el orden de sus claves, así que compararlo tal cual
  * confunde «ha cambiado la respuesta» con «se ha montado de otra manera».
  */
+/**
+ * ⭐ **EL SELLO NO MIRA EL RANGO DE VÉRTICES DEL PASO, y es a propósito
+ *    (21/09, casilla 5b).**
+ *
+ * El paso ganó ese día su `desde`/`hasta` —la rebanada de la geometría que
+ * resalta la pantalla—, y eso viaja en los ocho modos: **las siete juezas de
+ * sha de este fichero se pusieron rojas de golpe**, que es exactamente lo que
+ * tienen que hacer cuando el contrato crece.
+ *
+ * Había dos maneras de arreglarlo y no valen lo mismo:
+ *
+ * · Recalcular los siete shas contra el código recién tocado. Entonces el
+ *   sello nuevo compraría la realidad nueva **sin poder distinguir** si lo
+ *   único que se movió fue el rango o si se coló algo más a la vez. Es el
+ *   arreglo de snapshot de toda la vida, y es el débil.
+ * · **Quitar el rango ANTES de sellar**, que es lo que se hace aquí. Los
+ *   siete shas se quedan **como estaban, sin tocar un dígito**, y que sigan
+ *   cuadrando es la prueba positiva de que el rango se añade y no mueve ni
+ *   una frase, ni un metro, ni un vértice.
+ *
+ * Es el mismo trato que la juez 14 de `muralla-modos.spec.ts` le da a los
+ * campos del 14/09, y allí además se comprueba que el campo nuevo LLEGÓ, para
+ * que quitar lo que no está no dé el mismo byte por casualidad.
+ *
+ * ⚠️ **Solo se le quita a los PASOS.** Los `tramos` llevan sus propios
+ *    `desde`/`hasta` desde el 30/08 y ésos siguen dentro del sello: son los
+ *    que dicen dónde se aparca el coche y dónde empieza la Zona de Bajas
+ *    Emisiones, y moverlos SÍ tiene que poner esto en rojo.
+ *
+ * ⚠️ Y quién vigila el rango entonces: `rangos-de-pasos.spec.ts`, con sus
+ *    seis juezas del canon —contiguos, cubren, degenerado el de cierre, y la
+ *    rebanada mide lo que el paso dice— contra los seis modos.
+ */
 function selloDe(t: Trayecto): string {
-  const canonico = JSON.stringify(t, (_k, v: unknown) =>
+  const sinRango = {
+    ...t,
+    pasos: t.pasos.map(({ desde, hasta, ...resto }) => resto),
+  };
+  const canonico = JSON.stringify(sinRango, (_k, v: unknown) =>
     v !== null && typeof v === 'object' && !Array.isArray(v)
       ? Object.fromEntries(
           Object.keys(v as Record<string, unknown>)

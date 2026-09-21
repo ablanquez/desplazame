@@ -482,6 +482,57 @@ export function geometriaDe(ruta: Ruta): readonly Punto[] {
 }
 
 /**
+ * ⭐ DÓNDE ABRE CADA TROZO DENTRO DE LA GEOMETRÍA (21/09, casilla 5b).
+ *
+ * Devuelve, por cada trozo de `ruta.trozos` y en su orden, **el índice del
+ * vértice donde empieza** sobre los puntos que devuelve `geometriaDe`; y de
+ * paso, cuántos vértices hay en total, para no tener que recorrerlos otra vez.
+ *
+ * Existe por lo mismo que `geometriaPorModo`: **el corte sale de la misma
+ * vuelta que construye los puntos, así que no puede derivar**. Lo pide el
+ * resaltado del paso (casilla 5b), que necesita saber qué rebanada de la línea
+ * es de cada paso, y `Tramo.abre` ya dice por qué TROZO abre cada uno — lo que
+ * faltaba era traducir trozos a vértices.
+ *
+ * ⚠️ **La deduplicación es la de `geometriaDe`, letra por letra**, y tiene que
+ *    seguir siéndolo: un punto que repite al anterior no entra, así que contar
+ *    `trozo.g.length` por separado daría otro número. Si alguna vez las dos
+ *    vueltas dejan de ser la misma, los índices apuntarían a otra línea.
+ *
+ * ⚠️ **Y EL PRIMER TROZO ABRE EN 0, no en la costura**, que es exactamente la
+ *    lección que `geometriaPorModo` se llevó el 30/08: si abriera donde acaba
+ *    lo ya puesto, **el conector de origen** —el trecho entre la puerta y la
+ *    calzada— se quedaría fuera de todos los rangos y habría un trocito de
+ *    línea que ningún paso resalta. Los demás sí abren en la costura: ese
+ *    vértice pertenece a los dos, como en OSRM.
+ */
+export function aperturasDeLosTrozos(ruta: Ruta): {
+  readonly aperturas: readonly number[];
+  readonly vertices: number;
+} {
+  const puntos: Punto[] = [...ruta.conectorOrigen];
+  const aperturas: number[] = [];
+  for (const trozo of ruta.trozos) {
+    aperturas.push(aperturas.length === 0 ? 0 : Math.max(0, puntos.length - 1));
+    for (const punto of trozo.g) {
+      const ultimo = puntos[puntos.length - 1];
+      if (ultimo && ultimo[0] === punto[0] && ultimo[1] === punto[1]) {
+        continue;
+      }
+      puntos.push(punto);
+    }
+  }
+  for (const punto of ruta.conectorDestino) {
+    const ultimo = puntos[puntos.length - 1];
+    if (ultimo && ultimo[0] === punto[0] && ultimo[1] === punto[1]) {
+      continue;
+    }
+    puntos.push(punto);
+  }
+  return { aperturas, vertices: puntos.length };
+}
+
+/**
  * ⭐ UN CORTE de la geometría: un trecho que se recorre de una sola manera.
  *
  * Lleva los índices sobre los puntos devueltos **y** el rango de trozos de la

@@ -369,6 +369,42 @@ export interface Paso {
    * `aQueEstacion.pide`, que es la misma pregunta.
    */
   readonly disponibilidad?: DisponibilidadDelHito;
+  /**
+   * ⭐ **QUÉ REBANADA DE LA GEOMETRÍA ES DE ESTE PASO** (21/09).
+   *
+   * Índices al mismo `Trayecto.geometria` que ya usan los `tramos`: el
+   * primer vértice de este paso y el último, **los dos inclusivos**. Su trecho
+   * es `geometria.slice(desde, hasta + 1)`.
+   *
+   * Éste es **el formato estándar de los dos motores de rutas canon**, y no
+   * una invención de la casa. [DOC Valhalla, referencia de su API] cada
+   * maniobra lleva `begin_shape_index` y `end_shape_index`, *«índice de la
+   * primera/última coordenada del shape de esta maniobra»*: índices al
+   * polyline ÚNICO, no una geometría por paso. [DOC OSRM] su `RouteStep` hace
+   * lo mismo sobre la geometría compartida. Mandar las coordenadas otra vez
+   * dentro de cada paso sería publicar dos veces la misma línea y abrir la
+   * puerta a que las dos copias dejen de coincidir.
+   *
+   * ⚠️ **LOS RANGOS SE SOLAPAN DE UNO EN UNO, y eso es la norma, no un
+   *    fallo.** [DOC OSRM] cada paso comparte su coordenada inicial con la
+   *    final del anterior. Aquí es la misma ley que ya rige `TramoDelViaje`:
+   *    el vértice de la costura pertenece a los dos, para que los trechos
+   *    resaltados se toquen en vez de dejar un hueco de un vértice. Quien
+   *    cuente vértices sumando `hasta - desde` y esperando la geometría
+   *    entera se pasará de largo por el número de pasos menos uno.
+   *
+   * ⚠️ **EL PASO QUE CIERRA —la llegada, o el hito— ES DEGENERADO**: `desde`
+   *    y `hasta` valen los dos el último vértice. No abre trecho ninguno
+   *    —sus `metros` son 0—, y darle uno le robaría su rebanada al paso
+   *    anterior. Valhalla hace exactamente esto con su maniobra de destino.
+   *
+   * ⚠️ **VAN LOS DOS O NO VA NINGUNO.** Un paso que no puede llevar rango
+   *    honesto viaja **sin ninguno de los dos**, y entonces la pantalla no
+   *    resalta nada: no se inventa geometría para un paso que no recorre
+   *    ninguna. Medio rango sería peor que ninguno.
+   */
+  readonly desde?: number;
+  readonly hasta?: number;
 }
 
 /**

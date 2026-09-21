@@ -348,11 +348,24 @@ export function juntar(
   const geometria: Vertice[] = [];
   const crudos: (TramoDeEtapa & { hito: HitoDeTramo })[] = [];
   for (const etapa of etapas) {
-    pasos.push(...etapa.pasos);
     // ⭐ El desplazamiento de índices: la etapa que no es la primera comparte su
     // vértice 0 con el último de la anterior —por eso se pega con `slice(1)`—,
     // así que su índice local `i` cae en `base + i`.
     const base = geometria.length === 0 ? 0 : geometria.length - 1;
+    // ⭐ Y LOS PASOS SE DESPLAZAN CON EL MISMO `base` (21/09, casilla 5b). Cada
+    //    etapa escribe el rango de sus pasos sobre SU geometría, que empieza en
+    //    0; al coserlas, esos índices tienen que mudarse igual que los de los
+    //    tramos o señalarían el trecho de otra etapa. Se mueve la misma cuenta
+    //    porque es la misma costura.
+    //
+    // ⚠️ Un paso sin rango se queda sin él: no se le inventa uno al mudarlo.
+    pasos.push(
+      ...etapa.pasos.map((paso) =>
+        paso.desde === undefined
+          ? paso
+          : { ...paso, desde: base + paso.desde, hasta: base + paso.hasta! },
+      ),
+    );
     geometria.push(...(geometria.length === 0 ? etapa.geometria : etapa.geometria.slice(1)));
     etapa.tramos.forEach((t, k) => {
       crudos.push({

@@ -334,6 +334,14 @@ function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): L
    * ⚠️ Y la otra mitad, para que no pase vacía: los campos tienen que haber
    *    llegado. Si el motor dejara de rellenarlos, quitar lo que no está daría
    *    el mismo byte y la juez no estaría comprando nada.
+   *
+   * ⭐ **AMPLIADA EL 21/09 (casilla 5b), y con el mismo trato.** El paso gana
+   *    su rango de vértices —`desde` y `hasta`—, que es UI y viaja a los ocho
+   *    modos, así que esta juez se puso roja en el acto: justo lo que tiene que
+   *    hacer. Se le quitan también esos dos antes de sellar, **y el byte de
+   *    antes sigue siendo el mismo `0cf2990a…`** —o sea, el rango se añade y no
+   *    mueve ni una frase, ni un metro, ni un vértice—. Y con su contador: si
+   *    el motor dejara de rellenarlo, quitar lo que no está daría el mismo byte.
    */
   test('⭐ 14 · quitando lo nuevo de la mitad 1, el JSON de los ocho es el de antes', () => {
     const MUDO_DE_ANTES =
@@ -346,6 +354,7 @@ function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): L
     const s = motor.portales.situados;
     const huella = createHash('sha256');
     let conCampos = 0;
+    let conRango = 0;
     let mudosConPaso = 0;
     for (let n = 0; n < 20; n++) {
       const A = s[Math.floor(azar() * s.length)]!;
@@ -363,12 +372,17 @@ function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): L
           null,
           null,
         );
-        const pasos = t.pasos.map(({ paradas, frecuencia, disponibilidad, ...resto }) => {
-          if (paradas !== undefined || frecuencia !== undefined || disponibilidad !== undefined) {
-            conCampos++;
-          }
-          return resto;
-        });
+        const pasos = t.pasos.map(
+          ({ paradas, frecuencia, disponibilidad, desde, hasta, ...resto }) => {
+            if (paradas !== undefined || frecuencia !== undefined || disponibilidad !== undefined) {
+              conCampos++;
+            }
+            if (desde !== undefined && hasta !== undefined) {
+              conRango++;
+            }
+            return resto;
+          },
+        );
         const avisos: Aviso[] = [];
         let mudoPuesto = false;
         for (const a of t.avisos) {
@@ -386,6 +400,7 @@ function sellar(reloj: Date, soloEstos: (modo: Modo) => boolean = () => true): L
       }
     }
     assert.ok(conCampos >= 20, `solo ${conCampos} pasos traen los campos nuevos: la juez no compra nada`);
+    assert.ok(conRango >= 100, `solo ${conRango} pasos traen su rango de vértices: la juez no compra nada`);
     assert.ok(mudosConPaso >= 20, `solo ${mudosConPaso} mudos de BiZi traen su paso`);
     assert.equal(
       huella.digest('hex'),

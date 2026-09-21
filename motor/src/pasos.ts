@@ -34,6 +34,7 @@
 import type { RedNarrable } from './red.ts';
 import type { Giro, ParteDelPaso, Paso } from '@desplazame/tipos';
 import { metrosPlanos } from './proyeccion.ts';
+import { aperturasDeLosTrozos } from './ruta.ts';
 import type { Ruta, TrozoDeRuta } from './ruta.ts';
 
 type Punto = readonly [number, number];
@@ -1878,6 +1879,46 @@ function pasoDe(giro: Giro, metros: number, partes: readonly ParteDelPaso[]): Pa
 }
 
 /**
+ * ⭐ LE PONE A CADA PASO SU REBANADA DE LA GEOMETRÍA (21/09, casilla 5b).
+ *
+ * `abres` trae, por paso y en su orden, el índice del trozo por el que abre
+ * —lo mismo que `Tramo.abre`—. Aquí se traduce a vértices y se cierra cada
+ * rango, con **tres reglas y ninguna más**:
+ *
+ * 1. Cada paso ABRE donde abre su trozo. El primero, en 0: el conector de la
+ *    puerta es suyo.
+ * 2. Cada paso MUERE donde abre el siguiente —**el solape de OSRM**: el
+ *    vértice de la costura es de los dos—, y el último, en el final.
+ * 3. El paso que CIERRA —la llegada, o el hito— se pega al último vértice y
+ *    queda degenerado, porque no abre trecho ninguno: sus `metros` son 0.
+ *    Darle una rebanada se la quitaría al paso anterior, que es quien de
+ *    verdad la recorre. [DOC Valhalla] su maniobra de destino hace esto mismo.
+ *
+ * De las tres juntas sale lo que las jueces del canon compran: rangos
+ * CONTIGUOS y que CUBREN la geometría entera sin un vértice de nadie.
+ *
+ * ⚠️ No se calcula el cierre de cada paso por su cuenta —sumando trozos, o
+ *    metros— y no es pereza: `fundir` y `colapsar` se llevan tramos por
+ *    delante, y los `metros` vienen redondeados a propósito. Es el mismo error
+ *    de 6,9 m que obligó a publicar `tramos` el 30/08. Con la regla 2 el
+ *    cierre no se calcula: se LEE del paso siguiente.
+ */
+function conSusRangos(pasos: readonly Paso[], abres: readonly number[], ruta: Ruta): Paso[] {
+  const { aperturas, vertices } = aperturasDeLosTrozos(ruta);
+  const ultimo = Math.max(0, vertices - 1);
+  const n = pasos.length;
+  const desde = abres.map((abre) => aperturas[abre] ?? 0);
+  if (n > 1) {
+    desde[n - 1] = ultimo;
+  }
+  return pasos.map((paso, k) => ({
+    ...paso,
+    desde: desde[k]!,
+    hasta: k === n - 1 ? ultimo : desde[k + 1]!,
+  }));
+}
+
+/**
  * Escribe los pasos de una ruta.
  *
  * `nombreOrigen` y `nombreDestino` son los MUNICIPALES —«CALLE BURGOS 4»—, y
@@ -1914,12 +1955,16 @@ export function escribirPasos(
   // Una ruta trivial de cero metros: no hay nada que andar y se dice.
   if (tramos.length === 0) {
     aperturas?.push(0);
-    return [
-      pasoDe('llegada', 0, [
-        { papel: 'via', texto: comoSePresenta(nombreDestino, true, red.articulosPropios) },
-        { papel: 'texto', texto: ' es el mismo portal del que sales.' },
-      ]),
-    ];
+    return conSusRangos(
+      [
+        pasoDe('llegada', 0, [
+          { papel: 'via', texto: comoSePresenta(nombreDestino, true, red.articulosPropios) },
+          { papel: 'texto', texto: ' es el mismo portal del que sales.' },
+        ]),
+      ],
+      [0],
+      ruta,
+    );
   }
 
   // Se bajan a la forma llana —nombre, metros y los dos rumbos— y se funden
@@ -1951,6 +1996,9 @@ export function escribirPasos(
   const maniobras = unificarElRegistro(colapsarManiobras(fundirMicroTramos(llanos)));
 
   const pasos: Paso[] = [];
+  // ⭐ Lo mismo que `aperturas`, pero SIEMPRE: el rango de vértices de cada
+  //    paso sale de aquí y no puede depender de que el llamador lo pida.
+  const abres: number[] = [];
 
   // ── El arranque, con su cardinal ─────────────────────────────────────────
   const primero = maniobras[0]!;
@@ -1986,6 +2034,7 @@ export function escribirPasos(
   }
   pasos.push(pasoDe('salida', metrosParaLeer(primero.metros), arranque));
   aperturas?.push(primero.abre ?? 0);
+  abres.push(primero.abre ?? 0);
 
   // ── Un paso por cada maniobra que ha sobrevivido ─────────────────────────
   for (let k = 1; k < maniobras.length; k++) {
@@ -2012,6 +2061,7 @@ export function escribirPasos(
     }
     pasos.push(pasoDe(maniobra.giro, metrosParaLeer(maniobra.metros), partes));
     aperturas?.push(maniobra.abre ?? 0);
+    abres.push(maniobra.abre ?? 0);
   }
 
   // ── El cierre: de qué lado queda la puerta ───────────────────────────────
@@ -2033,6 +2083,7 @@ export function escribirPasos(
   // ruta, que es donde cae, para que la lista tenga una entrada por paso y
   // nadie tenga que acordarse de que a la última le falta.
   aperturas?.push(ultimo.abre);
+  abres.push(ultimo.abre);
 
-  return pasos;
+  return conSusRangos(pasos, abres, ruta);
 }
