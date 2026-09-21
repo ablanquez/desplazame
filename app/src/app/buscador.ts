@@ -1937,6 +1937,69 @@ export class Buscador {
   protected readonly tramos = computed(() => this.resultado()?.trayecto.tramos ?? []);
 
   /**
+   * ⭐ **QUÉ PASO TIENE EL PUNTERO O EL FOCO ENCIMA**, o `null` (21/09, 5b).
+   *
+   * Solo el índice. La rebanada de la línea que le toca la dice el contrato
+   * —`Paso.desde` y `Paso.hasta`—, y de eso se encarga `rangoResaltado`: aquí
+   * no se deriva nada.
+   */
+  protected readonly pasoResaltado = signal<number | null>(null);
+
+  /**
+   * ⭐ **EL RANGO QUE SE LE PASA AL MAPA**, leído del contrato y de ningún
+   * otro sitio.
+   *
+   * `null` en tres casos, y los tres son «no hay nada que señalar» y no un
+   * fallo: no hay paso señalado, el paso no existe, o **el paso viaja sin
+   * rango**. Este último está firmado en el contrato: un paso que no puede
+   * llevar rango honesto no lo lleva, y entonces la pantalla no resalta. Hoy
+   * no hay ninguno así en los seis modos —lo censa `rangos-de-pasos.spec.ts`—,
+   * y el día que lo haya esto se queda quieto en vez de inventarse un trecho.
+   */
+  protected readonly rangoResaltado = computed(() => {
+    const i = this.pasoResaltado();
+    if (i === null) {
+      return null;
+    }
+    const paso = this.resultado()?.trayecto.pasos[i];
+    return paso?.desde === undefined || paso.hasta === undefined
+      ? null
+      : { desde: paso.desde, hasta: paso.hasta };
+  });
+
+  /**
+   * ⭐ **EL PUNTERO Y EL FOCO HACEN LO MISMO, y el foco NO lo mueve el ratón.**
+   *
+   * [APG, prácticas de teclado] *mover el foco en respuesta al hover se
+   * evita*: pasar el ratón resalta el mapa y **no toca el foco de nadie**. Y la
+   * ley de la casa del 10/09 —el teclado existe en los dos mundos— obliga a la
+   * pareja: lo que hace `mouseenter`/`mouseleave` lo hace `focusin`/`focusout`.
+   *
+   * ⚠️ **CÓMO LLEGA EL FOCO AL PASO, sin inventar `tabindex` a granel.** El
+   *    `<li class="paso">` ya es enfocable **por programa** —lleva `tabindex="-1"`
+   *    desde que existe el resumen, por el patrón de GOV.UK: al seguir un enlace
+   *    del resumen el navegador solo mueve el foco si el destino puede
+   *    recibirlo—. Así que el paso se resalta por teclado en dos caminos que YA
+   *    existían:
+   *
+   *      · siguiendo su enlace del resumen —el foco cae en el `<li>`—, y
+   *      · tabulando hasta el botón vivo de un paso de subir o de coger la BiZi
+   *        —`focusin` burbujea desde el botón hasta el `<li>`, que es justo lo
+   *        que `focusin` hace y `focus` no—.
+   *
+   * ⚠️ **Lo que NO se hace: poner `tabindex="0"` en los pasos que no tienen
+   *    nada interactivo dentro.** Meter dieciséis paradas nuevas en el orden de
+   *    tabulación de una lista de lectura es un cambio de semántica, y los
+   *    cambios de semántica los decide Antonio. Queda DICHO: **un paso de giro
+   *    corriente no se puede resaltar solo con el teclado hoy**, y el texto del
+   *    paso está completo sin el resaltado —igual que en táctil, donde no hay
+   *    hover [MDN] y el realce es mejora, no requisito—.
+   */
+  protected resaltar(i: number | null): void {
+    this.pasoResaltado.set(i);
+  }
+
+  /**
    * ⭐ LA NOTA QUE VIAJA CON EL HITO, o `null` si no hay nada que avisar.
    *
    * ── Por qué existe, con la doctrina y con el caso ────────────────────────

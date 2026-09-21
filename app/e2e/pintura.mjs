@@ -5835,6 +5835,201 @@ for (const [k, pantalla] of PANTALLAS.entries()) {
   }
 }
 
+// ══════ P34 · EL PASO SEÑALA SU TRECHO EN EL MAPA (21/09, casilla 5b) ══════
+//
+// ⭐ La casilla 5b llevaba parada desde el 14/09 por falta de dato: el paso no
+//    sabía qué rebanada de la línea era suya. Desde hoy el contrato la dice
+//    —`Paso.desde` y `Paso.hasta`, el formato de Valhalla y de OSRM— y la
+//    pantalla la señala.
+//
+// ⚠️ ESTO ES LA MITAD QUE NINGUNA OTRA COMPRA. Que el rango llegue lo compran
+//    las seis juezas de `rangos-de-pasos.spec.ts` en el motor; que el mapa
+//    reciba el rango lo compra `buscador.spec.ts`. Que al pasar el ratón por un
+//    paso **cambie un píxel del mapa** es esto, y se mide moviendo el ratón de
+//    verdad por CDP: un `:hover` no se simula con JavaScript, y un `mouseenter`
+//    sintético no prueba que el gesto de verdad funcione.
+//
+// ⚠️ Y SE MIDE EL `stroke-width` DEL `<path>`, no una clase nuestra: [DOC
+//    Leaflet] una polilínea es un `<path>` de SVG y el grosor va en su
+//    `stroke-width`. Es el píxel, que es lo que esta suite compra.
+const LOS_TRAZOS_P34 = `
+  const paths = [...document.querySelectorAll('.leaflet-overlay-pane path')];
+  const a = document.activeElement;
+  return {
+    cuantos: paths.length,
+    trazos: paths.map((p) => ({
+      w: parseFloat(p.getAttribute('stroke-width') || '0'),
+      color: (p.getAttribute('stroke') || '').toLowerCase(),
+      largo: (p.getAttribute('d') || '').length,
+      firma: (p.getAttribute('d') || '').slice(0, 60),
+    })),
+    foco: a ? a.tagName.toLowerCase() + (a.id ? '#' + a.id : '') : '(ninguno)',
+  };
+`;
+
+/** Pone el ratón en el centro del paso `i`, de verdad, y espera al repintado. */
+async function ratonEnElPaso(m, i) {
+  const caja = await leer(
+    m,
+    `
+    const li = document.querySelectorAll('.paso')[${i}];
+    if (!li) return null;
+    li.scrollIntoView({ block: 'center' });
+    const c = li.getBoundingClientRect();
+    return { x: Math.round(c.x + c.width / 2), y: Math.round(c.y + c.height / 2) };
+  `,
+  );
+  if (caja) {
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: caja.x, y: caja.y });
+    await m.dormir(300);
+  }
+  return caja;
+}
+
+for (const [tema, puerto] of [
+  ['light', 9908],
+  ['dark', 9909],
+]) {
+  const nombreTema = tema === 'dark' ? 'oscuro' : 'claro';
+  const dicho = `P34 · realce · ${nombreTema}`;
+  const m = await abrirChrome({ ancho: 1440, alto: 1000, puerto });
+  try {
+    await m.ir(APP, 6000);
+    console.log(`\n═══ EL REALCE DEL PASO · ${nombreTema.toUpperCase()} ═══`);
+    if (!(await ponerTema(m, tema, dicho))) continue;
+    await generarCon(m, 'andando', '');
+    await esperarTeselas(m);
+    // El bloque de los pasos, abierto: si viniera plegado no habría `<li>` que
+    // señalar y las juezas comprarían el vacío.
+    await m.evaluar(`(() => {
+      const b = document.querySelector('.bloque--pasos');
+      if (b && !b.classList.contains('bloque--abierto')) b.querySelector('button')?.click();
+      return true;
+    })()`);
+    await m.dormir(400);
+
+    const cuantosPasos = Number(await m.evaluar(`document.querySelectorAll('.paso').length`));
+    juzgar(
+      cuantosPasos >= 4,
+      `${dicho} · P0 · hay ruta pintada y pasos que señalar`,
+      `${cuantosPasos} pasos en la lista`,
+    );
+    if (cuantosPasos < 4) continue;
+
+    const enReposo = await leer(m, LOS_TRAZOS_P34);
+    await m.guardar(`${CAPTURAS}/realce-sin-hover-${nombreTema}.png`);
+
+    // ── EL RATÓN SOBRE EL PASO 1 ─────────────────────────────────────────
+    await ratonEnElPaso(m, 1);
+    const conRaton = await leer(m, LOS_TRAZOS_P34);
+    await m.guardar(`${CAPTURAS}/realce-hover-${nombreTema}.png`);
+    const nuevos = conRaton.trazos.slice(enReposo.cuantos);
+    juzgar(
+      conRaton.cuantos > enReposo.cuantos && nuevos.length > 0,
+      `${dicho} · ⭐ el ratón sobre el paso 1 pinta su trecho encima [DOC Leaflet: engrosar y traer al frente]`,
+      `${enReposo.cuantos} trazos en reposo → ${conRaton.cuantos} con el ratón encima`,
+    );
+
+    // ⭐ Y LAS DEMÁS NO SE MUEVEN: el realce se AÑADE, no reescribe la ruta.
+    const intactas = enReposo.trazos.every(
+      (t, k) =>
+        conRaton.trazos[k] &&
+        conRaton.trazos[k].w === t.w &&
+        conRaton.trazos[k].color === t.color &&
+        conRaton.trazos[k].firma === t.firma,
+    );
+    juzgar(
+      intactas,
+      `${dicho} · ⭐ y las demás líneas NO se mueven: ni grosor, ni color, ni trazado`,
+      `${enReposo.cuantos} líneas de la ruta, comparadas una a una`,
+    );
+
+    // ⭐ EL GROSOR: +4 sobre el de su tramo, Y DEL MISMO COLOR. El encargo lo
+    //    firma así — ningún color nuevo: el realce señala DÓNDE, no cambia QUÉ.
+    const gordo = nuevos[0];
+    const suyo = enReposo.trazos.find((t) => t.color === gordo?.color);
+    juzgar(
+      gordo !== undefined && suyo !== undefined && gordo.w === suyo.w + 4,
+      `${dicho} · ⭐ engorda +4 y CONSERVA EL COLOR de su tramo [ningún color nuevo]`,
+      gordo === undefined
+        ? '(no hay línea de realce)'
+        : `${gordo.color} · ${suyo === undefined ? 'sin línea de ese color en reposo' : suyo.w + ' → ' + gordo.w}`,
+    );
+
+    // ⭐ Y ES SU REBANADA, no la ruta entera: más corta que la línea de su tramo.
+    juzgar(
+      gordo !== undefined && suyo !== undefined && gordo.largo < suyo.largo,
+      `${dicho} · ⭐ y es una REBANADA, no la línea entera del tramo`,
+      gordo === undefined || suyo === undefined
+        ? '(no se puede comparar)'
+        : `realce ${gordo.largo} caracteres de trazado contra ${suyo.largo} del tramo`,
+    );
+
+    // ⭐ [APG] EL HOVER NO MUEVE EL FOCO. Resalta el mapa y nada más.
+    juzgar(
+      conRaton.foco === enReposo.foco,
+      `${dicho} · ⭐ [APG] pasar el ratón NO mueve el foco de nadie`,
+      `foco ${enReposo.foco} → ${conRaton.foco}`,
+    );
+
+    // ── OTRO PASO, OTRA REBANADA ─────────────────────────────────────────
+    await ratonEnElPaso(m, 2);
+    const enElDos = await leer(m, LOS_TRAZOS_P34);
+    const gordoDos = enElDos.trazos.slice(enReposo.cuantos)[0];
+    juzgar(
+      gordoDos !== undefined && gordo !== undefined && gordoDos.firma !== gordo.firma,
+      `${dicho} · ⭐ cada paso señala SU trecho: el 2 no resalta lo del 1`,
+      gordoDos === undefined
+        ? '(no hay realce en el paso 2)'
+        : `paso 1 ${gordo.firma.slice(0, 22)}… · paso 2 ${gordoDos.firma.slice(0, 22)}…`,
+    );
+
+    // ── AL SALIR, RESTAURADO ─────────────────────────────────────────────
+    await m.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+    await m.dormir(350);
+    const alSalir = await leer(m, LOS_TRAZOS_P34);
+    juzgar(
+      alSalir.cuantos === enReposo.cuantos,
+      `${dicho} · ⭐ al salir se restaura: el mapa vuelve a como estaba`,
+      `${enElDos.cuantos} con el ratón → ${alSalir.cuantos} al salir, contra ${enReposo.cuantos} de reposo`,
+    );
+
+    // ── EL TECLADO HACE LO MISMO ─────────────────────────────────────────
+    //
+    // ⚠️ El foco se pone como lo pone EL ENLACE DEL RESUMEN, que es el camino
+    //    de teclado que ya existía: el `<li>` lleva `tabindex="-1"` desde el
+    //    patrón de GOV.UK y se enfoca por programa. NO se inventa un
+    //    `tabindex="0"` para esta jueza — meter dieciséis paradas nuevas en el
+    //    orden de tabulación es cambiar la semántica de la lista, y eso lo
+    //    decide Antonio.
+    await m.evaluar(`document.querySelectorAll('.paso')[1].focus()`);
+    await m.dormir(350);
+    const conFoco = await leer(m, LOS_TRAZOS_P34);
+    const gordoFoco = conFoco.trazos.slice(enReposo.cuantos)[0];
+    juzgar(
+      conFoco.cuantos === conRaton.cuantos && gordoFoco?.firma === gordo?.firma,
+      `${dicho} · ⭐ el FOCO hace exactamente lo mismo que el ratón [la ley del 10/09]`,
+      `con foco ${conFoco.cuantos} trazos · misma rebanada que con el ratón: ${gordoFoco?.firma === gordo?.firma}`,
+    );
+    juzgar(
+      conFoco.foco === 'li#paso-1',
+      `${dicho} · y el foco está DONDE se dice que está`,
+      `document.activeElement → ${conFoco.foco}`,
+    );
+
+    await m.evaluar(`document.activeElement.blur()`);
+    await m.dormir(350);
+    const alDesenfocar = await leer(m, LOS_TRAZOS_P34);
+    juzgar(
+      alDesenfocar.cuantos === enReposo.cuantos,
+      `${dicho} · ⭐ y al perder el foco también se restaura`,
+      `${conFoco.cuantos} con foco → ${alDesenfocar.cuantos} al soltarlo`,
+    );
+  } finally {
+    m.cerrar();
+  }
+}
+
 {
   const t = terceros();
   juzgar(t.bien, t.titulo, t.detalle);

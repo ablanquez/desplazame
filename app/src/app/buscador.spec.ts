@@ -22,6 +22,12 @@ import type {
 } from '@desplazame/tipos';
 import { SIMBOLOS } from './simbolos';
 import { Buscador, CUANDO_SE_DICE_QUE_TARDA_MS, enDosNiveles } from './buscador';
+// ⭐ Para la juez del realce (21/09, 5b): se le pregunta al MAPA qué rango ha
+//    recibido. En jsdom Leaflet no proyecta —todos los `<path>` salen con
+//    `d="M0 0"`—, así que distinguir un trecho de otro por el trazado aquí es
+//    imposible; eso lo mide la P34 de `pintura.mjs` con píxeles de verdad.
+import { By } from '@angular/platform-browser';
+import { Mapa } from './mapa';
 
 /**
  * Devuelve las opciones de MODO que están marcadas como activas.
@@ -7814,6 +7820,234 @@ describe('Buscador', () => {
       expect(cuerpoDeLaRuta(otraVez)['aparcamiento']).toBe('naranja');
       drenarRutas(otraVez, () => VIAJE_APARCANDO_EN_NARANJA);
       await fixture.whenStable();
+    });
+  });
+
+
+  /**
+   * ⭐ EL PASO SEÑALA SU TRECHO EN EL MAPA (21/09, casilla 5b).
+   *
+   * La 5b llevaba parada desde el 14/09 por falta de dato. Desde hoy el
+   * contrato dice qué rebanada de la geometría es de cada paso —`Paso.desde` y
+   * `Paso.hasta`, que es el formato de Valhalla y de OSRM—, y la pantalla la
+   * señala al pasar el ratón o al recibir el foco.
+   *
+   * ⚠️ **Aquí se mide el `<path>` de Leaflet, no una señal interna.** Lo que
+   *    importa es que el mapa pinte un trazo más gordo encima del trecho, y eso
+   *    es un elemento del DOM con su `stroke-width`. Mirar la señal del
+   *    componente compraría que la cuenta se hace; esto compra que se pinta.
+   *
+   * ⚠️ Lo que ESTA juez no puede comprar es el gesto de verdad: un `:hover` no
+   *    se dispara con un evento sintético. Eso lo mide la P34 de `pintura.mjs`
+   *    moviendo el ratón por CDP. Las dos hacen falta y ninguna sustituye a la
+   *    otra.
+   */
+  describe('⭐ EL REALCE DEL PASO EN EL MAPA (21/09, casilla 5b)', () => {
+    /** Seis vértices para que las rebanadas se distingan a simple vista. */
+    const CON_RANGOS: Trayecto = {
+      modo: 'andando',
+      pasos: [
+        { ...paso('salida', 100, accion('Sal de'), llano(' '), via('Calle Burgos 2')), desde: 0, hasta: 2 },
+        { ...paso('izquierda', 150, accion('Gira a la izquierda'), llano(' hacia '), via('Calle de Goya')), desde: 2, hasta: 4 },
+        { ...paso('derecha', 92, accion('Gira a la derecha'), llano(' hacia '), via('Calle Alfonso')), desde: 4, hasta: 5 },
+        { ...paso('llegada', 0, via('Calle Alfonso 3'), llano(' está a la izquierda')), desde: 5, hasta: 5 },
+      ],
+      geometria: [
+        [41.6561, -0.8773],
+        [41.6551, -0.878],
+        [41.6541, -0.879],
+        [41.6531, -0.8805],
+        [41.6521, -0.882],
+        [41.6511, -0.8835],
+      ],
+      avisos: [],
+      metros: 342,
+      segundos: 246,
+      tramos: [{ comoSeVa: 'andando', desde: 0, hasta: 5, metros: 342, segundos: 246, hito: null }],
+    };
+
+    /** El mismo, pero con el paso 1 viajando SIN rango. Ver el contrato. */
+    const SIN_RANGO: Trayecto = {
+      ...CON_RANGOS,
+      pasos: CON_RANGOS.pasos.map((p, i) =>
+        i === 1 ? { giro: p.giro, texto: p.texto, metros: p.metros, partes: p.partes } : p,
+      ),
+    };
+
+    /** Los trazos que hay pintados, con su grosor y su color. */
+    const trazos = (
+      raiz: HTMLElement,
+    ): readonly { readonly w: number; readonly color: string; readonly d: string }[] =>
+      [...raiz.querySelectorAll('path.leaflet-interactive')].map((p) => ({
+        w: parseFloat(p.getAttribute('stroke-width') ?? '0'),
+        color: (p.getAttribute('stroke') ?? '').toLowerCase(),
+        d: p.getAttribute('d') ?? '',
+      }));
+
+    const unPaso = (raiz: HTMLElement, i: number): HTMLElement =>
+      raiz.querySelectorAll<HTMLElement>('.paso')[i]!;
+
+    async function conRuta(trayecto: Trayecto): Promise<{ fixture: any; raiz: HTMLElement }> {
+      const fixture = TestBed.createComponent(Buscador);
+      await fixture.whenStable();
+      const raiz = fixture.nativeElement as HTMLElement;
+      await direccionEntera(fixture, http);
+      botonGenerar(raiz).click();
+      fixture.detectChanges();
+      http.expectOne('/api/ruta').flush(trayecto);
+      await fixture.whenStable();
+      return { fixture, raiz };
+    }
+
+    it('⭐ el ratón encima de un paso engorda SU trecho, y del mismo color', async () => {
+      const { fixture, raiz } = await conRuta(CON_RANGOS);
+
+      // En reposo: el ribete y la línea del único tramo, y nada más.
+      const enReposo = trazos(raiz);
+      expect(enReposo.length).toBe(2);
+
+      unPaso(raiz, 1).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const conRaton = trazos(raiz);
+      expect(conRaton.length).toBe(3);
+
+      // ⭐ NI UN COLOR NUEVO: el realce hereda el de su tramo y solo engorda.
+      //    El encargo lo firma así — señala DÓNDE, no cambia QUÉ es.
+      const realce = conRaton[2]!;
+      const linea = enReposo[1]!;
+      expect(realce.color).toBe(linea.color);
+      expect(realce.w).toBe(linea.w + 4);
+
+      // ⭐ Y LAS DEMÁS NO SE MUEVEN: el realce se añade encima, no reescribe.
+      expect(conRaton.slice(0, 2)).toEqual(enReposo);
+
+      // ⚠️ Que el realce sea una REBANADA —más corta que la línea del tramo—
+      //    NO se puede comprar aquí: en jsdom Leaflet no proyecta y los tres
+      //    `<path>` salen con `d="M0 0"`. Lo compra la P34 con el trazado de
+      //    verdad. Aquí se compra lo otro: que el trazo existe, que engorda y
+      //    que conserva el color.
+
+      // Al salir, el mapa vuelve a como estaba, byte a byte.
+      unPaso(raiz, 1).dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(trazos(raiz)).toEqual(enReposo);
+    });
+
+    it('⭐ cada paso señala SU trecho, y no el del vecino', async () => {
+      const { fixture, raiz } = await conRuta(CON_RANGOS);
+
+      const mapa = fixture.debugElement.query(By.directive(Mapa)).componentInstance as Mapa;
+      const rangoDe = async (i: number): Promise<unknown> => {
+        unPaso(raiz, i).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+        fixture.detectChanges();
+        await fixture.whenStable();
+        const r = mapa.resaltado();
+        unPaso(raiz, i).dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+        fixture.detectChanges();
+        await fixture.whenStable();
+        return r;
+      };
+
+      // Los rangos del contrato, tal cual, y cada uno al paso que le toca.
+      expect(await rangoDe(0)).toEqual({ desde: 0, hasta: 2 });
+      expect(await rangoDe(1)).toEqual({ desde: 2, hasta: 4 });
+      expect(await rangoDe(2)).toEqual({ desde: 4, hasta: 5 });
+
+      // Y en reposo, ninguno: el mapa no se queda con el último puesto.
+      expect(mapa.resaltado()).toBeNull();
+    });
+
+    /**
+     * ⭐ EL FOCO HACE LO MISMO QUE EL RATÓN — la ley de la casa del 10/09: el
+     *    teclado existe en los dos mundos.
+     *
+     * ⚠️ Y el foco llega al `<li>` **por el camino que ya existía**: lleva
+     *    `tabindex="-1"` desde el patrón del resumen de GOV.UK, así que se
+     *    enfoca por programa al seguir su enlace. NO se ha inventado un
+     *    `tabindex="0"` para esto: meter dieciséis paradas nuevas en el orden
+     *    de tabulación de una lista de lectura es cambiar su semántica, y eso
+     *    lo decide Antonio. Queda dicho que **un paso de giro corriente no se
+     *    puede resaltar solo con el teclado hoy**, y que el texto del paso está
+     *    completo sin el realce.
+     */
+    it('⭐ el foco resalta igual que el ratón, y al soltarlo se restaura', async () => {
+      const { fixture, raiz } = await conRuta(CON_RANGOS);
+      const enReposo = trazos(raiz);
+
+      // `focusin`, no `focus`: burbujea, y hace falta que lo haga para que el
+      // botón vivo de dentro de un paso resalte el paso que lo contiene.
+      unPaso(raiz, 1).dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(trazos(raiz).length).toBe(enReposo.length + 1);
+
+      unPaso(raiz, 1).dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(trazos(raiz)).toEqual(enReposo);
+    });
+
+    /**
+     * ⭐ [APG] MOVER EL FOCO EN RESPUESTA AL HOVER SE EVITA.
+     *
+     * Pasar el ratón resalta el mapa y no toca el foco de nadie. Si lo moviera,
+     * quien navega con teclado perdería el sitio cada vez que el puntero
+     * cruzara la lista por accidente.
+     */
+    it('⭐ [APG] pasar el ratón NO mueve el foco', async () => {
+      const { fixture, raiz } = await conRuta(CON_RANGOS);
+      const antes = document.activeElement;
+
+      unPaso(raiz, 1).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(document.activeElement).toBe(antes);
+    });
+
+    /**
+     * ⭐ UN PASO SIN RANGO NO RESALTA NADA, y es lo que el contrato firma.
+     *
+     * §3 del encargo: geometría inventada para pasos sin recorrido real, NO.
+     * Hoy no hay ninguno así en los seis modos —lo censa la juez E de
+     * `rangos-de-pasos.spec.ts`—, pero el contrato lo permite y la pantalla
+     * tiene que quedarse quieta en vez de dibujar un trecho de mentira.
+     */
+    it('⭐ un paso que viaja SIN rango no pinta realce ninguno', async () => {
+      const { fixture, raiz } = await conRuta(SIN_RANGO);
+      const enReposo = trazos(raiz);
+
+      unPaso(raiz, 1).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(trazos(raiz)).toEqual(enReposo);
+
+      // Y el de al lado, que sí lo trae, sigue resaltando: lo que calla es el
+      // paso sin dato, no la pantalla entera.
+      unPaso(raiz, 2).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(trazos(raiz).length).toBe(enReposo.length + 1);
+    });
+
+    /**
+     * ⭐ EL PASO QUE CIERRA NO RESALTA NADA, y tampoco es un fallo.
+     *
+     * La llegada y los hitos son degenerados por contrato —`desde === hasta`—:
+     * no recorren ningún trecho, así que no hay nada que señalar. Darles uno se
+     * lo robaría al paso anterior, que es quien de verdad lo recorre.
+     */
+    it('⭐ el paso de llegada es degenerado y no señala ningún trecho', async () => {
+      const { fixture, raiz } = await conRuta(CON_RANGOS);
+      const enReposo = trazos(raiz);
+
+      unPaso(raiz, 3).dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(trazos(raiz)).toEqual(enReposo);
     });
   });
 

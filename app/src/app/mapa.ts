@@ -338,6 +338,30 @@ const PANE_ZONA = 'zbe';
 /** Cuánto asoma el ribete por cada lado de la línea, en píxeles. */
 export const ASOMA_EL_RIBETE = 2;
 
+/**
+ * ⭐ **CUÁNTO ENGORDA EL TRECHO RESALTADO** (21/09, casilla 5b): **+4 px**.
+ *
+ * [DOC Leaflet, su tutorial de interacción —el ejemplo canónico—] el realce al
+ * pasar por encima se hace con `setStyle` **engrosando el trazo** y
+ * `bringToFront`, y al salir se devuelve el estilo de partida. Aquí se hace
+ * eso, con una sola diferencia que el propio encargo firma: **el color no
+ * cambia**. El trecho resaltado se pinta del color de SU tramo —el ámbar del
+ * a-pie, el azul de la rueda, el de la línea si va montado, el rojo de la Zona
+ * de Bajas Emisiones— y lo único que se mueve es el peso.
+ *
+ * ⚠️ **Y no cambia el color por una razón, no por gusto**: un tono nuevo sería
+ *    un cambio visible, y los cambios visibles los decide Antonio. Además
+ *    rompería lo que el trazo ya significa —discontinuo se anda, sólido se
+ *    rueda, el color del operador si es su línea—: el realce señala DÓNDE, no
+ *    cambia QUÉ es.
+ *
+ * +4 sobre los 5 del a-pie y la rueda son **9 contra 5**, y sobre los 6 del
+ * montado, **10 contra 6**. Se mide en captura, que es lo que pide el encargo:
+ * a menos no se ve a simple vista, y a más el trecho resaltado se come al de
+ * al lado y parece otra cosa en vez del mismo trazo señalado.
+ */
+export const ENGROSADO_DEL_REALCE = 4;
+
 /** Los dos extremos de un plano: contra ellos se decide un ribete. */
 export interface Plano {
   readonly masClaro: string;
@@ -573,6 +597,21 @@ export class Mapa {
   readonly tramos = input<readonly TramoDelViaje[]>([]);
 
   /**
+   * ⭐ **EL TRECHO QUE HAY QUE RESALTAR**, o `null` si ninguno (21/09, 5b).
+   *
+   * Los dos índices de un paso, tal como vienen del contrato: `Paso.desde` y
+   * `Paso.hasta`, inclusivos, sobre el mismo `trazado` que ya se pinta. **Este
+   * componente no sabe qué es un paso ni le hace falta**: recibe un rango y lo
+   * engorda, igual que recibe tramos y los viste.
+   *
+   * ⚠️ Viene del contrato y no se deriva aquí, que es la misma ley del 30/08:
+   *    acumular los `metros` de los pasos para adivinar dónde corta cada uno
+   *    deriva —vienen redondeados a propósito—, y fue el error de 6,9 m que
+   *    obligó a publicar los `tramos`.
+   */
+  readonly resaltado = input<{ readonly desde: number; readonly hasta: number } | null>(null);
+
+  /**
    * ⭐ LA ZONA DE BAJAS EMISIONES, si hay que pintarla (3/09).
    *
    * Los anillos del polígono, en `[lat, lon]`. Vacío es «no la pintes», y es lo
@@ -671,6 +710,14 @@ export class Mapa {
    * cada uno se pinta con su color y su borde donde le toca.
    */
   private zonas: L.Polygon[] = [];
+  /**
+   * Las líneas del realce, aparte de `lineas` **y por dos motivos**: se ponen y
+   * se quitan con el ratón sin repintar la ruta entera —repintarla volvería a
+   * encuadrar el mapa a cada pasada—, y **no entran en el `fitBounds`**, que
+   * mira `lineas`: encuadrar por lo resaltado daría un salto de cámara cada vez
+   * que el puntero cruza un paso.
+   */
+  private realce: L.Polyline[] = [];
 
   constructor() {
     // [DOC] Angular: «Use afterNextRender to read or write the DOM once, for
@@ -705,6 +752,18 @@ export class Mapa {
       // plano, así que cambiar de tesela obliga a volver a vestirlas.
       this.tema.oscuro();
       this.pintarTrazado();
+    });
+
+    // ⭐ EL REALCE VA EN SU PROPIO EFECTO (21/09, 5b), no dentro de
+    //    `pintarTrazado`: entrar y salir de un paso con el ratón no puede
+    //    repintar la ruta entera ni volver a encuadrar el mapa. Lee también el
+    //    trazado, los tramos y el tema porque de los tres depende lo que pinta.
+    effect(() => {
+      this.resaltado();
+      this.trazado();
+      this.tramos();
+      this.tema.oscuro();
+      this.pintarRealce();
     });
 
     // ⭐ LA TESELA SIGUE AL TEMA, EN CALIENTE (15/09). Sin recargar: se quita
@@ -767,6 +826,69 @@ export class Mapa {
    * Cambiar el color aquí obliga a repasar dos comentarios más: el de
    * `pintarRegulado` y el de `pintarAmpliacion`, que se apoyan en él.
    */
+  /**
+   * ⭐ **EL TRECHO DEL PASO, ENGORDADO ENCIMA DE SU PROPIA LÍNEA** (21/09, 5b).
+   *
+   * [DOC Leaflet, tutorial de interacción] el realce canónico es `setStyle` con
+   * el trazo más gordo y `bringToFront`, y al salir se restaura. Aquí no se le
+   * puede hacer `setStyle` a la línea que ya hay **porque el trecho de un paso
+   * es una REBANADA de un tramo, no un tramo entero**: cambiarle el estilo
+   * engordaría el tramo completo. Así que se pinta una línea encima, del mismo
+   * color, y se trae al frente. Es el mismo gesto con la única pieza que
+   * Leaflet da para señalar media polilínea.
+   *
+   * ⚠️ **UNA LÍNEA POR TRAMO QUE PISE EL RANGO, no una sola.** Un paso puede
+   *    cruzar la costura de dos tramos —entrar empujando la bici a mitad de
+   *    maniobra, o entrar en la Zona de Bajas Emisiones—, y esos dos trechos
+   *    **no son del mismo color**. Pintarlo de un color solo mentiría sobre la
+   *    mitad, que es justo lo que el encargo prohibe: el realce señala dónde,
+   *    no cambia qué es. Se corta el rango contra cada tramo y cada trozo se
+   *    engorda con SU vestido.
+   *
+   * ⚠️ Y sin ribete: el ribete existe para separar la línea del plano, y esta
+   *    va **encima de su propia línea**, que ya lo lleva.
+   */
+  private pintarRealce(): void {
+    for (const linea of this.realce) {
+      linea.remove();
+    }
+    this.realce = [];
+    const rango = this.resaltado();
+    const vertices = this.trazado();
+    if (!this.mapa || !rango || vertices.length < 2) {
+      return;
+    }
+    const puntos: L.LatLngTuple[] = vertices.map(([lat, lon]) => [lat, lon]);
+    const desde = Math.max(0, rango.desde);
+    const hasta = Math.min(puntos.length - 1, rango.hasta);
+    if (hasta <= desde) {
+      // Un paso degenerado —la llegada, el hito— no recorre nada, así que no
+      // hay trecho que señalar. No es un fallo: es lo que ese paso significa.
+      return;
+    }
+    // Sin tramos no hay vestido que heredar: se usa el del a-pie, que es lo
+    // que `pintarTrazado` pinta en ese mismo caso.
+    const tramos = this.tramos();
+    const trozos: readonly { readonly a: number; readonly b: number; readonly vestido: L.PolylineOptions }[] =
+      tramos.length === 0
+        ? [{ a: desde, b: hasta, vestido: VESTIDO.andando }]
+        : tramos
+            .map((tramo) => ({
+              a: Math.max(desde, tramo.desde),
+              b: Math.min(hasta, tramo.hasta),
+              vestido: vestidoDe(tramo),
+            }))
+            .filter((t) => t.b > t.a);
+    for (const trozo of trozos) {
+      const linea = L.polyline(puntos.slice(trozo.a, trozo.b + 1), {
+        ...trozo.vestido,
+        weight: (trozo.vestido.weight ?? 5) + ENGROSADO_DEL_REALCE,
+      }).addTo(this.mapa);
+      linea.bringToFront();
+      this.realce.push(linea);
+    }
+  }
+
   private pintarTrazado(): void {
     if (!this.mapa) {
       return;

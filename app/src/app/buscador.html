@@ -104,6 +104,7 @@
           [area]="areaDelMapa()"
           [capaOrigen]="resultado()?.capaOrigen ?? null"
           [capaDestino]="resultado()?.capaDestino ?? null"
+          [resaltado]="rangoResaltado()"
         />
       </section>
 
@@ -1051,7 +1052,33 @@
                        navega con teclado sigue en el resumen sin saberlo. El `-1` lo
                        hace enfocable **por programa** sin meterlo en el orden de
                        tabulación, que es exactamente lo que hace falta. -->
-                  <li class="paso" [id]="'paso-' + $index" tabindex="-1">
+                  <!-- ⭐ EL PASO SEÑALA SU TRECHO EN EL MAPA (21/09, casilla 5b).
+
+                       [DOC Leaflet, tutorial de interacción] el gesto canónico es
+                       `mouseover` → engordar el trazo y traerlo al frente, y al salir
+                       restaurar. El porqué de cada decisión, en `resaltar()` y en
+                       `ENGROSADO_DEL_REALCE`.
+
+                       ⚠️ `mouseenter`/`mouseleave` y NO `mouseover`/`mouseout`: los
+                          primeros no burbujean desde los hijos, así que cruzar el
+                          chip de la línea o el botón vivo no apaga y enciende el
+                          realce. Con `mouseout` el trecho parpadearía al recorrer el
+                          paso con el ratón.
+
+                       ⚠️ `focusin`/`focusout` y NO `focus`/`blur`, por lo contrario:
+                          éstos SÍ burbujean, y hace falta que lo hagan para que
+                          tabular hasta el botón vivo de dentro resalte el paso que lo
+                          contiene. [APG] y el hover **no mueve el foco**: señala el
+                          mapa y nada más. -->
+                  <li
+                    class="paso"
+                    [id]="'paso-' + $index"
+                    tabindex="-1"
+                    (mouseenter)="resaltar($index)"
+                    (mouseleave)="resaltar(null)"
+                    (focusin)="resaltar($index)"
+                    (focusout)="resaltar(null)"
+                  >
                     <!-- ⭐ EL CARRIL DE LA LÍNEA DE TIEMPO (12/09): el círculo con la
                          maniobra dentro, y el hilo que lo cose con el siguiente.
 

@@ -411,6 +411,11 @@ const PUERTOS_DEL_ARNES = new Set([
   //    solape no lo habría cantado nadie —dos juezas por el mismo puerto, una
   //    detrás de otra, dan verde igual—: lo vio esta lista al escribirlos.
   9902, 9903, 9904, 9905, 9906, 9907,
+  // ⭐ La P34 (21/09), el realce del paso en el mapa: un ancho × dos temas.
+  //    Dos y no seis porque lo que mide es el píxel de una polilínea, y eso no
+  //    cambia con el ancho: lo que cambia con el ancho es el reparto, y de eso
+  //    ya hay juezas. Entran aquí a la vez que la casilla, que es la guarda.
+  9908, 9909,
 ].map(String));
 const PUERTOS_FUERA_DEL_CENSO = new Set();
 
