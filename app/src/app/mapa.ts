@@ -23,6 +23,9 @@ import { Tema } from './tema';
 // el motor devolverá en la geometría de un trayecto.
 import type { TramoDelViaje, Vertice } from '@desplazame/tipos';
 import { svgDeCapa, type Clase } from './iconos';
+// ⭐ El pin del puntero es EL DE LA MARCA, importado y no redibujado (21/09).
+//    La casa lo tiene escrito en los hitos: un dibujo compartido no se copia.
+import { GOTA_DE_LA_MARCA, PUNTA_DE_LA_GOTA } from './marca';
 
 export type { Vertice };
 
@@ -339,87 +342,227 @@ const PANE_ZONA = 'zbe';
 export const ASOMA_EL_RIBETE = 2;
 
 /**
- * ⭐ **EL PUNTERO DEL PASO: los candidatos de aspecto** (21/09, remate del 5b).
+ * ⭐ **EL PUNTERO DEL PASO: EL PIN DE LA MARCA** (21/09, remate 2, por orden de
+ *    Antonio con el producto delante).
  *
- * ⚠️ **Esto sustituye al engrosado del trazo, por orden de Antonio.** El
- *    realce del 5b engordaba la rebanada de línea del paso [DOC Leaflet, su
- *    tutorial de interacción]. Con la captura delante, **no le gustó**. Su
- *    diseño, firmado: **como Google Maps — un PUNTERO en el punto de la
- *    maniobra**, y el engrosado fuera. El dato no cambia: el puntero se planta
- *    en el vértice `desde` del rango que el paso ya trae del motor.
+ * ── Lo que se cae, y por qué ────────────────────────────────────────────────
  *
- * ⚠️ **EL ASPECTO NO ESTÁ DECIDIDO, y por eso esto es una TABLA.** Se pintan
- *    candidatos, Antonio elige mirando, y el elegido se fija en un remate
- *    corto. Es el método de la casa —el precedente de las bandas de cabecera:
- *    candidatos pintados delante—. La jueza P34 recorre esta tabla, así que
- *    elegir uno **no la reescribe**.
+ * Aquí había una tabla de tres candidatos de FORMA —disco, anillo, diana— y un
+ * `PUNTERO_PUESTO` provisional. Los tres eran círculos y los tres **heredaban
+ * el color del tramo**. Antonio los miró en el producto y firmó dos órdenes:
  *
- * ── De dónde sale cada color, y no hay ninguno inventado ───────────────
+ *   1. **el color del puntero, TOTALMENTE DISTINTO al de la línea** — heredar
+ *      el color del tramo queda descartado, y con él `tramoQueAbre`, que era
+ *      toda la maquinaria que servía para heredarlo;
+ *   2. **el icono es EL PIN DEL LOGO de Desplázame**, no un círculo.
  *
- * · `tramo`  — el color del tramo que abre el paso: el ámbar del a-pie, el azul
- *              de la rueda, el del operador si va montado, el rojo de la Zona
- *              de Bajas Emisiones. El mismo `vestidoDe` que viste la línea.
- * · `ribete` — lo que `ribeteDe` calcula para ese color sobre ESTE plano: el
- *              mismo vecino que la línea ya lleva debajo desde el 1/09.
- * · `blanco` — `#ffffff`, que es el halo que los pines de la casa ya usan y
- *              que la P26 mide contra la tesela desde el 1/09.
+ * ── Y con ellas el rojo que dio la cara: CUATRO MODOS SIN PUNTERO ───────────
  *
- * ── Cómo se mide el 1.4.11, con la vara que la casa ya tenía ────────────
+ * El puntero «no funcionaba» en bici, patín, BiZi, bus ni moto. Se reprodujo
+ * modo a modo en Chrome y **el puntero se plantaba en los seis**: lo que
+ * fallaba es que no se VEÍA. Dos causas, medidas las dos:
  *
- * La doctrina está escrita en `ribeteDe` y es de esta casa: **el par tiene que
- * separarse del plano, y eso lo puede aportar cualquiera de los dos**. Así que
- * de cada candidato se miden dos cosas contra cada teselado: `borde/relleno`
- * —que el puntero se lea a sí mismo— y **lo que el par se separa del plano en
- * su caso más desfavorable**. La vara es `AA_GRAFICO`, 3:1. Las cifras van al
- * checkpoint, candidato a candidato.
+ * · **[LA GORDA] los pines lo tapaban.** [DOC Leaflet, *map panes*] el
+ *   `overlayPane` —donde vive un `circleMarker`— va en z-index 400 y el
+ *   `markerPane` en 600. En los modos con marcas SOBRE la ruta —la parada
+ *   donde se sube al bus, la del transbordo, donde se aparca la moto, donde se
+ *   deja la bici— la maniobra del paso cae **exactamente** donde está esa
+ *   marca, así que el puntero se pintaba debajo. Medido en píxeles, tapando y
+ *   destapando la misma pantalla: **0 px de cambio** en 5 de los 9 pasos del
+ *   bus, 3 de 17 en moto, 2 de 27 en bici y 2 de 37 en patín. En andando y en
+ *   coche, **ninguno** — y son justo los dos modos que a Antonio sí le
+ *   funcionaban. Por eso el puntero se pinta ahora **en panel propio, por
+ *   encima del de las marcas**.
+ * · **[LA FINA] vestía el color de la línea sobre la que se posaba.** Donde no
+ *   lo tapaba nadie, un disco azul encima de una línea azul con su ribete
+ *   negro no es un puntero: es un bulto de la línea. Eso lo arregla la orden 1.
+ *
+ * ── El pin: de dónde sale, y no hay nada redibujado ─────────────────────────
+ *
+ * `GOTA_DE_LA_MARCA`, **importada de `marca.ts`**, que es el mismo trazado que
+ * pinta la cabecera y los cuatro ficheros de `app/marca/`. No es un pin
+ * parecido al del logo: es el del logo. La casa ya tiene escrita esta regla en
+ * los hitos del mapa —*«lo que no se hace es copiar el trazado: se importa»*—,
+ * y por eso el trazado salió del `d=` de la plantilla a una constante.
+ *
+ * [DOC Leaflet, *Markers With Custom Icons*] `iconAnchor` es *«the coordinates
+ * of the "tip" of the icon (relative to its top left corner)»*, y en un pin esa
+ * punta está abajo y al centro. La de esta gota está medida sobre el propio
+ * trazado, no a ojo: `PUNTA_DE_LA_GOTA`, en `x = 16, y = 23` de la rejilla de
+ * 32. Ver `ANCLAJE_DEL_PUNTERO`.
+ *
+ * ── El color: MEDIDO DOBLE, y con PARO ──────────────────────────────────────
+ *
+ * La orden 2 pide el pin del logo, y el logo se pinta con `--primary`. Pero
+ * `--primary` en claro es **`#2563eb`, que es exactamente el azul del tramo que
+ * rueda**: el pin del logo tal cual, sobre la línea de la bici o del coche, da
+ * **1,00:1**. Y contra la tesela clara da 2,92, por debajo de la vara. Así que
+ * se cumple el supuesto del encargo —«si el color del logo falla → PARO con
+ * candidatos»— y esto es una TABLA, no una elección.
+ *
+ * Se mide doble, como el encargo manda: el cuerpo contra **los seis colores que
+ * puede pisar** —los cuatro del contrato más los dos que traen los operadores
+ * de bus vivos— y el par cuerpo+halo contra **las dos teselas**, por la
+ * doctrina de `ribeteDe`: del plano separa el que pueda, de los dos.
+ *
+ * ⚠️ **Y sale un hallazgo que conviene decir**: ningún color de tono medio
+ *    llega a 3:1 contra las líneas, y no es mala suerte. Los cuatro colores de
+ *    tramo se eligieron **con la misma luminancia a propósito** —0,1532 el
+ *    azul, 0,1591 el ámbar, 0,1609 el rojo de la zona: «el mismo peso visual»,
+ *    está escrito arriba—, y el contraste solo mira luminancia. Para separarse
+ *    3:1 de una luminancia de 0,155 hay que irse **por encima de 0,565 o por
+ *    debajo de 0,018**: o casi blanco, o casi negro. Por eso los dos candidatos
+ *    que pasan son los dos extremos, que son además los dos tonos que esta casa
+ *    ya tiene puestos en el mapa —el ribete de todas las líneas desde el 1/09 y
+ *    el halo de todos los pines—.
  */
-export type ClaveDePuntero = 'disco' | 'anillo' | 'diana';
+export type ClaveDeTinta = 'blanco' | 'plano' | 'logo';
 
-/** De dónde sale una tinta. Ver la tabla: no hay una cuarta opción. */
-export type TintaDelPuntero = 'tramo' | 'ribete' | 'blanco' | 'ninguno';
-
-/** Un círculo del puntero. Un candidato son una o dos de éstas, de fuera a dentro. */
-export interface CapaDePuntero {
-  readonly radio: number;
-  readonly grosor: number;
-  readonly relleno: TintaDelPuntero;
-  readonly borde: TintaDelPuntero;
+/** Cuerpo y halo de un pin, sin la almohadilla. */
+export interface TintaDelPuntero {
+  readonly cuerpo: string;
+  readonly halo: string;
 }
 
-export const PUNTEROS: Readonly<Record<ClaveDePuntero, readonly CapaDePuntero[]>> = {
+export const TINTAS_DEL_PUNTERO: Readonly<
+  Record<ClaveDeTinta, Readonly<Record<'claro' | 'oscuro', TintaDelPuntero>>>
+> = {
   /**
-   * **A · DISCO** — el color del tramo, con el mismo ribete que lleva su línea.
-   * El más parco: no estrena ni una tinta, y el borde es el vecino que la casa
-   * ya le calcula a ese color sobre ese plano.
+   * **A · BLANCO** — cuerpo `#ffffff`, halo `#000000`, **igual en los dos
+   * temas**. Los dos tonos son de la casa: el blanco es el halo que llevan
+   * todos los pines del mapa desde el 1/09, y el negro es el ribete que
+   * `ribeteDe` le pone a las líneas sobre la tesela clara.
+   *
+   * Cifras: el cuerpo contra los seis colores de línea, **4,83 a 6,41**; el par
+   * contra la tesela, **11,88** en OSM y **15,13** en Dark Matter. Pasa entero.
    */
-  disco: [{ radio: 7, grosor: 3, relleno: 'tramo', borde: 'ribete' }],
+  blanco: {
+    claro: { cuerpo: 'ffffff', halo: '000000' },
+    oscuro: { cuerpo: 'ffffff', halo: '000000' },
+  },
   /**
-   * **B · ANILLO** — hueco y blanco por dentro, con el aro del color del tramo.
-   * Es **el de Google Maps**, que es la referencia que Antonio nombró. Su
-   * contorno exterior es el color del tramo, así que es el único de los tres
-   * cuyo 1.4.11 depende de ese color y no de un ribete calculado: sus cifras
-   * van dichas, no supuestas.
+   * **B · LA TINTA DEL PLANO** — lo que `ribeteDe` elegiría contra cada
+   * teselado: negro con halo blanco sobre OSM, blanco con halo negro sobre Dark
+   * Matter. En oscuro es idéntico al A; lo que cambia es el tema claro.
+   *
+   * Cifras: el cuerpo contra los seis colores de línea, **3,28 a 4,34** en
+   * claro y 4,83 a 6,41 en oscuro; el par contra la tesela, 11,88 y 15,13.
+   * Pasa entero, con menos margen que el A en claro.
    */
-  anillo: [{ radio: 7, grosor: 4, relleno: 'blanco', borde: 'tramo' }],
+  plano: {
+    claro: { cuerpo: '000000', halo: 'ffffff' },
+    oscuro: { cuerpo: 'ffffff', halo: '000000' },
+  },
   /**
-   * **C · DIANA** — un disco del ribete debajo y el color del tramo encima, sin
-   * borde ninguno. El de fuera hace de halo, que es exactamente lo que los
-   * pines de la casa ya hacen con su `#ffffff` desde el 1/09.
+   * **C · EL LOGO TAL CUAL** — el pin con el color con el que la cabecera lo
+   * pinta: `--primary`, `#2563eb` en claro y `#93c5fd` en oscuro. El halo es el
+   * que `ribeteDe` calcula para ese cuerpo sobre su plano, y para los dos da
+   * `#000000`.
+   *
+   * ⚠️ **NO LLEGA A LA VARA, y va en la tabla para que se vea por qué.** En
+   *    claro el cuerpo es el MISMO azul que la línea del tramo que rueda:
+   *    **1,00:1**, y 1,03 a 1,24 contra los otros cinco. En oscuro, 2,68 a 3,55
+   *    —solo se separa de una línea de las seis—. Contra la tesela clara, 2,92.
    */
-  diana: [
-    { radio: 9, grosor: 0, relleno: 'ribete', borde: 'ninguno' },
-    { radio: 5, grosor: 0, relleno: 'tramo', borde: 'ninguno' },
-  ],
+  logo: {
+    claro: { cuerpo: '2563eb', halo: '000000' },
+    oscuro: { cuerpo: '93c5fd', halo: '000000' },
+  },
 };
 
 /**
- * ⚠️ **EL QUE VIAJA HOY, Y ES PROVISIONAL.** Antonio no ha elegido todavía:
- *    esta tanda acaba en candidatos pintados, no en un puntero elegido. Va el
- *    primero de la tabla para que el producto no se quede sin gesto mientras
- *    tanto, y cambiar esta línea es todo lo que el remate corto tendrá que
- *    hacer — ni una jueza se mueve.
+ * ⚠️ **LA QUE VIAJA HOY, Y ES PROVISIONAL.** El encargo acaba en PARO de color:
+ *    Antonio elige con las capturas delante. Va el A porque es el único que
+ *    pasa la vara **y** es el mismo en los dos temas, así que el producto no
+ *    viaja un solo día con un puntero que no se lee. Cambiar esta línea es todo
+ *    lo que el remate tendrá que hacer: ni una jueza mira la tinta.
  */
-export const PUNTERO_PUESTO: ClaveDePuntero = 'disco';
+export const TINTA_PUESTA: ClaveDeTinta = 'blanco';
+
+/**
+ * ⭐ **EL PANEL DEL PUNTERO, POR ENCIMA DE LAS MARCAS** — y este es el arreglo
+ *    del rojo de los cuatro modos.
+ *
+ * [DOC Leaflet, *map panes*] los paneles de serie van `tilePane` 200,
+ * `overlayPane` 400, `shadowPane` 500, `markerPane` 600, `tooltipPane` 650,
+ * `popupPane` 700. El puntero tiene que quedar por encima de las marcas —la
+ * parada donde se sube al bus, el aparcamiento de la moto, el sitio donde se
+ * deja la bici están justo donde cae la maniobra del paso— y por debajo de lo
+ * que se abre por encima de todo. **620**: el único hueco que cumple las dos.
+ *
+ * Es la misma maniobra que ya hace `PANE_ZONA` con su 350, y por la misma razón
+ * de fondo: si compartiera panel con alguien, el orden lo decidiría quién se
+ * añadió antes, y eso cambia con cada ruta.
+ */
+const PANE_PUNTERO = 'punteroDelPaso';
+const Z_DEL_PUNTERO = '620';
+
+/**
+ * ⭐ LA CAJA DEL PIN, en unidades de la rejilla de 32 de la marca.
+ *
+ * La gota ocupa de x 8 a x 24 y de y 3 a y 23 (`PUNTA_DE_LA_GOTA`). La caja se
+ * abre **una unidad por cada lado**: el halo se dibuja centrado en el borde del
+ * trazado, así que la mitad de sus 2 unidades cae fuera de la gota, y sin ese
+ * aire el `viewBox` se comería medio halo justo en la punta.
+ *
+ * ⚠️ El centro horizontal de la caja es `7 + 18 / 2 = 16`, que es el eje de la
+ *    gota: por eso el anclaje en x es exactamente medio ancho. En vertical no
+ *    coincide con el borde de abajo —la punta está en 23 y la caja acaba en
+ *    24—, así que el anclaje en y **se calcula**, no se pone a ojo.
+ */
+const CAJA_DEL_PUNTERO = { x: 7, y: 2, ancho: 18, alto: 22 } as const;
+
+/**
+ * Cuánto mide una unidad de la rejilla en píxeles de pantalla.
+ *
+ * 1,5 deja el pin en **27 × 33 px**, que es el tamaño al que la casa ya midió
+ * que una chincheta se lee sin acercarse y deja ver la calle de debajo —los
+ * marcadores de los extremos van a 32—. Un punto más alto que ellos, a
+ * propósito: el puntero es lo que el gesto acaba de encender.
+ */
+const ESCALA_DEL_PUNTERO = 1.5;
+const ANCHO_DEL_PUNTERO = CAJA_DEL_PUNTERO.ancho * ESCALA_DEL_PUNTERO;
+const ALTO_DEL_PUNTERO = CAJA_DEL_PUNTERO.alto * ESCALA_DEL_PUNTERO;
+
+/** El grosor del halo, en unidades de la rejilla. Ver `CAJA_DEL_PUNTERO`. */
+const HALO_DEL_PUNTERO = 2;
+
+/**
+ * ⭐ EL ANCLAJE: la punta de la gota, **calculada** desde el trazado.
+ *
+ * [DOC Leaflet] el punto que se posa sobre la coordenada. `x` es medio ancho
+ * porque la caja está centrada en el eje de la gota; `y` es lo que hay desde el
+ * techo de la caja hasta la punta, escalado. Centrarlo dejaría la coordenada
+ * real media gota por encima de donde el ojo ve la punta, y nada lo delataría.
+ */
+export const ANCLAJE_DEL_PUNTERO: L.PointTuple = [
+  ANCHO_DEL_PUNTERO / 2,
+  (PUNTA_DE_LA_GOTA.y - CAJA_DEL_PUNTERO.y) * ESCALA_DEL_PUNTERO,
+];
+
+/**
+ * El pin, como cadena de HTML, que es lo que `L.divIcon` quiere.
+ *
+ * `divIcon` y no `L.icon` con un `iconUrl`: [DOC Leaflet] *«a lightweight icon
+ * for markers that uses a simple `<div>` element instead of an image»*, y es lo
+ * que esta casa ya usa para los extremos y para los hitos **por una razón que
+ * vale igual aquí** — permite que el marcador sea EL MISMO SVG que importa del
+ * componente, en vez de un data URI con el dibujo cocido dentro que habría que
+ * rehacer cada vez que la marca cambie. El anclaje se declara igual en los dos.
+ *
+ * `data-puntero` con la tinta puesta: es por donde lo reconocen las juezas, y
+ * de paso dice en la propia pantalla qué candidato se está mirando.
+ */
+export function svgDelPuntero(tinta: TintaDelPuntero): string {
+  const { x, y, ancho, alto } = CAJA_DEL_PUNTERO;
+  return (
+    `<svg viewBox="${x} ${y} ${ancho} ${alto}" width="${ANCHO_DEL_PUNTERO}" height="${ALTO_DEL_PUNTERO}" ` +
+    `data-puntero="${TINTA_PUESTA}" aria-hidden="true" focusable="false">` +
+    `<path d="${GOTA_DE_LA_MARCA}" fill-rule="evenodd" clip-rule="evenodd" ` +
+    `fill="#${tinta.cuerpo}" stroke="#${tinta.halo}" stroke-width="${HALO_DEL_PUNTERO}" ` +
+    `stroke-linejoin="round"></path></svg>`
+  );
+}
 
 /** Los dos extremos de un plano: contra ellos se decide un ribete. */
 export interface Plano {
@@ -770,16 +913,21 @@ export class Mapa {
    */
   private zonas: L.Polygon[] = [];
   /**
-   * Los círculos del puntero, aparte de `lineas` **y por dos motivos**: se
-   * ponen y se quitan con el ratón sin repintar la ruta entera —repintarla
-   * volvería a encuadrar el mapa a cada pasada—, y **no entran en el
-   * `fitBounds`**, que mira `lineas`: encuadrar por lo señalado daría un salto
-   * de cámara cada vez que el ratón cruza un paso.
+   * El pin del puntero, aparte de `lineas` y aparte de `marcas` **y por tres
+   * motivos**: se pone y se quita con el ratón sin repintar la ruta entera
+   * —repintarla volvería a encuadrar el mapa a cada pasada—, **no entra en el
+   * `fitBounds`**, que mira `lineas` —encuadrar por lo señalado daría un salto
+   * de cámara cada vez que el ratón cruza un paso—, y **no se va con las marcas
+   * de la ruta**, que se borran enteras cada vez que llega un trayecto nuevo.
+   *
+   * Es una lista de uno. Lo es porque quitar y poner se escriben igual con uno
+   * que con varios, y porque el día que un puntero necesite dos piezas —una
+   * sombra, un pulso— esto no cambia de forma.
    *
    * [DOC Leaflet] el patrón de resaltado por punto es ése: el marcador se
    * **añade** al entrar y se **quita** al salir, no se esconde.
    */
-  private realce: L.CircleMarker[] = [];
+  private realce: L.Marker[] = [];
 
   constructor() {
     // [DOC] Angular: «Use afterNextRender to read or write the DOM once, for
@@ -795,6 +943,13 @@ export class Mapa {
       //    añadió antes, y eso cambia con cada ruta.
       const panel = this.mapa.createPane(PANE_ZONA);
       panel.style.zIndex = '350';
+      // ⭐ Y EL DEL PUNTERO, **por encima del de las marcas** (21/09, remate 2):
+      //    es el arreglo del rojo de los cuatro modos. En bus, bici, patín y
+      //    moto la maniobra del paso cae justo donde hay una marca —la parada,
+      //    el aparcamiento, el sitio donde se deja la bici—, y en el panel de
+      //    las trazas el puntero se pintaba DEBAJO de ella. Ver `PANE_PUNTERO`.
+      const panelDelPuntero = this.mapa.createPane(PANE_PUNTERO);
+      panelDelPuntero.style.zIndex = Z_DEL_PUNTERO;
       this.pintarTrazado();
     });
 
@@ -818,12 +973,17 @@ export class Mapa {
 
     // ⭐ EL REALCE VA EN SU PROPIO EFECTO (21/09, 5b), no dentro de
     //    `pintarTrazado`: entrar y salir de un paso con el ratón no puede
-    //    repintar la ruta entera ni volver a encuadrar el mapa. Lee también el
-    //    trazado, los tramos y el tema porque de los tres depende lo que pinta.
+    //    repintar la ruta entera ni volver a encuadrar el mapa.
+    //
+    // ⚠️ **Y desde el remate 2 ya NO lee los tramos**, que es la huella del
+    //    cambio de orden: mientras el puntero heredaba el color del tramo,
+    //    cambiar de tramos tenía que repintarlo. Ahora su tinta no los mira,
+    //    así que leerlos aquí sería declarar una dependencia que no existe.
+    //    Lo que sí lee: el rango, el trazado del que saca la coordenada, y el
+    //    tema, porque hay un candidato de tinta que cambia con él.
     effect(() => {
       this.resaltado();
       this.trazado();
-      this.tramos();
       this.tema.oscuro();
       this.pintarRealce();
     });
@@ -889,34 +1049,33 @@ export class Mapa {
    * `pintarRegulado` y el de `pintarAmpliacion`, que se apoyan en él.
    */
   /**
-   * ⭐ **EL PUNTERO EN EL PUNTO DE LA MANIOBRA** (21/09, remate del 5b).
+   * ⭐ **EL PUNTERO EN EL PUNTO DE LA MANIOBRA: EL PIN DE LA MARCA** (21/09,
+   *    remate 2).
    *
-   * [ANTONIO, con la captura delante] el engrosado del trazo **no le gustó**.
-   * Su diseño: como Google Maps — al pasar por el paso, un puntero en el punto
-   * de la maniobra. Aquí está, y **el dato es el mismo**: el vértice `desde`
-   * del rango que el paso ya trae del motor desde el 5b. Ni el contrato ni los
-   * rangos se han tocado.
+   * [ANTONIO, con el producto delante] el puntero es **el pin del logo de
+   * Desplázame**, y su color **totalmente distinto al de la línea del tramo**.
+   * Aquí está, y **el dato sigue siendo el mismo**: el vértice `desde` del
+   * rango que el paso ya trae del motor desde el 5b. Ni el contrato ni los
+   * rangos se han tocado ninguna de las dos veces.
    *
-   * [DOC Leaflet] `L.circleMarker` es API de núcleo —*«like Circle, but with
-   * a radius specified in screen pixels»*—, y eso es justo lo que hace falta:
-   * un puntero que mide lo mismo con cualquier zoom. Un `L.circle` en metros
-   * crecería y encogería, y a z12 sería un punto invisible.
+   * ── Los tres cambios, y ninguno es de adorno ────────────────────────────
    *
-   * ⚠️ **Y AHORA EL PASO QUE CIERRA SÍ SEÑALA, que antes no podía.** La llegada
-   *    y los hitos son degenerados —`desde === hasta`— y con el engrosado no
-   *    había trecho que engordar, así que se quedaban a oscuras. Un PUNTO sí
-   *    tienen: señalar dónde se aparca la bici o dónde está la puerta es
-   *    exactamente lo que la orden pide —«un puntero en el punto de la
-   *    maniobra»—, y la llegada es una maniobra. Es consecuencia del gesto
-   *    nuevo, no un ensanche por mi cuenta, y va DICHO en el checkpoint.
+   * · **El dibujo**: `L.divIcon` con `GOTA_DE_LA_MARCA`, anclado por la punta
+   *   (`ANCLAJE_DEL_PUNTERO`), en vez del `circleMarker` de la mañana. Un pin
+   *   dice *aquí* con su punta; un disco solo dice *por aquí*.
+   * · **El color**: sale de `TINTAS_DEL_PUNTERO`, que no mira el tramo para
+   *   nada. Se fue con él `tramoQueAbre`, que existía solo para heredarlo.
+   * · **El panel**: `PANE_PUNTERO`, por encima del de las marcas — y ESE es el
+   *   arreglo del rojo de los cuatro modos. Ver su cabecera para las cifras.
    *
-   * ⚠️ El color sale del TRAMO QUE ABRE EL PASO, no del primero de la lista: en
-   *    la costura entre dos tramos el vértice pertenece a los dos —el solape de
-   *    OSRM—, y el que vale es aquel hacia el que el paso camina.
+   * ⚠️ **El paso que CIERRA señala, y eso no ha cambiado desde la mañana.** La
+   *    llegada y los hitos son degenerados —`desde === hasta`— y un punto sí
+   *    tienen. Ahora además **se ve**: antes el pin de la llegada se lo comía,
+   *    que es literalmente el caso que el panel nuevo arregla.
    */
   private pintarRealce(): void {
-    for (const circulo of this.realce) {
-      circulo.remove();
+    for (const marca of this.realce) {
+      marca.remove();
     }
     this.realce = [];
     const rango = this.resaltado();
@@ -928,42 +1087,25 @@ export class Mapa {
     if (!donde) {
       return;
     }
-    const plano = this.tema.oscuro() ? PLANO_DE_DARK_MATTER : PLANO_DE_OSM;
-    const color = (vestidoDe(this.tramoQueAbre(rango.desde)).color ?? VESTIDO.andando.color!).replace('#', '');
-    const tinta = (cual: TintaDelPuntero): string =>
-      cual === 'tramo' ? `#${color}` : cual === 'ribete' ? `#${ribeteDe(color, plano)}` : '#ffffff';
-    for (const capa of PUNTEROS[PUNTERO_PUESTO]) {
-      const circulo = L.circleMarker([donde[0], donde[1]], {
-        radius: capa.radio,
-        fillColor: tinta(capa.relleno),
-        fillOpacity: 1,
-        stroke: capa.borde !== 'ninguno',
-        color: capa.borde === 'ninguno' ? undefined : tinta(capa.borde),
-        weight: capa.grosor,
-        // No se pincha ni se arrastra: es un adorno que sigue al ratón, y si
-        // capturara el puntero se comería el `mouseleave` del paso.
-        interactive: false,
-      }).addTo(this.mapa);
-      circulo.bringToFront();
-      this.realce.push(circulo);
-    }
-  }
-
-  /**
-   * El tramo que ABRE el paso que empieza en el vértice `v`.
-   *
-   * ⚠️ En la costura el vértice es de los dos tramos —el solape de OSRM—, y
-   *    el bueno es hacia el que se camina: el que lo tiene como `desde`, o el
-   *    que todavía no ha acabado en él. Coger el primero que lo contenga
-   *    pintaría el puntero del color del tramo que se acaba de dejar.
-   */
-  private tramoQueAbre(v: number): TramoDelViaje {
-    const tramos = this.tramos();
-    return (
-      tramos.find((t) => t.desde <= v && v < t.hasta) ??
-      tramos.find((t) => t.desde <= v && v <= t.hasta) ??
-      ({ comoSeVa: 'andando', desde: 0, hasta: 0, metros: 0, segundos: 0, hito: null } as TramoDelViaje)
-    );
+    const tinta = TINTAS_DEL_PUNTERO[TINTA_PUESTA][this.tema.oscuro() ? 'oscuro' : 'claro'];
+    const marca = L.marker([donde[0], donde[1]], {
+      icon: L.divIcon({
+        html: svgDelPuntero(tinta),
+        // Vacío a propósito: por defecto Leaflet pone `leaflet-div-icon`, que
+        // trae fondo blanco y borde gris — un recuadro alrededor del pin. Es la
+        // misma razón por la que los extremos lo llevan vacío.
+        className: '',
+        iconSize: [ANCHO_DEL_PUNTERO, ALTO_DEL_PUNTERO],
+        iconAnchor: ANCLAJE_DEL_PUNTERO,
+      }),
+      pane: PANE_PUNTERO,
+      // Ni se pulsa ni se tabula: es una seña que sigue al gesto. Y sin
+      // `interactive: false` se comería el `mouseleave` del paso en cuanto el
+      // ratón pasara por encima del propio pin.
+      keyboard: false,
+      interactive: false,
+    }).addTo(this.mapa);
+    this.realce.push(marca);
   }
 
   private pintarTrazado(): void {

@@ -406,28 +406,28 @@ describe('Mapa', () => {
    * bicicleta donde se coge y la P donde se deja.
    */
   /**
-   * ⭐ **EL PUNTERO TOMA EL COLOR DEL TRAMO QUE ABRE EL PASO** (21/09, remate
-   *    del 5b).
+   * ⭐ **EL PUNTERO NO HEREDA NADA DEL TRAMO** (21/09, remate 2 · orden de
+   *    Antonio).
    *
-   * ⚠️ **ACTA.** Esta juez nació por la mañana comprando otra cosa: que un
-   *    paso que cruza la costura de dos tramos se **engordase en dos trozos**,
-   *    `#b45309` y `#2563eb`, los dos a 9. Antonio miró el engrosado en captura
-   *    y no le gustó; su diseño es **un puntero en el punto de la maniobra**,
-   *    como Google Maps. Con un punto no hay dos trozos que pintar: hay un
-   *    sitio, y ese sitio tiene **un** color.
+   * ⚠️ **ACTA — esta juez ha cambiado de signo DOS VECES en dos días, y las
+   *    dos por la misma mano.** Nació comprando que un paso a caballo de dos
+   *    tramos se **engordase en dos trozos**, `#b45309` y `#2563eb`. Antonio
+   *    miró el engrosado y lo tiró; se reescribió para comprar **de cuál de
+   *    los dos tramos tomaba el color el puntero**. Antonio miró eso también,
+   *    en el producto, y firmó lo contrario: **el color del puntero,
+   *    totalmente distinto al de la línea del tramo — heredarlo queda
+   *    DESCARTADO**.
    *
-   *    Lo que la juez compraba y ya no aplica: dos trozos y su engrosado. Lo
-   *    que compra ahora, que es la misma preocupación: **de cuál de los dos
-   *    tramos toma el color**. En la costura el vértice pertenece a los dos —el
-   *    solape de OSRM— y el bueno es aquel HACIA EL QUE el paso camina, no el
-   *    que se acaba de dejar. Pintarlo del color del tramo que muere ahí sería
-   *    decir que el paso que empieza es del modo anterior.
+   *    Así que lo que ayer era la pregunta hoy es la prohibición, y esta juez
+   *    es su portero: el pin se pinta **igual** a los dos lados de la costura.
+   *    Si alguien volviera a colgar la tinta del tramo, aquí saltaría.
    *
-   * Sigue siendo la única rama que no compra nadie más: la juez de
-   * `buscador.spec.ts` corre sobre un trayecto de un solo tramo, y la P34 de
-   * `pintura.mjs` genera una ruta andando, que también trae uno.
+   * Y de paso compra lo que hace falta para que se VEA, que es el rojo de los
+   * cuatro modos: que el pin viva **en su propio panel**, el que va por encima
+   * del de las marcas. Con el `circleMarker` de la mañana caía en el panel de
+   * las trazas, debajo de la parada del bus o del aparcamiento de la moto.
    */
-  it('⭐ 5b · en la costura, el puntero toma el color del tramo hacia el que se camina', async () => {
+  it('⭐ 5b · el puntero se pinta IGUAL a los dos lados de la costura, y en su panel', async () => {
     const fixture = TestBed.createComponent(Anfitrion);
     await fixture.whenStable();
     const raiz = fixture.nativeElement as HTMLElement;
@@ -436,29 +436,37 @@ describe('Mapa', () => {
     fixture.componentInstance.tramos.set(EN_BIZI);
     await fixture.whenStable();
 
-    /** Los círculos del puntero: los `path` que NO son de la ruta. */
-    const circulos = (): SVGPathElement[] =>
-      Array.from(raiz.querySelectorAll<SVGPathElement>('.leaflet-overlay-pane path')).filter(
-        (p) => !p.classList.contains('leaflet-interactive'),
-      );
-    expect(circulos().length).toBe(0);
+    /** El pin del puntero, por su marca. Ver `svgDelPuntero`. */
+    const pines = (): SVGElement[] =>
+      Array.from(raiz.querySelectorAll<SVGElement>('svg[data-puntero]'));
+    expect(pines().length).toBe(0);
 
     // El vértice 1 es la COSTURA: cierra el tramo a pie [0..1] y abre el de
-    // rodar [1..2]. El paso que empieza ahí va rodando, así que azul.
+    // rodar [1..2]. Antes de la orden esto pintaba azul; ahora no mira el tramo.
     fixture.componentInstance.resaltado.set({ desde: 1, hasta: 2 });
     await fixture.whenStable();
-    expect(circulos().length).toBeGreaterThan(0);
-    expect(circulos()[0]!.getAttribute('fill')).toBe('#2563eb');
+    expect(pines().length).toBe(1);
+    const enLaCostura = pines()[0]!.outerHTML;
 
-    // Y el vértice 0, que solo es del primer tramo: el ámbar del a-pie.
+    // Y el vértice 0, que solo es del tramo a pie. Antes: ámbar. Ahora: LO MISMO.
     fixture.componentInstance.resaltado.set({ desde: 0, hasta: 1 });
     await fixture.whenStable();
-    expect(circulos()[0]!.getAttribute('fill')).toBe('#b45309');
+    expect(pines()[0]!.outerHTML, 'el puntero ha vuelto a heredar del tramo').toBe(enLaCostura);
+
+    // ⭐ Y NO ES NINGUNO DE LOS COLORES DE LÍNEA, que es lo que la orden pide.
+    const relleno = (pines()[0]!.querySelector('path')?.getAttribute('fill') ?? '').toLowerCase();
+    expect(['#b45309', '#2563eb', '#6b7280', `#${ROJO_DE_LA_ZONA}`]).not.toContain(relleno);
+
+    // ⭐ EL PANEL PROPIO, por encima del de las marcas: el arreglo del rojo.
+    //    Leaflet le pone al panel la clase `leaflet-<nombre>-pane`.
+    const panel = pines()[0]!.closest('.leaflet-pane');
+    expect(panel?.className, 'el pin no está en su panel').toContain('punteroDelPaso');
+    expect(panel?.className).not.toContain('overlay-pane');
 
     // Y al soltarlo se QUITA, no se esconde [DOC Leaflet].
     fixture.componentInstance.resaltado.set(null);
     await fixture.whenStable();
-    expect(circulos().length).toBe(0);
+    expect(pines().length).toBe(0);
   });
 
   it('⭐ 1 · la BiZi pinta tres tramos (dos a pie iguales) y sus dos hitos', async () => {

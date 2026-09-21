@@ -7888,16 +7888,16 @@ describe('Buscador', () => {
     };
 
     /**
-     * Los círculos del puntero: los `path` del panel de trazas que NO llevan
-     * `leaflet-interactive`. El puntero se pinta con `interactive: false` —si
-     * capturara el ratón se comería el `mouseleave` del paso—, y Leaflet solo
-     * le pone esa clase a lo que sí es interactivo. No hace falta inventarse
-     * una clase nuestra para distinguirlos.
+     * El pin del puntero, por su propia marca.
+     *
+     * ⚠️ **Esto se reescribió en el remate 2.** Antes el puntero era un
+     *    `circleMarker` y se reconocía por descarte —los `path` del panel de
+     *    trazas que NO llevaban `leaflet-interactive`—. Ahora es el pin de la
+     *    marca en un `divIcon`, con `data-puntero` puesto por `svgDelPuntero`,
+     *    así que se reconoce por lo que ES y no por lo que no es.
      */
-    const punteros = (raiz: HTMLElement): SVGPathElement[] =>
-      Array.from(raiz.querySelectorAll<SVGPathElement>('.leaflet-overlay-pane path')).filter(
-        (p) => !p.classList.contains('leaflet-interactive'),
-      );
+    const punteros = (raiz: HTMLElement): SVGElement[] =>
+      Array.from(raiz.querySelectorAll<SVGElement>('svg[data-puntero]'));
 
     /** Las líneas de la ruta, que el puntero no puede tocar. */
     const lineas = (raiz: HTMLElement): number =>
