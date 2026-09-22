@@ -847,9 +847,11 @@ export class Buscador {
    * ⭐ LA COLUMNA DE ESCRITORIO, abierta o plegada — las dos posiciones del
    * separador, sin arrastre, que es el patrón de panel lateral colapsable.
    *
-   * ⚠️ Plegarla **cambia el tamaño del contenedor del mapa**, y ese es el único
-   *    caso en toda la app en que Leaflet necesita que le avisen. Lo hace
-   *    `alTerminarLaTransicion`, enganchado al `transitionend` del panel.
+   * ⚠️ Plegarla **cambia el tamaño del contenedor del mapa**, y Leaflet
+   *    necesita que le avisen. Ya no lo hace este componente: desde el 22/09
+   *    lo hace el propio mapa, con un `ResizeObserver` sobre su lienzo, que ve
+   *    el plegado y cualquier otro cambio de tamaño (ver `revisarTamano` en
+   *    `mapa.ts`). Aquí había un `transitionend` que llamaba a lo mismo.
    */
   /**
    * ⭐ EL VIGÍA DEL ANCHO. Se lee al nacer y se escucha el cambio: girar el
@@ -875,25 +877,6 @@ export class Buscador {
 
   protected alternarColumna(): void {
     this.columnaAbierta.update((x) => !x);
-  }
-
-  private readonly elMapa = viewChild(Mapa);
-
-  /**
-   * ⭐ EL RE-ENCUADRE, ATADO AL FINAL DE LA TRANSICIÓN — no a un cronómetro.
-   *
-   * Un `setTimeout(300)` acierta en esta máquina y falla en la que va lenta, y
-   * cuando falla deja **medio mapa en teselas grises** sin decir nada. El
-   * `transitionend` lo dispara el navegador cuando la transición ha terminado
-   * DE VERDAD, dure lo que dure.
-   *
-   * ⚠️ Se filtra por `width`: el panel también transiciona otras propiedades, y
-   *    sin el filtro esto se llamaría varias veces por plegado.
-   */
-  protected alTerminarLaTransicion(evento: TransitionEvent): void {
-    if (evento.propertyName === 'width') {
-      this.elMapa()?.revisarTamano();
-    }
   }
 
   /**

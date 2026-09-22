@@ -841,28 +841,53 @@ export class Mapa {
    *
    * [DOC Leaflet, `invalidateSize`] «Checks if the map container size changed
    * and updates the map if so — call it after you've changed the map size
-   * dynamically.» Sin esta llamada, la mitad que antes no existía se queda en
+   * dynamically.» Sin esta llamada, la parte que antes no existía se queda en
    * **teselas grises**: Leaflet cree que el lienzo sigue midiendo lo de antes.
    *
-   * ⚠️ Y SOLO HACE FALTA PARA EL PLEGADO DE LA COLUMNA, que es lo único que
-   *    cambia el tamaño del CONTENEDOR. Los otros dos casos no lo necesitan:
+   * ⭐ **Y LA LLAMA EL PROPIO CONTENEDOR** (22/09, la carrera del mapa). Aquí
+   *    ponía que solo hacía falta para el plegado de la columna, y no era
+   *    verdad: el `index.html` carga la hoja completa ASÍNCRONA, y cuando el JS
+   *    gana, el mapa se crea sobre un contenedor que aún no tiene su tamaño
+   *    —medido: 1438×579 al montar, 881×951 cuando llega la hoja— y se queda en
+   *    una franja de teselas arriba y el resto gris. [Leaflet] es su fallo con
+   *    nombre propio, «map container size not valid at map initialization». El
+   *    arreglo no es reordenar la carga: es que el mapa aguante CUALQUIER orden
+   *    de llegada. Lo dispara un `ResizeObserver` sobre el lienzo —el API del
+   *    navegador para observar el tamaño de UN elemento—, que ve este caso, el
+   *    plegado de la columna (que antes llamaba aquí el Buscador en su
+   *    `transitionend`, ya quitado) y cualquiera que venga. `trackResize` de
+   *    Leaflet sigue ahí, pero solo escucha a la VENTANA.
    *
-   *    · **El resize de ventana y la rotación los lleva Leaflet solo.** Su
-   *      opción `trackResize` viene en `true` por defecto —«whether the map
-   *      automatically handles browser window resize to update itself»— y este
-   *      mapa se monta sin opciones, así que la conserva. Duplicarlo con un
-   *      `ResizeObserver` propio sería poner un segundo mecanismo encima del
-   *      nativo.
-   *    · **Los dos estados de la hoja en móvil tampoco**: la hoja se superpone
-   *      al mapa, que ocupa la pantalla entera por debajo. Su contenedor no
-   *      cambia de tamaño, así que no hay nada que recalcular.
+   * ⭐ **LA GUARDA: el patrón «baliza» (beacon) de detección de hojas, en
+   *    variante de la casa** (firma de Antonio, 22/09). Sin la guarda, el
+   *    observador entraba en CASCADA: la hoja que llega tarde trae también
+   *    `leaflet.css`, y sin ella las teselas van en el flujo y ESTIRAN el
+   *    contenedor → el observador lo ve crecer → `invalidateSize` pide teselas
+   *    para el tamaño nuevo → vuelven a estirarlo. Medido: 579 → 23.199 px en
+   *    160 ms y miles de teselas pedidas a OpenStreetMap. `debounceMoveend` no
+   *    bastaba —solo retrasa el `moveend`; la capa de teselas se actualiza
+   *    también con `move`, cada 200 ms (código de Leaflet 1.9.4)—.
+   *    El patrón: como el `onload` de un `<link>` no es fiable, se comprueba EL
+   *    EFECTO de la hoja, un estilo computado que solo existe con ella aplicada.
+   *    La variante: en vez de una regla dedicada a hacer de baliza, se usa una
+   *    regla QUE YA EXISTE en `leaflet.css` 1.9.4 —`.leaflet-container {
+   *    overflow: hidden; }`, su línea 18, y ninguna otra hoja de la casa pone
+   *    `overflow` en el lienzo—: cero CSS añadido. La equivalencia la compran
+   *    la medición (con la hoja 3 s tarde: 2 disparos del observador, 18
+   *    teselas, 0 peticiones escapadas) y la P35 de `pintura.mjs`.
    *
-   * Quien llama es el esqueleto, en `transitionend` — una vez, al terminar la
-   * transición, y no a los N milisegundos de un número inventado.
+   * ⚠️ Invalidar no cambia el tamaño del contenedor una vez aplicada la hoja,
+   *    así que el observador no se re-dispara a sí mismo.
    */
-  revisarTamano(): void {
+  private revisarTamano(): void {
+    if (getComputedStyle(this.lienzo().nativeElement).overflow !== 'hidden') {
+      return; // sin leaflet.css aún: invalidar ahora solo alimentaría la cascada
+    }
     this.mapa?.invalidateSize();
   }
+
+  /** Quien vigila el tamaño del lienzo. Ver `revisarTamano`. */
+  private observadorDelTamano?: ResizeObserver;
   private lineas: L.Polyline[] = [];
   private marcas: L.Marker[] = [];
   /**
@@ -911,6 +936,13 @@ export class Mapa {
       const panelDelPuntero = this.mapa.createPane(PANE_PUNTERO);
       panelDelPuntero.style.zIndex = Z_DEL_PUNTERO;
       this.pintarTrazado();
+      // Y desde ya, el contenedor avisa cuando cambia de tamaño: ver
+      // `revisarTamano`. Sin `ResizeObserver` (jsdom, en las pruebas de
+      // unidad) no hay nada que vigilar, y el mapa se monta igual.
+      if (typeof ResizeObserver !== 'undefined') {
+        this.observadorDelTamano = new ResizeObserver(() => this.revisarTamano());
+        this.observadorDelTamano.observe(this.lienzo().nativeElement);
+      }
     });
 
     // Redibuja cuando cambia el trazado. Si el mapa aún no existe, no hace
@@ -962,6 +994,10 @@ export class Mapa {
     // atrás un mapa entero con sus escuchas de `window` y sus 46.150
     // marcadores, que nadie vuelve a mirar y nadie recoge.
     inject(DestroyRef).onDestroy(() => {
+      // El observador primero: que no llame a `invalidateSize` sobre un mapa
+      // que ya no existe.
+      this.observadorDelTamano?.disconnect();
+      this.observadorDelTamano = undefined;
       this.mapa?.remove();
       this.mapa = undefined;
       this.tesela = undefined;
