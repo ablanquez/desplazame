@@ -14,6 +14,66 @@
 
 ---
 
+## [2026-09-22] 🔴 ABIERTA — pintura salió en verde con el mapa de pc · coche roto: una franja de teselas arriba, zoom máximo y el resto gris
+
+**Categoría:** la jueza cuenta lo que mide y no cuenta lo que falta
+**Síntoma:** en la batería final de la poda del presupuesto (dist
+`main-B5LVWUVH.js`, motor mío pid 2672), la captura `mapa-oscuro-pc-coche.png`
+de la P26 enseña la ruta generada —«7,8 km · ~30 min», los pasos escritos— y
+el mapa ROTO: solo una franja de teselas de ~150 px arriba, a zoom de calle, y
+el resto del contenedor gris; ni la traza ni los pins a la vista. En las dos
+tiradas del base y en la de la poda 1, esa misma captura sale normal.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** `pintura.mjs`, salida 0,
+`pintura|0|1204|0|escapadas 0` (1204 OK, 0 rojos; el base da 1225). En esa
+vista la P26 escribió:
+`OK  P26 · pc · coche · ⭐ dark · la tesela es la del tema: Dark Matter de CARTO, con su key  ·  7 teselas · OSM 0 · dark_all 7 · con key 7`
+`··  P26 · pc · coche · el borde #f87171 no se mide: 0 px pintados, por debajo de 150`
+`··  P26 · pc · coche · el pin via/origen no se mide: queda fuera de la vista`
+`⊘  P26 · pc · coche · el pin clon/#1a7f37 NO SE PUEDE MEDIR: falta la tesela bajo él (ninguna cargada en su sitio) — no se juzga, y no cuenta como verde`
+y de las dos trazas (`#2563eb`, `#b45309`) NO ESCRIBIÓ NINGUNA LÍNEA: ni OK,
+ni `··`, ni `⊘`. Lo mismo en claro.
+**Cómo se cazó:** instrumento — el recuento de OK de la batería (1204 frente a
+1225) y el diff de las letras contra el base; luego la captura.
+**Causa raíz:** ⏳ PENDIENTE
+**Arreglo aplicado:** ⏳ PENDIENTE
+**Commit:** ⏳ PENDIENTE
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Traza:** `app/e2e/pintura.mjs` — P26, `juzgarLoQuePisa` (el bucle
+`for (… of agrupar(lo.pares, …))` de las trazas) y `generarCon` (no comprueba
+que el mapa encuadre la ruta) · captura `mapa-oscuro-pc-coche.png` de la
+batería final.
+
+**Nota [2026-09-22, la misma tarde] — NO lo trae la poda: el dist base lo
+hace igual, y de forma determinista.** El laboratorio de la P26 (copia literal,
+solo `pc · coche`) sobre el dist final: 2 de 5 tiradas rotas, las dos primeras,
+seguidas de la batería. Sobre el base, 0 de 8. Intercalando base y final, 0 de
+10 en cada uno. La firma apunta a una carrera: el `index.html` carga la hoja
+completa ASÍNCRONA (`<link … media="print" onload="this.media='all'">`, el
+crítico en línea), y el mapa se crea en `afterNextRender`; `mapa.ts` solo
+vuelve a medir con el plegado de la columna (`revisarTamano`) o con el resize
+de la ventana (`trackResize`). Repro con un proxy que retrasa 3 s cualquier
+`styles-*.css` (scratchpad `poda/proxy-lento.mjs`), sobre el DIST BASE
+`main-VYV3JLZR.js`: 3 de 3 tiradas
+`salida 0 · dark_all 7 · ⊘ 13 · trazas 0 · OK 13`, y la captura es la misma
+franja con el resto gris. El arreglo es de PRODUCTO (`app/src`) y la jueza
+muda de la traza es de `pintura.mjs`: ninguno entra en la poda, que no toca lo
+visible. Queda ABIERTA para su tanda.
+
+**Nota [2026-09-22, más tarde] — y a veces NO calla: da rojo, también en el
+base.** Una tirada entera de `pintura.mjs` sobre el DIST BASE
+(`main-VYV3JLZR.js`, sin proxy) salió `pintura-base3|1|1182|4|⊘ 26`: la firma
+del mapa roto en tres escenarios de la P26 (`⊘` en `pc · coche` y `movil · bici`; la captura
+`mapa-oscuro-pc-yego.png` es la misma franja con el resto gris), y cuatro
+rojos. Los dos de la P26 `pc · yego` salen de esa captura rota; los dos de la
+P34 leen la punta a 13.909 px de su sitio, y que sean la misma franja NO
+CONSTA (no miré su captura):
+`✗✗  P26 · pc · yego · ⭐ el borde #15803d a rayas del polígono se separa de la tesela: ≥ 3:1 [1.4.11]  ·  peor 1.94 sobre rgb(68, 68, 68) · 13 colores ≥ 1 % bajo 285 px · 10 polígono(s)`
+`✗✗  P34 · puntero · oscuro · ⭐ el paso 0 abre en el vértice 0 y LA PUNTA cae en el ARRANQUE de la línea  ·  arranque (1818.1,-4.7) · punta (4075,-13730) · 13909.6 px`
+O sea: según dónde caiga, la carrera sale como verde mudo o como rojo que
+culpa a otra cosa (un contraste de borde, al menos).
+
+---
+
 ## [2026-09-22] ✅ CERRADA — El comparador de capturas de la poda dijo «iguales en píxeles» a una captura con un píxel cambiado
 
 **Categoría:** la jueza cuenta lo que mide y no cuenta lo que falta
