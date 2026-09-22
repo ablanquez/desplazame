@@ -27,7 +27,7 @@
  *    y las compara. Si alguien renombra una, la elección deja de sobrevivir a la
  *    recarga y **no se nota mirando la pantalla**.
  */
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 // @ts-expect-error — sin @types/node, el compilador no conoce el módulo
 import { existsSync, readFileSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
@@ -210,18 +210,49 @@ describe('⭐ (a) EL GUION ANTI-FOUC del index.html', () => {
 });
 
 describe('⭐ (b) EL SERVICIO `Tema` — el lado que ESCRIBE', () => {
+  /**
+   * ⭐ **QUIEN TOCA UN GLOBAL LO DEJA COMO ESTABA** (22/09, la carrera del
+   *    `data-theme`).
+   *
+   * El runner de la unidad corre con `isolate: false` —el builder de Angular lo
+   *    fija así «to align with the Karma/Jasmine experience»—, y Vitest lo
+   *    define como «Run tests in an isolated environment […] Disabling this
+   *    option improves performance if your code doesn't rely on side effects».
+   *    O sea: los ficheros que caen en el mismo worker **comparten el mismo
+   *    `document` y el mismo `localStorage`**, uno detrás de otro.
+   *
+   * La fuga vino de `pintura.spec`: la prueba del nombre estable pulsaba el
+   *    interruptor y no restauraba nada: dejaba `data-theme=dark` en el `<html>`
+   *    real. La de debajo leía ese `dark` como «el de antes» y lo restauraba
+   *    fielmente. Todo `mapa.spec` que cayera después en el mismo worker nacía
+   *    en oscuro: los 7 rojos intermitentes. Reproducido a voluntad con un solo
+   *    worker y `pintura.spec` delante de `mapa.spec`, y clavado con una sonda
+   *    que fotografiaba el `<html>` heredado.
+   *
+   * Este bloque restauraba bien el atributo, pero **al final de cada
+   *    prueba** —si una aserción fallaba antes, no se ejecutaba— y **nunca la
+   *    clave guardada**, que se quedaba con lo último elegido. Por eso la
+   *    restauración vive AQUÍ, en el teardown, y no al final de cada
+   *    prueba: se ejecuta aunque una aserción falle a medias, y vale para
+   *    cualquier prueba que se añada mañana al bloque. Vuelve al valor ANTERIOR
+   *    —el atributo y la clave guardada—, no a uno fijo, y es idempotente.
+   */
   let antes: string | null;
+  let guardadoDeAntes: string | null;
 
   beforeEach(() => {
     antes = document.documentElement.getAttribute('data-theme');
+    guardadoDeAntes = localStorage.getItem(LLAVE_DEL_TEMA);
     localStorage.removeItem(LLAVE_DEL_TEMA);
     TestBed.resetTestingModule();
   });
 
-  const restaurar = (): void => {
+  afterEach(() => {
     if (antes === null) document.documentElement.removeAttribute('data-theme');
     else document.documentElement.setAttribute('data-theme', antes);
-  };
+    if (guardadoDeAntes === null) localStorage.removeItem(LLAVE_DEL_TEMA);
+    else localStorage.setItem(LLAVE_DEL_TEMA, guardadoDeAntes);
+  });
 
   it('⭐ elegir pone el atributo en <html> Y guarda la elección', () => {
     const tema = TestBed.inject(Tema);
@@ -234,7 +265,6 @@ describe('⭐ (b) EL SERVICIO `Tema` — el lado que ESCRIBE', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('light');
     expect(localStorage.getItem(LLAVE_DEL_TEMA)).toBe('light');
     expect(tema.oscuro()).toBe(false);
-    restaurar();
   });
 
   it('⭐ alternar va y vuelve', () => {
@@ -244,7 +274,6 @@ describe('⭐ (b) EL SERVICIO `Tema` — el lado que ESCRIBE', () => {
     expect(tema.oscuro()).toBe(true);
     tema.alternar();
     expect(tema.oscuro()).toBe(false);
-    restaurar();
   });
 
   /**
@@ -258,6 +287,5 @@ describe('⭐ (b) EL SERVICIO `Tema` — el lado que ESCRIBE', () => {
     tema.elegir(true);
     const guardada = localStorage.getItem(LLAVE_DEL_TEMA) ?? undefined;
     expect(correrElGuion({ guardada, sistema: 'light' }).atributo).toBe('dark');
-    restaurar();
   });
 });

@@ -97,10 +97,22 @@ const casillas = (raiz: HTMLElement): HTMLInputElement[] =>
 
 describe('MapaDeCapas — las catorce y su tema', () => {
   const getContextDeVerdad = HTMLCanvasElement.prototype.getContext;
+  /**
+   * ⭐ **EL TEMA DE ANTES, para devolverlo** (22/09, la carrera del
+   *    `data-theme`). El runner corre con `isolate: false` y los ficheros de un
+   *    mismo worker comparten el `document`: quien toca el `<html>` real lo deja
+   *    como estaba. Aquí el teardown hacía `removeAttribute`, que es dejarlo
+   *    **como a este fichero le conviene**, no como estaba — con un `dark`
+   *    heredado, lo borraba. Ahora vuelve al valor ANTERIOR. Ver el acta
+   *    completa en el bloque de la barra de `pintura.spec.ts`, que es donde
+   *    estaba la fuga.
+   */
+  let temaDeAntes: string | null;
 
   beforeEach(async () => {
     HTMLCanvasElement.prototype.getContext = (() =>
       contexto2dFalso()) as unknown as typeof getContextDeVerdad;
+    temaDeAntes = document.documentElement.getAttribute('data-theme');
     document.documentElement.setAttribute('data-theme', 'light');
     await TestBed.configureTestingModule({
       imports: [MapaDeCapas],
@@ -110,7 +122,8 @@ describe('MapaDeCapas — las catorce y su tema', () => {
 
   afterEach(() => {
     HTMLCanvasElement.prototype.getContext = getContextDeVerdad;
-    document.documentElement.removeAttribute('data-theme');
+    if (temaDeAntes === null) document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', temaDeAntes);
   });
 
   /** Monta el componente con las capas llenas y devuelve lo necesario. */
