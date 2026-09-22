@@ -1731,19 +1731,12 @@ app-conmutador-de-tema {
   outline-offset: 2px;
 }
 
-/* La elegida de un grupo. El contraste de este par lo vigila la jueza de
-   `identidad.mjs` desde la tanda 1: `primary-foreground` sobre `primary`. */
-.pildora--elegida {
-  border-color: var(--primary);
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-}
-
-@media (hover: hover) {
-  .pildora--elegida:hover {
-    background-color: var(--primary);
-  }
-}
+/* ⚠️ AQUÍ HABÍA UNA `.pildora--elegida` —con su hover— Y ERA CSS MUERTO desde
+   que nació (0d6200f, 10/09): ninguna plantilla la ha puesto nunca y ningún
+   `.ts` la escribe. La elegida de cada grupo la pinta `.modo--activo`, en esta
+   misma hoja. El par que su comentario decía vigilado —`primary-foreground`
+   sobre `primary`— lo sigue midiendo la jueza de `identidad.mjs`, que mira los
+   tokens y no esta clase. Podada el 22/09 (la poda del presupuesto). */
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ⭐ LA SUPERFICIE ÁMBAR — «esto no se ha podido hacer» (12/09, subida aquí)
