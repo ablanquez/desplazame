@@ -14,6 +14,48 @@
 
 ---
 
+## [2026-09-22] ✅ CERRADA — El comparador de capturas de la poda dijo «iguales en píxeles» a una captura con un píxel cambiado
+
+**Categoría:** la jueza cuenta lo que mide y no cuenta lo que falta
+**Síntoma:** la poda del presupuesto tiene un criterio duro —«si mueve UN
+píxel de pintura, no era invisible»— y lo juzga un comparador del scratchpad
+(`pixeles.py`: las capturas del base contra las de la poda, del mismo nombre).
+Contra la poda 1 (Leaflet por su ESM) dijo 224 de 224 iguales. En la
+contraprueba —una copia de una captura con UN píxel cambiado (+1 en rojo, en
+el centro)— dijo que eran iguales.
+**⭐ Qué dio verde mientras el fallo estaba vivo:** el propio comparador, en
+las dos tiradas. Contra la poda 1:
+`comparadas 224 · iguales al byte 133 · iguales en píxeles 91 · distintas 0`
+Y contra la captura saboteada a mano:
+`comparadas 1 · iguales al byte 0 · iguales en píxeles 1 · distintas 0`
+**Cómo se cazó:** instrumento — la contraprueba sobre la prueba, hecha porque
+el 224/224 salió verde a la primera.
+**Causa raíz:** `getbbox()` de Pillow mira SOLO EL ALFA en una imagen con
+canal alfa. Su letra, leída en la versión instalada (12.3.0): `getbbox(self,
+*, alpha_only: bool = True)` — «If ``True`` and the image has an alpha
+channel, trim transparent pixels. Otherwise, trim pixels when all channels are
+zero». La diferencia de dos capturas opacas tiene alfa 0 en todos los
+píxeles aunque el rojo, el verde o el azul cambien, así que la caja salía
+`None` y el comparador contaba «iguales en píxeles».
+**Arreglo aplicado:** `getbbox(alpha_only=False)` en las dos llamadas de
+`pixeles.py`. Contraprueba repetida con la misma captura saboteada:
+`comparadas 1 · iguales al byte 0 · iguales en píxeles 0 · distintas 1` /
+`≠ arranque-sin-modo.png: 22 píxeles distintos en (540, 450, 721, 715)`.
+Y contra la poda 1, las 91 que había dado por iguales salen DISTINTAS: se
+juzgan contra una tirada de control del mismo dist base (ver el checkpoint de
+la poda), no contra la suposición.
+**Commit:** NO CONSTA — el comparador vive en el scratchpad de la sesión, no en
+el repo; esta entrada va en el commit de la foto de la poda.
+**Ley que sale de aquí:** SIN LEY TODAVÍA
+**Ley, al cerrar:** a un comparador se le siembra una diferencia conocida
+ANTES de creerle un «iguales»; y una diferencia de imágenes se mide en todos
+sus canales, no en el que la librería elija por defecto.
+**Traza:** scratchpad `poda/pixeles.py` — `ImageChops.difference(...)` y
+`d.getbbox()` sobre imágenes `RGBA`. Los 91 «iguales en píxeles» de la poda 1
+quedan SIN COMPROBAR hasta que el comparador vea la contraprueba.
+
+---
+
 ## [2026-09-21] ✅ CERRADA — La jueza que compra «el puntero SE VE» dio verde en los doce sitios donde no había puntero ninguno
 
 **Categoría:** la jueza cuenta lo que mide y no cuenta lo que falta
