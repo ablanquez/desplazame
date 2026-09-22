@@ -123,8 +123,17 @@ const modo = async (cual) => {
 /**
  * «Generar» y esperar a SU RESPUESTA [el `waitForResponse` de la doctrina]:
  * el espía de `fetch` cuenta las respuestas de `/api/ruta`, y además el botón
- * tiene que haber dejado de estar ocupado, que es cuando la pantalla la ha
- * pintado. `topeMs` es el sleep de antes, ahora de rescate.
+ * tiene que haber dejado de estar ocupado. `topeMs` es el sleep de antes, ahora
+ * de rescate.
+ *
+ * ⭐ **Y LOS PASOS PINTADOS, que es lo que se va a leer** (22/09, el peaje del
+ *    push). El botón se libera ANTES de que la lista exista: medido con la
+ *    sonda del 22/09, la respuesta traía sus 32 pasos —con los dos hitos de la
+ *    BiZi— y el DOM tenía 0 pasos y 0 botones; 1,5 s después, 28 pasos y los 2
+ *    botones. La jueza de los botones vivos salía roja por mirar pronto: 3 de 6
+ *    tiradas con el lote y 1 de 6 con el dist anterior, o sea de los dos lados.
+ *    Se espera a lo que se lee: la lista pintada, o el aviso de que no hubo
+ *    ruta —que también es un final legítimo—.
  */
 const generar = async (topeMs) => {
   const antes = await m.evaluar(`window.__respuestasDeRuta ?? 0`);
@@ -134,7 +143,8 @@ const generar = async (topeMs) => {
   await m.esperar(
     'la respuesta de /api/ruta, ya pintada',
     `(window.__respuestasDeRuta ?? 0) > ${antes} &&
-     ![...document.querySelectorAll('button')].find((b) => b.textContent.includes('Generar'))?.disabled`,
+     ![...document.querySelectorAll('button')].find((b) => b.textContent.includes('Generar'))?.disabled &&
+     (document.querySelectorAll('.paso').length > 0 || !!document.querySelector('.aviso-ruta'))`,
     { topeMs },
   );
   await m.pintado();
@@ -223,7 +233,33 @@ try {
   await generar(9000);
 
   const antes = await vivos();
-  juez('en BiZi hay DOS botones vivos, uno por hito', antes.length === 2, `${antes.length}`);
+  /**
+   * ⭐ **SIN HITOS NO SE EXIGEN FANTASMAS: SE DECLARA** (22/09, el peaje).
+   *
+   * La disponibilidad de la BiZi es dato de un servicio EXTERNO, y su estado
+   * natural incluye el «ahora no hay»: estación vacía o llena, o la sede sin
+   * contestar. Un viaje sin hitos de BiZi puede ser la verdad del minuto, no
+   * una avería, y una jueza que exige dos botones SIEMPRE está suponiendo un
+   * mundo fijo. Así que cuando el viaje llega sin hitos se DICE, con la cifra y
+   * con lo que digan sus avisos —el patrón `⊘` de la P26 y el NO-APLICA de la
+   * P31—, no se juzga, y lo demás de la suite sigue contándose.
+   *
+   * ⚠️ Lo que SÍ es rojo: que el viaje traiga hitos y falten sus botones, o que
+   *    traiga uno solo. Eso lo sigue comprando la jueza de abajo.
+   */
+  const hitos = await m.evaluar(`document.querySelectorAll('.hito__l1').length`);
+  if (antes.length === 0 && hitos === 0) {
+    const cuantos = await m.evaluar(`document.querySelectorAll('.paso').length`);
+    const dicho = await m.evaluar(
+      `[...document.querySelectorAll('.aviso-ruta, .resumen__linea')].map((a) => a.textContent.trim()).join(' · ').slice(0, 120) || 'sin avisos'`,
+    );
+    console.log(
+      `  ⊘  en BiZi NO SE PUEDE EXIGIR botón vivo: el viaje llegó SIN hitos de BiZi ` +
+        `(${cuantos} pasos pintados · ${dicho}) — no se juzga, y no cuenta como verde`,
+    );
+  } else {
+    juez('en BiZi hay DOS botones vivos, uno por hito', antes.length === 2, `${antes.length}`);
+  }
   if (antes.length === 2) {
     juez(
       '⭐ el de COGER dice «Bicis ahora» y el de DEJAR «Anclajes ahora»',
@@ -281,30 +317,41 @@ try {
     }
     return true;
   };
-  await contesta(0);
-  await contesta(1);
-  const pulsados = await vivos();
-  console.log(`   tras pulsar: «${pulsados[0]?.region}» · «${pulsados[1]?.region}»`);
-  juez(
-    '⭐ el de bicis contesta BICIS y el de anclajes contesta ANCLAJES',
-    /bicis? disponibles?|no publica|no verificada/.test(pulsados[0]?.region ?? '') &&
-      /anclajes? libres?|no publica|no verificada/.test(pulsados[1]?.region ?? ''),
-    `${pulsados[0]?.region} || ${pulsados[1]?.region}`,
-  );
-  juez(
-    'y las dos regiones dicen cosas DISTINTAS: no es la misma respuesta en las dos',
-    pulsados[0]?.region !== pulsados[1]?.region,
-  );
+  // Y si no hay hitos que pulsar, tampoco se pulsa ni se cuenta: se declaró
+  // arriba, y exigir aquí sería exigir fantasmas.
+  const hayQuePulsar = antes.length > 0 || hitos > 0;
+  if (hayQuePulsar) {
+    await contesta(0);
+    await contesta(1);
+  }
+  const pulsados = hayQuePulsar ? await vivos() : [];
+  if (!hayQuePulsar) {
+    console.log('  ⊘  sin hitos no hay nada que pulsar: las juezas de las dos regiones y la de las dos consultas no se juzgan');
+  } else {
+    console.log(`   tras pulsar: «${pulsados[0]?.region}» · «${pulsados[1]?.region}»`);
+    juez(
+      '⭐ el de bicis contesta BICIS y el de anclajes contesta ANCLAJES',
+      /bicis? disponibles?|no publica|no verificada/.test(pulsados[0]?.region ?? '') &&
+        /anclajes? libres?|no publica|no verificada/.test(pulsados[1]?.region ?? ''),
+      `${pulsados[0]?.region} || ${pulsados[1]?.region}`,
+    );
+    juez(
+      'y las dos regiones dicen cosas DISTINTAS: no es la misma respuesta en las dos',
+      pulsados[0]?.region !== pulsados[1]?.region,
+    );
+  }
 
   // ── Dos pulsaciones son dos consultas: se cuentan de verdad ───────────────
   const contadas = await m.evaluar(
     `performance.getEntriesByType('resource').filter(r => r.name.includes('/api/estacion-viva')).length`,
   );
-  juez(
-    '⭐ dos pulsaciones = DOS consultas al motor (frescura por petición)',
-    contadas === 2,
-    `${contadas} peticiones a /api/estacion-viva`,
-  );
+  if (hayQuePulsar) {
+    juez(
+      '⭐ dos pulsaciones = DOS consultas al motor (frescura por petición)',
+      contadas === 2,
+      `${contadas} peticiones a /api/estacion-viva`,
+    );
+  }
 
   // Y la foto tampoco mata la suite si no hay pasos que enseñar: se encuadra lo
   // que haya (22/09, el peaje — aquí murió con «undefined.scrollIntoView»).
