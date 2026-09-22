@@ -5454,6 +5454,63 @@ pública de la app y se reconstruye al final como herramienta interna.
       relojes dormidos + m.ir(url, ms) — no entraban en el
       encargo. Batería 10/10 [bizi 18: +1 la del motor caliente]
       · unidad 775 ×3 tiradas · tipos limpios.
+- [x] ⚰️ **LA PODA DEL PRESUPUESTO (21-22/09; 7 commits
+      `3c82f3c`…`ed99a49`, un push con estos papeles): la foto, lo
+      invisible podado, la raya a la realidad, y CINCO propuestas
+      a la nevera CON PRECIO — por decisión de Antonio: es una
+      demo, no se optimiza por deporte.** LA FOTO [las dos
+      herramientas canónicas del builder esbuild: el metafile de
+      --stats-json analizado con la API del propio esbuild +
+      source-map-explorer, el recomendado por el equipo Angular;
+      contrastadas, con las discrepancias explicadas]: leaflet
+      29,1% [161 kB] · el framework ~40% [core 125,8 + router
+      68,3 + common 31,6] · buscador.ts 64,1 · el guion
+      foto-del-inicial.mjs queda en app/scripts. TRES PODAS
+      INVISIBLES, cada una con sonda y capturas al byte: ⭐
+      Leaflet por su ESM [mismo 1.9.4 sin envoltorio UMD: −4,14
+      kB crudo/−1,80 transferido; solo se pierde window.L que no
+      lee nadie; RE-ARMA el aviso CommonJS del CLI silenciado
+      desde el 16/08; la línea oficial al acta: «prefiere siempre
+      ESM nativo… hace las optimizaciones más potentes»] ·
+      comoSeVe muerto desde el 23/08 · .pildora--elegida que
+      ninguna plantilla puso nunca. 552,91→548,56 crudo /
+      144,25→142,40 transferido. ⭐ LA CIFRA VIEJA DESMENTIDA con
+      su porqué: los 1,46 kB de las rutas perezosas eran
+      comparación de TUBERÍAS distintas [el optimizador de trozos
+      de @angular/build solo entra con ≥3 perezosas]; con la
+      misma tubería la intranet cuesta +0,28 — lo que producción
+      paga de verdad son identidad+creditos: 2,54 crudo/3,06
+      transferido de pegamento por ir en 4 trozos. LA RAYA
+      [doctrina oficial: «límites que TÚ defines» — subirla con
+      porqué es el uso previsto]: aviso 520→560 [11,44 de holgura:
+      suena solo si algo engorda de verdad — llevaba semanas
+      sonando en falso y una alarma que siempre suena no vigila
+      nada] · error 1MB→1077 kB [la proporción exacta 1,923
+      conservada; BYTES_IN_KILOBYTE=1000 en el builder]; la
+      contraprueba: bajada un momento, SUENA; el dist BYTE-
+      IDÉNTICO [22 sha iguales, solo la fecha de .build-ok]. LA
+      NEVERA CON PRECIO [sobre el base del 22/09; si algo sale,
+      se re-mide]: quitar el router [−77/−17,9 medidos; el
+      sustituto NO CONSTA y sin doctrina que lo respalde] · el
+      resultado con @defer [cota ~26; cumple la letra oficial:
+      no está en el viewport inicial] · HttpClient→fetch [cota
+      25; doctrina sin leer] · recortar leaflet.css [cota 11;
+      riesgo visible] · forzar el optimizador de trozos [+2,14
+      crudo/−2,32 transferido, medido]. DESCARTADO POR LA LETRA:
+      diferir el mapa [visible en la carga inicial — la guía de
+      @defer lo prohíbe]. ⭐ HALLAZGO GORDO DE PROPINA, el único
+      roto de la casa: LA CARRERA DEL MAPA — si la hoja asíncrona
+      llega tras el JS, el mapa se monta sobre contenedor bajo y
+      queda una franja de teselas y el resto gris [3/3 con la
+      hoja retrasada 3 s; pasa con el dist base; un usuario con
+      red lenta podría verlo]. BITÁCORA ABIERTA — la siguiente
+      tanda. Y una bitácora cerrada del arnés: el comparador de
+      capturas decía «iguales» con un píxel cambiado [getbbox de
+      Pillow solo mira el alfa]. Batería 10/10 [pintura con 13 ⊘
+      de la carrera, repetida sola: 0 ⊘] · unidad 775 ×5 · tipos
+      305/382 · avisos restantes DECLARADOS: los dos de
+      anyComponentStyle [resultado.css 5,61 · buscador.css 4,20
+      sobre raya 4 — decisión de Antonio pendiente].
       LA LETRA ORIGINAL: las catorce
       capas de verificación y la vista de cotejo de la ampliación del
       regulado (la morada — le tocará trabajar en 2027, cuando la

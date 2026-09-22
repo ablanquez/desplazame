@@ -225,7 +225,13 @@ fuga capada por reutilización, el acta de los 115, el 10/10
 sobre `6a9f9cb`) — 27 commits `6efcd2a`…`4817094`, con el
 revert `37e3050` dentro — + los papeles de este destilado —
 UN push con todo ⚠️ desde M2, CADA PUSH REDESPLIEGA.**
-*(Al 21/09 tarde, lo en-local son TRES commits: LA TANDA DEL
+*(Al 22/09, lo en-local son SIETE commits: LA PODA — la foto
+del inicial, Leaflet a su ESM [−4,35 kB en total], la raya a
+560/1077 con contraprueba, la nevera con precio, y EL HALLAZGO
+de la carrera del mapa [bitácora ABIERTA — la siguiente tanda]
+— + estos papeles, UN push. El arnés ya se publicó en
+fb97615.)*
+*(Histórico del 21/09 tarde: TRES commits: LA TANDA DEL
 ARNÉS — los relojes esperan su hecho [m.esperar; el hallazgo
 de yego], la P26 declara «⊘ no se puede medir», y la carrera
 del data-theme CLAVADA con la letra del runner [era
@@ -1750,7 +1756,14 @@ DESHECHO por orden de Antonio — crónica y leyes en su bloque];
 LISTA FINAL para acabar según su papel:
 ⭐ el 21/09 tarde cayó también LA
 TANDA DEL ARNÉS [relojes+P26+carrera, crónica en su bloque];
-la poda del presupuesto · la mesa chica
+⭐ el 22/09 cayó LA PODA
+[foto+podas+raya+nevera, crónica en su bloque] y dejó EL
+ÚNICO ROTO DE LA CASA: ⚠️ LA CARRERA DEL MAPA [bitácora
+ABIERTA: la hoja asíncrona llega tras el JS y el mapa queda en
+franja — LA SIGUIENTE TANDA, producto+jueza] · pendiente de su
+firma: los dos avisos de anyComponentStyle [resultado.css
+5,61 · buscador.css 4,20 sobre raya 4 — ¿subir con el mismo
+criterio o dejar sonando?] · la mesa chica
 · los opcionales de Antonio [manifest · tope perfiles · 3 de
 F: · gradN25 · modo seguro] · y la prosa del panel a su gusto
 [estética, del remate del visor] · tres decisiones suyas en
@@ -1777,10 +1790,11 @@ el teclado · el safe-area en aparato; ⚠️ el MISTERIO de los
 fantasmas RESUELTO (15/09): eran los servidores que Antonio
 levanta a mano en dos PowerShell — norma nueva: levantar,
 mirar y CERRAR al terminar, que no salgan más «ajenos» en los
-checkpoints; EN LA MESA sin prisa: el presupuesto [la raya de 520 REBASADA;
-initial al cierre del 5b: 552,91 kB [+1,79 del 5b entero:
-rangos+pin], transferido 144,25 [superado el aviso de 520 por 32,91]; la
-poda como palanca] · [guardián: HECHO 19/09] · el
+checkpoints; EN LA MESA sin prisa: el presupuesto [LA PODA: HECHA el 22/09,
+crónica en su bloque — initial 548,56 kB / 142,40 transferido;
+la raya: aviso 560 · error 1077, proporción conservada, con
+contraprueba; los precios de la nevera en la crónica; el build
+sin aviso del initial] · [guardián: HECHO 19/09] · el
 refactor del resultado como componente propio [4 topes] · los
 e2e con 4200 a fuego [pantalla(adaptada), proximo-bus] · el
 HUESO de carga que ya no calca la forma de lo que llega [la
@@ -2121,7 +2135,7 @@ pida.
 
 **Método y vigilancia:** nada vigila el README (nº1 y nº5 lo avalan; lo
 cubren la regla transversal — la unidad es el documento — y la costura
-§6) · 1.437 pruebas (662 motor + 775 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (304+381 ficheros al cierre del 20/09) · guardias manuales y solo-Windows (declarado ya
+§6) · 1.437 pruebas (662 motor + 775 interfaz; e2e las diez aparte, a mano, con caché de teselas y salidas que dicen la verdad desde la parte 2 — pantalla y proximo-bus aún con 4200 a fuego; bizi-y-resumen ya por variable) sin CI · la muralla-sha256 del peatón (391 rutas) · pid-del-log==pid-que-contesta (⚠️ matizada el 8/09: lsnode releva procesos tras un deploy — asume UN proceso; ver el hallazgo 3 del cierre del 14) · comprobar-tipos con censo (305+382 ficheros al cierre del 22/09) · guardias manuales y solo-Windows (declarado ya
 en el README) · `GRAFO_ESPERADO` a mano · el hueco latente del model
 externo quedó CERRADO con el refactor del punto 6 (el padre es el dueño;
 todo entra por `elegir()`) — cabo nuevo a cambio: `SelectorPortal` ya no
