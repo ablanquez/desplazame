@@ -21,6 +21,18 @@
  */
 import { abrirChrome, terceros, perfilesResiduales } from './medir.mjs';
 
+/* ⭐ **LOS RELOJES, CAMBIADOS POR HECHOS** (22/09, la tanda del arnés).
+   Aquí se esperaba con `m.dormir(ms)`: 400 tras pulsar un radio, 900 tras
+   teclear una calle, 700 al elegirla, 600 + 500 con el portal y 9000 tras
+   «Generar». Eso compraba «ha pasado este rato», y lo que la jueza necesitaba
+   era otra cosa: que ESTÉ lo que va a leer. Con la máquina lenta el reloj se
+   quedaba corto y leía una pantalla a medias; con la rápida, esperaba de balde.
+   [Puppeteer, su propio README] «no hay necesidad de llamadas malignas a
+   sleep»; `waitForTimeout` se eliminó en la v22, y el reemplazo es esperar a LA
+   COSA. Cada espera de abajo nombra su hecho —`m.esperar(nombre, predicado)`,
+   ver `medir.mjs`—, y el número de antes se queda como TOPE de rescate: si el
+   hecho no llega, la suite cae diciendo cuál faltó, nunca en verde de suerte. */
+
 /* ⭐ LA URL, POR ARGUMENTO (10/09). Estaba a fuego en `localhost:4200`, o sea
    que este juez solo corría con `ng serve` delante y no contra el dist que
    sirve el motor. Es la misma costura que se le quitó a `creditos.mjs`. El
@@ -39,7 +51,16 @@ const pulsar = async (nombre, valor) => {
   const ok = await m.evaluar(
     `(() => { const r = document.querySelector('input[name=${nombre}][value=${valor}]'); if (!r) return false; r.click(); return true; })()`,
   );
-  await m.dormir(400);
+  // Antes: 400 ms. Ahora: que el radio ESTÉ marcado, y un pintado encima para
+  // que la fila que depende de él ya se haya redibujado cuando se lea.
+  if (ok) {
+    await m.esperar(
+      `el radio ${nombre}=${valor} marcado`,
+      `document.querySelector('input[name=${nombre}][value=${valor}]')?.checked === true`,
+      { topeMs: 400 },
+    );
+    await m.pintado();
+  }
   return ok;
 };
 
@@ -85,7 +106,13 @@ const foto = () =>
   })()`);
 
 try {
-  await m.ir(APP, 5000);
+  // Antes: 5000 ms a ciegas tras navegar. Ahora: que la fila de familias esté.
+  await m.ir(APP, 0);
+  await m.esperar(
+    'la aplicación montada: la fila de las seis familias',
+    `document.querySelectorAll('fieldset.modos.familias input[name=familia]').length === 6`,
+    { topeMs: 5000 },
+  );
 
   // ── 1 · LA SEGUNDA FILA DE LA MOTO ────────────────────────────────────────
   const inicio = await foto();
@@ -117,6 +144,21 @@ try {
 
   // ── 2 · CON YeGo NO HAY DISTINTIVO, Y EL POLÍGONO SIGUE ───────────────────
   await pulsar('moto', 'yego');
+  // ⭐ Y EL ÁREA, que es lo que las juezas de abajo leen (22/09). Marcar
+  //    «Pública YeGo» pide el área por su propia petición (`/api/area-yego`), y
+  //    el radio marcado no dice nada de ella. Al cambiar el reloj de 400 ms por
+  //    «radio marcado + pintado», estas tres juezas se pusieron ROJAS con
+  //    «0 manchas»: el sleep les cubría la petición por suerte. El hecho que
+  //    leen es la mancha de rayas en su panel, y se espera a ella. El tope no
+  //    es el 400 del radio, que nunca fue la espera de esta petición: es el de
+  //    cualquier otra petición al motor en estas suites, 5000.
+  await m.esperar(
+    'el área de servicio de YeGo pintada: una mancha a rayas en el panel de la zona',
+    `[...document.querySelectorAll('.leaflet-zbe-pane path:not(.ribete-de-borde)')]
+      .some((x) => x.getAttribute('stroke-dasharray') !== null)`,
+    { topeMs: 5000 },
+  );
+  await m.pintado();
   const enYego = await foto();
   juez('⭐ con YeGo la pregunta del distintivo NO está', enYego.distintivos === null);
   juez('ni la del aparcamiento', enYego.aparcamientos === null);
@@ -142,7 +184,12 @@ try {
       const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
       set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
     })()`);
-    await m.dormir(900);
+    // Antes: 900 ms. Ahora: que la lista de esa calle traiga opciones.
+    await m.esperar(
+      `las sugerencias de «${texto}» en el campo ${i}`,
+      `document.querySelectorAll('app-autocompletar-via')[${i}].querySelectorAll('[role=option]').length > 0`,
+      { topeMs: 900 },
+    );
   };
   const elegir = async (i, exacto) => {
     await m.evaluar(`(() => {
@@ -151,7 +198,14 @@ try {
       const o = ops.find(x => x.textContent.trim().toUpperCase() === ${JSON.stringify(String(exacto ?? '').toUpperCase())}) ?? ops[0];
       if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
     })()`);
-    await m.dormir(700);
+    // Antes: 700 ms. Ahora: la lista cerrada y el portal de ese lado habilitado,
+    // que es lo que la elección de una calle abre.
+    await m.esperar(
+      `la calle elegida en el campo ${i}: su lista cerrada y el portal habilitado`,
+      `document.querySelectorAll('app-autocompletar-via')[${i}].querySelectorAll('[role=option]').length === 0 &&
+       document.querySelectorAll('app-selector-portal input')[${i}]?.disabled === false`,
+      { topeMs: 700 },
+    );
   };
   const portal = async (i, num) => {
     await m.evaluar(`(() => {
@@ -160,23 +214,40 @@ try {
       const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
       set.call(c, ${JSON.stringify(num)}); c.dispatchEvent(new Event('input', { bubbles: true }));
     })()`);
-    await m.dormir(600);
+    // Antes: 600 ms. Ahora: que el portal pedido ESTÉ en la lista.
+    await m.esperar(
+      `el portal ${num} en la lista del campo ${i}`,
+      `[...document.querySelectorAll('app-selector-portal')[${i}].querySelectorAll('[role=option]')]
+        .some((x) => x.textContent.trim() === ${JSON.stringify(num)})`,
+      { topeMs: 600 },
+    );
     await m.evaluar(`(() => {
       const c = document.querySelectorAll('app-selector-portal')[${i}]; if (!c) return;
       const ops = [...c.querySelectorAll('[role=option]')];
       const o = ops.find((x) => x.textContent.trim() === ${JSON.stringify(num)}) ?? ops[0];
       if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
     })()`);
-    await m.dormir(500);
+    // Antes: 500 ms. Ahora: el campo con ese portal puesto y su lista cerrada.
+    await m.esperar(
+      `el portal ${num} puesto en el campo ${i}`,
+      `document.querySelectorAll('app-selector-portal input')[${i}]?.value.trim() === ${JSON.stringify(num)} &&
+       document.querySelectorAll('app-selector-portal')[${i}].querySelectorAll('[role=option]').length === 0`,
+      { topeMs: 500 },
+    );
   };
 
   await m.evaluar(`(() => {
     window.__cuerpos = [];
+    window.__respuestasDeRuta = 0;
     const pedir = window.fetch;
     window.fetch = function (entrada, opciones) {
       const url = typeof entrada === 'string' ? entrada : entrada?.url;
-      if (String(url).includes('/api/ruta') && opciones?.body) window.__cuerpos.push(String(opciones.body));
-      return pedir.apply(this, arguments);
+      const esRuta = String(url).includes('/api/ruta');
+      if (esRuta && opciones?.body) window.__cuerpos.push(String(opciones.body));
+      const promesa = pedir.apply(this, arguments);
+      // ⭐ Y LA RESPUESTA, contada (22/09): es el hecho que «Generar» espera.
+      if (esRuta) promesa.then(() => { window.__respuestasDeRuta++; }, () => { window.__respuestasDeRuta++; });
+      return promesa;
     };
   })()`);
 
@@ -187,11 +258,20 @@ try {
   await elegir(1, 'CALLE ABEN AIRE');
   await portal(1, '33');
 
-  await m.evaluar(`window.__cuerpos = []`);
+  await m.evaluar(`window.__cuerpos = []; window.__respuestasDeRuta = 0`);
   await m.evaluar(
     `[...document.querySelectorAll('button')].find(b => b.textContent.includes('Generar')).click()`,
   );
-  await m.dormir(9000);
+  // Antes: 9000 ms a ciegas. Ahora: LA RESPUESTA de /api/ruta —contada por el
+  // espía de `fetch`— y el botón ya libre, que es cuando la pantalla la ha
+  // pintado. Es el `waitForResponse` de la doctrina. 9000 queda de TOPE.
+  await m.esperar(
+    'la respuesta de /api/ruta, ya pintada',
+    `window.__respuestasDeRuta >= 1 &&
+     ![...document.querySelectorAll('button')].find((b) => b.textContent.includes('Generar'))?.disabled`,
+    { topeMs: 9000 },
+  );
+  await m.pintado();
 
   const cuerpos = (await m.evaluar(`window.__cuerpos`)).map((c) => JSON.parse(c));
   juez('sale UNA petición de ruta', cuerpos.length === 1, `${cuerpos.length}`);
@@ -254,7 +334,8 @@ try {
 
   // ── 4 · LA FOTO ───────────────────────────────────────────────────────────
   await m.evaluar(`document.querySelector('fieldset.modos.familias').scrollIntoView({block:'start'})`);
-  await m.dormir(500);
+  // Antes: 500 ms. Ahora: que el desplazamiento esté PINTADO antes de la foto.
+  await m.pintado();
   await m.guardar(FOTO);
   console.log(`   foto en ${FOTO}`);
 
@@ -267,11 +348,20 @@ try {
   await escribir(1, 'PASEO INDEPENDENCIA');
   await elegir(1, 'PASEO INDEPENDENCIA');
   await portal(1, '3');
-  await m.evaluar(`window.__cuerpos = []`);
+  await m.evaluar(`window.__cuerpos = []; window.__respuestasDeRuta = 0`);
   await m.evaluar(
     `[...document.querySelectorAll('button')].find(b => b.textContent.includes('Generar')).click()`,
   );
-  await m.dormir(6000);
+  // Antes: 6000 ms a ciegas. Ahora: LA RESPUESTA de /api/ruta —contada por el
+  // espía de `fetch`— y el botón ya libre, que es cuando la pantalla la ha
+  // pintado. Es el `waitForResponse` de la doctrina. 6000 queda de TOPE.
+  await m.esperar(
+    'la respuesta de /api/ruta al destino fuera del área, ya pintada',
+    `window.__respuestasDeRuta >= 1 &&
+     ![...document.querySelectorAll('button')].find((b) => b.textContent.includes('Generar'))?.disabled`,
+    { topeMs: 6000 },
+  );
+  await m.pintado();
 
   const rechazo = await m.evaluar(`(() => ({
     pasos: document.querySelectorAll('.paso').length,

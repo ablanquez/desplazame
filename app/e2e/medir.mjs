@@ -861,6 +861,45 @@ export async function abrirChrome({ puerto = 9350, ancho = 1280, alto = 1400 } =
       await dormir(esperaMs);
     },
     dormir,
+    /**
+     * ⭐ **ESPERAR A UN HECHO, NO A UN RELOJ** (22/09, la tanda del arnés).
+     *
+     * [Puppeteer, su propio README] *«no hay necesidad de llamadas malignas a
+     * sleep»*: la arquitectura es de eventos, y `waitForTimeout` se ELIMINÓ de
+     * la herramienta en la v22. El reemplazo no es otro sleep: es esperar a LA
+     * COSA que de verdad hace falta —el elemento, la respuesta, la condición—.
+     * Esto es el `waitForFunction` de esta casa: se le pregunta a la página por
+     * un predicado hasta que se cumple.
+     *
+     * · `nombre` es el hecho, dicho en castellano. Es lo que sale en el mensaje
+     *   si no llega, así que tiene que poder leerse sin abrir el código.
+     * · `predicado` es una expresión que se evalúa en la página; vale en
+     *   cuanto da algo verdadero, y ESE valor es lo que se devuelve.
+     * · `topeMs` es el rescate, no la espera: la doctrina quita el sleep, no el
+     *   límite. Pasado el tope **se lanza con el nombre del hecho**, así que
+     *   una espera que no llega es un rojo que dice qué faltó, nunca un verde
+     *   de suerte ni un cuelgue mudo.
+     */
+    esperar: async (nombre, predicado, { topeMs = 10000, cadaMs = 100 } = {}) => {
+      const desde = Date.now();
+      for (;;) {
+        const valor = await evaluar(`(() => { try { return (${predicado}); } catch { return null; } })()`);
+        if (valor) {
+          return valor;
+        }
+        if (Date.now() - desde >= topeMs) {
+          throw new Error(`⏱ TIEMPO AGOTADO esperando «${nombre}»: ${topeMs} ms sin que se cumpla`);
+        }
+        await dormir(cadaMs);
+      }
+    },
+    /**
+     * Que la página haya PINTADO lo último que se le pidió: dos vueltas de
+     * `requestAnimationFrame`. Una sola corre antes del pintado; la segunda,
+     * después. Es la misma regla que el guion del tema ya usa en `index.html`.
+     */
+    pintado: () =>
+      evaluar('new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(true))))'),
     /** La pantalla entera, ya decodificada a RGBA. */
     captura: async () => leerPng(Buffer.from((await cdp('Page.captureScreenshot', { format: 'png' })).data, 'base64')),
     guardar: async (ruta) => {
@@ -894,6 +933,35 @@ const clave = ({ r, g, b }) => (r << 16) | (g << 8) | b;
 const desdeClave = (k) => ({ r: (k >> 16) & 255, g: (k >> 8) & 255, b: k & 255 });
 
 /** Cuenta los colores de un rectángulo de la captura. */
+/**
+ * ⭐ **ESPERAR A UNA LÍNEA DEL LOG DEL MOTOR** (22/09, la tanda del arnés).
+ *
+ * El motor no expone en `/api/salud` si ya ha terminado su pase de arranque
+ * —y tocar el motor para que lo diga es producto, no arnés—, pero **lo escribe
+ * en su log**: `motor: <resumen del refresco>` cuando acaba el pase de desvíos,
+ * o `motor: no se ha podido leer la ruta operativa — …` si la fuente no
+ * contestó. Cualquiera de las dos dice que el pase TERMINÓ. Esta función lee
+ * el fichero del log hasta que aparece la línea, con tope.
+ *
+ * Devuelve la línea que casó. Pasado el tope, lanza con el nombre del hecho.
+ */
+export async function esperarLineaDelLog(ruta, patron, nombre, { topeMs = 120000, cadaMs = 500 } = {}) {
+  const { readFileSync, existsSync } = await import('node:fs');
+  const desde = Date.now();
+  for (;;) {
+    if (existsSync(ruta)) {
+      const casada = readFileSync(ruta, 'utf8').split(/\r?\n/).find((l) => patron.test(l));
+      if (casada) {
+        return casada;
+      }
+    }
+    if (Date.now() - desde >= topeMs) {
+      throw new Error(`⏱ TIEMPO AGOTADO esperando «${nombre}» en ${ruta}: ${topeMs} ms sin la línea`);
+    }
+    await new Promise((r) => setTimeout(r, cadaMs));
+  }
+}
+
 export function censoDe(png, { x, y, w, h }) {
   const x0 = Math.max(0, Math.round(x));
   const y0 = Math.max(0, Math.round(y));

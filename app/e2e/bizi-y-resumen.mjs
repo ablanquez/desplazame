@@ -10,9 +10,31 @@
  *
  *     node app/e2e/bizi-y-resumen.mjs [carpeta-de-fotos]
  */
-import { abrirChrome, terceros, perfilesResiduales } from './medir.mjs';
+import { abrirChrome, terceros, perfilesResiduales, esperarLineaDelLog } from './medir.mjs';
+
+/* ⭐ **LOS RELOJES, CAMBIADOS POR HECHOS** (22/09, la tanda del arnés).
+   Esta suite esperaba con `m.dormir(ms)`: 900/700/600/500 con el formulario,
+   300 tras cada radio, 9000 y 16000 tras «Generar», 4000 tras cada botón vivo.
+   Eso compraba «ha pasado este rato», y la jueza necesitaba que ESTUVIERA lo
+   que iba a leer. [Puppeteer, su propio README] «no hay necesidad de llamadas
+   malignas a sleep»; `waitForTimeout` se eliminó en la v22 y el reemplazo es
+   esperar a LA COSA. Cada espera nombra su hecho —`m.esperar(nombre,
+   predicado)`, ver `medir.mjs`— y el número de antes se queda como TOPE: si el
+   hecho no llega, la suite cae diciendo cuál faltó.
+
+   ⭐ **Y EL MOTOR CALIENTE, que era el reloj escondido.** El 19/09 esta suite
+   dio rojo con el motor recién arrancado y verde al repetirla: el viaje en bus
+   se buscaba antes de que el motor terminara su pase de desvíos, y el resumen
+   salía sin ellos. Tres verdes seguidos después eran suerte de ORDEN —se
+   corría cuando el motor ya llevaba rato vivo—, no espera. El motor escribe en
+   su log cuándo acaba ese pase —`motor: <resumen del refresco>`, o `motor: no
+   se ha podido leer la ruta operativa — …` si la fuente no contestó—, y esa
+   línea es el hecho. `/api/salud` no lo dice, y hacer que lo diga es tocar el
+   motor: otra tanda. Así que la suite pide la ruta del log en `MOTOR_LOG`, y
+   **sin ella no finge**: lo dice en rojo. */
 
 const APP = process.env.APP ?? 'http://localhost:4200/';
+const MOTOR_LOG = process.env.MOTOR_LOG ?? null;
 const FOTOS = process.argv[2] ?? '.';
 
 const m = await abrirChrome({ alto: 1800 });
@@ -28,7 +50,12 @@ const escribir = async (i, texto) => {
     const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
     set.call(c, ${JSON.stringify(texto)}); c.dispatchEvent(new Event('input', { bubbles: true }));
   })()`);
-  await m.dormir(900);
+  // Antes: 900 ms. Ahora: que la lista de esa calle traiga opciones.
+  await m.esperar(
+    `las sugerencias de «${texto}» en el campo ${i}`,
+    `document.querySelectorAll('app-autocompletar-via')[${i}].querySelectorAll('[role=option]').length > 0`,
+    { topeMs: 900 },
+  );
 };
 const elegir = async (i, exacto) => {
   await m.evaluar(`(() => {
@@ -37,7 +64,13 @@ const elegir = async (i, exacto) => {
     const o = ops.find(x => x.textContent.trim().toUpperCase() === ${JSON.stringify(String(exacto ?? '').toUpperCase())}) ?? ops[0];
     if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
   })()`);
-  await m.dormir(700);
+  // Antes: 700 ms. Ahora: la lista cerrada y el portal de ese lado habilitado.
+  await m.esperar(
+    `la calle elegida en el campo ${i}: su lista cerrada y el portal habilitado`,
+    `document.querySelectorAll('app-autocompletar-via')[${i}].querySelectorAll('[role=option]').length === 0 &&
+     document.querySelectorAll('app-selector-portal input')[${i}]?.disabled === false`,
+    { topeMs: 700 },
+  );
 };
 const portal = async (i, num) => {
   await m.evaluar(`(() => {
@@ -46,29 +79,65 @@ const portal = async (i, num) => {
     const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
     set.call(c, ${JSON.stringify(num)}); c.dispatchEvent(new Event('input', { bubbles: true }));
   })()`);
-  await m.dormir(600);
+  // Antes: 600 ms. Ahora: que el portal pedido ESTÉ en la lista.
+  await m.esperar(
+    `el portal ${num} en la lista del campo ${i}`,
+    `[...document.querySelectorAll('app-selector-portal')[${i}].querySelectorAll('[role=option]')]
+      .some((x) => x.textContent.trim() === ${JSON.stringify(num)})`,
+    { topeMs: 600 },
+  );
   await m.evaluar(`(() => {
     const c = document.querySelectorAll('app-selector-portal')[${i}]; if (!c) return;
     const ops = [...c.querySelectorAll('[role=option]')];
     const o = ops.find((x) => x.textContent.trim() === ${JSON.stringify(num)}) ?? ops[0];
     if (o) { o.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); o.click(); }
   })()`);
-  await m.dormir(500);
+  // Antes: 500 ms. Ahora: el campo con ese portal puesto y su lista cerrada.
+  await m.esperar(
+    `el portal ${num} puesto en el campo ${i}`,
+    `document.querySelectorAll('app-selector-portal input')[${i}]?.value.trim() === ${JSON.stringify(num)} &&
+     document.querySelectorAll('app-selector-portal')[${i}].querySelectorAll('[role=option]').length === 0`,
+    { topeMs: 500 },
+  );
 };
 const modo = async (cual) => {
   const familia = cual === 'bizi' ? 'bici' : cual;
   await m.evaluar(`document.querySelector('input[name=familia][value=${familia}]').click()`);
-  await m.dormir(300);
+  // Antes: 300 ms. Ahora: el radio marcado y un pintado encima.
+  await m.esperar(
+    `la familia ${familia} marcada`,
+    `document.querySelector('input[name=familia][value=${familia}]')?.checked === true`,
+    { topeMs: 300 },
+  );
+  await m.pintado();
   if (familia === 'bici') {
     await m.evaluar(`document.querySelector('input[name=bici][value=${cual}]').click()`);
-    await m.dormir(300);
+    await m.esperar(
+      `la bici ${cual} marcada`,
+      `document.querySelector('input[name=bici][value=${cual}]')?.checked === true`,
+      { topeMs: 300 },
+    );
+    await m.pintado();
   }
 };
-const generar = async (esperaMs) => {
+/**
+ * «Generar» y esperar a SU RESPUESTA [el `waitForResponse` de la doctrina]:
+ * el espía de `fetch` cuenta las respuestas de `/api/ruta`, y además el botón
+ * tiene que haber dejado de estar ocupado, que es cuando la pantalla la ha
+ * pintado. `topeMs` es el sleep de antes, ahora de rescate.
+ */
+const generar = async (topeMs) => {
+  const antes = await m.evaluar(`window.__respuestasDeRuta ?? 0`);
   await m.evaluar(
     `[...document.querySelectorAll('button')].find(b => b.textContent.includes('Generar')).click()`,
   );
-  await m.dormir(esperaMs);
+  await m.esperar(
+    'la respuesta de /api/ruta, ya pintada',
+    `(window.__respuestasDeRuta ?? 0) > ${antes} &&
+     ![...document.querySelectorAll('button')].find((b) => b.textContent.includes('Generar'))?.disabled`,
+    { topeMs },
+  );
+  await m.pintado();
 };
 /** Lo que se ve de los botones vivos y sus regiones, ahora mismo. */
 const vivos = () =>
@@ -91,7 +160,48 @@ const vivos = () =>
     }))`);
 
 try {
-  await m.ir(APP, 5000);
+  // ⭐ EL MOTOR CALIENTE, antes de nada: es la condición de toda la suite.
+  if (MOTOR_LOG === null) {
+    juez(
+      '⭐ el motor ha terminado su pase de arranque (desvíos)',
+      false,
+      'NO SE PUEDE SABER: falta MOTOR_LOG con la ruta del log del motor — sin ella esta suite no finge que está caliente',
+    );
+  } else {
+    const t0 = Date.now();
+    const linea = await esperarLineaDelLog(
+      MOTOR_LOG,
+      /^motor: (ruta operativa de hoy|no se ha podido leer la ruta operativa) — /,
+      'el pase de desvíos del motor terminado',
+      { topeMs: 120000 },
+    );
+    juez(
+      '⭐ el motor ha terminado su pase de arranque (desvíos)',
+      true,
+      `«${linea.trim().slice(0, 90)}» · esperado ${Math.round((Date.now() - t0) / 1000)} s`,
+    );
+  }
+
+  // Antes: 5000 ms a ciegas. Ahora: que estén los dos campos de calle.
+  await m.ir(APP, 0);
+  await m.esperar(
+    'la aplicación montada: los dos campos de calle',
+    `document.querySelectorAll('app-autocompletar-via input').length === 2`,
+    { topeMs: 5000 },
+  );
+  // El espía de las respuestas de /api/ruta: es el hecho que «Generar» espera.
+  await m.evaluar(`(() => {
+    window.__respuestasDeRuta = 0;
+    const pedir = window.fetch;
+    window.fetch = function (entrada) {
+      const url = typeof entrada === 'string' ? entrada : entrada?.url;
+      const promesa = pedir.apply(this, arguments);
+      if (String(url).includes('/api/ruta')) {
+        promesa.then(() => { window.__respuestasDeRuta++; }, () => { window.__respuestasDeRuta++; });
+      }
+      return promesa;
+    };
+  })()`);
 
   // ══ 1 · LOS DOS BOTONES DE LA BiZi ═══════════════════════════════════════
   await escribir(0, 'COLOSO');
@@ -129,10 +239,21 @@ try {
   }
 
   // ── Se pulsan los dos, y se mira lo que contestan ─────────────────────────
-  await m.evaluar(`document.querySelectorAll('.vivo__boton')[0].click()`);
-  await m.dormir(4000);
-  await m.evaluar(`document.querySelectorAll('.vivo__boton')[1].click()`);
-  await m.dormir(4000);
+  // Antes: 4000 ms tras cada botón. Ahora: que SU región haya contestado —ya no
+  // está `aria-busy` y dice algo—, que es exactamente lo que se lee después.
+  const contesta = async (i) => {
+    await m.evaluar(`document.querySelectorAll('.vivo__boton')[${i}].click()`);
+    await m.esperar(
+      `la respuesta del botón vivo ${i} en su región`,
+      `(() => {
+        const r = document.querySelectorAll('.vivo__estado')[${i}];
+        return !!r && r.getAttribute('aria-busy') !== 'true' && r.textContent.trim().length > 0;
+      })()`,
+      { topeMs: 4000 },
+    );
+  };
+  await contesta(0);
+  await contesta(1);
   const pulsados = await vivos();
   console.log(`   tras pulsar: «${pulsados[0]?.region}» · «${pulsados[1]?.region}»`);
   juez(
@@ -157,7 +278,8 @@ try {
   );
 
   await m.evaluar(`document.querySelectorAll('.paso')[0].scrollIntoView({block:'start'})`);
-  await m.dormir(300);
+  // Antes: 300 ms. Ahora: el desplazamiento pintado antes de la foto.
+  await m.pintado();
   await m.guardar(`${FOTOS}/bizi-botones.png`);
   console.log(`   foto de los botones en ${FOTOS}/bizi-botones.png`);
 
@@ -234,7 +356,8 @@ try {
         const id = a.getAttribute('href').slice(1);
         return { foco: document.activeElement?.id ?? '(ninguno)', esperado: id };
       })()`);
-      await m.dormir(300);
+      // Aquí había un `dormir(300)` DESPUÉS de leer el foco: no esperaba a nada
+      // que la jueza fuera a mirar —el foco ya estaba leído—. Se quita.
       juez(
         '⭐ seguir el enlace mueve EL FOCO al paso, no solo la página',
         movido.foco === movido.esperado,
@@ -270,7 +393,8 @@ try {
   );
 
   await m.evaluar(`document.querySelector('.resumen')?.scrollIntoView({block:'start'})`);
-  await m.dormir(300);
+  // Antes: 300 ms. Ahora: el desplazamiento pintado antes de la foto.
+  await m.pintado();
   await m.guardar(`${FOTOS}/resumen-avisos.png`);
   console.log(`   foto del resumen en ${FOTOS}/resumen-avisos.png`);
 
